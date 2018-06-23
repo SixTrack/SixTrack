@@ -55,6 +55,10 @@ module sixtrack_input
 
   ! Organisation of Random Numbers
   integer,                       public, save :: sixin_iorg
+  
+  ! Beam-Beam Elements
+  real(kind=fPrec),              public, save :: sixin_emitNX
+  real(kind=fPrec),              public, save :: sixin_emitNY
 
   interface sixin_echoVal
     module procedure sixin_echoVal_int
@@ -2735,9 +2739,9 @@ subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
   select case(iLine)
 
   case(1)
-    
+
     name(:) = str_nmSpace
-    
+
     if(nSplit > 0) name(1) = lnSplit(1)
     if(nSplit > 1) name(2) = lnSplit(2)
     if(nSplit > 2) name(3) = lnSplit(3)
@@ -2749,11 +2753,11 @@ subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
       call sixin_echoVal("name3",name(3),"DECO",iLine)
       call sixin_echoVal("name4",name(4),"DECO",iLine)
     end if
-    
+
     iskew = 1
-    
+
   case(2)
-    
+
     if(nSplit > 0) name(5) = lnSplit(1)
     if(nSplit > 1) call chr_cast(lnSPlit(2),qwsk(1),iErr)
 
@@ -2762,9 +2766,9 @@ subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
       call sixin_echoVal("qwsk(1)",qwsk(1),"DECO",iLine)
     end if
     if(iErr) return
-    
+
   case(3)
-    
+
     if(nSplit > 0) name(6) = lnSplit(1)
     if(nSplit > 1) call chr_cast(lnSPlit(2),qwsk(2),iErr)
 
@@ -2773,9 +2777,9 @@ subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
       call sixin_echoVal("qwsk(2)",qwsk(2),"DECO",iLine)
     end if
     if(iErr) return
-    
+
     iskew = 2
-    
+
     do i=1,6
       do j=1,il
         if(iskew == 2 .and. i > 4) return
@@ -2804,14 +2808,14 @@ subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
         end if
       end do
     end do
-    
+
   case default
     write(lout,"(a,i0)") "DECO> ERROR Unexpected line number ",iLine
     iErr = .true.
     return
 
   end select
-  
+
 end subroutine sixin_parseInputLineDECO
 
 ! ================================================================================================ !
@@ -2822,7 +2826,7 @@ end subroutine sixin_parseInputLineDECO
 subroutine sixin_parseInputLineNORM(inLine, iLine, iErr)
 
   use mod_commond
-  
+
   implicit none
 
   character(len=*), intent(in)    :: inLine
@@ -2851,7 +2855,7 @@ subroutine sixin_parseInputLineNORM(inLine, iLine, iErr)
       return
     end if
     inorm = 1
-    
+
     if(nSplit > 0) call chr_cast(lnSPlit(1),nordf,iErr)
     if(nSplit > 1) call chr_cast(lnSPlit(2),nvarf,iErr)
     if(nSplit > 2) call chr_cast(lnSPlit(3),nord1,iErr)
@@ -2863,7 +2867,7 @@ subroutine sixin_parseInputLineNORM(inLine, iLine, iErr)
       call sixin_echoVal("nord1",nord1,"NORM",iLine)
       call sixin_echoVal("idptr",idptr,"NORM",iLine)
     end if
-    
+
     if(nord /= 0 .and. nordf > nord+1) then
       imod1 = 1
     end if
@@ -2874,14 +2878,155 @@ subroutine sixin_parseInputLineNORM(inLine, iLine, iErr)
     if(idptr < 0 .or. idptr > 6) then
       idptr = 0
     end if
-  
+
   case default
     write(lout,"(a,i0)") "NORM> ERROR Unexpected line number ",iLine
     iErr = .true.
     return
 
   end select
-  
+
 end subroutine sixin_parseInputLineNORM
+
+! ================================================================================================ !
+!  Parse Beam–Beam Element Line
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-23
+! ================================================================================================ !
+subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
+
+  use parbeam, only : beam_expflag
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen) elemName
+  real(kind=fPrec) xang,xstr,xplane
+  integer nSplit, ibsix, j
+  logical spErr, beamXStr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "BEAM> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  if(iLine == 1) then
+
+    if(lnSplit(1) == "EXPERT") then
+      beam_expflag = 1
+      write(lout,"(a)") "BEAM> EXPERT mode enabled."
+      return
+    end if
+
+    write(lout,"(a)") "BEAM> Reading old style beam block."
+    write(lout,"(a)") "BEAM>    To convert to the new format, copy-paste these lines into the BEAM block in fort.3,"
+    write(lout,"(a)") "BEAM> replacing line 2 onwards. Then write EXPERT on the first line of the BEAM block, above"
+    write(lout,"(a)") "BEAM> the current first line. Finally, in the SINGLE ELEMENTS list (normally in fort.2) set "
+    write(lout,"(a)") "BEAM> the parameters of all beam-beam lenses (type 20) to 0.0."
+    write(lout,"(a)") "BEAM>    This procedure produces a new set of input files that should have bit-for-bit iden-"
+    write(lout,"(a)") "BEAM> tical results to this one."
+    write(lout,"(a)") "BEAM>    The easiest way to check this is to run both simulations side-by-side and compare"
+    write(lout,"(a)") "BEAM> the standard output in a text diff tool like meld. If the results are not identical,"
+    write(lout,"(a)") "BEAM> this is a bug; please report it to the developers."
+#ifndef CRLIBM
+    write(lout,"(a)") "BEAM> WARNING This sixtrack binary was not compiled with crlibm, conversion will not be exact."
+#endif
+
+    if(nSplit > 0) call chr_cast(lnSPlit(1),partnum,     iErr)
+    if(nSplit > 1) call chr_cast(lnSPlit(2),sixin_emitNX,iErr)
+    if(nSplit > 2) call chr_cast(lnSPlit(3),sixin_emitNY,iErr)
+    if(nSplit > 3) call chr_cast(lnSPlit(4),sigz,        iErr)
+    if(nSplit > 4) call chr_cast(lnSPlit(5),sige,        iErr)
+    if(nSplit > 5) call chr_cast(lnSPlit(6),ibeco,       iErr)
+    if(nSplit > 6) call chr_cast(lnSPlit(7),ibtyp,       iErr)
+    if(nSplit > 7) call chr_cast(lnSPlit(8),lhc,         iErr)
+    if(nSplit > 8) call chr_cast(lnSPlit(9),ibbc,        iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("partnum",partnum,     "BEAM",iLine)
+      call sixin_echoVal("emitnx", sixin_emitNX,"BEAM",iLine)
+      call sixin_echoVal("emitny", sixin_emitNY,"BEAM",iLine)
+      call sixin_echoVal("sigz",   sigz,        "BEAM",iLine)
+      call sixin_echoVal("sige",   sige,        "BEAM",iLine)
+      call sixin_echoVal("ibeco",  ibeco,       "BEAM",iLine)
+      call sixin_echoVal("ibtyp",  ibtyp,       "BEAM",iLine)
+      call sixin_echoVal("lhc",    lhc,         "BEAM",iLine)
+      call sixin_echoVal("ibbc",   ibbc,        "BEAM",iLine)
+    end if
+    if(iErr) return
+
+    if(nSplit /= 9) then
+      write(lout,"(a,i0)") "BEAM> WARNING (not EXPERT). First line should have 9 fields, got ",nSplit
+    end if
+
+    if(sixin_emitNX <= pieni .or. sixin_emitNY <= pieni) then
+      write(lout,"(a)") "BEAM> ERROR Either normalised emittances or the resulting sigma values equal to zero."
+      iErr = .true.
+      return
+    end if
+
+    if(ibeco /= 0 .and. ibeco /= 1) ibeco = 1
+    if(ibtyp /= 0 .and. ibtyp /= 1) ibtyp = 0
+    if(ibbc  /= 0 .and. ibbc  /= 1) ibbc  = 0
+    if(lhc    < 0 .or.  lhc    > 2) lhc   = 1
+
+    nbeam = 1
+
+    if(ibtyp == 1) call wzset
+
+  else
+
+    beamXStr = .false.
+    if(nSplit == 5) then
+      beamXStr = .true.
+    elseif(nSplit == 4) then
+      beamXStr = .false.
+    else
+      write(lout,"(a,i0)") "BEAM> ERROR Number of arguments in line 2 is expected to be 4 or 5, got ",nSplit
+      iErr = .true.
+      return
+    end if
+
+    if(nSplit > 0) elemName = trim(lnSPlit(1))
+    if(nSplit > 1) call chr_cast(lnSPlit(2),ibsix, iErr)
+    if(nSplit > 2) call chr_cast(lnSPlit(3),xang,  iErr)
+    if(nSplit > 3) call chr_cast(lnSPlit(4),xplane,iErr)
+    if(nSplit > 4) call chr_cast(lnSPlit(5),xstr,  iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("name",  elemName,"BEAM",iLine)
+      call sixin_echoVal("ibsix", ibsix,   "BEAM",iLine)
+      call sixin_echoVal("xang",  xang,    "BEAM",iLine)
+      call sixin_echoVal("xplane",xplane,  "BEAM",iLine)
+      call sixin_echoVal("xstr",  xstr,    "BEAM",iLine)
+    end if
+    if(iErr) return
+
+    if(.not. beamXStr) then
+      write(lout,"(a)") "BEAM> WARNING No xstr present, assuming xstr = xang."
+      xstr = xang
+    end if
+
+    if(ibsix < 0) ibsix = 0
+    do j=1,il
+      if(bez(j) == elemName .and. kz(j) == 20) then
+        ibb6d       = 1
+        parbe(j,2)  = real(ibsix,fPrec)
+        parbe(j,1)  = xang
+        parbe(j,3)  = xplane
+        parbe(j,18) = xstr
+        exit
+      end if
+    end do
+
+  end if
+
+end subroutine sixin_parseInputLineBEAM
 
 end module sixtrack_input

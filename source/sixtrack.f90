@@ -87,7 +87,7 @@ subroutine daten
     izu,j,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,nac,nbidu,nfb,nft,i4,i5
 
-  real(kind=fPrec) emitnx,emitny,tilt,xang,xstr,xplane
+  real(kind=fPrec) tilt,xang,xstr,xplane
 
   ! For BEAM-EXP
   real(kind=fPrec) separx,separy,mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
@@ -185,8 +185,6 @@ subroutine daten
         ic0(i)=' '
       end do
 
-      emitnx=zero
-      emitny=zero
       ihead=' '
       sixtit=' '
       nbidu=0
@@ -254,73 +252,77 @@ subroutine daten
 ! ================================================================================================ !
 
   ! SixTrack Settings
-  st_print    = .false.
-  st_debug    = .false.
-  st_quiet    = 0
+  st_print     = .false.
+  st_debug     = .false.
+  st_quiet     = 0
 
   ! TRACKING PARAMETERS
-  numl        = 1
-  napx        = 0
-  amp0        = zero
-  amp(1)      = c1m3
-  ird         = 0
-  imc         = 0
-  numlcp      = 1000
-  numlmax     = 1000000000
+  numl         = 1
+  napx         = 0
+  amp0         = zero
+  amp(1)       = c1m3
+  ird          = 0
+  imc          = 0
+  numlcp       = 1000
+  numlmax      = 1000000000
 
-  idz(:)      = 1
-  idfor       = 0
-  irew        = 0
-  iclo        = 0
+  idz(:)       = 1
+  idfor        = 0
+  irew         = 0
+  iclo         = 0
 
-  nde(:)      = 0
-  nwr(:)      = 1
-  nwr(4)      = 10000
-  ntwin       = 1
+  nde(:)       = 0
+  nwr(:)       = 1
+  nwr(4)       = 10000
+  ntwin        = 1
 
   ! CHROMATICITY ADJUSTMENTS
-  ichrom      = 0
+  ichrom       = 0
 
   ! TUNE ADJUSTMENTS
-  iqmod       = 0
+  iqmod        = 0
 
   ! LINEAR OPTICS CALCULATION
-  ilin        = 0
-  sixin_ilin0 = 1
+  ilin         = 0
+  sixin_ilin0  = 1
 
   ! SYNCHROTRON OSCILLATIONS
-  sixin_alc   = c1m3
-  sixin_harm  = one
-  sixin_phag  = zero
-  idp         = 0
-  ncy         = 0
+  sixin_alc    = c1m3
+  sixin_harm   = one
+  sixin_phag   = zero
+  idp          = 0
+  ncy          = 0
 
   ! MULTIPOLE COEFFICIENTS
-  sixin_im    = 0
+  sixin_im     = 0
 
   ! RANDOM FLUCTUATIONS
-  izu0        = 0
-  mmac        = 1
-  mcut        = 0
-  mout2       = 0
+  izu0         = 0
+  mmac         = 1
+  mcut         = 0
+  mout2        = 0
 
   ! SUB-RESONANCE CALCULATION
-  isub        = 0
+  isub         = 0
 
   ! ORGANISATION OF RANDOM NUMBERS
-  sixin_iorg  = 0
+  sixin_iorg   = 0
   
   ! RESONANCE COMPENSATION
-  irmod2      = 0
+  irmod2       = 0
   
   ! DECOUPLING OF MOTION
-  iskew       = 0
+  iskew        = 0
+  
+  ! BEAM-BEAM ELEMENT
+  sixin_emitNX = zero
+  sixin_emitNY = zero
 
   ! HIONS MODULE
-  zz0         = 1
-  aa0         = 1
-  nucm0       = pmap
-  has_hion    = .false.
+  zz0          = 1
+  aa0          = 1
+  nucm0        = pmap
+  has_hion     = .false.
 
   ! COLLIMATION MODULE
 #ifdef COLLIMAT
@@ -963,11 +965,11 @@ subroutine daten
       if(ch(1:1).eq.'/') goto 1600
       if(ch(:4).eq.next) goto 110
 
-      if (nbeam.ge.1) then
-         write(lout,*)                                                  &
-     &        "ERROR: There can only be one BEAM block in fort.3"
-         call prror(-1)
-      endif
+    !   if (nbeam.ge.1) then
+    !      write(lout,*)                                                  &
+    !  &        "ERROR: There can only be one BEAM block in fort.3"
+    !      call prror(-1)
+    !   endif
 
       if (ch(:6) .eq."EXPERT") then
          beam_expflag = 1
@@ -983,7 +985,7 @@ subroutine daten
          call enable_xp()
 #endif
          read(ch1,*,round='nearest')                                    &
-     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
+     &      partnum,sixin_emitNX,sixin_emitNY,sigz,sige,ibeco,ibtyp,lhc,ibbc
 #ifdef CRLIBM
          call disable_xp()
 #endif
@@ -991,7 +993,7 @@ subroutine daten
 #ifndef FIO
 #ifndef CRLIBM
          read(ch1,*)                                                    &
-     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
+     &      partnum,sixin_emitNX,sixin_emitNY,sigz,sige,ibeco,ibtyp,lhc,ibbc
 #endif
 #ifdef CRLIBM
          call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
@@ -1003,8 +1005,8 @@ subroutine daten
          endif
 
          partnum = fround(errno,fields,1)
-         emitnx  = fround(errno,fields,2)
-         emitny  = fround(errno,fields,3)
+         sixin_emitNX  = fround(errno,fields,2)
+         sixin_emitNY  = fround(errno,fields,3)
          sigz    = fround(errno,fields,4)
          sige    = fround(errno,fields,5)
          read(fields(6),*) ibeco
@@ -1013,7 +1015,7 @@ subroutine daten
          read(fields(9),*) ibbc
 #endif
 #endif
-         if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
+         if(sixin_emitNX.le.pieni.or.sixin_emitNY.le.pieni) call prror(88)
          if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
          if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
          if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
@@ -1231,185 +1233,13 @@ subroutine daten
          goto 1660
 
       else ! Old-style BEAM block
-         write (lout,'(a)') "READING OLD-STYLE BEAM BLOCK"
-         write (lout,'(a)') " Check the file 'beam_expert.txt'"//       &
-     &        " for conversion to the new 'EXPERT' format."
-         write (lout,'(a)') " To convert to the new format,"//          &
-     &        " copy-paste these lines into the BEAM"//                 &
-     &        " block in fort.3, replacing line 2 onwards."
-         write (lout,'(a)') " Then write EXPERT on the first line"//    &
-     &        " of the BEAM block, above the current first line."
-         write(lout,'(a)') " Finally, in the SINGLE ELEMENTS list"//    &
-     &        " (normally in fort.2) set the parameters of all"//       &
-     &        " beam-beam lenses (type 20) to 0.0."
-         write(lout,'(a)') " "
-         write(lout,'(a)') " This procedure produces a new"//           &
-     &        " set of input files that should have bit-for-bit"//      &
-     &        " identical results to this one."
-         write(lout,'(a)') " The easiest way to check this is"//        &
-     &        " to run both simulations side-by-side and compare"//     &
-     &        " the standard output in a text diff tool like meld."
-         write(lout,'(a)') " If the results are not identical,"//       &
-     &        " this is a bug; please report it to the developers!"
-#ifndef CRLIBM
-         write(lout,'(a)') " "
-         write(lout,'(a)') "NOTE: THIS SIXTRACK BINARY WAS"//           &
-     &        " NOT COMPILED WITH CRLIBM, CONVERSION WILL NOT BE EXACT."
-#endif
-         write(lout,'(a)') " "
-
-         ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-         call enable_xp()
-#endif
-         read(ch1,*,round='nearest')                                    &
-     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
-#ifdef CRLIBM
-         call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-         read(ch1,*)                                                    &
-     &      partnum,emitnx,emitny,sigz,sige,ibeco,ibtyp,lhc,ibbc
-#endif
-#ifdef CRLIBM
-         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-         if (nf.ne.9) then
-            write(lout,'(a)')                                           &
-     &           "WARNING in DATEN reading BEAM (not EXPERT)"
-            write(lout,'(a,i4)') "First line should have 9 fields,"//   &
-     &           " got ", nf
-            !Treating this as a warning, or else we would invalidate
-            !lots of working input files
-            !call prror(-1)
-         endif
-
-         if (nf.gt.0) then
-            partnum=fround(errno,fields,1)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            emitnx=fround(errno,fields,2)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            emitny=fround(errno,fields,3)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            sigz=fround(errno,fields,4)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            sige=fround(errno,fields,5)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            read(fields(6),*) ibeco
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            read(fields(7),*) ibtyp
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            read(fields(8),*) lhc
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            read(fields(9),*) ibbc
-            nf=nf-1
-         endif
-#endif
-#endif
-         if(emitnx.le.pieni.or.emitny.le.pieni) call prror(88)
-         if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
-         if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
-         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
-         if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
-         nbeam=1
-         if(ibtyp.eq.1) call wzset
-
-         ! ! ! Read other lines of BEAM block ! ! !
+        call sixin_parseInputLineBEAM(ch,1,inErr)
  1610    read(3,10020,end=1530,iostat=ierro) ch
          if(ierro.gt.0) call prror(58)
          lineno3=lineno3+1
          if(ch(1:1).eq.'/') goto 1610
          if(ch(:4).eq.next) goto 110  ! Done yet?
-
-         !Check number of arguments gotten
-         call getfields_split( ch, getfields_fields, getfields_lfields, &
-     &        getfields_nfields, getfields_lerr )
-         if ( getfields_lerr ) call prror(-1)
-         beam_xstr = .false.
-         if (getfields_nfields .eq. 5) then
-            beam_xstr=.true.
-         elseif (getfields_nfields .eq. 4) then
-            beam_xstr=.false.
-         else
-            write(lout,*) "ERROR in parsing BEAM block"
-            write(lout,*) "Number of arguments in data line 2,..."
-            write(lout,*) " is expected to be 4 or 5"
-            call prror(-1)
-         end if
-         call intepr(1,1,ch,ch1)
-#ifdef FIO
-#ifdef CRLIBM
-         call enable_xp()
-#endif
-         read(ch1,*,round='nearest')                                       &
-     &      idat,i,xang,xplane,xstr
-#ifdef CRLIBM
-         call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-         read(ch1,*) idat,i,xang,xplane,xstr
-#endif
-#ifdef CRLIBM
-         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-         if (nf.gt.0) then
-            read(fields(1),*) idat
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            read(fields(2),*) i
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            xang=fround(errno,fields,3)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            xplane=fround(errno,fields,4)
-            nf=nf-1
-         endif
-         if (nf.gt.0) then
-            xstr=fround(errno,fields,5)
-            nf=nf-1
-         endif
-#endif
-#endif
-         if ( .not. beam_xstr ) then
-            write(lout,*) "WARNING in parsing BEAM block"
-            write(lout,*) "No xstr present, assuming xstr=xang"
-            xstr = xang
-         endif
-
-         if(i.lt.0) i=0
-         do 1620 j=1,il
-            if(idat.eq.bez(j).and.kz(j).eq.20) then
-               ibb6d=1
-               parbe(j,2)=real(i,fPrec) !hr12
-               parbe(j,1)=xang
-               parbe(j,3)=xplane
-               parbe(j,18)=xstr
-               goto 1610
-            endif
- 1620    continue
+         call sixin_parseInputLineBEAM(ch,2,inErr)
          goto 1610
       endif
 !-----------------------------------------------------------------------
@@ -2283,16 +2113,16 @@ subroutine daten
 771 if(napx.ge.1) then
         if(e0.lt.pieni.or.e0.le.pma) call prror(27)
         if(nbeam.ge.1) parbe14=                                         &!hr05
-     &(((((-one*crad)*partnum)/four)/pi)/emitnx)*c1e6                    !hr05
+     &(((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6                    !hr05
         gammar=pma/e0
         crad=(((two*crad)*partnum)*gammar)*c1e6                          !hr05
-        emitx=emitnx*gammar
-        emity=emitny*gammar
+        emitx=sixin_emitNX*gammar
+        emity=sixin_emitNY*gammar
 #ifdef COLLIMAT
-        remitx_dist=emitnx0_dist*gammar
-        remity_dist=emitny0_dist*gammar
-        remitx_collgap=emitnx0_collgap*gammar
-        remity_collgap=emitny0_collgap*gammar
+        remitx_dist=sixin_emitNX0_dist*gammar
+        remity_dist=sixin_emitNY0_dist*gammar
+        remitx_collgap=sixin_emitNX0_collgap*gammar
+        remity_collgap=sixin_emitNY0_collgap*gammar
 #endif
       endif
 #ifdef COLLIMAT
@@ -2418,7 +2248,7 @@ subroutine daten
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
      &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,            &
-     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
+     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
             else !Beams have opposite charge
                write(lout,                                              &
      &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
@@ -2441,7 +2271,7 @@ subroutine daten
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
      &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,       &
-     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,emitnx,emitny,e0
+     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
             endif
 
          elseif (beam_expflag .eq. 1) then ! The new BEAM-EXPERT format
@@ -2467,7 +2297,7 @@ subroutine daten
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
      &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,            &
-     &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
+     &              ibeco,ibtyp,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
             else !Beams have opposite charge
                ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
                write(lout,                                              &
@@ -2490,7 +2320,7 @@ subroutine daten
      &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
      &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
      &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,       &
-     &              ibeco,ibtyp,ibbc,sigz,sige,emitnx,emitny,e0
+     &              ibeco,ibtyp,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
             endif
          else
             write(lout,'(a)') "ERROR in subroutine daten"
