@@ -3029,4 +3029,263 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
 
 end subroutine sixin_parseInputLineBEAM
 
+! ================================================================================================ !
+!  Parse Beam–Beam Element Line EXPERT
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-23
+! ================================================================================================ !
+subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
+
+  use parbeam, only : beam_expflag
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen) elemName
+  real(kind=fPrec) sxx,syy,separx,separy,mm(11)
+  integer nSplit, n6D, ibsix, j
+  logical spErr, beamXStr
+  
+  save :: n6D,elemName,ibsix,sxx,syy,separx,separy,mm
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "BEAM> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  if(iLine == 2) then
+
+    if(nSplit > 0) call chr_cast(lnSPlit(1),partnum,     iErr)
+    if(nSplit > 1) call chr_cast(lnSPlit(2),sixin_emitNX,iErr)
+    if(nSplit > 2) call chr_cast(lnSPlit(3),sixin_emitNY,iErr)
+    if(nSplit > 3) call chr_cast(lnSPlit(4),sigz,        iErr)
+    if(nSplit > 4) call chr_cast(lnSPlit(5),sige,        iErr)
+    if(nSplit > 5) call chr_cast(lnSPlit(6),ibeco,       iErr)
+    if(nSplit > 6) call chr_cast(lnSPlit(7),ibtyp,       iErr)
+    if(nSplit > 7) call chr_cast(lnSPlit(8),lhc,         iErr)
+    if(nSplit > 8) call chr_cast(lnSPlit(9),ibbc,        iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("partnum",partnum,     "BEAM",iLine)
+      call sixin_echoVal("emitnx", sixin_emitNX,"BEAM",iLine)
+      call sixin_echoVal("emitny", sixin_emitNY,"BEAM",iLine)
+      call sixin_echoVal("sigz",   sigz,        "BEAM",iLine)
+      call sixin_echoVal("sige",   sige,        "BEAM",iLine)
+      call sixin_echoVal("ibeco",  ibeco,       "BEAM",iLine)
+      call sixin_echoVal("ibtyp",  ibtyp,       "BEAM",iLine)
+      call sixin_echoVal("lhc",    lhc,         "BEAM",iLine)
+      call sixin_echoVal("ibbc",   ibbc,        "BEAM",iLine)
+    end if
+    if(iErr) return
+
+    if(nSplit /= 9) then
+      write(lout,"(a,i0)") "BEAM> WARNING (not EXPERT). First line should have 9 fields, got ",nSplit
+    end if
+
+    if(sixin_emitNX <= pieni .or. sixin_emitNY <= pieni) then
+      write(lout,"(a)") "BEAM> ERROR Either normalised emittances or the resulting sigma values equal to zero."
+      iErr = .true.
+      return
+    end if
+
+    if(ibeco /= 0 .and. ibeco /= 1) ibeco = 1
+    if(ibtyp /= 0 .and. ibtyp /= 1) ibtyp = 0
+    if(ibbc  /= 0 .and. ibbc  /= 1) ibbc  = 0
+    if(lhc    < 0 .or.  lhc    > 2) lhc   = 1
+
+    nbeam = 1
+
+    if(ibtyp == 1) call wzset
+    
+    n6D = 0
+
+  else
+
+    if(n6D == 0) then
+      
+      mm(:)  = zero
+      sxx    = zero
+      syy    = zero
+      separx = zero
+      separy = zero
+      
+      if(nSplit > 0) elemName = trim(lnSPlit(1))
+      if(nSplit > 1) call chr_cast(lnSPlit(2),ibsix, iErr)
+      if(nSplit > 2) call chr_cast(lnSPlit(3),sxx,   iErr)
+      if(nSplit > 3) call chr_cast(lnSPlit(4),syy,   iErr)
+      if(nSplit > 4) call chr_cast(lnSPlit(5),separx,iErr)
+      if(nSplit > 5) call chr_cast(lnSPlit(6),separy,iErr)
+      if(nSplit > 6) call chr_cast(lnSPlit(7),mm(1), iErr)
+      
+      if(ibsix == 0) then
+        if(nSplit /= 7) then
+          write(lout,"(a,i0)") "BEAM> ERROR First line of a 4D element definition should have 7 fields, got ",nSplit
+          iErr = .true.
+          return
+        end if
+        if(st_debug) then
+          write(lout,"(a)") "BEAM> DEBUG New 4D element encountered."
+        end if
+        n6D = 0
+      else if(ibsix > 0) then
+        n6D = 1
+        if(nSplit /= 6) then
+          write(lout,"(a,i0)") "BEAM> ERROR First line of a 6D element definition should have 6 fields, got ",nSplit
+          iErr = .true.
+          return
+        end if
+        if(st_debug) then
+          write(lout,"(a)") "BEAM> DEBUG New 6D element encountered."
+        end if
+      else
+        write(lout,"(a,i0)") "BEAM> ERROR Expected number of slices >= 0, but got ",ibsix
+        iErr = .true.
+        return
+      end if
+
+      if(st_debug) then
+        call sixin_echoVal("name",  elemName,"BEAM",iLine)
+        call sixin_echoVal("ibsix", ibsix,   "BEAM",iLine)
+        call sixin_echoVal("Sxx",   sxx,     "BEAM",iLine)
+        call sixin_echoVal("Syy",   syy,     "BEAM",iLine)
+        call sixin_echoVal("separx",separx,  "BEAM",iLine)
+        call sixin_echoVal("separy",separy,  "BEAM",iLine)
+        call sixin_echoVal("strrat",mm(1),   "BEAM",iLine)
+      end if
+      if(iErr) return
+      
+      if(n6D == 0) then
+        ! Save 4D data
+        do j=1,il
+          if(bez(j) == elemName) then
+            if(kz(j) /= 20) then
+              write(lout,"(a,i0,a)") "BEAM> ERROR Found element '"//bez(j)//"' type ",kz(j), ", but expected type 20."
+              iErr = .true.
+              return
+            else
+              if(parbe(j,5) /= zero .or. parbe(j,6) /= zero .or. ptnfac(j)  /= zero .or. &
+                 bbbx(j)    /= zero .or. bbby(j)    /= zero .or. bbbs(j)    /= zero) then
+                write(lout,"(a)") "BEAM> ERROR Using EXPERT mode, but element '"//bez(j)//&
+                  " does not have ed=ek=el=bbbx=bbby=bbbs=0.0 in the SINGLE ELEMENTS list."
+                iErr = .true.
+                return
+              end if
+              parbe(j,17) = 0
+              parbe(j,2)  = real(ibsix,fPrec)
+              parbe(j,1)  = sxx
+              parbe(j,3)  = syy
+              parbe(j,5)  = separx
+              parbe(j,6)  = separy
+              ptnfac(j)   = mm(1)
+            end if
+          end if
+        end do
+      end if
+      
+    else if(n6D == 1) then
+      
+      if(st_debug) then
+        write(lout,"(a)") "BEAM> DEBUG Second 6D line encountered."
+      end if
+      if(nSplit /= 5) then
+        write(lout,"(a,i0)") "BEAM> ERROR Second line of a 6D element definition should have 5 fields, got ",nSplit
+        iErr = .true.
+        return
+      end if
+      
+      if(nSplit > 0) call chr_cast(lnSPlit(1),mm(1),iErr)
+      if(nSplit > 1) call chr_cast(lnSPlit(2),mm(2),iErr)
+      if(nSplit > 2) call chr_cast(lnSPlit(3),mm(3),iErr)
+      if(nSplit > 3) call chr_cast(lnSPlit(4),mm(4),iErr)
+      if(nSplit > 4) call chr_cast(lnSPlit(5),mm(5),iErr)
+    
+      if(st_debug) then
+        call sixin_echoVal("Sxx",  mm(1),"BEAM",iLine)
+        call sixin_echoVal("Sxxp", mm(2),"BEAM",iLine)
+        call sixin_echoVal("Sxpxp",mm(3),"BEAM",iLine)
+        call sixin_echoVal("Syy",  mm(4),"BEAM",iLine)
+        call sixin_echoVal("Syyp", mm(5),"BEAM",iLine)
+      end if
+      if(iErr) return
+      
+      n6D = 2
+      
+    else if(n6D == 2) then
+      
+      if(st_debug) then
+        write(lout,"(a)") "BEAM> DEBUG Third 6D line encountered."
+      end if
+      if(nSplit /= 6) then
+        write(lout,"(a,i0)") "BEAM> ERROR Tird line of a 6D element definition should have 6 fields, got ",nSplit
+        iErr = .true.
+        return
+      end if
+      
+      if(nSplit > 0) call chr_cast(lnSPlit(1),mm(6), iErr)
+      if(nSplit > 1) call chr_cast(lnSPlit(2),mm(7), iErr)
+      if(nSplit > 2) call chr_cast(lnSPlit(3),mm(8), iErr)
+      if(nSplit > 3) call chr_cast(lnSPlit(4),mm(9), iErr)
+      if(nSplit > 4) call chr_cast(lnSPlit(5),mm(10),iErr)
+      if(nSplit > 5) call chr_cast(lnSPlit(6),mm(11),iErr)
+    
+      if(st_debug) then
+        call sixin_echoVal("Sypyp", mm(6), "BEAM",iLine)
+        call sixin_echoVal("Sxy",   mm(7), "BEAM",iLine)
+        call sixin_echoVal("Sxyp",  mm(8), "BEAM",iLine)
+        call sixin_echoVal("Sxpy",  mm(9), "BEAM",iLine)
+        call sixin_echoVal("Sxpyp", mm(10),"BEAM",iLine)
+        call sixin_echoVal("strrat",mm(11),"BEAM",iLine)
+      end if
+      if(iErr) return
+      
+      ! Save 6D data
+      do j=1,il
+        if(bez(j) == elemName) then
+          if(kz(j) /= 20) then
+            write(lout,"(a,i0,a)") "BEAM> ERROR Found element '"//bez(j)//"' type ",kz(j), ", but expected type 20."
+            iErr = .true.
+            return
+          else
+            if(parbe(j,5) /= zero .or. parbe(j,6) /= zero .or. ptnfac(j)  /= zero .or. &
+               bbbx(j)    /= zero .or. bbby(j)    /= zero .or. bbbs(j)    /= zero) then
+              write(lout,"(a)") "BEAM> ERROR Using EXPERT mode, but element '"//bez(j)//&
+                "' does not have ed=ek=el=bbbx=bbby=bbbs=0.0 in the SINGLE ELEMENTS list."
+              iErr = .true.
+              return
+            end if
+            parbe(j,17) = 1
+            parbe(j,2)  = real(ibsix,fPrec)
+            parbe(j,1)  = sxx
+            parbe(j,3)  = syy
+            parbe(j,5)  = separx
+            parbe(j,6)  = separy
+            parbe(j,7)  = mm(1)
+            parbe(j,8)  = mm(2)
+            parbe(j,9)  = mm(3)
+            parbe(j,10) = mm(4)
+            parbe(j,11) = mm(5)
+            parbe(j,12) = mm(6)
+            parbe(j,13) = mm(7)
+            parbe(j,14) = mm(8)
+            parbe(j,15) = mm(9)
+            parbe(j,16) = mm(10)
+            ptnfac(j)   = mm(11)
+          end if
+        end if
+     end do
+
+     n6D = 0
+      
+    end if
+
+  end if
+
+end subroutine sixin_parseInputLineBEAM_EXP
+
 end module sixtrack_input

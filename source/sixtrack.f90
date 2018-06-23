@@ -452,8 +452,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("BEAM")
-    goto 1600
   case("TROM")
     goto 1700
   case("FLUK")
@@ -779,6 +777,20 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("BEAM") ! Beam-Beam Element
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      if(beam_expflag == 1) then
+        call sixin_parseInputLineBEAM_EXP(ch,blockLine,inErr)
+      else
+        call sixin_parseInputLineBEAM(ch,blockLine,inErr)
+      end if
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -955,293 +967,6 @@ subroutine daten
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
 
-!-----------------------------------------------------------------------
-!  Beam-Beam Element
-!-----------------------------------------------------------------------
-      ! ! ! Read 1st line of BEAM block ! ! !
- 1600 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1600
-      if(ch(:4).eq.next) goto 110
-
-    !   if (nbeam.ge.1) then
-    !      write(lout,*)                                                  &
-    !  &        "ERROR: There can only be one BEAM block in fort.3"
-    !      call prror(-1)
-    !   endif
-
-      if (ch(:6) .eq."EXPERT") then
-         beam_expflag = 1
-
- 1601    read(3,10020,end=1530,iostat=ierro) ch
-         if(ierro.gt.0) call prror(58)
-         lineno3=lineno3+1
-         if(ch(1:1).eq.'/') goto 1601
-         if(ch(:4).eq.next) goto 110
-         ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-#ifdef CRLIBM
-         call enable_xp()
-#endif
-         read(ch1,*,round='nearest')                                    &
-     &      partnum,sixin_emitNX,sixin_emitNY,sigz,sige,ibeco,ibtyp,lhc,ibbc
-#ifdef CRLIBM
-         call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-         read(ch1,*)                                                    &
-     &      partnum,sixin_emitNX,sixin_emitNY,sigz,sige,ibeco,ibtyp,lhc,ibbc
-#endif
-#ifdef CRLIBM
-         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-         if (nf.ne.9) then
-            write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-            write(lout,'(a,I3)')                                        &
-     &           "First line should have 9 fields, got", nf
-            call prror(-1)
-         endif
-
-         partnum = fround(errno,fields,1)
-         sixin_emitNX  = fround(errno,fields,2)
-         sixin_emitNY  = fround(errno,fields,3)
-         sigz    = fround(errno,fields,4)
-         sige    = fround(errno,fields,5)
-         read(fields(6),*) ibeco
-         read(fields(7),*) ibtyp
-         read(fields(8),*) lhc
-         read(fields(9),*) ibbc
-#endif
-#endif
-         if(sixin_emitNX.le.pieni.or.sixin_emitNY.le.pieni) call prror(88)
-         if(ibeco.ne.0.and.ibeco.ne.1) ibeco=1
-         if(ibtyp.ne.0.and.ibtyp.ne.1) ibtyp=0
-         if((lhc.ne.0).and.(lhc.ne.1).and.(lhc.ne.2)) lhc=1
-         if(ibbc.ne.0.and.ibbc.ne.1) ibbc=0
-         nbeam=1
-         if(ibtyp.eq.1) call wzset !Initialize complex error function for FAST BB kick
-
-         ! ! ! Read other lines of BEAM block ! ! !
- 1660    read(3,10020,end=1530,iostat=ierro) ch
-         if(ierro.gt.0) call prror(58)
-         lineno3=lineno3+1
-         if(ch(1:1).eq.'/') goto 1660
-         if(ch(:4).eq.next) goto 110
-
-#ifdef FIO
-!+if crlibm
-!         call enable_xp()
-!+ei
-!         read(ch1,*,round='nearest')                                       &
-!     &      idat,i,xang,xplane,separx,separy,
-!     &      mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8, &
-!     &      mm9,mm10,mm11
-!+if crlibm
-!         call disable_xp()
-!+ei
-        write(lout,*)                                                   &
-     &       'ERROR in BEAM block (EXPERT mode): '//                    &
-     &       'fortran IO currently not supported.'
-        call prror(-1)
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-         call intepr(1,1,ch,ch1)
-         read(ch1,*) idat,i
-
-         if (i.gt.0) then !6D
-            call intepr(1,1,ch,ch1)
-            read(ch1,*) idat,i,xang,xplane,separx,separy
-
- 1661       read(3,10020,end=1530,iostat=ierro) ch
-            if(ierro.gt.0) call prror(58)
-            lineno3=lineno3+1
-            if(ch(1:1).eq.'/') goto 1661
-            read(ch,*) mm1,mm2,mm3,mm4,mm5
-
- 1662       read(3,10020,end=1530,iostat=ierro) ch
-            if(ierro.gt.0) call prror(58)
-            lineno3=lineno3+1
-            if(ch(1:1).eq.'/') goto 1662
-            read(ch,*) mm6,mm7,mm8,mm9,mm10,mm11
-
-         else if (i.eq.0) then  !4D
-            call intepr(1,1,ch,ch1)
-            read(ch1,*) idat,i,xang,xplane,separx,separy
-         else
-            write(lout,'(a)') "ERROR when reading BEAM block:"
-            write(lout,'(a,i5,a,a16)')                                  &
-     &           "Expected number of slices >= 0; but got",             &
-     &           i, " in element ",idat
-            call prror(-1)
-         endif
-#endif
-#ifdef CRLIBM
-         call intepr(1,1,ch,ch1)
-         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-         if (.not.(nf.eq.6 .or. nf.eq.7)) then
-            write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-            write(lout,'(a,I3)')                                        &
-     &           "First line of an element definition should "//        &
-     &           "have 6 or 7 fields, got", nf
-            call prror(-1)
-         endif
-
-         read(fields(2),*) i !read number of slices
-
-         if (i.gt.0) then  !6D
-            if (nf.ne.6) then
-               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-               write(lout,'(a,I3)')                                     &
-     &              "First line of a 6D element definition should "//   &
-     &              "have 6 fields, got", nf
-               call prror(-1)
-            endif
-
-            read(fields(1),*) idat !Name
-            read(fields(2),*) i    !slices (ibsix)
-            xang=fround(errno,fields,3)
-            xplane=fround(errno,fields,4)
-            separx=fround(errno,fields,5)
-            separy=fround(errno,fields,6)
-
- 1661       read(3,10020,end=1530,iostat=ierro) ch
-            if(ierro.gt.0) call prror(58)
-            lineno3=lineno3+1
-            if(ch(1:1).eq.'/') goto 1661
-            ch1(:nchars+3)=ch(:nchars)//' / '
-            call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-
-            if (nf.ne.5) then
-               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-               write(lout,'(a,I3)')                                     &
-     &              "Second line of a 6D element definition should "//  &
-     &              "have 5 fields, got", nf
-               call prror(-1)
-            endif
-
-            mm1=fround(errno,fields,1)
-            mm2=fround(errno,fields,2)
-            mm3=fround(errno,fields,3)
-            mm4=fround(errno,fields,4)
-            mm5=fround(errno,fields,5)
-
- 1662       read(3,10020,end=1530,iostat=ierro) ch
-            if(ierro.gt.0) call prror(58)
-            ch1(:nchars+3)=ch(:nchars)//' / '
-            lineno3=lineno3+1
-            if(ch(1:1).eq.'/') goto 1662
-            call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-
-            if (nf.ne.6) then
-               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-               write(lout,'(a,I3)')                                     &
-     &              "Third line of a 6D element definition should "//   &
-     &              "have 5 fields, got", nf
-               call prror(-1)
-            endif
-
-            mm6=fround(errno,fields,1)
-            mm7=fround(errno,fields,2)
-            mm8=fround(errno,fields,3)
-            mm9=fround(errno,fields,4)
-            mm10=fround(errno,fields,5)
-            mm11=fround(errno,fields,6)
-
-         else if(i.eq.0) then ! 4D
-            if (nf.ne.7) then
-               write(lout,'(a)') "ERROR in DATEN reading BEAM::EXPERT"
-               write(lout,'(a,I3)')                                     &
-     &              "First line of a 6D element definition should "//   &
-     &              "have 7 fields, got", nf
-               call prror(-1)
-            endif
-
-            read(fields(1),*) idat
-            xang=fround(errno,fields,3)
-            xplane=fround(errno,fields,4)
-            separx=fround(errno,fields,5)
-            separy=fround(errno,fields,6)
-            mm1=fround(errno,fields,7)
-         else
-            read(fields(1),*) idat
-            write(lout,'(a)') "ERROR when reading BEAM block:"
-            write(lout,'(a,i5,a,a16)')                                  &
-     &           "Expected number of slices >= 0; but got",             &
-     &           i, " in element ",idat
-            call prror(-1)
-         endif
-#endif
-#endif
-
-         do j=1,il !loop over single lements
-            if(idat.eq.bez(j)) then
-               if(kz(j).ne.20) then
-                  write(lout,'(a)') "ERROR when reading BEAM block:"
-                  write(lout,'(a,a16,a,i5,a)')                          &
-     &                 "Found element named ",bez(j),                   &
-     &                 " but type is",kz(j), ", expected type 20!"
-                  call prror(-1)
-               else
-
-                  if(parbe(j,5).ne.zero .or. parbe(j,6).ne.zero         &
-     &                 .or. ptnfac(j).ne.zero                           &
-     &                 .or. bbbx(j).ne.zero .or. bbby(j).ne.zero        &
-     &                 .or. bbbs(j).ne.zero ) then
-                     !Note: Data moved from ed/ek/el to parbe/ptnfac in initialize_element
-                     write(lout,'(a)') "ERROR when reading BEAM block:"
-                     write(lout,'(a,a16,a)')                            &
-     &                    "Using EXPERT mode, but element ", bez(j),    &
-     &                    " does not have ed=ek=el=bbbx=bbby=bbbs=0.0"//&
-     &                    " in the SINGLE ELEMENTS list."
-                     call prror(-1)
-                  endif
-                  if (i.gt.0) then ! 6D, allow 1 or more slices
-                     parbe(j,17)=1      ! Is 6D
-                     parbe(j,2)=real(i,fPrec) ! Number of slices
-                     parbe(j,1)=xang
-                     parbe(j,3)=xplane
-                     parbe(j,5)=separx
-                     parbe(j,6)=separy
-                     parbe(j,7)=mm1
-                     parbe(j,8)=mm2
-                     parbe(j,9)=mm3
-                     parbe(j,10)=mm4
-                     parbe(j,11)=mm5
-                     parbe(j,12)=mm6
-                     parbe(j,13)=mm7
-                     parbe(j,14)=mm8
-                     parbe(j,15)=mm9
-                     parbe(j,16)=mm10
-                     ptnfac(j)=mm11
-                     goto 1660
-                  else if(i.eq.0) then ! 4D, single slice only
-                     parbe(j,17)=0      ! Type is 4D
-                     parbe(j,2)=real(i,fPrec) ! Number of slices is always 0
-                     parbe(j,1)=xang    ! not the crossing angle but sigmaxx
-                     parbe(j,3)=xplane  ! not the xplane but sigmayy
-                     parbe(j,5)=separx
-                     parbe(j,6)=separy
-                     ptnfac(j)=mm1
-                     goto 1660
-                  endif
-               endif
-            endif
-         end do
-         goto 1660
-
-      else ! Old-style BEAM block
-        call sixin_parseInputLineBEAM(ch,1,inErr)
- 1610    read(3,10020,end=1530,iostat=ierro) ch
-         if(ierro.gt.0) call prror(58)
-         lineno3=lineno3+1
-         if(ch(1:1).eq.'/') goto 1610
-         if(ch(:4).eq.next) goto 110  ! Done yet?
-         call sixin_parseInputLineBEAM(ch,2,inErr)
-         goto 1610
-      endif
 !-----------------------------------------------------------------------
 !  TROMBONE ELEMENT KZ=22
 !-----------------------------------------------------------------------
