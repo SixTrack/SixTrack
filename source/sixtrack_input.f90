@@ -2805,8 +2805,83 @@ subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
       end do
     end do
     
+  case default
+    write(lout,"(a,i0)") "DECO> ERROR Unexpected line number ",iLine
+    iErr = .true.
+    return
+
   end select
   
 end subroutine sixin_parseInputLineDECO
+
+! ================================================================================================ !
+!  Parse Normal Forms Line
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-23
+! ================================================================================================ !
+subroutine sixin_parseInputLineNORM(inLine, iLine, iErr)
+
+  use mod_commond
+  
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit
+  logical spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "NORM> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  select case(iLine)
+
+  case(1)
+
+    ! FIXME: This should be moved to post ENDE checks
+    if(idial == 0 .and. numl == 0) then
+      write(lout,"(a)") "NORM> ERROR Normal forms analysis impossible. The transfer map does not exist!"
+      iErr = .true.
+      return
+    end if
+    inorm = 1
+    
+    if(nSplit > 0) call chr_cast(lnSPlit(1),nordf,iErr)
+    if(nSplit > 1) call chr_cast(lnSPlit(2),nvarf,iErr)
+    if(nSplit > 2) call chr_cast(lnSPlit(3),nord1,iErr)
+    if(nSplit > 3) call chr_cast(lnSPlit(4),idptr,iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("nordf",nordf,"NORM",iLine)
+      call sixin_echoVal("nvarf",nvarf,"NORM",iLine)
+      call sixin_echoVal("nord1",nord1,"NORM",iLine)
+      call sixin_echoVal("idptr",idptr,"NORM",iLine)
+    end if
+    
+    if(nord /= 0 .and. nordf > nord+1) then
+      imod1 = 1
+    end if
+    if(nvar /= 0 .and. nvarf> nvar) then
+      nvarf = nvar
+      imod2 = 1
+    end if
+    if(idptr < 0 .or. idptr > 6) then
+      idptr = 0
+    end if
+  
+  case default
+    write(lout,"(a,i0)") "NORM> ERROR Unexpected line number ",iLine
+    iErr = .true.
+    return
+
+  end select
+  
+end subroutine sixin_parseInputLineNORM
 
 end module sixtrack_input

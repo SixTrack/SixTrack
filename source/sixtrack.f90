@@ -386,8 +386,6 @@ subroutine daten
 
 ! ================================================================================================ !
 !  BEGIN PARSING FORT.2 AND FORT.3
-!  NOTE: The following blocks are not covered by tests: SUBR, ORGA, ORBI, COMB, RESO, SEAR, DECO
-!  NOTE: The following blocks are partially covered:    LIMI
 ! ================================================================================================ !
 
   currBlock   = "NONE"  ! The current block being parsed
@@ -452,8 +450,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("NORM")
-    goto 1400
   case("BEAM")
     goto 1600
   case("TROM")
@@ -759,6 +755,18 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("NORM") ! Normal Forms
+    if(openBlock) then
+      write(lout,"(a)") "NORM> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
+      write(lout,"(a)") "NORM>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "NORM>         Please report any bugs to the dev team."
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineNORM(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("POST") ! Post-Processing
     if(openBlock) then
       continue
@@ -945,37 +953,6 @@ subroutine daten
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
 
-!-----------------------------------------------------------------------
-!  NORMAL FORMS
-!-----------------------------------------------------------------------
- 1400 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1400
-      if(ch(:4).eq.next) then
-      goto 110
-      else
-      if(idial.eq.0.and.numl.ne.0) then
-        write(lout,10130)
-        write(lout,*)
-        call prror(78)
-      endif
-      inorm=1
-      ch1(:nchars+3)=ch(:nchars)//' / '
-#ifdef FIO
-      read(ch1,*,round='nearest')                                       &
-     & nordf,nvarf,nord1,idptr
-#endif
-#ifndef FIO
-      read(ch1,*) nordf,nvarf,nord1,idptr
-#endif
-      if(nord.ne.0.and.nordf.gt.nord+1) imod1=1
-      if(nvar.ne.0.and.nvarf.gt.nvar) then
-        nvarf=nvar
-        imod2=1
-      endif
-      if(idptr.lt.0.or.idptr.gt.6) idptr=0
-      endif
 !-----------------------------------------------------------------------
 !  Beam-Beam Element
 !-----------------------------------------------------------------------
