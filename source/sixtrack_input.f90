@@ -2395,19 +2395,32 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
         if(name(k) /= bez(j)) cycle inner
         ire(k) = j
         if(nre == 1 .and. k < 3 .and. abs(kz(j)) /= npp) then
-          call prror(39)
+          write(lout,"(a)") "RESO> ERROR With the specified elements the resonance cannot be compensated."
+          write(lout,"(a)") "RESO> ERROR Resonance order and element type # must be the same."
+          iErr = .true.
+          return
         end if
         if(nre == 2 .and. k < 5 .and. abs(kz(j)) /= npp) then
-          call prror(39)
+          write(lout,"(a)") "RESO> ERROR With the specified elements the resonance cannot be compensated."
+          write(lout,"(a)") "RESO> ERROR Resonance order and element type # must be the same."
+          iErr = .true.
+          return
         end if
         if(nre == 3 .and. k < 7 .and. abs(kz(j)) /= npp) then
-          call prror(39)
+          write(lout,"(a)") "RESO> ERROR With the specified elements the resonance cannot be compensated."
+          write(lout,"(a)") "RESO> ERROR Resonance order and element type # must be the same."
+          iErr = .true.
+          return
         end if
         if(nch == 1 .and. (k == 7 .or. k == 8)  .and. kz(j) /= 3) then
-          call prror(11)
+          write(lout,"(a)") "RESO> ERROR Elements specified for chromaticity correction are not sextupoles."
+          iErr = .true.
+          return
         end if
         if(nqc == 1 .and. (k == 9 .or. k == 10) .and. kz(j) /= 2) then
-          call prror(8)
+          write(lout,"(a)") "RESO> ERROR Elements specified for tune variation are not quadrupoles."
+          iErr = .true.
+          return
         end if
         cycle outer
       end do inner
@@ -2416,7 +2429,9 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
          (nre == 3 .and.  k < 7) .or. &
          (nch == 1 .and. (k == 7 .or. k == 8)) .or. &
          (nqc == 1 .and. (k == 9 .or. k == 10))) then
-        call prror(3)
+        write(lout,"(a)") "RESO> ERROR Element for resonance compensation is not in the element list."
+        iErr = .true.
+        return
       end if
     end do outer
     
