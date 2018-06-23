@@ -2566,4 +2566,143 @@ subroutine sixin_parseInputLineSEAR(inLine, iLine, iErr)
 
 end subroutine sixin_parseInputLineSEAR
 
+! ================================================================================================ !
+!  Parse Post-Processing Line
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-23
+! ================================================================================================ !
+subroutine sixin_parseInputLinePOST(inLine, iLine, iErr)
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit
+  logical spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "POST> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  select case(iLine)
+
+  case(1)
+    toptit(1) = trim(inLine)
+
+  case(2)
+
+    if(nSplit > 0)  call chr_cast(lnSplit(1) ,iav,   iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2) ,nstart,iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3) ,nstop, iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4) ,iwg,   iErr)
+    if(nSplit > 4)  call chr_cast(lnSplit(5) ,dphix, iErr)
+    if(nSplit > 5)  call chr_cast(lnSplit(6) ,dphiz, iErr)
+    if(nSplit > 6)  call chr_cast(lnSplit(7) ,iskip, iErr)
+    if(nSplit > 7)  call chr_cast(lnSplit(8) ,iconv, iErr)
+    if(nSplit > 8)  call chr_cast(lnSplit(9) ,imad,  iErr)
+    if(nSplit > 9)  call chr_cast(lnSplit(10),cma1,  iErr)
+    if(nSplit > 10) call chr_cast(lnSplit(11),cma2,  iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("iav",   iav,   "POST",iLine)
+      call sixin_echoVal("nstart",nstart,"POST",iLine)
+      call sixin_echoVal("nstop", nstop, "POST",iLine)
+      call sixin_echoVal("iwg",   iwg,   "POST",iLine)
+      call sixin_echoVal("dphix", dphix, "POST",iLine)
+      call sixin_echoVal("dphiz", dphiz, "POST",iLine)
+      call sixin_echoVal("iskip", iskip, "POST",iLine)
+      call sixin_echoVal("iconv", iconv, "POST",iLine)
+      call sixin_echoVal("imad",  imad,  "POST",iLine)
+      call sixin_echoVal("cma1",  cma1,  "POST",iLine)
+      call sixin_echoVal("cma2",  cma2,  "POST",iLine)
+    end if
+    if(iErr) return
+
+#ifdef STF
+    if(imad == 1) then
+      write(lout,"(a)") "POST> ERROR imad not supported when SixTrack is built with STF enabled."
+      iErr = .true.
+      return
+    end if
+#endif
+
+  case(3)
+
+    if(nSplit > 0) call chr_cast(lnSplit(1),qx0, iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),qz0, iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),ivox,iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),ivoz,iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5),ires,iErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6),dres,iErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7),ifh, iErr)
+    if(nSplit > 7) call chr_cast(lnSplit(8),dfft,iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("qx0", qx0, "POST",iLine)
+      call sixin_echoVal("qz0", qz0, "POST",iLine)
+      call sixin_echoVal("ivox",ivox,"POST",iLine)
+      call sixin_echoVal("ivoz",ivoz,"POST",iLine)
+      call sixin_echoVal("ires",ires,"POST",iLine)
+      call sixin_echoVal("dres",dres,"POST",iLine)
+      call sixin_echoVal("ifh", ifh, "POST",iLine)
+      call sixin_echoVal("dfft",dfft,"POST",iLine)
+    end if
+    if(iErr) return
+
+  case(4)
+
+    if(nSplit > 0) call chr_cast(lnSplit(1),kwtype,iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),itf,   iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),icr,   iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),idis,  iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5),icow,  iErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6),istw,  iErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7),iffw,  iErr)
+    if(nSplit > 7) call chr_cast(lnSplit(8),nprint,iErr)
+    if(nSplit > 8) call chr_cast(lnSplit(9),ndafi, iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("kwtype",kwtype,"POST",iLine)
+      call sixin_echoVal("itf",   itf,   "POST",iLine)
+      call sixin_echoVal("icr",   icr,   "POST",iLine)
+      call sixin_echoVal("idis",  idis,  "POST",iLine)
+      call sixin_echoVal("icow",  icow,  "POST",iLine)
+      call sixin_echoVal("istw",  istw,  "POST",iLine)
+      call sixin_echoVal("iffw",  iffw,  "POST",iLine)
+      call sixin_echoVal("nprint",nprint,"POST",iLine)
+      call sixin_echoVal("ndafi", ndafi, "POST",iLine)
+    end if
+    if(iErr) return
+
+    kwtype = 0
+    icr    = 0
+    if(iskip  <  0) iskip  = 1
+    if(nprint /= 1) nprint = 0
+    if(nstart <  0) nstart = 0
+    if(nstop  <  0) nstop  = 0
+    if(nstop < nstart) then
+      nstart = 0
+      nstop  = 0
+    end if
+    if(iconv /= 1) iconv = 0
+    if(abs(cma1) <= pieni) cma1 = one
+    cma1 = cma1*c1e3
+    if(abs(cma2) <= pieni) cma2 = one
+    ipos = 1
+
+  case default
+    write(lout,"(a,i0)") "POST> ERROR Unexpected line number ",iLine
+    iErr = .true.
+    return
+
+  end select
+
+end subroutine sixin_parseInputLinePOST
+
 end module sixtrack_input

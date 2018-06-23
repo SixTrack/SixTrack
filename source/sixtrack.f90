@@ -450,8 +450,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("POST")
-    goto 1280
   case("DECO")
     goto 1320
   case("NORM")
@@ -749,6 +747,16 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("POST") ! Post-Processing
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLinePOST(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -928,184 +936,189 @@ subroutine daten
 !-----------------------------------------------------------------------
 !  POSTPROCESSING
 !-----------------------------------------------------------------------
- 1280 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).ne.'/') then
-      iclr=iclr+1
-      else
-      goto 1280
-      endif
-      ch1(:83)=ch(:80)//' / '
+!  1280 read(3,10020,end=1530,iostat=ierro) ch
+!       if(ierro.gt.0) call prror(58)
+!       lineno3=lineno3+1
+!       if(ch(1:1).ne.'/') then
+!       iclr=iclr+1
+!       else
+!       goto 1280
+!       endif
+!       ch1(:83)=ch(:80)//' / '
+      
+!       if(iclr == 1) call sixin_parseInputLinePOST(ch,iclr,inErr)
+!       if(iclr == 2) call sixin_parseInputLinePOST(ch,iclr,inErr)
+!       if(iclr == 3) call sixin_parseInputLinePOST(ch,iclr,inErr)
+!       if(iclr == 4) call sixin_parseInputLinePOST(ch,iclr,inErr)
 
-      !Line 1
-      if(iclr.eq.1) toptit(1)=ch
+!       ! !Line 1
+!       ! if(iclr.eq.1) toptit(1)=ch
 
 
-      !Line 2
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.2) read(ch1,*,round='nearest')                         &
-     & iav,nstart,nstop,iwg,dphix,dphiz,                                &
-     &iskip,iconv,imad,cma1,cma2
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.2) read(ch1,*) iav,nstart,nstop,iwg,dphix,dphiz,       &
-     &iskip,iconv,imad,cma1,cma2
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.2) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          read(fields(1),*) iav
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(2),*) nstart
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(3),*) nstop
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(4),*) iwg
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dphix=fround(errno,fields,5)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dphiz=fround(errno,fields,6)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(8),*) iconv
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(9),*) imad
-        nf=nf-1
-        endif
-        if (nf.gt.0) then
-          cma1=fround(errno,fields,10)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          cma2=fround(errno,fields,11)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
+!       !Line 2
+! ! #ifdef FIO
+! ! #ifdef CRLIBM
+! !       call enable_xp()
+! ! #endif
+! !       if(iclr.eq.2) read(ch1,*,round='nearest')                         &
+! !      & iav,nstart,nstop,iwg,dphix,dphiz,                                &
+! !      &iskip,iconv,imad,cma1,cma2
+! ! #ifdef CRLIBM
+! !       call disable_xp()
+! ! #endif
+! ! #endif
+! ! #ifndef FIO
+! ! #ifndef CRLIBM
+! !       if(iclr.eq.2) read(ch1,*) iav,nstart,nstop,iwg,dphix,dphiz,       &
+! !      &iskip,iconv,imad,cma1,cma2
+! ! #endif
+! ! #ifdef CRLIBM
+! !       if(iclr.eq.2) then
+! !         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+! !         if (nf.gt.0) then
+! !           read(fields(1),*) iav
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           read(fields(2),*) nstart
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           read(fields(3),*) nstop
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           read(fields(4),*) iwg
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           dphix=fround(errno,fields,5)
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           dphiz=fround(errno,fields,6)
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           read(fields(8),*) iconv
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           read(fields(9),*) imad
+! !         nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           cma1=fround(errno,fields,10)
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           cma2=fround(errno,fields,11)
+! !           nf=nf-1
+! !         endif
+! !       endif
+! ! #endif
+! ! #endif
 
-      !Line 3
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.3) read(ch1,*,round='nearest')                         &
-     & qx0,qz0,ivox,ivoz,ires,dres,ifh,dfft
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      if(iclr.eq.3) read(ch1,*) qx0,qz0,ivox,ivoz,ires,dres,ifh,dfft
-#endif
-#ifdef CRLIBM
-      if(iclr.eq.3) then
-        call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-        if (nf.gt.0) then
-          qx0=fround(errno,fields,1)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          qz0=fround(errno,fields,2)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(3),*) ivox
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(4),*) ivoz
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(5),*) ires
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dres=fround(errno,fields,6)
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          read(fields(7),*) ifh
-          nf=nf-1
-        endif
-        if (nf.gt.0) then
-          dfft=fround(errno,fields,8)
-          nf=nf-1
-        endif
-      endif
-#endif
-#endif
+!       !Line 3
+! ! #ifdef FIO
+! ! #ifdef CRLIBM
+! !       call enable_xp()
+! ! #endif
+! !       if(iclr.eq.3) read(ch1,*,round='nearest')                         &
+! !      & qx0,qz0,ivox,ivoz,ires,dres,ifh,dfft
+! ! #ifdef CRLIBM
+! !       call disable_xp()
+! ! #endif
+! ! #endif
+! ! #ifndef FIO
+! ! #ifndef CRLIBM
+! !       if(iclr.eq.3) read(ch1,*) qx0,qz0,ivox,ivoz,ires,dres,ifh,dfft
+! ! #endif
+! ! #ifdef CRLIBM
+! !       if(iclr.eq.3) then
+! !         call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
+! !         if (nf.gt.0) then
+! !           qx0=fround(errno,fields,1)
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           qz0=fround(errno,fields,2)
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           read(fields(3),*) ivox
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           read(fields(4),*) ivoz
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           read(fields(5),*) ires
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           dres=fround(errno,fields,6)
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           read(fields(7),*) ifh
+! !           nf=nf-1
+! !         endif
+! !         if (nf.gt.0) then
+! !           dfft=fround(errno,fields,8)
+! !           nf=nf-1
+! !         endif
+! !       endif
+! ! #endif
+! ! #endif
 
-      !Line 4
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      if(iclr.eq.4) read(ch1,*,round='nearest')                         &
-     & kwtype,itf,icr,idis,icow,istw,iffw,                              &
-     &nprint,ndafi
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-      if(iclr.eq.4) read(ch1,*) kwtype,itf,icr,idis,icow,istw,iffw,     &
-     &nprint,ndafi
-#endif
+!       !Line 4
+! ! #ifdef FIO
+! ! #ifdef CRLIBM
+! !       call enable_xp()
+! ! #endif
+! !       if(iclr.eq.4) read(ch1,*,round='nearest')                         &
+! !      & kwtype,itf,icr,idis,icow,istw,iffw,                              &
+! !      &nprint,ndafi
+! ! #ifdef CRLIBM
+! !       call disable_xp()
+! ! #endif
+! ! #endif
+! ! #ifndef FIO
+! !       if(iclr.eq.4) read(ch1,*) kwtype,itf,icr,idis,icow,istw,iffw,     &
+! !      &nprint,ndafi
+! ! #endif
 
-#ifdef STF
-      if (imad.eq.1) then
-         write(lout,*) "ERROR in daten::POST:"
-         write(lout,*) "imad not supported for STF version."
-         call prror(-1)
-      endif
-#endif
+! ! #ifdef STF
+! !       if (imad.eq.1) then
+! !          write(lout,*) "ERROR in daten::POST:"
+! !          write(lout,*) "imad not supported for STF version."
+! !          call prror(-1)
+! !       endif
+! ! #endif
 
-      kwtype=0
-      icr=0
-      if(iskip.le.0) iskip=1
-      if(iclr.ne.4) goto 1280
-      if(nprint.ne.1) nprint=0
-      iclr=0
-      if(nstart.lt.0) nstart=0
-      if(nstop.lt.0) nstop=0
-      if(nstop.lt.nstart) then
-         nstart=0
-         nstop=0
-      endif
-      if(iconv.ne.1) iconv=0
-      if(abs(cma1).le.pieni) cma1=one
-      cma1=cma1*c1e3
-      if(abs(cma2).le.pieni) cma2=one
-      ipos=1
-      goto 110
+!       kwtype=0
+!       icr=0
+!       if(iskip.le.0) iskip=1
+!       if(iclr.ne.4) goto 1280
+!       if(nprint.ne.1) nprint=0
+!       iclr=0
+!       if(nstart.lt.0) nstart=0
+!       if(nstop.lt.0) nstop=0
+!       if(nstop.lt.nstart) then
+!          nstart=0
+!          nstop=0
+!       endif
+!       if(iconv.ne.1) iconv=0
+!       if(abs(cma1).le.pieni) cma1=one
+!       cma1=cma1*c1e3
+!       if(abs(cma2).le.pieni) cma2=one
+!       ipos=1
+!       goto 110
 !-----------------------------------------------------------------------
 !  DECOUPLING ROUTINE
 !-----------------------------------------------------------------------
@@ -4924,6 +4937,9 @@ subroutine comnul
   ak0(:,:)   = zero ! mod_common
   bka(:,:)   = zero ! mod_common
   aka(:,:)   = zero ! mod_common
+  
+  ! POSTPROCESSING
+  toptit(:)  = " "  ! mod_common
 
   ! TODO
       nur=0
@@ -5069,7 +5085,6 @@ subroutine comnul
         ipr(i)=0
         nrr(i)=0
         nu(i)=0
-        toptit(i)=' '
    40 continue
 
       do 50 i=1,6
