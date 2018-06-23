@@ -2705,4 +2705,108 @@ subroutine sixin_parseInputLinePOST(inLine, iLine, iErr)
 
 end subroutine sixin_parseInputLinePOST
 
+! ================================================================================================ !
+!  Parse Decoupling of Motion in the Transverse Planes Line
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-23
+! ================================================================================================ !
+subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen) name(6)
+  integer nSplit, i, j, k
+  logical spErr
+
+  save :: name
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "DECO> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  select case(iLine)
+
+  case(1)
+    
+    name(:) = str_nmSpace
+    
+    if(nSplit > 0) name(1) = lnSplit(1)
+    if(nSplit > 1) name(2) = lnSplit(2)
+    if(nSplit > 2) name(3) = lnSplit(3)
+    if(nSplit > 3) name(4) = lnSplit(4)
+
+    if(st_debug) then
+      call sixin_echoVal("name1",name(1),"DECO",iLine)
+      call sixin_echoVal("name2",name(2),"DECO",iLine)
+      call sixin_echoVal("name3",name(3),"DECO",iLine)
+      call sixin_echoVal("name4",name(4),"DECO",iLine)
+    end if
+    
+    iskew = 1
+    
+  case(2)
+    
+    if(nSplit > 0) name(5) = lnSplit(1)
+    if(nSplit > 1) call chr_cast(lnSPlit(2),qwsk(1),iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("name5",  name(5),"DECO",iLine)
+      call sixin_echoVal("qwsk(1)",qwsk(1),"DECO",iLine)
+    end if
+    if(iErr) return
+    
+  case(3)
+    
+    if(nSplit > 0) name(6) = lnSplit(1)
+    if(nSplit > 1) call chr_cast(lnSPlit(2),qwsk(2),iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("name6",  name(6),"DECO",iLine)
+      call sixin_echoVal("qwsk(2)",qwsk(2),"DECO",iLine)
+    end if
+    if(iErr) return
+    
+    iskew = 2
+    
+    do i=1,6
+      do j=1,il
+        if(iskew == 2 .and. i > 4) return
+        if(bez(j) == name(i)) then
+          if(i <= 4) then
+            if(kz(j) /= -2) then
+              write(lout,"(a)") "DECO> ERROR Elements specified is not a skew quadrupole."
+              iErr = .true.
+              return
+            end if
+          else
+            if(kz(j) /= 2) then
+              write(lout,"(a)") "DECO> ERROR Elements specified is not a quadrupole."
+              iErr = .true.
+              return
+            end if
+          end if
+          nskew(i) = j
+          do k=1,6
+            if(nskew(k) /= 0 .and. (nskew(k) == nskew(i)) .and. (k /= i)) then
+              write(lout,"(a)") "DECO> ERROR Same element specified twice."
+              iErr = .true.
+              return
+            end if
+          end do
+        end if
+      end do
+    end do
+    
+  end select
+  
+end subroutine sixin_parseInputLineDECO
+
 end module sixtrack_input
