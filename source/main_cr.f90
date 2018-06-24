@@ -88,7 +88,6 @@ program maincr
 
   use crcoall
   use parpro
-!  use parpro_scale
   use mod_settings
   use mod_common
   use mod_commonmn

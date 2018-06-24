@@ -42,7 +42,6 @@ subroutine daten
   use mathlib_bouncer
   use sixtrack_input
   use parpro
-!  use parpro_scale
   use parbeam, only : beam_expflag,beam_expfile_open
   use mod_settings
   use mod_common
@@ -87,24 +86,15 @@ subroutine daten
     izu,j,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
     ll,m,mblozz,nac,nbidu,nfb,nft,i4,i5
 
-  real(kind=fPrec) tilt,xang,xstr,xplane
+  real(kind=fPrec) tilt
 
-  ! For BEAM-EXP
-  real(kind=fPrec) separx,separy,mm1,mm2,mm3,mm4,mm5,mm6,mm7,mm8,mm9,mm10,mm11
-
-  character(len=mNameLen) diff,sync,ende
-  character(len=mNameLen) iter,orbi,deco
-  character(len=mNameLen) beze,go,comb,sear
-  character(len=mNameLen) cavi,disp,reso
-  character(len=mNameLen) idat,idat2,next,mult,line,init,ic0,imn,icel
-  character(len=mNameLen) iele,ilm0,idum,norm
-  character(len=mNameLen) kl,kr,orga,post,beam,trom
+  character(len=mNameLen) ende,deco,beze,go,cavi,disp,idat,idat2,next,line,ic0,imn
+  character(len=mNameLen) iele,ilm0,idum,kl,kr,trom
   character(len=60) ihead
   integer nchars
   parameter (nchars=160)
   character(len=nchars) ch
   character(len=nchars+nchars) ch1
-  logical   beam_xstr
 
   ! Variables for input line fields
   ! These  should eventually be replaced by the string_tools->str_split subroutine
@@ -119,12 +109,10 @@ subroutine daten
   parameter (maxf=30)
   parameter (nofields=41)
   character(len=maxf) fields(nofields)
-  integer errno,nfields,nunit,nf
+  integer errno,nfields,nf
   real(kind=fPrec) fround
-#else
-  integer nunit
 #endif
-  integer lineNo2,lineNo3
+  integer nUnit,lineNo2,lineNo3
 
 #ifdef COLLIMAT
   logical has_coll
@@ -144,14 +132,10 @@ subroutine daten
   ! Elens: online calculation of theta@r2
   real(kind=fPrec) eLensTheta
 
-  dimension icel(ncom,20)
   dimension ilm0(40),ic0(10)
-  data ende,next,iter,line,diff /'ENDE','NEXT','ITER','LINE','DIFF'/
-  data orbi,go,sear,reso,post,deco /'ORBI','GO','SEAR','RESO','POST','DECO'/
-  data comb,cavi,beam,trom /'COMB','CAV','BEAM','TROM'/
-  data idum,kl,kr,orga,norm /' ','(',')','ORGA','NORM'/
   character(len=4) fluk
-  data fluk /'FLUK'/
+  data ende,next,line /'ENDE','NEXT','LINE'/
+  data go,cavi,trom,idum,kl,kr,fluk /'GO','CAV','TROM',' ','(',')','FLUK'/
 
 #ifdef CRLIBM
   real(kind=fPrec) round_near
@@ -175,18 +159,10 @@ subroutine daten
         ilm0(i)=' '
       end do
 
-      do i=1,ncom
-        do j=1,20
-          icel(i,j)=' '
-        end do
-      end do
-
       do i=1,10
         ic0(i)=' '
       end do
 
-      ihead=' '
-      sixtit=' '
       nbidu=0
       iclo6=0
       iclo6r=0
@@ -256,6 +232,10 @@ subroutine daten
   st_debug     = .false.
   st_quiet     = 0
 
+  ! Main Variables
+  iHead        = " "
+  sixtit       = " "
+
   ! TRACKING PARAMETERS
   numl         = 1
   napx         = 0
@@ -307,13 +287,13 @@ subroutine daten
 
   ! ORGANISATION OF RANDOM NUMBERS
   sixin_iorg   = 0
-  
+
   ! RESONANCE COMPENSATION
   irmod2       = 0
-  
+
   ! DECOUPLING OF MOTION
   iskew        = 0
-  
+
   ! BEAM-BEAM ELEMENT
   sixin_emitNX = zero
   sixin_emitNY = zero
@@ -341,7 +321,7 @@ subroutine daten
   sixin_ncy2  = 0
   sixin_icy   = 0
 
-  call alloc(sixin_bez0, mNameLen, nele, repeat(char(0),mNameLen), "sixin_bez0")
+  call alloc(sixin_bez0,mNameLen,nele,str_nmSpace,"sixin_bez0")
 
   ! DATEN INTERNAL
   nGeom       = 0
@@ -1844,10 +1824,10 @@ subroutine daten
         emitx=sixin_emitNX*gammar
         emity=sixin_emitNY*gammar
 #ifdef COLLIMAT
-        remitx_dist=sixin_emitNX0_dist*gammar
-        remity_dist=sixin_emitNY0_dist*gammar
-        remitx_collgap=sixin_emitNX0_collgap*gammar
-        remity_collgap=sixin_emitNY0_collgap*gammar
+        remitx_dist=emitnx0_dist*gammar
+        remity_dist=emitny0_dist*gammar
+        remitx_collgap=emitnx0_collgap*gammar
+        remity_collgap=emitny0_collgap*gammar
 #endif
       endif
 #ifdef COLLIMAT
@@ -4220,7 +4200,7 @@ subroutine comnul
   ak0(:,:)   = zero ! mod_common
   bka(:,:)   = zero ! mod_common
   aka(:,:)   = zero ! mod_common
-  
+
   ! POSTPROCESSING
   toptit(:)  = " "  ! mod_common
 
@@ -4778,7 +4758,6 @@ integer function INEELS( iEl )
   use numerical_constants
   use crcoall
   use parpro
-!  use parpro_scale
   use mod_common
   use mod_commont
   use mod_commonmn
@@ -4840,7 +4819,6 @@ integer function INEESE()
   use crcoall
 
   use parpro
-!  use parpro_scale
   use mod_common
   use mod_commont
   use mod_commonmn

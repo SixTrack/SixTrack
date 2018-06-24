@@ -55,7 +55,7 @@ module sixtrack_input
 
   ! Organisation of Random Numbers
   integer,                       public, save :: sixin_iorg
-  
+
   ! Beam-Beam Elements
   real(kind=fPrec),              public, save :: sixin_emitNX
   real(kind=fPrec),              public, save :: sixin_emitNY
@@ -331,8 +331,6 @@ end subroutine sixin_parseInputLineSETT
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
 
-!  use parpro_scale
-
   implicit none
 
   character(len=*), intent(in)    :: inLine
@@ -473,8 +471,6 @@ end subroutine sixin_parseInputLineSING
 ! ================================================================================================ !
 subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
 
-!  use parpro_scale
-
   implicit none
 
   character(len=*), intent(in)    :: inLine
@@ -609,8 +605,6 @@ end subroutine sixin_parseInputLineBLOC
 !  Last modified: 2018-05-xx
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
-
-!  use parpro_scale
 
   implicit none
 
@@ -780,8 +774,6 @@ end subroutine sixin_parseInputLineDISP
 ! ================================================================================================ !
 subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
 
-!  use parpro_scale
-
   implicit none
 
   character(len=*), intent(in)    :: inLine
@@ -930,7 +922,6 @@ end subroutine sixin_parseInputLineINIT
 ! ================================================================================================ !
 subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
-!  use parpro_scale
   use mod_commont
   use mod_commond
 
@@ -3049,7 +3040,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
   real(kind=fPrec) sxx,syy,separx,separy,mm(11)
   integer nSplit, n6D, ibsix, j
   logical spErr, beamXStr
-  
+
   save :: n6D,elemName,ibsix,sxx,syy,separx,separy,mm
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -3102,19 +3093,19 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
     nbeam = 1
 
     if(ibtyp == 1) call wzset
-    
+
     n6D = 0
 
   else
 
     if(n6D == 0) then
-      
+
       mm(:)  = zero
       sxx    = zero
       syy    = zero
       separx = zero
       separy = zero
-      
+
       if(nSplit > 0) elemName = trim(lnSPlit(1))
       if(nSplit > 1) call chr_cast(lnSPlit(2),ibsix, iErr)
       if(nSplit > 2) call chr_cast(lnSPlit(3),sxx,   iErr)
@@ -3122,7 +3113,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
       if(nSplit > 4) call chr_cast(lnSPlit(5),separx,iErr)
       if(nSplit > 5) call chr_cast(lnSPlit(6),separy,iErr)
       if(nSplit > 6) call chr_cast(lnSPlit(7),mm(1), iErr)
-      
+
       if(ibsix == 0) then
         if(nSplit /= 7) then
           write(lout,"(a,i0)") "BEAM> ERROR First line of a 4D element definition should have 7 fields, got ",nSplit
@@ -3159,7 +3150,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
         call sixin_echoVal("strrat",mm(1),   "BEAM",iLine)
       end if
       if(iErr) return
-      
+
       if(n6D == 0) then
         ! Save 4D data
         do j=1,il
@@ -3187,9 +3178,9 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
           end if
         end do
       end if
-      
+
     else if(n6D == 1) then
-      
+
       if(st_debug) then
         write(lout,"(a)") "BEAM> DEBUG Second 6D line encountered."
       end if
@@ -3198,13 +3189,13 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
         iErr = .true.
         return
       end if
-      
+
       if(nSplit > 0) call chr_cast(lnSPlit(1),mm(1),iErr)
       if(nSplit > 1) call chr_cast(lnSPlit(2),mm(2),iErr)
       if(nSplit > 2) call chr_cast(lnSPlit(3),mm(3),iErr)
       if(nSplit > 3) call chr_cast(lnSPlit(4),mm(4),iErr)
       if(nSplit > 4) call chr_cast(lnSPlit(5),mm(5),iErr)
-    
+
       if(st_debug) then
         call sixin_echoVal("Sxx",  mm(1),"BEAM",iLine)
         call sixin_echoVal("Sxxp", mm(2),"BEAM",iLine)
@@ -3213,11 +3204,11 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
         call sixin_echoVal("Syyp", mm(5),"BEAM",iLine)
       end if
       if(iErr) return
-      
+
       n6D = 2
-      
+
     else if(n6D == 2) then
-      
+
       if(st_debug) then
         write(lout,"(a)") "BEAM> DEBUG Third 6D line encountered."
       end if
@@ -3226,14 +3217,14 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
         iErr = .true.
         return
       end if
-      
+
       if(nSplit > 0) call chr_cast(lnSPlit(1),mm(6), iErr)
       if(nSplit > 1) call chr_cast(lnSPlit(2),mm(7), iErr)
       if(nSplit > 2) call chr_cast(lnSPlit(3),mm(8), iErr)
       if(nSplit > 3) call chr_cast(lnSPlit(4),mm(9), iErr)
       if(nSplit > 4) call chr_cast(lnSPlit(5),mm(10),iErr)
       if(nSplit > 5) call chr_cast(lnSPlit(6),mm(11),iErr)
-    
+
       if(st_debug) then
         call sixin_echoVal("Sypyp", mm(6), "BEAM",iLine)
         call sixin_echoVal("Sxy",   mm(7), "BEAM",iLine)
@@ -3243,7 +3234,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
         call sixin_echoVal("strrat",mm(11),"BEAM",iLine)
       end if
       if(iErr) return
-      
+
       ! Save 6D data
       do j=1,il
         if(bez(j) == elemName) then
@@ -3281,7 +3272,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
      end do
 
      n6D = 0
-      
+
     end if
 
   end if
