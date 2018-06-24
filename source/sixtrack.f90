@@ -1824,10 +1824,10 @@ subroutine daten
         emitx=sixin_emitNX*gammar
         emity=sixin_emitNY*gammar
 #ifdef COLLIMAT
-        remitx_dist=sixin_emitNX0_dist*gammar
-        remity_dist=sixin_emitNY0_dist*gammar
-        remitx_collgap=sixin_emitNX0_collgap*gammar
-        remity_collgap=sixin_emitNY0_collgap*gammar
+        remitx_dist=emitnx0_dist*gammar
+        remity_dist=emitny0_dist*gammar
+        remitx_collgap=emitnx0_collgap*gammar
+        remity_collgap=emitny0_collgap*gammar
 #endif
       endif
 #ifdef COLLIMAT
