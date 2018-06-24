@@ -10,25 +10,27 @@ module parpro
 
   implicit none
 
-  ! All of the following need a description
-  integer, parameter :: mbea  = 99
-  integer, parameter :: mcor  = 10
-  integer, parameter :: mcop  = mcor + 6
-  integer, parameter :: mpa   = 6
-  integer, parameter :: mran  = 500
-  integer, parameter :: ncom  = 100
-  integer, parameter :: ncor1 = 600
-  integer, parameter :: nema  = 15
-  integer, parameter :: ninv  = 1000
-  integer, parameter :: nlya  = 10000
-  integer, parameter :: nmac  = 1         ! Maximum number of seeds for vectorisation
-  integer, parameter :: nmon1 = 600
-  integer, parameter :: nper  = 16
-  integer, parameter :: nplo  = 20000
-  integer, parameter :: npos  = 20000
+  integer, parameter :: mbea  = 99        ! Maximum number of beam-beam slices
+  integer, parameter :: mcor  = 10        ! Maximum number of extra parameters (DIFF block)
+  integer, parameter :: mcop  = mcor + 6  ! FOX/DA variable
+  integer, parameter :: mpa   = 6         ! Maximum number of trajectories
+  integer, parameter :: mran  = 500       ! Maximum number of inserted elements (subroutine ord)
+  integer, parameter :: ncom  = 100       ! Maximum number of combinations of elements (COMB block)
+  integer, parameter :: ncor1 = 600       ! Maximum number of corrections of closed orbit
+  integer, parameter :: nema  = 15        ! Maximum order of the one turn map (DIFF block)
+  integer, parameter :: ninv  = 1000      ! Number of invariances (postprocessing)
+  integer, parameter :: nlya  = 10000     ! Something something postprocessing
+  integer, parameter :: nmac  = 1         ! Maximum number of seeds for vectorisation, machines
+  integer, parameter :: nmon1 = 600       ! Maximum number of monitors (closed orbit)
+  integer, parameter :: nper  = 16        ! Maximum number of super periods (BLOC list, line 1)
+  integer, parameter :: nplo  = 20000     ! Plotting
+  integer, parameter :: npos  = 20000     ! Something something postprocessing
   integer, parameter :: nran  = 2000000   ! Maximum size for scaling nzfz
-  integer, parameter :: nrco  = 5
-  integer, parameter :: ntr   = 20
+  integer, parameter :: nrco  = 5         ! aximum order of compensation (RESO block)
+  integer, parameter :: ntr   = 20        ! Maximum number of phase trombones
+  integer, parameter :: mmul  = 20        ! Maximum order of multipoles
+  integer, parameter :: nbb   = 500       ! Beam-beam lenses
+  integer, parameter :: nelb  = 280       ! Maximum elements per BLOC
 
   ! Maximum length of element names
   integer, parameter :: mNameLen = 48     ! Maximum length of element names. Keep in sync with MadX
@@ -36,20 +38,16 @@ module parpro
   integer, parameter :: mDivLen  = 132    ! Length of lout output lines
   integer, parameter :: mInputLn = 1024   ! Buffer size for single lines read from input files
 
-  integer :: nzfz  = -1   ! Maximum number of multipole random numbers
-  integer :: nele  = -1   ! Maximum number of SINGle elements
-  integer :: nblo  = -1   ! Maximum number of BLOCs
-  integer :: nblz  = -1   ! Maximum number of STRUcture elements
-  integer :: npart = -1   ! Maximum number of particles
+  integer :: nzfz  = -1   ! Number of allocated multipole random numbers
+  integer :: nele  = -1   ! Number of allocated SINGle elements
+  integer :: nblo  = -1   ! Number of allocated BLOCs
+  integer :: nblz  = -1   ! Number of allocated STRUcture elements
+  integer :: npart = -1   ! Number of allocated particles
 
   integer, parameter :: nele_initial  = 500
   integer, parameter :: nblo_initial  = 100
   integer, parameter :: nblz_initial  = 1000
   integer, parameter :: npart_initial = 2
-
-  integer, parameter :: mmul = 20   ! Maximum order of multipoles
-  integer, parameter :: nelb = 280  ! Maximum elements per BLOC
-  integer, parameter :: nbb  = 500  ! Beam-beam lenses
 
   ! Dummy Strings
   character(len=mDivLen),  parameter :: str_divLine = repeat("-",132)
@@ -423,7 +421,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(bbi,                  nblz_new, mmul, zero,        "bbi")
   call alloc(dcum,                 nblz_new+1,     zero,        "dcum", 0)
   call alloc(sigmoff,              nblz_new,       zero,        "sigmoff")
-  
+
   call alloc(nnumxv,               npart_new,      0,           "nnumxv")
   call alloc(track6d, 6,           npart_new,      zero,        "track6d")
 
@@ -501,7 +499,7 @@ module mod_commont
   real(kind=fPrec), save :: alf0(2)
   real(kind=fPrec), save :: clo(2)
   real(kind=fPrec), save :: clop(2)
-  
+
   ! common /chrom/
   real(kind=fPrec), save :: cro(2)
   integer,          save :: is(2)
@@ -543,7 +541,7 @@ subroutine mod_commont_expand_arrays(nblz_new,npart_new)
   call alloc(stracks, nblz_new,  zero, "stracks")
   call alloc(strackx, nblz_new,  zero, "strackx")
   call alloc(strackz, nblz_new,  zero, "strackz")
-  
+
   call alloc(dpsv1,   npart_new, zero, "dpsv1")
 
 end subroutine mod_commont_expand_arrays
@@ -601,13 +599,13 @@ module mod_commonmn
   real(kind=fPrec), allocatable, save :: zlv(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: rvv(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: ejf0v(:)     ! (npart)
-  
+
   integer,          allocatable, save :: numxv(:)     ! (npart)
   integer,          allocatable, save :: nms(:)       ! (npart)
   integer,          allocatable, save :: nlostp(:)    ! (npart)
-  
+
   logical,          allocatable, save :: pstop(:)     ! (npart)
-  
+
   real(kind=fPrec),              save :: qw(2)
   real(kind=fPrec),              save :: qwc(3)
   real(kind=fPrec),              save :: clo0(2)
@@ -666,7 +664,7 @@ module mod_commonmn
   real(kind=fPrec), allocatable, save :: clopv(:,:)   ! (2,npart)
   real(kind=fPrec), allocatable, save :: alf0v(:,:)   ! (npart,2)
   real(kind=fPrec), allocatable, save :: bet0v(:,:)   ! (npart,2)
-  
+
   integer,          allocatable, save :: iv(:)        ! (npart)
   integer,          allocatable, save :: ixv(:)       ! (npart)
 
@@ -713,7 +711,7 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   call alloc(smiv,       nmac, nblz_new,       zero,    "smiv")
   call alloc(zsiv,       nmac, nblz_new,       zero,    "zsiv")
   call alloc(xsiv,       nmac, nblz_new,       zero,    "xsiv")
-  
+
   call alloc(fokqv,            npart_new,      zero,    "fokqv")
   call alloc(xsv,              npart_new,      zero,    "xsv")
   call alloc(zsv,              npart_new,      zero,    "zsv")
@@ -736,7 +734,7 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   call alloc(nms,              npart_new,      0,       "nms")
   call alloc(nlostp,           npart_new,      0,       "nlostp")
   call alloc(pstop,            npart_new,      .false., "pstop")
-  
+
   call alloc(dpd,              npart_new,      zero,    "dpd")
   call alloc(dpsq,             npart_new,      zero,    "dpsq")
   call alloc(fok,              npart_new,      zero,    "fok")
@@ -783,7 +781,7 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   call alloc(bet0v,            npart_new, 2,   zero,    "bet0v")
   call alloc(iv,               npart_new,      0,       "iv")
   call alloc(ixv,              npart_new,      0,       "ixv")
-  
+
   call alloc(tasau,            npart_new, 6,6, zero,    "tasau")
   call alloc(tas,              npart_new, 6,6, zero,    "tas")
   call alloc(clo6v,     3,     npart_new,      zero,    "clo6v")
@@ -793,7 +791,7 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   call alloc(di0zs,            npart_new,      zero,    "di0zs")
   call alloc(dip0xs,           npart_new,      zero,    "dip0xs")
   call alloc(dip0zs,           npart_new,      zero,    "dip0zs")
-  
+
 end subroutine mod_commonmn_expand_arrays
 
 subroutine mod_commonmn_allocate_thickarrays
