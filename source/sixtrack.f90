@@ -59,8 +59,8 @@ subroutine daten
   use dynk,     only : ldynk,ldynkdebug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
   use fma,      only : fma_parseInputLine
   use dump,     only : dump_parseInputLine,dump_parseInputDone
-  use zipf,     only : zipf_parseInputDone,zipf_parseInputline
-  use bdex,     only : bdex_debug,bdex_parseElem,bdex_parseChan,bdex_parseInputDone
+  use zipf,     only : zipf_parseInputLine,zipf_parseInputDone
+  use bdex,     only : bdex_parseInputLine,bdex_parseInputDone
   use mod_fluc, only : fluc_parseInputLine,fluc_readInputs
   use aperture
   use mod_ranecu
@@ -90,7 +90,7 @@ subroutine daten
 
   character(len=mNameLen) ende,deco,beze,go,cavi,disp,idat,idat2,next,line,ic0,imn
   character(len=mNameLen) iele,ilm0,idum,kl,kr,trom
-  character(len=60) ihead
+  character(len=60) iHead
   integer nchars
   parameter (nchars=160)
   character(len=nchars) ch
@@ -438,8 +438,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("BDEX")
-    goto 2250
   case("ELEN")
     goto 2400
   case("WIRE")
@@ -803,6 +801,16 @@ subroutine daten
     end if
 #endif
 
+  case("BDEX") ! Beam Distribution EXchange
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call bdex_parseInputDone
+    else
+      call bdex_parseInputLine(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -978,65 +986,6 @@ subroutine daten
 ! ================================================================================================ !
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
-
-!-----------------------------------------------------------------------
-!  BDEX = Beam Distribution EXchange
-!  K.Sjobak, BE/ABP-HSS 2016
-!  Based on FLUKA coupling version by
-!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team, 2014.
-!-----------------------------------------------------------------------
- 2250 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(51)
-      lineno3 = lineno3+1 ! Line number used for some crash output
-
-      if(ch(1:1).eq.'/') goto 2250 ! skip comment line
-
-#ifdef CR
-      write(lout,*) "BDEX not supported in CR version."
-      write(lout,*) "Sorry :("
-      call prror(-1)
-#endif
-!+if collimat
-!      write(*,*) "BDEX not supported in COLLIMAT version."
-!      write(*,*) "Sorry :("
-!      call prror(-1)
-!+ei
-
-      ! Which type of block? Look at start of string (no leading blanks allowed)
-      if (ch(:4).eq."DEBU") then
-         bdex_debug = .true.
-         write (lout,*) "BDEX> BDEX block debugging is ON"
-         goto 2250 !loop BDEX
-
-      else if (ch(:4).eq."ELEM") then
-         call bdex_parseElem(ch)
-         goto 2250 !loop BDEX
-
-      else if (ch(:4).eq."CHAN") then
-         call bdex_parseChan(ch)
-         goto 2250 !Loop BDEX
-
-      else if (ch(:4).eq.next) then
-         call bdex_parseInputDone
-         goto 110 ! loop BLOCK
-
-      else
-         write (lout,*)
-         write (lout,*) "*******************************************"
-         write (lout,*) "ERROR while parsing BDEX block in fort.3"
-         write (lout,*) "Expected keywords DEBU, NEXT, ELEM, or CHAN"
-         write (lout,*) "Got ch:"
-         write (lout,*) "'"//ch//"'"
-         write (lout,*) "*******************************************"
-         call prror(-1)
-
-      endif
-
-      ! Should never arrive here
-      write (lout,*) "*****************************"
-      write (lout,*) "*LOGIC ERROR IN PARSING BDEX*"
-      write (lout,*) "*****************************"
-      call prror(-1)
 
 !-----------------------------------------------------------------------
 !  Electron Lense, kz=29,ktrack=63
