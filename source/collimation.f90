@@ -336,7 +336,7 @@ module collimation
   real(kind=fPrec), allocatable, save :: mux(:) !(nblz)
   real(kind=fPrec), allocatable, save :: muy(:) !(nblz)
 !  common /mu/ mux,muy
- 
+
 !  common /collocal/ myix,myktrack,totals,firstcoll,found,onesided
 
 ! common /icoll/  icoll
@@ -1686,6 +1686,26 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   end select
 
 end subroutine collimate_parseInputLine
+
+subroutine collimate_postInput(gammar,has_coll)
+  
+  real(kind=fPrec), intent(in) :: gammar
+  logical,          intent(in) :: has_coll
+
+  remitx_dist    = emitnx0_dist*gammar
+  remity_dist    = emitny0_dist*gammar
+  remitx_collgap = emitnx0_collgap*gammar
+  remity_collgap = emitny0_collgap*gammar
+
+  if(.not.has_coll) then
+    ! Breaks at least DUMP (negative particle IDs) and DYNK (1-pass actions).
+    write(lout,"(a)") "COLL> ERROR This is the collimation version of SixTrack,"
+    write(lout,"(a)") "COLL>       but no COLL block was found, not even one with do_coll = .false."
+    write(lout,"(a)") "COLL>       Please use the non-collimation version!"
+    call prror(-1)
+  end if
+
+end subroutine collimate_postInput
 
 !>
 !! collimate_start_sample()
@@ -6882,7 +6902,7 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
   character(len=:), allocatable :: lnSplit(:)
   integer nSplit
   logical spErr
-  
+
   save
 
   write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
@@ -6968,7 +6988,7 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
 
   real(kind=fPrec) normx, normy, normxp, normyp, normp, norms
   real(kind=fPrec) myemitz
-  
+
   character(len=mInputLn) inLine
   character(len=:), allocatable :: lnSplit(:)
   integer nSplit

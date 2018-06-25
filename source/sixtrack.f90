@@ -286,7 +286,7 @@ subroutine daten
 ! ================================================================================================ !
 
 90 continue
-  read(3,"(a4,8x,a60)",end=1530,iostat=ierro) cCheck,iHead
+  read(3,"(a4,8x,a60)",end=9998,iostat=ierro) cCheck,iHead
   if(ierro > 0) call prror(58)
   lineNo3 = lineNo3+1
   if(cCheck(1:1) == "/") goto 90
@@ -329,7 +329,6 @@ subroutine daten
   closeBlock  = .false. ! Whether the current block should be closed after the pass
   blockClosed = .false. ! Whether the current block is now closed, and should not be opened again
 
-100 continue ! fort.2 loop
 110 continue ! fort.3 loop
 
   ! We have our three geometry blocks, stop parsing fort.2
@@ -344,7 +343,7 @@ subroutine daten
     lineNo3 = lineNo3 + 1
   end if
 
-  read(nUnit,"(a)",end=1530,iostat=iErro) inLine
+  read(nUnit,"(a)",end=9998,iostat=iErro) inLine
   if(iErro > 0) then
     write(lout,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
     call prror(-1)
@@ -376,8 +375,7 @@ subroutine daten
       goto 110
     end if
   case("ENDE") ! End of fort.3 input
-    call sixin_blockReport
-    goto 771
+    goto 9000
   end select
 
   prevPrint = .false.
@@ -942,320 +940,314 @@ subroutine daten
 ! ================================================================================================ !
 
 ! ================================================================================================ !
-!  ENDE was reached; we're done parsing fort.3, now do some postprocessing.
+!  ENDE WAS REACHED
 ! ================================================================================================ !
-771 if(napx.ge.1) then
-        if(e0.lt.pieni.or.e0.le.pma) call prror(27)
-        if(nbeam.ge.1) parbe14=                                         &!hr05
-     &(((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6                    !hr05
-        gammar=pma/e0
-        crad=(((two*crad)*partnum)*gammar)*c1e6                          !hr05
-        emitx=sixin_emitNX*gammar
-        emity=sixin_emitNY*gammar
+9000 continue
+
+  if(napx >= 1) then
+    if(e0 < pieni .or. e0 < pma) then
+      write(lout,"(a)") "ENDE> ERROR Kinetic energy of the particle is less or equal to zero."
+      call prror(-1)
+    end if
+
+    if(nbeam >= 1) then
+      parbe14 = (((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6
+    end if
+    gammar = pma/e0
+    crad   = (((two*crad)*partnum)*gammar)*c1e6
+    emitx  = sixin_emitNX*gammar
+    emity  = sixin_emitNY*gammar
 #ifdef COLLIMAT
-        remitx_dist=emitnx0_dist*gammar
-        remity_dist=emitny0_dist*gammar
-        remitx_collgap=emitnx0_collgap*gammar
-        remity_collgap=emitny0_collgap*gammar
+    call collimate_postInput(gammar,has_coll)
 #endif
-      endif
-#ifdef COLLIMAT
-      if (.not.has_coll) then
-         !Breaks at least DUMP (negative particle IDs) and DYNK (1-pass actions).
-         write(lout,*) ""
-         write(lout,*) "ERROR in parsing fort.3:"
-         write(lout,*) "This is the collimation version of SixTrack,"
-         write(lout,*) " but no COLL block was found,"
-         write(lout,*) " not even one with do_coll = .false."
-         write(lout,*) "Please use the non-collimation version!"
-         call prror(-1)
-      endif
-#endif
-      call hions_postInput
-      if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
-        do j=1,il   ! converting 6D lenses to 4D
-          if (beam_expflag .eq. 1) then
-             if (parbe(j,2) .gt. 0) then
-               parbe(j,2)=zero
-               parbe(j,1)=parbe(j,7)
-               parbe(j,3)=parbe(j,10)
-             endif
-          else
-             parbe(j,2)=zero
-          endif
-        enddo
-      else
-        do j=1,il
-          if(parbe(j,2).gt.real(mbea,fPrec)) then
-             write(lout,'(a,i5,a,i5,a,a16,a,i5)')                       &
-     &            'ERROR: Requested ',                                  &
-     &            int(parbe(j,2)), " slices for 6D beam-beam element"// &
-     &            ' #',j, " named ", bez(j), ", maximum is mbea =",mbea
-            parbe(j,2)=real(mbea,fPrec)
-            call prror(-1) !Treat this warning as an error
-         endif
-        enddo
-      endif
-      if(.not.st_print) return
-      write(lout,10050)
-      write(lout,10060)
-      il1=il
-      if(sixin_ncy2.eq.0) il1=il-1
-      do 1435 k=1,il1
-      if(abs(kz(k)).eq.12) then
-        write(lout,10070) k,bez(k),kz(k),ed(k),ek(k),phasc(k),xpl(k),   &
-     &xrms(k),zpl(k),zrms(k)
-        kz(k)=abs(kz(k))
-        phasc(k)=phasc(k)*rad
-      else
-        write(lout,10070) k,bez(k),kz(k),ed(k),ek(k),el(k),xpl(k),      &
-     &xrms(k),                                                          &
-     &zpl(k),zrms(k)
-      endif
- 1435 continue
-      write(lout,10130)
-      write(lout,10080)
-      write(lout,10090) mper,(msym(k),k=1,mper)
-      write(lout,10250) mblo,mbloz
-      write(lout,10100)
-      do 1450 l=1,mblo
-      kk=mel(l)
-      ll=kk/6
-      if(ll.ne.0) then
-        do 1440 l1=1,ll
-          l2=(l1-1)*6+1
-          l3=l2+5
-          if(l2.eq.1) then
-            write(lout,10260) l,bezb(l),kk,(sixin_beze(l,k),k=1,6)
-          else
-            write(lout,10270) (sixin_beze(l,k),k=l2,l3)
-          endif
- 1440   continue
-        if(mod(kk,6).ne.0) then
-          l4=ll*6+1
-          write(lout,10270) (sixin_beze(l,k),k=l4,kk)
-        endif
-      else
-        write(lout,10260) l,bezb(l),kk,(sixin_beze(l,k),k=1,kk)
-      endif
- 1450 continue
-      write(lout,10120)
-      mblozz=mbloz/5+1
-      do 1480 k=1,mblozz
-      k10=(k-1)*5
-      if((mbloz-k10).eq.0) goto 1480
-      do 1470 l=1,5
-        if((k10+l).gt.mbloz) ic0(l)=' '
-        if((k10+l).gt.mbloz) goto 1470
-        icc=ic(k10+l)
-        if(icc.gt.nblo) goto 1460
-        ic0(l)=bezb(icc)
-        goto 1470
- 1460   ic0(l)=sixin_bez0(icc-nblo)
- 1470 continue
-      k11=k10+1
-      write(lout,10280) k11,(ic0(l),l=1,5)
- 1480 continue
-      write(lout,10130)
- 1490 if(idp.eq.0) goto 1500
-      if(nbeam.ge.1) then !Write out with BB parameters
-         if(beam_expflag .eq. 0) then  !The old BEAM format
-            if(partnum.gt.zero) then !Beams have same charge
-               write(lout,                                              &
-     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
-     &t10,'BEAMS HAVE SAME CHARGE'/                                     &
-     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
-     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
-     &t79,i1/                                                           &
-     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
-     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
-     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
-     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
-     &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,            &
-     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
-            else !Beams have opposite charge
-               write(lout,                                              &
-     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
-     &t10,'BEAMS HAVE OPPOSITE CHARGE'/                                 &
-     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
-     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
-     &t79,i1/                                                           &
-     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
-     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
-     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
-     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
-     &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,       &
-     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
-            endif
+  end if
 
-         elseif (beam_expflag .eq. 1) then ! The new BEAM-EXPERT format
-            if(partnum.gt.zero) then !Beams have same charge
-               ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
-               write(lout,                                              &
-     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
-     &t10,'BEAMS HAVE SAME CHARGE'/                                     &
-     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
-     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
-     &t79,i1/                                                           &
-     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
-     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
-     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
-     &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,            &
-     &              ibeco,ibtyp,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
-            else !Beams have opposite charge
-               ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
-               write(lout,                                              &
-     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
-     &t10,'BEAMS HAVE OPPOSITE CHARGE'/                                 &
-     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
-     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
-     &t79,i1/                                                           &
-     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
-     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
-     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
-     &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,       &
-     &              ibeco,ibtyp,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
-            endif
-         else
-            write(lout,'(a)') "ERROR in subroutine daten"
-            write(lout,'(a)') "beam_expflag was", beam_expflag
-            write(lout,'(a)') " expected 0 or 1. This is a BUG!"
-            call prror(-1)
-         endif
-      else !No beam beam
-        write(lout,10142) ncy,dp1,dppoff,tlen,pma,e0
-      endif
-      if(sixin_ncy2.eq.0) then
-        write(lout,10143) sixin_harm,sixin_u0,sixin_phag,qs,sixin_alc
-      else
-        write(lout,*)
-      endif
-      if(beam_expflag .eq. 0) then
-         if(ibb6d.eq.1) then
-            write(lout,                                                 &
-     &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
-     &t10,'ELEMENT           #_OF_SLICES    CROSSING_ANGLE',            &
-     &'     CROSSING_PLANE     COUPLING_ANGLE'/t10,85('-')/)")
-            do j=1,il
-               if(parbe(j,2).gt.zero)                                   &
-     &              write(lout,"(t10,a16,5x,i4,7x,d17.10,2x,d17.10)")   &
-     &              bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3)
-            enddo
-         endif
+  call hions_postInput
+  call elens_postInput
 
-      elseif(beam_expflag .eq. 1) then
-         write(lout,                                                    &
-     &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
-     &t10,'ELEMENT           #_OF_SLICES    XING_ANGLE',                &
-     &'  XING_PLANE   HOR_SEP     VER_SEP        S11        S12      ', &
-     &'  S22         S33         S34         S44         S13         ', &
-     &'S14         S23         S24'/t10,200('-')/)")
-         do j=1,il
-            if(kz(j).eq.20.and.parbe(j,17).eq.1)then
-               write(lout,                                              &
-     &"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,      &
-     &2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,        &
-     &1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")            &
-     &bez(j),                                                           &
-     &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),      &
-     &parbe(j,7),parbe(j,8),parbe(j,9),parbe(j,10),parbe(j,11),         &
-     &parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
-            endif
-         enddo
-         write(lout,                                                    &
-     &"(//,t30,'4D BEAM-BEAM ELEMENTS'/t30,24('-')//                    &
-     &t10,'ELEMENT           #_OF_SLICES        S11   ',                &
-     &'     S22       HOR_SEP     VER_SEP'/t10,80('-')/)")
-         do j=1,il
-            if (kz(j).eq.20.and.parbe(j,17).eq.0) then
-               write(lout,                                              &
-     &"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")    &
-     &bez(j),                                                           &
-     &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6)
-            endif
-         enddo
-
+  if(idp == 0 .or. ition == 0 .or. nbeam < 1) then
+    do j=1,il
+      ! Converting 6D lenses to 4D
+      if(beam_expflag == 1) then
+        if(parbe(j,2) > 0) then
+          parbe(j,2) = zero
+          parbe(j,1) = parbe(j,7)
+          parbe(j,3) = parbe(j,10)
+        end if
       else
-         write(lout,'(a)') "ERROR in subroutine daten"
-         write(lout,'(a)') "beam_expflag was", beam_expflag
-         write(lout,'(a)') " expected 0 or 1. This is a BUG!"
-         call prror(-1)
-      endif
-      write(lout,10130)
- 1500 continue
-      write(lout,10150)
-      nfb=nde(1)
-      nac=nde(2)
-      nft=numl-nde(2)
-      if(numl.le.nde(2)) nft=0
-      if(numl.le.nde(2)) nac=numl
-      if(numl.le.nde(1)) nac=0
-      if(numl.le.nde(1)) nfb=numl
-      write(lout,10160) numl,numlr,nwr(4),nfb,nwr(1),nac,nwr(2),nft,    &
-     &nwr(3),                                                           &
-     &kanf,amp(1),rat,itco,dma,dmap,itqv,dkq,dqq
-      write(lout,10170) itcro,dsm0,dech,de0,ded,dsi
-      write(lout,10130)
-      write(lout,10040)
-      write(lout,10130)
-      goto 1540
- 1520 call prror(41)
- 1530 call prror(42)
- 1540 continue
-      !Check that the number of particles is OK
-      if(((2*mmac)*imc)*napx.gt.npart) call prror(54)                    !hr05
-      call elens_postInput
+        parbe(j,2) = zero
+      end if
+    end do
+  else
+    do j=1,il
+      if(parbe(j,2) > real(mbea,fPrec)) then
+        write(lout,"(3(a,i5))") "ENDE> ERROR Requested ",int(parbe(j,2))," slices for 6D beam-beam element"//&
+          " #",j," named '"//trim(bez(j))//"', maximum is mbea = ",mbea
+        parbe(j,2) = real(mbea,fPrec)
+        call prror(-1) ! Treat this warning as an error
+      end if
+    end do
+  end if
+
+  ! Done with checks. Write the report
+  call sixin_blockReport
+
+! ================================================================================================ !
+
+  ! This is where the PRINT spam happens
+  if(.not.st_print) goto 9500 ! Skip it
+
+  write(lout,"(a)") ""
+  write(lout,"(a)") "  *** RING PARAMETERS ***"
+  write(lout,"(a)") ""
+
+  ! Print Single Elements
+  write(lout,"(a)") "  SINGLE ELEMENTS:"
+  write(lout,"(a)") ""
+  write(lout,"(a)") "   NO NAME                TYP  1/RHO         STRENGTH      LENGTH        X-POS"//&
+    "         X-RMS         Y-POS         Y-RMS"
+  write(lout,"(a)") str_divLine
+  il1=il
+  if(sixin_ncy2 == 0) il1 = il-1
+  do k=1,il1
+    if(abs(kz(k)) == 12) then
+      write(lout,"(i5,1x,a20,1x,i2,7(1x,e13.6))") k,bez(k)(1:20),kz(k),ed(k),ek(k),phasc(k),xpl(k),xrms(k),zpl(k),zrms(k)
+      kz(k)=abs(kz(k))
+      phasc(k)=phasc(k)*rad
+    else
+      write(lout,"(i5,1x,a20,1x,i2,7(1x,e13.6))") k,bez(k)(1:20),kz(k),ed(k),ek(k),el(k),xpl(k),xrms(k),zpl(k),zrms(k)
+    end if
+  end do
+  write(lout,"(a)") str_divLine
+
+  ! Print Ring Structure
+  write(lout,"(a)")    ""
+  write(lout,"(a)")    "  RING STRUCTURE:"
+  write(lout,"(a)")    ""
+  write(lout,"(a,i8)") "  Superperiods:     ",mper
+  do k=1,mper
+    write(lout,"(a,i8)") "  Symmetry:         ",msym(k)
+  end do
+  write(lout,"(a,i8)") "  Unique Blocks:    ",mblo
+  write(lout,"(a,i8)") "  Block per Period: ",mbloz
+  write(lout,"(a)")    ""
+  write(lout,"(a)")    str_divLine
+
+  ! Print Block Structure
+  write(lout,"(a)") ""
+  write(lout,"(a)") "  BLOCK STRUCTURE:"
+  write(lout,"(a)") ""
+  write(lout,"(a)") "   NO NAME                NUM  SINGLE ELEMENTS"
+  write(lout,"(a)") str_divLine
+  do l=1,mblo
+    kk = mel(l)
+    ll = kk/6
+    if(ll /= 0) then
+      do l1=1,ll
+        l2 = (l1-1)*6+1
+        l3 = l2+5
+        if(l2 == 1) then
+          write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(sixin_beze(l,k),k=1,6)
+        else
+          write(lout,"(30x,6(1x,a20))") (sixin_beze(l,k),k=l2,l3)
+        end if
+      end do
+      if(mod(kk,6) /= 0) then
+        l4 = ll*6+1
+        write(lout,"(30x,6(1x,a20))") (sixin_beze(l,k),k=l4,kk)
+      end if
+    else
+      write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(sixin_beze(l,k),k=1,kk)
+    end if
+  end do
+  write(lout,"(a)") str_divLine
+
+  ! Print Block Structure of Super Periods
+  write(lout,"(a)") ""
+  write(lout,"(a)") "  BLOCK STRUCTURE OF SUPER PERIODS:"
+  write(lout,"(a)") ""
+  write(lout,"(a)") "   NO NAME                NUM  SINGLE ELEMENTS"
+  write(lout,"(a)") str_divLine
+  mblozz=mbloz/5+1
+  do k=1,mblozz
+    k10 = (k-1)*5
+    if((mbloz-k10) == 0) cycle
+    do l=1,5
+      if((k10+l) > mbloz) ic0(l) = " "
+      if((k10+l) > mbloz) cycle
+      icc = ic(k10+l)
+      if(icc <= nblo) then
+        ic0(l) = bezb(icc)
+      else
+        ic0(l) = sixin_bez0(icc-nblo)
+      end if
+    end do
+    k11 = k10+1
+    write(lout,"(i5,5(1x,a20))") k11,(ic0(l),l=1,5)
+  end do
+  write(lout,"(a)") str_divLine
+
+  if(idp == 0) goto 8000
+  ! Write out with BB parameters
+  write(lout,"(a)")           ""
+  write(lout,"(a)")           "  SYNCHROTRON OSCILLATIONS AND BEAM-BEAM:"
+  write(lout,"(a)")           ""
+  write(lout,"(a,i20)")       "  Number of cavities:                    ",ncy
+  write(lout,"(a,f30.9)")     "  Momentum amplitude dP/P:               ",dp1
+  write(lout,"(a,f30.9)")     "  Offset momentum amplitude dP/P:        ",dppoff
+  write(lout,"(a,f30.9)")     "  Machine length in (m):                 ",tlen
+  write(lout,"(a,f30.9)")     "  Particle mass (MeV):                   ",pma
+  if(nbeam >= 1) then
+    write(lout,"(a,f30.9)")   "  Particle number (1e9):                 ",abs(partnum/c1e9)
+    if(partnum > zero) then
+      write(lout,"(a,a20)")   "  Beams have same charge:                ","YES"
+    else
+      write(lout,"(a,a20)")   "  Beams have opposite charge:            ","YES"
+    end if
+    write(lout,"(a,f30.9)")   "  Beam-beam parameter:                   ",parbe14
+    if(ibeco == 0) then
+      write(lout,"(a,a20)")   "  Closed orbit due to beam-beam kick:    ","LEFT"
+    else
+      write(lout,"(a,a20)")   "  Closed orbit due to beam-beam kick:    ","SUBTRACTED"
+    end if
+    if(ibtyp == 0) then
+      write(lout,"(a,a20)")   "  Fast beam-beam kick switch:            ","OFF"
+    else
+      write(lout,"(a,a20)")   "  Fast beam-beam kick switch:            ","ON"
+    end if
+    if(beam_expflag == 0) then
+      if(ibb6d == 0) then
+        write(lout,"(a,a20)") "  Hirata 6D:                             ","OFF"
+      else
+        write(lout,"(a,a20)") "  Hirata 6D:                             ","ON"
+      end if
+    end if
+    if(ibbc == 0) then
+      write(lout,"(a,a20)")   "  Consider linear coupling for BB:       ","OFF"
+    else
+      write(lout,"(a,a20)")   "  Consider linear coupling for BB:       ","ON"
+    end if
+    write(lout,"(a,f30.9)")   "  Bunch length:                          ",sigz
+    write(lout,"(a,f30.9)")   "  Energy spread:                         ",sige
+    write(lout,"(a,f30.9)")   "  Normalized horizontal emmittance (um): ",sixin_emitNX
+    write(lout,"(a,f30.9)")   "  Normalized vertical emmittance (um):   ",sixin_emitNY
+  end if
+  write(lout,"(a,f30.9)")     "  Energy in (MeV):                       ",e0
+  if(sixin_ncy2.eq.0) then
+    write(lout,"(a,f30.9)")   "  Harmonic number:                       ",sixin_harm
+    write(lout,"(a,f30.9)")   "  Circumf. voltage (MV):                 ",sixin_u0
+    write(lout,"(a,f30.9)")   "  Equilibrium phase (deg):               ",sixin_phag
+    write(lout,"(a,f30.9)")   "  Frequency (units of rev. freq.):       ",qs
+    write(lout,"(a,f30.9)")   "  Momentum compaction:                   ",sixin_alc
+  end if
+  if(beam_expflag == 0) then
+    if(ibb6d == 1) then
+      write(lout,"(a)") ""
+      write(lout,"(a)") "  HIRATA's 6D BEAM-BEAM ELEMENTS"
+      write(lout,"(a)") ""
+      write(lout,"(a)") "ELEMENT           #_OF_SLICES    CROSSING_ANGLE     CROSSING_PLANE     COUPLING_ANGLE"
+      write(lout,"(a)") str_divLine
+      do j=1,il
+        if(parbe(j,2) > zero) then
+          write(lout,"(t10,a16,5x,i4,7x,d17.10,2x,d17.10)") bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3)
+        end if
+      end do
+    end if
+    write(lout,"(a)") str_divLine
+  elseif(beam_expflag == 1) then
+    write(lout,"(a)") ""
+    write(lout,"(a)") "  HIRATA's 6D BEAM-BEAM ELEMENTS"
+    write(lout,"(a)") ""
+    write(lout,"(a)") "ELEMENT           #_OF_SLICES    XING_ANGLE  XING_PLANE   HOR_SEP     VER_SEP"//&
+      "        S11        S12        S22         S33         S34         S44         S13         S14         S23         S24"
+    write(lout,"(a)") repeat("-",200)
+    do j=1,il
+      if(kz(j) == 20 .and. parbe(j,17) == 1) then
+        write(lout,"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3&
+        &,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")&
+        &bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),parbe(j,7),parbe(j,8),  &
+        &parbe(j,9),parbe(j,10),parbe(j,11),parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
+      end if
+    end do
+    write(lout,"(a)") repeat("-",200)
+    write(lout,"(a)") ""
+    write(lout,"(a)") "  4D BEAM-BEAM ELEMENTS"
+    write(lout,"(a)") ""
+    write(lout,"(a)") "ELEMENT           #_OF_SLICES        S11        S22       HOR_SEP     VER_SEP"
+    write(lout,"(a)") str_divLine
+    do j=1,il
+      if (kz(j) == 20 .and. parbe(j,17) == 0) then
+        write(lout,"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)") &
+          bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6)
+      end if
+    end do
+    write(lout,"(a)") str_divLine
+  end if
+
+8000 continue
+  write(lout,"(a)") ""
+  write(lout,"(a)") "  *** TRACKING PARAMETERS ***"
+  write(lout,"(a)") ""
+
+  nfb = nde(1)
+  nac = nde(2)
+  nft = numl-nde(2)
+  if(numl <= nde(2)) nft = 0
+  if(numl <= nde(2)) nac = numl
+  if(numl <= nde(1)) nac = 0
+  if(numl <= nde(1)) nfb = numl
+
+  write(lout,"(a,i20)")       "  Number of revolutions:                 ",numl
+  write(lout,"(a,i20)")       "  Number of reverse-revolutions:         ",numlr
+  write(lout,"(a,i20)")       "  Turns per coor.-printout:              ",nwr(4)
+  write(lout,"(a,i20)")       "  Flat bottom up to turn:                ",nfb
+  write(lout,"(a,i20)")       "  Turns per print on dataset:            ",nwr(1)
+  write(lout,"(a,i20)")       "  Acceleration up to turn:               ",nac
+  write(lout,"(a,i20)")       "  Turns per print on dataset:            ",nwr(2)
+  write(lout,"(a,i20)")       "  Flat top number of turns:              ",nft
+  write(lout,"(a,i20)")       "  Turns per print on dataset:            ",nwr(3)
+  write(lout,"(a,i20)")       "  Tracking start at element no.:         ",kanf
+  write(lout,"(a,f34.9)")     "  Initial amplitude-h in (mm):           ",amp(1)
+  write(lout,"(a,f34.9)")     "  Coupling  eps-y/eps-x:                 ",rat
+  write(lout,"(a,i20)")       "  Number of C.O. iterations:             ",itco
+  write(lout,"(a,e34.9)")     "  Precision of C.O. deviation:           ",dma
+  write(lout,"(a,e34.9)")     "  Precision of C.O. slope:               ",dmap
+  write(lout,"(a,i20)")       "  Number of q-adj. iterations:           ",itqv
+  write(lout,"(a,e34.9)")     "  Change in k-strength by:               ",dkq
+  write(lout,"(a,e34.9)")     "  Precision of q-adjustement:            ",dqq
+  write(lout,"(a,i20)")       "  Number of chromat.-adj. iter.:         ",itcro
+  write(lout,"(a,e34.9)")     "  Change in sex.-strength by:            ",dsm0
+  write(lout,"(a,e34.9)")     "  Precision of chromat.-adj.:            ",dech
+  write(lout,"(a,e34.9)")     "  DP-interval f. cromat.-adj.:           ",de0
+  write(lout,"(a,e34.9)")     "  DP-interval for dispersion:            ",ded
+  write(lout,"(a,e34.9)")     "  Precision for C.O. RMS:                ",dsi
+  write(lout,"(a)") ""
+  write(lout,"(a)") str_divLine
+  write(lout,"(a)") ""
+  write(lout,"(a)") "OOOOOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") "OO                 OO"
+  write(lout,"(a)") "OO  PREPROCESSING  OO"
+  write(lout,"(a)") "OO                 OO"
+  write(lout,"(a)") "OOOOOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") ""
+  write(lout,"(a)") str_divLine
+
+9500 continue
 
   call dealloc(sixin_bez0,mNameLen,"sixin_bez0")
-  
+
   return
 
 ! ================================================================================================ !
 !  END OF INPUT PARSING
 ! ================================================================================================ !
 
+9998 continue
+  write(lout,"(a,i0,a)") "INPUT> ERROR fort.",nUnit," is missing or empty, or end was reached without an ENDE flag."
+  call prror(-1)
+  return
+
 9999 continue
-  ! Error handling for fort.2 and fort.3
   if(nUnit == 2) then
     write(lout,"(a)")      "INPUT> ERROR in fort.2"
     write(lout,"(a,i0,a)") "INPUT> Line ",lineNo2,": '"//trim(inLine)//"'"
@@ -1266,92 +1258,6 @@ subroutine daten
   call prror(-1)
   return
 
-10000 format(11(a4,1x))
-10020 format(a)
-10040 format(t10,21('O')/t10,2('O'),17x,2('O')/t10,                     &
-     &'OO  PREPROCESSING  OO', /t10,2('O'),17x,2('O')/t10,21('O'))
-10050 format(//131('-')//t43,'*** RING PARAMETERS ***'/)
-10060 format(t30,'SINGLE ELEMENTS:'/'  NO   NAME  TYP      ',           &
-     &' 1/RHO          STRENGTH          LENGTH           X-POS     ',  &
-     &'     X-RMS            Y-PO          Y-RMS     ' /131('-'))
-10080 format(/t30,'RINGSTRUCTURE:'//)
-10090 format(t10,'NO. OF SUPERPERIODS AND SYMMETRY ' ,t50,i3,'   ',15i4,&
-     &'   ')
-10100 format(//131('-')//t30,'BLOCKSTRUCTURE:'/ t30,                    &
-     &'(BLOCKTYP--NO. OF SINGLE ELEMENTS--SINGLE ELEMENT TYPES)'//)
-10120 format(//131('-')//t30,'BLOCKSTRUCTURE OF SUPERPERIOD:'//)
-10130 format(/131('-')/)
-10142 format(t30,'SYNCHROTRON OSCILLATIONS'//                           &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)
-10143 format(                                                           &
-     &t10,'HARMONIC NUMBER',t74,f6.0/                                   &
-     &t10,'CIRCUMF. VOLTAGE   (MV)',t66,f14.9/                          &
-     &t10,'EQUILIBRIUM PHASE     (DEG)',t66,f14.9/                      &
-     &t10,'FREQUENCY (IN UNITS OF REVOLUTION-FREQ.) QS-LINEAR',         &
-     &t66 ,f14.9/                                                       &
-     &t10,'MOMENTUM COMPACTION',t66,f14.9/)
-10150 format(//t43,'*** TRACKING PARAMETERS ***'/)
-10160 format(t10,'NUMBER OF REVOLUTIONS  ',t48,i8/ t10,                 &
-     &'NUMBER OF REVERSE-REVOLUTIONS',t48,i8/ t10,                      &
-     &'TURNS PER COOR.-PRINTOUT',t48,i8/ t10,'FLAT BOTTOM UP TO TURN ', &
-     &t48,i8/ t10,'TURNS PER PRINT ON DATASET',t48,i8/ t10,             &
-     &'ACCELERATION UP TO TURN',t48,i8/ t10,'TURNS PER PRINT ON DATASET'&
-     &,t48,i8/ t10,'FLAT TOP NUMBER OF TURNS',t48,i8/ t10,              &
-     &'TURNS PER PRINT ON DATASET',t48,i8/ t10,                         &
-     &'TRACKING START AT ELEMENT NO.',t48,i8/ t10,                      &
-     &'INITIAL AMPLITUDE-H IN (MM)',t49,f7.3/ t10,                      &
-     &'COUPLING  EPS-Y/EPS-X',t49,f7.3/ t10,                            &
-     &'NUMBER OF C.-O. ITERATIONS ',t48,i8/ t10,                        &
-     &'PRECISION OF C.-O. DEVIATION',t47,d10.3/ t10,                    &
-     &'PRECISION OF C.-O. SLOPE   ',t47,d10.3/ t10,                     &
-     &'NUMBER OF Q-ADJ. ITERATIONS',t48,i8/ t10,                        &
-     &'CHANGE IN K-STRENGTH BY',t47,d10.3/ t10,                         &
-     &'PRECISION OF Q-ADJUSTEMENT',t47,d10.3)
-10170 format(t10,'NUMBER OF CHROMAT.-ADJ. ITER.',t48,i8/ t10,           &
-     &'CHANGE IN SEX.-STRENGTH BY',t47,d10.3/ t10,                      &
-     &'PRECISION OF CHROMAT.-ADJ.',t47,d10.3/ t10,                      &
-     &'DP-INTERVAL F. CROMAT.-ADJ.',t47,d10.3/ t10,                     &
-     &'DP-INTERVAL FOR DISPERSION',t47,d10.3/ t10,                      &
-     &'PRECISION FOR C.-O. RMS',t47,d10.3/)
-10220 format(t10,i4,2(' ',d15.8),5x,2(' ',d15.8))
-10250 format(t10,'NUMBER OF DIFFERENT BLOCKS',t50,i5/ t10,              &
-     &'BLOCKS PER PERIOD',t49,i5//)
-10290 format(t10,'MORE THAN ',i5,' COMBINATIONS SPECIFIED'/)
-10300 format(//131('-')//t10,'DATA BLOCK COMBINATION OF ELEMENTS',      &
-     &'  THE FOLLOWING ELEMENTS ARE RELATED IN STRENGTHS--->'/ t10,     &
-     &'ELEMENT RELATED TO ELEMENT BY THE RATIO'/)
-10340 format(t10,'NO CAVITIES SPECIFIED'/)
-10350 format(//131('-')//t10,'DATA BLOCK ORGANISATION OF RANDOM NUMBERS'&
-     &/5x,'|          |      OWN RANDOM NUMBERS      |      SAME RAN' , &
-     &'DOM NUMBERS      |   SAME MULTIPOLECOEFFICIENTS  |'/131('-'))
-10380 format(t10,'HIGHER MULTIPOLES THAN 20-POLES ARE NOT ALLOWED' ,    &
-     &' AND THEREFORE IGNORED')
-10500 format(//131('-')//t10,'SUMMARY OF DATA BLOCK ',a4,' INFOs')
-10520 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
-     &'NAME',20x,'TYPE',5x,'INSERTION POINT',4x,'SYNCH LENGTH [m]')
-10070 format(1x,i5,1x,a16,1x,i3,1x,d17.10,1x,d17.10,1x,d17.10,1x,d14.7, &
-     &1x,d13.6,1x,d14.7,1x,d13.6)
-10210 format(t10,'DATA BLOCK MULTIPOLE COEFFICIENTS'/ t10,              &
-     &'MULTIPOLE                    ',a16/t10,'RADIUS IN MM            '&
-     &,f15.7/ t10,'BENDING STRENGTH IN MRAD',f15.7// t10,19x,'NORMAL',25&
-     &x,'      SKEW '// t10,'      MEAN            RMS-VALUE     ',     &
-     &'       MEAN            RMS-VALUE'/)
-10260 format(t4,i4,1x,a16,1x,i2,1x,6(1x,a16))
-10270 format(t28,6(1x,a16))
-10280 format(t3,i6,1x,5(a16,1x))
-10490 format(t10,a16,4x,a40,2x,1pe16.9)
-10510 format(t10,a16,4x,i8,12x,i8,4x,1pe16.9)
-10700 format(t10,'DATA BLOCK TROMBONE ELEMENT'/                         &
-     &t10,'TROMBONE #      NAME'/)
-10710 format(t22,i4,5x,a16)
-10890 format(1x,'--> function ',i2,' of combo # ',i4,' of element',a16, &
-     &'does not exist!')
-10891 format(1x,'--> single element ',a16,' is a thick lens one!')
 end subroutine daten
 
 ! ================================================================================================ !
