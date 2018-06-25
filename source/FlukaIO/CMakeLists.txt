@@ -1,7 +1,7 @@
 
 SET(LIBFLUKAIO_SOURCES src/Connection.c src/FlukaIO.c src/FlukaIOHandshake.c src/FlukaIOServer.c src/FortranFlukaIO.c src/NetIO.c)
 
-include_directories(${CMAKE_SOURCE_DIR}/SixTrack/FlukaIO/include)
+include_directories(${CMAKE_SOURCE_DIR}/source/FlukaIO/include)
 
 add_library(flukaIO STATIC ${LIBFLUKAIO_SOURCES})
 

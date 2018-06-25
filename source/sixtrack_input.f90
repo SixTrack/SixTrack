@@ -1393,8 +1393,10 @@ subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
           if(tmp_iq(1) == bez(i)) iq(1) = i
           if(tmp_iq(2) == bez(i)) iq(2) = i
         end do
-        call sixin_echoVal("iq(1)",iq(1),"TUNE",-1)
-        call sixin_echoVal("iq(2)",iq(2),"TUNE",-1)
+        if(st_debug) then
+          call sixin_echoVal("iq(1)",iq(1),"TUNE",-1)
+          call sixin_echoVal("iq(2)",iq(2),"TUNE",-1)
+        end if
       else
         write(lout,"(a)") "TUNE> Desired TUNE adjustment is zero. Block ignored."
         iqmod  = 0
@@ -1409,9 +1411,11 @@ subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
           if(tmp_iq(4) == bez(1)) kpa(i) = 1
           if(tmp_iq(5) == bez(1)) kpa(i) = 2
         end do
-        call sixin_echoVal("iq(1)",iq(1),"TUNE",-1)
-        call sixin_echoVal("iq(2)",iq(2),"TUNE",-1)
-        call sixin_echoVal("iq(3)",iq(3),"TUNE",-1)
+        if(st_debug) then
+          call sixin_echoVal("iq(1)",iq(1),"TUNE",-1)
+          call sixin_echoVal("iq(2)",iq(2),"TUNE",-1)
+          call sixin_echoVal("iq(3)",iq(3),"TUNE",-1)
+        end if
       else
         write(lout,"(a)") "TUNE> Desired TUNE adjustment is zero. Block ignored."
         iqmod  = 0
