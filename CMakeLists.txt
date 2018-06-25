@@ -112,6 +112,7 @@ OPTION(STATIC "Create a statically linked binary" ON)
 OPTION(NATIVE "Enable optimizations for the current machine" OFF)
 OPTION(AVX "Enable use of the Advanced Vector Extensions (AVX) instruction set - Sandy Bridge and later" OFF)
 OPTION(AVX2 "Enable use of the Advanced Vector Extensions 2 (AVX2) instruction set - Haswell and later" OFF)
+OPTION(AVX-512 "Enable use of the Advanced Vector Extensions 512 (AVX-512) instruction set - (Currently targeting Skylake-X)" OFF)
 
 OPTION(BUILD_TESTING "Enable the SixTest suite" OFF)
 
@@ -241,6 +242,10 @@ if(AVX2)
 	SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_avx2")
 	SET(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_avx2")
 endif(AVX2)
+if(AVX-512)
+	SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_avx512")
+	SET(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_avx512")
+endif(AVX-512)
 if(NATIVE)
 	SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_native")
 	SET(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_native")
@@ -1013,7 +1018,10 @@ endif()
 
 #build dafor
 add_executable(dafor ${CMAKE_SOURCE_DIR}/source/tools/dafor/dafor.f90)
-SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+#we do not need any fancy flags for dafor
+SET_TARGET_PROPERTIES(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
+SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
+#target_compile_definitions(dafor PUBLIC "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
 
 if(CRLIBM)
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/crlibm)
