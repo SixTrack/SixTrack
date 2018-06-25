@@ -82,37 +82,18 @@ subroutine daten
 
   implicit none
 
-  integer i,i1,i2,i3,ia,icc,iclr,ico,idi,ii,il1,ilin0,imod,imtr0,iw,iw0,ix,  &
-    izu,j,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
-    ll,m,mblozz,nac,nbidu,nfb,nft,i4,i5
+  character(len=mInputLn) inLine
+  character(len=mNameLen) ic0(10)
+  character(len=60)       iHead
+  character(len=4)        currBlock, cCheck
 
-  real(kind=fPrec) tilt
+  integer nUnit,lineNo2,lineNo3,nGeom
+  integer blockLine, blockCount, iElem
 
-  character(len=mNameLen) ende,deco,beze,go,cavi,disp,idat,idat2,next,line,ic0,imn
-  character(len=mNameLen) iele,ilm0,idum,kl,kr,trom
-  character(len=60) iHead
-  integer nchars
-  parameter (nchars=160)
-  character(len=nchars) ch
-  character(len=nchars+nchars) ch1
+  logical blockOpened, blockClosed, blockReopen, openBlock, closeBlock
+  logical inErr, parseFort2, prevPrint
 
-  ! Variables for input line fields
-  ! These  should eventually be replaced by the string_tools->str_split subroutine
-  character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
-  integer   getfields_nfields                                                 ! Number of identified fields
-  integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
-  logical   getfields_lerr                                                    ! An error flag
-
-#ifdef CRLIBM
-  ! MAXF be kept in sync with value in function fround
-  integer maxf,nofields
-  parameter (maxf=30)
-  parameter (nofields=41)
-  character(len=maxf) fields(nofields)
-  integer errno,nfields,nf
-  real(kind=fPrec) fround
-#endif
-  integer nUnit,lineNo2,lineNo3
+  integer i,icc,il1,ilin0,iMod,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
 
 #ifdef COLLIMAT
   logical has_coll
@@ -120,111 +101,10 @@ subroutine daten
   logical do_coll
 #endif
 
-  ! Fluka related, might be best to lock to real64
-  real(kind=fPrec) tmplen
-
-  ! some temp vars for parsing block lines
-  logical tmpl
-  character(len=nchars) tmpch
-  integer tmpi1,tmpi2,tmpi3
-  real(kind=fPrec) tmpflt
-
-  ! Elens: online calculation of theta@r2
-  real(kind=fPrec) eLensTheta
-
-  dimension ilm0(40),ic0(10)
-  character(len=4) fluk
-  data ende,next,line /'ENDE','NEXT','LINE'/
-  data go,cavi,trom,idum,kl,kr,fluk /'GO','CAV','TROM',' ','(',')','FLUK'/
-
-#ifdef CRLIBM
-  real(kind=fPrec) round_near
-#endif
-
-  ! New variables for sixtrack_input module
-  character(len=4) currBlock
-  logical inErr
-  logical blockOpened, blockClosed, blockReopen
-  logical openBlock, closeBlock
-  integer blockLine, blockCount, iElem
-  logical parseFort2
-  integer nGeom
-  logical newParsing, prevPrint
-
   save
 
 ! ================================================================================================ !
-
-      do i=1,40
-        ilm0(i)=' '
-      end do
-
-      do i=1,10
-        ic0(i)=' '
-      end do
-
-      nbidu=0
-      iclo6=0
-      iclo6r=0
-      iclr=0
-
-!  Initialise new input parameters
-      idial=0
-      tlen=one
-      pma=pmap
-      ition=0
-      dpscor=one
-      sigcor=one
-      iconv=0
-      imad=0
-      iskip=1
-      cma1=one
-      cma2=one
-      qs=zero
-      itra=0
-      chi0=zero
-      chid=zero
-      rat=zero
-      ipos=0
-      iav=1
-      iwg=1
-      dphix=zero
-      dphiz=zero
-      qx0=zero
-      qz0=zero
-      ivox=1
-      ivoz=1
-      ires=1
-      dres=one
-      ifh=0
-      dfft=one
-      idis=0
-      icow=0
-      istw=0
-      iffw=0
-      nprint=1
-      ndafi=1
-      itco=500
-      dma=c1m12
-      dmap=c1m15
-      itcro=10
-      dech=c1m10
-      de0=c1m9
-      ded=c1m9
-      dsi=c1m9
-      dsm0=c1m10
-      itqv=10
-      dkq=c1m10
-      dqq=c1m10
-      imtr0=0
-      nlin=0
-      kanf=1
-      iorg=0
-      ise=0
-      preda=c1m38
-
-! ================================================================================================ !
-!  SET DEFAULT MODULE VALUES
+!  SET DEFAULT VALUES
 ! ================================================================================================ !
 
   ! SixTrack Settings
@@ -235,6 +115,9 @@ subroutine daten
   ! Main Variables
   iHead        = " "
   sixtit       = " "
+  ic0(:)       = " "
+  cCheck       = " "
+  kanf         = 1
 
   ! TRACKING PARAMETERS
   numl         = 1
@@ -245,6 +128,8 @@ subroutine daten
   imc          = 0
   numlcp       = 1000
   numlmax      = 1000000000
+  iclo6        = 0
+  iclo6r       = 0
 
   idz(:)       = 1
   idfor        = 0
@@ -256,6 +141,12 @@ subroutine daten
   nwr(4)       = 10000
   ntwin        = 1
 
+  ! INITIAL COORDINATES
+  itra         = 0
+  chi0         = zero
+  chid         = zero
+  rat          = zero
+
   ! CHROMATICITY ADJUSTMENTS
   ichrom       = 0
 
@@ -265,6 +156,10 @@ subroutine daten
   ! LINEAR OPTICS CALCULATION
   ilin         = 0
   sixin_ilin0  = 1
+  nlin         = 0
+
+  ! DIFFERENTIAL ALGEBRA
+  preda        = c1m38
 
   ! SYNCHROTRON OSCILLATIONS
   sixin_alc    = c1m3
@@ -272,6 +167,12 @@ subroutine daten
   sixin_phag   = zero
   idp          = 0
   ncy          = 0
+  tlen         = one
+  pma          = pmap
+  ition        = 0
+  dpscor       = one
+  sigcor       = one
+  qs           = zero
 
   ! MULTIPOLE COEFFICIENTS
   sixin_im     = 0
@@ -286,13 +187,33 @@ subroutine daten
   isub         = 0
 
   ! ORGANISATION OF RANDOM NUMBERS
-  sixin_iorg   = 0
+  iorg         = 0
 
   ! RESONANCE COMPENSATION
   irmod2       = 0
 
   ! DECOUPLING OF MOTION
   iskew        = 0
+
+  ! NORMAL FORMS
+  idial        = 0
+
+  ! SEARCH
+  ise          = 0
+
+  ! ITERATION ERRORS
+  itco         = 500
+  dma          = c1m12
+  dmap         = c1m15
+  itcro        = 10
+  dech         = c1m10
+  de0          = c1m9
+  ded          = c1m9
+  dsi          = c1m9
+  dsm0         = c1m10
+  itqv         = 10
+  dkq          = c1m10
+  dqq          = c1m10
 
   ! BEAM-BEAM ELEMENT
   sixin_emitNX = zero
@@ -303,6 +224,32 @@ subroutine daten
   ntr          = 1
   call alloc(cotr,1,6,  zero,"cotr")
   call alloc(rrtr,1,6,6,zero,"rrtr")
+
+  ! POST PROCESSING
+  ipos         = 0
+  iconv        = 0
+  imad         = 0
+  iskip        = 1
+  cma1         = one
+  cma2         = one
+  iav          = 1
+  iwg          = 1
+  dphix        = zero
+  dphiz        = zero
+  qx0          = zero
+  qz0          = zero
+  ivox         = 1
+  ivoz         = 1
+  ires         = 1
+  dres         = one
+  ifh          = 0
+  dfft         = one
+  idis         = 0
+  icow         = 0
+  istw         = 0
+  iffw         = 0
+  nprint       = 1
+  ndafi        = 1
 
   ! HIONS MODULE
   zz0          = 1
@@ -339,13 +286,13 @@ subroutine daten
 ! ================================================================================================ !
 
 90 continue
-  read(3,"(a4,8x,a60)",end=1530,iostat=ierro) idat,iHead
+  read(3,"(a4,8x,a60)",end=1530,iostat=ierro) cCheck,iHead
   if(ierro > 0) call prror(58)
   lineNo3 = lineNo3+1
-  if(idat(1:1) == "/") goto 90
-  if(idat(1:1) == "!") goto 90
+  if(cCheck(1:1) == "/") goto 90
+  if(cCheck(1:1) == "!") goto 90
 
-  select case(idat)
+  select case(cCheck)
   case("FREE") ! Mode FREE. Elements in fort.3
     iMod       = 1
     parseFort2 = .false.
@@ -353,7 +300,7 @@ subroutine daten
     iMod       = 2
     parseFort2 = .true.
   case default
-    write(lout,"(a)") "INPUT> ERROR Unknown mode '"//idat//"'"
+    write(lout,"(a)") "INPUT> ERROR Unknown mode '"//cCheck//"'"
     goto 9999
   end select
 
@@ -397,19 +344,19 @@ subroutine daten
     lineNo3 = lineNo3 + 1
   end if
 
-  read(nUnit,"(a)",end=1530,iostat=iErro) ch
+  read(nUnit,"(a)",end=1530,iostat=iErro) inLine
   if(iErro > 0) then
     write(lout,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
     call prror(-1)
   end if
 
-  if(len_trim(ch) == 0) goto 110 ! Empty line, ignore
-  if(ch(1:1) == "/")    goto 110 ! Comment line, ignore
-  if(ch(1:1) == "!")    goto 110 ! Comment line, ignore
-  read(ch,"(a4)") idat
+  if(len_trim(inLine) == 0) goto 110 ! Empty line, ignore
+  if(inLine(1:1) == "/")    goto 110 ! Comment line, ignore
+  if(inLine(1:1) == "!")    goto 110 ! Comment line, ignore
+  read(inLine,"(a4)") cCheck
 
   ! Parse non-block flags
-  select case(idat)
+  select case(cCheck)
   case("PRIN") ! Enable the PRINT flag
     ! Previous versions of SixTrack allowed the PRINT block to remain unclosed,
     ! so we need to handle that for backwards compatibility.
@@ -419,7 +366,7 @@ subroutine daten
     write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
     goto 110
   case("NEXT") ! Close the current block
-    if(newParsing .and. .not. prevPrint) then
+    if(.not. prevPrint) then
       ! Actual close check is done after a last pass so
       ! each block can finalise any necessary initialisation
       closeBlock = .true.
@@ -435,20 +382,9 @@ subroutine daten
 
   prevPrint = .false.
 
-  ! Old style block parsing
-  newParsing = .false.
-  ! select case(idat)
-  ! case("ELEN")
-  !   goto 2400
-  ! end select
-
-  ! If we've reached this point, the old style block parsing has not been executed.
-  ! Switch to new type of parsing.
-  newParsing = .true.
-
   ! Check if no block is active. If so, there should be a new one if input is sane.
   if(currBlock == "NONE") then
-    currBlock = idat
+    currBlock = cCheck
     openBlock = .true.
   end if
 
@@ -461,10 +397,10 @@ subroutine daten
   ! Check the status of the current block
   call sixin_checkBlock(currBlock, nUnit, blockOpened, blockClosed, blockLine, blockCount)
   ! if(nUnit == 2) then
-  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.2 : ",lineNo2," = '"//ch//"', "// &
+  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.2 : ",lineNo2," = '"//inLine//"', "// &
   !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine,", N:",blockCount
   ! else
-  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
+  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.3 : ",lineNo3," = '"//inLine//"', "// &
   !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine,", N:",blockCount
   ! end if
 
@@ -491,7 +427,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineSETT(ch,blockLine,inErr)
+      call sixin_parseInputLineSETT(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -501,10 +437,10 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      if(len(ch) > 80) then
-        commen = ch(1:80)
+      if(len(inLine) > 80) then
+        commen = inLine(1:80)
       else
-        commen = ch
+        commen = inLine
       end if
     end if
 
@@ -514,7 +450,7 @@ subroutine daten
     elseif(closeBlock) then
       nGeom = nGeom + 1
     else
-      call sixin_parseInputLineSING(ch,blockLine,inErr)
+      call sixin_parseInputLineSING(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -524,7 +460,7 @@ subroutine daten
     elseif(closeBlock) then
       nGeom = nGeom + 1
     else
-      call sixin_parseInputLineBLOC(ch,blockLine,inErr)
+      call sixin_parseInputLineBLOC(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -534,7 +470,7 @@ subroutine daten
     elseif(closeBlock) then
       nGeom = nGeom + 1
     else
-      call sixin_parseInputLineSTRU(ch,blockLine,inErr)
+      call sixin_parseInputLineSTRU(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -544,7 +480,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineDISP(ch,inErr)
+      call sixin_parseInputLineDISP(inLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -552,11 +488,9 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      dp1   = exz(1,6)
-      iclr  = 0
-      nbidu = 1
+      dp1 = exz(1,6)
     else
-      call sixin_parseInputLineINIT(ch,blockLine,inErr)
+      call sixin_parseInputLineINIT(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -564,9 +498,9 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      nbidu = 1
+      continue
     else
-      call sixin_parseInputLineTRAC(ch,blockLine,inErr)
+      call sixin_parseInputLineTRAC(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -576,7 +510,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineDIFF(ch,blockLine,inErr)
+      call sixin_parseInputLineDIFF(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -586,7 +520,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineCHRO(ch,blockLine,inErr)
+      call sixin_parseInputLineCHRO(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -594,9 +528,9 @@ subroutine daten
     if(openBlock) then
       iqmod = 1
     elseif(closeBlock) then
-      call sixin_parseInputLineTUNE(ch,-1,inErr)
+      call sixin_parseInputLineTUNE(inLine,-1,inErr)
     else
-      call sixin_parseInputLineTUNE(ch,blockLine,inErr)
+      call sixin_parseInputLineTUNE(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -606,7 +540,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineLINE(ch,blockLine,inErr)
+      call sixin_parseInputLineLINE(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -616,7 +550,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineSYNC(ch,blockLine,inErr)
+      call sixin_parseInputLineSYNC(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -626,7 +560,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineMULT(ch,blockLine,inErr)
+      call sixin_parseInputLineMULT(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -636,7 +570,7 @@ subroutine daten
     elseif(closeBlock) then
       call fluc_readInputs
     else
-      call fluc_parseInputLine(ch,blockLine,inErr)
+      call fluc_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -648,7 +582,7 @@ subroutine daten
     elseif(closeBlock) then
       isub = 1
     else
-      call sixin_parseInputLineSUBR(ch,blockLine,inErr)
+      call sixin_parseInputLineSUBR(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -660,7 +594,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineORGA(ch,blockLine,inErr)
+      call sixin_parseInputLineORGA(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -670,7 +604,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineITER(ch,blockLine,inErr)
+      call sixin_parseInputLineITER(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -682,7 +616,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineORBI(ch,blockLine,inErr)
+      call sixin_parseInputLineORBI(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -694,7 +628,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineCOMB(ch,blockLine,inErr)
+      call sixin_parseInputLineCOMB(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -706,7 +640,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineRESO(ch,blockLine,inErr)
+      call sixin_parseInputLineRESO(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -718,7 +652,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineSEAR(ch,blockLine,inErr)
+      call sixin_parseInputLineSEAR(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -730,7 +664,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineDECO(ch,blockLine,inErr)
+      call sixin_parseInputLineDECO(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -742,7 +676,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineNORM(ch,blockLine,inErr)
+      call sixin_parseInputLineNORM(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -752,7 +686,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLinePOST(ch,blockLine,inErr)
+      call sixin_parseInputLinePOST(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -763,9 +697,9 @@ subroutine daten
       continue
     else
       if(beam_expflag == 1) then
-        call sixin_parseInputLineBEAM_EXP(ch,blockLine,inErr)
+        call sixin_parseInputLineBEAM_EXP(inLine,blockLine,inErr)
       else
-        call sixin_parseInputLineBEAM(ch,blockLine,inErr)
+        call sixin_parseInputLineBEAM(inLine,blockLine,inErr)
       end if
       if(inErr) goto 9999
     end if
@@ -774,9 +708,9 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      call sixin_parseInputLineTROM(ch,-1,inErr)
+      call sixin_parseInputLineTROM(inLine,-1,inErr)
     else
-      call sixin_parseInputLineTROM(ch,blockLine,inErr)
+      call sixin_parseInputLineTROM(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -794,7 +728,7 @@ subroutine daten
     elseif(closeBlock) then
       call fluka_parsingDone
     else
-      call fluka_parseInputLine(ch,blockLine,inErr)
+      call fluka_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 #endif
@@ -805,7 +739,7 @@ subroutine daten
     elseif(closeBlock) then
       call bdex_parseInputDone
     else
-      call bdex_parseInputLine(ch,blockLine,inErr)
+      call bdex_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -816,7 +750,7 @@ subroutine daten
       call wire_parseInputDone(inErr)
       if(inErr) goto 9999
     else
-      call wire_parseInputLine(ch,blockLine,inErr)
+      call wire_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -827,7 +761,7 @@ subroutine daten
       call elens_parseInputDone(inErr)
       if(inErr) goto 9999
     else
-      call elens_parseInputLine(ch,blockLine,inErr)
+      call elens_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -837,7 +771,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call dist_parseInputLine(ch,blockLine,inErr)
+      call dist_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -857,7 +791,7 @@ subroutine daten
     elseif(closeBlock) then
       call aper_inputParsingDone
     else
-      call aper_inputUnitWrapper(ch,blockLine,inErr)
+      call aper_inputUnitWrapper(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -881,7 +815,7 @@ subroutine daten
       continue
     else
 #ifdef COLLIMAT
-      call collimate_parseInputLine(ch,blockLine,inErr)
+      call collimate_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
 #else
       continue
@@ -894,7 +828,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call fma_parseInputLine(ch,inErr)
+      call fma_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -904,7 +838,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call dump_parseInputLine(ch,inErr)
+      call dump_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -916,7 +850,7 @@ subroutine daten
       ldynk = .true.
       call dynk_inputsanitycheck
     else
-      call dynk_parseInputLine(ch,inErr)
+      call dynk_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -926,7 +860,7 @@ subroutine daten
     elseif(closeBlock) then
       has_hion = .true.
     else
-      call hions_parseInputLine(ch,blockLine,inErr)
+      call hions_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -936,7 +870,7 @@ subroutine daten
     elseif(closeBlock) then
       call zipf_parseInputDone
     else
-      call zipf_parseInputline(ch)
+      call zipf_parseInputline(inLine)
     end if
 
   case("SCAT") ! SCATTER Input Block
@@ -946,7 +880,7 @@ subroutine daten
     elseif(closeBlock) then
       if(scatter_debug) call scatter_dumpData
     else
-      call scatter_parseInputLine(string(adjustl(ch)))
+      call scatter_parseInputLine(string(adjustl(inLine)))
     end if
 
   case("HDF5") ! HDF5 Input Block
@@ -959,7 +893,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call h5_parseInputLine(string(ch))
+      call h5_parseInputLine(string(inLine))
     end if
 #endif
 
@@ -973,7 +907,7 @@ subroutine daten
   elseif(closeBlock) then
     call root_parseInputDone
   else
-    call daten_root(ch)
+    call daten_root(inLine)
   end if
 #endif
 
@@ -1312,20 +1246,22 @@ subroutine daten
       if(((2*mmac)*imc)*napx.gt.npart) call prror(54)                    !hr05
       call elens_postInput
 
-      call dealloc(sixin_bez0,mNameLen,"sixin_bez0")
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
+  call dealloc(sixin_bez0,mNameLen,"sixin_bez0")
+  
   return
+
+! ================================================================================================ !
+!  END OF INPUT PARSING
+! ================================================================================================ !
 
 9999 continue
   ! Error handling for fort.2 and fort.3
   if(nUnit == 2) then
     write(lout,"(a)")      "INPUT> ERROR in fort.2"
-    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo2,": '"//trim(ch)//"'"
+    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo2,": '"//trim(inLine)//"'"
   else
     write(lout,"(a)")      "INPUT> ERROR in fort.3"
-    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo3,": '"//trim(ch)//"'"
+    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo3,": '"//trim(inLine)//"'"
   end if
   call prror(-1)
   return
