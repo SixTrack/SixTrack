@@ -1207,8 +1207,8 @@ subroutine daten
   write(lout,"(a,i20)")       "  Flat top number of turns:              ",nft
   write(lout,"(a,i20)")       "  Turns per print on dataset:            ",nwr(3)
   write(lout,"(a,i20)")       "  Tracking start at element no.:         ",kanf
-  write(lout,"(a,f34.9)")     "  Initial amplitude-h in (mm):           ",amp(1)
-  write(lout,"(a,f34.9)")     "  Coupling  eps-y/eps-x:                 ",rat
+  write(lout,"(a,f30.9)")     "  Initial amplitude-h in (mm):           ",amp(1)
+  write(lout,"(a,f30.9)")     "  Coupling  eps-y/eps-x:                 ",rat
   write(lout,"(a,i20)")       "  Number of C.O. iterations:             ",itco
   write(lout,"(a,e34.9)")     "  Precision of C.O. deviation:           ",dma
   write(lout,"(a,e34.9)")     "  Precision of C.O. slope:               ",dmap
