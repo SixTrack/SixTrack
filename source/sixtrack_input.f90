@@ -60,6 +60,9 @@ module sixtrack_input
   real(kind=fPrec),              public, save :: sixin_emitNX
   real(kind=fPrec),              public, save :: sixin_emitNY
 
+  ! "Phase Trombone" Element
+  integer,                       public, save :: sixin_imtr0
+
   interface sixin_echoVal
     module procedure sixin_echoVal_int
     module procedure sixin_echoVal_real32
@@ -1390,8 +1393,10 @@ subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
           if(tmp_iq(1) == bez(i)) iq(1) = i
           if(tmp_iq(2) == bez(i)) iq(2) = i
         end do
-        call sixin_echoVal("iq(1)",iq(1),"TUNE",-1)
-        call sixin_echoVal("iq(2)",iq(2),"TUNE",-1)
+        if(st_debug) then
+          call sixin_echoVal("iq(1)",iq(1),"TUNE",-1)
+          call sixin_echoVal("iq(2)",iq(2),"TUNE",-1)
+        end if
       else
         write(lout,"(a)") "TUNE> Desired TUNE adjustment is zero. Block ignored."
         iqmod  = 0
@@ -1406,9 +1411,11 @@ subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
           if(tmp_iq(4) == bez(1)) kpa(i) = 1
           if(tmp_iq(5) == bez(1)) kpa(i) = 2
         end do
-        call sixin_echoVal("iq(1)",iq(1),"TUNE",-1)
-        call sixin_echoVal("iq(2)",iq(2),"TUNE",-1)
-        call sixin_echoVal("iq(3)",iq(3),"TUNE",-1)
+        if(st_debug) then
+          call sixin_echoVal("iq(1)",iq(1),"TUNE",-1)
+          call sixin_echoVal("iq(2)",iq(2),"TUNE",-1)
+          call sixin_echoVal("iq(3)",iq(3),"TUNE",-1)
+        end if
       else
         write(lout,"(a)") "TUNE> Desired TUNE adjustment is zero. Block ignored."
         iqmod  = 0
@@ -2750,7 +2757,7 @@ subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
   case(2)
 
     if(nSplit > 0) name(5) = lnSplit(1)
-    if(nSplit > 1) call chr_cast(lnSPlit(2),qwsk(1),iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),qwsk(1),iErr)
 
     if(st_debug) then
       call sixin_echoVal("name5",  name(5),"DECO",iLine)
@@ -2761,7 +2768,7 @@ subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
   case(3)
 
     if(nSplit > 0) name(6) = lnSplit(1)
-    if(nSplit > 1) call chr_cast(lnSPlit(2),qwsk(2),iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),qwsk(2),iErr)
 
     if(st_debug) then
       call sixin_echoVal("name6",  name(6),"DECO",iLine)
@@ -2847,10 +2854,10 @@ subroutine sixin_parseInputLineNORM(inLine, iLine, iErr)
     end if
     inorm = 1
 
-    if(nSplit > 0) call chr_cast(lnSPlit(1),nordf,iErr)
-    if(nSplit > 1) call chr_cast(lnSPlit(2),nvarf,iErr)
-    if(nSplit > 2) call chr_cast(lnSPlit(3),nord1,iErr)
-    if(nSplit > 3) call chr_cast(lnSPlit(4),idptr,iErr)
+    if(nSplit > 0) call chr_cast(lnSplit(1),nordf,iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),nvarf,iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),nord1,iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),idptr,iErr)
 
     if(st_debug) then
       call sixin_echoVal("nordf",nordf,"NORM",iLine)
@@ -2929,15 +2936,15 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
     write(lout,"(a)") "BEAM> WARNING This sixtrack binary was not compiled with crlibm, conversion will not be exact."
 #endif
 
-    if(nSplit > 0) call chr_cast(lnSPlit(1),partnum,     iErr)
-    if(nSplit > 1) call chr_cast(lnSPlit(2),sixin_emitNX,iErr)
-    if(nSplit > 2) call chr_cast(lnSPlit(3),sixin_emitNY,iErr)
-    if(nSplit > 3) call chr_cast(lnSPlit(4),sigz,        iErr)
-    if(nSplit > 4) call chr_cast(lnSPlit(5),sige,        iErr)
-    if(nSplit > 5) call chr_cast(lnSPlit(6),ibeco,       iErr)
-    if(nSplit > 6) call chr_cast(lnSPlit(7),ibtyp,       iErr)
-    if(nSplit > 7) call chr_cast(lnSPlit(8),lhc,         iErr)
-    if(nSplit > 8) call chr_cast(lnSPlit(9),ibbc,        iErr)
+    if(nSplit > 0) call chr_cast(lnSplit(1),partnum,     iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),sixin_emitNX,iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),sixin_emitNY,iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),sigz,        iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5),sige,        iErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6),ibeco,       iErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7),ibtyp,       iErr)
+    if(nSplit > 7) call chr_cast(lnSplit(8),lhc,         iErr)
+    if(nSplit > 8) call chr_cast(lnSplit(9),ibbc,        iErr)
 
     if(st_debug) then
       call sixin_echoVal("partnum",partnum,     "BEAM",iLine)
@@ -2984,11 +2991,11 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
       return
     end if
 
-    if(nSplit > 0) elemName = trim(lnSPlit(1))
-    if(nSplit > 1) call chr_cast(lnSPlit(2),ibsix, iErr)
-    if(nSplit > 2) call chr_cast(lnSPlit(3),xang,  iErr)
-    if(nSplit > 3) call chr_cast(lnSPlit(4),xplane,iErr)
-    if(nSplit > 4) call chr_cast(lnSPlit(5),xstr,  iErr)
+    if(nSplit > 0) elemName = trim(lnSplit(1))
+    if(nSplit > 1) call chr_cast(lnSplit(2),ibsix, iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),xang,  iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),xplane,iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5),xstr,  iErr)
 
     if(st_debug) then
       call sixin_echoVal("name",  elemName,"BEAM",iLine)
@@ -3052,15 +3059,15 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
 
   if(iLine == 2) then
 
-    if(nSplit > 0) call chr_cast(lnSPlit(1),partnum,     iErr)
-    if(nSplit > 1) call chr_cast(lnSPlit(2),sixin_emitNX,iErr)
-    if(nSplit > 2) call chr_cast(lnSPlit(3),sixin_emitNY,iErr)
-    if(nSplit > 3) call chr_cast(lnSPlit(4),sigz,        iErr)
-    if(nSplit > 4) call chr_cast(lnSPlit(5),sige,        iErr)
-    if(nSplit > 5) call chr_cast(lnSPlit(6),ibeco,       iErr)
-    if(nSplit > 6) call chr_cast(lnSPlit(7),ibtyp,       iErr)
-    if(nSplit > 7) call chr_cast(lnSPlit(8),lhc,         iErr)
-    if(nSplit > 8) call chr_cast(lnSPlit(9),ibbc,        iErr)
+    if(nSplit > 0) call chr_cast(lnSplit(1),partnum,     iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),sixin_emitNX,iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),sixin_emitNY,iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),sigz,        iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5),sige,        iErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6),ibeco,       iErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7),ibtyp,       iErr)
+    if(nSplit > 7) call chr_cast(lnSplit(8),lhc,         iErr)
+    if(nSplit > 8) call chr_cast(lnSplit(9),ibbc,        iErr)
 
     if(st_debug) then
       call sixin_echoVal("partnum",partnum,     "BEAM",iLine)
@@ -3106,13 +3113,13 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
       separx = zero
       separy = zero
 
-      if(nSplit > 0) elemName = trim(lnSPlit(1))
-      if(nSplit > 1) call chr_cast(lnSPlit(2),ibsix, iErr)
-      if(nSplit > 2) call chr_cast(lnSPlit(3),sxx,   iErr)
-      if(nSplit > 3) call chr_cast(lnSPlit(4),syy,   iErr)
-      if(nSplit > 4) call chr_cast(lnSPlit(5),separx,iErr)
-      if(nSplit > 5) call chr_cast(lnSPlit(6),separy,iErr)
-      if(nSplit > 6) call chr_cast(lnSPlit(7),mm(1), iErr)
+      if(nSplit > 0) elemName = trim(lnSplit(1))
+      if(nSplit > 1) call chr_cast(lnSplit(2),ibsix, iErr)
+      if(nSplit > 2) call chr_cast(lnSplit(3),sxx,   iErr)
+      if(nSplit > 3) call chr_cast(lnSplit(4),syy,   iErr)
+      if(nSplit > 4) call chr_cast(lnSplit(5),separx,iErr)
+      if(nSplit > 5) call chr_cast(lnSplit(6),separy,iErr)
+      if(nSplit > 6) call chr_cast(lnSplit(7),mm(1), iErr)
 
       if(ibsix == 0) then
         if(nSplit /= 7) then
@@ -3190,11 +3197,11 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
         return
       end if
 
-      if(nSplit > 0) call chr_cast(lnSPlit(1),mm(1),iErr)
-      if(nSplit > 1) call chr_cast(lnSPlit(2),mm(2),iErr)
-      if(nSplit > 2) call chr_cast(lnSPlit(3),mm(3),iErr)
-      if(nSplit > 3) call chr_cast(lnSPlit(4),mm(4),iErr)
-      if(nSplit > 4) call chr_cast(lnSPlit(5),mm(5),iErr)
+      if(nSplit > 0) call chr_cast(lnSplit(1),mm(1),iErr)
+      if(nSplit > 1) call chr_cast(lnSplit(2),mm(2),iErr)
+      if(nSplit > 2) call chr_cast(lnSplit(3),mm(3),iErr)
+      if(nSplit > 3) call chr_cast(lnSplit(4),mm(4),iErr)
+      if(nSplit > 4) call chr_cast(lnSplit(5),mm(5),iErr)
 
       if(st_debug) then
         call sixin_echoVal("Sxx",  mm(1),"BEAM",iLine)
@@ -3218,12 +3225,12 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
         return
       end if
 
-      if(nSplit > 0) call chr_cast(lnSPlit(1),mm(6), iErr)
-      if(nSplit > 1) call chr_cast(lnSPlit(2),mm(7), iErr)
-      if(nSplit > 2) call chr_cast(lnSPlit(3),mm(8), iErr)
-      if(nSplit > 3) call chr_cast(lnSPlit(4),mm(9), iErr)
-      if(nSplit > 4) call chr_cast(lnSPlit(5),mm(10),iErr)
-      if(nSplit > 5) call chr_cast(lnSPlit(6),mm(11),iErr)
+      if(nSplit > 0) call chr_cast(lnSplit(1),mm(6), iErr)
+      if(nSplit > 1) call chr_cast(lnSplit(2),mm(7), iErr)
+      if(nSplit > 2) call chr_cast(lnSplit(3),mm(8), iErr)
+      if(nSplit > 3) call chr_cast(lnSplit(4),mm(9), iErr)
+      if(nSplit > 4) call chr_cast(lnSplit(5),mm(10),iErr)
+      if(nSplit > 5) call chr_cast(lnSplit(6),mm(11),iErr)
 
       if(st_debug) then
         call sixin_echoVal("Sypyp", mm(6), "BEAM",iLine)
@@ -3278,5 +3285,146 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
   end if
 
 end subroutine sixin_parseInputLineBEAM_EXP
+
+! ================================================================================================ !
+!  Parse “Phase Trombone” Element Line
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2018-06-25
+! ================================================================================================ !
+subroutine sixin_parseInputLineTROM(inLine, iLine, iErr)
+
+  use mod_alloc
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen) elemName
+  real(kind=fPrec) cloOrb(6), matElems(6,6)
+  integer nSplit, nLines, iElem, i, l, m, n
+  logical spErr
+
+  save :: elemName, iElem, cloOrb, matElems, l, m, n, nLines
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "TROM> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  select case(iLine)
+
+  case(1)
+
+    if(nSplit /= 1) then
+      write(lout,"(a,i0)") "TROM> ERROR Expected 1 element name for line 1, got ",nSplit
+      iErr = .true.
+      return
+    end if
+
+    elemName = trim(lnSplit(1))
+
+    iElem = -1
+    do i=1,il
+      if(bez(i) == elemName) then
+        iElem = i
+        exit
+      end if
+    end do
+    if(iElem == -1) then
+      write(lout,"(a)") "TROM> ERROR Could not find element '"//elemName//"' in single element list."
+      iErr = .true.
+      return
+    end if
+
+    if(st_debug) then
+      call sixin_echoVal("name",  elemName,"TROM",iLine)
+      call sixin_echoVal("elemid",iElem,   "TROM",iLine)
+    end if
+    if(iErr) return
+
+    cloOrb(:)     = zero
+    matElems(:,:) = zero
+    nLines        = 1
+
+    l = 0
+    m = 0
+    n = 1
+
+  case(2,3)
+
+    if(nSplit /= 3) then
+      write(lout,"(2(a,i0))") "TROM> ERROR Expected 3 values for line ",iLine,", got ",nSplit
+      iErr = .true.
+      return
+    end if
+
+    l = l + 3
+
+    call chr_cast(lnSplit(1),cloOrb(l-2),iErr)
+    call chr_cast(lnSplit(2),cloOrb(l-1),iErr)
+    call chr_cast(lnSplit(3),cloOrb(l),  iErr)
+    if(iErr) return
+
+    nLines = nLines + 1
+
+  case(4,5,6,7,8,9,10,11,12,13,14,15)
+
+    if(nSplit /= 3) then
+      write(lout,"(2(a,i0))") "TROM> ERROR Expected 3 values for line ",iLine,", got ",nSplit
+      iErr = .true.
+      return
+    end if
+
+    m = m + 3
+    if(m > 6) then
+      n = n + 1
+      m = 3
+    end if
+
+    call chr_cast(lnSplit(1),matElems(n,m-2),iErr)
+    call chr_cast(lnSplit(2),matElems(n,m-1),iErr)
+    call chr_cast(lnSplit(3),matElems(n,m),  iErr)
+    if(iErr) return
+
+    nLines = nLines + 1
+
+  case(-1)
+
+    if(nLines /= 15) then
+      write(lout,"(a,i0)") "TROM> ERROR Each trombone block takes exactly 15 lines, got ",nLines
+      write(lout,"(a)")    "TROM>       If you neeed multiple TROM elements, add multiple TROM blocks."
+      iErr = .true.
+      return
+    end if
+
+    sixin_imtr0 = sixin_imtr0 + 1
+    imtr(iElem) = sixin_imtr0
+    ntr         = sixin_imtr0
+    call alloc(cotr,sixin_imtr0,6,  zero,"cotr")
+    call alloc(rrtr,sixin_imtr0,6,6,zero,"rrtr")
+    cotr(sixin_imtr0,1:6)     = cloOrb(1:6)
+    rrtr(sixin_imtr0,1:6,1:6) = matElems(1:6,1:6)
+
+    if(st_debug) then
+      call sixin_echoVal("cx", cloOrb(1),"TROM",iLine)
+      call sixin_echoVal("cx'",cloOrb(2),"TROM",iLine)
+      call sixin_echoVal("cy", cloOrb(3),"TROM",iLine)
+      call sixin_echoVal("cy'",cloOrb(4),"TROM",iLine)
+      call sixin_echoVal("cz", cloOrb(5),"TROM",iLine)
+      call sixin_echoVal("cz'",cloOrb(6),"TROM",iLine)
+      write(lout,"(a)") "INPUT> DEBUG TROM:PP Matrix Elements:"
+      do i=1,6
+        write(lout,"(a,6(1x,e15.8),a)") "INPUT> DEBUG TROM:PP [ ",rrtr(sixin_imtr0,i,1:6)," ]"
+      end do
+    end if
+
+  end select
+
+end subroutine sixin_parseInputLineTROM
 
 end module sixtrack_input

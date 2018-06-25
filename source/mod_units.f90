@@ -129,4 +129,20 @@ subroutine units_flushUnits(unit)
 
 end subroutine units_flushUnits
 
+logical function units_isReserved(nUnit)
+
+  integer, intent(in) :: nUnit
+  
+  integer i
+  
+  units_isReserved = .false.
+  do i=1,units_nList
+    if(units_uList(i)%unit == nUnit) then
+      units_isReserved = .true.
+      return
+    end if
+  end do
+
+end function units_isReserved
+
 end module mod_units

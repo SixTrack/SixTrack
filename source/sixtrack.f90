@@ -59,8 +59,8 @@ subroutine daten
   use dynk,     only : ldynk,ldynkdebug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
   use fma,      only : fma_parseInputLine
   use dump,     only : dump_parseInputLine,dump_parseInputDone
-  use zipf,     only : zipf_parseInputDone,zipf_parseInputline
-  use bdex,     only : bdex_debug,bdex_parseElem,bdex_parseChan,bdex_parseInputDone
+  use zipf,     only : zipf_parseInputLine,zipf_parseInputDone
+  use bdex,     only : bdex_parseInputLine,bdex_parseInputDone
   use mod_fluc, only : fluc_parseInputLine,fluc_readInputs
   use aperture
   use mod_ranecu
@@ -68,7 +68,7 @@ subroutine daten
   use elens
   use wire
 #ifdef FLUKA
-  use mod_fluka
+  use mod_fluka, only : fluka_parsingDone,fluka_parseInputLine
 #endif
 #ifdef HDF5
   use hdf5_output
@@ -90,7 +90,7 @@ subroutine daten
 
   character(len=mNameLen) ende,deco,beze,go,cavi,disp,idat,idat2,next,line,ic0,imn
   character(len=mNameLen) iele,ilm0,idum,kl,kr,trom
-  character(len=60) ihead
+  character(len=60) iHead
   integer nchars
   parameter (nchars=160)
   character(len=nchars) ch
@@ -298,6 +298,12 @@ subroutine daten
   sixin_emitNX = zero
   sixin_emitNY = zero
 
+  ! PHASE TROMBONE
+  sixin_imtr0  = 0
+  ntr          = 1
+  call alloc(cotr,1,6,  zero,"cotr")
+  call alloc(rrtr,1,6,6,zero,"rrtr")
+
   ! HIONS MODULE
   zz0          = 1
   aa0          = 1
@@ -333,7 +339,7 @@ subroutine daten
 ! ================================================================================================ !
 
 90 continue
-  read(3,"(a4,8x,a60)",end=1530,iostat=ierro) idat,ihead
+  read(3,"(a4,8x,a60)",end=1530,iostat=ierro) idat,iHead
   if(ierro > 0) call prror(58)
   lineNo3 = lineNo3+1
   if(idat(1:1) == "/") goto 90
@@ -347,7 +353,7 @@ subroutine daten
     iMod       = 2
     parseFort2 = .true.
   case default
-    write(lout,"(a)") "INPUT> ERROR Wrong mode '"//idat//"'"
+    write(lout,"(a)") "INPUT> ERROR Unknown mode '"//idat//"'"
     goto 9999
   end select
 
@@ -358,13 +364,13 @@ subroutine daten
   write(lout,"(a)") "    OO                  OO"
   write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOO"
   write(lout,"(a)") ""
-  if(ihead /= " ") write(lout,"(a)") "    TITLE: "//ihead
+  if(ihead /= " ") write(lout,"(a)") "    TITLE: "//trim(iHead)
   if(imod  == 1)   write(lout,"(a)") "    MODE:  Free Format Input (fort.3)"
   if(imod  == 2)   write(lout,"(a)") "    MODE:  Geometry Strength File (fort.2)"
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
 
-  sixtit(1:60)=ihead
+  sixtit(1:60) = iHead
 
 ! ================================================================================================ !
 !  BEGIN PARSING FORT.2 AND FORT.3
@@ -432,12 +438,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("TROM")
-    goto 1700
-  case("FLUK")
-    goto 1800
-  case("BDEX")
-    goto 2250
   case("ELEN")
     goto 2400
   case("WIRE")
@@ -458,6 +458,7 @@ subroutine daten
   blockReopen = .false.
   if(currBlock == "LINE") blockReopen = .true.
   if(currBlock == "MULT") blockReopen = .true.
+  if(currBlock == "TROM") blockReopen = .true.
 
   ! Check the status of the current block
   call sixin_checkBlock(currBlock, nUnit, blockOpened, blockClosed, blockLine, blockCount)
@@ -771,6 +772,45 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("TROM") ! “Phase Trombone” Element
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call sixin_parseInputLineTROM(ch,-1,inErr)
+    else
+      call sixin_parseInputLineTROM(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("FLUK") ! Fluka Coupling
+#ifndef FLUKA
+    if(openBlock) then
+      write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the FLUKA flag."
+      goto 9999
+    else
+      continue
+    end if
+#else
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call fluka_parsingDone
+    else
+      call fluka_parseInputLine(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+#endif
+
+  case("BDEX") ! Beam Distribution EXchange
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call bdex_parseInputDone
+    else
+      call bdex_parseInputLine(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -946,333 +986,6 @@ subroutine daten
 ! ================================================================================================ !
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
-
-!-----------------------------------------------------------------------
-!  TROMBONE ELEMENT KZ=22
-!-----------------------------------------------------------------------
- 1700 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1700
-      if(ch(:4).eq.next) goto 110
-      call intepr(1,1,ch,ch1)
-#ifdef FIO
-      read(ch1,*,round='nearest')                                       &
-     & imn
-#endif
-#ifndef FIO
-      read(ch1,*) imn
-#endif
-      imtr0=imtr0+1
-      if(imtr0.gt.ntr) call prror(100)
-      do 1710 j=1,il
-        if(imn.eq.bez(j)) then
-          imtr(j)=imtr0
-          goto 1720
-        endif
- 1710 continue
-      call prror(98)
- 1720 j1=0
-      if(imtr0.eq.1) write(lout,10130)
-      if(imtr0.eq.1) write(lout,10700)
-      write(lout,10710) imtr0,imn
- 1730 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1730
-      if(ch(:4).eq.next) call prror(99)
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      j1=j1+3
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & cotr(imtr0,j1-2),cotr(imtr0,j1-1),cotr(imtr0,j1)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) cotr(imtr0,j1-2),cotr(imtr0,j1-1),cotr(imtr0,j1)
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        cotr(imtr0,j1-2)=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        cotr(imtr0,j1-1)=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        cotr(imtr0,j1)=fround(errno,fields,3)
-        nf=nf-1
-      endif
-#endif
-#endif
-      if(j1.lt.6) goto 1730
-      do j=1,6
-        j1=0
- 1740   read(3,10020,end=1530,iostat=ierro) ch
-        if(ierro.gt.0) call prror(58)
-        lineno3=lineno3+1
-        if(ch(1:1).eq.'/') goto 1740
-        if(ch(:4).eq.next) call prror(99)
-        ch1(:nchars+3)=ch(:nchars)//' / '
-        j1=j1+3
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-        read(ch1,*,round='nearest')                                     &
-     & rrtr(imtr0,j,j1-2),rrtr(imtr0,j,j1-1),                           &
-     &rrtr(imtr0,j,j1)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-        read(ch1,*) rrtr(imtr0,j,j1-2),rrtr(imtr0,j,j1-1),              &
-     &rrtr(imtr0,j,j1)
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        rrtr(imtr0,j,j1-2)=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        rrtr(imtr0,j,j1-1)=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        rrtr(imtr0,j,j1)=fround(errno,fields,3)
-        nf=nf-1
-      endif
-#endif
-#endif
-        if(j1.lt.6) goto 1740
-      enddo
-      goto 1700
-!-----------------------------------------------------------------------
-!  COUPLING WITH FLUKA
-!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!  last modified: 17-07-2013
-!-----------------------------------------------------------------------
- 1800 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-#ifndef FLUKA
-
-!     inserted in main code if the 'fluka' compilation flag is NOT issued
-
-      write(lout,*)
-      write(lout,*) "     FLUKA coupling not supported in this version"
-      write(lout,*) "     please recompile with proper flags"
-      write(lout,*)
-      call prror(-1)
-
-#endif
-#ifdef FLUKA
-
-!     inserted in main code by the 'fluka' compilation flag
-
-      if(ch(1:1).eq.'/') goto 1800
-      if(ch(:4).eq.next) then
-        write(lout,10520) fluk
-        if ( fluka_enable ) then
-!         dump all elements found:
-          do ii=1,il
-             if(fluka_type(ii).ne.FLUKA_NONE) then
-               write(lout,10510) bez(ii), fluka_type(ii),fluka_geo_index(ii),fluka_synch_length(ii)
-             endif
-          enddo
-          write(lout,*) ''
-          write(lout,*) '        keys to FLUKA types:'
-          write(lout,*) FLUKA_ELEMENT,' --> simple element'
-          write(lout,*) FLUKA_ENTRY,' --> entrance point'
-          write(lout,*) FLUKA_EXIT,' --> exit point'
-          write(lout,*) ''
-          if ( fluka_debug  ) write(lout,*) "        --> DEBUG enabled!"
-        else
-          write(lout,*) ''
-          write(lout,*) ' !! no element flagged for coupling !!'
-          write(lout,*) '    --> disabling coupling flags/labelling'
-          write(lout,*) ''
-          fluka_enable = .false.
-          fluka_debug  = .false.
-          do ii=1,il
-             fluka_type(ii) = FLUKA_NONE
-          enddo
-        endif
-        goto 110
-      endif
-
-      lineno3=lineno3+1
-      ch1(:83)=ch(:80)//' / '
-      if(ch1(:4).eq.'DEBU') then
-        fluka_debug = .true.
-        goto 1800
-      elseif(ch1(:4).eq.'LOGU') then
-        read(ch1,*) idat, ii
-        if ( ii.gt.0 ) then
-          fluka_log_unit = ii
-        else
-          write(lout,*) ' no valid unit for logging coupling messages'
-          write(lout,*) '   in block ',fluk
-          write(lout,*) '   parsed line:'
-          write(lout,*) ch(:80)
-          write(lout,*) ''
-          call prror(-1)
-        endif
-      endif
-
-!     parse line:
-      read(ch1,*) idat, idat2, ii, tmplen
-
-!     1. find idat (ie name of entrance element) in the list of SINGLE ELEMENTs:
-      do i1=1,il
-         if(bez(i1).eq.idat) goto 1801
-      enddo
-!     failing research:
-      write(lout,*) ''
-      write(lout,*) ' Un-identified SINGLE ELEMENT ', idat
-      write(lout,*) '   in block ',fluk
-      write(lout,*) '   parsed line:'
-      write(lout,*) ch(:80)
-      write(lout,*) ''
-      call prror(-1)
-
-!     2. find idat2 (ie name of exit element) in the list of SINGLE ELEMENTs:
- 1801 do i2=1,il
-         if(bez(i2).eq.idat2) goto 1802
-      enddo
-!     failing research:
-      write(lout,*) ''
-      write(lout,*) ' Un-identified SINGLE ELEMENT ', idat2
-      write(lout,*) '   in block ',fluk
-      write(lout,*) '   parsed line:'
-      write(lout,*) ch(:80)
-      write(lout,*) ''
-      call prror(-1)
-
- 1802 continue
-
-!     3. check that the current markers have not been already flagged
-      if ( fluka_type(i1).ne.FLUKA_NONE ) then
-        write(lout,*) ''
-        write(lout,*) ' SINGLE ELEMENT ', bez(i1)
-        write(lout,*) '   in block ',fluk
-        write(lout,*) '   was alredy labelled as fluka marker:'
-        write(lout,*) '     you cannot overwrite'
-        write(lout,*) '   parsed line:'
-        write(lout,*) ch(:80)
-        write(lout,*) ''
-        write(lout,*) 'fluka_type(entrance) = ', fluka_type(i1)
-        write(lout,*) 'at position = ', i1
-        call prror(-1)
-      endif
-      if ( fluka_type(i2).ne.FLUKA_NONE ) then
-        write(lout,*) ''
-        write(lout,*) ' SINGLE ELEMENT ', bez(i2)
-        write(lout,*) '   in block ',fluk
-        write(lout,*) '   was alredy labelled as fluka marker:'
-        write(lout,*) '     you cannot overwrite'
-        write(lout,*) '   parsed line:'
-        write(lout,*) ch(:80)
-        write(lout,*) ''
-        write(lout,*) 'fluka_type(exit) = ', fluka_type(i2)
-        write(lout,*) 'at position = ', i2
-        call prror(-1)
-      endif
-
-!     4. disentangle between just a simple element or an interval of elements
-!        in the accelerator structure, labelled as Fluka insertion:
-      if ( i1.eq.i2 ) then
-        fluka_type(i1) = FLUKA_ELEMENT
-        fluka_geo_index(i1)  = ii
-        fluka_synch_length(i1) = tmplen
-        write(fluka_log_unit,*)                                         &
-     &'# Found         Fluka element as SING EL num',i1
-      else
-        fluka_type(i1) = FLUKA_ENTRY
-        fluka_geo_index(i1)  = ii
-        fluka_type(i2) = FLUKA_EXIT
-        fluka_geo_index(i2)  = ii
-        fluka_synch_length(i2) = tmplen
-        write(fluka_log_unit,*)                                         &
-     &'# Found entrance Fluka element as SING EL num',i1
-        write(fluka_log_unit,*)                                         &
-     &'# Found exit     Fluka element as SING EL num',i2
-      endif
-!     wait to find at least one FLUKA insertion before actually enabling
-!       the coupling
-      if(.not.fluka_enable) fluka_enable = .true.
-
-#endif
-      goto 1800
-
-!-----------------------------------------------------------------------
-!  BDEX = Beam Distribution EXchange
-!  K.Sjobak, BE/ABP-HSS 2016
-!  Based on FLUKA coupling version by
-!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team, 2014.
-!-----------------------------------------------------------------------
- 2250 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(51)
-      lineno3 = lineno3+1 ! Line number used for some crash output
-
-      if(ch(1:1).eq.'/') goto 2250 ! skip comment line
-
-#ifdef CR
-      write(lout,*) "BDEX not supported in CR version."
-      write(lout,*) "Sorry :("
-      call prror(-1)
-#endif
-!+if collimat
-!      write(*,*) "BDEX not supported in COLLIMAT version."
-!      write(*,*) "Sorry :("
-!      call prror(-1)
-!+ei
-
-      ! Which type of block? Look at start of string (no leading blanks allowed)
-      if (ch(:4).eq."DEBU") then
-         bdex_debug = .true.
-         write (lout,*) "BDEX> BDEX block debugging is ON"
-         goto 2250 !loop BDEX
-
-      else if (ch(:4).eq."ELEM") then
-         call bdex_parseElem(ch)
-         goto 2250 !loop BDEX
-
-      else if (ch(:4).eq."CHAN") then
-         call bdex_parseChan(ch)
-         goto 2250 !Loop BDEX
-
-      else if (ch(:4).eq.next) then
-         call bdex_parseInputDone
-         goto 110 ! loop BLOCK
-
-      else
-         write (lout,*)
-         write (lout,*) "*******************************************"
-         write (lout,*) "ERROR while parsing BDEX block in fort.3"
-         write (lout,*) "Expected keywords DEBU, NEXT, ELEM, or CHAN"
-         write (lout,*) "Got ch:"
-         write (lout,*) "'"//ch//"'"
-         write (lout,*) "*******************************************"
-         call prror(-1)
-
-      endif
-
-      ! Should never arrive here
-      write (lout,*) "*****************************"
-      write (lout,*) "*LOGIC ERROR IN PARSING BDEX*"
-      write (lout,*) "*****************************"
-      call prror(-1)
 
 !-----------------------------------------------------------------------
 !  Electron Lense, kz=29,ktrack=63

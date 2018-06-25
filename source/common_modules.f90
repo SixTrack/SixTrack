@@ -26,8 +26,7 @@ module parpro
   integer, parameter :: nplo  = 20000     ! Plotting
   integer, parameter :: npos  = 20000     ! Something something postprocessing
   integer, parameter :: nran  = 2000000   ! Maximum size for scaling nzfz
-  integer, parameter :: nrco  = 5         ! aximum order of compensation (RESO block)
-  integer, parameter :: ntr   = 20        ! Maximum number of phase trombones
+  integer, parameter :: nrco  = 5         ! Maximum order of compensation (RESO block)
   integer, parameter :: mmul  = 20        ! Maximum order of multipoles
   integer, parameter :: nbb   = 500       ! Beam-beam lenses
   integer, parameter :: nelb  = 280       ! Maximum elements per BLOC
@@ -37,6 +36,8 @@ module parpro
   integer, parameter :: mStrLen  = 161    ! Standard string length
   integer, parameter :: mDivLen  = 132    ! Length of lout output lines
   integer, parameter :: mInputLn = 1024   ! Buffer size for single lines read from input files
+
+  integer :: ntr   = -1   ! Number of phase trombones
 
   integer :: nzfz  = -1   ! Number of allocated multipole random numbers
   integer :: nele  = -1   ! Number of allocated SINGle elements
@@ -50,7 +51,7 @@ module parpro
   integer, parameter :: npart_initial = 2
 
   ! Dummy Strings
-  character(len=mDivLen),  parameter :: str_divLine = repeat("-",132)
+  character(len=mDivLen),  parameter :: str_divLine = repeat("-",mDivLen)
   character(len=mStrLen),  parameter :: str_dSpace  = repeat(" ",mStrLen)
   character(len=mStrLen),  parameter :: str_dZeros  = repeat(char(0),mStrLen)
   character(len=mNameLen), parameter :: str_nmSpace = repeat(" ",mNameLen)
@@ -280,8 +281,9 @@ module mod_common
   real(kind=fPrec), allocatable, save :: ptnfac(:)  ! (nele)
 
   ! common/trom/
-  real(kind=fPrec),              save :: cotr(ntr,6),rrtr(ntr,6,6)
-  integer,          allocatable, save :: imtr(:) ! (nele),
+  real(kind=fPrec), allocatable, save :: cotr(:,:)   ! (ntr,6)
+  real(kind=fPrec), allocatable, save :: rrtr(:,:,:) ! (ntr,6,6)
+  integer,          allocatable, save :: imtr(:)     ! (nele)
 
   ! common /bb6d/
   real(kind=fPrec), save :: bbcu(nbb,12)
