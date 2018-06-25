@@ -16,7 +16,7 @@
 !    A. Patapenka,  NIU, CERN
 !    G. Robert-Demolaize, BNL
 !    V. Gupta, Google Summer of Code (GSoC)
-!    J. Molson UMAN, LAL, CERN
+!    J. Molson, UMAN, LAL, CERN
 !    S. Kostoglou, NTUA, CERN
 !
 !  Copyright 2014 CERN. This software is distributed under the terms of the GNU
@@ -32,14 +32,13 @@
 !  DATEN - INPUT PARSING
 ! ~~~~~~~~~~~~~~~~~~~~~~~
 !  Rewritten by V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-06-21
+!  Last modified: 2018-06-25
 !  Reads input data from files fort.2 and fort.3
 ! ================================================================================================ !
 subroutine daten
 
   use crcoall
   use floatPrecision
-  use mathlib_bouncer
   use sixtrack_input
   use parpro
   use parbeam, only : beam_expflag,beam_expfile_open
@@ -51,7 +50,6 @@ subroutine daten
   use physical_constants
   use numerical_constants
   use string_tools
-  use strings
   use mod_alloc
   use mod_dist
 
@@ -65,7 +63,6 @@ subroutine daten
   use wire,      only : wire_parseInputLine,wire_parseInputDone
   use elens,     only : elens_parseInputLine,elens_parseInputDone,elens_postInput
   use aperture
-  use mod_ranecu
   use mod_hions
 #ifdef FLUKA
   use mod_fluka, only : fluka_parsingDone,fluka_parseInputLine
@@ -356,6 +353,7 @@ subroutine daten
 
   ! Parse non-block flags
   select case(cCheck)
+
   case("PRIN") ! Enable the PRINT flag
     ! Previous versions of SixTrack allowed the PRINT block to remain unclosed,
     ! so we need to handle that for backwards compatibility.
@@ -363,19 +361,17 @@ subroutine daten
     st_print  = .true.
     write(lout,"(a)") "INPUT> Note: The PRINT block is replaced by the PRINT flag in the SETT block."
     write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
-    goto 110
+    goto 110 ! Assume the block is not closed
+
   case("NEXT") ! Close the current block
-    if(.not. prevPrint) then
-      ! Actual close check is done after a last pass so
-      ! each block can finalise any necessary initialisation
-      closeBlock = .true.
-    else
-      ! Most old block parsing code handles NEXT locally, but
-      ! some end up here. Send them back to start.
-      goto 110
-    end if
+    if(prevPrint) goto 110 ! If there was NEXT flag after PRINT after all, go back one more time
+    ! Actual close check is done after a last pass so
+    ! each block can finalise any necessary initialisation
+    closeBlock = .true.
+
   case("ENDE") ! End of fort.3 input
     goto 9000
+
   end select
 
   prevPrint = .false.
@@ -403,7 +399,7 @@ subroutine daten
   ! end if
 
   ! Check if the current block has already been seen and closed.
-  ! If so, the block exists more than once in the input files. It shouldn't.
+  ! If so, the block exists more than once in the input files. It shouldn't unless intended to.
   if(blockCount > 1 .and. .not. blockReopen) then
     write(lout,"(a)") "INPUT> ERROR Block '"//currBlock//"' encountered more than once."
     goto 9999
