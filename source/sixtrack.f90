@@ -298,6 +298,12 @@ subroutine daten
   sixin_emitNX = zero
   sixin_emitNY = zero
 
+  ! PHASE TROMBONE
+  sixin_imtr0  = 0
+  ntr          = 1
+  call alloc(cotr,1,6,  zero,"cotr")
+  call alloc(rrtr,1,6,6,zero,"rrtr")
+
   ! HIONS MODULE
   zz0          = 1
   aa0          = 1
@@ -432,8 +438,6 @@ subroutine daten
   ! Old style block parsing
   newParsing = .false.
   select case(idat)
-  case("TROM")
-    goto 1700
   case("FLUK")
     goto 1800
   case("BDEX")
@@ -771,6 +775,16 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("TROM") ! “Phase Trombone” Element
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call sixin_parseInputLineTROM(ch,-1,inErr)
+    else
+      call sixin_parseInputLineTROM(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -947,117 +961,6 @@ subroutine daten
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
 
-!-----------------------------------------------------------------------
-!  TROMBONE ELEMENT KZ=22
-!-----------------------------------------------------------------------
- 1700 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1700
-      if(ch(:4).eq.next) goto 110
-      call intepr(1,1,ch,ch1)
-#ifdef FIO
-      read(ch1,*,round='nearest')                                       &
-     & imn
-#endif
-#ifndef FIO
-      read(ch1,*) imn
-#endif
-      imtr0=imtr0+1
-      if(imtr0.gt.ntr) call prror(100)
-      do 1710 j=1,il
-        if(imn.eq.bez(j)) then
-          imtr(j)=imtr0
-          goto 1720
-        endif
- 1710 continue
-      call prror(98)
- 1720 j1=0
-      if(imtr0.eq.1) write(lout,10130)
-      if(imtr0.eq.1) write(lout,10700)
-      write(lout,10710) imtr0,imn
- 1730 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3=lineno3+1
-      if(ch(1:1).eq.'/') goto 1730
-      if(ch(:4).eq.next) call prror(99)
-      ch1(:nchars+3)=ch(:nchars)//' / '
-      j1=j1+3
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-      read(ch1,*,round='nearest')                                       &
-     & cotr(imtr0,j1-2),cotr(imtr0,j1-1),cotr(imtr0,j1)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-      read(ch1,*) cotr(imtr0,j1-2),cotr(imtr0,j1-1),cotr(imtr0,j1)
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        cotr(imtr0,j1-2)=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        cotr(imtr0,j1-1)=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        cotr(imtr0,j1)=fround(errno,fields,3)
-        nf=nf-1
-      endif
-#endif
-#endif
-      if(j1.lt.6) goto 1730
-      do j=1,6
-        j1=0
- 1740   read(3,10020,end=1530,iostat=ierro) ch
-        if(ierro.gt.0) call prror(58)
-        lineno3=lineno3+1
-        if(ch(1:1).eq.'/') goto 1740
-        if(ch(:4).eq.next) call prror(99)
-        ch1(:nchars+3)=ch(:nchars)//' / '
-        j1=j1+3
-#ifdef FIO
-#ifdef CRLIBM
-      call enable_xp()
-#endif
-        read(ch1,*,round='nearest')                                     &
-     & rrtr(imtr0,j,j1-2),rrtr(imtr0,j,j1-1),                           &
-     &rrtr(imtr0,j,j1)
-#ifdef CRLIBM
-      call disable_xp()
-#endif
-#endif
-#ifndef FIO
-#ifndef CRLIBM
-        read(ch1,*) rrtr(imtr0,j,j1-2),rrtr(imtr0,j,j1-1),              &
-     &rrtr(imtr0,j,j1)
-#endif
-#ifdef CRLIBM
-      call splitfld(errno,3,lineno3,nofields,nf,ch1,fields)
-      if (nf.gt.0) then
-        rrtr(imtr0,j,j1-2)=fround(errno,fields,1)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        rrtr(imtr0,j,j1-1)=fround(errno,fields,2)
-        nf=nf-1
-      endif
-      if (nf.gt.0) then
-        rrtr(imtr0,j,j1)=fround(errno,fields,3)
-        nf=nf-1
-      endif
-#endif
-#endif
-        if(j1.lt.6) goto 1740
-      enddo
-      goto 1700
 !-----------------------------------------------------------------------
 !  COUPLING WITH FLUKA
 !  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
