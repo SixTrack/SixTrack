@@ -45,20 +45,20 @@ Please note that each single element can only be selected once; however it is po
         \rowcolor{blue!30}
         \#/Pos & Description \\*
         \endfirsthead
-        
+
         \hline
         \rowcolor{blue!30}
         \#/Pos & Description \\*
         \endhead
-        
+
         \rowcolor{gray!15}
         \multicolumn{2}{|c|}{(The table continues on the next page)}\\*
         \hline
         \endfoot
-        
+
         \hline
         \endlastfoot
-        
+
         \hline
         \rowcolor{blue!15}
         \texttt{0} & General format \\
@@ -67,7 +67,7 @@ Please note that each single element can only be selected once; however it is po
         \hline
         Lines  & \texttt{turn structure\_element\_idx single\_element\_idx single\_element\_name s x1[m] x1'[rad] y1[m] y2'[rad] momentum[GeV/c] dE/E[GeV]} \\
         \hline
-        
+
         \rowcolor{blue!15}
         \texttt{1} & Format for aperture check \\
         \hline
@@ -75,7 +75,7 @@ Please note that each single element can only be selected once; however it is po
         \hline
         Lines  & \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack} \\
         \hline
-        
+
         \rowcolor{blue!15}
         \texttt{2} & Modified format for aperture check \\
         \hline
@@ -92,7 +92,7 @@ Please note that each single element can only be selected once; however it is po
         \hline
         Lines      & As described in the header, one per particle and per turn. \\
         \hline
-        
+
         \rowcolor{blue!15}
         \texttt{3} & Modified format for aperture check (Binary) \\
         \hline
@@ -102,7 +102,7 @@ Please note that each single element can only be selected once; however it is po
         Lines  & \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack} \\
                & The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the format 2 (sans headers). \\
         \hline
-        
+
         \rowcolor{blue!15}
         \texttt{3} & Beam means \\
         \hline
@@ -113,7 +113,7 @@ Please note that each single element can only be selected once; however it is po
         \hline
         Lines      & As described in the header; one per turn (and for collimation, one per pack of particles). \\
         \hline
-        
+
         \rowcolor{blue!15}
         \texttt{5} & Beam mean and sigma \\
         \hline
@@ -124,7 +124,7 @@ Please note that each single element can only be selected once; however it is po
         \hline
         Lines      & As described in the header; one per turn (and for collimation, one per pack of particles). For the ``product'' quantities, the units are the product of the units of the ``normal'' ones. \\
         \hline
-        
+
         \rowcolor{blue!15}
         \texttt{6} & Beam mean and sigma (canonical) \\
         \hline
@@ -135,7 +135,7 @@ Please note that each single element can only be selected once; however it is po
         \hline
         Lines      & As described in the header; one per turn (and for collimation, one per pack of particles). For the ``product'' quantities, the units are the product of the units of the ``normal'' ones. Note that the $\sigma=s -\beta_0 c t$ is the same as the $z$ used in the formats above, except for the unit of m instead of mm; and that $p_\sigma = \Delta E / \left(\beta_0 P_0 c\right)$. For more details, see the physics manual~\cite{sixphys}. \\
         \hline
-        
+
         \rowcolor{blue!15}
         \texttt{7} & Modified format for aperture check (normalized coordinates) \\
         \hline
@@ -149,7 +149,7 @@ NEXT
 LINE
 ELEMENT  0 2 1 emit_1 emit_2
 NEXT
-            \end{cverbatim} 
+            \end{cverbatim}
             \bigskip
             If there are multiple single elements attached to the file, the headers are repeated.\\
             \hline
@@ -169,7 +169,7 @@ NEXT
             \hline
             Lines      & As described in the header, one per particle and per turn.\\
             \hline
-            
+
             \rowcolor{blue!15}
             \texttt{8} & Modified format for aperture check (normalized coordinates, binary)\\
             \hline
@@ -179,7 +179,7 @@ NEXT
             Lines   & \texttt{\# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nz[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] ktrack}\vspace{1mm} \\
                     & The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the format 2 (sans headers). \\
             \hline
-            
+
             \rowcolor{blue!15}
             \texttt{9} & Beam mean and sigma (normalized coordinates) \\
             \hline
@@ -217,7 +217,7 @@ The tunes $Q_1$, $Q_2$ and $Q_3$ are then calculated with the routine specified 
 To use normalized coordinates for the FMA analysis is always possible in case of 6D tracking (remember to put the \texttt{LINE} block for other elements than the start of the sequence). In case of 4D tracking, the following limitations apply:
 \begin{itemize}
     \item The FMA analysis is only implemented for the start of the sequence (\texttt{StartDUMP}). For other elements the normalization matrix would need to be obtained from the \texttt{LINE} block, which has not been checked in case of 4D optics.
-    \item 4D tracking with scan in energy is disabled as in this case the normalization matrix would need to be saved for each element and particle, which requires a huge amount of memory breaking other parts of the code.	
+    \item 4D tracking with scan in energy is disabled as in this case the normalization matrix would need to be saved for each element and particle, which requires a huge amount of memory breaking other parts of the code.
 \end{itemize}
 In general it is also recommended to already normalize the coordinates in DUMP as this is faster than in FMA.
 
@@ -245,7 +245,7 @@ filename_2 method_2 fma_flag_norm_2 fma_first_turn_2 fma_last_turn_2
 NEXT
 \end{cverbatim}
 For the \texttt{DUMP} block (Sec.~\ref{sec:DUMP}) the frequency has to be 1 (dump every turn) and the file format has to be 2 or 3.
-For the linear optics calculation \ref{LinOpt}, the optics needs to be calculated at each element (mode ELEMENT), the number-of-blocks is then 0 and 6D linear optics calculation is required (\texttt{ilin = 2}) in order to decouple the 6D motion. 
+For the linear optics calculation \ref{LinOpt}, the optics needs to be calculated at each element (mode ELEMENT), the number-of-blocks is then 0 and 6D linear optics calculation is required (\texttt{ilin = 2}) in order to decouple the 6D motion.
 
 \paragraph{Format Description}~
 
@@ -262,7 +262,7 @@ For the linear optics calculation \ref{LinOpt}, the optics needs to be calculate
 
 The \texttt{FMA} block returns the output files \texttt{NORM\_filename*} containing the normalized phase space coordinates, where \texttt{filename} are the filenames specified in the \texttt{DUMP} block, and the file \texttt{fma\_sixtrack} containing the initial, average, minimum and maximum amplitudes and the calculated tunes for each specified filename and method.
 The structure of the \texttt{NORM\_filename*} is described in Table~\ref{fma:tab:2} and of the \texttt{fma\_sixtrack} in Table~\ref{fma:tab:3}.
-    
+
 \begin{table}[H]
 \begin{center}
     \caption{Available tune calculation methods in SixTrack.}

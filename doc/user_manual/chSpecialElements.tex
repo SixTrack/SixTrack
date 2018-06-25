@@ -170,7 +170,7 @@ Function names have a maximum length of 20 characters.
     \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
     \hline
     \endfoot
-    
+
     \hline
     \endlastfoot
 
@@ -179,19 +179,19 @@ Function names have a maximum length of 20 characters.
     \multicolumn{3}{|l|}{``System'' functions} \\*
     \hline
 
-    \texttt{GET} & \texttt{element-name[string] attribute-name[string]} & 
+    \texttt{GET} & \texttt{element-name[string] attribute-name[string]} &
     Extracts the original value of a setting, i.e. as specified in the SINGLE ELEMENT section (Sec.~\ref{SinEle}). Attributes as used for \texttt{SET}, see Table~\ref{tab:DYNK_SET}. \\*
     \hline
 
     \texttt{FILE} & \texttt{filename[string]} &
     Loads the settings from file; the file is expected to be an ascii file with two columns where the first column is the turn number (should start at 1 and include all turns up to as long as is wanted), and the second column is the value for that turn number.\\*
     \hline
-    
+
     \texttt{FILELIN} & \texttt{filename[string]} &
     Similar to \texttt{FILE}, but any double can be used as the turn number as long as they are monotonically rising.
     When evaluated, the function interpolates from the line-segments specified in the file. \\*
     \hline
-    
+
     \texttt{PIPE} & \texttt{inPipeName[string] outPipeName[string] ID[string] fileUnit[int]} &
     Uses a pair of UNIX FIFOs, through which it can communicate with an external program.
     When evaluated, it sends a message through the outpipe, and then waits for a message on the inpipe which should contain the value the FUN should returned.
@@ -200,7 +200,7 @@ Function names have a maximum length of 20 characters.
     For more details, see the example below.
     Also note that \texttt{PIPE} is not available in the checkpoint/restart version of SixTrack.\\*
     \hline
-    
+
     \texttt{RANDG} & \texttt{seed1[int] seed2[int] mu[real] sigma[real] mcut[int]} &
     Returns a pseudorandom number generated from a Gaussian distribution.
     The mean value and width is controlled by \texttt{mu} and \texttt{sigma}, while \texttt{mcut} is the maximum number of sigmas to generate numbers up to; set to 0 to disable this cut.
@@ -213,17 +213,17 @@ Function names have a maximum length of 20 characters.
     The integers \texttt{seed1} and \texttt{seed2} are the seed used to initialize the \texttt{RANECU} generator.
     Note that every \texttt{RANDU} function defined in \texttt{DYNK} uses its own separate random number stream.\\*
     \hline
-    
+
     \texttt{RANDON} & \texttt{seed1[int] seed2[int] P[float]} &
     Returns the value of 1.0 or 0.0 resulting of the weighting with the probability \texttt{P} of a pseudorandom number generated from a uniform distribution .
     The integers \texttt{seed1} and \texttt{seed2} are the seed used to initialize the \texttt{RANECU} generator.
     Note that every \texttt{RANDON} function defined in \texttt{DYNK} uses its own separate random number stream.\\
     \hline
-    
+
     \rowcolor{blue!15}
     \multicolumn{3}{|l|}{Filters} \\*
     \hline
-    
+
     \texttt{FIR} & \texttt{N[int] filename[string] baseFun[string]} &
     Applies a Finite Impulse Response (FIR) filter of order v{N} to the function \texttt{baseFun}.
     The output is given as $y[t] = \sum_{i=0}^N b_i*x[t-i]$, where $t$ is the current turn and $x[t-0]$ is the result of the most recent call to \texttt{baseFun}.
@@ -234,7 +234,7 @@ Function names have a maximum length of 20 characters.
     Also note that when called, the filter is first stepped, then the new value is filled into the first position in $x[]$, and finally the sum is evaluated.
     This means that the last value in the $x[]$ array is never used, while the first value ($x[t-0]$) is immediately pushed into $x[t-1]$ before the first evaluation.\\*
     \hline
-    
+
     \texttt{IIR} & \texttt{N[int] filename[string] baseFun[string]} &
     Applies an Infinite Impulse Response (IIR) filter of order \texttt{N} to the function \texttt{baseFun}.
     This is very similar to \texttt{FIR}, except that it also uses its own previous outputs.
@@ -243,11 +243,11 @@ Function names have a maximum length of 20 characters.
     These columns are (4) $a_0\ldots a_N$ \texttt{[float]} and (5) initial values for the $y[]$ array \texttt{[float]}.
     Note that $a_0$ is never used, and the value of $y[t-0]$ is pushed back to $y[t-1]$ before the first evaluation of the sum, such that $y[t-N]$ is never used.\\
     \hline
-    
+
     \rowcolor{blue!15}
     \multicolumn{3}{|l|}{2-operand operators} \\*
     \hline
-    
+
     \texttt{ADD} & \texttt{function-name-1[string] function-name-2[string]} &
     Evaluate the functions referenced by \texttt{function-name-1} and \texttt{function-name-2}, and return the sum of the results.\\*
     \hline
@@ -255,104 +255,104 @@ Function names have a maximum length of 20 characters.
     \texttt{SUB} & \texttt{function-name-1[string] function-name-2[string]} &
     Similar to \texttt{ADD}, but return the result of function1 minus function2.\\*
     \hline
-    
-    \texttt{MUL} & \texttt{function-name-1[string] function-name-2[string]} & 
+
+    \texttt{MUL} & \texttt{function-name-1[string] function-name-2[string]} &
     Similar to \texttt{ADD}, but return the product of the results. \\*
     \hline
-    
-    \texttt{DIV} & \texttt{function-name-1[string] function-name-2[string]} & 
+
+    \texttt{DIV} & \texttt{function-name-1[string] function-name-2[string]} &
     Similar to \texttt{ADD}, but return the result of function1 divided by function2\\*
     \hline
-    
-    \texttt{POW} & \texttt{function-name-1[string] function-name-2[string]} & 
+
+    \texttt{POW} & \texttt{function-name-1[string] function-name-2[string]} &
     Similar to \texttt{ADD}, but return the result of function1 raised to the power of function2.\\
     \hline
-    
+
     \rowcolor{blue!15}
     \multicolumn{3}{|l|}{1-operand operators} \\*
     \hline
-    
+
     \texttt{MINUS} & \texttt{function-name} &
     Returns the value of the named function, with the opposite sign. \\*
     \hline
 
-    \texttt{SQRT} & \texttt{function-name} & 
+    \texttt{SQRT} & \texttt{function-name} &
     Returns the square root of the value generated by the named function. \\*
     \hline
-    
-    \texttt{SIN} & \texttt{function-name} & 
+
+    \texttt{SIN} & \texttt{function-name} &
     Returns the sine of the value generated by the named function. \\*
     \hline
-    
+
     \texttt{COS} & \texttt{function-name} &
     Returns the cosine of the value generated by the named function. \\*
     \hline
-    
+
     \texttt{LOG} & \texttt{function-name} &
     Returns the natural logarithm of the value generated by the named function. \\*
     \hline
-    
+
     \texttt{LOG10} & \texttt{function-name} &
     Returns the common logarithm of the value generated by the named function. \\*
     \hline
-    
+
     \texttt{EXP} & \texttt{function-name} &
     Returns the natural exponential function $e^x$, where $x$ is the value generated by the named function. \\
     \hline
-    
+
     \rowcolor{blue!15}
     \multicolumn{3}{|l|}{Polynomial and elliptical functions} \\*
     \hline
-    
-    \texttt{CONST} & \texttt{value[real]} & 
+
+    \texttt{CONST} & \texttt{value[real]} &
     Always returns the value specified.\\*
     \hline
-    
-    \texttt{TURN} & (none) & 
+
+    \texttt{TURN} & (none) &
     Return the turn number, i.e. $y(t) = t$.\\*
     \hline
-    
-    \texttt{LIN} & \texttt{a[real] b[real]} & 
+
+    \texttt{LIN} & \texttt{a[real] b[real]} &
     Computed value from the linear function $y(t) = a\cdot t + b$. \\*
     \hline
-    
-    \texttt{LINSEG} & \texttt{x1[real] x2[real] y1[real] y2[real]} & 
-    The function is defined by a line segment between the points $(x_1,y_1)$ and $(x_2,y_2)$, and undefined for $x < x_1$ and $x>x_2$. 
+
+    \texttt{LINSEG} & \texttt{x1[real] x2[real] y1[real] y2[real]} &
+    The function is defined by a line segment between the points $(x_1,y_1)$ and $(x_2,y_2)$, and undefined for $x < x_1$ and $x>x_2$.
     It is required that $x_1 < x_2$.\\*
     \hline
-    
-    \texttt{QUAD} & \texttt{a[real] b[real] c[real]} & 
+
+    \texttt{QUAD} & \texttt{a[real] b[real] c[real]} &
     Computed value from the quadratic function $y(t) = a\cdot t^2 + b\cdot t + c$. \\*
     \hline
-    
-    \texttt{QUADSEG} & \texttt{x1[real] x2[real] y1[real] y2[real] deriv1[real]} & 
-    The quadratic function is defined by overlapping the quadratic curve segment which passes through the points $(x_1,y_1)$ and $(x_2,y_2)$, and $\mathrm{d}y/\mathrm{d}x$ at $x_1$ is \texttt{deriv1}. 
+
+    \texttt{QUADSEG} & \texttt{x1[real] x2[real] y1[real] y2[real] deriv1[real]} &
+    The quadratic function is defined by overlapping the quadratic curve segment which passes through the points $(x_1,y_1)$ and $(x_2,y_2)$, and $\mathrm{d}y/\mathrm{d}x$ at $x_1$ is \texttt{deriv1}.
     The quadratic coefficients $a,b,c$ are calculated as $a = \frac{\texttt{deriv1}}{x_1-x_2} + \frac{y_2-y_1}{(x_1-x_2)^2}$, $b=\frac{y_2-y_1}{x_2-x_1} - (x_1+x_2)\cdot a$ and $c = y_1 + \left(- x_1^2 \cdot a - x_1 \cdot b \right)$.\\
     \hline
-    
+
     \rowcolor{blue!15}
     \multicolumn{3}{|l|}{Trancendental functions} \\*
     \hline
-    
-    \texttt{SINF} & \texttt{A[real] omega[real] phi[real]} & 
+
+    \texttt{SINF} & \texttt{A[real] omega[real] phi[real]} &
     Computes $y(t) = A\sin\left(\omega t + \phi\right)$.\\*
     \hline
-    
-    \texttt{COSF} & \texttt{A[real] omega[real] phi[real]} & 
+
+    \texttt{COSF} & \texttt{A[real] omega[real] phi[real]} &
     Computes $y(t) = A\cos\left(\omega t + \phi\right)$.\\*
     \hline
-    
-    \texttt{COSF\_RIPP} & \texttt{A[real] period[real] phi[real]} & 
-    Computes $y(t) = A\cos\left(\frac{2\pi (t-1)}{\mathrm{period}} + \phi\right)$. 
+
+    \texttt{COSF\_RIPP} & \texttt{A[real] period[real] phi[real]} &
+    Computes $y(t) = A\cos\left(\frac{2\pi (t-1)}{\mathrm{period}} + \phi\right)$.
     This specialized cosine is provided for compatibility, to be used when replacing old \texttt{RIPP} blocks.\\*
     \hline
-    
+
     \rowcolor{blue!15}
     \multicolumn{3}{|l|}{Specialized functions} \\*
     \hline
-    
-    \texttt{PELP} & \texttt{tinj[real] Iinj[real] Inom[real] A[real] D[real] R[real] te[real]} & 
-    This function describes a patched ``Parabolic-Exponential-Linear-Parabolic'' function, as used for ramping the LHC dipoles and described in~\cite[Appendix C]{SRussen:fieldComp} and~\cite{BurlaKing:CurrentRamp}. 
+
+    \texttt{PELP} & \texttt{tinj[real] Iinj[real] Inom[real] A[real] D[real] R[real] te[real]} &
+    This function describes a patched ``Parabolic-Exponential-Linear-Parabolic'' function, as used for ramping the LHC dipoles and described in~\cite[Appendix C]{SRussen:fieldComp} and~\cite{BurlaKing:CurrentRamp}.
     The parameters are:
     \begin{itemize}
     \setlength\itemsep{-0.3em}
@@ -366,7 +366,7 @@ Function names have a maximum length of 20 characters.
     \end{itemize}
     \\*
     \hline
-    
+
     \texttt{ONOFF} & \texttt{p1[int] p2[int]} &
     This function is a periodic ``pulse width modulation'' with period p2 and pulse length p1.
     It may be described as
@@ -427,7 +427,7 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
   % \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
   % \hline
   % \endfoot
-  
+
   % \hline
   % \endlastfoot
 
@@ -472,7 +472,7 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
 
 The presence of this statement in a \texttt{DYNK} block switches off the normal writing of the output file \texttt{dynksets.dat} in every line, instead producing a file only containing the message
 \begin{cverbatim}
-### DYNK file output was disabled with flag NOFILE in fort.3 ### 
+### DYNK file output was disabled with flag NOFILE in fort.3 ###
 \end{cverbatim}
 This can be useful to save disk space in very long simulations.
 
@@ -484,7 +484,7 @@ This can be useful if debugging the code or if debugging the input.
 \subsection{Output File \texttt{dynksets.dat}}
 
 When a \texttt{DYNK} block is present in the input file, a file \texttt{dynksets.dat} is created and in the current working directory.
-Unless a \texttt{NOFILE} statement is present, this file contains first a header 
+Unless a \texttt{NOFILE} statement is present, this file contains first a header
 \begin{cverbatim}
 # turn element attribute SETidx funname value
 \end{cverbatim}
@@ -669,7 +669,7 @@ It then waits for a single floating point number to be written (in ascii) to the
 The beam--beam kick, including a separation of the beams, is treated \`{a} la Basetti and Erskine~\cite{BasErs} and implemented as in MAD-X~\cite{MAD}.
 However, a much faster but nevertheless precise calculation using interpolation can be used~\cite{ERIC}.
 Since SixTrack version 3, the beam--beam is also available in the 6D form \`{a} la Hirata~\cite{Hirata}.
-Lastly, the linear coupling has been considered in 4 and 6 dimensional phase space~\cite{ripbeam}. 
+Lastly, the linear coupling has been considered in 4 and 6 dimensional phase space~\cite{ripbeam}.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
@@ -754,7 +754,7 @@ Some clarifications regarding the sign convention used for the separation and cr
     \item The separation is added to the transverse coordinates of each particles just before the beam-beam subroutines (see Fig.~\ref{fig:BB_sep}).
         \begin{eqnarray*}
             \tilde x_{i} = x_{i} + \mathrm{sep}_{x} - \mathrm{CO}_{x} \\
-            \tilde y_{i} = y_{i} + \mathrm{sep}_{y} - \mathrm{CO}_{y} 
+            \tilde y_{i} = y_{i} + \mathrm{sep}_{y} - \mathrm{CO}_{y}
         \end{eqnarray*}
     \item Lorentz boost applied to the updated coordinates.
     \item The separation used for the actual beam-beam kick (sep$_{x,y,kick}$) is the difference between the centroid of the strong slice (X$^{\dag}$,Y$^{\dag}$) and the each particle (x$_i$,y$_i$).
@@ -872,7 +872,7 @@ Each wire also needs to be added as single element in the list of single element
 
     \texttt{tilt\_y} & degrees &
     vert. tilt of the wire $-90 < tilt\_y < 90$ (uses same defintion as DISP block) \\*
-    \hline		
+    \hline
 \end{longtable}
 \end{center}
 
@@ -921,7 +921,7 @@ The linear ``phase trombone'' allows for the introduction of an arbitrary transf
     \textbf{Format}     & First line: \texttt{name} \\
                         & Second line:  $x$, $p_x$, $y$ \\
                         & Third line:  $p_y$, $\sigma$, $p_{\sigma}$ \\
-                        & Fourth util $15^{th}$: \texttt{M($ 6 \times 6$)} matrix 
+                        & Fourth util $15^{th}$: \texttt{M($ 6 \times 6$)} matrix
 \end{tabular}
 
 \bigskip
@@ -1059,28 +1059,28 @@ Currently the ideal electron lens is implemented, i.e.~with no errors in the e-b
 
     & \texttt{theta\_r2} & mrad & Kick received at $r=r_2$ where $r_2$ is the outer radius of the electron lens.\\*
     \hline
-    
+
     & \texttt{r2} & mm & Outer radius of e-lens.\\*
     \hline
-    
+
     & \texttt{r1} & mm & Inner radius of the e-lens. Can be 0 but not negative.\\*
     \hline
-    
+
     & \texttt{offset\_x} & mm & Horizontal offset of e-lens.\\*
     \hline
-    
+
     & \texttt{offset\_y} & mm & Vertical offset of e-lens.\\*
     \hline
-    
+
     & \texttt{flag\_entrance} & -- & Enable bends at entrance of e-lens (not yet implemented).\\*
     \hline
-    
+
     & \texttt{flag\_exit} & -- & Wnable bends at exit of e-lens (not yet implemented).\\*
     \hline
-    
+
     \rowcolor{blue!15}
     \multicolumn{4}{|l|}{Type specific parameters} \\*
-    
+
     \texttt{GAUSSIAN} & \texttt{$\sigma$} & mm & Sigma of the e-beam.\\*
 \end{longtable}
 \end{center}

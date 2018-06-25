@@ -38,7 +38,7 @@ subroutine allocate_arrays
   nblo  = nblo_initial
   nblz  = nblz_initial
   npart = npart_initial
-  
+
   call mod_common_expand_arrays(nele,nblo,nblz,npart)
   call mod_commont_expand_arrays(nblz,npart)
   call mod_commonmn_expand_arrays(nblz,npart)
@@ -59,7 +59,7 @@ subroutine allocate_arrays
 #ifdef COLLIMAT
   call collimation_allocate_arrays
 #endif
-  
+
 end subroutine allocate_arrays
 
 ! Change the allocation of the arrays scaling with the main memry parameter nele, npart, etc.

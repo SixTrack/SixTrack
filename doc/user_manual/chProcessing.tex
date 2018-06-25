@@ -110,7 +110,7 @@ This input data block allows the correction of a such a random distributed close
 For that purpose, correctors have to be denoted by \texttt{HCOR=} and \texttt{VCOR=}, and monitors by \texttt{HMON=} and \texttt{VMON=} for the horizontal and vertical plane respectively.
 After correction, the orbit is scaled to the desired r.m.s. values, unless they are zero.
 
-The horizontal orbit displacement, measured at the horizontal monitors, will be written to \texttt{fort.28} -- together with the monitor number, in \texttt{fort.29}. The same is done for the vertical closed orbit displacement. 
+The horizontal orbit displacement, measured at the horizontal monitors, will be written to \texttt{fort.28} -- together with the monitor number, in \texttt{fort.29}. The same is done for the vertical closed orbit displacement.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
@@ -142,7 +142,7 @@ The horizontal orbit displacement, measured at the horizontal monitors, will be 
 \end{itemize}
 
 % ================================================================================================================================ %
-\section{Decoupling of Motion in the Transverse Planes} \label{LinDec} 
+\section{Decoupling of Motion in the Transverse Planes} \label{LinDec}
 
 Skew-quadrupole components in the lattice create a linear coupling between the transverse planes of motion.
 A decoupling can be achieved with this block using four independent families of skew-quadrupoles, which cancel the off-diagonal parts of the transfer map.
@@ -378,14 +378,14 @@ For details see reference \cite{Massimo}.
     \rowcolor{blue!30}
     \textbf{Variable} & \texttt{par1} & \texttt{par2} & \texttt{par3} & \texttt{par4} & \texttt{par5} \\
     \hline
-    
+
     \rowcolor{blue!15}
     \textbf{Type} & integer & integer & real & real & real \\
     \hline
-    
+
     \texttt{ctype = 0} & tune-shift order $\leq 2$ & off-momentum order $\leq 3$ & 0.0 & 0.0 & 0.0 \\
     \hline
-    
+
     \texttt{ctype = 1} & $N_{min}\geq 2$ & $N_{max}\leq 3$ & $\alpha_H$ & $\alpha_V$ & $\delta_0 $ \\
     \hline
     \end{tabular}

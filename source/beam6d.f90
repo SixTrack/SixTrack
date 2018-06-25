@@ -6,7 +6,7 @@
 !
 ! ================================================================================================ !
 subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -73,7 +73,7 @@ end subroutine beamint
 !    P,Q,E are all normalized by P0
 ! ================================================================================================ !
 subroutine boost(np,sphi,cphi,tphi,salpha,calpha,track)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -122,7 +122,7 @@ end subroutine boost
 !****************************************************************
 ! ================================================================================================ !
 subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -268,7 +268,7 @@ end subroutine sbc
 ! BOOSTI **************inverse boost *****************
 ! ================================================================================================ !
 subroutine boosti(np,sphi,cphi,tphi,salpha,calpha,track)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -329,7 +329,7 @@ end subroutine boosti
 ! SIGXX is \Sigma
 ! ================================================================================================ !
 subroutine bbf(sepx,sepy,sigxx,sigyy,bbfx,bbfy,bbgx,bbgy,ibtyp)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -429,7 +429,7 @@ end subroutine bbf
 !*********************************************************************
 ! ================================================================================================ !
 subroutine stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -488,7 +488,7 @@ end subroutine stsld
 !  IN THE RANGE  2**(-31) < P0 < 1-2**31.  (MINIMAX APPROXIMATION)
 ! ================================================================================================ !
 function gauinv(p0)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants

@@ -141,7 +141,7 @@ The format is (\texttt{a16,2x,1p,2d14.6,d17.9}), i.e.\ name, horizontal misalign
 The misalignment is in units of [mm] the tilt in units of [mrad].
 The files \texttt{fort.30} (in) and \texttt{fort.31} (out) have the random single non-linear element kick, misalignments and tilt in the format: (\texttt{a8,1p,d19.11,2d14.6,d17.9}).
 Misalignment and tilt in file \texttt{fort.8} or \texttt{fort.30} is automatically activated, while the random strength (strength definition same as in block~\ref{SinEle}) needs an entry in the fourth column in the geometry file \texttt{fort.2}.
-Files \texttt{fort.28} and \texttt{fort.29} hold integer counter and closed orbit displacement at a horizontal or vertical monitor respectively. 
+Files \texttt{fort.28} and \texttt{fort.29} hold integer counter and closed orbit displacement at a horizontal or vertical monitor respectively.
 
 \newcounter{dst} \setcounter{dst}{0}
 
@@ -149,18 +149,18 @@ Files \texttt{fort.28} and \texttt{fort.29} hold integer counter and closed orbi
 \begin{longtable}{|c|>{\raggedright\arraybackslash}p{12cm}|}
     \caption{Post Processing Data} \label{T-PPD}\\
     \hline
-    
+
     \rowcolor{blue!30}
     \textbf{Column} & \textbf{Description} \\
     \hline
     \endfirsthead
-    
+
     \hline
     \rowcolor{blue!30}
     \textbf{Column} & \textbf{Description} \\
     \hline
     \endhead
-    
+
     \hline \stepcounter{dst}
     \thedst & Maximum turn number \\
     \hline \stepcounter{dst}
@@ -281,18 +281,18 @@ This can be used for instance for a post-processing of linear coupling.
 \begin{longtable}{|c|>{\raggedright\arraybackslash}p{12cm}|}
     \caption{4D Linear Parameters} \label{t-4lp}\\
     \hline
-    
+
     \rowcolor{blue!30}
     \textbf{Column} & \textbf{Description} \\
     \hline
     \endfirsthead
-    
+
     \hline
     \rowcolor{blue!30}
     \textbf{Column} & \textbf{Description} \\
     \hline
     \endhead
-    
+
     \hline \stepcounter{dlo}
     \thedlo & Name of the element \\
     \hline \stepcounter{dlo}
@@ -366,18 +366,18 @@ The definition of the multipole coefficients should be as described in section~\
 \begin{longtable}{|c|>{\raggedright\arraybackslash}p{12cm}|}
     \caption{Format of file with external errors, \texttt{fort.16}, and internal errors written to \texttt{fort.9}} \label{T-XME}\\
     \hline
-    
+
     \rowcolor{blue!30}
     \textbf{Row} & \textbf{Description} \\
     \hline
     \endfirsthead
-    
+
     \hline
     \rowcolor{blue!30}
     \textbf{Row} & \textbf{Description} \\
     \hline
     \endhead
-    
+
     \hline \stepcounter{dsu}
     \thedsu & Name of multipole set \\
     \hline \stepcounter{dsu}
@@ -415,7 +415,7 @@ The definition of the multipole coefficients should be as described in section~\
 With the parameter \texttt{mout} set to 2 or 3 in the ``Random Fluctuation'' block (\ref{FluNum}), the internally used multipoles are written to file \texttt{fort.9} in the same format as above.
 This file can therefore be used as an input \texttt{fort.16} file for a subsequent run.
 
-The file \texttt{fort.34} is written when the ``Linear Optic Block'' (see section~\ref{LinOpt}) is invoked with the \texttt{ELEMENT 0} option. 
+The file \texttt{fort.34} is written when the ``Linear Optic Block'' (see section~\ref{LinOpt}) is invoked with the \texttt{ELEMENT 0} option.
 
 \setcounter{dsu}{0}
 
@@ -424,22 +424,22 @@ The file \texttt{fort.34} is written when the ``Linear Optic Block'' (see sectio
 \begin{longtable}{|c|>{\raggedright\arraybackslash}p{12cm}|}
     \caption{Format of file \texttt{fort.34} for detuning and distortion calculation with external program ``SODD''~\cite{SODD}} \label{T-SODD}\\
     \hline
-    
+
     \rowcolor{blue!30}
     \textbf{Column} & \textbf{Description} \\
     \hline
     \endfirsthead
-    
+
     \hline
     \rowcolor{blue!30}
     \textbf{Column} & \textbf{Description} \\
     \hline
     \endhead
-    
+
     \hline \stepcounter{dsu}
     \thedsu & Longitudinal position [m] \\
     \hline \stepcounter{dsu}
-    \thedsu & Type \texttt{n} of Multipole ($n >$ 0 $=>$ erect, $n <$ 0 $=>$ skew) \\ 
+    \thedsu & Type \texttt{n} of Multipole ($n >$ 0 $=>$ erect, $n <$ 0 $=>$ skew) \\
     \hline \stepcounter{dsu}
     \thedsu & Multipole strength [$\mathrm{mrad} \cdot \mathrm{mm}^{(1-|n|)}$] \\
     \hline \stepcounter{dsu}
