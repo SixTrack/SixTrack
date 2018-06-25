@@ -1224,11 +1224,11 @@ subroutine daten
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
   write(lout,"(a)") ""
-  write(lout,"(a)") "OOOOOOOOOOOOOOOOOOOOO"
-  write(lout,"(a)") "OO                 OO"
-  write(lout,"(a)") "OO  PREPROCESSING  OO"
-  write(lout,"(a)") "OO                 OO"
-  write(lout,"(a)") "OOOOOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") "    OO                 OO"
+  write(lout,"(a)") "    OO  PREPROCESSING  OO"
+  write(lout,"(a)") "    OO                 OO"
+  write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOO"
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
 
