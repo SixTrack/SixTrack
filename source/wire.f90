@@ -92,7 +92,7 @@ subroutine wire_parseInputLine(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "LINE> ERROR Failed to parse input line."
+    write(lout,"(a)") "WIRE> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if

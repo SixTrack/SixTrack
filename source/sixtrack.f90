@@ -55,18 +55,18 @@ subroutine daten
   use mod_alloc
   use mod_dist
 
-  use scatter,  only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
-  use dynk,     only : ldynk,ldynkdebug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
-  use fma,      only : fma_parseInputLine
-  use dump,     only : dump_parseInputLine,dump_parseInputDone
-  use zipf,     only : zipf_parseInputLine,zipf_parseInputDone
-  use bdex,     only : bdex_parseInputLine,bdex_parseInputDone
-  use mod_fluc, only : fluc_parseInputLine,fluc_readInputs
-  use wire,     only : wire_parseInputLine,wire_parseInputDone
+  use scatter,   only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
+  use dynk,      only : ldynk,ldynkdebug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
+  use fma,       only : fma_parseInputLine
+  use dump,      only : dump_parseInputLine,dump_parseInputDone
+  use zipf,      only : zipf_parseInputLine,zipf_parseInputDone
+  use bdex,      only : bdex_parseInputLine,bdex_parseInputDone
+  use mod_fluc,  only : fluc_parseInputLine,fluc_readInputs
+  use wire,      only : wire_parseInputLine,wire_parseInputDone
+  use elens,     only : elens_parseInputLine,elens_parseInputDone,elens_postInput
   use aperture
   use mod_ranecu
   use mod_hions
-  use elens
 #ifdef FLUKA
   use mod_fluka, only : fluka_parsingDone,fluka_parseInputLine
 #endif
@@ -437,10 +437,10 @@ subroutine daten
 
   ! Old style block parsing
   newParsing = .false.
-  select case(idat)
-  case("ELEN")
-    goto 2400
-  end select
+  ! select case(idat)
+  ! case("ELEN")
+  !   goto 2400
+  ! end select
 
   ! If we've reached this point, the old style block parsing has not been executed.
   ! Switch to new type of parsing.
@@ -820,6 +820,17 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("ELEN") ! Electron Lens
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call elens_parseInputDone(inErr)
+      if(inErr) goto 9999
+    else
+      call elens_parseInputLine(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       continue
@@ -995,337 +1006,6 @@ subroutine daten
 ! ================================================================================================ !
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
-
-!-----------------------------------------------------------------------
-!  Electron Lense, kz=29,ktrack=63
-!  M. Fitterer,  FNAL
-!  last modified: 20-06-2016
-!-----------------------------------------------------------------------
- 2400 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3 = lineno3+1 ! Line number used for some crash output
-
-      if(ch(1:1).eq.'/') goto 2400 ! skip comment lines
-
-      if (ch(:4).eq.next) then
-         if(melens.ne.0) then
-!          loop only if at least an elens has been read
-!       4) loop over single elements to check that they have been defined in the fort.3 block
-            do j=1,nele
-               if(kz(j).eq.29) then
-                  if(elens_type(ielens(j)).eq.0) then
-                     write(lout,*)                                      &
-     &'ERROR: elens ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '// &
-     &'not defined in fort.3. You must define every elens in the '//    &
-     &'ELEN block in fort.3!'
-                     call prror(-1)
-                  endif
-               endif
-            enddo
-         endif
-         goto 110 ! go to next BLOCK in fort.3 - we're done here!
-      endif
-
-      ! We don't support FIO, since it's not supported by any compilers...
-#ifdef FIO
-        write(lout,*)                                                   &
-     &       'ERROR in ELEN block: fortran IO format currently not ',   &
-     &       'supported!'
-        call prror(-1)
-#endif
-
-!     1) read in elens parameters
-      call getfields_split( ch, getfields_fields, getfields_lfields,    &
-     &        getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) then
-        write(lout,*)                                                   &
-     &       'ERROR in ELEN block: getfields_lerr=', getfields_lerr
-        call prror(-1)
-      endif
-
-!     Check (min) number of arguments
-!     If a new type of elens is implemented, may need to modify this!
-      if(getfields_nfields.lt.7) then
-        write(lout,*)                                                   &
-     &       'ERROR in ELEN block: wrong number of input ',             &
-     &       'parameters: ninput = ', getfields_nfields, ' != 7 (min)'
-        call prror(-1)
-      endif
-
-!     Find the element, and check that we're not double-defining
-      if (getfields_lfields(1) .gt. 16) then
-         write(lout,*)                                                  &
-     &        "ERROR in ELEN block: Element name max 16 characters;"//  &
-     &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))&
-     &        //"' is too long."
-         call prror(-1)
-      endif
-
-      do j=1,nele               !loop over single elements and set parameters of elens
-         if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
-            ! check the element type (kz(j)_elens=29)
-            if(kz(j).ne.29) then
-               write(lout,*)                                            &
-     &              'ERROR: element type mismatch for ELEN!'//          &
-     &              'Element type is kz(',j,') = ',kz(j),'!= 29'
-               call prror(-1)
-            endif
-            if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_elens=29)
-               write(lout,*)                                            &
-     &'ERROR: length el(j) (elens is treated as thin element), '//      &
-     &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//&
-     &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,      &
-     &')=',ek(j),'. Please check your input in the single element '//   &
-     &'definition of your ELEN. All values except for the type need '// &
-     &'to be zero.'
-               call prror(-1)
-            endif
-!           acquire new elens
-            melens=melens+1
-            if (melens.gt.nelens) then
-               write(lout,*) "ERROR in ELEN block:"//                   &
-     &              "Too many elenses: ",melens," - max:",nelens
-               call prror(-1)
-            end if
-            ielens(j)=melens
-            if (elens_type(ielens(j)).ne.0) then
-               write(lout,*) "ERROR in ELEN block:"//                   &
-     &              "The element '"//bez(j)//"' was defined twice!"
-               call prror(-1)
-            endif
-
-            ! Parse the element
-            select case ( getfields_fields(2)(1:getfields_lfields(2)) )
-            case ("UNIFORM")
-               ! Read in this case
-               elens_type(ielens(j)) = 1
-            case ("GAUSSIAN")
-               ! Read in this case
-               elens_type(ielens(j)) = 2
-               if(getfields_nfields.lt.8) then
-                  write(lout,*)                                         &
-     &       'ERROR in ELEN block: wrong number of input ',             &
-     &       'parameters: ninput = ', getfields_nfields, ' != 8 (GAUSSIAN)'
-                  call prror(-1)
-               endif
-            case ("CHEBYSHEV")
-               ! Read in this case
-               elens_type(ielens(j)) = 3
-               if(getfields_nfields.lt.8) then
-                  write(lout,*)                                         &
-     &       'ERROR in ELEN block: wrong number of input ',             &
-     &       'parameters: ninput = ', getfields_nfields, ' != 8 (CHEBYSHEV)'
-                  call prror(-1)
-               endif
-            case default
-               write(lout,*) "ERROR in ELEN: "//                        &
-     &              "Elens type '"//                                    &
-     &              getfields_fields(2)(1:getfields_lfields(2))//       &
-     &              "' not recognized. Remember to use all UPPER CASE!"
-               call prror(-1)
-            end select
-
-#ifndef CRLIBM
-            read (getfields_fields(3)(1:getfields_lfields(3)),*)     &
-     &              elens_theta_r2(ielens(j))
-            read (getfields_fields(4)(1:getfields_lfields(4)),*)     &
-     &              elens_r2(ielens(j))
-            read (getfields_fields(5)(1:getfields_lfields(5)),*)     &
-     &              elens_r1(ielens(j))
-            read (getfields_fields(6)(1:getfields_lfields(6)),*)     &
-     &              elens_offset_x(ielens(j))
-            read (getfields_fields(7)(1:getfields_lfields(7)),*)     &
-     &              elens_offset_y(ielens(j))
-#endif
-#ifdef CRLIBM
-            elens_theta_r2(ielens(j))= round_near (                  &
-     &              errno,getfields_lfields(3)+1, getfields_fields(3) )
-            if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,3,elens_theta_r2(ielens(j)) )
-            elens_r2(ielens(j))       = round_near (                 &
-     &              errno,getfields_lfields(4)+1, getfields_fields(4) )
-            if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,4,elens_r2(ielens(j)) )
-            elens_r1(ielens(j)) = round_near (                       &
-     &              errno,getfields_lfields(5)+1, getfields_fields(5) )
-            if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,5,elens_r1(ielens(j)) )
-            elens_offset_x(ielens(j)) = round_near (                 &
-     &              errno,getfields_lfields(6)+1, getfields_fields(6) )
-            if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,6,elens_offset_x(ielens(j)) )
-            elens_offset_y(ielens(j)) = round_near (                 &
-     &              errno,getfields_lfields(7)+1, getfields_fields(7) )
-            if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,7,elens_offset_y(ielens(j)) )
-#endif
-
-            if ( elens_type(ielens(j)).eq.2 ) then
-!               GAUSSIAN profile of electrons: need also sigma of e-beam
-#ifndef CRLIBM
-                read (getfields_fields(8)(1:getfields_lfields(8)),*) &
-     &              elens_sig(ielens(j))
-#endif
-#ifdef CRLIBM
-                elens_sig(ielens(j))= round_near (                   &
-     &              errno,getfields_lfields(8)+1, getfields_fields(8) )
-                if (errno.ne.0) call rounderr (                      &
-     &              errno,getfields_fields,8,elens_sig(ielens(j)) )
-#endif
-            elseif ( elens_type(ielens(j)).eq.3 ) then
-!               profile of electrons given by Chebyshev polynomials: need also
-!                  name of file where coefficients are stored and angle
-                read (getfields_fields(8)(1:getfields_lfields(8)),*) tmpch
-#ifndef CRLIBM
-                read (getfields_fields(9)(1:getfields_lfields(9)),*) &
-     &              elens_cheby_angle(ielens(j))
-#endif
-#ifdef CRLIBM
-                elens_cheby_angle(ielens(j))= round_near (           &
-     &              errno,getfields_lfields(9)+1, getfields_fields(9) )
-                if (errno.ne.0) call rounderr (                      &
-     &              errno,getfields_fields,9,elens_cheby_angle(ielens(j)) )
-#endif
-!               check if table of coefficients has already been requested:
-                do tmpi1=1,melens_cheby_tables
-                   if ( tmpch.eq.elens_cheby_filename(tmpi1) ) then
-                      elens_iCheby(ielens(j))=tmpi1
-                      goto 1972
-                   end if
-                end do
-!               un-successful search
-                melens_cheby_tables=melens_cheby_tables+1
-                if (melens_cheby_tables.gt.nelens_cheby_tables) then
-                   write(lout,*) "ERROR in ELEN block: Too many tables"//&
-     &" for Chebyshev coefficients: ",melens_cheby_tables," - max:",nelens_cheby_tables
-                   call prror(-1)
-                end if
-                elens_iCheby(ielens(j))=melens_cheby_tables
-                elens_cheby_filename(tmpi1)=tmpch
- 1972           continue
-            end if
-!           additional geometrical infos:
-!           depending on profile, the position of these parameters change
-            tmpi1=0
-            tmpi2=0
-            tmpi3=0
-            if ( elens_type(ielens(j)).eq.1.and.getfields_nfields.ge.10 ) then
-               tmpi1=8
-               tmpi2=9
-               tmpi3=10
-               elens_lThetaR2(ielens(j)) = .true.
-            elseif ( elens_type(ielens(j)).eq.2.and.getfields_nfields.ge.11 ) then
-               tmpi1=9
-               tmpi2=10
-               tmpi3=11
-               elens_lThetaR2(ielens(j)) = .true.
-            elseif ( elens_type(ielens(j)).eq.3.and.getfields_nfields.ge.12 ) then
-               tmpi1=10
-               tmpi2=11
-               tmpi3=12
-               elens_lThetaR2(ielens(j)) = .true.
-            end if
-            if ( elens_lThetaR2(ielens(j)) ) then
-#ifndef CRLIBM
-               read (getfields_fields(tmpi1)(1:getfields_lfields(tmpi1)),*)  &
-     &              elens_len(ielens(j))
-               read (getfields_fields(tmpi2)(1:getfields_lfields(tmpi2)),*)  &
-     &              elens_I(ielens(j))
-               read (getfields_fields(tmpi3)(1:getfields_lfields(tmpi3)),*)&
-     &              elens_Ek(ielens(j))
-#endif
-#ifdef CRLIBM
-               elens_len(ielens(j))= round_near (                    &
-     &              errno,getfields_lfields(tmpi1)+1, getfields_fields(tmpi1) )
-               if (errno.ne.0) call rounderr (                       &
-     &              errno,getfields_fields,tmpi1,elens_len(ielens(j)) )
-               elens_I(ielens(j))       = round_near (               &
-     &              errno,getfields_lfields(tmpi2)+1, getfields_fields(tmpi2) )
-               if (errno.ne.0) call rounderr (                       &
-     &              errno,getfields_fields,tmpi2,elens_I(ielens(j)) )
-               elens_Ek(ielens(j)) = round_near (                    &
-     &              errno,getfields_lfields(tmpi3)+1, getfields_fields(tmpi3) )
-               if (errno.ne.0) call rounderr (                       &
-     &              errno,getfields_fields,tmpi3,elens_Ek(ielens(j)) )
-#endif
-            end if
-
-            ! Make checks for this case
-            if( elens_r2(ielens(j)).lt.elens_r1(ielens(j)) ) then
-               write(lout,*) 'WARNING: ELEN R2<R1 -> inverting'
-               tmpflt=elens_r2(ielens(j))
-               elens_r2(ielens(j))=elens_r1(ielens(j))
-               elens_r1(ielens(j))=tmpflt
-            elseif ( elens_r2(ielens(j)).eq.elens_r1(ielens(j)) ) then
-               write(lout,*) 'ERROR: ELEN R2=R1 -> ELEN does not exist'
-               call prror(-1)
-            end if
-            if( elens_r2(ielens(j)).lt.zero ) then
-               write(lout,*) 'WARNING: ELEN R2<0!!'
-               call prror(-1)
-            end if
-            if( elens_r1(ielens(j)).lt.zero ) then
-               write(lout,*) 'WARNING: ELEN R1<0!!'
-               call prror(-1)
-            end if
-            if ( elens_lThetaR2(j) ) then
-               if( elens_len(ielens(j)).lt.zero ) then
-                  write(lout,*) 'WARNING: ELEN L<0!!'
-                  call prror(-1)
-               end if
-               if( elens_Ek(ielens(j)).lt.zero ) then
-                  write(lout,*) 'WARNING: ELEN Ek<0!! (e-beam)'
-                  call prror(-1)
-               end if
-            end if
-            ! proper normalisation
-            if (elens_type(ielens(j)).eq.1) then
-!              uniform distribution
-               elens_geo_norm(ielens(j))=(elens_r2(ielens(j))+elens_r1(ielens(j)))* &
-     &                                   (elens_r2(ielens(j))-elens_r1(ielens(j)))
-            elseif (elens_type(ielens(j)).eq.2) then
-!              Gaussian distribution
-               elens_geo_norm(ielens(j))=exp_mb(-0.5*(elens_r1(ielens(j))/elens_sig(ielens(j)))**2) &
-     &                                  -exp_mb(-0.5*(elens_r2(ielens(j))/elens_sig(ielens(j)))**2)
-            end if
-
-            ! print a summary of elens parameters
-            write(lout,                                                 &
-     &fmt='((/,/,A),(/,A,A),(/,A,A,A,I4),5(/,A,1PE10.3,A))')            &
-     &'ELENS found in list of single elements with: ',                  &
-     &'name     = ',bez(j),                                             &
-     &'type     = ',getfields_fields(2)(1:getfields_lfields(2)),        &
-     &        ' = ',elens_type(ielens(j)),                              &
-     &'theta_r2 = ',elens_theta_r2(ielens(j)),' mrad',                  &
-     &'r1       = ',elens_r1(ielens(j)),' mm',                          &
-     &'r2       = ',elens_r2(ielens(j)),' mm',                          &
-     &'offset_x = ',elens_offset_x(ielens(j)),' mm',                    &
-     &'offset_y = ',elens_offset_y(ielens(j)),' mm'
-
-            if (elens_type(ielens(j)).eq.2) write(lout,fmt='(A,1PE10.3,A)') &
-     &'sig      = ',elens_sig(ielens(j)),' mm'
-            if (elens_lThetaR2(ielens(j))) then
-               write(lout,fmt='((A),4(/,A,1PE10.3,A))')                 &
-     &'ELENS theta_r2 will be recomputed after input parsing based on:',&
-     &'  L  =',elens_len(ielens(j)),' m',                               &
-     &'  I  =',elens_I(ielens(j)),' A',                                 &
-     &'  Ek =',elens_Ek(ielens(j)),' keV'
-            end if
-            goto 2401           !Search success :)
-
-         endif
-      enddo
-
-!     Search for element failed!
-      write(lout,*) "ERROR in ELEN: "//                                 &
-     &     "Un-identified SINGLE ELEMENT '",                            &
-     &     getfields_fields(1)(1:getfields_lfields(1)), "'"
-      call prror(-1)
-
-!     element search was a success :)
- 2401 continue
-
-      goto 2400 ! at NEXT statement -> check that all single elements with kz(j) = 29 (elens) have been defined in ELEN block
 
 ! ================================================================================================ !
 !  ENDE was reached; we're done parsing fort.3, now do some postprocessing.
@@ -1630,25 +1310,7 @@ subroutine daten
  1540 continue
       !Check that the number of particles is OK
       if(((2*mmac)*imc)*napx.gt.npart) call prror(54)                    !hr05
-!     compute elens theta at R2, if requested by user
-      do j=1,melens
-         if ( elens_lThetaR2(j) ) then
-            elens_theta_r2(j)=eLensTheta( elens_len(ielens(j)), elens_I(ielens(j)), &
-     &   elens_Ek(ielens(j)), e0, elens_r2(ielens(j)) )
-            write(lout,fmt='((A),4(/,A,1PE10.3,A))')                    &
-     &   'ELENS new theta at r2 for ',bez(j),':',elens_theta_r2(j)
-         end if
-      end do
-!     parse files with coefficients for chekyshev polynomials:
-      do tmpi1=1,melens_cheby_tables
-         inquire( file=elens_cheby_filename(tmpi1), exist=tmpl )
-         if ( .not. tmpl ) then
-            write(lout,*) "ERROR: ELENS problems with file with "//&
-     &"coefficients for Chebyshev polynominals:",elens_cheby_filename(tmpi1)
-            call prror(-1)
-         endif
-         call parseChebyFile(tmpi1)
-      end do
+      call elens_postInput
 
       call dealloc(sixin_bez0,mNameLen,"sixin_bez0")
 
@@ -2208,179 +1870,6 @@ subroutine wzsub(x,y,u,v)
   return
 !
 end subroutine wzsub
-
-! ================================================================================================ !
-!     compute eLens theta at r2
-!     input variables:
-!     - length of eLens [m];
-!     - current intensity of e-beam [A]
-!     - kinetic energy of electrons [keV]
-!     - total beam energy [MeV]
-!     - outer radius [mm]
-! ================================================================================================ !
-real(kind=fPrec) function eLensTheta( len, Int, Ekin, Etot, r2 )
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-  use physical_constants
-  use crcoall
-  use mod_common
-  implicit none
-  real(kind=fPrec) gamma, beta_e, beta_b, brho, len, Int, Ekin, Etot, r2
-  gamma=Ekin*c1m3/pmae+1 ! from kinetic energy
-  beta_e=sqrt((gamma+one)*(gamma-one))/(gamma)
-  gamma=Etot/pma ! from total energy
-  beta_b=sqrt((gamma+one)*(gamma-one))/(gamma)
-  brho=Etot/(clight*c1m6)
-!     r2: from mm to m
-!     theta: from rad to mrad
-  eLensTheta=len*abs(Int)/(2*pi*eps0*brho*clight**2*r2*c1m3)*c1e3
-  if ( Int.lt.zero ) then
-      eLensTheta=eLensTheta*(one/(beta_e*beta_b)+one)
-  else
-      eLensTheta=eLensTheta*(one/(beta_e*beta_b)-one)
-  end if
-end function eLensTheta
-
-! ================================================================================================ !
-!     read file with coefficients for chebyshev polynomials
-!     ifile is index of file in table of chebyshev files
-!     file is structured as:
-!        keyword : value
-!     keywords:
-!     - I: reference current intensity of e-beam [A]
-!     - Ek: reference kinetic energy of electrons [keV]
-!     - rad: reference radius [mm]
-!     comment line is headed by '#'
-!     coefficients are give with the following syntax:
-!     i j : value
-!     where i->x and j->y
-! ================================================================================================ !
-subroutine parseChebyFile(ifile)
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-      use physical_constants
-      use crcoall
-      use mod_common
-      use elens
-      use string_tools
-
-      implicit none
-
-      character(len=160) tmpstr
-      character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
-      integer   getfields_nfields                                                 ! Number of identified fields
-      integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
-      logical   getfields_lerr                                                    ! An error flag
-      integer ierr, ii, jj, ifile, errno
-      real(kind=fPrec) tmpflt, beta, gamma, round_near
-
-      ierr=0
-      write(lout,*)' Parsing file with coefficients for Chebyshev polynomials ' &
-     &   //elens_cheby_filename(ifile)
-      open(elens_cheby_unit,file=elens_cheby_filename(ifile),status='old')
-      do while (.true.)
-         read(elens_cheby_unit,'(A)',end=1982,err=1983) tmpstr
-         if (tmpstr(1:1).ne.'#') then
-            call getfields_split( tmpstr, getfields_fields, getfields_lfields, &
-     &        getfields_nfields, getfields_lerr )
-            if ( getfields_lerr ) then
-               ierr=1
-               goto 1983
-            end if
-            if (tmpstr(1:1).eq.'I') then
-!              read reference current of e-beam in e-lens
-               if (getfields_nfields.lt.3) then
-                  ierr=2
-                  goto 1983
-               end if
-#ifndef CRLIBM
-               read (getfields_fields(3)(1:getfields_lfields(3)),*) tmpflt
-#endif
-#ifdef CRLIBM
-               tmpflt=round_near(errno,getfields_lfields(3)+1,getfields_fields(3))
-               if (errno.ne.0) call rounderr (errno,getfields_fields,3,tmpflt)
-#endif
-               elens_cheby_refCurr(ifile)=tmpflt
-
-            elseif (tmpstr(1:2).eq.'Ek') then
-!              read reference kinetic energy of e-beam in e-lens
-               if (getfields_nfields.lt.3) then
-                  ierr=3
-                  goto 1983
-               end if
-#ifndef CRLIBM
-               read (getfields_fields(3)(1:getfields_lfields(3)),*) tmpflt
-#endif
-#ifdef CRLIBM
-               tmpflt=round_near(errno,getfields_lfields(3)+1,getfields_fields(3))
-               if (errno.ne.0) call rounderr (errno,getfields_fields,3,tmpflt)
-#endif
-               gamma=tmpflt*c1m3/pmae+1 ! from kinetic energy
-               elens_cheby_refBeta(ifile)=sqrt((gamma+one)*(gamma-one))/(gamma)
-
-            elseif (tmpstr(1:3).eq.'rad') then
-!              read reference radius e-beam in e-lens
-               if (getfields_nfields.lt.3) then
-                  ierr=4
-                  goto 1983
-               end if
-#ifndef CRLIBM
-               read (getfields_fields(3)(1:getfields_lfields(3)),*) tmpflt
-#endif
-#ifdef CRLIBM
-               tmpflt=round_near(errno,getfields_lfields(3)+1,getfields_fields(3))
-               if (errno.ne.0) call rounderr (errno,getfields_fields,3,tmpflt)
-#endif
-               elens_cheby_refRadius(ifile)=tmpflt
-
-            else
-!              read chebyshev coefficients
-               if (getfields_nfields.ne.4) then
-                  ierr=5
-                  goto 1983
-               end if
-               read (getfields_fields(1)(1:getfields_lfields(1)),*) ii
-               if (ii.gt.elens_cheby_order) then
-                  ierr=6
-                  goto 1983
-               end if
-               read (getfields_fields(2)(1:getfields_lfields(2)),*) jj
-               if (jj.gt.elens_cheby_order) then
-                  ierr=7
-                  goto 1983
-               end if
-#ifndef CRLIBM
-               read (getfields_fields(4)(1:getfields_lfields(4)),*) tmpflt
-#endif
-#ifdef CRLIBM
-               tmpflt=round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
-               if (errno.ne.0) call rounderr (errno,getfields_fields,4,tmpflt)
-#endif
-               elens_cheby_coeffs(ii,jj,ifile)=tmpflt
-            end if ! close if for keyword identification
-         end if ! close if for non-comment chars
-      end do
-1983  write(lout,*) 'ERROR ',ierr,' while parsing file '//elens_cheby_filename(ifile)
-      call prror(-1)
-1982  close(elens_cheby_unit)
-
-      ! echo parsed data
-      write(lout,fmt='(/,A,1X,I4)') ' Coefficients for Chebyshev polynomials as from file ' &
-     &//elens_cheby_filename(ifile)//' - #',ifile
-      write(lout,fmt='(A,1X,1PE10.3)') ' - reference current [A]:',elens_cheby_refCurr(ifile)
-      write(lout,fmt='(A,1X,1PE10.3)') ' - reference beta     []:',elens_cheby_refBeta(ifile)
-      write(lout,fmt='(A,1X,1PE10.3)') ' - reference radius [mm]:',elens_cheby_refRadius(ifile)
-      do ii=0,elens_cheby_order
-         do jj=0,elens_cheby_order
-            if (elens_cheby_coeffs(ii,jj,ifile).ne.zero) then
-               write(lout,fmt='(2(1X,I4)," : ",1PE10.3)') ii,jj,elens_cheby_coeffs(ii,jj,ifile)
-            end if
-         end do
-      end do
-
-end subroutine parseChebyFile
 
 subroutine intepr(i,j,ch,ch1)
 !-----------------------------------------------------------------------
