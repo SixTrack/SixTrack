@@ -150,7 +150,7 @@ end subroutine sumpos
 !     always in main code
 !-----------------------------------------------------------------------
 subroutine cadcum
-  
+
   use floatPrecision
   use numerical_constants
   use crcoall
@@ -321,7 +321,7 @@ end subroutine blocksv
 !          A SPECIAL VERSION FOR VECTORIZATION - AUGUST   1994
 !-----------------------------------------------------------------------
 subroutine envarsv(dpsv,oidpsv,rvv,ekv)
-  
+
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
@@ -732,7 +732,7 @@ end subroutine envarsv
 !  CALCULATION OF THE 4-DIMENSIONAL CLOSED ORBIT INCLUDING DELTA
 !-----------------------------------------------------------------------
 subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use crcoall

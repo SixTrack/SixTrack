@@ -79,9 +79,9 @@ contains
 subroutine dump_expand_arrays(nele_new, nblz_new)
 
   use numerical_constants, only : zero
-  
+
   implicit none
-  
+
   integer, intent(in) :: nele_new
   integer, intent(in) :: nblz_new
 
@@ -92,7 +92,7 @@ subroutine dump_expand_arrays(nele_new, nblz_new)
   call alloc(dumpunit,            nele_new, 0,          "dumpunit",   -1)
   call alloc(dumpfmt,             nele_new, 0,          "dumpfmt",    -1)
   call alloc(dump_fname, mStrLen, nele_new, str_dZeros, "dump_fname", -1)
-  
+
   call alloc(dumptas,             nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
   call alloc(dumptasinv,          nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
   call alloc(dumpclo,             nblz_new, 6,    zero, "dumpclo",    -1,1)

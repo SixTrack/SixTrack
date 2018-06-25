@@ -336,7 +336,7 @@ module collimation
   real(kind=fPrec), allocatable, save :: mux(:) !(nblz)
   real(kind=fPrec), allocatable, save :: muy(:) !(nblz)
 !  common /mu/ mux,muy
- 
+
 !  common /collocal/ myix,myktrack,totals,firstcoll,found,onesided
 
 ! common /icoll/  icoll
@@ -6882,7 +6882,7 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
   character(len=:), allocatable :: lnSplit(:)
   integer nSplit
   logical spErr
-  
+
   save
 
   write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
@@ -6968,7 +6968,7 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
 
   real(kind=fPrec) normx, normy, normxp, normyp, normp, norms
   real(kind=fPrec) myemitz
-  
+
   character(len=mInputLn) inLine
   character(len=:), allocatable :: lnSplit(:)
   integer nSplit

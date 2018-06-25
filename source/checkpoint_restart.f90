@@ -81,7 +81,7 @@ subroutine cr_expand_arrays(npart_new)
   implicit none
 
   integer, intent(in) :: npart_new
-  
+
   integer :: npair_new
   npair_new = npart_new/2 + 1
 
@@ -154,7 +154,7 @@ subroutine crcheck
   !--------------------------------------------------------------------!
   ! Check the size of CR arrays
   if(npart /= crnpart_old) call cr_expand_arrays(npart)
-  
+
   restart = .false.
   read95  = .false.
   read96  = .false.

@@ -130,7 +130,7 @@ subroutine hions_parseInputLine(inLine, iLine, iErr)
 end subroutine hions_parseInputLine
 
 subroutine hions_postInput
-  
+
   use mod_common, only : pma
 
   if(.not. has_hion) then
