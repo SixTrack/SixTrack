@@ -55,18 +55,18 @@ subroutine daten
   use mod_alloc
   use mod_dist
 
-  use scatter,  only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
-  use dynk,     only : ldynk,ldynkdebug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
-  use fma,      only : fma_parseInputLine
-  use dump,     only : dump_parseInputLine,dump_parseInputDone
-  use zipf,     only : zipf_parseInputLine,zipf_parseInputDone
-  use bdex,     only : bdex_parseInputLine,bdex_parseInputDone
-  use mod_fluc, only : fluc_parseInputLine,fluc_readInputs
+  use scatter,   only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
+  use dynk,      only : ldynk,ldynkdebug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
+  use fma,       only : fma_parseInputLine
+  use dump,      only : dump_parseInputLine,dump_parseInputDone
+  use zipf,      only : zipf_parseInputLine,zipf_parseInputDone
+  use bdex,      only : bdex_parseInputLine,bdex_parseInputDone
+  use mod_fluc,  only : fluc_parseInputLine,fluc_readInputs
+  use wire,      only : wire_parseInputLine,wire_parseInputDone
+  use elens,     only : elens_parseInputLine,elens_parseInputDone,elens_postInput
   use aperture
   use mod_ranecu
   use mod_hions
-  use elens
-  use wire
 #ifdef FLUKA
   use mod_fluka, only : fluka_parsingDone,fluka_parseInputLine
 #endif
@@ -82,37 +82,18 @@ subroutine daten
 
   implicit none
 
-  integer i,i1,i2,i3,ia,icc,iclr,ico,idi,ii,il1,ilin0,imod,imtr0,iw,iw0,ix,  &
-    izu,j,j1,j2,jj,k,k0,k10,k11,ka,ke,ki,kk,kpz,kzz,l,l1,l2,l3,l4,   &
-    ll,m,mblozz,nac,nbidu,nfb,nft,i4,i5
+  character(len=mInputLn) inLine
+  character(len=mNameLen) ic0(10)
+  character(len=60)       iHead
+  character(len=4)        currBlock, cCheck
 
-  real(kind=fPrec) tilt
+  integer nUnit,lineNo2,lineNo3,nGeom
+  integer blockLine, blockCount, iElem
 
-  character(len=mNameLen) ende,deco,beze,go,cavi,disp,idat,idat2,next,line,ic0,imn
-  character(len=mNameLen) iele,ilm0,idum,kl,kr,trom
-  character(len=60) iHead
-  integer nchars
-  parameter (nchars=160)
-  character(len=nchars) ch
-  character(len=nchars+nchars) ch1
+  logical blockOpened, blockClosed, blockReopen, openBlock, closeBlock
+  logical inErr, parseFort2, prevPrint
 
-  ! Variables for input line fields
-  ! These  should eventually be replaced by the string_tools->str_split subroutine
-  character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
-  integer   getfields_nfields                                                 ! Number of identified fields
-  integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
-  logical   getfields_lerr                                                    ! An error flag
-
-#ifdef CRLIBM
-  ! MAXF be kept in sync with value in function fround
-  integer maxf,nofields
-  parameter (maxf=30)
-  parameter (nofields=41)
-  character(len=maxf) fields(nofields)
-  integer errno,nfields,nf
-  real(kind=fPrec) fround
-#endif
-  integer nUnit,lineNo2,lineNo3
+  integer i,icc,il1,ilin0,iMod,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
 
 #ifdef COLLIMAT
   logical has_coll
@@ -120,111 +101,10 @@ subroutine daten
   logical do_coll
 #endif
 
-  ! Fluka related, might be best to lock to real64
-  real(kind=fPrec) tmplen
-
-  ! some temp vars for parsing block lines
-  logical tmpl
-  character(len=nchars) tmpch
-  integer tmpi1,tmpi2,tmpi3
-  real(kind=fPrec) tmpflt
-
-  ! Elens: online calculation of theta@r2
-  real(kind=fPrec) eLensTheta
-
-  dimension ilm0(40),ic0(10)
-  character(len=4) fluk
-  data ende,next,line /'ENDE','NEXT','LINE'/
-  data go,cavi,trom,idum,kl,kr,fluk /'GO','CAV','TROM',' ','(',')','FLUK'/
-
-#ifdef CRLIBM
-  real(kind=fPrec) round_near
-#endif
-
-  ! New variables for sixtrack_input module
-  character(len=4) currBlock
-  logical inErr
-  logical blockOpened, blockClosed, blockReopen
-  logical openBlock, closeBlock
-  integer blockLine, blockCount, iElem
-  logical parseFort2
-  integer nGeom
-  logical newParsing, prevPrint
-
   save
 
 ! ================================================================================================ !
-
-      do i=1,40
-        ilm0(i)=' '
-      end do
-
-      do i=1,10
-        ic0(i)=' '
-      end do
-
-      nbidu=0
-      iclo6=0
-      iclo6r=0
-      iclr=0
-
-!  Initialise new input parameters
-      idial=0
-      tlen=one
-      pma=pmap
-      ition=0
-      dpscor=one
-      sigcor=one
-      iconv=0
-      imad=0
-      iskip=1
-      cma1=one
-      cma2=one
-      qs=zero
-      itra=0
-      chi0=zero
-      chid=zero
-      rat=zero
-      ipos=0
-      iav=1
-      iwg=1
-      dphix=zero
-      dphiz=zero
-      qx0=zero
-      qz0=zero
-      ivox=1
-      ivoz=1
-      ires=1
-      dres=one
-      ifh=0
-      dfft=one
-      idis=0
-      icow=0
-      istw=0
-      iffw=0
-      nprint=1
-      ndafi=1
-      itco=500
-      dma=c1m12
-      dmap=c1m15
-      itcro=10
-      dech=c1m10
-      de0=c1m9
-      ded=c1m9
-      dsi=c1m9
-      dsm0=c1m10
-      itqv=10
-      dkq=c1m10
-      dqq=c1m10
-      imtr0=0
-      nlin=0
-      kanf=1
-      iorg=0
-      ise=0
-      preda=c1m38
-
-! ================================================================================================ !
-!  SET DEFAULT MODULE VALUES
+!  SET DEFAULT VALUES
 ! ================================================================================================ !
 
   ! SixTrack Settings
@@ -235,6 +115,9 @@ subroutine daten
   ! Main Variables
   iHead        = " "
   sixtit       = " "
+  ic0(:)       = " "
+  cCheck       = " "
+  kanf         = 1
 
   ! TRACKING PARAMETERS
   numl         = 1
@@ -245,6 +128,8 @@ subroutine daten
   imc          = 0
   numlcp       = 1000
   numlmax      = 1000000000
+  iclo6        = 0
+  iclo6r       = 0
 
   idz(:)       = 1
   idfor        = 0
@@ -256,6 +141,12 @@ subroutine daten
   nwr(4)       = 10000
   ntwin        = 1
 
+  ! INITIAL COORDINATES
+  itra         = 0
+  chi0         = zero
+  chid         = zero
+  rat          = zero
+
   ! CHROMATICITY ADJUSTMENTS
   ichrom       = 0
 
@@ -265,6 +156,10 @@ subroutine daten
   ! LINEAR OPTICS CALCULATION
   ilin         = 0
   sixin_ilin0  = 1
+  nlin         = 0
+
+  ! DIFFERENTIAL ALGEBRA
+  preda        = c1m38
 
   ! SYNCHROTRON OSCILLATIONS
   sixin_alc    = c1m3
@@ -272,6 +167,12 @@ subroutine daten
   sixin_phag   = zero
   idp          = 0
   ncy          = 0
+  tlen         = one
+  pma          = pmap
+  ition        = 0
+  dpscor       = one
+  sigcor       = one
+  qs           = zero
 
   ! MULTIPOLE COEFFICIENTS
   sixin_im     = 0
@@ -286,13 +187,33 @@ subroutine daten
   isub         = 0
 
   ! ORGANISATION OF RANDOM NUMBERS
-  sixin_iorg   = 0
+  iorg         = 0
 
   ! RESONANCE COMPENSATION
   irmod2       = 0
 
   ! DECOUPLING OF MOTION
   iskew        = 0
+
+  ! NORMAL FORMS
+  idial        = 0
+
+  ! SEARCH
+  ise          = 0
+
+  ! ITERATION ERRORS
+  itco         = 500
+  dma          = c1m12
+  dmap         = c1m15
+  itcro        = 10
+  dech         = c1m10
+  de0          = c1m9
+  ded          = c1m9
+  dsi          = c1m9
+  dsm0         = c1m10
+  itqv         = 10
+  dkq          = c1m10
+  dqq          = c1m10
 
   ! BEAM-BEAM ELEMENT
   sixin_emitNX = zero
@@ -303,6 +224,32 @@ subroutine daten
   ntr          = 1
   call alloc(cotr,1,6,  zero,"cotr")
   call alloc(rrtr,1,6,6,zero,"rrtr")
+
+  ! POST PROCESSING
+  ipos         = 0
+  iconv        = 0
+  imad         = 0
+  iskip        = 1
+  cma1         = one
+  cma2         = one
+  iav          = 1
+  iwg          = 1
+  dphix        = zero
+  dphiz        = zero
+  qx0          = zero
+  qz0          = zero
+  ivox         = 1
+  ivoz         = 1
+  ires         = 1
+  dres         = one
+  ifh          = 0
+  dfft         = one
+  idis         = 0
+  icow         = 0
+  istw         = 0
+  iffw         = 0
+  nprint       = 1
+  ndafi        = 1
 
   ! HIONS MODULE
   zz0          = 1
@@ -339,13 +286,13 @@ subroutine daten
 ! ================================================================================================ !
 
 90 continue
-  read(3,"(a4,8x,a60)",end=1530,iostat=ierro) idat,iHead
+  read(3,"(a4,8x,a60)",end=9998,iostat=ierro) cCheck,iHead
   if(ierro > 0) call prror(58)
   lineNo3 = lineNo3+1
-  if(idat(1:1) == "/") goto 90
-  if(idat(1:1) == "!") goto 90
+  if(cCheck(1:1) == "/") goto 90
+  if(cCheck(1:1) == "!") goto 90
 
-  select case(idat)
+  select case(cCheck)
   case("FREE") ! Mode FREE. Elements in fort.3
     iMod       = 1
     parseFort2 = .false.
@@ -353,7 +300,7 @@ subroutine daten
     iMod       = 2
     parseFort2 = .true.
   case default
-    write(lout,"(a)") "INPUT> ERROR Unknown mode '"//idat//"'"
+    write(lout,"(a)") "INPUT> ERROR Unknown mode '"//cCheck//"'"
     goto 9999
   end select
 
@@ -382,7 +329,6 @@ subroutine daten
   closeBlock  = .false. ! Whether the current block should be closed after the pass
   blockClosed = .false. ! Whether the current block is now closed, and should not be opened again
 
-100 continue ! fort.2 loop
 110 continue ! fort.3 loop
 
   ! We have our three geometry blocks, stop parsing fort.2
@@ -397,19 +343,19 @@ subroutine daten
     lineNo3 = lineNo3 + 1
   end if
 
-  read(nUnit,"(a)",end=1530,iostat=iErro) ch
+  read(nUnit,"(a)",end=9998,iostat=iErro) inLine
   if(iErro > 0) then
     write(lout,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
     call prror(-1)
   end if
 
-  if(len_trim(ch) == 0) goto 110 ! Empty line, ignore
-  if(ch(1:1) == "/")    goto 110 ! Comment line, ignore
-  if(ch(1:1) == "!")    goto 110 ! Comment line, ignore
-  read(ch,"(a4)") idat
+  if(len_trim(inLine) == 0) goto 110 ! Empty line, ignore
+  if(inLine(1:1) == "/")    goto 110 ! Comment line, ignore
+  if(inLine(1:1) == "!")    goto 110 ! Comment line, ignore
+  read(inLine,"(a4)") cCheck
 
   ! Parse non-block flags
-  select case(idat)
+  select case(cCheck)
   case("PRIN") ! Enable the PRINT flag
     ! Previous versions of SixTrack allowed the PRINT block to remain unclosed,
     ! so we need to handle that for backwards compatibility.
@@ -419,7 +365,7 @@ subroutine daten
     write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
     goto 110
   case("NEXT") ! Close the current block
-    if(newParsing .and. .not. prevPrint) then
+    if(.not. prevPrint) then
       ! Actual close check is done after a last pass so
       ! each block can finalise any necessary initialisation
       closeBlock = .true.
@@ -429,28 +375,14 @@ subroutine daten
       goto 110
     end if
   case("ENDE") ! End of fort.3 input
-    call sixin_blockReport
-    goto 771
+    goto 9000
   end select
 
   prevPrint = .false.
 
-  ! Old style block parsing
-  newParsing = .false.
-  select case(idat)
-  case("ELEN")
-    goto 2400
-  case("WIRE")
-    goto 2500
-  end select
-
-  ! If we've reached this point, the old style block parsing has not been executed.
-  ! Switch to new type of parsing.
-  newParsing = .true.
-
   ! Check if no block is active. If so, there should be a new one if input is sane.
   if(currBlock == "NONE") then
-    currBlock = idat
+    currBlock = cCheck
     openBlock = .true.
   end if
 
@@ -463,10 +395,10 @@ subroutine daten
   ! Check the status of the current block
   call sixin_checkBlock(currBlock, nUnit, blockOpened, blockClosed, blockLine, blockCount)
   ! if(nUnit == 2) then
-  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.2 : ",lineNo2," = '"//ch//"', "// &
+  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.2 : ",lineNo2," = '"//inLine//"', "// &
   !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine,", N:",blockCount
   ! else
-  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.3 : ",lineNo3," = '"//ch//"', "// &
+  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.3 : ",lineNo3," = '"//inLine//"', "// &
   !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine,", N:",blockCount
   ! end if
 
@@ -493,7 +425,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineSETT(ch,blockLine,inErr)
+      call sixin_parseInputLineSETT(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -503,10 +435,10 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      if(len(ch) > 80) then
-        commen = ch(1:80)
+      if(len(inLine) > 80) then
+        commen = inLine(1:80)
       else
-        commen = ch
+        commen = inLine
       end if
     end if
 
@@ -516,7 +448,7 @@ subroutine daten
     elseif(closeBlock) then
       nGeom = nGeom + 1
     else
-      call sixin_parseInputLineSING(ch,blockLine,inErr)
+      call sixin_parseInputLineSING(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -526,7 +458,7 @@ subroutine daten
     elseif(closeBlock) then
       nGeom = nGeom + 1
     else
-      call sixin_parseInputLineBLOC(ch,blockLine,inErr)
+      call sixin_parseInputLineBLOC(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -536,7 +468,7 @@ subroutine daten
     elseif(closeBlock) then
       nGeom = nGeom + 1
     else
-      call sixin_parseInputLineSTRU(ch,blockLine,inErr)
+      call sixin_parseInputLineSTRU(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -546,7 +478,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineDISP(ch,inErr)
+      call sixin_parseInputLineDISP(inLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -554,11 +486,9 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      dp1   = exz(1,6)
-      iclr  = 0
-      nbidu = 1
+      dp1 = exz(1,6)
     else
-      call sixin_parseInputLineINIT(ch,blockLine,inErr)
+      call sixin_parseInputLineINIT(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -566,9 +496,9 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      nbidu = 1
+      continue
     else
-      call sixin_parseInputLineTRAC(ch,blockLine,inErr)
+      call sixin_parseInputLineTRAC(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -578,7 +508,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineDIFF(ch,blockLine,inErr)
+      call sixin_parseInputLineDIFF(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -588,7 +518,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineCHRO(ch,blockLine,inErr)
+      call sixin_parseInputLineCHRO(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -596,9 +526,9 @@ subroutine daten
     if(openBlock) then
       iqmod = 1
     elseif(closeBlock) then
-      call sixin_parseInputLineTUNE(ch,-1,inErr)
+      call sixin_parseInputLineTUNE(inLine,-1,inErr)
     else
-      call sixin_parseInputLineTUNE(ch,blockLine,inErr)
+      call sixin_parseInputLineTUNE(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -608,7 +538,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineLINE(ch,blockLine,inErr)
+      call sixin_parseInputLineLINE(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -618,7 +548,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineSYNC(ch,blockLine,inErr)
+      call sixin_parseInputLineSYNC(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -628,7 +558,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineMULT(ch,blockLine,inErr)
+      call sixin_parseInputLineMULT(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -638,7 +568,7 @@ subroutine daten
     elseif(closeBlock) then
       call fluc_readInputs
     else
-      call fluc_parseInputLine(ch,blockLine,inErr)
+      call fluc_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -650,7 +580,7 @@ subroutine daten
     elseif(closeBlock) then
       isub = 1
     else
-      call sixin_parseInputLineSUBR(ch,blockLine,inErr)
+      call sixin_parseInputLineSUBR(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -662,7 +592,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineORGA(ch,blockLine,inErr)
+      call sixin_parseInputLineORGA(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -672,7 +602,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineITER(ch,blockLine,inErr)
+      call sixin_parseInputLineITER(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -684,7 +614,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineORBI(ch,blockLine,inErr)
+      call sixin_parseInputLineORBI(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -696,7 +626,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineCOMB(ch,blockLine,inErr)
+      call sixin_parseInputLineCOMB(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -708,7 +638,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineRESO(ch,blockLine,inErr)
+      call sixin_parseInputLineRESO(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -720,7 +650,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineSEAR(ch,blockLine,inErr)
+      call sixin_parseInputLineSEAR(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -732,7 +662,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineDECO(ch,blockLine,inErr)
+      call sixin_parseInputLineDECO(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -744,7 +674,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineNORM(ch,blockLine,inErr)
+      call sixin_parseInputLineNORM(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -754,7 +684,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLinePOST(ch,blockLine,inErr)
+      call sixin_parseInputLinePOST(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -765,9 +695,9 @@ subroutine daten
       continue
     else
       if(beam_expflag == 1) then
-        call sixin_parseInputLineBEAM_EXP(ch,blockLine,inErr)
+        call sixin_parseInputLineBEAM_EXP(inLine,blockLine,inErr)
       else
-        call sixin_parseInputLineBEAM(ch,blockLine,inErr)
+        call sixin_parseInputLineBEAM(inLine,blockLine,inErr)
       end if
       if(inErr) goto 9999
     end if
@@ -776,9 +706,9 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      call sixin_parseInputLineTROM(ch,-1,inErr)
+      call sixin_parseInputLineTROM(inLine,-1,inErr)
     else
-      call sixin_parseInputLineTROM(ch,blockLine,inErr)
+      call sixin_parseInputLineTROM(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -796,7 +726,7 @@ subroutine daten
     elseif(closeBlock) then
       call fluka_parsingDone
     else
-      call fluka_parseInputLine(ch,blockLine,inErr)
+      call fluka_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 #endif
@@ -807,7 +737,29 @@ subroutine daten
     elseif(closeBlock) then
       call bdex_parseInputDone
     else
-      call bdex_parseInputLine(ch,blockLine,inErr)
+      call bdex_parseInputLine(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("WIRE") ! Wire
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call wire_parseInputDone(inErr)
+      if(inErr) goto 9999
+    else
+      call wire_parseInputLine(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("ELEN") ! Electron Lens
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call elens_parseInputDone(inErr)
+      if(inErr) goto 9999
+    else
+      call elens_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -817,7 +769,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call dist_parseInputLine(ch,blockLine,inErr)
+      call dist_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -837,7 +789,7 @@ subroutine daten
     elseif(closeBlock) then
       call aper_inputParsingDone
     else
-      call aper_inputUnitWrapper(ch,blockLine,inErr)
+      call aper_inputUnitWrapper(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -861,7 +813,7 @@ subroutine daten
       continue
     else
 #ifdef COLLIMAT
-      call collimate_parseInputLine(ch,blockLine,inErr)
+      call collimate_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
 #else
       continue
@@ -874,7 +826,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call fma_parseInputLine(ch,inErr)
+      call fma_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -884,7 +836,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call dump_parseInputLine(ch,inErr)
+      call dump_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -896,7 +848,7 @@ subroutine daten
       ldynk = .true.
       call dynk_inputsanitycheck
     else
-      call dynk_parseInputLine(ch,inErr)
+      call dynk_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -906,7 +858,7 @@ subroutine daten
     elseif(closeBlock) then
       has_hion = .true.
     else
-      call hions_parseInputLine(ch,blockLine,inErr)
+      call hions_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -916,7 +868,7 @@ subroutine daten
     elseif(closeBlock) then
       call zipf_parseInputDone
     else
-      call zipf_parseInputline(ch)
+      call zipf_parseInputline(inLine)
     end if
 
   case("SCAT") ! SCATTER Input Block
@@ -926,7 +878,7 @@ subroutine daten
     elseif(closeBlock) then
       if(scatter_debug) call scatter_dumpData
     else
-      call scatter_parseInputLine(string(adjustl(ch)))
+      call scatter_parseInputLine(string(adjustl(inLine)))
     end if
 
   case("HDF5") ! HDF5 Input Block
@@ -939,7 +891,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call h5_parseInputLine(string(ch))
+      call h5_parseInputLine(string(inLine))
     end if
 #endif
 
@@ -953,7 +905,7 @@ subroutine daten
   elseif(closeBlock) then
     call root_parseInputDone
   else
-    call daten_root(ch)
+    call daten_root(inLine)
   end if
 #endif
 
@@ -987,971 +939,325 @@ subroutine daten
 !  DONE PARSING FORT.2 AND FORT.3
 ! ================================================================================================ !
 
-!-----------------------------------------------------------------------
-!  Electron Lense, kz=29,ktrack=63
-!  M. Fitterer,  FNAL
-!  last modified: 20-06-2016
-!-----------------------------------------------------------------------
- 2400 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3 = lineno3+1 ! Line number used for some crash output
+! ================================================================================================ !
+!  ENDE WAS REACHED
+! ================================================================================================ !
+9000 continue
 
-      if(ch(1:1).eq.'/') goto 2400 ! skip comment lines
-
-      if (ch(:4).eq.next) then
-         if(melens.ne.0) then
-!          loop only if at least an elens has been read
-!       4) loop over single elements to check that they have been defined in the fort.3 block
-            do j=1,nele
-               if(kz(j).eq.29) then
-                  if(elens_type(ielens(j)).eq.0) then
-                     write(lout,*)                                      &
-     &'ERROR: elens ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '// &
-     &'not defined in fort.3. You must define every elens in the '//    &
-     &'ELEN block in fort.3!'
-                     call prror(-1)
-                  endif
-               endif
-            enddo
-         endif
-         goto 110 ! go to next BLOCK in fort.3 - we're done here!
-      endif
-
-      ! We don't support FIO, since it's not supported by any compilers...
-#ifdef FIO
-        write(lout,*)                                                   &
-     &       'ERROR in ELEN block: fortran IO format currently not ',   &
-     &       'supported!'
-        call prror(-1)
-#endif
-
-!     1) read in elens parameters
-      call getfields_split( ch, getfields_fields, getfields_lfields,    &
-     &        getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) then
-        write(lout,*)                                                   &
-     &       'ERROR in ELEN block: getfields_lerr=', getfields_lerr
-        call prror(-1)
-      endif
-
-!     Check (min) number of arguments
-!     If a new type of elens is implemented, may need to modify this!
-      if(getfields_nfields.lt.7) then
-        write(lout,*)                                                   &
-     &       'ERROR in ELEN block: wrong number of input ',             &
-     &       'parameters: ninput = ', getfields_nfields, ' != 7 (min)'
-        call prror(-1)
-      endif
-
-!     Find the element, and check that we're not double-defining
-      if (getfields_lfields(1) .gt. 16) then
-         write(lout,*)                                                  &
-     &        "ERROR in ELEN block: Element name max 16 characters;"//  &
-     &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))&
-     &        //"' is too long."
-         call prror(-1)
-      endif
-
-      do j=1,nele               !loop over single elements and set parameters of elens
-         if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
-            ! check the element type (kz(j)_elens=29)
-            if(kz(j).ne.29) then
-               write(lout,*)                                            &
-     &              'ERROR: element type mismatch for ELEN!'//          &
-     &              'Element type is kz(',j,') = ',kz(j),'!= 29'
-               call prror(-1)
-            endif
-            if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_elens=29)
-               write(lout,*)                                            &
-     &'ERROR: length el(j) (elens is treated as thin element), '//      &
-     &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//&
-     &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,      &
-     &')=',ek(j),'. Please check your input in the single element '//   &
-     &'definition of your ELEN. All values except for the type need '// &
-     &'to be zero.'
-               call prror(-1)
-            endif
-!           acquire new elens
-            melens=melens+1
-            if (melens.gt.nelens) then
-               write(lout,*) "ERROR in ELEN block:"//                   &
-     &              "Too many elenses: ",melens," - max:",nelens
-               call prror(-1)
-            end if
-            ielens(j)=melens
-            if (elens_type(ielens(j)).ne.0) then
-               write(lout,*) "ERROR in ELEN block:"//                   &
-     &              "The element '"//bez(j)//"' was defined twice!"
-               call prror(-1)
-            endif
-
-            ! Parse the element
-            select case ( getfields_fields(2)(1:getfields_lfields(2)) )
-            case ("UNIFORM")
-               ! Read in this case
-               elens_type(ielens(j)) = 1
-            case ("GAUSSIAN")
-               ! Read in this case
-               elens_type(ielens(j)) = 2
-               if(getfields_nfields.lt.8) then
-                  write(lout,*)                                         &
-     &       'ERROR in ELEN block: wrong number of input ',             &
-     &       'parameters: ninput = ', getfields_nfields, ' != 8 (GAUSSIAN)'
-                  call prror(-1)
-               endif
-            case ("CHEBYSHEV")
-               ! Read in this case
-               elens_type(ielens(j)) = 3
-               if(getfields_nfields.lt.8) then
-                  write(lout,*)                                         &
-     &       'ERROR in ELEN block: wrong number of input ',             &
-     &       'parameters: ninput = ', getfields_nfields, ' != 8 (CHEBYSHEV)'
-                  call prror(-1)
-               endif
-            case default
-               write(lout,*) "ERROR in ELEN: "//                        &
-     &              "Elens type '"//                                    &
-     &              getfields_fields(2)(1:getfields_lfields(2))//       &
-     &              "' not recognized. Remember to use all UPPER CASE!"
-               call prror(-1)
-            end select
-
-#ifndef CRLIBM
-            read (getfields_fields(3)(1:getfields_lfields(3)),*)     &
-     &              elens_theta_r2(ielens(j))
-            read (getfields_fields(4)(1:getfields_lfields(4)),*)     &
-     &              elens_r2(ielens(j))
-            read (getfields_fields(5)(1:getfields_lfields(5)),*)     &
-     &              elens_r1(ielens(j))
-            read (getfields_fields(6)(1:getfields_lfields(6)),*)     &
-     &              elens_offset_x(ielens(j))
-            read (getfields_fields(7)(1:getfields_lfields(7)),*)     &
-     &              elens_offset_y(ielens(j))
-#endif
-#ifdef CRLIBM
-            elens_theta_r2(ielens(j))= round_near (                  &
-     &              errno,getfields_lfields(3)+1, getfields_fields(3) )
-            if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,3,elens_theta_r2(ielens(j)) )
-            elens_r2(ielens(j))       = round_near (                 &
-     &              errno,getfields_lfields(4)+1, getfields_fields(4) )
-            if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,4,elens_r2(ielens(j)) )
-            elens_r1(ielens(j)) = round_near (                       &
-     &              errno,getfields_lfields(5)+1, getfields_fields(5) )
-            if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,5,elens_r1(ielens(j)) )
-            elens_offset_x(ielens(j)) = round_near (                 &
-     &              errno,getfields_lfields(6)+1, getfields_fields(6) )
-            if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,6,elens_offset_x(ielens(j)) )
-            elens_offset_y(ielens(j)) = round_near (                 &
-     &              errno,getfields_lfields(7)+1, getfields_fields(7) )
-            if (errno.ne.0) call rounderr (                          &
-     &              errno,getfields_fields,7,elens_offset_y(ielens(j)) )
-#endif
-
-            if ( elens_type(ielens(j)).eq.2 ) then
-!               GAUSSIAN profile of electrons: need also sigma of e-beam
-#ifndef CRLIBM
-                read (getfields_fields(8)(1:getfields_lfields(8)),*) &
-     &              elens_sig(ielens(j))
-#endif
-#ifdef CRLIBM
-                elens_sig(ielens(j))= round_near (                   &
-     &              errno,getfields_lfields(8)+1, getfields_fields(8) )
-                if (errno.ne.0) call rounderr (                      &
-     &              errno,getfields_fields,8,elens_sig(ielens(j)) )
-#endif
-            elseif ( elens_type(ielens(j)).eq.3 ) then
-!               profile of electrons given by Chebyshev polynomials: need also
-!                  name of file where coefficients are stored and angle
-                read (getfields_fields(8)(1:getfields_lfields(8)),*) tmpch
-#ifndef CRLIBM
-                read (getfields_fields(9)(1:getfields_lfields(9)),*) &
-     &              elens_cheby_angle(ielens(j))
-#endif
-#ifdef CRLIBM
-                elens_cheby_angle(ielens(j))= round_near (           &
-     &              errno,getfields_lfields(9)+1, getfields_fields(9) )
-                if (errno.ne.0) call rounderr (                      &
-     &              errno,getfields_fields,9,elens_cheby_angle(ielens(j)) )
-#endif
-!               check if table of coefficients has already been requested:
-                do tmpi1=1,melens_cheby_tables
-                   if ( tmpch.eq.elens_cheby_filename(tmpi1) ) then
-                      elens_iCheby(ielens(j))=tmpi1
-                      goto 1972
-                   end if
-                end do
-!               un-successful search
-                melens_cheby_tables=melens_cheby_tables+1
-                if (melens_cheby_tables.gt.nelens_cheby_tables) then
-                   write(lout,*) "ERROR in ELEN block: Too many tables"//&
-     &" for Chebyshev coefficients: ",melens_cheby_tables," - max:",nelens_cheby_tables
-                   call prror(-1)
-                end if
-                elens_iCheby(ielens(j))=melens_cheby_tables
-                elens_cheby_filename(tmpi1)=tmpch
- 1972           continue
-            end if
-!           additional geometrical infos:
-!           depending on profile, the position of these parameters change
-            tmpi1=0
-            tmpi2=0
-            tmpi3=0
-            if ( elens_type(ielens(j)).eq.1.and.getfields_nfields.ge.10 ) then
-               tmpi1=8
-               tmpi2=9
-               tmpi3=10
-               elens_lThetaR2(ielens(j)) = .true.
-            elseif ( elens_type(ielens(j)).eq.2.and.getfields_nfields.ge.11 ) then
-               tmpi1=9
-               tmpi2=10
-               tmpi3=11
-               elens_lThetaR2(ielens(j)) = .true.
-            elseif ( elens_type(ielens(j)).eq.3.and.getfields_nfields.ge.12 ) then
-               tmpi1=10
-               tmpi2=11
-               tmpi3=12
-               elens_lThetaR2(ielens(j)) = .true.
-            end if
-            if ( elens_lThetaR2(ielens(j)) ) then
-#ifndef CRLIBM
-               read (getfields_fields(tmpi1)(1:getfields_lfields(tmpi1)),*)  &
-     &              elens_len(ielens(j))
-               read (getfields_fields(tmpi2)(1:getfields_lfields(tmpi2)),*)  &
-     &              elens_I(ielens(j))
-               read (getfields_fields(tmpi3)(1:getfields_lfields(tmpi3)),*)&
-     &              elens_Ek(ielens(j))
-#endif
-#ifdef CRLIBM
-               elens_len(ielens(j))= round_near (                    &
-     &              errno,getfields_lfields(tmpi1)+1, getfields_fields(tmpi1) )
-               if (errno.ne.0) call rounderr (                       &
-     &              errno,getfields_fields,tmpi1,elens_len(ielens(j)) )
-               elens_I(ielens(j))       = round_near (               &
-     &              errno,getfields_lfields(tmpi2)+1, getfields_fields(tmpi2) )
-               if (errno.ne.0) call rounderr (                       &
-     &              errno,getfields_fields,tmpi2,elens_I(ielens(j)) )
-               elens_Ek(ielens(j)) = round_near (                    &
-     &              errno,getfields_lfields(tmpi3)+1, getfields_fields(tmpi3) )
-               if (errno.ne.0) call rounderr (                       &
-     &              errno,getfields_fields,tmpi3,elens_Ek(ielens(j)) )
-#endif
-            end if
-
-            ! Make checks for this case
-            if( elens_r2(ielens(j)).lt.elens_r1(ielens(j)) ) then
-               write(lout,*) 'WARNING: ELEN R2<R1 -> inverting'
-               tmpflt=elens_r2(ielens(j))
-               elens_r2(ielens(j))=elens_r1(ielens(j))
-               elens_r1(ielens(j))=tmpflt
-            elseif ( elens_r2(ielens(j)).eq.elens_r1(ielens(j)) ) then
-               write(lout,*) 'ERROR: ELEN R2=R1 -> ELEN does not exist'
-               call prror(-1)
-            end if
-            if( elens_r2(ielens(j)).lt.zero ) then
-               write(lout,*) 'WARNING: ELEN R2<0!!'
-               call prror(-1)
-            end if
-            if( elens_r1(ielens(j)).lt.zero ) then
-               write(lout,*) 'WARNING: ELEN R1<0!!'
-               call prror(-1)
-            end if
-            if ( elens_lThetaR2(j) ) then
-               if( elens_len(ielens(j)).lt.zero ) then
-                  write(lout,*) 'WARNING: ELEN L<0!!'
-                  call prror(-1)
-               end if
-               if( elens_Ek(ielens(j)).lt.zero ) then
-                  write(lout,*) 'WARNING: ELEN Ek<0!! (e-beam)'
-                  call prror(-1)
-               end if
-            end if
-            ! proper normalisation
-            if (elens_type(ielens(j)).eq.1) then
-!              uniform distribution
-               elens_geo_norm(ielens(j))=(elens_r2(ielens(j))+elens_r1(ielens(j)))* &
-     &                                   (elens_r2(ielens(j))-elens_r1(ielens(j)))
-            elseif (elens_type(ielens(j)).eq.2) then
-!              Gaussian distribution
-               elens_geo_norm(ielens(j))=exp_mb(-0.5*(elens_r1(ielens(j))/elens_sig(ielens(j)))**2) &
-     &                                  -exp_mb(-0.5*(elens_r2(ielens(j))/elens_sig(ielens(j)))**2)
-            end if
-
-            ! print a summary of elens parameters
-            write(lout,                                                 &
-     &fmt='((/,/,A),(/,A,A),(/,A,A,A,I4),5(/,A,1PE10.3,A))')            &
-     &'ELENS found in list of single elements with: ',                  &
-     &'name     = ',bez(j),                                             &
-     &'type     = ',getfields_fields(2)(1:getfields_lfields(2)),        &
-     &        ' = ',elens_type(ielens(j)),                              &
-     &'theta_r2 = ',elens_theta_r2(ielens(j)),' mrad',                  &
-     &'r1       = ',elens_r1(ielens(j)),' mm',                          &
-     &'r2       = ',elens_r2(ielens(j)),' mm',                          &
-     &'offset_x = ',elens_offset_x(ielens(j)),' mm',                    &
-     &'offset_y = ',elens_offset_y(ielens(j)),' mm'
-
-            if (elens_type(ielens(j)).eq.2) write(lout,fmt='(A,1PE10.3,A)') &
-     &'sig      = ',elens_sig(ielens(j)),' mm'
-            if (elens_lThetaR2(ielens(j))) then
-               write(lout,fmt='((A),4(/,A,1PE10.3,A))')                 &
-     &'ELENS theta_r2 will be recomputed after input parsing based on:',&
-     &'  L  =',elens_len(ielens(j)),' m',                               &
-     &'  I  =',elens_I(ielens(j)),' A',                                 &
-     &'  Ek =',elens_Ek(ielens(j)),' keV'
-            end if
-            goto 2401           !Search success :)
-
-         endif
-      enddo
-
-!     Search for element failed!
-      write(lout,*) "ERROR in ELEN: "//                                 &
-     &     "Un-identified SINGLE ELEMENT '",                            &
-     &     getfields_fields(1)(1:getfields_lfields(1)), "'"
+  if(napx >= 1) then
+    if(e0 < pieni .or. e0 < pma) then
+      write(lout,"(a)") "ENDE> ERROR Kinetic energy of the particle is less or equal to zero."
       call prror(-1)
+    end if
 
-!     element search was a success :)
- 2401 continue
-
-      goto 2400 ! at NEXT statement -> check that all single elements with kz(j) = 29 (elens) have been defined in ELEN block
-
-!-----------------------------------------------------------------------
-!  Wire, kz=+/-15,ktrack=45
-!  A. Patapenka (NIU), M. Fitterer,  FNAL
-!  last modified: 22-12-2016
-!-----------------------------------------------------------------------
- 2500 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3 = lineno3+1 ! Line number used for some crash output
-
-      if(ch(1:1).eq.'/') goto 2500 ! skip comment lines
-
-      if (ch(:4).eq.next) then
-!       4) loop over single elements to check that they have been defined in the fort.3 block
-        do j=1,nele
-          if(kz(j).eq.15) then
-            if(wire_flagco(j).eq.0) then
-              write(lout,*)                                             &
-     &'ERROR: wire ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '//  &
-     &'not defined in fort.3. You must define every wire in the '//     &
-     &'WIRE block in fort.3!'
-               call prror(-1)
-            endif
-          endif
-        enddo
-        goto 110 ! go to next BLOCK in fort.3 - we're done here!
-      endif
-
-      ! We don't support FIO, since it's not supported by any compilers...
-#ifdef FIO
-        write(lout,*)                                                   &
-     &       'ERROR in WIRE block: fortran IO format currently not ',   &
-     &       'supported!'
-        call prror(-1)
+    if(nbeam >= 1) then
+      parbe14 = (((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6
+    end if
+    gammar = pma/e0
+    crad   = (((two*crad)*partnum)*gammar)*c1e6
+    emitx  = sixin_emitNX*gammar
+    emity  = sixin_emitNY*gammar
+#ifdef COLLIMAT
+    call collimate_postInput(gammar,has_coll)
 #endif
+  end if
 
-!     1) read in wire parameters
-      call getfields_split( ch, getfields_fields, getfields_lfields,    &
-     &        getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) then
-        write(lout,*)                                                   &
-     &       'ERROR in WIRE block: getfields_lerr=', getfields_lerr
-        call prror(-1)
-      endif
+  call hions_postInput
+  call elens_postInput
 
-!     Check number of arguments
-      if(getfields_nfields.ne.9) then
-        write(lout,*)                                                   &
-     &       'ERROR in WIRE block: wrong number of input ',             &
-     &       'parameters: ninput = ', getfields_nfields, ' != 9'
-        call prror(-1)
-      endif
+  if(idp == 0 .or. ition == 0 .or. nbeam < 1) then
+    do j=1,il
+      ! Converting 6D lenses to 4D
+      if(beam_expflag == 1) then
+        if(parbe(j,2) > 0) then
+          parbe(j,2) = zero
+          parbe(j,1) = parbe(j,7)
+          parbe(j,3) = parbe(j,10)
+        end if
+      else
+        parbe(j,2) = zero
+      end if
+    end do
+  else
+    do j=1,il
+      if(parbe(j,2) > real(mbea,fPrec)) then
+        write(lout,"(3(a,i5))") "ENDE> ERROR Requested ",int(parbe(j,2))," slices for 6D beam-beam element"//&
+          " #",j," named '"//trim(bez(j))//"', maximum is mbea = ",mbea
+        parbe(j,2) = real(mbea,fPrec)
+        call prror(-1) ! Treat this warning as an error
+      end if
+    end do
+  end if
 
-!     Find the element, and check that we're not double-defining
-      if (getfields_lfields(1) .gt. 16) then
-         write(lout,*)                                                  &
-     &        "ERROR in WIRE block: Element name max 16 characters;"//  &
-     &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))&
-     &        //"' is too long."
-         call prror(-1)
-      endif
-
-      do j=1,nele               !loop over single elements and set parameters of wire
-         if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
-            ! check the element type (kz(j)_wire=15)
-            if(kz(j).ne.15) then
-               write(lout,*)                                            &
-     &              'ERROR: element type mismatch for WIRE! '//         &
-     &'Element type is kz(',j,') = ',kz(j),'!= +15'
-               call prror(-1)
-            endif
-            if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_wire=+/-15)
-               write(lout,*)                                            &
-     &'ERROR: length el(j) (wire is treated as thin element), '//       &
-     &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//&
-     &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,      &
-     &')=',ek(j),'. Please check your input in the single element '//   &
-     &'definition of your WIRE. All values except for the type need '// &
-     &'to be zero.'
-               call prror(-1)
-            endif
-            if (wire_flagco(j).ne.0) then
-               write(lout,*) "ERROR in WIRE block:"//                   &
-     &              "The element '"//bez(j)//"' was defined twice!"
-               call prror(-1)
-            endif
-
-            ! Parse the element
-            read(getfields_fields(2)(1:getfields_lfields(2)),'(I10)')   &
-     &           wire_flagco(j)
-#ifndef CRLIBM
-            read (getfields_fields(3)(1:getfields_lfields(3)),*)        &
-     &           wire_current(j)
-            read (getfields_fields(4)(1:getfields_lfields(4)),*)        &
-     &           wire_lint(j)
-            read (getfields_fields(5)(1:getfields_lfields(5)),*)        &
-     &           wire_lphys(j)
-            read (getfields_fields(6)(1:getfields_lfields(6)),*)        &
-     &           wire_dispx(j)
-            read (getfields_fields(7)(1:getfields_lfields(7)),*)        &
-     &           wire_dispy(j)
-            read (getfields_fields(8)(1:getfields_lfields(8)),*)        &
-     &           wire_tiltx(j)
-            read (getfields_fields(9)(1:getfields_lfields(9)),*)        &
-     &           wire_tilty(j)
-#endif
-#ifdef CRLIBM
-            wire_current(j)= round_near (                               &
-     &           errno,getfields_lfields(3)+1, getfields_fields(3) )
-            if (errno.ne.0) call rounderr (                             &
-     &           errno,getfields_fields,3,wire_current(j) )
-            wire_lint(j)       = round_near (                           &
-     &           errno,getfields_lfields(4)+1, getfields_fields(4) )
-            if (errno.ne.0) call rounderr (                             &
-     &           errno,getfields_fields,4,wire_lint(j) )
-            wire_lphys(j)   = round_near (                              &
-     &           errno,getfields_lfields(5)+1, getfields_fields(5) )
-            if (errno.ne.0) call rounderr (                             &
-     &           errno,getfields_fields,5,wire_lphys(j) )
-            wire_dispx(j) = round_near (                                &
-     &           errno,getfields_lfields(6)+1, getfields_fields(6) )
-            if (errno.ne.0) call rounderr (                             &
-     &           errno,getfields_fields,6,wire_dispx(j) )
-            wire_dispy(j) = round_near (                                &
-     &           errno,getfields_lfields(7)+1, getfields_fields(7) )
-            if (errno.ne.0) call rounderr (                             &
-     &           errno,getfields_fields,7,wire_dispy(j) )
-            wire_tiltx(j) = round_near (                                &
-     &           errno,getfields_lfields(8)+1, getfields_fields(8) )
-            if (errno.ne.0) call rounderr (                             &
-     &           errno,getfields_fields,8,wire_tiltx(j) )
-            wire_tilty(j) = round_near (                                &
-     &           errno,getfields_lfields(9)+1, getfields_fields(9) )
-            if (errno.ne.0) call rounderr (                             &
-     &           errno,getfields_fields,9,wire_tilty(j) )
-#endif
-
-            ! Make checks for the wire parameters
-            if(wire_flagco(j).ne. 1 .and. wire_flagco(j).ne.-1) then
-               write(lout,*)                                            &
-     &"ERROR: WIRE flag for defining the wire separation "//            &
-     &"must be -1 (disp* = distance closed orbit and beam)"//           &
-     &"or 1 (disp* = distance from x=y=0 <-> beam), but "//             &
-     &"wire_flagco = ",wire_flagco(j)
-               call prror(-1)
-            end if
-            if((wire_lint(j).lt.0) .or. (wire_lphys(j).lt.0)) then
-              write(lout,*)                                             &
-     &'ERROR: WIRE integrated and physical length must larger than 0! ' &
-     &// 'wire_lint = ',wire_lint(j),', wire_lphys = ',wire_lphys(j)
-              call prror(-1)
-            end if
-            if((abs(wire_tiltx(j)) .ge. 90) .or.                        &
-     &         (abs(wire_tilty(j)) .ge. 90)) then
-              write(lout,*)                                             &
-     &'ERROR: WIRE tilt angle must be within [-90,90] degrees! '        &
-     &//'wire_tiltx = ',wire_tiltx(j),', wire_tilty = ',wire_tilty(j)
-              call prror(-1)
-            end if
-
-! print a summary of the wire parameters
-            write(lout,                                                 &
-     &fmt='((A,/),(A,A,/),(A,I4,/),7(A,D10.3,A,/))')                    &
-     &'WIRE found in list of single elements with: ',                   &
-     &'name               = ',bez(j),                                   &
-     &'flagco             = ',wire_flagco(j),                           &
-     &'current            = ',wire_current(j),' A',                     &
-     &'integrated length  = ',wire_lint(j),' m',                        &
-     &'physical length    = ',wire_lphys(j),' m',                       &
-     &'hor. displacement  = ',wire_dispx(j),' mm',                      &
-     &'vert. displacement = ',wire_dispy(j),' mm',                      &
-     &'hor. tilt          = ',wire_tiltx(j),' degrees',                 &
-     &'vert. tilt         = ',wire_tilty(j),' degrees'
-! ignore wire if current, length or displacment are 0 or
-! wire_flagco not set (case wire_flagco = 0)
-! for displacement only ignore if wire_dispx = wire_dispy = 0
-            if( abs(wire_flagco(j)*(wire_current(j)*(wire_lint(j)       &
-     &*(wire_lphys(j)*(wire_dispx(j)+wire_dispy(j)))))).le.pieni ) then
-              kz(j) = 0 ! treat element as marker
-
-              write(lout,                                               &
-     &fmt='((A,A,A,/),(A,A,/),4(A,I0,A,D10.3,/))')                      &
-     &'WARNING: WIRE element ',bez(j),'ignored!',                       &
-     &'Elements are ignored if current, displacment, integrated ',      &
-     &'or physical length are 0! ',                                     &
-     &'wire_dispx(',j,') = ',wire_dispx(j),                             &
-     &'wire_dispy(',j,') = ',wire_dispy(j),                             &
-     &'wire_lint(',j,') = ',wire_lint(j),                               &
-     &'wire_lphys(',j,') = ',wire_lphys(j)
-            end if
-
-            goto 2501           !Search success :)
-
-         endif
-      enddo
-
-!     Search for element failed!
-      write(lout,*) "ERROR in WIRE: "//                                 &
-     &     "Un-identified SINGLE ELEMENT '",                            &
-     &     getfields_fields(1)(1:getfields_lfields(1)), "'"
-      call prror(-1)
-
-!     element search was a success :)
- 2501 continue
-
-      goto 2500 ! at NEXT statement -> check that all single elements with kz(j) = 15 (wire) have been defined in WIRE block
-
+  ! Done with checks. Write the report
+  call sixin_blockReport
 
 ! ================================================================================================ !
-!  ENDE was reached; we're done parsing fort.3, now do some postprocessing.
+
+  ! This is where the PRINT spam happens
+  if(.not.st_print) goto 9500 ! Skip it
+
+  write(lout,"(a)") ""
+  write(lout,"(a)") "  *** RING PARAMETERS ***"
+  write(lout,"(a)") ""
+
+  ! Print Single Elements
+  write(lout,"(a)") "  SINGLE ELEMENTS:"
+  write(lout,"(a)") ""
+  write(lout,"(a)") "   NO NAME                TYP  1/RHO         STRENGTH      LENGTH        X-POS"//&
+    "         X-RMS         Y-POS         Y-RMS"
+  write(lout,"(a)") str_divLine
+  il1=il
+  if(sixin_ncy2 == 0) il1 = il-1
+  do k=1,il1
+    if(abs(kz(k)) == 12) then
+      write(lout,"(i5,1x,a20,1x,i2,7(1x,e13.6))") k,bez(k)(1:20),kz(k),ed(k),ek(k),phasc(k),xpl(k),xrms(k),zpl(k),zrms(k)
+      kz(k)=abs(kz(k))
+      phasc(k)=phasc(k)*rad
+    else
+      write(lout,"(i5,1x,a20,1x,i2,7(1x,e13.6))") k,bez(k)(1:20),kz(k),ed(k),ek(k),el(k),xpl(k),xrms(k),zpl(k),zrms(k)
+    end if
+  end do
+  write(lout,"(a)") str_divLine
+
+  ! Print Ring Structure
+  write(lout,"(a)")    ""
+  write(lout,"(a)")    "  RING STRUCTURE:"
+  write(lout,"(a)")    ""
+  write(lout,"(a,i8)") "  Superperiods:     ",mper
+  do k=1,mper
+    write(lout,"(a,i8)") "  Symmetry:         ",msym(k)
+  end do
+  write(lout,"(a,i8)") "  Unique Blocks:    ",mblo
+  write(lout,"(a,i8)") "  Block per Period: ",mbloz
+  write(lout,"(a)")    ""
+  write(lout,"(a)")    str_divLine
+
+  ! Print Block Structure
+  write(lout,"(a)") ""
+  write(lout,"(a)") "  BLOCK STRUCTURE:"
+  write(lout,"(a)") ""
+  write(lout,"(a)") "   NO NAME                NUM  SINGLE ELEMENTS"
+  write(lout,"(a)") str_divLine
+  do l=1,mblo
+    kk = mel(l)
+    ll = kk/6
+    if(ll /= 0) then
+      do l1=1,ll
+        l2 = (l1-1)*6+1
+        l3 = l2+5
+        if(l2 == 1) then
+          write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(sixin_beze(l,k),k=1,6)
+        else
+          write(lout,"(30x,6(1x,a20))") (sixin_beze(l,k),k=l2,l3)
+        end if
+      end do
+      if(mod(kk,6) /= 0) then
+        l4 = ll*6+1
+        write(lout,"(30x,6(1x,a20))") (sixin_beze(l,k),k=l4,kk)
+      end if
+    else
+      write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(sixin_beze(l,k),k=1,kk)
+    end if
+  end do
+  write(lout,"(a)") str_divLine
+
+  ! Print Block Structure of Super Periods
+  write(lout,"(a)") ""
+  write(lout,"(a)") "  BLOCK STRUCTURE OF SUPER PERIODS:"
+  write(lout,"(a)") ""
+  write(lout,"(a)") "   NO NAME                NUM  SINGLE ELEMENTS"
+  write(lout,"(a)") str_divLine
+  mblozz=mbloz/5+1
+  do k=1,mblozz
+    k10 = (k-1)*5
+    if((mbloz-k10) == 0) cycle
+    do l=1,5
+      if((k10+l) > mbloz) ic0(l) = " "
+      if((k10+l) > mbloz) cycle
+      icc = ic(k10+l)
+      if(icc <= nblo) then
+        ic0(l) = bezb(icc)
+      else
+        ic0(l) = sixin_bez0(icc-nblo)
+      end if
+    end do
+    k11 = k10+1
+    write(lout,"(i5,5(1x,a20))") k11,(ic0(l),l=1,5)
+  end do
+  write(lout,"(a)") str_divLine
+
+  if(idp == 0) goto 8000
+  ! Write out with BB parameters
+  write(lout,"(a)")           ""
+  write(lout,"(a)")           "  SYNCHROTRON OSCILLATIONS AND BEAM-BEAM:"
+  write(lout,"(a)")           ""
+  write(lout,"(a,i20)")       "  Number of cavities:                    ",ncy
+  write(lout,"(a,f30.9)")     "  Momentum amplitude dP/P:               ",dp1
+  write(lout,"(a,f30.9)")     "  Offset momentum amplitude dP/P:        ",dppoff
+  write(lout,"(a,f30.9)")     "  Machine length in (m):                 ",tlen
+  write(lout,"(a,f30.9)")     "  Particle mass (MeV):                   ",pma
+  if(nbeam >= 1) then
+    write(lout,"(a,f30.9)")   "  Particle number (1e9):                 ",abs(partnum/c1e9)
+    if(partnum > zero) then
+      write(lout,"(a,a20)")   "  Beams have same charge:                ","YES"
+    else
+      write(lout,"(a,a20)")   "  Beams have opposite charge:            ","YES"
+    end if
+    write(lout,"(a,f30.9)")   "  Beam-beam parameter:                   ",parbe14
+    if(ibeco == 0) then
+      write(lout,"(a,a20)")   "  Closed orbit due to beam-beam kick:    ","LEFT"
+    else
+      write(lout,"(a,a20)")   "  Closed orbit due to beam-beam kick:    ","SUBTRACTED"
+    end if
+    if(ibtyp == 0) then
+      write(lout,"(a,a20)")   "  Fast beam-beam kick switch:            ","OFF"
+    else
+      write(lout,"(a,a20)")   "  Fast beam-beam kick switch:            ","ON"
+    end if
+    if(beam_expflag == 0) then
+      if(ibb6d == 0) then
+        write(lout,"(a,a20)") "  Hirata 6D:                             ","OFF"
+      else
+        write(lout,"(a,a20)") "  Hirata 6D:                             ","ON"
+      end if
+    end if
+    if(ibbc == 0) then
+      write(lout,"(a,a20)")   "  Consider linear coupling for BB:       ","OFF"
+    else
+      write(lout,"(a,a20)")   "  Consider linear coupling for BB:       ","ON"
+    end if
+    write(lout,"(a,f30.9)")   "  Bunch length:                          ",sigz
+    write(lout,"(a,f30.9)")   "  Energy spread:                         ",sige
+    write(lout,"(a,f30.9)")   "  Normalized horizontal emmittance (um): ",sixin_emitNX
+    write(lout,"(a,f30.9)")   "  Normalized vertical emmittance (um):   ",sixin_emitNY
+  end if
+  write(lout,"(a,f30.9)")     "  Energy in (MeV):                       ",e0
+  if(sixin_ncy2.eq.0) then
+    write(lout,"(a,f30.9)")   "  Harmonic number:                       ",sixin_harm
+    write(lout,"(a,f30.9)")   "  Circumf. voltage (MV):                 ",sixin_u0
+    write(lout,"(a,f30.9)")   "  Equilibrium phase (deg):               ",sixin_phag
+    write(lout,"(a,f30.9)")   "  Frequency (units of rev. freq.):       ",qs
+    write(lout,"(a,f30.9)")   "  Momentum compaction:                   ",sixin_alc
+  end if
+  if(beam_expflag == 0) then
+    if(ibb6d == 1) then
+      write(lout,"(a)") ""
+      write(lout,"(a)") "  HIRATA's 6D BEAM-BEAM ELEMENTS"
+      write(lout,"(a)") ""
+      write(lout,"(a)") "ELEMENT           #_OF_SLICES    CROSSING_ANGLE     CROSSING_PLANE     COUPLING_ANGLE"
+      write(lout,"(a)") str_divLine
+      do j=1,il
+        if(parbe(j,2) > zero) then
+          write(lout,"(t10,a16,5x,i4,7x,d17.10,2x,d17.10)") bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3)
+        end if
+      end do
+    end if
+    write(lout,"(a)") str_divLine
+  elseif(beam_expflag == 1) then
+    write(lout,"(a)") ""
+    write(lout,"(a)") "  HIRATA's 6D BEAM-BEAM ELEMENTS"
+    write(lout,"(a)") ""
+    write(lout,"(a)") "ELEMENT           #_OF_SLICES    XING_ANGLE  XING_PLANE   HOR_SEP     VER_SEP"//&
+      "        S11        S12        S22         S33         S34         S44         S13         S14         S23         S24"
+    write(lout,"(a)") repeat("-",200)
+    do j=1,il
+      if(kz(j) == 20 .and. parbe(j,17) == 1) then
+        write(lout,"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3&
+        &,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")&
+        &bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),parbe(j,7),parbe(j,8),  &
+        &parbe(j,9),parbe(j,10),parbe(j,11),parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
+      end if
+    end do
+    write(lout,"(a)") repeat("-",200)
+    write(lout,"(a)") ""
+    write(lout,"(a)") "  4D BEAM-BEAM ELEMENTS"
+    write(lout,"(a)") ""
+    write(lout,"(a)") "ELEMENT           #_OF_SLICES        S11        S22       HOR_SEP     VER_SEP"
+    write(lout,"(a)") str_divLine
+    do j=1,il
+      if (kz(j) == 20 .and. parbe(j,17) == 0) then
+        write(lout,"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)") &
+          bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6)
+      end if
+    end do
+    write(lout,"(a)") str_divLine
+  end if
+
+8000 continue
+  write(lout,"(a)") ""
+  write(lout,"(a)") "  *** TRACKING PARAMETERS ***"
+  write(lout,"(a)") ""
+
+  nfb = nde(1)
+  nac = nde(2)
+  nft = numl-nde(2)
+  if(numl <= nde(2)) nft = 0
+  if(numl <= nde(2)) nac = numl
+  if(numl <= nde(1)) nac = 0
+  if(numl <= nde(1)) nfb = numl
+
+  write(lout,"(a,i20)")       "  Number of revolutions:                 ",numl
+  write(lout,"(a,i20)")       "  Number of reverse-revolutions:         ",numlr
+  write(lout,"(a,i20)")       "  Turns per coor.-printout:              ",nwr(4)
+  write(lout,"(a,i20)")       "  Flat bottom up to turn:                ",nfb
+  write(lout,"(a,i20)")       "  Turns per print on dataset:            ",nwr(1)
+  write(lout,"(a,i20)")       "  Acceleration up to turn:               ",nac
+  write(lout,"(a,i20)")       "  Turns per print on dataset:            ",nwr(2)
+  write(lout,"(a,i20)")       "  Flat top number of turns:              ",nft
+  write(lout,"(a,i20)")       "  Turns per print on dataset:            ",nwr(3)
+  write(lout,"(a,i20)")       "  Tracking start at element no.:         ",kanf
+  write(lout,"(a,f30.9)")     "  Initial amplitude-h in (mm):           ",amp(1)
+  write(lout,"(a,f30.9)")     "  Coupling  eps-y/eps-x:                 ",rat
+  write(lout,"(a,i20)")       "  Number of C.O. iterations:             ",itco
+  write(lout,"(a,e34.9)")     "  Precision of C.O. deviation:           ",dma
+  write(lout,"(a,e34.9)")     "  Precision of C.O. slope:               ",dmap
+  write(lout,"(a,i20)")       "  Number of q-adj. iterations:           ",itqv
+  write(lout,"(a,e34.9)")     "  Change in k-strength by:               ",dkq
+  write(lout,"(a,e34.9)")     "  Precision of q-adjustement:            ",dqq
+  write(lout,"(a,i20)")       "  Number of chromat.-adj. iter.:         ",itcro
+  write(lout,"(a,e34.9)")     "  Change in sex.-strength by:            ",dsm0
+  write(lout,"(a,e34.9)")     "  Precision of chromat.-adj.:            ",dech
+  write(lout,"(a,e34.9)")     "  DP-interval f. cromat.-adj.:           ",de0
+  write(lout,"(a,e34.9)")     "  DP-interval for dispersion:            ",ded
+  write(lout,"(a,e34.9)")     "  Precision for C.O. RMS:                ",dsi
+  write(lout,"(a)") ""
+  write(lout,"(a)") str_divLine
+  write(lout,"(a)") ""
+  write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") "    OO                 OO"
+  write(lout,"(a)") "    OO  PREPROCESSING  OO"
+  write(lout,"(a)") "    OO                 OO"
+  write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") ""
+  write(lout,"(a)") str_divLine
+
+9500 continue
+
+  call dealloc(sixin_bez0,mNameLen,"sixin_bez0")
+
+  return
+
 ! ================================================================================================ !
-771 if(napx.ge.1) then
-        if(e0.lt.pieni.or.e0.le.pma) call prror(27)
-        if(nbeam.ge.1) parbe14=                                         &!hr05
-     &(((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6                    !hr05
-        gammar=pma/e0
-        crad=(((two*crad)*partnum)*gammar)*c1e6                          !hr05
-        emitx=sixin_emitNX*gammar
-        emity=sixin_emitNY*gammar
-#ifdef COLLIMAT
-        remitx_dist=emitnx0_dist*gammar
-        remity_dist=emitny0_dist*gammar
-        remitx_collgap=emitnx0_collgap*gammar
-        remity_collgap=emitny0_collgap*gammar
-#endif
-      endif
-#ifdef COLLIMAT
-      if (.not.has_coll) then
-         !Breaks at least DUMP (negative particle IDs) and DYNK (1-pass actions).
-         write(lout,*) ""
-         write(lout,*) "ERROR in parsing fort.3:"
-         write(lout,*) "This is the collimation version of SixTrack,"
-         write(lout,*) " but no COLL block was found,"
-         write(lout,*) " not even one with do_coll = .false."
-         write(lout,*) "Please use the non-collimation version!"
-         call prror(-1)
-      endif
-#endif
-      call hions_postInput
-      if(idp.eq.0.or.ition.eq.0.or.nbeam.lt.1) then
-        do j=1,il   ! converting 6D lenses to 4D
-          if (beam_expflag .eq. 1) then
-             if (parbe(j,2) .gt. 0) then
-               parbe(j,2)=zero
-               parbe(j,1)=parbe(j,7)
-               parbe(j,3)=parbe(j,10)
-             endif
-          else
-             parbe(j,2)=zero
-          endif
-        enddo
-      else
-        do j=1,il
-          if(parbe(j,2).gt.real(mbea,fPrec)) then
-             write(lout,'(a,i5,a,i5,a,a16,a,i5)')                       &
-     &            'ERROR: Requested ',                                  &
-     &            int(parbe(j,2)), " slices for 6D beam-beam element"// &
-     &            ' #',j, " named ", bez(j), ", maximum is mbea =",mbea
-            parbe(j,2)=real(mbea,fPrec)
-            call prror(-1) !Treat this warning as an error
-         endif
-        enddo
-      endif
-      if(.not.st_print) return
-      write(lout,10050)
-      write(lout,10060)
-      il1=il
-      if(sixin_ncy2.eq.0) il1=il-1
-      do 1435 k=1,il1
-      if(abs(kz(k)).eq.12) then
-        write(lout,10070) k,bez(k),kz(k),ed(k),ek(k),phasc(k),xpl(k),   &
-     &xrms(k),zpl(k),zrms(k)
-        kz(k)=abs(kz(k))
-        phasc(k)=phasc(k)*rad
-      else
-        write(lout,10070) k,bez(k),kz(k),ed(k),ek(k),el(k),xpl(k),      &
-     &xrms(k),                                                          &
-     &zpl(k),zrms(k)
-      endif
- 1435 continue
-      write(lout,10130)
-      write(lout,10080)
-      write(lout,10090) mper,(msym(k),k=1,mper)
-      write(lout,10250) mblo,mbloz
-      write(lout,10100)
-      do 1450 l=1,mblo
-      kk=mel(l)
-      ll=kk/6
-      if(ll.ne.0) then
-        do 1440 l1=1,ll
-          l2=(l1-1)*6+1
-          l3=l2+5
-          if(l2.eq.1) then
-            write(lout,10260) l,bezb(l),kk,(sixin_beze(l,k),k=1,6)
-          else
-            write(lout,10270) (sixin_beze(l,k),k=l2,l3)
-          endif
- 1440   continue
-        if(mod(kk,6).ne.0) then
-          l4=ll*6+1
-          write(lout,10270) (sixin_beze(l,k),k=l4,kk)
-        endif
-      else
-        write(lout,10260) l,bezb(l),kk,(sixin_beze(l,k),k=1,kk)
-      endif
- 1450 continue
-      write(lout,10120)
-      mblozz=mbloz/5+1
-      do 1480 k=1,mblozz
-      k10=(k-1)*5
-      if((mbloz-k10).eq.0) goto 1480
-      do 1470 l=1,5
-        if((k10+l).gt.mbloz) ic0(l)=' '
-        if((k10+l).gt.mbloz) goto 1470
-        icc=ic(k10+l)
-        if(icc.gt.nblo) goto 1460
-        ic0(l)=bezb(icc)
-        goto 1470
- 1460   ic0(l)=sixin_bez0(icc-nblo)
- 1470 continue
-      k11=k10+1
-      write(lout,10280) k11,(ic0(l),l=1,5)
- 1480 continue
-      write(lout,10130)
- 1490 if(idp.eq.0) goto 1500
-      if(nbeam.ge.1) then !Write out with BB parameters
-         if(beam_expflag .eq. 0) then  !The old BEAM format
-            if(partnum.gt.zero) then !Beams have same charge
-               write(lout,                                              &
-     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
-     &t10,'BEAMS HAVE SAME CHARGE'/                                     &
-     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
-     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
-     &t79,i1/                                                           &
-     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
-     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
-     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
-     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
-     &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,            &
-     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
-            else !Beams have opposite charge
-               write(lout,                                              &
-     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
-     &t10,'BEAMS HAVE OPPOSITE CHARGE'/                                 &
-     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
-     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
-     &t79,i1/                                                           &
-     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Hirata 6D (1 => on/0 => off)  : ',t76,i4/                    &
-     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
-     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
-     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
-     &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,       &
-     &              ibeco,ibtyp,ibb6d,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
-            endif
+!  END OF INPUT PARSING
+! ================================================================================================ !
 
-         elseif (beam_expflag .eq. 1) then ! The new BEAM-EXPERT format
-            if(partnum.gt.zero) then !Beams have same charge
-               ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
-               write(lout,                                              &
-     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
-     &t10,'BEAMS HAVE SAME CHARGE'/                                     &
-     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
-     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
-     &t79,i1/                                                           &
-     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
-     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
-     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
-     &              ncy,dp1,dppoff,tlen,pma,partnum,parbe14,            &
-     &              ibeco,ibtyp,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
-            else !Beams have opposite charge
-               ! Almost the same format as the old BEAM, except no 'Hirata 6D'.
-               write(lout,                                              &
-     &"(t30,'SYNCHROTRON OSCILLATIONS AND BEAM-BEAM'//                  &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'PARTICLE NUMBER ',t66,1pe14.7/                               &
-     &t10,'BEAMS HAVE OPPOSITE CHARGE'/                                 &
-     &t10,'BEAM-BEAM PARAMETER ',t66,1pe14.7,0p/                        &
-     &t10,'CLOSED ORBIT DUE TO BEAM-BEAM KICK (0=LEFT,1=SUBTRACTED) : ',&
-     &t79,i1/                                                           &
-     &t10,'FAST BEAM-BEAM KICK SWITCH (0=OFF,1=ON) : ',t79,i1/          &
-     &t10,'Consider linear coupling for BB (1=on,0=off): ',t76,i4/      &
-     &t10,'BUNCH LENGTH               ',t66,f14.9/                      &
-     &t10,'ENERGY SPREAD              ',t66,f14.9/                      &
-     &t10,'NORMALIZED HORIZONTAL EMMITTANCE (mu-meter rad)',t64,G20.12/ &
-     &t10,'NORMALIZED VERTICAL EMMITTANCE (mu-meter rad)',t64,G20.12/   &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)")                                &
-     &              ncy,dp1,dppoff,tlen,pma,abs(partnum),parbe14,       &
-     &              ibeco,ibtyp,ibbc,sigz,sige,sixin_emitNX,sixin_emitNY,e0
-            endif
-         else
-            write(lout,'(a)') "ERROR in subroutine daten"
-            write(lout,'(a)') "beam_expflag was", beam_expflag
-            write(lout,'(a)') " expected 0 or 1. This is a BUG!"
-            call prror(-1)
-         endif
-      else !No beam beam
-        write(lout,10142) ncy,dp1,dppoff,tlen,pma,e0
-      endif
-      if(sixin_ncy2.eq.0) then
-        write(lout,10143) sixin_harm,sixin_u0,sixin_phag,qs,sixin_alc
-      else
-        write(lout,*)
-      endif
-      if(beam_expflag .eq. 0) then
-         if(ibb6d.eq.1) then
-            write(lout,                                                 &
-     &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
-     &t10,'ELEMENT           #_OF_SLICES    CROSSING_ANGLE',            &
-     &'     CROSSING_PLANE     COUPLING_ANGLE'/t10,85('-')/)")
-            do j=1,il
-               if(parbe(j,2).gt.zero)                                   &
-     &              write(lout,"(t10,a16,5x,i4,7x,d17.10,2x,d17.10)")   &
-     &              bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3)
-            enddo
-         endif
-
-      elseif(beam_expflag .eq. 1) then
-         write(lout,                                                    &
-     &"(t30,'HIRATA''s 6D BEAM-BEAM ELEMENTS'/t30,30('-')//             &
-     &t10,'ELEMENT           #_OF_SLICES    XING_ANGLE',                &
-     &'  XING_PLANE   HOR_SEP     VER_SEP        S11        S12      ', &
-     &'  S22         S33         S34         S44         S13         ', &
-     &'S14         S23         S24'/t10,200('-')/)")
-         do j=1,il
-            if(kz(j).eq.20.and.parbe(j,17).eq.1)then
-               write(lout,                                              &
-     &"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,      &
-     &2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,        &
-     &1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")            &
-     &bez(j),                                                           &
-     &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),      &
-     &parbe(j,7),parbe(j,8),parbe(j,9),parbe(j,10),parbe(j,11),         &
-     &parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
-            endif
-         enddo
-         write(lout,                                                    &
-     &"(//,t30,'4D BEAM-BEAM ELEMENTS'/t30,24('-')//                    &
-     &t10,'ELEMENT           #_OF_SLICES        S11   ',                &
-     &'     S22       HOR_SEP     VER_SEP'/t10,80('-')/)")
-         do j=1,il
-            if (kz(j).eq.20.and.parbe(j,17).eq.0) then
-               write(lout,                                              &
-     &"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")    &
-     &bez(j),                                                           &
-     &int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6)
-            endif
-         enddo
-
-      else
-         write(lout,'(a)') "ERROR in subroutine daten"
-         write(lout,'(a)') "beam_expflag was", beam_expflag
-         write(lout,'(a)') " expected 0 or 1. This is a BUG!"
-         call prror(-1)
-      endif
-      write(lout,10130)
- 1500 continue
-      write(lout,10150)
-      nfb=nde(1)
-      nac=nde(2)
-      nft=numl-nde(2)
-      if(numl.le.nde(2)) nft=0
-      if(numl.le.nde(2)) nac=numl
-      if(numl.le.nde(1)) nac=0
-      if(numl.le.nde(1)) nfb=numl
-      write(lout,10160) numl,numlr,nwr(4),nfb,nwr(1),nac,nwr(2),nft,    &
-     &nwr(3),                                                           &
-     &kanf,amp(1),rat,itco,dma,dmap,itqv,dkq,dqq
-      write(lout,10170) itcro,dsm0,dech,de0,ded,dsi
-      write(lout,10130)
-      write(lout,10040)
-      write(lout,10130)
-      goto 1540
- 1520 call prror(41)
- 1530 call prror(42)
- 1540 continue
-      !Check that the number of particles is OK
-      if(((2*mmac)*imc)*napx.gt.npart) call prror(54)                    !hr05
-!     compute elens theta at R2, if requested by user
-      do j=1,melens
-         if ( elens_lThetaR2(j) ) then
-            elens_theta_r2(j)=eLensTheta( elens_len(ielens(j)), elens_I(ielens(j)), &
-     &   elens_Ek(ielens(j)), e0, elens_r2(ielens(j)) )
-            write(lout,fmt='((A),4(/,A,1PE10.3,A))')                    &
-     &   'ELENS new theta at r2 for ',bez(j),':',elens_theta_r2(j)
-         end if
-      end do
-!     parse files with coefficients for chekyshev polynomials:
-      do tmpi1=1,melens_cheby_tables
-         inquire( file=elens_cheby_filename(tmpi1), exist=tmpl )
-         if ( .not. tmpl ) then
-            write(lout,*) "ERROR: ELENS problems with file with "//&
-     &"coefficients for Chebyshev polynominals:",elens_cheby_filename(tmpi1)
-            call prror(-1)
-         endif
-         call parseChebyFile(tmpi1)
-      end do
-
-      call dealloc(sixin_bez0,mNameLen,"sixin_bez0")
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
+9998 continue
+  write(lout,"(a,i0,a)") "INPUT> ERROR fort.",nUnit," is missing or empty, or end was reached without an ENDE flag."
+  call prror(-1)
   return
 
 9999 continue
-  ! Error handling for fort.2 and fort.3
   if(nUnit == 2) then
     write(lout,"(a)")      "INPUT> ERROR in fort.2"
-    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo2,": '"//trim(ch)//"'"
+    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo2,": '"//trim(inLine)//"'"
   else
     write(lout,"(a)")      "INPUT> ERROR in fort.3"
-    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo3,": '"//trim(ch)//"'"
+    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo3,": '"//trim(inLine)//"'"
   end if
   call prror(-1)
   return
 
-10000 format(11(a4,1x))
-10020 format(a)
-10040 format(t10,21('O')/t10,2('O'),17x,2('O')/t10,                     &
-     &'OO  PREPROCESSING  OO', /t10,2('O'),17x,2('O')/t10,21('O'))
-10050 format(//131('-')//t43,'*** RING PARAMETERS ***'/)
-10060 format(t30,'SINGLE ELEMENTS:'/'  NO   NAME  TYP      ',           &
-     &' 1/RHO          STRENGTH          LENGTH           X-POS     ',  &
-     &'     X-RMS            Y-PO          Y-RMS     ' /131('-'))
-10080 format(/t30,'RINGSTRUCTURE:'//)
-10090 format(t10,'NO. OF SUPERPERIODS AND SYMMETRY ' ,t50,i3,'   ',15i4,&
-     &'   ')
-10100 format(//131('-')//t30,'BLOCKSTRUCTURE:'/ t30,                    &
-     &'(BLOCKTYP--NO. OF SINGLE ELEMENTS--SINGLE ELEMENT TYPES)'//)
-10120 format(//131('-')//t30,'BLOCKSTRUCTURE OF SUPERPERIOD:'//)
-10130 format(/131('-')/)
-10142 format(t30,'SYNCHROTRON OSCILLATIONS'//                           &
-     &t10,'NUMBER OF CAVITIES    ', t76,i4/                             &
-     &t10,'MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                         &
-     &t10,'OFFSET MOMENTUM AMPLITUDE DP/P ',t66,f14.9/                  &
-     &t10,'MACHINE LENGTH IN (M) ', t63,f17.9/                          &
-     &t10,'PARTICLE MASS (MEV) ', t66,f14.9/                            &
-     &t10,'ENERGY IN (MEV)',t66,f14.3)
-10143 format(                                                           &
-     &t10,'HARMONIC NUMBER',t74,f6.0/                                   &
-     &t10,'CIRCUMF. VOLTAGE   (MV)',t66,f14.9/                          &
-     &t10,'EQUILIBRIUM PHASE     (DEG)',t66,f14.9/                      &
-     &t10,'FREQUENCY (IN UNITS OF REVOLUTION-FREQ.) QS-LINEAR',         &
-     &t66 ,f14.9/                                                       &
-     &t10,'MOMENTUM COMPACTION',t66,f14.9/)
-10150 format(//t43,'*** TRACKING PARAMETERS ***'/)
-10160 format(t10,'NUMBER OF REVOLUTIONS  ',t48,i8/ t10,                 &
-     &'NUMBER OF REVERSE-REVOLUTIONS',t48,i8/ t10,                      &
-     &'TURNS PER COOR.-PRINTOUT',t48,i8/ t10,'FLAT BOTTOM UP TO TURN ', &
-     &t48,i8/ t10,'TURNS PER PRINT ON DATASET',t48,i8/ t10,             &
-     &'ACCELERATION UP TO TURN',t48,i8/ t10,'TURNS PER PRINT ON DATASET'&
-     &,t48,i8/ t10,'FLAT TOP NUMBER OF TURNS',t48,i8/ t10,              &
-     &'TURNS PER PRINT ON DATASET',t48,i8/ t10,                         &
-     &'TRACKING START AT ELEMENT NO.',t48,i8/ t10,                      &
-     &'INITIAL AMPLITUDE-H IN (MM)',t49,f7.3/ t10,                      &
-     &'COUPLING  EPS-Y/EPS-X',t49,f7.3/ t10,                            &
-     &'NUMBER OF C.-O. ITERATIONS ',t48,i8/ t10,                        &
-     &'PRECISION OF C.-O. DEVIATION',t47,d10.3/ t10,                    &
-     &'PRECISION OF C.-O. SLOPE   ',t47,d10.3/ t10,                     &
-     &'NUMBER OF Q-ADJ. ITERATIONS',t48,i8/ t10,                        &
-     &'CHANGE IN K-STRENGTH BY',t47,d10.3/ t10,                         &
-     &'PRECISION OF Q-ADJUSTEMENT',t47,d10.3)
-10170 format(t10,'NUMBER OF CHROMAT.-ADJ. ITER.',t48,i8/ t10,           &
-     &'CHANGE IN SEX.-STRENGTH BY',t47,d10.3/ t10,                      &
-     &'PRECISION OF CHROMAT.-ADJ.',t47,d10.3/ t10,                      &
-     &'DP-INTERVAL F. CROMAT.-ADJ.',t47,d10.3/ t10,                     &
-     &'DP-INTERVAL FOR DISPERSION',t47,d10.3/ t10,                      &
-     &'PRECISION FOR C.-O. RMS',t47,d10.3/)
-10220 format(t10,i4,2(' ',d15.8),5x,2(' ',d15.8))
-10250 format(t10,'NUMBER OF DIFFERENT BLOCKS',t50,i5/ t10,              &
-     &'BLOCKS PER PERIOD',t49,i5//)
-10290 format(t10,'MORE THAN ',i5,' COMBINATIONS SPECIFIED'/)
-10300 format(//131('-')//t10,'DATA BLOCK COMBINATION OF ELEMENTS',      &
-     &'  THE FOLLOWING ELEMENTS ARE RELATED IN STRENGTHS--->'/ t10,     &
-     &'ELEMENT RELATED TO ELEMENT BY THE RATIO'/)
-10340 format(t10,'NO CAVITIES SPECIFIED'/)
-10350 format(//131('-')//t10,'DATA BLOCK ORGANISATION OF RANDOM NUMBERS'&
-     &/5x,'|          |      OWN RANDOM NUMBERS      |      SAME RAN' , &
-     &'DOM NUMBERS      |   SAME MULTIPOLECOEFFICIENTS  |'/131('-'))
-10380 format(t10,'HIGHER MULTIPOLES THAN 20-POLES ARE NOT ALLOWED' ,    &
-     &' AND THEREFORE IGNORED')
-10500 format(//131('-')//t10,'SUMMARY OF DATA BLOCK ',a4,' INFOs')
-10520 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10,           &
-     &'NAME',20x,'TYPE',5x,'INSERTION POINT',4x,'SYNCH LENGTH [m]')
-10070 format(1x,i5,1x,a16,1x,i3,1x,d17.10,1x,d17.10,1x,d17.10,1x,d14.7, &
-     &1x,d13.6,1x,d14.7,1x,d13.6)
-10210 format(t10,'DATA BLOCK MULTIPOLE COEFFICIENTS'/ t10,              &
-     &'MULTIPOLE                    ',a16/t10,'RADIUS IN MM            '&
-     &,f15.7/ t10,'BENDING STRENGTH IN MRAD',f15.7// t10,19x,'NORMAL',25&
-     &x,'      SKEW '// t10,'      MEAN            RMS-VALUE     ',     &
-     &'       MEAN            RMS-VALUE'/)
-10260 format(t4,i4,1x,a16,1x,i2,1x,6(1x,a16))
-10270 format(t28,6(1x,a16))
-10280 format(t3,i6,1x,5(a16,1x))
-10490 format(t10,a16,4x,a40,2x,1pe16.9)
-10510 format(t10,a16,4x,i8,12x,i8,4x,1pe16.9)
-10700 format(t10,'DATA BLOCK TROMBONE ELEMENT'/                         &
-     &t10,'TROMBONE #      NAME'/)
-10710 format(t22,i4,5x,a16)
-10890 format(1x,'--> function ',i2,' of combo # ',i4,' of element',a16, &
-     &'does not exist!')
-10891 format(1x,'--> single element ',a16,' is a thick lens one!')
 end subroutine daten
 
 ! ================================================================================================ !
@@ -2406,259 +1712,6 @@ subroutine wzsub(x,y,u,v)
   return
 !
 end subroutine wzsub
-
-! ================================================================================================ !
-!     compute eLens theta at r2
-!     input variables:
-!     - length of eLens [m];
-!     - current intensity of e-beam [A]
-!     - kinetic energy of electrons [keV]
-!     - total beam energy [MeV]
-!     - outer radius [mm]
-! ================================================================================================ !
-real(kind=fPrec) function eLensTheta( len, Int, Ekin, Etot, r2 )
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-  use physical_constants
-  use crcoall
-  use mod_common
-  implicit none
-  real(kind=fPrec) gamma, beta_e, beta_b, brho, len, Int, Ekin, Etot, r2
-  gamma=Ekin*c1m3/pmae+1 ! from kinetic energy
-  beta_e=sqrt((gamma+one)*(gamma-one))/(gamma)
-  gamma=Etot/pma ! from total energy
-  beta_b=sqrt((gamma+one)*(gamma-one))/(gamma)
-  brho=Etot/(clight*c1m6)
-!     r2: from mm to m
-!     theta: from rad to mrad
-  eLensTheta=len*abs(Int)/(2*pi*eps0*brho*clight**2*r2*c1m3)*c1e3
-  if ( Int.lt.zero ) then
-      eLensTheta=eLensTheta*(one/(beta_e*beta_b)+one)
-  else
-      eLensTheta=eLensTheta*(one/(beta_e*beta_b)-one)
-  end if
-end function eLensTheta
-
-! ================================================================================================ !
-!     read file with coefficients for chebyshev polynomials
-!     ifile is index of file in table of chebyshev files
-!     file is structured as:
-!        keyword : value
-!     keywords:
-!     - I: reference current intensity of e-beam [A]
-!     - Ek: reference kinetic energy of electrons [keV]
-!     - rad: reference radius [mm]
-!     comment line is headed by '#'
-!     coefficients are give with the following syntax:
-!     i j : value
-!     where i->x and j->y
-! ================================================================================================ !
-subroutine parseChebyFile(ifile)
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-      use physical_constants
-      use crcoall
-      use mod_common
-      use elens
-      use string_tools
-
-      implicit none
-
-      character(len=160) tmpstr
-      character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
-      integer   getfields_nfields                                                 ! Number of identified fields
-      integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
-      logical   getfields_lerr                                                    ! An error flag
-      integer ierr, ii, jj, ifile, errno
-      real(kind=fPrec) tmpflt, beta, gamma, round_near
-
-      ierr=0
-      write(lout,*)' Parsing file with coefficients for Chebyshev polynomials ' &
-     &   //elens_cheby_filename(ifile)
-      open(elens_cheby_unit,file=elens_cheby_filename(ifile),status='old')
-      do while (.true.)
-         read(elens_cheby_unit,'(A)',end=1982,err=1983) tmpstr
-         if (tmpstr(1:1).ne.'#') then
-            call getfields_split( tmpstr, getfields_fields, getfields_lfields, &
-     &        getfields_nfields, getfields_lerr )
-            if ( getfields_lerr ) then
-               ierr=1
-               goto 1983
-            end if
-            if (tmpstr(1:1).eq.'I') then
-!              read reference current of e-beam in e-lens
-               if (getfields_nfields.lt.3) then
-                  ierr=2
-                  goto 1983
-               end if
-#ifndef CRLIBM
-               read (getfields_fields(3)(1:getfields_lfields(3)),*) tmpflt
-#endif
-#ifdef CRLIBM
-               tmpflt=round_near(errno,getfields_lfields(3)+1,getfields_fields(3))
-               if (errno.ne.0) call rounderr (errno,getfields_fields,3,tmpflt)
-#endif
-               elens_cheby_refCurr(ifile)=tmpflt
-
-            elseif (tmpstr(1:2).eq.'Ek') then
-!              read reference kinetic energy of e-beam in e-lens
-               if (getfields_nfields.lt.3) then
-                  ierr=3
-                  goto 1983
-               end if
-#ifndef CRLIBM
-               read (getfields_fields(3)(1:getfields_lfields(3)),*) tmpflt
-#endif
-#ifdef CRLIBM
-               tmpflt=round_near(errno,getfields_lfields(3)+1,getfields_fields(3))
-               if (errno.ne.0) call rounderr (errno,getfields_fields,3,tmpflt)
-#endif
-               gamma=tmpflt*c1m3/pmae+1 ! from kinetic energy
-               elens_cheby_refBeta(ifile)=sqrt((gamma+one)*(gamma-one))/(gamma)
-
-            elseif (tmpstr(1:3).eq.'rad') then
-!              read reference radius e-beam in e-lens
-               if (getfields_nfields.lt.3) then
-                  ierr=4
-                  goto 1983
-               end if
-#ifndef CRLIBM
-               read (getfields_fields(3)(1:getfields_lfields(3)),*) tmpflt
-#endif
-#ifdef CRLIBM
-               tmpflt=round_near(errno,getfields_lfields(3)+1,getfields_fields(3))
-               if (errno.ne.0) call rounderr (errno,getfields_fields,3,tmpflt)
-#endif
-               elens_cheby_refRadius(ifile)=tmpflt
-
-            else
-!              read chebyshev coefficients
-               if (getfields_nfields.ne.4) then
-                  ierr=5
-                  goto 1983
-               end if
-               read (getfields_fields(1)(1:getfields_lfields(1)),*) ii
-               if (ii.gt.elens_cheby_order) then
-                  ierr=6
-                  goto 1983
-               end if
-               read (getfields_fields(2)(1:getfields_lfields(2)),*) jj
-               if (jj.gt.elens_cheby_order) then
-                  ierr=7
-                  goto 1983
-               end if
-#ifndef CRLIBM
-               read (getfields_fields(4)(1:getfields_lfields(4)),*) tmpflt
-#endif
-#ifdef CRLIBM
-               tmpflt=round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
-               if (errno.ne.0) call rounderr (errno,getfields_fields,4,tmpflt)
-#endif
-               elens_cheby_coeffs(ii,jj,ifile)=tmpflt
-            end if ! close if for keyword identification
-         end if ! close if for non-comment chars
-      end do
-1983  write(lout,*) 'ERROR ',ierr,' while parsing file '//elens_cheby_filename(ifile)
-      call prror(-1)
-1982  close(elens_cheby_unit)
-
-      ! echo parsed data
-      write(lout,fmt='(/,A,1X,I4)') ' Coefficients for Chebyshev polynomials as from file ' &
-     &//elens_cheby_filename(ifile)//' - #',ifile
-      write(lout,fmt='(A,1X,1PE10.3)') ' - reference current [A]:',elens_cheby_refCurr(ifile)
-      write(lout,fmt='(A,1X,1PE10.3)') ' - reference beta     []:',elens_cheby_refBeta(ifile)
-      write(lout,fmt='(A,1X,1PE10.3)') ' - reference radius [mm]:',elens_cheby_refRadius(ifile)
-      do ii=0,elens_cheby_order
-         do jj=0,elens_cheby_order
-            if (elens_cheby_coeffs(ii,jj,ifile).ne.zero) then
-               write(lout,fmt='(2(1X,I4)," : ",1PE10.3)') ii,jj,elens_cheby_coeffs(ii,jj,ifile)
-            end if
-         end do
-      end do
-
-end subroutine parseChebyFile
-
-subroutine intepr(i,j,ch,ch1)
-!-----------------------------------------------------------------------
-!     SUBROUTINE TO INTEPRET INPUT WITH CHARACTERS AND NUMBERS MIXED
-!
-!     I ... TYPE OF COMBINATION
-!
-!         1  LINE WITH 1 CHARACTERSTRING FOLLOWED BY NUMBERS
-!         2  LINE WITH CHARACTERSTRINGS, IF THE FIRST 5 CHARACTERS
-!            ARE BLANKS THIS IS INTERPRETED AS A BLANK CHARACTER
-!         3  LINE WITH CHARACTERSTRINGS
-!         4  LINE WITH 2 CHARACTERSTRINGS
-!         5  LINE WITH 1 CHARACTERSTRING AND N*(NUMBER,CHA.STRING)
-!         6  LINE WITH 1 NUMBER AND 2 CHARACTERSTRINGS
-!         7  LINE WITH 1 NUMBER, 2 CHARACTERSTRINGS AND NUMBERS
-!         8  LINE WITH 2 CHARACTERSTRINGS AND NUMBERS
-!
-!     J ... SKIP THE FIRST (J-1) CHARACTERS OF CHARACTERSTRING CH
-!    CH ... INPUT CHARACTERSTRING
-!   CH1 ... OUTPUT CHARACTERSTRING
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use mathlib_bouncer
-      implicit none
-!ERIC
-      integer i,i0,i1,i2,i3,i4,iev,ii,j
-      integer nchars
-      parameter (nchars=160)
-      character(len=nchars) ch
-      character(len=nchars+nchars) ch1
-      save
-!-----------------------------------------------------------------------
-      i0=0
-      i1=j
-      i2=1
-      i4=0
-      do 10 ii=j,nchars
-        if(i0.eq.0.and.ch(ii:ii).eq.' ') then
-          if(i.eq.2.and.ii.eq.5.and.ch(:5).eq.'     ') then
-            ch1(:4)=''' '' '
-            i2=5
-          endif
-          i1=ii+1
-          goto 10
-        endif
-        i0=1
-        if(ch(ii:ii).eq.' ') then
-          i4=i4+1
-          iev=1
-          if(mod(i4,2).eq.0) iev=0
-          if(i.eq.1) goto 20
-          if(i.eq.2.or.i.eq.3.or.i.eq.4.or. (i.eq.5.and.iev.eq.1.).or.  &
-     &(i.eq.6.and.i4.ge.2).or. (i.eq.7.and.(i4.eq.2.or.i4.eq.3)).or.    &
-     &(i.eq.8.and.i4.lt.3)) then
-            i3=((i2+ii)-i1)+2                                            !hr05
-            ch1(i2:i3)=''''//ch(i1:ii-1)//''' '
-            if(i.eq.4.and.i4.eq.2) goto 30
-            i2=i3+1
-          endif
-          if((i.eq.5.and.iev.eq.0).or. (i4.eq.1.and.(i.eq.6.or.i.eq.7)))&
-     &then
-            i3=(i2+ii)-i1                                                !hr05
-            ch1(i2:i3)=ch(i1:ii)
-            i2=i3+1
-          endif
-          if((i.eq.7.and.i4.gt.3).or.(i.eq.8.and.i4.eq.3)) goto 40
-          i0=0
-          i1=ii+1
-        endif
-   10 continue
-      goto 30
-   20 ch1(1:nchars+nchars)=''''//ch(i1:ii-1)//''''//ch(ii:nchars)//' / '
-      return
-   30 i3=i3+1
-      ch1(i3:i3+2)=' / '
-      return
-   40 i3=i2+nchars+3-i1
-      ch1(i2:i3)=ch(i1:nchars)//' / '
-      return
-      end
 
 subroutine initialize_element(ix,lfirst)
 !-----------------------------------------------------------------------

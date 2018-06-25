@@ -53,9 +53,6 @@ module sixtrack_input
   ! Multipole Coefficients
   integer,                       public, save :: sixin_im
 
-  ! Organisation of Random Numbers
-  integer,                       public, save :: sixin_iorg
-
   ! Beam-Beam Elements
   real(kind=fPrec),              public, save :: sixin_emitNX
   real(kind=fPrec),              public, save :: sixin_emitNY
@@ -1850,13 +1847,13 @@ subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
     return
   end if
 
-  sixin_iorg = sixin_iorg + 1
+  iorg = iorg + 1
   elemOne    = str_nmSpace
   if(nSplit > 0) elemOne            = trim(lnSplit(1))
-  if(nSplit > 1) bezr(2,sixin_iorg) = trim(lnSplit(2))
-  if(nSplit > 2) bezr(3,sixin_iorg) = trim(lnSplit(3))
+  if(nSplit > 1) bezr(2,iorg) = trim(lnSplit(2))
+  if(nSplit > 2) bezr(3,iorg) = trim(lnSplit(3))
 
-  if(sixin_iorg == 1) then
+  if(iorg == 1) then
     write(lout,"(a)") "ORGA>               |"//&
     " Own Random Num   |"                    //&
     " Same Random Numbers                 |" //&
@@ -1868,7 +1865,7 @@ subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
   end if
 
   if(elemOne /= "MULT" .and. elemOne /= str_nmSpace) then
-    if(bezr(2,sixin_iorg) == str_nmSpace) then
+    if(bezr(2,iorg) == str_nmSpace) then
       write(lout,"(a,i4,a)") "ORGA> Elements ",iLine," |"//&
         " "//elemOne(1:16)//" |"                         //&
         "                  |"                            //&
@@ -1879,27 +1876,27 @@ subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
       write(lout,"(a,i4,a)") "ORGA> Elements ",iLine," |"//&
         "                  |"                            //&
         " "//elemOne(1:16)//" |"                         //&
-        " "//bezr(2,sixin_iorg)(1:16)//" |"              //&
+        " "//bezr(2,iorg)(1:16)//" |"              //&
         "                  |"                            //&
         "                  |"
      end if
   end if
-  if(elemOne /= "MULT") bezr(1,sixin_iorg) = elemOne
-  if(elemOne == "MULT" .and. bezr(2,sixin_iorg) /= str_nmSpace .and. bezr(3,sixin_iorg) /= str_nmSpace) then
+  if(elemOne /= "MULT") bezr(1,iorg) = elemOne
+  if(elemOne == "MULT" .and. bezr(2,iorg) /= str_nmSpace .and. bezr(3,iorg) /= str_nmSpace) then
     write(lout,"(a,i4,a)") "ORGA> Elements ",iLine," |"//&
       "                  |"                            //&
       "                  |"                            //&
       "                  |"                            //&
-      " "//bezr(2,sixin_iorg)(1:16)//" |"              //&
-      " "//bezr(3,sixin_iorg)(1:16)//" |"
+      " "//bezr(2,iorg)(1:16)//" |"              //&
+      " "//bezr(3,iorg)(1:16)//" |"
     sixin_im = sixin_im + 1
 
     j0 = 0
     j1 = 0
 
     do i=1,il
-      if(bez(i) == bezr(2,sixin_iorg)) j1 = i
-      if(bez(i) == bezr(3,sixin_iorg)) j0 = i
+      if(bez(i) == bezr(2,iorg)) j1 = i
+      if(bez(i) == bezr(3,iorg)) j0 = i
     end do
     if(j0 == 0 .or. j1 == 0 .or. kz(j0) == 11 .or. kz(j1) == 11) then
       write(lout,"(a)") "ORGA> ERROR Multipole coefficients cannot be set equal."

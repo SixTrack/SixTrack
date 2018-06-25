@@ -57,40 +57,43 @@ module bdex
 
 contains
 
-  subroutine bdex_allocate_arrays
-    use crcoall
-    implicit none
-    integer stat
+subroutine bdex_allocate_arrays
+  use crcoall
+  implicit none
+  call alloc(bdex_elementAction,nele,0,'bdex_elementAction')
+  call alloc(bdex_elementChannel,nele,0,'bdex_elementChannel')
+end subroutine bdex_allocate_arrays
 
-    call alloc(bdex_elementAction,nele,0,'bdex_elementAction')
-    call alloc(bdex_elementChannel,nele,0,'bdex_elementChannel')
+subroutine bdex_expand_arrays(nele_new)
+  use crcoall
+  implicit none
+  integer, intent(in) :: nele_new
+  call resize(bdex_elementAction,nele_new,0,'bdex_elementAction')
+  call resize(bdex_elementChannel,nele_new,0,'bdex_elementChannel')
+end subroutine bdex_expand_arrays
 
-  end subroutine bdex_allocate_arrays
+subroutine bdex_comnul
+  bdex_enable=.false.
+  bdex_debug =.false.
+  bdex_nchannels=0
+  bdex_channels(:,:) = 0
+  bdex_channelNames(:) = " "
+  bdex_nstringStorage = 0
+  bdex_stringStorage(:) = " "
+end subroutine bdex_comnul
 
-  subroutine bdex_expand_arrays(nele_new)
-    use crcoall
-    implicit none
-    integer, intent(in) :: nele_new
-
-    call resize(bdex_elementAction,nele_new,0,'bdex_elementAction')
-    call resize(bdex_elementChannel,nele_new,0,'bdex_elementChannel')
-  end subroutine bdex_expand_arrays
-
-  subroutine bdex_closeFiles
-    implicit none
-
-    integer i
-
-    if (bdex_enable) then
-       do i=0,bdex_nchannels
-          if (bdex_channels(i,1).eq.1) then
-             close(bdex_channels(i,4))   !inPipe
-             write(bdex_channels(i,4)+1,"(a)") "CLOSEUNITS"
-             close(bdex_channels(i,4)+1) !outPipe
-          endif
-       enddo
-    endif
-  end subroutine bdex_closeFiles
+subroutine bdex_closeFiles
+  integer i
+  if(bdex_enable) then
+      do i=0,bdex_nchannels
+        if (bdex_channels(i,1).eq.1) then
+            close(bdex_channels(i,4))   !inPipe
+            write(bdex_channels(i,4)+1,"(a)") "CLOSEUNITS"
+            close(bdex_channels(i,4)+1) !outPipe
+        endif
+      enddo
+  endif
+end subroutine bdex_closeFiles
 
 ! ================================================================================================ !
 !  Parse Input Line
@@ -309,36 +312,6 @@ subroutine bdex_parseInputDone
   end if
 
 end subroutine bdex_parseInputDone
-
-  subroutine bdex_comnul
-    implicit none
-
-    integer i,j
-
-    bdex_enable=.false.
-    bdex_debug =.false.
-    do i=1, nele
-       bdex_elementAction(i) = 0
-       bdex_elementChannel(i) = 0
-    end do
-    bdex_nchannels=0
-    do i=1, bdex_maxchannels
-       bdex_channels(i,1) = 0
-       bdex_channels(i,2) = 0
-       bdex_channels(i,3) = 0
-       bdex_channels(i,4) = 0
-       do j=1,getfields_l_max_string
-          bdex_channelNames(i)(j:j)=char(0)
-       end do
-    enddo
-    bdex_nstringStorage = 0
-    do i=1,bdex_maxStore
-       do j=1,getfields_l_max_string
-          bdex_stringStorage(i)(j:j)=char(0)
-       end do
-    end do
-
-  end subroutine bdex_comnul
 
 ! The following subroutines where extracted from deck bdexancil:
 ! Deck with the initialization etc. routines for BDEX
