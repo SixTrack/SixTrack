@@ -62,11 +62,11 @@ subroutine daten
   use zipf,     only : zipf_parseInputLine,zipf_parseInputDone
   use bdex,     only : bdex_parseInputLine,bdex_parseInputDone
   use mod_fluc, only : fluc_parseInputLine,fluc_readInputs
+  use wire,     only : wire_parseInputLine,wire_parseInputDone
   use aperture
   use mod_ranecu
   use mod_hions
   use elens
-  use wire
 #ifdef FLUKA
   use mod_fluka, only : fluka_parsingDone,fluka_parseInputLine
 #endif
@@ -440,8 +440,6 @@ subroutine daten
   select case(idat)
   case("ELEN")
     goto 2400
-  case("WIRE")
-    goto 2500
   end select
 
   ! If we've reached this point, the old style block parsing has not been executed.
@@ -808,6 +806,17 @@ subroutine daten
       call bdex_parseInputDone
     else
       call bdex_parseInputLine(ch,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("WIRE") ! Wire
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call wire_parseInputDone(inErr)
+      if(inErr) goto 9999
+    else
+      call wire_parseInputLine(ch,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -1317,213 +1326,6 @@ subroutine daten
  2401 continue
 
       goto 2400 ! at NEXT statement -> check that all single elements with kz(j) = 29 (elens) have been defined in ELEN block
-
-!-----------------------------------------------------------------------
-!  Wire, kz=+/-15,ktrack=45
-!  A. Patapenka (NIU), M. Fitterer,  FNAL
-!  last modified: 22-12-2016
-!-----------------------------------------------------------------------
- 2500 read(3,10020,end=1530,iostat=ierro) ch
-      if(ierro.gt.0) call prror(58)
-      lineno3 = lineno3+1 ! Line number used for some crash output
-
-      if(ch(1:1).eq.'/') goto 2500 ! skip comment lines
-
-      if (ch(:4).eq.next) then
-!       4) loop over single elements to check that they have been defined in the fort.3 block
-        do j=1,nele
-          if(kz(j).eq.15) then
-            if(wire_flagco(j).eq.0) then
-              write(lout,*)                                             &
-     &'ERROR: wire ',trim(bez(j)),' with kz(',j,') = ',kz(j), ' is '//  &
-     &'not defined in fort.3. You must define every wire in the '//     &
-     &'WIRE block in fort.3!'
-               call prror(-1)
-            endif
-          endif
-        enddo
-        goto 110 ! go to next BLOCK in fort.3 - we're done here!
-      endif
-
-      ! We don't support FIO, since it's not supported by any compilers...
-#ifdef FIO
-        write(lout,*)                                                   &
-     &       'ERROR in WIRE block: fortran IO format currently not ',   &
-     &       'supported!'
-        call prror(-1)
-#endif
-
-!     1) read in wire parameters
-      call getfields_split( ch, getfields_fields, getfields_lfields,    &
-     &        getfields_nfields, getfields_lerr )
-      if ( getfields_lerr ) then
-        write(lout,*)                                                   &
-     &       'ERROR in WIRE block: getfields_lerr=', getfields_lerr
-        call prror(-1)
-      endif
-
-!     Check number of arguments
-      if(getfields_nfields.ne.9) then
-        write(lout,*)                                                   &
-     &       'ERROR in WIRE block: wrong number of input ',             &
-     &       'parameters: ninput = ', getfields_nfields, ' != 9'
-        call prror(-1)
-      endif
-
-!     Find the element, and check that we're not double-defining
-      if (getfields_lfields(1) .gt. 16) then
-         write(lout,*)                                                  &
-     &        "ERROR in WIRE block: Element name max 16 characters;"//  &
-     &        "The name '" //getfields_fields(1)(1:getfields_lfields(1))&
-     &        //"' is too long."
-         call prror(-1)
-      endif
-
-      do j=1,nele               !loop over single elements and set parameters of wire
-         if(bez(j).eq.getfields_fields(1)(1:getfields_lfields(1))) then
-            ! check the element type (kz(j)_wire=15)
-            if(kz(j).ne.15) then
-               write(lout,*)                                            &
-     &              'ERROR: element type mismatch for WIRE! '//         &
-     &'Element type is kz(',j,') = ',kz(j),'!= +15'
-               call prror(-1)
-            endif
-            if(el(j).ne.0 .or. ek(j).ne.0 .or. ed(j).ne.0) then ! check the element type (kz(j)_wire=+/-15)
-               write(lout,*)                                            &
-     &'ERROR: length el(j) (wire is treated as thin element), '//       &
-     &' and first and second field have to be zero: el(j)=ed(j)=ek(j)'//&
-     &'=0, while el(',j,')=',el(j),', ed(',j,')=',ed(j),', ek(',j,      &
-     &')=',ek(j),'. Please check your input in the single element '//   &
-     &'definition of your WIRE. All values except for the type need '// &
-     &'to be zero.'
-               call prror(-1)
-            endif
-            if (wire_flagco(j).ne.0) then
-               write(lout,*) "ERROR in WIRE block:"//                   &
-     &              "The element '"//bez(j)//"' was defined twice!"
-               call prror(-1)
-            endif
-
-            ! Parse the element
-            read(getfields_fields(2)(1:getfields_lfields(2)),'(I10)')   &
-     &           wire_flagco(j)
-#ifndef CRLIBM
-            read (getfields_fields(3)(1:getfields_lfields(3)),*)        &
-     &           wire_current(j)
-            read (getfields_fields(4)(1:getfields_lfields(4)),*)        &
-     &           wire_lint(j)
-            read (getfields_fields(5)(1:getfields_lfields(5)),*)        &
-     &           wire_lphys(j)
-            read (getfields_fields(6)(1:getfields_lfields(6)),*)        &
-     &           wire_dispx(j)
-            read (getfields_fields(7)(1:getfields_lfields(7)),*)        &
-     &           wire_dispy(j)
-            read (getfields_fields(8)(1:getfields_lfields(8)),*)        &
-     &           wire_tiltx(j)
-            read (getfields_fields(9)(1:getfields_lfields(9)),*)        &
-     &           wire_tilty(j)
-#endif
-#ifdef CRLIBM
-            wire_current(j)= round_near (                               &
-     &           errno,getfields_lfields(3)+1, getfields_fields(3) )
-            if (errno.ne.0) call rounderr (                             &
-     &           errno,getfields_fields,3,wire_current(j) )
-            wire_lint(j)       = round_near (                           &
-     &           errno,getfields_lfields(4)+1, getfields_fields(4) )
-            if (errno.ne.0) call rounderr (                             &
-     &           errno,getfields_fields,4,wire_lint(j) )
-            wire_lphys(j)   = round_near (                              &
-     &           errno,getfields_lfields(5)+1, getfields_fields(5) )
-            if (errno.ne.0) call rounderr (                             &
-     &           errno,getfields_fields,5,wire_lphys(j) )
-            wire_dispx(j) = round_near (                                &
-     &           errno,getfields_lfields(6)+1, getfields_fields(6) )
-            if (errno.ne.0) call rounderr (                             &
-     &           errno,getfields_fields,6,wire_dispx(j) )
-            wire_dispy(j) = round_near (                                &
-     &           errno,getfields_lfields(7)+1, getfields_fields(7) )
-            if (errno.ne.0) call rounderr (                             &
-     &           errno,getfields_fields,7,wire_dispy(j) )
-            wire_tiltx(j) = round_near (                                &
-     &           errno,getfields_lfields(8)+1, getfields_fields(8) )
-            if (errno.ne.0) call rounderr (                             &
-     &           errno,getfields_fields,8,wire_tiltx(j) )
-            wire_tilty(j) = round_near (                                &
-     &           errno,getfields_lfields(9)+1, getfields_fields(9) )
-            if (errno.ne.0) call rounderr (                             &
-     &           errno,getfields_fields,9,wire_tilty(j) )
-#endif
-
-            ! Make checks for the wire parameters
-            if(wire_flagco(j).ne. 1 .and. wire_flagco(j).ne.-1) then
-               write(lout,*)                                            &
-     &"ERROR: WIRE flag for defining the wire separation "//            &
-     &"must be -1 (disp* = distance closed orbit and beam)"//           &
-     &"or 1 (disp* = distance from x=y=0 <-> beam), but "//             &
-     &"wire_flagco = ",wire_flagco(j)
-               call prror(-1)
-            end if
-            if((wire_lint(j).lt.0) .or. (wire_lphys(j).lt.0)) then
-              write(lout,*)                                             &
-     &'ERROR: WIRE integrated and physical length must larger than 0! ' &
-     &// 'wire_lint = ',wire_lint(j),', wire_lphys = ',wire_lphys(j)
-              call prror(-1)
-            end if
-            if((abs(wire_tiltx(j)) .ge. 90) .or.                        &
-     &         (abs(wire_tilty(j)) .ge. 90)) then
-              write(lout,*)                                             &
-     &'ERROR: WIRE tilt angle must be within [-90,90] degrees! '        &
-     &//'wire_tiltx = ',wire_tiltx(j),', wire_tilty = ',wire_tilty(j)
-              call prror(-1)
-            end if
-
-! print a summary of the wire parameters
-            write(lout,                                                 &
-     &fmt='((A,/),(A,A,/),(A,I4,/),7(A,D10.3,A,/))')                    &
-     &'WIRE found in list of single elements with: ',                   &
-     &'name               = ',bez(j),                                   &
-     &'flagco             = ',wire_flagco(j),                           &
-     &'current            = ',wire_current(j),' A',                     &
-     &'integrated length  = ',wire_lint(j),' m',                        &
-     &'physical length    = ',wire_lphys(j),' m',                       &
-     &'hor. displacement  = ',wire_dispx(j),' mm',                      &
-     &'vert. displacement = ',wire_dispy(j),' mm',                      &
-     &'hor. tilt          = ',wire_tiltx(j),' degrees',                 &
-     &'vert. tilt         = ',wire_tilty(j),' degrees'
-! ignore wire if current, length or displacment are 0 or
-! wire_flagco not set (case wire_flagco = 0)
-! for displacement only ignore if wire_dispx = wire_dispy = 0
-            if( abs(wire_flagco(j)*(wire_current(j)*(wire_lint(j)       &
-     &*(wire_lphys(j)*(wire_dispx(j)+wire_dispy(j)))))).le.pieni ) then
-              kz(j) = 0 ! treat element as marker
-
-              write(lout,                                               &
-     &fmt='((A,A,A,/),(A,A,/),4(A,I0,A,D10.3,/))')                      &
-     &'WARNING: WIRE element ',bez(j),'ignored!',                       &
-     &'Elements are ignored if current, displacment, integrated ',      &
-     &'or physical length are 0! ',                                     &
-     &'wire_dispx(',j,') = ',wire_dispx(j),                             &
-     &'wire_dispy(',j,') = ',wire_dispy(j),                             &
-     &'wire_lint(',j,') = ',wire_lint(j),                               &
-     &'wire_lphys(',j,') = ',wire_lphys(j)
-            end if
-
-            goto 2501           !Search success :)
-
-         endif
-      enddo
-
-!     Search for element failed!
-      write(lout,*) "ERROR in WIRE: "//                                 &
-     &     "Un-identified SINGLE ELEMENT '",                            &
-     &     getfields_fields(1)(1:getfields_lfields(1)), "'"
-      call prror(-1)
-
-!     element search was a success :)
- 2501 continue
-
-      goto 2500 ! at NEXT statement -> check that all single elements with kz(j) = 15 (wire) have been defined in WIRE block
-
 
 ! ================================================================================================ !
 !  ENDE was reached; we're done parsing fort.3, now do some postprocessing.
