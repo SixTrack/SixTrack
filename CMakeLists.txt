@@ -687,8 +687,8 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	# ifort
-	set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs -warn unused")
-	set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs -warn unused")
+	set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs") #  -warn unused
+	set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
 	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
 	set(PREPRO_FLAGS -fpp -E -P)
 
