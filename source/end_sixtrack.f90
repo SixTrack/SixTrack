@@ -393,7 +393,7 @@ subroutine abend(cstring)
 
 #include "version.f90"
 
-  integer i,lstring,j
+  integer i,lstring,j,itot,ttot
   character(len=*) cstring
   character(len=256) filename
   real(kind=fPrec) sumda(60)
