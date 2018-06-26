@@ -2772,14 +2772,17 @@ subroutine collimate_do_collimator(stracki)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   if ((iturn.eq.1).and.(ipencil.eq.icoll).and.(pencil_distr.eq.3)) then
 
-!     create distribution where the normalized distance between jaw and beam is the smallest - this is where particles will first impact:
+!     create distribution where the normalized distance between jaw and beam is the smallest
+!     - this is where particles will first impact:
 !     without imperfections, it is:
 !              -- at the face of the collimator for the case of beta'<0 (POSITIVE alpha - beam converging) and
 !              -- at the exit of the collimator for the case of beta'>0 (NEGATIVE alpha beam diverging)
 
-!     with imperfections: include errors on gap, tilt and offset. We have to calculate the normalized distance to each corner separately!
+!     with imperfections: include errors on gap, tilt and offset. We have to calculate the normalized distance 
+!     to each corner separately!
 
-!     First: calculate optical parameters at start and end of collimator (half a collimator length upstream and downstream of present s-position)
+!     First: calculate optical parameters at start and end of collimator (half a collimator length upstream and
+!     downstream of present s-position)
 !     Assuming a purely vertical or horizontal halo - need to add more conditions for other cases!
 
 !     Using standard twiss transfer matrix for a drift : ( new_halo_model_checks.nb )
@@ -2832,7 +2835,8 @@ subroutine collimate_do_collimator(stracki)
       tiltOffsNeg2 = abs(sin_mb(c_tilt(2))) * c_length
     end if
 
-!   calculate half distance from jaws to beam center (in units of beam sigma) at the beginning of the collimator, positive and neg jaws.
+!   calculate half distance from jaws to beam center (in units of beam sigma) at the beginning of the collimator,
+!     positive and neg jaws.
     Nap1pos=((c_aperture/two + c_offset) + tiltOffsPos1)/beamsize1
     Nap2pos=((c_aperture/two + c_offset) + tiltOffsPos2)/beamsize2
     Nap1neg=((c_aperture/two - c_offset) + tiltOffsNeg1)/beamsize1
@@ -3519,7 +3523,8 @@ subroutine collimate_end_collimator()
 #ifdef HDF5
             end if
 #endif
-          end if ! if((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4) .and.(xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec) .and.
+          end if ! if((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
+          ! .and.(xv(1,j).lt.99.0_fPrec.and.xv(2,j).lt.99.0_fPrec) and.
         end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
       end if !if(dowritetracks) then
 
@@ -5333,7 +5338,8 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !     SR: before assigning new (x,y) for nabs=1, write the
 !     inelastic impact file .
 
-!     RB: writeout should be done for both inelastic and single diffractive. doing all transformations in x_flk and making the set to 99.99 mm conditional for nabs=1
+!     RB: writeout should be done for both inelastic and single diffractive. doing all transformations
+!       in x_flk and making the set to 99.99 mm conditional for nabs=1
 !!! /* start RB fix */
 
 ! transform back to lab system for writeout.
