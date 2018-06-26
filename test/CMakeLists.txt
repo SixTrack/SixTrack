@@ -29,10 +29,9 @@ set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERRO
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
 ## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90 / STF.
-## "Totally untested": bnl
 ##
 
-#List of tests that does not produce a valid fort.10
+# List of tests that do not produce a valid fort.10
 SET(TESTS_NOFORT10
   orbit6d-element-trombone
   orbit6d-element-quadrupole
@@ -62,7 +61,7 @@ SET(TESTS_NOFORT10
   dump_2_all_ele_highprec
   beam-HO_6D-simple-newstyle-orbit
   scatter_collimation
-  )
+)
 
 if(NOT COLLIMAT)
 if(LIBARCHIVE)
@@ -71,24 +70,6 @@ endif()
 
 if(NAFF)
   SET(SIXTRACK_TESTS fma_naff ${SIXTRACK_TESTS})
-endif()
-
-#only turn on the bnl test if we have BNLELENS enabled due to slight differences in the test
-if(BNLELENS)
-  SET(SIXTRACK_TESTS bnl ${SIXTRACK_TESTS})
-endif(BNLELENS)
-
-#Needs at least 2048 particles to run correctly
-if(BIGNPART OR HUGENPART)
-  SET(SIXTRACK_TESTS javier_bignpart ${SIXTRACK_TESTS})
-endif()
-#Needs more than 2048 particles to run correctly
-if(HUGENPART)
-  SET(SIXTRACK_TESTS beam-HO_6D-simple-newstyle-coupling ${SIXTRACK_TESTS})
-endif()
-
-if(BIGNBLZ OR HUGENBLZ)
-  SET(SIXTRACK_TESTS fcc ${SIXTRACK_TESTS})
 endif()
 
 #These tests are always included
@@ -106,9 +87,11 @@ SET(SIXTRACK_TESTS
   elensidealthin6d_DYNK
   eric
   exact
+  fcc
   frs60
   frs
   javier
+  javier_bignpart
   lostevery
   lost
   lostnumxv
@@ -156,6 +139,7 @@ SET(SIXTRACK_TESTS
   beam-HO_6D-simple-oldstyle
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-orbit
+  beam-HO_6D-simple-newstyle-coupling
   beam-HO_LR-newstyle
   beam-HO_LR-oldstyle
   beam-HO_LR-ibbc-oldstyle
@@ -171,22 +155,23 @@ SET(SIXTRACK_TESTS
   ${SIXTRACK_TESTS}
 )
 else()
-  if(BIGNBLZ OR HUGENBLZ)
-    set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
-  endif()
+  set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
 endif(NOT COLLIMAT)
+
+# Tests that require SixDA executable
+if(SIXDA)
+  list(APPEND SIXTRACK_DA_TESTS frs_da thick4_da)
+endif()
 
 #Collimation tests (needs backtrk)
 #use extra checks on fort.999 and other collimation loss files
 if(COLLIMAT AND BACKTRK)
-  if(BIGNBLZ OR HUGENBLZ AND HUGENPART)
-    if(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-      SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
-    endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-    # if(NOT FLUKA OR NOT G4COLLIMAT)
-    #   SET(SIXTRACK_TESTS collimation_merlin_fcc_2017_h1_collision ${SIXTRACK_TESTS})
-    # endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-  endif(BIGNBLZ OR HUGENBLZ AND HUGENPART)
+  if(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
+    SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
+  endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
+  # if(NOT FLUKA OR NOT G4COLLIMAT)
+  #   SET(SIXTRACK_TESTS collimation_merlin_fcc_2017_h1_collision ${SIXTRACK_TESTS})
+  # endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
 endif(COLLIMAT AND BACKTRK)
 
 #For CR builds, test the CR functions, so kill/resume the test
@@ -245,15 +230,41 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
     SET( DUMP_BIN_FILE dump_ip3 )
   endif()
 
-  ADD_TEST(NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST} COMMAND SixTestWrapper $<TARGET_FILE:SixTrack> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE})
+  ADD_TEST(
+    NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
+    COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE}
+  )
 
   #some tests take a very long time (set a 2 day timeout)
   set_tests_properties(${TST} PROPERTIES TIMEOUT "172800")
 
 endforeach()
 
+# DA Tests
+if(SIXDA)
+  foreach(TST IN ITEMS ${SIXTRACK_DA_TESTS})
+
+    SET(FORT10 0)
+    SET(FORT90 0)
+    SET(STF_ENABLE 0)
+    SET(SIXOUT_NUMFILES 0)
+    SET(CR_ENABLE 0)
+    SET(CR_KILL_TIME 0)
+    SET(DUMP_BIN_FILE NONE)
+
+    ADD_TEST(
+      NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
+      COMMAND SixTestWrapper $<TARGET_FILE:SixTrackDA> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE}
+    )
+
+    #some tests take a very long time (set a 2 day timeout)
+    set_tests_properties(${TST} PROPERTIES TIMEOUT "172800")
+
+  endforeach()
+endif()
+
 #test files
-foreach(TST IN ITEMS ${SIXTRACK_TESTS})
+foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
   add_custom_target(test_copy_${TST})
   add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/test/${TST}/)
 
@@ -302,7 +313,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 
   endif(NOT BOINC)
 
-  add_dependencies( SixTrack test_copy_${TST})
+  add_dependencies( SixTrackLib test_copy_${TST})
 endforeach()
 
 #add labels to tests
@@ -372,6 +383,9 @@ SET(FAST_TESTS
   orbit6d-ions
   beam-HO_6D-simple-newstyle-orbit
 )
+if(SIXDA)
+  list(APPEND FAST_TESTS thick4_da frs_da)
+endif()
 
 #Medium tests take < 30 mins to run
 SET(MEDIUM_TESTS
@@ -403,7 +417,7 @@ SET(PERF_TESTS
   perf1
 )
 
-foreach(TST IN ITEMS ${SIXTRACK_TESTS})
+foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
 
   list(FIND FAST_TESTS ${TST} LABEL_FAST)
   list(FIND MEDIUM_TESTS ${TST} LABEL_MEDIUM)

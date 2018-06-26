@@ -6,7 +6,7 @@
 !
 ! ================================================================================================ !
 subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -73,7 +73,7 @@ end subroutine beaminf
 !    P,Q,E are all normalized by P0
 ! ================================================================================================ !
 subroutine boostf(sphi,cphi,tphi,salpha,calpha,track)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -133,7 +133,7 @@ end subroutine boostf
 !**SBCF ***Synchro-Beam for headon collision*********************
 ! ================================================================================================ !
 subroutine sbcf(star,cphi,cphi2,nsli,f,ibb,bcu,track,ibbc)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -278,7 +278,7 @@ end subroutine sbcf
 ! BOOSTIF **************inverse boost ****************
 ! ================================================================================================ !
 subroutine boostif(sphi,cphi,tphi,salpha,calpha,track)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -347,7 +347,7 @@ end subroutine boostif
 !**********************************************************************
 ! ================================================================================================ !
 subroutine bbff(sepx,sepy,sigxx,sigyy,bbfx,bbfy,bbgx,bbgy)
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants

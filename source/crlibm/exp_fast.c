@@ -25,11 +25,10 @@ extern double scs_exp_rd(double);
 static const double 
  two1000  = 1.07150860718626732095e301, /* 0x7E700000, 0x00000000 */
  twom1000 = 9.33263618503218878990e-302,/* 0x01700000, 0x00000000 */
- twom53   = 1.11022302462515654042e-16, /* 0x3CA00000, 0x00000000 */
+//  twom53   = 1.11022302462515654042e-16, /* 0x3CA00000, 0x00000000 */
  ln2_hi   = 6.93147180559890330187e-01, /* 0x3FE62E42, 0xFEFA3800 */ 
  ln2_lo   = 5.49792301870837115524e-14, /* 0x3D2EF357, 0x93C76730 */
- half[2]  = {0.5,
-            -0.5},
+//  half[2]  = {0.5,-0.5},
  inv_ln2  = 1.44269504088896338700e+00;
 
 static const db_number 
@@ -99,7 +98,7 @@ static const int errd  = 73400320;                   /* 70 * 2^20 */
 
 #define EVAL_EXP_STEP_2_AND_3 \
 {                                                                 \
-  /* Arrondi au plus près */                                      \
+  /* Arrondi au plus prÃ¨s */                                      \
   DOUBLE2INT(k, (x * inv_ln2));                                   \
                                                                   \
   if (k != 0){                                                    \
@@ -113,17 +112,17 @@ static const int errd  = 73400320;                   /* 70 * 2^20 */
                                                                   \
                                                                   \
   /*                                                              \
-   * 2) Deuxième reduction d'argument                             \
+   * 2) DeuxiÃ¨me reduction d'argument                             \
    */                                                             \
                                                                   \
                                                                   \
-  /* Arrondi au plus près */                                      \
+  /* Arrondi au plus prÃ¨s */                                      \
   db.d  = (r_hi + two_44_43);                                     \
   indx  = db.i[LO_ENDIAN];                                        \
   indx += BIAS;                                                   \
   r_hi  -= (db.d - two_44_43);                                    \
                                                                   \
-  /* Normalisation du résultat */                                 \
+  /* Normalisation du rÃ©sultat */                                 \
   Add12(rp_hi, rp_lo, r_hi, r_lo);                             \
                                                                   \
   /* Lecture de table */                                          \
@@ -180,14 +179,14 @@ double exp_rn(double x){
   int    exp_R11;
 
   /*
-   * 1) Première réduction d'argument
+   * 1) PremiÃ¨re rÃ©duction d'argument
    */
 
   db.d = x;
   hx   = db.i[HI_ENDIAN]; 
   hx  &= 0x7fffffff;  
 
-  /* Filtre les cas spéciaux */
+  /* Filtre les cas spÃ©ciaux */
   if (hx >= 0x40862E42){
     if (hx >= 0x7ff00000){
       if (((hx&0x000fffff)|db.i[LO_ENDIAN])!=0)
@@ -203,7 +202,7 @@ double exp_rn(double x){
     
   EVAL_EXP_STEP_2_AND_3;
 
-  /* Résultat = (R11 + R8) */
+  /* RÃ©sultat = (R11 + R8) */
   exp_R11 = (HI(R11) & 0x7ff00000) - errd;
 
   if (R11.d == (R11.d + (R8.d * errn))){
@@ -217,7 +216,7 @@ double exp_rn(double x){
 	return R11.d*two1000;                                     
       }                                                           
     }else {                                                       
-      /* On est dans les dénormalisés */                          
+      /* On est dans les dÃ©normalisÃ©s */                          
       R11.i[HI_ENDIAN] += ((k+1000)<<20);    
       db.d = R11.d * twom1000;
 
@@ -274,14 +273,14 @@ double exp_ru(double x){
   int           exp_R11;
 
   /*
-   * 1) Première réduction d'argument
+   * 1) PremiÃ¨re rÃ©duction d'argument
    */
 
   db.d = x;
   hx   = db.i[HI_ENDIAN]; 
   hx  &= 0x7fffffff;  
 
-  /* Filtre les cas spéciaux */
+  /* Filtre les cas spÃ©ciaux */
   if (hx >= 0x40862E42){
     if (hx >= 0x7ff00000){
       if (((hx&0x000fffff)|db.i[LO_ENDIAN])!=0)
@@ -320,7 +319,7 @@ double exp_ru(double x){
                     /* Which is the case for exp(x) !! */
       return R11.d;
     }else {                                                       
-      /* On est dans les dénormalisés */     
+      /* On est dans les dÃ©normalisÃ©s */     
       
       R11.i[HI_ENDIAN] += ((k+1000)<<20);                         
       db.d = R11.d * twom1000;
@@ -363,13 +362,13 @@ double exp_rd(double x){
   int    exp_R11;
 
   /*
-   * 1) Première réduction d'argument
+   * 1) PremiÃ¨re rÃ©duction d'argument
    */
   db.d = x;
   hx   = db.i[HI_ENDIAN];
   hx  &= 0x7fffffff;  
 
-  /* Filtre les cas spéciaux */
+  /* Filtre les cas spÃ©ciaux */
   if (hx >= 0x40862E42){
     if (hx >= 0x7ff00000){
       if (((hx&0x000fffff)|db.i[LO_ENDIAN])!=0)
@@ -408,7 +407,7 @@ double exp_rd(double x){
                     /* Which is the case for exp(x) !! */
       return R11.d;
     }else {                                                       
-      /* On est dans les dénormalisés */     
+      /* On est dans les dÃ©normalisÃ©s */     
       
       R11.i[HI_ENDIAN] += ((k+1000)<<20);                         
       db.d = R11.d * twom1000;
@@ -452,7 +451,7 @@ double exp_rd(double x){
  */
 
 /*
- * probleme en arrondi au plus près 
+ * probleme en arrondi au plus prÃ¨s 
  *-7.084061284577078367874491959810256958007812500000000000000000e+02
  *-7.100496760636764292939915321767330169677734375000000000000000e+02
  *

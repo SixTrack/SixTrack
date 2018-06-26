@@ -10,7 +10,7 @@ module dynk
   use mathlib_bouncer
   use mod_hions
   use numerical_constants, only : zero, one, two, c1e3
-  use parpro, only : nele, max_name_len
+  use parpro, only : nele, mNameLen
   use mod_alloc
   use string_tools
 
@@ -59,13 +59,13 @@ module dynk
   ! 1 row/SET (same ordering as dynk_sets), cols are:
   ! (1) element name
   ! (2) attribute name
-  character(str_maxLen), save :: dynk_cSets(dynk_maxSets,2)
+  character(mStrLen), save :: dynk_cSets(dynk_maxSets,2)
 
   ! Number of used positions in arrays
   integer, save :: dynk_nSets
 
   ! Similar to dynk_cSets, but only one entry per elem/attr
-  character(str_maxLen), save :: dynk_cSets_unique(dynk_maxSets,2)
+  character(mStrLen), save :: dynk_cSets_unique(dynk_maxSets,2)
 
   ! Store original value from dynk
   real(kind=fPrec), save :: dynk_fSets_orig(dynk_maxSets)
@@ -132,7 +132,7 @@ subroutine dynk_allocate
 
   call alloc(dynk_iData,dynk_maxiData,0,"dynk_iData")
   call alloc(dynk_fData,dynk_maxfData,zero,"dynk_fData")
-  call alloc(dynk_cData,str_maxLen,dynk_maxcData,str_dZeros,"dynk_cData")
+  call alloc(dynk_cData,mStrLen,dynk_maxcData,str_dZeros,"dynk_cData")
   call alloc(dynk_funcs,dynk_maxFuncs,5,0,"dynk_funcs")
 
   ! Set file units for I/O files
@@ -159,7 +159,7 @@ subroutine dynk_parseInputLine(inLine,iErr)
   integer i, nSplit
   logical spErr
 
-  character gFields(str_maxFields)*(str_maxlen)
+  character gFields(str_maxFields)*(mStrLen)
   integer   nFields
   integer   lFields(str_maxFields)
   logical   eFields
@@ -222,7 +222,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
   use crcoall
   implicit none
 
-  character, intent(in) :: gFields(str_maxFields)*(str_maxlen)
+  character, intent(in) :: gFields(str_maxFields)*(mStrLen)
   integer,   intent(in) :: nFields
   integer,   intent(in) :: lFields(str_maxFields)
 
@@ -241,7 +241,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
   parameter(nchars=160) ! Same as in daten
   character(len=nchars) ch
 
-  character filefields_fields(str_maxFields)*(str_maxlen)
+  character filefields_fields(str_maxFields)*(mStrLen)
   integer filefields_nfields
   integer filefields_lfields(str_maxFields)
   logical filefields_lerr
@@ -259,9 +259,9 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
     call alloc(dynk_funcs,dynk_maxFuncs,5,0,"dynk_funcs")
   end if
 
-    if (lFields(2).gt.str_maxLen-1 .or. lFields(2) .gt. 20) then
+    if (lFields(2).gt.mStrLen-1 .or. lFields(2) .gt. 20) then
         write(lout,*) "ERROR in DYNK block parsing (fort.3):"
-        write(lout,*) "Max length of a FUN name is the smallest of", str_maxLen-1, "and", 20, "."
+        write(lout,*) "Max length of a FUN name is the smallest of", mStrLen-1, "and", 20, "."
         write(lout,*) "The limitation of 20 comes from the output to dynksets.dat."
         write(lout,*) "Offending FUN: '"//gFields(2)(1:lFields(2))//"'"
         write(lout,*) "length:", lFields(2)
@@ -292,22 +292,22 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
         dynk_funcs(dynk_nFuncs,5) = -1          !ARG3
 
         ! Sanity checks, length of BEZ elements
-        if (lFields(4) .gt. max_name_len .or. lFields(4) .gt. str_maxLen-1 ) then
+        if (lFields(4) .gt. mNameLen .or. lFields(4) .gt. mStrLen-1 ) then
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN GET got an element name with     "
-            write (lout,*) "length =", lFields(4), "> ", max_name_len
-            write (lout,*) "or > ",str_maxLen-1
+            write (lout,*) "length =", lFields(4), "> ", mNameLen
+            write (lout,*) "or > ",mStrLen-1
             write (lout,*) "The name was: '",gFields(4)(1:lFields(4)),"'"
             write (lout,*) "*************************************"
             call prror(51)
         end if
-        if (lFields(5) .gt. str_maxLen-1) then
+        if (lFields(5) .gt. mStrLen-1) then
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN GET got an attribute name with   "
             write (lout,*) "length =", lFields(5)
-            write (lout,*) "> ",str_maxLen-1
+            write (lout,*) "> ",mStrLen-1
             write (lout,*) "The name was: '",gFields(5)(1:lFields(5)),"'"
             write (lout,*) "*************************************"
             call prror(51)
@@ -347,12 +347,12 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
         dynk_funcs(dynk_nFuncs,5) = -1            ! Below: Length of file
 
         ! Sanity checks
-        if (lFields(4) .gt. str_maxLen-1) then
+        if (lFields(4) .gt. mStrLen-1) then
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN FILE got a filename name with   "
             write (lout,*) "length =", lFields(4)
-            write (lout,*) "> ",str_maxLen-1
+            write (lout,*) "> ",mStrLen-1
             write (lout,*) "The name was: '",gFields(4)(1:lFields(4)),"'"
             write (lout,*) "*************************************"
             call prror(51)
@@ -462,12 +462,12 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
         dynk_funcs(dynk_nFuncs,5) = -1            !Below: Length of file (number of x,y sets)
 
         !Sanity checks
-        if (lFields(4) .gt. str_maxLen-1) then
+        if (lFields(4) .gt. mStrLen-1) then
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN FILELIN got a filename name with   "
             write (lout,*) "length =", lFields(4)
-            write (lout,*) "> ",str_maxLen-1
+            write (lout,*) "> ",mStrLen-1
             write (lout,*) "The name was: '",gFields(4)(1:lFields(4)),"'"
             write (lout,*) "*************************************"
             call prror(51)
@@ -648,14 +648,14 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
         dynk_funcs(dynk_nFuncs,5) = -1            ! Not used
 
         ! Sanity checks
-        if (lFields(4) .gt. str_maxLen-1 .or. &
-            lFields(5) .gt. str_maxLen-1 .or. &
-            lFields(6) .gt. str_maxLen-1 ) then
+        if (lFields(4) .gt. mStrLen-1 .or. &
+            lFields(5) .gt. mStrLen-1 .or. &
+            lFields(6) .gt. mStrLen-1 ) then
 
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN PIPE got one or more strings which "
-            write (lout,*) "was too long (>",str_maxLen-1,")"
+            write (lout,*) "was too long (>",mStrLen-1,")"
             write (lout,*) "Strings: '",                                          &
                            gFields(4)(1:lFields(4)),"' and '", &
                            gFields(5)(1:lFields(5)),"' and '", &
@@ -992,12 +992,12 @@ subroutine dynk_parseFUN(gFields, lFields, nFields)
             write (lout,*) "*************************************"
             call prror(51)
         end if
-        if (lFields(5) .gt. str_maxLen-1) then
+        if (lFields(5) .gt. mStrLen-1) then
             write (lout,*) "*************************************"
             write (lout,*) "ERROR in DYNK block parsing (fort.3):"
             write (lout,*) "FUN FIR/IIR got a filename name with "
             write (lout,*) "length =", lFields(5)
-            write (lout,*) "> ",str_maxLen-1
+            write (lout,*) "> ",mStrLen-1
             write (lout,*) "The name was: '",gFields(5)(1:lFields(5)),"'"
             write (lout,*) "*************************************"
             call prror(51)
@@ -1762,7 +1762,7 @@ subroutine dynk_checkspace(iReq,fReq,cReq)
     else
       dynk_maxcData = cNeeded
     end if
-    call alloc(dynk_cData,str_maxLen,dynk_maxcData,str_dZeros,"dynk_cData")
+    call alloc(dynk_cData,mStrLen,dynk_maxcData,str_dZeros,"dynk_cData")
   end if
 
 end subroutine dynk_checkspace
@@ -1777,7 +1777,7 @@ subroutine dynk_parseSET(gFields,lFields,nFields)
     use crcoall
     implicit none
 
-    character, intent(in) :: gFields(str_maxFields)*(str_maxlen)
+    character, intent(in) :: gFields(str_maxFields)*(mStrLen)
     integer,   intent(in) :: nFields
     integer,   intent(in) :: lFields(str_maxFields)
 
@@ -1813,19 +1813,19 @@ subroutine dynk_parseSET(gFields,lFields,nFields)
     read(gFields(7)(1:lFields(7)),*) dynk_sets(dynk_nSets,4) ! turnShift
 
     ! Sanity check on string lengths
-    if (lFields(2).gt.max_name_len .or. lFields(2).gt.str_maxLen-1) then
+    if (lFields(2).gt.mNameLen .or. lFields(2).gt.mStrLen-1) then
         write (lout,*) "*************************************"
         write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-        write (lout,*) "SET got an element name with length =",lFields(2),"> ", max_name_len, " or > str_maxLen-1."
+        write (lout,*) "SET got an element name with length =",lFields(2),"> ", mNameLen, " or > mStrLen-1."
         write (lout,*) "The name was: '",gFields(2)(1:lFields(2)),"'"
         write (lout,*) "*************************************"
         call prror(51)
     end if
 
-    if (lFields(3).gt.str_maxLen-1) then
+    if (lFields(3).gt.mStrLen-1) then
         write(lout,*) "ERROR in DYNK block parsing (fort.3) (SET):"
         write(lout,*) "The attribute name '"//gFields(2)(1:lFields(2))//"'"
-        write(lout,*) "is too long! Max length is",str_maxLen-1
+        write(lout,*) "is too long! Max length is",mStrLen-1
         call prror(51)
     end if
 
@@ -1879,7 +1879,7 @@ end subroutine dynk_parseSET
 !    which should be zero-padded.
 !  - Return -1 if nothing was found.
 !
-!  Note: It is expected that the length of funName_input is equal or less than str_maxLen,
+!  Note: It is expected that the length of funName_input is equal or less than mStrLen,
 !        and if it equal, that it is a zero-terminated string.
 ! ================================================================================================ !
 integer function dynk_findFUNindex(funName_input, startfrom)
@@ -1889,7 +1889,7 @@ integer function dynk_findFUNindex(funName_input, startfrom)
 
 
     character(*) funName_input
-    character(str_maxLen) funName
+    character(mStrLen) funName
     integer startfrom
     intent(in) funName_input, startfrom
 
@@ -1897,15 +1897,15 @@ integer function dynk_findFUNindex(funName_input, startfrom)
 
     ! write(*,*)"DBGDBG input: '"//funName_input//"'",len(funName_input)
 
-    if (len(funName_input).gt.str_maxLen) then
+    if (len(funName_input).gt.mStrLen) then
         write (lout,*) "ERROR in dynk_findFUNindex"
         write (lout,*) "len(funName_input) = ",len(funName_input), &
-                       ".gt. str_maxLen-1 = ", str_maxLen-1
+                       ".gt. mStrLen-1 = ", mStrLen-1
         call prror(-1)
     end if
 
-    ! If the length is exactly str_maxLen, it should be zero-terminated.
-    if (( len(funName_input).eq.str_maxLen ) .and. &
+    ! If the length is exactly mStrLen, it should be zero-terminated.
+    if (( len(funName_input).eq.mStrLen ) .and. &
         ( funName_input(len(funName_input):len(funName_input)) .ne.char(0)) ) then
 
         write (lout,*) "ERROR in dynk_findFUNindex"
@@ -1919,7 +1919,7 @@ integer function dynk_findFUNindex(funName_input, startfrom)
     end do
 
     funName(1:len(funName_input)) = funName_input
-    do ii=len(funName_input)+1,str_maxLen
+    do ii=len(funName_input)+1,mStrLen
         ! write(*,*) "DBGDBG b:", ii
         funName(ii:ii) = char(0)
     end do
@@ -1943,13 +1943,13 @@ end function dynk_findFUNindex
 !    which should be zero-padded.
 !  - Return -1 if nothing was found.
 !
-!  Note: It is expected that the length of element_name and att_name is exactly str_maxLen .
+!  Note: It is expected that the length of element_name and att_name is exactly mStrLen .
 ! ================================================================================================ !
 integer function dynk_findSETindex(element_name, att_name, startfrom)
 
     implicit none
 
-    character(str_maxLen) element_name, att_name
+    character(mStrLen) element_name, att_name
     integer startfrom
     intent(in) element_name, att_name, startfrom
 
@@ -2135,7 +2135,7 @@ subroutine dynk_pretrack
 
     ! Temp variables
     integer ii,jj
-    character(str_maxLen) element_name_s, att_name_s
+    character(mStrLen) element_name_s, att_name_s
     logical found, badelem
     integer ix
     if (ldynkdebug) then
@@ -2304,24 +2304,22 @@ subroutine dynk_apply(turn)
     logical lopen
     real(kind=fPrec) getvaldata, newValue
 
-    character(str_maxLen) whichFUN(dynk_maxSets) ! Which function was used to set a given elem/attr?
+    character(mStrLen) whichFUN(dynk_maxSets) ! Which function was used to set a given elem/attr?
     integer whichSET(dynk_maxSets)                   ! Which SET was used for a given elem/attr?
 
     ! Temp variable for padding the strings for output to dynksets.dat
     character(20) outstring_tmp1,outstring_tmp2,outstring_tmp3
 
+    integer, parameter :: samplenumber = 1
+
     if ( ldynkdebug ) then
-#ifdef COLLIMAT
-      write (lout,*) 'DYNKDEBUG> In dynk_apply(), turn = ',turn, "samplenumber =", samplenumber
-#else
       write (lout,*) 'DYNKDEBUG> In dynk_apply(), turn = ',turn
-#endif
     end if
 
     ! Initialize variables (every call)
     do jj=1, dynk_nSets_unique
         whichSET(jj) = -1
-        do ii=1,str_maxLen
+        do ii=1,mStrLen
             whichFUN(jj)(ii:ii) = char(0)
         end do
     end do
@@ -2527,7 +2525,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
     implicit none
 
-    character gFields(str_maxFields)*(str_maxlen)
+    character gFields(str_maxFields)*(mStrLen)
     integer   nFields
     integer   lFields(str_maxFields)
     logical   getfields_lerr
@@ -2840,14 +2838,14 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
     use elens
     implicit none
 
-    character(str_maxLen) element_name, att_name
+    character(mStrLen) element_name, att_name
     real(kind=fPrec) newValue
     intent (in) element_name, att_name, newValue
 
     ! Temp variables
     integer el_type, ii, j
-    character(str_maxLen) element_name_stripped
-    character(str_maxLen) att_name_stripped
+    character(mStrLen) element_name_stripped
+    character(mStrLen) att_name_stripped
 
     !Original energies before energy update
     real(kind=fPrec) e0fo, e0o
@@ -2892,10 +2890,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
                 !Also update sigmv with the new beta0 = e0f/e0
                 sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j)
               end do
-! FIXME: This is a dirty fix for DA version to make it compile.
-#ifndef SIXDA
               if(ithick.eq.1) call synuthck
-#endif
         end if
         ldoubleElement = .true.
     end if
@@ -3055,7 +3050,7 @@ end subroutine dynk_setvalue
 !  - Returns the original value currently set by an element.
 !
 !  Note: Expects that arguments element_name and att_name are zero-terminated strings of
-!        length str_maxLen!
+!        length mStrLen!
 ! ================================================================================================ !
 real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
@@ -3067,11 +3062,11 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
     use elens
     implicit none
 
-    character(str_maxLen) element_name, att_name
+    character(mStrLen) element_name, att_name
     intent(in) element_name, att_name
 
     integer el_type, ii
-    character(str_maxLen) element_name_s, att_name_s
+    character(mStrLen) element_name_s, att_name_s
 
     logical ldoubleElement
     ldoubleElement = .false.  ! For sanity check
@@ -3316,7 +3311,7 @@ logical function dynk_isused(i)
 
     integer, intent(in) :: i
     integer ix,k
-    character(str_maxLen) element_name_stripped
+    character(mStrLen) element_name_stripped
 
     ! Sanity check
     if (i .gt. iu .or. i .le. 0) then
@@ -3388,7 +3383,7 @@ subroutine dynk_comnul
     dynk_sets(i,3) = 0
     dynk_sets(i,4) = 0
 
-    do j=1, str_maxLen
+    do j=1, mStrLen
       dynk_cSets(i,1)(j:j) = char(0)
       dynk_cSets(i,2)(j:j) = char(0)
       dynk_cSets_unique(i,1)(j:j) = char(0)
@@ -3465,7 +3460,7 @@ subroutine dynk_crcheck_readdata(fileunit,readerr)
 
   call alloc(dynk_iData_cr,dynk_niData_cr,0,"dynk_iData_cr")
   call alloc(dynk_fData_cr,dynk_nfData_cr,zero,"dynk_fData_cr")
-  call alloc(dynk_cData_cr,str_maxLen,dynk_ncData_cr,str_dZeros,"dynk_cData_cr")
+  call alloc(dynk_cData_cr,mStrLen,dynk_ncData_cr,str_dZeros,"dynk_cData_cr")
 
   read(fileunit,err=100,end=100) &
     (dynk_iData_cr(j),j=1,dynk_niData_cr), (dynk_fData_cr(j),j=1,dynk_nfData_cr), &
@@ -3611,7 +3606,7 @@ subroutine dynk_crstart
 
   call dealloc(dynk_iData_cr,"dynk_iData_cr")
   call dealloc(dynk_fData_cr,"dynk_fData_cr")
-  call dealloc(dynk_cData_cr,str_maxLen,"dynk_cData_cr")
+  call dealloc(dynk_cData_cr,mStrLen,"dynk_cData_cr")
 
   do j=1,dynk_nSets_unique
     ! It is OK to write to lout from here

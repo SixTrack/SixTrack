@@ -6,6 +6,7 @@ subroutine daliesix
   use crcoall
   use parpro
   use mod_commond
+  use mod_lie_dab, only : mld_allocArrays
 
   implicit none
 
@@ -42,6 +43,7 @@ subroutine daliesix
   mf4=24
   mf5=25
   call idprset(-102)
+  call mld_allocArrays(.true.)
   call lieinit(no,nv,ndim,ndpt,0,nis)
   call etall(damap,nd2)
   call etall(xy,nd2)
@@ -165,7 +167,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use parpro
   use mod_commond
   use mod_common,  only : iqmodc,ichromc,ilinc
-  use mod_lie_dab, only : iscrri,iscrda
+  use mod_lie_dab, only : iscrri,iscrda,mld_allocArrays
 
   implicit none
 
@@ -193,6 +195,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 
   call daeps(preda)
   call idprset(-102)
+  call mld_allocArrays(.true.)
   call lieinit(nord,nvar,ndimf,ndpt,0,nis)
   write(lout,10000) nord,nvar,nndim
   call daall(iscrda,100,'$$IS      ',nord,nvar)
@@ -434,6 +437,7 @@ subroutine runda
   use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   use mod_units
+  use mod_fluc,    only : fluc_errAlign,fluc_writeFort4
 
   implicit none
 
@@ -459,7 +463,7 @@ subroutine runda
   c5m4=5.0e-4_fPrec
 #endif
   if(mout2.eq.1) then
-    call units_openUnits(unit=99,fileName="fort.99",formatted=.true.,mode="w",err=fErr,recl=303)
+    call units_openUnit(unit=99,fileName="fort.99",formatted=.true.,mode="w",err=fErr,recl=303)
   end if
   do i=1,100
     jj(i)=0
@@ -570,7 +574,7 @@ subroutine runda
       else
         i=i480
       endif
-      if(mout2.eq.1.and.i480.eq.nsta.and.n.eq.1) call write4
+      if(mout2.eq.1.and.i480.eq.nsta.and.n.eq.1) call fluc_writeFort4
       if(iflag.eq.1) then
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
@@ -1368,9 +1372,9 @@ subroutine runda
       end if
       xs=xsi(i)
       zs=zsi(i)
-      if(mout2.eq.1.and.n.eq.1.and.icextal(i).ne.0) then
-        write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),               &
-  &extalign(i,1),extalign(i,2),extalign(i,3)
+      if(mout2 == 1 .and. n == 1 .and. icextal(i) /= 0) then
+        write(27,"(a16,2x,1p,2d14.6,d17.9)") bez(ix),&
+          fluc_errAlign(1,icextal(i)),fluc_errAlign(2,icextal(i)),fluc_errAlign(3,icextal(i))
       end if
 #include "include/alignf.f90"
       select case (kzz)
@@ -1792,3 +1796,8 @@ subroutine anfb(tas)
   &'OO  INITIAL COORDINATES  OO'/ t10,2('O'),23x,2('O')/t10,27('O')  &
   &//131('-')//)
 end subroutine anfb
+
+! FixMe: Dummy routine for dynk when compiled as SixDA
+subroutine synuthck
+  return
+end subroutine synuthck

@@ -20,7 +20,7 @@ subroutine units_initUnits
   units_nList = 0
 end subroutine units_initUnits
 
-subroutine units_openUnits(unit,fileName,formatted,mode,err,status,recl)
+subroutine units_openUnit(unit,fileName,formatted,mode,err,status,recl)
 
   implicit none
 
@@ -105,7 +105,7 @@ subroutine units_openUnits(unit,fileName,formatted,mode,err,status,recl)
 10 continue
   err = .true.
 
-end subroutine units_openUnits
+end subroutine units_openUnit
 
 subroutine units_flushUnits(unit)
 
@@ -128,5 +128,21 @@ subroutine units_flushUnits(unit)
   end do
 
 end subroutine units_flushUnits
+
+logical function units_isReserved(nUnit)
+
+  integer, intent(in) :: nUnit
+  
+  integer i
+  
+  units_isReserved = .false.
+  do i=1,units_nList
+    if(units_uList(i)%unit == nUnit) then
+      units_isReserved = .true.
+      return
+    end if
+  end do
+
+end function units_isReserved
 
 end module mod_units

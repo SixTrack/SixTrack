@@ -31,15 +31,13 @@ subroutine trauthck(nthinerr)
   use mod_commons
   use mod_commont
   use mod_commond
+  use mod_fluc, only : fluc_errAlign,fluc_writeFort4
   implicit none
 
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
   real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-!#ifdef COLLIMAT
-!+ca database
-!#endif
   save
 
 #ifdef COLLIMAT
@@ -61,7 +59,7 @@ subroutine trauthck(nthinerr)
   end do
 #include "include/beams1.f90"
   do 290 i=1,iu
-    if(mout2.eq.1.and.i.eq.1) call write4
+    if(mout2.eq.1.and.i.eq.1) call fluc_writeFort4
     ix=ic(i)
     if(ix.le.nblo) then
       !BLOC
@@ -183,8 +181,9 @@ subroutine trauthck(nthinerr)
       ktrack(i)=3
       goto 290
     endif
-    if(mout2.eq.1.and.icextal(i).ne.0) then
-      write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),extalign(i,2),extalign(i,3)
+    if(mout2 == 1 .and. icextal(i) > 0) then
+      write(27,"(a16,2x,1p,2d14.6,d17.9)") bez(ix),&
+        fluc_errAlign(1,icextal(i)),fluc_errAlign(2,icextal(i)),fluc_errAlign(3,icextal(i))
     end if
 
     select case (kzz)
@@ -611,7 +610,6 @@ subroutine thck4d(nthinerr)
           write (lout,*) "DUMP/FRONT not yet supported on thick elements "// &
                          "due to lack of test cases. Please contact developers!"
           call prror(-1)
-!+ca dumplines
         end if
 
       end if
@@ -1307,7 +1305,6 @@ subroutine thck6d(nthinerr)
         write (lout,*) "DUMP/FRONT not yet supported on thick elements "// &
                        "due to lack of test cases. Please contact developers!"
         call prror(-1)
-!+ca dumplines
       end if
 
 #ifdef FLUKA

@@ -69,7 +69,8 @@ program maincr
   use mod_units
   use aperture
   use mod_ranecu
-  use mod_alloc, only : alloc_init
+  use mod_alloc,      only : alloc_init
+  use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
 
 #ifdef FLUKA
@@ -87,7 +88,6 @@ program maincr
 
   use crcoall
   use parpro
-  use parpro_scale
   use mod_settings
   use mod_common
   use mod_commonmn
@@ -108,7 +108,6 @@ interface
 
     use floatPrecision
     use parpro
-    use parpro_scale
     use mod_commond
 
     implicit none
@@ -205,6 +204,7 @@ end interface
 
   !----------------------------------------------------------------------------------------------- !
   ! Features
+  featList = ""
 #ifdef TILT
   featList = featList//" TILT"
 #endif
@@ -221,6 +221,9 @@ end interface
   featList = featList//" CRLIBM"
   call disable_xp()
 #endif
+#ifdef FIO
+  featList = featList//" FIO"
+#endif
 #ifdef CR
   featList = featList//" CR"
   stxt = ""
@@ -233,9 +236,12 @@ end interface
   call h5_initHDF5()
 #endif
 #ifdef BOINC
-  featList = featList//" BOINC LIBARCHIVE"
+  featList = featList//" BOINC"
   call boinc_init()
 ! call boinc_init_graphics()
+#endif
+#ifdef LIBARCHIVE
+  featList = featList//" LIBARCHIVE"
 #endif
 
   call units_initUnits
@@ -255,9 +261,9 @@ end interface
   bnlrec   = 0
   bllrec   = 0
   crtime3  = 0.0
-  do i=1,(npart+1)/2
-    binrecs(i) = 0
-  end do
+  ! do i=1,(npart+1)/2
+  !   binrecs(i) = 0
+  ! end do
 
 #ifdef BOINC
 611 continue
@@ -265,15 +271,15 @@ end interface
   ! Very first get rid of any previous partial output
   inquire(unit=lout, opened=isOpen)
   if(isOpen) close(lout)
-  call units_openUnits(unit=lout,fileName="fort.92",formatted=.true.,mode="w",err=fErr,status="replace")
+  call units_openUnit(unit=lout,fileName="fort.92",formatted=.true.,mode="w",err=fErr,status="replace")
 
   ! Now position the checkpoint/restart logfile=93
-  call units_openUnits(unit=93,fileName="fort.93",formatted=.true.,mode="w",err=fErr)
+  call units_openUnit(unit=93,fileName="fort.93",formatted=.true.,mode="w",err=fErr)
 606 continue
   read(93,"(a1024)",end=607) arecord
   goto 606
 607 continue
-  backspace (93,iostat=ierro)
+  backspace(93,iostat=ierro)
 #ifdef BOINC
   ! and if BOINC issue an informatory message
   if(start) then
@@ -284,10 +290,10 @@ end interface
 #endif
   ! Now we see if we have a fort.6 which implies that we can perhaps just restart using all exisiting files
   ! including the last checkpoints. If not, we just do a start (with an unzip for BOINC)
-  ! call units_openUnits(unit=6,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
+  ! call units_openUnit(unit=6,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
   ! if(fErr) goto 602
   ! stxt = "SIXTRACR reruns on: "
-  call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
+  call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
   if(fErr) then
 #ifdef BOINC
     ! No fort.6 so we do an unzip of Sixin.zip
@@ -305,9 +311,9 @@ end interface
       call f_read_archive(trim(filename),".")
       goto 611
     end if
-    call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr)
+    call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr)
 #else
-    call units_openUnits(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="new")
+    call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="new")
 #endif
     ! Set up start message depending on fort.6 or not
     stxt = "SIXTRACR starts on: "
@@ -316,82 +322,82 @@ end interface
     stxt = "SIXTRACR reruns on: "
     rerun=.true.
   end if
-  call units_openUnits(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="old")
+  call units_openUnit(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="old")
   if(fErr) then
-    call units_openUnits(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="new")
+    call units_openUnit(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="new")
   else
     fort95 = .true.
   end if
-  call units_openUnits(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="old")
+  call units_openUnit(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="old")
   if(fErr) then
-    call units_openUnits(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="new")
+    call units_openUnit(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="new")
   else
     fort96 = .true.
   end if
-  call units_openUnits(unit=91,fileName="fort.91",formatted=.true.,mode="w",err=fErr)
+  call units_openUnit(unit=91,fileName="fort.91",formatted=.true.,mode="w",err=fErr)
 #else
   lout = output_unit
 #endif
 
   ! Open Regular File Units
-  call units_openUnits(unit=2, fileName="fort.2", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
-  call units_openUnits(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
-  call units_openUnits(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=7, fileName="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
-  call units_openUnits(unit=8, fileName="fort.8", formatted=.true., mode="r", err=fErr)
-  call units_openUnits(unit=9, fileName="fort.9", formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=11,fileName="fort.11",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=12,fileName="fort.12",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=13,fileName="fort.13",formatted=.true., mode="r", err=fErr) ! Should only be opened when reading
-  call units_openUnits(unit=14,fileName="fort.14",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=15,fileName="fort.15",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=16,fileName="fort.16",formatted=.true., mode="r", err=fErr)
-! call units_openUnits(unit=17,fileName="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use?
-  call units_openUnits(unit=18,fileName="fort.18",formatted=.true., mode="w", err=fErr)
-! call units_openUnits(unit=19,fileName="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
-  call units_openUnits(unit=20,fileName="fort.20",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=21,fileName="fort.21",formatted=.true., mode="w", err=fErr)
-! call units_openUnits(unit=22,fileName="fort.22",formatted=.true. ,mode="w", err=fErr) ! Not in use?
-! call units_openUnits(unit=23,fileName="fort.23",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call units_openUnits(unit=24,fileName="fort.24",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call units_openUnits(unit=25,fileName="fort.25",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call units_openUnits(unit=26,fileName="fort.26",formatted=.true., mode="w", err=fErr) ! Not in use?
-  call units_openUnits(unit=27,fileName="fort.27",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=28,fileName="fort.28",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=29,fileName="fort.29",formatted=.true., mode="w", err=fErr)
-! call units_openUnits(unit=30,fileName="fort.30",formatted=.true., mode="r", err=fErr) ! Not in use?
-  call units_openUnits(unit=31,fileName="fort.31",formatted=.true., mode="w", err=fErr)
-  call units_openUnits(unit=32,fileName="fort.32",formatted=.false.,mode="w", err=fErr)
-! call units_openUnits(unit=33,fileName="fort.33",formatted=.true., mode="w", err=fErr) ! Not in use?
-  call units_openUnits(unit=34,fileName="fort.34",formatted=.true., mode="w", err=fErr)
-! call units_openUnits(unit=35,fileName="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnit(unit=2, fileName="fort.2", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
+  call units_openUnit(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
+! call units_openUnit(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr) ! Handled by mod_fluc
+  call units_openUnit(unit=7, fileName="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
+! call units_openUnit(unit=8, fileName="fort.8", formatted=.true., mode="r", err=fErr) ! Handled by mod_fluc
+  call units_openUnit(unit=9, fileName="fort.9", formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=11,fileName="fort.11",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=12,fileName="fort.12",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=13,fileName="fort.13",formatted=.true., mode="r", err=fErr) ! Should only be opened when reading
+  call units_openUnit(unit=14,fileName="fort.14",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=15,fileName="fort.15",formatted=.true., mode="w", err=fErr)
+! call units_openUnit(unit=16,fileName="fort.16",formatted=.true., mode="r", err=fErr) ! Handled by mod_fluc
+! call units_openUnit(unit=17,fileName="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use? Should mirror fort.16
+  call units_openUnit(unit=18,fileName="fort.18",formatted=.true., mode="w", err=fErr)
+! call units_openUnit(unit=19,fileName="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
+  call units_openUnit(unit=20,fileName="fort.20",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=21,fileName="fort.21",formatted=.true., mode="w", err=fErr)
+! call units_openUnit(unit=22,fileName="fort.22",formatted=.true. ,mode="w", err=fErr) ! Not in use?
+! call units_openUnit(unit=23,fileName="fort.23",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnit(unit=24,fileName="fort.24",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnit(unit=25,fileName="fort.25",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call units_openUnit(unit=26,fileName="fort.26",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnit(unit=27,fileName="fort.27",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=28,fileName="fort.28",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=29,fileName="fort.29",formatted=.true., mode="w", err=fErr)
+! call units_openUnit(unit=30,fileName="fort.30",formatted=.true., mode="r", err=fErr) ! Handled by mod_fluc
+  call units_openUnit(unit=31,fileName="fort.31",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=32,fileName="fort.32",formatted=.false.,mode="w", err=fErr)
+! call units_openUnit(unit=33,fileName="fort.33",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call units_openUnit(unit=34,fileName="fort.34",formatted=.true., mode="w", err=fErr)
+! call units_openUnit(unit=35,fileName="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
 
 #ifdef STF
   ! Open Single Track File
-  call units_openUnits(unit=90,fileName="singletrackfile.dat",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=90,fileName="singletrackfile.dat",formatted=.false.,mode="w",err=fErr)
 #else
   ! Open binary files 59 to 90 for particle pair 1 to 32
   do i=59,90
     write(tmpFile,"(a5,i2)") "fort.",i
-    call units_openUnits(unit=i,fileName=tmpFile,formatted=.false.,mode="w",err=fErr)
+    call units_openUnit(unit=i,fileName=tmpFile,formatted=.false.,mode="w",err=fErr)
   end do
 #endif
 
-  call units_openUnits(unit=98,fileName="fort.98",formatted=.true.,mode="w",err=fErr)
+  call units_openUnit(unit=98,fileName="fort.98",formatted=.true.,mode="w",err=fErr)
 
   ! Eric for the DA coefficients in BINARY
-  call units_openUnits(unit=110,fileName="fort.110",formatted=.false.,mode="w",err=fErr)
-  call units_openUnits(unit=111,fileName="fort.111",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=110,fileName="fort.110",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=111,fileName="fort.111",formatted=.false.,mode="w",err=fErr)
 
 #ifdef DEBUG
-  call units_openUnits(unit=99 ,fileName="dump",  formatted=.false.,mode="w",err=fErr)
-  call units_openUnits(unit=100,fileName="arrays",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=99 ,fileName="dump",  formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=100,fileName="arrays",formatted=.false.,mode="w",err=fErr)
 #endif
 
   ! Heavy Ion Output
-  call units_openUnits(unit=208,fileName="fort.208",formatted=.false.,mode="w",err=fErr) ! coll losses (energy)
-  call units_openUnits(unit=209,fileName="fort.209",formatted=.false.,mode="w",err=fErr) ! coll losses in function of particle i
-  call units_openUnits(unit=210,fileName="fort.210",formatted=.false.,mode="w",err=fErr) ! mtc after each collimator interaction
+  call units_openUnit(unit=208,fileName="fort.208",formatted=.false.,mode="w",err=fErr) ! coll losses (energy)
+  call units_openUnit(unit=209,fileName="fort.209",formatted=.false.,mode="w",err=fErr) ! coll losses in function of particle i
+  call units_openUnit(unit=210,fileName="fort.210",formatted=.false.,mode="w",err=fErr) ! mtc after each collimator interaction
 
   ! ---------------------------------------------------------------------------------------------- !
   ! Write Header
@@ -407,7 +413,7 @@ end interface
   write(lout,"(a)") "    Built With:"//featList
   write(lout,"(a)") "    Start Time: "//timeStamp
   write(lout,"(a)") ""
-  write(lout,"(a)") st_divLine
+  write(lout,"(a)") str_divLine
 
 #ifdef CR
   ! Log start messages
@@ -430,11 +436,6 @@ end interface
       tlim=1e7
       call timest(tlim)
       call timex(time0)
-  !     do 10 i=1,nblz
-  !       xsi(i)=zero
-  !       zsi(i)=zero
-  !       smi(i)=zero
-  !  10 continue
       do 20 i=1,mmul
         cr(i)=zero
         ci(i)=zero
@@ -446,104 +447,6 @@ end interface
         qw(i)=zero
         qwc(i)=zero
    30 continue
-      do 60 i=1,npart
-        nnumxv(i)=0
-        xv(1,i)=zero
-        xv(2,i)=zero
-        yv(1,i)=zero
-        yv(2,i)=zero
-        dam(i)=zero
-        ekkv(i)=zero
-        sigmv(i)=zero
-        dpsv(i)=zero
-        dp0v(i)=zero
-        ejv(i)=zero
-        ejfv(i)=zero
-        xlv(i)=zero
-        zlv(i)=zero
-        rvv(i)=one
-!Heavy ion variables
-! P. HERMES for hiSix
-        mtc(i) = one
-        naa(i) = 1
-        nzz(i) = 1
-        nucm(i)= pmap
-        moidpsv(i) = one
-        omoidpsv(i) = zero
-        ejf0v(i)=zero
-        dpd(i)=zero
-        dpsq(i)=zero
-        fok(i)=zero
-        rho(i)=zero
-        fok1(i)=zero
-        si(i)=zero
-        co(i)=zero
-        g(i)=zero
-        gl(i)=zero
-        sm1(i)=zero
-        sm2(i)=zero
-        sm3(i)=zero
-        sm12(i)=zero
-        as3(i)=zero
-        as4(i)=zero
-        as6(i)=zero
-        sm23(i)=zero
-        rhoc(i)=zero
-        siq(i)=zero
-        aek(i)=zero
-        afok(i)=zero
-        hp(i)=zero
-        hm(i)=zero
-        hc(i)=zero
-        hs(i)=zero
-        wf(i)=zero
-        wfa(i)=zero
-        wfhi(i)=zero
-        rhoi(i)=zero
-        hi(i)=zero
-        fi(i)=zero
-        hi1(i)=zero
-        xvl(1,i)=zero
-        xvl(2,i)=zero
-        yvl(1,i)=zero
-        yvl(2,i)=zero
-        ejvl(i)=zero
-        dpsvl(i)=zero
-        oidpsv(i)=one
-        sigmvl(i)=zero
-        iv(i)=0
-        aperv(i,1)=zero
-        aperv(i,2)=zero
-        ixv(i)=0
-        clov(1,i)=zero
-        clov(2,i)=zero
-        clo6v(1,i)=zero
-        clo6v(2,i)=zero
-        clo6v(3,i)=zero
-        clopv(1,i)=zero
-        clopv(2,i)=zero
-        clop6v(1,i)=zero
-        clop6v(2,i)=zero
-        clop6v(3,i)=zero
-        alf0v(i,1)=zero
-        alf0v(i,2)=zero
-        bet0v(i,1)=zero
-        bet0v(i,2)=zero
-        ampv(i)=zero
-        do i1=1,6
-          do i2=1,6
-            tas(i,i1,i2)=zero
-          end do
-        end do
-
-        qwcs(i,1)=zero
-        qwcs(i,2)=zero
-        qwcs(i,3)=zero
-        di0xs(i)=zero
-        di0zs(i)=zero
-        dip0xs(i)=zero
-        dip0zs(i)=zero
-   60 continue
       qwc(3)=zero
       call comnul
       commen=' '
@@ -553,14 +456,6 @@ end interface
       pisqrt=sqrt(pi)
       rad=pi/c180e0                                                       !hr05
 
-#ifdef FLUKA
-
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     initialise fluka module
-!     inserted in main code by the 'fluka' compilation flag
-      call fluka_mod_init(npart, nele, clight)
-#endif
 
 #ifdef ROOT
       call SixTrackRootFortranInit
@@ -568,6 +463,9 @@ end interface
 
   call daten
 
+#ifdef FLUKA
+  call fluka_mod_init(npart, nele, clight)
+#endif
 #ifdef HDF5
   if(h5_isActive) then
     call h5_openFile()
@@ -589,9 +487,6 @@ end interface
 #endif
 #ifdef CR
       checkp=.true.
-#ifdef DEBUG
-                   !call system('../crmain  >> crlog')
-#endif
       call crcheck
 #endif
       if(ithick.eq.1) write(lout,10030)
@@ -602,343 +497,299 @@ end interface
       endif
 
 #ifndef FLUKA
-!--SETTING UP THE PLOTTING
-      if(ipos.eq.1.and.(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
-        call hlimit(nplo)
-        call hplint(kwtype)
-        call igmeta(-20,-111)
-        cpto='NPTO'
-        if(icr.eq.1) cpto='PTO '
-        call hplopt(cpto,1)
-        call hplopt('DATE',1)
-        call hplset('DATE',1.)
-        call hplset('CSIZ',.15)
-      endif
+  ! SETTING UP THE PLOTTING
+  if(ipos.eq.1.and.(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
+    call hlimit(nplo)
+    call hplint(kwtype)
+    call igmeta(-20,-111)
+    cpto='NPTO'
+    if(icr.eq.1) cpto='PTO '
+    call hplopt(cpto,1)
+    call hplopt('DATE',1)
+    call hplset('DATE',1.)
+    call hplset('CSIZ',.15)
+  endif
 
-      !Postprocessing is on, but there are no particles
-      if(ipos.eq.1.and.napx.eq.0) then
-! and now we open fort.10 unless already opened for
-! BOINC
-
-#ifdef NAGFOR
-#ifdef BOINC
-  call boincrf('fort.10',filename)
-#ifdef FIO
-  open(10,file=filename,form='formatted',status='unknown',round='nearest',recl=8195)
-#else
-  open(10,file=filename,form='formatted',status='unknown',recl=8195)
-#endif
-#else
-#ifdef FIO
-  open(10,file='fort.10',form='formatted',status='unknown',round='nearest',recl=8195)
-#else
-  open(10,file='fort.10',form='formatted',status='unknown',recl=8195)
-#endif
-#endif
-#else
-#ifdef BOINC
-  call boincrf('fort.10',filename)
-#ifdef FIO
-  open(10,file=filename,form='formatted',status='unknown',round='nearest')
-#else
-  open(10,file=filename,form='formatted',status='unknown')
-#endif
-#else
-#ifdef FIO
-  open(10,file='fort.10',form='formatted',status='unknown',round='nearest')
-#else
-  open(10,file='fort.10',form='formatted',status='unknown')
-#endif
-#endif
-#endif
+  ! Postprocessing is on, but there are no particles
+  if(ipos.eq.1.and.napx.eq.0) then
+    ! Now we open fort.10 unless already opened for BOINC
+    call units_openUnit(unit=10,fileName="fort.10",formatted=.true.,mode="w",err=fErr,recl=8195)
 
 #ifndef STF
-      do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
+    do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
 #ifndef CR
-         call postpr(91-i)
+      call postpr(91-i)
 #else
-         write(93,*) 'Calling POSTPR nnuml=',nnuml
-         endfile (93,iostat=ierro)
-         backspace (93,iostat=ierro)
-         call postpr(91-i,nnuml)
+      write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+      call postpr(91-i,nnuml)
 #endif
-      end do
+    end do
 #else
-!--   ndafi normally set in fort.3 to be "number of files to postprocess"
-!--   Inside the postpr subroutine ndafi is modified as:
-!--   ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
-!--   ndafi=itopa/2 if 2 particle per header i.e ntwin=2
-      do i=1,(2*ndafi),2
+    ! ndafi normally set in fort.3 to be "number of files to postprocess"
+    ! Inside the postpr subroutine ndafi is modified as:
+    ! ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
+    ! ndafi=itopa/2 if 2 particle per header i.e ntwin=2
+    do i=1,(2*ndafi),2
 #ifndef CR
-         call postpr(i)
+      call postpr(i)
 #else
-         write(93,*) 'Calling POSTPR nnuml=',nnuml
-         endfile (93,iostat=ierro)
-         backspace (93,iostat=ierro)
-         call postpr(i,nnuml)
+      write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+      call postpr(i,nnuml)
 #endif
-      end do
+    end do
 #endif
 ! END ifndef STF
 
-      call sumpos
-      goto 520 !Jump to after particle&optics initialization,
-               ! and also after tracking.
-      endif !if(ipos.eq.1.and.napx.eq.0)
+    call sumpos
+    goto 520 ! Jump to after particle&optics initialization, and also after tracking.
+  end if !if(ipos.eq.1.and.napx.eq.0)
 #endif
 ! END ifndef FLUKA
 
-      do i=1,20
-        fake(1,i)=zero
-        fake(2,i)=zero
-      end do
+  do i=1,20
+    fake(1,i)=zero
+    fake(2,i)=zero
+  end do
 
-      itra=2
-      amp00=amp(1)
-      if(napx.ne.1) damp=((amp00-amp0)/real(napx-1,fPrec))/two                 !hr05
-      napx=2*napx
-      aperture_napxStart=napx
-      iation=abs(ition)
-      ib0=0
-      dp00=dp1
-      if(napx.le.0.or.imc.le.0) goto 490
-      do 260 m=1,mmac
+  itra=2
+  amp00=amp(1)
+  if(napx.ne.1) damp=((amp00-amp0)/real(napx-1,fPrec))/two                 !hr05
+  napx=2*napx
+  aperture_napxStart=napx
+  iation=abs(ition)
+  ib0=0
+  dp00=dp1
+  if(napx.le.0.or.imc.le.0) goto 490
+  do 260 m=1,mmac
 #ifdef DEBUG
 !       call warr('mmac and m',0d0,nmac,m,0,0)
 !       write(*,*) 'do 260 mmac/m',mmac,m
 #endif
-!--MULTIPOLE WITH THEIR RANDOM VALUES ADDED
-        if(m.ge.2) then
-          call recuin(m*izu0,irecuin)
-          call ranecu(zfz,nzfz,mcut)
-          rsum=zero
+    !--MULTIPOLE WITH THEIR RANDOM VALUES ADDED
+    ! mmac is currently not allowed to be larger than 1
+    ! zfz array is n ow handled by mod_fluc, and using the below code
+    ! will break tests
+    ! if(m.ge.2) then
+    !   call recuin(m*izu0,irecuin)
+    !   call ranecu(zfz,nzfz,mcut)
+    !   rsum=zero
+    !   do i=1,nzfz
+    !     rsum=rsum+zfz(i)
+    !   end do
+    !   rmean=rsum/real(nzfz,fPrec)
+    !   rsqsum=zero
+    !   do i=1,nzfz
+    !     rsqsum=rsqsum+(zfz(i)-rmean)*(zfz(i)-rmean)
+    !   end do
+    !   rdev=sqrt(rsqsum/real(nzfz,fPrec))
+    !   write(lout,10320) m*izu0,nzfz,rmean,rdev
+    !   write(lout,10070)
+    ! endif
 
-          do i=1,nzfz
-            rsum=rsum+zfz(i)
-          end do
+    ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
+    ! possible to re-shuffle lattice structure
+    if(m.eq.1) call orglat
 
-          rmean=rsum/real(nzfz,fPrec)                                          !hr05
-          rsqsum=zero
+    ! A.Mereghetti, P. G. Ortega and D.Sinuela Pastor, for the FLUKA Team
+    ! last modified: 01-07-2014
+    ! call routine for calculating dcum, necessary for the online
+    !    aperture check and in case of dumping particle population
+    !    or statistics or beam matrix
+    call cadcum
+    if(idp /= 0.and. ition /= 0) then ! 6D tracking
+      if(abs(dcum(iu+1) - tlen) > eps_dcum) then
+        write(lout,"(a)")          ""
+        write(lout,"(a)")          "    WARNING Problem with SYNC block detected"
+        write(lout,"(a,f17.10)")   "            TLEN in SYNC block = ",tlen
+        write(lout,"(a,f17.10)")   "            Length from DCUM   = ",dcum(iu+1)
+        write(lout,"(a,f17.10)")   "            Difference         = ",dcum(iu+1)-tlen
+        write(lout,"(a,e27.16,a)") "            Relative error     = ",2*(dcum(iu+1)-tlen)/(dcum(iu+1)+tlen)," [m]"
+        write(lout,"(a,f17.10,a)") "            Tolerance eps_dcum = ",eps_dcum," [m]"
+        write(lout,"(a)")          "    Please fix the TLEN parameter in your SYNC block"
+        write(lout,"(a)")          "    so that it matches the calculated machine length from DCUM."
+        write(lout,"(a)")          "    If incorrect, the RF frequency may be (slightly) wrong."
+        write(lout,"(a)")          ""
+        write(lout,"(a)")          str_divLine
+        ! It's a warning not an error, and the consequences seem relatively small.
+        ! Ideally, tlen should be calculated automatically based on the sequence.
+      end if
+    else
+        tlen = dcum(iu+1)
+    endif
 
-          do i=1,nzfz
-            rsqsum=rsqsum+(zfz(i)-rmean)*(zfz(i)-rmean)
-          end do
-
-          rdev=sqrt(rsqsum/real(nzfz,fPrec))                                   !hr05
-          write(lout,10320) m*izu0,nzfz,rmean,rdev
-          write(lout,10070)
-        endif
-        ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
-        ! possible to re-shuffle lattice structure
-        if(m.eq.1) call orglat
-
-        ! A.Mereghetti, P. G. Ortega and D.Sinuela Pastor, for the FLUKA Team
-        ! last modified: 01-07-2014
-        ! call routine for calculating dcum, necessary for the online
-        !    aperture check and in case of dumping particle population
-        !    or statistics or beam matrix
-        ! always in main code
-        call cadcum
-        if(idp.ne.0.and.ition.ne.0) then !6D tracking
-           if ( abs( dcum(iu+1) - tlen ) .gt. eps_dcum ) then
-              write(lout,'(1x,a)') "WARNING: Problem with SYNC block detected"
-              write(lout,'(1x,a,f17.10)') "TLEN in sync block =",tlen
-              write(lout,'(1x,a,f17.10)') "Length from DCUM   =",dcum(iu+1)
-              write(lout,'(1x,a,f17.10)') "Difference         =",dcum(iu+1)-tlen
-              write(lout,'(1x,a,e27.16,a)') "Relative error     =", 2 * (dcum(iu+1)-tlen) / (dcum(iu+1)+tlen), " [m]"
-              write(lout,'(1x,a,f17.10,a)') "Tolerance eps_dcum =", eps_dcum, " [m]"
-              write(lout,'(1x,a)') "Please fix the TLEN parameter in your SYNC block"
-              write(lout,'(1x,a)') "so that it matches the calculated machine length from DCUM."
-              write(lout,'(1x,a)') "If incorrect, the RF frequency may be (slightly) wrong."
-
-              !It's a warning not an error, and the consequences seem relatively small.
-              !Ideally, tlen should be calculated automatically based on the sequence.
-              !call prror(-1)
-           endif
-        else
-           tlen=dcum(iu+1)
-        endif
-
-        ! A.Mereghetti (CERN, BE-ABP-HSS), 16-12-2016
-        ! initialise aperture of first and last elements of sequence
-        if (limifound) then
-           write(lout,*) ' check that beginning/end of lattice structure is assigned aperture markers...'
-           call contour_aperture_markers( iu, 1, .false. )
-        end if
+    ! A.Mereghetti (CERN, BE-ABP-HSS), 16-12-2016
+    ! initialise aperture of first and last elements of sequence
+    if (limifound) then
+      write(lout,"(a)") "MAINCR> Check that beginning/end of lattice structure is assigned aperture markers."
+      call contour_aperture_markers( iu, 1, .false. )
+    end if
 
 #ifdef FLUKA
-        ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-        ! last modified: 01-12-2016
-        ! check integrity of coupling markers
-        ! inserted in main code by the 'fluka' compilation flag
-        if (fluka_enable) call check_coupling_integrity
+    if (fluka_enable) call check_coupling_integrity
 #endif
 
-        ! P. G. Ortega, for the FLUKA Team
-        ! last modified: 01-07-2014
-        ! dump aperture model
-        ! always in main code
-        if (ldmpaper) call dump_aperture_model
+    ! dump aperture model
+    if (ldmpaper) call dump_aperture_model
+    ! dump x-sections at specific locations
+    if (mxsec.gt.0) call dump_aperture_xsecs
+    ! map errors, now that the sequence is no longer going to change
+    if(m.eq.1) then
+      call ord
+      if(allocated(zfz)) call fluc_randomReport
+    end if
 
-        ! A.Mereghetti (CERN, BE/ABP-HSS), 22-03-2018
-        ! dump x-sections at specific locations
-        if (mxsec.gt.0) call dump_aperture_xsecs
-
-        ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
-        ! map errors, now that the sequence is no longer going to change
-        if(m.eq.1) call ord
-
-        ! do i=1,nblz
-        !   write(2000,*) mzu(i),imbb(i),icext(i),icextal(i)
-        ! end do
-        call clorb(ded)
+    call clorb(ded)
 
 #ifdef ROOT
-        call SixTrackRootInit()
-        call ConfigurationOutputRootSet_npart(napx)
-        call ConfigurationOutputRootSet_nturns(nnuml)
-        call ConfigurationRootWrite()
+    call SixTrackRootInit()
+    call ConfigurationOutputRootSet_npart(napx)
+    call ConfigurationOutputRootSet_nturns(nnuml)
+    call ConfigurationRootWrite()
 
-!Dump the accelerator lattice
+    ! Dump the accelerator lattice
 ! read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
-        if(root_flag .and. root_Accelerator.eq.1) then
-!!     loop all over the entries in the accelerator structure
-          do i=1,iu
-            ix=ic(i)
-            if(ix.gt.nblo) then
-              ix=ix-nblo
-              call AcceleratorRootWrite(trim(adjustl(bez(ix))) // C_NULL_CHAR, len_trim(trim(adjustl(bez(ix))) // C_NULL_CHAR), &
-                                        kz(ix), ed(ix), ek(ix), el(ix))
-            else
-              do j=1,mel(ix)
-               k=mtyp(ix,j)
-                call AcceleratorRootWrite(trim(adjustl(bez(k))) // C_NULL_CHAR, len_trim(trim(adjustl(bez(k))) // C_NULL_CHAR), &
-                                          kz(k), ed(k), ek(k), el(k))
-              end do
-            end if
+    if(root_flag .and. root_Accelerator == 1) then
+      ! loop all over the entries in the accelerator structure
+      do i=1,iu
+        ix=ic(i)
+        if(ix.gt.nblo) then
+          ix=ix-nblo
+          call AcceleratorRootWrite(trim(adjustl(bez(ix)))//C_NULL_CHAR,&
+            len_trim(trim(adjustl(bez(ix)))//C_NULL_CHAR), kz(ix), ed(ix), ek(ix), el(ix))
+        else
+          do j=1,mel(ix)
+            k=mtyp(ix,j)
+            call AcceleratorRootWrite(trim(adjustl(bez(k)))//C_NULL_CHAR, &
+              len_trim(trim(adjustl(bez(k)))//C_NULL_CHAR), kz(k), ed(k), ek(k), el(k))
           end do
         end if
+      end do
+      end if
 #endif
 #ifdef DEBUG
 !     call dumpbin('aclorb',1,1)
 !     call abend('after  clorb                                      ')
 #endif
-        do l=1,2
-          clo0(l)=clo(l)
-          clop0(l)=clop(l)
-        end do
-
-        call clorb(zero)
+    do l=1,2
+      clo0(l)=clo(l)
+      clop0(l)=clop(l)
+    end do
+    call clorb(zero)
 #ifdef DEBUG
 !     call dumpbin('aclorb',1,1)
 !     call abend('after  clorb                                      ')
 #endif
-        do l=1,2
-          ll=2*l
-          di0(l)=(clo0(l)-clo(l))/ded
-          dip0(l)=(clop0(l)-clop(l))/ded
-        end do
+    do l=1,2
+      ll=2*l
+      di0(l)=(clo0(l)-clo(l))/ded
+      dip0(l)=(clop0(l)-clop(l))/ded
+    end do
+    call corrorb
 
-        call corrorb
-
-        if(irmod2.eq.1) call rmod(dp1)
-        if(iqmod.ne.0) call qmod0
-        if(ichrom.eq.1.or.ichrom.eq.3) call chroma
-        if(iskew.ne.0) call decoup
-        if(ilin.eq.1.or.ilin.eq.3) then
-          call linopt(dp1)
-        endif
+    if(irmod2.eq.1) call rmod(dp1)
+    if(iqmod.ne.0) call qmod0
+    if(ichrom.eq.1.or.ichrom.eq.3) call chroma
+    if(iskew.ne.0) call decoup
+    if(ilin.eq.1.or.ilin.eq.3) then
+      call linopt(dp1)
+    end if
 #ifdef DEBUG
 !     call dumpbin('bbb',96,996)
 !     call abend('bbb                                               ')
 #endif
-!--beam-beam element
-        nlino=nlin
-        nlin=0
-        if(nbeam.ge.1) then
-          do 135 i=1,nele
-            if(kz(i).eq.20) then
-              nlin=nlin+1
-              if(nlin.gt.nele) call prror(81)
-              bezl(nlin)=bez(i)
-            endif
-  135     continue
-        endif
-        if(isub.eq.1) call subre(dp1)
-        if(ise.eq.1) call search(dp1)
+    ! beam-beam element
+    nlino = nlin
+    nlin  = 0
+    if(nbeam.ge.1) then
+      do i=1,nele
+        if(kz(i).eq.20) then
+          nlin=nlin+1
+          if(nlin.gt.nele) call prror(81)
+          bezl(nlin)=bez(i)
+        end if
+      end do
+    end if
+    if(isub == 1) call subre(dp1)
+    if(ise  == 1) call search(dp1)
 #ifdef DEBUG
 !     call dumpbin('asearch',95,995)
 !     call abend('asearch                                           ')
 #endif
-
-        !! Initialize kicks
-        izu=0
-        do 150 i=1,iu
+    !! Initialize kicks
+    izu=0
+    do i=1,iu
 #ifdef DEBUG
 !       call warr('i/iu',0d0,i,iu,0,0)
 !       write(*,*) 'do 150 i/iu',i,iu
 #endif
-          ix=ic(i)
-          if(ix.le.nblo) goto 150
-          ix=ix-nblo
-          kpz=kp(ix)
-          kzz=kz(ix)
-          if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 150
-          if(kzz.eq.15) goto 150
-          if(iorg.lt.0) mzu(i)=izu
-          izu=mzu(i)+1
-          smizf(i)=zfz(izu)*ek(ix)
-          smiv(m,i)=sm(ix)+smizf(i) ! Also in initalize_element!
-          smi(i)=smiv(m,i)          ! Also in initalize_element!
+      ix=ic(i)
+      if(ix.le.nblo) cycle
+      ix=ix-nblo
+      kpz=kp(ix)
+      kzz=kz(ix)
+      if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) cycle
+      if(kzz.eq.15) cycle
+      if(iorg.lt.0) mzu(i)=izu
+      izu=mzu(i)+1
+      smizf(i)=zfz(izu)*ek(ix)
+      smiv(m,i)=sm(ix)+smizf(i) ! Also in initalize_element!
+      smi(i)=smiv(m,i)          ! Also in initalize_element!
 #ifdef DEBUG
 !         call warr('smizf(i)',smizf(i),i,0,0,0)
 !         call warr('smiv(m,i)',smiv(m,i),m,i,0,0)
 !         call warr('smi(i)',smi(i),i,0,0,0)
 #endif
-          izu=izu+1
-          xsiv(m,i)=xpl(ix)+zfz(izu)*xrms(ix)
-          xsi(i)=xsiv(m,i)
-          izu=izu+1
-          zsiv(m,i)=zpl(ix)+zfz(izu)*zrms(ix)
-          zsi(i)=zsiv(m,i)
-          if(mout2.eq.1) then
-            if(kzz.eq.11) zfz(izu-2)=zero
-            if(abs(ek(ix)).le.pieni) zfz(izu-2)=zero
-            if(abs(xrms(ix)).le.pieni) zfz(izu-1)=zero
-            if(abs(zrms(ix)).le.pieni) zfz(izu)=zero
-            write(31,'(a16,1p,d19.11,2d14.6,d17.9)') bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),extalign(i,3)
-          endif
+      izu=izu+1
+      xsiv(m,i)=xpl(ix)+zfz(izu)*xrms(ix)
+      xsi(i)=xsiv(m,i)
+      izu=izu+1
+      zsiv(m,i)=zpl(ix)+zfz(izu)*zrms(ix)
+      zsi(i)=zsiv(m,i)
+      if(mout2.eq.1) then
+        if(kzz.eq.11) zfz(izu-2)=zero
+        if(abs(ek(ix)).le.pieni) zfz(izu-2)=zero
+        if(abs(xrms(ix)).le.pieni) zfz(izu-1)=zero
+        if(abs(zrms(ix)).le.pieni) zfz(izu)=zero
+        if(icextal(i) > 0) then
+          write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errAlign(3,icextal(i))
+        else if(icextal(i) < 0) then
+          write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errZFZ(4,-icextal(i))
+        else
+          write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),zero
+        end if
+      endif
 
 !-- MULTIPOLE BLOCK
-          if(kzz.eq.11) then
-             dynk_izuIndex(ix)=izu
+      if(kzz.eq.11) then
+        dynk_izuIndex(ix)=izu
 !-- Initialize multipoles, combining settings from fort.2 with
 !-- coefficients from MULT and random values from FLUC.
 !-- Used in program maincr and from initialize_element.
-             r0=ek(ix)
-             if(abs(r0).le.pieni) goto 150 ! label 150 - just after this code
-             nmz=nmu(ix)
-             if(nmz.eq.0) then
-                izu=izu+2*mmul
-                goto 150
-             endif
-             im=irm(ix)
-             r0a=one
-             do k=1,nmz
-                izu=izu+1
-                aaiv(k,m,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a !hr05
-                aai(i,k)=aaiv(k,m,i)
-                izu=izu+1
-                bbiv(k,m,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a !hr05
-                bbi(i,k)=bbiv(k,m,i)
-
-                r0a=r0a*r0
-             enddo
-
-             izu=izu+2*mmul-2*nmz
-       !------------------------------------------------------------------------------------
-          endif
- 150   continue
+        r0=ek(ix)
+        if(abs(r0).le.pieni) cycle
+        nmz=nmu(ix)
+        if(nmz.eq.0) then
+          izu=izu+2*mmul
+          cycle
+        end if
+        im=irm(ix)
+        r0a=one
+        do k=1,nmz
+          izu=izu+1
+          aaiv(k,m,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a !hr05
+          aai(i,k)=aaiv(k,m,i)
+          izu=izu+1
+          bbiv(k,m,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a !hr05
+          bbi(i,k)=bbiv(k,m,i)
+          r0a=r0a*r0
+        end do
+        izu=izu+2*mmul-2*nmz
+      end if
+    end do
 #ifdef DEBUG
 !     call dumpbin('ado 150',150,150)
 !     call abend('ado 150                                           ')
@@ -1463,7 +1314,7 @@ end interface
         hsyc,phasc,dppoff,sigmoff,tlen,                                   &
         iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
-        zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
+        zfz,iorg,mzu,bezr,izu0,mmac,mcut,tiltc,tilts,                     &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
         dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
@@ -1480,14 +1331,10 @@ end interface
         sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
         ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
         as,al,sigm,dps,idz,dp1,itra,                                      &
-#ifdef SIXDA
-        at,a2,                                                            &
-#endif
         x,y,bet0,alf0,clo,clop,cro,is,ichrom,nnumxv,xsi,zsi,smi,aai,      &
         bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
         nvar2,nsix,ncor,ipar,nordf,                                       &
         nvarf,nord1,ndimf,idptr,inorm,imod1,imod2,                        &
-        icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel,        &
         ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
         clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
         dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &
@@ -1530,7 +1377,7 @@ end interface
         hsyc,phasc,dppoff,sigmoff,tlen,                                   &
         iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
         sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
-        zfz,iorg,mzu,bezr,izu0,mmac,mcut,exterr,extalign,tiltc,tilts,     &
+        zfz,iorg,mzu,bezr,izu0,mmac,mcut,tiltc,tilts,                     &
         mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
         dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
         elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
@@ -1547,14 +1394,10 @@ end interface
         sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
         ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
         as,al,sigm,dps,idz,dp1,itra,                                      &
-#ifdef SIXDA
-        at,a2,                                                            &
-#endif
         x,y,bet0,alf0,clo,clop,cro,is,ichrom,nnumxv,xsi,zsi,smi,aai,      &
         bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
         nvar2,nsix,ncor,ipar,nordf,                                       &
         nvarf,nord1,ndimf,idptr,inorm,imod1,imod2,                        &
-        icorr,nctype,namp,nmom,nmom1,nmom2,weig1,weig2,dpmax,coel,        &
         ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
         clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
         dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &

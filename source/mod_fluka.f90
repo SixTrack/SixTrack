@@ -35,6 +35,9 @@ module mod_fluka
 
   public :: fluka_close
 
+  public :: fluka_parsingDone
+  public :: fluka_parseInputLine
+
   ! FlukaIO Connection parameters
   character(len = 255), public  :: fluka_host
   integer, public :: fluka_port
@@ -709,6 +712,159 @@ subroutine fluka_close
   flush(lout)
 !      flush(fluka_log_unit)
 end subroutine fluka_close
+
+! ================================================================================================ !
+!  Parse Fluka Coupling Input Line
+!  A. Mereghetti, D. Sinuela Pastor, for the FLUKA Team
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-06-25
+! ================================================================================================ !
+subroutine fluka_parseInputLine(inLine, iLine, iErr)
+
+  use string_tools
+  use mod_common, only : il,bez
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen) entrElem, exitElem
+  real(kind=fPrec) tmplen
+  integer nSplit, i, entrIdx, exitIdx, ii
+  logical spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "FLUKA> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  select case(lnSplit(1)(1:4))
+
+  case("DEBU")
+    write(lout,"(a)") "FLUKA> DEBUG enabled"
+    fluka_debug = .true.
+
+  case("LOGU")
+    write(lout,"(a,i0,a)") "FLUKA> NOTE The LOGU flag is deprecated. A log unit is assigned automatically."
+
+  case default
+
+    if(nSplit /= 4) then
+      write(lout,"(a,i0)") "FLUKA> ERROR Exected 4 values in input line,got ",nSplit
+      iErr = .true.
+      return
+    end if
+
+    entrElem = " "
+    exitElem = " "
+
+    if(nSplit > 0) entrElem = trim(lnSplit(1))
+    if(nSplit > 1) exitElem = trim(lnSplit(2))
+    if(nSplit > 2) call chr_cast(lnSplit(3),ii,    iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),tmplen,iErr)
+
+    ! 1. find name of entrance element in the list of SINGLE ELEMENTs:
+    entrIdx = -1
+    do i=1,il
+      if(bez(i) == entrElem) then
+        entrIdx = i
+        exit
+      end if
+    end do
+    if(entrIdx == -1) then
+      write(lout,"(a)") "FLUKA> ERROR Un-identified SINGLE ELEMENT '"//trim(entrElem)//"'"
+      iErr = .true.
+      return
+    end if
+
+    ! 2. find exit element in the list of SINGLE ELEMENTs:
+    exitIdx = -1
+    do i=1,il
+      if(bez(i) == exitElem) then
+        exitIdx = i
+        exit
+      end if
+    end do
+    if(exitIdx == -1) then
+      write(lout,"(a)") "FLUKA> ERROR Un-identified SINGLE ELEMENT '"//trim(exitElem)//"'"
+      iErr = .true.
+      return
+    end if
+
+    ! 3. check that the current markers have not been already flagged
+    if(fluka_type(entrIdx) /= FLUKA_NONE ) then
+      write(lout,"(a)")       "FLUKA> ERROR Single element '"//trim(bez(entrIdx))//"' was alredy labelled as fluka marker."
+      write(lout,"(2(a,i0))") "FLUKA> ERROR fluka_type(entrance) = ",fluka_type(entrIdx)," at position = ",entrIdx
+      iErr = .true.
+      return
+    end if
+    if(fluka_type(exitIdx) /= FLUKA_NONE ) then
+      write(lout,"(a)")       "FLUKA> ERROR Single element '"//trim(bez(exitIdx))//"' was alredy labelled as fluka marker."
+      write(lout,"(2(a,i0))") "FLUKA> ERROR fluka_type(exit) = ",fluka_type(exitIdx)," at position = ",exitIdx
+      iErr = .true.
+      return
+    end if
+
+    ! 4. disentangle between just a simple element or an interval of elements
+    !    in the accelerator structure, labelled as Fluka insertion:
+    if(entrIdx == exitIdx) then
+      fluka_type(entrIdx)         = FLUKA_ELEMENT
+      fluka_geo_index(entrIdx)    = ii
+      fluka_synch_length(entrIdx) = tmplen
+      write(fluka_log_unit,"(a,i0)") "# Found         Fluka element as SING EL num ",entrIdx
+    else
+      fluka_type(entrIdx)         = FLUKA_ENTRY
+      fluka_geo_index(entrIdx)    = ii
+      fluka_type(exitIdx)         = FLUKA_EXIT
+      fluka_geo_index(exitIdx)    = ii
+      fluka_synch_length(exitIdx) = tmplen
+      write(fluka_log_unit,"(a,i0)") "# Found entrance Fluka element as SING EL num ",entrIdx
+      write(fluka_log_unit,"(a,i0)") "# Found exit     Fluka element as SING EL num ",exitIdx
+    end if
+    ! Wait to find at least one FLUKA insertion before actually enabling the coupling
+    if(.not.fluka_enable) fluka_enable = .true.
+
+  end select
+
+end subroutine fluka_parseInputLine
+
+subroutine fluka_parsingDone
+
+  use mod_common, only : il,bez
+
+  integer ii
+
+  if(fluka_enable) then
+    ! Dump all elements found:
+    write(lout,"(a)") "FLUKA>  Name                 | Type | Insertion Point | Synch Length [m] "
+    write(lout,"(a)") "FLUKA> ----------------------+------+-----------------+------------------"
+    do ii=1,il
+      if(fluka_type(ii) /= FLUKA_NONE) then
+        write(lout,"(a,a20,a,i4,a,i15,a,e15.8)") "FLUKA>  ",bez(ii)(1:20)," | ",fluka_type(ii)," | ",&
+          fluka_geo_index(ii)," | ",fluka_synch_length(ii)
+      end if
+    end do
+    write(lout,"(a)")    "FLUKA> ----------------------+------+-----------------+------------------"
+    write(lout,"(a)")    "FLUKA> Keys to FLUKA types:"
+    write(lout,"(a,i0)") "FLUKA> Simple element: ",FLUKA_ELEMENT
+    write(lout,"(a,i0)") "FLUKA> Entrance point: ",FLUKA_ENTRY
+    write(lout,"(a,i0)") "FLUKA> Exit point:     ",FLUKA_EXIT
+  else
+    write(lout,"(a)") "FLUKA> WARNING No elements flagged for coupling!"
+    write(lout,"(a)") "FLUKA>         Disabling coupling flags/labelling."
+    fluka_enable = .false.
+    fluka_debug  = .false.
+    do ii=1,il
+      fluka_type(ii) = FLUKA_NONE
+    end do
+  end if
+
+end subroutine fluka_parsingDone
 
 end module mod_fluka
 

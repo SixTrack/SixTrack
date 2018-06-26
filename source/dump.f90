@@ -24,7 +24,6 @@ module dump
   use floatPrecision
   use parpro ! For nele
   use mod_alloc
-  use string_tools, only : str_maxLen, str_dZeros
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -49,7 +48,7 @@ module dump
   ! Flag the format of the dump
   integer, allocatable, save :: dumpfmt(:) !(-1:nele)
   ! Filename to write the dump to
-  character(len=:), allocatable, save :: dump_fname(:) !(str_maxLen)(-1:nele)
+  character(len=:), allocatable, save :: dump_fname(:) !(mStrLen)(-1:nele)
 
   ! tas matrix used for nomalisation of phase space in DUMP and FMA.
   ! First index = -1 -> StartDUMP, filled differently than idx > 0; First index = 0  -> Unused.
@@ -80,31 +79,32 @@ contains
 subroutine dump_expand_arrays(nele_new, nblz_new)
 
   use numerical_constants, only : zero
-  
+
   implicit none
-  
+
   integer, intent(in) :: nele_new
   integer, intent(in) :: nblz_new
 
-  call alloc(ldump,                  nele_new, .false.,    "ldump",      -1)
-  call alloc(ndumpt,                 nele_new, 0,          "ndumpt",     -1)
-  call alloc(dumpfirst,              nele_new, 0,          "dumpfirst",  -1)
-  call alloc(dumplast,               nele_new, 0,          "dumplast",   -1)
-  call alloc(dumpunit,               nele_new, 0,          "dumpunit",   -1)
-  call alloc(dumpfmt,                nele_new, 0,          "dumpfmt",    -1)
-  call alloc(dump_fname, str_maxLen, nele_new, str_dZeros, "dump_fname", -1)
-  
-  call alloc(dumptas,                nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
-  call alloc(dumptasinv,             nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
-  call alloc(dumpclo,                nblz_new, 6,    zero, "dumpclo",    -1,1)
+  call alloc(ldump,               nele_new, .false.,    "ldump",      -1)
+  call alloc(ndumpt,              nele_new, 0,          "ndumpt",     -1)
+  call alloc(dumpfirst,           nele_new, 0,          "dumpfirst",  -1)
+  call alloc(dumplast,            nele_new, 0,          "dumplast",   -1)
+  call alloc(dumpunit,            nele_new, 0,          "dumpunit",   -1)
+  call alloc(dumpfmt,             nele_new, 0,          "dumpfmt",    -1)
+  call alloc(dump_fname, mStrLen, nele_new, str_dZeros, "dump_fname", -1)
+
+  call alloc(dumptas,             nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
+  call alloc(dumptasinv,          nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
+  call alloc(dumpclo,             nblz_new, 6,    zero, "dumpclo",    -1,1)
 
 #ifdef CR
-  call alloc(dumpfilepos,nele_new,-1,'dumpfilepos',-1)
-  call alloc(dumpfilepos_cr,nele_new,-1,'dumpfilepos_cr',-1)
+  call alloc(dumpfilepos,         nele_new,-1,          "dumpfilepos",   -1)
+  call alloc(dumpfilepos_cr,      nele_new,-1,          "dumpfilepos_cr",-1)
 #endif
 
 #ifdef HDF5
-  call alloc(dump_hdf5DataSet,nele_new,0,"dump_hdf5Format",-1)
+  call alloc(dump_hdf5DataSet,    nele_new,0,           "dump_hdf5DataSet",-1)
+  call alloc(dump_hdf5Format,     9,       0,           "dump_hdf5Format")
 #endif
 
 end subroutine dump_expand_arrays
@@ -198,16 +198,16 @@ subroutine dump_parseInputLine(ch,iErr)
   logical,          intent(inout) :: iErr
 
   ! Fields split variables
-  character gFields(str_maxFields)*(str_maxLen) ! Array of fields
+  character gFields(str_maxFields)*(mStrLen) ! Array of fields
   integer   nFields                             ! Number of identified fields
   integer   lFields(str_maxFields)              ! Length of each what:
   logical   fieldsErr                           ! An error flag
 
   ! Temp variables
-  character(len=max_name_len) idat ! Synchronized with daten
+  character(len=mNameLen) idat ! Synchronized with daten
   integer i1,i2,i3,i4,i5,kk,j
 
-  character(len=str_maxLen) ch1
+  character(len=mStrLen) ch1
 
   ! initialise reading variables, to avoid storing nonsense values
   idat = ' ' ! Name
@@ -236,8 +236,8 @@ subroutine dump_parseInputLine(ch,iErr)
     return
   end if
 
-  if (lFields(1) > max_name_len) then
-    write(lout,"(a,i0,a)") "DUMP> ERROR Element names are max. ",max_name_len," characters"
+  if (lFields(1) > mNameLen) then
+    write(lout,"(a,i0,a)") "DUMP> ERROR Element names are max. ",mNameLen," characters"
     iErr = .true.
     return
   end if
@@ -338,7 +338,7 @@ subroutine dump_parseInputLine(ch,iErr)
   if(h5_useForDUMP .eqv. .false.) then
 #endif
     if(dumpunit(j) == -1) then
-      call funit_requestUnit(dump_fname(j),dumpunit(j))
+      call funit_requestUnit(chr_trimZero(dump_fname(j)),dumpunit(j))
     end if
 #ifdef HDF5
   end if
@@ -359,7 +359,7 @@ subroutine dump_parseInputDone
 
   ! Temp variables
   integer ii,jj,kk
-  character(len=str_maxLen) ch1
+  character(len=mStrLen) ch1
 
   ! HEADER
   write(lout,10460) "DUMP"
@@ -878,16 +878,9 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   real(kind=fPrec), intent(in) :: tasinv(6,6) ! normalization matrix in [mm,mrad,mm,mrad,mm,1]
   real(kind=fPrec), intent(in) :: loc_clo(6) ! closed orbit in [mm,mrad,mm,mrad,mm,1]
 
-#ifdef COLLIMAT
-!+ca collpara
-!+ca dbcommon
-#else
-  integer, parameter :: samplenumber = 1
-#endif
-
   ! Temporary variables
   integer j,k,l,m,n
-  character(len=max_name_len) localBez
+  character(len=mNameLen) localBez
 
   real(kind=fPrec) localDcum
   integer localKtrack
@@ -962,7 +955,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1, napx, nlostp+(samplenumber-1)*npart)
+      call h5_writeData(dump_hdf5DataSet(ix), 1, napx, nlostp)
       call h5_writeData(dump_hdf5DataSet(ix), 2, napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3, napx, localDcum)
       call h5_writeData(dump_hdf5DataSet(ix), 4, napx, xv(1,:))
@@ -976,12 +969,12 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #endif
       if (lhighprec) then
         do j=1,napx
-          write(unit,1983) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
+          write(unit,1983) nlostp(j),nturn,localDcum, &
             xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-e0)/e0,localKtrack
         end do
       else
         do j=1,napx
-          write(unit,1984) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
+          write(unit,1984) nlostp(j),nturn,localDcum, &
             xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-e0)/e0,localKtrack
         end do
       end if
@@ -1011,7 +1004,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp+(samplenumber-1)*npart)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)
       call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
       call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv(1,:))
@@ -1026,12 +1019,12 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #endif
       if (lhighprec) then
         do j=1,napx
-          write(unit,1985) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
+          write(unit,1985) nlostp(j),nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
             sigmv(j),(ejv(j)-e0)/e0,localKtrack
         end do
       else
         do j=1,napx
-          write(unit,1986) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
+          write(unit,1986) nlostp(j),nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
             sigmv(j),(ejv(j)-e0)/e0,localKtrack
         end do
       end if
@@ -1061,7 +1054,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp+(samplenumber-1)*npart)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)
       call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
       call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv(1,:))
@@ -1075,7 +1068,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     else
 #endif
       do j=1,napx
-        write(unit) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
+        write(unit) nlostp(j),nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
           sigmv(j),(ejv(j)-e0)/e0,localKtrack
       end do
 
@@ -1380,15 +1373,15 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 
       if (fmt .eq. 7) then
         if (lhighprec) then
-          write(unit,1985) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
+          write(unit,1985) nlostp(j),nturn,localDcum, &
             nxyz_particle(1),nxyz_particle(2),nxyz_particle(3),nxyz_particle(4),nxyz_particle(5),nxyz_particle(6),localKtrack
         else
-          write(unit,1986) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
+          write(unit,1986) nlostp(j),nturn,localDcum, &
             nxyz_particle(1),nxyz_particle(2),nxyz_particle(3),nxyz_particle(4),nxyz_particle(5),nxyz_particle(6),localKtrack
         end if
 
       else if (fmt .eq. 8) then
-        write(unit) nlostp(j)+(samplenumber-1)*npart,nturn,localDcum, &
+        write(unit) nlostp(j),nturn,localDcum, &
           nxyz_particle(1),nxyz_particle(2),nxyz_particle(3),nxyz_particle(4),nxyz_particle(5),nxyz_particle(6),localKtrack
 
       else if (fmt .eq. 9) then

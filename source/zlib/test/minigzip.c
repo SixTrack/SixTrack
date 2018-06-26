@@ -133,7 +133,7 @@ static void pwinerror (s)
 #define SUFFIX_LEN (sizeof(GZ_SUFFIX)-1)
 
 #define BUFLEN      16384
-#define MAX_NAME_LEN 1024
+#define mNameLen 1024
 
 #ifdef MAXSEG_64K
 #  define local static
@@ -458,7 +458,7 @@ void file_compress(file, mode)
     char  *file;
     char  *mode;
 {
-    local char outfile[MAX_NAME_LEN];
+    local char outfile[mNameLen];
     FILE  *in;
     gzFile out;
 
@@ -496,7 +496,7 @@ void file_compress(file, mode)
 void file_uncompress(file)
     char  *file;
 {
-    local char buf[MAX_NAME_LEN];
+    local char buf[mNameLen];
     char *infile, *outfile;
     FILE  *out;
     gzFile in;

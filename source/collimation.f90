@@ -97,7 +97,7 @@ module collimation
 
   real(kind=fPrec), private, save :: nr
 
-  character(len=max_name_len), save :: name_sel
+  character(len=mNameLen), save :: name_sel
   character(len=80), save :: coll_db
   character(len=16), save :: castordir
   character(len=80), save :: filename_dis
@@ -165,7 +165,7 @@ module collimation
   real(kind=fPrec), allocatable, save :: sqsumimpact(:) !(50)
 !  common  /rimpact/ sumimpact,sqsumimpact,nimpact
 
-  character(len=:), allocatable, save :: ename(:) !(max_name_len)(nblz)
+  character(len=:), allocatable, save :: ename(:) !(mNameLen)(nblz)
   integer, allocatable, save :: nampl(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sum_ax(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sqsum_ax(:) !(nblz)
@@ -219,8 +219,8 @@ module collimation
 !UPGRADE January 2005
   integer, save :: db_ncoll
 
-  character(len=:), allocatable, save :: db_name1(:) !(max_name_len)(max_ncoll)
-  character(len=:), allocatable, save :: db_name2(:) !(max_name_len)(max_ncoll)
+  character(len=:), allocatable, save :: db_name1(:) !(mNameLen)(max_ncoll)
+  character(len=:), allocatable, save :: db_name2(:) !(mNameLen)(max_ncoll)
   character(len=:), allocatable, save :: db_material(:) !(4)(max_ncoll)
 !APRIL2005
   real(kind=fPrec), allocatable, save :: db_nsig(:) !(max_ncoll)
@@ -253,7 +253,6 @@ module collimation
   integer, allocatable, save :: counted_y(:,:) !(npart,numeff)
 !  common /counting/ counted_r,counted_x,counted_y
 
-  integer, save ::   samplenumber
   character(len=4), save :: smpl
   character(len=80), save :: pfile
 !  common /samplenumber/ pfile,smpl,samplenumber
@@ -282,7 +281,7 @@ module collimation
 ! Variables for finding the collimator with the smallest gap
 ! and defining, stroring the gap rms error
 !
-  character(len=max_name_len) :: coll_mingap1, coll_mingap2
+  character(len=mNameLen) :: coll_mingap1, coll_mingap2
   real(kind=fPrec), allocatable, save :: gap_rms_error(:) !(max_ncoll)
   real(kind=fPrec) :: nsig_err, sig_offset
   real(kind=fPrec) :: mingap, gap_h1, gap_h2, gap_h3, gap_h4
@@ -337,7 +336,7 @@ module collimation
   real(kind=fPrec), allocatable, save :: mux(:) !(nblz)
   real(kind=fPrec), allocatable, save :: muy(:) !(nblz)
 !  common /mu/ mux,muy
- 
+
 !  common /collocal/ myix,myktrack,totals,firstcoll,found,onesided
 
 ! common /icoll/  icoll
@@ -835,7 +834,7 @@ subroutine collimation_allocate_arrays
   call alloc(counteddpop, npart, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
   call alloc(counted2d, npart, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
 
-  call alloc(ename,    max_name_len, nblz, ' ', "ename") !(nblz)
+  call alloc(ename,    mNameLen, nblz, ' ', "ename") !(nblz)
   call alloc(nampl,    nblz, 0, "nampl") !(nblz)
   call alloc(sum_ax,   nblz, zero, "sum_ax") !(nblz)
   call alloc(sqsum_ax, nblz, zero, "sqsum_ax") !(nblz)
@@ -906,8 +905,8 @@ subroutine collimation_allocate_arrays
 
   call alloc(neffx, numeff, zero, "neffx") !(numeff)
   call alloc(neffy, numeff, zero, "neffy") !(numeff)
-  call alloc(db_name1, max_name_len, max_ncoll, ' ', "db_name1") !(max_ncoll)
-  call alloc(db_name2, max_name_len, max_ncoll, ' ', "db_name2") !(max_ncoll)
+  call alloc(db_name1, mNameLen, max_ncoll, ' ', "db_name1") !(max_ncoll)
+  call alloc(db_name2, mNameLen, max_ncoll, ' ', "db_name2") !(max_ncoll)
   call alloc(db_material, 4, max_ncoll, '    ', "db_material") !(max_ncoll)
   call alloc(db_nsig, max_ncoll, zero, "db_nsig") !(max_ncoll)
   call alloc(db_length, max_ncoll, zero, "db_length") !(max_ncoll)
@@ -990,7 +989,7 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call resize(counteddpop, npart_new, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
   call resize(counted2d,   npart_new, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
 
-  call resize(ename,    max_name_len, nblz_new, ' ', "ename") !(nblz_new)
+  call resize(ename,    mNameLen, nblz_new, ' ', "ename") !(nblz_new)
   call resize(nampl,    nblz_new, 0, "nampl") !(nblz_new)
   call resize(sum_ax,   nblz_new, zero, "sum_ax") !(nblz_new)
   call resize(sqsum_ax, nblz_new, zero, "sqsum_ax") !(nblz_new)
@@ -1688,6 +1687,26 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
 end subroutine collimate_parseInputLine
 
+subroutine collimate_postInput(gammar,has_coll)
+  
+  real(kind=fPrec), intent(in) :: gammar
+  logical,          intent(in) :: has_coll
+
+  remitx_dist    = emitnx0_dist*gammar
+  remity_dist    = emitny0_dist*gammar
+  remitx_collgap = emitnx0_collgap*gammar
+  remity_collgap = emitny0_collgap*gammar
+
+  if(.not.has_coll) then
+    ! Breaks at least DUMP (negative particle IDs) and DYNK (1-pass actions).
+    write(lout,"(a)") "COLL> ERROR This is the collimation version of SixTrack,"
+    write(lout,"(a)") "COLL>       but no COLL block was found, not even one with do_coll = .false."
+    write(lout,"(a)") "COLL>       Please use the non-collimation version!"
+    call prror(-1)
+  end if
+
+end subroutine collimate_postInput
+
 !>
 !! collimate_start_sample()
 !! This routine is called from trauthin before each sample
@@ -1717,7 +1736,6 @@ subroutine collimate_start_sample(nsample)
 #endif
 
   j = nsample
-  samplenumber=j
 
 ! HERE WE OPEN ALL THE NEEDED OUTPUT FILES
 
@@ -1767,35 +1785,15 @@ subroutine collimate_start_sample(nsample)
   if (dowritetracks) then
 !GRD SPECIAL FILE FOR SECONDARY HALO
     if(cern) then
-      read(samplenumber,*) smpl
+      smpl = '1'
 
       pfile(1:8) = 'tracks2.'
+      pfile(9:9) = smpl
+      pfile(10:13) = '.dat'
 
-      if(samplenumber.le.9) then
-        pfile(9:9) = smpl
-        pfile(10:13) = '.dat'
-      else if(samplenumber.gt.9.and.samplenumber.le.99) then
-        pfile(9:10) = smpl
-        pfile(11:14) = '.dat'
-      else if(samplenumber.gt.99.and.samplenumber.le.int(mynp/napx00)) then
-        pfile(9:11) = smpl
-        pfile(12:15) = '.dat'
-      end if
+      call funit_requestUnit(pfile(1:13), tracks2_unit)
+      open(unit=tracks2_unit,file=pfile(1:13))
 
-      if(samplenumber.le.9) then
-        call funit_requestUnit(pfile(1:13), tracks2_unit)
-        open(unit=tracks2_unit,file=pfile(1:13))
-      end if
-
-      if(samplenumber.gt.9.and.samplenumber.le.99) then
-        call funit_requestUnit(pfile(1:14), tracks2_unit)
-        open(unit=tracks2_unit,file=pfile(1:14))
-      end if
-
-      if(samplenumber.gt.99.and. samplenumber.le.int(mynp/napx00)) then
-        call funit_requestUnit(pfile(1:15), tracks2_unit)
-        open(unit=tracks2_unit,file=pfile(1:15))
-      end if
     else
       call funit_requestUnit('tracks2.dat', tracks2_unit)
       open(unit=tracks2_unit,file='tracks2.dat') !was 38
@@ -1870,39 +1868,38 @@ subroutine collimate_start_sample(nsample)
 
     else
 #endif
-    call funit_requestUnit('all_impacts.dat', all_impacts_unit)
-    call funit_requestUnit('all_absorptions.dat', all_absorptions_unit)
-    call funit_requestUnit('FLUKA_impacts.dat', FLUKA_impacts_unit)
-    call funit_requestUnit('FLUKA_impacts_all.dat', FLUKA_impacts_all_unit)
-    call funit_requestUnit('Coll_Scatter.dat', coll_scatter_unit)
-    call funit_requestUnit('FirstImpacts.dat', FirstImpacts_unit)
+      call funit_requestUnit('all_impacts.dat', all_impacts_unit)
+      call funit_requestUnit('all_absorptions.dat', all_absorptions_unit)
+      call funit_requestUnit('Coll_Scatter.dat', coll_scatter_unit)
+      call funit_requestUnit('FirstImpacts.dat', FirstImpacts_unit)
 
-    open(unit=all_impacts_unit, file='all_impacts.dat') !was 46
-    open(unit=all_absorptions_unit, file='all_absorptions.dat') !was 47
-    open(unit=FLUKA_impacts_unit, file='FLUKA_impacts.dat') !was 48
-! RB: adding output files FLUKA_impacts_all.dat and coll_scatter.dat
-    open(unit=FLUKA_impacts_all_unit, file='FLUKA_impacts_all.dat') !was 4801
-    open(unit=coll_scatter_unit, file='Coll_Scatter.dat') !was 3998
-    open(unit=FirstImpacts_unit, file='FirstImpacts.dat') !was 39
+      open(unit=all_impacts_unit, file='all_impacts.dat') !was 46
+      open(unit=all_absorptions_unit, file='all_absorptions.dat') !was 47
+      open(unit=coll_scatter_unit, file='Coll_Scatter.dat') !was 3998
+      open(unit=FirstImpacts_unit, file='FirstImpacts.dat') !was 39
 
-    if (firstrun) then
-      write(all_impacts_unit,'(a)') '# 1=name 2=turn 3=s'
-      write(all_absorptions_unit,'(a)') '# 1=name 2=turn 3=s'
-      write(FLUKA_impacts_unit,'(a)') '# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
-      write(FirstImpacts_unit,*)                                                   &
- &     '%1=name,2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], ',&
- &     '7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, ',                &
- &     '11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out'
-
-! RB: write headers in new output files
-      write(FLUKA_impacts_all_unit,'(a)') '# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
-      write(coll_scatter_unit,*) &
- &     "#1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic,4:Single-Diffractive,5:Coulomb)" &
- &     ,", 5=dp, 6=dx', 7=dy'"
-    end if ! if (firstrun) then
+      if (firstrun) then
+        write(all_impacts_unit,'(a)') '# 1=name 2=turn 3=s'
+        write(all_absorptions_unit,'(a)') '# 1=name 2=turn 3=s'
+        write(FirstImpacts_unit,*)                                                   &
+        '%1=name,2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], ',&
+        '7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, ',                &
+        '11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out'
+        write(coll_scatter_unit,*) &
+        "#1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic,4:Single-Diffractive,5:Coulomb)", &
+        ", 5=dp, 6=dx', 7=dy'"
+      end if ! if (firstrun) then
 #ifdef HDF5
     end if
 #endif
+    call funit_requestUnit('FLUKA_impacts.dat', FLUKA_impacts_unit)
+    call funit_requestUnit('FLUKA_impacts_all.dat', FLUKA_impacts_all_unit)
+    open(unit=FLUKA_impacts_unit, file='FLUKA_impacts.dat') !was 48
+    open(unit=FLUKA_impacts_all_unit, file='FLUKA_impacts_all.dat') !was 4801
+    if (firstrun) then
+      write(FLUKA_impacts_unit,'(a)') '# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
+      write(FLUKA_impacts_all_unit,'(a)') '# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
+    end if ! if (firstrun) then
   end if ! if(dowrite_impact) then
 
   if(name_sel(1:3).eq.'COL') then
@@ -2212,8 +2209,8 @@ subroutine collimate_start_sample(nsample)
 
       do i = 1, db_ncoll
 ! start searching minimum gap
-        if((db_name1(i)(1:max_name_len).eq.bez(myix)(1:max_name_len)).or. &
-           (db_name2(i)(1:max_name_len).eq.bez(myix)(1:max_name_len))) then
+        if((db_name1(i)(1:mNameLen).eq.bez(myix)(1:mNameLen)).or. &
+           (db_name2(i)(1:mNameLen).eq.bez(myix)(1:mNameLen))) then
           if( db_length(i) .gt. zero ) then
             nsig_err = nsig + gap_rms_error(i)
 
@@ -2508,7 +2505,7 @@ subroutine collimate_start_collimator(stracki)
         end if
 
           sampl(ie)    = totals
-          ename(ie)    = bez(myix)(1:max_name_len)
+          ename(ie)    = bez(myix)(1:mNameLen)
       end do !do j = 1, napx
     end if !if(rselect.gt.0 .and. rselect.lt.65) then
   end if !if( firstrun ) then
@@ -2518,8 +2515,8 @@ subroutine collimate_start_collimator(stracki)
 
 !     SR, 01-09-2005: to set found = .TRUE., add the condition L>0!!
   do j = 1, db_ncoll
-    if((db_name1(j)(1:max_name_len).eq.bez(myix)(1:max_name_len)) .or. &
-       (db_name2(j)(1:max_name_len).eq.bez(myix)(1:max_name_len))) then
+    if((db_name1(j)(1:mNameLen).eq.bez(myix)(1:mNameLen)) .or. &
+       (db_name2(j)(1:mNameLen).eq.bez(myix)(1:mNameLen))) then
       if( db_length(j) .gt. zero ) then
         found = .true.
         icoll = j
@@ -2596,8 +2593,7 @@ subroutine collimate_do_collimator(stracki)
   end if
 
 !++  Write beam ellipse at selected collimator
-  if (((db_name1(icoll).eq.name_sel(1:max_name_len)) .or.&
-       (db_name2(icoll).eq.name_sel(1:max_name_len))) .and. dowrite_dist) then
+  if (((db_name1(icoll).eq.name_sel(1:mNameLen)) .or. (db_name2(icoll).eq.name_sel(1:mNameLen))) .and. do_select) then
     do j = 1, napx
       write(coll_ellipse_unit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv(1,j), xv(2,j), yv(1,j), yv(2,j), &
      &        ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
@@ -3587,8 +3583,8 @@ subroutine collimate_end_collimator()
 
 ! should name_sel(1:11) extended to allow longer names as done for
 ! coll the coll_ellipse.dat file !!!!!!!!
-  if(((db_name1(icoll).eq.name_sel(1:max_name_len)).or.&
-      (db_name2(icoll).eq.name_sel(1:max_name_len))) .and. iturn.eq.1  ) then
+  if(((db_name1(icoll).eq.name_sel(1:mNameLen)).or.&
+      (db_name2(icoll).eq.name_sel(1:mNameLen))) .and. iturn.eq.1  ) then
     num_selhit = 0
     num_surhit = 0
     num_selabs = 0
@@ -3863,7 +3859,7 @@ subroutine collimate_end_sample(j)
   if(h5_useForCOLL) then
     allocate(fldHdf(7))
     fldHdf(1) = h5_dataField(name="ICOLL",    type=h5_typeInt)
-    fldHdf(2) = h5_dataField(name="COLLNAME", type=h5_typeChar, size=max_name_len)
+    fldHdf(2) = h5_dataField(name="COLLNAME", type=h5_typeChar, size=mNameLen)
     fldHdf(3) = h5_dataField(name="NIMP",     type=h5_typeInt)
     fldHdf(4) = h5_dataField(name="NABS",     type=h5_typeInt)
     fldHdf(5) = h5_dataField(name="IMP_AV",   type=h5_typeReal)
@@ -4234,7 +4230,7 @@ subroutine collimate_end_element
         end if
 
         sampl(ie) = totals
-        ename(ie) = bez(myix)(1:max_name_len)
+        ename(ie) = bez(myix)(1:mNameLen)
       end do
     end if
   end if
@@ -4699,7 +4695,7 @@ subroutine collimate_end_turn
           sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
           nampl(ie)    = nampl(ie) + 1
           sampl(ie)    = totals
-          ename(ie)    = bez(myix)(1:max_name_len)
+          ename(ie)    = bez(myix)(1:mNameLen)
         else
           nspx = zero
           nspy = zero
@@ -5536,17 +5532,15 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
   use parpro
   implicit none
 
-
-  real(kind=fPrec) sx, sz
 !
 ! BLOCK DBCOLLIM
 ! This block is common to collimaterhic and collimate2
 ! It is NOT compatible with block DBCOMMON, as some variable names overlap...
 
 
-  logical onesided,hit
+  logical onesided
 ! integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
-  integer nprim,j,nabs,nhit,np
+  integer np
 
   integer, allocatable :: lhit_pos(:) !(npart)
   integer, allocatable :: lhit_turn(:) !(npart)
@@ -5564,7 +5558,6 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
   real(kind=fPrec), allocatable :: indiv(:) !(npart)
   real(kind=fPrec), allocatable :: lint(:) !(npart)
   real(kind=fPrec), allocatable :: impact(:) !(npart)
-  real(kind=fPrec) keeps,fracab,drift_length,mirror,tiltangle
 
   real(kind=fPrec) c_length    !length in m
   real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
@@ -5573,20 +5566,9 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
   real(kind=fPrec) c_tilt(2)   !tilt in radian
   character(len=4) c_material  !material
 
-  real(kind=fPrec) x00,z00,p,sp,s,enom
-
-!AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
-!           sheet beam distribution  (smear in x and y)
-!
-
-      real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk
-!JUNE2005
-      real(kind=fPrec) n_aperture  !aperture in m for the vertical plane
-!JUNE2005
-!DEBUG
-      integer event
-!DEBUG
-      save
+  real(kind=fPrec) enom
+  real(kind=fPrec) n_aperture  !aperture in m for the vertical plane
+  save
 !=======================================================================
   write(lout,*) 'collimateRHIC is no longer supported!'
   call prror(-1)
@@ -6900,6 +6882,8 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
 !               DE     -> [ MeV ]
 
   use crcoall
+  use parpro
+  use string_tools
   implicit none
 
   integer :: j,mynp
@@ -6914,24 +6898,48 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
 
   integer stat
 
+  character(len=mInputLn) inLine
+  character(len=:), allocatable :: lnSplit(:)
+  integer nSplit
+  logical spErr
+
   save
 
-  write(lout,*) "Reading input bunch from file ", filename_dis
+  write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
 
   call funit_requestUnit(filename_dis, filename_dis_unit)
   open(unit=filename_dis_unit, file=filename_dis, iostat=stat,status="OLD",action="read") !was 53
   if(stat.ne.0)then
-    write(lout,*) "Error in subroutine readdis: Could not open the file."
-    write(lout,*) "Got iostat=",stat
+    write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
+    write(lout,"(a,i0)") "COLL>       Got iostat=",stat
     goto 20
   end if
 
   do j=1,mynp
-    read(filename_dis_unit,*,end=10,err=20) myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
+    read(filename_dis_unit,"(a)",end=10,err=20) inLine
+    call chr_split(inLine, lnSplit, nSplit, spErr)
+    if(spErr) then
+      write(lout,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
+      goto 20
+    end if
+    if(nSplit /= 6) then
+      write(lout,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
+      goto 20
+    end if
+    call chr_cast(lnSplit(1),myx(j), spErr)
+    call chr_cast(lnSplit(2),myxp(j),spErr)
+    call chr_cast(lnSplit(3),myy(j), spErr)
+    call chr_cast(lnSplit(4),myyp(j),spErr)
+    call chr_cast(lnSplit(5),mys(j), spErr)
+    call chr_cast(lnSplit(6),myp(j), spErr)
+    if(spErr) then
+      write(lout,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
+      goto 20
+    end if
   end do
 
  10   mynp = j - 1
-  write(lout,*) "Number of particles read from the file = ",mynp
+  write(lout,"(a,i0)") "COLL> Number of particles read from the file = ",mynp
 
   close(filename_dis_unit)
 
@@ -6939,7 +6947,7 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
 
  20   continue
 
-  write(lout,*) "I/O Error on Unit 53 in subroutine readdis"
+  write(lout,"(a)") "COLL> I/O Error on Unit 53 in subroutine readdis"
   call prror(-1)
 
 end subroutine readdis
@@ -6958,6 +6966,7 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   use parpro
   use mod_common
   use mod_commonmn
+  use string_tools
   implicit none
 
   integer :: j,mynp
@@ -6980,29 +6989,53 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   real(kind=fPrec) normx, normy, normxp, normyp, normp, norms
   real(kind=fPrec) myemitz
 
+  character(len=mInputLn) inLine
+  character(len=:), allocatable :: lnSplit(:)
+  integer nSplit
+  logical spErr
+
   if (iclo6.eq.0) then
-    write(lout,*) "ERROR DETECTED: Incompatible flag           "
-    write(lout,*) "in line 2 of the TRACKING block             "
-    write(lout,*) "of fort.3 for calculating the closed orbit  "
-    write(lout,*) "(iclo6 must not be =0). When using an input "
-    write(lout,*) "distribution in normalized coordinates for  "
-    write(lout,*) "collimation the closed orbit is needed for a"
-    write(lout,*) "correct TAS matrix for coordinate transform."
+    write(lout,"(a)") "COLL> ERROR DETECTED: Incompatible flag           "
+    write(lout,"(a)") "COLL> in line 2 of the TRACKING block             "
+    write(lout,"(a)") "COLL> of fort.3 for calculating the closed orbit  "
+    write(lout,"(a)") "COLL> (iclo6 must not be =0). When using an input "
+    write(lout,"(a)") "COLL> distribution in normalized coordinates for  "
+    write(lout,"(a)") "COLL> collimation the closed orbit is needed for a"
+    write(lout,"(a)") "COLL> correct TAS matrix for coordinate transform."
     call prror(-1)
   endif
 
-  write(lout,*) "Reading input bunch from file ", filename_dis
+  write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
 
   call funit_requestUnit(filename_dis, filename_dis_unit)
   open(unit=filename_dis_unit, file=filename_dis, iostat=stat, status="OLD",action="read") !was 53
   if(stat.ne.0)then
-    write(lout,*) "Error in subroutine readdis: Could not open the file."
-    write(lout,*) "Got iostat=",stat
+    write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
+    write(lout,"(a,i0)") "COLL>       Got iostat=",stat
     goto 20
   end if
 
   do j=1,mynp
-    read(filename_dis_unit,*,end=10,err=20) normx, normxp, normy, normyp, norms, normp
+    read(filename_dis_unit,"(a)",end=10,err=20) inLine
+    call chr_split(inLine, lnSplit, nSplit, spErr)
+    if(spErr) then
+      write(lout,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
+      goto 20
+    end if
+    if(nSplit /= 6) then
+      write(lout,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
+      goto 20
+    end if
+    call chr_cast(lnSplit(1),normx, spErr)
+    call chr_cast(lnSplit(2),normxp,spErr)
+    call chr_cast(lnSplit(3),normy, spErr)
+    call chr_cast(lnSplit(4),normyp,spErr)
+    call chr_cast(lnSplit(5),norms, spErr)
+    call chr_cast(lnSplit(6),normp, spErr)
+    if(spErr) then
+      write(lout,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
+      goto 20
+    end if
 ! A normalized distribution with x,xp,y,yp,z,zp is read and
 ! transformed with the TAS matrix T , which is the transformation matrix
 ! from normalized to physical coordinates it is scaled with the geometric
@@ -7086,13 +7119,13 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   end do
 
 10   mynp = j - 1
-  write(lout,*) "Number of particles read from the file = ",mynp
+  write(lout,"(a,i0)") "COLL> Number of particles read from the file = ",mynp
 
   close(filename_dis_unit)
   return
 
 20 continue
-   write(lout,*) "I/O Error on Unit 53 in subroutine readdis"
+   write(lout,"(a)") "COLL> I/O Error on Unit 53 in subroutine readdis"
    call prror(-1)
 
 end subroutine readdis_norm
@@ -8007,6 +8040,7 @@ end function ran_gauss
 subroutine readcollimator
   use crcoall
   use parpro
+  use string_tools, only : chr_cast
 
 #ifdef ROOT
   use iso_c_binding
@@ -8016,10 +8050,12 @@ subroutine readcollimator
   implicit none
 
   integer J,ios
+  character(len=1024) inVal
+  logical cErr
 
 #ifdef ROOT
 ! Temp variables to avoid fotran array -> C nightmares
-  character(len=max_name_len+1) :: this_name = C_NULL_CHAR
+  character(len=mNameLen+1) :: this_name = C_NULL_CHAR
   character(len=5) :: this_material = C_NULL_CHAR
 #endif
 
@@ -8030,14 +8066,14 @@ subroutine readcollimator
   call funit_requestUnit(coll_db, coll_db_unit)
   open(unit=coll_db_unit,file=coll_db, iostat=ios, status="OLD",action="read") !was 53
   if(ios.ne.0)then
-    write(lout,*) "Error in subroutine readcollimator: Could not open the file ",coll_db
-    write(lout,*) "Got iostat=",ios
+    write(lout,"(a)")    "COLL> ERROR in subroutine readcollimator: Could not open the file '"//coll_db//"'"
+    write(lout,"(a,i0)") "COLL>       Got iostat = ",ios
     call prror(-1)
   end if
 
   read(coll_db_unit,*)
   read(coll_db_unit,*,iostat=ios) db_ncoll
-  write(lout,*) 'number of collimators = ',db_ncoll
+  write(lout,"(a,i0)") "COLL> Number of collimators = ",db_ncoll
 !     write(*,*) 'ios = ',ios
   if(ios.ne.0) then
     write(outlun,*) 'ERR>  Problem reading collimator DB ',ios
@@ -8045,7 +8081,7 @@ subroutine readcollimator
   end if
 
   if(db_ncoll.gt.max_ncoll) then
-    write(lout,*) 'ERR> db_ncoll > max_ncoll '
+    write(lout,"(a)") "COLL> ERROR db_ncoll > max_ncoll"
     call prror(-1)
   end if
 
@@ -8066,9 +8102,10 @@ subroutine readcollimator
       call prror(-1)
     end if
 
-    read(coll_db_unit,*,iostat=ios) db_nsig(j)
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_nsig(j),cErr)
 !        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
+    if(ios.ne.0 .or. cErr) then
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
@@ -8079,33 +8116,38 @@ subroutine readcollimator
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
-    read(coll_db_unit,*,iostat=ios) db_length(j)
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_length(j),cErr)
 !        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
+    if(ios.ne.0 .or. cErr) then
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
-    read(coll_db_unit,*,iostat=ios) db_rotation(j)
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_rotation(j),cErr)
 !        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
+    if(ios.ne.0 .or. cErr) then
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
-    read(coll_db_unit,*,iostat=ios) db_offset(j)
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_offset(j),cErr)
 !        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
+    if(ios.ne.0 .or. cErr) then
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
-    read(coll_db_unit,*,iostat=ios) db_bx(j)
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_bx(j),cErr)
 !        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
+    if(ios.ne.0 .or. cErr) then
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if
-    read(coll_db_unit,*,iostat=ios) db_by(j)
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_by(j),cErr)
 !        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
+    if(ios.ne.0 .or. cErr) then
       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
       call prror(-1)
     end if

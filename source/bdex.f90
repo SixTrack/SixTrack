@@ -57,381 +57,392 @@ module bdex
 
 contains
 
-  subroutine bdex_allocate_arrays
-    use crcoall
-    implicit none
-    integer stat
+subroutine bdex_allocate_arrays
+  use crcoall
+  implicit none
+  call alloc(bdex_elementAction,nele,0,'bdex_elementAction')
+  call alloc(bdex_elementChannel,nele,0,'bdex_elementChannel')
+end subroutine bdex_allocate_arrays
 
-    call alloc(bdex_elementAction,nele,0,'bdex_elementAction')
-    call alloc(bdex_elementChannel,nele,0,'bdex_elementChannel')
+subroutine bdex_expand_arrays(nele_new)
+  use crcoall
+  implicit none
+  integer, intent(in) :: nele_new
+  call resize(bdex_elementAction,nele_new,0,'bdex_elementAction')
+  call resize(bdex_elementChannel,nele_new,0,'bdex_elementChannel')
+end subroutine bdex_expand_arrays
 
-  end subroutine bdex_allocate_arrays
+subroutine bdex_comnul
+  bdex_enable=.false.
+  bdex_debug =.false.
+  bdex_nchannels=0
+  bdex_channels(:,:) = 0
+  bdex_channelNames(:) = " "
+  bdex_nstringStorage = 0
+  bdex_stringStorage(:) = " "
+end subroutine bdex_comnul
 
-  subroutine bdex_expand_arrays(nele_new)
-    use crcoall
-    implicit none
-    integer, intent(in) :: nele_new
+subroutine bdex_closeFiles
+  integer i
+  if(bdex_enable) then
+      do i=0,bdex_nchannels
+        if (bdex_channels(i,1).eq.1) then
+            close(bdex_channels(i,4))   !inPipe
+            write(bdex_channels(i,4)+1,"(a)") "CLOSEUNITS"
+            close(bdex_channels(i,4)+1) !outPipe
+        endif
+      enddo
+  endif
+end subroutine bdex_closeFiles
 
-    call resize(bdex_elementAction,nele_new,0,'bdex_elementAction')
-    call resize(bdex_elementChannel,nele_new,0,'bdex_elementChannel')
-  end subroutine bdex_expand_arrays
+! ================================================================================================ !
+!  Parse Input Line
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-06-25
+!  Based on FLUKA coupling version by
+!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team, 2014.
+!  Rewritten from code from DATEN by VKBO
+! ================================================================================================ !
+subroutine bdex_parseInputLine(inLine, iLine, iErr)
 
-  subroutine bdex_closeFiles
-    implicit none
+  use string_tools
 
-    integer i
+  implicit none
 
-    if (bdex_enable) then
-       do i=0,bdex_nchannels
-          if (bdex_channels(i,1).eq.1) then
-             close(bdex_channels(i,4))   !inPipe
-             write(bdex_channels(i,4)+1,"(a)") "CLOSEUNITS"
-             close(bdex_channels(i,4)+1) !outPipe
-          endif
-       enddo
-    endif
-  end subroutine bdex_closeFiles
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
 
-  subroutine bdex_parseElem(ch)
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit
+  logical spErr
 
-    use mod_common
-    implicit none
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "BDEX> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
 
-    character(len=*) ch
-    character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
-    integer   getfields_nfields                                                 ! Number of identified fields
-    integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
-    logical   getfields_lerr                                                    ! An error flag
+  select case(lnSplit(1)(1:4))
 
+  case("DEBU")
+    bdex_debug = .true.
+    write (lout,"(a)") "BDEX> DEBUG enabled"
 
-    integer ii,jj
+  case("ELEM")
+    call bdex_parseElem(inLine,iErr)
+    if(iErr) return
 
-    call getfields_split( ch, getfields_fields, getfields_lfields, &
-         getfields_nfields, getfields_lerr )
-    if ( getfields_lerr ) call prror(-1)
-    if (bdex_debug) then
-       write (lout,'(1x,A,I4,A)') "BDEXDEBUG> Got a ELEM block, len=", &
-            len(ch), ": '"// trim(ch)// "'"
-       do ii=1,getfields_nfields
-          write (lout,*) "BDEXDEBUG> Field(",ii,") ='", &
-               getfields_fields(ii)(1:getfields_lfields(ii)),"'"
-       enddo
-    endif
+  case("CHAN")
+    call bdex_parseChan(inLine,iErr)
+    if(iErr) return
 
-    !Parse ELEM
-    if ( getfields_nfields .ne. 4 ) then
-       write(lout,*)"ELEM expects the following arguments:"
-       write(lout,*)"ELEM chanName elemName action"
-       call prror(-1)
-    endif
+  case default
+    write (lout,"(a)") "BDEX> ERROR Expected keywords DEBU, NEXT, ELEM, or CHAN"
+    iErr = .true.
+    return
 
-    jj = -1
-    do ii=1,il !match the single element
-       if ( bez(ii) .eq. getfields_fields(3)(1:getfields_lfields(3)) ) then
-          jj=ii
-          exit !breaks the loop
-       endif
-    enddo
-    if (jj.eq.-1) then
-       write(lout,*) "BDEX> ERROR: The element '"// &
-            getfields_fields(3)(1:getfields_lfields(3)) //"' was not found "// &
-            "in the single element list."
-       call prror(-1)
-    endif
+  end select
 
-    if (kz(jj).ne.0 .or. el(jj).gt.pieni) then
-       write(lout,*) "BDEX> Error: The element ",bez(jj), &
-            "is not a marker. kz=", kz(jj), "el=",el(jj)
-       call prror(-1)
-    endif
+end subroutine bdex_parseInputLine
 
-    ! Action
-    read(getfields_fields(4)(1:getfields_lfields(4)),*) bdex_elementAction(jj)
-    if (bdex_elementAction(jj).ne.1) then
-       write(lout,*) "BDEX> Error: Only action 1 (exchange) is currently supported."
-       call prror(-1)
-    endif
+subroutine bdex_parseElem(inLine,iErr)
 
-    bdex_elementChannel(jj) = -1
-    do ii=1,bdex_nchannels !Match channel name
-       if ( bdex_channelNames(ii)(1:getfields_lfields(2)) .eq. &
-            getfields_fields(2)(1:getfields_lfields(2)) ) then
-          bdex_elementChannel(jj)=ii
-       endif
-    enddo
-    if ( bdex_elementChannel(jj).eq.-1 ) then
-       write(lout,*) "BDEX> ERROR: The channel '"// &
-            getfields_fields(2)(1:getfields_lfields(2)) //"' was not found"
-       call prror(-1)
-    endif
+  use mod_common
+  use string_tools
 
-  end subroutine bdex_parseElem
+  implicit none
 
-  subroutine bdex_parseChan(ch)
+  character(len=*), intent(in)    :: inLine
+  logical,          intent(inout) :: iErr
 
-    use mod_common
-    use string_tools
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit, ii, jj
+  logical spErr
 
-    implicit none
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "BDEX> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
 
-    character(len=*) ch
-    character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
-    integer   getfields_nfields                                                 ! Number of identified fields
-    integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
-    logical   getfields_lerr                                                    ! An error flag
-
-    integer ii,jj
-
-    call getfields_split( ch, getfields_fields, getfields_lfields, &
-         getfields_nfields, getfields_lerr )
-    if ( getfields_lerr ) call prror(-1)
-    if (bdex_debug) then
-       write (lout,'(1x,A,I4,A)') "BDEXDEBUG> Got a CHAN block, len=", &
-            len(ch), ": '"// trim(ch)// "'"
-       do ii=1,getfields_nfields
-          write (lout,*) &
-               "BDEXDEBUG> Field(",ii,") ='", &
-               getfields_fields(ii)(1:getfields_lfields(ii)),"'"
-       enddo
-    endif
-
-    if ( getfields_nfields .lt. 3 ) then
-       write(lout,*) "CHAN expects at least 3 arguments!"
-       call prror(-1)
-    endif
-
-    !Parse CHAN
-    select case( trim(stringzerotrim( getfields_fields(3) )) )
-    case ("PIPE")
-       call bdex_initializePipe &
-            (getfields_fields,getfields_lfields,getfields_nfields)
-    case ("TCPIP")
-       call bdex_initializeTCPIP &
-            (getfields_fields,getfields_lfields,getfields_nfields)
-
-    case default
-       !Unknown
-       write(lout,*) "Error in BDEX CHAN block parsing:"
-       write(lout,*) "Unknown keyword '"//trim(stringzerotrim(getfields_fields(3)))//"'"
-       write(lout,*) "Expected PIPE or TCPIP"
-
-       call prror(-1)
-
-    end select
-
-  end subroutine bdex_parseChan
-
-  subroutine bdex_parseInputDone
-
-    use mod_common
-    use string_tools
-
-    implicit none
-
-    integer ii
-
-    if (bdex_debug) then
-       write (lout,*) "BDEXDEBUG> Finished parsing BDEX block"
-    endif
-    if (bdex_enable) then
-       write (lout,*)
-       write (lout,*) "******************************************"
-       write (lout,*) "** More than one BDEX block encountered **"
-       write (lout,*) "******************************************"
-       call prror(-1)
-    else
-       bdex_enable = .true.
-    endif
-
-    if (bdex_debug) then
-       write(lout,*) "BDEXDEBUG> Done parsing block, data dump:"
-       write(lout,*) "BDEXDEBUG> bdex_enable = ", bdex_enable
-       write(lout,*) "BDEXDEBUG> bdex_debug  = ", bdex_debug
-       do ii=1,il
-          if ( bdex_elementAction(ii).ne.0 ) then
-             write(lout,*) "BDEXDEBUG> Single element number", ii, &
-                  "named ",bez(ii), "bdex_elementAction(#)=",bdex_elementAction(ii), &
-                  "bdex_elementChannel(#)=",bdex_elementChannel(ii)
-          endif
-       enddo
-       write(lout,*) "BDEXDEBUG> bdex_nchannels=",bdex_nchannels,">=",bdex_maxchannels
-       do ii=1,bdex_nchannels
-          write(lout,*) "BDEXDEBUG> Channel #",ii, &
-               "bdex_channelNames(#)='"// &
-               trim(stringzerotrim(bdex_channelNames(ii)))//"'", &
-               "bdex_channels(#,:)=",bdex_channels(ii,1),bdex_channels(ii,2), &
-               bdex_channels(ii,3),bdex_channels(ii,4)
-       enddo
-       write(lout,*) "BDEXDEBUG> bdex_nstringStorage=", &
-            bdex_nstringStorage,">=",bdex_maxStore
-       do ii=1,bdex_nstringStorage
-          write(lout,*) "BDEXDEBUG> #",ii,"= '"// &
-               trim(stringzerotrim(bdex_stringStorage(ii)))//"'"
-       enddo
-       write(lout,*) "BDEXDEBUG> Dump completed."
-    endif
-
-  end subroutine bdex_parseInputDone
-
-  subroutine bdex_comnul
-    implicit none
-
-    integer i,j
-
-    bdex_enable=.false.
-    bdex_debug =.false.
-    do i=1, nele
-       bdex_elementAction(i) = 0
-       bdex_elementChannel(i) = 0
+  if(bdex_debug)then
+    write(lout,"(a,i0,a)") "BDEX> DEBUG Got an ELEM block, len=",len(inLine),": '"//trim(inLine)//"'"
+    do ii=1,nSplit
+      write(lout,"(a,i3,a)") "BDEX> DEBUG Field(",ii,") = '"//trim(lnSplit(ii))//"'"
     end do
-    bdex_nchannels=0
-    do i=1, bdex_maxchannels
-       bdex_channels(i,1) = 0
-       bdex_channels(i,2) = 0
-       bdex_channels(i,3) = 0
-       bdex_channels(i,4) = 0
-       do j=1,getfields_l_max_string
-          bdex_channelNames(i)(j:j)=char(0)
-       end do
-    enddo
-    bdex_nstringStorage = 0
-    do i=1,bdex_maxStore
-       do j=1,getfields_l_max_string
-          bdex_stringStorage(i)(j:j)=char(0)
-       end do
+  end if
+
+  ! Parse ELEM
+  if(nSplit /= 4) then
+    write(lout,"(a)") "BDEX> ERROR ELEM expects the following arguments:"
+    write(lout,"(a)") "BDEX>       ELEM chanName elemName action"
+    iErr = .true.
+    return
+  end if
+
+  jj = -1
+  do ii=1,il ! Match the single element
+    if(bez(ii) == lnSplit(3)) then
+      jj = ii
+      exit
+    end if
+  end do
+  if(jj == -1) then
+    write(lout,"(a)") "BDEX> ERROR The element '"//trim(lnSplit(3))//"' was not found in the single element list."
+    iErr = .true.
+    return
+  end if
+
+  if(kz(jj) /= 0 .or. el(jj) > pieni) then
+    write(lout,"(2(a,i0))") "BDEX> ERROR The element '"//trim(bez(jj))//"' is not a marker. kz=",kz(jj),", el=",el(jj)
+    iErr = .true.
+    return
+  end if
+
+  ! Action
+  call chr_cast(lnSplit(4),bdex_elementAction(jj),iErr)
+  if(bdex_elementAction(jj) /= 1) then
+    write(lout,"(a,i0)") "BDEX> ERROR Only action 1 (exchange) is currently supported, got",bdex_elementAction(jj)
+    iErr = .true.
+    return
+  end if
+
+  bdex_elementChannel(jj) = -1
+  do ii=1,bdex_nchannels ! Match channel name
+    if(bdex_channelNames(ii) == lnSplit(2)) then
+      bdex_elementChannel(jj) = ii
+      exit
+    end if
+  end do
+  if(bdex_elementChannel(jj) == -1) then
+    write(lout,"(a)") "BDEX> ERROR The channel '"//trim(lnSplit(2))//"' was not found."
+    iErr = .true.
+    return
+  end if
+
+end subroutine bdex_parseElem
+
+subroutine bdex_parseChan(inLine,iErr)
+
+  use mod_common
+  use string_tools
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit, ii, jj
+  logical spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "BDEX> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  if(bdex_debug) then
+    write (lout,"(a,i0,a)") "BDEX> DEBUG Got a CHAN block, len=",len(inLine), ": '"//trim(inLine)//"'"
+    do ii=1,nSplit
+      write (lout,"(a,i3,a)") "BDEX> DEBUG Field(",ii,") ='"//trim(lnSplit(ii))//"'"
     end do
+  end if
 
-  end subroutine bdex_comnul
+  if(nSplit < 3) then
+    write(lout,"(a,i0)") "BDEX> ERROR CHAN expects at least 3 arguments, got ",nSplit
+    iErr = .true.
+    return
+  end if
 
-  ! The following subroutines where extracted from deck bdexancil:
-  ! Deck with the initialization etc. routines for BDEX
+  ! Parse CHAN
+  select case(trim(lnSplit(3)))
+  case("PIPE")
+    call bdex_initialisePipe(inLine,iErr)
+    if(iErr) return
+  case("TCPIP")
+    call bdex_initialiseTCPIP(inLine,iErr)
+    if(iErr) return
+  case default
+    write(lout,"(a)") "BDEX> ERROR Unknown keyword in CHAN: '"//trim(lnSplit(3))//"'. Expected PIPE or TCPIP"
+    iErr = .true.
+    return
+  end select
 
-  subroutine bdex_initializePipe( getfields_fields, getfields_lfields,getfields_nfields )
+end subroutine bdex_parseChan
 
-    use parpro
-    use string_tools
+subroutine bdex_parseInputDone
 
-    implicit none
+  use mod_common
+  use string_tools
 
-    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
-    integer,   intent(in) :: getfields_nfields
-    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
+  implicit none
 
-    !Temp variables
-    ! For checking files before opening:
-    logical lopen
-    integer stat
+  integer ii
 
-    !PIPE: Use a pair of pipes to communicate the particle distributions
-    !Arguments: InFileName OutFileName format fileUnit
-    if ( getfields_nfields .ne. 7 ) then
-       write(lout,*) "CHAN PIPE expects the following arguments:"
-       write(lout,*) "CHAN chanName PIPE InFileName OutFileName format fileUnit"
-       call prror(-1)
-    endif
+  if(bdex_debug) then
+    write(lout,"(a)") "BDEX> DEBUG Finished parsing BDEX block"
+  end if
+  bdex_enable = .true.
 
-    bdex_nchannels = bdex_nchannels+1
-    if (bdex_nchannels.gt.bdex_maxchannels) then
-       write(lout,*) "BDEX: max channels exceeded!"
-       call prror(-1)
-    endif
+  if(bdex_debug) then
+    write(lout,"(a)")    "BDEX> DEBUG Done parsing block, data dump:"
+    write(lout,"(a,l1)") "BDEX> DEBUG * bdex_enable = ",bdex_enable
+    write(lout,"(a,l1)") "BDEX> DEBUG * bdex_debug  = ",bdex_debug
+    do ii=1,il
+      if(bdex_elementAction(ii) /= 0) then
+        write(lout,"(3(a,i0))") "BDEX> DEBUG Single element number",ii,"named '"//trim(bez(ii))//"' "//&
+          "bdex_elementAction(#)=",bdex_elementAction(ii)," bdex_elementChannel(#)=",bdex_elementChannel(ii)
+      end if
+    end do
+    write(lout,"(2(a,i0))") "BDEX> DEBUG bdex_nchannels=",bdex_nchannels," >= ",bdex_maxchannels
+    do ii=1,bdex_nchannels
+      write(lout,"(a,i0,a,4(i0,1x))") "BDEX> DEBUG Channel #",ii," bdex_channelNames(#)='"//trim(bdex_channelNames(ii))//"'"//&
+        "bdex_channels(#,:)=",bdex_channels(ii,1),bdex_channels(ii,2),bdex_channels(ii,3),bdex_channels(ii,4)
+    end do
+    write(lout,"(2(a,i0))") "BDEX> DEBUG bdex_nstringStorage=",bdex_nstringStorage," >= ",bdex_maxStore
+    do ii=1,bdex_nstringStorage
+      write(lout,"(a,i0,a)") "BDEXDEBUG> #",ii,"= '"//trim(bdex_stringStorage(ii))//"'"
+    end do
+    write(lout,"(a)") "BDEX> DEBUG Dump completed."
+  end if
 
-    if (bdex_nStringStorage+2.gt.bdex_maxStore) then
-       write(lout,*) "BDEX: maxStore exceeded for strings!"
-       call prror(-1)
-    endif
+end subroutine bdex_parseInputDone
 
-    !Store config data
+! The following subroutines where extracted from deck bdexancil:
+! Deck with the initialization etc. routines for BDEX
+subroutine bdex_initialisePIPE(inLine,iErr)
 
-    ! channelName
-    bdex_channelNames(bdex_nchannels)(1:getfields_lfields(2)) = &
-         getfields_fields(2)(1:getfields_lfields(2))
+  use mod_common
+  use parpro
+  use string_tools
 
-    ! TYPE is PIPE
-    bdex_channels(bdex_nchannels,1) = 1
+  implicit none
 
-    bdex_nstringStorage = bdex_nstringStorage+1
-    bdex_channels(bdex_nchannels,3) = bdex_nstringStorage
+  character(len=*), intent(in)    :: inLine
+  logical,          intent(inout) :: iErr
 
-    ! inPipe
-    bdex_stringStorage(bdex_nstringStorage)(1:getfields_lfields(4)) = &
-         getfields_fields(4)(1:getfields_lfields(4))
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit
+  logical spErr
 
-    ! outPipe
-    bdex_nstringStorage = bdex_nstringStorage+1
-    bdex_stringStorage(bdex_nstringStorage)(1:getfields_lfields(5)) = &
-         getfields_fields(5)(1:getfields_lfields(5))
+  logical lopen
+  integer stat
 
-    ! Output Format
-    read(getfields_fields(6)(1:getfields_lfields(6)),*) &
-         bdex_channels(bdex_nchannels,2)
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "BDEX> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
 
-    ! fileUnit
-    read(getfields_fields(7)(1:getfields_lfields(7)),*) &
-         bdex_channels(bdex_nchannels,4)
+  ! PIPE: Use a pair of pipes to communicate the particle distributions
+  ! Arguments: InFileName OutFileName format fileUnit
+  if(nSplit /= 7) then
+    write(lout,"(a)") "BDEX> ERROR CHAN PIPE expects the following arguments:"
+    write(lout,"(a)") "BDEX>       CHAN chanName PIPE InFileName OutFileName format fileUnit"
+    iErr = .true.
+    return
+  end if
 
-    ! Open the inPipe
-    inquire( unit=bdex_channels(bdex_nchannels,4),opened=lopen )
-    if (lopen) then
-       write(lout,*)"BDEX> ERROR in daten():BDEX:CHAN:PIPE"
-       write(lout,*)"BDEX> unit=",bdex_channels(bdex_nchannels,4), &
-            "for file '"//bdex_stringStorage(bdex_channels(bdex_nchannels,3) ) &
-            //"' was already taken"
-       call prror(-1)
-    end if
+  bdex_nchannels = bdex_nchannels+1
+  if(bdex_nchannels > bdex_maxchannels) then
+    write(lout,"(a)") "BDEX> ERROR Max channels exceeded!"
+    iErr = .true.
+    return
+  end if
 
-    write(lout,*) "BDEX> Opening input pipe '"// &
-         trim(stringzerotrim(bdex_stringStorage(bdex_channels(bdex_nchannels,3)) ))//"'"
-    open(unit=bdex_channels(bdex_nchannels,4), &
-         file=bdex_stringStorage( bdex_channels(bdex_nchannels,3) ), &
-         action='read',iostat=stat,status="OLD")
-    if (stat .ne. 0) then
-       write(lout,*) "BDEX> Error opening file '", &
-            bdex_stringStorage( bdex_channels(bdex_nchannels,3) ), "', stat=",stat
-       call prror(-1)
-    endif
+  if(bdex_nStringStorage+2 > bdex_maxStore) then
+    write(lout,"(a)") "BDEX> ERROR maxStore exceeded for strings!"
+    iErr = .true.
+    return
+  end if
 
-    ! Open the outPipe
-    inquire(unit=bdex_channels(bdex_nchannels,4)+1,opened=lopen)
-    if (lopen) then
-       write(lout,*)"BDEX> ERROR in daten():PIPE "
-       write(lout,*)"BDEX> unit=",bdex_channels(bdex_nchannels,4)+1, &
-            "for file '"//bdex_stringStorage(bdex_channels(bdex_nchannels,3)+1 ) &
-            //"' was already taken"
-       call prror(-1)
-    end if
+  ! Store config data
 
-    write(lout,*) "BDEX> Opening output pipe '"// &
-         trim(stringzerotrim(bdex_stringStorage(bdex_channels(bdex_nchannels,3)+1) ))//"'"
-    open(unit=bdex_channels(bdex_nchannels,4)+1, &
-         file=bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1 ), &
-         action='write',iostat=stat,status="OLD")
-    if (stat .ne. 0) then
-       write(lout,*) "BDEX> Error opening file '", &
-            bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1 ),"' stat=", stat
-       call prror(-1)
-    endif
-    write(bdex_channels(bdex_nchannels,4)+1,'(a)') "BDEX-PIPE !******************!"
+  bdex_channelNames(bdex_nchannels) = trim(lnSplit(2)) ! channelName
+  bdex_channels(bdex_nchannels,1) = 1                  ! TYPE is PIPE
+  bdex_nstringStorage = bdex_nstringStorage+1
+  bdex_channels(bdex_nchannels,3) = bdex_nstringStorage
 
-  end subroutine bdex_initializePipe
+  bdex_stringStorage(bdex_nstringStorage) = trim(lnSplit(4)) ! inPipe
+  bdex_nstringStorage = bdex_nstringStorage+1
+  bdex_stringStorage(bdex_nstringStorage) = trim(lnSplit(5)) ! outPipe
 
-  subroutine bdex_initializeTCPIP( getfields_fields,getfields_lfields,getfields_nfields )
+  call chr_cast(lnSplit(6),bdex_channels(bdex_nchannels,2),iErr) ! Output Format
+  call chr_cast(lnSplit(7),bdex_channels(bdex_nchannels,4),iErr) ! fileUnit
 
-    use parpro
-    use string_tools
+  ! Open the inPipe
+  inquire(unit=bdex_channels(bdex_nchannels,4),opened=lopen)
+  if(lopen) then
+    write(lout,"(a,i0,a)")"BDEX> ERROR CHAN:PIPE unit=",bdex_channels(bdex_nchannels,4),&
+      " for file '"//bdex_stringStorage(bdex_channels(bdex_nchannels,3))//"' was already taken"
+    iErr = .true.
+    return
+  end if
 
-    implicit none
+  write(lout,"(a)") "BDEX> Opening input pipe '"//trim(bdex_stringStorage(bdex_channels(bdex_nchannels,3)))//"'"
+  open(unit=bdex_channels(bdex_nchannels,4), file=bdex_stringStorage(bdex_channels(bdex_nchannels,3) ),&
+    action='read',iostat=stat,status="OLD")
+  if(stat /= 0) then
+    write(lout,"(a,i0)") "BDEX> ERROR opening file '",bdex_stringStorage( bdex_channels(bdex_nchannels,3)),"', stat=",stat
+    iErr = .true.
+    return
+  end if
 
-    character, intent(in) :: getfields_fields(getfields_n_max_fields)*(getfields_l_max_string)
-    integer,   intent(in) :: getfields_nfields
-    integer,   intent(in) :: getfields_lfields(getfields_n_max_fields)
+  ! Open the outPipe
+  inquire(unit=bdex_channels(bdex_nchannels,4)+1,opened=lopen)
+  if(lopen) then
+    write(lout,"(a,i0,a)")"BDEX> ERROR CHAN:PIPE unit=",bdex_channels(bdex_nchannels,4)+1,&
+      " for file '"//bdex_stringStorage(bdex_channels(bdex_nchannels,3)+1 )//"' was already taken"
+    iErr = .true.
+    return
+  end if
 
-    !TCPIP: Communicate over a TCP/IP port, like the old FLUKA coupling version did.
-    ! Currently not implemented.
-    write(lout,*) "CHAN TCPIP currently not supported in BDEX."
-    call prror(-1)
+  write(lout,"(a)") "BDEX> Opening output pipe '"//trim(bdex_stringStorage(bdex_channels(bdex_nchannels,3)+1))//"'"
+  open(unit=bdex_channels(bdex_nchannels,4)+1,file=bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1),&
+    action='write',iostat=stat,status="OLD")
+  if(stat /= 0) then
+    write(lout,"(a,i0)") "BDEX> ERROR opening file '",bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1 ),"' stat=",stat
+    iErr = .true.
+    return
+  end if
+  write(bdex_channels(bdex_nchannels,4)+1,"(a)") "BDEX-PIPE !******************!"
 
-  end subroutine bdex_initializeTCPIP
+end subroutine bdex_initialisePipe
+
+subroutine bdex_initialiseTCPIP(inLine,iErr)
+
+  use parpro
+  use string_tools
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit
+  logical spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "BDEX> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  ! TCPIP: Communicate over a TCP/IP port, like the old FLUKA coupling version did.
+  ! Currently not implemented.
+  write(lout,"(a)") "BDEX> ERROR CHAN:TCPIP currently not supported in BDEX."
+  iErr = .true.
+  return
+
+end subroutine bdex_initialiseTCPIP
 
   ! The following subroutines where extracted from deck bdexancil:
   ! Deck with the routines used by BDEX during tracking
@@ -521,8 +532,9 @@ contains
              endif
           else
              if (j.gt.npart) then
-                write(lout,*) "BDEX> ERROR: j=",j,">",npart
-                call prror(-1)
+              call expand_arrays(nele, j, nblz, nblo)
+                ! write(lout,*) "BDEX> ERROR: j=",j,">",npart
+                ! call prror(-1)
              endif
              napx=j
              if (bdex_debug) then

@@ -11,6 +11,8 @@ subroutine trauthin(nthinerr)
   use scatter, only : scatter_elemPointer
   use dynk, only : ldynk, dynk_isused, dynk_pretrack
 
+  use mod_alloc
+
 #ifdef FLUKA
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
@@ -30,24 +32,45 @@ subroutine trauthin(nthinerr)
   use mod_commons
   use mod_commont
   use mod_commond
+  use mod_fluc, only : fluc_errAlign,fluc_writeFort4
   implicit none
-  integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,&
-    r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
+  integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nmz,nthinerr
+  real(kind=fPrec) benkcc,r0,r000,r0a
   logical lopen
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-#ifdef COLLIMAT
-!+ca collpara
-!+ca dbtrthin
-!+ca database
-!+ca dbcommon
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbcolcom
-#endif
+
+  real(kind=fPrec), allocatable :: crkveb(:) !(npart)
+  real(kind=fPrec), allocatable :: cikveb(:) !(npart)
+  real(kind=fPrec), allocatable :: rho2b(:) !(npart)
+  real(kind=fPrec), allocatable :: tkb(:) !(npart
+  real(kind=fPrec), allocatable :: r2b(:) !(npart)
+  real(kind=fPrec), allocatable :: rb(:) !(npart)
+  real(kind=fPrec), allocatable :: rkb(:) !(npart)
+  real(kind=fPrec), allocatable :: xrb(:) !(npart)
+  real(kind=fPrec), allocatable :: zrb(:) !(npart
+  real(kind=fPrec), allocatable :: xbb(:) !(npart)
+  real(kind=fPrec), allocatable :: zbb(:) !(npart)
+  real(kind=fPrec), allocatable :: crxb(:) !(npart)
+  real(kind=fPrec), allocatable :: crzb(:) !(npart)
+  real(kind=fPrec), allocatable :: cbxb(:) !(npart)
+  real(kind=fPrec), allocatable :: cbzb(:) !(npart)
+  integer :: nbeaux(nbb)
   save
+
+  call alloc(crkveb, npart, zero, "crkveb") !(npart)
+  call alloc(cikveb, npart, zero, "cikveb") !(npart)
+  call alloc(rho2b, npart, zero, "rho2b") !(npart)
+  call alloc(tkb, npart, zero, "tkb") !(npart
+  call alloc(r2b, npart, zero, "r2b") !(npart)
+  call alloc(rb, npart, zero, "rb") !(npart)
+  call alloc(rkb, npart, zero, "rkb") !(npart)
+  call alloc(xrb, npart, zero, "xrb") !(npart)
+  call alloc(zrb, npart, zero, "zrb") !(npart
+  call alloc(xbb, npart, zero, "xbb") !(npart)
+  call alloc(zbb, npart, zero, "zbb") !(npart)
+  call alloc(crxb, npart, zero, "crxb") !(npart)
+  call alloc(crzb, npart, zero, "crzb") !(npart)
+  call alloc(cbxb, npart, zero, "cbxb") !(npart)
+  call alloc(cbzb, npart, zero, "cbzb") !(npart)
 
   do i=1,npart
     nlostp(i)=i
@@ -61,7 +84,7 @@ subroutine trauthin(nthinerr)
 #include "include/beams1.f90"
 
   do 290 i=1,iu
-    if(mout2.eq.1.and.i.eq.1) call write4
+    if(mout2.eq.1.and.i.eq.1) call fluc_writeFort4
     ix=ic(i)
     if(ix.gt.nblo) goto 30
     !BLOC
@@ -189,8 +212,9 @@ subroutine trauthin(nthinerr)
       ktrack(i)=3
       goto 290
     endif
-    if(mout2.eq.1.and.icextal(i).ne.0) then
-      write(27,'(a16,2x,1p,2d14.6,d17.9)') bez(ix),extalign(i,1),extalign(i,2),extalign(i,3)
+    if(mout2 == 1 .and. icextal(i) > 0) then
+      write(27,"(a16,2x,1p,2d14.6,d17.9)") bez(ix),&
+        fluc_errAlign(1,icextal(i)),fluc_errAlign(2,icextal(i)),fluc_errAlign(3,icextal(i))
     end if
 
     select case (kzz)
@@ -511,6 +535,22 @@ subroutine trauthin(nthinerr)
 #ifdef COLLIMAT
   call collimate_exit()
 #endif
+
+  call dealloc(crkveb, "crkveb")
+  call dealloc(cikveb, "cikveb")
+  call dealloc(rho2b, "rho2b")
+  call dealloc(tkb, "tkb")
+  call dealloc(r2b, "r2b")
+  call dealloc(rb, "rb")
+  call dealloc(rkb, "rkb")
+  call dealloc(xrb, "xrb")
+  call dealloc(zrb, "zrb")
+  call dealloc(xbb, "xbb")
+  call dealloc(zbb, "zbb")
+  call dealloc(crxb, "crxb")
+  call dealloc(crzb, "crzb")
+  call dealloc(cbxb, "cbxb")
+  call dealloc(cbzb, "cbzb")
   return
 
 end subroutine trauthin
@@ -567,7 +607,7 @@ subroutine thin4d(nthinerr)
   real(kind=fPrec) e0fo,e0o,xv1j,xv2j
   real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1, crabamp, crabfreq, kcrab
   real(kind=fPrec) RTWO !RTWO=x^2+y^2
-  real(kind=fPrec) NNORM_, NNORM
+  real(kind=fPrec) NNORM
   real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
   real(kind=fPrec) onedp,fppsig,costh_temp,sinth_temp,q_temp,r_temp,z_temp,pxf,pyf,sigf !varialbes for the solenoid
   logical llost
@@ -1241,17 +1281,6 @@ subroutine thin6d(nthinerr)
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
 
-#ifdef COLLIMAT
-!+ca collpara
-!+ca dbcommon
-!+ca dbthin6d
-!+ca database
-!+ca dblinopt
-!+ca dbpencil
-!+ca info
-!+ca dbcolcom
-#endif
-
   dimension dpsv3(npart)
 
   real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
@@ -1502,7 +1531,7 @@ subroutine thin6d(nthinerr)
                 nspy = zero
               end if
               sampl(ie)    = totals
-              ename(ie)    = bez(myix)(1:max_name_len)
+              ename(ie)    = bez(myix)(1:mNameLen)
             end do
           endif
 !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
@@ -2152,12 +2181,18 @@ subroutine thin6d(nthinerr)
       ! on-line aperture check
       ! always in main code
       call lostpart( n, i, ix, llost, nthinerr )
+
       ! stop tracking if no particle survives to this element
-      if(nthinerr.ne.0) return
+      if(nthinerr.ne.0) then
+        return
+      end if
+
       ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
       ! last modified: 07-03-2018
       ! store infos of last aperture marker
-      if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
+      if( lbacktracking.and.kape(ix).ne.0 ) then
+        call aperture_saveLastMarker(i,ix)
+      end if
 
 645   continue
 
@@ -2171,20 +2206,26 @@ subroutine thin6d(nthinerr)
     call collimate_end_turn
 #endif
 
-    if(nthinerr.ne.0) return
+    if(nthinerr.ne.0) then
+      return
+    end if
 
 #ifndef COLLIMAT
-    if(ntwin.ne.2) call dist1
+    if(ntwin.ne.2) then
+      call dist1
+    end if
 #ifndef FLUKA
-    if(mod(n,nwr(4)).eq.0) call write6(n)
+    if(mod(n,nwr(4)).eq.0) then
+      call write6(n)
+    end if
 #endif
 #endif
 
 #ifdef FLUKA
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 14-06-2014
-!     increase napxto, to get an estimation of particles*turns
-!     inserted in main code by the 'fluka' compilation flag
+!   A.Mereghetti, for the FLUKA Team
+!   last modified: 14-06-2014
+!   increase napxto, to get an estimation of particles*turns
+!   inserted in main code by the 'fluka' compilation flag
     napxto = napxto + napx
 #endif
 
@@ -2196,8 +2237,9 @@ subroutine thin6d(nthinerr)
 660 continue !END loop over turns
 
 #ifdef COLLIMAT
-  close(99)
-  close(53)
+! These unit numbers could now be anything!
+!  close(99)
+!  close(53)
 
 #endif
 
@@ -2212,7 +2254,7 @@ end subroutine thin6d
 !  3 February 1999
 !-----------------------------------------------------------------------
 subroutine callcrp()
-  
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -2227,7 +2269,7 @@ subroutine callcrp()
   use checkpoint_restart
 #endif
   implicit none
-  integer ia,ia2,ie,nthinerr
+  integer ia,ia2,ie
 #ifdef CR
   integer ncalls
 #endif

@@ -6,13 +6,27 @@ module checkpoint_restart
 
   implicit none
 
-  ! common /crdata/
-  integer,             public, save :: sixrecs
+  real,                public, save :: crtime3
+  real(kind=fPrec),    public, save :: cre0
+
+  character(len=1024), public, save :: arecord
+  character(len=20),   public, save :: stxt
+  character(len=80),   public, save :: runtim
+
+  integer,             public, save :: crsixrecs
+  integer,             public, save :: crbinrec
+  integer,             public, save :: crbnlrec
+  integer,             public, save :: crbllrec
+  integer,             public, save :: cril
+  integer,             public, save :: crnumlcr
+  integer,             public, save :: crnuml
+  integer,             public, save :: crnapxo
+  integer,             public, save :: crnapx
   integer,             public, save :: binrec
-  integer,             public, save :: binrecs((npart+1)/2)
   integer,             public, save :: bnlrec
   integer,             public, save :: bllrec
   integer,             public, save :: numlcr
+  integer,             public, save :: sixrecs
 
   logical,             public, save :: rerun
   logical,             public, save :: start
@@ -22,51 +36,78 @@ module checkpoint_restart
   logical,             public, save :: fort96
   logical,             public, save :: read95
   logical,             public, save :: read96
-
-  character(len=1024), public, save :: arecord
-  character(len=20),   public, save :: stxt
-  character(len=80),   public, save :: runtim
-
-  ! common /crio/
-  real(kind=fPrec),    public, save :: cre0
-  real(kind=fPrec),    public, save :: crxv(2,npart)
-  real(kind=fPrec),    public, save :: cryv(2,npart)
-  real(kind=fPrec),    public, save :: crsigmv(npart)
-  real(kind=fPrec),    public, save :: crdpsv(npart)
-  real(kind=fPrec),    public, save :: crdpsv1(npart)
-  real(kind=fPrec),    public, save :: crejv(npart)
-  real(kind=fPrec),    public, save :: crejfv(npart)
-  real(kind=fPrec),    public, save :: craperv(npart,2)
-  real(kind=fPrec),    public, save :: crxvl(2,npart)
-  real(kind=fPrec),    public, save :: cryvl(2,npart)
-  real(kind=fPrec),    public, save :: crdpsvl(npart)
-  real(kind=fPrec),    public, save :: crejvl(npart)
-  real(kind=fPrec),    public, save :: crsigmvl(npart)
-
-  real,                public, save :: crtime3
-
-  integer,             public, save :: crsixrecs
-  integer,             public, save :: crbinrec
-  integer,             public, save :: crbinrecs((npart+1)/2)
-  integer,             public, save :: crbnlrec
-  integer,             public, save :: crbllrec
-  integer,             public, save :: cril
-  integer,             public, save :: crnumlcr
-  integer,             public, save :: crnuml
-  integer,             public, save :: crnapxo
-  integer,             public, save :: crnapx
-  integer,             public, save :: crnumxv(npart)
-  integer,             public, save :: crnnumxv(npart)
-  integer,             public, save :: crnlostp(npart)
-
   logical,             public, save :: crsythck
-  logical,             public, save :: crpstop(npart)
+
+  real(kind=fPrec),    allocatable, public, save :: crxv(:,:)    ! (2,npart)
+  real(kind=fPrec),    allocatable, public, save :: cryv(:,:)    ! (2,npart)
+  real(kind=fPrec),    allocatable, public, save :: crsigmv(:)   ! (npart)
+  real(kind=fPrec),    allocatable, public, save :: crdpsv(:)    ! (npart)
+  real(kind=fPrec),    allocatable, public, save :: crdpsv1(:)   ! (npart)
+  real(kind=fPrec),    allocatable, public, save :: crejv(:)     ! (npart)
+  real(kind=fPrec),    allocatable, public, save :: crejfv(:)    ! (npart)
+  real(kind=fPrec),    allocatable, public, save :: craperv(:,:) ! (npart,2)
+  real(kind=fPrec),    allocatable, public, save :: crxvl(:,:)   ! (2,npart)
+  real(kind=fPrec),    allocatable, public, save :: cryvl(:,:)   ! (2,npart)
+  real(kind=fPrec),    allocatable, public, save :: crdpsvl(:)   ! (npart)
+  real(kind=fPrec),    allocatable, public, save :: crejvl(:)    ! (npart)
+  real(kind=fPrec),    allocatable, public, save :: crsigmvl(:)  ! (npart)
+
+  integer,             allocatable, public, save :: binrecs(:)   ! ((npart+1)/2)
+  integer,             allocatable, public, save :: crbinrecs(:) ! (npart+1)/2)
+  integer,             allocatable, public, save :: crnumxv(:)   ! (npart)
+  integer,             allocatable, public, save :: crnnumxv(:)  ! (npart)
+  integer,             allocatable, public, save :: crnlostp(:)  ! (npart)
+
+  logical,             allocatable, public, save :: crpstop(:)   ! (npart)
+
+  integer,                          public, save :: crnpart_old = -1
 
   ! Others. Keep length in sync with includes/version.f90
   character(len=8),    public, save :: cr_version
   character(len=10),   public, save :: cr_moddate
 
 contains
+
+! ================================================================================================ !
+!  CR ALLOCATE ARRAYS
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-06-22
+! ================================================================================================ !
+subroutine cr_expand_arrays(npart_new)
+
+  use mod_alloc
+  use numerical_constants, only : zero
+
+  implicit none
+
+  integer, intent(in) :: npart_new
+
+  integer :: npair_new
+  npair_new = npart_new/2 + 1
+
+  call alloc(crxv,      2, npart_new,      zero,    "crxv")
+  call alloc(cryv,      2, npart_new,      zero,    "cryv")
+  call alloc(crsigmv,      npart_new,      zero,    "crsigmv")
+  call alloc(crdpsv,       npart_new,      zero,    "crdpsv")
+  call alloc(crdpsv1,      npart_new,      zero,    "crdpsv1")
+  call alloc(crejv,        npart_new,      zero,    "crejv")
+  call alloc(crejfv,       npart_new,      zero,    "crejfv")
+  call alloc(craperv,      npart_new, 2,   zero,    "craperv")
+  call alloc(crxvl,     2, npart_new,      zero,    "crxvl")
+  call alloc(cryvl,     2, npart_new,      zero,    "cryvl")
+  call alloc(crdpsvl,      npart_new,      zero,    "crdpsvl")
+  call alloc(crejvl,       npart_new,      zero,    "crejvl")
+  call alloc(crsigmvl,     npart_new,      zero,    "crsigmvl")
+  call alloc(binrecs,      npair_new,      0,       "binrecs")
+  call alloc(crbinrecs,    npair_new,      0,       "crbinrecs")
+  call alloc(crnumxv,      npart_new,      0,       "crnumxv")
+  call alloc(crnnumxv,     npart_new,      0,       "crnnumxv")
+  call alloc(crnlostp,     npart_new,      0,       "crnlostp")
+  call alloc(crpstop,      npart_new,      .false., "crpstop")
+
+  crnpart_old = npart_new
+
+end subroutine cr_expand_arrays
 
 ! ================================================================================================ !
 !  CRCHECK
@@ -76,7 +117,7 @@ contains
 !  them into the cr* variables.
 !  This routine also repositions the output files for fort.90..91-napx/2 or STF, DUMP, and DYNK.
 !
-!   The file fort.93 is used as a log file for the checkpoint/restarting.
+!  The file fort.93 is used as a log file for the checkpoint/restarting.
 ! ================================================================================================ !
 subroutine crcheck
 
@@ -102,8 +143,7 @@ subroutine crcheck
 
   !DANGER: IF THE LENGTH OF THE RECORDS IN WRITEBIN(_HEADER)CHANGES,
   ! THESE ARRAYS MUST BE UPDATED
-  integer(int32) hbuff,tbuff
-  dimension hbuff(253),tbuff(35)
+  integer(int32) hbuff(253),tbuff(35)
 
   logical lopen,lerror
 
@@ -112,9 +152,12 @@ subroutine crcheck
 #endif
   save
   !--------------------------------------------------------------------!
-  restart=.false.
-  read95=.false.
-  read96=.false.
+  ! Check the size of CR arrays
+  if(npart /= crnpart_old) call cr_expand_arrays(npart)
+
+  restart = .false.
+  read95  = .false.
+  read96  = .false.
   ! Some log entries to fort.93
   write(93,"(a,i0,3(a,l1))") "SIXTRACR> CRCHECK CALLED lout=",lout," restart=",restart," rerun=",rerun," checkp=",checkp
   flush(93)
@@ -477,8 +520,7 @@ subroutine crcheck
         backspace (91-ia,iostat=ierro)
         rewind 94
       end do ! END "do ia=1,crnapxo/2,1"
-#endif
-#ifdef STF
+#else
       ! First, copy crbinrecs(ia)*(crnapx/2) records of data from singletrackfile.dat to fort.94
       mybinrecs=0
       !Copy headers
@@ -558,8 +600,7 @@ subroutine crcheck
           write(93,"(2(a,i0))") "SIXTRACR> CRCHECK ignoring IA ",ia," Unit ",myia
         endif
       end do ! END "do ia=1,crnapxo/2,1"
-#endif
-#ifdef STF
+#else
       mybinrecs=0
       ! Reposition headers
       do ia=1,crnapxo/2,1
@@ -620,16 +661,6 @@ subroutine crcheck
   write(lout,"(3(a,i0))") "          Unit ",myia," mybinrecs=",mybinrecs," Expected crbinrecs=",crbinrecs(ia)
   write(lout,"(a)")       "SIXTRACR> CRCHECK failure positioning binary files"
   call prror(-1)
-#endif
-#ifdef STF
-102 continue
-  write(lout,"(a)") ""
-  write(lout,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS RE-READING singletrackfile.dat for ia=",ia," IOSTAT=",ierro
-  write(lout,"(2(a,i0))") "          mybinrecs=",mybinrecs," Expected crbinrecs=",crbinrecs(ia)
-  write(lout,"(a)")       "SIXTRACR> CRCHECK failure positioning binary files"
-  call prror(-1)
-#endif
-#ifndef STF
 105 continue
   write(lout,"(a)") ""
   write(lout,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS COPYING fort.",myia," IOSTAT=",ierro
@@ -637,8 +668,13 @@ subroutine crcheck
     " Expected crbinrecs=",crbinrecs(ia)," binrecs94=",binrecs94
   write(lout,"(a)")       "SIXTRACR> CRCHECK failure copying binary files"
   call prror(-1)
-#endif
-#ifdef STF
+#else
+102 continue
+  write(lout,"(a)") ""
+  write(lout,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS RE-READING singletrackfile.dat for ia=",ia," IOSTAT=",ierro
+  write(lout,"(2(a,i0))") "          mybinrecs=",mybinrecs," Expected crbinrecs=",crbinrecs(ia)
+  write(lout,"(a)")       "SIXTRACR> CRCHECK failure positioning binary files"
+  call prror(-1)
 105 continue
   write(lout,"(a)") ""
   write(lout,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS COPYING particle pair ",ia," IOSTAT=",ierro," from/to singletrackfile.dat"

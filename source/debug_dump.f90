@@ -12,7 +12,7 @@ subroutine warr(vname,value,i,j,k,l)
 
   integer i,j,k,l
   integer ierro
-  character(len=max_name_len) myname
+  character(len=mNameLen) myname
 
   myname=vname
   write(100) myname,value,i,j,k,l
@@ -302,8 +302,8 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'izu0 ',izu0
   write(99,*) 'mmac ',mmac
   write(99,*) 'mcut ',mcut
-  write(99,*) 'exterr ',exterr
-  write(99,*) 'extalign ',extalign
+! write(99,*) 'exterr ',exterr
+! write(99,*) 'extalign ',extalign
   write(99,*) 'tiltc ',tiltc
   write(99,*) 'tilts ',tilts
   write(99,*) 'mout2 ',mout2
@@ -507,16 +507,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'inorm ',inorm
   write(99,*) 'imod1 ',imod1
   write(99,*) 'imod2 ',imod2
-  write(99,*) 'icorr ',icorr
-  write(99,*) 'nctype ',nctype
-  write(99,*) 'namp ',namp
-  write(99,*) 'nmom ',nmom
-  write(99,*) 'nmom1 ',nmom1
-  write(99,*) 'nmom2 ',nmom2
-  write(99,*) 'weig1 ',weig1
-  write(99,*) 'weig2 ',weig2
-  write(99,*) 'dpmax ',dpmax
-  write(99,*) 'coel ',coel
   write(99,*) 'ekv ',ekv
   write(99,*) 'fokqv ',fokqv
   write(99,*) 'aaiv ',aaiv
@@ -801,8 +791,8 @@ subroutine dumpbin(dumpname,n,i)
   write(99) izu0
   write(99) mmac
   write(99) mcut
-  write(99) exterr
-  write(99) extalign
+! write(99) exterr
+! write(99) extalign
   write(99) tiltc
   write(99) tilts
   write(99) mout2
@@ -1006,16 +996,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) inorm
   write(99) imod1
   write(99) imod2
-  write(99) icorr
-  write(99) nctype
-  write(99) namp
-  write(99) nmom
-  write(99) nmom1
-  write(99) nmom2
-  write(99) weig1
-  write(99) weig2
-  write(99) dpmax
-  write(99) coel
   write(99) ekv
   write(99) fokqv
   write(99) aaiv
@@ -1294,8 +1274,8 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'izu0 ',izu0
   write(99,100) 'mmac ',mmac
   write(99,100) 'mcut ',mcut
-  write(99,100) 'exterr ',exterr
-  write(99,100) 'extalign ',extalign
+! write(99,100) 'exterr ',exterr
+! write(99,100) 'extalign ',extalign
   write(99,100) 'tiltc ',tiltc
   write(99,100) 'tilts ',tilts
   write(99,100) 'mout2 ',mout2
@@ -1499,16 +1479,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'inorm ',inorm
   write(99,100) 'imod1 ',imod1
   write(99,100) 'imod2 ',imod2
-  write(99,100) 'icorr ',icorr
-  write(99,100) 'nctype ',nctype
-  write(99,100) 'namp ',namp
-  write(99,100) 'nmom ',nmom
-  write(99,100) 'nmom1 ',nmom1
-  write(99,100) 'nmom2 ',nmom2
-  write(99,100) 'weig1 ',weig1
-  write(99,100) 'weig2 ',weig2
-  write(99,100) 'dpmax ',dpmax
-  write(99,100) 'coel ',coel
   write(99,100) 'ekv ',ekv
   write(99,100) 'fokqv ',fokqv
   write(99,100) 'aaiv ',aaiv

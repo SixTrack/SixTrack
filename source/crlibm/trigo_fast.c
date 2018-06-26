@@ -437,7 +437,8 @@ return scs_cos_rz(x);
  *************************************************************
  *************************************************************/ 
 double tan_rn(double x){  
-  double reshi, reslo, sh, sl, ch, cl, kd, yh, yl;
+  double reshi, reslo, sh, sl, ch, cl, yh, yl;
+  // double kd;
   db_number y;
   int k, quadrant;
 
@@ -467,7 +468,7 @@ double tan_rn(double x){
   k=trig_range_reduction(&yh, &yl,  x, absxhi, &scs_cos_rn);
 
   quadrant = (k>>7)&3;	/* Pi is divided in 4 quarters */	
-  kd = (double) k;
+  // kd = (double) k;
   k=(k&127)<<2;
 
   switch (quadrant){
