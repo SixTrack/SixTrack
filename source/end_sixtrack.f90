@@ -1,6 +1,6 @@
 ! =================================================================================================
 !  END SIXTRACK
-!  Last modified: 2018-06-24
+!  Last modified: 2018-06-25
 ! =================================================================================================
 
 subroutine prror(ier)
@@ -86,8 +86,8 @@ subroutine prror(ier)
   !   write(lout,10250)
   ! case (26)
   !   write(lout,10260) nelb
-  case (27)
-    write(lout,10270)
+  ! case (27)
+  !   write(lout,10270)
   ! case (28)
   !   write(lout,10280)
   ! case (29)
@@ -114,10 +114,10 @@ subroutine prror(ier)
   !   write(lout,10390)
   ! case (40)
   !   write(lout,10400)
-  case (41)
-    write(lout,10410)
-  case (42)
-    write(lout,10420)
+  ! case (41)
+  !   write(lout,10410)
+  ! case (42)
+  !   write(lout,10420)
   ! case (43)
   !   write(lout,10430) nzfz
   ! case (44)
@@ -140,8 +140,8 @@ subroutine prror(ier)
   !   write(lout,10520) nema
   ! case (53)
   !   write(lout,10530)
-  case (54)
-    write(lout,10540) npart
+  ! case (54)
+  !   write(lout,10540) npart
   ! case (55)
   !   write(lout,10550) nmac
   case (56)
@@ -228,12 +228,12 @@ subroutine prror(ier)
     write(lout,10960)
   case (97)
     write(lout,10970)
-  case (98)
-    write(lout,10980)
-  case (99)
-    write(lout,10990)
-  case (100)
-    write(lout,11000) ntr
+  ! case (98)
+  !   write(lout,10980)
+  ! case (99)
+  !   write(lout,10990)
+  ! case (100)
+  !   write(lout,11000) ntr
   case (101)
     write(lout,11010)
   case (102)

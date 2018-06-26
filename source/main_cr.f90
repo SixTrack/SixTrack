@@ -192,6 +192,8 @@ end interface
   lout = output_unit
 #endif
 
+  call funit_initUnits ! This one has to be first
+  call units_initUnits
   call alloc_init      ! Initialise tmod_alloc
   call allocate_arrays ! Initial allocation of memory
 
@@ -243,8 +245,6 @@ end interface
 #ifdef LIBARCHIVE
   featList = featList//" LIBARCHIVE"
 #endif
-
-  call units_initUnits
 
 #ifdef CR
   ! Main start for Checkpoint/Restart
@@ -2429,7 +2429,6 @@ end interface
 !     call dumpzfz('THE END',9,9)
 #endif
   ! Write all dynamically assigned file units tp file_units.dat
-  call funit_dumpUnits
   if (zipf_numfiles.gt.0) then
     call zipf_dozip
   endif
