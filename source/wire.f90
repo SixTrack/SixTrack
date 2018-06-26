@@ -86,7 +86,6 @@ subroutine wire_parseInputLine(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=mNameLen) mode
   integer nSplit, j, iElem
   logical spErr
 

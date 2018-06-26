@@ -6,7 +6,7 @@
 subroutine prror(ier)
 
   use crcoall
-  use parpro,     only : mcor,mmul,mran,nbb,nele,nmac,npart,nran,nrco,ntr
+  use parpro,     only : mcor,mmul,mran,nbb,nmac,nran,nrco
   use mod_common, only : ierro,errout_status
 
 #ifdef FLUKA
@@ -393,7 +393,7 @@ subroutine abend(cstring)
 
 #include "version.f90"
 
-  integer i,lstring,j
+  integer i,lstring,j,itot,ttot
   character(len=*) cstring
   character(len=256) filename
   real(kind=fPrec) sumda(60)

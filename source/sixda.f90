@@ -20,7 +20,7 @@ subroutine daliesix
   save
 
   tlim=1e7
-  call timest(tlim)
+  call timest
   time0=0.
   call timex(time0)
 
@@ -167,7 +167,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use parpro
   use mod_commond
   use mod_common,  only : iqmodc,ichromc,ilinc
-  use mod_lie_dab, only : iscrri,iscrda,mld_allocArrays
+  use mod_lie_dab, only : iscrda,mld_allocArrays
 
   implicit none
 
@@ -242,7 +242,7 @@ subroutine runcav
   use mod_common
   use mod_commonmn, only : e0f
   use mod_commons
-  use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+  use mod_commont, only : comt_daStart,comt_daEnd
   use mod_commond
   use mod_hions
   use mod_lie_dab, only : idao,rscrri,iscrda
@@ -431,7 +431,7 @@ subroutine runda
   use mod_common
   use mod_commonmn, only : e0f,numx
   use mod_commons
-  use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+  use mod_commont, only : xxtr,yytr,comt_daStart,comt_daEnd
   use mod_commond
   use mod_commond2
   use mod_hions

@@ -61,7 +61,6 @@ subroutine umlauda
   integer dtostr
 #endif
   logical lopen
-  character(len=256) filename
   integer wire_num_aux ! auxiliary variable to count number of wires
   save
 !-----------------------------------------------------------------------
@@ -1641,7 +1640,7 @@ subroutine envada
   use mod_commond2
   use mod_lie_dab, only : idao,rscrri,iscrda
   implicit none
-  integer i,ien,ih,ip,kz1,l,idaa
+  integer i,ien,ih,ip,l,idaa
   real(kind=fPrec) dare,result
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   save
