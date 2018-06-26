@@ -9,140 +9,115 @@ module file_units
 
   implicit none
 
-  integer, public :: funit_minUnit, funit_maxUnit
-  parameter(funit_minUnit=1000, funit_maxUnit=1999)
+  integer, parameter :: funit_minUnit = 1000
+  integer, parameter :: funit_maxUnit = 1999
 
   integer,      allocatable, private, save :: funit_usedUnits(:)
   type(string), allocatable, private, save :: funit_usedByFile(:)
-  logical,                   private, save :: funit_arrInit  = .true.
   integer,                   private, save :: funit_nUnits   = 0
   integer,                   private, save :: funit_nextUnit = funit_minUnit
+  integer,                   private, save :: funit_logUnit  = 6
 
 contains
 
-  ! Request a new fileunit. The filename parameter is only for internal record keeping. It should
-  ! be a string that describes what file, or set of files, the unit number is used for.
-  subroutine funit_requestUnit(fileName, fileUnit)
+subroutine funit_initUnits
 
-    use crcoall
+  allocate(funit_usedUnits(10))
+  allocate(funit_usedByFile(10))
 
-    implicit none
+  call funit_requestUnit("file_units.dat",funit_logUnit)
+  open(funit_logUnit,file="file_units.dat",form="formatted")
+  write(funit_logUnit,"(a)") "# unit  assigned_to"
 
-    character(len=*), intent(in)  :: fileName
-    integer,          intent(out) :: fileUnit
-    character(len=:), allocatable :: cleanName
+end subroutine funit_initUnits
 
-    integer,          allocatable :: tmp_usedUnits(:)
-    type(string),     allocatable :: tmp_usedByFile(:)
+! Request a new fileunit. The filename parameter is only for internal record keeping. It should
+! be a string that describes what file, or set of files, the unit number is used for.
+subroutine funit_requestUnit(fileName, fileUnit)
 
-    logical isOpen
-    integer i
+  use crcoall
 
-    cleanName = trim(fileName)
+  implicit none
 
-10  continue
+  character(len=*), intent(in)  :: fileName
+  integer,          intent(out) :: fileUnit
+  character(len=:), allocatable :: cleanName
 
-    fileUnit       = funit_nextUnit
-    funit_nextUnit = funit_nextUnit + 1
+  integer,          allocatable :: tmp_usedUnits(:)
+  type(string),     allocatable :: tmp_usedByFile(:)
 
-    if(funit_nextUnit > funit_maxUnit) goto 30
+  logical isOpen
+  integer i
 
-    if(funit_arrInit) then
-      allocate(funit_usedUnits(1))
-      allocate(funit_usedByFile(1))
-      funit_arrInit = .false.
-    else
-      allocate(tmp_usedUnits(funit_nUnits))
-      allocate(tmp_usedByFile(funit_nUnits))
-      tmp_usedUnits(1:funit_nUnits)  = funit_usedUnits(1:funit_nUnits)
-      tmp_usedByFile(1:funit_nUnits) = funit_usedByFile(1:funit_nUnits)
-      deallocate(funit_usedUnits)
-      deallocate(funit_usedByFile)
-      allocate(funit_usedUnits(funit_nUnits+1))
-      allocate(funit_usedByFile(funit_nUnits+1))
-      funit_usedUnits(1:funit_nUnits)  = tmp_usedUnits(1:funit_nUnits)
-      funit_usedByFile(1:funit_nUnits) = tmp_usedByFile(1:funit_nUnits)
-      deallocate(tmp_usedUnits)
-      deallocate(tmp_usedByFile)
-    end if
-    funit_nUnits = funit_nUnits + 1
+  cleanName = trim(fileName)
 
-    inquire(unit=fileUnit, opened=isOpen)
-    if(isOpen) then
-      funit_usedUnits(funit_nUnits)  = fileUnit
-      funit_usedByFile(funit_nUnits) = "Unknown, unit already open."
-      goto 10
-    else
-      funit_usedUnits(funit_nUnits)  = fileUnit
-      funit_usedByFile(funit_nUnits) = cleanName
-      goto 20
-    end if
+10 continue
 
-20  return
+  fileUnit       = funit_nextUnit
+  funit_nextUnit = funit_nextUnit + 1
+  if(funit_nextUnit > funit_maxUnit) goto 30
 
-30  continue
-    write(lout,"(a)") "FUNIT> ERROR Failed to find an available file unit for file '"//cleanName//"'"
-    stop -1
+  if(funit_nUnits + 1 > size(funit_usedUnits)) then
+    allocate(tmp_usedUnits(funit_nUnits  + 10))
+    allocate(tmp_usedByFile(funit_nUnits + 10))
+    tmp_usedUnits(1:funit_nUnits)  = funit_usedUnits(1:funit_nUnits)
+    tmp_usedByFile(1:funit_nUnits) = funit_usedByFile(1:funit_nUnits)
+    call move_alloc(tmp_usedUnits, funit_usedUnits)
+    call move_alloc(tmp_usedByFile,funit_usedByFile)
+  end if
+  funit_nUnits = funit_nUnits + 1
 
-  end subroutine funit_requestUnit
+  inquire(unit=fileUnit, opened=isOpen)
+  if(isOpen) then
+    funit_usedUnits(funit_nUnits)  = fileUnit
+    funit_usedByFile(funit_nUnits) = "Unknown, unit already open."
+    write(funit_logUnit,"(i6,a)") funit_usedUnits(funit_nUnits),"  "//funit_usedByFile(funit_nUnits)
+    goto 10
+  else
+    funit_usedUnits(funit_nUnits)  = fileUnit
+    funit_usedByFile(funit_nUnits) = cleanName
+    write(funit_logUnit,"(i6,a)") funit_usedUnits(funit_nUnits),"  "//funit_usedByFile(funit_nUnits)
+    return
+  end if
 
-  ! Lists all assigned file units to lout
-  subroutine funit_listUnits
+  return
 
-    use crcoall
+30 continue
+  write(lout,"(a)") "FUNIT> ERROR Failed to find an available file unit for file '"//cleanName//"'"
+  call prror(-1)
 
-    implicit none
+end subroutine funit_requestUnit
 
-    integer i
+! Lists all assigned file units to lout
+subroutine funit_listUnits
 
-    write(lout,"(a)") "FUNIT> Dynamically assigned file units are:"
-    do i=1, size(funit_usedUnits)
-      write(lout,"(a,i4,a)") "FUNIT>   Unit ",funit_usedUnits(i)," assigned to: "//funit_usedByFile(i)
-    end do
+  use crcoall
 
-  end subroutine funit_listUnits
+  implicit none
 
-  ! Writes all assigned file units to file_units.dat
-  subroutine funit_dumpUnits
+  integer i
 
-    use crcoall
+  write(lout,"(a)") "FUNIT> Dynamically assigned file units are:"
+  do i=1, size(funit_usedUnits)
+    write(lout,"(a,i4,a)") "FUNIT>   Unit ",funit_usedUnits(i)," assigned to: "//funit_usedByFile(i)
+  end do
 
-    implicit none
+end subroutine funit_listUnits
 
-    integer dumpUnit, i
-    logical isOpen
+! Closes all units opened by the module
+subroutine funit_closeUnits
 
-    call funit_requestUnit("file_units.dat",dumpUnit)
-    inquire(unit=dumpUnit, opened=isOpen)
-    if(isOpen) then
-      write(lout,*) "ERROR in FUNIT when opening file_units.dat"
-      write(lout,*) "Unit ",dumpUnit," was already taken."
-      stop -1
-    end if
+  implicit none
 
-    open(dumpUnit,file="file_units.dat",form="formatted")
-    write(dumpUnit,"(a)") "# unit  assigned_to"
-    do i=1, size(funit_usedUnits)
-      write(dumpUnit,"(i6,a)") funit_usedUnits(i),"  "//funit_usedByFile(i)
-    end do
-    close(dumpUnit)
+  integer chkUnit
+  logical isOpen
 
-  end subroutine funit_dumpUnits
+  do chkUnit=funit_minUnit, funit_nextUnit-1
+    inquire(unit=chkUnit, opened=isOpen)
+    if(isOpen) close(chkUnit)
+  end do
 
-  ! Closes all units opened by the module
-  subroutine funit_closeUnits
-
-    implicit none
-
-    integer chkUnit
-    logical isOpen
-
-    do chkUnit=funit_minUnit, funit_nextUnit-1
-      inquire(unit=chkUnit, opened=isOpen)
-      if(isOpen) close(chkUnit)
-    end do
-
-  end subroutine funit_closeUnits
+end subroutine funit_closeUnits
 
 end module file_units
 ! =================================================================================================

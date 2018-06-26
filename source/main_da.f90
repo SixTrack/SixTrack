@@ -29,8 +29,8 @@ program mainda
   use mod_commons
   use mod_commont
   use mod_commond
-! use tuneshift_corr
   use mod_units
+  use file_units
   use mod_alloc, only : alloc_init
   use mod_fluc,  only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
 
@@ -76,12 +76,13 @@ program mainda
 #ifndef CR
   lout=output_unit
 #endif
+  call funit_initUnits ! This one has to be first
+  call units_initUnits
   call alloc_init      ! Initialise tmod_alloc
   call allocate_arrays ! Initial allocation of memory
 
   ! Open files
   fErr = .false.
-  call units_initUnits
   call units_openUnit(unit=2,  fileName="fort.2",  formatted=.true., mode="r",err=fErr)
   call units_openUnit(unit=3,  fileName="fort.3",  formatted=.true., mode="r",err=fErr)
   call units_openUnit(unit=12, fileName="fort.12", formatted=.true., mode="w",err=fErr)
