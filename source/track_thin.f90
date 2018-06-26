@@ -14,10 +14,6 @@ subroutine trauthin(nthinerr)
   use mod_alloc
 
 #ifdef FLUKA
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     import mod_fluka
-!     inserted in main code by the 'fluka' compilation flag
   use mod_fluka
 #endif
 #ifdef COLLIMAT
@@ -26,7 +22,6 @@ subroutine trauthin(nthinerr)
 
   use crcoall
   use parpro
-  use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
   use mod_commonmn
   use mod_commons
@@ -36,7 +31,6 @@ subroutine trauthin(nthinerr)
   implicit none
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nmz,nthinerr
   real(kind=fPrec) benkcc,r0,r000,r0a
-  logical lopen
 
   real(kind=fPrec), allocatable :: crkveb(:) !(npart)
   real(kind=fPrec), allocatable :: cikveb(:) !(npart)
@@ -599,39 +593,23 @@ subroutine thin4d(nthinerr)
 
   implicit none
 
-  real(kind=fPrec) pz
-  integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr
-  real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,&
-          r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
-  integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
-  real(kind=fPrec) e0fo,e0o,xv1j,xv2j
-  real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1, crabamp, crabfreq, kcrab
-  real(kind=fPrec) RTWO !RTWO=x^2+y^2
-  real(kind=fPrec) NNORM
-  real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2
+  real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,acphase,  &
+    acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi, &
+    rrelens,frrelens,xelens,yelens
   logical llost
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
-
-
-  dimension dpsv3(npart)
-
-  real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
+  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
+    rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
+    cbzb(npart)
 
   save
 !-----------------------------------------------------------------------
   nthinerr=0
 
-  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-  ! last modified: 24-11-2016
   ! initialise variables for back-tracking particles
   if (lbacktracking) call aperture_backTrackingInit
 
 #ifdef FLUKA
-  ! A.Mereghetti, for the FLUKA Team
-  ! last modified: 14-06-2014
-  ! initialise napxto
-  ! inserted in main code by the 'fluka' compilation flag
   napxto = 0
 #endif
 
@@ -1221,33 +1199,18 @@ subroutine thin6d(nthinerr)
   use numerical_constants
   use mathlib_bouncer
 
-  use bdex, only : bdex_elementAction, bdex_track, bdex_enable
+  use bdex,    only : bdex_track
   use scatter, only : scatter_thin, scatter_debug
-  use dynk, only : ldynk, dynk_apply
-  use dump, only : dump_linesFirst, dump_lines, ldumpfront
+  use dynk,    only : ldynk, dynk_apply
+  use dump,    only : dump_linesFirst, dump_lines, ldumpfront
   use aperture
-
-#ifdef BEAMGAS
-! <b>Additions/modifications:</b>
-! - YIL: Added call to beamGas subroutine if element name starts with
-!   'press' or 'PRESS' (only for first turn)
-! - YIL: Added call to beamGasInit just after readcollimator
-#endif
-
+  use mod_hions
 #ifdef FLUKA
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     import mod_fluka
-!     inserted in main code by the 'fluka' compilation flag
   use mod_fluka
 #endif
-
-  use mod_hions
-
 #ifdef COLLIMAT
   use collimation
 #endif
-
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -1264,24 +1227,14 @@ subroutine thin6d(nthinerr)
 #endif
   implicit none
 
-  real(kind=fPrec) pz
-  integer i,irrtr,ix,j,k,kpz,n,nmz,nthinerr,dotrack
-  real(kind=fPrec) c5m4,cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,&
-          dpsv3,pux,r0,r2b,rb,rho2b,rkb,stracki,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
-  integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
-  real(kind=fPrec) e0fo,e0o,xv1j,xv2j
-  real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab
-  real(kind=fPrec) RTWO !RTWO=x^2+y^2
-  real(kind=fPrec) NNORM_, NNORM
-  real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2
+  real(kind=fPrec) pz,c5m4,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,     &
+    acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
+    dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens
   logical llost
-
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
-
-  dimension dpsv3(npart)
-
-  real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
+  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
+    rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
+    cbzb(npart)
   save
 
 #ifdef FAST
@@ -1289,16 +1242,10 @@ subroutine thin6d(nthinerr)
 #endif
   nthinerr=0
 
-  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-  ! last modified: 24-11-2016
   ! initialise variables for back-tracking particles
   if (lbacktracking) call aperture_backTrackingInit
 
 #ifdef FLUKA
-  ! A.Mereghetti, for the FLUKA Team
-  ! last modified: 14-06-2014
-  ! initialise napxto
-  ! inserted in main code by the 'fluka' compilation flag
   napxto = 0
 #endif
 
@@ -2267,7 +2214,6 @@ subroutine callcrp()
   use checkpoint_restart
 #endif
   implicit none
-  integer ia,ia2,ie
 #ifdef CR
   integer ncalls
 #endif

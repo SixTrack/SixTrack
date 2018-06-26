@@ -25,7 +25,6 @@ subroutine trauthck(nthinerr)
 
   use crcoall
   use parpro
-  use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
   use mod_commonmn
   use mod_commons
@@ -505,26 +504,16 @@ subroutine thck4d(nthinerr)
 #endif
   implicit none
 
-  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
-  real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,pux,puxve,&
-                   puxve1,puxve2,puzve1,puzve2,puzve,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
-  integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
-  real(kind=fPrec) e0fo,e0o,xv1j,xv2j
-  real(kind=fPrec) acdipamp, qd, acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab
-  real(kind=fPrec) RTWO !RTWO=x^2+y^2
-  real(kind=fPrec) NNORM_, NNORM
-  real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
+  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2
+  real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve,puxve1,puxve2,puzve1,puzve2,puzve,r0,xlvj,yv1j,   &
+    yv2j,zlvj,acdipamp,qd,acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,  &
+    dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens
   logical llost
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
-  dimension dpsv3(npart)
-  real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
+  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
+    rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
+    cbzb(npart)
 
 #ifdef FLUKA
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     force re-computation of transport matrices of linear elements
-!     inserted in main code by the 'fluka' compilation flag
   logical recompute_linear_matrices
 #endif
 
@@ -1172,26 +1161,16 @@ subroutine thck6d(nthinerr)
 
   implicit none
 
-  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,kpz,n,nmz,nthinerr
-  real(kind=fPrec) cbxb,cbzb,cccc,cikve,cikveb,crkve,crkveb,crkveuk,crxb,crzb,dpsv3,&
-                   pux,puxve1,puxve2,puzve1,puzve2,r0,r2b,rb,rho2b,rkb,tkb,xbb,xlvj,xrb,yv1j,yv2j,zbb,zlvj,zrb
-  integer ireturn, xory, nac, nfree, nramp1,nplato, nramp2
-  real(kind=fPrec) e0fo,e0o,xv1j,xv2j
-  real(kind=fPrec) acdipamp, qd, acphase,acdipamp2,acdipamp1, crabamp, crabfreq, kcrab
-  real(kind=fPrec) RTWO !RTWO=x^2+y^2
-  real(kind=fPrec) NNORM_, NNORM
-  real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
+  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2
+  real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve1,puxve2,puzve1,puzve2,r0,xlvj,yv1j,yv2j,zlvj,     &
+    acdipamp,qd,acphase,acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,    &
+    embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens
   logical llost
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
-  dimension dpsv3(npart)
-  real(kind=fPrec) :: rrelens,frrelens,r1elens,xelens,yelens
+  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
+    rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
+    cbzb(npart)
 
 #ifdef FLUKA
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     force re-computation of transport matrices of linear elements
-!     inserted in main code by the 'fluka' compilation flag
   logical recompute_linear_matrices
 #endif
 
