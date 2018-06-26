@@ -89,7 +89,7 @@ program mainda
 
   ! Print Header Info
   tlim=1e7
-  call timest(tlim)
+  call timest
   time0=0.
   call timex(time0)
   idate=0

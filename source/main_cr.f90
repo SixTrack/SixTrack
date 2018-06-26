@@ -417,7 +417,7 @@ end interface
       time2=0.0
       time3=0.0
       tlim=1e7
-      call timest(tlim)
+      call timest
       call timex(time0)
       do 20 i=1,mmul
         cr(i)=zero

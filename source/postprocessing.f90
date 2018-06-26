@@ -122,7 +122,7 @@ subroutine postpr(nfile)
 !--TIME START
       pieni2=c1m8
       tlim=c1e7
-      call timest(tlim)
+      call timest
       tim1=zero
       call timex(tim1)
 

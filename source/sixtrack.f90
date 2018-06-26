@@ -41,7 +41,7 @@ subroutine daten
   use floatPrecision
   use sixtrack_input
   use parpro
-  use parbeam, only : beam_expflag,beam_expfile_open
+  use parbeam, only : beam_expflag
   use mod_settings
   use mod_common
   use mod_commons
@@ -85,12 +85,12 @@ subroutine daten
   character(len=4)        currBlock, cCheck
 
   integer nUnit,lineNo2,lineNo3,nGeom
-  integer blockLine, blockCount, iElem
+  integer blockLine,blockCount
 
-  logical blockOpened, blockClosed, blockReopen, openBlock, closeBlock
-  logical inErr, parseFort2, prevPrint
+  logical blockOpened,blockClosed,blockReopen,openBlock,closeBlock
+  logical inErr,parseFort2,prevPrint
 
-  integer i,icc,il1,ilin0,iMod,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
+  integer icc,il1,ilin0,iMod,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
 
 #ifdef COLLIMAT
   logical has_coll
@@ -1738,8 +1738,6 @@ subroutine initialize_element(ix,lfirst)
       integer, intent(in) :: ix
       logical, intent(in) :: lfirst
 
-      integer im, izu, k, m, nmz, r0, r0a !needed to use multini
-
       !Temp variables
       integer i
 
@@ -2103,7 +2101,7 @@ subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
               write(lout,*) 'splitfld:'//localstr(1:lf)//':'
             enddo
             errno=2
-            call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
+            call spliterr(errno,nunit,lineno,nfields,lf,chars)
           endif
           fields(i)(k:k)=chars(j:j)
           go to 8888
@@ -2140,7 +2138,7 @@ subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
         localstr=fields(j)(1:l)
         write(lout,*) 'splitfld:'//localstr//':'
       enddo
-      call spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
+      call spliterr(errno,nunit,lineno,nfields,lf,chars)
 end subroutine splitfld
 
 real(kind=fPrec) function fround(errno,fields,f)
@@ -2170,8 +2168,7 @@ subroutine rounderr(errno,fields,f,value)
   use floatPrecision
   use crcoall
   implicit none
-  integer nchars,nofields
-  integer errno,nfields,f,l
+  integer errno,f,l
   character(len=*) fields(*)
   character(len=999) localstr
   real(kind=fPrec) value
@@ -2193,11 +2190,11 @@ subroutine rounderr(errno,fields,f,value)
              /t10,'++++++++++++++++++++++++'/)
 end subroutine rounderr
 
-subroutine spliterr(errno,nunit,lineno,nfields,nf,lf,chars)
+subroutine spliterr(errno,nunit,lineno,nfields,lf,chars)
 
       use crcoall
       implicit none
-      integer errno,nunit,lineno,nfields,nf,lf,l
+      integer errno,nunit,lineno,nfields,lf,l
       character(len=*) chars
       character(len=999) localstr
       write (lout,10000)
@@ -3471,7 +3468,7 @@ subroutine STRNUL( iel )
       implicit none
 
 !     local variables
-      integer iel, i1, i2, i3, j
+      integer iel, i1, i2, i3
 
       ic(iel)=0
       mzu(iel)=0
@@ -3529,7 +3526,7 @@ integer function INEELS( iEl )
   integer iEl
 
 !     temporary variables
-  integer i,ii,iInsert
+  integer i,iInsert
 
   if ( iu.gt.nblz-3) then
     call expand_arrays(nele, npart, nblz+100, nblo)
@@ -3550,12 +3547,6 @@ integer function INEELS( iEl )
       ic(i)=ic(i-1)
       icext(i)=icext(i-1)
       icextal(i)=icextal(i-1)
-      ! extalign(i,1)=extalign(i-1,1)
-      ! extalign(i,2)=extalign(i-1,2)
-      ! extalign(i,3)=extalign(i-1,3)
-      ! do ii=1,40
-      !   exterr(i,ii)=exterr(i-1,ii)
-      ! enddo
       dcum(i)=dcum(i-1)
     enddo
   endif
@@ -6999,7 +6990,7 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
 
 ! --- calcul de beta,sigma et uk dans htul
    60   continue
-        call htul(a,m,n,k,sig,beta)
+        call htul(a,m,k,sig,beta)
 
 ! --- on garde SIGMA dans RHO(N+K)
         j=n+k
@@ -7014,7 +7005,7 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
 
 ! --- transformation de B dans HTBL
    70   continue
-        call htbl(a,b,m,n,k,beta)
+        call htbl(a,b,m,k,beta)
 
 ! --- recherche du pivot (K+1)
 !=============================
@@ -7095,7 +7086,6 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
 10000 format(a,i4)
 end subroutine htls
 
-      subroutine htal(a,m,n,k,beta)
 !*********************************************************************
 !     Subroutine HTAL to make Householder transform                  *
 !                                                                    *
@@ -7103,35 +7093,30 @@ end subroutine htls
 !                                                                    *
 !     Householder transform of matrix A
 !*********************************************************************
-      use floatPrecision
+subroutine htal(a,m,n,k,beta)
+  use floatPrecision
   use numerical_constants
-      use mathlib_bouncer
-      implicit none
-      integer j,k,k1,m,n,nc,ncor1,nmon1
-      real(kind=fPrec) a,beta,h
-      parameter (nmon1 = 600)
-      parameter (ncor1 = 600)
-      dimension a(nmon1,ncor1)
-      save
-!-----------------------------------------------------------------------
+  use mathlib_bouncer
+  implicit none
+  integer j,k,k1,m,n,nc,ncor1,nmon1
+  real(kind=fPrec) a,beta,h
+  parameter (nmon1 = 600)
+  parameter (ncor1 = 600)
+  dimension a(nmon1,ncor1)
+  save
+  nc=n-k
+  do j=1,nc
+    h=zero
+    do k1=k,m
+      h=h+a(k1,k)*a(k1,k+j)
+    end do
+    h=beta*h
+    do k1=k,m
+      a(k1,k+j)=a(k1,k+j)-a(k1,k)*h
+    end do
+  end do
+end subroutine htal
 
-      nc=n-k
-
-      do j=1,nc
-        h=zero                                                          !hr06
-
-        do k1=k,m
-          h=h+a(k1,k)*a(k1,k+j)
-        end do
-
-        h=beta*h
-        do k1=k,m
-          a(k1,k+j)=a(k1,k+j)-a(k1,k)*h
-        end do
-      end do
-
-      end
-      subroutine htbl(a,b,m,n,k,beta)
 !*********************************************************************
 !     Subroutine HTBL to make Householder transform                  *
 !                                                                    *
@@ -7139,35 +7124,27 @@ end subroutine htls
 !                                                                    *
 !     Householder transform of vector B
 !*********************************************************************
-      use floatPrecision
+subroutine htbl(a,b,m,k,beta)
+  use floatPrecision
   use numerical_constants
-      use mathlib_bouncer
+  use mathlib_bouncer
+  implicit none
+  integer k,k1,m,ncor1,nmon1
+  real(kind=fPrec) a,b,beta,h
+  parameter (nmon1 = 600)
+  parameter (ncor1 = 600)
+  dimension a(nmon1,ncor1),b(nmon1)
+  save
+  h=zero
+  do k1=k,m
+    h=h+a(k1,k)*b(k1)
+  end do
+  h=beta*h
+  do k1=k,m
+    b(k1)=b(k1)-a(k1,k)*h
+  end do
+end subroutine htbl
 
-      implicit none
-
-      integer k,k1,m,n,ncor1,nmon1
-      real(kind=fPrec) a,b,beta,h
-      parameter (nmon1 = 600)
-      parameter (ncor1 = 600)
-      dimension a(nmon1,ncor1),b(nmon1)
-      save
-!-----------------------------------------------------------------------
-
-      h=zero                                                           !hr06
-
-      do k1=k,m
-        h=h+a(k1,k)*b(k1)
-      end do
-
-      h=beta*h
-
-      do k1=k,m
-        b(k1)=b(k1)-a(k1,k)*h
-      end do
-
-      end
-
-      subroutine htrl(a,b,m,n,k,rho)
 !*********************************************************************
 !     Subroutine HTRL to make Householder transform                  *
 !                                                                    *
@@ -7175,34 +7152,29 @@ end subroutine htls
 !                                                                    *
 !     calculate residual orbit vector
 !*********************************************************************
-      use floatPrecision
+subroutine htrl(a,b,m,n,k,rho)
+  use floatPrecision
   use numerical_constants
-      use mathlib_bouncer
-      implicit none
-      integer i,k,kk,kl,kn,lv,m,n,ncor1,nmon1
-      real(kind=fPrec) a,b,beta,rho
-      parameter (nmon1 = 600)
-      parameter (ncor1 = 600)
-      dimension a(nmon1,ncor1),b(nmon1),rho(3*ncor1)
-      save
-!-----------------------------------------------------------------------
+  use mathlib_bouncer
+  implicit none
+  integer i,k,kk,kl,kn,lv,m,n,ncor1,nmon1
+  real(kind=fPrec) a,b,beta,rho
+  parameter (nmon1 = 600)
+  parameter (ncor1 = 600)
+  dimension a(nmon1,ncor1),b(nmon1),rho(3*ncor1)
+  save
+  do i= 1,k,1
+    b(i)= zero
+  end do
+  do kk=1,k
+    lv=m-k+kk
+    kn=n+k-kk+1
+    kl=k-kk+1
+    beta=-one/(rho(kn)*a(kl,kl))
+    call htbl(a,b,m,kl,beta)
+  end do
+end subroutine htrl
 
-      do i= 1,k,1
-        b(i)= zero                                                       !hr06
-      end do
-
-      do kk=1,k
-        lv=m-k+kk
-        kn=n+k-kk+1
-        kl=k-kk+1
-
-        beta=-one/(rho(kn)*a(kl,kl))                                     !hr06
-        call htbl(a,b,m,n,kl,beta)
-      end do
-
-      end
-
-      subroutine htul(a,m,n,k,sig,beta)
 !*********************************************************************
 !     Subroutine HTUL to make Householder transform                  *
 !                                                                    *
@@ -7210,33 +7182,30 @@ end subroutine htls
 !                                                                    *
 !     calculate vector U
 !*********************************************************************
-      use floatPrecision
+subroutine htul(a,m,k,sig,beta)
+  use floatPrecision
   use numerical_constants
-      use mathlib_bouncer
-      implicit none
-      integer i,k,m,n,ncor1,nmon1
-      real(kind=fPrec) a,beta,h,sig
-      parameter (nmon1 = 600)
-      parameter (ncor1 = 600)
-      dimension a(nmon1,ncor1)
-      save
-!-----------------------------------------------------------------------
-      sig=zero                                                          !hr06
+  use mathlib_bouncer
+  implicit none
+  integer i,k,m,ncor1,nmon1
+  real(kind=fPrec) a,beta,h,sig
+  parameter (nmon1 = 600)
+  parameter (ncor1 = 600)
+  dimension a(nmon1,ncor1)
+  save
+  sig=zero
+  do i=k,m
+    sig=sig+a(i,k)* a(i,k)
+  end do
+  sig=sqrt(sig)
+  ! on choisit le signe correct pour SIG:
+  h=a(k,k)
+  if(h.lt.zero)sig=-one*sig
+  beta=h + sig
+  a(k,k)=beta
+  beta=one/(sig*beta)
+end subroutine htul
 
-      do i=k,m
-        sig=sig+a(i,k)* a(i,k)
-      end do
-
-      sig=sqrt(sig)
-!     on choisit le signe correct pour SIG:
-      h=a(k,k)
-      if(h.lt.zero)sig=-one*sig                                          !hr06
-      beta=h + sig
-      a(k,k)=beta
-      beta=one/(sig*beta)                                                !hr06
-      end
-
-      subroutine calrms(r,m,rms,ptp)
 !*********************************************************************
 !     Subroutine CALRMS to calculate rms                             *
 !                                                                    *
@@ -7244,61 +7213,55 @@ end subroutine htls
 !                                                                    *
 !     calculates rms and p.to.p value of R(1) .... R(M)
 !*********************************************************************
-      use floatPrecision
+subroutine calrms(r,m,rms,ptp)
+  use floatPrecision
   use numerical_constants
-      use mathlib_bouncer
-      implicit none
-      integer i,imax,imin,m,maxmin
-      real(kind=fPrec) ave,ptp,r,rms,xave,xrms
-      dimension r(m)
-      save
-!-----------------------------------------------------------------------
-      xave = zero
-      xrms = zero
+  use mathlib_bouncer
+  implicit none
+  integer i,imax,imin,m,maxmin
+  real(kind=fPrec) ave,ptp,r,rms,xave,xrms
+  dimension r(m)
+  save
+  xave = zero
+  xrms = zero
+  do i=1,m
+    xave = xave + r(i)
+    xrms = xrms + r(i)**2
+  end do
+  ave = xave / real(m,fPrec)
+  rms = xrms / real(m,fPrec)
+  imax=maxmin(r(1),m,1)
+  imin=maxmin(r(1),m,0)
+  ptp=r(imax)-r(imin)
+  rms=sqrt(rms)
+  return
+end subroutine calrms
 
-      do i=1,m
-        xave = xave + r(i)
-        xrms = xrms + r(i)**2                                            !hr06
-      end do
-
-      ave = xave / real(m,fPrec)
-      rms = xrms / real(m,fPrec)
-
-      imax=maxmin(r(1),m,1)
-      imin=maxmin(r(1),m,0)
-      ptp=r(imax)-r(imin)
-      rms=sqrt(rms)
-      return
-      end
-
-      function maxmin (a,n,m)
 !-----------------------------------------------------------------------
 !     if M=0, MAXMIN=lowest index of minimum element in A
 !     if M=1, MAXMIN=lowest index of maximun element in A
 !     if N<1, MAXMIN=1
 !-----------------------------------------------------------------------
-      use floatPrecision
-      use mathlib_bouncer
-      implicit none
-      integer i,m,maxmin,n
-      real(kind=fPrec) a,curent
-      dimension a(n)
-      save
-!-----------------------------------------------------------------------
-      maxmin=1
-      if (n.lt.1) return
-      curent=a(1)
-
-      do i=2,n
-        if ((m.eq.0).and.(a(i).ge.curent)) goto 10
-        if ((m.eq.1).and.(a(i).le.curent)) goto 10
-        curent=a(i)
-        maxmin=i
-   10   continue
-      end do
-
-      return
-end
+function maxmin (a,n,m)
+  use floatPrecision
+  use mathlib_bouncer
+  implicit none
+  integer i,m,maxmin,n
+  real(kind=fPrec) a,curent
+  dimension a(n)
+  save
+  maxmin=1
+  if (n.lt.1) return
+  curent=a(1)
+  do i=2,n
+    if ((m.eq.0).and.(a(i).ge.curent)) goto 10
+    if ((m.eq.1).and.(a(i).le.curent)) goto 10
+    curent=a(i)
+    maxmin=i
+10   continue
+  end do
+  return
+end function maxmin
 
 ! ================================================================================================ !
 !  ORGANISATION OF NONLINEAR ELEMENTS AND RANDOM NUMBERS
@@ -7320,7 +7283,7 @@ subroutine ord
   use mod_fluc
 
   implicit none
-  integer i,inz,iran,ix,izu,j,jra,jra3,k,kpz,kzz,kzz1,kzz2,nra1
+  integer i,inz,iran,ix,izu,j,jra,jra3,kpz,kzz,kzz1,kzz2,nra1
   dimension jra(nele,5),iran(nele),inz(nele)
   save
 !-----------------------------------------------------------------------
@@ -7505,7 +7468,7 @@ subroutine orglat
   use mod_commons
   use mod_commont
   implicit none
-  integer i,icext1,icextal1,ihi,ii,ilf,ilfr,ix,izu,j,kanf1,kpz,kzz
+  integer i,icext1,icextal1,ihi,ii,ilf,ilfr,j,kanf1
   real(kind=fPrec) extalig1 !,exterr1
   dimension ilf(nblz),ilfr(nblz)
   dimension extalig1(nblz,3),icext1(nblz),icextal1(nblz) !,exterr1(nblz,40)
@@ -7530,10 +7493,7 @@ subroutine orglat
   if(kanf.ne.1) then
     write(lout,"(a)") "ORGLAT> Reshuffling lattice structure following existence "//&
       "of GO keyword not in first position of lattice definition!"
-    ! write(lout,"(a,i0)") "ORGLAT> nblz  = ",nblz
-    ! write(lout,"(a,i0)") "ORGLAT> mbloz = ",mbloz
-
-!        initialise some temporary variables
+    !        initialise some temporary variables
     do i=1,nblz
       ilf(i)=0
       ilfr(i)=0
@@ -7542,9 +7502,6 @@ subroutine orglat
       do ii=1,3
           extalig1(i,ii)=zero
       enddo
-      ! do ii=1,40
-      !     exterr1(i,ii)=zero
-      ! enddo
     enddo
 
     !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
@@ -7554,39 +7511,20 @@ subroutine orglat
       ilf(i)=ic(i)
       icext1(i)=icext(i)
       icextal1(i)=icextal(i)
-      ! extalig1(i,1)=extalign(i,1)
-      ! extalig1(i,2)=extalign(i,2)
-      ! extalig1(i,3)=extalign(i,3)
-      ! do ii=1,40
-      !   exterr1(i,ii)=exterr(i,ii)
-      ! end do
     end do
     do i=kanf,iu
       if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
       ic(i-kanf1)=ic(i)
       icext(i-kanf1)=icext(i)
       icextal(i-kanf1)=icextal(i)
-      ! extalign(i-kanf1,1)=extalign(i,1)
-      ! extalign(i-kanf1,2)=extalign(i,2)
-      ! extalign(i-kanf1,3)=extalign(i,3)
-      ! do ii=1,40
-      !   exterr(i-kanf1,ii)=exterr(i,ii)
-      ! end do
     end do
     do i=1,kanf1
       if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
       ic(iu-kanf1+i)=ilf(i)
       icext(iu-kanf1+i)=icext1(i)
       icextal(iu-kanf1+i)=icextal1(i)
-      ! extalign(iu-kanf1+i,1)=extalig1(i,1)
-      ! extalign(iu-kanf1+i,2)=extalig1(i,2)
-      ! extalign(iu-kanf1+i,3)=extalig1(i,3)
-      ! do ii=1,40
-      !   exterr(iu-kanf1+i,ii)=exterr1(i,ii)
-      ! end do
     end do
   endif
-
   return
 end subroutine orglat
 
@@ -12278,10 +12216,9 @@ subroutine datime(nd,nt)
       return
 end subroutine datime
 
-subroutine timest(r1)
+subroutine timest
   use mod_common, only : timestart
   implicit none
-  real r1
   logical start
   data start /.false./
   save
@@ -12297,7 +12234,7 @@ subroutine timex(r1)
   implicit none
   real r1,timenow
   save
-  call timest(0.0)
+  call timest
   call cpu_time(timenow)
   r1=timenow-timestart
   return
