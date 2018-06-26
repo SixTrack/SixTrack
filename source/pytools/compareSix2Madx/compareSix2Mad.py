@@ -40,6 +40,8 @@ def createMultiAndPhase(order,strenght, phase):
     knl = knl + str(strenght)
     ph = ph + str(phase)
     return [knl, ph]
+pt = getPTfromDeltaP(2,  0.05)
+print "pt", pt 
 
 if(0 is 1):
     path = '/afs/cern.ch/work/t/tpersson/simpleTrack/onlyonePASS/'
