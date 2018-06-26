@@ -609,7 +609,6 @@ subroutine thin4d(nthinerr)
   real(kind=fPrec) RTWO !RTWO=x^2+y^2
   real(kind=fPrec) NNORM
   real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
-  real(kind=fPrec) onedp,fppsig,costh_temp,sinth_temp,q_temp,r_temp,z_temp,pxf,pyf,sigf !varialbes for the solenoid
   logical llost
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
@@ -1275,7 +1274,6 @@ subroutine thin6d(nthinerr)
   real(kind=fPrec) RTWO !RTWO=x^2+y^2
   real(kind=fPrec) NNORM_, NNORM
   real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi
-  real(kind=fPrec) onedp,fppsig,costh_temp,sinth_temp,q_temp,r_temp,z_temp,pxf,pyf,sigf !varialbes for the solenoid
   logical llost
 
   dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
