@@ -167,6 +167,22 @@ To consider the curvature of dipoles which are replaced by drifts and dipole kic
 The definition of the multipole strength in a block will be given in (\ref{MulCoe}).
 
 % ================================================================================================================================ %
+\subsection{Solenoid} \label{Solenoid}
+
+\paragraph{Format} \texttt{name type $k_s$ $ks*l$}
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{name} & May contain up to 47 characters. \\
+    \texttt{type} & Type identifier is 25. \\
+    \texttt{ks}   & The strength $k_s$ of the solenoid \\
+    \texttt{ks*l} & The strength $k_s$ of the solenoid multiplied with the length of the corresponding thick solenoid. \\
+\end{tabular}
+
+\paragraph{Remarks}
+The solenoid is modeled as thin solenoid but a length the length of the real solenoid is still needed. This is different from the case with a multipole.
+
+% ================================================================================================================================ %
 \subsection{Cavities} \label{Cavities}
 
 \paragraph{Format} \texttt{name type u0 harm lag}
@@ -458,11 +474,6 @@ The file contains 7 columns: $x$,$x'$, $y$,$y'$, $ct$,$\delta p/p$ and $E$.
 Usual SixTrack units are used.
 Any number of \texttt{BPM} elements can be used but the names must differ.
 
-% ================================================================================================================================ %
-\subsection{Other Element Types}
-
-Some other elements, such as dipole edge (24), solenoid (25), multipole RF kicks ($\pm$26, $\pm$27, $\pm$28) are accepted by SixTrack, but they are not currently supported by the development team or tested for correctness.
-It is therefore advised to not use these elements.
 
 % ================================================================================================================================ %
 \section{Block Definitions} \label{BloDef}
