@@ -646,7 +646,7 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 		endif(AVX-512)
 
 		if(NATIVE)
-		  SET(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+			SET(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
 		endif(NATIVE)
 	endif()
 
@@ -1003,17 +1003,17 @@ endif()
 add_executable(dafor ${CMAKE_SOURCE_DIR}/source/tools/dafor/dafor.f90)
 #we do not need any fancy flags for dafor
 #but nagfor does not like the following
-if(NOT Fortran_COMPILER_NAME MATCHES "nagfor.*")
-    SET_TARGET_PROPERTIES(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
-    SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
-    #target_compile_definitions(dafor PUBLIC "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
-endif(NOT Fortran_COMPILER_NAME MATCHES "nagfor.*")
+if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
+	SET_TARGET_PROPERTIES(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
+	SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
+	#target_compile_definitions(dafor PUBLIC "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
+endif(Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
 if(CRLIBM)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/source/crlibm)
+	add_subdirectory(${CMAKE_SOURCE_DIR}/source/crlibm)
 endif()
 if(CRLIBM OR BUILD_TESTING )
-  add_subdirectory(${CMAKE_SOURCE_DIR}/source/roundctl) #Also needed by read90
+	add_subdirectory(${CMAKE_SOURCE_DIR}/source/roundctl) #Also needed by read90
 endif()
 
 if(HDF5)
