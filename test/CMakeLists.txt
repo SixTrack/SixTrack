@@ -35,7 +35,6 @@ set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERRO
 SET(TESTS_NOFORT10
   orbit6d-element-trombone
   orbit6d-element-quadrupole
-  orbit6d-element-solenoid
   orbit6d-ions
   orbit6d-ions-long
   exact
@@ -98,7 +97,6 @@ SET(SIXTRACK_TESTS
   lostnotilt
   notilt
   orbit6d-element-quadrupole
-  orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-ions
   orbit6d-ions-long
@@ -320,7 +318,6 @@ endforeach()
 #Lets say fast tests take <60 seconds to run
 SET(FAST_TESTS
   orbit6d-element-quadrupole
-  orbit6d-element-solenoid
   thick4
   thick6dblocks
   thick6ddynk
