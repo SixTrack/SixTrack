@@ -23,7 +23,7 @@ subroutine sumpos
   parameter (maxf=30)
   parameter (nofields=60)
   character(len=maxf) fields(nofields)
-  integer errno,nfields,nunit,lineno,nf
+  integer errno,lineno,nf
   real(kind=fPrec) fround
   data lineno /0/
 #endif
@@ -161,7 +161,7 @@ subroutine cadcum
   save
 
 !     temporary variables
-  real(kind=fPrec) tmpdcum, ds
+  real(kind=fPrec) tmpdcum
   integer ientry, jentry, kentry, ix
 
   write(lout,*)''
@@ -237,7 +237,7 @@ subroutine blocksv
   use mod_commond
   implicit none
 
-  integer n, ia, ikk, j, jm, k, lkk, mkk
+  integer ia, ikk, j, jm, k, lkk, mkk
   real(kind=fPrec) dpoff
 !     integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
 !    &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &

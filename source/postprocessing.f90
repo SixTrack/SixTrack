@@ -115,6 +115,7 @@ subroutine postpr(nfile)
 #ifdef CR
       integer nnuml
 #endif
+      integer itot,ttot
 #include "version.f90"
       save
 !----------------------------------------------------------------------

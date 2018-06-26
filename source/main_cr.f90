@@ -121,25 +121,16 @@ interface
 end interface
 
   ! "Old" variables
-  integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,  &
-    idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
-    jm,k,kpz,kzz,l,lkk,ll,m,mkk,ncorruo,ncrr,nd,nd2,ndafi2,           &
-    nerror,nlino,nlinoo,nmz,nthinerr
-  real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,  &
-    amp00,bet0s1,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,   &
-    dam1,dchi,ddp1,dp0,dp00,dp10,dpoff,dpsic,dps0,dsign,gam0s1,gam0s2,&
-    gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,&
-    rdev,rmean,rsqsum,rsum,sic,tasia56,tasiar16,tasiar26,tasiar36,    &
-    tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,   &
-    taus,x11,x13
+  integer i,itiono,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,ie,ig,ii,im,iposc,ix,izu,j,j2,jj,  &
+    k,kpz,kzz,l,ll,m,ncorruo,ncrr,nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
+  real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
+    bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,ddp1,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,&
+    gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
+    tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13
   integer idummy(6)
-  logical isOpen
-  character(len=10) cmonth
   character(len=4) cpto
 #ifdef CR
-  character(len=80) day
-#else
-  character(len=80) day,runtim
+  logical isOpen
 #endif
   character(len=8) cdate,ctime,progrm !Note: Keep in sync with writebin_header and more
                                       !DANGER: If the len changes, CRCHECK will break.
@@ -156,27 +147,20 @@ end interface
   parameter (maxf=30)
   parameter (nofields=41)
   character(len=maxf) fields(nofields)
-  integer errno,nfields,nunit,lineno,nf
+  integer errno,lineno,nf
   real(kind=fPrec) fround
   real(kind=fPrec) round_near
   data lineno /0/
 #endif
-#ifdef DEBUG
-!  integer umcalls,dapcalls,dokcalls,dumpl
-!  common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
-#endif
 #ifdef FLUKA
   integer fluka_con
 #endif
-  logical lopen
-  dimension cmonth(12)
-  data (cmonth(i),i=1,12)/' January ',' February ','  March   ',    &
-    '  April   ','   May    ','   June   ','   July   ',' August  ',  &
-    ' September',' October  ',' November ',' December '/
 
   ! New Variables
   character(len=:), allocatable :: featList
+#ifndef STF
   character(len=7)  tmpFile
+#endif
   character(len=23) timeStamp
   character(len=8)  tsDate
   character(len=10) tsTime
@@ -202,7 +186,6 @@ end interface
   napxo  = 0
   trtime = 0.0
   napxto = 0
-  runtim = ""
 
   !----------------------------------------------------------------------------------------------- !
   ! Features
