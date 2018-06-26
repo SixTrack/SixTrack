@@ -1273,7 +1273,7 @@ if(MERLINSCATTER)
 endif(MERLINSCATTER)
 #if we are using naff, link to the naff library
 if(NAFF)
-	target_link_libraries(SixTrackCR naff)
+	target_link_libraries(SixTrackLib naff)
 endif(NAFF)
 
 #if we are using root, link to all the root libraries
