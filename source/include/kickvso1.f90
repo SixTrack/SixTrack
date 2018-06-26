@@ -23,7 +23,6 @@ z_temp = fppsig / (onedp**2) * strackz(i)
 
 pxf  = temptr(2) + temptr(1)*q_temp
 pyf  = temptr(4) +  temptr(3) *q_temp
-sigf = sigmv(j)*c1m3 - half*(temptr(1)**2 +  temptr(3) **2)*r_temp
 
 
 !       r_tempipken formulae p.29 (3.37)
@@ -31,7 +30,7 @@ xv(1,j) =  (temptr(1)  * costh_temp  +  temptr(3)  * sinth_temp)*c1e3
 yv(1,j) =  (pxf * costh_temp  +  pyf * sinth_temp)*c1e3
 xv(2,j) = (-temptr(1)  * sinth_temp  +  temptr(3)  * costh_temp)*c1e3
 yv(2,j) = (-pxf * sinth_temp  +  pyf * costh_temp)*c1e3
-sigmv(j) =  (sigf + (temptr(1)*pyf - temptr(3)*pxf)*z_temp)*c1e3
+
 
 yv(j,1) = yv(j,1)*moidpsv(j)
 yv(j,2) = yv(j,2)*moidpsv(j)
