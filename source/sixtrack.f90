@@ -363,9 +363,15 @@ subroutine daten
 
   case("NEXT") ! Close the current block
     if(prevPrint) goto 110 ! If there was NEXT flag after PRINT after all, go back one more time
-    ! Actual close check is done after a last pass so
-    ! each block can finalise any necessary initialisation
-    closeBlock = .true.
+    if(currBlock == "NONE") then
+      ! Catch orphaned NEXT blocks here.
+      write(lout,"(a)") "INPUT> ERROR Unexpected NEXT block encountered. There is no open block to close."
+      goto 9999
+    else
+      ! Actual close check is done after a last pass so
+      ! each block can finalise any necessary initialisation
+      closeBlock = .true.
+    end if
 
   case("ENDE") ! End of fort.3 input
     goto 9000
