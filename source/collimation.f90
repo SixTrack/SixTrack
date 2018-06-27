@@ -1688,7 +1688,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 end subroutine collimate_parseInputLine
 
 subroutine collimate_postInput(gammar,has_coll)
-  
+
   real(kind=fPrec), intent(in) :: gammar
   logical,          intent(in) :: has_coll
 
@@ -2355,17 +2355,12 @@ subroutine collimate_start_collimator(stracki)
   use mod_commons
   use mod_commont
   use mod_commond
+  use numerical_constants, only : c5m4
 
   implicit none
 
   integer :: j
   real(kind=fPrec), intent(in) :: stracki
-
-  real(kind=fPrec) c5m4
-
-#ifdef FAST
-  c5m4=5.0e-4_fPrec
-#endif
 
   if(bez(myix)(1:3).eq.'TCP' .or. bez(myix)(1:3).eq.'tcp') then
     if(bez(myix)(7:9).eq.'3.B' .or. bez(myix)(7:9).eq.'3.b') then
@@ -2547,12 +2542,12 @@ subroutine collimate_do_collimator(stracki)
   use mod_commons
   use mod_commont
   use mod_commond
+  use numerical_constants, only : c5m4
 
   implicit none
 
   integer :: j
 
-  real(kind=fPrec) c5m4
   real(kind=fPrec), intent(in) :: stracki
 
 #ifdef G4COLLIMAT
@@ -2560,10 +2555,6 @@ subroutine collimate_do_collimator(stracki)
   integer :: part_hit_flag = 0
   integer :: part_abs_flag = 0
   real(kind=fPrec) x_tmp,y_tmp,xp_tmp,yp_tmp
-#endif
-
-#ifdef FAST
-  c5m4=5.0e-4_fPrec
 #endif
 
 !-----------------------------------------------------------------------
@@ -2778,7 +2769,7 @@ subroutine collimate_do_collimator(stracki)
 !              -- at the face of the collimator for the case of beta'<0 (POSITIVE alpha - beam converging) and
 !              -- at the exit of the collimator for the case of beta'>0 (NEGATIVE alpha beam diverging)
 
-!     with imperfections: include errors on gap, tilt and offset. We have to calculate the normalized distance 
+!     with imperfections: include errors on gap, tilt and offset. We have to calculate the normalized distance
 !     to each corner separately!
 
 !     First: calculate optical parameters at start and end of collimator (half a collimator length upstream and
@@ -3297,6 +3288,7 @@ subroutine collimate_end_collimator()
   use mod_commons
   use mod_commont
   use mod_commond
+  use numerical_constants, only : c5m4
 
   implicit none
 
@@ -3308,11 +3300,7 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
 #endif
 
-  real(kind=fPrec) c5m4,stracki
-
-#ifdef FAST
-  c5m4=5.0e-4_fPrec
-#endif
+  real(kind=fPrec) stracki
 
 !++  Output information:
 !++

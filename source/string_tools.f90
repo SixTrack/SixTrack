@@ -1113,6 +1113,62 @@ subroutine chr_toLog(theString, theValue, rErr)
 end subroutine chr_toLog
 
 ! ================================================================================================ !
+!  Real to String
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-05-27
+! ================================================================================================ !
+
+subroutine chr_fromReal(theValue, theString, rErr)
+
+  use crcoall
+  use floatPrecision
+  use parpro, only : dtoaLen
+
+  real(kind=fPrec),       intent(in)    :: theValue
+  character(len=dtoaLen), intent(out)   :: theString
+  logical,                intent(inout) :: rErr
+
+#ifdef CRLIBM
+  character :: dStr(dtoaLen-8)
+  integer   :: dtoaf, fLen, nStr, dPoint, iSign, i
+
+  fLen = dtoaLen-8
+  nStr = dtoaf(theValue, 2, fLen, dPoint, iSign, dStr(1), 1)
+
+  theString = " "
+  if(dPoint == 9999) then
+    ! This is infinity or nan, so just default output
+    write(theString,"(es24.16e3)") theValue
+  else
+    if(iSign /= 0) theString(1:1) = "-"
+    theString(2:3) = dStr(1)//"."
+    do i=2,nStr ! Get the numbers returned from dtoaf
+      theString(i+2:i+2) = dStr(i)
+    end do
+    do i=nStr,fLen ! Pad the rest with 0
+      theString(i+3:i+3) = "0"
+    end do
+    if(dPoint < 0) then
+      write(theString(fLen+4:fLen+8),"(a2,i3.3)") "E-",abs(dPoint-1)
+    else
+      write(theString(fLen+4:fLen+8),"(a2,i3.3)") "E+",abs(dPoint-1)
+    end if
+  end if
+
+  write(lout,"(a)")           "DTOAF> TESTING:"
+  write(lout,"(a,i0)")        "DTOAF>  * nStr      = ",nStr
+  write(lout,"(a,i0)")        "DTOAF>  * dPoint    = ",dPoint
+  write(lout,"(a,i0)")        "DTOAF>  * iSign     = ",iSign
+  write(lout,"(a,es24.16e3)") "DTOAF>  * theValue  = ",theValue
+  write(lout,"(a)")           "DTOAF>  * theString = "//theString
+
+#else
+  write(theString,"(es24.16e3)") theValue
+#endif
+
+end subroutine chr_fromReal
+
+! ================================================================================================ !
 !  HERE FOLLOWS THE OLD ROUTINES
 ! ================================================================================================ !
 

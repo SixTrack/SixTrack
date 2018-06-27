@@ -86,16 +86,16 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     write(lout,"(a)") "DIST> INFO RDUN is deprecated. A unit will be assigned automatically."
 
   case("ECUN")
-    if(nSplit <= 2) then
-      write(lout,"(a,i0)") "DIST> ERROR ECUN must have 1 values, got ",(nSplit-1)
+    if(nSplit < 2) then
+      write(lout,"(a,i0)") "DIST> ERROR ECUN must have 1 value, got ",(nSplit-1)
       iErr = .true.
       return
     end if
     call chr_cast(lnSplit(2),dist_echo_unit,iErr)
 
   case("READ")
-    if(nSplit <= 2) then
-      write(lout,"(a,i0)") "DIST> ERROR READ must have 1 values, got ",(nSplit-1)
+    if(nSplit < 2) then
+      write(lout,"(a,i0)") "DIST> ERROR READ must have 1 value, got ",(nSplit-1)
       iErr = .true.
       return
     end if
@@ -110,6 +110,7 @@ end subroutine dist_parseInputLine
 subroutine dist_readdis(napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa, zz, m)
 
   use numerical_constants
+  use parpro, only : mInputLn
   use, intrinsic :: iso_fortran_env, only : int16
   implicit none
 
@@ -129,17 +130,16 @@ subroutine dist_readdis(napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa
   integer id, gen
   integer(kind=int16) :: aa(npart) !(npart)
   integer(kind=int16) :: zz(npart) !(npart)
-  real(kind=fPrec) weight, z, zp
+  real(kind=fPrec) :: weight, z, zp
   real(kind=fPrec) :: dt(npart)
   real(kind=fPrec) :: m(npart) !(npart)
 
   integer jj
-  character(240) tmp_line
+  character(len=mInputLn) tmp_line
 
   character, parameter :: comment_char = '*'
 
-  write(lout,*) ''
-  write(lout,*) "Reading particles from ", dist_filename
+  write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_filename)//"'"
 
 ! initialise tracking variables:
   do jj=1,npart
@@ -161,52 +161,35 @@ subroutine dist_readdis(napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa
 
 ! cycle on lines in file:
 1981 continue
-  read(dist_read_unit,'(A)',end=1983,err=1982) tmp_line
+  read(dist_read_unit,"(a)",end=1983,err=1982) tmp_line
   if( tmp_line(1:1).eq.comment_char ) goto 1981
   jj = jj+1
 
-  if( jj.gt.npart ) then
-    write(lout,*) 'Error while reading particles'
-    write(lout,*) 'not enough memory for all particles in file'
-    write(lout,*) 'please increase the npart parameter and recompile'
-    write(lout,*) 'present value:', npart
-    jj = npart
-    goto 1984
-  else if( jj.gt.napx ) then
-    write(lout,*) ''
-    write(lout,*) 'Stopping reading file, as already ', napx
-    write(lout,*) ' particles have been read, as requested by the user'
-    write(lout,*) ' in fort.3 file'
-    write(lout,*) ''
+  if( jj.gt.napx ) then
+    write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been as requested in fort.3"
     jj = napx
     goto 1983
   end if
 
-  read( tmp_line, *, err=1982 ) id, gen, weight, x(jj), y(jj), z, xp(jj), yp(jj), zp, aa(jj), zz(jj), m(jj), pc(jj), dt(jj)
+  read(tmp_line, *, err=1982) id, gen, weight, x(jj), y(jj), z, xp(jj), yp(jj), zp, aa(jj), zz(jj), m(jj), pc(jj), dt(jj)
   goto 1981
 
 ! error while parsing file:
 1982 continue
-  write(lout,*) 'Error while reading particles at line:'
-  write(lout,*) tmp_line
+  write(lout,"(a)") "DIST> ERROR Reading particles from line: '"//trim(tmp_line)//"'"
   goto 1984
 
 1983 continue
   if( jj.eq.0 ) then
-    write(lout,*) 'Error while reading particles'
-    write(lout,*) 'no particles read from file'
+    write(lout,"(a)") "DIST> ERROR Reading particles. No particles read from file."
     goto 1984
   end if
 
   close(dist_read_unit)
-  write(lout,*) "Number of particles read = ", jj
+  write(lout,"(a,i0)") "DIST> Number of particles read = ",jj
 
   if( jj.lt.napx ) then
-    write(lout,*) ''
-    write(lout,*) 'Warning: read a number of particles'
-    write(lout,*) '         LOWER than the one requested for tracking'
-    write(lout,*) '         requested:',napx
-    write(lout,*) ''
+    write(lout,"(a,i0)") "DIST> WARNING Read a number of particles LOWER than the one requested for tracking. Requested: ",napx
     napx = jj
   end if
 

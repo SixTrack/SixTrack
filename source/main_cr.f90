@@ -1417,7 +1417,7 @@ end interface
 !       always in main code
 
         if(.not. dist_enable) then
-          write(lout,*) 'idfor set to 3 but DIST block not present'
+          write(lout,"(a)") "MAINCR> ERROR idfor set to 3 but DIST block not present."
           call prror(-1)
         endif
 

@@ -98,6 +98,7 @@ module numerical_constants
   real(kind=fPrec), parameter :: c1m2   = 1.0e-2_fPrec
   real(kind=fPrec), parameter :: c1m3   = 1.0e-3_fPrec
   real(kind=fPrec), parameter :: c1m4   = 1.0e-4_fPrec
+  real(kind=fPrec), parameter :: c5m4   = 5.0e-4_fPrec
   real(kind=fPrec), parameter :: c1m5   = 1.0e-5_fPrec
   real(kind=fPrec), parameter :: c1m6   = 1.0e-6_fPrec
   real(kind=fPrec), parameter :: c1m7   = 1.0e-7_fPrec

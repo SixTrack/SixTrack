@@ -36,6 +36,7 @@ module parpro
   integer, parameter :: mStrLen  = 161    ! Standard string length
   integer, parameter :: mDivLen  = 132    ! Length of lout output lines
   integer, parameter :: mInputLn = 1024   ! Buffer size for single lines read from input files
+  integer, parameter :: dtoaLen  = 24     ! Length of return string from roundctl()
 
   integer :: ntr   = -1   ! Number of phase trombones
 

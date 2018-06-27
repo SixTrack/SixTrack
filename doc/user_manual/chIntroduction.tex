@@ -2,7 +2,7 @@
 \chapter{Introduction} \label{Intro}
 
 The Single Particle Tracking Code SixTrack is optimised to carry two particles~\footnote{Two particles are needed for the detection of  chaotic behaviour.} through an accelerator structure over a large number of turns.
-It is an offspring of RACETRACK \cite{RACETRACK} written by Albin Wrulich.
+It is an offspring of RACETRACK~\cite{RACETRACK}\index{RACETRACK} written by Albin Wrulich.
 The input structure has been changed as little as possible so that slightly modified RACETRACK input files, or those of other offsprings like FASTRAC \cite{FASTRAC} can be read.
 
 \paragraph{The main features of SixTrack are:}~
@@ -35,9 +35,9 @@ The input structure has been changed as little as possible so that slightly modi
 \section{Versions and Service}
 
 There are two versions: for element by element tracking there is a vector version, and there is a version to produce a one turn map using the LBL Differential Algebra package.
-In both cases the input structure file \texttt{fort.2} is used to determine if the thick or thin linear element mode has to be used.
+In both cases the input structure file\index{structure file} \texttt{fort.2}\index{fort.2} is used to determine if the thick or thin linear element mode has to be used.
 
-To use the power of the Differential Algebra, for instance to calculate the 6D closed orbit in an elegant fashion, the tracking versions may also be equipped with a low order map facility to avoid the otherwise huge demand on memory.
+To use the power of the Differential Algebra\index{SixDA}, for instance to calculate the 6D closed orbit in an elegant fashion, the tracking versions may also be equipped with a low order map facility to avoid the otherwise huge demand on memory.
 
 It must be mentioned that in the linear thin lens version dipoles have to be treated in a special way.
 See section~\ref{MulBlo} for details.
@@ -78,12 +78,12 @@ In case of problems, please see the CERN SixTrack egroups ``sixtrack-users'' and
 If these are not accessible to you, you are welcome to contact the coordinators: Riccardo De Maria and Kyrre Sjobak, as well as the original developer Frank Schmidt.
 Our contact details are available from the CERN phonebook.
 
-If you think you have found a defect in the program, please create a report on the issue tracker at \url{https://github.com/SixTrack/SixTrack/issues}.
+If you think you have found a defect in the program, please create a report on the issue tracker\index{SixTrack bug reports} at \url{https://github.com/SixTrack/SixTrack/issues}.
 Note that for this to be usefull, you need to describe what the program is doing, what you expected it to do, and an example which demonstrates the unwanted behaviour.
 Plase also look through the issues that are already listed, and see if it has already been reported.
 If so, you are welcome to add a comment to the issue, which may influence its priority and give additional and useful information to the developers.
 
-The most up to date version of the documentation can always be found on the GitHub repository mentioned above.
+The most up to date version of the documentation can always be found on the GitHub repository mentioned above.\index{SixTrack source}
 Additionally, various older documentation can be found at \url{http://cern.ch/Frank.Schmidt/Documentation/doc.html}.
 
 % ================================================================================================================================ %
@@ -113,14 +113,15 @@ Plenty of comments and suggestions are therefore needed to further improve the p
 % ================================================================================================================================ %
 \section{SixTrack Input Structure}
 
-The SixTrack input is line oriented.
-Each line of 80 characters is treated as one string of input, in which a certain sequence of numbers and character strings is expected to be found.
+The SixTrack input is line oriented.\index{SixTrack input}\index{fort.3}
+Each line is treated as one string of input in which a certain sequence of numbers and character strings is expected to be found.
 The numbers and character strings must be separated by at least one blank space.
 Floating point numbers can be given in any format, but must be distinguishable from integer numbers.
-Omitted values at the end of an input line will keep their default values (\ref{DTP}).
-Lines with a slash ``/'' in the first column will be ignored by the program.
+Comments can be added starting with the character ``!''.\index{comment lines}
+Empty lines and lines starting with the comment character will be ignored and are not counted towards the line number requirement that apply to many of the input blocks.
+For beckwards compatibility, lines starting with a slash ``/'' in the first column will also be ignored by the program.
 
-For detailed questions concerning rounding errors, calculation of the Lyapunov exponent and determination of the long term dynamic aperture, see \cite{thesis}.
+For detailed questions concerning rounding errors, calculation of the Lyapunov exponent and determination of the long term dynamic aperture, see \cite{thesis}.\index{rounding errors}
 
 % ================================================================================================================================ %
 \subsection{Input Format} \label{sec:informat}
@@ -128,11 +129,26 @@ For detailed questions concerning rounding errors, calculation of the Lyapunov e
 The input format used in SixTrack has been inherited from RACETRACK.
 This system makes it easy to read input and allows easy change and addition of input blocks.
 
-The idea of the input format is to use a sequence of input blocks, each block with a specific keyword in the first line.
-The block is terminated by the keyword \texttt{NEXT} in the last line.
+The idea of the input format is to use a sequence of input blocks, each block with a specific keyword in the first line.\index{input blocks}
+The block is terminated by the keyword \texttt{NEXT} in the last line.\index{NEXT}
 The input data goes in the lines in between.
-The keyword \texttt{ENDE} ends the input sequence, and anything after this keyword is ignored.
+The keyword \texttt{ENDE} ends the input sequence, and anything after this keyword is ignored.\index{ENDE}
 This system makes it easy to read input and allows easy change and addition of input blocks.
+Values inside a block can be indented, but the opening ang closing keywords cannot.
+In some blocks more than 4 space indentation signify a line continuation of the previous line.
+It is therefore advisable to keep indentation at less than 5 spaces to avoid unpredictable results.
+
+From version 5, SixTrack enforces the proper closing of input blocks, which in the past have been somewhat inconsistent.
+This does not apply to the first line, which contains the flag to determine which file to read the lattice from.
+If a \texttt{NEXT} keyword is added after this, an error is raised.
+Multiple occurences of the same input block is, as a general rule, not allowed and will cause an error.
+However, there are a few exceptions.
+String input variables can be wrapped in either single or double quotes.
+SixTrack will also accept strings without quotes, provided they do not contain tabs, spaces or the comment character.
+
+Input errors will provide a descriptive error message, the line number and file in which the error was encountered, and a printout of the line where the error was found.
+A new \texttt{SETTINGS} block has been added in SixTrack 5 where a \texttt{DEBUG} flag can be added.\index{DEBUG}
+When this flag is set, most values read from the file will be printed back with the value it was converted to internally in SixTrack, and if it was modified, what it was changed to.
 
 In the following chapters, the input structure of SixTrack is discussed in detail.
 To facilitate the use of the program, a set of appendices are added, giving a list of keywords in Appendix~\ref{Lkey}, a list of default values in  Appendix~\ref{Default}, the input and output files are described in Appendix~\ref{Files}, and a description of the data structure of the binary data files in Appendix~\ref{Header}.

@@ -6,11 +6,11 @@ In this chapter, the input data blocks used to organise the input structure are 
 % ================================================================================================================================ %
 \section{Random Fluctuation Starting Number} \label{FluNum}
 
-If besides mean values for the multipole errors (Gaussian) random errors should be considered, this input data structure is used to set the start value for the random generator.
+If besides mean values for the multipole errors (Gaussian) random errors should be considered, this input data structure is used to set the start value for the random generator.\index{random fluctuations}\index{random numbers}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{FLUC} \\
+    \textbf{Keyword}    & \texttt{FLUC}\index{FLUC} \\
     \textbf{Data lines} & 1 \\
     \textbf{Format}     & \texttt{izu0 mmac mout mcut} \/(integers)
 \end{tabular}
@@ -25,9 +25,9 @@ If besides mean values for the multipole errors (Gaussian) random errors should 
     \texttt{mout} & A binary switch for various purposes, so all options, as described below, can be combined. \\
                   & \texttt{mout} = 0 : multipole errors internally created \\
                   & \texttt{mout} = 1 : multipole errors read-in from external file \\
-                  & External multipole errors are read-in from file 16 into the array of random values. To activate these values one has to set to a value of 1 the relevant r.m.s.-positions of the corresponding multipole blocks (\ref{MulCoe}). The systematic components are added as usual and multipoles not found in the \texttt{fort.16} are treated as for (\texttt{mout} = 0). An error is only detected if there are too few sets of multipoles in \texttt{fort.16}. \\
-                  & \texttt{mout} = 2: the geometry and strength file is written to file \texttt{fort.4} in the same format as the input file \texttt{fort.2}; the multipole coefficients are written to file \texttt{fort.9}; name, misalignments and tilt is written to file \texttt{fort.27} and finally name, random single multipole  strength and both random transverse misalignments are written to file \texttt{fort.31}.\\
-                  & \texttt{mout} = 4: Name, horizontal and vertical misalignment and also the element tilt are read-in from file \texttt{fort.8}.\\
+                  & External multipole errors are read-in from file 16 into the array of random values. To activate these values one has to set to a value of 1 the relevant r.m.s.-positions of the corresponding multipole blocks (\ref{MulCoe}). The systematic components are added as usual and multipoles not found in the \texttt{fort.16}\index{fort.16} are treated as for (\texttt{mout} = 0). An error is only detected if there are too few sets of multipoles in \texttt{fort.16}. \\
+                  & \texttt{mout} = 2: the geometry and strength file is written to file \texttt{fort.4}\index{fort.4} in the same format as the input file \texttt{fort.2}\index{fort.2}; the multipole coefficients are written to file \texttt{fort.9}; name, misalignments and tilt is written to file \texttt{fort.27}\index{fort.27} and finally name, random single multipole  strength and both random transverse misalignments are written to file \texttt{fort.31}\index{fort.31}.\\
+                  & \texttt{mout} = 4: Name, horizontal and vertical misalignment and also the element tilt are read-in from file \texttt{fort.8}\index{fort.8}.\\
                   & \texttt{mout} = 8: Name and 3 Random numbers for single kick strength and both random transverse misalignments and also the value of the tilt are read-in from file \texttt{fort.30}. \\
     \texttt{mcut} & The random distribution can be cut by \texttt{mcut} sigma of the distribution. No cuts are applied for \texttt{mcut = 0}.
 \end{longtabu}
@@ -35,15 +35,15 @@ If besides mean values for the multipole errors (Gaussian) random errors should 
 \paragraph{Remarks}
 
 \begin{enumerate}
-    \item The \texttt{RANECU} random generator \cite{RANECU} is used as it produces machine independent sequences of random numbers.
+    \item The \texttt{RANECU} random generator\index{random numbers} \cite{RANECU} is used as it produces machine independent sequences of random numbers.
     \item If the starting point has to be changed or another non-linear element is to be inserted, this can be done without changing the once chosen random distribution of errors by using the \textit{Organisation of Random Numbers} input block.
-    \item The description of an accelerator is fully contained in 4 files: \texttt{fort.2} (geometry), \texttt{fort.3} (tracking parameters and definition of multipole blocks), \texttt{fort.16} (multipole errors) and \texttt{fort.30} (random numbers of the single multipole kick, the horizontal and vertical misalignment and the value of the tilt). This block allows to write  out the files \texttt{fort.4}, \texttt{fort.9}, \texttt{fort.27}, \texttt{fort.31} which may serve as the input files \texttt{fort.2}, \texttt{fort.16}, \texttt{fort.8} and \texttt{fort.30} respectively. The file \texttt{fort.30} supersedes \texttt{fort.8} if both files are read in. \textcolor{notered}{Note: The updated version of the reading of \texttt{fort.30} is untested, as it is not covered by any existing tests, and may not produce the results expected.}
+    \item The description of an accelerator is fully contained in 4 files: \texttt{fort.2} (geometry), \texttt{fort.3} (tracking parameters and definition of multipole blocks), \texttt{fort.16} (multipole errors) and \texttt{fort.30} (random numbers of the single multipole kick, the horizontal and vertical misalignment and the value of the tilt). This block allows to write  out the files \texttt{fort.4}\index{fort.4}, \texttt{fort.9}\index{fort.9}, \texttt{fort.27}\index{fort.27}, \texttt{fort.31}\index{fort.31} which may serve as the input files \texttt{fort.2}\index{fort.2}, \texttt{fort.16}\index{fort.16}, \texttt{fort.8}\index{fort.8} and \texttt{fort.30}\index{fort.30} respectively. The file \texttt{fort.30} supersedes \texttt{fort.8}\index{fort.8} if both files are read in.
 \end{enumerate}
 
 % ================================================================================================================================ %
 \section{Organisation of Random Numbers} \label{OrgRan}
 
-Working on a lattice for an accelerator often requires to introduce new non-linear elements.
+Working on a lattice for an accelerator often requires to introduce new non-linear elements.\index{random numbers}\index{ORGA}
 In those cases simply introducing this new element means that the previously chosen random distribution of the errors will be changed and with it often the linear parameters.
 This input data block is mainly used to avoid this problem by reserving extra random numbers for the new elements.
 It also allows to change the observation point without affecting the machine.
@@ -52,7 +52,7 @@ Finally, multipole sets with different name can be made equal with this input da
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{ORGA} \\
+    \textbf{Keyword}    & \texttt{ORGA}\index{ORGA} \\
     \textbf{Data lines} & Variable \\
     \textbf{Format}     & \texttt{ele1 ele2 ele3} \\
                         & The data lines can be set in three different ways described below.
@@ -63,7 +63,7 @@ Finally, multipole sets with different name can be made equal with this input da
     Method 1 & \texttt{Ele1} = ``name'' where name $\ne$ \texttt{MULT} \\
              & \texttt{Ele2} = ignored  \\
              & \texttt{Ele3} = ignored  \\
-             & The nonlinear element or multipole set will have its own set of random numbers. \\
+             & The nonlinear element\index{non-linear elements} or multipole set will have its own set of random numbers. \\
     Method 2 & \texttt{Ele1} = ``name1'' where name1 $\ne$ \texttt{MULT} \\
              & \texttt{Ele2} = ``name2'' \\
              & \texttt{Ele3} = ignored \\
@@ -79,19 +79,19 @@ Finally, multipole sets with different name can be made equal with this input da
 \begin{enumerate}
     \item A simple change of the starting point, by placing a \texttt{GO} somewhere in structure, used to change the machine optics as the random numbers were shifted, too. Simply calling this block even without a data line, will always fix the sequence of random numbers to start at the first multipole in the structure.
     \item This input data block must follow the definition of the multipole block, otherwise multipoles cannot be set equal (option 3).
-    \item Do not use the keyword \texttt{MULT} in the single element list (\ref{SinEle}).
+    \item Do not use the keyword \texttt{MULT}\index{MULT} in the single element list (\ref{SinEle}).
 \end{enumerate}
 
 % ================================================================================================================================ %
 \section{Combination of Elements} \label{ComEle}
 
-It is often necessary to use several families of magnetic elements with a certain ratio $R$ of magnetic strength to perform corrections like tune adjustment (\ref{TunVar}), chromaticity correction (\ref{ChrCor}) or resonance compensation (\ref{ResCom}).
+It is often necessary to use several families of magnetic elements with a certain ratio $R$ of magnetic strength to perform corrections like tune adjustment (\ref{TunVar}), chromaticity correction (\ref{ChrCor}) or resonance compensation (\ref{ResCom})\index{combination of elements}.\index{COMB}
 The \textit{Combination of Elements} input block allows such a combination of elements.
 The maximum number of elements is defined by the parameter \texttt{NCOM} (see Appendix~\ref{DSP}).
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{COMB} \\
+    \textbf{Keyword}    & \texttt{COMB}\index{COMB} \\
     \textbf{Data lines} & Variable \\
     \textbf{Format}     & \texttt{e0 R1 e1 \dots~Rn en}
 \end{tabular}
@@ -102,6 +102,6 @@ The maximum number of elements is defined by the parameter \texttt{NCOM} (see Ap
 \begin{tabular}{@{}lp{0.8\linewidth}}
     \texttt{e0} & Reference element which appears in the input of the processing procedure \\
     \texttt{e1, \dots, en} & Elements to be combined with \texttt{e0} \\
-    \texttt{Rj} & Ratio of the magnetic strength of element \texttt{ej} to that of element \texttt{e0}
+    \texttt{Rj} & Ratio of the magnetic strength\index{magnet strength} of element \texttt{ej} to that of element \texttt{e0}
 \end{tabular}
 
