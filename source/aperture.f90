@@ -184,7 +184,7 @@ subroutine aperture_comnul
   ixLast = 0
   iLastThick = 0
   ixLastThick = 0
-  iBckTypeLast = 0
+  iBckTypeLast = -1
 
   mxsec = 0
   do ii=1,nxsec
@@ -864,7 +864,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
   if(llost) then
 
-    if(lbacktracking.and.kape(ix).ne.0.and.iBckTypeLast.ne.0) then
+    if(lbacktracking.and.kape(ix).ne.0.and.iBckTypeLast.ge.0) then
       lback=.true.
 
       ! Length between elements
