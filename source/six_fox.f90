@@ -26,7 +26,7 @@ subroutine umlauda
 
   integer i,ibb,iii,i2,i3,icav,icoonly,ien,iflag,iflag1,iflag2,ii,ii2,ip,ipch,irrtr,ivar,ivar1,     &
     iwrite,ix,j,j1,jb,jmel,jx,k,kkk,kpz,kzz,mfile,nd2,nmz,idaa,angno,f,h
-  real(kind=fPrec) beamoff1,beamoff2,beamoff3,beamoff4,beamoff5,beamoff6,betr0,c5m4,cbxb,cbzb,      &
+  real(kind=fPrec) beamoff1,beamoff2,beamoff3,beamoff4,beamoff5,beamoff6,betr0,cbxb,cbzb,           &
     coefh1,cik,coefh2,coefv1,coefv2,crk,crxb,crzb,cx,dare,det1,dpdav,dps1,dps11,dummy,ed1,ed2,ox,   &
     oxp,oxp1,oz,ozp,ozp1,r0,r2b,r2bf,rb,rbf,rho2b,rkb,rkbf,scikveb,scrkveb,sfac1,sfac2,sfac2s,sfac3,&
     sfac4,sfac5,sigm1,sigmdac,startco,sx,tas,tkb,tl,x2pi,xbb,xrb,xs,zbb,zrb,zs,crabfreq,crabpht,    &
@@ -37,7 +37,9 @@ subroutine umlauda
     au(6,6),aui(2)
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   character(len=mNameLen) typ
+#ifdef BOINC
   character(len=256) filename
+#endif
   integer expertUnit
 
 ! For treatment and/or conversion of BEAM parameters in/to the new format
@@ -47,7 +49,6 @@ subroutine umlauda
   integer errno,l1
   integer dtostr
 #endif
-  logical lopen
   integer wire_num_aux ! auxiliary variable to count number of wires
   save
 !-----------------------------------------------------------------------
@@ -83,9 +84,6 @@ subroutine umlauda
 #endif
   icoonly=0
   if(iqmodc.eq.2.or.iqmodc.eq.4.or.ichromc.eq.2) icoonly=1
-#ifdef FAST
-  c5m4=5.0d-4
-#endif
   do j=1,2
     angnoe(j)=zero
     do i=1,6

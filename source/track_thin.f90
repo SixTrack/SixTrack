@@ -1228,7 +1228,7 @@ subroutine thin6d(nthinerr)
   implicit none
 
   integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2
-  real(kind=fPrec) pz,c5m4,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,     &
+  real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens
   logical llost
@@ -1237,9 +1237,6 @@ subroutine thin6d(nthinerr)
     cbzb(npart)
   save
 
-#ifdef FAST
-  c5m4=5.0e-4_fPrec
-#endif
   nthinerr=0
 
   ! initialise variables for back-tracking particles
