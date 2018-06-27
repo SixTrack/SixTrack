@@ -184,7 +184,7 @@ subroutine aperture_comnul
   ixLast = 0
   iLastThick = 0
   ixLastThick = 0
-  iBckTypeLast = 0
+  iBckTypeLast = -1
 
   mxsec = 0
   do ii=1,nxsec
@@ -864,7 +864,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
   if(llost) then
 
-    if(lbacktracking.and.kape(ix).ne.0.and.iBckTypeLast.ne.0) then
+    if(lbacktracking.and.kape(ix).ne.0.and.iBckTypeLast.ge.0) then
       lback=.true.
 
       ! Length between elements
@@ -925,7 +925,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               ! back-track along a drift
               xlos(1) = xLast(1,j)  - yLast(1,j)*((one-step)*length)
               xlos(2) = xLast(2,j)  - yLast(2,j)*((one-step)*length)
-              slos    = dcum(iLast) - (step*length)
+              slos    = dcum(iLast) + (step*length)
             end select
 
             ! - aperture at current step
