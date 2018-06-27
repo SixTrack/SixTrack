@@ -684,8 +684,6 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 
 	if(WARN)
 		set(CMAKE_Fortran_FLAGS "-warn unused ${CMAKE_Fortran_FLAGS}")
-		# set(CMAKE_Fortran_FLAGS_RELEASE "-warn unused ${CMAKE_Fortran_FLAGS_RELEASE}")
-		# set(CMAKE_Fortran_FLAGS_DEBUG "-warn unused ${CMAKE_Fortran_FLAGS_DEBUG}")
 	endif(WARN)
 	
 	if(32BIT)
@@ -728,8 +726,8 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	
 	SET(NAGFOR ON)
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
-	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam -gline")
+	set(CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
+	set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam -gline")
 	set(PREPRO_EXEC  fpp)
 	set(PREPRO_FLAGS -P -free)
 
