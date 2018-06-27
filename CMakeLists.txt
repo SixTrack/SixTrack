@@ -93,6 +93,7 @@ OPTION(FLUKA "Couple to FLUKA for beam collimation" OFF)
 OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
 OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
 OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
+OPTION(WARN "Enable build flags for additional compiler warnings" OFF)
 
 #Compiler stuff - not needed any more with cmake
 #OPTION(IFORT "Use the intel fortran compiler" OFF)
@@ -340,7 +341,7 @@ endif(ROOT)
 
 if(BOINC AND NOT API)
 	# We have a BOINC build but no API, load the fake API substitute for debugging.
-	list(APPEND FORT90_CR boinc_dummy.f90)
+	list(APPEND FORT90_LIB boinc_dummy)
 endif(BOINC AND NOT API)
 
 foreach(loop IN LISTS FORT90_LIB)
@@ -606,7 +607,10 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
 #lots of games to play here.... start with fortran flags
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
-	# gfortran
+	##############
+	#  gfortran  #
+	##############
+	
 	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
 	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
 	set(PREPRO_FLAGS -cpp -E -P)
@@ -669,12 +673,21 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	endif(GPROF)
 
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
-	# ifort
-	set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs") #  -warn unused
+	###########
+	#  ifort  #
+	###########
+	
+	set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
 	set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
 	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
 	set(PREPRO_FLAGS -fpp -E -P)
 
+	if(WARN)
+		set(CMAKE_Fortran_FLAGS "-warn unused ${CMAKE_Fortran_FLAGS}")
+		# set(CMAKE_Fortran_FLAGS_RELEASE "-warn unused ${CMAKE_Fortran_FLAGS_RELEASE}")
+		# set(CMAKE_Fortran_FLAGS_DEBUG "-warn unused ${CMAKE_Fortran_FLAGS_DEBUG}")
+	endif(WARN)
+	
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
 		set(CMAKE_Fortran_FLAGS_DEBUG "-m32 ${CMAKE_Fortran_FLAGS_DEBUG}")
@@ -709,7 +722,10 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	endif(STATIC)
 
 elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
-	# nagfor
+	############
+	#  nagfor  #
+	############
+	
 	SET(NAGFOR ON)
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
 	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
@@ -1077,49 +1093,40 @@ foreach(loop IN ITEMS ${SIXTRACK_INCL})
 endforeach()
 add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/version.f90 ${CMAKE_BINARY_DIR})
 
-if(BOINC)
-	if(API)
-		include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
-		
-		#The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
-		#go into the boinc source folder, cd api; make boinc_api_fortran.o
-		add_library(boinc_api_fortran STATIC IMPORTED)
-		set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
-		# add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp) #Alternative way of building and linking boinc_api_fortran.cpp/.o
-		target_link_libraries(SixTrackCR boinc_api_fortran)
-		
-		#add the libs
-		add_library(boinc STATIC IMPORTED)
-		set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
-		
-		add_library(boinc_api STATIC IMPORTED)
-		set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
-		target_link_libraries(SixTrackCR boinc_api)
-		
-		target_link_libraries(SixTrackCR boinc)
-		
-		find_library(stdc++ STATIC stdc++)
-		find_library(pthread STATIC pthread)
-		target_link_libraries(SixTrackLib stdc++ pthread)
+if(BOINC AND API)
+	include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
+	
+	#The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
+	#go into the boinc source folder, cd api; make boinc_api_fortran.o
+	add_library(boinc_api_fortran STATIC IMPORTED)
+	set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
+	# add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp) #Alternative way of building and linking boinc_api_fortran.cpp/.o
+	target_link_libraries(SixTrackCR boinc_api_fortran)
+	
+	#add the libs
+	add_library(boinc STATIC IMPORTED)
+	set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
+	
+	add_library(boinc_api STATIC IMPORTED)
+	set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
+	target_link_libraries(SixTrackCR boinc_api)
+	
+	target_link_libraries(SixTrackCR boinc)
+	
+	find_library(stdc++ STATIC stdc++)
+	find_library(pthread STATIC pthread)
+	target_link_libraries(SixTrackLib stdc++ pthread)
 
-		if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-			find_library(nsl STATIC nsl)
-			target_link_libraries(SixTrackCR nsl)
-		endif()
-
-		#fix osx linking to the correct c++ stdlib
-		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-			find_library(c++ STATIC c++)
-			target_link_libraries(SixTrackCR c++)
-		endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-	else()
-		add_custom_command(
-			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/boinc_dummy.f90 POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/boinc_dummy.f90 ${CMAKE_BINARY_DIR}/boinc_dummy.f90
-			DEPENDS copy_input_files
-		)
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		find_library(nsl STATIC nsl)
+		target_link_libraries(SixTrackCR nsl)
 	endif()
+
+	#fix osx linking to the correct c++ stdlib
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		find_library(c++ STATIC c++)
+		target_link_libraries(SixTrackCR c++)
+	endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 if(FLUKA)
