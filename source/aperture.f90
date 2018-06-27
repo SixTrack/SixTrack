@@ -925,7 +925,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               ! back-track along a drift
               xlos(1) = xLast(1,j)  - yLast(1,j)*((one-step)*length)
               xlos(2) = xLast(2,j)  - yLast(2,j)*((one-step)*length)
-              slos    = dcum(iLast) - (step*length)
+              slos    = dcum(iLast) + (step*length)
             end select
 
             ! - aperture at current step
