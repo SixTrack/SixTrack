@@ -1,22 +1,22 @@
 
 \chapter{Initial Conditions for Tracking} \label{InitCondTrack}
 
-For the study of non-linear system, the choice of initial conditions is of crucial importance.
+For the study of non-linear system, the choice of initial conditions is of crucial importance.\index{initial conditions}
 The input structure for the initial conditions was therefore organised in such a way as to allow for maximum flexibility.
 SixTrack is optimised to reach the largest possible number of turns.
-In order to derive the Lyapunov exponent, and thereby to distinguish between regular and chaotic motion, the particle has a close by companion particle.
+In order to derive the Lyapunov exponent\index{Lyapunov exponent}, and thereby to distinguish between regular and chaotic motion, the particle has a close by companion particle.
 Moreover, experience has shown that varying only the amplitude while keeping the phases constant is sufficient to understand the non-linear dynamics, as a subsequent detailed post-processing allows to find the dependence of the parameter of interest on these phases.
 
 % ================================================================================================================================ %
 \section{Tracking Parameters} \label{TraPar}
 
-All tracking parameters are defined with this input block.
+All tracking parameters are defined with this input block.\index{tracking}\index{TRAC}
 The initial coordinates are generally also set here.
 A fine tuning of the initial condition is done with \textit{Initial Coordinates} block (\ref{IniCoo}), and the parameters for the synchrotron oscillation are given in block (\ref{SynOsc}).
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
-    \textbf{Keyword}    & \texttt{TRAC} &\\
+    \textbf{Keyword}    & \texttt{TRAC}\index{TRAC} &\\
     \textbf{Data lines} & 3 &\\
     \textbf{Format}     & Line 1: & \texttt{numl numlr napx amp(1) amp0 ird imc} \\
                         &         & \texttt{niu(1) niu(2) numlcp numlmax} \\
@@ -29,23 +29,23 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
 
 \bigskip
 \begin{longtabu}{@{}llp{0.7\linewidth}}
-    \texttt{numl}          & integer  & Number of turns in the forward direction. \\
-    \texttt{numlr}         & integer  & Number of turns in the backward direction. \\
-    \texttt{napx}          & integer  & Number of amplitude variations (i.e.\ particle pairs). \\
+    \texttt{numl}          & integer  & Number of turns in the forward direction\index{turn}. \\
+    \texttt{numlr}         & integer  & Number of turns in the backward direction\index{reverse turn}. \\
+    \texttt{napx}          & integer  & Number of amplitude variations (i.e.\ particle pairs)\index{particle pairs}. \\
     \texttt{amp(1),amp0}   & floats   & Start and end amplitude (any sign) in the horizontal phase space plane for the amplitude variations. The vertical amplitude is calculated using the ratio between the horizontal and vertical emittance set in the \textit{Initial Coordinates} block (\ref{IniCoo}), where the initial phase in phase space are also set. Additional information can be found in the \textit{Remarks}. \\
     \texttt{ird}           & integer  & Ignored. \\
-    \texttt{imc}           & integer  & Number of variations of the relative momentum deviation $\Delta p/p_0$. The maximum value of the relative momentum deviation $\Delta p/p_0$ is taken from that of the first particle in the \textit{Initial Coordinates} block (\ref{IniCoo}). The variation will be between \mbox{$\pm \left[\Delta p/p_0\right](\mathrm{max})$} in steps of \mbox{$\left[\Delta p/p_0\right](\mathrm{max})$ / (\texttt{imc-1}).} \\
+    \texttt{imc}           & integer  & Number of variations of the relative momentum deviation\index{momentum deviations} $\Delta p/p_0$. The maximum value of the relative momentum deviation $\Delta p/p_0$ is taken from that of the first particle in the \textit{Initial Coordinates} block (\ref{IniCoo}). The variation will be between \mbox{$\pm \left[\Delta p/p_0\right](\mathrm{max})$} in steps of \mbox{$\left[\Delta p/p_0\right](\mathrm{max})$ / (\texttt{imc-1}).} \\
     \texttt{niu(1),niu(2)} &          & Unknown; default values are 0. \\
-    \texttt{numlcp}        & integer  & Checkpoint/restart version: How often to write checkpointing files. \\
+    \texttt{numlcp}        & integer  & Checkpoint/restart\index{checkpoint/restart} version: How often to write checkpointing files. \\
     \texttt{numlmax}       & integer  & Checkpoint/restart version: Maximum amount of turns; default is $10^6$. \\
     \texttt{idy(1),idy(2)} & integers & A tracking where one of the transversal motion planes shall be ignored is only possible when all coupling terms are switched off.  The part of the coupling that is due to closed orbit and other effects can be turned off with these switches. \\
                            &          & \texttt{idy(1), idy(2) = 1}: coupling on. \\
                            &          & \texttt{idy(1), idy(2) = 0}: coupling to the horizontal and vertical motion plane respectively switched off. \\
     \texttt{idfor}         & integer  & Usually the closed orbit is added to the initial coordinates. This can be turned off using \texttt{idfor}, for instance when a run is to be prolonged. \\
                            &          & \texttt{idfor = 0}: closed orbit added. \\
-                           &          & \texttt{idfor = 1}: initial coordinates unchanged. \\
-                           &          & \texttt{idfor = 2}: prolongation of a run, taken the initial coordinates from \texttt{fort.13}. \\
-                           &          & \texttt{idfor = 3}: initial coordinates read via the DIST block. \\
+                           &          & \texttt{idfor = 1}: initial coordinates\index{initial coordinates} unchanged. \\
+                           &          & \texttt{idfor = 2}: prolongation of a run, taken the initial coordinates from \texttt{fort.13}\index{fort.15}. \\
+                           &          & \texttt{idfor = 3}: initial coordinates read via the DIST block\index{DIST}. \\
     \texttt{irew}          & integer  & To reduce the amount of tracking data after each amplitude and relative momentum deviation iteration $\Delta p/p_0$ the binary output units 90 and lower (see Appendix~\ref{Files}) are rewound. This is always done when the post-processing is activated (\ref{PosPro}). For certain applications it may be useful to store all data. The switch \texttt{irew} allows for that. \\
                            &          & \texttt{irew = 0}: unit 90 (and lower) rewound. \\
                            &          & \texttt{irew = 1}: all data on unit 90 (and lower). \\
@@ -60,7 +60,7 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
     \texttt{nwr(2)}        & integer  & Every \texttt{nwr(2)}'th turn the coordinates in the ramping region will be written on unit 90 (and lower). \\
     \texttt{nwr(3)}        & integer  & Every \texttt{nwr(3)}'th turn at the flat top a write out of the coordinates on unit 90 (and lower) will occur. For constant energy this number controls the amount of data on unit 90 (and lower), as the particles are considered on the flat top. \\
     \texttt{nwr(4)}        & integer  & In cases of very long runs it is sometimes useful to save all coordinates for a prolongation of a run after a possible crash of the computer. Every \texttt{nwr(4)}'th turn the coordinates are written to unit 6. \\
-    \texttt{ntwin}         & integer  & For the analysis of the Lyapunov exponent it is usually sufficient to store the calculated distance of phase space together with the coordinate of the first particle (\texttt{ntwin} set to one). You may want to improve the 6D calculation of the distance in phase space with \texttt{sigcor, dpscor} (see~\ref{IniCoo}) when the 6D closed orbit is not calculated with \texttt{iclo6} $\neq 2$. If storage space is no problem, one can store the coordinates of both particles (\texttt{ntwin} set to two). The distance in phase space is then calculated in the post-processing procedure (see~\ref{PosPro}). This also allows a subsequent refined Lyapunov analysis using differential algebra and Lie algebra techniques (\cite{Refine}). \\
+    \texttt{ntwin}         & integer  & For the analysis of the Lyapunov exponent\index{Lyapunov exponent} it is usually sufficient to store the calculated distance of phase space together with the coordinate of the first particle (\texttt{ntwin} set to one). You may want to improve the 6D calculation of the distance in phase space with \texttt{sigcor, dpscor} (see~\ref{IniCoo}) when the 6D closed orbit is not calculated with \texttt{iclo6} $\neq 2$. If storage space is no problem, one can store the coordinates of both particles (\texttt{ntwin} set to two). The distance in phase space is then calculated in the post-processing procedure (see~\ref{PosPro}). This also allows a subsequent refined Lyapunov analysis using differential algebra and Lie algebra\index{Lie algebra} techniques (\cite{Refine}). \\
     \texttt{ibidu}         & integer  & Switch to create or read binary dump of the full accelerator description on file \texttt{fort.32}. The parameters relevant to tracking, i.e.\ \texttt{numl, amp0, amp(1), amp(2), damp, chi0, chid, rat, $x_1$, $x^\prime_1$, $y_1$, $y^\prime_1$, $\sigma_1$, $\Delta p/p_{0,1}$, $x_2$, $x^\prime_2$, $y_2$, $y^\prime_2$, $\sigma_2$, $\Delta p/p_{0,2}$, time0, time1}, are to be given via the  tracking parameter file \texttt{fort.3}. \\
                            &          & \texttt{ibidu = 1}: write dump. \\
                            &          & \texttt{ibidu = 2}: read dump. \\
@@ -81,7 +81,7 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
 
 \paragraph{Remarks}~
 \begin{enumerate}
-    \item This input data block is usually combined with the \textit{Initial Coordinates} input block (\ref{IniCoo}) to allow a flexible choice of the initial coordinates for the tracking.
+    \item This input data block is usually combined with the \textit{Initial Coordinates}\index{INIT} input block (\ref{IniCoo}) to allow a flexible choice of the initial coordinates for the tracking.
     \item For a prolongation of a run the following parameters have to be set:
     \begin{enumerate}
         \item in this input block: \texttt{idfor = 1}
@@ -116,12 +116,12 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
 % ================================================================================================================================ %
 \section{Initial Coordinates} \label{IniCoo}
 
-The \textit{Initial Coordinates} input block is meant to manipulate how the initial coordinates are organise, which are generally set in the tracking parameter block (\ref{TraPar}).
-Number of particles, initial phase, ratio of the horizontal and vertical emittances and increments of \mbox{2 $\times$ 6} coordinates of the two particles, the reference energy and the starting energy for the two particles.
+The \textit{Initial Coordinates} input block is meant to manipulate how the initial coordinates are organise, which are generally set in the tracking parameter block (\ref{TraPar}).\index{initial coordinates}\index{INIT}
+Number of particles\index{particle pairs}, initial phase, ratio of the horizontal and vertical emittances and increments of \mbox{2 $\times$ 6} coordinates of the two particles, the reference energy and the starting energy for the two particles.
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
-    \textbf{Keyword}    & \texttt{INIT} \\
+    \textbf{Keyword}    & \texttt{INIT}\index{INIT} \\
     \textbf{Data lines} & 16 \\
     \textbf{Format}     & Line 1: \texttt{itra chi0 chid rat iver} \\
                         & Lines 2 to 16: 15 initial coordinates as listed in Table~\ref{T-IniCoo}
@@ -176,7 +176,7 @@ Number of particles, initial phase, ratio of the horizontal and vertical emittan
         \hline
         13 & $\Delta p/p_{0,2}$ of particle 2 \\
         \hline
-        14 & energy [MeV] of the reference particle \\
+        14 & energy [MeV] of the reference particle\index{reference energy} \\
         \hline
         15 & energy [MeV] of particle 1 \\
         \hline
@@ -196,11 +196,11 @@ Number of particles, initial phase, ratio of the horizontal and vertical emittan
 % ================================================================================================================================ %
 \section{Synchrotron Oscillation} \label{SynOsc}
 
-The parameters needed for treating the synchrotron oscillation in a symplectic manner are given in the \textit{Synchrotron Oscillation} input block.
+The parameters needed for treating the synchrotron oscillation in a symplectic manner are given in the \textit{Synchrotron Oscillation} input block.\index{synchrotron oscillation}\index{SYNC}
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
-    \textbf{Keyword}    & \texttt{SYNC} \\
+    \textbf{Keyword}    & \texttt{SYNC}\index{SYNC} \\
     \textbf{Data lines} & 2 \\
     \textbf{Format}     & Line 1: \texttt{harm alc u0 phag tlen pma ition dppoff} \\
                         & Line 2: \texttt{dpscor sigcor}
@@ -210,18 +210,18 @@ The parameters needed for treating the synchrotron oscillation in a symplectic m
 
 \bigskip
 \begin{longtabu}{@{}llp{0.65\linewidth}}
-    \texttt{harm}   & integer & Harmonic number. \\
-    \texttt{alc}    & float   & Momentum compaction factor, used here only to calculate the linear synchrotron tune $Q_{S}$. \\
-    \texttt{u0}     & float   & Circumference voltage in [MV]. \\
-    \texttt{phag}   & float   & Acceleration phase in degrees. \\
-    \texttt{tlen}   & float   & Length of the accelerator in meters. \\
-    \texttt{pma}    & float   & Rest mass of the particle in $\mathrm{MeV}/\mathrm{c}^{2}$. \\
-    \texttt{ition}  & integer & Transition energy switch: \\
+    \texttt{harm}   & integer & Harmonic number\index{harmonic number}. \\
+    \texttt{alc}    & float   & Momentum compaction\index{momentum compactions} factor, used here only to calculate the linear synchrotron tune $Q_{S}$. \\
+    \texttt{u0}     & float   & Circumference voltage\index{circumference voltage} in [MV]. \\
+    \texttt{phag}   & float   & Acceleration phase\index{acceleration phase} in degrees. \\
+    \texttt{tlen}   & float   & Length of the accelerator\index{accelerator length} in meters. \\
+    \texttt{pma}    & float   & Rest mass\index{rest mass} of the particle in $\mathrm{MeV}/\mathrm{c}^{2}$. \\
+    \texttt{ition}  & integer & Transition energy switch\index{transition energy}: \\
                     &         & \texttt{ition = 0}: for no synchrotron oscillation (energy ramping still possible). \\
                     &         & \texttt{ition = 1}: for above transition energy. \\
                     &         & \texttt{ition = -1}: for below transition energy. \\
-    \texttt{dppoff} & float   & Offset Relative Momentum Deviation $\Delta p/p_0$: a fixpoint with respect to synchrotron oscillations. It becomes active when the 6D closed orbit is calculated (see item \texttt{iclo6} in section~\ref{TraPar}). \\
+    \texttt{dppoff} & float   & Offset Relative Momentum Deviation\index{relative momentum deviation} $\Delta p/p_0$: a fixpoint with respect to synchrotron oscillations. It becomes active when the 6D closed orbit is calculated (see item \texttt{iclo6} in section~\ref{TraPar}). \\
     \texttt{dpscor,sigcor} & floats & Scaling factor for relative momentum deviation $\Delta p/p_0$ and the path length difference ($\sigma = s - v_0 \times t$) respectively. They can be used to improve the calculation of the 6D distance in phase space, but is only used when \texttt{ntwin = 1} in the tracking parameter input block~(\ref{TraPar}). Please set to 1 when the 6D closed is calculated.
 \end{longtabu}
 
-\textbf{Note:} The value of \texttt{tlen} is also calculated internally by SixTrack (in \texttt{dcum}), and a warning is issued if the given value is different from the calculated value.
+\textbf{Note:} The value of \texttt{tlen} is also calculated internally by SixTrack (in \texttt{dcum}\index{dcum}), and a warning is issued if the given value is different from the calculated value.

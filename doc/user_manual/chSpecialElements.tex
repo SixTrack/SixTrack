@@ -1,20 +1,20 @@
 
 \chapter{Special Elements} \label{SpecElem}
 
-One advantage of SixTrack, that has been adopted from RACETRACK, is that it easily allows to define elements for a specific purpose.
+One advantage of SixTrack, that has been adopted from RACETRACK\index{RACETRACK}, is that it easily allows to define elements for a specific purpose.\index{special elements}
 The special elements implemented util now are found in this section.
-All Special Elements should be written in the \texttt{fort.3} file.
+All Special Elements should be written in the \texttt{fort.3} file.\index{fort.3}
 
 % ================================================================================================================================ %
 \section{Multipole Coefficients} \label{MulCoe}
 
-Sets of normal and skew multipoles of up to tenth order, each with an r.m.s. value, can be combined with this block.
-The multipole kick is calculated using a Horner scheme, which saves considerably in computation time.
-Moreover, using the multipole block reduces the number of elements in the single element list (\ref{SinEle}).
+Sets of normal and skew multipoles of up to tenth order, each with an r.m.s. value, can be combined with this block.\index{multipole coefficients}\index{MULT}
+The multipole kick is calculated using a Horner scheme\index{Horner scheme}, which saves considerably in computation time.
+Moreover, using the multipole block reduces the number of elements in the single element list (\ref{SinEle})\index{single elements}.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{MULT} \\
+    \textbf{Keyword}    & \texttt{MULT}\index{MULT} \\
     \textbf{Data lines} & 2 to 12 \\
     \textbf{Format}     & First line: \texttt{name $R_{0}$ $\delta_{0}$}. \\
                         & Lines 2 to 12: \texttt{$B_{n}$ rms-$B_{n}$ $A_{n}$ rms-$A_{n}$}.
@@ -24,9 +24,9 @@ Moreover, using the multipole block reduces the number of elements in the single
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name}    & Name of the multipole block which must appear in the list of single elements (\ref{MulBlo}). \\
+    \texttt{name}    & Name of the multipole block which must appear in the list of single elements\index{single elements} (\ref{MulBlo}). \\
     \texttt{$R_{0}$} & Reference radius (in mm) at which the magnet errors are calculated. This makes it convenient to use values from field measurements. \\
-    \texttt{$\delta_{0}$} & Bending strength of the dipole (in mrad). Field errors of line 2--11 are taken to be relative to the bending strength.
+    \texttt{$\delta_{0}$} & Bending strength\index{bending strength} of the dipole (in mrad). Field errors\index{field errors} of line 2--11 are taken to be relative to the bending strength.
 \end{tabular}
 
 \paragraph{Remarks}
@@ -38,13 +38,13 @@ Moreover, using the multipole block reduces the number of elements in the single
         \end{align*}
     \item The sign convention and the factorial ($n$!) are treated as for the single non-linear elements in (\ref{NonEle}).
     \item Multipoles of different names can be set to be equal using the \texttt{ORG} input block.
-    \item 22-poles are included ($n=11$). By enlarging the parameter \texttt{MMUL} (Appendix~\ref{DSP}) up to 40-poles (\texttt{MMUL=20}) can be treated. To make the change of \texttt{MMUL} effective, it is of course necessary to recompile the program.
+    \item 22-poles are included ($n=11$). By enlarging the parameter \texttt{MMUL} (Appendix~\ref{DSP}) up to 40-poles (\texttt{MMUL=20})\index{MMUL} can be treated. To make the change of \texttt{MMUL} effective, it is of course necessary to recompile the program.
 \end{enumerate}
 
 % ================================================================================================================================ %
 \section{Aperture Limitations} \label{ApeLim}
 
-This input data block is used to introduce additional collimators or aperture limitations in the machine.
+This input data block is used to introduce additional collimators or aperture limitations in the machine.\index{aperture limit}\index{LIMI}
 Each non-linear element can be used for this purpose.
 Rectangular or elliptical shapes of the aperture limitations are allowed.
 On top of that, there is a general (rectangular) aperture check at each non-zero length element.
@@ -52,7 +52,7 @@ The general aperture values are chosen to be large enough (\ref{T-DTP}) to defin
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{LIMI} \\
+    \textbf{Keyword}    & \texttt{LIMI}\index{LIMI} \\
     \textbf{Data lines} & Variable \\
     \textbf{Format}     & \texttt{name type xaper yaper}
 \end{tabular}
@@ -79,7 +79,7 @@ The general aperture values are chosen to be large enough (\ref{T-DTP}) to defin
 \section{Power Supply Ripple} \label{PowRip}
 
 \textcolor{notered}{\textbf{Note:}
-The \texttt{RIPP} block is been deprecated since release 4.5.20, and the functionality is now provided by the \texttt{DYNK} block (\ref{sec:DYNK}).
+The \texttt{RIPP} block is been deprecated since release 4.5.20, and the functionality is now provided by the \texttt{DYNK} block (\ref{sec:DYNK}).\index{power supply ripple}\index{RIPP}
 A \texttt{fort.3} file containing a \texttt{RIPP} block is therefore no longer valid, and will result in an error message.
 The description below is therefore only provided as a reference for those who need to convert old input files.}
 
@@ -108,7 +108,7 @@ Ripple depth, ripple frequency and starting phase of the ripple frequency are th
 % ================================================================================================================================ %
 \section{Dynamic Kicks} \label{sec:DYNK}
 
-The DYNamic Kicks module~\cite{DYNKpaper, DYNKpaper2} allows time-dependent modification of the settings of single elements.
+The DYNamic Kicks module~\cite{DYNKpaper, DYNKpaper2} allows time-dependent modification of the settings of single elements.\index{dynamic kicks}\index{DYNK}
 The supported elements and attributes are listed in Table~\ref{tab:DYNK_SET}.
 The settings can be computed on-the fly using several functions, loaded from input files or a combination, as described in Table~\ref{tab:DYNK_FUN}.
 
@@ -118,7 +118,7 @@ It is written in all turns of the simulation, even if \texttt{DYNK} is not activ
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{DYNK} \\
+    \textbf{Keyword}    & \texttt{DYNK}\index{DYNK} \\
     \textbf{Data lines} & Variable \\
     \textbf{Format}     & There are four types of statements possible in a \texttt{DYNK} block, listed in the following subsections.\\
 \end{tabular}
@@ -201,14 +201,14 @@ Function names have a maximum length of 20 characters.
     \hline
 
     \texttt{RANDG} & \texttt{seed1[int] seed2[int] mu[real] sigma[real] mcut[int]} &
-    Returns a pseudorandom number generated from a Gaussian distribution.
+    Returns a pseudorandom number\index{random numbers} generated from a Gaussian distribution.
     The mean value and width is controlled by \texttt{mu} and \texttt{sigma}, while \texttt{mcut} is the maximum number of sigmas to generate numbers up to; set to 0 to disable this cut.
     The integers \texttt{seed1} and \texttt{seed2} are the seed used to initialize the \texttt{RANECU} generator.
     Note that every \texttt{RANDG} function defined in \texttt{DYNK} uses its own separate random number stream.\\*
     \hline
 
     \texttt{RANDU} & \texttt{seed1[int] seed2[int]} &
-    Returns a pseudorandom number generated from a uniform distribution.
+    Returns a pseudorandom number\index{random numbers} generated from a uniform distribution.
     The integers \texttt{seed1} and \texttt{seed2} are the seed used to initialize the \texttt{RANECU} generator.
     Note that every \texttt{RANDU} function defined in \texttt{DYNK} uses its own separate random number stream.\\*
     \hline
@@ -224,7 +224,7 @@ Function names have a maximum length of 20 characters.
     \hline
 
     \texttt{FIR} & \texttt{N[int] filename[string] baseFun[string]} &
-    Applies a Finite Impulse Response (FIR) filter of order v{N} to the function \texttt{baseFun}.
+    Applies a Finite Impulse Response\index{finite impulse response} (FIR) filter of order v{N} to the function \texttt{baseFun}.
     The output is given as $y[t] = \sum_{i=0}^N b_i*x[t-i]$, where $t$ is the current turn and $x[t-0]$ is the result of the most recent call to \texttt{baseFun}.
     The coefficients $b_0 \ldots b_N$ and initial values of $x[t-0]\ldots x[t-N]$ are loaded from the given file \texttt{filename}, which is a space-separated ascii file with three columns.
     These columns are (1) row index \texttt{[int]}, (2) coefficients $b_i$ \texttt{[float]} and (3) initial values of the $x[]$ array \texttt{[float]}.
@@ -235,7 +235,7 @@ Function names have a maximum length of 20 characters.
     \hline
 
     \texttt{IIR} & \texttt{N[int] filename[string] baseFun[string]} &
-    Applies an Infinite Impulse Response (IIR) filter of order \texttt{N} to the function \texttt{baseFun}.
+    Applies an Infinite Impulse Response\index{infinite impulse response} (IIR) filter of order \texttt{N} to the function \texttt{baseFun}.
     This is very similar to \texttt{FIR}, except that it also uses its own previous outputs.
     The sum is thus written as $y[t] = \sum_{i=0}^N b_i*x[t-i] + \sum_{i=1}^N a_i*y[t-i]$.
     The file \texttt{filename} is identical to that which is used for \texttt{FIR}, except for adding two more columns.
@@ -276,31 +276,31 @@ Function names have a maximum length of 20 characters.
     \hline
 
     \texttt{SQRT} & \texttt{function-name} &
-    Returns the square root of the value generated by the named function. \\*
+    Returns the square root\index{square root} of the value generated by the named function. \\*
     \hline
 
     \texttt{SIN} & \texttt{function-name} &
-    Returns the sine of the value generated by the named function. \\*
+    Returns the sine\index{sine} of the value generated by the named function. \\*
     \hline
 
     \texttt{COS} & \texttt{function-name} &
-    Returns the cosine of the value generated by the named function. \\*
+    Returns the cosine\index{cosine} of the value generated by the named function. \\*
     \hline
 
     \texttt{LOG} & \texttt{function-name} &
-    Returns the natural logarithm of the value generated by the named function. \\*
+    Returns the natural logarithm\index{natural logarithm} of the value generated by the named function. \\*
     \hline
 
     \texttt{LOG10} & \texttt{function-name} &
-    Returns the common logarithm of the value generated by the named function. \\*
+    Returns the common logarithm\index{lograithm} of the value generated by the named function. \\*
     \hline
 
     \texttt{EXP} & \texttt{function-name} &
-    Returns the natural exponential function $e^x$, where $x$ is the value generated by the named function. \\
+    Returns the natural exponential\index{exponential fucntion} function $e^x$, where $x$ is the value generated by the named function. \\
     \hline
 
     \rowcolor{blue!15}
-    \multicolumn{3}{|l|}{Polynomial and elliptical functions} \\*
+    \multicolumn{3}{|l|}{Polynomial\index{polynomial function} and elliptical functions} \\*
     \hline
 
     \texttt{CONST} & \texttt{value[real]} &
@@ -321,7 +321,7 @@ Function names have a maximum length of 20 characters.
     \hline
 
     \texttt{QUAD} & \texttt{a[real] b[real] c[real]} &
-    Computed value from the quadratic function $y(t) = a\cdot t^2 + b\cdot t + c$. \\*
+    Computed value from the quadratic function\index{quadratic function} $y(t) = a\cdot t^2 + b\cdot t + c$. \\*
     \hline
 
     \texttt{QUADSEG} & \texttt{x1[real] x2[real] y1[real] y2[real] deriv1[real]} &
@@ -393,7 +393,7 @@ The element type and attribute combinations that can be used in \texttt{DYNK} ar
 The argument \texttt{turn-shift} is an integer (positive, negative, or zero) number which is added to the current turn number before computing the function.
 Thus, in order to (as an example) apply an exponential decay from the value $v_0$ starting in turn $t_0$ using the function defined as $f(t) = V_0 \exp(-t/\tau)$, a \texttt{turn-shift} $-t_0$ should be applied.
 
-In addition to changing single element attributes, it is also possible to use \texttt{DYNK} to change certain global attributes such as the reference energy.
+In addition to changing single element\index{single element} attributes, it is also possible to use \texttt{DYNK} to change certain global attributes such as the reference energy.
 This is done through the ``element'' \texttt{GLOBAL VARS}; for example one may want to simulate an energy ramp following the function \texttt{eramp} throughout the whole simulation.
 For this, one would use the \texttt{SET} command
 \begin{cverbatim}
@@ -431,15 +431,15 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
   % \endlastfoot
 
   %\hline
-  \parbox{4cm}{~\\[-1mm] Standard thin elements\\ ($\pm$1 -- $\pm$10),\\ Section~\ref{NonEle}\\[-3mm]}
+  \parbox{4cm}{~\\[-1mm] Standard thin elements\index{thin element}\\ ($\pm$1 -- $\pm$10),\\ Section~\ref{NonEle}\\[-3mm]}
     & \texttt{average\_ms} & radians * m\textsuperscript{-n} & See Table~\ref{T-NonEle} \\
   \hline
-  \multirow{3}{*}{\parbox{4cm}{RF cavities ($\pm$12),\\ Section~\ref{Cavities}}}
+  \multirow{3}{*}{\parbox{4cm}{RF cavities \index{RF cavities}($\pm$12),\\ Section~\ref{Cavities}}}
     & \texttt{voltage}     & MV      & One-turn accelerating voltage \\
     & \texttt{harmonic}    & --      & Harmonic number of the cavity \\
     & \texttt{lag\_angle}  & degrees & Lag angle of the cavity \\
   \hline
-  \multirow{3}{*}{\parbox{4cm}{RF multipoles\\ ($\pm$23, $\pm$26 -- $\pm$28),\\ Section~\ref{CrabCav}}}
+  \multirow{3}{*}{\parbox{4cm}{RF multipoles\index{RF multipoles}\\ ($\pm$23, $\pm$26 -- $\pm$28),\\ Section~\ref{CrabCav}}}
     & \texttt{voltage}     & MV      & Kick voltage \\
     & \texttt{frequency}   & MHz     & Frequency \\
     & \texttt{phase}       & radians & Offset between zero-crossing and ideal bunch center \\
@@ -449,7 +449,7 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     &      &       &  \\
     &      &       &  \\
   \hline
-    \multirow{3}{*}{\parbox{4cm}{Scattering \\ (40),\\ Section~\ref{sec:scatter}} }
+    \multirow{3}{*}{\parbox{4cm}{Scattering\index{elastic scattering} \\ (40),\\ Section~\ref{sec:scatter}} }
     & \texttt{scaling}     & --      & Scaling of probability, see Section~\ref{sec:scatter}, paragraph about ELEM command.\\
     % &      &       &  \\
     % &      &       &  \\
@@ -496,7 +496,7 @@ Similarly, the \texttt{funname} is the name referencing the currently active \te
 \subsection{Examples}
 
 \paragraph{Replacement of \texttt{RIPP} block}~\\
-One use of the \texttt{DYNK} block is to replace the functionality of the \texttt{RIPP} block (Section~\ref{PowRip}).
+One use of the \texttt{DYNK} block is to replace the functionality of the \texttt{RIPP}\index{RIPP} block (Section~\ref{PowRip}).
 The \texttt{FUN} type \texttt{COSF\_RIPP} is provided for exactly this purpose, and provides an exact replacement.
 As an example, the \texttt{RIPP} block in the SixTest test-case prob1 looks like (slightly reduced in size):
 \begin{cverbatim}
@@ -561,7 +561,7 @@ After passing through IP1, the turn counter is increased from 1 to 2, triggering
 \begin{figure}
   \centering
   \includegraphics{figures/fail_voltagePhase2v2}
-  \caption{Singals generate by \texttt{DYNK} example for ramp + exponential decay of crab voltage, and also linear drift of crab phase. Only the signals for CRAB\_IP1\_L1 are shown. The plot is made from the data in \texttt{dynksets.dat}.}
+  \caption{Singals generate by \texttt{DYNK} example for ramp + exponential decay of crab voltage\index{crab cavity}\index{crab voltage}, and also linear drift of crab phase. Only the signals for CRAB\_IP1\_L1 are shown. The plot is made from the data in \texttt{dynksets.dat}.}
   \label{fig:DYNK_fail}
 \end{figure}
 
@@ -625,7 +625,7 @@ These functions are used to first set the crabs to $0.0$ for the first $9$ revol
 As the \texttt{ramp} function is defined starting at turn $0$, a shift $-10$ or $-11$ is applied to the ramps.
 The ramp is switched off after turn 60/61, leaving the crabs to be operating at the last \texttt{SET} value.
 
-Further, we want to demonstrate a failure in the crab voltage.
+Further, we want to demonstrate a failure in the crab voltage\index{crab voltage}.
 This is done using an exponential decaying function $V(t) = V_0 \exp\left(-0.05 t\right)$, which is implemented as three chained functions:
 
 \bigskip
@@ -665,16 +665,16 @@ It then waits for a single floating point number to be written (in ascii) to the
 % ================================================================================================================================ %
 \section{Beam--Beam Element} \label{BeamBeam}
 
-The beam--beam kick, including a separation of the beams, is treated \`{a} la Basetti and Erskine~\cite{BasErs} and implemented as in MAD-X~\cite{MAD}.
+The beam--beam kick, including a separation of the beams, is treated \`{a} la Basetti and Erskine~\cite{BasErs} and implemented as in MAD-X~\cite{MAD}.\index{beam--beam}\index{BEAM}
 However, a much faster but nevertheless precise calculation using interpolation can be used~\cite{ERIC}.
 Since SixTrack version 3, the beam--beam is also available in the 6D form \`{a} la Hirata~\cite{Hirata}.
 Lastly, the linear coupling has been considered in 4 and 6 dimensional phase space~\cite{ripbeam}.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{BEAM} \\
+    \textbf{Keyword}    & \texttt{BEAM}\index{BEAM} \\
     \textbf{Data lines} & $>1$ \\
-    \textbf{Format}     & Two different input formats are available, ``traditional'' and ``EXPERT''. If ``EXPERT'' mode is wanted, this is triggered by adding the flag \texttt{EXPERT} on the first line of the block.
+    \textbf{Format}     & Two different input formats are available, ``traditional'' and ``EXPERT''. If ``EXPERT'' mode is wanted, this is triggered by adding the flag \texttt{EXPERT}\index{BEAM EXPERT} on the first line of the block.
 \end{tabular}
 
 \paragraph{Traditional format}~\\
@@ -688,7 +688,7 @@ Lastly, the linear coupling has been considered in 4 and 6 dimensional phase spa
 \bigskip
 \begin{longtabu}{@{}llp{0.65\linewidth}}
     \texttt{partnum}       & float   & Number of particles in bunch \\
-    \texttt{emitnx,emitny} & floats  & Horizontal and vertical normalized emittance respectively [$\mu \mbox{m}\cdot\mbox{rad}$] \\
+    \texttt{emitnx,emitny} & floats  & Horizontal and vertical normalised emittance\index{normalised emittance} respectively [$\mu \mbox{m}\cdot\mbox{rad}$] \\
     \texttt{sigz,sige}     & floats  & r.m.s. bunch length [m] and r.m.s. energy spread \\
     \texttt{ibeco}         & integer & Switch (0 = off; 1 = on) to subtract the closed orbit introduced by the separation of the beams. It is recommended to always subtract it as it is not yet calculated in a selfconsistent manner. The \texttt{ibeco} switch also acts on the ``wire'' elements \ref{sec:WIRE} in the same way as on the beam-beam elements. It subtracts the closed orbit introduced by the wire if \texttt{ibeco}=1 and applies it if \texttt{ibeco}=0. \\
     \texttt{ibtyp}         & integer & Switch (0 = off; 1 = on) to use the fast beam--beam algorithms developed in collaboration with G.A.~Erskine and E.~McIntosh.  The linear optics are calculated with ``exact'' beam--beam kicks. \\
@@ -696,7 +696,7 @@ Lastly, the linear coupling has been considered in 4 and 6 dimensional phase spa
     \texttt{ibbc}          & integer & Linear coupling considered in 4D and 6D (0 = off; 1 = on). \\
     \texttt{name}          &           & Name of 6D beam--beam element. Beam--beam elements that do not appear will be treated as 4D kicks. \\
     \texttt{ibsix}         & integer & Number of slices of the 6D beam--beam element. If \texttt{ibsix} is set to 0 this element is treated as a 4D element. \\
-    \texttt{xang}          & float   & Half crossing angle (angle the between the trajectories of the two beams) at this particular element [rad]. \\
+    \texttt{xang}          & float   & Half crossing angle\index{half crossing angle} (angle the between the trajectories of the two beams) at this particular element [rad]. \\
     \texttt{xplane}        & float   & Crossing plane angle [rad]. \\
     \texttt{xstr}          & float   & Angle of the position of the slices in the boosted frame [rad] (i.e. $X = Z \sin(\mathit{xstr}) \cos(\mathit{xplane})$, $Y =Z \sin(\mathit{xstr}) \cos(\mathit{xplane})$ ).  In absence of crabbing user should make sure \texttt{xstr=xang}; in case the \texttt{xstr} flag is not set then \texttt{xstr=xang} is assumed and a warning is printed (since version 4.5.45).
 \end{longtabu}
@@ -705,7 +705,7 @@ Lastly, the linear coupling has been considered in 4 and 6 dimensional phase spa
 
 \bigskip
 \begin{longtabu}{@{}lp{0.8\linewidth}}
-    First line:   & \texttt{EXPERT} \\
+    First line:   & \texttt{EXPERT}\index{BEAM EXPERT} \\
     Second line:  & \texttt{partnum emitnx emitny sigz sige ibeco ibtyp lhc ibbc} \\
     Further lines & 4D BB lens (1 line per element): \\
                   & ~~~~\texttt{name ibsix $\Sigma_{x,x}$ $\Sigma_{y,y}$ h-sep v-sep strength-ratio} \\
@@ -725,11 +725,11 @@ Some parameters are new or defined in a different way:
     \texttt{ibsix} & integer & Number of slices of the 6D beam--beam element.\\
                    &         & If \texttt{ibsix} is set to 0, this element is treated as a 4D element.\\
                    &         & If \texttt{ibsix} is larger or equal 1, this element is treated as a 6D element. \\
-    $\Sigma_{xx}$  & float   & Horizontal $\sigma$ for the strong beam $\rm{[mm^2]}$. \\
+    $\Sigma_{xx}$  & float   & Horizontal $\sigma$ for the strong beam\index{strong beam} $\rm{[mm^2]}$. \\
     $\Sigma_{yy}$  & float   & Vorizontal $\sigma$ for the strong beam $\rm{[mm^2]}$. \\
-    \texttt{h-sep} & float   & Horizontal beam--beam separation [mm] \\
+    \texttt{h-sep} & float   & Horizontal beam--beam separation\index{beam--beam separation} [mm] \\
     \texttt{v-sep} & float   & Vertical beam--beam separation [mm] \\
-    \texttt{strength-ratio} & float & Strength ratio with respect to the nominal beam--beam kick strength. This is useful to allow for splitting one beam--beam kick into several (longitudinally close by) kicks.\\
+    \texttt{strength-ratio} & float & Strength ratio with respect to the nominal beam--beam kick strength\index{beam--beam kick}. This is useful to allow for splitting one beam--beam kick into several (longitudinally close by) kicks.\\
     $\Sigma_{i,j}$ & float   & Second order momenta matrix for the strong beam, in units of mm and mrad. For example $\Sigma_{xxp}$ in [mm\ mrad]
 \end{longtabu}
 
@@ -755,7 +755,7 @@ Some clarifications regarding the sign convention used for the separation and cr
             \tilde x_{i} = x_{i} + \mathrm{sep}_{x} - \mathrm{CO}_{x} \\
             \tilde y_{i} = y_{i} + \mathrm{sep}_{y} - \mathrm{CO}_{y}
         \end{eqnarray*}
-    \item Lorentz boost applied to the updated coordinates.
+    \item Lorentz boost\index{Lorentz boost} applied to the updated coordinates.
     \item The separation used for the actual beam-beam kick (sep$_{x,y,kick}$) is the difference between the centroid of the strong slice (X$^{\dag}$,Y$^{\dag}$) and the each particle (x$_i$,y$_i$).
     \item Antiboost to return to accelerator frame.
     \item The separation is removed and the closed orbit is added back. Tracking continues.
@@ -774,15 +774,15 @@ Some clarifications regarding the sign convention used for the separation and cr
 
 \paragraph{Crossing angles:}~\\
 \begin{enumerate}
-    \item The closed orbit is removed just before the beam-beam subroutines.
+    \item The closed orbit\index{closed orbit} is removed just before the beam-beam subroutines.
         \begin{eqnarray*}
             \tilde x^{\prime}_{i} = x^{\prime}_{i} - \mathrm{CO}_{x^{\prime}} \\
             \tilde y^{\prime}_{i} = y^{\prime}_{i} - \mathrm{CO}_{y^{\prime}}
         \end{eqnarray*}
     \item Lorentz boost applied to the updated coordinates.
-    \item Apply Synchro-Betatron Mapping.
+    \item Apply Synchro-Betatron Mapping\index{synchro-betatron mapping}.
     \item Antiboost to return to accelerator frame.
-    \item The closed orbit is added back. Tracking continues.
+    \item The closed orbit\index{closed orbit} is added back. Tracking continues.
         \begin{eqnarray*}
             \tilde x^{\prime}_{i} = x^{\prime}_{i} + \mathrm{CO}_{x^{\prime}} \\
             \tilde y^{\prime}_{i} = y^{\prime}_{i} + \mathrm{CO}_{y^{\prime}}
@@ -799,12 +799,12 @@ Some clarifications regarding the sign convention used for the separation and cr
 % ================================================================================================================================ %
 \section{Wire} \label{sec:WIRE}
 
-The wire block serves for reading in the input parameters for the wire.
+The wire block serves for reading in the input parameters for the wire.\index{WIRE}
 Each wire also needs to be added as single element in the list of single elements.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{WIRE} \\
+    \textbf{Keyword}    & \texttt{WIRE}\index{WIRE} \\
     \textbf{Data lines} & Variable \\
     \textbf{Format}     & \texttt{name flag\_co current int\_length phys\_length disp\_x disp\_y tilt\_x tilt\_y} \\
                         & A description of the input parameters for the wire is given in Table~\ref{tab:wire}.
@@ -838,15 +838,15 @@ Each wire also needs to be added as single element in the list of single element
     \hline
 
     \texttt{name} & - &
-    Name of wire. Must be the same as in list of single elements.\\*
+    Name of wire. Must be the same as in list of single elements\index{single elements}.\\*
     \hline
 
     \texttt{flag\_co} & - &
-    flag to define the displacement of the wire in respect to the closed orbit or x=y=0. For \texttt{flag\_co}=+1 \texttt{disp\_*} is the distance between x=y=0 and the wire. For \texttt{flag\_co}=-1 \texttt{disp\_*} is the distance between the closed orbit and the wire.\\*
+    flag to define the displacement of the wire in respect to the closed orbit\index{closed orbit} or x=y=0. For \texttt{flag\_co}=+1 \texttt{disp\_*} is the distance between x=y=0 and the wire. For \texttt{flag\_co}=-1 \texttt{disp\_*} is the distance between the closed orbit and the wire.\\*
     \hline
 
     \texttt{current} & A &
-    wire current \\*
+    wire current\index{wire current} \\*
     \hline
 
     \texttt{int\_length} & m &
@@ -866,7 +866,7 @@ Each wire also needs to be added as single element in the list of single element
     \hline
 
     \texttt{tilt\_x} & degrees &
-    hor. tilt of the wire $-90 < tilt\_x < 90$ (uses same defintion as DISP block) \\*
+    hor. tilt of the wire\index{wire tilt} $-90 < tilt\_x < 90$ (uses same defintion as DISP block) \\*
     \hline
 
     \texttt{tilt\_y} & degrees &
@@ -911,11 +911,13 @@ Note that all parameters except for the type have to be set to 0 in the single e
 % ================================================================================================================================ %
 \section{``Phase Trombone'' Element} \label{Trombone}
 
-The linear ``phase trombone'' allows for the introduction of an arbitrary transfer matrix. It can be used to introduce a change in the transverse phases without spoiling the linear optics of the rest of the machine, i.e. the Twiss parameters are the same at entrance and exit of the element. Note that it is up to the user to construct the matrix. The coordinates used as inputs are: $x$, $p_x$, $y$ ,$p_y$, $\sigma$, $p_{\sigma}$.
+The linear ``phase trombone'' allows for the introduction of an arbitrary transfer matrix.\index{phase trombone}\index{TROM}
+It can be used to introduce a change in the transverse phases without spoiling the linear optics of the rest of the machine, i.e. the Twiss parameters are the same at entrance and exit of the element.
+Note that it is up to the user to construct the matrix. The coordinates used as inputs are: $x$, $p_x$, $y$ ,$p_y$, $\sigma$, $p_{\sigma}$.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{TROM} \\
+    \textbf{Keyword}    & \texttt{TROM}\index{TROM} \\
     \textbf{Data lines} & 1 line with name and then in blocks of 14 lines with 3 entries each. \\
     \textbf{Format}     & First line: \texttt{name} \\
                         & Second line:  $x$, $p_x$, $y$ \\
@@ -925,31 +927,31 @@ The linear ``phase trombone'' allows for the introduction of an arbitrary transf
 
 \bigskip
 \begin{tabular}{@{}llp{0.6\linewidth}}
-    \texttt{name} & char & May contain up to 47 characters. \\
-    \texttt{cx, cx', cy, cy', cz, cz'} & floats & 6D closed orbit to be added to the coordinates. \\
+    \texttt{name} & char & May contain up to 48 characters. \\
+    \texttt{cx, cx', cy, cy', cz, cz'} & floats & 6D closed orbit\index{closed orbit} to be added to the coordinates. \\
     \texttt{M($ 6 \times 6$)} & floats & $ 6 \times 6$ matrix elements.
 \end{tabular}
 
 \paragraph{Remarks}~\\
 
 The user has to make sure that the above stated conditions are fulfilled.
-When using the $mad\_6t$~\cite{CONVERTOR} converter from MAD-X to SixTrack, this is guaranteed to be the case.
+When using the $mad\_6t$~\cite{CONVERTOR} converter from MAD-X\index{MAD-X} to SixTrack, this is guaranteed to be the case.
 Note also that the crossterms between the transverse plains are not considered for the time being.
 
 % ================================================================================================================================ %
 \section{Beam Distribution EXchange (BDEX)} \label{sec:BDEX}
 
-The Beam Distribution EXchange allows an external program to read and modify the beam distribution in SixTrack.
+The Beam Distribution EXchange allows an external program to read and modify the beam distribution in SixTrack.\index{BDEX}
 This can be used for tracking part of the machine in an external program, for example for including physics processes that are normally not available in SixTrack.
 Another possible use is for multi-bunch tracking, i.e.\ with an external program ``swapping'' the bunch at a some point in the ring.
 This would be useful for studying (for example) beam loading, where the external program would read the position of a bunch in the cavity, use that to compute an update of the cavity voltage (which can be sent to SixTrack using DYNK FUN PIPE), swap the bunch with another one and track that to the cavity (still at ``physics turn'' 1, but ``SixTrack turn'' 2) etc.
 
-Please note that \texttt{BDEX} is currently not supported in the checkpoint/restart version or in the collimation version.
+Please note that \texttt{BDEX} is currently not supported in the checkpoint/restart\index{checkpoint/restart} version or in the collimation\index{collimation} version.
 Including \texttt{BDEX} in one of these versions results in a run-time error.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{BDEX} \\
+    \textbf{Keyword}    & \texttt{BDEX}\index{BDEX} \\
     \textbf{Data lines} & Variable \\
     \textbf{Format}     & There are three types of statements possible in a \texttt{BDEX} block, listed below.
 \end{tabular}
@@ -959,7 +961,7 @@ Including \texttt{BDEX} in one of these versions results in a run-time error.
 \paragraph{ELEM} \texttt{ELEM chanName elemName action}\\
 
 This associates a given element with an already existing channel and an action.
-The element must appear in the SINGLE ELEMENT block, and be of type 0 (marker).
+The element must appear in the SINGLE ELEMENT\index{single elements} block, and be of type 0 (marker).
 The action indicates what should be done with the particle distribution when it reaches this element.
 Currently, the only allowed action is ``1'', which means ``particle exchange'', i.e.\ output the beam distribution and read back another one at the same point.
 
@@ -977,7 +979,7 @@ The \texttt{outPipe} is opened on the next unit, so both units fileUnit and file
 
 \paragraph{DEBU}~\\
 
-This statement switches on extra ``debugging'' output from \texttt{BDEX}.
+This statement switches on extra ``debugging'' output from \texttt{BDEX}\index{DEBUG}.
 This can be useful if debugging the code or if debugging the input.
 
 \subsection{Communication protocols}
@@ -1008,13 +1010,13 @@ The FLUKA version implements this, we should make sure that we are compatible wi
 % ================================================================================================================================ %
 \section{Electron lens} \label{sec:elen}
 
-The electron lens module serves for reading in the input parameters for different types of electron lenses.
+The electron lens module serves for reading in the input parameters for different types of electron lenses.\index{electron lens}\index{ELENS}
 Each e-lens also needs to be added as single element in the list of single elements.
 Currently the ideal electron lens is implemented, i.e.~with no errors in the e-beam distribution.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{ELEN} \\
+    \textbf{Keyword}    & \texttt{ELEN}\index{ELEN} \\
     \textbf{Data lines} & Variable \\
     \textbf{Format}     & \texttt{name type theta\_r2 r2 r1 offset\_x offset\_y flag\_entrance flag\_exit $\sigma$} \\
                         & A description of the input parameters for the different e-lens types is given in Table~\ref{tab:elen}. Currently the ideal electron lens is implemented in SixTrack, i.e.~with no errors in the e-beam distribution.
@@ -1049,7 +1051,7 @@ Currently the ideal electron lens is implemented, i.e.~with no errors in the e-b
     \rowcolor{blue!15}
     \multicolumn{4}{|l|}{Valid for all types} \\*
 
-    & \texttt{name} & -- & Name of e-lens. Must be the same as in list of single elements.\\*
+    & \texttt{name} & -- & Name of e-lens. Must be the same as in list of single elements\index{single elements}.\\*
     \hline
 
     & \texttt{type} & -- & Type of e-lens. Available types are \texttt{UNIFORM} and \texttt{GAUSSIAN}. \\*
@@ -1141,14 +1143,14 @@ BLOC56            hel1              hel2
 % ================================================================================================================================ %
 \section{Scattering} \label{sec:scatter}
 
-\textcolor{notered}{\textbf{Note:} This module is experimental! Use at your own risk; both the input format and physics implementation may change.}
+\textcolor{notered}{\textbf{Note:} This module is experimental! Use at your own risk; both the input format and physics implementation may change.}\index{scatter}\index{elastic scattering}\index{SCAT}
 
 \bigskip
 The \texttt{SCATTER} module is a framework for scattering particles through Monte Carlo processes at various points in the machine.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{SCAT(TER)} \\
+    \textbf{Keyword}    & \texttt{SCAT(TER)}\index{SCAT} \\
     \textbf{Data lines} & Variable \\
     \textbf{Format}     & There are several different main statement classes possible in a \texttt{SCATTER} block, listed below.
 \end{tabular}
@@ -1197,7 +1199,8 @@ Takes five or six input arguments, and generates the probability distribution gi
 \begin{align}
     g(t) = \frac{1}{a_1^2}\frac{d\sigma}{dt} = e^{-b_1 t}+ 2ae^{-(b_1+b_2)t/2}\cos{\phi} + a^2e^{-b_2 t},
 \end{align}
-where the first expression is a soft scatter data fit, the third expression a hard scatter fit, and the second expression is the interference. $a = a_2/a_1$ is the amplitudes of the expressions. These are combined into the first four input arguments $a$, $b_1$, $b_2$, and $\phi$, as well as $t_{min}$ which provides a cut-off limit.
+where the first expression is a soft scatter data fit, the third expression a hard scatter fit, and the second expression is the interference. $a = a_2/a_1$ is the amplitudes of the expressions.\index{elastic scattering}
+These are combined into the first four input arguments $a$, $b_1$, $b_2$, and $\phi$, as well as $t_{min}$ which provides a cut-off limit.
 The optional sixth argument defines a fixed cross section for the scattering probability.
 
 Input example with values for a fit to 13 TeV LHC.

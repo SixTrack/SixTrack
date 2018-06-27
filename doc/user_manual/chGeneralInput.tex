@@ -4,14 +4,14 @@
 % ================================================================================================================================ %
 \section{Program Version} \label{ProVer}
 
-The \textit{Program Version} input block determines if all of the input will be in the input file \texttt{fort.3}, or if the geometry part of the machine (see~\ref{MaGe}) will be in a separate file: \texttt{fort.2}.
+The \textit{Program Version} input block determines if all of the input will be in the input file \texttt{fort.3}, or if the geometry part of the machine (see~\ref{MaGe}) will be in a separate file: \texttt{fort.2}.\index{input block}\index{fort.2}\index{fort.3}
 The latter option is useful if tracking parameters are changed, but the geometry part of the input is left as it is.
 The geometry part can be produced directly from a MAD-X input file (see~\ref{MADT}).
-Note that this line should not have a \texttt{NEXT} keyword after it.
+Note that this line should not have a \texttt{NEXT} keyword after it.\index{NEXT}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{FREE} or \texttt{GEOM} \\
+    \textbf{Keyword}    & \texttt{FREE} or \texttt{GEOM} \index{FREE}\index{GEOM}\\
     \textbf{Data lines} & None \\
     \textbf{Format}     & \texttt{keyword comment title} \\
 \end{tabular}
@@ -28,14 +28,14 @@ Note that this line should not have a \texttt{NEXT} keyword after it.
 % ================================================================================================================================ %
 \section{Print Selection} \label{PriSel}
 
-The \texttt{PRIN} flag is deprecated, and replaced by the \texttt{PRINT} flag in the \texttt{SETTINGS} block.
+The \texttt{PRIN} flag is deprecated, and replaced by the \texttt{PRINT} flag in the \texttt{SETTINGS} block.\index{PRIN}
 
 % ================================================================================================================================ %
 \section{Settings} \label{STSett}
 
-The \textit{Print Selection} input block available in earlier version has been replaced with the \texttt{SETTINGS} block.
-This was done to allow for more options related to what output SixTrack produces in \texttt{fort.6}.
-The \texttt{PRIN} flag is available as one of several options in this block.
+The \textit{Print Selection} input block available in earlier version has been replaced with the \texttt{SETTINGS} block.\index{SETT}
+This was done to allow for more options related to what output SixTrack produces in \texttt{fort.6}.\index{fort.6}
+The \texttt{PRIN} flag is available as one of several options in this block.\index{PRIN}
 However, for backwards compatibility, the \texttt{PRIN} flag is still accepted.
 
 \bigskip
@@ -49,8 +49,8 @@ However, for backwards compatibility, the \texttt{PRIN} flag is still accepted.
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
     \texttt{PRINT} & This causes the printing of the input data to the output file \texttt{fort.6}. \\
-    \texttt{DEBUG} & A global debug flag that causes the majority of the blocks to echo back the value read from the input file after parsing. It may also print out secondary values set based on input values read, or modification made to input values based on other dependencies and criteria.\\
-    \texttt{QUIET} & Followed by an integer specifying how ``quiet'' the output should be. A higher value causes less information to be printed back out. If the keyword is not present, the default value is 0, which means it is disabled. If it is present, but the integer value is omitted, it is set to be 1. This flag does not intefere with the \texttt{PRINT} flag.
+    \texttt{DEBUG} & A global debug flag that causes the majority of the blocks to echo back the value read from the input file after parsing. It may also print out secondary values set based on input values read, or modification made to input values based on other dependencies and criteria.\index{DEBUG}\\
+    \texttt{QUIET} & Followed by an integer specifying how ``quiet'' the output should be. A higher value causes less information to be printed back out. If the keyword is not present, the default value is 0, which means it is disabled. If it is present, but the integer value is omitted, it is set to be 1. This flag does not intefere with the \texttt{PRINT} flag.\index{QUIET}
 \end{tabular}
 
 
@@ -62,7 +62,7 @@ The comment will be written to the binary data files (Appendix~\ref{Header}), an
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{COMM} \\
+    \textbf{Keyword}    & \texttt{COMM}\index{COMM}\index{comment} \\
     \textbf{Data lines} & 1 \\
     \textbf{Format}     & A string of up to 80 characters.
 \end{tabular}
@@ -70,18 +70,18 @@ The comment will be written to the binary data files (Appendix~\ref{Header}), an
 % ================================================================================================================================ %
 \section{Iteration Errors} \label{IteErr}
 
-For the processing procedures, the number of iterations and the precision to which the processing is to be performed are chosen with the \textit{Iteration Errors} input block.
+For the processing procedures, the number of iterations and the precision to which the processing is to be performed are chosen with the \textit{Iteration Errors} input block.\index{iteration errors}
 If the input block is left out, default values will be used.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{ITER} \\
+    \textbf{Keyword}    & \texttt{ITER}\index{ITER} \\
     \textbf{Data lines} & 1 to 4 \\
     \textbf{Format}     & Each data line holds three values as in table~\ref{T-IteErr}, except for the fourth line where the horizontal and vertical aperture limits can be additionally specified. This has been added to avoid artificial crashes for special machines.
 \end{tabular}
 
 \begin{table}[h]
-    \caption{Iteration Errors}
+    \caption{Iteration Errors\index{chromaticity}\index{dispersion}\index{aperture limit}\index{closed orbit}}
     \label{T-IteErr}
     % \footnotesize
     \centering
@@ -137,9 +137,9 @@ If the input block is left out, default values will be used.
 % ================================================================================================================================ %
 \section{MAD-X to SixTrack Conversion} \label{MADT}
 
-A converter has been developed~\cite{CONVERTOR}, which is directly linked to MAD-X\@.
-It produces the geometry file \texttt{fort.2}; an appendix to the parameter file \texttt{fort.3}, which defines which of the multipole errors are switched on; the error file \texttt{fort.16}, and the file \texttt{fort.8} which holds the transverse misalignments and the tilt of the non-linear kick elements.
-It also produce a file \texttt{fort.34} with linear lattice functions, phase advances and multipole strengths needed for resonance calculations for the program \textit{SODD}~\cite{SODD}.
+A converter has been developed~\cite{CONVERTOR}, which is directly linked to MAD-X\@.\index{MAD-X}
+It produces the geometry file \texttt{fort.2}; an appendix to the parameter file \texttt{fort.3}, which defines which of the multipole errors are switched on; the error file \texttt{fort.16}, and the file \texttt{fort.8} which holds the transverse misalignments and the tilt of the non-linear kick elements.\index{fort.8}\index{fort.16}\index{multipole errors}
+It also produce a file \texttt{fort.34} with linear lattice functions, phase advances and multipole strengths needed for resonance calculations for the program \textit{SODD}~\cite{SODD}.\index{fort.34}\index{resonance calculations}
 
 % A description of %how to use the converter can be found in Appendix\ref{MADSIXC}.
 % Pasted here for reference:

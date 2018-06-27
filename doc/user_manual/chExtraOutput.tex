@@ -7,7 +7,7 @@ How to do this is described below.
 % ================================================================================================================================ %
 \section{Dumping of Beam Population} \label{sec:DUMP}
 
-The \texttt{DUMP} block allows the beam population (i.e.\ the position in phase-space for all the particles) to be written to file.
+The \texttt{DUMP} block allows the beam population (i.e.\ the position in phase-space for all the particles) to be written to file.\index{DUMP}\index{beam population}
 This can be done in any \texttt{SINGLE ELEMENTS} which are directly mentioned in the \texttt{STRUCTURE INPUT} part of \texttt{fort.2} (\texttt{BLOC}s cannot be used).
 The particles are dumped just after the kick is applied, and how often to dump (every turn, every second turn, etc.) is user-selectable.
 Please note that each single element can only be selected once; however it is possible to overcome this limitation by placing multiple markers with different names in the same position in the sequence (by editing \texttt{fort.2}).
@@ -139,7 +139,7 @@ Please note that each single element can only be selected once; however it is po
         \rowcolor{blue!15}
         \texttt{7} & Modified format for aperture check (normalized coordinates) \\
         \hline
-        & Dumps the particle trajectories in normalized coordinates. If the coordinates are dumped at the start of the sequence (\texttt{StartDUMP}), the normalization matrix as used for the initialization of the particle amplitudes is used. This means, that if 4D optics are chosen, the 4D matrix is used, if 6D optics is chosen, the matrix obtained from the 6D optics calculation is chosen. For every other element except \texttt{StartDUMP}, the 6D optics are used independent of the tracking method chosen. In this case the 6D optics needs to be run and the following lines have to be inserted in \texttt{fort.3}:
+        & Dumps the particle trajectories in normalised coordinates. If the coordinates are dumped at the start of the sequence (\texttt{StartDUMP}), the normalization matrix as used for the initialization of the particle amplitudes is used. This means, that if 4D optics are chosen, the 4D matrix is used, if 6D optics is chosen, the matrix obtained from the 6D optics calculation is chosen. For every other element except \texttt{StartDUMP}, the 6D optics are used independent of the tracking method chosen. In this case the 6D optics needs to be run and the following lines have to be inserted in \texttt{fort.3}:
             \bigskip
             \begin{cverbatim}
 DUMP
@@ -207,14 +207,14 @@ NEXT
 % ================================================================================================================================ %
 \section{FMA Analysis} \label{sec:FMA}
 
-The FMA block generates the basic files needed for frequency map analysis (FMA).
+The FMA block generates the basic files needed for frequency map analysis (FMA).\index{frequency map analysis}\index{FMA}
 Explicitly, it returns one output file with calculated tunes and amplitudes for the files specified in the \texttt{DUMP} block, see Sec.~\ref{sec:DUMP}.
 For the calculation of the tunes ($Q_1$, $Q_2$ and $Q_3$) in normalized phase space, the normalization matrix is extracted from the \texttt{LINE} block (linear optics calculation in 6D, \ref{LinOpt}).
 In case the particles are dumped at the beginning of the sequence (\texttt{StartDUMP}), the closed orbit and normalization matrix used also for the initialization of the particles is used.
 In this case, the \texttt{LINE} block is not needed.
 The tunes $Q_1$, $Q_2$ and $Q_3$ are then calculated with the routine specified in the \texttt{FMA} block either in physical coordinates ($x$,$x'$,$y$,$y'$,$z$,$dE/E$) or normalized phase space coordinates and dumped to the file \texttt{fma\_sixtrack} together with the minimum, maximum and average normalized particle amplitudes and phases.
 
-To use normalized coordinates for the FMA analysis is always possible in case of 6D tracking (remember to put the \texttt{LINE} block for other elements than the start of the sequence). In case of 4D tracking, the following limitations apply:
+To use normalised coordinates for the FMA analysis is always possible in case of 6D tracking (remember to put the \texttt{LINE} block for other elements than the start of the sequence). In case of 4D tracking, the following limitations apply:
 \begin{itemize}
     \item The FMA analysis is only implemented for the start of the sequence (\texttt{StartDUMP}). For other elements the normalization matrix would need to be obtained from the \texttt{LINE} block, which has not been checked in case of 4D optics.
     \item 4D tracking with scan in energy is disabled as in this case the normalization matrix would need to be saved for each element and particle, which requires a huge amount of memory breaking other parts of the code.
@@ -252,7 +252,7 @@ For the linear optics calculation \ref{LinOpt}, the optics needs to be calculate
 \bigskip
 \begin{longtabu}{@{}p{2.8cm}p{0.75\linewidth}}
     \texttt{filename} & One of the output files specified in the \texttt{FMA} block preceding \texttt{DUMP} block. \\
-    \texttt{method}   & Method used to calculate the tune. Available methods are: \texttt{TUNELASK, TUNEFIT, TUNENEWT1, TUNEABT, TUNEABT2, TUNEFFT, TUNEFFTI, TUNENEWT, TUNEAPA, NAFF}. A short description of the different methods is given in Table~\ref{fma:tab:1}. \\
+    \texttt{method}   & Method used to calculate the tune\index{tune}. Available methods are: \texttt{TUNELASK, TUNEFIT, TUNENEWT1, TUNEABT, TUNEABT2, TUNEFFT, TUNEFFTI, TUNENEWT, TUNEAPA, NAFF}. A short description of the different methods is given in Table~\ref{fma:tab:1}. \\
     \texttt{fma\_flag\_norm} & Optional flag for calculating the tunes with physical ($x$,$x'$,$y$,$y'$,$s$,$dp/p$) or normalized coordinates in case physical coordinates are used in DUMP. The default is using normalized coordinates (\texttt{fma\_flag\_norm = 1}). For using physical coordinates explicitly set (\texttt{fma\_flag\_norm = 0}). See \textbf{Description} for the conditions under which normalization is available. \\
     \texttt{fma\_first\_turn, fma\_last\_turn} & Turns used for FMA analysis. As the \texttt{DUMP} files are used as input for the FMA analysis \texttt{fma\_first\_turn} must be larger \texttt{first\_turn} in the \texttt{DUMP} block and  \texttt{fma\_last\_turn} must be smaller than \texttt{last\_turn} in the \texttt{DUMP} block. If \texttt{fma\_last\_turn = -1} the last turn number in the dump file is taken as the last turn number, including the last turn tracked if the \texttt{last} setting of the dump equals -1. By default, \texttt{FMA} will use the same turns as for the \texttt{DUMP}. \\
     \texttt{NoNormDUMP} & A flag for disabling the \texttt{NORM\_filename*} output files. This saves disk space and speeds up the calculation of the FMA. If used, the flag should be alone on a one line of the FMA input block in \texttt{fort.3}. Note that the capitalization must be correct for the flag to be recognized.
@@ -273,7 +273,7 @@ The structure of the \texttt{NORM\_filename*} is described in Table~\ref{fma:tab
     \textbf{Library} & \textbf{Method} & \textbf{Description} \\
     \hline
     \texttt{PLATO} \cite{plato1,plato2}
-    & \texttt{TUNELASK} & Compute the tune of a 2d map by means of laskar method. A first indication of the position of the tune is obtained by means of a FFT. Refinement is obtained through a newton procedure.\\
+    & \texttt{TUNELASK} & Compute the tune\index{tune} of a 2d map by means of laskar method. A first indication of the position of the tune is obtained by means of a FFT. Refinement is obtained through a newton procedure.\\
     \cline{2-3}
     & \texttt{TUNEFIT} & Computes the tune using a modified apa algorithm. The first step consists of taking the average of the tune computed with the APA method, then a best fit is performed.\\
     \cline{2-3}
@@ -281,7 +281,7 @@ The structure of the \texttt{NORM\_filename*} is described in Table~\ref{fma:tab
     \cline{2-3}
     & \texttt{TUNENEWT} & Computes the tune using a discrete version of laskar method. It includes a newton method for the search of the frequency.\\
     \cline{2-3}
-    & \texttt{TUNEABT} & Computes the tune using FFT interpolated method.\\
+    & \texttt{TUNEABT} & Computes the tune using FFT\index{FFT} interpolated method.\\
     \cline{2-3}
     & \texttt{TUNEABT2} & Computes the tune using the interpolated FFT method with hanning filter.\\
     \cline{2-3}
@@ -367,7 +367,7 @@ Note that all element names have to be different due to a limitation in DUMP mod
 % ================================================================================================================================ %
 \section{ZIPFile Combined and Compressed Output} \label{sec:ZIPF}
 
-In order to retrieve extra simulation output such as \texttt{DUMP} or \texttt{FMA} from BOINC, it is necessary to pack the output files into a single file with a special name that will be retrieved.
+In order to retrieve extra simulation output such as \texttt{DUMP} or \texttt{FMA} from BOINC, it is necessary to pack the output files into a single file with a special name that will be retrieved.\index{zip}\index{ZIPF}
 This can be achieved with the \texttt{ZIPF} block, which packs the listed files into the compressed archive \texttt{Sixout.zip} at the end of the simulation.
 
 Note that if one of the files do not exist at the end of the simulation, it will be silently skipped and not included in the archive.
@@ -390,7 +390,7 @@ NEXT
 % ================================================================================================================================ %
 \section{HDF5 Output} \label{sec:HDF5}
 
-The \texttt{HDF5} block allows for writing certain outputs to a HDF5 file instead of regular text or binary files.
+The \texttt{HDF5} block allows for writing certain outputs to a HDF5 file instead of regular text or binary files.\index{HDF5}
 HDF5 files can be easily read and manipulated with for instance MATLAB or Python.
 MATLAB has native support, while Python support is available through h5py.
 
@@ -457,7 +457,7 @@ For further information on HDF5 chunking, see the HDF5 manual \cite{h5_doc}.
 
 \paragraph{Compression} \texttt{GZIP level}\\
 
-The level of compression to use for data chunks written to the HDF5 file.
+The level of compression to use for data chunks written to the HDF5 file.\index{zip}\index{gzip}
 Allowed values are $-1$ to disable gzip compression, and $0$ to $9$ for none to maximum compression.
 
 \bigskip
