@@ -7,6 +7,7 @@
 The \textit{Program Version} input block determines if all of the input will be in the input file \texttt{fort.3}, or if the geometry part of the machine (see~\ref{MaGe}) will be in a separate file: \texttt{fort.2}.
 The latter option is useful if tracking parameters are changed, but the geometry part of the input is left as it is.
 The geometry part can be produced directly from a MAD-X input file (see~\ref{MADT}).
+Note that this line should not have a \texttt{NEXT} keyword after it.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
@@ -21,20 +22,37 @@ The geometry part can be produced directly from a MAD-X input file (see~\ref{MAD
 \begin{tabular}{@{}lp{0.8\linewidth}}
     \texttt{keyword} & The first four characters of the first line of the \texttt{fort.3} input file are reserved for the keyword. \texttt{FREE} for free format input with all input in \texttt{fort.3}, and \texttt{GEOM} if the geometry part is in file  \texttt{fort.2}. \\
     \texttt{comment} & Following the first four characters, 8 characters are reserved for comments \\
-    \texttt{title}   & The next 60 characters are interpreted as the title of the output file \texttt{fort.6}.
+    \texttt{title}   & The next 60 characters are interpreted as the title printed at the top of the output file \texttt{fort.6}.
 \end{tabular}
 
 % ================================================================================================================================ %
 \section{Print Selection} \label{PriSel}
 
-Use of the \textit{Print Selection} input block causes the printing of the input data to the output file \texttt{fort.6}.
-It is advisable to always use this input block to have a complete protocol of the tracking run.
+The \texttt{PRIN} flag is deprecated, and replaced by the \texttt{PRINT} flag in the \texttt{SETTINGS} block.
+
+% ================================================================================================================================ %
+\section{Settings} \label{STSett}
+
+The \textit{Print Selection} input block available in earlier version has been replaced with the \texttt{SETTINGS} block.
+This was done to allow for more options related to what output SixTrack produces in \texttt{fort.6}.
+The \texttt{PRIN} flag is available as one of several options in this block.
+However, for backwards compatibility, the \texttt{PRIN} flag is still accepted.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{PRIN} \\
-    \textbf{Data lines} & None
+    \textbf{Keyword}    & \texttt{SETT} \\
+    \textbf{Data lines} & Variable
 \end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{PRINT} & This causes the printing of the input data to the output file \texttt{fort.6}. \\
+    \texttt{DEBUG} & A global debug flag that causes the majority of the blocks to echo back the value read from the input file after parsing. It may also print out secondary values set based on input values read, or modification made to input values based on other dependencies and criteria.\\
+    \texttt{QUIET} & Followed by an integer specifying how ``quiet'' the output should be. A higher value causes less information to be printed back out. If the keyword is not present, the default value is 0, which means it is disabled. If it is present, but the integer value is omitted, it is set to be 1. This flag does not intefere with the \texttt{PRINT} flag.
+\end{tabular}
+
 
 % ================================================================================================================================ %
 \section{Comment Line} \label{ComLin}

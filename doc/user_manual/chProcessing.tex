@@ -345,58 +345,61 @@ Details on these procedures including the next block~\ref{Corrections} can be fo
 % ================================================================================================================================ %
 \section{Corrections} \label{Corrections}
 
-All the parameters to optimise the tune-shift using a set of correctors are given in the \textit{Correction} input block.
-For details see reference \cite{Massimo}.
+\textcolor{notered}{\textbf{Note:}
+The \texttt{CORR} block is deprecated as of SixTrack 5.0-RC3.}
 
-\bigskip
-\begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{CORR} \\
-    \textbf{Data lines} & 3 \\
-    \textbf{Format}     & Line 1: \texttt{ctype ncor} \\
-                        & Line 2: \texttt{name(1),\ldots,name(ncor)} \\
-                        & Line 3: \texttt{par1,\ldots,par5}
-\end{tabular}
+% All the parameters to optimise the tune-shift using a set of correctors are given in the \textit{Correction} input block.
+% For details see reference \cite{Massimo}.
 
-\paragraph{Format Description}~
+% \bigskip
+% \begin{tabular}{@{}lp{0.8\linewidth}}
+%     \textbf{Keyword}    & \texttt{CORR} \\
+%     \textbf{Data lines} & 3 \\
+%     \textbf{Format}     & Line 1: \texttt{ctype ncor} \\
+%                         & Line 2: \texttt{name(1),\ldots,name(ncor)} \\
+%                         & Line 3: \texttt{par1,\ldots,par5}
+% \end{tabular}
 
-\bigskip
-\begin{longtabu}{@{}llp{0.7\linewidth}}
-    \texttt{ctype}   & integer & Correction type: \\
-                     &         & \texttt{ctype = 0}: order-by-order correction. \\
-                     &         & \texttt{ctype = 1}: global correction. \\
-    \texttt{ncor}    & integer & Number of zero-length elements to be used as correctors in the optimisation of the tune-shift. \\
-    \texttt{name(i)} & char    & \texttt{Ncor} names of zero-length elements (e.g sextupoles kicks, octupoles kicks etc.). \\
-    \texttt{par1-5}  &         & Parameters for the correction. Their meaning depend on the value of \texttt{ctype} and is  explained in Table \ref{tab:CORR}. \\
-\end{longtabu}
+% \paragraph{Format Description}~
 
-\begin{table}[h]
-\begin{center}
-    \caption{Tune-shift correction parameters}
-    \label{tab:CORR}
-    \begin{tabular}{|l|p{2cm}|p{2.6cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|}
-    \hline
-    \rowcolor{blue!30}
-    \textbf{Variable} & \texttt{par1} & \texttt{par2} & \texttt{par3} & \texttt{par4} & \texttt{par5} \\
-    \hline
+% \bigskip
+% \begin{longtabu}{@{}llp{0.7\linewidth}}
+%     \texttt{ctype}   & integer & Correction type: \\
+%                      &         & \texttt{ctype = 0}: order-by-order correction. \\
+%                      &         & \texttt{ctype = 1}: global correction. \\
+%     \texttt{ncor}    & integer & Number of zero-length elements to be used as correctors in the optimisation of the tune-shift. \\
+%     \texttt{name(i)} & char    & \texttt{Ncor} names of zero-length elements (e.g sextupoles kicks, octupoles kicks etc.). \\
+%     \texttt{par1-5}  &         & Parameters for the correction. Their meaning depend on the value of \texttt{ctype} and is  explained in Table \ref{tab:CORR}. \\
+% \end{longtabu}
 
-    \rowcolor{blue!15}
-    \textbf{Type} & integer & integer & real & real & real \\
-    \hline
+% \begin{table}[h]
+% \begin{center}
+%     \caption{Tune-shift correction parameters}
+%     \label{tab:CORR}
+%     \begin{tabular}{|l|p{2cm}|p{2.6cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|}
+%     \hline
+%     \rowcolor{blue!30}
+%     \textbf{Variable} & \texttt{par1} & \texttt{par2} & \texttt{par3} & \texttt{par4} & \texttt{par5} \\
+%     \hline
 
-    \texttt{ctype = 0} & tune-shift order $\leq 2$ & off-momentum order $\leq 3$ & 0.0 & 0.0 & 0.0 \\
-    \hline
+%     \rowcolor{blue!15}
+%     \textbf{Type} & integer & integer & real & real & real \\
+%     \hline
 
-    \texttt{ctype = 1} & $N_{min}\geq 2$ & $N_{max}\leq 3$ & $\alpha_H$ & $\alpha_V$ & $\delta_0 $ \\
-    \hline
-    \end{tabular}
-\end{center}
-\end{table}
+%     \texttt{ctype = 0} & tune-shift order $\leq 2$ & off-momentum order $\leq 3$ & 0.0 & 0.0 & 0.0 \\
+%     \hline
 
-\paragraph{Remarks}~
-\begin{itemize}
-    \item The names of the elements specified in the \textit{Correction} input block should be grouped according to the multipole type: first sextupoles, then octupoles $\ldots$ etc.
-    \item In case of order-by-order corrections, at least one of the quantities \texttt{par1}, \texttt{par2} has to be zero, i.e.\ the correction of tune-shift terms depending on both amplitude and momentum is not allowed (as stated in the previous section).
-\end{itemize}
+%     \texttt{ctype = 1} & $N_{min}\geq 2$ & $N_{max}\leq 3$ & $\alpha_H$ & $\alpha_V$ & $\delta_0 $ \\
+%     \hline
+%     \end{tabular}
+% \end{center}
+% \end{table}
+
+% \paragraph{Remarks}~
+% \begin{itemize}
+%     \item The names of the elements specified in the \textit{Correction} input block should be grouped according to the multipole type: first sextupoles, then octupoles $\ldots$ etc.
+%     \item In case of order-by-order corrections, at least one of the quantities \texttt{par1}, \texttt{par2} has to be zero, i.e.\ the correction of tune-shift terms depending on both amplitude and momentum is not allowed (as stated in the previous section).
+% \end{itemize}
 
 % ================================================================================================================================ %
 \section{Post-Processing} \label{PosPro}
