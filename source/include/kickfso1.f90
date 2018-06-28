@@ -9,9 +9,9 @@
 !FOX  PUSIG=((EJ1-E0)/(E0F*(E0F/E0))) ;
 
 !FOX  TEMPI(1) = X(1) ;
-!FOX  TEMPI(2) = YP(1) ;
+!FOX  TEMPI(2) = Y(1) ;
 !FOX  TEMPI(3) = X(2) ;
-!FOX  TEMPI(4) = YP(2) ;
+!FOX  TEMPI(4) = Y(2) ;
 !FOX  TEMPI(5) = SIGMDA ;
 !FOX  TEMPI(6) = PUSIG ;
 
@@ -25,7 +25,7 @@
 !FOX  COSTH_DA = COS(EK(IX)/ONEDPDA) ;
 !FOX  SINTH_DA = SIN(EK(IX)/ONEDPDA) ;
 
-!FOX  Q_DA = -EK(IX) * ED(IX) / ONEDPDA ;
+!FOX  Q_DA = -EK(IX) * ED(IX) / (ONEDPDA*ONEDPDA) ;
 !FOX  R_DA = FPPSIGDA / (ONEDPDA*ONEDPDA) * EK(IX) * ED(IX) ;
 !FOX  Z_DA = FPPSIGDA / (ONEDPDA*ONEDPDA) * EK(IX) ;
 
@@ -35,11 +35,9 @@
 
 !       R_DAipken formulae p.29 (3.37)
 !FOX  X(1) =  (TEMPI(1)  * COSTH_DA  +  TEMPI(3)  * SINTH_DA) ;
-!FOX  YP(1) =  (PXFDA * COSTH_DA  +  PYFDA * SINTH_DA) ;
+!FOX  Y(1) =  (PXFDA * COSTH_DA  +  PYFDA * SINTH_DA) ;
 !FOX  X(2) = (-TEMPI(1)  * SINTH_DA  +  TEMPI(3)  * COSTH_DA) ;
-!FOX  YP(2) = (-PXFDA * SINTH_DA  +  PYFDA * COSTH_DA) ;
+!FOX  Y(2) = (-PXFDA * SINTH_DA  +  PYFDA * COSTH_DA) ;
 !FOX  SIGMDA =  (SIGFDA + (TEMPI(1)*PYFDA - TEMPI(3)*PXFDA)*Z_DA*C1M3) ;
 
 !Going back to angles
-!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ; 
-!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
