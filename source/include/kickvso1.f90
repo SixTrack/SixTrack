@@ -14,7 +14,7 @@ temptr(6)=(ejv(j)-e0)/(e0f*(e0f/e0))
 !yv(1,j) = temptr(2)
 !yv(2,j) = temptr(4)
 !print *, "before", xv(1,j), yv(1,j), xv(2,j), yv(2,j), sigmv(j), moidpsv(j), j
-onedp   = sqrt( one + two*temptr(6) + ((e0f/e0)**2)*(temptr(6)**2))
+onedp   =  one+dpsv(j) 
 fppsig  = ( one + ((e0f/e0) **2)*temptr(6) ) / onedp
 
 !     Set up C,S, q_temp,r_temp,Z
