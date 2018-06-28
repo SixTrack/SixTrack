@@ -1281,7 +1281,7 @@ endif(NAFF)
 
 #if we are using root, link to all the root libraries
 if(ROOT)
-	target_link_libraries(SixTrackCR root_output)
+	target_link_libraries(SixTrackLib root_output)
 endif(ROOT)
 
 if(HDF5)
