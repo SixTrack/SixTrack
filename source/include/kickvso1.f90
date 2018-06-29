@@ -4,7 +4,7 @@
 ! x'-> px; y'->py
 !Transformation to some more reasonable coordinates
 
-onedp   =  one+dpsv(j)
+onedp   =  (one+dpsv(j))/mtc(j)
 fppsig  = ( one + ((e0f/e0) **2)*temptr(6) ) / onedp
 
 temptr(1)=xv(1,j)
@@ -23,19 +23,19 @@ costh_temp = cos_mb(strackz(i)/onedp)
 sinth_temp = sin_mb(strackz(i)/onedp)
 
 
-q_temp = -strackz(i) * strackx(i) / (onedp**2)
+q_temp = -strackz(i) * strackx(i) / (onedp)
 
-pxf  = temptr(2) + temptr(1)*q_temp
-pyf  = temptr(4) +  temptr(3) *q_temp
+pxf  = temptr(2) + temptr(1)*q_temp / (onedp) 
+pyf  = temptr(4) +  temptr(3) *q_temp / (onedp)
 
 !print *, "pxf", pxf , temptr(2)
 !print *, "pyf", pyf , temptr(4)
 
 !       r_tempipken formulae p.29 (3.37)
 xv(1,j) =  (temptr(1)  * costh_temp  +  temptr(3)  * sinth_temp)
-yv(1,j) =  (pxf * costh_temp  +  pyf * sinth_temp)/onedp
+yv(1,j) =  (pxf * costh_temp  +  pyf * sinth_temp)
 xv(2,j) = (-temptr(1)  * sinth_temp  +  temptr(3)  * costh_temp)
-yv(2,j) = (-pxf * sinth_temp  +  pyf * costh_temp)/onedp
+yv(2,j) = (-pxf * sinth_temp  +  pyf * costh_temp)
 
 
 
