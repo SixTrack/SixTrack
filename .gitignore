@@ -30,6 +30,7 @@ doc/*/*.out
 doc/*/*.toc
 doc/*/*.bbl
 doc/*/*.blg
+doc/*/*.ilg
 doc/*/*.synctex.gz
 
 # Python

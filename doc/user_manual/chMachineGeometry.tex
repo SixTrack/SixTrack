@@ -4,7 +4,7 @@
 % ================================================================================================================================ %
 \section{Single Elements} \label{SinEle}
 
-The \textit{Single Elements} input block defines the name and type of linear and non-linear elements, the inverse bending radius or multipole strength respectively, and the strength and length of the elements.
+The \textit{Single Elements} input block defines the name and type of linear and non-linear elements, the inverse bending radius or multipole strength respectively, and the strength and length of the elements.\index{single elements}\index{SING}
 Linear and non-linear elements are distinguished by length -- linear elements have a non-zero length and non-linear elements have zero length.
 Both kinds of elements can appear in the input block in arbitrary order.
 The input line has a different format for linear and non-linear elements.
@@ -21,13 +21,13 @@ The maximum number of elements is set as a parameter (see Appendix~\ref{DSP}).
 % ================================================================================================================================ %
 \subsection{Linear Elements} \label{LinEle}
 
-Each linear single element has a name, type, inverse bending radius, focusing and a non-zero length.
+Each linear single element has a name, type, inverse bending radius, focusing and a non-zero length.\index{linear element}
 
 \paragraph{Format} \texttt{name type $\varrho^{-1}$ K length}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 47 characters. \\
+    \texttt{name} & May contain up to 48 characters. \\
     \texttt{type} & As shown in the table~\ref{T-LinEle} .\\
     \texttt{$ \varrho^{-1}$} &  Inverse bending radius in $\mathrm{m}^{-1}$. \\
     \texttt{K} & Focusing strength in $\mathrm{m}^{-2}$. \\
@@ -44,13 +44,13 @@ Each linear single element has a name, type, inverse bending radius, focusing an
         \rowcolor{blue!30}
         \textbf{Type} & $\mathbf{\varrho^{-1}}$ & $\mathbf{K}$ & \textbf{Description} \\
         \hline
-        0 & 0 & 0 & Drift length magnet \\
+        0 & 0 & 0 & Drift length magnet \index{drift length}\\
         \hline
-        1 & X & 0 & Norizontal (rectangular) bending \\
+        1 & X & 0 & Horizontal (rectangular) bending \index{bending magnet}\\
         \hline
         2 & 0 & X & Quadrupole (-- focusing, + defocusing) \\
         \hline
-        3 & X & 0 & Norizontal (sector) bending \\
+        3 & X & 0 & Horizontal (sector) bending \\
         \hline
         4 & X & 0 & Vertical (rectangular) bending \\
         \hline
@@ -60,7 +60,7 @@ Each linear single element has a name, type, inverse bending radius, focusing an
         \hline
         7 & X & X & Vertical combined function magnet \\
         \hline
-        8 & X & 0 & Edge focusing \\
+        8 & X & 0 & Edge focusing \index{edge focusing}\\
         \hline
     \end{tabular}
 \end{table}
@@ -68,19 +68,19 @@ Each linear single element has a name, type, inverse bending radius, focusing an
 \paragraph{Remarks}~
 \begin{enumerate}
     \item For the horizontal plane the bending radius is defined to be negative \mbox{($\varrho < 0$).} This is different from other programs like MAD-X~\cite{MAD}.
-    \item $K < 0 $ corresponds to a horizontal focusing quadrupole.
+    \item $K < 0 $ corresponds to a horizontal focusing quadrupole.\index{quadrupole}
     \item For the length of an edge focusing element (type=8) the same value must be used as for the corresponding bending magnet. A sector bending magnet is transformed into a rectangular magnet with an edge focusing element of positive length on either side, while for the opposite transformation a negative length is required.
-    \item It is important to note that the splitting of a rectangular magnet, which is sometimes necessary if multipole errors are to be introduced, does change the linear optics. It is therefore advisable to replace the rectangular magnet with a sector magnet, which can be split without affecting the linear optics, and make an overall transformation into a rectangular magnet via edge focusing elements. Do not forget to use the total length of dipole as the length of the edge focusing element.
+    \item It is important to note that the splitting of a rectangular magnet\index{rectangular magnet}, which is sometimes necessary if multipole errors are to be introduced, does change the linear optics. It is therefore advisable to replace the rectangular magnet with a sector magnet, which can be split without affecting the linear optics, and make an overall transformation into a rectangular magnet via edge focusing elements. Do not forget to use the total length of dipole as the length of the edge focusing element.
 \end{enumerate}
 
 % ================================================================================================================================ %
 \subsection{Non-linear Elements} \label{NonEle}
 
-\paragraph{Format} \texttt{name type $K_{n}$-strength rms-strength length}
+\paragraph{Format} \texttt{name type $K_{n}$-strength rms-strength length}\index{non-linear elements}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 47 characters. \\
+    \texttt{name} & May contain up to 48 characters. \\
     \texttt{type} & As shown in table~\ref{T-NonEle}. \\
     \texttt{$K_{n}$-strength} & Average multipole strength. \\
     \texttt{rms-strength} & Random multipole strength. \\
@@ -100,15 +100,15 @@ Each linear single element has a name, type, inverse bending radius, focusing an
         \texttt{~0} & -- & Observation point (for instance for aperture limitations). \\
         \hline
         \texttt{~1} & $b_{1} [\mathrm{rad} \cdot \mathrm{m}^{0}]$ & Horizontal bending kick. \\
-        \texttt{-1} & $a_{1}$ & Vertical bending kick. \\
+        \texttt{-1} & $a_{1}$ & Vertical bending kick.\index{bending kick} \\
         \hline
-        \texttt{~2} & $b_{2} [\mathrm{rad} \cdot \mathrm{m}^{-1}]$ & Normal quadrupole kick. \\
-        \texttt{-2} & $a_{2}$ & Skew quadrupole kick. \\
+        \texttt{~2} & $b_{2} [\mathrm{rad} \cdot \mathrm{m}^{-1}]$ & Normal quadrupole kick.\index{quadrupole kick} \\
+        \texttt{-2} & $a_{2}$ & Skew quadrupole kick.\index{skew quadrupole kick} \\
         \hline
         \vdots & & \\
         \hline
-        \texttt{~10} & $b_{10} [\mathrm{rad} \cdot \mathrm{m}^{-9}]$ & Normal $20^{th}$ pole. \\
-        \texttt{-10} & $a_{10}$ & Skew $20^{th}$ pole. \\
+        \texttt{~10} & $b_{10} [\mathrm{rad} \cdot \mathrm{m}^{-9}]$ & Normal $20^{th}$ pole.\index{n-th pole magnet} \\
+        \texttt{-10} & $a_{10}$ & Skew $20^{th}$ pole.\index{skew n-th pole magnet} \\
         \hline
     \end{tabular}
 \end{table}
@@ -118,22 +118,22 @@ Each linear single element has a name, type, inverse bending radius, focusing an
     \item Because the horizontal bending magnet is defined to have a negative bending radius, the sign for normal elements is different from other programs like MAD-X, while skew elements have the same sign.
     \item Again contrary to other programs the factor \mbox{$(n-1)$!} is already included in the multipole strength, which is defined as follows:
     \begin{itemize}
-        \item for normal elements:
+        \item for normal elements:\index{normal element}
         \begin{equation*}
             b_{n}(\mathrm{SixTrack}) = \frac{-1}{(n-1)!}\,L_{\mathrm{element}}\,b_{n}(\mathrm{MAD})
         \end{equation*}
-        \item for skew elements:
+        \item for skew elements:\index{skew element}
         \begin{equation*}
             a_{n}(\mathrm{SixTrack}) = \frac{1}{(n-1)!}\,L_{\mathrm{element}}\,a_{n}(\mathrm{MAD})
         \end{equation*}
     \end{itemize}
-    \item Unlike in RACETRACK, the horizontal and vertical displacements do not fit into the 80 character input lines of SixTrack\@. They have to be introduced in a separate \textit{Displacements of Elements} input block (\ref{DisEle}).
+    \item Unlike in RACETRACK\index{RACETRACK}, the horizontal and vertical displacements do not fit into the 80 character input lines of SixTrack\@. They have to be introduced in a separate \textit{Displacements of Elements} input block (\ref{DisEle}).
 \end{enumerate}
 
 % ================================================================================================================================ %
 \subsection{Multipole Blocks} \label{MulBlo}
 
-A set of normal, normal-r.m.s., skew, and skew-r.m.s. errors can be combined effectively.
+A set of normal, normal-r.m.s., skew, and skew-r.m.s. errors can be combined effectively.\index{multipole coefficient}\index{multipole}
 The actual values for the strengths have to be given in a separate \textit{Multipole Coefficient} input block (\ref{MulCoe}) which must have the same name.
 To consider the curvature of dipoles which are replaced by drifts and dipole kicks this block is used in two different ways.
 
@@ -144,7 +144,7 @@ To consider the curvature of dipoles which are replaced by drifts and dipole kic
 
     \bigskip
     \begin{tabular}{@{}lp{0.8\linewidth}}
-        \texttt{name} & May contain up to 47 characters. \\
+        \texttt{name} & May contain up to 48 characters. \\
         \texttt{type} & Must be 11. \\
         \texttt{cstr} & The bending strength given in the \textit{Multipole Coefficient} input block (\ref{MulCoe}) is multiplied with this factor.\\
         \texttt{cref} & The reference radius given in the \textit{Multipole Coefficient} input block (\ref{MulCoe}) will be multiplied by this factor. If it is zero the multipole block will be ignored.\\
@@ -154,9 +154,9 @@ To consider the curvature of dipoles which are replaced by drifts and dipole kic
 
     \bigskip
     \begin{tabular}{@{}lp{0.8\linewidth}}
-        \texttt{name} & May contain up to 47 characters. \\
+        \texttt{name} & May contain up to 48 characters. \\
         \texttt{type} & Must be 11. \\
-        \texttt{cstr} & The bending strength [rad] of horizontal or vertical dipole. Internally the value is set to one to allow the processing of a multipole block (\ref{MulCoe}).\\
+        \texttt{cstr} & The bending strength [rad] of horizontal or vertical dipole. Internally the value is set to one to allow the processing of a multipole block (\ref{MulCoe}). \\
         \texttt{cref} & The length [m] of the dipole that is approximated by a kick. Internally this value is set to one to allow the processing of a multipole block (\ref{MulCoe}). \\
         \texttt{length} & length = -1: horizontal dipole. \\
                         & length = -2: vertical dipole.
@@ -167,29 +167,13 @@ To consider the curvature of dipoles which are replaced by drifts and dipole kic
 The definition of the multipole strength in a block will be given in (\ref{MulCoe}).
 
 % ================================================================================================================================ %
-\subsection{Solenoid} \label{Solenoid}
-
-\paragraph{Format} \texttt{name type $k_s$ $ks*l$}
-
-\bigskip
-\begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 47 characters. \\
-    \texttt{type} & Type identifier is 25. \\
-    \texttt{ks}   & The strength $k_s$ of the solenoid \\
-    \texttt{ks*l} & The strength $k_s$ of the solenoid multiplied with the length of the corresponding thick solenoid. \\
-\end{tabular}
-
-\paragraph{Remarks}
-The solenoid is modeled as thin solenoid but a length the length of the real solenoid is still needed. This is different from the case with a multipole.
-
-% ================================================================================================================================ %
 \subsection{Cavities} \label{Cavities}
 
-\paragraph{Format} \texttt{name type u0 harm lag}
+\paragraph{Format} \texttt{name type u0 harm lag}\index{cavities}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 47 characters. \\
+    \texttt{name} & May contain up to 48 characters. \\
     \texttt{type} & Type identifier is $+12$ and $-12$ for above and below transition energy respectively. \\
     \texttt{u0}   & Circumference voltage in [MV]. \\
     \texttt{harm} & Harmonic number. \\
@@ -199,7 +183,7 @@ The solenoid is modeled as thin solenoid but a length the length of the real sol
 % ================================================================================================================================ %
 \subsection{Beam--Beam Lens} \label{BBS}
 
-Depending on the setting in the \texttt{BEAM} block of \texttt{fort.3} (Section~\ref{BeamBeam}), there are two ways to define a beam beam lens in the SINGLE ELEMENTS list.
+Depending on the setting in the \texttt{BEAM} block of \texttt{fort.3} (Section~\ref{BeamBeam}), there are two ways to define a beam beam lens in the SINGLE ELEMENTS list.\index{beam--beam}
 
 \bigskip
 \noindent\textbf{When the \texttt{EXPERT} flag is set in the \texttt{BEAM} block:}
@@ -210,7 +194,7 @@ In this case, only the element name and type and the location within the lattice
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 47 characters. \\
+    \texttt{name} & May contain up to 48 characters. \\
     \texttt{type} & 20 \\
     \texttt{}     & The rest of the parameters are ignored and should be set to zero.
 \end{tabular}
@@ -223,7 +207,7 @@ The ``traditional'' format is used.
 
 \bigskip
 \begin{longtabu}{@{}lp{0.7\linewidth}}
-    \texttt{name}  & May contain up to 47 characters. \\
+    \texttt{name}  & May contain up to 48 characters. \\
     \texttt{type}  & 20 \\
     \texttt{h-sep} & Horizontal beam--beam separation [mm]. \\
     \texttt{v-sep} & Vertical beam--beam separation [mm]. \\
@@ -239,11 +223,11 @@ These beam--beam elements become active when the ``Beam--Beam'' input block~\ref
 % ================================================================================================================================ %
 \subsection{Wire} \label{WIRE}
 
-\paragraph{Format} \texttt{name type}
+\paragraph{Format} \texttt{name type}\index{wire element}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 47 characters. \\
+    \texttt{name} & May contain up to 48 characters. \\
     \texttt{type} & 15
 \end{tabular}
 
@@ -255,11 +239,11 @@ The parameters for the wire are defined in the \texttt{WIRE} input block.
 % ================================================================================================================================ %
 \subsection{``Phase-trombone'' or Matrix Element} \label{PT}
 
-\paragraph{Format} \texttt{name type}
+\paragraph{Format} \texttt{name type}\index{phase trombone}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 47 characters \\
+    \texttt{name} & May contain up to 48 characters \\
     \texttt{type} & 22
 \end{tabular}
 
@@ -269,11 +253,11 @@ These ``trombone'' elements become active when the ``Phase Trombone Element'' in
 % ================================================================================================================================ %
 \subsection{AC Dipole} \label{ACDIP}
 
-\paragraph{Format} \texttt{name type ACdipAmp Qd ACdipPhase}
+\paragraph{Format} \texttt{name type ACdipAmp Qd ACdipPhase}\index{AC dipole}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 47 characters. \\
+    \texttt{name} & May contain up to 48 characters. \\
     \texttt{type} & Type identifier is $+16$ and $-16$ for horizontal and vertical AC dipoles respectively. \\
     \texttt{ACdipAmp} & Maximum excitation amplitude [Tm]. \\
     \texttt{Qd}   & Excitation frequency in units of [$2 \times \pi$]. \\
@@ -286,11 +270,11 @@ The length of the ramps and the flat top are specified in the ``Displacement'' b
 % ================================================================================================================================ %
 \subsection{Dipole Edge}
 
-\paragraph{Format} \texttt{name type $r_{21}$ $r_{43}$}
+\paragraph{Format} \texttt{name type $r_{21}$ $r_{43}$}\index{dipole edge}\index{dipedge}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 47 characters. \\
+    \texttt{name} & May contain up to 48 characters. \\
     \texttt{type} & 24 \\
     \texttt{$r_{21}$} & Horizontal edge focusing. \\
     \texttt{$r_{43}$} & Vertical edge focusing.
@@ -324,11 +308,11 @@ The following equations describe their relation:
 % ================================================================================================================================ %
 \subsection{Crab Cavity} \label{CrabCav}
 
-\paragraph{Format} \texttt{name type voltage frequency phase}
+\paragraph{Format} \texttt{name type voltage frequency phase}\index{crab cavity}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 47 characters. \\
+    \texttt{name} & May contain up to 48 characters. \\
     \texttt{type} & Type identifier is $+23$ and $-23$ for horizontal and vertical crab cavities respectively. \\
     \texttt{voltage} & Crab Cavity voltage [MV]. \\
     \texttt{frequency} & Crab Cavity frequency [MHz]. \\
@@ -358,7 +342,7 @@ If you don’t want to have CC but a simple dipole field then remove the \texttt
 % ================================================================================================================================ %
 \subsection{RF Multipole}
 
-Provides a kick in the form of
+Provides a kick in the form of\index{RF multipole}
 \begin{align}
     \Delta x'+i\Delta y' =& \frac{k}{1+\delta} (x+iy)^n \cos (\phi - 2 \pi f t) \\
     \Delta \delta =& P_0 \frac{k}{1+\delta} \frac{(x+iy)^{n+1}}{(n+1)!} \cos (\phi - 2 \pi f t)
@@ -369,10 +353,10 @@ Provides a kick in the form of
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 47 characters. \\
-    \texttt{type} & 26: normal quadrupole, -26 skew quadrupole, \\
-                  & 27: normal sextupole, -27 skew sextupole, \\
-                  & 28: normal octupole, -28 skew octupole. \\
+    \texttt{name} & May contain up to 48 characters. \\
+    \texttt{type} & 26: normal quadrupole, -26 skew quadrupole,\index{quadrupole}\index{skew quadrupole} \\
+                  & 27: normal sextupole, -27 skew sextupole,\index{sextupole}\index{skew sextupole} \\
+                  & 28: normal octupole, -28 skew octupole.\index{ocyupole}\index{skew octupole} \\
     \texttt{kick} & maximum normalized kick $k$. \\
     \texttt{frequency} & frequency $f$ in [MHz].
 \end{tabular}
@@ -380,7 +364,7 @@ Provides a kick in the form of
 \paragraph{Remarks}~\\
 How to use the RF multipoles (from MAD-X to SixTrack):\\
 
-\noindent\textbf{2\textsuperscript{nd} order multipole (quadrupole):}\\
+\noindent\textbf{2\textsuperscript{nd} order multipole (quadrupole):}\index{quadrupole}\\
 \noindent In the MAD-X script write:
 \begin{ctverbatim}
 MULT.1, KNL=\{0,-0.06*1e-3\}, PNL=\{0, 0.25\};
@@ -391,7 +375,7 @@ This gives the following single element in \texttt{fort.2}:
 mult.1q  26  6.00000000e-05  400.00000000e+00  -1.570796327e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
 \end{ctverbatim}
 
-\noindent\textbf{3\textsuperscript{rd} order multipole (sextupole):}\\
+\noindent\textbf{3\textsuperscript{rd} order multipole (sextupole):}\index{sextupole}\\
 \noindent In the MAD-X script write:
 \begin{ctverbatim}
 MULT.1, FREQ=400., KNL=\{0,0,1159.*1e-3\}, PNL=\{0,0,0.25\};
@@ -402,7 +386,7 @@ This gives the following single element in \texttt{fort.2}:
 mult.1s  27 -5.79500000e-01  4.00000000e+02  -1.570796327e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
 \end{ctverbatim}
 
-\noindent\textbf{4\textsuperscript{th} order multipole (octupole):}\\
+\noindent\textbf{4\textsuperscript{th} order multipole (octupole):}\index{octupole}\\
 \noindent In  the MAD-X script write:
 \begin{ctverbatim}
 MULT.1, FREQ=400., KNL=\{0,0,0,-4.*1e-3\}, PNL=\{0,0,0,0.25\};
@@ -429,11 +413,11 @@ So in order for this paper's~\cite{RFmultsPaper} analytical equations to be comp
 % ================================================================================================================================ %
 \subsection{Electron Lens} \label{ELEN}
 
-\paragraph{Format} \texttt{name type}
+\paragraph{Format} \texttt{name type}\index{electron lens}\index{ELEN}\index{ELENS}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 47 characters. \\
+    \texttt{name} & May contain up to 48 characters. \\
     \texttt{type} & 29
 \end{tabular}
 
@@ -445,11 +429,11 @@ The parameters for the e-lens are defined in the \texttt{ELEN} input block.
 % ================================================================================================================================ %
 \subsection{Scattering point} \label{SCAT}
 
-\paragraph{Format} \texttt{name type}
+\paragraph{Format} \texttt{name type}\index{SCAT}\index{elastic scattering}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \texttt{name} & May contain up to 47 characters. \\
+    \texttt{name} & May contain up to 48 characters. \\
     \texttt{type} & 40
 \end{tabular}
 
@@ -461,7 +445,7 @@ The parameters of the scattering are defined in the \texttt{SCAT}ter input block
 % ================================================================================================================================ %
 \subsection{Beam Position Monitor} \label{BPM}
 
-\paragraph{Format} \texttt{BPMname 0 0 0 0}
+\paragraph{Format} \texttt{BPMname 0 0 0 0}\index{beam position monitor}\index{BPM}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
@@ -474,11 +458,16 @@ The file contains 7 columns: $x$,$x'$, $y$,$y'$, $ct$,$\delta p/p$ and $E$.
 Usual SixTrack units are used.
 Any number of \texttt{BPM} elements can be used but the names must differ.
 
+% ================================================================================================================================ %
+\subsection{Other Element Types}
+
+Some other elements, such as dipole edge (24), solenoid (25), multipole RF kicks ($\pm$26, $\pm$27, $\pm$28) are accepted by SixTrack, but they are not currently supported by the development team or tested for correctness.\index{dipedge}\index{solenoid}
+It is therefore advised to not use these elements.
 
 % ================================================================================================================================ %
 \section{Block Definitions} \label{BloDef}
 
-In four-dimensional transverse tracking, the linear elements between non-linear elements can be combined to a single linear block to save computing time.
+In four-dimensional transverse tracking, the linear elements between non-linear elements can be combined to a single linear block to save computing time.\index{block definitions}\index{BLOC}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
@@ -492,15 +481,15 @@ In four-dimensional transverse tracking, the linear elements between non-linear 
 
 \bigskip
 \begin{longtabu}{@{}lp{0.75\linewidth}}
-    \texttt{mper} & Number of super periods. The following set of blocks is considered a \texttt{super-period}. The accelerator consists of \texttt{mper} super-periods. \\
-    \texttt{msym(i)} & $\pm$ 1 for each super-period. If $\mathrm{msym}(i)=1$, the \mbox{$i$'th} super-period will be built up in the order in which linear elements appear in the blocks  below. If $\mathrm{msym}(i)=-1$, the super-period will be built up in reverse order. \\
-    \texttt{block-name} & The name of the block with up to 47 characters. \\
+    \texttt{mper} & Number of super periods\index{super periods}. The following set of blocks is considered a \texttt{super-period}. The accelerator consists of \texttt{mper} super-periods. \\
+    \texttt{msym(i)} & $\pm$ 1 for each super period. If $\mathrm{msym}(i)=1$, the \mbox{$i$'th} super period will be built up in the order in which linear elements appear in the blocks  below. If $\mathrm{msym}(i)=-1$, the super period will be built up in reverse order. \\
+    \texttt{block-name} & The name of the block with up to 48 characters. \\
     \texttt{element-name} & The element names have to appear as a linear element in the list of ``single elements'' (\ref{LinEle}). If one line is too short to contain all the elements of a block, a line with additional elements to the same block can be added. At least 5 (five) blanks must appear at the beginning of the extra line so that names of blocks and names of linear elements in a block can be distinguished.
 \end{longtabu}
 
 \paragraph{Remarks}
 \begin{enumerate}
-    \item When synchrotron oscillation is introduced, the linear elements can no longer be lumped into one block, because in that case even a drift length magnet is a non-linear element with respect to the longitudinal plane. However, the block structure is still kept to make use of the speed-up in case one can restrict the studies to the four-dimensional case.
+    \item When synchrotron oscillation\index{synchrotron oscillation} is introduced, the linear elements can no longer be lumped into one block, because in that case even a drift length magnet is a non-linear element with respect to the longitudinal plane. However, the block structure is still kept to make use of the speed-up in case one can restrict the studies to the four-dimensional case.
     \item The maximum number of blocks and the maximum number of entries in each block are defined as parameters (Appendix~\ref{DSP}).
     \item The inversion of a super-period ($\mathrm{msym(i)} = -1$) is presently no longer allowed.
 \end{enumerate}
@@ -508,10 +497,10 @@ In four-dimensional transverse tracking, the linear elements between non-linear 
 % ================================================================================================================================ %
 \subsection{Structure Input} \label{StrInp}
 
-The model of the accelerator is put together by constructing a sequence of blocks of linear elements, non-linear elements, observation points, and possibly a cavity with the keyword \texttt{CAV} used if this name does not appear in the list of single elements (\ref{SinEle}) with type $\pm 12$.
+The model of the accelerator is put together by constructing a sequence of blocks of linear elements, non-linear elements, observation points, and possibly a cavity with the keyword \texttt{CAV} used if this name does not appear in the list of single elements (\ref{SinEle}) with type $\pm 12$.\index{structure input}\index{STRU}
 In that case, its parameters are given in the \textit{Synchrotron Oscillations} input block (\ref{SynOsc}).
 
-\paragraph{Format} \texttt{\{ structure-element $\vert$ CAV $\vert$ GO \}}
+\paragraph{Format} \texttt{\{ structure-element $\vert$ CAV $\vert$ GO \}}\index{CAV}\index{GO}
 
 \bigskip
 \begin{longtabu}{@{}lp{0.70\linewidth}}
@@ -523,16 +512,16 @@ In that case, its parameters are given in the \textit{Synchrotron Oscillations} 
 \paragraph{Remarks}
 Repetition of parts of the structure is indicated by parentheses with a multiplying factor N in front of them.
 If the left parenthesis ``('' occurs in a line of input, the factor \texttt{N} is expected to be found in the preceding characters.
-If the characters are blank, \texttt{N} is set to 1.
+If the characters are blank, \texttt{N} is set to 1.\index{bracket expansion}
 The right parenthesis ``)'' signals the end of the sequence to be repeated.
 
 % ================================================================================================================================ %
 \subsection{Displacement of Elements} \label{DisEle}
 
-This block allows to displace nonlinear elements in horizontal and vertical positions.
+This block allows to displace nonlinear elements in horizontal and vertical positions.\index{displacement of elements}\index{DISP}
 With the r.m.s. values of the horizontal and vertical displacements it is possible to achieve a displacement that is different from element to element.
 
-To simulate a measured closed orbit at the position of non-linear elements, it is convenient to use the \textit{Displacement of Elements} input block instead of trying to produce a closed orbit by dipole kicks.
+To simulate a measured closed orbit at the position of non-linear elements, it is convenient to use the \textit{Displacement of Elements} input block instead of trying to produce a closed orbit by dipole kicks.\index{closed orbit}
 
 \bigskip
 \begin{tabular}{@{}lp{0.80\linewidth}}
@@ -552,13 +541,13 @@ To simulate a measured closed orbit at the position of non-linear elements, it i
 \end{tabular}
 
 \bigskip
-\noindent In the case of an AC dipole these variables are not meant for displacing this element but are used for the following AC dipole parameters:
+\noindent In the case of an AC dipole\index{AC dipole} these variables are not meant for displacing this element but are used for the following AC dipole parameters:
 
 \paragraph{Format} \texttt{name nfree nramp1 nplato nramp2}
 
 \bigskip
 \begin{tabular}{@{}lp{0.80\linewidth}}
-    \texttt{name}   & May contain up to 47 characters. \\
+    \texttt{name}   & May contain up to 48 characters. \\
     \texttt{nfree}  & Number of turns free of excitation at the beginning of the run. \\
     \texttt{nramp1} & Number of turns to ramp up the excitation amplitude from 0 to \texttt{ACdipAmp}. \\
     \texttt{nplato} & Number of turns of constant excitation amplitude. \\
@@ -566,6 +555,6 @@ To simulate a measured closed orbit at the position of non-linear elements, it i
 \end{tabular}
 
 \paragraph{Remarks}
-In RACETRACK the displacements had been included in the \textit{Single Element} input block (\ref{SinEle}).
+In RACETRACK\index{RACETRACK} the displacements had been included in the \textit{Single Element} input block (\ref{SinEle}).
 In SixTrack they must be given in the separate \textit{Displacement of Elements} input block because of the limited length of one line of input.
 

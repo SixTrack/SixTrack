@@ -1,3 +1,4 @@
+
 !print *,"strackxxxxxx", strackx(i) !This i ks/2 
 !print *,"strackzzzzz", strackz(i)  !ksi/2
 
@@ -6,7 +7,7 @@
 
 onedp   =  (one+dpsv(j))/mtc(j)
 fppsig  = ( one + ((e0f/e0) **2)*temptr(6) ) / onedp
-
+!
 temptr(1)=xv(1,j)
 temptr(2)=yv(1,j)
 temptr(3)=xv(2,j)
@@ -37,6 +38,3 @@ yv(1,j) =  (pxf * costh_temp  +  pyf * sinth_temp)
 xv(2,j) = (-temptr(1)  * sinth_temp  +  temptr(3)  * costh_temp)
 yv(2,j) = (-pxf * sinth_temp  +  pyf * costh_temp)
 
-
-
-!print *, "after", xv(1,j), yv(1,j), xv(2,j), yv(2,j), sigmv(j), moidpsv(j), j

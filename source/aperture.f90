@@ -184,7 +184,7 @@ subroutine aperture_comnul
   ixLast = 0
   iLastThick = 0
   ixLastThick = 0
-  iBckTypeLast = 0
+  iBckTypeLast = -1
 
   mxsec = 0
   do ii=1,nxsec
@@ -864,7 +864,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
   if(llost) then
 
-    if(lbacktracking.and.kape(ix).ne.0.and.iBckTypeLast.ne.0) then
+    if(lbacktracking.and.kape(ix).ne.0.and.iBckTypeLast.ge.0) then
       lback=.true.
 
       ! Length between elements
@@ -923,9 +923,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             select case(iBckTypeLast)
             case (0)
               ! back-track along a drift
-              xlos(1) = xLast(1,j)  - yLast(1,j)*(one-step)*length
-              xlos(2) = xLast(2,j)  - yLast(2,j)*(one-step)*length
-              slos    = dcum(iLast) - (one-step)*length
+              xlos(1) = xLast(1,j)  - yLast(1,j)*((one-step)*length)
+              xlos(2) = xLast(2,j)  - yLast(2,j)*((one-step)*length)
+              slos    = dcum(iLast) + (step*length)
             end select
 
             ! - aperture at current step
@@ -2494,7 +2494,7 @@ end subroutine intersectTR
 !  APERTURE LIMITATIONS PARSING
 !  A. Mereghetti, P. Garcia Ortega and D. Sinuela Pastor, for the FLUKA Team
 !  J. Molson, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-06-20
+!  Last modified: 2018-06-26
 !  Input parsing split up, updated and moved from DATEN by VKBO.
 !  Original LIMI block extended to deal with RectEllipse, Octagon and RaceTrack aperture types,
 !    and with offset/tilting of profile.
@@ -2519,6 +2519,7 @@ subroutine aper_inputUnitWrapper(inLine, iLine, iErr)
     ! If we're in fort.3, let daten handle line reading and error reporting.
     call aper_parseInputLine(inLine, iLine, iErr)
     lineNo = 0
+    if(loadunit /= 3) goto 10
     return
   end if
 
@@ -2530,12 +2531,12 @@ subroutine aper_inputUnitWrapper(inLine, iLine, iErr)
     call prror(-1)
   end if
   lineNo = lineNo + 1
-
+  
   if(len_trim(unitLine) == 0) goto 10 ! Empty line, ignore
   if(unitLine(1:1) == "/")    goto 10 ! Comment line, ignore
   if(unitLine(1:1) == "!")    goto 10 ! Comment line, ignore
 
-  call aper_parseInputLine(inLine, iLine, iErr)
+  call aper_parseInputLine(unitLine, iLine, iErr)
   if(iErr) then
     write(lout,"(a)")      "LIMI> ERROR in external LIMI file."
     write(lout,"(a,i0,a)") "LIMI> Line ",lineNo,": '"//trim(unitLine)//"'"
@@ -2577,28 +2578,30 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
 
   case("LOAD")
     ! P.G.Ortega and A.Mereghetti, 02-03-2018
-    ! reading apertures from external file
-    if(nSplit < 3) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword LOAD. Expected 3, got ",nSplit
+    ! Reading apertures from external file
+    if(nSplit < 2 .or. nSplit > 3) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword LOAD. Expected 2 or 3, got ",nSplit
       iErr = .true.
       return
     end if
 
-    call chr_cast(lnSplit(2),loadunit,iErr)
-    load_file = trim(lnSplit(3))
-
-    if(loadunit < 0) then
-      call funit_requestUnit("aperLoadFile",loadunit)
+    if(nSplit == 3) then
+      call chr_cast(lnSplit(2),loadunit,iErr)
+      load_file = trim(lnSplit(3))
+      write(lout,"(a)") "LIMI> Note: Specifying unit for the external file is deprecated. A unit is assigned automatically."
+    else
+      load_file = trim(lnSplit(2))
     end if
+    call funit_requestUnit(trim(load_file),loadunit)
 
     inquire(file=load_file, exist=lExist)
     if(.not.lexist) then
-      write(lout,"(a)") "LIMI> ERROR LOAD file '"//load_file//"' not found in the running folder."
+      write(lout,"(a)") "LIMI> ERROR LOAD file '"//trim(load_file)//"' not found in the running folder."
       iErr = .true.
       return
     end if
     open(loadunit,file=load_file,form="formatted")
-    write(lout,"(a,i0)") "LIMI> Apertures read from file '"//load_file//"' with unit ",loadunit
+    write(lout,"(a)") "LIMI> Apertures will be read from file '"//trim(load_file)//"'"
 
   case("PRIN")
     ! P.G.Ortega and A.Mereghetti, 02-03-2018
@@ -2728,7 +2731,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
       end if
     end do
     if(.not.apeFound) then
-      write(lout,"(a)") "LIMI> WARNING Unidentified element '"//lnSplit(1)//"', ignoring..."
+      write(lout,"(a)") "LIMI> WARNING Unidentified element '"//lnSplit(1)//"', ignoring ..."
     end if
 
   end select

@@ -2137,7 +2137,6 @@ subroutine dynk_pretrack
     integer ii,jj
     character(mStrLen) element_name_s, att_name_s
     logical found, badelem
-    integer ix
     if (ldynkdebug) then
         write(lout,*) "DYNKDEBUG> In dynk_pretrack()"
     end if

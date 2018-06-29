@@ -20,7 +20,7 @@ subroutine daliesix
   save
 
   tlim=1e7
-  call timest(tlim)
+  call timest
   time0=0.
   call timex(time0)
 
@@ -167,7 +167,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use parpro
   use mod_commond
   use mod_common,  only : iqmodc,ichromc,ilinc
-  use mod_lie_dab, only : iscrri,iscrda,mld_allocArrays
+  use mod_lie_dab, only : iscrda,mld_allocArrays
 
   implicit none
 
@@ -242,7 +242,7 @@ subroutine runcav
   use mod_common
   use mod_commonmn, only : e0f
   use mod_commons
-  use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+  use mod_commont, only : comt_daStart,comt_daEnd
   use mod_commond
   use mod_hions
   use mod_lie_dab, only : idao,rscrri,iscrda
@@ -431,7 +431,7 @@ subroutine runda
   use mod_common
   use mod_commonmn, only : e0f,numx
   use mod_commons
-  use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+  use mod_commont, only : xxtr,yytr,comt_daStart,comt_daEnd
   use mod_commond
   use mod_commond2
   use mod_hions
@@ -443,7 +443,7 @@ subroutine runda
 
   integer i,ich,i11,i480,icav,ien,ifam,iflag,iflag1,iflag2,ii,ip,ipch,irrtr,iverg,ix,j,jb,jj,jmel,  &
     jx,k,kk,kkk,kpz,kzz,n,ncyo,nmz,nsta,nsto,idaa
-  real(kind=fPrec) beamoff1,beamoff2, beamoff3, beamoff4,beamoff5,beamoff6,benkcc,betr0,c5m4,cbxb,  &
+  real(kind=fPrec) beamoff1,beamoff2, beamoff3, beamoff4,beamoff5,beamoff6,benkcc,betr0,cbxb,       &
     cbzb,cik,crk,crxb,crzb,dare,dpdav,dpdav2,dummy,fake,ox,oxp,oz,ozp,r0,r000,r0a,r2b,r2bf,rb,rbf,  &
     rho2b,rkb,rkbf,scikveb,scrkveb,sigmdac,startco,tkb,xbb,xrb,xs,zbb,zfeld1,zfeld2,zrb,zs,crabfreq,&
     crabpht,crabpht2,crabpht3,crabpht4
@@ -459,9 +459,6 @@ subroutine runda
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
   call comt_daStart
-#ifdef FAST
-  c5m4=5.0e-4_fPrec
-#endif
   if(mout2.eq.1) then
     call units_openUnit(unit=99,fileName="fort.99",formatted=.true.,mode="w",err=fErr,recl=303)
   end if

@@ -79,7 +79,7 @@ OPTION(STF "Single Track File - write all tracks for postprocessing to fort.90, 
 OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
 OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal 'myboinc.f' dummy library)" OFF)
 OPTION(COLLIMAT "Collimation code" OFF)
-OPTION(CPSS "CERN physics screensaver support" OFF)
+#OPTION(CPSS "CERN physics screensaver support" OFF)
 OPTION(BOINC "BOINC distributed computing support" OFF)
 OPTION(CR "Checkpoint / restarting" OFF)
 OPTION(BEAMGAS "Beam-gas scattering" OFF)
@@ -93,6 +93,7 @@ OPTION(FLUKA "Couple to FLUKA for beam collimation" OFF)
 OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
 OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
 OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
+OPTION(WARN "Enable build flags for additional compiler warnings" OFF)
 
 #Compiler stuff - not needed any more with cmake
 #OPTION(IFORT "Use the intel fortran compiler" OFF)
@@ -173,9 +174,6 @@ if(API)
 endif()
 if(COLLIMAT)
 	SET(SIXTRACK_FEAT_CR "collimat_${SIXTRACK_FEAT_CR}")
-endif()
-if(CPSS)
-	SET(SIXTRACK_FEAT_CR "cpss_${SIXTRACK_FEAT_CR}")
 endif()
 if(BOINC)
 	SET(SIXTRACK_FEAT_CR "boinc_${SIXTRACK_FEAT_CR}")
@@ -289,7 +287,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}_${SIXTRACK_FEAT_DA}")
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST COLLIMAT CPSS BOINC BEAMGAS STF MERLINSCATTER NAFF G4COLLIMAT FLUKA CR)
+LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST COLLIMAT BOINC BEAMGAS STF MERLINSCATTER NAFF G4COLLIMAT FLUKA CR)
 LIST(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
 LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
@@ -343,7 +341,7 @@ endif(ROOT)
 
 if(BOINC AND NOT API)
 	# We have a BOINC build but no API, load the fake API substitute for debugging.
-	list(APPEND FORT90_CR boinc_dummy.f90)
+	list(APPEND FORT90_LIB boinc_dummy)
 endif(BOINC AND NOT API)
 
 foreach(loop IN LISTS FORT90_LIB)
@@ -522,9 +520,6 @@ if(BEAMGAS)
 	endif(NOT COLLIMAT)
 endif(BEAMGAS)
 if(COLLIMAT)
-	if(CPSS)
-		message(FATAL_ERROR "Cannot build COLLIMAT with CPSS enabled.")
-	endif()
 	if(CR)
 		message(FATAL_ERROR "Cannot build COLLIMAT with CR enabled.")
 	endif()
@@ -537,17 +532,6 @@ if(FLUKA)
 	if(SIXDA)
 		message(STATUS "Will not build SixDA when FLUKA is enabled.")
 		set(SIXDA OFF)
-	endif()
-endif()
-if(CPSS)
-	if(CERNLIB)
-		message(FATAL_ERROR "Cannot build CPSS with CERNLIB enabled.")
-	endif()
-	if(NOT CRLIBM)
-		message(FATAL_ERROR "Building with CPSS requires CRLIBM enabled.")
-	endif()
-	if(NOT CR)
-		message(FATAL_ERROR "Building with CPSS requires CR enabled.")
 	endif()
 endif()
 if(MERLINSCATTER)
@@ -623,7 +607,10 @@ get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
 #lots of games to play here.... start with fortran flags
 if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
-	# gfortran
+	##############
+	#  gfortran  #
+	##############
+	
 	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
 	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
 	set(PREPRO_FLAGS -cpp -E -P)
@@ -663,7 +650,7 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 		endif(AVX-512)
 
 		if(NATIVE)
-		  SET(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+			SET(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
 		endif(NATIVE)
 	endif()
 
@@ -686,14 +673,19 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	endif(GPROF)
 
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
-	# ifort
-	# set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -fpp")
-	# set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -fpp")
-	set (CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
+	###########
+	#  ifort  #
+	###########
+	
+	set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
+	set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
 	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
 	set(PREPRO_FLAGS -fpp -E -P)
 
+	if(WARN)
+		set(CMAKE_Fortran_FLAGS "-warn unused ${CMAKE_Fortran_FLAGS}")
+	endif(WARN)
+	
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
 		set(CMAKE_Fortran_FLAGS_DEBUG "-m32 ${CMAKE_Fortran_FLAGS_DEBUG}")
@@ -728,11 +720,14 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	endif(STATIC)
 
 elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
-	# nagfor
+	############
+	#  nagfor  #
+	############
+	
 	SET(NAGFOR ON)
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
-	set (CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
-	set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
+	set(CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
+	set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam -gline")
 	set(PREPRO_EXEC  fpp)
 	set(PREPRO_FLAGS -P -free)
 
@@ -1021,20 +1016,24 @@ endif()
 #build dafor
 add_executable(dafor ${CMAKE_SOURCE_DIR}/source/tools/dafor/dafor.f90)
 #we do not need any fancy flags for dafor
-SET_TARGET_PROPERTIES(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
-SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
-#target_compile_definitions(dafor PUBLIC "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
+#but nagfor does not like the following
+if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
+	SET_TARGET_PROPERTIES(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
+	SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
+	#target_compile_definitions(dafor PUBLIC "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
+endif(Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
 if(CRLIBM)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/source/crlibm)
+	add_subdirectory(${CMAKE_SOURCE_DIR}/source/crlibm)
 endif()
 if(CRLIBM OR BUILD_TESTING )
-  add_subdirectory(${CMAKE_SOURCE_DIR}/source/roundctl) #Also needed by read90
+	add_subdirectory(${CMAKE_SOURCE_DIR}/source/roundctl) #Also needed by read90
 endif()
 
 if(HDF5)
 	if(HDF5_FOUND)
-		SET_TARGET_PROPERTIES(SixTrackLib PROPERTIES COMPILE_FLAGS "-I${HDF5_INCLUDE_DIRS} ${HDF5_DEFINITIONS}")
+		SET_TARGET_PROPERTIES(SixTrackLib PROPERTIES INCLUDE_DIRECTORIES "${HDF5_INCLUDE_DIRS}")
+		SET_TARGET_PROPERTIES(SixTrackLib PROPERTIES COMPILE_DEFINITIONS "${HDF5_DEFINITIONS}")
 	else()
 		MESSAGE(FATAL_ERROR "HDF5 build requested, but could not find the HDF5 package.")
 	endif(HDF5_FOUND)
@@ -1093,49 +1092,40 @@ foreach(loop IN ITEMS ${SIXTRACK_INCL})
 endforeach()
 add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/version.f90 ${CMAKE_BINARY_DIR})
 
-if(BOINC)
-	if(API)
-		include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
-		
-		#The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
-		#go into the boinc source folder, cd api; make boinc_api_fortran.o
-		add_library(boinc_api_fortran STATIC IMPORTED)
-		set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
-		# add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp) #Alternative way of building and linking boinc_api_fortran.cpp/.o
-		target_link_libraries(SixTrackCR boinc_api_fortran)
-		
-		#add the libs
-		add_library(boinc STATIC IMPORTED)
-		set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
-		
-		add_library(boinc_api STATIC IMPORTED)
-		set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
-		target_link_libraries(SixTrackCR boinc_api)
-		
-		target_link_libraries(SixTrackCR boinc)
-		
-		find_library(stdc++ STATIC stdc++)
-		find_library(pthread STATIC pthread)
-		target_link_libraries(SixTrackLib stdc++ pthread)
+if(BOINC AND API)
+	include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
+	
+	#The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
+	#go into the boinc source folder, cd api; make boinc_api_fortran.o
+	add_library(boinc_api_fortran STATIC IMPORTED)
+	set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
+	# add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp) #Alternative way of building and linking boinc_api_fortran.cpp/.o
+	target_link_libraries(SixTrackCR boinc_api_fortran)
+	
+	#add the libs
+	add_library(boinc STATIC IMPORTED)
+	set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
+	
+	add_library(boinc_api STATIC IMPORTED)
+	set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
+	target_link_libraries(SixTrackCR boinc_api)
+	
+	target_link_libraries(SixTrackCR boinc)
+	
+	find_library(stdc++ STATIC stdc++)
+	find_library(pthread STATIC pthread)
+	target_link_libraries(SixTrackLib stdc++ pthread)
 
-		if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-			find_library(nsl STATIC nsl)
-			target_link_libraries(SixTrackCR nsl)
-		endif()
-
-		#fix osx linking to the correct c++ stdlib
-		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-			find_library(c++ STATIC c++)
-			target_link_libraries(SixTrackCR c++)
-		endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-	else()
-		add_custom_command(
-			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/boinc_dummy.f90 POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/boinc_dummy.f90 ${CMAKE_BINARY_DIR}/boinc_dummy.f90
-			DEPENDS copy_input_files
-		)
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		find_library(nsl STATIC nsl)
+		target_link_libraries(SixTrackCR nsl)
 	endif()
+
+	#fix osx linking to the correct c++ stdlib
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		find_library(c++ STATIC c++)
+		target_link_libraries(SixTrackCR c++)
+	endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 if(FLUKA)
@@ -1287,16 +1277,16 @@ if(MERLINSCATTER)
 endif(MERLINSCATTER)
 #if we are using naff, link to the naff library
 if(NAFF)
-	target_link_libraries(SixTrackCR naff)
+	target_link_libraries(SixTrackLib naff)
 endif(NAFF)
 
 #if we are using root, link to all the root libraries
 if(ROOT)
-	target_link_libraries(SixTrackCR root_output)
+	target_link_libraries(SixTrackLib root_output)
 endif(ROOT)
 
 if(HDF5)
-	target_link_libraries(SixTrackCR ${HDF5_LIBRARIES})
+	target_link_libraries(SixTrackLib ${HDF5_LIBRARIES})
 endif(HDF5)
 
 if(G4COLLIMAT)

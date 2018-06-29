@@ -41,6 +41,10 @@
 \hypersetup{colorlinks=true, citecolor=blue, urlcolor=blue, linkcolor=linkred}
 \urlstyle{same}
 
+% Index
+\usepackage{makeidx}
+\makeindex
+
 % Verbatim Box
 \newenvironment{cverbatim}
  {\SaveVerbatim{cverb}}
@@ -156,6 +160,8 @@
 % \cleardoublepage
 
 \input{theBibliography}
+\cleardoublepage
+\printindex
 \cleardoublepage
 \listoftables
 \cleardoublepage

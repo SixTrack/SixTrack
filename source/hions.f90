@@ -146,8 +146,8 @@ subroutine hions_postInput
 
   ! Init arrays
   mtc(:)      = one
-  naa(:)      = zz0
-  nzz(:)      = aa0
+  naa(:)      = aa0
+  nzz(:)      = zz0
   nucm(:)     = nucm0
   moidpsv(:)  = one
   omoidpsv(:) = zero

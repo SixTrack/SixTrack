@@ -1688,7 +1688,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 end subroutine collimate_parseInputLine
 
 subroutine collimate_postInput(gammar,has_coll)
-  
+
   real(kind=fPrec), intent(in) :: gammar
   logical,          intent(in) :: has_coll
 
@@ -2355,17 +2355,12 @@ subroutine collimate_start_collimator(stracki)
   use mod_commons
   use mod_commont
   use mod_commond
+  use numerical_constants, only : c5m4
 
   implicit none
 
   integer :: j
   real(kind=fPrec), intent(in) :: stracki
-
-  real(kind=fPrec) c5m4
-
-#ifdef FAST
-  c5m4=5.0e-4_fPrec
-#endif
 
   if(bez(myix)(1:3).eq.'TCP' .or. bez(myix)(1:3).eq.'tcp') then
     if(bez(myix)(7:9).eq.'3.B' .or. bez(myix)(7:9).eq.'3.b') then
@@ -2547,12 +2542,12 @@ subroutine collimate_do_collimator(stracki)
   use mod_commons
   use mod_commont
   use mod_commond
+  use numerical_constants, only : c5m4
 
   implicit none
 
   integer :: j
 
-  real(kind=fPrec) c5m4
   real(kind=fPrec), intent(in) :: stracki
 
 #ifdef G4COLLIMAT
@@ -2560,10 +2555,6 @@ subroutine collimate_do_collimator(stracki)
   integer :: part_hit_flag = 0
   integer :: part_abs_flag = 0
   real(kind=fPrec) x_tmp,y_tmp,xp_tmp,yp_tmp
-#endif
-
-#ifdef FAST
-  c5m4=5.0e-4_fPrec
 #endif
 
 !-----------------------------------------------------------------------
@@ -2772,14 +2763,17 @@ subroutine collimate_do_collimator(stracki)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   if ((iturn.eq.1).and.(ipencil.eq.icoll).and.(pencil_distr.eq.3)) then
 
-!     create distribution where the normalized distance between jaw and beam is the smallest - this is where particles will first impact:
+!     create distribution where the normalized distance between jaw and beam is the smallest
+!     - this is where particles will first impact:
 !     without imperfections, it is:
 !              -- at the face of the collimator for the case of beta'<0 (POSITIVE alpha - beam converging) and
 !              -- at the exit of the collimator for the case of beta'>0 (NEGATIVE alpha beam diverging)
 
-!     with imperfections: include errors on gap, tilt and offset. We have to calculate the normalized distance to each corner separately!
+!     with imperfections: include errors on gap, tilt and offset. We have to calculate the normalized distance
+!     to each corner separately!
 
-!     First: calculate optical parameters at start and end of collimator (half a collimator length upstream and downstream of present s-position)
+!     First: calculate optical parameters at start and end of collimator (half a collimator length upstream and
+!     downstream of present s-position)
 !     Assuming a purely vertical or horizontal halo - need to add more conditions for other cases!
 
 !     Using standard twiss transfer matrix for a drift : ( new_halo_model_checks.nb )
@@ -2832,7 +2826,8 @@ subroutine collimate_do_collimator(stracki)
       tiltOffsNeg2 = abs(sin_mb(c_tilt(2))) * c_length
     end if
 
-!   calculate half distance from jaws to beam center (in units of beam sigma) at the beginning of the collimator, positive and neg jaws.
+!   calculate half distance from jaws to beam center (in units of beam sigma) at the beginning of the collimator,
+!     positive and neg jaws.
     Nap1pos=((c_aperture/two + c_offset) + tiltOffsPos1)/beamsize1
     Nap2pos=((c_aperture/two + c_offset) + tiltOffsPos2)/beamsize2
     Nap1neg=((c_aperture/two - c_offset) + tiltOffsNeg1)/beamsize1
@@ -3293,6 +3288,7 @@ subroutine collimate_end_collimator()
   use mod_commons
   use mod_commont
   use mod_commond
+  use numerical_constants, only : c5m4
 
   implicit none
 
@@ -3304,11 +3300,7 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
 #endif
 
-  real(kind=fPrec) c5m4,stracki
-
-#ifdef FAST
-  c5m4=5.0e-4_fPrec
-#endif
+  real(kind=fPrec) stracki
 
 !++  Output information:
 !++
@@ -3503,7 +3495,7 @@ subroutine collimate_end_collimator()
               call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
             else
 #endif
-              write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') &
+              write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') &
                 ipart(j),iturn,sampl(ie)-half*c_length,           &
                 (rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie)), &
                 rcxp0(j)*c1e3+torbxp(ie),                                          &
@@ -3511,7 +3503,7 @@ subroutine collimate_end_collimator()
                 rcyp0(j)*c1e3+torbyp(ie),                                          &
                 (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 
-              write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') &
+              write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') &
                 ipart(j),iturn,sampl(ie)+half*c_length,           &
                 xv(1,j)+half*c_length*yv(1,j),yv(1,j),                             &
                 xv(2,j)+half*c_length*yv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,      &
@@ -3519,7 +3511,8 @@ subroutine collimate_end_collimator()
 #ifdef HDF5
             end if
 #endif
-          end if ! if((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4) .and.(xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec) .and.
+          end if ! if((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
+          ! .and.(xv(1,j).lt.99.0_fPrec.and.xv(2,j).lt.99.0_fPrec) and.
         end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
       end if !if(dowritetracks) then
 
@@ -4290,7 +4283,7 @@ subroutine collimate_end_element
             call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
           else
 #endif
-            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j), iturn, sampl(ie), &
+            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j), iturn, sampl(ie), &
               xv(1,j), yv(1,j), xv(2,j), yv(2,j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
@@ -4756,7 +4749,7 @@ subroutine collimate_end_turn
             call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
           else
 #endif
-            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e11.5),1x,e11.3,1x,i4)') ipart(j),iturn,sampl(ie), &
+            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j),iturn,sampl(ie), &
               xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
@@ -5333,7 +5326,8 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !     SR: before assigning new (x,y) for nabs=1, write the
 !     inelastic impact file .
 
-!     RB: writeout should be done for both inelastic and single diffractive. doing all transformations in x_flk and making the set to 99.99 mm conditional for nabs=1
+!     RB: writeout should be done for both inelastic and single diffractive. doing all transformations
+!       in x_flk and making the set to 99.99 mm conditional for nabs=1
 !!! /* start RB fix */
 
 ! transform back to lab system for writeout.

@@ -246,7 +246,7 @@ subroutine SixTrackRootFortranInit
   root_prefix        = C_NULL_CHAR
 end subroutine SixTrackRootFortranInit
 
-subroutine daten_root(ch)
+subroutine root_daten(ch)
 
   use string_tools
 
@@ -316,7 +316,7 @@ subroutine daten_root(ch)
 
 !check + enable flags
 
-end subroutine daten_root
+end subroutine root_daten
 
 subroutine root_parseInputDone
   implicit none

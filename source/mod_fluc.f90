@@ -198,7 +198,6 @@ subroutine fluc_readFort8
   use parpro,              only : mNameLen,str_nmSpace
   use numerical_constants, only : zero
   use mod_common,          only : il,bez,icextal,nblz,nblo,ic
-  use mod_settings,        only : st_debug
 
   implicit none
 
@@ -207,9 +206,9 @@ subroutine fluc_readFort8
   real(kind=fPrec) alignx, alignz, tilt
   integer lineNo, ioStat, nSplit, mAlign, nAlign, iStru, iSing
   logical iErr, isOpen, inSing
-  integer i, j
+  integer i
 
-  lineNo      = 0
+  lineNo = 0
 
   inquire(unit=8, opened=isOpen)
   if(isOpen) close(8)
@@ -285,13 +284,6 @@ subroutine fluc_readFort8
   end if
 
   write(lout,"(a,i0,a)") "FLUC> Read ",fluc_nAlign," values from fort.8"
-  ! if(st_debug) then
-  !   do i=1,fluc_nAlign
-  !     write(lout,"(a,i5,2(a,i0))") "FLUC> ",i,": '"//trim(fluc_bezAlign(i))//"' "//&
-  !       "with ID ",fluc_ixAlign(i)," = ",icextal(fluc_ixAlign(i))
-  !     write(lout,"(a,3(2x,e14.7))")  "FLUC> Values: ",fluc_errAlign(1,i),fluc_errAlign(2,i),fluc_errAlign(3,i)
-  !   end do
-  ! end if
 
   return
 
@@ -313,7 +305,6 @@ subroutine fluc_readFort16
   use parpro,              only : mNameLen,str_nmSpace
   use numerical_constants, only : zero
   use mod_common,          only : il,bez,icext,nblz,nblo,ic
-  use mod_settings,        only : st_debug
 
   implicit none
 
@@ -322,7 +313,7 @@ subroutine fluc_readFort16
   character(len=mNameLen) bezExt
   integer mType, lineNo, ioStat, nSplit, lMode, nVals, mVal, mExt, iStru, iSing, nExt
   logical iErr, isOpen, inSing
-  integer i, j
+  integer i
 
   mType  = 0
   lineNo = 0
@@ -441,15 +432,6 @@ subroutine fluc_readFort16
   end if
 
   write(lout,"(a,i0,a)") "FLUC> Read ",fluc_nExt," values from fort.16"
-  ! if(st_debug) then
-  !   do i=1,fluc_nExt
-  !     write(lout,"(a,i5,a,i0)") "FLUC> ",i,": '"//trim(fluc_bezExt(i))//"' with ID ",fluc_ixExt(i)
-  !     do j=1,40,4
-  !       write(lout,"(a,i2,a,4(2x,e14.7))")  "FLUC>  * ",j,": ",&
-  !         fluc_errExt(j,i),fluc_errExt(j+1,i),fluc_errExt(j+2,i),fluc_errExt(j+3,i)
-  !     end do
-  !   end do
-  ! end if
 
   return
 
@@ -475,7 +457,6 @@ subroutine fluc_readFort30
   use parpro,              only : mNameLen,str_nmSpace,mmul
   use numerical_constants, only : zero
   use mod_common,          only : il,bez,icextal,nblz,nblo,ic,kp,kz
-  use mod_settings,        only : st_debug
 
   implicit none
 
@@ -484,7 +465,7 @@ subroutine fluc_readFort30
   real(kind=fPrec) alignx, alignz, tilt
   integer lineNo, ioStat, nSplit, mZFZ, nZFZ, iStru, iSing, iZ
   logical iErr, isOpen, inSing
-  integer i, j
+  integer i
 
   lineNo = 0
 

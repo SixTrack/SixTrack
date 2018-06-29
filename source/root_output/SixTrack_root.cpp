@@ -36,7 +36,6 @@ extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, ch
     else
     {
         fname = std::string(root_path) + "/" + std::string(root_prefix) + std::to_string(run_number) + ".root";
-
     }
 
     std::cout << "Opening " << fname << std::endl;
