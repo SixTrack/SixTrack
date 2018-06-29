@@ -905,7 +905,7 @@ subroutine daten
   elseif(closeBlock) then
     call root_parseInputDone
   else
-    call daten_root(inLine)
+    call root_daten(inLine)
   end if
 #endif
 
