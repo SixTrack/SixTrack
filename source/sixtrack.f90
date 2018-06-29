@@ -957,9 +957,11 @@ subroutine daten
     crad   = (((two*crad)*partnum)*gammar)*c1e6
     emitx  = sixin_emitNX*gammar
     emity  = sixin_emitNY*gammar
+
 #ifdef COLLIMAT
     call collimate_postInput(gammar,has_coll)
 #endif
+
   end if
 
   call hions_postInput
@@ -6036,8 +6038,8 @@ subroutine linopt(dpp)
      &'AFTER EACH BLOCK'/                                               &
      &'   A T T E N T I O N : BETATRON PHASE CALCULATION MIGHT BE WRONG'&
      &,' BY A MULTIPLE OF 0.5 FOR EACH LARGE BLOCK'/)
-10040 format(/10x,'RELATIVE ENERGY DEVIATION  ',t40,f10.7/ 10x,         &
-     &'TUNES -HORIZONTAL',t40,f10.7/ 10x,'      -VERTICAL  ',t40,f10.7/)
+10040 format(/10x,'RELATIVE ENERGY DEVIATION  ',t40,f23.16/ 10x,         &
+     &'TUNES -HORIZONTAL',t40,f23.16/ 10x,'      -VERTICAL  ',t40,f23.16/)
 10050 format(t8,'  PLANE          DISP(MM)                 DISP(MRAD)'/ &
      &t6,'      X  ',2(f20.12,6x)/t10,'  Y  ',2(f20.12,6x)/)
 10060 format(//131('-')//)
@@ -11140,8 +11142,8 @@ subroutine subre(dpp)
      &'UNITS ARE (PI X MM X MRAD)'//)
 10060 format(//10x,'E=NX*QX+NY*QY-P',//10x,'CLOSESET P-VALUE CHANGED ', &
      &'BY D-P',//10x,'DELTA-E STANDS FOR THE RESONANCE-WIDTH' //10x)
-10070 format(/10x,'RELATIVE ENERGY DEVIATION  ',t40,f10.7/ 10x,         &
-     &'TUNES -HORIZONTAL',t40,f10.7/ 10x,'      -VERTICAL  ',t40,f10.7)
+10070 format(/10x,'RELATIVE ENERGY DEVIATION  ',t40,f23.16/ 10x,        &
+     &'TUNES -HORIZONTAL',t40,f23.16/ 10x,'      -VERTICAL  ',t40,f23.16)
 10080 format(/10x,'RESONANCE EXCITING MULTIPOLE-ORDER = ',i2)
 10090 format(//20x,'RESONANCE-ORDER =',i2/20x,100('-')/ 20x,'| NY |',   &
      &'   P  | D-P |',2x,'DRIVING-COS ',3x,'|', 2x,'DRIVING-SIN ',3x,'|'&
