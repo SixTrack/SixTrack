@@ -122,27 +122,28 @@ module mod_fluka
 
   !----------------------------------------------------------------------------
   ! set the module up
-  subroutine fluka_mod_init(maxp, nele, clight)
+  subroutine fluka_mod_init(npart, nele, clight)
+
     implicit none
 
     ! interface variables
-    integer :: maxp, nele
+    integer :: npart, nele
     real(kind=fPrec) :: clight
 
     ! temporary variables
     integer :: j
 
-    fluka_max_npart = maxp
+    fluka_max_npart = npart
     fluka_clight    = clight
 
-    call alloc(fluka_uid,fluka_max_npart,0,'fluka_uid')
-    call alloc(fluka_gen,fluka_max_npart,0,'fluka_gen')
-    call alloc(fluka_weight,fluka_max_npart,one,'fluka_weight')
-    call alloc(fluka_type,nele,FLUKA_NONE,'fluka_type')
-    call alloc(fluka_geo_index,nele,0,'fluka_geo_index')
-    call alloc(fluka_synch_length,nele,zero,'fluka_synch_length')
+    call alloc(fluka_uid,          npart, 0, 'fluka_uid')
+    call alloc(fluka_gen,          npart, 0, 'fluka_gen')
+    call alloc(fluka_weight,       npart, one, 'fluka_weight')
+    call alloc(fluka_type,         nele, FLUKA_NONE, 'fluka_type')
+    call alloc(fluka_geo_index,    nele, 0, 'fluka_geo_index')
+    call alloc(fluka_synch_length, nele, zero, 'fluka_synch_length')
 
-    do j = 1, fluka_max_npart
+    do j = 1, npart
       fluka_uid(j) = j
       fluka_gen(j) = j
     end do
@@ -167,12 +168,12 @@ module mod_fluka
 
     integer :: npart_new, nele_new, j
 
-    call resize(fluka_uid,npart_new,0,'fluka_uid')
-    call resize(fluka_gen,npart_new,0,'fluka_gen')
-    call resize(fluka_weight,npart_new,one,'fluka_weight')
-    call resize(fluka_type,nele_new,FLUKA_NONE,'fluka_type')
-    call resize(fluka_geo_index,nele_new,0,'fluka_geo_index')
-    call resize(fluka_synch_length,nele_new,zero,'fluka_synch_length')
+    call resize(fluka_uid,          npart_new, 0, 'fluka_uid')
+    call resize(fluka_gen,          npart_new, 0, 'fluka_gen')
+    call resize(fluka_weight,       npart_new, one, 'fluka_weight')
+    call resize(fluka_type,         nele_new, FLUKA_NONE, 'fluka_type')
+    call resize(fluka_geo_index,    nele_new, 0, 'fluka_geo_index')
+    call resize(fluka_synch_length, nele_new, zero, 'fluka_synch_length')
 
     do j = npart+1, npart_new
       fluka_uid(j) = j
@@ -279,45 +280,57 @@ module mod_fluka
 
   !----------------------------------------------------------------------------
   ! send and receive particles from Fluka
-  integer function fluka_send_receive(turn, ipt, el, npart, x, xp, y, yp, s, etot, aa, zz, mass)
+  integer function fluka_send_receive(turn, ipt, el, npart, xv, yv, s, etot, aa, zz, mass)
     implicit none
 
     ! Parameters
     integer(kind=int32) :: turn, ipt
     integer           ::  npart
     real(kind=fPrec)  :: el
-    real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
-    real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
-    real(kind=fPrec)  :: s(fluka_max_npart), etot(fluka_max_npart)
-    integer(kind=int16) :: aa(fluka_max_npart),  zz(fluka_max_npart)   !PH for hiSix
-    real(kind=fPrec)  :: mass(fluka_max_npart)                       !PH for hiSix
 
-    fluka_send_receive = fluka_send(turn, ipt, el, npart, x, xp, y, yp, s, etot, aa, zz, mass)
+    real(kind=fPrec), allocatable :: xv(:,:)
+    real(kind=fPrec), allocatable :: yv(:,:)
+!    real(kind=fPrec), allocatable :: y(:)
+!    real(kind=fPrec), allocatable :: yp(:)
+    real(kind=fPrec), allocatable :: s(:)
+    real(kind=fPrec), allocatable :: etot(:)
+
+    real(kind=fPrec), allocatable :: mass(:)
+    integer(kind=int16), allocatable :: aa(:)
+    integer(kind=int16), allocatable :: zz(:)
+
+    fluka_send_receive = fluka_send(turn, ipt, el, npart, xv, yv, s, etot, aa, zz, mass)
     if(fluka_send_receive.eq.-1) return
 
-    fluka_send_receive = fluka_receive(turn, ipt, el, npart, x, xp, y, yp, s, etot, aa, zz, mass)
+    fluka_send_receive = fluka_receive(turn, ipt, el, npart, xv, yv, s, etot, aa, zz, mass)
   end function fluka_send_receive
 
   !----------------------------------------------------------------------------
   ! just send particles to Fluka
-  integer function fluka_send(turn, ipt, el, npart, x, xp, y, yp, s, etot, aa, zz, mass)
+  integer function fluka_send(turn, ipt, el, npart, xv, yv, s, etot, aa, zz, mass)
     implicit none
 
     ! Interface variables
     integer(kind=int32) :: turn, ipt
     integer           :: npart
     real(kind=fPrec)  :: el
-    real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
-    real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
-    real(kind=fPrec)  :: s(fluka_max_npart), etot(fluka_max_npart)
-    integer(kind=int16) :: aa(fluka_max_npart),  zz(fluka_max_npart)   !PH for hiSix
-    real(kind=fPrec)  :: mass(fluka_max_npart)                       !PH for hiSix
+
+    real(kind=fPrec), allocatable :: xv(:,:)
+    real(kind=fPrec), allocatable :: yv(:,:)
+!    real(kind=fPrec), allocatable :: y(:)
+!    real(kind=fPrec), allocatable :: yp(:)
+    real(kind=fPrec), allocatable :: s(:)
+    real(kind=fPrec), allocatable :: etot(:)
+
+    real(kind=fPrec), allocatable :: mass(:)
+    integer(kind=int16), allocatable :: aa(:)
+    integer(kind=int16), allocatable :: zz(:)
 
     ! Fluka I/O parameters
-    integer(kind=int32)         :: flid, flgen
-    real(kind=fPrec)  :: flwgt, flx, fly, flz, flxp, flyp, flzp, flet, flm, flt
-    integer(kind=int16)         :: flaa, flzz
-    integer(kind=int8)          :: mtype
+    integer(kind=int32) :: flid, flgen
+    real(kind=fPrec)    :: flwgt, flx, fly, flz, flxp, flyp, flzp, flet, flm, flt
+    integer(kind=int16) :: flaa, flzz
+    integer(kind=int8)  :: mtype
 
     ! Auxiliary variables
     integer :: j
@@ -352,12 +365,12 @@ module mod_fluka
       flgen = fluka_gen(j)
       flwgt = fluka_weight(j)
 
-      flx   = x(j) * c1m1  ! from [mm] to [cm]
-      fly   = y(j) * c1m1  ! from [mm] to [cm]
+      flx   = xv(1,j) * c1m1  ! from [mm] to [cm]
+      fly   = xv(2,j) * c1m1  ! from [mm] to [cm]
       flz   = zero
 
-      flxp  = xp(j) * c1m3 ! from [1.0E-03] to [1.0]
-      flyp  = yp(j) * c1m3 ! from [1.0E-03] to [1.0]
+      flxp  = yv(1,j) * c1m3 ! from [1.0E-03] to [1.0]
+      flyp  = yv(2,j) * c1m3 ! from [1.0E-03] to [1.0]
       ! director cosines:
       ! full transformation:
       flzp  = sqrt( one / ( flxp**2 + flyp**2 + one ) )
@@ -424,24 +437,33 @@ module mod_fluka
   ! The call from fluka.s90 is:
   ! fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv(1,:), yv(1,:), xv(2,:), yv(2,:), sigmv, ejv, naa(:), nzz(:), nucm(:))
   ! When the above arrays are made allocatable, the below variables will need updating - see mod_commonmn and mod_hions
-  integer function fluka_receive(turn, ipt, el, npart, x, xp, y, yp, s, etot, aa, zz, mass)
+  integer function fluka_receive(turn, ipt, el, napx, xv, yv, s, etot, aa, zz, mass)
+
+    use parpro
+
     implicit none
 
     ! Interface variables
     integer(kind=int32) :: turn, ipt
-    integer           :: npart
+    integer           :: napx
     real(kind=fPrec)  :: el
-    real(kind=fPrec)  :: x(fluka_max_npart), xp(fluka_max_npart)
-    real(kind=fPrec)  :: y(fluka_max_npart), yp(fluka_max_npart)
-    real(kind=fPrec)  :: s(fluka_max_npart), etot(fluka_max_npart)
-    integer(kind=int16) :: aa(fluka_max_npart),  zz(fluka_max_npart)   !PH for hiSix
-    real(kind=fPrec)  :: mass(fluka_max_npart)                       !PH for hiSix
+
+    real(kind=fPrec), allocatable :: xv(:,:)
+    real(kind=fPrec), allocatable :: yv(:,:)
+!    real(kind=fPrec), allocatable :: y(:)
+!    real(kind=fPrec), allocatable :: yp(:)
+    real(kind=fPrec), allocatable :: s(:)
+    real(kind=fPrec), allocatable :: etot(:)
+
+    real(kind=fPrec), allocatable :: mass(:)
+    integer(kind=int16), allocatable :: aa(:)
+    integer(kind=int16), allocatable :: zz(:)
 
     ! Fluka I/O parameters
-    integer(kind=int32)         :: flid, flgen
-    real(kind=fPrec)  :: flwgt, flx, fly, flz, flxp, flyp, flzp, flet, flm, flt
-    integer(kind=int16)         :: flaa, flzz
-    integer(kind=int8)          :: mtype
+    integer(kind=int32) :: flid, flgen
+    real(kind=fPrec)    :: flwgt, flx, fly, flz, flxp, flyp, flzp, flet, flm, flt
+    integer(kind=int16) :: flaa, flzz
+    integer(kind=int8)  :: mtype
 
     ! Auxiliary variables
     integer(kind=int32) :: n, j
@@ -452,22 +474,22 @@ module mod_fluka
     mtype = 0
 
     ! assign default values
-    do j = 1, fluka_max_npart
+    do j = 1, npart
       fluka_uid(j) = j
       fluka_gen(j) = j
 
       fluka_weight(j) = one
 
-      x   (j) = zero
-      y   (j) = zero
-      xp  (j) = zero
-      yp  (j) = zero
-      etot(j) = zero
-      s   (j) = zero
+      xv  (1,j) = zero
+      xv  (2,j) = zero
+      yv  (1,j) = zero
+      yv  (2,j) = zero
+      etot(j)   = zero
+      s   (j)   = zero
 ! hisix: we should also parse m0,A0,Z0
-      aa  (j) = 1
-      zz  (j) = 1
-      mass(j) = zero
+      aa  (j)   = 1
+      zz  (j)   = 1
+      mass(j)   = zero
     end do
 
     ! Wait until end of turn (Synchronize)
@@ -489,18 +511,18 @@ module mod_fluka
 
          fluka_nrecv = fluka_nrecv + 1
 
-         if(fluka_nrecv.gt.fluka_max_npart) then
+         if(fluka_nrecv .gt. npart) then
 
-            !If we hit the particle limit, we will need to  do a global array expand on npart
-            !call expand_arrays(nele, npart+50, nblz, nblo)
-            write(fluka_log_unit, *) &
-                 '# FlukaIO error: reached maximum number of particles, ', &
-                 'no space left to store other incoming particles'
-            fluka_cid = -1
-            fluka_receive = -1
-            return
+            !If we hit the particle limit, we will need to  do a global array expand on npart, lets increase by 50 for now
+            call expand_arrays(nele, npart+50, nblz, nblo)
 
-         else
+!            write(fluka_log_unit, *) &
+!                 '# FlukaIO error: reached maximum number of particles, ', &
+!                 'no space left to store other incoming particles'
+!            fluka_cid = -1
+!            fluka_receive = -1
+!            return
+         end if
 
             if(fluka_debug) then
                write(fluka_log_unit, '("<",2I8,7(1X,1PE25.18),2I8)') flid, flgen, &
@@ -523,22 +545,21 @@ module mod_fluka
             end if
 
             fluka_weight(fluka_nrecv) = flwgt
-            x(fluka_nrecv)            = flx * c1e1   ! from [cm]  to [mm]
-            y(fluka_nrecv)            = fly * c1e1   ! from [cm]  to [mm]
-            xp(fluka_nrecv)           = flxp / flzp * c1e3 ! from director cosine to x' [1.0E-03]
-            yp(fluka_nrecv)           = flyp / flzp * c1e3 ! from director cosine to x' [1.0E-03]
+            xv(1,fluka_nrecv)         = flx * c1e1   ! from [cm]  to [mm]
+            xv(2,fluka_nrecv)         = fly * c1e1   ! from [cm]  to [mm]
+            yv(1,fluka_nrecv)         = flxp / flzp * c1e3 ! from director cosine to x' [1.0E-03]
+            yv(2,fluka_nrecv)         = flyp / flzp * c1e3 ! from director cosine to x' [1.0E-03]
             etot(fluka_nrecv)         = flet * c1e3  ! from [GeV] to [MeV]
             s(fluka_nrecv)            = ( el - (fluka_pc0/fluka_e0)*(flt*fluka_clight) ) * c1e3 ! from [s] to [mm]
             aa(fluka_nrecv)           = flaa          !PH for hiSix
             zz(fluka_nrecv)           = flzz          !PH for hiSix
             mass(fluka_nrecv)         = flm  * c1e3  ! from [GeV] to [MeV]         !PH for hiSix
-         end if
       end if
 
       !Finished waiting end of turn
     end do
 
-    npart = fluka_nrecv
+    napx = fluka_nrecv
 
     write(fluka_log_unit,*) "# FlukaIO: turn = ", turn, &
       " ipt = ", ipt, &
