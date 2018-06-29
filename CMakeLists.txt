@@ -1285,7 +1285,7 @@ if(ROOT)
 endif(ROOT)
 
 if(HDF5)
-	target_link_libraries(SixTrackCR ${HDF5_LIBRARIES})
+	target_link_libraries(SixTrackLib ${HDF5_LIBRARIES})
 endif(HDF5)
 
 if(G4COLLIMAT)
