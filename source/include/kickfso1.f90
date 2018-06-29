@@ -1,11 +1,3 @@
-
-!strack=zero
-!strackx=ed(IX)
-!strackz=ek(IX)
-
-!Going to momenum and psigma
-
-
 !FOX  PUSIG=((EJ1-E0)/(E0F*(E0F/E0))) ;
 
 !FOX  TEMPI(1) = X(1) ;

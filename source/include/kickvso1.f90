@@ -1,10 +1,3 @@
-
-!print *,"strackxxxxxx", strackx(i) !This i ks/2 
-!print *,"strackzzzzz", strackz(i)  !ksi/2
-
-! x'-> px; y'->py
-!Transformation to some more reasonable coordinates
-
 onedp   =  (one+dpsv(j))/mtc(j)
 fppsig  = ( one + ((e0f/e0) **2)*temptr(6) ) / onedp
 !
@@ -14,9 +7,6 @@ temptr(3)=xv(2,j)
 temptr(4)=yv(2,j)
 
 temptr(6)=(ejv(j)-e0)/(e0f*(e0f/e0))
-
-!print *, "before", xv(1,j), yv(1,j), xv(2,j), yv(2,j), sigmv(j), moidpsv(j), j
-!onedp   = sqrt( one + two*temptr(6) + ((e0f/e0)**2)*(temptr(6)**2))
 
 
 !     Set up C,S, q_temp,r_temp,Z
@@ -29,8 +19,6 @@ q_temp = -strackz(i) * strackx(i) / (onedp)
 pxf  = temptr(2) + temptr(1)*q_temp / (onedp) 
 pyf  = temptr(4) +  temptr(3) *q_temp / (onedp)
 
-!print *, "pxf", pxf , temptr(2)
-!print *, "pyf", pyf , temptr(4)
 
 !       r_tempipken formulae p.29 (3.37)
 xv(1,j) =  (temptr(1)  * costh_temp  +  temptr(3)  * sinth_temp)
