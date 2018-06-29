@@ -1,5 +1,6 @@
-crkve=sigmv(j)-half*(((((((xv(1,j)**2+xv(2,j)**2)*strackx(i))*strackz(i))*rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)
-sigmv(j)=crkve
-crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j)
-cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j)
-sigmv(j)=sigmv(j)+((((((xv(1,j)*cikve-xv(2,j)*crkve)*strackz(i))*rvv(j))*ejf0v(j))/ejfv(j))*ejf0v(j))/ejfv(j)
+pxf  = temptr(2)*onedp + temptr(1)*q_temp 
+pyf  = temptr(4)*onedp +  temptr(3) *q_temp 
+r_temp = (fppsig / (onedp**2)) * (strackz(i) * strackx(i))
+z_temp = (fppsig / (onedp**2))* (strackz(i))
+sigf = sigmv(j) - (half*(temptr(1)**2 +  temptr(3) **2)*r_temp)*c1m3
+sigmv(j) =  (sigf + (temptr(1)*pyf - temptr(3)*pxf)*(z_temp*c1m3))

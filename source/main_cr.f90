@@ -378,9 +378,9 @@ end interface
 #endif
 
   ! Heavy Ion Output
-  call units_openUnit(unit=208,fileName="fort.208",formatted=.false.,mode="w",err=fErr) ! coll losses (energy)
-  call units_openUnit(unit=209,fileName="fort.209",formatted=.false.,mode="w",err=fErr) ! coll losses in function of particle i
-  call units_openUnit(unit=210,fileName="fort.210",formatted=.false.,mode="w",err=fErr) ! mtc after each collimator interaction
+  call units_openUnit(unit=208,fileName="fort.208",formatted=.true.,mode="w",err=fErr) ! coll losses (energy)
+  call units_openUnit(unit=209,fileName="fort.209",formatted=.true.,mode="w",err=fErr) ! coll losses in function of particle i
+  call units_openUnit(unit=210,fileName="fort.210",formatted=.true.,mode="w",err=fErr) ! mtc after each collimator interaction
 
   ! ---------------------------------------------------------------------------------------------- !
   ! Write Header

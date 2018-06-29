@@ -1032,7 +1032,8 @@ endif()
 
 if(HDF5)
 	if(HDF5_FOUND)
-		SET_TARGET_PROPERTIES(SixTrackLib PROPERTIES COMPILE_FLAGS "-I${HDF5_INCLUDE_DIRS} ${HDF5_DEFINITIONS}")
+		SET_TARGET_PROPERTIES(SixTrackLib PROPERTIES INCLUDE_DIRECTORIES "${HDF5_INCLUDE_DIRS}")
+		SET_TARGET_PROPERTIES(SixTrackLib PROPERTIES COMPILE_DEFINITIONS "${HDF5_DEFINITIONS}")
 	else()
 		MESSAGE(FATAL_ERROR "HDF5 build requested, but could not find the HDF5 package.")
 	endif(HDF5_FOUND)
@@ -1281,7 +1282,7 @@ endif(NAFF)
 
 #if we are using root, link to all the root libraries
 if(ROOT)
-	target_link_libraries(SixTrackCR root_output)
+	target_link_libraries(SixTrackLib root_output)
 endif(ROOT)
 
 if(HDF5)
