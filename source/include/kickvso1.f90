@@ -1,15 +1,28 @@
-yv(1,j)=yv(1,j)-xv(2,j)*strackx(i)
-yv(2,j)=yv(2,j)+xv(1,j)*strackx(i)
+onedp   =  (one+dpsv(j))/mtc(j)
+fppsig  = ( one + ((e0f/e0) **2)*temptr(6) ) / onedp
 !
-! TODO: Check if ejf0v should be e0f?? or oidpsv=ejf0v(j)/ejfv(j)=1/(1+delta)
-!
-crkve=yv(1,j)-(((xv(1,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
-cikve=yv(2,j)-(((xv(2,j)*strackx(i))*strackz(i))*ejf0v(j))/ejfv(j) !hr02
-yv(1,j)=crkve*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))+cikve*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))
-yv(2,j)=cikve*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))-crkve*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))
-crkve=xv(1,j)*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))+xv(2,j)*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))
-cikve=xv(2,j)*cos_mb((strackz(i)*ejf0v(j))/ejfv(j))-xv(1,j)*sin_mb((strackz(i)*ejf0v(j))/ejfv(j))
-xv(1,j)=crkve
-xv(2,j)=cikve
-yv(1,j)=yv(1,j)+xv(2,j)*strackx(i)
-yv(2,j)=yv(2,j)-xv(1,j)*strackx(i)
+temptr(1)=xv(1,j)
+temptr(2)=yv(1,j)
+temptr(3)=xv(2,j)
+temptr(4)=yv(2,j)
+
+temptr(6)=(ejv(j)-e0)/(e0f*(e0f/e0))
+
+
+!     Set up C,S, q_temp,r_temp,Z
+costh_temp = cos_mb(strackz(i)/onedp)
+sinth_temp = sin_mb(strackz(i)/onedp)
+
+
+q_temp = -strackz(i) * strackx(i) / (onedp)
+
+pxf  = temptr(2) + temptr(1)*q_temp / (onedp) 
+pyf  = temptr(4) +  temptr(3) *q_temp / (onedp)
+
+
+!       r_tempipken formulae p.29 (3.37)
+xv(1,j) =  (temptr(1)  * costh_temp  +  temptr(3)  * sinth_temp)
+yv(1,j) =  (pxf * costh_temp  +  pyf * sinth_temp)
+xv(2,j) = (-temptr(1)  * sinth_temp  +  temptr(3)  * costh_temp)
+yv(2,j) = (-pxf * sinth_temp  +  pyf * costh_temp)
+
