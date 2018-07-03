@@ -58,7 +58,7 @@ subroutine CollimatorLossRootWrite(icoll_in,db_name,db_name_len,impact_in,absorb
 end subroutine CollimatorLossRootWrite
 
 subroutine ApertureCheckWriteLossParticle(turn_in, i_in, ix_in, bez_in, bez_in_len, slos_in, ipart_in, x_in, xp_in, y_in, yp_in, &
-& ct_in, e_in, dp_in) bind(C,name="ApertureCheckWriteLossParticle")
+& p_in, dp_in, ct_in, naa_in, nzz_in) bind(C,name="ApertureCheckWriteLossParticle")
   use, intrinsic :: iso_c_binding
   implicit none
   integer(kind=C_INT), intent(in), value :: turn_in
@@ -72,9 +72,11 @@ subroutine ApertureCheckWriteLossParticle(turn_in, i_in, ix_in, bez_in, bez_in_l
   real(kind=C_DOUBLE), intent(in), value :: xp_in
   real(kind=C_DOUBLE), intent(in), value :: y_in
   real(kind=C_DOUBLE), intent(in), value :: yp_in
-  real(kind=C_DOUBLE), intent(in), value :: ct_in
-  real(kind=C_DOUBLE), intent(in), value :: e_in
+  real(kind=C_DOUBLE), intent(in), value :: p_in
   real(kind=C_DOUBLE), intent(in), value :: dp_in
+  real(kind=C_DOUBLE), intent(in), value :: ct_in
+  integer(kind=C_INT), intent(in), value :: naa_in
+  integer(kind=C_INT), intent(in), value :: nzz_in
 end subroutine ApertureCheckWriteLossParticle
 
 subroutine SurvivalRootWrite(nturn_in, npart_in) bind(C,name="SurvivalRootWrite")
