@@ -21,13 +21,14 @@ TFile *RootFile;
 * i.e. opening files on EOS
 * Catch errors?
 */
-extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, char* root_path, char* root_prefix, int Accelerator, int Optics, int ApertureCheck, int Collimation, int CollimationDB)
+extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, char* root_path, char* root_prefix, int Accelerator, int Optics, int ApertureCheck, int Collimation, int CollimationDB, int FLUKA)
 {
     std::cout << "Root output initialization" << std::endl;
     std::cout << "Accelerator is enabled: " << Accelerator << std::endl;
     std::cout << "Optics are enabled: " << Optics << std::endl;
     std::cout << "ApertureCheck is enabled: " << ApertureCheck << std::endl;
     std::cout << "Collimation is enabled: " << Collimation << std::endl;
+    std::cout << "FLUKA Collimation is enabled: " << FLUKA << std::endl;
     std::string fname;
     if(eos)
     {
@@ -80,6 +81,12 @@ extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, ch
     if(CollimationDB)
     {
         CollimationDBRootInit();
+    }
+
+
+    if(FLUKA)
+    {
+        CollimationFLUKARootInit();
     }
 
     //Dump

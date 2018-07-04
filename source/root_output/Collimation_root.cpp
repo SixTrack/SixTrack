@@ -7,6 +7,7 @@
 
 CollimationRootOutput* CollimationLossOutput;
 CollimationDBRootOutput* CollimationDBOutput;
+CollimationFLUKARootOutput* CollimationFLUKAOutput;
 
 /**
 * Collimation start up and tree creation
@@ -23,6 +24,11 @@ extern "C" void CollimationDBRootInit()
     CollimationDBOutput = new CollimationDBRootOutput();
 }
 
+extern "C" void CollimationFLUKARootInit()
+{
+    CollimationFLUKAOutput = new CollimationFLUKARootOutput();
+}
+
 //Just pass values forward to c++
 extern "C" void CollimatorLossRootWrite(int icoll_in, char* db_name_in, int db_name_len, int impact_in, int absorbed_in, double caverage_in, double csigma_in, double length_in)
 {
@@ -37,6 +43,11 @@ extern "C" void SurvivalRootWrite(int nturn_in, int npart_in)
 extern "C" void CollimatorDatabaseRootWrite(int j, char* db_name_in, int db_name_len, char* db_material_in, int db_material_len, double db_nsig_in, double db_length_in, double db_rotation_in, double db_offset_in)
 {
     CollimationDBOutput->CollimatorDatabaseRootOutputWrite(j, db_name_in, db_name_len, db_material_in, db_material_len, db_nsig_in, db_length_in, db_rotation_in, db_offset_in);
+}
+
+extern "C" void root_FLUKA_EnergyDeposition(int id_in, int16_t nucleons_in, double energy_in)
+{
+    CollimationFLUKAOutput->CollimatorFLUKARootOutputWrite(id_in, nucleons_in, energy_in);
 }
 
 CollimationRootOutput::CollimationRootOutput()
@@ -115,3 +126,26 @@ void CollimationDBRootOutput::CollimatorDatabaseRootOutputWrite(int j, char* db_
 //	std::cout << db_name_len << "\t" << db_material_len << std::endl;
 	CollimatorDatabaseTree->Fill();
 }
+
+/**
+* Collimator FLUKA output 
+*/
+
+CollimationFLUKARootOutput::CollimationFLUKARootOutput()
+{
+	CollimationFLUKATree = new TTree("CollimatorFLUKA","CollimationFLUKATree");
+	CollimationFLUKATree->Branch("id",&id,"id/I");
+	CollimationFLUKATree->Branch("nucleons",&nucleons,"nucleons/I");
+	CollimationFLUKATree->Branch("energy",&energy,"energy/D");
+}
+
+void CollimationFLUKARootOutput::CollimatorFLUKARootOutputWrite(int id_in, int16_t nucleons_in, double energy_in)
+{
+	id = id_in;
+
+	nucleons = nucleons_in;
+	energy = energy_in;
+
+	CollimationFLUKATree->Fill();
+}
+
