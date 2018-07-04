@@ -628,30 +628,31 @@ end interface
     call clorb(ded)
 
 #ifdef ROOT
-    call SixTrackRootInit()
-    call ConfigurationOutputRootSet_npart(napx)
-    call ConfigurationOutputRootSet_nturns(nnuml)
-    call ConfigurationRootWrite()
+    if(root_flag) then
+      call SixTrackRootInit()
+      call ConfigurationOutputRootSet_npart(napx)
+      call ConfigurationOutputRootSet_nturns(nnuml)
+      call ConfigurationRootWrite()
 
-    ! Dump the accelerator lattice
-! read(ch1,*) idat,kz(i),ed(i),ek(i),el(i),bbbx(i),bbby(i),bbbs(i)
-    if(root_flag .and. root_Accelerator == 1) then
-      ! loop all over the entries in the accelerator structure
-      do i=1,iu
-        ix=ic(i)
-        if(ix.gt.nblo) then
-          ix=ix-nblo
-          call AcceleratorRootWrite(trim(adjustl(bez(ix)))//C_NULL_CHAR,&
-            len_trim(trim(adjustl(bez(ix)))//C_NULL_CHAR), kz(ix), ed(ix), ek(ix), el(ix))
-        else
-          do j=1,mel(ix)
-            k=mtyp(ix,j)
-            call AcceleratorRootWrite(trim(adjustl(bez(k)))//C_NULL_CHAR, &
-              len_trim(trim(adjustl(bez(k)))//C_NULL_CHAR), kz(k), ed(k), ek(k), el(k))
-          end do
-        end if
-      end do
+      ! Dump the accelerator lattice
+      if(root_flag .and. root_Accelerator == 1) then
+        ! loop all over the entries in the accelerator structure
+        do i=1,iu
+          ix=ic(i)
+          if(ix.gt.nblo) then
+            ix=ix-nblo
+            call AcceleratorRootWrite(trim(adjustl(bez(ix)))//C_NULL_CHAR,&
+              len_trim(trim(adjustl(bez(ix)))//C_NULL_CHAR), kz(ix), ed(ix), ek(ix), el(ix))
+          else
+            do j=1,mel(ix)
+              k=mtyp(ix,j)
+              call AcceleratorRootWrite(trim(adjustl(bez(k)))//C_NULL_CHAR, &
+                len_trim(trim(adjustl(bez(k)))//C_NULL_CHAR), kz(k), ed(k), ek(k), el(k))
+            end do
+          end if
+        end do
       end if
+    end if
 #endif
 #ifdef DEBUG
 !     call dumpbin('aclorb',1,1)

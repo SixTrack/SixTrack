@@ -238,8 +238,10 @@ contains
 
 subroutine SixTrackRootInit
   implicit none
-  call DoSixTrackRootInit(root_eos_enabled, root_RunNumber, root_eos_server, root_folder, root_prefix, root_Accelerator, &
-& root_Optics, root_ApertureCheck, root_Collimation, root_CollimationDB, root_FLUKA)
+  if(root_flag)  then
+    call DoSixTrackRootInit(root_eos_enabled, root_RunNumber, root_eos_server, root_folder, root_prefix, root_Accelerator, &
+&                           root_Optics, root_ApertureCheck, root_Collimation, root_CollimationDB, root_FLUKA)
+  end if
 end subroutine SixTrackRootInit
 
 subroutine SixTrackRootFortranInit
