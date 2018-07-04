@@ -2417,8 +2417,10 @@ end interface
     call zipf_dozip
   endif
 #ifdef ROOT
-  call RunTimeRootWrite(pretime, trtime, posttime)
-  call SixTrackRootExit()
+  if(root_flag) then
+    call RunTimeRootWrite(pretime, trtime, posttime)
+    call SixTrackRootExit()
+  end if
 #endif
   call alloc_exit
   call closeUnits ! Must be last as it also closes fort.6
