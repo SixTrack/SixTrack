@@ -44,12 +44,19 @@ ApertureCheckRootOutput::ApertureCheckRootOutput()
     ApertureLossTree->Branch("dp",&dp,"dp/D");
 
     ApertureLossTree->Branch("ct",&ct,"ct/D");
-
-    ApertureLossTree->Branch("a",&na,"a/D");
-    ApertureLossTree->Branch("z",&nz,"z/D");
+/*
+S: a 16 bit signed integer
+s: a 16 bit unsigned integer
+I: a 32 bit signed integer
+i: a 32 bit unsigned integer
+L: a 64 bit signed integer
+l: a 64 bit unsigned integer
+*/
+    ApertureLossTree->Branch("a",&na,"a/s");
+    ApertureLossTree->Branch("z",&nz,"z/s");
 }
 
-void ApertureCheckRootOutput::WriteLossParticle(int turn_in, int i_in, int ix_in, char* bez_in, int bez_len, double slos_in, int ipart_in, double x_in, double xp_in, double y_in, double yp_in, double p_in, double dp_in, double ct_in, int a_in, int z_in)
+void ApertureCheckRootOutput::WriteLossParticle(int turn_in, int i_in, int ix_in, char* bez_in, int bez_len, double slos_in, int ipart_in, double x_in, double xp_in, double y_in, double yp_in, double p_in, double dp_in, double ct_in, int16_t a_in, int16_t z_in)
 {
     turn = turn_in;
     i = i_in;

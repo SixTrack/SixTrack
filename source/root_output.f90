@@ -23,7 +23,7 @@ interface
 
 !General stuff
 subroutine DoSixTrackRootInit(eos, run_number, eos_server, root_path, root_prefix, Accelerator, Optics, ApertureCheck, Collimation,&
-& CollimationDB, FLUKA) bind(C,name="DoSixTrackRootInit")
+& CollimationDB, FLUKA_f) bind(C,name="DoSixTrackRootInit")
   use, intrinsic :: iso_c_binding
   implicit none
   integer(kind=C_INT), intent(in), value :: eos
@@ -36,7 +36,7 @@ subroutine DoSixTrackRootInit(eos, run_number, eos_server, root_path, root_prefi
   integer(kind=C_INT), intent(in), value :: ApertureCheck
   integer(kind=C_INT), intent(in), value :: Collimation
   integer(kind=C_INT), intent(in), value :: CollimationDB
-  integer(kind=C_INT), intent(in), value :: FLUKA
+  integer(kind=C_INT), intent(in), value :: FLUKA_f
 end subroutine DoSixTrackRootInit
 
 subroutine SixTrackRootExit() bind(C,name="SixTrackRootExit")
@@ -77,8 +77,8 @@ subroutine ApertureCheckWriteLossParticle(turn_in, i_in, ix_in, bez_in, bez_in_l
   real(kind=C_DOUBLE), intent(in), value :: p_in
   real(kind=C_DOUBLE), intent(in), value :: dp_in
   real(kind=C_DOUBLE), intent(in), value :: ct_in
-  integer(kind=C_INT), intent(in), value :: naa_in
-  integer(kind=C_INT), intent(in), value :: nzz_in
+  integer(kind=C_INT16_T), intent(in), value :: naa_in
+  integer(kind=C_INT16_T), intent(in), value :: nzz_in
 end subroutine ApertureCheckWriteLossParticle
 
 subroutine SurvivalRootWrite(nturn_in, npart_in) bind(C,name="SurvivalRootWrite")
@@ -228,7 +228,7 @@ subroutine root_FLUKA_EnergyDeposition(id_in, nucleons_in, energy_in) bind(C,nam
   use, intrinsic :: iso_c_binding
   implicit none
   integer(kind=C_INT),    intent(in), value :: id_in
-  integer(kind=C_INT),    intent(in), value :: nucleons_in
+  integer(kind=C_INT16_T),    intent(in), value :: nucleons_in
   real(kind=C_DOUBLE), intent(in), value :: energy_in
 end subroutine
 
