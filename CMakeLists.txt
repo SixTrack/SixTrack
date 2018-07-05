@@ -473,7 +473,7 @@ endif(ROOT)
 
 if(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMAT OR CERNLIB)
 
-    find_package(threads REQUIRED)
+    find_package(Threads REQUIRED)
     if(NOT Threads_FOUND)
         message(FATAL_ERROR "Could not find a thread library! This is required for your selected build configuration.")
     endif(NOT Threads_FOUND)
