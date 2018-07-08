@@ -1253,7 +1253,7 @@ logical function checkOC( x, y, ap1, ap2, m, q )
 ! parameters
   real(kind=fPrec) x, y, ap1, ap2, m, q
 
-  checkOC = checkRE(x,y,ap1,ap2).or.(y.gt.m*x+q)
+  checkOC = checkRE(x,y,ap1,ap2).or.(abs(y).gt.m*abs(x)+q)
   return
 end function checkOC
 
