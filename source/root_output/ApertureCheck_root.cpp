@@ -52,11 +52,11 @@ i: a 32 bit unsigned integer
 L: a 64 bit signed integer
 l: a 64 bit unsigned integer
 */
-    ApertureLossTree->Branch("a",&na,"a/s");
-    ApertureLossTree->Branch("z",&nz,"z/s");
+    ApertureLossTree->Branch("a",&na,"a/I");
+    ApertureLossTree->Branch("z",&nz,"z/I");
 }
 
-void ApertureCheckRootOutput::WriteLossParticle(int turn_in, int i_in, int ix_in, char* bez_in, int bez_len, double slos_in, int ipart_in, double x_in, double xp_in, double y_in, double yp_in, double p_in, double dp_in, double ct_in, int16_t a_in, int16_t z_in)
+void ApertureCheckRootOutput::WriteLossParticle(int turn_in, int i_in, int ix_in, char* bez_in, int bez_len, double slos_in, int ipart_in, double x_in, double xp_in, double y_in, double yp_in, double p_in, double dp_in, double ct_in, int a_in, int z_in)
 {
     turn = turn_in;
     i = i_in;

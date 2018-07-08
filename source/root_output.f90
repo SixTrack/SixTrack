@@ -77,8 +77,8 @@ subroutine ApertureCheckWriteLossParticle(turn_in, i_in, ix_in, bez_in, bez_in_l
   real(kind=C_DOUBLE), intent(in), value :: p_in
   real(kind=C_DOUBLE), intent(in), value :: dp_in
   real(kind=C_DOUBLE), intent(in), value :: ct_in
-  integer(kind=C_INT16_T), intent(in), value :: naa_in
-  integer(kind=C_INT16_T), intent(in), value :: nzz_in
+  integer(kind=C_INT), intent(in), value :: naa_in
+  integer(kind=C_INT), intent(in), value :: nzz_in
 end subroutine ApertureCheckWriteLossParticle
 
 subroutine SurvivalRootWrite(nturn_in, npart_in) bind(C,name="SurvivalRootWrite")

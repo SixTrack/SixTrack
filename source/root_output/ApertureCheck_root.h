@@ -13,7 +13,7 @@ public:
 
 ApertureCheckRootOutput();
 
-void WriteLossParticle(int, int, int, char*, int, double, int, double, double, double, double, double, double, double, int16_t, int16_t);
+void WriteLossParticle(int, int, int, char*, int, double, int, double, double, double, double, double, double, double, int, int);
 
 
 private:
@@ -33,8 +33,8 @@ Double_t ct;
 Double_t p;
 Double_t dp;
 
-int16_t na;
-int16_t nz;
+int na;
+int nz;
 
 TTree *ApertureLossTree;
 
