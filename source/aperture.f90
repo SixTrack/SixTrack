@@ -1824,6 +1824,7 @@ subroutine dump_aperture_model
 !     dump all apertures declared in machine
 !     always in main code
 !-----------------------------------------------------------------------
+  use parpro
   implicit none
 
 ! temporary variables
@@ -1834,17 +1835,16 @@ subroutine dump_aperture_model
   real(kind=fPrec) aprr(9),slos
   character(len=mNameLen), parameter :: interpolated = 'interpolated'
 
-  write(lout,*)''
-  write(lout,fmt="(131('-'))")
-  write(lout,*)''
-  write(lout,*)' DUMP OF APERTURE MODEL'
-  write(lout,*)''
+  write(lout,"(a)") str_divLine
+  write(lout,"(a)") ""
+  write(lout,"(a)") " DUMP OF APERTURE MODEL"
+  write(lout,"(a)") ""
 
   inquire( unit=aperunit, opened=lopen )
   if( .not.lopen ) then
     if( aperunit.ne.0 ) then
-       open( aperunit, file=aper_filename, form='formatted' )
-       write(lout,*) 'APERTURE PROFILE DUMPED IN FILE: ',aper_filename,' - UNIT: ',aperunit
+      open( aperunit, file=aper_filename, form='formatted' )
+      write(lout,"(a)") "APER> Profile dumped in file: '"//trim(aper_filename)//"'"
     end if
   end if
 
@@ -1855,7 +1855,7 @@ subroutine dump_aperture_model
   i=1
   ix=ic(i)-nblo
   if( kape(ix).eq.0 ) then
-    write(lout,*) ' ERROR - first element of lattice structure is not assigned any aperture type'
+    write(lout,"(a)") "APER> ERROR Frst element of lattice structure is not assigned any aperture type"
     call prror(-1)
   end if
   call dump_aperture_marker( aperunit, ix, i )
@@ -1989,7 +1989,7 @@ subroutine dump_aperture_header( iunit )
  &                  'aper3[mm][rad]', 'aper4[mm][rad]', 'aper5[mm][rad]', 'aper6[mm][rad]', &
  &                  'angle[rad]', 'xoff[mm]', 'yoff[mm]'
   return
- 1984 format (a1,a16,1x,a6,1x,10(1x,a15))
+ 1984 format (a1,a48,1x,a6,1x,10(1x,a15))
 end subroutine dump_aperture_header
 
 subroutine dump_aperture_xsecs
@@ -2008,16 +2008,14 @@ subroutine dump_aperture_xsecs
      ! from print_lastlines_to_stderr
      inquire(unit=xsecunit(ixsec),opened=lopen)
      if(lopen) then
-        write(lout,*)'Dump_aperture_xsecs - Error in opening unit ',xsecunit(ixsec), &
- &            ' - filename: ',xsec_filename(ixsec),' - the file is already open.'
+        write(lout,"(a,i0)")"APER> ERROR Dump_aperture_xsecs. Could not open file unit '"//trim(xsec_filename(ixsec))//&
+          "' with unit ",xsecunit(ixsec)
         call prror(-1)
      end if
      open(unit=xsecunit(ixsec),file=xsec_filename(ixsec),form="formatted",status="old",iostat=ierro)
      if(ierro .ne. 0) then
-        write(lout,'(a,a,a,1x,i5,1x,a,1x,i5)')                         &
-     &        "Error when opening file '",                             &
-     &        trim(xsec_filename(ixsec)),                              &
-     &        "' on unit #", xsecunit(ixsec), ", iostat =",ierro
+        write(lout,"(2(a,i0))") "APER> ERROR Opening file '"//trim(xsec_filename(ixsec))//&
+          "' on unit # ",xsecunit(ixsec),", iostat = ",ierro
         call prror(-1)
      end if
 
@@ -2029,13 +2027,13 @@ subroutine dump_aperture_xsecs
         ! get upstream aperture marker
         call find_closest_aperture(iEl,.true.,iApeUp,ixApeUp,lApeUp)
         if( iApeUp.eq.-1 .and. ixApeUp.eq.-1 ) then
-           write(lout,*)' ERROR - could not find upstream aperture marker'
+           write(lout,"(a)") "APER> ERROR Could not find upstream aperture marker"
            call prror(-1)
         end if
         ! get downstream aperture marker
         call find_closest_aperture(iEl,.false.,iApeDw,ixApeDw,lApeDw)
         if( iApeDw.eq.-1 .and. ixApeDw.eq.-1 ) then
-           write(lout,*)' ERROR - could not find downstream aperture marker'
+           write(lout,"(a)") "APER> ERROR Could not find downstream aperture marker"
            call prror(-1)
         end if
         ! interpolate and get aperture at desired location
@@ -2528,7 +2526,7 @@ subroutine aper_inputUnitWrapper(inLine, iLine, iErr)
     call prror(-1)
   end if
   lineNo = lineNo + 1
-  
+
   if(len_trim(unitLine) == 0) goto 10 ! Empty line, ignore
   if(unitLine(1:1) == "/")    goto 10 ! Comment line, ignore
   if(unitLine(1:1) == "!")    goto 10 ! Comment line, ignore
@@ -2552,6 +2550,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
 
   use string_tools
   use file_units
+  use sixtrack_input
 
   implicit none
 
@@ -2603,18 +2602,19 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   case("PRIN")
     ! P.G.Ortega and A.Mereghetti, 02-03-2018
     ! flag for dumping the aperture model
-    if(nSplit < 3) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword PRIN. Expected 3, got ",nSplit
+    if(nSplit < 2) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword PRIN. Expected 2, got ",nSplit
       iErr = .true.
       return
     end if
 
-    call chr_cast(lnSplit(2),aperunit,iErr)
-    aper_filename = trim(lnSplit(3))
-
-    if(aperunit < 0) then
-      call funit_requestUnit("aperPrintFile",aperunit)
+    if(nSplit == 3) then
+      aper_filename = trim(lnSplit(3))
+      write(lout,"(a)") "LIMI> Note: Specifying unit for the PRIN file is deprecated. A unit is assigned automatically."
+    else
+      aper_filename = trim(lnSplit(2))
     end if
+    call funit_requestUnit(trim(aper_filename),aperunit)
 
     ldmpaper = .true.
     if(nSplit > 3) then
@@ -2623,18 +2623,26 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
       end if
     end if
 
+    if(aperture_debug) then
+      call sixin_echoVal("aperunit",aperunit,     "LIMI",iLine)
+      call sixin_echoVal("filename",aper_filename,"LIMI",iLine)
+    end if
+
   case("DEBUG")
     aperture_debug = .true.
+    write(lout,"(a)") "LIMI> DEBUG is enabled."
 
   case("SAVE")
     ! P.G.Ortega and A.Mereghetti, 02-03-2018
     ! flag for saving particles at aperture check
     apflag = .true.
+    write(lout,"(a)") "LIMI> SAVE is enabled."
 
   case("BACKTRKOFF")
     ! A.Mereghetti, 07-03-2018
     ! switch off back tracking
     lbacktracking=.false.
+    write(lout,"(a)") "LIMI> Backtracking is disabled."
 
   case("PREC")
     ! A.Mereghetti and P.Garcia Ortega, 02-03-2018
@@ -2656,9 +2664,9 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   case("XSEC")
     ! A.Mereghetti, 22-03-2018
     ! ask for xsec at specific locations
-    ! example input line:        XSEC 155 myCrossSec.dat 12355.78 12356.78 0.1 180
-    if(nSplit < 4) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword XSEC. Expected 4, got ",nSplit
+    ! example input line:        XSEC myCrossSec.dat 12355.78 12356.78 0.1 180
+    if(nSplit < 3) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword XSEC. Expected at least 3, got ",nSplit
       iErr = .true.
       return
     end if
@@ -2670,9 +2678,9 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
       return
     end if
 
-    call chr_cast(lnSplit(2),xsecunit(mxsec),iErr)
-    xsec_filename(mxsec) = lnSplit(3)
-    call chr_cast(lnSplit(4),sLocMin(mxsec),iErr)
+    xsec_filename(mxsec) = lnSplit(2)
+    call chr_cast(lnSplit(3),sLocMin(mxsec),iErr)
+    call funit_requestUnit(xsec_filename(mxsec),xsecunit(mxsec))
 
     if(sLocMin(mxsec) < zero) then
       write(lout,"(a)") "LIMI> ERROR Negative min s-value for xsecs!"
@@ -2680,8 +2688,8 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
       return
     end if
 
-    if(nSplit > 4) then
-      call chr_cast(lnSplit(5),sLocMax(mxsec),iErr)
+    if(nSplit > 3) then
+      call chr_cast(lnSplit(4),sLocMax(mxsec),iErr)
       if (sLocMax(mxsec).lt.zero) then
         write(lout,"(a)") "LIMI> ERROR Negative max s-value for xsecs!"
         iErr = .true.
@@ -2689,8 +2697,8 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
       end if
     end if
 
-    if(nSplit > 5) then
-      call chr_cast(lnSplit(6),sLocDel(mxsec),iErr)
+    if(nSplit > 4) then
+      call chr_cast(lnSplit(5),sLocDel(mxsec),iErr)
       if(sLocDel(mxsec) < zero) sLocDel(mxsec)=-sLocDel(mxsec) ! increasing s-val
     end if
 
@@ -2705,7 +2713,16 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
       end block
     end if
 
-    if(nSplit > 6) call chr_cast(lnSplit(6),nAzimuts(mxsec),iErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6),nAzimuts(mxsec),iErr)
+
+    if(aperture_debug) then
+      call sixin_echoVal("xsecunit",xsecunit(mxsec),"LIMI",iLine)
+      call sixin_echoVal("filename",xsec_filename(mxsec),"LIMI",iLine)
+      call sixin_echoVal("sLocMin", sLocMin(mxsec),"LIMI",iLine)
+      if(nSplit > 3) call sixin_echoVal("sLocMax", sLocMax(mxsec), "LIMI",iLine)
+      if(nSplit > 4) call sixin_echoVal("sLocDel", sLocDel(mxsec), "LIMI",iLine)
+      if(nSplit > 5) call sixin_echoVal("nAzimuts",nAzimuts(mxsec),"LIMI",iLine)
+    end if
 
   case default
 
