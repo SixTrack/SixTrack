@@ -472,8 +472,8 @@ end interface
       checkp=.true.
       call crcheck
 #endif
-      if(ithick.eq.1) write(lout,10030)
-      if(ithick.eq.0) write(lout,10040)
+      if(ithick.eq.1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
+      if(ithick.eq.0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
       if(ibidu.eq.2) then
         write(lout,10025)
         goto 550
@@ -2150,27 +2150,33 @@ end interface
       ! of the numl in numxv/nnumxv???? Eric.
       ! where we reset [n]numxv to nnuml UNLESS particle lost
       ! Now we shall try using that fix at start of tracking
+      write(lout,"(a)") ""
+      write(lout,"(a)") str_divLine
+      write(lout,"(a)") ""
+      write(lout,"(a)") "    PARTICLE SUMMARY:"
+      write(lout,"(a)") ""
+
       do ia=1,napxo,2
         ie=ia+1
         ia2=(ie)/2
-        napxto=(napxto+numxv(ia))+numxv(ie)                              !hr05
+        napxto = napxto+numxv(ia)+numxv(ie)
 
         if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
           write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          if(st_quiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+          if(st_quiet == 0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
           write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
-          if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has ',&
-            'corrupted output probably due to lost particle: ',ia,' or: ',ie
+          if(ierro /= 0) write(lout,"(2(a,i0))") "MAINCR> WARNING fort.12 has corrupted output probably due to lost particle ",&
+            ia," or ",ie
         end if
 
         if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
           id=id+1
-          if(st_quiet==0) then
+          if(st_quiet == 0) then
             write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
-          else
+          else if(st_quiet == 1) then
             write(lout,10241) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
           end if
           write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
@@ -2178,37 +2184,37 @@ end interface
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
           write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
-          if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has corrupted output probably due to lost particle: ',ie
+          if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output probably due to lost particle ",ie
         end if
 
         if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
           id=id+1
           write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-          if(st_quiet==0) then
+          if(st_quiet == 0) then
             write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
-          else
+          else if(st_quiet == 1) then
             write(lout,10241) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
           end if
           if(st_quiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
           write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
-          if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has corrupted output probably due to lost particle: ',ia
+          if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output probably due to lost particle ",ia
         end if
 
         if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
           id=id+1
           ig=id+1
-          if(st_quiet==0) then
+          if(st_quiet == 0) then
             write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
-          else
+          else if(st_quiet == 1) then
             write(lout,10271) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
           end if
           if(st_quiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
           write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
-          if(ierro.ne.0) write(lout,*) 'Warning from maincr: fort.12 has corrupted output although particles stable'
+          if(ierro.ne.0) write(lout,"(a)") "MAINCR> WARNING fort.12 has corrupted output although particles stable"
           id=ig
         end if
       end do
@@ -2218,14 +2224,14 @@ end interface
       ! last modified: 17-07-2013
       ! print stable particles only
       ! inserted in main code by the 'fluka' compilation flag
-      write(lout,*)
-      write(lout,10340)
+      write(lout,"(a)") ""
+      write(lout,"(a)") str_divLine
       if ( napxo .gt. 0 ) then
-        write(lout,*)
+        write(lout,"(a)") ""
         write(lout,10350) napxo
-        write(lout,*)
+        write(lout,"(a)") ""
         write(lout,10360) 'ID', 'GEN', 'WEIGHT', 'X [m]', 'XP []', 'Y [m]', 'YP[]', 'PC [GeV]', 'DE [eV]', 'DT [s]'
-        write(lout,*)
+        write(lout,"(a)") ""
         do ia=1,napxo
           if(.not.pstop(ia)) then
             write(lout,10370) fluka_uid(ia),fluka_gen(ia),fluka_weight(ia), &
@@ -2382,9 +2388,6 @@ end interface
       write(93,*)   'BUG:',time3,time2,pretime,trtime,posttime
 #endif
 #endif
-! and now get grand total including post-processing
-      tottime=(pretime+trtime)+posttime
-      write(lout,10290) pretime
 #ifdef CR
 ! and TRY a FIX for napxto
 !     if (nnuml.ne.numl) then
@@ -2404,15 +2407,21 @@ end interface
 !       enddo
 !     endif
 #endif
-      write(lout,10300) napxto,trtime
-      write(lout,10310) tottime
-#ifdef DEBUG
-!     call wda('THE END',0d0,9,9,9,9)
-!     call dumpum('THE END',999,9999)
-!     call dumpbin('THE END',999,9999)
-!     call dumpzfz('THE END',9,9)
-#endif
-  ! Write all dynamically assigned file units tp file_units.dat
+
+  ! Get grand total including post-processing
+  tottime=(pretime+trtime)+posttime
+  write(lout,"(a)")         ""
+  write(lout,"(a)")         str_divLine
+  write(lout,"(a)")         ""
+  write(lout,"(a)")         "    Computing Time Summary"
+  write(lout,"(a)")         "  =========================="
+  write(lout,"(a,f12.3,a)") "    Preparating Calculations: ",pretime," second(s)"
+  write(lout,"(a,f12.3,a)") "    Particle Tracking:        ",trtime, " second(s)"
+  write(lout,"(a,f12.3,a)") "    Total Time Used:          ",tottime," second(s)"
+  write(lout,"(a,i8)")      "    Particles * Turns:        ",napxto
+  write(lout,"(a)")         ""
+  write(lout,"(a)")         str_divLine
+
   if (zipf_numfiles.gt.0) then
     call zipf_dozip
   endif
@@ -2433,39 +2442,16 @@ end interface
 #ifndef CR
   stop
 #endif
-10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE ',i7,      &
-     &' RANDOM SEED ',i8,/ t10,' MOMENTUM DEVIATION ',g12.5,            &
-     &' LOST IN REVOLUTION ',i8,/ t10,'HORIZ:  AMPLITUDE = ',ES23.16,   &
-     &'   APERTURE = ',f15.3/ t10,'VERT:   AMPLITUDE = ',ES23.16,       &
-     &'   APERTURE = ',f15.3/)
-#ifndef TILT
-#ifdef CR
-10010 format(/t10,'SIXTRACR VECTOR VERSION ',A8,                        &
-     &'  --  (last change: ',A10,')'//)
-#endif
-#ifndef CR
-10010 format(/t10,'SIXTRACK VECTOR VERSION ',A8,                        &
-     &'  --  (last change: ',A10,')'//)
-#endif
-#endif
-#ifdef TILT
-#ifdef CR
-10010 format(/t10,'SIXTRACR VECTOR VERSION ',A8,' (with tilt)',         &
-     &'  --  (last change: ',A10,')'//)
-#endif
-#ifndef CR
-10010 format(/t10,'SIXTRACK VECTOR VERSION ',A8,' (with tilt)',         &
-     &'  --  (last change: ',A10,')'//)
-#endif
-#endif
+10000 format(/4x,"Tracking ended abnormally for particle :",i0,         &
+             /4x,"Random seed:        ",i8,                             &
+             /4x,"Momentum deviation: ",f13.5,                          &
+             /4x,"Lost in revolution: ",i8,                             &
+             /4x,"Horiz:  Amplitude = ",ES23.16,"  Aperture = ",f15.3   &
+             /4x,"Vert:   Amplitude = ",ES23.16,"  Aperture = ",f15.3/)
 10020 format(/t10,'UNCOUPLED AMPLITUDES AND EMITTANCES:', /t10,         &
      &'AMPLITUDE-X = ',f15.3,10x,'AMPLITUDE-Y = ',f15.3, '  MM'/t10,    &
      &'EMITTANCE-X = ',f15.3,10x,'EMITTANCE-Y = ',f15.3, '  PI*MRAD*MM')
 10025 format(/t10,'Run started from binary dump file # 32')
-10030 format(/t10,'STRUCTURE INPUT FILE HAS -THICK- LINEAR ',           &
-     &'ELEMENTS'//)
-10040 format(/t10,'STRUCTURE INPUT FILE HAS ONLY -THIN- LINEAR ',       &
-     &'ELEMENTS'//)
 10050 format(//131('-')//t10,27('O')/t10,2('O'),23x,2('O')/t10,         &
      &'OO  INITIAL COORDINATES  OO'/ t10,2('O'),23x,2('O')/t10,27('O')  &
      &//131('-')//)
@@ -2543,23 +2529,17 @@ end interface
      &t10,'  S  ',3(1x,ES17.10),3(1x,ES17.10)/                          &
      &t69,3(1x,ES17.10)/t69,3(1x,ES17.10))
 10230 format(t10,'NO OPTICAL SOLUTION FOR',2x,f19.16,2x,'RELATIVE MOMENTUM DEVIATION')
-10240 format(1x/5x,'PARTICLE ',i7,' STABLE - RANDOM SEED ', i8,' MOMENTUM DEVIATION ',g12.5,'REVOLUTION ',i8/)
-10241 format(   5x,'PARTICLE ',i5,' STABLE - RANDOM SEED ', i8,' MOMENTUM DEVIATION ',g12.5,'REVOLUTION ',i8)
-!10250 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
-10260 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5/)
-10270 format(1x/5x,'PARTICLE ',i7,' AND ',i7,' STABLE - RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5,'REVOLUTION ',i8/)
-10271 format(   5x,'PARTICLE ',i5,' AND ',i5,' STABLE - RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5,'REVOLUTION ',i8)
-10280 format(10x,f47.33)
-10290 format(/10x,'The Preparating Calculations took',f12.3,' second(s)',' of Computing Time')
-10300 format(/10x,'For ',i12,' Turn(s)',g12.3,' second(s) of ',         &
-     &'Computing Time was needed'//131('-'))
-10310 format(//10x,'Total Time used: ',g12.3,' second(s)'//131('-'))
+10240 format(/4x,"Particle ",i7,"             Stable. Random seed: ",i0," Momentum deviation: ",g12.5," Revolution: ",i0/)
+10241 format( 4x,"Particle ",i7,"             Stable. Random seed: ",i0," Momentum deviation: ",g12.5," Revolution: ",i0)
+10260 format(/4x,"Particle ",i7,"                     Random seed: ",i0," Momentum deviation: ",g12.5/)
+10270 format(/4x,"Particle ",i7," and ",i7, " Stable. Random seed: ",i0," Momentum deviation: ",g12.5," Revolution: ",i0/)
+10271 format( 4x,"Particle ",i7," and ",i7, " Stable. Random seed: ",i0," Momentum deviation: ",g12.5," Revolution: ",i0)
+10280 format(4x,f47.33)
 10320 format(//131('-')//t10,'DATA BLOCK FLUCTUATIONS OF MULTIPOLES'//  &
      &t10,'RANDOM STARTING NUMBER=  ',i20/ t10,                         &
      &'RANDOM NUMBERS GENERATED:',i20/ t10,'MEAN VALUE=',f15.7,         &
      &'  -   DEVIATION=',f15.7)
 10330 format(/10x,'ERROR IN OPENING FILES')
-10340 format(131('-'))
 #ifdef FLUKA
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
