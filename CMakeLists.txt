@@ -471,6 +471,15 @@ if(ROOT)
 	add_subdirectory(${CMAKE_SOURCE_DIR}/source/root_output)
 endif(ROOT)
 
+if(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMAT OR CERNLIB)
+
+    find_package(Threads REQUIRED)
+    if(NOT Threads_FOUND)
+        message(FATAL_ERROR "Could not find a thread library! This is required for your selected build configuration.")
+    endif(NOT Threads_FOUND)
+
+endif(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMAT OR CERNLIB)
+
 ###################################################################################################
 # Checking if requested options are compatible
 ###################################################################################################
@@ -1113,8 +1122,7 @@ if(BOINC AND API)
 	target_link_libraries(SixTrackCR boinc)
 	
 	find_library(stdc++ STATIC stdc++)
-	find_library(pthread STATIC pthread)
-	target_link_libraries(SixTrackLib stdc++ pthread)
+	target_link_libraries(SixTrackLib stdc++ Threads::Threads)
 
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		find_library(nsl STATIC nsl)
@@ -1167,13 +1175,12 @@ if(LIBARCHIVE)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
 	endif()
 	
-	find_library(pthread STATIC pthread)
 	#find_library(z STATIC z)
 	add_library(z STATIC IMPORTED)
 	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/zlib/install/lib/libz.a)
 	
-	target_link_libraries(SixTrackCR libarchive z pthread)
-	target_link_libraries(libArchiveTester libarchive z pthread)
+	target_link_libraries(SixTrackCR libarchive z Threads::Threads)
+	target_link_libraries(libArchiveTester libarchive z Threads::Threads)
 	
 	add_definitions( -DLIBARCHIVE )
 endif()
@@ -1258,11 +1265,10 @@ if(CERNLIB)
 		set_target_properties(xcb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libxcb.a)
 		set_target_properties(Xdmcp PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libXdmcp.a)
 
-		find_library(pthread STATIC pthread)
 		find_library(dl STATIC dl)
 		find_library(gcc_eh STATIC gcc_eh)
 
-		target_link_libraries(SixTrackLib graflib grafX11 packlib_noshift kernlib_noshift g2c X11 xcb Xau Xdmcp dl pthread gcc_eh)
+		target_link_libraries(SixTrackLib graflib grafX11 packlib_noshift kernlib_noshift g2c X11 xcb Xau Xdmcp dl Threads::Threads gcc_eh)
 #	endif()
 endif(CERNLIB)
 
@@ -1290,8 +1296,7 @@ if(HDF5)
 endif(HDF5)
 
 if(G4COLLIMAT)
-	find_library(pthread STATIC pthread)
-	target_link_libraries(SixTrackCR g4collimat ${Geant4_LIBRARIES} pthread)
+	target_link_libraries(SixTrackCR g4collimat ${Geant4_LIBRARIES} Threads::Threads)
 endif(G4COLLIMAT)
 
 #Again for naglib, I assume we are on lxplus or have CERN afs access.
@@ -1396,12 +1401,11 @@ IF(BUILD_TESTING)
 	#The testing wrapper
 	add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/test/bin/SixTestWrapper.cpp)
 	if (LIBARCHIVE)
-		target_link_libraries(SixTestWrapper libArchive_wrapper libarchive z pthread)
+		target_link_libraries(SixTestWrapper libArchive_wrapper libarchive z Threads::Threads)
 	endif()
 	SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
 
-	find_library(pthread STATIC pthread)
-	target_link_libraries(SixTestWrapper pthread)
+	target_link_libraries(SixTestWrapper Threads::Threads)
 
 	IF(COVERAGE)
 		target_compile_options(SixTestWrapper PRIVATE -fprofile-arcs -ftest-coverage)

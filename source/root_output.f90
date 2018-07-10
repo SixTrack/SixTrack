@@ -11,6 +11,7 @@ module root_output
   integer root_Collimation
   integer root_CollimationDB
   integer root_Optics
+  integer root_FLUKA
   integer root_RunNumber
   character(len=512) :: root_eos_server
   character(len=512) :: root_folder
@@ -22,7 +23,7 @@ interface
 
 !General stuff
 subroutine DoSixTrackRootInit(eos, run_number, eos_server, root_path, root_prefix, Accelerator, Optics, ApertureCheck, Collimation,&
-& CollimationDB) bind(C,name="DoSixTrackRootInit")
+& CollimationDB, FLUKA_f) bind(C,name="DoSixTrackRootInit")
   use, intrinsic :: iso_c_binding
   implicit none
   integer(kind=C_INT), intent(in), value :: eos
@@ -35,6 +36,7 @@ subroutine DoSixTrackRootInit(eos, run_number, eos_server, root_path, root_prefi
   integer(kind=C_INT), intent(in), value :: ApertureCheck
   integer(kind=C_INT), intent(in), value :: Collimation
   integer(kind=C_INT), intent(in), value :: CollimationDB
+  integer(kind=C_INT), intent(in), value :: FLUKA_f
 end subroutine DoSixTrackRootInit
 
 subroutine SixTrackRootExit() bind(C,name="SixTrackRootExit")
@@ -58,7 +60,7 @@ subroutine CollimatorLossRootWrite(icoll_in,db_name,db_name_len,impact_in,absorb
 end subroutine CollimatorLossRootWrite
 
 subroutine ApertureCheckWriteLossParticle(turn_in, i_in, ix_in, bez_in, bez_in_len, slos_in, ipart_in, x_in, xp_in, y_in, yp_in, &
-& ct_in, e_in, dp_in) bind(C,name="ApertureCheckWriteLossParticle")
+& p_in, dp_in, ct_in, naa_in, nzz_in) bind(C,name="ApertureCheckWriteLossParticle")
   use, intrinsic :: iso_c_binding
   implicit none
   integer(kind=C_INT), intent(in), value :: turn_in
@@ -72,9 +74,11 @@ subroutine ApertureCheckWriteLossParticle(turn_in, i_in, ix_in, bez_in, bez_in_l
   real(kind=C_DOUBLE), intent(in), value :: xp_in
   real(kind=C_DOUBLE), intent(in), value :: y_in
   real(kind=C_DOUBLE), intent(in), value :: yp_in
-  real(kind=C_DOUBLE), intent(in), value :: ct_in
-  real(kind=C_DOUBLE), intent(in), value :: e_in
+  real(kind=C_DOUBLE), intent(in), value :: p_in
   real(kind=C_DOUBLE), intent(in), value :: dp_in
+  real(kind=C_DOUBLE), intent(in), value :: ct_in
+  integer(kind=C_INT16_T), intent(in), value :: naa_in
+  integer(kind=C_INT16_T), intent(in), value :: nzz_in
 end subroutine ApertureCheckWriteLossParticle
 
 subroutine SurvivalRootWrite(nturn_in, npart_in) bind(C,name="SurvivalRootWrite")
@@ -220,6 +224,13 @@ subroutine ConfigurationRootWrite() bind(C,name="ConfigurationRootWrite")
   implicit none
 end subroutine
 
+subroutine root_FLUKA_EnergyDeposition(id_in, nucleons_in, energy_in) bind(C,name="root_FLUKA_EnergyDeposition")
+  use, intrinsic :: iso_c_binding
+  implicit none
+  integer(kind=C_INT),    intent(in), value :: id_in
+  integer(kind=C_INT16_T),    intent(in), value :: nucleons_in
+  real(kind=C_DOUBLE), intent(in), value :: energy_in
+end subroutine
 
 end interface
 
@@ -227,8 +238,10 @@ contains
 
 subroutine SixTrackRootInit
   implicit none
-  call DoSixTrackRootInit(root_eos_enabled, root_RunNumber, root_eos_server, root_folder, root_prefix, root_Accelerator, &
-& root_Optics, root_ApertureCheck, root_Collimation, root_CollimationDB)
+  if(root_flag)  then
+    call DoSixTrackRootInit(root_eos_enabled, root_RunNumber, root_eos_server, root_folder, root_prefix, root_Accelerator, &
+&                           root_Optics, root_ApertureCheck, root_Collimation, root_CollimationDB, root_FLUKA)
+  end if
 end subroutine SixTrackRootInit
 
 subroutine SixTrackRootFortranInit
@@ -240,6 +253,7 @@ subroutine SixTrackRootFortranInit
   root_Collimation   = 0
   root_CollimationDB = 0
   root_Optics        = 0
+  root_FLUKA         = 0
   root_RunNumber     = 0
   root_eos_server    = C_NULL_CHAR
   root_folder        = C_NULL_CHAR
@@ -279,12 +293,15 @@ subroutine root_daten(ch)
   if(getfields_fields(1)(1:getfields_lfields(1)).eq.'EOS') then
     root_eos_enabled = 1
     root_eos_server = getfields_fields(2)(1:getfields_lfields(2)) // C_NULL_CHAR
+
 !PATH e.g. /eos/user/u/username/
   else if(getfields_fields(1)(1:getfields_lfields(1)).eq.'PATH') then
     root_folder = getfields_fields(2)(1:getfields_lfields(2)) // C_NULL_CHAR
+
 !PREFIX sixtrack_
   else if(getfields_fields(1)(1:getfields_lfields(1)).eq.'PREFIX') then
     root_prefix = getfields_fields(2)(1:getfields_lfields(2)) // C_NULL_CHAR
+
 !RUN number
   else if(getfields_fields(1)(1:getfields_lfields(1)).eq.'RUN') then
     read(getfields_fields(2)(1:getfields_lfields(2)),*) root_RunNumber
@@ -299,6 +316,7 @@ subroutine root_daten(ch)
       root_Collimation = 1
       root_CollimationDB = 1
       root_Optics = 1
+      root_FLUKA = 1
     else if(getfields_fields(2)(1:getfields_lfields(2)).eq.'ACCEL') then
       root_Accelerator = 1
     else if(getfields_fields(2)(1:getfields_lfields(2)).eq.'COLL') then
@@ -309,6 +327,8 @@ subroutine root_daten(ch)
       root_ApertureCheck = 1
     else if(getfields_fields(2)(1:getfields_lfields(2)).eq.'OPTICS') then
       root_Optics = 1
+    else if(getfields_fields(2)(1:getfields_lfields(2)).eq.'FLUKA') then
+      root_FLUKA = 1
     end if
   end if
 
@@ -336,6 +356,7 @@ subroutine root_parseInputDone
   write(lout,*) 'Collimation:   ', root_Collimation
   write(lout,*) 'CollimationDB: ', root_CollimationDB
   write(lout,*) 'Aperture:      ', root_ApertureCheck
+  write(lout,*) 'FLUKA:         ', root_FLUKA
 
 end subroutine root_parseInputDone
 

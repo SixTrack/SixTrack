@@ -6,9 +6,12 @@
 
 extern "C" void CollimationRootInit();
 extern "C" void CollimationDBRootInit();
+extern "C" void CollimationFLUKARootInit();
+
 extern "C" void CollimatorLossRootWrite(int, char*, int, int, int, double, double, double);
 extern "C" void SurvivalRootWrite(int, int);
 extern "C" void CollimatorDatabaseRootWrite(int, char*, int, char*, int, double, double, double, double);
+extern "C" void root_FLUKA_EnergyDeposition(int, int16_t, double);
 
 /**
 * This class outputs the particle losses onto collimators
@@ -63,6 +66,29 @@ Double_t db_offset;
 Int_t icoll;
 
 };
+
+
+/**
+* This class outputs the energy and nucleons dumped in collimators due to FLUKA
+*
+*/
+class CollimationFLUKARootOutput
+{
+public:
+
+    CollimationFLUKARootOutput();
+    void CollimatorFLUKARootOutputWrite(int, int16_t, double);
+
+private:
+
+TTree *CollimationFLUKATree;
+
+Int_t id;
+int16_t nucleons;
+Double_t energy;
+
+};
+
 
 #endif
 

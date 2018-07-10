@@ -369,28 +369,25 @@ subroutine aperture_initOC( ix, aprx, apry, theta1, theta2 )
   !-----------------------------------------------------------------------
   implicit none
   integer ix
-  real(kind=fPrec) aprx, apry, theta1, theta2, N
+  real(kind=fPrec) aprx, apry, theta1, theta2, N, x1, x2, y1, y2
   call aperture_nul( ix )
   kape(ix)=5
+  x1=aprx
+  y1=aprx*tan_mb(theta1)
+  x2=apry/tan_mb(theta2)
+  y2=apry
   ape(1,ix)=aprx
   ape(2,ix)=apry
-  ! x1=aprx=ape(1,ix)
-  ! y1=ape(1,ix)*tan(theta1)
-  ! x2=ape(2,ix)/tan(theta2)
-  ! y2=apry=ape(2,ix)
   ! ellipse circumscribed to octagon
-  ! N=x1^2*y2^2-y1^2*x2^2
-  ! a=sqrt(N/(y2^2-y1^2))
-  ! b=sqrt(N/(x1^2-x2^2))
-  N=((ape(1,ix)*ape(2,ix))*(one+tan_mb(theta1)/tan_mb(theta2)))* &
- &  ((ape(1,ix)*ape(2,ix))*(one-tan_mb(theta1)/tan_mb(theta2)))
-  ape(3,ix)=sqrt(N/((ape(2,ix)+ape(1,ix)*tan_mb(theta2))*(ape(2,ix)-ape(1,ix)*tan_mb(theta2))))
-  ape(4,ix)=sqrt(N/((ape(1,ix)+ape(2,ix)/tan_mb(theta2))*(ape(1,ix)-ape(2,ix)/tan_mb(theta2))))
+  N=(x1*y2+y1*x2)*(x1*y2-y1*x2)        ! N=x1^2*y2^2-y1^2*x2^2
+  ape(3,ix)=sqrt(N/((y2+y1)*(y2-y1)))  ! a=sqrt(N/(y2^2-y1^2))
+  ape(4,ix)=sqrt(N/((x1+x2)*(x1-x2)))  ! b=sqrt(N/(x1^2-x2^2))
   ! m and q of sloped side
-  ! m = (y2-y1)/(x2-x1)
-  ! q = y1 -m*x1
-  ape(5,ix)=(ape(2,ix)-ape(1,ix)*tan_mb(theta1))/(ape(2,ix)/tan_mb(theta2)-ape(1,ix))
-  ape(6,ix)=ape(1,ix)*tan_mb(theta1)-ape(5,ix)*ape(1,ix)
+  ape(5,ix)=(y2-y1)/(x2-x1)  ! m = (y2-y1)/(x2-x1)
+  ape(6,ix)=y1-ape(5,ix)*x1  ! q = y1 -m*x1
+  write(*,*) '--> init OC:',ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),ape(5,ix),ape(6,ix)
+  write(*,*) '    input:', ix, aprx, apry, theta1, theta2
+  write(*,*) '    coordinates:',ape(1,ix),ape(1,ix)*tan_mb(theta1),ape(2,ix)/tan_mb(theta2),ape(2,ix)
 end subroutine aperture_initOC
 
 
@@ -1120,7 +1117,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           this_name = trim(adjustl(bez(ix))) // C_NULL_CHAR
           call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos, ipart(j),&
        &  xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
-       &  -c1m3 * (sigmvlos/clight) * (e0/e0f))
+       &  -c1m3 * (sigmvlos/clight) * (e0/e0f), naalos, nzzlos)
         end if
 #endif
 
@@ -1256,7 +1253,7 @@ logical function checkOC( x, y, ap1, ap2, m, q )
 ! parameters
   real(kind=fPrec) x, y, ap1, ap2, m, q
 
-  checkOC = checkRE(x,y,ap1,ap2).or.(y.gt.m*x+q)
+  checkOC = checkRE(x,y,ap1,ap2).or.(abs(y).gt.m*abs(x)+q)
   return
 end function checkOC
 

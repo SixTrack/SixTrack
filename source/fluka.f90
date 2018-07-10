@@ -145,6 +145,10 @@ subroutine kernel_fluka_element( nturn, i, ix )
 
       use mod_hions
 
+#ifdef ROOT
+      use root_output
+#endif
+
       implicit none
 
 !     interface variables:
@@ -215,7 +219,11 @@ subroutine kernel_fluka_element( nturn, i, ix )
 !              reduce by factor 1e-3 to get the energy in GeV
       if((ien0-ien1).gt.one) then
         write(208,*) fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
-
+#ifdef ROOT
+        if(root_flag .and. root_FLUKA .eq. 1) then
+          call root_FLUKA_EnergyDeposition(fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
+        end if
+#endif
       ! hisix debugging:
       ! write out the particle distribution after the primary
         if(fluka_geo_index(ix).eq.11) then
@@ -360,6 +368,10 @@ subroutine kernel_fluka_exit( nturn, i, ix )
 
       use mod_hions
 
+#ifdef ROOT
+      use root_output
+#endif
+
       implicit none
 
 !     interface variables:
@@ -420,6 +432,11 @@ subroutine kernel_fluka_exit( nturn, i, ix )
 !              reduce by factor 1e-3 to get the energy in GeV
         if((ien0-ien1).gt.one) then
           write(208,*) fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
+#ifdef ROOT
+          if(root_flag .and. root_FLUKA .eq. 1) then
+            call root_FLUKA_EnergyDeposition(fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
+          end if
+#endif
 
           ! hisix debugging:
           ! write out the particle distribution after the primary
