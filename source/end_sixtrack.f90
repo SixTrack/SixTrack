@@ -515,10 +515,7 @@ subroutine abend(cstring)
     write(10,'(a)',iostat=ierro) ch(1:l1-1)
 #endif
     if(ierro.ne.0) then
-      write(lout,*)
-      write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE 10 FROM ABEND'
-      write(lout,*) 'ERROR CODE : ',ierro
-      write(lout,*)
+      write(lout,"(a,i0)") "ABEND> ERROR Problems writing to fort.10. ierro = ",ierro
     end if
   end do
 

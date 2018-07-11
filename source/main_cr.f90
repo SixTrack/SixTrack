@@ -2409,7 +2409,7 @@ end interface
 #endif
 
   ! Get grand total including post-processing
-  tottime = pretime + trtime + posttime
+  tottime = (pretime+trtime)+posttime
   write(lout,"(a)")         ""
   write(lout,"(a)")         str_divLine
   write(lout,"(a)")         ""
