@@ -163,7 +163,7 @@ subroutine kermtr(ercode,log,mflag,rflag)
     if(ercode .eq. code(i)) goto 21
   end do
   write(lout,1000)  ercode
-  write(lout,*) 'KERNLIB Library Error'
+  write(lout,"(a)") "KERNLIB> Library Error"
   call prror(-1)
   return
 
@@ -333,7 +333,7 @@ subroutine f010pr(name,n,idim,k,kprnt)
     end if
   end if
   if(.not. rflag) then
-    write(lout,*) 'KERNLIB F010PR: '//name
+    write(lout,"(a)") "KERNLIB> ERROR F010PR: "//name
     call prror(-1)
   end if
   return
@@ -833,7 +833,7 @@ subroutine tmprnt(name,n,idim,k)
     endif
   endif
   if(.not. rflag) then
-    write(lout,*) 'KERNLIB TMPRNT: '//name
+    write(lout,"(a)") "KERNLIB> ERROR TMPRNT: "//name
     call prror(-1)
   endif
   return

@@ -518,13 +518,14 @@ subroutine aperture_backTrackingInit
   i=1
   ix=ic(i)-nblo
   if( ix.lt.0 ) then
-     write(lout,*)'Impossible to properly initialise backtracking: first element of lattice structure is not a single element'
-     call prror(-1)
+    write(lout,"(a)") "APER> ERROR Impossible to properly initialise backtracking:"
+    write(lout,"(a)") "APER>       first element of lattice structure is not a single element"
+    call prror(-1)
   end if
   if( kape(ix).eq.0 ) then
-     write(lout,*)'Impossible to properly initialise backtracking: first '// &
- &   'element of lattice structure is not assigned an aperture profile'
-     call prror(-1)
+    write(lout,"(a)") "APER> ERROR Impossible to properly initialise backtracking:"
+    write(lout,"(a)") "APER>       first element of lattice structure is not assigned an aperture profile"
+    call prror(-1)
   end if
 
   call aperture_saveLastCoordinates( i, ix, -1 )
@@ -1174,14 +1175,12 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 #endif
 
   if(napx.eq.0) then
-    write(lout,*)
-    write(lout,*)
-    write(lout,*) '************************'
-    write(lout,*) '** ALL PARTICLES LOST **'
-    write(lout,*) '**   PROGRAM STOPS    **'
-    write(lout,*) '************************'
-    write(lout,*)
-    write(lout,*)
+    write(lout,"(a)") ""
+    write(lout,"(a)") "************************"
+    write(lout,"(a)") "** ALL PARTICLES LOST **"
+    write(lout,"(a)") "**   PROGRAM STOPS    **"
+    write(lout,"(a)") "************************"
+    write(lout,"(a)") ""
 #ifdef FLUKA
 !skip postpr
     nthinerr = 3000
@@ -1402,9 +1401,9 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   if( .not.lExtremes ) then
     if( iu-iuold.ne.0 ) then
       iElDw=iElDw+(iu-iuold)
-      write(lout,*) '...inserted upstream marker - downstream entries shifted by',iu-iuold
+      write(lout,"(a,i0)") "APER> ...inserted upstream marker - downstream entries shifted by ",iu-iuold
     else
-      write(lout,*) '...no need to insert an upstream marker - no shift of downstream entries required.'
+      write(lout,"(a)")    "APER> ...no need to insert an upstream marker - no shift of downstream entries required."
     end if
   end if
 
@@ -1420,9 +1419,9 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
     if( lExtremes ) then
       iElUp=iElUp+(iu-iuold)
     end if
-    write(lout,*) '...inserted downstream marker - downstream entries shifted by',iu-iuold
+    write(lout,"(a,i0)") "APER> ...inserted downstream marker - downstream entries shifted by ",iu-iuold
   else
-    write(lout,*) '...no need to insert a downstream marker - no shift of downstream entries required.'
+    write(lout,"(a)")    "APER> ...no need to insert a downstream marker - no shift of downstream entries required."
   end if
 
   if( lExtremes ) then
@@ -1432,7 +1431,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
     ixApeDw=ic(iElDw)-nblo
     lsame = sameAperture(ixApeUp,ixApeDw)
     if( .not.lsame ) then
-      write(lout,*)' ERROR - different aperture markers at extremeties of accelerator lattice strucure'
+      write(lout,"(a)") "APER> ERROR Different aperture markers at extremeties of accelerator lattice strucure"
       call dump_aperture_header( lout )
       call dump_aperture_marker( lout, ixApeUp, iElUp )
       call dump_aperture_marker( lout, ixApeDw, iElDw )
@@ -1471,8 +1470,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   logical lconst,lApeUp,lApeDw,lAupDcum,lAdwDcum,lApe,lAss,lfit
 
 ! echo of input parameters
-  write(lout,*) ''
-  write(lout,*)' CALL TO CONTOUR_APERTURE_MARKER...'
+  write(lout,"(a)") ""
+  write(lout,"(a)") "APER> Call to contour_aperture_marker"
 
 ! check upstream element
   ixEl=ic(iEl)-nblo
@@ -1485,7 +1484,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       iEl=iu
       ixEl=ix
       bez(ixEl)='e.latt.aper'
-      write(lout,*) ' -> inserted empty marker at end of lattice'
+      write(lout,"(a)") "APER> -> Inserted empty marker at end of lattice"
     end if
   else if( iEl.eq.1 ) then
 ! beginning of lattice sequence: a marker might be needed
@@ -1496,7 +1495,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       iEl=1
       ixEl=ix
       bez(ixEl)='s.latt.aper'
-      write(lout,*)' -> inserted empty marker at start of lattice'
+      write(lout,"(a)") "APER> -> Inserted empty marker at start of lattice"
 #ifdef FLUKA
     else if( fluka_type(ixEl).eq.FLUKA_ELEMENT.or.fluka_type(ixEl).eq.FLUKA_ENTRY   ) then
 ! A.Mereghetti
@@ -1509,18 +1508,17 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       iEl=1
       ixEl=ix
       bez(ixEl)='s.latt.aper'
-      write(lout,*) ' -> inserted empty marker at start of lattice since first entry is a FLUKA element'
+      write(lout,"(a)") "APER> -> Inserted empty marker at start of lattice since first entry is a FLUKA element"
 #endif
     end if
   else if( ixEl.le.0 ) then
-    write(lout,*) 'ERROR - lattice element at: i=',iEl
-    write(lout,*) 'is NOT a SINGLE ELEMENT!'
+    write(lout,"(a,i0,a)") "APER> ERROR Lattice element at: i=",iEl," is NOT a SINGLE ELEMENT."
     call prror(-1)
   end if
 
 ! echo
-  write(lout,*)' look for aperture markers closest to:'
-  write(lout,*)' i=',iEl,' - ix=',ixEl, ' - name: ',bez(ixEl), ' - s=',dcum(iEl)
+  write(lout,"(a)")                 "APER> Look for aperture markers closest to:"
+  write(lout,"(a,i0,a,i0,a,e15.7)") "APER> i=",iEl," - ix=",ixEl," - name: '"//bez(ixEl)//"' - s=",dcum(iEl)
 
 ! candidate aperture marker
   if( lInsUp ) then
@@ -1549,7 +1547,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 ! call of this function is meant to verify this assumption)
   call find_closest_aperture(iSrcUp,.true.,iApeUp,ixApeUp,lApeUp)
   if( iApeUp.eq.-1 .and. ixApeUp.eq.-1 ) then
-    write(lout,*)' ERROR - could not find upstream marker'
+    write(lout,"(a)") "APER> ERROR Could not find upstream marker"
     call prror(-1)
   end if
 ! - get closest downstream aperture marker
@@ -1558,7 +1556,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 ! call of this function is meant to verify this assumption)
   call find_closest_aperture(iSrcDw,.false.,iApeDw,ixApeDw,lApeDw)
   if( iApeDw.eq.-1 .and. ixApeDw.eq.-1 ) then
-    write(lout,*)' ERROR - could not find downstream marker'
+    write(lout,"(a)") "APER> ERROR Could not find downstream marker"
     call prror(-1)
   end if
 ! - echo found apertures
@@ -1634,13 +1632,13 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       ic(iNew)=ixApeNewFrom+nblo
     else
 !     this should never happen
-      write(lout,*)' ERROR in aperture auto assignment.'
+      write(lout,"(a)") "APER> ERROR in aperture auto assignment."
       call prror(-1)
     end if
   end if
 
 ! echo for checking
-  write(lout,*) ' ...echo results of assignment:'
+  write(lout,"(a)") "APER> Echo results of assignment:"
   call dump_aperture_header( lout )
   call dump_aperture_marker( lout, ic(iNew)-nblo, iNew )
 
@@ -1896,17 +1894,16 @@ subroutine dumpMe
 ! temporary variables
   integer i, ix
 
-  write(lout,*) 'dumpMe - start'
+  write(lout,"(a)") "APER> dumpMe -----------------------------------------------------------------------------"
   do i=1,iu
     ix=ic(i)-nblo
     if( ix.gt.0 ) then
-      write(lout,*) i,bez(ix),dcum(i),kape(ix)
+      write(lout,"(a,i8,1x,a48,1x,f15.6,1x,i8)") "APER> ",i,bez(ix),dcum(i),kape(ix)
     else
-      write(lout,*) i,bezb(ic(i)),dcum(i)
+      write(lout,"(a,i8,1x,a48,1x,f15.6)") "APER> ",i,bezb(ic(i)),dcum(i)
     end if
   end do
-
-  write(lout,*) 'dumpMe - end'
+  write(lout,"(a)") "APER> dumpMe -----------------------------------------------------------------------------"
 
 end subroutine dumpMe
 

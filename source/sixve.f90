@@ -53,9 +53,7 @@ subroutine sumpos
     enddo
 #endif
     if(ierro.gt.0) then
-      write(lout,*) '**ERROR**'
-      write(lout,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',      &
-  &' POSTPROCESSING ERROR # : ',ierro
+      write(lout,"(a,i0)") "SUMPOS> ERROR Corrupted input file for summary of the postprocessing error # ",ierro
       return
     endif
     if(i.eq.1) write(lout,10000)
@@ -92,9 +90,7 @@ subroutine sumpos
     enddo
 #endif
     if(ierro.gt.0) then
-      write(lout,*) '**ERROR**'
-      write(lout,*) 'CORRUPTED INPUT FILE FOR SUMMARY OF THE',      &
-  &' POSTPROCESSING ERROR # : ',ierro
+      write(lout,"(a,i0)") "SUMPOS> ERROR Corrupted input file for summary of the postprocessing error # ",ierro
       return
     endif
 ! Now we are using 60 for CPU in seconds
@@ -160,28 +156,27 @@ subroutine cadcum
 
   save
 
-!     temporary variables
+  ! temporary variables
   real(kind=fPrec) tmpdcum
   integer ientry, jentry, kentry, ix
 
-  write(lout,*)''
-  write(lout,10010)
-  write(lout,*)''
-  write(lout,*)' CALL TO CADCUM'
-  write(lout,*)''
+  write(lout,"(a)") str_divLine
+  write(lout,"(a)") ""
+  write(lout,"(a)") " CALL TO CADCUM"
+  write(lout,"(a)") ""
 
-!     initialise cumulative length
+  ! initialise cumulative length
   tmpdcum=zero
 
-!     loop all over the entries in the accelerator structure
+  ! loop all over the entries in the accelerator structure
   do ientry=1,iu
     ix=ic(ientry)
     if(ix.gt.nblo) then
-!         SINGLE ELEMENT
+      ! SINGLE ELEMENT
       ix=ix-nblo
       if ( el(ix).gt.zero ) tmpdcum=tmpdcum+el(ix)
     else
-!         BLOC: iterate over elements
+      ! BLOC: iterate over elements
       do jentry=1,mel(ix)
         kentry=mtyp(ix,jentry)
         if( el(kentry).gt.zero ) tmpdcum=tmpdcum+el(kentry)
@@ -211,7 +206,7 @@ subroutine cadcum
       endif
     enddo
     write(lout,10020) iu+1,-1,'END            ',dcum(iu+1)
-    write(lout,*)     ''
+    write(lout,"(a)") ""
   else                      ! Anyway print the total machine length
       write(lout,'(1x,a,1x,f17.10,1x,a)')                            &
   &        "Machine length was", dcum(iu+1),"[m]"
@@ -220,7 +215,6 @@ subroutine cadcum
 !     au revoir:
   return
 
-10010 format(132('-'))
 10020 format(2(1x,i6),1x,a16,1x,f12.5)
 10030 format(2(1x,a6),1x,a16,1x,a12)
 end subroutine cadcum

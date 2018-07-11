@@ -211,8 +211,8 @@ subroutine rluxin(isdext_tmp)
          end do
          next(1) = 24
          twom12 = twom24 * 4096.
-      write(lout,*) ' FULL INITIALIZATION OF RANLUX WITH 25 INTEGERS:'
-      write(lout,'(5X,5I12)') isdext
+      write(lout,"(a)")      "RANLUX> Full initialization of ranlux with 25 integers: "
+      write(lout,"(a,5i12)") "RANLUX> ",isdext
       do 200 i= 1, 24
       seeds(i) = real(isdext(i))*twom24
   200 continue
@@ -282,7 +282,7 @@ subroutine rluxgo(lux,ins,k1,k2)
      luxlev = lux
   else if (lux .lt. 24 .or. lux .gt. 2000) then
      luxlev = maxlev
-     write(lout,'(A,I7)') ' RANLUX ILLEGAL LUXURY RLUXGO: ',lux
+     write(lout,"(a,i7)") "RANLUX> Illegal luxury rluxgo: ",lux
   else
      luxlev = lux
      do 310 ilx= 0, maxlev
@@ -292,21 +292,21 @@ subroutine rluxgo(lux,ins,k1,k2)
 
   if (luxlev .le. maxlev)  then
      nskip = ndskip(luxlev)
-     write(lout,'(A,I2,A,I4)') ' RANLUX LUXURY LEVEL SET BY RLUXGO :', luxlev,'     P=', nskip+24
+     write(lout,"(a,i2,a,i4)") "RANLUX> Luxury level set by rluxgo: ",luxlev," P = ",nskip+24
   else
       nskip = luxlev - 24
-      write(lout,'(A,I5)') ' RANLUX P-VALUE SET BY RLUXGO TO:',luxlev
+      write(lout,"(a,i5)") "RANLUX> P-value set by rluxgo to: ",luxlev
   endif
 
   in24 = 0
 
-  if (ins .lt. 0)  write(lout,*) ' Illegal initialization by RLUXGO, negative input seed'
+  if (ins .lt. 0)  write(lout,"(a)") "RANLUX> Illegal initialization by RLUXGO, negative input seed"
   if (ins .gt. 0)  then
     jseed = ins
-    write(lout,'(A,3I12)') ' RANLUX INITIALIZED BY RLUXGO FROM SEEDS',jseed, k1,k2
+    write(lout,"(a,3i12)") "RANLUX> Initialized by rluxgo from seeds ",jseed,k1,k2
   else
     jseed = jsdflt
-    write(lout,*)' RANLUX INITIALIZED BY RLUXGO FROM DEFAULT SEED'
+    write(lout,"(a)") "RANLUX> Initialized by rluxgo from default seed"
   endif
   inseed = jseed
   notyet = .false.
@@ -359,8 +359,8 @@ subroutine rluxgo(lux,ins,k1,k2)
       endif
 !       Now IN24 had better be between zero and 23 inclusive
       if (in24 .gt. 23) then
-         write(lout,'(A/A,3I11,A,I5)') '  Error in RESTARTING with RLUXGO:','  The values', ins, k1, k2, &
- & ' cannot occur at luxury level', luxlev
+         write(lout,"(a)")           "RANLUX> ERROR RESTARTING with RLUXGO:"
+         write(lout,"(a,3i11,a,i5)") "RANLUX>       The values",ins,k1,k2," cannot occur at luxury level ",luxlev
          in24 = 0
       endif
     endif
