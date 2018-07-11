@@ -2150,6 +2150,13 @@ end interface
       ! of the numl in numxv/nnumxv???? Eric.
       ! where we reset [n]numxv to nnuml UNLESS particle lost
       ! Now we shall try using that fix at start of tracking
+      write(lout,"(a)") str_divLine
+      write(lout,"(a)") ""
+      write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOOOOO"
+      write(lout,"(a)") "    OO                     OO"
+      write(lout,"(a)") "    OO  TRACKING COMPLETE  OO"
+      write(lout,"(a)") "    OO                     OO"
+      write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOOOOO"
       write(lout,"(a)") ""
       write(lout,"(a)") str_divLine
       write(lout,"(a)") ""
@@ -2453,7 +2460,7 @@ end interface
 #endif
 10000 format(/4x,"Tracking ended abnormally for particle: ",i0,         &
              /4x,"Random seed:        ",i8,                             &
-             /4x,"Momentum deviation: ",f13.5,                          &
+             /4x,"Momentum deviation: ",f14.5,                          &
              /4x,"Lost in revolution: ",i8,                             &
              /4x,"Horiz:  Amplitude = ",ES23.16,"  Aperture = ",f15.3   &
              /4x,"Vert:   Amplitude = ",ES23.16,"  Aperture = ",f15.3/)
