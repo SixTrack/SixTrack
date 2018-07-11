@@ -473,7 +473,7 @@ end subroutine bdex_initialiseTCPIP
 
     if (bdex_elementAction(ix).eq.1) then !Particle exchange
        if (bdex_debug) then
-          write(lout,*) "BDEXDEBUG> "// "Doing particle exchange in bez=",bez(ix)
+          write(lout,"(a,i0)") "BDEX> DEBUG Doing particle exchange in bez = ",bez(ix)
        endif
 
        if (bdex_channels(bdex_elementChannel(ix),1).eq.1) then !PIPE channel
@@ -502,8 +502,7 @@ end subroutine bdex_initialiseTCPIP
              ii=dtostr(dpsv1(j),ch(ii:ii+24))+1+ii
 
              if (ii .ne. 1+(24+1)*11) then !Also check if too big?
-                write(lout,*) "BDEX> ERROR, ii=",ii
-                write(lout,*) "ch=",ch
+                write(lout,"(a,i0,a)") "BDEX> ERROR ii = ",ii," ch = '"//ch//"'"
                 call prror(-1)
              endif
 
@@ -528,17 +527,15 @@ end subroutine bdex_initialiseTCPIP
           if ( j .eq. -1 ) then
              !Don't change the distribution at all
              if (bdex_debug) then
-                write(lout,*) "BDEXDEBUG> No change in distribution."
+                write(lout,"(a)") "BDEX> DEBUG No change in distribution."
              endif
           else
              if (j.gt.npart) then
               call expand_arrays(nele, j, nblz, nblo)
-                ! write(lout,*) "BDEX> ERROR: j=",j,">",npart
-                ! call prror(-1)
              endif
              napx=j
              if (bdex_debug) then
-                write(lout,*) "BDEXDEBUG> Reading",napx, "particles back..."
+                write(lout,"(a,i0,a)") "BDEX> DEBUG Reading",napx," particles back."
              endif
              do j=1,napx
                 read(bdex_channels(bdex_elementChannel(ix),4),*) &
@@ -552,7 +549,7 @@ end subroutine bdex_initialiseTCPIP
        endif
 
     else
-       write(lout,*) "BDEX> elementAction=", bdex_elementAction(i), "not understood."
+       write(lout,"(a,i0,a)") "BDEX> ERROR elementAction = ",bdex_elementAction(i)," not understood."
        call prror(-1)
     endif
 

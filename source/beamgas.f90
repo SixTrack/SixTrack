@@ -115,7 +115,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   end do
 
   if(pressID.eq.0) then
-    write(lout,*) 'Couldnt find pressure marker at',totals
+    write(lout,"(a,e15.7)") "BEAMGAS> ERROR Couldn't find pressure marker at ",totals
     call prror(-1)
   end if
 
@@ -132,9 +132,6 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   do j = 2,napx
   choice=0
   if ((secondary(j).eq.0) .and. (part_abs_pos (j).eq.0 .and. part_abs_turn(j).eq.0) .and. (bgParameters(1).le.totals)) then
-#ifdef DEBUG
-  write(lout,*) 'DEBUG> BG scattering: ',j,bgParameters(3)+1, pressARRAY(2,pressID)*njobs*dpmjetevents
-#endif
 668 continue
 ! Warning: We round DOWN to the nearest integer at each
 ! location. It is needed in order not to run out of particles
@@ -200,7 +197,10 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 !    rotating the vector into the orbit reference system:
      z = matmul(rotm,z)
       if (z(3).eq.0) then
-       write(lout,*) "ERROR> there is something wrong with your dpmjet event", bgiddb(choice),totMomentum, new4MomCoord
+       write(lout,"(a)")       "BEAMGAS> ERROR There is something wrong with your dpmjet event "
+       write(lout,"(a,e15.7)") "BEAMGAS>  * bgiddb(choice) = ",bgiddb(choice)
+       write(lout,"(a,e15.7)") "BEAMGAS>  * totMomentum    = ",totMomentum
+       write(lout,"(a,e15.7)") "BEAMGAS>  * new4MomCoord   = ",new4MomCoord
         call prror(-1)
       else
 !      boosted xp event
@@ -306,12 +306,7 @@ subroutine beamGasInit(myenom)
   integer filereaderror, previousEvent,numberOfEvents
   real bg_val,ecutoff,pPOS,pVAL
 
-  write(lout,*) '************************'
-  write(lout,*) '****                 ***'
-  write(lout,*) '***Beam gas initiation**'
-  write(lout,*) '****      YIL        ***'
-  write(lout,*) '************************'
-  write(lout,*) ''
+  write(lout,"(a)") "BEAMGAS> Initialising"
 
 ! DEBUG: open debug file...
 !      open(684,file='debugfile.txt')
@@ -352,7 +347,7 @@ subroutine beamGasInit(myenom)
   pressARRAY(2,j)=pVAL
   j=j+1
    if (j>bgmaxx) then
-     write(lout,*) 'ERROR> Too many pressure markers!'
+     write(lout,"(a)") "BEAMGAS> ERROR Too many pressure markers!"
      call prror(-1)
    endif
   else if (filereaderror.lt.0) then
@@ -394,26 +389,24 @@ subroutine beamGasInit(myenom)
 !    what we are supposed to simulate, we stop here...
      if (previousEvent.gt.dpmjetevents) exit
      if (numberOfEvents.gt.(bgmaxx-1)) then
-     write(lout,*) 'ERROR> Too many dpmjet events!'
+     write(lout,"(a)") "BEAMGAS> ERROR Too many dpmjet events!"
      call prror(-1)
   endif
   enddo
 ! number of lines in dpmjet - 1
   bgmax=j
   close(666)
-  write(lout,*) 'INFO> Trackable events in dpmjet.eve: ', bgmax-1
+  write(lout,"(a,i0)") "BREAMGAS> Trackable events in dpmjet.eve: ",bgmax-1
 
   if (numberOfEvents.gt.mynp) then
-     write(lout,*) 'ERROR> You need to generate fewer dpmjet events!'
-     write(lout,*) 'ERROR> There were too many trackable events...'
-     write(lout,*) 'ERROR> Maximum for this sixtrack run is: ',mynp
-     write(lout,*) 'ERROR> You generated ',numberOfEvents,' trackable events'
+     write(lout,"(2(a,i0))") "BEAMGAS> ERROR There were too many trackable events. Maximum for this run is ",mynp,&
+      " you generated ",numberOfEvents
      call prror(-1)
   endif
 
-  write(lout,*) 'INFO> This is job number: ', njobthis
-  write(lout,*) 'INFO> Total number of jobs is: ', njobs
-  write(lout,*) 'INFO> Total number of particles in simulation: ', njobs*dpmjetevents
+  write(lout,"(a,i0)") "BEAMGAS> This is job number: ", njobthis
+  write(lout,"(a,i0)") "BEAMGAS> Total number of jobs: ", njobs
+  write(lout,"(a,i0)") "BEAMGAS> Total number of particles in simulation: ", njobs*dpmjetevents
   close(778)
 
   open(777,file='localLOSSES.txt')
