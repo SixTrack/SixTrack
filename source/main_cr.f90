@@ -2409,22 +2409,31 @@ end interface
 #endif
 
   ! Get grand total including post-processing
-  tottime=(pretime+trtime)+posttime
+  tottime = pretime + trtime + posttime
   write(lout,"(a)")         ""
   write(lout,"(a)")         str_divLine
   write(lout,"(a)")         ""
   write(lout,"(a)")         "    Computing Time Summary"
   write(lout,"(a)")         "  =========================="
-  write(lout,"(a,f12.3,a)") "    Preparating Calculations: ",pretime," second(s)"
-  write(lout,"(a,f12.3,a)") "    Particle Tracking:        ",trtime, " second(s)"
-  write(lout,"(a,f12.3,a)") "    Total Time Used:          ",tottime," second(s)"
-  write(lout,"(a,i8)")      "    Particles * Turns:        ",napxto
+  write(lout,"(a,f12.3,a)") "    Preparating Calculations: ",pretime, " second(s)"
+  write(lout,"(a,f12.3,a)") "    Particle Tracking:        ",trtime,  " second(s)"
+  write(lout,"(a,f12.3,a)") "    Post Processing:          ",posttime," second(s)"
+  write(lout,"(a,f12.3,a)") "    Total Time Used:          ",tottime, " second(s)"
+  write(lout,"(a,i8)")      "    Particle Turns:           ",napxto
   write(lout,"(a)")         ""
   write(lout,"(a)")         str_divLine
 
   if (zipf_numfiles.gt.0) then
     call zipf_dozip
   endif
+#ifdef HDF5
+  if(h5_isReady) then
+    call h5_writeAttr(h5_rootID,"PreTime",  pretime)
+    call h5_writeAttr(h5_rootID,"TrackTime",trtime)
+    call h5_writeAttr(h5_rootID,"PostTime", posttime)
+    call h5_writeAttr(h5_rootID,"TotalTime",tottime)
+  end if
+#endif
 #ifdef ROOT
   if(root_flag) then
     call RunTimeRootWrite(pretime, trtime, posttime)
@@ -2442,7 +2451,7 @@ end interface
 #ifndef CR
   stop
 #endif
-10000 format(/4x,"Tracking ended abnormally for particle :",i0,         &
+10000 format(/4x,"Tracking ended abnormally for particle: ",i0,         &
              /4x,"Random seed:        ",i8,                             &
              /4x,"Momentum deviation: ",f13.5,                          &
              /4x,"Lost in revolution: ",i8,                             &
