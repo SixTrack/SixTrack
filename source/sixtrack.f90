@@ -753,15 +753,17 @@ subroutine daten
     end if
 
   case("ELEN") ! Electron Lens
-    if(openBlock) then
-      continue
-    elseif(closeBlock) then
-      call elens_parseInputDone(inErr)
-      if(inErr) goto 9999
-    else
-      call elens_parseInputLine(inLine,blockLine,inErr)
-      if(inErr) goto 9999
-    end if
+    write(lout,"(a)") "INPUT> ERROR The electron lens module is currently disabled pending a full rewrite."
+    goto 9999
+    ! if(openBlock) then
+    !   continue
+    ! elseif(closeBlock) then
+    !   call elens_parseInputDone(inErr)
+    !   if(inErr) goto 9999
+    ! else
+    !   call elens_parseInputLine(inLine,blockLine,inErr)
+    !   if(inErr) goto 9999
+    ! end if
 
   case("DIST") ! Beam Distribution
     if(openBlock) then
