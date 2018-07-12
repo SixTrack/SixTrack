@@ -367,14 +367,15 @@ subroutine aperture_initOC( ix, aprx, apry, theta1, theta2 )
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
   ! initialise aperture marker to octagon
   !-----------------------------------------------------------------------
+  use mod_common, only : rad
   implicit none
   integer ix
   real(kind=fPrec) aprx, apry, theta1, theta2, N, x1, x2, y1, y2
   call aperture_nul( ix )
   kape(ix)=5
   x1=aprx
-  y1=aprx*tan_mb(theta1)
-  x2=apry/tan_mb(theta2)
+  y1=aprx*tan_mb(theta1*rad) ! Convert degrees to radians
+  x2=apry/tan_mb(theta2*rad) ! Convert degrees to radians
   y2=apry
   ape(1,ix)=aprx
   ape(2,ix)=apry
@@ -385,9 +386,6 @@ subroutine aperture_initOC( ix, aprx, apry, theta1, theta2 )
   ! m and q of sloped side
   ape(5,ix)=(y2-y1)/(x2-x1)  ! m = (y2-y1)/(x2-x1)
   ape(6,ix)=y1-ape(5,ix)*x1  ! q = y1 -m*x1
-  ! write(*,*) '--> init OC:',ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),ape(5,ix),ape(6,ix)
-  ! write(*,*) '    input:', ix, aprx, apry, theta1, theta2
-  ! write(*,*) '    coordinates:',ape(1,ix),ape(1,ix)*tan_mb(theta1),ape(2,ix)/tan_mb(theta2),ape(2,ix)
 end subroutine aperture_initOC
 
 
