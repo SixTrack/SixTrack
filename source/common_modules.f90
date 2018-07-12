@@ -329,7 +329,7 @@ module mod_common
   ! common /dcumdb/
   real(kind=fPrec), allocatable, save :: dcum(:)              ! (0:nblz+1) Machine length in m
   real(kind=fPrec), parameter         :: eps_dcum   = c1m6    ! Tolerance for machine length mismatch [m]
-  logical,          parameter         :: print_dcum = .false.
+  logical,                       save :: print_dcum = .false. ! Set in the SETTINGS block
 
   ! beamdim
   real(kind=fPrec), parameter         :: cc   = 1.12837916709551_fPrec
