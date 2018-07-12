@@ -1348,8 +1348,8 @@ subroutine crstart
       if (crsythck) then
 !ERICVARS now read the extended vars from fort.95/96.
         if (cril.ne.il) then
-          write(lout,"2(a,i0)") "SIXTRACR> CRSTART Problem as cril/il are different cril=",cril," il=",il
-          write(93,  "2(a,i0)") "SIXTRACR> CRSTART Problem as cril/il are different cril=",cril," il=",il
+          write(lout,"(2(a,i0))") "SIXTRACR> CRSTART Problem as cril/il are different cril=",cril," il=",il
+          write(93,  "(2(a,i0))") "SIXTRACR> CRSTART Problem as cril/il are different cril=",cril," il=",il
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
           write(lout,"(a)") "SIXTRACR> CRSTART Problem wih cril/il extended C/R"

@@ -753,15 +753,17 @@ subroutine daten
     end if
 
   case("ELEN") ! Electron Lens
-    if(openBlock) then
-      continue
-    elseif(closeBlock) then
-      call elens_parseInputDone(inErr)
-      if(inErr) goto 9999
-    else
-      call elens_parseInputLine(inLine,blockLine,inErr)
-      if(inErr) goto 9999
-    end if
+    write(lout,"(a)") "INPUT> ERROR The electron lens module is currently disabled pending a full rewrite."
+    goto 9999
+    ! if(openBlock) then
+    !   continue
+    ! elseif(closeBlock) then
+    !   call elens_parseInputDone(inErr)
+    !   if(inErr) goto 9999
+    ! else
+    !   call elens_parseInputLine(inLine,blockLine,inErr)
+    !   if(inErr) goto 9999
+    ! end if
 
   case("DIST") ! Beam Distribution
     if(openBlock) then
@@ -3020,10 +3022,6 @@ subroutine comnul
       ! weig2=zero
       ! dpmax=zero
 !-----------------------------------------------------------------------
-      pi=zero
-      pi2=zero
-      pisqrt=zero
-      rad=zero
       dp1=zero
       qs=zero
       crad=zero
@@ -3732,11 +3730,10 @@ subroutine distance(x,clo,di0,t,dam)
       use mod_common, only : dpscor,sigcor,icode,idam,its6d
       implicit none
       integer i,ii,iq,j,jq
-      real(kind=fPrec) clo,cx,dam,di0,phi,pi,sx,t,x,x1
+      real(kind=fPrec) clo,cx,dam,di0,phi,sx,t,x,x1
       dimension x(2,6),x1(2,6),clo(6),di0(4),t(6,6),phi(3)
       save
 !-----------------------------------------------------------------------
-      pi=four*atan_mb(one)
       if(icode.ge.4.and.its6d.eq.0) then
         do i=1,2
           do j=1,4
@@ -11186,8 +11183,7 @@ end subroutine subre
       use parpro
       implicit none
       integer iv,iv2,iv3,iv4,iv5,iv6
-      real(kind=fPrec) beta,dfac,dtu,dtu1,dtu2,dtup,ekk,ep,pi,vor,vtu1, &
-     &vtu2
+      real(kind=fPrec) beta,dfac,dtu,dtu1,dtu2,dtup,ekk,ep,vor,vtu1,vtu2
       dimension dfac(10),dtu(2,5),ep(2),beta(2),dtup(2,5,0:4,0:4)
       save
 !-----------------------------------------------------------------------
@@ -11199,7 +11195,6 @@ end subroutine subre
         write(lout,*)
         return
       endif
-      pi=four*atan_mb(one)
       iv2=2*iv
       iv3=iv+1
 !      vtu1=(((-one*ekk)*(half**iv2))*dfac(iv2))/pi                       !hr06

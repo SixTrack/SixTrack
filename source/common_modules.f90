@@ -118,7 +118,7 @@ module mod_common
 
   use parpro
   use floatPrecision
-  use numerical_constants, only : c1m6
+  use numerical_constants, only : c1m6, c180e0, pi, two, half
 
   implicit none
 
@@ -128,7 +128,10 @@ module mod_common
   character(len=mNameLen), save :: erbez
 
   ! common /kons/
-  real(kind=fPrec), save :: pi,pi2,pisqrt,rad
+  real(kind=fPrec),     save :: pi2    = half*pi
+  real(kind=fPrec),     save :: twopi  = two*pi
+  real(kind=fPrec),     save :: pisqrt = sqrt(pi)
+  real(kind=fPrec),     save :: rad    = pi/c180e0
 
   ! common /str/
   integer,              save :: il,mper,mblo,mbloz,msym(nper),kanf,iu
@@ -329,7 +332,7 @@ module mod_common
   ! common /dcumdb/
   real(kind=fPrec), allocatable, save :: dcum(:)              ! (0:nblz+1) Machine length in m
   real(kind=fPrec), parameter         :: eps_dcum   = c1m6    ! Tolerance for machine length mismatch [m]
-  logical,          parameter         :: print_dcum = .false.
+  logical,                       save :: print_dcum = .false. ! Set in the SETTINGS block
 
   ! beamdim
   real(kind=fPrec), parameter         :: cc   = 1.12837916709551_fPrec

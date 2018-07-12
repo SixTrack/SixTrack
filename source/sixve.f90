@@ -160,10 +160,7 @@ subroutine cadcum
   real(kind=fPrec) tmpdcum
   integer ientry, jentry, kentry, ix
 
-  write(lout,"(a)") str_divLine
-  write(lout,"(a)") ""
-  write(lout,"(a)") " CALL TO CADCUM"
-  write(lout,"(a)") ""
+  write(lout,"(a)") "CADCUM> Calculating machine length"
 
   ! initialise cumulative length
   tmpdcum=zero
@@ -190,33 +187,30 @@ subroutine cadcum
 !     assign the last value to the closing MARKER:
   dcum(iu+1)=tmpdcum
 
-  if ( print_dcum ) then
-!       a useful printout
-    write(lout,10030)'ientry','ix','name            ','dcum [m]'
-    write(lout,10020) 0,-1,'START           ',dcum(0)
+  if(print_dcum) then
+    ! A useful printout. Enabled by the PRINT_DCUM flag in the SETTINGS block
+    write(lout,10030) "CADCUM> ","ientry","ix","name"//repeat(" ",44),"    dcum [m]"
+    write(lout,10020) "CADCUM> ",0,-1,"START"//repeat(" ",43),dcum(0)
     do ientry=1,iu
       ix=ic(ientry)
       if(ix.gt.nblo) then
-!            SINGLE ELEMENT
-          ix=ix-nblo
-          write(lout,10020) ientry,ix,bez(ix),dcum(ientry)
+        ! SINGLE ELEMENT
+        ix=ix-nblo
+        write(lout,10020) "CADCUM> ",ientry,ix,bez(ix),dcum(ientry)
       else
-!            BLOC
-          write(lout,10020) ientry,ix,bezb(ix),dcum(ientry)
-      endif
-    enddo
-    write(lout,10020) iu+1,-1,'END            ',dcum(iu+1)
-    write(lout,"(a)") ""
-  else                      ! Anyway print the total machine length
-      write(lout,'(1x,a,1x,f17.10,1x,a)')                            &
-  &        "Machine length was", dcum(iu+1),"[m]"
-  endif
+        ! BLOC
+        write(lout,10020) "CADCUM> ",ientry,ix,bezb(ix),dcum(ientry)
+      end if
+    end do
+    write(lout,10020) "CADCUM> ",iu+1,-1,"END"//repeat(" ",45),dcum(iu+1)
+  end if
+  write(lout,"(a,f17.10,a)") "CADCUM> Machine length was ",dcum(iu+1)," [m]"
 
-!     au revoir:
   return
 
-10020 format(2(1x,i6),1x,a16,1x,f12.5)
-10030 format(2(1x,a6),1x,a16,1x,a12)
+10020 format(a,2(1x,i6),1x,a48,1x,f12.5)
+10030 format(a,2(1x,a6),1x,a48,1x,a12)
+
 end subroutine cadcum
 
 subroutine blocksv

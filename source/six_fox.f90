@@ -1104,7 +1104,6 @@ subroutine umlauda
 #include "include/beam6dfi.f90"
       goto 440
     endif
-      pi=four*atan_mb(one)
     if(kzz.eq.23) then
 !FOX  CRABAMP=ED(IX)*ZZ0 ;
 

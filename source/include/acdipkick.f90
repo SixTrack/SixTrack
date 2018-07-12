@@ -1,7 +1,6 @@
 nfree=nturn1(ix)
 if(n.gt.nfree) then
   nac=n-nfree
-  pi=four*atan_mb(one)
   !---------ACdipAmp input in Tesla*meter converted to KeV/c
   !---------ejfv(j) should be in MeV/c --> ACdipAmp/ejfv(j) is in mrad
   acdipamp=(ed(ix)*clight)*c1m3                                !hr03
