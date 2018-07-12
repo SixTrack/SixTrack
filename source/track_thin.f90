@@ -564,7 +564,7 @@ subroutine thin4d(nthinerr)
 
   implicit none
 
-  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,acphase,  &
     acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi, &
     rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp  !solenoid
@@ -583,6 +583,13 @@ subroutine thin4d(nthinerr)
 #ifdef FLUKA
   napxto = 0
 #endif
+
+  ! Determine which turns to print tracking report on
+  if(numl > 1000) then
+    turnrep = nint(numl/1000.0)
+  else
+    turnrep = 1
+  end if
 
 #ifdef CR
   if (restart) then
@@ -604,7 +611,9 @@ subroutine thin4d(nthinerr)
 #else
   do 640 n=1,numl !loop over turns
 #endif
-if(st_quiet < 3) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
+  if(st_quiet < 3) then
+    if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
+  end if
 #ifdef BOINC
     ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
@@ -1199,7 +1208,7 @@ subroutine thin6d(nthinerr)
 #endif
   implicit none
 
-  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
@@ -1219,7 +1228,14 @@ subroutine thin6d(nthinerr)
   napxto = 0
 #endif
 
-! This is the loop over turns: label 660
+  ! Determine which turns to print tracking report on
+  if(numl > 1000) then
+    turnrep = nint(numl/1000.0)
+  else
+    turnrep = 1
+  end if
+
+  ! This is the loop over turns: label 660
 #ifdef CR
   if (restart) then
     call crstart
@@ -1241,7 +1257,9 @@ subroutine thin6d(nthinerr)
 #else
   do 660 n=1,numl       ! Loop over turns
 #endif
-    if(st_quiet < 3) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
+    if(st_quiet < 3) then
+      if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
+    end if
 #ifdef BOINC
     ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
