@@ -3,7 +3,6 @@
 !---------ejfv(j) should be in MeV ?? --> CrabAmp/ejfv(j) is in rad
 !---------CrabFreq input in MHz (ek)
 !---------sigmv should be in mm --> sigmv*1e-3/clight*ek*1e6 in rad
-  pi=four*atan_mb(one)
   crabfreq=ek(ix)*c1e3
 
   do j=1,napx ! loop over particles

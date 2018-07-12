@@ -910,6 +910,7 @@ subroutine scatter_thin(i_elem, ix, turn)
   use crcoall
   use mod_common
   use mod_commonmn
+  use numerical_constants, only : pi
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -1068,6 +1069,7 @@ real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(re
   use string_tools
   use crcoall
   use mod_common
+  use numerical_constants, only : pi
 
   implicit none
 

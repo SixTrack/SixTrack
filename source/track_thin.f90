@@ -1901,7 +1901,6 @@ subroutine thin6d(nthinerr)
         goto 640
       case (57) ! JBG RF CC Multipoles
         xory=1
-        pi=four*atan_mb(one)
         crabfreq=ek(ix)*c1e3
         do j=1,napx
           crabamp2 = ed(ix)*nzz(j)
@@ -1924,7 +1923,6 @@ subroutine thin6d(nthinerr)
         goto 640
       case (58) ! JBG RF CC Multipoles
         xory=1
-        pi=four*atan_mb(one)
         crabfreq=ek(ix)*c1e3
         do j=1,napx
           crabamp2 = ed(ix)*nzz(j)
@@ -1947,7 +1945,6 @@ subroutine thin6d(nthinerr)
         goto 640
       case (59) ! JBG RF CC Multipoles
         xory=1
-        pi=four*atan_mb(one)
         crabfreq=ek(ix)*c1e3
         do j=1,napx
           crabamp3 = ed(ix)*nzz(j)
@@ -1971,7 +1968,6 @@ subroutine thin6d(nthinerr)
         goto 640
       case (60) ! JBG RF CC Multipoles
         xory=1
-        pi=four*atan_mb(one)
         crabfreq=ek(ix)*c1e3
         do j=1,napx
           crabamp3 = ed(ix)*nzz(j)
@@ -1995,7 +1991,6 @@ subroutine thin6d(nthinerr)
         goto 640
       case (61) ! JBG RF CC Multipoles
         xory=1
-        pi=four*atan_mb(one)
         crabfreq=ek(ix)*c1e3
         do j=1,napx
           crabamp4 = ed(ix)*nzz(j)
@@ -2019,7 +2014,6 @@ subroutine thin6d(nthinerr)
         goto 640
       case (62) ! JBG RF CC Multipoles
         xory=1
-        pi=four*atan_mb(one)
         crabfreq=ek(ix)*c1e3
         do j=1,napx
           crabamp4 = ed(ix)*nzz(j)

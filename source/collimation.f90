@@ -6423,9 +6423,6 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
   &xsigmax,ysigmay,myenom
 
-
-  real(kind=fPrec) pi
-
   save
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
@@ -6436,7 +6433,6 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
 !
 !++  Calculate the gammas
 !
-  pi=four*atan_mb(one)
   mygammax = (one+myalphax**2)/mybetax
   mygammay = (one+myalphay**2)/mybetay
 !++TW 11/07 reset j, helps if subroutine is called twice
@@ -6535,8 +6531,6 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
   &xsigmax,ysigmay,myenom
 
-
-  real(kind=fPrec) pi
   real(kind=fPrec) iix, iiy, phix, phiy
   save
 
@@ -6544,7 +6538,6 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
 !++  Generate particle distribution
 !++  Generate random distribution, assuming optical parameters at IP1
 !++  Calculate the gammas
-  pi=four*atan_mb(one)
   mygammax = (one+myalphax**2)/mybetax
   mygammay = (one+myalphay**2)/mybetay
   do j=1, mynp
@@ -6629,17 +6622,14 @@ subroutine makedis_coll(mynp,myalphax, myalphay, mybetax, mybetay,  myemitx0, my
   &xsigmax,ysigmay,myenom
 
 
-  real(kind=fPrec) pi, iix, iiy, phix,phiy,cutoff
+  real(kind=fPrec) iix, iiy, phix,phiy,cutoff
 
-      save
+  save
 !
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
 !
 !++  Calculate the gammas
-
-  write(lout,*) '  RB 2013: new pencil beam routine'
-  pi=four*atan_mb(one)
 
   mygammax = (one+myalphax**2)/mybetax
   mygammay = (one+myalphay**2)/mybetay
@@ -6736,8 +6726,6 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
   &xsigmax,ysigmay,myenom
 
-
-  real(kind=fPrec) pi
   real(kind=fPrec) iix, iiy, phix, phiy
   real(kind=fPrec) enerror, bunchlength
   real(kind=fPrec) en_error, bunch_length
@@ -6750,7 +6738,6 @@ subroutine makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, &
 !++  Generate random distribution, assuming optical parameters at IP1
 !
 !++  Calculate the gammas
-  pi=four*atan_mb(one)
 
   mygammax = (one+myalphax**2)/mybetax
   mygammay = (one+myalphay**2)/mybetay
@@ -7130,9 +7117,6 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
   &xsigmax,ysigmay,myenom,nr,ndr
 
-
-  real(kind=fPrec) pi
-
   save
 !-----------------------------------------------------------------------
 !++  Generate particle distribution
@@ -7141,8 +7125,6 @@ subroutine makedis_radial(mynp, myalphax, myalphay, mybetax,      &
 !++  Generate random distribution, assuming optical parameters at IP1
 !
 !++  Calculate the gammas
-
-  pi=four*atan_mb(one)
 
   mygammax = (one+myalphax**2)/mybetax
   mygammay = (one+myalphay**2)/mybetay
@@ -7284,10 +7266,6 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
   &xsigmax,ysigmay,myenom
 
-  real(kind=fPrec) pi
-!YIL march2010 edit: was missing enerror, bunchlength etc...
-! no common block for these parameters?
-
   real(kind=fPrec) enerror, bunchlength
   real(kind=fPrec) en_error, bunch_length
 
@@ -7303,7 +7281,6 @@ subroutine makedis_ga( mynp, myalphax, myalphay, mybetax, mybetay, myemitx0, mye
 !++  Generate random distribution, assuming optical parameters at IP1
 !
 !++  Calculate the gammas
-  pi=four*atan_mb(one)
 
   mygammax = (one+myalphax**2)/mybetax
   mygammay = (one+myalphay**2)/mybetay

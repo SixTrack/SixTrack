@@ -269,17 +269,17 @@ module platoFMA
 !C
 
       REAL(KIND=fPrec) FUNCTION TUNEABT(X,XP,MAXN)
+      use numerical_constants, only : pi
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAXN,NPOINT,MF,NPMIN,NPMAX,NFTMAX,NFT
-      REAL(KIND=fPrec) X,XP,PI,DUEPI,MFT,STEP,SUM,FTMAX,CF1,CF2,CF3,ASSK
+      REAL(KIND=fPrec) X,XP,DUEPI,MFT,STEP,SUM,FTMAX,CF1,CF2,CF3,ASSK
       COMPLEX(kind=fPrec) Z,ZSING
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER),ZSING(MAXITER)
 
 !C..................................ESTIMATION OF TUNE WITH FFT
-      PI=ATAN_MB(one)*four
       MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(two))
       DUEPI=two*PI
       NPOINT=2**MFT
@@ -333,18 +333,18 @@ module platoFMA
 !C
 
       REAL(KIND=fPrec) FUNCTION TUNEABT2(X,XP,MAXN)
+      use numerical_constants, only : pi
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAXN,NPOINT,MFT,MF,NPMIN,NPMAX,NFTMAX,NN,NFT
-      REAL(KIND=fPrec) X,XP,PI,DUEPI,STEP,SUM,FTMAX,CF1,CF2,CF3,P1,P2,CO,SI,SCRA1,SCRA2,SCRA3,SCRA4,ASSK
+      REAL(KIND=fPrec) X,XP,DUEPI,STEP,SUM,FTMAX,CF1,CF2,CF3,P1,P2,CO,SI,SCRA1,SCRA2,SCRA3,SCRA4,ASSK
       COMPLEX(kind=fPrec) Z
       COMPLEX(kind=fPrec) ZSING(MAXITER)
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER)
 
 !C..................................ESTIMATION OF TUNE WITH FFT
-      PI=ATAN_MB(one)*four
       MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(two))
       DUEPI=2*PI
       NPOINT=2**MFT
@@ -739,9 +739,10 @@ module platoFMA
       REAL(KIND=fPrec) FUNCTION TUNEAPA(X,P,N)
 !C............................................................
       use crcoall
+      use numerical_constants, only : pi
       IMPLICIT NONE
       INTEGER N,I
-      REAL(KIND=fPrec) X,P,PI,ADV,ADV1,ADV2,ADVS,S1,S2,S3,ADVSIG,ADVMIN,ADVMAX
+      REAL(KIND=fPrec) X,P,ADV,ADV1,ADV2,ADVS,S1,S2,S3,ADVSIG,ADVMIN,ADVMAX
       DIMENSION X(*),P(*)
 !C............................................................
       COMMON/TUNEPAR/ADVSIG,ADVMIN,ADVMAX
@@ -751,7 +752,6 @@ module platoFMA
         call prror(-1)
       ENDIF
 !C............................................................
-      PI=four*ATAN_MB(one)
       ADV=ZERO
       ADV1=C1E1
       ADV2=-C1E1

@@ -128,7 +128,7 @@ module mod_common
   character(len=mNameLen), save :: erbez
 
   ! common /kons/
-  real(kind=fPrec), save :: pi,pi2,pisqrt,rad
+  real(kind=fPrec), save :: pi2,pisqrt,rad
 
   ! common /str/
   integer,              save :: il,mper,mblo,mbloz,msym(nper),kanf,iu

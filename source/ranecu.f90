@@ -36,11 +36,10 @@ contains
       integer, intent(in) :: len, mcut
 
       integer i,iz,j,k
-      real(kind=fPrec) rvec0, pi
+      real(kind=fPrec) rvec0
       real(kind=fPrec), dimension(2) :: r
 
 !-----------------------------------------------------------------------
-      pi = four*atan_mb(one)
 !     DO 100 I = 1,LEN
       i=1
 

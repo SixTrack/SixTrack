@@ -385,9 +385,9 @@ subroutine aperture_initOC( ix, aprx, apry, theta1, theta2 )
   ! m and q of sloped side
   ape(5,ix)=(y2-y1)/(x2-x1)  ! m = (y2-y1)/(x2-x1)
   ape(6,ix)=y1-ape(5,ix)*x1  ! q = y1 -m*x1
-  write(*,*) '--> init OC:',ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),ape(5,ix),ape(6,ix)
-  write(*,*) '    input:', ix, aprx, apry, theta1, theta2
-  write(*,*) '    coordinates:',ape(1,ix),ape(1,ix)*tan_mb(theta1),ape(2,ix)/tan_mb(theta2),ape(2,ix)
+  ! write(*,*) '--> init OC:',ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),ape(5,ix),ape(6,ix)
+  ! write(*,*) '    input:', ix, aprx, apry, theta1, theta2
+  ! write(*,*) '    coordinates:',ape(1,ix),ape(1,ix)*tan_mb(theta1),ape(2,ix)/tan_mb(theta2),ape(2,ix)
 end subroutine aperture_initOC
 
 
