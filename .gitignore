@@ -1,39 +1,37 @@
-#General
+# General
 *.o
 *~
 *.exe
 
 # SixTest
-SixTest/*/*.run_pro*
-SixTest/*/*.run_kill*
-SixTest/run_pro_*
-SixTest/run_kill_*
-#SixTest/read90/dtoa_c.o
-#SixTest/read90/dtoaf.o
+test/*/*.run_pro*
+test/*/*.run_kill*
+test/run_pro_*
+test/run_kill_*
 
-#Builds
-SixTrack/Makefile
-SixTrack/Makefile_makesix
-SixTrack/SixTrack_*
-SixTrack/SixTrack
-SixTrack/astuce
-SixTrack/dafor
+# Builds
+source/libarchive_build
+source/zlib/build
+source/zlib/install
 
-SixTrack/libarchive_build
-SixTrack/zlib/build
-SixTrack/zlib/install
+source/count.log
 
-SixTrack/count.log
+# Custom Build Folders
+build*
+Build*
 
-#LaTeX temps
-Doc/user_manual/six.pdf
-Doc/*/*.aux
-Doc/*/*.log
-Doc/*/*.lot
-Doc/*/*.out
-Doc/*/*.toc
-*.bbl
-*.blg
+# LaTeX
+doc/html
+doc/*/*.pdf
+doc/*/*.aux
+doc/*/*.log
+doc/*/*.lot
+doc/*/*.out
+doc/*/*.toc
+doc/*/*.bbl
+doc/*/*.blg
+doc/*/*.ilg
+doc/*/*.synctex.gz
 
-#Python temps
+# Python
 *.pyc

@@ -1,7 +1,0 @@
-sixtrack.s common_headers.s
-sixvefoxn.f
-df vvector,crlibm,tilt,fast,collimat,cr,boinc,beamgas,bnlelens,bignblz,fio,lf95,hugenblz,bignpart,hugenpart,datamods
-e UMLAU6,ENVADA,SYNODA,ERRFF
-e CLOR6,MYDAINI
-e beam6df,wireda
-ex

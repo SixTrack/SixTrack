@@ -1,0 +1,169 @@
+\documentclass[twoside,a4paper,11pt]{report}
+\usepackage[twoside,a4paper,top=25mm,bottom=25mm,left=20mm,right=20mm]{geometry}
+
+\usepackage{float}
+%\usepackage{graphics}
+\usepackage[dvips]{epsfig,rotating}
+
+\usepackage{verbatim}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+%\usepackage{html}
+
+% Table Settings
+\usepackage{longtable}
+\usepackage[table]{xcolor}
+\usepackage{tabu}
+\usepackage{multirow}
+\usepackage{tabularx}
+% \usepackage{makecell}
+%\tabulinesep=^1mm_1mm
+\renewcommand{\arraystretch}{1.1}
+
+\usepackage{caption}
+\captionsetup[table]{skip=2pt}
+
+\usepackage{todonotes}
+%\usepackage{draftwatermark}
+
+\usepackage{fancyvrb}
+
+% Colours
+\definecolor{cverbbg}{gray}{0.95}
+\definecolor{cverbbd}{gray}{0.35}
+\definecolor{notered}{rgb}{0.70,0.0,0.0}
+\definecolor{linkred}{rgb}{0.70,0.1,0.0}
+
+% Links
+\usepackage{hyperref}
+\usepackage{url}
+\hypersetup{colorlinks=true, citecolor=blue, urlcolor=blue, linkcolor=linkred}
+\urlstyle{same}
+
+% Index
+\usepackage{makeidx}
+\makeindex
+
+% Verbatim Box
+\newenvironment{cverbatim}
+ {\SaveVerbatim{cverb}}
+ {\endSaveVerbatim
+  \scriptsize\flushleft\addtolength{\leftskip}{5mm}
+  \fboxrule=0.4pt\fboxsep=0.6em
+  \fcolorbox{cverbbd}{cverbbg}{\BUseVerbatim{cverb}}%
+  \endflushleft\normalsize
+}
+
+\newenvironment{ctverbatim}
+ {\SaveVerbatim{ctverb}}
+ {\endSaveVerbatim
+  \tiny\flushleft\addtolength{\leftskip}{5mm}
+  \fboxrule=0.4pt\fboxsep=0.6em
+  \fcolorbox{cverbbd}{cverbbg}{\BUseVerbatim{ctverb}}%
+  \endflushleft\normalsize
+}
+
+\newenvironment{description_alligned}[1]
+{\begin{list}{}%
+    {\renewcommand\makelabel[1]{##1:\hfill}%
+      \settowidth\labelwidth{\makelabel{#1}}%
+      \setlength\leftmargin{\labelwidth}
+      \addtolength\leftmargin{\labelsep}}}
+  {\end{list}}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\pagestyle{headings}
+\raggedbottom
+
+% Page Layout
+%*************
+
+\usepackage{fancyhdr}
+
+% Plain Page Numbering
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyfoot[LE,RO]{\thepage}
+}
+
+% Header style for numbered chapters
+\newcommand{\defaulthead}{
+    \fancyhead[LE]{\nouppercase{\scshape\leftmark}}
+    \fancyhead[RO]{\nouppercase{\scshape\rightmark}}
+}
+
+% Custom heading for unnumbered chapters
+\newcommand{\simplehead}[1]{
+    \fancyhead[LE]{\nouppercase{\itshape #1}}
+    \fancyhead[RO]{\nouppercase{\itshape #1}}
+}
+
+\pagestyle{fancy}
+
+% Page Header
+\renewcommand{\chaptermark}[1]{\markboth{\chaptername\ \thechapter: #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}{}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancyhf{}
+\defaulthead
+\headheight 15pt
+\fancyfoot[LE,RO]{\thepage}
+
+% Main Document
+\begin{document}
+
+\pagenumbering{roman}
+
+\input{incTitlePage}
+\cleardoublepage
+\pdfbookmark{Acknowledgements}{Acknowledgements}
+\input{incAcknowledgement}
+\cleardoublepage
+
+\tableofcontents
+\cleardoublepage
+\pagenumbering{arabic}
+
+% Chapters
+\input{chIntroduction}
+\cleardoublepage
+\input{chGeneralInput}
+\cleardoublepage
+\input{chMachineGeometry}
+\cleardoublepage
+\input{chSpecialElements}
+\cleardoublepage
+\input{chOrganisingTasks}
+\cleardoublepage
+\input{chProcessing}
+\cleardoublepage
+\input{chInitialConditions}
+\cleardoublepage
+\input{chExtraOutput}
+\cleardoublepage
+
+\appendix
+\renewcommand{\chaptername}{Appendix}
+\input{apxKeywords}
+\cleardoublepage
+\input{apxDefaults}
+\cleardoublepage
+\input{apxInputOutput}
+\cleardoublepage
+\input{apxDataStructure}
+\cleardoublepage
+% \input{apxExamples}
+% \cleardoublepage
+
+\input{theBibliography}
+\cleardoublepage
+\printindex
+\cleardoublepage
+\listoftables
+\cleardoublepage
+
+\end{document}
