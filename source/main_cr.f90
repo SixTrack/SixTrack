@@ -434,10 +434,6 @@ end interface
       call comnul
       commen=' '
       progrm='SIXTRACK'
-      pi2=pi*half
-      pisqrt=sqrt(pi)
-      rad=pi/c180e0                                                       !hr05
-
 
 #ifdef ROOT
       call SixTrackRootFortranInit

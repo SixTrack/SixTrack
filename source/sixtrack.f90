@@ -3022,9 +3022,6 @@ subroutine comnul
       ! weig2=zero
       ! dpmax=zero
 !-----------------------------------------------------------------------
-      pi2=zero
-      pisqrt=zero
-      rad=zero
       dp1=zero
       qs=zero
       crad=zero
