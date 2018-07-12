@@ -215,8 +215,8 @@ subroutine hions_crcheck_readdata(fileUnit, readErr)
   return
 
 10 continue
-  write(lout,*) "READERR in hions_crcheck; fileUnit = ",fileUnit
-  write(93,*)   "READERR in hions_crcheck; fileUnit = ",fileUnit
+  write(lout,"(a,i0)") "HION> READERR in hions_crcheck; fileUnit = ",fileUnit
+  write(93,  "(a,i0)") "HION> READERR in hions_crcheck; fileUnit = ",fileUnit
   readErr = .true.
 
 end subroutine hions_crcheck_readdata

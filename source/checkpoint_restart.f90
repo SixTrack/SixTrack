@@ -1236,7 +1236,7 @@ subroutine crpoint
       &ierro
   103 endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
-      write(lout,*)'SIXTRACR CHECKPOINT I/O Error'
+      write(lout,"(a)") "SIXTRACR> CHECKPOINT I/O Error"
       call prror(-1)
 end subroutine crpoint
 
@@ -1348,16 +1348,11 @@ subroutine crstart
       if (crsythck) then
 !ERICVARS now read the extended vars from fort.95/96.
         if (cril.ne.il) then
-          write(lout,*)                                                 &
-      &' SIXTRACR CRSTART Problem as cril/il are different',             &
-      &' cril=',cril,' il=',il
-          write(93,*)                                                   &
-      &' SIXTRACR CRSTART Problem as cril/il are different',             &
-      &' cril=',cril,' il=',il
+          write(lout,"2(a,i0)") "SIXTRACR> CRSTART Problem as cril/il are different cril=",cril," il=",il
+          write(93,  "2(a,i0)") "SIXTRACR> CRSTART Problem as cril/il are different cril=",cril," il=",il
           endfile (93,iostat=ierro)
           backspace (93,iostat=ierro)
-          write(lout,*)                                                 &
-      &         'SIXTRACR CRSTART Problem wih cril/il extended C/R'
+          write(lout,"(a)") "SIXTRACR> CRSTART Problem wih cril/il extended C/R"
           call prror(-1)
         endif
 !ERICVARS now read the extended vars from fort.95/96.
@@ -1581,16 +1576,13 @@ subroutine crstart
 !       backspace (93,iostat=ierro)
 #endif
         go to 103
-  101   write(93,*)                                                     &
-      &'SIXTRACR CRSTART COULD NOT READ CHECKPOINT FILE 96 (extended)',  &
-      &' iostat=',ierro
+  101   write(93,"(a,i0)") "SIXTRACR> CRSTART COULD NOT READ CHECKPOINT FILE 96 (extended) iostat=",ierro
   103   endfile (93,iostat=ierro)
         backspace (93,iostat=ierro)
-        write(lout,*)'SIXTRACR CRSTART Problem with extended checkpoint'
+        write(lout,"(a)") "SIXTRACR> CRSTART Problem with extended checkpoint"
         call prror(-1)
       endif
-  102 write(93,*)                                                       &
-      &'SIXTRACR CRSTART six/crsix/bin recs',sixrecs,crsixrecs,binrec
+  102 write(93,*) "SIXTRACR> CRSTART six/crsix/bin recs",sixrecs,crsixrecs,binrec
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
 #ifdef DEBUG
@@ -1623,10 +1615,7 @@ subroutine crstart
 #endif
       return
   606 backspace (6,iostat=ierro)
-      write(lout,*)                                                     &
-      &' SIXTRACR CRSTART Problem re-positioning fort.6: sixrecs',       &
-      &sixrecs,'crsixrecs',crsixrecs
-      write(lout,*)'SIXTRACR CRSTART Problem fort.6'
+      write(lout,"(2(a,i0))") "SIXTRACR> CRSTART Problem re-positioning fort.6: sixrecs = ",sixrecs,", crsixrecs = ",crsixrecs
       call prror(-1)
 end subroutine crstart
 end module checkpoint_restart

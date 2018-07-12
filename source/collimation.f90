@@ -1043,6 +1043,7 @@ subroutine collimate_init()
   use mod_commons
   use mod_commont
   use mod_commond
+  use mod_settings
 
   implicit none
 
@@ -1065,21 +1066,26 @@ subroutine collimate_init()
   call funit_requestUnit('colltrack.out', outlun)
   open(unit=outlun, file='colltrack.out')
 
-  write(lout,*) '         -------------------------------'
-  write(lout,*)
-  write(lout,*) '          Program      C O L L T R A C K '
-  write(lout,*)
-  write(lout,*) '            R. Assmann           -    AB/ABP'
-  write(lout,*) '            C. Bracco            -    AB/ABP'
-  write(lout,*) '            V. Previtali         -    AB/ABP'
-  write(lout,*) '            S. Redaelli          -    AB/OP'
-  write(lout,*) '            G. Robert-Demolaize  -    BNL'
-  write(lout,*) '            A. Rossi             -    AB/ABP'
-  write(lout,*) '            T. Weiler            -    IEKP'
-  write(lout,*) '                 CERN 2001 - 2009'
-  write(lout,*)
-  write(lout,*) '         -------------------------------'
-  write(lout,*) 'Collimation version of Sixtrack running... 08/2009'
+  if(st_quiet == 0) then
+    write(lout,"(a)") '         -------------------------------'
+    write(lout,"(a)")
+    write(lout,"(a)") '          Program      C O L L T R A C K '
+    write(lout,"(a)")
+    write(lout,"(a)") '            R. Assmann           -    AB/ABP'
+    write(lout,"(a)") '            C. Bracco            -    AB/ABP'
+    write(lout,"(a)") '            V. Previtali         -    AB/ABP'
+    write(lout,"(a)") '            S. Redaelli          -    AB/OP'
+    write(lout,"(a)") '            G. Robert-Demolaize  -    BNL'
+    write(lout,"(a)") '            A. Rossi             -    AB/ABP'
+    write(lout,"(a)") '            T. Weiler            -    IEKP'
+    write(lout,"(a)") '                 CERN 2001 - 2009'
+    write(lout,"(a)")
+    write(lout,"(a)") '         -------------------------------'
+  else
+    write(lout,"(a)") ""
+    write(lout,"(a)") " INITIALISING COLLIMATION"
+    write(lout,"(a)") ""
+  end if
 
   write(outlun,*)
   write(outlun,*)
@@ -1101,36 +1107,37 @@ subroutine collimate_init()
   write(outlun,*)
   write(outlun,*)
 
-  write(lout,*) '                     R. Assmann, F. Schmidt, CERN'
-  write(lout,*) '                           C. Bracco,        CERN'
-  write(lout,*) '                           V. Previtali,     CERN'
-  write(lout,*) '                           S. Redaelli,      CERN'
-  write(lout,*) '                       G. Robert-Demolaize,  BNL'
-  write(lout,*) '                           A. Rossi,         CERN'
-  write(lout,*) '                           T. Weiler         IEKP'
+  if(st_quiet == 0) then
+    write(lout,"(a)") '                     R. Assmann, F. Schmidt, CERN'
+    write(lout,"(a)") '                           C. Bracco,        CERN'
+    write(lout,"(a)") '                           V. Previtali,     CERN'
+    write(lout,"(a)") '                           S. Redaelli,      CERN'
+    write(lout,"(a)") '                       G. Robert-Demolaize,  BNL'
+    write(lout,"(a)") '                           A. Rossi,         CERN'
+    write(lout,"(a)") '                           T. Weiler         IEKP'
 
-  write(lout,*)
-  write(lout,*) 'Generating particle distribution at FIRST element!'
-  write(lout,*) 'Optical functions obtained from Sixtrack internal!'
-  write(lout,*) 'Emittance and energy obtained from Sixtrack input!'
-  write(lout,*)
-  write(lout,*)
+    write(lout,"(a)")
+    write(lout,"(a)") 'Generating particle distribution at FIRST element!'
+    write(lout,"(a)") 'Optical functions obtained from Sixtrack internal!'
+    write(lout,"(a)") 'Emittance and energy obtained from Sixtrack input!'
+    write(lout,"(a)")
+    write(lout,"(a)")
+  end if
 
-  write(lout,*) 'Info: Betax0   [m]    ', tbetax(1)
-  write(lout,*) 'Info: Betay0   [m]    ', tbetay(1)
-  write(lout,*) 'Info: Alphax0         ', talphax(1)
-  write(lout,*) 'Info: Alphay0         ', talphay(1)
-  write(lout,*) 'Info: Orbitx0  [mm]   ', torbx(1)
-  write(lout,*) 'Info: Orbitxp0 [mrad] ', torbxp(1)
-  write(lout,*) 'Info: Orbity0  [mm]   ', torby(1)
-  write(lout,*) 'Info: Orbitpy0 [mrad] ', torbyp(1)
-  write(lout,*) 'Info: Emitx0_dist [um]', remitx_dist
-  write(lout,*) 'Info: Emity0_dist [um]', remity_dist
-  write(lout,*) 'Info: Emitx0_collgap [um]', remitx_collgap
-  write(lout,*) 'Info: Emity0_collgap [um]', remity_collgap
-  write(lout,*) 'Info: E0       [MeV]  ', e0
-  write(lout,*)
-  write(lout,*)
+  write(lout,"(a,e15.8)") 'COLL> Info: Betax0 [m]          = ', tbetax(1)
+  write(lout,"(a,e15.8)") 'COLL> Info: Betay0 [m]          = ', tbetay(1)
+  write(lout,"(a,e15.8)") 'COLL> Info: Alphax0             = ', talphax(1)
+  write(lout,"(a,e15.8)") 'COLL> Info: Alphay0             = ', talphay(1)
+  write(lout,"(a,e15.8)") 'COLL> Info: Orbitx0 [mm]        = ', torbx(1)
+  write(lout,"(a,e15.8)") 'COLL> Info: Orbitxp0 [mrad]     = ', torbxp(1)
+  write(lout,"(a,e15.8)") 'COLL> Info: Orbity0 [mm]        = ', torby(1)
+  write(lout,"(a,e15.8)") 'COLL> Info: Orbitpy0 [mrad]     = ', torbyp(1)
+  write(lout,"(a,e15.8)") 'COLL> Info: Emitx0_dist [um]    = ', remitx_dist
+  write(lout,"(a,e15.8)") 'COLL> Info: Emity0_dist [um]    = ', remity_dist
+  write(lout,"(a,e15.8)") 'COLL> Info: Emitx0_collgap [um] = ', remitx_collgap
+  write(lout,"(a,e15.8)") 'COLL> Info: Emity0_collgap [um] = ', remity_collgap
+  write(lout,"(a,e15.8)") 'COLL> Info: E0 [MeV]            = ', e0
+  write(lout,"(a)")
 
   myemitx0_dist = remitx_dist*c1m6
   myemity0_dist = remity_dist*c1m6
@@ -1146,14 +1153,12 @@ subroutine collimate_init()
 !      MYENOM   = 1.001*E0
 !
   if (myemitx0_dist.le.zero .or. myemity0_dist.le.zero .or. myemitx0_collgap.le.zero .or. myemity0_collgap.le.zero) then
-    write(lout,*) 'ERR> EMITTANCES NOT DEFINED! CHECK COLLIMAT BLOCK!'
-    write(lout,*) "ERR> EXPECTED FORMAT OF LINE 9 IN COLLIMAT BLOCK:"
-    write(lout,*) "emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
-
-    write(lout,*) "ERR> ALL EMITTANCES SHOULD BE NORMALIZED.", &
-      "FIRST PUT EMITTANCE FOR DISTRIBTION GENERATION, THEN FOR COLLIMATOR POSITION ETC. UNITS IN [MM*MRAD]."
-    write(lout,*) "ERR> EXAMPLE:"
-    write(lout,*) "2.5 2.5 3.5 3.5"
+    write(lout,"(a)") "COLL> ERROR Emittances not defined! check collimat block!"
+    write(lout,"(a)") "COLL> ERROR Expected format of line 9 in collimat block:"
+    write(lout,"(a)") "COLL> ERROR emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
+    write(lout,"(a)") "COLL> ERROR All emittances should be normalized. "//&
+      "first put emittance for distribtion generation, then for collimator position etc. units in [mm*mrad]."
+    write(lout,"(a)") "COLL> ERROR EXAMPLE: 2.5 2.5 3.5 3.5"
     call prror(-1)
   end if
 
@@ -1174,154 +1179,144 @@ subroutine collimate_init()
 !      NSIG_SEC=6.
   rselect=64
 
-  write(lout,*) 'INFO>  NLOOP     = ', nloop
-  write(lout,*) 'INFO>  DO_THISDIS     = ', do_thisdis
-  write(lout,*) 'INFO>  MYNEX     = ', mynex
-  write(lout,*) 'INFO>  MYDEX     = ', mdex
-  write(lout,*) 'INFO>  MYNEY     = ', myney
-  write(lout,*) 'INFO>  MYDEY     = ', mdey
-  write(lout,*) 'INFO>  FILENAME_DIS     = ', filename_dis
-  write(lout,*) 'INFO>  ENERROR     = ', enerror
-  write(lout,*) 'INFO>  BUNCHLENGTH     = ', bunchlength
-  write(lout,*) 'INFO>  RSELECT   = ', int(rselect)
-  write(lout,*) 'INFO>  DO_COLL   = ', do_coll
-!APRIL2005
-!+if cr
-!      write(lout,*) 'INFO>  NSIG_PRIM = ', nsig_prim
-!+ei
-!+if .not.cr
-!      write(*,*) 'INFO>  NSIG_PRIM = ', nsig_prim
-!+ei
-!+if cr
-!      write(lout,*) 'INFO>  NSIG_SEC  = ', nsig_sec
-!+ei
-!+if .not.cr
-!      write(*,*) 'INFO>  NSIG_SEC  = ', nsig_sec
-!+ei
-  write(lout,*) 'INFO>  DO_NSIG   = ', do_nsig
-  write(lout,*) 'INFO>  NSIG_TCP3    = ', nsig_tcp3
-  write(lout,*) 'INFO>  NSIG_TCSG3   = ', nsig_tcsg3
-  write(lout,*) 'INFO>  NSIG_TCSM3   = ', nsig_tcsm3
-  write(lout,*) 'INFO>  NSIG_TCLA3   = ', nsig_tcla3
-  write(lout,*) 'INFO>  NSIG_TCP7    = ', nsig_tcp7
-  write(lout,*) 'INFO>  NSIG_TCSG7   = ', nsig_tcsg7
-  write(lout,*) 'INFO>  NSIG_TCSM7   = ', nsig_tcsm7
-  write(lout,*) 'INFO>  NSIG_TCLA7   = ', nsig_tcla7
-  write(lout,*) 'INFO>  NSIG_TCLP    = ', nsig_tclp
-  write(lout,*) 'INFO>  NSIG_TCLI    = ', nsig_tcli
-! write(lout,*) 'INFO>  NSIG_TCTH    = ', nsig_tcth
-! write(lout,*) 'INFO>  NSIG_TCTV    = ', nsig_tctv
-  write(lout,*) 'INFO>  NSIG_TCTH1   = ', nsig_tcth1
-  write(lout,*) 'INFO>  NSIG_TCTV1   = ', nsig_tctv1
-  write(lout,*) 'INFO>  NSIG_TCTH2   = ', nsig_tcth2
-  write(lout,*) 'INFO>  NSIG_TCTV2   = ', nsig_tctv2
-  write(lout,*) 'INFO>  NSIG_TCTH5   = ', nsig_tcth5
-  write(lout,*) 'INFO>  NSIG_TCTV5   = ', nsig_tctv5
-  write(lout,*) 'INFO>  NSIG_TCTH8   = ', nsig_tcth8
-  write(lout,*) 'INFO>  NSIG_TCTV8   = ', nsig_tctv8
-  write(lout,*) 'INFO>  NSIG_TCDQ    = ', nsig_tcdq
-  write(lout,*) 'INFO>  NSIG_TCSTCDQ = ', nsig_tcstcdq
-  write(lout,*) 'INFO>  NSIG_TDI     = ', nsig_tdi
-  write(lout,*) 'INFO>  NSIG_TCXRP   = ', nsig_tcxrp
-  write(lout,*) 'INFO>  NSIG_TCRYP   = ', nsig_tcryo
+  write(lout,"(a,i0)")    'COLL> Info: NLOOP               = ', nloop
+  write(lout,"(a,i0)")    'COLL> Info: DO_THISDIS          = ', do_thisdis
+  write(lout,"(a,e15.8)") 'COLL> Info: MYNEX               = ', mynex
+  write(lout,"(a,e15.8)") 'COLL> Info: MYDEX               = ', mdex
+  write(lout,"(a,e15.8)") 'COLL> Info: MYNEY               = ', myney
+  write(lout,"(a,e15.8)") 'COLL> Info: MYDEY               = ', mdey
+  write(lout,"(a,a)")     'COLL> Info: FILENAME_DIS        = ', trim(filename_dis)
+  write(lout,"(a,e15.8)") 'COLL> Info: ENERROR             = ', enerror
+  write(lout,"(a,e15.8)") 'COLL> Info: BUNCHLENGTH         = ', bunchlength
+  write(lout,"(a,i0)")    'COLL> Info: RSELECT             = ', int(rselect)
+  write(lout,"(a,l1)")    'COLL> Info: DO_COLL             = ', do_coll
+  write(lout,"(a,l1)")    'COLL> Info: DO_NSIG             = ', do_nsig
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCP3           = ', nsig_tcp3
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCSG3          = ', nsig_tcsg3
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCSM3          = ', nsig_tcsm3
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCLA3          = ', nsig_tcla3
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCP7           = ', nsig_tcp7
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCSG7          = ', nsig_tcsg7
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCSM7          = ', nsig_tcsm7
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCLA7          = ', nsig_tcla7
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCLP           = ', nsig_tclp
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCLI           = ', nsig_tcli
+! write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTH           = ', nsig_tcth
+! write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTV           = ', nsig_tctv
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTH1          = ', nsig_tcth1
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTV1          = ', nsig_tctv1
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTH2          = ', nsig_tcth2
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTV2          = ', nsig_tctv2
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTH5          = ', nsig_tcth5
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTV5          = ', nsig_tctv5
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTH8          = ', nsig_tcth8
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTV8          = ', nsig_tctv8
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCDQ           = ', nsig_tcdq
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCSTCDQ        = ', nsig_tcstcdq
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TDI            = ', nsig_tdi
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCXRP          = ', nsig_tcxrp
+  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCRYP          = ', nsig_tcryo
 
-  write(lout,*)
-  write(lout,*) 'INFO> INPUT PARAMETERS FOR THE SLICING:'
-  write(lout,*)
-  write(lout,*) 'INFO>  N_SLICES    = ', n_slices
-  write(lout,*) 'INFO>  SMIN_SLICES = ',smin_slices
-  write(lout,*) 'INFO>  SMAX_SLICES = ',smax_slices
-  write(lout,*) 'INFO>  RECENTER1   = ',recenter1
-  write(lout,*) 'INFO>  RECENTER2   = ',recenter2
-  write(lout,*)
-  write(lout,*) 'INFO>  FIT1_1   = ',fit1_1
-  write(lout,*) 'INFO>  FIT1_2   = ',fit1_2
-  write(lout,*) 'INFO>  FIT1_3   = ',fit1_3
-  write(lout,*) 'INFO>  FIT1_4   = ',fit1_4
-  write(lout,*) 'INFO>  FIT1_5   = ',fit1_5
-  write(lout,*) 'INFO>  FIT1_6   = ',fit1_6
-  write(lout,*) 'INFO>  SCALING1 = ',ssf1
-  write(lout,*)
-  write(lout,*) 'INFO>  FIT2_1   = ',fit2_1
-  write(lout,*) 'INFO>  FIT2_2   = ',fit2_2
-  write(lout,*) 'INFO>  FIT2_3   = ',fit2_3
-  write(lout,*) 'INFO>  FIT2_4   = ',fit2_4
-  write(lout,*) 'INFO>  FIT2_5   = ',fit2_5
-  write(lout,*) 'INFO>  FIT2_6   = ',fit2_6
-  write(lout,*) 'INFO>  SCALING2 = ',ssf2
-  write(lout,*)
+  write(lout,"(a)")
+  write(lout,"(a)")       'COLL> INPUT PARAMETERS FOR THE SLICING:'
+  write(lout,"(a)")
+  write(lout,"(a,i0)")    'COLL> Info: N_SLICES            = ',n_slices
+  write(lout,"(a,e15.8)") 'COLL> Info: SMIN_SLICES         = ',smin_slices
+  write(lout,"(a,e15.8)") 'COLL> Info: SMAX_SLICES         = ',smax_slices
+  write(lout,"(a,e15.8)") 'COLL> Info: RECENTER1           = ',recenter1
+  write(lout,"(a,e15.8)") 'COLL> Info: RECENTER2           = ',recenter2
+  write(lout,"(a)")
+  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_1              = ',fit1_1
+  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_2              = ',fit1_2
+  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_3              = ',fit1_3
+  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_4              = ',fit1_4
+  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_5              = ',fit1_5
+  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_6              = ',fit1_6
+  write(lout,"(a,e15.8)") 'COLL> Info: SCALING1            = ',ssf1
+  write(lout,"(a)")
+  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_1              = ',fit2_1
+  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_2              = ',fit2_2
+  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_3              = ',fit2_3
+  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_4              = ',fit2_4
+  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_5              = ',fit2_5
+  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_6              = ',fit2_6
+  write(lout,"(a,e15.8)") 'COLL> Info: SCALING2            = ',ssf2
+  write(lout,"(a)")
 
 !SEPT2005
 !
 ! HERE WE CHECK IF THE NEW INPUT IS READ CORRECTLY
 !
-  write(lout,*) 'INFO>  EMITXN0_DIST      = ', emitnx0_dist
-  write(lout,*) 'INFO>  EMITYN0_DIST      = ', emitny0_dist
-  write(lout,*) 'INFO>  EMITXN0_COLLGAP   = ', emitnx0_collgap
-  write(lout,*) 'INFO>  EMITYN0_COLLGAP   = ', emitny0_collgap
-  write(lout,*)
-  write(lout,*) 'INFO>  DO_SELECT         = ', do_select
-  write(lout,*) 'INFO>  DO_NOMINAL        = ', do_nominal
-  write(lout,*) 'INFO>  RND_SEED          = ', rnd_seed
-  write(lout,*) 'INFO>  DOWRITE_DIST      = ', dowrite_dist
-  write(lout,*) 'INFO>  NAME_SEL          = ', name_sel
-  write(lout,*) 'INFO>  DO_ONESIDE        = ', do_oneside
-  write(lout,*) 'INFO>  DOWRITE_IMPACT    = ', dowrite_impact
-  write(lout,*) 'INFO>  DOWRITE_SECONDARY = ', dowrite_secondary
-  write(lout,*) 'INFO>  DOWRITE_AMPLITUDE = ', dowrite_amplitude
-  write(lout,*)
-  write(lout,*) 'INFO>  XBEAT             = ', xbeat
-  write(lout,*) 'INFO>  XBEATPHASE        = ', xbeatphase
-  write(lout,*) 'INFO>  YBEAT             = ', ybeat
-  write(lout,*) 'INFO>  YBEATPHASE        = ', ybeatphase
-  write(lout,*)
-  write(lout,*) 'INFO>  C_RMSTILT_PRIM     = ', c_rmstilt_prim
-  write(lout,*) 'INFO>  C_RMSTILT_SEC      = ', c_rmstilt_sec
-  write(lout,*) 'INFO>  C_SYSTILT_PRIM     = ', c_systilt_prim
-  write(lout,*) 'INFO>  C_SYSTILT_SEC      = ', c_systilt_sec
-  write(lout,*) 'INFO>  C_RMSOFFSET_PRIM   = ', c_rmsoffset_prim
-  write(lout,*) 'INFO>  C_SYSOFFSET_PRIM   = ', c_sysoffset_prim
-  write(lout,*) 'INFO>  C_RMSOFFSET_SEC    = ', c_rmsoffset_sec
-  write(lout,*) 'INFO>  C_SYSOFFSET_SEC    = ', c_sysoffset_sec
-  write(lout,*) 'INFO>  C_OFFSETTITLT_SEED = ', c_offsettilt_seed
-  write(lout,*) 'INFO>  C_RMSERROR_GAP     = ', c_rmserror_gap
-  write(lout,*) 'INFO>  DO_MINGAP          = ', do_mingap
-  write(lout,*)
-  write(lout,*) 'INFO>  RADIAL            = ', radial
-  write(lout,*) 'INFO>  NR                = ', nr
-  write(lout,*) 'INFO>  NDR               = ', ndr
-  write(lout,*)
-  write(lout,*) 'INFO>  DRIFTSX           = ', driftsx
-  write(lout,*) 'INFO>  DRIFTSY           = ', driftsy
-  write(lout,*) 'INFO>  CUT_INPUT         = ', cut_input
-  write(lout,*) 'INFO>  SYSTILT_ANTISYMM  = ', systilt_antisymm
-  write(lout,*)
-  write(lout,*) 'INFO>  IPENCIL           = ', ipencil
-  write(lout,*) 'INFO>  PENCIL_OFFSET     = ', pencil_offset
-  write(lout,*) 'INFO>  PENCIL_RMSX       = ', pencil_rmsx
-  write(lout,*) 'INFO>  PENCIL_RMSY       = ', pencil_rmsy
-  write(lout,*) 'INFO>  PENCIL_DISTR      = ', pencil_distr
-  write(lout,*)
-  write(lout,*) 'INFO>  COLL_DB           = ', coll_db
-  write(lout,*) 'INFO>  IBEAM             = ', ibeam
-  write(lout,*)
-  write(lout,*) 'INFO>  DOWRITETRACKS     = ', dowritetracks
-  write(lout,*)
-  write(lout,*) 'INFO>  CERN              = ', cern
-  write(lout,*)
-  write(lout,*) 'INFO>  CASTORDIR     = ', castordir
-  write(lout,*)
-  write(lout,*) 'INFO>  JOBNUMBER     = ', jobnumber
-  write(lout,*)
-  write(lout,*) 'INFO>  CUTS     = ', sigsecut2, sigsecut3
-  write(lout,*)
+  write(lout,"(a,e15.8)") 'COLL> Info: EMITXN0_DIST        = ', emitnx0_dist
+  write(lout,"(a,e15.8)") 'COLL> Info: EMITYN0_DIST        = ', emitny0_dist
+  write(lout,"(a,e15.8)") 'COLL> Info: EMITXN0_COLLGAP     = ', emitnx0_collgap
+  write(lout,"(a,e15.8)") 'COLL> Info: EMITYN0_COLLGAP     = ', emitny0_collgap
+  write(lout,"(a)")
+  write(lout,"(a,l1)")    'COLL> Info: DO_SELECT           = ', do_select
+  write(lout,"(a,l1)")    'COLL> Info: DO_NOMINAL          = ', do_nominal
+  write(lout,"(a,i0)")    'COLL> Info: RND_SEED            = ', rnd_seed
+  write(lout,"(a,l1)")    'COLL> Info: DOWRITE_DIST        = ', dowrite_dist
+  write(lout,"(a,a)")     'COLL> Info: NAME_SEL            = ', name_sel
+  write(lout,"(a,l1)")    'COLL> Info: DO_ONESIDE          = ', do_oneside
+  write(lout,"(a,l1)")    'COLL> Info: DOWRITE_IMPACT      = ', dowrite_impact
+  write(lout,"(a,l1)")    'COLL> Info: DOWRITE_SECONDARY   = ', dowrite_secondary
+  write(lout,"(a,l1)")    'COLL> Info: DOWRITE_AMPLITUDE   = ', dowrite_amplitude
+  write(lout,"(a)")
+  write(lout,"(a,e15.8)") 'COLL> Info: XBEAT               = ', xbeat
+  write(lout,"(a,e15.8)") 'COLL> Info: XBEATPHASE          = ', xbeatphase
+  write(lout,"(a,e15.8)") 'COLL> Info: YBEAT               = ', ybeat
+  write(lout,"(a,e15.8)") 'COLL> Info: YBEATPHASE          = ', ybeatphase
+  write(lout,"(a)")
+  write(lout,"(a,e15.8)") 'COLL> Info: C_RMSTILT_PRIM      = ', c_rmstilt_prim
+  write(lout,"(a,e15.8)") 'COLL> Info: C_RMSTILT_SEC       = ', c_rmstilt_sec
+  write(lout,"(a,e15.8)") 'COLL> Info: C_SYSTILT_PRIM      = ', c_systilt_prim
+  write(lout,"(a,e15.8)") 'COLL> Info: C_SYSTILT_SEC       = ', c_systilt_sec
+  write(lout,"(a,e15.8)") 'COLL> Info: C_RMSOFFSET_PRIM    = ', c_rmsoffset_prim
+  write(lout,"(a,e15.8)") 'COLL> Info: C_SYSOFFSET_PRIM    = ', c_sysoffset_prim
+  write(lout,"(a,e15.8)") 'COLL> Info: C_RMSOFFSET_SEC     = ', c_rmsoffset_sec
+  write(lout,"(a,e15.8)") 'COLL> Info: C_SYSOFFSET_SEC     = ', c_sysoffset_sec
+  write(lout,"(a,i0)")    'COLL> Info: C_OFFSETTITLT_SEED  = ', c_offsettilt_seed
+  write(lout,"(a,e15.8)") 'COLL> Info: C_RMSERROR_GAP      = ', c_rmserror_gap
+  write(lout,"(a,l1)")    'COLL> Info: DO_MINGAP           = ', do_mingap
+  write(lout,"(a)")
+  write(lout,"(a,l1)")    'COLL> Info: RADIAL              = ', radial
+  write(lout,"(a,e15.8)") 'COLL> Info: NR                  = ', nr
+  write(lout,"(a,e15.8)") 'COLL> Info: NDR                 = ', ndr
+  write(lout,"(a)")
+  write(lout,"(a,e15.8)") 'COLL: Info: DRIFTSX             = ', driftsx
+  write(lout,"(a,e15.8)") 'COLL: Info: DRIFTSY             = ', driftsy
+  write(lout,"(a,l1)")    'COLL: Info: CUT_INPUT           = ', cut_input
+  write(lout,"(a,l1)")    'COLL: Info: SYSTILT_ANTISYMM    = ', systilt_antisymm
+  write(lout,"(a)")
+  write(lout,"(a,i0)")    'COLL> Info: IPENCIL             = ', ipencil
+  write(lout,"(a,e15.8)") 'COLL> Info: PENCIL_OFFSET       = ', pencil_offset
+  write(lout,"(a,e15.8)") 'COLL> Info: PENCIL_RMSX         = ', pencil_rmsx
+  write(lout,"(a,e15.8)") 'COLL> Info: PENCIL_RMSY         = ', pencil_rmsy
+  write(lout,"(a,i0)")    'COLL> Info: PENCIL_DISTR        = ', pencil_distr
+  write(lout,"(a)")
+  write(lout,"(a,a)")     'COLL> Info: COLL_DB             = ', coll_db
+  write(lout,"(a,i0)")    'COLL> Info: IBEAM               = ', ibeam
+  write(lout,"(a)")
+  write(lout,"(a,l1)")    'COLL> Info: DOWRITETRACKS       = ', dowritetracks
+  write(lout,"(a)")
+  write(lout,"(a,l1)")    'COLL> Info: CERN                = ', cern
+  write(lout,"(a)")
+  write(lout,"(a,a)")     'COLL> Info: CASTORDIR           = ', castordir
+  write(lout,"(a)")
+  write(lout,"(a,i0)")    'COLL> Info: JOBNUMBER           = ', jobnumber
+  write(lout,"(a)")
+  write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT2           = ', sigsecut2
+  write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT3           = ', sigsecut3
+  write(lout,"(a)")
 
   mynp = nloop*napx
   napx00 = napx
 
-  write(lout,*) 'INFO>  NAPX     = ', napx, mynp
-  write(lout,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0_dist)
-  write(lout,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0_dist)
+  write(lout,"(a,i0)")    'COLL> Info: NAPX                = ', napx
+  write(lout,"(a,i0)")    'COLL> Info: MYNP                = ', mynp
+  write(lout,"(a,e15.8)") 'COLL> Info: Sigma_x0            = ', sqrt(mybetax*myemitx0_dist)
+  write(lout,"(a,e15.8)") 'COLL> Info: Sigma_y0            = ', sqrt(mybetay*myemity0_dist)
+  write(lout,"(a)")
 
 ! HERE WE SET THE MARKER FOR INITIALIZATION:
   firstrun = .true.
@@ -1336,7 +1331,6 @@ subroutine collimate_init()
   rnd_k2  = 0
   call rluxgo(rnd_lux, rnd_seed, rnd_k1, rnd_k2)
 !  call recuin(rnd_seed, 0)
-  write(lout,*)
   write(outlun,*) 'INFO>  rnd_seed: ', rnd_seed
 
 !Call distribution routines only if collimation block is in fort.3, otherwise
@@ -1364,7 +1358,7 @@ subroutine collimate_init()
         call readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay, &
      &           myemitx0_dist, myemity0_dist, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
       else
-        write(lout,*) 'ERROR> review your distribution parameters !!'
+        write(lout,"(a)") "COLL> ERROR Review your distribution parameters!"
         call prror(-1)
       end if
     end if
@@ -1372,8 +1366,7 @@ subroutine collimate_init()
 !++  Reset distribution for pencil beam
 !
   if(ipencil.gt.0) then
-    write(lout,*) 'WARN>  Distributions reset to pencil beam!'
-    write(lout,*)
+    write(lout,"(a)") "COLL> WARNING Distributions reset to pencil beam!"
     write(outlun,*) 'WARN>  Distributions reset to pencil beam!'
     do j = 1, mynp
       myx(j)  = zero
@@ -1442,16 +1435,11 @@ subroutine collimate_init()
   n_tot_absorbed = 0
 
   if(int(mynp/napx00) .eq. 0) then
-    write (lout,*) ""
-    write (lout,*) "********************************************"
-    write (lout,*) "Error in setting up collimation tracking:"
-    write (lout,*) "Number of samples is zero!"
-    write (lout,*) "Did you forget the COLL block in fort.3?"
-    write (lout,*) "If you want to do standard (not collimation) tracking, please use the standard SixTrack."
-    write (lout,*) "Value of do_coll = ", do_coll
-    write (lout,*) "Value of mynp    = ", mynp
-    write (lout,*) "Value of napx00  = ", napx00
-    write (lout,*) "********************************************"
+    write (lout,"(a)")    "COLL> ERROR Setting up collimation tracking: Number of samples is zero!"
+    write (lout,"(a)")    "COLL> ERROR Did you forget the COLL block in fort.3?"
+    write (lout,"(a,l1)") "COLL> * Value of do_coll = ", do_coll
+    write (lout,"(a,i0)") "COLL> * Value of mynp    = ", mynp
+    write (lout,"(a,i0)") "COLL> * Value of napx00  = ", napx00
     call prror(-1)
   end if
 
@@ -1484,6 +1472,9 @@ subroutine collimate_init()
 
   call g4_collimation_init(e0, rnd_seed, g4_ecut, g4_physics)
 #endif
+  write (lout,"(a)") ""
+  write (lout,"(a)") "COLL> Finished collimate initialisation"
+  write (lout,"(a)") ""
 
 end subroutine collimate_init
 
@@ -1996,12 +1987,13 @@ subroutine collimate_start_sample(nsample)
   call beamGasInit(myenom)
 #endif
 
-  write(lout,*) 'number of collimators', db_ncoll
+  write(lout,"(a)") ""
+  write(lout,"(a,i0)") "COLL> Number of collimators: ",db_ncoll
   do icoll = 1, db_ncoll
-    write(lout,*) 'COLLIMATOR', icoll, ' ', db_name1(icoll)
-    write(lout,*) 'collimator', icoll, ' ', db_name2(icoll)
-    coll_found(icoll) = .FALSE.
+    write(lout,"(a,i5,a)") "COLL> Collimator ",icoll,": "//db_name1(icoll)//" "//db_name2(icoll)
+    coll_found(icoll) = .false.
   end do
+  write(lout,"(a)") ""
 
 !******write settings for alignment error in colltrack.out file
   write(outlun,*) ' '
@@ -2201,9 +2193,9 @@ subroutine collimate_start_sample(nsample)
         end if
 !     JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
       else
-        write(lout,*) "WARNING: Problem detected while writing twisslike.out' and 'sigmasettings.out': Collimator name '", &
- &                    trim(adjustl(bez(myix))), "' was not recognized!"
-        write(lout,*) " ->Setting nsig=1000.0."
+        write(lout,"(a)") "COLL> WARNING Problem detected while writing twisslike.out' and 'sigmasettings.out':"
+        write(lout,"(a)") "COLL>         Collimator name '"//trim(adjustl(bez(myix)))//"' was not recognized."//&
+          " -> Setting nsig = 1000.0."
         nsig = c1e3
       end if
 
@@ -2445,9 +2437,8 @@ subroutine collimate_start_collimator(stracki)
     end if
   else
     if(firstrun.and.iturn.eq.1) then
-      write(lout,*) "WARNING: When setting opening for the collimator named '" // trim(adjustl(bez(myix))) // &
-   &  "' from fort.3, the name was not recognized."
-      write(lout,*) " -> Setting nsig=1000.0."
+      write(lout,"(a)") "COLL> WARNING When setting opening for collimator '"//trim(adjustl(bez(myix)))//&
+        "' from fort.3. Name not recognized. Setting nsig = 1000.0"
     end if
   nsig=c1e3
 !JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
@@ -2524,7 +2515,7 @@ subroutine collimate_start_collimator(stracki)
   end do
 
   if(.not. found .and. firstrun .and. iturn.eq.1) then
-    write(lout,*) 'WARN>  Collimator not found in colldb: ', bez(myix)
+    write(lout,"(a)") "COLL> WARNING Collimator not found in colldb: '"//trim(bez(myix))//"'"
   end if
 
 end subroutine collimate_start_collimator
@@ -3635,11 +3626,11 @@ subroutine collimate_end_collimator()
     end if
 
 !++  Some information
-    write(lout,*) 'INFO>  Selected collimator had N hits. N: ', num_selhit
-    write(lout,*) 'INFO>  Number of impacts                : ', n_impact
-    write(lout,*) 'INFO>  Number of escaped protons        : ', num_surhit
-    write(lout,*) 'INFO>  Average impact parameter [m]     : ', average
-    write(lout,*) 'INFO>  Sigma impact parameter [m]       : ', sigma
+    write(lout,"(a,i8)")    'COLL> Selected collimator had N hits. N: ', num_selhit
+    write(lout,"(a,i8)")    'COLL> Number of impacts                : ', n_impact
+    write(lout,"(a,i8)")    'COLL> Number of escaped protons        : ', num_surhit
+    write(lout,"(a,e15.8)") 'COLL> Average impact parameter [m]     : ', average
+    write(lout,"(a,e15.8)") 'COLL> Sigma impact parameter [m]       : ', sigma
 
     if (dowrite_impact) then
       close(impact_unit)
@@ -3710,21 +3701,21 @@ subroutine collimate_end_sample(j)
     write(lout,*) 'NO PARTICLE ABSORBED'
   endif
 
-  write(lout,*)
-  write(lout,*) 'INFO>  Number of impacts             : ', n_tot_absorbed+nsurvive_end
-  write(lout,*) 'INFO>  Number of impacts at selected : ', num_selhit
-  write(lout,*) 'INFO>  Number of surviving particles : ', nsurvive_end
-  write(lout,*) 'INFO>  Number of absorbed particles  : ', n_tot_absorbed
-  write(lout,*)
+  write(lout,"(a)")
+  write(lout,"(a,i8)") 'COLL> Number of impacts             : ', n_tot_absorbed+nsurvive_end
+  write(lout,"(a,i8)") 'COLL> Number of impacts at selected : ', num_selhit
+  write(lout,"(a,i8)") 'COLL> Number of surviving particles : ', nsurvive_end
+  write(lout,"(a,i8)") 'COLL> Number of absorbed particles  : ', n_tot_absorbed
+  write(lout,"(a)")
 
-  if(n_tot_absorbed.ne.0) then                                       !hr08
-    write(lout,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ', (neff(5)/real(n_tot_absorbed,fPrec))/c1m4            !hr08
-    write(lout,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ', (neff(9)/real(n_tot_absorbed,fPrec))/c1m4            !hr08
-    write(lout,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ', ((neff(9)-neff(19))/real(n_tot_absorbed,fPrec))/c1m4 !hr08
-    write(lout,*)
+  if(n_tot_absorbed.ne.0) then
+    write(lout,"(a,f20.12)") 'COLL> Eff_r @  8 sigma    [e-4] : ', (neff(5)/real(n_tot_absorbed,fPrec))/c1m4
+    write(lout,"(a,f20.12)") 'COLL> Eff_r @ 10 sigma    [e-4] : ', (neff(9)/real(n_tot_absorbed,fPrec))/c1m4
+    write(lout,"(a,f20.12)") 'COLL> Eff_r @ 10-20 sigma [e-4] : ', ((neff(9)-neff(19))/real(n_tot_absorbed,fPrec))/c1m4
   else
-     write(lout,*) 'NO PARTICLE ABSORBED'
+    write(lout,"(a)") 'COLL> No particle absorbed'
   endif
+  write(lout,"(a)")
 
 ! Write efficiency file
 #ifdef HDF5
@@ -4589,7 +4580,7 @@ subroutine collimate_end_turn
 !   A call to the array compression function in the aperture module
     call compactArrays(turnlostp)
 
-    write(lout,*) 'INFO>  Compacted the particle distributions: ', napx_pre, ' -->  ', napx, ", turn =",iturn
+    write(lout,"(a,i8,a,i8,a,i0)") "COLL> Compacted the particle distributions: ",napx_pre," --> ",napx,", turn = ",iturn
     flush(lout)
 
 ! napx gets updated by compactArrays
@@ -5564,7 +5555,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
   real(kind=fPrec) n_aperture  !aperture in m for the vertical plane
   save
 !=======================================================================
-  write(lout,*) 'collimateRHIC is no longer supported!'
+  write(lout,"(a)") "COLL> ERROR collimateRHIC is no longer supported!"
   call prror(-1)
 end subroutine collimaterhic
 !
@@ -6454,14 +6445,11 @@ subroutine makedis(mynp, myalphax, myalphay, mybetax, mybetay,    &
   j = 0
 !
 !++  Number of points and generate distribution
-  write(lout,*)
-  write(lout,*) 'Generation of particle distribution Version 1'
-  write(lout,*)
-  write(lout,*) 'This routine generates particles in phase space'
-  write(lout,*) 'X/XP and Y/YP ellipses, as defined in the input'
-  write(lout,*) 'parameters. Distribution is flat in the band.'
-  write(lout,*) 'X and Y are fully uncorrelated.'
-  write(lout,*)
+  write(lout,"(a)")
+  write(lout,"(a)") 'COLL> Generation of particle distribution Version 1:'
+  write(lout,"(a)") 'COLL> This routine generates particles in phase space X/XP and Y/YP ellipses, as defined in the input '
+  write(lout,"(a)") 'COLL> parameters. Distribution is flat in the band. X and Y are fully uncorrelated.'
+  write(lout,"(a)")
 
   write(outlun,*)
   write(outlun,*) 'Generation of particle distribution Version 1'
@@ -6556,9 +6544,6 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
 !++  Generate particle distribution
 !++  Generate random distribution, assuming optical parameters at IP1
 !++  Calculate the gammas
-  write(lout,*) '  New routine to add the finite beam size in the'
-  write(lout,*) '  other dimension (SR, 08-06-2005).'
-
   pi=four*atan_mb(one)
   mygammax = (one+myalphax**2)/mybetax
   mygammay = (one+myalphay**2)/mybetay
@@ -6605,7 +6590,7 @@ subroutine makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, &
       myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
       myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
     else
-      write(lout,*) "Error - beam parameters not correctly set!"
+      write(lout,"(a)") "COLL> ERROR Bbeam parameters not correctly set!"
     end if
     myp(j) = myenom
     mys(j) = zero
@@ -7972,8 +7957,8 @@ integer function mclock_liar( )
     call system_clock( mclock, count_rate, count_max )
     if ( count_max .eq. 0 ) then
       clock_ok = .false.
-      write(lout,*)'INFO>  System Clock not present or not Responding'
-      write(lout,*)'INFO>  R.N.G. Reseed operation disabled.'
+      write(lout,"(a)") 'COLL> System Clock not present or not Responding'  
+      write(lout,"(a)") 'COLL> R.N.G. Reseed operation disabled.'
     endif
   endif
 
@@ -8067,8 +8052,6 @@ subroutine readcollimator
 
   read(coll_db_unit,*)
   read(coll_db_unit,*,iostat=ios) db_ncoll
-  write(lout,"(a,i0)") "COLL> Number of collimators = ",db_ncoll
-!     write(*,*) 'ios = ',ios
   if(ios.ne.0) then
     write(outlun,*) 'ERR>  Problem reading collimator DB ',ios
     call prror(-1)

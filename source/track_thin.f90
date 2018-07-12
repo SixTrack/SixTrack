@@ -2338,6 +2338,7 @@ end subroutine dist1
 !  3 February 1999
 !-----------------------------------------------------------------------
 subroutine write6(n)
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -2348,10 +2349,13 @@ subroutine write6(n)
   use mod_commons
   use mod_commont
   use mod_commond
+  use mod_settings
+
   implicit none
+
   integer ia,ia2,id,ie,ig,n
   save
-!-----------------------------------------------------------------------
+
   id=0
   do 10 ia=1,napxo,2
     ig=ia+1
@@ -2360,52 +2364,50 @@ subroutine write6(n)
     endfile (91-ia2,iostat=ierro)
     backspace (91-ia2,iostat=ierro)
 #endif
-!-- PARTICLES STABLE
+
+    !-- PARTICLES STABLE (Only of QUIET < 2)
     if(.not.pstop(ia).and..not.pstop(ig)) then
-      write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),n
+      if(st_quiet < 2) write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),n
       id=id+1
       ie=id+1
-      write(lout,10010)                                             &
-  &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-  &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),           &
-  &e0,ejv(id),ejv(ie)
-      write(12,10010,iostat=ierro)                                  &
-  &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-  &xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),           &
-  &e0,ejv(id),ejv(ie)
+      if(st_quiet < 1) write(lout,10010)                                &
+        xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),         &
+        xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),         &
+        e0,ejv(id),ejv(ie)
+      write(12,10010,iostat=ierro)                                      &
+        xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),         &
+         xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),        &
+         e0,ejv(id),ejv(ie)
       id=id+1
 
-!-- FIRST PARTICLES LOST
+    !-- FIRST PARTICLES LOST
     else if(pstop(ia).and..not.pstop(ig)) then
       id=id+1
-      write(12,10010,iostat=ierro)                                  &
-  &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
-  &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-  &e0,ejvl(ia),ejv(id)
+      write(12,10010,iostat=ierro)                                      &
+        xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),   &
+        xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),         &
+        e0,ejvl(ia),ejv(id)
 
-!-- SECOND PARTICLES LOST
+    !-- SECOND PARTICLES LOST
     else if(.not.pstop(ia).and.pstop(ig)) then
       id=id+1
-      write(12,10010,iostat=ierro)                                  &
-  &xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),           &
-  &xvl(1,ig),yvl(1,ig),xvl(2,ig),yvl(2,ig),sigmvl(ig),dpsvl(ig),     &
-  &e0,ejv(id),ejvl(ig)
+      write(12,10010,iostat=ierro)                                      &
+        xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),         &
+        xvl(1,ig),yvl(1,ig),xvl(2,ig),yvl(2,ig),sigmvl(ig),dpsvl(ig),   &
+        e0,ejv(id),ejvl(ig)
 
-!-- BOTH PARTICLES LOST
+    !-- BOTH PARTICLES LOST
     else if(pstop(ia).and.pstop(ig)) then
-      write(12,10010,iostat=ierro)                                  &
-  &xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),     &
-  &xvl(1,ig),yvl(1,ig),xvl(2,ig),yvl(2,ig),sigmvl(ig),dpsvl(ig),     &
-  &e0,ejvl(ia),ejvl(ig)
+      write(12,10010,iostat=ierro)                                      &
+        xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),   &
+        xvl(1,ig),yvl(1,ig),xvl(2,ig),yvl(2,ig),sigmvl(ig),dpsvl(ig),   &
+        e0,ejvl(ia),ejvl(ig)
     endif
 10 continue
 #ifndef CR
   if(ierro.ne.0) then
-      write(lout,*) 'ERROR from write6: fort.12 has corrupted output probably due to lost particles'
-#ifdef DEBUG
-!        call dumpbin(' write6',0,0)                                     !hr09
-#endif
-      call prror(-1)
+    write(lout,"(a)") "WRITE6> ERROR fort.12 has corrupted output probably due to lost particles"
+    call prror(-1)
   endif
 #endif
   endfile (12,iostat=ierro)
