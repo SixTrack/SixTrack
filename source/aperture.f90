@@ -1914,6 +1914,7 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
 !     dump any aperture marker
 !     always in main code
 !-----------------------------------------------------------------------
+  use mod_settings
   implicit none
 
 ! interface variables
@@ -1923,7 +1924,10 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
   real(kind=fPrec) ape(9)
   real(kind=fPrec) spos
 
-! dump info
+  ! Don't print to stdout if quiet flag is enabled.
+  if(st_quiet > 0 .and. iunit == 6) return
+
+  ! dump info
   if(ldmpaperMem) then
      write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9)
   else
@@ -1969,7 +1973,6 @@ subroutine dump_aperture_marker( iunit, ixEl, iEl )
   integer iunit, iEl, ixEl
 
   call dump_aperture( iunit, bez(ixEl), kape(ixEl), dcum(iEl), ape(1:9,ixEl) )
-
   return
 end subroutine dump_aperture_marker
 
@@ -1980,8 +1983,11 @@ subroutine dump_aperture_header( iunit )
 !     dump header of aperture marker
 !     always in main code
 !-----------------------------------------------------------------------
+  use mod_settings
   implicit none
   integer iunit
+  ! Don't print to stdout if quiet flag is enabled.
+  if(st_quiet > 0 .and. iunit == 6) return
   write(iunit,1984) '#', 'name', 'aptype', 's[m]', 'aper1[mm]', 'aper2[mm]', &
  &                  'aper3[mm][rad]', 'aper4[mm][rad]', 'aper5[mm][rad]', 'aper6[mm][rad]', &
  &                  'angle[rad]', 'xoff[mm]', 'yoff[mm]'
