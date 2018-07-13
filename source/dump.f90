@@ -91,7 +91,7 @@ subroutine dump_expand_arrays(nele_new, nblz_new)
   call alloc(dumplast,            nele_new, 0,          "dumplast",   -1)
   call alloc(dumpunit,            nele_new, 0,          "dumpunit",   -1)
   call alloc(dumpfmt,             nele_new, 0,          "dumpfmt",    -1)
-  call alloc(dump_fname, mStrLen, nele_new, str_dZeros, "dump_fname", -1)
+  call alloc(dump_fname, mStrLen, nele_new, str_dSpace, "dump_fname", -1)
 
   call alloc(dumptas,             nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
   call alloc(dumptasinv,          nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
@@ -349,7 +349,7 @@ subroutine dump_parseInputLine(ch,iErr)
 end subroutine dump_parseInputLine
 
 ! ================================================================================================================================ !
-subroutine dump_parseInputDone
+subroutine dump_parseInputDone(iErr)
 
   use crcoall
   use mod_common
@@ -357,61 +357,59 @@ subroutine dump_parseInputDone
 
   implicit none
 
+  logical, intent(inout) :: iErr
+
   ! Temp variables
   integer ii,jj,kk
   character(len=mStrLen) ch1
 
   ! HEADER
-  write(lout,10460) "DUMP"
-  write(lout,*) ''
-  write(lout,*) '       The last column states the format'
-  write(lout,*) '            of the output file (see manual):'
+! 10460 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10, 'ELEMENT NAME',8x,'EVERY # TURNs',2x, &
+! 'LOGICAL UNIT',2x,'FILENAME',24x,'FORMAT',5x, "FirstTurn",6x,"LastTurn")
+! 10470 format(t10,a16,4x,i13,2x,i12,2x,a32,i6,2x,i12,2x,i12)
+! 10472 format(t10,a)
+  write(lout,"(a)") "DUMP> The last column states the format of the output file (see manual):"
+  write(lout,"(a)") "DUMP> Element Name          Every #Turns  Unit#  Filename                        "//&
+    "Format  FirstTurn  LastTurn"
 
   ! ldump(0)=.true. : DUMP all elements found
   if (ldump(0)) then
-    write(lout,10470) 'ALL SING. ELEMS.', &
-                      ndumpt(0),dumpunit(0),trim(chr_trimZero(dump_fname(0))),dumpfmt(0),dumpfirst(0),dumplast(0)
+    write(lout,"(a,a20,2x,i12,2x,i5,2x,a32,i6,2x,i9,2x,i8)") "DUMP> ","All Single Elements ", &
+      ndumpt(0),dumpunit(0),chr_rpad(trim(dump_fname(0)),32),dumpfmt(0),dumpfirst(0),dumplast(0)
   end if
   if (ldump(-1)) then
-    write(lout,10470) 'StartDUMP speci.', &
-                      ndumpt(0),dumpunit(0),trim(chr_trimZero(dump_fname(0))),dumpfmt(0),dumpfirst(0),dumplast(0)
+    write(lout,"(a,a20,2x,i12,2x,i5,2x,a32,i6,2x,i9,2x,i8)") "DUMP> ","StartDUMP specified ", &
+      ndumpt(0),dumpunit(0),chr_rpad(trim(dump_fname(0)),32),dumpfmt(0),dumpfirst(0),dumplast(0)
   end if
 
   do ii=1,il
-    if (ldump(ii)) then
-      write(lout,10470) bez(ii),ndumpt(ii),dumpunit(ii),trim(chr_trimZero(dump_fname(ii))),dumpfmt(ii),dumpfirst(ii),dumplast(ii)
+    if(ldump(ii)) then
+      write(lout,"(a,a20,2x,i12,2x,i5,2x,a32,i6,2x,i9,2x,i8)") "DUMP> ", &
+        bez(ii)(1:20),ndumpt(ii),dumpunit(ii),chr_rpad(trim(dump_fname(ii)),32),dumpfmt(ii),dumpfirst(ii),dumplast(ii)
       ! At which structure indices is this single element found? (Sanity check)
       kk = 0
-        do jj=1,mper*mbloz      ! Loop over all structure elements
-          if (ic(jj)-nblo .eq. ii) then
-            write (ch1,*) jj    ! internal write for left-adjusting
-            write (lout,10472) " -> Found as structure element no. " // trim(adjustl(ch1))
-            kk = kk + 1
-          end if
-        end do
-        if (kk .eq. 0) then
-          write (lout,10472) " !! Warning: No structure elements found for '" // bez(ii) // "'!"
-          write (lout,10472) " !! This element is probably only found in a BLOC, or it is not used at all."
-          write (lout,10472) " !! Please fix your DUMP block in fort.3"
-          call prror(-1)
+      do jj=1,mper*mbloz      ! Loop over all structure elements
+        if(ic(jj)-nblo == ii) then
+          write (lout,"(a,i0)") "DUMP> Found as structure element no. ",jj
+          kk = kk + 1
         end if
+      end do
+      if(kk == 0) then
+        write (lout,"(a)") "DUMP> ERROR No structure elements found for '"//trim(bez(ii))//"'"
+        write (lout,"(a)") "DUMP>       This element is probably only found in a BLOC, or it is not used at all."
+        iErr = .true.
+        return
       end if
-    end do
-
-    if (ldumphighprec) then
-      write(lout,*) ''
-      write(lout,*) '        --> requested high precision dumping!'
     end if
-    if (ldumpfront) then
-      write(lout,*) ''
-      write(lout,*) '        --> requested FRONT dumping!'
-    end if
-    return
+  end do
 
-10460 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10, 'ELEMENT NAME',8x,'EVERY # TURNs',2x, &
-                      'LOGICAL UNIT',2x,'FILENAME',24x,'FORMAT',5x, "FirstTurn",6x,"LastTurn")
-10470 format(t10,a16,4x,i13,2x,i12,2x,a32,i6,2x,i12,2x,i12)
-10472 format(t10,a)
+  if (ldumphighprec) then
+    write(lout,"(a)") "DUMP> Requested high precision dumping"
+  end if
+  if (ldumpfront) then
+    write(lout,"(a)") "DUMP> Requested FRONT dumping"
+  end if
+  return
 
 end subroutine dump_parseInputDone
 
@@ -447,8 +445,8 @@ subroutine dump_initialise
       ! Expect the file to be opened already, in crcheck
       inquire( unit=dumpunit(i), opened=lopen )
       if (.not.lopen) then
-        write(lout,*) "ERROR in DUMP: The unit",dumpunit(i),"has dumpfilepos=", dumpfilepos(i), ".ge.0, ", &
-                      "but the file is NOT open. This is probably a bug."
+        write(lout,"(2(a,i0),a)") "DUMP> ERROR The unit ",dumpunit(i)," has dumpfilepos = ", dumpfilepos(i), " >= 0, "//&
+          "but the file is NOT open. This is probably a bug."
         call prror(-1)
       end if
       cycle ! Everything OK, don't try to open the files again.
@@ -461,8 +459,8 @@ subroutine dump_initialise
         ! Check that the filename is not already taken
         do j=-1,i-1
           if (ldump(j) .and. (dump_fname(j).eq.dump_fname(i))) then
-            write(lout,*) "ERROR in DUMP: Output filename '",trim(chr_trimZero(dump_fname(i))), &
-                          "' is used by two DUMPS, but output units differ:",dumpunit(i), " vs ", dumpunit(j)
+            write(lout,"(2(a,i0))") "DUMP> ERROR Output filename '"//trim(dump_fname(i))//&
+              "' is used by two DUMPS, but output units differ: ",dumpunit(i)," vs ",dumpunit(j)
             call prror(-1)
           end if
         end do
@@ -498,17 +496,17 @@ subroutine dump_initialise
           if (ldump(j)) then
             if (dumpunit(j).eq.dumpunit(i)) then
               if (dumpfmt(j).ne.dumpfmt(i)) then
-                write(lout,*) "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS, formats are not the same."
+                write(lout,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, formats are not the same."
                 call prror(-1)
               else if (j.eq.0) then
-                write(lout,*) "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS, one of which is ALL"
+                write(lout,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, one of which is ALL"
                 call prror(-1)
               else if (j.eq.-1) then
-                write(lout,*) "ERROR in DUMP: output unit",dumpunit(i), " used by two DUMPS, one of which is StartDUMP"
+                write(lout,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, one of which is StartDUMP"
                 call prror(-1)
               else if (dump_fname(j).ne.dump_fname(i)) then
-                write(lout,*) "ERROR in DUMP: output unit",dumpunit(i)," used by two DUMPS, but filenames differ: ", &
-                              "'",trim(chr_trimZero(dump_fname(i))), "' vs '", trim(chr_trimZero(dump_fname(j))), "'"
+                write(lout,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, but filenames differ: '"//&
+                  trim(dump_fname(i)),"' vs '",trim(dump_fname(j)),"'"
                 call prror(-1)
               else
                 ! Everything is fine
@@ -525,8 +523,9 @@ subroutine dump_initialise
         ! LOPEN not set to true by sanity check in loop above
         ! => File was already open, but not by DUMP.
         if (.not.lopen) then
-          write (lout,*) "ERROR in DUMP: unit", dumpunit(i), " is already open, but not by DUMP. Please pick another unit! ", &
-                         " Note: This test is not watertight, as other parts of the program may later open the same file/unit."
+          write(lout,"(a,i0,a)") "DUMP> ERROR Unit",dumpunit(i)," is already open, but not by DUMP. Please pick another unit!"
+          write(lout,"(a)")      "DUMP> Note: This check is not watertight as other parts of the program may later open the "
+          write(lout,"(a)")      "DUMP>       same unit. Althernatively, the unit can be specified as -1 and a unit is assigned."
           call prror(-1)
         end if
       end if
@@ -636,20 +635,16 @@ subroutine dump_initialise
         ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
         if (dumptas(i,1,1).eq.zero .and. dumptas(i,1,2).eq.zero .and. &
             dumptas(i,1,3).eq.zero .and. dumptas(i,1,4).eq.zero) then
-          write(lout,*) "ERROR in normalized DUMP:"
-          write(lout,*) "The normalization matrix appears to not be set?"
-          write(lout,*) "Did you forget to put a 6D LINE block?"
+          write(lout,"(a)") "DUMP> ERROR The normalization matrix appears to not be set. Did you forget to put a 6D LINE block?"
           call prror(-1)
         end if
         if(idp.eq.0 .or. ition.eq.0) then ! We're in the 4D case
           if(imc.ne.1) then ! Energy scan
-            write(lout,*) "ERROR in normalized DUMP:"
-            write(lout,*) "Energy scan (imc != 1) not supported!"
+            write(lout,"(a)") "DUMP> ERROR in normalized DUMP: Energy scan (imc != 1) not supported!"
             call prror(-1)
           end if
           if(i.ne.-1) then ! Not at StartDUMP
-            write(lout,*) "ERROR in normalized DUMP:"
-            write(lout,*) "4D only supported for StartDUMP!"
+            write(lout,"(a)") "DUMP> ERROR in normalized DUMP: 4D only supported for StartDUMP!"
             call prror(-1)
           end if
         end if
@@ -1479,7 +1474,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 
   ! Unrecognized format fmt
   else
-    write (lout,*) "DUMP> Format",fmt, "not understood for unit", unit
+    write (lout,"(2(a,i0))") "DUMP> ERROR Format ",fmt," not understood for unit ",unit
     call prror(-1)
   end if
 
@@ -1665,7 +1660,7 @@ subroutine dump_crcheck_positionFiles
   write(93,*) 'SIXTRACR DUMP_CRCHECK_POSITIONFILES *** ERROR *** reading DUMP file#', dumpunit(i),' iostat=',ierro
   write(93,*) 'dumpfilepos=',dumpfilepos(i),' dumpfilepos_cr=',dumpfilepos_cr(i)
   flush(93)
-  write(lout,*)'SIXTRACR DUMP_CRCHECK_POSITIONFILES failure positioning DUMP file'
+  write(lout,"(a)") "SIXTRACR> ERROR DUMP_CRCHECK_POSITIONFILES failure positioning DUMP file"
   call prror(-1)
 
 end subroutine dump_crcheck_positionFiles

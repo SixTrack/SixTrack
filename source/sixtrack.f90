@@ -836,7 +836,7 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      continue
+      call dump_parseInputDone(inErr)
     else
       call dump_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
