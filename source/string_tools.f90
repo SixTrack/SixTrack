@@ -1127,12 +1127,12 @@ subroutine chr_fromReal(theValue, theString, nPrec, ePrec, rErr)
   character(len=nPrec+ePrec+4), intent(out)   :: theString
   logical,                      intent(inout) :: rErr
 
-  character(len=9) dFmt
+  character(len=11) dFmt
 #ifdef CRLIBM
   character :: dStr(nPrec)
   integer   :: dtoaf, fLen, nStr, dPoint, iSign, i
 #endif
-  write(dFmt,"(a2,i2.2,a1,i2.2,a1,i1)") "es",(nPrec+ePrec+4),".",(nPrec-1),"e",ePrec
+  write(dFmt,"(a3,i2.2,a1,i2.2,a1,i1,a1)") "(es",(nPrec+ePrec+4),".",(nPrec-1),"e",ePrec,")"
 
 #ifdef CRLIBM
   fLen = nPrec
