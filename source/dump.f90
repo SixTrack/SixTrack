@@ -120,17 +120,17 @@ subroutine dump_lines(n,i,ix)
   if ( ldump(0) ) then
     ! Dump at all SINGLE ELEMENTs
     if (ndumpt(0) == 1 .or. mod(n,ndumpt(0)) == 1) then
-      if ((n.ge.dumpfirst(0)) .and. ((n.le.dumplast(0)) .or. (dumplast(0) == -1))) then
+      if ((n >= dumpfirst(0)) .and. ((n <= dumplast(0)) .or. (dumplast(0) == -1))) then
         call dump_beam_population(n, i, ix, dumpunit(0), dumpfmt(0), ldumphighprec, dumpclo(ix,1:6),dumptasinv(ix,1:6,1:6))
       end if
     end if
   end if
-  if (ktrack(i) .ne. 1) then
+  if(ktrack(i) /= 1) then
     ! The next "if" is only safe for SINGLE ELEMENTS, not BLOC where ix<0.
     if (ldump(ix)) then
       ! Dump at this precise SINGLE ELEMENT
       if (ndumpt(ix) == 1 .or. mod(n,ndumpt(ix)) == 1) then
-        if ((n.ge.dumpfirst(ix)) .and. ((n.le.dumplast(ix)) .or. (dumplast(ix) == -1))) then
+        if ((n >= dumpfirst(ix)) .and. ((n <= dumplast(ix)) .or. (dumplast(ix) == -1))) then
           call dump_beam_population(n, i, ix, dumpunit(ix), dumpfmt(ix), ldumphighprec, dumpclo(ix,1:6),dumptasinv(ix,1:6,1:6))
         end if
       end if
@@ -148,7 +148,7 @@ subroutine dump_linesFirst(n)
   ! StartDUMP - dump on the first element
   if (ldump(-1)) then
     if (ndumpt(-1) == 1 .or. mod(n,ndumpt(-1)) == 1) then
-      if ((n.ge.dumpfirst(-1)) .and. ((n.le.dumplast(-1)) .or. (dumplast(-1) == -1))) then
+      if ((n >= dumpfirst(-1)) .and. ((n <= dumplast(-1)) .or. (dumplast(-1) == -1))) then
         call dump_beam_population(n, 0, 0, dumpunit(-1), dumpfmt(-1), ldumphighprec, dumpclo(-1,1:6),dumptasinv(-1,1:6,1:6))
       end if
     end if
@@ -185,7 +185,7 @@ subroutine dump_closeUnits
 end subroutine dump_closeUnits
 
 ! ================================================================================================================================ !
-subroutine dump_parseInputLine(ch,iErr)
+subroutine dump_parseInputLine(inLine,iErr)
 
   use crcoall
   use mod_common
@@ -194,82 +194,81 @@ subroutine dump_parseInputLine(ch,iErr)
 
   implicit none
 
-  character(len=*), intent(in)    :: ch
+  character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
-  ! Fields split variables
-  character gFields(str_maxFields)*(mStrLen) ! Array of fields
-  integer   nFields                             ! Number of identified fields
-  integer   lFields(str_maxFields)              ! Length of each what:
-  logical   fieldsErr                           ! An error flag
-
-  ! Temp variables
-  character(len=mNameLen) idat ! Synchronized with daten
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen) elemName
+  character(len=mStrLen) fileName
   integer i1,i2,i3,i4,i5,kk,j
-
-  character(len=mStrLen) ch1
+  integer nSplit
+  logical spErr
 
   ! initialise reading variables, to avoid storing nonsense values
-  idat = ' ' ! Name
-  i1 = 0     ! frequency
-  i2 = -1    ! unit
-  i3 = 0     ! format
-  i4 = 1     ! first turn
-  i5 = -1    ! last turn
+  elemName = " " ! Element Name
+  fileName = " " ! File Name
+  i1       = 0   ! frequency
+  i2       = -1  ! unit
+  i3       = 0   ! format
+  i4       = 1   ! first turn
+  i5       = -1  ! last turn
 
-  if(ch(:4) == 'HIGH') then
-    ldumphighprec = .true.
-    return
-  else if(ch(:5) == 'FRONT') then
-    ldumpfront = .true.
-    return
-  end if
-
-  ! Requested element
-  call getfields_split(ch, gFields, lFields, nFields, fieldsErr)
-  if (fieldsErr) call prror(-1)
-
-  if ((nFields .lt. 4) .or. (nFields .gt. 7) .or. (nFields  ==  6)) then
-    write(lout,"(a,i0)")    "DUMP> ERROR Expected 4 to 7 (but not 6) arguments, got ",nFields
-    write(lout,"(a)")      ("DUMP>       '"//gFields(kk)(1:lFields(kk))//"' ",kk=1,nFields)
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "DUMP> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
 
-  if (lFields(1) > mNameLen) then
+  if(lnSplit(1) == "HIGH") then
+    ldumphighprec = .true.
+    return
+  else if(lnSplit(1) == "FRONT") then
+    ldumpfront = .true.
+    return
+  end if
+
+  if(nSplit < 4 .or. nSplit > 7 .or. nSplit  ==  6) then
+    write(lout,"(a,i0)") "DUMP> ERROR Expected 4 to 7 (but not 6) arguments, got ",nSplit
+    write(lout,"(a)")   ("DUMP>     * '"//trim(lnSplit(kk))//"' ",kk=1,nSplit)
+    iErr = .true.
+    return
+  end if
+
+  if(len(lnSplit(1)) > mNameLen) then
     write(lout,"(a,i0,a)") "DUMP> ERROR Element names are max. ",mNameLen," characters"
     iErr = .true.
     return
   end if
 
-  idat = gFields(1)(1:lFields(1))
-  read(gFields(2)(1:lFields(2)),*) i1
-  read(gFields(3)(1:lFields(3)),*) i2
-  read(gFields(4)(1:lFields(4)),*) i3
-  if (nFields  ==  4) then
+  elemname = trim(lnSplit(1))
+  call chr_cast(lnSplit(2),i1,spErr)
+  call chr_cast(lnSplit(3),i2,spErr)
+  call chr_cast(lnSplit(4),i3,spErr)
+  if(nSplit == 4) then
     ! Automatic fname
-    write(ch1,"(a5,I0)") "fort.", i2
-  else if ( (nFields  ==  5) .or. (nFields  ==  7)) then
+    write(fileName,"(a5,i0)") "fort.",i2
+  else if(nSplit == 5 .or. nSplit  == 7) then
     ! Given fname
-    ch1 = gFields(5)(1:lFields(5))
+    fileName = trim(lnSplit(5))
   else
     iErr = .true.
     return
   end if
-  if (nFields  ==  7) then
-    read(gFields(6)(1:lFields(6)),*) i4
-    read(gFields(7)(1:lFields(7)),*) i5
+  if(nSplit == 7) then
+    call chr_cast(lnSplit(6),i4,spErr)
+    call chr_cast(lnSplit(7),i5,spErr)
   end if
 
   ! Check that first/last turn is sane
-  if (i5.ne.-1) then
-    if (i5 .lt. i4) then
+  if(i5 /= -1) then
+    if(i5 < i4) then
       write(lout,"(2(a,i0))") "DUMP> ERROR Expect last turn >= first turn, unless last turn = -1 (infinity), got ", i4,", ",i5
       iErr = .true.
       return
-      end if
+    end if
   end if
-  if (i4 .lt. 1) then
+  if(i4 < 1) then
     write(lout,"(a,i0)") "DUMP> ERROR Expect first turn >= 1, got", i4
     iErr = .true.
     return
@@ -277,9 +276,9 @@ subroutine dump_parseInputLine(ch,iErr)
 
   ! Find it in the list of SINGLE ELEMENTs:
   do j=1,il
-    if(bez(j) == idat) then
-      if (ldump(j)) then ! Only enable once/element!
-        write(lout,"(a)") "DUMP> ERROR Element '"//trim(idat)//"' was specified more than once"
+    if(bez(j) == elemName) then
+      if(ldump(j)) then ! Only enable once/element!
+        write(lout,"(a)") "DUMP> ERROR Element '"//trim(elemName)//"' was specified more than once"
         iErr = .true.
         return
       end if
@@ -300,39 +299,39 @@ subroutine dump_parseInputLine(ch,iErr)
     end if
   end do
 
-  if (idat(:3) == 'ALL') then
+  if(elemName == "ALL") then
     j=0
-    if (ldump(j)) then
+    if(ldump(j)) then
       write(lout,"(a)") "DUMP> ERROR Element 'ALL' was specified (at least) twice"
       iErr = .true.
       return
       end if
     goto 10 ! Element found, store the data
   end if
-  if (idat(:9) == 'StartDUMP') then
+  if(elemName == "StartDUMP") then
     j=-1
-    if (ldump(j)) then
+    if(ldump(j)) then
       write(lout,"(a)") "DUMP> ERROR Element 'StartDUMP' was specified (at least) twice"
       iErr = .true.
       return
-      end if
+    end if
     goto 10 ! Element found, store the data
   end if
 
   ! Search failed, fall-through to here:
-  write(lout,"(a)") "DUMP> ERROR Unidentified SINGLE ELEMENT '"//idat//"'"
+  write(lout,"(a)") "DUMP> ERROR Unidentified SINGLE ELEMENT '"//trim(elemName)//"'"
   iErr = .true.
   return
 
   ! Element found, store the data:
 10 continue
-  ldump(j)     = .true.
-  ndumpt(j)    = i1
-  dumpunit(j)  = i2
-  dumpfmt(j)   = i3
-  dump_fname(j)(1:lFields(5)) = ch1(1:lFields(5))
-  dumpfirst(j) = i4
-  dumplast(j)  = i5
+  ldump(j)      = .true.
+  ndumpt(j)     = i1
+  dumpunit(j)   = i2
+  dumpfmt(j)    = i3
+  dump_fname(j) = fileName
+  dumpfirst(j)  = i4
+  dumplast(j)   = i5
   if(ndumpt(j) <= 0) ndumpt(j) = 1
 #ifdef HDF5
   if(h5_useForDUMP .eqv. .false.) then
@@ -416,7 +415,7 @@ end subroutine dump_parseInputDone
 ! ================================================================================================================================ !
 !  A.Mereghetti, D.Sinuela-Pastor & P.Garcia Ortega, for the FLUKA Team
 !  K.Sjobak, A.Santamaria, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-05-08
+!  Last modified: 2018-07-13
 ! ================================================================================================================================ !
 subroutine dump_initialise
 
@@ -442,7 +441,7 @@ subroutine dump_initialise
 
   do i=-1,il
 #ifdef CR
-    if (dumpfilepos(i).ge.0) then
+    if (dumpfilepos(i) >= 0) then
       ! Expect the file to be opened already, in crcheck
       inquire( unit=dumpunit(i), opened=lopen )
       if (.not.lopen) then
@@ -496,7 +495,7 @@ subroutine dump_initialise
         do j=-1,i-1 ! Search all possible DUMPs up to but not including the one we're looking at (number i)
           if (ldump(j)) then
             if (dumpunit(j) == dumpunit(i)) then
-              if (dumpfmt(j).ne.dumpfmt(i)) then
+              if (dumpfmt(j) /= dumpfmt(i)) then
                 write(lout,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, formats are not the same."
                 call prror(-1)
               else if (j == 0) then
@@ -505,7 +504,7 @@ subroutine dump_initialise
               else if (j == -1) then
                 write(lout,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, one of which is StartDUMP"
                 call prror(-1)
-              else if (dump_fname(j).ne.dump_fname(i)) then
+              else if (dump_fname(j) /= dump_fname(i)) then
                 write(lout,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, but filenames differ: '"//&
                   trim(dump_fname(i)),"' vs '",trim(dump_fname(j)),"'"
                 call prror(-1)
@@ -656,11 +655,11 @@ subroutine dump_initialise
           call prror(-1)
         end if
         if(idp == 0 .or. ition == 0) then ! We're in the 4D case
-          if(imc.ne.1) then ! Energy scan
+          if(imc /= 1) then ! Energy scan
             write(lout,"(a)") "DUMP> ERROR in normalized DUMP: Energy scan (imc != 1) not supported!"
             call prror(-1)
           end if
-          if(i.ne.-1) then ! Not at StartDUMP
+          if(i /= -1) then ! Not at StartDUMP
             write(lout,"(a)") "DUMP> ERROR in normalized DUMP: 4D only supported for StartDUMP!"
             call prror(-1)
           end if
@@ -854,7 +853,7 @@ end subroutine dump_initialise
 ! ================================================================================================================================ !
 !  A.Mereghetti, D.Sinuela-Pastor & P.Garcia Ortega, for the FLUKA Team
 !  K.Sjobak, A.Santamaria, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-05-08
+!  Last modified: 2018-07-13
 !  dump beam particles
 !  always in main code
 !
@@ -929,7 +928,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
       localBez  = "StartDUMP"
     else
       localDcum = dcum(i)
-      if (ktrack(i) .ne. 1) then
+      if (ktrack(i) /= 1) then
         localBez = bez(ix)
       else                ! BLOCs
         localBez = bezb(ic(i))
@@ -1730,7 +1729,7 @@ subroutine dump_crcheck_positionFiles
   do i=-1, il
     if (ldump(i)) then
       write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
-      if (i .gt. 0) then
+      if (i > 0) then
         write(93,*) "element=",bez(i), "unit=",dumpunit(i)," filename='"//trim(chr_trimZero(dump_fname(i)))// &
                     "' format=",dumpfmt(i)
       else if (i == 0) then
@@ -1746,7 +1745,7 @@ subroutine dump_crcheck_positionFiles
       flush(93)
 
       inquire( unit=dumpunit(i), opened=lopen )
-      if (dumpfmt(i).ne.3 .and. dumpfmt(i).ne.8) then ! ASCII
+      if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8) then ! ASCII
         if (.not. lopen) then
 #ifdef BOINC
           call boincrf(dump_fname(i),filename)
@@ -1790,7 +1789,7 @@ subroutine dump_crcheck_positionFiles
 
       ! Change from 'readwrite' to 'write'
       close(dumpunit(i))
-      if (dumpfmt(i).ne.3 .and. dumpfmt(i).ne.8) then ! ASCII
+      if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8) then ! ASCII
 #ifdef BOINC
         call boincrf(dump_fname(i),filename)
         open(dumpunit(i),file=filename, status='old',position='append',form='formatted',action='write')
