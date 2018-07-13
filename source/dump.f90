@@ -119,8 +119,8 @@ subroutine dump_lines(n,i,ix)
 
   if ( ldump(0) ) then
     ! Dump at all SINGLE ELEMENTs
-    if (ndumpt(0).eq.1 .or. mod(n,ndumpt(0)).eq.1) then
-      if ((n.ge.dumpfirst(0)) .and. ((n.le.dumplast(0)) .or. (dumplast(0).eq.-1))) then
+    if (ndumpt(0) == 1 .or. mod(n,ndumpt(0)) == 1) then
+      if ((n.ge.dumpfirst(0)) .and. ((n.le.dumplast(0)) .or. (dumplast(0) == -1))) then
         call dump_beam_population(n, i, ix, dumpunit(0), dumpfmt(0), ldumphighprec, dumpclo(ix,1:6),dumptasinv(ix,1:6,1:6))
       end if
     end if
@@ -129,8 +129,8 @@ subroutine dump_lines(n,i,ix)
     ! The next "if" is only safe for SINGLE ELEMENTS, not BLOC where ix<0.
     if (ldump(ix)) then
       ! Dump at this precise SINGLE ELEMENT
-      if (ndumpt(ix).eq.1 .or. mod(n,ndumpt(ix)).eq.1) then
-        if ((n.ge.dumpfirst(ix)) .and. ((n.le.dumplast(ix)) .or. (dumplast(ix).eq.-1))) then
+      if (ndumpt(ix) == 1 .or. mod(n,ndumpt(ix)) == 1) then
+        if ((n.ge.dumpfirst(ix)) .and. ((n.le.dumplast(ix)) .or. (dumplast(ix) == -1))) then
           call dump_beam_population(n, i, ix, dumpunit(ix), dumpfmt(ix), ldumphighprec, dumpclo(ix,1:6),dumptasinv(ix,1:6,1:6))
         end if
       end if
@@ -147,8 +147,8 @@ subroutine dump_linesFirst(n)
 
   ! StartDUMP - dump on the first element
   if (ldump(-1)) then
-    if (ndumpt(-1).eq.1 .or. mod(n,ndumpt(-1)).eq.1) then
-      if ((n.ge.dumpfirst(-1)) .and. ((n.le.dumplast(-1)) .or. (dumplast(-1).eq.-1))) then
+    if (ndumpt(-1) == 1 .or. mod(n,ndumpt(-1)) == 1) then
+      if ((n.ge.dumpfirst(-1)) .and. ((n.le.dumplast(-1)) .or. (dumplast(-1) == -1))) then
         call dump_beam_population(n, 0, 0, dumpunit(-1), dumpfmt(-1), ldumphighprec, dumpclo(-1,1:6),dumptasinv(-1,1:6,1:6))
       end if
     end if
@@ -217,10 +217,10 @@ subroutine dump_parseInputLine(ch,iErr)
   i4 = 1     ! first turn
   i5 = -1    ! last turn
 
-  if(ch(:4).eq.'HIGH') then
+  if(ch(:4) == 'HIGH') then
     ldumphighprec = .true.
     return
-  else if(ch(:5).eq.'FRONT') then
+  else if(ch(:5) == 'FRONT') then
     ldumpfront = .true.
     return
   end if
@@ -229,7 +229,7 @@ subroutine dump_parseInputLine(ch,iErr)
   call getfields_split(ch, gFields, lFields, nFields, fieldsErr)
   if (fieldsErr) call prror(-1)
 
-  if ((nFields .lt. 4) .or. (nFields .gt. 7) .or. (nFields .eq. 6)) then
+  if ((nFields .lt. 4) .or. (nFields .gt. 7) .or. (nFields  ==  6)) then
     write(lout,"(a,i0)")    "DUMP> ERROR Expected 4 to 7 (but not 6) arguments, got ",nFields
     write(lout,"(a)")      ("DUMP>       '"//gFields(kk)(1:lFields(kk))//"' ",kk=1,nFields)
     iErr = .true.
@@ -246,17 +246,17 @@ subroutine dump_parseInputLine(ch,iErr)
   read(gFields(2)(1:lFields(2)),*) i1
   read(gFields(3)(1:lFields(3)),*) i2
   read(gFields(4)(1:lFields(4)),*) i3
-  if (nFields .eq. 4) then
+  if (nFields  ==  4) then
     ! Automatic fname
     write(ch1,"(a5,I0)") "fort.", i2
-  else if ( (nFields .eq. 5) .or. (nFields .eq. 7)) then
+  else if ( (nFields  ==  5) .or. (nFields  ==  7)) then
     ! Given fname
     ch1 = gFields(5)(1:lFields(5))
   else
     iErr = .true.
     return
   end if
-  if (nFields .eq. 7) then
+  if (nFields  ==  7) then
     read(gFields(6)(1:lFields(6)),*) i4
     read(gFields(7)(1:lFields(7)),*) i5
   end if
@@ -277,7 +277,7 @@ subroutine dump_parseInputLine(ch,iErr)
 
   ! Find it in the list of SINGLE ELEMENTs:
   do j=1,il
-    if(bez(j).eq.idat) then
+    if(bez(j) == idat) then
       if (ldump(j)) then ! Only enable once/element!
         write(lout,"(a)") "DUMP> ERROR Element '"//trim(idat)//"' was specified more than once"
         iErr = .true.
@@ -285,12 +285,12 @@ subroutine dump_parseInputLine(ch,iErr)
       end if
 
       ! Element was found in SINGLE ELEMENTS list, now do some sanity checks
-      if(trim(bez(j)).eq."ALL") then
+      if(trim(bez(j)) == "ALL") then
         write(lout,"(a)") "DUMP> ERROR The element name 'ALL' cannot be used in the SINGLE ELEMENTS list "//&
           "when an 'ALL' special DUMP is active."
         iErr = .true.
         return
-      else if(trim(bez(j)).eq."StartDUMP") then
+      else if(trim(bez(j)) == "StartDUMP") then
         write(lout,"(a)") "DUMP> ERROR The element name 'StartDUMP' cannot be used in the SINGLE ELEMENTS "// &
           "list when an 'StartDUMP' special DUMP is active."
         iErr = .true.
@@ -300,7 +300,7 @@ subroutine dump_parseInputLine(ch,iErr)
     end if
   end do
 
-  if (idat(:3).eq.'ALL') then
+  if (idat(:3) == 'ALL') then
     j=0
     if (ldump(j)) then
       write(lout,"(a)") "DUMP> ERROR Element 'ALL' was specified (at least) twice"
@@ -309,7 +309,7 @@ subroutine dump_parseInputLine(ch,iErr)
       end if
     goto 10 ! Element found, store the data
   end if
-  if (idat(:9).eq.'StartDUMP') then
+  if (idat(:9) == 'StartDUMP') then
     j=-1
     if (ldump(j)) then
       write(lout,"(a)") "DUMP> ERROR Element 'StartDUMP' was specified (at least) twice"
@@ -427,9 +427,10 @@ subroutine dump_initialise
 
   implicit none
 
-  integer i,j
-  logical lopen
+  integer i,j,k,l
+  logical lOpen, rErr
   character(len=256) filename
+  character(len=16) tasbuf(6,6)
 
 #ifdef HDF5
   type(h5_dataField), allocatable :: setFields(:)
@@ -458,13 +459,13 @@ subroutine dump_initialise
       if (.not.lopen) then
         ! Check that the filename is not already taken
         do j=-1,i-1
-          if (ldump(j) .and. (dump_fname(j).eq.dump_fname(i))) then
+          if (ldump(j) .and. (dump_fname(j) == dump_fname(i))) then
             write(lout,"(2(a,i0))") "DUMP> ERROR Output filename '"//trim(dump_fname(i))//&
               "' is used by two DUMPS, but output units differ: ",dumpunit(i)," vs ",dumpunit(j)
             call prror(-1)
           end if
         end do
-        if (dumpfmt(i).eq.3 .or. dumpfmt(i).eq.8) then ! Binary dump
+        if (dumpfmt(i) == 3 .or. dumpfmt(i) == 8) then ! Binary dump
 #ifdef BOINC
           call boincrf(dump_fname(i),filename)
           open(dumpunit(i),file=filename,status='replace',form='unformatted')
@@ -494,14 +495,14 @@ subroutine dump_initialise
         lopen = .false.
         do j=-1,i-1 ! Search all possible DUMPs up to but not including the one we're looking at (number i)
           if (ldump(j)) then
-            if (dumpunit(j).eq.dumpunit(i)) then
+            if (dumpunit(j) == dumpunit(i)) then
               if (dumpfmt(j).ne.dumpfmt(i)) then
                 write(lout,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, formats are not the same."
                 call prror(-1)
-              else if (j.eq.0) then
+              else if (j == 0) then
                 write(lout,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, one of which is ALL"
                 call prror(-1)
-              else if (j.eq.-1) then
+              else if (j == -1) then
                 write(lout,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, one of which is StartDUMP"
                 call prror(-1)
               else if (dump_fname(j).ne.dump_fname(i)) then
@@ -531,7 +532,7 @@ subroutine dump_initialise
       end if
 
       ! Write format-specific headers
-      if (dumpfmt(i).eq.1) then
+      if (dumpfmt(i) == 1) then
         write(dumpunit(i),'(a)') '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
         ! Flush file
         endfile   (dumpunit(i))
@@ -539,14 +540,14 @@ subroutine dump_initialise
 #ifdef CR
         dumpfilepos(i) = dumpfilepos(i) + 1
 #endif
-      else if (dumpfmt(i).eq.2 .or. dumpfmt(i).eq.4 .or. dumpfmt(i).eq.5 .or. &
-               dumpfmt(i).eq.6 .or. dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9 ) then
+      else if (dumpfmt(i) == 2 .or. dumpfmt(i) == 4 .or. dumpfmt(i) == 5 .or. &
+               dumpfmt(i) == 6 .or. dumpfmt(i) == 7 .or. dumpfmt(i) == 9 ) then
         ! Write the general header
-        if (i.eq.-1) then  ! STARTdump
+        if (i == -1) then  ! STARTdump
           write(dumpunit(i),'(a,i0,a,a16,4(a,i12),2(a,L1))') &
             '# DUMP format #',dumpfmt(i),', START=',bez(1), ', number of particles=',napx, ', dump period=',ndumpt(i), &
             ', first turn=', dumpfirst(i), ', last turn=',dumplast(i), ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
-        else if (i.eq.0) then ! ALL
+        else if (i == 0) then ! ALL
           write(dumpunit(i),'(a,i0,a,4(a,i12),2(a,L1))') &
             '# DUMP format #',dumpfmt(i),', ALL ELEMENTS,', ' number of particles=',napx, ', dump period=',ndumpt(i), &
             ', first turn=', dumpfirst(i), ', last turn=',dumplast(i), ', HIGH=',ldumphighprec, ', FRONT=',ldumpfront
@@ -557,11 +558,11 @@ subroutine dump_initialise
         end if
 
         ! Write the format-specific headers:
-        if (dumpfmt(i).eq.2) then ! FORMAT 2
+        if (dumpfmt(i) == 2) then ! FORMAT 2
           write(dumpunit(i),'(a,a)') '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack'
-        else if (dumpfmt(i).eq.4) then ! FORMAT 4
+        else if (dumpfmt(i) == 4) then ! FORMAT 4
           write(dumpunit(i),'(a)') '# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]'
-        else if (dumpfmt(i).eq.5) then ! FORMAT 5
+        else if (dumpfmt(i) == 5) then ! FORMAT 5
           write(dumpunit(i),'(a)') '# napx turn s[m] ' //                  &
             '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] '//   &
             '<x^2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> '//                &
@@ -570,7 +571,7 @@ subroutine dump_initialise
             '<yp^2> <yp*z> <yp*(dE/E)> '//                                 &
             '<z^2> <z*(dE/E)> '//                                          &
             '<(dE/E)^2>'
-        else if (dumpfmt(i).eq.6) then ! FORMAT 6
+        else if (dumpfmt(i) == 6) then ! FORMAT 6
           write(dumpunit(i),'(a)') '# napx turn s[m] ' //                  &
             '<x>[m] <px>[1] <y>[m] <py>[1] <sigma>[m] <psigma>[1] '//      &
             '<x^2> <x*px> <x*y> <x*py> <x*sigma> <x*psigma> '//            &
@@ -579,13 +580,13 @@ subroutine dump_initialise
             '<py^2> <py*sigma> <py*psigma> '//                             &
             '<sigma^2> <sigma*psigma> '//                                  &
             '<psigma^2>'
-        else if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9) then
+        else if (dumpfmt(i) == 7 .or. dumpfmt(i) == 9) then
           ! Normalized ASCII dump -> extra headers with matrices and closed orbit
-          if (dumpfmt(i).eq.7) then ! FORMAT 7
+          if (dumpfmt(i) == 7) then ! FORMAT 7
             write(dumpunit(i),'(a)') '# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] '// &
               'ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nsig[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] ktrack'
           end if
-          if (dumpfmt(i).eq.9) then ! FORMAT 9
+          if (dumpfmt(i) == 9) then ! FORMAT 9
             write(dumpunit(i),'(a)') '# napx turn s[m] ' //                   &
               '<nx>[1.e-3 sqrt(m)] <npx>[1.e-3 sqrt(m)] '//                   &
               '<ny>[1.e-3 sqrt(m)] <npy>[1.e-3 sqrt(m)] '//                   &
@@ -600,22 +601,38 @@ subroutine dump_initialise
           ! closed orbit
           ! units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1]
           ! (note: units are already changed in linopt part)
-          write(dumpunit(i),'(a,1x,6(1X,1PE16.9))') '# closed orbit [mm,mrad,mm,mrad,1]', &
-            dumpclo(i,1),dumpclo(i,2),dumpclo(i,3),dumpclo(i,4),dumpclo(i,5),dumpclo(i,6)
-          write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') '# tamatrix [mm,mrad,mm,mrad,1]', &
-            dumptas(i,1,1),dumptas(i,1,2),dumptas(i,1,3),dumptas(i,1,4),dumptas(i,1,5),dumptas(i,1,6), &
-            dumptas(i,2,1),dumptas(i,2,2),dumptas(i,2,3),dumptas(i,2,4),dumptas(i,2,5),dumptas(i,2,6), &
-            dumptas(i,3,1),dumptas(i,3,2),dumptas(i,3,3),dumptas(i,3,4),dumptas(i,3,5),dumptas(i,3,6), &
-            dumptas(i,4,1),dumptas(i,4,2),dumptas(i,4,3),dumptas(i,4,4),dumptas(i,4,5),dumptas(i,4,6), &
-            dumptas(i,5,1),dumptas(i,5,2),dumptas(i,5,3),dumptas(i,5,4),dumptas(i,5,5),dumptas(i,5,6), &
-            dumptas(i,6,1),dumptas(i,6,2),dumptas(i,6,3),dumptas(i,6,4),dumptas(i,6,5),dumptas(i,6,6)
-          write(dumpunit(i),'(a,1x,36(1X,1PE16.9))') '# inv(tamatrix)', &
-            dumptasinv(i,1,1),dumptasinv(i,1,2),dumptasinv(i,1,3),dumptasinv(i,1,4),dumptasinv(i,1,5),dumptasinv(i,1,6), &
-            dumptasinv(i,2,1),dumptasinv(i,2,2),dumptasinv(i,2,3),dumptasinv(i,2,4),dumptasinv(i,2,5),dumptasinv(i,2,6), &
-            dumptasinv(i,3,1),dumptasinv(i,3,2),dumptasinv(i,3,3),dumptasinv(i,3,4),dumptasinv(i,3,5),dumptasinv(i,3,6), &
-            dumptasinv(i,4,1),dumptasinv(i,4,2),dumptasinv(i,4,3),dumptasinv(i,4,4),dumptasinv(i,4,5),dumptasinv(i,4,6), &
-            dumptasinv(i,5,1),dumptasinv(i,5,2),dumptasinv(i,5,3),dumptasinv(i,5,4),dumptasinv(i,5,5),dumptasinv(i,5,6), &
-            dumptasinv(i,6,1),dumptasinv(i,6,2),dumptasinv(i,6,3),dumptasinv(i,6,4),dumptasinv(i,6,5),dumptasinv(i,6,6)
+          do k=1,6
+            call chr_fromReal(dumpclo(i,k),tasbuf(k,1),10,2,rErr)
+          end do
+          write(dumpunit(i),"(a,1x,6(1x,a16))") "# closed orbit [mm,mrad,mm,mrad,1]", &
+            tasbuf(1,1),tasbuf(2,1),tasbuf(3,1),tasbuf(4,1),tasbuf(5,1),tasbuf(6,1)
+
+          do k=1,6
+            do l=1,6
+              call chr_fromReal(dumptas(i,l,k),tasbuf(l,k),10,2,rErr)
+            end do
+          end do
+          write(dumpunit(i),"(a,1x,36(1x,a16))") "# tamatrix [mm,mrad,mm,mrad,1]", &
+            tasbuf(1,1),tasbuf(1,2),tasbuf(1,3),tasbuf(1,4),tasbuf(1,5),tasbuf(1,6), &
+            tasbuf(2,1),tasbuf(2,2),tasbuf(2,3),tasbuf(2,4),tasbuf(2,5),tasbuf(2,6), &
+            tasbuf(3,1),tasbuf(3,2),tasbuf(3,3),tasbuf(3,4),tasbuf(3,5),tasbuf(3,6), &
+            tasbuf(4,1),tasbuf(4,2),tasbuf(4,3),tasbuf(4,4),tasbuf(4,5),tasbuf(4,6), &
+            tasbuf(5,1),tasbuf(5,2),tasbuf(5,3),tasbuf(5,4),tasbuf(5,5),tasbuf(5,6), &
+            tasbuf(6,1),tasbuf(6,2),tasbuf(6,3),tasbuf(6,4),tasbuf(6,5),tasbuf(6,6)
+
+          do k=1,6
+            do l=1,6
+              call chr_fromReal(dumptasinv(i,l,k),tasbuf(l,k),10,2,rErr)
+            end do
+          end do
+          write(dumpunit(i),"(a,1x,36(1x,a16))") "# inv(tamatrix)", &
+            tasbuf(1,1),tasbuf(1,2),tasbuf(1,3),tasbuf(1,4),tasbuf(1,5),tasbuf(1,6), &
+            tasbuf(2,1),tasbuf(2,2),tasbuf(2,3),tasbuf(2,4),tasbuf(2,5),tasbuf(2,6), &
+            tasbuf(3,1),tasbuf(3,2),tasbuf(3,3),tasbuf(3,4),tasbuf(3,5),tasbuf(3,6), &
+            tasbuf(4,1),tasbuf(4,2),tasbuf(4,3),tasbuf(4,4),tasbuf(4,5),tasbuf(4,6), &
+            tasbuf(5,1),tasbuf(5,2),tasbuf(5,3),tasbuf(5,4),tasbuf(5,5),tasbuf(5,6), &
+            tasbuf(6,1),tasbuf(6,2),tasbuf(6,3),tasbuf(6,4),tasbuf(6,5),tasbuf(6,6)
+
         end if ! Format-specific headers
 
         ! Flush file
@@ -624,21 +641,21 @@ subroutine dump_initialise
 #ifdef CR
         dumpfilepos(i) = dumpfilepos(i) + 2
         ! format 7 also writes clo, tas and tasinv
-        if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.9) then
+        if (dumpfmt(i) == 7 .or. dumpfmt(i) == 9) then
           dumpfilepos(i) = dumpfilepos(i) + 3
         end if
 #endif
       end if ! END if format 2/4/5/6/7/9 -> General header
 
       ! Normalized DUMP
-      if (dumpfmt(i).eq.7 .or. dumpfmt(i).eq.8 .or. dumpfmt(i).eq.9) then
+      if (dumpfmt(i) == 7 .or. dumpfmt(i) == 8 .or. dumpfmt(i) == 9) then
         ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
-        if (dumptas(i,1,1).eq.zero .and. dumptas(i,1,2).eq.zero .and. &
-            dumptas(i,1,3).eq.zero .and. dumptas(i,1,4).eq.zero) then
+        if (dumptas(i,1,1) == zero .and. dumptas(i,1,2) == zero .and. &
+            dumptas(i,1,3) == zero .and. dumptas(i,1,4) == zero) then
           write(lout,"(a)") "DUMP> ERROR The normalization matrix appears to not be set. Did you forget to put a 6D LINE block?"
           call prror(-1)
         end if
-        if(idp.eq.0 .or. ition.eq.0) then ! We're in the 4D case
+        if(idp == 0 .or. ition == 0) then ! We're in the 4D case
           if(imc.ne.1) then ! Energy scan
             write(lout,"(a)") "DUMP> ERROR in normalized DUMP: Energy scan (imc != 1) not supported!"
             call prror(-1)
@@ -869,13 +886,14 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 
   ! interface variables:
   integer, intent(in) :: nturn, i, ix, unit, fmt
-  logical, intent(in) ::  lhighprec
+  logical, intent(in) :: lhighprec
   real(kind=fPrec), intent(in) :: tasinv(6,6) ! normalization matrix in [mm,mrad,mm,mrad,mm,1]
   real(kind=fPrec), intent(in) :: loc_clo(6) ! closed orbit in [mm,mrad,mm,mrad,mm,1]
 
   ! Temporary variables
   integer j,k,l,m,n
   character(len=mNameLen) localBez
+  logical rErr
 
   real(kind=fPrec) localDcum
   integer localKtrack
@@ -884,13 +902,16 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   real(kind=fPrec) xyz(6)
   real(kind=fPrec) xyz2(6,6)
 
+  character(len=16) :: xyz_l(27)
+  character(len=25) :: xyz_h(27)
+
 #ifdef CR
   ! For accessing dumpfilepos
   integer dumpIdx
-  if (unit .eq. dumpunit(0)) then
+  if(unit == dumpunit(0)) then
     ! ALL output must be on separate unit
     dumpIdx = 0
-  elseif (unit .eq. dumpunit(-1)) then
+  else if(unit == dumpunit(-1)) then
     ! ALL output must be on separate unit
     dumpIdx = -1
   else
@@ -902,10 +923,10 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   !  Format #0
   !  General format
   ! ------------------------------------------------------------------ !
-  if (fmt == 0) then
-    if (i == 0 .and. ix == 0) then
+  if(fmt == 0) then
+    if(i == 0 .and. ix == 0) then
       localDcum = 0.0
-      localBez = "StartDUMP"
+      localBez  = "StartDUMP"
     else
       localDcum = dcum(i)
       if (ktrack(i) .ne. 1) then
@@ -914,19 +935,33 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
         localBez = bezb(ic(i))
       end if
     end if
-    if (lhighprec) then
+    if(lhighprec) then
       do j=1,napx
-        write(unit,1981) nturn, i, ix, localBez, localDcum, xv(1,j)*c1m3, yv(1,j)*c1m3, xv(2,j)*c1m3, &
-          yv(2,j)*c1m3, ejfv(j)*c1m3, (ejv(j)-e0)*c1e6, -c1m3*(sigmv(j)/clight)*(e0/e0f)
+        call chr_fromReal(xv(1,j)*c1m3,                    xyz_h(1),19,2,rErr)
+        call chr_fromReal(yv(1,j)*c1m3,                    xyz_h(2),19,2,rErr)
+        call chr_fromReal(xv(2,j)*c1m3,                    xyz_h(3),19,2,rErr)
+        call chr_fromReal(yv(2,j)*c1m3,                    xyz_h(4),19,2,rErr)
+        call chr_fromReal(ejfv(j)*c1m3,                    xyz_h(5),19,2,rErr)
+        call chr_fromReal((ejv(j)-e0)*c1e6,                xyz_h(6),19,2,rErr)
+        call chr_fromReal(-c1m3*(sigmv(j)/clight)*(e0/e0f),xyz_h(7),19,2,rErr)
+        write(unit,"(3(1x,i8),1x,a48,1x,f12.5,7(1x,a25))") nturn,i,ix,localBez,localDcum, &
+          xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),xyz_h(6),xyz_h(7)
       end do
     else
       do j=1,napx
-        write(unit,1982) nturn, i, ix, localBez, localDcum, xv(1,j)*c1m3, yv(1,j)*c1m3, xv(2,j)*c1m3, &
-          yv(2,j)*c1m3, ejfv(j)*c1m3, (ejv(j)-e0)*c1e6, -c1m3*(sigmv(j)/clight)*(e0/e0f)
+        call chr_fromReal(xv(1,j)*c1m3,                    xyz_l(1),10,2,rErr)
+        call chr_fromReal(yv(1,j)*c1m3,                    xyz_l(2),10,2,rErr)
+        call chr_fromReal(xv(2,j)*c1m3,                    xyz_l(3),10,2,rErr)
+        call chr_fromReal(yv(2,j)*c1m3,                    xyz_l(4),10,2,rErr)
+        call chr_fromReal(ejfv(j)*c1m3,                    xyz_l(5),10,2,rErr)
+        call chr_fromReal((ejv(j)-e0)*c1e6,                xyz_l(6),10,2,rErr)
+        call chr_fromReal(-c1m3*(sigmv(j)/clight)*(e0/e0f),xyz_l(7),10,2,rErr)
+        write(unit,"(3(1x,i8),1x,a48,1x,f12.5,7(1x,a16))") nturn,i,ix,localBez,localDcum, &
+          xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),xyz_l(7)
       end do
     end if
-    write(unit,*) ''
-    write(unit,*) ''
+    write(unit,"(a)") ""
+    write(unit,"(a)") ""
 
     ! Flush
     endfile (unit,iostat=ierro)
@@ -962,15 +997,25 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
       call h5_finaliseWrite(dump_hdf5DataSet(ix))
     else
 #endif
-      if (lhighprec) then
+      if(lhighprec) then
         do j=1,napx
-          write(unit,1983) nlostp(j),nturn,localDcum, &
-            xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-e0)/e0,localKtrack
+          call chr_fromReal(xv(1,j),       xyz_h(1),19,2,rErr)
+          call chr_fromReal(yv(1,j),       xyz_h(2),19,2,rErr)
+          call chr_fromReal(xv(2,j),       xyz_h(3),19,2,rErr)
+          call chr_fromReal(yv(2,j),       xyz_h(4),19,2,rErr)
+          call chr_fromReal((ejv(j)-e0)/e0,xyz_h(5),19,2,rErr)
+          write(unit,"(2(1x,i8),1x,f12.5,5(1x,a25),1x,i8)") nlostp(j),nturn,localDcum, &
+            xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),localKtrack
         end do
       else
         do j=1,napx
-          write(unit,1984) nlostp(j),nturn,localDcum, &
-            xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-e0)/e0,localKtrack
+          call chr_fromReal(xv(1,j),       xyz_l(1),10,2,rErr)
+          call chr_fromReal(yv(1,j),       xyz_l(2),10,2,rErr)
+          call chr_fromReal(xv(2,j),       xyz_l(3),10,2,rErr)
+          call chr_fromReal(yv(2,j),       xyz_l(4),10,2,rErr)
+          call chr_fromReal((ejv(j)-e0)/e0,xyz_l(5),10,2,rErr)
+          write(unit,"(2(1x,i8),1x,f12.5,5(1x,a16),1x,i8)") nlostp(j),nturn,localDcum, &
+            xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),localKtrack
         end do
       end if
 
@@ -988,12 +1033,12 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   !  Format #2
   !  Same as fmt 1, but also include z (for crab cavities etc.)
   ! ------------------------------------------------------------------ !
-  else if (fmt .eq. 2) then
-    if (i.eq.0 .and. ix.eq.0) then
-      localDcum = zero
+  else if(fmt == 2) then
+    if(i == 0 .and. ix == 0) then
+      localDcum   = zero
       localKtrack = 0
     else
-      localDcum = dcum(i)
+      localDcum   = dcum(i)
       localKtrack = ktrack(i)
     end if
 #ifdef HDF5
@@ -1012,15 +1057,27 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
       call h5_finaliseWrite(dump_hdf5DataSet(ix))
     else
 #endif
-      if (lhighprec) then
+      if(lhighprec) then
         do j=1,napx
-          write(unit,1985) nlostp(j),nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
-            sigmv(j),(ejv(j)-e0)/e0,localKtrack
+          call chr_fromReal(xv(1,j),       xyz_h(1),19,2,rErr)
+          call chr_fromReal(yv(1,j),       xyz_h(2),19,2,rErr)
+          call chr_fromReal(xv(2,j),       xyz_h(3),19,2,rErr)
+          call chr_fromReal(yv(2,j),       xyz_h(4),19,2,rErr)
+          call chr_fromReal(sigmv(j),      xyz_h(5),19,2,rErr)
+          call chr_fromReal((ejv(j)-e0)/e0,xyz_h(6),19,2,rErr)
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a25),1x,i8)") nlostp(j),nturn,localDcum,&
+            xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),xyz_h(6),localKtrack
         end do
       else
         do j=1,napx
-          write(unit,1986) nlostp(j),nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
-            sigmv(j),(ejv(j)-e0)/e0,localKtrack
+          call chr_fromReal(xv(1,j),       xyz_l(1),10,2,rErr)
+          call chr_fromReal(yv(1,j),       xyz_l(2),10,2,rErr)
+          call chr_fromReal(xv(2,j),       xyz_l(3),10,2,rErr)
+          call chr_fromReal(yv(2,j),       xyz_l(4),10,2,rErr)
+          call chr_fromReal(sigmv(j),      xyz_l(5),10,2,rErr)
+          call chr_fromReal((ejv(j)-e0)/e0,xyz_l(6),10,2,rErr)
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16),1x,i8)") nlostp(j),nturn,localDcum,&
+            xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),localKtrack
         end do
       end if
 
@@ -1038,12 +1095,12 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   !  Format #3
   !  Same as fmt 2, but in Fortran binary
   ! ------------------------------------------------------------------ !
-  else if (fmt == 3) then
-    if (i == 0 .and. ix == 0) then
-      localDcum = zero
+  else if(fmt == 3) then
+    if(i == 0 .and. ix == 0) then
+      localDcum   = zero
       localKtrack = 0
     else
-      localDcum = dcum(i)
+      localDcum   = dcum(i)
       localKtrack = ktrack(i)
     end if
 #ifdef HDF5
@@ -1081,15 +1138,13 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   !  Format #4
   !  Average bunch position
   ! ------------------------------------------------------------------ !
-  else if (fmt .eq. 4) then
-    if (i.eq.0 .and. ix.eq.0) then
+  else if(fmt == 4) then
+    if(i == 0 .and. ix == 0) then
       localDcum = zero
     else
       localDcum = dcum(i)
     end if
-    do l=1,6
-      xyz(l) = zero
-    end do
+    xyz(:) = zero
     do j=1,napx
       xyz(1) = xyz(1) + xv(1,j)
       xyz(2) = xyz(2) + yv(1,j)
@@ -1098,7 +1153,6 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
       xyz(5) = xyz(5) + sigmv(j)
       xyz(6) = xyz(6) + (ejv(j)-e0)/e0
     end do
-
     xyz = xyz/napx
 
 #ifdef HDF5
@@ -1116,10 +1170,22 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
       call h5_finaliseWrite(dump_hdf5DataSet(ix))
     else
 #endif
-      if (lhighprec) then
-        write(unit,1989) napx, nturn, localDcum, xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
+      if(lhighprec) then
+        call chr_fromReal(xyz(1),xyz_h(1),19,2,rErr)
+        call chr_fromReal(xyz(2),xyz_h(2),19,2,rErr)
+        call chr_fromReal(xyz(3),xyz_h(3),19,2,rErr)
+        call chr_fromReal(xyz(4),xyz_h(4),19,2,rErr)
+        call chr_fromReal(xyz(5),xyz_h(5),19,2,rErr)
+        call chr_fromReal(xyz(6),xyz_h(6),19,2,rErr)
+        write(unit,"(2(1x,i8),1x,f12.5,6(1x,a25))") napx,nturn,localDcum,xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),xyz_h(6)
       else
-        write(unit,1990) napx, nturn, localDcum, xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6)
+        call chr_fromReal(xyz(1),xyz_l(1),10,2,rErr)
+        call chr_fromReal(xyz(2),xyz_l(2),10,2,rErr)
+        call chr_fromReal(xyz(3),xyz_l(3),10,2,rErr)
+        call chr_fromReal(xyz(4),xyz_l(4),10,2,rErr)
+        call chr_fromReal(xyz(5),xyz_l(5),10,2,rErr)
+        call chr_fromReal(xyz(6),xyz_l(6),10,2,rErr)
+        write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16))") napx,nturn,localDcum,xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6)
       end if
 
       ! Flush
@@ -1285,21 +1351,83 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
     else
 #endif
       if (lhighprec) then
-        write(unit,1991) napx, nturn, localDcum, xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6), &
-          xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
-                    xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
-                              xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
-                                        xyz2(4,4),xyz2(5,4),xyz2(6,4),&
-                                                  xyz2(5,5),xyz2(6,5),&
-                                                            xyz2(6,6)
+        call chr_fromReal(xyz(1),xyz_h(1),19,2,rErr)
+        call chr_fromReal(xyz(2),xyz_h(2),19,2,rErr)
+        call chr_fromReal(xyz(3),xyz_h(3),19,2,rErr)
+        call chr_fromReal(xyz(4),xyz_h(4),19,2,rErr)
+        call chr_fromReal(xyz(5),xyz_h(5),19,2,rErr)
+        call chr_fromReal(xyz(6),xyz_h(6),19,2,rErr)
+
+        call chr_fromReal(xyz2(1,1),xyz_h(7), 19,2,rErr)
+        call chr_fromReal(xyz2(2,1),xyz_h(8), 19,2,rErr)
+        call chr_fromReal(xyz2(3,1),xyz_h(9), 19,2,rErr)
+        call chr_fromReal(xyz2(4,1),xyz_h(10),19,2,rErr)
+        call chr_fromReal(xyz2(5,1),xyz_h(11),19,2,rErr)
+        call chr_fromReal(xyz2(6,1),xyz_h(12),19,2,rErr)
+
+        call chr_fromReal(xyz2(2,2),xyz_h(13),19,2,rErr)
+        call chr_fromReal(xyz2(3,2),xyz_h(14),19,2,rErr)
+        call chr_fromReal(xyz2(4,2),xyz_h(15),19,2,rErr)
+        call chr_fromReal(xyz2(5,2),xyz_h(16),19,2,rErr)
+        call chr_fromReal(xyz2(6,2),xyz_h(17),19,2,rErr)
+
+        call chr_fromReal(xyz2(3,3),xyz_h(18),19,2,rErr)
+        call chr_fromReal(xyz2(4,3),xyz_h(19),19,2,rErr)
+        call chr_fromReal(xyz2(5,3),xyz_h(20),19,2,rErr)
+        call chr_fromReal(xyz2(6,3),xyz_h(21),19,2,rErr)
+
+        call chr_fromReal(xyz2(4,4),xyz_h(22),19,2,rErr)
+        call chr_fromReal(xyz2(5,4),xyz_h(23),19,2,rErr)
+        call chr_fromReal(xyz2(6,4),xyz_h(24),19,2,rErr)
+
+        call chr_fromReal(xyz2(5,5),xyz_h(25),19,2,rErr)
+        call chr_fromReal(xyz2(6,5),xyz_h(26),19,2,rErr)
+
+        call chr_fromReal(xyz2(6,6),xyz_h(27),19,2,rErr)
+
+        write(unit, "(2(1x,i8),1x,f12.5,27(1x,a25))") napx,nturn,localDcum, &
+          xyz_h(1), xyz_h(2), xyz_h(3), xyz_h(4), xyz_h(5), xyz_h(6), xyz_h(7), xyz_h(8), xyz_h(9), &
+          xyz_h(10),xyz_h(11),xyz_h(12),xyz_h(13),xyz_h(14),xyz_h(15),xyz_h(16),xyz_h(17),xyz_h(18),&
+          xyz_h(19),xyz_h(20),xyz_h(21),xyz_h(22),xyz_h(23),xyz_h(24),xyz_h(25),xyz_h(26),xyz_h(27)
       else
-        write(unit,1992) napx, nturn, localDcum, xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6), &
-          xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
-                    xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
-                              xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
-                                        xyz2(4,4),xyz2(5,4),xyz2(6,4),&
-                                                  xyz2(5,5),xyz2(6,5),&
-                                                            xyz2(6,6)
+        call chr_fromReal(xyz(1),xyz_l(1),10,2,rErr)
+        call chr_fromReal(xyz(2),xyz_l(2),10,2,rErr)
+        call chr_fromReal(xyz(3),xyz_l(3),10,2,rErr)
+        call chr_fromReal(xyz(4),xyz_l(4),10,2,rErr)
+        call chr_fromReal(xyz(5),xyz_l(5),10,2,rErr)
+        call chr_fromReal(xyz(6),xyz_l(6),10,2,rErr)
+
+        call chr_fromReal(xyz2(1,1),xyz_l(7), 10,2,rErr)
+        call chr_fromReal(xyz2(2,1),xyz_l(8), 10,2,rErr)
+        call chr_fromReal(xyz2(3,1),xyz_l(9), 10,2,rErr)
+        call chr_fromReal(xyz2(4,1),xyz_l(10),10,2,rErr)
+        call chr_fromReal(xyz2(5,1),xyz_l(11),10,2,rErr)
+        call chr_fromReal(xyz2(6,1),xyz_l(12),10,2,rErr)
+
+        call chr_fromReal(xyz2(2,2),xyz_l(13),10,2,rErr)
+        call chr_fromReal(xyz2(3,2),xyz_l(14),10,2,rErr)
+        call chr_fromReal(xyz2(4,2),xyz_l(15),10,2,rErr)
+        call chr_fromReal(xyz2(5,2),xyz_l(16),10,2,rErr)
+        call chr_fromReal(xyz2(6,2),xyz_l(17),10,2,rErr)
+
+        call chr_fromReal(xyz2(3,3),xyz_l(18),10,2,rErr)
+        call chr_fromReal(xyz2(4,3),xyz_l(19),10,2,rErr)
+        call chr_fromReal(xyz2(5,3),xyz_l(20),10,2,rErr)
+        call chr_fromReal(xyz2(6,3),xyz_l(21),10,2,rErr)
+
+        call chr_fromReal(xyz2(4,4),xyz_l(22),10,2,rErr)
+        call chr_fromReal(xyz2(5,4),xyz_l(23),10,2,rErr)
+        call chr_fromReal(xyz2(6,4),xyz_l(24),10,2,rErr)
+
+        call chr_fromReal(xyz2(5,5),xyz_l(25),10,2,rErr)
+        call chr_fromReal(xyz2(6,5),xyz_l(26),10,2,rErr)
+
+        call chr_fromReal(xyz2(6,6),xyz_l(27),10,2,rErr)
+
+        write(unit, "(2(1x,i8),1x,f12.5,27(1x,a16))") napx,nturn,localDcum, &
+          xyz_l(1), xyz_l(2), xyz_l(3), xyz_l(4), xyz_l(5), xyz_l(6), xyz_l(7), xyz_l(8), xyz_l(9), &
+          xyz_l(10),xyz_l(11),xyz_l(12),xyz_l(13),xyz_l(14),xyz_l(15),xyz_l(16),xyz_l(17),xyz_l(18),&
+          xyz_l(19),xyz_l(20),xyz_l(21),xyz_l(22),xyz_l(23),xyz_l(24),xyz_l(25),xyz_l(26),xyz_l(27)
       end if
 
       ! Flush
@@ -1318,22 +1446,18 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
   !  fmt 8 same as fmt 3,   but in normalized coordinates
   !  fmt 9 same as fmt 5/6, but in normalized coordinates
   ! ------------------------------------------------------------------ !
-  else if (fmt .eq. 7 .or. fmt .eq. 8 .or. fmt .eq. 9) then
-    if (i.eq.0 .and. ix.eq.0) then
-      localDcum = zero
+  else if(fmt == 7 .or. fmt == 8 .or. fmt == 9) then
+    if(i == 0 .and. ix == 0) then
+      localDcum   = zero
       localKtrack = 0
     else
-      localDcum = dcum(i)
+      localDcum   = dcum(i)
       localKtrack = ktrack(i)
     end if
 
     ! initialize parameters for writing of beam moments
-    do l=1,6
-      xyz(l) = zero
-      do k=1,6
-        xyz2(l,k) = zero
-      end do
-    end do
+    xyz(:)    = zero
+    xyz2(:,:) = zero
 
     ! normalize particle coordinates
     do j=1,napx
@@ -1351,35 +1475,44 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
       xyz_particle(2)=xyz_particle(2)*((one+xyz_particle(6))+loc_clo(6))
       xyz_particle(4)=xyz_particle(4)*((one+xyz_particle(6))+loc_clo(6))
       ! Normalize nxyz=fma_tas_inv*xyz
-      ! Initialize nxyz
-      do m=1,6
-        nxyz_particle(m)=zero
-      end do
+      nxyz_particle(:)=zero
       do m=1,6
         do n=1,6
           nxyz_particle(m)=nxyz_particle(m)+tasinv(m,n)*xyz_particle(n)
         end do
         ! a) convert nxyzv(6) to 1.e-3 sqrt(m)
         ! unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]
-        if (m.eq.6) then
+        if (m == 6) then
           nxyz_particle(m)=nxyz_particle(m)*c1e3
         end if
       end do
 
-      if (fmt .eq. 7) then
-        if (lhighprec) then
-          write(unit,1985) nlostp(j),nturn,localDcum, &
-            nxyz_particle(1),nxyz_particle(2),nxyz_particle(3),nxyz_particle(4),nxyz_particle(5),nxyz_particle(6),localKtrack
+      if(fmt == 7) then
+        if(lhighprec) then
+          call chr_fromReal(nxyz_particle(1),xyz_h(1),19,2,rErr)
+          call chr_fromReal(nxyz_particle(2),xyz_h(2),19,2,rErr)
+          call chr_fromReal(nxyz_particle(3),xyz_h(3),19,2,rErr)
+          call chr_fromReal(nxyz_particle(4),xyz_h(4),19,2,rErr)
+          call chr_fromReal(nxyz_particle(5),xyz_h(5),19,2,rErr)
+          call chr_fromReal(nxyz_particle(6),xyz_h(6),19,2,rErr)
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a25),1x,i8)") nlostp(j),nturn,localDcum, &
+            xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),xyz_h(6),localKtrack
         else
-          write(unit,1986) nlostp(j),nturn,localDcum, &
-            nxyz_particle(1),nxyz_particle(2),nxyz_particle(3),nxyz_particle(4),nxyz_particle(5),nxyz_particle(6),localKtrack
+          call chr_fromReal(nxyz_particle(1),xyz_l(1),10,2,rErr)
+          call chr_fromReal(nxyz_particle(2),xyz_l(2),10,2,rErr)
+          call chr_fromReal(nxyz_particle(3),xyz_l(3),10,2,rErr)
+          call chr_fromReal(nxyz_particle(4),xyz_l(4),10,2,rErr)
+          call chr_fromReal(nxyz_particle(5),xyz_l(5),10,2,rErr)
+          call chr_fromReal(nxyz_particle(6),xyz_l(6),10,2,rErr)
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16),1x,i8)") nlostp(j),nturn,localDcum, &
+            xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),localKtrack
         end if
 
-      else if (fmt .eq. 8) then
+      else if(fmt == 8) then
         write(unit) nlostp(j),nturn,localDcum, &
           nxyz_particle(1),nxyz_particle(2),nxyz_particle(3),nxyz_particle(4),nxyz_particle(5),nxyz_particle(6),localKtrack
 
-      else if (fmt .eq. 9) then
+      else if(fmt == 9) then
         ! Average beam position
         ! here we recycle xyz used also for fmt 5 and 6. These are
         ! all normalized coordinates in units
@@ -1421,21 +1554,21 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
       end if
     end do ! END loop over particles (j)
 
-    if (fmt .eq. 7) then
+    if(fmt == 7) then
       ! Flush
       endfile (unit,iostat=ierro)
       backspace (unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
-    else if (fmt .eq. 8) then
+    else if(fmt == 8) then
       ! Flush
       endfile (unit,iostat=ierro)
       backspace (unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
-    else if (fmt .eq. 9) then
+    else if(fmt == 9) then
       ! Normalize to get averages
       xyz = xyz/napx
 
@@ -1447,21 +1580,83 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
       xyz2(6,6)  = xyz2(6,6) /napx
 
       if (lhighprec) then
-        write(unit,1991) napx,nturn,localDcum,xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6), &
-          xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
-                    xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
-                              xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
-                                        xyz2(4,4),xyz2(5,4),xyz2(6,4),&
-                                                  xyz2(5,5),xyz2(6,5),&
-                                                            xyz2(6,6)
+        call chr_fromReal(xyz(1),xyz_h(1),19,2,rErr)
+        call chr_fromReal(xyz(2),xyz_h(2),19,2,rErr)
+        call chr_fromReal(xyz(3),xyz_h(3),19,2,rErr)
+        call chr_fromReal(xyz(4),xyz_h(4),19,2,rErr)
+        call chr_fromReal(xyz(5),xyz_h(5),19,2,rErr)
+        call chr_fromReal(xyz(6),xyz_h(6),19,2,rErr)
+
+        call chr_fromReal(xyz2(1,1),xyz_h(7), 19,2,rErr)
+        call chr_fromReal(xyz2(2,1),xyz_h(8), 19,2,rErr)
+        call chr_fromReal(xyz2(3,1),xyz_h(9), 19,2,rErr)
+        call chr_fromReal(xyz2(4,1),xyz_h(10),19,2,rErr)
+        call chr_fromReal(xyz2(5,1),xyz_h(11),19,2,rErr)
+        call chr_fromReal(xyz2(6,1),xyz_h(12),19,2,rErr)
+
+        call chr_fromReal(xyz2(2,2),xyz_h(13),19,2,rErr)
+        call chr_fromReal(xyz2(3,2),xyz_h(14),19,2,rErr)
+        call chr_fromReal(xyz2(4,2),xyz_h(15),19,2,rErr)
+        call chr_fromReal(xyz2(5,2),xyz_h(16),19,2,rErr)
+        call chr_fromReal(xyz2(6,2),xyz_h(17),19,2,rErr)
+
+        call chr_fromReal(xyz2(3,3),xyz_h(18),19,2,rErr)
+        call chr_fromReal(xyz2(4,3),xyz_h(19),19,2,rErr)
+        call chr_fromReal(xyz2(5,3),xyz_h(20),19,2,rErr)
+        call chr_fromReal(xyz2(6,3),xyz_h(21),19,2,rErr)
+
+        call chr_fromReal(xyz2(4,4),xyz_h(22),19,2,rErr)
+        call chr_fromReal(xyz2(5,4),xyz_h(23),19,2,rErr)
+        call chr_fromReal(xyz2(6,4),xyz_h(24),19,2,rErr)
+
+        call chr_fromReal(xyz2(5,5),xyz_h(25),19,2,rErr)
+        call chr_fromReal(xyz2(6,5),xyz_h(26),19,2,rErr)
+
+        call chr_fromReal(xyz2(6,6),xyz_h(27),19,2,rErr)
+
+        write(unit, "(2(1x,i8),1x,f12.5,27(1x,a25))") napx,nturn,localDcum, &
+          xyz_h(1), xyz_h(2), xyz_h(3), xyz_h(4), xyz_h(5), xyz_h(6), xyz_h(7), xyz_h(8), xyz_h(9), &
+          xyz_h(10),xyz_h(11),xyz_h(12),xyz_h(13),xyz_h(14),xyz_h(15),xyz_h(16),xyz_h(17),xyz_h(18),&
+          xyz_h(19),xyz_h(20),xyz_h(21),xyz_h(22),xyz_h(23),xyz_h(24),xyz_h(25),xyz_h(26),xyz_h(27)
       else
-        write(unit,1992) napx,nturn,localDcum,xyz(1),xyz(2),xyz(3),xyz(4),xyz(5),xyz(6), &
-          xyz2(1,1),xyz2(2,1),xyz2(3,1),xyz2(4,1),xyz2(5,1),xyz2(6,1),&
-                    xyz2(2,2),xyz2(3,2),xyz2(4,2),xyz2(5,2),xyz2(6,2),&
-                              xyz2(3,3),xyz2(4,3),xyz2(5,3),xyz2(6,3),&
-                                        xyz2(4,4),xyz2(5,4),xyz2(6,4),&
-                                                  xyz2(5,5),xyz2(6,5),&
-                                                            xyz2(6,6)
+        call chr_fromReal(xyz(1),xyz_l(1),10,2,rErr)
+        call chr_fromReal(xyz(2),xyz_l(2),10,2,rErr)
+        call chr_fromReal(xyz(3),xyz_l(3),10,2,rErr)
+        call chr_fromReal(xyz(4),xyz_l(4),10,2,rErr)
+        call chr_fromReal(xyz(5),xyz_l(5),10,2,rErr)
+        call chr_fromReal(xyz(6),xyz_l(6),10,2,rErr)
+
+        call chr_fromReal(xyz2(1,1),xyz_l(7), 10,2,rErr)
+        call chr_fromReal(xyz2(2,1),xyz_l(8), 10,2,rErr)
+        call chr_fromReal(xyz2(3,1),xyz_l(9), 10,2,rErr)
+        call chr_fromReal(xyz2(4,1),xyz_l(10),10,2,rErr)
+        call chr_fromReal(xyz2(5,1),xyz_l(11),10,2,rErr)
+        call chr_fromReal(xyz2(6,1),xyz_l(12),10,2,rErr)
+
+        call chr_fromReal(xyz2(2,2),xyz_l(13),10,2,rErr)
+        call chr_fromReal(xyz2(3,2),xyz_l(14),10,2,rErr)
+        call chr_fromReal(xyz2(4,2),xyz_l(15),10,2,rErr)
+        call chr_fromReal(xyz2(5,2),xyz_l(16),10,2,rErr)
+        call chr_fromReal(xyz2(6,2),xyz_l(17),10,2,rErr)
+
+        call chr_fromReal(xyz2(3,3),xyz_l(18),10,2,rErr)
+        call chr_fromReal(xyz2(4,3),xyz_l(19),10,2,rErr)
+        call chr_fromReal(xyz2(5,3),xyz_l(20),10,2,rErr)
+        call chr_fromReal(xyz2(6,3),xyz_l(21),10,2,rErr)
+
+        call chr_fromReal(xyz2(4,4),xyz_l(22),10,2,rErr)
+        call chr_fromReal(xyz2(5,4),xyz_l(23),10,2,rErr)
+        call chr_fromReal(xyz2(6,4),xyz_l(24),10,2,rErr)
+
+        call chr_fromReal(xyz2(5,5),xyz_l(25),10,2,rErr)
+        call chr_fromReal(xyz2(6,5),xyz_l(26),10,2,rErr)
+
+        call chr_fromReal(xyz2(6,6),xyz_l(27),10,2,rErr)
+
+        write(unit, "(2(1x,i8),1x,f12.5,27(1x,a16))") napx,nturn,localDcum, &
+          xyz_l(1), xyz_l(2), xyz_l(3), xyz_l(4), xyz_l(5), xyz_l(6), xyz_l(7), xyz_l(8), xyz_l(9), &
+          xyz_l(10),xyz_l(11),xyz_l(12),xyz_l(13),xyz_l(14),xyz_l(15),xyz_l(16),xyz_l(17),xyz_l(18),&
+          xyz_l(19),xyz_l(20),xyz_l(21),xyz_l(22),xyz_l(23),xyz_l(24),xyz_l(25),xyz_l(26),xyz_l(27)
       end if
 
       ! Flush
@@ -1480,54 +1675,13 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 
   return
 
-1981 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE25.18)) !fmt 0 / hiprec
-1982 format (3(1X,I8),1X,A16,1X,F12.5,7(1X,1PE16.9))  !fmt 0 / not hiprec
-
-1983 format (2(1x,I8),1X,F12.5,5(1X,1PE25.18),1X,I8)  !fmt 1 / hiprec
-1984 format (2(1x,I8),1X,F12.5,5(1X,1PE16.9),1X,I8)   !fmt 1 / not hiprec
-
-1985 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18),1X,I8)  !fmt 2&7 / hiprec
-1986 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)   !fmt 2&7 / not hiprec
-
-1989 format (2(1x,I8),1X,F12.5,6(1X,1PE25.18))        !fmt 4 / hiprec
-1990 format (2(1x,I8),1X,F12.5,6(1X,1PE16.9))         !fmt 4 / not hiprec
-
-1991 format (2(1x,I8),1X,F12.5,27(1X,1PE25.18))       !fmt 5&6 / hiprec
-1992 format (2(1x,I8),1X,F12.5,27(1X,1PE16.9))        !fmt 5&6 / not hiprec
-
 end subroutine dump_beam_population
 
 ! ================================================================================================================================ !
 subroutine dump_comnul
-
   implicit none
-
-  integer i1,i2,i3,i
-
   ldumphighprec = .false.
   ldumpfront    = .false.
-
-  do i1=-1,nblz
-    do i2=1,6
-      dumpclo(i1,i2)=0
-      do i3=1,6
-        dumptas(i1,i2,i3)=0
-      end do
-    end do
-  end do
-
-  do i=-1,nele
-    ldump(i)    = .false.
-    ndumpt(i)   = 0
-    dumpfirst(i) = 0
-    dumplast(i)  = 0
-    dumpunit(i) = 0
-    dumpfmt(i)  = 0
-#ifdef CR
-    dumpfilepos(i) = -1
-#endif
-  end do
-
 end subroutine dump_comnul
 
 ! ================================================================================================================================ !
@@ -1579,10 +1733,10 @@ subroutine dump_crcheck_positionFiles
       if (i .gt. 0) then
         write(93,*) "element=",bez(i), "unit=",dumpunit(i)," filename='"//trim(chr_trimZero(dump_fname(i)))// &
                     "' format=",dumpfmt(i)
-      else if (i.eq.0) then
+      else if (i == 0) then
         write(93,*) "element=","ALL" , "unit=",dumpunit(i)," filename='"//trim(chr_trimZero(dump_fname(i)))// &
                     "' format=",dumpfmt(i)
-      else if(i .eq. -1) then
+      else if(i  ==  -1) then
         write(93,*) "element=","StartDump" , "unit=",dumpunit(i)," filename='"//trim(chr_trimZero(dump_fname(i)))// &
                     "' format=",dumpfmt(i)
       else
