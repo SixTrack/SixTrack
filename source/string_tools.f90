@@ -22,7 +22,7 @@ module string_tools
   public str_strip, chr_strip, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
   public str_sub, chr_expandBrackets
-  public chr_padZero, chr_padSpace
+  public chr_lpad, chr_rpad
   public str_inStr, chr_inStr
 
   interface str_cast
@@ -398,24 +398,24 @@ function chr_strip(theString) result(retString)
 end function chr_strip
 
 ! ================================================================================================ !
-!  Pad String with Zeros or Spaces
+!  Pad String Spaces
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-05-18
 ! ================================================================================================ !
-function chr_padZero(theString, theSize) result(retString)
+function chr_lpad(theString, theSize) result(retString)
   character(len=*), intent(in)  :: theString
   integer,          intent(in)  :: theSize
   character(len=:), allocatable :: retString
   integer                       :: inSize
   inSize = len(theString)
   if(inSize > 0 .and. inSize < theSize) then
-    retString = theString(1:inSize)//repeat(char(0),theSize-inSize)
+    retString = repeat(" ",theSize-inSize)//theString(1:inSize)
   else
     retString = theString
   end if
-end function chr_padZero
+end function chr_lpad
 
-function chr_padSpace(theString, theSize) result(retString)
+function chr_rpad(theString, theSize) result(retString)
   character(len=*), intent(in)  :: theString
   integer,          intent(in)  :: theSize
   character(len=:), allocatable :: retString
@@ -426,7 +426,7 @@ function chr_padSpace(theString, theSize) result(retString)
   else
     retString = theString
   end if
-end function chr_padSpace
+end function chr_rpad
 
 ! ================================================================================================ !
 !  Trim Zero String Routine
