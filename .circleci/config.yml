@@ -4,6 +4,9 @@ jobs:
     docker:
       - image: debian:stretch
     steps:
+      - run:
+         name: setup
+         command: sudo apt-get install -y gfortran cmake gcc
       - checkout
       - run:
           name: Greeting
