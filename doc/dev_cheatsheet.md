@@ -22,10 +22,11 @@ Below there is a quick guide to the main steps of the development process.
 * Set upstream repository:
 
         # Set upstream repository
+        cd SixTrack
         git remote add upstream git@github.com:SixTrack/SixTrack.git
 
 
-## Development
+## Development a new feature or fix a bug
 * Create local branch (named e.g. "fix_bug")  and add it to origin:
 
         git checkout -b "fix_bug"
