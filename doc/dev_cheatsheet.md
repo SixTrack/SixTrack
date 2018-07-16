@@ -8,10 +8,17 @@ Below there is a quick guide to the main steps of the development process.
 
 ## Setting up (to do once)
 
-* Install `git`
-* Sign-up GitHub account
-* Set ssh keys
-* Fork SixTrack repository
+* Install `git` and a recent `cmake`, `gcc`
+
+* Create a GitHub account, set ssh keys and install them in the GitHub account
+
+* Fork SixTrack repository in the GitHub web page or click [here](http://SixTrack/SixTrack/fork)
+
+* Clone personal repository
+
+       # Clone personal repository
+       git clone git@github.com:username/SixTrack.git
+
 * Set upstream repository
 
         # Set upstream repository
