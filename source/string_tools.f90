@@ -22,7 +22,7 @@ module string_tools
   public str_strip, chr_strip, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
   public str_sub, chr_expandBrackets
-  public chr_padZero, chr_padSpace
+  public chr_lpad, chr_rpad
   public str_inStr, chr_inStr
 
   interface str_cast
@@ -398,24 +398,24 @@ function chr_strip(theString) result(retString)
 end function chr_strip
 
 ! ================================================================================================ !
-!  Pad String with Zeros or Spaces
+!  Pad String Spaces
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-05-18
 ! ================================================================================================ !
-function chr_padZero(theString, theSize) result(retString)
+function chr_lpad(theString, theSize) result(retString)
   character(len=*), intent(in)  :: theString
   integer,          intent(in)  :: theSize
   character(len=:), allocatable :: retString
   integer                       :: inSize
   inSize = len(theString)
   if(inSize > 0 .and. inSize < theSize) then
-    retString = theString(1:inSize)//repeat(char(0),theSize-inSize)
+    retString = repeat(" ",theSize-inSize)//theString(1:inSize)
   else
     retString = theString
   end if
-end function chr_padZero
+end function chr_lpad
 
-function chr_padSpace(theString, theSize) result(retString)
+function chr_rpad(theString, theSize) result(retString)
   character(len=*), intent(in)  :: theString
   integer,          intent(in)  :: theSize
   character(len=:), allocatable :: retString
@@ -426,7 +426,7 @@ function chr_padSpace(theString, theSize) result(retString)
   else
     retString = theString
   end if
-end function chr_padSpace
+end function chr_rpad
 
 ! ================================================================================================ !
 !  Trim Zero String Routine
@@ -1115,55 +1115,68 @@ end subroutine chr_toLog
 ! ================================================================================================ !
 !  Real to String
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-05-27
+!  Last modified: 2018-07-13
 ! ================================================================================================ !
-
-subroutine chr_fromReal(theValue, theString, rErr)
+subroutine chr_fromReal(theValue, theString, nPrec, ePrec, rErr)
 
   use crcoall
   use floatPrecision
-  use parpro, only : dtoaLen
 
-  real(kind=fPrec),       intent(in)    :: theValue
-  character(len=dtoaLen), intent(out)   :: theString
-  logical,                intent(inout) :: rErr
+  real(kind=fPrec),             intent(in)    :: theValue
+  integer,                      intent(in)    :: nPrec, ePrec
+  character(len=nPrec+ePrec+4), intent(out)   :: theString
+  logical,                      intent(inout) :: rErr
+
+  character(len=11) dFmt
+#ifdef CRLIBM
+  character :: dStr(nPrec)
+  integer   :: dtoaf, fLen, nStr, dPoint, iSign, i
+#endif
+  write(dFmt,"(a3,i2.2,a1,i2.2,a1,i1,a1)") "(es",(nPrec+ePrec+4),".",(nPrec-1),"e",ePrec,")"
 
 #ifdef CRLIBM
-  character :: dStr(dtoaLen-8)
-  integer   :: dtoaf, fLen, nStr, dPoint, iSign, i
-
-  fLen = dtoaLen-8
-  nStr = dtoaf(theValue, 2, fLen, dPoint, iSign, dStr(1), 1)
+  fLen = nPrec
+  nStr = dtoaf(theValue, 2, nPrec, dPoint, iSign, dStr(1), 1)
 
   theString = " "
   if(dPoint == 9999) then
-    ! This is infinity or nan, so just default output
-    write(theString,"(es24.16e3)") theValue
+    ! This is infinity or nan, so just use default output
+    write(theString,dFmt) theValue
   else
     if(iSign /= 0) theString(1:1) = "-"
     theString(2:3) = dStr(1)//"."
     do i=2,nStr ! Get the numbers returned from dtoaf
       theString(i+2:i+2) = dStr(i)
     end do
-    do i=nStr,fLen ! Pad the rest with 0
-      theString(i+3:i+3) = "0"
+    do i=nStr+3,nPrec+2 ! Pad the rest with 0
+      theString(i:i) = "0"
     end do
-    if(dPoint < 0) then
-      write(theString(fLen+4:fLen+8),"(a2,i3.3)") "E-",abs(dPoint-1)
+    if(dPoint < 1) then
+      theString(nPrec+3:nPrec+4) = "E-"
     else
-      write(theString(fLen+4:fLen+8),"(a2,i3.3)") "E+",abs(dPoint-1)
+      theString(nPrec+3:nPrec+4) = "E+"
     end if
+    select case(ePrec)
+    case(2)
+      write(theString(nPrec+5:nPrec+6),"(i2.2)") abs(dPoint-1)
+    case(3)
+      write(theString(nPrec+5:nPrec+7),"(i3.3)") abs(dPoint-1)
+    case default
+      write(lout,"(a)") "DTOAF> ERROR Exponent must be either 2 or 3. This is a bug."
+      rErr = .true.
+      return
+    end select
   end if
 
-  write(lout,"(a)")           "DTOAF> TESTING:"
-  write(lout,"(a,i0)")        "DTOAF>  * nStr      = ",nStr
-  write(lout,"(a,i0)")        "DTOAF>  * dPoint    = ",dPoint
-  write(lout,"(a,i0)")        "DTOAF>  * iSign     = ",iSign
-  write(lout,"(a,es24.16e3)") "DTOAF>  * theValue  = ",theValue
-  write(lout,"(a)")           "DTOAF>  * theString = "//theString
+  ! write(lout,"(a)")           "DTOAF> TESTING:"
+  ! write(lout,"(a,i0)")        "DTOAF>  * nStr      = ",nStr
+  ! write(lout,"(a,i0)")        "DTOAF>  * dPoint    = ",dPoint
+  ! write(lout,"(a,i0)")        "DTOAF>  * iSign     = ",iSign
+  ! write(lout,"(a,es24.16e3)") "DTOAF>  * theValue  = ",theValue
+  ! write(lout,"(a)")           "DTOAF>  * theString = "//theString
 
 #else
-  write(theString,"(es24.16e3)") theValue
+  write(theString,dFmt) theValue
 #endif
 
 end subroutine chr_fromReal

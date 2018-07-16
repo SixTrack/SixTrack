@@ -197,7 +197,7 @@ subroutine sixin_echoVal_int(varName, varVal, blockName, lineNo)
   else
     write(lineNm,"(i2)") lineNo
   end if
-  write(lout,"(a,i0)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_padSpace(varName,10)//" =  ",varVal
+  write(lout,"(a,i0)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" =  ",varVal
 end subroutine sixin_echoVal_int
 
 subroutine sixin_echoVal_real32(varName, varVal, blockName, lineNo)
@@ -213,7 +213,7 @@ subroutine sixin_echoVal_real32(varName, varVal, blockName, lineNo)
   else
     write(lineNm,"(i2)") lineNo
   end if
-  write(lout,"(a,e13.6)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_padSpace(varName,10)//" = ",varVal
+  write(lout,"(a,e13.6)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
 end subroutine sixin_echoVal_real32
 
 subroutine sixin_echoVal_real64(varName, varVal, blockName, lineNo)
@@ -229,7 +229,7 @@ subroutine sixin_echoVal_real64(varName, varVal, blockName, lineNo)
   else
     write(lineNm,"(i2)") lineNo
   end if
-  write(lout,"(a,e22.15)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_padSpace(varName,10)//" = ",varVal
+  write(lout,"(a,e22.15)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
 end subroutine sixin_echoVal_real64
 
 subroutine sixin_echoVal_real128(varName, varVal, blockName, lineNo)
@@ -245,7 +245,7 @@ subroutine sixin_echoVal_real128(varName, varVal, blockName, lineNo)
   else
     write(lineNm,"(i2)") lineNo
   end if
-  write(lout,"(a,e41.34)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_padSpace(varName,10)//" = ",varVal
+  write(lout,"(a,e41.34)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
 end subroutine sixin_echoVal_real128
 
 subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
@@ -261,7 +261,7 @@ subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
   else
     write(lineNm,"(i2)") lineNo
   end if
-  write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_padSpace(varName,10)//" = '"//varVal//"'"
+  write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = '"//varVal//"'"
 end subroutine sixin_echoVal_char
 
 ! ================================================================================================ !
@@ -361,7 +361,7 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
     return
   end if
 
-  elemName = chr_padSpace(lnSplit(1),mNameLen)
+  elemName = chr_rpad(lnSplit(1),mNameLen)
   if(len(elemName) > mNameLen) then
     write(lout,"(a,i0)") "GEOMETRY> ERROR Single element name too long. Max length is ",mNameLen
     iErr = .true.
@@ -544,12 +544,12 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   if(isCont) then                             ! This line continues the previous BLOC
     blocName = str_nmSpace                    ! No name returned, set an empty BLOC name
     do i=1,nSplit                             ! All elements are sub-elements. Save to buffer.
-      ilm0(i) = chr_padSpace(lnSplit(i),mNameLen)
+      ilm0(i) = chr_rpad(lnSplit(i),mNameLen)
     end do
   else                                        ! This is a new BLOC
-    blocName = chr_padSpace(lnSplit(1),mNameLen)
+    blocName = chr_rpad(lnSplit(1),mNameLen)
     do i=1,nSplit-1                           ! Save the rest to buffer
-      ilm0(i) = chr_padSpace(lnSplit(i+1),mNameLen)
+      ilm0(i) = chr_rpad(lnSplit(i+1),mNameLen)
     end do
   end if
 
@@ -643,7 +643,7 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   end if
 
   do i=1,nSplit
-    ilm0(i) = chr_padSpace(lnSplit(i),mNameLen)
+    ilm0(i) = chr_rpad(lnSplit(i),mNameLen)
   end do
 
   do i=1,40
@@ -1154,7 +1154,7 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
       return
     end if
     do i=1,ncor
-      ilm0(i) = chr_padSpace(lnSplit(i),mNameLen)
+      ilm0(i) = chr_rpad(lnSplit(i),mNameLen)
     end do
 
   end if
