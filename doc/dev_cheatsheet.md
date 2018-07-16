@@ -32,17 +32,15 @@ Below there is a quick guide to the main steps of the development process.
         git checkout -b "fix_bug"
         git push --set-upstream origin "fix_bug"
 
-* For each modification: update origin/master from upstream and merge from upstream
+* Periodically: update origin/master from upstream
 
-        # At least Periodically pdate origin/master from upstream
         git pull upstream master
         git push origin master
+
+* .. then make modifications, commit changes and push them to origin
+
         git checkout "fix_bug"
         git merge master
-
-
-* .. then make modification, commit changes and push them to origin
-
         < make modifications >
         git add ...
         git commit ...
@@ -58,7 +56,7 @@ Below there is a quick guide to the main steps of the development process.
       ctest -N #see available tests
       ctest -R "beam-HO.*" # run test starting with name "beam-HO" 
 
-* Once feature can go public, create pull request from the website and wait until is merged
+* Once feature can go public (e.g. passes all tests), create pull request from the website and wait until is merged
 * Once merged, delete feature branch
 
         git branch -d "fix_bug"
