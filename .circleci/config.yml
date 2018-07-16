@@ -6,14 +6,18 @@ jobs:
     steps:
       - run:
          name: setup
-         command: apt-get update && apt-get install -y gfortran cmake gcc
+         command: apt-get update && apt-get install -y gfortran cmake gcc g++
       - checkout
       - run:
           name: prepare
           command: ./cmake_six BUILD-TESTING 
       - run:
           name: build
-          command: (cd *BUILD_TESTING*; make)
+          command: |
+             cd *BUILD_TESTING*
+             make
       - run:
           name: test
-          command: (cd *BUILD_TESTING*; ctest -L fast)
+          command:  |
+             cd *BUILD_TESTING*
+             ctest -L fast
