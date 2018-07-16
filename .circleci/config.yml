@@ -7,7 +7,16 @@ jobs:
       - run:
          name: setup
          command: apt-get update && apt-get install -y gfortran cmake gcc g++
+      - restore_cache:
+          keys:
+            - source-v1-{{ .Branch }}-{{ .Revision }}
+            - source-v1-{{ .Branch }}-
+            - source-v1-     
       - checkout
+      - save_cache:
+          key: source-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ".git"
       - run:
           name: prepare
           command: ./cmake_six BUILD-TESTING 
