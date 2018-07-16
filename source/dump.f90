@@ -1668,7 +1668,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 
   ! Unrecognized format fmt
   else
-    write (lout,"(2(a,i0))") "DUMP> ERROR Format ",fmt," not understood for unit ",unit
+    write(lout,"(a,i0,a)") "DUMP> ERROR Format ",fmt," not understood for file '"//trim(dump_fname(i))//"'"
     call prror(-1)
   end if
 
