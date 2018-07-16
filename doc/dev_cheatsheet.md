@@ -1,9 +1,7 @@
 #  Development cheat sheet
 
 SixTrack uses the GitHub [Fork & Pull Request Workflow](https://gist.github.com/Chaser324/ce0505fbed06b947d962).
-
 For more details see the the full [Building SixTrack](http://sixtrack.web.cern.ch/SixTrack/docs/build_full/manual.php) manual.
-
 Below there is a quick guide to the main steps of the contribution.
 
 
