@@ -8,3 +8,5 @@ It is mainly used for the LHC for dynamic aperture studies, tune optimization, a
 Main CERN SixTrack page: [sixtrack.web.cern.ch/SixTrack](http://sixtrack.web.cern.ch/SixTrack/)
 
 See also the [ChangeLog](CHANGELOG.md)
+
+Development cheat-sheet: [doc/dev_cheatsheet.md)](dev_cheatsheet.md)
