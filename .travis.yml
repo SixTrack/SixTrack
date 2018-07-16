@@ -1,5 +1,8 @@
 language: cpp
 
+compiler:
+- gcc
+
 install:
   - cmake_six BUILD_TESTING
   - cd *BUILD_TESTING
