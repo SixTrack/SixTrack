@@ -26,24 +26,22 @@ Below there is a quick guide to the main steps of the development process.
         git remote add upstream git@github.com:SixTrack/SixTrack.git
 
 
-## Development a new feature or fix a bug
+## Develop a new feature or fix a bug
 * Create local branch (named e.g. "fix_bug")  and add it to origin:
 
         git checkout -b "fix_bug"
-        git push --set-upstream origin "fix_bug" #only once
+        git push --set-upstream origin "fix_bug"
 
 * For each modification: update origin/master from upstream and merge from upstream
 
-        # Update origin/master from upstream
-        git fetch upstream
-        git checkout master
-        git merge upstream/master
-        git push
+        # At least Periodically pdate origin/master from upstream
+        git pull upstream master
+        git push origin master
         git checkout "fix_bug"
         git merge master
 
 
-* .. and commit changes and push to origin
+* .. then make modification, commit changes and push them to origin
 
         < make modifications >
         git add ...
