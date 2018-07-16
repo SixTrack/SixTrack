@@ -1,0 +1,34 @@
+GEOM
+PRINTOUT
+NEXT
+TRAC
+1 0 1 0 0 0 1
+0 0 1 0 0
+0 0 1 1 1 20000 0
+NEXT
+INIT
+2 0 0 1
+%(x_mm)s
+0.0
+%(y_mm)s
+0.0
+%(sigma_z)s
+%(delta_p)s
+0.0
+0.0
+0.0
+0.0
+0.0
+0.0
+%(energy_MeV)s
+%(energy_MeV)s
+%(energy_MeV)s
+NEXT
+DUMP
+qfstart 1 660 2 crab_dump.txt
+NEXT
+SYNC
+           0 -0.000017     0.000 0.     60.000000  938.272081  1
+      1.        1.
+NEXT
+ENDE

@@ -1,0 +1,13 @@
+#ifndef TILT
+mpe=20
+dyy1=ekk
+dyy2=zero
+qu=zero
+qv=zero
+#else
+mpe=20
+dyy1=ekk*tiltc(k)
+dyy2=ekk*tilts(k)
+qu=zero
+qv=zero
+#endif

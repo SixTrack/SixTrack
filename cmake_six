@@ -1,0 +1,290 @@
+#! /usr/bin/env bash
+
+# make_six-like wrapper for cmake and make
+# To run it, say (for example) "./cmake_six 64BIT -32BIT nagfor"
+# To see all available options, run ./cmake_six help
+
+set -e #Stop on error
+
+#For debugging
+#set -v
+#set -x
+
+echo "Welcome to cmake_six, camouflaging cmake and make inside the same interface as make_six !"
+echo "For help, run 'cmake_six help'"
+echo ""
+
+#Get options
+compilers=(defaultcompiler gfortran gcc g++ gcc-g++ gfortran-gcc-g++ ifort ifort-icc ifort-icc-icpc nagfor clang clang++ clang-clang++) # Valid compilers. defaultcompiler = system default compilers
+compilers_CMAKE=('' '-DCMAKE_Fortran_COMPILER=gfortran' '-DCMAKE_C_COMPILER=gcc' '-DCMAKE_CXX_COMPILER=g++' '-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++' '-DCMAKE_Fortran_COMPILER=gfortran -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++' '-DCMAKE_Fortran_COMPILER=ifort' '-DCMAKE_Fortran_COMPILER=ifort -DCMAKE_C_COMPILER=icc' '-DCMAKE_Fortran_COMPILER=ifort -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc' '-DCMAKE_Fortran_COMPILER=nagfor' '-DCMAKE_C_COMPILER=clang' '-DCMAKE_CXX_COMPILER=clang++' '-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++')
+options_COMPILER=defaultcompiler #which compilers to use
+
+buildtypes=(defaultbuildtype release debug)
+buildtypes_CMAKE=('' '-DCMAKE_BUILD_TYPE=Release' '-DCMAKE_BUILD_TYPE=Debug')
+options_BUILDTYPE=defaultbuildtype #Which build type to make (should be in 'buildtypes')
+
+## Make build folder if it doesn't exist
+mkdir -pv build
+cd build
+
+## Look for special options 'clean' and 'help'
+for var in "$@" #Loop over command line arguments
+do
+    if [[ $var == clean ]]; then
+    echo "Cleaning cmake_six builds!"
+    set +e
+    #ls SixTrack_cmakesix*
+    rm -rf SixTrack_cmakesix*
+    exit
+    elif [[ $var == help ]]; then
+    echo "VALID OPTIONS FOR cmake_six:"
+    echo
+    echo "Compilers:"
+    for c in ${compilers[@]}
+    do
+        echo $c
+    done
+    echo
+    echo "Build types:"
+    for c in ${buildtypes[@]}
+    do
+        echo $c
+    done
+    echo ""
+    echo "Flags and default options:"
+    mkdir cmake_tmp
+    cd cmake_tmp
+    #Skip "-A" flag
+    cmake -LH ../../.
+    cd ..
+    rm -rf cmake_tmp
+
+    echo ""
+    echo "Call cmake_six with FLAG as an argument to turn ON, and -FLAG to turn off."
+
+    echo ""
+    echo "Special options to cmake_six:"
+    echo "clean : Remove all build directories"
+    echo "help  : Display this message"
+
+    echo ""
+    echo "Examples:"
+    echo "cmake_six gfortran"
+    echo "cmake_six gfortran release"
+    echo "cmake_six gfortran debug"
+    echo "cmake_six gfortran COLLIMAT -CRLIBM"
+    echo "cmake_six clean"
+    echo "cmake_six ifort-icc"
+    echo "cmake_six BIGNPART STF"
+    echo ""
+    echo "Specifying just a compiler for one language will cause cmake to use what it thinks is the default for your platform for the others."
+    exit
+    elif [[ $var == BUILD_TESTING ]]; then
+        testing=1
+    fi
+done
+
+options_ALL=() # All set options
+options_ON=()  # All options switched ON
+options_OFF=() # All options switched OFF
+
+for var in "$@" #Loop over command line arguments
+do
+    ## Negative options
+    if [[ $var == -* ]]; then
+    #echo "OFF" $var
+    varOn=${var:1} # Without the "-"
+    for v in ${options_ALL[@]}
+    do
+        if [[ $v == $varOn ]]; then
+        echo "ERROR: option $v used more than once"
+        exit 1
+        fi
+    done
+
+    for v in ${compilers[@]}
+    do
+        if [[ $v == $varOn ]]; then
+        echo "ERROR: can't switch a compiler off"
+        exit 1
+        fi
+    done
+
+    for v in ${buildtypes[@]}
+    do
+        if [[ $v == $varOn ]]; then
+        echo "ERROR: can't switch a build type off"
+        exit 1
+        fi
+    done
+
+    options_ALL+=(${var:1})
+    options_OFF+=(${var:1})
+
+    ## Positive options
+    else
+    #echo "ON" $var
+    varOn=$var
+    for v in ${options_ALL[@]}
+    do
+        if [[ $v == $varOn ]]; then
+        echo "ERROR: option $v used more than once"
+        exit 1
+        fi
+    done
+
+    thisWasSpecial="NO"
+    for v in ${compilers[@]}
+    do
+        if [[ $v == $varOn ]]; then
+        if [[ $options_COMPILER != "defaultcompiler" ]]; then
+            echo "ERROR: can't set multiple compilers"
+            exit 1
+        fi
+        options_COMPILER=$varOn
+        thisWasSpecial="YES"
+        fi
+    done
+
+    for v in ${buildtypes[@]}
+    do
+        if [[ $v == $varOn ]]; then
+        if [[ $options_BUILDTYPE != "defaultbuildtype" ]]; then
+            echo "ERROR: can't set multiple build types"
+            exit 1
+        fi
+        options_BUILDTYPE=$varOn
+        thisWasSpecial="YES"
+        fi
+    done
+
+    if [[ $thisWasSpecial == "NO" ]]; then
+        options_ALL+=($var)
+        options_ON+=($var)
+    fi
+    thisWasSpecial="NO"
+    fi
+done
+#Sort the options
+# http://stackoverflow.com/questions/7442417/how-to-sort-an-array-in-bash
+IFS=$'\n' options_sorted_ALL=($(sort <<<"${options_ALL[*]}"))
+IFS=$'\n' options_sorted_ON=($(sort <<<"${options_ON[*]}"))
+IFS=$'\n' options_sorted_OFF=($(sort <<<"${options_OFF[*]}"))
+
+echo "options_ON  =" ${options_sorted_ON[@]}
+echo "options_OFF =" ${options_sorted_OFF[@]}
+
+#Build compiler options
+CMAKE_OPTIONS_LIST=""
+for i in $(seq 0 $(expr ${#compilers[@]} - 1 ) )
+do
+    #echo $i ${compilers[$i]} ${compilers_CMAKE[$i]}
+    if [ $options_COMPILER == ${compilers[$i]} ]; then
+    #echo "FOUND!"
+    CMAKE_OPTIONS_LIST+=${compilers_CMAKE[$i]}
+    CMAKE_OPTIONS_LIST+=" "
+    fi
+done
+
+#Add build type option
+for i in $(seq 0 $(expr ${#buildtypes[@]} - 1 ) )
+do
+    if [ $options_BUILDTYPE == ${buildtypes[$i]} ]; then
+    #echo "FOUND!"
+    CMAKE_OPTIONS_LIST+=${buildtypes_CMAKE[$i]}
+    fi
+done
+
+#Make folder & build cmake options list
+NAME="SixTrack_cmakesix"
+
+for opt in ${options_sorted_ON[@]}
+do
+    NAME+=_$opt
+    CMAKE_OPTIONS_LIST+=" -D$opt=ON"
+done
+for opt in ${options_sorted_OFF[@]}
+do
+    NAME+=_NO$opt
+    CMAKE_OPTIONS_LIST+=" -D$opt=OFF"
+done
+NAME+=_$options_COMPILER
+NAME+=_$options_BUILDTYPE
+
+echo "NAME= '"$NAME"'"
+
+echo "CMAKE options = '"$CMAKE_OPTIONS_LIST"'"
+echo ""
+
+
+#Run cmake
+if [ -d $NAME ]; then
+    echo "Folder '"$NAME"' already exists, deleting!"
+    rm -rf $NAME
+fi
+mkdir $NAME
+cd $NAME
+
+set +e #From here on we catch errors manually...
+
+#Use EVAL to split the options from $CMAKE_OPTIONS_LIST:
+# http://stackoverflow.com/questions/6087494/bash-inserting-quotes-into-string-before-execution
+#Use TEE:
+# http://stackoverflow.com/questions/692000/how-do-i-write-stderr-to-a-file-while-using-tee-with-a-pipe
+eval cmake -G \"Unix Makefiles\"  $CMAKE_OPTIONS_LIST ../../. > >(tee cmake_stdout_log.txt) 2> >(tee cmake_stderr_log.txt)
+
+if [ $? != 0 ]; then
+    echo ""
+    echo "ERROR in CMAKE;"
+    echo "Most likely you specified a bad argument!"
+    echo "The output from CMAKE should tell you more, so please look above this error message."
+    echo "Please run cmake_six help"
+    echo ""
+#    echo "cleaning up..."
+#
+#    cd ..
+#    rm -rf $NAME
+    exit 1
+fi
+echo ""
+
+if [ -s cmake_stderr_log.txt ]; then
+    echo ""
+    echo "Warning in CMAKE;"
+    echo "Did you misspell an argument?"
+    echo "Run './cmake_six help' to see possible arguments, remember UPPER/lower-cAsE"
+    echo "The output from CMAKE should tell you more, so please look above this error message."
+    echo ""
+    exit 1
+fi
+
+#Run make
+#make -j  | tee make_log.txt # No pretty colors...
+#make -j # VERBOSE=1
+if [[ $(pwd) == /afs/* && $testing == 1 ]]; then
+    #Random crashes with parallel make on AFS.
+    echo "Warning: Running make single-threaded to avoid random crashes on AFS"
+    echo "This will be slower that running parallel make..."
+    make
+else
+    #FreeBSD's make doesn't like a bare -j, so specify 8 CPUs
+    make -j 8
+fi
+
+
+if [ $? != 0 ]; then
+    echo ""
+    echo "ERROR in MAKE;"
+    echo "Could be a bug..."
+    echo ".. or maybe you need to install some libraries (or the compiler, or static versions of the libraries)?"
+    echo "The output from MAKE should tell you more, so please look above this error message."
+    echo ""
+    echo "You may also look at the unfinished compilation in the folder "$NAME
+    echo "try running 'make VERBOSE=1' in that folder for more information."
+    echo ""
+
+    exit 1
+fi
+echo ""
+echo "Done! If everything went well, you'll find the executable in" $NAME
+#echo "If you want to package the results to a tarball / .deb / .rpm etc., run 'make package' in this folder."

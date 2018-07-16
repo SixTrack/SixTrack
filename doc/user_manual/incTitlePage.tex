@@ -1,0 +1,53 @@
+\begin{titlepage}
+\begin{center}\normalsize\scshape
+    European Organization for Nuclear Research \\
+    CERN BE/ABP
+\end{center}
+\vspace*{2mm}
+\begin{flushright}
+    CERN/xx/xx \\
+    Updated March 2018
+\end{flushright}
+\begin{center}\Huge
+    \textbf{SixTrack} \\
+    \LARGE Version 5.0 \\
+    \vspace*{8mm}Single Particle Tracking Code Treating Transverse Motion with Synchrotron Oscillations in a Symplectic Manner \\
+    \vspace*{8mm}\textbf{User's Reference Manual}
+\end{center}
+\begin{center}
+    F. Schmidt\\
+    \vspace*{4mm}Updated by:
+    A.~Alekou,
+    V.K.~Berglyd~Olsen,
+    R.~De~Maria,
+    M.~Fitterer,
+    S.~Kostoglou,
+    T.~Persson,
+    K.~Sjobak,
+    J.F.~Wagner,
+    and
+    S.J.~Wretborn,
+\end{center}
+\begin{center}\large
+    \vspace*{10mm}\textbf{Abstract} \\
+\end{center}
+The aim of SixTrack is to track two nearby particles taking into account the full six--dimensional phase space including synchrotron oscillations in a symplectic manner.
+It allows to predict the long--term dynamic aperture which is defined as the border between regular and chaotic motion.
+This border can be found by studying the evolution of the distance in phase space of two initially nearby particles.
+Parameters of interest like nonlinear detuning and smear are determined via a post processing of the tracking data.
+An analysis of the first order resonances can be done and correction schemes for several of those resonances can be calculated.
+Moreover, there is the feature to calculate a one--turn map to very high order and the full six--dimensional case, using LBL differential algebra.
+This map allows a subsequent theoretical analysis like normal form procedures which are provided by \'{E}. Forest~\cite{DALIE}.
+
+The linear elements are usually treated as thick elements in SixTrack\@.
+In that case there is at least one non--zero length element in the structure file which is not a drift element.
+If the accelerator, however, is modelled exclusively with drifts and kicks, SixTrack automatically uses the thin lens formalism according to G.~Ripken \cite{Ripken95}.
+A common header of output data and the format of these data has been found for MAD and SixTrack tracking data.
+
+\vfill
+\begin{center}
+    Geneva, Switzerland \\
+    \today
+\end{center}
+
+\end{titlepage}
