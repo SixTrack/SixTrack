@@ -6,62 +6,52 @@ For more details see the the full [Building SixTrack](http://sixtrack.web.cern.c
 Below there is a quick guide to the main steps of the development process.
 
 
-## Setting up (to do once)
+## Setting up (do it once)
 
-* Install `git` and a recent `cmake`, `gcc`
+* Install `git` and a recent `cmake` and `gcc`.
 
-* Create a GitHub account, set ssh keys and install them in the GitHub account
+* Create a GitHub account, set ssh keys and install them in the GitHub account.
 
-* Fork SixTrack repository in the GitHub web page or click [here](http://github.com/SixTrack/SixTrack/fork)
+* Fork SixTrack repository in the GitHub web page or click [here](http://github.com/SixTrack/SixTrack/fork).
 
-* Clone personal repository
+* Clone personal repository:
 
        # Clone personal repository
        git clone git@github.com:username/SixTrack.git
 
-* Set upstream repository
+* Set upstream repository:
 
         # Set upstream repository
         git remote add upstream git@github.com:SixTrack/SixTrack.git
 
 
-## For each development
-* Update origin/master from upstream
+## Development
+* Create local branch (named e.g. "fix_bug")  and add it to origin:
+
+        git checkout -b "fix_bug"
+        git push --set-upstream origin "fix_bug" #only once
+
+* For each modification: update origin/master from upstream and merge from upstream
 
         # Update origin/master from upstream
         git fetch upstream
         git checkout master
         git merge upstream/master
         git push
-
-* Create local branch (named e.g. "fix_bug")  and add it to origin
-
-        git checkout -b "fix_bug"
-        git push --set-upstream origin "fix_bug"
-
-* Commit changes and/or merge from upstream
-
         git checkout "fix_bug"
         git merge master
+
+
+* .. and commit changes and push to origin
+
         < make modifications >
         git add ...
         git commit ...
-
-* Push commits to origin
-
         git push
 
-* Create pull request from the website and wait until is merged
-* Delete feature branch
+* perform tests:
 
-        git branch -d "fix_bug"
-        git push origin --delete "fix_bug"
-
-
-## Perform tests
-
-Make sure you are in SixTrack directory
-
+      # from SixTrack directory
       ./cmake_six BUILD_TESTING
       cd build/*BUILD_TESTING* #see last line
       ctest --print-labels # see available labels
@@ -69,6 +59,11 @@ Make sure you are in SixTrack directory
       ctest -N #see available tests
       ctest -R "beam-HO.*" # run test starting with name "beam-HO" 
 
+* Once feature can go public, create pull request from the website and wait until is merged
+* Once merged, delete feature branch
+
+        git branch -d "fix_bug"
+        git push origin --delete "fix_bug"
 
 
 ## Contribute to someone else's pull request
