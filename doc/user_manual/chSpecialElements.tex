@@ -1274,7 +1274,7 @@ Apart from these two, the other required SixTrack files are produced via MAD-X a
 
 \paragraph{Collimator Database}~\\
 
-The collimator database is stored in files named \texttt{CollDB\_V6.500\_[type]\_st.[beam].data}, with \texttt{[type]} being either inj for injection case or lowb for collision case, and \texttt{[beam]} being b1 or b2.
+The collimator database is stored in files named \texttt{CollDB\_V6.500\_[type]\_st.[beam].data}, with \texttt{[type]} being either inj for injection case or low $b$ for collision case, and \texttt{[beam]} being $b1$ or $b2$.
 These files contain mechanical and optical data related to the collimators planned for LHC. (Note that at present only Phase I collimators have a length different from zero)
 
 A sample block of either one of these input files follows:
@@ -1292,7 +1292,7 @@ C                       <-- collimator material (C = graphite, CU = copper, W=tu
 #                       <-- line jump to next block
 \end{cverbatim}
 
-The introduction of the optic parameter $\beta$ allows studies of error scenarios (orbit distortion, beta-beating) and/or to see the effect of misaligned collimators.
+The introduction of the optic parameter $\beta$ allows studies of error scenarios (orbit distortion, beta-beating\index{beta-beating}) and/or to see the effect of misaligned collimators.
 This structure is then repeated within the file for each of the collimators to be included in the study.
 
 \subsection{Collimation Input Block} \label{sec:coll:input}
@@ -1360,48 +1360,48 @@ The collimation module is controlled by the \texttt{COLL} block in \texttt{firt.
 
     4   & \texttt{DO\_NSIG}      & logical & If TRUE use collimators settings from \texttt{fort.3}. If FALSE from \texttt{CollDB\_V6.500\_[type]\_st.[beam].data}. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCP3}    & float   & Opening of the primary collimator in IR3 in sigma units. \\
+        & \texttt{NSIG\_TCP3}    & float   & Opening of the primary collimator\index{primary collimator} in IR3 in sigma units. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCSG3}   & float   & Opening of the secondary graphite collimator in IR3 in sigma units. \\
+        & \texttt{NSIG\_TCSG3}   & float   & Opening of the secondary graphite collimator in IR3 in sigma units\index{secondary collimator}. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCSM3}   & float   & Opening of the secondary metallic collimator in IR3 in sigma units. \\
+        & \texttt{NSIG\_TCSM3}   & float   & Opening of the secondary metallic collimator in IR3 in sigma units\index{secondary collimator}. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCLA3}   & float   & Opening of the active absorbers in IR3 in sigma units. \\
+        & \texttt{NSIG\_TCLA3}   & float   & Opening of the active absorbers in IR3 in sigma units\index{absorbers}. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCP7}    & float   & Opening of the primary collimators in IR7 in sigma units. \\
+        & \texttt{NSIG\_TCP7}    & float   & Opening of the primary collimators\index{primary collimator} in IR7 in sigma units. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCSG7}   & float   & Opening of the secondary graphite collimator in IR7 in sigma units. \\
+        & \texttt{NSIG\_TCSG7}   & float   & Opening of the secondary graphite collimator in IR7 in sigma units\index{secondary collimator}. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCSM7}   & float   & Opening of the secondary metallic collimator in IR7 in sigma units. \\
+        & \texttt{NSIG\_TCSM7}   & float   & Opening of the secondary metallic collimator in IR7 in sigma units\index{secondary collimator}. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCLA7}   & float   & Opening of the active absorbers collimator in IR7 in sigma units. \\
+        & \texttt{NSIG\_TCLA7}   & float   & Opening of the active absorbers collimator\index{absorbers} in IR7 in sigma units. \\
         \cline{2-4}
         & \texttt{NSIG\_TCLP}    & float   & Opening of the physics debris collimator in sigma units. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCLI}    & float   & Opening of the absorbers for injection protection in sigma units. \\
+        & \texttt{NSIG\_TCLI}    & float   & Opening of the absorbers for injection protection in sigma units\index{absorbers}. \\
         \cline{2-4}
         & \texttt{NSIG\_TCDQ}    & float   & Opening of the beam dump protection collimator in sigma units\footnote{One-sided collimators (only positive x)}. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCSTCDQ} & float   & Opening of secondary collimator dedicated to beam dump in sigma units. \\
+        & \texttt{NSIG\_TCSTCDQ} & float   & Opening of secondary collimator dedicated to beam dump in sigma units\index{secondary collimator}. \\
         \cline{2-4}
         & \texttt{NSIG\_TDI}     & float   & Opening of the injection protection collimator in sigma units. \\
     \hline
 
-    5   & \texttt{NSIG\_TCTH1}   & float   & Opening of the horizontal tertiary collimator in IR1 in sigma units. \\
+    5   & \texttt{NSIG\_TCTH1}   & float   & Opening of the horizontal tertiary collimator in IR1 in sigma units\index{tertiary collimator}. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCTH2}   & float   & Opening of the horizontal tertiary collimator in IR2 in sigma units. \\
+        & \texttt{NSIG\_TCTH2}   & float   & Opening of the horizontal tertiary collimator in IR2 in sigma units\index{tertiary collimator}. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCTH5}   & float   & Opening of the horizontal tertiary collimator in IR5 in sigma units. \\
+        & \texttt{NSIG\_TCTH5}   & float   & Opening of the horizontal tertiary collimator in IR5 in sigma units\index{tertiary collimator}. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCTH8}   & float   & Opening of the horizontal tertiary collimator in IR8 in sigma units. \\
+        & \texttt{NSIG\_TCTH8}   & float   & Opening of the horizontal tertiary collimator in IR8 in sigma units\index{tertiary collimator}. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCTV1}   & float   & Opening of the vertical tertiary collimator in IR1 in sigma units. \\
+        & \texttt{NSIG\_TCTV1}   & float   & Opening of the vertical tertiary collimator in IR1 in sigma units\index{tertiary collimator}. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCTV2}   & float   & Opening of the vertical tertiary collimator in IR2 in sigma units. \\
+        & \texttt{NSIG\_TCTV2}   & float   & Opening of the vertical tertiary collimator in IR2 in sigma units\index{tertiary collimator}. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCTV5}   & float   & Opening of the vertical tertiary collimator in IR5 in sigma units. \\
+        & \texttt{NSIG\_TCTV5}   & float   & Opening of the vertical tertiary collimator in IR5 in sigma units\index{tertiary collimator}. \\
         \cline{2-4}
-        & \texttt{NSIG\_TCTV8}   & float   & Opening of the vertical tertiary collimator in IR8 in sigma units. \\
+        & \texttt{NSIG\_TCTV8}   & float   & Opening of the vertical tertiary collimator in IR8 in sigma units\index{tertiary collimator}. \\
         \cline{2-4}
         & \texttt{NSIG\_TCXRP}   & float   & Opening of the Roman Pots in sigma units\footnote{One-sided collimators (only positive x)}. \\
         \cline{2-4}
@@ -1473,30 +1473,30 @@ The collimation module is controlled by the \texttt{COLL} block in \texttt{firt.
         & \texttt{DOWRT\_AMPL}   & logical & Writes checking files for amplitude, closed orbit. \\
     \hline
 
-    11  & \texttt{XBEAT}         & float   & Offset in $x$ for the computation of collimator in case of beta-beating. \\
+    11  & \texttt{XBEAT}         & float   & Offset in $x$ for the computation of collimator in case of beta-beating\index{beta-beating}. \\
         \cline{2-4}
-        & \texttt{XBEATPHASE}    & float   & Phase offset in $x$ for the computation of collimator in case of beta-beating. \\
+        & \texttt{XBEATPHASE}    & float   & Phase offset in $x$ for the computation of collimator in case of beta-beating\index{beta-beating}. \\
         \cline{2-4}
-        & \texttt{YBEAT}         & float   & Offset in $y$ for the computation of collimator in case of beta-beating. \\
+        & \texttt{YBEAT}         & float   & Offset in $y$ for the computation of collimator in case of beta-beating\index{beta-beating}. \\
         \cline{2-4}
-        & \texttt{YBEATPHASE}    & float   & Phase offset in $y$ for the computation of collimator in case of beta-beating. \\
+        & \texttt{YBEATPHASE}    & float   & Phase offset in $y$ for the computation of collimator in case of beta-beating\index{beta-beating}. \\
     \hline
 
-    12  & \texttt{RMSTILT\_PRIM} & float   & RMS value of tilt to apply to primary collimators. \\
+    12  & \texttt{RMSTILT\_PRIM} & float   & RMS value of tilt to apply to primary collimators\index{primary collimator}. \\
         \cline{2-4}
-        & \texttt{RMSTILT\_SEC}  & float   & RMS value of tilt to apply to secondary collimators. \\
+        & \texttt{RMSTILT\_SEC}  & float   & RMS value of tilt to apply to secondary collimators\index{secondary collimator}. \\
         \cline{2-4}
-        & \texttt{SYSTILT\_PRIM} & float   & Systematic value of tilt to apply to primary collimators. \\
+        & \texttt{SYSTILT\_PRIM} & float   & Systematic value of tilt to apply to primary collimators.\index{primary collimator} \\
         \cline{2-4}
-        & \texttt{SYSTILT\_SEC}  & float   & Systematic value of tilt to apply to secondary collimators. \\
+        & \texttt{SYSTILT\_SEC}  & float   & Systematic value of tilt to apply to secondary collimators\index{secondary collimator}. \\
         \cline{2-4}
-        & \texttt{RMSOFFS\_PRIM} & float   & RMS value of offset to apply to primary collimators. \\
+        & \texttt{RMSOFFS\_PRIM} & float   & RMS value of offset to apply to primary collimators\index{primary collimator}. \\
         \cline{2-4}
-        & \texttt{RMSOFFS\_SEC}  & float   & RMS value of offset to apply to secondary collimators. \\
+        & \texttt{RMSOFFS\_SEC}  & float   & RMS value of offset to apply to secondary collimators\index{secondary collimator}. \\
         \cline{2-4}
-        & \texttt{SYSOFFS\_PRIM} & float   & Systematic value of offset to apply to primary collimators. \\
+        & \texttt{SYSOFFS\_PRIM} & float   & Systematic value of offset to apply to primary collimators\index{primary collimator}. \\
         \cline{2-4}
-        & \texttt{SYSOFFS\_SEC}  & float   & Systematic value of offset to apply to secondary collimators. \\
+        & \texttt{SYSOFFS\_SEC}  & float   & Systematic value of offset to apply to secondary collimators\index{secondary collimator}. \\
         \cline{2-4}
         & \texttt{OFFTILT\_SEED} & float   & Random number seed to be used for the simulation. \\
         \cline{2-4}
@@ -1512,16 +1512,16 @@ The collimation module is controlled by the \texttt{COLL} block in \texttt{firt.
         & \texttt{NDR}           & float   & Smear of the beam to be tracked in number of radial sigmas. \\
     \hline
 
-    14  & \texttt{DRIFTSX}       & float   & Apply an emittance drift in the $x$ direction. \\
+    14  & \texttt{DRIFTSX}       & float   & Apply an emittance drift\index{emittance drift} in the $x$ direction. \\
         \cline{2-4}
-        & \texttt{DRIFTSY}       & float   & Apply an emittance drift in the $y$ direction. \\
+        & \texttt{DRIFTSY}       & float   & Apply an emittance drift\index{emittance drift} in the $y$ direction. \\
         \cline{2-4}
         & \texttt{CUT\_INPUT}    & logical & Formerly used to select particles to be tracked (set FALSE). \\
         \cline{2-4}
         & \texttt{SYSTILT\_ANTI} & logical & Deduce \texttt{SYSTILT} to \texttt{RMSTILT} instead of adding. \\
     \hline
 
-    15  & \texttt{IPENCIL}       & integer & Resets original distribution to pencil beam distribution on selected collimator. \\
+    15  & \texttt{IPENCIL}       & integer & Resets original distribution to pencil beam\index{pencil beam} distribution on selected collimator. \\
         \cline{2-4}
         & \texttt{PENC\_OFFSET}  & float   & Size in sigma units of the desired impact parameter. \\
         \cline{2-4}
@@ -1553,7 +1553,7 @@ The collimation module is controlled by the \texttt{COLL} block in \texttt{firt.
 \end{center}
 
 \paragraph{Pencil Beam Description:}~\\
-
+\index{pencil beam}
 \begin{tabular}{@{}l|p{0.6\linewidth}}
     \texttt{PENCIL\_DISTR = 0} & \texttt{PENC\_OFFSET  = 0} \\
     Pencil Beam Distribution   & \texttt{PENC\_RMSX    = 0} \\
@@ -1578,7 +1578,7 @@ The collimation module is controlled by the \texttt{COLL} block in \texttt{firt.
 
 \paragraph{The \texttt{DO\_THISDIS} Flag Description:}
 \begin{enumerate}
-\item Distribution in the plane for which the parameters are specified ONLY: flat distribution in the selected plane between $A_x \pm \delta A_x$ (horizontal) or $A_y \pm \delta A_y$ (vertical). The amplitude in the other plane is zero.
+\item Distribution in the plane for which the parameters are specified ONLY: flat distribution in the selected plane between $A_x \pm \delta A_x$ (horizontal) or $A_y \pm \delta A_y$ (vertical). The amplitude in the other plane is zero\index{beam distribution}.
 \item Distribution in the plane for which the parameters are specified + a Gaussian distribution cut at 3 s in the other plane.
 \item Distribution in the plane for which the parameters are specified + a Gaussian distribution cut at 3 s in the other plane + energy spread given by \texttt{ENERROR} (nominally 3.06E-04 at 450GeV and 1.129E-04 at 7TeV) and a longitudinal component given by BUNCHLENGTH (nominally 11.24cm at 450GeV and 7.55cm at 7TeV).
 \item Reads an external file that contains the beam distribution to be tracked.
