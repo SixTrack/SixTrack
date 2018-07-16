@@ -19,7 +19,7 @@ jobs:
             - ".git"
       - run:
           name: prepare
-          command: ./cmake_six BUILD-TESTING 
+          command: ./cmake_six BUILD_TESTING 
       - run:
           name: build
           command: |
