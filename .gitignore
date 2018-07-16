@@ -20,7 +20,7 @@ source/count.log
 build/*
 Build/*
 
-## LaTeX
+# LaTeX
 doc/html
 doc/*/*.pdf
 doc/*/*.aux
