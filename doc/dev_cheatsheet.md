@@ -12,7 +12,7 @@ Below there is a quick guide to the main steps of the development process.
 
 * Create a GitHub account, set ssh keys and install them in the GitHub account
 
-* Fork SixTrack repository in the GitHub web page or click [here](http://SixTrack/SixTrack/fork)
+* Fork SixTrack repository in the GitHub web page or click [here](http://github.com/SixTrack/SixTrack/fork)
 
 * Clone personal repository
 
