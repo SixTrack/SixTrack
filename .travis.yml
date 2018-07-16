@@ -1,0 +1,21 @@
+language: cpp
+
+install:
+  - cmake_six BUILD_TESTING
+  - cd *BUILD_TESTING
+  - make
+
+script:
+  - cd *BUILD_TESTING
+  - ctest -L fast
+  
+dist: trusty
+
+sudo: false
+
+addons:
+  apt:
+    packages:
+    - gfortran
+
+
