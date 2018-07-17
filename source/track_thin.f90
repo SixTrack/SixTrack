@@ -1136,9 +1136,13 @@ subroutine thin4d(nthinerr)
       ! stop tracking if no particle survives to this element
       if(nthinerr.ne.0) return
       ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-      ! last modified: 07-03-2018
-      ! store infos of last aperture marker
-      if ( lbacktracking.and.kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
+      ! last modified: 16-07-2018
+      if ( lbacktracking ) then
+         ! store infos of last aperture marker
+         if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
+         ! store old particle coordinates
+         call aperture_saveLastCoordinates(i,ix,-1)
+      end if
 
 625 continue
     if (.not. ldumpfront) then
@@ -2115,10 +2119,12 @@ subroutine thin6d(nthinerr)
       end if
 
       ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-      ! last modified: 07-03-2018
-      ! store infos of last aperture marker
-      if( lbacktracking.and.kape(ix).ne.0 ) then
-        call aperture_saveLastMarker(i,ix)
+      ! last modified: 16-07-2018
+      if ( lbacktracking ) then
+         ! store infos of last aperture marker
+         if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
+         ! store old particle coordinates
+         call aperture_saveLastCoordinates(i,ix,-1)
       end if
 
 645   continue

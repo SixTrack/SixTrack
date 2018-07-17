@@ -82,7 +82,8 @@ module aperture
   integer, save :: iLast, ixLast                   ! indeces of last aperture marker
   integer, save :: iLastThick, ixLastThick         ! indeces of last thick element
   integer, save :: iBckTypeLast                    ! map of back-tracking - it follows kz values, eg:
-                                                   ! 0 : drift (the only one available)
+                                                   ! -1: generic (eg after aperture check)
+                                                   !  0: drift (the only one available)
 
   ! A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-22
   ! x-sec at specific locations
@@ -468,7 +469,9 @@ end subroutine aperture_saveLastMarker
 subroutine aperture_saveLastCoordinates( i, ix, iBack )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
-  ! save particle coordinates at last aperture check
+  ! save particle coordinates:
+  ! - at last aperture check (iBack=-1)
+  ! - at last thick element (iBack>=0)
   !-----------------------------------------------------------------------
 
   use mod_commonmn ! for napx, xv and yv

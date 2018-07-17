@@ -39,16 +39,27 @@ Below there is a quick guide to the main steps of the development process.
 
 * .. then make modifications, commit changes and push them to origin
 
-        git checkout "fix_bug"
+        git checkout -b "fix_bug"
         git merge master
         < make modifications >
         git add ...
         git commit ...
+
+* Push commits to origin
+
         git push
 
-* perform tests:
+* Create pull request from the website and wait until is merged
+* Delete feature branch
 
-      # from SixTrack directory
+        git branch -d "fix_bug"
+        git push origin --delete "fix_bug"
+
+
+## Perform tests
+
+Make sure you are in SixTrack directory
+
       ./cmake_six BUILD_TESTING
       cd build/*BUILD_TESTING* #see last line
       ctest --print-labels # see available labels
