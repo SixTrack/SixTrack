@@ -13,5 +13,5 @@ jobs:
           command: |
              ./cmake_six BUILD_TESTING 
              cd build/*BUILD_TESTING*
-             make
-             ctest -L fast -RE elens
+             make -j4
+             ctest -j4 -L fast -E elens
