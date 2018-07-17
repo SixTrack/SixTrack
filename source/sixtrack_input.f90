@@ -312,6 +312,10 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     st_print = .true.
     write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
 
+  case("PRINT_DCUM")
+    print_dcum = .true.
+    write(lout,"(a)") "INPUT> Printout of dcum array ENABLED"
+
   case("QUIET")
     if(nSplit > 1) then
       call chr_cast(lnSplit(2),st_quiet,iErr)

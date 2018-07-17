@@ -1139,7 +1139,6 @@ subroutine runda
         endif
         goto 480
       endif
-      pi=four*atan_mb(one)
 
     if(kzz.eq.23) then
 !FOX  CRABAMP=ED(IX)*ZZ0 ;

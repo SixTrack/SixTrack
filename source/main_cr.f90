@@ -434,11 +434,6 @@ end interface
       call comnul
       commen=' '
       progrm='SIXTRACK'
-      pi=four*atan_mb(one)
-      pi2=pi*half
-      pisqrt=sqrt(pi)
-      rad=pi/c180e0                                                       !hr05
-
 
 #ifdef ROOT
       call SixTrackRootFortranInit
@@ -1291,7 +1286,7 @@ end interface
       if(ibidu.eq.1) then
         ! Note: Keep in sync with read(32) below
         write(32) &
-        ierro,erbez,pi,pi2,pisqrt,rad,il,mper,mblo,mbloz,msym,kanf,iu,ic, &
+        ierro,erbez,pi2,pisqrt,rad,il,mper,mblo,mbloz,msym,kanf,iu,ic,    &
         ed,el,ek,sm,kz,kp,xpl,xrms,zpl,zrms,mel,mtyp,mstr,a,bl1,bl2,rvf,  &
         idfor,napx,napxo,numlr,nde,nwr,ird,imc,irew,ntwin,iclo6,iclo6r,   &
         iver,ibidu,qs,e0,pma,ej,ejf,phas0,phas,hsy,crad,                  &
@@ -1354,7 +1349,7 @@ end interface
       if(ibidu.eq.2) then
         ! Note: Keep in sync with write(32) above
         read(32) &
-        ierro,erbez,pi,pi2,pisqrt,rad,il,mper,mblo,mbloz,msym,kanf,iu,ic, &
+        ierro,erbez,pi2,pisqrt,rad,il,mper,mblo,mbloz,msym,kanf,iu,ic,    &
         ed,el,ek,sm,kz,kp,xpl,xrms,zpl,zrms,mel,mtyp,mstr,a,bl1,bl2,rvf,  &
         idfor,napx,napxo,numlr,nde,nwr,ird,imc,irew,ntwin,iclo6,iclo6r,   &
         iver,ibidu,qs,e0,pma,ej,ejf,phas0,phas,hsy,crad,                  &

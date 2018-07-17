@@ -437,7 +437,7 @@ subroutine stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
   implicit none
   integer i,nsli
 
-  real(kind=fPrec) bord,bord1,border,calpha,cphi,cphi2,gauinv,pi,salpha,sigz,sigzs,sphi,sphi2,yy
+  real(kind=fPrec) bord,bord1,border,calpha,cphi,cphi2,gauinv,salpha,sigz,sigzs,sphi,sphi2,yy
 
   real(kind=fPrec) :: star(3,mbea) !(3,mbea)
 
@@ -445,7 +445,6 @@ subroutine stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
   data border /eight/
   save
 !-----------------------------------------------------------------------
-  pi=four*atan_mb(one)
   sigz=sigzs/cphi2
 ! DEFINE `STARRED' COORDINATES
 !  BORD is longitudinal border star(3,mbea) is the barycenter of region

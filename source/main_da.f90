@@ -117,10 +117,6 @@ program mainda
   end do
   qwc(3)=zero
   call comnul
-  pi=four*atan_mb(one)
-  pi2=pi*half
-  pisqrt=sqrt(pi)
-  rad=pi/c180e0
 
   call daten
   if (ithick.eq.1) call allocate_thickarrays

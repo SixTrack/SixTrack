@@ -367,14 +367,15 @@ subroutine aperture_initOC( ix, aprx, apry, theta1, theta2 )
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
   ! initialise aperture marker to octagon
   !-----------------------------------------------------------------------
+  use mod_common, only : rad
   implicit none
   integer ix
   real(kind=fPrec) aprx, apry, theta1, theta2, N, x1, x2, y1, y2
   call aperture_nul( ix )
   kape(ix)=5
   x1=aprx
-  y1=aprx*tan_mb(theta1)
-  x2=apry/tan_mb(theta2)
+  y1=aprx*tan_mb(theta1*rad) ! Convert degrees to radians
+  x2=apry/tan_mb(theta2*rad) ! Convert degrees to radians
   y2=apry
   ape(1,ix)=aprx
   ape(2,ix)=apry
@@ -385,9 +386,6 @@ subroutine aperture_initOC( ix, aprx, apry, theta1, theta2 )
   ! m and q of sloped side
   ape(5,ix)=(y2-y1)/(x2-x1)  ! m = (y2-y1)/(x2-x1)
   ape(6,ix)=y1-ape(5,ix)*x1  ! q = y1 -m*x1
-  write(*,*) '--> init OC:',ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),ape(5,ix),ape(6,ix)
-  write(*,*) '    input:', ix, aprx, apry, theta1, theta2
-  write(*,*) '    coordinates:',ape(1,ix),ape(1,ix)*tan_mb(theta1),ape(2,ix)/tan_mb(theta2),ape(2,ix)
 end subroutine aperture_initOC
 
 
@@ -1914,6 +1912,7 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
 !     dump any aperture marker
 !     always in main code
 !-----------------------------------------------------------------------
+  use mod_settings
   implicit none
 
 ! interface variables
@@ -1923,7 +1922,10 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
   real(kind=fPrec) ape(9)
   real(kind=fPrec) spos
 
-! dump info
+  ! Don't print to stdout if quiet flag is enabled.
+  if(st_quiet > 0 .and. iunit == 6) return
+
+  ! dump info
   if(ldmpaperMem) then
      write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9)
   else
@@ -1969,7 +1971,6 @@ subroutine dump_aperture_marker( iunit, ixEl, iEl )
   integer iunit, iEl, ixEl
 
   call dump_aperture( iunit, bez(ixEl), kape(ixEl), dcum(iEl), ape(1:9,ixEl) )
-
   return
 end subroutine dump_aperture_marker
 
@@ -1980,8 +1981,11 @@ subroutine dump_aperture_header( iunit )
 !     dump header of aperture marker
 !     always in main code
 !-----------------------------------------------------------------------
+  use mod_settings
   implicit none
   integer iunit
+  ! Don't print to stdout if quiet flag is enabled.
+  if(st_quiet > 0 .and. iunit == 6) return
   write(iunit,1984) '#', 'name', 'aptype', 's[m]', 'aper1[mm]', 'aper2[mm]', &
  &                  'aper3[mm][rad]', 'aper4[mm][rad]', 'aper5[mm][rad]', 'aper6[mm][rad]', &
  &                  'angle[rad]', 'xoff[mm]', 'yoff[mm]'

@@ -2521,6 +2521,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     use crcoall
     use mod_common
     use mod_ranecu
+    use numerical_constants, only : pi
 
     implicit none
 

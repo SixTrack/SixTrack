@@ -2906,7 +2906,7 @@ subroutine fft(ar,ai,m,n)
       use numerical_constants
       implicit none
       integer i,ip,j,k,l,le,le1,m,n,nm1,nv2
-      real(kind=fPrec) ar,ai,pi,tr,ti,ui,ur,uur,wr,wi
+      real(kind=fPrec) ar,ai,tr,ti,ui,ur,uur,wr,wi
       dimension ar(n),ai(n)
       save
 !-----------------------------------------------------------------------
@@ -2931,8 +2931,6 @@ subroutine fft(ar,ai,m,n)
         j=j+k
    30   continue
       end do
-
-      pi=four*atan_mb(one)
 
       do l=1,m
         le=2**l

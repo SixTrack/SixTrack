@@ -451,16 +451,11 @@ subroutine trauthin(nthinerr)
 
 290 continue
   do j=1,napx
-    dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))                            !hr01
+    dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))
   end do
   nwri=nwr(3)
-  if(nwri.eq.0) nwri=(numl+numlr)+1                                  !hr01
+  if(nwri.eq.0) nwri=(numl+numlr)+1
 
-!     A.Mereghetti, for the FLUKA Team
-!     K.Sjobak, BE-ABP-HSS
-!     last modified: 24-02-2015
-!     save original kicks
-!     always in main code
   if (ldynk) call dynk_pretrack
 
 #ifdef COLLIMAT
@@ -469,59 +464,34 @@ subroutine trauthin(nthinerr)
 #ifndef COLLIMAT
   if(idp.eq.0.or.ition.eq.0) then
 #endif
-    write(lout,*) ''
-    write(lout,*) 'Calling thin4d subroutine'
-    write(lout,*) ''
+    write(lout,"(a)") ""
+    write(lout,"(a)") "TRACKING> Calling thin4d subroutine"
+    write(lout,"(a)") ""
     call thin4d(nthinerr)
   else
 #ifdef COLLIMAT
     if (idp.eq.0.or.ition.eq.0) then
-        write(lout,*) ""
-        write(lout,*) "******* WARNING *******"
-        write(lout,*) "Calling 6D tracking due to collimation!"
-        write(lout,*) "Would normally have called thin4d"
-        write(lout,*) ""
+      write(lout,*) "TRACKING> WARNING Calling 6D tracking due to collimation! Would normally have called thin4d"
     endif
 #endif
 
-    hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)                            !hr01
-    do 310 jj=1,nele
-      if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*                    &
-  &     real(itionc(jj),fPrec)     !hr01
-310   continue
+    hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
+    do jj=1,nele
+      if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*real(itionc(jj),fPrec)
+    end do
     if(abs(phas).ge.pieni) then
       write(lout,"(a)") "TRACKING> ERROR thin6dua no longer supported. Please use DYNK instead."
       call prror(-1)
     else
+      write(lout,"(a)") ""
+      write(lout,"(a)") "TRACKING> Calling thin6d subroutine"
+      write(lout,"(a)") ""
 #ifdef COLLIMAT
       call collimate_init()
-!================================================================================
-!Ralph make loop over 1e6/napx, a read xv(1,j) etc
-!Du solltest zur Sicherheit dies resetten bevor Du in thin6d gehst
-!Im Falle von Teilchenverluste werden n mlich pstop und nnumxv umgesetzt
-!      do 80 i=1,npart
-!        pstop(i)=.false.
-!        nnumxv(i)=numl
-!   80 numxv(i)=numl
-!================================================================================
-      do j = 1, int(mynp/napx00)
-        write(lout,*) 'Sample number ', j, int(mynp/napx00)
-
-        call collimate_start_sample(j)
-
-        write(lout,*) ''
-        write(lout,*) 'Calling thin6d subroutine'
-        write(lout,*) ''
-        call thin6d(nthinerr)
-
-        call collimate_end_sample(j)
-
-      end do
-#endif
-#ifndef COLLIMAT
-      write(lout,*) ''
-      write(lout,*) 'Calling thin6d subroutine'
-      write(lout,*) ''
+      call collimate_start_sample(1) ! Changed to only do 1 sample
+      call thin6d(nthinerr)
+      call collimate_end_sample(1) ! Changed to only do 1 sample
+#else
       call thin6d(nthinerr)
 #endif
     endif !end if(abs(phas).ge.pieni) then
@@ -545,6 +515,7 @@ subroutine trauthin(nthinerr)
   call dealloc(crzb, "crzb")
   call dealloc(cbxb, "cbxb")
   call dealloc(cbzb, "cbzb")
+
   return
 
 end subroutine trauthin
@@ -574,7 +545,7 @@ subroutine thin4d(nthinerr)
 #endif
 
   use mod_hions
-
+  use mod_settings
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -593,7 +564,7 @@ subroutine thin4d(nthinerr)
 
   implicit none
 
-  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,acphase,  &
     acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi, &
     rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp  !solenoid
@@ -613,6 +584,13 @@ subroutine thin4d(nthinerr)
   napxto = 0
 #endif
 
+  ! Determine which turns to print tracking report on
+  if(numl > 1000) then
+    turnrep = nint(numl/1000.0)
+  else
+    turnrep = 1
+  end if
+
 #ifdef CR
   if (restart) then
     call crstart
@@ -630,10 +608,12 @@ subroutine thin4d(nthinerr)
     end do
   end if
   do 640, n=numlcr,nnuml
-#endif
-#ifndef CR
+#else
   do 640 n=1,numl !loop over turns
 #endif
+  if(st_quiet < 3) then
+    if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
+  end if
 #ifdef BOINC
     ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
@@ -1205,6 +1185,7 @@ subroutine thin6d(nthinerr)
   use dump,    only : dump_linesFirst, dump_lines, ldumpfront
   use aperture
   use mod_hions
+  use mod_settings
 #ifdef FLUKA
   use mod_fluka
 #endif
@@ -1227,7 +1208,7 @@ subroutine thin6d(nthinerr)
 #endif
   implicit none
 
-  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
@@ -1247,7 +1228,14 @@ subroutine thin6d(nthinerr)
   napxto = 0
 #endif
 
-! This is the loop over turns: label 660
+  ! Determine which turns to print tracking report on
+  if(numl > 1000) then
+    turnrep = nint(numl/1000.0)
+  else
+    turnrep = 1
+  end if
+
+  ! This is the loop over turns: label 660
 #ifdef CR
   if (restart) then
     call crstart
@@ -1266,10 +1254,12 @@ subroutine thin6d(nthinerr)
   end if
 
   do 660 n=numlcr,nnuml ! Loop over turns, CR version
-#endif
-#ifndef CR
+#else
   do 660 n=1,numl       ! Loop over turns
 #endif
+    if(st_quiet < 3) then
+      if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
+    end if
 #ifdef BOINC
     ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
@@ -1929,7 +1919,6 @@ subroutine thin6d(nthinerr)
         goto 640
       case (57) ! JBG RF CC Multipoles
         xory=1
-        pi=four*atan_mb(one)
         crabfreq=ek(ix)*c1e3
         do j=1,napx
           crabamp2 = ed(ix)*nzz(j)
@@ -1952,7 +1941,6 @@ subroutine thin6d(nthinerr)
         goto 640
       case (58) ! JBG RF CC Multipoles
         xory=1
-        pi=four*atan_mb(one)
         crabfreq=ek(ix)*c1e3
         do j=1,napx
           crabamp2 = ed(ix)*nzz(j)
@@ -1975,7 +1963,6 @@ subroutine thin6d(nthinerr)
         goto 640
       case (59) ! JBG RF CC Multipoles
         xory=1
-        pi=four*atan_mb(one)
         crabfreq=ek(ix)*c1e3
         do j=1,napx
           crabamp3 = ed(ix)*nzz(j)
@@ -1999,7 +1986,6 @@ subroutine thin6d(nthinerr)
         goto 640
       case (60) ! JBG RF CC Multipoles
         xory=1
-        pi=four*atan_mb(one)
         crabfreq=ek(ix)*c1e3
         do j=1,napx
           crabamp3 = ed(ix)*nzz(j)
@@ -2023,7 +2009,6 @@ subroutine thin6d(nthinerr)
         goto 640
       case (61) ! JBG RF CC Multipoles
         xory=1
-        pi=four*atan_mb(one)
         crabfreq=ek(ix)*c1e3
         do j=1,napx
           crabamp4 = ed(ix)*nzz(j)
@@ -2047,7 +2032,6 @@ subroutine thin6d(nthinerr)
         goto 640
       case (62) ! JBG RF CC Multipoles
         xory=1
-        pi=four*atan_mb(one)
         crabfreq=ek(ix)*c1e3
         do j=1,napx
           crabamp4 = ed(ix)*nzz(j)
