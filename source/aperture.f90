@@ -264,7 +264,7 @@ subroutine aperture_init
 #else
       "partid "// &
 #endif
-      "x y xp yp etot dE dT A_atom Z_atom "
+      "x xp y yp etot dE dT A_atom Z_atom "
 #ifdef HDF5
   end if
 #endif
