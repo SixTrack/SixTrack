@@ -2,12 +2,16 @@ version: 2
 jobs:
   build:
     docker:
-      - image: debian:stretch
+      - image: debian:unstable
     steps:
+      - run:
+         name: setup
+         command: apt-get update && apt-get install -y unzip git gfortran cmake gcc g++
       - checkout
       - run:
-          name: Greeting
-          command: echo Hello, world.
-      - run:
-          name: Print the Current Time
-          command: date
+          name: build and test
+          command: |
+             ./cmake_six BUILD_TESTING 
+             cd build/*BUILD_TESTING*
+             make -j4
+             ctest -j4 -L fast -E elens
