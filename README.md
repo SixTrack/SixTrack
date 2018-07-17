@@ -9,4 +9,4 @@ Main CERN SixTrack page: [sixtrack.web.cern.ch/SixTrack](http://sixtrack.web.cer
 
 See also the [ChangeLog](CHANGELOG.md)
 
-Development cheat-sheet: [doc/dev_cheatsheet.md)](dev_cheatsheet.md)
+Development cheat-sheet: [doc/dev_cheatsheet.md](doc/dev_cheatsheet.md)

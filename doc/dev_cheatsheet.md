@@ -1,41 +1,45 @@
 #  Development cheat sheet
 
 SixTrack uses the GitHub [Fork & Pull Request Workflow](https://gist.github.com/Chaser324/ce0505fbed06b947d962).
-
 For more details see the the full [Building SixTrack](http://sixtrack.web.cern.ch/SixTrack/docs/build_full/manual.php) manual.
 
-Below there is a quick guide to the main steps of the contribution.
+Below there is a quick guide to the main steps of the development process.
 
 
-## Setting up (to do once)
+## Setting up (do it once)
 
-* Install `git`
-* Sign-up GitHub account
-* Set ssh keys
-* Fork SixTrack repository
-* Set upstream repository
+* Install `git` and a recent `cmake` and `gcc`.
+
+* Create a GitHub account, set ssh keys and install them in the GitHub account.
+
+* Fork SixTrack repository in the GitHub web page or click [here](http://github.com/SixTrack/SixTrack/fork).
+
+* Clone personal repository:
+
+       # Clone personal repository
+       git clone git@github.com:username/SixTrack.git
+
+* Set upstream repository:
 
         # Set upstream repository
+        cd SixTrack
         git remote add upstream git@github.com:SixTrack/SixTrack.git
 
 
-## For each development
-* Update origin/master from upstream
-
-        # Update origin/master from upstream
-        git fetch upstream
-        git checkout master
-        git merge upstream/master
-        git push
-
-* Create local branch (named e.g. "fix_bug")  and add it to origin
+## Develop a new feature or fix a bug
+* Create local branch (named e.g. "fix_bug")  and add it to origin:
 
         git checkout -b "fix_bug"
         git push --set-upstream origin "fix_bug"
 
-* Commit changes and/or merge from upstream
+* Periodically: update origin/master from upstream
 
-        git checkout "fix_bug"
+        git pull upstream master
+        git push origin master
+
+* .. then make modifications, commit changes and push them to origin
+
+        git checkout -b "fix_bug"
         git merge master
         < make modifications >
         git add ...
@@ -63,6 +67,11 @@ Make sure you are in SixTrack directory
       ctest -N #see available tests
       ctest -R "beam-HO.*" # run test starting with name "beam-HO" 
 
+* Once feature can go public (e.g. passes all tests), create pull request from the website and wait until is merged
+* Once merged, delete feature branch
+
+        git branch -d "fix_bug"
+        git push origin --delete "fix_bug"
 
 
 ## Contribute to someone else's pull request
