@@ -12,7 +12,6 @@ jobs:
           name: build and test
           command: |
              ./cmake_six BUILD_TESTING 
-             cd *BUILD_TESTING*
+             cd build/*BUILD_TESTING*
              make
-             cd *BUILD_TESTING*
              ctest -L fast
