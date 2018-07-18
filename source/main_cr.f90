@@ -439,11 +439,12 @@ end interface
       call SixTrackRootFortranInit
 #endif
 
+#ifdef FLUKA
+  call fluka_mod_init(npart_initial, nele_initial, clight)
+#endif
+
   call daten
 
-#ifdef FLUKA
-  call fluka_mod_init(npart, nele, clight)
-#endif
 #ifdef HDF5
   if(h5_isActive) then
     call h5_openFile()

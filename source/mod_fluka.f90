@@ -81,9 +81,9 @@ module mod_fluka
   logical, public :: fluka_enable    = .false.                     ! enable coupling
   logical, public :: fluka_connected = .false.                     ! fluka is connected
   logical, public :: fluka_debug     = .false.                     ! write debug messages
-  integer(kind=int32), public :: fluka_log_unit                    ! logical unit for log messages (was 888)
+  integer, public :: fluka_log_unit                    ! logical unit for log messages (was 888)
   ! hisix: write isotope info
-  integer(kind=int32), public :: isotope_log_unit                  ! logical unit for isotope-id output (was 822)
+  integer, public :: isotope_log_unit                  ! logical unit for isotope-id output (was 822)
 
   ! fluka insertions
   logical, public :: fluka_inside = .false.                        ! Are we in a fluka insertion?
@@ -751,6 +751,10 @@ subroutine fluka_parseInputLine(inLine, iLine, iErr)
 
   implicit none
 
+#ifdef ROOT
+  character(len=mNameLen+1) this_name
+#endif
+
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
@@ -854,7 +858,8 @@ subroutine fluka_parseInputLine(inLine, iLine, iErr)
 
 #ifdef ROOT
     if(root_flag .and. root_FLUKA.eq.1) then
-      call root_FLUKA_Names(ii, trim(adjustl(bez(entrIdx))) // C_NULL_CHAR, len_trim(trim(adjustl(bez(entrIdx))) // C_NULL_CHAR))
+      this_name = trim(adjustl(bez(entrIdx))) // C_NULL_CHAR
+      call root_FLUKA_Names(ii, this_name, len_trim(this_name))
     end if
 #endif
 
