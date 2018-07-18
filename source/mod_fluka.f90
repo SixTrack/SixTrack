@@ -745,6 +745,10 @@ subroutine fluka_parseInputLine(inLine, iLine, iErr)
   use string_tools
   use mod_common, only : il,bez
 
+#ifdef ROOT
+  use root_output
+#endif
+
   implicit none
 
   character(len=*), intent(in)    :: inLine
@@ -847,6 +851,14 @@ subroutine fluka_parseInputLine(inLine, iLine, iErr)
       write(fluka_log_unit,"(a,i0)") "# Found entrance Fluka element as SING EL num ",entrIdx
       write(fluka_log_unit,"(a,i0)") "# Found exit     Fluka element as SING EL num ",exitIdx
     end if
+
+#ifdef ROOT
+    if(root_flag .and. root_FLUKA.eq.1) then
+      call root_FLUKA_Names(ii, trim(adjustl(bez(entrIdx))) // C_NULL_CHAR, len_trim(trim(adjustl(bez(entrIdx))) // C_NULL_CHAR))
+    end if
+#endif
+
+
     ! Wait to find at least one FLUKA insertion before actually enabling the coupling
     if(.not.fluka_enable) fluka_enable = .true.
 
