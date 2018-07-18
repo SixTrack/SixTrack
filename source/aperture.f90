@@ -1110,13 +1110,20 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
         end if
 #endif
 
-#if defined(ROOT) && defined(COLLIMAT)
+#if defined(ROOT)
 ! root output
         if(root_flag .and. root_ApertureCheck.eq.1) then
           this_name = trim(adjustl(bez(ix))) // C_NULL_CHAR
+#if defined(FLUKA)
+          call ApertureCheckWriteLossParticleF(turn, i, ix, this_name, len_trim(this_name), slos, &
+       &  fluka_uid(j), fluka_gen(j), fluka_weight(j), &
+       &  xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
+       &  -c1m3 * (sigmvlos/clight) * (e0/e0f), naalos, nzzlos)
+#else
           call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos, ipart(j),&
        &  xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
        &  -c1m3 * (sigmvlos/clight) * (e0/e0f), naalos, nzzlos)
+#endif
         end if
 #endif
 
