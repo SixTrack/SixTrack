@@ -1123,7 +1123,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
        &  xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
        &  -c1m3 * (sigmvlos/clight) * (e0/e0f), naalos, nzzlos)
 #else
-          call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos, ipart(j),&
+          call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos, plost(j),&
        &  xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
        &  -c1m3 * (sigmvlos/clight) * (e0/e0f), naalos, nzzlos)
 #endif
