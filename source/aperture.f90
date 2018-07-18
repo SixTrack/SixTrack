@@ -1093,9 +1093,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 #endif
         ! Print to unit 999 (fort.999)
 #ifdef FLUKA
-        write(losses_unit,'(3(1X,I8),1X,A16,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')&
+        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')&
 #else
-        write(losses_unit,'(3(1X,I8),1X,A16,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')   &
+        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')   &
 #endif
 
      &         turn, i, ix, bez(ix), slos,                                     &

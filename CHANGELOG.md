@@ -1,25 +1,63 @@
 # SixTrack Changelog
 
-### List of Changes in Development Branch
+### Version 5.0 RC4 [xx.xx.xxxx] - Release Candidate
 
-**User Changes**
+**User Side Changes**
+
+* DUMP now uses the roundctl library when writing float values (except for the s coordinate). This fixes the failing test(s) where some values are printed as -0.0E0. This ensures that the output is consitent across compilers and platforms.
+
+### Version 5.0 RC3 [12.07.2018] - Release Candidate
+
+**User Side Changes**
+
+* All flags related to scaling of particle and element arrays have been removed. All these arrays now scale dynamically. The related compiler flags have been removed. that is: BIGNPART, HUGENPART, BIGNBLZ, HUGENBLZ.
+* Major updates to the build system. Both versions of SixTrack (DA and non-DA) executables are now built, and the test folders have been merged.
+* Major changes to collimation and aperture losses. Fixes a number of issues. Results will be different due to improved precision.
+* Completely rewritten input parsing. General changes are:
+  * Allows for blank lines and in-line comments starting with `!`
+  * Allows for indented block content. Block name and NEXT still has to start at the beginning of the line.
+  * Full support for single and double quoted strings.
+  * Note that the parser is now stricter on blocks being properly closed and not repeated (unless repetition of blocks is specifically suported, see the manual.)
+* Solenoid code has been fixed.
+* Fixes to HDF5 and ROOT file output.
+* New SETTINGS block where the PRINT flag has been moved, and where a QUIET flag has been added. The QUIET flag takes an integer number from 0 to 3 that reduces the amount of output generated. A global DEBUG flag has also been added that will cause te input parser to echo back parsed values.
+* Major cleanup of runtime output in general.
+
+**Code Improvements and Changes**
+
+* The custom astuce pre-processor has been removed and everything is now handled by the c pre-processor. This implies that:
+  * Includes are now handled by `#include` statements and the files are located in the include folder. `+cd` blocks are gone.
+  * Nearly all common blocks have been removed and the variables moved into modules.
+* Renamed the folders `SixTrack` to `source` and `SixTest` and `SixTest_da` to `test`.
+* Major cleanup of the source and test folders, and the build target directory is now outside the source folder.
+* Major restructuring of the source code. Mainly the splitting up of old sixtrack.s file into sensible files and converted to modules when reasonable.
+* Started using mod_alloc also for internal subroutine/module arrays. This helps tracking memory usage.
+* Added a completely new string split routine, and started phasing out both the old ones. The new routine uses dynamic array allocation and therefore have no strict limits to size and number of elements.
+* Completely rewritten subroutine daten. All blocks are now parsed line by line in a single fort.2/fort.3 loop. Lines are either parsed in the module corresponding to the given block, or in a separate subroutine in the new module sixtrack_input. Diagnostics and debug routines have been added.
+* Opening of standard SixTrack I/O files are now handled by module mod_units. This is different from the dynamically assigned file units module as these are fixed units with compiler flags for FIO, CRLIBM and BOINC handled internally. This removes the need to specifiy open calls for each set of flags every time a file is opened.
+
+**Disabled or Removed Features**
+
+* Tune-shift corrections have been removed. This also removes the need for NAGLIB.
+* Electron lens is currently disabled, but is planned re-enabled before final release.
+
+### Version 5.0 RC2 [11.06.2018] - Release Candidate
+
+**Bug Fixes and Updates**
+
+* Fixed checkpoint/restarting
+* Updated BOINC
+
+### Version 5.0 RC1 [06.04.2018] - Release Candidate
+
+**User Side Changes**
 
 * DUMP now accepts -1 as file unit input, in which case a unit will be assigned dynamically.
 * Added optional QUIET flag that will stop SixTrack from reporting initial and final values of particle pairs.
 * Fixed the previously broken DA version of the code. Still may have issues with naglib when compiled with gfortran.
 * Added HDF5 block for alternative ouptut for DUMP and Scatter
 
-**Code Internal Changes**
-
-* File units can now be dynamically allocated by the file_units module.
-* Added a strings tools module to do string manipulation.
-* Moved DA version core code to sixda.s90 and tshift_corr.s90.
-
-### Version 5.0 RC1 [06.04.2018] - Release Candidate
-
-Following is only a few key points. Full changelog will be included in final release.
-
-**Code**
+**Code Improvements and Changes**
 
 * SixTrack is now Fortran 2008 Free Form, and depcrecated syntax has been converted or removed.
 * Significant portions of the code has been split out into Fortran modules, including many common blocks.
@@ -33,11 +71,14 @@ Following is only a few key points. Full changelog will be included in final rel
   * thin/thck6dua. Replacd by DYNK. See documenttaion.
 * Currently broken:
   * Electron lens.
+* File units can now be dynamically allocated by the file_units module.
+* Added a strings tools module to do string manipulation.
 
 **Documentation**
 
 * Manual has been completely reformatted and restructured.
 * Documentation still missing or incomplete for several modules.
+
 ### Version 4.7.18 [21.12.2017]
 
 * Fixing the RF multipole elements
