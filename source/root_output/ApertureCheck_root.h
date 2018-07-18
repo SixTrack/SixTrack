@@ -6,6 +6,7 @@
 
 extern "C" void ApertureCheckRootInit();
 extern "C" void ApertureCheckWriteLossParticle(int, int, int, char*, int, double, int, double, double, double, double, double, double, double, int, int);
+extern "C" void ApertureCheckWriteLossParticleF(int, int, int, char*, int, double, int32_t, int32_t, double, double, double, double, double, double, double, double, int, int);
 
 class ApertureCheckRootOutput
 {
@@ -13,7 +14,8 @@ public:
 
 ApertureCheckRootOutput();
 
-void WriteLossParticle(int, int, int, char*, int, double, int, double, double, double, double, double, double, double, int16_t, int16_t);
+void WriteLossParticle(int, int, int, char*, int, double, int, double, double, double, double, double, double, double, int, int);
+void WriteLossParticleF(int, int, int, char*, int, double, int32_t, int32_t, double, double, double, double, double, double, double, double, int, int);
 
 
 private:
@@ -33,8 +35,14 @@ Double_t ct;
 Double_t p;
 Double_t dp;
 
-int16_t na;
-int16_t nz;
+//Ion variables
+int na;
+int nz;
+
+//FLUKA variables
+int32_t fluka_uid;
+int32_t fluka_gen;
+double fluka_weight;
 
 TTree *ApertureLossTree;
 

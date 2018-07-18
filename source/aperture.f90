@@ -82,7 +82,8 @@ module aperture
   integer, save :: iLast, ixLast                   ! indeces of last aperture marker
   integer, save :: iLastThick, ixLastThick         ! indeces of last thick element
   integer, save :: iBckTypeLast                    ! map of back-tracking - it follows kz values, eg:
-                                                   ! 0 : drift (the only one available)
+                                                   ! -1: generic (eg after aperture check)
+                                                   !  0: drift (the only one available)
 
   ! A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-22
   ! x-sec at specific locations
@@ -468,7 +469,9 @@ end subroutine aperture_saveLastMarker
 subroutine aperture_saveLastCoordinates( i, ix, iBack )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
-  ! save particle coordinates at last aperture check
+  ! save particle coordinates:
+  ! - at last aperture check (iBack=-1)
+  ! - at last thick element (iBack>=0)
   !-----------------------------------------------------------------------
 
   use mod_commonmn ! for napx, xv and yv
@@ -1110,13 +1113,20 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
         end if
 #endif
 
-#if defined(ROOT) && defined(COLLIMAT)
+#if defined(ROOT)
 ! root output
         if(root_flag .and. root_ApertureCheck.eq.1) then
           this_name = trim(adjustl(bez(ix))) // C_NULL_CHAR
-          call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos, ipart(j),&
+#if defined(FLUKA)
+          call ApertureCheckWriteLossParticleF(turn, i, ix, this_name, len_trim(this_name), slos, &
+       &  fluka_uid(j), fluka_gen(j), fluka_weight(j), &
        &  xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
        &  -c1m3 * (sigmvlos/clight) * (e0/e0f), naalos, nzzlos)
+#else
+          call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos, plost(j),&
+       &  xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
+       &  -c1m3 * (sigmvlos/clight) * (e0/e0f), naalos, nzzlos)
+#endif
         end if
 #endif
 
