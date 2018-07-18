@@ -17,8 +17,8 @@ source/zlib/install
 source/count.log
 
 # Custom Build Folders
-build/*
-Build/*
+build*/
+Build*/
 
 # LaTeX
 doc/html
