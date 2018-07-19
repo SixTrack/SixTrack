@@ -38,6 +38,10 @@ module mod_fluka
   public :: fluka_parsingDone
   public :: fluka_parseInputLine
 
+#ifdef ROOT
+  public :: root_FLUKA_DumpInsertions
+#endif
+
   ! FlukaIO Connection parameters
   character(len = 255), public  :: fluka_host
   integer, public :: fluka_port
@@ -209,11 +213,27 @@ module mod_fluka
     character(len=255) :: host
     integer :: port
     integer :: net_nfo_unit
+    integer :: ios
 
     call funit_requestUnit(net_nfo_file, net_nfo_unit)
     open(net_nfo_unit, file=net_nfo_file, status='old')
-    read(net_nfo_unit, *) host
-    read(net_nfo_unit, *) port
+    read(unit=net_nfo_unit, fmt=*, iostat=ios) host
+    if(ios .ne. 0) then
+      write(lout,*)
+      write(lout,*) 'FLUKA> Could not read the host name from network.nfo'
+      write(lout,*)
+      call prror(-1)
+    end if
+
+    read(unit=net_nfo_unit, fmt=*, iostat=ios) port
+    if(ios .ne. 0) then
+      write(lout,*)
+      write(lout,*) 'FLUKA> Could not read the port number from network.nfo'
+      write(lout,*) 'FLUKA> Is the FLUKA server running and has it had time to write the port number?'
+      write(lout,*)
+      call prror(-1)
+    end if
+
     close(net_nfo_unit)
 
   end subroutine fluka_read_config
@@ -745,15 +765,7 @@ subroutine fluka_parseInputLine(inLine, iLine, iErr)
   use string_tools
   use mod_common, only : il,bez
 
-#ifdef ROOT
-  use root_output
-#endif
-
   implicit none
-
-#ifdef ROOT
-  character(len=mNameLen+1) this_name
-#endif
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -856,14 +868,6 @@ subroutine fluka_parseInputLine(inLine, iLine, iErr)
       write(fluka_log_unit,"(a,i0)") "# Found exit     Fluka element as SING EL num ",exitIdx
     end if
 
-#ifdef ROOT
-    if(root_flag .and. root_FLUKA.eq.1) then
-      this_name = trim(adjustl(bez(entrIdx))) // C_NULL_CHAR
-      call root_FLUKA_Names(ii, this_name, len_trim(this_name))
-    end if
-#endif
-
-
     ! Wait to find at least one FLUKA insertion before actually enabling the coupling
     if(.not.fluka_enable) fluka_enable = .true.
 
@@ -903,6 +907,40 @@ subroutine fluka_parsingDone
   end if
 
 end subroutine fluka_parsingDone
+
+#ifdef ROOT
+subroutine root_FLUKA_DumpInsertions
+
+  use root_output
+  use mod_common, only : bez
+  use parpro, only : mNameLen, nele
+
+  implicit none
+
+! loop index
+  integer :: k
+
+! fluka id
+  integer(kind=int32) :: ii
+
+! name to go with the fluka id
+  character(len=mNameLen+1) :: this_name
+
+! loop over each element entry
+  do k=0, nele
+!   extract the fluka geo index value, which usually will be 0 for non-insertions
+    ii = fluka_geo_index(k)
+    if(ii .eq. 0) then
+      continue
+    else
+!     this entry exists, so add it to root
+      this_name = trim(adjustl(bez(k))) // C_NULL_CHAR
+      call root_FLUKA_Names(ii, this_name, len_trim(this_name))
+    end if
+  end do
+
+end subroutine root_FLUKA_DumpInsertions
+#endif
 
 end module mod_fluka
 
