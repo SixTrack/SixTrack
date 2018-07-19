@@ -1101,7 +1101,7 @@ subroutine thin4d(nthinerr)
 390   r0=ek(ix)
       nmz=nmu(ix)
       if(nmz.ge.2) then
-        if(dki(ix,3) .gt. pieni) then !The case when there is a fictive length
+        if(dki(ix,3).gt.pieni) then !The case when there is a fictive length
           do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v05.f90"
@@ -1120,12 +1120,14 @@ subroutine thin4d(nthinerr)
           end do
       endif
 #include "include/mul4v07.f90"
+
       else
         do j=1,napx
 #include "include/mul4v08.f90"
         end do
       end if
       goto 620
+
 
 680   continue
       do 690 j=1,napx

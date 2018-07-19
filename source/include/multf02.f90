@@ -1,5 +1,5 @@
 !Here it is in angles because the transformation is afterwards
-if(dki(I,3).gt. pieni) then
+if(dki(I,3).gt. pieni .and. dki(I,1).gt. pieni) then
 !FOX  YV1J=BBI(I,1)+BBI(I,2)*XL+AAI(I,2)*ZL + 
 !FOX  BBI(I,2)*((DKI(I,1)/DKI(I,3))*(XL*XL-0.5*ZL*ZL)*C1M3) ; 
 
