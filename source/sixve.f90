@@ -4,16 +4,19 @@
 !  SUBROUTINE TO SUMMARIZE THE RESULTS OF THE POSTPROCESSING
 !-----------------------------------------------------------------------
 subroutine sumpos
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
   use crcoall
   use parpro
+  use string_tools
+
   implicit none
+
   integer i,ierro,j
-  real(kind=fPrec) d,dlost
+  real(kind=fPrec) d(60), dlost
   character(len=4) ch
-  dimension d(60)
 #ifdef CRLIBM
 !     integer nchars
 !     parameter (nchars=160)
@@ -23,90 +26,91 @@ subroutine sumpos
   parameter (maxf=30)
   parameter (nofields=60)
   character(len=maxf) fields(nofields)
-  integer errno,lineno,nf
+  integer errno,nf
   real(kind=fPrec) fround
-  data lineno /0/
 #endif
+  character(len=:), allocatable :: lnSplit(:)
+  character(len=mInputLn)       :: inLine
+  integer nSplit, ioStat, lineNo
+  logical spErr, fErr
+
   save
-!-----------------------------------------------------------------------
+
   rewind 10
-  do 10 i=1,1000
-    ch=' '
-#ifndef CRLIBM
-    read(10,*,end=20,iostat=ierro) (d(j),j=1,60)
-#endif
-#ifdef CRLIBM
-    read(10,'(A1600)',end=20,iostat=ierro) ch1
-    lineno=lineno+1
-    ch1(1601:1601)='/'
-!       write (*,*) 'ch1:'//ch1//':'
-    call splitfld(errno,10,lineno,nofields,nf,ch1,fields)
-!       write (*,*) ':'//fields(1)//':'
-!       write (*,*) ':'//fields(2)//':'
-!       write (*,*) ':'//fields(3)//':'
-    do j=1,60
-      if (nf.gt.0) then
-        d(j)=fround(errno,fields,j)
-!           write (*,*) 'd(j)',j,d(j)
-        nf=nf-1
-      endif
-    enddo
-#endif
-    if(ierro.gt.0) then
-      write(lout,"(a,i0)") "SUMPOS> ERROR Corrupted input file for summary of the postprocessing error # ",ierro
-      return
-    endif
-    if(i.eq.1) write(lout,10000)
-    if(abs(d(2)).gt.pieni) ch='LOST'
-    if(d(22).ge.d(23)) then
-      dlost=d(23)
+  lineNo = 0
+  do i=1,1000
+    read(10,"(a)",end=20,iostat=ioStat) inLine
+    if(ioStat /= 0) then
+      write(lout,"(a,i0)") "SUMPOS> ERROR Failed to read line from 'fort.10'. iostat = ",ioStat
+      call prror(-1)
+    end if
+  
+    call chr_split(inLine, lnSplit, nSplit, spErr)
+    if(spErr) then
+      write(lout,"(a)") "SUMPOS> ERROR Failed to parse line from 'fort.10'"
+      call prror(-1)
+    end if
+    if(nSplit > 60) then
+      write(lout,"(a,i0)") "SUMPOS> ERROR Too many elements on a single line of 'fort.10'. Max is 60, got ",nSplit
+      call prror(-1)
+    end if
+    lineNo = lineNo+1
+
+    do j=1,nSplit
+      call chr_cast(lnSplit(j),d(j),spErr)
+    end do
+  
+    if(i == 1) write(lout,10000)
+    if(abs(d(2)) >= pieni) ch = "LOST"
+    if(d(22) >= d(23)) then
+      dlost = d(23)
     else
-      dlost=d(22)
-    endif
-    write(lout,10010) nint(dlost),d(3),d(5),d(7),d(9),d(10),d(11),  &
-  &d(12),nint(d(16)),nint(d(18)),d(19),d(21),ch,d(4),d(6),d(8),      &
-  &d(13),nint(d(17)),d(20),d(25),d(14),d(15)
-10 continue
-20 rewind 10
-#ifdef CRLIBM
-  lineno=0
-#endif
+      dlost = d(22)
+    end if
+    write(lout,10010) nint(dlost),d(3),d(5),d(7),d(9),d(10),d(11),d(12),nint(d(16)),nint(d(18)),    &
+      d(19),d(21),ch,d(4),d(6),d(8),d(13),nint(d(17)),d(20),d(25),d(14),d(15)
+  end do
+  20 continue
+  rewind 10
+
+  lineNo = 0
   write(lout,10020)
-  do 30 i=1,1000
-#ifndef CRLIBM
-    read(10,*,end=40,iostat=ierro) (d(j),j=1,60)
-#endif
-#ifdef CRLIBM
-    read(10,'(A1600)',end=40,iostat=ierro) ch1
-    lineno=lineno+1
-    ch1(1601:1601)='/'
-    call splitfld(errno,10,lineno,nofields,nf,ch1,fields)
-    do j=1,60
-      if (nf.gt.0) then
-        d(j)=fround(errno,fields,j)
-!           write (*,*) 'd(j)',j,d(j)
-        nf=nf-1
-      endif
-    enddo
-#endif
-    if(ierro.gt.0) then
-      write(lout,"(a,i0)") "SUMPOS> ERROR Corrupted input file for summary of the postprocessing error # ",ierro
-      return
-    endif
-! Now we are using 60 for CPU in seconds
-! But note that dnms is now found in word 59.
-! and we always print the maximum DMMAC as NMAC
-! or zero which should really be OK I think.
-! N.B. If particle is lost nms is 0, so we set mmac to zero too
-  d(60)=real(nmac,fPrec)
-  if (nint(d(59)).eq.0) d(60)=zero
-  write(lout,10030) i,nint(d(59)),nint(d(60)),                      &
-  &nint(d(59))*nint(d(24))
-30 continue
-40 continue
+  do i=1,1000
+    read(10,"(a)",end=40,iostat=ioStat) inLine
+    if(ioStat /= 0) then
+      write(lout,"(a,i0)") "SUMPOS> ERROR Failed to read line from 'fort.10'. iostat = ",ioStat
+      call prror(-1)
+    end if
+  
+    call chr_split(inLine, lnSplit, nSplit, spErr)
+    if(spErr) then
+      write(lout,"(a)") "SUMPOS> ERROR Failed to parse line from 'fort.10'"
+      call prror(-1)
+    end if
+    if(nSplit > 60) then
+      write(lout,"(a,i0)") "SUMPOS> ERROR Too many elements on a single line of 'fort.10'. Max is 60, got ",nSplit
+      call prror(-1)
+    end if
+    lineNo = lineNo+1
+
+    do j=1,nSplit
+      call chr_cast(lnSplit(j),d(j),spErr)
+    end do
+
+    ! Now we are using 60 for CPU in seconds
+    ! But note that dnms is now found in word 59.
+    ! and we always print the maximum DMMAC as NMAC
+    ! or zero which should really be OK I think.
+    ! N.B. If particle is lost nms is 0, so we set mmac to zero too
+    d(60) = real(nmac,fPrec)
+    if(nint(d(59)) == 0) d(60) = zero
+    write(lout,10030) i,nint(d(59)),nint(d(60)),nint(d(59))*nint(d(24))
+  end do
+
+  40 continue
   write(lout,10040)
-!-----------------------------------------------------------------------
   return
+
 10000 format(/131('-')/t10,'SUMMARY OF THE POSTPROCESSING' //t1,128(    &
   &'-'), /t1,'|',8x,'|',11x,'|',11x,'|',12x,'|',11x,                 &
   &'|NORMALIZED | SLOPE  |',14x,'|',10x,'|',21x,'|', /t1,            &
@@ -132,6 +136,7 @@ subroutine sumpos
   &' SEED'/65('-'))
 10030 format(3x,i2,13x,i2,19x,i2,13x,i8)
 10040 format(65('-')//131('-'))
+
 end subroutine sumpos
 
 !-----------------------------------------------------------------------
