@@ -14,26 +14,13 @@ subroutine sumpos
 
   implicit none
 
-  integer i,ierro,j
-  real(kind=fPrec) d(60), dlost
   character(len=4) ch
-#ifdef CRLIBM
-!     integer nchars
-!     parameter (nchars=160)
-  character(len=1601) ch1
-  ! MAXF be kept in sync with value in function fround
-  integer maxf,nofields
-  parameter (maxf=30)
-  parameter (nofields=60)
-  character(len=maxf) fields(nofields)
-  integer errno,nf
-  real(kind=fPrec) fround
-#endif
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn)       :: inLine
-  integer nSplit, ioStat, lineNo
+  real(kind=fPrec) d(60), dlost
+  integer nSplit, ioStat, lineNo, i, j
   logical spErr, fErr
-
+  
   save
 
   rewind 10

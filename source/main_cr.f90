@@ -143,15 +143,7 @@ end interface
   parameter (nchars=160)
   character(len=nchars) ch
   character(len=nchars+nchars) ch1
-  ! MAXF be kept in sync with value in function fround
-  integer maxf,nofields
-  parameter (maxf=30)
-  parameter (nofields=41)
-  character(len=maxf) fields(nofields)
-  integer errno,lineno,nf
-  real(kind=fPrec) fround
   real(kind=fPrec) round_near
-  data lineno /0/
 #endif
 #ifdef FLUKA
   integer fluka_con
