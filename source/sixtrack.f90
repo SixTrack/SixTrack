@@ -2060,122 +2060,27 @@ subroutine initialize_element(ix,lfirst)
 
 end subroutine initialize_element
 
-#ifdef CRLIBM
-
 subroutine rounderr(errno,fields,f,value)
+
   use floatPrecision
   use crcoall
+
   implicit none
+
   integer errno,f,l
   character(len=*) fields(*)
   character(len=999) localstr
   real(kind=fPrec) value
 
-  write (lout,10000)
-  write (lout,*) 'Data Input Error (probably in subroutine daten)'
-  write (lout,*) 'Overfow/Underflow in strtod()'
-  write (lout,*) 'Errno: ',errno
   l=len(fields(f))
   localstr=fields(f)(1:l)
-  write (lout,*) 'f:fieldf:',f,':'//localstr
-  write (lout,*) 'Function fround (rounderr) returning:',value
+  write (lout,"(a,i0)")     "ROUND> ERROR Data Input Error Overfow/Underflow in round_near. Errno: ",errno
+  write (lout,"(a,i0,a)")   "ROUND>       f:fieldf:",f,":"//localstr
+  write (lout,"(a,e24.16)") "ROUND>       Function fround (rounderr) returning: ",value
 
   call prror(-1)
 
-10000 format(5x//&
-             /t10,'++++++++++++++++++++++++'&
-             /t10,'+++++ERROR DETECTED+++++'&
-             /t10,'++++++++++++++++++++++++'/)
 end subroutine rounderr
-
-! ================================================================================================ !
-!  Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in crlibm
-!  Last modified: 2018-06-27
-! ================================================================================================ !
-integer function dtostr(x,results)
-
-  use floatPrecision
-  use crcoall
-  implicit none
-  real(kind=fPrec) x
-  character(len=24) results
-  integer dtoaf
-  integer ilen,mode,ndigits,decpoint,mysign
-  integer i,l,d,e
-  character(len=1) str(17)
-  character(len=24) lstr
-  character(len=3) e3
-
-  mode=2
-  ndigits=17
-  ilen=dtoaf(x,mode,ndigits,decpoint,mysign,str(1),1)
-  if (ilen.le.0.or.ilen.gt.17) then
-    ! Always returns 17 or less characters as requested
-    write(lout,"(a,i0,a)") "DTOSTR> ERROR Routine dtoa[f] returned string length ",ilen," != 17"
-    call prror(-1)
-  end if
-  lstr=' '
-  do i=1,ilen
-    lstr(i:i)=str(i)
-  enddo
-  ! Now try my formatting
-  d=decpoint
-  e=0
-  l=1
-  lstr=' '
-  if (mysign.ne.0) then
-    lstr(l:l)='-'
-  endif
-  if (decpoint.eq.9999) then
-    ! Infinity or Nan
-    do i=1,ilen
-      lstr(l+i:l+i)=str(i)
-    enddo
-  else
-    ! Pad with zeros
-    do i=ilen+1,17
-      str(i)='0'
-    enddo
-    if (decpoint.le.0) then
-      e=decpoint-1
-      d=1
-    else
-      ! I am using 17 as decision point to avoid dddd.e+eee
-      ! but rather d.ddde+eee
-      if (decpoint.ge.17) then
-        e=decpoint-1
-        d=1
-      else
-        d=decpoint
-      endif
-    endif
-    ! and copy with the decimal point
-    do i=1,17
-      lstr(l+i:l+i)=str(i)
-      if (i.eq.d) then
-        l=l+1
-        lstr(l+i:l+i)='.'
-      endif
-    enddo
-    ! and add exponent e+/-nnn
-    l=20
-    lstr(l:l)='e'
-    l=21
-    lstr(l:l)='+'
-    if (e.lt.0) then
-      lstr(l:l)='-'
-      e=-e
-    endif
-    l=22
-    write (e3,'(I3.3)') e
-    lstr(l:l+2)=e3(1:3)
-  endif
-  results=lstr(1:24)
-  dtostr=24
-  return
-end function dtostr
-
-#endif
 
       subroutine wzset
 !  *********************************************************************
