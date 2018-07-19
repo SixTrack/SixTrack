@@ -143,6 +143,7 @@ CollimationFLUKARootOutput::CollimationFLUKARootOutput()
 	CollimationFLUKATree->Branch("nucleons",&nucleons,"nucleons/I");
 	CollimationFLUKATree->Branch("energy",&energy,"energy/D");
 
+	FLUKANamesTree = new TTree("FLUKA_id","FLUKA_idTree");
 	FLUKANamesTree->Branch("id",&id,"id/I");
 	FLUKANamesTree->Branch("name",name,"name[49]/C");
 }
