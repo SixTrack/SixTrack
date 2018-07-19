@@ -36,6 +36,7 @@ subroutine postpr(nfile)
       use matrix_inv
       use crcoall
       use parpro
+      use string_tools
       use mod_common, only : dpscor,sigcor,icode,idam,its6d, &
            dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad, &
            ipos,iav,iwg,ivox,ivoz,ires,ifh,toptit, &
@@ -95,11 +96,9 @@ subroutine postpr(nfile)
 
       character(len=11) hvs
       character(len=8192) ch
-#ifdef CRLIBM
       character(len=25) ch1
       integer errno,l1,l2
-      integer dtostr
-#endif
+      logical rErr
       dimension tle(nlya),dle(nlya)
       dimension wgh(nlya),biav(nlya),slope(nlya),varlea(nlya)
       dimension xinv(ninv),invx(ninv),zinv(ninv),invz(ninv)
@@ -2227,13 +2226,11 @@ subroutine postpr(nfile)
       enddo
  700  write(10,'(a)',iostat=ierro) ch(:ich)
 #else
-! Now use my new dtostr for portability
       l1=1
       do i=1,60
-! We return the length of the string (always 24)
-        errno=dtostr(sumda(i),ch1)
-        ch(l1:l1+errno)=' '//ch1(1:errno)
-        l1=l1+errno+1
+        call chr_fromReal(sumda(i),ch1,19,2,rErr)
+        ch(l1:l1+25)=' '//ch1(1:25)
+        l1=l1+26
       enddo
       write(10,'(a)',iostat=ierro) ch(1:l1-1)
 #endif
@@ -2682,13 +2679,11 @@ subroutine postpr(nfile)
       enddo
  707  write(10,'(a)',iostat=ierro) ch(:ich)
 #else
-! Now use my new dtostr for portability
       l1=1
       do i=1,60
-! We return the length of the string (always 24)
-        errno=dtostr(sumda(i),ch1)
-        ch(l1:l1+errno)=' '//ch1(1:errno)
-        l1=l1+errno+1
+        call chr_fromReal(sumda(i),ch1,19,2,rErr)
+        ch(l1:l1+25)=' '//ch1(1:25)
+        l1=l1+26
       enddo
       write(10,'(a)',iostat=ierro) ch(1:l1-1)
 #endif
