@@ -2810,7 +2810,6 @@ subroutine comnul
   use elens
   use wire
   use scatter,     only : scatter_comnul
-  use dynk,        only : dynk_comnul
   use fma,         only : fma_comnul
   use dump,        only : dump_comnul
   use zipf,        only : zipf_comnul
@@ -3351,13 +3350,6 @@ subroutine comnul
 !     always in main code
       call aperture_comnul
 
-!--DYNAMIC KICKS--------------------------------------------------------
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 03-09-2014
-!     initialise common
-!     always in main code
-!     - general-purpose variables
-      call dynk_comnul
 !--ZIPF-----------------------------------------------------------------
       call zipf_comnul
 !--SCATTER--------------------------------------------------------------
