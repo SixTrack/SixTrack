@@ -50,6 +50,11 @@ extern "C" void root_FLUKA_EnergyDeposition(int id_in, int16_t nucleons_in, doub
     CollimationFLUKAOutput->CollimatorFLUKARootOutputWrite(id_in, nucleons_in, energy_in);
 }
 
+extern "C" void root_FLUKA_Names(int id_in, char* name_in, int name_len)
+{
+    CollimationFLUKAOutput->FLUKANamesRootOutputWrite(id_in, name_in, name_len);
+}
+
 CollimationRootOutput::CollimationRootOutput()
 {
 //Tree stuff
@@ -137,6 +142,10 @@ CollimationFLUKARootOutput::CollimationFLUKARootOutput()
 	CollimationFLUKATree->Branch("id",&id,"id/I");
 	CollimationFLUKATree->Branch("nucleons",&nucleons,"nucleons/I");
 	CollimationFLUKATree->Branch("energy",&energy,"energy/D");
+
+	FLUKANamesTree = new TTree("FLUKA_id","FLUKA_idTree");
+	FLUKANamesTree->Branch("id",&id,"id/I");
+	FLUKANamesTree->Branch("name",name,"name[49]/C");
 }
 
 void CollimationFLUKARootOutput::CollimatorFLUKARootOutputWrite(int id_in, int16_t nucleons_in, double energy_in)
@@ -147,5 +156,17 @@ void CollimationFLUKARootOutput::CollimatorFLUKARootOutputWrite(int id_in, int16
 	energy = energy_in;
 
 	CollimationFLUKATree->Fill();
+}
+
+void CollimationFLUKARootOutput::FLUKANamesRootOutputWrite(int id_in, char* name_in, int name_len)
+{
+	id = id_in;
+
+    //Ensure upper case
+    std::string temp_name(name_in);
+    std::transform(temp_name.begin(), temp_name.end(), temp_name.begin(), ::toupper);
+    strncpy(name,temp_name.substr(0,name_len).c_str(),name_len);
+
+	FLUKANamesTree->Fill();
 }
 

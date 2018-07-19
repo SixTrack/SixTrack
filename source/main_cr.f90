@@ -431,11 +431,12 @@ end interface
       call SixTrackRootFortranInit
 #endif
 
+#ifdef FLUKA
+  call fluka_mod_init(npart_initial, nele_initial, clight)
+#endif
+
   call daten
 
-#ifdef FLUKA
-  call fluka_mod_init(npart, nele, clight)
-#endif
 #ifdef HDF5
   if(h5_isActive) then
     call h5_openFile()
@@ -639,8 +640,17 @@ end interface
           end if
         end do
       end if
-    end if
+
+#ifdef FLUKA
+     !Must be called after input parsing and root configuration/init is finished.
+     if(root_flag .and. root_FLUKA.eq.1) then
+       call root_FLUKA_DumpInsertions
+     end if
 #endif
+
+   end if
+#endif
+
 #ifdef DEBUG
 !     call dumpbin('aclorb',1,1)
 !     call abend('after  clorb                                      ')
