@@ -27,16 +27,20 @@ subroutine readFort33
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn)       :: inLine
-  integer nSplit
+  integer nSplit, ioStat
   logical spErr, fErr
 
   call units_openUnit(33,"fort.33",.true.,"r",fErr)
 
-  read(33,"(a)") inLine
+  read(33,"(a)",iostat=ioStat) inLine
+  if(ioStat /= 0) then
+    write(lout,"(a,i0)") "READ33> ERROR Failed to read line from 'fort.33'. iostat = ",ioStat
+    call prror(-1)
+  end if
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "READ33> ERROR Failed to parse line from fort.33"
+    write(lout,"(a)") "READ33> ERROR Failed to parse line from 'fort.33'"
     call prror(-1)
   end if
 

@@ -811,6 +811,7 @@ end interface
                 clo6(3)  = zero
                 clop6(3) = zero
               else
+                write(lout,"(a)") "MAINCR> Reading closed orbit guess from fort.33"
                 call readFort33
               end if
               call clorb(zero)
