@@ -302,6 +302,7 @@ list(APPEND FORT90_LIB
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist scatter dump dynk
 	aperture mod_fluc beam6d_fox six_fox postprocessing
+	read_input
 )
 
 # Files unique to DA or CR version

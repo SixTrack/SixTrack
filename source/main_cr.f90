@@ -72,6 +72,7 @@ program maincr
   use mod_alloc,      only : alloc_init
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
+  use read_input,     only : readFort33
 
 #ifdef FLUKA
   use mod_fluka
@@ -351,7 +352,6 @@ end interface
 ! call units_openUnit(unit=30,fileName="fort.30",formatted=.true., mode="r", err=fErr) ! Handled by mod_fluc
   call units_openUnit(unit=31,fileName="fort.31",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=32,fileName="fort.32",formatted=.false.,mode="w", err=fErr)
-! call units_openUnit(unit=33,fileName="fort.33",formatted=.true., mode="w", err=fErr) ! Not in use?
   call units_openUnit(unit=34,fileName="fort.34",formatted=.true., mode="w", err=fErr)
 ! call units_openUnit(unit=35,fileName="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
 
@@ -800,75 +800,35 @@ end interface
           endif
           dp10=dp1
 !-----------------------------------------------------------------------
-          if(idp.ne.1.or.iation.ne.1) iclo6=0
-          if (iclo6.eq.1.or.iclo6.eq.2) then
-            if(ib.eq.1) then
-              if(iclo6r.eq.0) then
-                clo6(1)=clo(1)
-                clop6(1)=clop(1)
-                clo6(2)=clo(2)
-                clop6(2)=clop(2)
-                clo6(3)=zero
-                clop6(3)=zero
+          if(idp /= 1 .or. iation /= 1) iclo6=0
+          if(iclo6 == 1 .or. iclo6 == 2) then
+            if(ib == 1) then
+              if(iclo6r == 0) then
+                clo6(1)  = clo(1)
+                clop6(1) = clop(1)
+                clo6(2)  = clo(2)
+                clop6(2) = clop(2)
+                clo6(3)  = zero
+                clop6(3) = zero
               else
-#ifdef FIO
-#ifdef CRLIBM
-              call enable_xp()
-#endif
-              read(33,*,round='nearest') (clo6(l),clop6(l), l=1,3)
-#ifdef CRLIBM
-              call disable_xp()
-#endif
-#else
-#ifndef CRLIBM
-              read(33,*) (clo6(l),clop6(l), l=1,3)
-#else
-              read(33,*) ch
-              lineno=lineno+1
-              ch1(:nchars+3)=ch(:nchars)//' / '
-              call splitfld(errno,33,lineno,nofields,nf,ch1,fields)
-              do l=1,3
-                if (nf.gt.0) then
-                  clo6(l)=fround(errno,fields,l*2-1)
-                  nf=nf-1
-                endif
-                if (nf.gt.0) then
-                  clop6(l)=fround(errno,fields,l*2)
-                  nf=nf-1
-                endif
-              enddo
-#endif
-#endif
-            endif
-            call clorb(zero)
-            call betalf(zero,qw)
-            call phasad(zero,qwc)
-            sigm(1)=clo6(3)
-            dps(1)=clop6(3)
-#ifdef DEBUG
-!     call dumpbin('bqmodda',1,3)
-!     call abend('before qmodda 1 3                                 ')
-!     write(*,*) '1st call qmodda'
-#endif
-            call qmodda(3,qwc)
-#ifdef DEBUG
-!     call dumpbin('aqmodda',1,3)
-!     call abend('after  qmodda 1 3                                 ')
-#endif
-            if(ilin.ge.2) then
-              nlinoo=nlin
-              nlin=nlino
-              ilinc=1
-              call mydaini(2,2,6,3,6,1)
-              nlin=nlinoo
-            endif
-            dp1=dp10+clop6(3)
-#ifdef DEBUG
-!     call dumpbin('ecdclor6',1,3)
-!     call abend('end cd clor6                                      ')
-#endif
-            endif
-            if(iqmod6.eq.1) then
+                call readFort33
+              end if
+              call clorb(zero)
+              call betalf(zero,qw)
+              call phasad(zero,qwc)
+              sigm(1) = clo6(3)
+              dps(1)  = clop6(3)
+              call qmodda(3,qwc)
+              if(ilin >= 2) then
+                nlinoo = nlin
+                nlin   = nlino
+                ilinc  = 1
+                call mydaini(2,2,6,3,6,1)
+                nlin   = nlinoo
+              end if
+              dp1 = dp10+clop6(3)
+            end if
+            if(iqmod6 == 1) then
               do ncrr=1,iu
                 ix=ic(ncrr)
                 if(ix.gt.nblo) ix=ix-nblo
