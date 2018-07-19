@@ -40,11 +40,12 @@ subroutine units_openUnit(unit,fileName,formatted,mode,err,status,recl)
   integer i, fRecl, nUnits
   logical fFio, isOpen
 
-  inquire(unit=unit, opened=isOpen)
-  if(isOpen) then
-    write(lout,"(a,i0,a)") "UNITS> WARNING Attemting to open already opened unit ",unit," ... ignoring"
-    return
-  end if
+  ! The code below breaks CR. Must look into later.
+  ! inquire(unit=unit, opened=isOpen)
+  ! if(isOpen) then
+  !   write(lout,"(a,i0,a)") "UNITS> WARNING Attemting to open already opened unit ",unit," ... ignoring"
+  !   return
+  ! end if
 
   nUnits      = size(units_uList)
   units_nList = units_nList + 1
