@@ -293,23 +293,24 @@ subroutine trauthin(nthinerr)
           end if
           ktrack(i) = 31
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
-            ktrack(i) = 33
+          if(abs(dki(ix,3)).gt.pieni) then 
+            ktrack(i) = 33 !Horizontal Bend with a fictive length
 #include "include/stra11.f90"
           else
-            ktrack(i) = 35
+            ktrack(i) = 35 !Horizontal Bend without a ficitve length
 #include "include/stra12.f90"
           end if
-        else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
-            ktrack(i) = 37
+        else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then 
+          if(abs(dki(ix,3)).gt.pieni) then 
+            ktrack(i) = 37 !Vertical bending with fictive length
 #include "include/stra13.f90"
           else
-            ktrack(i) = 39
+            ktrack(i) = 39 !Vertical bending without fictive length
 #include "include/stra14.f90"
           end if
         end if
       else
+      !These are the same as above with the difference that they also will have multipoles associated with them. 
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           ktrack(i) = 32
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
@@ -1100,7 +1101,8 @@ subroutine thin4d(nthinerr)
 390   r0=ek(ix)
       nmz=nmu(ix)
       if(nmz.ge.2) then
-        do j=1,napx
+        if(dki(ix,3) .gt. pieni) then !The case when there is a fictive length
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v05.f90"
           do k=3,nmz
@@ -1108,6 +1110,16 @@ subroutine thin4d(nthinerr)
           end do
 #include "include/mul4v07.f90"
         end do
+      else
+          do j=1,napx
+#include "include/alignvb.f90"
+#include "include/mul4v05_length0.f90"
+            do k=3,nmz
+#include "include/mul4v06.f90"
+            end do
+          end do
+      endif
+#include "include/mul4v07.f90"
       else
         do j=1,napx
 #include "include/mul4v08.f90"
