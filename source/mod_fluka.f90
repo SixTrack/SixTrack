@@ -933,9 +933,13 @@ subroutine root_FLUKA_DumpInsertions
     if(ii .eq. 0) then
       continue
     else
-!     this entry exists, so add it to root
-      this_name = trim(adjustl(bez(k))) // C_NULL_CHAR
-      call root_FLUKA_Names(ii, this_name, len_trim(this_name))
+
+      if(fluka_type(k) .eq. FLUKA_ENTRY) then
+!       this entry exists, so add it to root
+        this_name = trim(adjustl(bez(k))) // C_NULL_CHAR
+        call root_FLUKA_Names(ii, this_name, len_trim(this_name))
+      end if
+
     end if
   end do
 
