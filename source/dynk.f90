@@ -64,9 +64,6 @@ module dynk
   ! Similar to dynk_cSets, but only one entry per elem/attr
   character(len=:), allocatable, public,  save :: dynk_cSets_unique(:,:)
 
-  ! Store original value from dynk
-  real(kind=fPrec), allocatable, private, save :: dynk_fSets_orig(:)
-
   ! Some elements (multipoles) overwrites the general settings info when initialized.
   ! Store this information on the side.
   ! Also used by setvalue and getvalue
@@ -129,7 +126,6 @@ subroutine dynk_allocate
 
   call alloc(dynk_cSets,       mStrLen,dynk_maxSets,2, str_dSpace,"dynk_cSets")
   call alloc(dynk_cSets_unique,mStrLen,dynk_maxSets,2, str_dSpace,"dynk_cSets_unique")
-  call alloc(dynk_fSets_orig,          dynk_maxSets,   zero,      "dynk_fSets_orig")
 #ifdef CR
   call alloc(dynk_fSets_cr,            dynk_maxSets,   zero,      "dynk_fSets_cr")
 #endif
@@ -1711,7 +1707,6 @@ subroutine dynk_parseSET(inLine, iErr)
     dynk_maxSets = dynk_maxSets + 10
     call alloc(dynk_cSets,       mStrLen,dynk_maxSets,2, str_dSpace,"dynk_cSets")
     call alloc(dynk_cSets_unique,mStrLen,dynk_maxSets,2, str_dSpace,"dynk_cSets_unique")
-    call alloc(dynk_fSets_orig,          dynk_maxSets,   zero,      "dynk_fSets_orig")
 #ifdef CR
     call alloc(dynk_fSets_cr,            dynk_maxSets,   zero,      "dynk_fSets_cr")
 #endif
@@ -1981,13 +1976,6 @@ subroutine dynk_dumpdata
                        "'"//trim(stringzerotrim(dynk_cSets(ii,1)))// &
                        "' ", "'"//trim(stringzerotrim(dynk_cSets(ii,2)))//"'"
     end do
-    write (lout,*) "dynk_cSets_unique: (",dynk_nSets_unique,")"
-    do ii=1,dynk_nSets_unique
-        write(lout, '(1x,I8,1x,A,1x,E16.9)') ii, ": '"// &
-            trim(stringzerotrim(dynk_cSets_unique(ii,1)))//"' '"// &
-            trim(stringzerotrim(dynk_cSets_unique(ii,2)))//"' = ", &
-            dynk_fSets_orig(ii)
-    end do
 
     write (lout,*) "*************************************************"
 
@@ -2117,9 +2105,6 @@ subroutine dynk_pretrack
                 write (lout,*) "DYNK> Insane: Element '",element_name_s,"' was not found"
                 call prror(-1)
             end if
-
-            ! Store original value of data point
-            dynk_fSets_orig(dynk_nSets_unique) = dynk_getvalue(dynk_cSets(ii,1),dynk_cSets(ii,2))
         end if
     end do
 
@@ -2156,10 +2141,6 @@ subroutine dynk_apply(turn)
     use mod_common
     use mod_commont
     use mod_commonmn
-
-#ifdef COLLIMAT
-    use collimation
-#endif
 
     implicit none
 
@@ -2244,9 +2225,6 @@ subroutine dynk_apply(turn)
         end do ! END "do ii=1, dynk_nFuncs"
 
         ! Open dynksets.dat
-! #ifdef COLLIMAT
-!         if (samplenumber.eq.1) then
-! #endif
 #ifdef CR
         ! Could have loaded a CR just before tracking starts;
         ! In this case, the dynksets is already open and positioned,
@@ -2280,28 +2258,6 @@ subroutine dynk_apply(turn)
             backspace(dynk_fileUnit,iostat=ierro)
           end if ! END if(dynk_filePos.eq.-1)
 #endif
-! #ifdef COLLIMAT
-!         end if !END if(samplenumber.eq.1)
-
-!         ! Reset values to original settings in turn 1
-!         if (samplenumber.gt.1) then
-!             if (dynk_debug) then
-!                 write (lout,*) "DYNKDEBUG> New collimat sample, ", &
-!                                "samplenumber = ",samplenumber,"resetting the SET'ed values."
-!             end if
-!             do ii=1, dynk_nSets_unique
-!                 newValue = dynk_fSets_orig(ii)
-!                 if (dynk_debug) then
-!                     write (lout,*) "DYNKDEBUG> Resetting: '", &
-!                                    trim(stringzerotrim(dynk_cSets_unique(ii,1))), &
-!                                    "':'",trim(stringzerotrim(dynk_cSets_unique(ii,2))), &
-!                                    "', newValue=", newValue
-!                 end if
-
-!                 call dynk_setvalue(dynk_cSets_unique(ii,1),dynk_cSets_unique(ii,2),newValue)
-!             end do
-!         end if !END "if (samplenumber.gt.1) then"
-! #endif
     end if ! END "if (turn .eq. 1) then"
 
     ! Apply the sets
@@ -2347,9 +2303,6 @@ subroutine dynk_apply(turn)
 
     ! Write output file
     if (.not.dynk_noDynkSets) then
-! #ifdef COLLIMAT
-!       if (samplenumber.eq.1) then
-! #endif
         do jj=1,dynk_nSets_unique
             getvaldata = dynk_getvalue(dynk_cSets_unique(jj,1),dynk_cSets_unique(jj,2))
 
@@ -2378,9 +2331,6 @@ subroutine dynk_apply(turn)
         ! Flush the unit
         endfile(dynk_fileUnit,iostat=ierro)
         backspace(dynk_fileUnit,iostat=ierro)
-! #ifdef COLLIMAT
-!       end if
-! #endif
     end if
 
 end subroutine dynk_apply
