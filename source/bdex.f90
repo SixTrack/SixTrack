@@ -498,24 +498,28 @@ subroutine bdex_track(i,ix,n)
       !Read back particles
       read(bdex_channels(bdex_elementChannel(ix),4),*) j
 
-      if ( j .eq. -1 ) then
+      if ( j == -1 ) then
         !Don't change the distribution at all
         if (bdex_debug) then
           write(lout,"(a)") "BDEX> DEBUG No change in distribution."
         endif
       else
-        if (j.gt.npart) then
-        call expand_arrays(nele, j, nblz, nblo)
+        ! TODO: Handle j < npart
+        if (j > npart) then
+          call expand_arrays(nele, j, nblz, nblo)
+          ! TODO: Initialise per-particle optics variables
         endif
         napx=j
         if (bdex_debug) then
-          write(lout,"(a,i0,a)") "BDEX> DEBUG Reading",napx," particles back."
+          write(lout,"(a,i0,a)") "BDEX> DEBUG Reading ",napx," particles back."
         endif
         do j=1,napx
           read(bdex_channels(bdex_elementChannel(ix),4),*) &
                 xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j), &
                 ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j), &
                 dpsv1(j),nlostp(j)
+          ! TODO: Handle secondary particle tracking arrays properly
+          ! TODO: CRLIBM
         enddo
       endif
 
@@ -523,8 +527,8 @@ subroutine bdex_track(i,ix,n)
     endif
 
   else
-      write(lout,"(a,i0,a)") "BDEX> ERROR elementAction = ",bdex_elementAction(i)," not understood."
-      call prror(-1)
+    write(lout,"(a,i0,a)") "BDEX> ERROR elementAction = ",bdex_elementAction(i)," not understood."
+    call prror(-1)
   endif
 
 end subroutine bdex_track
