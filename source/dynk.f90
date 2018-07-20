@@ -2177,7 +2177,7 @@ subroutine dynk_apply(turn)
     ! Temp variable for padding the strings for output to dynksets.dat
     character(20) outstring_tmp1,outstring_tmp2,outstring_tmp3
 
-    integer, parameter :: samplenumber = 1
+    ! integer, parameter :: samplenumber = 1
 
     if ( dynk_debug ) then
       write (lout,*) 'DYNKDEBUG> In dynk_apply(), turn = ',turn
@@ -2238,9 +2238,9 @@ subroutine dynk_apply(turn)
         end do ! END "do ii=1, dynk_nFuncs"
 
         ! Open dynksets.dat
-#ifdef COLLIMAT
-        if (samplenumber.eq.1) then
-#endif
+! #ifdef COLLIMAT
+!         if (samplenumber.eq.1) then
+! #endif
 #ifdef CR
         ! Could have loaded a CR just before tracking starts;
         ! In this case, the dynksets is already open and positioned,
@@ -2274,28 +2274,28 @@ subroutine dynk_apply(turn)
             backspace(dynk_fileUnit,iostat=ierro)
           end if ! END if(dynk_filePos.eq.-1)
 #endif
-#ifdef COLLIMAT
-        end if !END if(samplenumber.eq.1)
+! #ifdef COLLIMAT
+!         end if !END if(samplenumber.eq.1)
 
-        ! Reset values to original settings in turn 1
-        if (samplenumber.gt.1) then
-            if (dynk_debug) then
-                write (lout,*) "DYNKDEBUG> New collimat sample, ", &
-                               "samplenumber = ",samplenumber,"resetting the SET'ed values."
-            end if
-            do ii=1, dynk_nSets_unique
-                newValue = dynk_fSets_orig(ii)
-                if (dynk_debug) then
-                    write (lout,*) "DYNKDEBUG> Resetting: '", &
-                                   trim(stringzerotrim(dynk_cSets_unique(ii,1))), &
-                                   "':'",trim(stringzerotrim(dynk_cSets_unique(ii,2))), &
-                                   "', newValue=", newValue
-                end if
+!         ! Reset values to original settings in turn 1
+!         if (samplenumber.gt.1) then
+!             if (dynk_debug) then
+!                 write (lout,*) "DYNKDEBUG> New collimat sample, ", &
+!                                "samplenumber = ",samplenumber,"resetting the SET'ed values."
+!             end if
+!             do ii=1, dynk_nSets_unique
+!                 newValue = dynk_fSets_orig(ii)
+!                 if (dynk_debug) then
+!                     write (lout,*) "DYNKDEBUG> Resetting: '", &
+!                                    trim(stringzerotrim(dynk_cSets_unique(ii,1))), &
+!                                    "':'",trim(stringzerotrim(dynk_cSets_unique(ii,2))), &
+!                                    "', newValue=", newValue
+!                 end if
 
-                call dynk_setvalue(dynk_cSets_unique(ii,1),dynk_cSets_unique(ii,2),newValue)
-            end do
-        end if !END "if (samplenumber.gt.1) then"
-#endif
+!                 call dynk_setvalue(dynk_cSets_unique(ii,1),dynk_cSets_unique(ii,2),newValue)
+!             end do
+!         end if !END "if (samplenumber.gt.1) then"
+! #endif
     end if ! END "if (turn .eq. 1) then"
 
     ! Apply the sets
@@ -2341,9 +2341,9 @@ subroutine dynk_apply(turn)
 
     ! Write output file
     if (.not.dynk_noDynkSets) then
-#ifdef COLLIMAT
-      if (samplenumber.eq.1) then
-#endif
+! #ifdef COLLIMAT
+!       if (samplenumber.eq.1) then
+! #endif
         do jj=1,dynk_nSets_unique
             getvaldata = dynk_getvalue(dynk_cSets_unique(jj,1),dynk_cSets_unique(jj,2))
 
@@ -2372,9 +2372,9 @@ subroutine dynk_apply(turn)
         ! Flush the unit
         endfile(dynk_fileUnit,iostat=ierro)
         backspace(dynk_fileUnit,iostat=ierro)
-#ifdef COLLIMAT
-      end if
-#endif
+! #ifdef COLLIMAT
+!       end if
+! #endif
     end if
 
 end subroutine dynk_apply
