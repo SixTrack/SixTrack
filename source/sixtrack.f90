@@ -2060,265 +2060,27 @@ subroutine initialize_element(ix,lfirst)
 
 end subroutine initialize_element
 
-#ifdef CRLIBM
-
-subroutine splitfld(errno,nunit,lineno,nfields,nf,chars,fields)
-      use floatPrecision
-      use crcoall
-      implicit none
-      integer errno,nunit,lineno,nfields,nf,i,j,k,l,lf
-      character(len=*) chars
-      character(len=*) fields(*)
-      character(len=999) localstr
-!     This routine splits the chars input into space separated
-!     fields, up to nfields maximum. It returns the no of
-!     fields in nf. All spaces are ignored but treated as separators.
-!     A / is a line terminator as provided in ch1 typically.
-!     This corresponds to Fortran treatment with an * format spec.
-
-      j=0
-      nf=0
-      do i=1,nfields
-        fields(i)=' '
-
-        ! Get the length we can use to store a field,
-        ! should be equal to maxf in the calling function
-        lf=len(fields(i))
-
- 8889   k=0   !Index into the current field; goto label for new field or no field yet
- 8888   j=j+1 !Index into the input array; goto label for reading another character
-        ! Check that we stay within the given length of chars
-        if (j.gt.len(chars)) then
-          errno=1
-          go to 8887
-        endif
-
-        !Don't start a new field before we hit a non-space
-        if (k.eq.0.and.chars(j:j).eq.' ') go to 8888
-
-        if (chars(j:j).ne.' '.and.chars(j:j).ne.'/') then
-          !We have a field
-          k=k+1
-          if (k.ge.lf) then
-            !Field is too long;
-            ! remember that the last position (#lf in FORTRAN, lf-1 in C)
-            ! is reseved for a \0, to be used in the C code.
-            do j=1,nf
-              l=len(fields(j))
-              localstr=fields(j)(1:l)
-              write(lout,*) 'splitfld:'//localstr(1:lf)//':'
-            enddo
-            errno=2
-            call spliterr(errno,nunit,lineno,nfields,lf,chars)
-          endif
-          fields(i)(k:k)=chars(j:j)
-          go to 8888
-        else
-          if (chars(j:j).eq.'/') then
-! we are all through but may have a field
-            if (k.ne.0) nf=nf+1
-! Eric for debug
-!     do j=1,nf
-!       l=len(fields(j)
-!       localstr=fields(j)(1:l)
-!       write(*,*) 'splitfld:'//localstr)//':'
-!     enddo
-            return
-          else
-! Must have a space, field separator
-            nf=nf+1
-          endif
-        endif
-      enddo
-
- 8890 continue
-! If we get here we have a problem unless there
-! is nothing left but ' '*/
- 8886 j=j+1
-      if (j.gt.len(chars)) go to 8887
-      if (chars(j:j).eq.'/') return
-      if (chars(j:j).eq.' ') go to 8886
-      errno=3
- 8887 continue
-! Eric for debug
-      do j=1,nf
-        l=len(fields(j))
-        localstr=fields(j)(1:l)
-        write(lout,*) 'splitfld:'//localstr//':'
-      enddo
-      call spliterr(errno,nunit,lineno,nfields,lf,chars)
-end subroutine splitfld
-
-real(kind=fPrec) function fround(errno,fields,f)
-  ! This is also implemented in module string_tools
-  !   as functions str_toReal and chr_toReal
-  use floatPrecision
-  implicit none
-  integer maxf
-  ! MAXF be kept in sync with maxf in various routines
-  ! We maybe should use len(field(f)) here, like is done in splitfld...
-  parameter (maxf=30)
-  integer errno,f
-  character(len=*) fields(*)
-  real(kind=real64) round_near,value
-  real(kind=real64) ftemp
-  ftemp=round_near(errno,maxf,fields(f))
-  fround=real(ftemp,fPrec)
-
-  if (errno.ne.0) then
-    value=fround
-    call rounderr(errno,fields,f,value)
-  endif
-  return
-end function fround
-
 subroutine rounderr(errno,fields,f,value)
+
   use floatPrecision
   use crcoall
+
   implicit none
+
   integer errno,f,l
   character(len=*) fields(*)
   character(len=999) localstr
   real(kind=fPrec) value
 
-  write (lout,10000)
-  write (lout,*) 'Data Input Error (probably in subroutine daten)'
-  write (lout,*) 'Overfow/Underflow in strtod()'
-  write (lout,*) 'Errno: ',errno
   l=len(fields(f))
   localstr=fields(f)(1:l)
-  write (lout,*) 'f:fieldf:',f,':'//localstr
-  write (lout,*) 'Function fround (rounderr) returning:',value
+  write (lout,"(a,i0)")     "ROUND> ERROR Data Input Error Overfow/Underflow in round_near. Errno: ",errno
+  write (lout,"(a,i0,a)")   "ROUND>       f:fieldf:",f,":"//localstr
+  write (lout,"(a,e24.16)") "ROUND>       Function fround (rounderr) returning: ",value
 
   call prror(-1)
 
-10000 format(5x//&
-             /t10,'++++++++++++++++++++++++'&
-             /t10,'+++++ERROR DETECTED+++++'&
-             /t10,'++++++++++++++++++++++++'/)
 end subroutine rounderr
-
-subroutine spliterr(errno,nunit,lineno,nfields,lf,chars)
-
-      use crcoall
-      implicit none
-      integer errno,nunit,lineno,nfields,lf,l
-      character(len=*) chars
-      character(len=999) localstr
-      write (lout,10000)
-      write (lout,*) 'Data Input Error (probably in subroutine daten)'
-      write (lout,*) 'Reading unit no (fort.)',nunit,' Line',lineno
-      l=len(chars)
-      localstr=chars(1:l)
-      write (lout,*) 'Input line:'//localstr//':'
-      if (errno.eq.1) then
-        write (lout,*)                                                     &
-     &  'Input string too long, exceeds',len(chars),' characters'
-      endif
-      if (errno.eq.2) then
-        write (lout,*)                                                     &
-     &  'Field too long, exceeds',lf,' characters'
-      endif
-      if (errno.eq.3) then
-        write (lout,*)                                                     &
-     &  'Too many input fields, maximum of',nfields,' exceeded'
-      endif
-
-      call prror(-1)
-
-10000 format(5x///t10,'++++++++++++++++++++++++'/ t10,                  &
-     &'+++++ERROR DETECTED+++++'/ t10,'++++++++++++++++++++++++'/ t10)
-! Never returns
-end subroutine spliterr
-
-! ================================================================================================ !
-!  Uses the dtoa_c.c version of dtoa via the dtoaf.c interface in crlibm
-!  Last modified: 2018-06-27
-! ================================================================================================ !
-integer function dtostr(x,results)
-
-  use floatPrecision
-  use crcoall
-  implicit none
-  real(kind=fPrec) x
-  character(len=24) results
-  integer dtoaf
-  integer ilen,mode,ndigits,decpoint,mysign
-  integer i,l,d,e
-  character(len=1) str(17)
-  character(len=24) lstr
-  character(len=3) e3
-
-  mode=2
-  ndigits=17
-  ilen=dtoaf(x,mode,ndigits,decpoint,mysign,str(1),1)
-  if (ilen.le.0.or.ilen.gt.17) then
-    ! Always returns 17 or less characters as requested
-    write(lout,"(a,i0,a)") "DTOSTR> ERROR Routine dtoa[f] returned string length ",ilen," != 17"
-    call prror(-1)
-  end if
-  lstr=' '
-  do i=1,ilen
-    lstr(i:i)=str(i)
-  enddo
-  ! Now try my formatting
-  d=decpoint
-  e=0
-  l=1
-  lstr=' '
-  if (mysign.ne.0) then
-    lstr(l:l)='-'
-  endif
-  if (decpoint.eq.9999) then
-    ! Infinity or Nan
-    do i=1,ilen
-      lstr(l+i:l+i)=str(i)
-    enddo
-  else
-    ! Pad with zeros
-    do i=ilen+1,17
-      str(i)='0'
-    enddo
-    if (decpoint.le.0) then
-      e=decpoint-1
-      d=1
-    else
-      ! I am using 17 as decision point to avoid dddd.e+eee
-      ! but rather d.ddde+eee
-      if (decpoint.ge.17) then
-        e=decpoint-1
-        d=1
-      else
-        d=decpoint
-      endif
-    endif
-    ! and copy with the decimal point
-    do i=1,17
-      lstr(l+i:l+i)=str(i)
-      if (i.eq.d) then
-        l=l+1
-        lstr(l+i:l+i)='.'
-      endif
-    enddo
-    ! and add exponent e+/-nnn
-    l=20
-    lstr(l:l)='e'
-    l=21
-    lstr(l:l)='+'
-    if (e.lt.0) then
-      lstr(l:l)='-'
-      e=-e
-    endif
-    l=22
-    write (e3,'(I3.3)') e
-    lstr(l:l+2)=e3(1:3)
-  endif
-  results=lstr(1:24)
-  dtostr=24
-  return
-end function dtostr
-
-#endif
 
       subroutine wzset
 !  *********************************************************************
