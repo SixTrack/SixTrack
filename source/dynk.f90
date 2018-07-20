@@ -722,8 +722,8 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 #endif
         read(gFields(8)(1:lFields(8)),*) dynk_iData(dynk_niData+2) ! mcut
 
-        dynk_iData(dynk_niData+3) = 0 ! seed1 (current)
-        dynk_iData(dynk_niData+4) = 0 ! seed2 (current)
+        dynk_iData(dynk_niData+3) = dynk_iData(dynk_niData)   ! seed1 (current)
+        dynk_iData(dynk_niData+4) = dynk_iData(dynk_niData+1) ! seed2 (current)
 
         dynk_niData = dynk_niData+4
         dynk_nfData = dynk_nfData+1
@@ -763,8 +763,8 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
         read(gFields(4)(1:lFields(4)),*) dynk_iData(dynk_niData)   ! seed1 (initial)
         read(gFields(5)(1:lFields(5)),*) dynk_iData(dynk_niData+1) ! seed2 (initial)
 
-        dynk_iData(dynk_niData+2) = 0 ! seed1 (current)
-        dynk_iData(dynk_niData+3) = 0 ! seed2 (current)
+        dynk_iData(dynk_niData+2) = dynk_iData(dynk_niData)   ! seed1 (current)
+        dynk_iData(dynk_niData+3) = dynk_iData(dynk_niData+1) ! seed2 (current)
 
         dynk_niData = dynk_niData+3
 
@@ -796,8 +796,8 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
         read(gFields(5)(1:lFields(5)),*) dynk_iData(dynk_niData+1) ! seed2 (initial)
         read(gFields(6)(1:lFields(6)),*) dynk_fData(dynk_nfData)   ! P
 
-        dynk_iData(dynk_niData+2) = 0 ! seed1 (current)
-        dynk_iData(dynk_niData+3) = 0 ! seed2 (current)
+        dynk_iData(dynk_niData+2) = dynk_iData(dynk_niData)        ! seed1 (current)
+        dynk_iData(dynk_niData+3) = dynk_iData(dynk_niData+1)      ! seed2 (current)
 
         dynk_niData = dynk_niData+3
 
@@ -1016,16 +1016,16 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
             dynk_nfData = dynk_nfData+1
             dynk_fData(dynk_nfData) = x      ! b_i
             dynk_nfData = dynk_nfData+1
-            dynk_fData(dynk_nfData) = 0.0    ! x[n-1], will be initialized in dynk_apply()
+            dynk_fData(dynk_nfData) = y      ! x[n-1]
             dynk_nfData = dynk_nfData+1
-            dynk_fData(dynk_nfData) = y      ! x_init[n-i]
+            dynk_fData(dynk_nfData) = y      ! x_init[n-i] (Not really needed anymore, but fixing allignment is painfull)
             if (.not.isFIR) then
                 dynk_nfData = dynk_nfData+1
                 dynk_fData(dynk_nfData) = z   ! a_i
                 dynk_nfData = dynk_nfData+1
-                dynk_fData(dynk_nfData) = 0.0 ! y[n-i], will be initialized in dynk_apply()
+                dynk_fData(dynk_nfData) = u ! y[n-i]
                 dynk_nfData = dynk_nfData+1
-                dynk_fData(dynk_nfData) = u   ! y_init[n-i]
+                dynk_fData(dynk_nfData) = u   ! y_init[n-i]  (Not really needed anymore, but fixing allignment is painfull)
             end if
         end do
         close(dynk_fileUnitFUN)
@@ -2180,50 +2180,6 @@ subroutine dynk_apply(turn)
 
     ! First-turn initialization, including some parts which are specific for collimat.
     if (turn .eq. 1) then
-        ! Reset RNGs and filters
-        do ii=1, dynk_nFuncs
-            if (dynk_funcs(ii,2) .eq. 6) then ! RANDG
-                if (dynk_debug) then
-                    write (lout,*) "DYNKDEBUG> Resetting RANDG for FUN named '", &
-                                   trim(stringzerotrim(dynk_cData(dynk_funcs(ii,1)))),"'"
-                end if
-                dynk_iData(dynk_funcs(ii,3)+3) = dynk_iData(dynk_funcs(ii,3))
-                dynk_iData(dynk_funcs(ii,3)+4) = dynk_iData(dynk_funcs(ii,3)+1)
-            else if (dynk_funcs(ii,2) .eq. 7) then ! RANDU
-                if (dynk_debug) then
-                    write (lout,*) "DYNKDEBUG> Resetting RANDU for FUN named '", &
-                                   trim(stringzerotrim(dynk_cData(dynk_funcs(ii,1)))),"'"
-                end if
-                dynk_iData(dynk_funcs(ii,3)+2) = dynk_iData(dynk_funcs(ii,3))
-                dynk_iData(dynk_funcs(ii,3)+3) = dynk_iData(dynk_funcs(ii,3)+1)
-            else if (dynk_funcs(ii,2) .eq. 8) then ! RANDON
-                if (dynk_debug) then
-                    write (lout,*) "DYNKDEBUG> Resetting RANDON for FUN named '", &
-                                   trim(stringzerotrim(dynk_cData(dynk_funcs(ii,1)))),"'"
-                end if
-                dynk_iData(dynk_funcs(ii,3)+2) = dynk_iData(dynk_funcs(ii,3))
-                dynk_iData(dynk_funcs(ii,3)+3) = dynk_iData(dynk_funcs(ii,3)+1)
-            else if (dynk_funcs(ii,2) .eq. 10) then ! FIR
-                if (dynk_debug) then
-                    write (lout,*) "DYNKDEBUG> Resetting FIR named '", &
-                                   trim(stringzerotrim(dynk_cData(dynk_funcs(ii,1)))),"'"
-                end if
-                do jj=0, dynk_funcs(ii,4)
-                    dynk_fData(dynk_funcs(ii,3)+jj*3+1) = dynk_fData(dynk_funcs(ii,3)+jj*3+2)
-                end do
-            else if (dynk_funcs(ii,2) .eq. 11) then ! IIR
-                if (dynk_debug) then
-                    write (lout,*) "DYNKDEBUG> Resetting IIR named '", &
-                                   trim(stringzerotrim(dynk_cData(dynk_funcs(ii,1)))),"'"
-                end if
-                do jj=0, dynk_funcs(ii,4)
-                    dynk_fData(dynk_funcs(ii,3)+jj*6+1) = dynk_fData(dynk_funcs(ii,3)+jj*6+2)
-                    dynk_fData(dynk_funcs(ii,3)+jj*6+4) = dynk_fData(dynk_funcs(ii,3)+jj*6+5)
-                end do
-            end if
-
-        end do ! END "do ii=1, dynk_nFuncs"
-
         ! Open dynksets.dat
 #ifdef CR
         ! Could have loaded a CR just before tracking starts;
