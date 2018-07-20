@@ -444,115 +444,93 @@ subroutine bdex_initialiseTCPIP(inLine,iErr)
 
 end subroutine bdex_initialiseTCPIP
 
-  ! The following subroutines where extracted from deck bdexancil:
-  ! Deck with the routines used by BDEX during tracking
+! The following subroutines where extracted from deck bdexancil:
+! Deck with the routines used by BDEX during tracking
+! i  : current structure element
+! ix : current single element
+! n  : turn number
+subroutine bdex_track(i,ix,n)
 
-  subroutine bdex_track(i,ix,n)
+  use parpro
+  use string_tools
+  use mod_common
+  use mod_commont
+  use mod_commonmn
 
-    use parpro
-    use string_tools
-    use mod_common
-    use mod_commont
-    use mod_commonmn
+  implicit none
 
-    implicit none
-    ! i  : current structure element
-    ! ix : current single element
-    ! n  : turn number
+  integer, intent(in) :: i, ix, n
 
-    integer i, ix,n
-    intent(in) i, ix, n
+  character(len=25) tmpStr(11)
+  logical rErr
 
-#ifdef CRLIBM
-    !Needed for string conversions for BDEX
-    character(len=8192) ch
-    integer dtostr
-#endif
-    !Temp variables
-    integer j, k, ii
+  !Temp variables
+  integer j, k, ii
 
-    if (bdex_elementAction(ix).eq.1) then !Particle exchange
-       if (bdex_debug) then
-          write(lout,"(a,i0)") "BDEX> DEBUG Doing particle exchange in bez = ",bez(ix)
-       endif
-
-       if (bdex_channels(bdex_elementChannel(ix),1).eq.1) then !PIPE channel
-          !TODO: Fix the format!
-          write(bdex_channels(bdex_elementChannel(ix),4)+1, &
-               '(a,i10,1x,a,a,1x,a,i10,1x,a,i5)') &
-               "BDEX TURN=",n,"BEZ=",bez(ix),"I=",i,"NAPX=",napx
-
-          !Write out particles
-#ifdef CRLIBM
-          do j=1,napx
-             do k=1,8192
-                ch(k:k)=' '
-             enddo
-             ii=1
-             ii=dtostr(xv(1,j),ch(ii:ii+24))+1+ii
-             ii=dtostr(yv(1,j),ch(ii:ii+24))+1+ii
-             ii=dtostr(xv(2,j),ch(ii:ii+24))+1+ii
-             ii=dtostr(yv(2,j),ch(ii:ii+24))+1+ii
-             ii=dtostr(sigmv(j),ch(ii:ii+24))+1+ii
-             ii=dtostr(ejv(j),ch(ii:ii+24))+1+ii
-             ii=dtostr(ejfv(j),ch(ii:ii+24))+1+ii
-             ii=dtostr(rvv(j),ch(ii:ii+24))+1+ii
-             ii=dtostr(dpsv(j),ch(ii:ii+24))+1+ii
-             ii=dtostr(oidpsv(j),ch(ii:ii+24))+1+ii
-             ii=dtostr(dpsv1(j),ch(ii:ii+24))+1+ii
-
-             if (ii .ne. 1+(24+1)*11) then !Also check if too big?
-                write(lout,"(a,i0,a)") "BDEX> ERROR ii = ",ii," ch = '"//ch//"'"
-                call prror(-1)
-             endif
-
-             write(ch(ii:ii+24),'(i24)') nlostp(j)
-
-             write(bdex_channels(bdex_elementChannel(ix),4)+1,'(a)') ch(1:ii+24)
-
-          enddo
-#else
-          do j=1,napx
-             write(bdex_channels(bdex_elementChannel(ix),4)+1,*) &
-                  xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j), &
-                  ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j), &
-                  dpsv1(j),nlostp(j)
-          enddo
-#endif
-          write(bdex_channels(bdex_elementChannel(ix),4)+1,'(a)') "BDEX WAITING..."
-
-          !Read back particles
-          read(bdex_channels(bdex_elementChannel(ix),4),*) j
-
-          if ( j .eq. -1 ) then
-             !Don't change the distribution at all
-             if (bdex_debug) then
-                write(lout,"(a)") "BDEX> DEBUG No change in distribution."
-             endif
-          else
-             if (j.gt.npart) then
-              call expand_arrays(nele, j, nblz, nblo)
-             endif
-             napx=j
-             if (bdex_debug) then
-                write(lout,"(a,i0,a)") "BDEX> DEBUG Reading",napx," particles back."
-             endif
-             do j=1,napx
-                read(bdex_channels(bdex_elementChannel(ix),4),*) &
-                     xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j), &
-                     ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j), &
-                     dpsv1(j),nlostp(j)
-             enddo
-          endif
-
-          write(bdex_channels(bdex_elementChannel(ix),4)+1,'(a)') "BDEX TRACKING..."
-       endif
-
-    else
-       write(lout,"(a,i0,a)") "BDEX> ERROR elementAction = ",bdex_elementAction(i)," not understood."
-       call prror(-1)
+  if(bdex_elementAction(ix) == 1) then ! Particle exchange
+    if (bdex_debug) then
+      write(lout,"(a,i0)") "BDEX> DEBUG Doing particle exchange in bez = ",bez(ix)
     endif
 
-  end subroutine bdex_track
+    if(bdex_channels(bdex_elementChannel(ix),1) == 1) then ! PIPE channel
+      ! TODO: Fix the format!
+      write(bdex_channels(bdex_elementChannel(ix),4)+1,"(a,i10,1x,a,a,1x,a,i10,1x,a,i5)") &
+        "BDEX TURN=",n,"BEZ=",bez(ix),"I=",i,"NAPX=",napx
+
+      ! Write out particles
+      do j=1,napx
+        call chr_fromReal(xv(1,j),  tmpStr(1), 19,2,rErr)
+        call chr_fromReal(yv(1,j),  tmpStr(2), 19,2,rErr)
+        call chr_fromReal(xv(2,j),  tmpStr(3), 19,2,rErr)
+        call chr_fromReal(yv(2,j),  tmpStr(4), 19,2,rErr)
+        call chr_fromReal(sigmv(j), tmpStr(5), 19,2,rErr)
+        call chr_fromReal(ejv(j),   tmpStr(6), 19,2,rErr)
+        call chr_fromReal(ejfv(j),  tmpStr(7), 19,2,rErr)
+        call chr_fromReal(rvv(j),   tmpStr(8), 19,2,rErr)
+        call chr_fromReal(dpsv(j),  tmpStr(9), 19,2,rErr)
+        call chr_fromReal(oidpsv(j),tmpStr(10),19,2,rErr)
+        call chr_fromReal(dpsv1(j), tmpStr(11),19,2,rErr)
+        write(bdex_channels(bdex_elementChannel(ix),4)+1,"(11(a25,1x),i24)") tmpStr(1),tmpStr(2),tmpStr(3),tmpStr(4),tmpStr(5),&
+          tmpStr(6),tmpStr(7),tmpStr(8),tmpStr(9),tmpStr(10),tmpStr(11),nlostp(j)
+      end do
+      write(bdex_channels(bdex_elementChannel(ix),4)+1,'(a)') "BDEX WAITING..."
+
+      !Read back particles
+      read(bdex_channels(bdex_elementChannel(ix),4),*) j
+
+      if ( j == -1 ) then
+        !Don't change the distribution at all
+        if (bdex_debug) then
+          write(lout,"(a)") "BDEX> DEBUG No change in distribution."
+        endif
+      else
+        ! TODO: Handle j < npart
+        if (j > npart) then
+          call expand_arrays(nele, j, nblz, nblo)
+          ! TODO: Initialise per-particle optics variables
+        endif
+        napx=j
+        if (bdex_debug) then
+          write(lout,"(a,i0,a)") "BDEX> DEBUG Reading ",napx," particles back."
+        endif
+        do j=1,napx
+          read(bdex_channels(bdex_elementChannel(ix),4),*) &
+                xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j), &
+                ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j), &
+                dpsv1(j),nlostp(j)
+          ! TODO: Handle secondary particle tracking arrays properly
+          ! TODO: CRLIBM
+        enddo
+      endif
+
+      write(bdex_channels(bdex_elementChannel(ix),4)+1,'(a)') "BDEX TRACKING..."
+    endif
+
+  else
+    write(lout,"(a,i0,a)") "BDEX> ERROR elementAction = ",bdex_elementAction(i)," not understood."
+    call prror(-1)
+  endif
+
+end subroutine bdex_track
 
 end module bdex
