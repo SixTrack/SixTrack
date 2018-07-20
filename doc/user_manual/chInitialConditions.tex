@@ -12,7 +12,7 @@ Moreover, experience has shown that varying only the amplitude while keeping the
 
 All tracking parameters are defined with this input block.\index{tracking}\index{TRAC}
 The initial coordinates are generally also set here.
-A fine tuning of the initial condition is done with \textit{Initial Coordinates} block (\ref{IniCoo}), and the parameters for the synchrotron oscillation are given in block (\ref{SynOsc}).
+A fine tuning of the initial condition is done with \textfit{Initial Coordinates} block (\ref{IniCoo}), and the parameters for the synchrotron oscillation are given in block (\ref{SynOsc}).
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
@@ -22,7 +22,7 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
                         &         & \texttt{niu(1) niu(2) numlcp numlmax} \\
                         & Line 2: & \texttt{idy(1) idy(2) idfor irew iclo6} \\
                         & Line 3: & \texttt{nde(1) nde(2) nwr(1) nwr(2) nwr(3) nwr(4)} \\
-                        &         & \texttt{ntwin ibidu iexact}
+                        &         & \texttt{ntwin ibidu iexact curveff}
 \end{tabular}
 
 \paragraph{Format Description}~
@@ -66,6 +66,7 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
                            &          & \texttt{ibidu = 2}: read dump. \\
     \texttt{iexact}        & integer  & Switch to enable exact solution of the equation of motion into tracking and 6D (no 4D) optics calculations. \\
                            &          & \texttt{iexact = 0}: approximated equation
+
                            \begin{equation*}
                                 \mbox{e.g.}
                                 \quad x^\prime \simeq \frac{P_x}{P_0(1+\delta)},
@@ -77,6 +78,8 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
                                 \quad x^\prime \simeq \frac{P_x}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}},
                                 \quad y^\prime \simeq \frac{P_y}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}}.
                            \end{equation*}
+    \texttt{curveff}       & integer  & \texttt{curveff = 0}: the effect of the curvature in a combined function is neglected. Note that the week focusing effect is alwas included. \\
+                           &          & \texttt{curveff = 1}: switch to enable the curvature effect in a combined function magnet (Bending + quadrupole).                            
 \end{longtabu}
 
 \paragraph{Remarks}~

@@ -303,6 +303,9 @@ module mod_common
   ! common /exact/
   integer, save :: iexact
 
+    ! common /exact/
+  integer, save :: curveff
+
   ! common /sixdim/
   real(kind=fPrec), save :: aml6(6,6),edcor(2)
 

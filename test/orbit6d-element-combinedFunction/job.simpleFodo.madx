@@ -9,7 +9,8 @@ qfstart: multipole, knl={0.000, k}, lrad=2.0;
 !OPTION, THIN_FOC=true;
 qf: multipole, knl={0, k};
 qd: multipole, knl={0, -k};
-redip: SBEND, l=1, angle=0.01, k1=0.001, tilt=0;
+redip: SBEND, l=1.0, angle=0.02, k1=0.001, tilt=0;
+redipV: SBEND, l=0.9, angle=0.012, k1=0.001, tilt=0;
 !redip: multipole, knl={0.001,0.001}, lrad=2.0;
 !sa: sextupole, l=0.08, k2=0.01;
 dip: multipole, knl={0.00001,0,0.0000}, lrad=3;
@@ -22,6 +23,7 @@ ip5: marker;
 seq: sequence, refer=center, l=circum;
 redip: redip, at = 0.5 ;
 ip5;ip5, at=1.00;
+redipV: redipV, at = 1.5 ;
 qfstart: qfstart, at = 2.5 ;
 qd: qd, at = 0.5 * lcell;
 qf: qf, at = 1.0 * lcell;
@@ -48,7 +50,7 @@ select, flag=twiss, column=name, s, x,px, y,py, betx, bety;
 twiss, file="fodo.twiss";
 
 
-xin = 0.0;
+xin = 0.03;
 yin = 0.03;
 use, sequence=seq;
 
