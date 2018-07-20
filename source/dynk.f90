@@ -25,7 +25,7 @@ module dynk
 
   ! Max Array Sizes
   integer, private, save :: dynk_maxFuncs
-  integer, parameter     :: dynk_maxSets      = 200
+  integer, private, save :: dynk_maxSets
   integer, private, save :: dynk_maxiData
   integer, private, save :: dynk_maxfData
   integer, private, save :: dynk_maxcData
@@ -120,7 +120,7 @@ subroutine dynk_allocate
   dynk_maxfData = 500
   dynk_maxcData = 100
   dynk_maxFuncs = 10
-! dynk_maxSets  = 10
+  dynk_maxSets  = 10
 
   call alloc(dynk_iData,               dynk_maxiData,  0,         "dynk_iData")
   call alloc(dynk_fData,               dynk_maxfData,  zero,      "dynk_fData")
@@ -1708,9 +1708,14 @@ subroutine dynk_parseSET(inLine, iErr)
   end if
 
   if(dynk_nSets+1 > dynk_maxSets) then
-    write(lout,"(a)") "DYNK> ERROR Maximum number of SETs reached. Maximum is 200."
-    iErr = .true.
-    return
+    dynk_maxSets = dynk_maxSets + 10
+    call alloc(dynk_cSets,       mStrLen,dynk_maxSets,2, str_dSpace,"dynk_cSets")
+    call alloc(dynk_cSets_unique,mStrLen,dynk_maxSets,2, str_dSpace,"dynk_cSets_unique")
+    call alloc(dynk_fSets_orig,          dynk_maxSets,   zero,      "dynk_fSets_orig")
+#ifdef CR
+    call alloc(dynk_fSets_cr,            dynk_maxSets,   zero,      "dynk_fSets_cr")
+#endif
+    call alloc(dynk_sets,                dynk_maxSets,4, 0,         "dynk_sets")
   end if
 
   if(nSplit /= 7) then
@@ -2171,8 +2176,9 @@ subroutine dynk_apply(turn)
     logical lopen
     real(kind=fPrec) getvaldata, newValue
 
-    character(mStrLen) whichFUN(dynk_maxSets) ! Which function was used to set a given elem/attr?
-    integer whichSET(dynk_maxSets)                   ! Which SET was used for a given elem/attr?
+    ! Used for output dynksets.dat
+    character(len=mStrLen) whichFUN(dynk_nSets_unique) ! Which function was used to set a given elem/attr?
+    integer whichSET(dynk_nSets_unique)                ! Which SET was used for a given elem/attr?
 
     ! Temp variable for padding the strings for output to dynksets.dat
     character(20) outstring_tmp1,outstring_tmp2,outstring_tmp3
@@ -3379,6 +3385,8 @@ subroutine dynk_crpoint(fileunit,fileerror,ierro)
 
   integer j
 
+  !Note: dynk_fSets_cr is set in global `crpoint` routine, in order to avoid
+  ! that it is filled twice (requiring loop over all dynk_fsets_unique and call to dynk_getvalue)
   write(fileunit,err=100,iostat=ierro) dynk_filePos, dynk_niData, dynk_nfData, dynk_ncData
   write(fileunit,err=100,iostat=ierro) &
       (dynk_iData(j),j=1,dynk_niData), (dynk_fData(j),j=1,dynk_nfData), &
