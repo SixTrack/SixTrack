@@ -57,7 +57,7 @@ if(EXISTS "/afs/cern.ch/sw/")
     SET(AFS 1)
 endif()
 
-if(EXISTS "/cvmfs/stf.cern.ch/")
+if(EXISTS "/cvmfs/sft.cern.ch/")
     SET(CVMFS 1)
 endif()
 
