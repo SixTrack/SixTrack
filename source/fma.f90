@@ -169,14 +169,14 @@ subroutine fma_postpr
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn)       :: rLine
-  integer nSplit
-  logical spErr
+  integer nSplit, fmaUnit, tmpUnit
+  logical spErr, fErr
 
   integer :: dump_last_turn
   integer :: i,j,k,l,m,n                    ! for do loops
   integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.
   integer :: fma_npart,fma_tfirst,fma_tlast ! local variables to check input files
-  logical :: lopen                          ! flag to check if file is already open
+  logical :: isOpen                          ! flag to check if file is already open
   logical :: lexist                         ! flag to check if file fma_fname exists
   logical :: lread                          ! flag for file reading
   character(len=getfields_l_max_string) :: ch,ch1
@@ -246,19 +246,13 @@ subroutine fma_postpr
   call alloc(naff_xyzv2,   fma_nturn_max,        zero,   "naff_xyzv2")
 #endif
 
-    ! fma_six = data file for storing the results of the FMA analysis
-    inquire(unit=2001001,opened=lopen)
-    if(lopen) then
-       write(lout,*) "ERROR in FMA: Tried to open unit 2001001 for file 'fma_sixtrack', but it was already taken?"
-       call prror(-1)
-    endif
-#ifdef BOINC
-    call boincrf("fma_sixtrack",filename)
-    open(2001001,file=filename,      status='replace',iostat=ierro,action='write',form='formatted')
-#else
-    open(2001001,file='fma_sixtrack',status='replace',iostat=ierro,action='write',form='formatted')
-#endif
-    call fma_error(ierro,'cannot open file fma_sixtrack for writing!','fma_postpr')
+  ! fma_six = data file for storing the results of the FMA analysis
+  call funit_requestUnit("fma_sixtrack",fmaUnit)
+  call units_openUnit(unit=fmaUnit,fileName="fma_sixtrack",formatted=.true.,mode="w",err=fErr,status="replace")
+  if(fErr) then
+    write(lout, "(a)") "FMA> ERROR Cannot open file 'fma_sixtrack' for writing."
+    call prror(-1)
+  end if
 
     if (idp.eq.0 .or. ition.eq.0) then
        num_modes = 2          !4D tracking
@@ -267,8 +261,8 @@ subroutine fma_postpr
     endif
 
     ! write the header of fma_sixtrack
-    write(2001001,'(a)') '# eps1*,eps2*,eps3* all in 1.e-6*m, phi* [rad]'
-    write(2001001,'(a)') '# inputfile method id q1 q2 q3 eps1_min '       //&
+    write(fmaUnit,'(a)') '# eps1*,eps2*,eps3* all in 1.e-6*m, phi* [rad]'
+    write(fmaUnit,'(a)') '# inputfile method id q1 q2 q3 eps1_min '       //&
          'eps2_min eps3_min eps1_max eps2_max eps3_max eps1_avg eps2_avg' //&
          ' eps3_avg eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0 norm_flag'  //&
          ' first_turn last_turn'
@@ -290,31 +284,25 @@ subroutine fma_postpr
                 call fma_error(-1,'input file has wrong format! Choose format=2,3,7 or 8 in DUMP block.','fma_postpr')
              endif
              ! open dump file for reading, resume to original position before exiting the subroutine
-             inquire(unit=dumpunit(j),opened=lopen)
-             if(lopen) then
+             inquire(unit=dumpunit(j),opened=isOpen)
+             if(isOpen) then
                 close(dumpunit(j))
              else ! file has to be open if nothing went wrong
                 call fma_error(-1,'Expected file '//trim(stringzerotrim(dump_fname(j)))//' to be open','fma_postpr')
              endif
 
              if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.7) then
-#ifdef BOINC
-                call boincrf(dump_fname(j),filename)
-                open(dumpunit(j),file=filename,status='old',iostat=ierro,action='read')
-#else
-                open(dumpunit(j),file=dump_fname(j),status='old',iostat=ierro,action='read')
-#endif
-                !Create error message to be used in case ierro.ne.0
-                write(ch,'(a,1x,I5,1x,a)') "cannot open file '"//trim(stringzerotrim(dump_fname(j)))//"' (dumpfmt=",dumpfmt(j),')'
-
-                call fma_error(ierro, ch, 'fma_postpr')
+                call units_openUnit(unit=dumpunit(j),fileName=dump_fname(j),formatted=.true.,mode="r",err=fErr,status="old")
+                if(fErr) then
+                  write(lout,"(a,i0,a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"' (dumpfmt=",dumpfmt(j),")"
+                  call prror(-1)
+                end if
              else if (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then
-#ifdef BOINC
-                call boincrf(dump_fname(j),filename)
-                open(dumpunit(j),file=filename,status='old',iostat=ierro,action='read',form='unformatted')
-#else
-                open(dumpunit(j),file=dump_fname(j),status='old',iostat=ierro,action='read',form='unformatted')
-#endif
+                call units_openUnit(unit=dumpunit(j),fileName=dump_fname(j),formatted=.false.,mode="r",err=fErr,status="old")
+                if(fErr) then
+                  write(lout,"(a,i0,a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"' (dumpfmt=",dumpfmt(j),")"
+                  call prror(-1)
+                end if
              else
                 write(lout,*) 'Error in fma_postpr, got dumpfmt=',dumpfmt(j),'expected 2,3,7 or 8.'
                 call prror(-1)
@@ -430,32 +418,26 @@ subroutine fma_postpr
              ! - now we have done all checks
              if ( fma_writeNormDUMP .and. .not.(dumpfmt(j).eq.7 .or. dumpfmt(j).eq.8) .and. .not.hasNormDumped(j) ) then
                 write(lout,*) "FMA: Writing normalized DUMP for '"//trim(stringzerotrim(dump_fname(j)))// "'..."
-                ! Dump normalized particle amplitudes for debugging (200101+i*10)
-                inquire(unit=200101+i*10,opened=lopen)
-                if(lopen) then
-                   write(lout,*) "ERROR in FMA: Tried to open unit",200101+i*10, &
-                        "for file 'NORM_"//dump_fname(j)//"', but it was already taken?!?"
-                   call prror(-1)
-                endif
-#ifdef BOINC
-                call boincrf('NORM_'//dump_fname(j),filename)
-                open(200101+i*10,file=filename,              status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
-#else
-                open(200101+i*10,file='NORM_'//dump_fname(j),status='replace',iostat=ierro,action='write') ! nx,nx',ny,ny'
-#endif
+                ! Dump normalized particle amplitudes for debugging (tmpUnit)
+                call funit_requestUnit("NORM_"//dump_fname(j),tmpUnit)
+              call units_openUnit(unit=tmpUnit,fileName="NORM_"//dump_fname(j),formatted=.true.,mode="w",err=fErr,status="replace")
+              if(fErr) then
+                write(lout,"(a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"'"
+                call prror(-1)
+              end if
                 !  units: dumptas, dumptasinv, dumpclo [mm,mrad,mm,mrad,1]
                 !  note: closed orbit dumpclo already converted in linopt part to [mm,mrad,mm,mrad,1]
                 !        tas matrix in linopt part in [mm,mrad,mm,mrad,1.e-3]
 
-                ! - write closed orbit in header of file with normalized phase space coordinates (200101+i*10)
+                ! - write closed orbit in header of file with normalized phase space coordinates (tmpUnit)
                 !   units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] (note: units are already changed in linopt part)
-                write(200101+i*10,'(a,1x,6(1X,1PE16.9))') &
+                write(tmpUnit,'(a,1x,6(1X,1PE16.9))') &
                      '# closorb', &
                      dumpclo(j,1),dumpclo(j,2),dumpclo(j,3), &
                      dumpclo(j,4),dumpclo(j,5),dumpclo(j,6)
-                ! - write tas-matrix and its inverse in header of file with normalized phase space coordinates (200101+i*10)
+                ! - write tas-matrix and its inverse in header of file with normalized phase space coordinates (tmpUnit)
                 !   units: x,px,y,py,sig,dp/p [mm,mrad,mm,mrad,1]
-                write(200101+i*10,'(a,1x,36(1X,1PE16.9))') &
+                write(tmpUnit,'(a,1x,36(1X,1PE16.9))') &
                      '# tamatrix [mm,mrad,mm,mrad,1]', &
                      dumptas(j,1,1),dumptas(j,1,2),dumptas(j,1,3),dumptas(j,1,4), &
                      dumptas(j,1,5),dumptas(j,1,6),dumptas(j,2,1),dumptas(j,2,2), &
@@ -466,7 +448,7 @@ subroutine fma_postpr
                      dumptas(j,5,1),dumptas(j,5,2),dumptas(j,5,3),dumptas(j,5,4), &
                      dumptas(j,5,5),dumptas(j,5,6),dumptas(j,6,1),dumptas(j,6,2), &
                      dumptas(j,6,3),dumptas(j,6,4),dumptas(j,6,5),dumptas(j,6,6)
-                write(200101+i*10,'(a,1x,36(1X,1PE16.9))') &
+                write(tmpUnit,'(a,1x,36(1X,1PE16.9))') &
                      '# inv(tamatrix)', &
                      dumptasinv(j,1,1),dumptasinv(j,1,2),dumptasinv(j,1,3), &
                      dumptasinv(j,1,4),dumptasinv(j,1,5),dumptasinv(j,1,6), &
@@ -481,7 +463,7 @@ subroutine fma_postpr
                      dumptasinv(j,6,1),dumptasinv(j,6,2),dumptasinv(j,6,3), &
                      dumptasinv(j,6,4),dumptasinv(j,6,5),dumptasinv(j,6,6)
 
-                write(200101+i*10,'(a)') &
+                write(tmpUnit,'(a)') &
                      '# id turn pos[m] nx[1.e-3 sqrt(m)]' //&
                      ' npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)]'//&
                      ' npy[1.e-3 sqrt(m)] nsig[1.e-3 sqrt(m)]'//&
@@ -620,7 +602,7 @@ subroutine fma_postpr
                       ! Write normalized particle amplitudes
                       ! (only when reading physical coordinates)
                       if (fma_writeNormDUMP .and. .not.hasNormDumped(j) ) then
-                         write(200101+i*10, '(2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)') &
+                         write(tmpUnit, '(2(1x,I8),1X,F12.5,6(1X,1PE16.9),1X,I8)') &
                               id,thisturn,pos,nxyzvdummy(1),nxyzvdummy(2),nxyzvdummy(3),nxyzvdummy(4),nxyzvdummy(5),nxyzvdummy(6),kt
                       endif
 
@@ -790,7 +772,7 @@ subroutine fma_postpr
 
                 ! Write the FMA output file "fma_sixtrack"
                 ! TODO losses: fma_first and fma_last may not be the right start/stop variables...
-                write(2001001,'(2(1x,A20),1x,I8,18(1X,1PE16.9),3(1X,I8))') &
+                write(fmaUnit,'(2(1x,A20),1x,I8,18(1X,1PE16.9),3(1X,I8))') &
                      trim(stringzerotrim(fma_fname(i))), &
                      trim(stringzerotrim(fma_method(i))),l,q123(1),q123(2),q123(3), &
                      eps123_min(1),eps123_min(2),eps123_min(3),eps123_max(1), &
@@ -803,34 +785,24 @@ subroutine fma_postpr
 
              if (fma_writeNormDUMP .and. .not.hasNormDumped(j)) then
                 ! filename NORM_* (normalized particle amplitudes)
-                close(200101+i*10)
+                close(tmpUnit)
                 hasNormDumped(j) = .true.
              endif
 
              ! resume initial position of dumpfile = end of file
              close(dumpunit(j))
              if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq. 7) then !ASCII
-#ifdef BOINC
-                call boincrf(dump_fname(j),filename)
-                open(dumpunit(j),file=filename,      status='old', form='formatted', &
-                     action='readwrite', position='append', iostat=ierro)
-#else
-                open(dumpunit(j),file=dump_fname(j), status='old', form='formatted', &
-                     action='readwrite', position='append', iostat=ierro)
-#endif
-                call fma_error(ierro, "while resuming file '"// &
-                     trim(stringzerotrim(dump_fname(j)))//"' (dumpfmt=2)", 'fma_postpr')
+              call units_openUnit(unit=dumpunit(j),fileName=dump_fname(j),formatted=.true.,mode="rw+",err=fErr)
+              if(fErr) then
+                write(lout,"(a,i0,a)") "FMA> ERROR Resuming file '"//trim(dump_fname(j))//"' (dumpfmt = ",dumpfmt(j),")"
+                call prror(-1)
+              end if
              elseif (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then !BINARY
-#ifdef BOINC
-                call boincrf(dump_fname(j),filename)
-                open(dumpunit(j),file=filename,      status='old', form='unformatted', &
-                     action='readwrite', position='append', iostat=ierro)
-#else
-                open(dumpunit(j),file=dump_fname(j), status='old', form='unformatted', &
-                     action='readwrite', position='append', iostat=ierro)
-#endif
-                call fma_error(ierro, "while resuming file '"// &
-                     trim(stringzerotrim(dump_fname(j)))//"' (dumpfmt=3)", 'fma_postpr')
+              call units_openUnit(unit=dumpunit(j),fileName=dump_fname(j),formatted=.false.,mode="rw+",err=fErr)
+              if(fErr) then
+                write(lout,"(a,i0,a)") "FMA> ERROR Resuming file '"//trim(dump_fname(j))//"' (dumpfmt = ",dumpfmt(j),")"
+                call prror(-1)
+              end if
              endif
           endif !END: if fma_fname(i) matches dump_fname(j)
 
@@ -844,7 +816,7 @@ subroutine fma_postpr
                ' does not exist! Please check that filenames in FMA block agree with the ones in the DUMP block!', 'fma_postpr')
        endif
     enddo !END: loop over fma files
-    close(2001001) !filename: fma_sixtrack
+    close(fmaUnit) !filename: fma_sixtrack
 
   call dealloc(turn,         "turn")
   call dealloc(nturns,       "nturns")
