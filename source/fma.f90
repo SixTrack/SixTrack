@@ -45,98 +45,95 @@ end subroutine fma_allocate
     endif
   end subroutine fma_error
 
-  subroutine fma_parseInputline(ch,iErr)
+subroutine fma_parseInputline(inLine,iErr)
 
-    use crcoall
-    use string_tools
+  use crcoall
+  use string_tools
 
-    implicit none
+  implicit none
 
-    character(len=*), intent(in)    :: ch
-    logical,          intent(inout) :: iErr
+  character(len=*), intent(in)    :: inLine
+  logical,          intent(inout) :: iErr
 
-    character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
-    integer   getfields_nfields                                                 ! Number of identified fields
-    integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
-    logical   getfields_lerr                                                    ! An error flag
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit
+  logical spErr, cErr
 
-    if (ch(:10).eq."NoNormDUMP") then
-       fma_writeNormDUMP = .false.
-       return
-    endif
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "FMA> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
 
-    if(fma_numfiles.ge.fma_max) then
-       write(lout,"(a,i0,a)") "FMA> ERROR You can only do ",fma_max," number of FMAs"
-       iErr = .true.
-       return
-    endif
+  if(lnSplit(1) == "NoNormDUMP") then
+    fma_writeNormDUMP = .false.
+    return
+  endif
 
-    fma_numfiles=fma_numfiles+1 !Initially initialized to 0 in COMNUL
+  if(fma_numfiles >= fma_max) then
+    write(lout,"(a,i0,a)") "FMA> ERROR You can only do ",fma_max," number of FMAs"
+    iErr = .true.
+    return
+  end if
 
-    ! Read in input parameters
-    call getfields_split( ch, getfields_fields, getfields_lfields, &
-         getfields_nfields, getfields_lerr )
-    if ( getfields_lerr ) then
-       write(lout,"(a,l1)") "FMA> ERROR getfields_lerr = ",getfields_lerr
-       iErr = .true.
-       return
-    endif
-    if(getfields_nfields.eq.1 .or. getfields_nfields.eq.4 .or. getfields_nfields.ge.6) then
-       write(lout,"(a,i0)") "FMA> ERROR Wrong number of input parameters. Expected 2, 3 or 4, got ",getfields_nfields
-       iErr = .true.
-       return
-    endif
+  fma_numfiles=fma_numfiles+1
 
-    fma_fname(fma_numfiles)  = getfields_fields(1)(1:getfields_lfields(1))
-    fma_method(fma_numfiles) = getfields_fields(2)(1:getfields_lfields(2))
-    if(getfields_nfields.eq.2) then
-       fma_norm_flag(fma_numfiles) = 1 !default: normalize phase space
-    else if(getfields_nfields.eq.3) then
-       read (getfields_fields(3)(1:getfields_lfields(3)),'(I10)') fma_norm_flag(fma_numfiles)
-    else if(getfields_nfields.eq.5) then
-       read (getfields_fields(3)(1:getfields_lfields(3)),'(I10)') fma_norm_flag(fma_numfiles)
-       read (getfields_fields(4)(1:getfields_lfields(4)),'(I10)') fma_first    (fma_numfiles)
-       read (getfields_fields(5)(1:getfields_lfields(5)),'(I10)') fma_last     (fma_numfiles)
-    endif
+  if(nSplit == 1 .or. nSplit == 4 .or. nSplit >= 6) then
+    write(lout,"(a,i0)") "FMA> ERROR Wrong number of input parameters. Expected 2, 3 or 5, got ",nSplit
+    iErr = .true.
+    return
+  end if
 
-    ! Input sanity checks
-    if (.not. ( &
-         trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNELASK"  &
-     .or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFFTI"  &
-     .or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFFT"   &
-     .or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEAPA"   &
-     .or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEFIT"   &
-     .or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT"  &
-     .or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT2"  &
-     .or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNEABT"   &
-     .or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."TUNENEWT1" &
+  fma_fname(fma_numfiles)  = trim(lnSplit(1))
+  fma_method(fma_numfiles) = trim(lnSplit(2))
+  if(nSplit == 2) then
+    fma_norm_flag(fma_numfiles) = 1 ! default: normalize phase space
+  else if(nSplit == 3) then
+    call chr_cast(lnSplit(3),fma_norm_flag(fma_numfiles),cErr)
+  else if(nSplit == 5) then
+    call chr_cast(lnSplit(3),fma_norm_flag(fma_numfiles),cErr)
+    call chr_cast(lnSplit(4),fma_first(fma_numfiles),    cErr)
+    call chr_cast(lnSplit(5),fma_last(fma_numfiles),     cErr)
+  end if
+
+  ! Input sanity checks
+  if(.not.(&
+          fma_method(fma_numfiles) == "TUNELASK"  &
+     .or. fma_method(fma_numfiles) == "TUNEFFTI"  &
+     .or. fma_method(fma_numfiles) == "TUNEFFT"   &
+     .or. fma_method(fma_numfiles) == "TUNEAPA"   &
+     .or. fma_method(fma_numfiles) == "TUNEFIT"   &
+     .or. fma_method(fma_numfiles) == "TUNENEWT"  &
+     .or. fma_method(fma_numfiles) == "TUNEABT2"  &
+     .or. fma_method(fma_numfiles) == "TUNEABT"   &
+     .or. fma_method(fma_numfiles) == "TUNENEWT1" &
 #ifdef NAFF
-     .or.trim(stringzerotrim(fma_method(fma_numfiles))).eq."NAFF"      &
+     .or. fma_method(fma_numfiles) == "NAFF"      &
 #endif
-       )      ) then
-      write(lout,"(a,i0)") "FMA> ERROR The method '"//chr_trimZero(fma_method(fma_numfiles))//"' is unknown."//&
-        " FMA index = ",fma_numfiles
-      write(lout,"(a)")    "FMA>       Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "// &
-        "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT, TUNEABT2, TUNENEWT1"// &
+    )) then
+    write(lout,"(a,i0)") "FMA> ERROR The method '"//trim(fma_method(fma_numfiles))//"' is unknown. FMA index = ",fma_numfiles
+    write(lout,"(a)")    "FMA>       Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "// &
+      "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT, TUNEABT2, TUNENEWT1"// &
 #ifdef NAFF
-        ", NAFF"// &
+      ", NAFF"// &
 #endif
-        "."
-      write(lout,"(a)")    "FMA>       Note that it is case-sensitive, so use uppercase only."
-      iErr = .true.
-      return
-    end if
+      "."
+    write(lout,"(a)")    "FMA>       Note that it is case-sensitive, so use uppercase only."
+    iErr = .true.
+    return
+  end if
 
-    if(.not.(fma_norm_flag(fma_numfiles).eq.0 .or. fma_norm_flag(fma_numfiles).eq.1)) then
-      write(lout,"(2(a,i0))") "FMA> ERROR Expected fma_norm_flag = 1 or 0, Got: ",fma_norm_flag(fma_numfiles),&
-        ", FMA index =",fma_numfiles
-      iErr = .true.
-      return
-    end if
+  if(.not.(fma_norm_flag(fma_numfiles).eq.0 .or. fma_norm_flag(fma_numfiles).eq.1)) then
+    write(lout,"(2(a,i0))") "FMA> ERROR Expected fma_norm_flag = 1 or 0, Got: ",fma_norm_flag(fma_numfiles),&
+      ", FMA index =",fma_numfiles
+    iErr = .true.
+    return
+  end if
 
-    fma_flag = .true.
+  fma_flag = .true.
 
-  end subroutine fma_parseInputline
+end subroutine fma_parseInputline
 
   subroutine fma_postpr
     !-----------------------------------------------------------------------*
