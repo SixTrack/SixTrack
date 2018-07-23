@@ -135,125 +135,116 @@ subroutine fma_parseInputline(inLine,iErr)
 
 end subroutine fma_parseInputline
 
-  subroutine fma_postpr
-    !-----------------------------------------------------------------------*
-    !  FMA                                                                  *
-    !  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
-    !  last modified: 04-01-2016                                            *
-    !  purpose: return files used for fma analysis                          *
-    !           -> calculate particle amplitudes and tunes using the        *
-    !              normalized coordinates for input files                   *
-    !              fma_fname(fma_numfiles)                                  *
-    !  output format: q1,q2,q3,eps1_min,eps2_min,eps3_min,eps1_max,         *
-    !                 eps2_max,eps3_max,eps1_avg, eps2_avg,eps3_avg,        *
-    !                 eps1_0,eps2_0,eps3_0,phi1_0,phi2_0,phi3_0             *
-    !-----------------------------------------------------------------------*
-    use floatPrecision
-    use string_tools
-    use mathlib_bouncer
-    use platofma
+! ================================================================================================ !
+!  FMA POSTPROCESSING
+!  M.Fitterer, R. De Maria, K.Sjobak, BE-ABP-HSS
+!  Updated by: V.K. Berglyd Olsem, BE-ABP-HSS
+!  Last modified: 2018-07-23
+!  purpose: return files used for fma analysis
+!           -> calculate particle amplitudes and tunes using the
+!              normalized coordinates for input files
+!              fma_fname(fma_numfiles)
+!  output format: q1,q2,q3,eps1_min,eps2_min,eps3_min,eps1_max,
+!                 eps2_max,eps3_max,eps1_avg, eps2_avg,eps3_avg,
+!                 eps1_0,eps2_0,eps3_0,phi1_0,phi2_0,phi3_0
+! ================================================================================================ !
+subroutine fma_postpr
 
-    use dump, only : dump_fname, dumpfmt, dumpunit, dumpfirst, dumplast, dumptas, dumpclo, dumptasinv
+  use floatPrecision
+  use string_tools
+  use mathlib_bouncer
+  use platofma
+  use dump, only : dump_fname, dumpfmt, dumpunit, dumpfirst, dumplast, dumptas, dumpclo, dumptasinv
+  use numerical_constants, only : zero, one, c1e3
 
-    !numbers (zero,one,two etc.)
-    use numerical_constants, only : zero, one, c1e3
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commont
+  use mod_alloc
+  use mod_units
+  use file_units
 
-    use crcoall
-    use parpro
-    use mod_common
-    use mod_commont
+  implicit none
 
-    implicit none
+  character(len=:), allocatable :: lnSplit(:)
+  character(len=mInputLn)       :: rLine
+  integer nSplit
+  logical spErr
 
-    integer :: i,j,k,l,m,n                    ! for do loops
-    integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.
-    integer :: fma_npart,fma_tfirst,fma_tlast ! local variables to check input files
-    logical :: lopen                          ! flag to check if file is already open
-    logical :: lexist                         ! flag to check if file fma_fname exists
-    logical :: lread                          ! flag for file reading
-    character(len=getfields_l_max_string) :: ch,ch1
-    character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
-    integer   getfields_nfields                                                 ! Number of identified fields
-    integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
-    logical   getfields_lerr                                                    ! An error flag
-    character filefields_fields ( getfields_n_max_fields )*( getfields_l_max_string )
-    integer filefields_nfields
-    integer filefields_lfields( getfields_n_max_fields )
-    logical filefields_lerr
-    real(kind=fPrec) round_near
+  integer :: dump_last_turn
+  integer :: i,j,k,l,m,n                    ! for do loops
+  integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.
+  integer :: fma_npart,fma_tfirst,fma_tlast ! local variables to check input files
+  logical :: lopen                          ! flag to check if file is already open
+  logical :: lexist                         ! flag to check if file fma_fname exists
+  logical :: lread                          ! flag for file reading
+  character(len=getfields_l_max_string) :: ch,ch1
+  character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
+  integer   getfields_nfields                                                 ! Number of identified fields
+  integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
+  logical   getfields_lerr                                                    ! An error flag
+  character filefields_fields ( getfields_n_max_fields )*( getfields_l_max_string )
+  integer filefields_nfields
+  integer filefields_lfields( getfields_n_max_fields )
+  logical filefields_lerr
+  real(kind=fPrec) round_near
 
-    integer, dimension(:,:),allocatable :: turn ! Current turn no (particle, rel. turn no)
-    integer, dimension(:),allocatable :: nturns ! Number of turns to analyze for this particle
-    logical hasNormDumped(-1:nele)              ! Have we written a normDump file for this element before?
-    integer fma_nturn (fma_max)                 ! Number of turns used for fft for this FMA
-    real(kind=fPrec), dimension(:,:,:),allocatable :: xyzv,nxyzv ! phase space variables (x,x',y,y',z,dE/E)
-                                                                 ! [mm,mrad,mm,mrad,mm,1.e-3],
-                                                                 ! normalized phase space variables [sqrt(m) 1.e-3]
-    real(kind=fPrec), dimension(:,:,:),allocatable :: epsnxyzv   ! normalized emittances
-    integer :: dump_last_turn                                    ! auxiliary variable for loop over turns
+  ! Current turn no (particle, rel. turn no)
+  integer, allocatable :: turn(:,:)
+  ! Number of turns to analyze for this particle
+  integer, allocatable :: nturns(:)
+  ! Have we written a normDump file for this element before?
+  logical, allocatable :: hasNormDumped(:)
+  ! Number of turns used for fft for this FMA
+  integer, allocatable :: fma_nturn(:)
+  ! Phase space variables (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3]
+  real(kind=fPrec), allocatable :: xyzv(:,:,:)
+  ! Normalised phase space variables [sqrt(m) 1.e-3]
+  real(kind=fPrec), allocatable :: nxyzv(:,:,:)
+  ! Normalised emittances
+  real(kind=fPrec), allocatable :: epsnxyzv(:,:,:)
+
 #ifdef NAFF
-    interface
-       REAL(C_DOUBLE) function tunenaff (x,xp,maxn,plane_idx,norm_flag) BIND(C)
-         use, intrinsic :: ISO_C_BINDING
-         IMPLICIT NONE
-         REAL(C_DOUBLE), INTENT(in), DIMENSION(1) :: x,xp
-         INTEGER(C_INT), INTENT(in), VALUE :: maxn, plane_idx, norm_flag
-       end function tunenaff
-    end interface
+  interface
+    real(c_double) function tunenaff (x,xp,maxn,plane_idx,norm_flag) bind(c)
+      use, intrinsic :: iso_c_binding
+      implicit none
+      real(c_double), intent(in), dimension(1) :: x,xp
+      integer(c_int), intent(in), value :: maxn, plane_idx, norm_flag
+    end function tunenaff
+  end interface
 
-    ! Need to pass a single dimension array to NAFF,
-    !  since the stride in the xyzv/nxyzv arrays are difficult to pass correctly to C++.
-    ! (We can't interpret the struct that Fortran is passing us;
-    !  see the naff_interface.cpp for more info                 )
-    real(kind=fPrec), dimension(:), allocatable :: naff_xyzv1,naff_xyzv2
+  ! need to pass a single dimension array to naff,
+  !  since the stride in the xyzv/nxyzv arrays are difficult to pass correctly to c++.
+  ! (we can't interpret the struct that fortran is passing us;
+  !  see the naff_interface.cpp for more info                 )
+  real(kind=fPrec), allocatable :: naff_xyzv1(:)
+  real(kind=fPrec), allocatable :: naff_xyzv2(:)
 #endif
-    ! dummy variables for readin + normalisation + loops
-    integer :: id,kt,counter,thisturn
-    real(kind=fPrec) :: pos
-    real(kind=fPrec), dimension(6) :: xyzvdummy,xyzvdummy2,nxyzvdummy !phase space variables x,x',y,y',sig,delta
-    real(kind=fPrec), dimension(3) :: q123 !tune q1,q2,q3
-    real(kind=fPrec), dimension(3) :: eps123_0,eps123_min,eps123_max,eps123_avg !initial,minimum,maximum,average emittance
-    real(kind=fPrec), dimension(3) :: phi123_0  !initial phase
+  ! dummy variables for readin + normalisation + loops
+  integer :: id,kt,counter,thisturn
+  real(kind=fPrec) :: pos
+  real(kind=fPrec), dimension(6) :: xyzvdummy,xyzvdummy2,nxyzvdummy !phase space variables x,x',y,y',sig,delta
+  real(kind=fPrec), dimension(3) :: q123 !tune q1,q2,q3
+  real(kind=fPrec), dimension(3) :: eps123_0,eps123_min,eps123_max,eps123_avg !initial,minimum,maximum,average emittance
+  real(kind=fPrec), dimension(3) :: phi123_0  !initial phase
 
 #ifdef BOINC
-    character(len=256) filename
+  character(len=256) filename
 #endif
 
-#ifdef FIO
-    ! Do not support FIO, it is not supported by any compilers.
-    write (lout,*) "FIO not supported in FMA!"
-    call prror(-1)
-#endif
-
-    allocate(turn(napx,fma_nturn_max),   &
-         xyzv(napx,fma_nturn_max,6),     &
-         nxyzv(napx,fma_nturn_max,6),    &
-         epsnxyzv(napx,fma_nturn_max,3), &
-         STAT=i)
-    if (i.ne.0) then
-       write(lout,*) "Error in fma_postpr: Cannot ALLOCATE arrays 'turn,xyzv,nxyzv,epsnxyzv'"//&
-            " of size proportional to napx*fma_nturn_max."
-       call prror(-1)
-    endif
-
-    allocate(nturns(napx),STAT=i)
-    if (i.ne.0) then
-       write(lout,*) "Error in fma_postpr: Cannot ALLOCATE array 'nturns' of size proportional to napx."
-       call prror(-1)
-    endif
-
+  call alloc(turn,         napx,fma_nturn_max,   0,      "turn")
+  call alloc(nturns,       napx,                 0,      "nturns")
+  call alloc(hasNormDumped,nele,                 .false.,"hasNormDumped",-1)
+  call alloc(fma_nturn,    fma_max,              0,      "fma_nturn")
+  call alloc(xyzv,         napx,fma_nturn_max,6, zero,   "xyzv")
+  call alloc(nxyzv,        napx,fma_nturn_max,6, zero,   "nxyzv")
+  call alloc(epsnxyzv,     napx,fma_nturn_max,3, zero,   "epsnxyzv")
 #ifdef NAFF
-    allocate(naff_xyzv1(fma_nturn_max), naff_xyzv2(fma_nturn_max), STAT=i )
+  call alloc(naff_xyzv1,   fma_nturn_max,        zero,   "naff_xyzv1")
+  call alloc(naff_xyzv2,   fma_nturn_max,        zero,   "naff_xyzv2")
 #endif
-    if (i.ne.0) then
-       write(lout,*) "Error in fma_postpr: Cannot ALLOCATE arrays 'naff_xyzv1,naff_xyzv2' of size fma_nturn_max."
-       call prror(-1)
-    endif
-
-    ! Initialize the hasNormDumped array
-    do i=-1,nele
-       hasNormDumped(i)=.false.
-    end do
 
     ! fma_six = data file for storing the results of the FMA analysis
     inquire(unit=2001001,opened=lopen)
@@ -855,10 +846,18 @@ end subroutine fma_parseInputline
     enddo !END: loop over fma files
     close(2001001) !filename: fma_sixtrack
 
-    deallocate(turn, nturns, xyzv, nxyzv, epsnxyzv)
+  call dealloc(turn,         "turn")
+  call dealloc(nturns,       "nturns")
+  call dealloc(hasNormDumped,"hasNormDumped")
+  call dealloc(fma_nturn,    "fma_nturn")
+  call dealloc(xyzv,         "xyzv")
+  call dealloc(nxyzv,        "nxyzv")
+  call dealloc(epsnxyzv,     "epsnxyzv")
 #ifdef NAFF
-    deallocate(naff_xyzv1, naff_xyzv2)
+  call dealloc(naff_xyzv1,   "naff_xyzv1")
+  call dealloc(naff_xyzv2,   "naff_xyzv2")
 #endif
-  end subroutine fma_postpr
+
+end subroutine fma_postpr
 
 end module fma
