@@ -27,7 +27,7 @@ subroutine fma_allocate
   call alloc(fma_norm_flag,       fma_max, 1,          "fma_norm_flag")
 end subroutine fma_allocate
 
-  subroutine fma_error(ierro,str,subroutine_name)
+  subroutine fma_error(ioStat,str,subroutine_name)
     !-----------------------------------------------------------------------*
     !  FMA                                                                  *
     !  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
@@ -36,11 +36,11 @@ end subroutine fma_allocate
     !-----------------------------------------------------------------------*
       use crcoall
     implicit none
-    integer,       intent(in)  :: ierro
+    integer,       intent(in)  :: ioStat
     character (*), intent (in) :: subroutine_name
     character (*), intent (in) :: str             !error message
-    if(ierro.ne.0) then
-       write(lout,*) 'ERROR in ',subroutine_name,': ', str, ', iostat=',ierro
+    if(ioStat.ne.0) then
+       write(lout,*) 'ERROR in ',subroutine_name,': ', str, ', iostat=',ioStat
        call prror(-1)
     endif
   end subroutine fma_error
@@ -169,7 +169,7 @@ subroutine fma_postpr
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn)       :: rLine
-  integer nSplit, fmaUnit, tmpUnit
+  integer nSplit, fmaUnit, tmpUnit, ioStat
   logical spErr, fErr
 
   integer :: dump_last_turn
@@ -177,7 +177,7 @@ subroutine fma_postpr
   integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.
   integer :: fma_npart,fma_tfirst,fma_tlast ! local variables to check input files
   logical :: isOpen                          ! flag to check if file is already open
-  logical :: lexist                         ! flag to check if file fma_fname exists
+  logical :: fExist                         ! flag to check if file fma_fname exists
   logical :: lread                          ! flag for file reading
   character(len=getfields_l_max_string) :: ch,ch1
   character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
@@ -254,168 +254,167 @@ subroutine fma_postpr
     call prror(-1)
   end if
 
-    if (idp.eq.0 .or. ition.eq.0) then
-       num_modes = 2          !4D tracking
-    else
-       num_modes = 3          !6D tracking
-    endif
+  if(idp == 0 .or. ition == 0) then
+    num_modes = 2 ! 4D tracking
+  else
+    num_modes = 3 ! 6D tracking
+  end if
 
-    ! write the header of fma_sixtrack
-    write(fmaUnit,'(a)') '# eps1*,eps2*,eps3* all in 1.e-6*m, phi* [rad]'
-    write(fmaUnit,'(a)') '# inputfile method id q1 q2 q3 eps1_min '       //&
-         'eps2_min eps3_min eps1_max eps2_max eps3_max eps1_avg eps2_avg' //&
-         ' eps3_avg eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0 norm_flag'  //&
-         ' first_turn last_turn'
+  ! write the header of fma_sixtrack
+  write(fmaUnit,"(a)") "# eps1*,eps2*,eps3* all in 1.e-6*m, phi* [rad]"
+  write(fmaUnit,"(a)") "# inputfile method id q1 q2 q3 eps1_min eps2_min eps3_min eps1_max eps2_max eps3_max "//&
+    "eps1_avg eps2_avg eps3_avg eps1_0 eps2_0 eps3_0 phi1_0 phi2_0 phi3_0 norm_flag first_turn last_turn"
 
-    ! start FMA analysis: loop over all files, calculate tunes, write output file
-    do i=1,fma_numfiles
-       lexist=.false.
-       do j=-1,nele !START: loop over dump files = loop over single elements
-          if(trim(stringzerotrim(fma_fname(i))).eq. &
-             trim(stringzerotrim(dump_fname(j)))) then
-             lexist=.true.     !set lexist = true if the file fma_fname(j) exists
-             write(lout,*) 'start FMA analysis using file ', trim(stringzerotrim(fma_fname(i))), &
-                  ': number of particles=',napx, &
-                  ', first turn=',fma_first(i),', last turn=',fma_last(i)
+  ! Start FMA analysis: loop over all files, calculate tunes, write output file
+  do i=1,fma_numfiles
+    fExist = .false.
+    do j=-1,nele ! START: loop over dump files = loop over single elements
+      if(fma_fname(i) == dump_fname(j)) then
+        fExist = .true.
+        write(lout,"(3(a,i0))") "FMA> Start FMA analysis using file '"//trim(fma_fname(i))//&
+          "': Number of particles = ",napx,", first turn = ",fma_first(i),", last turn = ",fma_last(i)
 
-             ! check the format, if dumpfmt != 2,3 (physical) or 7,8 (normalized) then abort
-             if(.not. (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.3 .or. &
-                       dumpfmt(j).eq.7 .or. dumpfmt(j).eq.8)) then
-                call fma_error(-1,'input file has wrong format! Choose format=2,3,7 or 8 in DUMP block.','fma_postpr')
-             endif
-             ! open dump file for reading, resume to original position before exiting the subroutine
-             inquire(unit=dumpunit(j),opened=isOpen)
-             if(isOpen) then
-                close(dumpunit(j))
-             else ! file has to be open if nothing went wrong
-                call fma_error(-1,'Expected file '//trim(stringzerotrim(dump_fname(j)))//' to be open','fma_postpr')
-             endif
+        ! Check the format, if dumpfmt != 2,3 (physical) or 7,8 (normalized) then abort
+        if(.not.(dumpfmt(j) == 2 .or. dumpfmt(j) == 3 .or. &
+                 dumpfmt(j) == 7 .or. dumpfmt(j) == 8)) then
+          write(lout,"(a)") "FMA> ERROR Input file has wrong format. Choose format 2, 3, 7 or 8 in DUMP block."
+          call prror(-1)
+        end if
 
-             if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.7) then
-                call units_openUnit(unit=dumpunit(j),fileName=dump_fname(j),formatted=.true.,mode="r",err=fErr,status="old")
-                if(fErr) then
-                  write(lout,"(a,i0,a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"' (dumpfmt=",dumpfmt(j),")"
-                  call prror(-1)
-                end if
-             else if (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then
-                call units_openUnit(unit=dumpunit(j),fileName=dump_fname(j),formatted=.false.,mode="r",err=fErr,status="old")
-                if(fErr) then
-                  write(lout,"(a,i0,a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"' (dumpfmt=",dumpfmt(j),")"
-                  call prror(-1)
-                end if
-             else
-                write(lout,*) 'Error in fma_postpr, got dumpfmt=',dumpfmt(j),'expected 2,3,7 or 8.'
+        ! Open dump file for reading, resume to original position before exiting the subroutine
+        inquire(unit=dumpunit(j),opened=isOpen)
+        if(isOpen) then
+          close(dumpunit(j))
+        else ! File has to be open if nothing went wrong
+          write(lout,"(a)") "FMA> ERROR Expected file '"//trim(dump_fname(j))//"' to be open."
+          call prror(-1)
+        end if
+
+        if(dumpfmt(j) == 2 .or. dumpfmt(j) == 7) then
+          call units_openUnit(unit=dumpunit(j),fileName=dump_fname(j),formatted=.true.,mode="r",err=fErr,status="old")
+          if(fErr) then
+            write(lout,"(a,i0,a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"' (dumpfmt=",dumpfmt(j),")"
+            call prror(-1)
+          end if
+        else if(dumpfmt(j) == 3 .or. dumpfmt(j) == 8) then
+          call units_openUnit(unit=dumpunit(j),fileName=dump_fname(j),formatted=.false.,mode="r",err=fErr,status="old")
+          if(fErr) then
+            write(lout,"(a,i0,a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"' (dumpfmt=",dumpfmt(j),")"
+            call prror(-1)
+          end if
+        else
+          write(lout,"(a,i0,a)") "FMA> ERROR Got dumpfmt = ",dumpfmt(j),", but expected 2, 3, 7 or 8."
+          call prror(-1)
+        end if
+
+        ! Define first/last turn for FMA
+        ! - If first and last turn are not defined in FMA block, take all turns saved in DUMP file
+        if(fma_first(i) == 0 .and. fma_last(i) == 0) then
+          fma_first(i) = dumpfirst(j)
+          fma_last(i)  = dumplast(j)
+        end if
+
+        ! If -1, take the last turn of the dump file or the maximum number of turns if dumplast = -1
+        if(fma_last(i) == -1) then
+          if(dumplast(j) == -1) then
+            fma_last(i) = numl
+          else
+            fma_last(i) = dumplast(j)
+          end if
+        end if
+
+        ! Now check that first turn are compatible with turns saved in dump file
+        if(fma_first(i) < dumpfirst(j)) then
+          write(lout,"(2(a,i0))") "FMA> ERROR First turn in FMA block is smaller than first turn in DUMP block: "//&
+            "fma_first = ",fma_first(i)," < dumpfirst = ",dumpfirst(j)
+          call prror(-1)
+        end if
+
+        ! Now check last turn
+        ! - If fma_last = -1, we already have fma_last = numl check if fma_last < 0 and !=-1
+        if(fma_last(i) <= 0) then
+          write(lout,"(a,i0)") "FMA> ERROR Last turn in FMA block must be -1 or a positive integer, "//&
+            "but fma_last = ",fma_last(i)
+          call prror(-1)
+        end if
+
+        ! If fma_last >0 check that fma_last < dump_last
+        if(dumplast(j) == -1) then
+          if(fma_last(i) > numl) then
+            write(lout,"(2(a,i0))") "FMA> ERROR Last turn in FMA block is larger than number of turns tracked. "//&
+              " fma_last = ",fma_last(i)," > turns tracked = ",numl
+            call prror(-1)
+          end if
+        else
+          if(fma_last(i) > dumplast(j)) then
+            write(lout,"(2(a,i0))") "FMA> ERROR Last turn in FMA block is larger than number of turns tracked in DUMP block. "//&
+              "fma_last = ",fma_last(i)," > dumplast = ",dumplast(j)
+            call prror(-1)
+          end if
+        end if
+
+        ! Now we can set the number of turns used for the FMA required for the PLATO routines
+        fma_nturn(i) = fma_last(i)-fma_first(i)+1
+        do m=1,napx
+          nturns(m) = fma_nturn(i)
+        end do
+        if(fma_nturn(i) > fma_nturn_max) then
+          write(lout,"(a,i0,a,i0,a)") "FMA> ERROR Only ",fma_nturn_max," turns allowed for fma, but ",fma_nturn(i)," used."
+          write(lout,"(a,i0)")        "FMA>       -> reset fma_nturn_max > ",fma_nturn_max
+          call prror(-1)
+        end if
+
+        ! Now we can start reading in the file
+        if(dumpfmt(j) == 2 .or. dumpfmt(j) == 7) then ! ASCII -> skip the header
+          counter = 1
+          do
+            read(dumpunit(j),"(a)",iostat=ioStat) rLine
+            if(ioStat /= 0) then
+              write(lout,"(a)") "FMA> ERROR Reading file '"//trim(dump_fname(j))//"'"
+              call prror(-1)
+            end if
+            rLine = adjustl(trim(rLine))
+            if(rLine(1:1) /= "#")  exit
+            if(counter > 500) then
+              write(lout,"(a)") "FMA> ERROR Something is wrong with your dumpfile '"//trim(dump_fname(j))//&
+                "'; found more than 500 header lines."
+              call prror(-1)
+            end if
+            counter = counter+1
+          end do
+          backspace(dumpunit(j),iostat=ioStat)
+        end if
+
+        ! Format 7 and 8 use normalized coordinates -> set fma_norm_flag =1
+        if(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) then
+          if(fma_norm_flag(i) /= 1 ) then
+            ! For format 7 and 8, the particles are already normalized by the DUMP block
+            write(lout,"(a,i0)") "FMA> ERROR For FMA #",i
+            write(lout,"(a)")    "FMA>       Cannot do FMA on physical coordinates if normalized DUMP is used (format 7 or 8)"
+            call prror(-1)
+          end if
+        else ! Reading physical coordinates
+          if(fma_norm_flag(i) == 1 ) then
+            ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
+            if(dumptas(j,1,1) == zero .and. dumptas(j,1,2) == zero .and. &
+              dumptas(j,1,3) == zero .and. dumptas(j,1,4) == zero) then
+              write(lout,"(a)") "FMA> ERROR The normalization matrix appears to not be set? Did you forget to put a 6D LINE block?"
+              call prror(-1)
+            end if
+            if(idp == 0 .or. ition == 0) then ! We're in the 4D case
+              if(imc /= 1) then ! Energy scan
+                write(lout,"(a)") "FMA> ERROR Normalized coordinates: Energy scan (imc != 1) not supported."
                 call prror(-1)
-             endif
-             ! define first/last turn for FMA
-             ! if first and last turn are not defined in FMA block,
-             ! take all turns saved in DUMP file
-             if (fma_first(i) .eq. 0 .and. fma_last(i) .eq. 0) then
-                fma_first(i) = dumpfirst(j)
-                fma_last(i)  = dumplast(j)
-             endif
-             ! if -1 take the last turn of the dump file
-             ! or the maximum number of turns if dumplast = -1
-             if (fma_last(i) .eq. -1) then
-                if (dumplast(j) .eq. -1) then
-                   fma_last(i) = numl
-                else
-                   fma_last(i) = dumplast(j)
-                endif
-             endif
-             ! now check that first turn are compatible with
-             ! turns saved in dump file
-             if (fma_first(i) .lt. dumpfirst(j)) then
-                write(lout,*) 'ERROR in fma_postpr: First turn in FMA block is smaller than first turn in DUMP block '//&
-                     'fma_first=',fma_first(i),'< dumpfirst=',dumpfirst(j),'fma_post_pr! This cannot work!'
+              end if
+              if(j /= -1) then ! Not at StartDUMP
+                write(lout,"(a)") "FMA> ERROR Normalized coordinates: 4D only supported for StartDUMP."
                 call prror(-1)
-             endif
-             ! now check last turn
-             ! if fma_last = -1, we already have fma_last = numl
-             ! check if fma_last < 0 and !=-1
-             if (fma_last(i) .le. 0) then
-                write(lout,*) &
-                     "ERROR in fma_postpr: Last turn in FMA block must be -1 or a positive integer, "// &
-                     'but fma_last=',fma_last(i),'!'
-                call prror(-1)
-             endif
-             ! if fma_last >0 check that fma_last < dump_last
-             if (dumplast(j) .eq. -1) then
-                if (fma_last(i) .gt. numl) then
-                   write(lout,*) &
-                        'ERROR in fma_postpr: Last turn in FMA block is larger than number of turns tracked fma_last=',&
-                        fma_last(i),'> turns tracked=',numl,'!'
-                endif
-             else
-                if (fma_last(i) .gt. dumplast(j)) then
-                   write(lout,*) &
-                        'ERROR in fma_postpr: Last turn in FMA block is larger than number of turns tracked'//&
-                        ' in DUMP block fma_last=',fma_last(i),'> dumplast=',dumplast(j),'!'
-                endif
-             endif
-             ! now we can set the number of turns used for the FMA required for the PLATO routines
-             fma_nturn(i) = fma_last(i)-fma_first(i)+1
-             do m=1,napx
-                nturns(m)=fma_nturn(i)
-             enddo
-             if(fma_nturn(i).gt.fma_nturn_max) then
-                write(lout,*) 'ERROR in fma_postpr: only ', fma_nturn_max,' turns allowed for fma and ',fma_nturn(i),' used!'
-                write(lout,*) '->reset fma_nturn_max > ', fma_nturn_max
-                call prror(-1)
-             endif
-             ! now we can start reading in the file
-             if ( dumpfmt(j).eq.2 .or. dumpfmt(j) .eq. 7) then ! ASCII -> skip the header
-                counter=1
-                do
-                   read(dumpunit(j),'(A)',iostat=ierro) ch
-                   call fma_error(ierro,'while reading file '//dump_fname(j),'fma_postpr')
-                   ch1=adjustl(trim(ch))
-                   if(ch1(1:1).ne.'#')  exit
-                   if(counter>500) then
-                      call fma_error(ierro, &
-                           "Something is wrong with your dumpfile '"//trim(stringzerotrim(dump_fname(j)))//&
-                           "'; found more than 500 header lines",&
-                           'fma_postpr')
-                   endif
-                   counter=counter+1
-                enddo
-                backspace(dumpunit(j),iostat=ierro)
-             endif
-             ! format 7 and 8 use normalized coordinates -> set fma_norm_flag =1
-             if(dumpfmt(j) .eq. 7 .or. dumpfmt(j) .eq. 8) then
-                if ( fma_norm_flag(i) .ne. 1 ) then
-                   ! For format 7 and 8, the particles are already normalized by the DUMP block
-                   write(lout,*) "ERROR in fma_postpr() for FMA #",i
-                   write(lout,*) "Cannot do FMA on physical coordinates if normalized DUMP is used (dump format = 7 or 8)!"
-                   call prror(-1)
-                endif
-             else ! Reading physical coordinates
-                if ( fma_norm_flag(i) .eq. 1 ) then
-                   ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
-                   if ( dumptas(j,1,1).eq.zero .and. &
-                        dumptas(j,1,2).eq.zero .and. &
-                        dumptas(j,1,3).eq.zero .and. &
-                        dumptas(j,1,4).eq.zero         ) then
-                      write(lout,*) "ERROR in FMA with normalized coordinates:"
-                      write(lout,*) "The normalization matrix appears to not be set?"
-                      write(lout,*) "Did you forget to put a 6D LINE block?"
-                      call prror(-1)
-                   endif
-                   if(idp.eq.0 .or. ition.eq.0) then ! We're in the 4D case
-                      if(imc.ne.1) then !Energy scan
-                         write(lout,*) "ERROR in FMA with normalized coordinates:"
-                         write(lout,*) "Energy scan (imc != 1) not supported!"
-                         call prror(-1)
-                      endif
-                      if(j.ne.-1) then !Not at StartDUMP
-                         write(lout,*) "ERROR in FMA with normalized coordinates:"
-                         write(lout,*) "4D only supported for StartDUMP!"
-                         call prror(-1)
-                      endif
-                   endif
-                endif
-             endif
-             ! - now we have done all checks
+              end if
+            end if
+          end if
+        end if
+        ! - now we have done all checks
+
              if ( fma_writeNormDUMP .and. .not.(dumpfmt(j).eq.7 .or. dumpfmt(j).eq.8) .and. .not.hasNormDumped(j) ) then
                 write(lout,*) "FMA: Writing normalized DUMP for '"//trim(stringzerotrim(dump_fname(j)))// "'..."
                 ! Dump normalized particle amplitudes for debugging (tmpUnit)
@@ -492,19 +491,19 @@ subroutine fma_postpr
                 do l=1,napx
                    if (dumpfmt(j).eq.2 .or. dumpfmt(j).eq.7) then  ! Read an ASCII dump
 #ifndef CRLIBM
-                      read(dumpunit(j),*,iostat=ierro) &
+                      read(dumpunit(j),*,iostat=ioStat) &
                            id,thisturn,pos,xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),xyzvdummy(6),kt
-                      if(ierro.gt.0) then
+                      if(ioStat.gt.0) then
                          write(ch,'(a,1x,I5,1x,a)') &
                               "while reading  particles from file '"//trim(stringzerotrim(dump_fname(j)))// &
                               "' (dumpfmt=",dumpfmt(j),')'
-                         call fma_error(ierro,ch,'fma_postpr') !read error
+                         call fma_error(ioStat,ch,'fma_postpr') !read error
                       endif
 #else
-                      read(dumpunit(j),'(a)', iostat=ierro) ch
-                      if(ierro.gt.0) then
+                      read(dumpunit(j),'(a)', iostat=ioStat) ch
+                      if(ioStat.gt.0) then
                          ! read error
-                         call fma_error(ierro,'while reading  particles from file '//trim(stringzerotrim(dump_fname(j))) // &
+                         call fma_error(ioStat,'while reading  particles from file '//trim(stringzerotrim(dump_fname(j))) // &
                               '. Check that tracked turns is larger than the number of turns used for FFT!', 'fma_postpr')
                       endif
                       call getfields_split(ch,filefields_fields,filefields_lfields,filefields_nfields,filefields_lerr)
@@ -524,31 +523,31 @@ subroutine fma_postpr
 
                       read(filefields_fields(1) (1:filefields_lfields(1)),*) id
                       read(filefields_fields(2) (1:filefields_lfields(2)),*) thisturn
-                      pos = round_near(ierro, filefields_lfields(3)+1, filefields_fields(3) )
-                      if (ierro.ne.0) call rounderr(ierro, filefields_fields, 3, pos)
-                      xyzvdummy(1) = round_near(ierro, filefields_lfields(4)+1, filefields_fields(4) )
-                      if (ierro.ne.0) call rounderr(ierro, filefields_fields,4, xyzvdummy(1))
-                      xyzvdummy(2) = round_near(ierro, filefields_lfields(5)+1, filefields_fields(5) )
-                      if (ierro.ne.0) call rounderr(ierro, filefields_fields,5, xyzvdummy(2))
-                      xyzvdummy(3) = round_near(ierro, filefields_lfields(6)+1, filefields_fields(6) )
-                      if (ierro.ne.0) call rounderr(ierro,filefields_fields,6, xyzvdummy(3))
-                      xyzvdummy(4) = round_near(ierro, filefields_lfields(7)+1, filefields_fields(7) )
-                      if (ierro.ne.0) call rounderr(ierro,filefields_fields,7, xyzvdummy(4))
-                      xyzvdummy(5) = round_near(ierro, filefields_lfields(8)+1, filefields_fields(8) )
-                      if (ierro.ne.0) call rounderr(ierro,filefields_fields,8, xyzvdummy(5))
-                      xyzvdummy(6) = round_near(ierro, filefields_lfields(9)+1, filefields_fields(9) )
-                      if (ierro.ne.0) call rounderr(ierro,filefields_fields,9, xyzvdummy(6))
+                      pos = round_near(ioStat, filefields_lfields(3)+1, filefields_fields(3) )
+                      if (ioStat.ne.0) call rounderr(ioStat, filefields_fields, 3, pos)
+                      xyzvdummy(1) = round_near(ioStat, filefields_lfields(4)+1, filefields_fields(4) )
+                      if (ioStat.ne.0) call rounderr(ioStat, filefields_fields,4, xyzvdummy(1))
+                      xyzvdummy(2) = round_near(ioStat, filefields_lfields(5)+1, filefields_fields(5) )
+                      if (ioStat.ne.0) call rounderr(ioStat, filefields_fields,5, xyzvdummy(2))
+                      xyzvdummy(3) = round_near(ioStat, filefields_lfields(6)+1, filefields_fields(6) )
+                      if (ioStat.ne.0) call rounderr(ioStat,filefields_fields,6, xyzvdummy(3))
+                      xyzvdummy(4) = round_near(ioStat, filefields_lfields(7)+1, filefields_fields(7) )
+                      if (ioStat.ne.0) call rounderr(ioStat,filefields_fields,7, xyzvdummy(4))
+                      xyzvdummy(5) = round_near(ioStat, filefields_lfields(8)+1, filefields_fields(8) )
+                      if (ioStat.ne.0) call rounderr(ioStat,filefields_fields,8, xyzvdummy(5))
+                      xyzvdummy(6) = round_near(ioStat, filefields_lfields(9)+1, filefields_fields(9) )
+                      if (ioStat.ne.0) call rounderr(ioStat,filefields_fields,9, xyzvdummy(6))
                       read(filefields_fields(10) (1:filefields_lfields(10)),*) kt
 #endif
 
                    else if (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then ! Read a binary dump
-                      read(dumpunit(j),iostat=ierro) &
+                      read(dumpunit(j),iostat=ioStat) &
                            id,thisturn,pos,xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),xyzvdummy(6),kt
-                      if(ierro.gt.0) then
+                      if(ioStat.gt.0) then
                          write(ch,'(a,1x,I5,1x,a)') &
                               "while reading particles from file '"// trim(stringzerotrim(dump_fname(j))) // &
                               "' (dumpfmt=",dumpfmt(j),')'
-                         call fma_error(ierro,ch,'fma_postpr') !read error
+                         call fma_error(ioStat,ch,'fma_postpr') !read error
                       endif
                    endif
 
@@ -807,11 +806,11 @@ subroutine fma_postpr
           endif !END: if fma_fname(i) matches dump_fname(j)
 
           ! if file has been already found, jump to next file fma_fname(i)
-          if( lexist ) then
+          if( fExist ) then
              exit
           endif
        enddo !END: loop over dump files
-       if(.not. lexist) then !if no dumpfile has been found, raise error and abort
+       if(.not. fExist) then !if no dumpfile has been found, raise error and abort
           call fma_error(-1,'dump file '//trim(stringzerotrim(fma_fname(i)))//&
                ' does not exist! Please check that filenames in FMA block agree with the ones in the DUMP block!', 'fma_postpr')
        endif
