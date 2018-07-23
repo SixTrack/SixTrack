@@ -162,6 +162,10 @@ do
         fi
     done
 
+    if [[ $var == "lxplus" ]]; then
+        thisWasSpecial="YES"
+    fi
+
     if [[ $thisWasSpecial == "NO" ]]; then
         options_ALL+=($var)
         options_ON+=($var)
