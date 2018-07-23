@@ -385,8 +385,9 @@ end interface
   write(lout,"(a)") ""
   write(lout,"(a)") "    SixTrack :: Version "//trim(version)//" :: Released "//trim(moddate)
   write(lout,"(a)") "  "//repeat("=",128)
-  write(lout,"(a)") "    Built With:"//featList
-  write(lout,"(a)") "    Start Time: "//timeStamp
+  write(lout,"(a)") "    Git SHA Hash: "//trim(git_revision)
+  write(lout,"(a)") "    Built With:  "//featList
+  write(lout,"(a)") "    Start Time:   "//timeStamp
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
 
