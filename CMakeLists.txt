@@ -14,6 +14,23 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 PROJECT(SixTrack)
 ENABLE_LANGUAGE(Fortran)
 
+# force an out of source build to stop clutter
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+	message(STATUS "Sixtrack requires an out-of-source build.")
+	message(STATUS "Please remove these files from ${CMAKE_BINARY_DIR} first:")
+	message(STATUS "CMakeCache.txt")
+	message(STATUS "CMakeFiles")
+	message(STATUS "Once these files are removed, create a separate directory")
+	message(STATUS "and run CMake from there")
+	message(FATAL_ERROR "in-source build detected")
+endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+
+if(NOT CMAKE_BUILD_TYPE)
+	SET(CMAKE_BUILD_TYPE Release CACHE STRING
+		"Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel"# MPI MPIDEBUG."
+		FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
+
 # Set Sixtrack version info
 file(READ ${CMAKE_SOURCE_DIR}/source/version.f90 IFILE)
 STRING(REGEX MATCH ".*data version /'([0-9]+)[.]([0-9]+)[.]?([0-9]+)?[-]?(rc[0-9])?'/" VERSION_STRING ${IFILE})
@@ -46,23 +63,10 @@ EXECUTE_PROCESS(COMMAND git log -n1 --pretty=format:%H WORKING_DIRECTORY ${CMAKE
 STRING(STRIP ${GIT_REVISION} GIT_REVISION)
 message(STATUS "GIT_REVISION: ${GIT_REVISION}")
 
-
-# force an out of source build to stop clutter
-if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-	message(STATUS "Sixtrack requires an out-of-source build.")
-	message(STATUS "Please remove these files from ${CMAKE_BINARY_DIR} first:")
-	message(STATUS "CMakeCache.txt")
-	message(STATUS "CMakeFiles")
-	message(STATUS "Once these files are removed, create a separate directory")
-	message(STATUS "and run CMake from there")
-	message(FATAL_ERROR "in-source build detected")
-endif()
-
-if(NOT CMAKE_BUILD_TYPE)
-	SET(CMAKE_BUILD_TYPE Release CACHE STRING
-		"Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel"# MPI MPIDEBUG."
-		FORCE)
-endif()
+#replace the "GIT_HASH" in version.f90
+#add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/version.f90 ${CMAKE_BINARY_DIR})
+#STRING(REPLACE "GIT_HASH" "\"${GIT_REVISION}\"" VERSION_FILE_OUT ${IFILE})
+#file(WRITE ${CMAKE_BINARY_DIR}/version.f90 ${VERSION_FILE_OUT})
 
 ###################################################################################################
 # Sixtrack configuration options
@@ -952,6 +956,9 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 
 endif()
 
+#check that the compiler has the features we need!
+    include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
+
 #MPI default build options
 #SET( CMAKE_CXX_FLAGS_MPI "-DNDEBUG -Wall -O3 -pedantic -DENABLE_MPI -march=native" CACHE STRING
 #	"Flags used by the C++ compiler during MPI builds."
@@ -1022,6 +1029,8 @@ if(128BITM)
 	message(STATUS "Adding preprocessor macro -DSIXTRACK_REAL=real128 to target SixTrack")
 	list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real128)
 endif()
+
+	list(APPEND PREPRO_FLAGS -DSIXTRACK_GIT_REVISION="'${GIT_REVISION}'")
 
 #build dafor
 add_executable(dafor ${CMAKE_SOURCE_DIR}/source/tools/dafor/dafor.f90)
@@ -1100,7 +1109,7 @@ add_custom_command(TARGET include_mkdir POST_BUILD COMMAND ${CMAKE_COMMAND} -E m
 foreach(loop IN ITEMS ${SIXTRACK_INCL})
 	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR}/include/)
 endforeach()
-add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/version.f90 ${CMAKE_BINARY_DIR})
+#add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/version.f90 ${CMAKE_BINARY_DIR})
 
 if(BOINC AND API)
 	include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
