@@ -2,6 +2,7 @@
 !  CENTRAL LOOP FOR 6-DIMENSIONAL CLOSED ORBIT
 !-----------------------------------------------------------------------
 subroutine umlauda
+
   use floatPrecision
   use physical_constants
   use numerical_constants
@@ -43,12 +44,8 @@ subroutine umlauda
   integer expertUnit
 
 ! For treatment and/or conversion of BEAM parameters in/to the new format
-#ifdef CRLIBM
-  character(len=1000) ch
-  character(len=25) ch1
-  integer errno,l1
-  integer dtostr
-#endif
+  character(len=25) tmpStr(6)
+  logical rErr
   integer wire_num_aux ! auxiliary variable to count number of wires
   save
 !-----------------------------------------------------------------------
@@ -763,117 +760,33 @@ subroutine umlauda
         if(parbe(ix,2).eq.0.0) then !4D
           !Note: One should always use the CRLIBM version when converting,
           ! in order to guarantee the exact same results from the converted input file.
-#ifndef CRLIBM
-          write(expertUnit,"(a16,1x,a1,1x,5g30.20)") bez(ix), "0", bbcu(ibb,1),bbcu(ibb,2),parbe(ix,5), parbe(ix,6), ptnfac(ix)
-#else
-          l1 = 1
-          write(ch,"(a16,1x,a1)") bez(ix), "0"
-          l1 = len(trim(ch))+1
-        
-          errno=dtostr(bbcu(ibb,1),ch1) ! Return value is the string length (always 24)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(bbcu(ibb,2),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(parbe(ix,5),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(parbe(ix,6),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(ptnfac(ix),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          write(expertUnit,"(a)") trim(ch)
-#endif
+          call chr_fromReal(bbcu(ibb,1),tmpStr(1),19,2,rErr)
+          call chr_fromReal(bbcu(ibb,2),tmpStr(2),19,2,rErr)
+          call chr_fromReal(parbe(ix,5),tmpStr(3),19,2,rErr)
+          call chr_fromReal(parbe(ix,6),tmpStr(4),19,2,rErr)
+          call chr_fromReal(ptnfac(ix),tmpStr(5),19,2,rErr)
+          write(expertUnit,"(a48,1x,a1,5(1x,a25))")  bez(ix),"0",tmpStr(1),tmpStr(2),tmpStr(3),tmpStr(4),tmpStr(5)
         else                      ! 6D
-#ifndef CRLIBM
-          write(expertUnit,"(a16,1x,i4,1x,4g30.20)") bez(ix), int(parbe(ix,2)),parbe(ix,1), parbe(ix,3),parbe(ix,5), parbe(ix,6)
-          write(expertUnit,"(5g30.20)") bbcu(ibb,1), bbcu(ibb,4), bbcu(ibb,6), bbcu(ibb,2), bbcu(ibb,9)
-          write(expertUnit,"(6g30.20)") bbcu(ibb,10), bbcu(ibb,3), bbcu(ibb,5), bbcu(ibb,7), bbcu(ibb,8), ptnfac(ix)
-#else
-          l1 = 1
-          write(ch,"(a16,1x,i4)") bez(ix), int(parbe(ix,2))
-          l1 = len(trim(ch))+1
+          call chr_fromReal(parbe(ix,1),tmpStr(1),19,2,rErr)
+          call chr_fromReal(parbe(ix,3),tmpStr(2),19,2,rErr)
+          call chr_fromReal(parbe(ix,5),tmpStr(3),19,2,rErr)
+          call chr_fromReal(parbe(ix,6),tmpStr(4),19,2,rErr)
+          write(expertUnit,"(a48,1x,i4,1x,4(1x,a25))") bez(ix),int(parbe(ix,2)),tmpStr(1),tmpStr(2),tmpStr(3),tmpStr(4)
         
-          errno=dtostr(parbe(ix,1),ch1) ! Return value is the string length (always 24)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
+          call chr_fromReal(bbcu(ibb,1),tmpStr(1),19,2,rErr)
+          call chr_fromReal(bbcu(ibb,4),tmpStr(2),19,2,rErr)
+          call chr_fromReal(bbcu(ibb,6),tmpStr(3),19,2,rErr)
+          call chr_fromReal(bbcu(ibb,2),tmpStr(4),19,2,rErr)
+          call chr_fromReal(bbcu(ibb,9),tmpStr(5),19,2,rErr)
+          write(expertUnit,"(5(a25,1x))") tmpStr(1),tmpStr(2),tmpStr(3),tmpStr(4),tmpStr(5)
         
-          errno=dtostr(parbe(ix,3),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(parbe(ix,5),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(parbe(ix,6),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          write(expertUnit,"(a)") trim(ch)
-        
-          l1 = 1
-          ch = ' '
-        
-          errno=dtostr(bbcu(ibb,1),ch1) ! Return value is the string length (always 24)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(bbcu(ibb,4),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(bbcu(ibb,6),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(bbcu(ibb,2),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(bbcu(ibb,9),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          write(expertUnit,"(a)") trim(ch)
-        
-          l1 = 1
-          ch = ' '
-        
-          errno=dtostr(bbcu(ibb,10),ch1) ! Return value is the string length (always 24)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(bbcu(ibb,3),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(bbcu(ibb,5),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(bbcu(ibb,7),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(bbcu(ibb,8),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          errno=dtostr(ptnfac(ix),ch1)
-          ch(l1:l1+errno) = ch1(1:errno)
-          l1 = l1+errno+1
-        
-          write(expertUnit,"(a)") trim(ch)
-#endif
+          call chr_fromReal(bbcu(ibb,10),tmpStr(1),19,2,rErr)
+          call chr_fromReal(bbcu(ibb,3),tmpStr(2),19,2,rErr)
+          call chr_fromReal(bbcu(ibb,5),tmpStr(3),19,2,rErr)
+          call chr_fromReal(bbcu(ibb,7),tmpStr(4),19,2,rErr)
+          call chr_fromReal(bbcu(ibb,8),tmpStr(5),19,2,rErr)
+          call chr_fromReal(ptnfac(ix), tmpStr(6),19,2,rErr)
+          write(expertUnit,"(6(a25,1x))") tmpStr(1),tmpStr(2),tmpStr(3),tmpStr(4),tmpStr(5),tmpStr(6)
         endif !END if(parbe(ix,2).eq.0.0)
         
         if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then

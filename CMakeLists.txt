@@ -7,7 +7,7 @@
 ###################################################################################################
 
 #Set the cmake version required
-cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 #set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 # Set the project name and options
@@ -302,6 +302,7 @@ list(APPEND FORT90_LIB
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist scatter dump dynk
 	aperture mod_fluc beam6d_fox six_fox postprocessing
+	read_input
 )
 
 # Files unique to DA or CR version

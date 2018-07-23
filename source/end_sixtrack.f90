@@ -388,6 +388,7 @@ subroutine abend(cstring)
   use parpro
   use mod_common
   use checkpoint_restart
+  use string_tools
 
   implicit none
 
@@ -401,7 +402,6 @@ subroutine abend(cstring)
   character(len=8192) ch
   character(len=25) ch1
   integer errno,l1,l2
-  integer dtostr
   integer ich
 
   save
@@ -504,13 +504,12 @@ subroutine abend(cstring)
     end do
 707 write(10,'(a)',iostat=ierro) ch(:ich)
 #else
-    ! Now use my new dtostr for portability
     l1=1
     do i=1,60
       ! We return the length of the string (always 24)
-      errno=dtostr(sumda(i),ch1)
-      ch(l1:l1+errno)=' '//ch1(1:errno)
-      l1=l1+errno+1
+      call chr_fromReal(sumda(i),ch1,19,2,rErr)
+      ch(l1:l1+25)=' '//ch1(1:25)
+      l1=l1+26
     end do
     write(10,'(a)',iostat=ierro) ch(1:l1-1)
 #endif
