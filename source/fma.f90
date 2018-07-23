@@ -27,24 +27,6 @@ subroutine fma_allocate
   call alloc(fma_norm_flag,       fma_max, 1,          "fma_norm_flag")
 end subroutine fma_allocate
 
-  subroutine fma_error(ierro,str,subroutine_name)
-    !-----------------------------------------------------------------------*
-    !  FMA                                                                  *
-    !  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
-    !  last modified: 04-01-2016                                            *
-    !  purpose: error messages for fma analysis                             *
-    !-----------------------------------------------------------------------*
-      use crcoall
-    implicit none
-    integer,       intent(in)  :: ierro
-    character (*), intent (in) :: subroutine_name
-    character (*), intent (in) :: str             !error message
-    if(ierro.ne.0) then
-       write(lout,*) 'ERROR in ',subroutine_name,': ', str, ', iostat=',ierro
-       call prror(-1)
-    endif
-  end subroutine fma_error
-
 subroutine fma_parseInputline(inLine,iErr)
 
   use crcoall
@@ -138,7 +120,7 @@ end subroutine fma_parseInputline
 ! ================================================================================================ !
 !  FMA POSTPROCESSING
 !  M.Fitterer, R. De Maria, K.Sjobak, BE-ABP-HSS
-!  Updated by: V.K. Berglyd Olsem, BE-ABP-HSS
+!  Updated by: V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-07-23
 !  purpose: return files used for fma analysis
 !           -> calculate particle amplitudes and tunes using the
@@ -169,26 +151,10 @@ subroutine fma_postpr
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn)       :: rLine
-  integer nSplit, fmaUnit, tmpUnit
-  logical spErr, fErr, cErr
-
-  integer :: dump_last_turn
-  integer :: i,j,k,l,m,n                    ! for do loops
-  integer :: num_modes                      ! 3 for 6D tracking, 2 for 4D tracking.
-  integer :: fma_npart,fma_tfirst,fma_tlast ! local variables to check input files
-  logical :: isOpen                          ! flag to check if file is already open
-  logical :: fExist                         ! flag to check if file fma_fname exists
-  logical :: lread                          ! flag for file reading
-  character(len=getfields_l_max_string) :: ch,ch1
-  character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
-  integer   getfields_nfields                                                 ! Number of identified fields
-  integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
-  logical   getfields_lerr                                                    ! An error flag
-  character filefields_fields ( getfields_n_max_fields )*( getfields_l_max_string )
-  integer filefields_nfields
-  integer filefields_lfields( getfields_n_max_fields )
-  logical filefields_lerr
-  real(kind=fPrec) round_near
+  character(len=mStrLen)        :: ch, ch1
+  integer nSplit, fmaUnit, tmpUnit, dumpLastTurn, numModes
+  logical spErr, fErr, cErr, isOpen, fExist
+  integer i,j,k,l,m,n
 
   ! Current turn no (particle, rel. turn no)
   integer, allocatable :: turn(:,:)
@@ -255,9 +221,9 @@ subroutine fma_postpr
   end if
 
   if(idp == 0 .or. ition == 0) then
-    num_modes = 2 ! 4D tracking
+    numModes = 2 ! 4D tracking
   else
-    num_modes = 3 ! 6D tracking
+    numModes = 3 ! 6D tracking
   end if
 
   ! write the header of fma_sixtrack
@@ -474,13 +440,13 @@ subroutine fma_postpr
         ! on the same DUMP file
 
         if(dumplast(j) == -1) then
-          dump_last_turn = numl
+          dumpLastTurn = numl
         else
-          dump_last_turn = dumplast(j)
+          dumpLastTurn = dumplast(j)
         end if
 
         ! Loop over all turns in the DUMP file; this is neccessary since we're writing normalised DUMP files.
-        do k=dumpfirst(j),dump_last_turn ! Loop over turns, use the dump files
+        do k=dumpfirst(j),dumpLastTurn ! Loop over turns, use the dump files
           ! Loop over particles
           do l=1,napx
             if(dumpfmt(j) == 2 .or. dumpfmt(j) == 7) then ! Read an ASCII dump
@@ -601,7 +567,7 @@ subroutine fma_postpr
           !TODO particle losses - detect if nturns(l) is too small & skip that particle.
           ! (probably just write a line of mostly zeros to the file)
 
-          do m=1,num_modes ! Loop over modes (hor.,vert.,long.)
+          do m=1,numModes ! Loop over modes (hor.,vert.,long.)
             select case(trim(fma_method(i)))
             case("TUNELASK")
               if(fma_norm_flag(i) == 0) then
@@ -718,7 +684,7 @@ subroutine fma_postpr
 
           end do ! Loop over modes (hor.,vert.,long.)
 
-          if(num_modes == 2) then
+          if(numModes == 2) then
             q123(3)       = zero
             eps123_min(3) = zero
             eps123_max(3) = zero
