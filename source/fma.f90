@@ -1,26 +1,31 @@
-
-module FMA
+module fma
 
   use string_tools, only : getfields_l_max_string
 
   implicit none
 
-  integer, parameter :: fma_max       = 200              !max. number of FMAs
-  integer, parameter :: fma_nturn_max = 10000            !max. number of turns used for fft
-  integer fma_numfiles                                   !number of FMAs
-  logical fma_flag                                       !FMA input block exists
-  logical fma_writeNormDUMP                              !Writing out the normalized DUMP files
-  character fma_fname  (fma_max)*(getfields_l_max_string)!name of input file from dump
-  character fma_method (fma_max)*(getfields_l_max_string)!method used to find the tunes
-  integer fma_first (fma_max), fma_last (fma_max)        !first and last turn used for FMA
-  integer fma_norm_flag(fma_max)                         !fma_norm_flag=0, do not normalize phase space before FFT,
-                                                         ! otherwise normalize phase space coordinates
-
-  save fma_fname,fma_method,fma_numfiles, &
-       fma_norm_flag,fma_first,fma_last,  &
-       fma_flag,fma_writeNormDUMP
+  integer, parameter     :: fma_max           = 200                ! Max. number of FMAs
+  integer, parameter     :: fma_nturn_max     = 10000              ! Max. number of turns used for fft
+  integer, private, save :: fma_numfiles      = 0                  ! Number of FMAs
+  logical, public,  save :: fma_flag          = .false.            ! FMA input block exists
+  logical, private, save :: fma_writeNormDUMP = .true.             ! Writing out the normalized DUMP files
+  character(len=:), allocatable, private, save :: fma_fname(:)     ! Name of input file from dump
+  character(len=:), allocatable, private, save :: fma_method(:)    ! Method used to find the tunes
+  integer,          allocatable, private, save :: fma_first(:)     ! First turn used for FMA
+  integer,          allocatable, private, save :: fma_last(:)      ! Last turn used for FMA
+  integer,          allocatable, private, save :: fma_norm_flag(:) ! Normalize phase space before FFT
 
 contains
+
+subroutine fma_allocate
+  use mod_alloc
+  use parpro
+  call alloc(fma_fname,  mStrLen, fma_max, str_dSpace, "fma_fname")
+  call alloc(fma_method, mStrLen, fma_max, str_dSpace, "fma_method")
+  call alloc(fma_first,           fma_max, 0,          "fma_first")
+  call alloc(fma_last,            fma_max, 0,          "fma_last")
+  call alloc(fma_norm_flag,       fma_max, 1,          "fma_norm_flag")
+end subroutine fma_allocate
 
   subroutine fma_error(ierro,str,subroutine_name)
     !-----------------------------------------------------------------------*
@@ -858,27 +863,5 @@ contains
     deallocate(naff_xyzv1, naff_xyzv2)
 #endif
   end subroutine fma_postpr
-
-  subroutine fma_comnul
-    implicit none
-
-    integer i, j
-
-    fma_flag = .false.
-    fma_writeNormDUMP = .true.
-    fma_numfiles = 0
-
-    do i=1,fma_max
-       fma_first(i) = 0
-       fma_last(i)  = 0
-       fma_norm_flag(i) = 1 !initialize to 1 as default is with normalisation
-
-       do j=1,getfields_l_max_string
-          fma_fname(i)(j:j) = char(0)
-          fma_method(i)(j:j) = char(0)
-       end do
-    end do
-
-  end subroutine fma_comnul
 
 end module fma
