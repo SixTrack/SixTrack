@@ -544,6 +544,10 @@ subroutine thin4d(nthinerr)
   use mod_fluka
 #endif
 
+#ifdef ROOT
+  use root_output
+#endif
+
   use mod_hions
   use mod_settings
   use postprocessing, only : writebin
@@ -1141,7 +1145,7 @@ subroutine thin4d(nthinerr)
          ! store infos of last aperture marker
          if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
          ! store old particle coordinates
-         call aperture_saveLastCoordinates(i,ix,-1)
+         call aperture_saveLastCoordinates(i,ix,0)
       end if
 
 625 continue
@@ -1150,6 +1154,12 @@ subroutine thin4d(nthinerr)
     end if
 
 630 continue
+
+#if defined(ROOT) && !defined(COLLIMAT)
+    if(root_flag .and. root_Collimation.eq.1) then
+      call SurvivalRootWrite(n, napx)
+    end if
+#endif
 
     if(nthinerr.ne.0) return
     if(ntwin.ne.2) call dist1
@@ -1190,12 +1200,19 @@ subroutine thin6d(nthinerr)
   use aperture
   use mod_hions
   use mod_settings
+
 #ifdef FLUKA
   use mod_fluka
 #endif
+
+#ifdef ROOT
+  use root_output
+#endif
+
 #ifdef COLLIMAT
   use collimation
 #endif
+
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -2124,7 +2141,7 @@ subroutine thin6d(nthinerr)
          ! store infos of last aperture marker
          if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
          ! store old particle coordinates
-         call aperture_saveLastCoordinates(i,ix,-1)
+         call aperture_saveLastCoordinates(i,ix,0)
       end if
 
 645   continue
@@ -2137,6 +2154,12 @@ subroutine thin6d(nthinerr)
 
 #ifdef COLLIMAT
     call collimate_end_turn
+#endif
+
+#if defined(ROOT) && !defined(COLLIMAT)
+    if(root_flag .and. root_Collimation.eq.1) then
+      call SurvivalRootWrite(n, napx)
+    end if
 #endif
 
     if(nthinerr.ne.0) then
