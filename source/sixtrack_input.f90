@@ -1063,6 +1063,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(nSplit > 6) call chr_cast(lnSplit(7),ntwin, iErr) ! Flag for calculated distance of phase space
     if(nSplit > 7) call chr_cast(lnSplit(8),ibidu, iErr) ! Switch to create or read binary dump
     if(nSplit > 8) call chr_cast(lnSplit(9),iexact,iErr) ! Switch to enable exact solution of the equation of motion
+    if(nSplit > 9) call chr_cast(lnSplit(10),curveff,iErr) ! Switch to include curvatures effect on multipoles..
 
     if(st_debug) then
       call sixin_echoVal("nde(1)",nde(1),"TRAC",iLine)
@@ -1074,6 +1075,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call sixin_echoVal("ntwin", ntwin, "TRAC",iLine)
       call sixin_echoVal("ibidu", ibidu, "TRAC",iLine)
       call sixin_echoVal("iexact",iexact,"TRAC",iLine)
+      call sixin_echoVal("curveff",curveff,"TRAC",iLine)
     end if
     if(iErr) return
 

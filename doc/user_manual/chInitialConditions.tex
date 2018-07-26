@@ -22,7 +22,7 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
                         &         & \texttt{niu(1) niu(2) numlcp numlmax} \\
                         & Line 2: & \texttt{idy(1) idy(2) idfor irew iclo6} \\
                         & Line 3: & \texttt{nde(1) nde(2) nwr(1) nwr(2) nwr(3) nwr(4)} \\
-                        &         & \texttt{ntwin ibidu iexact}
+                        &         & \texttt{ntwin ibidu iexact curveff}
 \end{tabular}
 
 \paragraph{Format Description}~
@@ -76,7 +76,9 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
                                 \mbox{e.g.}
                                 \quad x^\prime \simeq \frac{P_x}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}},
                                 \quad y^\prime \simeq \frac{P_y}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}}.
-                           \end{equation*}
+                           \end{equation*} \\
+    \texttt{curveff}       & integer  & \texttt{curveff = 0}: the effect of the curvature in a combined function is neglected. Note that the weak focusing effect is always included. \\
+                           &          & \texttt{curveff = 1}: switch to enable the curvature effect in a combined function magnet (bending + quadrupole).
 \end{longtabu}
 
 \paragraph{Remarks}~

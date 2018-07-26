@@ -2612,6 +2612,7 @@ subroutine comnul
   ntwin   = 0     ! mod_common
   ibidu   = 0     ! mod_common
   iexact  = 0     ! mod_common
+  curveff = 0     ! mod_common
 
   ! SINGLE ELEMENT BLOCK
   ithick  = 0     ! mod_common

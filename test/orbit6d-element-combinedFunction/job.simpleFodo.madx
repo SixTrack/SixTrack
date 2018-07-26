@@ -1,0 +1,92 @@
+circum=120.;
+lcell=20.;
+f=lcell/sin(pi/5)/4;
+k=1.0/f;
+value, f;
+beam, particle=proton, energy = 20;
+angle = 2*pi/6;
+qfstart: multipole, knl={0.000, k}, lrad=2.0;
+!OPTION, THIN_FOC=true;
+qf: multipole, knl={0, k};
+qd: multipole, knl={0, -k};
+redip: SBEND, l=1.0, angle=0.02, k1=0.001, tilt=0;
+redipV: SBEND, l=0.9, angle=0.012, k1=0.001, tilt=0;
+!redip: multipole, knl={0.001,0.001}, lrad=2.0;
+!sa: sextupole, l=0.08, k2=0.01;
+dip: multipole, knl={0.00001,0,0.0000}, lrad=3;
+hkick: HKICKER,L=real, KICK=0.00012, TILT=real;
+vkick: VKICKER,L=real, KICK=0.00133, TILT=real;
+rfcav: RFCAVITY, VOLT=0.1, LAG=0.0, L =0.0, HARMON=100;
+ip5: marker;
+
+
+seq: sequence, refer=center, l=circum;
+redip: redip, at = 0.5 ;
+ip5;ip5, at=1.00;
+redipV: redipV, at = 1.5 ;
+qfstart: qfstart, at = 2.5 ;
+qd: qd, at = 0.5 * lcell;
+qf: qf, at = 1.0 * lcell;
+qd: qd, at = 1.5 * lcell;
+qf: qf, at = 2.0 * lcell;
+qd: qd, at = 2.5 * lcell;
+hkick, at = 2.51 * lcell;
+vkick, at = 2.52 * lcell;
+qf: qf, at =  3*lcell;
+rfcav:rfcav, at = 3.001*lcell;
+qd: qd, at = 0.5 * lcell+3*lcell;
+qf: qf, at = 1.0 * lcell+3*lcell;
+qd: qd, at = 1.5 * lcell+3*lcell;
+qf: qf, at = 2.0 * lcell+3*lcell;
+qd: qd, at = 2.5 * lcell+3*lcell;
+endsequence;
+
+
+use, sequence=seq;
+
+select, flag=twiss, column=name, s, x,px, y,py, betx, bety;
+
+
+twiss, file="fodo.twiss";
+
+
+xin = 0.03;
+yin = 0.03;
+use, sequence=seq;
+
+!TRACK, DELTAP=0,FILE=thick.dat,ONEPASS=true;
+!START, X=xin, Y=yin;
+
+!OBSERVE, PLACE=ip5;
+!RUN, TURNS=1;
+!ENDTRACK;
+
+
+ptc_create_universe;
+ptc_create_layout,model=2, method=6, nst=5, exact=true, closed_layout=false;
+
+ptc_setswitch, debuglevel=0, nocavity=true, fringe=false, exact_mis=true, time=false, totalpath=false;
+PTC_TWISS, table=twiss, icase=56, no=2, betx=10, bety=10, betz=10, x=xin, y=yin, t=0.0, pt=0.0;
+write, table=twiss, file="twiss.ptc.tfs";
+ptc_end;
+SELECT, FLAG=makethin,slice=1;
+makethin, sequence=seq;
+
+
+	
+
+save,sequence=seq,file="thin.seq";
+use, sequence=seq;
+twiss, file="thin.twiss";
+sixtrack, CAVALL;
+
+TRACK, DELTAP=0,FILE=thin.dat,ONEPASS=true;
+START, X=xin, Y=yin;
+OBSERVE, PLACE=ip5;
+RUN, TURNS=1;
+ENDTRACK;
+
+
+
+
+!sixtrack, CAVALL;
