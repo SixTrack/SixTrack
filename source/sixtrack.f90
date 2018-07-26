@@ -349,20 +349,9 @@ subroutine daten
   if(inLine(1:1) == "!")    goto 110 ! Comment line, ignore
   read(inLine,"(a4)") cCheck
 
-  ! Parse non-block flags
-  select case(cCheck)
-
-  case("PRIN") ! Enable the PRINT flag
-    ! Previous versions of SixTrack allowed the PRINT block to remain unclosed,
-    ! so we need to handle that for backwards compatibility.
-    prevPrint = .true.
-    st_print  = .true.
-    write(lout,"(a)") "INPUT> Note: The PRINT block is replaced by the PRINT flag in the SETT block."
-    write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
-    goto 110 ! Assume the block is not closed
-
-  case("NEXT") ! Close the current block
-    if(prevPrint) goto 110 ! If there was NEXT flag after PRINT after all, go back one more time
+  ! Check for end of block flag
+  if(cCheck == "NEXT") then
+    if(prevPrint) goto 110 ! If previous block was PRIN, just cycle. We've already closed it.
     if(currBlock == "NONE") then
       ! Catch orphaned NEXT blocks here.
       write(lout,"(a)") "INPUT> ERROR Unexpected NEXT block encountered. There is no open block to close."
@@ -372,14 +361,12 @@ subroutine daten
       ! each block can finalise any necessary initialisation
       closeBlock = .true.
     end if
-
-  case("ENDE") ! End of fort.3 input
-    goto 9000
-
-  end select
-
+  end if
   prevPrint = .false.
 
+  ! Check for end of fort.3 input
+  if(cCheck == "ENDE") goto 9000 
+  
   ! Check if no block is active. If so, there should be a new one if input is sane.
   if(currBlock == "NONE") then
     currBlock = cCheck
@@ -394,13 +381,6 @@ subroutine daten
 
   ! Check the status of the current block
   call sixin_checkBlock(currBlock, nUnit, blockOpened, blockClosed, blockLine, blockCount)
-  ! if(nUnit == 2) then
-  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.2 : ",lineNo2," = '"//inLine//"', "// &
-  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine,", N:",blockCount
-  ! else
-  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.3 : ",lineNo3," = '"//inLine//"', "// &
-  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine,", N:",blockCount
-  ! end if
 
   ! Check if the current block has already been seen and closed.
   ! If so, the block exists more than once in the input files. It shouldn't unless intended to.
@@ -418,6 +398,13 @@ subroutine daten
   ! The in-block line number is available as the variable 'blockLine' if needed.
 
   select case(currBlock)
+
+  case("PRIN") ! Enable the PRINT flag
+    write(lout,"(a)") "INPUT> Note: The PRINT block is replaced by the PRINT flag in the SETT block."
+    write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
+    st_print   = .true.
+    prevPrint  = .true.
+    closeBlock = .true.
 
   case("SETT") ! Global Settings Block
     if(openBlock) then

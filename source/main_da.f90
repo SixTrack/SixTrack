@@ -93,11 +93,12 @@ program mainda
   write(ctime,"(i4.4)") itime
   write(lout,"(a)")   ""
 #ifdef TILT
-  write(lout,"(a69)") " SIXTRACK DA VERSION "//version//" (with tilt) - (last change: "//moddate//")"
+  write(lout,"(a69)") " SIXTRACK DA VERSION "//trim(version)//" (with tilt) - (last change: "//trim(moddate)//")"
 #else
-  write(lout,"(a57)") " SIXTRACK DA VERSION "//version//" - (last change: "//moddate//")"
+  write(lout,"(a57)") " SIXTRACK DA VERSION "//trim(version)//" - (last change: "//trim(moddate)//")"
 #endif
   write(lout,"(a)")   ""
+  write(lout,"(a)") "    git SHA hash for this build "//trim(git_revision)
   write(lout,"(a26)") " Runtime: 20"//cdate(1:2)//"-"//cdate(3:4)//"-"//cdate(5:6)//" "//ctime(1:2)//":"//ctime(3:4)
   write(lout,"(a)")   ""
 

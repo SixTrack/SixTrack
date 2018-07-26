@@ -398,7 +398,7 @@ subroutine abend(cstring)
   character(len=*) cstring
   character(len=256) filename
   real(kind=fPrec) sumda(60)
-  logical fopen
+  logical fopen, rErr
   character(len=8192) ch
   character(len=25) ch1
   integer errno,l1,l2
