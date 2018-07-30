@@ -27,6 +27,7 @@ module scatter
   ! Common variables for the SCATTER routines
   logical, public, save :: scatter_active = .false.
   logical, public, save :: scatter_debug  = .false.
+  logical, public, save :: scatter_pythia = .false.
 
   ! Pointer from an element back to a ELEM statement (0 => not used)
   integer, allocatable, public, save :: scatter_elemPointer(:)
@@ -211,15 +212,16 @@ end subroutine scatter_initialise
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-20
 ! =================================================================================================
-subroutine scatter_parseInputLine(inLine)
+subroutine scatter_parseInputLine(inLine, iErr)
 
   use crcoall
 
   implicit none
 
-  type(string), intent(in)  :: inLine
-  type(string), allocatable :: lnSplit(:)
+  type(string), intent(in)    :: inLine
+  logical,      intent(inout) :: iErr
 
+  type(string), allocatable   :: lnSplit(:)
   type(string) keyWord
   integer      nSplit, i
   logical      spErr
@@ -228,6 +230,7 @@ subroutine scatter_parseInputLine(inLine)
   call str_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
     write(lout,"(a)") "SCATTER> ERROR Failed to parse input line."
+    iErr = .true.
     return
   end if
 
@@ -250,17 +253,31 @@ subroutine scatter_parseInputLine(inLine)
   case("DEBUG")
     scatter_debug = .true.
     write(lout,"(a)") "SCATTER> Scatter block debugging is ON."
+
   case("ELEM")
-    call scatter_parseElem(lnSplit, nSplit)
+    call scatter_parseElem(lnSplit, nSplit, iErr)
+
   case("PRO")
-    call scatter_parseProfile(lnSplit, nSplit)
+    call scatter_parseProfile(lnSplit, nSplit, iErr)
+
   case("GEN")
-    call scatter_parseGenerator(lnSplit, nSplit)
+    call scatter_parseGenerator(lnSplit, nSplit, iErr)
+
   case("SEED")
-    call scatter_parseSeed(lnSplit, nSplit)
+    call scatter_parseSeed(lnSplit, nSplit, iErr)
+
+  case("PYTHIA")
+    if(scatter_pythia .eqv. .false.) then
+      scatter_pythia = .true.
+      write(lout,"(s)") "SCATTER> PYTHIA support is ENABLED."
+    end if
+    call scatter_parsePythia(lnSplit, nSplit, iErr)
+
   case default
     write(lout,"(a)") "SCATTER> ERROR Line type not recognized: '"//keyWord//"'"
-    call prror(-1)
+    iErr = .true.
+    return
+
   end select
 
 end subroutine scatter_parseInputLine
@@ -269,7 +286,7 @@ end subroutine scatter_parseInputLine
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-20
 ! =================================================================================================
-subroutine scatter_parseElem(lnSplit, nSplit)
+subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
   use crcoall
   use mod_alloc
@@ -278,18 +295,19 @@ subroutine scatter_parseElem(lnSplit, nSplit)
 
   implicit none
 
-  type(string), allocatable, intent(in) :: lnSplit(:)
-  integer,                   intent(in) :: nSplit
+  type(string), allocatable, intent(in)    :: lnSplit(:)
+  integer,                   intent(in)    :: nSplit
+  logical,                   intent(inout) :: iErr
 
   ! Temporary Variables
   integer ii, j
-  logical iErr
 
   ! Check number of arguments
   if(nSplit < 5) then
     write(lout,"(a)") "SCATTER> ERROR ELEM expected at least 5 arguments:"
     write(lout,"(a)") "SCATTER>       ELEM elemname profile scaling gen1 (gen2...)"
-    call prror(-1)
+    iErr = .true.
+    return
   end if
 
   ! Add the element to the list
@@ -303,19 +321,22 @@ subroutine scatter_parseElem(lnSplit, nSplit)
     if(bez(j) == lnSplit(2)) then
       if(ii /= -1) then
         write(lout,"(a)") "SCATTER> ERROR, found element '"//lnSplit(2)//"' twice in SINGLE ELEMENTS list."
-        call prror(-1)
+        iErr = .true.
+        return
       end if
       ii = j
 
       if(scatter_elemPointer(j) /= 0) then
         write(lout,"(a)") "SCATTER> ERROR, tried to define element '"//lnSplit(2)//"' twice."
-        call prror(-1)
+        iErr = .true.
+        return
       end if
 
       if(kz(j) /= 40) then
         write(lout,"(a)")    "SCATTER> ERROR SCATTER can only work on SINGLE ELEMENTs of type 40."
         write(lout,"(a,i0)") "SCATTER>       The referenced element '"//lnSplit(2)//"'is of type ", kz(j)
-        call prror(-1)
+        iErr = .true.
+        return
       end if
 
       if(el(j) /= 0 .or. ek(j) /= 0 .or. ed(j) /= 0) then
@@ -324,7 +345,8 @@ subroutine scatter_parseElem(lnSplit, nSplit)
           "but el(",j,")=",el(j),", ed(",j,")=",ed(j),", ek(",j,")=",ek(j),"."
         write(lout,"(a)") "SCATTER>       Please check your input in the single element "//&
           "definition of your SCATTER. All values except for the type must be zero."
-        call prror(-1)
+        iErr = .true.
+        return
       end if
 
       scatter_elemPointer(j) = scatter_nELEM
@@ -334,7 +356,8 @@ subroutine scatter_parseElem(lnSplit, nSplit)
 
   if(scatter_ELEM(scatter_nELEM,1) == 0) then
     write(lout,"(a)") "SCATTER> ERROR Could not find element '"//lnSplit(2)//"'"
-    call prror(-1)
+    iErr = .true.
+    return
   end if
 
   ! Find the profile name referenced
@@ -346,7 +369,8 @@ subroutine scatter_parseElem(lnSplit, nSplit)
 
   if(scatter_ELEM(scatter_nELEM,2) == 0) then
     write(lout,"(a)") "SCATTER> ERROR Could not find profile '"//lnSplit(3)//"'"
-    call prror(-1)
+    iErr = .true.
+    return
   end if
 
   ! Store the scaling
@@ -355,7 +379,8 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   ! Find the generator(s) referenced
   if(nSplit-4 > 3) then
     write(lout,"(a,i0,a)") "SCATTER> ERROR Parsing ELEM,",nSplit-4,"generators specified, space for 3"
-    call prror(-1)
+    iErr = .true.
+    return
   end if
 
   do ii=5,nSplit
@@ -373,7 +398,8 @@ subroutine scatter_parseElem(lnSplit, nSplit)
     ! If it is still -1, it wasn't found
     if(scatter_ELEM(scatter_nELEM,ii-4+2) == -1) then
       write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//lnSplit(ii)//"' not found."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
     ! Loop over those GENerators we've filled before
@@ -382,7 +408,8 @@ subroutine scatter_parseElem(lnSplit, nSplit)
     do j=3, ii-4+2-1
       if(scatter_ELEM(scatter_nELEM,j) == scatter_ELEM(scatter_nELEM,ii-4+2)) then
         write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//lnSplit(ii)//"' used twice."
-        call prror(-1)
+        iErr = .true.
+        return
       end if
     end do
   end do
@@ -393,25 +420,26 @@ end subroutine scatter_parseElem
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-20
 ! =================================================================================================
-subroutine scatter_parseProfile(lnSplit, nSplit)
+subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
 
   use mod_alloc
   use crcoall
 
   implicit none
 
-  type(string), allocatable, intent(in) :: lnSplit(:)
-  integer,                   intent(in) :: nSplit
+  type(string), allocatable, intent(in)    :: lnSplit(:)
+  integer,                   intent(in)    :: nSplit
+  logical,                   intent(inout) :: iErr
 
   ! Temporary Variables
   integer ii, tmpIdx
-  logical iErr
 
   ! Check number of arguments
   if(nSplit < 3) then
     write(lout,"(a)") "SCATTER> ERROR PRO expected at least 3 arguments:"
     write(lout,"(a)") "SCATTER>       PRO name type (arguments...)"
-    call prror(-1)
+    iErr = .true.
+    return
   end if
 
   ! Add a profile to the list
@@ -429,7 +457,8 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
   do ii=1,scatter_nPROFILE-1
     if(chr_trimZero(scatter_cData(scatter_PROFILE(ii,1))) == lnSplit(2)) then
       write(lout,"(a)") "SCATTER> ERROR Profile name '"//lnSplit(2)//"' is not unique."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
   end do
 
@@ -440,7 +469,8 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
     if(nSplit /= 6) then
       write(lout,"(a)") "SCATTER> ERROR PROfile type FLAT expected 6 arguments:"
       write(lout,"(a)") "SCATTER>       PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
     ! Request space to store the density
@@ -458,7 +488,8 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
     if(nSplit /= 8) then
       write(lout,"(a)") "SCATTER> ERROR PROfile type GAUSS1 expected 8 arguments:"
       write(lout,"(a)") "SCATTER        PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] offset_x[mm] offset_y[mm]"
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
     ! Request space to store the density
@@ -475,7 +506,8 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
 
   case default
     write(lout,"(a)") "SCATTER> ERROR PRO name '"//lnSplit(3)//"' not recognized."
-    call prror(-1)
+    iErr = .true.
+    return
 
   end select
 
@@ -485,7 +517,7 @@ end subroutine scatter_parseProfile
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 ! =================================================================================================
-subroutine scatter_parseGenerator(lnSplit, nSplit)
+subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
   use crcoall
   use mod_alloc
@@ -494,18 +526,19 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
 
   implicit none
 
-  type(string), allocatable, intent(in) :: lnSplit(:)
-  integer,                   intent(in) :: nSplit
+  type(string), allocatable, intent(in)    :: lnSplit(:)
+  integer,                   intent(in)    :: nSplit
+  logical,                   intent(inout) :: iErr
 
   ! Temporary Variables
   integer ii, tmpIdx
-  logical iErr
 
   ! Check number of arguments
   if(nSplit < 3) then
     write(lout,"(a)") "SCATTER> ERROR GEN expected at least 3 arguments:"
     write(lout,"(a)") "SCATTER>       GEN name type (arguments...)"
-    call prror(-1)
+    iErr = .true.
+    return
   end if
 
   ! Add a generator to the list
@@ -523,7 +556,8 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
   do ii=1,scatter_nGENERATOR-1
     if(chr_trimZero(scatter_cData(scatter_GENERATOR(ii,1))) == lnSplit(2)) then
       write(lout,"(a)") "SCATTER> ERROR Generator name '"//lnSplit(2)//"' is not unique."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
   end do
 
@@ -540,6 +574,8 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
       write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC expected 8 or 9 arguments:"
       write(lout,"(a)") "SCATTER>       GEN name PPBEAMELASTIC a b1 b2 phi tmin (crossSection)"
       call prror(-1)
+      iErr = .true.
+      return
     end if
 
     ! Request space to store the arguments
@@ -562,17 +598,20 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
     ! Check sanity of input values
     if(scatter_fData(tmpIdx+1) < pieni) then
       write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC 5th input (b1) must be larger than zero"
-      call prror(-1)
+      iErr = .true.
+      return
     end if
     if(scatter_fData(tmpIdx+2) < pieni) then
       write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC 6th input (b2) must be larger than zero"
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
   case default
 
     write(lout,"(a)") "SCATTER> ERROR GEN name '"//lnSplit(3)//"' not recognized."
-    call prror(-1)
+    iErr = .true.
+    return
 
   end select
 
@@ -582,7 +621,7 @@ end subroutine scatter_parseGenerator
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 ! =================================================================================================
-subroutine scatter_parseSeed(lnSplit, nSplit)
+subroutine scatter_parseSeed(lnSplit, nSplit, iErr)
 
   use crcoall
   use strings
@@ -590,16 +629,16 @@ subroutine scatter_parseSeed(lnSplit, nSplit)
 
   implicit none
 
-  type(string), allocatable, intent(in) :: lnSplit(:)
-  integer,                   intent(in) :: nSplit
-
-  logical iErr
+  type(string), allocatable, intent(in)    :: lnSplit(:)
+  integer,                   intent(in)    :: nSplit
+  logical,                   intent(inout) :: iErr
 
   ! Check the number of arguments
   if(nSplit /= 3) then
     write(lout,"(a)") "SCATTER> ERROR SEED expected 2 arguments:"
     write(lout,"(a)") "SCATTER>       GEN seed1 seed2"
-    call prror(-1)
+    iErr = .true.
+    return
   end if
 
   ! Read the seeds
@@ -607,6 +646,25 @@ subroutine scatter_parseSeed(lnSplit, nSplit)
   call str_cast(lnSplit(3), scatter_seed2, iErr)
 
 end subroutine scatter_parseSeed
+
+! =================================================================================================
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-07-30
+! =================================================================================================
+subroutine scatter_parsePythia(lnSplit, nSplit, iErr)
+
+  use crcoall
+  use strings
+  use string_tools
+
+  implicit none
+
+  type(string), allocatable, intent(in)    :: lnSplit(:)
+  integer,                   intent(in)    :: nSplit
+  logical,                   intent(inout) :: iErr
+
+
+end subroutine scatter_parsePythia
 ! =================================================================================================
 ! END Input Parser Functions
 ! =================================================================================================

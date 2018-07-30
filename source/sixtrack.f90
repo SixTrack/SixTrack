@@ -867,7 +867,8 @@ subroutine daten
     elseif(closeBlock) then
       if(scatter_debug) call scatter_dumpData
     else
-      call scatter_parseInputLine(string(adjustl(inLine)))
+      call scatter_parseInputLine(string(inLine),inErr)
+      if(inErr) goto 9999
     end if
 
   case("HDF5") ! HDF5 Input Block
