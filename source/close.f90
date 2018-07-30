@@ -2,7 +2,6 @@
 subroutine closeUnits
 
   use file_units,  only : funit_closeUnits, funit_minUnit
-  use scatter,     only : scatter_closeUnits
   use dynk,        only : dynk_closeFiles
   use dump,        only : dump_closeUnits
   use bdex,        only : bdex_closeFiles
@@ -21,7 +20,6 @@ subroutine closeUnits
   call dump_closeUnits
   call dynk_closeFiles
   call bdex_closeFiles
-  call scatter_closeUnits
 #ifdef HDF5
   call h5_closeHDF5
 #endif

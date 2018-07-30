@@ -2558,7 +2558,6 @@ subroutine comnul
   use aperture
   use elens
   use wire
-  use scatter,     only : scatter_comnul
   use dynk,        only : dynk_comnul
   use fma,         only : fma_comnul
   use dump,        only : dump_comnul
@@ -3110,8 +3109,6 @@ subroutine comnul
       call dynk_comnul
 !--ZIPF-----------------------------------------------------------------
       call zipf_comnul
-!--SCATTER--------------------------------------------------------------
-      call scatter_comnul
 !--HDF5-----------------------------------------------------------------
 #ifdef HDF5
       call h5_comnul
