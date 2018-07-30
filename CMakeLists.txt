@@ -94,6 +94,7 @@ OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 OPTION(NAFF "Use NAFF library for FMA analysis" OFF)
 OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 OPTION(FLUKA "Couple to FLUKA for beam collimation" OFF)
+OPTION(PYTHIA "Link with Pythia8 for SCATTER module" OFF)
 OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
 OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
 OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
@@ -135,6 +136,7 @@ OPTION(ROOT "Link to the root libraries" OFF)
 SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/source/boinc CACHE PATH "Path to the boinc build folder")
 SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/source/libarchive_build CACHE PATH "Path to the libarchive build folder")
 SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/source/libarchive CACHE PATH "Path to the libarchive source folder")
+SET(PYTHIA_DIR ${CMAKE_SOURCE_DIR}/lib/pythia CACHE PATH "Path to the Pythia build folder")
 
 ###################################################################################################
 # Sixtrack binary name construction
@@ -215,6 +217,9 @@ endif()
 if(FLUKA)
 	SET(SIXTRACK_FEAT_CR "FLUKA_${SIXTRACK_FEAT_CR}")
 endif(FLUKA)
+if(PYTHIA)
+	SET(SIXTRACK_FEAT_CR "pythia_${SIXTRACK_FEAT_CR}")
+endif()
 if(LIBARCHIVE)
 	SET(SIXTRACK_FEAT_CR "libarchive_${SIXTRACK_FEAT_CR}")
 endif()
@@ -292,7 +297,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}_${SIXTRACK_FEAT_DA}")
 ###################################################################################################
 
 LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST COLLIMAT BOINC BEAMGAS STF MERLINSCATTER NAFF G4COLLIMAT FLUKA CR)
-LIST(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
+LIST(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT PYTHIA)
 LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
 ###################################################################################################
@@ -369,6 +374,11 @@ if(LIBARCHIVE)
 	add_library(libArchive_wrapper STATIC libArchive_Fwrapper.c libArchive_wrapper.c libArchive_wrapper.h)
 	target_compile_options(libArchive_wrapper PRIVATE -std=c99)
 endif(LIBARCHIVE)
+
+if(PYTHIA)
+	add_library(pythia_wrapper STATIC pythia_wrapper.hpp pythia_wrapper.cpp)
+	target_compile_options(pythia_wrapper PRIVATE)
+endif(PYTHIA)
 
 ###################################################################################################
 # Checking if some requested packages exist
@@ -624,7 +634,7 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	##############
 	#  gfortran  #
 	##############
-	
+
 	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
 	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
 	set(PREPRO_FLAGS -cpp -E -P)
@@ -690,7 +700,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	###########
 	#  ifort  #
 	###########
-	
+
 	set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
 	set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
 	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
@@ -699,7 +709,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	if(WARN)
 		set(CMAKE_Fortran_FLAGS "-warn unused ${CMAKE_Fortran_FLAGS}")
 	endif(WARN)
-	
+
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
 		set(CMAKE_Fortran_FLAGS_DEBUG "-m32 ${CMAKE_Fortran_FLAGS_DEBUG}")
@@ -737,7 +747,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	############
 	#  nagfor  #
 	############
-	
+
 	SET(NAGFOR ON)
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
 	set(CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
@@ -1082,12 +1092,12 @@ if(NAFF)
 	include_directories( ${FFTW_INCLUDES} )
 	message(STATUS "Include dirs of FFTW: " ${FFTW_INCLUDES} )
 	message(STATUS "Libs of of FFTW:      " ${FFTW_LIBRARIES} )
-	
-	
+
+
 	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/source/naff/*.cpp ${CMAKE_SOURCE_DIR}/source/naff/*.cc)
 	add_library(naff STATIC ${NAFF_SOURCES})
 	target_link_libraries(naff ${FFTW_LIBRARIES})
-	
+
 	#Enable c++11
 	set_property(TARGET naff PROPERTY CXX_STANDARD 11)
 
@@ -1113,24 +1123,24 @@ endforeach()
 
 if(BOINC AND API)
 	include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
-	
+
 	#The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
 	#go into the boinc source folder, cd api; make boinc_api_fortran.o
 	add_library(boinc_api_fortran STATIC IMPORTED)
 	set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
 	# add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp) #Alternative way of building and linking boinc_api_fortran.cpp/.o
 	target_link_libraries(SixTrackCR boinc_api_fortran)
-	
+
 	#add the libs
 	add_library(boinc STATIC IMPORTED)
 	set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
-	
+
 	add_library(boinc_api STATIC IMPORTED)
 	set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
 	target_link_libraries(SixTrackCR boinc_api)
-	
+
 	target_link_libraries(SixTrackCR boinc)
-	
+
 	find_library(stdc++ STATIC stdc++)
 	target_link_libraries(SixTrackLib stdc++ Threads::Threads)
 
@@ -1151,6 +1161,27 @@ if(FLUKA)
 	target_link_libraries(SixTrackLib flukaIO)
 endif(FLUKA)
 
+if(PYTHIA)
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/pythia_wrapper.hpp POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/pythia/pythia_wrapper.hpp ${CMAKE_BINARY_DIR}/pythia_wrapper.hpp
+		DEPENDS copy_input_files
+	)
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/pythia_wrapper.cpp POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/pythia/pythia_wrapper.cpp ${CMAKE_BINARY_DIR}/pythia_wrapper.cpp
+		DEPENDS copy_input_files
+	)
+
+	include_directories(${PYTHIA_DIR}/include)
+	include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+	target_link_libraries(SixTrackCR pythia_wrapper)
+	add_library(pythia STATIC IMPORTED)
+	set_target_properties(pythia PROPERTIES IMPORTED_LOCATION ${PYTHIA_DIR}/lib/libpytjia8.a)
+
+endif(PYTHIA)
+
 if(LIBARCHIVE)
 	add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_Fwrapper.c POST_BUILD
@@ -1167,7 +1198,7 @@ if(LIBARCHIVE)
 		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h
 		DEPENDS copy_input_files
 	)
-	
+
 	include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
 	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -1184,14 +1215,14 @@ if(LIBARCHIVE)
 	else()
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
 	endif()
-	
+
 	#find_library(z STATIC z)
 	add_library(z STATIC IMPORTED)
 	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/zlib/install/lib/libz.a)
-	
+
 	target_link_libraries(SixTrackCR libarchive z Threads::Threads)
 	target_link_libraries(libArchiveTester libarchive z Threads::Threads)
-	
+
 	add_definitions( -DLIBARCHIVE )
 endif()
 
@@ -1314,7 +1345,7 @@ endif(G4COLLIMAT)
 # 	if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
 # 		message(WARNING "Compiling with NAGLIB and gfortran may cause SixTrack to segfault.")
 # 	endif()
-	
+
 # 	if(64BIT)
 # 		if(STATIC)
 # 			if(NOT Fortran_COMPILER_NAME MATCHES "ifort.*")

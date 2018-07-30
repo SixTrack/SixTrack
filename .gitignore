@@ -20,6 +20,9 @@ source/count.log
 build*/
 Build*/
 
+# Library Build Folders
+lib/
+
 # LaTeX
 doc/html
 doc/*/*.pdf
