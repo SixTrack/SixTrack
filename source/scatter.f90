@@ -25,8 +25,8 @@ module scatter
   implicit none
 
   ! Common variables for the SCATTER routines
-  logical, public, save :: scatter_active
-  logical, public, save :: scatter_debug
+  logical, public, save :: scatter_active = .false.
+  logical, public, save :: scatter_debug  = .false.
 
   ! Pointer from an element back to a ELEM statement (0 => not used)
   integer, allocatable, public, save :: scatter_elemPointer(:)
@@ -51,41 +51,42 @@ module scatter
   ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
   integer, allocatable, public, save  :: scatter_GENERATOR(:,:)
 
-  ! Random generator seeds
-  integer, public, save :: scatter_seed1, scatter_seed2
-
   integer,          allocatable, private, save :: scatter_iData(:)
   real(kind=fPrec), allocatable, private, save :: scatter_fData(:)
   character(len=:), allocatable, private, save :: scatter_cData(:)
 
   ! Number of currently used positions in arrays
-  integer, public,  save :: scatter_nELEM
-  integer, public,  save :: scatter_nPROFILE
-  integer, public,  save :: scatter_nGENERATOR
-  integer, private, save :: scatter_niData
-  integer, private, save :: scatter_nfData
-  integer, private, save :: scatter_ncData
+  integer, public,  save :: scatter_nELEM      = 0
+  integer, public,  save :: scatter_nPROFILE   = 0
+  integer, public,  save :: scatter_nGENERATOR = 0
+  integer, private, save :: scatter_niData     = 0
+  integer, private, save :: scatter_nfData     = 0
+  integer, private, save :: scatter_ncData     = 0
+
+  ! Random generator seeds
+  integer, public,  save :: scatter_seed1      = -1
+  integer, public,  save :: scatter_seed2      = -1
 
   ! Variable for file output
-  integer, private, save :: scatter_logFile
+  integer, private, save :: scatter_logFile    = -1
 #ifdef HDF5
-  integer, private, save :: scatter_logDataSet
-  integer, private, save :: scatter_logFormat
+  integer, private, save :: scatter_logDataSet = 0
+  integer, private, save :: scatter_logFormat  = 0
 #endif
 
 #ifdef CR
-  integer, public, save :: scatter_filePos
-  integer, public, save :: scatter_filePos_CR
+  integer, public, save :: scatter_filePos     = -1
+  integer, public, save :: scatter_filePos_CR  = 0
 
   integer,          allocatable, private, save :: scatter_iData_CR(:)
   real(kind=fPrec), allocatable, private, save :: scatter_fData_CR(:)
   character(len=:), allocatable, private, save :: scatter_cData_CR(:)
 
-  integer, private, save :: scatter_niData_CR
-  integer, private, save :: scatter_nfData_CR
-  integer, private, save :: scatter_ncData_CR
-  integer, private, save :: scatter_seed1_CR
-  integer, private, save :: scatter_seed2_CR
+  integer, private, save :: scatter_niData_CR  = 0
+  integer, private, save :: scatter_nfData_CR  = 0
+  integer, private, save :: scatter_ncData_CR  = 0
+  integer, private, save :: scatter_seed1_CR   = -1
+  integer, private, save :: scatter_seed2_CR   = -1
 #endif
 
 contains
@@ -134,6 +135,7 @@ subroutine scatter_initialise
 
   use crcoall
   use parpro
+  use file_units
 
   implicit none
 
@@ -168,6 +170,7 @@ subroutine scatter_initialise
 #endif
 
     ! Open scatter_log.dat
+    if(scatter_logFile == -1) call funit_requestUnit("scatter_log.dat",scatter_logFile)
 #ifdef CR
     ! Could have loaded a CR just before the start of the tracking;
     ! in this case the scatter_log.dat is already open and positioned,
@@ -199,298 +202,6 @@ subroutine scatter_initialise
 #endif
 
 end subroutine scatter_initialise
-
-! =================================================================================================
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-04-20
-! =================================================================================================
-subroutine scatter_closeUnits
-
-  implicit none
-
-  logical lopen
-
-  if (scatter_active) then
-    inquire(unit=scatter_logFile, opened=lopen)
-    if(lopen) close(scatter_logFile)
-  end if
-
-end subroutine scatter_closeUnits
-
-! =================================================================================================
-!  K. Sjobak, BE-ABP-LAT and V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 11-2017
-!  Called from COMNUL; initialises the arrays used by SCATTER.
-! =================================================================================================
-subroutine scatter_comnul
-
-  use file_units
-
-  implicit none
-
-  scatter_active     = .false.
-  scatter_debug      = .false.
-  scatter_niData     = 0
-  scatter_nfData     = 0
-  scatter_ncData     = 0
-  scatter_nELEM      = 0
-  scatter_nPROFILE   = 0
-  scatter_nGENERATOR = 0
-
-  scatter_seed1      = -1
-  scatter_seed2      = -1
-
-#ifdef CR
-  scatter_filePos    = -1
-#endif
-
-  call funit_requestUnit("scatter_log.dat",scatter_logFile)
-
-end subroutine scatter_comnul
-
-! =================================================================================================
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-26
-!  Called from CRCHECK; reads the _CR arrays for scatter from file-
-!  Sets readerr=.true. if something goes wrong while reading.
-! =================================================================================================
-#ifdef CR
-subroutine scatter_crcheck_readdata(fileUnit, readErr)
-
-  use crcoall
-  use mod_alloc
-
-  implicit none
-
-  integer, intent(in)  :: fileUnit
-  logical, intent(out) :: readErr
-
-  integer j
-
-  read(fileUnit, err=10, end=10) scatter_filePos_CR, scatter_seed1_CR, scatter_seed2_CR
-  read(fileUnit, err=10, end=10) scatter_niData_CR, scatter_nfData_CR, scatter_ncData_CR
-
-  call alloc(scatter_iData_CR,          scatter_niData_CR, 0,          "scatter_iData_CR")
-  call alloc(scatter_fData_CR,          scatter_nfData_CR, zero,       "scatter_fData_CR")
-  call alloc(scatter_cData_CR, mStrLen, scatter_ncData_CR, str_dSpace, "scatter_cData_CR")
-
-  read(fileUnit, err=10, end=10) (scatter_iData_CR(j), j=1, scatter_niData_CR)
-  read(fileUnit, err=10, end=10) (scatter_fData_CR(j), j=1, scatter_nfData_CR)
-  read(fileUnit, err=10, end=10) (scatter_cData_CR(j), j=1, scatter_ncData_CR)
-
-  readErr = .false.
-  return
-
-10 continue
-  write(lout,"(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
-  write(93,  "(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
-  readErr = .true.
-
-end subroutine scatter_crcheck_readdata
-
-! =================================================================================================
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-26
-!  Called from CRCHECK; resets the position of scatter_log.dat
-! =================================================================================================
-subroutine scatter_crcheck_positionFiles
-
-  use crcoall
-
-  implicit none
-
-  logical lOpen
-  integer iErro
-#ifdef BOINC
-  character(len=256) fileName
-#endif
-  integer j
-  character(len=1024) aRecord
-
-  inquire(unit=scatter_logFile, opened=lOpen)
-  if(lOpen) then
-    write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning scatter_log.dat"
-    write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_logFile," already in use!"
-
-    endfile(93,iostat=iErro)
-    backspace(93,iostat=iErro)
-
-    write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning scatter_log.dat"
-    call prror(-1)
-  end if
-
-  if(scatter_filePos_CR /= -1) then
-#ifdef BOINC
-    call boincrf("scatter_log.dat",fileName)
-    open(unit=scatter_logFile,file=fileName,status="old",action="readwrite", err=10)
-#else
-    open(unit=scatter_logFile,file="scatter_log.dat",status="old",action="readwrite", err=10)
-#endif
-    scatter_filePos=0
-    do j=1, scatter_filePos_CR
-      read(scatter_logFile,"(a1024)",end=10,err=10,iostat=iErro) aRecord
-      scatter_filePos = scatter_filePos+1
-    end do
-
-    ! Truncate the file after scatter_filePos_CR lines
-    endfile(scatter_logFile,iostat=iErro)
-    close(scatter_logFile)
-
-#ifdef BOINC
-    call boincrf("scatter_log.dat",fileName)
-    open(unit=scatter_logFile,file=fileName,status="old",position="append",action="write",err=10)
-#else
-    open(unit=scatter_logFile,file="scatter_log.dat",status="old",position="append",action="write",err=10)
-#endif
-    write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned scatter_log.dat, "//&
-                "scatter_filePos=",scatter_filePos," scatter_filePos_CR=",scatter_filePos_CR
-    endfile(93,iostat=iErro)
-    backspace(93,iostat=iErro)
-
-  else
-    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning "// &
-      "of scatter_log.dat, scatter_filePos_CR=",scatter_filePos_CR
-    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, "// &
-      "it will be correctly truncated in scatter_initialise."
-    endfile(93,iostat=iErro)
-    backspace(93,iostat=iErro)
-  end if
-
-  return
-
-10 continue
-  write(93,"(a,i0)")    "SIXTRACR> ERROR reading scatter_log.dat, iostat=",iErro
-  write(93,"(2(a,i0))") "SIXTRACR> scatter_filePos=",scatter_filePos," scatter_filePos_CR=",scatter_filePos_CR
-  endfile(93,iostat=iErro)
-  backspace(93,iostat=iErro)
-  write(lout,"(a)")"SIXTRACR> ERROR CRCHECK failure positioning scatter_log.dat"
-  call prror(-1)
-
-end subroutine scatter_crcheck_positionFiles
-
-! =================================================================================================
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-26
-!  Called from CRPOINT; write checkpoint data to fort.95/96
-! =================================================================================================
-subroutine scatter_crpoint(fileUnit, writeErr, iErro)
-
-  use crcoall
-
-  implicit none
-
-  integer, intent(in)    :: fileUnit
-  logical, intent(out)   :: writeErr
-  integer, intent(inout) :: iErro
-
-  integer j
-
-  write(fileunit,err=10,iostat=iErro) scatter_filePos, scatter_seed1, scatter_seed2
-  write(fileunit,err=10,iostat=iErro) scatter_niData, scatter_nfData, scatter_ncData
-  write(fileunit,err=10,iostat=iErro) (scatter_iData(j), j=1, scatter_niData)
-  write(fileunit,err=10,iostat=iErro) (scatter_fData(j), j=1, scatter_nfData)
-  write(fileunit,err=10,iostat=iErro) (scatter_cData(j), j=1, scatter_ncData)
-  endfile(fileUnit,iostat=iErro)
-  backspace(fileUnit,iostat=iErro)
-
-  return
-
-10 continue
-  writeErr = .true.
-
-end subroutine scatter_crpoint
-
-! =================================================================================================
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-26
-!  Called from CRSTART; copies the _CR arrays into the normal arrays used during tracking in order
-!  to recreate the state of the SCATTER block at the time of the checkpoint.
-! =================================================================================================
-subroutine scatter_crstart
-
-  use mod_alloc
-
-  implicit none
-
-  scatter_niData = scatter_niData_CR
-  scatter_nfData = scatter_nfData_CR
-  scatter_ncData = scatter_ncData_CR
-
-  call alloc(scatter_iData,          scatter_niData, 0,          "scatter_iData")
-  call alloc(scatter_fData,          scatter_nfData, zero,       "scatter_fData")
-  call alloc(scatter_cData, mStrLen, scatter_ncData, str_dSpace, "scatter_cData")
-
-  scatter_iData(1:scatter_niData) = scatter_iData_CR(1:scatter_niData)
-  scatter_fData(1:scatter_nfData) = scatter_fData_CR(1:scatter_nfData)
-  scatter_cData(1:scatter_ncData) = scatter_cData_CR(1:scatter_ncData)
-
-  call dealloc(scatter_iData_CR,          "scatter_iData_CR")
-  call dealloc(scatter_fData_CR,          "scatter_fData_CR")
-  call dealloc(scatter_cData_CR, mStrLen, "scatter_cData_CR")
-
-end subroutine scatter_crstart
-#endif
-! End of CR
-
-! =================================================================================================
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-20
-! =================================================================================================
-subroutine scatter_dumpData
-
-  use crcoall
-
-  implicit none
-
-  integer i
-
-  write(lout,"(a)")       "SCATTER> DEBUG Data Dump"
-
-  write(lout,"(a)")       "Options:"
-  write(lout,"(a,l2)")    "scatter_active =", scatter_active
-  write(lout,"(a,l2)")    "scatter_debug  =", scatter_debug
-  write(lout,"(2(a,i8))") "Seeds          =", scatter_seed1, ";", scatter_seed2
-
-  write(lout,"(a)")       "Arrays:"
-
-  write(lout,"(a,2(i3,a))") "scatter_ELEM: (",scatter_nELEM,",",5,"):"
-  do i=1,scatter_nELEM
-    write(lout,"(i4,a,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3)") i,":",scatter_ELEM(i,:)
-  end do
-
-  write(lout,"(a,i3,a)") "scatter_ELEM_scale: (",scatter_nELEM,"):"
-  do i=1,scatter_nELEM
-    write(lout,"(i4,a,e14.7)") i,":",scatter_ELEM_scale(i)
-  end do
-
-  write(lout,"(a,2(i3,a))") "scatter_PROFILE: (", scatter_nPROFILE,",",5,"):"
-  do i=1,scatter_nPROFILE
-    write(lout,"(i4,a,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3)") i,":",scatter_PROFILE(i,:)
-  end do
-
-  write(lout,"(a,2(i3,a))") "scatter_GENERATOR: (",scatter_nGENERATOR,",",5,"):"
-  do i=1,scatter_nGENERATOR
-    write(lout,"(i4,a,5(1x,i3))") i,":",scatter_GENERATOR(i,:)
-  end do
-
-  write(lout,"(a,i3,a)") "scatter_iData: (",scatter_niData,"):"
-  do i=1,scatter_niData
-    write(lout,"(i4,a,i4)") i,":",scatter_iData(i)
-  end do
-
-  write(lout,"(a,i3,a)") "scatter_fData: (",scatter_nfData,"):"
-  do i=1,scatter_nfData
-    write(lout,"(i4,a,e14.7)") i,":",scatter_fData(i)
-  end do
-
-  write(lout,"(a,i3,a)") "scatter_cData: (",scatter_ncData,"):"
-  do i=1,scatter_ncData
-    write(lout,"(i4,a)") i,": '"//chr_trimZero(scatter_cData(i))//"'"
-  end do
-
-  write(lout,"(a)") "SCATTER> DEBUG END DUMP"
-
-end subroutine scatter_dumpData
 
 ! =================================================================================================
 !  BEGIN Input Parser Functions
@@ -1273,5 +984,251 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
   end if
 
 end function scatter_generator_getPPElastic
+
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-26
+!  Called from CRCHECK; reads the _CR arrays for scatter from file-
+!  Sets readerr=.true. if something goes wrong while reading.
+! =================================================================================================
+#ifdef CR
+subroutine scatter_crcheck_readdata(fileUnit, readErr)
+
+  use crcoall
+  use mod_alloc
+
+  implicit none
+
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: readErr
+
+  integer j
+
+  read(fileUnit, err=10, end=10) scatter_filePos_CR, scatter_seed1_CR, scatter_seed2_CR
+  read(fileUnit, err=10, end=10) scatter_niData_CR, scatter_nfData_CR, scatter_ncData_CR
+
+  call alloc(scatter_iData_CR,          scatter_niData_CR, 0,          "scatter_iData_CR")
+  call alloc(scatter_fData_CR,          scatter_nfData_CR, zero,       "scatter_fData_CR")
+  call alloc(scatter_cData_CR, mStrLen, scatter_ncData_CR, str_dSpace, "scatter_cData_CR")
+
+  read(fileUnit, err=10, end=10) (scatter_iData_CR(j), j=1, scatter_niData_CR)
+  read(fileUnit, err=10, end=10) (scatter_fData_CR(j), j=1, scatter_nfData_CR)
+  read(fileUnit, err=10, end=10) (scatter_cData_CR(j), j=1, scatter_ncData_CR)
+
+  readErr = .false.
+  return
+
+10 continue
+  write(lout,"(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
+  write(93,  "(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
+  readErr = .true.
+
+end subroutine scatter_crcheck_readdata
+
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-26
+!  Called from CRCHECK; resets the position of scatter_log.dat
+! =================================================================================================
+subroutine scatter_crcheck_positionFiles
+
+  use crcoall
+  use file_units
+
+  implicit none
+
+  logical lOpen
+  integer iErro
+#ifdef BOINC
+  character(len=256) fileName
+#endif
+  integer j
+  character(len=1024) aRecord
+
+  if(scatter_logFile == -1) call funit_requestUnit("scatter_log.dat",scatter_logFile)
+  inquire(unit=scatter_logFile, opened=lOpen)
+  if(lOpen) then
+    write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning scatter_log.dat"
+    write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_logFile," already in use!"
+
+    endfile(93,iostat=iErro)
+    backspace(93,iostat=iErro)
+
+    write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning scatter_log.dat"
+    call prror(-1)
+  end if
+
+  if(scatter_filePos_CR /= -1) then
+#ifdef BOINC
+    call boincrf("scatter_log.dat",fileName)
+    open(unit=scatter_logFile,file=fileName,status="old",action="readwrite", err=10)
+#else
+    open(unit=scatter_logFile,file="scatter_log.dat",status="old",action="readwrite", err=10)
+#endif
+    scatter_filePos=0
+    do j=1, scatter_filePos_CR
+      read(scatter_logFile,"(a1024)",end=10,err=10,iostat=iErro) aRecord
+      scatter_filePos = scatter_filePos+1
+    end do
+
+    ! Truncate the file after scatter_filePos_CR lines
+    endfile(scatter_logFile,iostat=iErro)
+    close(scatter_logFile)
+
+#ifdef BOINC
+    call boincrf("scatter_log.dat",fileName)
+    open(unit=scatter_logFile,file=fileName,status="old",position="append",action="write",err=10)
+#else
+    open(unit=scatter_logFile,file="scatter_log.dat",status="old",position="append",action="write",err=10)
+#endif
+    write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned scatter_log.dat, "//&
+                "scatter_filePos=",scatter_filePos," scatter_filePos_CR=",scatter_filePos_CR
+    endfile(93,iostat=iErro)
+    backspace(93,iostat=iErro)
+
+  else
+    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning "// &
+      "of scatter_log.dat, scatter_filePos_CR=",scatter_filePos_CR
+    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, "// &
+      "it will be correctly truncated in scatter_initialise."
+    endfile(93,iostat=iErro)
+    backspace(93,iostat=iErro)
+  end if
+
+  return
+
+10 continue
+  write(93,"(a,i0)")    "SIXTRACR> ERROR reading scatter_log.dat, iostat=",iErro
+  write(93,"(2(a,i0))") "SIXTRACR> scatter_filePos=",scatter_filePos," scatter_filePos_CR=",scatter_filePos_CR
+  endfile(93,iostat=iErro)
+  backspace(93,iostat=iErro)
+  write(lout,"(a)")"SIXTRACR> ERROR CRCHECK failure positioning scatter_log.dat"
+  call prror(-1)
+
+end subroutine scatter_crcheck_positionFiles
+
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-26
+!  Called from CRPOINT; write checkpoint data to fort.95/96
+! =================================================================================================
+subroutine scatter_crpoint(fileUnit, writeErr, iErro)
+
+  use crcoall
+
+  implicit none
+
+  integer, intent(in)    :: fileUnit
+  logical, intent(out)   :: writeErr
+  integer, intent(inout) :: iErro
+
+  integer j
+
+  write(fileunit,err=10,iostat=iErro) scatter_filePos, scatter_seed1, scatter_seed2
+  write(fileunit,err=10,iostat=iErro) scatter_niData, scatter_nfData, scatter_ncData
+  write(fileunit,err=10,iostat=iErro) (scatter_iData(j), j=1, scatter_niData)
+  write(fileunit,err=10,iostat=iErro) (scatter_fData(j), j=1, scatter_nfData)
+  write(fileunit,err=10,iostat=iErro) (scatter_cData(j), j=1, scatter_ncData)
+  endfile(fileUnit,iostat=iErro)
+  backspace(fileUnit,iostat=iErro)
+
+  return
+
+10 continue
+  writeErr = .true.
+
+end subroutine scatter_crpoint
+
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-26
+!  Called from CRSTART; copies the _CR arrays into the normal arrays used during tracking in order
+!  to recreate the state of the SCATTER block at the time of the checkpoint.
+! =================================================================================================
+subroutine scatter_crstart
+
+  use mod_alloc
+
+  implicit none
+
+  scatter_niData = scatter_niData_CR
+  scatter_nfData = scatter_nfData_CR
+  scatter_ncData = scatter_ncData_CR
+
+  call alloc(scatter_iData,          scatter_niData, 0,          "scatter_iData")
+  call alloc(scatter_fData,          scatter_nfData, zero,       "scatter_fData")
+  call alloc(scatter_cData, mStrLen, scatter_ncData, str_dSpace, "scatter_cData")
+
+  scatter_iData(1:scatter_niData) = scatter_iData_CR(1:scatter_niData)
+  scatter_fData(1:scatter_nfData) = scatter_fData_CR(1:scatter_nfData)
+  scatter_cData(1:scatter_ncData) = scatter_cData_CR(1:scatter_ncData)
+
+  call dealloc(scatter_iData_CR,          "scatter_iData_CR")
+  call dealloc(scatter_fData_CR,          "scatter_fData_CR")
+  call dealloc(scatter_cData_CR, mStrLen, "scatter_cData_CR")
+
+end subroutine scatter_crstart
+#endif
+! End of CR
+
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-04-20
+! =================================================================================================
+subroutine scatter_dumpData
+
+  use crcoall
+
+  implicit none
+
+  integer i
+
+  write(lout,"(a)")       "SCATTER> DEBUG Data Dump"
+
+  write(lout,"(a)")       "Options:"
+  write(lout,"(a,l2)")    "scatter_active =", scatter_active
+  write(lout,"(a,l2)")    "scatter_debug  =", scatter_debug
+  write(lout,"(2(a,i8))") "Seeds          =", scatter_seed1, ";", scatter_seed2
+
+  write(lout,"(a)")       "Arrays:"
+
+  write(lout,"(a,2(i3,a))") "scatter_ELEM: (",scatter_nELEM,",",5,"):"
+  do i=1,scatter_nELEM
+    write(lout,"(i4,a,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3)") i,":",scatter_ELEM(i,:)
+  end do
+
+  write(lout,"(a,i3,a)") "scatter_ELEM_scale: (",scatter_nELEM,"):"
+  do i=1,scatter_nELEM
+    write(lout,"(i4,a,e14.7)") i,":",scatter_ELEM_scale(i)
+  end do
+
+  write(lout,"(a,2(i3,a))") "scatter_PROFILE: (", scatter_nPROFILE,",",5,"):"
+  do i=1,scatter_nPROFILE
+    write(lout,"(i4,a,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3)") i,":",scatter_PROFILE(i,:)
+  end do
+
+  write(lout,"(a,2(i3,a))") "scatter_GENERATOR: (",scatter_nGENERATOR,",",5,"):"
+  do i=1,scatter_nGENERATOR
+    write(lout,"(i4,a,5(1x,i3))") i,":",scatter_GENERATOR(i,:)
+  end do
+
+  write(lout,"(a,i3,a)") "scatter_iData: (",scatter_niData,"):"
+  do i=1,scatter_niData
+    write(lout,"(i4,a,i4)") i,":",scatter_iData(i)
+  end do
+
+  write(lout,"(a,i3,a)") "scatter_fData: (",scatter_nfData,"):"
+  do i=1,scatter_nfData
+    write(lout,"(i4,a,e14.7)") i,":",scatter_fData(i)
+  end do
+
+  write(lout,"(a,i3,a)") "scatter_cData: (",scatter_ncData,"):"
+  do i=1,scatter_ncData
+    write(lout,"(i4,a)") i,": '"//chr_trimZero(scatter_cData(i))//"'"
+  end do
+
+  write(lout,"(a)") "SCATTER> DEBUG END DUMP"
+
+end subroutine scatter_dumpData
 
 end module scatter
