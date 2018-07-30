@@ -1998,20 +1998,10 @@ end interface
 
 #endif
 
-!     A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
-!     K. Sjobak, for BE/ABP-HSS
-!     M. Fitterer, for FNAL
-!     last modified: 21/02-2016
-!     open units for dumping particle population or statistics
-!     always in main code
-
-      ! Initialise DUMP
-      call dump_initialise
-
-      ! ! ! Initialize SCATTER ! ! !
-      if (scatter_active) then
-         call scatter_initialise
-      endif
+  call dump_initialise
+  if (scatter_active) then
+    call scatter_initialise
+  end if
 
 #ifdef ROOT
 ! flush the root file
