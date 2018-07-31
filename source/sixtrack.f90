@@ -562,7 +562,7 @@ subroutine daten
   case("SUBR") ! Sub-Resonance Calculation
     if(openBlock) then
       write(lout,"(a)") "SUBR> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "SUBR>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "SUBR>         It therefore may not produce the results expected."
       write(lout,"(a)") "SUBR>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       isub = 1
@@ -574,7 +574,7 @@ subroutine daten
   case("ORGA") ! Organisation of Random Numbers
     if(openBlock) then
       write(lout,"(a)") "ORGA> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "ORGA>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "ORGA>         It therefore may not produce the results expected."
       write(lout,"(a)") "ORGA>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
@@ -596,7 +596,7 @@ subroutine daten
   case("ORBI") ! Orbit Correction
     if(openBlock) then
       write(lout,"(a)") "ORBI> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "ORBI>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "ORBI>         It therefore may not produce the results expected."
       write(lout,"(a)") "ORBI>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
@@ -608,7 +608,7 @@ subroutine daten
   case("COMB") ! Combination of Elements
     if(openBlock) then
       write(lout,"(a)") "COMB> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "COMB>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "COMB>         It therefore may not produce the results expected."
       write(lout,"(a)") "COMB>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
@@ -620,7 +620,7 @@ subroutine daten
   case("RESO") ! Resonance Compensation
     if(openBlock) then
       write(lout,"(a)") "RESO> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "RESO>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "RESO>         It therefore may not produce the results expected."
       write(lout,"(a)") "RESO>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
@@ -632,7 +632,7 @@ subroutine daten
   case("SEAR") ! Search for Optimum Places to Compensate Resonances
     if(openBlock) then
       write(lout,"(a)") "SEAR> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "SEAR>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "SEAR>         It therefore may not produce the results expected."
       write(lout,"(a)") "SEAR>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
@@ -644,7 +644,7 @@ subroutine daten
   case("DECO") ! Decoupling of Motion in the Transverse Planes
     if(openBlock) then
       write(lout,"(a)") "DECO> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "DECO>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "DECO>         It therefore may not produce the results expected."
       write(lout,"(a)") "DECO>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
@@ -656,7 +656,7 @@ subroutine daten
   case("NORM") ! Normal Forms
     if(openBlock) then
       write(lout,"(a)") "NORM> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "NORM>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "NORM>         It therefore may not produce the results expected."
       write(lout,"(a)") "NORM>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
