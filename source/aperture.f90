@@ -984,7 +984,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             xlos(2) = xLast(2,j)
             ylos(1) = yLast(1,j)
             ylos(2) = yLast(2,j)
-            slos    = dcum(iLast)
+            slos    = dcum(iLastThick)
           else
             xlos(1) = xv(1,j)
             xlos(2) = xv(2,j)
