@@ -12,6 +12,7 @@ module root_output
   integer root_CollimationDB
   integer root_Optics
   integer root_FLUKA
+  integer root_DumpPipe
   integer root_RunNumber
   character(len=512) :: root_eos_server
   character(len=512) :: root_folder
@@ -270,6 +271,26 @@ subroutine root_FLUKA_Names(id_in, name_in, name_len) bind(C,name="root_FLUKA_Na
   integer(kind=C_INT),    intent(in), value :: name_len
 end subroutine
 
+subroutine root_DumpAperture(apname_in, apname_len, aptype_in, aptype_len, s_in, ap1_in, ap2_in, ap3_in, ap4_in, ap5_in, ap6_in, &
+& ap7_in, ap8_in, ap9_in ) bind(C,name="root_DumpAperture")
+  use, intrinsic :: iso_c_binding
+  implicit none
+  character(kind=C_CHAR,len=1), intent(in)  :: apname_in
+  integer(kind=C_INT),    intent(in), value :: apname_len
+  character(kind=C_CHAR,len=1), intent(in)  :: aptype_in
+  integer(kind=C_INT),    intent(in), value :: aptype_len
+  real(kind=C_DOUBLE), intent(in), value :: s_in
+  real(kind=C_DOUBLE), intent(in), value :: ap1_in
+  real(kind=C_DOUBLE), intent(in), value :: ap2_in
+  real(kind=C_DOUBLE), intent(in), value :: ap3_in
+  real(kind=C_DOUBLE), intent(in), value :: ap4_in
+  real(kind=C_DOUBLE), intent(in), value :: ap5_in
+  real(kind=C_DOUBLE), intent(in), value :: ap6_in
+  real(kind=C_DOUBLE), intent(in), value :: ap7_in
+  real(kind=C_DOUBLE), intent(in), value :: ap8_in
+  real(kind=C_DOUBLE), intent(in), value :: ap9_in
+end subroutine
+
 end interface
 
 contains
@@ -292,6 +313,7 @@ subroutine SixTrackRootFortranInit
   root_CollimationDB = 0
   root_Optics        = 0
   root_FLUKA         = 0
+  root_DumpPipe      = 0
   root_RunNumber     = 0
   root_eos_server    = C_NULL_CHAR
   root_folder        = C_NULL_CHAR
@@ -355,6 +377,7 @@ subroutine root_daten(ch)
       root_CollimationDB = 1
       root_Optics = 1
       root_FLUKA = 1
+      root_DumpPipe = 1
     else if(getfields_fields(2)(1:getfields_lfields(2)).eq.'ACCEL') then
       root_Accelerator = 1
     else if(getfields_fields(2)(1:getfields_lfields(2)).eq.'COLL') then
@@ -367,6 +390,8 @@ subroutine root_daten(ch)
       root_Optics = 1
     else if(getfields_fields(2)(1:getfields_lfields(2)).eq.'FLUKA') then
       root_FLUKA = 1
+    else if(getfields_fields(2)(1:getfields_lfields(2)).eq.'PIPE') then
+      root_DumpPipe = 1
     end if
   end if
 
@@ -395,6 +420,7 @@ subroutine root_parseInputDone
   write(lout,*) 'CollimationDB: ', root_CollimationDB
   write(lout,*) 'Aperture:      ', root_ApertureCheck
   write(lout,*) 'FLUKA:         ', root_FLUKA
+  write(lout,*) 'PIPE:          ', root_DumpPipe
 
 end subroutine root_parseInputDone
 
