@@ -244,6 +244,12 @@ subroutine  ConfigurationOutputRootSet_nturns(nturns_in) bind(C,name="Configurat
   integer(kind=C_INT), intent(in), value :: nturns_in
 end subroutine
 
+subroutine  ConfigurationOutputRootSet_aperture_binsize(bin_size_in) bind(C,name="ConfigurationOutputRootSet_aperture_binsize")
+  use, intrinsic :: iso_c_binding
+  implicit none
+  real(kind=C_DOUBLE), intent(in), value :: bin_size_in
+end subroutine
+
 subroutine ConfigurationRootWrite() bind(C,name="ConfigurationRootWrite")
   implicit none
 end subroutine

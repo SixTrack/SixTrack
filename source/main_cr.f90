@@ -621,6 +621,7 @@ end interface
       call SixTrackRootInit()
       call ConfigurationOutputRootSet_npart(napx)
       call ConfigurationOutputRootSet_nturns(nnuml)
+      call ConfigurationOutputRootSet_aperture_binsize(bktpre)
       call ConfigurationRootWrite()
 
       ! Dump the accelerator lattice
