@@ -1181,6 +1181,7 @@ if(PYTHIA)
 	target_link_libraries(SixTrackLib pythia_wrapper)
 	add_library(pythia STATIC IMPORTED)
 	set_target_properties(pythia PROPERTIES IMPORTED_LOCATION ${PYTHIA_DIR}/lib/libpythia8.a)
+	target_link_libraries(SixTrackLib pythia dl)
 
 endif(PYTHIA)
 

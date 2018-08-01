@@ -8,37 +8,32 @@
 
 using namespace Pythia8;
 
-Pythia* pythia;
+Pythia pythia;
 
-extern "C" void pythiaWrapper_init(int partType, int rndSeed) {
-
-  pythia->settings.parm("Random:setSeed", true);
-  pythia->settings.parm("Random:seed",    rndSeed);
-
-  pythia->init();
-
+extern "C" void pythiaWrapper_init() {
+  std::cout << "PYTHIA> Hello Kitty!" << std::endl;
+  pythia.init();
 }
 
-extern "C" void pythiaWrapper_setBeamType(int frameType, int idA, int idB) {
-  pythia->settings.parm("Beams:frameType", frameType);
-  pythia->settings.parm("Beams:idA",       idA);
-  pythia->settings.parm("Beams:idB",       idB);
+extern "C" void pythiaWrapper_defaults() {
+  pythia.settings.writeFile("pythia_log.dat");
+  pythia.settings.flag("Init:showChangedSettings", true);
+  pythia.settings.flag("SoftQCD:all", false);
+  pythia.settings.flag("HardQCD:all", false);
 }
 
-extern "C" void pythiaWrapper_setBeamCM(double eCM) {
-  pythia->settings.parm("Beams:eCM",       eCM);
+extern "C" void pythiaWrapper_setSeed(int rndSeed) {
+  pythia.settings.mode("Random:seed", rndSeed);
 }
 
-extern "C" void pythiaWrapper_setBeamEnergy(double eA, double eB) {
-  pythia->settings.parm("Beams:eA",        eA);
-  pythia->settings.parm("Beams:eB",        eB);
+extern "C" void pythiaWrapper_setBeam(int frameType, int idA, int idB, double eA, double eB) {
+  pythia.settings.mode("Beams:frameType", frameType);
+  pythia.settings.mode("Beams:idA", idA);
+  pythia.settings.mode("Beams:idB", idB);
+  pythia.settings.parm("Beams:eA", eA);
+  pythia.settings.parm("Beams:eB", eB);
 }
 
-extern "C" void pythiaWrapper_setBeamMomenta(double pxA, double pyA, double pzA, double pxB, double pyB, double pzB) {
-  pythia->settings.parm("Beams:pxA",       pxA);
-  pythia->settings.parm("Beams:pyA",       pyA);
-  pythia->settings.parm("Beams:pzA",       pzA);
-  pythia->settings.parm("Beams:pxB",       pxB);
-  pythia->settings.parm("Beams:pyB",       pyB);
-  pythia->settings.parm("Beams:pzB",       pzB);
+extern "C" void pythiaWrapper_readFile(char* fileName) {
+  pythia.readFile(std::string(fileName));
 }

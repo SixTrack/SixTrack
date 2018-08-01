@@ -9,8 +9,8 @@
 
 #include "Pythia8/Pythia.h"
 
-extern "C" void pythiaWrapper_init(int partType, int rndSeed);
-extern "C" void pythiaWrapper_setBeamType(int frameType, int idA, int idB);
-extern "C" void pythiaWrapper_setBeamCM(double eCM);
-extern "C" void pythiaWrapper_setBeamEnergy(double eA, double eB);
-extern "C" void pythiaWrapper_setBeamMomenta(double pxA, double pyA, double pzA, double pxB, double pyB, double pzB);
+extern "C" void pythiaWrapper_init();
+extern "C" void pythiaWrapper_defaults();
+extern "C" void pythiaWrapper_setSeed(int rndSeed);
+extern "C" void pythiaWrapper_setBeam(int frameType, int idA, int idB, double eA, double eB);
+extern "C" void pythiaWrapper_readFile(char* fileName);
