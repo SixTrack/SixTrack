@@ -650,6 +650,10 @@ end interface
      end if
 #endif
 
+     if(root_flag .and. root_DumpPipe.eq.1) then
+       call root_dump_aperture_model
+     end if
+
    end if
 #endif
 

@@ -19,7 +19,7 @@ void DumpAperture(char* apname_in, int apname_len, char* aptype_in, int aptype_l
 private:
 
 char name[49];
-char type[4];
+char type[3];
 
 Double_t s;
 Double_t ap1;
