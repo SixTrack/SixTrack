@@ -24,7 +24,7 @@ interface
 
 !General stuff
 subroutine DoSixTrackRootInit(eos, run_number, eos_server, root_path, root_prefix, Accelerator, Optics, ApertureCheck, Collimation,&
-& CollimationDB, FLUKA_f) bind(C,name="DoSixTrackRootInit")
+& CollimationDB, FLUKA_f, ApertureDump) bind(C,name="DoSixTrackRootInit")
   use, intrinsic :: iso_c_binding
   implicit none
   integer(kind=C_INT), intent(in), value :: eos
@@ -38,6 +38,7 @@ subroutine DoSixTrackRootInit(eos, run_number, eos_server, root_path, root_prefi
   integer(kind=C_INT), intent(in), value :: Collimation
   integer(kind=C_INT), intent(in), value :: CollimationDB
   integer(kind=C_INT), intent(in), value :: FLUKA_f
+  integer(kind=C_INT), intent(in), value :: ApertureDump
 end subroutine DoSixTrackRootInit
 
 subroutine SixTrackRootExit() bind(C,name="SixTrackRootExit")
@@ -299,7 +300,7 @@ subroutine SixTrackRootInit
   implicit none
   if(root_flag)  then
     call DoSixTrackRootInit(root_eos_enabled, root_RunNumber, root_eos_server, root_folder, root_prefix, root_Accelerator, &
-&                           root_Optics, root_ApertureCheck, root_Collimation, root_CollimationDB, root_FLUKA)
+&                           root_Optics, root_ApertureCheck, root_Collimation, root_CollimationDB, root_FLUKA, root_DumpPipe)
   end if
 end subroutine SixTrackRootInit
 
