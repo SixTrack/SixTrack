@@ -221,6 +221,9 @@ end interface
 #ifdef LIBARCHIVE
   featList = featList//" LIBARCHIVE"
 #endif
+#ifdef PYTHIA
+  featList = featList//" PYTHIA"
+#endif
 
 #ifdef CR
   ! Main start for Checkpoint/Restart

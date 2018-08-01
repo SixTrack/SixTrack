@@ -21,6 +21,9 @@ module scatter
 #ifdef HDF5
   use hdf5_output
 #endif
+#ifdef PYTHIA
+  use mod_pythia
+#endif
 
   implicit none
 

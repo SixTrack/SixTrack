@@ -10,6 +10,11 @@ using namespace Pythia8;
 
 Pythia* pythia;
 
-extern "C" void pythiaWrapper_init(int partType) {
+extern "C" void pythiaWrapper_init(int partType, int rndSeed) {
+
+  pythia->settings.parm("Random:setSeed", true);
+  pythia->settings.parm("Random:seed",    rndSeed);
+
   pythia->init();
+
 }

@@ -354,6 +354,12 @@ if(BOINC AND NOT API)
 	list(APPEND FORT90_LIB boinc_dummy)
 endif(BOINC AND NOT API)
 
+if(PYTHIA)
+	add_library(pythia_wrapper STATIC pythia_wrapper.hpp pythia_wrapper.cpp)
+	target_compile_options(pythia_wrapper PRIVATE)
+	list(APPEND FORT90_LIB mod_pythia)
+endif(PYTHIA)
+
 foreach(loop IN LISTS FORT90_LIB)
 	list(APPEND SIXTRACK_SOURCES ${loop}.f90)
 	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}.f90)
@@ -374,12 +380,6 @@ if(LIBARCHIVE)
 	add_library(libArchive_wrapper STATIC libArchive_Fwrapper.c libArchive_wrapper.c libArchive_wrapper.h)
 	target_compile_options(libArchive_wrapper PRIVATE -std=c99)
 endif(LIBARCHIVE)
-
-if(PYTHIA)
-	add_library(pythia_wrapper STATIC pythia_wrapper.hpp pythia_wrapper.cpp)
-	target_compile_options(pythia_wrapper PRIVATE)
-	list(APPEND FORT90_CR mod_pythia)
-endif(PYTHIA)
 
 ###################################################################################################
 # Checking if some requested packages exist
@@ -1178,9 +1178,9 @@ if(PYTHIA)
 	include_directories(${PYTHIA_DIR}/include)
 	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-	target_link_libraries(SixTrackCR pythia_wrapper)
+	target_link_libraries(SixTrackLib pythia_wrapper)
 	add_library(pythia STATIC IMPORTED)
-	set_target_properties(pythia PROPERTIES IMPORTED_LOCATION ${PYTHIA_DIR}/lib/libpytjia8.a)
+	set_target_properties(pythia PROPERTIES IMPORTED_LOCATION ${PYTHIA_DIR}/lib/libpythia8.a)
 
 endif(PYTHIA)
 

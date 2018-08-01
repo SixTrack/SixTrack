@@ -9,6 +9,6 @@
 
 #include "Pythia8/Pythia.h"
 
-extern "C" void pythiaWrapper_init(int partType);
+extern "C" void pythiaWrapper_init(int partType, int rndSeed);
 extern "C" void pythiaWrapper_initElastic();
 extern "C" void pythiaWrapper_initDiffractive();

@@ -76,6 +76,9 @@ subroutine daten
 #ifdef COLLIMAT
   use collimation
 #endif
+#ifdef PYTHIA
+  use mod_pythia
+#endif
 
   implicit none
 
@@ -870,6 +873,21 @@ subroutine daten
       call scatter_parseInputLine(string(inLine),inErr)
       if(inErr) goto 9999
     end if
+
+  case("PYTH") ! PYTHIA Input Block
+#ifndef PYTHIA
+    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the PYTHIA flag."
+    goto 9999
+#else
+    if(openBlock) then
+      pythia_isActive = .true.
+    elseif(closeBlock) then
+      call pythia_inputParsingDone
+    else
+      call pythia_parseInputLine(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+#endif
 
   case("HDF5") ! HDF5 Input Block
 #ifndef HDF5
