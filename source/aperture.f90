@@ -1937,6 +1937,11 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
   real(kind=fPrec) ape(9)
   real(kind=fPrec) spos
 
+#ifdef ROOT
+  character(len=mNameLen+1) this_name
+  character(len=3) this_type
+#endif
+
   ! Don't print to stdout if quiet flag is enabled.
   if(st_quiet > 0 .and. iunit == 6) return
 
@@ -1971,24 +1976,28 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
 #ifdef ROOT
 !write the aperture to root
      if(root_flag .and. root_DumpPipe.eq.1) then
+
+     this_name = trim(name) // C_NULL_CHAR
+     this_type = trim(apeName(aptype)) // C_NULL_CHAR
+
      select case(aptype)
      case(-1) ! transition
-        call root_DumpAperture( trim(name), len_trim(name), trim(apeName(aptype)), len_trim(apeName(aptype)), spos, &
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
                                 ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9) )
      case(0) ! not an aperture marker
-        call root_DumpAperture( trim(name), len_trim(name), trim(apeName(aptype)), len_trim(apeName(aptype)), spos, &
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
                                 ape(2), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9) )
      case(1) ! Circle
-        call root_DumpAperture( trim(name), len_trim(name), trim(apeName(aptype)), len_trim(apeName(aptype)), spos, &
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
                                 ape(1), zero, zero, zero, zero, zero, ape(7), ape(8), ape(9) )
      case(2) ! Rectangle
-        call root_DumpAperture( trim(name), len_trim(name), trim(apeName(aptype)), len_trim(apeName(aptype)), spos, &
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
                                 ape(1), ape(2), zero, zero, zero, zero, ape(7), ape(8), ape(9) )
      case(3) ! Ellipse
-        call root_DumpAperture( trim(name), len_trim(name), trim(apeName(aptype)), len_trim(apeName(aptype)), spos, &
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
                                 ape(3), ape(4), zero, zero, zero, zero, ape(7), ape(8), ape(9) )
      case(4) ! Rectellipse
-        call root_DumpAperture( trim(name), len_trim(name), trim(apeName(aptype)), len_trim(apeName(aptype)), spos, &
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
                                 ape(1), ape(2), ape(3), ape(4), zero, zero, ape(7), ape(8), ape(9) )
      case(5) ! Octagon
         ! get angles from points passing through x1,y1 and x2,y2
@@ -1996,11 +2005,11 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
         ! y1=ape(1)*tan(theta1)
         ! x2=ape(2)/tan(theta2)
         ! y2=ape(2)
-        call root_DumpAperture( trim(name), len_trim(name), trim(apeName(aptype)), len_trim(apeName(aptype)), spos, &
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
                                 ape(1), ape(2),atan2_mb(ape(1)*ape(5)+ape(6),ape(1)), atan2_mb(ape(2),(ape(2)-ape(6))/ape(5)), &
                                 zero, zero, ape(7), ape(8), ape(9) )
      case(6) ! Racetrack
-        call root_DumpAperture( trim(name), len_trim(name), trim(apeName(aptype)), len_trim(apeName(aptype)), spos, &
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
                                 ape(1), ape(2), ape(3), zero, zero, zero, ape(7), ape(8), ape(9) )
      end select
      end if
