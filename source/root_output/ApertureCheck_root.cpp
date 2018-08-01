@@ -34,7 +34,7 @@ ApertureCheckRootOutput::ApertureCheckRootOutput()
     ApertureLossTree->Branch("turn",&turn,"turn/I");
     ApertureLossTree->Branch("i",&i,"i/I");
     ApertureLossTree->Branch("ix",&ix,"ix/I");
-    ApertureLossTree->Branch("name",&name,"name[49]/C");
+    ApertureLossTree->Branch("name",name,"name[49]/C");
     ApertureLossTree->Branch("ipart",&ipart,"ipart/I");
     ApertureLossTree->Branch("slos",&slos,"slos/D");
     ApertureLossTree->Branch("x", &x, "x/D");
