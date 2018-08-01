@@ -59,7 +59,7 @@ void ApertureDumpRootOutput::DumpAperture(char* apname_in, int apname_len, char*
 	std::string tmptype(aptype_in);
 	std::transform(tmptype.begin(), tmptype.end(), tmptype.begin(), ::toupper);
     tmptype = tmptype.substr(0,aptype_len);
-	strncpy(type, tmpname.c_str(), sizeof(type));
+	strncpy(type, tmptype.c_str(), sizeof(type));
 
 	s = s_in;
 	ap1 = ap1_in;
