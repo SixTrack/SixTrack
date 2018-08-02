@@ -34,6 +34,10 @@ module mod_pythia
   logical,            public,  save :: pythia_isActive        = .false.
   logical,            private, save :: pythia_useElastic      = .false.
   logical,            private, save :: pythia_useSDiffractive = .false.
+  logical,            private, save :: pythia_useDDiffractive = .false.
+  logical,            private, save :: pythia_useCDiffractive = .false.
+  logical,            private, save :: pythia_useNDiffractive = .false.
+  logical,            private, save :: pythia_allowLosses     = .false.
 
   ! Beam Configuration
   integer,            private, save :: pythia_frameType       = 2
@@ -55,6 +59,11 @@ module mod_pythia
     logical(kind=C_BOOL) function pythia_defaults() bind(C, name="pythiaWrapper_defaults")
       use, intrinsic :: iso_c_binding
     end function pythia_defaults
+
+    subroutine pythia_setProcess(sEL,sSD,sDD,sCD,sND) bind(C, name="pythiaWrapper_setProcess")
+      use, intrinsic :: iso_c_binding
+      logical(kind=C_BOOL), value, intent(in) :: sEL, sSD, sDD, sCD, sND
+    end subroutine pythia_setProcess
 
     subroutine pythia_setSeed(rndSeed) bind(C, name="pythiaWrapper_setSeed")
       use, intrinsic :: iso_c_binding
@@ -108,7 +117,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("FILE")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword FILE expected 1 arguments, got ",(nSplit-1)
+      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword FILE expected 1 argument, got ",(nSplit-1)
       iErr = .true.
       return
     end if
@@ -118,7 +127,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("PROCESS")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword FILE expected 1 arguments, got ",(nSplit-1)
+      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword FILE expected 1 argument, got ",(nSplit-1)
       iErr = .true.
       return
     end if
@@ -129,11 +138,33 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
   case("SD","SINGLEDIFFRACTIVE")
     pythia_useSDiffractive = .true.
     write(lout,"(a)") "PYTHIA> Single diffractive scattering enabled"
+  case("DD","DOUBLEDIFFRACTIVE")
+    pythia_useDDiffractive = .true.
+    write(lout,"(a)") "PYTHIA> Double diffractive scattering enabled"
+  case("CD","CENTRALDIFFRACTIVE")
+    pythia_useCDiffractive = .true.
+    write(lout,"(a)") "PYTHIA> Central diffractive scattering enabled"
+  case("ND","NONDIFFRACTIVE")
+    pythia_useNDiffractive = .true.
+    write(lout,"(a)") "PYTHIA> Non-diffractive scattering enabled"
   case default
     write(lout,"(a)") "PYTHIA> ERROR Unknown or unsupported scattering process'"//trim(lnSplit(2))//"'"
     iErr = .true.
     return
-end select
+  end select
+
+  case("LOSSES")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword LOSSES expected 1 argument, got ",(nSplit-1)
+      iErr = .true.
+      return
+    end if
+
+    call chr_cast(lnSplit(2),pythia_allowLosses,iErr)
+
+    if(st_debug) then
+      call sixin_echoVal("losses",pythia_allowLosses,"PYTHIA",iLine)
+    end if
 
   case("SPECIES")
     if(nSplit /= 3) then
@@ -223,7 +254,23 @@ subroutine pythia_postInput
   use crcoall
   use, intrinsic :: iso_c_binding
 
-  logical(kind=C_BOOL) pythStat
+  logical(kind=C_BOOL) pythStat, sEL, sSD, sDD, sCD, sND
+  integer(kind=C_INT)  rndSeed, frameType, beamSpecies1, beamSpecies2
+  real(kind=C_DOUBLE)  beamEnergy1, beamEnergy2
+
+  rndSeed      = int(pythia_rndSeed,         kind=C_INT)
+  frameType    = int(pythia_frameType,       kind=C_INT)
+  beamSpecies1 = int(pythia_beamSpecies(1),  kind=C_INT)
+  beamSpecies2 = int(pythia_beamSpecies(2),  kind=C_INT)
+
+  beamEnergy1  = real(pythia_beamEnergy(1),      kind=C_DOUBLE)
+  beamEnergy2  = real(pythia_beamEnergy(2),      kind=C_DOUBLE)
+
+  sEL          = logical(pythia_useElastic,      kind=C_BOOL)
+  sSD          = logical(pythia_useSDiffractive, kind=C_BOOL)
+  sDD          = logical(pythia_useDDiffractive, kind=C_BOOL)
+  sCD          = logical(pythia_useCDiffractive, kind=C_BOOL)
+  sND          = logical(pythia_useNDiffractive, kind=C_BOOL)
 
   if(pythia_isActive .eqv. .false.) then
     ! No PYTHIA block, so nothing to do.
@@ -238,11 +285,21 @@ subroutine pythia_postInput
     call prror(-1)
   end if
 
+  if(.not. pythia_allowLosses .and. pythia_useDDiffractive) then
+    write(lout,"(a)") "PYTHIA> ERROR Double diffractive scattering requires allowing losses to be enabled."
+    call prror(-1)
+  end if
+  if(.not. pythia_allowLosses .and. pythia_useNDiffractive) then
+    write(lout,"(a)") "PYTHIA> ERROR Non-diffractive scattering requires allowing losses to be enabled."
+    call prror(-1)
+  end if
+
   if(pythia_useSettingsFile) then
     call pythia_readFile(pythia_settingsFile//char(0))
   else
-    call pythia_setSeed(pythia_rndSeed)
-    call pythia_setBeam(pythia_frameType,pythia_beamSpecies(1),pythia_beamSpecies(2),pythia_beamEnergy(1),pythia_beamEnergy(2))
+    call pythia_setSeed(rndSeed)
+    call pythia_setBeam(frameType,beamSpecies1,beamSpecies2,beamEnergy1,beamEnergy2)
+    call pythia_setProcess(sEL,sSD,sDD,sCD,sND)
   end if
 
   pythStat = pythia_init()

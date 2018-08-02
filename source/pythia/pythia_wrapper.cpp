@@ -18,9 +18,18 @@ extern "C" bool pythiaWrapper_init() {
 extern "C" bool pythiaWrapper_defaults() {
   std::cout << "PYTHIA> Setting defaults" << std::endl;
   pythia.settings.flag("Init:showChangedSettings", true);
-  pythia.settings.flag("SoftQCD:all", false);
-  pythia.settings.flag("HardQCD:all", false);
+  pythia.settings.flag("SigmaTotal:mode", 3);
+  pythia.settings.flag("SigmaDiffractive:mode", 3);
   return true;
+}
+
+extern "C" void pythiaWrapper_setProcess(bool sEL, bool sSD, bool sDD, bool sCD, bool sND) {
+  std::cout << "PYTHIA> Setting processes" << std::endl;
+  pythia.settings.flag("SoftQCD:elastic", sEL);
+  pythia.settings.flag("SoftQCD:singleDiffractive", sSD);
+  pythia.settings.flag("SoftQCD:doubleDiffractive", sDD);
+  pythia.settings.flag("SoftQCD:centralDiffractive", sCD);
+  pythia.settings.flag("SoftQCD:nonDiffractive", sND);
 }
 
 extern "C" void pythiaWrapper_setSeed(int rndSeed) {
