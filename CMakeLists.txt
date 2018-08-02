@@ -355,7 +355,7 @@ if(BOINC AND NOT API)
 endif(BOINC AND NOT API)
 
 if(PYTHIA)
-	add_library(pythia_wrapper STATIC pythia_wrapper.hpp pythia_wrapper.cpp)
+	add_library(pythia_wrapper STATIC pythia_wrapper.h pythia_wrapper.cpp)
 	target_compile_options(pythia_wrapper PRIVATE)
 	list(APPEND FORT90_LIB mod_pythia)
 endif(PYTHIA)
@@ -1165,8 +1165,8 @@ endif(FLUKA)
 if(PYTHIA)
 
 	add_custom_command(
-		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/pythia_wrapper.hpp POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/pythia/pythia_wrapper.hpp ${CMAKE_BINARY_DIR}/pythia_wrapper.hpp
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/pythia_wrapper.h POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/pythia/pythia_wrapper.h ${CMAKE_BINARY_DIR}/pythia_wrapper.h
 		DEPENDS copy_input_files
 	)
 	add_custom_command(

@@ -882,7 +882,7 @@ subroutine daten
     if(openBlock) then
       pythia_isActive = .true.
     elseif(closeBlock) then
-      call pythia_inputParsingDone
+      continue
     else
       call pythia_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
@@ -974,6 +974,9 @@ subroutine daten
 
   call hions_postInput
   call elens_postInput
+#ifdef PYTHIA
+  call pythia_postInput
+#endif
 
   if(idp == 0 .or. ition == 0 .or. nbeam < 1) then
     do j=1,il

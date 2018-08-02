@@ -48,11 +48,13 @@ module mod_pythia
   ! C Interface
   interface
 
-    subroutine pythia_init() bind(C, name="pythiaWrapper_init")
-    end subroutine pythia_init
+    logical(kind=C_BOOL) function pythia_init() bind(C, name="pythiaWrapper_init")
+      use, intrinsic :: iso_c_binding
+    end function pythia_init
 
-    subroutine pythia_defaults() bind(C, name="pythiaWrapper_defaults")
-    end subroutine pythia_defaults
+    logical(kind=C_BOOL) function pythia_defaults() bind(C, name="pythiaWrapper_defaults")
+      use, intrinsic :: iso_c_binding
+    end function pythia_defaults
 
     subroutine pythia_setSeed(rndSeed) bind(C, name="pythiaWrapper_setSeed")
       use, intrinsic :: iso_c_binding
@@ -114,6 +116,25 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
     pythia_useSettingsFile = .true.
     write(lout,"(a)") "PYTHIA> Settings will be read from external file '"//trim(pythia_settingsFile)//"'"
 
+  case("PROCESS")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword FILE expected 1 arguments, got ",(nSplit-1)
+      iErr = .true.
+      return
+    end if
+  select case(lnSplit(2))
+  case("EL","ELASTIC")
+    pythia_useElastic = .true.
+    write(lout,"(a)") "PYTHIA> Elastic scattering enabled"
+  case("SD","SINGLEDIFFRACTIVE")
+    pythia_useSDiffractive = .true.
+    write(lout,"(a)") "PYTHIA> Single diffractive scattering enabled"
+  case default
+    write(lout,"(a)") "PYTHIA> ERROR Unknown or unsupported scattering process'"//trim(lnSplit(2))//"'"
+    iErr = .true.
+    return
+end select
+
   case("SPECIES")
     if(nSplit /= 3) then
       write(lout,"(a,i0)") "PYTHIA> ERROR Keyword BEAM expected 2 arguments, got ",(nSplit-1)
@@ -149,7 +170,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
       case("MU+","MUON+")
         pythia_beamSpecies(iBeam) = pythia_partMuonPos
       case default
-        write(lout,"(a)") "PYTHIA> ERROR Unknown beam species '"//trim(lnSplit(1+iBeam))//"'"
+        write(lout,"(a)") "PYTHIA> ERROR Unknown or unsupported beam species '"//trim(lnSplit(1+iBeam))//"'"
         iErr = .true.
         return
       end select
@@ -197,24 +218,40 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
 end subroutine pythia_parseInputLine
 
-subroutine pythia_inputParsingDone
+subroutine pythia_postInput
 
   use crcoall
+  use, intrinsic :: iso_c_binding
+
+  logical(kind=C_BOOL) pythStat
+
+  if(pythia_isActive .eqv. .false.) then
+    ! No PYTHIA block, so nothing to do.
+    return
+  end if
 
   write(lout,"(a)") "PYTHIA> Initialising ..."
 
-  call pythia_defaults
+  pythStat = pythia_defaults()
+  if(pythStat .eqv. .false.) then
+    write(lout,"(a)") "PYTHIA> ERROR Failed to set default values in libpythia8"
+    call prror(-1)
+  end if
 
   if(pythia_useSettingsFile) then
-    call pythia_readFile(pythia_settingsFile)
+    call pythia_readFile(pythia_settingsFile//char(0))
   else
     call pythia_setSeed(pythia_rndSeed)
     call pythia_setBeam(pythia_frameType,pythia_beamSpecies(1),pythia_beamSpecies(2),pythia_beamEnergy(1),pythia_beamEnergy(2))
   end if
 
-  call pythia_init
+  pythStat = pythia_init()
+  if(pythStat .eqv. .false.) then
+    write(lout,"(a)") "PYTHIA> ERROR Failed to initialise libpythia8"
+    call prror(-1)
+  end if
 
-end subroutine pythia_inputParsingDone
+end subroutine pythia_postInput
 
 end module mod_pythia
 
