@@ -38,6 +38,8 @@ module mod_pythia
   logical,            private, save :: pythia_useCDiffractive = .false.
   logical,            private, save :: pythia_useNDiffractive = .false.
   logical,            private, save :: pythia_allowLosses     = .false.
+  logical,            private, save :: pythia_useCoulomb      = .false.
+  real(kind=fPrec),   private, save :: pythia_elasticTMin     = 5.0e-5_fPrec ! Pythia default value
 
   ! Beam Configuration
   integer,            private, save :: pythia_frameType       = 2
@@ -65,6 +67,12 @@ module mod_pythia
       logical(kind=C_BOOL), value, intent(in) :: sEL, sSD, sDD, sCD, sND
     end subroutine pythia_setProcess
 
+    subroutine pythia_setCoulomb(sCMB,tAbsMin) bind(C, name="pythiaWrapper_setCoulomb")
+      use, intrinsic :: iso_c_binding
+      logical(kind=C_BOOL), value, intent(in) :: sCMB
+      real(kind=C_DOUBLE),  value, intent(in) :: tAbsMin
+    end subroutine pythia_setCoulomb
+
     subroutine pythia_setSeed(rndSeed) bind(C, name="pythiaWrapper_setSeed")
       use, intrinsic :: iso_c_binding
       integer(kind=C_INT), value, intent(in) :: rndSeed
@@ -81,6 +89,11 @@ module mod_pythia
       use, intrinsic :: iso_c_binding
       character(kind=C_CHAR,len=1), intent(in) :: fileName
     end subroutine pythia_readFile
+
+    subroutine pythia_getCrossSection(sigTot,sigEl) bind(C, name="pythiaWrapper_getCrossSection")
+      use, intrinsic :: iso_c_binding
+      real(kind=C_DOUBLE), intent(inout) :: sigTot, sigEl
+    end subroutine pythia_getCrossSection
 
   end interface
 
@@ -127,31 +140,48 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("PROCESS")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword FILE expected 1 argument, got ",(nSplit-1)
+      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword PROCESS expected 1 argument, got ",(nSplit-1)
       iErr = .true.
       return
     end if
-  select case(lnSplit(2))
-  case("EL","ELASTIC")
-    pythia_useElastic = .true.
-    write(lout,"(a)") "PYTHIA> Elastic scattering enabled"
-  case("SD","SINGLEDIFFRACTIVE")
-    pythia_useSDiffractive = .true.
-    write(lout,"(a)") "PYTHIA> Single diffractive scattering enabled"
-  case("DD","DOUBLEDIFFRACTIVE")
-    pythia_useDDiffractive = .true.
-    write(lout,"(a)") "PYTHIA> Double diffractive scattering enabled"
-  case("CD","CENTRALDIFFRACTIVE")
-    pythia_useCDiffractive = .true.
-    write(lout,"(a)") "PYTHIA> Central diffractive scattering enabled"
-  case("ND","NONDIFFRACTIVE")
-    pythia_useNDiffractive = .true.
-    write(lout,"(a)") "PYTHIA> Non-diffractive scattering enabled"
-  case default
-    write(lout,"(a)") "PYTHIA> ERROR Unknown or unsupported scattering process'"//trim(lnSplit(2))//"'"
-    iErr = .true.
-    return
-  end select
+    select case(lnSplit(2))
+    case("EL","ELASTIC")
+      pythia_useElastic = .true.
+      write(lout,"(a)") "PYTHIA> Elastic scattering enabled"
+    case("SD","SINGLEDIFFRACTIVE")
+      pythia_useSDiffractive = .true.
+      write(lout,"(a)") "PYTHIA> Single diffractive scattering enabled"
+    case("DD","DOUBLEDIFFRACTIVE")
+      pythia_useDDiffractive = .true.
+      write(lout,"(a)") "PYTHIA> Double diffractive scattering enabled"
+    case("CD","CENTRALDIFFRACTIVE")
+      pythia_useCDiffractive = .true.
+      write(lout,"(a)") "PYTHIA> Central diffractive scattering enabled"
+    case("ND","NONDIFFRACTIVE")
+      pythia_useNDiffractive = .true.
+      write(lout,"(a)") "PYTHIA> Non-diffractive scattering enabled"
+    case default
+      write(lout,"(a)") "PYTHIA> ERROR Unknown or unsupported scattering process'"//trim(lnSplit(2))//"'"
+      iErr = .true.
+      return
+    end select
+
+  case("COULOMB")
+    if(nSplit /= 2 .and. nSplit /= 3) then
+      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword COULOMB expected 1 or 2 arguments, got ",(nSplit-1)
+      iErr = .true.
+      return
+    end if
+
+    call chr_cast(lnSplit(2),pythia_useCoulomb,iErr)
+    if(nSplit == 3) then
+      call chr_cast(lnSplit(3),pythia_elasticTMin,iErr)
+      if(pythia_elasticTMin < 1.0e-10 .or. pythia_elasticTMin > 1.0e-3) then
+        write(lout,"(a)") "PYTHIA> ERROR Range for COULOMB TMIN is 1e-10 to 1e-3."
+        iErr = .true.
+        return
+      end if
+    end if
 
   case("LOSSES")
     if(nSplit /= 2) then
@@ -159,7 +189,6 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-
     call chr_cast(lnSplit(2),pythia_allowLosses,iErr)
 
     if(st_debug) then
@@ -251,12 +280,14 @@ end subroutine pythia_parseInputLine
 
 subroutine pythia_postInput
 
+  use parpro
   use crcoall
   use, intrinsic :: iso_c_binding
 
-  logical(kind=C_BOOL) pythStat, sEL, sSD, sDD, sCD, sND
+  logical(kind=C_BOOL) pythStat, sEL, sSD, sDD, sCD, sND, sCMB
   integer(kind=C_INT)  rndSeed, frameType, beamSpecies1, beamSpecies2
-  real(kind=C_DOUBLE)  beamEnergy1, beamEnergy2
+  real(kind=C_DOUBLE)  beamEnergy1, beamEnergy2, elasticTMin
+  real(kind=C_DOUBLE)  sigmaTot, sigmaEl
 
   rndSeed      = int(pythia_rndSeed,         kind=C_INT)
   frameType    = int(pythia_frameType,       kind=C_INT)
@@ -265,7 +296,9 @@ subroutine pythia_postInput
 
   beamEnergy1  = real(pythia_beamEnergy(1),      kind=C_DOUBLE)
   beamEnergy2  = real(pythia_beamEnergy(2),      kind=C_DOUBLE)
+  elasticTMin  = real(pythia_elasticTMin,        kind=C_DOUBLE)
 
+  sCMB         = logical(pythia_useCoulomb,      kind=C_BOOL)
   sEL          = logical(pythia_useElastic,      kind=C_BOOL)
   sSD          = logical(pythia_useSDiffractive, kind=C_BOOL)
   sDD          = logical(pythia_useDDiffractive, kind=C_BOOL)
@@ -277,7 +310,14 @@ subroutine pythia_postInput
     return
   end if
 
-  write(lout,"(a)") "PYTHIA> Initialising ..."
+  write(lout,"(a)") str_divLine
+  write(lout,"(a)") ""
+  write(lout,"(a)") "    OOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") "    OO              OO"
+  write(lout,"(a)") "    OO    PYTHIA    OO"
+  write(lout,"(a)") "    OO              OO"
+  write(lout,"(a)") "    OOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") ""
 
   pythStat = pythia_defaults()
   if(pythStat .eqv. .false.) then
@@ -285,6 +325,10 @@ subroutine pythia_postInput
     call prror(-1)
   end if
 
+  if(.not. pythia_useElastic .and. pythia_useCoulomb) then
+    write(lout,"(a)") "PYTHIA> ERROR Coulumb corrections to elastic scattering requires elastic scattering to be enabled."
+    call prror(-1)
+  end if
   if(.not. pythia_allowLosses .and. pythia_useDDiffractive) then
     write(lout,"(a)") "PYTHIA> ERROR Double diffractive scattering requires allowing losses to be enabled."
     call prror(-1)
@@ -300,6 +344,7 @@ subroutine pythia_postInput
     call pythia_setSeed(rndSeed)
     call pythia_setBeam(frameType,beamSpecies1,beamSpecies2,beamEnergy1,beamEnergy2)
     call pythia_setProcess(sEL,sSD,sDD,sCD,sND)
+    call pythia_setCoulomb(sCMB,elasticTMin)
   end if
 
   pythStat = pythia_init()
@@ -308,7 +353,13 @@ subroutine pythia_postInput
     call prror(-1)
   end if
 
-  
+  call pythia_getCrossSection(sigmaTot, sigmaEl)
+  write(lout,"(a)")       "    Cross Sections"
+  write(lout,"(a,f12.6)") "    * Total:   ",sigmaTot
+  write(lout,"(a,f12.6)") "    * Elastic: ",sigmaEl
+
+  write(lout,"(a)") ""
+  write(lout,"(a)") str_divLine
 
 end subroutine pythia_postInput
 
