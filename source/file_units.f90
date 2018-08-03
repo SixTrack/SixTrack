@@ -25,9 +25,15 @@ subroutine funit_initUnits
   allocate(funit_usedUnits(10))
   allocate(funit_usedByFile(10))
 
-  call funit_requestUnit("file_units.dat",funit_logUnit)
+  funit_logUnit       = funit_minUnit
+  funit_nextUnit      = funit_minUnit + 1
+  funit_nUnits        = 1
+  funit_usedUnits(1)  = funit_logUnit
+  funit_usedByFile(1) = "file_units.dat"
+
   open(funit_logUnit,file="file_units.dat",form="formatted")
-  write(funit_logUnit,"(a)") "# unit  assigned_to"
+  write(funit_logUnit,"(a)")    "# unit  assigned_to"
+  write(funit_logUnit,"(i6,a)") funit_usedUnits(1),"  "//funit_usedByFile(1)
 
 end subroutine funit_initUnits
 
