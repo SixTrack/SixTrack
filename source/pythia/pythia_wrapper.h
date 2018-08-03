@@ -19,3 +19,4 @@ extern "C" void pythiaWrapper_setProcess(bool sEL, bool sSD, bool sDD, bool sCD,
 extern "C" void pythiaWrapper_setSeed(int rndSeed);
 extern "C" void pythiaWrapper_setBeam(int frameType, int idA, int idB, double eA, double eB);
 extern "C" void pythiaWrapper_readFile(char* fileName);
+extern "C" void pythiaWrapper_getSigmas(double& sigTot, double& sigEl);

@@ -30,7 +30,6 @@ module scatter
   ! Common variables for the SCATTER routines
   logical, public, save :: scatter_active = .false.
   logical, public, save :: scatter_debug  = .false.
-  logical, public, save :: scatter_pythia = .false.
 
   ! Pointer from an element back to a ELEM statement (0 => not used)
   integer, allocatable, public, save :: scatter_elemPointer(:)
@@ -268,13 +267,6 @@ subroutine scatter_parseInputLine(inLine, iErr)
 
   case("SEED")
     call scatter_parseSeed(lnSplit, nSplit, iErr)
-
-  case("PYTHIA")
-    if(scatter_pythia .eqv. .false.) then
-      scatter_pythia = .true.
-      write(lout,"(s)") "SCATTER> PYTHIA support is ENABLED."
-    end if
-    call scatter_parsePythia(lnSplit, nSplit, iErr)
 
   case default
     write(lout,"(a)") "SCATTER> ERROR Line type not recognized: '"//keyWord//"'"
@@ -610,6 +602,15 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
       return
     end if
 
+  case("PYTHIA")
+
+#ifndef PYTHIA
+    write(lout,"(a)") "SCATTER> ERROR GEN PYTHIA requested, but PYTHIA not compiled into SixTrack"
+    iErr = .true.
+    return
+#endif
+    scatter_GENERATOR(scatter_nGENERATOR,2) = 20 ! Code for PYTHIA
+
   case default
 
     write(lout,"(a)") "SCATTER> ERROR GEN name '"//lnSplit(3)//"' not recognized."
@@ -650,24 +651,6 @@ subroutine scatter_parseSeed(lnSplit, nSplit, iErr)
 
 end subroutine scatter_parseSeed
 
-! =================================================================================================
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-07-30
-! =================================================================================================
-subroutine scatter_parsePythia(lnSplit, nSplit, iErr)
-
-  use crcoall
-  use strings
-  use string_tools
-
-  implicit none
-
-  type(string), allocatable, intent(in)    :: lnSplit(:)
-  integer,                   intent(in)    :: nSplit
-  logical,                   intent(inout) :: iErr
-
-
-end subroutine scatter_parsePythia
 ! =================================================================================================
 ! END Input Parser Functions
 ! =================================================================================================
@@ -715,7 +698,7 @@ subroutine scatter_thin(i_elem, ix, turn)
   PROidx  = scatter_ELEM(ELEMidx,2)
   scaling = scatter_ELEM_scale(ELEMidx)
 
-  if (scatter_debug) then
+  if(scatter_debug) then
     write(lout,"(a)")       "SCATTER> DEBUG In scatter_thin"
     write(lout,"(a,i0)")    "SCATTER> DEBUG  * ix      = ",ix
     write(lout,"(a)")       "SCATTER> DEBUG  * bez     = '"//trim(bez(ix))//"'"
@@ -751,9 +734,7 @@ subroutine scatter_thin(i_elem, ix, turn)
     do j=1, napx
       ! Compute the cross section at this s
       ! (in most cases roughly equal for all particles; use mean x,y,xp,yp,E)
-      crossSection = scatter_generator_getCrossSection( &
-        PROidx,GENidx, xv(1,j),xv(2,j),yv(1,j),yv(2,j),ejv(j) &
-      )
+      crossSection = scatter_generator_getCrossSection(PROidx,GENidx,xv(1,j),xv(2,j),yv(1,j),yv(2,j),ejv(j))
 
       ! Ask profile for density at x,y
       N = scatter_profile_getDensity(PROidx,xv(1,j),xv(2,j))
@@ -780,7 +761,7 @@ subroutine scatter_thin(i_elem, ix, turn)
         iRecords(1,nRecords) = j
         iRecords(2,nRecords) = turn
         cRecords(1,nRecords) = bez(ix)
-        cRecords(2,nRecords) = chr_trimZero(scatter_cData(scatter_GENERATOR(GENidx,1)))
+        cRecords(2,nRecords) = trim(scatter_cData(scatter_GENERATOR(GENidx,1)))
         rRecords(1,nRecords) = t
         rRecords(2,nRecords) = xi
         rRecords(3,nRecords) = theta
@@ -788,14 +769,14 @@ subroutine scatter_thin(i_elem, ix, turn)
         rRecords(5,nRecords) = P
       else
 #endif
-        write(scatter_logFile,"(2(1x,I8),2(1x,A),2(1x,F13.3),3(1x,1PE16.9))") j, turn, bez(ix), &
+        write(scatter_logFile,"(2(1x,i8),2(1x,a),2(1x,f13.3),3(1x,1pe16.9))") j, turn, bez(ix), &
             chr_trimZero(scatter_cData(scatter_GENERATOR(GENidx,1))), &
             t, xi, theta, rndPhi(j), P
 #ifdef HDF5
       end if
 #endif
 #ifdef CR
-      scatter_filePos = scatter_filePos+1
+      scatter_filePos = scatter_filePos + 1
 #endif
 
 #ifdef COLLIMAT
@@ -863,13 +844,12 @@ real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(re
     sigmaY  = scatter_fData(tmpIdx + 2)
     offsetX = scatter_fData(tmpIdx + 3)
     offsetY = scatter_fData(tmpIdx + 4)
-    retval  = beamtot/(two*(pi*(sigmaX*sigmaY)))    &
-            * exp_mb(-half*((x-offsetX)/sigmaX)**2) &
-            * exp_mb(-half*((y-offsetY)/sigmaY)**2)
+    retval  = ((beamtot/(two*(pi*(sigmaX*sigmaY)))) &
+      * exp_mb(-half*((x-offsetX)/sigmaX)**2))      &
+      * exp_mb(-half*((y-offsetY)/sigmaY)**2)
 
   case default
-    write(lout,"(a)")      "SCATTER> ERROR scatter_profile_getDensity"
-    write(lout,"(a,i0,a)") "SCATTER>       Type ", scatter_PROFILE(profileIdx,2)," for profile '"//&
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ", scatter_PROFILE(profileIdx,2)," for profile '"//&
       trim(scatter_cData(scatter_PROFILE(profileIdx,1)))//"' not understood."
     call prror(-1)
   end select
@@ -919,20 +899,21 @@ real(kind=fPrec) function scatter_generator_getCrossSection(profileIDX, generato
 
   ! Calculate the cross section as function of S
   select case(scatter_GENERATOR(generatorIDX,2))
-  case (1)  ! ABSORBER
+  case(1)  ! ABSORBER
     !...
 
-  case (10) ! PPBEAMELASTIC
+  case(10) ! PPBEAMELASTIC
     tmpIdx = scatter_GENERATOR(generatorIDX,4)
-    if(tmpIdx .eq. 0) then
+    if(tmpIdx == 0) then
       scatter_generator_getCrossSection = 30d-27
     else
       scatter_generator_getCrossSection = scatter_fData(tmpIdx)
     end if
 
+  case(20) ! PYTHIA
+
   case default
-    write(lout,"(a)")      "SCATTER> ERROR scatter_generator_getCrossSection"
-    write(lout,"(a,i0,a)") "SCATTER>       Type ",scatter_PROFILE(profileIdx,2)," for profile '"//&
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_PROFILE(profileIdx,2)," for profile '"//&
       trim(scatter_cData(scatter_PROFILE(profileIdx,1)))//"' not understood."
     call prror(-1)
 

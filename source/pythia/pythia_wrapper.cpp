@@ -50,3 +50,6 @@ extern "C" void pythiaWrapper_readFile(char* fileName) {
   std::cout << "PYTHIA> Loading settings from external file" << std::endl;
   pythia.readFile(std::string(fileName));
 }
+
+extern "C" void pythiaWrapper_getSigmas(double& sigTot, double& sigEl) {
+}
