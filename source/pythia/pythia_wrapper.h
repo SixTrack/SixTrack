@@ -21,3 +21,4 @@ extern "C" void pythiaWrapper_setSeed(int rndSeed);
 extern "C" void pythiaWrapper_setBeam(int frameType, int idA, int idB, double eA, double eB);
 extern "C" void pythiaWrapper_readFile(char* fileName);
 extern "C" void pythiaWrapper_getCrossSection(double& sigTot, double& sigEl);
+extern "C" void pythiaWrapper_getEvent(bool& status, int& code, double& t, double& xi);

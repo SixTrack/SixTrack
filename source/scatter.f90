@@ -153,15 +153,16 @@ subroutine scatter_initialise
 
     allocate(setFields(9))
 
-    setFields(1) = h5_dataField(name="ID",    type=h5_typeInt,  size=16)
-    setFields(2) = h5_dataField(name="TURN",  type=h5_typeInt,  size=16)
-    setFields(3) = h5_dataField(name="BEZ",   type=h5_typeChar, size=mNameLen)
-    setFields(4) = h5_dataField(name="GEN",   type=h5_typeChar, size=mNameLen)
-    setFields(5) = h5_dataField(name="T",     type=h5_typeReal, size=0)
-    setFields(6) = h5_dataField(name="XI",    type=h5_typeReal, size=0)
-    setFields(7) = h5_dataField(name="THETA", type=h5_typeReal, size=0)
-    setFields(8) = h5_dataField(name="PHI",   type=h5_typeReal, size=0)
-    setFields(9) = h5_dataField(name="PROB",  type=h5_typeReal, size=0)
+    setFields(1)  = h5_dataField(name="ID",      type=h5_typeInt,  size=16)
+    setFields(2)  = h5_dataField(name="TURN",    type=h5_typeInt,  size=16)
+    setFields(3)  = h5_dataField(name="BEZ",     type=h5_typeChar, size=mNameLen)
+    setFields(4)  = h5_dataField(name="GEN",     type=h5_typeChar, size=mNameLen)
+    setFields(5)  = h5_dataField(name="PROCESS", type=h5_typeChar, size=2)
+    setFields(6)  = h5_dataField(name="T",       type=h5_typeReal, size=0)
+    setFields(7)  = h5_dataField(name="XI",      type=h5_typeReal, size=0)
+    setFields(8)  = h5_dataField(name="THETA",   type=h5_typeReal, size=0)
+    setFields(9)  = h5_dataField(name="PHI",     type=h5_typeReal, size=0)
+    setFields(10) = h5_dataField(name="PROB",    type=h5_typeReal, size=0)
 
     call h5_initForScatter()
     call h5_createFormat("scatter_log_fmt", setFields, scatter_logFormat)
@@ -190,7 +191,7 @@ subroutine scatter_initialise
 
       open(scatter_logFile,file="scatter_log.dat",status="replace",form="formatted")
       write(scatter_logFile,"(a)") "# scatter_log"
-      write(scatter_logFile,"(a)") "# ID turn bez scatter_GENERATOR t[MeV^2] xi theta[mrad] phi[rad] prob"
+      write(scatter_logFile,"(a)") "# ID turn bez generator process t[MeV^2] xi theta[mrad] phi[rad] prob"
 
 #ifdef CR
       scatter_filePos = 2
@@ -679,7 +680,7 @@ subroutine scatter_thin(i_elem, ix, turn)
   ! For HDF5 it is best to write in chuncks, so we will make arrays of size napx
   integer                 :: iRecords(2,napx)
   real(kind=fPrec)        :: rRecords(5,napx)
-  character(len=mNameLen) :: cRecords(2,napx)
+  character(len=mNameLen) :: cRecords(3,napx)
   integer                 :: nRecords
 #endif
 
@@ -691,6 +692,7 @@ subroutine scatter_thin(i_elem, ix, turn)
   real(kind=fPrec) crossSection, N, P
   real(kind=fPrec) rndPhi(npart), rndP(npart)
   real(kind=fPrec) scaling
+  character(len=2) process
 
   integer, intent(in) :: i_elem, ix, turn
 
@@ -746,7 +748,7 @@ subroutine scatter_thin(i_elem, ix, turn)
       if(rndP(j) > P) cycle
 
       ! Ask generator for t and xi
-      call scatter_generator_getTandXi(GENidx,t,xi)
+      call scatter_generator_getTandXi(GENidx,t,xi,process)
 
       ! Use generator t and xi to update particle j;
       ! remember to update ALL the energy arrays
@@ -762,6 +764,7 @@ subroutine scatter_thin(i_elem, ix, turn)
         iRecords(2,nRecords) = turn
         cRecords(1,nRecords) = bez(ix)
         cRecords(2,nRecords) = trim(scatter_cData(scatter_GENERATOR(GENidx,1)))
+        cRecords(3,nRecords) = process
         rRecords(1,nRecords) = t
         rRecords(2,nRecords) = xi
         rRecords(3,nRecords) = theta
@@ -769,9 +772,9 @@ subroutine scatter_thin(i_elem, ix, turn)
         rRecords(5,nRecords) = P
       else
 #endif
-        write(scatter_logFile,"(2(1x,i8),2(1x,a),2(1x,f13.3),3(1x,1pe16.9))") j, turn, bez(ix), &
-            chr_trimZero(scatter_cData(scatter_GENERATOR(GENidx,1))), &
-            t, xi, theta, rndPhi(j), P
+        write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a2,2(1x,f13.3),3(1x,1pe16.9))") &
+          j, turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(GENidx,1))),20), &
+          process(1:2), t, xi, theta, rndPhi(j), P
 #ifdef HDF5
       end if
 #endif
@@ -788,15 +791,16 @@ subroutine scatter_thin(i_elem, ix, turn)
 #ifdef HDF5
     if(h5_useForSCAT) then
       call h5_prepareWrite(scatter_logDataSet, nRecords)
-      call h5_writeData(scatter_logDataSet, 1, nRecords, iRecords(1,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 2, nRecords, iRecords(2,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 3, nRecords, cRecords(1,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 4, nRecords, cRecords(2,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 5, nRecords, rRecords(1,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 6, nRecords, rRecords(2,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 7, nRecords, rRecords(3,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 8, nRecords, rRecords(4,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 9, nRecords, rRecords(5,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 1,  nRecords, iRecords(1,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 2,  nRecords, iRecords(2,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 3,  nRecords, cRecords(1,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 4,  nRecords, cRecords(2,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 5,  nRecords, cRecords(3,1:nRecords)(1:2))
+      call h5_writeData(scatter_logDataSet, 6,  nRecords, rRecords(1,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 7,  nRecords, rRecords(2,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 8,  nRecords, rRecords(3,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 9,  nRecords, rRecords(4,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 10, nRecords, rRecords(5,1:nRecords))
       call h5_finaliseWrite(scatter_logDataSet)
     end if
 #endif
@@ -911,6 +915,7 @@ real(kind=fPrec) function scatter_generator_getCrossSection(profileIDX, generato
     end if
 
   case(20) ! PYTHIA
+    scatter_generator_getCrossSection = 30d-27
 
   case default
     write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_PROFILE(profileIdx,2)," for profile '"//&
@@ -925,26 +930,31 @@ end function scatter_generator_getCrossSection
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
-subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
+subroutine scatter_generator_getTandXi(generatorIDX, t, xi, process)
 
+  use, intrinsic :: iso_c_binding
   use crcoall
 
   implicit none
 
   integer,          intent(in)  :: generatorIDX
   real(kind=fPrec), intent(out) :: t, xi
+  character(len=2), intent(out) :: process
 
   ! Temporary variables
-  integer          tmpIdx
-  real(kind=fPrec) a, b1, b2, phi, tmin
+  logical(kind=C_BOOL) evStat
+  integer              tmpIdx, evType
+  real(kind=fPrec)     a, b1, b2, phi, tmin
 
-  ! Could be affected by S as well?
+  xi = zero
+  t  = zero
 
   select case(scatter_GENERATOR(generatorIDX,2))
-  case (1)  ! ABSORBER
+  case(1)  ! ABSORBER
     !...
+    process = "UN"
 
-  case (10) ! PPBEAMELASTIC
+  case(10) ! PPBEAMELASTIC
 
     tmpIdx = scatter_GENERATOR(generatorIDX,3)
     a      = scatter_fData(tmpIdx)
@@ -953,13 +963,41 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi)
     phi    = scatter_fData(tmpIdx+3)
     tmin   = scatter_fData(tmpIdx+4)
 
-    t  = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
-    xi = zero   ! Dummy value, for now
-    t  = t*c1e6 ! Scale return variable to MeV^2
+    t       = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
+    t       = t*c1e6 ! Scale return variable to MeV^2
+    process = "EL"
+
+  case(20) ! PYTHIA
+
+#ifdef PYTHIA
+    call pythia_getEvent(evStat, evType, t, xi)
+    select case(evType)
+    case(101)
+      process = "ND"
+    case(102)
+      process = "EL"
+    case(103,104)
+      process = "SD"
+    case(105)
+      process = "DD"
+    case(106)
+      process = "CD"
+    case default
+      process = "UN"
+    end select
+    if(evStat) then
+      t = abs(t)*c1e3 ! Scale return variable to MeV^2
+    else
+      write(lout,"(a)") "SCATTER> WARNING Pythia failed to generate event"
+      process = "ER"
+    end if
+#else
+    write(lout,"(a,i0,a)") "SCATTER> ERROR This version of SixTrack was built without PYTHIA support,"
+    call prror(-1)
+#endif
 
   case default
-    write(lout,"(a)")      "SCATTER> ERROR in scatter_generator_getTandXi"
-    write(lout,"(a,i0,a)") "SCATTER>       Type ",generatorIDX," not understood"
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Generator type ",scatter_GENERATOR(generatorIDX,2)," not understood"
     call prror(-1)
 
   end select
