@@ -252,6 +252,18 @@ subroutine  ConfigurationOutputRootSet_aperture_binsize(bin_size_in) bind(C,name
   real(kind=C_DOUBLE), intent(in), value :: bin_size_in
 end subroutine
 
+subroutine  ConfigurationOutputRootSet_reference_energy(e0_in) bind(C,name="ConfigurationOutputRootSet_reference_energy")
+  use, intrinsic :: iso_c_binding
+  implicit none
+  real(kind=C_DOUBLE), intent(in), value :: e0_in
+end subroutine
+
+subroutine  ConfigurationOutputRootSet_reference_mass(nucm0_in) bind(C,name="ConfigurationOutputRootSet_reference_mass")
+  use, intrinsic :: iso_c_binding
+  implicit none
+  real(kind=C_DOUBLE), intent(in), value :: nucm0_in
+end subroutine
+
 subroutine ConfigurationRootWrite() bind(C,name="ConfigurationRootWrite")
   implicit none
 end subroutine

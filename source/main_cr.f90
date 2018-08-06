@@ -622,6 +622,8 @@ end interface
       call ConfigurationOutputRootSet_npart(napx)
       call ConfigurationOutputRootSet_nturns(nnuml)
       call ConfigurationOutputRootSet_aperture_binsize(bktpre)
+      call ConfigurationOutputRootSet_reference_energy(e0)
+      call ConfigurationOutputRootSet_reference_mass(nucm0)
       call ConfigurationRootWrite()
 
       ! Dump the accelerator lattice
