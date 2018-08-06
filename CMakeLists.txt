@@ -63,11 +63,6 @@ EXECUTE_PROCESS(COMMAND git log -n1 --pretty=format:%H WORKING_DIRECTORY ${CMAKE
 STRING(STRIP ${GIT_REVISION} GIT_REVISION)
 message(STATUS "GIT_REVISION: ${GIT_REVISION}")
 
-#replace the "GIT_HASH" in version.f90
-#add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/version.f90 ${CMAKE_BINARY_DIR})
-#STRING(REPLACE "GIT_HASH" "\"${GIT_REVISION}\"" VERSION_FILE_OUT ${IFILE})
-#file(WRITE ${CMAKE_BINARY_DIR}/version.f90 ${VERSION_FILE_OUT})
-
 ###################################################################################################
 # Sixtrack configuration options
 ###################################################################################################
@@ -1099,18 +1094,6 @@ if(NAFF)
 	endif(64BIT)
 endif()
 
-
-add_custom_target(copy_input_files)
-add_dependencies(copy_input_files include_mkdir)
-
-add_custom_target(include_mkdir)
-file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/source/include/*.f90)
-add_custom_command(TARGET include_mkdir POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/)
-foreach(loop IN ITEMS ${SIXTRACK_INCL})
-	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR}/include/)
-endforeach()
-#add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/version.f90 ${CMAKE_BINARY_DIR})
-
 if(BOINC AND API)
 	include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
 	
@@ -1151,6 +1134,7 @@ if(FLUKA)
 	target_link_libraries(SixTrackLib flukaIO)
 endif(FLUKA)
 
+add_custom_target(copy_input_files)
 if(LIBARCHIVE)
 	add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_Fwrapper.c POST_BUILD
