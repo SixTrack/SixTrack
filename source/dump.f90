@@ -876,6 +876,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   use mod_common
   use mod_commont
   use mod_commonmn
+  use mod_hions
 
 #ifdef COLLIMAT
   use collimation
@@ -1666,7 +1667,63 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 #endif
     end if
 
+  ! ------------------------------------------------------------------ !
+  !  Format #101                                                       !
+  !  Same as fmt 3, but with additional variable                       !
+  ! ------------------------------------------------------------------ !
+  else if(fmt == 101) then
+    if(i == 0 .and. ix == 0) then
+      localDcum   = zero
+      localKtrack = 0
+    else
+      localDcum   = dcum(i)
+      localKtrack = ktrack(i)
+    end if
+#ifdef HDF5
+    if(h5_useForDUMP) then
+      call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)
+      call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
+      call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
+      call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv(1,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, yv(1,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, xv(2,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, yv(2,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 8,  napx, sigmv)
+      call h5_writeData(dump_hdf5DataSet(ix), 9,  napx, (ejv-e0)/e0)
+      call h5_writeData(dump_hdf5DataSet(ix), 10, napx, localKtrack)
+      call h5_writeData(dump_hdf5DataSet(ix), 11, napx, ejv(j))
+      call h5_writeData(dump_hdf5DataSet(ix), 12, napx, ejfv(j))
+      call h5_writeData(dump_hdf5DataSet(ix), 13, napx, dpsv(j))
+      call h5_writeData(dump_hdf5DataSet(ix), 14, napx, oidpsv(j))
+      call h5_writeData(dump_hdf5DataSet(ix), 15, napx, rvv(j))
+      call h5_writeData(dump_hdf5DataSet(ix), 16, napx, nucm(j))
+      call h5_writeData(dump_hdf5DataSet(ix), 17, napx, mtc(j))
+      call h5_writeData(dump_hdf5DataSet(ix), 18, napx, e0)
+      call h5_writeData(dump_hdf5DataSet(ix), 19, napx, e0f)
+      call h5_finaliseWrite(dump_hdf5DataSet(ix))
+    else
+#endif
+      do j=1,napx
+        write(unit) nlostp(j),nturn,localDcum, &
+                    xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
+                    sigmv(j),(ejv(j)-e0)/e0,localKtrack, &
+                    ejv(j), ejfv(j), dpsv(j), oidpsv(j), &
+                    rvv(j), nucm(j), mtc(j), e0, e0f
+      end do
+
+      ! Flush
+      endfile (unit,iostat=ierro)
+      backspace (unit,iostat=ierro)
+#ifdef CR
+      dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
+#endif
+#ifdef HDF5
+    end if
+#endif
+  ! ------------------------------------------------------------------ !
   ! Unrecognized format fmt
+  ! ------------------------------------------------------------------ !
   else
     write(lout,"(a,i0,a)") "DUMP> ERROR Format ",fmt," not understood for file '"//trim(dump_fname(i))//"'"
     call prror(-1)
