@@ -464,7 +464,9 @@ subroutine dump_initialise
             call prror(-1)
           end if
         end do
-        if (dumpfmt(i) == 3 .or. dumpfmt(i) == 8) then ! Binary dump
+        if (dumpfmt(i) == 3            &
+           .or. dumpfmt(i) == 8        &
+           .or. dumpfmt(i) == 101) then ! Binary dump
 #ifdef BOINC
           call boincrf(dump_fname(i),filename)
           open(dumpunit(i),file=filename,status='replace',form='unformatted')
@@ -1694,8 +1696,8 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
       call h5_writeData(dump_hdf5DataSet(ix), 10, napx, localKtrack)
       call h5_writeData(dump_hdf5DataSet(ix), 11, napx, ejv(j))
       call h5_writeData(dump_hdf5DataSet(ix), 12, napx, ejfv(j))
-      call h5_writeData(dump_hdf5DataSet(ix), 13, napx, dpsv(j))
-      call h5_writeData(dump_hdf5DataSet(ix), 14, napx, oidpsv(j))
+      call h5_writeData(dump_hdf5DataSet(ix), 13, napx, mdpsv(j))
+      call h5_writeData(dump_hdf5DataSet(ix), 14, napx, moidpsv(j))
       call h5_writeData(dump_hdf5DataSet(ix), 15, napx, rvv(j))
       call h5_writeData(dump_hdf5DataSet(ix), 16, napx, nucm(j))
       call h5_writeData(dump_hdf5DataSet(ix), 17, napx, mtc(j))
