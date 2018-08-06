@@ -619,7 +619,7 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	##############
 	#  gfortran  #
 	##############
-	
+
 	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
 	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
 	set(PREPRO_FLAGS -cpp -E -P)
@@ -685,7 +685,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	###########
 	#  ifort  #
 	###########
-	
+
 	set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
 	set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
 	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
@@ -694,7 +694,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	if(WARN)
 		set(CMAKE_Fortran_FLAGS "-warn unused ${CMAKE_Fortran_FLAGS}")
 	endif(WARN)
-	
+
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
 		set(CMAKE_Fortran_FLAGS_DEBUG "-m32 ${CMAKE_Fortran_FLAGS_DEBUG}")
@@ -732,7 +732,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	############
 	#  nagfor  #
 	############
-	
+
 	SET(NAGFOR ON)
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
 	set(CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
@@ -952,7 +952,7 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 endif()
 
 #check that the compiler has the features we need!
-    include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
+include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
 
 #MPI default build options
 #SET( CMAKE_CXX_FLAGS_MPI "-DNDEBUG -Wall -O3 -pedantic -DENABLE_MPI -march=native" CACHE STRING
@@ -1077,12 +1077,11 @@ if(NAFF)
 	include_directories( ${FFTW_INCLUDES} )
 	message(STATUS "Include dirs of FFTW: " ${FFTW_INCLUDES} )
 	message(STATUS "Libs of of FFTW:      " ${FFTW_LIBRARIES} )
-	
-	
+
 	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/source/naff/*.cpp ${CMAKE_SOURCE_DIR}/source/naff/*.cc)
 	add_library(naff STATIC ${NAFF_SOURCES})
 	target_link_libraries(naff ${FFTW_LIBRARIES})
-	
+
 	#Enable c++11
 	set_property(TARGET naff PROPERTY CXX_STANDARD 11)
 
@@ -1096,24 +1095,24 @@ endif()
 
 if(BOINC AND API)
 	include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
-	
+
 	#The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
 	#go into the boinc source folder, cd api; make boinc_api_fortran.o
 	add_library(boinc_api_fortran STATIC IMPORTED)
 	set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
 	# add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp) #Alternative way of building and linking boinc_api_fortran.cpp/.o
 	target_link_libraries(SixTrackCR boinc_api_fortran)
-	
+
 	#add the libs
 	add_library(boinc STATIC IMPORTED)
 	set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
-	
+
 	add_library(boinc_api STATIC IMPORTED)
 	set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
 	target_link_libraries(SixTrackCR boinc_api)
-	
+
 	target_link_libraries(SixTrackCR boinc)
-	
+
 	find_library(stdc++ STATIC stdc++)
 	target_link_libraries(SixTrackLib stdc++ Threads::Threads)
 
@@ -1151,7 +1150,7 @@ if(LIBARCHIVE)
 		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h
 		DEPENDS copy_input_files
 	)
-	
+
 	include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
 	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -1168,14 +1167,14 @@ if(LIBARCHIVE)
 	else()
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
 	endif()
-	
+
 	#find_library(z STATIC z)
 	add_library(z STATIC IMPORTED)
 	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/zlib/install/lib/libz.a)
-	
+
 	target_link_libraries(SixTrackCR libarchive z Threads::Threads)
 	target_link_libraries(libArchiveTester libarchive z Threads::Threads)
-	
+
 	add_definitions( -DLIBARCHIVE )
 endif()
 
@@ -1192,6 +1191,7 @@ endif()
 
 add_custom_target(generate_input)
 add_dependencies(generate_input dafor)
+file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/source/include/*.f90)
 
 ## Run the preprocessor on all .f90 files and output them to the build directory
 foreach(loop IN ITEMS ${FORT90_LIB} ${FORT90_CR} ${FORT90_DA})
@@ -1290,55 +1290,6 @@ endif(HDF5)
 if(G4COLLIMAT)
 	target_link_libraries(SixTrackCR g4collimat ${Geant4_LIBRARIES} Threads::Threads)
 endif(G4COLLIMAT)
-
-#Again for naglib, I assume we are on lxplus or have CERN afs access.
-# if(NAGLIB)
-# 	if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
-# 		message(WARNING "Compiling with NAGLIB and gfortran may cause SixTrack to segfault.")
-# 	endif()
-	
-# 	if(64BIT)
-# 		if(STATIC)
-# 			if(NOT Fortran_COMPILER_NAME MATCHES "ifort.*")
-# 				find_library(nglibifcoremt NAMES libifcoremt.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			endif()
-# 			find_library(nglibsvml NAMES libsvml.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibirng NAMES libirng.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibimf NAMES libimf.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibirc NAMES libirc.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglib NAMES libnag_nag.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/lib)
-# 		else()
-# 			if(NOT Fortran_COMPILER_NAME MATCHES "ifort.*")
-# 				find_library(nglibifcoremt NAMES libifcoremt.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			endif()
-# 			find_library(nglibsvml NAMES libsvml.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibirng NAMES libirng.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibimf NAMES libimf.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibirc NAMES libirc.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglib NAMES libnag_nag.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/lib)
-# 		endif(STATIC)
-# 	endif(64BIT)
-
-# 	if(32BIT)
-# 		if(STATIC)
-# 			find_library(nglibifcoremt NAMES libifcoremt.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibsvml NAMES libsvml.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibirng NAMES libirng.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibimf NAMES libimf.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibirc NAMES libirc.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglib NAMES libnag_nag.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/lib)
-# 		else()
-# 			find_library(nglibifcoremt NAMES libifcoremt.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibsvml NAMES libsvml.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibirng NAMES libirng.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibimf NAMES libimf.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibirc NAMES libirc.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglib NAMES libnag_nag.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/lib)
-# 		endif(STATIC)
-# 	endif(32BIT)
-
-# 	target_link_libraries(SixTrack ${nglib} ${nglibifcoremt} ${nglibsvml} ${nglibirng} ${nglibimf} ${nglibirc} dl pthread )
-# endif(NAGLIB)
 
 IF(COVERAGE)
 	target_compile_options(SixTrackLib PRIVATE -fprofile-arcs -ftest-coverage)
