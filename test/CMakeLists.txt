@@ -26,6 +26,9 @@ set_tests_properties(CheckTestInput_BOINC PROPERTIES FAIL_REGULAR_EXPRESSION "ER
 ADD_TEST(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/ COMMAND ${CMAKE_SOURCE_DIR}/test/CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
 set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
+add_test(NAME CheckBuildManual COMMAND ${CMAKE_SOURCE_DIR}/test/CheckBuildManual.sh "${CMAKE_SOURCE_DIR}")
+set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
 ## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90 / STF.
@@ -444,7 +447,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
   endif()
 endforeach()
 
-#Tools
+# Tools
 SET(SELFTEST_TOOLS
   SelfTest_verify10
   SelfTest_compf10
@@ -458,11 +461,19 @@ foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
   set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
 endforeach()
 
-#Inputs
+# Inputs
 SET(SELFTEST_INPUT
   CheckTestInput_BOINC
   CheckTestInput_STF
 )
 foreach(TOOL IN ITEMS ${SELFTEST_INPUT})
+  set_property(TEST ${TOOL} PROPERTY LABELS input fast)
+endforeach()
+
+# Other
+SET(SELFTEST_OTHER
+  CheckBuildManual
+)
+foreach(TOOL IN ITEMS ${SELFTEST_OTHER})
   set_property(TEST ${TOOL} PROPERTY LABELS input fast)
 endforeach()

@@ -1068,8 +1068,6 @@ subroutine thck4d(nthinerr)
       if ( lbacktracking ) then
          ! store infos of last aperture marker
          if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
-         ! store old particle coordinates
-         call aperture_saveLastCoordinates(i,ix,0)
       end if
 
 #ifdef FLUKA
@@ -1812,8 +1810,6 @@ subroutine thck6d(nthinerr)
       if ( lbacktracking ) then
          ! store infos of last aperture marker
          if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
-         ! store old particle coordinates
-         call aperture_saveLastCoordinates(i,ix,0)
       end if
 
 #ifdef FLUKA
