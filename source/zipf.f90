@@ -44,7 +44,7 @@ subroutine zipf_parseInputLine(ch)
   end if
 
   zipf_numFiles = zipf_numFiles + 1
-  call resize(zipf_fileNames,mStrLen, zipf_numFiles, str_dZeros, "zipf_fileNames")
+  call alloc(zipf_fileNames,mStrLen, zipf_numFiles, str_dZeros, "zipf_fileNames")
   zipf_fileNames(zipf_numFiles)(1:lFields(1)) = gFields(1)(1:lFields(1))
 
 end subroutine zipf_parseInputLine

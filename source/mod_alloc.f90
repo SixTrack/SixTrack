@@ -70,45 +70,6 @@ interface alloc
 
 end interface alloc
 
-interface resize
-
-  module procedure alloc1di16  ! 1D int16
-  module procedure alloc2di16  ! 2D int16
-  module procedure alloc3di16  ! 3D int16
-
-  module procedure alloc1di32  ! 1D int32
-  module procedure alloc2di32  ! 2D int32
-  module procedure alloc3di32  ! 3D int32
-
-  module procedure alloc1di64  ! 1D int64
-  module procedure alloc2di64  ! 2D int64
-  module procedure alloc3di64  ! 3D int64
-
-  module procedure alloc1dr32  ! 1D real32
-  module procedure alloc2dr32  ! 2D real32
-  module procedure alloc3dr32  ! 3D real32
-  module procedure alloc4dr32  ! 4D real32
-
-  module procedure alloc1dr64  ! 1D real64
-  module procedure alloc2dr64  ! 2D real64
-  module procedure alloc3dr64  ! 3D real64
-  module procedure alloc4dr64  ! 4D real64
-
-  module procedure alloc1dr128 ! 1D real128
-  module procedure alloc2dr128 ! 2D real128
-  module procedure alloc3dr128 ! 3D real128
-  module procedure alloc4dr128 ! 4D real128
-
-  module procedure alloc1dc    ! 1D character
-  module procedure alloc2dc    ! 2D character
-
-  module procedure alloc1ds    ! 1D string
-
-  module procedure alloc1dl    ! 1D logical
-  module procedure alloc2dl    ! 2D logical
-
-end interface resize
-
 interface dealloc
 
   module procedure dealloc1di16  ! 1D int16
