@@ -953,6 +953,7 @@ endif()
 
 #check that the compiler has the features we need!
 # Disabling this test until it's cmake version is in sync with the main build script.
+# See https://github.com/SixTrack/SixTrack/issues/594
 #include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
 
 #MPI default build options
