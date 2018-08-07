@@ -1220,13 +1220,13 @@ foreach(loop IN ITEMS ${FORT90_LIB} ${FORT90_CR} ${FORT90_DA})
 			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
 			COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/source/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}a.f90
 			COMMAND $<TARGET_FILE:dafor> ${loop}a.f90 ${loop}.f90 > ${loop}_dafor.log
-			DEPENDS run_prepro
+			DEPENDS run_prepro ${CMAKE_SOURCE_DIR}/source/${loop}.f90
 		)
 	else()
 		add_custom_command(
 			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
 			COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/source/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
-			DEPENDS run_prepro
+			DEPENDS run_prepro ${CMAKE_SOURCE_DIR}/source/${loop}.f90
 		)
 	endif()
 endforeach()
