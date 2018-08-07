@@ -54,8 +54,8 @@ subroutine daten
   use mod_dist
 
   use scatter,   only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
-  use dynk,      only : ldynk,ldynkdebug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
-  use fma,       only : fma_parseInputLine,fma_allocate
+  use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
+  use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
   use zipf,      only : zipf_parseInputLine,zipf_parseInputDone
   use bdex,      only : bdex_parseInputLine,bdex_parseInputDone
@@ -349,20 +349,9 @@ subroutine daten
   if(inLine(1:1) == "!")    goto 110 ! Comment line, ignore
   read(inLine,"(a4)") cCheck
 
-  ! Parse non-block flags
-  select case(cCheck)
-
-  case("PRIN") ! Enable the PRINT flag
-    ! Previous versions of SixTrack allowed the PRINT block to remain unclosed,
-    ! so we need to handle that for backwards compatibility.
-    prevPrint = .true.
-    st_print  = .true.
-    write(lout,"(a)") "INPUT> Note: The PRINT block is replaced by the PRINT flag in the SETT block."
-    write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
-    goto 110 ! Assume the block is not closed
-
-  case("NEXT") ! Close the current block
-    if(prevPrint) goto 110 ! If there was NEXT flag after PRINT after all, go back one more time
+  ! Check for end of block flag
+  if(cCheck == "NEXT") then
+    if(prevPrint) goto 110 ! If previous block was PRIN, just cycle. We've already closed it.
     if(currBlock == "NONE") then
       ! Catch orphaned NEXT blocks here.
       write(lout,"(a)") "INPUT> ERROR Unexpected NEXT block encountered. There is no open block to close."
@@ -372,14 +361,12 @@ subroutine daten
       ! each block can finalise any necessary initialisation
       closeBlock = .true.
     end if
-
-  case("ENDE") ! End of fort.3 input
-    goto 9000
-
-  end select
-
+  end if
   prevPrint = .false.
 
+  ! Check for end of fort.3 input
+  if(cCheck == "ENDE") goto 9000 
+  
   ! Check if no block is active. If so, there should be a new one if input is sane.
   if(currBlock == "NONE") then
     currBlock = cCheck
@@ -394,13 +381,6 @@ subroutine daten
 
   ! Check the status of the current block
   call sixin_checkBlock(currBlock, nUnit, blockOpened, blockClosed, blockLine, blockCount)
-  ! if(nUnit == 2) then
-  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.2 : ",lineNo2," = '"//inLine//"', "// &
-  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine,", N:",blockCount
-  ! else
-  !   write(lout,"(a,i4,2(a,l1),a,i5,a,i3)") "INPUT> fort.3 : ",lineNo3," = '"//inLine//"', "// &
-  !     "B:'"//currBlock//"', O:",blockOpened,", C:",blockClosed,", L:",blockLine,", N:",blockCount
-  ! end if
 
   ! Check if the current block has already been seen and closed.
   ! If so, the block exists more than once in the input files. It shouldn't unless intended to.
@@ -418,6 +398,13 @@ subroutine daten
   ! The in-block line number is available as the variable 'blockLine' if needed.
 
   select case(currBlock)
+
+  case("PRIN") ! Enable the PRINT flag
+    write(lout,"(a)") "INPUT> Note: The PRINT block is replaced by the PRINT flag in the SETT block."
+    write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
+    st_print   = .true.
+    prevPrint  = .true.
+    closeBlock = .true.
 
   case("SETT") ! Global Settings Block
     if(openBlock) then
@@ -846,8 +833,8 @@ subroutine daten
     if(openBlock) then
       call dynk_allocate
     elseif(closeBlock) then
-      if(ldynkdebug) call dynk_dumpdata
-      ldynk = .true.
+      if(dynk_debug) call dynk_dumpdata
+      dynk_enabled = .true.
       call dynk_inputsanitycheck
     else
       call dynk_parseInputLine(inLine,inErr)
@@ -1731,7 +1718,7 @@ subroutine initialize_element(ix,lfirst)
 !-----------------------------------------------------------------------
 
       use floatPrecision
-      use dynk, only : dynk_elemdata
+      use dynk, only : dynk_elemData
       use numerical_constants
       use crcoall
       use string_tools
@@ -1885,13 +1872,13 @@ subroutine initialize_element(ix,lfirst)
 
          !MULT support removed until we have a proper use case.
 !c$$$         if (lfirst) then
-!c$$$            dynk_elemdata(ix,1) = el(ix) !Flag for type
-!c$$$            dynk_elemdata(ix,2) = ed(ix) !Bending strenght
-!c$$$            dynk_elemdata(ix,3) = ek(ix) !Radius
+!c$$$            dynk_elemData(ix,1) = el(ix) !Flag for type
+!c$$$            dynk_elemData(ix,2) = ed(ix) !Bending strenght
+!c$$$            dynk_elemData(ix,3) = ek(ix) !Radius
 !c$$$         else
-!c$$$            el(ix) = dynk_elemdata(ix,1)
-!c$$$            dynk_elemdata(ii,2) = ed(ii) !Updated in dynk_setvalue
-!c$$$            ek(ii) = dynk_elemdata(ix,3)
+!c$$$            el(ix) = dynk_elemData(ix,1)
+!c$$$            dynk_elemData(ii,2) = ed(ii) !Updated in dynk_setvalue
+!c$$$            ek(ii) = dynk_elemData(ix,3)
 !c$$$         end if
 
          ! Moved from daten():
@@ -1985,7 +1972,7 @@ subroutine initialize_element(ix,lfirst)
          !Moved from daten
          phasc(ix) = el(ix)
          el(ix) = zero
-         dynk_elemdata(ix,3) = phasc(ix)
+         dynk_elemData(ix,3) = phasc(ix)
          if (.not.lfirst) then
 
             ! Doesn't work, as i is not initialized here.
@@ -2572,7 +2559,6 @@ subroutine comnul
   use elens
   use wire
   use scatter,     only : scatter_comnul
-  use dynk,        only : dynk_comnul
   use dump,        only : dump_comnul
   use zipf,        only : zipf_comnul
   use bdex,        only : bdex_comnul
@@ -2624,6 +2610,7 @@ subroutine comnul
   ntwin   = 0     ! mod_common
   ibidu   = 0     ! mod_common
   iexact  = 0     ! mod_common
+  curveff = 0     ! mod_common
 
   ! SINGLE ELEMENT BLOCK
   ithick  = 0     ! mod_common
@@ -3107,13 +3094,6 @@ subroutine comnul
 !     always in main code
       call aperture_comnul
 
-!--DYNAMIC KICKS--------------------------------------------------------
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 03-09-2014
-!     initialise common
-!     always in main code
-!     - general-purpose variables
-      call dynk_comnul
 !--ZIPF-----------------------------------------------------------------
       call zipf_comnul
 !--SCATTER--------------------------------------------------------------

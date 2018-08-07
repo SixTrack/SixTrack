@@ -9,7 +9,7 @@ subroutine trauthin(nthinerr)
   use mathlib_bouncer
   use numerical_constants
   use scatter, only : scatter_elemPointer
-  use dynk, only : ldynk, dynk_isused, dynk_pretrack
+  use dynk, only : dynk_enabled, dynk_isused, dynk_pretrack
 
   use mod_alloc
 
@@ -293,23 +293,24 @@ subroutine trauthin(nthinerr)
           end if
           ktrack(i) = 31
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
-            ktrack(i) = 33
+          if(abs(dki(ix,3)).gt.pieni) then 
+            ktrack(i) = 33 !Horizontal Bend with a fictive length
 #include "include/stra11.f90"
           else
-            ktrack(i) = 35
+            ktrack(i) = 35 !Horizontal Bend without a ficitve length
 #include "include/stra12.f90"
           end if
-        else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
-            ktrack(i) = 37
+        else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then 
+          if(abs(dki(ix,3)).gt.pieni) then 
+            ktrack(i) = 37 !Vertical bending with fictive length
 #include "include/stra13.f90"
           else
-            ktrack(i) = 39
+            ktrack(i) = 39 !Vertical bending without fictive length
 #include "include/stra14.f90"
           end if
         end if
       else
+      !These are the same as above with the difference that they also will have multipoles associated with them. 
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           ktrack(i) = 32
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
@@ -456,7 +457,7 @@ subroutine trauthin(nthinerr)
   nwri=nwr(3)
   if(nwri.eq.0) nwri=(numl+numlr)+1
 
-  if (ldynk) call dynk_pretrack
+  if (dynk_enabled) call dynk_pretrack
 
 #ifdef COLLIMAT
   if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then
@@ -532,7 +533,7 @@ subroutine thin4d(nthinerr)
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
-  use dynk, only : ldynk, dynk_apply
+  use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use aperture
 
@@ -542,6 +543,10 @@ subroutine thin4d(nthinerr)
   ! import mod_fluka
   ! inserted in main code by the 'fluka' compilation flag
   use mod_fluka
+#endif
+
+#ifdef ROOT
+  use root_output
 #endif
 
   use mod_hions
@@ -638,7 +643,7 @@ subroutine thin4d(nthinerr)
     ! last modified: 03-09-2014
     ! apply dynamic kicks
     ! always in main code
-    if ( ldynk ) then
+    if ( dynk_enabled ) then
       call dynk_apply(n)
     end if
     call dump_linesFirst(n)
@@ -1100,7 +1105,8 @@ subroutine thin4d(nthinerr)
 390   r0=ek(ix)
       nmz=nmu(ix)
       if(nmz.ge.2) then
-        do j=1,napx
+          do j=1,napx
+
 #include "include/alignvb.f90"
 #include "include/mul4v05.f90"
           do k=3,nmz
@@ -1108,12 +1114,16 @@ subroutine thin4d(nthinerr)
           end do
 #include "include/mul4v07.f90"
         end do
+     
+#include "include/mul4v07.f90"
+
       else
         do j=1,napx
 #include "include/mul4v08.f90"
         end do
       end if
       goto 620
+
 
 680   continue
       do 690 j=1,napx
@@ -1140,8 +1150,6 @@ subroutine thin4d(nthinerr)
       if ( lbacktracking ) then
          ! store infos of last aperture marker
          if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
-         ! store old particle coordinates
-         call aperture_saveLastCoordinates(i,ix,-1)
       end if
 
 625 continue
@@ -1150,6 +1158,12 @@ subroutine thin4d(nthinerr)
     end if
 
 630 continue
+
+#if defined(ROOT) && !defined(COLLIMAT)
+    if(root_flag .and. root_Collimation.eq.1) then
+      call SurvivalRootWrite(n, napx)
+    end if
+#endif
 
     if(nthinerr.ne.0) return
     if(ntwin.ne.2) call dist1
@@ -1185,17 +1199,24 @@ subroutine thin6d(nthinerr)
 
   use bdex,    only : bdex_track
   use scatter, only : scatter_thin, scatter_debug
-  use dynk,    only : ldynk, dynk_apply
+  use dynk,    only : dynk_enabled, dynk_apply
   use dump,    only : dump_linesFirst, dump_lines, ldumpfront
   use aperture
   use mod_hions
   use mod_settings
+
 #ifdef FLUKA
   use mod_fluka
 #endif
+
+#ifdef ROOT
+  use root_output
+#endif
+
 #ifdef COLLIMAT
   use collimation
 #endif
+
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -1291,7 +1312,7 @@ subroutine thin6d(nthinerr)
     ! last modified: 03-09-2014
     ! apply dynamic kicks
     ! always in main code
-    if ( ldynk ) then
+    if ( dynk_enabled ) then
       call dynk_apply(n)
     end if
 
@@ -2123,8 +2144,6 @@ subroutine thin6d(nthinerr)
       if ( lbacktracking ) then
          ! store infos of last aperture marker
          if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
-         ! store old particle coordinates
-         call aperture_saveLastCoordinates(i,ix,-1)
       end if
 
 645   continue
@@ -2137,6 +2156,12 @@ subroutine thin6d(nthinerr)
 
 #ifdef COLLIMAT
     call collimate_end_turn
+#endif
+
+#if defined(ROOT) && !defined(COLLIMAT)
+    if(root_flag .and. root_Collimation.eq.1) then
+      call SurvivalRootWrite(n, napx)
+    end if
 #endif
 
     if(nthinerr.ne.0) then

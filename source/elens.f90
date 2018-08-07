@@ -57,7 +57,7 @@ end subroutine elens_allocate_arrays
 subroutine elens_expand_arrays(nele_new)
   implicit none
   integer, intent(in) :: nele_new
-  call resize(ielens,nele_new,0,'ielens')
+  call alloc(ielens,nele_new,0,'ielens')
 end subroutine elens_expand_arrays
 
 ! ================================================================================================ !

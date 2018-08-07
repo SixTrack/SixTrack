@@ -68,8 +68,8 @@ subroutine bdex_expand_arrays(nele_new)
   use crcoall
   implicit none
   integer, intent(in) :: nele_new
-  call resize(bdex_elementAction,nele_new,0,'bdex_elementAction')
-  call resize(bdex_elementChannel,nele_new,0,'bdex_elementChannel')
+  call alloc(bdex_elementAction,nele_new,0,'bdex_elementAction')
+  call alloc(bdex_elementChannel,nele_new,0,'bdex_elementChannel')
 end subroutine bdex_expand_arrays
 
 subroutine bdex_comnul
