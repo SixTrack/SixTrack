@@ -480,7 +480,7 @@ subroutine aperture_saveLastCoordinates( i, ix, iBack )
   integer i, ix, iBack
   ! temporary variables
   integer j
-
+  
   do j=1,napx
     xLast(1,j) = xv(1,j)
     xLast(2,j) = xv(2,j)
@@ -984,7 +984,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             xlos(2) = xLast(2,j)
             ylos(1) = yLast(1,j)
             ylos(2) = yLast(2,j)
-            slos    = dcum(iLast)
+            slos    = dcum(iLastThick)
           else
             xlos(1) = xv(1,j)
             xlos(2) = xv(2,j)
@@ -1163,14 +1163,18 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
     ! flush loss particle file
 #ifdef HDF5
-  if(.not. h5_useForAPER) then
+    if(.not. h5_useForAPER) then
 #endif
-    flush(losses_unit)
+       flush(losses_unit)
 #ifdef HDF5
-  end if
+    end if
 #endif
 
     call compactArrays(llostp)
+    
+    ! store old particle coordinates
+    ! necessary since aperture markers are downstream of lenses...
+    if ( lbacktracking ) call aperture_saveLastCoordinates(i,ix,-1)
 
   end if !if( llost ) then
 
