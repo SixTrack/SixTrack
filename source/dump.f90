@@ -843,6 +843,34 @@ subroutine dump_initialise
         end if
         call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(6), dump_hdf5DataSet(i), numl)
 
+      case(101)
+        ! Format 101:
+        ! # ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack
+        if(dump_hdf5Format(3) == 0) then
+          allocate(setFields(10))
+          setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
+          setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
+          setFields(3)  = h5_dataField(name="S",      type=h5_typeReal)
+          setFields(4)  = h5_dataField(name="X",      type=h5_typeReal)
+          setFields(5)  = h5_dataField(name="XP",     type=h5_typeReal)
+          setFields(6)  = h5_dataField(name="Y",      type=h5_typeReal)
+          setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
+          setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
+          setFields(9)  = h5_dataField(name="Z",      type=h5_typeReal)
+          setFields(10) = h5_dataField(name="KTRACK", type=h5_typeInt)
+          setFields(11)  = h5_dataField(name="E",      type=h5_typeReal)
+          setFields(12)  = h5_dataField(name="PC",      type=h5_typeReal)
+          setFields(13)  = h5_dataField(name="P/P0",     type=h5_typeReal)
+          setFields(14)  = h5_dataField(name="P0/P)",      type=h5_typeReal)
+          setFields(15)  = h5_dataField(name="BETA0/BETA",     type=h5_typeReal)
+          setFields(16)  = h5_dataField(name="MASS",   type=h5_typeReal)
+          setFields(17)  = h5_dataField(name="M/M0/Q0/Q", type=h5_typeReal)
+          setFields(18)  = h5_dataField(name="ENERGY0",      type=h5_typeReal)
+          setFields(19)  = h5_dataField(name="PC0",      type=h5_typeReal)
+          call h5_createFormat("dumpFormat3", setFields, dump_hdf5Format(3))
+        end if
+        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(3), dump_hdf5DataSet(i), napx)
+
       end select
 
       if(allocated(setFields) .eqv. .true.) deallocate(setFields)
@@ -1804,7 +1832,7 @@ subroutine dump_crcheck_positionFiles
       flush(93)
 
       inquire( unit=dumpunit(i), opened=lopen )
-      if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8) then ! ASCII
+      if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8 .and. dumpfmt(i) /= 101) then ! ASCII
         if (.not. lopen) then
 #ifdef BOINC
           call boincrf(dump_fname(i),filename)
@@ -1816,7 +1844,7 @@ subroutine dump_crcheck_positionFiles
 
         dumpfilepos(i) = 0
         do j=1,dumpfilepos_cr(i)
-702       read(dumpunit(i),'(a1024)',end=111,err=111,iostat=ierro) arecord
+          read(dumpunit(i),'(a1024)',end=111,err=111,iostat=ierro) arecord
           dumpfilepos(i) = dumpfilepos(i) + 1
         end do
 
@@ -1831,8 +1859,14 @@ subroutine dump_crcheck_positionFiles
         end if
         dumpfilepos(i) = 0
         do j=1,dumpfilepos_cr(i)
-703       read(dumpunit(i),end=111,err=111,iostat=ierro) &
-            tmp_ID,tmp_nturn,tmp_dcum,tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,tmp_ktrack
+           if  (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8) then
+            read(dumpunit(i),end=111,err=111,iostat=ierro) &
+              tmp_ID,tmp_nturn,tmp_dcum,tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,tmp_ktrack
+           else if ( dumpfmt(i) /= 101) then
+            read(dumpunit(i),end=111,err=111,iostat=ierro) &
+              tmp_ID,tmp_nturn,tmp_dcum,tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,tmp_ktrack, &
+              tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x
+            end if
           dumpfilepos(i) = dumpfilepos(i) + 1
         end do
       end if
@@ -1848,7 +1882,7 @@ subroutine dump_crcheck_positionFiles
 
       ! Change from 'readwrite' to 'write'
       close(dumpunit(i))
-      if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8) then ! ASCII
+      if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8 .and. dumpfmt(i) /= 101) then ! ASCII
 #ifdef BOINC
         call boincrf(dump_fname(i),filename)
         open(dumpunit(i),file=filename, status='old',position='append',form='formatted',action='write')
