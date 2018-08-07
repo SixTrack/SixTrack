@@ -55,7 +55,7 @@ subroutine daten
 
   use scatter,   only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
   use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
-  use fma,       only : fma_parseInputLine
+  use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
   use zipf,      only : zipf_parseInputLine,zipf_parseInputDone
   use bdex,      only : bdex_parseInputLine,bdex_parseInputDone
@@ -811,7 +811,7 @@ subroutine daten
 
   case("FMA") ! FMA Block
     if(openBlock) then
-      continue
+      call fma_allocate
     elseif(closeBlock) then
       continue
     else
@@ -2559,7 +2559,6 @@ subroutine comnul
   use elens
   use wire
   use scatter,     only : scatter_comnul
-  use fma,         only : fma_comnul
   use dump,        only : dump_comnul
   use zipf,        only : zipf_comnul
   use bdex,        only : bdex_comnul
@@ -3021,11 +3020,6 @@ subroutine comnul
 !     initialise common
 !     always in main code
       call dump_comnul
-
-!--FMA ANALYSIS---------------------------------------------------------
-!     M. Fitterer, FNAL
-!     last modified: 2016
-      call fma_comnul
 
     !1) --ELEN - ELECTRON LENS---------------------------------------------------------
 !     M. Fitterer (FNAL), A. Mereghetti
