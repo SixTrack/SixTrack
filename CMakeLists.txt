@@ -77,7 +77,6 @@ OPTION(STF "Single Track File - write all tracks for postprocessing to fort.90, 
 # and we have OFF
 OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
 OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal 'myboinc.f' dummy library)" OFF)
-OPTION(COLLIMAT "Collimation code" OFF)
 #OPTION(CPSS "CERN physics screensaver support" OFF)
 OPTION(BOINC "BOINC distributed computing support" OFF)
 OPTION(CR "Checkpoint / restarting" OFF)
@@ -170,9 +169,6 @@ if(CERNLIB)
 endif()
 if(API)
 	SET(SIXTRACK_FEAT_CR "api_${SIXTRACK_FEAT_CR}")
-endif()
-if(COLLIMAT)
-	SET(SIXTRACK_FEAT_CR "collimat_${SIXTRACK_FEAT_CR}")
 endif()
 if(BOINC)
 	SET(SIXTRACK_FEAT_CR "boinc_${SIXTRACK_FEAT_CR}")
@@ -286,7 +282,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}_${SIXTRACK_FEAT_DA}")
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST COLLIMAT BOINC BEAMGAS STF MERLINSCATTER NAFF G4COLLIMAT FLUKA CR)
+LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER NAFF G4COLLIMAT FLUKA CR)
 LIST(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
 LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
@@ -301,7 +297,7 @@ list(APPEND FORT90_LIB
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist scatter dump dynk
 	aperture mod_fluc beam6d_fox six_fox postprocessing
-	read_input
+	read_input ranlux collimation
 )
 
 # Files unique to DA or CR version
@@ -318,10 +314,6 @@ endif(CR)
 if(DEBUG)
 	list(APPEND FORT90_LIB debug_dumps)
 endif(DEBUG)
-
-if(COLLIMAT)
-	list(APPEND FORT90_LIB ranlux collimation)
-endif(COLLIMAT)
 
 if(HDF5)
 	list(APPEND FORT90_LIB hdf5_output hdf5_sixtrack)
@@ -523,34 +515,10 @@ if(API)
 		message(FATAL_ERROR "Building with API requires BOINC enabled")
 	endif(NOT BOINC)
 endif(API)
-if(BEAMGAS)
-	if(NOT COLLIMAT)
-		message(FATAL_ERROR "Building with BEAMGAS requires COLLIMAT enabled")
-	endif(NOT COLLIMAT)
-endif(BEAMGAS)
-if(COLLIMAT)
-	if(CR)
-		message(FATAL_ERROR "Cannot build COLLIMAT with CR enabled.")
-	endif()
-	if(SIXDA)
-		message(STATUS "Will not build SixDA when COLLIMAT is enabled.")
-		set(SIXDA OFF)
-	endif()
-endif()
 if(FLUKA)
 	if(SIXDA)
 		message(STATUS "Will not build SixDA when FLUKA is enabled.")
 		set(SIXDA OFF)
-	endif()
-endif()
-if(MERLINSCATTER)
-	if(NOT COLLIMAT)
-		message(FATAL_ERROR "Building with MERLINSCATTER requires COLLIMAT enabled.")
-	endif()
-endif()
-if(G4COLLIMAT)
-	if(NOT COLLIMAT)
-		message(FATAL_ERROR "Building with G4COLLIMAT requires COLLIMAT enabled.")
 	endif()
 endif()
 if(64BIT)
