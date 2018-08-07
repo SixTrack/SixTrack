@@ -61,12 +61,7 @@ MESSAGE(STATUS "Running on: ${CMAKE_SYSTEM_NAME} with ${CMAKE_SYSTEM_PROCESSOR} 
 #get the current git commit hash
 EXECUTE_PROCESS(COMMAND git log -n1 --pretty=format:%H WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_REVISION)
 STRING(STRIP ${GIT_REVISION} GIT_REVISION)
-message(STATUS "GIT_REVISION: ${GIT_REVISION}")
-
-#replace the "GIT_HASH" in version.f90
-#add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/version.f90 ${CMAKE_BINARY_DIR})
-#STRING(REPLACE "GIT_HASH" "\"${GIT_REVISION}\"" VERSION_FILE_OUT ${IFILE})
-#file(WRITE ${CMAKE_BINARY_DIR}/version.f90 ${VERSION_FILE_OUT})
+message(STATUS "Git Revision: ${GIT_REVISION}")
 
 ###################################################################################################
 # Sixtrack configuration options
@@ -968,7 +963,9 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 endif()
 
 #check that the compiler has the features we need!
-    include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
+# Disabling this test until it's cmake version is in sync with the main build script.
+# See https://github.com/SixTrack/SixTrack/issues/594
+#include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
 
 #MPI default build options
 #SET( CMAKE_CXX_FLAGS_MPI "-DNDEBUG -Wall -O3 -pedantic -DENABLE_MPI -march=native" CACHE STRING
@@ -1094,7 +1091,6 @@ if(NAFF)
 	message(STATUS "Include dirs of FFTW: " ${FFTW_INCLUDES} )
 	message(STATUS "Libs of of FFTW:      " ${FFTW_LIBRARIES} )
 
-
 	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/source/naff/*.cpp ${CMAKE_SOURCE_DIR}/source/naff/*.cc)
 	add_library(naff STATIC ${NAFF_SOURCES})
 	target_link_libraries(naff ${FFTW_LIBRARIES})
@@ -1109,18 +1105,6 @@ if(NAFF)
 		SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m64")
 	endif(64BIT)
 endif()
-
-
-add_custom_target(copy_input_files)
-add_dependencies(copy_input_files include_mkdir)
-
-add_custom_target(include_mkdir)
-file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/source/include/*.f90)
-add_custom_command(TARGET include_mkdir POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/)
-foreach(loop IN ITEMS ${SIXTRACK_INCL})
-	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR}/include/)
-endforeach()
-#add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/version.f90 ${CMAKE_BINARY_DIR})
 
 if(BOINC AND API)
 	include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
@@ -1185,6 +1169,7 @@ if(PYTHIA)
 
 endif(PYTHIA)
 
+add_custom_target(copy_input_files)
 if(LIBARCHIVE)
 	add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_Fwrapper.c POST_BUILD
@@ -1241,9 +1226,8 @@ endif()
 ###################################################################################################
 
 add_custom_target(generate_input)
-add_custom_target(run_prepro)
-add_dependencies(run_prepro dafor)
-add_dependencies(generate_input run_prepro)
+add_dependencies(generate_input dafor)
+file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/source/include/*.f90)
 
 ## Run the preprocessor on all .f90 files and output them to the build directory
 foreach(loop IN ITEMS ${FORT90_LIB} ${FORT90_CR} ${FORT90_DA})
@@ -1254,13 +1238,13 @@ foreach(loop IN ITEMS ${FORT90_LIB} ${FORT90_CR} ${FORT90_DA})
 			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
 			COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/source/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}a.f90
 			COMMAND $<TARGET_FILE:dafor> ${loop}a.f90 ${loop}.f90 > ${loop}_dafor.log
-			DEPENDS run_prepro
+			DEPENDS generate_input ${CMAKE_SOURCE_DIR}/source/${loop}.f90
 		)
 	else()
 		add_custom_command(
 			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
 			COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/source/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
-			DEPENDS run_prepro
+			DEPENDS generate_input ${CMAKE_SOURCE_DIR}/source/${loop}.f90
 		)
 	endif()
 endforeach()
@@ -1342,55 +1326,6 @@ endif(HDF5)
 if(G4COLLIMAT)
 	target_link_libraries(SixTrackCR g4collimat ${Geant4_LIBRARIES} Threads::Threads)
 endif(G4COLLIMAT)
-
-#Again for naglib, I assume we are on lxplus or have CERN afs access.
-# if(NAGLIB)
-# 	if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
-# 		message(WARNING "Compiling with NAGLIB and gfortran may cause SixTrack to segfault.")
-# 	endif()
-
-# 	if(64BIT)
-# 		if(STATIC)
-# 			if(NOT Fortran_COMPILER_NAME MATCHES "ifort.*")
-# 				find_library(nglibifcoremt NAMES libifcoremt.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			endif()
-# 			find_library(nglibsvml NAMES libsvml.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibirng NAMES libirng.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibimf NAMES libimf.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibirc NAMES libirc.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglib NAMES libnag_nag.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/lib)
-# 		else()
-# 			if(NOT Fortran_COMPILER_NAME MATCHES "ifort.*")
-# 				find_library(nglibifcoremt NAMES libifcoremt.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			endif()
-# 			find_library(nglibsvml NAMES libsvml.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibirng NAMES libirng.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibimf NAMES libimf.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibirc NAMES libirc.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglib NAMES libnag_nag.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/lib)
-# 		endif(STATIC)
-# 	endif(64BIT)
-
-# 	if(32BIT)
-# 		if(STATIC)
-# 			find_library(nglibifcoremt NAMES libifcoremt.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibsvml NAMES libsvml.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibirng NAMES libirng.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibimf NAMES libimf.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibirc NAMES libirc.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglib NAMES libnag_nag.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/lib)
-# 		else()
-# 			find_library(nglibifcoremt NAMES libifcoremt.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibsvml NAMES libsvml.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibirng NAMES libirng.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibimf NAMES libimf.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibirc NAMES libirc.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglib NAMES libnag_nag.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/lib)
-# 		endif(STATIC)
-# 	endif(32BIT)
-
-# 	target_link_libraries(SixTrack ${nglib} ${nglibifcoremt} ${nglibsvml} ${nglibirng} ${nglibimf} ${nglibirc} dl pthread )
-# endif(NAGLIB)
 
 IF(COVERAGE)
 	target_compile_options(SixTrackLib PRIVATE -fprofile-arcs -ftest-coverage)
