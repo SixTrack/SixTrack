@@ -26,7 +26,7 @@ set_tests_properties(CheckTestInput_BOINC PROPERTIES FAIL_REGULAR_EXPRESSION "ER
 ADD_TEST(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/ COMMAND ${CMAKE_SOURCE_DIR}/test/CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
 set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
-add_test(NAME CheckBuildManual WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/doc/user_manual COMMAND ${CMAKE_SOURCE_DIR}/test/CheckBuildManual.sh)
+add_test(NAME CheckBuildManual COMMAND ${CMAKE_SOURCE_DIR}/test/CheckBuildManual.sh "${CMAKE_SOURCE_DIR}")
 set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
 ##

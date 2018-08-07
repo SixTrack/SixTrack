@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-cd ../doc/user_manual
+rsync -a $1/doc/user_manual .
+cd user_manual
 make clean
-make TEXFLAGS=-interaction=nonstopmode
+make TEXFLAGS=-interaction=nonstopmode > build.log
 
 EXSTAT=$?
 
