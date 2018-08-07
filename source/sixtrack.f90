@@ -773,6 +773,10 @@ subroutine daten
     end if
 
   case("COLL") ! Collimation Block
+#ifdef CR
+    write(lout,'(a)') "INPUT> ERROR Collimation incompatible with checkpoint/restart (CR)"
+    goto 9999
+#endif
     if(openBlock) then
       has_coll = .true.
       if(ilin /= 1) then
