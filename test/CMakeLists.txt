@@ -68,7 +68,6 @@ SET(TESTS_NOFORT10
   scatter_collimation
 )
 
-if(NOT COLLIMAT)
 if(LIBARCHIVE)
   SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
 endif()
@@ -77,7 +76,7 @@ if(NAFF)
   SET(SIXTRACK_TESTS fma_naff ${SIXTRACK_TESTS})
 endif()
 
-#These tests are always included
+#Non-collimation tests
 SET(SIXTRACK_TESTS
   bbe51
   bbe52
@@ -160,10 +159,10 @@ SET(SIXTRACK_TESTS
   dump_2_all_ele_highprec
   perf1
   ${SIXTRACK_TESTS}
-)
-else()
-  set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
-endif(NOT COLLIMAT)
+  )
+
+# COLLIMATION tests
+set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
 
 # Tests that require SixDA executable
 if(SIXDA)
@@ -172,14 +171,14 @@ endif()
 
 #Collimation tests (needs backtrk)
 #use extra checks on fort.999 and other collimation loss files
-if(COLLIMAT AND BACKTRK)
+if(BACKTRK)
   if(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
     SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
   endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
   # if(NOT FLUKA OR NOT G4COLLIMAT)
   #   SET(SIXTRACK_TESTS collimation_merlin_fcc_2017_h1_collision ${SIXTRACK_TESTS})
   # endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-endif(COLLIMAT AND BACKTRK)
+endif(BACKTRK)
 
 #For CR builds, test the CR functions, so kill/resume the test
 if(CR)
