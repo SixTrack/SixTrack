@@ -124,7 +124,7 @@ subroutine crcheck
   use floatPrecision
   use string_tools
   use numerical_constants
-  use dynk,    only : ldynk, ldynkfiledisable,dynk_crcheck_readdata,dynk_crcheck_positionFiles
+  use dynk,    only : dynk_enabled, dynk_noDynkSets,dynk_crcheck_readdata,dynk_crcheck_positionFiles
   use dump,    only : dump_crcheck_readdata,dump_crcheck_positionFiles
   use scatter, only : scatter_active,scatter_crcheck_readdata,scatter_crcheck_positionFiles
   use, intrinsic :: iso_fortran_env, only : int32
@@ -230,7 +230,7 @@ subroutine crcheck
     call hions_crcheck_readdata(95,lerror)
     if (lerror) goto 100
 
-    if (ldynk) then
+    if (dynk_enabled) then
       write(93,"(a)") "SIXTRACR CRCHECK reading fort.95 Record 6 DYNK"
       flush(93)
       call dynk_crcheck_readdata(95,lerror)
@@ -354,7 +354,7 @@ subroutine crcheck
     call dump_crcheck_readdata(96,lerror)
     if (lerror) goto 100
 
-    if (ldynk) then
+    if (dynk_enabled) then
       write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 6 DYNK"
       flush(93)
       call dynk_crcheck_readdata(96,lerror)
@@ -622,11 +622,11 @@ subroutine crcheck
     end if ! END "if (numl.ne.crnuml) then" and END else
 
     !reposition dynksets.dat
-    if (ldynk .and.(.not.ldynkfiledisable) ) then
+    if (dynk_enabled .and.(.not.dynk_noDynkSets) ) then
       write(93,"(a)") "SIXTRACR> CRCHECK REPOSITIONING dynksets.dat"
         flush(93)
       call dynk_crcheck_positionFiles
-    endif !END if (ldynk .and.(.not.ldynkfiledisable) )
+    endif !END if (dynk_enabled .and.(.not.dynk_noDynkSets) )
 
     !Reposition files for DUMP
     write(93,"(a)") "SIXTRACR> CRCHECK REPOSITIONING DUMP files"
@@ -750,7 +750,7 @@ subroutine crpoint
       use floatPrecision
       use numerical_constants
 
-      use dynk, only : ldynk,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynkfilepos,dynk_crpoint
+      use dynk, only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_filePos,dynk_crpoint
 
       use dump, only : dump_crpoint
 
@@ -847,7 +847,7 @@ subroutine crpoint
       time3=(time3-time1)+crtime3
       crnumlcr=numx+1
 
-      if (ldynk) then ! Store current settings of elements affected by DYNK
+      if (dynk_enabled) then ! Store current settings of elements affected by DYNK
 #ifndef DEBUG
           if (ncalls.le.20.or.numx.ge.numl-20) then
 #endif
@@ -954,7 +954,7 @@ subroutine crpoint
         goto 100
       end if
 
-      if (ldynk) then
+      if (dynk_enabled) then
 #ifndef DEBUG
         if (ncalls.le.20.or.numx.ge.numl-20) then
 #endif
@@ -1118,7 +1118,7 @@ subroutine crpoint
           goto 100
       endif
 
-      if (ldynk) then
+      if (dynk_enabled) then
 #ifndef DEBUG
         if (ncalls.le.20.or.numx.ge.numl-20) then
 #endif
@@ -1251,7 +1251,7 @@ subroutine crstart
 !     See also subroutines crpoint and crcheck.
       use floatPrecision
       use numerical_constants
-      use dynk, only : ldynk, dynk_crstart
+      use dynk, only : dynk_enabled, dynk_crstart
 
       use scatter, only: scatter_active, scatter_crstart
 
@@ -1335,7 +1335,7 @@ subroutine crstart
       enddo
 !ERIC new extended checkpoint for synuthck
 
-      if (ldynk) then
+      if (dynk_enabled) then
           call dynk_crstart
       endif
 
