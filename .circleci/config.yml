@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: debian:unstable
+      - image: debian:testing
     steps:
       - run:
          name: setup
