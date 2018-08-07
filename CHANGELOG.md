@@ -5,6 +5,7 @@
 **User Side Changes**
 
 * DUMP now uses the roundctl library when writing float values (except for the s coordinate). This fixes the failing test(s) where some values are printed as -0.0E0. This ensures that the output is consitent across compilers and platforms.
+* MULTIPOLES now consider the curvature effect when there is a quadrupolar field in the dipole (element 11). This is mainly useful to model combined function magnets. 
 
 ### Version 5.0 RC3 [12.07.2018] - Release Candidate
 

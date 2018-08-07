@@ -37,6 +37,7 @@ SET(TESTS_NOFORT10
   orbit6d-element-quadrupole
   orbit6d-ions
   orbit6d-element-solenoid
+  orbit6d-element-combinedFunction
   orbit6d-ions-long
   exact
   thick6dblocks
@@ -102,6 +103,7 @@ SET(SIXTRACK_TESTS
   orbit6d-element-quadrupole
   orbit6d-element-solenoid
   orbit6d-element-trombone
+  orbit6d-element-combinedFunction
   orbit6d-ions
   orbit6d-ions-long
   prob1
@@ -323,6 +325,7 @@ endforeach()
 SET(FAST_TESTS
   orbit6d-element-quadrupole
   orbit6d-element-solenoid
+  orbit6d-element-combinedFunction
   thick4
   thick6dblocks
   thick6ddynk
