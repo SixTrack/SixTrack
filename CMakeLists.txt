@@ -61,7 +61,7 @@ MESSAGE(STATUS "Running on: ${CMAKE_SYSTEM_NAME} with ${CMAKE_SYSTEM_PROCESSOR} 
 #get the current git commit hash
 EXECUTE_PROCESS(COMMAND git log -n1 --pretty=format:%H WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_REVISION)
 STRING(STRIP ${GIT_REVISION} GIT_REVISION)
-message(STATUS "GIT_REVISION: ${GIT_REVISION}")
+message(STATUS "Git Revision: ${GIT_REVISION}")
 
 ###################################################################################################
 # Sixtrack configuration options
