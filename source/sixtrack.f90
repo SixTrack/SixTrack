@@ -54,7 +54,7 @@ subroutine daten
   use mod_dist
 
   use scatter,   only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
-  use dynk,      only : ldynk,ldynkdebug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
+  use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine
   use dump,      only : dump_parseInputLine,dump_parseInputDone
   use zipf,      only : zipf_parseInputLine,zipf_parseInputDone
@@ -836,8 +836,8 @@ subroutine daten
     if(openBlock) then
       call dynk_allocate
     elseif(closeBlock) then
-      if(ldynkdebug) call dynk_dumpdata
-      ldynk = .true.
+      if(dynk_debug) call dynk_dumpdata
+      dynk_enabled = .true.
       call dynk_inputsanitycheck
     else
       call dynk_parseInputLine(inLine,inErr)
@@ -1740,7 +1740,7 @@ subroutine initialize_element(ix,lfirst)
 !-----------------------------------------------------------------------
 
       use floatPrecision
-      use dynk, only : dynk_elemdata
+      use dynk, only : dynk_elemData
       use numerical_constants
       use crcoall
       use string_tools
@@ -1894,13 +1894,13 @@ subroutine initialize_element(ix,lfirst)
 
          !MULT support removed until we have a proper use case.
 !c$$$         if (lfirst) then
-!c$$$            dynk_elemdata(ix,1) = el(ix) !Flag for type
-!c$$$            dynk_elemdata(ix,2) = ed(ix) !Bending strenght
-!c$$$            dynk_elemdata(ix,3) = ek(ix) !Radius
+!c$$$            dynk_elemData(ix,1) = el(ix) !Flag for type
+!c$$$            dynk_elemData(ix,2) = ed(ix) !Bending strenght
+!c$$$            dynk_elemData(ix,3) = ek(ix) !Radius
 !c$$$         else
-!c$$$            el(ix) = dynk_elemdata(ix,1)
-!c$$$            dynk_elemdata(ii,2) = ed(ii) !Updated in dynk_setvalue
-!c$$$            ek(ii) = dynk_elemdata(ix,3)
+!c$$$            el(ix) = dynk_elemData(ix,1)
+!c$$$            dynk_elemData(ii,2) = ed(ii) !Updated in dynk_setvalue
+!c$$$            ek(ii) = dynk_elemData(ix,3)
 !c$$$         end if
 
          ! Moved from daten():
@@ -1994,7 +1994,7 @@ subroutine initialize_element(ix,lfirst)
          !Moved from daten
          phasc(ix) = el(ix)
          el(ix) = zero
-         dynk_elemdata(ix,3) = phasc(ix)
+         dynk_elemData(ix,3) = phasc(ix)
          if (.not.lfirst) then
 
             ! Doesn't work, as i is not initialized here.
@@ -2580,7 +2580,6 @@ subroutine comnul
   use aperture
   use elens
   use wire
-  use dynk,        only : dynk_comnul
   use fma,         only : fma_comnul
   use dump,        only : dump_comnul
   use zipf,        only : zipf_comnul
@@ -3122,13 +3121,6 @@ subroutine comnul
 !     always in main code
       call aperture_comnul
 
-!--DYNAMIC KICKS--------------------------------------------------------
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 03-09-2014
-!     initialise common
-!     always in main code
-!     - general-purpose variables
-      call dynk_comnul
 !--ZIPF-----------------------------------------------------------------
       call zipf_comnul
 !--HDF5-----------------------------------------------------------------
