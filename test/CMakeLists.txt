@@ -42,6 +42,7 @@ SET(TESTS_NOFORT10
   thick6dblocks
   elensidealthck6d
   dynk_globalvars
+  dynk_filelin
   thick6ddynk
   dump_binary
   dump4
@@ -82,6 +83,7 @@ SET(SIXTRACK_TESTS
   dipedge
   distance
   dynk_globalvars
+  dynk_filelin
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
@@ -335,6 +337,7 @@ SET(FAST_TESTS
   s316
   dipedge
   dynk_globalvars
+  dynk_filelin
   elensidealthin4d
   elensidealthck4d
   elensidealthck6d
