@@ -60,12 +60,13 @@ SET(TESTS_NOFORT10
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-coupling
   scatter_bbelastic
+  scatter_collimation
+  scatter_aperture
   geometry
   collimation_k2_fcc_2017_h1_collision
   dump_all_highprec
   dump_2_all_ele_highprec
   beam-HO_6D-simple-newstyle-orbit
-  scatter_collimation
 )
 
 if(LIBARCHIVE)
@@ -155,6 +156,7 @@ SET(SIXTRACK_TESTS
   rfMultipoles_4thOrder
   last_amp
   scatter_bbelastic
+  scatter_aperture
   dump_all_highprec
   dump_2_all_ele_highprec
   perf1
@@ -385,6 +387,7 @@ SET(FAST_TESTS
   rfMultipoles_4thOrder
   last_amp
   scatter_bbelastic
+  scatter_aperture
   dump_all_highprec
   dump_2_all_ele_highprec
   orbit6d-element-trombone
