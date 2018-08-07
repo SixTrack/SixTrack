@@ -1712,9 +1712,6 @@ subroutine collimate_start_sample(nsample)
   use mod_commons
   use mod_commont
   use mod_commond
-#ifdef CR
-  use checkpoint_restart
-#endif
 
   implicit none
 
