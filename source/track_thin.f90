@@ -9,7 +9,7 @@ subroutine trauthin(nthinerr)
   use mathlib_bouncer
   use numerical_constants
   use scatter, only : scatter_elemPointer
-  use dynk, only : ldynk, dynk_isused, dynk_pretrack
+  use dynk, only : dynk_enabled, dynk_isused, dynk_pretrack
 
   use mod_alloc
 
@@ -456,7 +456,7 @@ subroutine trauthin(nthinerr)
   nwri=nwr(3)
   if(nwri.eq.0) nwri=(numl+numlr)+1
 
-  if (ldynk) call dynk_pretrack
+  if (dynk_enabled) call dynk_pretrack
 
   if ((idp == 0 .or. ition == 0) .and. .not.do_coll) then !4D tracking (not collimat compatible)
     write(lout,"(a)") ""
@@ -526,7 +526,7 @@ subroutine thin4d(nthinerr)
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
-  use dynk, only : ldynk, dynk_apply
+  use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use aperture
 
@@ -636,7 +636,7 @@ subroutine thin4d(nthinerr)
     ! last modified: 03-09-2014
     ! apply dynamic kicks
     ! always in main code
-    if ( ldynk ) then
+    if ( dynk_enabled ) then
       call dynk_apply(n)
     end if
     call dump_linesFirst(n)
@@ -1192,7 +1192,7 @@ subroutine thin6d(nthinerr)
 
   use bdex,    only : bdex_track, bdex_enable, bdex_elementAction
   use scatter, only : scatter_thin, scatter_debug
-  use dynk,    only : ldynk, dynk_apply
+  use dynk,    only : dynk_enabled, dynk_apply
   use dump,    only : dump_linesFirst, dump_lines, ldumpfront
   use aperture
   use mod_hions
@@ -1306,7 +1306,7 @@ subroutine thin6d(nthinerr)
     ! last modified: 03-09-2014
     ! apply dynamic kicks
     ! always in main code
-    if ( ldynk ) then
+    if ( dynk_enabled ) then
       call dynk_apply(n)
     end if
 
