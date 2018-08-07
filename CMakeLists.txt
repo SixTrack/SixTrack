@@ -952,7 +952,8 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 endif()
 
 #check that the compiler has the features we need!
-include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
+# Disabling this test until it's cmake version is in sync with the main build script.
+#include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
 
 #MPI default build options
 #SET( CMAKE_CXX_FLAGS_MPI "-DNDEBUG -Wall -O3 -pedantic -DENABLE_MPI -march=native" CACHE STRING
