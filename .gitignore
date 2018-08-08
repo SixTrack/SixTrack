@@ -20,6 +20,9 @@ source/count.log
 build*/
 Build*/
 
+# Libraries
+lib/pythia
+
 # LaTeX
 doc/html
 doc/*/*.pdf
