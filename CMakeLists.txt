@@ -126,9 +126,9 @@ OPTION(ROUND_ZERO "Always round towards zero after floating point operations" OF
 
 OPTION(ROOT "Link to the root libraries" OFF)
 
-SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/source/boinc CACHE PATH "Path to the boinc build folder")
-SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/source/libarchive_build CACHE PATH "Path to the libarchive build folder")
-SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/source/libarchive CACHE PATH "Path to the libarchive source folder")
+SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/lib/boinc CACHE PATH "Path to the boinc build folder")
+SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive_build CACHE PATH "Path to the libarchive build folder")
+SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive CACHE PATH "Path to the libarchive source folder")
 
 ###################################################################################################
 # Sixtrack binary name construction
@@ -1140,7 +1140,7 @@ if(LIBARCHIVE)
 
 	#find_library(z STATIC z)
 	add_library(z STATIC IMPORTED)
-	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/zlib/install/lib/libz.a)
+	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/zlib/install/lib/libz.a)
 
 	target_link_libraries(SixTrackCR libarchive z Threads::Threads)
 	target_link_libraries(libArchiveTester libarchive z Threads::Threads)
