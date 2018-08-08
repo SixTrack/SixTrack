@@ -37,7 +37,7 @@ module mod_pythia
   logical,            private, save :: pythia_useDDiffractive = .false.
   logical,            private, save :: pythia_useCDiffractive = .false.
   logical,            private, save :: pythia_useNDiffractive = .false.
-  logical,            private, save :: pythia_allowLosses     = .false.
+  logical,            public,  save :: pythia_allowLosses     = .false.
   logical,            private, save :: pythia_useCoulomb      = .false.
   real(kind=fPrec),   private, save :: pythia_elasticTMin     = 5.0e-5_fPrec ! Pythia default value
 
@@ -262,6 +262,8 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
       call sixin_echoVal("E(1)",pythia_beamEnergy(1),"PYTHIA",iLine)
       call sixin_echoVal("E(2)",pythia_beamEnergy(2),"PYTHIA",iLine)
     end if
+
+    pythia_beamEnergy = pythia_beamEnergy*c1m3 ! Pythia expects GeV
 
   case("SEED")
     if(nSplit /= 2) then

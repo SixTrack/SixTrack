@@ -58,20 +58,18 @@ extern "C" void pythiaWrapper_readFile(char* fileName) {
 }
 
 extern "C" void pythiaWrapper_getCrossSection(double& sigTot, double& sigEl) {
+  // sigTot = pythia.info.sigmaGen(0);
   sigTot = pythia.parm("SigmaTotal:sigmaTot");
   sigEl  = pythia.parm("SigmaTotal:sigmaEl");
 }
 
 extern "C" void pythiaWrapper_getEvent(bool& status, int& code, double& t, double& xi) {
-
   status = pythia.next();
-
-  code = pythia.info.code();
+  code   = pythia.info.code();
   if(code == 106) {
     t = (pythia.event[3].p() - pythia.event[1].p()).m2Calc();
   } else {
     t = pythia.info.tHat();
   }
   xi = pythia.info.pTHat();
-
 }
