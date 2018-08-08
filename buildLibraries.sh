@@ -17,7 +17,7 @@ if [[ $(uname) != MINGW* ]]; then     # Use MSYS on Windows, git on MINGW is bug
     git submodule init
     git submodule update
 fi
-cd source
+cd lib
 
 echo
 echo "####################################"

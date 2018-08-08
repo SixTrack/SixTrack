@@ -10,9 +10,9 @@ test/run_pro_*
 test/run_kill_*
 
 # Builds
-source/libarchive_build
-source/zlib/build
-source/zlib/install
+lib/libarchive_build
+lib/zlib/build
+lib/zlib/install
 
 source/count.log
 
