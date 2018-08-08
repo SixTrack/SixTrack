@@ -63,13 +63,33 @@ extern "C" void pythiaWrapper_getCrossSection(double& sigTot, double& sigEl) {
   sigEl  = pythia.parm("SigmaTotal:sigmaEl");
 }
 
-extern "C" void pythiaWrapper_getEvent(bool& status, int& code, double& t, double& xi) {
+extern "C" void pythiaWrapper_getEvent(bool& status, int& code, double& t, double& dEE) {
   status = pythia.next();
   code   = pythia.info.code();
-  if(code == 106) {
-    t = (pythia.event[3].p() - pythia.event[1].p()).m2Calc();
-  } else {
-    t = pythia.info.tHat();
+  if(!status) {
+    code = 0;
+    t    = 0.0;
+    dEE  = 0.0;
+    return;
   }
-  xi = pythia.info.pTHat();
+  if(code == 101) {
+    t   = 0.0;
+    dEE = 0.0;
+  }
+  else if(code == 102) { // Elastic
+    t   = pythia.info.tHat();
+    dEE = (pythia.event[3].e() - pythia.event[1].e()) / pythia.event[1].e();
+  }
+  else if(code == 104) { // Single Diffractive AB->AX
+    t   = pythia.info.tHat();
+    dEE = (pythia.event[3].e() - pythia.event[1].e()) / pythia.event[1].e();
+  }
+  else if(code == 106) { // Central Diffractive AB->AXB
+    t   = (pythia.event[3].p() - pythia.event[1].p()).m2Calc();
+    dEE = (pythia.event[3].e() - pythia.event[1].e()) / pythia.event[1].e();
+  }
+  else {
+    t    = 0.0;
+    dEE  = 0.0;
+  }
 }

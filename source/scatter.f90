@@ -142,8 +142,8 @@ subroutine scatter_initialise
 
   implicit none
 
-  integer ierro
-  logical lopen
+  integer iError
+  logical isOpen
 
 #ifdef HDF5
 
@@ -160,7 +160,7 @@ subroutine scatter_initialise
     setFields(5)  = h5_dataField(name="PROCESS", type=h5_typeChar, size=8)
     setFields(6)  = h5_dataField(name="LOST",    type=h5_typeInt,  size=0)
     setFields(7)  = h5_dataField(name="T",       type=h5_typeReal, size=0)
-    setFields(8)  = h5_dataField(name="XI",      type=h5_typeReal, size=0)
+    setFields(8)  = h5_dataField(name="DEE",     type=h5_typeReal, size=0)
     setFields(9)  = h5_dataField(name="THETA",   type=h5_typeReal, size=0)
     setFields(10) = h5_dataField(name="PHI",     type=h5_typeReal, size=0)
     setFields(11) = h5_dataField(name="PROB",    type=h5_typeReal, size=0)
@@ -184,22 +184,22 @@ subroutine scatter_initialise
       write(93,"(a)") "SCATTER> scatter_initialise opening new file scatter_log.dat"
 #endif
 
-      inquire(unit=scatter_logFile, opened=lopen)
-      if(lopen) then
+      inquire(unit=scatter_logFile, opened=isOpen)
+      if(isOpen) then
         write(lout,"(a)") "SCATTER> ERROR Could not open scatter_log.dat, unit already taken."
         call prror(-1)
       end if
 
       open(scatter_logFile,file="scatter_log.dat",status="replace",form="formatted")
       write(scatter_logFile,"(a)") "# scatter_log"
-      write(scatter_logFile,"(a1,a8,1x,a8,2(1x,a20),1x,a8,1x,a4,2(1x,a13),3(1x,a16))") &
+      write(scatter_logFile,"(a1,a8,1x,a8,2(1x,a20),1x,a8,1x,a4,1x,a13,4(1x,a16))") &
         "#","ID","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8),&
-        "lost","t[MeV^2]","xi","theta[mrad]","phi[rad]","prob"
+        "lost","t[MeV^2]","dE/E","theta[mrad]","phi[rad]","prob"
 
 #ifdef CR
       scatter_filePos = 2
-      endfile(scatter_logFile,iostat=ierro)
-      backspace(scatter_logFile,iostat=ierro)
+      endfile(scatter_logFile,iostat=iError)
+      backspace(scatter_logFile,iostat=iError)
     else
       write(93,"(a)") "SCATTER> scatter_initialise kept already opened file scatter_log.dat"
     end if
@@ -777,7 +777,7 @@ subroutine scatter_thin(i_elem, ix, turn)
         rRecords(5,nRecords) = P
       else
 #endif
-        write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,2(1x,f13.3),3(1x,1pe16.9))") &
+        write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f13.3,4(1x,1pe16.9))") &
           j, turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(GENidx,1))),20), &
           process(1:8), lost, t, xi, theta, rndPhi(j), P
 #ifdef HDF5
@@ -813,8 +813,8 @@ subroutine scatter_thin(i_elem, ix, turn)
   end do ! END Loop over generators
 
 #ifdef CR
-  endfile(scatter_logFile,iostat=ierro)
-  backspace(scatter_logFile,iostat=ierro)
+  endfile(scatter_logFile,iostat=iError)
+  backspace(scatter_logFile,iostat=iError)
 #endif
 
   ! Restore seeds in random generator
@@ -1162,8 +1162,8 @@ subroutine scatter_crcheck_positionFiles
 
   implicit none
 
-  logical lOpen
-  integer iErro
+  logical isOpen
+  integer iError
 #ifdef BOINC
   character(len=256) fileName
 #endif
@@ -1171,13 +1171,13 @@ subroutine scatter_crcheck_positionFiles
   character(len=1024) aRecord
 
   if(scatter_logFile == -1) call funit_requestUnit("scatter_log.dat",scatter_logFile)
-  inquire(unit=scatter_logFile, opened=lOpen)
-  if(lOpen) then
+  inquire(unit=scatter_logFile, opened=isOpen)
+  if(isOpen) then
     write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning scatter_log.dat"
     write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_logFile," already in use!"
 
-    endfile(93,iostat=iErro)
-    backspace(93,iostat=iErro)
+    endfile(93,iostat=iError)
+    backspace(93,iostat=iError)
 
     write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning scatter_log.dat"
     call prror(-1)
@@ -1192,12 +1192,12 @@ subroutine scatter_crcheck_positionFiles
 #endif
     scatter_filePos=0
     do j=1, scatter_filePos_CR
-      read(scatter_logFile,"(a1024)",end=10,err=10,iostat=iErro) aRecord
+      read(scatter_logFile,"(a1024)",end=10,err=10,iostat=iError) aRecord
       scatter_filePos = scatter_filePos+1
     end do
 
     ! Truncate the file after scatter_filePos_CR lines
-    endfile(scatter_logFile,iostat=iErro)
+    endfile(scatter_logFile,iostat=iError)
     close(scatter_logFile)
 
 #ifdef BOINC
@@ -1208,25 +1208,25 @@ subroutine scatter_crcheck_positionFiles
 #endif
     write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned scatter_log.dat, "//&
                 "scatter_filePos=",scatter_filePos," scatter_filePos_CR=",scatter_filePos_CR
-    endfile(93,iostat=iErro)
-    backspace(93,iostat=iErro)
+    endfile(93,iostat=iError)
+    backspace(93,iostat=iError)
 
   else
     write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning "// &
       "of scatter_log.dat, scatter_filePos_CR=",scatter_filePos_CR
     write(93,"(a)")    "SIXTRACR> If anything has been written to the file, "// &
       "it will be correctly truncated in scatter_initialise."
-    endfile(93,iostat=iErro)
-    backspace(93,iostat=iErro)
+    endfile(93,iostat=iError)
+    backspace(93,iostat=iError)
   end if
 
   return
 
 10 continue
-  write(93,"(a,i0)")    "SIXTRACR> ERROR reading scatter_log.dat, iostat=",iErro
+  write(93,"(a,i0)")    "SIXTRACR> ERROR reading scatter_log.dat, iostat=",iError
   write(93,"(2(a,i0))") "SIXTRACR> scatter_filePos=",scatter_filePos," scatter_filePos_CR=",scatter_filePos_CR
-  endfile(93,iostat=iErro)
-  backspace(93,iostat=iErro)
+  endfile(93,iostat=iError)
+  backspace(93,iostat=iError)
   write(lout,"(a)")"SIXTRACR> ERROR CRCHECK failure positioning scatter_log.dat"
   call prror(-1)
 
@@ -1237,7 +1237,7 @@ end subroutine scatter_crcheck_positionFiles
 !  Last modified: 2018-04-26
 !  Called from CRPOINT; write checkpoint data to fort.95/96
 ! =================================================================================================
-subroutine scatter_crpoint(fileUnit, writeErr, iErro)
+subroutine scatter_crpoint(fileUnit, writeErr, iError)
 
   use crcoall
 
@@ -1245,17 +1245,17 @@ subroutine scatter_crpoint(fileUnit, writeErr, iErro)
 
   integer, intent(in)    :: fileUnit
   logical, intent(out)   :: writeErr
-  integer, intent(inout) :: iErro
+  integer, intent(inout) :: iError
 
   integer j
 
-  write(fileunit,err=10,iostat=iErro) scatter_filePos, scatter_seed1, scatter_seed2
-  write(fileunit,err=10,iostat=iErro) scatter_niData, scatter_nfData, scatter_ncData
-  write(fileunit,err=10,iostat=iErro) (scatter_iData(j), j=1, scatter_niData)
-  write(fileunit,err=10,iostat=iErro) (scatter_fData(j), j=1, scatter_nfData)
-  write(fileunit,err=10,iostat=iErro) (scatter_cData(j), j=1, scatter_ncData)
-  endfile(fileUnit,iostat=iErro)
-  backspace(fileUnit,iostat=iErro)
+  write(fileunit,err=10,iostat=iError) scatter_filePos, scatter_seed1, scatter_seed2
+  write(fileunit,err=10,iostat=iError) scatter_niData, scatter_nfData, scatter_ncData
+  write(fileunit,err=10,iostat=iError) (scatter_iData(j), j=1, scatter_niData)
+  write(fileunit,err=10,iostat=iError) (scatter_fData(j), j=1, scatter_nfData)
+  write(fileunit,err=10,iostat=iError) (scatter_cData(j), j=1, scatter_ncData)
+  endfile(fileUnit,iostat=iError)
+  backspace(fileUnit,iostat=iError)
 
   return
 
