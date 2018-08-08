@@ -37,6 +37,7 @@ set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR"
 # List of tests that do not produce a valid fort.10
 SET(TESTS_NOFORT10
   orbit6d-element-trombone
+  orbit6d-element-trombone-kick
   orbit6d-element-quadrupole
   orbit6d-ions
   orbit6d-element-solenoid
@@ -106,6 +107,7 @@ SET(SIXTRACK_TESTS
   orbit6d-element-quadrupole
   orbit6d-element-solenoid
   orbit6d-element-trombone
+  orbit6d-element-trombone-kick
   orbit6d-element-combinedFunction
   orbit6d-ions
   orbit6d-ions-long
@@ -391,6 +393,7 @@ SET(FAST_TESTS
   dump_all_highprec
   dump_2_all_ele_highprec
   orbit6d-element-trombone
+  orbit6d-element-trombone-kick
   orbit6d-ions
   beam-HO_6D-simple-newstyle-orbit
 )
