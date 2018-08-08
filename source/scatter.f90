@@ -667,6 +667,7 @@ subroutine scatter_thin(i_elem, ix, turn)
 
   use string_tools
   use crcoall
+  use mod_alloc
   use mod_common
   use mod_commonmn
   use numerical_constants, only : pi
@@ -691,6 +692,8 @@ subroutine scatter_thin(i_elem, ix, turn)
   real(kind=fPrec) rndPhi(npart), rndP(npart)
   real(kind=fPrec) scaling
   character(len=8) process
+
+  logical, allocatable :: pLost(:)
 
 #ifdef HDF5
   ! For HDF5 it is best to write in chuncks, so we will make arrays of size napx
@@ -721,6 +724,10 @@ subroutine scatter_thin(i_elem, ix, turn)
   ! Store the seeds in the randum number generator, and set ours
   call recuut(tmpSeed1,tmpSeed2)
   call recuin(scatter_seed1,scatter_seed2)
+
+  if(pythia_allowLosses) then
+    call alloc(pLost,npart,.false.,"pLost")
+  end if
 
   ! Loop over generators
   do i=3,5
@@ -753,6 +760,9 @@ subroutine scatter_thin(i_elem, ix, turn)
 
       ! Ask generator for t and xi
       call scatter_generator_getTandXi(GENidx,t,xi,process,lost)
+
+      ! If lost, flag it
+      if(pythia_allowLosses .and. lost == 1) pLost(j) = .true.
 
       ! Use generator t and xi to update particle j;
       ! remember to update ALL the energy arrays
@@ -811,6 +821,10 @@ subroutine scatter_thin(i_elem, ix, turn)
     end if
 #endif
   end do ! END Loop over generators
+
+  if(pythia_allowLosses) then
+    call compactArrays(pLost)
+  end if
 
 #ifdef CR
   endfile(scatter_logFile,iostat=iError)
