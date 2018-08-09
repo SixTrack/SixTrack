@@ -1098,8 +1098,7 @@ subroutine thin4d(nthinerr)
 390   r0=ek(ix)
       nmz=nmu(ix)
       if(nmz.ge.2) then
-          do j=1,napx
-
+        do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v05.f90"
           do k=3,nmz
@@ -1107,9 +1106,6 @@ subroutine thin4d(nthinerr)
           end do
 #include "include/mul4v07.f90"
         end do
-     
-#include "include/mul4v07.f90"
-
       else
         do j=1,napx
 #include "include/mul4v08.f90"
@@ -1381,11 +1377,9 @@ subroutine thin6d(nthinerr)
 
       ! BDEX was in a #ifndef collimat block, and may not be fully collimat-compatible,
       ! so for now the two shall not be mixed.
-      if(.not.do_coll .and. &
-           (bdex_enable .and. kz(ix).eq.0 .and. bdex_elementAction(ix).ne.0 ) &
-           ) then
-        call bdex_track(i,ix,n)
-      end if
+      ! if(.not.do_coll .and. (bdex_enable .and. kz(ix).eq.0 .and. bdex_elementAction(ix).ne.0 )) then
+      !   call bdex_track(i,ix,n)
+      ! end if
 
       if (do_coll) then
         dotrack = myktrack
