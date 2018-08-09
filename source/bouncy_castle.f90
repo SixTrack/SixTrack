@@ -602,16 +602,19 @@ contains
   end function asin_rn
 
   real(kind=real64) function atan2_rn(y,x)
-    use, intrinsic :: iso_fortran_env, only : real64
+    use, intrinsic :: iso_fortran_env, only : real64, int64
+    use, intrinsic :: ieee_arithmetic, only : ieee_quiet_nan, ieee_value
     implicit none
     real(kind=real64) x,y,pi,pi2
+    real(real64), parameter :: nan64 = transfer(-2251799813685248_int64, 1._real64)
     logical myisnan
     data pi  /3.1415926535897932d0/
     data pi2 /1.5707963267948966d0/
     if (x.eq.0d0) then
        if (y.eq.0d0) then
           ! Should get me a NaN
-          atan2_rn=atan_rn(y/x)
+          ! atan2_rn=atan_rn(y/x)
+          atan2_rn=nan64
        else
           atan2_rn=sign(pi2,y)
        endif
