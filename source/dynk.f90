@@ -2131,8 +2131,6 @@ end subroutine dynk_pretrack
 !  the given (shifted) turn number using the specified FUN function. The values are stored in the
 !  element using dynk_setvalue().
 !
-!  Also resets the values at the beginning of each pass through the turn loop (for COLLIMATION).
-!
 !  Also writes the file "dynksets.dat", only on the first turn.
 ! ================================================================================================ !
 subroutine dynk_apply(turn)

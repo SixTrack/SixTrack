@@ -29,9 +29,6 @@ subroutine allocate_arrays
 #ifdef FLUKA
   use mod_fluka,          only : fluka_mod_expand_arrays
 #endif
-#ifdef COLLIMAT
-  use collimation,        only : collimation_allocate_arrays
-#endif
   implicit none
 
   nele  = nele_initial
@@ -55,9 +52,6 @@ subroutine allocate_arrays
   call hions_allocate_arrays
 #ifdef CR
   call cr_expand_arrays(npart)
-#endif
-#ifdef COLLIMAT
-  call collimation_allocate_arrays
 #endif
 
 end subroutine allocate_arrays
@@ -88,9 +82,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 #ifdef FLUKA
   use mod_fluka,          only : fluka_mod_expand_arrays
 #endif
-#ifdef COLLIMAT
   use collimation,        only : collimation_expand_arrays
-#endif
   implicit none
 
   integer, intent(in) :: nele_new
@@ -122,9 +114,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 #ifdef FLUKA
   call fluka_mod_expand_arrays(npart_new, nele_new)
 #endif
-#ifdef COLLIMAT
   call collimation_expand_arrays(npart_new, nblz_new)
-#endif
 
   ! Update array size variables
   nele  = nele_new

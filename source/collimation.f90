@@ -44,6 +44,8 @@ module collimation
   integer, parameter :: numeffdpop = 29
   integer, parameter :: nc         = 32
 
+  logical, private, save :: collimation_arrays_allocated = .false.
+
 !+cd collMatNum
 ! EQ 2016 added variables for collimator material numbers
   integer, parameter :: nmat  = 14
@@ -775,6 +777,8 @@ subroutine collimation_allocate_arrays
 
   implicit none
 
+  collimation_arrays_allocated = .true.
+
   call alloc(tbetax,  nblz, zero, 'tbetax')  !(nblz)
   call alloc(tbetay,  nblz, zero, 'tbetay')  !(nblz)
   call alloc(talphax, nblz, zero, 'talphax') !(nblz)
@@ -930,6 +934,10 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   integer, intent(in) :: npart_new
   integer, intent(in) :: nblz_new
 
+  if (.not. collimation_arrays_allocated) then
+    return
+  endif
+  
   call alloc(tbetax,  nblz_new, zero, 'tbetax')  !(nblz)
   call alloc(tbetay,  nblz_new, zero, 'tbetay')  !(nblz)
   call alloc(talphax, nblz_new, zero, 'talphax') !(nblz)
@@ -1678,23 +1686,14 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
 end subroutine collimate_parseInputLine
 
-subroutine collimate_postInput(gammar,has_coll)
+subroutine collimate_postInput(gammar)
 
   real(kind=fPrec), intent(in) :: gammar
-  logical,          intent(in) :: has_coll
 
   remitx_dist    = emitnx0_dist*gammar
   remity_dist    = emitny0_dist*gammar
   remitx_collgap = emitnx0_collgap*gammar
   remity_collgap = emitny0_collgap*gammar
-
-  if(.not.has_coll) then
-    ! Breaks at least DUMP (negative particle IDs) and DYNK (1-pass actions).
-    write(lout,"(a)") "COLL> ERROR This is the collimation version of SixTrack,"
-    write(lout,"(a)") "COLL>       but no COLL block was found, not even one with do_coll = .false."
-    write(lout,"(a)") "COLL>       Please use the non-collimation version!"
-    call prror(-1)
-  end if
 
 end subroutine collimate_postInput
 
@@ -1712,9 +1711,6 @@ subroutine collimate_start_sample(nsample)
   use mod_commons
   use mod_commont
   use mod_commond
-#ifdef CR
-  use checkpoint_restart
-#endif
 
   implicit none
 

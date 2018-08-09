@@ -192,9 +192,6 @@ end interface
 #ifdef STF
   featList = featList//" STF"
 #endif
-#ifdef COLLIMAT
-  featList = featList//" COLLIMAT"
-#endif
 #ifdef CRLIBM
   featList = featList//" CRLIBM"
   call disable_xp()

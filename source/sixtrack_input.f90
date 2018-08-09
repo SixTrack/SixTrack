@@ -2699,7 +2699,7 @@ subroutine sixin_parseInputLinePOST(inLine, iLine, iErr)
     if(abs(cma1) <= pieni) cma1 = one
     cma1 = cma1*c1e3
     if(abs(cma2) <= pieni) cma2 = one
-    ipos = 1
+    ipos = 1 ! Turn postprocessing ON.
 
   case default
     write(lout,"(a,i0)") "POST> ERROR Unexpected line number ",iLine
