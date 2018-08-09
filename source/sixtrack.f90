@@ -65,7 +65,7 @@ subroutine daten
   use aperture
   use mod_hions
 #ifdef FLUKA
-  use mod_fluka, only : fluka_parsingDone,fluka_parseInputLine
+  use mod_fluka, only : fluka_parsingDone,fluka_parseInputLine,fluka_enable
 #endif
 #ifdef HDF5
   use hdf5_output
@@ -932,6 +932,25 @@ subroutine daten
 
     if (do_coll) then
       call collimate_postInput(gammar,has_coll)
+    endif
+
+    !Check for incompatible flags
+    if (ipos == 1) then
+      if (do_coll) then
+        write(lout,'(a)') "ENDE> ERROR: COLLimation block and POSTprocessing block are not compatible."
+        call prror(-1)
+      endif
+
+      if (scatter_active) then
+        write(lout,'(a)') "ENDE> ERROR: SCATTER block and POSTprocessing block are not compatible."
+        call prror(-1)
+      endif
+#ifdef FLUKA
+      if (fluka_enable) then
+        write(lout,'(a)') "ENDE> ERROR: FLUKA block and POSTprocessing block are not compatible."
+        call prror(-1)
+      endif
+#endif
     endif
 
   end if
