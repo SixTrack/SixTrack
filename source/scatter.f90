@@ -28,8 +28,9 @@ module scatter
   implicit none
 
   ! Common variables for the SCATTER routines
-  logical, public, save :: scatter_active = .false.
-  logical, public, save :: scatter_debug  = .false.
+  logical, public, save :: scatter_active      = .false.
+  logical, public, save :: scatter_debug       = .false.
+  logical, public, save :: scatter_allowLosses = .false.
 
   ! Pointer from an element back to a ELEM statement (0 => not used)
   integer, allocatable, public, save :: scatter_elemPointer(:)
@@ -259,6 +260,14 @@ subroutine scatter_parseInputLine(inLine, iErr)
   case("DEBUG")
     scatter_debug = .true.
     write(lout,"(a)") "SCATTER> Scatter block debugging is ON."
+
+  case("LOSSES")
+    scatter_allowLosses = .true.
+    write(lout,"(a)") "SCATTER> Particle losses is ALLOWED."
+#ifdef PYTHIA
+    ! Pythia also needs to know that losses are allowed to determine which processes can be used
+    pytia_allowLosses = .true.
+#endif
 
   case("ELEM")
     call scatter_parseElem(lnSplit, nSplit, iErr)
@@ -725,7 +734,7 @@ subroutine scatter_thin(i_elem, ix, turn)
   call recuut(tmpSeed1,tmpSeed2)
   call recuin(scatter_seed1,scatter_seed2)
 
-  if(pythia_allowLosses) then
+  if(scatter_allowLosses) then
     call alloc(pLost,npart,.false.,"pLost")
   end if
 
@@ -762,7 +771,7 @@ subroutine scatter_thin(i_elem, ix, turn)
       call scatter_generator_getTandXi(GENidx,t,xi,process,lost)
 
       ! If lost, flag it
-      if(pythia_allowLosses .and. lost == 1) pLost(j) = .true.
+      if(scatter_allowLosses .and. lost == 1) pLost(j) = .true.
 
       ! Use generator t and xi to update particle j;
       ! remember to update ALL the energy arrays
@@ -822,7 +831,7 @@ subroutine scatter_thin(i_elem, ix, turn)
 #endif
   end do ! END Loop over generators
 
-  if(pythia_allowLosses) then
+  if(scatter_allowLosses) then
     call compactArrays(pLost)
   end if
 
@@ -1011,7 +1020,7 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi, process, lost)
       t = abs(t)*c1e6 ! Scale return variable to MeV^2
       select case(evType)
       case(101)
-        if(pythia_allowLosses) then
+        if(scatter_allowLosses) then
           process = "NonDiff"
           lost    = 1
         else
@@ -1022,7 +1031,7 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi, process, lost)
         process = "Elastic"
         lost    = 0
       case(103)
-        if(pythia_allowLosses) then
+        if(scatter_allowLosses) then
           process = "SingD_XB"
           lost    = 1
         else
@@ -1032,7 +1041,7 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi, process, lost)
         process = "SingD_AX"
         lost    = 0
       case(105)
-        if(pythia_allowLosses) then
+        if(scatter_allowLosses) then
           process = "DoubD_XX"
           lost    = 1
         else

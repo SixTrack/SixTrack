@@ -190,18 +190,6 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
       end if
     end if
 
-  case("LOSSES")
-    if(nSplit /= 2) then
-      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword LOSSES expected 1 argument, got ",(nSplit-1)
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2),pythia_allowLosses,iErr)
-
-    if(st_debug) then
-      call sixin_echoVal("losses",pythia_allowLosses,"PYTHIA",iLine)
-    end if
-
   case("SPECIES")
     if(nSplit /= 3) then
       write(lout,"(a,i0)") "PYTHIA> ERROR Keyword BEAM expected 2 arguments, got ",(nSplit-1)
