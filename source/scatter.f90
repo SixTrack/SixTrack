@@ -32,6 +32,17 @@ module scatter
   logical, public, save :: scatter_debug       = .false.
   logical, public, save :: scatter_allowLosses = .false.
 
+  ! Scatter Parameters
+  character(len=8), parameter :: scatter_procAbsorb       = "Absorbed"
+  character(len=8), parameter :: scatter_procNonDiff      = "NonDiff"
+  character(len=8), parameter :: scatter_procElastic      = "Elastic"
+  character(len=8), parameter :: scatter_procSingleDiffXB = "SingD_XB"
+  character(len=8), parameter :: scatter_procSingleDiffAX = "SingD_AX"
+  character(len=8), parameter :: scatter_procDoubleDiff   = "DoubD_XX"
+  character(len=8), parameter :: scatter_procCentralDiff  = "CentDiff"
+  character(len=8), parameter :: scatter_procUnknown      = "Unknown"
+  character(len=8), parameter :: scatter_procError        = "Error"
+
   ! Pointer from an element back to a ELEM statement (0 => not used)
   integer, allocatable, public, save :: scatter_elemPointer(:)
 
@@ -42,18 +53,13 @@ module scatter
   integer,          allocatable, public, save :: scatter_ELEM(:,:)
   real(kind=fPrec), allocatable, public, save :: scatter_ELEM_scale(:)
 
-  ! Configuration for PROFILE
+  ! Configuration for PROFILE and GENERATOR
   ! Columns of scatter_PROFILE:
-  ! (1)   : Profile name in fort.3 (points within scatter_cexpr)
+  ! (1)   : Profile name in fort.3 (points within scatter_cData)
   ! (2)   : Profile type
-  ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
+  ! (3-5) : Arguments (often pointing within scatter_{i|c|f}Data)
   integer, allocatable, public, save :: scatter_PROFILE(:,:)
-
-  ! Configuration for GENERATOR
-  ! (1)   : Generator name in fort.3 (points within scatter_cexpr)
-  ! (2)   : Generator type
-  ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
-  integer, allocatable, public, save  :: scatter_GENERATOR(:,:)
+  integer, allocatable, public, save :: scatter_GENERATOR(:,:)
 
   integer,          allocatable, private, save :: scatter_iData(:)
   real(kind=fPrec), allocatable, private, save :: scatter_fData(:)
@@ -266,7 +272,7 @@ subroutine scatter_parseInputLine(inLine, iErr)
     write(lout,"(a)") "SCATTER> Particle losses is ALLOWED."
 #ifdef PYTHIA
     ! Pythia also needs to know that losses are allowed to determine which processes can be used
-    pytia_allowLosses = .true.
+    pythia_allowLosses = .true.
 #endif
 
   case("ELEM")
@@ -989,7 +995,7 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi, process, lost)
   select case(scatter_GENERATOR(generatorIDX,2))
   case(1)  ! ABSORBER
     !...
-    process = "Absorbed"
+    process = scatter_procAbsorb
 
   case(10) ! PPBEAMELASTIC
 
@@ -1002,7 +1008,7 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi, process, lost)
 
     t       = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
     t       = t*c1e6 ! Scale return variable to MeV^2
-    process = "Elastic"
+    process = scatter_procElastic
 
   case(20) ! PYTHIA
 
@@ -1012,47 +1018,47 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi, process, lost)
     nRetry = nRetry + 1
     if(nRetry > 100) then
       write(lout,"(a)") "SCATTER> WARNING Pythia failed to generate event. Skipping Particle."
-      process = "Error"
+      process = scatter_procError
       lost    = 0
       return
     end if
     if(evStat) then
       t = abs(t)*c1e6 ! Scale return variable to MeV^2
       select case(evType)
-      case(101)
+      case(pythia_idNonDiff)
         if(scatter_allowLosses) then
-          process = "NonDiff"
+          process = scatter_procNonDiff
           lost    = 1
         else
           write(lout,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in fort.3"
           call prror(-1)
         end if
-      case(102)
-        process = "Elastic"
+      case(pythia_idElastic)
+        process = scatter_procElastic
         lost    = 0
-      case(103)
+      case(pythia_idSingleDiffXB)
         if(scatter_allowLosses) then
-          process = "SingD_XB"
+          process = scatter_procSingleDiffXB
           lost    = 1
         else
           goto 10
         end if
-      case(104)
-        process = "SingD_AX"
+      case(pythia_idSingleDiffAX)
+        process = scatter_procSingleDiffAX
         lost    = 0
-      case(105)
+      case(pythia_idDoubleDiff)
         if(scatter_allowLosses) then
-          process = "DoubD_XX"
+          process = scatter_procDoubleDiff
           lost    = 1
         else
           write(lout,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in fort.3"
           call prror(-1)
         end if
-      case(106)
-        process = "CentDiff"
+      case(pythia_idCentralDiff)
+        process = scatter_procCentralDiff
         lost    = 0
       case default
-        process = "Unknown"
+        process = scatter_procUnknown
         lost    = 0
       end select
     else

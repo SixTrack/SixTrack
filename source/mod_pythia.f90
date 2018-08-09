@@ -15,7 +15,7 @@ module mod_pythia
 
   implicit none
 
-  ! Supported Particles
+  ! Supported Particles as Defined in Pythia
   integer, parameter :: pythia_partProton      =  2212
   integer, parameter :: pythia_partAntiProton  = -2212
   integer, parameter :: pythia_partNeutron     =  2112
@@ -29,6 +29,14 @@ module mod_pythia
   integer, parameter :: pythia_partPositron    =   -11
   integer, parameter :: pythia_partMuonNeg     =    13
   integer, parameter :: pythia_partMuonPos     =   -13
+
+  ! Process Codes as Defined in Pythia
+  integer, parameter :: pythia_idNonDiff       = 101
+  integer, parameter :: pythia_idElastic       = 102
+  integer, parameter :: pythia_idSingleDiffXB  = 103
+  integer, parameter :: pythia_idSingleDiffAX  = 104
+  integer, parameter :: pythia_idDoubleDiff    = 105
+  integer, parameter :: pythia_idCentralDiff   = 106
 
   ! Flags
   logical,            public,  save :: pythia_isActive        = .false.
