@@ -941,17 +941,17 @@ subroutine daten
     !Check for incompatible flags
     if (ipos == 1) then
       if (do_coll) then
-        write(lout,'(a)') "ENDE> ERROR: COLLimation block and POSTprocessing block are not compatible."
+        write(lout,'(a)') "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
         call prror(-1)
       endif
 
       if (scatter_active) then
-        write(lout,'(a)') "ENDE> ERROR: SCATTER block and POSTprocessing block are not compatible."
+        write(lout,'(a)') "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
         call prror(-1)
       endif
 #ifdef FLUKA
       if (fluka_enable) then
-        write(lout,'(a)') "ENDE> ERROR: FLUKA block and POSTprocessing block are not compatible."
+        write(lout,'(a)') "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
         call prror(-1)
       endif
 #endif
