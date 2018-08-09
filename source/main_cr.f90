@@ -250,10 +250,10 @@ end interface
   ! Very first get rid of any previous partial output
   inquire(unit=lout, opened=isOpen)
   if(isOpen) close(lout)
-  call units_openUnit(unit=lout,fileName="fort.92",formatted=.true.,mode="w",err=fErr,status="replace")
+  call units_openUnit(unit=lout,fileName="fort.92",formatted=.true.,mode="rw",err=fErr,status="replace")
 
   ! Now position the checkpoint/restart logfile=93
-  call units_openUnit(unit=93,fileName="fort.93",formatted=.true.,mode="w",err=fErr)
+  call units_openUnit(unit=93,fileName="fort.93",formatted=.true.,mode="rw",err=fErr)
 606 continue
   read(93,"(a1024)",end=607) arecord
   goto 606
@@ -272,7 +272,7 @@ end interface
   ! call units_openUnit(unit=6,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
   ! if(fErr) goto 602
   ! stxt = "SIXTRACR reruns on: "
-  call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
+  call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="rw",err=fErr,status="old")
   if(fErr) then
 #ifdef BOINC
     ! No fort.6 so we do an unzip of Sixin.zip
@@ -290,9 +290,9 @@ end interface
       call f_read_archive(trim(filename),".")
       goto 611
     end if
-    call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr)
+    call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="rw",err=fErr)
 #else
-    call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="new")
+    call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="rw",err=fErr,status="new")
 #endif
     ! Set up start message depending on fort.6 or not
     stxt = "SIXTRACR starts on: "
@@ -301,19 +301,19 @@ end interface
     stxt = "SIXTRACR reruns on: "
     rerun=.true.
   end if
-  call units_openUnit(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="old")
+  call units_openUnit(unit=95,fileName="fort.95",formatted=.false.,mode="rw",err=fErr,status="old")
   if(fErr) then
-    call units_openUnit(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="new")
+    call units_openUnit(unit=95,fileName="fort.95",formatted=.false.,mode="rw",err=fErr,status="new")
   else
     fort95 = .true.
   end if
-  call units_openUnit(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="old")
+  call units_openUnit(unit=96,fileName="fort.96",formatted=.false.,mode="rw",err=fErr,status="old")
   if(fErr) then
-    call units_openUnit(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="new")
+    call units_openUnit(unit=96,fileName="fort.96",formatted=.false.,mode="rw",err=fErr,status="new")
   else
     fort96 = .true.
   end if
-  call units_openUnit(unit=91,fileName="fort.91",formatted=.true.,mode="w",err=fErr)
+  call units_openUnit(unit=91,fileName="fort.91",formatted=.true.,mode="rw",err=fErr)
 #else
   lout = output_unit
 #endif
@@ -323,16 +323,14 @@ end interface
   call units_openUnit(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
 ! call units_openUnit(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr) ! Handled by mod_fluc
   call units_openUnit(unit=7, fileName="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
-! call units_openUnit(unit=8, fileName="fort.8", formatted=.true., mode="r", err=fErr) ! Handled by mod_fluc
   call units_openUnit(unit=9, fileName="fort.9", formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=11,fileName="fort.11",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=12,fileName="fort.12",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=13,fileName="fort.13",formatted=.true., mode="r", err=fErr) ! Should only be opened when reading
   call units_openUnit(unit=14,fileName="fort.14",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=15,fileName="fort.15",formatted=.true., mode="w", err=fErr)
-! call units_openUnit(unit=16,fileName="fort.16",formatted=.true., mode="r", err=fErr) ! Handled by mod_fluc
 ! call units_openUnit(unit=17,fileName="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use? Should mirror fort.16
-  call units_openUnit(unit=18,fileName="fort.18",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=18,fileName="fort.18",formatted=.true., mode="rw",err=fErr)
 ! call units_openUnit(unit=19,fileName="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
   call units_openUnit(unit=20,fileName="fort.20",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=21,fileName="fort.21",formatted=.true., mode="w", err=fErr)
@@ -344,7 +342,6 @@ end interface
   call units_openUnit(unit=27,fileName="fort.27",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=28,fileName="fort.28",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=29,fileName="fort.29",formatted=.true., mode="w", err=fErr)
-! call units_openUnit(unit=30,fileName="fort.30",formatted=.true., mode="r", err=fErr) ! Handled by mod_fluc
   call units_openUnit(unit=31,fileName="fort.31",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=32,fileName="fort.32",formatted=.false.,mode="w", err=fErr)
   call units_openUnit(unit=34,fileName="fort.34",formatted=.true., mode="w", err=fErr)
@@ -352,24 +349,24 @@ end interface
 
 #ifdef STF
   ! Open Single Track File
-  call units_openUnit(unit=90,fileName="singletrackfile.dat",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=90,fileName="singletrackfile.dat",formatted=.false.,mode="rw",err=fErr)
 #else
   ! Open binary files 59 to 90 for particle pair 1 to 32
   do i=59,90
     write(tmpFile,"(a5,i2)") "fort.",i
-    call units_openUnit(unit=i,fileName=tmpFile,formatted=.false.,mode="w",err=fErr)
+    call units_openUnit(unit=i,fileName=tmpFile,formatted=.false.,mode="rw",err=fErr)
   end do
 #endif
 
   call units_openUnit(unit=98,fileName="fort.98",formatted=.true.,mode="w",err=fErr)
 
   ! Eric for the DA coefficients in BINARY
-  call units_openUnit(unit=110,fileName="fort.110",formatted=.false.,mode="w",err=fErr)
-  call units_openUnit(unit=111,fileName="fort.111",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=110,fileName="fort.110",formatted=.false.,mode="w", err=fErr)
+  call units_openUnit(unit=111,fileName="fort.111",formatted=.false.,mode="rw",err=fErr)
 
 #ifdef DEBUG
-  call units_openUnit(unit=99 ,fileName="dump",  formatted=.false.,mode="w",err=fErr)
-  call units_openUnit(unit=100,fileName="arrays",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=99 ,fileName="dump",  formatted=.false.,mode="rw",err=fErr)
+  call units_openUnit(unit=100,fileName="arrays",formatted=.false.,mode="rw",err=fErr)
 #endif
 
   ! Heavy Ion Output
@@ -389,7 +386,7 @@ end interface
   write(lout,"(a)") "    SixTrack :: Version "//trim(version)//" :: Released "//trim(moddate)
   write(lout,"(a)") "  "//repeat("=",128)
   write(lout,"(a)") "    Git SHA Hash: "//trim(git_revision)
-  write(lout,"(a)") "    Built With:  "//featList
+  write(lout,"(a)") "    Built With:   "//trim(featList)
   write(lout,"(a)") "    Start Time:   "//timeStamp
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
