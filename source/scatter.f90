@@ -690,9 +690,7 @@ subroutine scatter_thin(i_elem, ix, turn)
   use hdf5_output
 #endif
 
-#ifdef COLLIMAT
-  use collimation
-#endif
+  use collimation, only : do_coll, scatterhit, part_hit_pos, part_hit_turn
 
   implicit none
 
@@ -811,12 +809,11 @@ subroutine scatter_thin(i_elem, ix, turn)
 #ifdef CR
       scatter_filePos = scatter_filePos + 1
 #endif
-
-#ifdef COLLIMAT
-      scatterhit(j) = 8
-      part_hit_pos(j) = i_elem
-      part_hit_turn(j) = turn
-#endif
+      if (do_coll) then
+        scatterhit(j) = 8
+        part_hit_pos(j) = i_elem
+        part_hit_turn(j) = turn
+      endif
     end do ! END Loop over particles
 #ifdef HDF5
     if(h5_useForSCAT) then

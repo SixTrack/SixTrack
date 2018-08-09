@@ -19,9 +19,7 @@ subroutine trauthck(nthinerr)
   use mod_fluka
 #endif
 
-#ifdef COLLIMAT
   use collimation
-#endif
 
   use crcoall
   use parpro
@@ -39,13 +37,11 @@ subroutine trauthck(nthinerr)
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
   save
 
-#ifdef COLLIMAT
   if (do_coll) then
      write(lout,*) "Error: in trauthck and do_coll is TRUE"
      write(lout,*) "Collimation is not supported for thick tracking"
      call prror(-1)
   endif
-#endif
 
   do i=1,npart
     nlostp(i)=i

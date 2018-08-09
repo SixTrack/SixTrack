@@ -567,11 +567,8 @@ subroutine umlauda
     if(kzz.eq.15) then
 ! the same as in umlalid1
       wire_num_aux = wire_num_aux+1
-! is the error number correct?
       if(wire_num_aux.gt.wire_max) then
-            write(lout,                                              &
-  &*) 'ERROR: maximum number of wires exceeded! Number of wires ='// &
-  &'wire_num_aux = ',wire_num_aux,' > ',wire_max,' = wire_max'
+        write(lout,"(2(a,i0))") "UMLAUDA> ERROR Maximum number of wires exceeded. Max is ",wire_max,", got ",wire_num_aux
         call prror(-1)
       endif
       wire_num(i) = wire_num_aux

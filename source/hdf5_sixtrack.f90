@@ -104,7 +104,6 @@ end subroutine h5lin_saveData
 
 end module hdf5_linopt
 
-#ifdef COLLIMAT
 ! ================================================================================================ !
 !  Special HDF5 Module for Writing Tracks2 to HDF5
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -210,9 +209,6 @@ subroutine h5tr2_saveData
 end subroutine h5tr2_saveData
 
 end module hdf5_tracks2
-
-! END IFDEF COLLIMAT
-#endif
 
 ! END IFDEF HDF5
 #endif

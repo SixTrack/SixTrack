@@ -558,9 +558,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   use root_output
 #endif
 
-#ifdef COLLIMAT
-  use collimation
-#endif
+  use collimation, only : do_coll, part_abs_turn, ipart
 
   implicit none
 
@@ -597,6 +595,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
   integer naalos, nzzlos
 
+  integer npart_tmp ! Temporary holder for number of particles,
+                    ! used to switch between collimat/standard version at runtime
+
   save
 
   !-----------------------------------------------------------------------
@@ -610,17 +611,14 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     ! limi block not there or aperture type not assigned
     ! general check (set in the ITER block)
     do j=1,napx
-#ifdef COLLIMAT
-    if(part_abs_turn(j).eq.0) then
-#endif
-      llostp(j)=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2)).or. &
- &                       (xv(1,j).ne.xv(1,j)).or.(xv(2,j).ne.xv(2,j))
-      llost=llost.or.llostp(j)
-#ifdef COLLIMAT
-    else
-      llostp(j)=.false.
-    end if
-#endif
+
+      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+        llostp(j)=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2)).or. &
+             (xv(1,j).ne.xv(1,j)).or.(xv(2,j).ne.xv(2,j))
+        llost=llost.or.llostp(j)
+      else if (do_coll) then
+        llostp(j)=.false.
+      end if
     end do
 
   else
@@ -633,95 +631,91 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       apyy = ape(4,ix)**2.
       apxy = apxx * apyy
       do j=1,napx
-#ifdef COLLIMAT
-      if(part_abs_turn(j).eq.0) then
-#endif
-        if(lapeofftlt(ix)) then
-          if(lbacktracking) then
-            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+        if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+          if(lapeofftlt(ix)) then
+            if(lbacktracking) then
+              call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            else
+              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            end if
+            llostp(j)=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)).or. &
+                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
           else
-            call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            if(lbacktracking) then
+              llostp(j)= &
+                   checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)) .or. &
+                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+            else
+              llostp(j)= &
+                   checkTR(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
+                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+            end if
           end if
-          llostp(j)=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)).or. &
- &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
-        else
-          if(lbacktracking) then
-            llostp(j)= &
- &                  checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)) .or. &
- &                  myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
-          else
-            llostp(j)= &
- &                  checkTR(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
- &                  myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
-          end if
+          llost=llost.or.llostp(j)
+
+        else if (do_coll) then
+          llostp(j)=.false.
         end if
-        llost=llost.or.llostp(j)
-#ifdef COLLIMAT
-      else
-        llostp(j)=.false.
-      end if
-#endif
       end do
 
     case (1) ! circle
       radius2 = ape(3,ix)**2
       do j=1,napx
-#ifdef COLLIMAT
-        if(part_abs_turn(j).eq.0) then
-#endif
-        if(lapeofftlt(ix)) then
-          if(lbacktracking) then
-            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+
+        if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+
+          if(lapeofftlt(ix)) then
+            if(lbacktracking) then
+              call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            else
+              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            end if
+            llostp(j)=checkCR( xchk(1),xchk(2),radius2 ) .or. &
+                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
           else
-            call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            if(lbacktracking) then
+              llostp(j)=checkCR( xLast(1,j),xLast(2,j),radius2 ) .or. &
+                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+            else
+              llostp(j)=checkCR( xv(1,j),xv(2,j),radius2 ) .or. &
+                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+            end if
           end if
-          llostp(j)=checkCR( xchk(1),xchk(2),radius2 ) .or. &
- &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
-        else
-          if(lbacktracking) then
-            llostp(j)=checkCR( xLast(1,j),xLast(2,j),radius2 ) .or. &
- &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
-          else
-            llostp(j)=checkCR( xv(1,j),xv(2,j),radius2 ) .or. &
- &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
-          end if
+          llost=llost.or.llostp(j)
+
+        else if (do_coll) then
+          llostp(j)=.false.
         end if
-        llost=llost.or.llostp(j)
-#ifdef COLLIMAT
-      else
-        llostp(j)=.false.
-      end if
-#endif
+
       end do
 
     case (2) ! Rectangle
       do j=1,napx
-#ifdef COLLIMAT
-      if(part_abs_turn(j).eq.0) then
-#endif
-        if(lapeofftlt(ix)) then
-          if(lbacktracking) then
-            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+        if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll) ) then
+
+          if(lapeofftlt(ix)) then
+            if(lbacktracking) then
+              call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            else
+              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            end if
+            llostp(j)=checkRE( xchk(1),xchk(2),ape(1,ix),ape(2,ix) ) .or. &
+                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
           else
-            call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            if(lbacktracking) then
+              llostp(j)=checkRE( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix) ) .or. &
+                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+            else
+              llostp(j)=checkRE( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix) ) .or. &
+                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+            end if
           end if
-          llostp(j)=checkRE( xchk(1),xchk(2),ape(1,ix),ape(2,ix) ) .or. &
- &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
-        else
-          if(lbacktracking) then
-            llostp(j)=checkRE( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix) ) .or. &
- &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
-          else
-            llostp(j)=checkRE( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix) ) .or. &
- &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
-          end if
+          llost=llost.or.llostp(j)
+
+        else if (do_coll) then
+          llostp(j)=.false.
         end if
-        llost=llost.or.llostp(j)
-#ifdef COLLIMAT
-      else
-        llostp(j)=.false.
-      end if
-#endif
+
       end do
 
     case (3) ! Ellipse
@@ -729,32 +723,30 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       apyy = ape(4,ix)**2.
       apxy = apxx * apyy
       do j=1,napx
-#ifdef COLLIMAT
-      if(part_abs_turn(j).eq.0) then
-#endif
-        if(lapeofftlt(ix)) then
-          if(lbacktracking) then
-            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+        if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+          if(lapeofftlt(ix)) then
+            if(lbacktracking) then
+              call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            else
+              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            end if
+            llostp(j)=checkEL( xchk(1),xchk(2),apxx,apyy,apxy ) .or. &
+                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
           else
-            call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            if(lbacktracking) then
+              llostp(j)=checkEL( xLast(1,j),xLast(2,j),apxx,apyy,apxy ) .or. &
+                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+            else
+              llostp(j)=checkEL( xv(1,j),xv(2,j),apxx,apyy,apxy ) .or. &
+                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+            end if
           end if
-          llostp(j)=checkEL( xchk(1),xchk(2),apxx,apyy,apxy ) .or. &
- &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
-        else
-          if(lbacktracking) then
-            llostp(j)=checkEL( xLast(1,j),xLast(2,j),apxx,apyy,apxy ) .or. &
- &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
-          else
-            llostp(j)=checkEL( xv(1,j),xv(2,j),apxx,apyy,apxy ) .or. &
- &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
-          end if
+          llost=llost.or.llostp(j)
+
+        else if (do_coll) then
+          llostp(j)=.false.
         end if
-        llost=llost.or.llostp(j)
-#ifdef COLLIMAT
-      else
-        llostp(j)=.false.
-      end if
-#endif
+
       end do
 
     case (4) ! RectEllipse
@@ -762,94 +754,87 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
       apyy = ape(4,ix)**2.
       apxy = apxx * apyy
       do j=1,napx
-#ifdef COLLIMAT
-      if(part_abs_turn(j).eq.0) then
-#endif
-        if(lapeofftlt(ix)) then
-          if(lbacktracking) then
-            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+        if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+          if(lapeofftlt(ix)) then
+            if(lbacktracking) then
+              call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            else
+              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            end if
+            llostp(j)=checkRL( xchk(1),xchk(2),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
           else
-            call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            if(lbacktracking) then
+              llostp(j)=checkRL( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+            else
+              llostp(j)=checkRL( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+            end if
           end if
-          llostp(j)=checkRL( xchk(1),xchk(2),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
- &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
-        else
-          if(lbacktracking) then
-            llostp(j)=checkRL( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
- &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
-          else
-            llostp(j)=checkRL( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
- &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
-          end if
+          llost=llost.or.llostp(j)
+
+        else if (do_coll) then
+          llostp(j)=.false.
         end if
-        llost=llost.or.llostp(j)
-#ifdef COLLIMAT
-      else
-        llostp(j)=.false.
-      end if
-#endif
       end do
 
     case (5) ! Octagon
       do j=1,napx
-#ifdef COLLIMAT
-      if(part_abs_turn(j).eq.0) then
-#endif
-        if(lapeofftlt(ix)) then
-          if(lbacktracking) then
-            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+        if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+
+          if(lapeofftlt(ix)) then
+            if(lbacktracking) then
+              call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            else
+              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            end if
+            llostp(j)=checkOC(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
           else
-            call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            if(lbacktracking) then
+              llostp(j)=checkOC(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+            else
+              llostp(j)=checkOC(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+            end if
           end if
-          llostp(j)=checkOC(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
- &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
-        else
-          if(lbacktracking) then
-            llostp(j)=checkOC(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
- &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
-          else
-            llostp(j)=checkOC(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
- &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
-          end if
+          llost=llost.or.llostp(j)
+
+        else if (do_coll) then
+          llostp(j)=.false.
         end if
-        llost=llost.or.llostp(j)
-#ifdef COLLIMAT
-      else
-        llostp(j)=.false.
-      end if
-#endif
+
       end do
 
     case (6) ! Racetrack
       !   NB: it follows the MadX definition
       apxy = ape(3,ix)**2.
       do j=1,napx
-#ifdef COLLIMAT
-      if(part_abs_turn(j).eq.0) then
-#endif
-        if(lapeofftlt(ix)) then
-          if(lbacktracking) then
-            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+        if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+          if(lapeofftlt(ix)) then
+            if(lbacktracking) then
+              call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            else
+              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            end if
+            llostp(j)=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
           else
-            call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            if(lbacktracking) then
+              llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+            else
+              llostp(j)=checkRT(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+            end if
           end if
-          llostp(j)=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
- &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
-        else
-          if(lbacktracking) then
-            llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
- &                 myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
-          else
-            llostp(j)=checkRT(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
- &                 myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
-          end if
+          llost=llost.or.llostp(j)
+
+        else if (do_coll) then
+          llostp(j)=.false.
         end if
-        llost=llost.or.llostp(j)
-#ifdef COLLIMAT
-      else
-        llostp(j)=.false.
-      end if
-#endif
       end do
 
     end select
@@ -1021,20 +1006,20 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           lparID = .false.
           jjx=1
 
-#ifdef COLLIMAT
-          do jj=1,npart
-#else
-          do jj=1,napx
-#endif
+          !TODO is this really needed?
+          if (do_coll) then
+            npart_tmp = npart
+          else
+            npart_tmp = napx
+          endif
+
+          do jj=1,npart_tmp
             if(plost(jj).ne.0) then
 #ifdef FLUKA
               if( fluka_uid(j).eq.plost(jj).or. fluka_gen(j).eq.plost(jj) ) then
-#endif
-#ifdef COLLIMAT
-              if( ipart(j) .eq. plost(jj) ) then
-#endif
-#if !defined(FLUKA) && !defined(COLLIMAT)
-              if( nlostp(j) .eq. plost(jj) ) then
+#else
+              if ( (     do_coll .and. (  ipart(j) .eq. plost(jj) )) .or. &
+                   (.not.do_coll .and. ( nlostp(j) .eq. plost(jj) ))       ) then
 #endif
                 lparID=.true.
               end if
@@ -1050,12 +1035,12 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             !new lost particle, store ID and print it
 #ifdef FLUKA
             plost(jjx) = fluka_uid(j)
-#endif
-#ifdef COLLIMAT
-            plost(jjx) = ipart(j)
-#endif
-#if !defined(FLUKA) && !defined(COLLIMAT)
-            plost(jjx) = j
+#else
+            if (do_coll) then
+              plost(jjx) = ipart(j)
+            else
+              plost(jjx) = j
+            endif
 #endif
           end if !if(lparID) then
         end if !if( apflag ) then
@@ -1082,20 +1067,24 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           call h5_writeData(aper_setLostPart, 16, 1, fluka_gen(j))
           call h5_writeData(aper_setLostPart, 17, 1, fluka_weight(j))
 #endif
-#ifdef COLLIMAT
-          call h5_writeData(aper_setLostPart, 15, 1, ipart(j))
-#endif
-#if !defined(FLUKA) && !defined(COLLIMAT)
-          call h5_writeData(aper_setLostPart, 15, 1, nlostp(j))
+          if (do_coll) then
+            call h5_writeData(aper_setLostPart, 15, 1, ipart(j))
+          endif
+#ifndef FLUKA
+          if (.not. do_coll) then
+            call h5_writeData(aper_setLostPart, 15, 1, nlostp(j))
+          endif
 #endif
           call h5_finaliseWrite(aper_setLostPart)
         else
+  ! END of #ifdef HDF5
 #endif
-        ! Print to unit 999 (fort.999)
+
+          ! Print to unit 999 (fort.999)
 #ifdef FLUKA
-        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')&
+          write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')&
 #else
-        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')   &
+          write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')   &
 #endif
 
      &         turn, i, ix, bez(ix), slos,                                     &
@@ -1130,8 +1119,11 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
         end if
 #endif
 
-#if defined(FLUKA) || defined(COLLIMAT)
+#ifdef FLUKA
         if(nlostp(j).le.aperture_napxStart) then
+#else
+        if(((nlostp(j).le.aperture_napxStart) .and. do_coll) &
+             .or. .not.do_coll) then
 #endif
            pstop(nlostp(j))=.true.
            ! Record for postpr
@@ -1152,9 +1144,9 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
            sigmvl(nlostp(j))  = sigmvlos
            numxv(nlostp(j))   = numx
            nnumxv(nlostp(j))  = numx
-#if defined(FLUKA) || defined(COLLIMAT)
-        end if ! (nlostp(j).le.aperture_napxStart)
-#endif
+
+        end if !  (nlostp(j).le.aperture_napxStart) OR
+               ! ((nlostp(j).le.aperture_napxStart) .and. do_coll)
 
 1982    continue
 
@@ -1171,7 +1163,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 #endif
 
     call compactArrays(llostp)
-    
+
     ! store old particle coordinates
     ! necessary since aperture markers are downstream of lenses...
     if ( lbacktracking ) call aperture_saveLastCoordinates(i,ix,-1)
@@ -2950,9 +2942,7 @@ subroutine compactArrays(llostp)
   use mod_fluka
 #endif
 
-#ifdef COLLIMAT
   use collimation
-#endif
 
   implicit none
 
@@ -2977,14 +2967,14 @@ subroutine compactArrays(llostp)
             ejfv(jj)=ejfv(jj1)
             ejv(jj)=ejv(jj1)
             rvv(jj)=rvv(jj1)
-! ph: hisix
+            ! ph: hisix
             nzz(jj)=nzz(jj1)
             naa(jj)=naa(jj1)
             nucm(jj)=nucm(jj1)
             mtc(jj)=mtc(jj1)
             moidpsv(jj)=moidpsv(jj1)
             omoidpsv(jj)=omoidpsv(jj1)
-! ph: hisix
+            ! ph: hisix
             oidpsv(jj)=oidpsv(jj1)
             dpsv1(jj)=dpsv1(jj1)
             clo6v(1,jj)=clo6v(1,jj1)
@@ -3005,9 +2995,11 @@ subroutine compactArrays(llostp)
               end do
             end do
 
-! Backtracking + aperture arrays
-! These should get reset each time, but potentially there could be a collimator losing particles before the next usage
-! So we compress these for now
+            ! Backtracking + aperture arrays
+            ! These should get reset each time,
+            ! but potentially there could be a collimator
+            ! losing particles before the next usage
+            ! So we compress these for now
             plost(jj) = plost(jj1)
             xLast(1,jj)   =  xLast(1,jj1)   ! position after last thick element [mm] (2,npart)
             xLast(1,jj)   =  xLast(1,jj1)   ! position after last thick element [mm] (2,npart)
@@ -3021,57 +3013,59 @@ subroutine compactArrays(llostp)
             naaLast(jj)   =  naaLast(jj1)   ! nuclear mass [] (npart)
             nzzLast(jj)   =  nzzLast(jj1)   ! atomic number [] (npart)
 
-#ifdef COLLIMAT
-! If collimation is enabled, all the collimation arrays must also be compressed
-            xgrd(jj)           = xgrd(jj1)
-            ygrd(jj)           = ygrd(jj1)
-            xpgrd(jj)          = xpgrd(jj1)
-            ypgrd(jj)          = ypgrd(jj1)
-            pgrd(jj)           = pgrd(jj1)
-            ejfvgrd(jj)        = ejfvgrd(jj1)
-            sigmvgrd(jj)       = sigmvgrd(jj1)
-            rvvgrd(jj)         = rvvgrd(jj1)
-            dpsvgrd(jj)        = dpsvgrd(jj1)
-            oidpsvgrd(jj)      = oidpsvgrd(jj1)
-            dpsv1grd(jj)       = dpsv1grd(jj1)
-            part_hit_pos(jj)   = part_hit_pos(jj1)
-            part_hit_turn(jj)  = part_hit_turn(jj1)
-            part_abs_pos(jj)   = part_abs_pos(jj1)
-            part_abs_turn(jj)  = part_abs_turn(jj1)
-            part_select(jj)    = part_select(jj1)
-            part_impact(jj)    = part_impact(jj1)
-            part_indiv(jj)     = part_indiv(jj1)
-            part_linteract(jj) = part_linteract(jj1)
-            part_hit_before_pos(jj)  = part_hit_before_pos(jj1)
-            part_hit_before_turn(jj) = part_hit_before_turn(jj1)
-            secondary(jj)  = secondary(jj1)
-            tertiary(jj)   = tertiary(jj1)
-            other(jj)      = other(jj1)
-            scatterhit(jj) = scatterhit(jj1)
-            nabs_type(jj)  = nabs_type(jj1)
-            !GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
-            ipart(jj)      = ipart(jj1)
-            flukaname(jj)  = flukaname(jj1)
-            do ieff = 1, numeff
-              counted_r(jj,ieff) = counted_r(jj1,ieff)
-              counted_x(jj,ieff) = counted_x(jj1,ieff)
-              counted_y(jj,ieff) = counted_y(jj1,ieff)
-            end do
-#endif
 
-            end do !do jj=j,lnapx-1
+            if(do_coll) then
+              ! If collimation is enabled,
+              ! all the collimation arrays must also be compressed
+              xgrd(jj)           = xgrd(jj1)
+              ygrd(jj)           = ygrd(jj1)
+              xpgrd(jj)          = xpgrd(jj1)
+              ypgrd(jj)          = ypgrd(jj1)
+              pgrd(jj)           = pgrd(jj1)
+              ejfvgrd(jj)        = ejfvgrd(jj1)
+              sigmvgrd(jj)       = sigmvgrd(jj1)
+              rvvgrd(jj)         = rvvgrd(jj1)
+              dpsvgrd(jj)        = dpsvgrd(jj1)
+              oidpsvgrd(jj)      = oidpsvgrd(jj1)
+              dpsv1grd(jj)       = dpsv1grd(jj1)
+              part_hit_pos(jj)   = part_hit_pos(jj1)
+              part_hit_turn(jj)  = part_hit_turn(jj1)
+              part_abs_pos(jj)   = part_abs_pos(jj1)
+              part_abs_turn(jj)  = part_abs_turn(jj1)
+              part_select(jj)    = part_select(jj1)
+              part_impact(jj)    = part_impact(jj1)
+              part_indiv(jj)     = part_indiv(jj1)
+              part_linteract(jj) = part_linteract(jj1)
+              part_hit_before_pos(jj)  = part_hit_before_pos(jj1)
+              part_hit_before_turn(jj) = part_hit_before_turn(jj1)
+              secondary(jj)  = secondary(jj1)
+              tertiary(jj)   = tertiary(jj1)
+              other(jj)      = other(jj1)
+              scatterhit(jj) = scatterhit(jj1)
+              nabs_type(jj)  = nabs_type(jj1)
+              !GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
+              ipart(jj)      = ipart(jj1)
+              flukaname(jj)  = flukaname(jj1)
+              do ieff = 1, numeff
+                counted_r(jj,ieff) = counted_r(jj1,ieff)
+                counted_x(jj,ieff) = counted_x(jj1,ieff)
+                counted_y(jj,ieff) = counted_y(jj1,ieff)
+              end do
+            endif
+
+          end do !do jj=j,lnapx-1
 
 #ifdef FLUKA
-            if(fluka_enable) then
-              call fluka_lostpart(lnapx, j) ! Inform fluka
-            end if
+          if(fluka_enable) then
+            call fluka_lostpart(lnapx, j) ! Inform fluka
+          end if
 #endif
 
-          end if !if(j.ne.lnapx) then
+        end if !if(j.ne.lnapx) then
 
-          lnapx=lnapx-1
-        end if !if(llostp(j)) then
-      end do !do j=napx,1,-1
-      napx=lnapx
-    end if !(.not.apflag)
+        lnapx=lnapx-1
+      end if !if(llostp(j)) then
+    end do !do j=napx,1,-1
+    napx=lnapx
+  end if !(.not.apflag)
 end subroutine compactArrays
