@@ -603,7 +603,6 @@ contains
 
   real(kind=real64) function atan2_rn(y,x)
     use, intrinsic :: iso_fortran_env, only : real64, int64
-    use, intrinsic :: ieee_arithmetic, only : ieee_quiet_nan, ieee_value
     implicit none
     real(kind=real64) x,y,pi,pi2
     real(real64), parameter :: nan64 = transfer(-2251799813685248_int64, 1._real64)
