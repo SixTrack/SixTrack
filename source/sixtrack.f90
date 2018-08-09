@@ -90,8 +90,6 @@ subroutine daten
 
   integer icc,il1,ilin0,iMod,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
 
-  logical has_coll
-
 ! ================================================================================================ !
 !  SET DEFAULT VALUES
 ! ================================================================================================ !
@@ -245,9 +243,6 @@ subroutine daten
   aa0          = 1
   nucm0        = pmap
   has_hion     = .false.
-
-  ! COLLIMATION MODULE
-  has_coll  = .false.
 
 ! ================================================================================================ !
 !  SET DEFAULT INPUT PARSING VALUES
@@ -782,7 +777,6 @@ subroutine daten
       ! This mimmics the old compiler flag.
       call collimation_allocate_arrays
 
-      has_coll = .true.
       if(ilin /= 1) then
         write(lout,"(a)") "INPUT> ERROR Incompatible flag with collimation version detected in the LINEAR OPTICS block."
         write(lout,"(a)") "INPUT>       You have not chosen ilin=1 (4D mode), which is required for the collimation version."
@@ -935,7 +929,7 @@ subroutine daten
     emity  = sixin_emitNY*gammar
 
     if (do_coll) then
-      call collimate_postInput(gammar,has_coll)
+      call collimate_postInput(gammar)
     endif
 
     !Check for incompatible flags
