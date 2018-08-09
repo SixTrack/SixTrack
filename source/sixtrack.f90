@@ -778,6 +778,10 @@ subroutine daten
     goto 9999
 #endif
     if(openBlock) then
+      ! If a collimation block is present, even disabled, allocate the storage.
+      ! This mimmics the old compiler flag.
+      call collimation_allocate_arrays
+
       has_coll = .true.
       if(ilin /= 1) then
         write(lout,"(a)") "INPUT> ERROR Incompatible flag with collimation version detected in the LINEAR OPTICS block."
