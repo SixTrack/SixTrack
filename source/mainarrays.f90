@@ -29,6 +29,7 @@ subroutine allocate_arrays
 #ifdef FLUKA
   use mod_fluka,          only : fluka_mod_expand_arrays
 #endif
+  use collimation,        only : collimation_allocate_arrays
   implicit none
 
   nele  = nele_initial
@@ -53,6 +54,7 @@ subroutine allocate_arrays
 #ifdef CR
   call cr_expand_arrays(npart)
 #endif
+  call collimation_allocate_arrays
 
 end subroutine allocate_arrays
 

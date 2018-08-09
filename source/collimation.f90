@@ -44,8 +44,6 @@ module collimation
   integer, parameter :: numeffdpop = 29
   integer, parameter :: nc         = 32
 
-  logical, private, save :: collimation_arrays_allocated = .false.
-
 !+cd collMatNum
 ! EQ 2016 added variables for collimator material numbers
   integer, parameter :: nmat  = 14
@@ -777,8 +775,6 @@ subroutine collimation_allocate_arrays
 
   implicit none
 
-  collimation_arrays_allocated = .true.
-
   call alloc(tbetax,  nblz, zero, 'tbetax')  !(nblz)
   call alloc(tbetay,  nblz, zero, 'tbetay')  !(nblz)
   call alloc(talphax, nblz, zero, 'talphax') !(nblz)
@@ -933,10 +929,6 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
 
   integer, intent(in) :: npart_new
   integer, intent(in) :: nblz_new
-
-  if (.not. collimation_arrays_allocated) then
-    return
-  endif
   
   call alloc(tbetax,  nblz_new, zero, 'tbetax')  !(nblz)
   call alloc(tbetay,  nblz_new, zero, 'tbetay')  !(nblz)

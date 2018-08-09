@@ -775,8 +775,6 @@ subroutine daten
     if(openBlock) then
       ! If a collimation block is present, even disabled, allocate the storage.
       ! This mimmics the old compiler flag.
-      call collimation_allocate_arrays
-
       if(ilin /= 1) then
         write(lout,"(a)") "INPUT> ERROR Incompatible flag with collimation version detected in the LINEAR OPTICS block."
         write(lout,"(a)") "INPUT>       You have not chosen ilin=1 (4D mode), which is required for the collimation version."
