@@ -542,7 +542,8 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
 #ifdef CR
     write(lout,"(a)") "DYNK> ERROR FUN PIPE not supported in CR version."
-    call prror(-1)
+    iErr = .true.
+    return
 #endif
 
     ! Set pointers to start of funs data blocks
@@ -559,7 +560,8 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
     ! Sanity checks
     if(len(lnSplit(4)) > mStrLen-1 .or. len(lnSplit(5)) > mStrLen-1 .or. len(lnSplit(6)) > mStrLen-1 ) then
       write(lout,"(a,i0)") "DYNK> ERROR FUN:PIPE got one or more strings which is too long. Max length is ",mStrLen-1
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
     ! Store data
@@ -589,13 +591,15 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
               "' -> reusing files"
             if(dynk_cData(dynk_funcs(ii,1)+3) == dynk_cData(dynk_ncData)) then ! ID
               write(lout,"(a)") "DYNK> ERROR FUN:PIPE IDs must be different when sharing PIPEs."
-              call prror(-1)
+              iErr = .true.
+              return
             end if
             exit ! Break loop
           else ! Partial match
             write(lout,"(a)") "DYNK> ERROR FUN:PIPE Partial match of inPipe/outPipe between '"// &
               trim(dynk_cData(dynk_funcs(dynk_nFuncs,1)))//"' and '"//trim(dynk_cData(dynk_funcs(ii,1)))//"'"
-            call prror(-1)
+              iErr = .true.
+              return
           end if
         end if
       end if
@@ -611,14 +615,16 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
       inquire(unit=dynk_iData(dynk_niData), opened=lOpen)
       if(lOpen) then
         write(lout,"(a)")"DYNK> ERROR FUN:PIPE File '"//trim(dynk_cData(dynk_ncData-2))//"' is already open"
-        call prror(-1)
+        iErr = .true.
+        return
       end if
 
       ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
       open(unit=dynk_iData(dynk_niData),file=dynk_cData(dynk_ncData-2),action="read",iostat=ioStat,status="old")
       if(ioStat /= 0) then
         write(lout,"(a,i0)") "DYNK> ERROR FUN:PIPE Could not open file '"//trim(dynk_cData(dynk_ncData-2))//"' stat = ",ioStat
-        call prror(-1)
+        iErr = .true.
+        return
       end if
 
       ! Open the outPipe
@@ -630,14 +636,16 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
       inquire(unit=dynk_iData(dynk_niData+1), opened=lOpen)
       if(lOpen) then
         write(lout,"(a)")"DYNK> ERROR FUN:PIPE File '"//trim(dynk_cData(dynk_ncData-1))//"' is already open"
-        call prror(-1)
+        iErr = .true.
+        return
       end if
 
       ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
       open(unit=dynk_iData(dynk_niData+1),file=dynk_cData(dynk_ncData-1),action="write",iostat=ioStat,status="old")
       if(ioStat /= 0) then
         write(lout,"(a)") "DYNK> ERROR FUN:PIPE Could not open file '"//trim(dynk_cData(dynk_ncData-1))//"' stat = ",ioStat
-        call prror(-1)
+        iErr = .true.
+        return
       end if
       write(dynk_iData(dynk_niData+1),"(a)") "DYNKPIPE !******************!" ! Once per file
 
@@ -683,7 +691,8 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
     if(dynk_iData(dynk_funcs(dynk_nFuncs,3)+2) < 0) then
       ! mcut < 0
       write (lout,"(a)") "DYNK> ERROR FUN:RANDG mcut must be >= 0"
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
   ! END CASE RANDG
@@ -750,234 +759,192 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
   ! END CASE RANDON
 
-    case("FIR","IIR")
-        ! FIR: Finite Impulse Response filter
-        ! y[n] = \sum_{i=0}^N b_i*x[n-i]
-        ! where N is the order of the filter, x[] is the results from previous calls to the input
-        ! function, and b_i is a set of coefficients. The coefficients are loaded from an ASCII
-        ! file, formatted with three columns: the first one being the index 0...N, the second being
-        ! the coefficients b_0...b_N, and the third one being the initial values of x[n]..x[n-N].
-        ! When running, the values x[n]...x[n-N] are the N last results from calling baseFUN.
-        ! Note that this means that at the first call, x[n-0] is pushed into x[n-1] etc., and x[n-N]
-        ! is deleted; i.e. the initial x[n-N] is never used.
-        !
-        ! Format in dynk_fData:
-        ! b_0 <- dynk_funcs(<this>,3)
-        ! x[n]
-        ! x_init[n] (holds the x[n]s from the input file, used to reset the FIR at the first turn)
-        ! b_1
-        ! x[n-1]
-        ! x_init[n-1]
-        ! (etc., repeat dynk_funcs(<this>,4)+1 times)
-        !
-        ! IIR: Infinite Impulse Response filter
-        ! y[n] = \sum_{i=0}^N b_i*x[n-i] \sum_{i=1}^M a_i*y[i-n]
-        ! where N=M. This is the same as FIR, except that it also uses previous values of it's own
-        ! output. The input file is also identical, except adding two extra columns: One for the
-        ! coefficients a_0...a_N, and one for the initial values of y[n]...y[n-N]. For both these
-        ! columns, the first row (a_0 and y[n]) are ignored. For the first of these columns, the
-        ! first value (a_0) is ignored and never used, while y[n-0] is pushed into y[n-1] at the
-        ! first evaluation, such that the initial x[n-N] is never used (just like for x[n-N]).
-        !
-        ! Format in dynk_fData:
-        ! b_0 <- dynk_funcs(<this>,3)
-        ! x[n]
-        ! x_init[n]
-        ! a_0  (a_0 is never used)
-        ! y[n] (zeroed for computation, used to hold previously returned value)
-        ! y_init[n] (holds the y[n]s from the input file, used to reset the FIR at the first turn)
-        ! b_1
-        ! x[n-1]
-        ! x_init[n-1]
-        ! a_1
-        ! y[n-1]
-        ! y_init[n-1]
-        ! (etc., repeat dynk_funcs(<this>,4) times)
+  case("FIR","IIR")
+    ! FIR: Finite Impulse Response filter
+    ! y[n] = \sum_{i=0}^N b_i*x[n-i]
+    ! where N is the order of the filter, x[] is the results from previous calls to the input
+    ! function, and b_i is a set of coefficients. The coefficients are loaded from an ASCII
+    ! file, formatted with three columns: the first one being the index 0...N, the second being
+    ! the coefficients b_0...b_N, and the third one being the initial values of x[n]..x[n-N].
+    ! When running, the values x[n]...x[n-N] are the N last results from calling baseFUN.
+    ! Note that this means that at the first call, x[n-0] is pushed into x[n-1] etc., and x[n-N]
+    ! is deleted; i.e. the initial x[n-N] is never used.
+    !
+    ! Format in dynk_fData:
+    ! b_0 <- dynk_funcs(<this>,3)
+    ! x[n]
+    ! x_init[n] (holds the x[n]s from the input file, used to reset the FIR at the first turn)
+    ! b_1
+    ! x[n-1]
+    ! x_init[n-1]
+    ! (etc., repeat dynk_funcs(<this>,4)+1 times)
+    !
+    ! IIR: Infinite Impulse Response filter
+    ! y[n] = \sum_{i=0}^N b_i*x[n-i] \sum_{i=1}^M a_i*y[i-n]
+    ! where N=M. This is the same as FIR, except that it also uses previous values of it's own
+    ! output. The input file is also identical, except adding two extra columns: One for the
+    ! coefficients a_0...a_N, and one for the initial values of y[n]...y[n-N]. For both these
+    ! columns, the first row (a_0 and y[n]) are ignored. For the first of these columns, the
+    ! first value (a_0) is ignored and never used, while y[n-0] is pushed into y[n-1] at the
+    ! first evaluation, such that the initial x[n-N] is never used (just like for x[n-N]).
+    !
+    ! Format in dynk_fData:
+    ! b_0 <- dynk_funcs(<this>,3)
+    ! x[n]
+    ! x_init[n]
+    ! a_0  (a_0 is never used)
+    ! y[n] (zeroed for computation, used to hold previously returned value)
+    ! y_init[n] (holds the y[n]s from the input file, used to reset the FIR at the first turn)
+    ! b_1
+    ! x[n-1]
+    ! x_init[n-1]
+    ! a_1
+    ! y[n-1]
+    ! y_init[n-1]
+    ! (etc., repeat dynk_funcs(<this>,4) times)
 
-        call dynk_checkargs(nFields,6,"FUN funname {FIR|IIR} N filename baseFUN")
+    call dynk_checkargs(nFields,6,"FUN funname {FIR|IIR} N filename baseFUN")
 
-        select case(gFields(3)(1:lFields(3)))
-        case("FIR")
-            isFIR = .true.
-        case("IIR")
-            isFIR = .false.
-        case default
-            write (lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-            write (lout,*) "DYNK> non-recognized type in inner switch?"
-            write (lout,*) "DYNK> Got: '"//gFields(3)(1:lFields(3))//"'"
-            call prror(-1)
-        end select
+    select case(trim(lnSplit(3)))
+    case("FIR")
+      isFIR = .true.
+    case("IIR")
+      isFIR = .false.
+    end select
 
-        read(gFields(4)(1:lFields(4)),*) t ! N
-        if (isFIR) then
-            call dynk_checkspace(0,3*(t+1),2)
-        else
-            call dynk_checkspace(0,6*(t+1),2)
-        end if
+    call chr_cast(lnSplit(4),t,cErr) ! N
+    if(isFIR) then
+      call dynk_checkspace(0,3*(t+1),2)
+    else
+      call dynk_checkspace(0,6*(t+1),2)
+    end if
 
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_ncData = dynk_ncData+1
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_ncData = dynk_ncData+1
 
-        ! Store pointers
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData   ! NAME (in dynk_cData)
-        if (isFIR) then
-            dynk_funcs(dynk_nFuncs,2) = 10 ! TYPE (FIR)
-        else
-            dynk_funcs(dynk_nFuncs,2) = 11 ! TYPE (IIR)
-        end if
-        dynk_funcs(dynk_nFuncs,3) = dynk_nfData+1 ! ARG1 (start of float storage)
-        dynk_funcs(dynk_nFuncs,4) = t             ! ARG2 (filter order N)
-        dynk_funcs(dynk_nFuncs,5) = &             ! ARG3 (filtered function)
-              dynk_findFUNindex( gFields(6) (1:lFields(6)), 1)
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData   ! NAME (in dynk_cData)
+    if(isFIR) then
+      dynk_funcs(dynk_nFuncs,2) = 10 ! TYPE (FIR)
+    else
+      dynk_funcs(dynk_nFuncs,2) = 11 ! TYPE (IIR)
+    end if
+    dynk_funcs(dynk_nFuncs,3) = dynk_nfData+1 ! ARG1 (start of float storage)
+    dynk_funcs(dynk_nFuncs,4) = t             ! ARG2 (filter order N)
+    dynk_funcs(dynk_nFuncs,5) = &             ! ARG3 (filtered function)
+    dynk_findFUNindex(trim(lnSplit(6)), 1)
 
-        ! Store metadata
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
-        read(gFields(4)(1:lFields(4)),*) dynk_iData(dynk_niData) ! N
+    ! Store metadata
+    dynk_cData(dynk_ncData) = trim(lnSplit(2))             ! NAME
+    call chr_cast(lnSplit(4),dynk_iData(dynk_niData),cErr) ! N
 
-        ! Sanity check
-        if (dynk_funcs(dynk_nFuncs,5).eq.-1) then
-            call dynk_dumpdata
-            write (lout,*) "*************************************"
-            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "FIR/IIR function wanting function '", &
-                           gFields(6)(1:lFields(6)), "'"
-            write (lout,*) "This FUN is unknown!"
-            write (lout,*) "*************************************"
-            call prror(51)
-        end if
-        if (lFields(5) .gt. mStrLen-1) then
-            write (lout,*) "*************************************"
-            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "FUN FIR/IIR got a filename name with "
-            write (lout,*) "length =", lFields(5)
-            write (lout,*) "> ",mStrLen-1
-            write (lout,*) "The name was: '",gFields(5)(1:lFields(5)),"'"
-            write (lout,*) "*************************************"
-            call prror(51)
-        end if
-        if (dynk_iData(dynk_niData) .le. 0) then
-            write (lout,*) "*************************************"
-            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "FUN FIR/IIR got N <= 0, this is not valid"
-            write (lout,*) "*************************************"
-            call prror(51)
-        end if
+    ! Sanity check
+    if(dynk_funcs(dynk_nFuncs,5) == -1) then
+      call dynk_dumpdata
+      write(lout,"(a)") "DYNK> ERROR FUN:FIR/IIR Requesting function '"//trim(lnSplit(6))//"'. This FUN is unknown."
+      iErr = .true.
+      return
+    end if
+    if(len(lnSplit(5)) > mStrLen-1) then
+      write(lout,"(2(a,i0))") "DYNK> ERROR FUN:FIR/IIR Got a filename name with length = ",len(lnSplit(5))," > ",mStrLen-1
+      iErr = .true.
+      return
+    end if
+    if(dynk_iData(dynk_niData) <= 0) then
+      write(lout,"(a)") "DYNK> ERROR FUN:FIR/IIR Got N <= 0, this is not valid."
+      iErr = .true.
+      return
+    end if
 
-        ! More metadata
-        dynk_ncData = dynk_ncData+1
-        ! FILE NAME
-        dynk_cData(dynk_ncData)(1:lFields(5)) = gFields(5)(1:lFields(5))
+    ! More metadata
+    dynk_ncData = dynk_ncData+1
+    dynk_cData(dynk_ncData) = trim(lnSplit(5)) ! FILE NAME
 
-        ! Read the file
-        inquire(unit=dynk_fileUnitFUN, opened=lopen)
-        if (lopen) then
-            write(lout,*) "DYNK> **** ERROR in dynk_parseFUN():FIR/IIR ****"
-            write(lout,*) "DYNK> Could not open file '"//trim(stringzerotrim(dynk_cData(dynk_ncData)))//"'"
-            call prror(-1)
-        end if
+    ! Read the file
+    inquire(unit=dynk_fileUnitFUN, opened=lOpen)
+    if(lOpen) then
+      write(lout,"(a)") "DYNK> ERROR FUN:FIR/IIR Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
+      iErr = .true.
+      return
+      end if
 #ifdef BOINC
-        call boincrf(dynk_cData(dynk_ncData),filename)
-        open(unit=dynk_fileUnitFUN,file=filename,action='read',iostat=stat,status="OLD")
+    call boincrf(dynk_cData(dynk_ncData),filename)
+    open(unit=dynk_fileUnitFUN,file=filename,action="read",iostat=ioStat,status="old")
 #else
-        open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),action='read',iostat=stat,status="OLD")
+    open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),action="read",iostat=ioStat,status="old")
 #endif
-        if (stat .ne. 0) then
-            write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-            write(lout,*) "DYNK> Error opening file '"//trim(stringzerotrim(dynk_cData(dynk_ncData)))//"'"
-            call prror(51)
+    if(ioStat /= 0) then
+      write(lout,"(a,i0)") "DYNK> ERROR FUN:FIR/IIR Could not open file '"//trim(dynk_cData(dynk_ncData))//"', stat = ",ioStat
+      iErr = .true.
+      return
+    end if
+
+    do ii=0, dynk_funcs(dynk_nFuncs,4)
+      ! Reading the FIR/IIR file without CRLIBM
+      read(dynk_fileUnitFUN,"(a)",iostat=ioStat) fLine
+      if(ioStat /= 0) then ! EOF
+        write(lout,"(a)") "DYNK> ERROR FUN:FIR/IIR Unexpected when reading file '"//trim(dynk_cData(dynk_ncData))//"'"
+        iErr = .true.
+        return
+      end if
+
+      call chr_split(fLine,lnFile,nFile,spErr)
+      if(spErr) then
+        write(lout,"(a)") "DYNK> ERROR FUN:FIR/IIR Failed to parse input line."
+        iErr = .true.
+        return
+      end if
+      if(isFIR) then
+        if(nFile /= 3) then
+          write(lout,"(a,i0)") "DYNK> ERROR FUN:FIR/IIR Expected 3 values per line, got ",nFIle
+          iErr = .true.
+          return
         end if
+        call chr_cast(lnFile(1),t,cErr)
+        call chr_cast(lnFile(2),x,cErr)
+        call chr_cast(lnFile(3),y,cErr)
+      else
+        if(nFile /= 5) then
+          write(lout,"(a,i0)") "DYNK> ERROR FUN:FIR/IIR Expected 5 values per line, got ",nFIle
+          iErr = .true.
+          return
+        end if
+        call chr_cast(lnFile(1),t,cErr)
+        call chr_cast(lnFile(2),x,cErr)
+        call chr_cast(lnFile(3),y,cErr)
+        call chr_cast(lnFile(4),z,cErr)
+        call chr_cast(lnFile(5),u,cErr)
+      end if
 
-        do ii=0, dynk_funcs(dynk_nFuncs,4)
+      ! More sanity checks
+      if(t /= ii) then
+        write(lout,"(a)")       "DYNK> ERROR FUN:FIR/IIR Reading file '"//trim(dynk_cData(dynk_ncData))//"'"
+        write(lout,"(2(a,i0))") "DYNK> Got line t = ",t,", expected ",ii
+        iErr = .true.
+        return
+      end if
 
-            ! Reading the FIR/IIR file without CRLIBM
-#ifndef CRLIBM
-            if (isFIR) then
-                read(dynk_fileUnitFUN,*,iostat=stat) t, x, y
-            else
-                read(dynk_fileUnitFUN,*,iostat=stat) t, x, y, z, u
-            end if
-            if (stat.ne.0) then
-                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-                write(lout,*) "DYNK> Error reading file '"//trim(stringzerotrim(dynk_cData(dynk_ncData)))//"'"
-                write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
-                call prror(-1)
-            end if
-#else
-            ! Reading the FIR/IIR file with CRLIBM
-            read(dynk_fileUnitFUN,'(a)', iostat=stat) ch
-            if (stat.ne.0) then
-                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-                write(lout,*) "DYNK> Error reading file '"//trim(stringzerotrim(dynk_cData(dynk_ncData)))//"'"
-                write(lout,*) "DYNK> File ended unexpectedly at ii =",ii
-                call prror(-1)
-            end if
+      ! Save data to arrays
+      ! Store coefficients (x) and initial/earlier values (y) in interlaced order
+      dynk_nfData = dynk_nfData+1
+      dynk_fData(dynk_nfData) = x      ! b_i
+      dynk_nfData = dynk_nfData+1
+      dynk_fData(dynk_nfData) = y      ! x[n-1]
+      dynk_nfData = dynk_nfData+1
+      dynk_fData(dynk_nfData) = y      ! x_init[n-i] (Not really needed anymore, but fixing allignment is painfull)
+      if(.not.isFIR) then
+        dynk_nfData = dynk_nfData+1
+        dynk_fData(dynk_nfData) = z   ! a_i
+        dynk_nfData = dynk_nfData+1
+        dynk_fData(dynk_nfData) = u ! y[n-i]
+        dynk_nfData = dynk_nfData+1
+        dynk_fData(dynk_nfData) = u   ! y_init[n-i]  (Not really needed anymore, but fixing allignment is painfull)
+      end if
+    end do
+    close(dynk_fileUnitFUN)
 
-            call getfields_split(ch,filefields_fields,filefields_lfields,filefields_nfields,filefields_lerr)
-
-            ! Sanity checks
-            if (filefields_lerr) then
-                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-                write(lout,*) "DYNK> Error reading file '", &
-                              trim(stringzerotrim(dynk_cData(dynk_ncData)))//"'"
-                write(lout,*) "DYNK> Error in getfields_split()"
-                call prror(-1)
-            end if
-            if ( (      isFIR .and.filefields_nfields .ne. 3) .or. &
-                 ((.not.isFIR).and.filefields_nfields .ne. 5)     ) then
-                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-                write(lout,*) "DYNK> Error reading file '"// &
-                              trim(stringzerotrim(dynk_cData(dynk_ncData)))//"', line =", ii
-                write(lout,*) "DYNK> Expected 3[5] fields (idx, fac, init, selfFac, selfInit), ", &
-                              "got ",filefields_nfields
-                call prror(-1)
-            endif
-
-            ! Read the data into t,x,y(,z,u):
-            read(filefields_fields(1)(1:filefields_lfields(1)),*) t
-
-            x = round_near(errno,filefields_lfields(2)+1,filefields_fields(2))
-            if (errno.ne.0) call rounderr(errno,filefields_fields,2,x)
-
-            y = round_near(errno,filefields_lfields(3)+1,filefields_fields(3))
-            if (errno.ne.0) call rounderr(errno,filefields_fields,3,y)
-
-            if (.not.isFIR) then
-                z = round_near(errno,filefields_lfields(4)+1,filefields_fields(4))
-                if (errno.ne.0) call rounderr(errno,filefields_fields,4,z)
-                u = round_near(errno,filefields_lfields(5)+1,filefields_fields(5))
-                if (errno.ne.0) call rounderr(errno,filefields_fields,5,u)
-            end if
-#endif
-            ! More sanity checks
-            if (t .ne. ii) then
-                write(lout,*) "DYNK> dynk_parseFUN():FIR/IIR"
-                write(lout,*) "DYNK> Error reading file '"// &
-                              trim(stringzerotrim(dynk_cData(dynk_ncData)))//"'"
-                write(lout,*) "DYNK> Got line t =",t, ", expected ", ii
-                call prror(-1)
-            end if
-            ! Save data to arrays
-            ! Store coefficients (x) and initial/earlier values (y) in interlaced order
-            dynk_nfData = dynk_nfData+1
-            dynk_fData(dynk_nfData) = x      ! b_i
-            dynk_nfData = dynk_nfData+1
-            dynk_fData(dynk_nfData) = y      ! x[n-1]
-            dynk_nfData = dynk_nfData+1
-            dynk_fData(dynk_nfData) = y      ! x_init[n-i] (Not really needed anymore, but fixing allignment is painfull)
-            if (.not.isFIR) then
-                dynk_nfData = dynk_nfData+1
-                dynk_fData(dynk_nfData) = z   ! a_i
-                dynk_nfData = dynk_nfData+1
-                dynk_fData(dynk_nfData) = u ! y[n-i]
-                dynk_nfData = dynk_nfData+1
-                dynk_fData(dynk_nfData) = u   ! y_init[n-i]  (Not really needed anymore, but fixing allignment is painfull)
-            end if
-        end do
-        close(dynk_fileUnitFUN)
-
-    ! END CASES FIR & IIR
+  ! END CASES FIR & IIR
 
     case("ADD","SUB","MUL","DIV","POW") ! Operators: #20-39
         ! Two-argument operators  y = OP(f1, f2)
