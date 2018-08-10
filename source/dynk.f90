@@ -537,7 +537,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
     ! and will recieve a message when SixTrack's dynk_computeFUN() is called.
     ! That program should then send a value back (in ASCII), which will be the new setting.
 
-    call dynk_checkargs(nFields,7,"FUN funname PIPE inPipeName outPipeName ID fileUnit" )
+    call dynk_checkargs(nFields,6,"FUN funname PIPE inPipeName outPipeName ID fileUnit" )
     call dynk_checkspace(1,0,4)
 
 #ifdef CR
@@ -563,10 +563,10 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
     end if
 
     ! Store data
-    if(nSplit > 1) dynk_cData(dynk_ncData)   = trim(lnSplit(2)) ! NAME
-    if(nSplit > 3) dynk_cData(dynk_ncData+1) = trim(lnSplit(4)) ! inPipe
-    if(nSplit > 4) dynk_cData(dynk_ncData+2) = trim(lnSplit(5)) ! outPipe
-    if(nSplit > 5) dynk_cData(dynk_ncData+3) = trim(lnSplit(6)) ! ID
+    dynk_cData(dynk_ncData)   = trim(lnSplit(2)) ! NAME
+    dynk_cData(dynk_ncData+1) = trim(lnSplit(4)) ! inPipe
+    dynk_cData(dynk_ncData+2) = trim(lnSplit(5)) ! outPipe
+    dynk_cData(dynk_ncData+3) = trim(lnSplit(6)) ! ID
     dynk_ncData = dynk_ncData+3
 
     call funit_requestUnit(dynk_cData(dynk_ncData+1),dynk_iData(dynk_niData))   ! fileUnit 1
@@ -647,122 +647,108 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
   ! END CASE PIPE
 
-    case ("RANDG")
-        ! RANDG: Gausian random number with mu, sigma, and optional cutoff
+  case ("RANDG")
+    ! RANDG: Gausian random number with mu, sigma, and optional cutoff
 
-        call dynk_checkargs(nFields,8,"FUN funname RANDG seed1 seed2 mu sigma cut")
-        call dynk_checkspace(5,2,1)
+    call dynk_checkargs(nSplit,8,"FUN funname RANDG seed1 seed2 mu sigma cut")
+    call dynk_checkspace(5,2,1)
 
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_niData = dynk_niData+1
-        dynk_nfData = dynk_nfData+1
-        dynk_ncData = dynk_ncData+1
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_niData = dynk_niData+1
+    dynk_nfData = dynk_nfData+1
+    dynk_ncData = dynk_ncData+1
 
-        ! Store pointers
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData !NAME (in dynk_cData)
-        dynk_funcs(dynk_nFuncs,2) = 6           !TYPE (RANDG)
-        dynk_funcs(dynk_nFuncs,3) = dynk_niData !seed1(initial),seed2(initial),mcut,seed1(current),seed2(current) (in dynk_iData)
-        dynk_funcs(dynk_nFuncs,4) = dynk_nfData !mu, sigma (in dynk_fData)
-        dynk_funcs(dynk_nFuncs,5) = -1          !ARG3
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData !NAME (in dynk_cData)
+    dynk_funcs(dynk_nFuncs,2) = 6           !TYPE (RANDG)
+    dynk_funcs(dynk_nFuncs,3) = dynk_niData !seed1(initial),seed2(initial),mcut,seed1(current),seed2(current) (in dynk_iData)
+    dynk_funcs(dynk_nFuncs,4) = dynk_nfData !mu, sigma (in dynk_fData)
+    dynk_funcs(dynk_nFuncs,5) = -1          !ARG3
 
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
+    ! Store data
+    dynk_cData(dynk_ncData) = trim(lnSplit(2))               ! NAME
+    call chr_cast(lnSplit(4),dynk_iData(dynk_niData),  cErr) ! seed1 (initial)
+    call chr_cast(lnSplit(5),dynk_iData(dynk_niData+1),cErr) ! seed2 (initial)
+    call chr_cast(lnSplit(6),dynk_fData(dynk_nfData),  cErr) ! mu
+    call chr_cast(lnSplit(7),dynk_fData(dynk_nfData+1),cErr) ! sigma
+    call chr_cast(lnSplit(8),dynk_iData(dynk_niData+2),cErr) ! mcut
 
-        read(gFields(4)(1:lFields(4)),*) dynk_iData(dynk_niData)   ! seed1 (initial)
-        read(gFields(5)(1:lFields(5)),*) dynk_iData(dynk_niData+1) ! seed2 (initial)
-#ifndef CRLIBM
-        read(gFields(6)(1:lFields(6)),*) dynk_fData(dynk_nfData)   ! mu
-        read(gFields(7)(1:lFields(7)),*) dynk_fData(dynk_nfData+1) ! sigma
-#else
-        dynk_fData(dynk_nfData) = round_near(errno,lFields(6)+1,gFields(6))   ! mu
-        if (errno.ne.0) call rounderr(errno,gFields,6,dynk_fData(dynk_nfData))
-        dynk_fData(dynk_nfData+1) = round_near(errno,lFields(7)+1,gFields(7)) ! sigma
-        if (errno.ne.0) call rounderr( errno,gFields,7,dynk_fData(dynk_nfData+1))
-#endif
-        read(gFields(8)(1:lFields(8)),*) dynk_iData(dynk_niData+2) ! mcut
+    dynk_iData(dynk_niData+3) = dynk_iData(dynk_niData)      ! seed1 (current)
+    dynk_iData(dynk_niData+4) = dynk_iData(dynk_niData+1)    ! seed2 (current)
 
-        dynk_iData(dynk_niData+3) = dynk_iData(dynk_niData)   ! seed1 (current)
-        dynk_iData(dynk_niData+4) = dynk_iData(dynk_niData+1) ! seed2 (current)
+    dynk_niData = dynk_niData+4
+    dynk_nfData = dynk_nfData+1
 
-        dynk_niData = dynk_niData+4
-        dynk_nfData = dynk_nfData+1
+    if(dynk_iData(dynk_funcs(dynk_nFuncs,3)+2) < 0) then
+      ! mcut < 0
+      write (lout,"(a)") "DYNK> ERROR FUN:RANDG mcut must be >= 0"
+      call prror(-1)
+    end if
 
-        if (dynk_iData(dynk_funcs(dynk_nFuncs,3)+2) .lt. 0) then
-            ! mcut < 0
-            write (lout,*) "DYNK> dynk_parseFUN():RANDG"
-            write (lout,*) "DYNK> ERROR in DYNK block parsing (fort.3)"
-            write (lout,*) "DYNK> mcut must be >= 0"
-            call prror(51)
-        end if
+  ! END CASE RANDG
 
-    ! END CASE RANDG
+  case ("RANDU")
+    ! RANDU: Uniform random number
 
-    case ("RANDU")
-        ! RANDU: Uniform random number
+    call dynk_checkargs(nFields,5,"FUN funname RANDU seed1 seed2")
+    call dynk_checkspace(4,0,1)
 
-        call dynk_checkargs(nFields,5,"FUN funname RANDU seed1 seed2")
-        call dynk_checkspace(4,0,1)
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_niData = dynk_niData+1
+    dynk_ncData = dynk_ncData+1
 
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_niData = dynk_niData+1
-        dynk_ncData = dynk_ncData+1
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData !NAME (in dynk_cData)
+    dynk_funcs(dynk_nFuncs,2) = 7           !TYPE (RANDU)
+    dynk_funcs(dynk_nFuncs,3) = dynk_niData !seed1(initial), seed2(initial), seed1(current), seed2(current)
+    dynk_funcs(dynk_nFuncs,4) = -1          !ARG2
+    dynk_funcs(dynk_nFuncs,5) = -1          !ARG3
 
-        ! Store pointers
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData !NAME (in dynk_cData)
-        dynk_funcs(dynk_nFuncs,2) = 7           !TYPE (RANDU)
-        dynk_funcs(dynk_nFuncs,3) = dynk_niData !seed1(initial), seed2(initial), seed1(current), seed2(current)
-        dynk_funcs(dynk_nFuncs,4) = -1          !ARG2
-        dynk_funcs(dynk_nFuncs,5) = -1          !ARG3
+    ! Store data
+    dynk_cData(dynk_ncData) = trim(lnSplit(2))               ! NAME
+    call chr_cast(lnSplit(4),dynk_iData(dynk_niData),  cErr) ! seed1 (initial)
+    call chr_cast(lnSplit(5),dynk_iData(dynk_niData+1),cErr) ! seed2 (initial)
 
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
+    dynk_iData(dynk_niData+2) = dynk_iData(dynk_niData)      ! seed1 (current)
+    dynk_iData(dynk_niData+3) = dynk_iData(dynk_niData+1)    ! seed2 (current)
 
-        read(gFields(4)(1:lFields(4)),*) dynk_iData(dynk_niData)   ! seed1 (initial)
-        read(gFields(5)(1:lFields(5)),*) dynk_iData(dynk_niData+1) ! seed2 (initial)
+    dynk_niData = dynk_niData+3
 
-        dynk_iData(dynk_niData+2) = dynk_iData(dynk_niData)   ! seed1 (current)
-        dynk_iData(dynk_niData+3) = dynk_iData(dynk_niData+1) ! seed2 (current)
+  ! END CASE RANDU
 
-        dynk_niData = dynk_niData+3
+  case("RANDON")
+    ! RANDON: Turn by turn ON for one turn with the probability P, else OFF
 
-    ! END CASE RANDU
+    call dynk_checkargs(nFields,6,"FUN funname RANDON seed1 seed2 P")
+    call dynk_checkspace(4,1,1)
 
-    case("RANDON")
-        ! RANDON: Turn by turn ON for one turn with the probability P, else OFF
-        call dynk_checkargs(nFields,6,"FUN funname RANDON seed1 seed2 P")
-        call dynk_checkspace(4,1,1)
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_niData = dynk_niData+1
+    dynk_nfData = dynk_nfData+1
+    dynk_ncData = dynk_ncData+1
 
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_niData = dynk_niData+1
-        dynk_nfData = dynk_nfData+1
-        dynk_ncData = dynk_ncData+1
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData !NAME (in dynk_cData)
+    dynk_funcs(dynk_nFuncs,2) = 8           !TYPE (RANDON)
+    dynk_funcs(dynk_nFuncs,3) = dynk_niData !seed1(initial), seed2(initial), seed1(current), seed2(current)
+    dynk_funcs(dynk_nFuncs,4) = dynk_nfData !P (in dynk_fData)
+    dynk_funcs(dynk_nFuncs,5) = -1          !ARG2 (unused)
 
-        ! Store pointers
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData !NAME (in dynk_cData)
-        dynk_funcs(dynk_nFuncs,2) = 8           !TYPE (RANDON)
-        dynk_funcs(dynk_nFuncs,3) = dynk_niData !seed1(initial), seed2(initial), seed1(current), seed2(current)
-        dynk_funcs(dynk_nFuncs,4) = dynk_nfData !P (in dynk_fData)
-        dynk_funcs(dynk_nFuncs,5) = -1          !ARG2 (unused)
+    ! Store data
+    dynk_cData(dynk_ncData) = trim(lnSplit(2))               ! NAME
+    call chr_cast(lnSplit(4),dynk_iData(dynk_niData),  cErr) ! seed1 (initial)
+    call chr_cast(lnSplit(5),dynk_iData(dynk_niData+1),cErr) ! seed2 (initial)
+    call chr_cast(lnSplit(6),dynk_fData(dynk_nfData),  cErr) ! P
 
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
+    dynk_iData(dynk_niData+2) = dynk_iData(dynk_niData)      ! seed1 (current)
+    dynk_iData(dynk_niData+3) = dynk_iData(dynk_niData+1)    ! seed2 (current)
 
-        read(gFields(4)(1:lFields(4)),*) dynk_iData(dynk_niData)   ! seed1 (initial)
-        read(gFields(5)(1:lFields(5)),*) dynk_iData(dynk_niData+1) ! seed2 (initial)
-        read(gFields(6)(1:lFields(6)),*) dynk_fData(dynk_nfData)   ! P
+    dynk_niData = dynk_niData+3
 
-        dynk_iData(dynk_niData+2) = dynk_iData(dynk_niData)        ! seed1 (current)
-        dynk_iData(dynk_niData+3) = dynk_iData(dynk_niData+1)      ! seed2 (current)
-
-        dynk_niData = dynk_niData+3
-
-    ! END CASE RANDON
+  ! END CASE RANDON
 
     case("FIR","IIR")
         ! FIR: Finite Impulse Response filter
