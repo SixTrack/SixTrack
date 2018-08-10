@@ -676,11 +676,11 @@ subroutine fma_postpr
             if(m == 3) q123(m)=one-q123(m)
 
             ! Some general calculations
-            eps123_0(m)   = epsnxyzv(l,1,m)                              ! initial amplitude
-            phi123_0(m)   = atan_mb(nxyzv(l,1,2*m)/nxyzv(l,1,2*(m-1)+1)) ! inital phase
-            eps123_min(m) = minval( epsnxyzv(l,1:nturns(l),m) )          ! minimum emittance
-            eps123_max(m) = maxval( epsnxyzv(l,1:nturns(l),m) )          ! maximum emittance
-            eps123_avg(m) = sum(epsnxyzv(l,1:nturns(l),m))/nturns(l)     ! average emittance
+            eps123_0(m)   = epsnxyzv(l,1,m)                               ! initial amplitude
+            phi123_0(m)   = atan2_mb(nxyzv(l,1,2*m),nxyzv(l,1,2*(m-1)+1)) ! inital phase
+            eps123_min(m) = minval( epsnxyzv(l,1:nturns(l),m) )           ! minimum emittance
+            eps123_max(m) = maxval( epsnxyzv(l,1:nturns(l),m) )           ! maximum emittance
+            eps123_avg(m) = sum(epsnxyzv(l,1:nturns(l),m))/nturns(l)      ! average emittance
 
           end do ! Loop over modes (hor.,vert.,long.)
 
