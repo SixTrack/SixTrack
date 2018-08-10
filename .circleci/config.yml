@@ -11,7 +11,7 @@ jobs:
       - run:
           name: build and test
           command: |
-             ./cmake_six gfortran debug BUILD_TESTING 
+             ./cmake_six BUILD_TESTING 
              cd build/*BUILD_TESTING*
              make -j4
              ctest -j4 -L fast -E elens
