@@ -6,7 +6,7 @@ SETTINGS
 NEXT
 
 TRACKING PARAMETERS-----------------------------------------------------
-    12 0 200 0 6.89493 0 1
+    13 0 200 0 6.89493 0 1
     1 1 2 1 2
     0 0 1 1 1 50000 2
 NEXT
@@ -76,6 +76,7 @@ DYNK--------------------------------------------------------------------
     FUN test_log   LOG   two
     FUN test_log10 LOG10 two
     FUN test_exp   EXP   test_log
+    FUN test_abs   ABS   mtwo
 
     SET ip5_scatter scaling test_add    1  1  0
     SET ip5_scatter scaling test_sub    2  2  0
@@ -89,6 +90,7 @@ DYNK--------------------------------------------------------------------
     SET ip5_scatter scaling test_log   10 10  0
     SET ip5_scatter scaling test_log10 11 11  0
     SET ip5_scatter scaling test_exp   12 12  0
+    SET ip5_scatter scaling test_abs   13 13  0
 NEXT
 
 SCATTER-----------------------------------------------------------------

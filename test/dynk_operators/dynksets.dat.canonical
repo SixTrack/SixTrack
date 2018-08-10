@@ -11,3 +11,4 @@
           10 ip5_scatter          scaling                10 test_log             0.693147181E+00
           11 ip5_scatter          scaling                11 test_log10           0.301029996E+00
           12 ip5_scatter          scaling                12 test_exp             0.200000000E+01
+          13 ip5_scatter          scaling                13 test_abs             0.200000000E+01
