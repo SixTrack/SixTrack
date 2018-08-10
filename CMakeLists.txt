@@ -608,7 +608,8 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	endif()
 
 	SET(CMAKE_Fortran_FLAGS_RELEASE "-O3")
-	SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
+	# SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
+	SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow -fcheck=all")
 
 	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES ppc64le )
 		SET(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fno-expensive-optimizations -fno-inline-functions")
