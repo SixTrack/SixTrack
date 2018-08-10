@@ -12,6 +12,9 @@ This can be done in any \texttt{SINGLE ELEMENTS} which are directly mentioned in
 The particles are dumped just after the kick is applied, and how often to dump (every turn, every second turn, etc.) is user-selectable.
 Please note that each single element can only be selected once; however it is possible to overcome this limitation by placing multiple markers with different names in the same position in the sequence (by editing \texttt{fort.2}).
 
+
+
+
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
     \textbf{Keyword}    & \texttt{DUMP} \\
@@ -35,6 +38,31 @@ Please note that each single element can only be selected once; however it is po
     \texttt{last}          & integer & The last turn where this dump should be active, --1 meaning ``untill the end of the simulation''. This argument may be omitted if \texttt{first} is also omitted, and if so it defaults to -1. \\
     \texttt{HIGH}          & keyword & If present anywhere in the \texttt{DUMP} block, this triggers high-precission output, meaning more digits in the output files. \\
     \texttt{FRONT}         & keyword & If present anywhere in the \texttt{DUMP} block, this keyword triggers the DUMPed particles to be dumped in front of the element, i.e.\ before the kick. This works for all elements, including \texttt{BLOC}s, when combined with the \texttt{ALL} as \texttt{element\ name}. Note that \texttt{FRONT} is not yet supported for thick tracking, and trying to use this combination will produce a run-time error.
+\end{longtabu}
+
+\paragraph{Conventions}~
+
+The following table show a summary of the quantities used in describing the output format. The units are declared explicitly for each dump. 
+
+\bigskip
+\begin{longtabu}{@{}llllp{0.65\linewidth}}
+	\textbf{short name} & \textbf{variable} & \textbf{unit} &
+	\textbf{symbol} & \textbf{description} \\
+	\texttt{x} & \texttt{xv(1,j)} &[mm] & $x$& horizontal position\\
+	\texttt{y} & \texttt{xv(2,j)} &[mm] & $y$& vertical position\\
+	\texttt{xp} & \texttt{yv(1,j)} &[mrad] & $P_x/P\approx x'(s)$&  approximated horizontal angle\\
+	\texttt{yp} & \texttt{yv(2,j)} &[mrad]& $P_y/P\approx y'(s)$&  approximated vertical angle\\
+	\texttt{sigma} & \texttt{sigmv(j)} &[MeV] & $s-\beta_0 c t $& longitudinal offset \\
+	\texttt{psigma} & n/a &  & $ p_\sigma=\frac{E-E_0}{\beta_0 P_0 c}$& canonical conjugate of $\sigma$ \\
+	\texttt{delta} & \texttt{dpsv(j)} &  & $ \delta=\frac{P-P_0}{P_0}$& canonical conjugate of $\sigma$ \\
+	\texttt{rvv}   & \texttt{rvv(j)} & [1]& $r_v=\beta_0/\beta$ &velocity ratio \\
+	\texttt{rpp}   & \texttt{oidpsv(j)} & [1]& $r_p=P_0/P$ &momentum ratio \\
+	\texttt{mass}  & \texttt{nucm(j)} & [MeV/c$^2$] & $m$ &mass \\
+	\texttt{mtc}  & \texttt{mtc(j)} & [1] & $q/q_0 \cdot m_0/m $ & mass to charge ratio\\
+	\texttt{P} & \texttt{ejvf(j)} &[MeV/c] & $Pc$& momentum \\
+	\texttt{E} & \texttt{ejv(j)} &[MeV] & $E$& energy \\
+	\texttt{E0} & \texttt{e0} &[MeV] & $E_0$& reference energy \\
+	\texttt{P0} & \texttt{e0f} &[MeV/c] & $P_0$& reference momentum \\
 \end{longtabu}
 
 \begin{center}
@@ -65,15 +93,15 @@ Please note that each single element can only be selected once; however it is po
         \hline
         Header & No header.\\
         \hline
-        Lines  & \texttt{turn structure\_element\_idx single\_element\_idx single\_element\_name s x1[m] x1'[rad] y1[m] y2'[rad] momentum[GeV/c] dE/E[GeV]} \\
+	    Lines  & \texttt{turn structure\_element\_idx single\_element\_idx single\_element\_name s x[m] xp[rad] y[m] yp[rad] P[GeV/c] (E-E0)[eV] t[s]}\\
         \hline
 
         \rowcolor{blue!15}
         \texttt{1} & Format for aperture check \\
         \hline
-        Header & \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack} \\
+	    Header & \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack} \\
         \hline
-        Lines  & \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack} \\
+        Lines  & \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] (E-E0)/E0 ktrack} \\
         \hline
 
         \rowcolor{blue!15}
@@ -87,7 +115,7 @@ Please note that each single element can only be selected once; however it is po
                     & Here \textcolor{blue!90}{bez} is the name of the SINGLE ELEMENT, and \textcolor{blue!90}{napx} the number of particles being tracked (per pack in case of collimation), \textcolor{blue!90}{ndumpt(i)} the dump frequency as described above, and \textcolor{blue!90}{dumpfirst(i)} and \textcolor{blue!90}{dumplast(i)} the first and last turn as descirbed below.\vspace{1mm} \\
                     & \texttt{HIGH} and \texttt{FRONT} is normally false, unless this (global) option is active, as described below.\\
         \hline
-        Header \#2 & \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\vspace{1mm} \\
+        Header \#2 & \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0 ktrack}\vspace{1mm} \\
                    & If there are multiple single elements attached to the file, the headers are repeated.\\
         \hline
         Lines      & As described in the header, one per particle and per turn. \\
@@ -99,14 +127,14 @@ Please note that each single element can only be selected once; however it is po
         Header & No header.\vspace{1mm}\\
                & A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in the \texttt{DUMP} block.\\
         \hline
-        Lines  & \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack} \\
-               & The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the format 2 (sans headers). \\
+	Lines  & \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] (E-E0)/E0 ktrack} \\
+               & The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the Format 2 (sans headers). \\
         \hline
 
         \rowcolor{blue!15}
         \texttt{3} & Beam means \\
         \hline
-        Header \#1 & Same as for format 2. \\
+        Header \#1 & Same as for Format 2. \\
         \hline
         Header \#2 & \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]}\vspace{1mm} \\
                    & If there are multiple single elements attached to the file, the headers are repeated.\\
@@ -119,7 +147,7 @@ Please note that each single element can only be selected once; however it is po
         \hline
         Header \#1 & The same as for format 2.\\
         \hline
-        Header \#2 & \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] <x\^{}2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> <xp\^{}2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> <y\^{}2> <y*yp> <y*z> <y*(dE/E)> <yp\^{}2> <yp*z> <yp*(dE/E)> <z\^{}2> <z*(dE/E)> <(dE/E)\^{}2>}\vspace{1mm} \\
+	Header \#2 & \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <sigma>[mm] <dE/E>[1] <x\^{}2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> <xp\^{}2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> <y\^{}2> <y*yp> <y*z> <y*(dE/E)> <yp\^{}2> <yp*z> <yp*(dE/E)> <z\^{}2> <z*(dE/E)> <(dE/E)\^{}2>}\vspace{1mm} \\
                    & If there are multiple single elements attached to the file, the headers are repeated. A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
         \hline
         Lines      & As described in the header; one per turn (and for collimation, one per pack of particles). For the ``product'' quantities, the units are the product of the units of the ``normal'' ones. \\
@@ -137,7 +165,7 @@ Please note that each single element can only be selected once; however it is po
         \hline
 
         \rowcolor{blue!15}
-        \texttt{7} & Modified format for aperture check (normalized coordinates) \\
+        \texttt{7} & Normalized coordinates\\
         \hline
         & Dumps the particle trajectories in normalised coordinates. If the coordinates are dumped at the start of the sequence (\texttt{StartDUMP}), the normalization matrix as used for the initialization of the particle amplitudes is used. This means, that if 4D optics are chosen, the 4D matrix is used, if 6D optics is chosen, the matrix obtained from the 6D optics calculation is chosen. For every other element except \texttt{StartDUMP}, the 6D optics are used independent of the tracking method chosen. In this case the 6D optics needs to be run and the following lines have to be inserted in \texttt{fort.3}:
             \bigskip
@@ -155,7 +183,7 @@ NEXT
             \hline
             Header \#1 & The same as for format 2.\\
             \hline
-            Header \#2 & Closed orbit  $x$,$x'$,$y$,$y'$,$z$,$dp/p$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
+            Header \#2 & Closed orbit  $x$,$x'$,$y$,$y'$,$z$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
             \hline
             Header \#3 & Matrix of eigenvectors (\texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism and described in the SixTrack physics manual, Chapter ``Optics Calculation''. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$z$,$dp/p$, units are $[\rm mm,mrad,mm,mrad,1]$. \\
             \hline
@@ -171,7 +199,7 @@ NEXT
             \hline
 
             \rowcolor{blue!15}
-            \texttt{8} & Modified format for aperture check (normalized coordinates, binary)\\
+	    \texttt{8} & Normalized coordinate (binary)\\
             \hline
             Header  & No header.\vspace{1mm} \\
                     & A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in DUMP block. Format 8 is format 7 without header and in binary format.\\
@@ -190,6 +218,17 @@ NEXT
             \hline
             Lines      & As described in the header; one per turn (and for collimation, one per pack of particles). For the ``product'' quantities, the units are the product of the units of the ``normal'' ones. \\
             \hline
+        \rowcolor{blue!15}
+	\texttt{101} & Binary format for debugging (format not stable) \\
+        \hline
+        Header & No header.\vspace{1mm}\\
+               & A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in the \texttt{DUMP} block.\\
+        \hline
+	Lines  & \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] (E-E0)/E0 ktrack} 
+		 \texttt{E[MeV] P[MeV/c] delta(j)[1] rpp[1]
+			 rvv[1] nucm[MeV] mtc[1] e0[MeV] e0f[MeV/c] } \\
+               & The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the Format 2 (sans headers). \\
+        \hline
         \end{longtable}
 \end{center}
 
