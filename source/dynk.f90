@@ -928,135 +928,113 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
       ! Save data to arrays
       ! Store coefficients (x) and initial/earlier values (y) in interlaced order
       dynk_nfData = dynk_nfData+1
-      dynk_fData(dynk_nfData) = x      ! b_i
+      dynk_fData(dynk_nfData) = x   ! b_i
       dynk_nfData = dynk_nfData+1
-      dynk_fData(dynk_nfData) = y      ! x[n-1]
+      dynk_fData(dynk_nfData) = y   ! x[n-1]
       dynk_nfData = dynk_nfData+1
-      dynk_fData(dynk_nfData) = y      ! x_init[n-i] (Not really needed anymore, but fixing allignment is painfull)
+      dynk_fData(dynk_nfData) = y   ! x_init[n-i] (Not really needed anymore, but fixing allignment is painfull)
       if(.not.isFIR) then
         dynk_nfData = dynk_nfData+1
-        dynk_fData(dynk_nfData) = z   ! a_i
+        dynk_fData(dynk_nfData) = z ! a_i
         dynk_nfData = dynk_nfData+1
         dynk_fData(dynk_nfData) = u ! y[n-i]
         dynk_nfData = dynk_nfData+1
-        dynk_fData(dynk_nfData) = u   ! y_init[n-i]  (Not really needed anymore, but fixing allignment is painfull)
+        dynk_fData(dynk_nfData) = u ! y_init[n-i]  (Not really needed anymore, but fixing allignment is painfull)
       end if
     end do
     close(dynk_fileUnitFUN)
 
   ! END CASES FIR & IIR
 
-    case("ADD","SUB","MUL","DIV","POW") ! Operators: #20-39
-        ! Two-argument operators  y = OP(f1, f2)
+  case("ADD","SUB","MUL","DIV","POW") ! Operators: #20-39
+    ! Two-argument operators  y = OP(f1, f2)
 
-        call dynk_checkargs(nFields,5,"FUN funname {ADD|SUB|MUL|DIV|POW} funname1 funname2")
-        call dynk_checkspace(0,0,1)
+    call dynk_checkargs(nSplit,5,"FUN funname {ADD|SUB|MUL|DIV|POW} funname1 funname2")
+    call dynk_checkspace(0,0,1)
 
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_ncData = dynk_ncData+1
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_ncData = dynk_ncData+1
 
-        ! Store pointers
-        ! NAME (in dynk_cData)
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData
-        select case (gFields(3)(1:lFields(3)))
-        case ("ADD")
-            dynk_funcs(dynk_nFuncs,2) = 20 ! TYPE (ADD)
-        case ("SUB")
-            dynk_funcs(dynk_nFuncs,2) = 21 ! TYPE (SUB)
-        case ("MUL")
-            dynk_funcs(dynk_nFuncs,2) = 22 ! TYPE (MUL)
-        case ("DIV")
-            dynk_funcs(dynk_nFuncs,2) = 23 ! TYPE (DIV)
-        case ("POW")
-            dynk_funcs(dynk_nFuncs,2) = 24 ! TYPE (POW)
-        case default
-            write (lout,*) "DYNK> dynk_parseFUN() : 2-arg function"
-            write (lout,*) "DYNK> non-recognized type in inner switch"
-            write (lout,*) "DYNK> Got: '"//gFields(3)(1:lFields(3))//"'"
-            call prror(51)
-        end select
-        dynk_funcs(dynk_nFuncs,3) =  &
-              dynk_findFUNindex( gFields(4)(1:lFields(4)), 1) ! Index to f1
-        dynk_funcs(dynk_nFuncs,4) =  &
-              dynk_findFUNindex( gFields(5)(1:lFields(5)), 1) ! Index to f2
-        dynk_funcs(dynk_nFuncs,5) = -1  ! ARG3
+    ! Store pointers
+    ! NAME (in dynk_cData)
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData
+    select case(trim(lnSplit(3)))
+    case("ADD")
+      dynk_funcs(dynk_nFuncs,2) = 20 ! TYPE (ADD)
+    case("SUB")
+      dynk_funcs(dynk_nFuncs,2) = 21 ! TYPE (SUB)
+    case("MUL")
+      dynk_funcs(dynk_nFuncs,2) = 22 ! TYPE (MUL)
+    case("DIV")
+      dynk_funcs(dynk_nFuncs,2) = 23 ! TYPE (DIV)
+    case("POW")
+      dynk_funcs(dynk_nFuncs,2) = 24 ! TYPE (POW)
+    end select
+    dynk_funcs(dynk_nFuncs,3) = dynk_findFUNindex(trim(lnSplit(4)), 1) ! Index to f1
+    dynk_funcs(dynk_nFuncs,4) = dynk_findFUNindex(trim(lnSplit(5)), 1) ! Index to f2
+    dynk_funcs(dynk_nFuncs,5) = -1  ! ARG3
 
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
-        ! Sanity check (string lengths are done inside dynk_findFUNindex)
-        if (dynk_funcs(dynk_nFuncs,3) .eq. -1 .or. dynk_funcs(dynk_nFuncs,4) .eq. -1) then
-            write (lout,*) "*************************************"
-            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "TWO ARG OPERATOR wanting functions '", &
-                           gFields(4)(1:lFields(4)), "' and '",  &
-                           gFields(5)(1:lFields(5)), "'"
-            write (lout,*) "Calculated indices:", &
-                           dynk_funcs(dynk_nFuncs,3), dynk_funcs(dynk_nFuncs,4)
-            write (lout,*) "One or both of these are not known (-1)."
-            write (lout,*) "*************************************"
-            call dynk_dumpdata
-            call prror(51)
-        end if
+    ! Store data
+    dynk_cData(dynk_ncData) = trim(lnSplit(2)) ! NAME
+    ! Sanity check (string lengths are done inside dynk_findFUNindex)
+    if(dynk_funcs(dynk_nFuncs,3) == -1 .or. dynk_funcs(dynk_nFuncs,4) == -1) then
+      write(lout,"(a)") "DYNK> ERROR TWO ARG OPERATOR wanting functions '"//trim(lnSplit(4))//"' and '"//trim(lnSplit(5))//"', "
+      write(lout,"(2(a,i0))") "DYNK>       Calculated indices: ",dynk_funcs(dynk_nFuncs,3)," and ",dynk_funcs(dynk_nFuncs,4)
+      write(lout,"(a)") "DYNK>       One or both of these are unknown."
+      call dynk_dumpdata
+      iErr = .true.
+      return
+    end if
 
-    ! END CASES ADD, SUB, MUL, DIV & POW
+  ! END CASES ADD, SUB, MUL, DIV & POW
 
-    case ("MINUS","SQRT","SIN","COS","LOG","LOG10","EXP")
-        ! One-argument operators  y = OP(f1)
+  case ("MINUS","SQRT","SIN","COS","LOG","LOG10","EXP")
+    ! One-argument operators  y = OP(f1)
 
-        call dynk_checkargs(nFields,4,"FUN funname {MINUS|SQRT|SIN|COS|LOG|LOG10|EXP} funname")
-        call dynk_checkspace(0,0,1)
+    call dynk_checkargs(nSplit,4,"FUN funname {MINUS|SQRT|SIN|COS|LOG|LOG10|EXP} funname")
+    call dynk_checkspace(0,0,1)
 
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_ncData = dynk_ncData+1
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_ncData = dynk_ncData+1
 
-        ! Store pointers
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
-        select case (gFields(3)(1:lFields(3)))
-        case ("MINUS")
-            dynk_funcs(dynk_nFuncs,2) = 30 ! TYPE (MINUS)
-        case ("SQRT")
-            dynk_funcs(dynk_nFuncs,2) = 31 ! TYPE (SQRT)
-        case ("SIN")
-            dynk_funcs(dynk_nFuncs,2) = 32 ! TYPE (SIN)
-        case ("COS")
-            dynk_funcs(dynk_nFuncs,2) = 33 ! TYPE (COS)
-        case ("LOG")
-            dynk_funcs(dynk_nFuncs,2) = 34 ! TYPE (LOG)
-        case ("LOG10")
-            dynk_funcs(dynk_nFuncs,2) = 35 ! TYPE (LOG10)
-        case ("EXP")
-            dynk_funcs(dynk_nFuncs,2) = 36 ! TYPE (EXP)
-        case default
-            write (lout,*) "DYNK> dynk_parseFUN() : 1-arg function"
-            write (lout,*) "DYNK> non-recognized type in inner switch?"
-            write (lout,*) "DYNK> Got: '"//gFields(3)(1:lFields(3))//"'"
-            call prror(51)
-        end select
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
+    select case(trim(lnSplit(3)))
+    case("MINUS")
+      dynk_funcs(dynk_nFuncs,2) = 30 ! TYPE (MINUS)
+    case("SQRT")
+      dynk_funcs(dynk_nFuncs,2) = 31 ! TYPE (SQRT)
+    case("SIN")
+      dynk_funcs(dynk_nFuncs,2) = 32 ! TYPE (SIN)
+    case("COS")
+      dynk_funcs(dynk_nFuncs,2) = 33 ! TYPE (COS)
+    case("LOG")
+      dynk_funcs(dynk_nFuncs,2) = 34 ! TYPE (LOG)
+    case("LOG10")
+      dynk_funcs(dynk_nFuncs,2) = 35 ! TYPE (LOG10)
+    case("EXP")
+      dynk_funcs(dynk_nFuncs,2) = 36 ! TYPE (EXP)
+    end select
 
-        ! Index to f1
-        dynk_funcs(dynk_nFuncs,3) = dynk_findFUNindex(gFields(4)(1:lFields(4)),1)
-        dynk_funcs(dynk_nFuncs,5) = -1 ! ARG3
+    ! Index to f1
+    dynk_funcs(dynk_nFuncs,3) = dynk_findFUNindex(trim(lnSplit(4)),1)
+    dynk_funcs(dynk_nFuncs,5) = -1 ! ARG3
 
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
-        ! Sanity check (string lengths are done inside dynk_findFUNindex)
-        if (dynk_funcs(dynk_nFuncs,3) .eq. -1) then
-            write (lout,*) "*************************************"
-            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "SINGLE OPERATOR FUNC wanting function '", &
-                           gFields(4)(1:lFields(4)), "'"
-            write (lout,*) "Calculated index:",dynk_funcs(dynk_nFuncs,3)
-            write (lout,*) "One or both of these are not known (-1)."
-            write (lout,*) "*************************************"
-            call dynk_dumpdata
-            call prror(51)
-        end if
+    ! Store data
+    dynk_cData(dynk_ncData) = trim(lnSplit(2)) ! NAME
+    ! Sanity check (string lengths are done inside dynk_findFUNindex)
+    if(dynk_funcs(dynk_nFuncs,3) == -1) then
+      write(lout,"(a)")    "DYNK> ERROR SINGLE OPERATOR FUNC wanting function '"//trim(lnSplit(4))//"'"
+      write(lout,"(a,i0)") "DYNK>       Calculated index: ",dynk_funcs(dynk_nFuncs,3)
+      write(lout,"(a)")    "DYNK>       This function is unknown."
+      call dynk_dumpdata
+      iErr = .true.
+      return
+    end if
 
-    ! END CASES MINUS, SQRT, SIN, COS, LOG, LOG10 & EXP
+  ! END CASES MINUS, SQRT, SIN, COS, LOG, LOG10 & EXP
 
     ! Polynomial & Elliptical functions: # 40-59
 
