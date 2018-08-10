@@ -321,13 +321,13 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
   ! END CASE GET
 
-  case ("FILE")
+  case("FILE")
     ! FILE: Load the contents from a file
     ! File format: two ASCII columns of numbers,
     ! first  column = turn number (all turns should be there, starting from 1)
     ! second column = value (as a double)
 
-    call dynk_checkargs(nFields,4,"FUN funname FILE filename")
+    call dynk_checkargs(nSplit,4,"FUN funname FILE filename")
     call dynk_checkspace(0,0,2)
 
     ! Set pointers to start of funs data blocks (dynk_nfData handled when reading data)
@@ -411,7 +411,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
   ! END CASE FILE
 
-  case ("FILELIN")
+  case("FILELIN")
     ! FILELIN: Load the contents from a file, linearly interpolate
     ! File format: two ASCII columns of numbers,
     ! first  column = turn number (as a double)
@@ -531,13 +531,13 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
   ! END CASE FILELIN
 
-  case ("PIPE")
+  case("PIPE")
     ! PIPE: Use a pair of UNIX FIFOs.
     ! Another program is expected to hook onto the other end of the pipe,
     ! and will recieve a message when SixTrack's dynk_computeFUN() is called.
     ! That program should then send a value back (in ASCII), which will be the new setting.
 
-    call dynk_checkargs(nFields,6,"FUN funname PIPE inPipeName outPipeName ID fileUnit" )
+    call dynk_checkargs(nSplit,6,"FUN funname PIPE inPipeName outPipeName ID fileUnit" )
     call dynk_checkspace(1,0,4)
 
 #ifdef CR
@@ -655,7 +655,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
   ! END CASE PIPE
 
-  case ("RANDG")
+  case("RANDG")
     ! RANDG: Gausian random number with mu, sigma, and optional cutoff
 
     call dynk_checkargs(nSplit,8,"FUN funname RANDG seed1 seed2 mu sigma cut")
@@ -697,10 +697,10 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
   ! END CASE RANDG
 
-  case ("RANDU")
+  case("RANDU")
     ! RANDU: Uniform random number
 
-    call dynk_checkargs(nFields,5,"FUN funname RANDU seed1 seed2")
+    call dynk_checkargs(nSplit,5,"FUN funname RANDU seed1 seed2")
     call dynk_checkspace(4,0,1)
 
     ! Set pointers to start of funs data blocks
@@ -730,7 +730,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
   case("RANDON")
     ! RANDON: Turn by turn ON for one turn with the probability P, else OFF
 
-    call dynk_checkargs(nFields,6,"FUN funname RANDON seed1 seed2 P")
+    call dynk_checkargs(nSplit,6,"FUN funname RANDON seed1 seed2 P")
     call dynk_checkspace(4,1,1)
 
     ! Set pointers to start of funs data blocks
@@ -803,7 +803,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
     ! y_init[n-1]
     ! (etc., repeat dynk_funcs(<this>,4) times)
 
-    call dynk_checkargs(nFields,6,"FUN funname {FIR|IIR} N filename baseFUN")
+    call dynk_checkargs(nSplit,6,"FUN funname {FIR|IIR} N filename baseFUN")
 
     select case(trim(lnSplit(3)))
     case("FIR")
@@ -989,7 +989,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
   ! END CASES ADD, SUB, MUL, DIV & POW
 
-  case ("MINUS","SQRT","SIN","COS","LOG","LOG10","EXP")
+  case("MINUS","SQRT","SIN","COS","LOG","LOG10","EXP")
     ! One-argument operators  y = OP(f1)
 
     call dynk_checkargs(nSplit,4,"FUN funname {MINUS|SQRT|SIN|COS|LOG|LOG10|EXP} funname")
