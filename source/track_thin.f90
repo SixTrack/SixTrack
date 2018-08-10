@@ -1367,7 +1367,7 @@ subroutine thin6d(nthinerr)
         end if
         if(fluka_inside) then
           if(fluka_debug) then
-            write(lout,*) '[Fluka] Skipping lattice element at ', i
+            write(lout,"(a,i0)") "FLUKA> Skipping lattice element at ",i
             write(fluka_log_unit,*) '# Skipping lattice element at ', i
           end if
           goto 650
@@ -1377,9 +1377,10 @@ subroutine thin6d(nthinerr)
 
       ! BDEX was in a #ifndef collimat block, and may not be fully collimat-compatible,
       ! so for now the two shall not be mixed.
-      ! if(.not.do_coll .and. (bdex_enable .and. kz(ix).eq.0 .and. bdex_elementAction(ix).ne.0 )) then
-      !   call bdex_track(i,ix,n)
-      ! end if
+      ! Also, check that we have a single element, not a BLOC element.
+      if(.not.do_coll .and. ix > 0) then
+        if(bdex_enable .and. kz(ix) == 0 .and. bdex_elementAction(ix) /= 0) call bdex_track(i,ix,n)
+      end if
 
       if (do_coll) then
         dotrack = myktrack
