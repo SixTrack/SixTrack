@@ -57,6 +57,7 @@ The following table show a summary of the quantities used in describing the outp
 	\texttt{delta} & \texttt{dpsv(j)} &  & $ \delta=\frac{P-P_0}{P_0}$& canonical conjugate of $\sigma$ \\
 	\texttt{rvv}   & \texttt{rvv(j)} & [1]& $r_v=\beta_0/\beta$ &velocity ratio \\
 	\texttt{rpp}   & \texttt{oidpsv(j)} & [1]& $r_p=P_0/P$ &momentum ratio \\
+	\texttt{zeta} &  n/a & & $\zeta=r_v(s-\beta_0 c t) $& longitudinal offset conjugate with $\delta$\\
 	\texttt{mass}  & \texttt{nucm(j)} & [MeV/c$^2$] & $m$ &mass \\
 	\texttt{mtc}  & \texttt{mtc(j)} & [1] & $q/q_0 \cdot m_0/m $ & mass to charge ratio\\
 	\texttt{P} & \texttt{ejvf(j)} &[MeV/c] & $Pc$& momentum \\
@@ -183,14 +184,14 @@ NEXT
             \hline
             Header \#1 & The same as for format 2.\\
             \hline
-            Header \#2 & Closed orbit  $x$,$x'$,$y$,$y'$,$z$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
+            Header \#2 & Closed orbit  $x$,$x_p$,$y$,$y_p$,$\sigma$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
             \hline
-            Header \#3 & Matrix of eigenvectors (\texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism and described in the SixTrack physics manual, Chapter ``Optics Calculation''. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$z$,$dp/p$, units are $[\rm mm,mrad,mm,mrad,1]$. \\
+            Header \#3 & Matrix of eigenvectors (\texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism and described in the SixTrack physics manual, Chapter ``Optics Calculation''. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$\zeta$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$. \\
             \hline
             Header \#4 & Inverse of ta-matrix \texttt{inv(tamatrix)} used for normalization where \begin{equation}
                 z_{\rm norm}=\texttt{inv(tamatrix)}\cdot z
             \end{equation}
-            Matrix \texttt{inv(tamatrix)} and $z$ is given in canonical variables $x$,$p_x$,$y$,$p_y$,$z$,$dp/p$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
+            Matrix \texttt{inv(tamatrix)} and $z$ is given in canonical variables $x$,$p_x$,$y$,$p_y$,$\zeta$,$\deltaa$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
             \hline
             Header \#5 & Header with units of normalized particle coordinates:\\
                        & \texttt{\# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nz[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] ktrack} \\
@@ -292,7 +293,7 @@ For the linear optics calculation \ref{LinOpt}, the optics needs to be calculate
 \begin{longtabu}{@{}p{2.8cm}p{0.75\linewidth}}
     \texttt{filename} & One of the output files specified in the \texttt{FMA} block preceding \texttt{DUMP} block. \\
     \texttt{method}   & Method used to calculate the tune\index{tune}. Available methods are: \texttt{TUNELASK, TUNEFIT, TUNENEWT1, TUNEABT, TUNEABT2, TUNEFFT, TUNEFFTI, TUNENEWT, TUNEAPA, NAFF}. A short description of the different methods is given in Table~\ref{fma:tab:1}. \\
-    \texttt{fma\_flag\_norm} & Optional flag for calculating the tunes with physical ($x$,$x'$,$y$,$y'$,$s$,$dp/p$) or normalized coordinates in case physical coordinates are used in DUMP. The default is using normalized coordinates (\texttt{fma\_flag\_norm = 1}). For using physical coordinates explicitly set (\texttt{fma\_flag\_norm = 0}). See \textbf{Description} for the conditions under which normalization is available. \\
+    \texttt{fma\_flag\_norm} & Optional flag for calculating the tunes with physical ($x$,$x_p$,$y$,$y_p$,$\zeta$,$\delta$) or normalized coordinates in case physical coordinates are used in DUMP. The default is using normalized coordinates (\texttt{fma\_flag\_norm = 1}). For using physical coordinates explicitly set (\texttt{fma\_flag\_norm = 0}). See \textbf{Description} for the conditions under which normalization is available. \\
     \texttt{fma\_first\_turn, fma\_last\_turn} & Turns used for FMA analysis. As the \texttt{DUMP} files are used as input for the FMA analysis \texttt{fma\_first\_turn} must be larger \texttt{first\_turn} in the \texttt{DUMP} block and  \texttt{fma\_last\_turn} must be smaller than \texttt{last\_turn} in the \texttt{DUMP} block. If \texttt{fma\_last\_turn = -1} the last turn number in the dump file is taken as the last turn number, including the last turn tracked if the \texttt{last} setting of the dump equals -1. By default, \texttt{FMA} will use the same turns as for the \texttt{DUMP}. \\
     \texttt{NoNormDUMP} & A flag for disabling the \texttt{NORM\_filename*} output files. This saves disk space and speeds up the calculation of the FMA. If used, the flag should be alone on a one line of the FMA input block in \texttt{fort.3}. Note that the capitalization must be correct for the flag to be recognized.
 \end{longtabu}
@@ -347,9 +348,9 @@ The structure of the \texttt{NORM\_filename*} is described in Table~\ref{fma:tab
         \hline
         1 & Header & Closed orbit  $x$,$x'$,$y$,$y'$,$z$,$dE/E$, units are $[\rm mm,mrad,mm,mrad,1]$. \\
         \hline
-        2--38 & Header & Matrix of eigenvectors (\texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$z$,$dp/p$, units are $[\rm mm,mrad,mm,mrad,1]$. \\
+        2--38 & Header & Matrix of eigenvectors (\texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$\zeta$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$. \\
         \hline
-        39--75 & Header & Inverse of ta-matrix \texttt{inv(tamatrix)} used for normalization where \hbox{$z_{\rm norm}=\rm{ta}\cdot z$}. Matrix \texttt{inv(tamatrix)} is given in canonical variables $x$,$p_x$,$y$,$p_y$,$z$,$dp/p$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
+        39--75 & Header & Inverse of ta-matrix \texttt{inv(tamatrix)} used for normalization where \hbox{$z_{\rm norm}=\rm{ta}\cdot z$}. Matrix \texttt{inv(tamatrix)} is given in canonical variables $x$,$p_x$,$y$,$p_y$,$\zeta$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
         \hline
         76 & Header & Header with units:\\
         &  & \texttt{\# id turn pos[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nsig[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] kt} \\
