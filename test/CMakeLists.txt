@@ -49,6 +49,7 @@ SET(TESTS_NOFORT10
   dynk_globalvars
   dynk_filelin
   dynk_smooth_operators
+  dynk_randomly_so
   thick6ddynk
   dump_binary
   dump4
@@ -72,8 +73,9 @@ SET(TESTS_NOFORT10
 )
 
 # List of tests that do not produce singletrackfile.dat or a fort.90
-SET(NO_STF_FORT90
+SET(TESTS_NO_STF_FORT90
   dynk_smooth_operators
+  dynk_randomly_so
 )
 
 if(LIBARCHIVE)
@@ -96,6 +98,7 @@ SET(SIXTRACK_TESTS
   dynk_globalvars
   dynk_filelin
   dynk_smooth_operators
+  dynk_randomly_so
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
@@ -223,6 +226,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
     SET(STF_ENABLE 0)
     SET(FORT90 1)
   endif(STF)
+  LIST(FIND TESTS_NO_STF_FORT90 ${TST} NO_STF_FORT90)
   if(NOT ${NO_STF_FORT90} MATCHES -1)
     SET(STF_ENABLE 0)
     SET(FORT90 0)
@@ -359,6 +363,7 @@ SET(FAST_TESTS
   dynk_globalvars
   dynk_filelin
   dynk_smooth_operators
+  dynk_randomly_so
   elensidealthin4d
   elensidealthck4d
   elensidealthck6d
