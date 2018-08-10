@@ -115,7 +115,7 @@ The following table show a summary of the quantities used in describing the outp
                     & Here \textcolor{blue!90}{bez} is the name of the SINGLE ELEMENT, and \textcolor{blue!90}{napx} the number of particles being tracked (per pack in case of collimation), \textcolor{blue!90}{ndumpt(i)} the dump frequency as described above, and \textcolor{blue!90}{dumpfirst(i)} and \textcolor{blue!90}{dumplast(i)} the first and last turn as descirbed below.\vspace{1mm} \\
                     & \texttt{HIGH} and \texttt{FRONT} is normally false, unless this (global) option is active, as described below.\\
         \hline
-        Header \#2 & \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0 ktrack}\vspace{1mm} \\
+        Header \#2 & \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\vspace{1mm} \\
                    & If there are multiple single elements attached to the file, the headers are repeated.\\
         \hline
         Lines      & As described in the header, one per particle and per turn. \\
