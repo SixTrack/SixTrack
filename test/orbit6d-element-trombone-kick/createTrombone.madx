@@ -1,0 +1,74 @@
+circum=120.;
+lcell=20.;
+f=lcell/sin(pi/5)/4;
+k=1.0/f;
+
+beam, particle=proton, energy = 2;
+angle = 2*pi/6;
+qfstart: multipole, knl={0, 0.99*k};
+qf: multipole, knl={0, k};
+qd: multipole, knl={0, -k};
+qfweak: multipole, knl={0, 0.0001*k};
+hkick: HKICKER,L=real, KICK=0.00030, TILT=real;
+vkick: VKICKER,L=real, KICK=0.01033, TILT=real;
+rfcav: RFCAVITY, VOLT=0.1, LAG=0.0, L =0.0, HARMON=100;
+markLOC1.BIM:marker;
+markLOC2.BIM:marker;
+
+
+seq: sequence, refer=center, l=circum;
+qfstart: qfstart, at = 0.00*lcell ;
+qd: qd, at = 0.5 * lcell;
+hkick: hkick, at =0.55* lcell;
+vkick: vkick, at =0.56* lcell;
+qf: qf, at = 1.0 * lcell;
+qd: qd, at = 1.5 * lcell;
+qf: qf, at = 2.0 * lcell;
+qd: qd, at = 2.5 * lcell;
+qf: qf, at =  3*lcell;
+rfcav:rfcav, at = 3.001*lcell;
+qd: qd, at = 0.5 * lcell+3*lcell;
+markLOC1.BIM, at = 0.7 * lcell+3*lcell;
+qfweak: qfweak, at = 0.7 * lcell+3.00005*lcell;
+markLOC2.BIM, at = 0.7 * lcell+3.0001*lcell;
+qf: qf, at = 1.0 * lcell+3*lcell;
+qd: qd, at = 1.5 * lcell+3*lcell;
+qf: qf, at = 2.0 * lcell+3*lcell;
+qd: qd, at = 2.5 * lcell+3*lcell;
+endsequence;
+use,sequence=seq;
+SELECT,FLAG=twiss,clear;
+select, flag=twiss, column=name, betx, bety, MUX, MUY, pt, t;
+
+!twiss, file="beforeTromb.twiss";
+
+!This matrix is kept just to have has a test.
+!dumpytromb : MATRIX,RM11:=1,RM12:=1,RM13:=1,RM14:=1,RM15:=1, RM16:=1,
+!                    RM21:=1,RM22:=1,RM23:=1,RM24:=1,RM25:=1, RM26:=1,
+!                    RM31:=1,RM32:=1,RM33:=1,RM34:=1,RM35:=1, RM36:=1,
+!                    RM41:=1,RM42:=1,RM43:=1,RM44:=1,RM45:=1, RM46:=1,
+!	            RM51:=1,RM52:=1,RM53:=1,RM54:=1,RM55:=1, RM56:=1,
+!	            RM61:=1,RM62:=1,RM63:=1,RM64:=1,RM65:=1, RM66:=1;
+
+MATLOC1.BIM : MATRIX,KICK1=0.001,KICK2=0.002,KICK3=0.003,KICK4=0.004,
+           KICK5=0.005,KICK6=0.006,RM11=1.,RM22=1.,RM33=1.,RM44=1.,RM55=1.,RM66=1.;
+MATLOC2.BIM : MATRIX,KICK1=-0.001,KICK2=-0.002,KICK3=-0.003,KICK4=-0.004,
+           KICK5=-0.005,KICK6=-0.006,RM11=1.,RM22=1.,RM33=1.,RM44=1.,RM55=1.,RM66=1.;
+
+twiss;
+
+seqedit,sequence=seq;
+install, element=MATLOC1.BIM, at = 0.7 * lcell+3*lcell;
+install, element=MATLOC2.BIM, at = 0.7 * lcell+3.000001*lcell;
+remove, element=markLOC1.BIM;
+remove, element=markLOC2.BIM;
+endedit;
+
+use, sequence=seq;
+SELECT,FLAG=twiss,clear;
+select, flag=twiss, column=name, x,px, y,py,  betx, bety, MUX, MUY, pt, t;
+
+twiss, file="afterTrom.twiss";
+sixtrack, CAVALL;	
+stop;
+
