@@ -127,7 +127,7 @@ The following table show a summary of the quantities used in describing the outp
         Header & No header.\vspace{1mm}\\
                & A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in the \texttt{DUMP} block.\\
         \hline
-	Lines  & \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] (E-E0)/E0 ktrack} \\
+	Lines  & \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0 ktrack} \\
                & The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the Format 2 (sans headers). \\
         \hline
 
@@ -147,7 +147,7 @@ The following table show a summary of the quantities used in describing the outp
         \hline
         Header \#1 & The same as for format 2.\\
         \hline
-	Header \#2 & \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <sigma>[mm] <dE/E>[1] <x\^{}2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> <xp\^{}2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> <y\^{}2> <y*yp> <y*z> <y*(dE/E)> <yp\^{}2> <yp*z> <yp*(dE/E)> <z\^{}2> <z*(dE/E)> <(dE/E)\^{}2>}\vspace{1mm} \\
+	Header \#2 & \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] <x\^{}2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> <xp\^{}2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> <y\^{}2> <y*yp> <y*z> <y*(dE/E)> <yp\^{}2> <yp*z> <yp*(dE/E)> <z\^{}2> <z*(dE/E)> <(dE/E)\^{}2>}\vspace{1mm} \\
                    & If there are multiple single elements attached to the file, the headers are repeated. A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
         \hline
         Lines      & As described in the header; one per turn (and for collimation, one per pack of particles). For the ``product'' quantities, the units are the product of the units of the ``normal'' ones. \\
