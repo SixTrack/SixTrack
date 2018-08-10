@@ -439,7 +439,7 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
   ! Expand Arrays
   if(sixin_nSing > nele-2) then
     call expand_arrays(nele+100, npart, nblz, nblo)
-    call resize(sixin_bez0, mNameLen, nele, str_nmZeros, "sixin_bez0")
+    call alloc(sixin_bez0, mNameLen, nele, str_nmZeros, "sixin_bez0")
   end if
 
   if(abs(kz(sixin_nSing)) /= 12 .or. (abs(kz(sixin_nSing)) == 12 .and. sixin_ncy2 == 0)) then
@@ -2699,7 +2699,7 @@ subroutine sixin_parseInputLinePOST(inLine, iLine, iErr)
     if(abs(cma1) <= pieni) cma1 = one
     cma1 = cma1*c1e3
     if(abs(cma2) <= pieni) cma2 = one
-    ipos = 1
+    ipos = 1 ! Turn postprocessing ON.
 
   case default
     write(lout,"(a,i0)") "POST> ERROR Unexpected line number ",iLine

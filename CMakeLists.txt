@@ -61,12 +61,7 @@ MESSAGE(STATUS "Running on: ${CMAKE_SYSTEM_NAME} with ${CMAKE_SYSTEM_PROCESSOR} 
 #get the current git commit hash
 EXECUTE_PROCESS(COMMAND git log -n1 --pretty=format:%H WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_REVISION)
 STRING(STRIP ${GIT_REVISION} GIT_REVISION)
-message(STATUS "GIT_REVISION: ${GIT_REVISION}")
-
-#replace the "GIT_HASH" in version.f90
-#add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/version.f90 ${CMAKE_BINARY_DIR})
-#STRING(REPLACE "GIT_HASH" "\"${GIT_REVISION}\"" VERSION_FILE_OUT ${IFILE})
-#file(WRITE ${CMAKE_BINARY_DIR}/version.f90 ${VERSION_FILE_OUT})
+message(STATUS "Git Revision: ${GIT_REVISION}")
 
 ###################################################################################################
 # Sixtrack configuration options
@@ -82,7 +77,6 @@ OPTION(STF "Single Track File - write all tracks for postprocessing to fort.90, 
 # and we have OFF
 OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
 OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal 'myboinc.f' dummy library)" OFF)
-OPTION(COLLIMAT "Collimation code" OFF)
 #OPTION(CPSS "CERN physics screensaver support" OFF)
 OPTION(BOINC "BOINC distributed computing support" OFF)
 OPTION(CR "Checkpoint / restarting" OFF)
@@ -132,9 +126,9 @@ OPTION(ROUND_ZERO "Always round towards zero after floating point operations" OF
 
 OPTION(ROOT "Link to the root libraries" OFF)
 
-SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/source/boinc CACHE PATH "Path to the boinc build folder")
-SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/source/libarchive_build CACHE PATH "Path to the libarchive build folder")
-SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/source/libarchive CACHE PATH "Path to the libarchive source folder")
+SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/lib/boinc CACHE PATH "Path to the boinc build folder")
+SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive_build CACHE PATH "Path to the libarchive build folder")
+SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive CACHE PATH "Path to the libarchive source folder")
 
 ###################################################################################################
 # Sixtrack binary name construction
@@ -175,9 +169,6 @@ if(CERNLIB)
 endif()
 if(API)
 	SET(SIXTRACK_FEAT_CR "api_${SIXTRACK_FEAT_CR}")
-endif()
-if(COLLIMAT)
-	SET(SIXTRACK_FEAT_CR "collimat_${SIXTRACK_FEAT_CR}")
 endif()
 if(BOINC)
 	SET(SIXTRACK_FEAT_CR "boinc_${SIXTRACK_FEAT_CR}")
@@ -291,7 +282,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}_${SIXTRACK_FEAT_DA}")
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST COLLIMAT BOINC BEAMGAS STF MERLINSCATTER NAFF G4COLLIMAT FLUKA CR)
+LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER NAFF G4COLLIMAT FLUKA CR)
 LIST(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
 LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
@@ -306,7 +297,7 @@ list(APPEND FORT90_LIB
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist scatter dump dynk
 	aperture mod_fluc beam6d_fox six_fox postprocessing
-	read_input
+	read_input ranlux collimation
 )
 
 # Files unique to DA or CR version
@@ -323,10 +314,6 @@ endif(CR)
 if(DEBUG)
 	list(APPEND FORT90_LIB debug_dumps)
 endif(DEBUG)
-
-if(COLLIMAT)
-	list(APPEND FORT90_LIB ranlux collimation)
-endif(COLLIMAT)
 
 if(HDF5)
 	list(APPEND FORT90_LIB hdf5_output hdf5_sixtrack)
@@ -528,34 +515,10 @@ if(API)
 		message(FATAL_ERROR "Building with API requires BOINC enabled")
 	endif(NOT BOINC)
 endif(API)
-if(BEAMGAS)
-	if(NOT COLLIMAT)
-		message(FATAL_ERROR "Building with BEAMGAS requires COLLIMAT enabled")
-	endif(NOT COLLIMAT)
-endif(BEAMGAS)
-if(COLLIMAT)
-	if(CR)
-		message(FATAL_ERROR "Cannot build COLLIMAT with CR enabled.")
-	endif()
-	if(SIXDA)
-		message(STATUS "Will not build SixDA when COLLIMAT is enabled.")
-		set(SIXDA OFF)
-	endif()
-endif()
 if(FLUKA)
 	if(SIXDA)
 		message(STATUS "Will not build SixDA when FLUKA is enabled.")
 		set(SIXDA OFF)
-	endif()
-endif()
-if(MERLINSCATTER)
-	if(NOT COLLIMAT)
-		message(FATAL_ERROR "Building with MERLINSCATTER requires COLLIMAT enabled.")
-	endif()
-endif()
-if(G4COLLIMAT)
-	if(NOT COLLIMAT)
-		message(FATAL_ERROR "Building with G4COLLIMAT requires COLLIMAT enabled.")
 	endif()
 endif()
 if(64BIT)
@@ -624,7 +587,7 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	##############
 	#  gfortran  #
 	##############
-	
+
 	SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
 	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
 	set(PREPRO_FLAGS -cpp -E -P)
@@ -690,7 +653,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	###########
 	#  ifort  #
 	###########
-	
+
 	set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
 	set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
 	set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
@@ -699,7 +662,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
 	if(WARN)
 		set(CMAKE_Fortran_FLAGS "-warn unused ${CMAKE_Fortran_FLAGS}")
 	endif(WARN)
-	
+
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
 		set(CMAKE_Fortran_FLAGS_DEBUG "-m32 ${CMAKE_Fortran_FLAGS_DEBUG}")
@@ -737,7 +700,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 	############
 	#  nagfor  #
 	############
-	
+
 	SET(NAGFOR ON)
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
 	set(CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
@@ -957,7 +920,9 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 endif()
 
 #check that the compiler has the features we need!
-    include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
+# Disabling this test until it's cmake version is in sync with the main build script.
+# See https://github.com/SixTrack/SixTrack/issues/594
+#include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
 
 #MPI default build options
 #SET( CMAKE_CXX_FLAGS_MPI "-DNDEBUG -Wall -O3 -pedantic -DENABLE_MPI -march=native" CACHE STRING
@@ -1082,12 +1047,11 @@ if(NAFF)
 	include_directories( ${FFTW_INCLUDES} )
 	message(STATUS "Include dirs of FFTW: " ${FFTW_INCLUDES} )
 	message(STATUS "Libs of of FFTW:      " ${FFTW_LIBRARIES} )
-	
-	
+
 	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/source/naff/*.cpp ${CMAKE_SOURCE_DIR}/source/naff/*.cc)
 	add_library(naff STATIC ${NAFF_SOURCES})
 	target_link_libraries(naff ${FFTW_LIBRARIES})
-	
+
 	#Enable c++11
 	set_property(TARGET naff PROPERTY CXX_STANDARD 11)
 
@@ -1099,38 +1063,26 @@ if(NAFF)
 	endif(64BIT)
 endif()
 
-
-add_custom_target(copy_input_files)
-add_dependencies(copy_input_files include_mkdir)
-
-add_custom_target(include_mkdir)
-file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/source/include/*.f90)
-add_custom_command(TARGET include_mkdir POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/)
-foreach(loop IN ITEMS ${SIXTRACK_INCL})
-	add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${loop} ${CMAKE_BINARY_DIR}/include/)
-endforeach()
-#add_custom_command(TARGET copy_input_files POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/version.f90 ${CMAKE_BINARY_DIR})
-
 if(BOINC AND API)
 	include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
-	
+
 	#The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
 	#go into the boinc source folder, cd api; make boinc_api_fortran.o
 	add_library(boinc_api_fortran STATIC IMPORTED)
 	set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
 	# add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp) #Alternative way of building and linking boinc_api_fortran.cpp/.o
 	target_link_libraries(SixTrackCR boinc_api_fortran)
-	
+
 	#add the libs
 	add_library(boinc STATIC IMPORTED)
 	set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
-	
+
 	add_library(boinc_api STATIC IMPORTED)
 	set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
 	target_link_libraries(SixTrackCR boinc_api)
-	
+
 	target_link_libraries(SixTrackCR boinc)
-	
+
 	find_library(stdc++ STATIC stdc++)
 	target_link_libraries(SixTrackLib stdc++ Threads::Threads)
 
@@ -1151,6 +1103,7 @@ if(FLUKA)
 	target_link_libraries(SixTrackLib flukaIO)
 endif(FLUKA)
 
+add_custom_target(copy_input_files)
 if(LIBARCHIVE)
 	add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_Fwrapper.c POST_BUILD
@@ -1167,7 +1120,7 @@ if(LIBARCHIVE)
 		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h
 		DEPENDS copy_input_files
 	)
-	
+
 	include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
 	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -1184,14 +1137,14 @@ if(LIBARCHIVE)
 	else()
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
 	endif()
-	
+
 	#find_library(z STATIC z)
 	add_library(z STATIC IMPORTED)
-	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/zlib/install/lib/libz.a)
-	
+	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/zlib/install/lib/libz.a)
+
 	target_link_libraries(SixTrackCR libarchive z Threads::Threads)
 	target_link_libraries(libArchiveTester libarchive z Threads::Threads)
-	
+
 	add_definitions( -DLIBARCHIVE )
 endif()
 
@@ -1207,9 +1160,8 @@ endif()
 ###################################################################################################
 
 add_custom_target(generate_input)
-add_custom_target(run_prepro)
-add_dependencies(run_prepro dafor)
-add_dependencies(generate_input run_prepro)
+add_dependencies(generate_input dafor)
+file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/source/include/*.f90)
 
 ## Run the preprocessor on all .f90 files and output them to the build directory
 foreach(loop IN ITEMS ${FORT90_LIB} ${FORT90_CR} ${FORT90_DA})
@@ -1220,13 +1172,13 @@ foreach(loop IN ITEMS ${FORT90_LIB} ${FORT90_CR} ${FORT90_DA})
 			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
 			COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/source/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}a.f90
 			COMMAND $<TARGET_FILE:dafor> ${loop}a.f90 ${loop}.f90 > ${loop}_dafor.log
-			DEPENDS run_prepro ${CMAKE_SOURCE_DIR}/source/${loop}.f90
+			DEPENDS generate_input ${CMAKE_SOURCE_DIR}/source/${loop}.f90
 		)
 	else()
 		add_custom_command(
 			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
 			COMMAND ${PREPRO_EXEC} ${PREPRO_FLAGS} ${CMAKE_SOURCE_DIR}/source/${loop}.f90 > ${CMAKE_CURRENT_BINARY_DIR}/${loop}.f90
-			DEPENDS run_prepro ${CMAKE_SOURCE_DIR}/source/${loop}.f90
+			DEPENDS generate_input ${CMAKE_SOURCE_DIR}/source/${loop}.f90
 		)
 	endif()
 endforeach()
@@ -1308,55 +1260,6 @@ endif(HDF5)
 if(G4COLLIMAT)
 	target_link_libraries(SixTrackCR g4collimat ${Geant4_LIBRARIES} Threads::Threads)
 endif(G4COLLIMAT)
-
-#Again for naglib, I assume we are on lxplus or have CERN afs access.
-# if(NAGLIB)
-# 	if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
-# 		message(WARNING "Compiling with NAGLIB and gfortran may cause SixTrack to segfault.")
-# 	endif()
-	
-# 	if(64BIT)
-# 		if(STATIC)
-# 			if(NOT Fortran_COMPILER_NAME MATCHES "ifort.*")
-# 				find_library(nglibifcoremt NAMES libifcoremt.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			endif()
-# 			find_library(nglibsvml NAMES libsvml.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibirng NAMES libirng.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibimf NAMES libimf.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibirc NAMES libirc.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglib NAMES libnag_nag.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/lib)
-# 		else()
-# 			if(NOT Fortran_COMPILER_NAME MATCHES "ifort.*")
-# 				find_library(nglibifcoremt NAMES libifcoremt.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			endif()
-# 			find_library(nglibsvml NAMES libsvml.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibirng NAMES libirng.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibimf NAMES libimf.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglibirc NAMES libirc.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/rtl)
-# 			find_library(nglib NAMES libnag_nag.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fll6i24dcl/lib)
-# 		endif(STATIC)
-# 	endif(64BIT)
-
-# 	if(32BIT)
-# 		if(STATIC)
-# 			find_library(nglibifcoremt NAMES libifcoremt.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibsvml NAMES libsvml.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibirng NAMES libirng.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibimf NAMES libimf.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibirc NAMES libirc.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglib NAMES libnag_nag.a PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/lib)
-# 		else()
-# 			find_library(nglibifcoremt NAMES libifcoremt.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibsvml NAMES libsvml.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibirng NAMES libirng.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibimf NAMES libimf.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglibirc NAMES libirc.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/rtl)
-# 			find_library(nglib NAMES libnag_nag.so PATHS /afs/cern.ch/sw/nag/mark24/lnx/fllux24dcl/lib)
-# 		endif(STATIC)
-# 	endif(32BIT)
-
-# 	target_link_libraries(SixTrack ${nglib} ${nglibifcoremt} ${nglibsvml} ${nglibirng} ${nglibimf} ${nglibirc} dl pthread )
-# endif(NAGLIB)
 
 IF(COVERAGE)
 	target_compile_options(SixTrackLib PRIVATE -fprofile-arcs -ftest-coverage)

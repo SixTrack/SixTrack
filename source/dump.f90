@@ -908,10 +908,6 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   use mod_commonmn
   use mod_hions
 
-#ifdef COLLIMAT
-  use collimation
-#endif
-
   implicit none
 
   ! interface variables:

@@ -8,6 +8,7 @@ module mod_units
     logical,            private :: formatted
     character(len=2),   private :: mode
     integer,            private :: recl
+    logical,            private :: open
   end type unitSpec
 
   type(unitSpec), allocatable, private :: units_uList(:)
@@ -35,9 +36,9 @@ subroutine units_openUnit(unit,fileName,formatted,mode,err,status,recl)
   integer,          optional, intent(in)    :: recl
 
   type(unitSpec),   allocatable :: tmpUnits(:)
-  character(len=:), allocatable :: fFileName, fStatus
+  character(len=:), allocatable :: fFileName, fStatus, fAction, fPosition
   character(len=256) :: tmpBoinc
-  integer i, fRecl, nUnits
+  integer i, fRecl, nUnits, ioStat
   logical fFio, isOpen
 
   ! The code below breaks CR. Must look into later.
@@ -84,37 +85,95 @@ subroutine units_openUnit(unit,fileName,formatted,mode,err,status,recl)
 
   if(.not. formatted) fFio = .false.
 
+  select case(mode)
+  case("r")
+    fAction   = "read"
+    fPosition = "asis"
+  case("w")
+    fAction   = "write"
+    fPosition = "asis"
+  case("rw")
+    fAction   = "readwrite"
+    fPosition = "asis"
+  case("r-")
+    fAction   = "read"
+    fPosition = "rewind"
+  case("w-")
+    fAction   = "write"
+    fPosition = "rewind"
+  case("rw-")
+    fAction   = "readwrite"
+    fPosition = "rewind"
+  case("w+")
+    fAction   = "write"
+    fPosition = "append"
+  case("rw+")
+    fAction   = "readwrite"
+    fPosition = "append"
+  case default
+    fAction   = "read"
+    fPosition = "asis"
+  end select
+
   units_uList(units_nList)%unit      = unit
   units_uList(units_nList)%filename  = fileName
   units_uList(units_nList)%formatted = formatted
   units_uList(units_nList)%mode      = mode
   units_uList(units_nList)%recl      = fRecl
+  units_uList(units_nList)%open      = .true.
 
   if(formatted) then
     if(fRecl > 0) then
       if(fFio) then
-        open(unit,file=fFileName,form="formatted",status=fStatus,err=10,round="nearest",recl=fRecl)
+        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
+          action=fAction,position=fPosition,round="nearest",recl=fRecl)
       else
-        open(unit,file=fFileName,form="formatted",status=fStatus,err=10,recl=fRecl)
+        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
+          action=fAction,position=fPosition,recl=fRecl)
       end if
     else
       if(fFio) then
-        open(unit,file=fFileName,form="formatted",status=fStatus,err=10,round="nearest")
+        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
+          action=fAction,position=fPosition,round="nearest")
       else
-        open(unit,file=fFileName,form="formatted",status=fStatus,err=10)
+        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
+          action=fAction,position=fPosition)
       end if
     end if
   else
-    open(unit,file=fFileName,form="unformatted",status=fStatus,err=10)
+    open(unit,file=fFileName,form="unformatted",status=fStatus,iostat=ioStat,&
+      action=fAction,position=fPosition)
   endif
 
-  err = .false.
+  if(ioStat /= 0) then
+    err = .true.
+    write(lout,"(a,i0)") "UNITS> File '"//trim(fFileName)//"' reportet iostat = ",ioStat
+  else
+    err = .false.
+  end if
   return
 
-10 continue
-  err = .true.
-
 end subroutine units_openUnit
+
+subroutine units_closeUnits(unit)
+
+  implicit none
+
+  integer, intent(in) :: unit
+
+  integer i
+  logical isOpen
+
+  inquire(unit=unit, opened=isOpen)
+  if(isOpen) close(unit)
+
+  do i=1,units_nList
+    if(units_uList(i)%unit == unit) then
+      units_uList(i)%open = .false.
+    end if
+  end do
+
+end subroutine units_closeUnits
 
 subroutine units_flushUnits(unit)
 

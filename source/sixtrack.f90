@@ -54,8 +54,8 @@ subroutine daten
   use mod_dist
 
   use scatter,   only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
-  use dynk,      only : ldynk,ldynkdebug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
-  use fma,       only : fma_parseInputLine
+  use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
+  use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
   use zipf,      only : zipf_parseInputLine,zipf_parseInputDone
   use bdex,      only : bdex_parseInputLine,bdex_parseInputDone
@@ -65,7 +65,7 @@ subroutine daten
   use aperture
   use mod_hions
 #ifdef FLUKA
-  use mod_fluka, only : fluka_parsingDone,fluka_parseInputLine
+  use mod_fluka, only : fluka_parsingDone,fluka_parseInputLine,fluka_enable
 #endif
 #ifdef HDF5
   use hdf5_output
@@ -73,9 +73,7 @@ subroutine daten
 #ifdef ROOT
   use root_output
 #endif
-#ifdef COLLIMAT
   use collimation
-#endif
 
   implicit none
 
@@ -91,12 +89,6 @@ subroutine daten
   logical inErr,parseFort2,prevPrint
 
   integer icc,il1,ilin0,iMod,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
-
-#ifdef COLLIMAT
-  logical has_coll
-#else
-  logical do_coll
-#endif
 
 ! ================================================================================================ !
 !  SET DEFAULT VALUES
@@ -251,13 +243,6 @@ subroutine daten
   aa0          = 1
   nucm0        = pmap
   has_hion     = .false.
-
-  ! COLLIMATION MODULE
-#ifdef COLLIMAT
-  has_coll  = .false.
-#else
-  do_coll   = .false.
-#endif
 
 ! ================================================================================================ !
 !  SET DEFAULT INPUT PARSING VALUES
@@ -783,35 +768,31 @@ subroutine daten
     end if
 
   case("COLL") ! Collimation Block
+#ifdef CR
+    write(lout,'(a)') "INPUT> ERROR Collimation incompatible with checkpoint/restart (CR)"
+    goto 9999
+#endif
     if(openBlock) then
-#ifndef COLLIMAT
-      if(do_coll) then
-        write(lout,"(a)") "INPUT> ERROR Collimation enabled, but SixTrack was not compiled with collimation support."
-        goto 9999
-      end if
-#else
-      has_coll = .true.
+      ! If a collimation block is present, even disabled, allocate the storage.
+      ! This mimmics the old compiler flag.
+      call collimation_allocate_arrays
+
       if(ilin /= 1) then
         write(lout,"(a)") "INPUT> ERROR Incompatible flag with collimation version detected in the LINEAR OPTICS block."
         write(lout,"(a)") "INPUT>       You have not chosen ilin=1 (4D mode), which is required for the collimation version."
         write(lout,"(a)") "INPUT>       Note that the ilin=2 (6D mode) is not compatible with the collimation version."
         goto 9999
       end if
-#endif
     elseif(closeBlock) then
       continue
     else
-#ifdef COLLIMAT
       call collimate_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
-#else
-      continue
-#endif
     end if
 
   case("FMA") ! FMA Block
     if(openBlock) then
-      continue
+      call fma_allocate
     elseif(closeBlock) then
       continue
     else
@@ -833,8 +814,8 @@ subroutine daten
     if(openBlock) then
       call dynk_allocate
     elseif(closeBlock) then
-      if(ldynkdebug) call dynk_dumpdata
-      ldynk = .true.
+      if(dynk_debug) call dynk_dumpdata
+      dynk_enabled = .true.
       call dynk_inputsanitycheck
     else
       call dynk_parseInputLine(inLine,inErr)
@@ -947,9 +928,28 @@ subroutine daten
     emitx  = sixin_emitNX*gammar
     emity  = sixin_emitNY*gammar
 
-#ifdef COLLIMAT
-    call collimate_postInput(gammar,has_coll)
+    if (do_coll) then
+      call collimate_postInput(gammar)
+    endif
+
+    !Check for incompatible flags
+    if (ipos == 1) then
+      if (do_coll) then
+        write(lout,'(a)') "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
+        call prror(-1)
+      endif
+
+      if (scatter_active) then
+        write(lout,'(a)') "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
+        call prror(-1)
+      endif
+#ifdef FLUKA
+      if (fluka_enable) then
+        write(lout,'(a)') "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
+        call prror(-1)
+      endif
 #endif
+    endif
 
   end if
 
@@ -1718,7 +1718,7 @@ subroutine initialize_element(ix,lfirst)
 !-----------------------------------------------------------------------
 
       use floatPrecision
-      use dynk, only : dynk_elemdata
+      use dynk, only : dynk_elemData
       use numerical_constants
       use crcoall
       use string_tools
@@ -1872,13 +1872,13 @@ subroutine initialize_element(ix,lfirst)
 
          !MULT support removed until we have a proper use case.
 !c$$$         if (lfirst) then
-!c$$$            dynk_elemdata(ix,1) = el(ix) !Flag for type
-!c$$$            dynk_elemdata(ix,2) = ed(ix) !Bending strenght
-!c$$$            dynk_elemdata(ix,3) = ek(ix) !Radius
+!c$$$            dynk_elemData(ix,1) = el(ix) !Flag for type
+!c$$$            dynk_elemData(ix,2) = ed(ix) !Bending strenght
+!c$$$            dynk_elemData(ix,3) = ek(ix) !Radius
 !c$$$         else
-!c$$$            el(ix) = dynk_elemdata(ix,1)
-!c$$$            dynk_elemdata(ii,2) = ed(ii) !Updated in dynk_setvalue
-!c$$$            ek(ii) = dynk_elemdata(ix,3)
+!c$$$            el(ix) = dynk_elemData(ix,1)
+!c$$$            dynk_elemData(ii,2) = ed(ii) !Updated in dynk_setvalue
+!c$$$            ek(ii) = dynk_elemData(ix,3)
 !c$$$         end if
 
          ! Moved from daten():
@@ -1972,7 +1972,7 @@ subroutine initialize_element(ix,lfirst)
          !Moved from daten
          phasc(ix) = el(ix)
          el(ix) = zero
-         dynk_elemdata(ix,3) = phasc(ix)
+         dynk_elemData(ix,3) = phasc(ix)
          if (.not.lfirst) then
 
             ! Doesn't work, as i is not initialized here.
@@ -2559,14 +2559,10 @@ subroutine comnul
   use elens
   use wire
   use scatter,     only : scatter_comnul
-  use dynk,        only : dynk_comnul
-  use fma,         only : fma_comnul
   use dump,        only : dump_comnul
   use zipf,        only : zipf_comnul
   use bdex,        only : bdex_comnul
-#ifdef COLLIMAT
   use collimation, only : collimation_comnul
-#endif
 #ifdef HDF5
   use hdf5_output, only : h5_comnul
 #endif
@@ -3023,11 +3019,6 @@ subroutine comnul
 !     always in main code
       call dump_comnul
 
-!--FMA ANALYSIS---------------------------------------------------------
-!     M. Fitterer, FNAL
-!     last modified: 2016
-      call fma_comnul
-
     !1) --ELEN - ELECTRON LENS---------------------------------------------------------
 !     M. Fitterer (FNAL), A. Mereghetti
 !     last modified: 09-02-2018
@@ -3101,13 +3092,6 @@ subroutine comnul
 !     always in main code
       call aperture_comnul
 
-!--DYNAMIC KICKS--------------------------------------------------------
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 03-09-2014
-!     initialise common
-!     always in main code
-!     - general-purpose variables
-      call dynk_comnul
 !--ZIPF-----------------------------------------------------------------
       call zipf_comnul
 !--SCATTER--------------------------------------------------------------
@@ -3117,9 +3101,7 @@ subroutine comnul
       call h5_comnul
 #endif
 !--COLLIMATION----------------------------------------------------------
-#ifdef COLLIMAT
       call collimation_comnul
-#endif
 !--BDEX-----------------------------------------------------------------
       call bdex_comnul
 !-----------------------------------------------------------------------
@@ -4824,9 +4806,7 @@ subroutine linopt(dpp)
   use hdf5_linopt
 #endif
 
-#ifdef COLLIMAT
   use collimation
-#endif
 
   implicit none
 
@@ -4838,11 +4818,6 @@ subroutine linopt(dpp)
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 #endif
   character(len=mNameLen) idum
-
-#ifdef COLLIMAT
-!+ca collpara
-!+ca dblinopt
-#endif
 
   dimension t(6,4)
   dimension beta(2),alfa(2),phibf(2),phi(2)
@@ -4958,11 +4933,7 @@ subroutine linopt(dpp)
 !--START OF THE MACHINE
       idum='START'
       nr=0
-#ifndef COLLIMAT
-      call writelin(nr,idum,etl,phi,t,1,.false.)
-#else
       call writelin(nr,idum,etl,phi,t,1,.false.,0)
-#endif
       if(ntco.ne.0) then
         if(mod(nr,ntco).eq.0) call cpltwis(idum,t,etl,phi)
       endif
@@ -5003,12 +4974,7 @@ subroutine linopt(dpp)
             etl=etl+el(jk)
 
 !c$$$            nr=nr+1
-!c$$$+if .not.collimat.and..not.bnlelens
-!c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
-!c$$$+ei
-!c$$$+if collimat.or.bnlelens
 !c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
-!c$$$+ei
 !c$$$            if(ntco.ne.0) then
 !c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
 !c$$$            endif
@@ -5048,11 +5014,7 @@ subroutine linopt(dpp)
           end do
 
           nr=nr+1
-#ifndef COLLIMAT
-          call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
-#else
           call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
-#endif
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
           endif
@@ -5105,11 +5067,7 @@ subroutine linopt(dpp)
           enddo
 
           nr=nr+1
-#ifndef COLLIMAT
-          call writelin(nr,bez(jk),etl,phi,t,ix,.true.)
-#else
           call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
-#endif
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
           endif
@@ -5122,11 +5080,7 @@ subroutine linopt(dpp)
   150   continue !End of loop over elements inside block
 
         nr=nr+1
-#ifndef COLLIMAT
-        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
-#else
         call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
-#endif
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
@@ -5181,11 +5135,7 @@ subroutine linopt(dpp)
         end do
 
         nr=nr+1
-#ifndef COLLIMAT
-        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
-#else
         call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
-#endif
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
@@ -5239,11 +5189,7 @@ subroutine linopt(dpp)
         end do
 
         nr=nr+1
-#ifndef COLLIMAT
-        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.)
-#else
         call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
-#endif
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
         endif
@@ -5265,17 +5211,9 @@ subroutine linopt(dpp)
         kzz=kz(ix)
 
  ! Cavity
-#ifndef COLLIMAT
-        if(kpz.eq.6) then
-#else
-        if(abs(kzz).eq.12) then
-#endif
+        if( kpz.eq.6 .or.  abs(kzz).eq.12 ) then
           nr=nr+1
-#ifndef COLLIMAT
-          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
-#else
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-#endif
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
@@ -5292,11 +5230,7 @@ subroutine linopt(dpp)
         if(kzz.eq.20.and.nbeam.ge.1) then
           nbeam=k
           nr=nr+1
-#ifndef COLLIMAT
-          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
-#else
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-#endif
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
@@ -5341,11 +5275,7 @@ subroutine linopt(dpp)
      &     .or.abs(kzz).eq.15) then
 
           nr=nr+1
-#ifndef COLLIMAT
-          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
-#else
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-#endif
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
@@ -5508,11 +5438,7 @@ subroutine linopt(dpp)
           izu=izu+2*mmul
 
           nr=nr+1
-#ifndef COLLIMAT
-          call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
-#else
           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-#endif
           if(ntco.ne.0) then
             if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
           endif
@@ -5563,11 +5489,7 @@ subroutine linopt(dpp)
 !--Unrecognized element (incl. cav with kp.ne.6 for non-collimat/bnlelens)
         case default
            nr=nr+1
-#ifndef COLLIMAT
-           call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
-#else
            call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-#endif
            if(ntco.ne.0) then
               if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
            endif
@@ -5673,11 +5595,7 @@ subroutine linopt(dpp)
 !     Unrecognized skew element (including kzz=-12,kp.ne.6 for non-collimat/bnlelens)
            case default
               nr=nr+1
-#ifndef COLLIMAT
-              call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
-#else
               call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-#endif
               if(ntco.ne.0) then
                  if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
               endif
@@ -5733,11 +5651,7 @@ subroutine linopt(dpp)
         endif
 
         nr=nr+1
-#ifndef COLLIMAT
-        call writelin(nr,bez(ix),etl,phi,t,ix,.false.)
-#else
         call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-#endif
         if(ntco.ne.0) then
           if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
         endif
@@ -5794,13 +5708,9 @@ subroutine linopt(dpp)
 end subroutine linopt
 
 !-----------------------------------------------------------------------
-!  WRITE OUT LINEAR OPTICS PARAMETERS
+!  WRITE OUT LINEAR OPTICS PARAMETERS AND IF COLLIMATION, SAVE STUFF.
 !-----------------------------------------------------------------------
-#ifndef COLLIMAT
-subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC)
-#else
 subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
-#endif
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
@@ -5821,9 +5731,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   use hdf5_linopt
 #endif
 
-#ifdef COLLIMAT
   use collimation
-#endif
 
   implicit none
 
@@ -5834,11 +5742,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   logical isBLOC
   dimension p1(2),t(6,4),b1(2),b2(2),al1(2),al2(2),g1(2),g2(2)
   dimension d(2),dp(2),c(2),cp(2)
-#ifdef COLLIMAT
-!+ca collpara
-!+ca dblinopt
   integer ielem
-#endif
 
 #ifdef HDF5
     real(kind=fPrec) hdf5Data(17)
@@ -5884,7 +5788,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
     end if
 #endif
 
-#if defined(COLLIMAT)
+    if (do_coll) then
       tbetax(max(ielem,1))  = b1(1)
       tbetay(max(ielem,1))  = b1(2)
       talphax(max(ielem,1)) = al1(1)
@@ -5895,7 +5799,8 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
       torbyp(max(ielem,1))  = cp(2)
       tdispx(max(ielem,1))  = d(1)
       tdispy(max(ielem,1))  = d(2)
-#endif
+    endif
+
     if(ncorru == 0) then
       if(st_quiet == 0) then
         write(lout,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),dp(1),c(1),cp(1)

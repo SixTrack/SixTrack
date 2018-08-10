@@ -9,7 +9,7 @@ subroutine trauthck(nthinerr)
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  use dynk, only : ldynk, dynk_isused, dynk_pretrack
+  use dynk, only : dynk_enabled, dynk_isused, dynk_pretrack
 
 #ifdef FLUKA
 ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -19,9 +19,7 @@ subroutine trauthck(nthinerr)
   use mod_fluka
 #endif
 
-#ifdef COLLIMAT
   use collimation
-#endif
 
   use crcoall
   use parpro
@@ -39,13 +37,11 @@ subroutine trauthck(nthinerr)
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
   save
 
-#ifdef COLLIMAT
   if (do_coll) then
      write(lout,*) "Error: in trauthck and do_coll is TRUE"
      write(lout,*) "Collimation is not supported for thick tracking"
      call prror(-1)
   endif
-#endif
 
   do i=1,npart
     nlostp(i)=i
@@ -433,7 +429,7 @@ subroutine trauthck(nthinerr)
     ! last modified: 17-07-2013
     ! save original kicks
     ! always in main code
-    if (ldynk) call dynk_pretrack
+    if (dynk_enabled) call dynk_pretrack
 
     if(idp.eq.0.or.ition.eq.0) then
       write(lout,*) ''
@@ -476,7 +472,7 @@ subroutine thck4d(nthinerr)
   use numerical_constants
 
   use bdex, only : bdex_enable
-  use dynk, only : ldynk, dynk_apply
+  use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use aperture
 
@@ -585,7 +581,7 @@ subroutine thck4d(nthinerr)
 !       last modified: 03-09-2014
 !       apply dynamic kicks
 !       always in main code
-    if ( ldynk ) then
+    if ( dynk_enabled ) then
       call dynk_apply(n)
     end if
 
@@ -1068,8 +1064,6 @@ subroutine thck4d(nthinerr)
       if ( lbacktracking ) then
          ! store infos of last aperture marker
          if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
-         ! store old particle coordinates
-         call aperture_saveLastCoordinates(i,ix,0)
       end if
 
 #ifdef FLUKA
@@ -1138,7 +1132,7 @@ subroutine thck6d(nthinerr)
   use mathlib_bouncer
   use numerical_constants
   use bdex, only : bdex_enable
-  use dynk, only : ldynk, dynk_apply
+  use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use aperture
 
@@ -1261,7 +1255,7 @@ subroutine thck6d(nthinerr)
 !       last modified: 03-09-2014
 !       apply dynamic kicks
 !       always in main code
-    if ( ldynk ) then
+    if ( dynk_enabled ) then
       call dynk_apply(n)
     end if
     call dump_linesFirst(n)
@@ -1812,8 +1806,6 @@ subroutine thck6d(nthinerr)
       if ( lbacktracking ) then
          ! store infos of last aperture marker
          if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
-         ! store old particle coordinates
-         call aperture_saveLastCoordinates(i,ix,0)
       end if
 
 #ifdef FLUKA

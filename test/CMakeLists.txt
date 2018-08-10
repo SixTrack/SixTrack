@@ -26,6 +26,9 @@ set_tests_properties(CheckTestInput_BOINC PROPERTIES FAIL_REGULAR_EXPRESSION "ER
 ADD_TEST(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/ COMMAND ${CMAKE_SOURCE_DIR}/test/CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
 set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
+add_test(NAME CheckBuildManual COMMAND ${CMAKE_SOURCE_DIR}/test/CheckBuildManual.sh "${CMAKE_SOURCE_DIR}")
+set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
 ## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90 / STF.
@@ -43,6 +46,7 @@ SET(TESTS_NOFORT10
   thick6dblocks
   elensidealthck6d
   dynk_globalvars
+  dynk_filelin
   thick6ddynk
   dump_binary
   dump4
@@ -56,15 +60,15 @@ SET(TESTS_NOFORT10
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-coupling
   scatter_bbelastic
+  scatter_collimation
+  scatter_aperture
   geometry
   collimation_k2_fcc_2017_h1_collision
   dump_all_highprec
   dump_2_all_ele_highprec
   beam-HO_6D-simple-newstyle-orbit
-  scatter_collimation
 )
 
-if(NOT COLLIMAT)
 if(LIBARCHIVE)
   SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
 endif()
@@ -73,7 +77,7 @@ if(NAFF)
   SET(SIXTRACK_TESTS fma_naff ${SIXTRACK_TESTS})
 endif()
 
-#These tests are always included
+#Non-collimation tests
 SET(SIXTRACK_TESTS
   bbe51
   bbe52
@@ -83,6 +87,7 @@ SET(SIXTRACK_TESTS
   dipedge
   distance
   dynk_globalvars
+  dynk_filelin
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
@@ -151,14 +156,15 @@ SET(SIXTRACK_TESTS
   rfMultipoles_4thOrder
   last_amp
   scatter_bbelastic
+  scatter_aperture
   dump_all_highprec
   dump_2_all_ele_highprec
   perf1
   ${SIXTRACK_TESTS}
-)
-else()
-  set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
-endif(NOT COLLIMAT)
+  )
+
+# COLLIMATION tests
+set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
 
 # Tests that require SixDA executable
 if(SIXDA)
@@ -167,14 +173,14 @@ endif()
 
 #Collimation tests (needs backtrk)
 #use extra checks on fort.999 and other collimation loss files
-if(COLLIMAT AND BACKTRK)
+if(BACKTRK)
   if(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
     SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
   endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
   # if(NOT FLUKA OR NOT G4COLLIMAT)
   #   SET(SIXTRACK_TESTS collimation_merlin_fcc_2017_h1_collision ${SIXTRACK_TESTS})
   # endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-endif(COLLIMAT AND BACKTRK)
+endif(BACKTRK)
 
 #For CR builds, test the CR functions, so kill/resume the test
 if(CR)
@@ -338,6 +344,7 @@ SET(FAST_TESTS
   s316
   dipedge
   dynk_globalvars
+  dynk_filelin
   elensidealthin4d
   elensidealthck4d
   elensidealthck6d
@@ -380,6 +387,7 @@ SET(FAST_TESTS
   rfMultipoles_4thOrder
   last_amp
   scatter_bbelastic
+  scatter_aperture
   dump_all_highprec
   dump_2_all_ele_highprec
   orbit6d-element-trombone
@@ -441,7 +449,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
   endif()
 endforeach()
 
-#Tools
+# Tools
 SET(SELFTEST_TOOLS
   SelfTest_verify10
   SelfTest_compf10
@@ -455,11 +463,19 @@ foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
   set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
 endforeach()
 
-#Inputs
+# Inputs
 SET(SELFTEST_INPUT
   CheckTestInput_BOINC
   CheckTestInput_STF
 )
 foreach(TOOL IN ITEMS ${SELFTEST_INPUT})
+  set_property(TEST ${TOOL} PROPERTY LABELS input fast)
+endforeach()
+
+# Other
+SET(SELFTEST_OTHER
+  CheckBuildManual
+)
+foreach(TOOL IN ITEMS ${SELFTEST_OTHER})
   set_property(TEST ${TOOL} PROPERTY LABELS input fast)
 endforeach()

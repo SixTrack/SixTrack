@@ -81,13 +81,13 @@ end subroutine hions_allocate_arrays
 
 subroutine hions_expand_arrays(npart_new)
   integer, intent(in) :: npart_new
-  call resize(nucm,npart_new,nucm0,'nucm')
-  call resize(moidpsv,npart_new,one,'moidpsv')
-  call resize(omoidpsv,npart_new,zero,'omoidpsv')
-  call resize(mtc,npart_new,one,'mtc')
-  call resize(naa,npart_new,aa0,'naa')
-  call resize(nzz,npart_new,zz0,'nzz')
-  call resize(pids,npart_new,0,'pids')
+  call alloc(nucm,npart_new,nucm0,'nucm')
+  call alloc(moidpsv,npart_new,one,'moidpsv')
+  call alloc(omoidpsv,npart_new,zero,'omoidpsv')
+  call alloc(mtc,npart_new,one,'mtc')
+  call alloc(naa,npart_new,aa0,'naa')
+  call alloc(nzz,npart_new,zz0,'nzz')
+  call alloc(pids,npart_new,0,'pids')
 end subroutine hions_expand_arrays
 
 subroutine hions_parseInputLine(inLine, iLine, iErr)
