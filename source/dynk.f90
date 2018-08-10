@@ -1038,62 +1038,54 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
   ! END CASES MINUS, SQRT, SIN, COS, LOG, LOG10 & EXP
 
-    ! Polynomial & Elliptical functions: # 40-59
+  ! Polynomial & Elliptical functions: # 40-59
 
-    case("CONST")
-        ! CONST: Just a constant value
+  case("CONST")
+    ! CONST: Just a constant value
 
-        call dynk_checkargs(nFields,4,"FUN funname CONST value")
-        call dynk_checkspace(0,1,1)
+    call dynk_checkargs(nSplit,4,"FUN funname CONST value")
+    call dynk_checkspace(0,1,1)
 
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_nfData = dynk_nfData+1
-        dynk_ncData = dynk_ncData+1
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_nfData = dynk_nfData+1
+    dynk_ncData = dynk_ncData+1
 
-        ! Store pointers
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
-        dynk_funcs(dynk_nFuncs,2) = 40          ! TYPE (CONST)
-        dynk_funcs(dynk_nFuncs,3) = dynk_nfData ! ARG1
-        dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
-        dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
+    dynk_funcs(dynk_nFuncs,2) = 40          ! TYPE (CONST)
+    dynk_funcs(dynk_nFuncs,3) = dynk_nfData ! ARG1
+    dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
+    dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
 
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
+    ! Store data
+    dynk_cData(dynk_ncData) = trim(lnSplit(2)) ! NAME
+    call chr_cast(lnSplit(4),dynk_fData(dynk_nfData),cErr) ! value
 
-#ifndef CRLIBM
-        read(gFields(4)(1:lFields(4)),*) dynk_fData(dynk_nfData) ! value
-#else
-        dynk_fData(dynk_nfData) = round_near(errno,lFields(4)+1,gFields(4)) ! value
-        if (errno.ne.0) call rounderr( errno,gFields,4,dynk_fData(dynk_nfData))
-#endif
+  ! END CASE CONST
 
-    ! END CASE CONST
+  case("TURN")
+    ! TURN: Just the current turn number
 
-    case ("TURN")
-        ! TURN: Just the current turn number
+    call dynk_checkargs(nSplit,3,"FUN funname TURN")
+    call dynk_checkspace(0,0,1)
 
-        call dynk_checkargs(nFields,3,"FUN funname TURN")
-        call dynk_checkspace(0,0,1)
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_nfData = dynk_nfData+1
+    dynk_ncData = dynk_ncData+1
 
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_nfData = dynk_nfData+1
-        dynk_ncData = dynk_ncData+1
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
+    dynk_funcs(dynk_nFuncs,2) = 41          ! TYPE (TURN)
+    dynk_funcs(dynk_nFuncs,3) = -1          ! ARG1
+    dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
+    dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
 
-        ! Store pointers
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
-        dynk_funcs(dynk_nFuncs,2) = 41          ! TYPE (TURN)
-        dynk_funcs(dynk_nFuncs,3) = -1          ! ARG1
-        dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
-        dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
+    ! Store data
+    dynk_cData(dynk_ncData) = trim(lnSplit(2)) ! NAME
 
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
-
-    ! END CASE TURN
+  ! END CASE TURN
 
     case ("LIN")
         ! LIN: Linear ramp y = dy/dt*T+b
