@@ -215,6 +215,8 @@ end subroutine dynk_parseInputLine
 subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
   use crcoall
+  use file_units
+
   implicit none
 
   character, intent(in) :: gFields(str_maxFields)*(mStrLen)
@@ -529,162 +531,121 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
   ! END CASE FILELIN
 
-    case ("PIPE")
-        ! PIPE: Use a pair of UNIX FIFOs.
-        ! Another program is expected to hook onto the other end of the pipe,
-        ! and will recieve a message when SixTrack's dynk_computeFUN() is called.
-        ! That program should then send a value back (in ASCII), which will be the new setting.
+  case ("PIPE")
+    ! PIPE: Use a pair of UNIX FIFOs.
+    ! Another program is expected to hook onto the other end of the pipe,
+    ! and will recieve a message when SixTrack's dynk_computeFUN() is called.
+    ! That program should then send a value back (in ASCII), which will be the new setting.
 
-        call dynk_checkargs(nFields,7,"FUN funname PIPE inPipeName outPipeName ID fileUnit" )
-        call dynk_checkspace(1,0,4)
+    call dynk_checkargs(nFields,7,"FUN funname PIPE inPipeName outPipeName ID fileUnit" )
+    call dynk_checkspace(1,0,4)
 
 #ifdef CR
-        write(lout,*) "DYNK FUN PIPE not supported in CR version"
-        write(lout,*) "Sorry :("
-        call prror(-1)
+    write(lout,"(a)") "DYNK> ERROR FUN PIPE not supported in CR version."
+    call prror(-1)
 #endif
 
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_niData = dynk_niData+1
-        dynk_ncData = dynk_ncData+1
-        ! Store pointers
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData   ! NAME (in dynk_cData)
-        dynk_funcs(dynk_nFuncs,2) = 3             ! TYPE (PIPE)
-        dynk_funcs(dynk_nFuncs,3) = dynk_niData   ! UnitNR (set below)
-        dynk_funcs(dynk_nFuncs,4) = -1            ! Not used
-        dynk_funcs(dynk_nFuncs,5) = -1            ! Not used
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_niData = dynk_niData+1
+    dynk_ncData = dynk_ncData+1
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData   ! NAME (in dynk_cData)
+    dynk_funcs(dynk_nFuncs,2) = 3             ! TYPE (PIPE)
+    dynk_funcs(dynk_nFuncs,3) = dynk_niData   ! UnitNR (set below)
+    dynk_funcs(dynk_nFuncs,4) = -1            ! Not used
+    dynk_funcs(dynk_nFuncs,5) = -1            ! Not used
 
-        ! Sanity checks
-        if (lFields(4) .gt. mStrLen-1 .or. &
-            lFields(5) .gt. mStrLen-1 .or. &
-            lFields(6) .gt. mStrLen-1 ) then
+    ! Sanity checks
+    if(len(lnSplit(4)) > mStrLen-1 .or. len(lnSplit(5)) > mStrLen-1 .or. len(lnSplit(6)) > mStrLen-1 ) then
+      write(lout,"(a,i0)") "DYNK> ERROR FUN:PIPE got one or more strings which is too long. Max length is ",mStrLen-1
+      call prror(-1)
+    end if
 
-            write (lout,*) "*************************************"
-            write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-            write (lout,*) "FUN PIPE got one or more strings which "
-            write (lout,*) "was too long (>",mStrLen-1,")"
-            write (lout,*) "Strings: '",                                          &
-                           gFields(4)(1:lFields(4)),"' and '", &
-                           gFields(5)(1:lFields(5)),"' and '", &
-                           gFields(6)(1:lFields(6)),"'."
-            write (lout,*) "lengths =",                  &
-                           lFields(4),", ",    &
-                           lFields(5)," and ", &
-                           lFields(6)
-            write (lout,*) "*************************************"
-            call prror(51)
+    ! Store data
+    if(nSplit > 1) dynk_cData(dynk_ncData)   = trim(lnSplit(2)) ! NAME
+    if(nSplit > 3) dynk_cData(dynk_ncData+1) = trim(lnSplit(4)) ! inPipe
+    if(nSplit > 4) dynk_cData(dynk_ncData+2) = trim(lnSplit(5)) ! outPipe
+    if(nSplit > 5) dynk_cData(dynk_ncData+3) = trim(lnSplit(6)) ! ID
+    dynk_ncData = dynk_ncData+3
+
+    call funit_requestUnit(dynk_cData(dynk_ncData+1),dynk_iData(dynk_niData))   ! fileUnit 1
+    call funit_requestUnit(dynk_cData(dynk_ncData+2),dynk_iData(dynk_niData+1)) ! fileUnit 2
+    dynk_niData = dynk_niData+1
+
+    ! Look if the filenames are used in a different FUN PIPE
+    t=0 ! Used to hold the index of the other pipe; t=0 if no older pipe -> open files.
+    do ii=1,dynk_nFuncs-1
+      if (dynk_funcs(ii,2) .eq. 3) then ! It's a PIPE
+        ! Does any of the settings match?
+        if(dynk_cData(dynk_funcs(ii,1)+1) == dynk_cData(dynk_ncData-2) .or. & ! InPipe filename
+           dynk_cData(dynk_funcs(ii,1)+2) == dynk_cData(dynk_ncData-1)) then  ! OutPipe filename
+          ! Does *all* of the settings match?
+          if(dynk_cData(dynk_funcs(ii,1)+1) == dynk_cData(dynk_ncData-2) .and. & ! InPipe filename
+             dynk_cData(dynk_funcs(ii,1)+2) == dynk_cData(dynk_ncData-1)) then   ! OutPipe filename
+            t=ii
+            write(lout,"(a)") "DYNK> FUN:PIPE '"//trim(dynk_cData(dynk_funcs(dynk_nFuncs,1)))// &
+              "' using same settings as previously defined FUN '"//trim(dynk_cData(dynk_funcs(ii,1)))// &
+              "' -> reusing files"
+            if(dynk_cData(dynk_funcs(ii,1)+3) == dynk_cData(dynk_ncData)) then ! ID
+              write(lout,"(a)") "DYNK> ERROR FUN:PIPE IDs must be different when sharing PIPEs."
+              call prror(-1)
+            end if
+            exit ! Break loop
+          else ! Partial match
+            write(lout,"(a)") "DYNK> ERROR FUN:PIPE Partial match of inPipe/outPipe between '"// &
+              trim(dynk_cData(dynk_funcs(dynk_nFuncs,1)))//"' and '"//trim(dynk_cData(dynk_funcs(ii,1)))//"'"
+            call prror(-1)
+          end if
         end if
+      end if
+    end do
 
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData  )(1:lFields(2)) = gFields(2)(1:lFields(2))
-        ! inPipe
-        dynk_cData(dynk_ncData+1)(1:lFields(4)) = gFields(4)(1:lFields(4))
-        ! outPipe
-        dynk_cData(dynk_ncData+2)(1:lFields(5)) = gFields(5)(1:lFields(5))
-        ! ID
-        dynk_cData(dynk_ncData+3)(1:lFields(6)) = gFields(6)(1:lFields(6))
+    if(t == 0) then ! Must open a new set of files
+      ! Open the inPipe
+      write(lout,"(a)") "DYNK> Opening input pipe '"//&
+        trim(dynk_cData(dynk_ncData-2))//"' for FUN '"//&
+        trim(dynk_cData(dynk_ncData-3))//"', ID='"//&
+        trim(dynk_cData(dynk_ncData))//"'"
 
-        dynk_ncData = dynk_ncData+3
+      inquire(unit=dynk_iData(dynk_niData), opened=lOpen)
+      if(lOpen) then
+        write(lout,"(a)")"DYNK> ERROR FUN:PIPE File '"//trim(dynk_cData(dynk_ncData-2))//"' is already open"
+        call prror(-1)
+      end if
 
-        ! fileUnit
-        read(gFields(7)(1:lFields(7)),*) dynk_iData(dynk_niData)
+      ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
+      open(unit=dynk_iData(dynk_niData),file=dynk_cData(dynk_ncData-2),action="read",iostat=ioStat,status="old")
+      if(ioStat /= 0) then
+        write(lout,"(a,i0)") "DYNK> ERROR FUN:PIPE Could not open file '"//trim(dynk_cData(dynk_ncData-2))//"' stat = ",ioStat
+        call prror(-1)
+      end if
 
-        ! Look if the fileUnit or filenames are used in a different FUN PIPE
-        t=0 !Used to hold the index of the other pipe; t=0 if no older pipe -> open files.
-        do ii=1,dynk_nFuncs-1
-            if (dynk_funcs(ii,2) .eq. 3) then !It's a PIPE
-                !Does any of the settings match?
-                if (dynk_iData(dynk_funcs(ii,3))  .eq.dynk_iData(dynk_niData)   .or. & ! Unit number
-                    dynk_cData(dynk_funcs(ii,1)+1).eq.dynk_cData(dynk_ncData-2) .or. & ! InPipe filename
-                    dynk_cData(dynk_funcs(ii,1)+2).eq.dynk_cData(dynk_ncData-1)) then  ! OutPipe filename
-                    ! Does *all* of the settings match?
-                    if (dynk_iData(dynk_funcs(ii,3))  .eq.dynk_iData(dynk_niData)   .and. & ! Unit number
-                        dynk_cData(dynk_funcs(ii,1)+1).eq.dynk_cData(dynk_ncData-2) .and. & ! InPipe filename
-                        dynk_cData(dynk_funcs(ii,1)+2).eq.dynk_cData(dynk_ncData-1)) then   ! OutPipe filename
+      ! Open the outPipe
+      write(lout,"(a)") "DYNK> Opening output pipe '"//&
+        trim(dynk_cData(dynk_ncData-1))//"' for FUN '"//&
+        trim(dynk_cData(dynk_ncData-3))//"', ID='"//&
+        trim(dynk_cData(dynk_ncData))//"'"
 
-                        t=ii
-                        write(lout,*) "DYNK> PIPE FUN '" // &
-                                      trim(stringzerotrim(dynk_cData(dynk_funcs(dynk_nFuncs,1))))// &
-                                      "' using same settings as previously defined FUN '"// &
-                                      trim(stringzerotrim(dynk_cData(dynk_funcs(ii,1))))// &
-                                      "' -> reusing files !"
-                        if (dynk_cData(dynk_funcs(ii,1)+3).eq.dynk_cData(dynk_ncData)) then ! ID
-                            write(lout,*) "DYNK> ERROR: IDs must be different when sharing PIPEs."
-                            call prror(-1)
-                        end if
-                        exit ! Break loop
+      inquire(unit=dynk_iData(dynk_niData+1), opened=lOpen)
+      if(lOpen) then
+        write(lout,"(a)")"DYNK> ERROR FUN:PIPE File '"//trim(dynk_cData(dynk_ncData-1))//"' is already open"
+        call prror(-1)
+      end if
 
-                    else ! Partial match
-                        write(lout,*) "DYNK> *** Error in dynk_parseFUN():PIPE ***"
-                        write(lout,*) "DYNK> Partial match of inPipe/outPipe/unit number"
-                        write(lout,*) "DYNK> between PIPE FUN '"// &
-                                      trim(stringzerotrim(dynk_cData(dynk_funcs(dynk_nFuncs,1))))// &
-                                      "' and '"// &
-                                      trim(stringzerotrim(dynk_cData(dynk_funcs(ii,1))))//"'"
-                        call prror(-1)
-                    end if
-                end if
-            end if
-        end do
+      ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
+      open(unit=dynk_iData(dynk_niData+1),file=dynk_cData(dynk_ncData-1),action="write",iostat=ioStat,status="old")
+      if(ioStat /= 0) then
+        write(lout,"(a)") "DYNK> ERROR FUN:PIPE Could not open file '"//trim(dynk_cData(dynk_ncData-1))//"' stat = ",ioStat
+        call prror(-1)
+      end if
+      write(dynk_iData(dynk_niData+1),"(a)") "DYNKPIPE !******************!" ! Once per file
 
-        if (t .eq. 0) then ! Must open a new set of files
-            ! Open the inPipe
-            inquire(unit=dynk_iData(dynk_niData), opened=lopen)
-            if (lopen) then
-                write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
-                write(lout,*)"DYNK> unit",dynk_iData(dynk_niData),"for file '"// &
-                             trim(stringzerotrim(dynk_cData(dynk_ncData-2)))// &
-                             "' was already taken"
-                call prror(-1)
-            end if
+    end if ! End "if (t == 0)"/must open new files
 
-            write(lout,*) "DYNK> Opening input pipe '"// &
-                          trim(stringzerotrim(dynk_cData(dynk_ncData-2)))//"' for FUN '"// &
-                          trim(stringzerotrim(dynk_cData(dynk_ncData-3)))//"', ID='"// &
-                          trim(stringzerotrim(dynk_cData(dynk_ncData)))//"'"
+    write(dynk_iData(dynk_niData+1),"(a)") "INIT ID="//trim(dynk_cData(dynk_ncData))//" for FUN="//trim(dynk_cData(dynk_ncData-3))
 
-            ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
-            open(unit=dynk_iData(dynk_niData),file=dynk_cData(dynk_ncData-2),action='read',iostat=stat,status="OLD")
-            if (stat .ne. 0) then
-                write(lout,*) "DYNK> dynk_parseFUN():PIPE"
-                write(lout,*) "DYNK> Error opening file '"// &
-                              trim(stringzerotrim(dynk_cData(dynk_ncData-2)))//"' stat=",stat
-                call prror(51)
-            end if
-
-            ! Open the outPipe
-            write(lout,*) "DYNK> Opening output pipe '"// &
-                          trim(stringzerotrim(dynk_cData(dynk_ncData-1)))//"' for FUN '"// &
-                          trim(stringzerotrim(dynk_cData(dynk_ncData-3)))//"', ID='"// &
-                          trim(stringzerotrim(dynk_cData(dynk_ncData)))//"'"
-            inquire(unit=dynk_iData(dynk_niData)+1, opened=lopen)
-            if (lopen) then
-                write(lout,*)"DYNK> **** ERROR in dynk_parseFUN():PIPE ****"
-                write(lout,*)"DYNK> unit",dynk_iData(dynk_niData)+1,"for file '"// &
-                             trim(stringzerotrim(dynk_cData(dynk_ncData-1)))//"' was already taken"
-                call prror(-1)
-            end if
-
-            ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
-            open(unit=dynk_iData(dynk_niData)+1,file=dynk_cData(dynk_ncData-1),action='write',iostat=stat,status="OLD")
-            if (stat .ne. 0) then
-                write(lout,*) "DYNK> dynk_parseFUN():PIPE"
-                write(lout,*) "DYNK> Error opening file '"// &
-                              trim(stringzerotrim(dynk_cData(dynk_ncData-1)))//"' stat=",stat
-                call prror(51)
-            end if
-            write(dynk_iData(dynk_niData)+1,'(a)') "DYNKPIPE !******************!" ! Once per file
-
-        end if ! End "if (t.eq.0)"/must open new files
-
-        write(dynk_iData(dynk_niData)+1,'(a)') "INIT ID="// & ! Once per ID
-                                               trim(stringzerotrim(dynk_cData(dynk_ncData)))// &
-                                               " for FUN="// &
-                                               trim(stringzerotrim(dynk_cData(dynk_ncData-3)))
-
-    ! END CASE PIPE
+  ! END CASE PIPE
 
     case ("RANDG")
         ! RANDG: Gausian random number with mu, sigma, and optional cutoff
@@ -2378,7 +2339,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
                             filelin_xypoints )
 
     case(3)                                                           ! PIPE
-        write(dynk_iData(dynk_funcs(funNum,3))+1,"(a,i7)") &
+        write(dynk_iData(dynk_funcs(funNum,3)+1),"(a,i7)") &
             "GET ID="//trim(stringzerotrim(dynk_cData(dynk_funcs(funNum,1)+3)))//" TURN=",turn
 #ifndef CRLIBM
         read(dynk_iData(dynk_funcs(funNum,3)),*) retval
