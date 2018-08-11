@@ -192,8 +192,7 @@ subroutine dynk_parseInputLine(inLine,iErr)
     write(lout,*) "DYNK> Disabled writing dynksets.dat"
 
   case("FUN")
-    call getfields_split(inLine,gFields,lFields,nFields,eFields)
-    call dynk_parseFUN(gFields,lFields,nFields,inLine,iErr)
+    call dynk_parseFUN(inLine,iErr)
 
   case("SET")
     call dynk_parseSET(inLine,iErr)
@@ -212,16 +211,12 @@ end subroutine dynk_parseInputLine
 !  Last modified: 2018-05-28
 !  Parse FUN lines in the fort.3 input file.
 ! =================================================================================================
-subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
+subroutine dynk_parseFUN(inLine, iErr)
 
   use crcoall
   use file_units
 
   implicit none
-
-  character, intent(in) :: gFields(str_maxFields)*(mStrLen)
-  integer,   intent(in) :: nFields
-  integer,   intent(in) :: lFields(str_maxFields)
 
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
@@ -232,28 +227,14 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
   logical spErr, cErr
 
   ! Temp variables
-  integer ii, stat, t, nLines, ioStat
-  real(kind=fPrec) x,y,z,u                                  ! FILE, FILELIN, FIR/IIR
-  real(kind=fPrec) x1,x2,y1,y2,deriv                        ! LINSEG, QUADSEG,
-  real(kind=fPrec) tinj,Iinj,Inom,A,D,R,te                  ! PELP (input)
-  real(kind=fPrec) derivI_te,I_te,bexp,aexp, t1,I1, td,tnom ! PELP (calc)
+  integer          ii,t,nLines,ioStat
+  real(kind=fPrec) x,y,z,u                                ! FILE, FILELIN, FIR/IIR
+  real(kind=fPrec) x1,x2,y1,y2,deriv                      ! LINSEG, QUADSEG,
+  real(kind=fPrec) tinj,Iinj,Inom,A,D,R,te                ! PELP (input)
+  real(kind=fPrec) derivI_te,I_te,bexp,aexp,t1,I1,td,tnom ! PELP (calc)
 
   logical isFIR ! FIR/IIR
   logical lOpen
-
-#ifdef CRLIBM
-  integer nchars
-  parameter(nchars=160) ! Same as in daten
-  character(len=nchars) ch
-
-  character filefields_fields(str_maxFields)*(mStrLen)
-  integer filefields_nfields
-  integer filefields_lfields(str_maxFields)
-  logical filefields_lerr
-
-  real(kind=fPrec) round_near
-  integer errno
-#endif
 
 #ifdef BOINC
   character(len=256) filename
@@ -1207,7 +1188,8 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
     if(x1 == x2) then
       write(lout,"(a)") "DYNK> ERROR FUN:QUADSEG x1 and x2 must be different."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
     ! Compute a:
@@ -1228,221 +1210,175 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
   ! END CASE QUADSEG
 
-    case ("SINF","COSF","COSF_RIPP")
-        ! Trancedental functions: #60-79
-        ! SINF     : Sin functions y = A*sin(omega*T+phi)
-        ! COSF     : Cos functions y = A*cos(omega*T+phi)
-        ! COSF_RIPP: Cos functions y = A*cos(2*pi*(T-1)/period+phi)
+  case("SINF","COSF","COSF_RIPP")
+    ! Trancedental functions: #60-79
+    ! SINF     : Sin functions y = A*sin(omega*T+phi)
+    ! COSF     : Cos functions y = A*cos(omega*T+phi)
+    ! COSF_RIPP: Cos functions y = A*cos(2*pi*(T-1)/period+phi)
 
-        call dynk_checkargs(nFields,6,"FUN funname {SINF|COSF|COSF_RIPP} amplitude {omega|period} phase")
-        call dynk_checkspace(0,3,1)
+    call dynk_checkargs(nSplit,6,"FUN funname {SINF|COSF|COSF_RIPP} amplitude {omega|period} phase")
+    call dynk_checkspace(0,3,1)
 
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_nfData = dynk_nfData+1
-        dynk_ncData = dynk_ncData+1
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_nfData = dynk_nfData+1
+    dynk_ncData = dynk_ncData+1
 
-        ! Store pointers
-        ! NAME
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData
-        select case (gFields(3)(1:lFields(3)))
-        case("SINF")
-            dynk_funcs(dynk_nFuncs,2) = 60 ! TYPE (SINF)
-        case("COSF")
-            dynk_funcs(dynk_nFuncs,2) = 61 ! TYPE (COSF)
-        case ("COSF_RIPP")
-            dynk_funcs(dynk_nFuncs,2) = 62 ! TYPE (COSF_RIPP)
-        case default
-            write (lout,*) "DYNK> dynk_parseFUN() : SINF/COSF"
-            write (lout,*) "DYNK> non-recognized type in inner switch"
-            write (lout,*) "DYNK> Got: '"//gFields(3)(1:lFields(3))//"'"
-            call prror(51)
-        end select
-        dynk_funcs(dynk_nFuncs,3) = dynk_nfData ! ARG1
-        dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
-        dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
-
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
-
-#ifndef CRLIBM
-        read(gFields(4)(1:lFields(4)),*) dynk_fData(dynk_nfData)   ! A
-        read(gFields(5)(1:lFields(5)),*) dynk_fData(dynk_nfData+1) ! omega
-        read(gFields(6)(1:lFields(6)),*) dynk_fData(dynk_nfData+2) ! phi
-#else
-        dynk_fData(dynk_nfData)   = round_near(errno,lFields(4)+1,gFields(4))  ! A
-        if (errno.ne.0) call rounderr(errno,gFields,4,dynk_fData(dynk_nfData))
-        dynk_fData(dynk_nfData+1) = round_near(errno,lFields(5)+1,gFields(5)) ! omega
-        if (errno.ne.0) call rounderr(errno,gFields,5,dynk_fData(dynk_nfData+1))
-        dynk_fData(dynk_nfData+2) = round_near(errno,lFields(6)+1,gFields(6)) ! phi
-        if (errno.ne.0) call rounderr(errno,gFields,6,dynk_fData(dynk_nfData+2))
-#endif
-        dynk_nfData = dynk_nfData + 2
-
-    ! END CASE SINF, COSF & COSF_RIPP
-
-    case ("PELP")
-        ! PELP: Parabolic/exponential/linear/parabolic
-        ! From "Field Computation for Accelerator Magnets:
-        ! Analytical and Numerical Methods for Electromagnetic Design and Optimization"
-        ! By Dr.-Ing. Stephan Russenschuck
-        ! Appendix C: "Ramping the LHC Dipoles"
-
-        call dynk_checkargs(nFields,10,"FUN funname PELP tinj Iinj Inom A D R te")
-        call dynk_checkspace(0,13,1)
-
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_nfData = dynk_nfData+1
-        dynk_ncData = dynk_ncData+1
-
-        ! Store pointers
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
-        dynk_funcs(dynk_nFuncs,2) = 80          ! TYPE (PELP)
-        dynk_funcs(dynk_nFuncs,3) = dynk_nfData ! ARG1
-        dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
-        dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
-
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
-
-        ! Read and calculate parameters
-#ifndef CRLIBM
-        read(gFields(4) (1:lFields( 4)),*) tinj
-        read(gFields(5) (1:lFields( 5)),*) Iinj
-        read(gFields(6) (1:lFields( 6)),*) Inom
-        read(gFields(7) (1:lFields( 7)),*) A
-        read(gFields(8) (1:lFields( 8)),*) D
-        read(gFields(9) (1:lFields( 9)),*) R
-        read(gFields(10)(1:lFields(10)),*) te
-#else
-        tinj = round_near(errno,lFields(4)+1,gFields(4))
-        if (errno.ne.0) call rounderr(errno,gFields,4,tinj)
-        Iinj = round_near(errno,lFields(5)+1,gFields(5))
-        if (errno.ne.0) call rounderr(errno,gFields,5,Iinj)
-        Inom = round_near(errno,lFields(6)+1,gFields(6))
-        if (errno.ne.0) call rounderr(errno,gFields,6,Inom)
-        A    = round_near(errno,lFields(7)+1,gFields(7))
-        if (errno.ne.0) call rounderr(errno,gFields,7,A)
-        D    = round_near(errno,lFields(8)+1,gFields(8))
-        if (errno.ne.0) call rounderr(errno,gFields,8,D)
-        R    = round_near(errno,lFields(9)+1,gFields(9))
-        if (errno.ne.0) call rounderr(errno,gFields,9,R)
-        te   = round_near(errno,lFields(10)+1,gFields(10))
-        if (errno.ne.0) call rounderr(errno,gFields,10,te)
-#endif
-        derivI_te = A*(te-tinj)                 ! nostore
-        I_te      = (A/2.0)*(te-tinj)**2 + Iinj ! nostore
-        bexp      = derivI_te/I_te
-        aexp      = exp_mb(-bexp*te)*I_te
-        t1        = log_mb(R/(aexp*bexp))/bexp
-        I1        = aexp*exp_mb(bexp*t1)
-        td        = (Inom-I1)/R + (t1 - R/(2*D))
-        tnom      = td + R/D
-
-        if (dynk_debug) then
-            write (lout,*) "DYNKDEBUG> *** PELP SETTINGS: ***"
-            write (lout,*) "DYNKDEBUG> tinj =", tinj
-            write (lout,*) "DYNKDEBUG> Iinj =", Iinj
-            write (lout,*) "DYNKDEBUG> Inom =", Inom
-            write (lout,*) "DYNKDEBUG> A    =", A
-            write (lout,*) "DYNKDEBUG> D    =", D
-            write (lout,*) "DYNKDEBUG> R    =", R
-            write (lout,*) "DYNKDEBUG> te   =", te
-            write (lout,*) "DYNKDEBUG> "
-            write (lout,*) "DYNKDEBUG> derivI_te =", derivI_te
-            write (lout,*) "DYNKDEBUG> I_te      =", I_te
-            write (lout,*) "DYNKDEBUG> bexp      =", bexp
-            write (lout,*) "DYNKDEBUG> aexp      =", aexp
-            write (lout,*) "DYNKDEBUG> t1        =", t1
-            write (lout,*) "DYNKDEBUG> I1        =", I1
-            write (lout,*) "DYNKDEBUG> td        =", td
-            write (lout,*) "DYNKDEBUG> tnom      =", tnom
-            write (lout,*) "DYNKDEBUG> **********************"
-        end if
-
-        if (.not. (tinj .lt. te .and. te .lt. t1 .and. t1 .lt. td .and. td .lt. tnom)) then
-            WRITE(lout,*) "DYNK> ********************************"
-            WRITE(lout,*) "DYNK> ERROR***************************"
-            write(lout,*) "DYNK> PELP: Order of times not correct"
-            WRITE(lout,*) "DYNK> ********************************"
-            call prror(51)
-        end if
-
-        ! Store: Times
-        dynk_fData(dynk_nfData)    = tinj
-        dynk_fData(dynk_nfData+ 1) = te
-        dynk_fData(dynk_nfData+ 2) = t1
-        dynk_fData(dynk_nfData+ 3) = td
-        dynk_fData(dynk_nfData+ 4) = tnom
-        ! Store: Parameters / section1 (parabola)
-        dynk_fData(dynk_nfData+ 5) = Iinj
-        dynk_fData(dynk_nfData+ 6) = A
-        ! Store: Parameters / section2 (exponential)
-        dynk_fData(dynk_nfData+ 7) = aexp
-        dynk_fData(dynk_nfData+ 8) = bexp
-        ! Store: Parameters / section3 (linear)
-        dynk_fData(dynk_nfData+ 9) = I1
-        dynk_fData(dynk_nfData+10) = R
-        ! Store: Parameters / section4 (parabola)
-        dynk_fData(dynk_nfData+11) = D
-        dynk_fData(dynk_nfData+12) = Inom
-
-        dynk_nfData = dynk_nfData + 12
-
-    ! END CASE PELP
-
-    case("ONOFF")
-        ! ONOFF: On for p1 turns, then off for the rest of the period p2
-
-        call dynk_checkargs(nFields,5,"FUN funname ONOFF p1 p2")
-        call dynk_checkspace(0,0,1)
-
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_ncData = dynk_ncData+1
-
-        ! Store pointers
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
-        dynk_funcs(dynk_nFuncs,2) = 81          ! TYPE (ONOFF)
-        dynk_funcs(dynk_nFuncs,3) = -1          ! ARG1 (p1)
-        dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2 (p2)
-        dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3 (unused)
-
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
-
-        read(gFields(4)(1:lFields(4)),*) dynk_funcs(dynk_nFuncs,3) ! p1
-        read(gFields(5)(1:lFields(5)),*) dynk_funcs(dynk_nFuncs,4) ! p2
-
-        ! Check for bad input
-        if (dynk_funcs(dynk_nFuncs,3) .lt. 0 .or.                     &    ! p1 <  1 ?
-            dynk_funcs(dynk_nFuncs,4) .le. 1 .or.                     &    ! p2 <= 1 ?
-            dynk_funcs(dynk_nFuncs,4) .lt. dynk_funcs(dynk_nFuncs,3)) then ! p2 < p1 ?
-
-            write(lout,*) "DYNK> Error in ONOFF: Expected p1 >= 0, p2 > 1, p1 <= p2"
-            call prror(-1)
-        end if
-
-    ! END CASE ONOFF
-
-    case default
-        ! UNKNOWN function
-        write (lout,*) "*************************************"
-        write (lout,*) "ERROR in DYNK block parsing (fort.3):"
-        write (lout,*) "Unkown function to dynk_parseFUN()   "
-        write (lout,*) "Got fields:"
-        do ii=1,nFields
-            write (lout,*) "Field(",ii,") ='",gFields(ii)(1:lFields(ii)),"'"
-        end do
-        write (lout,*) "*************************************"
-
-        call dynk_dumpdata
-        call prror(51)
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData
+    select case(trim(lnSplit(3)))
+    case("SINF")
+      dynk_funcs(dynk_nFuncs,2) = 60 ! TYPE (SINF)
+    case("COSF")
+      dynk_funcs(dynk_nFuncs,2) = 61 ! TYPE (COSF)
+    case ("COSF_RIPP")
+      dynk_funcs(dynk_nFuncs,2) = 62 ! TYPE (COSF_RIPP)
     end select
+    dynk_funcs(dynk_nFuncs,3) = dynk_nfData ! ARG1
+    dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
+    dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
+
+    ! Store data
+    dynk_cData(dynk_ncData) = trim(lnSplit(2)) ! NAME
+
+    call chr_cast(lnSplit(4),dynk_fData(dynk_nfData),  cErr) ! A
+    call chr_cast(lnSplit(5),dynk_fData(dynk_nfData+1),cErr) ! omega
+    call chr_cast(lnSplit(6),dynk_fData(dynk_nfData+2),cErr) ! phi
+    dynk_nfData = dynk_nfData + 2
+
+  ! END CASE SINF, COSF & COSF_RIPP
+
+  case("PELP")
+    ! PELP: Parabolic/exponential/linear/parabolic
+    ! From "Field Computation for Accelerator Magnets:
+    ! Analytical and Numerical Methods for Electromagnetic Design and Optimization"
+    ! By Dr.-Ing. Stephan Russenschuck
+    ! Appendix C: "Ramping the LHC Dipoles"
+
+    call dynk_checkargs(nSplit,10,"FUN funname PELP tinj Iinj Inom A D R te")
+    call dynk_checkspace(0,13,1)
+
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_nfData = dynk_nfData+1
+    dynk_ncData = dynk_ncData+1
+
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
+    dynk_funcs(dynk_nFuncs,2) = 80          ! TYPE (PELP)
+    dynk_funcs(dynk_nFuncs,3) = dynk_nfData ! ARG1
+    dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
+    dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
+
+    ! Store data
+    dynk_cData(dynk_ncData) = trim(lnSplit(2)) ! NAME
+
+    ! Read and calculate parameters
+    call chr_cast(lnSplit(4), tinj,cErr)
+    call chr_cast(lnSplit(5), Iinj,cErr)
+    call chr_cast(lnSplit(6), Inom,cErr)
+    call chr_cast(lnSplit(7), A,   cErr)
+    call chr_cast(lnSplit(8), D,   cErr)
+    call chr_cast(lnSplit(9), R,   cErr)
+    call chr_cast(lnSplit(10),te,  cErr)
+
+    derivI_te = A*(te-tinj)                 ! nostore
+    I_te      = (A/2.0)*(te-tinj)**2 + Iinj ! nostore
+    bexp      = derivI_te/I_te
+    aexp      = exp_mb(-bexp*te)*I_te
+    t1        = log_mb(R/(aexp*bexp))/bexp
+    I1        = aexp*exp_mb(bexp*t1)
+    td        = (Inom-I1)/R + (t1 - R/(2*D))
+    tnom      = td + R/D
+
+    if(dynk_debug) then
+      write(lout,"(a,f14.6)") "DYNK> DEBUG FUN:PELP"
+      write(lout,"(a,f14.6)") "DYNK> DEBUG tinj = ", tinj
+      write(lout,"(a,f14.6)") "DYNK> DEBUG Iinj = ", Iinj
+      write(lout,"(a,f14.6)") "DYNK> DEBUG Inom = ", Inom
+      write(lout,"(a,f14.6)") "DYNK> DEBUG A    = ", A
+      write(lout,"(a,f14.6)") "DYNK> DEBUG D    = ", D
+      write(lout,"(a,f14.6)") "DYNK> DEBUG R    = ", R
+      write(lout,"(a,f14.6)") "DYNK> DEBUG te   = ", te
+      write(lout,"(a,f14.6)") "DYNK> DEBUG "
+      write(lout,"(a,f14.6)") "DYNK> DEBUG derivI_te = ", derivI_te
+      write(lout,"(a,f14.6)") "DYNK> DEBUG I_te      = ", I_te
+      write(lout,"(a,f14.6)") "DYNK> DEBUG bexp      = ", bexp
+      write(lout,"(a,f14.6)") "DYNK> DEBUG aexp      = ", aexp
+      write(lout,"(a,f14.6)") "DYNK> DEBUG t1        = ", t1
+      write(lout,"(a,f14.6)") "DYNK> DEBUG I1        = ", I1
+      write(lout,"(a,f14.6)") "DYNK> DEBUG td        = ", td
+      write(lout,"(a,f14.6)") "DYNK> DEBUG tnom      = ", tnom
+    end if
+
+    if(.not. (tinj < te .and. te < t1 .and. t1 < td .and. td < tnom)) then
+      write(lout,"(a)") "DYNK> ERROR FUN:PELP Order of times not correct."
+      iErr = .true.
+      return
+    end if
+
+    ! Store: Times
+    dynk_fData(dynk_nfData)    = tinj
+    dynk_fData(dynk_nfData+ 1) = te
+    dynk_fData(dynk_nfData+ 2) = t1
+    dynk_fData(dynk_nfData+ 3) = td
+    dynk_fData(dynk_nfData+ 4) = tnom
+    ! Store: Parameters / section1 (parabola)
+    dynk_fData(dynk_nfData+ 5) = Iinj
+    dynk_fData(dynk_nfData+ 6) = A
+    ! Store: Parameters / section2 (exponential)
+    dynk_fData(dynk_nfData+ 7) = aexp
+    dynk_fData(dynk_nfData+ 8) = bexp
+    ! Store: Parameters / section3 (linear)
+    dynk_fData(dynk_nfData+ 9) = I1
+    dynk_fData(dynk_nfData+10) = R
+    ! Store: Parameters / section4 (parabola)
+    dynk_fData(dynk_nfData+11) = D
+    dynk_fData(dynk_nfData+12) = Inom
+
+    dynk_nfData = dynk_nfData + 12
+
+  ! END CASE PELP
+
+  case("ONOFF")
+    ! ONOFF: On for p1 turns, then off for the rest of the period p2
+
+    call dynk_checkargs(nSplit,5,"FUN funname ONOFF p1 p2")
+    call dynk_checkspace(0,0,1)
+
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_ncData = dynk_ncData+1
+
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
+    dynk_funcs(dynk_nFuncs,2) = 81          ! TYPE (ONOFF)
+    dynk_funcs(dynk_nFuncs,3) = -1          ! ARG1 (p1)
+    dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2 (p2)
+    dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3 (unused)
+
+    ! Store data
+    dynk_cData(dynk_ncData) = trim(lnSplit(2)) ! NAME
+
+    call chr_cast(lnSplit(4),dynk_funcs(dynk_nFuncs,3),cErr) ! p1
+    call chr_cast(lnSplit(5),dynk_funcs(dynk_nFuncs,4),cErr) ! p2
+
+    ! Check for bad input
+    if(dynk_funcs(dynk_nFuncs,3) < 0 .or. dynk_funcs(dynk_nFuncs,4) <= 1 .or. &
+       dynk_funcs(dynk_nFuncs,4) < dynk_funcs(dynk_nFuncs,3)) then
+      write(lout,"(a)") "DYNK> ERROR FUN:ONOFF Expected p1 >= 0, p2 > 1, p1 <= p2"
+      iErr = .true.
+      return
+    end if
+
+  ! END CASE ONOFF
+
+  case default
+    ! UNKNOWN function
+    write(lout,"(a)") "DYNK> ERROR Unknown function in FUN"
+    iErr = .true.
+    return
+  end select
 
 end subroutine dynk_parseFUN
 
