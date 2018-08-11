@@ -1087,190 +1087,146 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
   ! END CASE TURN
 
-    case ("LIN")
-        ! LIN: Linear ramp y = dy/dt*T+b
+  case("LIN")
+    ! LIN: Linear ramp y = dy/dt*T+b
 
-        call dynk_checkargs(nFields,5,"FUN funname LIN dy/dt b")
-        call dynk_checkspace(0,2,1)
+    call dynk_checkargs(nSplit,5,"FUN funname LIN dy/dt b")
+    call dynk_checkspace(0,2,1)
 
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_nfData = dynk_nfData+1
-        dynk_ncData = dynk_ncData+1
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_nfData = dynk_nfData+1
+    dynk_ncData = dynk_ncData+1
 
-        ! Store pointers
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
-        dynk_funcs(dynk_nFuncs,2) = 42          ! TYPE (LIN)
-        dynk_funcs(dynk_nFuncs,3) = dynk_nfData ! ARG1
-        dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
-        dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
+    dynk_funcs(dynk_nFuncs,2) = 42          ! TYPE (LIN)
+    dynk_funcs(dynk_nFuncs,3) = dynk_nfData ! ARG1
+    dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
+    dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
 
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
+    ! Store data
+    dynk_cData(dynk_ncData) = trim(lnSplit(2)) ! NAME
 
-#ifndef CRLIBM
-        read(gFields(4)(1:lFields(4)),*) dynk_fData(dynk_nfData)   ! dy/dt
-        read(gFields(5)(1:lFields(5)),*) dynk_fData(dynk_nfData+1) ! b
-#else
-        dynk_fData(dynk_nfData)   = round_near(errno,lFields(4)+1,gFields(4))  ! dy/dt
-        if (errno.ne.0) call rounderr( errno,gFields,4,dynk_fData(dynk_nfData))
-        dynk_fData(dynk_nfData+1) = round_near(errno,lFields(5)+1, gFields(5)) ! b
-        if (errno.ne.0) call rounderr( errno,gFields,5,dynk_fData(dynk_nfData+1))
-#endif
-        dynk_nfData = dynk_nfData + 1
+    call chr_cast(lnSplit(4),dynk_fData(dynk_nfData),  cErr) ! dy/dt
+    call chr_cast(lnSplit(5),dynk_fData(dynk_nfData+1),cErr) ! b
+    dynk_nfData = dynk_nfData + 1
 
-    ! END CASE LIN
+  ! END CASE LIN
 
-    case ("LINSEG")
-        ! LINSEG: Linear ramp between points (x1,y1) and (x2,y2)
+  case("LINSEG")
+    ! LINSEG: Linear ramp between points (x1,y1) and (x2,y2)
 
-        call dynk_checkargs(nFields,7,"FUN funname LINSEG x1 x2 y1 y2")
-        call dynk_checkspace(0,4,1)
+    call dynk_checkargs(nSplit,7,"FUN funname LINSEG x1 x2 y1 y2")
+    call dynk_checkspace(0,4,1)
 
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_nfData = dynk_nfData+1
-        dynk_ncData = dynk_ncData+1
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_nfData = dynk_nfData+1
+    dynk_ncData = dynk_ncData+1
 
-        ! Store pointers
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
-        dynk_funcs(dynk_nFuncs,2) = 43          ! TYPE (LINSEG)
-        dynk_funcs(dynk_nFuncs,3) = dynk_nfData ! ARG1
-        dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
-        dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
+    dynk_funcs(dynk_nFuncs,2) = 43          ! TYPE (LINSEG)
+    dynk_funcs(dynk_nFuncs,3) = dynk_nfData ! ARG1
+    dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
+    dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
 
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
-#ifndef CRLIBM
-        read(gFields(4)(1:lFields(4)),*) dynk_fData(dynk_nfData)   ! x1
-        read(gFields(5)(1:lFields(5)),*) dynk_fData(dynk_nfData+1) ! x2
-        read(gFields(6)(1:lFields(6)),*) dynk_fData(dynk_nfData+2) ! y1
-        read(gFields(7)(1:lFields(7)),*) dynk_fData(dynk_nfData+3) ! y2
-#else
-        dynk_fData(dynk_nfData)   = round_near(errno,lFields(4)+1,gFields(4)) ! x1
-        if (errno.ne.0) call rounderr( errno,gFields,4,dynk_fData(dynk_nfData))
-        dynk_fData(dynk_nfData+1) = round_near(errno,lFields(5)+1,gFields(5)) ! x2
-        if (errno.ne.0) call rounderr( errno,gFields,5,dynk_fData(dynk_nfData+1))
-        dynk_fData(dynk_nfData+2) = round_near(errno,lFields(6)+1,gFields(6)) ! y1
-        if (errno.ne.0) call rounderr( errno,gFields,6,dynk_fData(dynk_nfData+2))
-        dynk_fData(dynk_nfData+3) = round_near(errno,lFields(7)+1,gFields(7)) ! y2
-        if (errno.ne.0) call rounderr( errno,gFields,7,dynk_fData(dynk_nfData+3))
-#endif
-        dynk_nfData = dynk_nfData + 3
+    ! Store data
+    dynk_cData(dynk_ncData) = trim(lnSplit(2)) ! NAME
 
-        if (dynk_fData(dynk_nfData-3).eq.dynk_fData(dynk_nfData-2)) then
-            write (lout,*) "ERROR in DYNK block parsing (fort.3)"
-            write (lout,*) "LINSEG: x1 and x2 must be different."
-            call prror(51)
-        end if
+    call chr_cast(lnSplit(4),dynk_fData(dynk_nfData),  cErr) ! x1
+    call chr_cast(lnSplit(5),dynk_fData(dynk_nfData+1),cErr) ! x2
+    call chr_cast(lnSplit(6),dynk_fData(dynk_nfData+2),cErr) ! y1
+    call chr_cast(lnSplit(7),dynk_fData(dynk_nfData+3),cErr) ! y2
+    dynk_nfData = dynk_nfData + 3
 
-    ! END CASE LINSEG
+    if(dynk_fData(dynk_nfData-3) == dynk_fData(dynk_nfData-2)) then
+      write(lout,"(a)") "DYNK> ERROR FUN:LINSEG x1 and x2 must be different."
+      iErr = .true.
+      return
+    end if
 
-    case ("QUAD")
-        ! QUAD: Quadratic ramp y = a*T^2 + b*T + c
+  ! END CASE LINSEG
 
-        call dynk_checkargs(nFields,6,"FUN funname QUAD a b c")
-        call dynk_checkspace(0,3,1)
+  case("QUAD")
+    ! QUAD: Quadratic ramp y = a*T^2 + b*T + c
 
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_nfData = dynk_nfData+1
-        dynk_ncData = dynk_ncData+1
+    call dynk_checkargs(nSplit,6,"FUN funname QUAD a b c")
+    call dynk_checkspace(0,3,1)
 
-        ! Store pointers
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
-        dynk_funcs(dynk_nFuncs,2) = 44          ! TYPE (QUAD)
-        dynk_funcs(dynk_nFuncs,3) = dynk_nfData ! ARG1
-        dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
-        dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_nfData = dynk_nfData+1
+    dynk_ncData = dynk_ncData+1
 
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
+    dynk_funcs(dynk_nFuncs,2) = 44          ! TYPE (QUAD)
+    dynk_funcs(dynk_nFuncs,3) = dynk_nfData ! ARG1
+    dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
+    dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
 
-#ifndef CRLIBM
-        read(gFields(4)(1:lFields(4)),*) dynk_fData(dynk_nfData)   ! a
-        read(gFields(5)(1:lFields(5)),*) dynk_fData(dynk_nfData+1) ! b
-        read(gFields(6)(1:lFields(6)),*) dynk_fData(dynk_nfData+2) ! c
-#else
-        dynk_fData(dynk_nfData)   = round_near(errno,lFields(4)+1,gFields(4)) ! a
-        if (errno.ne.0) call rounderr(errno,gFields,4,dynk_fData(dynk_nfData))
-        dynk_fData(dynk_nfData+1) = round_near(errno,lFields(5)+1,gFields(5)) ! b
-        if (errno.ne.0) call rounderr(errno,gFields,5,dynk_fData(dynk_nfData+1))
-        dynk_fData(dynk_nfData+2) = round_near(errno,lFields(6)+1,gFields(6)) ! c
-        if (errno.ne.0) call rounderr( errno,gFields,6,dynk_fData(dynk_nfData+2))
-#endif
-        dynk_nfData = dynk_nfData + 2
+    ! Store data
+    dynk_cData(dynk_ncData) = trim(lnSplit(2)) ! NAME
 
-    ! END CASE QUAD
+    call chr_cast(lnSplit(4),dynk_fData(dynk_nfData),  cErr) ! a
+    call chr_cast(lnSplit(5),dynk_fData(dynk_nfData+1),cErr) ! b
+    call chr_cast(lnSplit(6),dynk_fData(dynk_nfData+2),cErr) ! c
+    dynk_nfData = dynk_nfData + 2
 
-    case ("QUADSEG")
-        ! QUADSEG: Quadratic ramp y = a*T^2 + b*T + c,
-        ! input as start point (x1,y1), end point (x2,y2), derivative at at x1
+  ! END CASE QUAD
 
-        call dynk_checkargs(nFields,8,"FUN funname QUADSEG x1 x2 y1 y2 deriv")
-        call dynk_checkspace(0,8,1)
+  case("QUADSEG")
+    ! QUADSEG: Quadratic ramp y = a*T^2 + b*T + c,
+    ! input as start point (x1,y1), end point (x2,y2), derivative at at x1
 
-        ! Set pointers to start of funs data blocks
-        dynk_nFuncs = dynk_nFuncs+1
-        dynk_nfData = dynk_nfData+1
-        dynk_ncData = dynk_ncData+1
+    call dynk_checkargs(nSplit,8,"FUN funname QUADSEG x1 x2 y1 y2 deriv")
+    call dynk_checkspace(0,8,1)
 
-        ! Store pointers
-        dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
-        dynk_funcs(dynk_nFuncs,2) = 45          ! TYPE (QUADSEG)
-        dynk_funcs(dynk_nFuncs,3) = dynk_nfData ! ARG1
-        dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
-        dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
+    ! Set pointers to start of funs data blocks
+    dynk_nFuncs = dynk_nFuncs+1
+    dynk_nfData = dynk_nfData+1
+    dynk_ncData = dynk_ncData+1
 
-        ! Store data
-        ! NAME
-        dynk_cData(dynk_ncData)(1:lFields(2)) = gFields(2)(1:lFields(2))
-#ifndef CRLIBM
-        read(gFields(4)(1:lFields(4)),*) x1
-        read(gFields(5)(1:lFields(5)),*) x2
-        read(gFields(6)(1:lFields(6)),*) y1
-        read(gFields(7)(1:lFields(7)),*) y2
-        read(gFields(8)(1:lFields(8)),*) deriv
-#else
-        x1 = round_near(errno,lFields(4)+1,gFields(4))    ! x1
-        if (errno.ne.0) call rounderr(errno,gFields,4,x1)
-        x2 = round_near(errno,lFields(5)+1,gFields(5))    ! x2
-        if (errno.ne.0) call rounderr(errno,gFields,5,x2)
-        y1 = round_near(errno,lFields(6)+1,gFields(6))    ! y1
-        if (errno.ne.0) call rounderr(errno,gFields,6,y1)
-        y2 = round_near(errno,lFields(7)+1,gFields(7))    ! y2
-        if (errno.ne.0) call rounderr(errno,gFields,7,y2)
-        deriv = round_near(errno,lFields(8)+1,gFields(8)) ! deriv
-        if (errno.ne.0) call rounderr(errno,gFields,8,deriv)
-#endif
-        if (x1 .eq. x2) then
-            write (lout,*) "ERROR in DYNK block parsing (fort.3)"
-            write (lout,*) "QUADSEG: x1 and x2 must be different."
-            call prror(51)
-        end if
+    ! Store pointers
+    dynk_funcs(dynk_nFuncs,1) = dynk_ncData ! NAME (in dynk_cData)
+    dynk_funcs(dynk_nFuncs,2) = 45          ! TYPE (QUADSEG)
+    dynk_funcs(dynk_nFuncs,3) = dynk_nfData ! ARG1
+    dynk_funcs(dynk_nFuncs,4) = -1          ! ARG2
+    dynk_funcs(dynk_nFuncs,5) = -1          ! ARG3
 
-        ! Compute a:
-        dynk_fData(dynk_nfData) = deriv/(x1-x2) + (y2-y1)/((x1-x2)**2)
-        ! Compute b:
-        dynk_fData(dynk_nfData+1) = (y2-y1)/(x2-x1) - (x1+x2)*dynk_fData(dynk_nfData)
-        ! Compute c:
-        dynk_fData(dynk_nfData+2) = y1 + (            &
-                - x1**2 * dynk_fData(dynk_nfData)     &
-                - x1    * dynk_fData(dynk_nfData+1) )
+    ! Store data
+    dynk_cData(dynk_ncData) = trim(lnSplit(2)) ! NAME
 
-        ! Store input data:
-        dynk_fData(dynk_nfData+3) = x1
-        dynk_fData(dynk_nfData+4) = x2
-        dynk_fData(dynk_nfData+5) = y1
-        dynk_fData(dynk_nfData+6) = y2
-        dynk_fData(dynk_nfData+7) = deriv
+    call chr_cast(lnSplit(4),x1,   cErr)
+    call chr_cast(lnSplit(5),x2,   cErr)
+    call chr_cast(lnSplit(6),y1,   cErr)
+    call chr_cast(lnSplit(7),y2,   cErr)
+    call chr_cast(lnSplit(8),deriv,cErr)
 
-        dynk_nfData = dynk_nfData + 7
+    if(x1 == x2) then
+      write(lout,"(a)") "DYNK> ERROR FUN:QUADSEG x1 and x2 must be different."
+      call prror(-1)
+    end if
 
-    ! END CASE QUADSEG
+    ! Compute a:
+    dynk_fData(dynk_nfData)   = deriv/(x1-x2) + (y2-y1)/((x1-x2)**2)
+    ! Compute b:
+    dynk_fData(dynk_nfData+1) = (y2-y1)/(x2-x1) - (x1+x2)*dynk_fData(dynk_nfData)
+    ! Compute c:
+    dynk_fData(dynk_nfData+2) = y1 + (- x1**2 * dynk_fData(dynk_nfData) - x1 * dynk_fData(dynk_nfData+1))
+
+    ! Store input data:
+    dynk_fData(dynk_nfData+3) = x1
+    dynk_fData(dynk_nfData+4) = x2
+    dynk_fData(dynk_nfData+5) = y1
+    dynk_fData(dynk_nfData+6) = y2
+    dynk_fData(dynk_nfData+7) = deriv
+
+    dynk_nfData = dynk_nfData + 7
+
+  ! END CASE QUADSEG
 
     case ("SINF","COSF","COSF_RIPP")
         ! Trancedental functions: #60-79
