@@ -50,6 +50,7 @@ SET(TESTS_NOFORT10
   dynk_filelin
   dynk_operators
   dynk_random
+  dynk_polynomial
   thick6ddynk
   dump_binary
   dump4
@@ -76,6 +77,7 @@ SET(TESTS_NOFORT10
 SET(TESTS_NO_STF_FORT90
   dynk_operators
   dynk_random
+  dynk_polynomial
 )
 
 if(LIBARCHIVE)
@@ -99,6 +101,7 @@ SET(SIXTRACK_TESTS
   dynk_filelin
   dynk_operators
   dynk_random
+  dynk_polynomial
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
@@ -364,6 +367,7 @@ SET(FAST_TESTS
   dynk_filelin
   dynk_operators
   dynk_random
+  dynk_polynomial
   elensidealthin4d
   elensidealthck4d
   elensidealthck6d
