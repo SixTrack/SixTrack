@@ -1583,179 +1583,162 @@ integer function dynk_findFUNindex(funName, startFrom)
 end function dynk_findFUNindex
 
 ! ================================================================================================ !
-!  K. Sjobak, BE-ABP/HSS
-!  Last modified: 23-10-2014
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-08-11
 !  - Find and return the index in the sets array to the set which matches element_name and att_name,
 !    which should be zero-padded.
 !  - Return -1 if nothing was found.
 !
 !  Note: It is expected that the length of element_name and att_name is exactly mStrLen .
 ! ================================================================================================ !
-integer function dynk_findSETindex(element_name, att_name, startfrom)
+integer function dynk_findSETindex(elementName, attName, startFrom)
 
-    implicit none
+  implicit none
 
-    character(mStrLen) element_name, att_name
-    integer startfrom
-    intent(in) element_name, att_name, startfrom
+  character(mStrLen), intent(in) :: elementName
+  character(mStrLen), intent(in) :: attName
+  integer,            intent(in) :: startFrom
 
-    integer ii
+  integer ii
 
-    dynk_findSETindex = -1
+  dynk_findSETindex = -1
 
-    do ii=startfrom, dynk_nSets
-        if ( dynk_cSets(ii,1) .eq. element_name .and. dynk_cSets(ii,2) .eq. att_name ) then
-            dynk_findSETindex = ii
-            exit
-        end if
-    end do
+  do ii=startfrom, dynk_nSets
+    if(dynk_cSets(ii,1) == elementName .and. dynk_cSets(ii,2) == attName) then
+      dynk_findSETindex = ii
+      exit
+    end if
+  end do
 
 end function dynk_findSETindex
 
 ! ================================================================================================ !
-!  K. Sjobak, BE-ABP/HSS
-!  Last modified: 14-10-2014
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-08-11
 !  - Check that DYNK block input in fort.3 was sane
 ! ================================================================================================ !
-subroutine dynk_inputsanitycheck
+subroutine dynk_inputSanityCheck
 
-    use crcoall
-    implicit none
+  use crcoall
+  implicit none
 
-    integer ii, jj
-    integer biggestTurn ! Used as a replacement for ending turn -1 (infinity)
-    logical sane
-    sane = .true.
+  integer ii, jj
+  integer biggestTurn ! Used as a replacement for ending turn -1 (infinity)
+  logical sane
 
-    ! Check that there are no doubly-defined function names
-    do ii=1, dynk_nFuncs-1
-        jj = dynk_findFUNindex(dynk_cData(dynk_funcs(ii,1)),ii+1)
-        if ( jj.ne. -1) then
-            sane = .false.
-            write (lout,*) "DYNK> Insane: function ",ii,"has the same name as",jj
-        end if
-    end do
+  sane = .true.
 
-    ! Check that no SETS work on same elem/att at same time
-    biggestTurn = 1
-    do ii=1, dynk_nSets
-        if (dynk_sets(ii,3) .gt. biggestTurn) then
-            biggestTurn = dynk_sets(ii,3)
-        end if
-    end do
-    biggestTurn = biggestTurn+1 ! Make sure it is unique
-    if (biggestTurn .le. 0) then
-        ! In case of integer overflow
-        write(lout,*) "FATAL ERROR: Integer overflow in dynk_inputsanitycheck!"
-        call prror(-1)
+  ! Check that there are no doubly-defined function names
+  do ii=1, dynk_nFuncs-1
+    jj = dynk_findFUNindex(dynk_cData(dynk_funcs(ii,1)),ii+1)
+    if(jj /= -1) then
+      sane = .false.
+      write(lout,"(2(a,i0))") "DYNK> Insane function ",ii," has the same name as ",jj
     end if
+  end do
 
-    ! Do the search!
-    do ii=1, dynk_nSets-1
-        if (dynk_sets(ii,3).eq.-1) dynk_sets(ii,3) = biggestTurn
-        ! write(*,*) "DBG: ii=",ii,dynk_cSets(ii,1)," ", dynk_cSets(ii,2)
-        ! write(*,*)"DBG:", dynk_sets(ii,2),dynk_sets(ii,3)
+  ! Check that no SETS work on same elem/att at same time
+  biggestTurn = 1
+  do ii=1, dynk_nSets
+    if(dynk_sets(ii,3) > biggestTurn) then
+      biggestTurn = dynk_sets(ii,3)
+    end if
+  end do
+  biggestTurn = biggestTurn+1 ! Make sure it is unique
+  if(biggestTurn <= 0) then
+    ! In case of integer overflow
+    write(lout,"(a)") "DYNK> ERROR Integer overflow in sanity check"
+    call prror(-1)
+  end if
 
-        jj = ii
-        do while (.true.)
-            ! Only check SETs affecting the same elem/att
-            jj = dynk_findSETindex(dynk_cSets(ii,1),dynk_cSets(ii,2),jj+1)
-            ! write(*,*)" DBG: jj=",jj,dynk_cSets(jj,1)," ", dynk_cSets(jj,2)
+  ! Do the search!
+  do ii=1, dynk_nSets-1
+    if(dynk_sets(ii,3) == -1) dynk_sets(ii,3) = biggestTurn
 
-            if (jj .eq. -1) exit ! next outer loop
-            if (dynk_sets(jj,3).eq.-1) dynk_sets(jj,3) = biggestTurn
+    jj = ii
+    do
+      ! Only check SETs affecting the same elem/att
+      jj = dynk_findSETindex(dynk_cSets(ii,1),dynk_cSets(ii,2),jj+1)
 
-            ! write(*,*)" DBG:", dynk_sets(jj,2),dynk_sets(jj,3)
-            if (dynk_sets(jj,2) .le. dynk_sets(ii,2) .and. &
-                dynk_sets(jj,3) .ge. dynk_sets(ii,2)) then
-                sane = .false.
-                write (lout,"(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)") &
-                    " DYNK> Insane: Lower edge of SET #", jj, &
-                    " =", dynk_sets(jj,2)," <= lower edge of SET #",ii, &
-                    " =", dynk_sets(ii,2),"; and also higer edge of SET #",jj, &
-                    " =", dynk_sets(jj,3)," >= lower edge of SET #", ii
-            else if (dynk_sets(jj,3) .ge. dynk_sets(ii,3) .and. &
-                     dynk_sets(jj,2) .le. dynk_sets(ii,3)) then
-                sane = .false.
-                write(lout, "(A,I4,A,I8,A,I4,A,I8,A,I4,A,I8,A,I4)") &
-                    " DYNK> Insane: Upper edge of SET #", jj, &
-                    " =", dynk_sets(jj,3)," >= upper edge of SET #",ii, &
-                    " =", dynk_sets(ii,3),"; and also lower edge of SET #",jj, &
-                    " =", dynk_sets(jj,2)," <= upper edge of SET #", ii
-            else if (dynk_sets(jj,2) .ge. dynk_sets(ii,2) .and. &
-                     dynk_sets(jj,3) .le. dynk_sets(ii,3)) then
-                    ! (other way round gets caugth by the first "if")
-                sane = .false.
-                write(lout, "(A,I4,A,I8,A,I8,A,A,I4,A,I8,A,I8,A)") &
-                    " DYNK> Insane: SET #", jj, &
-                    " = (", dynk_sets(jj,2),", ", dynk_sets(jj,3), ")", &
-                    " is inside SET #", ii, " = (",  &
-                    dynk_sets(ii,2),", ", dynk_sets(ii,3), ")"
-            end if
-            if (dynk_sets(jj,3).eq.biggestTurn) dynk_sets(jj,3) = -1
-
-        end do
-
-        if (dynk_sets(ii,3).eq.biggestTurn) dynk_sets(ii,3) = -1
-
+      if(jj == -1) exit ! next outer loop
+      if(dynk_sets(jj,3) == -1) dynk_sets(jj,3) = biggestTurn
+      if(dynk_sets(jj,2) <= dynk_sets(ii,2) .and. dynk_sets(jj,3) >= dynk_sets(ii,2)) then
+        sane = .false.
+        write(lout,"(a,i4,a,i8,a,i4,a,i8,a,i4,a,i8,a,i4)") "DYNK> Insane: Lower edge of SET #", jj, &
+          " =", dynk_sets(jj,2)," <= lower edge of SET #",ii, &
+          " =", dynk_sets(ii,2),"; and also higer edge of SET #",jj, &
+          " =", dynk_sets(jj,3)," >= lower edge of SET #", ii
+      else if(dynk_sets(jj,3) >= dynk_sets(ii,3) .and. dynk_sets(jj,2) <= dynk_sets(ii,3)) then
+        sane = .false.
+        write(lout,"(a,i4,a,i8,a,i4,a,i8,a,i4,a,i8,a,i4)") "DYNK> Insane: Upper edge of SET #", jj, &
+          " =", dynk_sets(jj,3)," >= upper edge of SET #",ii, &
+          " =", dynk_sets(ii,3),"; and also lower edge of SET #",jj, &
+          " =", dynk_sets(jj,2)," <= upper edge of SET #", ii
+      else if(dynk_sets(jj,2) >= dynk_sets(ii,2) .and. dynk_sets(jj,3) <= dynk_sets(ii,3)) then
+        ! (other way round gets caugth by the first "if")
+        sane = .false.
+        write(lout,"(a,i4,a,i8,a,i8,a,a,i4,a,i8,a,i8,a)") "DYNK> Insane: SET #", jj, &
+          " = (", dynk_sets(jj,2),", ", dynk_sets(jj,3), ")", &
+          " is inside SET #", ii, " = (",  &
+          dynk_sets(ii,2),", ", dynk_sets(ii,3), ")"
+      end if
+      if(dynk_sets(jj,3) == biggestTurn) dynk_sets(jj,3) = -1
     end do
 
-    if (.not. sane) then
-        write (lout,*) "****************************************"
-        write (lout,*) "******** DYNK input was insane *********"
-        write (lout,*) "****************************************"
-        call dynk_dumpdata
-        call prror(-11)
-    else if (sane .and. dynk_debug) then
-        write (lout,*) "DYNK> DYNK input was sane"
-    end if
+    if (dynk_sets(ii,3) == biggestTurn) dynk_sets(ii,3) = -1
+  end do
 
-end subroutine dynk_inputsanitycheck
+  if(.not. sane) then
+    write(lout,"(a)") "DYNK> ERROR Input was insane"
+    ! call dynk_dumpdata
+    call prror(-1)
+  else if(sane .and. dynk_debug) then
+    write(lout,"(a)") "DYNK> DYNK input was sane"
+  end if
+
+end subroutine dynk_inputSanityCheck
 
 ! ================================================================================================ !
-!  K. Sjobak, BE-ABP/HSS
-!  Last modified: 14-10-2014
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-08-11
 !  - Dump arrays with DYNK FUN and SET data to the std. output for debugging
 ! ================================================================================================ !
 subroutine dynk_dumpdata
 
-    use crcoall
-    implicit none
+  use crcoall
+  implicit none
 
-    integer ii
-    write (lout,*) "**************** DYNK parser knows: ****************"
-    write (lout,*) "OPTIONS:"
-    write (lout,*) " dynk_enabled            =", dynk_enabled
-    write (lout,*) " dynk_debug       =", dynk_debug
-    write (lout,*) " dynk_noDynkSets =", dynk_noDynkSets
+  integer ii
 
-    write (lout,*) "FUN:"
-    write (lout,*) "ifuncs: (",dynk_nFuncs,")"
-    do ii=1,dynk_nFuncs
-        write (lout,*) ii, ":", dynk_funcs(ii,:)
-    end do
-    write (lout,*) "dynk_iData: (",dynk_niData,")"
-    do ii=1,dynk_niData
-        write (lout,*) ii, ":", dynk_iData(ii)
-    end do
-    write (lout,*) "dynk_fData: (",dynk_nfData,")"
-    do ii=1,dynk_nfData
-        write (lout, '(1x,I8,1x,A,1x,E16.9)') ii, ":", dynk_fData(ii)
-    end do
-    write (lout,*) "dynk_cData: (",dynk_ncData,")"
-    do ii=1,dynk_ncData
-        write(lout,*) ii, ":", "'"//trim(stringzerotrim(dynk_cData(ii)))//"'"
-    end do
+  write(lout,"(a)")      "DYNK> DEBUG OPTIONS:"
+  write(lout,"(a,l1)")   "DYNK> DEBUG  * dynk_enabled    = ",dynk_enabled
+  write(lout,"(a,l1)")   "DYNK> DEBUG  * dynk_debug      = ",dynk_debug
+  write(lout,"(a,l1)")   "DYNK> DEBUG  * dynk_noDynkSets = ",dynk_noDynkSets
 
-    write (lout,*) "SET:"
-    write (lout,*) "sets(,:) csets(,1) csets(,2): (",dynk_nSets,")"
-    do ii=1,dynk_nSets
-        write (lout,*) ii, ":", dynk_sets(ii,:), &
-                       "'"//trim(stringzerotrim(dynk_cSets(ii,1)))// &
-                       "' ", "'"//trim(stringzerotrim(dynk_cSets(ii,2)))//"'"
-    end do
+  write(lout,"(a)")      "DYNK> DEBUG FUN:"
+  write(lout,"(a,i0,a)") "DYNK> DEBUG ifuncs(",dynk_nFuncs,"):"
+  do ii=1,dynk_nFuncs
+    write(lout,"(a,i5,a,6(1x,i5))") "DYNK> DEBUG  * ",ii,": ",dynk_funcs(ii,:)
+  end do
+  write(lout,"(a,i0,a)") "DYNK> DEBUG dynk_iData(",dynk_niData,"):"
+  do ii=1,dynk_niData
+    write(lout,"(a,i5,a,i0)") "DYNK> DEBUG  * ",ii,": ",dynk_iData(ii)
+  end do
+  write(lout,"(a,i0,a)") "DYNK> DEBUG dynk_fData(",dynk_nfData,"):"
+  do ii=1,dynk_nfData
+    write(lout,"(a,i5,a,e16.9)") "DYNK> DEBUG  * ",ii,": ",dynk_fData(ii)
+  end do
+  write(lout,"(a,i0,a)") "DYNK> DEBUG dynk_cData(",dynk_ncData,"):"
+  do ii=1,dynk_ncData
+    write(lout,"(a,i5,a)") "DYNK> DEBUG  * ",ii,": '"//trim(dynk_cData(ii))//"'"
+  end do
 
-    write (lout,*) "*************************************************"
+  write(lout,"(a)")         "DYNK> DEBUG SET:"
+  write(lout,"(a,3(i0,a))") "DYNK> DEBUG sets(",dynk_nSets,",:) csets(",dynk_nSets,",1) csets(",dynk_nSets,",2):"
+  do ii=1,dynk_nSets
+    write(lout,"(a,i5,a,4(1x,i5),a)") "DYNK> DEBUG  * ",ii,":",dynk_sets(ii,:), &
+      " '"//trim(dynk_cSets(ii,1))//"' '"//trim(dynk_cSets(ii,2))//"'"
+  end do
 
 end subroutine dynk_dumpdata
 
