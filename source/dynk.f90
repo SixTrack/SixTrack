@@ -2788,73 +2788,72 @@ end subroutine dynk_crcheck_readdata
 ! ================================================================================================ !
 subroutine dynk_crcheck_positionFiles
 
-    use crcoall
-    implicit none
+  use crcoall
+  implicit none
 
-
-    logical isOpen
-    integer ierro
+  logical isOpen
+  integer ierro
 #ifdef BOINC
-    character(len=256) filename
+  character(len=256) filename
 #endif
-    integer j
-    character(len=1024) arecord
+  integer j
+  character(len=1024) arecord
 
-    inquire(unit=dynk_fileUnit, opened=isOpen)
-    if (isOpen) then
-        write(93,*) "SIXTRACR CRCHECK FAILED while repositioning 'dynksets.dat'"
-        write(93,*) "Could not open file!"
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
+  inquire(unit=dynk_fileUnit, opened=isOpen)
+  if (isOpen) then
+    write(93,*) "SIXTRACR CRCHECK FAILED while repositioning 'dynksets.dat'"
+    write(93,*) "Could not open file!"
+    endfile (93,iostat=ierro)
+    backspace (93,iostat=ierro)
 
-        write(lout,*) "SIXTRACR CRCHECK failure positioning 'dynksets.dat'"
-        call prror(-1)
-    end if
+    write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning 'dynksets.dat'"
+    call prror(-1)
+  end if
 
-    if (dynk_filePosCR .ne. -1) then
+  if (dynk_filePosCR /= -1) then
 #ifdef BOINC
-        call boincrf("dynksets.dat",filename)
-        open(unit=dynk_fileUnit,file=filename,status="old",action="readwrite",err=110)
+    call boincrf("dynksets.dat",filename)
+    open(unit=dynk_fileUnit,file=filename,status="old",action="readwrite",err=110)
 #else
-        open(unit=dynk_fileUnit,file='dynksets.dat',status="old",action="readwrite",err=110)
+    open(unit=dynk_fileUnit,file='dynksets.dat',status="old",action="readwrite",err=110)
 #endif
-        dynk_filePos = 0     ! Start counting lines at 0, not -1
-        do j=1,dynk_filePosCR
-            read(dynk_fileUnit,'(a1024)',end=110,err=110,iostat=ierro) arecord
-            dynk_filePos=dynk_filePos+1
-        end do
+    dynk_filePos = 0     ! Start counting lines at 0, not -1
+    do j=1,dynk_filePosCR
+      read(dynk_fileUnit,'(a1024)',end=110,err=110,iostat=ierro) arecord
+      dynk_filePos=dynk_filePos+1
+    end do
 
-        endfile(dynk_fileUnit,iostat=ierro)
-        close(dynk_fileUnit)
+    endfile(dynk_fileUnit,iostat=ierro)
+    close(dynk_fileUnit)
 #ifdef BOINC
-        call boincrf("dynksets.dat",filename)
-        open(unit=dynk_fileUnit,file=filename,status="old",position='append',action="write")
+    call boincrf("dynksets.dat",filename)
+    open(unit=dynk_fileUnit,file=filename,status="old",position='append',action="write")
 #else
-        open(unit=dynk_fileUnit,file="dynksets.dat",status="old",position='append',action="write")
+    open(unit=dynk_fileUnit,file="dynksets.dat",status="old",position='append',action="write")
 #endif
 
-        write(93,*) "SIXTRACR CRCHECK sucessfully repositioned 'dynksets.dat', "// &
-                    "dynk_filePos=",dynk_filePos, "dynk_filePosCR=",dynk_filePosCR
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
-    else
-        write(93,*) "SIXTRACR CRCHECK did not attempt repositioning "// &
-                    "of dynksets.dat, dynk_filePosCR=",dynk_filePosCR
-        write(93,*) "If anything has been written to the file, "// &
-                    "it will be correctly truncated in dynk_apply on the first turn."
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
-    end if
+    write(93,*) "SIXTRACR CRCHECK sucessfully repositioned 'dynksets.dat', "// &
+                "dynk_filePos=",dynk_filePos, "dynk_filePosCR=",dynk_filePosCR
+    endfile (93,iostat=ierro)
+    backspace (93,iostat=ierro)
+  else
+    write(93,*) "SIXTRACR CRCHECK did not attempt repositioning "// &
+                "of dynksets.dat, dynk_filePosCR=",dynk_filePosCR
+    write(93,*) "If anything has been written to the file, "// &
+                "it will be correctly truncated in dynk_apply on the first turn."
+    endfile (93,iostat=ierro)
+    backspace (93,iostat=ierro)
+  end if
 
-    return
+  return
 
 110 continue
-    write(93,*) "SIXTRACR CRCHECK *** ERROR *** reading 'dynksets.dat', iostat=",ierro
-    write(93,*) "dynk_filePos=",dynk_filePos," dynk_filePosCR=",dynk_filePosCR
-    endfile   (93,iostat=ierro)
-    backspace (93,iostat=ierro)
-    write(lout,*) "SIXTRACR CRCHECK failure positioning 'dynksets.dat'"
-    call prror(-1)
+  write(93,*) "SIXTRACR CRCHECK *** ERROR *** reading 'dynksets.dat', iostat=",ierro
+  write(93,*) "dynk_filePos=",dynk_filePos," dynk_filePosCR=",dynk_filePosCR
+  endfile   (93,iostat=ierro)
+  backspace (93,iostat=ierro)
+  write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning 'dynksets.dat'"
+  call prror(-1)
 
 end subroutine dynk_crcheck_positionFiles
 
