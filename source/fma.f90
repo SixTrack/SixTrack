@@ -1,7 +1,5 @@
 module fma
 
-  use string_tools, only : getfields_l_max_string
-
   implicit none
 
   integer, parameter     :: fma_max           = 200                ! Max. number of FMAs
