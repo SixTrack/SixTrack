@@ -234,7 +234,7 @@ subroutine dynk_parseFUN(inLine, iErr)
   real(kind=fPrec) derivI_te,I_te,bexp,aexp,t1,I1,td,tnom ! PELP (calc)
 
   logical isFIR ! FIR/IIR
-  logical lOpen
+  logical isOpen
 
 #ifdef BOINC
   character(len=256) filename
@@ -327,8 +327,8 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_ncData = dynk_ncData+1
 
     ! Open the file
-    inquire(unit=dynk_fileUnitFUN,opened=lOpen)
-    if(lOpen) then
+    inquire(unit=dynk_fileUnitFUN,opened=isOpen)
+    if(isOpen) then
       write(lout,"(a)") "DYNK> ERROR FUN:FILE ould not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
@@ -368,7 +368,7 @@ subroutine dynk_parseFUN(inLine, iErr)
         return
       end if
       if(nFile /= 2) then
-        write(lout,"(a,i0)") "DYNK> ERROR FUN:FILE Expected two values per line, got ",nFIle
+        write(lout,"(a,i0)") "DYNK> ERROR FUN:FILE Expected two values per line, got ",nFile
         iErr = .true.
         return
       end if
@@ -417,8 +417,8 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_ncData = dynk_ncData+1
 
     ! Open the file
-    inquire(unit=dynk_fileUnitFUN, opened=lOpen)
-    if(lOpen) then
+    inquire(unit=dynk_fileUnitFUN, opened=isOpen)
+    if(isOpen) then
       write(lout,"(a)") "DYNK> ERROR FUN:FILELIN Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
@@ -593,8 +593,8 @@ subroutine dynk_parseFUN(inLine, iErr)
         trim(dynk_cData(dynk_ncData-3))//"', ID='"//&
         trim(dynk_cData(dynk_ncData))//"'"
 
-      inquire(unit=dynk_iData(dynk_niData), opened=lOpen)
-      if(lOpen) then
+      inquire(unit=dynk_iData(dynk_niData), opened=isOpen)
+      if(isOpen) then
         write(lout,"(a)")"DYNK> ERROR FUN:PIPE File '"//trim(dynk_cData(dynk_ncData-2))//"' is already open"
         iErr = .true.
         return
@@ -614,8 +614,8 @@ subroutine dynk_parseFUN(inLine, iErr)
         trim(dynk_cData(dynk_ncData-3))//"', ID='"//&
         trim(dynk_cData(dynk_ncData))//"'"
 
-      inquire(unit=dynk_iData(dynk_niData+1), opened=lOpen)
-      if(lOpen) then
+      inquire(unit=dynk_iData(dynk_niData+1), opened=isOpen)
+      if(isOpen) then
         write(lout,"(a)")"DYNK> ERROR FUN:PIPE File '"//trim(dynk_cData(dynk_ncData-1))//"' is already open"
         iErr = .true.
         return
@@ -843,8 +843,8 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_cData(dynk_ncData) = trim(lnSplit(5)) ! FILE NAME
 
     ! Read the file
-    inquire(unit=dynk_fileUnitFUN, opened=lOpen)
-    if(lOpen) then
+    inquire(unit=dynk_fileUnitFUN, opened=isOpen)
+    if(isOpen) then
       write(lout,"(a)") "DYNK> ERROR FUN:FIR/IIR Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
@@ -1743,148 +1743,130 @@ subroutine dynk_dumpdata
 end subroutine dynk_dumpdata
 
 ! ================================================================================================ !
-!  K. Sjobak, BE-ABP/HSS
-!  Last modified: 21-10-2014
+!  K. Sjobak, BE-ABP-HSS
+!  Last modified: 2018-08-12
 !  - Save original values for GET functions and sanity check that elements/attributes for SET
 !    actually exist.
 ! ================================================================================================ !
 subroutine dynk_pretrack
 
-    use crcoall
-    use mod_common
-    use mod_commond
-    implicit none
+  use crcoall
+  use mod_common
+  use mod_commond
 
-    ! Temp variables
-    integer ii,jj
-    character(mStrLen) element_name_s, att_name_s
-    logical found, badelem
-    if (dynk_debug) then
-        write(lout,*) "DYNKDEBUG> In dynk_pretrack()"
+  implicit none
+
+  ! Temp variables
+  integer ii,jj
+  character(mStrLen) element_name_s, att_name_s
+  logical found, badelem
+  if(dynk_debug) then
+    write(lout,"(a)") "DYNK> DEBUG In pretrack"
+  end if
+
+  ! Find which elem/attr combos are affected by SET
+  dynk_nSets_unique = 0 !Assuming this is only run once
+  do ii=1,dynk_nSets
+    if (dynk_findSETindex(dynk_cSets(ii,1),dynk_cSets(ii,2), ii+1 ) .eq. -1) then
+      ! Last SET which has this attribute, store it
+      dynk_nSets_unique = dynk_nSets_unique+1
+
+      dynk_cSets_unique(dynk_nSets_unique,1) = dynk_cSets(ii,1)
+      dynk_cSets_unique(dynk_nSets_unique,2) = dynk_cSets(ii,2)
+
+      ! Sanity check: Does the element actually exist?
+      element_name_s = trim(dynk_cSets_unique(dynk_nSets_unique,1))
+      att_name_s     = trim(dynk_cSets_unique(dynk_nSets_unique,2))
+      found          = .false.
+
+      ! Special case: the element name GLOBAL-VARS (not a real element)
+      ! can be used to redefine a global variable by some function.
+      if(element_name_s == "GLOBAL-VARS") then
+        found   = .true.
+        badelem = .false.
+
+        if(att_name_s == "E0") then
+          if(idp == 0 .or. ition == 0) then ! 4d tracking..
+            write(lout,"(a)") "DYNK> ERROR Attribute '"//att_name_s//"' is not valid for 'GLOBAL-VARS' when doing 4d tracking"
+            call prror(-1)
+          end if
+        else
+          badelem=.true.
+        end if
+
+        if(badelem) then
+          write(lout,"(a)") "DYNK> ERROR Attribute '"//att_name_s//"' is not valid for 'GLOBAL-VARS'"
+          call prror(-1)
+        end if
+      end if
+
+      do jj=1,il
+        if(bez(jj) == element_name_s) then
+          found = .true.
+
+          ! Check that the element type and attribute is supported
+          ! Check that the element can be used now
+          badelem = .false.
+          if(abs(kz(jj)) >= 1 .and. abs(kz(jj)) <= 10) then !thin kicks
+            if(att_name_s /= "average_ms") then
+              badelem = .true.
+            end if
+          else if(abs(kz(jj)) == 12) then ! cavity
+            if(.not.(att_name_s == "voltage"  .or. att_name_s == "harmonic" .or. att_name_s == "lag_angle")) then
+              badelem = .true.
+            end if
+            if(kp(jj) /= 6) then
+              write(lout,"(a)") "DYNK> ERROR Want to modify DISABLED RF cavity named '"//element_name_s//"'"
+              write(lout,"(a)") "DYNK>       Please make sure that the voltage and harmonic number in the "//&
+                "SINGLE ELEMENTS block is not 0!"
+              call prror(-1)
+            end if
+            if(nvar == 5) then
+              write(lout,"(a)") "DYNK> ERROR Want to modify RF cavity named '"//element_name_s//"', but nvars=5 (from DIFF block)."
+            end if
+          else if(abs(kz(jj)) == 23 .or. abs(kz(jj)) == 26 .or. abs(kz(jj)) == 27 .or. abs(kz(jj)) == 28) then
+            if(.not.(att_name_s == "voltage" .or. att_name_s == "frequency" .or. att_name_s == "phase")) then
+              badelem = .true.
+            end if
+          end if
+
+          ! Special case:
+          ! Should the error only occur if we actually have a GLOBAL-VARS element?
+          if(bez(jj) == "GLOBAL-VARS") then
+            write(lout,"(a)") "DYNK> ERROR Element found 'GLOBAL-VARS' is not a valid element name, it is reserved"
+            call prror(-1)
+          end if
+
+          if(badelem) then
+            write(lout,"(a,i0)") "DYNK> ERROR Attribute '"//att_name_s//"' is not valid for element '"//element_name_s//"'"//&
+              " which is of type ",kz(jj)
+            call prror(-1)
+          end if
+        end if
+      end do
+
+      if(.not. found) then
+        write(lout,"(a)") "DYNK> ERROR Element '",element_name_s,"' was not found"
+        call prror(-1)
+      end if
     end if
+  end do
 
-    ! Find which elem/attr combos are affected by SET
-    dynk_nSets_unique = 0 !Assuming this is only run once
-    do ii=1,dynk_nSets
-        if (dynk_findSETindex(dynk_cSets(ii,1),dynk_cSets(ii,2), ii+1 ) .eq. -1) then
-            ! Last SET which has this attribute, store it
-            dynk_nSets_unique = dynk_nSets_unique+1
+  ! Save original values for GET functions
+  do ii=1,dynk_nFuncs
+    if(dynk_funcs(ii,2) == 0) then ! GET
+      dynk_fData(dynk_funcs(ii,3)) = dynk_getvalue(dynk_cData(dynk_funcs(ii,1)+1),dynk_cData(dynk_funcs(ii,1)+2))
+    end if
+  end do
 
-            dynk_cSets_unique(dynk_nSets_unique,1) = dynk_cSets(ii,1)
-            dynk_cSets_unique(dynk_nSets_unique,2) = dynk_cSets(ii,2)
-
-            ! Sanity check: Does the element actually exist?
-            element_name_s = trim(stringzerotrim(dynk_cSets_unique(dynk_nSets_unique,1)))
-            att_name_s     = trim(stringzerotrim(dynk_cSets_unique(dynk_nSets_unique,2)))
-            found          = .false.
-
-            ! Special case: the element name GLOBAL-VARS (not a real element)
-            ! can be used to redefine a global variable by some function.
-            if (element_name_s .eq. "GLOBAL-VARS") then
-                found   = .true.
-                badelem = .false.
-
-                if (att_name_s .eq. "E0") then
-                    if (idp.eq.0 .or. ition.eq.0) then ! 4d tracking..
-                        write(lout,*) "DYNK> Insane - attribute '", &
-                                      att_name_s, "' is not valid for 'GLOBAL-VARS' ", &
-                                      "when doing 4d tracking"
-                        call prror(-1)
-                    end if
-                else
-                    badelem=.true.
-                end if
-
-                if (badelem) then
-                    write(lout,*) "DYNK> Insane - attribute '", &
-                                  att_name_s, "' is not valid for 'GLOBAL-VARS'"
-                    call prror(-1)
-                end if
-            end if
-
-            do jj=1,il
-                if ( bez(jj).eq. element_name_s) then
-
-                    found = .true.
-
-                    ! Check that the element type and attribute is supported
-                    ! Check that the element can be used now
-                    badelem = .false.
-                    if (abs(kz(jj)).ge.1 .and. abs(kz(jj)).le.10) then !thin kicks
-                        if (att_name_s .ne. "average_ms") then
-                            badelem = .true.
-                        end if
-                    else if (abs(kz(jj)).eq.12) then ! cavity
-                        if (.not. (att_name_s.eq."voltage"  .or. &
-                                   att_name_s.eq."harmonic" .or. &
-                                   att_name_s.eq."lag_angle")) then
-                            badelem = .true.
-                        end if
-                        if (kp(jj).ne.6) then
-                            write(lout,*) "DYNK> Insane - want to modify ", &
-                                          "DISABLED RF cavity named '",element_name_s, &
-                                          ". Please make sure that the voltage and ", &
-                                          "harmonic number in the SINGLE ELEMENTS ", &
-                                          "block is not 0!"
-                            call prror(-1)
-                        end if
-                        if (nvar .eq. 5) then
-                            write(lout,*) "DYNK> Insane - want to modify ", &
-                                          "RF cavity named '", element_name_s, "', ", &
-                                          "but nvars=5 (from DIFF block)."
-                        end if
-                    else if (abs(kz(jj)).eq.23 .or. & ! crab
-                             abs(kz(jj)).eq.26 .or. & ! cc multipole,  order 2
-                             abs(kz(jj)).eq.27 .or. & ! cc multipole,  order 3
-                             abs(kz(jj)).eq.28) then  ! cc muiltipole, order 4
-                        if (.not. (att_name_s.eq."voltage"   .or. &
-                                   att_name_s.eq."frequency" .or. &
-                                   att_name_s.eq."phase"     )) then
-                            badelem = .true.
-                        end if
-                    end if
-
-                    ! Special case:
-                    ! Should the error only occur if we actually have a GLOBAL-VARS element?
-                    if (bez(jj) .eq. "GLOBAL-VARS") then
-                        write(lout,*) "DYNK> Insane - element found '", &
-                                      "GLOBAL-VARS' is not a valid element name, ", &
-                                      "it is reserved"
-                        call prror(-1)
-                    end if
-
-                    if (badelem) then
-                        write(lout,*) "DYNK> Insane - attribute '", &
-                                      att_name_s, "' is not valid for element '", &
-                                      element_name_s, "' which is of type",kz(jj)
-                        call prror(-1)
-                    end if
-                end if
-            end do
-
-            if (.not. found) then
-                write (lout,*) "DYNK> Insane: Element '",element_name_s,"' was not found"
-                call prror(-1)
-            end if
-        end if
-    end do
-
-    ! Save original values for GET functions
-    do ii=1,dynk_nFuncs
-        if (dynk_funcs(ii,2) .eq. 0) then ! GET
-            dynk_fData(dynk_funcs(ii,3)) = dynk_getvalue( dynk_cData(dynk_funcs(ii,1)+1), &
-                                           dynk_cData(dynk_funcs(ii,1)+2))
-        end if
-    end do
-
-    if (dynk_debug) call dynk_dumpdata
+  if(dynk_debug) call dynk_dumpdata
 
 end subroutine dynk_pretrack
 
 ! ================================================================================================ !
 !  A.Mereghetti, for the FLUKA Team
-!  K.Sjobak & A. Santamaria, BE-ABP/HSS
-!  Last modified: 30-10-2014
+!  K.Sjobak, A. Santamaria, V.K Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-08-12
 !  - Actually apply dynamic kicks
 !  - Always in main code
 !
@@ -1896,157 +1878,140 @@ end subroutine dynk_pretrack
 ! ================================================================================================ !
 subroutine dynk_apply(turn)
 
-    use crcoall
-    use mod_common
-    use mod_commont
-    use mod_commonmn
+  use crcoall
+  use mod_common
+  use mod_commont
+  use mod_commonmn
+  use string_tools
 
-    implicit none
+  implicit none
 
 #ifdef BOINC
-    character(len=256) filename
+  character(len=256) filename
 #endif
 
-    ! interface variables
-    integer turn  ! current turn number
-    intent(in) turn
+  ! interface variables
+  integer, intent(in) :: turn
 
-    ! temporary variables
-    integer ii, jj, shiftedTurn
-    logical lopen
-    real(kind=fPrec) getvaldata, newValue
+  ! temporary variables
+  integer ii, jj, shiftedTurn
+  logical isOpen
+  real(kind=fPrec) getvaldata, newValue
 
-    ! Used for output dynksets.dat
-    character(len=mStrLen) whichFUN(dynk_nSets_unique) ! Which function was used to set a given elem/attr?
-    integer whichSET(dynk_nSets_unique)                ! Which SET was used for a given elem/attr?
+  ! Used for output dynksets.dat
+  character(len=mStrLen) whichFUN(dynk_nSets_unique) ! Which function was used to set a given elem/attr?
+  integer whichSET(dynk_nSets_unique)                ! Which SET was used for a given elem/attr?
 
-    ! Temp variable for padding the strings for output to dynksets.dat
-    character(20) outstring_tmp1,outstring_tmp2,outstring_tmp3
+  ! Temp variable for padding the strings for output to dynksets.dat
+  character(20) outstring_tmp1,outstring_tmp2,outstring_tmp3
 
-    ! integer, parameter :: samplenumber = 1
+  if(dynk_debug) then
+    write (lout,"(a,i0)") "DYNK> DEBUG In apply at turn ",turn
+  end if
 
-    if ( dynk_debug ) then
-      write (lout,*) 'DYNKDEBUG> In dynk_apply(), turn = ',turn
-    end if
+  ! Initialize variables (every call)
+  do jj=1, dynk_nSets_unique
+    whichSET(jj) = -1
+    whichFUN(jj) = " "
+  end do
 
-    ! Initialize variables (every call)
-    do jj=1, dynk_nSets_unique
-        whichSET(jj) = -1
-        do ii=1,mStrLen
-            whichFUN(jj)(ii:ii) = char(0)
-        end do
-    end do
-
-    ! First-turn initialization, including some parts which are specific for collimat.
-    if (turn .eq. 1) then
-        ! Open dynksets.dat
+  ! First-turn initialization, including some parts which are specific for collimat.
+  if(turn == 1) then
+    ! Open dynksets.dat
 #ifdef CR
-        ! Could have loaded a CR just before tracking starts;
-        ! In this case, the dynksets is already open and positioned,
-        ! so don't try to open the file again.
-        if (dynk_filePos .eq.-1) then
+    ! Could have loaded a CR just before tracking starts;
+    ! In this case, the dynksets is already open and positioned,
+    ! so don't try to open the file again.
+    if(dynk_filePos  == -1) then
 #endif
-            inquire(unit=dynk_fileUnit, opened=lopen)
-            if (lopen) then
-                write(lout,*) "DYNK> **** ERROR in dynk_apply() ****"
-                write(lout,*) "DYNK> Could not open file 'dynksets.dat'"
-                call prror(-1)
-            end if
+      inquire(unit=dynk_fileUnit, opened=isOpen)
+      if(isOpen) then
+        write(lout,"(a)") "DYNK> ERROR Could not open file 'dynksets.dat'"
+        call prror(-1)
+      end if
 #ifdef BOINC
-            call boincrf("dynksets.dat",filename)
-            open(unit=dynk_fileUnit,file=filename,status="replace",action="write")
+      call boincrf("dynksets.dat",filename)
+      open(unit=dynk_fileUnit,file=filename,status="replace",action="write")
 #else
-            open(unit=dynk_fileUnit,file="dynksets.dat",status="replace",action="write")
+      open(unit=dynk_fileUnit,file="dynksets.dat",status="replace",action="write")
 #endif
 
-            if (dynk_noDynkSets) then
-                write(dynk_fileUnit,*) "### DYNK file output was disabled with flag NOFILE in fort.3 ###"
-            else
-                write(dynk_fileUnit,*) "# turn element attribute SETidx funname value"
-            end if
+      if(dynk_noDynkSets) then
+        write(dynk_fileUnit,"(a)") "### DYNK file output was disabled with flag NOFILE in fort.3 ###"
+      else
+        write(dynk_fileUnit,"(a1,1x,a10,2(1x,a20),1x,a4,1x,a20,a16)") "#",&
+          "turn", chr_rPad("element",20),chr_rPad("attribute",20),"idx",chr_rPad("funname",20),"value"
+      end if
 #ifdef CR
-            ! Note: To be able to reposition, each line should be shorter than 255 chars
-            dynk_filePos = 1
+      ! Note: To be able to reposition, each line should be shorter than 255 chars
+      dynk_filePos = 1
 
-            ! Flush the unit
-            endfile(dynk_fileUnit,iostat=ierro)
-            backspace(dynk_fileUnit,iostat=ierro)
-          end if ! END if(dynk_filePos.eq.-1)
+      ! Flush the unit
+      endfile(dynk_fileUnit,iostat=ierro)
+      backspace(dynk_fileUnit,iostat=ierro)
+    end if ! END if(dynk_filePos == -1)
 #endif
-    end if ! END "if (turn .eq. 1) then"
+  end if ! END "if (turn == 1) then"
 
-    ! Apply the sets
-    do ii=1,dynk_nSets
-        ! Sanity check already confirms that only a single SET
-        ! is active on a given element:attribute on a given turn.
+  ! Apply the sets
+  do ii=1,dynk_nSets
+    ! Sanity check already confirms that only a single SET
+    ! is active on a given element:attribute on a given turn.
 
-        ! Active in this turn?
-        if (turn .ge. dynk_sets(ii,2) .and. (turn .le. dynk_sets(ii,3) .or. dynk_sets(ii,3) .eq. -1)) then
+    ! Active in this turn?
+    if(turn >= dynk_sets(ii,2) .and. (turn <= dynk_sets(ii,3) .or. dynk_sets(ii,3) == -1)) then
 
-            ! Shifting
-            shiftedTurn = turn + dynk_sets(ii,4)
+      ! Shifting
+      shiftedTurn = turn + dynk_sets(ii,4)
 
-            ! Set the value
-            newValue = dynk_computeFUN(dynk_sets(ii,1),shiftedTurn)
-            if (dynk_debug) then
-                write (lout, '(1x,A,I5,A,I8,A,E16.9)') "DYNKDEBUG> Applying set #", ii, " on '"// &
-                                trim(stringzerotrim(dynk_cSets(ii,1)))// &
-                                "':'"// trim(stringzerotrim(dynk_cSets(ii,2)))// &
-                                "', shiftedTurn=",shiftedTurn,", value=",newValue
-            end if
-            call dynk_setvalue(dynk_cSets(ii,1),dynk_cSets(ii,2),newValue)
+      ! Set the value
+      newValue = dynk_computeFUN(dynk_sets(ii,1),shiftedTurn)
+      if(dynk_debug) then
+        write(lout, "(a,i5,a,i8,a,e16.9)") "DYNK> DEBUG Applying set #", ii, " on '"//trim(dynk_cSets(ii,1))// &
+          "':'"//trim(dynk_cSets(ii,2))//"', shiftedTurn = ",shiftedTurn,", value = ",newValue
+      end if
+      call dynk_setvalue(dynk_cSets(ii,1),dynk_cSets(ii,2),newValue)
 
-            if (dynk_debug) then
-                getvaldata = dynk_getvalue(dynk_cSets(ii,1),dynk_cSets(ii,2))
-                write (lout, '(1x,A,E16.9)') "DYNKDEBUG> Read back value = ", getvaldata
-
-                if (getvaldata .ne. newValue) then
-                    write(lout,*) "DYNKDEBUG> WARNING Read back value differs from set!"
-                end if
-            end if
-
-            ! For the output file: Which function was used?
-            do jj=1, dynk_nSets_unique
-                if (dynk_cSets(ii,1) .eq. dynk_cSets_unique(jj,1) .and. &
-                    dynk_cSets(ii,2) .eq. dynk_cSets_unique(jj,2)) then
-                    whichSET(jj)=ii
-                    whichFUN(jj)=dynk_cData(dynk_funcs(dynk_sets(ii,1),1))
-                end if
-            end do
+      if(dynk_debug) then
+        getvaldata = dynk_getvalue(dynk_cSets(ii,1),dynk_cSets(ii,2))
+        write(lout, "(a,e16.9)") "DYNK> DEBUG Read back value = ", getvaldata
+        if(getvaldata /= newValue) then
+          write(lout,"(a)") "DYNK> DEBUG WARNING Read back value differs from set!"
         end if
+      end if
+
+      ! For the output file: Which function was used?
+      do jj=1, dynk_nSets_unique
+        if(dynk_cSets(ii,1) == dynk_cSets_unique(jj,1) .and. dynk_cSets(ii,2) == dynk_cSets_unique(jj,2)) then
+          whichSET(jj)=ii
+          whichFUN(jj)=dynk_cData(dynk_funcs(dynk_sets(ii,1),1))
+        end if
+      end do
+    end if
+  end do
+
+  ! Write output file
+  if(.not.dynk_noDynkSets) then
+    do jj=1,dynk_nSets_unique
+      getvaldata = dynk_getvalue(dynk_cSets_unique(jj,1),dynk_cSets_unique(jj,2))
+
+      if(whichSET(jj) == -1) then
+        whichFUN(jj) = "N/A"
+      end if
+
+      write(dynk_fileUnit,"(i12,2(1x,a20),1x,i4,1x,a20,e16.9)") turn, &
+        chr_rPad(dynk_cSets_unique(jj,1),20),chr_rPad(dynk_cSets_unique(jj,2),20),&
+        whichSET(jj),chr_rPad(whichFUN(jj),20),getvaldata
     end do
 
-    ! Write output file
-    if (.not.dynk_noDynkSets) then
-        do jj=1,dynk_nSets_unique
-            getvaldata = dynk_getvalue(dynk_cSets_unique(jj,1),dynk_cSets_unique(jj,2))
-
-            if (whichSET(jj) .eq. -1) then
-                whichFUN(jj) = "N/A"
-            end if
-
-            !For compatibility with old output, the string output to dynksets.dat should be left-adjusted within each column.
-            !Previously, the dynk_cSets_unique etc. strings could maximally be 20 long each.
-            !Note that the length of each string is limited by the max length of element names (16), attribute names, and FUN names.
-            write(outstring_tmp1,'(A20)') stringzerotrim(dynk_cSets_unique(jj,1))
-            outstring_tmp1(len(outstring_tmp1)+1:) = ' ' ! Pad with trailing blanks
-            write(outstring_tmp2,'(A20)') stringzerotrim(dynk_cSets_unique(jj,2))
-            outstring_tmp2(len(outstring_tmp2)+1:) = ' '
-            write(outstring_tmp3,'(A20)') stringzerotrim(whichFUN(jj))
-            outstring_tmp3(len(outstring_tmp3)+1:) = ' '
-
-            write(dynk_fileUnit,'(I12,1x,A20,1x,A20,1x,I4,1x,A20,E16.9)') &
-                 turn,outstring_tmp1,outstring_tmp2,whichSET(jj),outstring_tmp3,getvaldata
-        end do
-
 #ifdef CR
-        ! Note: To be able to reposition, each line should be shorter than 255 chars
-        dynk_filePos = dynk_filePos+dynk_nSets_unique
+    ! Note: To be able to reposition, each line should be shorter than 255 chars
+    dynk_filePos = dynk_filePos+dynk_nSets_unique
 #endif
-        ! Flush the unit
-        endfile(dynk_fileUnit,iostat=ierro)
-        backspace(dynk_fileUnit,iostat=ierro)
-    end if
+    ! Flush the unit
+    endfile(dynk_fileUnit,iostat=ierro)
+    backspace(dynk_fileUnit,iostat=ierro)
+  end if
 
 end subroutine dynk_apply
 
@@ -2897,19 +2862,19 @@ subroutine dynk_closeFiles
   implicit none
 
   integer i
-  logical lopen
+  logical isOpen
 
   if(.not. dynk_enabled) return
 
   do i=1,dynk_nFuncs
     if (dynk_funcs(i,2) == 3) then ! PIPE FUN
       ! InPipe
-      inquire(unit=dynk_iData(dynk_funcs(i,3)), opened=lopen)
-      if(lopen) close(dynk_iData(dynk_funcs(i,3)))
+      inquire(unit=dynk_iData(dynk_funcs(i,3)), opened=isOpen)
+      if(isOpen) close(dynk_iData(dynk_funcs(i,3)))
 
       ! OutPipe
-      inquire(unit=dynk_iData(dynk_funcs(i,3)+1), opened=lopen)
-      if(lopen) then
+      inquire(unit=dynk_iData(dynk_funcs(i,3)+1), opened=isOpen)
+      if(isOpen) then
         write(dynk_iData(dynk_funcs(i,3))+1,"(a)") "CLOSEUNITS"
         close(dynk_iData(dynk_funcs(i,3))+1)
       end if
@@ -2972,7 +2937,7 @@ subroutine dynk_crcheck_positionFiles
     implicit none
 
 
-    logical lopen
+    logical isOpen
     integer ierro
 #ifdef BOINC
     character(len=256) filename
@@ -2980,8 +2945,8 @@ subroutine dynk_crcheck_positionFiles
     integer j
     character(len=1024) arecord
 
-    inquire(unit=dynk_fileUnit, opened=lopen)
-    if (lopen) then
+    inquire(unit=dynk_fileUnit, opened=isOpen)
+    if (isOpen) then
         write(93,*) "SIXTRACR CRCHECK FAILED while repositioning 'dynksets.dat'"
         write(93,*) "Could not open file!"
         endfile (93,iostat=ierro)
