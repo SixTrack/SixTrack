@@ -836,7 +836,8 @@ subroutine daten
     elseif(closeBlock) then
       call zipf_parseInputDone
     else
-      call zipf_parseInputline(inLine)
+      call zipf_parseInputline(inLine,inErr)
+      if(inErr) goto 9999
     end if
 
   case("SCAT") ! SCATTER Input Block
