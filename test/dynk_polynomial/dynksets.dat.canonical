@@ -1,4 +1,4 @@
- # turn element attribute SETidx funname value
+#       turn element              attribute             idx funname                        value
            1 ip5_scatter          scaling                 1 scale_turn           0.200000000E+01
            2 ip5_scatter          scaling                 1 scale_turn           0.400000000E+01
            3 ip5_scatter          scaling                 2 scale_lin            0.650000000E+01
