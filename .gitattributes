@@ -1,4 +1,4 @@
 #Setup for github-linguist
 *.canonical linguist-generated
 source/zlib/* linguist-vendored
-*/fort.* linguist-generated
+test/*/fort.2 linguist-generated
