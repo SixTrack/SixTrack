@@ -1088,7 +1088,7 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
 
     ! END CASES ADD, SUB, MUL, DIV & POW
 
-    case ("MINUS","SQRT","SIN","COS","LOG","LOG10","EXP")
+    case ("MINUS","SQRT","SIN","COS","LOG","LOG10","EXP","ABS")
         ! One-argument operators  y = OP(f1)
 
         call dynk_checkargs(nFields,4,"FUN funname {MINUS|SQRT|SIN|COS|LOG|LOG10|EXP} funname")
@@ -1115,6 +1115,8 @@ subroutine dynk_parseFUN(gFields, lFields, nFields, inLine, iErr)
             dynk_funcs(dynk_nFuncs,2) = 35 ! TYPE (LOG10)
         case ("EXP")
             dynk_funcs(dynk_nFuncs,2) = 36 ! TYPE (EXP)
+        case ("ABS")
+            dynk_funcs(dynk_nFuncs,2) = 37 ! TYPE (ABS)
         case default
             write (lout,*) "DYNK> dynk_parseFUN() : 1-arg function"
             write (lout,*) "DYNK> non-recognized type in inner switch?"
@@ -2518,6 +2520,9 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
     case (36)                                                         ! EXP
         retval = exp_mb(dynk_computeFUN(dynk_funcs(funNum,3),turn))
+
+    case (37)                                                         ! ABS
+        retval = abs(dynk_computeFUN(dynk_funcs(funNum,3),turn))
 
     case (40)                                                         ! CONST
         retval = dynk_fData(dynk_funcs(funNum,3))

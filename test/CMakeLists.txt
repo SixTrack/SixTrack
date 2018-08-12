@@ -48,6 +48,9 @@ SET(TESTS_NOFORT10
   elensidealthck6d
   dynk_globalvars
   dynk_filelin
+  dynk_operators
+  dynk_random
+  dynk_polynomial
   thick6ddynk
   dump_binary
   dump4
@@ -70,6 +73,13 @@ SET(TESTS_NOFORT10
   beam-HO_6D-simple-newstyle-orbit
 )
 
+# List of tests that do not produce singletrackfile.dat or a fort.90
+SET(TESTS_NO_STF_FORT90
+  dynk_operators
+  dynk_random
+  dynk_polynomial
+)
+
 if(LIBARCHIVE)
   SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
 endif()
@@ -89,6 +99,9 @@ SET(SIXTRACK_TESTS
   distance
   dynk_globalvars
   dynk_filelin
+  dynk_operators
+  dynk_random
+  dynk_polynomial
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
@@ -163,7 +176,7 @@ SET(SIXTRACK_TESTS
   dump_2_all_ele_highprec
   perf1
   ${SIXTRACK_TESTS}
-  )
+)
 
 # COLLIMATION tests
 set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
@@ -216,6 +229,11 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
     SET(STF_ENABLE 0)
     SET(FORT90 1)
   endif(STF)
+  LIST(FIND TESTS_NO_STF_FORT90 ${TST} NO_STF_FORT90)
+  if(NOT ${NO_STF_FORT90} MATCHES -1)
+    SET(STF_ENABLE 0)
+    SET(FORT90 0)
+  endif()
 
   if(LIBARCHIVE)
     if(TST MATCHES elensidealthin6d_DYNK_ZIPF)
@@ -347,6 +365,9 @@ SET(FAST_TESTS
   dipedge
   dynk_globalvars
   dynk_filelin
+  dynk_operators
+  dynk_random
+  dynk_polynomial
   elensidealthin4d
   elensidealthck4d
   elensidealthck6d
