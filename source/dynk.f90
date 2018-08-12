@@ -155,11 +155,6 @@ subroutine dynk_parseInputLine(inLine,iErr)
   integer i, nSplit
   logical spErr
 
-  character gFields(str_maxFields)*(mStrLen)
-  integer   nFields
-  integer   lFields(str_maxFields)
-  logical   eFields
-
   call chr_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
     write(lout,"(a)") "DYNK> ERROR Failed to parse input line."
@@ -178,10 +173,10 @@ subroutine dynk_parseInputLine(inLine,iErr)
   ! Report if debugging is ON
   if(dynk_debug) then
     write(lout,"(a,i0,a)")  "DYNK> DEBUG Input line len = ",len_trim(inLine),": '"//trim(inLine)//"'."
-    write(lout,"(a,i3,a)") ("DYNK> DEBUG  * Field(",i,") = '"//chr_trimZero(lnSplit(i))//"'",i=1,nSplit)
+    write(lout,"(a,i3,a)") ("DYNK> DEBUG  * Field(",i,") = '"//trim(lnSplit(i))//"'",i=1,nSplit)
   end if
 
-  select case(chr_trimZero(lnSplit(1)))
+  select case(trim(lnSplit(1)))
 
   case("DEBUG")
     dynk_debug = .true.
@@ -2474,9 +2469,6 @@ end subroutine dynk_setvalue
 !  A. Santamaria, K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-08-12
 !  - Returns the original value currently set by an element.
-!
-!  Note: Expects that arguments element_name and att_name are zero-terminated strings of
-!        length mStrLen!
 ! ================================================================================================ !
 real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
@@ -2764,7 +2756,7 @@ subroutine dynk_crcheck_readdata(fileunit,readerr)
 
   call alloc(dynk_iData_cr,        dynk_niData_cr, 0,         "dynk_iData_cr")
   call alloc(dynk_fData_cr,        dynk_nfData_cr, zero,      "dynk_fData_cr")
-  call alloc(dynk_cData_cr,mStrLen,dynk_ncData_cr, str_dZeros,"dynk_cData_cr")
+  call alloc(dynk_cData_cr,mStrLen,dynk_ncData_cr, str_dSpace,"dynk_cData_cr")
 
   read(fileunit,err=100,end=100) &
     (dynk_iData_cr(j),j=1,dynk_niData_cr), (dynk_fData_cr(j),j=1,dynk_nfData_cr), &
