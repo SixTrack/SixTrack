@@ -818,7 +818,7 @@ subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
     spaceSize(1) = h5_defChunk
   end if
   spaceMaxSize(1) = H5S_UNLIMITED_F
-  cleanName       = chr_strip(chr_trimZero(setName))
+  cleanName       = chr_strip(setName)
 
   if(h5_debugOn) then
     write(lout,"(a,i0)") "HDF5> DEBUG Creating dataset '"//cleanName//"' with ID ",(h5_setCount+h5_setOff)
@@ -1093,7 +1093,7 @@ subroutine h5_writeBuffer_char(setID, colID, valData)
   nRows  = h5_bufList(bufID-h5_bufOff)%nRows
   bufCol = h5_bufList(bufID-h5_bufOff)%colMap(1,colID)
   cSize  = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%size
-  inSize = len_trim(chr_trimZero(valData))
+  inSize = len_trim(valData)
 
   if(inSize > cSize) then
     inSize = cSize
