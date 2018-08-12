@@ -1,10 +1,9 @@
 #Setup for github-linguist
-source/zlib/* linguist-vendored
+lib/zlib/* linguist-vendored
 
 *.canonical linguist-generated
 test/*/fort.2 linguist-generated
 *.8 linguist-generated
-test/*/fort.13 linguist-generated # This one isn't taken anyway.
-
+test/*/fort.13 linguist-generated
 
 # TODO: fort.3 files should probably be explicitly kept, but they are not Roff...
