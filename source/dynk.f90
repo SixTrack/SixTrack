@@ -2016,544 +2016,463 @@ subroutine dynk_apply(turn)
 end subroutine dynk_apply
 
 ! ================================================================================================ !
-!  K. Sjobak, BE-ABP/HSS
-!  Last modified: 17-10-2014
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-08-12
 !  - Compute the value of a given DYNK function (funNum) for the given turn
 ! ================================================================================================ !
 recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
-    use crcoall
-    use mod_common
-    use mod_ranecu
-    use numerical_constants, only : pi
+  use crcoall
+  use mod_common
+  use mod_ranecu
+  use numerical_constants, only : pi
 
-    implicit none
+  implicit none
 
-    character gFields(str_maxFields)*(mStrLen)
-    integer   nFields
-    integer   lFields(str_maxFields)
-    logical   getfields_lerr
+  integer, intent(in) :: funNum, turn
 
-    integer funNum, turn
-    intent (in) funNum, turn
+  ! Temporaries for FILELIN
+  integer filelin_start, filelin_xypoints
 
-    ! Functions to call
-#ifdef CRLIBM
-    real(kind=fPrec) round_near
-#endif
+  character(len=:), allocatable :: lnFile(:)
+  character(len=mInputLn)       :: fLine
+  integer nFile, ioStat
+  logical spErr, cErr
 
-    ! Temporaries for FILELIN
-    integer filelin_start, filelin_xypoints
+  ! Temporaries for random generator functions
+  integer tmpseed1, tmpseed2
+  real(kind=fPrec) ranecu_rvec(1)
 
-    ! Temporaries for random generator functions
-    integer tmpseed1, tmpseed2
-    real(kind=fPrec) ranecu_rvec(1)
+  ! General temporaries
+  integer foff  ! Base offset into fexpr array
+  integer ii,jj ! Loop variable
 
-    ! General temporaries
-    integer foff  ! Base offset into fexpr array
-    integer ii,jj ! Loop variable
+  if(funNum < 1 .or. funNum > dynk_nFuncs) then
+    write(lout,"(a,i0)") "DYNK> ERROR computeFUN: funNum = ",funNum
+    write(lout,"(a,i0)") "DYNK>       Invalid funNum, dynk_nFuncs = ", dynk_nFuncs
+    if(dynk_debug) call dynk_dumpdata
+    call prror(-1)
+  end if
 
-#ifdef CRLIBM
-    ! String handling tempraries for PIPE, preformatting for round_near
-    integer errno !for round_near
-    integer nchars
-    parameter(nchars=160)
-    character(len=nchars) ch
-#endif
+  select case(dynk_funcs(funNum,2)) ! WHICH FUNCTION TYPE?
 
-! Usefull constants (pi and two)
+  case(0) ! GET
+    retval = dynk_fData(dynk_funcs(funNum,3))
 
-    if (funNum .lt. 1 .or. funNum .gt. dynk_nFuncs) then
-        write(lout,*) "DYNK> **** ERROR in dynk_computeFUN() ****"
-        write(lout,*) "DYNK> funNum =", funNum
-        write(lout,*) "DYNK> Invalid funNum, dynk_nFuncs=", dynk_nFuncs
-        call dynk_dumpdata
-        call prror(-1)
+  case(1) ! FILE
+    if(turn > dynk_funcs(funNum,5)) then
+      write(lout,"(2(a,i0))")"DYNK> ERROR computeFUN:FILE funNum = ",funNum,"turn = ",turn
+      write(lout,"(a,i0)")   "DYNK>       Turn > length of file = ",dynk_funcs(funNum,5)
+      if(dynk_debug) call dynk_dumpdata
+      call prror(-1)
+    else if(turn < 1) then
+      write(lout,"(2(a,i0))")"DYNK> ERROR computeFUN:FILE funNum = ",funNum,"turn = ",turn
+      write(lout,"(a)")      "DYNK>       Turn < 1, check your turn-shift!"
+      if(dynk_debug) call dynk_dumpdata
+      call prror(-1)
+    end if
+    retval = dynk_fData(dynk_funcs(funNum,4)+turn-1)
+
+  case(2) ! FILELIN
+    filelin_start    = dynk_funcs(funNum,4)
+    filelin_xypoints = dynk_funcs(funNum,5)
+    ! Pass the correct array views/sections to dynk_lininterp
+    retval = dynk_lininterp( real(turn,fPrec), &
+             dynk_fData(filelin_start:filelin_start+filelin_xypoints-1), &
+             dynk_fData(filelin_start +  filelin_xypoints: &
+                        filelin_start +2*filelin_xypoints-1), &
+                        filelin_xypoints )
+
+  case(3) ! PIPE
+    write(dynk_iData(dynk_funcs(funNum,3)+1),"(a,i7)") &
+      "GET ID="//trim(dynk_cData(dynk_funcs(funNum,1)+3))//" TURN=",turn
+
+    read(dynk_iData(dynk_funcs(funNum,3)),"(a)",iostat=ioStat) fLine
+    if(ioStat /= 0) then
+      write(lout,"(a)") "DYNK> ERROR computeFUN:PIPE Failed to open file."
+      call prror(-1)
     end if
 
-    select case ( dynk_funcs(funNum,2) )                              ! WHICH FUNCTION TYPE?
+    call chr_split(fLine,lnFile,nFile,spErr)
+    if(spErr) then
+      write(lout,"(a)") "DYNK> ERROR computeFUN:PIPE Failed to parse input line."
+      call prror(-1)
+    end if
+    if(nFile /= 1) then
+      write(lout,"(a,i0)") "DYNK> ERROR computeFUN:PIPE Expected one values per line, got ",nFIle
+      call prror(-1)
+    end if
 
-    case (0)                                                          ! GET
-        retval = dynk_fData(dynk_funcs(funNum,3))
+    call chr_cast(lnFile(1),retval,cErr)
 
-    case (1)                                                          ! FILE
-        if (turn .gt. dynk_funcs(funNum,5) ) then
-            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():FILE****"
-            write(lout,*)"DYNK> funNum =", funNum, "turn=", turn
-            write(lout,*)"DYNK> Turn > length of file = ", dynk_funcs(funNum,5)
-            call dynk_dumpdata
-            call prror(-1)
-        else if (turn .lt. 1) then
-            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():FILE****"
-            write(lout,*)"DYNK> funNum =", funNum, "turn=", turn
-            write(lout,*)"DYNK> Turn < 1, check your turn-shift!"
-            call dynk_dumpdata
-            call prror(-1)
-        end if
+  case(6) ! RANDG
+    ! Save old seeds and load our current seeds
+    call recuut(tmpseed1,tmpseed2)
+    call recuin(dynk_iData(dynk_funcs(funNum,3)+3),dynk_iData(dynk_funcs(funNum,3)+4))
+    ! Run generator for 1 value with current mcut
+    call ranecu(ranecu_rvec,1,dynk_iData(dynk_funcs(funNum,3)+2))
+    ! Save our current seeds and load old seeds
+    call recuut(dynk_iData(dynk_funcs(funNum,3)+3),dynk_iData(dynk_funcs(funNum,3)+4))
+    call recuin(tmpseed1,tmpseed2)
+    ! Change to mu, sigma
+    retval = dynk_fData(dynk_funcs(funNum,4)) + dynk_fData(dynk_funcs(funNum,4)+1)*ranecu_rvec(1)
 
-        retval = dynk_fData(dynk_funcs(funNum,4)+turn-1)
+  case(7) ! RANDU
+    ! Save old seeds and load our current seeds
+    call recuut(tmpseed1,tmpseed2)
+    call recuin(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
+    ! Run generator for 1 value with mcut=-1
+    call ranecu( ranecu_rvec, 1, -1 )
+    ! Save our current seeds and load old seeds
+    call recuut(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
+    call recuin(tmpseed1,tmpseed2)
+    retval = ranecu_rvec(1)
 
-    case(2)                                                           ! FILELIN
-        filelin_start    = dynk_funcs(funNum,4)
-        filelin_xypoints = dynk_funcs(funNum,5)
-        ! Pass the correct array views/sections to dynk_lininterp
-        retval = dynk_lininterp( real(turn,fPrec), &
-                 dynk_fData(filelin_start:filelin_start+filelin_xypoints-1), &
-                 dynk_fData(filelin_start +  filelin_xypoints: &
-                            filelin_start +2*filelin_xypoints-1), &
-                            filelin_xypoints )
+  case (8) ! RANDON
+    ! Save old seeds and load our current seeds
+    call recuut(tmpseed1,tmpseed2)
+    call recuin(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
+    ! Run generator for 1 value with mcut=-1
+    call ranecu( ranecu_rvec, 1, -1 )
+    ! Save our current seeds and load old seeds
+    call recuut(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
+    call recuin(tmpseed1,tmpseed2)
+    ! routine for switching element (orginially the electron lens) ON or OFF
+    ! when random value is less than P, set ON, else OFF
+    if (ranecu_rvec(1) .lt. dynk_fData(dynk_funcs(funNum,4))) then
+      retval = 1.0
+    else
+      retval = 0.0
+    end if
 
-    case(3)                                                           ! PIPE
-        write(dynk_iData(dynk_funcs(funNum,3)+1),"(a,i7)") &
-            "GET ID="//trim(stringzerotrim(dynk_cData(dynk_funcs(funNum,1)+3)))//" TURN=",turn
-#ifndef CRLIBM
-        read(dynk_iData(dynk_funcs(funNum,3)),*) retval
-#else
-        read(dynk_iData(dynk_funcs(funNum,3)),"(a)") ch
-        call getfields_split(ch,gFields,lFields,nFields,getfields_lerr)
-        if ( getfields_lerr ) then
-            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
-            write(lout,*)"DYNK> getfields_lerr=", getfields_lerr
-            call prror(-1)
-        end if
-        if (nFields .ne. 1) then
-            write(lout,*)"DYNK> ****ERROR in dynk_computeFUN():PIPE****"
-            write(lout,*)"DYNK> nFields=", nFields
-            write(lout,*)"DYNK> Expected a single number."
-            call prror(-1)
-        end if
-        retval = round_near(errno,lFields(1)+1,gFields(1))
-        if (errno.ne.0) call rounderr(errno,gFields,1,retval)
-#endif
+  case(10) ! FIR
+    foff = dynk_funcs(funNum,3)
+    ! Shift storage 1 back
+    do ii=dynk_funcs(funNum,4)-1,0,-1
+      jj = ii*3
+      dynk_fData(foff+jj+4) = dynk_fData(foff+jj+1)
+    end do
+    ! Evaluate the next input function
+    dynk_fData(foff+1) = dynk_computeFUN(dynk_funcs(funNum,5),turn)
+    ! Compute the filtered value
+    retval = 0.0
+    do ii=0,dynk_funcs(funNum,4)
+      jj = ii*3
+      retval = retval + dynk_fData(foff+jj)*dynk_fData(foff+jj+1)
+    end do
 
-    case (6)                                                          ! RANDG
-        ! Save old seeds and load our current seeds
-        call recuut(tmpseed1,tmpseed2)
-        call recuin(dynk_iData(dynk_funcs(funNum,3)+3),dynk_iData(dynk_funcs(funNum,3)+4))
-        ! Run generator for 1 value with current mcut
-        call ranecu(ranecu_rvec,1,dynk_iData(dynk_funcs(funNum,3)+2))
-        ! Save our current seeds and load old seeds
-        call recuut(dynk_iData(dynk_funcs(funNum,3)+3),dynk_iData(dynk_funcs(funNum,3)+4))
-        call recuin(tmpseed1,tmpseed2)
-        ! Change to mu, sigma
-        retval = dynk_fData(dynk_funcs(funNum,4)) + dynk_fData(dynk_funcs(funNum,4)+1)*ranecu_rvec(1)
+  case(11) ! IIR
+    foff = dynk_funcs(funNum,3)
+    ! Shift storage 1 back
+    do ii=dynk_funcs(funNum,4)-1,0,-1
+      jj = ii*6
+      dynk_fData(foff+jj+7) = dynk_fData(foff+jj+1)
+      dynk_fData(foff+jj+10) = dynk_fData(foff+jj+4)
+    end do
+    ! Evaluate the next input function
+    dynk_fData(foff+1) = dynk_computeFUN(dynk_funcs(funNum,5),turn)
+    dynk_fData(foff+4) = 0.0
+    ! Compute the filtered value
+    retval = 0.0
+    do ii=0,dynk_funcs(funNum,4)
+      jj = ii*6
+      retval = retval + &
+        dynk_fData(foff+jj  ) * dynk_fData(foff+jj+1) + &
+        dynk_fData(foff+jj+3) * dynk_fData(foff+jj+4)
+    end do
+    ! To be shifted at the next evaluation
+    dynk_fData(foff+4) = retval
 
-    case (7)                                                          ! RANDU
-        ! Save old seeds and load our current seeds
-        call recuut(tmpseed1,tmpseed2)
-        call recuin(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
-        ! Run generator for 1 value with mcut=-1
-        call ranecu( ranecu_rvec, 1, -1 )
-        ! Save our current seeds and load old seeds
-        call recuut(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
-        call recuin(tmpseed1,tmpseed2)
-        retval = ranecu_rvec(1)
+  case(20) ! ADD
+    retval = dynk_computeFUN(dynk_funcs(funNum,3),turn) + dynk_computeFUN(dynk_funcs(funNum,4),turn)
 
-    case (8)                                                         ! RANDON
-        ! Save old seeds and load our current seeds
-        call recuut(tmpseed1,tmpseed2)
-        call recuin(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
-        ! Run generator for 1 value with mcut=-1
-        call ranecu( ranecu_rvec, 1, -1 )
-        ! Save our current seeds and load old seeds
-        call recuut(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
-        call recuin(tmpseed1,tmpseed2)
-        ! routine for switching element (orginially the electron lens) ON or OFF
-        ! when random value is less than P, set ON, else OFF
-        if (ranecu_rvec(1) .lt. dynk_fData(dynk_funcs(funNum,4))) then
-            retval = 1.0
-        else
-            retval = 0.0
-        end if
+  case(21) ! SUB
+    retval = dynk_computeFUN(dynk_funcs(funNum,3),turn) - dynk_computeFUN(dynk_funcs(funNum,4),turn)
 
-    case(10)                                                          ! FIR
-        foff = dynk_funcs(funNum,3)
-        ! Shift storage 1 back
-        do ii=dynk_funcs(funNum,4)-1,0,-1
-            jj = ii*3
-            dynk_fData(foff+jj+4) = dynk_fData(foff+jj+1)
-        end do
-        ! Evaluate the next input function
-        dynk_fData(foff+1) = dynk_computeFUN(dynk_funcs(funNum,5),turn)
-        ! Compute the filtered value
-        retval = 0.0
-        do ii=0,dynk_funcs(funNum,4)
-            jj = ii*3
-            retval = retval + dynk_fData(foff+jj)*dynk_fData(foff+jj+1)
-        end do
+  case(22) ! MUL
+    retval = dynk_computeFUN(dynk_funcs(funNum,3),turn) * dynk_computeFUN(dynk_funcs(funNum,4),turn)
 
-    case(11)                                                          ! IIR
-        foff = dynk_funcs(funNum,3)
-        ! Shift storage 1 back
-        do ii=dynk_funcs(funNum,4)-1,0,-1
-            jj = ii*6
-            dynk_fData(foff+jj+7) = dynk_fData(foff+jj+1)
-            dynk_fData(foff+jj+10) = dynk_fData(foff+jj+4)
-        end do
-        ! Evaluate the next input function
-        dynk_fData(foff+1) = dynk_computeFUN(dynk_funcs(funNum,5),turn)
-        dynk_fData(foff+4) = 0.0
-        ! Compute the filtered value
-        retval = 0.0
-        do ii=0,dynk_funcs(funNum,4)
-            jj = ii*6
-            retval = retval + &
-                     dynk_fData(foff+jj  ) * dynk_fData(foff+jj+1) + &
-                     dynk_fData(foff+jj+3) * dynk_fData(foff+jj+4)
-        end do
-        ! To be shifted at the next evaluation
-        dynk_fData(foff+4) = retval
+  case(23) ! DIV
+    retval = dynk_computeFUN(dynk_funcs(funNum,3),turn) / dynk_computeFUN(dynk_funcs(funNum,4),turn)
 
-    case (20)                                                         ! ADD
-        retval = dynk_computeFUN(dynk_funcs(funNum,3),turn) &
-               + dynk_computeFUN(dynk_funcs(funNum,4),turn)
+  case(24) ! POW
+    retval = dynk_computeFUN(dynk_funcs(funNum,3),turn) ** dynk_computeFUN(dynk_funcs(funNum,4),turn)
 
-    case (21)                                                         ! SUB
-        retval = dynk_computeFUN(dynk_funcs(funNum,3),turn) &
-               - dynk_computeFUN(dynk_funcs(funNum,4),turn)
+  case(30) ! MINUS
+    retval = (-1)*dynk_computeFUN(dynk_funcs(funNum,3),turn)
 
-    case (22)                                                         ! MUL
-        retval = dynk_computeFUN(dynk_funcs(funNum,3),turn) &
-               * dynk_computeFUN(dynk_funcs(funNum,4),turn)
+  case(31) ! SQRT
+    retval = sqrt(dynk_computeFUN(dynk_funcs(funNum,3),turn))
 
-    case (23)                                                         ! DIV
-        retval = dynk_computeFUN(dynk_funcs(funNum,3),turn) &
-               / dynk_computeFUN(dynk_funcs(funNum,4),turn)
+  case(32) ! SIN
+    retval = sin_mb(dynk_computeFUN(dynk_funcs(funNum,3),turn))
 
-    case (24)                                                         ! POW
-        retval = dynk_computeFUN(dynk_funcs(funNum,3),turn) &
-              ** dynk_computeFUN(dynk_funcs(funNum,4),turn)
+  case(33) ! COS
+    retval = cos_mb(dynk_computeFUN(dynk_funcs(funNum,3),turn))
 
-    case (30)                                                         ! MINUS
-        retval = (-1)*dynk_computeFUN(dynk_funcs(funNum,3),turn)
+  case(34) ! LOG
+    retval = log_mb(dynk_computeFUN(dynk_funcs(funNum,3),turn))
 
-    case (31)                                                         ! SQRT
-        retval = sqrt(dynk_computeFUN(dynk_funcs(funNum,3),turn))
+  case(35) ! LOG10
+    retval = log10_mb(dynk_computeFUN(dynk_funcs(funNum,3),turn))
 
-    case (32)                                                         ! SIN
-        retval = sin_mb(dynk_computeFUN(dynk_funcs(funNum,3),turn))
+  case(36) ! EXP
+    retval = exp_mb(dynk_computeFUN(dynk_funcs(funNum,3),turn))
 
-    case (33)                                                         ! COS
-        retval = cos_mb(dynk_computeFUN(dynk_funcs(funNum,3),turn))
+  case(37) ! ABS
+    retval = abs(dynk_computeFUN(dynk_funcs(funNum,3),turn))
 
-    case (34)                                                         ! LOG
-        retval = log_mb(dynk_computeFUN(dynk_funcs(funNum,3),turn))
+  case(40) ! CONST
+    retval = dynk_fData(dynk_funcs(funNum,3))
 
-    case (35)                                                         ! LOG10
-        retval = log10_mb(dynk_computeFUN(dynk_funcs(funNum,3),turn))
+  case(41) ! TURN
+    retval = turn
 
-    case (36)                                                         ! EXP
-        retval = exp_mb(dynk_computeFUN(dynk_funcs(funNum,3),turn))
+  case(42) ! LIN
+    retval = turn*dynk_fData(dynk_funcs(funNum,3)) + dynk_fData(dynk_funcs(funNum,3)+1)
 
-    case (37)                                                         ! ABS
-        retval = abs(dynk_computeFUN(dynk_funcs(funNum,3),turn))
+  case(43) ! LINSEG
+    filelin_start    = dynk_funcs(funNum,3)
+    filelin_xypoints = 2
+    ! Pass the correct array views/sections to dynk_lininterp
+    retval = dynk_lininterp( real(turn,fPrec), &
+             dynk_fData(filelin_start:filelin_start+1), &
+             dynk_fData(filelin_start+2:filelin_xypoints+3), &
+             filelin_xypoints )
 
-    case (40)                                                         ! CONST
-        retval = dynk_fData(dynk_funcs(funNum,3))
+  case(44,45) ! QUAD/QUADSEG
+    retval = (turn**2)*dynk_fData(dynk_funcs(funNum,3))   + ( &
+              turn*dynk_fData(dynk_funcs(funNum,3)+1) + &
+                    dynk_fData(dynk_funcs(funNum,3)+2) )
 
-    case (41)                                                         ! TURN
-        retval = turn
+  case(60) ! SINF
+    retval = dynk_fData(dynk_funcs(funNum,3)) &
+            * sin_mb( dynk_fData(dynk_funcs(funNum,3)+1) * turn  &
+                    + dynk_fData(dynk_funcs(funNum,3)+2) )
 
-    case (42)                                                         ! LIN
-        retval = turn*dynk_fData(dynk_funcs(funNum,3)) +  &
-                      dynk_fData(dynk_funcs(funNum,3)+1)
+  case(61) ! COSF
+    retval = dynk_fData(dynk_funcs(funNum,3)) &
+            * cos_mb( dynk_fData(dynk_funcs(funNum,3)+1) * turn  &
+                    + dynk_fData(dynk_funcs(funNum,3)+2) )
 
-    case (43)                                                         ! LINSEG
-        filelin_start    = dynk_funcs(funNum,3)
-        filelin_xypoints = 2
-        ! Pass the correct array views/sections to dynk_lininterp
-        retval = dynk_lininterp( real(turn,fPrec), &
-                 dynk_fData(filelin_start:filelin_start+1), &
-                 dynk_fData(filelin_start+2:filelin_xypoints+3), &
-                 filelin_xypoints )
+  case(62) ! COSF_RIPP
+    retval = dynk_fData(dynk_funcs(funNum,3)) &
+            * cos_mb( (two*pi)*real(turn-1,fPrec)/dynk_fData(dynk_funcs(funNum,3)+1) &
+                    + dynk_fData(dynk_funcs(funNum,3)+2) )
 
-    case (44,45)                                                      ! QUAD/QUADSEG
-        retval = (turn**2)*dynk_fData(dynk_funcs(funNum,3))   + ( &
-                      turn*dynk_fData(dynk_funcs(funNum,3)+1) + &
-                           dynk_fData(dynk_funcs(funNum,3)+2) )
+  case(80) ! PELP
+    foff = dynk_funcs(funNum,3)
+    if(turn <= dynk_fData(foff)) then ! <= tinj
+      ! Constant Iinj
+      retval = dynk_fData(foff+5)
+    else if(turn <= dynk_fData(foff+1)) then ! <= te
+      ! Parabola (accelerate)
+      retval = (dynk_fData(foff+6)*(turn-dynk_fData(foff))**2)/2.0 + dynk_fData(foff+5)
+    else if(turn <= dynk_fData(foff+2)) then ! <= t1
+      ! Exponential
+      retval = dynk_fData(foff+7)*exp_mb(dynk_fData(foff+8)*turn)
+    else if(turn <= dynk_fData(foff+3)) then ! <= td
+      ! Linear (max ramp rate)
+      retval = dynk_fData(foff+10)*(turn-dynk_fData(foff+2)) + dynk_fData(foff+9)
+    else if(turn <= dynk_fData(foff+4)) then ! <= tnom
+      ! Parabola (decelerate)
+      retval = -((dynk_fData(foff+11) * (dynk_fData(foff+4)-turn)**2) ) / 2.0 + dynk_fData(foff+12)
+    else ! > tnom
+      ! Constant Inom
+      retval = dynk_fData(foff+12)
+    end if
 
-      case (60)                                                         ! SINF
-        retval = dynk_fData(dynk_funcs(funNum,3)) &
-               * SIN_MB( dynk_fData(dynk_funcs(funNum,3)+1) * turn  &
-                       + dynk_fData(dynk_funcs(funNum,3)+2) )
+  case (81)                                                         ! ONOFF
+      ii=mod(turn-1,dynk_funcs(funNum,4))
+      if (ii .lt. dynk_funcs(funNum,3)) then
+          retval = 1.0
+      else
+          retval = 0.0
+      end if
 
+  case default
+    write(lout,"(2(a,i0))") "DYNK> ERROR computeFUN() funNum = ",funNum," turn = ",turn
+    write(lout,"(a,i0)")    "DYNK>       Unknown function type ",dynk_funcs(funNum,2)
+    if(dynk_debug) call dynk_dumpdata
+    call prror(-1)
 
-    case (61)                                                         ! COSF
-        retval = dynk_fData(dynk_funcs(funNum,3)) &
-               * COS_MB( dynk_fData(dynk_funcs(funNum,3)+1) * turn  &
-                       + dynk_fData(dynk_funcs(funNum,3)+2) )
-
-    case (62)                                                         ! COSF_RIPP
-        retval = dynk_fData(dynk_funcs(funNum,3)) &
-               * COS_MB( (two*pi)*real(turn-1,fPrec)/dynk_fData(dynk_funcs(funNum,3)+1) &
-                       + dynk_fData(dynk_funcs(funNum,3)+2) )
-
-    case (80)                                                         ! PELP
-        foff = dynk_funcs(funNum,3)
-        if (turn .le. dynk_fData(foff)) then ! <= tinj
-            ! Constant Iinj
-            retval = dynk_fData(foff+5)
-        else if (turn .le. dynk_fData(foff+1)) then ! <= te
-            ! Parabola (accelerate)
-            retval = ( dynk_fData(foff+6)*(turn-dynk_fData(foff))**2 ) / 2.0 + dynk_fData(foff+5)
-        else if (turn .le. dynk_fData(foff+2)) then ! <= t1
-            ! Exponential
-            retval = dynk_fData(foff+7)*exp_mb( dynk_fData(foff+8)*turn ) !!!!!! WTF ????? EXP, should be EXP_MB !!!!!!!!!!!!!
-        else if (turn .le. dynk_fData(foff+3)) then ! <= td
-            ! Linear (max ramp rate)
-            retval = dynk_fData(foff+10)*(turn-dynk_fData(foff+2)) + dynk_fData(foff+9)
-        else if (turn .le. dynk_fData(foff+4)) then ! <= tnom
-            ! Parabola (decelerate)
-            retval =  - ( (dynk_fData(foff+11) * &
-                          (dynk_fData(foff+4)-turn)**2) ) / 2.0 &
-                         + dynk_fData(foff+12)
-        else ! > tnom
-            ! Constant Inom
-            retval = dynk_fData(foff+12)
-        end if
-
-    case (81)                                                         ! ONOFF
-        ii=mod(turn-1,dynk_funcs(funNum,4))
-        if (ii .lt. dynk_funcs(funNum,3)) then
-            retval = 1.0
-        else
-            retval = 0.0
-        end if
-
-    case default
-        write(lout,*) "DYNK> **** ERROR in dynk_computeFUN(): ****"
-        write(lout,*) "DYNK> funNum =", funNum, "turn=", turn
-        write(lout,*) "DYNK> Unknown function type ", dynk_funcs(funNum,2)
-        call dynk_dumpdata
-        call prror(-1)
-    end select
+  end select
 
 end function dynk_computeFUN
 
 ! ================================================================================================ !
-!  A.Santamaria & K.Sjobak, BE-ABP/HSS
-!  Last modified: 31-10-2014
+!  A. Santamaria, K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-08-12
 !  - Set the value of the element's attribute
 ! ================================================================================================ !
 subroutine dynk_setvalue(element_name, att_name, newValue)
 
-    use scatter, only : scatter_ELEM_scale, scatter_elemPointer
-    use crcoall
-    use mod_common
-    use mod_commont
-    use mod_commonmn
-    use elens
-    implicit none
+  use scatter, only : scatter_ELEM_scale, scatter_elemPointer
+  use crcoall
+  use mod_common
+  use mod_commont
+  use mod_commonmn
+  use elens
 
-    character(mStrLen) element_name, att_name
-    real(kind=fPrec) newValue
-    intent (in) element_name, att_name, newValue
+  implicit none
 
-    ! Temp variables
-    integer el_type, ii, j
-    character(mStrLen) element_name_stripped
-    character(mStrLen) att_name_stripped
+  character(mStrLen), intent(in) :: element_name, att_name
+  real(kind=fPrec),   intent(in) :: newValue
 
-    !Original energies before energy update
-    real(kind=fPrec) e0fo, e0o
+  ! Temp variables
+  integer el_type, ii, j
 
-    ! For sanity check
-    logical ldoubleElement
-    ldoubleElement = .false.
+  ! Original energies before energy update
+  real(kind=fPrec) e0fo, e0o
 
-    element_name_stripped = trim(stringzerotrim(element_name))
-    att_name_stripped = trim(stringzerotrim(att_name))
+  ! For sanity check
+  logical ldoubleElement
+  ldoubleElement = .false.
 
-    if (dynk_debug) then
-        write (lout, '(1x,A,E16.9)') "DYNKDEBUG> In dynk_setvalue(), element_name = '"// &
-                                     trim(element_name_stripped)//"', att_name = '"// &
-                                     trim(att_name_stripped)//"', newValue =", newValue
+  if(dynk_debug) then
+    write(lout,"(a,e16.9)") "DYNK> DEBUG setvalue Element_name = '"//trim(element_name)//"', "&
+      "att_name = '"//trim(att_name)//"', newValue = ", newValue
+  end if
+
+  ! Here comes the logic for setting the value of the attribute for all instances of the element.
+
+  ! Special non-physical elements
+  if(element_name == "GLOBAL-VARS") then
+    if(att_name == "E0" ) then
+      ! Modify the reference particle
+      e0o    = e0
+      e0fo   = e0f
+      e0     = newValue
+      e0f    = sqrt(e0**2 - nucm0**2)
+      gammar = nucm0/e0
+
+      ! Modify the Energy
+      do j = 1, napx
+        dpsv(j)    = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+        dpsv1(j)   = (dpsv(j)*c1e3)/(one + dpsv(j))
+        dpd(j)     = one + dpsv(j)
+        dpsq(j)    = sqrt(dpd(j))
+        oidpsv(j)  = one/(one + dpsv(j))
+        moidpsv(j) = mtc(j)/(one + dpsv(j))
+        rvv(j)     = (ejv(j)*e0f)/(e0*ejfv(j))
+
+        ! Also update sigmv with the new beta0 = e0f/e0
+        sigmv(j)   = ((e0f*e0o)/(e0fo*e0))*sigmv(j)
+      end do
+      if(ithick == 1) call synuthck
     end if
+    ldoubleElement = .true.
+  end if
 
-    ! Here comes the logic for setting the value of the attribute for all instances of the element.
+  ! Normal SINGLE ELEMENTs
+  do ii=1,il
+    ! TODO: Here one could find the right ii in dynk_pretrack,
+    ! and then avoid this loop / string-comparison
+    if(element_name == bez(ii)) then ! name found
+      el_type=kz(ii)      ! type found
 
-    ! Special non-physical elements
-    if (element_name_stripped .eq. "GLOBAL-VARS") then
-        if (att_name_stripped .eq. "E0" ) then
-            ! Modify the reference particle
-
-            e0o  = e0
-            e0fo = e0f
-
-            e0     = newValue
-            e0f    = sqrt(e0**2 - nucm0**2)
-            gammar = nucm0/e0
-
-            ! Modify the Energy
-            do j = 1, napx
-                dpsv(j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-                dpsv1(j) = (dpsv(j)*c1e3)/(one + dpsv(j))
-                dpd(j) = one + dpsv(j)
-                dpsq(j) = sqrt(dpd(j))
-                oidpsv(j) = one/(one + dpsv(j))
-                moidpsv(j) = mtc(j)/(one + dpsv(j))
-                rvv(j) = (ejv(j)*e0f)/(e0*ejfv(j))
-
-                !Also update sigmv with the new beta0 = e0f/e0
-                sigmv(j)=((e0f*e0o)/(e0fo*e0))*sigmv(j)
-              end do
-              if(ithick.eq.1) call synuthck
-        end if
-        ldoubleElement = .true.
-    end if
-
-    ! Normal SINGLE ELEMENTs
-    do ii=1,il
-        ! TODO: Here one could find the right ii in dynk_pretrack,
-        ! and then avoid this loop / string-comparison
-        if (element_name_stripped.eq.bez(ii)) then ! name found
-            el_type=kz(ii)      ! type found
-
-            if (ldoubleElement) then ! Sanity check
-                write(lout,*) "DYNK> ERROR: two elements with the same BEZ?"
-                call prror(-1)
-            end if
-            ldoubleElement = .true.
-
-            if ((abs(el_type).eq.1).or. & ! horizontal bending kick
-                (abs(el_type).eq.2).or. & ! quadrupole kick
-                (abs(el_type).eq.3).or. & ! sextupole kick
-                (abs(el_type).eq.4).or. & ! octupole kick
-                (abs(el_type).eq.5).or. & ! decapole kick
-                (abs(el_type).eq.6).or. & ! dodecapole kick
-                (abs(el_type).eq.7).or. & ! 14th pole kick
-                (abs(el_type).eq.8).or. & ! 16th pole kick
-                (abs(el_type).eq.9).or. & ! 18th pole kick
-                (abs(el_type).eq.10)) then ! 20th pole kick
-
-                if (att_name_stripped.eq."average_ms") then !
-                    ed(ii) = newValue
-                else
-                    goto 100 ! ERROR
-                end if
-                call initialize_element(ii, .false.)
-
-            ! Not yet supported
-            ! else if (abs(el_type).eq.11) then ! MULTIPOLES
-            !     if (att_name_stripped.eq."bending_str") then
-            !         ed(ii) = newValue
-            !     else
-            !         goto 100 ! ERROR
-            !     end if
-            !     call initialize_element(ii, .false.)
-
-            ! Cavities
-            else if (abs(el_type).eq.12) then
-                if (att_name_stripped.eq."voltage") then ! [MV]
-                    ed(ii) = newValue
-                else if (att_name_stripped.eq."harmonic") then !
-                    ek(ii) = newValue
-                    el(ii) = dynk_elemData(ii,3) ! Need to reset el before calling initialize_element()
-                    call initialize_element(ii, .false.)
-                else if (att_name_stripped.eq."lag_angle") then ! [deg]
-                    el(ii) = newValue
-                    ! Note: el is set to 0 in initialize_element and in daten.
-                    ! Calling initialize element on a cavity without setting el
-                    ! will set phasc = 0!
-                    call initialize_element(ii, .false.)
-                else
-                    goto 100 ! ERROR
-                end if
-
-            ! Not yet supported
-            ! AC dipole
-            ! else if (abs(el_type).eq.16) then
-            !     if (att_name_stripped.eq."amplitude") then ! [T.m]
-            !         ed(ii) = dynk_computeFUN(funNum,turn)
-            !     else if (att_name_stripped.eq."frequency") then ! [2pi]
-            !         ek(ii) = dynk_computeFUN(funNum,turn)
-            !     else if (att_name_stripped.eq."phase") then ! [rad]
-            !         el(ii) = dynk_computeFUN(funNum,turn)
-            !     else
-            !         goto 100 ! ERROR
-            !     end if
-
-            ! Not yet supported
-            ! beam-beam separation
-            ! else if (abs(el_type).eq.20) then
-            !     if (att_name_stripped.eq."horizontal") then ! [mm]
-            !         ed(ii) = dynk_computeFUN(funNum,turn)
-            !     else if (att_name_stripped.eq."vertical") then ! [mm]
-            !         ek(ii) = dynk_computeFUN(funNum,turn)
-            !     else if (att_name_stripped.eq."strength") then ! [m]
-            !         el(ii) = dynk_computeFUN(funNum,turn)
-            !     else
-            !         goto 100 ! ERROR
-            !     end if
-
-            else if ((abs(el_type).eq.23).or. &  ! crab cavity
-                     (abs(el_type).eq.26).or. &  ! cc mult. kick order 2
-                     (abs(el_type).eq.27).or. &  ! cc mult. kick order 3
-                     (abs(el_type).eq.28)) then  ! cc mult. kick order 4
-                if (att_name_stripped.eq."voltage") then ! [MV]
-                    ed(ii) = newValue
-                else if (att_name_stripped.eq."frequency") then ! [MHz]
-                    ek(ii) = newValue
-                else if (att_name_stripped.eq."phase") then ! [rad]
-                    ! Note: el is set to 0 in initialize_element and in daten.
-                    ! Calling initialize element on a crab without setting el
-                    ! will set crabph = 0!
-                    el(ii) = newValue
-                    call initialize_element(ii, .false.)
-                else
-                    goto 100 ! ERROR
-                end if
-
-            ! Electron lens
-            else if (el_type.eq.29) then
-                if (att_name_stripped.eq."theta_r2") then ! [mrad]
-                    elens_theta_r2(ii) = newValue
-                else
-                    goto 100 ! ERROR
-                end if
-
-            ! Scatter
-            else if (el_type.eq.40) then
-                if(att_name_stripped.eq."scaling") then
-                    scatter_ELEM_scale(scatter_elemPointer(ii)) = newValue
-                else
-                    goto 100 ! ERROR
-                end if
-
-            else
-                WRITE (lout,*) "DYNK> *** ERROR in dynk_setvalue() ***"
-                write (lout,*) "DYNK> Unsupported element type", el_type
-                write (lout,*) "DYNK> element name = '",element_name_stripped,"'"
-                call prror(-1)
-            end if
-        end if
-    end do
-
-    ! Sanity check
-    if (.not.ldoubleElement) then
-        goto 101
-    end if
-
-    return
-
-    ! Error handlers
-100 continue
-        write (lout,*)"DYNK> *** ERROR in dynk_setvalue() ***"
-        write (lout,*)"DYNK> Attribute'", att_name_stripped, &
-                      "' does not exist for type =", el_type
+      if(ldoubleElement) then ! Sanity check
+        write(lout,*) "DYNK> ERROR Two elements with the same BEZ"
         call prror(-1)
+      end if
+      ldoubleElement = .true.
+
+      select case(abs(el_type))
+        
+      case(1,2,3,4,5,6,7,8,9,10)
+        ! horizontal bending kick, quadrupole kick, sextupole kick, octupole kick, decapole kick,
+        ! dodecapole kick, 14th pole kick, 16th pole kick, 18th pole kick,20th pole kick
+
+        if(att_name == "average_ms") then
+          ed(ii) = newValue
+        else
+          goto 100 ! ERROR
+        end if
+        call initialize_element(ii, .false.)
+
+      ! Not yet supported : MULTIPOLES (11)
+
+      ! Cavities
+      case(12)
+        if(att_name == "voltage") then ! [MV]
+          ed(ii) = newValue
+        else if(att_name == "harmonic") then
+          ek(ii) = newValue
+          el(ii) = dynk_elemData(ii,3) ! Need to reset el before calling initialize_element()
+          call initialize_element(ii, .false.)
+        else if(att_name == "lag_angle") then ! [deg]
+          el(ii) = newValue
+          ! Note: el is set to 0 in initialize_element and in daten.
+          ! Calling initialize element on a cavity without setting el
+          ! will set phasc = 0!
+          call initialize_element(ii, .false.)
+        else
+          goto 100 ! ERROR
+        end if
+
+      ! Not yet supported : AC dipole (16)
+
+      ! Not yet supported : beam-beam separation (20)
+
+      case(23,26,27,28)
+        ! crab cavity, cc mult. kick order 2,3 and 4
+        if(att_name == "voltage") then ! [MV]
+          ed(ii) = newValue
+        else if(att_name == "frequency") then ! [MHz]
+          ek(ii) = newValue
+        else if(att_name == "phase") then ! [rad]
+          ! Note: el is set to 0 in initialize_element and in daten.
+          ! Calling initialize element on a crab without setting el
+          ! will set crabph = 0!
+          el(ii) = newValue
+          call initialize_element(ii, .false.)
+        else
+          goto 100 ! ERROR
+        end if
+
+      case(29)! Electron lens
+        if(att_name == "theta_r2") then ! [mrad]
+          elens_theta_r2(ii) = newValue
+        else
+          goto 100 ! ERROR
+        end if
+
+      case(40) ! Scatter
+        if(att_name == "scaling") then
+          scatter_ELEM_scale(scatter_elemPointer(ii)) = newValue
+        else
+          goto 100 ! ERROR
+        end if
+
+      case default
+        write(lout,"(a,i0,a)") "DYNK> ERROR setValu Unsupported element type ",el_type," element name = '"//trim(element_name)//"'"
+        call prror(-1)
+
+      end select
+    end if
+  end do
+
+  ! Sanity check
+  if(.not.ldoubleElement) then
+    goto 101
+  end if
+
+  return
+
+  ! Error handlers
+100 continue
+  write(lout,"(a,i0)")"DYNK> ERROR setValue Attribute '"//trim(att_name)//"' does not exist for type = ",el_type
+  call prror(-1)
 
 101 continue
-        write (lout,*)"DYNK> *** ERROR in dynk_setvalue() ***"
-        write (lout,*)"DYNK> The element named '",element_name_stripped, &
-                             "' was not found."
-        call prror(-1)
+  write(lout,"(a)") "DYNK> ERROR setValue The element named '"//trim(element_name)//"' was not found."
+  call prror(-1)
 
 end subroutine dynk_setvalue
 
 ! ================================================================================================ !
-!  A.Santamaria & K. Sjobak, BE-ABP/HSS
-!  Last modified: 2101-2015
+!  A. Santamaria, K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-08-12
 !  - Returns the original value currently set by an element.
 !
 !  Note: Expects that arguments element_name and att_name are zero-terminated strings of
@@ -2561,178 +2480,122 @@ end subroutine dynk_setvalue
 ! ================================================================================================ !
 real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
-    use scatter, only : scatter_ELEM_scale, scatter_elemPointer
-    use crcoall
-    use mod_common
-    use mod_commont
-    use mod_commonmn
-    use elens
-    implicit none
+  use scatter, only : scatter_ELEM_scale, scatter_elemPointer
+  use crcoall
+  use mod_common
+  use mod_commont
+  use mod_commonmn
+  use elens
 
-    character(mStrLen) element_name, att_name
-    intent(in) element_name, att_name
+  implicit none
 
-    integer el_type, ii
-    character(mStrLen) element_name_s, att_name_s
+  character(mStrLen), intent(in) :: element_name, att_name
 
-    logical ldoubleElement
-    ldoubleElement = .false.  ! For sanity check
+  integer el_type, ii
 
-    element_name_s = trim(stringzerotrim(element_name))
-    att_name_s = trim(stringzerotrim(att_name))
+  logical ldoubleElement
+  ldoubleElement = .false.  ! For sanity check
 
-    if (dynk_debug) then
-        write(lout,*) "DYNKDEBUG> In dynk_getvalue(), element_name = '"// &
-                      trim(element_name_s)//"', att_name = '"//trim(att_name_s)//"'"
+  if(dynk_debug) then
+    write(lout,"(a)") "DYNK> DEBUG In getValue, element_name = '"//trim(element_name)//"'"&
+      ", att_name = '"//trim(att_name)//"'"
+  end if
+
+  ! Special non-physical elements
+  if(element_name == "GLOBAL-VARS") then
+    if(att_name == "E0" ) then
+      ! Return the energy
+      dynk_getvalue = e0
     end if
+    ldoubleElement = .true.
+  end if
 
-    ! Special non-physical elements
-    if (element_name_s .eq. "GLOBAL-VARS") then
-        if (att_name_s .eq. "E0" ) then
-            ! Return the energy
-            dynk_getvalue = e0
-        end if
-        ldoubleElement = .true.
-    end if
-
-    ! Normal SINGLE ELEMENTs
-    do ii=1,il
-        ! TODO: Here one could find the right ii in dynk_pretrack,
-        ! and then avoid this loop / string-comparison
-        if (element_name_s.eq.bez(ii)) then ! name found
-            el_type=kz(ii)
-            if (ldoubleElement) then
-               write (lout,*) "DYNK> ERROR: two elements with the same BEZ"
-               call prror(-1)
-            end if
-            ldoubleElement = .true.
-
-            ! Nonlinear elements
-            if ((abs(el_type).eq.1).or. &
-                (abs(el_type).eq.2).or. &
-                (abs(el_type).eq.3).or. &
-                (abs(el_type).eq.4).or. &
-                (abs(el_type).eq.5).or. &
-                (abs(el_type).eq.6).or. &
-                (abs(el_type).eq.7).or. &
-                (abs(el_type).eq.8).or. &
-                (abs(el_type).eq.9).or. &
-                (abs(el_type).eq.10)) then
-                if (att_name_s.eq."average_ms") then
-                    dynk_getvalue = ed(ii)
-                else
-                    goto 100 ! ERROR
-                end if
-
-            ! Multipoles (Not yet supported)
-            ! else if (abs(el_type).eq.11) then
-            !     if (att_name_s.eq."bending_str") then
-            !         dynk_getvalue = dynk_elemData(ii,2)
-            !     elseif (att_name_s.eq."radius") then
-            !         dynk_getvalue = dynk_elemData(ii,3)
-            !     else
-            !         goto 100 ! ERROR
-            !     end if
-
-            ! Cavities
-            else if (abs(el_type).eq.12) then
-                if (att_name_s.eq."voltage"  ) then ! MV
-                    dynk_getvalue = ed(ii)
-                else if (att_name_s.eq."harmonic" ) then ! harmonic number
-                    dynk_getvalue = ek(ii)
-                else if (att_name_s.eq."lag_angle") then ! [deg]
-                    dynk_getvalue = dynk_elemData(ii,3)
-                else
-                    goto 100 ! ERROR
-                end if
-
-            ! Not yet supported
-            ! AC dipole
-            ! else if (abs(el_type).eq.16) then
-            !     if (att_name_s.eq."amplitude") then ! [T.m]
-            !         nretdata = nretdata+1
-            !         retdata(nretdata) = ed(ii)
-            !     else if (att_name_s.eq."frequency") then !  [2pi]
-            !         nretdata = nretdata+1
-            !         retdata(nretdata) = ek(ii)
-            !     else if (att_name_s.eq."phase") then !  [rad]
-            !         nretdata = nretdata+1
-            !         retdata(nretdata) = el(ii)
-            !     else
-            !         goto 100 ! ERROR
-            !     end if
-
-            ! Not yet supported
-            ! beam-beam separation
-            ! else if (abs(el_type).eq.20) then
-            !     if (att_name_s.eq."horizontal") then ! [mm]
-            !         nretdata = nretdata+1
-            !         retdata(nretdata) = ed(ii)
-            !     else if (att_name_s.eq."vertical") then ! [mm]
-            !         nretdata = nretdata+1
-            !         retdata(nretdata) = ek(ii)
-            !     else if (att_name_s.eq."strength") then ! [m]
-            !         nretdata = nretdata+1
-            !         retdata(nretdata) = el(ii)
-            !     else
-            !         goto 100 ! ERROR
-            !     end if
-
-            else if ((abs(el_type).eq.23).or. & ! crab cavity
-                     (abs(el_type).eq.26).or. & ! cc mult. kick order 2
-                     (abs(el_type).eq.27).or. & ! cc mult. kick order 3
-                     (abs(el_type).eq.28)) then ! cc mult. kick order 4
-                if (att_name_s.eq."voltage") then ! [MV]
-                    dynk_getvalue = ed(ii)
-                else if (att_name_s.eq."frequency") then ! [MHz]
-                    dynk_getvalue = ek(ii)
-                else if (att_name_s.eq."phase") then ! [rad]
-                    if (abs(el_type).eq.23) then
-                        dynk_getvalue = crabph(ii)
-                    else if (abs(el_type).eq.26) then
-                        dynk_getvalue = crabph2(ii)
-                    else if (abs(el_type).eq.27) then
-                        dynk_getvalue = crabph3(ii)
-                    else if (abs(el_type).eq.28) then
-                        dynk_getvalue = crabph4(ii)
-                    end if
-                else
-                    goto 100 ! ERROR
-                end if
-
-            ! Electron lens
-            else if (el_type.eq.29) then
-                if(att_name_s.eq."theta_r2") then ! [mrad]
-                    dynk_getvalue = elens_theta_r2(ii)
-                else
-                    goto 100 ! ERROR
-                end if
-
-            ! Scatter
-            else if (el_type.eq.40) then
-                if(att_name_s.eq."scaling") then
-                    dynk_getvalue = scatter_ELEM_scale(scatter_elemPointer(ii))
-                else
-                    goto 100 ! ERROR
-                end if
-
-            end if ! el_type
-        end if ! bez
-    end do
-
-    if (dynk_debug) then
-        write(lout,*) "DYNKDEBUG> In dynk_getvalue(), returning =", dynk_getvalue
-    end if
-
-    return
-
-    ! Error handlers
-100 continue
-        write(lout,*) "DYNK> *** ERROR in dynk_getvalue() ***"
-        write(lout,*) "DYNK> Unknown attribute '", trim(att_name_s),"'", &
-                      " for type",el_type," name '", trim(bez(ii)), "'"
-
+  ! Normal SINGLE ELEMENTs
+  do ii=1,il
+    ! TODO: Here one could find the right ii in dynk_pretrack,
+    ! and then avoid this loop / string-comparison
+    if(element_name == bez(ii)) then ! name found
+      el_type=kz(ii)
+      if(ldoubleElement) then
+        write (lout,"(a)") "DYNK> ERROR Two elements with the same BEZ"
         call prror(-1)
+      end if
+      ldoubleElement = .true.
+
+      select case(abs(el_type))
+
+      case(1,2,3,4,5,6,7,8,9,10) ! Nonlinear elements
+        if(att_name == "average_ms") then
+          dynk_getvalue = ed(ii)
+        else
+          goto 100 ! ERROR
+        end if
+
+        ! Not yet supported : Multipoles (11)
+
+      case(12) ! Cavities
+        if(att_name == "voltage"  ) then ! MV
+          dynk_getvalue = ed(ii)
+        else if(att_name == "harmonic" ) then ! harmonic number
+          dynk_getvalue = ek(ii)
+        else if(att_name == "lag_angle") then ! [deg]
+          dynk_getvalue = dynk_elemData(ii,3)
+        else
+          goto 100 ! ERROR
+        end if
+
+      ! Not yet supported : AC dipole (16)
+
+      ! Not yet supported : beam-beam separation (20)
+
+      case(23,26,27,28) ! crab cavity, cc mult. kick order 2, 3 and 4
+        if(att_name == "voltage") then ! [MV]
+          dynk_getvalue = ed(ii)
+        else if(att_name == "frequency") then ! [MHz]
+          dynk_getvalue = ek(ii)
+        else if(att_name == "phase") then ! [rad]
+          if(abs(el_type) == 23) then
+              dynk_getvalue = crabph(ii)
+          else if(abs(el_type) == 26) then
+              dynk_getvalue = crabph2(ii)
+          else if(abs(el_type) == .27) then
+              dynk_getvalue = crabph3(ii)
+          else if(abs(el_type) == 28) then
+              dynk_getvalue = crabph4(ii)
+          end if
+        else
+          goto 100 ! ERROR
+        end if
+
+      case(20) ! Electron lens
+        if(att_name == "theta_r2") then ! [mrad]
+          dynk_getvalue = elens_theta_r2(ii)
+        else
+          goto 100 ! ERROR
+        end if
+
+      case(40) ! Scatter
+        if(att_name == "scaling") then
+          dynk_getvalue = scatter_ELEM_scale(scatter_elemPointer(ii))
+        else
+          goto 100 ! ERROR
+        end if
+
+      end select
+    end if ! bez
+  end do
+
+  if(dynk_debug) then
+    write(lout,"(a,e16.9)") "DYNK> DEBUG getValue, returning = ",dynk_getvalue
+  end if
+
+  return
+
+  ! Error handlers
+100 continue
+  write(lout,"(a,i0,a)") "DYNK> ERROR getValueUnknown attribute '"//trim(att_name)//"'"//&
+    " for type ",el_type," name '"//trim(bez(ii))//"'"
+  call prror(-1)
 
 end function dynk_getvalue
 
@@ -2750,105 +2613,97 @@ end function dynk_getvalue
 ! ================================================================================================ !
 real(kind=fPrec) function dynk_lininterp(x,xvals,yvals,datalen)
 
-      use crcoall
-    implicit none
+  use crcoall
+  implicit none
 
+  real(kind=fPrec), intent(in) :: x, xvals(*),yvals(*)
+  integer,          intent(in) :: datalen
 
-    real(kind=fPrec) x, xvals(*),yvals(*)
-    integer datalen
-    intent(in) x,xvals,yvals,datalen
+  integer ii
+  real(kind=fPrec) dydx, y0
 
-    integer ii
-    real(kind=fPrec) dydx, y0
-
-    ! Sanity checks
-    if (datalen .le. 0) then
-        write(lout,*) "DYNK> **** ERROR in dynk_lininterp() ****"
-        write(lout,*) "DYNK> datalen was 0!"
-        call prror(-1)
-    end if
-    if (x .lt. xvals(1) .or. x .gt. xvals(datalen)) then
-        write(lout,*) "DYNK> **** ERROR in dynk_lininterp() ****"
-        write(lout,*) "x =",x, "outside range", xvals(1),xvals(datalen)
-        call prror(-1)
-    end if
-
-    ! Find the right indexes i1 and i2
-    ! Special case: first value at first point
-    if (x .eq. xvals(1)) then
-        dynk_lininterp = yvals(1)
-        return
-    end if
-
-    do ii=1, datalen-1
-        if (xvals(ii) .ge. xvals(ii+1)) then
-            write (lout,*) "DYNK> **** ERROR in dynk_lininterp() ****"
-            write (lout,*) "DYNK> xvals should be in increasing order"
-            write (lout,*) "DYNK> xvals =", xvals(:datalen)
-            call prror(-1)
-        end if
-
-        if (x .le. xvals(ii+1)) then
-            ! We're in the right interval
-            dydx = (yvals(ii+1)-yvals(ii)) / (xvals(ii+1)-xvals(ii))
-            y0   = yvals(ii) - dydx*xvals(ii)
-            dynk_lininterp = dydx*x + y0
-            return
-        end if
-    end do
-
-    ! We didn't return yet: Something wrong
-    write (lout,*) "DYNK> ****ERROR in dynk_lininterp() ****"
-    write (lout,*) "DYNK> Reached the end of the function"
-    write (lout,*) "DYNK> This should not happen, please contact developers"
+  ! Sanity checks
+  if(datalen <= 0) then
+    write(lout,"(a)") "DYNK> ERROR lininterp: datalen was 0!"
     call prror(-1)
+  end if
+  if(x < xvals(1) .or. x > xvals(datalen)) then
+    write(lout,"(3(a,e16.9))") "DYNK> ERROR lininterp: x = ",x," outside range",xvals(1)," - ",xvals(datalen)
+    call prror(-1)
+  end if
+
+  ! Find the right indexes i1 and i2
+  ! Special case: first value at first point
+  if(x == xvals(1)) then
+    dynk_lininterp = yvals(1)
+    return
+  end if
+
+  do ii=1, datalen-1
+    if(xvals(ii) >= xvals(ii+1)) then
+      write(lout,"(a)") "DYNK> ERROR lininterp: xvals should be in increasing order"
+      call prror(-1)
+    end if
+
+    if(x <= xvals(ii+1)) then
+      ! We're in the right interval
+      dydx = (yvals(ii+1)-yvals(ii)) / (xvals(ii+1)-xvals(ii))
+      y0   = yvals(ii) - dydx*xvals(ii)
+      dynk_lininterp = dydx*x + y0
+      return
+    end if
+  end do
+
+  ! We didn't return yet: Something wrong
+  write(lout,"(a)") "DYNK> ERROR lininterp: Reached the end of the function. This should not happen, please contact developers"
+  call prror(-1)
 
 end function dynk_lininterp
 
 ! ================================================================================================ !
-!  K. Sjobak, ABP-HSS,
-!  Last modified: 23-01-2015
+!  K. Sjobak, BE-ABP-HSS,
+!  Last modified: 2018-08-12
 !  - Indicates whether a structure element is in use by DYNK
 ! ================================================================================================ !
 logical function dynk_isused(i)
 
-    use crcoall
-    use mod_common
-    implicit none
+  use crcoall
+  use mod_common
 
-    integer, intent(in) :: i
-    integer ix,k
-    character(mStrLen) element_name_stripped
+  implicit none
 
-    ! Sanity check
-    if (i .gt. iu .or. i .le. 0) then
-        write (lout,*) "Error in dynk_isused(): i=",i,"out of range"
-        call prror(-1)
+  integer, intent(in) :: i
+  integer ix,k
+  character(mStrLen) element_name
+
+  ! Sanity check
+  if(i > iu .or. i <= 0) then
+    write(lout,"(a,i0,a)") "DYNK> ERROR isused: i=",i," out of range"
+    call prror(-1)
+  end if
+  ix = ic(i)-nblo
+  if(i <= 0) then
+    write(lout,"(a,i0,a)") "DYNK> ERROR isused: ix-nblo = ",ix," is a block?"
+    call prror(-1)
+  end if
+
+  do k=1,dynk_nSets
+    element_name = trim(dynk_cSets(k,1))
+    if(bez(ix) == element_name) then
+      dynk_isused = .true.
+      if(dynk_debug) then
+        write(lout,"(a)") "DYNK> DEBUG dynk_isused = TRUE, bez='"//bez(ix)//"', element_name_stripped='"//element_name//"'"
+      end if
+      return
     end if
-    ix = ic(i)-nblo
-    if (i .le. 0) then
-        write (lout,*) "Error in dynk_isused(): ix-nblo=",ix,"is a block?"
-        call prror(-1)
-    end if
+  end do
 
-    do k=1,dynk_nSets
-        element_name_stripped = trim(stringzerotrim(dynk_cSets(k,1)))
-        if (bez(ix) .eq. element_name_stripped) then
-            dynk_isused = .true.
-            if (dynk_debug) then
-                write(lout,*) "DYNKDEBUG> dynk_isused = TRUE, bez='"//bez(ix)// &
-                              "', element_name_stripped='"//element_name_stripped//"'"
-            end if
-            return
-        end if
-    end do
+  if(dynk_debug) then
+    write(lout,"(a)") "DYNK> DEBUG dynk_isused = FALSE, bez='"//bez(ix)//"'"
+  end if
 
-    if (dynk_debug) then
-        write(lout,*) "DYNKDEBUG> dynk_isused = FALSE, bez='"//bez(ix)//"'"
-    end if
-
-    dynk_isused = .false.
-    return
+  dynk_isused = .false.
+  return
 
 end function dynk_isused
 
