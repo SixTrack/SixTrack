@@ -518,7 +518,7 @@ subroutine dynk_parseFUN(inLine, iErr)
     ! and will recieve a message when SixTrack's dynk_computeFUN() is called.
     ! That program should then send a value back (in ASCII), which will be the new setting.
 
-    call dynk_checkargs(nSplit,6,"FUN funname PIPE inPipeName outPipeName ID fileUnit" )
+    call dynk_checkargs(nSplit,6,"FUN funname PIPE inPipeName outPipeName ID" )
     call dynk_checkspace(1,0,4)
 
 #ifdef CR
@@ -2775,8 +2775,8 @@ subroutine dynk_crcheck_readdata(fileunit,readerr)
 
 100 continue
 
-  write(lout,*) "READERR in scatter_crcheck; fileunit=",fileunit
-  write(93,*)   "READERR in scatter_crcheck; fileunit=",fileunit
+  write(lout,"(a,i0)") "READERR in scatter_crcheck; fileunit=",fileunit
+  write(93,*)          "READERR in scatter_crcheck; fileunit=",fileunit
   readerr=.true.
 
 end subroutine dynk_crcheck_readdata
