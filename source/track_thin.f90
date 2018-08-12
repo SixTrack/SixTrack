@@ -767,8 +767,8 @@ subroutine thin4d(nthinerr)
 
 
           ! We have to go back to angles after we updated the energy.
-          yv(j,1) = yv(j,1)*mtc(j)/(one+dpsv(j))
-          yv(j,2) = yv(j,2)*mtc(j)/(one+dpsv(j))
+          yv(1,j) = yv(1,j)*mtc(j)/(one+dpsv(j))
+          yv(2,j) = yv(2,j)*mtc(j)/(one+dpsv(j))
           !yv(j,1) = yv(j,1)*moidpsv(j)
           !yv(j,2) = yv(j,2)*moidpsv(j)
         enddo
@@ -1098,8 +1098,7 @@ subroutine thin4d(nthinerr)
 390   r0=ek(ix)
       nmz=nmu(ix)
       if(nmz.ge.2) then
-          do j=1,napx
-
+        do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v05.f90"
           do k=3,nmz
@@ -1107,9 +1106,6 @@ subroutine thin4d(nthinerr)
           end do
 #include "include/mul4v07.f90"
         end do
-     
-#include "include/mul4v07.f90"
-
       else
         do j=1,napx
 #include "include/mul4v08.f90"
@@ -1371,7 +1367,7 @@ subroutine thin6d(nthinerr)
         end if
         if(fluka_inside) then
           if(fluka_debug) then
-            write(lout,*) '[Fluka] Skipping lattice element at ', i
+            write(lout,"(a,i0)") "FLUKA> Skipping lattice element at ",i
             write(fluka_log_unit,*) '# Skipping lattice element at ', i
           end if
           goto 650
@@ -1381,10 +1377,9 @@ subroutine thin6d(nthinerr)
 
       ! BDEX was in a #ifndef collimat block, and may not be fully collimat-compatible,
       ! so for now the two shall not be mixed.
-      if(.not.do_coll .and. &
-           (bdex_enable .and. kz(ix).eq.0 .and. bdex_elementAction(ix).ne.0 ) &
-           ) then
-        call bdex_track(i,ix,n)
+      ! Also, check that we have a single element, not a BLOC element.
+      if(.not.do_coll .and. ix > 0) then
+        if(bdex_enable .and. kz(ix) == 0 .and. bdex_elementAction(ix) /= 0) call bdex_track(i,ix,n)
       end if
 
       if (do_coll) then
@@ -1592,8 +1587,9 @@ subroutine thin6d(nthinerr)
 
 
           ! We have to go back to angles after we updated the energy.
-          yv(j,1) = yv(j,1)*mtc(j)/(one+dpsv(j))
-          yv(j,2) = yv(j,2)*mtc(j)/(one+dpsv(j))
+          yv(1,j) = yv(1,j)*mtc(j)/(one+dpsv(j))
+          yv(2,j) = yv(2,j)*mtc(j)/(one+dpsv(j))
+
           !yv(j,1) = yv(j,1)*moidpsv(j)
           !yv(j,2) = yv(j,2)*moidpsv(j)
         enddo

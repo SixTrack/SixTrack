@@ -44,8 +44,6 @@ module collimation
   integer, parameter :: numeffdpop = 29
   integer, parameter :: nc         = 32
 
-  logical, private, save :: collimation_arrays_allocated = .false.
-
 !+cd collMatNum
 ! EQ 2016 added variables for collimator material numbers
   integer, parameter :: nmat  = 14
@@ -777,106 +775,10 @@ subroutine collimation_allocate_arrays
 
   implicit none
 
-  collimation_arrays_allocated = .true.
+  ! Initial allocation handled by expand arrays routine
+  call collimation_expand_arrays(npart,nblz)
 
-  call alloc(tbetax,  nblz, zero, 'tbetax')  !(nblz)
-  call alloc(tbetay,  nblz, zero, 'tbetay')  !(nblz)
-  call alloc(talphax, nblz, zero, 'talphax') !(nblz)
-  call alloc(talphay, nblz, zero, 'talphay') !(nblz)
-  call alloc(torbx,   nblz, zero, 'torbx')   !(nblz)
-  call alloc(torbxp,  nblz, zero, 'torbxp')  !(nblz)
-  call alloc(torby,   nblz, zero, 'torby')   !(nblz)
-  call alloc(torbyp,  nblz, zero, 'torbyp')  !(nblz)
-  call alloc(tdispx,  nblz, zero, 'tdispx')  !(nblz)
-  call alloc(tdispy,  nblz, zero, 'tdispy')  !(nblz)
-
-  call alloc(flukaname, npart, 0, "flukaname") !(npart)
-  call alloc(ipart, npart, 0, "ipart") !(npart)
-  call alloc(cx,    npart, zero, "cx") !(npart)
-  call alloc(cxp,   npart, zero, "cxp") !(npart)
-  call alloc(cy,    npart, zero, "cy") !(npart)
-  call alloc(cyp,   npart, zero, "cyp") !(npart)
-  call alloc(cp,    npart, zero, "cp") !(npart)
-  call alloc(cs,    npart, zero, "cs") !(npart)
-  call alloc(rcx,   npart, zero, "rcx") !(npart)
-  call alloc(rcxp,  npart, zero, "rcxp") !(npart)
-  call alloc(rcy,   npart, zero, "rcy") !(npart)
-  call alloc(rcyp,  npart, zero, "rcyp") !(npart)
-  call alloc(rcp,   npart, zero, "rcp") !(npart)
-  call alloc(rcs,   npart, zero, "rcs") !(npart)
-  call alloc(rcx0,  npart, zero, "rcx0") !(npart)
-  call alloc(rcxp0, npart, zero, "rcxp0") !(npart)
-  call alloc(rcy0,  npart, zero, "rcy0") !(npart)
-  call alloc(rcyp0, npart, zero, "rcyp0") !(npart)
-  call alloc(rcp0,  npart, zero, "rcp0") !(npart)
-
-  call alloc(xgrd,      npart, zero, "xgrd") !(npart)
-  call alloc(xpgrd,     npart, zero, "xpgrd") !(npart)
-  call alloc(ygrd,      npart, zero, "ygrd") !(npart)
-  call alloc(ypgrd,     npart, zero, "ypgrd") !(npart)
-  call alloc(pgrd,      npart, zero, "pgrd") !(npart)
-  call alloc(ejfvgrd,   npart, zero, "ejfvgrd") !(npart)
-  call alloc(sigmvgrd,  npart, zero, "sigmvgrd") !(npart)
-  call alloc(rvvgrd,    npart, zero, "rvvgrd") !(npart)
-  call alloc(dpsvgrd,   npart, zero, "dpsvgrd") !(npart)
-  call alloc(oidpsvgrd, npart, zero, "oidpsvgrd") !(npart)
-  call alloc(dpsv1grd,  npart, zero, "dpsv1grd") !(npart)
-
-  call alloc(xbob,    nblz, zero, "xbob") !(nblz)
-  call alloc(ybob,    nblz, zero, "ybob") !(nblz)
-  call alloc(xpbob,   nblz, zero, "xpbob") !(nblz)
-  call alloc(ypbob,   nblz, zero, "ypbob") !(nblz)
-
-  call alloc(xineff,  npart, zero, "xineff") !(npart)
-  call alloc(yineff,  npart, zero, "yineff") !(npart)
-  call alloc(xpineff, npart, zero, "xpineff") !(npart)
-  call alloc(ypineff, npart, zero, "ypineff") !(npart)
-
-  call alloc(mux,     nblz, zero, "mux") !(nblz)
-  call alloc(muy,     nblz, zero, "muy") !(nblz)
-
-  call alloc(counteddpop, npart, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
-  call alloc(counted2d, npart, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
-
-  call alloc(ename,    mNameLen, nblz, ' ', "ename") !(nblz)
-  call alloc(nampl,    nblz, 0, "nampl") !(nblz)
-  call alloc(sum_ax,   nblz, zero, "sum_ax") !(nblz)
-  call alloc(sqsum_ax, nblz, zero, "sqsum_ax") !(nblz)
-  call alloc(sum_ay,   nblz, zero, "sum_ay") !(nblz)
-  call alloc(sqsum_ay, nblz, zero, "sqsum_ay") !(nblz)
-  call alloc(sampl,    nblz, zero, "sampl") !(nblz)
-
-  call alloc(secondary,            npart, 0, "secondary") !(npart)
-  call alloc(tertiary,             npart, 0, "tertiary") !(npart)
-  call alloc(other,                npart, 0, "other") !(npart)
-  call alloc(scatterhit,           npart, 0, "scatterhit") !(npart)
-  call alloc(part_hit_before_pos,  npart, 0, "part_hit_before_pos") !(npart)
-  call alloc(part_hit_before_turn, npart, 0, "part_hit_before_turn") !(npart)
-  call alloc(part_hit_pos,         npart, 0, "part_hit_pos") !(npart)
-  call alloc(part_hit_turn,        npart, 0, "part_hit_turn") !(npart)
-  call alloc(part_abs_pos,         npart, 0, "part_abs_pos") !(npart)
-  call alloc(part_abs_turn,        npart, 0, "part_abs_turn") !(npart)
-  call alloc(part_select,          npart, 0, "part_select") !(npart)
-  call alloc(nabs_type,            npart, 0, "nabs_type") !(npart)
-
-  call alloc(part_impact,    npart, zero, "part_impact") !(npart)
-  call alloc(part_indiv,     npart, zero, "part_indiv") !(npart)
-  call alloc(part_linteract, npart, zero, "part_linteract") !(npart)
-
-
-  call alloc(counted_r, npart, numeff, 0, "counted_r") !(npart,numeff)
-  call alloc(counted_x, npart, numeff, 0, "counted_x") !(npart,numeff)
-  call alloc(counted_y, npart, numeff, 0, "counted_y") !(npart,numeff)
-
-! Change the following block to npart
-  call alloc(myx,  npart, zero, "myx") !(maxn)
-  call alloc(myxp, npart, zero, "myxp") !(maxn)
-  call alloc(myy,  npart, zero, "myy") !(maxn)
-  call alloc(myyp, npart, zero, "myyp") !(maxn)
-  call alloc(myp,  npart, zero, "myp") !(maxn)
-  call alloc(mys,  npart, zero, "mys") !(maxn)
-
-! Fixed allocations follow:
+  ! Fixed allocations follow:
   call alloc(gap_rms_error, max_ncoll, zero, "gap_rms_error") !(max_ncoll)
   call alloc(xp_pencil, max_ncoll, zero, "xp_pencil")
   call alloc(yp_pencil, max_ncoll, zero, "yp_pencil")
@@ -887,7 +789,7 @@ subroutine collimation_allocate_arrays
   call alloc(y_pencil,  max_ncoll, zero, "y_pencil") !(max_ncoll)
   call alloc(pencil_dx, max_ncoll, zero, "pencil_dx") !(max_ncoll)
 
-!SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
+  !SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
   call alloc(x_sl, 100, zero, "x_sl") !(100)
   call alloc(x1_sl, 100, zero, "x1_sl") !(100)
   call alloc(x2_sl, 100, zero, "x2_sl") !(100)
@@ -934,10 +836,12 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   integer, intent(in) :: npart_new
   integer, intent(in) :: nblz_new
 
-  if (.not. collimation_arrays_allocated) then
-    return
-  endif
-  
+  ! Arrays that are always needed
+  call alloc(part_abs_turn, npart_new, 0, "part_abs_turn") !(npart_new)
+
+  if(.not. do_coll) return
+  ! Arrays that are only needed if Collimation is enabled
+
   call alloc(tbetax,  nblz_new, zero, 'tbetax')  !(nblz)
   call alloc(tbetay,  nblz_new, zero, 'tbetay')  !(nblz)
   call alloc(talphax, nblz_new, zero, 'talphax') !(nblz)
@@ -1014,7 +918,6 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call alloc(part_hit_pos,         npart_new, 0, "part_hit_pos") !(npart_new)
   call alloc(part_hit_turn,        npart_new, 0, "part_hit_turn") !(npart_new)
   call alloc(part_abs_pos,         npart_new, 0, "part_abs_pos") !(npart_new)
-  call alloc(part_abs_turn,        npart_new, 0, "part_abs_turn") !(npart_new)
   call alloc(part_select,          npart_new, 0, "part_select") !(npart_new)
   call alloc(nabs_type,            npart_new, 0, "nabs_type") !(npart_new)
 
@@ -1022,12 +925,11 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call alloc(part_indiv,     npart_new, zero, "part_indiv") !(npart_new)
   call alloc(part_linteract, npart_new, zero, "part_linteract") !(npart_new)
 
-
   call alloc(counted_r, npart_new, numeff, 0, "counted_r") !(npart_new,numeff)
   call alloc(counted_x, npart_new, numeff, 0, "counted_x") !(npart_new,numeff)
   call alloc(counted_y, npart_new, numeff, 0, "counted_y") !(npart_new,numeff)
 
-! Change the following block to npart
+  ! Change the following block to npart
   call alloc(myx,  npart_new, zero, "myx") !(maxn)
   call alloc(myxp, npart_new, zero, "myxp") !(maxn)
   call alloc(myy,  npart_new, zero, "myy") !(maxn)
@@ -1689,6 +1591,8 @@ end subroutine collimate_parseInputLine
 subroutine collimate_postInput(gammar)
 
   real(kind=fPrec), intent(in) :: gammar
+
+  call collimation_expand_arrays(npart,nblz)
 
   remitx_dist    = emitnx0_dist*gammar
   remity_dist    = emitny0_dist*gammar
@@ -7930,7 +7834,7 @@ integer function mclock_liar( )
     call system_clock( mclock, count_rate, count_max )
     if ( count_max .eq. 0 ) then
       clock_ok = .false.
-      write(lout,"(a)") 'COLL> System Clock not present or not Responding'  
+      write(lout,"(a)") 'COLL> System Clock not present or not Responding'
       write(lout,"(a)") 'COLL> R.N.G. Reseed operation disabled.'
     endif
   endif

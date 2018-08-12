@@ -1698,6 +1698,7 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
     if(nSplit > 1) call chr_cast(lnSplit(2),r0,   iErr)
     if(nSplit > 2) call chr_cast(lnSplit(3),benki,iErr)
 
+    iil      = -1
     nmul     = 1
     r0a      = one
     sixin_im = sixin_im + 1
@@ -1712,6 +1713,12 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
         exit
       end if
     end do
+
+    if(iil == -1) then
+      write(lout,"(a)") "MULT> ERROR Single element '"//trim(imn)//"' not found in single element list."
+      iErr = .true.
+      return
+    end if
 
     if(st_debug) then
       call sixin_echoVal("imn",  imn,  "MULT",iLine)
