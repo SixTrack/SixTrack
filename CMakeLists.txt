@@ -77,7 +77,6 @@ OPTION(STF "Single Track File - write all tracks for postprocessing to fort.90, 
 # and we have OFF
 OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
 OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal 'myboinc.f' dummy library)" OFF)
-OPTION(COLLIMAT "Collimation code" OFF)
 #OPTION(CPSS "CERN physics screensaver support" OFF)
 OPTION(BOINC "BOINC distributed computing support" OFF)
 OPTION(CR "Checkpoint / restarting" OFF)
@@ -127,9 +126,9 @@ OPTION(ROUND_ZERO "Always round towards zero after floating point operations" OF
 
 OPTION(ROOT "Link to the root libraries" OFF)
 
-SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/source/boinc CACHE PATH "Path to the boinc build folder")
-SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/source/libarchive_build CACHE PATH "Path to the libarchive build folder")
-SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/source/libarchive CACHE PATH "Path to the libarchive source folder")
+SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/lib/boinc CACHE PATH "Path to the boinc build folder")
+SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive_build CACHE PATH "Path to the libarchive build folder")
+SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive CACHE PATH "Path to the libarchive source folder")
 
 ###################################################################################################
 # Sixtrack binary name construction
@@ -170,9 +169,6 @@ if(CERNLIB)
 endif()
 if(API)
 	SET(SIXTRACK_FEAT_CR "api_${SIXTRACK_FEAT_CR}")
-endif()
-if(COLLIMAT)
-	SET(SIXTRACK_FEAT_CR "collimat_${SIXTRACK_FEAT_CR}")
 endif()
 if(BOINC)
 	SET(SIXTRACK_FEAT_CR "boinc_${SIXTRACK_FEAT_CR}")
@@ -286,7 +282,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}_${SIXTRACK_FEAT_DA}")
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST COLLIMAT BOINC BEAMGAS STF MERLINSCATTER NAFF G4COLLIMAT FLUKA CR)
+LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER NAFF G4COLLIMAT FLUKA CR)
 LIST(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
 LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
@@ -301,7 +297,7 @@ list(APPEND FORT90_LIB
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist scatter dump dynk
 	aperture mod_fluc beam6d_fox six_fox postprocessing
-	read_input
+	read_input ranlux collimation
 )
 
 # Files unique to DA or CR version
@@ -318,10 +314,6 @@ endif(CR)
 if(DEBUG)
 	list(APPEND FORT90_LIB debug_dumps)
 endif(DEBUG)
-
-if(COLLIMAT)
-	list(APPEND FORT90_LIB ranlux collimation)
-endif(COLLIMAT)
 
 if(HDF5)
 	list(APPEND FORT90_LIB hdf5_output hdf5_sixtrack)
@@ -523,34 +515,10 @@ if(API)
 		message(FATAL_ERROR "Building with API requires BOINC enabled")
 	endif(NOT BOINC)
 endif(API)
-if(BEAMGAS)
-	if(NOT COLLIMAT)
-		message(FATAL_ERROR "Building with BEAMGAS requires COLLIMAT enabled")
-	endif(NOT COLLIMAT)
-endif(BEAMGAS)
-if(COLLIMAT)
-	if(CR)
-		message(FATAL_ERROR "Cannot build COLLIMAT with CR enabled.")
-	endif()
-	if(SIXDA)
-		message(STATUS "Will not build SixDA when COLLIMAT is enabled.")
-		set(SIXDA OFF)
-	endif()
-endif()
 if(FLUKA)
 	if(SIXDA)
 		message(STATUS "Will not build SixDA when FLUKA is enabled.")
 		set(SIXDA OFF)
-	endif()
-endif()
-if(MERLINSCATTER)
-	if(NOT COLLIMAT)
-		message(FATAL_ERROR "Building with MERLINSCATTER requires COLLIMAT enabled.")
-	endif()
-endif()
-if(G4COLLIMAT)
-	if(NOT COLLIMAT)
-		message(FATAL_ERROR "Building with G4COLLIMAT requires COLLIMAT enabled.")
 	endif()
 endif()
 if(64BIT)
@@ -629,7 +597,8 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	endif()
 
 	SET(CMAKE_Fortran_FLAGS_RELEASE "-O3")
-	SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
+	# SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
+	SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow -fcheck=all")
 
 	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES ppc64le )
 		SET(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fno-expensive-optimizations -fno-inline-functions")
@@ -1172,7 +1141,7 @@ if(LIBARCHIVE)
 
 	#find_library(z STATIC z)
 	add_library(z STATIC IMPORTED)
-	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/zlib/install/lib/libz.a)
+	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/zlib/install/lib/libz.a)
 
 	target_link_libraries(SixTrackCR libarchive z Threads::Threads)
 	target_link_libraries(libArchiveTester libarchive z Threads::Threads)

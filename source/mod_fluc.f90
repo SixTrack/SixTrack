@@ -205,13 +205,18 @@ subroutine fluc_readFort8
   character(len=:), allocatable :: lnSplit(:)
   real(kind=fPrec) alignx, alignz, tilt
   integer lineNo, ioStat, nSplit, mAlign, nAlign, iStru, iSing
-  logical iErr, isOpen, inSing
+  logical iErr, isOpen, isFile, inSing
   integer i
 
   lineNo = 0
+  inLine = " "
+
+  inquire(file="fort.8", exist=isFile)
+  if(.not.isFile) return
 
   inquire(unit=8, opened=isOpen)
   if(isOpen) close(8)
+
   call units_openUnit(unit=8,fileName="fort.8",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
     write(lout,"(a)") "FLUC> ERROR Failed to open fort.8"
@@ -312,15 +317,20 @@ subroutine fluc_readFort16
   character(len=:), allocatable :: lnSplit(:)
   character(len=mNameLen) bezExt
   integer mType, lineNo, ioStat, nSplit, lMode, nVals, mVal, mExt, iStru, iSing, nExt
-  logical iErr, isOpen, inSing
+  logical iErr, isOpen, isFile, inSing
   integer i
 
   mType  = 0
   lineNo = 0
   lMode  = 0
+  inLine = " "
+
+  inquire(file="fort.16", exist=isFile)
+  if(.not.isFile) return
 
   inquire(unit=16, opened=isOpen)
   if(isOpen) close(16)
+
   call units_openUnit(unit=16,fileName="fort.16",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
     write(lout,"(a)") "FLUC> ERROR Failed to open fort.16"
@@ -464,13 +474,18 @@ subroutine fluc_readFort30
   character(len=:), allocatable :: lnSplit(:)
   real(kind=fPrec) alignx, alignz, tilt
   integer lineNo, ioStat, nSplit, mZFZ, nZFZ, iStru, iSing, iZ
-  logical iErr, isOpen, inSing
+  logical iErr, isOpen, isFile, inSing
   integer i
 
   lineNo = 0
+  inLine = " "
+
+  inquire(file="fort.30", exist=isFile)
+  if(.not.isFile) return
 
   inquire(unit=30, opened=isOpen)
   if(isOpen) close(30)
+
   call units_openUnit(unit=30,fileName="fort.30",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
     write(lout,"(a)") "FLUC> ERROR Failed to open fort.30"
