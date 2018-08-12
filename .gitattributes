@@ -2,3 +2,4 @@
 *.canonical linguist-generated
 source/zlib/* linguist-vendored
 test/*/fort.2 linguist-generated
+*.8 linguist-generated
