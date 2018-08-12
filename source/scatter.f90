@@ -376,7 +376,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
   ! Find the profile name referenced
   do j=1,scatter_nPROFILE
-    if(chr_trimZero(scatter_cData(scatter_PROFILE(j,1))) == lnSplit(3)) then
+    if(trim(scatter_cData(scatter_PROFILE(j,1))) == lnSplit(3)) then
       scatter_ELEM(scatter_nELEM,2) = j
     end if
   end do
@@ -403,7 +403,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
     ! Search for the generator with the right name
     do j=1, scatter_nGENERATOR
-      if(chr_trimZero(scatter_cData(scatter_GENERATOR(j,1))) == lnSplit(ii)) then
+      if(trim(scatter_cData(scatter_GENERATOR(j,1))) == lnSplit(ii)) then
         ! Found it
         scatter_ELEM(scatter_nELEM,ii-4+2) = j
       end if
@@ -469,7 +469,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
 
   ! Check that the profile name is unique
   do ii=1,scatter_nPROFILE-1
-    if(chr_trimZero(scatter_cData(scatter_PROFILE(ii,1))) == lnSplit(2)) then
+    if(trim(scatter_cData(scatter_PROFILE(ii,1))) == lnSplit(2)) then
       write(lout,"(a)") "SCATTER> ERROR Profile name '"//lnSplit(2)//"' is not unique."
       iErr = .true.
       return
@@ -568,7 +568,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
   ! Check that the generator name is unique
   do ii=1,scatter_nGENERATOR-1
-    if(chr_trimZero(scatter_cData(scatter_GENERATOR(ii,1))) == lnSplit(2)) then
+    if(trim(scatter_cData(scatter_GENERATOR(ii,1))) == lnSplit(2)) then
       write(lout,"(a)") "SCATTER> ERROR Generator name '"//lnSplit(2)//"' is not unique."
       iErr = .true.
       return

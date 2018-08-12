@@ -839,7 +839,8 @@ subroutine daten
     elseif(closeBlock) then
       call zipf_parseInputDone
     else
-      call zipf_parseInputline(inLine)
+      call zipf_parseInputline(inLine,inErr)
+      if(inErr) goto 9999
     end if
 
   case("SCAT") ! SCATTER Input Block
@@ -892,7 +893,8 @@ subroutine daten
   elseif(closeBlock) then
     call root_parseInputDone
   else
-    call root_daten(inLine)
+    call root_daten(inLine,inErr)
+    if(inErr) goto 9999
   end if
 #endif
 
