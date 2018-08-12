@@ -621,7 +621,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
       return
     end if
 
-  case("PYTHIA")
+  case("PYTHIASIMPLE")
 
 #ifndef PYTHIA
     write(lout,"(a)") "SCATTER> ERROR GEN PYTHIA requested, but PYTHIA not compiled into SixTrack"
@@ -678,14 +678,16 @@ end subroutine scatter_parseSeed
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
-subroutine scatter_thin(i_elem, ix, turn)
+subroutine scatter_thin(iElem, ix, turn)
 
   use string_tools
   use crcoall
+  use mod_beam
+  use mod_hions
   use mod_alloc
   use mod_common
   use mod_commonmn
-  use numerical_constants, only : pi
+  use numerical_constants, only : one, pi
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -694,17 +696,18 @@ subroutine scatter_thin(i_elem, ix, turn)
 
   implicit none
 
-  integer, intent(in) :: i_elem, ix, turn
+  integer, intent(in) :: iElem, ix, turn
 
   ! Temp variables
-  integer          ELEMidx, PROidx, GENidx
-  integer          i, j, lost
+  integer          idElem, idPro, idGen
+  integer          i, j, iLost
   integer          tmpSeed1, tmpSeed2
-  real(kind=fPrec) s, t, xi, theta
+  logical          isDiff, updateE
+  real(kind=fPrec) s, t, dEE, theta
   real(kind=fPrec) crossSection, N, P
   real(kind=fPrec) rndPhi(npart), rndP(npart)
   real(kind=fPrec) scaling
-  character(len=8) process
+  character(len=8) procName
 
   logical, allocatable :: pLost(:)
 
@@ -716,9 +719,9 @@ subroutine scatter_thin(i_elem, ix, turn)
   integer                 :: nRecords
 #endif
 
-  ELEMidx = scatter_elemPointer(ix)
-  PROidx  = scatter_ELEM(ELEMidx,2)
-  scaling = scatter_ELEM_scale(ELEMidx)
+  idElem = scatter_elemPointer(ix)
+  idPro  = scatter_ELEM(idElem,2)
+  scaling = scatter_ELEM_scale(idElem)
 
   ! if(scatter_debug) then
   !   write(lout,"(a)")       "SCATTER> DEBUG In scatter_thin"
@@ -742,11 +745,13 @@ subroutine scatter_thin(i_elem, ix, turn)
     call alloc(pLost,npart,.false.,"pLost")
   end if
 
+  updateE = .false.
+
   ! Loop over generators
   do i=3,5
 
-    GENidx = scatter_ELEM(ELEMidx,i)
-    if(GENidx == 0) exit ! No generator
+    idGen = scatter_ELEM(idElem,i)
+    if(idGen == 0) exit ! No generator
 
     ! Generate a random phi
     call ranecu(rndPhi, napx, -1)
@@ -760,10 +765,10 @@ subroutine scatter_thin(i_elem, ix, turn)
     do j=1, napx
       ! Compute the cross section at this s
       ! (in most cases roughly equal for all particles; use mean x,y,xp,yp,E)
-      crossSection = scatter_generator_getCrossSection(PROidx,GENidx,xv(1,j),xv(2,j),yv(1,j),yv(2,j),ejv(j))
+      crossSection = scatter_generator_getCrossSection(idPro,idGen,xv(1,j),xv(2,j),yv(1,j),yv(2,j),ejv(j))
 
       ! Ask profile for density at x,y
-      N = scatter_profile_getDensity(PROidx,xv(1,j),xv(2,j))
+      N = scatter_profile_getDensity(idPro,xv(1,j),xv(2,j))
 
       ! Compute probability P
       P = (N*crossSection)*scaling
@@ -771,17 +776,26 @@ subroutine scatter_thin(i_elem, ix, turn)
       ! If RNG > P -> go to next particle, else scatter
       if(rndP(j) > P) cycle
 
-      ! Ask generator for t and xi
-      call scatter_generator_getTandXi(GENidx,t,xi,process,lost)
+      ! Ask generator for t and dEE
+      call scatter_generator_getTandE(idGen,t,dEE,procName,iLost,isDiff)
 
       ! If lost, flag it
-      if(scatter_allowLosses .and. lost == 1) pLost(j) = .true.
+      if(scatter_allowLosses .and. iLost == 1) then
+        pLost(j) = .true.
+        cycle
+      end if
 
-      ! Use generator t and xi to update particle j;
+      ! Use generator t and dEE to update particle j;
       ! remember to update ALL the energy arrays
       theta   = (c1e3*sqrt(t))/ejfv(j)                  ! Scale to mrad
       yv(1,j) = theta*cos_mb(rndPhi(j)) + yv(1,j)
       yv(2,j) = theta*sin_mb(rndPhi(j)) + yv(2,j)
+
+      if(dEE >= pieni) then
+        ejv(j)  = (one + dEE)*ejv(j)           ! Energy
+        ejfv(j) = sqrt(ejv(j)**2 - nucm(j)**2) ! Momentum
+        updateE = .true.
+      end if
 
       ! Output to file
 #ifdef HDF5
@@ -790,28 +804,28 @@ subroutine scatter_thin(i_elem, ix, turn)
         iRecords(1,nRecords) = j
         iRecords(2,nRecords) = turn
         cRecords(1,nRecords) = bez(ix)
-        cRecords(2,nRecords) = trim(scatter_cData(scatter_GENERATOR(GENidx,1)))
-        cRecords(3,nRecords) = process
-        iRecords(3,nRecords) = lost
+        cRecords(2,nRecords) = trim(scatter_cData(scatter_GENERATOR(idGen,1)))
+        cRecords(3,nRecords) = procName
+        iRecords(3,nRecords) = iLost
         rRecords(1,nRecords) = t
-        rRecords(2,nRecords) = xi
+        rRecords(2,nRecords) = dEE
         rRecords(3,nRecords) = theta
         rRecords(4,nRecords) = rndPhi(j)
         rRecords(5,nRecords) = P
       else
 #endif
         write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f13.3,4(1x,1pe16.9))") &
-          j, turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(GENidx,1))),20), &
-          process(1:8), lost, t, xi, theta, rndPhi(j), P
+          j, turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(idGen,1))),20), &
+          procName(1:8), iLost, t, dEE, theta, rndPhi(j), P
 #ifdef HDF5
       end if
 #endif
 #ifdef CR
       scatter_filePos = scatter_filePos + 1
 #endif
-      if (do_coll) then
-        scatterhit(j) = 8
-        part_hit_pos(j) = i_elem
+      if(do_coll) then
+        scatterhit(j)    = 8
+        part_hit_pos(j)  = iElem
         part_hit_turn(j) = turn
       endif
     end do ! END Loop over particles
@@ -838,6 +852,10 @@ subroutine scatter_thin(i_elem, ix, turn)
     call compactArrays(pLost)
   end if
 
+  if(updateE) then
+    call beam_updateParticleEnergy(e0)
+  end if
+
 #ifdef CR
   endfile(scatter_logFile,iostat=iError)
   backspace(scatter_logFile,iostat=iError)
@@ -853,7 +871,7 @@ end subroutine scatter_thin
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
-real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(retval)
+real(kind=fPrec) function scatter_profile_getDensity(idPro, x, y) result(retval)
 
   use string_tools
   use crcoall
@@ -862,15 +880,15 @@ real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(re
 
   implicit none
 
-  integer,          intent(in) :: profileIdx
+  integer,          intent(in) :: idPro
   real(kind=fPrec), intent(in) :: x, y
 
   real(kind=fPrec) beamtot, sigmaX, sigmaY, offsetX, offsetY
   integer tmpIdx
 
-  tmpIdx = scatter_PROFILE(profileIdx,3)
+  tmpIdx = scatter_PROFILE(idPro,3)
 
-  select case(scatter_PROFILE(profileIdx,2))
+  select case(scatter_PROFILE(idPro,2))
   case (1)  ! FLAT
     retval  = scatter_fData(tmpIdx)
 
@@ -885,8 +903,8 @@ real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(re
       * exp_mb(-half*((y-offsetY)/sigmaY)**2)
 
   case default
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ", scatter_PROFILE(profileIdx,2)," for profile '"//&
-      trim(scatter_cData(scatter_PROFILE(profileIdx,1)))//"' not understood."
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ", scatter_PROFILE(idPro,2)," for profile '"//&
+      trim(scatter_cData(scatter_PROFILE(idPro,1)))//"' not understood."
     call prror(-1)
   end select
 
@@ -896,11 +914,11 @@ end function scatter_profile_getDensity
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 ! =================================================================================================
-subroutine scatter_profile_getParticle(profileIdx, x, y, xp, yp, E)
+subroutine scatter_profile_getParticle(idPro, x, y, xp, yp, E)
 
   implicit none
 
-  integer,          intent(in)  :: profileIdx
+  integer,          intent(in)  :: idPro
   real(kind=fPrec), intent(in)  :: x, y
   real(kind=fPrec), intent(out) :: xp, yp, E
 
@@ -916,38 +934,38 @@ end subroutine scatter_profile_getParticle
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 ! =================================================================================================
-real(kind=fPrec) function scatter_generator_getCrossSection(profileIDX, generatorIDX, x, y, xp, yp, E)
+real(kind=fPrec) function scatter_generator_getCrossSection(idPro, genID, x, y, xp, yp, E)
 
   use string_tools
   use crcoall
 
   implicit none
 
-  integer,          intent(in) :: profileIDX, generatorIDX
+  integer,          intent(in) :: idPro, genID
   real(kind=fPrec), intent(in) :: x, y, xp, yp, E
 
   ! Temporary variables
   integer          tmpIdx
-  real(kind=fPrec) xp_target, yp_target, E_target
+  real(kind=fPrec) xpTarget, ypTarget, ETarget
 
   ! Calculate S
-  call scatter_profile_getParticle(profileIDX, x, y, xp_target, yp_target, E_target)
+  call scatter_profile_getParticle(idPro, x, y, xpTarget, ypTarget, ETarget)
 
   ! Calculate the cross section as function of S
-  select case(scatter_GENERATOR(generatorIDX,2))
+  select case(scatter_GENERATOR(genID,2))
   case(1)  ! ABSORBER
     !...
 
   case(10) ! PPBEAMELASTIC
-    tmpIdx = scatter_GENERATOR(generatorIDX,4)
+    tmpIdx = scatter_GENERATOR(genID,4)
     if(tmpIdx == 0) then
       scatter_generator_getCrossSection = 30d-27
     else
       scatter_generator_getCrossSection = scatter_fData(tmpIdx)
     end if
 
-  case(20) ! PYTHIA
-    tmpIdx = scatter_GENERATOR(generatorIDX,4)
+  case(20) ! PYTHIASIMPLE
+    tmpIdx = scatter_GENERATOR(genID,4)
     if(tmpIdx == 0) then
       scatter_generator_getCrossSection = 30d-27
     else
@@ -955,8 +973,8 @@ real(kind=fPrec) function scatter_generator_getCrossSection(profileIDX, generato
     end if
 
   case default
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_PROFILE(profileIdx,2)," for profile '"//&
-      trim(scatter_cData(scatter_PROFILE(profileIdx,1)))//"' not understood."
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_PROFILE(idPro,2)," for profile '"//&
+      trim(scatter_cData(scatter_PROFILE(idPro,1)))//"' not understood."
     call prror(-1)
 
   end select
@@ -967,56 +985,58 @@ end function scatter_generator_getCrossSection
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
-subroutine scatter_generator_getTandXi(generatorIDX, t, xi, process, lost)
+subroutine scatter_generator_getTandE(genID, t, dEE, procName, iLost, isDiff)
 
   use, intrinsic :: iso_c_binding
   use crcoall
 
   implicit none
 
-  integer,          intent(in)  :: generatorIDX
-  real(kind=fPrec), intent(out) :: t, xi
-  character(len=8), intent(out) :: process
-  integer,          intent(out) :: lost
+  integer,          intent(in)  :: genID
+  real(kind=fPrec), intent(out) :: t, dEE
+  character(len=8), intent(out) :: procName
+  integer,          intent(out) :: iLost
+  logical,          intent(out) :: isDiff
 
   ! Temporary variables
   logical(kind=C_BOOL) evStat
   integer              tmpIdx, evType, nRetry
   real(kind=fPrec)     a, b1, b2, phi, tmin
 
-  xi     = zero
+  dEE    = zero
   t      = zero
-  lost   = 0
+  iLost  = 0
   nRetry = 0
+  isDiff = .false.
 
-  select case(scatter_GENERATOR(generatorIDX,2))
+  select case(scatter_GENERATOR(genID,2))
   case(1)  ! ABSORBER
     !...
-    process = scatter_procAbsorb
+    procName = scatter_procAbsorb
 
   case(10) ! PPBEAMELASTIC
 
-    tmpIdx = scatter_GENERATOR(generatorIDX,3)
-    a      = scatter_fData(tmpIdx)
-    b1     = scatter_fData(tmpIdx+1)
-    b2     = scatter_fData(tmpIdx+2)
-    phi    = scatter_fData(tmpIdx+3)
-    tmin   = scatter_fData(tmpIdx+4)
+    tmpIdx   = scatter_GENERATOR(genID,3)
+    a        = scatter_fData(tmpIdx)
+    b1       = scatter_fData(tmpIdx+1)
+    b2       = scatter_fData(tmpIdx+2)
+    phi      = scatter_fData(tmpIdx+3)
+    tmin     = scatter_fData(tmpIdx+4)
 
-    t       = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
-    t       = t*c1e6 ! Scale return variable to MeV^2
-    process = scatter_procElastic
+    t        = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
+    t        = t*c1e6 ! Scale return variable to MeV^2
+    procName = scatter_procElastic
 
   case(20) ! PYTHIA
 
 #ifdef PYTHIA
 10  continue
-    call pythia_getEvent(evStat, evType, t, xi)
+    call pythia_getEvent(evStat, evType, t, dEE)
     nRetry = nRetry + 1
     if(nRetry > 100) then
       write(lout,"(a)") "SCATTER> WARNING Pythia failed to generate event. Skipping Particle."
-      process = scatter_procError
-      lost    = 0
+      procName = scatter_procError
+      iLost    = 0
       return
     end if
     if(evStat) then
@@ -1024,39 +1044,46 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi, process, lost)
       select case(evType)
       case(pythia_idNonDiff)
         if(scatter_allowLosses) then
-          process = scatter_procNonDiff
-          lost    = 1
+          procName = scatter_procNonDiff
+          iLost    = 1
+          isDiff   = .false.
         else
           write(lout,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in fort.3"
           call prror(-1)
         end if
       case(pythia_idElastic)
-        process = scatter_procElastic
-        lost    = 0
+        procName = scatter_procElastic
+        iLost    = 0
+        isDiff   = .false.
       case(pythia_idSingleDiffXB)
         if(scatter_allowLosses) then
-          process = scatter_procSingleDiffXB
-          lost    = 1
+          procName = scatter_procSingleDiffXB
+          iLost    = 1
+          isDiff   = .true.
         else
           goto 10
         end if
       case(pythia_idSingleDiffAX)
-        process = scatter_procSingleDiffAX
-        lost    = 0
+        procName = scatter_procSingleDiffAX
+        iLost    = 0
+        isDiff   = .true.
       case(pythia_idDoubleDiff)
         if(scatter_allowLosses) then
-          process = scatter_procDoubleDiff
-          lost    = 1
+          procName = scatter_procDoubleDiff
+          iLost    = 1
+          isDiff   = .true.
         else
           write(lout,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in fort.3"
           call prror(-1)
         end if
       case(pythia_idCentralDiff)
-        process = scatter_procCentralDiff
-        lost    = 0
+        procName = scatter_procCentralDiff
+        iLost    = 0
+        isDiff   = .true.
       case default
-        process = scatter_procUnknown
-        lost    = 0
+        procName = scatter_procUnknown
+        iLost    = 0
+        isDiff   = .false.
       end select
     else
       write(lout,"(a)") "SCATTER> WARNING Pythia failed to generate event. Pythia error."
@@ -1068,12 +1095,12 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi, process, lost)
 #endif
 
   case default
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Generator type ",scatter_GENERATOR(generatorIDX,2)," not understood"
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Generator type ",scatter_GENERATOR(genID,2)," not understood"
     call prror(-1)
 
   end select
 
-end subroutine scatter_generator_getTandXi
+end subroutine scatter_generator_getTandE
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
