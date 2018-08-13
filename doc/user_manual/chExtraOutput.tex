@@ -46,24 +46,24 @@ The following table show a summary of the quantities used in describing the outp
 
 \bigskip
 \begin{longtabu}{@{}llllp{0.65\linewidth}}
-	\textbf{short name} & \textbf{variable} & \textbf{unit} &
-	\textbf{symbol} & \textbf{description} \\
-	\texttt{x} & \texttt{xv(1,j)} &[mm] & $x$& horizontal position\\
-	\texttt{y} & \texttt{xv(2,j)} &[mm] & $y$& vertical position\\
-	\texttt{xp} & \texttt{yv(1,j)} &[mrad] & $P_x/P\approx x'(s)$&  approximated horizontal angle\\
-	\texttt{yp} & \texttt{yv(2,j)} &[mrad]& $P_y/P\approx y'(s)$&  approximated vertical angle\\
-	\texttt{sigma} & \texttt{sigmv(j)} &[MeV] & $s-\beta_0 c t $& longitudinal offset \\
-	\texttt{psigma} & n/a &  & $ p_\sigma=\frac{E-E_0}{\beta_0 P_0 c}$& canonical conjugate of $\sigma$ \\
-	\texttt{delta} & \texttt{dpsv(j)} &  & $ \delta=\frac{P-P_0}{P_0}$& canonical conjugate of $\sigma$ \\
-	\texttt{rvv}   & \texttt{rvv(j)} & [1]& $r_v=\beta_0/\beta$ &velocity ratio \\
-	\texttt{rpp}   & \texttt{oidpsv(j)} & [1]& $r_p=P_0/P$ &momentum ratio \\
-	\texttt{zeta} &  n/a & & $\zeta=r_v(s-\beta_0 c t) $& longitudinal offset conjugate with $\delta$\\
-	\texttt{mass}  & \texttt{nucm(j)} & [MeV/c$^2$] & $m$ &mass \\
-	\texttt{mtc}  & \texttt{mtc(j)} & [1] & $q/q_0 \cdot m_0/m $ & mass to charge ratio\\
-	\texttt{P} & \texttt{ejvf(j)} &[MeV/c] & $Pc$& momentum \\
-	\texttt{E} & \texttt{ejv(j)} &[MeV] & $E$& energy \\
-	\texttt{E0} & \texttt{e0} &[MeV] & $E_0$& reference energy \\
-	\texttt{P0} & \texttt{e0f} &[MeV/c] & $P_0$& reference momentum \\
+    \textbf{short name} & \textbf{variable} & \textbf{unit} &
+    \textbf{symbol} & \textbf{description} \\
+    \texttt{x} & \texttt{xv(1,j)} &[mm] & $x$& horizontal position\\
+    \texttt{y} & \texttt{xv(2,j)} &[mm] & $y$& vertical position\\
+    \texttt{xp} & \texttt{yv(1,j)} &[mrad] & $P_x/P\approx x'(s)$&  approximated horizontal angle\\
+    \texttt{yp} & \texttt{yv(2,j)} &[mrad]& $P_y/P\approx y'(s)$&  approximated vertical angle\\
+    \texttt{sigma} & \texttt{sigmv(j)} &[MeV] & $s-\beta_0 c t $& longitudinal offset \\
+    \texttt{psigma} & n/a &  & $ p_\sigma=\frac{E-E_0}{\beta_0 P_0 c}$& canonical conjugate of $\sigma$ \\
+    \texttt{delta} & \texttt{dpsv(j)} &  & $ \delta=\frac{P-P_0}{P_0}$& canonical conjugate of $\sigma$ \\
+    \texttt{rvv}   & \texttt{rvv(j)} & [1]& $r_v=\beta_0/\beta$ &velocity ratio \\
+    \texttt{rpp}   & \texttt{oidpsv(j)} & [1]& $r_p=P_0/P$ &momentum ratio \\
+    \texttt{zeta} &  n/a & & $\zeta=r_v(s-\beta_0 c t) $& longitudinal offset conjugate with $\delta$\\
+    \texttt{mass}  & \texttt{nucm(j)} & [MeV/c$^2$] & $m$ &mass \\
+    \texttt{mtc}  & \texttt{mtc(j)} & [1] & $q/q_0 \cdot m_0/m $ & mass to charge ratio\\
+    \texttt{P} & \texttt{ejvf(j)} &[MeV/c] & $Pc$& momentum \\
+    \texttt{E} & \texttt{ejv(j)} &[MeV] & $E$& energy \\
+    \texttt{E0} & \texttt{e0} &[MeV] & $E_0$& reference energy \\
+    \texttt{P0} & \texttt{e0f} &[MeV/c] & $P_0$& reference momentum \\
 \end{longtabu}
 
 \begin{center}
@@ -89,51 +89,49 @@ The following table show a summary of the quantities used in describing the outp
         \endlastfoot
 
         \hline
+        %Format 0
         \rowcolor{blue!15}
         \texttt{0} & General format \\
         \hline
         Header & No header.\\
         \hline
-	    Lines  & \texttt{turn structure\_element\_idx single\_element\_idx single\_element\_name s x[m] xp[rad] y[m] yp[rad] P[GeV/c] (E-E0)[eV] t[s]}\\
+        Lines  & \texttt{turn structure\_element\_idx single\_element\_idx single\_element\_name s x[m] xp[rad] y[m] yp[rad] P[GeV/c] (E-E0)[eV] t[s]}\\
         \hline
-
+        %Format 1
         \rowcolor{blue!15}
         \texttt{1} & Format for aperture check \\
         \hline
-	    Header & \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack} \\
+        Header & \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E ktrack} \\
         \hline
         Lines  & \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] (E-E0)/E0 ktrack} \\
         \hline
-
+        %Format 2
         \rowcolor{blue!15}
         \texttt{2} & Modified format for aperture check \\
         \hline
-        Header \#1 & (single element)\\
-                   & \texttt{\# DUMP format \#2, bez=\textcolor{blue!90}{bez(i)}, number of particles=\textcolor{blue!90}{napx}, dump period=\textcolor{blue!90}{ndumpt(i)}, first turn=\textcolor{blue!90}{dumpfirst(i)}, last turn=\textcolor{blue!90}{dumplast(i)}, HIGH=\textcolor{blue!90}{T/F}, FRONT=\textcolor{blue!90}{T/F}} \\
+        Header \#1 & (single element)\\ & \texttt{\# DUMP format \#2, bez=\textcolor{blue!90}{bez(i)}, number of particles=\textcolor{blue!90}{napx}, dump period=\textcolor{blue!90}{ndumpt(i)}, first turn=\textcolor{blue!90}{dumpfirst(i)}, last turn=\textcolor{blue!90}{dumplast(i)}, HIGH=\textcolor{blue!90}{T/F}, FRONT=\textcolor{blue!90}{T/F}} \\
         \hline
-        Header \#1  & (all elements)\\
-                    & \texttt{\# DUMP format \#2, ALL ELEMENTS, number of particles=\textcolor{blue!90}{napx}, dump period=\textcolor{blue!90}{ndumpt(i)}, first turn=\textcolor{blue!90}{dumpfirst(i)}, last turn=\textcolor{blue!90}{dumplast(i)}, HIGH=\textcolor{blue!90}{T/F}, FRONT=\textcolor{blue!90}{T/F}}\vspace{1mm} \\
-                    & Here \textcolor{blue!90}{bez} is the name of the SINGLE ELEMENT, and \textcolor{blue!90}{napx} the number of particles being tracked (per pack in case of collimation), \textcolor{blue!90}{ndumpt(i)} the dump frequency as described above, and \textcolor{blue!90}{dumpfirst(i)} and \textcolor{blue!90}{dumplast(i)} the first and last turn as descirbed below.\vspace{1mm} \\
-                    & \texttt{HIGH} and \texttt{FRONT} is normally false, unless this (global) option is active, as described below.\\
+        Header \#1 & (all elements)\\ & \texttt{\# DUMP format \#2, ALL ELEMENTS, number of particles=\textcolor{blue!90}{napx}, dump period=\textcolor{blue!90}{ndumpt(i)}, first turn=\textcolor{blue!90}{dumpfirst(i)}, last turn=\textcolor{blue!90}{dumplast(i)}, HIGH=\textcolor{blue!90}{T/F}, FRONT=\textcolor{blue!90}{T/F}}\vspace{1mm} \\
+           & Here \textcolor{blue!90}{bez} is the name of the SINGLE ELEMENT, and \textcolor{blue!90}{napx} the number of particles being tracked (per pack in case of collimation), \textcolor{blue!90}{ndumpt(i)} the dump frequency as described above, and \textcolor{blue!90}{dumpfirst(i)} and \textcolor{blue!90}{dumplast(i)} the first and last turn as descirbed below.\vspace{1mm} \\
+           & \texttt{HIGH} and \texttt{FRONT} is normally false, unless this (global) option is active, as described below.\\
         \hline
         Header \#2 & \texttt{\# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E ktrack}\vspace{1mm} \\
-                   & If there are multiple single elements attached to the file, the headers are repeated.\\
+           & If there are multiple single elements attached to the file, the headers are repeated.\\
         \hline
-        Lines      & As described in the header, one per particle and per turn. \\
+        Lines & As described in the header, one per particle and per turn. \\
         \hline
-
+        %Format 3
         \rowcolor{blue!15}
         \texttt{3} & Modified format for aperture check (Binary) \\
         \hline
         Header & No header.\vspace{1mm}\\
-               & A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in the \texttt{DUMP} block.\\
-        \hline
-	Lines  & \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0 ktrack} \\
-               & The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the Format 2 (sans headers). \\
-        \hline
-
+               & A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in the \texttt{DUMP} block.\\ \hline
+        Lines  & \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0 ktrack} \\
+               & The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the Format 2 (sans headers). \\ \hline
+            \hline
+        %Format 4
         \rowcolor{blue!15}
-        \texttt{3} & Beam means \\
+        \texttt{4} & Beam means \\
         \hline
         Header \#1 & Same as for Format 2. \\
         \hline
@@ -142,18 +140,18 @@ The following table show a summary of the quantities used in describing the outp
         \hline
         Lines      & As described in the header; one per turn (and for collimation, one per pack of particles). \\
         \hline
-
+        %Format 5
         \rowcolor{blue!15}
         \texttt{5} & Beam mean and sigma \\
         \hline
         Header \#1 & The same as for format 2.\\
         \hline
-	Header \#2 & \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] <x\^{}2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> <xp\^{}2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> <y\^{}2> <y*yp> <y*z> <y*(dE/E)> <yp\^{}2> <yp*z> <yp*(dE/E)> <z\^{}2> <z*(dE/E)> <(dE/E)\^{}2>}\vspace{1mm} \\
+        Header \#2 & \texttt{\# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] <x\^{}2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> <xp\^{}2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> <y\^{}2> <y*yp> <y*z> <y*(dE/E)> <yp\^{}2> <yp*z> <yp*(dE/E)> <z\^{}2> <z*(dE/E)> <(dE/E)\^{}2>}\vspace{1mm} \\
                    & If there are multiple single elements attached to the file, the headers are repeated. A number of lines describing which elements are used and the current dump period is added one per relevant line in DUMP block.\\
         \hline
         Lines      & As described in the header; one per turn (and for collimation, one per pack of particles). For the ``product'' quantities, the units are the product of the units of the ``normal'' ones. \\
         \hline
-
+        %Format 6
         \rowcolor{blue!15}
         \texttt{6} & Beam mean and sigma (canonical) \\
         \hline
@@ -164,13 +162,13 @@ The following table show a summary of the quantities used in describing the outp
         \hline
         Lines      & As described in the header; one per turn (and for collimation, one per pack of particles). For the ``product'' quantities, the units are the product of the units of the ``normal'' ones. Note that the $\sigma=s -\beta_0 c t$ is the same as the $z$ used in the formats above, except for the unit of m instead of mm; and that $p_\sigma = \Delta E / \left(\beta_0 P_0 c\right)$. For more details, see the physics manual~\cite{sixphys}. \\
         \hline
-
+        %Format 7
         \rowcolor{blue!15}
         \texttt{7} & Normalized coordinates\\
         \hline
         & Dumps the particle trajectories in normalised coordinates. If the coordinates are dumped at the start of the sequence (\texttt{StartDUMP}), the normalization matrix as used for the initialization of the particle amplitudes is used. This means, that if 4D optics are chosen, the 4D matrix is used, if 6D optics is chosen, the matrix obtained from the 6D optics calculation is chosen. For every other element except \texttt{StartDUMP}, the 6D optics are used independent of the tracking method chosen. In this case the 6D optics needs to be run and the following lines have to be inserted in \texttt{fort.3}:
-            \bigskip
-            \begin{cverbatim}
+        \bigskip
+        \begin{cverbatim}
 DUMP
 element_name_1 1 unit_1 7 filename_1 first_turn_1 last_turn_1
 ...
@@ -178,59 +176,55 @@ NEXT
 LINE
 ELEMENT  0 2 1 emit_1 emit_2
 NEXT
-            \end{cverbatim}
-            \bigskip
-            If there are multiple single elements attached to the file, the headers are repeated.\\
-            \hline
-            Header \#1 & The same as for format 2.\\
-            \hline
-            Header \#2 & Closed orbit  $x$,$x_p$,$y$,$y_p$,$\sigma$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
-            \hline
-            Header \#3 & Matrix of eigenvectors (\texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism and described in the SixTrack physics manual, Chapter ``Optics Calculation''. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$\zeta$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$. \\
-            \hline
-            Header \#4 & Inverse of ta-matrix \texttt{inv(tamatrix)} used for normalization where \begin{equation}
-                z_{\rm norm}=\texttt{inv(tamatrix)}\cdot z
-            \end{equation}
-            Matrix \texttt{inv(tamatrix)} and $z$ is given in canonical variables $x$,$p_x$,$y$,$p_y$,$\zeta$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
-            \hline
-            Header \#5 & Header with units of normalized particle coordinates:\\
-                       & \texttt{\# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nz[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] ktrack} \\
-            \hline
-            Lines      & As described in the header, one per particle and per turn.\\
-            \hline
-
-            \rowcolor{blue!15}
-	    \texttt{8} & Normalized coordinate (binary)\\
-            \hline
-            Header  & No header.\vspace{1mm} \\
-                    & A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in DUMP block. Format 8 is format 7 without header and in binary format.\\
-            \hline
-            Lines   & \texttt{\# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nz[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] ktrack}\vspace{1mm} \\
-                    & The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the format 2 (sans headers). \\
-            \hline
-
-            \rowcolor{blue!15}
-            \texttt{9} & Beam mean and sigma (normalized coordinates) \\
-            \hline
-            Header \#1 & The same as for format 2.\\
-            \hline
-            Header \#2 & \texttt{\# napx turn s[m] <nx>[1.e-3 sqrt(m)] <npx>[1.e-3 sqrt(m)] <ny>[1.e-3 sqrt(m)] <npy>[1.e-3 sqrt(m)] <nsigma>[1.e-3 sqrt(m)] <npsigma>[1.e-3 sqrt(m)] <nx\^{}2> <nx*npx> <nx*ny> <nx*npy> <nx*nsigma> <nx*npsigma> <npx\^{}2> <npx*ny> <npx*npy> <npx*nsigma> <npx*npsigma> <ny\^{}2> <ny*npy> <ny*nsigma> <ny*npsigma> <npy\^{}2> <npy*nsigma> <npy*npsigma> <nsigma\^{}2> <nsigma*npsigma> <npsigma\^{}2>}\vspace{1mm}\\
-                       & If there are multiple single elements attached to the file, the headers are repeated. A number of lines describing which elements are used and the current dump period is added one per relevant line in \texttt{DUMP} block.\\
-            \hline
-            Lines      & As described in the header; one per turn (and for collimation, one per pack of particles). For the ``product'' quantities, the units are the product of the units of the ``normal'' ones. \\
-            \hline
+        \end{cverbatim}
+        \bigskip
+        If there are multiple single elements attached to the file, the headers are repeated.\\
+        \hline
+        Header \#1 & The same as for format 2.\\
+        \hline
+        Header \#2 & Closed orbit  $x$,$x_p$,$y$,$y_p$,$\sigma$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
+        \hline
+        Header \#3 & Matrix of eigenvectors (\texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism and described in the SixTrack physics manual, Chapter ``Optics Calculation''. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$\zeta$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$. \\
+        \hline
+        Header \#4 & Inverse of ta-matrix \texttt{inv(tamatrix)} used for normalization where
+        \begin{equation}
+            z_{\rm norm}=\texttt{inv(tamatrix)}\cdot z
+        \end{equation}
+        Matrix \texttt{inv(tamatrix)} and $z$ is given in canonical variables $x$,$p_x$,$y$,$p_y$,$\zeta$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
+        \hline
+        Header \#5 & Header with units of normalized particle coordinates:\\
+                   & \texttt{\# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nz[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] ktrack} \\
+        \hline
+        Lines      & As described in the header, one per particle and per turn.\\
+        \hline
+        %Format 8
         \rowcolor{blue!15}
-	\texttt{101} & Binary format for debugging (format not stable) \\
+        \texttt{8} & Normalized coordinate (binary)\\
+        \hline
+        Header  & No header.\vspace{1mm} \\
+                & A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in DUMP block. Format 8 is format 7 without header and in binary format.\\
+        \hline
+        Lines   & \texttt{\# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nz[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] ktrack}\vspace{1mm} \\
+                & The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the Format 2 (sans headers). \\
+        \hline
+        %Format 9
+        \rowcolor{blue!15}
+        \texttt{9} & Beam mean and sigma (normalized coordinates) \\
+        \hline
+        Header \#1 & The same as for format 2.\\
+        \hline
+        Header \#2 & \texttt{\# napx turn s[m] <nx>[1.e-3 sqrt(m)] <npx>[1.e-3 sqrt(m)] <ny>[1.e-3 sqrt(m)] <npy>[1.e-3 sqrt(m)] <nsigma>[1.e-3 sqrt(m)] <npsigma>[1.e-3 sqrt(m)] <nx\^{}2> <nx*npx> <nx*ny> <nx*npy> <nx*nsigma> <nx*npsigma> <npx\^{}2> <npx*ny> <npx*npy> <npx*nsigma> <npx*npsigma> <ny\^{}2> <ny*npy> <ny*nsigma> <ny*npsigma> <npy\^{}2> <npy*nsigma> <npy*npsigma> <nsigma\^{}2> <nsigma*npsigma> <npsigma\^{}2>}\vspace{1mm}\\
+                   & If there are multiple single elements attached to the file, the headers are repeated. A number of lines describing which elements are used and the current dump period is added one per relevant line in \texttt{DUMP} block.\\
+        \hline
+        %Format 101
+        \rowcolor{blue!15}
+        \texttt{101} & Binary format for debugging (format not stable) \\
         \hline
         Header & No header.\vspace{1mm}\\
                & A number of Fortran records describing which elements are used and the current dump period is added one per relevant line in the \texttt{DUMP} block.\\
         \hline
-	Lines  & \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] (E-E0)/E0 ktrack} 
-		 \texttt{E[MeV] P[MeV/c] delta(j)[1] rpp[1]
-			 rvv[1] nucm[MeV] mtc[1] e0[MeV] e0f[MeV/c] } \\
-               & The Fortran code \texttt{SixTest/readDump3/readDump3.f90} can be used to convert these files into the Format 2 (sans headers). \\
-        \hline
-        \end{longtable}
+        Lines  & \texttt{particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] (E-E0)/E0 ktrack E[MeV] P[MeV/c] delta(j)[1] rpp[1] rvv[1] nucm[MeV] mtc[1] e0[MeV] e0f[MeV/c] } \\
+       \end{longtable}
 \end{center}
 
 \paragraph{Examples}~
