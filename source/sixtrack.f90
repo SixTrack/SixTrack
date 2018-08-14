@@ -2551,7 +2551,6 @@ subroutine comnul
   use mod_commons
   use mod_commont
   use mod_commond
-  use mod_common_da2
 
   use aperture
   use elens
@@ -2604,7 +2603,6 @@ subroutine comnul
   nde(:)  = 0     ! mod_common
   nwr(:)  = 0     ! mod_common
   ntwin   = 0     ! mod_common
-  ibidu   = 0     ! mod_common
   iexact  = 0     ! mod_common
   curveff = 0     ! mod_common
 
@@ -2682,21 +2680,6 @@ subroutine comnul
 
   ! SYNCHROTRON OSCILLATIONS BLOCK
   phas    = zero  ! mod_common
-
-  ! DIFFERENTIAL ALGEBRA
-  dpda       = 0  ! mod_common_da2
-  dpda1      = 0  ! mod_common_da2
-  sigmda     = 0  ! mod_common_da2
-  ej1        = 0  ! mod_common_da2
-  ejf1       = 0  ! mod_common_da2
-  rv         = 0  ! mod_common_da2
-  xx(:)      = 0  ! mod_common_da2
-  yy(:)      = 0  ! mod_common_da2
-  alda(:,:)  = 0  ! mod_common_da2
-  asda(:,:)  = 0  ! mod_common_da2
-  aldaq(:,:) = 0  ! mod_common_da2
-  asdaq(:,:) = 0  ! mod_common_da2
-  smida(:)   = 0  ! mod_common_da2
 
   ! MULTIPOLE COEFFICIENT BLOCK
   benki      = zero ! mod_common
