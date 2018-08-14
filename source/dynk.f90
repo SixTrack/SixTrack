@@ -2307,7 +2307,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   use mod_common
   use mod_commont
   use mod_commonmn
-  use mod_beam
+  use mod_particles
   use elens
 
   implicit none
@@ -2335,28 +2335,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   ! Special non-physical elements
   if(element_name == "GLOBAL-VARS") then
     if(att_name == "E0" ) then
-      call beam_updateParticleEnergy(newValue)
-      ! ! Modify the reference particle
-      ! e0o    = e0
-      ! e0fo   = e0f
-      ! e0     = newValue
-      ! e0f    = sqrt(e0**2 - nucm0**2)
-      ! gammar = nucm0/e0
-
-      ! ! Modify the Energy
-      ! do j = 1, napx
-      !   dpsv(j)    = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-      !   dpsv1(j)   = (dpsv(j)*c1e3)/(one + dpsv(j))
-      !   dpd(j)     = one + dpsv(j)
-      !   dpsq(j)    = sqrt(dpd(j))
-      !   oidpsv(j)  = one/(one + dpsv(j))
-      !   moidpsv(j) = mtc(j)/(one + dpsv(j))
-      !   rvv(j)     = (ejv(j)*e0f)/(e0*ejfv(j))
-
-      !   ! Also update sigmv with the new beta0 = e0f/e0
-      !   sigmv(j)   = ((e0f*e0o)/(e0fo*e0))*sigmv(j)
-      ! end do
-      ! if(ithick == 1) call synuthck
+      call part_updateEnergy(newValue)
     end if
     ldoubleElement = .true.
   end if

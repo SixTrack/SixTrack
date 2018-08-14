@@ -682,11 +682,11 @@ subroutine scatter_thin(iElem, ix, turn)
 
   use string_tools
   use crcoall
-  use mod_beam
   use mod_hions
   use mod_alloc
   use mod_common
   use mod_commonmn
+  use mod_particles
   use numerical_constants, only : one, pi
 #ifdef HDF5
   use hdf5_output
@@ -853,7 +853,7 @@ subroutine scatter_thin(iElem, ix, turn)
   end if
 
   if(updateE) then
-    call beam_updateParticleEnergy(e0)
+    call part_updateEnergy(e0)
   end if
 
 #ifdef CR
