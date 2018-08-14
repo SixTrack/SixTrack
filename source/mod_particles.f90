@@ -51,14 +51,15 @@ subroutine part_updateEnergy(refEnergy)
 
   ! Modify the Energy
   do j=1, napx
-    ejfv(j)    = sqrt(ejv(j)**2 - nucm(j)**2)       ! Momentum [MeV/c]
-    dpsv(j)    = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f  ! Delta_p/p0 = delta
-    dpsv1(j)   = (dpsv(j)*c1e3)/(one + dpsv(j))
-    dpd(j)     = one + dpsv(j)
-    dpsq(j)    = sqrt(dpd(j))
-    oidpsv(j)  = one/(one + dpsv(j))
-    moidpsv(j) = mtc(j)/(one + dpsv(j))             ! Relative rigidity offset (mod_hions) [MV/c^2]
-    rvv(j)     = (ejv(j)*e0f)/(e0*ejfv(j))          ! Beta_0 / beta(j)
+    ejfv(j)     = sqrt(ejv(j)**2 - nucm(j)**2)       ! Momentum [MeV/c]
+    dpsv(j)     = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f  ! Delta_p/p0 = delta
+    dpsv1(j)    = (dpsv(j)*c1e3)/(one + dpsv(j))
+    dpd(j)      = one + dpsv(j)
+    dpsq(j)     = sqrt(dpd(j))
+    oidpsv(j)   = one/(one + dpsv(j))
+    moidpsv(j)  = mtc(j)/(one + dpsv(j))             ! Relative rigidity offset (mod_hions) [MV/c^2]
+    omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
+    rvv(j)      = (ejv(j)*e0f)/(e0*ejfv(j))          ! Beta_0 / beta(j)
 
     ! Also update sigmv with the new beta0 = e0f/e0
     if(e0 /= e0o) sigmv(j) = ((e0f*e0o)/(e0fo*e0))*sigmv(j)
