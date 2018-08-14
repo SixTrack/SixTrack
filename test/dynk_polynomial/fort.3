@@ -6,7 +6,7 @@ SETTINGS
 NEXT
 
 TRACKING PARAMETERS-----------------------------------------------------
-    12 0 200 0 6.89493 0 1
+    48 0 200 0 6.89493 0 1
     1 1 2 1 2
     0 0 1 1 1 50000 2
 NEXT
@@ -54,41 +54,26 @@ DYNK--------------------------------------------------------------------
     FUN zero  CONST  0.0
     FUN one   CONST  1.0
     FUN two   CONST  2.0
-    FUN three CONST  3.0
-    FUN four  CONST  4.0
-    FUN five  CONST  5.0
-    FUN mtwo  CONST -2.0
-    FUN pi    CONST  3.141592653589793
 
-    FUN test_add   ADD one  two
-    FUN test_sub   SUB two  one
-    FUN test_mul   MUL two  three
-    FUN test_div   DIV four three
-    FUN test_pow   POW two  two
+    FUN this_turn     TURN
+    FUN scale_turn    MUL      this_turn two
+    FUN scale_lin     LIN      2.0   0.5
+    FUN scale_linseg  LINSEG   6.5  10.8 1.0 4.0
+    FUN scale_quad    QUAD     0.01  0.3 0.5
+    FUN scale_quadseg QUADSEG  14.5 18.8 1.0 1.1 2.3
 
-    FUN pi_half    DIV pi   two
-    FUN two_pi     MUL pi   two
+    FUN scale_sinf    SINF      1.5  0.31415926  0.78539816
+    FUN scale_cosf    COSF      1.5  0.31415926  2.35619449
+    FUN scale_ripp    COSF_RIPP 1.5 20.0         5.49778714
 
-    FUN test_minus MINUS mtwo
-    FUN test_sqrt  SQRT  five
-    FUN test_sin   SIN   pi_half
-    FUN test_cos   COS   two_pi
-    FUN test_log   LOG   two
-    FUN test_log10 LOG10 two
-    FUN test_exp   EXP   test_log
-
-    SET ip5_scatter scaling test_add    1  1  0
-    SET ip5_scatter scaling test_sub    2  2  0
-    SET ip5_scatter scaling test_mul    3  3  0
-    SET ip5_scatter scaling test_div    4  4  0
-    SET ip5_scatter scaling test_pow    5  5  0
-    SET ip5_scatter scaling test_minus  6  6  0
-    SET ip5_scatter scaling test_sqrt   7  7  0
-    SET ip5_scatter scaling test_sin    8  8  0
-    SET ip5_scatter scaling test_cos    9  9  0
-    SET ip5_scatter scaling test_log   10 10  0
-    SET ip5_scatter scaling test_log10 11 11  0
-    SET ip5_scatter scaling test_exp   12 12  0
+    SET ip5_scatter scaling scale_turn     1  2  0
+    SET ip5_scatter scaling scale_lin      3  6  0
+    SET ip5_scatter scaling scale_linseg   7 10  0
+    SET ip5_scatter scaling scale_quad    11 14  0
+    SET ip5_scatter scaling scale_quadseg 15 18  0
+    SET ip5_scatter scaling scale_sinf    19 28  0
+    SET ip5_scatter scaling scale_cosf    29 38  0
+    SET ip5_scatter scaling scale_ripp    39 48  0
 NEXT
 
 SCATTER-----------------------------------------------------------------
