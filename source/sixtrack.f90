@@ -2603,7 +2603,6 @@ subroutine comnul
   nde(:)  = 0     ! mod_common
   nwr(:)  = 0     ! mod_common
   ntwin   = 0     ! mod_common
-  ibidu   = 0     ! mod_common
   iexact  = 0     ! mod_common
   curveff = 0     ! mod_common
 
