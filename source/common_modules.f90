@@ -159,8 +159,12 @@ module mod_common
 
   ! common /tra1/
   real(kind=fPrec), save :: rat
-  integer, save :: idfor, napx, napxo, numl, niu(2), numlr, nde(2), nwr(4), &
-       ird, imc, irew, ntwin, iclo6, iclo6r, iver, ibidu, numlcp, numlmax, nnuml
+  integer,          save :: idfor
+  integer,          save :: napx, napxo
+  integer,          save :: numl, niu(2), numlr, nde(2), nwr(4)
+  integer,          save :: ird, imc, irew, ntwin
+  integer,          save :: iclo6, iclo6r, iver
+  integer,          save :: numlcp, numlmax, nnuml
 
   ! common /syn/
   real(kind=fPrec), save :: qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3),crad,dppoff,tlen,mtcda
