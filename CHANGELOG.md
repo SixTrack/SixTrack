@@ -1,6 +1,8 @@
 # SixTrack Changelog
 
-### Version 5.0 RC4 [xx.xx.xxxx] - Release Candidate
+### Version 5.0 [xx.xx.xxxx] - Release
+
+IN PROGRESS
 
 **User Side Changes**
 
