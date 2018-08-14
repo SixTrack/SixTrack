@@ -337,7 +337,6 @@ end interface
   call units_openUnit(unit=28,fileName="fort.28",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=29,fileName="fort.29",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=31,fileName="fort.31",formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=32,fileName="fort.32",formatted=.false.,mode="w", err=fErr)
   call units_openUnit(unit=34,fileName="fort.34",formatted=.true., mode="w", err=fErr)
 ! call units_openUnit(unit=35,fileName="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
 
@@ -457,10 +456,6 @@ end interface
 #endif
       if(ithick.eq.1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
       if(ithick.eq.0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
-      if(ibidu.eq.2) then
-        write(lout,10025)
-        goto 550
-      endif
 
 #ifndef FLUKA
   ! SETTING UP THE PLOTTING
@@ -1241,51 +1236,6 @@ end interface
       backspace (93,iostat=ierro)
 #endif
       napxo=napx
-      if(ibidu.eq.1) then
-        ! Note: Keep in sync with read(32) below
-        write(32) &
-        ierro,erbez,pi2,pisqrt,rad,il,mper,mblo,mbloz,msym,kanf,iu,ic,    &
-        ed,el,ek,sm,kz,kp,xpl,xrms,zpl,zrms,mel,mtyp,mstr,a,bl1,bl2,rvf,  &
-        idfor,napx,napxo,numlr,nde,nwr,ird,imc,irew,ntwin,iclo6,iclo6r,   &
-        iver,ibidu,qs,e0,pma,ej,ejf,phas0,phas,hsy,crad,                  &
-        hsyc,phasc,dppoff,sigmoff,tlen,                                   &
-        iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
-        sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
-        zfz,iorg,mzu,bezr,izu0,mmac,mcut,tiltc,tilts,                     &
-        mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-        dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
-        elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
-        pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
-        ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
-        icoe,ise,mesa,mp,m21,m22,m23,                                     &
-        ise1,ise2,ise3,isea,qxt,qzt,tam1,tam2,isub,nta,nte,ipt,totl,rtc,  &
-        rts,ire,ipr,irmod2,dtr,nre,nur,nch,nqc,npp,nrr,nu,dphix,dphiz,qx0,&
-        qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,   &
-        iwg,ivox,ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw, &
-        nprint,ndafi,qwsk,betx,betz,pttemp,temptr,kxxa,                   &
-        alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
-        sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
-        sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
-        ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
-        as,al,sigm,dps,idz,dp1,itra,                                      &
-        x,y,bet0,alf0,clo,clop,cro,is,ichrom,nnumxv,xsi,zsi,smi,aai,      &
-        bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
-        nvar2,nsix,ncor,ipar,nordf,                                       &
-        nvarf,nord1,ndimf,idptr,inorm,imod1,imod2,                        &
-        ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
-        clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
-        dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &
-        ejf0v,numxv,nms,nlostp,dpd,                                       &
-        dpsq,fok,rho,fok1,si,co,g,gl,sm1,sm2,sm3,sm12,as3,as4,as6,sm23,   &
-        rhoc,siq,aek,afok,hp,hm,hc,hs,wf,wfa,wfhi,rhoi,hi,fi,hi1,xvl,yvl, &
-        ejvl,dpsvl,oidpsv,sigmvl,iv,aperv,ixv,clov,clopv,alf0v,bet0v,ampv,&
-        clo6v,clop6v,hv,bl1v,tas,qwcs,di0xs,di0zs,dip0xs,dip0zs,xau,cloau,&
-        di0au,tau,tasau,wx,x1,x2,fake,e0f,numx,cotr,rrtr,imtr
-
-      endif
-  550 continue
-
-
       if (idp.eq.0.or.ition.eq.0) then
          !4D tracking
          if (iclo6 .ne. 0) then
@@ -1302,52 +1252,7 @@ end interface
          endif
       endif
 
-
 !!!   GENERATE THE INITIAL DISTRIBUTION
-      if(ibidu.eq.2) then
-        ! Note: Keep in sync with write(32) above
-        read(32) &
-        ierro,erbez,pi2,pisqrt,rad,il,mper,mblo,mbloz,msym,kanf,iu,ic,    &
-        ed,el,ek,sm,kz,kp,xpl,xrms,zpl,zrms,mel,mtyp,mstr,a,bl1,bl2,rvf,  &
-        idfor,napx,napxo,numlr,nde,nwr,ird,imc,irew,ntwin,iclo6,iclo6r,   &
-        iver,ibidu,qs,e0,pma,ej,ejf,phas0,phas,hsy,crad,                  &
-        hsyc,phasc,dppoff,sigmoff,tlen,                                   &
-        iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
-        sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
-        zfz,iorg,mzu,bezr,izu0,mmac,mcut,tiltc,tilts,                     &
-        mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-        dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
-        elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
-        pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
-        ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
-        icoe,ise,mesa,mp,m21,m22,m23,                                     &
-        ise1,ise2,ise3,isea,qxt,qzt,tam1,tam2,isub,nta,nte,ipt,totl,rtc,  &
-        rts,ire,ipr,irmod2,dtr,nre,nur,nch,nqc,npp,nrr,nu,dphix,dphiz,qx0,&
-        qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,   &
-        iwg,ivox,ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw, &
-        nprint,ndafi,qwsk,betx,betz,pttemp,temptr,kxxa,                   &
-        alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
-        sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
-        sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
-        ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
-        as,al,sigm,dps,idz,dp1,itra,                                      &
-        x,y,bet0,alf0,clo,clop,cro,is,ichrom,nnumxv,xsi,zsi,smi,aai,      &
-        bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
-        nvar2,nsix,ncor,ipar,nordf,                                       &
-        nvarf,nord1,ndimf,idptr,inorm,imod1,imod2,                        &
-        ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
-        clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
-        dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &
-        ejf0v,numxv,nms,nlostp,dpd,                                       &
-        dpsq,fok,rho,fok1,si,co,g,gl,sm1,sm2,sm3,sm12,as3,as4,as6,sm23,   &
-        rhoc,siq,aek,afok,hp,hm,hc,hs,wf,wfa,wfhi,rhoi,hi,fi,hi1,xvl,yvl, &
-        ejvl,dpsvl,oidpsv,sigmvl,iv,aperv,ixv,clov,clopv,alf0v,bet0v,ampv,&
-        clo6v,clop6v,hv,bl1v,tas,qwcs,di0xs,di0zs,dip0xs,dip0zs,xau,cloau,&
-        di0au,tau,tasau,wx,x1,x2,fake,e0f,numx,cotr,rrtr,imtr
-
-        damp=((amp(1)-amp0)/real(napx/2-1,fPrec))/two                          !hr05
-      endif
-
       do i=1,npart
         pstop(i)=.false.
         nnumxv(i)=numl
@@ -2420,7 +2325,6 @@ end interface
 10020 format(/t10,'UNCOUPLED AMPLITUDES AND EMITTANCES:', /t10,         &
      &'AMPLITUDE-X = ',f15.3,10x,'AMPLITUDE-Y = ',f15.3, '  MM'/t10,    &
      &'EMITTANCE-X = ',f15.3,10x,'EMITTANCE-Y = ',f15.3, '  PI*MRAD*MM')
-10025 format(/t10,'Run started from binary dump file # 32')
 10050 format(//131('-')//t10,27('O')/t10,2('O'),23x,2('O')/t10,         &
      &'OO  INITIAL COORDINATES  OO'/ t10,2('O'),23x,2('O')/t10,27('O')  &
      &//131('-')//)
