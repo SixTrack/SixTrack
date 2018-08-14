@@ -139,10 +139,6 @@ featList = ""
   if(nord.le.0.or.nvar.le.0) call prror(91)
   if(ithick.eq.1) write(lout,10020)
   if(ithick.eq.0) write(lout,10030)
-  if(ibidu.eq.2) then
-    write(lout,10025)
-    goto 550
-  endif
   call orglat
   call ord
   if(allocated(zfz)) call fluc_randomReport
@@ -333,7 +329,6 @@ featList = ""
     end do
   end if
 
-  550 continue
   tas16=tas(1,6)*c1m3
   tas26=tas(2,6)*c1m3
   tas36=tas(3,6)*c1m3
