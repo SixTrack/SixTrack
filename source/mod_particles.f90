@@ -43,7 +43,7 @@ subroutine part_updateEnergy(refEnergy)
   ! Modify the reference particle
   e0o  = e0
   e0fo = e0f
-  if (e0 /= refEnergy) then
+  if(e0 /= refEnergy) then
     e0     = refEnergy
     e0f    = sqrt(e0**2 - nucm0**2)
     gammar = nucm0/e0

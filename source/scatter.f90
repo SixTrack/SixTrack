@@ -785,17 +785,17 @@ subroutine scatter_thin(iElem, ix, turn)
         cycle
       end if
 
-      ! Use generator t and dEE to update particle j;
-      ! remember to update ALL the energy arrays
-      theta   = (c1e3*sqrt(t))/ejfv(j)                  ! Scale to mrad
-      yv(1,j) = theta*cos_mb(rndPhi(j)) + yv(1,j)
-      yv(2,j) = theta*sin_mb(rndPhi(j)) + yv(2,j)
-
+      ! Update particle energy and momentum
       if(dEE >= pieni) then
-        ejv(j)  = (one + dEE)*ejv(j)           ! Energy
-        ejfv(j) = sqrt(ejv(j)**2 - nucm(j)**2) ! Momentum
+        ejv(j)  = (one + dEE)*ejv(j)              ! Energy
+        ejfv(j) = sqrt(ejv(j)**2 - nucm(j)**2)    ! Momentum
         updateE = .true.
       end if
+
+      ! Update particle trajectory
+      theta   = (c1e3*sqrt(t))/ejfv(j)            ! Scale to mrad
+      yv(1,j) = theta*cos_mb(rndPhi(j)) + yv(1,j)
+      yv(2,j) = theta*sin_mb(rndPhi(j)) + yv(2,j)
 
       ! Output to file
 #ifdef HDF5
