@@ -1,5 +1,0 @@
-common_modules.s90
-floatprecisionn.f
-df 32bitm,64bitm,128bitm
-e fPrec
-ex

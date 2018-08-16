@@ -1,5 +1,0 @@
-dump.s90 sixtrack.s90
-dumpn.f
-df cr,boinc,collimat,datamods,bignblz,hugenblz,bignpart,hugenpart
-e dump
-ex

@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-echo "make_six is no longer used, please use cmake_six instead!" 
-echo "Try 'cmake_six help' and see the build manual in the Doc folder for details." 
