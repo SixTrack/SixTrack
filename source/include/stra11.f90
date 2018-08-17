@@ -1,3 +1,4 @@
+!start stra11.f90
 #ifndef TILT
   strack(i)=dki(ix,1)/dki(ix,3)
 #else
@@ -5,3 +6,5 @@
   strackc(i)=strack(i)*tiltc(i)
   stracks(i)=strack(i)*tilts(i)
 #endif
+
+!end stra11.f90

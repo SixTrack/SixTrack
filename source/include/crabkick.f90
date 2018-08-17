@@ -1,3 +1,4 @@
+!start crabkick.f90
 !---------CrabAmp input in MV
 !---------ejfv(j) should be in MeV/c --> CrabAmp/c/ejfv(j) is in rad
 !---------ejfv(j) should be in MeV ?? --> CrabAmp/ejfv(j) is in rad
@@ -22,3 +23,5 @@
     yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
     if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
   end do
+
+!end crabkick.f90

@@ -1,3 +1,4 @@
+!start kickq02h.f90
 #ifndef TILT
 qu=ekk
 qv=zero
@@ -7,3 +8,5 @@ tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
 qu=ekk*tiltck
 qv=(-one*ekk)*tiltsk                                             !hr08
 #endif
+
+!end kickq02h.f90

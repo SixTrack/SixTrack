@@ -1,3 +1,4 @@
+!start kicka07h.f90
 #ifndef TILT
   mpe=7
   mx=5
@@ -84,3 +85,5 @@
   ab1(7)=ekk*tiltck
   ab2(7)=ekk*tiltsk
 #endif
+
+!end kicka07h.f90
