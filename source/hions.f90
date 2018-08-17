@@ -55,6 +55,9 @@ module mod_hions
   ! Real charge of the tracked particle
   integer(kind=int16), allocatable, save :: nqq(:) !(npart)
 
+  ! Particle data group id of the tracked particle
+  integer(kind=int16), allocatable, save :: pdgid(:) !(npart)
+
   ! SixTrack particle IDs
   integer, allocatable, save :: pids(:) !(npart)
 
@@ -72,6 +75,7 @@ module mod_hions
   integer(kind=int16), allocatable, save :: naa_cr(:)
   integer(kind=int16), allocatable, save :: nzz_cr(:)
   integer(kind=int16), allocatable, save :: nqq_cr(:)
+  integer(kind=int16), allocatable, save :: pdgid_cr(:)
   integer,             allocatable, save :: pids_cr(:)
 #endif
 
@@ -85,6 +89,7 @@ subroutine hions_allocate_arrays
   call alloc(naa,npart,aa0,'naa')
   call alloc(nzz,npart,zz0,'nzz')
   call alloc(nqq,npart,qq0,'nqq')
+  call alloc(pdgid,npart,0,'pdgid')
   call alloc(pids,npart,0,'pids')
 end subroutine hions_allocate_arrays
 
@@ -97,6 +102,7 @@ subroutine hions_expand_arrays(npart_new)
   call alloc(naa,npart_new,aa0,'naa')
   call alloc(nzz,npart_new,zz0,'nzz')
   call alloc(nqq,npart_new,qq0,'nqq')
+  call alloc(pdgid,npart_new,0,'pdgid')
   call alloc(pids,npart_new,0,'pids')
 end subroutine hions_expand_arrays
 
@@ -215,6 +221,7 @@ subroutine hions_crcheck_readdata(fileUnit, readErr)
   call alloc(naa_cr,     npart,aa0,  "naa_cr")
   call alloc(nzz_cr,     npart,zz0,  "nzz_cr")
   call alloc(nqq_cr,     npart,qq0,  "nqq_cr")
+  call alloc(pdgid_cr,   npart,0,    "pdgid_cr")
   call alloc(pids_cr,    npart,0,    "pids_cr")
 
   read(fileunit,err=10,end=10) nucmda_cr,brhono_cr,ien0_cr,ien1_cr,nnuc0_cr,nnuc1_cr
@@ -225,6 +232,7 @@ subroutine hions_crcheck_readdata(fileUnit, readErr)
   read(fileunit,err=10,end=10) (naa_cr(i),      i=1, npart)
   read(fileunit,err=10,end=10) (nzz_cr(i),      i=1, npart)
   read(fileunit,err=10,end=10) (nqq_cr(i),      i=1, npart)
+  read(fileunit,err=10,end=10) (pdgid_cr(i),    i=1, npart)
   read(fileunit,err=10,end=10) (pids_cr(i),     i=1, npart)
 
   readErr = .false.
@@ -255,6 +263,7 @@ subroutine hions_crstart
   naa(1:npart)      = naa_cr(1:npart)
   nzz(1:npart)      = nzz_cr(1:npart)
   nqq(1:npart)      = nqq_cr(1:npart)
+  pdgid(1:npart)    = pdgid_cr(1:npart)
   pids(1:npart)     = pids_cr(1:npart)
 
   call dealloc(nucm_cr,    "nucm_cr")
@@ -264,6 +273,7 @@ subroutine hions_crstart
   call dealloc(naa_cr,     "naa_cr")
   call dealloc(nzz_cr,     "nzz_cr")
   call dealloc(nqq_cr,     "nqq_cr")
+  call dealloc(pdgid_cr,   "pdgid_cr")
   call dealloc(pids_cr,    "pids_cr")
 
 end subroutine hions_crstart
