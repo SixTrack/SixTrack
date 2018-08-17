@@ -1,5 +1,3 @@
-+dk cheby
-
 module cheby
   use parpro
   use floatPrecision
@@ -9,7 +7,7 @@ module cheby
   ! last modified: 28-02-2018
   ! module for handling lenses with kicks expressed by Chebyshev polynomials
   
-  integer, save          :: icheby(nele)              ! index of chebyshev lens
+  integer,allocatable, save  :: icheby(:)              ! index of chebyshev lens
   integer, parameter     :: ncheby=20                 ! max number of chebyshev lenses treated (in LATTICE structure)
   integer, save          :: mcheby                    ! last chebyshev lens read
   integer, parameter     :: ncheby_tables=5           ! max number of chebyshev tables in memory (in SINGLE ELEMENT array)
@@ -33,6 +31,19 @@ module cheby
 
 contains
 
+subroutine cheby_allocate_arrays
+  use crcoall
+  implicit none
+  integer stat
+    call alloc(icheby,nele,0,'icheby')
+end subroutine cheby_allocate_arrays
+
+subroutine cheby_expand_arrays(nele_new)
+  implicit none
+  integer, intent(in) :: nele_new
+  call alloc(icheby,nele_new,0,'icheby')
+end subroutine cheby_expand_arrays
+
 
   subroutine cheby_kick(jcheby)
 
@@ -46,7 +57,6 @@ contains
     use mathlib_bouncer
     use numerical_constants
     use physical_constants
-+ca commonm1
         
     real(kind=fPrec) :: xx, yy, rr, frr, dxp, dyp
     real(kind=fPrec) :: theta, radio, angle_rad, brho_b, beta_b
@@ -148,116 +158,6 @@ contains
   end subroutine cheby_comnul
   
 
-  subroutine parseChebyFile(ifile)
-    
-    ! A.Mereghetti (CERN, BE-ABP-HSS)
-    ! last modified: 2018-02-28
-    ! always in main code
-        
-    ! read file with coefficients for chebyshev polynomials
-    ! ifile is index of file in table of chebyshev files
-    ! file is structured as:
-    !    keyword : value
-    ! keywords:
-    ! - rad: reference radius [mm]
-    ! comment line is headed by '#'
-    ! coefficients are give with the following syntax:
-    ! i j : value
-    ! where i->x and j->y
-    
-    use mathlib_bouncer
-    use physical_constants
-    use crcoall
-    use mod_common
-    use numerical_constants
-        
-+ca comgetfields
-    character(len=160) string
-    integer ierr, ii, jj, ifile, errno
-    real(kind=fPrec) tmpflt, round_near
-    
-    ierr=0
-    write(lout,*)' Parsing file with coefficients for Chebyshev polynomials ' &
-         //cheby_filename(ifile)
-    open(cheby_unit,file=cheby_filename(ifile),status='old')
-    do while (.true.)
-       read(cheby_unit,'(A)',end=1982,err=1983) string
-       if (string(1:1).ne.'#') then
-          call getfields_split( string, getfields_fields, getfields_lfields, &
-               getfields_nfields, getfields_lerr )
-          if ( getfields_lerr ) then
-             ierr=1
-             goto 1983
-          end if
-          
-          ! actually parse the line
-
-          if (string(1:3).eq.'rad') then
-             ! read reference radius
-             if (getfields_nfields.lt.3) then
-                ierr=4
-                goto 1983
-             end if
-+if .not.crlibm
-             read (getfields_fields(3)(1:getfields_lfields(3)),*) tmpflt
-+ei
-+if crlibm
-             tmpflt=round_near(errno,getfields_lfields(3)+1,getfields_fields(3))
-             if (errno.ne.0) call rounderr (errno,getfields_fields,3,tmpflt)
-+ei
-             cheby_refRadius(ifile)=tmpflt
-             if (cheby_refRadius(ifile).le.zero) then
-                ierr=5
-                goto 1983
-             end if
-             
-          else
-             ! read chebyshev coefficients
-             if (getfields_nfields.ne.4) then
-                ierr=6
-                goto 1983
-             end if
-             read (getfields_fields(1)(1:getfields_lfields(1)),*) ii
-             if (ii.gt.cheby_max_order) then
-                ierr=7
-                goto 1983
-             end if
-             read (getfields_fields(2)(1:getfields_lfields(2)),*) jj
-             if (jj.gt.cheby_max_order) then
-                ierr=8
-                goto 1983
-             end if
-+if .not.crlibm
-             read (getfields_fields(4)(1:getfields_lfields(4)),*) tmpflt
-+ei
-+if crlibm
-             tmpflt=round_near(errno,getfields_lfields(4)+1,getfields_fields(4))
-             if (errno.ne.0) call rounderr (errno,getfields_fields,4,tmpflt)
-+ei
-             cheby_coeffs(ii,jj,ifile)=tmpflt
-             if (ii.gt.cheby_maxOrder(ifile)) cheby_maxOrder(ifile)=ii
-             if (jj.gt.cheby_maxOrder(ifile)) cheby_maxOrder(ifile)=jj
-          end if ! close if for keyword identification
-       end if ! close if for non-comment chars
-    end do
-1983 write(lout,*) 'ERROR ',ierr,' while parsing file '//cheby_filename(ifile)
-    call prror(-1)
-1982 close(cheby_unit)
-    
-    ! echo parsed data
-    write(lout,fmt='(/,A,1X,I4)') ' Coefficients for Chebyshev polynomials as from file ' &
-          //cheby_filename(ifile)//' - #',ifile
-    write(lout,fmt='(A,1X,1PE10.3)') ' - reference radius [mm]:',cheby_refRadius(ifile)
-    do ii=0,cheby_max_order
-       do jj=0,cheby_max_order
-          if (cheby_coeffs(ii,jj,ifile).ne.zero) then
-             write(lout,fmt='(2(1X,I4)," : ",1PE10.3)') ii,jj,cheby_coeffs(ii,jj,ifile)
-          end if
-       end do
-    end do
-    
-  end subroutine parseChebyFile
-   
   subroutine cheby_getKick( xx, yy, dxp, dyp, iTable, brho_b, beta_b )
     
     ! A. Mereghetti (CERN, BE-ABP-HSS)
