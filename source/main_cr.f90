@@ -1308,7 +1308,7 @@ end interface
           ejv   (j)   = sqrt(ejfv(j)**2+nucm(j)**2)              ! hiSix
           dpsv  (j)   = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hiSix
           oidpsv(j)   = one/(one+dpsv(j))
-          mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))
+          mtc     (j) = (nqq(j)*nucm0)/(qq0*nucm(j))
           moidpsv (j) = mtc(j)*oidpsv(j)
           omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
 
@@ -1337,8 +1337,8 @@ end interface
 ! hisix
         write(lout,*) 'Heavy-Ion SixTrack'
         write(lout,*) '------------------'
-        write(lout,*) 'Reference ion species: [A,Z,M]', aa0, zz0, nucm0
-        write(lout,*) 'Reference energy [Z TeV]: ', c1m6*e0/zz0
+        write(lout,*) 'Reference ion species: [A,Z,Q,M]', aa0, zz0, qq0, nucm0
+        write(lout,*) 'Reference energy [Z TeV]: ', c1m6*e0/qq0
 
 ! hisix - debugging
 !        write(lout,*) 'Properties of tracked ion bunch [A,Z,E(MeV)], etc'

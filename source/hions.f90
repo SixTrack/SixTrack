@@ -39,6 +39,10 @@ module mod_hions
   ! Charge multiplicity of the reference ion species
   integer(kind=int16), save :: zz0
 
+  ! Real charge of the particle - could be an anti-particle or be a non-stripped ion
+  ! In most cases - qq0 == zz0
+  integer(kind=int16), save :: qq0
+
   integer(kind=int16), save :: nnuc0
   integer(kind=int16), save :: nnuc1
 
@@ -47,6 +51,9 @@ module mod_hions
 
   ! Charge multiplicity of the tracked ion
   integer(kind=int16), allocatable, save :: nzz(:) !(npart)
+
+  ! Real charge of the tracked particle
+  integer(kind=int16), allocatable, save :: nqq(:) !(npart)
 
   ! SixTrack particle IDs
   integer, allocatable, save :: pids(:) !(npart)
@@ -64,6 +71,7 @@ module mod_hions
   real(kind=fPrec),    allocatable, save :: mtc_cr(:)
   integer(kind=int16), allocatable, save :: naa_cr(:)
   integer(kind=int16), allocatable, save :: nzz_cr(:)
+  integer(kind=int16), allocatable, save :: nqq_cr(:)
   integer,             allocatable, save :: pids_cr(:)
 #endif
 
@@ -76,6 +84,7 @@ subroutine hions_allocate_arrays
   call alloc(mtc,npart,one,'mtc')
   call alloc(naa,npart,aa0,'naa')
   call alloc(nzz,npart,zz0,'nzz')
+  call alloc(nqq,npart,qq0,'nqq')
   call alloc(pids,npart,0,'pids')
 end subroutine hions_allocate_arrays
 
@@ -87,6 +96,7 @@ subroutine hions_expand_arrays(npart_new)
   call alloc(mtc,npart_new,one,'mtc')
   call alloc(naa,npart_new,aa0,'naa')
   call alloc(nzz,npart_new,zz0,'nzz')
+  call alloc(nqq,npart_new,qq0,'nqq')
   call alloc(pids,npart_new,0,'pids')
 end subroutine hions_expand_arrays
 
@@ -136,18 +146,21 @@ subroutine hions_postInput
   if(.not. has_hion) then
     ! If we don't have the HION block, we need to set some variables - default to the proton values
     zz0   = 1
+    qq0   = 1
     aa0   = 1
     nucm0 = pma
     write(lout,"(a)")        "HION> No HION block found. Defaulting to the proton values: "
     write(lout,"(a,i0)")     "HION>  * Z = ",zz0
     write(lout,"(a,i0)")     "HION>  * A = ",aa0
     write(lout,"(a,e22.15)") "HION>  * M = ",nucm0
+    write(lout,"(a,e22.15)") "HION>  * Q = ",qq0
   end if
 
   ! Init arrays
   mtc(:)      = one
   naa(:)      = aa0
   nzz(:)      = zz0
+  nqq(:)      = qq0
   nucm(:)     = nucm0
   moidpsv(:)  = one
   omoidpsv(:) = zero
@@ -172,6 +185,7 @@ subroutine hions_crpoint(fileUnit, writeErr, iErro)
   write(fileUnit,err=10,iostat=iErro) (mtc(i),      i=1, npart)
   write(fileUnit,err=10,iostat=iErro) (naa(i),      i=1, npart)
   write(fileUnit,err=10,iostat=iErro) (nzz(i),      i=1, npart)
+  write(fileUnit,err=10,iostat=iErro) (nqq(i),      i=1, npart)
   write(fileUnit,err=10,iostat=iErro) (pids(i),     i=1, npart)
   endfile(fileUnit,iostat=iErro)
   backspace(fileUnit,iostat=iErro)
@@ -200,6 +214,7 @@ subroutine hions_crcheck_readdata(fileUnit, readErr)
   call alloc(mtc_cr,     npart,one,  "mtc_cr")
   call alloc(naa_cr,     npart,aa0,  "naa_cr")
   call alloc(nzz_cr,     npart,zz0,  "nzz_cr")
+  call alloc(nqq_cr,     npart,qq0,  "nqq_cr")
   call alloc(pids_cr,    npart,0,    "pids_cr")
 
   read(fileunit,err=10,end=10) nucmda_cr,brhono_cr,ien0_cr,ien1_cr,nnuc0_cr,nnuc1_cr
@@ -209,6 +224,7 @@ subroutine hions_crcheck_readdata(fileUnit, readErr)
   read(fileunit,err=10,end=10) (mtc_cr(i),      i=1, npart)
   read(fileunit,err=10,end=10) (naa_cr(i),      i=1, npart)
   read(fileunit,err=10,end=10) (nzz_cr(i),      i=1, npart)
+  read(fileunit,err=10,end=10) (nqq_cr(i),      i=1, npart)
   read(fileunit,err=10,end=10) (pids_cr(i),     i=1, npart)
 
   readErr = .false.
@@ -238,6 +254,7 @@ subroutine hions_crstart
   mtc(1:npart)      = mtc_cr(1:npart)
   naa(1:npart)      = naa_cr(1:npart)
   nzz(1:npart)      = nzz_cr(1:npart)
+  nqq(1:npart)      = nqq_cr(1:npart)
   pids(1:npart)     = pids_cr(1:npart)
 
   call dealloc(nucm_cr,    "nucm_cr")
@@ -246,8 +263,10 @@ subroutine hions_crstart
   call dealloc(mtc_cr,     "mtc_cr")
   call dealloc(naa_cr,     "naa_cr")
   call dealloc(nzz_cr,     "nzz_cr")
+  call dealloc(nqq_cr,     "nqq_cr")
   call dealloc(pids_cr,    "pids_cr")
 
 end subroutine hions_crstart
 #endif
 end module mod_hions
+
