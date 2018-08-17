@@ -6,5 +6,4 @@ dyy2=-ekk*cikve
 dyy1=ekk*(tiltc(k)*crkve+tilts(k)*cikve)
 dyy2=ekk*(tilts(k)*crkve-tiltc(k)*cikve)                         !hr02
 #endif
-
 !end kicklxxh.f90

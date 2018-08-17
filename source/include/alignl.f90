@@ -10,5 +10,4 @@
   crkve=xl
   cikve=zl
 #endif
-
 !end alignl.f90

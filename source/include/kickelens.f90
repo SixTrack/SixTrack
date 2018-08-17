@@ -39,5 +39,4 @@ if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
   yv(1,j)=yv(1,j)-elens_theta_r2(ielens(ix))*frrelens*xelens/rrelens * oidpsv(j)
   yv(2,j)=yv(2,j)-elens_theta_r2(ielens(ix))*frrelens*yelens/rrelens * oidpsv(j)
 endif
-
 !end kickelens.f90

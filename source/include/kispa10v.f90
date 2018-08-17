@@ -72,5 +72,4 @@
   ekk=(84.0_fPrec*ekko)*(tiltck4*cxzyi-tiltsk4*cxzyr)                  !hr03
   call detune(2,ekk,ep,beta,dtu,dtup,dfac)
 #endif
-
 !end kispa10v.f90

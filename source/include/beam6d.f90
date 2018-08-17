@@ -32,5 +32,4 @@ do j=1,napx
 
   if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
 end do
-
 !end beam6d.f90

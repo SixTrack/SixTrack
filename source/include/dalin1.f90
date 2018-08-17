@@ -22,5 +22,4 @@ if(idp.eq.0.or.ition.eq.0) then
           call darea6(alda(2,ip),zfeld1,5)
         endif
       enddo
-
 !end dalin1.f90

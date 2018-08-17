@@ -27,5 +27,4 @@ else
           call darea6(asda(2,ip),zfeld2,6)
         endif
       enddo
-
 !end dalin4.f90

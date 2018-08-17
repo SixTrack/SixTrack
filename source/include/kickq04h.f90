@@ -8,5 +8,4 @@ tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
 qu=(three*ekk)*(tiltck*crkve+tiltsk*cikve)                       !hr02
 qv=(three*ekk)*(tiltck*cikve-tiltsk*crkve)                       !hr02
 #endif
-
 !end kickq04h.f90

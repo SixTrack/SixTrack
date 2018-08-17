@@ -5,5 +5,4 @@ dyy1=(crkve*cos_mb(ek(IX)/(one+dpp))+cikve*sin_mb(ek(IX)/(one+dpp)))-y(1,1) !hr0
 dyy2=(cikve*cos_mb(ek(IX)/(one+dpp))-crkve*sin_mb(ek(IX)/(one+dpp)))-y(1,2) !hr02
 y(1,1)=y(1,1)+dyy1
 y(1,2)=y(1,2)+dyy2
-
 !end kickuso1.f90

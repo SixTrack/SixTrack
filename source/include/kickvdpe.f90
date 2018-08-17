@@ -6,5 +6,4 @@
   yv(1,j)=yv(1,j)+(oidpsv(j)*(strackx(i)*crkve-stracks(i)*cikve))*mtc(j)
   yv(2,j)=yv(2,j)+(oidpsv(j)*(strackz(i)*cikve+strackc(i)*crkve))*mtc(j)
 #endif
-
 !end kickvdpe.f90

@@ -6,5 +6,4 @@ dyy2=cikve*cos_mb(ek(IX)/(one+dpp))-crkve*sin_mb(ek(IX)/(one+dpp))-y(1,2)      !
 mpe=20
 qu=ed(IX)
 qv=ek(IX)
-
 !end kickaso1.f90

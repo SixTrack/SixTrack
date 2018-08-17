@@ -27,5 +27,4 @@ else if(kzz.eq.20.and.parbe(ix,2).gt.zero) then                   !hr03
   endif
   goto 290
 endif
-
 !end beams24.f90

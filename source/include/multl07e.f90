@@ -7,5 +7,4 @@ qu=qu1
 dyy11=tiltc(k)*dyy1-tilts(k)*dyy2
 dyy2=tiltc(k)*dyy2+tilts(k)*dyy1
 dyy1=dyy11
-
 !end multl07e.f90

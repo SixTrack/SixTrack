@@ -64,5 +64,4 @@
   dyy1=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
   dyy2=ekk*(tilts(k)*cxzyr-tiltc(k)*cxzyi)                         !hr02
 #endif
-
 !end kicka10h.f90

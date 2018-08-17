@@ -7,5 +7,4 @@ cikve=crkve*zl+cikve*xl
 crkve=crkveuk
 dyy1=(dyy1+bb(l)*crkve)+aa(l)*cikve                          !hr03
 dyy2=(dyy2-bb(l)*cikve)+aa(l)*crkve                          !hr03
-
 !end multl07c.f90

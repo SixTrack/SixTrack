@@ -8,5 +8,4 @@ do l=1,2
   end if
   phi(l)=phi(l)+dphi/pie
 end do
-
 !end phas3so1.f90

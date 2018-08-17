@@ -7,5 +7,4 @@
   t(1,2)=(t(1,2)-(dppi*dpp)*tilts(k))+dppi*tilts(k)
   t(1,4)=(t(1,4)+(dppi*dpp)*tiltc(k))-dppi*(one-tiltc(k))
 #endif
-
 !end multl06.f90

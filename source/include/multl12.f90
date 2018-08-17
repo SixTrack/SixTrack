@@ -76,5 +76,4 @@
   endif
   call detune(iv,ekk,ep,beta,dtu,dtup,dfac)
 #endif
-
 !end multl12.f90

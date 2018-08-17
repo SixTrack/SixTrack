@@ -9,5 +9,4 @@ elseif(kzz.eq.25) then
       phibf(l)=pi2
     end if
   end do
-
 !end phas1so1.f90

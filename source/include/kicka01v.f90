@@ -12,5 +12,4 @@
   qu=zero
   qv=zero
 #endif
-
 !end kicka01v.f90

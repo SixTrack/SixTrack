@@ -85,5 +85,4 @@
   ab1(7)=ekk*tiltck
   ab2(7)=ekk*tiltsk
 #endif
-
 !end kicka07h.f90

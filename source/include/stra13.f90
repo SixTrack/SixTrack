@@ -6,5 +6,4 @@
   strackc(i)=strack(i)*tiltc(i)
   stracks(i)=strack(i)*tilts(i)
 #endif
-
 !end stra13.f90

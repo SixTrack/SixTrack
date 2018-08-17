@@ -20,5 +20,4 @@ if(l.gt.1.and.ium.ne.1) then
   qu=qu+real(l1,fPrec)*(bb(l)*cr(l1)+aa(l)*ci(l1))                   !hr03
   qv=qv+real(l1,fPrec)*(bb(l)*ci(l1)-aa(l)*cr(l1))                   !hr03
 endif
-
 !end multl13.f90

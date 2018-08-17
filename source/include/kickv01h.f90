@@ -5,5 +5,4 @@
   yv(1,j)=yv(1,j)+(strackc(i)*oidpsv(j))*mtc(j)
   yv(2,j)=yv(2,j)+(stracks(i)*oidpsv(j))*mtc(j)
 #endif
-
 !end kickv01h.f90

@@ -59,5 +59,4 @@
   ab1(5)=ekk*tiltck
   ab2(5)=ekk*tiltsk
 #endif
-
 !end kicka05h.f90

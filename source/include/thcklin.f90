@@ -33,5 +33,4 @@
   ! last modified: 07-03-2018
   ! store old particle coordinates
   if (lbacktracking) call aperture_saveLastCoordinates(i,ix,kz(jx))
-
 !end thcklin.f90

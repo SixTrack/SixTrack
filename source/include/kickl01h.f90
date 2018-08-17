@@ -6,5 +6,4 @@ dyy2=zero
 dyy1=ekk*tiltc(k)
 dyy2=ekk*tilts(k)
 #endif
-
 !end kickl01h.f90

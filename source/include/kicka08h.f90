@@ -98,5 +98,4 @@
   ab1(8)=ekk*tiltck
   ab2(8)=ekk*tiltsk
 #endif
-
 !end kicka08h.f90

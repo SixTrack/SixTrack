@@ -10,5 +10,4 @@
   strackz(i)=ek(IX)*tiltc(i)
   strackc(i)=ek(IX)*tilts(i)
 #endif
-
 !end stra2dpe.f90

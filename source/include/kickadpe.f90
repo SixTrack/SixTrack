@@ -18,5 +18,4 @@ qv=((-one*ed(IX))*tiltsk)/(one+dpp)                              !hr02
 quz=((-one*ek(IX))*tiltck)/(one+dpp)                             !hr02
 qvz=(ek(IX)*tiltsk)/(one+dpp)                                    !hr02
 #endif
-
 !end kickadpe.f90

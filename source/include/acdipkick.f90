@@ -50,5 +50,4 @@ if(n.gt.nfree) then
 #endif
   enddo
 endif
-
 !end acdipkick.f90

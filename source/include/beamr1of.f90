@@ -8,5 +8,4 @@ else
 endif
 rho2b=crk**2+cik**2                                          !hr03
 if(rho2b.gt.pieni) &
-
 !end beamr1of.f90

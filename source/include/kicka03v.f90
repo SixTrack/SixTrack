@@ -33,5 +33,4 @@
   ab1(3)=ekk*tiltsk
   ab2(3)=ekk*tiltck
 #endif
-
 !end kicka03v.f90

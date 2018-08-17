@@ -46,5 +46,4 @@
   ab1(4)=ekk*tiltck
   ab2(4)=ekk*tiltsk
 #endif
-
 !end kicka04h.f90

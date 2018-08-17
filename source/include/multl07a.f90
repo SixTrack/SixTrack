@@ -6,5 +6,4 @@ izu=izu+1
 bb(l)=bk0(im,l)+zfz(izu)*bka(im,l)
 bb(l)=(benkr*bb(l))/r0a                                        !hr03
 r0a=r0a*r0
-
 !end multl07a.f90

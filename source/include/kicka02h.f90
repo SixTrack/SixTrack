@@ -16,5 +16,4 @@ qv=(-one*ekk)*tiltsk                                             !hr02
 ab1(2)=qu
 ab2(2)=-one*qv                                                   !hr02
 #endif
-
 !end kicka02h.f90

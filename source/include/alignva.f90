@@ -10,5 +10,4 @@
   crkve=xlv(j)
   cikve=zlv(j)
 #endif
-
 !end alignva.f90

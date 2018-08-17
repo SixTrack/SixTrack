@@ -11,5 +11,4 @@
     yv(2,j)=yv(2,j)+moidpsv(j)*cccc
   end if
 end do
-
 !end beama4.f90

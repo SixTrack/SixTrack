@@ -19,5 +19,4 @@
   ab1(2)=qu
   ab2(2)=-one*qv                                                   !hr02
 #endif
-
 !end kicka02v.f90

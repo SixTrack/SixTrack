@@ -23,5 +23,4 @@
     yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
     if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
   end do
-
 !end crabkick.f90

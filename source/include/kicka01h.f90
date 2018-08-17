@@ -12,5 +12,4 @@ dyy2=ekk*tilts(k)
 qu=zero
 qv=zero
 #endif
-
 !end kicka01h.f90

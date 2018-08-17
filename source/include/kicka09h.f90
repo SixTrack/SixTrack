@@ -111,5 +111,4 @@
   ab1(9)=ekk*tiltck
   ab2(9)=ekk*tiltsk
 #endif
-
 !end kicka09h.f90

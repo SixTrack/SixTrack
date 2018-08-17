@@ -5,5 +5,4 @@ y(1,1)=y(1,1)+ekk
 y(1,1)=y(1,1)+ekk*tiltc(k)
 y(1,2)=y(1,2)+ekk*tilts(k)
 #endif
-
 !end kicku01h.f90
