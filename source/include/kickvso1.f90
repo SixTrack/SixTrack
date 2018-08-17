@@ -1,3 +1,4 @@
+! start include/kickvso1.f90
 onedp   =  (one+dpsv(j))/mtc(j)
 fppsig  = ( one + ((e0f/e0) **2)*temptr(6) ) / onedp
 !
@@ -26,3 +27,4 @@ yv(1,j) =  (pxf * costh_temp  +  pyf * sinth_temp)
 xv(2,j) = (-temptr(1)  * sinth_temp  +  temptr(3)  * costh_temp)
 yv(2,j) = (-pxf * sinth_temp  +  pyf * costh_temp)
 
+! end include/kickvso1.f90
