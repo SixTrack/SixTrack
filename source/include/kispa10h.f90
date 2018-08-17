@@ -1,3 +1,4 @@
+! start include/kispa10h.f90
 #ifndef TILT
   call detune(5,ekk,ep,beta,dtu,dtup,dfac)
   ekko=ekk
@@ -72,3 +73,4 @@
   ekk=(84.0_fPrec*ekko)*(tiltck4*cxzyr+tiltsk4*cxzyi)                  !hr03
   call detune(2,ekk,ep,beta,dtu,dtup,dfac)
 #endif
+! end include/kispa10h.f90
