@@ -1,3 +1,4 @@
+! start include/kicka07v.f90
 #ifndef TILT
   mpe=7
   mx=5
@@ -84,3 +85,4 @@
   ab1(7)=ekk*tiltsk
   ab2(7)=ekk*tiltck
 #endif
+! end include/kicka07v.f90
