@@ -1,4 +1,4 @@
-!start kicka10v.f90
+! start include/kicka10v.f90
 #ifndef TILT
   mpe=20
   cxzr=xl
@@ -64,4 +64,4 @@
   dyy1=ekk*(tiltc(k)*cxzyi-tilts(k)*cxzyr)
   dyy2=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
 #endif
-!end kicka10v.f90
+! end include/kicka10v.f90

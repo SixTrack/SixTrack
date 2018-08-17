@@ -1,4 +1,4 @@
-!start kickq01h.f90
+! start include/kickq01h.f90
 qu=zero
 qv=zero
-!end kickq01h.f90
+! end include/kickq01h.f90

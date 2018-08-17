@@ -1,4 +1,4 @@
-!start kickelens.f90
+! start include/kickelens.f90
 ! 1) apply offset of e-lens
 !    xelens = x(proton) - elens_offset_x
 !    yelens = y(proton) - elens_offset_y
@@ -39,4 +39,4 @@ if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
   yv(1,j)=yv(1,j)-elens_theta_r2(ielens(ix))*frrelens*xelens/rrelens * oidpsv(j)
   yv(2,j)=yv(2,j)-elens_theta_r2(ielens(ix))*frrelens*yelens/rrelens * oidpsv(j)
 endif
-!end kickelens.f90
+! end include/kickelens.f90

@@ -1,4 +1,4 @@
-!start alignu.f90
+! start include/alignu.f90
 #ifndef TILT
   xl=x(1,1)-xs
   zl=x(1,2)-zs
@@ -10,4 +10,4 @@
   crkve=xl
   cikve=zl
 #endif
-!end alignu.f90
+! end include/alignu.f90

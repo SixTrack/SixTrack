@@ -1,4 +1,4 @@
-!start kicka03h.f90
+! start include/kicka03h.f90
 #ifndef TILT
   mpe=3
   mx=1
@@ -33,4 +33,4 @@
   ab1(3)=ekk*tiltck
   ab2(3)=ekk*tiltsk
 #endif
-!end kicka03h.f90
+! end include/kicka03h.f90

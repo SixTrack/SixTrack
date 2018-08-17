@@ -1,4 +1,4 @@
-!start kicka02v.f90
+! start include/kicka02v.f90
 #ifndef TILT
   dyy1=ekk*zl
   dyy2=ekk*xl
@@ -19,4 +19,4 @@
   ab1(2)=qu
   ab2(2)=-one*qv                                                   !hr02
 #endif
-!end kicka02v.f90
+! end include/kicka02v.f90

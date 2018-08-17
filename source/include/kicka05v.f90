@@ -1,4 +1,4 @@
-!start kicka05v.f90
+! start include/kicka05v.f90
 #ifndef TILT
   mpe=5
   mx=3
@@ -59,4 +59,4 @@
   ab1(5)=ekk*tiltsk
   ab2(5)=ekk*tiltck
 #endif
-!end kicka05v.f90
+! end include/kicka05v.f90

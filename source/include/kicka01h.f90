@@ -1,4 +1,4 @@
-!start kicka01h.f90
+! start include/kicka01h.f90
 #ifndef TILT
 mpe=20
 dyy1=ekk
@@ -12,4 +12,4 @@ dyy2=ekk*tilts(k)
 qu=zero
 qv=zero
 #endif
-!end kicka01h.f90
+! end include/kicka01h.f90

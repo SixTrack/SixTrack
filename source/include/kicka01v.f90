@@ -1,4 +1,4 @@
-!start kicka01v.f90
+! start include/kicka01v.f90
 #ifndef TILT
   mpe=20
   dyy1=zero
@@ -12,4 +12,4 @@
   qu=zero
   qv=zero
 #endif
-!end kicka01v.f90
+! end include/kicka01v.f90

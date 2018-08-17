@@ -1,4 +1,4 @@
-!start kickadpe.f90
+! start include/kickadpe.f90
 #ifndef TILT
 dyy1=(ed(IX)*xl)/(one+dpp)                                       !hr02
 dyy2=(ek(IX)*zl)/(one+dpp)                                       !hr02
@@ -18,4 +18,4 @@ qv=((-one*ed(IX))*tiltsk)/(one+dpp)                              !hr02
 quz=((-one*ek(IX))*tiltck)/(one+dpp)                             !hr02
 qvz=(ek(IX)*tiltsk)/(one+dpp)                                    !hr02
 #endif
-!end kickadpe.f90
+! end include/kickadpe.f90

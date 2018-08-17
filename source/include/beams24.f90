@@ -1,4 +1,4 @@
-!start beams24.f90
+! start include/beams24.f90
     endif
     endif
   endif
@@ -27,4 +27,4 @@ else if(kzz.eq.20.and.parbe(ix,2).gt.zero) then                   !hr03
   endif
   goto 290
 endif
-!end beams24.f90
+! end include/beams24.f90
