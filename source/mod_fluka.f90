@@ -172,12 +172,12 @@ module mod_fluka
 
     integer :: npart_new, nele_new, j
 
-    call resize(fluka_uid,          npart_new, 0, 'fluka_uid')
-    call resize(fluka_gen,          npart_new, 0, 'fluka_gen')
-    call resize(fluka_weight,       npart_new, one, 'fluka_weight')
-    call resize(fluka_type,         nele_new, FLUKA_NONE, 'fluka_type')
-    call resize(fluka_geo_index,    nele_new, 0, 'fluka_geo_index')
-    call resize(fluka_synch_length, nele_new, zero, 'fluka_synch_length')
+    call alloc(fluka_uid,          npart_new, 0, 'fluka_uid')
+    call alloc(fluka_gen,          npart_new, 0, 'fluka_gen')
+    call alloc(fluka_weight,       npart_new, one, 'fluka_weight')
+    call alloc(fluka_type,         nele_new, FLUKA_NONE, 'fluka_type')
+    call alloc(fluka_geo_index,    nele_new, 0, 'fluka_geo_index')
+    call alloc(fluka_synch_length, nele_new, zero, 'fluka_synch_length')
 
     do j = npart+1, npart_new
       fluka_uid(j) = j

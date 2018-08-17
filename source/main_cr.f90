@@ -192,9 +192,6 @@ end interface
 #ifdef STF
   featList = featList//" STF"
 #endif
-#ifdef COLLIMAT
-  featList = featList//" COLLIMAT"
-#endif
 #ifdef CRLIBM
   featList = featList//" CRLIBM"
   call disable_xp()
@@ -247,10 +244,10 @@ end interface
   ! Very first get rid of any previous partial output
   inquire(unit=lout, opened=isOpen)
   if(isOpen) close(lout)
-  call units_openUnit(unit=lout,fileName="fort.92",formatted=.true.,mode="w",err=fErr,status="replace")
+  call units_openUnit(unit=lout,fileName="fort.92",formatted=.true.,mode="rw",err=fErr,status="replace")
 
   ! Now position the checkpoint/restart logfile=93
-  call units_openUnit(unit=93,fileName="fort.93",formatted=.true.,mode="w",err=fErr)
+  call units_openUnit(unit=93,fileName="fort.93",formatted=.true.,mode="rw",err=fErr)
 606 continue
   read(93,"(a1024)",end=607) arecord
   goto 606
@@ -269,7 +266,7 @@ end interface
   ! call units_openUnit(unit=6,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
   ! if(fErr) goto 602
   ! stxt = "SIXTRACR reruns on: "
-  call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
+  call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="rw",err=fErr,status="old")
   if(fErr) then
 #ifdef BOINC
     ! No fort.6 so we do an unzip of Sixin.zip
@@ -287,9 +284,9 @@ end interface
       call f_read_archive(trim(filename),".")
       goto 611
     end if
-    call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr)
+    call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="rw",err=fErr)
 #else
-    call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="w",err=fErr,status="new")
+    call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="rw",err=fErr,status="new")
 #endif
     ! Set up start message depending on fort.6 or not
     stxt = "SIXTRACR starts on: "
@@ -298,19 +295,19 @@ end interface
     stxt = "SIXTRACR reruns on: "
     rerun=.true.
   end if
-  call units_openUnit(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="old")
+  call units_openUnit(unit=95,fileName="fort.95",formatted=.false.,mode="rw",err=fErr,status="old")
   if(fErr) then
-    call units_openUnit(unit=95,fileName="fort.95",formatted=.false.,mode="w",err=fErr,status="new")
+    call units_openUnit(unit=95,fileName="fort.95",formatted=.false.,mode="rw",err=fErr,status="new")
   else
     fort95 = .true.
   end if
-  call units_openUnit(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="old")
+  call units_openUnit(unit=96,fileName="fort.96",formatted=.false.,mode="rw",err=fErr,status="old")
   if(fErr) then
-    call units_openUnit(unit=96,fileName="fort.96",formatted=.false.,mode="w",err=fErr,status="new")
+    call units_openUnit(unit=96,fileName="fort.96",formatted=.false.,mode="rw",err=fErr,status="new")
   else
     fort96 = .true.
   end if
-  call units_openUnit(unit=91,fileName="fort.91",formatted=.true.,mode="w",err=fErr)
+  call units_openUnit(unit=91,fileName="fort.91",formatted=.true.,mode="rw",err=fErr)
 #else
   lout = output_unit
 #endif
@@ -320,16 +317,14 @@ end interface
   call units_openUnit(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
 ! call units_openUnit(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr) ! Handled by mod_fluc
   call units_openUnit(unit=7, fileName="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
-! call units_openUnit(unit=8, fileName="fort.8", formatted=.true., mode="r", err=fErr) ! Handled by mod_fluc
   call units_openUnit(unit=9, fileName="fort.9", formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=11,fileName="fort.11",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=12,fileName="fort.12",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=13,fileName="fort.13",formatted=.true., mode="r", err=fErr) ! Should only be opened when reading
   call units_openUnit(unit=14,fileName="fort.14",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=15,fileName="fort.15",formatted=.true., mode="w", err=fErr)
-! call units_openUnit(unit=16,fileName="fort.16",formatted=.true., mode="r", err=fErr) ! Handled by mod_fluc
 ! call units_openUnit(unit=17,fileName="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use? Should mirror fort.16
-  call units_openUnit(unit=18,fileName="fort.18",formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=18,fileName="fort.18",formatted=.true., mode="rw",err=fErr)
 ! call units_openUnit(unit=19,fileName="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
   call units_openUnit(unit=20,fileName="fort.20",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=21,fileName="fort.21",formatted=.true., mode="w", err=fErr)
@@ -341,32 +336,30 @@ end interface
   call units_openUnit(unit=27,fileName="fort.27",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=28,fileName="fort.28",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=29,fileName="fort.29",formatted=.true., mode="w", err=fErr)
-! call units_openUnit(unit=30,fileName="fort.30",formatted=.true., mode="r", err=fErr) ! Handled by mod_fluc
   call units_openUnit(unit=31,fileName="fort.31",formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=32,fileName="fort.32",formatted=.false.,mode="w", err=fErr)
   call units_openUnit(unit=34,fileName="fort.34",formatted=.true., mode="w", err=fErr)
 ! call units_openUnit(unit=35,fileName="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
 
 #ifdef STF
   ! Open Single Track File
-  call units_openUnit(unit=90,fileName="singletrackfile.dat",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=90,fileName="singletrackfile.dat",formatted=.false.,mode="rw",err=fErr)
 #else
   ! Open binary files 59 to 90 for particle pair 1 to 32
   do i=59,90
     write(tmpFile,"(a5,i2)") "fort.",i
-    call units_openUnit(unit=i,fileName=tmpFile,formatted=.false.,mode="w",err=fErr)
+    call units_openUnit(unit=i,fileName=tmpFile,formatted=.false.,mode="rw",err=fErr)
   end do
 #endif
 
   call units_openUnit(unit=98,fileName="fort.98",formatted=.true.,mode="w",err=fErr)
 
   ! Eric for the DA coefficients in BINARY
-  call units_openUnit(unit=110,fileName="fort.110",formatted=.false.,mode="w",err=fErr)
-  call units_openUnit(unit=111,fileName="fort.111",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=110,fileName="fort.110",formatted=.false.,mode="w", err=fErr)
+  call units_openUnit(unit=111,fileName="fort.111",formatted=.false.,mode="rw",err=fErr)
 
 #ifdef DEBUG
-  call units_openUnit(unit=99 ,fileName="dump",  formatted=.false.,mode="w",err=fErr)
-  call units_openUnit(unit=100,fileName="arrays",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=99 ,fileName="dump",  formatted=.false.,mode="rw",err=fErr)
+  call units_openUnit(unit=100,fileName="arrays",formatted=.false.,mode="rw",err=fErr)
 #endif
 
   ! Heavy Ion Output
@@ -386,7 +379,7 @@ end interface
   write(lout,"(a)") "    SixTrack :: Version "//trim(version)//" :: Released "//trim(moddate)
   write(lout,"(a)") "  "//repeat("=",128)
   write(lout,"(a)") "    Git SHA Hash: "//trim(git_revision)
-  write(lout,"(a)") "    Built With:  "//featList
+  write(lout,"(a)") "    Built With:   "//trim(featList)
   write(lout,"(a)") "    Start Time:   "//timeStamp
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
@@ -463,10 +456,6 @@ end interface
 #endif
       if(ithick.eq.1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
       if(ithick.eq.0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
-      if(ibidu.eq.2) then
-        write(lout,10025)
-        goto 550
-      endif
 
 #ifndef FLUKA
   ! SETTING UP THE PLOTTING
@@ -1254,51 +1243,6 @@ end interface
       backspace (93,iostat=ierro)
 #endif
       napxo=napx
-      if(ibidu.eq.1) then
-        ! Note: Keep in sync with read(32) below
-        write(32) &
-        ierro,erbez,pi2,pisqrt,rad,il,mper,mblo,mbloz,msym,kanf,iu,ic,    &
-        ed,el,ek,sm,kz,kp,xpl,xrms,zpl,zrms,mel,mtyp,mstr,a,bl1,bl2,rvf,  &
-        idfor,napx,napxo,numlr,nde,nwr,ird,imc,irew,ntwin,iclo6,iclo6r,   &
-        iver,ibidu,qs,e0,pma,ej,ejf,phas0,phas,hsy,crad,                  &
-        hsyc,phasc,dppoff,sigmoff,tlen,                                   &
-        iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
-        sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
-        zfz,iorg,mzu,bezr,izu0,mmac,mcut,tiltc,tilts,                     &
-        mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-        dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
-        elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
-        pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
-        ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
-        icoe,ise,mesa,mp,m21,m22,m23,                                     &
-        ise1,ise2,ise3,isea,qxt,qzt,tam1,tam2,isub,nta,nte,ipt,totl,rtc,  &
-        rts,ire,ipr,irmod2,dtr,nre,nur,nch,nqc,npp,nrr,nu,dphix,dphiz,qx0,&
-        qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,   &
-        iwg,ivox,ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw, &
-        nprint,ndafi,qwsk,betx,betz,pttemp,temptr,kxxa,                   &
-        alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
-        sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
-        sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
-        ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
-        as,al,sigm,dps,idz,dp1,itra,                                      &
-        x,y,bet0,alf0,clo,clop,cro,is,ichrom,nnumxv,xsi,zsi,smi,aai,      &
-        bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
-        nvar2,nsix,ncor,ipar,nordf,                                       &
-        nvarf,nord1,ndimf,idptr,inorm,imod1,imod2,                        &
-        ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
-        clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
-        dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &
-        ejf0v,numxv,nms,nlostp,dpd,                                       &
-        dpsq,fok,rho,fok1,si,co,g,gl,sm1,sm2,sm3,sm12,as3,as4,as6,sm23,   &
-        rhoc,siq,aek,afok,hp,hm,hc,hs,wf,wfa,wfhi,rhoi,hi,fi,hi1,xvl,yvl, &
-        ejvl,dpsvl,oidpsv,sigmvl,iv,aperv,ixv,clov,clopv,alf0v,bet0v,ampv,&
-        clo6v,clop6v,hv,bl1v,tas,qwcs,di0xs,di0zs,dip0xs,dip0zs,xau,cloau,&
-        di0au,tau,tasau,wx,x1,x2,fake,e0f,numx,cotr,rrtr,imtr
-
-      endif
-  550 continue
-
-
       if (idp.eq.0.or.ition.eq.0) then
          !4D tracking
          if (iclo6 .ne. 0) then
@@ -1315,52 +1259,7 @@ end interface
          endif
       endif
 
-
 !!!   GENERATE THE INITIAL DISTRIBUTION
-      if(ibidu.eq.2) then
-        ! Note: Keep in sync with write(32) above
-        read(32) &
-        ierro,erbez,pi2,pisqrt,rad,il,mper,mblo,mbloz,msym,kanf,iu,ic,    &
-        ed,el,ek,sm,kz,kp,xpl,xrms,zpl,zrms,mel,mtyp,mstr,a,bl1,bl2,rvf,  &
-        idfor,napx,napxo,numlr,nde,nwr,ird,imc,irew,ntwin,iclo6,iclo6r,   &
-        iver,ibidu,qs,e0,pma,ej,ejf,phas0,phas,hsy,crad,                  &
-        hsyc,phasc,dppoff,sigmoff,tlen,                                   &
-        iicav,itionc,ition,idp,ncy,ixcav,dpscor,                          &
-        sigcor,icode,idam,its6d,bk0,ak0,bka,aka,benki,benkc,r00,irm,nmu,  &
-        zfz,iorg,mzu,bezr,izu0,mmac,mcut,tiltc,tilts,                     &
-        mout2,icext,icextal,aper,di0,dip0,ta,dma,dmap,dkq,dqq,de0,ded,dsi,&
-        dech,dsm0,itco,itcro,itqv,qw0,iq,iqmod,kpa,iqmod6,bez,            &
-        elbe,bezb,ilin,nt,iprint,ntco,eui,euii,nlin,bezl,betam,pam,betac, &
-        pac,bclorb,nhmoni,nhcorr,nvmoni,nvcorr,ncororb,sigma0,iclo,       &
-        ncorru,ncorrep,icomb0,icomb,ratio,ratioe,iratioe,                 &
-        icoe,ise,mesa,mp,m21,m22,m23,                                     &
-        ise1,ise2,ise3,isea,qxt,qzt,tam1,tam2,isub,nta,nte,ipt,totl,rtc,  &
-        rts,ire,ipr,irmod2,dtr,nre,nur,nch,nqc,npp,nrr,nu,dphix,dphiz,qx0,&
-        qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,   &
-        iwg,ivox,ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw, &
-        nprint,ndafi,qwsk,betx,betz,pttemp,temptr,kxxa,                   &
-        alfx,alfz,iskew,nskew,hmal,sixtit,commen,ithick,clo6,clop6,dki,   &
-        sigman,sigman2,sigmanq,clobeam,beamoff,parbe,track6d,ptnfac,      &
-        sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar,nbeam,ibbc,    &
-        ibeco,ibtyp,lhc,cotr,rrtr,imtr,bbcu,ibb6d,imbb,wire_num,          &
-        as,al,sigm,dps,idz,dp1,itra,                                      &
-        x,y,bet0,alf0,clo,clop,cro,is,ichrom,nnumxv,xsi,zsi,smi,aai,      &
-        bbi,ampt,tlim,tasm,preda,idial,nord,nvar,                         &
-        nvar2,nsix,ncor,ipar,nordf,                                       &
-        nvarf,nord1,ndimf,idptr,inorm,imod1,imod2,                        &
-        ekv,fokqv,aaiv,bbiv,smiv,zsiv,xsiv,xsv,zsv,qw,qwc,clo0,           &
-        clop0,eps,epsa,ekk,cr,ci,xv,yv,dam,ekkv,sigmv,dpsv,dp0v,sigmv6,   &
-        dpsv6,ejv,ejfv,xlv,zlv,pstop,rvv,                                 &
-        ejf0v,numxv,nms,nlostp,dpd,                                       &
-        dpsq,fok,rho,fok1,si,co,g,gl,sm1,sm2,sm3,sm12,as3,as4,as6,sm23,   &
-        rhoc,siq,aek,afok,hp,hm,hc,hs,wf,wfa,wfhi,rhoi,hi,fi,hi1,xvl,yvl, &
-        ejvl,dpsvl,oidpsv,sigmvl,iv,aperv,ixv,clov,clopv,alf0v,bet0v,ampv,&
-        clo6v,clop6v,hv,bl1v,tas,qwcs,di0xs,di0zs,dip0xs,dip0zs,xau,cloau,&
-        di0au,tau,tasau,wx,x1,x2,fake,e0f,numx,cotr,rrtr,imtr
-
-        damp=((amp(1)-amp0)/real(napx/2-1,fPrec))/two                          !hr05
-      endif
-
       do i=1,npart
         pstop(i)=.false.
         nnumxv(i)=numl
@@ -2433,7 +2332,6 @@ end interface
 10020 format(/t10,'UNCOUPLED AMPLITUDES AND EMITTANCES:', /t10,         &
      &'AMPLITUDE-X = ',f15.3,10x,'AMPLITUDE-Y = ',f15.3, '  MM'/t10,    &
      &'EMITTANCE-X = ',f15.3,10x,'EMITTANCE-Y = ',f15.3, '  PI*MRAD*MM')
-10025 format(/t10,'Run started from binary dump file # 32')
 10050 format(//131('-')//t10,27('O')/t10,2('O'),23x,2('O')/t10,         &
      &'OO  INITIAL COORDINATES  OO'/ t10,2('O'),23x,2('O')/t10,27('O')  &
      &//131('-')//)

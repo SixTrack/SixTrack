@@ -775,104 +775,10 @@ subroutine collimation_allocate_arrays
 
   implicit none
 
-  call alloc(tbetax,  nblz, zero, 'tbetax')  !(nblz)
-  call alloc(tbetay,  nblz, zero, 'tbetay')  !(nblz)
-  call alloc(talphax, nblz, zero, 'talphax') !(nblz)
-  call alloc(talphay, nblz, zero, 'talphay') !(nblz)
-  call alloc(torbx,   nblz, zero, 'torbx')   !(nblz)
-  call alloc(torbxp,  nblz, zero, 'torbxp')  !(nblz)
-  call alloc(torby,   nblz, zero, 'torby')   !(nblz)
-  call alloc(torbyp,  nblz, zero, 'torbyp')  !(nblz)
-  call alloc(tdispx,  nblz, zero, 'tdispx')  !(nblz)
-  call alloc(tdispy,  nblz, zero, 'tdispy')  !(nblz)
+  ! Initial allocation handled by expand arrays routine
+  call collimation_expand_arrays(npart,nblz)
 
-  call alloc(flukaname, npart, 0, "flukaname") !(npart)
-  call alloc(ipart, npart, 0, "ipart") !(npart)
-  call alloc(cx,    npart, zero, "cx") !(npart)
-  call alloc(cxp,   npart, zero, "cxp") !(npart)
-  call alloc(cy,    npart, zero, "cy") !(npart)
-  call alloc(cyp,   npart, zero, "cyp") !(npart)
-  call alloc(cp,    npart, zero, "cp") !(npart)
-  call alloc(cs,    npart, zero, "cs") !(npart)
-  call alloc(rcx,   npart, zero, "rcx") !(npart)
-  call alloc(rcxp,  npart, zero, "rcxp") !(npart)
-  call alloc(rcy,   npart, zero, "rcy") !(npart)
-  call alloc(rcyp,  npart, zero, "rcyp") !(npart)
-  call alloc(rcp,   npart, zero, "rcp") !(npart)
-  call alloc(rcs,   npart, zero, "rcs") !(npart)
-  call alloc(rcx0,  npart, zero, "rcx0") !(npart)
-  call alloc(rcxp0, npart, zero, "rcxp0") !(npart)
-  call alloc(rcy0,  npart, zero, "rcy0") !(npart)
-  call alloc(rcyp0, npart, zero, "rcyp0") !(npart)
-  call alloc(rcp0,  npart, zero, "rcp0") !(npart)
-
-  call alloc(xgrd,      npart, zero, "xgrd") !(npart)
-  call alloc(xpgrd,     npart, zero, "xpgrd") !(npart)
-  call alloc(ygrd,      npart, zero, "ygrd") !(npart)
-  call alloc(ypgrd,     npart, zero, "ypgrd") !(npart)
-  call alloc(pgrd,      npart, zero, "pgrd") !(npart)
-  call alloc(ejfvgrd,   npart, zero, "ejfvgrd") !(npart)
-  call alloc(sigmvgrd,  npart, zero, "sigmvgrd") !(npart)
-  call alloc(rvvgrd,    npart, zero, "rvvgrd") !(npart)
-  call alloc(dpsvgrd,   npart, zero, "dpsvgrd") !(npart)
-  call alloc(oidpsvgrd, npart, zero, "oidpsvgrd") !(npart)
-  call alloc(dpsv1grd,  npart, zero, "dpsv1grd") !(npart)
-
-  call alloc(xbob,    nblz, zero, "xbob") !(nblz)
-  call alloc(ybob,    nblz, zero, "ybob") !(nblz)
-  call alloc(xpbob,   nblz, zero, "xpbob") !(nblz)
-  call alloc(ypbob,   nblz, zero, "ypbob") !(nblz)
-
-  call alloc(xineff,  npart, zero, "xineff") !(npart)
-  call alloc(yineff,  npart, zero, "yineff") !(npart)
-  call alloc(xpineff, npart, zero, "xpineff") !(npart)
-  call alloc(ypineff, npart, zero, "ypineff") !(npart)
-
-  call alloc(mux,     nblz, zero, "mux") !(nblz)
-  call alloc(muy,     nblz, zero, "muy") !(nblz)
-
-  call alloc(counteddpop, npart, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
-  call alloc(counted2d, npart, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
-
-  call alloc(ename,    mNameLen, nblz, ' ', "ename") !(nblz)
-  call alloc(nampl,    nblz, 0, "nampl") !(nblz)
-  call alloc(sum_ax,   nblz, zero, "sum_ax") !(nblz)
-  call alloc(sqsum_ax, nblz, zero, "sqsum_ax") !(nblz)
-  call alloc(sum_ay,   nblz, zero, "sum_ay") !(nblz)
-  call alloc(sqsum_ay, nblz, zero, "sqsum_ay") !(nblz)
-  call alloc(sampl,    nblz, zero, "sampl") !(nblz)
-
-  call alloc(secondary,            npart, 0, "secondary") !(npart)
-  call alloc(tertiary,             npart, 0, "tertiary") !(npart)
-  call alloc(other,                npart, 0, "other") !(npart)
-  call alloc(scatterhit,           npart, 0, "scatterhit") !(npart)
-  call alloc(part_hit_before_pos,  npart, 0, "part_hit_before_pos") !(npart)
-  call alloc(part_hit_before_turn, npart, 0, "part_hit_before_turn") !(npart)
-  call alloc(part_hit_pos,         npart, 0, "part_hit_pos") !(npart)
-  call alloc(part_hit_turn,        npart, 0, "part_hit_turn") !(npart)
-  call alloc(part_abs_pos,         npart, 0, "part_abs_pos") !(npart)
-  call alloc(part_abs_turn,        npart, 0, "part_abs_turn") !(npart)
-  call alloc(part_select,          npart, 0, "part_select") !(npart)
-  call alloc(nabs_type,            npart, 0, "nabs_type") !(npart)
-
-  call alloc(part_impact,    npart, zero, "part_impact") !(npart)
-  call alloc(part_indiv,     npart, zero, "part_indiv") !(npart)
-  call alloc(part_linteract, npart, zero, "part_linteract") !(npart)
-
-
-  call alloc(counted_r, npart, numeff, 0, "counted_r") !(npart,numeff)
-  call alloc(counted_x, npart, numeff, 0, "counted_x") !(npart,numeff)
-  call alloc(counted_y, npart, numeff, 0, "counted_y") !(npart,numeff)
-
-! Change the following block to npart
-  call alloc(myx,  npart, zero, "myx") !(maxn)
-  call alloc(myxp, npart, zero, "myxp") !(maxn)
-  call alloc(myy,  npart, zero, "myy") !(maxn)
-  call alloc(myyp, npart, zero, "myyp") !(maxn)
-  call alloc(myp,  npart, zero, "myp") !(maxn)
-  call alloc(mys,  npart, zero, "mys") !(maxn)
-
-! Fixed allocations follow:
+  ! Fixed allocations follow:
   call alloc(gap_rms_error, max_ncoll, zero, "gap_rms_error") !(max_ncoll)
   call alloc(xp_pencil, max_ncoll, zero, "xp_pencil")
   call alloc(yp_pencil, max_ncoll, zero, "yp_pencil")
@@ -883,7 +789,7 @@ subroutine collimation_allocate_arrays
   call alloc(y_pencil,  max_ncoll, zero, "y_pencil") !(max_ncoll)
   call alloc(pencil_dx, max_ncoll, zero, "pencil_dx") !(max_ncoll)
 
-!SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
+  !SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
   call alloc(x_sl, 100, zero, "x_sl") !(100)
   call alloc(x1_sl, 100, zero, "x1_sl") !(100)
   call alloc(x2_sl, 100, zero, "x2_sl") !(100)
@@ -930,102 +836,106 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   integer, intent(in) :: npart_new
   integer, intent(in) :: nblz_new
 
-  call resize(tbetax,  nblz_new, zero, 'tbetax')  !(nblz)
-  call resize(tbetay,  nblz_new, zero, 'tbetay')  !(nblz)
-  call resize(talphax, nblz_new, zero, 'talphax') !(nblz)
-  call resize(talphay, nblz_new, zero, 'talphay') !(nblz)
-  call resize(torbx,   nblz_new, zero, 'torbx')   !(nblz)
-  call resize(torbxp,  nblz_new, zero, 'torbxp')  !(nblz)
-  call resize(torby,   nblz_new, zero, 'torby')   !(nblz)
-  call resize(torbyp,  nblz_new, zero, 'torbyp')  !(nblz)
-  call resize(tdispx,  nblz_new, zero, 'tdispx')  !(nblz)
-  call resize(tdispy,  nblz_new, zero, 'tdispy')  !(nblz)
+  ! Arrays that are always needed
+  call alloc(part_abs_turn, npart_new, 0, "part_abs_turn") !(npart_new)
 
-  call resize(flukaname, npart_new, 0, "flukaname") !(npart)
-  call resize(ipart, npart_new, 0, "ipart") !(npart)
-  call resize(cx,    npart_new, zero, "cx") !(npart)
-  call resize(cxp,   npart_new, zero, "cxp") !(npart)
-  call resize(cy,    npart_new, zero, "cy") !(npart)
-  call resize(cyp,   npart_new, zero, "cyp") !(npart)
-  call resize(cp,    npart_new, zero, "cp") !(npart)
-  call resize(cs,    npart_new, zero, "cs") !(npart)
-  call resize(rcx,   npart_new, zero, "rcx") !(npart)
-  call resize(rcxp,  npart_new, zero, "rcxp") !(npart)
-  call resize(rcy,   npart_new, zero, "rcy") !(npart)
-  call resize(rcyp,  npart_new, zero, "rcyp") !(npart)
-  call resize(rcp,   npart_new, zero, "rcp") !(npart)
-  call resize(rcs,   npart_new, zero, "rcs") !(npart)
-  call resize(rcx0,  npart_new, zero, "rcx0") !(npart)
-  call resize(rcxp0, npart_new, zero, "rcxp0") !(npart)
-  call resize(rcy0,  npart_new, zero, "rcy0") !(npart)
-  call resize(rcyp0, npart_new, zero, "rcyp0") !(npart)
-  call resize(rcp0,  npart_new, zero, "rcp0") !(npart)
+  if(.not. do_coll) return
+  ! Arrays that are only needed if Collimation is enabled
 
-  call resize(xgrd,      npart_new, zero, "xgrd") !(npart)
-  call resize(xpgrd,     npart_new, zero, "xpgrd") !(npart)
-  call resize(ygrd,      npart_new, zero, "ygrd") !(npart)
-  call resize(ypgrd,     npart_new, zero, "ypgrd") !(npart)
-  call resize(pgrd,      npart_new, zero, "pgrd") !(npart)
-  call resize(ejfvgrd,   npart_new, zero, "ejfvgrd") !(npart)
-  call resize(sigmvgrd,  npart_new, zero, "sigmvgrd") !(npart)
-  call resize(rvvgrd,    npart_new, zero, "rvvgrd") !(npart)
-  call resize(dpsvgrd,   npart_new, zero, "dpsvgrd") !(npart)
-  call resize(oidpsvgrd, npart_new, zero, "oidpsvgrd") !(npart)
-  call resize(dpsv1grd,  npart_new, zero, "dpsv1grd") !(npart)
+  call alloc(tbetax,  nblz_new, zero, 'tbetax')  !(nblz)
+  call alloc(tbetay,  nblz_new, zero, 'tbetay')  !(nblz)
+  call alloc(talphax, nblz_new, zero, 'talphax') !(nblz)
+  call alloc(talphay, nblz_new, zero, 'talphay') !(nblz)
+  call alloc(torbx,   nblz_new, zero, 'torbx')   !(nblz)
+  call alloc(torbxp,  nblz_new, zero, 'torbxp')  !(nblz)
+  call alloc(torby,   nblz_new, zero, 'torby')   !(nblz)
+  call alloc(torbyp,  nblz_new, zero, 'torbyp')  !(nblz)
+  call alloc(tdispx,  nblz_new, zero, 'tdispx')  !(nblz)
+  call alloc(tdispy,  nblz_new, zero, 'tdispy')  !(nblz)
 
-  call resize(xbob,    nblz_new, zero, "xbob") !(nblz)
-  call resize(ybob,    nblz_new, zero, "ybob") !(nblz)
-  call resize(xpbob,   nblz_new, zero, "xpbob") !(nblz)
-  call resize(ypbob,   nblz_new, zero, "ypbob") !(nblz)
+  call alloc(flukaname, npart_new, 0, "flukaname") !(npart)
+  call alloc(ipart, npart_new, 0, "ipart") !(npart)
+  call alloc(cx,    npart_new, zero, "cx") !(npart)
+  call alloc(cxp,   npart_new, zero, "cxp") !(npart)
+  call alloc(cy,    npart_new, zero, "cy") !(npart)
+  call alloc(cyp,   npart_new, zero, "cyp") !(npart)
+  call alloc(cp,    npart_new, zero, "cp") !(npart)
+  call alloc(cs,    npart_new, zero, "cs") !(npart)
+  call alloc(rcx,   npart_new, zero, "rcx") !(npart)
+  call alloc(rcxp,  npart_new, zero, "rcxp") !(npart)
+  call alloc(rcy,   npart_new, zero, "rcy") !(npart)
+  call alloc(rcyp,  npart_new, zero, "rcyp") !(npart)
+  call alloc(rcp,   npart_new, zero, "rcp") !(npart)
+  call alloc(rcs,   npart_new, zero, "rcs") !(npart)
+  call alloc(rcx0,  npart_new, zero, "rcx0") !(npart)
+  call alloc(rcxp0, npart_new, zero, "rcxp0") !(npart)
+  call alloc(rcy0,  npart_new, zero, "rcy0") !(npart)
+  call alloc(rcyp0, npart_new, zero, "rcyp0") !(npart)
+  call alloc(rcp0,  npart_new, zero, "rcp0") !(npart)
 
-  call resize(xineff,  npart_new, zero, "xineff") !(npart)
-  call resize(yineff,  npart_new, zero, "yineff") !(npart)
-  call resize(xpineff, npart_new, zero, "xpineff") !(npart)
-  call resize(ypineff, npart_new, zero, "ypineff") !(npart)
+  call alloc(xgrd,      npart_new, zero, "xgrd") !(npart)
+  call alloc(xpgrd,     npart_new, zero, "xpgrd") !(npart)
+  call alloc(ygrd,      npart_new, zero, "ygrd") !(npart)
+  call alloc(ypgrd,     npart_new, zero, "ypgrd") !(npart)
+  call alloc(pgrd,      npart_new, zero, "pgrd") !(npart)
+  call alloc(ejfvgrd,   npart_new, zero, "ejfvgrd") !(npart)
+  call alloc(sigmvgrd,  npart_new, zero, "sigmvgrd") !(npart)
+  call alloc(rvvgrd,    npart_new, zero, "rvvgrd") !(npart)
+  call alloc(dpsvgrd,   npart_new, zero, "dpsvgrd") !(npart)
+  call alloc(oidpsvgrd, npart_new, zero, "oidpsvgrd") !(npart)
+  call alloc(dpsv1grd,  npart_new, zero, "dpsv1grd") !(npart)
 
-  call resize(mux,     nblz_new, zero, "mux") !(nblz)
-  call resize(muy,     nblz_new, zero, "muy") !(nblz)
+  call alloc(xbob,    nblz_new, zero, "xbob") !(nblz)
+  call alloc(ybob,    nblz_new, zero, "ybob") !(nblz)
+  call alloc(xpbob,   nblz_new, zero, "xpbob") !(nblz)
+  call alloc(ypbob,   nblz_new, zero, "ypbob") !(nblz)
 
-  call resize(counteddpop, npart_new, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
-  call resize(counted2d,   npart_new, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
+  call alloc(xineff,  npart_new, zero, "xineff") !(npart)
+  call alloc(yineff,  npart_new, zero, "yineff") !(npart)
+  call alloc(xpineff, npart_new, zero, "xpineff") !(npart)
+  call alloc(ypineff, npart_new, zero, "ypineff") !(npart)
 
-  call resize(ename,    mNameLen, nblz_new, ' ', "ename") !(nblz_new)
-  call resize(nampl,    nblz_new, 0, "nampl") !(nblz_new)
-  call resize(sum_ax,   nblz_new, zero, "sum_ax") !(nblz_new)
-  call resize(sqsum_ax, nblz_new, zero, "sqsum_ax") !(nblz_new)
-  call resize(sum_ay,   nblz_new, zero, "sum_ay") !(nblz_new)
-  call resize(sqsum_ay, nblz_new, zero, "sqsum_ay") !(nblz_new)
-  call resize(sampl,    nblz_new, zero, "sampl") !(nblz_new)
+  call alloc(mux,     nblz_new, zero, "mux") !(nblz)
+  call alloc(muy,     nblz_new, zero, "muy") !(nblz)
 
-  call resize(secondary,            npart_new, 0, "secondary") !(npart_new)
-  call resize(tertiary,             npart_new, 0, "tertiary") !(npart_new)
-  call resize(other,                npart_new, 0, "other") !(npart_new)
-  call resize(scatterhit,           npart_new, 0, "scatterhit") !(npart_new)
-  call resize(part_hit_before_pos,  npart_new, 0, "part_hit_before_pos") !(npart_new)
-  call resize(part_hit_before_turn, npart_new, 0, "part_hit_before_turn") !(npart_new)
-  call resize(part_hit_pos,         npart_new, 0, "part_hit_pos") !(npart_new)
-  call resize(part_hit_turn,        npart_new, 0, "part_hit_turn") !(npart_new)
-  call resize(part_abs_pos,         npart_new, 0, "part_abs_pos") !(npart_new)
-  call resize(part_abs_turn,        npart_new, 0, "part_abs_turn") !(npart_new)
-  call resize(part_select,          npart_new, 0, "part_select") !(npart_new)
-  call resize(nabs_type,            npart_new, 0, "nabs_type") !(npart_new)
+  call alloc(counteddpop, npart_new, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
+  call alloc(counted2d,   npart_new, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
 
-  call resize(part_impact,    npart_new, zero, "part_impact") !(npart_new)
-  call resize(part_indiv,     npart_new, zero, "part_indiv") !(npart_new)
-  call resize(part_linteract, npart_new, zero, "part_linteract") !(npart_new)
+  call alloc(ename,    mNameLen, nblz_new, ' ', "ename") !(nblz_new)
+  call alloc(nampl,    nblz_new, 0, "nampl") !(nblz_new)
+  call alloc(sum_ax,   nblz_new, zero, "sum_ax") !(nblz_new)
+  call alloc(sqsum_ax, nblz_new, zero, "sqsum_ax") !(nblz_new)
+  call alloc(sum_ay,   nblz_new, zero, "sum_ay") !(nblz_new)
+  call alloc(sqsum_ay, nblz_new, zero, "sqsum_ay") !(nblz_new)
+  call alloc(sampl,    nblz_new, zero, "sampl") !(nblz_new)
 
+  call alloc(secondary,            npart_new, 0, "secondary") !(npart_new)
+  call alloc(tertiary,             npart_new, 0, "tertiary") !(npart_new)
+  call alloc(other,                npart_new, 0, "other") !(npart_new)
+  call alloc(scatterhit,           npart_new, 0, "scatterhit") !(npart_new)
+  call alloc(part_hit_before_pos,  npart_new, 0, "part_hit_before_pos") !(npart_new)
+  call alloc(part_hit_before_turn, npart_new, 0, "part_hit_before_turn") !(npart_new)
+  call alloc(part_hit_pos,         npart_new, 0, "part_hit_pos") !(npart_new)
+  call alloc(part_hit_turn,        npart_new, 0, "part_hit_turn") !(npart_new)
+  call alloc(part_abs_pos,         npart_new, 0, "part_abs_pos") !(npart_new)
+  call alloc(part_select,          npart_new, 0, "part_select") !(npart_new)
+  call alloc(nabs_type,            npart_new, 0, "nabs_type") !(npart_new)
+
+  call alloc(part_impact,    npart_new, zero, "part_impact") !(npart_new)
+  call alloc(part_indiv,     npart_new, zero, "part_indiv") !(npart_new)
+  call alloc(part_linteract, npart_new, zero, "part_linteract") !(npart_new)
 
   call alloc(counted_r, npart_new, numeff, 0, "counted_r") !(npart_new,numeff)
   call alloc(counted_x, npart_new, numeff, 0, "counted_x") !(npart_new,numeff)
   call alloc(counted_y, npart_new, numeff, 0, "counted_y") !(npart_new,numeff)
 
-! Change the following block to npart
-  call resize(myx,  npart_new, zero, "myx") !(maxn)
-  call resize(myxp, npart_new, zero, "myxp") !(maxn)
-  call resize(myy,  npart_new, zero, "myy") !(maxn)
-  call resize(myyp, npart_new, zero, "myyp") !(maxn)
-  call resize(myp,  npart_new, zero, "myp") !(maxn)
-  call resize(mys,  npart_new, zero, "mys") !(maxn)
+  ! Change the following block to npart
+  call alloc(myx,  npart_new, zero, "myx") !(maxn)
+  call alloc(myxp, npart_new, zero, "myxp") !(maxn)
+  call alloc(myy,  npart_new, zero, "myy") !(maxn)
+  call alloc(myyp, npart_new, zero, "myyp") !(maxn)
+  call alloc(myp,  npart_new, zero, "myp") !(maxn)
+  call alloc(mys,  npart_new, zero, "mys") !(maxn)
 
 end subroutine collimation_expand_arrays
 
@@ -1678,23 +1588,16 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
 end subroutine collimate_parseInputLine
 
-subroutine collimate_postInput(gammar,has_coll)
+subroutine collimate_postInput(gammar)
 
   real(kind=fPrec), intent(in) :: gammar
-  logical,          intent(in) :: has_coll
+
+  call collimation_expand_arrays(npart,nblz)
 
   remitx_dist    = emitnx0_dist*gammar
   remity_dist    = emitny0_dist*gammar
   remitx_collgap = emitnx0_collgap*gammar
   remity_collgap = emitny0_collgap*gammar
-
-  if(.not.has_coll) then
-    ! Breaks at least DUMP (negative particle IDs) and DYNK (1-pass actions).
-    write(lout,"(a)") "COLL> ERROR This is the collimation version of SixTrack,"
-    write(lout,"(a)") "COLL>       but no COLL block was found, not even one with do_coll = .false."
-    write(lout,"(a)") "COLL>       Please use the non-collimation version!"
-    call prror(-1)
-  end if
 
 end subroutine collimate_postInput
 
@@ -1712,9 +1615,6 @@ subroutine collimate_start_sample(nsample)
   use mod_commons
   use mod_commont
   use mod_commond
-#ifdef CR
-  use checkpoint_restart
-#endif
 
   implicit none
 
@@ -7934,7 +7834,7 @@ integer function mclock_liar( )
     call system_clock( mclock, count_rate, count_max )
     if ( count_max .eq. 0 ) then
       clock_ok = .false.
-      write(lout,"(a)") 'COLL> System Clock not present or not Responding'  
+      write(lout,"(a)") 'COLL> System Clock not present or not Responding'
       write(lout,"(a)") 'COLL> R.N.G. Reseed operation disabled.'
     endif
   endif

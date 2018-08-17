@@ -45,9 +45,9 @@ subroutine h5lin_writeLine(lineNo, elemType, arrData)
 
   if(h5lin_nElem(1) > h5lin_nElem(2)) then
     h5lin_nElem(2) = h5lin_nElem(2) + h5lin_chunkSize
-    call resize(h5lin_iData,               h5lin_nElem(2), 0,                            "h5lin_iData")
-    call resize(h5lin_cData, mNameLen, h5lin_nElem(2), repeat(char(0),mNameLen), "h5lin_cData")
-    call resize(h5lin_rData, 17,           h5lin_nElem(2), 0.0_fPrec,                    "h5lin_rData")
+    call alloc(h5lin_iData,               h5lin_nElem(2), 0,                            "h5lin_iData")
+    call alloc(h5lin_cData, mNameLen, h5lin_nElem(2), repeat(char(0),mNameLen), "h5lin_cData")
+    call alloc(h5lin_rData, 17,           h5lin_nElem(2), 0.0_fPrec,                    "h5lin_rData")
   end if
 
   h5lin_iData(h5lin_nElem(1))   = lineNo
@@ -104,7 +104,6 @@ end subroutine h5lin_saveData
 
 end module hdf5_linopt
 
-#ifdef COLLIMAT
 ! ================================================================================================ !
 !  Special HDF5 Module for Writing Tracks2 to HDF5
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -210,9 +209,6 @@ subroutine h5tr2_saveData
 end subroutine h5tr2_saveData
 
 end module hdf5_tracks2
-
-! END IFDEF COLLIMAT
-#endif
 
 ! END IFDEF HDF5
 #endif
