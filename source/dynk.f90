@@ -184,7 +184,7 @@ subroutine dynk_parseInputLine(inLine,iErr)
 
   case("NOFILE")
     dynk_noDynkSets = .true.
-    write(lout,*) "DYNK> Disabled writing dynksets.dat"
+    write(lout,"(a)") "DYNK> Disabled writing dynksets.dat"
 
   case("FUN")
     call dynk_parseFUN(inLine,iErr)
@@ -2349,7 +2349,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
       el_type=kz(ii)      ! type found
 
       if(ldoubleElement) then ! Sanity check
-        write(lout,*) "DYNK> ERROR Two elements with the same BEZ"
+        write(lout,"(a)") "DYNK> ERROR Two elements with the same BEZ"
         call prror(-1)
       end if
       ldoubleElement = .true.
