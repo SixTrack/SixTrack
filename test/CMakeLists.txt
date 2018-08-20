@@ -112,7 +112,7 @@ SET(SIXTRACK_TESTS
   fcc
   frs60
   frs
-  javier
+  crabs
   lostevery
   lost
   lostnumxv
@@ -353,7 +353,7 @@ SET(FAST_TESTS
   thick6dblocks
   thick6ddynk
   exact
-  javier
+  crabs
   bb
   bb_ntwin1
   notilt
