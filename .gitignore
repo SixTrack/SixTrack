@@ -24,6 +24,8 @@ Build*/
 lib/pythia
 
 # LaTeX
+doc/*.log
+doc/*.dat
 doc/html
 doc/*/*.pdf
 doc/*/*.aux
