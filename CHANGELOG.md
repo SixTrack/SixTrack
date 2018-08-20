@@ -1,13 +1,23 @@
 # SixTrack Changelog
 
-### Version 5.0 [xx.xx.xxxx] - Release
+### Version 5.0.1 [xx.xx.xxxx] - Release
 
 IN PROGRESS
 
 **User Side Changes**
 
 * DUMP now uses the roundctl library when writing float values (except for the s coordinate). This fixes the failing test(s) where some values are printed as -0.0E0. This ensures that the output is consitent across compilers and platforms.
-* MULTIPOLES now consider the curvature effect when there is a quadrupolar field in the dipole (element 11). This is mainly useful to model combined function magnets. 
+* Added DUMP format 101 for as a debugging dump format.
+* MULTIPOLES now consider the curvature effect when there is a quadrupolar field in the dipole (element 11). This is mainly useful to model combined function magnets.
+
+**Code Improvements and Changes**
+
+* The old fixed length getfields_split routine has been removed entirely from the source. It is replaced bu chr_split from the string_tools module.
+* All remaining usage of zero chars have has been removed from the source. Zero-terminated strings should now be handled by interface routines for c. The fixed length stringzerotrim routine has been removed, but the variable length chr_trimZero remains in case it is needed in the future.
+
+**Tests**
+
+* Added tests for nearly all of the DYNK FUN statements. Only PELP and FIR are currently untested.
 
 ### Version 5.0 RC3 [12.07.2018] - Release Candidate
 
