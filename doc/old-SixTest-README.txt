@@ -1,4 +1,4 @@
-    The SixDesk SixTrack test suite.  Eric.   16th May, 2014.
+The SixDesk SixTrack test suite.  Eric.   16th May, 2014.
 
 Just a few brief instructions for testing a new sixtrack version
 interactively or on LSF batch at CERN. The procedures have been tested on
@@ -114,4 +114,3 @@ Note that fort.10's should be IDENTICAL (the comparisons ignore the SixTrack ver
 Word 52 of each line in fort.10 and the CPU time in Word 60).
 The results from ifort opt 0 or 1, ia32, sse2, sse3, nagfor, gfortran, pgf90 and lf95 (opt 0)
 have been checked and are identical (and fort.90 too of course).
-

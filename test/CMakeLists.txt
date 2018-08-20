@@ -79,7 +79,20 @@ SET(TESTS_NO_STF_FORT90
   dynk_operators
   dynk_random
   dynk_polynomial
-)
+  )
+
+# List of tests that absolutely require STF to be on (> 64 particles)
+IF(STF)
+  SET(SIXTRACK_TESTS
+    beam-HO_6D-simple-newstyle-coupling
+    dynk_IIR
+    dynk_polynomial
+    dynk_random
+    dynk_operators
+    scatter_aperture
+    ${SIXTRACK_TESTS}
+    )
+ENDIF(STF)
 
 if(LIBARCHIVE)
   SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
@@ -89,7 +102,7 @@ if(NAFF)
   SET(SIXTRACK_TESTS fma_naff ${SIXTRACK_TESTS})
 endif()
 
-#Non-collimation tests
+#General tests
 SET(SIXTRACK_TESTS
   bbe51
   bbe52
@@ -100,10 +113,6 @@ SET(SIXTRACK_TESTS
   distance
   dynk_globalvars
   dynk_filelin
-  dynk_operators
-  dynk_random
-  dynk_polynomial
-  dynk_IIR
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
@@ -162,7 +171,6 @@ SET(SIXTRACK_TESTS
   beam-HO_6D-simple-oldstyle
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-orbit
-  beam-HO_6D-simple-newstyle-coupling
   beam-HO_LR-newstyle
   beam-HO_LR-oldstyle
   beam-HO_LR-ibbc-oldstyle
@@ -173,7 +181,6 @@ SET(SIXTRACK_TESTS
   last_amp
   scatter_bbelastic
   scatter_collimation
-  scatter_aperture
   dump_all_highprec
   dump_2_all_ele_highprec
   perf1
@@ -185,16 +192,18 @@ if(SIXDA)
   list(APPEND SIXTRACK_DA_TESTS frs_da thick4_da)
 endif()
 
-#Collimation tests (needs backtrk)
-#use extra checks on fort.999 and other collimation loss files
-if(BACKTRK)
-  if(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-    SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
-  endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-  # if(NOT FLUKA OR NOT G4COLLIMAT)
-  #   SET(SIXTRACK_TESTS collimation_merlin_fcc_2017_h1_collision ${SIXTRACK_TESTS})
-  # endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-endif(BACKTRK)
+
+## UNUSED TESTS
+
+# Standard (K2) collimation tests that needs backtrk
+# However the BACKTRK flag does no longer exist, and the test has not been kept up to date.
+# SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
+
+# orbit6d-element-wire
+# thick6dsingles (only contains one canonical, fort.6, which shows that it crashes. Not sure what it is supposed to show?)
+# thick4in_da (copy of thick4_da that contains an extra huge MULT block in fort.3?)
+
+## END UNUSED TESTS
 
 #For CR builds, test the CR functions, so kill/resume the test
 if(CR)

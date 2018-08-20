@@ -1,2 +1,0 @@
-fort.13
-limi.dat
