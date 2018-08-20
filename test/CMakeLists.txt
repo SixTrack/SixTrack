@@ -173,15 +173,13 @@ SET(SIXTRACK_TESTS
   rfMultipoles_4thOrder
   last_amp
   scatter_bbelastic
+  scatter_collimation
   scatter_aperture
   dump_all_highprec
   dump_2_all_ele_highprec
   perf1
   ${SIXTRACK_TESTS}
 )
-
-# COLLIMATION tests
-set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
 
 # Tests that require SixDA executable
 if(SIXDA)
@@ -413,6 +411,7 @@ SET(FAST_TESTS
   rfMultipoles_4thOrder
   last_amp
   scatter_bbelastic
+  scatter_collimation
   scatter_aperture
   dump_all_highprec
   dump_2_all_ele_highprec
