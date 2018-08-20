@@ -2335,10 +2335,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   ! Special non-physical elements
   if(element_name == "GLOBAL-VARS") then
     if(att_name == "E0" ) then
-<<<<<<< HEAD
-=======
       ! Modify the reference particle
->>>>>>> master
       call part_updateEnergy(newValue)
     end if
     ldoubleElement = .true.
