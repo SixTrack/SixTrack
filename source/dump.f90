@@ -337,7 +337,7 @@ subroutine dump_parseInputLine(inLine,iErr)
   if(h5_useForDUMP .eqv. .false.) then
 #endif
     if(dumpunit(j) == -1) then
-      call funit_requestUnit(chr_trimZero(dump_fname(j)),dumpunit(j))
+      call funit_requestUnit(trim(dump_fname(j)),dumpunit(j))
     end if
 #ifdef HDF5
   end if
@@ -469,14 +469,14 @@ subroutine dump_initialise
           call boincrf(dump_fname(i),filename)
           open(dumpunit(i),file=filename,status='replace',form='unformatted')
 #else
-          open(dumpunit(i),file=trim(chr_trimZero(dump_fname(i))),status='replace',form='unformatted')
+          open(dumpunit(i),file=trim(dump_fname(i)),status='replace',form='unformatted')
 #endif
         else ! ASCII dump
 #ifdef BOINC
           call boincrf(dump_fname(i),filename)
           open(dumpunit(i),file=filename,status='replace',form='formatted')
 #else
-          open(dumpunit(i),file=trim(chr_trimZero(dump_fname(i))),status='replace',form='formatted')
+          open(dumpunit(i),file=trim(dump_fname(i)),status='replace',form='formatted')
 #endif
         end if
 #ifdef CR
@@ -1726,13 +1726,13 @@ subroutine dump_crcheck_positionFiles
     if (ldump(i)) then
       write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
       if (i > 0) then
-        write(93,*) "element=",bez(i), "unit=",dumpunit(i)," filename='"//trim(chr_trimZero(dump_fname(i)))// &
+        write(93,*) "element=",bez(i), "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))// &
                     "' format=",dumpfmt(i)
       else if (i == 0) then
-        write(93,*) "element=","ALL" , "unit=",dumpunit(i)," filename='"//trim(chr_trimZero(dump_fname(i)))// &
+        write(93,*) "element=","ALL" , "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))// &
                     "' format=",dumpfmt(i)
       else if(i  ==  -1) then
-        write(93,*) "element=","StartDump" , "unit=",dumpunit(i)," filename='"//trim(chr_trimZero(dump_fname(i)))// &
+        write(93,*) "element=","StartDump" , "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))// &
                     "' format=",dumpfmt(i)
       else
         write(93,*) "Error - index=",i,"is unknown"
