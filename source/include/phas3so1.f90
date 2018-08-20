@@ -1,3 +1,4 @@
+! start include/phas3so1.f90
 do l=1,2
   ll=2*l
   if(abs(t(ll,ll-1)).gt.pieni) then
@@ -7,3 +8,4 @@ do l=1,2
   end if
   phi(l)=phi(l)+dphi/pie
 end do
+! end include/phas3so1.f90

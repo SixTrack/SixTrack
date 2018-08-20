@@ -836,7 +836,8 @@ subroutine daten
     elseif(closeBlock) then
       call zipf_parseInputDone
     else
-      call zipf_parseInputline(inLine)
+      call zipf_parseInputline(inLine,inErr)
+      if(inErr) goto 9999
     end if
 
   case("SCAT") ! SCATTER Input Block
@@ -846,7 +847,7 @@ subroutine daten
     elseif(closeBlock) then
       if(scatter_debug) call scatter_dumpData
     else
-      call scatter_parseInputLine(string(adjustl(inLine)))
+      call scatter_parseInputLine(string(inLine))
     end if
 
   case("HDF5") ! HDF5 Input Block
@@ -873,7 +874,8 @@ subroutine daten
   elseif(closeBlock) then
     call root_parseInputDone
   else
-    call root_daten(inLine)
+    call root_daten(inLine,inErr)
+    if(inErr) goto 9999
   end if
 #endif
 
