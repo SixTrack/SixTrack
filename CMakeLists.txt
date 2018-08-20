@@ -67,17 +67,17 @@ message(STATUS "Git Revision: ${GIT_REVISION}")
 # Sixtrack configuration options
 ###################################################################################################
 
-# Now we have the default settings
-# we have ON
+# Default ON
 OPTION(TILT "Allow elements to be tilted (by error)" ON)
 OPTION(FAST "Which implementation of drifts to use in thin6d" ON)
 OPTION(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 OPTION(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
 OPTION(STF "Single Track File - write all tracks for postprocessing to fort.90, instead of 32 separate files fort.90 to fort.(90-32). Required for increased particle numbers" ON)
-# and we have OFF
+OPTION(NAFF "Use NAFF library for FMA analysis" ON)
+
+# Default OFF
 OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
 OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal 'myboinc.f' dummy library)" OFF)
-#OPTION(CPSS "CERN physics screensaver support" OFF)
 OPTION(BOINC "BOINC distributed computing support" OFF)
 OPTION(CR "Checkpoint / restarting" OFF)
 OPTION(BEAMGAS "Beam-gas scattering" OFF)
@@ -85,18 +85,15 @@ OPTION(DEBUG "Debugging output" OFF)
 OPTION(HDF5 "Adds support for the HDF5 block which enables writing output to a single HDF5 file." OFF)
 OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output" OFF)
 OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
-OPTION(NAFF "Use NAFF library for FMA analysis" OFF)
 OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 OPTION(FLUKA "Couple to FLUKA for beam collimation" OFF)
 OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
 OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
 OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
 OPTION(WARN "Enable build flags for additional compiler warnings" OFF)
+OPTION(ROOT "Link to the root libraries" OFF)
 
-#Build options - some are commented out for future support
-#OPTION(OPENMP "Enable OpenMP support" OFF)
-#OPTION(MPI "Enable MPI support" OFF)
-#OPTION(CUDA "Enable CUDA support" OFF)
+# Build options
 OPTION(32BIT "Create a 32bit binary" OFF)
 OPTION(64BIT "Create a 64bit binary" ON)
 OPTION(STATIC "Create a statically linked binary" ON)
@@ -115,8 +112,6 @@ OPTION(ROUND_NEAR "Always round to the nearest number after floating point opera
 OPTION(ROUND_UP "Always round up after floating point operations" OFF)
 OPTION(ROUND_DOWN "Always round down after floating point operations" OFF)
 OPTION(ROUND_ZERO "Always round towards zero after floating point operations" OFF)
-
-OPTION(ROOT "Link to the root libraries" OFF)
 
 SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/lib/boinc CACHE PATH "Path to the boinc build folder")
 SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive_build CACHE PATH "Path to the libarchive build folder")
