@@ -79,7 +79,20 @@ SET(TESTS_NO_STF_FORT90
   dynk_operators
   dynk_random
   dynk_polynomial
-)
+  )
+
+# List of tests that absolutely require STF to be on (> 64 particles)
+IF(STF)
+  SET(SIXTRACK_TESTS
+    beam-HO_6D-simple-newstyle-coupling
+    dynk_IIR
+    dynk_polynomial
+    dynk_random
+    dynk_operators
+    scatter_aperture
+    ${SIXTRACK_TESTS}
+    )
+ENDIF(STF)
 
 if(LIBARCHIVE)
   SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
@@ -100,10 +113,6 @@ SET(SIXTRACK_TESTS
   distance
   dynk_globalvars
   dynk_filelin
-  dynk_operators
-  dynk_random
-  dynk_polynomial
-  dynk_IIR
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
@@ -162,7 +171,6 @@ SET(SIXTRACK_TESTS
   beam-HO_6D-simple-oldstyle
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-orbit
-  beam-HO_6D-simple-newstyle-coupling
   beam-HO_LR-newstyle
   beam-HO_LR-oldstyle
   beam-HO_LR-ibbc-oldstyle
@@ -173,7 +181,6 @@ SET(SIXTRACK_TESTS
   last_amp
   scatter_bbelastic
   scatter_collimation
-  scatter_aperture
   dump_all_highprec
   dump_2_all_ele_highprec
   perf1
