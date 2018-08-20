@@ -93,14 +93,6 @@ OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" O
 OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
 OPTION(WARN "Enable build flags for additional compiler warnings" OFF)
 
-#Compiler stuff - not needed any more with cmake
-#OPTION(IFORT "Use the intel fortran compiler" OFF)
-#OPTION(LF95 "Use the Lahey-Fujitsu lf95 fortran compiler" OFF)
-#OPTION(PGF90 "Use the pgf90 fortran compiler" OFF)
-#OPTION(F95 "Use the g95 fortran compiler" OFF)
-#OPTION(GFORTRAN "Use the gfortran fortran compiler" OFF)
-#OPTION(NAGFOR "Use NAGFOR compiler" OFF)
-
 #Build options - some are commented out for future support
 #OPTION(OPENMP "Enable OpenMP support" OFF)
 #OPTION(MPI "Enable MPI support" OFF)
@@ -214,15 +206,6 @@ if(ROOT)
 	SET(SIXTRACK_FEAT_CR "root_${SIXTRACK_FEAT_CR}")
 endif(ROOT)
 
-#if(OPENMP)
-#	SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_openmp")
-#endif()
-#if(MPI)
-#	SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_mpi")
-#endif()
-#if(CUDA)
-#	SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_cuda")
-#endif()
 if(STATIC)
 	SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_static")
 	SET(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_static")
@@ -402,52 +385,6 @@ if(G4COLLIMAT)
 	add_subdirectory(${CMAKE_SOURCE_DIR}/source/g4collimat)
 endif(G4COLLIMAT)
 
-#Check for OpenMP
-#if(OPENMP)
-#	find_package(OpenMP REQUIRED)
-#endif(OPENMP)
-#
-##If we have OpenMP enabled, set the compiler flags needed
-#if(OPENMP_FOUND)
-#	SET_TARGET_PROPERTIES(SixTrack PROPERTIES COMPILE_FLAGS "${OpenMP_CXX_FLAGS}")
-#	SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
-#endif()
-#
-##Possible future  MPI test
-#if(CMAKE_BUILD_TYPE STREQUAL MPI OR CMAKE_BUILD_TYPE STREQUAL MPIDEBUG)
-#	FIND_PACKAGE(MPI REQUIRED)
-#	if(NOT MPI_CXX_FOUND)
-#		MESSAGE(FATAL_ERROR "MPI build requested but no MPI libraries found!")
-#	endif()
-#	if(MPI_CXX_FOUND)
-#		message(STATUS "Using MPI C++ compiler: ${MPI_CXX_COMPILER}")
-#		message(STATUS "Using MPI runtime: ${MPIEXEC}")
-#		message(STATUS "Using MPI process number switch: ${MPIEXEC_NUMPROC_FLAG}")
-#		message(STATUS "Using MPI pre-flags: ${MPIEXEC_PREFLAGS}")
-#		message(STATUS "Using MPI post-flags: ${MPIEXEC_POSTFLAGS}")
-#		message(STATUS "Using MPI includes: ${MPI_CXX_INCLUDE_PATH}")
-#		message(STATUS "Using MPI libraries: ${MPI_CXX_LIBRARIES}")
-#		message(STATUS "Using MPI compile flags: ${MPI_CXX_COMPILE_FLAGS}")
-#		message(STATUS "Using MPI link flags: ${MPI_CXX_LINK_FLAGS}")
-#
-#		#We need the MPI headers to be included!
-#		include_directories(${MPI_CXX_INCLUDE_PATH})
-#	endif()
-#endif()
-#
-##possible future CUDA test.
-#if(CUDA)
-#	find_package(CUDA REQUIRED)
-#	if(NOT CUDA_FOUND)
-#		MESSAGE(FATAL_ERROR "CUDA enabled build requested but CUDA was not found!")
-#	endif()
-#	if(CUDA_FOUND)
-#		message(STATUS "Found CUDA version ${CUDA_VERSION_STRING} at ${CUDA_TOOLKIT_ROOT_DIR}")
-#		message(STATUS "Includes at ${CUDA_INCLUDE_DIRS}")
-#		ADD_DEFINITIONS("-I${CUDA_INCLUDE_DIRS}")
-#	endif()
-#endif(CUDA)
-#
 ##Possible check for Root
 if(ROOT)
 	#/usr/share/root/cmake/FindROOT.cmake
@@ -925,42 +862,6 @@ endif()
 # See https://github.com/SixTrack/SixTrack/issues/594
 #include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
 
-#MPI default build options
-#SET( CMAKE_CXX_FLAGS_MPI "-DNDEBUG -Wall -O3 -pedantic -DENABLE_MPI -march=native" CACHE STRING
-#	"Flags used by the C++ compiler during MPI builds."
-#	FORCE )
-#SET( CMAKE_EXE_LINKER_FLAGS_MPI
-#	"-Wl,--warn-unresolved-symbols,--warn-once" CACHE STRING
-#	"Flags used for linking binaries during MPI builds."
-#	FORCE )
-#SET( CMAKE_SHARED_LINKER_FLAGS_MPI
-#	"-Wl,--warn-unresolved-symbols,--warn-once -fPIC -flto" CACHE STRING
-#	"Flags used by the shared libraries linker during MPI builds."
-#	FORCE )
-#MARK_AS_ADVANCED(
-#	CMAKE_CXX_FLAGS_MPI
-#	#CMAKE_C_FLAGS_MPI
-#	CMAKE_EXE_LINKER_FLAGS_MPI
-#	CMAKE_SHARED_LINKER_FLAGS_MPI)
-
-#MPI debug default build options
-#SET( CMAKE_CXX_FLAGS_MPIDEBUG "-Wall -g3 -ggdb -pedantic -DENABLE_MPI -march=native" CACHE STRING
-#	"Flags used by the C++ compiler during MPI Debug builds."
-#	FORCE )
-#SET( CMAKE_EXE_LINKER_FLAGS_MPIDEBUG
-#	"-Wl,--warn-unresolved-symbols,--warn-once" CACHE STRING
-#	"Flags used for linking binaries during MPI Debug builds."
-#	FORCE )
-#SET( CMAKE_SHARED_LINKER_FLAGS_MPIDEBUG
-#	"-Wl,--warn-unresolved-symbols,--warn-once -fPIC" CACHE STRING
-#	"Flags used by the shared libraries linker during MPI Debug builds."
-#	FORCE )
-#MARK_AS_ADVANCED(
-#	CMAKE_CXX_FLAGS_MPIDEBUG
-#	#CMAKE_C_FLAGS_MPIDEBUG
-#	CMAKE_EXE_LINKER_FLAGS_MPIDEBUG
-#	CMAKE_SHARED_LINKER_FLAGS_MPIDEBUG )
-
 ###################################################################################################
 # Settings for what exactly to build
 ###################################################################################################
@@ -1000,8 +901,7 @@ endif()
 
 #build dafor
 add_executable(dafor ${CMAKE_SOURCE_DIR}/source/tools/dafor/dafor.f90)
-#we do not need any fancy flags for dafor
-#but nagfor does not like the following
+#we do not need any fancy flags for dafor but nagfor does not like the following
 if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	SET_TARGET_PROPERTIES(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
 	SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
@@ -1284,14 +1184,6 @@ IF(BUILD_TESTING)
 
 	add_subdirectory(${CMAKE_SOURCE_DIR}/test)
 	configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
-
-	#Checks of specialized input/canoncials
-	# Anyway hardcoded to use them from the SixTest source folder...
-	#add_executable(CheckTestInputForBOINC.sh IMPORTED)
-	#SET_TARGET_PROPERTIES(CheckTestInputForBOINC.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/test/CheckTestInputForBOINC.sh)
-
-	#add_executable(CheckTestInputForSTF.sh IMPORTED)
-	#SET_TARGET_PROPERTIES(CheckTestInputForSTF.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/test/CheckTestInputForBOINC.sh)
 
 	#need to build the testing tools
 	add_executable(verify10 ${CMAKE_SOURCE_DIR}/test/bin/verify10.f90)
