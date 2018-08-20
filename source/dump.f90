@@ -534,7 +534,7 @@ subroutine dump_initialise
 
       ! Write format-specific headers
       if (dumpfmt(i) == 1) then
-        write(dumpunit(i),'(a)') '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack'
+        write(dumpunit(i),'(a)') '# particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] (E-E0)/E0[1] ktrack'
         ! Flush file
         endfile   (dumpunit(i))
         backspace (dumpunit(i))
@@ -560,18 +560,18 @@ subroutine dump_initialise
 
         ! Write the format-specific headers:
         if (dumpfmt(i) == 2) then ! FORMAT 2
-          write(dumpunit(i),'(a,a)') '# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack'
+          write(dumpunit(i),'(a,a)') '# particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0[1] ktrack'
         else if (dumpfmt(i) == 4) then ! FORMAT 4
-          write(dumpunit(i),'(a)') '# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]'
+          write(dumpunit(i),'(a)') '# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <sigma>[mm] <(E-E0)/E0>[1]'
         else if (dumpfmt(i) == 5) then ! FORMAT 5
-          write(dumpunit(i),'(a)') '# napx turn s[m] ' //                  &
-            '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1] '//   &
-            '<x^2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)> '//                &
-            '<xp^2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)> '//                  &
-            '<y^2> <y*yp> <y*z> <y*(dE/E)> '//                             &
-            '<yp^2> <yp*z> <yp*(dE/E)> '//                                 &
-            '<z^2> <z*(dE/E)> '//                                          &
-            '<(dE/E)^2>'
+          write(dumpunit(i),'(a)') '# napx turn s[m] ' //                     &
+            '<x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <sigma>[mm] <(E-E0)/E0>[1] '// &
+            '<x^2> <x*xp> <x*y> <x*yp> <x*sigma> <x*(E-E0)/E0> '//                &
+            '<xp^2> <xp*y> <xp*yp> <xp*sigma> <xp*(E-E0)/E0> '//                  &
+            '<y^2> <y*yp> <y*sigma> <y*(E-E0)/E0> '//                             &
+            '<yp^2> <yp*sigma> <yp*(E-E0)/E0> '//                                 &
+            '<sigma^2> <sigma*(E-E0)/E0> '//                                          &
+            '<((E-E0)/E0)^2>'
         else if (dumpfmt(i) == 6) then ! FORMAT 6
           write(dumpunit(i),'(a)') '# napx turn s[m] ' //                  &
             '<x>[m] <px>[1] <y>[m] <py>[1] <sigma>[m] <psigma>[1] '//      &
@@ -584,8 +584,8 @@ subroutine dump_initialise
         else if (dumpfmt(i) == 7 .or. dumpfmt(i) == 9) then
           ! Normalized ASCII dump -> extra headers with matrices and closed orbit
           if (dumpfmt(i) == 7) then ! FORMAT 7
-            write(dumpunit(i),'(a)') '# ID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] '// &
-              'ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nsig[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] ktrack'
+            write(dumpunit(i),'(a)') '# particleID turn s[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] '// &
+              'ny[1.e-3 sqrt(m)] npy[1.e-3 sqrt(m)] nsigma[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] ktrack'
           end if
           if (dumpfmt(i) == 9) then ! FORMAT 9
             write(dumpunit(i),'(a)') '# napx turn s[m] ' //                   &
@@ -681,7 +681,7 @@ subroutine dump_initialise
 
       case(1)
         ! Format 1:
-        ! # ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] dE/E[1] ktrack
+        ! # particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] (E-E0)/E0[1] ktrack
         if(dump_hdf5Format(1) == 0) then
           allocate(setFields(9))
           setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
@@ -699,7 +699,7 @@ subroutine dump_initialise
 
       case(2)
         ! Format 2:
-        ! # ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack
+        ! # particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0[1] ktrack
         if(dump_hdf5Format(2) == 0) then
           allocate(setFields(10))
           setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
@@ -718,7 +718,7 @@ subroutine dump_initialise
 
       case(3)
         ! Format 3:
-        ! # ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack
+        ! # particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0[1] ktrack
         if(dump_hdf5Format(3) == 0) then
           allocate(setFields(10))
           setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
@@ -737,7 +737,7 @@ subroutine dump_initialise
 
       case(4)
         ! Format 4:
-        ! # napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]
+        ! # napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <sigma>[mm] <(E-E0)/E0>[1]
         if(dump_hdf5Format(4) == 0) then
           allocate(setFields(9))
           setFields(1)  = h5_dataField(name="NAPX",   type=h5_typeInt)
@@ -755,13 +755,13 @@ subroutine dump_initialise
 
       case(5)
         ! Format 5:
-        ! # napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]
-        ! <x^2> <x*xp> <x*y> <x*yp> <x*z> <x*(dE/E)>
-        ! <xp^2> <xp*y> <xp*yp> <xp*z> <xp*(dE/E)>
-        ! <y^2> <y*yp> <y*z> <y*(dE/E)>
-        ! <yp^2> <yp*z> <yp*(dE/E)>
-        ! <z^2> <z*(dE/E)>
-        ! <(dE/E)^2>
+        ! # napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <sigma>[mm] <(E-E0)/E0>[1]
+        ! <x^2> <x*xp> <x*y> <x*yp> <x*sigma> <x*(E-E0)/E0>
+        ! <xp^2> <xp*y> <xp*yp> <xp*sigma> <xp*(E-E0)/E0>
+        ! <y^2> <y*yp> <y*sigma> <y*(E-E0)/E0>
+        ! <yp^2> <yp*sigma> <yp*(E-E0)/E0>
+        ! <sigma^2> <sigma*(E-E0)/E0>
+        ! <((E-E0)/E0)^2>
         if(dump_hdf5Format(5) == 0) then
           allocate(setFields(30))
           setFields(1)  = h5_dataField(name="NAPX",      type=h5_typeInt)
@@ -845,7 +845,7 @@ subroutine dump_initialise
 
       case(101)
         ! Format 101:
-        ! # ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack
+        ! # particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] (E-E0)/E0[1] ktrack
         if(dump_hdf5Format(3) == 0) then
           allocate(setFields(10))
           setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
