@@ -67,17 +67,16 @@ message(STATUS "Git Revision: ${GIT_REVISION}")
 # Sixtrack configuration options
 ###################################################################################################
 
-# Now we have the default settings
-# we have ON
+# Default ON
 OPTION(TILT "Allow elements to be tilted (by error)" ON)
 OPTION(FAST "Which implementation of drifts to use in thin6d" ON)
 OPTION(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 OPTION(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
 OPTION(STF "Single Track File - write all tracks for postprocessing to fort.90, instead of 32 separate files fort.90 to fort.(90-32). Required for increased particle numbers" ON)
-# and we have OFF
+
+# Default OFF
 OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
 OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal 'myboinc.f' dummy library)" OFF)
-#OPTION(CPSS "CERN physics screensaver support" OFF)
 OPTION(BOINC "BOINC distributed computing support" OFF)
 OPTION(CR "Checkpoint / restarting" OFF)
 OPTION(BEAMGAS "Beam-gas scattering" OFF)
@@ -85,26 +84,16 @@ OPTION(DEBUG "Debugging output" OFF)
 OPTION(HDF5 "Adds support for the HDF5 block which enables writing output to a single HDF5 file." OFF)
 OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output" OFF)
 OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
-OPTION(NAFF "Use NAFF library for FMA analysis" OFF)
 OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 OPTION(FLUKA "Couple to FLUKA for beam collimation" OFF)
 OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
 OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
 OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
 OPTION(WARN "Enable build flags for additional compiler warnings" OFF)
+OPTION(ROOT "Link to the root libraries" OFF)
+OPTION(NAFF "Use NAFF library for FMA analysis" OFF)
 
-#Compiler stuff - not needed any more with cmake
-#OPTION(IFORT "Use the intel fortran compiler" OFF)
-#OPTION(LF95 "Use the Lahey-Fujitsu lf95 fortran compiler" OFF)
-#OPTION(PGF90 "Use the pgf90 fortran compiler" OFF)
-#OPTION(F95 "Use the g95 fortran compiler" OFF)
-#OPTION(GFORTRAN "Use the gfortran fortran compiler" OFF)
-#OPTION(NAGFOR "Use NAGFOR compiler" OFF)
-
-#Build options - some are commented out for future support
-#OPTION(OPENMP "Enable OpenMP support" OFF)
-#OPTION(MPI "Enable MPI support" OFF)
-#OPTION(CUDA "Enable CUDA support" OFF)
+# Build options
 OPTION(32BIT "Create a 32bit binary" OFF)
 OPTION(64BIT "Create a 64bit binary" ON)
 OPTION(STATIC "Create a statically linked binary" ON)
@@ -123,8 +112,6 @@ OPTION(ROUND_NEAR "Always round to the nearest number after floating point opera
 OPTION(ROUND_UP "Always round up after floating point operations" OFF)
 OPTION(ROUND_DOWN "Always round down after floating point operations" OFF)
 OPTION(ROUND_ZERO "Always round towards zero after floating point operations" OFF)
-
-OPTION(ROOT "Link to the root libraries" OFF)
 
 SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/lib/boinc CACHE PATH "Path to the boinc build folder")
 SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive_build CACHE PATH "Path to the libarchive build folder")
@@ -214,15 +201,6 @@ if(ROOT)
 	SET(SIXTRACK_FEAT_CR "root_${SIXTRACK_FEAT_CR}")
 endif(ROOT)
 
-#if(OPENMP)
-#	SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_openmp")
-#endif()
-#if(MPI)
-#	SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_mpi")
-#endif()
-#if(CUDA)
-#	SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_cuda")
-#endif()
 if(STATIC)
 	SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_static")
 	SET(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_static")
@@ -402,52 +380,6 @@ if(G4COLLIMAT)
 	add_subdirectory(${CMAKE_SOURCE_DIR}/source/g4collimat)
 endif(G4COLLIMAT)
 
-#Check for OpenMP
-#if(OPENMP)
-#	find_package(OpenMP REQUIRED)
-#endif(OPENMP)
-#
-##If we have OpenMP enabled, set the compiler flags needed
-#if(OPENMP_FOUND)
-#	SET_TARGET_PROPERTIES(SixTrack PROPERTIES COMPILE_FLAGS "${OpenMP_CXX_FLAGS}")
-#	SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
-#endif()
-#
-##Possible future  MPI test
-#if(CMAKE_BUILD_TYPE STREQUAL MPI OR CMAKE_BUILD_TYPE STREQUAL MPIDEBUG)
-#	FIND_PACKAGE(MPI REQUIRED)
-#	if(NOT MPI_CXX_FOUND)
-#		MESSAGE(FATAL_ERROR "MPI build requested but no MPI libraries found!")
-#	endif()
-#	if(MPI_CXX_FOUND)
-#		message(STATUS "Using MPI C++ compiler: ${MPI_CXX_COMPILER}")
-#		message(STATUS "Using MPI runtime: ${MPIEXEC}")
-#		message(STATUS "Using MPI process number switch: ${MPIEXEC_NUMPROC_FLAG}")
-#		message(STATUS "Using MPI pre-flags: ${MPIEXEC_PREFLAGS}")
-#		message(STATUS "Using MPI post-flags: ${MPIEXEC_POSTFLAGS}")
-#		message(STATUS "Using MPI includes: ${MPI_CXX_INCLUDE_PATH}")
-#		message(STATUS "Using MPI libraries: ${MPI_CXX_LIBRARIES}")
-#		message(STATUS "Using MPI compile flags: ${MPI_CXX_COMPILE_FLAGS}")
-#		message(STATUS "Using MPI link flags: ${MPI_CXX_LINK_FLAGS}")
-#
-#		#We need the MPI headers to be included!
-#		include_directories(${MPI_CXX_INCLUDE_PATH})
-#	endif()
-#endif()
-#
-##possible future CUDA test.
-#if(CUDA)
-#	find_package(CUDA REQUIRED)
-#	if(NOT CUDA_FOUND)
-#		MESSAGE(FATAL_ERROR "CUDA enabled build requested but CUDA was not found!")
-#	endif()
-#	if(CUDA_FOUND)
-#		message(STATUS "Found CUDA version ${CUDA_VERSION_STRING} at ${CUDA_TOOLKIT_ROOT_DIR}")
-#		message(STATUS "Includes at ${CUDA_INCLUDE_DIRS}")
-#		ADD_DEFINITIONS("-I${CUDA_INCLUDE_DIRS}")
-#	endif()
-#endif(CUDA)
-#
 ##Possible check for Root
 if(ROOT)
 	#/usr/share/root/cmake/FindROOT.cmake
@@ -925,42 +857,6 @@ endif()
 # See https://github.com/SixTrack/SixTrack/issues/594
 #include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
 
-#MPI default build options
-#SET( CMAKE_CXX_FLAGS_MPI "-DNDEBUG -Wall -O3 -pedantic -DENABLE_MPI -march=native" CACHE STRING
-#	"Flags used by the C++ compiler during MPI builds."
-#	FORCE )
-#SET( CMAKE_EXE_LINKER_FLAGS_MPI
-#	"-Wl,--warn-unresolved-symbols,--warn-once" CACHE STRING
-#	"Flags used for linking binaries during MPI builds."
-#	FORCE )
-#SET( CMAKE_SHARED_LINKER_FLAGS_MPI
-#	"-Wl,--warn-unresolved-symbols,--warn-once -fPIC -flto" CACHE STRING
-#	"Flags used by the shared libraries linker during MPI builds."
-#	FORCE )
-#MARK_AS_ADVANCED(
-#	CMAKE_CXX_FLAGS_MPI
-#	#CMAKE_C_FLAGS_MPI
-#	CMAKE_EXE_LINKER_FLAGS_MPI
-#	CMAKE_SHARED_LINKER_FLAGS_MPI)
-
-#MPI debug default build options
-#SET( CMAKE_CXX_FLAGS_MPIDEBUG "-Wall -g3 -ggdb -pedantic -DENABLE_MPI -march=native" CACHE STRING
-#	"Flags used by the C++ compiler during MPI Debug builds."
-#	FORCE )
-#SET( CMAKE_EXE_LINKER_FLAGS_MPIDEBUG
-#	"-Wl,--warn-unresolved-symbols,--warn-once" CACHE STRING
-#	"Flags used for linking binaries during MPI Debug builds."
-#	FORCE )
-#SET( CMAKE_SHARED_LINKER_FLAGS_MPIDEBUG
-#	"-Wl,--warn-unresolved-symbols,--warn-once -fPIC" CACHE STRING
-#	"Flags used by the shared libraries linker during MPI Debug builds."
-#	FORCE )
-#MARK_AS_ADVANCED(
-#	CMAKE_CXX_FLAGS_MPIDEBUG
-#	#CMAKE_C_FLAGS_MPIDEBUG
-#	CMAKE_EXE_LINKER_FLAGS_MPIDEBUG
-#	CMAKE_SHARED_LINKER_FLAGS_MPIDEBUG )
-
 ###################################################################################################
 # Settings for what exactly to build
 ###################################################################################################
@@ -1000,8 +896,7 @@ endif()
 
 #build dafor
 add_executable(dafor ${CMAKE_SOURCE_DIR}/source/tools/dafor/dafor.f90)
-#we do not need any fancy flags for dafor
-#but nagfor does not like the following
+#we do not need any fancy flags for dafor but nagfor does not like the following
 if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
 	SET_TARGET_PROPERTIES(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
 	SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
@@ -1284,14 +1179,6 @@ IF(BUILD_TESTING)
 
 	add_subdirectory(${CMAKE_SOURCE_DIR}/test)
 	configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
-
-	#Checks of specialized input/canoncials
-	# Anyway hardcoded to use them from the SixTest source folder...
-	#add_executable(CheckTestInputForBOINC.sh IMPORTED)
-	#SET_TARGET_PROPERTIES(CheckTestInputForBOINC.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/test/CheckTestInputForBOINC.sh)
-
-	#add_executable(CheckTestInputForSTF.sh IMPORTED)
-	#SET_TARGET_PROPERTIES(CheckTestInputForSTF.sh PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/test/CheckTestInputForBOINC.sh)
 
 	#need to build the testing tools
 	add_executable(verify10 ${CMAKE_SOURCE_DIR}/test/bin/verify10.f90)
