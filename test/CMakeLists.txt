@@ -413,6 +413,7 @@ SET(FAST_TESTS
   scatter_bbelastic
   scatter_collimation
   scatter_aperture
+  scatter_collimation
   dump_all_highprec
   dump_2_all_ele_highprec
   orbit6d-element-trombone
