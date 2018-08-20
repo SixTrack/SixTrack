@@ -9,6 +9,8 @@ IN PROGRESS
 * DUMP now uses the roundctl library when writing float values (except for the s coordinate). This fixes the failing test(s) where some values are printed as -0.0E0. This ensures that the output is consitent across compilers and platforms.
 * Added DUMP format 101 for as a debugging dump format.
 * MULTIPOLES now consider the curvature effect when there is a quadrupolar field in the dipole (element 11). This is mainly useful to model combined function magnets.
+* Added new "debugging" format to DUMP, format 101.
+* Updated DUMP manual and headers for consistency.
 
 **Code Improvements and Changes**
 
@@ -17,7 +19,7 @@ IN PROGRESS
 
 **Tests**
 
-* Added tests for nearly all of the DYNK FUN statements. Only PELP and FIR are currently untested.
+* Added tests for nearly all of the DYNK FUN statements. Only PELP, PIPE, and FIR are currently untested.
 
 ### Version 5.0 RC3 [12.07.2018] - Release Candidate
 
