@@ -1,2 +1,0 @@
-#!/usr/bin/env sh
-gfortran -O4 -m32 -o readDump3 readDump3.f90 -static
