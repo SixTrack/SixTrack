@@ -986,6 +986,14 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     end if
     if(iErr) return
 
+#ifndef STF
+    if(napx > 32) then
+      write(lout,"(a)") "TRAC> ERROR To run SixTrack with more than 32 particle pairs, it has to be compiled with the STF flag."
+      iErr = .true.
+      return
+    end if
+#endif
+
     if(napx*2 > npart) then
       call expand_arrays(nele, napx*2, nblz, nblo)
     end if
