@@ -1,4 +1,4 @@
-IP3_DUMP_1         diff -q --strip-trailing-cr
-IP3_DUMP_2         diff -q --strip-trailing-cr
-START_DUMP_1       diff -q --strip-trailing-cr
-fma_sixtrack       diff -q --strip-trailing-cr
+IP3_DUMP_1
+IP3_DUMP_2
+START_DUMP_1
+fma_sixtrack

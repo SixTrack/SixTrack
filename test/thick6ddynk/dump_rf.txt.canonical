@@ -1,5 +1,5 @@
 # DUMP format #2, bez=ip.acta.31637   , number of particles=          64, dump period=           1, first turn=           1, last turn=          -1, HIGH=F, FRONT=F
-# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack
+# particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0[1] ktrack
         1        1      0.00000 -1.543908090E+00  5.397451126E-02  3.746514885E+00  5.496061087E-02  2.791630844E+02 -1.690103996E-03       31
         2        1      0.00000  4.517704715E-01  7.371358413E-02 -1.042703011E+00  2.615374187E-02 -4.076415074E+01  8.601110577E-04       31
         3        1      0.00000 -1.956182202E+00  1.088355059E-01  4.112158906E+00  1.437041821E-01  1.119602886E+02 -1.692217246E-03       31
