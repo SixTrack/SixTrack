@@ -1,4 +1,4 @@
- # turn element attribute SETidx funname value
+#       turn element              attribute             idx funname                        value
            1 CRAB1A               voltage                 1 on_1a                0.246757128E+01
            1 CRAB1B               voltage                 2 on_1b                0.246757128E+01
            1 CRAB1C               voltage                 3 on_1c                0.246757128E+01
