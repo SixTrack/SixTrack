@@ -113,7 +113,6 @@ SET(SIXTRACK_TESTS
   frs60
   frs
   javier
-  javier_bignpart
   lostevery
   lost
   lostnumxv
@@ -438,7 +437,6 @@ SET(MEDIUM_TESTS
   distance
   bbe51
   bbe52
-  javier_bignpart
   collimation_k2_fcc_2017_h1_collision
   orbit6d-ions-long
 )
