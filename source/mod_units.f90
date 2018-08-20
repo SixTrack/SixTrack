@@ -147,7 +147,7 @@ subroutine units_openUnit(unit,fileName,formatted,mode,err,status,recl)
 
   if(ioStat /= 0) then
     err = .true.
-    write(lout,"(a,i0)") "UNITS> File '"//trim(fFileName)//"' reportet iostat = ",ioStat
+    write(lout,"(a,i0)") "UNITS> File '"//trim(fFileName)//"' reported iostat = ",ioStat
   else
     err = .false.
   end if
