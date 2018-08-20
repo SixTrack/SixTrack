@@ -102,7 +102,7 @@ if(NAFF)
   SET(SIXTRACK_TESTS fma_naff ${SIXTRACK_TESTS})
 endif()
 
-#Non-collimation tests
+#General tests
 SET(SIXTRACK_TESTS
   bbe51
   bbe52
@@ -192,9 +192,18 @@ if(SIXDA)
   list(APPEND SIXTRACK_DA_TESTS frs_da thick4_da)
 endif()
 
-# Standard collimation tests (needs backtrk)
-# The BACKTRK flag does no longer exist, and the test has not been kept up to date.
+
+## UNUSED TESTS
+
+# Standard (K2) collimation tests that needs backtrk
+# However the BACKTRK flag does no longer exist, and the test has not been kept up to date.
 # SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
+
+# orbit6d-element-wire
+# thick6dsingles (only contains one canonical, fort.6, which shows that it crashes. Not sure what it is supposed to show?)
+# thick4in_da (copy of thick4_da that contains an extra huge MULT block in fort.3?)
+
+## END UNUSED TESTS
 
 #For CR builds, test the CR functions, so kill/resume the test
 if(CR)
