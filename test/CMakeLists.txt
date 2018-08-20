@@ -71,6 +71,7 @@ SET(TESTS_NOFORT10
   dump_all_highprec
   dump_2_all_ele_highprec
   beam-HO_6D-simple-newstyle-orbit
+  dynk_IIR
 )
 
 # List of tests that do not produce singletrackfile.dat or a fort.90
@@ -102,6 +103,7 @@ SET(SIXTRACK_TESTS
   dynk_operators
   dynk_random
   dynk_polynomial
+  dynk_IIR
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
@@ -368,6 +370,7 @@ SET(FAST_TESTS
   dynk_operators
   dynk_random
   dynk_polynomial
+  dynk_IIR
   elensidealthin4d
   elensidealthck4d
   elensidealthck6d
