@@ -112,8 +112,7 @@ SET(SIXTRACK_TESTS
   fcc
   frs60
   frs
-  javier
-  javier_bignpart
+  crabs
   lostevery
   lost
   lostnumxv
@@ -173,15 +172,13 @@ SET(SIXTRACK_TESTS
   rfMultipoles_4thOrder
   last_amp
   scatter_bbelastic
+  scatter_collimation
   scatter_aperture
   dump_all_highprec
   dump_2_all_ele_highprec
   perf1
   ${SIXTRACK_TESTS}
 )
-
-# COLLIMATION tests
-set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
 
 # Tests that require SixDA executable
 if(SIXDA)
@@ -356,7 +353,7 @@ SET(FAST_TESTS
   thick6dblocks
   thick6ddynk
   exact
-  javier
+  crabs
   bb
   bb_ntwin1
   notilt
@@ -413,8 +410,8 @@ SET(FAST_TESTS
   rfMultipoles_4thOrder
   last_amp
   scatter_bbelastic
-  scatter_aperture
   scatter_collimation
+  scatter_aperture
   dump_all_highprec
   dump_2_all_ele_highprec
   orbit6d-element-trombone
@@ -440,7 +437,6 @@ SET(MEDIUM_TESTS
   distance
   bbe51
   bbe52
-  javier_bignpart
   collimation_k2_fcc_2017_h1_collision
   orbit6d-ions-long
 )
