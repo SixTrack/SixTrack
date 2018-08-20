@@ -52,7 +52,7 @@ NEXT
 
 DYNK--------------------------------------------------------------------
     DEBUG
-// Setting up the crabs (since we are starting tracking inside the crab bump)
+    ! Setting up the crabs (since we are starting tracking inside the crab bump)
     FUN off CONST 0.0
     FUN on_1a CONST 2.467571280
     FUN on_1b CONST 2.467571280
@@ -62,36 +62,36 @@ DYNK--------------------------------------------------------------------
     FUN on_2b CONST 2.421832080
     FUN on_2c CONST 2.421832080
     FUN on_2d CONST 2.421832080
-//-----------------------------------
+    !-----------------------------------
     SET CRAB1A voltage on_1a 1 -1 0
     SET CRAB1B voltage on_1b 1 -1 0
     SET CRAB1C voltage on_1c 1 -1 0
     SET CRAB1D voltage on_1d 1 -1 0
-//-----------------------------------
+    !-----------------------------------
     SET CRAB2A voltage off 1 1 0
     SET CRAB2B voltage off 1 1 0
     SET CRAB2C voltage off 1 1 0
     SET CRAB2D voltage off 1 1 0
-//-----------------------------------
+    !-----------------------------------
     SET CRAB2A voltage on_2a 2 -1 0
     SET CRAB2B voltage on_2b 2 -1 0
     SET CRAB2C voltage on_2c 2 -1 0
     SET CRAB2D voltage on_2d 2 -1 0
-//-----------------------------------
-// CRAB detuning:
+    !-----------------------------------
+    ! CRAB detuning:
     FUN freq0 CONST 400.7900000e+00
     FUN deltaFreq LIN 100 0
     FUN freq ADD deltaFreq freq0
-// Convert the frequencies from MHz to radians/turn/Hz
+    ! Convert the frequencies from MHz to radians/turn/Hz
     FUN HzInvTurnFactor CONST 5.587288765e-4
     FUN deltaPhi MUL deltaFreq HzInvTurnFactor
-// Phi_{turn} = deltaW + Phi_{turn-1}
+    ! Phi_{turn} = deltaW + Phi_{turn-1}
     FUN phi_c2a IIR 1 IIRcoeffs.txt deltaPhi
     FUN phi_c2b IIR 1 IIRcoeffs.txt deltaPhi
     FUN phi_c2c IIR 1 IIRcoeffs.txt deltaPhi
     FUN phi_c2d IIR 1 IIRcoeffs.txt deltaPhi
-//-----------------------------------
-// Set the phases
+    !-----------------------------------
+    ! Set the phases
     SET CRAB2A phase phi_c2a 1 -1 0
     SET CRAB2B phase phi_c2b 1 -1 0
     SET CRAB2C phase phi_c2c 1 -1 0
