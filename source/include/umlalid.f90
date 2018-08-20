@@ -153,7 +153,7 @@ do j=1,ndimf
     dphi(j)=zero
   endif
   phi(j)=phi(j)+dphi(j)
-enddo !end of optics calculation
+enddo ! end include/of optics calculation
 
 if(ic(i)-nblo.gt.0) then !check if structure element is a block
    if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element

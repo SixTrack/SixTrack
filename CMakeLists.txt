@@ -297,7 +297,7 @@ list(APPEND FORT90_LIB
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist scatter dump dynk
 	aperture mod_fluc beam6d_fox six_fox postprocessing
-	read_input ranlux collimation
+	read_input ranlux collimation mod_particles
 )
 
 # Files unique to DA or CR version
@@ -921,7 +921,7 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 endif()
 
 #check that the compiler has the features we need!
-# Disabling this test until it's cmake version is in sync with the main build script.
+# Disabling this test until its cmake version is in sync with the main build script as this breaks on Ubuntu 16.04
 # See https://github.com/SixTrack/SixTrack/issues/594
 #include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
 

@@ -485,7 +485,7 @@ subroutine scatter_dumpData
 
   write(lout,"(a,i3,a)") "scatter_cData: (",scatter_ncData,"):"
   do i=1,scatter_ncData
-    write(lout,"(i4,a)") i,": '"//chr_trimZero(scatter_cData(i))//"'"
+    write(lout,"(i4,a)") i,": '"//trim(scatter_cData(i))//"'"
   end do
 
   write(lout,"(a)") "SCATTER> DEBUG END DUMP"
@@ -628,7 +628,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
 
   ! Find the profile name referenced
   do j=1,scatter_nPROFILE
-    if(chr_trimZero(scatter_cData(scatter_PROFILE(j,1))) == lnSplit(3)) then
+    if(trim(scatter_cData(scatter_PROFILE(j,1))) == lnSplit(3)) then
       scatter_ELEM(scatter_nELEM,2) = j
     end if
   end do
@@ -653,7 +653,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
 
     ! Search for the generator with the right name
     do j=1, scatter_nGENERATOR
-      if(chr_trimZero(scatter_cData(scatter_GENERATOR(j,1))) == lnSplit(ii)) then
+      if(trim(scatter_cData(scatter_GENERATOR(j,1))) == lnSplit(ii)) then
         ! Found it
         scatter_ELEM(scatter_nELEM,ii-4+2) = j
       end if
@@ -716,7 +716,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
 
   ! Check that the profile name is unique
   do ii=1,scatter_nPROFILE-1
-    if(chr_trimZero(scatter_cData(scatter_PROFILE(ii,1))) == lnSplit(2)) then
+    if(trim(scatter_cData(scatter_PROFILE(ii,1))) == lnSplit(2)) then
       write(lout,"(a)") "SCATTER> ERROR Profile name '"//lnSplit(2)//"' is not unique."
       call prror(-1)
     end if
@@ -810,7 +810,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
 
   ! Check that the generator name is unique
   do ii=1,scatter_nGENERATOR-1
-    if(chr_trimZero(scatter_cData(scatter_GENERATOR(ii,1))) == lnSplit(2)) then
+    if(trim(scatter_cData(scatter_GENERATOR(ii,1))) == lnSplit(2)) then
       write(lout,"(a)") "SCATTER> ERROR Generator name '"//lnSplit(2)//"' is not unique."
       call prror(-1)
     end if
@@ -1006,7 +1006,7 @@ subroutine scatter_thin(i_elem, ix, turn)
         iRecords(1,nRecords) = j
         iRecords(2,nRecords) = turn
         cRecords(1,nRecords) = bez(ix)
-        cRecords(2,nRecords) = chr_trimZero(scatter_cData(scatter_GENERATOR(GENidx,1)))
+        cRecords(2,nRecords) = trim(scatter_cData(scatter_GENERATOR(GENidx,1)))
         rRecords(1,nRecords) = t
         rRecords(2,nRecords) = xi
         rRecords(3,nRecords) = theta
@@ -1015,7 +1015,7 @@ subroutine scatter_thin(i_elem, ix, turn)
       else
 #endif
         write(scatter_logFile,"(2(1x,I8),2(1x,A),2(1x,F13.3),3(1x,1PE16.9))") j, turn, bez(ix), &
-            chr_trimZero(scatter_cData(scatter_GENERATOR(GENidx,1))), &
+            trim(scatter_cData(scatter_GENERATOR(GENidx,1))), &
             t, xi, theta, rndPhi(j), P
 #ifdef HDF5
       end if
