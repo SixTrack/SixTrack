@@ -1813,14 +1813,11 @@ subroutine dump_crcheck_positionFiles
     if (ldump(i)) then
       write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
       if (i > 0) then
-        write(93,*) "element=",bez(i), "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))// &
-                    "' format=",dumpfmt(i)
+        write(93,*) "element=",bez(i), "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))//"' format=",dumpfmt(i)
       else if (i == 0) then
-        write(93,*) "element=","ALL" , "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))// &
-                    "' format=",dumpfmt(i)
+        write(93,*) "element=","ALL" , "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))//"' format=",dumpfmt(i)
       else if(i  ==  -1) then
-        write(93,*) "element=","StartDump" , "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))// &
-                    "' format=",dumpfmt(i)
+        write(93,*) "element=","StartDump" , "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))//"' format=",dumpfmt(i)
       else
         write(93,*) "Error - index=",i,"is unknown"
         goto 111
