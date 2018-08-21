@@ -2,8 +2,9 @@
 lib/zlib/* linguist-vendored
 
 *.canonical linguist-generated
-test/*/fort.2 linguist-generated
-*.8 linguist-generated
+test/*/fort.2  linguist-generated
+test/*/fort.3  linguist-language=text
+test/*/fort.8  linguist-generated
 test/*/fort.13 linguist-generated
 
 # Ignore build folders when diffing
