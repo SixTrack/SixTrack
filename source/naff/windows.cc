@@ -14,7 +14,7 @@ std::vector<std::complex<double>> cheb_window(const size_t N, const double a = 5
   double tg = pow(10, a);
   double x0 = cosh((1.0/(N-1))*acosh(tg));
   double M = (N-1)/2;
-  if(N%2==0) M = M + 0.5; 
+  if(N%2==0) M = M + 0.5;
   for(size_t nn=0; nn<(N/2+1); nn++){
       double n = nn-M;
       double sum = 0;
@@ -26,11 +26,11 @@ std::vector<std::complex<double>> cheb_window(const size_t N, const double a = 5
       if (out[nn]>max)
         max=out[nn];
   }
-  for(size_t nn=0; nn<N; nn++) 
-    out[nn] /= max; 
+  for(size_t nn=0; nn<N; nn++)
+    out[nn] /= max;
   for (const auto i:out) {
     complex_out.emplace_back(i,0.);
-  } 
+  }
   return complex_out;
 }
 
@@ -61,7 +61,7 @@ std::vector<std::complex<double>> hann_harm_window(const size_t N, const double 
 }
 
 void WindowFunc::compute(const size_t N) {
-  if (type == 'c') { 
+  if (type == 'c') {
     window = cheb_window(N, parameter);
   }
   else if (type == 'h') {
@@ -79,7 +79,7 @@ void WindowFunc::compute(const size_t N) {
 }
 
 void WindowFunc::compute(const size_t N, const double param, const char tp) {
-  if (type == 'c') { 
+  if (type == 'c') {
     window = cheb_window(N, param);
   }
   else if (type == 'h') {
@@ -104,13 +104,13 @@ std::complex<double> WindowFunc::operator()(size_t t, size_t N) {
   }
   return window[t];
 }
- 
+
 std::complex<double> WindowFunc::operator()(size_t t, size_t N) const {
   if (window.size()!=N) {
-    throw std::runtime_error("window and signal sizes do not match"); 
+    throw std::runtime_error("window and signal sizes do not match");
   }
   return window[t];
-} 
+}
 
 std::vector<std::complex<double>> taylor_window(const size_t N, const double SLL) {
   std::vector<std::complex<double>> out;
@@ -176,7 +176,7 @@ std::vector<std::complex<double>> taylor_window(const size_t N, const double SLL
       }
       sum[i] = summation;
       W[i] = W[i] + 2 * sum[i];
-    } 
+    }
     return W;
   };
 

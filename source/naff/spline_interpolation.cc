@@ -38,11 +38,11 @@ std::complex<double> spline (const double& t, const std::vector<std::complex<dou
   auto q2 = [&x1,&x2,&y1,&y2,&a_2,&b_2,&ccounter](double x) {
     double t = (x-x1)/(x2-x1);
     return (1-t)*y1+t*y2+t*(1.0-t)*(a_2*(1.0-t)+b_2*t);
-  }; 
-  return std::complex<double>(q2(t),0.0); 
+  };
+  return std::complex<double>(q2(t),0.0);
   // }
   //else
-  //  return data[int(t)]; 
+  //  return data[int(t)];
 }
 
 
