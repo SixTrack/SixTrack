@@ -134,8 +134,8 @@ subroutine prror(ier)
   !   write(lout,10490)
   ! case (50)
   !   write(lout,10500)
-  case (51)
-    write(lout,10510)
+  ! case (51)
+  !   write(lout,10510)
   ! case (52)
   !   write(lout,10520) nema
   ! case (53)
@@ -250,10 +250,10 @@ subroutine prror(ier)
   call fluka_close
 #endif
 
-  call closeUnits
 #ifdef CR
   call abend('                                                  ')
 #else
+  call closeUnits
   stop 1
 #endif
 
@@ -389,6 +389,7 @@ subroutine abend(cstring)
   use mod_common
   use checkpoint_restart
   use string_tools
+  use mod_units
 
   implicit none
 
@@ -398,7 +399,7 @@ subroutine abend(cstring)
   character(len=*) cstring
   character(len=256) filename
   real(kind=fPrec) sumda(60)
-  logical fopen, rErr
+  logical fopen, rErr, fErr
   character(len=8192) ch
   character(len=25) ch1
   integer errno,l1,l2
@@ -416,41 +417,12 @@ subroutine abend(cstring)
 
   ! If fort.10 is inexistent (physics error or some other problem)
   ! we try and write a 0d0 file with a turn number and CPU time
-  write(93,*) 'SIXTRACR STOP/ABEND checking fort.10'
+  write(93,"(a)") 'SIXTRACR STOP/ABEND checking fort.10'
   endfile(93,iostat=ierro)
   backspace(93,iostat=ierro)
 
-#ifdef NAGFOR
-#ifdef BOINC
-  call boincrf('fort.10',filename)
-#ifdef FIO
-  open(10,file=filename,form='formatted',status='unknown',err=11,round='nearest',recl=8195)
-#else
-  open(10,file=filename,form='formatted',status='unknown',err=11,recl=8195)
-#endif
-#else
-#ifdef FIO
-  open(10,file='fort.10',form='formatted',status='unknown',err=11,round='nearest',recl=8195)
-#else
-  open(10,file='fort.10',form='formatted',status='unknown',err=11,recl=8195)
-#endif
-#endif
-#else
-#ifdef BOINC
-  call boincrf('fort.10',filename)
-#ifdef FIO
-  open(10,file=filename,form='formatted',status='unknown',err=11,round='nearest')
-#else
-  open(10,file=filename,form='formatted',status='unknown',err=11)
-#endif
-#else
-#ifdef FIO
-  open(10,file='fort.10',form='formatted',status='unknown',err=11,round='nearest')
-#else
-  open(10,file='fort.10',form='formatted',status='unknown',err=11)
-#endif
-#endif
-#endif
+  call units_openUnit(unit=10,fileName="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
+  if(fErr) goto 11
 
   ! Now we try and read fort.10 i.e. is it empty?
   read(10,'(a1024)',end=11,err=11,iostat=ierro) arecord
@@ -548,7 +520,7 @@ subroutine abend(cstring)
     goto 3
   end if
 
-1 write(6,*,iostat=ierro) 'SIXTRACR stop '//cstring
+1 write(6,"(a)",iostat=ierro) 'SIXTRACR> Stop '//cstring
   close(6,iostat=ierro)
   ! and get rid of fort.92
   rewind 92

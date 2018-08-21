@@ -98,10 +98,6 @@ if(LIBARCHIVE)
   SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
 endif()
 
-if(NAFF)
-  SET(SIXTRACK_TESTS fma_naff ${SIXTRACK_TESTS})
-endif()
-
 #General tests
 SET(SIXTRACK_TESTS
   bbe51
@@ -144,6 +140,7 @@ SET(SIXTRACK_TESTS
   elensidealthck6d
   fma
   fma_binary
+  fma_naff
   dump7_fma
   dump7_fma_thin4d
   dump8_fma
