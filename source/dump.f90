@@ -1813,14 +1813,11 @@ subroutine dump_crcheck_positionFiles
     if (ldump(i)) then
       write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
       if (i > 0) then
-        write(93,*) "element=",bez(i), "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))// &
-                    "' format=",dumpfmt(i)
+        write(93,*) "element=",bez(i), "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))//"' format=",dumpfmt(i)
       else if (i == 0) then
-        write(93,*) "element=","ALL" , "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))// &
-                    "' format=",dumpfmt(i)
+        write(93,*) "element=","ALL" , "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))//"' format=",dumpfmt(i)
       else if(i  ==  -1) then
-        write(93,*) "element=","StartDump" , "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))// &
-                    "' format=",dumpfmt(i)
+        write(93,*) "element=","StartDump" , "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))//"' format=",dumpfmt(i)
       else
         write(93,*) "Error - index=",i,"is unknown"
         goto 111
@@ -1844,7 +1841,7 @@ subroutine dump_crcheck_positionFiles
           dumpfilepos(i) = dumpfilepos(i) + 1
         end do
 
-      else                         ! BINARY (format = 3 & 8)
+      else                         ! BINARY (format = 3 & 8 & 101)
         if (.not. lopen) then
 #ifdef BOINC
           call boincrf(dump_fname(i),filename)
@@ -1855,14 +1852,21 @@ subroutine dump_crcheck_positionFiles
         end if
         dumpfilepos(i) = 0
         do j=1,dumpfilepos_cr(i)
-           if  (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8) then
+          if  (dumpfmt(i) == 3 .or. dumpfmt(i) == 8) then
             read(dumpunit(i),end=111,err=111,iostat=ierro) &
               tmp_ID,tmp_nturn,tmp_dcum,tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,tmp_ktrack
-           else if ( dumpfmt(i) /= 101) then
+          else if ( dumpfmt(i) == 101) then
             read(dumpunit(i),end=111,err=111,iostat=ierro) &
               tmp_ID,tmp_nturn,tmp_dcum,tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,tmp_ktrack, &
               tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x
-            end if
+          else
+            write(93,'(a,i0)') &
+              "SIXTRACR> ERROR DUMP_CRCHECK_POSITIONFILES failure positioning DUMP file: unknown format ",dumpfmt(i)
+            write(lout,'(a,i0)') &
+              "SIXTRACR> ERROR DUMP_CRCHECK_POSITIONFILES failure positioning DUMP file: unknown format ",dumpfmt(i)
+            flush(93)
+            call prror(-1)
+          end if
           dumpfilepos(i) = dumpfilepos(i) + 1
         end do
       end if
@@ -1899,7 +1903,7 @@ subroutine dump_crcheck_positionFiles
   return
 
 111 continue
-  write(93,*) 'SIXTRACR DUMP_CRCHECK_POSITIONFILES *** ERROR *** reading DUMP file#', dumpunit(i),' iostat=',ierro
+  write(93,*) 'SIXTRACR> DUMP_CRCHECK_POSITIONFILES *** ERROR *** reading DUMP file#', dumpunit(i),' iostat=',ierro
   write(93,*) 'dumpfilepos=',dumpfilepos(i),' dumpfilepos_cr=',dumpfilepos_cr(i)
   flush(93)
   write(lout,"(a)") "SIXTRACR> ERROR DUMP_CRCHECK_POSITIONFILES failure positioning DUMP file"
