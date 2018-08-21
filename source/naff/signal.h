@@ -16,23 +16,23 @@
 class Component {
   public:
     double freq;
-    size_t signal_size;
+    size_t signal_size; 
     std::complex<double> ampl;
-
-    Component (): ampl(1.,0.) {}
+    
+    Component (): ampl(1.,0.) {}    
     Component(double freq, size_t signal_size): freq(freq), signal_size(signal_size), ampl(1.,0.) {}
     ~Component () {}
-
+    
     std::complex<double> operator[] (size_t t) const {
-      return (exp(2*pi*freq*t*imag));
+      return (exp(2*pi*freq*t*imag));    
     }
-
+    
     size_t size() const {
       return signal_size;
     }
 };
 
-class ComponentVector {
+class ComponentVector { 
   public:
     typedef std::vector<std::complex<double>> data_t;
     std::complex<double> ampl;
@@ -67,9 +67,9 @@ class ComponentVector {
 
 class Signal {
   public:
-    ComponentVector::data_t data;
+    ComponentVector::data_t data; 
     Signal() {}
-
+    
     Signal(const std::vector<std::complex<double>> & v){
       for (const auto i:v) data.emplace_back(i);
     }
@@ -77,10 +77,10 @@ class Signal {
     Signal& operator=(const Signal &) = default;
 
     ~Signal() {}
-
+    
     std::complex<double> operator[] (size_t t) const {
       return data[t];
-    }
+    }    
 
     std::complex<double> operator[] (double t) const {
       return spline(t, data);
@@ -91,7 +91,7 @@ class Signal {
       size_t b = (int)(t)+1;
       return data[a]+(data[b]-data[a])*(t-a)/(1.0*(b-a));
      }
-
+           
     size_t size() const{
       return data.size();
     }
@@ -103,7 +103,7 @@ class Signal {
         data[i] -= std::conj(other[i]);
       }
       return *this;
-    }
+    }    
 };
 
 class WindowFunc;
@@ -128,7 +128,7 @@ void write_file (const std::string&, const std::vector<std::complex<double>>&, c
 void write_fft (const std::string&,const std::vector<double>&, const std::vector<double>&, const double&, const double&, const double&) ;
 
 void write_file_merit (const std::string&, const std::function<double(double)>&, const double& , const double&, const double&);
-
+  
 size_t multiple_of_six(std::vector<double>&);
 
 class Print_opt {
