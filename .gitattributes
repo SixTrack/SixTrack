@@ -1,13 +1,12 @@
-#Setup for github-linguist
-lib/zlib/* linguist-vendored
+# Setup for github-linguist
+lib/zlib/*  linguist-vendored
 
 *.canonical linguist-generated
-test/*/fort.2  linguist-generated
-test/*/fort.3  linguist-language=text
-test/*/fort.8  linguist-generated
-test/*/fort.13 linguist-generated
+*.2         linguist-generated
+*.3         linguist-language=text
+*.8         linguist-generated
+*.13        linguist-generated
+*.16        linguist-generated
 
 # Ignore build folders when diffing
 build*/ -diff
-
-# TODO: fort.3 files should probably be explicitly kept, but they are not Roff...
