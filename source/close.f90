@@ -28,6 +28,8 @@ subroutine closeUnits
 
   ! Then iterate through the first 1000 units
   do chkUnit=1, funit_minUnit-1
+    ! Do not close C/R files. handled by abend
+    if(chkUnit >= 91 .and. chkUnit <= 96) cycle
     inquire(unit=chkUnit, opened=isOpen)
     if(isOpen) close(chkUnit)
   end do

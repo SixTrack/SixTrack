@@ -417,7 +417,7 @@ subroutine abend(cstring)
 
   ! If fort.10 is inexistent (physics error or some other problem)
   ! we try and write a 0d0 file with a turn number and CPU time
-  write(93,*) 'SIXTRACR STOP/ABEND checking fort.10'
+  write(93,"(a)") 'SIXTRACR STOP/ABEND checking fort.10'
   endfile(93,iostat=ierro)
   backspace(93,iostat=ierro)
 
