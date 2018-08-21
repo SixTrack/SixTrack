@@ -91,7 +91,6 @@ OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" O
 OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
 OPTION(WARN "Enable build flags for additional compiler warnings" OFF)
 OPTION(ROOT "Link to the root libraries" OFF)
-OPTION(NAFF "Use NAFF library for FMA analysis" OFF)
 
 # Build options
 OPTION(32BIT "Create a 32bit binary" OFF)
@@ -184,9 +183,6 @@ endif()
 if(MERLINSCATTER)
 	SET(SIXTRACK_FEAT_CR "merlinscatter_${SIXTRACK_FEAT_CR}")
 endif()
-if(NAFF)
-	SET(SIXTRACK_FEAT_CR "naff_${SIXTRACK_FEAT_CR}")
-endif()
 if(G4COLLIMAT)
 	SET(SIXTRACK_FEAT_CR "g4collimat_${SIXTRACK_FEAT_CR}")
 endif()
@@ -260,7 +256,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}_${SIXTRACK_FEAT_DA}")
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER NAFF G4COLLIMAT FLUKA CR)
+LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR)
 LIST(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
 LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
@@ -934,30 +930,19 @@ if(MERLINSCATTER)
 	endif(64BIT)
 endif()
 
-if(NAFF)
-	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/source/cmake_modules/")
-	if (STATIC)
-		SET(FFTW_USE_STATIC_LIBS 1)
-	endif()
-	find_package(FFTW REQUIRED)
-	include_directories( ${FFTW_INCLUDES} )
-	message(STATUS "Include dirs of FFTW: " ${FFTW_INCLUDES} )
-	message(STATUS "Libs of of FFTW:      " ${FFTW_LIBRARIES} )
+file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/source/naff/*.cpp ${CMAKE_SOURCE_DIR}/source/naff/*.cc)
+add_library(naff STATIC ${NAFF_SOURCES})
 
-	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/source/naff/*.cpp ${CMAKE_SOURCE_DIR}/source/naff/*.cc)
-	add_library(naff STATIC ${NAFF_SOURCES})
-	target_link_libraries(naff ${FFTW_LIBRARIES})
+#Enable c++11
+set_property(TARGET naff PROPERTY CXX_STANDARD 11)
 
-	#Enable c++11
-	set_property(TARGET naff PROPERTY CXX_STANDARD 11)
-
-	if(32BIT)
-		SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m32")
-	endif(32BIT)
-	if(64BIT)
-		SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m64")
-	endif(64BIT)
-endif()
+if(32BIT)
+	SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m32")
+endif(32BIT)
+if(64BIT)
+	SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m64")
+endif(64BIT)
+#endif()
 
 if(BOINC AND API)
 	include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
@@ -1140,9 +1125,7 @@ if(MERLINSCATTER)
 	target_link_libraries(SixTrackCR merlinscatter)
 endif(MERLINSCATTER)
 #if we are using naff, link to the naff library
-if(NAFF)
-	target_link_libraries(SixTrackLib naff)
-endif(NAFF)
+target_link_libraries(SixTrackLib naff)
 
 #if we are using root, link to all the root libraries
 if(ROOT)

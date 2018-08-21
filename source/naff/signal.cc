@@ -15,7 +15,7 @@ std::complex<double> inner_product(const T1& t1, const T2& t2, const WindowFunc 
     std::complex<double> result2;
     std::vector<std::complex<double>> hardy_result;
     for (size_t i =0; i<t1.size(); i++) {
-      hardy_result.emplace_back(t1[i]*std::conj(t2[i])*window_func(i,t1.size()));
+      hardy_result.emplace_back(t1[i]*std::conj(t2[i])*window_func(i,t1.size()));   
     }
     bool flag = false;
     size_t new_size = t1.size();
@@ -25,14 +25,14 @@ std::complex<double> inner_product(const T1& t1, const T2& t2, const WindowFunc 
       else
         new_size-=1;
     }
-    size_t K = (new_size-1)/6;
+    size_t K = (new_size-1)/6; 
     result2 = 41.*hardy_result[0] + 216.*hardy_result[1]+27.* hardy_result[2] + 272.*hardy_result[3]+ 27.*hardy_result[4]+ 216.*hardy_result[5]+ 41.*hardy_result[new_size-1];
     for (size_t i=1;i<K;i++) {
       result2 += 82.0*hardy_result[6*i+1-1] + 216.0*hardy_result[6*i+2-1]+ 27.0*hardy_result[6*i+3-1]+272.0*hardy_result[6*i+4-1]+27.0*hardy_result[6*i+5-1]+216.0*hardy_result[6*i+6-1];
-    }
+    }  
     double h = 1.0/(new_size*1.0);
     result2 *= h*6.0/840.0;
-    return result2;
+    return result2;  
   }
 }
 
@@ -64,7 +64,7 @@ void signal_projection (const Signal& v, ComponentVector& u, const WindowFunc & 
 
 double cmp_RMS (const std::vector<double>& data) {
   double res = abs(std::inner_product(data.begin(), data.end(), data.begin(),std::complex<double>(0,0))/(data.size()*1.0));
-  return sqrt(res);
+  return sqrt(res);  
 }
 
 std::ostream& operator <<(std::ostream& os, Component c) {
