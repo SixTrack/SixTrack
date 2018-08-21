@@ -22,4 +22,5 @@ F.&nbsp;Schmidt (DESY, CERN), E.&nbsp;Mcintosh, H.&nbsp;Ranshall, H.&nbsp;Grote,
 
 ## Building SixTrack
 
-  * Please see the [build manual](http://sixtrack.web.cern.ch/SixTrack/docs/build_full/manual.php)
+  * [General Requirements and Build Options](doc/build_sixtrack.md)
+  * Further details covered in the [build manual](http://sixtrack.web.cern.ch/SixTrack/docs/build_full/manual.php)
