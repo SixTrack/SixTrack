@@ -11,15 +11,44 @@ IN PROGRESS
 * MULTIPOLES now consider the curvature effect when there is a quadrupolar field in the dipole (element 11). This is mainly useful to model combined function magnets.
 * Added new "debugging" format to DUMP, format 101.
 * Updated DUMP manual and headers for consistency.
+* COLLIMAT compilation flag removed. The collimation code is always compiled, and is controlled by the `COLL` block in `fort.3`.
+* Fixes to phase trombone implementation.
+* FMA is now using `atan2` in stead of `atan` to get the phase.
+* ABS function added to DYNK.
+* Flag `ibidu` and file `fort.32` was removed.
+* Improved error reporting and consistency throughout the code.
+* SixTrack output header updated, adding including GIT hash and key build flags. Timing report at the end of execution also improved.
+
+**Documentation**
+
+* Collimation was added to manual.
+* HDF5 module was documented.
 
 **Code Improvements and Changes**
 
-* The old fixed length getfields_split routine has been removed entirely from the source. It is replaced bu chr_split from the string_tools module.
-* All remaining usage of zero chars have has been removed from the source. Zero-terminated strings should now be handled by interface routines for c. The fixed length stringzerotrim routine has been removed, but the variable length chr_trimZero remains in case it is needed in the future.
+* The old fixed length getfields_split routine has been removed entirely from the source. It is replaced by `chr_split` from the `string_tools` module.
+* All remaining usage of zero chars have has been removed from the source. Zero-terminated strings should now be handled by interface routines for c. The fixed length `stringzerotrim` routine has been removed, but the variable length chr_trimZero remains in case it is needed in the future.
+* Collimation arrays only allocated when COLL block is present. When present, memory use is significantly increased (as before).
+* Particles and energy update codes centralized in new module `mod_particles`.
+* Some NaNs are now quiet.
+* SixTrack no longer exits on underflow when compiled with build type `debug`.
+* Libraries boinc, libarchive, and zlib were moved from `source` to `lib`.
+* Consolidated `alloc`/`resize` calls and removed redundant interface `resize` from `mod_alloc`.
+* Updated `DYNK`, `FMA`, `ZIPF`, and `ROOT` blocks to use the new string split routines. 
+* New flexible wrapping system `chr_fromReal()` for converting floating point numbers to strings. Added to `DUMP`, making the DUMP outputs consistent between compilers.
 
 **Tests**
 
 * Added tests for nearly all of the DYNK FUN statements. Only PELP, PIPE, and FIR are currently untested.
+* The old SixTest test harness was finally deleted, and the `test` folder was cleaned up.
+* Updated canonicals for `prob1` / `prob3`, `fma*`, `dump*`. All tests except `*elens*` should now work.
+* Added test that the user manual builds correctly.
+* Continuous integration (CI) was added.
+
+**Bug Fixes**
+
+* MULT block with non-existent single element now causes an error instead of writing the coefficients to invalid memory.
+* Fixed write-to-outside-an-array error in `track_thin`.
 
 ### Version 5.0 RC3 [12.07.2018] - Release Candidate
 
@@ -40,7 +69,7 @@ IN PROGRESS
 
 **Code Improvements and Changes**
 
-* The custom astuce pre-processor has been removed and everything is now handled by the c pre-processor. This implies that:
+* The custom astuce pre-processor has been removed and everything is now handled by the C pre-processor. This implies that:
   * Includes are now handled by `#include` statements and the files are located in the include folder. `+cd` blocks are gone.
   * Nearly all common blocks have been removed and the variables moved into modules.
 * Renamed the folders `SixTrack` to `source` and `SixTest` and `SixTest_da` to `test`.
@@ -50,6 +79,7 @@ IN PROGRESS
 * Added a completely new string split routine, and started phasing out both the old ones. The new routine uses dynamic array allocation and therefore have no strict limits to size and number of elements.
 * Completely rewritten subroutine daten. All blocks are now parsed line by line in a single fort.2/fort.3 loop. Lines are either parsed in the module corresponding to the given block, or in a separate subroutine in the new module sixtrack_input. Diagnostics and debug routines have been added.
 * Opening of standard SixTrack I/O files are now handled by module mod_units. This is different from the dynamically assigned file units module as these are fixed units with compiler flags for FIO, CRLIBM and BOINC handled internally. This removes the need to specifiy open calls for each set of flags every time a file is opened.
+* Wrapper for converting strings to real(32/64/128), presenting one user interface `chr_cast()` to the programmer, internally using different codes for CRLIBM, non-CRLIBM, and FIO. This cleanes up input reading a lot.
 
 **Disabled or Removed Features**
 
