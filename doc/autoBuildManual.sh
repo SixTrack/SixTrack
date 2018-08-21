@@ -1,5 +1,13 @@
 #!/bin/bash
 
+if [ -f "../cmake_six" ]; then
+  echo "Attemting to run the script from within the repository. This should not be done."
+  echo "This script will clone the SixTrack repository itself into a local build folder."
+  echo "Please copy this script to a separate folder and run it there."
+  echo "Exiting ..."
+  exit 1
+fi
+
 mkdir -pv build
 cd build
 
