@@ -420,6 +420,7 @@ int main(int argc, char* argv[])
 				fort6.seekg(-1,fort6.end);
 				char ch;
 				size_t haslines = 0;
+				bool aborted_reading = false;
 				while (haslines<=NLINES)
 				{
 					fort6.get(ch);
@@ -427,11 +428,13 @@ int main(int argc, char* argv[])
 					if((int)fort6.tellg() <= 1)
 					{
 						fort6.seekg(0);
+						aborted_reading = true;
 						break;
 					}
 					// If the data was a newline
 					else if(ch == '\n') {
 						haslines += 1;
+						// Move to whatever is before the '\n'
 						fort6.seekg(-2,fort6.cur);
 					}
 					// If the data was neither a newline nor at the 0 byte
@@ -441,6 +444,10 @@ int main(int argc, char* argv[])
 					        //  then to the front of the data before it
 						fort6.seekg(-2,fort6.cur);
 					}
+				}
+				if (not aborted_reading) {
+					// Skip to after the final random character and \n
+					fort6.seekg(+2,fort6.cur);
 				}
 				//OK, now we have moved NLINES up ahead; time to read and print again
 				std::string fort6_line;

@@ -48,12 +48,12 @@ module bdex
   !           If col 1 is PIPE, then it is the unit number to use (first of two consecutive).
   integer, save :: bdex_channels(bdex_maxchannels,4)
   ! The names of the BDEX channel
-  character(len=getfields_l_max_string ), save :: bdex_channelNames(bdex_maxchannels)
+  character(len=mStrLen), save :: bdex_channelNames(bdex_maxchannels)
 
   !Number of places in the bdex_xxStorage arrays
   integer, parameter :: bdex_maxStore=20
   integer, save :: bdex_nstringStorage
-  character(len=getfields_l_max_string ), save :: bdex_stringStorage ( bdex_maxStore )
+  character(len=mStrLen), save :: bdex_stringStorage ( bdex_maxStore )
 
 contains
 

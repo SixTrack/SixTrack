@@ -1,34 +1,4 @@
 ! ================================================================================================ !
-!
-!  SixTrack
-!
-!  The code contains the SixTrack particle simulation code written by:
-!    F. Schmidt, DESY, CERN
-!    E. Mcintosh, H. Ranshall, H. Grote, F. James,
-!    K. Koelbig, K. Heinemann, M. Vaenttinen,
-!    R. Assman, C. Bracco, R. Bruce, D. Mirarchi, V. Previtali,
-!    S. Redaelli, G. Robert-Demolaize, E. Quaranta
-!    A. Rossi, C. Tambasco, T. Weiler,
-!    J. Barranco, Y. Sun, Y. Levinsen, M. Fjellstrom,
-!    A. Santamaria, R. Kwee-Hinzmann, A. Mereghetti, K. Sjobak,
-!    M. Fiascaris, J.F. Wagner, J. Wretborn, V.K. Berglyd Olsen, CERN
-!    M. Fitterer, FNAL, CERN
-!    A. Patapenka,  NIU, CERN
-!    G. Robert-Demolaize, BNL
-!    V. Gupta, Google Summer of Code (GSoC)
-!    J. Molson, UMAN, LAL, CERN
-!    S. Kostoglou, NTUA, CERN
-!
-!  Copyright 2014 CERN. This software is distributed under the terms of the GNU
-!  Lesser General Public License version 2.1, copied verbatim in the file ``COPYING''.
-!
-!  In applying this licence, CERN does not waive the privileges and immunities
-!  granted to it by virtue of its status as an Intergovernmental Organization or
-!  submit itself to any jurisdiction.
-!
-! ================================================================================================ !
-
-! ================================================================================================ !
 !  DATEN - INPUT PARSING
 ! ~~~~~~~~~~~~~~~~~~~~~~~
 !  Rewritten by V.K. Berglyd Olsen, BE-ABP-HSS
@@ -836,7 +806,8 @@ subroutine daten
     elseif(closeBlock) then
       call zipf_parseInputDone
     else
-      call zipf_parseInputline(inLine)
+      call zipf_parseInputline(inLine,inErr)
+      if(inErr) goto 9999
     end if
 
   case("SCAT") ! SCATTER Input Block
@@ -846,7 +817,7 @@ subroutine daten
     elseif(closeBlock) then
       if(scatter_debug) call scatter_dumpData
     else
-      call scatter_parseInputLine(string(adjustl(inLine)))
+      call scatter_parseInputLine(string(inLine))
     end if
 
   case("HDF5") ! HDF5 Input Block
@@ -873,7 +844,8 @@ subroutine daten
   elseif(closeBlock) then
     call root_parseInputDone
   else
-    call root_daten(inLine)
+    call root_daten(inLine,inErr)
+    if(inErr) goto 9999
   end if
 #endif
 

@@ -136,8 +136,10 @@ subroutine crcheck
   use mod_commont
   use mod_commond
   use mod_hions
+  use mod_version
+
   implicit none
-#include "version.f90"
+
   integer i,j,k,l,m,ia
   integer lstring,myia,mybinrecs,binrecs94
 
@@ -764,9 +766,10 @@ subroutine crpoint
       use mod_commont
       use mod_commond
       use mod_hions
+      use mod_version
+
       implicit none
 
-#include "version.f90"
       integer i,j,l,k,m
       integer lstring,osixrecs,ncalls
       logical lerror

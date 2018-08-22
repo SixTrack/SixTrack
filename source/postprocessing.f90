@@ -37,6 +37,7 @@ subroutine postpr(nfile)
       use crcoall
       use parpro
       use string_tools
+      use mod_version
       use mod_common, only : dpscor,sigcor,icode,idam,its6d, &
            dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad, &
            ipos,iav,iwg,ivox,ivoz,ires,ifh,toptit, &
@@ -115,7 +116,6 @@ subroutine postpr(nfile)
       integer nnuml
 #endif
       integer itot,ttot
-#include "version.f90"
       save
 !----------------------------------------------------------------------
 !--TIME START

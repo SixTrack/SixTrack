@@ -5,7 +5,7 @@
 // K. Sjobak and S. Kostoglou (CERN)
 // August 2017
 
-extern "C" double tunenaff(double* x,  double* xp, int maxn, int plane_idx, int norm_flag) {
+extern "C" double tunenaff(double* x,  double* xp, int maxn, int plane_idx, int norm_flag, double fft_naff) {
 
   // Don't mix buffers with Fortran (make sure to flush before calling this code too)
   std::cout << std::flush;
@@ -18,6 +18,8 @@ extern "C" double tunenaff(double* x,  double* xp, int maxn, int plane_idx, int 
   std::cout << "norm_flag = " << norm_flag   << std::endl << std::flush;
   std::cout << "x[0]      = " << *x          << std::endl << std::flush;
   std::cout << "xp[0]     = " << *xp         << std::endl << std::flush;
+  std::cout << "fft_naff     = " << fft_naff         << std::endl << std::flush;*/
+  /*
   for( int i = 0; i < maxn; i++ ) {
     std::cout << "i=" << i << std::endl << std::flush;
     std::cout << x[i] << " " << xp[i] << std::endl << std::flush;
@@ -60,7 +62,7 @@ extern "C" double tunenaff(double* x,  double* xp, int maxn, int plane_idx, int 
   if ( plane_idx != 3 )
     naff.set_window_parameter(2, 'h');
 
-  double tune = naff.get_f1(data,data_prime);
+  double tune = naff.get_f1(data,data_prime,fft_naff);
 
   // FFTW library returns tune from 0-0.5
   if ( plane_idx == 3 )

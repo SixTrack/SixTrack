@@ -1,7 +1,7 @@
-OP0_DUMP         diff -q --strip-trailing-cr
-OP1_DUMP         diff -q --strip-trailing-cr
-OP2_DUMP         diff -q --strip-trailing-cr
-OP3_DUMP         diff -q --strip-trailing-cr
-OP4_DUMP         diff -q --strip-trailing-cr
-OP5_DUMP         diff -q --strip-trailing-cr
-OPBEAM_DUMP         diff -q --strip-trailing-cr
+OP0_DUMP
+OP1_DUMP
+OP2_DUMP
+OP3_DUMP
+OP4_DUMP
+OP5_DUMP
+OPBEAM_DUMP

@@ -439,7 +439,7 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
   ! Expand Arrays
   if(sixin_nSing > nele-2) then
     call expand_arrays(nele+100, npart, nblz, nblo)
-    call alloc(sixin_bez0, mNameLen, nele, str_nmZeros, "sixin_bez0")
+    call alloc(sixin_bez0, mNameLen, nele, str_nmSpace, "sixin_bez0")
   end if
 
   if(abs(kz(sixin_nSing)) /= 12 .or. (abs(kz(sixin_nSing)) == 12 .and. sixin_ncy2 == 0)) then
@@ -985,6 +985,14 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call sixin_echoVal("numlmax",numlmax,"TRAC",iLine)
     end if
     if(iErr) return
+
+#ifndef STF
+    if(napx > 32) then
+      write(lout,"(a)") "TRAC> ERROR To run SixTrack with more than 32 particle pairs, it has to be compiled with the STF flag."
+      iErr = .true.
+      return
+    end if
+#endif
 
     if(napx*2 > npart) then
       call expand_arrays(nele, napx*2, nblz, nblo)

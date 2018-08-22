@@ -1,8 +1,5 @@
 #pragma once
 
-
-#include <fftw3.h>
-
 #include "signal.h"
 #include "windows.h"
 #include "spline_interpolation.h"
@@ -17,7 +14,6 @@ class NAFF {
   private:
 
   WindowFunc window;
-  fftw_plan fftw_plan_;
   double_vec frequencies;
   double_vec amplitudes;
   size_t fft_size, f_counter;
@@ -74,7 +70,7 @@ class NAFF {
     }
   }
   //////// Fast Fourier Transform
-  void FFTw () {
+  /*void FFTw () {
     std::vector<std::pair<double, double>> fftw_(signal.size());
     fftw_plan_ = fftw_plan_dft_1d(signal.size(),
                    reinterpret_cast<fftw_complex*>(&signal.data[0]),
@@ -107,7 +103,7 @@ class NAFF {
       fft_frequency = ((max_index*1.0)/ (fft_size*1.0));
     else
       fft_frequency = (((max_index*1.0)/ (fft_size*1.0)-1.0));
-  }
+  }*/
 
   //////// Maximization of <f(t),exp(i*2*pi*f*t)> function for refined frequency f
   ///////////////////// First method: Golden Section Search
@@ -234,9 +230,9 @@ class NAFF {
   public:
   size_t fmax = 4;
 
-  ~NAFF() {
+  /*~NAFF() {
     fftw_destroy_plan(fftw_plan_);
-  }
+  } */
 
   void set_window_parameter(const double p, const char tp) {
     window.parameter = p;
@@ -271,7 +267,7 @@ class NAFF {
   }
 
   //double_vec get_f1 (double_vec &init_data_x,double_vec &init_data_xp) {
-  double get_f1 (double_vec &init_data_x,double_vec &init_data_xp) {
+  double get_f1 (double_vec &init_data_x,double_vec &init_data_xp, double &fft) {
     Print_opt::SetLevel(2);
     if ( init_data_x.size()==0 && init_data_xp.size()==0 ) {
       fprintf(stderr, "CRITICAL ERROR in NAFF.h: x and xp input arrays are both empty");
@@ -280,7 +276,7 @@ class NAFF {
     if (frequencies.size() == 0) {
       input(init_data_x, init_data_xp);
     }
-    FFTw();
+    fft_frequency = fft;
     if (f_found == true) {
       if (merit_func == "minimize_RMS_frequency") {
         frequencies.push_back(minimize_RMS_frequency());
@@ -297,10 +293,10 @@ class NAFF {
         i*=upsampling_factor;
       }
     }
-      return abs(frequencies.back());
+      return std::abs(frequencies.back());
   }
 
-  double_vec get_f(double_vec &init_data_x, double_vec &init_data_xp) {
+  /*double_vec get_f(double_vec &init_data_x, double_vec &init_data_xp) {
     f_counter = 0;
     Print_opt::SetLevel(2);
     while ((f_counter<fmax) && f_found == true) {
@@ -318,6 +314,6 @@ class NAFF {
     for (auto i:frequencies)
       abs_frequencies.push_back(std::abs(i));
     return abs_frequencies;
-  }
+  }*/
 };
 
