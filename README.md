@@ -8,37 +8,37 @@ It is mainly used for the LHC for dynamic aperture studies, tune optimization, a
 ## Authors
 
 F.&nbsp;Schmidt (DESY, CERN),
-E.&nbsp;Mcintosh,
-H.&nbsp;Ranshall,
-H.&nbsp;Grote,
-F.&nbsp;James,
-K.&nbsp;Koelbig,
-K.&nbsp;Heinemann,
-M.&nbsp;Vaenttinen,
 R.&nbsp;Assman,
+J.&nbsp;Barranco,
+V.K.&nbsp;Berglyd&nbsp;Olsen,
 C.&nbsp;Bracco,
 R.&nbsp;Bruce,
+R.&nbsp;De&nbsp;Maria,
+H.&nbsp;Grote,
+F.&nbsp;James,
+M.&nbsp;Fiascaris,
+M.&nbsp;Fjellstrom,
+R.&nbsp;Kwee-Hinzmann,
+K.&nbsp;Koelbig,
+K.&nbsp;Heinemann,
+Y.&nbsp;Levinsen,
+E.&nbsp;Mcintosh,
+A.&nbsp;Mereghetti,
 D.&nbsp;Mirarchi,
+T.&nbsp;Persson,
 V.&nbsp;Previtali,
-S.&nbsp;Redaelli,
 E.&nbsp;Quaranta,
+H.&nbsp;Ranshall,
+M.&nbsp;Vaenttinen,
+S.&nbsp;Redaelli,
 A.&nbsp;Rossi,
 C.&nbsp;Tambasco,
-T.&nbsp;Weiler,
-J.&nbsp;Barranco,
-Y.&nbsp;Sun,
-Y.&nbsp;Levinsen,
-M.&nbsp;Fjellstrom,
 A.&nbsp;Santamaria,
-R.&nbsp;Kwee-Hinzmann,
-R.&nbsp;De&nbsp;Maria,
-A.&nbsp;Mereghetti,
+T.&nbsp;Weiler,
+Y.&nbsp;Sun,
 K.&nbsp;Sjobak,
-M.&nbsp;Fiascaris,
 J.F.&nbsp;Wagner,
-J.&nbsp;Wretborn,
-V.K.&nbsp;Berglyd&nbsp;Olsen,
-T.&nbsp;Persson (CERN),
+J.&nbsp;Wretborn  (CERN),
 M.&nbsp;Fitterer (FNAL, CERN),
 A.&nbsp;Patapenka (NIU, CERN),
 G.&nbsp;Robert-Demolaize (BNL, CERN),
@@ -46,15 +46,20 @@ V.&nbsp;Gupta (Google Summer of Code),
 J.&nbsp;Molson (UMAN, LAL, CERN),
 S.&nbsp;Kostoglou (NTUA, CERN)
 
-**Maintainers:** 
+## Contacts
+
+**Coordinator:**
 R.&nbsp;De&nbsp;Maria,
-K.&nbsp;Sjobak,
-V.K.&nbsp;Berglyd&nbsp;Olsen
+
+**Release managers:**
+R.&nbsp;De&nbsp;Maria,
+V.K.&nbsp;Berglyd&nbsp;Olsen,
+K.&nbsp;Sjobak
 
 **Core Devs:**
 A.&nbsp;Mereghetti,
-T.&nbsp;Persson,
-J.&nbsp;Molson
+J.&nbsp;Molson,
+T.&nbsp;Persson
 
 ## License
 
