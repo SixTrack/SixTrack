@@ -390,10 +390,9 @@ subroutine abend(cstring)
   use checkpoint_restart
   use string_tools
   use mod_units
+  use mod_version
 
   implicit none
-
-#include "version.f90"
 
   integer i,lstring,j,itot,ttot
   character(len=*) cstring
