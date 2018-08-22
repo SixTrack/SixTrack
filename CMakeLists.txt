@@ -33,7 +33,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 # Set Sixtrack version info
 file(READ ${CMAKE_SOURCE_DIR}/source/version.f90 IFILE)
-STRING(REGEX MATCH ".*data version /'([0-9]+)[.]([0-9]+)[.]?([0-9]+)?[-]?(rc[0-9])?'/" VERSION_STRING ${IFILE})
+STRING(REGEX MATCH ".*version = \"([0-9]+)[.]([0-9]+)[.]?([0-9]+)?[-]?(rc[0-9])?\"" VERSION_STRING ${IFILE})
 SET(VERSION_STRING "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
 SET(${PROJECT_NAME}_VERSION_MAJOR "${CMAKE_MATCH_1}")
 SET(${PROJECT_NAME}_VERSION_MINOR "${CMAKE_MATCH_2}")
@@ -92,7 +92,6 @@ OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" O
 OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
 OPTION(WARN "Enable build flags for additional compiler warnings" OFF)
 OPTION(ROOT "Link to the root libraries" OFF)
-OPTION(NAFF "Use NAFF library for FMA analysis" OFF)
 
 # Build options
 OPTION(32BIT "Create a 32bit binary" OFF)
@@ -137,6 +136,10 @@ if(NOT FAST)
 	SET(SIXTRACK_FEAT_CR "nofast_${SIXTRACK_FEAT_CR}")
 	SET(SIXTRACK_FEAT_DA "nofast_${SIXTRACK_FEAT_DA}")
 endif()
+if(NOT STF)
+	SET(SIXTRACK_FEAT_CR "nostf_${SIXTRACK_FEAT_CR}")
+	SET(SIXTRACK_FEAT_DA "nostf_${SIXTRACK_FEAT_DA}")
+endif()
 if(CRLIBM AND ROUND_NEAR)
 	SET(SIXTRACK_FEAT_CR "crlibm_rn_${SIXTRACK_FEAT_CR}")
 	SET(SIXTRACK_FEAT_DA "crlibm_rn_${SIXTRACK_FEAT_DA}")
@@ -168,10 +171,6 @@ endif()
 if(BEAMGAS)
 	SET(SIXTRACK_FEAT_CR "beamgas_${SIXTRACK_FEAT_CR}")
 endif()
-if(STF)
-	SET(SIXTRACK_FEAT_CR "stf_${SIXTRACK_FEAT_CR}")
-	SET(SIXTRACK_FEAT_DA "stf_${SIXTRACK_FEAT_DA}")
-endif()
 if(DEBUG)
 	SET(SIXTRACK_FEAT_CR "debug_${SIXTRACK_FEAT_CR}")
 	SET(SIXTRACK_FEAT_DA "debug_${SIXTRACK_FEAT_DA}")
@@ -185,9 +184,6 @@ if(FIO)
 endif()
 if(MERLINSCATTER)
 	SET(SIXTRACK_FEAT_CR "merlinscatter_${SIXTRACK_FEAT_CR}")
-endif()
-if(NAFF)
-	SET(SIXTRACK_FEAT_CR "naff_${SIXTRACK_FEAT_CR}")
 endif()
 if(G4COLLIMAT)
 	SET(SIXTRACK_FEAT_CR "g4collimat_${SIXTRACK_FEAT_CR}")
@@ -265,8 +261,8 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}_${SIXTRACK_FEAT_DA}")
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST COLLIMAT BOINC BEAMGAS STF MERLINSCATTER NAFF G4COLLIMAT FLUKA CR)
-LIST(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT PYTHIA)
+LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA)
+LIST(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
 LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
 ###################################################################################################
@@ -274,7 +270,7 @@ LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 ###################################################################################################
 
 list(APPEND FORT90_LIB
-	sixtrack core_tools constants sixtrack_input mod_units
+	sixtrack version core_tools constants sixtrack_input mod_units
 	common_modules close strings string_tools mainarrays
 	file_units mod_alloc zipf matrix_inv lielib beam6d
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
@@ -945,30 +941,19 @@ if(MERLINSCATTER)
 	endif(64BIT)
 endif()
 
-if(NAFF)
-	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/source/cmake_modules/")
-	if (STATIC)
-		SET(FFTW_USE_STATIC_LIBS 1)
-	endif()
-	find_package(FFTW REQUIRED)
-	include_directories( ${FFTW_INCLUDES} )
-	message(STATUS "Include dirs of FFTW: " ${FFTW_INCLUDES} )
-	message(STATUS "Libs of of FFTW:      " ${FFTW_LIBRARIES} )
+file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/source/naff/*.cpp ${CMAKE_SOURCE_DIR}/source/naff/*.cc)
+add_library(naff STATIC ${NAFF_SOURCES})
 
-	file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/source/naff/*.cpp ${CMAKE_SOURCE_DIR}/source/naff/*.cc)
-	add_library(naff STATIC ${NAFF_SOURCES})
-	target_link_libraries(naff ${FFTW_LIBRARIES})
+#Enable c++11
+set_property(TARGET naff PROPERTY CXX_STANDARD 11)
 
-	#Enable c++11
-	set_property(TARGET naff PROPERTY CXX_STANDARD 11)
-
-	if(32BIT)
-		SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m32")
-	endif(32BIT)
-	if(64BIT)
-		SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m64")
-	endif(64BIT)
-endif()
+if(32BIT)
+	SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m32")
+endif(32BIT)
+if(64BIT)
+	SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m64")
+endif(64BIT)
+#endif()
 
 if(BOINC AND API)
 	include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
@@ -1060,6 +1045,7 @@ if(LIBARCHIVE)
 
 	#See also further down for SixTestWrapper linking
 	target_link_libraries(SixTrackCR libArchive_wrapper)
+	target_link_libraries(SixTrackDA libArchive_wrapper)
 	add_library(libarchive STATIC IMPORTED)
 	if(WIN32)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive_static.a)
@@ -1073,6 +1059,7 @@ if(LIBARCHIVE)
 	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/zlib/install/lib/libz.a)
 
 	target_link_libraries(SixTrackCR libarchive z Threads::Threads)
+	target_link_libraries(SixTrackDA libarchive z Threads::Threads)
 	target_link_libraries(libArchiveTester libarchive z Threads::Threads)
 
 	add_definitions( -DLIBARCHIVE )
@@ -1174,9 +1161,7 @@ if(MERLINSCATTER)
 	target_link_libraries(SixTrackCR merlinscatter)
 endif(MERLINSCATTER)
 #if we are using naff, link to the naff library
-if(NAFF)
-	target_link_libraries(SixTrackLib naff)
-endif(NAFF)
+target_link_libraries(SixTrackLib naff)
 
 #if we are using root, link to all the root libraries
 if(ROOT)
