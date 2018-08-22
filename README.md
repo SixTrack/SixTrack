@@ -46,24 +46,17 @@ V.&nbsp;Gupta (Google Summer of Code),
 J.&nbsp;Molson (UMAN, LAL, CERN),
 S.&nbsp;Kostoglou (NTUA, CERN)
 
-## Contacts
-
-**Coordinator:**
-R.&nbsp;De&nbsp;Maria,
-
-**Release managers:**
-R.&nbsp;De&nbsp;Maria,
-V.K.&nbsp;Berglyd&nbsp;Olsen,
-K.&nbsp;Sjobak
-
 **Core Devs:**
+V.K.&nbsp;Berglyd&nbsp;Olsen,
+R.&nbsp;De&nbsp;Maria,
+K.&nbsp;Sjobak
 A.&nbsp;Mereghetti,
 J.&nbsp;Molson,
 T.&nbsp;Persson
 
 ## License
 
-Copyright 2014 CERN. This software is distributed under the terms of the GNU Lesser General Public License version 2.1, copied verbatim in the file "[COPYING](source/COPYING)".
+Copyright 2018 CERN. This software is distributed under the terms of the GNU Lesser General Public License version 2.1, copied verbatim in the file "[COPYING](source/COPYING)".
 
 In applying this licence, CERN does not waive the privileges and immunities granted to it by virtue of its status as an Intergovernmental Organization or submit itself to any jurisdiction.
 
