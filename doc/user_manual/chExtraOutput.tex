@@ -12,9 +12,6 @@ This can be done in any \texttt{SINGLE ELEMENTS} which are directly mentioned in
 The particles are dumped just after the kick is applied, and how often to dump (every turn, every second turn, etc.) is user-selectable.
 Please note that each single element can only be selected once; however it is possible to overcome this limitation by placing multiple markers with different names in the same position in the sequence (by editing \texttt{fort.2}).
 
-
-
-
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
     \textbf{Keyword}    & \texttt{DUMP} \\
@@ -326,7 +323,7 @@ The structure of the \texttt{NORM\_filename*} is described in Table~\ref{fma:tab
     & \texttt{TUNEAPA} & Computes the tune as the average phase advance on a two dimensional plane, given n iterates of a map. \\
     \hline
     \texttt{NAFF} \cite{NAFFpaper, NAFFpaper2}
-    & \texttt{NAFF} & Computes the tune using the laskar method. The first estimation of the tune is obtained with an FFT and the precise value is determined by maximizing the Fourier integral. A Hann window of first and second order for the transverse and longitudinal motion are used respectively. The \texttt{NAFF} flag must be enabled at build time \cite{sixbuild}. \\
+    & \texttt{NAFF} & Computes the tune using the laskar method. The first estimation of the tune is obtained with an FFT and the precise value is determined by maximizing the Fourier integral. A Hann window of first and second order for the transverse and longitudinal motion are used respectively\index{NAFF}. \\
     \hline
     \end{tabularx}
 \end{center}

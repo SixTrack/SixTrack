@@ -33,7 +33,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 # Set Sixtrack version info
 file(READ ${CMAKE_SOURCE_DIR}/source/version.f90 IFILE)
-STRING(REGEX MATCH ".*data version /'([0-9]+)[.]([0-9]+)[.]?([0-9]+)?[-]?(rc[0-9])?'/" VERSION_STRING ${IFILE})
+STRING(REGEX MATCH ".*version = \"([0-9]+)[.]([0-9]+)[.]?([0-9]+)?[-]?(rc[0-9])?\"" VERSION_STRING ${IFILE})
 SET(VERSION_STRING "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
 SET(${PROJECT_NAME}_VERSION_MAJOR "${CMAKE_MATCH_1}")
 SET(${PROJECT_NAME}_VERSION_MINOR "${CMAKE_MATCH_2}")
@@ -265,7 +265,7 @@ LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 ###################################################################################################
 
 list(APPEND FORT90_LIB
-	sixtrack core_tools constants sixtrack_input mod_units
+	sixtrack version core_tools constants sixtrack_input mod_units
 	common_modules close strings string_tools mainarrays
 	file_units mod_alloc zipf matrix_inv lielib beam6d
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
@@ -1011,6 +1011,7 @@ if(LIBARCHIVE)
 
 	#See also further down for SixTestWrapper linking
 	target_link_libraries(SixTrackCR libArchive_wrapper)
+	target_link_libraries(SixTrackDA libArchive_wrapper)
 	add_library(libarchive STATIC IMPORTED)
 	if(WIN32)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive_static.a)
@@ -1024,6 +1025,7 @@ if(LIBARCHIVE)
 	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/zlib/install/lib/libz.a)
 
 	target_link_libraries(SixTrackCR libarchive z Threads::Threads)
+	target_link_libraries(SixTrackDA libarchive z Threads::Threads)
 	target_link_libraries(libArchiveTester libarchive z Threads::Threads)
 
 	add_definitions( -DLIBARCHIVE )
