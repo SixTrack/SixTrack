@@ -1,8 +1,6 @@
 # SixTrack Changelog
 
-### Version 5.0.1 [xx.xx.xxxx] - Release
-
-IN PROGRESS
+### Version 5.0.1 [22.08.2018] - Release
 
 **User Side Changes**
 
