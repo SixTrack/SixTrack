@@ -49,10 +49,11 @@ S.&nbsp;Kostoglou (NTUA, CERN)
 **Core Devs:**
 V.K.&nbsp;Berglyd&nbsp;Olsen,
 R.&nbsp;De&nbsp;Maria,
-K.&nbsp;Sjobak
 A.&nbsp;Mereghetti,
 J.&nbsp;Molson,
-T.&nbsp;Persson
+T.&nbsp;Persson,
+K.&nbsp;Sjobak.
+
 
 ## License
 
