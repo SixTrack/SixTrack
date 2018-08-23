@@ -1,5 +1,11 @@
 # SixTrack Changelog
 
+### Version 5.0.2 [23.08.2018] - Release
+
+**Bug Fixes**
+
+* Fixed bug where the Solenoid element would use the energy of the previous turn for computations.
+
 ### Version 5.0.1 [22.08.2018] - Release
 
 **User Side Changes**
