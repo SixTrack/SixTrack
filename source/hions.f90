@@ -89,7 +89,7 @@ subroutine hions_allocate_arrays
   call alloc(naa,npart,aa0,'naa')
   call alloc(nzz,npart,zz0,'nzz')
   call alloc(nqq,npart,qq0,'nqq')
-  call alloc(pdgid,npart,0,'pdgid')
+  call alloc(pdgid,npart,0_int16,'pdgid')
   call alloc(pids,npart,0,'pids')
 end subroutine hions_allocate_arrays
 
@@ -102,7 +102,7 @@ subroutine hions_expand_arrays(npart_new)
   call alloc(naa,npart_new,aa0,'naa')
   call alloc(nzz,npart_new,zz0,'nzz')
   call alloc(nqq,npart_new,qq0,'nqq')
-  call alloc(pdgid,npart_new,0,'pdgid')
+  call alloc(pdgid,npart_new,0_int16,'pdgid')
   call alloc(pids,npart_new,0,'pids')
 end subroutine hions_expand_arrays
 
