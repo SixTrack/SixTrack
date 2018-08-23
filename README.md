@@ -8,6 +8,7 @@ It is mainly used for the LHC for dynamic aperture studies, tune optimization, a
 ## Authors
 
 F.&nbsp;Schmidt (DESY, CERN),
+J.D.&nbsp;Andersson,
 R.&nbsp;Assman,
 J.&nbsp;Barranco,
 V.K.&nbsp;Berglyd&nbsp;Olsen,
@@ -38,14 +39,13 @@ T.&nbsp;Weiler,
 Y.&nbsp;Sun,
 K.&nbsp;Sjobak,
 J.F.&nbsp;Wagner,
-J.&nbsp;Wretborn  (CERN),
+J.&nbsp;Wretborn (CERN),
 M.&nbsp;Fitterer (FNAL, CERN),
 A.&nbsp;Patapenka (NIU, CERN),
 G.&nbsp;Robert-Demolaize (BNL, CERN),
 V.&nbsp;Gupta (Google Summer of Code),
 J.&nbsp;Molson (UMAN, LAL, CERN),
 S.&nbsp;Kostoglou (NTUA, CERN)
-J.D.&nbsp;Andersson (CERN openlab Summer Student)
 
 **Core Devs:**
 V.K.&nbsp;Berglyd&nbsp;Olsen,
@@ -54,7 +54,6 @@ A.&nbsp;Mereghetti,
 J.&nbsp;Molson,
 T.&nbsp;Persson,
 K.&nbsp;Sjobak.
-
 
 ## License
 
