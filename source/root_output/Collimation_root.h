@@ -12,7 +12,7 @@ extern "C" void CollimatorLossRootWrite(int, char*, int, int, int, double, doubl
 extern "C" void SurvivalRootWrite(int, int);
 extern "C" void CollimatorDatabaseRootWrite(int, char*, int, char*, int, double, double, double, double);
 extern "C" void root_FLUKA_EnergyDeposition(int, int16_t, double);
-extern "C" void root_FLUKA_Names(int, char*, int);
+extern "C" void root_FLUKA_Names(int, char*, int, int);
 
 
 /**
@@ -81,18 +81,23 @@ public:
     CollimationFLUKARootOutput();
     void CollimatorFLUKARootOutputWrite(int, int16_t, double);
 
-    void FLUKANamesRootOutputWrite(int, char*, int);
+    void FLUKANamesRootOutputWrite(int, char*, int, int);
+
+    std::vector<double> insertion_id;
+    std::vector<double> insertion_length;
 
 private:
 
-TTree *CollimationFLUKATree;
-TTree *FLUKANamesTree;
+    TTree *CollimationFLUKATree;
+    TTree *FLUKANamesTree;
 
-Int_t id;
-int16_t nucleons;
-Double_t energy;
+    Int_t id;
+    Int_t ins_type;
+    int16_t nucleons;
+    Double_t energy;
+    Char_t name[49];
 
-Char_t name[49];
+    Double_t length;
 
 };
 

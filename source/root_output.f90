@@ -276,12 +276,13 @@ subroutine root_FLUKA_EnergyDeposition(id_in, nucleons_in, energy_in) bind(C,nam
   real(kind=C_DOUBLE), intent(in), value :: energy_in
 end subroutine
 
-subroutine root_FLUKA_Names(id_in, name_in, name_len) bind(C,name="root_FLUKA_Names")
+subroutine root_FLUKA_Names(id_in, name_in, name_len, ins_type) bind(C,name="root_FLUKA_Names")
   use, intrinsic :: iso_c_binding
   implicit none
   integer(kind=C_INT),    intent(in), value :: id_in
   character(kind=C_CHAR,len=1), intent(in)  :: name_in
   integer(kind=C_INT),    intent(in), value :: name_len
+  integer(kind=C_INT),    intent(in), value :: ins_type
 end subroutine
 
 subroutine root_DumpAperture(apname_in, apname_len, aptype_in, aptype_len, s_in, ap1_in, ap2_in, ap3_in, ap4_in, ap5_in, ap6_in, &
