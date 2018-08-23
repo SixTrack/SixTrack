@@ -159,7 +159,7 @@ subroutine hions_postInput
     write(lout,"(a,i0)")     "HION>  * Z = ",zz0
     write(lout,"(a,i0)")     "HION>  * A = ",aa0
     write(lout,"(a,e22.15)") "HION>  * M = ",nucm0
-    write(lout,"(a,e22.15)") "HION>  * Q = ",qq0
+    write(lout,"(a,i0)")     "HION>  * Q = ",qq0
   end if
 
   ! Init arrays
