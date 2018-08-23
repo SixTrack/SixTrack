@@ -45,6 +45,7 @@ G.&nbsp;Robert-Demolaize (BNL, CERN),
 V.&nbsp;Gupta (Google Summer of Code),
 J.&nbsp;Molson (UMAN, LAL, CERN),
 S.&nbsp;Kostoglou (NTUA, CERN)
+J.D.&nbsp;Andersson (CERN openlab Summer Student)
 
 **Core Devs:**
 V.K.&nbsp;Berglyd&nbsp;Olsen,
