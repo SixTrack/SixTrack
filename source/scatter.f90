@@ -158,19 +158,19 @@ subroutine scatter_initialise
 
   if(h5_useForSCAT) then
 
-    allocate(setFields(9))
+    allocate(setFields(11))
 
-    setFields(1)  = h5_dataField(name="ID",      type=h5_typeInt,  size=0)
-    setFields(2)  = h5_dataField(name="TURN",    type=h5_typeInt,  size=0)
+    setFields(1)  = h5_dataField(name="ID",      type=h5_typeInt)
+    setFields(2)  = h5_dataField(name="TURN",    type=h5_typeInt)
     setFields(3)  = h5_dataField(name="BEZ",     type=h5_typeChar, size=mNameLen)
     setFields(4)  = h5_dataField(name="GEN",     type=h5_typeChar, size=mNameLen)
     setFields(5)  = h5_dataField(name="PROCESS", type=h5_typeChar, size=8)
-    setFields(6)  = h5_dataField(name="LOST",    type=h5_typeInt,  size=0)
-    setFields(7)  = h5_dataField(name="T",       type=h5_typeReal, size=0)
-    setFields(8)  = h5_dataField(name="DEE",     type=h5_typeReal, size=0)
-    setFields(9)  = h5_dataField(name="THETA",   type=h5_typeReal, size=0)
-    setFields(10) = h5_dataField(name="PHI",     type=h5_typeReal, size=0)
-    setFields(11) = h5_dataField(name="PROB",    type=h5_typeReal, size=0)
+    setFields(6)  = h5_dataField(name="LOST",    type=h5_typeInt)
+    setFields(7)  = h5_dataField(name="T",       type=h5_typeReal)
+    setFields(8)  = h5_dataField(name="DEE",     type=h5_typeReal)
+    setFields(9)  = h5_dataField(name="THETA",   type=h5_typeReal)
+    setFields(10) = h5_dataField(name="PHI",     type=h5_typeReal)
+    setFields(11) = h5_dataField(name="PROB",    type=h5_typeReal)
 
     call h5_initForScatter()
     call h5_createFormat("scatter_log_fmt", setFields, scatter_logFormat)
