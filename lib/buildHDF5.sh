@@ -34,7 +34,7 @@ fi
 
 mkdir build
 cd build
-# cd CMake-hdf5-$PATCH
-
+cmake ../CMake-hdf5-$PATCH/hdf5-$PATCH -DHDF5_BUILD_FORTRAN=ON -DHDF5_ENABLE_Z_LIB_SUPPORT=ON
+make -j4
 cd ..
 cd ..
