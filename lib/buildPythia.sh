@@ -7,8 +7,8 @@ echo " Building PYTHIA support for SixTrack "
 echo "======================================"
 echo ""
 
-mkdir -pv lib/pythia
-cd lib/pythia
+mkdir -pv pythia
+cd pythia
 rm -rf pythia*/
 
 if [ ! -e $VERSION.tgz ]; then
@@ -32,6 +32,7 @@ echo "Making Symlinks:"
 cd ..
 ln -sfv $VERSION/lib     lib
 ln -sfv $VERSION/include include
+cd ..
 
 echo ""
 echo "Done!"

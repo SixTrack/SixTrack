@@ -29,7 +29,7 @@ else
 fi
 
 if [ -d build ]; then
-  rm -rfv build
+  rm -rf build
 fi
 
 mkdir build
