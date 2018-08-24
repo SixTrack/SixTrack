@@ -9,7 +9,7 @@ It is simply a set of Python modules performing I/O and conversions as well as p
 A quick summation of the scripts:
 - compareSix2Mad.py: The bulk of the script. Sets up files, runs MAD-X/SixTrack and compares outputs.
 - latticeConstructor.py: Abstraction for creating a lattice from Python.
-- elementTest.py: Contains an example of how the framework can be used.
+- exampleTest.py: Contains an example of how the framework can be used.
 
 ## The code should for the most part be self-explanatory
 
