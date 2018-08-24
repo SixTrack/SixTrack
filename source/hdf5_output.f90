@@ -495,6 +495,7 @@ end subroutine h5_openFile
 subroutine h5_writeSimInfo()
 
   use mod_common, only : napx, numl
+  use mod_version
 
   character(len=23) timeStamp
   character(len=8)  cDate
@@ -503,11 +504,16 @@ subroutine h5_writeSimInfo()
   ! TimeStamp
   call date_and_time(cDate,cTime)
   timeStamp = cDate(1:4)//"-"//cDate(5:6)//"-"//cDate(7:8)//"T"//cTime(1:2)//":"//cTime(3:4)//":"//cTime(5:10)
-  call h5_writeAttr(h5_rootID,"TimeStamp",timeStamp)
 
   ! Simulation info
-  call h5_writeAttr(h5_rootID,"Particles",napx*2)
-  call h5_writeAttr(h5_rootID,"Turns",numl)
+  call h5_writeAttr(h5_rootID,"TimeStamp",     timeStamp)
+  call h5_writeAttr(h5_rootID,"Particles",     napx*2)
+  call h5_writeAttr(h5_rootID,"Turns",         numl)
+
+  ! SixTrack Version
+  call h5_writeAttr(h5_rootID,"ExecVersion",   version)
+  call h5_writeAttr(h5_rootID,"ExecNumVersion",numvers)
+  call h5_writeAttr(h5_rootID,"ExecReleased",  moddate)
 
 end subroutine h5_writeSimInfo
 
