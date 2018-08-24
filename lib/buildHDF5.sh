@@ -34,7 +34,11 @@ fi
 
 mkdir build
 cd build
-cmake ../CMake-hdf5-$PATCH/hdf5-$PATCH -DHDF5_BUILD_FORTRAN=ON -DHDF5_ENABLE_Z_LIB_SUPPORT=ON
+cmake ../CMake-hdf5-$PATCH/hdf5-$PATCH -DHDF5_BUILD_FORTRAN=ON -DHDF5_ENABLE_Z_LIB_SUPPORT=ON -DBUILD_SHARED_LIBS=OFF \
+  -DHDF5_ENABLE_PARALLEL=OFF -DHDF5_BUILD_CPP_LIB=OFF -DBUILD_TESTING=OFF -DHDF5_BUILD_EXAMPLES=OFF \
+  -DH5_ZLIB_HEADER=$(pwd)/../../zlib/install/include/zlib.h \
+  -DZLIB_INCLUDE_DIRS=$(pwd)/../../zlib/install/include/ \
+  -DZLIB_STATIC_LIBRARY=$(pwd)/../../zlib/install/lib/libz.a
 make -j4
 cd ..
 cd ..
