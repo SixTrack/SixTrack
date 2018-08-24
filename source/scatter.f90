@@ -85,6 +85,8 @@ module scatter
 #ifdef HDF5
   integer, private, save :: scatter_logDataSet = 0
   integer, private, save :: scatter_logFormat  = 0
+  integer, private, save :: scatter_sumDataSet = 0
+  integer, private, save :: scatter_sumFormat  = 0
 #endif
 
 #ifdef CR
@@ -161,6 +163,9 @@ subroutine scatter_initialise
 
   if(h5_useForSCAT) then
 
+    call h5_initForScatter()
+
+    ! Scatter Log
     allocate(setFields(12))
 
     setFields(1)  = h5_dataField(name="ID",      type=h5_typeInt)
@@ -176,9 +181,27 @@ subroutine scatter_initialise
     setFields(11) = h5_dataField(name="DENSITY", type=h5_typeReal)
     setFields(12) = h5_dataField(name="PROB",    type=h5_typeReal)
 
-    call h5_initForScatter()
     call h5_createFormat("scatter_log_fmt", setFields, scatter_logFormat)
     call h5_createDataSet("scatter_log", h5_scatID, scatter_logFormat, scatter_logDataSet)
+
+    deallocate(setFields)
+
+    ! Scatter Summary
+    allocate(setFields(8))
+
+    setFields(1) = h5_dataField(name="TURN",     type=h5_typeInt)
+    setFields(2) = h5_dataField(name="BEZ",      type=h5_typeChar, size=mNameLen)
+    setFields(3) = h5_dataField(name="GEN",      type=h5_typeChar, size=mNameLen)
+    setFields(4) = h5_dataField(name="PROCESS",  type=h5_typeChar, size=8)
+    setFields(5) = h5_dataField(name="NSCATT",   type=h5_typeInt)
+    setFields(6) = h5_dataField(name="NLOST",    type=h5_typeInt)
+    setFields(7) = h5_dataField(name="CROSSSEC", type=h5_typeReal)
+    setFields(8) = h5_dataField(name="SCALING",  type=h5_typeReal)
+
+    call h5_createFormat("scatter_summary_fmt", setFields, scatter_sumFormat)
+    call h5_createDataSet("summary", h5_scatID, scatter_sumFormat, scatter_sumDataSet)
+
+    deallocate(setFields)
 
     ! Write Attributes
     call h5_writeAttr(h5_scatID,"SEED",(/scatter_seed1,scatter_seed2/))
@@ -872,16 +895,6 @@ subroutine scatter_thin(iElem, ix, turn)
       endif
     end do ! END Loop over particles
 
-    do k=1,9
-      if(hasProc(k)) then
-        write(scatter_sumFile,"(1x,i8,2(1x,a20),1x,a8,2(1x,i8),2(1x,f13.6))") &
-          turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(idGen,1))),20), &
-          scatter_procNames(k), nScatter(k), nLost(k), crossSection*c1e27, scaling
-      end if
-    end do
-    flush(scatter_logFile)
-    flush(scatter_sumFile)
-
 #ifdef HDF5
     if(h5_useForSCAT) then
       call h5_prepareWrite(scatter_logDataSet, nRecords)
@@ -898,6 +911,35 @@ subroutine scatter_thin(iElem, ix, turn)
       call h5_writeData(scatter_logDataSet, 11, nRecords, rRecords(5,1:nRecords))
       call h5_writeData(scatter_logDataSet, 12, nRecords, rRecords(6,1:nRecords))
       call h5_finaliseWrite(scatter_logDataSet)
+
+      do k=1,9
+        if(hasProc(k)) then
+          call h5_prepareWrite(scatter_sumDataSet, 1)
+          call h5_writeData(scatter_sumDataSet, 1, 1, turn)
+          call h5_writeData(scatter_sumDataSet, 2, 1, bez(ix))
+          call h5_writeData(scatter_sumDataSet, 3, 1, scatter_cData(scatter_GENERATOR(idGen,1)))
+          call h5_writeData(scatter_sumDataSet, 4, 1, scatter_procNames(k))
+          call h5_writeData(scatter_sumDataSet, 5, 1, nScatter(k))
+          call h5_writeData(scatter_sumDataSet, 6, 1, nLost(k))
+          call h5_writeData(scatter_sumDataSet, 7, 1, crossSection*c1e27)
+          call h5_writeData(scatter_sumDataSet, 8, 1, scaling)
+          call h5_finaliseWrite(scatter_sumDataSet)
+        end if
+      end do
+    else
+#endif
+
+      do k=1,9
+        if(hasProc(k)) then
+          write(scatter_sumFile,"(1x,i8,2(1x,a20),1x,a8,2(1x,i8),2(1x,f13.6))") &
+            turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(idGen,1))),20), &
+            scatter_procNames(k), nScatter(k), nLost(k), crossSection*c1e27, scaling
+        end if
+      end do
+      flush(scatter_logFile)
+      flush(scatter_sumFile)
+
+#ifdef HDF5
     end if
 #endif
   end do ! END Loop over generators
