@@ -10,8 +10,8 @@ massProton=0.938272081
 #   madxPath = absolute path to the madx64 executable
 #   sixtrackPath = absolute path to the SixTrack executable
 
-madxPath = '/home/jodander/Project/codes/MAD-X/build/madx64'
-sixtrackPath = '/home/jodander/Project/codes/SixTrack/build/SixTrack_cmakesix_defaultcompiler_defaultbuildtype/SixTrack_50002_crlibm_rn_Linux_gfortran_static_x86_64_64bit_double'
+madxPath = '/home/bob/codes/MAD-X/build/madx64'
+sixtrackPath = '/home/bob/codes/SixTrack/build/SixTrack_cmakesix_defaultcompiler_defaultbuildtype/SixTrack_50002_crlibm_rn_Linux_gfortran_static_x86_64_64bit_double'
 
 # E -> P
 def energyToMomentum(E):
