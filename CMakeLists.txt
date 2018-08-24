@@ -632,10 +632,16 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 
 	SET(NAGFOR ON)
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
-	set(CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
-	set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam -gline")
+	set(CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns")
+	set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -gline")
 	set(PREPRO_EXEC  fpp)
 	set(PREPRO_FLAGS -P -free)
+
+if(WARN)
+	set(CMAKE_Fortran_FLAGS "-w=ulv -w=uparam ${CMAKE_Fortran_FLAGS}")
+else()
+	set(CMAKE_Fortran_FLAGS "-w=all ${CMAKE_Fortran_FLAGS}")
+endif(WARN)
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
