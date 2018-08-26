@@ -13,6 +13,7 @@ test/run_kill_*
 lib/libarchive_build
 lib/zlib/build
 lib/zlib/install
+lib/hdf5
 
 source/count.log
 
