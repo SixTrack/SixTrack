@@ -927,7 +927,7 @@ subroutine root_FLUKA_DumpInsertions
   character(len=mNameLen+1) :: this_name
 
 ! loop over each element entry
-  do k=0, nele
+  do k=1, nele
 !   extract the fluka geo index value, which usually will be 0 for non-insertions
     ii = fluka_geo_index(k)
     if(ii .eq. 0) then
