@@ -2368,8 +2368,8 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         call initialize_element(ii, .false.)
 
       ! Not yet supported : MULTIPOLES (11)
+      case(11)
 
-      ! Cavities
       case(12)
         if(att_name == "voltage") then ! [MV]
           ed(ii) = newValue
@@ -2465,7 +2465,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
   character(mStrLen), intent(in) :: element_name, att_name
 
-  integer el_type, ii
+  integer el_type, ii, orderMult
 
   logical ldoubleElement
   ldoubleElement = .false.  ! For sanity check
@@ -2506,7 +2506,19 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
         end if
 
         ! Not yet supported : Multipoles (11)
+      case(11)
 
+      print *, "elementNameeee", element_name
+      print *, "dynkIndexxxx", dynk_izuIndex(ii), irm(ii), att_name(1:1)
+      if(att_name(1:1) == "a") then
+        read(att_name(2:2), *) orderMult
+        print *, "oooooo", orderMult, zfz(dynk_izuIndex(ii)+2*orderMult+1)
+      else if(att_name(1:1)=="b") then
+      read(att_name(2:2), *) orderMult
+      print *, "bbboooooo", orderMult, zfz(dynk_izuIndex(ii)+2*orderMult+2)
+      else
+        goto 100 ! Error
+      end if
       case(12) ! Cavities
         if(att_name == "voltage"  ) then ! MV
           dynk_getvalue = ed(ii)
