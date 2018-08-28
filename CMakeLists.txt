@@ -58,10 +58,16 @@ message(STATUS "Numeric Version:  ${NUM_VERSION}")
 SET(${PROJECT_NAME}_VERSION "${VERSION_STRING}")
 MESSAGE(STATUS "Running on: ${CMAKE_SYSTEM_NAME} with ${CMAKE_SYSTEM_PROCESSOR} and generating for ${CMAKE_GENERATOR}")
 
-#get the current git commit hash
-EXECUTE_PROCESS(COMMAND git log -n1 --pretty=format:%H WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_REVISION)
-STRING(STRIP ${GIT_REVISION} GIT_REVISION)
-message(STATUS "Git Revision: ${GIT_REVISION}")
+# Get the current git commit hash
+set(GIT_REVISION "Unknown")
+find_package(Git)
+if(GIT_FOUND)
+	execute_process(COMMAND git log -n1 --pretty=format:%H WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_REVISION)
+	string(STRIP ${GIT_REVISION} GIT_REVISION)
+	message(STATUS "Git Revision: ${GIT_REVISION}")
+else()
+	message(STATUS "Git Revision: git not installed.")
+endif()
 
 ###################################################################################################
 # Sixtrack configuration options
