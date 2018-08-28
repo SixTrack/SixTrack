@@ -373,17 +373,16 @@ real(kind=fPrec), allocatable :: naff_xyzv2(:)
         ! Get a file unit, if needed
         if(fma_writeNormDUMP .and. .not.hasNormDumped(j)) then
           call funit_requestUnit("NORM_"//dump_fname(j),tmpUnit)
-        end if
-
-        if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j)) then
-          write(lout,"(a)") "FMA> Writing normalised DUMP for '"//trim(dump_fname(j))// "' ..."
-          ! Dump normalised particle amplitudes for debugging (tmpUnit)
           call units_openUnit(unit=tmpUnit,fileName="NORM_"//dump_fname(j),formatted=.true.,mode="w",err=fErr,status="replace")
           if(fErr) then
             write(lout,"(a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"'"
             call prror(-1)
           end if
+        end if
 
+        if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j)) then
+          write(lout,"(a)") "FMA> Writing normalised DUMP for '"//trim(dump_fname(j))// "' ..."
+          ! Dump normalised particle amplitudes for debugging (tmpUnit)
           !  units: dumptas, dumptasinv, dumpclo [mm,mrad,mm,mrad,1]
           !  note: closed orbit dumpclo already converted in linopt part to [mm,mrad,mm,mrad,1]
           !        tas matrix in linopt part in [mm,mrad,mm,mrad,1.e-3]
