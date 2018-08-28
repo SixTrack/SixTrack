@@ -370,10 +370,14 @@ real(kind=fPrec), allocatable :: naff_xyzv2(:)
         end if
         ! Now we have done all checks
 
+        ! Get a file unit, if needed
+        if(fma_writeNormDUMP .and. .not.hasNormDumped(j)) then
+          call funit_requestUnit("NORM_"//dump_fname(j),tmpUnit)
+        end if
+
         if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j)) then
           write(lout,"(a)") "FMA> Writing normalised DUMP for '"//trim(dump_fname(j))// "' ..."
           ! Dump normalised particle amplitudes for debugging (tmpUnit)
-          call funit_requestUnit("NORM_"//dump_fname(j),tmpUnit)
           call units_openUnit(unit=tmpUnit,fileName="NORM_"//dump_fname(j),formatted=.true.,mode="w",err=fErr,status="replace")
           if(fErr) then
             write(lout,"(a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"'"
@@ -515,7 +519,7 @@ real(kind=fPrec), allocatable :: naff_xyzv2(:)
 
               ! Write normalised particle amplitudes
               ! (only when reading physical coordinates)
-              if (fma_writeNormDUMP .and. .not.hasNormDumped(j) ) then
+              if(fma_writeNormDUMP .and. .not.hasNormDumped(j) ) then
                 write(tmpUnit,"(2(1x,i8),1x,f12.5,6(1x,1pe16.9),1x,i8)") &
                   id,thisturn,pos,nxyzvdummy(1),nxyzvdummy(2),nxyzvdummy(3),nxyzvdummy(4),nxyzvdummy(5),nxyzvdummy(6),kt
               end if
