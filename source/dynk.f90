@@ -2326,7 +2326,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   ldoubleElement = .false.
 
   if(dynk_debug) then
-    write(lout,"(a,e16.9)") "DYNK> DEBUG setvalue Element_name = '"//trim(element_name)//"', "&
+    write(lout,"(a,e16.9)") "DYNK> DEBUG setvalue Element_name = '"//trim(element_name)//"', "//&
       "att_name = '"//trim(att_name)//"', newValue = ", newValue
   end if
 
@@ -2471,7 +2471,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
   ldoubleElement = .false.  ! For sanity check
 
   if(dynk_debug) then
-    write(lout,"(a)") "DYNK> DEBUG In getValue, element_name = '"//trim(element_name)//"'"&
+    write(lout,"(a)") "DYNK> DEBUG In getValue, element_name = '"//trim(element_name)//"'"//&
       ", att_name = '"//trim(att_name)//"'"
   end if
 
