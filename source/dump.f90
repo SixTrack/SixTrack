@@ -1662,6 +1662,50 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 #endif
     end if
 
+#ifdef FLUKA
+  ! ------------------------------------------------------------------ !
+  !  Format #20
+  !  Same as fmt 2, but also include fluka vars.)
+  ! ------------------------------------------------------------------ !
+  else if(fmt == 20) then
+    if(i == 0 .and. ix == 0) then
+      localDcum   = zero
+      localKtrack = 0
+    else
+      localDcum   = dcum(i)
+      localKtrack = ktrack(i)
+    end if
+      if(lhighprec) then
+        do j=1,napx
+          call chr_fromReal(xv(1,j),       xyz_h(1),19,2,rErr)
+          call chr_fromReal(yv(1,j),       xyz_h(2),19,2,rErr)
+          call chr_fromReal(xv(2,j),       xyz_h(3),19,2,rErr)
+          call chr_fromReal(yv(2,j),       xyz_h(4),19,2,rErr)
+          call chr_fromReal(sigmv(j),      xyz_h(5),19,2,rErr)
+          call chr_fromReal((ejv(j)-e0)/e0,xyz_h(6),19,2,rErr)
+          write(unit,"(3(1x,i8),1x,2(f12.5),6(1x,a25),1x,i8)") fluka_uid(j), nturn, fluka_gen(j), fluka_weight(j), localDcum, &
+            xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),xyz_h(6),localKtrack
+        end do
+      else
+        do j=1,napx
+          call chr_fromReal(xv(1,j),       xyz_l(1),10,2,rErr)
+          call chr_fromReal(yv(1,j),       xyz_l(2),10,2,rErr)
+          call chr_fromReal(xv(2,j),       xyz_l(3),10,2,rErr)
+          call chr_fromReal(yv(2,j),       xyz_l(4),10,2,rErr)
+          call chr_fromReal(sigmv(j),      xyz_l(5),10,2,rErr)
+          call chr_fromReal((ejv(j)-e0)/e0,xyz_l(6),10,2,rErr)
+          write(unit,"(3(1x,i8),1x,2(f12.5),6(1x,a16),1x,i8)") fluka_uid(j), nturn, fluka_gen(j), fluka_weight(j), nturn,localDcum,&
+            xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),localKtrack
+        end do
+      end if
+
+      ! Flush
+      endfile (unit,iostat=ierro)
+      backspace (unit,iostat=ierro)
+#ifdef CR
+      dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
+#endif
+#endif
   ! Unrecognized format fmt
   else
     write(lout,"(a,i0,a)") "DUMP> ERROR Format ",fmt," not understood for file '"//trim(dump_fname(i))//"'"
