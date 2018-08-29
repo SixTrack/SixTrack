@@ -100,6 +100,7 @@ program maincr
   use matrix_inv
   use aperture
   use wire
+  use mod_version
 
   implicit none
 
@@ -159,8 +160,6 @@ end interface
   character(len=10) tsTime
 
   logical fErr ! For file units
-
-#include "version.f90"
 
   ! ---------------------------------------------------------------------------------------------- !
   errout_status = 0 ! Set to nonzero before calling abend in case of error.
@@ -379,7 +378,7 @@ end interface
   write(lout,"(a)") "    SixTrack :: Version "//trim(version)//" :: Released "//trim(moddate)
   write(lout,"(a)") "  "//repeat("=",128)
   write(lout,"(a)") "    Git SHA Hash: "//trim(git_revision)
-  write(lout,"(a)") "    Built With:   "//trim(featList)
+  write(lout,"(a)") "    Built With:   "//trim(adjustl(featList))
   write(lout,"(a)") "    Start Time:   "//timeStamp
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine

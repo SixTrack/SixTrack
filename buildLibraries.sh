@@ -11,12 +11,8 @@ echo "####################################"
 echo
 
 #Make sure we have the right submodule versions
-if [[ $(uname) != MINGW* ]]; then     # Use MSYS on Windows, git on MINGW is buggy.
-    #On LxPlus, you need to run git submodule init
-    # from the toplevel of the working tree
-    git submodule init
-    git submodule update
-fi
+git submodule init
+git submodule update
 cd lib
 
 echo
@@ -42,6 +38,27 @@ fi
 
 ./configure --disable-client --disable-server --disable-manager --disable-boinczip
 
+# This is a terrible hack for building on MinGW, but it works.
+# Line numbers may need to be updated if BOINC is updated.
+if [[ $(uname) == MINGW* ]]; then
+    cd lib
+
+    if [ ! -f "boinc_win.h.bak" ]; then
+        mv boinc_win.h boinc_win.h.bak
+        cat boinc_win.h.bak | head -n27 > boinc_win.h
+        echo "#include \"windows.h\"" >> boinc_win.h
+        cat boinc_win.h.bak | tail -n+28 >> boinc_win.h
+    fi
+
+    if [ ! -f "util.cpp.bak" ]; then
+        mv util.cpp util.cpp.bak
+        cat util.cpp.bak | head -n631 > util.cpp
+        echo "int get_real_executable_path(char* , size_t ) {return ERR_NOT_IMPLEMENTED;}" >> util.cpp
+    fi
+
+    cd ..
+fi
+
 if [[ $(pwd) == /afs/* ]]; then
     #AFS doesn't like hardlinks between files in different directories and configure doesn't check for this corner case...
     sed -i 's/\/bin\/ln/cp/g' Makefile
@@ -51,7 +68,7 @@ if [[ $(pwd) == /afs/* ]]; then
     make
 else
     # Machines with low memory doesn't like an automatic -j
-    make -j 4
+    make -j4
 fi
 
 #Need to build the boinc/api/boinc_api_fortran.o separately
