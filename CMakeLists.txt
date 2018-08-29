@@ -58,10 +58,16 @@ message(STATUS "Numeric Version:  ${NUM_VERSION}")
 SET(${PROJECT_NAME}_VERSION "${VERSION_STRING}")
 MESSAGE(STATUS "Running on: ${CMAKE_SYSTEM_NAME} with ${CMAKE_SYSTEM_PROCESSOR} and generating for ${CMAKE_GENERATOR}")
 
-#get the current git commit hash
-EXECUTE_PROCESS(COMMAND git log -n1 --pretty=format:%H WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_REVISION)
-STRING(STRIP ${GIT_REVISION} GIT_REVISION)
-message(STATUS "Git Revision: ${GIT_REVISION}")
+# Get the current git commit hash
+set(GIT_REVISION "Unknown")
+find_package(Git)
+if(GIT_FOUND)
+	execute_process(COMMAND git log -n1 --pretty=format:%H WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_REVISION)
+	string(STRIP ${GIT_REVISION} GIT_REVISION)
+	message(STATUS "Git Revision: ${GIT_REVISION}")
+else()
+	message(STATUS "Git Revision: git not installed.")
+endif()
 
 ###################################################################################################
 # Sixtrack configuration options
@@ -429,6 +435,27 @@ if(FLUKA)
 		set(SIXDA OFF)
 	endif()
 endif()
+if(G4COLLIMAT)
+	if(SIXDA)
+		message(STATUS "Will not build SixDA when G4COLLIMAT is enabled.")
+		set(SIXDA OFF)
+	endif()
+endif()
+if(MERLINSCATTER)
+	if(SIXDA)
+		message(STATUS "Will not build SixDA when MERLINSCATTER is enabled.")
+		set(SIXDA OFF)
+	endif()
+endif()
+if(BEAMGAS)
+	if(SIXDA)
+		message(STATUS "Will not build SixDA when BEAMGAS is enabled.")
+		set(SIXDA OFF)
+	endif()
+endif()
+
+
+
 if(64BIT)
 	if(CERNLIB)
 		message(FATAL_ERROR "Cannot build CERNLIB with 64BIT enabled.")
@@ -612,10 +639,16 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 
 	SET(NAGFOR ON)
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
-	set(CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
-	set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam -gline")
+	set(CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns")
+	set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -gline")
 	set(PREPRO_EXEC  fpp)
 	set(PREPRO_FLAGS -P -free)
+
+if(WARN)
+	set(CMAKE_Fortran_FLAGS "-w=ulv -w=uparam ${CMAKE_Fortran_FLAGS}")
+else()
+	set(CMAKE_Fortran_FLAGS "-w=all ${CMAKE_Fortran_FLAGS}")
+endif(WARN)
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
