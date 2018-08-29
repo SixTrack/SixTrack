@@ -877,6 +877,10 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   use mod_commont
   use mod_commonmn
 
+#ifdef FLUKA
+  use mod_fluka
+#endif
+
   implicit none
 
   ! interface variables:
