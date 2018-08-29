@@ -10,9 +10,10 @@ A quick summation of the scripts:
 - compareSix2Mad.py: The bulk of the script. Sets up files, runs MAD-X/SixTrack and compares outputs.
 - latticeConstructor.py: Abstraction for creating a lattice from Python.
 - exampleTest.py: Contains an example of how the framework can be used.
+- elementTest.py: Contains test cases for thin elements in MAD-X/SixTrack as was used by J. Andersson for his CERN openlab project (presentation link [here](https://indico.cern.ch/event/752063/contributions/3114830/attachments/1704644/2746424/Comparison_of_tracking_codes_v3.pdf)) 
 
 ## The code should for the most part be self-explanatory
 
 Granted time and interest, this introduction could be expanded..
 
-J. Andersson, 24th of August 2018
+J. Andersson, 29th of August 2018
