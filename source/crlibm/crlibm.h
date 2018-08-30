@@ -103,6 +103,7 @@ extern double log2_ru(double); /* toward +inf */
 extern double log10_rn(double); /* to nearest  */
 extern double log10_rd(double); /* toward -inf */ 
 extern double log10_ru(double); /* toward +inf */ 
+extern double log10_rz(double); /* toward zero */ 
 
 
 #endif /* ifdef CRLIBM_H*/
