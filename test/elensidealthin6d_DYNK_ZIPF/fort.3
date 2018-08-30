@@ -6,6 +6,9 @@ TRACKING PARAMETERS-----------------------------------------------------
 1 1 0 1 2
 0 0 1 1 1 50000 2
 NEXT
+SETT--------------------------------------------------------------------
+DEBUG
+NEXT
 INITIAL COORDINATES-----------------------------------------------------
         2 0. 0. 0.333332 0
         0.
@@ -60,10 +63,10 @@ NEXT
 /%NO  %NV 1E-38 %nsix 0
 /NEXT
 ELEN
-hel1 ANNULAR 5.920e-03 6.928 1.5 0 0 0 0
-hel2 ANNULAR 4.920e-03 6.928 1.5 1.1547 2.3093 0 0
-hel3 ANNULAR 4.920e-03 6.928 1.5 1.1547 0 0 0
-hel4 ANNULAR 4.920e-03 6.928 1.5 0 2.3093 0 0
+hel1 UNIFORM 5.920e-03 6.928 4.618666666666667 0 0
+hel2 UNIFORM 4.920e-03 6.928 4.618666666666667 -1.1547 -2.3093
+hel3 UNIFORM 4.920e-03 6.928 4.618666666666667 -1.1547 0
+hel4 UNIFORM 4.920e-03 6.928 4.618666666666667 0 -2.3093
 NEXT
 DUMP
 ip4..2 1 1030 2 HEL_DUMP_1 1 100
@@ -74,9 +77,9 @@ ip4..6 1 1034 2 HEL_DUMP_5 1 100
 NEXT
 DYNK
 DEBUG
-FUN elens-pulsed GET hel1 thetamax
+FUN elens-orig GET hel2 theta_r2
 FUN zero CONST 0.0
-SET hel2 thetamax zero 50 -1 0
+SET hel2 theta_r2 zero 50 -1 0
 NEXT
 LINEAR OPTICS
 ELEMENT  0 2 1 2.5 2.5
