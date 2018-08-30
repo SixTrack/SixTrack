@@ -246,8 +246,8 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
-  if(elens_r2(ielens(iElem)) < zero) then
-    write(lout,"(a)") "ELENS> ERROR R2<0!"
+  if(elens_r2(ielens(iElem)) <= zero) then
+    write(lout,"(a)") "ELENS> ERROR R2<=0!"
     iErr = .true.
     return
   end if
@@ -256,13 +256,18 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
-  if(elens_lThetaR2(iElem)) then
-    if(elens_len(ielens(iElem)) < zero) then
+  if(elens_lThetaR2(ielens(iElem))) then
+    if(elens_len(ielens(iElem)) <= zero) then
       write(lout,"(a)") "ELENS> ERROR L<0!"
       iErr = .true.
       return
     end if
-    if(elens_Ek(ielens(iElem)) < zero) then
+    if(elens_I(ielens(iElem)) == zero) then
+      write(lout,"(a)") "ELENS> ERROR I=0!"
+      iErr = .true.
+      return
+    end if
+    if(elens_Ek(ielens(iElem)) <= zero) then
       write(lout,"(a)") "ELENS> ERROR Ek<0! (e-beam)"
       iErr = .true.
       return
@@ -329,16 +334,31 @@ end subroutine elens_parseInputDone
 
 subroutine elens_postInput
   
-  use mod_common, only : e0,bez
+  use mod_common, only : e0,bez,kz
+  use mod_hions, only : aa0, zz0
   
-  integer j
+  integer j,jj
   logical exist
 
+  if ( melens /= 0) then
+     if ( aa0.ne.1 .or. zz0.ne.1 ) then
+        write(lout,"(a)") "ELENS> ERROR Elens available only for proton beam, no ion beams"
+        call prror(-1)
+     end if
+  end if
+     
   ! Compute elens theta at R2, if requested by user
   do j=1,melens
     if(elens_lThetaR2(j)) then
-      elens_theta_r2(j) = eLensTheta(elens_len(ielens(j)), elens_I(ielens(j)),elens_Ek(ielens(j)), e0, elens_r2(ielens(j)))
-      write(lout,"(a,e22.15)") "ELENS> New theta at r2 for "//trim(bez(j))//": ",elens_theta_r2(j)
+      do jj=1,nele
+        if(kz(jj)==29) then
+          if (ielens(jj).eq.j) then
+            exit
+          end if
+        end if
+      end do
+      elens_theta_r2(j) = eLensTheta(elens_len(j), elens_I(j),elens_Ek(j), e0, elens_r2(j) )
+      write(lout,"(a,i0,a,e22.15)") "ELENS> New theta at r2 for elens #",j," named "//trim(bez(jj))//": ",elens_theta_r2(j)
     end if
   end do
 
