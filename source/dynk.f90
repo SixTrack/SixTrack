@@ -798,7 +798,6 @@ subroutine dynk_parseFUN(inLine, iErr)
     ! Set pointers to start of funs data blocks
     dynk_nFuncs = dynk_nFuncs+1
     dynk_ncData = dynk_ncData+1
-    dynk_niData = dynk_niData+1
 
     ! Store pointers
     dynk_funcs(dynk_nFuncs,1) = dynk_ncData   ! NAME (in dynk_cData)
