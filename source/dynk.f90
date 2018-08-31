@@ -798,9 +798,8 @@ subroutine dynk_parseFUN(inLine, iErr)
     ! Set pointers to start of funs data blocks
     dynk_nFuncs = dynk_nFuncs+1
     dynk_ncData = dynk_ncData+1
-    dynk_niData = dynk_niData+1
 
-    ! Store pointers
+    ! Store pointers and metadata
     dynk_funcs(dynk_nFuncs,1) = dynk_ncData   ! NAME (in dynk_cData)
     if(isFIR) then
       dynk_funcs(dynk_nFuncs,2) = 10 ! TYPE (FIR)
@@ -810,11 +809,9 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_funcs(dynk_nFuncs,3) = dynk_nfData+1 ! ARG1 (start of float storage)
     dynk_funcs(dynk_nFuncs,4) = t             ! ARG2 (filter order N)
     dynk_funcs(dynk_nFuncs,5) = &             ! ARG3 (filtered function)
-    dynk_findFUNindex(trim(lnSplit(6)), 1)
+         dynk_findFUNindex(trim(lnSplit(6)), 1)
 
-    ! Store metadata
     dynk_cData(dynk_ncData) = trim(lnSplit(2))             ! NAME
-    call chr_cast(lnSplit(4),dynk_iData(dynk_niData),cErr) ! N
 
     ! Sanity check
     if(dynk_funcs(dynk_nFuncs,5) == -1) then
@@ -828,7 +825,7 @@ subroutine dynk_parseFUN(inLine, iErr)
       iErr = .true.
       return
     end if
-    if(dynk_iData(dynk_niData) <= 0) then
+    if(dynk_funcs(dynk_nFuncs,4) <= 0) then
       write(lout,"(a)") "DYNK> ERROR FUN:FIR/IIR Got N <= 0, this is not valid."
       iErr = .true.
       return
