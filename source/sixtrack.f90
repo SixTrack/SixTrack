@@ -1894,7 +1894,6 @@ subroutine initialize_element(ix,lfirst)
           print *, zfz(izu), ed(ix), izu, mmul, k, im, bbiv(1,1,i),bbiv(2,1,i) ,r0a, i,ix, "111aaa"
 
         end do
-        
         end if
         end do
         !izu=izu+2*mmul-2*nmz
