@@ -282,6 +282,7 @@ subroutine trauthin(nthinerr)
 #include "include/stra10.f90"
       end if
     case (11) ! Multipole block (also in initialize_element)
+    print *, "dippoooolle", i, ix, iu
       r0  = ek(ix)
       nmz = nmu(ix)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
@@ -2051,8 +2052,8 @@ subroutine thin6d(nthinerr)
           crabamp4 = ed(ix)*nzz(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
 #include "include/alignva.f90"
-          yv(1,j)=yv(1,j) + (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)
-          yv(2,j)=yv(2,j) + (((crabamp4*moidpsv(j))*((three*crkve)*cikve**2-crkve**3))*c1m6)*cos_mb(kcrab)
+          yv(1,j)=yv(1,j) - (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)
+          yv(2,j)=yv(2,j) - (((crabamp4*moidpsv(j))*((three*crkve)*cikve**2-crkve**3))*c1m6)*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3*cikve)-(cikve**3*crkve)))*(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
           ejf0v(j)=ejfv(j)
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
