@@ -1688,7 +1688,7 @@ subroutine initialize_element(ix,lfirst)
 !-----------------------------------------------------------------------
 
       use floatPrecision
-      use dynk, only : dynk_elemData
+      use dynk, only : dynk_elemData, dynk_izuIndex
       use numerical_constants
       use crcoall
       use string_tools
@@ -1698,13 +1698,15 @@ subroutine initialize_element(ix,lfirst)
       use mod_commonmn
       use elens
       use wire
+
       implicit none
 
       integer, intent(in) :: ix
       logical, intent(in) :: lfirst
 
       !Temp variables
-      integer i
+      integer i, m, k, im, nmz, izu
+      real(kind=fPrec) r0, r0a
 
 !--Nonlinear Elements
 ! TODO: Merge these cases into 1 + subcases?
@@ -1839,7 +1841,8 @@ subroutine initialize_element(ix,lfirst)
 
 !--Multipoles
       elseif(kz(ix).eq.11) then
-
+            do i=1,iu
+               if ( ic(i)-nblo.eq.ix ) then
          !MULT support removed until we have a proper use case.
 !c$$$         if (lfirst) then
 !c$$$            dynk_elemData(ix,1) = el(ix) !Flag for type
@@ -1855,24 +1858,60 @@ subroutine initialize_element(ix,lfirst)
          if (abs(el(ix)+one).le.pieni) then
             dki(ix,1) = ed(ix)
             dki(ix,3) = ek(ix)
-            ed(ix) = one
-            ek(ix) = one
-            el(ix) = zero
+           ! ed(ix) = one
+           ! ek(ix) = one
+           ! el(ix) = zero
          else if(abs(el(ix)+two).le.pieni) then
             dki(ix,2) = ed(ix)
             dki(ix,3) = ek(ix)
-            ed(ix) = one
-            ek(ix) = one
-            el(ix) = zero
+           ! ed(ix) = one
+           
+           ! ek(ix) = one
+           ! el(ix) = zero
          endif
+
+        izu=dynk_izuIndex(ix)
+        r0=ek(ix)
+        !if(abs(r0).le.pieni) cycle
+        nmz=nmu(ix)
+        if(nmz.eq.0) then
+          izu=izu+2*mmul
+        !  cycle
+        end if
+        nmz=nmu(ix)
+        im=irm(ix)
+        r0a=one
+
+        m=1
+        do k=1,nmz
+          izu=izu+1
+          aaiv(k,m,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a !hr05
+          aai(i,k)=aaiv(k,m,i)
+          izu=izu+1
+          bbiv(k,m,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a !hr05
+          bbi(i,k)=bbiv(k,m,i)
+          r0a=r0a*r0
+          print *, zfz(izu), ed(ix), izu, mmul, k, im, bbiv(1,1,i),bbiv(2,1,i) ,r0a, i,ix, "111aaa"
+
+        end do
+        
+        end if
+        end do
+        !izu=izu+2*mmul-2*nmz
+      
          !Otherwise, i.e. when el=0, dki(:,1) = dki(:,2) = dki(:,3) = 0.0
 
          !MULT support removed until we have a proper use case.
 !c$$$         !All multipoles:
 !c$$$         if(.not.lfirst) then
-!c$$$            do i=1,iu
-!c$$$               if ( ic(i)-nblo.eq.ix ) then
-!c$$$                  if(ktrack(i).eq.31) goto 100 !ERROR
+        !do i=1,iu
+        !  if ( ic(i)-nblo.eq.ix ) then
+         !   print *, ix, ktrack(i), "ffffff"
+           ! if(ktrack(i).eq.31) goto 100 !ERROR
+           ! else if(ktrack.eq.33 .or.)
+        !   end if
+
+        !end do
 !c$$$                  !--Initialize smiv as usual
 !c$$$                  sm(ix)=ed(ix)
 !c$$$                  smiv(m,i)=sm(ix)+smizf(i)
@@ -7052,6 +7091,7 @@ subroutine ord
         zfz(izu)= fluc_errExt(20+j,icext(i))
         izu     = izu+1
         zfz(izu)= fluc_errExt(j,icext(i))
+        print *, "izzzu", izu, zfz(izu), icext(i)
       end do
     else if(kzz == 11 .and. abs(ek(ix)) > pieni .and. icext(i) == 0) then
       izu = izu+2*mmul

@@ -2316,7 +2316,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   real(kind=fPrec),   intent(in) :: newValue
 
   ! Temp variables
-  integer el_type, ii, j
+  integer el_type, ii, j, orderMult
 
   ! Original energies before energy update
   real(kind=fPrec) e0fo, e0o
@@ -2370,6 +2370,16 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
       ! Not yet supported : MULTIPOLES (11)
       case(11)
 
+      if(att_name(1:1) == "a") then
+        read(att_name(2:2), *) orderMult
+        
+        zfz(dynk_izuIndex(ii)+2*orderMult+1)=newValue
+      else if(att_name(1:1)=="b") then
+        read(att_name(2:2), *) orderMult
+        zfz(dynk_izuIndex(ii)+2*orderMult+2)=newValue
+      endif
+      call initialize_element(ii, .false.)
+   
       case(12)
         if(att_name == "voltage") then ! [MV]
           ed(ii) = newValue
@@ -2512,10 +2522,12 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
       print *, "dynkIndexxxx", dynk_izuIndex(ii), irm(ii), att_name(1:1)
       if(att_name(1:1) == "a") then
         read(att_name(2:2), *) orderMult
-        print *, "oooooo", orderMult, zfz(dynk_izuIndex(ii)+2*orderMult+1)
+        print *, "oooooo", ii, orderMult, zfz(dynk_izuIndex(ii)+2*orderMult+1)
+        dynk_getvalue= zfz(dynk_izuIndex(ii)+2*orderMult+2)
       else if(att_name(1:1)=="b") then
-      read(att_name(2:2), *) orderMult
-      print *, "bbboooooo", orderMult, zfz(dynk_izuIndex(ii)+2*orderMult+2)
+        read(att_name(2:2), *) orderMult
+      print *, "bbboooooo", ii, orderMult, zfz(dynk_izuIndex(ii)+2*orderMult+2)
+        dynk_getvalue = zfz(dynk_izuIndex(ii)+2*orderMult+2)
       else
         goto 100 ! Error
       end if
