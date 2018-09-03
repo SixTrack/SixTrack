@@ -552,8 +552,8 @@ module mod_commonmn
 
   ! common /main1/
   real(kind=fPrec), allocatable, save :: ekv(:,:)     ! (npart,nele)
-  real(kind=fPrec), allocatable, save :: aaiv(:,:,:)  ! (mmul,nmac,nblz)
-  real(kind=fPrec), allocatable, save :: bbiv(:,:,:)  ! (mmul,nmac,nblz)
+  real(kind=fPrec), allocatable, save :: aaiv(:,:)  ! (mmul,nblz)
+  real(kind=fPrec), allocatable, save :: bbiv(:,:)  ! (mmul,nblz)
   real(kind=fPrec), allocatable, save :: smiv(:,:)    ! (nmac,nblz)
   real(kind=fPrec), allocatable, save :: zsiv(:,:)    ! (nmac,nblz)
   real(kind=fPrec), allocatable, save :: xsiv(:,:)    ! (nmac,nblz)
@@ -683,8 +683,8 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   integer, intent(in) :: nblz_new
   integer, intent(in) :: npart_new
 
-  call alloc(aaiv, mmul, nmac, nblz_new,       zero,    "aaiv")
-  call alloc(bbiv, mmul, nmac, nblz_new,       zero,    "bbiv")
+  call alloc(aaiv, mmul,  nblz_new,            zero,    "aaiv")
+  call alloc(bbiv, mmul,  nblz_new,            zero,    "bbiv")
   call alloc(smiv,       nmac, nblz_new,       zero,    "smiv")
   call alloc(zsiv,       nmac, nblz_new,       zero,    "zsiv")
   call alloc(xsiv,       nmac, nblz_new,       zero,    "xsiv")
