@@ -282,7 +282,6 @@ subroutine trauthin(nthinerr)
 #include "include/stra10.f90"
       end if
     case (11) ! Multipole block (also in initialize_element)
-    print *, "dippoooolle", i, ix, iu
       r0  = ek(ix)
       nmz = nmu(ix)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
