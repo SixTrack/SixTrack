@@ -130,7 +130,7 @@ subroutine zipf_dozip
   ! The f_write_archive function will handle the conversion from Fortran to C-style strings
   call f_write_archive(trim(zipf_outFile_boinc),zipf_fileNames_boinc,zipf_numFiles)
 #else
-  call f_write_archive(zipf_outFile,zipf_fileNames,zipf_numFiles)
+  call f_write_archive(trim(zipf_outFile),zipf_fileNames,zipf_numFiles)
 #endif
 #else
   ! If not libarchive, the zipf subroutine shall just be a stub.
