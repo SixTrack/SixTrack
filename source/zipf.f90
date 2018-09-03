@@ -47,8 +47,8 @@ subroutine zipf_parseInputLine(inLine,iErr)
   end if
 
   zipf_numFiles = zipf_numFiles + 1
-  call alloc(zipf_fileNames,mStrLen, zipf_numFiles, str_dSpace, "zipf_fileNames")
-  zipf_fileNames = trim(lnSplit(1))
+  call alloc(zipf_fileNames, mStrLen, zipf_numFiles, str_dSpace, "zipf_fileNames")
+  zipf_fileNames(zipf_numFiles) = trim(lnSplit(1))
 
 end subroutine zipf_parseInputLine
 
@@ -66,7 +66,7 @@ subroutine zipf_parseInputDone
   write(lout,"(a,i0)")  "ZIPF> Number of files to pack = ",zipf_numFiles
   write(lout,"(a)")     "ZIPF> Files:"
   do ii=1,zipf_numFiles
-    write(lout,"(a,i5,a)") "ZIPF>  * ",ii,": ",trim(zipf_fileNames(ii))
+    write(lout,"(a,i5,a)") "ZIPF>  * ",ii,": '"//trim(zipf_fileNames(ii))//"'"
   end do
 
   if(.not.(zipf_numFiles > 0)) then
@@ -75,11 +75,6 @@ subroutine zipf_parseInputDone
   endif
 
 end subroutine zipf_parseInputDone
-
-subroutine zipf_comnul
-  use mod_alloc
-  call alloc(zipf_fileNames, mStrLen, 1, str_dSpace, "zipf_fileNames")
-end subroutine zipf_comnul
 
 subroutine zipf_dozip
 
@@ -128,6 +123,7 @@ subroutine zipf_dozip
   end do
 
   ! The f_write_archive function will handle the conversion from Fortran to C-style strings
+  ! NOTE: Last two arguments of the C function are implicitly passed from FORTRAN, there is no need to do it explicitly.
   call f_write_archive(trim(zipf_outFile_boinc),zipf_fileNames_boinc,zipf_numFiles)
 #else
   call f_write_archive(trim(zipf_outFile),zipf_fileNames,zipf_numFiles)

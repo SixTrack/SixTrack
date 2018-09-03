@@ -2527,7 +2527,6 @@ subroutine comnul
   use wire
   use scatter,     only : scatter_comnul
   use dump,        only : dump_comnul
-  use zipf,        only : zipf_comnul
   use bdex,        only : bdex_comnul
   use collimation, only : collimation_comnul
 #ifdef HDF5
@@ -3043,8 +3042,6 @@ subroutine comnul
 !     always in main code
       call aperture_comnul
 
-!--ZIPF-----------------------------------------------------------------
-      call zipf_comnul
 !--SCATTER--------------------------------------------------------------
       call scatter_comnul
 !--HDF5-----------------------------------------------------------------
