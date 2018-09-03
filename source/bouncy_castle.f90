@@ -209,7 +209,7 @@ module mathlib_bouncer
 #endif
 
 #ifdef ROUND_ZERO
-     real(kind=c_double) function exp_rz(arg) bind(C,name="exp_rz")
+     real(kind=c_double) function exp_rz(arg) bind(C,name="exp_rd")
        use, intrinsic :: iso_c_binding, only : c_double
        implicit none
        real(kind=c_double), intent(in), VALUE :: arg

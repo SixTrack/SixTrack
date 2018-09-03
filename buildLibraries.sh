@@ -1,141 +1,53 @@
 #!/usr/bin/env bash
-# This script can be used to automatically build the "one time build"
-# libraries boinc and libarchive.
+# Script for building SixTrack dependencies that do not eed to be re-built every time SixTrack is built.
 
-set -e #Exit on error
+set -e # Exit on error
 
-echo
-echo "####################################"
-echo "### GIT SUBMODULES #################"
-echo "####################################"
-echo
+echo ""
+echo " Building SixTrack Library Dependecies"
+echo "========================================"
+echo ""
 
-#Make sure we have the right submodule versions
-git submodule init
-git submodule update
-cd lib
+ALL=true
+BOINC=false
+LIBARCH=false
+HDF5=false
 
-echo
-echo "####################################"
-echo "### BOINC ##########################"
-echo "####################################"
-echo
+for ARG in "$@"; do
+    if [[ $ARG == "boinc" ]]; then
+        BOINC=true
+        LIBARCH=true
+        echo "Boinc depends on libarchive, libarchive enabled as well."
+    elif [[ $ARG == "libarchive" ]]; then
+        LIBARCH=true
+    elif [[ $ARG == "hdf5" ]]; then
+        HDF5=true
+    else
+        echo "Unknown library $ARG requested."
+        exit 1
+    fi
+    echo "Will build $ARG"
+    ALL=false
+done
 
-cd boinc
-
-if [[ $(uname) == FreeBSD* ]]; then
-    MAKE=/usr/local/bin/gmake ./_autosetup -f
-elif [[ $(uname) == OpenBSD* ]]; then
-#These numbers will need updating in the future.
-    AUTOCONF_VERSION=2.69 AUTOMAKE_VERSION=1.15 MAKE=/usr/local/bin/gmake ./_autosetup -f
-elif [[ $(uname) == NetBSD* ]]; then
-    MAKE=/usr/pkg/bin/gmake ./_autosetup -f
-elif [[ $(uname) == Darwin* ]]; then
-    LIBTOOLIZE=/usr/local/bin/glibtoolize ./_autosetup -f
-else
-    ./_autosetup -f
-fi
-
-./configure --disable-client --disable-server --disable-manager --disable-boinczip
-
-# This is a terrible hack for building on MinGW, but it works.
-# Line numbers may need to be updated if BOINC is updated.
-if [[ $(uname) == MINGW* ]]; then
+if [ $BOINC = true ] || [ $ALL = true ]; then
+    git submodule init lib/boinc
+    git submodule update lib/boinc
     cd lib
-
-    if [ ! -f "boinc_win.h.bak" ]; then
-        mv boinc_win.h boinc_win.h.bak
-        cat boinc_win.h.bak | head -n27 > boinc_win.h
-        echo "#include \"windows.h\"" >> boinc_win.h
-        cat boinc_win.h.bak | tail -n+28 >> boinc_win.h
-    fi
-
-    if [ ! -f "util.cpp.bak" ]; then
-        mv util.cpp util.cpp.bak
-        cat util.cpp.bak | head -n631 > util.cpp
-        echo "int get_real_executable_path(char* , size_t ) {return ERR_NOT_IMPLEMENTED;}" >> util.cpp
-    fi
-
+    ./buildBoinc.sh
     cd ..
 fi
 
-if [[ $(pwd) == /afs/* ]]; then
-    #AFS doesn't like hardlinks between files in different directories and configure doesn't check for this corner case...
-    sed -i 's/\/bin\/ln/cp/g' Makefile
-    sed -i 's/\/bin\/ln/cp/g' api/Makefile
-    sed -i 's/\/bin\/ln/cp/g' lib/Makefile
-    #AFS doesn't like parallel make
-    make
-else
-    # Machines with low memory doesn't like an automatic -j
-    make -j4
+if [ $LIBARCH = true ] || [ $ALL = true ]; then
+    git submodule init lib/libarchive
+    git submodule update lib/libarchive
+    cd lib
+    ./buildLibarchive.sh
+    cd ..
 fi
 
-#Need to build the boinc/api/boinc_api_fortran.o separately
-cd api
-if [[ -e boinc_api_fortran.o ]]; then
-    #In case we already have such an .o file, it may be of the wrong arch, so recompile.
-    rm boinc_api_fortran.o
+if [ $HDF5 = true ] || [ $ALL = true ]; then
+    cd lib
+    ./buildHDF5.sh
+    cd ..
 fi
-make boinc_api_fortran.o
-cd ..
-
-cd ..
-
-echo
-echo "####################################"
-echo "### libArchive #####################"
-echo "####################################"
-echo
-echo "**** ZLIB ****"
-echo
-#Support library zlib
-cd zlib
-ZLIB_BASE=$(pwd)
-if [[ -d build ]]; then
-   rm -rf build
-fi
-mkdir build
-if [[ -d install ]]; then
-   rm -rf install
-fi
-mkdir install
-
-cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=$ZLIB_BASE/install -DCMAKE_C_FLAGS=-fPIC -G "Unix Makefiles"
-make
-make install
-cd ..
-
-if [[ $(uname) == MINGW* ]]; then
-    #Windows build creates a differently-named libz.a.
-    cd install/lib
-    cp libzlibstatic.a libz.a
-    cd ../..
-fi
-ZLIB_PATH=$ZLIB_BASE/install/lib/libz.a
-
-cd ..
-
-echo
-echo "**** libArchive ****"
-echo
-
-#Then: LibArchive itself
-if [[ -d libarchive_build ]]; then
-    rm -rf libarchive_build
-fi
-mkdir libarchive_build
-cd libarchive_build
-
-cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_BZip2=OFF -DENABLE_ZLIB=ON -DENABLE_CAT=OFF -DENABLE_CPIO=OFF -DENABLE_EXPAT=OFF -DENABLE_INSTALL=OFF -DENABLE_LIBXML2=OFF -DENABLE_LZMA=OFF -DENABLE_NETTLE=OFF -DENABLE_OPENSSL=OFF -DENABLE_TAR=OFF -DENABLE_CNG=OFF -DENABLE_ICONV=OFF -DENABLE_TEST=OFF -DZLIB_LIBRARY=$ZLIB_PATH -DZLIB_INCLUDE_DIR=$ZLIB_BASE/install/include -G "Unix Makefiles" ../libarchive -LH
-
-if [[ $(pwd) == /afs/* ]]; then
-    #AFS doesn't like parallel make
-    make
-else
-    # Machines with low memory doesn't like an automatic -j
-    make -j 4
-fi
-
-cd ..
