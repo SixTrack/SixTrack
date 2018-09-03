@@ -10,8 +10,8 @@ massProton=0.938272081
 #   madxPath = absolute path to the madx64 executable
 #   sixtrackPath = absolute path to the SixTrack executable
 
-madxPath = '/home/bob/codes/MAD-X/build/madx64'
-sixtrackPath = '/home/bob/codes/SixTrack/build/SixTrack_cmakesix_defaultcompiler_defaultbuildtype/SixTrack_50002_crlibm_rn_Linux_gfortran_static_x86_64_64bit_double'
+madxPath = '/home/tobias/codes/MAD-X/madx64'
+sixtrackPath = '/home/tobias/codes/SixTrackTobias/build/SixTrack_cmakesix_BUILD_TESTING_defaultcompiler_defaultbuildtype/SixTrack_50002_crlibm_rn_Linux_gfortran_static_x86_64_64bit_double'
 
 # E -> P
 def energyToMomentum(E):
@@ -121,25 +121,25 @@ def getTableDifference(mad1, mad2, norm):
 def loadTable(path, isMadX=True, names=[]):
     if isMadX:
         with open(path,'r') as f:
-			s = f.read()
+            s = f.read()
         path_temp = path + '_temp'
         with open(path_temp,'w') as f:
             s = s.split('*',1)[1]
             if len(names) == 0:
-				s = '\n'.join(s.split('\n', 2)[0:3:2])
+                s = '\n'.join(s.split('\n', 2)[0:3:2])
             else:
-				s = s.split('\n', 2)[2]
+                s = s.split('\n', 2)[2]
             f.write(s)
         if len(names) == 0:
-			table = pd.read_table(path_temp, delim_whitespace=True)
+            table = pd.read_table(path_temp, delim_whitespace=True)
         else:
-			table = pd.read_table(path_temp, delim_whitespace=True, names=names)
+            table = pd.read_table(path_temp, delim_whitespace=True, names=names)
         os.remove(path_temp)
     else:
-		if len(names) == 0:
-			table = pd.read_table(path, delim_whitespace=True, skiprows=2)
-		else:
-			table = pd.read_table(path, delim_whitespace=True, names=names, skiprows=2)
+        if len(names) == 0:
+            table = pd.read_table(path, delim_whitespace=True, skiprows=2)
+        else:
+            table = pd.read_table(path, delim_whitespace=True, names=names, skiprows=2)
 
     return table
 
