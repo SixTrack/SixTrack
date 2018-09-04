@@ -6,6 +6,27 @@ from sys import argv
 import pandas as pd
 import os
 
+# ------ Documentation on output format for tests ------
+# n : an ndarray of shape (nbr_of_test_cases, points_per_test_case) containing parameter values
+#     For the ith test case, the values of the parameter being iteratively altered
+#     is given by n(i-1,:).
+# vals : an ndarray of shape (6, nbr_of_test_cases, 3, points_per_test_case) containing test output
+#        The specifics of each dimension:
+#        - The 1st dimension of vals is for the six different MAD-X tracking variables in order (X,PX,Y,PY,T,PT)
+#        - The 2nd dimension of vals is for each different test case
+#        - The 3rd dimension of vals is for the MAD-X output, the SixTrack output in MAD-X format and
+#          the difference between them respectively
+#        - The 4th dimension of vals is for each parameter value
+#
+# Examples:
+#           - vals(1,2,0,5) corresponds to the PX value in MAD-X for the third test case in which the parameter
+#             value is n(2,5)
+#           - vals(4,0,2,7) corresponds to the difference in T value between MAD-X and MAD-X-transformed SixTrack for
+#             the first test case in which the parameter value is n(0,7)
+#           - vals(2,1,1,1) corresponds to the Y value in MAD-X-transformed SixTrack for the second test case in which
+#             the parameter value is n(1,1)
+#
+
 nbr_turns = 1
 energy_GeV = 5
 init_coords = (0.001, 0.002, 0.003, 0.004, 0.005, 0.01)
