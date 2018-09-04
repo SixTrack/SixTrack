@@ -5,14 +5,22 @@
 module mathlib_bouncer
 
   use floatPrecision
-  use, intrinsic :: iso_fortran_env, only : real64
+  use, intrinsic :: ieee_arithmetic
+  use, intrinsic :: iso_fortran_env, only : real64, int64
   implicit none
 
   !These are the actual "bouncy functions" users are supposed to call
   public :: sin_mb, asin_mb, sinh_mb, cos_mb, acos_mb, cosh_mb, tan_mb, atan_mb, atan2_mb, exp_mb, log_mb, log10_mb
 
-  real(kind=real64), parameter :: mb_pi  = 3.1415926535897932d0
-  real(kind=real64), parameter :: mb_pi2 = 1.5707963267948966d0
+! real(kind=fPrec), parameter :: mb_pi   = 3.1415926535897932d0
+! real(kind=fPrec), parameter :: mb_pi2  = 1.5707963267948966d0
+  real(kind=fPrec), parameter :: mb_pi   = 3.141592653589793238462643383279502884197169399375105820974_fPrec
+  real(kind=fPrec), parameter :: mb_pi2  = 1.570796326794896619231321691639751442098584699687552910487_fPrec
+! #ifdef NAGFOR
+!   real(kind=fPrec), parameter :: mb_qnan = ieee_value(1.0_fPrec, ieee_quiet_nan)
+! #else
+!   real(kind=fPrec), parameter :: mb_qnan = transfer(-2251799813685248_int64, 1.0_real64)
+! #endif
 
   !For linking with CRLIBM
 #ifdef CRLIBM
@@ -464,11 +472,8 @@ contains
 
   real(kind=fPrec) function atan2_mb(y,x)
     implicit none
-    real(kind=fPrec) y,x
-    intent(in) y,x
-
+    real(kind=fPrec), intent(in) :: y,x
 #ifndef CRLIBM
-    !Input KIND = output KIND
     atan2_mb=atan2(y,x)
 #else
 #ifdef ROUND_NEAR
@@ -603,37 +608,28 @@ contains
   end function asin_rn
 
   real(kind=real64) function atan2_rn(y,x)
-    use, intrinsic :: iso_fortran_env
-    use, intrinsic :: ieee_arithmetic
     implicit none
     real(kind=real64) x,y
-    logical myisnan
-#ifdef NAGFOR
-    real(kind=real64) :: nan64
-    nan64 = ieee_value(nan64, ieee_quiet_nan)
-#else
-    real(kind=real64), parameter :: nan64 = transfer(-2251799813685248_int64, 1.0_real64)
-#endif
     if (x.eq.0d0) then
-       if (y.eq.0d0) then
-          ! Should get me a NaN
-          ! atan2_rn=atan_rn(y/x)
-          atan2_rn=nan64
-       else
-          atan2_rn=sign(mb_pi2,y)
-       endif
+      if (y.eq.0d0) then
+        ! Let the internal atan2 handle this case according to ieee
+        atan2_rn=atan2(y,x)
+      else
+        atan2_rn=sign(mb_pi2,y)
+      endif
     else
        if (y.eq.0d0) then
-          if (x.gt.0d0) then
-             atan2_rn=0d0
-          else
-             atan2_rn=mb_pi
-          endif
-       else
-          atan2_rn=atan_rn(y/x)
-          if (x.lt.0d0) then
-             atan2_rn=sign(mb_pi,y)+atan2_rn
-          endif
+        if (x.gt.0d0) then
+          ! Let the internal atan2 handle this case according to ieee
+          atan2_rn=atan2(y,x)
+        else
+          atan2_rn=mb_pi
+        endif
+      else
+        atan2_rn=atan_rn(y/x)
+        if (x.lt.0d0) then
+          atan2_rn=sign(mb_pi,y)+atan2_rn
+        endif
        endif
     endif
   end function atan2_rn
@@ -680,37 +676,29 @@ contains
   end function asin_ru
 
   real(kind=real64) function atan2_ru(y,x)
-    use, intrinsic :: iso_fortran_env
-    use, intrinsic :: ieee_arithmetic
     implicit none
     real(kind=real64) x,y
-    logical myisnan
-#ifdef NAGFOR
-    real(kind=real64) :: nan64
-    nan64 = ieee_value(nan64, ieee_quiet_nan)
-#else
-    real(kind=real64), parameter :: nan64 = transfer(-2251799813685248_int64, 1.0_real64)
-#endif
     if (x.eq.0d0) then
-       if (y.eq.0d0) then
-          ! Should get me a NaN
-          atan2_ru=atan_ru(y/x)
-       else
-          atan2_ru=sign(mb_pi2,y)
-       endif
+      if (y.eq.0d0) then
+        ! Let the internal atan2 handle this case according to ieee
+        atan2_ru=atan2(y,x)
+      else
+        atan2_ru=sign(mb_pi2,y)
+      endif
     else
-       if (y.eq.0d0) then
-          if (x.gt.0d0) then
-             atan2_ru=0d0
-          else
-             atan2_ru=mb_pi
-          endif
-       else
-          atan2_ru=atan_ru(y/x)
-          if (x.lt.0d0) then
-             atan2_ru=sign(mb_pi,y)+atan2_ru
-          endif
-       endif
+      if (y.eq.0d0) then
+        if (x.gt.0d0) then
+          ! Let the internal atan2 handle this case according to ieee
+          atan2_ru=atan2(y,x)
+        else
+          atan2_ru=mb_pi
+        endif
+      else
+        atan2_ru=atan_ru(y/x)
+        if (x.lt.0d0) then
+          atan2_ru=sign(mb_pi,y)+atan2_ru
+        endif
+      endif
     endif
   end function atan2_ru
 #endif
@@ -756,37 +744,29 @@ contains
   end function asin_rd
 
   real(kind=real64) function atan2_rd(y,x)
-    use, intrinsic :: iso_fortran_env
-    use, intrinsic :: ieee_arithmetic
     implicit none
     real(kind=real64) x,y
-    logical myisnan
-#ifdef NAGFOR
-    real(kind=real64) :: nan64
-    nan64 = ieee_value(nan64, ieee_quiet_nan)
-#else
-    real(kind=real64), parameter :: nan64 = transfer(-2251799813685248_int64, 1.0_real64)
-#endif
     if (x.eq.0d0) then
-       if (y.eq.0d0) then
-          ! Should get me a NaN
-          atan2_rd=atan_rd(y/x)
-       else
-          atan2_rd=sign(mb_pi2,y)
-       endif
+      if (y.eq.0d0) then
+        ! Let the internal atan2 handle this case according to ieee
+        atan2_rd=atan2(y,x)
+      else
+        atan2_rd=sign(mb_pi2,y)
+      endif
     else
-       if (y.eq.0d0) then
-          if (x.gt.0d0) then
-             atan2_rd=0d0
-          else
-             atan2_rd=mb_pi
-          endif
-       else
-          atan2_rd=atan_rd(y/x)
-          if (x.lt.0d0) then
-             atan2_rd=sign(mb_pi,y)+atan2_rd
-          endif
-       endif
+      if (y.eq.0d0) then
+        if (x.gt.0d0) then
+          ! Let the internal atan2 handle this case according to ieee
+          atan2_rd=atan2(y,x)
+        else
+          atan2_rd=mb_pi
+        endif
+      else
+        atan2_rd=atan_rd(y/x)
+        if (x.lt.0d0) then
+          atan2_rd=sign(mb_pi,y)+atan2_rd
+        endif
+      endif
     endif
   end function atan2_rd
 #endif
@@ -832,37 +812,29 @@ contains
   end function asin_rz
 
   real(kind=real64) function atan2_rz(y,x)
-    use, intrinsic :: iso_fortran_env
-    use, intrinsic :: ieee_arithmetic
     implicit none
     real(kind=real64) x,y
-    logical myisnan
-#ifdef NAGFOR
-    real(kind=real64) :: nan64
-    nan64 = ieee_value(nan64, ieee_quiet_nan)
-#else
-    real(kind=real64), parameter :: nan64 = transfer(-2251799813685248_int64, 1.0_real64)
-#endif
     if (x.eq.0d0) then
-       if (y.eq.0d0) then
-          ! Should get me a NaN
-          atan2_rz=atan_rz(y/x)
-       else
-          atan2_rz=sign(mb_pi2,y)
-       endif
+      if (y.eq.0d0) then
+        ! Let the internal atan2 handle this case according to ieee
+        atan2_rz=atan2(y,x)
+      else
+        atan2_rz=sign(mb_pi2,y)
+      endif
     else
-       if (y.eq.0d0) then
-          if (x.gt.0d0) then
-             atan2_rz=0d0
-          else
-             atan2_rz=mb_pi
-          endif
-       else
-          atan2_rz=atan_rz(y/x)
-          if (x.lt.0d0) then
-             atan2_rz=sign(mb_pi,y)+atan2_rz
-          endif
-       endif
+      if (y.eq.0d0) then
+        if (x.gt.0d0) then
+          ! Let the internal atan2 handle this case according to ieee
+          atan2_rz=atan2(y,x)
+        else
+          atan2_rz=mb_pi
+        endif
+      else
+        atan2_rz=atan_rz(y/x)
+        if (x.lt.0d0) then
+          atan2_rz=sign(mb_pi,y)+atan2_rz
+        endif
+      endif
     endif
   end function atan2_rz
 #endif
