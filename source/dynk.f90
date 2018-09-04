@@ -2407,7 +2407,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
       case(29)! Electron lens
         if(att_name == "theta_r2") then ! [mrad]
-          elens_theta_r2(ii) = newValue
+          elens_theta_r2(ielens(ii)) = newValue
         else
           goto 100 ! ERROR
         end if
@@ -2539,9 +2539,9 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
           goto 100 ! ERROR
         end if
 
-      case(20) ! Electron lens
+      case(29) ! Electron lens
         if(att_name == "theta_r2") then ! [mrad]
-          dynk_getvalue = elens_theta_r2(ii)
+          dynk_getvalue = elens_theta_r2(ielens(ii))
         else
           goto 100 ! ERROR
         end if
