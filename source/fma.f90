@@ -164,7 +164,7 @@ subroutine fma_postpr
   real(kind=fPrec), allocatable :: epsnxyzv(:,:,:)
 
 interface
-  real(c_double) function tunenaff (x,xp,maxn,plane_idx,norm_flag, fft_naff) bind(c)
+  real(c_double) function tunenaff(x,xp,maxn,plane_idx,norm_flag, fft_naff) bind(c)
     use, intrinsic :: iso_c_binding
     implicit none
     real(c_double), intent(in), dimension(1) :: x,xp
@@ -650,8 +650,13 @@ real(kind=fPrec), allocatable :: naff_xyzv2(:)
                 naff_xyzv1 = nxyzv(l,1:nturns(l),  2*(m-1)+1)
                 naff_xyzv2 = nxyzv(l,1:nturns(l),  2*m)
               endif
-              fft_naff = tunefft( naff_xyzv1, naff_xyzv2, nturns(l) )
-              q123(m) = tunenaff(naff_xyzv1, naff_xyzv2, nturns(l), m, fma_norm_flag(i),fft_naff )
+              fft_naff = tunefft(naff_xyzv1, naff_xyzv2, nturns(l))
+#ifndef DOUBLE_MATH
+              q123(m)  = real(tunenaff(real(naff_xyzv1,kind=real64), real(naff_xyzv2,kind=real64), &
+                nturns(l), m, fma_norm_flag(i), real(fft_naff,kind=real64)),kind=fPrec)
+#else
+              q123(m)  = tunenaff(naff_xyzv1, naff_xyzv2, nturns(l), m, fma_norm_flag(i), fft_naff)
+#endif
 
               flush(lout)
               ! stop
