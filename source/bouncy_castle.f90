@@ -474,7 +474,16 @@ contains
     implicit none
     real(kind=fPrec), intent(in) :: y,x
 #ifndef CRLIBM
+#ifdef NAGFOR
+    ! Nagfoir
+    if(x == 0.0_fPrec .and. y == 0.0_fPrec) then
+      atan2_mb=0.0_fPrec
+    else
+      atan2_mb=atan2(y,x)
+    end if
+#else
     atan2_mb=atan2(y,x)
+#endif
 #else
 #ifdef ROUND_NEAR
     atan2_mb=atan2_rn(y,x)
@@ -612,8 +621,12 @@ contains
     real(kind=real64) x,y
     if (x.eq.0d0) then
       if (y.eq.0d0) then
+#ifdef NAGFOR
+          atan2_rn=0d0
+#else
         ! Let the internal atan2 handle this case according to ieee
         atan2_rn=atan2(y,x)
+#endif
       else
         atan2_rn=sign(mb_pi2,y)
       endif
@@ -680,8 +693,12 @@ contains
     real(kind=real64) x,y
     if (x.eq.0d0) then
       if (y.eq.0d0) then
+#ifdef NAGFOR
+          atan2_ru=0d0
+#else
         ! Let the internal atan2 handle this case according to ieee
         atan2_ru=atan2(y,x)
+#endif
       else
         atan2_ru=sign(mb_pi2,y)
       endif
@@ -748,8 +765,12 @@ contains
     real(kind=real64) x,y
     if (x.eq.0d0) then
       if (y.eq.0d0) then
+#ifdef NAGFOR
+        atan2_rd=0d0
+#else
         ! Let the internal atan2 handle this case according to ieee
         atan2_rd=atan2(y,x)
+#endif
       else
         atan2_rd=sign(mb_pi2,y)
       endif
@@ -816,8 +837,12 @@ contains
     real(kind=real64) x,y
     if (x.eq.0d0) then
       if (y.eq.0d0) then
+#ifdef NAGFOR
+        atan2_rz=0d0
+#else
         ! Let the internal atan2 handle this case according to ieee
         atan2_rz=atan2(y,x)
+#endif
       else
         atan2_rz=sign(mb_pi2,y)
       endif
