@@ -5,7 +5,7 @@
 xelens=xv(1,j)-elens_offset_x(ielens(ix))
 yelens=xv(2,j)-elens_offset_y(ielens(ix))
 ! 2) calculate radius
-!    radius of particle in p-beam relative to center of elens beam
+!    radial position of main beam relative to center of elens beam
 !    -> internal parameters to calculate kick:
 !    rrelens = sqrt(xelens**2+yelens**2)
 rrelens=sqrt((xelens)**2+(yelens**2))
@@ -28,7 +28,7 @@ if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
                               -exp_mb(-0.5*(rrelens             /elens_sig(ielens(ix)))**2) )/ &
                               elens_geo_norm(ielens(ix))
     case default
-      write(lout,"(a,i0)") "ELENS> ERROR in deck kickelens: elens_type=",elens_type(ielens(ix))," not recognized. "
+      write(lout,"(a,i0)") "ELENS> ERROR in kickelens: elens_type=",elens_type(ielens(ix))," not recognized. "
       write(lout,"(a)")    "ELENS>       Possible values for type are: 1 and 2"
       call prror(-1)
     end select
