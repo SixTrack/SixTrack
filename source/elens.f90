@@ -340,13 +340,6 @@ subroutine elens_postInput
   integer j,jj
   logical exist
 
-  if ( melens /= 0) then
-     if ( aa0.ne.1 .or. zz0.ne.1 ) then
-        write(lout,"(a)") "ELENS> ERROR Elens available only for proton beam, no ion beams"
-        call prror(-1)
-     end if
-  end if
-     
   ! Compute elens theta at R2, if requested by user
   do j=1,melens
     if(elens_lThetaR2(j)) then
@@ -362,7 +355,7 @@ subroutine elens_postInput
     end if
   end do
 
-  ! Parse files with coefficients for chekyshev polynomials:
+  ! Parse files with coefficients for Chebyshev polynomials:
    do j=1,melens_cheby_tables
     inquire(file=elens_cheby_filename(j), exist=exist)
     if(.not. exist) then
@@ -391,20 +384,21 @@ real(kind=fPrec) function eLensTheta( len, Int, Ekin, Etot, r2 )
   use physical_constants
   use crcoall
   use mod_common
+  use mod_hions, only : nucm0
 
   implicit none
 
   real(kind=fPrec) gamma, beta_e, beta_b, brho, len, Int, Ekin, Etot, r2
 
-  gamma  = Ekin*c1m3/pmae+1 ! from kinetic energy
+  gamma  = Ekin*c1m3/pmae+one ! from kinetic energy
   beta_e = sqrt((gamma+one)*(gamma-one))/(gamma)
-  gamma  = Etot/pma ! from total energy
+  gamma  = Etot/nucm0         ! from total energy
   beta_b = sqrt((gamma+one)*(gamma-one))/(gamma)
   brho   = Etot/(clight*c1m6)
 
   ! r2: from mm to m
   ! theta: from rad to mrad
-  eLensTheta = len*abs(Int)/(2*pi*eps0*brho*clight**2*r2*c1m3)*c1e3
+  eLensTheta = len*abs(Int)/(two*pi*eps0*brho*clight**2*r2*c1m3)*c1e3
   if(Int < zero) then
     eLensTheta = eLensTheta*(one/(beta_e*beta_b)+one)
   else
@@ -482,7 +476,7 @@ subroutine parseChebyFile(ifile)
       goto 30
     end if
     call chr_cast(lnSplit(3),tmpflt,spErr)
-    gamma = tmpflt*c1m3/pmae+1 ! from kinetic energy
+    gamma = tmpflt*c1m3/pmae+one ! from kinetic energy
     elens_cheby_refBeta(ifile) = sqrt((gamma+one)*(gamma-one))/(gamma)
 
   else if(inLine(1:3) == "rad") then
