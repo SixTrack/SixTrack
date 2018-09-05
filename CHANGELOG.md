@@ -4,23 +4,27 @@
 
 **Bug Fixes**
 
-* Due to inconsistent if-statements, FMA would sometimes write to a non-existent file unit and without opening the file properly.
+* Due to inconsistent if-statements, FMA would sometimes write to a non-existent file unit without opening the file properly.
 * DYNK would not build with nagfor due to two malformed strings.
-* Fixed building with `ROND_ZERO` flag. The `matlib_bouncer` was trying to call non-existent round-towards-zero routines for `exp_mb()` functions (which is handled by round down) and `log10_mb` which was missing for `ROUND_ZERO` and has been added to `CRLIBM`.
-* A variable for DYNK FIR/IIR functions were written to memory twice, but for one case with an invalid index. This has been removed.
-* Removed remaining `COLLIMAT` flag in the beam-gas module that prevented the `BEAMGAS` flag from building.
+* Fixed building with `ROUND_ZERO` flag. The `matlib_bouncer` was trying to call non-existent round-towards-zero routines for `exp_mb()` functions (which is handled by round down `exp_rd()`), and `log10_mb` which was missing for `ROUND_ZERO` and has been added to `CRLIBM`.
+* A variable for DYNK FIR/IIR functions was written to memory twice, but with an invalid index for one of those writes. This write has been removed.
+* Removed a remaining `COLLIMAT` flag in the beam-gas module that prevented the `BEAMGAS` flag from building.
 * Fixed an infinite loop bug in Checkpoint/Restart where the restart would repeatedly try to open `fort.96` if the reading failed while reading DUMP checkpoint data. This would only occur if both `fort.95` and `fort.96` files were corrupt.
-* Fixed a bug where ifort would not accept `180_fPrec` as a valid floating point number in the aperture module.
+* Fixed a bug where ifort would not accept `180_fPrec` as a valid floating point number in the `aperture` module.
 
 **User Side Changes**
 
 * Electron lenses have been re-enabled, and the code reverted/rewritten to produce the same results as for SixTrack 4.7.18. Further updates will be made.
-* The FMA output files will no longer contain NaN values. The NaN values were deliberate and caused by an `atan2(0,0)` call, but the code rewritten to return `0d0` instead, as described in [IEEE Std 1003.1-2017 (Revision of IEEE Std 1003.1-2008)](http://pubs.opengroup.org/onlinepubs/9699919799/).
+* The FMA output files will no longer contain NaN values. The NaN values were deliberate return values for `atan2(0,0)` call. This behaviour has been changed to return `0d0` instead, following [IEEE Std 1003.1-2017 (Revision of IEEE Std 1003.1-2008)](http://pubs.opengroup.org/onlinepubs/9699919799/). The nagfor compiler does not comply with this standard, and the return value for the nagfor built executables is handled by an additional if statement.
 
 **Build System**
 
-* The buildLibraries script has been split up and rewritten to support more libraries. The script can be called with no arguments to build all libraries, or with `boinc`, `libarchive` or `hdf5` ro build the respective libraries only. Dependencies are handled automatically.
-* Building with flags `G4COLLIMAT`, `BEAMGAS` and `MERLINSCATTER` now disables building of the Differential Algebra executable.
+* The `buildLibraries.sh` script has been split up and rewritten to support more libraries. The script can be called with no arguments to build all libraries, or with `boinc`, `libarchive` or `hdf5` to build the respective libraries only. Dependencies are handled automatically.
+* Building with flags `G4COLLIMAT`, `BEAMGAS` and `MERLINSCATTER` now disables building of the Differential Algebra executable (SixDA).
+
+**Other Changes**
+
+* A set of developer tools for MAD-X/SixTrack output testing and comparison has been added in the `devtools` folder.
 
 ### Version 5.0.2 [23.08.2018] - Release
 
