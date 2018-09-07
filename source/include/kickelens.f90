@@ -36,11 +36,8 @@ if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
     frrelens = one
   endif
   ! 'radial kick'
-!  frrelens = elens_theta_r2(ielens(ix))*elens_r2(ielens(ix))/rrelens * frrelens * oidpsv(j)*mtc(j)
-!  yv(1,j)=yv(1,j)-frrelens*xelens/rrelens
-!  yv(2,j)=yv(2,j)-frrelens*yelens/rrelens
-  frrelens = elens_r2(ielens(ix))/rrelens * frrelens
-  yv(1,j)=yv(1,j)-elens_theta_r2(ielens(ix))*frrelens*xelens/rrelens * oidpsv(j)*mtc(j)
-  yv(2,j)=yv(2,j)-elens_theta_r2(ielens(ix))*frrelens*yelens/rrelens * oidpsv(j)*mtc(j)
+  frrelens = elens_theta_r2(ielens(ix))*elens_r2(ielens(ix))/rrelens * frrelens * oidpsv(j)*mtc(j)
+  yv(1,j)=yv(1,j)-frrelens*xelens/rrelens
+  yv(2,j)=yv(2,j)-frrelens*yelens/rrelens
 endif
 ! end include/kickelens.f90
