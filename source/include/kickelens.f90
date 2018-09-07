@@ -25,7 +25,7 @@ if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
       ! GAUSSIAN: eLens with Gaussian profile
       ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
       frrelens=( exp_mb(-0.5*(elens_r1(ielens(ix))/elens_sig(ielens(ix)))**2)    &
-                              -exp_mb(-0.5*(rrelens             /elens_sig(ielens(ix)))**2) )/ &
+                -exp_mb(-0.5*(rrelens             /elens_sig(ielens(ix)))**2) )/ &
                               elens_geo_norm(ielens(ix))
     case default
       write(lout,"(a,i0)") "ELENS> ERROR in kickelens: elens_type=",elens_type(ielens(ix))," not recognized. "
@@ -35,6 +35,10 @@ if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
   else ! r1 < r2 <= rrelens
     frrelens = one
   endif
+  ! 'radial kick'
+!  frrelens = elens_theta_r2(ielens(ix))*elens_r2(ielens(ix))/rrelens * frrelens * oidpsv(j)*mtc(j)
+!  yv(1,j)=yv(1,j)-frrelens*xelens/rrelens
+!  yv(2,j)=yv(2,j)-frrelens*yelens/rrelens
   frrelens = elens_r2(ielens(ix))/rrelens * frrelens
   yv(1,j)=yv(1,j)-elens_theta_r2(ielens(ix))*frrelens*xelens/rrelens * oidpsv(j)*mtc(j)
   yv(2,j)=yv(2,j)-elens_theta_r2(ielens(ix))*frrelens*yelens/rrelens * oidpsv(j)*mtc(j)
