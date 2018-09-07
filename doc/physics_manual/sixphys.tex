@@ -1012,11 +1012,12 @@ $\theta_{\rm R_2}$ reads like
 \begin{equation}
 \theta_{\rm R_2} = \frac{LI_T(1\pm\beta_e\beta_b)}{2\pi\epsilon_0  \left(B\rho\right)_b\beta_e\beta_b c^2}\cdot\frac{1}{R_2}
 \end{equation}
-where $L$ is the length of the e--lens, $I_T$ the total electron beam current, $\beta_{e}$ and $\beta_{b}$ the relativistic $\beta$ of electron and tracked beam, $B\rho$ the magnetic rigidity, $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The $\pm$-sign represents the two cases of the electron beam travelling in the direction of the tracked beam ($v_e v_b>0$) leading to ``$-$" or in the opposite direction ($v_e v_b<0$) leading to ``$+$". For hollow electron beam collimation, electron and tracked beam travel in opposite directions. It should be noted that $\theta_{\rm R_2}$ depends on the magnetic rigidity $(B\rho)_b$ of the tracked beam and thus on the particle momentum; hence, during tracking, the actual magnetic rigidity of each beam particle is taken into account when computing the kick to be imparted.
+where $L$ is the length of the e--lens, $I_T$ the total electron beam current, $\beta_{e}$ and $\beta_{b}$ the relativistic $\beta$ of electron and tracked beam, $(B\rho)|_b$ the magnetic rigidity of the beam particle, $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The $\pm$-sign represents the two cases of the electron beam travelling in the direction of the tracked beam ($v_e v_b>0$) leading to ``$-$" or in the opposite direction ($v_e v_b<0$) leading to ``$+$". For hollow electron beam collimation, electron and tracked beam travel in opposite directions. It should be noted that $\theta_{\rm R_2}$ depends on the magnetic rigidity $(B\rho)_b$ of the tracked beam and thus on the particle momentum; hence, during tracking, the actual magnetic rigidity of each beam particle is taken into account when computing the kick to be imparted.
 
 $f(r)$ reads like
 \begin{equation}
-f(r) = \frac{I(r)}{I_T}=\frac{2\pi}{I_T}\int_{0}^r r\rho(r) \mathrm{d}r,
+  f(r) = \frac{I(r)}{I_T}=\frac{2\pi}{I_T}\int_{0}^r r\rho(r) \mathrm{d}r,
+  \label{elense:eqn:1}
 \end{equation}
 where $I(r)$ is the current enclosed in a radius
 $r$ and $\rho(r)$ is the electron beam density distribution. Taking into account the
@@ -1035,12 +1036,14 @@ to be simulated.
 
 The kick in $(x',y')$ can then be expressed as
 \begin{align}
-x'&=x'-\frac{x}{r}\cdot\theta_{\rm R_2}\cdot\frac{R_2}{r}\cdot f(r)\cdot \frac{1}{1+\delta}\label{elense:eqn:1}\\
-y'&=y'-\frac{y}{r}\cdot\theta_{\rm R_2}\cdot\frac{R_2}{r}\cdot f(r)\cdot \frac{1}{1+\delta}\label{elense:eqn:2}
+x'&=x'-\frac{x}{r}\cdot\theta_{\rm R_2}\cdot\frac{R_2}{r}\cdot f(r)\cdot \frac{\chi}{1+\delta}\label{elense:eqn:2}\\
+y'&=y'-\frac{y}{r}\cdot\theta_{\rm R_2}\cdot\frac{R_2}{r}\cdot f(r)\cdot \frac{\chi}{1+\delta}\label{elense:eqn:3}
 \end{align}
 where $\frac{x}{r}=\cos(\phi)$ and $\frac{y}{r}=\sin(\phi)$ allow to get the horizontal and
 vertical kicks. Off-momentum particles are taken into account via the factor
-$(B\rho)(\delta) = (B\rho)(0)\cdot(1+\delta)$.
+$B\rho = B\rho|_0\cdot(1+\delta)/\chi$; this factor takes into account also the
+charge--over--mass ration of the synchronous and tracked particle via the factor
+$\chi=(q/m)/(q_0/m_0)$; hence, the e--lenses are compatible with ion tracking
 
 If the electron lens is centred around $(x_{\rm offset},y_{\rm offset})$ (local reference frame),
 the coordinates $(x,y)$ are simply transformed into:
@@ -1050,7 +1053,7 @@ the coordinates $(x,y)$ are simply transformed into:
 \end{align}
 without touching the above processing.
 
-\subsubsection{Uniform profile}
+\subsubsection{Uniform electron profile}
 The uniform distribution of the electron beam between $R_1$ and $R_2$
 can be described as:
 \begin{equation}
@@ -1058,8 +1061,40 @@ can be described as:
 \end{equation}
 This leads the middle term of $f(r)$ to be:
 \begin{equation}
-f(r)=\frac{r^2-R_1^2}{R_2^2-R_1^2}
+\tilde f(r)=\frac{r^2-R_1^2}{R_2^2-R_1^2}
 \end{equation}
+
+\subsubsection{Gaussian electron profile}
+The Gaussian distribution of the electron beam between $R_1$ and $R_2$
+can be described as:
+\begin{equation}
+\rho(r) = \frac{I_T \exp\left[-\frac{r^2}{2\sigma^2}\right]}{2\pi\sigma^2} \quad R_1 < r < R_2
+\end{equation}
+This leads the middle term of $f(r)$ to be:
+\begin{equation}
+  \tilde f(r)=\frac{\exp\left[-\frac{R_1^2}{2\sigma^2}\right]-\exp\left[-\frac{r^2}{2\sigma^2}\right]}
+                   {\exp\left[-\frac{R_1^2}{2\sigma^2}\right]-\exp\left[-\frac{R_2^2}{2\sigma^2}\right]}
+  \label{elense:eqn:4}
+\end{equation}
+The denominator in Eq.~\ref{elense:eqn:4}, which does not appear when Eq.~\ref{elense:eqn:1}
+is applied to the Gaussian profile, is a normalisation factor necessary
+to have $\tilde f(R_2)=1$. Hence, the same factor must be considered in the
+expression of $\theta_{\rm R_2}$, which then becomes
+\begin{equation}
+  \theta_{\rm R_2} = \frac{LI_T(1\pm\beta_e\beta_b)}{2\pi\epsilon_0  \left(B\rho\right)_b\beta_e\beta_b c^2}\cdot\frac{1}{R_2}
+  \cdot\left\{\exp\left[-\frac{R_1^2}{2\sigma^2}\right]-\exp\left[-\frac{R_2^2}{2\sigma^2}\right]\right\}
+\end{equation}
+It should be noted that, contrary to the case of the uniform distribution,
+$\theta_{\rm R_2}$ does not coincide with the highest kick; this is found only
+at:
+\begin{equation}
+  \frac{\textrm{d}f}{\textrm{d}r}=0
+\end{equation}
+which leads to solve the following equation
+\begin{equation}
+  \exp\left[-\frac{r^2}{2\sigma^2}\right] = \frac{\exp\left[-\frac{R_1^2}{2\sigma^2}\right]}{r^2+\sigma^2}
+\end{equation}
+The equation can be solved graphically or numerically, not analitically.
 
 \subsection{Misalignment}
 
