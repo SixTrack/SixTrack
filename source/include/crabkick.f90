@@ -18,7 +18,8 @@
     dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
     oidpsv(j)=one/(one+dpsv(j))
     moidpsv(j)=mtc(j)/(one+dpsv(j))
-    dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+    omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+    dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
     yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
     yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
     if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)

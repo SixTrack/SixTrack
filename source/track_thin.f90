@@ -763,7 +763,8 @@ subroutine thin4d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 
 
           ! We have to go back to angles after we updated the energy.
@@ -1541,7 +1542,7 @@ subroutine thin6d(nthinerr)
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)                           !hr01
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                           !hr01
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
         end do
@@ -1583,7 +1584,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 
 
           ! We have to go back to angles after we updated the energy.
@@ -1947,7 +1949,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -1969,7 +1972,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -1992,7 +1996,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -2015,7 +2020,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -2038,7 +2044,8 @@ subroutine thin6d(nthinerr)
         dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
         oidpsv(j)=one/(one+dpsv(j))
         moidpsv(j)=mtc(j)/(one+dpsv(j))
-        dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+        omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+        dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
         yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
         yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
         if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -2060,7 +2067,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)

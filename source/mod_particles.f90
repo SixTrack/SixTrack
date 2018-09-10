@@ -54,7 +54,7 @@ subroutine part_updateEnergy(refEnergy)
     ejfv(j)     = sqrt(ejv(j)**2 - nucm(j)**2)       ! Momentum [MeV/c]
     dpsv(j)     = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f  ! Delta_p/p0 = delta
     dpsv1(j)    = (dpsv(j)*c1e3)/(one + dpsv(j))
-    dpd(j)      = one + dpsv(j)
+    dpd(j)      = one + dpsv(j) 
     dpsq(j)     = sqrt(dpd(j))
     oidpsv(j)   = one/(one + dpsv(j))
     moidpsv(j)  = mtc(j)/(one + dpsv(j))             ! Relative rigidity offset (mod_hions) [MV/c^2]
