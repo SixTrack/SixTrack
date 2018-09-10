@@ -13,7 +13,7 @@ module scatter
 
   use floatPrecision
   use mathlib_bouncer
-  use numerical_constants, only : zero, half, one, two, c1e3, c1e6, pieni
+  use numerical_constants, only : zero, half, one, two, c1e3, c1e6, c1m27, pieni
   use parpro
   use mod_ranecu
   use strings
