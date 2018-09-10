@@ -2550,9 +2550,6 @@ subroutine comnul
   use dump,        only : dump_comnul
   use bdex,        only : bdex_comnul
   use collimation, only : collimation_comnul
-#ifdef HDF5
-  use hdf5_output, only : h5_comnul
-#endif
 
   implicit none
 
@@ -3063,10 +3060,6 @@ subroutine comnul
 !     always in main code
       call aperture_comnul
 
-!--HDF5-----------------------------------------------------------------
-#ifdef HDF5
-      call h5_comnul
-#endif
 !--COLLIMATION----------------------------------------------------------
       call collimation_comnul
 !--BDEX-----------------------------------------------------------------

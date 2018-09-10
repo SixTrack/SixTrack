@@ -43,41 +43,41 @@ module hdf5_output
   implicit none
 
   ! Common Settings
-  logical,          public,  save :: h5_isActive    ! Existence of the HDF5 block
-  logical,          public,  save :: h5_debugOn     ! HDF5 debug flag present
-  logical,          public,  save :: h5_isReady     ! HDF5 file is open and ready for input
-  logical,          private, save :: h5_useDouble   ! Whether to use double precision or not
-  logical,          private, save :: h5_doTruncate  ! Whether or not to truncate previous file if it exists
-  type(string),     private, save :: h5_fileName    ! The HDF5 output file name
-  type(string),     private, save :: h5_rootPath    ! The root group where the data for this session is stored
-  integer,          private, save :: h5_gzipLevel   ! The level of compression used: 0 for none to 9 for maximum
-  integer(HSIZE_T), private, save :: h5_defChunk    ! The default size of chunks, used for mainly logging output
+  logical,          public,  save :: h5_isActive   = .false. ! Existence of the HDF5 block
+  logical,          public,  save :: h5_debugOn    = .false. ! HDF5 debug flag present
+  logical,          public,  save :: h5_isReady    = .false. ! HDF5 file is open and ready for input
+  logical,          private, save :: h5_useDouble  = .true.  ! Whether to use double precision or not
+  logical,          private, save :: h5_doTruncate = .false. ! Whether or not to truncate previous file if it exists
+  integer,          private, save :: h5_gzipLevel  = -1      ! The level of compression used: 0 for none to 9 for maximum
+  integer(HSIZE_T), private, save :: h5_defChunk   = 10      ! The default size of chunks, used for mainly logging output
+  type(string),     private, save :: h5_fileName             ! The HDF5 output file name
+  type(string),     private, save :: h5_rootPath             ! The root group where the data for this session is stored
 
   ! Input Block Switches
-  logical, public, save :: h5_useForAPER
-  logical, public, save :: h5_useForCOLL
-  logical, public, save :: h5_useForDUMP
-  logical, public, save :: h5_useForSCAT
+  logical, public, save :: h5_useForAPER = .false.
+  logical, public, save :: h5_useForCOLL = .false.
+  logical, public, save :: h5_useForDUMP = .false.
+  logical, public, save :: h5_useForSCAT = .false.
 
   ! Additional Write Flags
-  logical, public,  save :: h5_writeOptics  ! Write the linear optics parameters
-  logical, public,  save :: h5_writeTracks2 ! For backwards compatibility for old tracks2 format
+  logical, public,  save :: h5_writeOptics  = .false. ! Write the linear optics parameters
+  logical, public,  save :: h5_writeTracks2 = .false. ! For backwards compatibility for old tracks2 format
 
   ! Runtime Variables
-  logical, private, save :: h5_fileIsOpen  ! True if file is open.
-  integer, public,  save :: h5_fileError   ! For errors related to file essentials (critical)
-  integer, public,  save :: h5_dataError   ! For errors related to datasets
+  logical, private, save :: h5_fileIsOpen = .false. ! True if file is open.
+  integer, public,  save :: h5_fileError  = 0       ! For errors related to file essentials (critical)
+  integer, public,  save :: h5_dataError  = 0       ! For errors related to datasets
 
   ! HDF5 File/Group IDs
-  integer(HID_T), public,  save :: h5_fileID  ! The internal ID of the file
-  integer(HID_T), public,  save :: h5_rootID  ! The internal ID of the root group
-  integer(HID_T), public,  save :: h5_aperID  ! The internal ID of the aperture group
-  integer(HID_T), public,  save :: h5_collID  ! The internal ID of the collimation group
-  integer(HID_T), public,  save :: h5_dumpID  ! The internal ID of the dump group
-  integer(HID_T), public,  save :: h5_scatID  ! The internal ID of the scatter group
+  integer(HID_T), public,  save :: h5_fileID = 0 ! The internal ID of the file
+  integer(HID_T), public,  save :: h5_rootID = 0 ! The internal ID of the root group
+  integer(HID_T), public,  save :: h5_aperID = 0 ! The internal ID of the aperture group
+  integer(HID_T), public,  save :: h5_collID = 0 ! The internal ID of the collimation group
+  integer(HID_T), public,  save :: h5_dumpID = 0 ! The internal ID of the dump group
+  integer(HID_T), public,  save :: h5_scatID = 0 ! The internal ID of the scatter group
 
   ! HDF5 Internals
-  integer(HID_T), private, save :: h5_plistID ! Dataset transfer property
+  integer(HID_T), private, save :: h5_plistID = 0 ! Dataset transfer property
 
   ! Default Group Names
   character(len=8),  parameter :: h5_aperGroup = "aperture"
@@ -139,14 +139,14 @@ module hdf5_output
 
   ! Storage Arrays
   type(h5_dataFmt), allocatable, private, save :: h5_fmtList(:)
-  integer,                       private, save :: h5_fmtCount
-  integer,          parameter,   private       :: h5_fmtOff = 1000
+  integer,                       private, save :: h5_fmtCount = 0
+  integer,          parameter,   private       :: h5_fmtOff   = 1000
   type(h5_dataSet), allocatable, private, save :: h5_setList(:)
-  integer,                       private, save :: h5_setCount
-  integer,          parameter,   private       :: h5_setOff = 2000
+  integer,                       private, save :: h5_setCount = 0
+  integer,          parameter,   private       :: h5_setOff   = 2000
   type(h5_dataBuf), allocatable, private, save :: h5_bufList(:)
-  integer,                       private, save :: h5_bufCount
-  integer,          parameter,   private       :: h5_bufOff = 3000
+  integer,                       private, save :: h5_bufCount = 0
+  integer,          parameter,   private       :: h5_bufOff   = 3000
 
   ! Interface for Data Writing
 
@@ -209,46 +209,6 @@ module hdf5_output
   private :: h5_writeAttr_real128_arr
 
 contains
-
-! ================================================================================================ !
-!  Set Initial Values
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-05-08
-! ================================================================================================ !
-subroutine h5_comnul
-
-  h5_isActive     = .false.
-  h5_debugOn      = .false.
-  h5_isReady      = .false.
-  h5_useDouble    = .true.
-  h5_doTruncate   = .false.
-  h5_fileName     = ""
-  h5_rootPath     = ""
-  h5_gzipLevel    = -1
-  h5_defChunk     = 10
-
-  h5_useForCOLL   = .false.
-  h5_useForDUMP   = .false.
-  h5_useForSCAT   = .false.
-
-  h5_writeOptics  = .false.
-  h5_writeTracks2 = .false.
-
-  h5_fileIsOpen   = .false.
-  h5_fileError    = 0
-  h5_dataError    = 0
-
-  h5_fileID       = 0
-  h5_rootID       = 0
-  h5_collID       = 0
-  h5_dumpID       = 0
-  h5_scatID       = 0
-
-  h5_fmtCount     = 0
-  h5_setCount     = 0
-  h5_bufCount     = 0
-
-end subroutine h5_comnul
 
 ! ================================================================================================ !
 !  HDF5 Input File Parsing
