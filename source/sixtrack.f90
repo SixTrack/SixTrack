@@ -740,7 +740,7 @@ subroutine daten
 
   case("COLL") ! Collimation Block
 #ifdef CR
-    write(lout,'(a)') "INPUT> ERROR Collimation incompatible with checkpoint/restart (CR)"
+    write(lout,"(a)") "INPUT> ERROR Collimation incompatible with checkpoint/restart (CR)"
     goto 9999
 #endif
     if(openBlock) then
@@ -847,7 +847,8 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call h5_parseInputLine(string(inLine))
+      call h5_parseInputLine(string(inLine),inErr)
+      if(inErr) goto 9999
     end if
 #endif
 

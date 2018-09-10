@@ -215,11 +215,12 @@ contains
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-13
 ! ================================================================================================ !
-subroutine h5_parseInputLine(inLine)
+subroutine h5_parseInputLine(inLine,iErr)
 
   use string_tools
 
-  type(string), intent(in)  :: inLine
+  type(string), intent(in)    :: inLine
+  logical,      intent(inout) :: iErr
 
   type(string), allocatable :: lnSplit(:)
   integer i, nSplit
@@ -229,6 +230,7 @@ subroutine h5_parseInputLine(inLine)
   call str_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
     write(lout,"(a)") "HDF5> ERROR Failed to parse input line."
+    iErr = .true.
     return
   end if
 
@@ -263,32 +265,37 @@ subroutine h5_parseInputLine(inLine)
   case("GZIP")
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR GZIP level takes 1 input parameter, ",(nSplit-1)," given."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
     read(lnSplit(2)%chr,*) h5_gzipLevel
     if(h5_gzipLevel < -1 .or. h5_gzipLevel > 9) then
       write(lout,"(a,i2)") "HDF5> ERROR Illegal value for GZIP: ",h5_gzipLevel
       write(lout,"(a,i2)") "HDF5> ERROR   Allowed values are -1 for disabled, and 0-9 for none to max compression."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
   case("CHUNK")
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR CHUNK takes 1 input parameter, ",(nSplit-1)," given."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
     read(lnSplit(2)%chr,*) h5_defChunk
     if(h5_defChunk < 1) then
       write(lout,"(a,i2)") "HDF5> ERROR Illegal value for CHUNK: ",h5_gzipLevel
       write(lout,"(a,i2)") "HDF5> ERROR   Value must be larger than 0."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
   case("FILE")
     if(nSplit < 2 .or. nSplit > 3) then
       write(lout,"(a,i2,a)") "HDF5> ERROR FILE statement takes 1 or 2 input parameters, ",(nSplit-1)," given."
       write(lout,"(a)")      "HDF5> ERROR   Valid input is FILE filename [truncate]"
-      call prror(-1)
+      iErr = .true.
+      return
     end if
     if(nSplit == 3) then
       read(lnSplit(3)%chr,*) h5_doTruncate
@@ -301,15 +308,18 @@ subroutine h5_parseInputLine(inLine)
   case("ROOT")
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR ROOT statement takes 1 input parameter, ",(nSplit-1)," given."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
     if(str_inStr(lnSplit(2)," ") /= 0) then
       write(lout,"(a)") "HDF5> ERROR ROOT group name cannot contain a space."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
     if(str_inStr(lnSplit(2),"/") /= 0) then
       write(lout,"(a)") "HDF5> ERROR ROOT group name cannot contain a slash."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
     h5_rootPath = str_stripQuotes(lnSplit(2))
     write(lout, "(a)") "HDF5> Root group set to: '"//h5_rootPath//"'."
@@ -318,11 +328,13 @@ subroutine h5_parseInputLine(inLine)
 
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR ENABLE statement takes 1 input parameter, ",(nSplit-1)," given."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
     if(len(lnSplit(2)%chr) < 4) then
       write(lout,"(a,i2,a)") "HDF5> ERROR ENABLE argument must be at least 4 characters."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
     select case(lnSplit(2)%chr(1:4))
@@ -340,14 +352,16 @@ subroutine h5_parseInputLine(inLine)
       write(lout,"(a)") "HDF5> HDF5 is enabled for SCATTER."
     case default
       write(lout,"(a)") "HDF5> ERROR HDF5 output is not available for "//lnSplit(2)%chr(1:4)//" blocks."
-      call prror(-1)
+      iErr = .true.
+      return
     end select
 
   case("WRITE")
 
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR WRITE statement takes 1 input parameter, ",(nSplit-1)," given."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
     select case(lnSplit(2)%chr)
@@ -359,12 +373,14 @@ subroutine h5_parseInputLine(inLine)
       write(lout,"(a)") "HDF5> Will write tracks2."
     case default
       write(lout,"(a)") "HDF5> ERROR Unrecognised WRITE option '"//lnSplit(2)//"'"
-      call prror(-1)
+      iErr = .true.
+      return
     end select
 
   case default
     write(lout,"(a)") "HDF5> ERROR Unrecognised statement '"//lnSplit(1)//"'."
-    call prror(-1)
+    iErr = .true.
+    return
 
   end select
 
