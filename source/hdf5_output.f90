@@ -48,6 +48,7 @@ module hdf5_output
   logical,          public,  save :: h5_isReady    = .false. ! HDF5 file is open and ready for input
   logical,          private, save :: h5_useDouble  = .true.  ! Whether to use double precision or not
   logical,          private, save :: h5_doTruncate = .false. ! Whether or not to truncate previous file if it exists
+  integer,          private, save :: h5_simNumber  = 1       ! A simulation number for the current simulation
   integer,          private, save :: h5_gzipLevel  = -1      ! The level of compression used: 0 for none to 9 for maximum
   integer(HSIZE_T), private, save :: h5_defChunk   = 10      ! The default size of chunks, used for mainly logging output
   type(string),     private, save :: h5_fileName             ! The HDF5 output file name
@@ -254,6 +255,14 @@ subroutine h5_parseInputLine(inLine,iErr)
     h5_debugOn = .true.
     write(lout,"(a)") "HDF5> HDF5 block debugging is ON."
 
+  case("SIMNO")
+    if(nSplit /= 2) then
+      write(lout,"(a,i2,a)") "HDF5> ERROR SIMNO level takes 1 input parameter, ",(nSplit-1)," given."
+      iErr = .true.
+      return
+    end if
+    call str_cast(lnSplit(2),h5_simNumber,spErr)
+
   case("SINGLE")
     h5_useDouble = .false.
     write(lout,"(a)") "HDF5> HDF5 will use single precision."
@@ -268,7 +277,7 @@ subroutine h5_parseInputLine(inLine,iErr)
       iErr = .true.
       return
     end if
-    read(lnSplit(2)%chr,*) h5_gzipLevel
+    call str_cast(lnSplit(2),h5_gzipLevel,spErr)
     if(h5_gzipLevel < -1 .or. h5_gzipLevel > 9) then
       write(lout,"(a,i2)") "HDF5> ERROR Illegal value for GZIP: ",h5_gzipLevel
       write(lout,"(a,i2)") "HDF5> ERROR   Allowed values are -1 for disabled, and 0-9 for none to max compression."
@@ -282,7 +291,7 @@ subroutine h5_parseInputLine(inLine,iErr)
       iErr = .true.
       return
     end if
-    read(lnSplit(2)%chr,*) h5_defChunk
+    call str_cast(lnSplit(2),h5_defChunk,spErr)
     if(h5_defChunk < 1) then
       write(lout,"(a,i2)") "HDF5> ERROR Illegal value for CHUNK: ",h5_gzipLevel
       write(lout,"(a,i2)") "HDF5> ERROR   Value must be larger than 0."
@@ -298,11 +307,11 @@ subroutine h5_parseInputLine(inLine,iErr)
       return
     end if
     if(nSplit == 3) then
-      read(lnSplit(3)%chr,*) h5_doTruncate
+      call str_cast(lnSplit(3),h5_doTruncate,spErr)
     else
       h5_doTruncate = .false.
     end if
-    h5_fileName = str_stripQuotes(lnSplit(2))
+    h5_fileName = trim(lnSplit(2))
     write(lout, "(a)") "HDF5> Output file name set to: '"//h5_fileName//"'."
 
   case("ROOT")
@@ -321,7 +330,7 @@ subroutine h5_parseInputLine(inLine,iErr)
       iErr = .true.
       return
     end if
-    h5_rootPath = str_stripQuotes(lnSplit(2))
+    h5_rootPath = trim(lnSplit(2))
     write(lout, "(a)") "HDF5> Root group set to: '"//h5_rootPath//"'."
 
   case("ENABLE")
@@ -485,8 +494,10 @@ subroutine h5_writeSimInfo()
   call h5_writeAttr(h5_rootID,"TimeStamp",     timeStamp)
   call h5_writeAttr(h5_rootID,"Particles",     napx*2)
   call h5_writeAttr(h5_rootID,"Turns",         numl)
+  call h5_writeAttr(h5_rootID,"SimNumber",     h5_simNumber)
 
   ! SixTrack Version
+  call h5_writeAttr(h5_rootID,"CreatedBy",     "SixTrack "//version)
   call h5_writeAttr(h5_rootID,"ExecVersion",   version)
   call h5_writeAttr(h5_rootID,"ExecNumVersion",numvers)
   call h5_writeAttr(h5_rootID,"ExecReleased",  moddate)

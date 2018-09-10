@@ -102,8 +102,8 @@ module mod_settings
   logical, save :: st_print
 
   ! SETTINGS Block (fort.3)
-  integer, save :: st_quiet ! QUIET Level
-  logical, save :: st_debug ! Global DEBUG flag
+  integer, save :: st_quiet  = 0       ! QUIET Level
+  logical, save :: st_debug  = .false. ! Global DEBUG flag
 
 end module mod_settings
 
