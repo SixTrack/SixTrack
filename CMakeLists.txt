@@ -282,7 +282,7 @@ list(APPEND FORT90_LIB
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist scatter dump dynk
 	aperture mod_fluc beam6d_fox six_fox postprocessing
-	read_input ranlux collimation mod_particles
+	read_input ranlux collimation mod_particles cheby utils
 )
 
 # Files unique to DA or CR version
@@ -464,8 +464,6 @@ if(BEAMGAS)
 		set(SIXDA OFF)
 	endif()
 endif()
-
-
 
 if(64BIT)
 	if(CERNLIB)
@@ -901,15 +899,15 @@ foreach(loop IN LISTS PREPRO_FLAGS_TOOLS PREPRO_FLAGS_LIB PREPRO_FLAGS_COMPILE)
 endforeach()
 if(32BITM)
 	message(STATUS "Adding preprocessor macro -DSIXTRACK_REAL=real32 to target SixTrack")
-	list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real32)
+	list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real32 -DSINGLE_MATH)
 endif()
 if(64BITM)
 	message(STATUS "Adding preprocessor macro -DSIXTRACK_REAL=real64 to target SixTrack")
-	list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real64)
+	list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real64 -DDOUBLE_MATH)
 endif()
 if(128BITM)
 	message(STATUS "Adding preprocessor macro -DSIXTRACK_REAL=real128 to target SixTrack")
-	list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real128)
+	list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real128 -DQUAD_MATH)
 endif()
 
 	list(APPEND PREPRO_FLAGS -DSIXTRACK_GIT_REVISION="'${GIT_REVISION}'")

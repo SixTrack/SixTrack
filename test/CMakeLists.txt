@@ -157,9 +157,6 @@ SET(SIXTRACK_TESTS
   dump6
   fileunits_DYNK_DUMP
   geometry
-  elensidealthin6d_DYNK_RANDU
-  elensidealthin6d_DYNK_RANDON
-  elensidealthin6d_DYNK_ONOFF
   beam-HO_4D-newstyle
   beam-HO_4D-newstyle-loadParticles
   beam-HO_4D-oldstyle
@@ -396,9 +393,6 @@ SET(FAST_TESTS
   fileunits_DYNK_DUMP
   geometry
   fcc
-  elensidealthin6d_DYNK_RANDU
-  elensidealthin6d_DYNK_RANDON
-  elensidealthin6d_DYNK_ONOFF
   beam-HO_4D-newstyle
   beam-HO_4D-newstyle-loadParticles
   beam-HO_4D-oldstyle

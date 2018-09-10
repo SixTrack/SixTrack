@@ -698,17 +698,15 @@ subroutine daten
     end if
 
   case("ELEN") ! Electron Lens
-    write(lout,"(a)") "INPUT> ERROR The electron lens module is currently disabled pending a full rewrite."
-    goto 9999
-    ! if(openBlock) then
-    !   continue
-    ! elseif(closeBlock) then
-    !   call elens_parseInputDone(inErr)
-    !   if(inErr) goto 9999
-    ! else
-    !   call elens_parseInputLine(inLine,blockLine,inErr)
-    !   if(inErr) goto 9999
-    ! end if
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call elens_parseInputDone(inErr)
+      if(inErr) goto 9999
+    else
+      call elens_parseInputLine(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
 
   case("DIST") ! Beam Distribution
     if(openBlock) then
@@ -2550,7 +2548,6 @@ subroutine comnul
   use elens
   use wire
   use dump,        only : dump_comnul
-  use zipf,        only : zipf_comnul
   use bdex,        only : bdex_comnul
   use collimation, only : collimation_comnul
 #ifdef HDF5
@@ -3066,8 +3063,6 @@ subroutine comnul
 !     always in main code
       call aperture_comnul
 
-!--ZIPF-----------------------------------------------------------------
-      call zipf_comnul
 !--HDF5-----------------------------------------------------------------
 #ifdef HDF5
       call h5_comnul
