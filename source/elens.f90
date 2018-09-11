@@ -19,9 +19,11 @@ module elens
   integer,allocatable, save          :: ielens(:) !(nele)
 
   ! variables to save elens parameters for tracking etc.
-  integer, save          :: elens_type(nelens)      ! integer for elens type
-                                                    ! 0 : Un-initialized.
-                                                    ! 1 : Hollow annular elens, uniform profile
+  integer, save          :: elens_type(nelens)        ! integer for elens type
+                                                      ! 0 : Un-initialized.
+                                                      ! 1 : uniform profile
+                                                      ! 2 : Gaussian profile
+                                                      ! 3 : radial profile from file
   real(kind=fPrec), save :: elens_theta_r2(nelens)    ! kick strength at R2 [mrad]
   real(kind=fPrec), save :: elens_r2(nelens)          ! outer radius R2 [mm]
   real(kind=fPrec), save :: elens_r1(nelens)          ! inner radius R1 [mm]
@@ -35,8 +37,9 @@ module elens
   logical, save          :: elens_lThetaR2(nelens)    ! flag for computing theta@R2
   integer, save          :: elens_iCheby(nelens)      ! mapping to the table with chebyshev coeffs
   real(kind=fPrec), save :: elens_cheby_angle(nelens) ! angle for getting the real bends [deg]
+  integer, save          :: elens_iRadial(nelens)     ! mapping to the radial profile
   ! file with chebyshev coefficients
-  integer, parameter     :: nelens_cheby_tables=20    ! number of tables with chebyshev coefficients
+  integer, parameter     :: nelens_cheby_tables=20    ! max number of tables with chebyshev coefficients
   integer, parameter     :: elens_cheby_unit=107      ! unit for reading the chebyshev coefficients
   integer, parameter     :: elens_cheby_order=18      ! max order of chebyshev polynomials
   integer, save          :: melens_cheby_tables       ! tables available in memory
@@ -45,6 +48,15 @@ module elens
   real(kind=fPrec), save :: elens_cheby_refCurr(nelens_cheby_tables) ! reference current [A]
   real(kind=fPrec), save :: elens_cheby_refRadius(nelens_cheby_tables) ! reference radius [mm]
   real(kind=fPrec), save :: elens_cheby_refBeta(nelens_cheby_tables) ! reference e-beta []
+  ! file with radial profile
+  integer, parameter     :: nelens_radial_profiles=20 ! max number of radial profiles
+  integer, parameter     :: elens_radial_unit=107     ! unit for reading radial profiles
+  integer, save          :: melens_radial_profiles    ! radial profiles available in memory
+  integer, parameter     :: elens_radial_dim=60       ! max number of points in radial profiles
+  character(len=16), save:: elens_radial_filename(nelens_radial_profiles) ! names
+  real(kind=fPrec), save :: elens_radial_profile_R(0:elens_radial_dim,nelens_radial_profiles)
+  real(kind=fPrec), save :: elens_radial_profile_J(0:elens_radial_dim,nelens_radial_profiles)
+  integer, save          :: elens_radial_profile_nPoints(nelens_radial_profiles)
 
 contains
 
@@ -150,11 +162,18 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
+  case("RADIAL")
+    elens_type(ielens(iElem)) = 3
+    if(nSplit < 8) then
+      write(lout,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for RADIAL, got ",nSplit
+      iErr = .true.
+      return
+    end if
   case("CHEBYSHEV")
     write(lout,"(a)") "ELENS> ERROR CHEBYSHEV type not fully supported yet - elens name: '"//trim(bez(iElem))
     iErr = .true.
     return
-!     elens_type(ielens(iElem)) = 3
+!     elens_type(ielens(iElem)) = 4
 !     if(nSplit < 8) then
 !       write(lout,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for CHEBYSHEV, got ",nSplit
 !       iErr = .true.
@@ -176,33 +195,32 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     ! GAUSSIAN profile of electrons: need also sigma of e-beam
     call chr_cast(lnSplit(8),elens_sig(ielens(iElem)),iErr)
 
-!   elseif(elens_type(ielens(iElem)) == 3 )then
-!     ! Profile of electrons given by Chebyshev polynomials: need also
-!     !   name of file where coefficients are stored and angle
-!     tmpch = trim(lnSplit(8))
-!     call chr_cast(lnSplit(9),elens_cheby_angle(ielens(iElem)),iErr)
-! 
-!     ! Check if table of coefficients has already been requested:
-!     chIdx = -1
-!     do tmpi1=1,melens_cheby_tables
-!       if(tmpch == elens_cheby_filename(tmpi1)) then
-!         elens_iCheby(ielens(iElem)) = tmpi1
-!         chIdx = tmpi1
-!         exit
-!       end if
-!     end do
-!     if(chIdx == -1) then
-!       ! Unsuccessful search
-!       melens_cheby_tables = melens_cheby_tables+1
-!       if(melens_cheby_tables > nelens_cheby_tables) then
-!         write(lout,"(2(a,i0))") "ELENS> ERROR Too many tables for Chebyshev coefficients: ",melens_cheby_tables,&
-!           ". Max is ",nelens_cheby_tables
-!         iErr = .true.
-!         return
-!       end if
-!       elens_iCheby(ielens(iElem)) = melens_cheby_tables
-!       elens_cheby_filename(tmpi1) = tmpch
-!     end if
+  elseif(elens_type(ielens(iElem)) == 3 )then
+    ! Radial profile of electrons given by file: need also
+    !   name of file where coefficients are stored
+    tmpch = trim(lnSplit(8))
+ 
+    ! Check if profile has already been requested:
+    chIdx = -1
+    do tmpi1=1,melens_radial_profiles
+      if(tmpch == elens_radial_filename(tmpi1)) then
+        elens_iRadial(ielens(iElem)) = tmpi1
+        chIdx = tmpi1
+        exit
+      end if
+    end do
+    if(chIdx == -1) then
+      ! Unsuccessful search
+      melens_radial_profiles = melens_radial_profiles+1
+      if(melens_radial_profiles > nelens_radial_profiles) then
+        write(lout,"(2(a,i0))") "ELENS> ERROR Too many radial profiles: ",melens_radial_profiles,&
+          ". Max is ",nelens_radial_profiles
+        iErr = .true.
+        return
+      end if
+      elens_iRadial(ielens(iElem)) = melens_radial_profiles
+      elens_radial_filename(tmpi1) = tmpch
+    end if
   end if
 
   ! Additional geometrical infos:
@@ -220,11 +238,11 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     tmpi2 = 10
     tmpi3 = 11
     elens_lThetaR2(ielens(iElem)) = .true.
-!   else if(elens_type(ielens(iElem)) == 3 .and. nSplit >= 12) then
-!     tmpi1 = 10
-!     tmpi2 = 11
-!     tmpi3 = 12
-!     elens_lThetaR2(ielens(iElem)) = .true.
+  else if(elens_type(ielens(iElem)) == 3 .and. nSplit >= 11) then
+    tmpi1 = 9
+    tmpi2 = 10
+    tmpi3 = 11
+    elens_lThetaR2(ielens(iElem)) = .true.
   end if
 
   if(elens_lThetaR2(ielens(iElem))) then
@@ -360,6 +378,17 @@ subroutine elens_postInput
     end if
   end do
 
+  ! Parse files with radial profiles
+   do j=1,melens_radial_profiles
+    inquire(file=elens_radial_filename(j), exist=exist)
+    if(.not. exist) then
+      write(lout,"(a)") "ELENS> Problems with file with radial profile: ",trim(elens_radial_filename(j))
+      call prror(-1)
+    end if
+    call parseRadialProfile(j)
+    call integrateRadialProfile(j)
+  end do
+
   ! Parse files with coefficients for Chebyshev polynomials:
    do j=1,melens_cheby_tables
     inquire(file=elens_cheby_filename(j), exist=exist)
@@ -416,6 +445,137 @@ subroutine eLensTheta( j, Etot )
   end if
 
 end subroutine eLensTheta
+
+! ================================================================================================ !
+!  Last modified: 2018-09-10
+!  Read file with radial profile of electron beam
+!  ifile is index of file in table of radial profiles
+!  file is structured as:
+!     r[mm] j[A/cm2]
+!  comment line is headed by '#'
+! ================================================================================================ !
+subroutine parseRadialProfile(ifile)
+
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
+  use physical_constants
+  use crcoall
+  use mod_common
+  use mod_settings
+  use string_tools
+
+  implicit none
+
+  integer, intent(in) :: ifile
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mInputLn) inLine
+  integer nSplit
+  logical spErr
+
+  integer iErr, ii
+  real(kind=fPrec) tmpR, tmpJ
+
+  ierr = 0
+  ii = 0
+  elens_radial_profile_R(ii,ifile) = zero
+  elens_radial_profile_J(ii,ifile) = zero
+  write(lout,"(a)") "ELENS> Parsing file with radial profile "//trim(elens_radial_filename(ifile))
+  open(elens_radial_unit,file=elens_radial_filename(ifile),status="old")
+
+10 continue
+  read(elens_radial_unit,"(a)",end=20,err=30) inLine
+  if(inLine(1:1) == "#") goto 10
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "ELENS> ERROR Failed to parse input line from radial profile."
+    goto 30
+  end if
+
+  ! Read radial profile
+  if(nSplit<2) then
+    iErr = 1
+    goto 30
+  end if
+  call chr_cast(lnSplit(1),tmpR,spErr)
+  call chr_cast(lnSplit(2),tmpJ,spErr)
+  if(tmpR<=elens_radial_profile_R(ii,ifile)) then
+    iErr = 1
+    write(lout,"(a,i0)") "ELENS> ERROR radius not in increasing order at ii=",ii
+    goto 30
+  end if
+  if(tmpJ>=0.0) then
+    ii=ii+1
+    if(ii>elens_radial_dim) then
+      iErr = 2
+      write(lout,"(a)") "ELENS> ERROR too many points in radial profile: ",ii,&
+           ". Max is ",elens_radial_dim
+      goto 30
+    end if
+    elens_radial_profile_nPoints(ifile) = ii
+    elens_radial_profile_R(ii,ifile) = tmpR
+    elens_radial_profile_J(ii,ifile) = tmpJ
+  end if
+
+  goto 10
+
+20 continue
+
+  close(elens_cheby_unit)
+
+  if(st_quiet < 2) then
+    ! Echo parsed data (unless told to be quiet!)
+    write(lout,"(a,i0)") "ELENS> Radial profile as from file "//&
+      trim(elens_radial_filename(ifile))//" - #",ifile
+    do ii=0,elens_radial_profile_nPoints(ifile)
+      if(elens_radial_profile(ii,ifile)/= zero) then
+        write(lout,"((a,i4),2(a,e22.15))") "ELENS> ",ii,","elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
+      end if
+    end do
+  end if
+  return
+
+30 continue
+  write(lout,"(a,i0,a)") "ELENS> ERROR ",iErr," while parsing file "//trim(elens_radial_filename(ifile))
+  call prror(-1)
+
+end subroutine parseRadialProfile
+
+! ================================================================================================ !
+!  Last modified: 2018-09-10
+!  integrate radial profile of electron beam
+!  ifile is index of file in table of radial profiles
+!  original formula:
+!     cdf(ii)=2pi*pdf(ii)*Dr*r_ave
+!  becomes:
+!     cdf(ii)=pi*pdf(ii)*(r(ii)-r(ii-1))*(r(ii)+r(ii-1))
+! ================================================================================================ !
+subroutine integrateRadialProfile(ifile)
+
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
+  use physical_constants
+  use crcoall
+
+  implicit none
+
+  integer, intent(in) :: ifile
+
+  integer ii
+  real(kind=fPrec) tmpTot
+
+  tmpTot=zero
+  do ii=1,elens_radial_profile_nPoints(ifile)
+    tmpTot=tmpTot+elens_radial_profile_J(ii,ifile)*pi* &
+         ( elens_radial_profile_R(ii,ifile)-elens_radial_profile_R(ii-1,ifile) )* &
+         ( elens_radial_profile_R(ii,ifile)+elens_radial_profile_R(ii-1,ifile) )
+    elens_radial_profile_J(ii,ifile)=tmpTot
+  end do
+  
+end subroutine integrateRadialProfile
 
 ! ================================================================================================ !
 !  Last modified: 2018-06-25
