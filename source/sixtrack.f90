@@ -3214,15 +3214,9 @@ subroutine STRNUL( iel )
       zsi(iel)=zero
       smi(iel)=zero
       smizf(iel)=zero
-      do i1=1,mmul
-         aai(iel,i1)=zero
-         bbi(iel,i1)=zero
-      enddo
       do i3=1,mmul
-         do i2=1,nmac
-            aaiv(i3,iel)=zero
-            bbiv(i3,iel)=zero
-         enddo
+          aaiv(i3,iel)=zero
+          bbiv(i3,iel)=zero
       enddo
       return
 end subroutine STRNUL

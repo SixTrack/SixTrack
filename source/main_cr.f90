@@ -751,10 +751,10 @@ end interface
         do k=1,nmz
           izu=izu+1
           aaiv(k,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a !hr05
-          aai(i,k)=aaiv(k,i)
+          
           izu=izu+1
           bbiv(k,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a !hr05
-          bbi(i,k)=bbiv(k,i)
+          
           r0a=r0a*r0
         end do
         izu=izu+2*mmul-2*nmz

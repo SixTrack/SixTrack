@@ -329,7 +329,7 @@ module mod_common
   ! common /xz/
   real(kind=fPrec), allocatable, save :: xsi(:),zsi(:)     ! (nblz)
   real(kind=fPrec), allocatable, save :: smi(:),smizf(:)   ! (nblz)
-  real(kind=fPrec), allocatable, save :: aai(:,:),bbi(:,:) ! (nblz,mmul)
+  real(kind=fPrec), allocatable, save :: aaiv(:,:),bbiv(:,:) ! (nblz,mmul)
 
   ! common /dcumdb/
   real(kind=fPrec), allocatable, save :: dcum(:)              ! (0:nblz+1) Machine length in m
@@ -425,8 +425,8 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(zsi,                  nblz_new,       zero,        "zsi")
   call alloc(smi,                  nblz_new,       zero,        "smi")
   call alloc(smizf,                nblz_new,       zero,        "smizf")
-  call alloc(aai,                  nblz_new, mmul, zero,        "aai")
-  call alloc(bbi,                  nblz_new, mmul, zero,        "bbi")
+  call alloc(aaiv,         mmul,  nblz_new,            zero,    "aaiv")
+  call alloc(bbiv,         mmul,  nblz_new,            zero,    "bbiv")
   call alloc(dcum,                 nblz_new+1,     zero,        "dcum", 0)
   call alloc(sigmoff,              nblz_new,       zero,        "sigmoff")
 
@@ -552,8 +552,6 @@ module mod_commonmn
 
   ! common /main1/
   real(kind=fPrec), allocatable, save :: ekv(:,:)     ! (npart,nele)
-  real(kind=fPrec), allocatable, save :: aaiv(:,:)  ! (mmul,nblz)
-  real(kind=fPrec), allocatable, save :: bbiv(:,:)  ! (mmul,nblz)
   real(kind=fPrec), allocatable, save :: smiv(:,:)    ! (nmac,nblz)
   real(kind=fPrec), allocatable, save :: zsiv(:,:)    ! (nmac,nblz)
   real(kind=fPrec), allocatable, save :: xsiv(:,:)    ! (nmac,nblz)
@@ -683,8 +681,7 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   integer, intent(in) :: nblz_new
   integer, intent(in) :: npart_new
 
-  call alloc(aaiv, mmul,  nblz_new,            zero,    "aaiv")
-  call alloc(bbiv, mmul,  nblz_new,            zero,    "bbiv")
+
   call alloc(smiv,       nmac, nblz_new,       zero,    "smiv")
   call alloc(zsiv,       nmac, nblz_new,       zero,    "zsiv")
   call alloc(xsiv,       nmac, nblz_new,       zero,    "xsiv")
