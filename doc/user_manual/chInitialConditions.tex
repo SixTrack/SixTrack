@@ -225,3 +225,22 @@ The parameters needed for treating the synchrotron oscillation in a symplectic m
 \end{longtabu}
 
 \textbf{Note:} The value of \texttt{tlen} is also calculated internally by SixTrack (in \texttt{dcum}\index{dcum}), and a warning is issued if the given value is different from the calculated value.
+
+\section{Tracking with Ions} \label{hions}
+The default tracking in SixTrack is for protons. In case tracking of ions is wanted the following input block should be used.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{HION}\index{HION} \\
+    \textbf{Data lines} & 1 \\
+    \textbf{Format}     & Line 1: \texttt{A Z u}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}llp{0.65\linewidth}}
+    \texttt{A}   & integer & Total number of nucleons (atomic mass number). \\
+    \texttt{Z}   & integer & Total charge. \\
+    \texttt{$m_a$}   & float   & Mass of the ion [GeV/$c^2$]. 
+\end{longtabu}
