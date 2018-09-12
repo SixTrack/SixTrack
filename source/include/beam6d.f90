@@ -12,7 +12,7 @@ do j=1,napx
   track6d(5,j) = track6d(5,j)/rvv(j)
 
 end do
-call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc)
+call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc,mtc)
 do j=1,napx
   xv(1,j)=(track6d(1,j)*c1e3+clobeam(1,imbb(i)))-beamoff(1,imbb(i))
   xv(2,j)=(track6d(3,j)*c1e3+clobeam(2,imbb(i)))-beamoff(2,imbb(i))
