@@ -136,8 +136,10 @@ subroutine crcheck
   use mod_commont
   use mod_commond
   use mod_hions
+  use mod_version
+
   implicit none
-#include "version.f90"
+
   integer i,j,k,l,m,ia
   integer lstring,myia,mybinrecs,binrecs94
 
@@ -231,14 +233,14 @@ subroutine crcheck
     if (lerror) goto 100
 
     if (dynk_enabled) then
-      write(93,"(a)") "SIXTRACR CRCHECK reading fort.95 Record 6 DYNK"
+      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 6 DYNK"
       flush(93)
       call dynk_crcheck_readdata(95,lerror)
       if (lerror) goto 100
     end if
 
     if(scatter_active) then
-      write(93,"(a)") "SIXTRACR CRCHECK reading fort.95 Record 7 SCATTER"
+      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 7 SCATTER"
       flush(93)
       call scatter_crcheck_readdata(95,lerror)
       if (lerror) goto 100
@@ -352,7 +354,7 @@ subroutine crcheck
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 5 DUMP"
     flush(93)
     call dump_crcheck_readdata(96,lerror)
-    if (lerror) goto 100
+    if (lerror) goto 101
 
     if (dynk_enabled) then
       write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 6 DYNK"
@@ -373,7 +375,7 @@ subroutine crcheck
       !ERICVARS
       ! and make sure we can read the extended vars before leaving fort.96
       ! We will re-read them in crstart to be sure they are correct
-      write(93,"(a,i0)") "SIXTRACR CRCHECK verifying Record 8 extended vars fort.96, crnapxo=",crnapxo
+      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 8 extended vars fort.96, crnapxo=",crnapxo
       flush(93)
       write(93,"(a)") "SIXTRACR> CRCHECK verifying extended vars fort.96"
       flush(93)
@@ -764,9 +766,10 @@ subroutine crpoint
       use mod_commont
       use mod_commond
       use mod_hions
+      use mod_version
+
       implicit none
 
-#include "version.f90"
       integer i,j,l,k,m
       integer lstring,osixrecs,ncalls
       logical lerror

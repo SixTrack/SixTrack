@@ -37,6 +37,7 @@ set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR"
 # List of tests that do not produce a valid fort.10
 SET(TESTS_NOFORT10
   orbit6d-element-trombone
+  orbit6d-element-trombone-kick
   orbit6d-element-quadrupole
   orbit6d-ions
   orbit6d-element-solenoid
@@ -47,6 +48,9 @@ SET(TESTS_NOFORT10
   elensidealthck6d
   dynk_globalvars
   dynk_filelin
+  dynk_operators
+  dynk_random
+  dynk_polynomial
   thick6ddynk
   dump_binary
   dump4
@@ -60,24 +64,41 @@ SET(TESTS_NOFORT10
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-coupling
   scatter_bbelastic
+  scatter_collimation
+  scatter_aperture
   geometry
   collimation_k2_fcc_2017_h1_collision
   dump_all_highprec
   dump_2_all_ele_highprec
   beam-HO_6D-simple-newstyle-orbit
-  scatter_collimation
+  dynk_IIR
 )
 
-if(NOT COLLIMAT)
+# List of tests that do not produce singletrackfile.dat or a fort.90
+SET(TESTS_NO_STF_FORT90
+  dynk_operators
+  dynk_random
+  dynk_polynomial
+  )
+
+# List of tests that absolutely require STF to be on (> 64 particles)
+IF(STF)
+  SET(SIXTRACK_TESTS
+    beam-HO_6D-simple-newstyle-coupling
+    dynk_IIR
+    dynk_polynomial
+    dynk_random
+    dynk_operators
+    scatter_aperture
+    ${SIXTRACK_TESTS}
+    )
+ENDIF(STF)
+
 if(LIBARCHIVE)
   SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
 endif()
 
-if(NAFF)
-  SET(SIXTRACK_TESTS fma_naff ${SIXTRACK_TESTS})
-endif()
-
-#These tests are always included
+#General tests
 SET(SIXTRACK_TESTS
   bbe51
   bbe52
@@ -96,8 +117,7 @@ SET(SIXTRACK_TESTS
   fcc
   frs60
   frs
-  javier
-  javier_bignpart
+  crabs
   lostevery
   lost
   lostnumxv
@@ -106,6 +126,7 @@ SET(SIXTRACK_TESTS
   orbit6d-element-quadrupole
   orbit6d-element-solenoid
   orbit6d-element-trombone
+  orbit6d-element-trombone-kick
   orbit6d-element-combinedFunction
   orbit6d-ions
   orbit6d-ions-long
@@ -119,6 +140,7 @@ SET(SIXTRACK_TESTS
   elensidealthck6d
   fma
   fma_binary
+  fma_naff
   dump7_fma
   dump7_fma_thin4d
   dump8_fma
@@ -135,9 +157,6 @@ SET(SIXTRACK_TESTS
   dump6
   fileunits_DYNK_DUMP
   geometry
-  elensidealthin6d_DYNK_RANDU
-  elensidealthin6d_DYNK_RANDON
-  elensidealthin6d_DYNK_ONOFF
   beam-HO_4D-newstyle
   beam-HO_4D-newstyle-loadParticles
   beam-HO_4D-oldstyle
@@ -146,7 +165,6 @@ SET(SIXTRACK_TESTS
   beam-HO_6D-simple-oldstyle
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-orbit
-  beam-HO_6D-simple-newstyle-coupling
   beam-HO_LR-newstyle
   beam-HO_LR-oldstyle
   beam-HO_LR-ibbc-oldstyle
@@ -156,30 +174,30 @@ SET(SIXTRACK_TESTS
   rfMultipoles_4thOrder
   last_amp
   scatter_bbelastic
+  scatter_collimation
   dump_all_highprec
   dump_2_all_ele_highprec
   perf1
   ${SIXTRACK_TESTS}
 )
-else()
-  set(SIXTRACK_TESTS scatter_collimation ${SIXTRACK_TESTS})
-endif(NOT COLLIMAT)
 
 # Tests that require SixDA executable
 if(SIXDA)
   list(APPEND SIXTRACK_DA_TESTS frs_da thick4_da)
 endif()
 
-#Collimation tests (needs backtrk)
-#use extra checks on fort.999 and other collimation loss files
-if(COLLIMAT AND BACKTRK)
-  if(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-    SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
-  endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-  # if(NOT FLUKA OR NOT G4COLLIMAT)
-  #   SET(SIXTRACK_TESTS collimation_merlin_fcc_2017_h1_collision ${SIXTRACK_TESTS})
-  # endif(NOT FLUKA OR NOT MERLINSCATTER OR NOT G4COLLIMAT)
-endif(COLLIMAT AND BACKTRK)
+
+## UNUSED TESTS
+
+# Standard (K2) collimation tests that needs backtrk
+# However the BACKTRK flag does no longer exist, and the test has not been kept up to date.
+# SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
+
+# orbit6d-element-wire
+# thick6dsingles (only contains one canonical, fort.6, which shows that it crashes. Not sure what it is supposed to show?)
+# thick4in_da (copy of thick4_da that contains an extra huge MULT block in fort.3?)
+
+## END UNUSED TESTS
 
 #For CR builds, test the CR functions, so kill/resume the test
 if(CR)
@@ -213,6 +231,11 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
     SET(STF_ENABLE 0)
     SET(FORT90 1)
   endif(STF)
+  LIST(FIND TESTS_NO_STF_FORT90 ${TST} NO_STF_FORT90)
+  if(NOT ${NO_STF_FORT90} MATCHES -1)
+    SET(STF_ENABLE 0)
+    SET(FORT90 0)
+  endif()
 
   if(LIBARCHIVE)
     if(TST MATCHES elensidealthin6d_DYNK_ZIPF)
@@ -333,7 +356,7 @@ SET(FAST_TESTS
   thick6dblocks
   thick6ddynk
   exact
-  javier
+  crabs
   bb
   bb_ntwin1
   notilt
@@ -344,6 +367,10 @@ SET(FAST_TESTS
   dipedge
   dynk_globalvars
   dynk_filelin
+  dynk_operators
+  dynk_random
+  dynk_polynomial
+  dynk_IIR
   elensidealthin4d
   elensidealthck4d
   elensidealthck6d
@@ -366,9 +393,6 @@ SET(FAST_TESTS
   fileunits_DYNK_DUMP
   geometry
   fcc
-  elensidealthin6d_DYNK_RANDU
-  elensidealthin6d_DYNK_RANDON
-  elensidealthin6d_DYNK_ONOFF
   beam-HO_4D-newstyle
   beam-HO_4D-newstyle-loadParticles
   beam-HO_4D-oldstyle
@@ -386,9 +410,12 @@ SET(FAST_TESTS
   rfMultipoles_4thOrder
   last_amp
   scatter_bbelastic
+  scatter_collimation
+  scatter_aperture
   dump_all_highprec
   dump_2_all_ele_highprec
   orbit6d-element-trombone
+  orbit6d-element-trombone-kick
   orbit6d-ions
   beam-HO_6D-simple-newstyle-orbit
 )
@@ -410,7 +437,6 @@ SET(MEDIUM_TESTS
   distance
   bbe51
   bbe52
-  javier_bignpart
   collimation_k2_fcc_2017_h1_collision
   orbit6d-ions-long
 )

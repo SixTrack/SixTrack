@@ -260,7 +260,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'iclo6 ',iclo6
   write(99,*) 'iclo6r ',iclo6r
   write(99,*) 'iver ',iver
-  write(99,*) 'ibidu ',ibidu
   write(99,*) 'qs ',qs
   write(99,*) 'e0 ',e0
   write(99,*) 'pma ',pma
@@ -749,7 +748,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) iclo6
   write(99) iclo6r
   write(99) iver
-  write(99) ibidu
   write(99) qs
   write(99) e0
   write(99) pma
@@ -1232,7 +1230,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'iclo6 ',iclo6
   write(99,100) 'iclo6r ',iclo6r
   write(99,100) 'iver ',iver
-  write(99,100) 'ibidu ',ibidu
   write(99,100) 'qs ',qs
   write(99,100) 'e0 ',e0
   write(99,100) 'pma ',pma

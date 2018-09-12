@@ -1,3 +1,4 @@
+! start include/kickqdpe.f90
 #ifndef TILT
 qu=ed(IX)/(one+dpp)
 quz=ek(IX)/(one+dpp)
@@ -11,3 +12,4 @@ qv=((-one*ed(IX))*tiltsk)/(one+dpp)                              !hr02
 quz=((-one*ek(IX))*tiltck)/(one+dpp)                             !hr02
 qvz=(ek(IX)*tiltsk)/(one+dpp)                                    !hr02
 #endif
+! end include/kickqdpe.f90

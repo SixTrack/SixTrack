@@ -15,7 +15,7 @@ module mod_pythia
 
   implicit none
 
-  ! Supported Particles
+  ! Supported Particles as Defined in Pythia
   integer, parameter :: pythia_partProton      =  2212
   integer, parameter :: pythia_partAntiProton  = -2212
   integer, parameter :: pythia_partNeutron     =  2112
@@ -30,6 +30,14 @@ module mod_pythia
   integer, parameter :: pythia_partMuonNeg     =    13
   integer, parameter :: pythia_partMuonPos     =   -13
 
+  ! Process Codes as Defined in Pythia
+  integer, parameter :: pythia_idNonDiff       = 101
+  integer, parameter :: pythia_idElastic       = 102
+  integer, parameter :: pythia_idSingleDiffXB  = 103
+  integer, parameter :: pythia_idSingleDiffAX  = 104
+  integer, parameter :: pythia_idDoubleDiff    = 105
+  integer, parameter :: pythia_idCentralDiff   = 106
+
   ! Flags
   logical,            public,  save :: pythia_isActive        = .false.
   logical,            private, save :: pythia_useElastic      = .false.
@@ -37,9 +45,14 @@ module mod_pythia
   logical,            private, save :: pythia_useDDiffractive = .false.
   logical,            private, save :: pythia_useCDiffractive = .false.
   logical,            private, save :: pythia_useNDiffractive = .false.
-  logical,            private, save :: pythia_allowLosses     = .false.
+  logical,            public,  save :: pythia_allowLosses     = .false.
   logical,            private, save :: pythia_useCoulomb      = .false.
   real(kind=fPrec),   private, save :: pythia_elasticTMin     = 5.0e-5_fPrec ! Pythia default value
+  real(kind=fPrec),   private, save :: pythia_csElastic       = -1.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csSDiffractive  = -1.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csDDiffractive  = -1.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csCDiffractive  = -1.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csNDiffractive  = -1.0_fPrec
 
   ! Beam Configuration
   integer,            private, save :: pythia_frameType       = 2
@@ -146,8 +159,8 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
     write(lout,"(a)") "PYTHIA> Settings will be read from external file '"//trim(pythia_settingsFile)//"'"
 
   case("PROCESS")
-    if(nSplit /= 2) then
-      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword PROCESS expected 1 argument, got ",(nSplit-1)
+    if(nSplit /= 2 .and. nSplit /= 3) then
+      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword PROCESS expected 1 or 2 arguments, got ",(nSplit-1)
       iErr = .true.
       return
     end if
@@ -155,18 +168,38 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
     case("EL","ELASTIC")
       pythia_useElastic = .true.
       write(lout,"(a)") "PYTHIA> Elastic scattering enabled"
+      if(nSplit > 2) then
+        call chr_cast(lnSplit(3),pythia_csElastic,iErr)
+        write(lout,"(a,f13.8,a)") "PYTHIA> Elastic cross section set to ",pythia_csElastic," mb"
+      end if
     case("SD","SINGLEDIFFRACTIVE")
       pythia_useSDiffractive = .true.
       write(lout,"(a)") "PYTHIA> Single diffractive scattering enabled"
+      if(nSplit > 2) then
+        call chr_cast(lnSplit(3),pythia_csSDiffractive,iErr)
+        write(lout,"(a,f13.8,a)") "PYTHIA> Single diffractive cross section set to ",pythia_csSDiffractive," mb"
+      end if
     case("DD","DOUBLEDIFFRACTIVE")
       pythia_useDDiffractive = .true.
       write(lout,"(a)") "PYTHIA> Double diffractive scattering enabled"
+      if(nSplit > 2) then
+        call chr_cast(lnSplit(3),pythia_csDDiffractive,iErr)
+        write(lout,"(a,f13.8,a)") "PYTHIA> Double diffractive cross section set to ",pythia_csDDiffractive," mb"
+      end if
     case("CD","CENTRALDIFFRACTIVE")
       pythia_useCDiffractive = .true.
       write(lout,"(a)") "PYTHIA> Central diffractive scattering enabled"
+      if(nSplit > 2) then
+        call chr_cast(lnSplit(3),pythia_csCDiffractive,iErr)
+        write(lout,"(a,f13.8,a)") "PYTHIA> Central diffractive cross section set to ",pythia_csCDiffractive," mb"
+      end if
     case("ND","NONDIFFRACTIVE")
       pythia_useNDiffractive = .true.
       write(lout,"(a)") "PYTHIA> Non-diffractive scattering enabled"
+      if(nSplit > 2) then
+        call chr_cast(lnSplit(3),pythia_csNDiffractive,iErr)
+        write(lout,"(a,f13.8,a)") "PYTHIA> Non-diffractive cross section set to ",pythia_csNDiffractive," mb"
+      end if
     case default
       write(lout,"(a)") "PYTHIA> ERROR Unknown or unsupported scattering process'"//trim(lnSplit(2))//"'"
       iErr = .true.
@@ -188,18 +221,6 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
         iErr = .true.
         return
       end if
-    end if
-
-  case("LOSSES")
-    if(nSplit /= 2) then
-      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword LOSSES expected 1 argument, got ",(nSplit-1)
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2),pythia_allowLosses,iErr)
-
-    if(st_debug) then
-      call sixin_echoVal("losses",pythia_allowLosses,"PYTHIA",iLine)
     end if
 
   case("SPECIES")
@@ -262,6 +283,8 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
       call sixin_echoVal("E(1)",pythia_beamEnergy(1),"PYTHIA",iLine)
       call sixin_echoVal("E(2)",pythia_beamEnergy(2),"PYTHIA",iLine)
     end if
+
+    pythia_beamEnergy = pythia_beamEnergy*c1m3 ! Pythia expects GeV
 
   case("SEED")
     if(nSplit /= 2) then

@@ -9,10 +9,14 @@ test/*/*.run_kill*
 test/run_pro_*
 test/run_kill_*
 
+# compareSix2Mad
+devtools/physicsBenchmark/compareSix2Madx/work/*
+
 # Builds
-source/libarchive_build
-source/zlib/build
-source/zlib/install
+lib/libarchive_build
+lib/zlib/build
+lib/zlib/install
+lib/hdf5
 
 source/count.log
 
@@ -20,10 +24,12 @@ source/count.log
 build*/
 Build*/
 
-# Library Build Folders
-lib/
+# Libraries
+lib/pythia
 
 # LaTeX
+doc/*.log
+doc/*.dat
 doc/html
 doc/*/*.pdf
 doc/*/*.aux

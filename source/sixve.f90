@@ -48,7 +48,11 @@ subroutine sumpos
     end do
   
     if(i == 1) write(lout,10000)
-    if(abs(d(2)) >= pieni) ch = "LOST"
+    if(abs(d(2)) >= pieni) then
+      ch = "LOST"
+    else
+      ch = "    "
+    end if
     if(d(22) >= d(23)) then
       dlost = d(23)
     else

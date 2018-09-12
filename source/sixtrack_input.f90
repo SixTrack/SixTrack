@@ -461,7 +461,7 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
   ! Expand Arrays
   if(sixin_nSing > nele-2) then
     call expand_arrays(nele+100, npart, nblz, nblo)
-    call alloc(sixin_bez0, mNameLen, nele, str_nmZeros, "sixin_bez0")
+    call alloc(sixin_bez0, mNameLen, nele, str_nmSpace, "sixin_bez0")
   end if
 
   if(abs(kz(sixin_nSing)) /= 12 .or. (abs(kz(sixin_nSing)) == 12 .and. sixin_ncy2 == 0)) then
@@ -959,7 +959,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
-  integer nSplit
+  integer nSplit, iDummy
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -1007,6 +1007,14 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call sixin_echoVal("numlmax",numlmax,"TRAC",iLine)
     end if
     if(iErr) return
+
+#ifndef STF
+    if(napx > 32) then
+      write(lout,"(a)") "TRAC> ERROR To run SixTrack with more than 32 particle pairs, it has to be compiled with the STF flag."
+      iErr = .true.
+      return
+    end if
+#endif
 
     if(napx*2 > npart) then
       call expand_arrays(nele, napx*2, nblz, nblo)
@@ -1076,27 +1084,26 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       return
     end if
 
-    if(nSplit > 0) call chr_cast(lnSplit(1),nde(1),iErr) ! Number of turns at flat bottom
-    if(nSplit > 1) call chr_cast(lnSplit(2),nde(2),iErr) ! Number of turns for the energy ramping
-    if(nSplit > 2) call chr_cast(lnSplit(3),nwr(1),iErr) ! Every nth turn coordinates will be written
-    if(nSplit > 3) call chr_cast(lnSplit(4),nwr(2),iErr) ! Every nth turn coordinates in the ramping region will be written
-    if(nSplit > 4) call chr_cast(lnSplit(5),nwr(3),iErr) ! Every nth turn at the flat top a write out of the coordinates
-    if(nSplit > 5) call chr_cast(lnSplit(6),nwr(4),iErr) ! Every nth turn coordinates are written to unit 6.
-    if(nSplit > 6) call chr_cast(lnSplit(7),ntwin, iErr) ! Flag for calculated distance of phase space
-    if(nSplit > 7) call chr_cast(lnSplit(8),ibidu, iErr) ! Switch to create or read binary dump
-    if(nSplit > 8) call chr_cast(lnSplit(9),iexact,iErr) ! Switch to enable exact solution of the equation of motion
+    if(nSplit > 0) call chr_cast(lnSplit(1),nde(1),  iErr) ! Number of turns at flat bottom
+    if(nSplit > 1) call chr_cast(lnSplit(2),nde(2),  iErr) ! Number of turns for the energy ramping
+    if(nSplit > 2) call chr_cast(lnSplit(3),nwr(1),  iErr) ! Every nth turn coordinates will be written
+    if(nSplit > 3) call chr_cast(lnSplit(4),nwr(2),  iErr) ! Every nth turn coordinates in the ramping region will be written
+    if(nSplit > 4) call chr_cast(lnSplit(5),nwr(3),  iErr) ! Every nth turn at the flat top a write out of the coordinates
+    if(nSplit > 5) call chr_cast(lnSplit(6),nwr(4),  iErr) ! Every nth turn coordinates are written to unit 6.
+    if(nSplit > 6) call chr_cast(lnSplit(7),ntwin,   iErr) ! Flag for calculated distance of phase space
+    if(nSplit > 7) call chr_cast(lnSplit(8),iDummy,  iErr) ! No longer in use. Formerly ibidu
+    if(nSplit > 8) call chr_cast(lnSplit(9),iexact,  iErr) ! Switch to enable exact solution of the equation of motion
     if(nSplit > 9) call chr_cast(lnSplit(10),curveff,iErr) ! Switch to include curvatures effect on multipoles..
 
     if(st_debug) then
-      call sixin_echoVal("nde(1)",nde(1),"TRAC",iLine)
-      call sixin_echoVal("nde(2)",nde(2),"TRAC",iLine)
-      call sixin_echoVal("nwr(1)",nwr(1),"TRAC",iLine)
-      call sixin_echoVal("nwr(2)",nwr(2),"TRAC",iLine)
-      call sixin_echoVal("nwr(3)",nwr(3),"TRAC",iLine)
-      call sixin_echoVal("nwr(4)",nwr(4),"TRAC",iLine)
-      call sixin_echoVal("ntwin", ntwin, "TRAC",iLine)
-      call sixin_echoVal("ibidu", ibidu, "TRAC",iLine)
-      call sixin_echoVal("iexact",iexact,"TRAC",iLine)
+      call sixin_echoVal("nde(1)",nde(1),  "TRAC",iLine)
+      call sixin_echoVal("nde(2)",nde(2),  "TRAC",iLine)
+      call sixin_echoVal("nwr(1)",nwr(1),  "TRAC",iLine)
+      call sixin_echoVal("nwr(2)",nwr(2),  "TRAC",iLine)
+      call sixin_echoVal("nwr(3)",nwr(3),  "TRAC",iLine)
+      call sixin_echoVal("nwr(4)",nwr(4),  "TRAC",iLine)
+      call sixin_echoVal("ntwin", ntwin,   "TRAC",iLine)
+      call sixin_echoVal("iexact",iexact,  "TRAC",iLine)
       call sixin_echoVal("curveff",curveff,"TRAC",iLine)
     end if
     if(iErr) return
@@ -1720,6 +1727,7 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
     if(nSplit > 1) call chr_cast(lnSplit(2),r0,   iErr)
     if(nSplit > 2) call chr_cast(lnSplit(3),benki,iErr)
 
+    iil      = -1
     nmul     = 1
     r0a      = one
     sixin_im = sixin_im + 1
@@ -1734,6 +1742,12 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
         exit
       end if
     end do
+
+    if(iil == -1) then
+      write(lout,"(a)") "MULT> ERROR Single element '"//trim(imn)//"' not found in single element list."
+      iErr = .true.
+      return
+    end if
 
     if(st_debug) then
       call sixin_echoVal("imn",  imn,  "MULT",iLine)
@@ -2721,7 +2735,7 @@ subroutine sixin_parseInputLinePOST(inLine, iLine, iErr)
     if(abs(cma1) <= pieni) cma1 = one
     cma1 = cma1*c1e3
     if(abs(cma2) <= pieni) cma2 = one
-    ipos = 1
+    ipos = 1 ! Turn postprocessing ON.
 
   case default
     write(lout,"(a,i0)") "POST> ERROR Unexpected line number ",iLine

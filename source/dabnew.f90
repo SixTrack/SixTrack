@@ -1786,7 +1786,8 @@ subroutine damult(ina,inb,inc)
       integer i,i1ia,i2ia,ia,ib,ic,illa,illb,illc,ilma,ilmb,ilmc,ina,   &
      &inb,inc,inoa,inob,inoc,inva,invb,invc,ioffb,ipno,ipoa,ipob,ipoc,  &
      &ipos,minv,noff,noib,nom
-      real(kind=fPrec) ccia,ccipoa,ccipob
+      real(kind=fPrec) ccia,ccipoa,ccipob,tmpA,tmpB
+      logical checkMultUnderflow
 !     *****************************
 !
 !     THIS SUBROUTINE PERFORMS A DA MULTIPLICATION OF THE DA VECTORS A AND B.
@@ -1808,14 +1809,31 @@ subroutine damult(ina,inb,inc)
 !     ************************
 
       if(nomax.eq.1) then
-         minv = min(inva,invb,invc)
-         ccipoa = cc(ipoa)
-         ccipob = cc(ipob)
-         cc(ipoc) = ccipoa*ccipob
+        minv = min(inva,invb,invc)
+        ccipoa = cc(ipoa)
+        ccipob = cc(ipob)
+        if(checkMultUnderflow(ccipoa,ccipob)) then
+          write(lout,"(a)") "DABNEW> WARNING Underflow intercepted in routine damult at 1."
+          cc(ipoc) = zero
+        else
+          cc(ipoc) = ccipoa*ccipob
+        end if
 
-         do i=1,minv
-           cc(ipoc+i) = ccipoa*cc(ipob+i) + ccipob*cc(ipoa+i)
-         end do
+        do i=1,minv
+          if(checkMultUnderflow(ccipoa,cc(ipob+i))) then
+            write(lout,"(a)") "DABNEW> WARNING Underflow intercepted in routine damult at 2."
+            tmpA = zero
+          else
+            tmpA = ccipoa*cc(ipob+i)
+          end if
+          if(checkMultUnderflow(ccipob,cc(ipoa+i))) then
+            write(lout,"(a)") "DABNEW> WARNING Underflow intercepted in routine damult at 3."
+            tmpB = zero
+          else
+            tmpB = ccipob*cc(ipoa+i)
+          end if
+          cc(ipoc+i) = tmpA + tmpB
+        end do
 
          do i=ipoc+minv+1,ipoc+invc
            cc(i) = zero
@@ -3216,14 +3234,14 @@ subroutine dafunt(cf,ina,inc)
 
  800  continue
 
- 1000 format('ERROR IN DAFUN, ',a4,' DOES NOT EXIST FOR VECTOR ',i10,'CONST TERM  = ',e12.5)
+ 1000 format('DAFUN> ERROR ',a4,' does not exist for vector ',i0,' const term = ',e12.5)
 
       call dadal(iscr(1),1)
       call dadal(inon(1),1)
       call dadal(ipow(1),1)
 
       return
-      end
+end subroutine dafunt
 
 
 subroutine daabs(ina,anorm)
@@ -5408,13 +5426,13 @@ subroutine dadeb(iunit,c,istop)
       character(len=10) c
 
 !etienne
-      write(lout,*) '  ',c
+      write(lout,"(a)") "DABNEW> ERROR "//c(5:10)
 #ifdef CR
       call abend('                                                  ')
 #else
-      stop
+      call prror(-1)
 #endif
-      end
+end subroutine dadeb
 
 
 subroutine danum(no,nv,numda)

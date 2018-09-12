@@ -13,7 +13,7 @@ module scatter
 
   use floatPrecision
   use mathlib_bouncer
-  use numerical_constants, only : zero, half, one, two, c1e3, c1e6, pieni
+  use numerical_constants, only : zero, half, one, two, c1e3, c1e6, c1m27, pieni
   use parpro
   use mod_ranecu
   use strings
@@ -28,8 +28,22 @@ module scatter
   implicit none
 
   ! Common variables for the SCATTER routines
-  logical, public, save :: scatter_active = .false.
-  logical, public, save :: scatter_debug  = .false.
+  logical, public, save :: scatter_active      = .false.
+  logical, public, save :: scatter_debug       = .false.
+  logical, public, save :: scatter_allowLosses = .false.
+
+  ! Scatter Parameters
+  integer,          parameter :: scatter_idAbsorb         = 1
+  integer,          parameter :: scatter_idNonDiff        = 2
+  integer,          parameter :: scatter_idElastic        = 3
+  integer,          parameter :: scatter_idSingleDiffXB   = 4
+  integer,          parameter :: scatter_idSingleDiffAX   = 5
+  integer,          parameter :: scatter_idDoubleDiff     = 6
+  integer,          parameter :: scatter_idCentralDiff    = 7
+  integer,          parameter :: scatter_idUnknown        = 8
+  integer,          parameter :: scatter_idError          = 9
+  character(len=8), parameter :: scatter_procNames(9)     = &
+    (/"Absorbed","NonDiff ","Elastic ","SingD_XB","SingD_AX","DoubD_XX","CentDiff","Unknown ","Error   "/)
 
   ! Pointer from an element back to a ELEM statement (0 => not used)
   integer, allocatable, public, save :: scatter_elemPointer(:)
@@ -41,18 +55,13 @@ module scatter
   integer,          allocatable, public, save :: scatter_ELEM(:,:)
   real(kind=fPrec), allocatable, public, save :: scatter_ELEM_scale(:)
 
-  ! Configuration for PROFILE
+  ! Configuration for PROFILE and GENERATOR
   ! Columns of scatter_PROFILE:
-  ! (1)   : Profile name in fort.3 (points within scatter_cexpr)
+  ! (1)   : Profile name in fort.3 (points within scatter_cData)
   ! (2)   : Profile type
-  ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
+  ! (3-5) : Arguments (often pointing within scatter_{i|c|f}Data)
   integer, allocatable, public, save :: scatter_PROFILE(:,:)
-
-  ! Configuration for GENERATOR
-  ! (1)   : Generator name in fort.3 (points within scatter_cexpr)
-  ! (2)   : Generator type
-  ! (3-5) : Arguments (often pointing within scatter_{i|c|f}expr)
-  integer, allocatable, public, save  :: scatter_GENERATOR(:,:)
+  integer, allocatable, public, save :: scatter_GENERATOR(:,:)
 
   integer,          allocatable, private, save :: scatter_iData(:)
   real(kind=fPrec), allocatable, private, save :: scatter_fData(:)
@@ -72,9 +81,12 @@ module scatter
 
   ! Variable for file output
   integer, private, save :: scatter_logFile    = -1
+  integer, private, save :: scatter_sumFile    = -1
 #ifdef HDF5
   integer, private, save :: scatter_logDataSet = 0
   integer, private, save :: scatter_logFormat  = 0
+  integer, private, save :: scatter_sumDataSet = 0
+  integer, private, save :: scatter_sumFormat  = 0
 #endif
 
 #ifdef CR
@@ -142,8 +154,8 @@ subroutine scatter_initialise
 
   implicit none
 
-  integer ierro
-  logical lopen
+  integer iError
+  logical isOpen
 
 #ifdef HDF5
 
@@ -151,22 +163,45 @@ subroutine scatter_initialise
 
   if(h5_useForSCAT) then
 
-    allocate(setFields(9))
+    call h5_initForScatter()
 
-    setFields(1)  = h5_dataField(name="ID",      type=h5_typeInt,  size=16)
-    setFields(2)  = h5_dataField(name="TURN",    type=h5_typeInt,  size=16)
+    ! Scatter Log
+    allocate(setFields(12))
+
+    setFields(1)  = h5_dataField(name="ID",      type=h5_typeInt)
+    setFields(2)  = h5_dataField(name="TURN",    type=h5_typeInt)
     setFields(3)  = h5_dataField(name="BEZ",     type=h5_typeChar, size=mNameLen)
     setFields(4)  = h5_dataField(name="GEN",     type=h5_typeChar, size=mNameLen)
-    setFields(5)  = h5_dataField(name="PROCESS", type=h5_typeChar, size=2)
-    setFields(6)  = h5_dataField(name="T",       type=h5_typeReal, size=0)
-    setFields(7)  = h5_dataField(name="XI",      type=h5_typeReal, size=0)
-    setFields(8)  = h5_dataField(name="THETA",   type=h5_typeReal, size=0)
-    setFields(9)  = h5_dataField(name="PHI",     type=h5_typeReal, size=0)
-    setFields(10) = h5_dataField(name="PROB",    type=h5_typeReal, size=0)
+    setFields(5)  = h5_dataField(name="PROCESS", type=h5_typeChar, size=8)
+    setFields(6)  = h5_dataField(name="LOST",    type=h5_typeInt)
+    setFields(7)  = h5_dataField(name="T",       type=h5_typeReal)
+    setFields(8)  = h5_dataField(name="DEE",     type=h5_typeReal)
+    setFields(9)  = h5_dataField(name="THETA",   type=h5_typeReal)
+    setFields(10) = h5_dataField(name="PHI",     type=h5_typeReal)
+    setFields(11) = h5_dataField(name="DENSITY", type=h5_typeReal)
+    setFields(12) = h5_dataField(name="PROB",    type=h5_typeReal)
 
-    call h5_initForScatter()
     call h5_createFormat("scatter_log_fmt", setFields, scatter_logFormat)
     call h5_createDataSet("scatter_log", h5_scatID, scatter_logFormat, scatter_logDataSet)
+
+    deallocate(setFields)
+
+    ! Scatter Summary
+    allocate(setFields(8))
+
+    setFields(1) = h5_dataField(name="TURN",     type=h5_typeInt)
+    setFields(2) = h5_dataField(name="BEZ",      type=h5_typeChar, size=mNameLen)
+    setFields(3) = h5_dataField(name="GEN",      type=h5_typeChar, size=mNameLen)
+    setFields(4) = h5_dataField(name="PROCESS",  type=h5_typeChar, size=8)
+    setFields(5) = h5_dataField(name="NSCATT",   type=h5_typeInt)
+    setFields(6) = h5_dataField(name="NLOST",    type=h5_typeInt)
+    setFields(7) = h5_dataField(name="CROSSSEC", type=h5_typeReal)
+    setFields(8) = h5_dataField(name="SCALING",  type=h5_typeReal)
+
+    call h5_createFormat("scatter_summary_fmt", setFields, scatter_sumFormat)
+    call h5_createDataSet("summary", h5_scatID, scatter_sumFormat, scatter_sumDataSet)
+
+    deallocate(setFields)
 
     ! Write Attributes
     call h5_writeAttr(h5_scatID,"SEED",(/scatter_seed1,scatter_seed2/))
@@ -174,7 +209,8 @@ subroutine scatter_initialise
 #endif
 
     ! Open scatter_log.dat
-    if(scatter_logFile == -1) call funit_requestUnit("scatter_log.dat",scatter_logFile)
+    if(scatter_logFile == -1) call funit_requestUnit("scatter_log.dat",    scatter_logFile)
+    if(scatter_sumFile == -1) call funit_requestUnit("scatter_summary.dat",scatter_sumFile)
 #ifdef CR
     ! Could have loaded a CR just before the start of the tracking;
     ! in this case the scatter_log.dat is already open and positioned,
@@ -183,20 +219,28 @@ subroutine scatter_initialise
       write(93,"(a)") "SCATTER> scatter_initialise opening new file scatter_log.dat"
 #endif
 
-      inquire(unit=scatter_logFile, opened=lopen)
-      if(lopen) then
+      inquire(unit=scatter_logFile, opened=isOpen)
+      if(isOpen) then
         write(lout,"(a)") "SCATTER> ERROR Could not open scatter_log.dat, unit already taken."
         call prror(-1)
       end if
 
       open(scatter_logFile,file="scatter_log.dat",status="replace",form="formatted")
       write(scatter_logFile,"(a)") "# scatter_log"
-      write(scatter_logFile,"(a)") "# ID turn bez generator process t[MeV^2] xi theta[mrad] phi[rad] prob"
+      write(scatter_logFile,"(a1,a8,1x,a8,2(1x,a20),1x,a8,1x,a4,1x,a13,5(1x,a16))") &
+        "#","ID","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8),&
+        "lost","t[MeV^2]","dE/E","theta[mrad]","phi[rad]","density","prob"
+
+      open(scatter_sumFile,file="scatter_summary.dat",status="replace",form="formatted")
+      write(scatter_sumFile,"(a)") "# scatter_summary"
+      write(scatter_sumFile,"(a1,a8,2(1x,a20),1x,a8,2(1x,a8),2(1x,a13))") &
+        "#","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8), &
+        "nScatt","nLost","crossSec[mb]","scaling"
 
 #ifdef CR
       scatter_filePos = 2
-      endfile(scatter_logFile,iostat=ierro)
-      backspace(scatter_logFile,iostat=ierro)
+      endfile(scatter_logFile,iostat=iError)
+      backspace(scatter_logFile,iostat=iError)
     else
       write(93,"(a)") "SCATTER> scatter_initialise kept already opened file scatter_log.dat"
     end if
@@ -257,6 +301,14 @@ subroutine scatter_parseInputLine(inLine, iErr)
     scatter_debug = .true.
     write(lout,"(a)") "SCATTER> Scatter block debugging is ON."
 
+  case("LOSSES")
+    scatter_allowLosses = .true.
+    write(lout,"(a)") "SCATTER> Particle losses is ALLOWED."
+#ifdef PYTHIA
+    ! Pythia also needs to know that losses are allowed to determine which processes can be used
+    pythia_allowLosses = .true.
+#endif
+
   case("ELEM")
     call scatter_parseElem(lnSplit, nSplit, iErr)
 
@@ -270,7 +322,7 @@ subroutine scatter_parseInputLine(inLine, iErr)
     call scatter_parseSeed(lnSplit, nSplit, iErr)
 
   case default
-    write(lout,"(a)") "SCATTER> ERROR Line type not recognized: '"//keyWord//"'"
+    write(lout,"(a)") "SCATTER> ERROR Keyword not recognized: '"//keyWord//"'"
     iErr = .true.
     return
 
@@ -308,7 +360,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
   ! Add the element to the list
   scatter_nELEM = scatter_nELEM + 1
-  call alloc(scatter_ELEM, scatter_nELEM, 5, 0, "scatter_ELEM")
+  call alloc(scatter_ELEM,       scatter_nELEM, 5, 0, "scatter_ELEM")
   call alloc(scatter_ELEM_scale, scatter_nELEM, zero, "scatter_ELEM_scale")
 
   ! Find the single element referenced
@@ -358,7 +410,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
   ! Find the profile name referenced
   do j=1,scatter_nPROFILE
-    if(chr_trimZero(scatter_cData(scatter_PROFILE(j,1))) == lnSplit(3)) then
+    if(trim(scatter_cData(scatter_PROFILE(j,1))) == lnSplit(3)) then
       scatter_ELEM(scatter_nELEM,2) = j
     end if
   end do
@@ -374,7 +426,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
   ! Find the generator(s) referenced
   if(nSplit-4 > 3) then
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Parsing ELEM,",nSplit-4,"generators specified, space for 3"
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Parsing ELEM, ",nSplit-4," generators specified, max is 3"
     iErr = .true.
     return
   end if
@@ -385,7 +437,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
     ! Search for the generator with the right name
     do j=1, scatter_nGENERATOR
-      if(chr_trimZero(scatter_cData(scatter_GENERATOR(j,1))) == lnSplit(ii)) then
+      if(trim(scatter_cData(scatter_GENERATOR(j,1))) == lnSplit(ii)) then
         ! Found it
         scatter_ELEM(scatter_nELEM,ii-4+2) = j
       end if
@@ -451,7 +503,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
 
   ! Check that the profile name is unique
   do ii=1,scatter_nPROFILE-1
-    if(chr_trimZero(scatter_cData(scatter_PROFILE(ii,1))) == lnSplit(2)) then
+    if(trim(scatter_cData(scatter_PROFILE(ii,1))) == lnSplit(2)) then
       write(lout,"(a)") "SCATTER> ERROR Profile name '"//lnSplit(2)//"' is not unique."
       iErr = .true.
       return
@@ -550,7 +602,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
   ! Check that the generator name is unique
   do ii=1,scatter_nGENERATOR-1
-    if(chr_trimZero(scatter_cData(scatter_GENERATOR(ii,1))) == lnSplit(2)) then
+    if(trim(scatter_cData(scatter_GENERATOR(ii,1))) == lnSplit(2)) then
       write(lout,"(a)") "SCATTER> ERROR Generator name '"//lnSplit(2)//"' is not unique."
       iErr = .true.
       return
@@ -576,8 +628,8 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
     ! Request space to store the arguments
     tmpIdx = scatter_nfData + 1
-    scatter_GENERATOR(scatter_nGENERATOR,3) = tmpIdx
-    scatter_GENERATOR(scatter_nGENERATOR,4) = 0      ! Index of scatter input, if present
+    scatter_GENERATOR(scatter_nGENERATOR,3) = tmpIdx ! Parameters
+    scatter_GENERATOR(scatter_nGENERATOR,4) = 0      ! CrossSection
     scatter_nfData = scatter_nfData + nSplit - 3
     call alloc(scatter_fData, scatter_nfData, zero, "scatter_fData")
 
@@ -588,7 +640,9 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
     call str_cast(lnSplit(8),scatter_fData(tmpIdx+4),iErr) ! PPBEAMELASTIC tmin
 
     if(nSplit == 9) then
-      call str_cast(lnSplit(9),scatter_fData(tmpIdx+5),iErr) ! PPBEAMELASTIC crossSection
+      call str_cast(lnSplit(9),scatter_fData(tmpIdx+5),iErr)  ! crossSection
+      scatter_fData(tmpIdx+5) = scatter_fData(tmpIdx+5)*c1m27 ! Scale to mb
+      scatter_GENERATOR(scatter_nGENERATOR,4) = tmpIdx+5
     end if
 
     ! Check sanity of input values
@@ -603,14 +657,26 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
       return
     end if
 
-  case("PYTHIA")
+  case("PYTHIASIMPLE")
 
 #ifndef PYTHIA
     write(lout,"(a)") "SCATTER> ERROR GEN PYTHIA requested, but PYTHIA not compiled into SixTrack"
     iErr = .true.
     return
 #endif
-    scatter_GENERATOR(scatter_nGENERATOR,2) = 20 ! Code for PYTHIA
+    scatter_GENERATOR(scatter_nGENERATOR,2) = 20 ! Code for PYTHIASIMPLE
+    scatter_GENERATOR(scatter_nGENERATOR,3) = 0  ! Parameters
+    scatter_GENERATOR(scatter_nGENERATOR,4) = 0  ! CrossSection
+
+    if(nSplit == 4) then
+      ! Save specified crossSection
+      tmpIdx = scatter_nfData + 1
+      scatter_GENERATOR(scatter_nGENERATOR,4) = tmpIdx
+      scatter_nfData = scatter_nfData + 1
+      call alloc(scatter_fData, scatter_nfData, zero, "scatter_fData")
+      call str_cast(lnSplit(4),scatter_fData(tmpIdx),iErr)
+      scatter_fData(tmpIdx) = scatter_fData(tmpIdx)*c1m27 ! Scale to mb
+    end if
 
   case default
 
@@ -660,54 +726,59 @@ end subroutine scatter_parseSeed
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
-subroutine scatter_thin(i_elem, ix, turn)
+subroutine scatter_thin(iElem, ix, turn)
 
   use string_tools
   use crcoall
+  use mod_hions
+  use mod_alloc
   use mod_common
   use mod_commonmn
-  use numerical_constants, only : pi
+  use mod_particles
+  use numerical_constants, only : one, pi
 #ifdef HDF5
   use hdf5_output
 #endif
 
-#ifdef COLLIMAT
-  use collimation
-#endif
+  use collimation, only : do_coll, scatterhit, part_hit_pos, part_hit_turn
 
   implicit none
+
+  integer, intent(in) :: iElem, ix, turn
+
+  ! Temp variables
+  integer          idElem, idPro, idGen
+  integer          i, j, k, iLost, nLost(9), nScatter(9), procID
+  integer          tmpSeed1, tmpSeed2
+  logical          isDiff, updateE, hasProc(9)
+  real(kind=fPrec) s, t, dEE, theta
+  real(kind=fPrec) crossSection, N, P
+  real(kind=fPrec) rndPhi(napx), rndP(napx)
+  real(kind=fPrec) scaling
+
+  logical, allocatable :: pLost(:)
+  logical, allocatable :: pScattered(:)
+
 #ifdef HDF5
   ! For HDF5 it is best to write in chuncks, so we will make arrays of size napx
-  integer                 :: iRecords(2,napx)
-  real(kind=fPrec)        :: rRecords(5,napx)
+  integer                 :: iRecords(3,napx)
+  real(kind=fPrec)        :: rRecords(6,napx)
   character(len=mNameLen) :: cRecords(3,napx)
   integer                 :: nRecords
 #endif
 
-  ! Temp variables
-  integer          ELEMidx, PROidx, GENidx
-  integer          i, j
-  integer          tmpSeed1, tmpSeed2
-  real(kind=fPrec) s, t, xi, theta
-  real(kind=fPrec) crossSection, N, P
-  real(kind=fPrec) rndPhi(npart), rndP(npart)
-  real(kind=fPrec) scaling
-  character(len=2) process
+  idElem  = scatter_elemPointer(ix)
+  idPro   = scatter_ELEM(idElem,2)
+  scaling = scatter_ELEM_scale(idElem)
 
-  integer, intent(in) :: i_elem, ix, turn
-
-  ELEMidx = scatter_elemPointer(ix)
-  PROidx  = scatter_ELEM(ELEMidx,2)
-  scaling = scatter_ELEM_scale(ELEMidx)
-
-  if(scatter_debug) then
-    write(lout,"(a)")       "SCATTER> DEBUG In scatter_thin"
-    write(lout,"(a,i0)")    "SCATTER> DEBUG  * ix      = ",ix
-    write(lout,"(a)")       "SCATTER> DEBUG  * bez     = '"//trim(bez(ix))//"'"
-    write(lout,"(a,i0)")    "SCATTER> DEBUG  * napx    = ",napx
-    write(lout,"(a,i0)")    "SCATTER> DEBUG  * turn    = ",turn
-    write(lout,"(a,e13.6)") "SCATTER> DEBUG  * scaling = ",scaling
-  end if
+  ! if(scatter_debug) then
+  !   write(lout,"(a)")       "SCATTER> DEBUG In scatter_thin"
+  !   write(lout,"(a,i0)")    "SCATTER> DEBUG  * ix      = ",ix
+  !   write(lout,"(a)")       "SCATTER> DEBUG  * bez     = '"//trim(bez(ix))//"'"
+  !   write(lout,"(a,i0)")    "SCATTER> DEBUG  * napx    = ",napx
+  !   write(lout,"(a,i0)")    "SCATTER> DEBUG  * turn    = ",turn
+  !   write(lout,"(a,e13.6)") "SCATTER> DEBUG  * scaling = ",scaling
+  ! end if
 
   if(scaling <= pieni) then
     ! Skip the whole thing if the scaling is zero
@@ -718,11 +789,22 @@ subroutine scatter_thin(i_elem, ix, turn)
   call recuut(tmpSeed1,tmpSeed2)
   call recuin(scatter_seed1,scatter_seed2)
 
+  if(scatter_allowLosses) then
+    call alloc(pLost,napx,.false.,"pLost")
+  end if
+  call alloc(pScattered,napx,.false.,"pScattered")
+
+  updateE = .false.
+
   ! Loop over generators
   do i=3,5
 
-    GENidx = scatter_ELEM(ELEMidx,i)
-    if(GENidx == 0) exit ! No generator
+    nLost(:)    = 0
+    nScatter(:) = 0
+    hasProc(:)  = .false.
+
+    idGen = scatter_ELEM(idElem,i)
+    if(idGen == 0) exit ! No generator
 
     ! Generate a random phi
     call ranecu(rndPhi, napx, -1)
@@ -734,25 +816,48 @@ subroutine scatter_thin(i_elem, ix, turn)
 #endif
 
     do j=1, napx
+
+      ! Do not scatter the same particle twice in the same turn
+      if(pScattered(j)) cycle
+
       ! Compute the cross section at this s
       ! (in most cases roughly equal for all particles; use mean x,y,xp,yp,E)
-      crossSection = scatter_generator_getCrossSection(PROidx,GENidx,xv(1,j),xv(2,j),yv(1,j),yv(2,j),ejv(j))
+      crossSection = scatter_generator_getCrossSection(idPro,idGen,xv(1,j),xv(2,j),yv(1,j),yv(2,j),ejv(j))
 
       ! Ask profile for density at x,y
-      N = scatter_profile_getDensity(PROidx,xv(1,j),xv(2,j))
+      N = scatter_profile_getDensity(idPro,xv(1,j),xv(2,j))
 
       ! Compute probability P
       P = (N*crossSection)*scaling
 
       ! If RNG > P -> go to next particle, else scatter
-      if(rndP(j) > P) cycle
+      if(rndP(j) > P) then
+        cycle
+      else
+        pScattered(j) = .true.
+      end if
 
-      ! Ask generator for t and xi
-      call scatter_generator_getTandXi(GENidx,t,xi,process)
+      ! Ask generator for t and dEE
+      call scatter_generator_getTandE(idGen,t,dEE,procID,iLost,isDiff)
+      hasProc(procID)  = .true.
+      nScatter(procID) = nScatter(procID) + 1
 
-      ! Use generator t and xi to update particle j;
-      ! remember to update ALL the energy arrays
-      theta   = c1e3*sqrt(t)/ejfv(j)                  ! Scale to mrad
+      ! If lost, flag it
+      if(scatter_allowLosses .and. iLost == 1) then
+        pLost(j)      = .true.
+        nLost(procID) = nLost(procID) + 1
+        cycle
+      end if
+
+      ! Update particle energy and momentum
+      if(dEE >= pieni) then
+        ejv(j)  = (one + dEE)*ejv(j)              ! Energy
+        ejfv(j) = sqrt(ejv(j)**2 - nucm(j)**2)    ! Momentum
+        updateE = .true.
+      end if
+
+      ! Update particle trajectory
+      theta   = (c1e3*sqrt(t))/ejfv(j)            ! Scale to mrad
       yv(1,j) = theta*cos_mb(rndPhi(j)) + yv(1,j)
       yv(2,j) = theta*sin_mb(rndPhi(j)) + yv(2,j)
 
@@ -763,31 +868,33 @@ subroutine scatter_thin(i_elem, ix, turn)
         iRecords(1,nRecords) = j
         iRecords(2,nRecords) = turn
         cRecords(1,nRecords) = bez(ix)
-        cRecords(2,nRecords) = trim(scatter_cData(scatter_GENERATOR(GENidx,1)))
-        cRecords(3,nRecords) = process
+        cRecords(2,nRecords) = trim(scatter_cData(scatter_GENERATOR(idGen,1)))
+        cRecords(3,nRecords) = scatter_procNames(procID)
+        iRecords(3,nRecords) = iLost
         rRecords(1,nRecords) = t
-        rRecords(2,nRecords) = xi
+        rRecords(2,nRecords) = dEE
         rRecords(3,nRecords) = theta
         rRecords(4,nRecords) = rndPhi(j)
-        rRecords(5,nRecords) = P
+        rRecords(5,nRecords) = N
+        rRecords(6,nRecords) = P
       else
 #endif
-        write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a2,2(1x,f13.3),3(1x,1pe16.9))") &
-          j, turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(GENidx,1))),20), &
-          process(1:2), t, xi, theta, rndPhi(j), P
+        write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f13.3,5(1x,1pe16.9))") &
+          j, turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(idGen,1))),20), &
+          scatter_procNames(procID), iLost, t, dEE, theta, rndPhi(j), N, P
 #ifdef HDF5
       end if
 #endif
 #ifdef CR
       scatter_filePos = scatter_filePos + 1
 #endif
-
-#ifdef COLLIMAT
-      scatterhit(j) = 8
-      part_hit_pos(j) = i_elem
-      part_hit_turn(j) = turn
-#endif
+      if(do_coll) then
+        scatterhit(j)    = 8
+        part_hit_pos(j)  = iElem
+        part_hit_turn(j) = turn
+      endif
     end do ! END Loop over particles
+
 #ifdef HDF5
     if(h5_useForSCAT) then
       call h5_prepareWrite(scatter_logDataSet, nRecords)
@@ -795,25 +902,69 @@ subroutine scatter_thin(i_elem, ix, turn)
       call h5_writeData(scatter_logDataSet, 2,  nRecords, iRecords(2,1:nRecords))
       call h5_writeData(scatter_logDataSet, 3,  nRecords, cRecords(1,1:nRecords))
       call h5_writeData(scatter_logDataSet, 4,  nRecords, cRecords(2,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 5,  nRecords, cRecords(3,1:nRecords)(1:2))
-      call h5_writeData(scatter_logDataSet, 6,  nRecords, rRecords(1,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 7,  nRecords, rRecords(2,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 8,  nRecords, rRecords(3,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 9,  nRecords, rRecords(4,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 10, nRecords, rRecords(5,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 5,  nRecords, cRecords(3,1:nRecords)(1:8))
+      call h5_writeData(scatter_logDataSet, 6,  nRecords, iRecords(3,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 7,  nRecords, rRecords(1,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 8,  nRecords, rRecords(2,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 9,  nRecords, rRecords(3,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 10, nRecords, rRecords(4,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 11, nRecords, rRecords(5,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 12, nRecords, rRecords(6,1:nRecords))
       call h5_finaliseWrite(scatter_logDataSet)
+
+      do k=1,9
+        if(hasProc(k)) then
+          call h5_prepareWrite(scatter_sumDataSet, 1)
+          call h5_writeData(scatter_sumDataSet, 1, 1, turn)
+          call h5_writeData(scatter_sumDataSet, 2, 1, bez(ix))
+          call h5_writeData(scatter_sumDataSet, 3, 1, scatter_cData(scatter_GENERATOR(idGen,1)))
+          call h5_writeData(scatter_sumDataSet, 4, 1, scatter_procNames(k))
+          call h5_writeData(scatter_sumDataSet, 5, 1, nScatter(k))
+          call h5_writeData(scatter_sumDataSet, 6, 1, nLost(k))
+          call h5_writeData(scatter_sumDataSet, 7, 1, crossSection*c1e27)
+          call h5_writeData(scatter_sumDataSet, 8, 1, scaling)
+          call h5_finaliseWrite(scatter_sumDataSet)
+        end if
+      end do
+    else
+#endif
+
+      do k=1,9
+        if(hasProc(k)) then
+          write(scatter_sumFile,"(1x,i8,2(1x,a20),1x,a8,2(1x,i8),2(1x,f13.6))") &
+            turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(idGen,1))),20), &
+            scatter_procNames(k), nScatter(k), nLost(k), crossSection*c1e27, scaling
+        end if
+      end do
+      flush(scatter_logFile)
+      flush(scatter_sumFile)
+
+#ifdef HDF5
     end if
 #endif
   end do ! END Loop over generators
 
+  if(scatter_allowLosses) then
+    call compactArrays(pLost)
+  end if
+
+  if(updateE) then
+    call part_updateEnergy(e0)
+  end if
+
 #ifdef CR
-  endfile(scatter_logFile,iostat=ierro)
-  backspace(scatter_logFile,iostat=ierro)
+  endfile(scatter_logFile,iostat=iError)
+  backspace(scatter_logFile,iostat=iError)
 #endif
 
   ! Restore seeds in random generator
   call recuut(scatter_seed1,scatter_seed2)
   call recuin(tmpSeed1,tmpSeed2)
+
+  if(scatter_allowLosses) then
+    call dealloc(pLost,"pLost")
+  end if
+  call dealloc(pScattered,"pScattered")
 
 end subroutine scatter_thin
 
@@ -821,7 +972,7 @@ end subroutine scatter_thin
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
-real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(retval)
+real(kind=fPrec) function scatter_profile_getDensity(idPro, x, y) result(retval)
 
   use string_tools
   use crcoall
@@ -830,15 +981,15 @@ real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(re
 
   implicit none
 
-  integer,          intent(in) :: profileIdx
+  integer,          intent(in) :: idPro
   real(kind=fPrec), intent(in) :: x, y
 
   real(kind=fPrec) beamtot, sigmaX, sigmaY, offsetX, offsetY
   integer tmpIdx
 
-  tmpIdx = scatter_PROFILE(profileIdx,3)
+  tmpIdx = scatter_PROFILE(idPro,3)
 
-  select case(scatter_PROFILE(profileIdx,2))
+  select case(scatter_PROFILE(idPro,2))
   case (1)  ! FLAT
     retval  = scatter_fData(tmpIdx)
 
@@ -853,8 +1004,8 @@ real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(re
       * exp_mb(-half*((y-offsetY)/sigmaY)**2)
 
   case default
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ", scatter_PROFILE(profileIdx,2)," for profile '"//&
-      trim(scatter_cData(scatter_PROFILE(profileIdx,1)))//"' not understood."
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ", scatter_PROFILE(idPro,2)," for profile '"//&
+      trim(scatter_cData(scatter_PROFILE(idPro,1)))//"' not understood."
     call prror(-1)
   end select
 
@@ -864,11 +1015,11 @@ end function scatter_profile_getDensity
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 ! =================================================================================================
-subroutine scatter_profile_getParticle(profileIdx, x, y, xp, yp, E)
+subroutine scatter_profile_getParticle(idPro, x, y, xp, yp, E)
 
   implicit none
 
-  integer,          intent(in)  :: profileIdx
+  integer,          intent(in)  :: idPro
   real(kind=fPrec), intent(in)  :: x, y
   real(kind=fPrec), intent(out) :: xp, yp, E
 
@@ -884,42 +1035,47 @@ end subroutine scatter_profile_getParticle
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 ! =================================================================================================
-real(kind=fPrec) function scatter_generator_getCrossSection(profileIDX, generatorIDX, x, y, xp, yp, E)
+real(kind=fPrec) function scatter_generator_getCrossSection(idPro, genID, x, y, xp, yp, E)
 
   use string_tools
   use crcoall
 
   implicit none
 
-  integer,          intent(in) :: profileIDX, generatorIDX
+  integer,          intent(in) :: idPro, genID
   real(kind=fPrec), intent(in) :: x, y, xp, yp, E
 
   ! Temporary variables
   integer          tmpIdx
-  real(kind=fPrec) xp_target, yp_target, E_target
+  real(kind=fPrec) xpTarget, ypTarget, ETarget
 
   ! Calculate S
-  call scatter_profile_getParticle(profileIDX, x, y, xp_target, yp_target, E_target)
+  call scatter_profile_getParticle(idPro, x, y, xpTarget, ypTarget, ETarget)
 
   ! Calculate the cross section as function of S
-  select case(scatter_GENERATOR(generatorIDX,2))
+  select case(scatter_GENERATOR(genID,2))
   case(1)  ! ABSORBER
     !...
 
   case(10) ! PPBEAMELASTIC
-    tmpIdx = scatter_GENERATOR(generatorIDX,4)
+    tmpIdx = scatter_GENERATOR(genID,4)
     if(tmpIdx == 0) then
       scatter_generator_getCrossSection = 30d-27
     else
       scatter_generator_getCrossSection = scatter_fData(tmpIdx)
     end if
 
-  case(20) ! PYTHIA
-    scatter_generator_getCrossSection = 30d-27
+  case(20) ! PYTHIASIMPLE
+    tmpIdx = scatter_GENERATOR(genID,4)
+    if(tmpIdx == 0) then
+      scatter_generator_getCrossSection = 30d-27
+    else
+      scatter_generator_getCrossSection = scatter_fData(tmpIdx)
+    end if
 
   case default
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_PROFILE(profileIdx,2)," for profile '"//&
-      trim(scatter_cData(scatter_PROFILE(profileIdx,1)))//"' not understood."
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_PROFILE(idPro,2)," for profile '"//&
+      trim(scatter_cData(scatter_PROFILE(idPro,1)))//"' not understood."
     call prror(-1)
 
   end select
@@ -930,66 +1086,110 @@ end function scatter_generator_getCrossSection
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
-subroutine scatter_generator_getTandXi(generatorIDX, t, xi, process)
+subroutine scatter_generator_getTandE(genID, t, dEE, procID, iLost, isDiff)
 
   use, intrinsic :: iso_c_binding
   use crcoall
 
   implicit none
 
-  integer,          intent(in)  :: generatorIDX
-  real(kind=fPrec), intent(out) :: t, xi
-  character(len=2), intent(out) :: process
+  integer,          intent(in)  :: genID
+  real(kind=fPrec), intent(out) :: t
+  real(kind=fPrec), intent(out) :: dEE
+  integer,          intent(out) :: procID
+  integer,          intent(out) :: iLost
+  logical,          intent(out) :: isDiff
 
   ! Temporary variables
   logical(kind=C_BOOL) evStat
-  integer              tmpIdx, evType
+  integer              tmpIdx, evType, nRetry
   real(kind=fPrec)     a, b1, b2, phi, tmin
 
-  xi = zero
-  t  = zero
+  dEE    = zero
+  t      = zero
+  iLost  = 0
+  nRetry = 0
+  isDiff = .false.
 
-  select case(scatter_GENERATOR(generatorIDX,2))
+  select case(scatter_GENERATOR(genID,2))
   case(1)  ! ABSORBER
     !...
-    process = "UN"
+    procID = scatter_idAbsorb
 
   case(10) ! PPBEAMELASTIC
 
-    tmpIdx = scatter_GENERATOR(generatorIDX,3)
+    tmpIdx = scatter_GENERATOR(genID,3)
     a      = scatter_fData(tmpIdx)
     b1     = scatter_fData(tmpIdx+1)
     b2     = scatter_fData(tmpIdx+2)
     phi    = scatter_fData(tmpIdx+3)
     tmin   = scatter_fData(tmpIdx+4)
 
-    t       = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
-    t       = t*c1e6 ! Scale return variable to MeV^2
-    process = "EL"
+    t      = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
+    t      = t*c1e6 ! Scale return variable to MeV^2
+    procID = scatter_idElastic
 
   case(20) ! PYTHIA
 
 #ifdef PYTHIA
-    call pythia_getEvent(evStat, evType, t, xi)
-    select case(evType)
-    case(101)
-      process = "ND"
-    case(102)
-      process = "EL"
-    case(103,104)
-      process = "SD"
-    case(105)
-      process = "DD"
-    case(106)
-      process = "CD"
-    case default
-      process = "UN"
-    end select
+10  continue
+    call pythia_getEvent(evStat, evType, t, dEE)
+    nRetry = nRetry + 1
+    if(nRetry > 100) then
+      write(lout,"(a)") "SCATTER> WARNING Pythia failed to generate event. Skipping Particle."
+      procID = scatter_idError
+      iLost  = 0
+      return
+    end if
     if(evStat) then
-      t = abs(t)*c1e3 ! Scale return variable to MeV^2
+      t = abs(t)*c1e6 ! Scale return variable to MeV^2
+      select case(evType)
+      case(pythia_idNonDiff)
+        if(scatter_allowLosses) then
+          procID = scatter_idNonDiff
+          iLost  = 1
+          isDiff = .false.
+        else
+          write(lout,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in fort.3"
+          call prror(-1)
+        end if
+      case(pythia_idElastic)
+        procID = scatter_idElastic
+        iLost  = 0
+        isDiff = .false.
+      case(pythia_idSingleDiffXB)
+        if(scatter_allowLosses) then
+          procID = scatter_idSingleDiffXB
+          iLost  = 1
+          isDiff = .true.
+        else
+          goto 10
+        end if
+      case(pythia_idSingleDiffAX)
+        procID = scatter_idSingleDiffAX
+        iLost  = 0
+        isDiff = .true.
+      case(pythia_idDoubleDiff)
+        if(scatter_allowLosses) then
+          procID = scatter_idDoubleDiff
+          iLost  = 1
+          isDiff = .true.
+        else
+          write(lout,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in fort.3"
+          call prror(-1)
+        end if
+      case(pythia_idCentralDiff)
+        procID = scatter_idCentralDiff
+        iLost  = 0
+        isDiff = .true.
+      case default
+        procID = scatter_idUnknown
+        iLost  = 0
+        isDiff = .false.
+      end select
     else
-      write(lout,"(a)") "SCATTER> WARNING Pythia failed to generate event"
-      process = "ER"
+      write(lout,"(a)") "SCATTER> WARNING Pythia failed to generate event. Pythia error."
+      goto 10
     end if
 #else
     write(lout,"(a,i0,a)") "SCATTER> ERROR This version of SixTrack was built without PYTHIA support,"
@@ -997,12 +1197,12 @@ subroutine scatter_generator_getTandXi(generatorIDX, t, xi, process)
 #endif
 
   case default
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Generator type ",scatter_GENERATOR(generatorIDX,2)," not understood"
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Generator type ",scatter_GENERATOR(genID,2)," not understood"
     call prror(-1)
 
   end select
 
-end subroutine scatter_generator_getTandXi
+end subroutine scatter_generator_getTandE
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
@@ -1117,8 +1317,8 @@ subroutine scatter_crcheck_positionFiles
 
   implicit none
 
-  logical lOpen
-  integer iErro
+  logical isOpen
+  integer iError
 #ifdef BOINC
   character(len=256) fileName
 #endif
@@ -1126,13 +1326,13 @@ subroutine scatter_crcheck_positionFiles
   character(len=1024) aRecord
 
   if(scatter_logFile == -1) call funit_requestUnit("scatter_log.dat",scatter_logFile)
-  inquire(unit=scatter_logFile, opened=lOpen)
-  if(lOpen) then
+  inquire(unit=scatter_logFile, opened=isOpen)
+  if(isOpen) then
     write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning scatter_log.dat"
     write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_logFile," already in use!"
 
-    endfile(93,iostat=iErro)
-    backspace(93,iostat=iErro)
+    endfile(93,iostat=iError)
+    backspace(93,iostat=iError)
 
     write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning scatter_log.dat"
     call prror(-1)
@@ -1147,12 +1347,12 @@ subroutine scatter_crcheck_positionFiles
 #endif
     scatter_filePos=0
     do j=1, scatter_filePos_CR
-      read(scatter_logFile,"(a1024)",end=10,err=10,iostat=iErro) aRecord
+      read(scatter_logFile,"(a1024)",end=10,err=10,iostat=iError) aRecord
       scatter_filePos = scatter_filePos+1
     end do
 
     ! Truncate the file after scatter_filePos_CR lines
-    endfile(scatter_logFile,iostat=iErro)
+    endfile(scatter_logFile,iostat=iError)
     close(scatter_logFile)
 
 #ifdef BOINC
@@ -1163,25 +1363,25 @@ subroutine scatter_crcheck_positionFiles
 #endif
     write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned scatter_log.dat, "//&
                 "scatter_filePos=",scatter_filePos," scatter_filePos_CR=",scatter_filePos_CR
-    endfile(93,iostat=iErro)
-    backspace(93,iostat=iErro)
+    endfile(93,iostat=iError)
+    backspace(93,iostat=iError)
 
   else
     write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning "// &
       "of scatter_log.dat, scatter_filePos_CR=",scatter_filePos_CR
     write(93,"(a)")    "SIXTRACR> If anything has been written to the file, "// &
       "it will be correctly truncated in scatter_initialise."
-    endfile(93,iostat=iErro)
-    backspace(93,iostat=iErro)
+    endfile(93,iostat=iError)
+    backspace(93,iostat=iError)
   end if
 
   return
 
 10 continue
-  write(93,"(a,i0)")    "SIXTRACR> ERROR reading scatter_log.dat, iostat=",iErro
+  write(93,"(a,i0)")    "SIXTRACR> ERROR reading scatter_log.dat, iostat=",iError
   write(93,"(2(a,i0))") "SIXTRACR> scatter_filePos=",scatter_filePos," scatter_filePos_CR=",scatter_filePos_CR
-  endfile(93,iostat=iErro)
-  backspace(93,iostat=iErro)
+  endfile(93,iostat=iError)
+  backspace(93,iostat=iError)
   write(lout,"(a)")"SIXTRACR> ERROR CRCHECK failure positioning scatter_log.dat"
   call prror(-1)
 
@@ -1192,7 +1392,7 @@ end subroutine scatter_crcheck_positionFiles
 !  Last modified: 2018-04-26
 !  Called from CRPOINT; write checkpoint data to fort.95/96
 ! =================================================================================================
-subroutine scatter_crpoint(fileUnit, writeErr, iErro)
+subroutine scatter_crpoint(fileUnit, writeErr, iError)
 
   use crcoall
 
@@ -1200,17 +1400,17 @@ subroutine scatter_crpoint(fileUnit, writeErr, iErro)
 
   integer, intent(in)    :: fileUnit
   logical, intent(out)   :: writeErr
-  integer, intent(inout) :: iErro
+  integer, intent(inout) :: iError
 
   integer j
 
-  write(fileunit,err=10,iostat=iErro) scatter_filePos, scatter_seed1, scatter_seed2
-  write(fileunit,err=10,iostat=iErro) scatter_niData, scatter_nfData, scatter_ncData
-  write(fileunit,err=10,iostat=iErro) (scatter_iData(j), j=1, scatter_niData)
-  write(fileunit,err=10,iostat=iErro) (scatter_fData(j), j=1, scatter_nfData)
-  write(fileunit,err=10,iostat=iErro) (scatter_cData(j), j=1, scatter_ncData)
-  endfile(fileUnit,iostat=iErro)
-  backspace(fileUnit,iostat=iErro)
+  write(fileunit,err=10,iostat=iError) scatter_filePos, scatter_seed1, scatter_seed2
+  write(fileunit,err=10,iostat=iError) scatter_niData, scatter_nfData, scatter_ncData
+  write(fileunit,err=10,iostat=iError) (scatter_iData(j), j=1, scatter_niData)
+  write(fileunit,err=10,iostat=iError) (scatter_fData(j), j=1, scatter_nfData)
+  write(fileunit,err=10,iostat=iError) (scatter_cData(j), j=1, scatter_ncData)
+  endfile(fileUnit,iostat=iError)
+  backspace(fileUnit,iostat=iError)
 
   return
 

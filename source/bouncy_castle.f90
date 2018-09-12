@@ -5,10 +5,22 @@
 module mathlib_bouncer
 
   use floatPrecision
+  use, intrinsic :: ieee_arithmetic
+  use, intrinsic :: iso_fortran_env, only : real64, int64
   implicit none
 
   !These are the actual "bouncy functions" users are supposed to call
   public :: sin_mb, asin_mb, sinh_mb, cos_mb, acos_mb, cosh_mb, tan_mb, atan_mb, atan2_mb, exp_mb, log_mb, log10_mb
+
+! real(kind=fPrec), parameter :: mb_pi   = 3.1415926535897932d0
+! real(kind=fPrec), parameter :: mb_pi2  = 1.5707963267948966d0
+  real(kind=fPrec), parameter :: mb_pi   = 3.141592653589793238462643383279502884197169399375105820974_fPrec
+  real(kind=fPrec), parameter :: mb_pi2  = 1.570796326794896619231321691639751442098584699687552910487_fPrec
+! #ifdef NAGFOR
+!   real(kind=fPrec), parameter :: mb_qnan = ieee_value(1.0_fPrec, ieee_quiet_nan)
+! #else
+!   real(kind=fPrec), parameter :: mb_qnan = transfer(-2251799813685248_int64, 1.0_real64)
+! #endif
 
   !For linking with CRLIBM
 #ifdef CRLIBM
@@ -205,7 +217,7 @@ module mathlib_bouncer
 #endif
 
 #ifdef ROUND_ZERO
-     real(kind=c_double) function exp_rz(arg) bind(C,name="exp_rz")
+     real(kind=c_double) function exp_rz(arg) bind(C,name="exp_rd")
        use, intrinsic :: iso_c_binding, only : c_double
        implicit none
        real(kind=c_double), intent(in), VALUE :: arg
@@ -460,12 +472,18 @@ contains
 
   real(kind=fPrec) function atan2_mb(y,x)
     implicit none
-    real(kind=fPrec) y,x
-    intent(in) y,x
-
+    real(kind=fPrec), intent(in) :: y,x
 #ifndef CRLIBM
-    !Input KIND = output KIND
+#ifdef NAGFOR
+    ! Nagfoir
+    if(x == 0.0_fPrec .and. y == 0.0_fPrec) then
+      atan2_mb=0.0_fPrec
+    else
+      atan2_mb=atan2(y,x)
+    end if
+#else
     atan2_mb=atan2(y,x)
+#endif
 #else
 #ifdef ROUND_NEAR
     atan2_mb=atan2_rn(y,x)
@@ -562,21 +580,19 @@ contains
   real(kind=real64) function acos_rn(x)
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
-    real(kind=real64) x,pi,pi2
+    real(kind=real64) x
     logical myisnan
-    data pi  /3.1415926535897932d0/
-    data pi2 /1.5707963267948966d0/
     if (myisnan(x,x)) then
        acos_rn=x
     elseif (abs(x).eq.0.0d0) then
-       acos_rn=pi2
+       acos_rn=mb_pi2
     else
        !       acos_rn=atan_rn(sqrt(1.0d0-x*x)/x)
        ! Try using (1-x)*(1+x) in case x is very small.........
        ! or close to 1.....write a test program!!!
        acos_rn=atan_rn(sqrt((1.0d0-x)*(1.0d0+x))/x)
        if (x.lt.0d0) then
-          acos_rn=pi+acos_rn
+          acos_rn=mb_pi+acos_rn
        endif
     endif
   end function acos_rn
@@ -584,15 +600,14 @@ contains
   real(kind=real64) function asin_rn(x)
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
-    real(kind=real64) x,pi2
+    real(kind=real64) x,mb_pi2
     logical myisnan
-    data pi2 /1.5707963267948966d0/
     if (myisnan(x,x)) then
        asin_rn=x
        return
     endif
     if (abs(x).eq.1.0d0) then
-       asin_rn=sign(pi2,x)
+       asin_rn=sign(mb_pi2,x)
     else
        !       asin_rn=atan_rn(x/sqrt(1.0d0-x*x))
        ! Try using (1-x)*(1+x) in case x is very small.........
@@ -602,31 +617,32 @@ contains
   end function asin_rn
 
   real(kind=real64) function atan2_rn(y,x)
-    use, intrinsic :: iso_fortran_env, only : real64
     implicit none
-    real(kind=real64) x,y,pi,pi2
-    logical myisnan
-    data pi  /3.1415926535897932d0/
-    data pi2 /1.5707963267948966d0/
+    real(kind=real64) x,y
     if (x.eq.0d0) then
-       if (y.eq.0d0) then
-          ! Should get me a NaN
-          atan2_rn=atan_rn(y/x)
-       else
-          atan2_rn=sign(pi2,y)
-       endif
+      if (y.eq.0d0) then
+#ifdef NAGFOR
+          atan2_rn=0d0
+#else
+        ! Let the internal atan2 handle this case according to ieee
+        atan2_rn=atan2(y,x)
+#endif
+      else
+        atan2_rn=sign(mb_pi2,y)
+      endif
     else
        if (y.eq.0d0) then
-          if (x.gt.0d0) then
-             atan2_rn=0d0
-          else
-             atan2_rn=pi
-          endif
-       else
-          atan2_rn=atan_rn(y/x)
-          if (x.lt.0d0) then
-             atan2_rn=sign(pi,y)+atan2_rn
-          endif
+        if (x.gt.0d0) then
+          ! Let the internal atan2 handle this case according to ieee
+          atan2_rn=atan2(y,x)
+        else
+          atan2_rn=mb_pi
+        endif
+      else
+        atan2_rn=atan_rn(y/x)
+        if (x.lt.0d0) then
+          atan2_rn=sign(mb_pi,y)+atan2_rn
+        endif
        endif
     endif
   end function atan2_rn
@@ -636,21 +652,19 @@ contains
   real(kind=real64) function acos_ru(x)
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
-    real(kind=real64) x,pi,pi2
+    real(kind=real64) x
     logical myisnan
-    data pi  /3.1415926535897932d0/
-    data pi2 /1.5707963267948966d0/
     if (myisnan(x,x)) then
        acos_ru=x
     elseif (abs(x).eq.0.0d0) then
-       acos_ru=pi2
+       acos_ru=mb_pi2
     else
        !       acos_ru=atan_ru(sqrt(1.0d0-x*x)/x)
        ! Try using (1-x)*(1+x) in case x is very small.........
        ! or close to 1.....write a test program!!!
        acos_ru=atan_ru(sqrt((1.0d0-x)*(1.0d0+x))/x)
        if (x.lt.0d0) then
-          acos_ru=pi+acos_ru
+          acos_ru=mb_pi+acos_ru
        endif
     endif
   end function acos_ru
@@ -658,15 +672,14 @@ contains
   real(kind=real64) function asin_ru(x)
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
-    real(kind=real64) x,pi2
+    real(kind=real64) x
     logical myisnan
-    data pi2 /1.5707963267948966d0/
     if (myisnan(x,x)) then
        asin_ru=x
        return
     endif
     if (abs(x).eq.1.0d0) then
-       asin_ru=sign(pi2,x)
+       asin_ru=sign(mb_pi2,x)
     else
        !       asin_ru=atan_ru(x/sqrt(1.0d0-x*x))
        ! Try using (1-x)*(1+x) in case x is very small.........
@@ -676,32 +689,33 @@ contains
   end function asin_ru
 
   real(kind=real64) function atan2_ru(y,x)
-    use, intrinsic :: iso_fortran_env, only : real64
     implicit none
-    real(kind=real64) x,y,pi,pi2
-    logical myisnan
-    data pi  /3.1415926535897932d0/
-    data pi2 /1.5707963267948966d0/
+    real(kind=real64) x,y
     if (x.eq.0d0) then
-       if (y.eq.0d0) then
-          ! Should get me a NaN
-          atan2_ru=atan_ru(y/x)
-       else
-          atan2_ru=sign(pi2,y)
-       endif
+      if (y.eq.0d0) then
+#ifdef NAGFOR
+          atan2_ru=0d0
+#else
+        ! Let the internal atan2 handle this case according to ieee
+        atan2_ru=atan2(y,x)
+#endif
+      else
+        atan2_ru=sign(mb_pi2,y)
+      endif
     else
-       if (y.eq.0d0) then
-          if (x.gt.0d0) then
-             atan2_ru=0d0
-          else
-             atan2_ru=pi
-          endif
-       else
-          atan2_ru=atan_ru(y/x)
-          if (x.lt.0d0) then
-             atan2_ru=sign(pi,y)+atan2_ru
-          endif
-       endif
+      if (y.eq.0d0) then
+        if (x.gt.0d0) then
+          ! Let the internal atan2 handle this case according to ieee
+          atan2_ru=atan2(y,x)
+        else
+          atan2_ru=mb_pi
+        endif
+      else
+        atan2_ru=atan_ru(y/x)
+        if (x.lt.0d0) then
+          atan2_ru=sign(mb_pi,y)+atan2_ru
+        endif
+      endif
     endif
   end function atan2_ru
 #endif
@@ -710,21 +724,19 @@ contains
   real(kind=real64) function acos_rd(x)
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
-    real(kind=real64) x,pi,pi2
+    real(kind=real64) x
     logical myisnan
-    data pi  /3.1415926535897932d0/
-    data pi2 /1.5707963267948966d0/
     if (myisnan(x,x)) then
        acos_rd=x
     elseif (abs(x).eq.0.0d0) then
-       acos_rd=pi2
+       acos_rd=mb_pi2
     else
        !       acos_rd=atan_rd(sqrt(1.0d0-x*x)/x)
        ! Try using (1-x)*(1+x) in case x is very small.........
        ! or close to 1.....write a test program!!!
        acos_rd=atan_rd(sqrt((1.0d0-x)*(1.0d0+x))/x)
        if (x.lt.0d0) then
-          acos_rd=pi+acos_rd
+          acos_rd=mb_pi+acos_rd
        endif
     endif
   end function acos_rd
@@ -732,15 +744,14 @@ contains
   real(kind=real64) function asin_rd(x)
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
-    real(kind=real64) x,pi2
+    real(kind=real64) x
     logical myisnan
-    data pi2 /1.5707963267948966d0/
     if (myisnan(x,x)) then
        asin_rd=x
        return
     endif
     if (abs(x).eq.1.0d0) then
-       asin_rd=sign(pi2,x)
+       asin_rd=sign(mb_pi2,x)
     else
        !       asin_rd=atan_rd(x/sqrt(1.0d0-x*x))
        ! Try using (1-x)*(1+x) in case x is very small.........
@@ -750,32 +761,33 @@ contains
   end function asin_rd
 
   real(kind=real64) function atan2_rd(y,x)
-    use, intrinsic :: iso_fortran_env, only : real64
     implicit none
-    real(kind=real64) x,y,pi,pi2
-    logical myisnan
-    data pi  /3.1415926535897932d0/
-    data pi2 /1.5707963267948966d0/
+    real(kind=real64) x,y
     if (x.eq.0d0) then
-       if (y.eq.0d0) then
-          ! Should get me a NaN
-          atan2_rd=atan_rd(y/x)
-       else
-          atan2_rd=sign(pi2,y)
-       endif
+      if (y.eq.0d0) then
+#ifdef NAGFOR
+        atan2_rd=0d0
+#else
+        ! Let the internal atan2 handle this case according to ieee
+        atan2_rd=atan2(y,x)
+#endif
+      else
+        atan2_rd=sign(mb_pi2,y)
+      endif
     else
-       if (y.eq.0d0) then
-          if (x.gt.0d0) then
-             atan2_rd=0d0
-          else
-             atan2_rd=pi
-          endif
-       else
-          atan2_rd=atan_rd(y/x)
-          if (x.lt.0d0) then
-             atan2_rd=sign(pi,y)+atan2_rd
-          endif
-       endif
+      if (y.eq.0d0) then
+        if (x.gt.0d0) then
+          ! Let the internal atan2 handle this case according to ieee
+          atan2_rd=atan2(y,x)
+        else
+          atan2_rd=mb_pi
+        endif
+      else
+        atan2_rd=atan_rd(y/x)
+        if (x.lt.0d0) then
+          atan2_rd=sign(mb_pi,y)+atan2_rd
+        endif
+      endif
     endif
   end function atan2_rd
 #endif
@@ -784,21 +796,19 @@ contains
   real(kind=real64) function acos_rz(x)
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
-    real(kind=real64) x,pi,pi2
+    real(kind=real64) x
     logical myisnan
-    data pi  /3.1415926535897932d0/
-    data pi2 /1.5707963267948966d0/
     if (myisnan(x,x)) then
        acos_rz=x
     elseif (abs(x).eq.0.0d0) then
-       acos_rz=pi2
+       acos_rz=mb_pi2
     else
        !       acos_rz=atan_rz(sqrt(1.0d0-x*x)/x)
        ! Try using (1-x)*(1+x) in case x is very small.........
        ! or close to 1.....write a test program!!!
        acos_rz=atan_rz(sqrt((1.0d0-x)*(1.0d0+x))/x)
        if (x.lt.0d0) then
-          acos_rz=pi+acos_rz
+          acos_rz=mb_pi+acos_rz
        endif
     endif
   end function acos_rz
@@ -806,15 +816,14 @@ contains
   real(kind=real64) function asin_rz(x)
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
-    real(kind=real64) x,pi2
+    real(kind=real64) x
     logical myisnan
-    data pi2 /1.5707963267948966d0/
     if (myisnan(x,x)) then
        asin_rz=x
        return
     endif
     if (abs(x).eq.1.0d0) then
-       asin_rz=sign(pi2,x)
+       asin_rz=sign(mb_pi2,x)
     else
        !       asin_rz=atan_rz(x/sqrt(1.0d0-x*x))
        ! Try using (1-x)*(1+x) in case x is very small.........
@@ -824,32 +833,33 @@ contains
   end function asin_rz
 
   real(kind=real64) function atan2_rz(y,x)
-    use, intrinsic :: iso_fortran_env, only : real64
     implicit none
-    real(kind=real64) x,y,pi,pi2
-    logical myisnan
-    data pi  /3.1415926535897932d0/
-    data pi2 /1.5707963267948966d0/
+    real(kind=real64) x,y
     if (x.eq.0d0) then
-       if (y.eq.0d0) then
-          ! Should get me a NaN
-          atan2_rz=atan_rz(y/x)
-       else
-          atan2_rz=sign(pi2,y)
-       endif
+      if (y.eq.0d0) then
+#ifdef NAGFOR
+        atan2_rz=0d0
+#else
+        ! Let the internal atan2 handle this case according to ieee
+        atan2_rz=atan2(y,x)
+#endif
+      else
+        atan2_rz=sign(mb_pi2,y)
+      endif
     else
-       if (y.eq.0d0) then
-          if (x.gt.0d0) then
-             atan2_rz=0d0
-          else
-             atan2_rz=pi
-          endif
-       else
-          atan2_rz=atan_rz(y/x)
-          if (x.lt.0d0) then
-             atan2_rz=sign(pi,y)+atan2_rz
-          endif
-       endif
+      if (y.eq.0d0) then
+        if (x.gt.0d0) then
+          ! Let the internal atan2 handle this case according to ieee
+          atan2_rz=atan2(y,x)
+        else
+          atan2_rz=mb_pi
+        endif
+      else
+        atan2_rz=atan_rz(y/x)
+        if (x.lt.0d0) then
+          atan2_rz=sign(mb_pi,y)+atan2_rz
+        endif
+      endif
     endif
   end function atan2_rz
 #endif

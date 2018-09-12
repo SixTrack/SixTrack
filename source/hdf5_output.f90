@@ -43,41 +43,42 @@ module hdf5_output
   implicit none
 
   ! Common Settings
-  logical,          public,  save :: h5_isActive    ! Existence of the HDF5 block
-  logical,          public,  save :: h5_debugOn     ! HDF5 debug flag present
-  logical,          public,  save :: h5_isReady     ! HDF5 file is open and ready for input
-  logical,          private, save :: h5_useDouble   ! Whether to use double precision or not
-  logical,          private, save :: h5_doTruncate  ! Whether or not to truncate previous file if it exists
-  type(string),     private, save :: h5_fileName    ! The HDF5 output file name
-  type(string),     private, save :: h5_rootPath    ! The root group where the data for this session is stored
-  integer,          private, save :: h5_gzipLevel   ! The level of compression used: 0 for none to 9 for maximum
-  integer(HSIZE_T), private, save :: h5_defChunk    ! The default size of chunks, used for mainly logging output
+  logical,          public,  save :: h5_isActive   = .false. ! Existence of the HDF5 block
+  logical,          public,  save :: h5_debugOn    = .false. ! HDF5 debug flag present
+  logical,          public,  save :: h5_isReady    = .false. ! HDF5 file is open and ready for input
+  logical,          private, save :: h5_useDouble  = .true.  ! Whether to use double precision or not
+  logical,          private, save :: h5_doTruncate = .false. ! Whether or not to truncate previous file if it exists
+  integer,          private, save :: h5_simNumber  = 1       ! A simulation number for the current simulation
+  integer,          private, save :: h5_gzipLevel  = -1      ! The level of compression used: 0 for none to 9 for maximum
+  integer(HSIZE_T), private, save :: h5_defChunk   = 10      ! The default size of chunks, used for mainly logging output
+  type(string),     private, save :: h5_fileName             ! The HDF5 output file name
+  type(string),     private, save :: h5_rootPath             ! The root group where the data for this session is stored
 
   ! Input Block Switches
-  logical, public, save :: h5_useForAPER
-  logical, public, save :: h5_useForCOLL
-  logical, public, save :: h5_useForDUMP
-  logical, public, save :: h5_useForSCAT
+  logical, public, save :: h5_useForAPER = .false.
+  logical, public, save :: h5_useForCOLL = .false.
+  logical, public, save :: h5_useForDUMP = .false.
+  logical, public, save :: h5_useForSCAT = .false.
 
   ! Additional Write Flags
-  logical, public,  save :: h5_writeOptics  ! Write the linear optics parameters
-  logical, public,  save :: h5_writeTracks2 ! For backwards compatibility for old tracks2 format
+  logical, public,  save :: h5_writeOptics  = .false. ! Write the linear optics parameters
+  logical, public,  save :: h5_writeTracks2 = .false. ! For backwards compatibility for old tracks2 format
 
   ! Runtime Variables
-  logical, private, save :: h5_fileIsOpen  ! True if file is open.
-  integer, public,  save :: h5_fileError   ! For errors related to file essentials (critical)
-  integer, public,  save :: h5_dataError   ! For errors related to datasets
+  logical, private, save :: h5_fileIsOpen = .false. ! True if file is open.
+  integer, public,  save :: h5_fileError  = 0       ! For errors related to file essentials (critical)
+  integer, public,  save :: h5_dataError  = 0       ! For errors related to datasets
 
   ! HDF5 File/Group IDs
-  integer(HID_T), public,  save :: h5_fileID  ! The internal ID of the file
-  integer(HID_T), public,  save :: h5_rootID  ! The internal ID of the root group
-  integer(HID_T), public,  save :: h5_aperID  ! The internal ID of the aperture group
-  integer(HID_T), public,  save :: h5_collID  ! The internal ID of the collimation group
-  integer(HID_T), public,  save :: h5_dumpID  ! The internal ID of the dump group
-  integer(HID_T), public,  save :: h5_scatID  ! The internal ID of the scatter group
+  integer(HID_T), public,  save :: h5_fileID = 0 ! The internal ID of the file
+  integer(HID_T), public,  save :: h5_rootID = 0 ! The internal ID of the root group
+  integer(HID_T), public,  save :: h5_aperID = 0 ! The internal ID of the aperture group
+  integer(HID_T), public,  save :: h5_collID = 0 ! The internal ID of the collimation group
+  integer(HID_T), public,  save :: h5_dumpID = 0 ! The internal ID of the dump group
+  integer(HID_T), public,  save :: h5_scatID = 0 ! The internal ID of the scatter group
 
   ! HDF5 Internals
-  integer(HID_T), private, save :: h5_plistID ! Dataset transfer property
+  integer(HID_T), private, save :: h5_plistID = 0 ! Dataset transfer property
 
   ! Default Group Names
   character(len=8),  parameter :: h5_aperGroup = "aperture"
@@ -139,14 +140,14 @@ module hdf5_output
 
   ! Storage Arrays
   type(h5_dataFmt), allocatable, private, save :: h5_fmtList(:)
-  integer,                       private, save :: h5_fmtCount
-  integer,          parameter,   private       :: h5_fmtOff = 1000
+  integer,                       private, save :: h5_fmtCount = 0
+  integer,          parameter,   private       :: h5_fmtOff   = 1000
   type(h5_dataSet), allocatable, private, save :: h5_setList(:)
-  integer,                       private, save :: h5_setCount
-  integer,          parameter,   private       :: h5_setOff = 2000
+  integer,                       private, save :: h5_setCount = 0
+  integer,          parameter,   private       :: h5_setOff   = 2000
   type(h5_dataBuf), allocatable, private, save :: h5_bufList(:)
-  integer,                       private, save :: h5_bufCount
-  integer,          parameter,   private       :: h5_bufOff = 3000
+  integer,                       private, save :: h5_bufCount = 0
+  integer,          parameter,   private       :: h5_bufOff   = 3000
 
   ! Interface for Data Writing
 
@@ -211,55 +212,16 @@ module hdf5_output
 contains
 
 ! ================================================================================================ !
-!  Set Initial Values
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-05-08
-! ================================================================================================ !
-subroutine h5_comnul
-
-  h5_isActive     = .false.
-  h5_debugOn      = .false.
-  h5_isReady      = .false.
-  h5_useDouble    = .true.
-  h5_doTruncate   = .false.
-  h5_fileName     = ""
-  h5_rootPath     = ""
-  h5_gzipLevel    = -1
-  h5_defChunk     = 10
-
-  h5_useForCOLL   = .false.
-  h5_useForDUMP   = .false.
-  h5_useForSCAT   = .false.
-
-  h5_writeOptics  = .false.
-  h5_writeTracks2 = .false.
-
-  h5_fileIsOpen   = .false.
-  h5_fileError    = 0
-  h5_dataError    = 0
-
-  h5_fileID       = 0
-  h5_rootID       = 0
-  h5_collID       = 0
-  h5_dumpID       = 0
-  h5_scatID       = 0
-
-  h5_fmtCount     = 0
-  h5_setCount     = 0
-  h5_bufCount     = 0
-
-end subroutine h5_comnul
-
-! ================================================================================================ !
 !  HDF5 Input File Parsing
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-13
 ! ================================================================================================ !
-subroutine h5_parseInputLine(inLine)
+subroutine h5_parseInputLine(inLine,iErr)
 
   use string_tools
 
-  type(string), intent(in)  :: inLine
+  type(string), intent(in)    :: inLine
+  logical,      intent(inout) :: iErr
 
   type(string), allocatable :: lnSplit(:)
   integer i, nSplit
@@ -269,6 +231,7 @@ subroutine h5_parseInputLine(inLine)
   call str_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
     write(lout,"(a)") "HDF5> ERROR Failed to parse input line."
+    iErr = .true.
     return
   end if
 
@@ -292,6 +255,14 @@ subroutine h5_parseInputLine(inLine)
     h5_debugOn = .true.
     write(lout,"(a)") "HDF5> HDF5 block debugging is ON."
 
+  case("SIMNO")
+    if(nSplit /= 2) then
+      write(lout,"(a,i2,a)") "HDF5> ERROR SIMNO level takes 1 input parameter, ",(nSplit-1)," given."
+      iErr = .true.
+      return
+    end if
+    call str_cast(lnSplit(2),h5_simNumber,spErr)
+
   case("SINGLE")
     h5_useDouble = .false.
     write(lout,"(a)") "HDF5> HDF5 will use single precision."
@@ -303,66 +274,76 @@ subroutine h5_parseInputLine(inLine)
   case("GZIP")
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR GZIP level takes 1 input parameter, ",(nSplit-1)," given."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
-    read(lnSplit(2)%chr,*) h5_gzipLevel
+    call str_cast(lnSplit(2),h5_gzipLevel,spErr)
     if(h5_gzipLevel < -1 .or. h5_gzipLevel > 9) then
       write(lout,"(a,i2)") "HDF5> ERROR Illegal value for GZIP: ",h5_gzipLevel
       write(lout,"(a,i2)") "HDF5> ERROR   Allowed values are -1 for disabled, and 0-9 for none to max compression."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
   case("CHUNK")
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR CHUNK takes 1 input parameter, ",(nSplit-1)," given."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
-    read(lnSplit(2)%chr,*) h5_defChunk
+    call str_cast(lnSplit(2),h5_defChunk,spErr)
     if(h5_defChunk < 1) then
       write(lout,"(a,i2)") "HDF5> ERROR Illegal value for CHUNK: ",h5_gzipLevel
       write(lout,"(a,i2)") "HDF5> ERROR   Value must be larger than 0."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
   case("FILE")
     if(nSplit < 2 .or. nSplit > 3) then
       write(lout,"(a,i2,a)") "HDF5> ERROR FILE statement takes 1 or 2 input parameters, ",(nSplit-1)," given."
       write(lout,"(a)")      "HDF5> ERROR   Valid input is FILE filename [truncate]"
-      call prror(-1)
+      iErr = .true.
+      return
     end if
     if(nSplit == 3) then
-      read(lnSplit(3)%chr,*) h5_doTruncate
+      call str_cast(lnSplit(3),h5_doTruncate,spErr)
     else
       h5_doTruncate = .false.
     end if
-    h5_fileName = str_stripQuotes(lnSplit(2))
+    h5_fileName = trim(lnSplit(2))
     write(lout, "(a)") "HDF5> Output file name set to: '"//h5_fileName//"'."
 
   case("ROOT")
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR ROOT statement takes 1 input parameter, ",(nSplit-1)," given."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
     if(str_inStr(lnSplit(2)," ") /= 0) then
       write(lout,"(a)") "HDF5> ERROR ROOT group name cannot contain a space."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
     if(str_inStr(lnSplit(2),"/") /= 0) then
       write(lout,"(a)") "HDF5> ERROR ROOT group name cannot contain a slash."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
-    h5_rootPath = str_stripQuotes(lnSplit(2))
+    h5_rootPath = trim(lnSplit(2))
     write(lout, "(a)") "HDF5> Root group set to: '"//h5_rootPath//"'."
 
   case("ENABLE")
 
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR ENABLE statement takes 1 input parameter, ",(nSplit-1)," given."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
     if(len(lnSplit(2)%chr) < 4) then
       write(lout,"(a,i2,a)") "HDF5> ERROR ENABLE argument must be at least 4 characters."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
     select case(lnSplit(2)%chr(1:4))
@@ -380,14 +361,16 @@ subroutine h5_parseInputLine(inLine)
       write(lout,"(a)") "HDF5> HDF5 is enabled for SCATTER."
     case default
       write(lout,"(a)") "HDF5> ERROR HDF5 output is not available for "//lnSplit(2)%chr(1:4)//" blocks."
-      call prror(-1)
+      iErr = .true.
+      return
     end select
 
   case("WRITE")
 
     if(nSplit /= 2) then
       write(lout,"(a,i2,a)") "HDF5> ERROR WRITE statement takes 1 input parameter, ",(nSplit-1)," given."
-      call prror(-1)
+      iErr = .true.
+      return
     end if
 
     select case(lnSplit(2)%chr)
@@ -399,12 +382,14 @@ subroutine h5_parseInputLine(inLine)
       write(lout,"(a)") "HDF5> Will write tracks2."
     case default
       write(lout,"(a)") "HDF5> ERROR Unrecognised WRITE option '"//lnSplit(2)//"'"
-      call prror(-1)
+      iErr = .true.
+      return
     end select
 
   case default
     write(lout,"(a)") "HDF5> ERROR Unrecognised statement '"//lnSplit(1)//"'."
-    call prror(-1)
+    iErr = .true.
+    return
 
   end select
 
@@ -495,6 +480,7 @@ end subroutine h5_openFile
 subroutine h5_writeSimInfo()
 
   use mod_common, only : napx, numl
+  use mod_version
 
   character(len=23) timeStamp
   character(len=8)  cDate
@@ -503,11 +489,18 @@ subroutine h5_writeSimInfo()
   ! TimeStamp
   call date_and_time(cDate,cTime)
   timeStamp = cDate(1:4)//"-"//cDate(5:6)//"-"//cDate(7:8)//"T"//cTime(1:2)//":"//cTime(3:4)//":"//cTime(5:10)
-  call h5_writeAttr(h5_rootID,"TimeStamp",timeStamp)
 
   ! Simulation info
-  call h5_writeAttr(h5_rootID,"Particles",napx*2)
-  call h5_writeAttr(h5_rootID,"Turns",numl)
+  call h5_writeAttr(h5_rootID,"TimeStamp",     timeStamp)
+  call h5_writeAttr(h5_rootID,"Particles",     napx*2)
+  call h5_writeAttr(h5_rootID,"Turns",         numl)
+  call h5_writeAttr(h5_rootID,"SimNumber",     h5_simNumber)
+
+  ! SixTrack Version
+  call h5_writeAttr(h5_rootID,"CreatedBy",     "SixTrack "//version)
+  call h5_writeAttr(h5_rootID,"ExecVersion",   version)
+  call h5_writeAttr(h5_rootID,"ExecNumVersion",numvers)
+  call h5_writeAttr(h5_rootID,"ExecReleased",  moddate)
 
 end subroutine h5_writeSimInfo
 
@@ -818,7 +811,7 @@ subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
     spaceSize(1) = h5_defChunk
   end if
   spaceMaxSize(1) = H5S_UNLIMITED_F
-  cleanName       = chr_strip(chr_trimZero(setName))
+  cleanName       = chr_strip(setName)
 
   if(h5_debugOn) then
     write(lout,"(a,i0)") "HDF5> DEBUG Creating dataset '"//cleanName//"' with ID ",(h5_setCount+h5_setOff)
@@ -1093,7 +1086,7 @@ subroutine h5_writeBuffer_char(setID, colID, valData)
   nRows  = h5_bufList(bufID-h5_bufOff)%nRows
   bufCol = h5_bufList(bufID-h5_bufOff)%colMap(1,colID)
   cSize  = h5_fmtList(h5_setList(setID-h5_setOff)%format-h5_fmtOff)%fields(colID)%size
-  inSize = len_trim(chr_trimZero(valData))
+  inSize = len_trim(valData)
 
   if(inSize > cSize) then
     inSize = cSize

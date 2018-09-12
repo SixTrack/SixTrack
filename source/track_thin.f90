@@ -16,9 +16,8 @@ subroutine trauthin(nthinerr)
 #ifdef FLUKA
   use mod_fluka
 #endif
-#ifdef COLLIMAT
+
   use collimation
-#endif
 
   use crcoall
   use parpro
@@ -459,23 +458,16 @@ subroutine trauthin(nthinerr)
 
   if (dynk_enabled) call dynk_pretrack
 
-#ifdef COLLIMAT
-  if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then
-#endif
-#ifndef COLLIMAT
-  if(idp.eq.0.or.ition.eq.0) then
-#endif
+  if ((idp == 0 .or. ition == 0) .and. .not.do_coll) then !4D tracking (not collimat compatible)
     write(lout,"(a)") ""
     write(lout,"(a)") "TRACKING> Calling thin4d subroutine"
     write(lout,"(a)") ""
     call thin4d(nthinerr)
-  else
-#ifdef COLLIMAT
-    if (idp.eq.0.or.ition.eq.0) then
+  else !6D tracking
+    if(idp == 0 .or. ition == 0) then !Actually 4D, but collimation needs 6D so goto 6D.
       write(lout,*) "TRACKING> WARNING Calling 6D tracking due to collimation! Would normally have called thin4d"
     endif
-#endif
-
+    
     hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
     do jj=1,nele
       if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*real(itionc(jj),fPrec)
@@ -487,19 +479,20 @@ subroutine trauthin(nthinerr)
       write(lout,"(a)") ""
       write(lout,"(a)") "TRACKING> Calling thin6d subroutine"
       write(lout,"(a)") ""
-#ifdef COLLIMAT
-      call collimate_init()
-      call collimate_start_sample(1) ! Changed to only do 1 sample
+      if (do_coll) then
+        call collimate_init()
+        call collimate_start_sample(1) ! Changed to only do 1 sample
+      endif
       call thin6d(nthinerr)
-      call collimate_end_sample(1) ! Changed to only do 1 sample
-#else
-      call thin6d(nthinerr)
-#endif
+      if (do_coll) then
+        call collimate_end_sample(1) ! Changed to only do 1 sample
+      endif
     endif !end if(abs(phas).ge.pieni) then
   endif !end if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then ... else
-#ifdef COLLIMAT
-  call collimate_exit()
-#endif
+
+  if (do_coll) then
+    call collimate_exit()
+  endif
 
   call dealloc(crkveb, "crkveb")
   call dealloc(cikveb, "cikveb")
@@ -774,8 +767,8 @@ subroutine thin4d(nthinerr)
 
 
           ! We have to go back to angles after we updated the energy.
-          yv(j,1) = yv(j,1)*mtc(j)/(one+dpsv(j))
-          yv(j,2) = yv(j,2)*mtc(j)/(one+dpsv(j))
+          yv(1,j) = yv(1,j)*mtc(j)/(one+dpsv(j))
+          yv(2,j) = yv(2,j)*mtc(j)/(one+dpsv(j))
           !yv(j,1) = yv(j,1)*moidpsv(j)
           !yv(j,2) = yv(j,2)*moidpsv(j)
         enddo
@@ -1105,8 +1098,7 @@ subroutine thin4d(nthinerr)
 390   r0=ek(ix)
       nmz=nmu(ix)
       if(nmz.ge.2) then
-          do j=1,napx
-
+        do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v05.f90"
           do k=3,nmz
@@ -1114,9 +1106,6 @@ subroutine thin4d(nthinerr)
           end do
 #include "include/mul4v07.f90"
         end do
-     
-#include "include/mul4v07.f90"
-
       else
         do j=1,napx
 #include "include/mul4v08.f90"
@@ -1159,7 +1148,7 @@ subroutine thin4d(nthinerr)
 
 630 continue
 
-#if defined(ROOT) && !defined(COLLIMAT)
+#if defined(ROOT)
     if(root_flag .and. root_Collimation.eq.1) then
       call SurvivalRootWrite(n, napx)
     end if
@@ -1197,7 +1186,7 @@ subroutine thin6d(nthinerr)
   use numerical_constants
   use mathlib_bouncer
 
-  use bdex,    only : bdex_track
+  use bdex,    only : bdex_track, bdex_enable, bdex_elementAction
   use scatter, only : scatter_thin, scatter_debug
   use dynk,    only : dynk_enabled, dynk_apply
   use dump,    only : dump_linesFirst, dump_lines, ldumpfront
@@ -1213,9 +1202,7 @@ subroutine thin6d(nthinerr)
   use root_output
 #endif
 
-#ifdef COLLIMAT
   use collimation
-#endif
 
   use postprocessing, only : writebin
   use crcoall
@@ -1291,9 +1278,12 @@ subroutine thin6d(nthinerr)
     continue
     ! call graphic_progress(n,numl)
 #endif
-#ifdef COLLIMAT
-    call collimate_start_turn(n)
-#endif
+
+    if (do_coll) then
+      ! This subroutine sets variables iturn and totals
+      call collimate_start_turn(n)
+    endif
+
     numx=n-1
 
 #ifndef FLUKA
@@ -1318,18 +1308,21 @@ subroutine thin6d(nthinerr)
 
     call dump_linesFirst(n)
 
-!! This is the loop over each element: label 650
+    !! This is the loop over each element: label 650
     do 650 i=1,iu !Loop over elements
-#ifdef COLLIMAT
-      call collimate_start_element(i)
-#endif
+
+      if (do_coll) then
+        ! This subroutine sets variables myktrack and myix
+        call collimate_start_element(i)
+      endif
+
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
       ix=ic(i)-nblo
 
 #ifdef BEAMGAS
-!YIL Call beamGas subroutine whenever a pressure-element is found
-! should be faster/safer to first check the turn then do the name search
+      !YIL Call beamGas subroutine whenever a pressure-element is found
+      ! should be faster/safer to first check the turn then do the name search
       if( iturn.eq.1 ) then
         if (bez(myix)(1:5).eq.'PRESS' .or.  bez(myix)(1:5).eq.'press' ) then
           call beamGas(myix, secondary,totals,myenom,ipart)
@@ -1337,17 +1330,15 @@ subroutine thin6d(nthinerr)
       end if
 #endif
 
-!Should this be inside "if ktrack .ne. 1"? (time)
-
       if (ldumpfront) then
         call dump_lines(n,i,ix)
       end if
 
 #ifdef FLUKA
-!         A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!         last modified: 17-07-2013
-!         is the current entry an instance of a FLUKA element?
-!         inserted in main code by the 'fluka' compilation flag
+      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+      ! last modified: 17-07-2013
+      ! is the current entry an instance of a FLUKA element?
+      ! inserted in main code by the 'fluka' compilation flag
       if (fluka_enable) then
         if(ktrack(i).ne.1) then ! Skip BLOCs, FLUKA elements must
                                 !      be SINGLE ELEMENTs
@@ -1376,7 +1367,7 @@ subroutine thin6d(nthinerr)
         end if
         if(fluka_inside) then
           if(fluka_debug) then
-            write(lout,*) '[Fluka] Skipping lattice element at ', i
+            write(lout,"(a,i0)") "FLUKA> Skipping lattice element at ",i
             write(fluka_log_unit,*) '# Skipping lattice element at ', i
           end if
           goto 650
@@ -1384,81 +1375,76 @@ subroutine thin6d(nthinerr)
       end if
 #endif
 
-#ifndef COLLIMAT
-!---------count:44
-      ! JBG RF CC Multipoles
-      ! JBG adding CC multipoles elements in tracking. ONLY in thin6d!!!
-      !     JBG 755 -RF quad, 756 RF Sext, 757 RF Oct
-      dotrack = ktrack(i)
-#ifdef DEBUG
-!         if (n.eq.1) then
-!           write (93,*) 'ktrack(i)=',ktrack(i)
-!           endfile (93,iostat=ierro)
-!           backspace (93,iostat=ierro)
-!         endif
-#endif
+      ! BDEX was in a #ifndef collimat block, and may not be fully collimat-compatible,
+      ! so for now the two shall not be mixed.
+      ! Also, check that we have a single element, not a BLOC element.
+      if(.not.do_coll .and. ix > 0) then
+        if(bdex_enable .and. kz(ix) == 0 .and. bdex_elementAction(ix) /= 0) call bdex_track(i,ix,n)
+      end if
 
-!          if( bdex_enable .and. kz(ix).eq.0 .and. bdex_elementAction(ix).ne.0 ) then
-!             call bdex_track(i,ix,n)
-!          end if
-#endif
-#ifdef COLLIMAT
-      dotrack = myktrack
-#endif
+      if (do_coll) then
+        dotrack = myktrack
+      else
+        dotrack = ktrack(i)
+      end if
 
       select case(dotrack)
       case (1)
         stracki=strack(i)
-#ifdef COLLIMAT
 
-!==========================================
-!Ralph drift length is stracki
-!bez(ix) is name of drift
-        totals=totals+stracki
-!          write(*,*) 'ralph> Drift, total length: ', stracki,totals
+        if (do_coll) then
+          !==========================================
+          !Ralph drift length is stracki
+          !bez(ix) is name of drift
+          totals=totals+stracki
+          !          write(*,*) 'ralph> Drift, total length: ', stracki,totals
 
-!________________________________________________________________________
-!++  If we have a collimator then...
-!
-!Feb2006
-!GRD (June 2005) 'COL' option is for RHIC collimators
-!
-!     SR (17-01-2006): Special assignment to the TCS.TCDQ for B1 and B4,
-!     using the new naming as in V6.500.
-!     Note that this must be in the loop "if TCSG"!!
-!
-!     SR, 17-01-2006: Review the TCT assignments because the MADX names
-!     have changes (TCTH.L -> TCTH.4L)
-!
-! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB
-! both namings before and after V6.503 can be used
-!
-        if (do_coll.and.(bez(myix)(1:2).eq.'TC'  &
-                    .or. bez(myix)(1:2).eq.'tc'  &
-                    .or. bez(myix)(1:2).eq.'TD'  &
-                    .or. bez(myix)(1:2).eq.'td'  &
-                    .or. bez(myix)(1:3).eq.'COL' &
-                    .or. bez(myix)(1:3).eq.'col')) then
+          !________________________________________________________________________
+          !++  If we have a collimator then...
+          !
+          !Feb2006
+          !GRD (June 2005) 'COL' option is for RHIC collimators
+          !
+          !     SR (17-01-2006): Special assignment to the TCS.TCDQ for B1 and B4,
+          !     using the new naming as in V6.500.
+          !     Note that this must be in the loop "if TCSG"!!
+          !
+          !     SR, 17-01-2006: Review the TCT assignments because the MADX names
+          !     have changes (TCTH.L -> TCTH.4L)
+          !
+          ! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB
+          ! both namings before and after V6.503 can be used
+          !
+          if (      bez(myix)(1:2).eq.'TC'  &
+               .or. bez(myix)(1:2).eq.'tc'  &
+               .or. bez(myix)(1:2).eq.'TD'  &
+               .or. bez(myix)(1:2).eq.'td'  &
+               .or. bez(myix)(1:3).eq.'COL' &
+               .or. bez(myix)(1:3).eq.'col' &
+               ) then
 
-          call collimate_start_collimator(stracki)
+            call collimate_start_collimator(stracki)
 
-!++ For known collimators
-          if(found) then
-            call collimate_do_collimator(stracki)
-            call collimate_end_collimator()
-          end if ! end of check for 'found'
-!------------------------------------------------------------------
-!++  Here leave the known collimator IF loop...
-!_______________________________________________________________________
-!++  If it is just a drift...
+            !++ For known collimators
+            if(found) then
+              call collimate_do_collimator(stracki)
+              call collimate_end_collimator()
+            end if ! end of check for 'found'
+            !------------------------------------------------------------------
+            !++  Here leave the known collimator IF loop...
+            !_______________________________________________________________________
+            !++  If it is just a drift (i.e. did not pass the namecheck)
           else
+            ! TODO: Could just as well call normal sixtrack code (below)...
             do j=1,napx
-              xv(1,j)=xv(1,j)+stracki*yv(1,j)
-              xv(2,j)=xv(2,j)+stracki*yv(2,j)
+              xv(1,j)  = xv(1,j) + stracki*yv(1,j)
+              xv(2,j)  = xv(2,j) + stracki*yv(2,j)
 #ifdef FAST
-              sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)*yv(1,j)+yv(2,j)*yv(2,j))*c5m4))
+              sigmv(j) = sigmv(j) + &
+                   stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)*yv(1,j)+yv(2,j)*yv(2,j))*c5m4))
 #else
-              sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*sqrt(c1e6+yv(1,j)*yv(1,j)+yv(2,j)*yv(2,j)))
+              sigmv(j) = sigmv(j) + &
+                   stracki*(c1e3-rvv(j)*sqrt(c1e6+yv(1,j)*yv(1,j)+yv(2,j)*yv(2,j)))
 #endif
               xj     = (xv(1,j)-torbx(ie))/c1e3
               xpj    = (yv(1,j)-torbxp(ie))/c1e3
@@ -1492,17 +1478,19 @@ subroutine thin6d(nthinerr)
               ename(ie)    = bez(myix)(1:mNameLen)
             end do
           endif
-!GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
-#endif
-#ifndef COLLIMAT
+          !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
+
+        else ! Normal SixTrack drifts
           if(iexact.eq.0) then
             do j=1,napx
-              xv(1,j)=xv(1,j)+stracki*yv(1,j)
-              xv(2,j)=xv(2,j)+stracki*yv(2,j)
+              xv(1,j)  = xv(1,j) + stracki*yv(1,j)
+              xv(2,j)  = xv(2,j) + stracki*yv(2,j)
 #ifdef FAST
-              sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)**2+yv(2,j)**2)*c5m4))
+              sigmv(j) = sigmv(j) + &
+                   stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)**2+yv(2,j)**2)*c5m4))
 #else
-              sigmv(j)=sigmv(j)+stracki*(c1e3-rvv(j)*sqrt((c1e6+yv(1,j)**2)+yv(2,j)**2))
+              sigmv(j) = sigmv(j) + &
+                   stracki*(c1e3-rvv(j)*sqrt((c1e6+yv(1,j)**2)+yv(2,j)**2))
 #endif
             end do
           else
@@ -1524,16 +1512,16 @@ subroutine thin6d(nthinerr)
               sigmv(j)=sigmv(j)*c1e3
             enddo
           end if
-#endif
-          ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-          ! last modified: 07-03-2018
-          ! store old particle coordinates
-          ! NB: end up here in case of collimators too, but not in
-          !     in case of an aperture marker or other null-length non-active
-          !     elements, thanks to trauthin/trauthck and
-          !     if(abs(strack(i)).le.pieni) ktrack(i)=31
-          if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
-          goto 650
+        end if
+        ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+        ! last modified: 07-03-2018
+        ! store old particle coordinates
+        ! NB: end up here in case of collimators too, but not in
+        !     in case of an aperture marker or other null-length non-active
+        !     elements, thanks to trauthin/trauthck and
+        !     if(abs(strack(i)).le.pieni) ktrack(i)=31
+        if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
+        goto 650
 
       case (2)
         do j=1,napx
@@ -1599,8 +1587,9 @@ subroutine thin6d(nthinerr)
 
 
           ! We have to go back to angles after we updated the energy.
-          yv(j,1) = yv(j,1)*mtc(j)/(one+dpsv(j))
-          yv(j,2) = yv(j,2)*mtc(j)/(one+dpsv(j))
+          yv(1,j) = yv(1,j)*mtc(j)/(one+dpsv(j))
+          yv(2,j) = yv(2,j)*mtc(j)/(one+dpsv(j))
+
           !yv(j,1) = yv(j,1)*moidpsv(j)
           !yv(j,2) = yv(j,2)*moidpsv(j)
         enddo
@@ -2096,7 +2085,7 @@ subroutine thin6d(nthinerr)
         goto 640
       case default
         write (lout,*) "WARNING: Non-handled element in thin6d()!",  &
-                        " i=", i, "ix=", ix, "myktrack=",  dotrack,   &
+                        " i=", i, "ix=", ix, "dotrack=",  dotrack,   &
                         " bez(ix)='", bez(ix),"' SKIPPED"
       end select
       goto 650
@@ -2118,15 +2107,11 @@ subroutine thin6d(nthinerr)
         end do
       end if
 
-#ifdef COLLIMAT
-! end of the loop over element type (myktrack and ktrack(i))
-#endif
-640   continue
-!GRD UPGRADE JANUARY 2005
-#ifdef COLLIMAT
-      call collimate_end_element
-#endif
-!GRD END OF UPGRADE
+640   continue ! end of the SELECT CASE over element type (dotrack)
+
+      if (do_coll) then
+        call collimate_end_element
+      end if
 
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
       ! last modified: 17-07-2013
@@ -2154,11 +2139,11 @@ subroutine thin6d(nthinerr)
 
 650 continue !END loop over structure elements
 
-#ifdef COLLIMAT
-    call collimate_end_turn
-#endif
+    if (do_coll) then
+      call collimate_end_turn
+    endif
 
-#if defined(ROOT) && !defined(COLLIMAT)
+#if defined(ROOT)
     if(root_flag .and. root_Collimation.eq.1) then
       call SurvivalRootWrite(n, napx)
     end if
@@ -2168,16 +2153,16 @@ subroutine thin6d(nthinerr)
       return
     end if
 
-#ifndef COLLIMAT
-    if(ntwin.ne.2) then
-      call dist1
-    end if
+    if (.not. do_coll) then
+      if(ntwin.ne.2) then
+        call dist1
+      end if
 #ifndef FLUKA
-    if(mod(n,nwr(4)).eq.0) then
-      call write6(n)
-    end if
+      if(mod(n,nwr(4)).eq.0) then
+        call write6(n) ! Write to fort.12
+      end if
 #endif
-#endif
+    endif
 
 #ifdef FLUKA
 !   A.Mereghetti, for the FLUKA Team
@@ -2187,21 +2172,14 @@ subroutine thin6d(nthinerr)
     napxto = napxto + napx
 #endif
 
-#ifdef COLLIMAT
-!GRD HERE WE SET THE FLAG FOR INITIALIZATION TO FALSE AFTER TURN 1
-  firstrun = .false.
-#endif
-
+    if (do_coll) then
+      !GRD HERE WE SET THE FLAG FOR INITIALIZATION TO FALSE AFTER TURN 1
+      firstrun = .false.
+    endif
+    
 660 continue !END loop over turns
-
-#ifdef COLLIMAT
-! These unit numbers could now be anything!
-!  close(99)
-!  close(53)
-
-#endif
-
-  return
+    
+    return
 
 end subroutine thin6d
 
@@ -2349,6 +2327,8 @@ end subroutine dist1
 !-----------------------------------------------------------------------
 !
 !  F. SCHMIDT
+!  Write to fort.12
+!  TODO: Not using chr_fromreal as it should
 !-----------------------------------------------------------------------
 !  3 February 1999
 !-----------------------------------------------------------------------

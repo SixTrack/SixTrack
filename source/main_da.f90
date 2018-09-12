@@ -34,6 +34,7 @@ program mainda
   use mod_alloc,  only : alloc_init
   use mod_fluc,   only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use read_input, only : readFort33
+  use mod_version
 
   implicit none
 
@@ -48,6 +49,11 @@ program mainda
   dimension eps(2),epsa(2)
   dimension tas(6,6)
 
+  ! New Variables
+  character(len=:), allocatable :: featList
+  character(len=23) timeStamp
+  character(len=8)  tsDate
+  character(len=10) tsTime
   logical fErr
 
 #ifdef CRLIBM
@@ -56,7 +62,25 @@ program mainda
   character(len=nchars) ch
   character(len=nchars+nchars) ch1
 #endif
-#include "version.f90"
+
+  ! Features
+featList = ""
+#ifdef TILT
+  featList = featList//" TILT"
+#endif
+#ifdef FAST
+  featList = featList//" FAST"
+#endif
+#ifdef STF
+  featList = featList//" STF"
+#endif
+#ifdef CRLIBM
+  featList = featList//" CRLIBM"
+  call disable_xp()
+#endif
+#ifdef FIO
+  featList = featList//" FIO"
+#endif
 
   ! Set to nonzero before calling abend in case of error.
   ! If prror is called, it will be set internally.
@@ -72,35 +96,33 @@ program mainda
 
   ! Open files
   fErr = .false.
-  call units_openUnit(unit=2,  fileName="fort.2",  formatted=.true., mode="r",err=fErr)
-  call units_openUnit(unit=3,  fileName="fort.3",  formatted=.true., mode="r",err=fErr)
-  call units_openUnit(unit=12, fileName="fort.12", formatted=.true., mode="w",err=fErr)
-  call units_openUnit(unit=18, fileName="fort.18", formatted=.true., mode="w",err=fErr)
-  call units_openUnit(unit=19, fileName="fort.19", formatted=.true., mode="w",err=fErr)
-  call units_openUnit(unit=110,fileName="fort.110",formatted=.false.,mode="w",err=fErr)
-  call units_openUnit(unit=111,fileName="fort.111",formatted=.false.,mode="w",err=fErr)
+  call units_openUnit(unit=2,  fileName="fort.2",  formatted=.true., mode="r", err=fErr)
+  call units_openUnit(unit=3,  fileName="fort.3",  formatted=.true., mode="r", err=fErr)
+  call units_openUnit(unit=12, fileName="fort.12", formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=18, fileName="fort.18", formatted=.true., mode="rw",err=fErr)
+  call units_openUnit(unit=19, fileName="fort.19", formatted=.true., mode="w", err=fErr)
+  call units_openUnit(unit=110,fileName="fort.110",formatted=.false.,mode="w", err=fErr)
+  call units_openUnit(unit=111,fileName="fort.111",formatted=.false.,mode="rw",err=fErr)
 
   ! Print Header Info
   tlim=1e7
   call timest
   time0=0.
   call timex(time0)
-  idate=0
-  itime=0
-  call datime(idate,itime)
 
-  write(cdate,"(i6.6)") idate
-  write(ctime,"(i4.4)") itime
-  write(lout,"(a)")   ""
-#ifdef TILT
-  write(lout,"(a69)") " SIXTRACK DA VERSION "//trim(version)//" (with tilt) - (last change: "//trim(moddate)//")"
-#else
-  write(lout,"(a57)") " SIXTRACK DA VERSION "//trim(version)//" - (last change: "//trim(moddate)//")"
-#endif
-  write(lout,"(a)")   ""
-  write(lout,"(a)") "    git SHA hash for this build "//trim(git_revision)
-  write(lout,"(a26)") " Runtime: 20"//cdate(1:2)//"-"//cdate(3:4)//"-"//cdate(5:6)//" "//ctime(1:2)//":"//ctime(3:4)
-  write(lout,"(a)")   ""
+  ! TimeStamp
+  call date_and_time(tsDate,tsTime)
+  timeStamp = tsDate(1:4)//"-"//tsDate(5:6)//"-"//tsDate(7:8)//" "//&
+              tsTime(1:2)//":"//tsTime(3:4)//":"//tsTime(5:10)
+
+  write(lout,"(a)") ""
+  write(lout,"(a)") "    SixTrack DA :: Version "//trim(version)//" :: Released "//trim(moddate)
+  write(lout,"(a)") "  "//repeat("=",128)
+  write(lout,"(a)") "    Git SHA Hash: "//trim(git_revision)
+  write(lout,"(a)") "    Built With:   "//trim(adjustl(featList))
+  write(lout,"(a)") "    Start Time:   "//timeStamp
+  write(lout,"(a)") ""
+  write(lout,"(a)") str_divLine
 
   ! Init stuff
   do i=1,2
@@ -117,10 +139,6 @@ program mainda
   if(nord.le.0.or.nvar.le.0) call prror(91)
   if(ithick.eq.1) write(lout,10020)
   if(ithick.eq.0) write(lout,10030)
-  if(ibidu.eq.2) then
-    write(lout,10025)
-    goto 550
-  endif
   call orglat
   call ord
   if(allocated(zfz)) call fluc_randomReport
@@ -311,7 +329,6 @@ program mainda
     end do
   end if
 
-  550 continue
   tas16=tas(1,6)*c1m3
   tas26=tas(2,6)*c1m3
   tas36=tas(3,6)*c1m3

@@ -1,2 +1,2 @@
-dump_bb.dat       diff -q --strip-trailing-cr
-dump_ip.dat       diff -q --strip-trailing-cr
+dump_bb.dat
+dump_ip.dat

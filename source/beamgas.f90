@@ -71,10 +71,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   use mod_common
   use mod_commont
   use mod_commonmn
-
-#ifdef COLLIMAT
   use collimation, only : numeff, numeffdpop, max_ncoll, maxn, iturn, mynp, part_abs_pos, part_abs_turn, secondary, mys
-#endif
 
   implicit none
 

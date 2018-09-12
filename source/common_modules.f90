@@ -53,9 +53,7 @@ module parpro
   ! Dummy Strings
   character(len=mDivLen),  parameter :: str_divLine = repeat("-",mDivLen)
   character(len=mStrLen),  parameter :: str_dSpace  = repeat(" ",mStrLen)
-  character(len=mStrLen),  parameter :: str_dZeros  = repeat(char(0),mStrLen)
   character(len=mNameLen), parameter :: str_nmSpace = repeat(" ",mNameLen)
-  character(len=mNameLen), parameter :: str_nmZeros = repeat(char(0),mNameLen)
 
 end module parpro
 
@@ -104,8 +102,8 @@ module mod_settings
   logical, save :: st_print
 
   ! SETTINGS Block (fort.3)
-  integer, save :: st_quiet ! QUIET Level
-  logical, save :: st_debug ! Global DEBUG flag
+  integer, save :: st_quiet  = 0       ! QUIET Level
+  logical, save :: st_debug  = .false. ! Global DEBUG flag
 
 end module mod_settings
 
@@ -161,8 +159,12 @@ module mod_common
 
   ! common /tra1/
   real(kind=fPrec), save :: rat
-  integer, save :: idfor, napx, napxo, numl, niu(2), numlr, nde(2), nwr(4), &
-       ird, imc, irew, ntwin, iclo6, iclo6r, iver, ibidu, numlcp, numlmax, nnuml
+  integer,          save :: idfor
+  integer,          save :: napx, napxo
+  integer,          save :: numl, niu(2), numlr, nde(2), nwr(4)
+  integer,          save :: ird, imc, irew, ntwin
+  integer,          save :: iclo6, iclo6r, iver
+  integer,          save :: numlcp, numlmax, nnuml
 
   ! common /syn/
   real(kind=fPrec), save :: qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3),crad,dppoff,tlen,mtcda
@@ -379,11 +381,11 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(r00,                  nele_new,       zero,        "r00")
   call alloc(irm,                  nele_new,       0,           "irm")
   call alloc(nmu,                  nele_new,       0,           "nmu")
-  call alloc(bezr,    mNameLen, 3, nele_new,       str_nmZeros, "bezr")
+  call alloc(bezr,    mNameLen, 3, nele_new,       str_nmSpace, "bezr")
   call alloc(kpa,                  nele_new,       0,           "kpa")
-  call alloc(bez,     mNameLen,    nele_new,       str_nmZeros, "bez")
-! call alloc(bezb,    mNameLen,    nele_new,       str_nmZeros, "bezb")
-  call alloc(bezl,    mNameLen,    nele_new,       str_nmZeros, "bezl")
+  call alloc(bez,     mNameLen,    nele_new,       str_nmSpace, "bez")
+! call alloc(bezb,    mNameLen,    nele_new,       str_nmSpace, "bezb")
+  call alloc(bezl,    mNameLen,    nele_new,       str_nmSpace, "bezl")
   call alloc(ncororb,              nele_new,       0,           "ncororb")
   call alloc(ratioe,               nele_new,       one,         "ratioe")
   call alloc(iratioe,              nele_new,       0,           "iratioe")
@@ -402,7 +404,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(crabph3,              nele_new,       zero,        "crabph3")
   call alloc(crabph4,              nele_new,       zero,        "crabph4")
 
-  call alloc(bezb,    mNameLen,    nblo_new,       str_nmZeros, "bezb")
+  call alloc(bezb,    mNameLen,    nblo_new,       str_nmSpace, "bezb")
   call alloc(elbe,                 nblo_new,       zero,        "elbe")
   call alloc(mel,                  nblo_new,       0,           "mel")
   call alloc(mtyp,                 nblo_new, nelb, 0,           "mtyp")
@@ -454,37 +456,6 @@ module mod_commond
   integer,                 save :: nordf,nvarf,nord1,ndimf,idptr,inorm,imod1,imod2
 
 end module mod_commond
-
-! ================================================================================================ !
-!  DA COMMON VARIABLES 2
-!  Last modified: 2018-06-12
-!  These variables are used by FOX and are also declared internally in the FOX code in dainicom.f90
-!  The variables are defined here, but there is no direct way to avoid using common/daele/. FixMe
-! ================================================================================================ !
-module mod_common_da2
-
-  use parpro, only : mcor
-
-  implicit none
-
-  ! common /daele/
-  integer, public :: alda(2,6)
-  integer, public :: asda(2,6)
-  integer, public :: aldaq(2,6)
-  integer, public :: asdaq(2,6)
-  integer, public :: smida(mcor)
-  integer, public :: xx(2)
-  integer, public :: yy(2)
-  integer, public :: dpda
-  integer, public :: dpda1
-  integer, public :: sigmda
-  integer, public :: ej1
-  integer, public :: ejf1
-  integer, public :: rv
-
-  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
-
-end module mod_common_da2
 
 ! ================================================================================================ !
 !  TRACKING COMMON VARIABLES
