@@ -2316,7 +2316,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   real(kind=fPrec),   intent(in) :: newValue
 
   ! Temp variables
-  integer el_type, ii, j, orderMult
+  integer el_type, ii, j, orderMult, im
 
   ! Original energies before energy update
   real(kind=fPrec) e0fo, e0o
@@ -2367,17 +2367,33 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         end if
         call initialize_element(ii, .false.)
 
-      ! Not yet supported : MULTIPOLES (11)
+  
       case(11)
+      if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
+        if(LEN_TRIM(att_name) .eq. 6) then
+          read(att_name(6:6), *) orderMult
+        else if(LEN_TRIM(att_name) .eq. 7) then
+          read(att_name(6:7), *) orderMult
+        else
+          goto 100
+        endif
 
-      if(att_name(1:1) == "a") then
-        read(att_name(2:2), *) orderMult
-        
-        zfz(dynk_izuIndex(ii)+2*orderMult+1)=newValue
-      else if(att_name(1:1)=="b") then
-        read(att_name(2:2), *) orderMult
-        zfz(dynk_izuIndex(ii)+2*orderMult+2)=newValue
+        im=irm(ii)
+        if(att_name(1:5) == "a_rms") then
+          aka(im,orderMult) = newValue
+        else if(att_name(1:5)=="b_rms") then
+          bka(im,orderMult) = newValue
+        else if(att_name(1:5)=="a_str") then
+          ak0(im,orderMult) = newValue
+        else if(att_name(1:5)=="b_str") then
+          bk0(im,orderMult) = newValue
+        else
+          goto 100 ! ERROR
+        endif
       endif
+
+
+
       call initialize_element(ii, .false.)
    
       case(12)
@@ -2475,7 +2491,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
   character(mStrLen), intent(in) :: element_name, att_name
 
-  integer el_type, ii, orderMult
+  integer el_type, ii, orderMult, im
 
   logical ldoubleElement
   ldoubleElement = .false.  ! For sanity check
@@ -2515,22 +2531,36 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
           goto 100 ! ERROR
         end if
 
-        ! Not yet supported : Multipoles (11)
-      case(11)
 
-      !print *, "elementNameeee", element_name
-      !print *, "dynkIndexxxx", dynk_izuIndex(ii), irm(ii), att_name(1:1)
-      if(att_name(1:1) == "a") then
-        read(att_name(2:2), *) orderMult
-        !print *, "oooooo", ii, orderMult, zfz(dynk_izuIndex(ii)+2*orderMult+1)
-        dynk_getvalue= zfz(dynk_izuIndex(ii)+2*orderMult+2)
-      else if(att_name(1:1)=="b") then
-        read(att_name(2:2), *) orderMult
-      !print *, "bbboooooo", ii, orderMult, zfz(dynk_izuIndex(ii)+2*orderMult+2)
-        dynk_getvalue = zfz(dynk_izuIndex(ii)+2*orderMult+2)
-      else
-        goto 100 ! Error
-      end if
+      case(11)
+        if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
+          if(LEN_TRIM(att_name) .eq. 6) then
+            read(att_name(6:6), *) orderMult
+          else if(LEN_TRIM(att_name) .eq. 7) then
+            read(att_name(6:7), *) orderMult
+          else
+            goto 100
+          endif
+
+          im=irm(ii)
+          if(att_name(1:5) == "a_rms") then
+            dynk_getvalue = aka(im,orderMult)
+          else if(att_name(1:5)=="b_rms") then
+            dynk_getvalue = bka(im,orderMult) 
+          else if(att_name(1:5)=="a_str") then
+            dynk_getvalue = ak0(im,orderMult) 
+          else if(att_name(1:5)=="b_str") then
+            dynk_getvalue = bk0(im,orderMult) 
+          else
+            goto 100 ! ERROR
+          endif
+        else if(att_name == "r0") then
+          dynk_getvalue = dki(ii,3) 
+        else if(att_name == "d0") then
+
+
+        endif
+  
       case(12) ! Cavities
         if(att_name == "voltage"  ) then ! MV
           dynk_getvalue = ed(ii)

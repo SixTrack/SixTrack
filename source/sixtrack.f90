@@ -1855,20 +1855,39 @@ subroutine initialize_element(ix,lfirst)
 !c$$$         end if
 
          ! Moved from daten():
-         if (abs(el(ix)+one).le.pieni) then
-            dki(ix,1) = ed(ix)
-            dki(ix,3) = ek(ix)
-            ed(ix) = one
-            ek(ix) = one
-            el(ix) = zero
-         else if(abs(el(ix)+two).le.pieni) then
-            dki(ix,2) = ed(ix)
-            dki(ix,3) = ek(ix)
-            ed(ix) = one
-           
-             ek(ix) = one
-             el(ix) = zero
+         if (lfirst) then
+            print *, "heeeerreeeeeee"
+           if (abs(el(ix)+one).le.pieni) then
+              dki(ix,1) = ed(ix)
+              dki(ix,3) = ek(ix)
+              ed(ix) = one
+              ek(ix) = one
+              el(ix) = zero
+           else if(abs(el(ix)+two).le.pieni) then
+              dki(ix,2) = ed(ix)
+              dki(ix,3) = ek(ix)
+              ed(ix) = one
+              ek(ix) = one
+              el(ix) = zero
+           endif
          endif
+        if (.not.lfirst) then
+          do i=1,iu
+            if ( ic(i)-nblo.eq.ix ) then
+              r0 = dki(ix,3)
+              nmz=nmu(ix)
+              im=irm(ix)
+              r0a=one
+              do k=1,nmz            
+                aaiv(k,i)=(dki(ix,1)*(ak0(im,k)+amultip(k,i)*aka(im,k)))/r0a !At the moment only horizontal dipoles ! 
+                bbiv(k,i)=(dki(ix,1)*(bk0(im,k)+bmultip(k,i)*bka(im,k)))/r0a !Horizontal dipoles 
+                r0a=r0a*r0
+                print *, dki(ix,3), mmul, k, im, r0a, i,ix, bk0(im,k), bmultip(k,i), bka(im,k), bbiv(k,i), "a22aaaa"
+              end do
+            endif
+          enddo
+        endif
+
 
   !      izu=dynk_izuIndex(ix)
   !      r0=ek(ix)
