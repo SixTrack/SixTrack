@@ -180,7 +180,7 @@ module mod_common
 
   ! Multipole Coefficients
   real(kind=fPrec),              save :: benki
-  real(kind=fPrec), allocatable, save :: benkc(:),r00(:)                     ! (nele)
+  real(kind=fPrec), allocatable, save :: benkc(:),r00(:),scalemu(:)         ! (nele)
   real(kind=fPrec), allocatable, save :: bk0(:,:),ak0(:,:),bka(:,:),aka(:,:) ! (nele,mmul)
   integer,          allocatable, save :: irm(:),nmu(:)                       ! (nele)
 
@@ -379,6 +379,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(aka,                  nele_new, mmul, zero,        "aka")
   call alloc(benkc,                nele_new,       zero,        "benkc")
   call alloc(r00,                  nele_new,       zero,        "r00")
+  call alloc(scalemu,              nele_new,        one,          "scalemu")
   call alloc(irm,                  nele_new,       0,           "irm")
   call alloc(nmu,                  nele_new,       0,           "nmu")
   call alloc(bezr,    mNameLen, 3, nele_new,       str_nmSpace, "bezr")

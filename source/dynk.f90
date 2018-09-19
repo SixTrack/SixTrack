@@ -2369,7 +2369,10 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
   
       case(11)
-      if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
+      im=irm(ii)
+      if(att_name=="scaleall") then
+
+      else if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
         if(LEN_TRIM(att_name) .eq. 6) then
           read(att_name(6:6), *) orderMult
         else if(LEN_TRIM(att_name) .eq. 7) then
@@ -2378,12 +2381,10 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
           goto 100
         endif
 
-        im=irm(ii)
+        
         if(att_name(1:5) == "a_rms") then
           aka(im,orderMult) = newValue
         else if(att_name(1:5)=="b_rms") then
-        print*, "neeeeeeewwwwwwooollddd", bka(im,orderMult), im, orderMult
-        print*, "neeeeeeewwwwww", newValue
           bka(im,orderMult) = newValue
         else if(att_name(1:5)=="a_str") then
           ak0(im,orderMult) = newValue

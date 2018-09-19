@@ -1706,7 +1706,7 @@ subroutine initialize_element(ix,lfirst)
 
       !Temp variables
       integer i, m, k, im, nmz, izu
-      real(kind=fPrec) r0, r0a
+      real(kind=fPrec) r0, r0a, bkitemp
 
 !--Nonlinear Elements
 ! TODO: Merge these cases into 1 + subcases?
@@ -1856,7 +1856,7 @@ subroutine initialize_element(ix,lfirst)
 
          ! Moved from daten():
          if (lfirst) then
-            print *, "heeeerreeeeeee"
+           
            if (abs(el(ix)+one).le.pieni) then
               dki(ix,1) = ed(ix)
               dki(ix,3) = ek(ix)
@@ -1874,16 +1874,21 @@ subroutine initialize_element(ix,lfirst)
         if (.not.lfirst) then
           do i=1,iu
             if ( ic(i)-nblo.eq.ix ) then
+              if(dki(ix,1) .le. pieni) then
+                bkitemp = dki(ix,1)
+              else
+                bkitemp = dki(ix,2)
+              endif
               r0 = dki(ix,3)
               nmz=nmu(ix)
               im=irm(ix)
               r0a=one
               do k=1,nmz            
-                print *, dki(ix,1), mmul, k, im, r0a, i,ix, bk0(im,k), bmultip(k,i), bka(im,k), bbiv(k,i), r0,"beforeaaaa"
-                aaiv(k,i)=(dki(ix,1)*(ak0(im,k)+amultip(k,i)*aka(im,k)))/r0a !At the moment only horizontal dipoles ! 
-                bbiv(k,i)=(dki(ix,1)*(bk0(im,k)+bmultip(k,i)*bka(im,k)))/r0a !Horizontal dipoles 
-                r0a=r0a*r0
-                print *, dki(ix,1), mmul, k, im, r0a, i,ix, bk0(im,k), bmultip(k,i), bka(im,k), bbiv(k,i), r0,"a22aaaa"
+                
+                aaiv(k,i)=scalemu(im)*((bkitemp*(ak0(im,k)+amultip(k,i)*aka(im,k)))/r0a) !At the moment only horizontal dipoles ! 
+                bbiv(k,i)=scalemu(im)*((bkitemp*(bk0(im,k)+bmultip(k,i)*bka(im,k)))/r0a) !Horizontal dipoles 
+                r0a=r0a!*r0
+                
               end do
             endif
           enddo
@@ -1911,7 +1916,7 @@ subroutine initialize_element(ix,lfirst)
           !bbiv(k,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a !hr05
           !bbi(i,k)=bbiv(k,i)
           !r0a=r0a*r0
-          !print *, zfz(izu), ed(ix), izu, mmul, k, im, bbiv(1,i),bbiv(2,i) ,r0a, i,ix, "111aaa"
+          
 
         !end do
         !end if

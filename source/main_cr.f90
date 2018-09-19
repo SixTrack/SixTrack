@@ -740,6 +740,7 @@ end interface
 !-- coefficients from MULT and random values from FLUC.
 !-- Used in program maincr and from initialize_element.
         r0=ek(ix)
+        
         if(abs(r0).le.pieni) cycle
         nmz=nmu(ix)
         if(nmz.eq.0) then
@@ -756,7 +757,7 @@ end interface
           bmultip(k,i) = zfz(izu)
           bbiv(k,i)=(dki(ix,1)*(bk0(im,k)+bmultip(k,i)*bka(im,k)))/r0a !hr05
           r0a=r0a*r0
-          print *, dki(ix,1), mmul, k, im, r0a, i,ix, bk0(im,k), bmultip(k,i), bka(im,k), bbiv(k,i), r0, "a11aaaa"
+          
         end do
         izu=izu+2*mmul-2*nmz
       end if
