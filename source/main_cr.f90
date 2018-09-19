@@ -752,10 +752,10 @@ end interface
         do k=1,nmz
           izu=izu+1
           amultip(k,i) = zfz(izu) !To make it easier for Dynk later on
-          aaiv(k,i)=((ak0(im,k)+amultip(k,i)*aka(im,k)))/r0a
+          aaiv(k,i)=((ak0(im,k)+amultip(k,i)*aka(im,k)))
           izu=izu+1
           bmultip(k,i) = zfz(izu)
-          bbiv(k,i)=((bk0(im,k)+bmultip(k,i)*bka(im,k)))/r0a
+          bbiv(k,i)=((bk0(im,k)+bmultip(k,i)*bka(im,k)))
           r0a=r0*r0a
           print *, "aaaaa", ed(ix), "r0a", r0a
           !print *, "scalingggggMAIN", scalemu(im), bk0(im,k) , bmultip(k,i), bka(im,k), i, k, ix, im, r0a, benkc(ix)
