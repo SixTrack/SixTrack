@@ -751,12 +751,12 @@ end interface
         do k=1,nmz
           izu=izu+1
           amultip(k,i) = zfz(izu) !To make it easier for Dynk later on
-          aaiv(k,i)=(ed(ix)*(ak0(im,k)+amultip(k,i)*aka(im,k)))/r0a !hr05
+          aaiv(k,i)=(dki(ix,1)*(ak0(im,k)+amultip(k,i)*aka(im,k)))/r0a !hr05
           izu=izu+1
           bmultip(k,i) = zfz(izu)
-          bbiv(k,i)=(ed(ix)*(bk0(im,k)+bmultip(k,i)*bka(im,k)))/r0a !hr05
+          bbiv(k,i)=(dki(ix,1)*(bk0(im,k)+bmultip(k,i)*bka(im,k)))/r0a !hr05
           r0a=r0a*r0
-          print *, dki(ix,1), mmul, k, im, r0a, i,ix, bk0(im,k), bmultip(k,i), bka(im,k), bbiv(k,i), "a11aaaa"
+          print *, dki(ix,1), mmul, k, im, r0a, i,ix, bk0(im,k), bmultip(k,i), bka(im,k), bbiv(k,i), r0, "a11aaaa"
         end do
         izu=izu+2*mmul-2*nmz
       end if

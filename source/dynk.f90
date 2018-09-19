@@ -2382,6 +2382,8 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         if(att_name(1:5) == "a_rms") then
           aka(im,orderMult) = newValue
         else if(att_name(1:5)=="b_rms") then
+        print*, "neeeeeeewwwwwwooollddd", bka(im,orderMult), im, orderMult
+        print*, "neeeeeeewwwwww", newValue
           bka(im,orderMult) = newValue
         else if(att_name(1:5)=="a_str") then
           ak0(im,orderMult) = newValue

@@ -1879,10 +1879,11 @@ subroutine initialize_element(ix,lfirst)
               im=irm(ix)
               r0a=one
               do k=1,nmz            
+                print *, dki(ix,1), mmul, k, im, r0a, i,ix, bk0(im,k), bmultip(k,i), bka(im,k), bbiv(k,i), r0,"beforeaaaa"
                 aaiv(k,i)=(dki(ix,1)*(ak0(im,k)+amultip(k,i)*aka(im,k)))/r0a !At the moment only horizontal dipoles ! 
                 bbiv(k,i)=(dki(ix,1)*(bk0(im,k)+bmultip(k,i)*bka(im,k)))/r0a !Horizontal dipoles 
                 r0a=r0a*r0
-                print *, dki(ix,3), mmul, k, im, r0a, i,ix, bk0(im,k), bmultip(k,i), bka(im,k), bbiv(k,i), "a22aaaa"
+                print *, dki(ix,1), mmul, k, im, r0a, i,ix, bk0(im,k), bmultip(k,i), bka(im,k), bbiv(k,i), r0,"a22aaaa"
               end do
             endif
           enddo
