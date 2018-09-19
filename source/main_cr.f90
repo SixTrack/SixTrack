@@ -748,16 +748,17 @@ end interface
           cycle
         end if
         im=irm(ix)
-        r0a=one
+        r0a = one
         do k=1,nmz
           izu=izu+1
           amultip(k,i) = zfz(izu) !To make it easier for Dynk later on
-          aaiv(k,i)=(dki(ix,1)*(ak0(im,k)+amultip(k,i)*aka(im,k)))/r0a !hr05
+          aaiv(k,i)=((ak0(im,k)+amultip(k,i)*aka(im,k)))/r0a
           izu=izu+1
           bmultip(k,i) = zfz(izu)
-          bbiv(k,i)=(dki(ix,1)*(bk0(im,k)+bmultip(k,i)*bka(im,k)))/r0a !hr05
-          r0a=r0a*r0
-          
+          bbiv(k,i)=((bk0(im,k)+bmultip(k,i)*bka(im,k)))/r0a
+          r0a=r0*r0a
+          print *, "aaaaa", ed(ix), "r0a", r0a
+          !print *, "scalingggggMAIN", scalemu(im), bk0(im,k) , bmultip(k,i), bka(im,k), i, k, ix, im, r0a, benkc(ix)
         end do
         izu=izu+2*mmul-2*nmz
       end if

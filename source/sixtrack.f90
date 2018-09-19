@@ -1874,21 +1874,16 @@ subroutine initialize_element(ix,lfirst)
         if (.not.lfirst) then
           do i=1,iu
             if ( ic(i)-nblo.eq.ix ) then
-              if(dki(ix,1) .le. pieni) then
-                bkitemp = dki(ix,1)
-              else
-                bkitemp = dki(ix,2)
-              endif
-              r0 = dki(ix,3)
+              
               nmz=nmu(ix)
               im=irm(ix)
-              r0a=one
+              
               do k=1,nmz            
                 
-                aaiv(k,i)=scalemu(im)*((bkitemp*(ak0(im,k)+amultip(k,i)*aka(im,k)))/r0a) !At the moment only horizontal dipoles ! 
-                bbiv(k,i)=scalemu(im)*((bkitemp*(bk0(im,k)+bmultip(k,i)*bka(im,k)))/r0a) !Horizontal dipoles 
-                r0a=r0a!*r0
+                aaiv(k,i)=scalemu(im)*(ak0(im,k)+amultip(k,i)*aka(im,k))     !At the moment only horizontal dipoles ! 
+                bbiv(k,i)=scalemu(im)*(bk0(im,k)+bmultip(k,i)*bka(im,k))     !Horizontal dipoles 
                 
+                print *, "scalinggggg", scalemu(im), bk0(im,k) , bmultip(k,i), bka(im,k), i, k, ix, im
               end do
             endif
           enddo
