@@ -2316,10 +2316,10 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   real(kind=fPrec),   intent(in) :: newValue
 
   ! Temp variables
-  integer el_type, ii, j, orderMult, im
+  integer el_type, ii, j, orderMult, im,k
 
   ! Original energies before energy update
-  real(kind=fPrec) e0fo, e0o
+  real(kind=fPrec) e0fo, e0o, r0a, r0
 
   ! For sanity check
   logical ldoubleElement
@@ -2381,15 +2381,21 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
           goto 100
         endif
 
-        
+        r0 = r00(im)
+        r0a = one
+        do k=2,nmu(ii)
+          r0a=r0a*r0
+        end do
+        print *, "bbbbbbb", benkc(im), r0a
         if(att_name(1:5) == "a_rms") then
-          aka(im,orderMult) = newValue
+          aka(im,orderMult) = newValue*benkc(im)/r0a
         else if(att_name(1:5)=="b_rms") then
-          bka(im,orderMult) = newValue
+          bka(im,orderMult) = newValue*benkc(im)/r0a
+          print *, "ffffd", bka(im,orderMult), im, orderMult
         else if(att_name(1:5)=="a_str") then
-          ak0(im,orderMult) = newValue
+          ak0(im,orderMult) = newValue*benkc(im)/r0a
         else if(att_name(1:5)=="b_str") then
-          bk0(im,orderMult) = newValue
+          bk0(im,orderMult) = newValue*benkc(im)/r0a
         else
           goto 100 ! ERROR
         endif

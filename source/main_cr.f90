@@ -757,7 +757,8 @@ end interface
           bmultip(k,i) = zfz(izu)
           bbiv(k,i)=((bk0(im,k)+bmultip(k,i)*bka(im,k)))
           r0a=r0*r0a
-          print *, "aaaaa", ed(ix), "r0a", r0a
+          print *, "ffff1", bka(im,k), k, i
+          print *, "aaaaa", ed(ix), "r0a", r0a, benkc(ix), benkc(im), benkc(i), ix 
           !print *, "scalingggggMAIN", scalemu(im), bk0(im,k) , bmultip(k,i), bka(im,k), i, k, ix, im, r0a, benkc(ix)
         end do
         izu=izu+2*mmul-2*nmz

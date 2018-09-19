@@ -1767,6 +1767,7 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
     aka(sixin_im,nmul) = (benki*akad)/r0a
     nmul = nmul + 1
     r0a  = r0a*r0
+    print *, "innputtyyyyybbbbbb", nmul, r0a, bka(sixin_im,nmul)
     if(nmul > mmul+1) then
       write(lout,"(a,i0)") "MULT> ERROR The order of multipoles is too large. Maximum is ",mmul
       iErr = .true.
