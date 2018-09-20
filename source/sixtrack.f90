@@ -1882,8 +1882,7 @@ subroutine initialize_element(ix,lfirst)
                 
                 aaiv(k,i)=scalemu(im)*(ak0(im,k)+amultip(k,i)*aka(im,k))     !At the moment only horizontal dipoles ! 
                 bbiv(k,i)=scalemu(im)*(bk0(im,k)+bmultip(k,i)*bka(im,k))     !Horizontal dipoles 
-                
-                print *, "scalinggggg", scalemu(im), bk0(im,k) , bmultip(k,i), bka(im,k), i, k, ix, im
+
               end do
             endif
           enddo

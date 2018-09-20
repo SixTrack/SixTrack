@@ -1758,16 +1758,16 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
 
     ! Set nmu for the current single element (j)
     ! to the currently highest multipole seen (i)
-    if(abs(bk0d) > pieni .or. abs(bkad) > pieni .or. abs(ak0d) > pieni .or. abs(akad) > pieni) then
+    ! Changed so also 0 is considered to be a mutipole, since it might be changed later by dynk 
+  
       nmu(iil) = nmul
-    end if
+   
     bk0(sixin_im,nmul) = (benki*bk0d)/r0a
     ak0(sixin_im,nmul) = (benki*ak0d)/r0a
     bka(sixin_im,nmul) = (benki*bkad)/r0a
     aka(sixin_im,nmul) = (benki*akad)/r0a
     nmul = nmul + 1
     r0a  = r0a*r0
-    print *, "innputtyyyyybbbbbb", nmul, r0a, bka(sixin_im,nmul)
     if(nmul > mmul+1) then
       write(lout,"(a,i0)") "MULT> ERROR The order of multipoles is too large. Maximum is ",mmul
       iErr = .true.

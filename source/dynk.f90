@@ -2316,7 +2316,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   real(kind=fPrec),   intent(in) :: newValue
 
   ! Temp variables
-  integer el_type, ii, j, orderMult, im,k
+  integer el_type, ii, j, orderMult, im,k, range
 
   ! Original energies before energy update
   real(kind=fPrec) e0fo, e0o, r0a, r0
@@ -2373,12 +2373,18 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
       if(att_name=="scaleall") then
 
       else if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
-        if(LEN_TRIM(att_name) .eq. 6) then
-          read(att_name(6:6), *) orderMult
-        else if(LEN_TRIM(att_name) .eq. 7) then
-          read(att_name(6:7), *) orderMult
+        if(LEN_TRIM(att_name) .eq. 5) then
+           range = 3
+          read(att_name(2:2), *) orderMult
+        else if(LEN_TRIM(att_name) .eq. 6) then
+          read(att_name(2:3), *) orderMult
+          range = 4
         else
           goto 100
+        endif
+        
+        if(nmu(ii) .lt. orderMult) then
+          nmu(ii) = orderMult
         endif
 
         r0 = r00(im)
@@ -2386,17 +2392,20 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         do k=2,nmu(ii)
           r0a=r0a*r0
         end do
-        print *, "bbbbbbb", benkc(im), r0a
-        if(att_name(1:5) == "a_rms") then
+        print *, "aaaaa", orderMult, nmu(ii)
+
+        print *, "bbbbbbb", benkc(im), r0a, att_name, att_name(range:range+3)
+        if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
           aka(im,orderMult) = newValue*benkc(im)/r0a
-        else if(att_name(1:5)=="b_rms") then
+        else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "rms") then
           bka(im,orderMult) = newValue*benkc(im)/r0a
           print *, "ffffd", bka(im,orderMult), im, orderMult
-        else if(att_name(1:5)=="a_str") then
+        else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "str") then
           ak0(im,orderMult) = newValue*benkc(im)/r0a
-        else if(att_name(1:5)=="b_str") then
+        else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "str") then
           bk0(im,orderMult) = newValue*benkc(im)/r0a
         else
+        print *, "bbbbb here", att_name(1:1)  
           goto 100 ! ERROR
         endif
       endif
@@ -2500,7 +2509,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
   character(mStrLen), intent(in) :: element_name, att_name
 
-  integer el_type, ii, orderMult, im
+  integer el_type, ii, orderMult, im, range
 
   logical ldoubleElement
   ldoubleElement = .false.  ! For sanity check
@@ -2542,33 +2551,39 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
 
       case(11)
-        if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
-          if(LEN_TRIM(att_name) .eq. 6) then
-            read(att_name(6:6), *) orderMult
-          else if(LEN_TRIM(att_name) .eq. 7) then
-            read(att_name(6:7), *) orderMult
-          else
-            goto 100
-          endif
+      im=irm(ii)
+      if(att_name=="scaleall") then
 
-          im=irm(ii)
-          if(att_name(1:5) == "a_rms") then
-            dynk_getvalue = aka(im,orderMult)
-          else if(att_name(1:5)=="b_rms") then
-            dynk_getvalue = bka(im,orderMult) 
-          else if(att_name(1:5)=="a_str") then
-            dynk_getvalue = ak0(im,orderMult) 
-          else if(att_name(1:5)=="b_str") then
-            dynk_getvalue = bk0(im,orderMult) 
-          else
-            goto 100 ! ERROR
-          endif
-        else if(att_name == "r0") then
-          dynk_getvalue = dki(ii,3) 
-        else if(att_name == "d0") then
-
-
+      else if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
+        if(LEN_TRIM(att_name) .eq. 5) then
+           range = 3
+          read(att_name(2:2), *) orderMult
+        else if(LEN_TRIM(att_name) .eq. 6) then
+          read(att_name(2:3), *) orderMult
+          range = 4
+        else
+          goto 100
         endif
+        
+
+      
+        if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
+          dynk_getvalue = aka(im,orderMult)
+        else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "rms") then
+          dynk_getvalue = bka(im,orderMult)  
+        else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "str") then
+          dynk_getvalue = ak0(im,orderMult)  
+        else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "str") then
+          dynk_getvalue = bk0(im,orderMult) 
+        else
+        print *, "bbbbb here", att_name(1:1)  
+          goto 100 ! ERROR
+        endif
+      endif
+
+
+
+        
   
       case(12) ! Cavities
         if(att_name == "voltage"  ) then ! MV
