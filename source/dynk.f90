@@ -2445,22 +2445,8 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
        else
         go to 100
        endif
+       call initialize_element(ii, .false.)
         print *, "affffffffore ", parbe(ii,:)
-        track6d(1,1)=parbe(ii,5)*c1m3
-        track6d(2,1)=zero
-        track6d(3,1)=parbe(ii,6)*c1m3
-        track6d(4,1)=zero
-        track6d(5,1)=zero
-        track6d(6,1)=zero
-          print *, "definnnningaaa", 1, track6d(1,1), parbe(ii,5), sigz,  imbb(2), 2, ii, ibtyp, ibbc, parbe(ii,5)*10e-3
-        call beamint(1,track6d,parbe,sigz,bbcu,imbb(2),ii,ibtyp,ibbc)
-          print *, "definnnningaaa", 1, track6d(1,1), parbe(ii,5), sigz,  imbb(2), 2, ii, ibtyp, ibbc
-        beamoff(1,imbb(2))=track6d(1,1)*c1e3
-        beamoff(2,imbb(2))=track6d(3,1)*c1e3
-        beamoff(3,imbb(2))=track6d(5,1)*c1e3
-        beamoff(4,imbb(2))=track6d(2,1)*c1e3
-        beamoff(5,imbb(2))=track6d(4,1)*c1e3
-        beamoff(6,imbb(2))=track6d(6,1)
 
       case(23,26,27,28)
         ! crab cavity, cc mult. kick order 2,3 and 4

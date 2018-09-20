@@ -1887,111 +1887,6 @@ subroutine initialize_element(ix,lfirst)
         endif
 
 
-  !      izu=dynk_izuIndex(ix)
-  !      r0=ek(ix)
-        !if(abs(r0).le.pieni) cycle
-   !     nmz=nmu(ix)
-    !    if(nmz.eq.0) then
-     !     izu=izu+2*mmul
-        !  cycle
-      !  end if
-       ! nmz=nmu(ix)
-        !im=irm(ix)
-        !r0a=one
-
-        !m=1
-        !do k=1,nmz
-         ! izu=izu+1
-          !aaiv(k,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a !hr05
-          !aai(i,k)=aaiv(k,i)
-          !izu=izu+1
-          !bbiv(k,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a !hr05
-          !bbi(i,k)=bbiv(k,i)
-          !r0a=r0a*r0
-          
-
-        !end do
-        !end if
-        !end do
-        !izu=izu+2*mmul-2*nmz
-      
-         !Otherwise, i.e. when el=0, dki(:,1) = dki(:,2) = dki(:,3) = 0.0
-
-         !MULT support removed until we have a proper use case.
-!c$$$         !All multipoles:
-!c$$$         if(.not.lfirst) then
-        !do i=1,iu
-        !  if ( ic(i)-nblo.eq.ix ) then
-         !   print *, ix, ktrack(i), "ffffff"
-           ! if(ktrack(i).eq.31) goto 100 !ERROR
-           ! else if(ktrack.eq.33 .or.)
-        !   end if
-
-        !end do
-!c$$$                  !--Initialize smiv as usual
-!c$$$                  sm(ix)=ed(ix)
-!c$$$                  smiv(m,i)=sm(ix)+smizf(i)
-!c$$$                  smi(i)=smiv(m,i)
-!c$$$
-!c$$$                  !--Using the right izu & setting aaiv, bbiv (see multini)
-!c$$$                  izu = dynk_izuIndex(ix)
-!c$$$+ca multini !Also in program maincr()
-!c$$$ 150              continue ! needs to be after a multini block
-!c$$$
-!c$$$                  ! From trauthin()&trauthck() (they are identical)
-!c$$$                  r0=ek(ix)
-!c$$$                  nmz=nmu(ix)
-!c$$$                  if(abs(r0).le.pieni.or.nmz.eq.0) then
-!c$$$                     if(abs(dki(ix,1)).le.pieni .and.
-!c$$$     &                    abs(dki(ix,2)).le.pieni) then
-!c$$$C                       ktrack(i)=31
-!c$$$                     else if(abs(dki(ix,1)).gt.pieni .and.
-!c$$$     &                       abs(dki(ix,2)).le.pieni) then
-!c$$$                        if(abs(dki(ix,3)).gt.pieni) then
-!c$$$C                          ktrack(i)=33
-!c$$$+ca stra11
-!c$$$                        else
-!c$$$C                          ktrack(i)=35
-!c$$$+ca stra12
-!c$$$                        endif
-!c$$$                     else if(abs(dki(ix,1)).le.pieni .and.
-!c$$$     &                       abs(dki(ix,2)).gt.pieni) then
-!c$$$                        if(abs(dki(ix,3)).gt.pieni) then
-!c$$$C                           ktrack(i)=37
-!c$$$+ca stra13
-!c$$$                        else
-!c$$$C                            ktrack(i)=39
-!c$$$+ca stra14
-!c$$$                        endif
-!c$$$                     endif
-!c$$$                  else
-!c$$$                     if(abs(dki(ix,1)).le.pieni .and.
-!c$$$     &                    abs(dki(ix,2)).le.pieni) then
-!c$$$C                        ktrack(i)=32
-!c$$$                     else if(abs(dki(ix,1)).gt.pieni .and.
-!c$$$     &                       abs(dki(ix,2)).le.pieni) then
-!c$$$                        if(abs(dki(ix,3)).gt.pieni) then
-!c$$$C                           ktrack(i)=34
-!c$$$+ca stra11
-!c$$$                        else
-!c$$$C                           ktrack(i)=36
-!c$$$+ca stra12
-!c$$$                        endif
-!c$$$                     else if(abs(dki(ix,1)).le.pieni .and.
-!c$$$     &                       abs(dki(ix,2)).gt.pieni) then
-!c$$$                        if(abs(dki(ix,3)).gt.pieni) then
-!c$$$C                           ktrack(i)=38
-!c$$$+ca stra13
-!c$$$                        else
-!c$$$C                           ktrack(i)=40
-!c$$$+ca stra14
-!c$$$                        endif
-!c$$$                     endif
-!c$$$                  endif
-!c$$$               endif
-!c$$$            enddo
-!c$$$         endif
-
 !--Cavities (ktrack = 2 for thin)
       elseif(abs(kz(ix)).eq.12) then
          !Moved from daten
@@ -2026,7 +1921,31 @@ subroutine initialize_element(ix,lfirst)
             ed(ix)=zero
             parbe(ix,6) = ek(ix)
             ek(ix)=zero
+            endif
+        if (.not.lfirst) then
+          do i=1,iu
+            if ( ic(i)-nblo.eq.ix ) then
+
+              track6d(1,1)=parbe(ix,5)*c1m3
+              track6d(2,1)=zero
+              track6d(3,1)=parbe(ix,6)*c1m3
+              track6d(4,1)=zero
+              track6d(5,1)=zero
+              track6d(6,1)=zero
+
+               ! print *, "definnnningaaa", 1, track6d(1,1), parbe(ii,5), sigz,  imbb(2), 2, ii, ibtyp, ibbc, parbe(ii,5)*10e-3
+              call beamint(1,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc)
+               ! print *, "definnnningaaa", 1, track6d(1,1), parbe(ii,5), sigz,  imbb(2), 2, ii, ibtyp, ibbc
+              beamoff(1,imbb(i))=track6d(1,1)*c1e3
+              beamoff(2,imbb(i))=track6d(3,1)*c1e3
+              beamoff(3,imbb(i))=track6d(5,1)*c1e3
+              beamoff(4,imbb(i))=track6d(2,1)*c1e3
+              beamoff(5,imbb(i))=track6d(4,1)*c1e3
+              beamoff(6,imbb(i))=track6d(6,1)
+            endif
+          enddo
          endif
+
 !--Crab Cavities
 !   Note: If setting something else than el(),
 !   DON'T call initialize_element on a crab, it will reset the phase to 0.

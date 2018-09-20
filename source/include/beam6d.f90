@@ -21,10 +21,12 @@ do j=1,napx
   moidpsv(j)=mtc(j)/(one+dpsv(j))
   yv(1,j)=((track6d(2,j)*c1e3+clobeam(4,imbb(i)))-beamoff(4,imbb(i)))*moidpsv(j)
   yv(2,j)=((track6d(4,j)*c1e3+clobeam(5,imbb(i)))-beamoff(5,imbb(i)))*moidpsv(j)
+
   !TODO check for ions?
   ejfv(j)=dpsv(j)*e0f+e0f
   ejv(j)=sqrt(ejfv(j)**2+nucm(j)**2)
   rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+  
 
   !We want to go back to sixtrack variables (15.03.2018)
   track6d(5,j) = track6d(5,j)*rvv(j)
