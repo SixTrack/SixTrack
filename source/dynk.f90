@@ -799,7 +799,7 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_nFuncs = dynk_nFuncs+1
     dynk_ncData = dynk_ncData+1
 
-    ! Store pointers
+    ! Store pointers and metadata
     dynk_funcs(dynk_nFuncs,1) = dynk_ncData   ! NAME (in dynk_cData)
     if(isFIR) then
       dynk_funcs(dynk_nFuncs,2) = 10 ! TYPE (FIR)
@@ -809,11 +809,9 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_funcs(dynk_nFuncs,3) = dynk_nfData+1 ! ARG1 (start of float storage)
     dynk_funcs(dynk_nFuncs,4) = t             ! ARG2 (filter order N)
     dynk_funcs(dynk_nFuncs,5) = &             ! ARG3 (filtered function)
-    dynk_findFUNindex(trim(lnSplit(6)), 1)
+         dynk_findFUNindex(trim(lnSplit(6)), 1)
 
-    ! Store metadata
     dynk_cData(dynk_ncData) = trim(lnSplit(2))             ! NAME
-    call chr_cast(lnSplit(4),dynk_iData(dynk_niData),cErr) ! N
 
     ! Sanity check
     if(dynk_funcs(dynk_nFuncs,5) == -1) then
@@ -827,7 +825,7 @@ subroutine dynk_parseFUN(inLine, iErr)
       iErr = .true.
       return
     end if
-    if(dynk_iData(dynk_niData) <= 0) then
+    if(dynk_funcs(dynk_nFuncs,4) <= 0) then
       write(lout,"(a)") "DYNK> ERROR FUN:FIR/IIR Got N <= 0, this is not valid."
       iErr = .true.
       return
@@ -2326,7 +2324,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   ldoubleElement = .false.
 
   if(dynk_debug) then
-    write(lout,"(a,e16.9)") "DYNK> DEBUG setvalue Element_name = '"//trim(element_name)//"', "&
+    write(lout,"(a,e16.9)") "DYNK> DEBUG setvalue Element_name = '"//trim(element_name)//"', "//&
       "att_name = '"//trim(att_name)//"', newValue = ", newValue
   end if
 
@@ -2453,7 +2451,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
       case(29)! Electron lens
         if(att_name == "theta_r2") then ! [mrad]
-          elens_theta_r2(ii) = newValue
+          elens_theta_r2(ielens(ii)) = newValue
         else
           goto 100 ! ERROR
         end if
@@ -2515,7 +2513,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
   ldoubleElement = .false.  ! For sanity check
 
   if(dynk_debug) then
-    write(lout,"(a)") "DYNK> DEBUG In getValue, element_name = '"//trim(element_name)//"'"&
+    write(lout,"(a)") "DYNK> DEBUG In getValue, element_name = '"//trim(element_name)//"'"//&
       ", att_name = '"//trim(att_name)//"'"
   end if
 
@@ -2619,9 +2617,9 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
           goto 100 ! ERROR
         end if
 
-      case(20) ! Electron lens
+      case(29) ! Electron lens
         if(att_name == "theta_r2") then ! [mrad]
-          dynk_getvalue = elens_theta_r2(ii)
+          dynk_getvalue = elens_theta_r2(ielens(ii))
         else
           goto 100 ! ERROR
         end if

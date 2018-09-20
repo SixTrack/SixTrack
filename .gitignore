@@ -9,10 +9,14 @@ test/*/*.run_kill*
 test/run_pro_*
 test/run_kill_*
 
+# compareSix2Mad
+devtools/physicsBenchmark/compareSix2Madx/work/*
+
 # Builds
 lib/libarchive_build
 lib/zlib/build
 lib/zlib/install
+lib/hdf5
 
 source/count.log
 

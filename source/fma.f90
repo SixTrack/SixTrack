@@ -164,7 +164,7 @@ subroutine fma_postpr
   real(kind=fPrec), allocatable :: epsnxyzv(:,:,:)
 
 interface
-  real(c_double) function tunenaff (x,xp,maxn,plane_idx,norm_flag, fft_naff) bind(c)
+  real(c_double) function tunenaff(x,xp,maxn,plane_idx,norm_flag, fft_naff) bind(c)
     use, intrinsic :: iso_c_binding
     implicit none
     real(c_double), intent(in), dimension(1) :: x,xp
@@ -370,9 +370,9 @@ real(kind=fPrec), allocatable :: naff_xyzv2(:)
         end if
         ! Now we have done all checks
 
+        !Normalized copy of the dump
         if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j)) then
-          write(lout,"(a)") "FMA> Writing normalised DUMP for '"//trim(dump_fname(j))// "' ..."
-          ! Dump normalised particle amplitudes for debugging (tmpUnit)
+          ! Get a file unit, if needed
           call funit_requestUnit("NORM_"//dump_fname(j),tmpUnit)
           call units_openUnit(unit=tmpUnit,fileName="NORM_"//dump_fname(j),formatted=.true.,mode="w",err=fErr,status="replace")
           if(fErr) then
@@ -380,6 +380,9 @@ real(kind=fPrec), allocatable :: naff_xyzv2(:)
             call prror(-1)
           end if
 
+          ! Write the file headers
+          write(lout,"(a)") "FMA> Writing normalised DUMP for '"//trim(dump_fname(j))// "' ..."
+          ! Dump normalised particle amplitudes for debugging (tmpUnit)
           !  units: dumptas, dumptasinv, dumpclo [mm,mrad,mm,mrad,1]
           !  note: closed orbit dumpclo already converted in linopt part to [mm,mrad,mm,mrad,1]
           !        tas matrix in linopt part in [mm,mrad,mm,mrad,1.e-3]
@@ -515,7 +518,7 @@ real(kind=fPrec), allocatable :: naff_xyzv2(:)
 
               ! Write normalised particle amplitudes
               ! (only when reading physical coordinates)
-              if (fma_writeNormDUMP .and. .not.hasNormDumped(j) ) then
+              if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j) ) then
                 write(tmpUnit,"(2(1x,i8),1x,f12.5,6(1x,1pe16.9),1x,i8)") &
                   id,thisturn,pos,nxyzvdummy(1),nxyzvdummy(2),nxyzvdummy(3),nxyzvdummy(4),nxyzvdummy(5),nxyzvdummy(6),kt
               end if
@@ -647,8 +650,13 @@ real(kind=fPrec), allocatable :: naff_xyzv2(:)
                 naff_xyzv1 = nxyzv(l,1:nturns(l),  2*(m-1)+1)
                 naff_xyzv2 = nxyzv(l,1:nturns(l),  2*m)
               endif
-              fft_naff = tunefft( naff_xyzv1, naff_xyzv2, nturns(l) )
-              q123(m) = tunenaff(naff_xyzv1, naff_xyzv2, nturns(l), m, fma_norm_flag(i),fft_naff )
+              fft_naff = tunefft(naff_xyzv1, naff_xyzv2, nturns(l))
+#ifndef DOUBLE_MATH
+              q123(m)  = real(tunenaff(real(naff_xyzv1,kind=real64), real(naff_xyzv2,kind=real64), &
+                nturns(l), m, fma_norm_flag(i), real(fft_naff,kind=real64)),kind=fPrec)
+#else
+              q123(m)  = tunenaff(naff_xyzv1, naff_xyzv2, nturns(l), m, fma_norm_flag(i), fft_naff)
+#endif
 
               flush(lout)
               ! stop
@@ -693,7 +701,7 @@ real(kind=fPrec), allocatable :: naff_xyzv2(:)
 
         end do ! END loop over particles l
 
-        if(fma_writeNormDUMP .and. .not.hasNormDumped(j)) then
+        if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j)) then
           ! filename NORM_* (normalised particle amplitudes)
           close(tmpUnit)
           hasNormDumped(j) = .true.

@@ -58,10 +58,16 @@ message(STATUS "Numeric Version:  ${NUM_VERSION}")
 SET(${PROJECT_NAME}_VERSION "${VERSION_STRING}")
 MESSAGE(STATUS "Running on: ${CMAKE_SYSTEM_NAME} with ${CMAKE_SYSTEM_PROCESSOR} and generating for ${CMAKE_GENERATOR}")
 
-#get the current git commit hash
-EXECUTE_PROCESS(COMMAND git log -n1 --pretty=format:%H WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_REVISION)
-STRING(STRIP ${GIT_REVISION} GIT_REVISION)
-message(STATUS "Git Revision: ${GIT_REVISION}")
+# Get the current git commit hash
+set(GIT_REVISION "Unknown")
+find_package(Git)
+if(GIT_FOUND)
+	execute_process(COMMAND git log -n1 --pretty=format:%H WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_REVISION)
+	string(STRIP ${GIT_REVISION} GIT_REVISION)
+	message(STATUS "Git Revision: ${GIT_REVISION}")
+else()
+	message(STATUS "Git Revision: git not installed.")
+endif()
 
 ###################################################################################################
 # Sixtrack configuration options
@@ -271,7 +277,7 @@ list(APPEND FORT90_LIB
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist scatter dump dynk
 	aperture mod_fluc beam6d_fox six_fox postprocessing
-	read_input ranlux collimation mod_particles
+	read_input ranlux collimation mod_particles cheby utils
 )
 
 # Files unique to DA or CR version
@@ -331,34 +337,14 @@ if(LIBARCHIVE)
 	target_compile_options(libArchive_wrapper PRIVATE -std=c99)
 endif(LIBARCHIVE)
 
+if(LIBARCHIVE OR HDF5)
+	add_library(z STATIC IMPORTED)
+	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/zlib/install/lib/libz.a)
+endif(LIBARCHIVE OR HDF5)
+
 ###################################################################################################
 # Checking if some requested packages exist
 ###################################################################################################
-#Check for HDF5
-if(HDF5)
-	find_package(HDF5 COMPONENTS Fortran REQUIRED)
-	if(STATIC)
-		SET(HDF5_USE_STATIC_LIBRARIES "True")
-	endif(STATIC)
-endif(HDF5)
-
-if(HDF5_FOUND)
-	#uncomment if you want more information
-	message(STATUS "HDF5_INCLUDE_DIRS: ${HDF5_INCLUDE_DIRS}")
-	message(STATUS "HDF5_INCLUDE_DIR: ${HDF5_INCLUDE_DIR}")
-	#message(STATUS "HDF5_DEFINITIONS: ${HDF5_DEFINITIONS}")
-	message(STATUS "HDF5_Fortran_LIBRARIES: ${HDF5_Fortran_LIBRARIES}")
-	message(STATUS "HDF5_Fortran_HL_LIBRARIES: ${HDF5_Fortran_HL_LIBRARIES}")
-	#message(STATUS "HDF5_HL_LIBRARIES: ${HDF5_HL_LIBRARIES}")
-	#message(STATUS "HDF5_C_LIBRARIES: ${HDF5_C_LIBRARIES}")
-	#message(STATUS "HDF5_CXX_LIBRARIES: ${HDF5_CXX_LIBRARIES}")
-	message(STATUS "HDF5_LIBRARIES: ${HDF5_LIBRARIES}")
-	message(STATUS "HDF5_FOUND: ${HDF5_FOUND}")
-	message(STATUS "HDF5_VERSION: ${HDF5_VERSION}")
-	#message(STATUS "HDF5_LIBRARY_DIRS: ${HDF5_LIBRARY_DIRS}")
-	#message(STATUS "HDF5_IS_PARALLEL: ${HDF5_IS_PARALLEL}")
-	message(STATUS "HDF5_Fortran_COMPILER_EXECUTABLE: ${HDF5_Fortran_COMPILER_EXECUTABLE}")
-endif(HDF5_FOUND)
 
 if(G4COLLIMAT)
 	if(STATIC)
@@ -449,6 +435,25 @@ if(FLUKA)
 		set(SIXDA OFF)
 	endif()
 endif()
+if(G4COLLIMAT)
+	if(SIXDA)
+		message(STATUS "Will not build SixDA when G4COLLIMAT is enabled.")
+		set(SIXDA OFF)
+	endif()
+endif()
+if(MERLINSCATTER)
+	if(SIXDA)
+		message(STATUS "Will not build SixDA when MERLINSCATTER is enabled.")
+		set(SIXDA OFF)
+	endif()
+endif()
+if(BEAMGAS)
+	if(SIXDA)
+		message(STATUS "Will not build SixDA when BEAMGAS is enabled.")
+		set(SIXDA OFF)
+	endif()
+endif()
+
 if(64BIT)
 	if(CERNLIB)
 		message(FATAL_ERROR "Cannot build CERNLIB with 64BIT enabled.")
@@ -632,10 +637,16 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 
 	SET(NAGFOR ON)
 	#Here I am going to assume that since we are using nagfor we are on lxplus for now
-	set(CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns -w=ulv -w=uparam")
-	set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -w=ulv -w=uparam -gline")
+	set(CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns")
+	set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -gline")
 	set(PREPRO_EXEC  fpp)
 	set(PREPRO_FLAGS -P -free)
+
+if(WARN)
+	set(CMAKE_Fortran_FLAGS "-w=ulv -w=uparam ${CMAKE_Fortran_FLAGS}")
+else()
+	set(CMAKE_Fortran_FLAGS "-w=all ${CMAKE_Fortran_FLAGS}")
+endif(WARN)
 
 	if(32BIT)
 		set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -877,15 +888,15 @@ foreach(loop IN LISTS PREPRO_FLAGS_TOOLS PREPRO_FLAGS_LIB PREPRO_FLAGS_COMPILE)
 endforeach()
 if(32BITM)
 	message(STATUS "Adding preprocessor macro -DSIXTRACK_REAL=real32 to target SixTrack")
-	list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real32)
+	list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real32 -DSINGLE_MATH)
 endif()
 if(64BITM)
 	message(STATUS "Adding preprocessor macro -DSIXTRACK_REAL=real64 to target SixTrack")
-	list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real64)
+	list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real64 -DDOUBLE_MATH)
 endif()
 if(128BITM)
 	message(STATUS "Adding preprocessor macro -DSIXTRACK_REAL=real128 to target SixTrack")
-	list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real128)
+	list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real128 -DQUAD_MATH)
 endif()
 
 	list(APPEND PREPRO_FLAGS -DSIXTRACK_GIT_REVISION="'${GIT_REVISION}'")
@@ -902,17 +913,21 @@ endif(Fortran_COMPILER_NAME MATCHES "gfortran.*")
 if(CRLIBM)
 	add_subdirectory(${CMAKE_SOURCE_DIR}/source/crlibm)
 endif()
-if(CRLIBM OR BUILD_TESTING )
+if(CRLIBM OR BUILD_TESTING)
 	add_subdirectory(${CMAKE_SOURCE_DIR}/source/roundctl) #Also needed by read90
 endif()
 
 if(HDF5)
-	if(HDF5_FOUND)
-		SET_TARGET_PROPERTIES(SixTrackLib PROPERTIES INCLUDE_DIRECTORIES "${HDF5_INCLUDE_DIRS}")
-		SET_TARGET_PROPERTIES(SixTrackLib PROPERTIES COMPILE_DEFINITIONS "${HDF5_DEFINITIONS}")
-	else()
-		MESSAGE(FATAL_ERROR "HDF5 build requested, but could not find the HDF5 package.")
-	endif(HDF5_FOUND)
+	find_library(dl STATIC dl) #HDF5 has a capability to dynamically load filters
+	add_library(hdf5_local_f STATIC IMPORTED)
+	add_library(hdf5_local_s STATIC IMPORTED)
+	add_library(hdf5_local_c STATIC IMPORTED)
+	set_target_properties(hdf5_local_f PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/hdf5/build/bin/libhdf5_fortran-static.a)
+	set_target_properties(hdf5_local_s PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/hdf5/build/bin/libhdf5_f90cstub-static.a)
+	set_target_properties(hdf5_local_c PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/hdf5/build/bin/libhdf5-static.a)
+	target_link_libraries(SixTrackLib hdf5_local_f hdf5_local_s hdf5_local_c z dl)
+	target_include_directories(SixTrackLib PRIVATE ${CMAKE_SOURCE_DIR}/lib/hdf5/build/bin/static)
+	target_include_directories(SixTrackLib PRIVATE ${CMAKE_SOURCE_DIR}/lib/hdf5/build/fortran)
 endif(HDF5)
 
 if(MERLINSCATTER)
@@ -1010,10 +1025,7 @@ if(LIBARCHIVE)
 	target_link_libraries(libArchiveTester libArchive_wrapper)
 
 	#See also further down for SixTestWrapper linking
-	target_link_libraries(SixTrackCR libArchive_wrapper)
-	if(SIXDA)
-		target_link_libraries(SixTrackDA libArchive_wrapper)
-	endif()
+	target_link_libraries(SixTrackLib libArchive_wrapper)
 	add_library(libarchive STATIC IMPORTED)
 	if(WIN32)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive_static.a)
@@ -1022,14 +1034,7 @@ if(LIBARCHIVE)
 		set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
 	endif()
 
-	#find_library(z STATIC z)
-	add_library(z STATIC IMPORTED)
-	set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/zlib/install/lib/libz.a)
-
-	target_link_libraries(SixTrackCR libarchive z Threads::Threads)
-	if(SIXDA)
-		target_link_libraries(SixTrackDA libarchive z Threads::Threads)
-	endif()
+	target_link_libraries(SixTrackLib libarchive z Threads::Threads)
 	target_link_libraries(libArchiveTester libarchive z Threads::Threads)
 
 	add_definitions( -DLIBARCHIVE )

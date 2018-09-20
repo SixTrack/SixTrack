@@ -2096,7 +2096,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
         ! go back to machine reference system
         if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
         ! echo result of scan
-        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
+        write(iunit,1982) thetaRay/rad,sqrt(xChk**2+yChk**2),xChk,yChk
      end do
   case(1) ! circle
      do i=1,nAzim
@@ -2106,7 +2106,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
         ! go back to machine reference system
         if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
         ! echo result of scan
-        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
+        write(iunit,1982) thetaRay/rad,sqrt(xChk**2+yChk**2),xChk,yChk
      end do
   case(2) ! rectangle
      do i=1,nAzim
@@ -2116,7 +2116,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
         ! go back to machine reference system
         if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
         ! echo result of scan
-        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
+        write(iunit,1982) thetaRay/rad,sqrt(xChk**2+yChk**2),xChk,yChk
      end do
   case(3) ! ellipse
      do i=1,nAzim
@@ -2126,7 +2126,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
         ! go back to machine reference system
         if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
         ! echo result of scan
-        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
+        write(iunit,1982) thetaRay/rad,sqrt(xChk**2+yChk**2),xChk,yChk
      end do
   case(4) ! rectellipse
      do i=1,nAzim
@@ -2136,7 +2136,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
         ! go back to machine reference system
         if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
         ! echo result of scan
-        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
+        write(iunit,1982) thetaRay/rad,sqrt(xChk**2+yChk**2),xChk,yChk
      end do
   case(5) ! octagon
      do i=1,nAzim
@@ -2146,7 +2146,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
         ! go back to machine reference system
         if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
         ! echo result of scan
-        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
+        write(iunit,1982) thetaRay/rad,sqrt(xChk**2+yChk**2),xChk,yChk
      end do
   case(6) ! racetrack
      do i=1,nAzim
@@ -2156,7 +2156,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
         ! go back to machine reference system
         if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
         ! echo result of scan
-        write(iunit,1982) thetaRay/pi*180_fPrec,sqrt(xChk**2+yChk**2),xChk,yChk
+        write(iunit,1982) thetaRay/rad,sqrt(xChk**2+yChk**2),xChk,yChk
      end do
   end select
   write(iunit,*)''

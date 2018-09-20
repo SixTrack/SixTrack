@@ -255,9 +255,9 @@ end interface
 #ifdef BOINC
   ! and if BOINC issue an informatory message
   if(start) then
-    write(93,"(a)") "SIXTRACR starts for the very first time"
+    write(93,"(a)") "SIXTRACR> starts for the very first time"
   else
-    write(93,"(a)") "SIXTRACR retry after unzip of Sixin.zip"
+    write(93,"(a)") "SIXTRACR> retry after unzip of Sixin.zip"
   end if
 #endif
   ! Now we see if we have a fort.6 which implies that we can perhaps just restart using all exisiting files
@@ -288,10 +288,10 @@ end interface
     call units_openUnit(unit=output_unit,fileName="fort.6",formatted=.true.,mode="rw",err=fErr,status="new")
 #endif
     ! Set up start message depending on fort.6 or not
-    stxt = "SIXTRACR starts on: "
+    stxt = "SIXTRACR> starts on: "
   else
     ! Set up start message depending on fort.6 or not
-    stxt = "SIXTRACR reruns on: "
+    stxt = "SIXTRACR> reruns on: "
     rerun=.true.
   end if
   call units_openUnit(unit=95,fileName="fort.95",formatted=.false.,mode="rw",err=fErr,status="old")
