@@ -750,10 +750,10 @@ end interface
         do k=1,nmz
           izu=izu+1
           amultip(k,i) = zfz(izu) !To make it easier for Dynk later on
-          aaiv(k,i)=((ak0(im,k)+amultip(k,i)*aka(im,k)))
+          aaiv(k,i)=(ak0(im,k)+(amultip(k,i)*aka(im,k)))
           izu=izu+1
           bmultip(k,i) = zfz(izu)
-          bbiv(k,i)=((bk0(im,k)+bmultip(k,i)*bka(im,k)))
+          bbiv(k,i)=(bk0(im,k)+(bmultip(k,i)*bka(im,k)))
         end do
         izu=izu+2*mmul-2*nmz
       end if

@@ -2387,7 +2387,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
         r0 = r00(im)
         r0a = one
-        do k=2,nmu(ii)
+        do k=2,orderMult
           r0a=r0a*r0
         end do
         print *, "aaaaa", orderMult, nmu(ii)
