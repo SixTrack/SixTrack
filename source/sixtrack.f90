@@ -1925,17 +1925,13 @@ subroutine initialize_element(ix,lfirst)
         if (.not.lfirst) then
           do i=1,iu
             if ( ic(i)-nblo.eq.ix ) then
-
               track6d(1,1)=parbe(ix,5)*c1m3
               track6d(2,1)=zero
               track6d(3,1)=parbe(ix,6)*c1m3
               track6d(4,1)=zero
               track6d(5,1)=zero
               track6d(6,1)=zero
-
-               ! print *, "definnnningaaa", 1, track6d(1,1), parbe(ii,5), sigz,  imbb(2), 2, ii, ibtyp, ibbc, parbe(ii,5)*10e-3
               call beamint(1,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc)
-               ! print *, "definnnningaaa", 1, track6d(1,1), parbe(ii,5), sigz,  imbb(2), 2, ii, ibtyp, ibbc
               beamoff(1,imbb(i))=track6d(1,1)*c1e3
               beamoff(2,imbb(i))=track6d(3,1)*c1e3
               beamoff(3,imbb(i))=track6d(5,1)*c1e3
@@ -7017,7 +7013,6 @@ subroutine ord
         zfz(izu)= fluc_errExt(20+j,icext(i))
         izu     = izu+1
         zfz(izu)= fluc_errExt(j,icext(i))
-!        print *, "izzzu", izu, zfz(izu), icext(i)
       end do
     else if(kzz == 11 .and. abs(ek(ix)) > pieni .and. icext(i) == 0) then
       izu = izu+2*mmul

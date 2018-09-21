@@ -2390,20 +2390,18 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         do k=2,orderMult
           r0a=r0a*r0
         end do
-        print *, "aaaaa", orderMult, nmu(ii)
 
-        print *, "bbbbbbb", benkc(im), r0a, att_name, att_name(range:range+3)
+
+
         if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
           aka(im,orderMult) = newValue*benkc(im)/r0a
         else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "rms") then
           bka(im,orderMult) = newValue*benkc(im)/r0a
-          print *, "ffffd", bka(im,orderMult), im, orderMult
         else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "str") then
           ak0(im,orderMult) = newValue*benkc(im)/r0a
         else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "str") then
           bk0(im,orderMult) = newValue*benkc(im)/r0a
-        else
-        print *, "bbbbb here", att_name(1:1)  
+        else 
           goto 100 ! ERROR
         endif
       endif
@@ -2433,10 +2431,9 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
       ! Not yet supported : beam-beam separation (20)
       case(20)
-      print *, "befffffffore ", parbe(ii,:)
-       if (att_name == "horizontal") then ! [mm]
+       if (att_name == "h-sep") then ! [mm]
            parbe(ii,5) = newValue
-       else if (att_name == "vertical") then ! [mm]
+       else if (att_name == "v-sep") then ! [mm]
            parbe(ii,6) = newValue
        else if (att_name == "strength") then ! [m]
 
@@ -2446,7 +2443,6 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         go to 100
        endif
        call initialize_element(ii, .false.)
-        print *, "affffffffore ", parbe(ii,:)
 
       case(23,26,27,28)
         ! crab cavity, cc mult. kick order 2,3 and 4
@@ -2577,8 +2573,6 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
         else
           goto 100
         endif
-        
-
       
         if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
           dynk_getvalue = aka(im,orderMult)
@@ -2589,15 +2583,12 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
         else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "str") then
           dynk_getvalue = bk0(im,orderMult) 
         else
-        print *, "bbbbb here", att_name(1:1)  
           goto 100 ! ERROR
         endif
       endif
 
 
 
-        
-  
       case(12) ! Cavities
         if(att_name == "voltage"  ) then ! MV
           dynk_getvalue = ed(ii)
@@ -2613,10 +2604,9 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
       ! Not yet supported : beam-beam separation (20)
       case(20)
-      print *, "heeereee", att_name
-       if (att_name == "horizontal") then ! [mm]
+       if (att_name == "h-sep") then ! [mm]
            dynk_getvalue = parbe(ii,5)
-       else if (att_name == "vertical") then ! [mm]
+       else if (att_name == "v-sep") then ! [mm]
            dynk_getvalue= parbe(ii,6)
        else if (att_name == "strength") then ! [m]
            dynk_getvalue= ptnfac(ii)
