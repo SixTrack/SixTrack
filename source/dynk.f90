@@ -2384,14 +2384,12 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         if(nmu(ii) .lt. orderMult) then
           nmu(ii) = orderMult
         endif
-
+        
         r0 = r00(im)
         r0a = one
         do k=2,orderMult
           r0a=r0a*r0
         end do
-
-
 
         if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
           aka(im,orderMult) = newValue*benkc(im)/r0a

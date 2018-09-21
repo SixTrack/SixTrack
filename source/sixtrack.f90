@@ -1839,22 +1839,7 @@ subroutine initialize_element(ix,lfirst)
 
 !--Multipoles
       elseif(kz(ix).eq.11) then
-        !    do i=1,iu
-        !       if ( ic(i)-nblo.eq.ix ) then
-         !MULT support removed until we have a proper use case.
-!c$$$         if (lfirst) then
-!c$$$            dynk_elemData(ix,1) = el(ix) !Flag for type
-!c$$$            dynk_elemData(ix,2) = ed(ix) !Bending strenght
-!c$$$            dynk_elemData(ix,3) = ek(ix) !Radius
-!c$$$         else
-!c$$$            el(ix) = dynk_elemData(ix,1)
-!c$$$            dynk_elemData(ii,2) = ed(ii) !Updated in dynk_setvalue
-!c$$$            ek(ii) = dynk_elemData(ix,3)
-!c$$$         end if
-
-         ! Moved from daten():
-         if (lfirst) then
-           
+        if (lfirst) then
            if (abs(el(ix)+one).le.pieni) then
               dki(ix,1) = ed(ix)
               dki(ix,3) = ek(ix)
@@ -1868,19 +1853,14 @@ subroutine initialize_element(ix,lfirst)
               ek(ix) = one
               el(ix) = zero
            endif
-         endif
-        if (.not.lfirst) then
+        else
           do i=1,iu
             if ( ic(i)-nblo.eq.ix ) then
-              
               nmz=nmu(ix)
               im=irm(ix)
-              
-              do k=1,nmz            
-                
-                aaiv(k,i)=scalemu(im)*(ak0(im,k)+amultip(k,i)*aka(im,k))     !At the moment only horizontal dipoles ! 
-                bbiv(k,i)=scalemu(im)*(bk0(im,k)+bmultip(k,i)*bka(im,k))     !Horizontal dipoles 
-
+              do k=1,nmz             
+                aaiv(k,i)=scalemu(im)*(ak0(im,k)+amultip(k,i)*aka(im,k))     
+                bbiv(k,i)=scalemu(im)*(bk0(im,k)+bmultip(k,i)*bka(im,k))    
               end do
             endif
           enddo
