@@ -2433,11 +2433,34 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
            parbe(ii,5) = newValue
        else if (att_name == "v-sep") then ! [mm]
            parbe(ii,6) = newValue
-       else if (att_name == "strength") then ! [m]
-
-           ptnfac(ii) = newValue
-           parbe(ii,4)=(((-one*crad)*ptnfac(ii))*half)*c1m6
-       else
+       else if (att_name=="strongxx") then !strong I think
+        parbe(j,1) = newValue
+       else if (att_name=="strongyy") then
+        parbe(j,3) = newValue
+       else if (att_name == "strength") then ! 
+        ptnfac(ii) = newValue
+        parbe(ii,4)=(((-one*crad)*ptnfac(ii))*half)*c1m6
+       else if(att_name == "Sxx") then
+        parbe(ii,7) = newValue 
+       else if(att_name == "Sxxp") then
+        parbe(ii,8) = newValue
+       else if(att_name == "Sxpxp") then
+        parbe(ii,9) = newValue
+       else if(att_name == "Syy") then
+        parbe(ii,10) = newValue
+       else if(att_name == "Syyp") then
+        parbe(ii,11) = newValue
+       else if(att_name == "Sypyp") then
+        parbe(ii,12) = newValue
+       else if(att_name == "Sxy") then
+        parbe(ii,13) = newValue
+       else if(att_name == "Sxyp") then
+        parbe(ii,14) = newValue 
+       else if(att_name == "Sxpy") then
+        parbe(ii,15) = newValue
+       else if(att_name == "Sxpyp") then
+        parbe(ii,16) = newValue
+       else 
         go to 100
        endif
        call initialize_element(ii, .false.)
