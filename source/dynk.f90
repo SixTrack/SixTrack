@@ -2626,13 +2626,37 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
       ! Not yet supported : beam-beam separation (20)
       case(20)
        if (att_name == "h-sep") then ! [mm]
-           dynk_getvalue = parbe(ii,5)
+           dynk_getvalue = parbe(ii,5)  
        else if (att_name == "v-sep") then ! [mm]
-           dynk_getvalue= parbe(ii,6)
-       else if (att_name == "strength") then ! [m]
-           dynk_getvalue= ptnfac(ii)
-       else
-        goto 100
+           dynk_getvalue = parbe(ii,6)  
+       else if (att_name=="strongxx") then !strong I think
+        dynk_getvalue = parbe(j,1)  
+       else if (att_name=="strongyy") then
+        dynk_getvalue = parbe(j,3)  
+       else if (att_name == "strength") then ! 
+        dynk_getvalue = ptnfac(ii)
+       else if(att_name == "Sxx") then
+        dynk_getvalue = parbe(ii,7)   
+       else if(att_name == "Sxxp") then
+        dynk_getvalue = parbe(ii,8)  
+       else if(att_name == "Sxpxp") then
+        dynk_getvalue = parbe(ii,9)  
+       else if(att_name == "Syy") then
+        dynk_getvalue = parbe(ii,10)  
+       else if(att_name == "Syyp") then
+        dynk_getvalue = parbe(ii,11)  
+       else if(att_name == "Sypyp") then
+        dynk_getvalue = parbe(ii,12)  
+       else if(att_name == "Sxy") then
+        dynk_getvalue = parbe(ii,13)  
+       else if(att_name == "Sxyp") then
+        dynk_getvalue = parbe(ii,14)   
+       else if(att_name == "Sxpy") then
+        dynk_getvalue = parbe(ii,15)  
+       else if(att_name == "Sxpyp") then
+        dynk_getvalue = parbe(ii,16) 
+       else 
+        go to 100
        endif
 
       case(23,26,27,28) ! crab cavity, cc mult. kick order 2, 3 and 4
