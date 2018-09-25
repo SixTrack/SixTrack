@@ -171,17 +171,30 @@ module hdf5_output
   end interface h5_writeBuffer
 
   interface h5_writeAttr
-    module procedure h5_writeAttr_char
-    module procedure h5_writeAttr_char_arr
-    module procedure h5_writeAttr_int
-    module procedure h5_writeAttr_int_arr
     module procedure h5_writeAttr_real32
     module procedure h5_writeAttr_real32_arr
     module procedure h5_writeAttr_real64
     module procedure h5_writeAttr_real64_arr
     module procedure h5_writeAttr_real128
     module procedure h5_writeAttr_real128_arr
+    module procedure h5_writeAttr_int
+    module procedure h5_writeAttr_int_arr
+    module procedure h5_writeAttr_char
+    module procedure h5_writeAttr_char_arr
   end interface h5_writeAttr
+
+  interface h5_writeDataSetAttr
+    module procedure h5_writeDataSetAttr_real32
+    module procedure h5_writeDataSetAttr_real32_arr
+    module procedure h5_writeDataSetAttr_real64
+    module procedure h5_writeDataSetAttr_real64_arr
+    module procedure h5_writeDataSetAttr_real128
+    module procedure h5_writeDataSetAttr_real128_arr
+    module procedure h5_writeDataSetAttr_int
+    module procedure h5_writeDataSetAttr_int_arr
+    module procedure h5_writeDataSetAttr_char
+    module procedure h5_writeDataSetAttr_char_arr
+  end interface h5_writeDataSetAttr
 
   private :: h5_writeArray_real32
   private :: h5_writeValue_real32
@@ -198,16 +211,27 @@ module hdf5_output
   private :: h5_writeBuffer_int
   private :: h5_writeBuffer_char
 
-  private :: h5_writeAttr_char
-  private :: h5_writeAttr_char_arr
-  private :: h5_writeAttr_int
-  private :: h5_writeAttr_int_arr
   private :: h5_writeAttr_real32
   private :: h5_writeAttr_real32_arr
   private :: h5_writeAttr_real64
   private :: h5_writeAttr_real64_arr
   private :: h5_writeAttr_real128
   private :: h5_writeAttr_real128_arr
+  private :: h5_writeAttr_int
+  private :: h5_writeAttr_int_arr
+  private :: h5_writeAttr_char
+  private :: h5_writeAttr_char_arr
+
+  private :: h5_writeDataSetAttr_real32
+  private :: h5_writeDataSetAttr_real32_arr
+  private :: h5_writeDataSetAttr_real64
+  private :: h5_writeDataSetAttr_real64_arr
+  private :: h5_writeDataSetAttr_real128
+  private :: h5_writeDataSetAttr_real128_arr
+  private :: h5_writeDataSetAttr_int
+  private :: h5_writeDataSetAttr_int_arr
+  private :: h5_writeDataSetAttr_char
+  private :: h5_writeDataSetAttr_char_arr
 
 contains
 
@@ -293,7 +317,7 @@ subroutine h5_parseInputLine(inLine,iErr)
     end if
     call str_cast(lnSplit(2),h5_defChunk,spErr)
     if(h5_defChunk < 1) then
-      write(lout,"(a,i2)") "HDF5> ERROR Illegal value for CHUNK: ",h5_gzipLevel
+      write(lout,"(a,i2)") "HDF5> ERROR Illegal value for CHUNK: ",h5_defChunk
       write(lout,"(a,i2)") "HDF5> ERROR   Value must be larger than 0."
       iErr = .true.
       return
@@ -498,6 +522,7 @@ subroutine h5_writeSimInfo()
 
   ! SixTrack Version
   call h5_writeAttr(h5_rootID,"CreatedBy",     "SixTrack "//version)
+  call h5_writeAttr(h5_rootID,"GitHash",       git_revision)
   call h5_writeAttr(h5_rootID,"ExecVersion",   version)
   call h5_writeAttr(h5_rootID,"ExecNumVersion",numvers)
   call h5_writeAttr(h5_rootID,"ExecReleased",  moddate)
@@ -1783,6 +1808,178 @@ subroutine h5_writeAttr_char_arr(attrTarget, attrName, attrValue)
   call h5sclose_f(spaceID, h5_dataError)
 
 end subroutine h5_writeAttr_char_arr
+
+! ================================================================================================ !
+!  Write DataSet Attribute
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-09-25
+! ================================================================================================ !
+
+
+! Real 32bit Attributes
+subroutine h5_writeDataSetAttr_real32(setID, attrName, attrValue)
+
+  integer,           intent(in) :: setID
+  character(len=*),  intent(in) :: attrName
+  real(kind=real32), intent(in) :: attrValue
+
+  integer(HID_T)   :: groupID, dataID
+
+  groupID = h5_setList(setID-h5_setOff)%groupID
+
+  call h5dopen_f(groupID, h5_setList(setID-h5_setOff)%name, dataID, h5_dataError)
+  call h5_writeAttr_real32(dataID, attrName, attrValue)
+  call h5dclose_f(dataID, h5_dataError)
+
+end subroutine h5_writeDataSetAttr_real32
+
+subroutine h5_writeDataSetAttr_real32_arr(setID, attrName, attrValue)
+
+  integer,           intent(in) :: setID
+  character(len=*),  intent(in) :: attrName
+  real(kind=real32), intent(in) :: attrValue(:)
+
+  integer(HID_T)   :: groupID, dataID
+
+  groupID = h5_setList(setID-h5_setOff)%groupID
+
+  call h5dopen_f(groupID, h5_setList(setID-h5_setOff)%name, dataID, h5_dataError)
+  call h5_writeAttr_real32_arr(dataID, attrName, attrValue)
+  call h5dclose_f(dataID, h5_dataError)
+
+end subroutine h5_writeDataSetAttr_real32_arr
+
+! Real 64bit Attributes
+subroutine h5_writeDataSetAttr_real64(setID, attrName, attrValue)
+
+  integer,           intent(in) :: setID
+  character(len=*),  intent(in) :: attrName
+  real(kind=real64), intent(in) :: attrValue
+
+  integer(HID_T)   :: groupID, dataID
+
+  groupID = h5_setList(setID-h5_setOff)%groupID
+
+  call h5dopen_f(groupID, h5_setList(setID-h5_setOff)%name, dataID, h5_dataError)
+  call h5_writeAttr_real64(dataID, attrName, attrValue)
+  call h5dclose_f(dataID, h5_dataError)
+
+end subroutine h5_writeDataSetAttr_real64
+
+subroutine h5_writeDataSetAttr_real64_arr(setID, attrName, attrValue)
+
+  integer,           intent(in) :: setID
+  character(len=*),  intent(in) :: attrName
+  real(kind=real64), intent(in) :: attrValue(:)
+
+  integer(HID_T)   :: groupID, dataID
+
+  groupID = h5_setList(setID-h5_setOff)%groupID
+
+  call h5dopen_f(groupID, h5_setList(setID-h5_setOff)%name, dataID, h5_dataError)
+  call h5_writeAttr_real64_arr(dataID, attrName, attrValue)
+  call h5dclose_f(dataID, h5_dataError)
+
+end subroutine h5_writeDataSetAttr_real64_arr
+
+! Real 128bit Attributes
+subroutine h5_writeDataSetAttr_real128(setID, attrName, attrValue)
+
+  integer,            intent(in) :: setID
+  character(len=*),   intent(in) :: attrName
+  real(kind=real128), intent(in) :: attrValue
+
+  integer(HID_T)   :: groupID, dataID
+
+  groupID = h5_setList(setID-h5_setOff)%groupID
+
+  call h5dopen_f(groupID, h5_setList(setID-h5_setOff)%name, dataID, h5_dataError)
+  call h5_writeAttr_real128(dataID, attrName, attrValue)
+  call h5dclose_f(dataID, h5_dataError)
+
+end subroutine h5_writeDataSetAttr_real128
+
+subroutine h5_writeDataSetAttr_real128_arr(setID, attrName, attrValue)
+
+  integer,            intent(in) :: setID
+  character(len=*),   intent(in) :: attrName
+  real(kind=real128), intent(in) :: attrValue(:)
+
+  integer(HID_T)   :: groupID, dataID
+
+  groupID = h5_setList(setID-h5_setOff)%groupID
+
+  call h5dopen_f(groupID, h5_setList(setID-h5_setOff)%name, dataID, h5_dataError)
+  call h5_writeAttr_real128_arr(dataID, attrName, attrValue)
+  call h5dclose_f(dataID, h5_dataError)
+
+end subroutine h5_writeDataSetAttr_real128_arr
+
+! Integer Attributes
+subroutine h5_writeDataSetAttr_int(setID, attrName, attrValue)
+
+  integer,          intent(in) :: setID
+  character(len=*), intent(in) :: attrName
+  integer,          intent(in) :: attrValue
+
+  integer(HID_T)   :: groupID, dataID
+
+  groupID = h5_setList(setID-h5_setOff)%groupID
+
+  call h5dopen_f(groupID, h5_setList(setID-h5_setOff)%name, dataID, h5_dataError)
+  call h5_writeAttr_int(dataID, attrName, attrValue)
+  call h5dclose_f(dataID, h5_dataError)
+
+end subroutine h5_writeDataSetAttr_int
+
+subroutine h5_writeDataSetAttr_int_arr(setID, attrName, attrValue)
+
+  integer,          intent(in) :: setID
+  character(len=*), intent(in) :: attrName
+  integer,          intent(in) :: attrValue(:)
+
+  integer(HID_T)   :: groupID, dataID
+
+  groupID = h5_setList(setID-h5_setOff)%groupID
+
+  call h5dopen_f(groupID, h5_setList(setID-h5_setOff)%name, dataID, h5_dataError)
+  call h5_writeAttr_int_arr(dataID, attrName, attrValue)
+  call h5dclose_f(dataID, h5_dataError)
+
+end subroutine h5_writeDataSetAttr_int_arr
+
+! Character Attributes
+subroutine h5_writeDataSetAttr_char(setID, attrName, attrValue)
+
+  integer,          intent(in) :: setID
+  character(len=*), intent(in) :: attrName
+  character(len=*), intent(in) :: attrValue
+
+  integer(HID_T)   :: groupID, dataID
+
+  groupID = h5_setList(setID-h5_setOff)%groupID
+
+  call h5dopen_f(groupID, h5_setList(setID-h5_setOff)%name, dataID, h5_dataError)
+  call h5_writeAttr_char(dataID, attrName, attrValue)
+  call h5dclose_f(dataID, h5_dataError)
+
+end subroutine h5_writeDataSetAttr_char
+
+subroutine h5_writeDataSetAttr_char_arr(setID, attrName, attrValue)
+
+  integer,          intent(in) :: setID
+  character(len=*), intent(in) :: attrName
+  character(len=*), intent(in) :: attrValue(:)
+
+  integer(HID_T)   :: groupID, dataID
+
+  groupID = h5_setList(setID-h5_setOff)%groupID
+
+  call h5dopen_f(groupID, h5_setList(setID-h5_setOff)%name, dataID, h5_dataError)
+  call h5_writeAttr_char_arr(dataID, attrName, attrValue)
+  call h5dclose_f(dataID, h5_dataError)
+
+end subroutine h5_writeDataSetAttr_char_arr
 
 ! ================================================================================================ !
 end module hdf5_output
