@@ -166,7 +166,7 @@ subroutine scatter_initialise
     call h5_initForScatter()
 
     ! Scatter Log
-    allocate(setFields(12))
+    allocate(setFields(13))
 
     setFields(1)  = h5_dataField(name="ID",      type=h5_typeInt)
     setFields(2)  = h5_dataField(name="TURN",    type=h5_typeInt)
@@ -175,14 +175,25 @@ subroutine scatter_initialise
     setFields(5)  = h5_dataField(name="PROCESS", type=h5_typeChar, size=8)
     setFields(6)  = h5_dataField(name="LOST",    type=h5_typeInt)
     setFields(7)  = h5_dataField(name="T",       type=h5_typeReal)
-    setFields(8)  = h5_dataField(name="DEE",     type=h5_typeReal)
-    setFields(9)  = h5_dataField(name="THETA",   type=h5_typeReal)
-    setFields(10) = h5_dataField(name="PHI",     type=h5_typeReal)
-    setFields(11) = h5_dataField(name="DENSITY", type=h5_typeReal)
-    setFields(12) = h5_dataField(name="PROB",    type=h5_typeReal)
+    setFields(8)  = h5_dataField(name="dE/E",    type=h5_typeReal)
+    setFields(9)  = h5_dataField(name="dP/P",    type=h5_typeReal)
+    setFields(10) = h5_dataField(name="THETA",   type=h5_typeReal)
+    setFields(11) = h5_dataField(name="PHI",     type=h5_typeReal)
+    setFields(12) = h5_dataField(name="DENSITY", type=h5_typeReal)
+    setFields(13) = h5_dataField(name="PROB",    type=h5_typeReal)
 
     call h5_createFormat("scatter_log_fmt", setFields, scatter_logFormat)
     call h5_createDataSet("scatter_log", h5_scatID, scatter_logFormat, scatter_logDataSet)
+    block
+      character(len=:), allocatable :: colNames(:)
+      character(len=:), allocatable :: colUnits(:)
+      logical spErr
+      integer nSplit
+      call chr_split("ID turn bez generator process lost t dE/E dP/P theta phi density prob",colNames,nSplit,spErr)
+      call chr_split("1 1 text text text 1 MeV^2 1 1 mrad rad mb^-1 1",colUnits,nSplit,spErr)
+      call h5_writeDataSetAttr(scatter_logDataSet,"colNames",colNames)
+      call h5_writeDataSetAttr(scatter_logDataSet,"colUnits",colUnits)
+    end block
 
     deallocate(setFields)
 
@@ -200,6 +211,16 @@ subroutine scatter_initialise
 
     call h5_createFormat("scatter_summary_fmt", setFields, scatter_sumFormat)
     call h5_createDataSet("summary", h5_scatID, scatter_sumFormat, scatter_sumDataSet)
+    block
+      character(len=:), allocatable :: colNames(:)
+      character(len=:), allocatable :: colUnits(:)
+      logical spErr
+      integer nSplit
+      call chr_split("turn bez generator process nScatt nLost crossSec scaling",colNames,nSplit,spErr)
+      call chr_split("1 text text text 1 1 mb 1",colUnits,nSplit,spErr)
+      call h5_writeDataSetAttr(scatter_sumDataSet,"colNames",colNames)
+      call h5_writeDataSetAttr(scatter_sumDataSet,"colUnits",colUnits)
+    end block
 
     deallocate(setFields)
 
@@ -227,9 +248,9 @@ subroutine scatter_initialise
 
       open(scatter_logFile,file="scatter_log.dat",status="replace",form="formatted")
       write(scatter_logFile,"(a)") "# scatter_log"
-      write(scatter_logFile,"(a1,a8,1x,a8,2(1x,a20),1x,a8,1x,a4,1x,a13,5(1x,a16))") &
+      write(scatter_logFile,"(a1,a8,1x,a8,2(1x,a20),1x,a8,1x,a4,1x,a13,6(1x,a16))") &
         "#","ID","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8),&
-        "lost","t[MeV^2]","dE/E","theta[mrad]","phi[rad]","density","prob"
+        "lost","t[MeV^2]","dE/E","dP/P","theta[mrad]","phi[rad]","density","prob"
 
       open(scatter_sumFile,file="scatter_summary.dat",status="replace",form="formatted")
       write(scatter_sumFile,"(a)") "# scatter_summary"
@@ -751,7 +772,7 @@ subroutine scatter_thin(iElem, ix, turn)
   integer          i, j, k, iLost, nLost(9), nScatter(9), procID
   integer          tmpSeed1, tmpSeed2
   logical          isDiff, updateE, hasProc(9)
-  real(kind=fPrec) s, t, dEE, theta
+  real(kind=fPrec) s, t, dEE, dPP, theta
   real(kind=fPrec) crossSection, N, P
   real(kind=fPrec) rndPhi(napx), rndP(napx)
   real(kind=fPrec) scaling
@@ -762,7 +783,7 @@ subroutine scatter_thin(iElem, ix, turn)
 #ifdef HDF5
   ! For HDF5 it is best to write in chuncks, so we will make arrays of size napx
   integer                 :: iRecords(3,napx)
-  real(kind=fPrec)        :: rRecords(6,napx)
+  real(kind=fPrec)        :: rRecords(7,napx)
   character(len=mNameLen) :: cRecords(3,napx)
   integer                 :: nRecords
 #endif
@@ -838,28 +859,31 @@ subroutine scatter_thin(iElem, ix, turn)
       end if
 
       ! Ask generator for t and dEE
-      call scatter_generator_getTandE(idGen,t,dEE,procID,iLost,isDiff)
+      call scatter_generator_getTandE(idGen,t,dEE,dPP,procID,iLost,isDiff)
       hasProc(procID)  = .true.
       nScatter(procID) = nScatter(procID) + 1
 
-      ! If lost, flag it
+      ! If lost, flag it, put no need to update energy and angle
       if(scatter_allowLosses .and. iLost == 1) then
         pLost(j)      = .true.
         nLost(procID) = nLost(procID) + 1
-        cycle
-      end if
+        theta         = zero
+        rndPhi(j)     = zero
+      else
+        ! Update particle energy and momentum
+        if(abs(dPP) >= pieni) then
+          ejfv(j) = (one+dPP)*ejfv(j)                                   ! Momentum [MeV/c]
+          ejv(j)  = sqrt(ejfv(j)**2 + nucm(j)**2)                       ! Energy [MeV]
+          theta   = acos_mb(one - (t/((2*ejfv(j)**2)*(one+dPP))))*c1e3  ! Scattering angle [mrad]
+          updateE = .true.                                              ! Re-calculate energy-dependent vectors
+        else
+          theta   = acos_mb(one - (t/(2*ejfv(j)**2)))*c1e3              ! Scatter Angle [mrad]
+        end if
 
-      ! Update particle energy and momentum
-      if(dEE >= pieni) then
-        ejv(j)  = (one + dEE)*ejv(j)              ! Energy
-        ejfv(j) = sqrt(ejv(j)**2 - nucm(j)**2)    ! Momentum
-        updateE = .true.
+        ! Update particle trajectory
+        yv(1,j) = theta*cos_mb(rndPhi(j)) + yv(1,j)
+        yv(2,j) = theta*sin_mb(rndPhi(j)) + yv(2,j)
       end if
-
-      ! Update particle trajectory
-      theta   = (c1e3*sqrt(t))/ejfv(j)            ! Scale to mrad
-      yv(1,j) = theta*cos_mb(rndPhi(j)) + yv(1,j)
-      yv(2,j) = theta*sin_mb(rndPhi(j)) + yv(2,j)
 
       ! Output to file
 #ifdef HDF5
@@ -873,15 +897,16 @@ subroutine scatter_thin(iElem, ix, turn)
         iRecords(3,nRecords) = iLost
         rRecords(1,nRecords) = t
         rRecords(2,nRecords) = dEE
-        rRecords(3,nRecords) = theta
-        rRecords(4,nRecords) = rndPhi(j)
-        rRecords(5,nRecords) = N
-        rRecords(6,nRecords) = P
+        rRecords(3,nRecords) = dPP
+        rRecords(4,nRecords) = theta
+        rRecords(5,nRecords) = rndPhi(j)
+        rRecords(6,nRecords) = N
+        rRecords(7,nRecords) = P
       else
 #endif
-        write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f13.3,5(1x,1pe16.9))") &
+        write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f13.3,6(1x,1pe16.9))") &
           j, turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(idGen,1))),20), &
-          scatter_procNames(procID), iLost, t, dEE, theta, rndPhi(j), N, P
+          scatter_procNames(procID), iLost, t, dEE, dPP, theta, rndPhi(j), N, P
 #ifdef HDF5
       end if
 #endif
@@ -910,6 +935,7 @@ subroutine scatter_thin(iElem, ix, turn)
       call h5_writeData(scatter_logDataSet, 10, nRecords, rRecords(4,1:nRecords))
       call h5_writeData(scatter_logDataSet, 11, nRecords, rRecords(5,1:nRecords))
       call h5_writeData(scatter_logDataSet, 12, nRecords, rRecords(6,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 13, nRecords, rRecords(7,1:nRecords))
       call h5_finaliseWrite(scatter_logDataSet)
 
       do k=1,9
@@ -1086,7 +1112,7 @@ end function scatter_generator_getCrossSection
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
-subroutine scatter_generator_getTandE(genID, t, dEE, procID, iLost, isDiff)
+subroutine scatter_generator_getTandE(genID, t, dEE, dPP, procID, iLost, isDiff)
 
   use, intrinsic :: iso_c_binding
   use crcoall
@@ -1096,6 +1122,7 @@ subroutine scatter_generator_getTandE(genID, t, dEE, procID, iLost, isDiff)
   integer,          intent(in)  :: genID
   real(kind=fPrec), intent(out) :: t
   real(kind=fPrec), intent(out) :: dEE
+  real(kind=fPrec), intent(out) :: dPP
   integer,          intent(out) :: procID
   integer,          intent(out) :: iLost
   logical,          intent(out) :: isDiff
@@ -1133,7 +1160,7 @@ subroutine scatter_generator_getTandE(genID, t, dEE, procID, iLost, isDiff)
 
 #ifdef PYTHIA
 10  continue
-    call pythia_getEvent(evStat, evType, t, dEE)
+    call pythia_getEvent(evStat, evType, t, dEE, dPP)
     nRetry = nRetry + 1
     if(nRetry > 100) then
       write(lout,"(a)") "SCATTER> WARNING Pythia failed to generate event. Skipping Particle."

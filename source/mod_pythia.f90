@@ -108,11 +108,11 @@ module mod_pythia
       real(kind=C_DOUBLE), intent(inout) :: sigTot, sigEl
     end subroutine pythia_getCrossSection
 
-    subroutine pythia_getEvent(status,code,t,xi) bind(C, name="pythiaWrapper_getEvent")
+    subroutine pythia_getEvent(status,code,t,dEE,dPP) bind(C, name="pythiaWrapper_getEvent")
       use, intrinsic :: iso_c_binding
       logical(kind=C_BOOL), intent(inout) :: status
       integer(kind=C_INT),  intent(inout) :: code
-      real(kind=C_DOUBLE),  intent(inout) :: t,xi
+      real(kind=C_DOUBLE),  intent(inout) :: t,dEE,dPP
     end subroutine pythia_getEvent
 
   end interface
