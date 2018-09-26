@@ -1,0 +1,15 @@
+Tests:
+- thin6d test based on LHC lattice with ELEN inserted at IP4.
+- machine set for Pb ions, 450 Z GeV;
+
+Test tracks 18 particles for 10k turns:
+- 6 protons, 6 Xe ions, 6 Pb ions;
+- for each species:
+  - 2 on-momentum particles, with ~0 and ~6sig (30degs on xy-plane) amplitude;
+  - 2 off-momentum particles, with same starting conditions (betatron) and -2*sigdpp;
+  - 2 off-momentum particles, with same starting conditions (betatron) and +2*sigdpp;
+
+Manual check:
+- all particles are dumped at the first turn at every element;
+- all particles are dumped at the first element at every turn;
+The python script shows the output of the two dumps.

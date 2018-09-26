@@ -235,12 +235,13 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 !YIL Copied this here, think these are all variables in need of an update
 !++  Energy update, as recommended by Frank [comment from collimat part]
 !
-     ejfv(j)=sqrt(ejv(j)*ejv(j)-pma*pma)
-     rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-     dpsv(j)=(ejfv(j)-e0f)/e0f
-     oidpsv(j)=one/(one+dpsv(j))
-     dpsv1(j)=dpsv(j)*c1e3*oidpsv(j)
-
+    ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+    dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+    oidpsv(j)=one/(one+dpsv(j))
+    moidpsv(j)=mtc(j)/(one+dpsv(j))
+    omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+    dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 ! writing down the scattering location information
   write(667,*) ipart(j),iturn,totals,xv(1,j),      &
  &   yv(1,j),xv(2,j),yv(2,j),sigmv(j),oldCoordinates(3),            &

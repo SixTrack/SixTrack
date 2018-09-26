@@ -60,10 +60,13 @@ subroutine part_updateEnergy(refEnergy)
     moidpsv(j)  = mtc(j)/(one + dpsv(j))             ! Relative rigidity offset (mod_hions) [MV/c^2]
     omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
     rvv(j)      = (ejv(j)*e0f)/(e0*ejfv(j))          ! Beta_0 / beta(j)
-
-    ! Also update sigmv with the new beta0 = e0f/e0
-    if(e0 /= e0o) sigmv(j) = ((e0f*e0o)/(e0fo*e0))*sigmv(j)
   end do
+
+  if(e0 /= e0o) then
+    ! Also update sigmv with the new beta0 = e0f/e0
+    sigmv = ((e0f*e0o)/(e0fo*e0))*sigmv
+  end if
+
   if(ithick == 1 .and. e0 /= e0o) call synuthck
 
 end subroutine part_updateEnergy
