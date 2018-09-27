@@ -225,7 +225,7 @@ subroutine scatter_initialise
     deallocate(setFields)
 
     ! Write Attributes
-    call h5_writeAttr(h5_scatID,"SEED",(/scatter_seed1,scatter_seed2/))
+    call h5_writeAttr(h5_scatID,"SEED",scatter_seed1)
   else
 #endif
 
@@ -717,6 +717,7 @@ subroutine scatter_parseSeed(lnSplit, nSplit, iErr)
 
   use crcoall
   use strings
+  use mod_ranecu
   use string_tools
 
   implicit none
@@ -725,17 +726,20 @@ subroutine scatter_parseSeed(lnSplit, nSplit, iErr)
   integer,                   intent(in)    :: nSplit
   logical,                   intent(inout) :: iErr
 
+  integer tmpSeed
+
   ! Check the number of arguments
-  if(nSplit /= 3) then
-    write(lout,"(a)") "SCATTER> ERROR SEED expected 2 arguments:"
-    write(lout,"(a)") "SCATTER>       GEN seed1 seed2"
+  if(nSplit /= 2) then
+    write(lout,"(a)") "SCATTER> ERROR SEED expected 1 arguments:"
+    write(lout,"(a)") "SCATTER>       SEED seed"
     iErr = .true.
     return
   end if
 
-  ! Read the seeds
-  call str_cast(lnSplit(2), scatter_seed1, iErr)
-  call str_cast(lnSplit(3), scatter_seed2, iErr)
+  ! Read the seed and initialise ranecu
+  call str_cast(lnSplit(2), tmpSeed, iErr)
+  call recuinit(tmpSeed)
+  call recuut(scatter_seed1, scatter_seed2)
 
 end subroutine scatter_parseSeed
 
