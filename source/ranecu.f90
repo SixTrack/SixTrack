@@ -4,15 +4,15 @@
 !
 ! References:
 !
-! F. James, A review of pseudorandom number generators,
-!  Computer Physics Communications,
-!  Volume 60, Issue 3, 1990, Pages 329-344, ISSN 0010-4655,
-!  https://doi.org/10.1016/0010-4655(90)90032-V.
-!  http://www.sciencedirect.com/science/article/pii/001046559090032V
+! [1] F. James, A review of pseudorandom number generators,
+!     Computer Physics Communications,
+!     Volume 60, Issue 3, 1990, Pages 329-344, ISSN 0010-4655,
+!     https://doi.org/10.1016/0010-4655(90)90032-V.
+!     http://www.sciencedirect.com/science/article/pii/001046559090032V
 !
-! P. L'Ecuyer. 1988. Efficient and portable combined random number generators.
-!  Commun. ACM 31, 6 (June 1988), 742-751. DOI=10.1145/62959.62969
-!  http://doi.acm.org/10.1145/62959.62969
+! [2] P. L'Ecuyer. 1988. Efficient and portable combined random number generators.
+!     Commun. ACM 31, 6 (June 1988), 742-751. DOI=10.1145/62959.62969
+!     http://doi.acm.org/10.1145/62959.62969
 !
 ! ================================================================================================ !
 module mod_ranecu
@@ -72,6 +72,38 @@ subroutine ranecu(rvec,len,mcut)
   return
 
 end subroutine ranecu
+
+! Init the random generator, that is, set seeds with proper value checks as described in [2]
+subroutine recuinit(is1,is2)
+
+  use crcoall
+
+  integer,           intent(in) :: is1
+  integer, optional, intent(in) :: is2
+
+  if(is1 < 1 .or. is1 > 2147483562) then
+    write(lout,"(a,i0)") "RANECU> ERROR Seed 1 must be an integer in the range 1 to 2147483562, got ", is1
+    call prror(-1)
+  else
+    iseed1 = is1
+  end if
+
+  if(present(is2)) then
+    if(is2 < 1 .or. is2 > 2147483398) then
+      write(lout,"(a,i0)") "RANECU> ERROR Seed 2 must be an integer in the range 1 to 2147483398, got ", is2
+      call prror(-1)
+    else
+      iseed2 = is2
+    end if
+  else
+    iseed2 = iseed1 + 19770404
+    if(iseed2 > 2147483398) then
+      ! Subtract max of seed 1 to ensure lower than max of seed 2
+      iseed2 = iseed2 - 2147483562
+    end if
+  end if
+
+end subroutine recuinit
 
 ! Set the seeds
 subroutine recuin(is1,is2)
