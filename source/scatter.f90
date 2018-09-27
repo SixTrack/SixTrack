@@ -893,7 +893,7 @@ subroutine scatter_thin(iElem, ix, turn)
 #ifdef HDF5
       if(h5_useForSCAT) then
         nRecords = nRecords + 1
-        iRecords(1,nRecords) = j
+        iRecords(1,nRecords) = nlostp(j)
         iRecords(2,nRecords) = turn
         cRecords(1,nRecords) = bez(ix)
         cRecords(2,nRecords) = trim(scatter_cData(scatter_GENERATOR(idGen,1)))
@@ -909,7 +909,7 @@ subroutine scatter_thin(iElem, ix, turn)
       else
 #endif
         write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f13.3,6(1x,1pe16.9))") &
-          j, turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(idGen,1))),20), &
+          nlostp(j), turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(idGen,1))),20), &
           scatter_procNames(procID), iLost, t, dEE, dPP, theta, rndPhi(j), N, P
 #ifdef HDF5
       end if
