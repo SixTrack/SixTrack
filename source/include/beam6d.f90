@@ -12,6 +12,9 @@ do j=1,napx
   track6d(5,j) = track6d(5,j)/rvv(j)
 
 end do
+
+
+print *, "bbbbccccuuuu", bbcu(imbb(i),:)
 call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc)
 do j=1,napx
   xv(1,j)=(track6d(1,j)*c1e3+clobeam(1,imbb(i)))-beamoff(1,imbb(i))

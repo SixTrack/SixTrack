@@ -1703,8 +1703,13 @@ subroutine initialize_element(ix,lfirst)
       logical, intent(in) :: lfirst
 
       !Temp variables
-      integer i, m, k, im, nmz, izu
-      real(kind=fPrec) r0, r0a, bkitemp
+      integer i, m, k, im, nmz, izu, ibb, ii
+      real(kind=fPrec) r0, r0a, bkitemp,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5
+
+
+
+
+
 
 !--Nonlinear Elements
 ! TODO: Merge these cases into 1 + subcases?
@@ -1905,6 +1910,49 @@ subroutine initialize_element(ix,lfirst)
         if (.not.lfirst) then
           do i=1,iu
             if ( ic(i)-nblo.eq.ix ) then
+            ibb=imbb(i)
+            if(parbe(ix,2).gt.zero) then
+               print *, "for expeeeeert flagDYYYY!!!"
+               bbcu(ibb,1)=parbe(ix,7)
+               bbcu(ibb,4)=parbe(ix,8)
+               bbcu(ibb,6)=parbe(ix,9)
+               bbcu(ibb,2)=parbe(ix,10)
+               bbcu(ibb,9)=parbe(ix,11)
+               bbcu(ibb,10)=parbe(ix,12)
+               bbcu(ibb,3)=parbe(ix,13)
+               bbcu(ibb,5)=parbe(ix,14)
+               bbcu(ibb,7)=parbe(ix,15)
+               bbcu(ibb,8)=parbe(ix,16)
+            endif
+          if(ibbc.eq.1) then
+            print *, "are we evereeeeer here?"
+          sfac1=bbcu(ibb,1)+bbcu(ibb,2)
+          sfac2=bbcu(ibb,1)-bbcu(ibb,2)
+          sfac2s=one
+          if(sfac2.lt.zero) sfac2s=-one                            !hr08
+          sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          !hr03
+          if(sfac3.gt.sfac1) call prror(103)
+          sfac4=(sfac2s*sfac2)/sfac3                                   !hr03
+          sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3                !hr03
+          sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)    !hr03
+          sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)    !hr03
+          bbcu(ibb,11)=sqrt(half*(one+sfac4))
+          bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))            !hr03
+          if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)       !hr03
+        else
+          print *, " ibbc not 0000 are we evereeeeer here? DYNK"
+          bbcu(ibb,11)=one
+          sigman(1,ibb)=sqrt(bbcu(ibb,1))
+          sigman(2,ibb)=sqrt(bbcu(ibb,2))
+        endif
+        
+        if(parbe(ix,2).gt.zero) then !6D -> convert units
+          do ii=1,10
+            bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
+          enddo
+        endif
+      
+
               track6d(1,1)=parbe(ix,5)*c1m3
               track6d(2,1)=zero
               track6d(3,1)=parbe(ix,6)*c1m3

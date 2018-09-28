@@ -239,7 +239,7 @@ set +e #From here on we catch errors manually...
 # http://stackoverflow.com/questions/6087494/bash-inserting-quotes-into-string-before-execution
 #Use TEE:
 # http://stackoverflow.com/questions/692000/how-do-i-write-stderr-to-a-file-while-using-tee-with-a-pipe
-eval cmake -G \"Unix Makefiles\"  $CMAKE_OPTIONS_LIST ../../. > >(tee cmake_stdout_log.txt) 2> >(tee cmake_stderr_log.txt)
+eval cmake3 -G \"Unix Makefiles\"  $CMAKE_OPTIONS_LIST ../../. > >(tee cmake_stdout_log.txt) 2> >(tee cmake_stderr_log.txt)
 
 if [ $? != 0 ]; then
     echo ""
