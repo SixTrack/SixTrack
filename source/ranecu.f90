@@ -14,6 +14,14 @@
 !     Commun. ACM 31, 6 (June 1988), 742-751. DOI=10.1145/62959.62969
 !     http://doi.acm.org/10.1145/62959.62969
 !
+! Usage:
+!
+! recuinit  This routine is meant to be used for initialising the random number series based on user
+!           input from input files. It has the additional boundary checks that recuin does not have,
+!           and in addition also allows for setting only one seed, to which a value is added to
+!           generate the second seed.
+! recuin    Takes two seeds as input to continue a random number series already initialised.
+! recuut    Returns the two seeds of a random number series so that it can be continued later.
 ! ================================================================================================ !
 module mod_ranecu
 
@@ -106,6 +114,7 @@ subroutine recuinit(is1,is2)
 end subroutine recuinit
 
 ! Set the seeds
+! The recuin routine to be used for continuing a random number stream with seeds extracted using recuut()
 subroutine recuin(is1,is2)
   integer, intent(in) :: is1, is2
   iseed1 = is1
