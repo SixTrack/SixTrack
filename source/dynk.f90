@@ -2427,15 +2427,15 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
       ! Not yet supported : AC dipole (16)
 
-      ! Not yet supported : beam-beam separation (20)
+     
       case(20)
        if (att_name == "h-sep") then ! [mm]
          parbe(ii,5) = newValue
        else if (att_name == "v-sep") then ! [mm]
          parbe(ii,6) = newValue
-       else if (att_name=="strongxx") then !strong I think
+       else if (att_name=="4dSxx") then !strong I think
          parbe(ii,1) = newValue
-       else if (att_name=="strongyy") then
+       else if (att_name=="4dSyy") then
          parbe(ii,3) = newValue
        else if (att_name == "strength") then ! 
          ptnfac(ii) = newValue
@@ -2629,9 +2629,9 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
            dynk_getvalue = parbe(ii,5)  
        else if (att_name == "v-sep") then ! [mm]
            dynk_getvalue = parbe(ii,6)  
-       else if (att_name=="strongxx") then !strong I think
+       else if (att_name=="4dSxx") then !strong I think
         dynk_getvalue = parbe(ii,1)  
-       else if (att_name=="strongyy") then
+       else if (att_name=="4dSyy") then
         dynk_getvalue = parbe(ii,3)  
        else if (att_name == "strength") then ! 
         dynk_getvalue = ptnfac(ii)

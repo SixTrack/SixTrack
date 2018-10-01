@@ -832,6 +832,7 @@ subroutine umlauda
             clobeam(6,imbb(i))=dare(dpda)
           endif
         endif
+        print *, "4ddd beforeeeeeeee sigma checks.."
         if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
           if(ibeco.eq.1) then
             if(ibbc.eq.0) then
