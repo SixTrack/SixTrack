@@ -1739,11 +1739,12 @@ subroutine initialize_element(ix,lfirst)
 
       !Temp variables
       integer i, m, k, im, nmz, izu, ibb, ii,j
-      real(kind=fPrec) r0, r0a, bkitemp,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5
+      real(kind=fPrec) r0, r0a, bkitemp,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5,  crkveb_d, cikveb_d, &
+      rho2b_d,tkb_d,r2b_d,rb_d,rkb_d,xrb_d,zrb_d,cbxb_d,cbzb_d,crxb_d,crzb_d,xbb_d,zbb_d
       real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
       rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
       cbzb(npart)
-
+   
       integer :: nbeaux(500)
 
 
@@ -2053,35 +2054,39 @@ print *, "sigggmannnn" ,sigman(1,imbb(i)), sigman(2,imbb(i))
 
                  !hr08
             strack(i)=crad*ptnfac(ix)
+
+if(ibbc.eq.0) then
+  crkveb_d=parbe(ix,5)
+  cikveb_d=parbe(ix,6)
+else
+  crkveb_d=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
+  cikveb_d=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
+endif
+
+
             if(abs(strack(i)).le.pieni) then
               ktrack(i)=31
             endif
             if(nbeaux(imbb(i)).eq.1) then
               ktrack(i)=41
               if(ibeco.eq.1) then
-                do 42 j=1,napx
-! end include/beams21.f90
-! start include/beamcoo.f90
-if(ibbc.eq.0) then
-  crkveb(j)=parbe(ix,5)
-  cikveb(j)=parbe(ix,6)
-else
-  crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
-  cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
-endif
-print *, "dyyyyyyynk", crkveb(j), cikveb(j)
+                do 42 j=1,1
+
+
+
+
 ! end include/beamcoo.f90
 ! start include/beamr1.f90
-rho2b(j)=crkveb(j)**2+cikveb(j)**2                           !hr08
-if(rho2b(j).le.pieni)                                       &
+rho2b_d=crkveb_d**2+cikveb_d**2                           !hr08
+if(rho2b_d.le.pieni)                                       &
 ! end include/beamr1.f90
   &goto 42
 ! start include/beamr2.f90
-tkb(j)=rho2b(j)/(two*sigman2(1,imbb(i)))
+tkb_d=rho2b_d/(two*sigman2(1,imbb(i)))
 ! end include/beamr2.f90
 ! start include/beamr3o.f90
-beamoff(4,imbb(i))=((strack(i)*crkveb(j))/rho2b(j))*(one-exp_mb(-one*tkb(j)))
-beamoff(5,imbb(i))=((strack(i)*cikveb(j))/rho2b(j))*(one-exp_mb(-one*tkb(j)))
+beamoff(4,imbb(i))=((strack(i)*crkveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
+beamoff(5,imbb(i))=((strack(i)*cikveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
 ! end include/beamr3o.f90
 ! start include/beams22.f90
 42 continue
@@ -2096,77 +2101,67 @@ if(ibtyp.eq.0) then
 ! end include/beams22.f90
 ! start include/beam11.f90
 do j=1,napx
-  r2b(j)=two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
+  r2b_d=two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
 ! end include/beam11.f90
 ! start include/beama1.f90
-rb(j)=sqrt(r2b(j))
-rkb(j)=(strack(i)*pisqrt)/rb(j)                            !hr03
+rb_d=sqrt(r2b_d)
+rkb_d=(strack(i)*pisqrt)/rb_d                            !hr03
 ! end include/beama1.f90
 ! start include/beamcoo.f90
-if(ibbc.eq.0) then
-  crkveb(j)=parbe(ix,5)
-  cikveb(j)=parbe(ix,6)
-else
-  crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
-  cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
-endif
+
 ! end include/beamcoo.f90
 ! start include/beama2.f90
-xrb(j)=abs(crkveb(j))/rb(j)
-zrb(j)=abs(cikveb(j))/rb(j)
+xrb_d=abs(crkveb_d)/rb_d
+zrb_d=abs(cikveb_d)/rb_d
 ! end include/beama2.f90
 ! start include/beam12.f90
-call errf(xrb(j),zrb(j),crxb(j),crzb(j))
+call errf(xrb_d,zrb_d,crxb_d,crzb_d)
 ! end include/beam12.f90
 ! start include/beama3.f90
-tkb(j)=(crkveb(j)**2/sigman2(1,imbb(i))+cikveb(j)**2/sigman2(2,imbb(i)))*half                              !hr03
-xbb(j)=sigmanq(2,imbb(i))*xrb(j)
-zbb(j)=sigmanq(1,imbb(i))*zrb(j)
+tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              !hr03
+xbb_d=sigmanq(2,imbb(i))*xrb_d
+zbb_d=sigmanq(1,imbb(i))*zrb_d
 ! end include/beama3.f90
 ! start include/beam13.f90
-call errf(xbb(j),zbb(j),cbxb(j),cbzb(j))
+call errf(xbb_d,zbb_d,cbxb(j),cbzb(j))
 ! end include/beam13.f90
 ! start include/beama4o.f90
-  beamoff(4,imbb(i))=(rkb(j)*(crzb(j)-exp_mb(-one*tkb(j))*cbzb(j)))*sign(one,crkveb(j))
-  beamoff(5,imbb(i))=(rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*cbxb(j)))*sign(one,cikveb(j))
+  beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb(j)))*sign(one,crkveb_d)
+  beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb(j)))*sign(one,cikveb_d)
 end do
 ! end include/beama4o.f90
         else if(ibtyp.eq.1) then
 ! start include/beam11.f90
 do j=1,napx
-  r2b(j)=two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
+  r2b_d=two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
 ! end include/beam11.f90
 ! start include/beama1.f90
-rb(j)=sqrt(r2b(j))
-rkb(j)=(strack(i)*pisqrt)/rb(j)                            !hr03
+rb_d=sqrt(r2b_d)
+rkb_d=(strack(i)*pisqrt)/rb_d                            !hr03
 ! end include/beama1.f90
 ! start include/beamcoo.f90
-if(ibbc.eq.0) then
-  crkveb(j)=parbe(ix,5)
-  cikveb(j)=parbe(ix,6)
-else
-  crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
-  cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
-endif
+
 ! end include/beamcoo.f90
 ! start include/beama2.f90
-xrb(j)=abs(crkveb(j))/rb(j)
-zrb(j)=abs(cikveb(j))/rb(j)
+xrb_d=abs(crkveb_d)/rb_d
+zrb_d=abs(cikveb_d)/rb_d
 ! end include/beama2.f90
 ! start include/beama3.f90
-tkb(j)=(crkveb(j)**2/sigman2(1,imbb(i))+cikveb(j)**2/sigman2(2,imbb(i)))*half                              !hr03
-xbb(j)=sigmanq(2,imbb(i))*xrb(j)
-zbb(j)=sigmanq(1,imbb(i))*zrb(j)
+tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              !hr03
+xbb_d=sigmanq(2,imbb(i))*xrb_d
+zbb_d=sigmanq(1,imbb(i))*zrb_d
 ! end include/beama3.f90
 ! start include/beamwzf1.f90
 end do
-call wzsubv(napx,xrb(1),zrb(1),crxb(1),crzb(1))
-call wzsubv(napx,xbb(1),zbb(1),cbxb(1),cbzb(1))
-do j=1,napx
+
+!call wzsubv(napx,xrb_d,zrb_d,crxb_d,crzb_d)
+!call wzsubv(napx,xbb_d,zbb_d,cbxb_d,cbzb_d)
+
+do j=1,1
 ! end include/beamwzf1.f90
 ! start include/beama4o.f90
-  beamoff(4,imbb(i))=(rkb(j)*(crzb(j)-exp_mb(-one*tkb(j))*cbzb(j)))*sign(one,crkveb(j))
-  beamoff(5,imbb(i))=(rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*cbxb(j)))*sign(one,cikveb(j))
+  beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb(j)))*sign(one,crkveb_d)
+  beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb(j)))*sign(one,cikveb_d)
 end do
 ! end include/beama4o.f90
 ! start include/beams23.f90
@@ -2180,78 +2175,66 @@ if(ibeco.eq.1) then
 if(ibtyp.eq.0) then
 ! end include/beams23.f90
 ! start include/beam21.f90
-do j=1,napx
-  r2b(j)=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
+do j=1,1
+  r2b_d=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
 ! end include/beam21.f90
 ! start include/beama1.f90
-rb(j)=sqrt(r2b(j))
-rkb(j)=(strack(i)*pisqrt)/rb(j)                            !hr03
+rb_d=sqrt(r2b_d)
+rkb_d=(strack(i)*pisqrt)/rb_d                            !hr03
 ! end include/beama1.f90
 ! start include/beamcoo.f90
-if(ibbc.eq.0) then
-  crkveb(j)=parbe(ix,5)
-  cikveb(j)=parbe(ix,6)
-else
-  crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
-  cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
-endif
+
 ! end include/beamcoo.f90
 ! start include/beama2.f90
-xrb(j)=abs(crkveb(j))/rb(j)
-zrb(j)=abs(cikveb(j))/rb(j)
+xrb_d=abs(crkveb_d)/rb_d
+zrb_d=abs(cikveb_d)/rb_d
 ! end include/beama2.f90
 ! start include/beam22.f90
-call errf(zrb(j),xrb(j),crzb(j),crxb(j))
+call errf(zrb_d,xrb_d,crzb_d,crxb_d)
 ! end include/beam22.f90
 ! start include/beama3.f90
-tkb(j)=(crkveb(j)**2/sigman2(1,imbb(i))+cikveb(j)**2/sigman2(2,imbb(i)))*half                              !hr03
-xbb(j)=sigmanq(2,imbb(i))*xrb(j)
-zbb(j)=sigmanq(1,imbb(i))*zrb(j)
+tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              !hr03
+xbb_d=sigmanq(2,imbb(i))*xrb_d
+zbb_d=sigmanq(1,imbb(i))*zrb_d
 ! end include/beama3.f90
 ! start include/beam23.f90
-call errf(zbb(j),xbb(j),cbzb(j),cbxb(j))
+call errf(zbb_d,xbb_d,cbzb(j),cbxb(j))
 ! end include/beam23.f90
 ! start include/beama4o.f90
-  beamoff(4,imbb(i))=(rkb(j)*(crzb(j)-exp_mb(-one*tkb(j))*cbzb(j)))*sign(one,crkveb(j))
-  beamoff(5,imbb(i))=(rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*cbxb(j)))*sign(one,cikveb(j))
+  beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb(j)))*sign(one,crkveb_d)
+  beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb(j)))*sign(one,cikveb_d)
 end do
 ! end include/beama4o.f90
         else if(ibtyp.eq.1) then
 ! start include/beam21.f90
-do j=1,napx
-  r2b(j)=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
+do j=1,1
+  r2b_d=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
 ! end include/beam21.f90
 ! start include/beama1.f90
-rb(j)=sqrt(r2b(j))
-rkb(j)=(strack(i)*pisqrt)/rb(j)                            !hr03
+rb_d=sqrt(r2b_d)
+rkb_d=(strack(i)*pisqrt)/rb_d                            !hr03
 ! end include/beama1.f90
 ! start include/beamcoo.f90
-if(ibbc.eq.0) then
-  crkveb(j)=parbe(ix,5)
-  cikveb(j)=parbe(ix,6)
-else
-  crkveb(j)=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
-  cikveb(j)=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
-endif
+
 ! end include/beamcoo.f90
 ! start include/beama2.f90
-xrb(j)=abs(crkveb(j))/rb(j)
-zrb(j)=abs(cikveb(j))/rb(j)
+xrb_d=abs(crkveb_d)/rb_d
+zrb_d=abs(cikveb_d)/rb_d
 ! end include/beama2.f90
 ! start include/beama3.f90
-tkb(j)=(crkveb(j)**2/sigman2(1,imbb(i))+cikveb(j)**2/sigman2(2,imbb(i)))*half                              !hr03
-xbb(j)=sigmanq(2,imbb(i))*xrb(j)
-zbb(j)=sigmanq(1,imbb(i))*zrb(j)
+tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              !hr03
+xbb_d=sigmanq(2,imbb(i))*xrb_d
+zbb_d=sigmanq(1,imbb(i))*zrb_d
 ! end include/beama3.f90
 ! start include/beamwzf2.f90
 end do
 call wzsubv(napx,zrb(1),xrb(1),crzb(1),crxb(1))
 call wzsubv(napx,zbb(1),xbb(1),cbzb(1),cbxb(1))
-do j=1,napx
+do j=1,1
 ! end include/beamwzf2.f90
 ! start include/beama4o.f90
-  beamoff(4,imbb(i))=(rkb(j)*(crzb(j)-exp_mb(-one*tkb(j))*cbzb(j)))*sign(one,crkveb(j))
-  beamoff(5,imbb(i))=(rkb(j)*(crxb(j)-exp_mb(-one*tkb(j))*cbxb(j)))*sign(one,cikveb(j))
+  beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb(j)))*sign(one,crkveb_d)
+  beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb(j)))*sign(one,cikveb_d)
 end do
 ! end include/beama4o.f90
 ! start include/beams24.f90
