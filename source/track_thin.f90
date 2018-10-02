@@ -74,7 +74,7 @@ subroutine trauthin(nthinerr)
     strackc(i)=zero
     stracks(i)=zero
   end do
-#include "include/beams1.f90"
+
 
   do 290 i=1,iu
     if(mout2.eq.1.and.i.eq.1) call fluc_writeFort4
@@ -132,6 +132,7 @@ if(kzz.eq.20.and.parbe(ix,2).gt.zero) then                   !hr03
     beamoff(6,imbb(i))=track6d(6,1)
     napx=napx0
   endif
+  !call initialize_element(ix,.false.)
   goto 290
 endif
 
