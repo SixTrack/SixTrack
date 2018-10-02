@@ -65,8 +65,11 @@ if(GIT_FOUND)
 	execute_process(COMMAND git log -n1 --pretty=format:%H WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_REVISION)
 	string(STRIP ${GIT_REVISION} GIT_REVISION)
 	message(STATUS "Git Revision: ${GIT_REVISION}")
+	string(SUBSTRING ${GIT_REVISION} 0 7 GIT_BUILD)
+	set(GIT_BUILD "-${GIT_BUILD}")
 else()
 	message(STATUS "Git Revision: git not installed.")
+	set(GIT_BUILD "")
 endif()
 
 ###################################################################################################
@@ -255,8 +258,8 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 endif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 
 # Create the sixtrack binary name string
-set(SIXTRACK_BINARY_NAME    "${PROJECT_NAME}_${NUM_VERSION}_${SIXTRACK_FEAT_CR}")
-set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}_${SIXTRACK_FEAT_DA}")
+set(SIXTRACK_BINARY_NAME    "${PROJECT_NAME}_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_CR}")
+set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA}")
 
 ###################################################################################################
 # Setting the c pre-processor definitons
@@ -277,7 +280,7 @@ list(APPEND FORT90_LIB
 	bouncy_castle plato_seq bdex fma dabnew end_sixtrack
 	ranecu wire hions elens mod_dist scatter dump dynk
 	aperture mod_fluc beam6d_fox six_fox postprocessing
-	read_input ranlux collimation mod_particles
+	read_input ranlux collimation mod_particles cheby utils
 )
 
 # Files unique to DA or CR version
@@ -379,10 +382,10 @@ endif(ROOT)
 
 if(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMAT OR CERNLIB)
 
-    find_package(Threads REQUIRED)
-    if(NOT Threads_FOUND)
-        message(FATAL_ERROR "Could not find a thread library! This is required for your selected build configuration.")
-    endif(NOT Threads_FOUND)
+	find_package(Threads REQUIRED)
+	if(NOT Threads_FOUND)
+		message(FATAL_ERROR "Could not find a thread library! This is required for your selected build configuration.")
+	endif(NOT Threads_FOUND)
 
 endif(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMAT OR CERNLIB)
 
