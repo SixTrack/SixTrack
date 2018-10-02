@@ -2153,10 +2153,8 @@ zbb_d=sigmanq(1,imbb(i))*zrb_d
 ! end include/beama3.f90
 ! start include/beamwzf1.f90
 end do
-
 !call wzsubv(napx,xrb_d,zrb_d,crxb_d,crzb_d)
 !call wzsubv(napx,xbb_d,zbb_d,cbxb_d,cbzb_d)
-
 do j=1,1
 ! end include/beamwzf1.f90
 ! start include/beama4o.f90
