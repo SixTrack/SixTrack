@@ -105,47 +105,35 @@ subroutine trauthin(nthinerr)
       ktrack(i)=31
       goto 290
     endif
-#include "include/beams21.f90"
-#include "include/beamcoo.f90"
-#include "include/beamr1.f90"
-  &goto 42
-#include "include/beamr2.f90"
-#include "include/beamr3o.f90"
-#include "include/beams22.f90"
-#include "include/beam11.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beam12.f90"
-#include "include/beama3.f90"
-#include "include/beam13.f90"
-#include "include/beama4o.f90"
-        else if(ibtyp.eq.1) then
-#include "include/beam11.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beama3.f90"
-#include "include/beamwzf1.f90"
-#include "include/beama4o.f90"
-#include "include/beams23.f90"
-#include "include/beam21.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beam22.f90"
-#include "include/beama3.f90"
-#include "include/beam23.f90"
-#include "include/beama4o.f90"
-        else if(ibtyp.eq.1) then
-#include "include/beam21.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beama3.f90"
-#include "include/beamwzf2.f90"
-#include "include/beama4o.f90"
-#include "include/beams24.f90"
+if(kzz.eq.20.and.nbeam.ge.1.and.parbe(ix,2).eq.zero) then
+  call initialize_element(ix,.false.)
+end if
+
+if(kzz.eq.20.and.parbe(ix,2).gt.zero) then                   !hr03
+  ktrack(i)=44
+  parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6               !hr03
+  if(ibeco.eq.1) then
+    track6d(1,1)=parbe(ix,5)*c1m3
+    track6d(2,1)=zero
+    track6d(3,1)=parbe(ix,6)*c1m3
+    track6d(4,1)=zero
+    track6d(5,1)=zero
+    track6d(6,1)=zero
+    napx0=napx
+    napx=1
+
+    call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc)
+
+    beamoff(1,imbb(i))=track6d(1,1)*c1e3
+    beamoff(2,imbb(i))=track6d(3,1)*c1e3
+    beamoff(3,imbb(i))=track6d(5,1)*c1e3
+    beamoff(4,imbb(i))=track6d(2,1)*c1e3
+    beamoff(5,imbb(i))=track6d(4,1)*c1e3
+    beamoff(6,imbb(i))=track6d(6,1)
+    napx=napx0
+  endif
+  goto 290
+endif
 
     ! wire
     if(kzz.eq.15) then

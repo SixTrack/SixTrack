@@ -1725,6 +1725,7 @@ subroutine initialize_element(ix,lfirst)
       use crcoall
       use string_tools
       use parpro !Needed for common
+      use parbeam, only : beam_expflag,beam_expfile_open
       use mod_common
       use mod_commont
       use mod_commonmn
@@ -1951,7 +1952,7 @@ subroutine initialize_element(ix,lfirst)
             if ( ic(i)-nblo.eq.ix ) then
             ibb=imbb(i)
             if(parbe(ix,2).gt.zero) then
-               print *, "for expeeeeert flagDYYYY!!!"
+              
                bbcu(ibb,1)=parbe(ix,7)
                bbcu(ibb,4)=parbe(ix,8)
                bbcu(ibb,6)=parbe(ix,9)
@@ -1963,6 +1964,7 @@ subroutine initialize_element(ix,lfirst)
                bbcu(ibb,7)=parbe(ix,15)
                bbcu(ibb,8)=parbe(ix,16)
             endif
+          if(beam_expflag.eq.1) then  
           if(parbe(ix,2).eq.zero) then
           print*, "beffffooorre", bbcu(ibb,:)
              bbcu(ibb,1)=parbe(ix,1)
@@ -1990,7 +1992,7 @@ subroutine initialize_element(ix,lfirst)
           sigman(1,ibb)=sqrt(bbcu(ibb,1))
           sigman(2,ibb)=sqrt(bbcu(ibb,2))
         endif
-
+        endif
         if(parbe(ix,2).gt.zero) then !6D -> convert units
           do ii=1,10
             bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
@@ -2049,7 +2051,12 @@ print *, "sigggmannnn" ,sigman(1,imbb(i)), sigman(2,imbb(i))
             endif
           endif
 
- if(nbeaux(imbb(i)).eq.1) then
+                 !hr08
+            strack(i)=crad*ptnfac(ix)
+            if(abs(strack(i)).le.pieni) then
+              ktrack(i)=31
+            endif
+            if(nbeaux(imbb(i)).eq.1) then
               ktrack(i)=41
               if(ibeco.eq.1) then
                 do 42 j=1,napx
