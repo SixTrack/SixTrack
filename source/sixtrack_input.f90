@@ -3141,8 +3141,8 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
       if(nSplit > 7) call chr_cast(lnSplit(8),sxy,   iErr)
 
       if(ibsix == 0) then
-        if( (nSplit < 7) .or. (nSplit > 8) ) then
-          write(lout,"(a,i0)") "BEAM> ERROR First line of a 4D element definition should have 7 fields, got ",nSplit
+        if( nSplit < 7 .or. nSplit > 8 ) then
+          write(lout,"(a,i0)") "BEAM> ERROR First line of a 4D element definition should have 7  or 8 fields, got ",nSplit
           iErr = .true.
           return
         end if
