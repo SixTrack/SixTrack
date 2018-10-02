@@ -596,7 +596,17 @@ end interface
 #endif
 
     ! dump aperture model
-    if (ldmpaper) call dump_aperture_model
+    if (ldmpaper) then
+#ifdef HDF5
+      if(h5_useForAPER) then
+        call dump_aperture_model_hdf5
+      else
+        call dump_aperture_model
+      end if
+#else
+      call dump_aperture_model
+#endif
+    end if
     ! dump x-sections at specific locations
     if (mxsec.gt.0) call dump_aperture_xsecs
     ! map errors, now that the sequence is no longer going to change
