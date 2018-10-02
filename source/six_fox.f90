@@ -735,12 +735,13 @@ subroutine umlauda
           if(parbe(ix,2).eq.zero) then
              bbcu(ibb,1)=parbe(ix,1)
              bbcu(ibb,2)=parbe(ix,3)
+             bbcu(ibb,3)=parbe(ix,13)
           endif
         else
            write(lout,"(a,i0,a)") "UMLAUDA> ERROR beam_expflag was ",beam_expflag,", expected 0 or 1. This is a BUG!"
            call prror(-1)
         end if
-        
+
         if (.not.beam_expfile_open) then
           call funit_requestUnit("beam_expert.txt",expertUnit)
 #ifdef BOINC
@@ -753,7 +754,7 @@ subroutine umlauda
           !This line will be a comment if copy-pasted into fort.3
           write(expertUnit,"(a,g13.6,a,g13.6,a,g13.6,a)") "/ ******* USING emitx=",emitx,", emity=",emity,", emitz=",emitz," ******"
         endif
-        
+
         if(parbe(ix,2).eq.0.0) then !4D
           !Note: One should always use the CRLIBM version when converting,
           ! in order to guarantee the exact same results from the converted input file.
@@ -762,21 +763,22 @@ subroutine umlauda
           call chr_fromReal(parbe(ix,5),tmpStr(3),19,2,rErr)
           call chr_fromReal(parbe(ix,6),tmpStr(4),19,2,rErr)
           call chr_fromReal(ptnfac(ix),tmpStr(5),19,2,rErr)
-          write(expertUnit,"(a48,1x,a1,5(1x,a25))")  bez(ix),"0",tmpStr(1),tmpStr(2),tmpStr(3),tmpStr(4),tmpStr(5)
+          call chr_fromReal(bbcu(ibb,3),tmpStr(6),19,2,rErr)
+          write(expertUnit,"(a48,1x,a1,6(1x,a25))")  bez(ix),"0",tmpStr(1),tmpStr(2),tmpStr(3),tmpStr(4),tmpStr(5),tmpStr(6)
         else                      ! 6D
           call chr_fromReal(parbe(ix,1),tmpStr(1),19,2,rErr)
           call chr_fromReal(parbe(ix,3),tmpStr(2),19,2,rErr)
           call chr_fromReal(parbe(ix,5),tmpStr(3),19,2,rErr)
           call chr_fromReal(parbe(ix,6),tmpStr(4),19,2,rErr)
           write(expertUnit,"(a48,1x,i4,1x,4(1x,a25))") bez(ix),int(parbe(ix,2)),tmpStr(1),tmpStr(2),tmpStr(3),tmpStr(4)
-        
+
           call chr_fromReal(bbcu(ibb,1),tmpStr(1),19,2,rErr)
           call chr_fromReal(bbcu(ibb,4),tmpStr(2),19,2,rErr)
           call chr_fromReal(bbcu(ibb,6),tmpStr(3),19,2,rErr)
           call chr_fromReal(bbcu(ibb,2),tmpStr(4),19,2,rErr)
           call chr_fromReal(bbcu(ibb,9),tmpStr(5),19,2,rErr)
           write(expertUnit,"(5(a25,1x))") tmpStr(1),tmpStr(2),tmpStr(3),tmpStr(4),tmpStr(5)
-        
+
           call chr_fromReal(bbcu(ibb,10),tmpStr(1),19,2,rErr)
           call chr_fromReal(bbcu(ibb,3),tmpStr(2),19,2,rErr)
           call chr_fromReal(bbcu(ibb,5),tmpStr(3),19,2,rErr)
@@ -785,7 +787,7 @@ subroutine umlauda
           call chr_fromReal(ptnfac(ix), tmpStr(6),19,2,rErr)
           write(expertUnit,"(6(a25,1x))") tmpStr(1),tmpStr(2),tmpStr(3),tmpStr(4),tmpStr(5),tmpStr(6)
         endif !END if(parbe(ix,2).eq.0.0)
-        
+
         if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then
           call prror(88)
         endif
