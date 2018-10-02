@@ -2053,8 +2053,7 @@ subroutine initialize_element(ix,lfirst)
           endif
 
                  !hr08
-            strack(i)=crad*ptnfac(ix)
-
+strack(i)=crad*ptnfac(ix)
 if(ibbc.eq.0) then
   crkveb_d=parbe(ix,5)
   cikveb_d=parbe(ix,6)
@@ -2082,40 +2081,29 @@ endif
 if(nbeaux(imbb(i)).eq.2) then
   ktrack(i)=42
   if(ibeco.eq.1) then
+    r2b_d=two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
+    rb_d=sqrt(r2b_d)
+    rkb_d=(strack(i)*pisqrt)/rb_d                            
+    xrb_d=abs(crkveb_d)/rb_d
+    zrb_d=abs(cikveb_d)/rb_d
     if(ibtyp.eq.0) then
 
-      r2b_d=two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
-
-      rb_d=sqrt(r2b_d)
-      rkb_d=(strack(i)*pisqrt)/rb_d                            !hr03
-      xrb_d=abs(crkveb_d)/rb_d
-      zrb_d=abs(cikveb_d)/rb_d
 
       call errf(xrb_d,zrb_d,crxb_d,crzb_d)
 
 
-      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              !hr03
+      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              
       xbb_d=sigmanq(2,imbb(i))*xrb_d
       zbb_d=sigmanq(1,imbb(i))*zrb_d
 
       call errf(xbb_d,zbb_d,cbxb_d,cbzb_d)
 
-
-
-
-
     else if(ibtyp.eq.1) then
 
-      r2b_d=two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
-      rb_d=sqrt(r2b_d)
-      rkb_d=(strack(i)*pisqrt)/rb_d                            !hr03
 
-      xrb_d=abs(crkveb_d)/rb_d
-      zrb_d=abs(cikveb_d)/rb_d
-      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              !hr03
+      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              
       xbb_d=sigmanq(2,imbb(i))*xrb_d
       zbb_d=sigmanq(1,imbb(i))*zrb_d
-
     endif
   endif
   beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
@@ -2134,7 +2122,6 @@ ktrack(i)=43
       r2b_d=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
       rb_d=sqrt(r2b_d)
       rkb_d=(strack(i)*pisqrt)/rb_d                            !hr03
-
       xrb_d=abs(crkveb_d)/rb_d
       zrb_d=abs(cikveb_d)/rb_d
       call errf(zrb_d,xrb_d,crzb_d,crxb_d)
@@ -2142,6 +2129,7 @@ ktrack(i)=43
       xbb_d=sigmanq(2,imbb(i))*xrb_d
       zbb_d=sigmanq(1,imbb(i))*zrb_d
       call errf(zbb_d,xbb_d,cbzb_d,cbxb_d)
+
     else if(ibtyp.eq.1) then
       r2b_d=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
       rb_d=sqrt(r2b_d)
@@ -2151,8 +2139,6 @@ ktrack(i)=43
       tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              !hr03
       xbb_d=sigmanq(2,imbb(i))*xrb_d
       zbb_d=sigmanq(1,imbb(i))*zrb_d
-
-
     endif
   endif
   beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
