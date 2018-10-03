@@ -1740,7 +1740,7 @@ subroutine initialize_element(ix,lfirst)
       !Temp variables
       integer i, m, k, im, nmz, izu, ibb, ii,j
       real(kind=fPrec) r0, r0a, bkitemp,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5,  crkveb_d, cikveb_d, &
-      rho2b_d,tkb_d,r2b_d,rb_d,rkb_d,xrb_d,zrb_d,cbxb_d,cbzb_d,crxb_d,crzb_d,xbb_d,zbb_d
+      rho2b_d,tkb_d,r2b_d,rb_d,rkb_d,xrb_d,zrb_d,cbxb_d,cbzb_d,crxb_d,crzb_d,xbb_d,zbb_d, napx0
       real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
       rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
       cbzb(npart)
@@ -1930,225 +1930,191 @@ subroutine initialize_element(ix,lfirst)
          endif
 !--BEAM-BEAM
       elseif(kz(ix).eq.20) then
-         if (lfirst) then
-            ! Only for old-style BEAM-BEAM lenses
-            ! if DYNK-ified, there needs to be checks for parbeam_exp as well,
-            ! as in this case modifying ed/ek/el and then calling initialize_element
-            ! would be neccessary...
-            ! Note that the BEAM::EXPERT block input checker relies on the data from
-            ! ed/ek/el has been moved to parbe/ptnfac.
-            ! For DYNKification of BEAM, I think lots of the code from
-            ! trauthin/trauthck needs to be copied here?
-            ptnfac(ix)=el(ix)
-            el(ix)=zero
-            parbe(ix,5) = ed(ix)
-            ed(ix)=zero
-            parbe(ix,6) = ek(ix)
-            ek(ix)=zero
-            endif
-
-
+        
+        if (lfirst) then
+          ptnfac(ix)=el(ix)
+          el(ix)=zero
+          parbe(ix,5) = ed(ix)
+          ed(ix)=zero
+          parbe(ix,6) = ek(ix)
+          ek(ix)=zero
+          endif
+! This is to inialize all the beam-beam element before the tracking (or to update it for DYNK). 
         if (.not.lfirst) then
           do i=1,iu
             if ( ic(i)-nblo.eq.ix ) then
-            ibb=imbb(i)
-            if(parbe(ix,2).gt.zero) then
-               bbcu(ibb,1)=parbe(ix,7)
-               bbcu(ibb,4)=parbe(ix,8)
-               bbcu(ibb,6)=parbe(ix,9)
-               bbcu(ibb,2)=parbe(ix,10)
-               bbcu(ibb,9)=parbe(ix,11)
-               bbcu(ibb,10)=parbe(ix,12)
-               bbcu(ibb,3)=parbe(ix,13)
-               bbcu(ibb,5)=parbe(ix,14)
-               bbcu(ibb,7)=parbe(ix,15)
-               bbcu(ibb,8)=parbe(ix,16)
+              ibb=imbb(i)
+              if(parbe(ix,2).gt.zero) then
+                if(beam_expflag.eq.1) then
+                 bbcu(ibb,1)=parbe(ix,7)
+                 bbcu(ibb,4)=parbe(ix,8)
+                 bbcu(ibb,6)=parbe(ix,9)
+                 bbcu(ibb,2)=parbe(ix,10)
+                 bbcu(ibb,9)=parbe(ix,11)
+                 bbcu(ibb,10)=parbe(ix,12)
+                 bbcu(ibb,3)=parbe(ix,13)
+                 bbcu(ibb,5)=parbe(ix,14)
+                 bbcu(ibb,7)=parbe(ix,15)
+                 bbcu(ibb,8)=parbe(ix,16)
+                  do ii=1,10
+                    bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
+                  enddo
+                endif
+                ktrack(i)=44
+                parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6               
+                if(ibeco.eq.1) then
+                  track6d(1,1)=parbe(ix,5)*c1m3
+                  track6d(2,1)=zero
+                  track6d(3,1)=parbe(ix,6)*c1m3
+                  track6d(4,1)=zero
+                  track6d(5,1)=zero
+                  track6d(6,1)=zero
+                  napx0=napx
+                  napx=1
+                  call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc)
+                  beamoff(1,imbb(i))=track6d(1,1)*c1e3
+                  beamoff(2,imbb(i))=track6d(3,1)*c1e3
+                  beamoff(3,imbb(i))=track6d(5,1)*c1e3
+                  beamoff(4,imbb(i))=track6d(2,1)*c1e3
+                  beamoff(5,imbb(i))=track6d(4,1)*c1e3
+                  beamoff(6,imbb(i))=track6d(6,1)
+                  napx=napx0
 
-          do ii=1,10
-            bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
-          enddo
-              track6d(1,1)=parbe(ix,5)*c1m3
-              track6d(2,1)=zero
-              track6d(3,1)=parbe(ix,6)*c1m3
-              track6d(4,1)=zero
-              track6d(5,1)=zero
-              track6d(6,1)=zero
-              call beamint(1,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc)
-              beamoff(1,imbb(i))=track6d(1,1)*c1e3
-              beamoff(2,imbb(i))=track6d(3,1)*c1e3
-              beamoff(3,imbb(i))=track6d(5,1)*c1e3
-              beamoff(4,imbb(i))=track6d(2,1)*c1e3
-              beamoff(5,imbb(i))=track6d(4,1)*c1e3
-              beamoff(6,imbb(i))=track6d(6,1)
-          endif
-          if(beam_expflag.eq.1) then  
-            if(parbe(ix,2).eq.zero) then
-               bbcu(ibb,1)=parbe(ix,1)
-               bbcu(ibb,2)=parbe(ix,3)
-            endif
-            if(ibbc.eq.1) then
-              sfac1=bbcu(ibb,1)+bbcu(ibb,2)
-              sfac2=bbcu(ibb,1)-bbcu(ibb,2)
-              sfac2s=one
-              if(sfac2.lt.zero) sfac2s=-one                            !hr08
-              sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          !hr03
-              if(sfac3.gt.sfac1) call prror(103)
-              sfac4=(sfac2s*sfac2)/sfac3                                   !hr03
-              sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3                !hr03
-              sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)    !hr03
-              sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)    !hr03
-              bbcu(ibb,11)=sqrt(half*(one+sfac4))
-              bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))            !hr03
-              if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)       !hr03
-            else
-              bbcu(ibb,11)=one
-              sigman(1,ibb)=sqrt(bbcu(ibb,1))
-              sigman(2,ibb)=sqrt(bbcu(ibb,2))
-          endif
-        endif
-     
-            if(kz(ix).eq.20.and.parbe(ix,2).eq.zero) then                 !hr03
+                endif
+              
+              else if(parbe(ix,2).eq.zero) then
+                if(beam_expflag.eq.1) then  
+                   bbcu(ibb,1)=parbe(ix,1)
+                   bbcu(ibb,2)=parbe(ix,3)
+                endif
+                if(ibbc.eq.1) then
+                  sfac1=bbcu(ibb,1)+bbcu(ibb,2)
+                  sfac2=bbcu(ibb,1)-bbcu(ibb,2)
+                  sfac2s=one
+                  if(sfac2.lt.zero) sfac2s=-one                            
+                  sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          
+                  if(sfac3.gt.sfac1) call prror(103)
+                  sfac4=(sfac2s*sfac2)/sfac3                                   
+                  sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3                
+                  sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)    
+                  sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)    
+                  bbcu(ibb,11)=sqrt(half*(one+sfac4))
+                  bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))            
+                  if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)       
+                else
+                  bbcu(ibb,11)=one
+                  sigman(1,ibb)=sqrt(bbcu(ibb,1))
+                  sigman(2,ibb)=sqrt(bbcu(ibb,2))
+                endif
+                
 !--round beam
-
                 nbeaux(imbb(i))=0
-              if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
-                if(nbeaux(imbb(i)).eq.2.or.nbeaux(imbb(i)).eq.3) then
-                  call prror(89)
+                if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
+                  if(nbeaux(imbb(i)).eq.2.or.nbeaux(imbb(i)).eq.3) then
+                    call prror(89)
+                  else
+                    nbeaux(imbb(i))=1
+                    sigman2(1,imbb(i))=sigman(1,imbb(i))**2
+                  endif
+                endif
+  !--elliptic beam x>z
+                if(sigman(1,imbb(i)).gt.sigman(2,imbb(i))) then
+                  if(nbeaux(imbb(i)).eq.1.or.nbeaux(imbb(i)).eq.3) then
+                    call prror(89)
+                  else
+                    nbeaux(imbb(i))=2
+                    ktrack(i)=42
+                    sigman2(1,imbb(i))=sigman(1,imbb(i))**2
+                    sigman2(2,imbb(i))=sigman(2,imbb(i))**2
+                    sigmanq(1,imbb(i))=sigman(1,imbb(i))/sigman(2,imbb(i))
+                    sigmanq(2,imbb(i))=sigman(2,imbb(i))/sigman(1,imbb(i))
+                  endif
+                endif
+  !--elliptic beam z>x
+                if(sigman(1,imbb(i)).lt.sigman(2,imbb(i))) then
+                  if(nbeaux(imbb(i)).eq.1.or.nbeaux(imbb(i)).eq.2) then
+                    call prror(89)
+                  else
+                    nbeaux(imbb(i))=3
+                    ktrack(i)=43
+                    sigman2(1,imbb(i))=sigman(1,imbb(i))**2
+                    sigman2(2,imbb(i))=sigman(2,imbb(i))**2
+                    sigmanq(1,imbb(i))=sigman(1,imbb(i))/sigman(2,imbb(i))
+                    sigmanq(2,imbb(i))=sigman(2,imbb(i))/sigman(1,imbb(i))
+                  endif
+                endif
+              
+
+                strack(i)=crad*ptnfac(ix)
+                if(ibbc.eq.0) then
+                  crkveb_d=parbe(ix,5)
+                  cikveb_d=parbe(ix,6)
                 else
-                  nbeaux(imbb(i))=1
-                  sigman2(1,imbb(i))=sigman(1,imbb(i))**2
+                  crkveb_d=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
+                  cikveb_d=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
+                endif
+
+                if(nbeaux(imbb(i)).eq.1) then
+                  ktrack(i)=41
+                  if(ibeco.eq.1) then       
+                  rho2b_d=crkveb_d**2+cikveb_d**2                          
+                  tkb_d=rho2b_d/(two*sigman2(1,imbb(i)))
+                  beamoff(4,imbb(i))=((strack(i)*crkveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
+                  beamoff(5,imbb(i))=((strack(i)*cikveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
+                  endif
+                endif
+
+
+                if(ktrack(i).eq.42) then
+                  if(ibeco.eq.1) then
+                    r2b_d=two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
+                    rb_d=sqrt(r2b_d)
+                    rkb_d=(strack(i)*pisqrt)/rb_d                            
+                    xrb_d=abs(crkveb_d)/rb_d
+                    zrb_d=abs(cikveb_d)/rb_d
+                    if(ibtyp.eq.0) then
+                      call errf(xrb_d,zrb_d,crxb_d,crzb_d)
+                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              
+                      xbb_d=sigmanq(2,imbb(i))*xrb_d
+                      zbb_d=sigmanq(1,imbb(i))*zrb_d
+                      call errf(xbb_d,zbb_d,cbxb_d,cbzb_d)
+                    else if(ibtyp.eq.1) then
+                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              
+                      xbb_d=sigmanq(2,imbb(i))*xrb_d
+                      zbb_d=sigmanq(1,imbb(i))*zrb_d
+                    endif
+                  endif
+                  beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
+                  beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
+                endif
+
+
+                if(ktrack(i).eq.43) then
+                  if(ibeco.eq.1) then
+                    r2b_d=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
+                    rb_d=sqrt(r2b_d)
+                    rkb_d=(strack(i)*pisqrt)/rb_d                            
+                    xrb_d=abs(crkveb_d)/rb_d
+                    zrb_d=abs(cikveb_d)/rb_d
+                    if(ibtyp.eq.0) then
+                      call errf(zrb_d,xrb_d,crzb_d,crxb_d)
+                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              
+                      xbb_d=sigmanq(2,imbb(i))*xrb_d
+                      zbb_d=sigmanq(1,imbb(i))*zrb_d
+                      call errf(zbb_d,xbb_d,cbzb_d,cbxb_d)
+                    else if(ibtyp.eq.1) then
+                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                            
+                      xbb_d=sigmanq(2,imbb(i))*xrb_d
+                      zbb_d=sigmanq(1,imbb(i))*zrb_d
+                    endif
+                  endif
+                  beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
+                  beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
                 endif
               endif
-!--elliptic beam x>z
-              if(sigman(1,imbb(i)).gt.sigman(2,imbb(i))) then
-                if(nbeaux(imbb(i)).eq.1.or.nbeaux(imbb(i)).eq.3) then
-                  call prror(89)
-                else
-                  nbeaux(imbb(i))=2
-                  sigman2(1,imbb(i))=sigman(1,imbb(i))**2
-                  sigman2(2,imbb(i))=sigman(2,imbb(i))**2
-                  sigmanq(1,imbb(i))=sigman(1,imbb(i))/sigman(2,imbb(i))
-                  sigmanq(2,imbb(i))=sigman(2,imbb(i))/sigman(1,imbb(i))
-                endif
-              endif
-!--elliptic beam z>x
-              if(sigman(1,imbb(i)).lt.sigman(2,imbb(i))) then
-                if(nbeaux(imbb(i)).eq.1.or.nbeaux(imbb(i)).eq.2) then
-                  call prror(89)
-                else
-                  nbeaux(imbb(i))=3
-                  sigman2(1,imbb(i))=sigman(1,imbb(i))**2
-                  sigman2(2,imbb(i))=sigman(2,imbb(i))**2
-                  sigmanq(1,imbb(i))=sigman(1,imbb(i))/sigman(2,imbb(i))
-                  sigmanq(2,imbb(i))=sigman(2,imbb(i))/sigman(1,imbb(i))
-                endif
-              endif
-            
-            
-          
-
-                 !hr08
-strack(i)=crad*ptnfac(ix)
-if(ibbc.eq.0) then
-  crkveb_d=parbe(ix,5)
-  cikveb_d=parbe(ix,6)
-else
-  crkveb_d=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
-  cikveb_d=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
-endif
-
-
-
-if(nbeaux(imbb(i)).eq.1) then
-  ktrack(i)=41
-  if(ibeco.eq.1) then
-               
-  rho2b_d=crkveb_d**2+cikveb_d**2                          
-  tkb_d=rho2b_d/(two*sigman2(1,imbb(i)))
-
-  beamoff(4,imbb(i))=((strack(i)*crkveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
-  beamoff(5,imbb(i))=((strack(i)*cikveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
-
-  endif
-endif
-
-
-if(nbeaux(imbb(i)).eq.2) then
-  ktrack(i)=42
-  if(ibeco.eq.1) then
-    r2b_d=two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
-    rb_d=sqrt(r2b_d)
-    rkb_d=(strack(i)*pisqrt)/rb_d                            
-    xrb_d=abs(crkveb_d)/rb_d
-    zrb_d=abs(cikveb_d)/rb_d
-    if(ibtyp.eq.0) then
-
-
-      call errf(xrb_d,zrb_d,crxb_d,crzb_d)
-
-
-      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              
-      xbb_d=sigmanq(2,imbb(i))*xrb_d
-      zbb_d=sigmanq(1,imbb(i))*zrb_d
-
-      call errf(xbb_d,zbb_d,cbxb_d,cbzb_d)
-
-    else if(ibtyp.eq.1) then
-
-
-      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              
-      xbb_d=sigmanq(2,imbb(i))*xrb_d
-      zbb_d=sigmanq(1,imbb(i))*zrb_d
-    endif
-  endif
-  beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
-  beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
-endif
-
-
-
-
-if(nbeaux(imbb(i)).eq.3) then
-ktrack(i)=43
-  if(ibeco.eq.1) then
-    if(ibtyp.eq.0) then
-
-
-      r2b_d=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
-      rb_d=sqrt(r2b_d)
-      rkb_d=(strack(i)*pisqrt)/rb_d                            !hr03
-      xrb_d=abs(crkveb_d)/rb_d
-      zrb_d=abs(cikveb_d)/rb_d
-      call errf(zrb_d,xrb_d,crzb_d,crxb_d)
-      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              !hr03
-      xbb_d=sigmanq(2,imbb(i))*xrb_d
-      zbb_d=sigmanq(1,imbb(i))*zrb_d
-      call errf(zbb_d,xbb_d,cbzb_d,cbxb_d)
-
-    else if(ibtyp.eq.1) then
-      r2b_d=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
-      rb_d=sqrt(r2b_d)
-      rkb_d=(strack(i)*pisqrt)/rb_d                            !hr03
-      xrb_d=abs(crkveb_d)/rb_d
-      zrb_d=abs(cikveb_d)/rb_d
-      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              !hr03
-      xbb_d=sigmanq(2,imbb(i))*xrb_d
-      zbb_d=sigmanq(1,imbb(i))*zrb_d
-    endif
-  endif
-  beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
-  beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
-endif
-endif
-
-
-
-
             endif
           enddo
-         endif
-
-
+        endif
 
 !--Crab Cavities
 !   Note: If setting something else than el(),

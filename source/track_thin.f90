@@ -105,36 +105,16 @@ subroutine trauthin(nthinerr)
       ktrack(i)=31
       goto 290
     endif
-if(kzz.eq.20.and.nbeam.ge.1.and.parbe(ix,2).eq.zero) then
-  call initialize_element(ix,.false.)
-end if
-
-if(kzz.eq.20.and.parbe(ix,2).gt.zero) then                   !hr03
-  ktrack(i)=44
-  parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6               !hr03
-  if(ibeco.eq.1) then
-    track6d(1,1)=parbe(ix,5)*c1m3
-    track6d(2,1)=zero
-    track6d(3,1)=parbe(ix,6)*c1m3
-    track6d(4,1)=zero
-    track6d(5,1)=zero
-    track6d(6,1)=zero
-    napx0=napx
-    napx=1
-
-    call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc)
-
-    beamoff(1,imbb(i))=track6d(1,1)*c1e3
-    beamoff(2,imbb(i))=track6d(3,1)*c1e3
-    beamoff(3,imbb(i))=track6d(5,1)*c1e3
-    beamoff(4,imbb(i))=track6d(2,1)*c1e3
-    beamoff(5,imbb(i))=track6d(4,1)*c1e3
-    beamoff(6,imbb(i))=track6d(6,1)
-    napx=napx0
-  endif
-  !call initialize_element(ix,.false.)
-  goto 290
-endif
+    
+    !Beam-beam element
+    !41 --round beam
+    !42 --elliptic beam x>z
+    !43--elliptic beam z>x
+    !44 -- 6d beam-beam
+    if(kzz.eq.20) then                  
+        call initialize_element(ix,.false.)
+      goto 290
+    endif
 
     ! wire
     if(kzz.eq.15) then
