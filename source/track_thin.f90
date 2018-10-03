@@ -763,7 +763,8 @@ subroutine thin4d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 
 
           ! We have to go back to angles after we updated the energy.
@@ -1541,7 +1542,7 @@ subroutine thin6d(nthinerr)
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)                           !hr01
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                           !hr01
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
         end do
@@ -1583,7 +1584,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 
 
           ! We have to go back to angles after we updated the energy.
@@ -1947,7 +1949,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -1969,7 +1972,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -1992,7 +1996,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -2015,7 +2020,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -2038,7 +2044,8 @@ subroutine thin6d(nthinerr)
         dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
         oidpsv(j)=one/(one+dpsv(j))
         moidpsv(j)=mtc(j)/(one+dpsv(j))
-        dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+        omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+        dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
         yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
         yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
         if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -2051,8 +2058,8 @@ subroutine thin6d(nthinerr)
           crabamp4 = ed(ix)*nzz(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
 #include "include/alignva.f90"
-          yv(1,j)=yv(1,j) + (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)
-          yv(2,j)=yv(2,j) + (((crabamp4*moidpsv(j))*((three*crkve)*cikve**2-crkve**3))*c1m6)*cos_mb(kcrab)
+          yv(1,j)=yv(1,j) - (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)
+          yv(2,j)=yv(2,j) - (((crabamp4*moidpsv(j))*((three*crkve)*cikve**2-crkve**3))*c1m6)*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3*cikve)-(cikve**3*crkve)))*(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
           ejf0v(j)=ejfv(j)
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
@@ -2060,7 +2067,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
