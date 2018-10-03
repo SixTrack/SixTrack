@@ -1168,6 +1168,7 @@ ENDIF(COVERAGE)
 SET(BUILDNAME "${SIXTRACK_BINARY_NAME}" CACHE STRING "Name of build on the dashboard")
 MARK_AS_ADVANCED(BUILDNAME)
 
+
 #For testing
 IF(BUILD_TESTING)
 
@@ -1242,3 +1243,8 @@ SET(CPACK_PACKAGE_VERSION_PATCH ${SixTrack_VERSION_PATCH})
 INCLUDE(CPack)
 
 install(TARGETS SixTrackCR RUNTIME DESTINATION bin )
+
+if(NOT WIN32)
+       add_custom_command(TARGET SixTrackCR POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E create_symlink "${SIXTRACK_BINARY_NAME}" "sixtrack")
+endif()
