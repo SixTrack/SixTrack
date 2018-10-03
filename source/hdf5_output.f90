@@ -261,7 +261,7 @@ subroutine h5_parseInputLine(inLine,iErr)
 
   if(nSplit == 0) then
     if(h5_debugOn) then
-      write (lout,"(a,i3,a)") "HDF5> DEBUG Input line len=",len(inLine),": '"//inLine%strip()//"'."
+      write (lout,"(a,i0,a)") "HDF5> DEBUG Input line len=",len(inLine),": '"//inLine%strip()//"'."
       write (lout,"(a)")      "HDF5> DEBUG  * No fields found."
     end if
     return
@@ -269,8 +269,8 @@ subroutine h5_parseInputLine(inLine,iErr)
 
   ! Report if debugging is ON
   if(h5_debugOn) then
-    write (lout,"(a,i3,a)")  "HDF5> DEBUG Input line len=",len(inLine),": '"//inLine%strip()//"'."
-    write (lout,"(a,i2,a)") ("HDF5> DEBUG  * Field(",i,") = '"//lnSplit(i)//"'",i=1,nSplit)
+    write (lout,"(a,i0,a)")  "HDF5> DEBUG Input line len=",len(inLine),": '"//inLine%strip()//"'."
+    write (lout,"(a,i3,a)") ("HDF5> DEBUG  * Field(",i,") = '"//lnSplit(i)//"'",i=1,nSplit)
   end if
 
   select case(lnSplit(1)%chr)
@@ -281,7 +281,7 @@ subroutine h5_parseInputLine(inLine,iErr)
 
   case("SIMNO")
     if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR SIMNO level takes 1 input parameter, ",(nSplit-1)," given."
+      write(lout,"(a,i0,a)") "HDF5> ERROR SIMNO level takes 1 input parameter, ",(nSplit-1)," given."
       iErr = .true.
       return
     end if
@@ -297,35 +297,35 @@ subroutine h5_parseInputLine(inLine,iErr)
 
   case("GZIP")
     if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR GZIP level takes 1 input parameter, ",(nSplit-1)," given."
+      write(lout,"(a,i0,a)") "HDF5> ERROR GZIP level takes 1 input parameter, ",(nSplit-1)," given."
       iErr = .true.
       return
     end if
     call str_cast(lnSplit(2),h5_gzipLevel,spErr)
     if(h5_gzipLevel < -1 .or. h5_gzipLevel > 9) then
-      write(lout,"(a,i2)") "HDF5> ERROR Illegal value for GZIP: ",h5_gzipLevel
-      write(lout,"(a,i2)") "HDF5> ERROR   Allowed values are -1 for disabled, and 0-9 for none to max compression."
+      write(lout,"(a,i0)") "HDF5> ERROR Illegal value for GZIP: ",h5_gzipLevel
+      write(lout,"(a)")    "HDF5> ERROR   Allowed values are -1 for disabled, and 0-9 for none to max compression."
       iErr = .true.
       return
     end if
 
   case("CHUNK")
     if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR CHUNK takes 1 input parameter, ",(nSplit-1)," given."
+      write(lout,"(a,i0,a)") "HDF5> ERROR CHUNK takes 1 input parameter, ",(nSplit-1)," given."
       iErr = .true.
       return
     end if
     call str_cast(lnSplit(2),h5_defChunk,spErr)
     if(h5_defChunk < 1) then
-      write(lout,"(a,i2)") "HDF5> ERROR Illegal value for CHUNK: ",h5_defChunk
-      write(lout,"(a,i2)") "HDF5> ERROR   Value must be larger than 0."
+      write(lout,"(a,i0)") "HDF5> ERROR Illegal value for CHUNK: ",h5_defChunk
+      write(lout,"(a)")    "HDF5> ERROR   Value must be larger than 0."
       iErr = .true.
       return
     end if
 
   case("FILE")
     if(nSplit < 2 .or. nSplit > 3) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR FILE statement takes 1 or 2 input parameters, ",(nSplit-1)," given."
+      write(lout,"(a,i0,a)") "HDF5> ERROR FILE statement takes 1 or 2 input parameters, ",(nSplit-1)," given."
       write(lout,"(a)")      "HDF5> ERROR   Valid input is FILE filename [truncate]"
       iErr = .true.
       return
@@ -340,7 +340,7 @@ subroutine h5_parseInputLine(inLine,iErr)
 
   case("ROOT")
     if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR ROOT statement takes 1 input parameter, ",(nSplit-1)," given."
+      write(lout,"(a,i0,a)") "HDF5> ERROR ROOT statement takes 1 input parameter, ",(nSplit-1)," given."
       iErr = .true.
       return
     end if
@@ -360,12 +360,12 @@ subroutine h5_parseInputLine(inLine,iErr)
   case("ENABLE")
 
     if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR ENABLE statement takes 1 input parameter, ",(nSplit-1)," given."
+      write(lout,"(a,i0,a)") "HDF5> ERROR ENABLE statement takes 1 input parameter, ",(nSplit-1)," given."
       iErr = .true.
       return
     end if
     if(len(lnSplit(2)%chr) < 4) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR ENABLE argument must be at least 4 characters."
+      write(lout,"(a)") "HDF5> ERROR ENABLE argument must be at least 4 characters."
       iErr = .true.
       return
     end if
@@ -373,13 +373,13 @@ subroutine h5_parseInputLine(inLine,iErr)
     select case(lnSplit(2)%chr(1:4))
     case("APER")
       h5_useForAPER = .true.
-      write(lout,"(3a)") "HDF5> HDF5 is enabled for APERTURE."
+      write(lout,"(a)") "HDF5> HDF5 is enabled for APERTURE."
     case("COLL")
       h5_useForCOLL = .true.
-      write(lout,"(3a)") "HDF5> HDF5 is enabled for COLLIMATION."
+      write(lout,"(a)") "HDF5> HDF5 is enabled for COLLIMATION."
     case("DUMP")
       h5_useForDUMP = .true.
-      write(lout,"(3a)") "HDF5> HDF5 is enabled for DUMP."
+      write(lout,"(a)") "HDF5> HDF5 is enabled for DUMP."
     case("SCAT")
       h5_useForSCAT = .true.
       write(lout,"(a)") "HDF5> HDF5 is enabled for SCATTER."
@@ -392,7 +392,7 @@ subroutine h5_parseInputLine(inLine,iErr)
   case("WRITE")
 
     if(nSplit /= 2) then
-      write(lout,"(a,i2,a)") "HDF5> ERROR WRITE statement takes 1 input parameter, ",(nSplit-1)," given."
+      write(lout,"(a,i0,a)") "HDF5> ERROR WRITE statement takes 1 input parameter, ",(nSplit-1)," given."
       iErr = .true.
       return
     end if
