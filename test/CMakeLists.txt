@@ -60,6 +60,7 @@ SET(TESTS_NOFORT10
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
+  rfMultipoles_2nd3rd4th_skew
   beam-HO_6D-simple-oldstyle
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-coupling
@@ -130,6 +131,7 @@ SET(SIXTRACK_TESTS
   orbit6d-element-combinedFunction
   orbit6d-ions
   orbit6d-ions-long
+  thin6d_ions
   prob1
   prob3
   s316
@@ -157,9 +159,6 @@ SET(SIXTRACK_TESTS
   dump6
   fileunits_DYNK_DUMP
   geometry
-  elensidealthin6d_DYNK_RANDU
-  elensidealthin6d_DYNK_RANDON
-  elensidealthin6d_DYNK_ONOFF
   beam-HO_4D-newstyle
   beam-HO_4D-newstyle-loadParticles
   beam-HO_4D-oldstyle
@@ -175,6 +174,7 @@ SET(SIXTRACK_TESTS
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
+  rfMultipoles_2nd3rd4th_skew
   last_amp
   scatter_bbelastic
   scatter_collimation
@@ -396,9 +396,6 @@ SET(FAST_TESTS
   fileunits_DYNK_DUMP
   geometry
   fcc
-  elensidealthin6d_DYNK_RANDU
-  elensidealthin6d_DYNK_RANDON
-  elensidealthin6d_DYNK_ONOFF
   beam-HO_4D-newstyle
   beam-HO_4D-newstyle-loadParticles
   beam-HO_4D-oldstyle
@@ -414,6 +411,7 @@ SET(FAST_TESTS
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
+  rfMultipoles_2nd3rd4th_skew
   last_amp
   scatter_bbelastic
   scatter_collimation
@@ -445,6 +443,7 @@ SET(MEDIUM_TESTS
   bbe52
   collimation_k2_fcc_2017_h1_collision
   orbit6d-ions-long
+  thin6d_ions
 )
 
 #Slow is everything longer
