@@ -1941,19 +1941,18 @@ subroutine initialize_element(ix,lfirst)
             ! trauthin/trauthck needs to be copied here?
             ptnfac(ix)=el(ix)
             el(ix)=zero
-
             parbe(ix,5) = ed(ix)
             ed(ix)=zero
             parbe(ix,6) = ek(ix)
             ek(ix)=zero
             endif
-        if (.not.lfirst) then
 
+
+        if (.not.lfirst) then
           do i=1,iu
             if ( ic(i)-nblo.eq.ix ) then
             ibb=imbb(i)
             if(parbe(ix,2).gt.zero) then
-              
                bbcu(ibb,1)=parbe(ix,7)
                bbcu(ibb,4)=parbe(ix,8)
                bbcu(ibb,6)=parbe(ix,9)
@@ -1964,37 +1963,7 @@ subroutine initialize_element(ix,lfirst)
                bbcu(ibb,5)=parbe(ix,14)
                bbcu(ibb,7)=parbe(ix,15)
                bbcu(ibb,8)=parbe(ix,16)
-            endif
-          if(beam_expflag.eq.1) then  
-          if(parbe(ix,2).eq.zero) then
-          print*, "beffffooorre", bbcu(ibb,:)
-             bbcu(ibb,1)=parbe(ix,1)
-             bbcu(ibb,2)=parbe(ix,3)
-          print*, "affffftter", bbcu(ibb,:)
-          endif
-          if(ibbc.eq.1) then
-            print *, "are we evereeeeer here?"
-          sfac1=bbcu(ibb,1)+bbcu(ibb,2)
-          sfac2=bbcu(ibb,1)-bbcu(ibb,2)
-          sfac2s=one
-          if(sfac2.lt.zero) sfac2s=-one                            !hr08
-          sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          !hr03
-          if(sfac3.gt.sfac1) call prror(103)
-          sfac4=(sfac2s*sfac2)/sfac3                                   !hr03
-          sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3                !hr03
-          sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)    !hr03
-          sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)    !hr03
-          bbcu(ibb,11)=sqrt(half*(one+sfac4))
-          bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))            !hr03
-          if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)       !hr03
-        else
-          print *, " ibbc not 0000 are we evereeeeer here? DYNK"
-          bbcu(ibb,11)=one
-          sigman(1,ibb)=sqrt(bbcu(ibb,1))
-          sigman(2,ibb)=sqrt(bbcu(ibb,2))
-        endif
-        endif
-        if(parbe(ix,2).gt.zero) then !6D -> convert units
+
           do ii=1,10
             bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
           enddo
@@ -2011,7 +1980,33 @@ subroutine initialize_element(ix,lfirst)
               beamoff(4,imbb(i))=track6d(2,1)*c1e3
               beamoff(5,imbb(i))=track6d(4,1)*c1e3
               beamoff(6,imbb(i))=track6d(6,1)
-        else
+          endif
+          if(beam_expflag.eq.1) then  
+            if(parbe(ix,2).eq.zero) then
+               bbcu(ibb,1)=parbe(ix,1)
+               bbcu(ibb,2)=parbe(ix,3)
+            endif
+            if(ibbc.eq.1) then
+              sfac1=bbcu(ibb,1)+bbcu(ibb,2)
+              sfac2=bbcu(ibb,1)-bbcu(ibb,2)
+              sfac2s=one
+              if(sfac2.lt.zero) sfac2s=-one                            !hr08
+              sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          !hr03
+              if(sfac3.gt.sfac1) call prror(103)
+              sfac4=(sfac2s*sfac2)/sfac3                                   !hr03
+              sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3                !hr03
+              sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)    !hr03
+              sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)    !hr03
+              bbcu(ibb,11)=sqrt(half*(one+sfac4))
+              bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))            !hr03
+              if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)       !hr03
+            else
+              bbcu(ibb,11)=one
+              sigman(1,ibb)=sqrt(bbcu(ibb,1))
+              sigman(2,ibb)=sqrt(bbcu(ibb,2))
+          endif
+        endif
+     
             if(kz(ix).eq.20.and.parbe(ix,2).eq.zero) then                 !hr03
 !--round beam
 
@@ -2049,8 +2044,8 @@ subroutine initialize_element(ix,lfirst)
                 endif
               endif
             
-            endif
-          endif
+            
+          
 
                  !hr08
 strack(i)=crad*ptnfac(ix)
@@ -2144,7 +2139,7 @@ ktrack(i)=43
   beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
   beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
 endif
-
+endif
 
 
 
