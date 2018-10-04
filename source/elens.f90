@@ -546,8 +546,8 @@ subroutine parseRadialProfile(ifile)
     write(lout,"(a,i0)") "ELENS> Radial profile as from file "//&
       trim(elens_radial_filename(ifile))//" - #",ifile
     do ii=0,elens_radial_profile_nPoints(ifile)
-      if(elens_radial_profile(ii,ifile)/= zero) then
-        write(lout,"((a,i4),2(a,e22.15))") "ELENS> ",ii,","elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
+      if(elens_radial_profile_J(ii,ifile)/= zero) then
+        write(lout,"((a,i4),2(a,e22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
       end if
     end do
   end if
@@ -615,7 +615,8 @@ subroutine normaliseRadialProfile(ifile)
   integer ii
 
   do ii=0,elens_radial_profile_nPoints(ifile)
-    elens_radial_profile_J(ii,ifile)/=elens_radial_profile_J(elens_radial_profile_nPoints(ifile),ifile)
+    elens_radial_profile_J(ii,ifile)=elens_radial_profile_J(ii,ifile)/&
+                                     elens_radial_profile_J(elens_radial_profile_nPoints(ifile),ifile)
   end do
   
 end subroutine normaliseRadialProfile

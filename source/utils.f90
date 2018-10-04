@@ -2,6 +2,7 @@ module utils
 
   ! A.Mereghetti (CERN, 2018-03-01)
   ! a general module, collecting some utility functions
+  use floatPrecision
   
 contains
   
@@ -41,7 +42,7 @@ contains
     ! Find the right indexes i1 and i2
     ! Special case: first value at first point
     if(x == xvals(1)) then
-      dynk_lininterp = yvals(1)
+      lininterp = yvals(1)
       return
     end if
   
@@ -55,7 +56,7 @@ contains
         ! We're in the right interval
         dydx = (yvals(ii+1)-yvals(ii)) / (xvals(ii+1)-xvals(ii))
         y0   = yvals(ii) - dydx*xvals(ii)
-        dynk_lininterp = dydx*x + y0
+        lininterp = dydx*x + y0
         return
       end if
     end do
@@ -64,6 +65,6 @@ contains
     write(lout,"(a)") "UTILS> ERROR lininterp: Reached the end of the function. This should not happen, please contact developers"
     call prror(-1)
   
-  end function dynk_lininterp
+  end function lininterp
 
 end module utils
