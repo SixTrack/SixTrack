@@ -94,16 +94,15 @@ end module parbeam
 ! ================================================================================================ !
 module mod_settings
 
-  use parpro, only : mDivLen, mStrLen, mNameLen
-
   implicit none
 
   ! PRINT Flag (fort.3)
-  logical, save :: st_print
+  logical, save :: st_print   = .false.
 
   ! SETTINGS Block (fort.3)
-  integer, save :: st_quiet ! QUIET Level
-  logical, save :: st_debug ! Global DEBUG flag
+  integer, save :: st_quiet   = 0       ! QUIET Level
+  logical, save :: st_debug   = .false. ! Global DEBUG flag
+  logical, save :: st_partsum = .false. ! Flag to print final particle summary
 
 end module mod_settings
 
