@@ -494,6 +494,7 @@ subroutine thck4d(nthinerr)
   use mod_commont
   use mod_commond
   use elens
+  use utils
   use wire
 #ifdef CR
   use checkpoint_restart
@@ -1155,6 +1156,7 @@ subroutine thck6d(nthinerr)
   use mod_commond
   use aperture
   use elens
+  use utils
   use wire
 #ifdef CR
   use checkpoint_restart

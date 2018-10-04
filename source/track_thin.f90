@@ -555,6 +555,7 @@ subroutine thin4d(nthinerr)
   use bdex, only : bdex_enable
   use aperture
   use elens
+  use utils
   use wire
 #ifdef CR
   use checkpoint_restart
@@ -1215,6 +1216,7 @@ subroutine thin6d(nthinerr)
   use mod_commond
   use aperture
   use elens
+  use utils
   use wire
 #ifdef CR
   use checkpoint_restart

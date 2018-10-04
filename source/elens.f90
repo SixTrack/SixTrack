@@ -38,6 +38,8 @@ module elens
   integer, save          :: elens_iCheby(nelens)      ! mapping to the table with chebyshev coeffs
   real(kind=fPrec), save :: elens_cheby_angle(nelens) ! angle for getting the real bends [deg]
   integer, save          :: elens_iRadial(nelens)     ! mapping to the radial profile
+  real(kind=fPrec), save :: elens_radial_fr1(nelens)  ! value of f(R1) in case of radial profiles from file [0:1]
+  real(kind=fPrec), save :: elens_radial_fr2(nelens)  ! value of f(R2) in case of radial profiles from file [0:1]
   ! file with chebyshev coefficients
   integer, parameter     :: nelens_cheby_tables=20    ! max number of tables with chebyshev coefficients
   integer, parameter     :: elens_cheby_unit=107      ! unit for reading the chebyshev coefficients
@@ -82,7 +84,6 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
 
   use mod_settings
   use sixtrack_input
-  use mathlib_bouncer
   use string_tools
 
   implicit none
@@ -297,17 +298,6 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     end if
   end if
 
-  ! Proper normalisation
-  if(elens_type(ielens(iElem)) == 1) then
-    ! Uniform distribution
-    elens_geo_norm(ielens(iElem)) = (elens_r2(ielens(iElem))+elens_r1(ielens(iElem)))*&
-                                    (elens_r2(ielens(iElem))-elens_r1(ielens(iElem)))
-  else if(elens_type(ielens(iElem)) == 2) then
-    ! Gaussian distribution
-    elens_geo_norm(ielens(iElem)) = exp_mb(-0.5*(elens_r1(ielens(iElem))/elens_sig(ielens(iElem)))**2)&
-                                   -exp_mb(-0.5*(elens_r2(ielens(iElem))/elens_sig(ielens(iElem)))**2)
-  end if
-
   if(st_debug) then
     call sixin_echoVal("name",    bez(iElem),                   "ELENS",iLine)
     call sixin_echoVal("type",    lnSplit(2),                   "ELENS",iLine)
@@ -359,9 +349,56 @@ subroutine elens_postInput
   
   use mod_common, only : e0,bez,kz
   use mod_hions, only : aa0, zz0
+  use mathlib_bouncer
+  use utils
   
   integer j,jj
   logical exist
+
+  ! Parse files with radial profiles
+   do j=1,melens_radial_profiles
+    inquire(file=elens_radial_filename(j), exist=exist)
+    if(.not. exist) then
+      write(lout,"(a)") "ELENS> Problems with file with radial profile: ",trim(elens_radial_filename(j))
+      call prror(-1)
+    end if
+    call parseRadialProfile(j)
+    call integrateRadialProfile(j)
+    call normaliseRadialProfile(j)
+  end do
+
+  ! Parse files with coefficients for Chebyshev polynomials:
+   do j=1,melens_cheby_tables
+    inquire(file=elens_cheby_filename(j), exist=exist)
+    if(.not. exist) then
+      write(lout,"(a)") "ELENS> Problems with file with coefficients for Chebyshev polynominals: ",trim(elens_cheby_filename(j))
+      call prror(-1)
+    end if
+    call parseChebyFile(j)
+  end do
+
+  ! Proper normalisation
+  do j=1,melens
+    if(elens_type(j) == 1) then
+      ! Uniform distribution
+      elens_geo_norm(j) = (elens_r2(j)+elens_r1(j))*(elens_r2(j)-elens_r1(j))
+    else if(elens_type(j) == 2) then
+      ! Gaussian distribution
+      elens_geo_norm(j) = exp_mb(-0.5*(elens_r1(j)/elens_sig(j))**2)&
+                         -exp_mb(-0.5*(elens_r2(j)/elens_sig(j))**2)
+    else if(elens_type(j) == 3) then
+      ! Radial profile
+      elens_radial_fr1(j) = lininterp( elens_r1(j), &
+            elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
+            elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
+            elens_radial_profile_nPoints(elens_iRadial(j)) )
+      elens_radial_fr2(j) = lininterp( elens_r2(j), &
+            elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
+            elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
+            elens_radial_profile_nPoints(elens_iRadial(j)) )
+      elens_geo_norm(j) = elens_radial_fr2(j) -elens_radial_fr1(j)
+    end if
+  end do
 
   ! Compute elens theta at R2, if requested by user
   do j=1,melens
@@ -376,27 +413,6 @@ subroutine elens_postInput
       call eLensTheta( j, e0 )
       write(lout,"(a,i0,a,e22.15)") "ELENS> New theta at r2 for elens #",j," named "//trim(bez(jj))//": ",elens_theta_r2(j)
     end if
-  end do
-
-  ! Parse files with radial profiles
-   do j=1,melens_radial_profiles
-    inquire(file=elens_radial_filename(j), exist=exist)
-    if(.not. exist) then
-      write(lout,"(a)") "ELENS> Problems with file with radial profile: ",trim(elens_radial_filename(j))
-      call prror(-1)
-    end if
-    call parseRadialProfile(j)
-    call integrateRadialProfile(j)
-  end do
-
-  ! Parse files with coefficients for Chebyshev polynomials:
-   do j=1,melens_cheby_tables
-    inquire(file=elens_cheby_filename(j), exist=exist)
-    if(.not. exist) then
-      write(lout,"(a)") "ELENS> Problems with file with coefficients for Chebyshev polynominals: ",trim(elens_cheby_filename(j))
-      call prror(-1)
-    end if
-    call parseChebyFile(j)
   end do
 
 end subroutine elens_postInput
@@ -544,7 +560,7 @@ subroutine parseRadialProfile(ifile)
 end subroutine parseRadialProfile
 
 ! ================================================================================================ !
-!  Last modified: 2018-09-10
+!  Last modified: 2018-10-04
 !  integrate radial profile of electron beam
 !  ifile is index of file in table of radial profiles
 !  original formula:
@@ -574,8 +590,35 @@ subroutine integrateRadialProfile(ifile)
          ( elens_radial_profile_R(ii,ifile)+elens_radial_profile_R(ii-1,ifile) )
     elens_radial_profile_J(ii,ifile)=tmpTot
   end do
+  write(lout,"(a,e22.15)") "ELENS> Total current in radial profile described in "//trim(elens_radial_filename(ifile))//": ",&
+         elens_radial_profile_J(elens_radial_profile_nPoints(ifile),ifile)
   
 end subroutine integrateRadialProfile
+
+! ================================================================================================ !
+!  Last modified: 2018-10-04
+!  normalise integrated radial profiles of electron beam
+!  ifile is index of file in table of radial profiles
+! ================================================================================================ !
+subroutine normaliseRadialProfile(ifile)
+
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
+  use physical_constants
+  use crcoall
+
+  implicit none
+
+  integer, intent(in) :: ifile
+
+  integer ii
+
+  do ii=0,elens_radial_profile_nPoints(ifile)
+    elens_radial_profile_J(ii,ifile)/=elens_radial_profile_J(elens_radial_profile_nPoints(ifile),ifile)
+  end do
+  
+end subroutine normaliseRadialProfile
 
 ! ================================================================================================ !
 !  Last modified: 2018-06-25

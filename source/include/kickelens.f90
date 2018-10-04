@@ -27,6 +27,12 @@ if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
       frrelens=( exp_mb(-0.5*(elens_r1(ielens(ix))/elens_sig(ielens(ix)))**2)    &
                 -exp_mb(-0.5*(rrelens             /elens_sig(ielens(ix)))**2) )/ &
                               elens_geo_norm(ielens(ix))
+    case (3)
+      ! RADIAL PROFILE: eLens with radial profile as from file
+      frrelens=(lininterp( rrelens, &
+            elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
+            elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
+            elens_radial_profile_nPoints(elens_iRadial(ielens(ix))) )-elens_radial_fr1(ielens(ix)) )/elens_geo_norm(ielens(ix))
     case default
       write(lout,"(a,i0)") "ELENS> ERROR in kickelens: elens_type=",elens_type(ielens(ix))," not recognized. "
       write(lout,"(a)")    "ELENS>       Possible values for type are: 1 and 2"
