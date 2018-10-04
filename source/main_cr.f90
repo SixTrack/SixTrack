@@ -2017,6 +2017,14 @@ end interface
       write(lout,"(a)") ""
       write(lout,"(a)") str_divLine
       write(lout,"(a)") ""
+
+      if(st_partsum .eqv. .false.) then
+        write(lout,"(a)") "MAINCR> NOTE Particle summary report is disabled."
+        write(lout,"(a)") "MAINCR>      This is controlled by the PARTICLESUMMARY flag in the SETTINGS block in fort.3."
+        write(lout,"(a)") ""
+        goto 470
+      end if
+
       write(lout,"(a)") "    PARTICLE SUMMARY:"
       write(lout,"(a)") ""
 
@@ -2048,7 +2056,7 @@ end interface
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
           write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
-          if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output probably due to lost particle ",ie
+          if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output, probably due to lost particle ",ie
         end if
 
         if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
@@ -2063,7 +2071,7 @@ end interface
             xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
           write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
-          if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output probably due to lost particle ",ia
+          if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output, probably due to lost particle ",ia
         end if
 
         if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
@@ -2078,7 +2086,7 @@ end interface
             xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
           write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
-          if(ierro.ne.0) write(lout,"(a)") "MAINCR> WARNING fort.12 has corrupted output although particles stable"
+          if(ierro.ne.0) write(lout,"(a)") "MAINCR> WARNING fort.12 has corrupted output, although particles are stable"
           id=ig
         end if
       end do
@@ -2108,6 +2116,7 @@ end interface
 
 ! POSTPROCESSING (POSTPR)
 
+470 continue
 ! and we need to open fort.10 unless already opened for BOINC
 #ifdef NAGFOR
 #ifdef BOINC

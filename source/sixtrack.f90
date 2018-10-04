@@ -64,11 +64,6 @@ subroutine daten
 !  SET DEFAULT VALUES
 ! ================================================================================================ !
 
-  ! SixTrack Settings
-  st_print     = .false.
-  st_debug     = .false.
-  st_quiet     = 0
-
   ! Main Variables
   iHead        = " "
   sixtit       = " "
@@ -4871,9 +4866,9 @@ subroutine linopt(dpp)
         end do
       end do
 
-      if(ncorru.eq.0) then
+      if(ncorru.eq.0 .and. iprint.eq.1) then
         write(lout,10010)
-        if(iprint.eq.1) write(lout,10030)
+        write(lout,10030)
         write(lout,10020)
         write(lout,10010)
       endif
