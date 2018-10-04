@@ -1015,7 +1015,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call expand_arrays(nele, napx*2, nblz, nblo)
     end if
 
-    if(napx > 2 .and. sixin_forcePartSummary .eqv. .false.) then
+    if(napx > 32 .and. sixin_forcePartSummary .eqv. .false.) then
       write(lout,"(a)") "TRAC> NOTE More than 64 particles requested, switching off printing of particle summary."
       st_partsum = .false.
     end if
