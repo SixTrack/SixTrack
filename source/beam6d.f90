@@ -5,7 +5,7 @@
 !   January 1999
 !
 ! ================================================================================================ !
-subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
+subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc,mtc)
 
   use floatPrecision
   use mathlib_bouncer
@@ -20,6 +20,7 @@ subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
   real(kind=fPrec) alpha,calpha,cphi,f,phi,salpha,sigzs,sphi,tphi,phi2,cphi2,sphi2,tphi2
 
   real(kind=fPrec) :: track(6,npart) !(6,npart)
+  real(kind=fPrec) :: mtc(npart)
   real(kind=fPrec) :: param(nele,18) !(nele,18)
   real(kind=fPrec) :: bcu(nbb,12) !(nbb,12)
   real(kind=fPrec) :: star(3,mbea) !(3,mbea)
@@ -58,7 +59,7 @@ subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
 !     define slices
   call stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
   call boost(np,sphi,cphi,tphi,salpha,calpha,track)
-  call sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
+  call sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc,mtc)
   call boosti(np,sphi,cphi,tphi,salpha,calpha,track)
   return
 end subroutine beamint
@@ -121,7 +122,7 @@ end subroutine boost
 !  call BBF  (table) disabled
 !****************************************************************
 ! ================================================================================================ !
-subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
+subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc,mtc)
 
   use floatPrecision
   use mathlib_bouncer
@@ -137,6 +138,7 @@ subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
   real(kind=fPrec) :: track(6,npart) !(6,npart)
   real(kind=fPrec) :: bcu(nbb,12) !(nbb,12)
   real(kind=fPrec) :: star(3,mbea) !(3,mbea)
+  real(kind=fPrec) :: mtc(npart) 
   real(kind=fPrec), allocatable :: dum(:) !(13)
 
   save
@@ -211,10 +213,10 @@ subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
         call bbf(sepy,sepx,sy,sx,bbfy,bbfx,bbgy,bbgx,ibtyp)
       end if
 
-      bbfx=f*bbfx
-      bbfy=f*bbfy
-      bbgx=f*bbgx
-      bbgy=f*bbgy
+      bbfx=f*bbfx*mtc(i)
+      bbfy=f*bbfy*mtc(i)
+      bbgx=f*bbgx*mtc(i)
+      bbgy=f*bbgy*mtc(i)
 
       if(ibbc1.eq.1) then
         dum(8)=two*((bcu(ibb,4)-bcu(ibb,9))+(bcu(ibb,6)-bcu(ibb,10))*sp)
