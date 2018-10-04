@@ -2306,6 +2306,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   use mod_commont
   use mod_commonmn
   use mod_particles
+
   use elens
   use parbeam, only : beam_expflag
   implicit none
@@ -2320,8 +2321,9 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   real(kind=fPrec) e0fo, e0o, r0a, r0
 
   ! For sanity check
-  logical ldoubleElement
+  logical ldoubleElement, iErr
   ldoubleElement = .false.
+  iErr = .false.
 
   if(dynk_debug) then
     write(lout,"(a,e16.9)") "DYNK> DEBUG setvalue Element_name = '"//trim(element_name)//"', "//&
@@ -2364,50 +2366,46 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
           goto 100 ! ERROR
         end if
         call initialize_element(ii, .false.)
-
   
       case(11)
-      im=irm(ii)
-      if(att_name=="scaleall") then
-
-      else if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
-        if(LEN_TRIM(att_name) .eq. 5) then
-          range = 3
-          read(att_name(2:2), *) orderMult
-        else if(LEN_TRIM(att_name) .eq. 6) then
-          read(att_name(2:3), *) orderMult
-          range = 4
-        else
-          goto 100
+        im=irm(ii)
+        if(att_name=="scaleall") then
+          scalemu(im) = newValue 
+        else if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
+          if(LEN_TRIM(att_name) .eq. 5) then
+            range = 3
+            call chr_cast(att_name(2:2), orderMult, iErr)
+          else if(LEN_TRIM(att_name) .eq. 6) then
+            call chr_cast(att_name(2:3), orderMult, iErr)
+            range = 4
+          else
+            goto 100
+          endif
+          if(iErr) goto 100
+          if(nmu(ii) .lt. orderMult) then
+            nmu(ii) = orderMult
+          endif
+          
+          r0 = r00(im)
+          r0a = one
+          do k=2,orderMult
+            r0a=r0a*r0
+          end do
+          if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
+            aka(im,orderMult) = newValue*benkc(im)/r0a
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "rms") then
+            bka(im,orderMult) = newValue*benkc(im)/r0a
+          else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "str") then
+            ak0(im,orderMult) = newValue*benkc(im)/r0a
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "str") then
+            bk0(im,orderMult) = newValue*benkc(im)/r0a
+          else 
+            goto 100 ! ERROR
+          endif
         endif
-        
-        if(nmu(ii) .lt. orderMult) then
-          nmu(ii) = orderMult
-        endif
-        
-        r0 = r00(im)
-        r0a = one
-        do k=2,orderMult
-          r0a=r0a*r0
-        end do
 
-        if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
-          aka(im,orderMult) = newValue*benkc(im)/r0a
-        else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "rms") then
-          bka(im,orderMult) = newValue*benkc(im)/r0a
-        else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "str") then
-          ak0(im,orderMult) = newValue*benkc(im)/r0a
-        else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "str") then
-          bk0(im,orderMult) = newValue*benkc(im)/r0a
-        else 
-          goto 100 ! ERROR
-        endif
-      endif
-
-
-
-      call initialize_element(ii, .false.)
-   
+        call initialize_element(ii, .false.)
+     
       case(12)
         if(att_name == "voltage") then ! [MV]
           ed(ii) = newValue
@@ -2547,9 +2545,9 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
   integer el_type, ii, orderMult, im, range
 
-  logical ldoubleElement
+  logical ldoubleElement, iErr
   ldoubleElement = .false.  ! For sanity check
-
+  iErr = .false.
   if(dynk_debug) then
     write(lout,"(a)") "DYNK> DEBUG In getValue, element_name = '"//trim(element_name)//"'"//&
       ", att_name = '"//trim(att_name)//"'"
@@ -2587,34 +2585,33 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
 
       case(11)
-      im=irm(ii)
-      if(att_name=="scaleall") then
-
-      else if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
-        if(LEN_TRIM(att_name) .eq. 5) then
-           range = 3
-          read(att_name(2:2), *) orderMult
-        else if(LEN_TRIM(att_name) .eq. 6) then
-          read(att_name(2:3), *) orderMult
-          range = 4
-        else
-          goto 100
+        im=irm(ii)
+        if(att_name=="scaleall") then
+          dynk_getvalue = scalemu(im) 
+        else if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
+          if(LEN_TRIM(att_name) .eq. 5) then
+             range = 3
+            call chr_cast(att_name(2:2), orderMult, iErr)
+          else if(LEN_TRIM(att_name) .eq. 6) then
+            call chr_cast(att_name(2:3), orderMult, iErr)
+            range = 4
+          else
+            goto 100
+          endif
+          if(iErr) goto 100
+          
+          if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
+            dynk_getvalue = aka(im,orderMult)
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "rms") then
+            dynk_getvalue = bka(im,orderMult)  
+          else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "str") then
+            dynk_getvalue = ak0(im,orderMult)  
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "str") then
+            dynk_getvalue = bk0(im,orderMult) 
+          else
+            goto 100 ! ERROR
+          endif
         endif
-      
-        if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
-          dynk_getvalue = aka(im,orderMult)
-        else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "rms") then
-          dynk_getvalue = bka(im,orderMult)  
-        else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "str") then
-          dynk_getvalue = ak0(im,orderMult)  
-        else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "str") then
-          dynk_getvalue = bk0(im,orderMult) 
-        else
-          goto 100 ! ERROR
-        endif
-      endif
-
-
 
       case(12) ! Cavities
         if(att_name == "voltage"  ) then ! MV
