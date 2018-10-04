@@ -1729,6 +1729,7 @@ subroutine initialize_element(ix,lfirst)
       use mod_common
       use mod_commont
       use mod_commonmn
+      use mod_hions
       use elens
       use wire
       use mathlib_bouncer
@@ -1971,7 +1972,7 @@ subroutine initialize_element(ix,lfirst)
                   track6d(6,1)=zero
                   napx0=napx
                   napx=1
-                  call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc)
+                  call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc, mtc)
                   beamoff(1,imbb(i))=track6d(1,1)*c1e3
                   beamoff(2,imbb(i))=track6d(3,1)*c1e3
                   beamoff(3,imbb(i))=track6d(5,1)*c1e3
