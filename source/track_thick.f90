@@ -1419,7 +1419,7 @@ subroutine thck6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 
 
           ! We have to go back to angles after we updated the energy.
