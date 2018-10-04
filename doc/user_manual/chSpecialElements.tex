@@ -447,10 +447,27 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     & \texttt{frequency}   & MHz     & Frequency \\
     & \texttt{phase}       & radians & Offset between zero-crossing and ideal bunch center \\
   \hline
-   \multirow{3}{*}{\parbox{4cm}{Beam-Beam (expert) \index{Beam-Beam}\\ (20),\\ Section~\ref{BeamBeam}}}
+   \multirow{3}{*}{\parbox{4cm}{Beam-Beam 6d (expert) \index{Beam-Beam}\\ (20),\\ Section~\ref{BeamBeam}}}
     & \texttt{h-sep}     & mm      & Horizontal offset \\
     & \texttt{v-sep}     & mm      & Vertical offset \\
     & \texttt{strength}  & -       & Strength-ratio \\
+    & \texttt{Sxx}       & -       & $\Sigma_{x,x}$  \\
+    & \texttt{Sxxp}      & -       & $\Sigma_{x,xp}$ \\
+    & \texttt{Sxpxp}     & -       & $\Sigma_{xp,xp}$  \\
+    & \texttt{Syy}       & -       & $\Sigma_{y,y}$ \\
+    & \texttt{Syyp}      & -       & $\Sigma_{y,yp}$\\
+    & \texttt{Sypyp}     & -       & $\Sigma_{yp,yp}$ \\
+    & \texttt{Sxy}       & -       & $\Sigma_{x,y}$ \\
+    & \texttt{Sxyp}      & -       & $\Sigma_{x,py}$  \\
+    & \texttt{Sxpy}      & -       & $\Sigma_{xp,y}$ \\
+    & \texttt{Sxpyp}     & -       & $\Sigma_{xp,yp}$ \\
+   \hline
+      \multirow{3}{*}{\parbox{4cm}{Beam-Beam 4d (expert) \index{Beam-Beam}\\ (20),\\ Section~\ref{BeamBeam}}}
+    & \texttt{h-sep}     & mm      & Horizontal offset \\
+    & \texttt{v-sep}     & mm      & Vertical offset \\
+    & \texttt{strength}  & -       & Strength-ratio \\
+    & \texttt{4dSxx}     & -       & $\Sigma_{x,x}$  \\
+    & \texttt{4dSyy}     & -       & $\Sigma_{y,y}$ \\
   \hline
     \multirow{3}{*}{\parbox{4cm}{Multipoles \index{Multipoles}\\ (11),\\ Section~\ref{MulCoe}}}
     & \texttt{scaleall}  & -       & Multiplies all order by this factor \\
