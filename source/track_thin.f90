@@ -105,7 +105,7 @@ subroutine trauthin(nthinerr)
       ktrack(i)=31
       goto 290
     endif
-    
+
     !Beam-beam element
     !41 --round beam
     !42 --elliptic beam x>z
@@ -1356,7 +1356,6 @@ subroutine thin6d(nthinerr)
       else
         dotrack = ktrack(i)
       end if
-      print *, "doooootrack", dotrack
       select case(dotrack)
       case (1)
         stracki=strack(i)
@@ -1846,7 +1845,6 @@ subroutine thin6d(nthinerr)
         goto 640
       case (43)
         if(ibtyp.eq.0) then
-        print *, ibtyp, "ibbbbtyp 0000"
 #include "include/beam21.f90"
 #include "include/beama1.f90"
 #include "include/beamco.f90"
@@ -1855,10 +1853,7 @@ subroutine thin6d(nthinerr)
 #include "include/beama3.f90"
 #include "include/beam23.f90"
 #include "include/beama4.f90"
-print *, "beeeeammmelleeement", sigmanq(:,imbb(i)), clobeam(:,imbb(i)),sigman2(:,imbb(i))
         else if(ibtyp.eq.1) then
-print *, ibtyp, "ibbbbtyp 1111"
-
 #include "include/beam21.f90"
 #include "include/beama1.f90"
 #include "include/beamco.f90"

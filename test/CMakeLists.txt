@@ -59,6 +59,7 @@ SET(TESTS_NOFORT10
   fileunits_DYNK_DUMP
   multipoles_DYNK
   beambeamDYNK
+  beambeam4dDYNK
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
@@ -161,6 +162,7 @@ SET(SIXTRACK_TESTS
   multipoles_DYNK
   geometry
   beambeamDYNK
+  beambeam4dDYNK
   beam-HO_4D-newstyle
   beam-HO_4D-newstyle-loadParticles
   beam-HO_4D-oldstyle
@@ -399,6 +401,7 @@ SET(FAST_TESTS
   geometry
   fcc
   beambeamDYNK
+  beambeam4dDYNK
   beam-HO_4D-newstyle
   beam-HO_4D-newstyle-loadParticles
   beam-HO_4D-oldstyle

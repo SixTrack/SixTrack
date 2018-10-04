@@ -721,7 +721,6 @@ subroutine umlauda
           endif
         else if (beam_expflag .eq. 1) then !New style input
           if(parbe(ix,2).gt.zero) then
-             print *, "for expeeeeert flag!!!"
              bbcu(ibb,1)=parbe(ix,7)
              bbcu(ibb,4)=parbe(ix,8)
              bbcu(ibb,6)=parbe(ix,9)
@@ -791,7 +790,6 @@ subroutine umlauda
           call prror(88)
         endif
         if(ibbc.eq.1) then
-        print *, "are we evereeeeer here?"
           sfac1=bbcu(ibb,1)+bbcu(ibb,2)
           sfac2=bbcu(ibb,1)-bbcu(ibb,2)
           sfac2s=one
@@ -806,7 +804,6 @@ subroutine umlauda
           bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))            !hr03
           if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)       !hr03
         else
-          print *, " ibbc not 0000 are we evereeeeer here?"
           bbcu(ibb,11)=one
           sigman(1,ibb)=sqrt(bbcu(ibb,1))
           sigman(2,ibb)=sqrt(bbcu(ibb,2))
@@ -832,7 +829,6 @@ subroutine umlauda
             clobeam(6,imbb(i))=dare(dpda)
           endif
         endif
-        print *, "4ddd beforeeeeeeee sigma checks.."
         if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
           if(ibeco.eq.1) then
             if(ibbc.eq.0) then

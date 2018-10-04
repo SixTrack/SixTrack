@@ -1,5 +1,4 @@
 ! start include/beamr3.f90
-print *, "beeeeeeeammmmm", rho2b(j), tkb(j), beamoff(4,imbb(i)), beamoff(5,imbb(i)), bbcu(imbb(i),11), bbcu(imbb(i),12)
 if(ibbc.eq.0) then
   yv(1,j)=yv(1,j)+moidpsv(j)*(((strack(i)*crkveb(j))/rho2b(j))*(one-exp_mb(-one*tkb(j)))-beamoff(4,imbb(i)))
   yv(2,j)=yv(2,j)+moidpsv(j)*(((strack(i)*cikveb(j))/rho2b(j))*(one-exp_mb(-one*tkb(j)))-beamoff(5,imbb(i)))
