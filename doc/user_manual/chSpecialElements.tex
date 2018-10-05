@@ -711,7 +711,7 @@ Lastly, the linear coupling has been considered in 4 and 6 dimensional phase spa
     First line:   & \texttt{EXPERT}\index{BEAM EXPERT} \\
     Second line:  & \texttt{partnum emitnx emitny sigz sige ibeco ibtyp lhc ibbc} \\
     Further lines & 4D BB lens (1 line per element): \\
-                  & ~~~~\texttt{name ibsix $\Sigma_{x,x}$ $\Sigma_{y,y}$ h-sep v-sep strength-ratio} \\
+                  & ~~~~\texttt{name ibsix $\Sigma_{x,x}$ $\Sigma_{y,y}$ h-sep v-sep strength-ratio $\Sigma_{x,y}$} \\
                   & 6D BB lens (3 lines per element): \\
                   & ~~~~\texttt{name ibsix xang xplane h-sep v-sep} \\
                   & ~~~~\texttt{$\Sigma_{x,x}$ $\Sigma_{x,xp}$ $\Sigma_{xp,xp}$ $\Sigma_{y,y}$ $\Sigma_{y,yp}$} \\
@@ -730,6 +730,7 @@ Some parameters are new or defined in a different way:
                    &         & If \texttt{ibsix} is larger or equal 1, this element is treated as a 6D element. \\
     $\Sigma_{xx}$  & float   & Horizontal $\sigma$ for the strong beam\index{strong beam} $\rm{[mm^2]}$. \\
     $\Sigma_{yy}$  & float   & Vorizontal $\sigma$ for the strong beam $\rm{[mm^2]}$. \\
+    $\Sigma_{xy}$  & float   & Coupled $\sigma$ for the strong beam $\rm{[mm^2]}$. Optional, used only if \texttt{ibbc=1}. \\
     \texttt{h-sep} & float   & Horizontal beam--beam separation\index{beam--beam separation} [mm] \\
     \texttt{v-sep} & float   & Vertical beam--beam separation [mm] \\
     \texttt{strength-ratio} & float & Strength ratio with respect to the nominal beam--beam kick strength\index{beam--beam kick}. This is useful to allow for splitting one beam--beam kick into several (longitudinally close by) kicks.\\

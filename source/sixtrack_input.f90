@@ -3083,11 +3083,11 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) elemName
-  real(kind=fPrec) sxx,syy,separx,separy,mm(11)
+  real(kind=fPrec) sxx,syy,sxy,separx,separy,mm(11)
   integer nSplit, n6D, ibsix, j
   logical spErr, beamXStr
 
-  save :: n6D,elemName,ibsix,sxx,syy,separx,separy,mm
+  save :: n6D,elemName,ibsix,sxx,syy,sxy,separx,separy,mm
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -3151,6 +3151,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
       syy    = zero
       separx = zero
       separy = zero
+      sxy    = zero
 
       if(nSplit > 0) elemName = trim(lnSplit(1))
       if(nSplit > 1) call chr_cast(lnSplit(2),ibsix, iErr)
@@ -3159,10 +3160,11 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
       if(nSplit > 4) call chr_cast(lnSplit(5),separx,iErr)
       if(nSplit > 5) call chr_cast(lnSplit(6),separy,iErr)
       if(nSplit > 6) call chr_cast(lnSplit(7),mm(1), iErr)
+      if(nSplit > 7) call chr_cast(lnSplit(8),sxy,   iErr)
 
       if(ibsix == 0) then
-        if(nSplit /= 7) then
-          write(lout,"(a,i0)") "BEAM> ERROR First line of a 4D element definition should have 7 fields, got ",nSplit
+        if( nSplit < 7 .or. nSplit > 8 ) then
+          write(lout,"(a,i0)") "BEAM> ERROR First line of a 4D element definition should have 7  or 8 fields, got ",nSplit
           iErr = .true.
           return
         end if
@@ -3191,6 +3193,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
         call sixin_echoVal("ibsix", ibsix,   "BEAM",iLine)
         call sixin_echoVal("Sxx",   sxx,     "BEAM",iLine)
         call sixin_echoVal("Syy",   syy,     "BEAM",iLine)
+        call sixin_echoVal("Sxy",   sxy,     "BEAM",iLine)
         call sixin_echoVal("separx",separx,  "BEAM",iLine)
         call sixin_echoVal("separy",separy,  "BEAM",iLine)
         call sixin_echoVal("strrat",mm(1),   "BEAM",iLine)
@@ -3220,6 +3223,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
               parbe(j,5)  = separx
               parbe(j,6)  = separy
               ptnfac(j)   = mm(1)
+              parbe(j,13) = sxy
             end if
           end if
         end do
