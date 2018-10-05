@@ -60,6 +60,9 @@ module sixtrack_input
   ! "Phase Trombone" Element
   integer,                       public, save :: sixin_imtr0
 
+  ! Settings
+  logical,                       private, save :: sixin_forcePartSummary = .false.
+
   interface sixin_echoVal
     module procedure sixin_echoVal_int
     module procedure sixin_echoVal_real32
@@ -315,6 +318,20 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
   case("PRINT_DCUM")
     print_dcum = .true.
     write(lout,"(a)") "INPUT> Printout of dcum array ENABLED"
+
+  case("PARTICLESUMMARY","PARTSUMMARY")
+    if(nSplit > 1) then
+      call chr_cast(lnSplit(2),st_partsum,iErr)
+      sixin_forcePartSummary = .true.
+    else
+      st_partsum = .true.
+      sixin_forcePartSummary = .true.
+    end if
+    if(st_partsum) then
+      write(lout,"(a,i0)") "INPUT> Printing of particle summary is ENABLED"
+    else
+      write(lout,"(a,i0)") "INPUT> Printing of particle summary is DISABLED"
+    end if
 
   case("QUIET")
     if(nSplit > 1) then
@@ -996,6 +1013,11 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
     if(napx*2 > npart) then
       call expand_arrays(nele, napx*2, nblz, nblo)
+    end if
+
+    if(napx > 32 .and. sixin_forcePartSummary .eqv. .false.) then
+      write(lout,"(a)") "TRAC> NOTE More than 64 particles requested, switching off printing of particle summary."
+      st_partsum = .false.
     end if
 
   case(2)

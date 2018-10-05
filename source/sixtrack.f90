@@ -64,11 +64,6 @@ subroutine daten
 !  SET DEFAULT VALUES
 ! ================================================================================================ !
 
-  ! SixTrack Settings
-  st_print     = .false.
-  st_debug     = .false.
-  st_quiet     = 0
-
   ! Main Variables
   iHead        = " "
   sixtit       = " "
@@ -4871,9 +4866,9 @@ subroutine linopt(dpp)
         end do
       end do
 
-      if(ncorru.eq.0) then
+      if(ncorru.eq.0 .and. iprint.eq.1) then
         write(lout,10010)
-        if(iprint.eq.1) write(lout,10030)
+        write(lout,10030)
         write(lout,10020)
         write(lout,10010)
       endif
@@ -4927,10 +4922,8 @@ subroutine linopt(dpp)
 !c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
 !c$$$            endif
 
-            write(lout,*) "ERROR in LINOPT:"
-            write(lout,*) "In block ", bezb(ix),                        &
-     &           "found a thick non-drift element",                     &
-     &           bez(jk), "while ithick=1. This should not be possible!"
+            write(lout,"(a)") "LINOPT> ERROR In block '"//trim(bezb(ix))//"': found a thick non-drift element '"//&
+              trim(bez(jk))//"' while ithick=1. This should not be possible!"
             call prror(-1)
             cycle STRUCTLOOP
           endif
@@ -5583,12 +5576,10 @@ subroutine linopt(dpp)
               endif
               do iiii=3,nmz
                  if(abs(bb(iiii)).gt.pieni) then
-                    write(34,10070)                                      &
-     &                   etl,bez(ix),iiii,bb(iiii),bexi,bezii,phi
+                    write(34,10070) etl,bez(ix),iiii,bb(iiii),bexi,bezii,phi
                  endif
                  if(abs(aa(iiii)).gt.pieni) then
-                    write(34,10070)                                      &
-     &                   etl,bez(ix),-iiii,aa(iiii),bexi,bezii,phi
+                    write(34,10070) etl,bez(ix),-iiii,aa(iiii),bexi,bezii,phi
                  endif
               enddo
            elseif(abs(ekk).gt.pieni.and.abs(kz(ix)).ge.3) then
@@ -5631,8 +5622,7 @@ subroutine linopt(dpp)
       bexi=t(2,1)**2+t(3,1)**2                                           !hr06
       bezii=t(4,3)**2+t(5,3)**2                                          !hr06
       if(ncorru.eq.0) write(34,10070) etl,idum,iiii,zero,bexi,bezii,phi
-      if(ncorru.eq.0)                                                   &
-     &write(lout,10060)
+      if(ncorru.eq.0) write(lout,10060)
 !-----------------------------------------------------------------------
       return
 10000 format(t5 ,'---- ENTRY LINOPT ----')

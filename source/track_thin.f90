@@ -1221,7 +1221,7 @@ subroutine thin6d(nthinerr)
 #endif
   implicit none
 
-  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,elemEnd
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
@@ -1416,13 +1416,12 @@ subroutine thin6d(nthinerr)
           ! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB
           ! both namings before and after V6.503 can be used
           !
-          if (      bez(myix)(1:2).eq.'TC'  &
-               .or. bez(myix)(1:2).eq.'tc'  &
-               .or. bez(myix)(1:2).eq.'TD'  &
-               .or. bez(myix)(1:2).eq.'td'  &
-               .or. bez(myix)(1:3).eq.'COL' &
-               .or. bez(myix)(1:3).eq.'col' &
-               ) then
+          elemEnd = len_trim(bez(myix))
+          ! write(lout,"(a)") "COLL> DEBUG Checking if aperture: '"//bez(myix)(elemEnd-2:elemEnd)//"' from '"//bez(myix)//"'"
+          if((    bez(myix)(1:2) == 'TC'  .or. bez(myix)(1:2) == 'tc'   &
+            .or.  bez(myix)(1:2) == 'TD'  .or. bez(myix)(1:2) == 'td'   &
+            .or.  bez(myix)(1:3) == 'COL' .or. bez(myix)(1:3) == 'col') &
+            .and. bez(myix)(elemEnd-2:elemEnd) /= "_AP") then
 
             call collimate_start_collimator(stracki)
 
@@ -1441,11 +1440,9 @@ subroutine thin6d(nthinerr)
               xv(1,j)  = xv(1,j) + stracki*yv(1,j)
               xv(2,j)  = xv(2,j) + stracki*yv(2,j)
 #ifdef FAST
-              sigmv(j) = sigmv(j) + &
-                   stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)*yv(1,j)+yv(2,j)*yv(2,j))*c5m4))
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)*yv(1,j)+yv(2,j)*yv(2,j))*c5m4))
 #else
-              sigmv(j) = sigmv(j) + &
-                   stracki*(c1e3-rvv(j)*sqrt(c1e6+yv(1,j)*yv(1,j)+yv(2,j)*yv(2,j)))
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt(c1e6+yv(1,j)*yv(1,j)+yv(2,j)*yv(2,j)))
 #endif
               xj     = (xv(1,j)-torbx(ie))/c1e3
               xpj    = (yv(1,j)-torbxp(ie))/c1e3
@@ -1487,11 +1484,9 @@ subroutine thin6d(nthinerr)
               xv(1,j)  = xv(1,j) + stracki*yv(1,j)
               xv(2,j)  = xv(2,j) + stracki*yv(2,j)
 #ifdef FAST
-              sigmv(j) = sigmv(j) + &
-                   stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)**2+yv(2,j)**2)*c5m4))
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)**2+yv(2,j)**2)*c5m4))
 #else
-              sigmv(j) = sigmv(j) + &
-                   stracki*(c1e3-rvv(j)*sqrt((c1e6+yv(1,j)**2)+yv(2,j)**2))
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt((c1e6+yv(1,j)**2)+yv(2,j)**2))
 #endif
             end do
           else

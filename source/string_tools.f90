@@ -18,6 +18,7 @@ module string_tools
   public str_stripQuotes, chr_stripQuotes
   public str_sub, chr_expandBrackets
   public chr_lpad, chr_rpad
+  public chr_toUpper, chr_toLower
   public str_inStr, chr_inStr
 
   interface str_cast
@@ -411,6 +412,39 @@ function chr_rpad(theString, theSize) result(retString)
     retString = theString
   end if
 end function chr_rpad
+
+! ================================================================================================ !
+!  Convert to Lower/Upper Case
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-10-04
+! ================================================================================================ !
+function chr_toUpper(theString) result(retString)
+  character(len=*), intent(in)  :: theString
+  character(len=:), allocatable :: retString
+  character          :: ch
+  integer, parameter :: ulOffset = ichar("A") - ichar("a")
+  integer            :: i
+  allocate(character(len(theString)) :: retString)
+  do i = 1,len(theString)
+    ch = theString(i:i)
+    if(ch >= "a" .and. ch <= "z") ch = char(ichar(ch)+ulOffset)
+    retString(i:i) = ch
+  end do
+end function chr_toUpper
+
+function chr_toLower(theString) result(retString)
+  character(len=*), intent(in)  :: theString
+  character(len=:), allocatable :: retString
+  character          :: ch
+  integer, parameter :: ulOffset = ichar("A") - ichar("a")
+  integer            :: i
+  allocate(character(len(theString)) :: retString)
+  do i = 1,len(theString)
+    ch = theString(i:i)
+    if(ch >= "A" .and. ch <= "Z") ch = char(ichar(ch)-ulOffset)
+    retString(i:i) = ch
+  end do
+end function chr_toLower
 
 ! ================================================================================================ !
 !  Trim Zero String Routine
@@ -1087,12 +1121,19 @@ subroutine chr_toLog(theString, theValue, rErr)
   character(len=:), allocatable   :: tmpString
   integer                         :: readErr
 
-  tmpString = trim(theString)
-  read(tmpString,*,iostat=readErr) theValue
-  if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to logical width error ",readErr
-    rErr = .true.
-  end if
+  tmpString = chr_toUpper(trim(theString))
+  select case(tmpString)
+  case("ON")
+    theValue = .true.
+  case("OFF")
+    theValue = .false.
+  case default
+    read(tmpString,*,iostat=readErr) theValue
+    if(readErr /= 0) then
+      write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to logical width error ",readErr
+      rErr = .true.
+    end if
+  end select
 
 end subroutine chr_toLog
 
