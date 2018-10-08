@@ -2306,22 +2306,24 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   use mod_commont
   use mod_commonmn
   use mod_particles
-  use elens
 
+  use elens
+  use parbeam, only : beam_expflag
   implicit none
 
   character(mStrLen), intent(in) :: element_name, att_name
   real(kind=fPrec),   intent(in) :: newValue
 
   ! Temp variables
-  integer el_type, ii, j
+  integer el_type, ii, j, orderMult, im,k, range
 
   ! Original energies before energy update
-  real(kind=fPrec) e0fo, e0o
+  real(kind=fPrec) e0fo, e0o, r0a, r0
 
   ! For sanity check
-  logical ldoubleElement
+  logical ldoubleElement, iErr
   ldoubleElement = .false.
+  iErr = .false.
 
   if(dynk_debug) then
     write(lout,"(a,e16.9)") "DYNK> DEBUG setvalue Element_name = '"//trim(element_name)//"', "//&
@@ -2364,10 +2366,46 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
           goto 100 ! ERROR
         end if
         call initialize_element(ii, .false.)
+  
+      case(11)
+        im=irm(ii)
+        if(att_name=="scaleall") then
+          scalemu(im) = newValue 
+        else if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
+          if(LEN_TRIM(att_name) .eq. 5) then
+            range = 3
+            call chr_cast(att_name(2:2), orderMult, iErr)
+          else if(LEN_TRIM(att_name) .eq. 6) then
+            call chr_cast(att_name(2:3), orderMult, iErr)
+            range = 4
+          else
+            goto 100
+          endif
+          if(iErr) goto 100
+          if(nmu(ii) .lt. orderMult) then
+            nmu(ii) = orderMult
+          endif
+          
+          r0 = r00(im)
+          r0a = one
+          do k=2,orderMult
+            r0a=r0a*r0
+          end do
+          if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
+            aka(im,orderMult) = newValue*benkc(im)/r0a
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "rms") then
+            bka(im,orderMult) = newValue*benkc(im)/r0a
+          else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "str") then
+            ak0(im,orderMult) = newValue*benkc(im)/r0a
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "str") then
+            bk0(im,orderMult) = newValue*benkc(im)/r0a
+          else 
+            goto 100 ! ERROR
+          endif
+        endif
 
-      ! Not yet supported : MULTIPOLES (11)
-
-      ! Cavities
+        call initialize_element(ii, .false.)
+     
       case(12)
         if(att_name == "voltage") then ! [MV]
           ed(ii) = newValue
@@ -2386,9 +2424,46 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         end if
 
       ! Not yet supported : AC dipole (16)
-
-      ! Not yet supported : beam-beam separation (20)
-
+      case(20)
+       if(beam_expflag.eq.1) then
+         if (att_name == "h-sep") then ! [mm]
+           parbe(ii,5) = newValue
+         else if (att_name == "v-sep") then ! [mm]
+           parbe(ii,6) = newValue
+         else if (att_name=="4dSxx") then !strong I think
+           parbe(ii,1) = newValue
+         else if (att_name=="4dSyy") then
+           parbe(ii,3) = newValue
+         else if (att_name == "strength") then ! 
+           ptnfac(ii) = newValue
+           parbe(ii,4)=(((-one*crad)*ptnfac(ii))*half)*c1m6
+         else if(att_name == "Sxx") then
+           parbe(ii,7) = newValue 
+         else if(att_name == "Sxxp") then
+           parbe(ii,8) = newValue
+         else if(att_name == "Sxpxp") then
+           parbe(ii,9) = newValue
+         else if(att_name == "Syy") then
+           parbe(ii,10) = newValue
+         else if(att_name == "Syyp") then
+           parbe(ii,11) = newValue
+         else if(att_name == "Sypyp") then
+           parbe(ii,12) = newValue
+         else if(att_name == "Sxy") then
+           parbe(ii,13) = newValue
+         else if(att_name == "Sxyp") then
+           parbe(ii,14) = newValue 
+         else if(att_name == "Sxpy") then
+           parbe(ii,15) = newValue
+         else if(att_name == "Sxpyp") then
+           parbe(ii,16) = newValue
+         else 
+           go to 100
+         endif
+         call initialize_element(ii, .false.)
+       else 
+         go to 102
+       end if
       case(23,26,27,28)
         ! crab cavity, cc mult. kick order 2,3 and 4
         if(att_name == "voltage") then ! [MV]
@@ -2443,6 +2518,10 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   write(lout,"(a)") "DYNK> ERROR setValue The element named '"//trim(element_name)//"' was not found."
   call prror(-1)
 
+102 continue
+  write(lout,"(a)") "DYNK> ERROR  --- Only Beam-beam expert mode is supported for DYNK"
+  call prror(-1)
+
 end subroutine dynk_setvalue
 
 ! ================================================================================================ !
@@ -2458,16 +2537,17 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
   use mod_commont
   use mod_commonmn
   use elens
+  use parbeam, only : beam_expflag
 
   implicit none
 
   character(mStrLen), intent(in) :: element_name, att_name
 
-  integer el_type, ii
+  integer el_type, ii, orderMult, im, range
 
-  logical ldoubleElement
+  logical ldoubleElement, iErr
   ldoubleElement = .false.  ! For sanity check
-
+  iErr = .false.
   if(dynk_debug) then
     write(lout,"(a)") "DYNK> DEBUG In getValue, element_name = '"//trim(element_name)//"'"//&
       ", att_name = '"//trim(att_name)//"'"
@@ -2503,7 +2583,35 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
           goto 100 ! ERROR
         end if
 
-        ! Not yet supported : Multipoles (11)
+
+      case(11)
+        im=irm(ii)
+        if(att_name=="scaleall") then
+          dynk_getvalue = scalemu(im) 
+        else if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
+          if(LEN_TRIM(att_name) .eq. 5) then
+             range = 3
+            call chr_cast(att_name(2:2), orderMult, iErr)
+          else if(LEN_TRIM(att_name) .eq. 6) then
+            call chr_cast(att_name(2:3), orderMult, iErr)
+            range = 4
+          else
+            goto 100
+          endif
+          if(iErr) goto 100
+          
+          if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
+            dynk_getvalue = aka(im,orderMult)
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "rms") then
+            dynk_getvalue = bka(im,orderMult)  
+          else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "str") then
+            dynk_getvalue = ak0(im,orderMult)  
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "str") then
+            dynk_getvalue = bk0(im,orderMult) 
+          else
+            goto 100 ! ERROR
+          endif
+        endif
 
       case(12) ! Cavities
         if(att_name == "voltage"  ) then ! MV
@@ -2518,7 +2626,44 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
       ! Not yet supported : AC dipole (16)
 
-      ! Not yet supported : beam-beam separation (20)
+      case(20)
+        if(beam_expflag.eq.1) then
+          if (att_name == "h-sep") then ! [mm]
+            dynk_getvalue = parbe(ii,5)  
+          else if (att_name == "v-sep") then ! [mm]
+            dynk_getvalue = parbe(ii,6)  
+          else if (att_name=="4dSxx") then !strong I think
+            dynk_getvalue = parbe(ii,1)  
+          else if (att_name=="4dSyy") then
+            dynk_getvalue = parbe(ii,3)  
+          else if (att_name == "strength") then ! 
+            dynk_getvalue = ptnfac(ii)
+          else if(att_name == "Sxx") then
+            dynk_getvalue = parbe(ii,7)   
+          else if(att_name == "Sxxp") then
+            dynk_getvalue = parbe(ii,8)  
+          else if(att_name == "Sxpxp") then
+            dynk_getvalue = parbe(ii,9)  
+          else if(att_name == "Syy") then
+            dynk_getvalue = parbe(ii,10)  
+          else if(att_name == "Syyp") then
+            dynk_getvalue = parbe(ii,11)  
+          else if(att_name == "Sypyp") then
+            dynk_getvalue = parbe(ii,12)  
+          else if(att_name == "Sxy") then
+            dynk_getvalue = parbe(ii,13)  
+          else if(att_name == "Sxyp") then
+            dynk_getvalue = parbe(ii,14)   
+          else if(att_name == "Sxpy") then
+            dynk_getvalue = parbe(ii,15)  
+          else if(att_name == "Sxpyp") then
+            dynk_getvalue = parbe(ii,16) 
+          else 
+            go to 100
+          endif
+        else 
+          go to 102
+        end if
 
       case(23,26,27,28) ! crab cavity, cc mult. kick order 2, 3 and 4
         if(att_name == "voltage") then ! [MV]
@@ -2567,6 +2712,10 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 100 continue
   write(lout,"(a,i0,a)") "DYNK> ERROR getValueUnknown attribute '"//trim(att_name)//"'"//&
     " for type ",el_type," name '"//trim(bez(ii))//"'"
+  call prror(-1)
+
+102 continue
+  write(lout,"(a)") "DYNK> ERROR  --- Only Beam-beam expert mode is supported for DYNK"
   call prror(-1)
 
 end function dynk_getvalue

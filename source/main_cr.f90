@@ -739,23 +739,21 @@ end interface
 !-- Initialize multipoles, combining settings from fort.2 with
 !-- coefficients from MULT and random values from FLUC.
 !-- Used in program maincr and from initialize_element.
-        r0=ek(ix)
-        if(abs(r0).le.pieni) cycle
+         
+        if(abs(ek(ix)).le.pieni) cycle
         nmz=nmu(ix)
         if(nmz.eq.0) then
           izu=izu+2*mmul
           cycle
         end if
         im=irm(ix)
-        r0a=one
         do k=1,nmz
           izu=izu+1
-          aaiv(k,m,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a !hr05
-          aai(i,k)=aaiv(k,m,i)
+          amultip(k,i) = zfz(izu) !To make it easier for Dynk later on
+          aaiv(k,i)=(ak0(im,k)+(amultip(k,i)*aka(im,k)))
           izu=izu+1
-          bbiv(k,m,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a !hr05
-          bbi(i,k)=bbiv(k,m,i)
-          r0a=r0a*r0
+          bmultip(k,i) = zfz(izu)
+          bbiv(k,i)=(bk0(im,k)+(bmultip(k,i)*bka(im,k)))
         end do
         izu=izu+2*mmul-2*nmz
       end if

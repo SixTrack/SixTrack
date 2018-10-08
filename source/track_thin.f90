@@ -74,7 +74,7 @@ subroutine trauthin(nthinerr)
     strackc(i)=zero
     stracks(i)=zero
   end do
-#include "include/beams1.f90"
+
 
   do 290 i=1,iu
     if(mout2.eq.1.and.i.eq.1) call fluc_writeFort4
@@ -105,47 +105,16 @@ subroutine trauthin(nthinerr)
       ktrack(i)=31
       goto 290
     endif
-#include "include/beams21.f90"
-#include "include/beamcoo.f90"
-#include "include/beamr1.f90"
-  &goto 42
-#include "include/beamr2.f90"
-#include "include/beamr3o.f90"
-#include "include/beams22.f90"
-#include "include/beam11.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beam12.f90"
-#include "include/beama3.f90"
-#include "include/beam13.f90"
-#include "include/beama4o.f90"
-        else if(ibtyp.eq.1) then
-#include "include/beam11.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beama3.f90"
-#include "include/beamwzf1.f90"
-#include "include/beama4o.f90"
-#include "include/beams23.f90"
-#include "include/beam21.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beam22.f90"
-#include "include/beama3.f90"
-#include "include/beam23.f90"
-#include "include/beama4o.f90"
-        else if(ibtyp.eq.1) then
-#include "include/beam21.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beama3.f90"
-#include "include/beamwzf2.f90"
-#include "include/beama4o.f90"
-#include "include/beams24.f90"
+
+    !Beam-beam element
+    !41 --round beam
+    !42 --elliptic beam x>z
+    !43--elliptic beam z>x
+    !44 -- 6d beam-beam
+    if(kzz.eq.20) then                  
+        call initialize_element(ix,.false.)
+      goto 290
+    endif
 
     ! wire
     if(kzz.eq.15) then
@@ -337,8 +306,8 @@ subroutine trauthin(nthinerr)
         r000   = r0*r00(irm(ix))
 
         do j=1,mmul
-          fake(1,j)=(bbiv(j,1,i)*r0a)/benkcc                           !hr01
-          fake(2,j)=(aaiv(j,1,i)*r0a)/benkcc                           !hr01
+          fake(1,j)=(bbiv(j,i)*r0a)/benkcc                           !hr01
+          fake(2,j)=(aaiv(j,i)*r0a)/benkcc                           !hr01
           r0a=r0a*r000
         end do
 
@@ -1388,7 +1357,6 @@ subroutine thin6d(nthinerr)
       else
         dotrack = ktrack(i)
       end if
-
       select case(dotrack)
       case (1)
         stracki=strack(i)
