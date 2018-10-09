@@ -447,6 +447,35 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     & \texttt{frequency}   & MHz     & Frequency \\
     & \texttt{phase}       & radians & Offset between zero-crossing and ideal bunch center \\
   \hline
+   \multirow{3}{*}{\parbox{4cm}{Beam-Beam 6d (expert) \index{Beam-Beam}\\ (20),\\ Section~\ref{BeamBeam}}}
+    & \texttt{h-sep}     & mm      & Horizontal offset \\
+    & \texttt{v-sep}     & mm      & Vertical offset \\
+    & \texttt{strength}  & -       & Strength-ratio \\
+    & \texttt{Sxx}       & -       & $\Sigma_{x,x}$  \\
+    & \texttt{Sxxp}      & -       & $\Sigma_{x,xp}$ \\
+    & \texttt{Sxpxp}     & -       & $\Sigma_{xp,xp}$  \\
+    & \texttt{Syy}       & -       & $\Sigma_{y,y}$ \\
+    & \texttt{Syyp}      & -       & $\Sigma_{y,yp}$\\
+    & \texttt{Sypyp}     & -       & $\Sigma_{yp,yp}$ \\
+    & \texttt{Sxy}       & -       & $\Sigma_{x,y}$ \\
+    & \texttt{Sxyp}      & -       & $\Sigma_{x,py}$  \\
+    & \texttt{Sxpy}      & -       & $\Sigma_{xp,y}$ \\
+    & \texttt{Sxpyp}     & -       & $\Sigma_{xp,yp}$ \\
+   \hline
+      \multirow{3}{*}{\parbox{4cm}{Beam-Beam 4d (expert) \index{Beam-Beam}\\ (20),\\ Section~\ref{BeamBeam}}}
+    & \texttt{h-sep}     & mm      & Horizontal offset \\
+    & \texttt{v-sep}     & mm      & Vertical offset \\
+    & \texttt{strength}  & -       & Strength-ratio \\
+    & \texttt{4dSxx}     & -       & $\Sigma_{x,x}$  \\
+    & \texttt{4dSyy}     & -       & $\Sigma_{y,y}$ \\
+  \hline
+    \multirow{3}{*}{\parbox{4cm}{Multipoles \index{Multipoles}\\ (11),\\ Section~\ref{MulCoe}}}
+    & \texttt{scaleall}  & -       & Multiplies all order by this factor \\
+    & \texttt{a\{ORDER\}rms, e.g a1rms}& radians * m\textsuperscript{-n}  & Corresponds to the 4th column in the multipole block. \\
+    & \texttt{b\{ORDER\}rms, e.g b2rms}& radians * m\textsuperscript{-n}  & Corresponds to the 2th column in the multipole block. \\
+    & \texttt{a\{ORDER\}str, e.g a3str}& radians * m\textsuperscript{-n}  & Corresponds to the 1th column in the multipole block. \\
+    & \texttt{b\{ORDER\}str, e.g b4str}& radians * m\textsuperscript{-n}  & Corresponds to the 3th column in the multipole block. \\
+  \hline
     \multirow{3}{*}{\parbox{4cm}{Electron lens \\ (29),\\ Section~\ref{sec:elen}}}
     & \texttt{thetamax}     & mrad      & Maximum angular kick \\
     &      &       &  \\
@@ -711,7 +740,7 @@ Lastly, the linear coupling has been considered in 4 and 6 dimensional phase spa
     First line:   & \texttt{EXPERT}\index{BEAM EXPERT} \\
     Second line:  & \texttt{partnum emitnx emitny sigz sige ibeco ibtyp lhc ibbc} \\
     Further lines & 4D BB lens (1 line per element): \\
-                  & ~~~~\texttt{name ibsix $\Sigma_{x,x}$ $\Sigma_{y,y}$ h-sep v-sep strength-ratio} \\
+                  & ~~~~\texttt{name ibsix $\Sigma_{x,x}$ $\Sigma_{y,y}$ h-sep v-sep strength-ratio $\Sigma_{x,y}$} \\
                   & 6D BB lens (3 lines per element): \\
                   & ~~~~\texttt{name ibsix xang xplane h-sep v-sep} \\
                   & ~~~~\texttt{$\Sigma_{x,x}$ $\Sigma_{x,xp}$ $\Sigma_{xp,xp}$ $\Sigma_{y,y}$ $\Sigma_{y,yp}$} \\
@@ -730,6 +759,7 @@ Some parameters are new or defined in a different way:
                    &         & If \texttt{ibsix} is larger or equal 1, this element is treated as a 6D element. \\
     $\Sigma_{xx}$  & float   & Horizontal $\sigma$ for the strong beam\index{strong beam} $\rm{[mm^2]}$. \\
     $\Sigma_{yy}$  & float   & Vorizontal $\sigma$ for the strong beam $\rm{[mm^2]}$. \\
+    $\Sigma_{xy}$  & float   & Coupled $\sigma$ for the strong beam $\rm{[mm^2]}$. Optional, used only if \texttt{ibbc=1}. \\
     \texttt{h-sep} & float   & Horizontal beam--beam separation\index{beam--beam separation} [mm] \\
     \texttt{v-sep} & float   & Vertical beam--beam separation [mm] \\
     \texttt{strength-ratio} & float & Strength ratio with respect to the nominal beam--beam kick strength\index{beam--beam kick}. This is useful to allow for splitting one beam--beam kick into several (longitudinally close by) kicks.\\

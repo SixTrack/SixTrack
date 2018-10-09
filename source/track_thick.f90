@@ -306,8 +306,8 @@ subroutine trauthck(nthinerr)
         r0a=one
         r000=r0*r00(irm(ix))
         do j=1,mmul
-          fake(1,j)=(bbiv(j,1,i)*r0a)/benkcc                           !hr01
-          fake(2,j)=(aaiv(j,1,i)*r0a)/benkcc                           !hr01
+          fake(1,j)=(bbiv(j,i)*r0a)/benkcc                           !hr01
+          fake(2,j)=(aaiv(j,i)*r0a)/benkcc                           !hr01
           r0a=r0a*r000
         end do
 
@@ -1419,7 +1419,7 @@ subroutine thck6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 
 
           ! We have to go back to angles after we updated the energy.

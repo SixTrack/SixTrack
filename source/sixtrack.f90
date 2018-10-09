@@ -63,14 +63,43 @@ subroutine daten
 
   integer icc,il1,ilin0,iMod,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
 
+  real(kind=fPrec), allocatable :: crkveb(:) !(npart)
+  real(kind=fPrec), allocatable :: cikveb(:) !(npart)
+  real(kind=fPrec), allocatable :: rho2b(:) !(npart)
+  real(kind=fPrec), allocatable :: tkb(:) !(npart
+  real(kind=fPrec), allocatable :: r2b(:) !(npart)
+  real(kind=fPrec), allocatable :: rb(:) !(npart)
+  real(kind=fPrec), allocatable :: rkb(:) !(npart)
+  real(kind=fPrec), allocatable :: xrb(:) !(npart)
+  real(kind=fPrec), allocatable :: zrb(:) !(npart
+  real(kind=fPrec), allocatable :: xbb(:) !(npart)
+  real(kind=fPrec), allocatable :: zbb(:) !(npart)
+  real(kind=fPrec), allocatable :: crxb(:) !(npart)
+  real(kind=fPrec), allocatable :: crzb(:) !(npart)
+  real(kind=fPrec), allocatable :: cbxb(:) !(npart)
+  real(kind=fPrec), allocatable :: cbzb(:) !(npart)
+  integer :: nbeaux(500)
+  save
+  call alloc(crkveb, npart, zero, "crkveb") !(npart)
+  call alloc(crkveb, npart, zero, "crkveb") !(npart)
+  call alloc(cikveb, npart, zero, "cikveb") !(npart)
+  call alloc(rho2b, npart, zero, "rho2b") !(npart)
+  call alloc(tkb, npart, zero, "tkb") !(npart
+  call alloc(r2b, npart, zero, "r2b") !(npart)
+  call alloc(rb, npart, zero, "rb") !(npart)
+  call alloc(rkb, npart, zero, "rkb") !(npart)
+  call alloc(xrb, npart, zero, "xrb") !(npart)
+  call alloc(zrb, npart, zero, "zrb") !(npart
+  call alloc(xbb, npart, zero, "xbb") !(npart)
+  call alloc(zbb, npart, zero, "zbb") !(npart)
+  call alloc(crxb, npart, zero, "crxb") !(npart)
+  call alloc(crzb, npart, zero, "crzb") !(npart)
+  call alloc(cbxb, npart, zero, "cbxb") !(npart)
+  call alloc(cbzb, npart, zero, "cbzb") !(npart)
+
 ! ================================================================================================ !
 !  SET DEFAULT VALUES
 ! ================================================================================================ !
-
-  ! SixTrack Settings
-  st_print     = .false.
-  st_debug     = .false.
-  st_quiet     = 0
 
   ! Main Variables
   iHead        = " "
@@ -1709,23 +1738,37 @@ subroutine initialize_element(ix,lfirst)
 !-----------------------------------------------------------------------
 
       use floatPrecision
-      use dynk, only : dynk_elemData
+      use dynk, only : dynk_elemData, dynk_izuIndex
       use numerical_constants
       use crcoall
       use string_tools
       use parpro !Needed for common
+      use parbeam, only : beam_expflag,beam_expfile_open
       use mod_common
       use mod_commont
       use mod_commonmn
+      use mod_hions
       use elens
       use wire
+      use mathlib_bouncer
       implicit none
 
       integer, intent(in) :: ix
       logical, intent(in) :: lfirst
 
       !Temp variables
-      integer i
+      integer i, m, k, im, nmz, izu, ibb, ii,j
+      real(kind=fPrec) r0, r0a, bkitemp,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5,  crkveb_d, cikveb_d, &
+      rho2b_d,tkb_d,r2b_d,rb_d,rkb_d,xrb_d,zrb_d,cbxb_d,cbzb_d,crxb_d,crzb_d,xbb_d,zbb_d, napx0
+      real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
+      rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
+      cbzb(npart)
+   
+      integer :: nbeaux(500)
+
+
+
+
 
 !--Nonlinear Elements
 ! TODO: Merge these cases into 1 + subcases?
@@ -1860,103 +1903,33 @@ subroutine initialize_element(ix,lfirst)
 
 !--Multipoles
       elseif(kz(ix).eq.11) then
+        if (lfirst) then
+           if (abs(el(ix)+one).le.pieni) then
+              dki(ix,1) = ed(ix)
+              dki(ix,3) = ek(ix)
+              ed(ix) = one
+              ek(ix) = one
+              el(ix) = zero
+           else if(abs(el(ix)+two).le.pieni) then
+              dki(ix,2) = ed(ix)
+              dki(ix,3) = ek(ix)
+              ed(ix) = one
+              ek(ix) = one
+              el(ix) = zero
+           endif
+        else
+          do i=1,iu
+            if ( ic(i)-nblo.eq.ix ) then
+              nmz=nmu(ix)
+              im=irm(ix)
+              do k=1,nmz             
+                aaiv(k,i)=scalemu(im)*(ak0(im,k)+amultip(k,i)*aka(im,k))     
+                bbiv(k,i)=scalemu(im)*(bk0(im,k)+bmultip(k,i)*bka(im,k))    
+              end do
+            endif
+          enddo
+        endif
 
-         !MULT support removed until we have a proper use case.
-!c$$$         if (lfirst) then
-!c$$$            dynk_elemData(ix,1) = el(ix) !Flag for type
-!c$$$            dynk_elemData(ix,2) = ed(ix) !Bending strenght
-!c$$$            dynk_elemData(ix,3) = ek(ix) !Radius
-!c$$$         else
-!c$$$            el(ix) = dynk_elemData(ix,1)
-!c$$$            dynk_elemData(ii,2) = ed(ii) !Updated in dynk_setvalue
-!c$$$            ek(ii) = dynk_elemData(ix,3)
-!c$$$         end if
-
-         ! Moved from daten():
-         if (abs(el(ix)+one).le.pieni) then
-            dki(ix,1) = ed(ix)
-            dki(ix,3) = ek(ix)
-            ed(ix) = one
-            ek(ix) = one
-            el(ix) = zero
-         else if(abs(el(ix)+two).le.pieni) then
-            dki(ix,2) = ed(ix)
-            dki(ix,3) = ek(ix)
-            ed(ix) = one
-            ek(ix) = one
-            el(ix) = zero
-         endif
-         !Otherwise, i.e. when el=0, dki(:,1) = dki(:,2) = dki(:,3) = 0.0
-
-         !MULT support removed until we have a proper use case.
-!c$$$         !All multipoles:
-!c$$$         if(.not.lfirst) then
-!c$$$            do i=1,iu
-!c$$$               if ( ic(i)-nblo.eq.ix ) then
-!c$$$                  if(ktrack(i).eq.31) goto 100 !ERROR
-!c$$$                  !--Initialize smiv as usual
-!c$$$                  sm(ix)=ed(ix)
-!c$$$                  smiv(m,i)=sm(ix)+smizf(i)
-!c$$$                  smi(i)=smiv(m,i)
-!c$$$
-!c$$$                  !--Using the right izu & setting aaiv, bbiv (see multini)
-!c$$$                  izu = dynk_izuIndex(ix)
-!c$$$+ca multini !Also in program maincr()
-!c$$$ 150              continue ! needs to be after a multini block
-!c$$$
-!c$$$                  ! From trauthin()&trauthck() (they are identical)
-!c$$$                  r0=ek(ix)
-!c$$$                  nmz=nmu(ix)
-!c$$$                  if(abs(r0).le.pieni.or.nmz.eq.0) then
-!c$$$                     if(abs(dki(ix,1)).le.pieni .and.
-!c$$$     &                    abs(dki(ix,2)).le.pieni) then
-!c$$$C                       ktrack(i)=31
-!c$$$                     else if(abs(dki(ix,1)).gt.pieni .and.
-!c$$$     &                       abs(dki(ix,2)).le.pieni) then
-!c$$$                        if(abs(dki(ix,3)).gt.pieni) then
-!c$$$C                          ktrack(i)=33
-!c$$$+ca stra11
-!c$$$                        else
-!c$$$C                          ktrack(i)=35
-!c$$$+ca stra12
-!c$$$                        endif
-!c$$$                     else if(abs(dki(ix,1)).le.pieni .and.
-!c$$$     &                       abs(dki(ix,2)).gt.pieni) then
-!c$$$                        if(abs(dki(ix,3)).gt.pieni) then
-!c$$$C                           ktrack(i)=37
-!c$$$+ca stra13
-!c$$$                        else
-!c$$$C                            ktrack(i)=39
-!c$$$+ca stra14
-!c$$$                        endif
-!c$$$                     endif
-!c$$$                  else
-!c$$$                     if(abs(dki(ix,1)).le.pieni .and.
-!c$$$     &                    abs(dki(ix,2)).le.pieni) then
-!c$$$C                        ktrack(i)=32
-!c$$$                     else if(abs(dki(ix,1)).gt.pieni .and.
-!c$$$     &                       abs(dki(ix,2)).le.pieni) then
-!c$$$                        if(abs(dki(ix,3)).gt.pieni) then
-!c$$$C                           ktrack(i)=34
-!c$$$+ca stra11
-!c$$$                        else
-!c$$$C                           ktrack(i)=36
-!c$$$+ca stra12
-!c$$$                        endif
-!c$$$                     else if(abs(dki(ix,1)).le.pieni .and.
-!c$$$     &                       abs(dki(ix,2)).gt.pieni) then
-!c$$$                        if(abs(dki(ix,3)).gt.pieni) then
-!c$$$C                           ktrack(i)=38
-!c$$$+ca stra13
-!c$$$                        else
-!c$$$C                           ktrack(i)=40
-!c$$$+ca stra14
-!c$$$                        endif
-!c$$$                     endif
-!c$$$                  endif
-!c$$$               endif
-!c$$$            enddo
-!c$$$         endif
 
 !--Cavities (ktrack = 2 for thin)
       elseif(abs(kz(ix)).eq.12) then
@@ -1976,23 +1949,192 @@ subroutine initialize_element(ix,lfirst)
          endif
 !--BEAM-BEAM
       elseif(kz(ix).eq.20) then
-         if (lfirst) then
-            ! Only for old-style BEAM-BEAM lenses
-            ! if DYNK-ified, there needs to be checks for parbeam_exp as well,
-            ! as in this case modifying ed/ek/el and then calling initialize_element
-            ! would be neccessary...
-            ! Note that the BEAM::EXPERT block input checker relies on the data from
-            ! ed/ek/el has been moved to parbe/ptnfac.
-            ! For DYNKification of BEAM, I think lots of the code from
-            ! trauthin/trauthck needs to be copied here?
-            ptnfac(ix)=el(ix)
-            el(ix)=zero
+        
+        if (lfirst) then
+          ptnfac(ix)=el(ix)
+          el(ix)=zero
+          parbe(ix,5) = ed(ix)
+          ed(ix)=zero
+          parbe(ix,6) = ek(ix)
+          ek(ix)=zero
+          endif
+! This is to inialize all the beam-beam element before the tracking (or to update it for DYNK). 
+        if (.not.lfirst) then
+          do i=1,iu
+            if ( ic(i)-nblo.eq.ix ) then
+              ibb=imbb(i)
+              if(parbe(ix,2).gt.zero) then
+                if(beam_expflag.eq.1) then
+                 bbcu(ibb,1)=parbe(ix,7)
+                 bbcu(ibb,4)=parbe(ix,8)
+                 bbcu(ibb,6)=parbe(ix,9)
+                 bbcu(ibb,2)=parbe(ix,10)
+                 bbcu(ibb,9)=parbe(ix,11)
+                 bbcu(ibb,10)=parbe(ix,12)
+                 bbcu(ibb,3)=parbe(ix,13)
+                 bbcu(ibb,5)=parbe(ix,14)
+                 bbcu(ibb,7)=parbe(ix,15)
+                 bbcu(ibb,8)=parbe(ix,16)
+                  do ii=1,10
+                    bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
+                  enddo
+                endif
+                ktrack(i)=44
+                parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6               
+                if(ibeco.eq.1) then
+                  track6d(1,1)=parbe(ix,5)*c1m3
+                  track6d(2,1)=zero
+                  track6d(3,1)=parbe(ix,6)*c1m3
+                  track6d(4,1)=zero
+                  track6d(5,1)=zero
+                  track6d(6,1)=zero
+                  napx0=napx
+                  napx=1
+                  call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc, mtc)
+                  beamoff(1,imbb(i))=track6d(1,1)*c1e3
+                  beamoff(2,imbb(i))=track6d(3,1)*c1e3
+                  beamoff(3,imbb(i))=track6d(5,1)*c1e3
+                  beamoff(4,imbb(i))=track6d(2,1)*c1e3
+                  beamoff(5,imbb(i))=track6d(4,1)*c1e3
+                  beamoff(6,imbb(i))=track6d(6,1)
+                  napx=napx0
 
-            parbe(ix,5) = ed(ix)
-            ed(ix)=zero
-            parbe(ix,6) = ek(ix)
-            ek(ix)=zero
-         endif
+                endif
+              
+              else if(parbe(ix,2).eq.zero) then
+                if(beam_expflag.eq.1) then  
+                   bbcu(ibb,1)=parbe(ix,1)
+                   bbcu(ibb,2)=parbe(ix,3)
+                endif
+                if(ibbc.eq.1) then
+                  sfac1=bbcu(ibb,1)+bbcu(ibb,2)
+                  sfac2=bbcu(ibb,1)-bbcu(ibb,2)
+                  sfac2s=one
+                  if(sfac2.lt.zero) sfac2s=-one                            
+                  sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          
+                  if(sfac3.gt.sfac1) call prror(103)
+                  sfac4=(sfac2s*sfac2)/sfac3                                   
+                  sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3                
+                  sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)    
+                  sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)    
+                  bbcu(ibb,11)=sqrt(half*(one+sfac4))
+                  bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))            
+                  if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)       
+                else
+                  bbcu(ibb,11)=one
+                  sigman(1,ibb)=sqrt(bbcu(ibb,1))
+                  sigman(2,ibb)=sqrt(bbcu(ibb,2))
+                endif
+                
+!--round beam
+                nbeaux(imbb(i))=0
+                if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
+                  if(nbeaux(imbb(i)).eq.2.or.nbeaux(imbb(i)).eq.3) then
+                    call prror(89)
+                  else
+                    nbeaux(imbb(i))=1
+                    sigman2(1,imbb(i))=sigman(1,imbb(i))**2
+                  endif
+                endif
+  !--elliptic beam x>z
+                if(sigman(1,imbb(i)).gt.sigman(2,imbb(i))) then
+                  if(nbeaux(imbb(i)).eq.1.or.nbeaux(imbb(i)).eq.3) then
+                    call prror(89)
+                  else
+                    nbeaux(imbb(i))=2
+                    ktrack(i)=42
+                    sigman2(1,imbb(i))=sigman(1,imbb(i))**2
+                    sigman2(2,imbb(i))=sigman(2,imbb(i))**2
+                    sigmanq(1,imbb(i))=sigman(1,imbb(i))/sigman(2,imbb(i))
+                    sigmanq(2,imbb(i))=sigman(2,imbb(i))/sigman(1,imbb(i))
+                  endif
+                endif
+  !--elliptic beam z>x
+                if(sigman(1,imbb(i)).lt.sigman(2,imbb(i))) then
+                  if(nbeaux(imbb(i)).eq.1.or.nbeaux(imbb(i)).eq.2) then
+                    call prror(89)
+                  else
+                    nbeaux(imbb(i))=3
+                    ktrack(i)=43
+                    sigman2(1,imbb(i))=sigman(1,imbb(i))**2
+                    sigman2(2,imbb(i))=sigman(2,imbb(i))**2
+                    sigmanq(1,imbb(i))=sigman(1,imbb(i))/sigman(2,imbb(i))
+                    sigmanq(2,imbb(i))=sigman(2,imbb(i))/sigman(1,imbb(i))
+                  endif
+                endif
+              
+
+                strack(i)=crad*ptnfac(ix)
+                if(ibbc.eq.0) then
+                  crkveb_d=parbe(ix,5)
+                  cikveb_d=parbe(ix,6)
+                else
+                  crkveb_d=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
+                  cikveb_d=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
+                endif
+
+                if(nbeaux(imbb(i)).eq.1) then
+                  ktrack(i)=41
+                  if(ibeco.eq.1) then       
+                  rho2b_d=crkveb_d**2+cikveb_d**2                          
+                  tkb_d=rho2b_d/(two*sigman2(1,imbb(i)))
+                  beamoff(4,imbb(i))=((strack(i)*crkveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
+                  beamoff(5,imbb(i))=((strack(i)*cikveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
+                  endif
+                endif
+
+
+                if(ktrack(i).eq.42) then
+                  if(ibeco.eq.1) then
+                    r2b_d=two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
+                    rb_d=sqrt(r2b_d)
+                    rkb_d=(strack(i)*pisqrt)/rb_d                            
+                    xrb_d=abs(crkveb_d)/rb_d
+                    zrb_d=abs(cikveb_d)/rb_d
+                    if(ibtyp.eq.0) then
+                      call errf(xrb_d,zrb_d,crxb_d,crzb_d)
+                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              
+                      xbb_d=sigmanq(2,imbb(i))*xrb_d
+                      zbb_d=sigmanq(1,imbb(i))*zrb_d
+                      call errf(xbb_d,zbb_d,cbxb_d,cbzb_d)
+                    else if(ibtyp.eq.1) then
+                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              
+                      xbb_d=sigmanq(2,imbb(i))*xrb_d
+                      zbb_d=sigmanq(1,imbb(i))*zrb_d
+                    endif
+                  endif
+                  beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
+                  beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
+                endif
+
+
+                if(ktrack(i).eq.43) then
+                  if(ibeco.eq.1) then
+                    r2b_d=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
+                    rb_d=sqrt(r2b_d)
+                    rkb_d=(strack(i)*pisqrt)/rb_d                            
+                    xrb_d=abs(crkveb_d)/rb_d
+                    zrb_d=abs(cikveb_d)/rb_d
+                    if(ibtyp.eq.0) then
+                      call errf(zrb_d,xrb_d,crzb_d,crxb_d)
+                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              
+                      xbb_d=sigmanq(2,imbb(i))*xrb_d
+                      zbb_d=sigmanq(1,imbb(i))*zrb_d
+                      call errf(zbb_d,xbb_d,cbzb_d,cbxb_d)
+                    else if(ibtyp.eq.1) then
+                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                            
+                      xbb_d=sigmanq(2,imbb(i))*xrb_d
+                      zbb_d=sigmanq(1,imbb(i))*zrb_d
+                    endif
+                  endif
+                  beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
+                  beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
+                endif
+              endif
+            endif
+          enddo
+        endif
+
 !--Crab Cavities
 !   Note: If setting something else than el(),
 !   DON'T call initialize_element on a crab, it will reset the phase to 0.
@@ -3184,15 +3326,9 @@ subroutine STRNUL( iel )
       zsi(iel)=zero
       smi(iel)=zero
       smizf(iel)=zero
-      do i1=1,mmul
-         aai(iel,i1)=zero
-         bbi(iel,i1)=zero
-      enddo
       do i3=1,mmul
-         do i2=1,nmac
-            aaiv(i3,i2,iel)=zero
-            bbiv(i3,i2,iel)=zero
-         enddo
+          aaiv(i3,iel)=zero
+          bbiv(i3,iel)=zero
       enddo
       return
 end subroutine STRNUL
@@ -4884,9 +5020,9 @@ subroutine linopt(dpp)
         end do
       end do
 
-      if(ncorru.eq.0) then
+      if(ncorru.eq.0 .and. iprint.eq.1) then
         write(lout,10010)
-        if(iprint.eq.1) write(lout,10030)
+        write(lout,10030)
         write(lout,10020)
         write(lout,10010)
       endif
@@ -4940,10 +5076,8 @@ subroutine linopt(dpp)
 !c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
 !c$$$            endif
 
-            write(lout,*) "ERROR in LINOPT:"
-            write(lout,*) "In block ", bezb(ix),                        &
-     &           "found a thick non-drift element",                     &
-     &           bez(jk), "while ithick=1. This should not be possible!"
+            write(lout,"(a)") "LINOPT> ERROR In block '"//trim(bezb(ix))//"': found a thick non-drift element '"//&
+              trim(bez(jk))//"' while ithick=1. This should not be possible!"
             call prror(-1)
             cycle STRUCTLOOP
           endif
@@ -5596,12 +5730,10 @@ subroutine linopt(dpp)
               endif
               do iiii=3,nmz
                  if(abs(bb(iiii)).gt.pieni) then
-                    write(34,10070)                                      &
-     &                   etl,bez(ix),iiii,bb(iiii),bexi,bezii,phi
+                    write(34,10070) etl,bez(ix),iiii,bb(iiii),bexi,bezii,phi
                  endif
                  if(abs(aa(iiii)).gt.pieni) then
-                    write(34,10070)                                      &
-     &                   etl,bez(ix),-iiii,aa(iiii),bexi,bezii,phi
+                    write(34,10070) etl,bez(ix),-iiii,aa(iiii),bexi,bezii,phi
                  endif
               enddo
            elseif(abs(ekk).gt.pieni.and.abs(kz(ix)).ge.3) then
@@ -5644,8 +5776,7 @@ subroutine linopt(dpp)
       bexi=t(2,1)**2+t(3,1)**2                                           !hr06
       bezii=t(4,3)**2+t(5,3)**2                                          !hr06
       if(ncorru.eq.0) write(34,10070) etl,idum,iiii,zero,bexi,bezii,phi
-      if(ncorru.eq.0)                                                   &
-     &write(lout,10060)
+      if(ncorru.eq.0) write(lout,10060)
 !-----------------------------------------------------------------------
       return
 10000 format(t5 ,'---- ENTRY LINOPT ----')

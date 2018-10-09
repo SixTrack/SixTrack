@@ -485,8 +485,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'xsi ',xsi
   write(99,*) 'zsi ',zsi
   write(99,*) 'smi ',smi
-  write(99,*) 'aai ',aai
-  write(99,*) 'bbi ',bbi
   write(99,*) 'ampt ',ampt
   write(99,*) 'tlim ',tlim
   write(99,*) 'tasm ',tasm
@@ -973,8 +971,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) xsi
   write(99) zsi
   write(99) smi
-  write(99) aai
-  write(99) bbi
   write(99) ampt
   write(99) tlim
   write(99) tasm
@@ -1455,8 +1451,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'xsi ',xsi
   write(99,100) 'zsi ',zsi
   write(99,100) 'smi ',smi
-  write(99,100) 'aai ',aai
-  write(99,100) 'bbi ',bbi
   write(99,100) 'ampt ',ampt
   write(99,100) 'tlim ',tlim
   write(99,100) 'tasm ',tasm

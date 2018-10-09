@@ -752,23 +752,21 @@ end interface
 !-- Initialize multipoles, combining settings from fort.2 with
 !-- coefficients from MULT and random values from FLUC.
 !-- Used in program maincr and from initialize_element.
-        r0=ek(ix)
-        if(abs(r0).le.pieni) cycle
+         
+        if(abs(ek(ix)).le.pieni) cycle
         nmz=nmu(ix)
         if(nmz.eq.0) then
           izu=izu+2*mmul
           cycle
         end if
         im=irm(ix)
-        r0a=one
         do k=1,nmz
           izu=izu+1
-          aaiv(k,m,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a !hr05
-          aai(i,k)=aaiv(k,m,i)
+          amultip(k,i) = zfz(izu) !To make it easier for Dynk later on
+          aaiv(k,i)=(ak0(im,k)+(amultip(k,i)*aka(im,k)))
           izu=izu+1
-          bbiv(k,m,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a !hr05
-          bbi(i,k)=bbiv(k,m,i)
-          r0a=r0a*r0
+          bmultip(k,i) = zfz(izu)
+          bbiv(k,i)=(bk0(im,k)+(bmultip(k,i)*bka(im,k)))
         end do
         izu=izu+2*mmul-2*nmz
       end if
@@ -2020,6 +2018,14 @@ end interface
       write(lout,"(a)") ""
       write(lout,"(a)") str_divLine
       write(lout,"(a)") ""
+
+      if(st_partsum .eqv. .false.) then
+        write(lout,"(a)") "MAINCR> NOTE Particle summary report is disabled."
+        write(lout,"(a)") "MAINCR>      This is controlled by the PARTICLESUMMARY flag in the SETTINGS block in fort.3."
+        write(lout,"(a)") ""
+        goto 470
+      end if
+
       write(lout,"(a)") "    PARTICLE SUMMARY:"
       write(lout,"(a)") ""
 
@@ -2051,7 +2057,7 @@ end interface
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
           write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
-          if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output probably due to lost particle ",ie
+          if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output, probably due to lost particle ",ie
         end if
 
         if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
@@ -2066,7 +2072,7 @@ end interface
             xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
           write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
             xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
-          if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output probably due to lost particle ",ia
+          if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output, probably due to lost particle ",ia
         end if
 
         if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
@@ -2081,7 +2087,7 @@ end interface
             xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
           write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
             xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
-          if(ierro.ne.0) write(lout,"(a)") "MAINCR> WARNING fort.12 has corrupted output although particles stable"
+          if(ierro.ne.0) write(lout,"(a)") "MAINCR> WARNING fort.12 has corrupted output, although particles are stable"
           id=ig
         end if
       end do
@@ -2111,6 +2117,7 @@ end interface
 
 ! POSTPROCESSING (POSTPR)
 
+470 continue
 ! and we need to open fort.10 unless already opened for BOINC
 #ifdef NAGFOR
 #ifdef BOINC
