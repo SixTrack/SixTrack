@@ -15,13 +15,13 @@ cd hdf5
 
 # Download links from https://support.hdfgroup.org/HDF5/release/cmakebuild.html
 if [[ $(uname) == MINGW* ]]; then
-  if [ ! -f CMake-hdf5-1.10.1.zip ]; then
+  if [ ! -f CMake-hdf5-$PATCH.zip ]; then
     SOURCE=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$VERSION/hdf5-$PATCH/src/CMake-hdf5-$PATCH.zip
     wget $SOURCE
     unzip CMake-hdf5-$PATCH.zip
   fi
 else
-  if [ ! -f CMake-hdf5-1.10.1.tar.gz ]; then
+  if [ ! -f CMake-hdf5-$PATCH.tar.gz ]; then
     SOURCE=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$VERSION/hdf5-$PATCH/src/CMake-hdf5-$PATCH.tar.gz
     wget $SOURCE
     tar -xf CMake-hdf5-$PATCH.tar.gz
