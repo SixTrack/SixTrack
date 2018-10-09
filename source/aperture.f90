@@ -435,7 +435,7 @@ subroutine aperture_initTR( ix, aprx, apry, apex, apey, theta1, theta2 )
 end subroutine aperture_initTR
 
 
-subroutine aperture_initroffpos( ix, tilt, xoff, yoff )
+subroutine aperture_initroffpos( ix, xoff, yoff, tilt )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-22
   ! initialise offset/tilt of aperture marker
