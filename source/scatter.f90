@@ -46,7 +46,10 @@ module scatter
     (/"Absorbed","NonDiff ","Elastic ","SingD_XB","SingD_AX","DoubD_XX","CentDiff","Unknown ","Error   "/)
 
   ! Pointer from an element back to a ELEM statement (0 => not used)
-  integer, allocatable, public, save :: scatter_elemPointer(:)
+  integer,          allocatable, public, save :: scatter_elemPointer(:)
+
+  ! Statistical correction factor for a specific particle
+  real(kind=fPrec), allocatable, public, save :: scatter_statScale(:)
 
   ! Configuration for an ELEM, columns are:
   ! (1)   : pointer to the SingleElement
@@ -135,11 +138,12 @@ end subroutine scatter_allocate
 ! =================================================================================================
 !  Used for changing the allocation of arrays that scale with global parameters like NELE
 ! =================================================================================================
-subroutine scatter_expand_arrays(nele_new)
+subroutine scatter_expand_arrays(nele_new, npart_new)
   use mod_alloc
   implicit none
-  integer, intent(in) :: nele_new
-  call alloc(scatter_elemPointer,nele_new,0,"scatter_elemPointer")
+  integer, intent(in) :: nele_new, npart_new
+  call alloc(scatter_elemPointer, nele_new,  0,   "scatter_elemPointer")
+  call alloc(scatter_statScale,   npart_new, one, "scatter_statScale")
 end subroutine scatter_expand_arrays
 
 ! =================================================================================================
@@ -166,7 +170,7 @@ subroutine scatter_initialise
     call h5_initForScatter()
 
     ! Scatter Log
-    allocate(setFields(13))
+    allocate(setFields(14))
 
     setFields(1)  = h5_dataField(name="ID",      type=h5_typeInt)
     setFields(2)  = h5_dataField(name="TURN",    type=h5_typeInt)
@@ -181,6 +185,7 @@ subroutine scatter_initialise
     setFields(11) = h5_dataField(name="PHI",     type=h5_typeReal)
     setFields(12) = h5_dataField(name="DENSITY", type=h5_typeReal)
     setFields(13) = h5_dataField(name="PROB",    type=h5_typeReal)
+    setFields(14) = h5_dataField(name="STATCORR",type=h5_typeReal)
 
     call h5_createFormat("scatter_log_fmt", setFields, scatter_logFormat)
     call h5_createDataSet("scatter_log", h5_scatID, scatter_logFormat, scatter_logDataSet)
@@ -189,8 +194,8 @@ subroutine scatter_initialise
       character(len=:), allocatable :: colUnits(:)
       logical spErr
       integer nSplit
-      call chr_split("ID turn bez generator process lost t dE/E dP/P theta phi density prob",colNames,nSplit,spErr)
-      call chr_split("1 1 text text text 1 MeV^2 1 1 mrad rad mb^-1 1",colUnits,nSplit,spErr)
+      call chr_split("ID turn bez generator process lost t dE/E dP/P theta phi density prob stat_corr",colNames,nSplit,spErr)
+      call chr_split("1 1 text text text 1 MeV^2 1 1 mrad rad mb^-1 1 1",colUnits,nSplit,spErr)
       call h5_writeDataSetAttr(scatter_logDataSet,"colNames",colNames)
       call h5_writeDataSetAttr(scatter_logDataSet,"colUnits",colUnits)
     end block
@@ -248,15 +253,17 @@ subroutine scatter_initialise
 
       open(scatter_logFile,file="scatter_log.dat",status="replace",form="formatted")
       write(scatter_logFile,"(a)") "# scatter_log"
-      write(scatter_logFile,"(a1,a8,1x,a8,2(1x,a20),1x,a8,1x,a4,1x,a13,6(1x,a16))") &
+      write(scatter_logFile,"(a1,a8,1x,a8,2(1x,a20),1x,a8,1x,a4,1x,a13,7(1x,a16))") &
         "#","ID","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8),&
-        "lost","t[MeV^2]","dE/E","dP/P","theta[mrad]","phi[rad]","density","prob"
+        "lost","t[MeV^2]","dE/E","dP/P","theta[mrad]","phi[rad]","density","prob","stat_corr"
+      flush(scatter_logFile)
 
       open(scatter_sumFile,file="scatter_summary.dat",status="replace",form="formatted")
       write(scatter_sumFile,"(a)") "# scatter_summary"
       write(scatter_sumFile,"(a1,a8,2(1x,a20),1x,a8,2(1x,a8),2(1x,a13))") &
         "#","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8), &
         "nScatt","nLost","crossSec[mb]","scaling"
+      flush(scatter_sumFile)
 
 #ifdef CR
       scatter_filePos = 2
@@ -548,9 +555,26 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
     scatter_nfData = scatter_nfData + 3
     call alloc(scatter_fData, scatter_nfData, zero, "scatter_fData")
 
-    call str_cast(lnSplit(4),scatter_fData(tmpIdx),iErr)   ! Density
+    call str_cast(lnSplit(4),scatter_fData(tmpIdx),  iErr) ! Density
     call str_cast(lnSplit(5),scatter_fData(tmpIdx+1),iErr) ! Mass
     call str_cast(lnSplit(6),scatter_fData(tmpIdx+2),iErr) ! Momentum
+
+  case("FIXED")
+    scatter_PROFILE(scatter_nPROFILE,2) = 2 ! Integer code for FIXED
+    if(nSplit /= 4) then
+      write(lout,"(a)") "SCATTER> ERROR PROfile type FIXED expected 4 arguments:"
+      write(lout,"(a)") "SCATTER>       PRO name FIXED density[targets/m^2]"
+      iErr = .true.
+      return
+    end if
+
+    ! Request space to store the density
+    tmpIdx = scatter_nfData + 1
+    scatter_PROFILE(scatter_nPROFILE,3) = tmpIdx
+    scatter_nfData = scatter_nfData + 1
+    call alloc(scatter_fData, scatter_nfData, zero, "scatter_fData")
+
+    call str_cast(lnSplit(4),scatter_fData(tmpIdx),iErr) ! Density
 
   case("GAUSS1")
     scatter_PROFILE(scatter_nPROFILE,2) = 10  ! Integer code for BEAM_GAUSS1
@@ -787,7 +811,7 @@ subroutine scatter_thin(iElem, ix, turn)
 #ifdef HDF5
   ! For HDF5 it is best to write in chuncks, so we will make arrays of size napx
   integer                 :: iRecords(3,napx)
-  real(kind=fPrec)        :: rRecords(7,napx)
+  real(kind=fPrec)        :: rRecords(8,napx)
   character(len=mNameLen) :: cRecords(3,napx)
   integer                 :: nRecords
 #endif
@@ -861,6 +885,7 @@ subroutine scatter_thin(iElem, ix, turn)
       else
         pScattered(j) = .true.
       end if
+      scatter_statScale(nlostp(j)) = scatter_statScale(nlostp(j)) / scaling
 
       ! Ask generator for t and dEE
       call scatter_generator_getTandE(idGen,t,dEE,dPP,procID,iLost,isDiff)
@@ -906,11 +931,12 @@ subroutine scatter_thin(iElem, ix, turn)
         rRecords(5,nRecords) = rndPhi(j)
         rRecords(6,nRecords) = N
         rRecords(7,nRecords) = P
+        rRecords(8,nRecords) = scatter_statScale(nlostp(j))
       else
 #endif
-        write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f13.3,6(1x,1pe16.9))") &
+        write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f13.3,7(1x,1pe16.9))") &
           nlostp(j), turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(idGen,1))),20), &
-          scatter_procNames(procID), iLost, t, dEE, dPP, theta, rndPhi(j), N, P
+          scatter_procNames(procID), iLost, t, dEE, dPP, theta, rndPhi(j), N, P, scatter_statScale(nlostp(j))
 #ifdef HDF5
       end if
 #endif
@@ -940,6 +966,7 @@ subroutine scatter_thin(iElem, ix, turn)
       call h5_writeData(scatter_logDataSet, 11, nRecords, rRecords(5,1:nRecords))
       call h5_writeData(scatter_logDataSet, 12, nRecords, rRecords(6,1:nRecords))
       call h5_writeData(scatter_logDataSet, 13, nRecords, rRecords(7,1:nRecords))
+      call h5_writeData(scatter_logDataSet, 14, nRecords, rRecords(8,1:nRecords))
       call h5_finaliseWrite(scatter_logDataSet)
 
       do k=1,9
@@ -1021,6 +1048,9 @@ real(kind=fPrec) function scatter_profile_getDensity(idPro, x, y) result(retval)
 
   select case(scatter_PROFILE(idPro,2))
   case (1)  ! FLAT
+    retval  = scatter_fData(tmpIdx)
+
+  case (2)  ! FIXED
     retval  = scatter_fData(tmpIdx)
 
   case (10) ! GAUSS1
