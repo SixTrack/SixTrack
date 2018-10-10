@@ -847,29 +847,33 @@ subroutine dump_initialise
         ! Format 101:
         ! # particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] (E-E0)/E0[1] ktrack
         if(dump_hdf5Format(3) == 0) then
-          allocate(setFields(10))
+          allocate(setFields(22))
           setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
           setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
-          setFields(3)  = h5_dataField(name="S",      type=h5_typeReal)
-          setFields(4)  = h5_dataField(name="X",      type=h5_typeReal)
-          setFields(5)  = h5_dataField(name="XP",     type=h5_typeReal)
-          setFields(6)  = h5_dataField(name="Y",      type=h5_typeReal)
-          setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
-          setFields(8)  = h5_dataField(name="dE/E",   type=h5_typeReal)
-          setFields(9)  = h5_dataField(name="Z",      type=h5_typeReal)
-          setFields(10) = h5_dataField(name="KTRACK", type=h5_typeInt)
-          setFields(11)  = h5_dataField(name="E",      type=h5_typeReal)
-          setFields(12)  = h5_dataField(name="PC",      type=h5_typeReal)
-          setFields(13)  = h5_dataField(name="P/P0",     type=h5_typeReal)
-          setFields(14)  = h5_dataField(name="P0/P)",      type=h5_typeReal)
-          setFields(15)  = h5_dataField(name="BETA0/BETA",     type=h5_typeReal)
-          setFields(16)  = h5_dataField(name="MASS",   type=h5_typeReal)
-          setFields(17)  = h5_dataField(name="M/M0/Q0/Q", type=h5_typeReal)
-          setFields(18)  = h5_dataField(name="ENERGY0",      type=h5_typeReal)
-          setFields(19)  = h5_dataField(name="PC0",      type=h5_typeReal)
-          call h5_createFormat("dumpFormat3", setFields, dump_hdf5Format(3))
+          setFields(3)  = h5_dataField(name="KTRACK", type=h5_typeInt)
+          setFields(4)  = h5_dataField(name="S",      type=h5_typeReal)
+          setFields(5)  = h5_dataField(name="X",      type=h5_typeReal)
+          setFields(6)  = h5_dataField(name="XP",     type=h5_typeReal)
+          setFields(7)  = h5_dataField(name="Y",      type=h5_typeReal)
+          setFields(8)  = h5_dataField(name="YP",     type=h5_typeReal)
+          setFields(9)  = h5_dataField(name="SIGMA",  type=h5_typeReal)
+          setFields(10) = h5_dataField(name="(E-E0)/E0",   type=h5_typeReal)
+          setFields(11) = h5_dataField(name="E",      type=h5_typeReal)
+          setFields(12) = h5_dataField(name="PC",     type=h5_typeReal)
+          setFields(13) = h5_dataField(name="BETA0/BETA",     type=h5_typeReal)
+          setFields(14) = h5_dataField(name="(P-P0)/P0",   type=h5_typeReal)
+          setFields(14) = h5_dataField(name="1000*(P-P0)/P0",   type=h5_typeReal)
+          setFields(15) = h5_dataField(name="P0/P",   type=h5_typeReal)
+          setFields(16) = h5_dataField(name="MASS",   type=h5_typeReal)
+          setFields(17) = h5_dataField(name="CHARGE", type=h5_typeReal)
+          setFields(18) = h5_dataField(name="(CHARGE/CHARGE0)*(MASS0/MASS)", type=h5_typeReal)
+          setFields(19) = h5_dataField(name="MASS0",  type=h5_typeReal)
+          setFields(20) = h5_dataField(name="CHARGE0",type=h5_typeReal)
+          setFields(21) = h5_dataField(name="ENERGY0",type=h5_typeReal)
+          setFields(22) = h5_dataField(name="P0C",    type=h5_typeReal)
+          call h5_createFormat("dumpFormat101", setFields, dump_hdf5Format(101))
         end if
-        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(3), dump_hdf5DataSet(i), napx)
+        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(101), dump_hdf5DataSet(i), napx)
 
       end select
 
@@ -1708,34 +1712,38 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)
-      call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
-      call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
-      call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv(1,:))
-      call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, yv(1,:))
-      call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, xv(2,:))
-      call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, yv(2,:))
-      call h5_writeData(dump_hdf5DataSet(ix), 8,  napx, sigmv)
-      call h5_writeData(dump_hdf5DataSet(ix), 9,  napx, (ejv-e0)/e0)
-      call h5_writeData(dump_hdf5DataSet(ix), 10, napx, localKtrack)
-      call h5_writeData(dump_hdf5DataSet(ix), 11, napx, ejv(j))
-      call h5_writeData(dump_hdf5DataSet(ix), 12, napx, ejfv(j))
-      call h5_writeData(dump_hdf5DataSet(ix), 13, napx, dpsv(j))
-      call h5_writeData(dump_hdf5DataSet(ix), 14, napx, oidpsv(j))
-      call h5_writeData(dump_hdf5DataSet(ix), 15, napx, rvv(j))
-      call h5_writeData(dump_hdf5DataSet(ix), 16, napx, nucm(j))
-      call h5_writeData(dump_hdf5DataSet(ix), 17, napx, mtc(j))
-      call h5_writeData(dump_hdf5DataSet(ix), 18, napx, e0)
-      call h5_writeData(dump_hdf5DataSet(ix), 19, napx, e0f)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)   !ID
+      call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)    !TURN
+      call h5_writeData(dump_hdf5DataSet(ix), 3, napx, localKtrack) !KTRACK
+      call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, localDcum) !S
+      call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, xv(1,:)) !X
+      call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, yv(1:)) !XP
+      call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, xv(2,:)) !Y
+      call h5_writeData(dump_hdf5DataSet(ix), 8,  napx, yv(2,: !YP
+      call h5_writeData(dump_hdf5DataSet(ix), 9,  napx, sigmv!SIGMA
+      call h5_writeData(dump_hdf5DataSet(ix), 10, napx, (ejv-e0)/e0) !DELTAE/E0
+      call h5_writeData(dump_hdf5DataSet(ix), 11, napx, ejv(j)) ! E
+      call h5_writeData(dump_hdf5DataSet(ix), 12, napx, ejfv(j)) ! PC
+      call h5_writeData(dump_hdf5DataSet(ix), 13, napx, rvv(j)) BETA
+      call h5_writeData(dump_hdf5DataSet(ix), 14, napx, dpsv(j)) ! DELTA
+      call h5_writeData(dump_hdf5DataSet(ix), 14, napx, dpsv1(j)) ! DELTA
+      call h5_writeData(dump_hdf5DataSet(ix), 15, napx, oidpsv(j)) ! (P0/P)
+      call h5_writeData(dump_hdf5DataSet(ix), 16, napx, nucm(j)) !MASS
+      call h5_writeData(dump_hdf5DataSet(ix), 17, napx, nzz(j) !CHARGE
+      call h5_writeData(dump_hdf5DataSet(ix), 18, napx, mtc(j)) ! (CHARGE/CHARGE0)*(MASS0/MASS)
+      call h5_writeData(dump_hdf5DataSet(ix), 19, napx, zz0)   !CHARGE0
+      call h5_writeData(dump_hdf5DataSet(ix), 20, napx, nucm0) !MASS0
+      call h5_writeData(dump_hdf5DataSet(ix), 21, napx, e0) ! E0
+      call h5_writeData(dump_hdf5DataSet(ix), 22, napx, e0f) ! P0C
       call h5_finaliseWrite(dump_hdf5DataSet(ix))
     else
 #endif
       do j=1,napx
-        write(unit) nlostp(j),nturn,localDcum, &
+        write(unit) nlostp(j),nturn, localKtrack, localDcum, &
                     xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
-                    sigmv(j),(ejv(j)-e0)/e0,localKtrack, &
-                    ejv(j), ejfv(j), dpsv(j), oidpsv(j), &
-                    rvv(j), nucm(j), mtc(j), e0, e0f
+                    sigmv(j),(ejv(j)-e0)/e0, rvv(j), &
+                    ejv(j), ejfv(j), rvv(j), dpsv(j), oidpsv(j), &
+                    nucm(j), nzz(j), mtc(j), zz0, nucm0, e0, e0f
       end do
 
       ! Flush
