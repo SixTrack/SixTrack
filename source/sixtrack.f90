@@ -60,40 +60,6 @@ subroutine daten
 
   integer icc,il1,ilin0,iMod,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
 
-  real(kind=fPrec), allocatable :: crkveb(:) !(npart)
-  real(kind=fPrec), allocatable :: cikveb(:) !(npart)
-  real(kind=fPrec), allocatable :: rho2b(:) !(npart)
-  real(kind=fPrec), allocatable :: tkb(:) !(npart
-  real(kind=fPrec), allocatable :: r2b(:) !(npart)
-  real(kind=fPrec), allocatable :: rb(:) !(npart)
-  real(kind=fPrec), allocatable :: rkb(:) !(npart)
-  real(kind=fPrec), allocatable :: xrb(:) !(npart)
-  real(kind=fPrec), allocatable :: zrb(:) !(npart
-  real(kind=fPrec), allocatable :: xbb(:) !(npart)
-  real(kind=fPrec), allocatable :: zbb(:) !(npart)
-  real(kind=fPrec), allocatable :: crxb(:) !(npart)
-  real(kind=fPrec), allocatable :: crzb(:) !(npart)
-  real(kind=fPrec), allocatable :: cbxb(:) !(npart)
-  real(kind=fPrec), allocatable :: cbzb(:) !(npart)
-  integer :: nbeaux(500)
-  save
-  call alloc(crkveb, npart, zero, "crkveb") !(npart)
-  call alloc(crkveb, npart, zero, "crkveb") !(npart)
-  call alloc(cikveb, npart, zero, "cikveb") !(npart)
-  call alloc(rho2b, npart, zero, "rho2b") !(npart)
-  call alloc(tkb, npart, zero, "tkb") !(npart
-  call alloc(r2b, npart, zero, "r2b") !(npart)
-  call alloc(rb, npart, zero, "rb") !(npart)
-  call alloc(rkb, npart, zero, "rkb") !(npart)
-  call alloc(xrb, npart, zero, "xrb") !(npart)
-  call alloc(zrb, npart, zero, "zrb") !(npart
-  call alloc(xbb, npart, zero, "xbb") !(npart)
-  call alloc(zbb, npart, zero, "zbb") !(npart)
-  call alloc(crxb, npart, zero, "crxb") !(npart)
-  call alloc(crzb, npart, zero, "crzb") !(npart)
-  call alloc(cbxb, npart, zero, "cbxb") !(npart)
-  call alloc(cbzb, npart, zero, "cbzb") !(npart)
-
 ! ================================================================================================ !
 !  SET DEFAULT VALUES
 ! ================================================================================================ !
@@ -349,8 +315,8 @@ subroutine daten
   prevPrint = .false.
 
   ! Check for end of fort.3 input
-  if(cCheck == "ENDE") goto 9000 
-  
+  if(cCheck == "ENDE") goto 9000
+
   ! Check if no block is active. If so, there should be a new one if input is sane.
   if(currBlock == "NONE") then
     currBlock = cCheck
@@ -1719,7 +1685,7 @@ subroutine initialize_element(ix,lfirst)
       use numerical_constants
       use crcoall
       use string_tools
-      use parpro !Needed for common
+      use parpro
       use parbeam, only : beam_expflag,beam_expfile_open
       use mod_common
       use mod_commont
@@ -1740,12 +1706,8 @@ subroutine initialize_element(ix,lfirst)
       real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
       rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
       cbzb(npart)
-   
-      integer :: nbeaux(500)
 
-
-
-
+      integer :: nbeaux(nbb)
 
 !--Nonlinear Elements
 ! TODO: Merge these cases into 1 + subcases?
@@ -1899,9 +1861,9 @@ subroutine initialize_element(ix,lfirst)
             if ( ic(i)-nblo.eq.ix ) then
               nmz=nmu(ix)
               im=irm(ix)
-              do k=1,nmz             
-                aaiv(k,i)=scalemu(im)*(ak0(im,k)+amultip(k,i)*aka(im,k))     
-                bbiv(k,i)=scalemu(im)*(bk0(im,k)+bmultip(k,i)*bka(im,k))    
+              do k=1,nmz
+                aaiv(k,i)=scalemu(im)*(ak0(im,k)+amultip(k,i)*aka(im,k))
+                bbiv(k,i)=scalemu(im)*(bk0(im,k)+bmultip(k,i)*bka(im,k))
               end do
             endif
           enddo
@@ -1926,7 +1888,7 @@ subroutine initialize_element(ix,lfirst)
          endif
 !--BEAM-BEAM
       elseif(kz(ix).eq.20) then
-        
+
         if (lfirst) then
           ptnfac(ix)=el(ix)
           el(ix)=zero
@@ -1935,7 +1897,7 @@ subroutine initialize_element(ix,lfirst)
           parbe(ix,6) = ek(ix)
           ek(ix)=zero
           endif
-! This is to inialize all the beam-beam element before the tracking (or to update it for DYNK). 
+! This is to inialize all the beam-beam element before the tracking (or to update it for DYNK).
         if (.not.lfirst) then
           do i=1,iu
             if ( ic(i)-nblo.eq.ix ) then
@@ -1957,7 +1919,7 @@ subroutine initialize_element(ix,lfirst)
                   enddo
                 endif
                 ktrack(i)=44
-                parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6               
+                parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6
                 if(ibeco.eq.1) then
                   track6d(1,1)=parbe(ix,5)*c1m3
                   track6d(2,1)=zero
@@ -1977,9 +1939,9 @@ subroutine initialize_element(ix,lfirst)
                   napx=napx0
 
                 endif
-              
+
               else if(parbe(ix,2).eq.zero) then
-                if(beam_expflag.eq.1) then  
+                if(beam_expflag.eq.1) then
                    bbcu(ibb,1)=parbe(ix,1)
                    bbcu(ibb,2)=parbe(ix,3)
                 endif
@@ -1987,22 +1949,22 @@ subroutine initialize_element(ix,lfirst)
                   sfac1=bbcu(ibb,1)+bbcu(ibb,2)
                   sfac2=bbcu(ibb,1)-bbcu(ibb,2)
                   sfac2s=one
-                  if(sfac2.lt.zero) sfac2s=-one                            
-                  sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          
+                  if(sfac2.lt.zero) sfac2s=-one
+                  sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))
                   if(sfac3.gt.sfac1) call prror(103)
-                  sfac4=(sfac2s*sfac2)/sfac3                                   
-                  sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3                
-                  sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)    
-                  sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)    
+                  sfac4=(sfac2s*sfac2)/sfac3
+                  sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3
+                  sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)
+                  sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)
                   bbcu(ibb,11)=sqrt(half*(one+sfac4))
-                  bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))            
-                  if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)       
+                  bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))
+                  if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)
                 else
                   bbcu(ibb,11)=one
                   sigman(1,ibb)=sqrt(bbcu(ibb,1))
                   sigman(2,ibb)=sqrt(bbcu(ibb,2))
                 endif
-                
+
 !--round beam
                 nbeaux(imbb(i))=0
                 if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
@@ -2039,7 +2001,7 @@ subroutine initialize_element(ix,lfirst)
                     sigmanq(2,imbb(i))=sigman(2,imbb(i))/sigman(1,imbb(i))
                   endif
                 endif
-              
+
 
                 strack(i)=crad*ptnfac(ix)
                 if(ibbc.eq.0) then
@@ -2052,8 +2014,8 @@ subroutine initialize_element(ix,lfirst)
 
                 if(nbeaux(imbb(i)).eq.1) then
                   ktrack(i)=41
-                  if(ibeco.eq.1) then       
-                  rho2b_d=crkveb_d**2+cikveb_d**2                          
+                  if(ibeco.eq.1) then
+                  rho2b_d=crkveb_d**2+cikveb_d**2
                   tkb_d=rho2b_d/(two*sigman2(1,imbb(i)))
                   beamoff(4,imbb(i))=((strack(i)*crkveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
                   beamoff(5,imbb(i))=((strack(i)*cikveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
@@ -2065,17 +2027,17 @@ subroutine initialize_element(ix,lfirst)
                   if(ibeco.eq.1) then
                     r2b_d=two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
                     rb_d=sqrt(r2b_d)
-                    rkb_d=(strack(i)*pisqrt)/rb_d                            
+                    rkb_d=(strack(i)*pisqrt)/rb_d
                     xrb_d=abs(crkveb_d)/rb_d
                     zrb_d=abs(cikveb_d)/rb_d
                     if(ibtyp.eq.0) then
                       call errf(xrb_d,zrb_d,crxb_d,crzb_d)
-                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              
+                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
                       xbb_d=sigmanq(2,imbb(i))*xrb_d
                       zbb_d=sigmanq(1,imbb(i))*zrb_d
                       call errf(xbb_d,zbb_d,cbxb_d,cbzb_d)
                     else if(ibtyp.eq.1) then
-                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              
+                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
                       xbb_d=sigmanq(2,imbb(i))*xrb_d
                       zbb_d=sigmanq(1,imbb(i))*zrb_d
                     endif
@@ -2089,17 +2051,17 @@ subroutine initialize_element(ix,lfirst)
                   if(ibeco.eq.1) then
                     r2b_d=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
                     rb_d=sqrt(r2b_d)
-                    rkb_d=(strack(i)*pisqrt)/rb_d                            
+                    rkb_d=(strack(i)*pisqrt)/rb_d
                     xrb_d=abs(crkveb_d)/rb_d
                     zrb_d=abs(cikveb_d)/rb_d
                     if(ibtyp.eq.0) then
                       call errf(zrb_d,xrb_d,crzb_d,crxb_d)
-                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                              
+                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
                       xbb_d=sigmanq(2,imbb(i))*xrb_d
                       zbb_d=sigmanq(1,imbb(i))*zrb_d
                       call errf(zbb_d,xbb_d,cbzb_d,cbxb_d)
                     else if(ibtyp.eq.1) then
-                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half                            
+                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
                       xbb_d=sigmanq(2,imbb(i))*xrb_d
                       zbb_d=sigmanq(1,imbb(i))*zrb_d
                     endif
