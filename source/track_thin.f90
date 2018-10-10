@@ -34,12 +34,12 @@ subroutine trauthin(nthinerr)
   real(kind=fPrec), allocatable :: crkveb(:) !(npart)
   real(kind=fPrec), allocatable :: cikveb(:) !(npart)
   real(kind=fPrec), allocatable :: rho2b(:) !(npart)
-  real(kind=fPrec), allocatable :: tkb(:) !(npart
+  real(kind=fPrec), allocatable :: tkb(:) !(npart)
   real(kind=fPrec), allocatable :: r2b(:) !(npart)
   real(kind=fPrec), allocatable :: rb(:) !(npart)
   real(kind=fPrec), allocatable :: rkb(:) !(npart)
   real(kind=fPrec), allocatable :: xrb(:) !(npart)
-  real(kind=fPrec), allocatable :: zrb(:) !(npart
+  real(kind=fPrec), allocatable :: zrb(:) !(npart)
   real(kind=fPrec), allocatable :: xbb(:) !(npart)
   real(kind=fPrec), allocatable :: zbb(:) !(npart)
   real(kind=fPrec), allocatable :: crxb(:) !(npart)
@@ -49,21 +49,21 @@ subroutine trauthin(nthinerr)
   integer :: nbeaux(nbb)
   save
 
-  call alloc(crkveb, npart, zero, "crkveb") !(npart)
-  call alloc(cikveb, npart, zero, "cikveb") !(npart)
-  call alloc(rho2b, npart, zero, "rho2b") !(npart)
-  call alloc(tkb, npart, zero, "tkb") !(npart
-  call alloc(r2b, npart, zero, "r2b") !(npart)
-  call alloc(rb, npart, zero, "rb") !(npart)
-  call alloc(rkb, npart, zero, "rkb") !(npart)
-  call alloc(xrb, npart, zero, "xrb") !(npart)
-  call alloc(zrb, npart, zero, "zrb") !(npart
-  call alloc(xbb, npart, zero, "xbb") !(npart)
-  call alloc(zbb, npart, zero, "zbb") !(npart)
-  call alloc(crxb, npart, zero, "crxb") !(npart)
-  call alloc(crzb, npart, zero, "crzb") !(npart)
-  call alloc(cbxb, npart, zero, "cbxb") !(npart)
-  call alloc(cbzb, npart, zero, "cbzb") !(npart)
+  call alloc(crkveb, npart, zero, "crkveb")
+  call alloc(cikveb, npart, zero, "cikveb")
+  call alloc(rho2b, npart, zero, "rho2b")
+  call alloc(tkb, npart, zero, "tkb")
+  call alloc(r2b, npart, zero, "r2b")
+  call alloc(rb, npart, zero, "rb")
+  call alloc(rkb, npart, zero, "rkb")
+  call alloc(xrb, npart, zero, "xrb")
+  call alloc(zrb, npart, zero, "zrb")
+  call alloc(xbb, npart, zero, "xbb")
+  call alloc(zbb, npart, zero, "zbb")
+  call alloc(crxb, npart, zero, "crxb")
+  call alloc(crzb, npart, zero, "crzb")
+  call alloc(cbxb, npart, zero, "cbxb")
+  call alloc(cbzb, npart, zero, "cbzb")
 
   do i=1,npart
     nlostp(i)=i
@@ -74,7 +74,6 @@ subroutine trauthin(nthinerr)
     strackc(i)=zero
     stracks(i)=zero
   end do
-
 
   do 290 i=1,iu
     if(mout2.eq.1.and.i.eq.1) call fluc_writeFort4
@@ -111,7 +110,7 @@ subroutine trauthin(nthinerr)
     !42 --elliptic beam x>z
     !43--elliptic beam z>x
     !44 -- 6d beam-beam
-    if(kzz.eq.20) then                  
+    if(kzz.eq.20) then
         call initialize_element(ix,.false.)
       goto 290
     endif
@@ -261,15 +260,15 @@ subroutine trauthin(nthinerr)
           end if
           ktrack(i) = 31
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then 
+          if(abs(dki(ix,3)).gt.pieni) then
             ktrack(i) = 33 !Horizontal Bend with a fictive length
 #include "include/stra11.f90"
           else
             ktrack(i) = 35 !Horizontal Bend without a ficitve length
 #include "include/stra12.f90"
           end if
-        else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then 
-          if(abs(dki(ix,3)).gt.pieni) then 
+        else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
+          if(abs(dki(ix,3)).gt.pieni) then
             ktrack(i) = 37 !Vertical bending with fictive length
 #include "include/stra13.f90"
           else
@@ -278,7 +277,7 @@ subroutine trauthin(nthinerr)
           end if
         end if
       else
-      !These are the same as above with the difference that they also will have multipoles associated with them. 
+      !These are the same as above with the difference that they also will have multipoles associated with them.
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           ktrack(i) = 32
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
@@ -436,7 +435,7 @@ subroutine trauthin(nthinerr)
     if(idp == 0 .or. ition == 0) then !Actually 4D, but collimation needs 6D so goto 6D.
       write(lout,*) "TRACKING> WARNING Calling 6D tracking due to collimation! Would normally have called thin4d"
     endif
-    
+
     hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
     do jj=1,nele
       if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*real(itionc(jj),fPrec)
@@ -2147,9 +2146,9 @@ subroutine thin6d(nthinerr)
       !GRD HERE WE SET THE FLAG FOR INITIALIZATION TO FALSE AFTER TURN 1
       firstrun = .false.
     endif
-    
+
 660 continue !END loop over turns
-    
+
     return
 
 end subroutine thin6d
