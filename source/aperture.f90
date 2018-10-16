@@ -1335,8 +1335,8 @@ subroutine roffpos( x, y, xnew, ynew, tlt, xoff, yoff )
 ! temporary variables
   real(kind=fPrec) theta, radio, xtmp, ytmp, ttmp
 
-  xtmp = x+xoff
-  ytmp = y+yoff
+  xtmp = x-xoff
+  ytmp = y-yoff
   theta = atan2_mb(ytmp, xtmp)
   radio = sqrt(xtmp**two + ytmp**two)
   ttmp = theta-tlt
