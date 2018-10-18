@@ -1944,6 +1944,7 @@ subroutine initialize_element(ix,lfirst)
                 if(beam_expflag.eq.1) then
                    bbcu(ibb,1)=parbe(ix,1)
                    bbcu(ibb,2)=parbe(ix,3)
+                   bbcu(ibb,3)=parbe(ix,13)
                 endif
                 if(ibbc.eq.1) then
                   sfac1=bbcu(ibb,1)+bbcu(ibb,2)

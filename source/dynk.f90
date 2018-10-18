@@ -2434,6 +2434,8 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
            parbe(ii,1) = newValue
          else if (att_name=="4dSyy") then
            parbe(ii,3) = newValue
+         else if (att_name=="4dSxy") then
+           parbe(ii,13) = newValue
          else if (att_name == "strength") then ! 
            ptnfac(ii) = newValue
            parbe(ii,4)=(((-one*crad)*ptnfac(ii))*half)*c1m6
@@ -2635,7 +2637,9 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
           else if (att_name=="4dSxx") then !strong I think
             dynk_getvalue = parbe(ii,1)  
           else if (att_name=="4dSyy") then
-            dynk_getvalue = parbe(ii,3)  
+            dynk_getvalue = parbe(ii,3)
+          else if (att_name=="4dSxy") then
+            dynk_getvalue = parbe(ii,13)
           else if (att_name == "strength") then ! 
             dynk_getvalue = ptnfac(ii)
           else if(att_name == "Sxx") then
