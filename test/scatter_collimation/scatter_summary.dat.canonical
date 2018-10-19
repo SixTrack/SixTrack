@@ -1,0 +1,3 @@
+# scatter_summary
+#    turn bez                  generator            process    nScatt    nLost  crossSec[mb]       scaling
+        3 ip5_scatter          sc_thin              Elastic        26        0     30.000000      1.000000
