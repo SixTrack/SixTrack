@@ -53,18 +53,19 @@ to define the short term dynamic aperture.
 \subsection{General Description} \label{ApeLim:GenDesc}
 Each non-linear (zero length) element defined in the \textit{Single Element} input block
 (\ref{NonEle}) except multipole blocks (\ref{MulBlo}) can be used to define aperture limitations,
-but it is highly recommended to use dedicated markers. Several aperture types are available
-to the user (see Sec.~\ref{ApeLim:ApeSpecs}).
+but it is highly recommended to use dedicated markers. Several aperture types are available to
+the user (see later).
 
 The aperture limitations are taken into account during tracking by the online aperture checking, which
 verifies that the tracked particles falls within the mechanical acceptance of the machine. When a
 particle does not fit into the mechanical acceptance, it is removed from tracking; its
-coordinates at the aperture marker are reported in a text file.
-
-The user can request a more accurate
-estimation of the loss point activating the back-tracking algorithm. The algorithm finds the loss
-location interpolating the aperture profile by means of a bi-section method;
-the user can set the precision with which the longitudinal position is found.
+coordinates at the point of loss are reported in a text file. A back-tracking algorithm
+finds the actual loss location interpolating the aperture profile by means of a bi-section
+method; the user can set the precision with which the longitudinal position is found
+(default is 10~cm).
+While on by default, the algorithm can be switched off by the user; in this case, the
+particle coordinates reported in the loss file are those at the aperture marker where
+the particle is found out of the mechanical aperture of the machine.
 
 The present implementation extends the functionalities developed in the
 context of the Fluka-SixTrack coupling~\cite{coupling:1,coupling:2}.
@@ -76,13 +77,13 @@ context of the Fluka-SixTrack coupling~\cite{coupling:1,coupling:2}.
     \textbf{Keyword}    & \texttt{LIMI}\index{LIMI} \\
     \textbf{Data lines} & Variable \\
     \textbf{Format}     & Each aperture marker is fully specified by means of its type and
-                          numerical parameters. Other input options are available to the user,
+                          numerical parameters (see Sec.~\ref{ApeLim:ApeSpecs}).
+                          Other input options are available to the user,
                           headed by specific keywords, to control other parameters.
 \end{tabular}
 
-
 \bigskip
-\subsection{Aperture Markers} \label{ApeLim:ApeSpecs}
+\subsection{Specifying Aperture Marker}\label{ApeLim:ApeSpecs}
 An aperture profile can be assigned to a SINGLE ELEMENT specifying its type and
 numerical specifiers:
 
@@ -160,6 +161,56 @@ and the meaning of the numerical specifiers.
 \end{longtable}
 \end{center}
 
+\bigskip
+\subsection{Other input options}\label{ApeLim:inpOptions}
+
+\begin{center}
+\begin{longtable}{|c|c|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
+    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+    \caption{Other input options of the \texttt{LIMI} block. Options are listed in alphabetical order.}
+    \label{tab:inpOptions} \\*
+    \hline
+    \rowcolor{blue!30}
+    keyword & argument & description \\*
+    \hline
+    \endfirsthead
+
+    \texttt{BACKTRKOFF} & \multicolumn{2}{l|}{to disable back-tracking} \\*
+    \hline
+
+    \texttt{DEBUG} & \multicolumn{2}{l|}{to enable debugging output for the aperture code} \\*
+    \hline
+
+    \texttt{LOAD}  & \multicolumn{2}{l|}{to load specifications of apertures from a file} \\*
+                   & filename & ASCII file containing the specifications of apertures \\*
+    \hline
+
+    \texttt{PREC}  & \multicolumn{2}{l|}{to set custom accuracy in finding the actual loss location} \\*
+                   & precision & precision of back-tracking [m] \\*
+    \hline
+
+    \texttt{PRIN}  & \multicolumn{2}{l|}{to echo the profile of the machine aperture with $s$ to a file} \\*
+                   & filename & ASCII file where to echo the machine aperture \\*
+                   & \texttt{MEM} & optional flag to dump aperture profile as in memory \\*
+    \hline
+
+    \texttt{SAVE}  & \multicolumn{2}{c|}{to save particles at aperture check for direct comparison with colltrack losses} \\*
+    \hline
+
+    \texttt{XSEC}  & \multicolumn{2}{l|}{to dump aperture cross sections at specific $s$-locations} \\*
+                   & \multicolumn{2}{l|}{(NOT OPERATIONAL YET!)} \\*
+                   & filename & ASCII file where to echo the cross section \\*
+                   & $s_{\textrm{min}}$ & first $s$-location where to get the cross-section [m] \\*
+                   & $s_{\textrm{max}}$ & last $s$-location where to get the cross-section [m] (optional) \\*
+                   & $\Delta s$ & longitudinal steps where to calculate the cross-section [m] (optional) \\*
+                   & N & number of azimuthal angles (optional) \\*
+    \hline
+
+%     \rowcolor{blue!15}
+%     \multicolumn{4}{|l|}{Type specific parameters} \\*
+%     \texttt{GAUSSIAN} & \texttt{$\sigma$} & mm & Sigma of the e--beam.\\*
+\end{longtable}
+\end{center}
 
 % ================================================================================================================================ %
 \section{Power Supply Ripple} \label{PowRip}
