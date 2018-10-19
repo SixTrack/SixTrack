@@ -578,11 +578,11 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef ROUND_NEAR
   real(kind=real64) function acos_rn(x)
+    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x
-    logical myisnan
-    if (myisnan(x,x)) then
+    if (ieee_is_nan(x)) then
        acos_rn=x
     elseif (abs(x).eq.0.0d0) then
        acos_rn=mb_pi2
@@ -598,11 +598,11 @@ contains
   end function acos_rn
 
   real(kind=real64) function asin_rn(x)
+    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x,mb_pi2
-    logical myisnan
-    if (myisnan(x,x)) then
+    if (ieee_is_nan(x)) then
        asin_rn=x
        return
     endif
@@ -650,11 +650,11 @@ contains
 
 #ifdef ROUND_UP
   real(kind=real64) function acos_ru(x)
+    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x
-    logical myisnan
-    if (myisnan(x,x)) then
+    if (ieee_is_nan(x)) then
        acos_ru=x
     elseif (abs(x).eq.0.0d0) then
        acos_ru=mb_pi2
@@ -670,11 +670,11 @@ contains
   end function acos_ru
 
   real(kind=real64) function asin_ru(x)
+    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x
-    logical myisnan
-    if (myisnan(x,x)) then
+    if (ieee_is_nan(x)) then
        asin_ru=x
        return
     endif
@@ -722,11 +722,11 @@ contains
 
 #ifdef ROUND_DOWN
   real(kind=real64) function acos_rd(x)
+    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x
-    logical myisnan
-    if (myisnan(x,x)) then
+    if (ieee_is_nan(x)) then
        acos_rd=x
     elseif (abs(x).eq.0.0d0) then
        acos_rd=mb_pi2
@@ -742,11 +742,11 @@ contains
   end function acos_rd
 
   real(kind=real64) function asin_rd(x)
+    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x
-    logical myisnan
-    if (myisnan(x,x)) then
+    if (ieee_is_nan(x)) then
        asin_rd=x
        return
     endif
@@ -794,11 +794,11 @@ contains
 
 #ifdef ROUND_ZERO
   real(kind=real64) function acos_rz(x)
+    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x
-    logical myisnan
-    if (myisnan(x,x)) then
+    if (ieee_is_nan(x)) then
        acos_rz=x
     elseif (abs(x).eq.0.0d0) then
        acos_rz=mb_pi2
@@ -814,11 +814,11 @@ contains
   end function acos_rz
 
   real(kind=real64) function asin_rz(x)
+    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x
-    logical myisnan
-    if (myisnan(x,x)) then
+    if (ieee_is_nan(x)) then
        asin_rz=x
        return
     endif
