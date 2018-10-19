@@ -1167,6 +1167,7 @@ subroutine scatter_generator_getTandE(genID, t, dEE, dPP, procID, iLost, isDiff)
   real(kind=fPrec)     a, b1, b2, phi, tmin
 
   dEE    = zero
+  dPP    = zero
   t      = zero
   iLost  = 0
   nRetry = 0
