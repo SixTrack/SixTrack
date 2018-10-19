@@ -1,2 +1,3 @@
 scatter_log.dat
+scatter_summary.dat
 dynksets.dat
