@@ -2582,21 +2582,14 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   case("LOAD")
     ! P.G.Ortega and A.Mereghetti, 02-03-2018
     ! Reading apertures from external file
-    if(nSplit < 2 .or. nSplit > 3) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword LOAD. Expected 2 or 3, got ",nSplit
+    if(nSplit .ne. 2 ) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword LOAD. Expected 2, got ",nSplit
       iErr = .true.
       return
     end if
 
-    if(nSplit == 3) then
-      call chr_cast(lnSplit(2),loadunit,iErr)
-      load_file = trim(lnSplit(3))
-      write(lout,"(a)") "LIMI> Note: Specifying unit for the external file is deprecated. A unit is assigned automatically."
-    else
-      load_file = trim(lnSplit(2))
-    end if
+    load_file = trim(lnSplit(2))
     call funit_requestUnit(trim(load_file),loadunit)
-
     inquire(file=load_file, exist=lExist)
     if(.not.lexist) then
       write(lout,"(a)") "LIMI> ERROR LOAD file '"//trim(load_file)//"' not found in the running folder."
@@ -2609,24 +2602,23 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   case("PRIN")
     ! P.G.Ortega and A.Mereghetti, 02-03-2018
     ! flag for dumping the aperture model
-    if(nSplit < 2) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword PRIN. Expected 2, got ",nSplit
+    if(nSplit < 2 .and. nSplit > 3 ) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword PRIN. Expected 2 or 3, got ",nSplit
       iErr = .true.
       return
     end if
 
-    if(nSplit == 3) then
-      aper_filename = trim(lnSplit(3))
-      write(lout,"(a)") "LIMI> Note: Specifying unit for the PRIN file is deprecated. A unit is assigned automatically."
-    else
-      aper_filename = trim(lnSplit(2))
-    end if
+    aper_filename = trim(lnSplit(2))
     call funit_requestUnit(trim(aper_filename),aperunit)
 
     ldmpaper = .true.
-    if(nSplit > 3) then
-      if(lnSPlit(4) == "MEM") then
+    if(nSplit .eq. 3) then
+      if(lnSPlit(3) == "MEM") then
         ldmpaperMem=.true.
+      else 
+        write(lout,"(a,a)") "LIMI> ERROR Unknown third argument to PRIN keyword: ",lnSPlit(3)
+        iErr = .true.
+        return
       end if
     end if
 
