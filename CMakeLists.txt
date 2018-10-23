@@ -105,7 +105,8 @@ OPTION(ROOT "Link to the root libraries" OFF)
 OPTION(32BIT "Create a 32bit binary" OFF)
 OPTION(64BIT "Create a 64bit binary" ON)
 OPTION(STATIC "Create a statically linked binary" ON)
-OPTION(NATIVE "Enable optimizations for the current machine" OFF)
+OPTION(NATIVE "Enable optimisations for the current machine" OFF)
+OPTION(LTO "Enable link time optimisations" OFF)
 OPTION(AVX "Enable use of the Advanced Vector Extensions (AVX) instruction set - Sandy Bridge and later" OFF)
 OPTION(AVX2 "Enable use of the Advanced Vector Extensions 2 (AVX2) instruction set - Haswell and later" OFF)
 OPTION(AVX-512 "Enable use of the Advanced Vector Extensions 512 (AVX-512) instruction set - (Currently targeting Skylake-X)" OFF)
@@ -265,9 +266,9 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR)
-LIST(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
-LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
+list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR)
+list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
+list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR)
 
 ###################################################################################################
 # Select which fortran files to generate and compile
@@ -524,7 +525,8 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
   #  gfortran  #
   ##############
 
-  SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
+  set(GFORTRAN ON)
+  set(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
   set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
   set(PREPRO_FLAGS -cpp -E -P)
 
@@ -532,12 +534,14 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
     set (CMAKE_Fortran_FLAGS "-ffp-contract=off ${CMAKE_Fortran_FLAGS}")
   endif()
 
-  SET(CMAKE_Fortran_FLAGS_RELEASE "-O3")
-  # SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
-  SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow -fcheck=all")
+  set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow -fcheck=all")
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES ppc64le )
-    SET(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fno-expensive-optimizations -fno-inline-functions")
+    set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fno-expensive-optimizations -fno-inline-functions")
+  endif()
+  if(LTO)
+    set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -flto")
   endif()
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
@@ -564,7 +568,7 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
     endif(AVX-512)
 
     if(NATIVE)
-      SET(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+      set(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
     endif(NATIVE)
   endif()
 
@@ -591,10 +595,15 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
   #  ifort  #
   ###########
 
+  set(IFORT ON)
   set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
   set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
   set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
   set(PREPRO_FLAGS -fpp -E -P)
+
+  if(LTO)
+    set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -ffat-lto-objects")
+  endif()
 
   if(WARN)
     set(CMAKE_Fortran_FLAGS "-warn unused ${CMAKE_Fortran_FLAGS}")
@@ -603,13 +612,13 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
   if(32BIT)
     set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
     set(CMAKE_Fortran_FLAGS_DEBUG "-m32 ${CMAKE_Fortran_FLAGS_DEBUG}")
-    SET(CMAKE_Fortran_LINKER_FLAGS "-m32 ${CMAKE_Fortran_LINKER_FLAGS}")
+    set(CMAKE_Fortran_LINKER_FLAGS "-m32 ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(32BIT)
 
   if(64BIT)
     set(CMAKE_Fortran_FLAGS_RELEASE "-m64 ${CMAKE_Fortran_FLAGS_RELEASE}")
     set(CMAKE_Fortran_FLAGS_DEBUG "-m64 ${CMAKE_Fortran_FLAGS_DEBUG}")
-    SET(CMAKE_Fortran_LINKER_FLAGS "-m64 ${CMAKE_Fortran_LINKER_FLAGS}")
+    set(CMAKE_Fortran_LINKER_FLAGS "-m64 ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(64BIT)
 
   if(AVX)
@@ -625,12 +634,11 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
   endif(AVX-512)
 
   if(NATIVE)
-    SET(CMAKE_Fortran_FLAGS_RELEASE "-xHost ${CMAKE_Fortran_FLAGS_RELEASE}")
-    #Nothing to do for DEBUG
+    set(CMAKE_Fortran_FLAGS_RELEASE "-xHost ${CMAKE_Fortran_FLAGS_RELEASE}")
   endif(NATIVE)
 
   if(STATIC)
-    SET(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
+    set(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(STATIC)
 
 elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
@@ -638,18 +646,17 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
   #  nagfor  #
   ############
 
-  SET(NAGFOR ON)
-  #Here I am going to assume that since we are using nagfor we are on lxplus for now
+  set(NAGFOR ON)
   set(CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns")
   set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -gline")
   set(PREPRO_EXEC  fpp)
   set(PREPRO_FLAGS -P -free)
 
-if(WARN)
-  set(CMAKE_Fortran_FLAGS "-w=ulv -w=uparam ${CMAKE_Fortran_FLAGS}")
-else()
-  set(CMAKE_Fortran_FLAGS "-w=all ${CMAKE_Fortran_FLAGS}")
-endif(WARN)
+  if(WARN)
+    set(CMAKE_Fortran_FLAGS "-w=ulv -w=uparam ${CMAKE_Fortran_FLAGS}")
+  else()
+    set(CMAKE_Fortran_FLAGS "-w=all ${CMAKE_Fortran_FLAGS}")
+  endif(WARN)
 
   if(32BIT)
     set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
