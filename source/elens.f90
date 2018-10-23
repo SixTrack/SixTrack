@@ -143,19 +143,25 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   case("UNIFORM")
     elens_type(ielens(iElem)) = 1
   case("GAUSSIAN")
-    elens_type(ielens(iElem)) = 2
-    if(nSplit < 8) then
-      write(lout,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for GAUSSIAN, got ",nSplit
-      iErr = .true.
-      return
-    end if
+    write(lout,"(a)") "ELENS> ERROR GAUSSIAN type not fully supported yet - elens name: '"//trim(bez(iElem))
+    iErr = .true.
+    return
+!     elens_type(ielens(iElem)) = 2
+!     if(nSplit < 8) then
+!       write(lout,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for GAUSSIAN, got ",nSplit
+!       iErr = .true.
+!       return
+!     end if
   case("CHEBYSHEV")
-    elens_type(ielens(iElem)) = 3
-    if(nSplit < 8) then
-      write(lout,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for CHEBYSHEV, got ",nSplit
-      iErr = .true.
-      return
-    end if
+    write(lout,"(a)") "ELENS> ERROR CHEBYSHEV type not fully supported yet - elens name: '"//trim(bez(iElem))
+    iErr = .true.
+    return
+!     elens_type(ielens(iElem)) = 3
+!     if(nSplit < 8) then
+!       write(lout,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for CHEBYSHEV, got ",nSplit
+!       iErr = .true.
+!       return
+!     end if
   case default
     write(lout,"(a)") "ELENS> ERROR Elens type '"//trim(lnSplit(2))//"' not recognized. Remember to use all UPPER CASE."
     iErr = .true.
@@ -168,38 +174,38 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   call chr_cast(lnSplit(6),elens_offset_x(ielens(iElem)),iErr)
   call chr_cast(lnSplit(7),elens_offset_y(ielens(iElem)),iErr)
 
-  if(elens_type(ielens(iElem)) == 2) then
-    ! GAUSSIAN profile of electrons: need also sigma of e-beam
-    call chr_cast(lnSplit(8),elens_sig(ielens(iElem)),iErr)
-
-  elseif(elens_type(ielens(iElem)) == 3 )then
-    ! Profile of electrons given by Chebyshev polynomials: need also
-    !   name of file where coefficients are stored and angle
-    tmpch = trim(lnSplit(8))
-    call chr_cast(lnSplit(9),elens_cheby_angle(ielens(iElem)),iErr)
-
-    ! Check if table of coefficients has already been requested:
-    chIdx = -1
-    do tmpi1=1,melens_cheby_tables
-      if(tmpch == elens_cheby_filename(tmpi1)) then
-        elens_iCheby(ielens(iElem)) = tmpi1
-        chIdx = tmpi1
-        exit
-      end if
-    end do
-    if(chIdx == -1) then
-      ! Unsuccessful search
-      melens_cheby_tables = melens_cheby_tables+1
-      if(melens_cheby_tables > nelens_cheby_tables) then
-        write(lout,"(2(a,i0))") "ELENS> ERROR Too many tables for Chebyshev coefficients: ",melens_cheby_tables,&
-          ". Max is ",nelens_cheby_tables
-        iErr = .true.
-        return
-      end if
-      elens_iCheby(ielens(iElem)) = melens_cheby_tables
-      elens_cheby_filename(tmpi1) = tmpch
-    end if
-  end if
+!   if(elens_type(ielens(iElem)) == 2) then
+!     ! GAUSSIAN profile of electrons: need also sigma of e-beam
+!     call chr_cast(lnSplit(8),elens_sig(ielens(iElem)),iErr)
+! 
+!   elseif(elens_type(ielens(iElem)) == 3 )then
+!     ! Profile of electrons given by Chebyshev polynomials: need also
+!     !   name of file where coefficients are stored and angle
+!     tmpch = trim(lnSplit(8))
+!     call chr_cast(lnSplit(9),elens_cheby_angle(ielens(iElem)),iErr)
+! 
+!     ! Check if table of coefficients has already been requested:
+!     chIdx = -1
+!     do tmpi1=1,melens_cheby_tables
+!       if(tmpch == elens_cheby_filename(tmpi1)) then
+!         elens_iCheby(ielens(iElem)) = tmpi1
+!         chIdx = tmpi1
+!         exit
+!       end if
+!     end do
+!     if(chIdx == -1) then
+!       ! Unsuccessful search
+!       melens_cheby_tables = melens_cheby_tables+1
+!       if(melens_cheby_tables > nelens_cheby_tables) then
+!         write(lout,"(2(a,i0))") "ELENS> ERROR Too many tables for Chebyshev coefficients: ",melens_cheby_tables,&
+!           ". Max is ",nelens_cheby_tables
+!         iErr = .true.
+!         return
+!       end if
+!       elens_iCheby(ielens(iElem)) = melens_cheby_tables
+!       elens_cheby_filename(tmpi1) = tmpch
+!     end if
+!   end if
 
   ! Additional geometrical infos:
   ! Depending on profile, the position of these parameters change
@@ -211,16 +217,16 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     tmpi2 = 9
     tmpi3 = 10
     elens_lThetaR2(ielens(iElem)) = .true.
-  else if(elens_type(ielens(iElem)) == 2 .and. nSplit >= 11) then
-    tmpi1 = 9
-    tmpi2 = 10
-    tmpi3 = 11
-    elens_lThetaR2(ielens(iElem)) = .true.
-  else if(elens_type(ielens(iElem)) == 3 .and. nSplit >= 12) then
-    tmpi1 = 10
-    tmpi2 = 11
-    tmpi3 = 12
-    elens_lThetaR2(ielens(iElem)) = .true.
+!   else if(elens_type(ielens(iElem)) == 2 .and. nSplit >= 11) then
+!     tmpi1 = 9
+!     tmpi2 = 10
+!     tmpi3 = 11
+!     elens_lThetaR2(ielens(iElem)) = .true.
+!   else if(elens_type(ielens(iElem)) == 3 .and. nSplit >= 12) then
+!     tmpi1 = 10
+!     tmpi2 = 11
+!     tmpi3 = 12
+!     elens_lThetaR2(ielens(iElem)) = .true.
   end if
 
   if(elens_lThetaR2(ielens(iElem))) then
@@ -240,23 +246,28 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
-  if(elens_r2(ielens(iElem)) < zero) then
-    write(lout,"(a)") "ELENS> ERROR R2<0!"
+  if(elens_r2(ielens(iElem)) <= zero) then
+    write(lout,"(a)") "ELENS> ERROR R2<=0!"
     iErr = .true.
     return
   end if
-  if(elens_r1(ielens(iElem)) < zero) then
-    write(lout,"(a)") "ELENS> ERROR R1<0!"
+  if(elens_r1(ielens(iElem)) <= zero) then
+    write(lout,"(a)") "ELENS> ERROR R1<=0!"
     iErr = .true.
     return
   end if
-  if(elens_lThetaR2(iElem)) then
-    if(elens_len(ielens(iElem)) < zero) then
+  if(elens_lThetaR2(ielens(iElem))) then
+    if(elens_len(ielens(iElem)) <= zero) then
       write(lout,"(a)") "ELENS> ERROR L<0!"
       iErr = .true.
       return
     end if
-    if(elens_Ek(ielens(iElem)) < zero) then
+    if(elens_I(ielens(iElem)) == zero) then
+      write(lout,"(a)") "ELENS> ERROR I=0!"
+      iErr = .true.
+      return
+    end if
+    if(elens_Ek(ielens(iElem)) <= zero) then
       write(lout,"(a)") "ELENS> ERROR Ek<0! (e-beam)"
       iErr = .true.
       return
@@ -268,10 +279,10 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     ! Uniform distribution
     elens_geo_norm(ielens(iElem)) = (elens_r2(ielens(iElem))+elens_r1(ielens(iElem)))*&
                                     (elens_r2(ielens(iElem))-elens_r1(ielens(iElem)))
-  else if(elens_type(ielens(iElem)) == 2) then
-    ! Gaussian distribution
-    elens_geo_norm(ielens(iElem)) = exp_mb(-0.5*(elens_r1(ielens(iElem))/elens_sig(ielens(iElem)))**2)&
-                                    -exp_mb(-0.5*(elens_r2(ielens(iElem))/elens_sig(ielens(iElem)))**2)
+!   else if(elens_type(ielens(iElem)) == 2) then
+!     ! Gaussian distribution
+!     elens_geo_norm(ielens(iElem)) = exp_mb(-0.5*(elens_r1(ielens(iElem))/elens_sig(ielens(iElem)))**2)&
+!                                     -exp_mb(-0.5*(elens_r2(ielens(iElem))/elens_sig(ielens(iElem)))**2)
   end if
 
   if(st_debug) then
@@ -323,16 +334,31 @@ end subroutine elens_parseInputDone
 
 subroutine elens_postInput
   
-  use mod_common, only : e0,bez
+  use mod_common, only : e0,bez,kz
+  use mod_hions, only : aa0, zz0
   
-  integer j
+  integer j,jj
   logical exist
 
+  if ( melens /= 0) then
+     if ( aa0.ne.1 .or. zz0.ne.1 ) then
+        write(lout,"(a)") "ELENS> ERROR Elens available only for proton beam, no ion beams"
+        call prror(-1)
+     end if
+  end if
+     
   ! Compute elens theta at R2, if requested by user
   do j=1,melens
     if(elens_lThetaR2(j)) then
-      elens_theta_r2(j) = eLensTheta(elens_len(ielens(j)), elens_I(ielens(j)),elens_Ek(ielens(j)), e0, elens_r2(ielens(j)))
-      write(lout,"(a,e22.15)") "ELENS> New theta at r2 for "//trim(bez(j))//": ",elens_theta_r2(j)
+      do jj=1,nele
+        if(kz(jj)==29) then
+          if (ielens(jj).eq.j) then
+            exit
+          end if
+        end if
+      end do
+      elens_theta_r2(j) = eLensTheta(elens_len(j), elens_I(j),elens_Ek(j), e0, elens_r2(j) )
+      write(lout,"(a,i0,a,e22.15)") "ELENS> New theta at r2 for elens #",j," named "//trim(bez(jj))//": ",elens_theta_r2(j)
     end if
   end do
 

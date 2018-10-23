@@ -1,5 +1,5 @@
 # DUMP format #2, bez=qfstart         , number of particles=           2, dump period=           1, first turn=           1, last turn=          -1, HIGH=F, FRONT=F
-# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack
+# particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0[1] ktrack
         1        1      0.00000  1.895201523E+01 -1.041132794E+00  1.780518150E+02  1.118115835E+01 -1.379976339E+00  4.339239189E-04       12
         2        1      0.00000  1.895201523E+01 -1.041132794E+00  1.780518150E+02  1.118115835E+01 -1.379976339E+00  4.339239189E-04       12
         1        2      0.00000  1.895201523E+01 -1.041132794E+00  1.780518150E+02  1.118115835E+01 -1.379976339E+00  4.339239189E-04       12

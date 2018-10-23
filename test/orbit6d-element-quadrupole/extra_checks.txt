@@ -1,1 +1,1 @@
-IP1_DUMP.dat         diff -q --strip-trailing-cr
+IP1_DUMP.dat

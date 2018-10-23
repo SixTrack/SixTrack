@@ -1,7 +1,5 @@
 module fma
 
-  use string_tools, only : getfields_l_max_string
-
   implicit none
 
   integer, parameter     :: fma_max           = 200                ! Max. number of FMAs
@@ -90,17 +88,11 @@ subroutine fma_parseInputline(inLine,iErr)
      .or. fma_method(fma_numfiles) == "TUNEABT2"  &
      .or. fma_method(fma_numfiles) == "TUNEABT"   &
      .or. fma_method(fma_numfiles) == "TUNENEWT1" &
-#ifdef NAFF
      .or. fma_method(fma_numfiles) == "NAFF"      &
-#endif
     )) then
     write(lout,"(a,i0)") "FMA> ERROR The method '"//trim(fma_method(fma_numfiles))//"' is unknown. FMA index = ",fma_numfiles
     write(lout,"(a)")    "FMA>       Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "// &
-      "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT, TUNEABT2, TUNENEWT1"// &
-#ifdef NAFF
-      ", NAFF"// &
-#endif
-      "."
+      "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT, TUNEABT2, TUNENEWT1, NAFF."
     write(lout,"(a)")    "FMA>       Note that it is case-sensitive, so use uppercase only."
     iErr = .true.
     return
@@ -171,26 +163,26 @@ subroutine fma_postpr
   ! Normalised emittances
   real(kind=fPrec), allocatable :: epsnxyzv(:,:,:)
 
-#ifdef NAFF
-  interface
-    real(c_double) function tunenaff (x,xp,maxn,plane_idx,norm_flag) bind(c)
-      use, intrinsic :: iso_c_binding
-      implicit none
-      real(c_double), intent(in), dimension(1) :: x,xp
-      integer(c_int), intent(in), value :: maxn, plane_idx, norm_flag
-    end function tunenaff
-  end interface
+interface
+  real(c_double) function tunenaff(x,xp,maxn,plane_idx,norm_flag, fft_naff) bind(c)
+    use, intrinsic :: iso_c_binding
+    implicit none
+    real(c_double), intent(in), dimension(1) :: x,xp
+    integer(c_int), intent(in), value :: maxn, plane_idx, norm_flag
+    real(c_double), intent(in), value :: fft_naff
+  end function tunenaff
+end interface
 
-  ! need to pass a single dimension array to naff,
-  !  since the stride in the xyzv/nxyzv arrays are difficult to pass correctly to c++.
-  ! (we can't interpret the struct that fortran is passing us;
-  !  see the naff_interface.cpp for more info                 )
-  real(kind=fPrec), allocatable :: naff_xyzv1(:)
-  real(kind=fPrec), allocatable :: naff_xyzv2(:)
-#endif
+! need to pass a single dimension array to naff,
+!  since the stride in the xyzv/nxyzv arrays are difficult to pass correctly to c++.
+! (we can't interpret the struct that fortran is passing us;
+!  see the naff_interface.cpp for more info                 )
+real(kind=fPrec), allocatable :: naff_xyzv1(:)
+real(kind=fPrec), allocatable :: naff_xyzv2(:)
+!#endif
   ! dummy variables for readin + normalisation + loops
   integer :: id,kt,counter,thisturn
-  real(kind=fPrec) :: pos
+  real(kind=fPrec) :: pos, fft_naff
   real(kind=fPrec), dimension(6) :: xyzvdummy,xyzvdummy2,nxyzvdummy !phase space variables x,x',y,y',sig,delta
   real(kind=fPrec), dimension(3) :: q123 !tune q1,q2,q3
   real(kind=fPrec), dimension(3) :: eps123_0,eps123_min,eps123_max,eps123_avg !initial,minimum,maximum,average emittance
@@ -207,10 +199,8 @@ subroutine fma_postpr
   call alloc(xyzv,         napx,fma_nturn_max,6, zero,   "xyzv")
   call alloc(nxyzv,        napx,fma_nturn_max,6, zero,   "nxyzv")
   call alloc(epsnxyzv,     napx,fma_nturn_max,3, zero,   "epsnxyzv")
-#ifdef NAFF
   call alloc(naff_xyzv1,   fma_nturn_max,        zero,   "naff_xyzv1")
   call alloc(naff_xyzv2,   fma_nturn_max,        zero,   "naff_xyzv2")
-#endif
 
   ! fma_six = data file for storing the results of the FMA analysis
   call funit_requestUnit("fma_sixtrack",fmaUnit)
@@ -380,9 +370,9 @@ subroutine fma_postpr
         end if
         ! Now we have done all checks
 
+        !Normalized copy of the dump
         if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j)) then
-          write(lout,"(a)") "FMA> Writing normalised DUMP for '"//trim(dump_fname(j))// "' ..."
-          ! Dump normalised particle amplitudes for debugging (tmpUnit)
+          ! Get a file unit, if needed
           call funit_requestUnit("NORM_"//dump_fname(j),tmpUnit)
           call units_openUnit(unit=tmpUnit,fileName="NORM_"//dump_fname(j),formatted=.true.,mode="w",err=fErr,status="replace")
           if(fErr) then
@@ -390,6 +380,9 @@ subroutine fma_postpr
             call prror(-1)
           end if
 
+          ! Write the file headers
+          write(lout,"(a)") "FMA> Writing normalised DUMP for '"//trim(dump_fname(j))// "' ..."
+          ! Dump normalised particle amplitudes for debugging (tmpUnit)
           !  units: dumptas, dumptasinv, dumpclo [mm,mrad,mm,mrad,1]
           !  note: closed orbit dumpclo already converted in linopt part to [mm,mrad,mm,mrad,1]
           !        tas matrix in linopt part in [mm,mrad,mm,mrad,1.e-3]
@@ -525,7 +518,7 @@ subroutine fma_postpr
 
               ! Write normalised particle amplitudes
               ! (only when reading physical coordinates)
-              if (fma_writeNormDUMP .and. .not.hasNormDumped(j) ) then
+              if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j) ) then
                 write(tmpUnit,"(2(1x,i8),1x,f12.5,6(1x,1pe16.9),1x,i8)") &
                   id,thisturn,pos,nxyzvdummy(1),nxyzvdummy(2),nxyzvdummy(3),nxyzvdummy(4),nxyzvdummy(5),nxyzvdummy(6),kt
               end if
@@ -632,7 +625,6 @@ subroutine fma_postpr
                 q123(m) = tunenewt1(nxyzv(l,1:nturns(l),2*(m-1)+1),nxyzv(l,1:nturns(l),2*m), nturns(l) )
               endif
 
-#ifdef NAFF
             case("NAFF")
               ! write(lout,*) "DBG", fma_nturn(i),l
               ! write(lout,*) "DBG", nxyzv(l,1,2*(m-1)+1), nxyzv(l,1,2*m)
@@ -658,12 +650,16 @@ subroutine fma_postpr
                 naff_xyzv1 = nxyzv(l,1:nturns(l),  2*(m-1)+1)
                 naff_xyzv2 = nxyzv(l,1:nturns(l),  2*m)
               endif
-
-              q123(m) = tunenaff(naff_xyzv1, naff_xyzv2, nturns(l), m, fma_norm_flag(i) )
+              fft_naff = tunefft(naff_xyzv1, naff_xyzv2, nturns(l))
+#ifndef DOUBLE_MATH
+              q123(m)  = real(tunenaff(real(naff_xyzv1,kind=real64), real(naff_xyzv2,kind=real64), &
+                nturns(l), m, fma_norm_flag(i), real(fft_naff,kind=real64)),kind=fPrec)
+#else
+              q123(m)  = tunenaff(naff_xyzv1, naff_xyzv2, nturns(l), m, fma_norm_flag(i), fft_naff)
+#endif
 
               flush(lout)
               ! stop
-#endif
 
             case default
               write(lout,"(a)") "FMA> ERROR Method '"//trim(fma_method(i))//&
@@ -705,7 +701,7 @@ subroutine fma_postpr
 
         end do ! END loop over particles l
 
-        if(fma_writeNormDUMP .and. .not.hasNormDumped(j)) then
+        if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j)) then
           ! filename NORM_* (normalised particle amplitudes)
           close(tmpUnit)
           hasNormDumped(j) = .true.
@@ -749,10 +745,8 @@ subroutine fma_postpr
   call dealloc(xyzv,         "xyzv")
   call dealloc(nxyzv,        "nxyzv")
   call dealloc(epsnxyzv,     "epsnxyzv")
-#ifdef NAFF
   call dealloc(naff_xyzv1,   "naff_xyzv1")
   call dealloc(naff_xyzv2,   "naff_xyzv2")
-#endif
 
 end subroutine fma_postpr
 

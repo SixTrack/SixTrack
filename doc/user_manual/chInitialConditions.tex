@@ -62,8 +62,6 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
     \texttt{nwr(4)}        & integer  & In cases of very long runs it is sometimes useful to save all coordinates for a prolongation of a run after a possible crash of the computer. Every \texttt{nwr(4)}'th turn the coordinates are written to unit 6. \\
     \texttt{ntwin}         & integer  & For the analysis of the Lyapunov exponent\index{Lyapunov exponent} it is usually sufficient to store the calculated distance of phase space together with the coordinate of the first particle (\texttt{ntwin} set to one). You may want to improve the 6D calculation of the distance in phase space with \texttt{sigcor, dpscor} (see~\ref{IniCoo}) when the 6D closed orbit is not calculated with \texttt{iclo6} $\neq 2$. If storage space is no problem, one can store the coordinates of both particles (\texttt{ntwin} set to two). The distance in phase space is then calculated in the post-processing procedure (see~\ref{PosPro}). This also allows a subsequent refined Lyapunov analysis using differential algebra and Lie algebra\index{Lie algebra} techniques (\cite{Refine}). \\
     \texttt{ibidu}         & integer  & No longer in use. Value ignored. \\
-                           &          & \texttt{ibidu = 1}: write dump. \\
-                           &          & \texttt{ibidu = 2}: read dump. \\
     \texttt{iexact}        & integer  & Switch to enable exact solution of the equation of motion into tracking and 6D (no 4D) optics calculations. \\
                            &          & \texttt{iexact = 0}: approximated equation
                            \begin{equation*}
@@ -227,3 +225,22 @@ The parameters needed for treating the synchrotron oscillation in a symplectic m
 \end{longtabu}
 
 \textbf{Note:} The value of \texttt{tlen} is also calculated internally by SixTrack (in \texttt{dcum}\index{dcum}), and a warning is issued if the given value is different from the calculated value.
+
+\section{Tracking with Ions} \label{hions}
+The default tracking in SixTrack is for protons. In case tracking of ions is wanted the following input block should be used.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{HION}\index{HION} \\
+    \textbf{Data lines} & 1 \\
+    \textbf{Format}     & Line 1: \texttt{A Z u}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}llp{0.65\linewidth}}
+    \texttt{A}   & integer & Total number of nucleons (atomic mass number). \\
+    \texttt{Z}   & integer & Electrical charge. \\
+    \texttt{$m_a$}   & float   & Mass of the ion [GeV/$c^2$]. 
+\end{longtabu}

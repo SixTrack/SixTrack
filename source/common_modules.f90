@@ -53,9 +53,7 @@ module parpro
   ! Dummy Strings
   character(len=mDivLen),  parameter :: str_divLine = repeat("-",mDivLen)
   character(len=mStrLen),  parameter :: str_dSpace  = repeat(" ",mStrLen)
-  character(len=mStrLen),  parameter :: str_dZeros  = repeat(char(0),mStrLen)
   character(len=mNameLen), parameter :: str_nmSpace = repeat(" ",mNameLen)
-  character(len=mNameLen), parameter :: str_nmZeros = repeat(char(0),mNameLen)
 
 end module parpro
 
@@ -96,16 +94,15 @@ end module parbeam
 ! ================================================================================================ !
 module mod_settings
 
-  use parpro, only : mDivLen, mStrLen, mNameLen
-
   implicit none
 
   ! PRINT Flag (fort.3)
-  logical, save :: st_print
+  logical, save :: st_print   = .false.
 
   ! SETTINGS Block (fort.3)
-  integer, save :: st_quiet ! QUIET Level
-  logical, save :: st_debug ! Global DEBUG flag
+  integer, save :: st_quiet   = 0       ! QUIET Level
+  logical, save :: st_debug   = .false. ! Global DEBUG flag
+  logical, save :: st_partsum = .false. ! Flag to print final particle summary
 
 end module mod_settings
 
@@ -182,7 +179,7 @@ module mod_common
 
   ! Multipole Coefficients
   real(kind=fPrec),              save :: benki
-  real(kind=fPrec), allocatable, save :: benkc(:),r00(:)                     ! (nele)
+  real(kind=fPrec), allocatable, save :: benkc(:),r00(:),scalemu(:)         ! (nele)
   real(kind=fPrec), allocatable, save :: bk0(:,:),ak0(:,:),bka(:,:),aka(:,:) ! (nele,mmul)
   integer,          allocatable, save :: irm(:),nmu(:)                       ! (nele)
 
@@ -331,8 +328,8 @@ module mod_common
   ! common /xz/
   real(kind=fPrec), allocatable, save :: xsi(:),zsi(:)     ! (nblz)
   real(kind=fPrec), allocatable, save :: smi(:),smizf(:)   ! (nblz)
-  real(kind=fPrec), allocatable, save :: aai(:,:),bbi(:,:) ! (nblz,mmul)
-
+  real(kind=fPrec), allocatable, save :: aaiv(:,:),bbiv(:,:) ! (nblz,mmul)
+  real(kind=fPrec), allocatable, save :: amultip(:,:), bmultip(:,:) ! (nblz,mmul)
   ! common /dcumdb/
   real(kind=fPrec), allocatable, save :: dcum(:)              ! (0:nblz+1) Machine length in m
   real(kind=fPrec), parameter         :: eps_dcum   = c1m6    ! Tolerance for machine length mismatch [m]
@@ -381,13 +378,14 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(aka,                  nele_new, mmul, zero,        "aka")
   call alloc(benkc,                nele_new,       zero,        "benkc")
   call alloc(r00,                  nele_new,       zero,        "r00")
+  call alloc(scalemu,              nele_new,        one,        "scalemu")
   call alloc(irm,                  nele_new,       0,           "irm")
   call alloc(nmu,                  nele_new,       0,           "nmu")
-  call alloc(bezr,    mNameLen, 3, nele_new,       str_nmZeros, "bezr")
+  call alloc(bezr,    mNameLen, 3, nele_new,       str_nmSpace, "bezr")
   call alloc(kpa,                  nele_new,       0,           "kpa")
-  call alloc(bez,     mNameLen,    nele_new,       str_nmZeros, "bez")
-! call alloc(bezb,    mNameLen,    nele_new,       str_nmZeros, "bezb")
-  call alloc(bezl,    mNameLen,    nele_new,       str_nmZeros, "bezl")
+  call alloc(bez,     mNameLen,    nele_new,       str_nmSpace, "bez")
+! call alloc(bezb,    mNameLen,    nele_new,       str_nmSpace, "bezb")
+  call alloc(bezl,    mNameLen,    nele_new,       str_nmSpace, "bezl")
   call alloc(ncororb,              nele_new,       0,           "ncororb")
   call alloc(ratioe,               nele_new,       one,         "ratioe")
   call alloc(iratioe,              nele_new,       0,           "iratioe")
@@ -406,7 +404,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(crabph3,              nele_new,       zero,        "crabph3")
   call alloc(crabph4,              nele_new,       zero,        "crabph4")
 
-  call alloc(bezb,    mNameLen,    nblo_new,       str_nmZeros, "bezb")
+  call alloc(bezb,    mNameLen,    nblo_new,       str_nmSpace, "bezb")
   call alloc(elbe,                 nblo_new,       zero,        "elbe")
   call alloc(mel,                  nblo_new,       0,           "mel")
   call alloc(mtyp,                 nblo_new, nelb, 0,           "mtyp")
@@ -427,8 +425,10 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(zsi,                  nblz_new,       zero,        "zsi")
   call alloc(smi,                  nblz_new,       zero,        "smi")
   call alloc(smizf,                nblz_new,       zero,        "smizf")
-  call alloc(aai,                  nblz_new, mmul, zero,        "aai")
-  call alloc(bbi,                  nblz_new, mmul, zero,        "bbi")
+  call alloc(aaiv,         mmul,  nblz_new,            zero,    "aaiv")
+  call alloc(bbiv,         mmul,  nblz_new,            zero,    "bbiv")
+  call alloc(amultip,         mmul,  nblz_new,            zero,    "amultip")
+  call alloc(bmultip,         mmul,  nblz_new,            zero,    "bmultip")
   call alloc(dcum,                 nblz_new+1,     zero,        "dcum", 0)
   call alloc(sigmoff,              nblz_new,       zero,        "sigmoff")
 
@@ -554,8 +554,6 @@ module mod_commonmn
 
   ! common /main1/
   real(kind=fPrec), allocatable, save :: ekv(:,:)     ! (npart,nele)
-  real(kind=fPrec), allocatable, save :: aaiv(:,:,:)  ! (mmul,nmac,nblz)
-  real(kind=fPrec), allocatable, save :: bbiv(:,:,:)  ! (mmul,nmac,nblz)
   real(kind=fPrec), allocatable, save :: smiv(:,:)    ! (nmac,nblz)
   real(kind=fPrec), allocatable, save :: zsiv(:,:)    ! (nmac,nblz)
   real(kind=fPrec), allocatable, save :: xsiv(:,:)    ! (nmac,nblz)
@@ -685,8 +683,7 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   integer, intent(in) :: nblz_new
   integer, intent(in) :: npart_new
 
-  call alloc(aaiv, mmul, nmac, nblz_new,       zero,    "aaiv")
-  call alloc(bbiv, mmul, nmac, nblz_new,       zero,    "bbiv")
+
   call alloc(smiv,       nmac, nblz_new,       zero,    "smiv")
   call alloc(zsiv,       nmac, nblz_new,       zero,    "zsiv")
   call alloc(xsiv,       nmac, nblz_new,       zero,    "xsiv")

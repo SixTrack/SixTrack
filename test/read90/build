@@ -1,4 +1,0 @@
-#!/bin/sh
-gcc -std=c99 -W -Wall -pedantic -c dtoaf.c
-gcc -std=c99 -W -Wall -pedantic -c dtoa_c.c
-gfortran -O4 -o read90 read90.f90 dtoa*.o -static -Wunused

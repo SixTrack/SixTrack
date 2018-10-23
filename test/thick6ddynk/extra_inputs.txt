@@ -1,3 +1,0 @@
-input_h
-input_v
-fort.13

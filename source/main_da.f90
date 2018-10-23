@@ -34,6 +34,7 @@ program mainda
   use mod_alloc,  only : alloc_init
   use mod_fluc,   only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use read_input, only : readFort33
+  use mod_version
 
   implicit none
 
@@ -61,7 +62,6 @@ program mainda
   character(len=nchars) ch
   character(len=nchars+nchars) ch1
 #endif
-#include "version.f90"
 
   ! Features
 featList = ""
@@ -119,7 +119,7 @@ featList = ""
   write(lout,"(a)") "    SixTrack DA :: Version "//trim(version)//" :: Released "//trim(moddate)
   write(lout,"(a)") "  "//repeat("=",128)
   write(lout,"(a)") "    Git SHA Hash: "//trim(git_revision)
-  write(lout,"(a)") "    Built With:   "//trim(featList)
+  write(lout,"(a)") "    Built With:   "//trim(adjustl(featList))
   write(lout,"(a)") "    Start Time:   "//timeStamp
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
@@ -234,9 +234,9 @@ featList = ""
 
       do k=1,nmz
         izu=izu+1
-        aai(i,k)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a         !hr08
+        aaiv(k,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a         !hr08
         izu=izu+1
-        bbi(i,k)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a         !hr08
+        bbiv(k,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a         !hr08
         r0a=r0a*r0
       end do
 

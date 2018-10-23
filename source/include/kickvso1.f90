@@ -1,6 +1,4 @@
 ! start include/kickvso1.f90
-onedp   =  (one+dpsv(j))/mtc(j)
-fppsig  = ( one + ((e0f/e0) **2)*temptr(6) ) / onedp
 !
 temptr(1)=xv(1,j)
 temptr(2)=yv(1,j)
@@ -9,6 +7,8 @@ temptr(4)=yv(2,j)
 
 temptr(6)=(ejv(j)-e0)/(e0f*(e0f/e0))
 
+onedp   =  (one+dpsv(j))/mtc(j)
+fppsig  = ( one + ((e0f/e0) **2)*temptr(6) ) / onedp
 
 !     Set up C,S, q_temp,r_temp,Z
 costh_temp = cos_mb(strackz(i)/onedp)
