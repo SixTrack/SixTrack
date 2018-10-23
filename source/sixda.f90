@@ -851,7 +851,7 @@ subroutine runda
           endif
           if(nmz.ge.1) then
             do ip=1,nmz
-              write(7,*) bbi(i,ip),aai(i,ip)
+              write(7,*) bbiv(ip,i),aaiv(ip,i)
             enddo
           endif
         endif
@@ -1449,8 +1449,8 @@ subroutine runda
           r0a    = one
           r000   = r0*r00(irm(ix))
           do j=1,mmul
-            fake(1,j)=(bbi(i,j)*r0a)/benkcc
-            fake(2,j)=(aai(i,j)*r0a)/benkcc
+            fake(1,j)=(bbiv(j,i)*r0a)/benkcc
+            fake(2,j)=(aaiv(j,i)*r0a)/benkcc
             r0a=r0a*r000
           end do
 

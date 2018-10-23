@@ -60,6 +60,9 @@ module sixtrack_input
   ! "Phase Trombone" Element
   integer,                       public, save :: sixin_imtr0
 
+  ! Settings
+  logical,                       private, save :: sixin_forcePartSummary = .false.
+
   interface sixin_echoVal
     module procedure sixin_echoVal_int
     module procedure sixin_echoVal_real32
@@ -315,6 +318,20 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
   case("PRINT_DCUM")
     print_dcum = .true.
     write(lout,"(a)") "INPUT> Printout of dcum array ENABLED"
+
+  case("PARTICLESUMMARY","PARTSUMMARY")
+    if(nSplit > 1) then
+      call chr_cast(lnSplit(2),st_partsum,iErr)
+      sixin_forcePartSummary = .true.
+    else
+      st_partsum = .true.
+      sixin_forcePartSummary = .true.
+    end if
+    if(st_partsum) then
+      write(lout,"(a,i0)") "INPUT> Printing of particle summary is ENABLED"
+    else
+      write(lout,"(a,i0)") "INPUT> Printing of particle summary is DISABLED"
+    end if
 
   case("QUIET")
     if(nSplit > 1) then
@@ -996,6 +1013,11 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
     if(napx*2 > npart) then
       call expand_arrays(nele, napx*2, nblz, nblo)
+    end if
+
+    if(napx > 32 .and. sixin_forcePartSummary .eqv. .false.) then
+      write(lout,"(a)") "TRAC> NOTE More than 64 particles requested, switching off printing of particle summary."
+      st_partsum = .false.
     end if
 
   case(2)
@@ -1758,9 +1780,10 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
 
     ! Set nmu for the current single element (j)
     ! to the currently highest multipole seen (i)
-    if(abs(bk0d) > pieni .or. abs(bkad) > pieni .or. abs(ak0d) > pieni .or. abs(akad) > pieni) then
+    ! Changed so also 0 is considered to be a mutipole, since it might be changed later by dynk 
+  
       nmu(iil) = nmul
-    end if
+   
     bk0(sixin_im,nmul) = (benki*bk0d)/r0a
     ak0(sixin_im,nmul) = (benki*ak0d)/r0a
     bka(sixin_im,nmul) = (benki*bkad)/r0a
@@ -3061,11 +3084,11 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) elemName
-  real(kind=fPrec) sxx,syy,separx,separy,mm(11)
+  real(kind=fPrec) sxx,syy,sxy,separx,separy,mm(11)
   integer nSplit, n6D, ibsix, j
   logical spErr, beamXStr
 
-  save :: n6D,elemName,ibsix,sxx,syy,separx,separy,mm
+  save :: n6D,elemName,ibsix,sxx,syy,sxy,separx,separy,mm
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -3129,6 +3152,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
       syy    = zero
       separx = zero
       separy = zero
+      sxy    = zero
 
       if(nSplit > 0) elemName = trim(lnSplit(1))
       if(nSplit > 1) call chr_cast(lnSplit(2),ibsix, iErr)
@@ -3137,10 +3161,11 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
       if(nSplit > 4) call chr_cast(lnSplit(5),separx,iErr)
       if(nSplit > 5) call chr_cast(lnSplit(6),separy,iErr)
       if(nSplit > 6) call chr_cast(lnSplit(7),mm(1), iErr)
+      if(nSplit > 7) call chr_cast(lnSplit(8),sxy,   iErr)
 
       if(ibsix == 0) then
-        if(nSplit /= 7) then
-          write(lout,"(a,i0)") "BEAM> ERROR First line of a 4D element definition should have 7 fields, got ",nSplit
+        if( nSplit < 7 .or. nSplit > 8 ) then
+          write(lout,"(a,i0)") "BEAM> ERROR First line of a 4D element definition should have 7  or 8 fields, got ",nSplit
           iErr = .true.
           return
         end if
@@ -3169,6 +3194,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
         call sixin_echoVal("ibsix", ibsix,   "BEAM",iLine)
         call sixin_echoVal("Sxx",   sxx,     "BEAM",iLine)
         call sixin_echoVal("Syy",   syy,     "BEAM",iLine)
+        call sixin_echoVal("Sxy",   sxy,     "BEAM",iLine)
         call sixin_echoVal("separx",separx,  "BEAM",iLine)
         call sixin_echoVal("separy",separy,  "BEAM",iLine)
         call sixin_echoVal("strrat",mm(1),   "BEAM",iLine)
@@ -3198,6 +3224,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
               parbe(j,5)  = separx
               parbe(j,6)  = separy
               ptnfac(j)   = mm(1)
+              parbe(j,13) = sxy
             end if
           end if
         end do

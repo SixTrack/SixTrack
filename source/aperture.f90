@@ -547,6 +547,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 !     7 April 2014
 !-----------------------------------------------------------------------
 
+  use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
   use physical_constants
 
 #ifdef FLUKA
@@ -568,9 +569,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   integer ix    ! single element type index
   logical llost ! at least one particle was lost
 
-
-! logical isnan
-  logical myisnan
   integer ib2,ib3,ilostch,j,jj,jj1,jjx
 
 ! temporary variables
@@ -639,16 +637,16 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)).or. &
-                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+              ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)= &
-                   checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)) .or. &
-                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+                checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)) .or. &
+                ieee_is_nan(xLast(1,j)).or.ieee_is_nan(xLast(2,j))
             else
               llostp(j)= &
-                   checkTR(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
-                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+                checkTR(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
+                ieee_is_nan(xv(1,j)).or.ieee_is_nan(xv(2,j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -671,14 +669,14 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkCR( xchk(1),xchk(2),radius2 ) .or. &
-                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+              ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkCR( xLast(1,j),xLast(2,j),radius2 ) .or. &
-                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+                ieee_is_nan(xLast(1,j)).or.ieee_is_nan(xLast(2,j))
             else
               llostp(j)=checkCR( xv(1,j),xv(2,j),radius2 ) .or. &
-                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+                ieee_is_nan(xv(1,j)).or.ieee_is_nan(xv(2,j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -700,14 +698,14 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkRE( xchk(1),xchk(2),ape(1,ix),ape(2,ix) ) .or. &
-                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+              ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkRE( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix) ) .or. &
-                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+                ieee_is_nan(xLast(1,j)).or.ieee_is_nan(xLast(2,j))
             else
               llostp(j)=checkRE( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix) ) .or. &
-                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+                ieee_is_nan(xv(1,j)).or.ieee_is_nan(xv(2,j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -731,14 +729,14 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkEL( xchk(1),xchk(2),apxx,apyy,apxy ) .or. &
-                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+              ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkEL( xLast(1,j),xLast(2,j),apxx,apyy,apxy ) .or. &
-                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+                ieee_is_nan(xLast(1,j)).or.ieee_is_nan(xLast(2,j))
             else
               llostp(j)=checkEL( xv(1,j),xv(2,j),apxx,apyy,apxy ) .or. &
-                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+                ieee_is_nan(xv(1,j)).or.ieee_is_nan(xv(2,j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -762,14 +760,14 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkRL( xchk(1),xchk(2),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
-                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+              ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkRL( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
-                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+                ieee_is_nan(xLast(1,j)).or.ieee_is_nan(xLast(2,j))
             else
               llostp(j)=checkRL( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
-                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+                ieee_is_nan(xv(1,j)).or.ieee_is_nan(xv(2,j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -790,14 +788,14 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkOC(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
-                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+              ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkOC(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
-                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+                ieee_is_nan(xLast(1,j)).or.ieee_is_nan(xLast(2,j))
             else
               llostp(j)=checkOC(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
-                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+                ieee_is_nan(xv(1,j)).or.ieee_is_nan(xv(2,j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -820,14 +818,14 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
-                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+              ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
-                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+                ieee_is_nan(xLast(1,j)).or.ieee_is_nan(xLast(2,j))
             else
               llostp(j)=checkRT(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
-                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+                ieee_is_nan(xv(1,j)).or.ieee_is_nan(xv(2,j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -929,32 +927,32 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               apyy = aprr(4)**2.
               apxy = apxx * apyy
               llos=checkTR(xchk(1),xchk(2),aprr(1),aprr(2),aprr(3),aprr(4),apxx,apyy,apxy,aprr(5),aprr(6)).or. &
- &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+                ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
             case (1) ! Circle
               radius2 = aprr(3)**2
               llos=checkCR(xchk(1),xchk(2),radius2) .or. &
- &                  myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+                ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
             case (2) ! Rectangle
               llos=checkRE(xchk(1),xchk(2),aprr(1),aprr(2)) .or. &
- &                  myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+                ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
             case (3) ! Ellipse
               apxx = aprr(3)**2.
               apyy = aprr(4)**2.
               apxy = apxx * apyy
               llos=checkEL( xchk(1),xchk(2),apxx,apyy,apxy )  .or. &
- &                  myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+                ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
             case (4) ! RectEllipse
               apxx = aprr(3)**2.
               apyy = aprr(4)**2.
               apxy = apxx * apyy
               llos = checkRL( xchk(1),xchk(2),aprr(1),aprr(2),apxx, apyy, apxy ) .or. &
- &                      myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+                ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
             case (5) ! Octagon
               llos=checkOC(xchk(1), xchk(2), aprr(1), aprr(2), aprr(5), aprr(6) ) .or. &
- &                    myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+                ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
             case (6) ! RaceTrack
               llos=checkRT( xchk(1), xchk(2), aprr(1), aprr(2), aprr(3), aprr(3)**2. ) .or. &
- &                    myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+                ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
             end select
           end do !do jj=1,niter
 
