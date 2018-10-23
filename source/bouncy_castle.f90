@@ -279,18 +279,18 @@ contains
 
   ! Definition of the MathlibBouncer (_mb) functions
 
-#ifdef IFORT
-  logical pure elemental function isnan_mb(arg)
-    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
-    real(kind=fPrec), intent(in) :: arg
-    isnan_mb = ieee_is_nan(arg)
-  end function isnan_mb
-#else
+! #ifdef IFORT
+!   logical pure elemental function isnan_mb(arg)
+!     use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
+!     real(kind=fPrec), intent(in) :: arg
+!     isnan_mb = ieee_is_nan(arg)
+!   end function isnan_mb
+! #else
   logical pure elemental function isnan_mb(arg)
     real(kind=fPrec), intent(in) :: arg
     isnan_mb = arg /= arg
   end function isnan_mb
-#endif
+! #endif
 
   real(kind=fPrec) function sin_mb(arg)
     implicit none
