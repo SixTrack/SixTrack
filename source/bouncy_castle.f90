@@ -5,12 +5,12 @@
 module mathlib_bouncer
 
   use floatPrecision
-  use, intrinsic :: ieee_arithmetic
+! use, intrinsic :: ieee_arithmetic
   use, intrinsic :: iso_fortran_env, only : real64, int64
   implicit none
 
   !These are the actual "bouncy functions" users are supposed to call
-  public :: sin_mb, asin_mb, sinh_mb, cos_mb, acos_mb, cosh_mb, tan_mb, atan_mb, atan2_mb, exp_mb, log_mb, log10_mb
+  public :: sin_mb, asin_mb, sinh_mb, cos_mb, acos_mb, cosh_mb, tan_mb, atan_mb, atan2_mb, exp_mb, log_mb, log10_mb, isnan_mb
 
 ! real(kind=fPrec), parameter :: mb_pi   = 3.1415926535897932d0
 ! real(kind=fPrec), parameter :: mb_pi2  = 1.5707963267948966d0
@@ -277,7 +277,21 @@ module mathlib_bouncer
 
 contains
 
-  !Definition of the MathlibBouncer (_mb) functions
+  ! Definition of the MathlibBouncer (_mb) functions
+
+#ifdef IFORT
+  logical pure elemental function isnan_mb(arg)
+    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
+    real(kind=fPrec), intent(in) :: arg
+    isnan_mb = ieee_is_nan(arg)
+  end function isnan_mb
+#else
+  logical pure elemental function isnan_mb(arg)
+    real(kind=fPrec), intent(in) :: arg
+    isnan_mb = arg /= arg
+  end function isnan_mb
+#endif
+
   real(kind=fPrec) function sin_mb(arg)
     implicit none
     real(kind=fPrec) arg
@@ -475,7 +489,7 @@ contains
     real(kind=fPrec), intent(in) :: y,x
 #ifndef CRLIBM
 #ifdef NAGFOR
-    ! Nagfoir
+    ! Nagfor
     if(x == 0.0_fPrec .and. y == 0.0_fPrec) then
       atan2_mb=0.0_fPrec
     else
@@ -578,11 +592,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef ROUND_NEAR
   real(kind=real64) function acos_rn(x)
-    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x
-    if (ieee_is_nan(x)) then
+    if(x /= x) then ! Check if NaN
        acos_rn=x
     elseif (abs(x).eq.0.0d0) then
        acos_rn=mb_pi2
@@ -598,11 +611,10 @@ contains
   end function acos_rn
 
   real(kind=real64) function asin_rn(x)
-    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x,mb_pi2
-    if (ieee_is_nan(x)) then
+    if(x /= x) then ! Check if NaN
        asin_rn=x
        return
     endif
@@ -622,7 +634,7 @@ contains
     if (x.eq.0d0) then
       if (y.eq.0d0) then
 #ifdef NAGFOR
-          atan2_rn=0d0
+        atan2_rn=0d0
 #else
         ! Let the internal atan2 handle this case according to ieee
         atan2_rn=atan2(y,x)
@@ -650,11 +662,10 @@ contains
 
 #ifdef ROUND_UP
   real(kind=real64) function acos_ru(x)
-    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x
-    if (ieee_is_nan(x)) then
+    if(x /= x) then ! Check if NaN
        acos_ru=x
     elseif (abs(x).eq.0.0d0) then
        acos_ru=mb_pi2
@@ -670,11 +681,10 @@ contains
   end function acos_ru
 
   real(kind=real64) function asin_ru(x)
-    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x
-    if (ieee_is_nan(x)) then
+    if(x /= x) then ! Check if NaN
        asin_ru=x
        return
     endif
@@ -722,11 +732,10 @@ contains
 
 #ifdef ROUND_DOWN
   real(kind=real64) function acos_rd(x)
-    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x
-    if (ieee_is_nan(x)) then
+    if(x /= x) then ! Check if NaN
        acos_rd=x
     elseif (abs(x).eq.0.0d0) then
        acos_rd=mb_pi2
@@ -742,11 +751,10 @@ contains
   end function acos_rd
 
   real(kind=real64) function asin_rd(x)
-    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x
-    if (ieee_is_nan(x)) then
+    if(x /= x) then ! Check if NaN
        asin_rd=x
        return
     endif
@@ -794,11 +802,10 @@ contains
 
 #ifdef ROUND_ZERO
   real(kind=real64) function acos_rz(x)
-    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x
-    if (ieee_is_nan(x)) then
+    if(x /= x) then ! Check if NaN
        acos_rz=x
     elseif (abs(x).eq.0.0d0) then
        acos_rz=mb_pi2
@@ -814,11 +821,10 @@ contains
   end function acos_rz
 
   real(kind=real64) function asin_rz(x)
-    use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
     use, intrinsic :: iso_fortran_env, only : real64
     implicit none
     real(kind=real64) x
-    if (ieee_is_nan(x)) then
+    if(x /= x) then ! Check if NaN
        asin_rz=x
        return
     endif
