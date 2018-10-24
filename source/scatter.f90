@@ -45,7 +45,7 @@ module scatter
   character(len=8), parameter :: scatter_procNames(9)     = &
     (/"Absorbed","NonDiff ","Elastic ","SingD_XB","SingD_AX","DoubD_XX","CentDiff","Unknown ","Error   "/)
 
-  ! Pointer from an element back to a ELEM statement (0 => not used)
+  ! Pointer from an element back to an ELEM statement (0 => not used)
   integer,          allocatable, public, save :: scatter_elemPointer(:)
 
   ! Statistical correction factor for a specific particle
@@ -350,7 +350,7 @@ subroutine scatter_parseInputLine(inLine, iErr)
     call scatter_parseSeed(lnSplit, nSplit, iErr)
 
   case default
-    write(lout,"(a)") "SCATTER> ERROR Keyword not recognized: '"//keyWord//"'"
+    write(lout,"(a)") "SCATTER> ERROR Keyword not recognised: '"//keyWord//"'"
     iErr = .true.
     return
 
@@ -381,7 +381,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   ! Check number of arguments
   if(nSplit < 5) then
     write(lout,"(a)") "SCATTER> ERROR ELEM expected at least 5 arguments:"
-    write(lout,"(a)") "SCATTER>       ELEM elemname profile scaling gen1 (gen2...)"
+    write(lout,"(a)") "SCATTER>       ELEM elemname profile scaling gen1 (gen2 gen3)"
     iErr = .true.
     return
   end if
@@ -396,14 +396,14 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   do j=1,il
     if(bez(j) == lnSplit(2)) then
       if(ii /= -1) then
-        write(lout,"(a)") "SCATTER> ERROR, found element '"//lnSplit(2)//"' twice in SINGLE ELEMENTS list."
+        write(lout,"(a)") "SCATTER> ERROR Found element '"//lnSplit(2)//"' twice in SINGLE ELEMENTS list."
         iErr = .true.
         return
       end if
       ii = j
 
       if(scatter_elemPointer(j) /= 0) then
-        write(lout,"(a)") "SCATTER> ERROR, tried to define element '"//lnSplit(2)//"' twice."
+        write(lout,"(a)") "SCATTER> ERROR Tried to define element '"//lnSplit(2)//"' twice."
         iErr = .true.
         return
       end if
