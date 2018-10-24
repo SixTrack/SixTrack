@@ -1,6 +1,6 @@
 # SixTrack Changelog
 
-### Version 5.0.3 [10.09.2018] - Release
+### Version 5.0.3 [25.10.2018] - Release
 
 **Bug Fixes**
 
@@ -11,20 +11,27 @@
 * Removed a remaining `COLLIMAT` flag in the beam-gas module that prevented the `BEAMGAS` flag from building.
 * Fixed an infinite loop bug in Checkpoint/Restart where the restart would repeatedly try to open `fort.96` if the reading failed while reading DUMP checkpoint data. This would only occur if both `fort.95` and `fort.96` files were corrupt.
 * Fixed a bug where ifort would not accept `180_fPrec` as a valid floating point number in the `aperture` module.
+* Removed references to intrinsic `ieee_arithmetic` due to significant performance loss when building with gfortran.
+* The particle array `dpsv1` was wrongly updated in various parts of SixTrack. This has now been corrected. The error only affected ion tracking, but not protons.
 
 **User Side Changes**
 
 * Electron lenses have been re-enabled, and the code reverted/rewritten to produce the same results as for SixTrack 4.7.18. Further updates will be made.
 * The FMA output files will no longer contain NaN values. The NaN values were deliberate return values for `atan2(0,0)` call. This behaviour has been changed to return `0d0` instead, following [IEEE Std 1003.1-2017 (Revision of IEEE Std 1003.1-2008)](http://pubs.opengroup.org/onlinepubs/9699919799/). The nagfor compiler does not comply with this standard, and the return value for the nagfor built executables is handled by an additional if statement.
+* Added DYNK support for coupled 4D beam-beam elements.
+* Introduced consistent settings of coupling in the strong beam for 4D.
 
 **Build System**
 
 * The `buildLibraries.sh` script has been split up and rewritten to support more libraries. The script can be called with no arguments to build all libraries, or with `boinc`, `libarchive` or `hdf5` to build the respective libraries only. Dependencies are handled automatically.
 * Building with flags `G4COLLIMAT`, `BEAMGAS` and `MERLINSCATTER` now disables building of the Differential Algebra executable (SixDA).
+* The first 7 characters of the git hash is now added to the executable name as part of the version number.
 
 **Other Changes**
 
 * A set of developer tools for MAD-X/SixTrack output testing and comparison has been added in the `devtools` folder.
+* The standard output from SixTrack has been cleaned up and tweaked a little.
+* A new subroutine for initialising the random number generator has been added. This routine has proper boundary checks on the seeds. It can also optionally accept one seed. instead ow two. The second seed is then calculated by a fixed offset.
 
 ### Version 5.0.2 [23.08.2018] - Release
 
