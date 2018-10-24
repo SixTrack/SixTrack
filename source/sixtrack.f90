@@ -1967,6 +1967,7 @@ subroutine initialize_element(ix,lfirst)
                 if(beam_expflag.eq.1) then
                    bbcu(ibb,1)=parbe(ix,1)
                    bbcu(ibb,2)=parbe(ix,3)
+                   bbcu(ibb,3)=parbe(ix,13)
                 endif
                 if(ibbc.eq.1) then
                   sfac1=bbcu(ibb,1)+bbcu(ibb,2)
@@ -11876,18 +11877,6 @@ subroutine decoup
 10030 format(14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,          &
      &g17.10/14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,g17.10)
 end subroutine decoup
-
-!      logical function isnan(arg1,arg2)
-logical function myisnan(arg1,arg2)
-      use floatPrecision
-      use mathlib_bouncer
-      implicit none
-      real(kind=fPrec) arg1,arg2
-!      isnan=.false.
-!      if(arg1.ne.arg2) isnan=.true.
-      myisnan=.false.
-      if(arg1.ne.arg2) myisnan=.true.
-end function myisnan
 
 subroutine datime(nd,nt)
       implicit none
