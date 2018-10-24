@@ -34,12 +34,12 @@ subroutine trauthin(nthinerr)
   real(kind=fPrec), allocatable :: crkveb(:) !(npart)
   real(kind=fPrec), allocatable :: cikveb(:) !(npart)
   real(kind=fPrec), allocatable :: rho2b(:) !(npart)
-  real(kind=fPrec), allocatable :: tkb(:) !(npart
+  real(kind=fPrec), allocatable :: tkb(:) !(npart)
   real(kind=fPrec), allocatable :: r2b(:) !(npart)
   real(kind=fPrec), allocatable :: rb(:) !(npart)
   real(kind=fPrec), allocatable :: rkb(:) !(npart)
   real(kind=fPrec), allocatable :: xrb(:) !(npart)
-  real(kind=fPrec), allocatable :: zrb(:) !(npart
+  real(kind=fPrec), allocatable :: zrb(:) !(npart)
   real(kind=fPrec), allocatable :: xbb(:) !(npart)
   real(kind=fPrec), allocatable :: zbb(:) !(npart)
   real(kind=fPrec), allocatable :: crxb(:) !(npart)
@@ -49,21 +49,21 @@ subroutine trauthin(nthinerr)
   integer :: nbeaux(nbb)
   save
 
-  call alloc(crkveb, npart, zero, "crkveb") !(npart)
-  call alloc(cikveb, npart, zero, "cikveb") !(npart)
-  call alloc(rho2b, npart, zero, "rho2b") !(npart)
-  call alloc(tkb, npart, zero, "tkb") !(npart
-  call alloc(r2b, npart, zero, "r2b") !(npart)
-  call alloc(rb, npart, zero, "rb") !(npart)
-  call alloc(rkb, npart, zero, "rkb") !(npart)
-  call alloc(xrb, npart, zero, "xrb") !(npart)
-  call alloc(zrb, npart, zero, "zrb") !(npart
-  call alloc(xbb, npart, zero, "xbb") !(npart)
-  call alloc(zbb, npart, zero, "zbb") !(npart)
-  call alloc(crxb, npart, zero, "crxb") !(npart)
-  call alloc(crzb, npart, zero, "crzb") !(npart)
-  call alloc(cbxb, npart, zero, "cbxb") !(npart)
-  call alloc(cbzb, npart, zero, "cbzb") !(npart)
+  call alloc(crkveb, npart, zero, "crkveb")
+  call alloc(cikveb, npart, zero, "cikveb")
+  call alloc(rho2b, npart, zero, "rho2b")
+  call alloc(tkb, npart, zero, "tkb")
+  call alloc(r2b, npart, zero, "r2b")
+  call alloc(rb, npart, zero, "rb")
+  call alloc(rkb, npart, zero, "rkb")
+  call alloc(xrb, npart, zero, "xrb")
+  call alloc(zrb, npart, zero, "zrb")
+  call alloc(xbb, npart, zero, "xbb")
+  call alloc(zbb, npart, zero, "zbb")
+  call alloc(crxb, npart, zero, "crxb")
+  call alloc(crzb, npart, zero, "crzb")
+  call alloc(cbxb, npart, zero, "cbxb")
+  call alloc(cbzb, npart, zero, "cbzb")
 
   do i=1,npart
     nlostp(i)=i
@@ -74,7 +74,6 @@ subroutine trauthin(nthinerr)
     strackc(i)=zero
     stracks(i)=zero
   end do
-#include "include/beams1.f90"
 
   do 290 i=1,iu
     if(mout2.eq.1.and.i.eq.1) call fluc_writeFort4
@@ -105,47 +104,16 @@ subroutine trauthin(nthinerr)
       ktrack(i)=31
       goto 290
     endif
-#include "include/beams21.f90"
-#include "include/beamcoo.f90"
-#include "include/beamr1.f90"
-  &goto 42
-#include "include/beamr2.f90"
-#include "include/beamr3o.f90"
-#include "include/beams22.f90"
-#include "include/beam11.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beam12.f90"
-#include "include/beama3.f90"
-#include "include/beam13.f90"
-#include "include/beama4o.f90"
-        else if(ibtyp.eq.1) then
-#include "include/beam11.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beama3.f90"
-#include "include/beamwzf1.f90"
-#include "include/beama4o.f90"
-#include "include/beams23.f90"
-#include "include/beam21.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beam22.f90"
-#include "include/beama3.f90"
-#include "include/beam23.f90"
-#include "include/beama4o.f90"
-        else if(ibtyp.eq.1) then
-#include "include/beam21.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beama3.f90"
-#include "include/beamwzf2.f90"
-#include "include/beama4o.f90"
-#include "include/beams24.f90"
+
+    !Beam-beam element
+    !41 --round beam
+    !42 --elliptic beam x>z
+    !43--elliptic beam z>x
+    !44 -- 6d beam-beam
+    if(kzz.eq.20) then
+        call initialize_element(ix,.false.)
+      goto 290
+    endif
 
     ! wire
     if(kzz.eq.15) then
@@ -292,15 +260,15 @@ subroutine trauthin(nthinerr)
           end if
           ktrack(i) = 31
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then 
+          if(abs(dki(ix,3)).gt.pieni) then
             ktrack(i) = 33 !Horizontal Bend with a fictive length
 #include "include/stra11.f90"
           else
             ktrack(i) = 35 !Horizontal Bend without a ficitve length
 #include "include/stra12.f90"
           end if
-        else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then 
-          if(abs(dki(ix,3)).gt.pieni) then 
+        else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
+          if(abs(dki(ix,3)).gt.pieni) then
             ktrack(i) = 37 !Vertical bending with fictive length
 #include "include/stra13.f90"
           else
@@ -309,7 +277,7 @@ subroutine trauthin(nthinerr)
           end if
         end if
       else
-      !These are the same as above with the difference that they also will have multipoles associated with them. 
+      !These are the same as above with the difference that they also will have multipoles associated with them.
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           ktrack(i) = 32
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
@@ -337,8 +305,8 @@ subroutine trauthin(nthinerr)
         r000   = r0*r00(irm(ix))
 
         do j=1,mmul
-          fake(1,j)=(bbiv(j,1,i)*r0a)/benkcc                           !hr01
-          fake(2,j)=(aaiv(j,1,i)*r0a)/benkcc                           !hr01
+          fake(1,j)=(bbiv(j,i)*r0a)/benkcc                           !hr01
+          fake(2,j)=(aaiv(j,i)*r0a)/benkcc                           !hr01
           r0a=r0a*r000
         end do
 
@@ -467,7 +435,7 @@ subroutine trauthin(nthinerr)
     if(idp == 0 .or. ition == 0) then !Actually 4D, but collimation needs 6D so goto 6D.
       write(lout,*) "TRACKING> WARNING Calling 6D tracking due to collimation! Would normally have called thin4d"
     endif
-    
+
     hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
     do jj=1,nele
       if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*real(itionc(jj),fPrec)
@@ -763,7 +731,8 @@ subroutine thin4d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 
 
           ! We have to go back to angles after we updated the energy.
@@ -1220,7 +1189,7 @@ subroutine thin6d(nthinerr)
 #endif
   implicit none
 
-  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,elemEnd
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
@@ -1387,7 +1356,6 @@ subroutine thin6d(nthinerr)
       else
         dotrack = ktrack(i)
       end if
-
       select case(dotrack)
       case (1)
         stracki=strack(i)
@@ -1415,13 +1383,12 @@ subroutine thin6d(nthinerr)
           ! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB
           ! both namings before and after V6.503 can be used
           !
-          if (      bez(myix)(1:2).eq.'TC'  &
-               .or. bez(myix)(1:2).eq.'tc'  &
-               .or. bez(myix)(1:2).eq.'TD'  &
-               .or. bez(myix)(1:2).eq.'td'  &
-               .or. bez(myix)(1:3).eq.'COL' &
-               .or. bez(myix)(1:3).eq.'col' &
-               ) then
+          elemEnd = len_trim(bez(myix))
+          ! write(lout,"(a)") "COLL> DEBUG Checking if aperture: '"//bez(myix)(elemEnd-2:elemEnd)//"' from '"//bez(myix)//"'"
+          if((    bez(myix)(1:2) == 'TC'  .or. bez(myix)(1:2) == 'tc'   &
+            .or.  bez(myix)(1:2) == 'TD'  .or. bez(myix)(1:2) == 'td'   &
+            .or.  bez(myix)(1:3) == 'COL' .or. bez(myix)(1:3) == 'col') &
+            .and. bez(myix)(elemEnd-2:elemEnd) /= "_AP") then
 
             call collimate_start_collimator(stracki)
 
@@ -1440,11 +1407,9 @@ subroutine thin6d(nthinerr)
               xv(1,j)  = xv(1,j) + stracki*yv(1,j)
               xv(2,j)  = xv(2,j) + stracki*yv(2,j)
 #ifdef FAST
-              sigmv(j) = sigmv(j) + &
-                   stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)*yv(1,j)+yv(2,j)*yv(2,j))*c5m4))
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)*yv(1,j)+yv(2,j)*yv(2,j))*c5m4))
 #else
-              sigmv(j) = sigmv(j) + &
-                   stracki*(c1e3-rvv(j)*sqrt(c1e6+yv(1,j)*yv(1,j)+yv(2,j)*yv(2,j)))
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt(c1e6+yv(1,j)*yv(1,j)+yv(2,j)*yv(2,j)))
 #endif
               xj     = (xv(1,j)-torbx(ie))/c1e3
               xpj    = (yv(1,j)-torbxp(ie))/c1e3
@@ -1486,11 +1451,9 @@ subroutine thin6d(nthinerr)
               xv(1,j)  = xv(1,j) + stracki*yv(1,j)
               xv(2,j)  = xv(2,j) + stracki*yv(2,j)
 #ifdef FAST
-              sigmv(j) = sigmv(j) + &
-                   stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)**2+yv(2,j)**2)*c5m4))
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)**2+yv(2,j)**2)*c5m4))
 #else
-              sigmv(j) = sigmv(j) + &
-                   stracki*(c1e3-rvv(j)*sqrt((c1e6+yv(1,j)**2)+yv(2,j)**2))
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt((c1e6+yv(1,j)**2)+yv(2,j)**2))
 #endif
             end do
           else
@@ -1541,7 +1504,7 @@ subroutine thin6d(nthinerr)
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)                           !hr01
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                           !hr01
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
         end do
@@ -1583,7 +1546,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 
 
           ! We have to go back to angles after we updated the energy.
@@ -1947,7 +1911,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -1969,7 +1934,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -1992,7 +1958,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -2015,7 +1982,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -2038,7 +2006,8 @@ subroutine thin6d(nthinerr)
         dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
         oidpsv(j)=one/(one+dpsv(j))
         moidpsv(j)=mtc(j)/(one+dpsv(j))
-        dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+        omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+        dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
         yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
         yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
         if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -2060,7 +2029,8 @@ subroutine thin6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
           yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
@@ -2176,9 +2146,9 @@ subroutine thin6d(nthinerr)
       !GRD HERE WE SET THE FLAG FOR INITIALIZATION TO FALSE AFTER TURN 1
       firstrun = .false.
     endif
-    
+
 660 continue !END loop over turns
-    
+
     return
 
 end subroutine thin6d
