@@ -387,6 +387,8 @@ SET(FAST_TESTS
   elensidealthin6d
   elensidealthin6d_DYNK
   elensidealthin6d_DYNK_ZIPF
+  thin4d_ions
+  thin6d_ions
   wire_thck4d
   wire_thck6d
   wire_thin4d
@@ -453,8 +455,6 @@ SET(MEDIUM_TESTS
   bbe52
   collimation_k2_fcc_2017_h1_collision
   orbit6d-ions-long
-  thin4d_ions
-  thin6d_ions
 )
 
 #Slow is everything longer
