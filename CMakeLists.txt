@@ -602,7 +602,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
   set(PREPRO_FLAGS -fpp -E -P)
 
   if(LTO)
-    set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -ffat-lto-objects")
+    set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -ffat-lto-objects -ipo")
   endif()
 
   if(WARN)
