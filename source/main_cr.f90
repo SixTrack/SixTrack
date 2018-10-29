@@ -1277,11 +1277,9 @@ end interface
           call prror(-1)
         endif
 
-
         e0f=sqrt(e0**2-nucm0**2)       ! hisix
 
-        call dist_readdis( e0, e0f, xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:) &
-& ,naa(:), nzz(:), nucm(:) )      ! hisix
+        call dist_readDist
 
 !       finalise beam distribution creation
         do j=1, napx

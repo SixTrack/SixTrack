@@ -103,32 +103,28 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
 
 end subroutine dist_parseInputLine
 
-subroutine dist_readdis(enom, pnom, x, y, xp, yp, s, pc, aa, zz, m)
+subroutine dist_readDist()
 
-  use numerical_constants
-  use physical_constants, only : clight
-  use parpro, only : mInputLn, npart
-  use mod_common, only : napx
   use, intrinsic :: iso_fortran_env, only : int16
+
+  use numerical_constants, only : zero
+  use physical_constants,  only : clight
+  use parpro,              only : mInputLn, npart
+  use mod_hions,           only : naa, nzz, nucm
+  use mod_common,          only : napx, e0
+  use mod_commonmn,        only : e0f, xv, yv, ejfv, sigmv
+
   implicit none
 
 ! interface variables:
-  real(kind=fPrec) enom, pnom
-  real(kind=fPrec) :: x(npart)  !(npart)
-  real(kind=fPrec) :: y(npart)  !(npart)
-  real(kind=fPrec) :: xp(npart) !(npart)
-  real(kind=fPrec) :: yp(npart) !(npart)
   real(kind=fPrec) :: s(npart)  !(npart)
   real(kind=fPrec) :: pc(npart) !(npart)
   real(kind=fPrec) m0
 
 ! temporary variables:
   integer id, gen
-  integer(kind=int16) :: aa(npart) !(npart)
-  integer(kind=int16) :: zz(npart) !(npart)
   real(kind=fPrec) :: weight, z, zp
   real(kind=fPrec) :: dt(npart)
-  real(kind=fPrec) :: m(npart) !(npart)
 
   integer jj
   character(len=mInputLn) tmp_line
@@ -136,19 +132,15 @@ subroutine dist_readdis(enom, pnom, x, y, xp, yp, s, pc, aa, zz, m)
   character, parameter :: comment_char = '*'
 
   write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_readFile)//"'"
-
-! initialise tracking variables:
-  do jj=1,npart
-    x (jj) = zero
-    y (jj) = zero
-    xp(jj) = zero
-    yp(jj) = zero
-    pc(jj) = zero
-    s (jj) = zero
-    aa(jj) = 0            ! hisix
-    zz(jj) = 0            ! hisix
-    m (jj) = zero         ! hisix
-  end do
+  
+  ! Zero the arrays
+  xv(:,:)  = zero
+  yv(:,:)  = zero
+  sigmv(:) = zero
+  ejfv(:)  = zero
+  naa(:)   = 0
+  nzz(:)   = 0
+  nucm(:)  = zero
 
 ! initialise particle counter
   jj = 0
@@ -167,18 +159,22 @@ subroutine dist_readdis(enom, pnom, x, y, xp, yp, s, pc, aa, zz, m)
     goto 1983
   end if
 
-  read(tmp_line, *, err=1982) id, gen, weight, x(jj), y(jj), z, xp(jj), yp(jj), zp, aa(jj), zz(jj), m(jj), pc(jj), dt(jj)
+  read(tmp_line, *, err=1982) id,gen,weight,xv(1,jj),xv(2,jj),z,yv(1,jj),yv(2,jj),zp,ejfv(jj),dt(jj),naa(jj),nzz(jj),nucm(jj)
+  sigmv(jj) = -e0f/e0 * dt(jj)*clight
+
   goto 1981
 
 ! error while parsing file:
 1982 continue
   write(lout,"(a)") "DIST> ERROR Reading particles from line: '"//trim(tmp_line)//"'"
-  goto 1984
+  call prror(-1)
+  return
 
 1983 continue
   if( jj.eq.0 ) then
     write(lout,"(a)") "DIST> ERROR Reading particles. No particles read from file."
-    goto 1984
+    call prror(-1)
+    return
   end if
 
   close(dist_readUnit)
@@ -189,25 +185,7 @@ subroutine dist_readdis(enom, pnom, x, y, xp, yp, s, pc, aa, zz, m)
     napx = jj
   end if
 
-! fix units:
-  do jj=1,napx
-    x (jj) = x(jj)  * c1e3 ! [m]     -> [mm]
-    y (jj) = y(jj)  * c1e3 ! [m]     -> [mm]
-    xp(jj) = xp(jj) * c1e3 ! []      -> [1.0E-03]
-    yp(jj) = yp(jj) * c1e3 ! []      -> [1.0E-03]
-    pc(jj) = pc(jj) * c1e3 ! [GeV/c] -> [MeV/c]
-    m (jj) = m(jj)  * c1e3 ! [GeV/c^2] -> [MeV/c^2] ! P. HERMES
-    s (jj) = -pnom/enom * dt(jj)*clight * c1e3
-  end do
-
-  return
-
-! exit with error
-1984 continue
-  close(dist_readUnit)
-  call prror(-1)
-  return
-end subroutine dist_readdis
+end subroutine dist_readDist
 
 subroutine dist_echoDist()
 
