@@ -1266,19 +1266,19 @@ end interface
 !     acquisition of initial distribution moved out of loop
 !     always in main code
 
-      if ( idfor.eq.3 ) then
-!       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!       last modified: 17-07-2013
-!       initialize particle distribution, read from file
-!       always in main code
+!       if ( idfor.eq.3 ) then
+! !       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+! !       last modified: 17-07-2013
+! !       initialize particle distribution, read from file
+! !       always in main code
 
-        if(.not. dist_enable) then
-          write(lout,"(a)") "MAINCR> ERROR idfor set to 3 but DIST block not present."
-          call prror(-1)
-        endif
+!         if(.not. dist_enable) then
+!           write(lout,"(a)") "MAINCR> ERROR idfor set to 3 but DIST block not present."
+!           call prror(-1)
+!         endif
 
+      if(dist_enable) then
         e0f=sqrt(e0**2-nucm0**2)       ! hisix
-
         call dist_readDist
 
 !       finalise beam distribution creation
@@ -1381,7 +1381,7 @@ end interface
       endif
 
       do 340 ia=1,napx,2
-        if(idfor.ne.2.and.idfor.ne.3) then
+        if(idfor.ne.2.and..not.dist_enable) then
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
           if(st_quiet==0) write(lout,10050)
           tasia56=tas(ia,5,6)*c1m3
@@ -1684,7 +1684,7 @@ end interface
           omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
           omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
         endif
-        if (idfor /= 3 .and. st_quiet == 0) then
+        if (.not.dist_enable .and. st_quiet == 0) then
           write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),xv(1,ia+1),&
                             yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
         end if

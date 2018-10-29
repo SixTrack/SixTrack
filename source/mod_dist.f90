@@ -94,7 +94,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     if(nSplit >= 2) then
       dist_echoFile = trim(lnSplit(2))
     else
-      dist_echoFile = "echo_distributuion.dat"
+      dist_echoFile = "echo_distribution.dat"
     end if
     dist_echo = .true.
     call funit_requestUnit(dist_echoFile, dist_echoUnit)
