@@ -45,11 +45,12 @@ module mod_dist
 
   implicit none
 
-  logical,           public, save :: dist_enable      ! DIST input block given
-  logical,           public, save :: dist_echo        ! echo the read distribution?
-  character(len=16), public, save :: dist_filename    !
-  integer,           public, save :: dist_read_unit   ! unit for reading the distribution
-  integer,           public, save :: dist_echo_unit   ! unit for echoing the distribution
+  logical,            public,  save :: dist_enable     ! DIST input block given
+  logical,            public,  save :: dist_echo       ! Echo the read distribution?
+  character(len=256), public,  save :: dist_readFile   ! File name for reading the distribution
+  character(len=256), public,  save :: dist_echoFile   ! File name for echoing the distribution
+  integer,            private, save :: dist_readUnit   ! Unit for reading the distribution
+  integer,            private, save :: dist_echoUnit   ! Unit for echoing the distribution
 
 contains
 
@@ -79,45 +80,40 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
 
   select case(lnSplit(1))
 
-  case("ECHO")
-    dist_echo = .true.
-
-  case("RDUN")
-    write(lout,"(a)") "DIST> INFO RDUN is deprecated. A unit will be assigned automatically."
-
-  case("ECUN")
-    if(nSplit < 2) then
-      write(lout,"(a,i0)") "DIST> ERROR ECUN must have 1 value, got ",(nSplit-1)
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2),dist_echo_unit,iErr)
-
   case("READ")
     if(nSplit < 2) then
-      write(lout,"(a,i0)") "DIST> ERROR READ must have 1 value, got ",(nSplit-1)
+      write(lout,"(a)") "DIST> ERROR READ must be followed by a one file name only."
       iErr = .true.
       return
     end if
-    dist_filename = trim(lnSplit(2))
-    call funit_requestUnit(dist_filename,dist_read_unit)
+    dist_readFile = trim(lnSplit(2))
+    call funit_requestUnit(dist_readFile, dist_readUnit)
     if(.not.dist_enable) dist_enable = .true.
+
+  case("ECHO")
+    if(nSplit >= 2) then
+      dist_echoFile = trim(lnSplit(2))
+    else
+      dist_echoFile = "echo_distributuion.dat"
+    end if
+    dist_echo = .true.
+    call funit_requestUnit(dist_echoFile, dist_echoUnit)
 
   end select
 
 end subroutine dist_parseInputLine
 
-subroutine dist_readdis(napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa, zz, m)
+subroutine dist_readdis(enom, pnom, x, y, xp, yp, s, pc, aa, zz, m)
 
   use numerical_constants
-  use parpro, only : mInputLn
+  use physical_constants, only : clight
+  use parpro, only : mInputLn, npart
+  use mod_common, only : napx
   use, intrinsic :: iso_fortran_env, only : int16
   implicit none
 
 ! interface variables:
-  integer, intent(inout) :: napx
-  integer, intent(in) :: npart
-  real(kind=fPrec) enom, pnom, clight
+  real(kind=fPrec) enom, pnom
   real(kind=fPrec) :: x(npart)  !(npart)
   real(kind=fPrec) :: y(npart)  !(npart)
   real(kind=fPrec) :: xp(npart) !(npart)
@@ -139,7 +135,7 @@ subroutine dist_readdis(napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa
 
   character, parameter :: comment_char = '*'
 
-  write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_filename)//"'"
+  write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_readFile)//"'"
 
 ! initialise tracking variables:
   do jj=1,npart
@@ -157,11 +153,11 @@ subroutine dist_readdis(napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa
 ! initialise particle counter
   jj = 0
 
-  open( unit=dist_read_unit, file=dist_filename )
+  open( unit=dist_readUnit, file=dist_readFile )
 
 ! cycle on lines in file:
 1981 continue
-  read(dist_read_unit,"(a)",end=1983,err=1982) tmp_line
+  read(dist_readUnit,"(a)",end=1983,err=1982) tmp_line
   if( tmp_line(1:1).eq.comment_char ) goto 1981
   jj = jj+1
 
@@ -185,7 +181,7 @@ subroutine dist_readdis(napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa
     goto 1984
   end if
 
-  close(dist_read_unit)
+  close(dist_readUnit)
   write(lout,"(a,i0)") "DIST> Number of particles read = ",jj
 
   if( jj.lt.napx ) then
@@ -208,9 +204,29 @@ subroutine dist_readdis(napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa
 
 ! exit with error
 1984 continue
-  close(dist_read_unit)
+  close(dist_readUnit)
   call prror(-1)
   return
 end subroutine dist_readdis
+
+subroutine dist_echoDist()
+
+  use mod_common
+  use mod_commonmn
+
+  integer j
+
+  open(unit=dist_echoUnit, file=dist_echoFile)
+  rewind(dist_echoUnit)
+  write(dist_echoUnit,"(a,1pe25.18)") "# Total energy of synch part [MeV]: ",e0
+  write(dist_echoUnit,"(a,1pe25.18)") "# Momentum of synch part [MeV/c]:   ",e0f
+  write(dist_echoUnit,"(a)")          "#"
+  write(dist_echoUnit,"(a)")          "# x[mm], y[mm], xp[mrad], yp[mrad], sigmv[mm], ejfv[MeV/c]"
+  do j=1, napx
+    write(dist_echoUnit,"(6(1x,1pe25.18))") xv(1,j), yv(1,j), xv(2,j), yv(2,j), sigmv(j), ejfv(j)
+  end do
+  close(dist_echoUnit)
+
+end subroutine dist_echoDist
 
 end module mod_dist

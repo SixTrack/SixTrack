@@ -1280,7 +1280,7 @@ end interface
 
         e0f=sqrt(e0**2-nucm0**2)       ! hisix
 
-        call dist_readdis( napx, npart, e0, e0f, clight, xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:) &
+        call dist_readdis( e0, e0f, xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:) &
 & ,naa(:), nzz(:), nucm(:) )      ! hisix
 
 !       finalise beam distribution creation
@@ -1378,19 +1378,7 @@ end interface
         end if
 
 !       echo
-        if ( dist_echo ) then
-           open(unit=dist_echo_unit)
-           rewind(dist_echo_unit)
-           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " total energy of synch part [MeV]: ", e0
-           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " momentum of synch part [MeV/c]: ", e0f
-           write(dist_echo_unit,*) '#'
-           write(dist_echo_unit,*) '# for every particle (j)'
-           write(dist_echo_unit,*) '# xv(1), yv(1), xv(2), yv(2), sigmv, ejfv'
-           do j = 1, napx
-             write(dist_echo_unit,'(6(1X,1PE25.18))') xv(1, j), yv(1, j), xv(2,j), yv(2,j), sigmv(j), ejfv(j)
-           end do
-           close(dist_echo_unit)
-        endif
+        if(dist_echo) call dist_echoDist
 
       endif
 
