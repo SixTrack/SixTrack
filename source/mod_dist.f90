@@ -105,8 +105,6 @@ end subroutine dist_parseInputLine
 
 subroutine dist_readDist()
 
-  use, intrinsic :: iso_fortran_env, only : int16
-
   use numerical_constants, only : zero, c1e3
   use physical_constants,  only : clight
   use parpro,              only : mInputLn, npart
@@ -116,24 +114,12 @@ subroutine dist_readDist()
 
   implicit none
 
-! interface variables:
-  real(kind=fPrec) :: s(npart)  !(npart)
-  real(kind=fPrec) :: pc(npart) !(npart)
-  real(kind=fPrec) m0
-
-! temporary variables:
-  integer id, gen
-  real(kind=fPrec) :: weight, z, zp
-  real(kind=fPrec) :: dt(npart)
-
-  integer jj
-  character(len=mInputLn) tmp_line
-
-  character, parameter :: comment_char = '*'
+  integer                 id, gen, jj, ln
+  real(kind=fPrec)        weight, z, zp, dt(npart)
+  character(len=mInputLn) inLine
 
   write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_readFile)//"'"
-  
-  ! Zero the arrays
+
   xv(:,:)  = zero
   yv(:,:)  = zero
   sigmv(:) = zero
@@ -142,24 +128,26 @@ subroutine dist_readDist()
   nzz(:)   = 0
   nucm(:)  = zero
 
-! initialise particle counter
   jj = 0
+  ln = 0
+  open(unit=dist_readUnit, file=dist_readFile)
 
-  open( unit=dist_readUnit, file=dist_readFile )
-
-! cycle on lines in file:
 1981 continue
-  read(dist_readUnit,"(a)",end=1983,err=1982) tmp_line
-  if( tmp_line(1:1).eq.comment_char ) goto 1981
+  read(dist_readUnit,"(a)",end=1983,err=1982) inLine
+  ln = ln+1
+
+  if(inLine(1:1) == "*") goto 1981
+  if(inLine(1:1) == "#") goto 1981
+  if(inLine(1:1) == "!") goto 1981
   jj = jj+1
 
-  if( jj.gt.napx ) then
-    write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been as requested in fort.3"
+  if(jj > napx) then
+    write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been read, as requested in fort.3"
     jj = napx
     goto 1983
   end if
 
-  read(tmp_line, *, err=1982) id,gen,weight,xv(1,jj),xv(2,jj),z,yv(1,jj),yv(2,jj),zp,naa(jj),nzz(jj),nucm(jj),ejfv(jj),dt(jj)
+  read(inLine, *, err=1982) id,gen,weight,xv(1,jj),xv(2,jj),z,yv(1,jj),yv(2,jj),zp,naa(jj),nzz(jj),nucm(jj),ejfv(jj),dt(jj)
 
   xv(1,jj)  = xv(1,jj)*c1e3
   xv(2,jj)  = xv(2,jj)*c1e3
@@ -173,7 +161,7 @@ subroutine dist_readDist()
 
 ! error while parsing file:
 1982 continue
-  write(lout,"(a)") "DIST> ERROR Reading particles from line: '"//trim(tmp_line)//"'"
+  write(lout,"(a,i0)") "DIST> ERROR Reading particles from line ",ln
   call prror(-1)
   return
 
@@ -188,7 +176,7 @@ subroutine dist_readDist()
   write(lout,"(a,i0,a)") "DIST> Read ",jj," particles from file '"//trim(dist_readFile)//"'"
 
   if(jj < napx) then
-    write(lout,"(a,i0)") "DIST> WARNING Read a number of particles LOWER than the one requested for tracking. Requested: ",napx
+    write(lout,"(a,i0)") "DIST> WARNING Read a number of particles LOWER than requested: ",napx
     napx = jj
   end if
 
