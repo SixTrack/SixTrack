@@ -45,7 +45,6 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
                            &          & \texttt{idfor = 0}: closed orbit added. \\
                            &          & \texttt{idfor = 1}: initial coordinates\index{initial coordinates} unchanged. \\
                            &          & \texttt{idfor = 2}: prolongation of a run, taken the initial coordinates from \texttt{fort.13}\index{fort.15}. \\
-                           &          & \texttt{idfor = 3}: initial coordinates read via the DIST block\index{DIST}. \\
     \texttt{irew}          & integer  & To reduce the amount of tracking data after each amplitude and relative momentum deviation iteration $\Delta p/p_0$ the binary output units 90 and lower (see Appendix~\ref{Files}) are rewound. This is always done when the post-processing is activated (\ref{PosPro}). For certain applications it may be useful to store all data. The switch \texttt{irew} allows for that. \\
                            &          & \texttt{irew = 0}: unit 90 (and lower) rewound. \\
                            &          & \texttt{irew = 1}: all data on unit 90 (and lower). \\
