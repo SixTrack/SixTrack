@@ -107,7 +107,7 @@ subroutine dist_readDist()
 
   use, intrinsic :: iso_fortran_env, only : int16
 
-  use numerical_constants, only : zero
+  use numerical_constants, only : zero, c1e3
   use physical_constants,  only : clight
   use parpro,              only : mInputLn, npart
   use mod_hions,           only : naa, nzz, nucm
@@ -159,8 +159,15 @@ subroutine dist_readDist()
     goto 1983
   end if
 
-  read(tmp_line, *, err=1982) id,gen,weight,xv(1,jj),xv(2,jj),z,yv(1,jj),yv(2,jj),zp,ejfv(jj),dt(jj),naa(jj),nzz(jj),nucm(jj)
-  sigmv(jj) = -e0f/e0 * dt(jj)*clight
+  read(tmp_line, *, err=1982) id,gen,weight,xv(1,jj),xv(2,jj),z,yv(1,jj),yv(2,jj),zp,naa(jj),nzz(jj),nucm(jj),ejfv(jj),dt(jj)
+
+  xv(1,jj)  = xv(1,jj)*c1e3
+  xv(2,jj)  = xv(2,jj)*c1e3
+  yv(1,jj)  = yv(1,jj)*c1e3
+  yv(2,jj)  = yv(2,jj)*c1e3
+  ejfv(jj)  = ejfv(jj)*c1e3
+  nucm(jj)  = nucm(jj)*c1e3
+  sigmv(jj) = -(e0f/e0)*((dt(jj)*clight)*c1e3)
 
   goto 1981
 
@@ -171,16 +178,16 @@ subroutine dist_readDist()
   return
 
 1983 continue
-  if( jj.eq.0 ) then
+  if(jj == 0) then
     write(lout,"(a)") "DIST> ERROR Reading particles. No particles read from file."
     call prror(-1)
     return
   end if
 
   close(dist_readUnit)
-  write(lout,"(a,i0)") "DIST> Number of particles read = ",jj
+  write(lout,"(a,i0,a)") "DIST> Read ",jj," particles from file '"//trim(dist_readFile)//"'"
 
-  if( jj.lt.napx ) then
+  if(jj < napx) then
     write(lout,"(a,i0)") "DIST> WARNING Read a number of particles LOWER than the one requested for tracking. Requested: ",napx
     napx = jj
   end if
