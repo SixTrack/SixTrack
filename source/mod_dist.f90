@@ -1,8 +1,8 @@
 ! ================================================================================================ !
-!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!  last modified: 2018-06-02
-!  read a beam distribution
-!  always in main code
+!  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-10-30
+!  Read a beam distribution
 !
 !  Format of the input file:
 !    id:         unique identifier of the particle (integer)
@@ -14,28 +14,14 @@
 !    m:          rest mass [GeV/c2]
 !    pc:         particle momentum [GeV/c]
 !    dt:         time delay with respect to the reference particle [s]
-!  - aa,zz and m are now taken into account for hisix
 !
 !  NOTA BENE:
 !  - id, gen and weight are assigned by the fluka_mod_init subroutine;
 !  - z and zp are actually useless (but we never know);
-!  - aa, zz and m are not stored at the moment (safer decision from the code
-!    point of view, until a decision about ion tracking is taken);
-!    the subroutine fluka_send is then responsible for using the corresponding
+!  - the subroutine fluka_send is then responsible for using the corresponding
 !    values for protons through the interface, whereas the subroutine fluka_receive
 !    simply ignores the values passed through the FlukaIO interface;
-!
-!  variables in input to routine:
-!  - napx: number of protons to be tracked (from fort.3 file);
-!  - npart: max number of protons that can be tracked (array dimensioning);
-!  - enom: nominal total energy of the beam (ie of synch particle) [MeV];
-!  - pnom: nominal linear momentum of the beam (ie of synch particle) [MeV/c];
-!  - clight: speed of light [m/s];
-!  NB: in case the file contains less particle than napx, napx is
-!      re-assigned
-!
-!  output variables:
-!    all other variables in the interface (6D tracking variables);
+!  - in case the file contains less particle than napx, napx is re-assigned
 !
 ! ================================================================================================ !
 module mod_dist
@@ -54,6 +40,11 @@ module mod_dist
 
 contains
 
+! ================================================================================================ !
+!  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-10-30
+! ================================================================================================ !
 subroutine dist_parseInputLine(inLine, iLine, iErr)
 
   use string_tools
@@ -99,10 +90,20 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     dist_echo = .true.
     call funit_requestUnit(dist_echoFile, dist_echoUnit)
 
+  case default
+    write(lout,"(a)") "DIST> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
+    iErr = .true.
+    return
+
   end select
 
 end subroutine dist_parseInputLine
 
+! ================================================================================================ !
+!  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-10-30
+! ================================================================================================ !
 subroutine dist_readDist()
 
   use numerical_constants, only : zero, c1e3
@@ -203,6 +204,11 @@ subroutine dist_readDist()
 
 end subroutine dist_readDist
 
+! ================================================================================================ !
+!  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-10-30
+! ================================================================================================ !
 subroutine dist_echoDist()
 
   use mod_common

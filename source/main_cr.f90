@@ -1266,19 +1266,8 @@ end interface
 !     acquisition of initial distribution moved out of loop
 !     always in main code
 
-!       if ( idfor.eq.3 ) then
-! !       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-! !       last modified: 17-07-2013
-! !       initialize particle distribution, read from file
-! !       always in main code
-
-!         if(.not. dist_enable) then
-!           write(lout,"(a)") "MAINCR> ERROR idfor set to 3 but DIST block not present."
-!           call prror(-1)
-!         endif
-
       if(dist_enable) then
-        e0f=sqrt(e0**2-nucm0**2)       ! hisix
+        e0f=sqrt(e0**2-nucm0**2)
         call dist_readDist
 
 !       finalise beam distribution creation
@@ -1288,13 +1277,8 @@ end interface
           pstop (j) = .false.
 
 !         values related to momentum
-!         old proton only terms:
-!          ejv   (j) = sqrt(ejfv(j)**2+pma**2)
-!          dpsv  (j) = (ejfv(j)-e0f)/e0f
-!          oidpsv(j) = one/(one+dpsv(j))
-
-          ejv   (j)   = sqrt(ejfv(j)**2+nucm(j)**2)              ! hiSix
-          dpsv  (j)   = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hiSix
+          ejv   (j)   = sqrt(ejfv(j)**2+nucm(j)**2)
+          dpsv  (j)   = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)   = one/(one+dpsv(j))
           mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))
           moidpsv (j) = mtc(j)*oidpsv(j)
@@ -1311,8 +1295,8 @@ end interface
 
 !            ejfv(j)   = e0f
 !            ejv(j)    = e0
-            ejfv(j)   = e0f*(nucm(j)/nucm0)          ! P. HERMES for hiSix
-            ejv(j)    = sqrt(ejfv(j)**2+nucm(j)**2)  ! P. HERMES for hiSix
+            ejfv(j)   = e0f*(nucm(j)/nucm0)
+            ejv(j)    = sqrt(ejfv(j)**2+nucm(j)**2)
             dpsv(j)   = zero
             oidpsv(j) = one
 
@@ -1352,12 +1336,12 @@ end interface
           dpsv  (j) = zero
           oidpsv(j) = one
 
-          mtc   (j) = one         ! P. HERMES for hiSix
+          mtc   (j) = one
           naa   (j) = aa0
           nzz   (j) = zz0
           nucm  (j) = nucm0
           moidpsv (j) = one
-          omoidpsv(j) = zero      ! P. HERMES for hiSix
+          omoidpsv(j) = zero
         enddo
 
 !       add closed orbit
