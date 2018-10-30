@@ -73,7 +73,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
 
   case("READ")
     if(nSplit < 2) then
-      write(lout,"(a)") "DIST> ERROR READ must be followed by a one file name only."
+      write(lout,"(a)") "DIST> ERROR READ must be followed by one file name only."
       iErr = .true.
       return
     end if
