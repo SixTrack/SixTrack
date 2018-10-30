@@ -111,12 +111,15 @@ subroutine dist_readDist()
   use mod_hions,           only : naa, nzz, nucm
   use mod_common,          only : napx, e0
   use mod_commonmn,        only : e0f, xv, yv, ejfv, sigmv
+  use string_tools
 
   implicit none
 
-  integer                 id, gen, jj, ln
+  integer                 id, gen, jj, ln, nSplit
   real(kind=fPrec)        weight, z, zp, dt(npart)
+  logical                 spErr, cErr
   character(len=mInputLn) inLine
+  character(len=:), allocatable :: lnSplit(:)
 
   write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_readFile)//"'"
 
@@ -127,27 +130,46 @@ subroutine dist_readDist()
   naa(:)   = 0
   nzz(:)   = 0
   nucm(:)  = zero
+  dt(:)    = zero
 
-  jj = 0
-  ln = 0
+  jj   = 0
+  ln   = 0
+  cErr = .false.
+
   open(unit=dist_readUnit, file=dist_readFile)
 
-1981 continue
-  read(dist_readUnit,"(a)",end=1983,err=1982) inLine
+10 continue
+  read(dist_readUnit,"(a)",end=30,err=20) inLine
   ln = ln+1
 
-  if(inLine(1:1) == "*") goto 1981
-  if(inLine(1:1) == "#") goto 1981
-  if(inLine(1:1) == "!") goto 1981
+  if(inLine(1:1) == "*") goto 10
+  if(inLine(1:1) == "#") goto 10
+  if(inLine(1:1) == "!") goto 10
   jj = jj+1
 
   if(jj > napx) then
     write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been read, as requested in fort.3"
     jj = napx
-    goto 1983
+    goto 30
   end if
 
-  read(inLine, *, err=1982) id,gen,weight,xv(1,jj),xv(2,jj),z,yv(1,jj),yv(2,jj),zp,naa(jj),nzz(jj),nucm(jj),ejfv(jj),dt(jj)
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) goto 20
+  if(nSplit > 0)  call chr_cast(lnSplit(1),  id,       cErr)
+  if(nSplit > 1)  call chr_cast(lnSplit(2),  gen,      cErr)
+  if(nSplit > 2)  call chr_cast(lnSplit(3),  weight,   cErr)
+  if(nSplit > 3)  call chr_cast(lnSplit(4),  xv(1,jj), cErr)
+  if(nSplit > 4)  call chr_cast(lnSplit(5),  xv(2,jj), cErr)
+  if(nSplit > 5)  call chr_cast(lnSplit(6),  z,        cErr)
+  if(nSplit > 6)  call chr_cast(lnSplit(7),  yv(1,jj), cErr)
+  if(nSplit > 7)  call chr_cast(lnSplit(8),  yv(2,jj), cErr)
+  if(nSplit > 8)  call chr_cast(lnSplit(9),  zp,       cErr)
+  if(nSplit > 9)  call chr_cast(lnSplit(10), naa(jj),  cErr)
+  if(nSplit > 10) call chr_cast(lnSplit(11), nzz(jj),  cErr)
+  if(nSplit > 11) call chr_cast(lnSplit(12), nucm(jj), cErr)
+  if(nSplit > 12) call chr_cast(lnSplit(13), ejfv(jj), cErr)
+  if(nSplit > 13) call chr_cast(lnSplit(14), dt(jj),   cErr)
+  if(cErr) goto 20
 
   xv(1,jj)  = xv(1,jj)*c1e3
   xv(2,jj)  = xv(2,jj)*c1e3
@@ -157,15 +179,14 @@ subroutine dist_readDist()
   nucm(jj)  = nucm(jj)*c1e3
   sigmv(jj) = -(e0f/e0)*((dt(jj)*clight)*c1e3)
 
-  goto 1981
+  goto 10
 
-! error while parsing file:
-1982 continue
+20 continue
   write(lout,"(a,i0)") "DIST> ERROR Reading particles from line ",ln
   call prror(-1)
   return
 
-1983 continue
+30 continue
   if(jj == 0) then
     write(lout,"(a)") "DIST> ERROR Reading particles. No particles read from file."
     call prror(-1)
