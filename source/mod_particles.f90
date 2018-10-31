@@ -65,7 +65,7 @@ end subroutine part_applyClosedOrbit
 !  Updates the relevant particle arrays after the particle energies or the reference energy changed.
 !  If only the ejv array has been changed, pass e0 to refEnergy
 ! ================================================================================================ !
-subroutine part_updateEnergy(refEnergy)
+subroutine part_updateEnergy(refEnergy, refArray)
 
   use mod_hions
   use mod_common
@@ -77,6 +77,7 @@ subroutine part_updateEnergy(refEnergy)
   implicit none
 
   real(kind=fPrec), intent(in) :: refEnergy
+  integer,          intent(in) :: refArray   ! 1 for energy, 2 for momentum
 
   real(kind=fPrec) e0o, e0fo
   integer          j
@@ -90,9 +91,27 @@ subroutine part_updateEnergy(refEnergy)
     gammar = nucm0/e0
   end if
 
-  ! Modify the Energy
+  if(e0 <= pieni) then
+    write(lout,"(a)") "PART> ERROR Reference energy ~= 0"
+    call prror(-1)
+  end if
+
+  select case(refArray)
+  case(1) ! Update momentum array from energy array
+    do j=1, napx
+      ejfv(j) = sqrt(ejv(j)**2  - nucm(j)**2) ! Momentum [MeV/c]
+    end do
+  case(2) ! Update energy array from momentum array
+    do j=1, napx
+      ejv(j)  = sqrt(ejfv(j)**2 + nucm(j)**2) ! Energy [MeV]
+    end do
+  case default
+    write(lout,"(a)") "PART> ERROR Internal error in part_updateEnergy"
+    call prror(-1)
+  end select
+
+  ! Modify the Energy Dependent Arrays
   do j=1, napx
-    ejfv(j)     = sqrt(ejv(j)**2 - nucm(j)**2)       ! Momentum [MeV/c]
     dpsv(j)     = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f  ! Delta_p/p0 = delta
     dpsv1(j)    = (dpsv(j)*c1e3)/(one + dpsv(j))
     dpd(j)      = one + dpsv(j)                      ! For thick tracking
