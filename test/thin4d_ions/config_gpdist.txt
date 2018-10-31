@@ -1,0 +1,133 @@
+**************************************************************************
+* Parameters for sampling particle distribution                          *
+**************************************************************************
+*
+*
+*
+****    Optics/Beam parameters    ****************************************
+*
+*  WHAT(1) : index of the plane
+*           1 -> horizonal;  2 -> vertical;
+*    WHAT(2) : Beta function [m]  
+*    WHAT(3) : derivative of Beta function []
+*    WHAT(4) : Dispersion function [m]
+*    WHAT(5) : derivative of Dispersion function []
+*    WHAT(6) : Normalized emittance [m]
+*           3 -> longitudinal;
+*    WHAT(2) : particle mass [GeV/c2]  
+*    WHAT(3) : momentum of synchronous particle [GeV/c]
+*    WHAT(4) : sigma delta_p/p []
+*    WHAT(5) : bunch length (actually 4*sigma_l) [s]
+*    WHAT(6) : not used
+*
+* e_N [um rad]:
+* - p:  3.5
+* - Pb: 1.3903
+* Horizontal plane
+PARAM     1         250.196047  0.5198641     0.0         0.0        3.5E-06
+* Vertical plane
+PARAM     2         295.290779 -0.3483150     0.0         0.0        3.5E-06
+*
+*
+* specific to lead ions:
+PARAM     4        208 82
+* - on momentum
+* PARAM     3        193.687690162648  574000.0      1.1E-04   2.5E-09
+* - off-momentum by -1sig
+* PARAM     3        193.687690162648  573936.86     1.1E-04   2.5E-09
+*
+****    Sampling distributions ********************************************
+*
+* Type of sampling distributions:
+*  WHAT(1) : 0 for 4D/6D sampling at once;
+*          : 1 for horizontal plane only
+*          : 2 for vertical plane only
+*          : 3 for longitudinal plane only
+*  WHAT(2) : actual distribution
+*            4D/6D available types:
+*            - 4(6)DPENCIL
+*            - 4   DGAUSS
+*            - 4   DBIGAUS
+*            - 4   DWBAG
+*            - 4(6)DFLATC    WHAT(3) WHAT(4)
+*            - 4(6)DFLATR    WHAT(3) WHAT(4)
+*            - 4(6)DFLATS    WHAT(3) WHAT(4)
+*            see twiki for additional WHATs;
+*            available types:
+*            - PENCIL
+*            - GAUSS
+*            - BIGAUS
+*            - FLATC (uniform sampling over circular domain)
+*            - FLATR (uniform sampling over rectangular domain)
+*            - FLATS (uniform sampling 'a-la sixtrack')
+*            [Default: PENCIL]
+*            If WHAT(2)=PENCIL, WHAT(3-4) are not used
+*  WHAT(3) : Minimum position value in units of sigma [Default: 0]
+*  WHAT(4) : Maximum position value in units of sigma [Default: 1000.0 (no max)]
+*
+DTYPE     1         LINSCN      0.0     7.0     1       0.0
+DTYPE     2         LINSCN      0.0     4.0     1       0.0
+DTYPE     3         PENCIL
+* DTYPE     3         LINSCN      0.0     2.0     1       -90.0
+*
+*
+* special cases:
+* - Kapchinsky-Vladimirsky (K-V)
+*   A K-V is a continuous beam whose distribution projection is uniform 
+*   in 2D sub phase-spaces.
+* DTYPE     1         FLATC      0.0    2.0
+* DTYPE     2         FLATC      0.0    2.0
+*   or
+* DTYPE     0         4DFLATC      2.0    2.0
+*
+* - Water-bag
+* DTYPE     0         4DWBAG
+*
+*
+*
+****    Offsets                ********************************************
+*
+* WHAT(1) : offset of particles in x    [m] [Default: 0]
+* WHAT(2) : offset of particles in x'    [] [Default: 0]
+* WHAT(3) : offset of particles in y    [m] [Default: 0]
+* WHAT(4) : offset of particles in y'    [] [Default: 0]
+* WHAT(5) : time delay                  [s] [Default: 0] 
+* WHAT(6) : offset of particles in pc [GeV] [Default: 0]
+*
+OFFSET    0.0     0.0     0.0     0.0     0.0      0.0
+*
+*
+****    Geometrical Acceptance ********************************************
+*
+*  WHAT(1) : 1: x; 2: xp;
+*          : 3: y; 4: yp;
+*          : 5: t; 6: pc;
+*  WHAT(2) : cut expressed in normalised (N) or real (R) units
+*            - N:  sig;
+*            - R:  x/y:   m
+*                  xp/yp: rad
+*                  t:     s
+*                  pc:    GeV
+*  WHAT(3) : min value
+*  WHAT(4) : max value
+*  WHAT(5) : (optional) check on absolute value (A)
+*
+* B1V -> * example: pencil beam on an LHC TCP.V
+* B1V -> GEOACC      3     N     5.6761     1.0E+06    A
+*
+****    Sample parameters    **********************************************
+*
+* Output options and dumping
+*  WHAT(1) : Number of particles
+*  WHAT(2) : Initial seed
+*  WHAT(3) : Output file [Default: output.dat]
+*  WHAT(4) : Header file [Default: header.dat]
+*  WHAT(5) : Flag for dumping the sampled normalised coordinates, 
+*            0 off, 1 on [Default: 0]
+*  WHAT(6) : Flag for dumping distribution graphics, 0 off, 1 on [Default: 0]
+OUTPUT    60      1    output.dat    header.dat     0    0
+*
+*
+****    END of config.txt    **********************************************
+*
+*
