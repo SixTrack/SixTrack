@@ -1285,7 +1285,8 @@ end interface
           omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
 
 !         check existence of on-momentum particles in the distribution
-          if ( abs(dpsv(j)).lt.c1m15 .or.  abs( (ejv(j)-e0)/e0 ) .lt.c1m15 ) then
+          if ( abs((ejfv(j)/nucm(j))/(e0f/nucm0)-one).lt.c1m15 .or. abs((ejv(j)/nucm(j))/(e0/nucm0)-one).lt.c1m15 ) then
+          ! if ( abs(dpsv(j)).lt.c1m15 .or.  abs( (ejv(j)-e0)/e0 ) .lt.c1m15 ) then
 
 !           warning with old infos:
             write(lout,*)''
@@ -1299,7 +1300,19 @@ end interface
             ejv(j)    = sqrt(ejfv(j)**2+nucm(j)**2)
             dpsv(j)   = zero
             oidpsv(j) = one
-
+            moidpsv(j)  = mtc(j)
+            omoidpsv(j) = c1e3*(one-mtc(j))
+            if ( abs(nucm(j)/nucm0-one).lt.c1m15) then
+              nucm(j)=nucm0
+              if (nzz(j).eq.zz0 .or. naa(j).eq.aa0) then
+                naa(j)=aa0
+                nzz(j)=zz0
+                mtc(j)=one
+              else
+                write(lout,"(a)") "DIST> ERROR mass and/or charge mismatch wrt sync particle"
+                call prror(-1)
+              end if
+           end if            
 !           warning with new infos:
             write(lout,'(5X,"CORRECTED:",4(1X,1PE25.18))') ejfv(j), ejv(j), dpsv(j), oidpsv(j)
             write(lout,*)''

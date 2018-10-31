@@ -15,12 +15,11 @@
 !    pc:         particle momentum [GeV/c]
 !    dt:         time delay with respect to the reference particle [s]
 !
+!    aa,zz and m are now taken into account for hisix!
+!
 !  NOTA BENE:
 !  - id, gen and weight are assigned by the fluka_mod_init subroutine;
 !  - z and zp are actually useless (but we never know);
-!  - the subroutine fluka_send is then responsible for using the corresponding
-!    values for protons through the interface, whereas the subroutine fluka_receive
-!    simply ignores the values passed through the FlukaIO interface;
 !  - in case the file contains less particle than napx, napx is re-assigned
 !
 ! ================================================================================================ !
