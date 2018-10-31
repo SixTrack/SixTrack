@@ -1266,8 +1266,8 @@ end interface
     if(dist_echo) call dist_echoDist
   end if
 
-      do 340 ia=1,napx,2
-        if(idfor.ne.2.and..not.dist_enable) then
+      if(idfor.ne.2.and..not.dist_enable) then
+        do ia=1,napx,2
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
           if(st_quiet==0) write(lout,10050)
           tasia56=tas(ia,5,6)*c1m3
@@ -1378,7 +1378,9 @@ end interface
           nucm(ia+1)=nucm0
 
           if(st_quiet==0) write(lout,10020) ampv(ia),amp(2),epsa
-        else if(idfor.eq.2) then
+        end do
+      else if(idfor.eq.2) then
+        do ia=1,napx,2
 #ifndef CRLIBM
           read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
      &sigmv(ia),dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv            &
@@ -1569,7 +1571,9 @@ end interface
           moidpsv(ia+1)=mtc(ia+1)/(one+dpsv(ia+1))
           omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
           omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
-        endif
+        end do
+      endif
+      do ia=1,napx,2
         if (.not.dist_enable .and. st_quiet == 0) then
           write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),xv(1,ia+1),&
                             yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
@@ -1689,7 +1693,7 @@ end interface
           write(lout,*)
           goto 520
         endif
-  340 continue
+      end do
 #ifdef CR
       if (lhc.ne.9) binrec=1    ! binrec:
                                 ! The maximum number of reccords writen for all tracking data files
