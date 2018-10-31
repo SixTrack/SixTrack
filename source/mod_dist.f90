@@ -206,6 +206,101 @@ end subroutine dist_readDist
 ! ================================================================================================ !
 !  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
 !  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-10-31
+! ================================================================================================ !
+subroutine dist_finaliseDist()
+
+  use parpro
+  use mod_hions
+  use mod_common
+  use mod_commonmn
+  use numerical_constants
+
+  implicit none
+
+  integer          :: j
+  real(kind=fPrec) :: chkP, chkE
+
+  do j=1, napx
+
+    nlostp(j)   = j
+    pstop(j)    = .false.
+
+    ejv(j)      = sqrt(ejfv(j)**2 + nucm(j)**2)
+    dpsv(j)     = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+    oidpsv(j)   = one/(one+dpsv(j))
+    mtc(j)      = (nzz(j)*nucm0)/(zz0*nucm(j))
+    moidpsv(j)  = mtc(j)*oidpsv(j)
+    omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
+
+    ! Check existence of on-momentum particles in the distribution
+    chkP = (ejfv(j)/nucm(j))/(e0f/nucm0)-one
+    chkE = (ejv(j)/nucm(j))/(e0/nucm0)-one
+    if(abs(chkP) < c1m15 .or. abs(chkE) < c1m15) then
+      write(lout,"(a)")                "DIST> WARNING Encountered on-momentum particle."
+      write(lout,"(a,4(1x,a25))")      "DIST>           ","momentum [MeV/c]","total energy [MeV]","Dp/p","1/(1+Dp/p)"
+      write(lout,"(a,4(1x,1pe25.18))") "DIST> ORIGINAL: ", ejfv(j), ejv(j), dpsv(j), oidpsv(j)
+
+      ejfv(j)     = e0f*(nucm(j)/nucm0)
+      ejv(j)      = sqrt(ejfv(j)**2+nucm(j)**2)
+      dpsv(j)     = zero
+      oidpsv(j)   = one
+      moidpsv(j)  = mtc(j)
+      omoidpsv(j) = c1e3*(one-mtc(j))
+
+      if(abs(nucm(j)/nucm0-one) < c1m15) then
+        nucm(j) = nucm0
+        if(nzz(j) == zz0 .or. naa(j) == aa0) then
+          naa(j) = aa0
+          nzz(j) = zz0
+          mtc(j) = one
+        else
+          write(lout,"(a)") "DIST> ERROR Mass and/or charge mismatch with relation to sync particle"
+          call prror(-1)
+        end if
+      end if
+
+      write(lout,"(a,4(1x,1pe25.18))") "DIST> CORRECTED:", ejfv(j), ejv(j), dpsv(j), oidpsv(j)
+    end if
+  end do
+
+  write(lout,"(a,2(1x,i0),f15.7)") "DIST> Reference ion species [A,Z,M]:", aa0, zz0, nucm0
+  write(lout,"(a,1x,f15.7)")       "DIST> Reference energy [Z TeV]:", c1m6*e0/zz0
+
+  do j=napx+1,npart
+    nlostp(j)   = j
+    pstop(j)    = .true.
+    ejv(j)      = zero
+    dpsv(j)     = zero
+    oidpsv(j)   = one
+    mtc(j)      = one
+    naa(j)      = aa0
+    nzz(j)      = zz0
+    nucm(j)     = nucm0
+    moidpsv(j)  = one
+    omoidpsv(j) = zero
+  end do
+
+  ! Add closed orbit
+  if(iclo6 == 2) then
+    do j=1, napx
+      xv(1,j)     = xv(1,j)  + clo6v(1,j)
+      yv(1,j)     = yv(1,j)  + clop6v(1,j)
+      xv(2,j)     = xv(2,j)  + clo6v(2,j)
+      yv(2,j)     = yv(2,j)  + clop6v(2,j)
+      sigmv(j)    = sigmv(j) + clo6v(3,j)
+      dpsv(j)     = dpsv(j)  + clop6v(3,j)
+      oidpsv(j)   = one/(one+dpsv(j))
+      moidpsv(j)  = mtc(j)/(one+dpsv(j))
+      omoidpsv(j) = ((one-mtc(j))*oidpsv(j))*c1e3
+    end do
+  end if
+
+end subroutine dist_finaliseDist
+
+! ================================================================================================ !
+!  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
+!  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-10-30
 ! ================================================================================================ !
 subroutine dist_echoDist()

@@ -1258,124 +1258,13 @@ end interface
 
       rat0=rat
 
-
-!----- Initial distribution creation
-
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 14-06-2014
-!     acquisition of initial distribution moved out of loop
-!     always in main code
-
-      if(dist_enable) then
-        e0f=sqrt(e0**2-nucm0**2)
-        call dist_readDist
-
-!       finalise beam distribution creation
-        do j=1, napx
-!         values related to losses
-          nlostp(j) = j
-          pstop (j) = .false.
-
-!         values related to momentum
-          ejv   (j)   = sqrt(ejfv(j)**2+nucm(j)**2)
-          dpsv  (j)   = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)   = one/(one+dpsv(j))
-          mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))
-          moidpsv (j) = mtc(j)*oidpsv(j)
-          omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
-
-!         check existence of on-momentum particles in the distribution
-          if ( abs((ejfv(j)/nucm(j))/(e0f/nucm0)-one).lt.c1m15 .or. abs((ejv(j)/nucm(j))/(e0/nucm0)-one).lt.c1m15 ) then
-          ! if ( abs(dpsv(j)).lt.c1m15 .or.  abs( (ejv(j)-e0)/e0 ) .lt.c1m15 ) then
-
-!           warning with old infos:
-            write(lout,*)''
-            write(lout,'(5X,A22)') 'on-momentum particle!!'
-            write(lout,'(5X,10X,4(1X,A25))') "momentum [MeV/c]","total energy [MeV]","Dp/p","1/(1+Dp/p)"
-            write(lout,'(5X,"ORIGINAL: ",4(1X,1PE25.18))') ejfv(j), ejv(j), dpsv(j), oidpsv(j)
-
-!            ejfv(j)   = e0f
-!            ejv(j)    = e0
-            ejfv(j)   = e0f*(nucm(j)/nucm0)
-            ejv(j)    = sqrt(ejfv(j)**2+nucm(j)**2)
-            dpsv(j)   = zero
-            oidpsv(j) = one
-            moidpsv(j)  = mtc(j)
-            omoidpsv(j) = c1e3*(one-mtc(j))
-            if ( abs(nucm(j)/nucm0-one).lt.c1m15) then
-              nucm(j)=nucm0
-              if (nzz(j).eq.zz0 .or. naa(j).eq.aa0) then
-                naa(j)=aa0
-                nzz(j)=zz0
-                mtc(j)=one
-              else
-                write(lout,"(a)") "DIST> ERROR mass and/or charge mismatch wrt sync particle"
-                call prror(-1)
-              end if
-           end if            
-!           warning with new infos:
-            write(lout,'(5X,"CORRECTED:",4(1X,1PE25.18))') ejfv(j), ejv(j), dpsv(j), oidpsv(j)
-            write(lout,*)''
-          endif
-        end do
-
-! hisix
-        write(lout,*) 'Heavy-Ion SixTrack'
-        write(lout,*) '------------------'
-        write(lout,*) 'Reference ion species: [A,Z,M]', aa0, zz0, nucm0
-        write(lout,*) 'Reference energy [Z TeV]: ', c1m6*e0/zz0
-
-! hisix - debugging
-!        write(lout,*) 'Properties of tracked ion bunch [A,Z,E(MeV)], etc'
-!        do j=1,napx
-!          write(lout,*) naa(j),nzz(j),e0f*(nucm(j)/nucm0), ejfv(j), mtc(j), dpsv(j), ejv(j)
-!        end do
-
-!       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!       last modified: 07-02-2014
-!       in principle there is no need to fill in the unused places:
-!       - nlostp(j) = j        with j=1,npart    filled in trauthin/trauthck
-!       - pstop (j) = .false.  with j=1,npart    filled in maincr
-!       - ejv   (j) = zero     with j=1,npart    filled in maincr
-!       - dpsv  (j) = zero     with j=1,npart    filled in maincr
-!       - oidpsv(j) = one      with j=1,npart    filled in maincr
-!       nevertheless, let's do it, to be fully sure:
-        do j=napx+1,npart
-!         values related to losses
-          nlostp(j) = j
-          pstop (j) = .true.
-!         values related to momentum
-          ejv   (j) = zero
-          dpsv  (j) = zero
-          oidpsv(j) = one
-
-          mtc   (j) = one
-          naa   (j) = aa0
-          nzz   (j) = zz0
-          nucm  (j) = nucm0
-          moidpsv (j) = one
-          omoidpsv(j) = zero
-        enddo
-
-!       add closed orbit
-        if(iclo6.eq.2) then
-          do j=1, napx
-            xv(1,j)=xv(1,j)+clo6v(1,j)
-            yv(1,j)=yv(1,j)+clop6v(1,j)
-            xv(2,j)=xv(2,j)+clo6v(2,j)
-            yv(2,j)=yv(2,j)+clop6v(2,j)
-            sigmv(j)=sigmv(j)+clo6v(3,j)
-            dpsv(j)=dpsv(j)+clop6v(3,j)
-            oidpsv(j)=one/(one+dpsv(j))
-            moidpsv(j)=mtc(j)/(one+dpsv(j))
-            omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
-          end do
-        end if
-
-!       echo
-        if(dist_echo) call dist_echoDist
-
-      endif
+  ! Initial distribution creation
+  if(dist_enable) then
+    e0f=sqrt(e0**2-nucm0**2)
+    call dist_readDist
+    call dist_finaliseDist
+    if(dist_echo) call dist_echoDist
+  end if
 
       do 340 ia=1,napx,2
         if(idfor.ne.2.and..not.dist_enable) then
