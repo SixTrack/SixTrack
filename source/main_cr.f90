@@ -1241,16 +1241,18 @@ end interface
          endif
       endif
 
-!!!   GENERATE THE INITIAL DISTRIBUTION
-      do i=1,npart
-        pstop(i)=.false.
-        nnumxv(i)=numl
-        numxv(i)=numl
-      end do
+! ---------------------------------------------------------------------------- !
+!  GENERATE THE INITIAL DISTRIBUTION
+! ---------------------------------------------------------------------------- !
 
-      rat0=rat
+  do i=1,npart
+    pstop(i)  = .false.
+    nnumxv(i) = numl
+    numxv(i)  = numl
+  end do
+  rat0 = rat
 
-  ! Initial distribution creation
+  ! DIST Block
   if(dist_enable) then
     e0f=sqrt(e0**2-nucm0**2)
     call dist_readDist
@@ -1258,211 +1260,209 @@ end interface
     if(dist_echo) call dist_echoDist
   end if
 
-      if(idfor /= 2 .and. .not.dist_enable) then
-        do ia=1,napx,2
-          if(st_quiet == 0) write(lout,10050)
-          tasia56 = tas(ia,5,6)*c1m3
-          bet0x2  = tas(ia,1,3)**2+tas(ia,1,4)**2
-          bet0z2  = tas(ia,3,1)**2+tas(ia,3,2)**2
-          bet0s1  = tas(ia,5,5)**2+tasia56**2
-          dsign   = one
-          rat     = rat0
-          if(tas(ia,3,3) < (-one*pieni)) rat = -one*rat
-          if(rat < (-one*pieni)) dsign = -one*one
-          x11    = ampv(ia)/(sqrt(bet0v(ia,1))+sqrt(abs(rat)*bet0x2))
-          x13    = (x11*dsign)*sqrt(abs(rat))
-          amp(2) = (dsign*real(1-iver,fPrec))*(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0v(ia,2)))
-          x1(5)  = zero
-          x1(6)  = dpsv(ia)*sqrt(bet0s1)
-          chi    = chi0*rad
-          dchi   = chid*rad
-          do i2=1,2
-            i3    = ia+i2-1
-            sic   = sin_mb(chi)
-            coc   = cos_mb(chi)
-            x1(1) = x11*coc
-            x1(2) = x11*sic
-            x1(3) = x13*coc
-            x1(4) = x13*sic
-            do ii=1,6
-              x2(ii) = zero
-              do jj=1,6
-                x2(ii) = x2(ii)+tas(ia,ii,jj)*x1(jj)
-              end do
-            end do
-            if(iclo6 == 1 .or. iclo6 == 2) then
-              x2(2) = x2(2)/((one+x2(6))+clop6v(3,ia))
-              x2(4) = x2(4)/((one+x2(6))+clop6v(3,ia))
-            end if
-            if(abs(bet0s1) <= pieni) x2(6) = dpsv(ia)
-            if(iver == 1) then
-              x2(3) = zero
-              x2(4) = zero
-            end if
-            do l=1,2
-              ll = (l-1)*2
-              xv(l,i3) = x2(1+ll)+exz(i2,1+ll)
-              yv(l,i3) = x2(2+ll)+exz(i2,2+ll)
-            end do
-            sigmv(i3) = x2(5)+exz(i2,5)
-            dpsv(i3)  = x2(6)
-            dpsic     = dpsv(i3)+clop6v(3,ia)
-            if(idp == 1 .and. abs(ition) == 1 .and. iclo6 == 0) then
-              xv(1,i3) = xv(1,i3) + di0xs(ia)*dpsic
-              xv(2,i3) = xv(2,i3) + di0zs(ia)*dpsic
-              yv(1,i3) = yv(1,i3) + dip0xs(ia)*dpsic
-              yv(2,i3) = yv(2,i3) + dip0zs(ia)*dpsic
-            end if
-            chi = chi+dchi
+  if(idfor /= 2 .and. .not.dist_enable) then
+    do ia=1,napx,2
+      if(st_quiet == 0) write(lout,10050)
+      tasia56 = tas(ia,5,6)*c1m3
+      bet0x2  = tas(ia,1,3)**2+tas(ia,1,4)**2
+      bet0z2  = tas(ia,3,1)**2+tas(ia,3,2)**2
+      bet0s1  = tas(ia,5,5)**2+tasia56**2
+      dsign   = one
+      rat     = rat0
+      if(tas(ia,3,3) < (-one*pieni)) rat = -one*rat
+      if(rat < (-one*pieni)) dsign = -one*one
+      x11    = ampv(ia)/(sqrt(bet0v(ia,1))+sqrt(abs(rat)*bet0x2))
+      x13    = (x11*dsign)*sqrt(abs(rat))
+      amp(2) = (dsign*real(1-iver,fPrec))*(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0v(ia,2)))
+      x1(5)  = zero
+      x1(6)  = dpsv(ia)*sqrt(bet0s1)
+      chi    = chi0*rad
+      dchi   = chid*rad
+      do i2=1,2
+        i3    = ia+i2-1
+        sic   = sin_mb(chi)
+        coc   = cos_mb(chi)
+        x1(1) = x11*coc
+        x1(2) = x11*sic
+        x1(3) = x13*coc
+        x1(4) = x13*sic
+        do ii=1,6
+          x2(ii) = zero
+          do jj=1,6
+            x2(ii) = x2(ii)+tas(ia,ii,jj)*x1(jj)
           end do
-          if(st_quiet == 0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
-          if(st_quiet == 0) then
-            write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia), &
-                              xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1)
-          end if
-
-          epsa(1)    = (ampv(ia)**2/bet0v(ia,1))
-          epsa(2)    = (amp(2)**2/bet0v(ia,2))
-          nucm(ia)   = nucm0
-          nucm(ia+1) = nucm0
-
-          if(st_quiet == 0) write(lout,10020) ampv(ia),amp(2),epsa
         end do
-        call part_applyClosedOrbit
-      else if(idfor == 2) then
-        call readFort13
-        do j=1,napx
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-        end do
-      endif
-      do ia=1,napx,2
-        if (.not.dist_enable .and. st_quiet == 0) then
-          write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),xv(1,ia+1),&
-                            yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
+        if(iclo6 == 1 .or. iclo6 == 2) then
+          x2(2) = x2(2)/((one+x2(6))+clop6v(3,ia))
+          x2(4) = x2(4)/((one+x2(6))+clop6v(3,ia))
         end if
-        idam=3
-        icode=0
-        if(abs(xv(1,ia)).le.pieni.and.abs(yv(1,ia)).le.pieni) then
-          idam=idam-1
-        else
-          icode=icode+1
-        endif
-        if(abs(xv(2,ia)).le.pieni.and.abs(yv(2,ia)).le.pieni) then
-          idam=idam-1
-        else
-          icode=icode+2
-        endif
-        if(idp.eq.0.or.abs(ition).eq.0) then
-          idam=idam-1
-        else
-          icode=icode+4
-        endif
-        if(idam.le.0) idam=1
-        if(icode.le.0) icode=1
-        ia2=(ia+1)/2
-        if(ntwin.ne.2) then
-          if(mod(ia+1,2).eq.0) then
-            xau(1,1)= xv(1,ia)
-            xau(1,2)= yv(1,ia)
-            xau(1,3)= xv(2,ia)
-            xau(1,4)= yv(2,ia)
-            xau(1,5)=sigmv(ia)
-            xau(1,6)= dpsv(ia)
-            xau(2,1)= xv(1,ia+1)
-            xau(2,2)= yv(1,ia+1)
-            xau(2,3)= xv(2,ia+1)
-            xau(2,4)= yv(2,ia+1)
-            xau(2,5)=sigmv(ia+1)
-            xau(2,6)= dpsv(ia+1)
-            cloau(1)= clo6v(1,ia)
-            cloau(2)=clop6v(1,ia)
-            cloau(3)= clo6v(2,ia)
-            cloau(4)=clop6v(2,ia)
-            cloau(5)= clo6v(3,ia)
-            cloau(6)=clop6v(3,ia)
-            di0au(1)= di0xs(ia)
-            di0au(2)=dip0xs(ia)
-            di0au(3)= di0zs(ia)
-            di0au(4)=dip0zs(ia)
-
-            do ib2=1,6
-              do ib3=1,6
-                tau(ib2,ib3)=tasau(ia,ib2,ib3)
-              end do
-            end do
-
-            call distance(xau,cloau,di0au,tau,dam1)
-            dam(ia)=dam1
-            dam(ia+1)=dam1
-          endif !endif(mod(ia+1,2).eq.0)
-
-
-!     Write header of track output file(s) used by postprocessing
-!     for case ntwin.ne.2
-#ifdef CR
-          if (.not.restart) then
-#endif
-#ifndef STF
-            call writebin_header(ia,ia,91-ia2,ierro,                    &
-     &        cdate,ctime,progrm)
-#ifdef CR
-            flush(91-ia2)
-            binrecs(ia2)=1
-          endif
-#endif
-#endif
-#ifdef STF
-            call writebin_header(ia,ia,90,ierro,                        &
-     &        cdate,ctime,progrm)
-#ifdef CR
-            flush(90)
-            binrecs(ia2)=1
-          endif
-#endif
-#endif
-        else !ELSE for "if(ntwin.ne.2)"
-
-!     Write header of track output file(s) used by postprocessing
-!     for case ntwin.eq.2
-
-#ifdef CR
-          if (.not.restart) then
-#endif
-#ifndef STF
-            call writebin_header(ia,ia+1,91-ia2,ierro,                  &
-     &        cdate,ctime,progrm)
-#ifdef CR
-            flush(91-ia2)
-            binrecs(ia2)=1
-          endif
-#endif
-#endif
-#ifdef STF
-            call writebin_header(ia,ia+1,90,ierro,                      &
-     &        cdate,ctime,progrm)
-#ifdef CR
-            flush(90)
-            binrecs(ia2)=1
-          endif
-#endif
-#endif
-        endif !ENDIF (ntwin.ne.2)
-        if(ierro.ne.0) then
-          write(lout,*)
-          write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : ',91&
-     &-ia2
-          write(lout,*) 'ERROR CODE : ',ierro
-          write(lout,*)
-          goto 520
-        endif
+        if(abs(bet0s1) <= pieni) x2(6) = dpsv(ia)
+        if(iver == 1) then
+          x2(3) = zero
+          x2(4) = zero
+        end if
+        do l=1,2
+          ll = (l-1)*2
+          xv(l,i3) = x2(1+ll)+exz(i2,1+ll)
+          yv(l,i3) = x2(2+ll)+exz(i2,2+ll)
+        end do
+        sigmv(i3) = x2(5)+exz(i2,5)
+        dpsv(i3)  = x2(6)
+        dpsic     = dpsv(i3)+clop6v(3,ia)
+        if(idp == 1 .and. abs(ition) == 1 .and. iclo6 == 0) then
+          xv(1,i3) = xv(1,i3) + di0xs(ia)*dpsic
+          xv(2,i3) = xv(2,i3) + di0zs(ia)*dpsic
+          yv(1,i3) = yv(1,i3) + dip0xs(ia)*dpsic
+          yv(2,i3) = yv(2,i3) + dip0zs(ia)*dpsic
+        end if
+        chi = chi+dchi
       end do
+      if(st_quiet == 0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
+      if(st_quiet == 0) then
+        write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia), &
+                          xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1)
+      end if
+
+      epsa(1)    = (ampv(ia)**2/bet0v(ia,1))
+      epsa(2)    = (amp(2)**2/bet0v(ia,2))
+      nucm(ia)   = nucm0
+      nucm(ia+1) = nucm0
+
+      if(st_quiet == 0) write(lout,10020) ampv(ia),amp(2),epsa
+    end do
+    call part_applyClosedOrbit
+
+  else if(idfor == 2) then
+
+    call readFort13
+    do j=1,napx
+      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+    end do
+
+  endif
+
+  do ia=1,napx,2
+    if(.not.dist_enable .and. st_quiet == 0) then
+      write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),xv(1,ia+1),&
+        yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
+    end if
+    idam  = 3
+    icode = 0
+    if(abs(xv(1,ia)) <= pieni .and. abs(yv(1,ia)) <= pieni) then
+      idam  = idam-1
+    else
+      icode = icode+1
+    endif
+    if(abs(xv(2,ia)) <= pieni .and. abs(yv(2,ia)) <= pieni) then
+      idam  = idam-1
+    else
+      icode = icode+2
+    endif
+    if(idp == 0 .or. abs(ition) == 0) then
+      idam  = idam-1
+    else
+      icode = icode+4
+    endif
+    if(idam  <= 0) idam  = 1
+    if(icode <= 0) icode = 1
+    ia2 = (ia+1)/2
+    if(ntwin /= 2) then
+      if(mod(ia+1,2).eq.0) then
+        xau(1,1) = xv(1,ia)
+        xau(1,2) = yv(1,ia)
+        xau(1,3) = xv(2,ia)
+        xau(1,4) = yv(2,ia)
+        xau(1,5) = sigmv(ia)
+        xau(1,6) = dpsv(ia)
+        xau(2,1) = xv(1,ia+1)
+        xau(2,2) = yv(1,ia+1)
+        xau(2,3) = xv(2,ia+1)
+        xau(2,4) = yv(2,ia+1)
+        xau(2,5) = sigmv(ia+1)
+        xau(2,6) = dpsv(ia+1)
+        cloau(1) = clo6v(1,ia)
+        cloau(2) = clop6v(1,ia)
+        cloau(3) = clo6v(2,ia)
+        cloau(4) = clop6v(2,ia)
+        cloau(5) = clo6v(3,ia)
+        cloau(6) = clop6v(3,ia)
+        di0au(1) = di0xs(ia)
+        di0au(2) = dip0xs(ia)
+        di0au(3) = di0zs(ia)
+        di0au(4) = dip0zs(ia)
+
+        do ib2=1,6
+          do ib3=1,6
+            tau(ib2,ib3)=tasau(ia,ib2,ib3)
+          end do
+        end do
+
+        call distance(xau,cloau,di0au,tau,dam1)
+        dam(ia)   = dam1
+        dam(ia+1) = dam1
+      endif !endif(mod(ia+1,2).eq.0)
+
+      ! Write header of track output file(s) used by postprocessing for case ntwin /= 2
+#ifndef STF
 #ifdef CR
-      if (lhc.ne.9) binrec=1    ! binrec:
-                                ! The maximum number of reccords writen for all tracking data files
-                                ! Thus crbinrecs(:) .le. binrec
+      if(.not.restart) then
+#endif
+        call writebin_header(ia,ia,91-ia2,ierro,cdate,ctime,progrm)
+#ifdef CR
+        flush(91-ia2)
+        binrecs(ia2)=1
+      endif
+#endif
+#else
+#ifdef CR
+      if(.not.restart) then
+#endif
+        call writebin_header(ia,ia,90,ierro,cdate,ctime,progrm)
+#ifdef CR
+        flush(90)
+        binrecs(ia2)=1
+      endif
+#endif
+#endif
+    else !ELSE for "if(ntwin.ne.2)"
+      ! Write header of track output file(s) used by postprocessing for case ntwin == 2
+#ifndef STF
+#ifdef CR
+      if(.not.restart) then
+#endif
+        call writebin_header(ia,ia+1,91-ia2,ierro,cdate,ctime,progrm)
+#ifdef CR
+        flush(91-ia2)
+        binrecs(ia2)=1
+      endif
+#endif
+#else
+#ifdef CR
+      if(.not.restart) then
+#endif
+        call writebin_header(ia,ia+1,90,ierro,cdate,ctime,progrm)
+#ifdef CR
+        flush(90)
+        binrecs(ia2)=1
+      endif
+#endif
+#endif
+    endif !ENDIF (ntwin.ne.2)
+    if(ierro /= 0) then
+      write(lout,"(a,i0)") "MAINCR> ERROR Problems writing to file #",91-ia2
+      write(lout,"(a,i0)") "MAINCR> ERROR Code: ",ierro
+      goto 520
+    endif
+  end do ! napx
+
+#ifdef CR
+  if(lhc /= 9) binrec = 1
+  ! binrec:  The maximum number of reccords writen for all tracking data files. Thus crbinrecs(:) <= binrec
 #endif
 
-!-----/ End of initial distribution
+! ---------------------------------------------------------------------------- !
+!  END GENERATE THE INITIAL DISTRIBUTION
+! ---------------------------------------------------------------------------- !
 
   if(ithick.eq.1) then
 !------ Compute matrices for linear tracking
