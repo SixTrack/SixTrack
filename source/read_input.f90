@@ -25,211 +25,123 @@ subroutine readFort13
   use mod_hions
   use mod_common
   use mod_commonmn
+  use string_tools
+  use mod_units
 
   implicit none
 
-  integer ia
+  integer            j, ioStat, nPair
+  logical            cErr, rErr, fErr
+  character(len=100) inLine
 
-#ifdef CRLIBM
-  integer nchars
-  parameter (nchars=160)
-  character(len=nchars) ch
-  character(len=nchars+nchars) ch1
-  real(kind=fPrec) round_near
-#endif
+  nPair = 0
+  rErr  = .false.
+  cErr  = .false.
+  fErr  = .false.
 
-        do ia=1,napx,2
-#ifndef CRLIBM
-          read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
-     &sigmv(ia),dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv            &
-     &(2,ia+1), sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
-#endif
-#ifdef CRLIBM
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ xv(1,ia)]"
-             call prror(-1)
-          endif
-          xv(1,ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV xv(1,ia)]"
-             call prror(-1)
-          endif
+  call units_openUnit(13,"fort.13",.true.,"r",fErr)
+  if(fErr) then
+    write(lout,"(a)") "FORT13> ERROR Could not open fort.13."
+    call prror(-1)
+  end if
 
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ yv(1,ia)]"
-             call prror(-1)
-          endif
-          yv(1,ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV yv(1,ia)]"
-             call prror(-1)
-          endif
+  do j=1,napx,2
+    nPair = nPair + 1
 
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ xv(2,ia)]"
-             call prror(-1)
-          endif
-          xv(2,ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV xv(2,ia)]"
-             call prror(-1)
-          endif
+    ! Particle 1
 
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ yv(2,ia)]"
-             call prror(-1)
-          endif
-          yv(2,ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV yv(2,ia)]"
-             call prror(-1)
-          endif
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), xv(1,j), cErr)
 
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ sigmv(ia)]"
-             call prror(-1)
-          endif
-          sigmv(ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV sigmv(ia)]"
-             call prror(-1)
-          endif
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), yv(1,j), cErr)
 
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ dpsv(ia)]"
-             call prror(-1)
-          endif
-          dpsv(ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV dpsv(ia)]"
-             call prror(-1)
-          endif
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), xv(2,j), cErr)
 
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ xv(1,ia+1)]"
-             call prror(-1)
-          endif
-          xv(1,ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV xv(1,ia+1)]"
-             call prror(-1)
-          endif
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), yv(2,j), cErr)
 
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ yv(1,ia+1)]"
-             call prror(-1)
-          endif
-          yv(1,ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV yv(1,ia+1)]"
-             call prror(-1)
-          endif
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), sigmv(j), cErr)
 
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ xv(2,ia+1)]"
-             call prror(-1)
-          endif
-          xv(2,ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV xv(2,ia+1)]"
-             call prror(-1)
-          endif
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), dpsv(j), cErr)
 
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ yv(2,ia+1)]"
-             call prror(-1)
-          endif
-          yv(2,ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV yv(2,ia+1)]"
-             call prror(-1)
-          endif
+    ! Particle 2
 
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)                                              &
-     &            "Error when reading fort.13 [READ sigmv(ia+1)]"
-             call prror(-1)
-          endif
-          sigmv(ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)                                              &
-     &            "Error when reading fort.13 [CONV sigmv(ia+1)]"
-             call prror(-1)
-          endif
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), xv(1,j+1), cErr)
 
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)                                              &
-     &            "Error when reading fort.13 [READ dpsv(ia+1)]"
-             call prror(-1)
-          endif
-          dpsv(ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)                                              &
-     &            "Error when reading fort.13 [CONV dpsv(ia+1)]"
-             call prror(-1)
-          endif
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), yv(1,j+1), cErr)
 
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ e0]"
-             call prror(-1)
-          endif
-          e0 = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV e0]"
-             call prror(-1)
-          endif
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), xv(2,j+1), cErr)
 
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ ejv(ia)]"
-             call prror(-1)
-          endif
-          ejv(ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV ejv(ia)]"
-             call prror(-1)
-          endif
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), yv(2,j+1), cErr)
 
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ ejv(ia+1)]"
-             call prror(-1)
-          endif
-          ejv(ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV ejv(ia+1)]"
-             call prror(-1)
-          endif
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), sigmv(j+1), cErr)
 
-#endif
-          if(ierro.ne.0) call prror(56)
-          mtc(ia)=one
-          mtc(ia+1)=one
-          nucm(ia)=nucm0
-          nucm(ia+1)=nucm0
-          e0f=sqrt(e0**2-nucm0**2)                                         !hr05
-          ejfv(ia)=sqrt(ejv(ia)**2-nucm(ia)**2)                               !hr05
-          ejfv(ia+1)=sqrt(ejv(ia+1)**2-nucm(ia+1)**2)                           !hr05
-          oidpsv(ia)=one/(one+dpsv(ia))
-          oidpsv(ia+1)=one/(one+dpsv(ia+1))
-          moidpsv(ia)=mtc(ia)/(one+dpsv(ia))
-          moidpsv(ia+1)=mtc(ia+1)/(one+dpsv(ia+1))
-          omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
-          omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
-        end do
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), dpsv(j+1), cErr)
+
+    ! Reference Energy + Energy of Particle 1 & 2
+
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), e0, cErr)
+
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), ejv(j), cErr)
+
+    read(13,"(a)", iostat=ioStat) inLine
+    rErr = ioStat /= 0
+    call chr_cast(trim(inLine), ejv(j+1), cErr)
+
+    ! Report Errors
+    if(rErr) then
+      write(lout,"(a,i0,a)") "FORT13> ERROR While reading particle pair ",nPair," from file."
+      call prror(-1)
+    end if
+    if(cErr) then
+      write(lout,"(a,i0,a)") "FORT13> ERROR While converting particle pair ",nPair," to float."
+      call prror(-1)
+    end if
+
+    mtc(j)        = one
+    mtc(j+1)      = one
+    nucm(j)       = nucm0
+    nucm(j+1)     = nucm0
+
+    ejfv(j)       = sqrt(ejv(j)**2   - nucm(j)**2)
+    ejfv(j+1)     = sqrt(ejv(j+1)**2 - nucm(j+1)**2)
+    oidpsv(j)     = one/(one + dpsv(j))
+    oidpsv(j+1)   = one/(one + dpsv(j+1))
+    moidpsv(j)    = mtc(j)   / (one+dpsv(j))
+    moidpsv(j+1)  = mtc(j+1) / (one+dpsv(j+1))
+    omoidpsv(j)   = c1e3*((one-mtc(j))   * oidpsv(j))
+    omoidpsv(j+1) = c1e3*((one-mtc(j+1)) * oidpsv(j+1))
+
+  end do
+
+  e0f = sqrt(e0**2 - nucm0**2)
+
 end subroutine readFort13
 
 ! ================================================================================================ !

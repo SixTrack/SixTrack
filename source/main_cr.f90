@@ -307,12 +307,10 @@ end interface
   ! Open Regular File Units
   call units_openUnit(unit=2, fileName="fort.2", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
   call units_openUnit(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
-! call units_openUnit(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr) ! Handled by mod_fluc
   call units_openUnit(unit=7, fileName="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
   call units_openUnit(unit=9, fileName="fort.9", formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=11,fileName="fort.11",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=12,fileName="fort.12",formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=13,fileName="fort.13",formatted=.true., mode="r", err=fErr) ! Should only be opened when reading
   call units_openUnit(unit=14,fileName="fort.14",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=15,fileName="fort.15",formatted=.true., mode="w", err=fErr)
 ! call units_openUnit(unit=17,fileName="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use? Should mirror fort.16
