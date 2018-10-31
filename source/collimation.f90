@@ -1250,21 +1250,23 @@ subroutine collimate_init()
       call makedis_radial(mynp, myalphax, myalphay, mybetax, &
      &      mybetay, myemitx0_dist, myemity0_dist, myenom, nr, ndr, myx, myxp, myy, myyp, myp, mys)
     else
-      if(do_thisdis.eq.1) then
+      if(do_thisdis == 0) then
+        continue
+      else if(do_thisdis == 1) then
         call makedis(mynp, myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
      &           myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
-      else if(do_thisdis.eq.2) then
+      else if(do_thisdis == 2) then
         call makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
      &           myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
-      else if(do_thisdis.eq.3) then
+      else if(do_thisdis == 3) then
         call makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
      &           myenom, mynex, mdex, myney, mdey,myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
-      else if(do_thisdis.eq.4) then
+      else if(do_thisdis == 4) then
         call readdis(filename_dis, mynp, myx, myxp, myy, myyp, myp, mys)
-      else if(do_thisdis.eq.5) then
+      else if(do_thisdis == 5) then
         call makedis_ga(mynp, myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
      &           myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength )
-      else if(do_thisdis.eq.6) then
+      else if(do_thisdis == 6) then
         call readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay, &
      &           myemitx0_dist, myemity0_dist, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
       else
@@ -1288,7 +1290,7 @@ subroutine collimate_init()
 
 !++  Optionally write the generated particle distribution
 #ifdef HDF5
-  if(h5_useForCOLL .and. dowrite_dist) then
+  if(h5_useForCOLL .and. dowrite_dist .and. do_thisdis /= 0) then
     allocate(fldDist0(6))
     fldDist0(1)  = h5_dataField(name="X",  type=h5_typeReal)
     fldDist0(2)  = h5_dataField(name="XP", type=h5_typeReal)
@@ -1309,14 +1311,14 @@ subroutine collimate_init()
     deallocate(fldDist0)
   else
 #endif
-    call funit_requestUnit('dist0.dat', dist0_unit)
-    open(unit=dist0_unit,file='dist0.dat') !was 52
-    if(dowrite_dist) then
+    if(dowrite_dist .and. do_thisdis /= 0) then
+      call funit_requestUnit('dist0.dat', dist0_unit)
+      open(unit=dist0_unit,file='dist0.dat') !was 52
       do j = 1, mynp
         write(dist0_unit,'(6(1X,E23.15))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
       end do
+      close(dist0_unit)
     end if
-    close(dist0_unit)
 #ifdef HDF5
   end if
 #endif
@@ -1799,18 +1801,21 @@ subroutine collimate_start_sample(nsample)
     if(firstrun) write(RHIClosses_unit,'(a)') '# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=dp/p 9=type'
   end if
 
-!++  Copy new particles to tracking arrays. Also add the orbit offset at
-!++  start of ring!
-
+  ! Copy new particles to tracking arrays. Also add the orbit offset at start of ring!
   do i = 1, napx00
-    xv(1,i)  = c1e3 *  myx(i+(j-1)*napx00) + torbx(1)              !hr08
-    yv(1,i)  = c1e3 * myxp(i+(j-1)*napx00) + torbxp(1)             !hr08
-    xv(2,i)  = c1e3 *  myy(i+(j-1)*napx00) + torby(1)              !hr08
-    yv(2,i)  = c1e3 * myyp(i+(j-1)*napx00) + torbyp(1)             !hr08
-
-!JULY2005 assignation of the proper bunch length
-    sigmv(i) = mys(i+(j-1)*napx00)
-    ejv(i)   = myp(i+(j-1)*napx00)
+    if(do_thisdis == 0) then
+      xv(1,i)  = xv(1,i) + torbx(1)
+      yv(1,i)  = yv(1,i) + torbxp(1)
+      xv(2,i)  = xv(2,i) + torby(1)
+      yv(2,i)  = yv(2,i) + torbyp(1)
+    else
+      xv(1,i)  = c1e3 *  myx(i+(j-1)*napx00) + torbx(1)
+      yv(1,i)  = c1e3 * myxp(i+(j-1)*napx00) + torbxp(1)
+      xv(2,i)  = c1e3 *  myy(i+(j-1)*napx00) + torby(1)
+      yv(2,i)  = c1e3 * myyp(i+(j-1)*napx00) + torbyp(1)
+      sigmv(i) = mys(i+(j-1)*napx00)
+      ejv(i)   = myp(i+(j-1)*napx00)
+    end if
 
 !GRD FOR NOT FAST TRACKING ONLY
     ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
@@ -1820,7 +1825,6 @@ subroutine collimate_start_sample(nsample)
     moidpsv(j)=mtc(j)/(one+dpsv(j))
     omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
     dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-
 
     nlostp(i)=i
 
