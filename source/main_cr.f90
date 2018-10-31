@@ -69,6 +69,7 @@ program maincr
   use mod_units
   use aperture
   use mod_ranecu
+  use mod_particles
   use mod_alloc,      only : alloc_init
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
@@ -730,7 +731,7 @@ end interface
 !-- Initialize multipoles, combining settings from fort.2 with
 !-- coefficients from MULT and random values from FLUC.
 !-- Used in program maincr and from initialize_element.
-         
+
         if(abs(ek(ix)).le.pieni) cycle
         nmz=nmu(ix)
         if(nmz.eq.0) then
@@ -1257,119 +1258,77 @@ end interface
     if(dist_echo) call dist_echoDist
   end if
 
-      if(idfor.ne.2.and..not.dist_enable) then
+      if(idfor /= 2 .and. .not.dist_enable) then
         do ia=1,napx,2
-!---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
-          if(st_quiet==0) write(lout,10050)
-          tasia56=tas(ia,5,6)*c1m3
-          bet0x2=tas(ia,1,3)**2+tas(ia,1,4)**2                           !hr05
-          bet0z2=tas(ia,3,1)**2+tas(ia,3,2)**2                           !hr05
-          bet0s1=tas(ia,5,5)**2+tasia56**2                               !hr05
-          dsign=one
-          rat=rat0
-          if(tas(ia,3,3).lt.(-one*pieni)) rat=-one*rat                   !hr05
-          if(rat.lt.(-one*pieni)) dsign=-one*one                         !hr05
-          x11=ampv(ia)/(sqrt(bet0v(ia,1))+sqrt(abs(rat)*bet0x2))
-          x13=(x11*dsign)*sqrt(abs(rat))                                 !hr05
-          amp(2)=(dsign*real(1-iver,fPrec))*(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0v(ia,2)))                 !hr05
-          x1(5)=zero
-          x1(6)=dpsv(ia)*sqrt(bet0s1)
-          chi=chi0*rad
-          dchi=chid*rad
-          do 320 i2=1,2
-            i3=ia+i2-1
-            sic=sin_mb(chi)
-            coc=cos_mb(chi)
-            x1(1)=x11*coc
-            x1(2)=x11*sic
-            x1(3)=x13*coc
-            x1(4)=x13*sic
-            do 300 ii=1,6
-              x2(ii)=zero
-              do 290 jj=1,6
-                x2(ii)=x2(ii)+tas(ia,ii,jj)*x1(jj)
-  290         continue
-  300       continue
-            if(iclo6.eq.1.or.iclo6.eq.2) then
-              x2(2)=x2(2)/((one+x2(6))+clop6v(3,ia))                     !hr05
-              x2(4)=x2(4)/((one+x2(6))+clop6v(3,ia))                     !hr05
-            endif
-            if(abs(bet0s1).le.pieni) x2(6)=dpsv(ia)
-            if(iver.eq.1) then
-              x2(3)=zero
-              x2(4)=zero
-            endif
-            do 310 l=1,2
-              ll=(l-1)*2
-              xv(l,i3)=x2(1+ll)+exz(i2,1+ll)
-              yv(l,i3)=x2(2+ll)+exz(i2,2+ll)
-  310       continue
-            sigmv(i3)=x2(5)+exz(i2,5)
-            dpsv(i3)=x2(6)
-            dpsic=dpsv(i3)+clop6v(3,ia)
-            if(idp.eq.1.and.abs(ition).eq.1.and.iclo6.eq.0) then
-              xv(1,i3)=xv(1,i3)+di0xs(ia)*dpsic
-              xv(2,i3)=xv(2,i3)+di0zs(ia)*dpsic
-              yv(1,i3)=yv(1,i3)+dip0xs(ia)*dpsic
-              yv(2,i3)=yv(2,i3)+dip0zs(ia)*dpsic
-            endif
-            chi=chi+dchi
-  320     continue
-          if(st_quiet==0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
+          if(st_quiet == 0) write(lout,10050)
+          tasia56 = tas(ia,5,6)*c1m3
+          bet0x2  = tas(ia,1,3)**2+tas(ia,1,4)**2
+          bet0z2  = tas(ia,3,1)**2+tas(ia,3,2)**2
+          bet0s1  = tas(ia,5,5)**2+tasia56**2
+          dsign   = one
+          rat     = rat0
+          if(tas(ia,3,3) < (-one*pieni)) rat = -one*rat
+          if(rat < (-one*pieni)) dsign = -one*one
+          x11    = ampv(ia)/(sqrt(bet0v(ia,1))+sqrt(abs(rat)*bet0x2))
+          x13    = (x11*dsign)*sqrt(abs(rat))
+          amp(2) = (dsign*real(1-iver,fPrec))*(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0v(ia,2)))
+          x1(5)  = zero
+          x1(6)  = dpsv(ia)*sqrt(bet0s1)
+          chi    = chi0*rad
+          dchi   = chid*rad
+          do i2=1,2
+            i3    = ia+i2-1
+            sic   = sin_mb(chi)
+            coc   = cos_mb(chi)
+            x1(1) = x11*coc
+            x1(2) = x11*sic
+            x1(3) = x13*coc
+            x1(4) = x13*sic
+            do ii=1,6
+              x2(ii) = zero
+              do jj=1,6
+                x2(ii) = x2(ii)+tas(ia,ii,jj)*x1(jj)
+              end do
+            end do
+            if(iclo6 == 1 .or. iclo6 == 2) then
+              x2(2) = x2(2)/((one+x2(6))+clop6v(3,ia))
+              x2(4) = x2(4)/((one+x2(6))+clop6v(3,ia))
+            end if
+            if(abs(bet0s1) <= pieni) x2(6) = dpsv(ia)
+            if(iver == 1) then
+              x2(3) = zero
+              x2(4) = zero
+            end if
+            do l=1,2
+              ll = (l-1)*2
+              xv(l,i3) = x2(1+ll)+exz(i2,1+ll)
+              yv(l,i3) = x2(2+ll)+exz(i2,2+ll)
+            end do
+            sigmv(i3) = x2(5)+exz(i2,5)
+            dpsv(i3)  = x2(6)
+            dpsic     = dpsv(i3)+clop6v(3,ia)
+            if(idp == 1 .and. abs(ition) == 1 .and. iclo6 == 0) then
+              xv(1,i3) = xv(1,i3) + di0xs(ia)*dpsic
+              xv(2,i3) = xv(2,i3) + di0zs(ia)*dpsic
+              yv(1,i3) = yv(1,i3) + dip0xs(ia)*dpsic
+              yv(2,i3) = yv(2,i3) + dip0zs(ia)*dpsic
+            end if
+            chi = chi+dchi
+          end do
+          if(st_quiet == 0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
           if(st_quiet == 0) then
             write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia), &
                               xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1)
           end if
-!---------------------------------------  END OF 'ANFB'
-          if(iclo6.eq.2) then
-            xv(1,ia)=xv(1,ia)+clo6v(1,ia)
-            yv(1,ia)=yv(1,ia)+clop6v(1,ia)
-            xv(2,ia)=xv(2,ia)+clo6v(2,ia)
-            yv(2,ia)=yv(2,ia)+clop6v(2,ia)
-            sigmv(ia)=sigmv(ia)+clo6v(3,ia)
-            dpsv(ia)=dpsv(ia)+clop6v(3,ia)
-            xv(1,ia+1)=xv(1,ia+1)+clo6v(1,ia)
-            yv(1,ia+1)=yv(1,ia+1)+clop6v(1,ia)
-            xv(2,ia+1)=xv(2,ia+1)+clo6v(2,ia)
-            yv(2,ia+1)=yv(2,ia+1)+clop6v(2,ia)
-            sigmv(ia+1)=sigmv(ia+1)+clo6v(3,ia)
-            dpsv(ia+1)=dpsv(ia+1)+clop6v(3,ia)
-            oidpsv(ia)=one/(one+dpsv(ia))
-            oidpsv(ia+1)=one/(one+dpsv(ia+1))
-          else
-            xv(1,ia)=xv(1,ia)+(clov(1,ia)*real(idz(1),fPrec))*          &
-     &real(1-idfor,fPrec)    !hr05
-            yv(1,ia)=yv(1,ia)+(clopv(1,ia)*real(idz(1),fPrec))*         &
-     &real(1-idfor,fPrec)   !hr05
-            xv(2,ia)=xv(2,ia)+(clov(2,ia)*real(idz(2),fPrec))*          &
-     &real(1-idfor,fPrec)    !hr05
-            yv(2,ia)=yv(2,ia)+(clopv(2,ia)*real(idz(2),fPrec))*         &
-     &real(1-idfor,fPrec)   !hr05
-            xv(1,ia+1)=xv(1,ia+1)+(clov(1,ia)*real(idz(1),fPrec))*      &
-     &real(1-idfor,fPrec)  !hr05
-            yv(1,ia+1)=yv(1,ia+1)+(clopv(1,ia)*real(idz(1),fPrec))*     &
-     &real(1-idfor,fPrec) !hr05
-            xv(2,ia+1)=xv(2,ia+1)+(clov(2,ia)*real(idz(2),fPrec))*      &
-     &real(1-idfor,fPrec)  !hr05
-            yv(2,ia+1)=yv(2,ia+1)+(clopv(2,ia)*real(idz(2),fPrec))*     &
-     &real(1-idfor,fPrec) !hr05
-          endif
-          ejfv(ia)=e0f*(one+dpsv(ia))
-          ejfv(ia+1)=e0f*(one+dpsv(ia+1))
-          ejv(ia)=sqrt(ejfv(ia)**2+nucm0**2)                               !hr05
-          ejv(ia+1)=sqrt(ejfv(ia+1)**2+nucm0**2)                           !hr05
-          epsa(1)=(ampv(ia)**2/bet0v(ia,1))                              !hr05
-          epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
 
-          moidpsv(ia)=mtc(ia)/(one+dpsv(ia))
-          moidpsv(ia+1)=mtc(ia+1)/(one+dpsv(ia+1))
-          omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
-          omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
-          nucm(ia)=nucm0
-          nucm(ia+1)=nucm0
+          epsa(1)    = (ampv(ia)**2/bet0v(ia,1))
+          epsa(2)    = (amp(2)**2/bet0v(ia,2))
+          nucm(ia)   = nucm0
+          nucm(ia+1) = nucm0
 
-          if(st_quiet==0) write(lout,10020) ampv(ia),amp(2),epsa
+          if(st_quiet == 0) write(lout,10020) ampv(ia),amp(2),epsa
         end do
+        call part_applyClosedOrbit
       else if(idfor.eq.2) then
         call readFort13
       endif
