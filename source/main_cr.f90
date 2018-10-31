@@ -1329,8 +1329,11 @@ end interface
           if(st_quiet == 0) write(lout,10020) ampv(ia),amp(2),epsa
         end do
         call part_applyClosedOrbit
-      else if(idfor.eq.2) then
+      else if(idfor == 2) then
         call readFort13
+        do j=1,napx
+          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+        end do
       endif
       do ia=1,napx,2
         if (.not.dist_enable .and. st_quiet == 0) then
@@ -1458,13 +1461,6 @@ end interface
                                 ! The maximum number of reccords writen for all tracking data files
                                 ! Thus crbinrecs(:) .le. binrec
 #endif
-      if(e0.gt.pieni) then
-        do j=1,napx
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-        end do
-      else
-        call prror(79)
-      endif
 
 !-----/ End of initial distribution
 
