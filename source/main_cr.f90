@@ -1257,6 +1257,7 @@ end interface
     e0f=sqrt(e0**2-nucm0**2)
     call dist_readDist
     call dist_finaliseDist
+    call part_applyClosedOrbit
     if(dist_echo) call dist_echoDist
   end if
 

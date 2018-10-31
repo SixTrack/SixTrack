@@ -261,7 +261,7 @@ subroutine dist_finaliseDist
     end if
   end do
 
-  write(lout,"(a,2(1x,i0),f15.7)") "DIST> Reference ion species [A,Z,M]:", aa0, zz0, nucm0
+  write(lout,"(a,2(1x,i0),f15.7)") "DIST> Reference particle species [A,Z,M]:", aa0, zz0, nucm0
   write(lout,"(a,1x,f15.7)")       "DIST> Reference energy [Z TeV]:", c1m6*e0/zz0
 
   do j=napx+1,npart
@@ -277,22 +277,6 @@ subroutine dist_finaliseDist
     moidpsv(j)  = one
     omoidpsv(j) = zero
   end do
-
-  ! call part_applyClosedOrbit
-  ! Add closed orbit
-  if(iclo6 == 2) then
-    do j=1, napx
-      xv(1,j)     = xv(1,j)  + clo6v(1,j)
-      yv(1,j)     = yv(1,j)  + clop6v(1,j)
-      xv(2,j)     = xv(2,j)  + clo6v(2,j)
-      yv(2,j)     = yv(2,j)  + clop6v(2,j)
-      sigmv(j)    = sigmv(j) + clo6v(3,j)
-      dpsv(j)     = dpsv(j)  + clop6v(3,j)
-      oidpsv(j)   = one/(one+dpsv(j))
-      moidpsv(j)  = mtc(j)/(one+dpsv(j))
-      omoidpsv(j) = ((one-mtc(j))*oidpsv(j))*c1e3
-    end do
-  end if
 
 end subroutine dist_finaliseDist
 

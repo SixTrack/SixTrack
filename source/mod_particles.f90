@@ -60,8 +60,6 @@ subroutine part_applyClosedOrbit
     rvv(j)      = (ejv(j)*e0f)/(e0*ejfv(j))
   end do
 
-  ! if(iclo6 == 2) call part_updateEnergy(e0,2)
-
 end subroutine part_applyClosedOrbit
 
 ! ================================================================================================ !
