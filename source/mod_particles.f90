@@ -44,18 +44,20 @@ subroutine part_applyClosedOrbit
       yv(2,j)   = yv(2,j)  + clop6v(2,j)
       sigmv(j)  = sigmv(j) + clo6v(3,j)
       dpsv(j)   = dpsv(j)  + clop6v(3,j)
+      ejfv(j)   = e0f*(one+dpsv(j))
     else if(idfor == 0) then
       xv(1,j)   = xv(1,j) + clov(1,j)  * real(idz(1),fPrec)
       yv(1,j)   = yv(1,j) + clopv(1,j) * real(idz(1),fPrec)
       xv(2,j)   = xv(2,j) + clov(2,j)  * real(idz(2),fPrec)
       yv(2,j)   = yv(2,j) + clopv(2,j) * real(idz(2),fPrec)
     end if
-    ejfv(j)     = e0f*(one+dpsv(j))
-    ejv(j)      = sqrt(ejfv(j)**2 + nucm0**2)
-    oidpsv(j)   = one/(one+dpsv(j))
-    moidpsv(j)  = mtc(j)/(one+dpsv(j))
-    omoidpsv(j) = ((one-mtc(j))*oidpsv(j))*c1e3
+    ! ejv(j)      = sqrt(ejfv(j)**2 + nucm0**2)
+    ! oidpsv(j)   = one/(one+dpsv(j))
+    ! moidpsv(j)  = mtc(j)/(one+dpsv(j))
+    ! omoidpsv(j) = ((one-mtc(j))*oidpsv(j))*c1e3
   end do
+
+  if(iclo6 == 2) call part_updateEnergy(e0,2)
 
 end subroutine part_applyClosedOrbit
 
