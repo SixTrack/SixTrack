@@ -9,19 +9,32 @@
 module read_input
 
   use crcoall
-  use string_tools
-  use sixtrack_input, only : sixin_echoVal
-  use mod_settings
-  use mod_units
-  use parpro
 
   implicit none
 
 contains
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-10-31
+!  Rewritten parsing of initial coordinates from fort.13. Moved from maincr.
+! ================================================================================================ !
+subroutine readFort13
+end subroutine readFort13
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-05-18
+!  Reading fort.33. Moved from maincr/mainda.
+! ================================================================================================ !
 subroutine readFort33
 
-  use mod_common, only : clo6, clop6
+  use string_tools
+  use mod_common,     only : clo6, clop6
+  use sixtrack_input, only : sixin_echoVal
+  use mod_settings
+  use mod_units
+  use parpro
 
   implicit none
 
