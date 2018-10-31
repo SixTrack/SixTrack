@@ -1803,12 +1803,7 @@ subroutine collimate_start_sample(nsample)
 
   ! Copy new particles to tracking arrays. Also add the orbit offset at start of ring!
   do i = 1, napx00
-    if(do_thisdis == 0) then
-      xv(1,i)  = xv(1,i) + torbx(1)
-      yv(1,i)  = yv(1,i) + torbxp(1)
-      xv(2,i)  = xv(2,i) + torby(1)
-      yv(2,i)  = yv(2,i) + torbyp(1)
-    else
+    if(do_thisdis /= 0) then
       xv(1,i)  = c1e3 *  myx(i+(j-1)*napx00) + torbx(1)
       yv(1,i)  = c1e3 * myxp(i+(j-1)*napx00) + torbxp(1)
       xv(2,i)  = c1e3 *  myy(i+(j-1)*napx00) + torby(1)
