@@ -1262,6 +1262,7 @@ end interface
   end if
 
   if(idfor /= 2 .and. .not.dist_enable) then
+    ! Generated from INIT Distribution Block
     do ia=1,napx,2
       if(st_quiet == 0) write(lout,10050)
       tasia56 = tas(ia,5,6)*c1m3
@@ -1318,28 +1319,28 @@ end interface
         end if
         chi = chi+dchi
       end do
-      if(st_quiet == 0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
-      if(st_quiet == 0) then
-        write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia), &
-                          xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1)
-      end if
 
       epsa(1)    = (ampv(ia)**2/bet0v(ia,1))
       epsa(2)    = (amp(2)**2/bet0v(ia,2))
       nucm(ia)   = nucm0
       nucm(ia+1) = nucm0
 
-      if(st_quiet == 0) write(lout,10020) ampv(ia),amp(2),epsa
+      if(st_quiet == 0) then
+        write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
+        write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia), &
+          xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1)
+        write(lout,10020) ampv(ia),amp(2),epsa
+      end if
     end do
     call part_applyClosedOrbit
 
   else if(idfor == 2) then
-
+    ! Read from fort.13
     call readFort13
+    ! call part_updateEnergy(e0,3)
     do j=1,napx
       rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
     end do
-
   endif
 
   do ia=1,napx,2
@@ -1368,7 +1369,7 @@ end interface
     if(icode <= 0) icode = 1
     ia2 = (ia+1)/2
     if(ntwin /= 2) then
-      if(mod(ia+1,2).eq.0) then
+      if(mod(ia+1,2) == 0) then
         xau(1,1) = xv(1,ia)
         xau(1,2) = yv(1,ia)
         xau(1,3) = xv(2,ia)
@@ -1401,7 +1402,7 @@ end interface
         call distance(xau,cloau,di0au,tau,dam1)
         dam(ia)   = dam1
         dam(ia+1) = dam1
-      endif !endif(mod(ia+1,2).eq.0)
+      end if
 
       ! Write header of track output file(s) used by postprocessing for case ntwin /= 2
 #ifndef STF
