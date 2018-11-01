@@ -53,7 +53,7 @@ subroutine part_applyClosedOrbit
       xv(2,j)   = xv(2,j) + clov(2,j)  * real(idz(2),fPrec)
       yv(2,j)   = yv(2,j) + clopv(2,j) * real(idz(2),fPrec)
     end if
-    ejfv(j)     = e0f*(one+dpsv(j))
+    ejfv(j)     = e0f*((nucm(j)/nucm0)*(dpsv(j)+one))
     ejv(j)      = sqrt(ejfv(j)**2 + nucm(j)**2)
     moidpsv(j)  = mtc(j)/(one+dpsv(j))
     omoidpsv(j) = ((one-mtc(j))*oidpsv(j))*c1e3
@@ -80,7 +80,7 @@ subroutine part_updateEnergy(refEnergy, refArray)
   implicit none
 
   real(kind=fPrec), intent(in) :: refEnergy
-  integer,          intent(in) :: refArray   ! 1 for energy, 2 for momentum
+  integer,          intent(in) :: refArray
 
   real(kind=fPrec) e0o, e0fo
   integer          j
@@ -100,13 +100,20 @@ subroutine part_updateEnergy(refEnergy, refArray)
   end if
 
   select case(refArray)
-  case(1) ! Update momentum array from energy array
+  case(1) ! Update from energy array
     do j=1, napx
-      ejfv(j) = sqrt(ejv(j)**2  - nucm(j)**2) ! Momentum [MeV/c]
+      ejfv(j) = sqrt(ejv(j)**2 - nucm(j)**2)        ! Momentum [MeV/c]
+      dpsv(j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f   ! Delta_p/p0 = delta
     end do
-  case(2) ! Update energy array from momentum array
+  case(2) ! Update from momentum array
     do j=1, napx
-      ejv(j)  = sqrt(ejfv(j)**2 + nucm(j)**2) ! Energy [MeV]
+      ejv(j)  = sqrt(ejfv(j)**2 + nucm(j)**2)       ! Energy [MeV]
+      dpsv(j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f   ! Delta_p/p0 = delta
+    end do
+  case(3) ! Update from delta array
+    do j=1, napx
+      ejfv(j) = ((nucm(j)/nucm0)*(dpsv(j)+one))*e0f ! Momentum [MeV/c]
+      ejv(j)  = sqrt(ejfv(j)**2 + nucm(j)**2)       ! Energy [MeV]
     end do
   case default
     write(lout,"(a)") "PART> ERROR Internal error in part_updateEnergy"
@@ -115,7 +122,6 @@ subroutine part_updateEnergy(refEnergy, refArray)
 
   ! Modify the Energy Dependent Arrays
   do j=1, napx
-    dpsv(j)     = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f  ! Delta_p/p0 = delta
     dpsv1(j)    = (dpsv(j)*c1e3)/(one + dpsv(j))
     dpd(j)      = one + dpsv(j)                      ! For thick tracking
     dpsq(j)     = sqrt(dpd(j))                       ! For thick tracking
