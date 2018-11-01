@@ -389,7 +389,7 @@ subroutine eLensTheta( j, Etot )
   use physical_constants
   use crcoall
   use mod_common
-  use mod_hions, only : nucm0
+  use mod_hions, only : nucm0, zz0
 
   implicit none
 
@@ -400,7 +400,7 @@ subroutine eLensTheta( j, Etot )
   beta_e = sqrt((gamma+one)*(gamma-one))/(gamma)
   gamma  = Etot/nucm0                ! from total energy
   beta_b = sqrt((gamma+one)*(gamma-one))/(gamma)
-  brho   = Etot/(clight*c1m6)
+  brho   = Etot/(clight*c1m6)/zz0
 
   ! r2: from mm to m (c1m3)
   ! theta: from rad to mrad (c1e3)

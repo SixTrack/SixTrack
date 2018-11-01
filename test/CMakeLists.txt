@@ -116,6 +116,7 @@ SET(SIXTRACK_TESTS
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
+  elensidealthin6d_ions
   eric
   exact
   fcc
@@ -386,6 +387,7 @@ SET(FAST_TESTS
   elensidealthin6d
   elensidealthin6d_DYNK
   elensidealthin6d_DYNK_ZIPF
+  elensidealthin6d_ions
   wire_thck4d
   wire_thck6d
   wire_thin4d
