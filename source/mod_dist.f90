@@ -110,6 +110,7 @@ subroutine dist_readDist
   use mod_common
   use mod_commonmn
   use string_tools
+  use mod_particles
   use physical_constants
   use numerical_constants
 
@@ -199,6 +200,9 @@ subroutine dist_readDist
   close(dist_readUnit)
   write(lout,"(a,i0,a)") "DIST> Read ",j," particles from file '"//trim(dist_readFile)//"'"
 
+  ! Update longitudinal particle arrays from read momentum
+  call part_updateEnergy(e0,2)
+
   if(j < napx) then
     write(lout,"(a,i0)") "DIST> WARNING Read a number of particles LOWER than requested: ",napx
     napx = j
@@ -218,15 +222,12 @@ subroutine dist_finaliseDist
   use mod_common
   use mod_commont
   use mod_commonmn
-  use mod_particles
   use numerical_constants
 
   implicit none
 
   integer          :: j
   real(kind=fPrec) :: chkP, chkE
-
-  call part_updateEnergy(e0,2)
 
   ! Check existence of on-momentum particles in the distribution
   do j=1, napx

@@ -25,40 +25,28 @@ end subroutine part_expand
 ! ================================================================================================ !
 subroutine part_applyClosedOrbit
 
-  use parpro
-  use mod_hions
   use mod_common
   use mod_commons
-  use mod_commont
   use mod_commonmn
-  use numerical_constants
 
   implicit none
 
   integer j
 
-  do j=1,napx
-    if(iclo6 == 2) then
-      xv(1,j)   = xv(1,j)  + clo6v(1,j)
-      yv(1,j)   = yv(1,j)  + clop6v(1,j)
-      xv(2,j)   = xv(2,j)  + clo6v(2,j)
-      yv(2,j)   = yv(2,j)  + clop6v(2,j)
-      sigmv(j)  = sigmv(j) + clo6v(3,j)
-      dpsv(j)   = dpsv(j)  + clop6v(3,j)
-      dpsv1(j)  = (dpsv(j)*c1e3)/(one + dpsv(j))
-      oidpsv(j) = one/(one+dpsv(j))
-    else if(idfor == 0) then
-      xv(1,j)   = xv(1,j) + clov(1,j)  * real(idz(1),fPrec)
-      yv(1,j)   = yv(1,j) + clopv(1,j) * real(idz(1),fPrec)
-      xv(2,j)   = xv(2,j) + clov(2,j)  * real(idz(2),fPrec)
-      yv(2,j)   = yv(2,j) + clopv(2,j) * real(idz(2),fPrec)
-    end if
-    ejfv(j)     = e0f*((nucm(j)/nucm0)*(dpsv(j)+one))
-    ejv(j)      = sqrt(ejfv(j)**2 + nucm(j)**2)
-    moidpsv(j)  = mtc(j)/(one+dpsv(j))
-    omoidpsv(j) = ((one-mtc(j))*oidpsv(j))*c1e3
-    rvv(j)      = (ejv(j)*e0f)/(e0*ejfv(j))
-  end do
+  if(iclo6 == 2) then
+    xv(1,1:napx)  = xv(1,1:napx)  +  clo6v(1,1:napx)
+    yv(1,1:napx)  = yv(1,1:napx)  + clop6v(1,1:napx)
+    xv(2,1:napx)  = xv(2,1:napx)  +  clo6v(2,1:napx)
+    yv(2,1:napx)  = yv(2,1:napx)  + clop6v(2,1:napx)
+    sigmv(1:napx) = sigmv(1:napx) +  clo6v(3,1:napx)
+    dpsv(1:napx)  = dpsv(1:napx)  + clop6v(3,1:napx)
+  else if(idfor == 0) then
+    xv(1,1:napx)  = xv(1,1:napx)  +   clov(1,1:napx) * real(idz(1),fPrec)
+    yv(1,1:napx)  = yv(1,1:napx)  +  clopv(1,1:napx) * real(idz(1),fPrec)
+    xv(2,1:napx)  = xv(2,1:napx)  +   clov(2,1:napx) * real(idz(2),fPrec)
+    yv(2,1:napx)  = yv(2,1:napx)  +  clopv(2,1:napx) * real(idz(2),fPrec)
+  end if
+  call part_updateEnergy(e0,3)
 
 end subroutine part_applyClosedOrbit
 
