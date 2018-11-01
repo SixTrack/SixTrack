@@ -507,6 +507,7 @@ subroutine thin4d(nthinerr)
 #endif
 
 #ifdef ROOT
+  use iso_c_binding
   use root_output
 #endif
 
@@ -528,17 +529,43 @@ subroutine thin4d(nthinerr)
   use checkpoint_restart
 #endif
 
+  use collimation, only : do_coll, part_abs_turn, ipart
+  
   implicit none
 
   integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,acphase,  &
     acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi, &
     rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp  !solenoid
-  logical llost
+  logical llost ! at least one particle was lost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
 
+! for aperture check
+! - temporary variables
+  logical lparID
+  logical, allocatable :: llostp(:)
+  integer jj,jjx
+  real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
+  real(kind=fPrec) xchk(2)
+#ifdef ROOT
+  character(len=mNameLen+1) this_name
+#endif
+! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+! last modified: 12-06-2014
+! additional variables for back-tracking, when computing locations of
+! lost particles
+! inserted in main code by the 'backtrk' compilation flag
+  integer niter       ! number of iterations
+  integer kapert      ! temporal integer for aperture type
+  logical llos        ! temporal logic array for interpolation
+  logical lback       ! actually perform backtracking
+  real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
+  integer naalos, nzzlos
+  integer npart_tmp ! Temporary holder for number of particles,
+                    ! used to switch between collimat/standard version at runtime
+  
   save
 !-----------------------------------------------------------------------
   nthinerr=0
@@ -1100,7 +1127,7 @@ subroutine thin4d(nthinerr)
       ! last modified: 17-07-2013
       ! on-line aperture check
       ! always in main code
-      call lostpart( n, i, ix, llost, nthinerr )
+#include "include/lostpart.f90"
       ! stop tracking if no particle survives to this element
       if(nthinerr.ne.0) return
       ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -1168,6 +1195,7 @@ subroutine thin6d(nthinerr)
 #endif
 
 #ifdef ROOT
+  use iso_c_binding
   use root_output
 #endif
 
@@ -1194,10 +1222,35 @@ subroutine thin6d(nthinerr)
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
     sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp !solenoid
-  logical llost
+  logical llost ! at least one particle was lost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
+  
+! for aperture check
+! - temporary variables
+  logical lparID
+  logical, allocatable :: llostp(:)
+  integer jj,jjx
+  real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
+  real(kind=fPrec) xchk(2)
+#ifdef ROOT
+  character(len=mNameLen+1) this_name
+#endif
+! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+! last modified: 12-06-2014
+! additional variables for back-tracking, when computing locations of
+! lost particles
+! inserted in main code by the 'backtrk' compilation flag
+  integer niter       ! number of iterations
+  integer kapert      ! temporal integer for aperture type
+  logical llos        ! temporal logic array for interpolation
+  logical lback       ! actually perform backtracking
+  real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
+  integer naalos, nzzlos
+  integer npart_tmp ! Temporary holder for number of particles,
+                    ! used to switch between collimat/standard version at runtime
+
   save
 
   nthinerr=0
@@ -2087,7 +2140,7 @@ subroutine thin6d(nthinerr)
       ! last modified: 17-07-2013
       ! on-line aperture check
       ! always in main code
-      call lostpart( n, i, ix, llost, nthinerr )
+#include "include/lostpart.f90"
 
       ! stop tracking if no particle survives to this element
       if(nthinerr.ne.0) then

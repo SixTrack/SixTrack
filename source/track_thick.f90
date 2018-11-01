@@ -484,6 +484,11 @@ subroutine thck4d(nthinerr)
   use mod_fluka
 #endif
 
+#ifdef ROOT
+  use iso_c_binding
+  use root_output
+#endif
+
   use mod_hions
   use postprocessing, only : writebin
   use crcoall
@@ -498,6 +503,8 @@ subroutine thck4d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+  use collimation, only : do_coll, part_abs_turn, ipart
+  
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2
@@ -507,7 +514,7 @@ subroutine thck4d(nthinerr)
     sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp !solenoid
 
 
-  logical llost
+  logical llost ! at least one particle was lost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
@@ -516,6 +523,30 @@ subroutine thck4d(nthinerr)
   logical recompute_linear_matrices
 #endif
 
+! for aperture check
+! - temporary variables
+  logical lparID
+  logical, allocatable :: llostp(:)
+  integer jj,jjx
+  real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
+  real(kind=fPrec) xchk(2)
+#ifdef ROOT
+  character(len=mNameLen+1) this_name
+#endif
+! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+! last modified: 12-06-2014
+! additional variables for back-tracking, when computing locations of
+! lost particles
+! inserted in main code by the 'backtrk' compilation flag
+  integer niter       ! number of iterations
+  integer kapert      ! temporal integer for aperture type
+  logical llos        ! temporal logic array for interpolation
+  logical lback       ! actually perform backtracking
+  real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
+  integer naalos, nzzlos
+  integer npart_tmp ! Temporary holder for number of particles,
+                    ! used to switch between collimat/standard version at runtime
+  
   save
 
   nthinerr=0
@@ -1056,7 +1087,7 @@ subroutine thck4d(nthinerr)
       ! last modified: 17-07-2013
       ! on-line aperture check
       ! always in main code
-      call lostpart( n, i, ix, llost, nthinerr )
+#include "include/lostpart.f90"
       ! stop tracking if no particle survives to this element
       if(nthinerr.ne.0) return
       ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -1134,7 +1165,6 @@ subroutine thck6d(nthinerr)
   use bdex, only : bdex_enable
   use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
-  use aperture
 
 #ifdef FLUKA
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -1143,6 +1173,13 @@ subroutine thck6d(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
   use mod_fluka
 #endif
+
+#ifdef ROOT
+  use iso_c_binding
+  use root_output
+#endif
+
+  use collimation
 
   use mod_hions
   use postprocessing, only : writebin
@@ -1167,7 +1204,7 @@ subroutine thck6d(nthinerr)
     acdipamp,qd,acphase,acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,    &
     embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,   &
     pyf,r_temp,z_temp,sigf,q_temp !solenoid
-  logical llost
+  logical llost ! at least one particle was lost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
@@ -1175,6 +1212,30 @@ subroutine thck6d(nthinerr)
 #ifdef FLUKA
   logical recompute_linear_matrices
 #endif
+
+! for aperture check
+! - temporary variables
+  logical lparID
+  logical, allocatable :: llostp(:)
+  integer jj,jjx
+  real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
+  real(kind=fPrec) xchk(2)
+#ifdef ROOT
+  character(len=mNameLen+1) this_name
+#endif
+! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+! last modified: 12-06-2014
+! additional variables for back-tracking, when computing locations of
+! lost particles
+! inserted in main code by the 'backtrk' compilation flag
+  integer niter       ! number of iterations
+  integer kapert      ! temporal integer for aperture type
+  logical llos        ! temporal logic array for interpolation
+  logical lback       ! actually perform backtracking
+  real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
+  integer naalos, nzzlos
+  integer npart_tmp ! Temporary holder for number of particles,
+                    ! used to switch between collimat/standard version at runtime
 
   save
 #ifdef DEBUG
@@ -1798,7 +1859,7 @@ subroutine thck6d(nthinerr)
       ! last modified: 17-07-2013
       ! on-line aperture check
       ! always in main code
-      call lostpart( n, i, ix, llost, nthinerr )
+#include "include/lostpart.f90"
       ! stop tracking if no particle survives to this element
       if(nthinerr.ne.0) return
       ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team

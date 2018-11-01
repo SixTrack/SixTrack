@@ -68,7 +68,7 @@ module aperture
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
   ! last modified: 02-03-2018
   ! variables for back-tracking
-  logical, save :: lbacktracking                      ! activate back-tracking
+  logical, save :: lbacktracking                      ! backtracking on/off
   real(kind=fPrec), allocatable, save :: xLast(:,:)   ! position after last thick element [mm] (2,npart)
   real(kind=fPrec), allocatable, save :: yLast(:,:)   ! angles after last thick element [mrad] (2,npart)
   real(kind=fPrec), allocatable, save :: ejfvLast(:)  ! linear momentum [MeV/c] (npart)
@@ -165,7 +165,8 @@ subroutine aperture_comnul
   loadunit            = 3 ! default: read aperture markers in fort.3
   load_file(1:16)     = ' '
 
-  lbacktracking = .false. ! backtracking off by default
+  lbacktracking = .false. ! backtracking switched on only if LIMI block found
+                          !   and not explicitly de-activated by the user
   ! do ii=1,npart
   !   do jj=1,2
   !     xLast(jj,ii) = zero
@@ -568,7 +569,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   integer ix    ! single element type index
   logical llost ! at least one particle was lost
 
-  integer ib2,ib3,ilostch,j,jj,jj1,jjx
+  integer j,jj,jjx
 
 ! temporary variables
   logical lparID, llostp(npart)
@@ -620,7 +621,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
   else
 
-    ! go through all possible types
+    ! go through all possible types of aperture
     select case(kape(ix))
 
     case (-1) ! Transition
