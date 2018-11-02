@@ -72,7 +72,7 @@ program maincr
   use mod_alloc,      only : alloc_init
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
-  use read_input,     only : readFort33
+  use read_input,     only : readFort13, readFort33
 
 #ifdef FLUKA
   use mod_fluka
@@ -138,13 +138,6 @@ end interface
                                       !DANGER: If the len changes, CRCHECK will break.
 #ifdef BOINC
   character(len=256) filename
-#endif
-#ifdef CRLIBM
-  integer nchars
-  parameter (nchars=160)
-  character(len=nchars) ch
-  character(len=nchars+nchars) ch1
-  real(kind=fPrec) round_near
 #endif
 #ifdef FLUKA
   integer fluka_con
@@ -314,12 +307,10 @@ end interface
   ! Open Regular File Units
   call units_openUnit(unit=2, fileName="fort.2", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
   call units_openUnit(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
-! call units_openUnit(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr) ! Handled by mod_fluc
   call units_openUnit(unit=7, fileName="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
   call units_openUnit(unit=9, fileName="fort.9", formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=11,fileName="fort.11",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=12,fileName="fort.12",formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=13,fileName="fort.13",formatted=.true., mode="r", err=fErr) ! Should only be opened when reading
   call units_openUnit(unit=14,fileName="fort.14",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=15,fileName="fort.15",formatted=.true., mode="w", err=fErr)
 ! call units_openUnit(unit=17,fileName="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use? Should mirror fort.16
@@ -1266,8 +1257,8 @@ end interface
     if(dist_echo) call dist_echoDist
   end if
 
-      do 340 ia=1,napx,2
-        if(idfor.ne.2.and..not.dist_enable) then
+      if(idfor.ne.2.and..not.dist_enable) then
+        do ia=1,napx,2
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
           if(st_quiet==0) write(lout,10050)
           tasia56=tas(ia,5,6)*c1m3
@@ -1378,198 +1369,11 @@ end interface
           nucm(ia+1)=nucm0
 
           if(st_quiet==0) write(lout,10020) ampv(ia),amp(2),epsa
-        else if(idfor.eq.2) then
-#ifndef CRLIBM
-          read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
-     &sigmv(ia),dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv            &
-     &(2,ia+1), sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
-#endif
-#ifdef CRLIBM
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ xv(1,ia)]"
-             call prror(-1)
-          endif
-          xv(1,ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV xv(1,ia)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ yv(1,ia)]"
-             call prror(-1)
-          endif
-          yv(1,ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV yv(1,ia)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ xv(2,ia)]"
-             call prror(-1)
-          endif
-          xv(2,ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV xv(2,ia)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ yv(2,ia)]"
-             call prror(-1)
-          endif
-          yv(2,ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV yv(2,ia)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ sigmv(ia)]"
-             call prror(-1)
-          endif
-          sigmv(ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV sigmv(ia)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ dpsv(ia)]"
-             call prror(-1)
-          endif
-          dpsv(ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV dpsv(ia)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ xv(1,ia+1)]"
-             call prror(-1)
-          endif
-          xv(1,ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV xv(1,ia+1)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ yv(1,ia+1)]"
-             call prror(-1)
-          endif
-          yv(1,ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV yv(1,ia+1)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ xv(2,ia+1)]"
-             call prror(-1)
-          endif
-          xv(2,ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV xv(2,ia+1)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ yv(2,ia+1)]"
-             call prror(-1)
-          endif
-          yv(2,ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV yv(2,ia+1)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)                                              &
-     &            "Error when reading fort.13 [READ sigmv(ia+1)]"
-             call prror(-1)
-          endif
-          sigmv(ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)                                              &
-     &            "Error when reading fort.13 [CONV sigmv(ia+1)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)                                              &
-     &            "Error when reading fort.13 [READ dpsv(ia+1)]"
-             call prror(-1)
-          endif
-          dpsv(ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)                                              &
-     &            "Error when reading fort.13 [CONV dpsv(ia+1)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ e0]"
-             call prror(-1)
-          endif
-          e0 = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV e0]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ ejv(ia)]"
-             call prror(-1)
-          endif
-          ejv(ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV ejv(ia)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ ejv(ia+1)]"
-             call prror(-1)
-          endif
-          ejv(ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV ejv(ia+1)]"
-             call prror(-1)
-          endif
-
-#endif
-          if(ierro.ne.0) call prror(56)
-          mtc(ia)=one
-          mtc(ia+1)=one
-          nucm(ia)=nucm0
-          nucm(ia+1)=nucm0
-          e0f=sqrt(e0**2-nucm0**2)                                         !hr05
-          ejfv(ia)=sqrt(ejv(ia)**2-nucm(ia)**2)                               !hr05
-          ejfv(ia+1)=sqrt(ejv(ia+1)**2-nucm(ia+1)**2)                           !hr05
-          oidpsv(ia)=one/(one+dpsv(ia))
-          oidpsv(ia+1)=one/(one+dpsv(ia+1))
-          moidpsv(ia)=mtc(ia)/(one+dpsv(ia))
-          moidpsv(ia+1)=mtc(ia+1)/(one+dpsv(ia+1))
-          omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
-          omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
-        endif
+        end do
+      else if(idfor.eq.2) then
+        call readFort13
+      endif
+      do ia=1,napx,2
         if (.not.dist_enable .and. st_quiet == 0) then
           write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),xv(1,ia+1),&
                             yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
@@ -1689,7 +1493,7 @@ end interface
           write(lout,*)
           goto 520
         endif
-  340 continue
+      end do
 #ifdef CR
       if (lhc.ne.9) binrec=1    ! binrec:
                                 ! The maximum number of reccords writen for all tracking data files
