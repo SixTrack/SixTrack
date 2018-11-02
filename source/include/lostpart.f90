@@ -4,25 +4,23 @@
   do j=1,napx
     llostp(j)=.false.
   end do
-  
+
   !-----------------------------------------------------------------------
   ! check against current aperture marker
   if(.not.limifound.or.kape(ix).eq.0) then
     ! limi block not there or aperture type not assigned
     ! general check (set in the ITER block)
-    if (do_coll) then 
+    if (do_coll.eqv..false.) then
       do j=1,napx
-        if(part_abs_turn(j).eq.0) then
-          llostp(j)=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2)).or. &
-             isnan_mb(xv(1,j)).or.isnan_mb(xv(2,j))
-        end if
+        llostp(j)=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2))
       end do
     else
       do j=1,napx
-        llostp(j)=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2)).or. &
-             isnan_mb(xv(1,j)).or.isnan_mb(xv(2,j))
+        if(part_abs_turn(j).eq.0) then
+          llostp(j)=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2))
+        end if
       end do
-    end if ! if (do_coll) then 
+    end if ! if (do_coll) then
   else
     ! go through all possible types of aperture
     call aperture_checkApeMarker(n, i, ix)
