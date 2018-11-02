@@ -1423,8 +1423,8 @@ subroutine thck6d(nthinerr)
 
 
           ! We have to go back to angles after we updated the energy.
-          yv(1,j) = yv(1,j)*mtc(j)/(one+dpsv(j))
-          yv(2,j) = yv(2,j)*mtc(j)/(one+dpsv(j))
+          yv(1,j) = yv(1,j)*moidpsv(j)
+          yv(2,j) = yv(2,j)*moidpsv(j)
 
         enddo
         goto 490
