@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "cprintarr.h"
 void
 cprintarr_(float *arr, int *nx, int *ny)
 {
@@ -38,16 +39,16 @@ six2canonical_(double * coord, double *ref_momentum, double *mass, double *canon
 
 void 
 canonical2six_(double *canonical, double *ref_momentum, double *mass, double *coord){
-	 double deltap = *(canonical+5);
-	 double beta0 = *ref_momentum/momentum2energy(*ref_momentum, *mass);
-	 double beta = (*ref_momentum+deltap)/momentum2energy((*ref_momentum)+deltap, *mass);
+	double deltap = *(canonical+5);
+	double beta0 = *ref_momentum/momentum2energy(*ref_momentum, *mass);
+	double beta = (*ref_momentum+deltap)/momentum2energy((*ref_momentum)+deltap, *mass);
 	double rv = beta0/beta;	
-	 *(coord+0) = *(canonical+0);
-	 *(coord+1) = *(canonical+1)/(1+deltap);
-	 *(coord+2) = *(canonical+2);
-	 *(coord+3) = *(canonical+3)/(1+deltap);
-	 *(coord+4) = *(canonical+4)*rv;
-	 *(coord+5) = *(canonical+5);	 
+	*(coord+0) = *(canonical+0);
+	*(coord+1) = *(canonical+1)/(1+deltap);
+	*(coord+2) = *(canonical+2);
+	*(coord+3) = *(canonical+3)/(1+deltap);
+	*(coord+4) = *(canonical+4)*rv;
+	*(coord+5) = *(canonical+5);	 
 }
 
 
@@ -55,12 +56,11 @@ canonical2six_(double *canonical, double *ref_momentum, double *mass, double *co
     if mtrx_a is (m x n) and mtrx_b is (n x p), 
     the product is an (m x p) matrix
 */
-void mtrx_vector_mult_(int *mp, int *np, int *pp, double mtrx_a[6][6], double mtrx_b[6], double result[6])
+void mtrx_vector_mult_(int *mp, int *np,  double mtrx_a[6][6], double mtrx_b[6], double result[6])
 {
 
 	int m = *mp;
 	int n = *np;
-	int p = *pp;
 
 
     register int i=0, j=0, k=0;
@@ -71,17 +71,18 @@ void mtrx_vector_mult_(int *mp, int *np, int *pp, double mtrx_a[6][6], double mt
                 result [i] += mtrx_a [i][k] * mtrx_b [k];
                 
             }
-        
     }
 
 }
-/*
-void action2sixcoord_(double *e1, double *a1, double *e2, double *a2, double *e3, double *a3, double tas[6][6], double results [6]){
-	a2c_(e1, a1, e2, a2, e3, a3,tas, results);
-	canonical2six_(results, ref_momentum, mass, double canonical)
-double 
+
+double test_(double in){
+	double ra[6];
+	ra[0]=0;
+	ra[2]=1;
+	printf("does this work %f ?", in );
+	return in;
 }
-*/
+
 
 void a2c_(double *e1, double *a1, double *e2, double *a2, double *e3, double *a3, double tas[6][6], double results [6]){
 	double acoord[6];
@@ -95,8 +96,32 @@ void a2c_(double *e1, double *a1, double *e2, double *a2, double *e3, double *a3
 
 	int dim, one;
 	dim = 6;
-	one =1;
-	mtrx_vector_mult_(&dim,&dim,&dim, tas, acoord,results);
+	mtrx_vector_mult_(&dim,&dim, tas, acoord,results);
 
-} 
+}
+void createTasWithLinear(double betax, double alfax, double betay, double alfay, double tas[6][6]){
 
+	    for (int i = 0; i < 6; i++)
+    {
+            for (int k = 0; k < 6; k++)
+            {
+                tas [i][k] = 0;
+                
+            }
+    }
+
+    tas[0][0] = sqrt(betax);
+    tas[2][2] = sqrt(betay);
+    tas[1][2] =-alfax/sqrt(betax);
+    tas[4][3] =-alfay/sqrt(betay);
+
+}
+
+
+void action2sixcoord_(double *e1, double *a1, double *e2, double *a2, double *e3, double *a3, double tas[6][6]
+	,double *ref_momentum, double *mass, double results [6]){
+
+	double cancord[6] ;
+	a2c_(e1, a1, e2, a2, e3, a3,tas, cancord);
+	canonical2six_(cancord, ref_momentum, mass, results);
+}
