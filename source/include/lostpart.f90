@@ -10,16 +10,23 @@
   if(.not.limifound.or.kape(ix).eq.0) then
     ! limi block not there or aperture type not assigned
     ! general check (set in the ITER block)
-    do j=1,napx
-      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+    if (do_coll) then 
+      do j=1,napx
+        if(part_abs_turn(j).eq.0) then
+          llostp(j)=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2)).or. &
+             isnan_mb(xv(1,j)).or.isnan_mb(xv(2,j))
+        end if
+      end do
+    else
+      do j=1,napx
         llostp(j)=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2)).or. &
-             (xv(1,j).ne.xv(1,j)).or.(xv(2,j).ne.xv(2,j))
-      end if
-    end do
+             isnan_mb(xv(1,j)).or.isnan_mb(xv(2,j))
+      end do
+    end if ! if (do_coll) then 
   else
     ! go through all possible types of aperture
     call aperture_checkApeMarker(n, i, ix)
-  end if
+  end if ! if(.not.limifound.or.kape(ix).eq.0) then
 
   ! any particle loss?
   do j=1,napx
