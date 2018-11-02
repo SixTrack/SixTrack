@@ -484,11 +484,6 @@ subroutine thck4d(nthinerr)
   use mod_fluka
 #endif
 
-#ifdef ROOT
-  use iso_c_binding
-  use root_output
-#endif
-
   use mod_hions
   use postprocessing, only : writebin
   use crcoall
@@ -503,6 +498,7 @@ subroutine thck4d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+  
   use collimation, only : do_coll, part_abs_turn, ipart
   
   implicit none
@@ -522,29 +518,7 @@ subroutine thck4d(nthinerr)
   logical recompute_linear_matrices
 #endif
 
-! for aperture check
-! - temporary variables
   logical llost ! at least one particle was lost
-  logical lparID
-  integer jj,jjx
-  real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
-  real(kind=fPrec) xchk(2)
-#ifdef ROOT
-  character(len=mNameLen+1) this_name
-#endif
-! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-! last modified: 12-06-2014
-! additional variables for back-tracking, when computing locations of
-! lost particles
-! inserted in main code by the 'backtrk' compilation flag
-  integer niter       ! number of iterations
-  integer kapert      ! temporal integer for aperture type
-  logical llos        ! temporal logic array for interpolation
-  logical lback       ! actually perform backtracking
-  real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
-  integer naalos, nzzlos
-  integer npart_tmp ! Temporary holder for number of particles,
-                    ! used to switch between collimat/standard version at runtime
   
   save
 
@@ -1173,13 +1147,6 @@ subroutine thck6d(nthinerr)
   use mod_fluka
 #endif
 
-#ifdef ROOT
-  use iso_c_binding
-  use root_output
-#endif
-
-  use collimation
-
   use mod_hions
   use postprocessing, only : writebin
   use crcoall
@@ -1196,6 +1163,8 @@ subroutine thck6d(nthinerr)
   use checkpoint_restart
 #endif
 
+  use collimation, only : do_coll, part_abs_turn, ipart
+
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2
@@ -1211,29 +1180,7 @@ subroutine thck6d(nthinerr)
   logical recompute_linear_matrices
 #endif
 
-! for aperture check
-! - temporary variables
   logical llost ! at least one particle was lost
-  logical lparID
-  integer jj,jjx
-  real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
-  real(kind=fPrec) xchk(2)
-#ifdef ROOT
-  character(len=mNameLen+1) this_name
-#endif
-! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-! last modified: 12-06-2014
-! additional variables for back-tracking, when computing locations of
-! lost particles
-! inserted in main code by the 'backtrk' compilation flag
-  integer niter       ! number of iterations
-  integer kapert      ! temporal integer for aperture type
-  logical llos        ! temporal logic array for interpolation
-  logical lback       ! actually perform backtracking
-  real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
-  integer naalos, nzzlos
-  integer npart_tmp ! Temporary holder for number of particles,
-                    ! used to switch between collimat/standard version at runtime
 
   save
 #ifdef DEBUG
