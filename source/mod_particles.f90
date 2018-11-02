@@ -24,7 +24,7 @@ end subroutine part_expand
 !  K.N. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-08-13
 !  Updates the relevant particle arrays after the particle energies or the reference energy changed.
-!  If only the ejfv array has been changed, pass e0 to refEnergy
+!  If only the ejv array has been changed, pass e0 to refEnergy
 ! ================================================================================================ !
 subroutine part_updateEnergy(refEnergy)
 
@@ -43,7 +43,7 @@ subroutine part_updateEnergy(refEnergy)
   ! Modify the reference particle
   e0o  = e0
   e0fo = e0f
-  if (e0 /= refEnergy) then
+  if(e0 /= refEnergy) then
     e0     = refEnergy
     e0f    = sqrt(e0**2 - nucm0**2)
     gammar = nucm0/e0
@@ -67,7 +67,7 @@ subroutine part_updateEnergy(refEnergy)
     sigmv = ((e0f*e0o)/(e0fo*e0))*sigmv
   end if
 
-  if(ithick == 1 .and. e0 /= e0o) call synuthck
+  if(ithick == 1) call synuthck
 
 end subroutine part_updateEnergy
 
