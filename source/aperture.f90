@@ -2929,10 +2929,10 @@ end module aperture
 
 
 !>
-!! compactArrays(llostp)
+!! compactArrays
 !! This routine is called to compact all relevant arrays when a particle is lost
 !<
-subroutine compactArrays(llostp)
+subroutine compactArrays
 
   use aperture
 
@@ -2945,7 +2945,6 @@ subroutine compactArrays(llostp)
   implicit none
 
   integer j,jj,jj1,ib2,ib3,lnapx
-  logical llostp(npart)
 
   ! Compact array
   if(.not.apflag) then

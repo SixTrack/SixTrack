@@ -514,7 +514,6 @@ subroutine thck4d(nthinerr)
     sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp !solenoid
 
 
-  logical llost ! at least one particle was lost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
@@ -525,8 +524,8 @@ subroutine thck4d(nthinerr)
 
 ! for aperture check
 ! - temporary variables
+  logical llost ! at least one particle was lost
   logical lparID
-  logical, allocatable :: llostp(:)
   integer jj,jjx
   real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
   real(kind=fPrec) xchk(2)
@@ -1204,7 +1203,6 @@ subroutine thck6d(nthinerr)
     acdipamp,qd,acphase,acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,    &
     embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,   &
     pyf,r_temp,z_temp,sigf,q_temp !solenoid
-  logical llost ! at least one particle was lost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
@@ -1215,8 +1213,8 @@ subroutine thck6d(nthinerr)
 
 ! for aperture check
 ! - temporary variables
+  logical llost ! at least one particle was lost
   logical lparID
-  logical, allocatable :: llostp(:)
   integer jj,jjx
   real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
   real(kind=fPrec) xchk(2)

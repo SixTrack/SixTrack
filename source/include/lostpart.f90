@@ -1,4 +1,7 @@
-  call alloc(llostp,napx, .false., 'llostp')
+  do j=1,napx
+    llostp(j)=.false.
+  end do
+
   
   !-----------------------------------------------------------------------
   ! check against current aperture marker
@@ -562,7 +565,7 @@
     end if
 #endif
 
-    call compactArrays(llostp)
+    call compactArrays
 
     ! store old particle coordinates
     ! necessary since aperture markers are downstream of lenses...
@@ -594,5 +597,3 @@
 #endif
     return
   end if
-
-  call dealloc(llostp,'llostp')
