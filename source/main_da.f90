@@ -56,13 +56,6 @@ program mainda
   character(len=10) tsTime
   logical fErr
 
-#ifdef CRLIBM
-  integer nchars
-  parameter (nchars=160)
-  character(len=nchars) ch
-  character(len=nchars+nchars) ch1
-#endif
-
   ! Features
 featList = ""
 #ifdef TILT
