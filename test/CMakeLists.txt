@@ -83,7 +83,8 @@ SET(TESTS_NO_STF_FORT90
   dynk_operators
   dynk_random
   dynk_polynomial
-  )
+  scatter_bbelastic
+)
 
 # List of tests that absolutely require STF to be on (> 64 particles)
 IF(STF)
@@ -95,7 +96,7 @@ IF(STF)
     dynk_operators
     scatter_aperture
     ${SIXTRACK_TESTS}
-    )
+  )
 ENDIF(STF)
 
 if(LIBARCHIVE)
