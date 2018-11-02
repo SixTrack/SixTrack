@@ -385,12 +385,12 @@ module mod_fluka
       flgen = fluka_gen(j)
       flwgt = fluka_weight(j)
 
-      flx   = xv(1,j) * c1m1  ! from [mm] to [cm]
-      fly   = xv(2,j) * c1m1  ! from [mm] to [cm]
+      flx   = xv1(j) * c1m1  ! from [mm] to [cm]
+      fly   = xv2(j) * c1m1  ! from [mm] to [cm]
       flz   = zero
 
-      flxp  = yv(1,j) * c1m3 ! from [1.0E-03] to [1.0]
-      flyp  = yv(2,j) * c1m3 ! from [1.0E-03] to [1.0]
+      flxp  = yv1(j) * c1m3 ! from [1.0E-03] to [1.0]
+      flyp  = yv2(j) * c1m3 ! from [1.0E-03] to [1.0]
       ! director cosines:
       ! full transformation:
       flzp  = sqrt( one / ( flxp**2 + flyp**2 + one ) )
@@ -455,7 +455,7 @@ module mod_fluka
   !----------------------------------------------------------------------------
   ! just receive particles from Fluka
   ! The call from fluka.s90 is:
-  ! fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv(1,:), yv(1,:), xv(2,:), yv(2,:), sigmv, ejv, naa(:), nzz(:), nucm(:))
+  ! fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv1(:), yv1(:), xv2(:), yv2(:), sigmv, ejv, naa(:), nzz(:), nucm(:))
   ! When the above arrays are made allocatable, the below variables will need updating - see mod_commonmn and mod_hions
   integer function fluka_receive(turn, ipt, el, napx, xv, yv, s, etot, aa, zz, mass)
 
@@ -565,10 +565,10 @@ module mod_fluka
             end if
 
             fluka_weight(fluka_nrecv) = flwgt
-            xv(1,fluka_nrecv)         = flx * c1e1   ! from [cm]  to [mm]
-            xv(2,fluka_nrecv)         = fly * c1e1   ! from [cm]  to [mm]
-            yv(1,fluka_nrecv)         = flxp / flzp * c1e3 ! from director cosine to x' [1.0E-03]
-            yv(2,fluka_nrecv)         = flyp / flzp * c1e3 ! from director cosine to x' [1.0E-03]
+            xv1(fluka_nrecv)         = flx * c1e1   ! from [cm]  to [mm]
+            xv2(fluka_nrecv)         = fly * c1e1   ! from [cm]  to [mm]
+            yv1(fluka_nrecv)         = flxp / flzp * c1e3 ! from director cosine to x' [1.0E-03]
+            yv2(fluka_nrecv)         = flyp / flzp * c1e3 ! from director cosine to x' [1.0E-03]
             etot(fluka_nrecv)         = flet * c1e3  ! from [GeV] to [MeV]
             s(fluka_nrecv)            = ( el - (fluka_pc0/fluka_e0)*(flt*fluka_clight) ) * c1e3 ! from [s] to [mm]
             aa(fluka_nrecv)           = flaa          !PH for hiSix

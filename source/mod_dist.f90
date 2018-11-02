@@ -110,7 +110,7 @@ subroutine dist_readDist()
   use parpro,              only : mInputLn, npart
   use mod_hions,           only : naa, nzz, nucm
   use mod_common,          only : napx, e0
-  use mod_commonmn,        only : e0f, xv, yv, ejfv, sigmv
+  use mod_commonmn,        only : e0f, xv1, yv1, xv2, yv2, ejfv, sigmv
   use string_tools
 
   implicit none
@@ -123,8 +123,10 @@ subroutine dist_readDist()
 
   write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_readFile)//"'"
 
-  xv(:,:)  = zero
-  yv(:,:)  = zero
+  xv1(:)  = zero
+  yv1(:)  = zero
+  xv2(:)  = zero
+  yv2(:)  = zero
   sigmv(:) = zero
   ejfv(:)  = zero
   naa(:)   = 0
@@ -158,11 +160,11 @@ subroutine dist_readDist()
   if(nSplit > 0)  call chr_cast(lnSplit(1),  id,       cErr)
   if(nSplit > 1)  call chr_cast(lnSplit(2),  gen,      cErr)
   if(nSplit > 2)  call chr_cast(lnSplit(3),  weight,   cErr)
-  if(nSplit > 3)  call chr_cast(lnSplit(4),  xv(1,jj), cErr)
-  if(nSplit > 4)  call chr_cast(lnSplit(5),  xv(2,jj), cErr)
+  if(nSplit > 3)  call chr_cast(lnSplit(4),  xv1(jj), cErr)
+  if(nSplit > 4)  call chr_cast(lnSplit(5),  xv2(jj), cErr)
   if(nSplit > 5)  call chr_cast(lnSplit(6),  z,        cErr)
-  if(nSplit > 6)  call chr_cast(lnSplit(7),  yv(1,jj), cErr)
-  if(nSplit > 7)  call chr_cast(lnSplit(8),  yv(2,jj), cErr)
+  if(nSplit > 6)  call chr_cast(lnSplit(7),  yv1(jj), cErr)
+  if(nSplit > 7)  call chr_cast(lnSplit(8),  yv2(jj), cErr)
   if(nSplit > 8)  call chr_cast(lnSplit(9),  zp,       cErr)
   if(nSplit > 9)  call chr_cast(lnSplit(10), naa(jj),  cErr)
   if(nSplit > 10) call chr_cast(lnSplit(11), nzz(jj),  cErr)
@@ -171,10 +173,10 @@ subroutine dist_readDist()
   if(nSplit > 13) call chr_cast(lnSplit(14), dt(jj),   cErr)
   if(cErr) goto 20
 
-  xv(1,jj)  = xv(1,jj)*c1e3
-  xv(2,jj)  = xv(2,jj)*c1e3
-  yv(1,jj)  = yv(1,jj)*c1e3
-  yv(2,jj)  = yv(2,jj)*c1e3
+  xv1(jj)  = xv1(jj)*c1e3
+  xv2(jj)  = xv2(jj)*c1e3
+  yv1(jj)  = yv1(jj)*c1e3
+  yv2(jj)  = yv2(jj)*c1e3
   ejfv(jj)  = ejfv(jj)*c1e3
   nucm(jj)  = nucm(jj)*c1e3
   sigmv(jj) = -(e0f/e0)*((dt(jj)*clight)*c1e3)
@@ -284,10 +286,10 @@ subroutine dist_finaliseDist()
   ! Add closed orbit
   if(iclo6 == 2) then
     do j=1, napx
-      xv(1,j)     = xv(1,j)  + clo6v(1,j)
-      yv(1,j)     = yv(1,j)  + clop6v(1,j)
-      xv(2,j)     = xv(2,j)  + clo6v(2,j)
-      yv(2,j)     = yv(2,j)  + clop6v(2,j)
+      xv1(j)     = xv1(j)  + clo6v(1,j)
+      yv1(j)     = yv1(j)  + clop6v(1,j)
+      xv2(j)     = xv2(j)  + clo6v(2,j)
+      yv2(j)     = yv2(j)  + clop6v(2,j)
       sigmv(j)    = sigmv(j) + clo6v(3,j)
       dpsv(j)     = dpsv(j)  + clop6v(3,j)
       oidpsv(j)   = one/(one+dpsv(j))
@@ -317,7 +319,7 @@ subroutine dist_echoDist()
   write(dist_echoUnit,"(a)")          "#"
   write(dist_echoUnit,"(a)")          "# x[mm], y[mm], xp[mrad], yp[mrad], sigmv[mm], ejfv[MeV/c]"
   do j=1, napx
-    write(dist_echoUnit,"(6(1x,1pe25.18))") xv(1,j), yv(1,j), xv(2,j), yv(2,j), sigmv(j), ejfv(j)
+    write(dist_echoUnit,"(6(1x,1pe25.18))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejfv(j)
   end do
   close(dist_echoUnit)
 
