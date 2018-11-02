@@ -738,8 +738,7 @@ subroutine thin4d(nthinerr)
           ! We have to go back to angles after we updated the energy.
           yv(1,j) = yv(1,j)*mtc(j)/(one+dpsv(j))
           yv(2,j) = yv(2,j)*mtc(j)/(one+dpsv(j))
-          !yv(j,1) = yv(j,1)*moidpsv(j)
-          !yv(j,2) = yv(j,2)*moidpsv(j)
+
         enddo
       goto 620
       case (2,4,5,6,7,8,9,10)
