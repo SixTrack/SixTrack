@@ -1337,10 +1337,9 @@ end interface
   else if(idfor == 2) then
     ! Read from fort.13
     call readFort13
-    ! call part_updateEnergy(e0,3)
-    do j=1,napx
-      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-    end do
+    call part_updateEnergy(e0,3)
+    ! Note that this effectively overrides the particle energy set in fort.13
+    ! as energy is recalculated from delta.
   endif
 
   do ia=1,napx,2
