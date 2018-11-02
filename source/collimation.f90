@@ -1618,7 +1618,6 @@ subroutine collimate_start_sample(nsample)
   use mod_commons
   use mod_commont
   use mod_commond
-  use mod_particles
 
   implicit none
 
@@ -1811,22 +1810,35 @@ subroutine collimate_start_sample(nsample)
     yv(2,1:napx00)  = c1e3 * myyp(1:napx00) + torbyp(1)
     sigmv(1:napx00) = mys(1:napx00)
     ejv(1:napx00)   = myp(1:napx00)
-    call part_updatePartEnergy(1)
   end if
 
-  do i=1, napx00
+  do i = 1, napx00
+    ! FOR NOT FAST TRACKING ONLY
+    ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+    dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+    oidpsv(j)=one/(one+dpsv(j))
+    moidpsv(j)=mtc(j)/(one+dpsv(j))
+    omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+    dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+
     nlostp(i)=i
+
     do ieff =1, numeff
       counted_r(i,ieff) = 0
       counted_x(i,ieff) = 0
       counted_y(i,ieff) = 0
+
       do ieffdpop =1, numeffdpop
         counted2d(i,ieff,ieffdpop) = 0
       end do
+
     end do
+
     do ieffdpop =1, numeffdpop
       counteddpop(i,ieffdpop) = 0
     end do
+
   end do
 
 !!!!!!!!!!!!!!!!!!!!!!START THIN6D CUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
