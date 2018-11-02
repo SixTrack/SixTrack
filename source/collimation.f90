@@ -1250,29 +1250,30 @@ subroutine collimate_init()
       call makedis_radial(mynp, myalphax, myalphay, mybetax, &
      &      mybetay, myemitx0_dist, myemity0_dist, myenom, nr, ndr, myx, myxp, myy, myyp, myp, mys)
     else
-      if(do_thisdis == 0) then
+      select case(do_thisdis)
+      case(0)
         continue
-      else if(do_thisdis == 1) then
+      case(1)
         call makedis(mynp, myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-     &           myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
-      else if(do_thisdis == 2) then
+          myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
+      case(2)
         call makedis_st(mynp, myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-     &           myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
-      else if(do_thisdis == 3) then
+          myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
+      case(3)
         call makedis_de(mynp, myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-     &           myenom, mynex, mdex, myney, mdey,myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
-      else if(do_thisdis == 4) then
+          myenom, mynex, mdex, myney, mdey,myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
+      case(4)
         call readdis(filename_dis, mynp, myx, myxp, myy, myyp, myp, mys)
-      else if(do_thisdis == 5) then
+      case(5)
         call makedis_ga(mynp, myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-     &           myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength )
-      else if(do_thisdis == 6) then
+          myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
+      case(6)
         call readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay, &
-     &           myemitx0_dist, myemity0_dist, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
-      else
-        write(lout,"(a)") "COLL> ERROR Review your distribution parameters!"
-        call prror(-1)
-      end if
+          myemitx0_dist, myemity0_dist, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
+      case default
+          write(lout,"(a)") "COLL> ERROR Review your distribution parameters!"
+          call prror(-1)
+      end select
     end if
   end if
 !++  Reset distribution for pencil beam
@@ -1288,40 +1289,40 @@ subroutine collimate_init()
     end do
   endif
 
-!++  Optionally write the generated particle distribution
+  ! Optionally write the generated particle distribution
+  if(dowrite_dist .and. do_thisdis /= 0) then
 #ifdef HDF5
-  if(h5_useForCOLL .and. dowrite_dist .and. do_thisdis /= 0) then
-    allocate(fldDist0(6))
-    fldDist0(1)  = h5_dataField(name="X",  type=h5_typeReal)
-    fldDist0(2)  = h5_dataField(name="XP", type=h5_typeReal)
-    fldDist0(3)  = h5_dataField(name="Y",  type=h5_typeReal)
-    fldDist0(4)  = h5_dataField(name="YP", type=h5_typeReal)
-    fldDist0(5)  = h5_dataField(name="S",  type=h5_typeReal)
-    fldDist0(6)  = h5_dataField(name="P",  type=h5_typeReal)
-    call h5_createFormat("collDist0", fldDist0, fmtDist0)
-    call h5_createDataSet("dist0", h5_collID, fmtDist0, setDist0, mynp)
-    call h5_prepareWrite(setDist0, mynp)
-    call h5_writeData(setDist0, 1, mynp, myx(1:mynp))
-    call h5_writeData(setDist0, 2, mynp, myxp(1:mynp))
-    call h5_writeData(setDist0, 3, mynp, myy(1:mynp))
-    call h5_writeData(setDist0, 4, mynp, myyp(1:mynp))
-    call h5_writeData(setDist0, 5, mynp, mys(1:mynp))
-    call h5_writeData(setDist0, 6, mynp, myp(1:mynp))
-    call h5_finaliseWrite(setDist0)
-    deallocate(fldDist0)
-  else
+    if(h5_useForCOLL) then
+      allocate(fldDist0(6))
+      fldDist0(1)  = h5_dataField(name="X",  type=h5_typeReal)
+      fldDist0(2)  = h5_dataField(name="XP", type=h5_typeReal)
+      fldDist0(3)  = h5_dataField(name="Y",  type=h5_typeReal)
+      fldDist0(4)  = h5_dataField(name="YP", type=h5_typeReal)
+      fldDist0(5)  = h5_dataField(name="S",  type=h5_typeReal)
+      fldDist0(6)  = h5_dataField(name="P",  type=h5_typeReal)
+      call h5_createFormat("collDist0", fldDist0, fmtDist0)
+      call h5_createDataSet("dist0", h5_collID, fmtDist0, setDist0, mynp)
+      call h5_prepareWrite(setDist0, mynp)
+      call h5_writeData(setDist0, 1, mynp, myx(1:mynp))
+      call h5_writeData(setDist0, 2, mynp, myxp(1:mynp))
+      call h5_writeData(setDist0, 3, mynp, myy(1:mynp))
+      call h5_writeData(setDist0, 4, mynp, myyp(1:mynp))
+      call h5_writeData(setDist0, 5, mynp, mys(1:mynp))
+      call h5_writeData(setDist0, 6, mynp, myp(1:mynp))
+      call h5_finaliseWrite(setDist0)
+      deallocate(fldDist0)
+    else
 #endif
-    if(dowrite_dist .and. do_thisdis /= 0) then
       call funit_requestUnit('dist0.dat', dist0_unit)
       open(unit=dist0_unit,file='dist0.dat') !was 52
       do j = 1, mynp
         write(dist0_unit,'(6(1X,E23.15))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
       end do
       close(dist0_unit)
-    end if
 #ifdef HDF5
-  end if
+    end if
 #endif
+  end if
 
 !++  Initialize efficiency array
   do i=1,iu
@@ -1617,6 +1618,7 @@ subroutine collimate_start_sample(nsample)
   use mod_commons
   use mod_commont
   use mod_commond
+  use mod_particles
 
   implicit none
 
@@ -1802,42 +1804,29 @@ subroutine collimate_start_sample(nsample)
   end if
 
   ! Copy new particles to tracking arrays. Also add the orbit offset at start of ring!
-  do i = 1, napx00
-    if(do_thisdis /= 0) then
-      xv(1,i)  = c1e3 *  myx(i+(j-1)*napx00) + torbx(1)
-      yv(1,i)  = c1e3 * myxp(i+(j-1)*napx00) + torbxp(1)
-      xv(2,i)  = c1e3 *  myy(i+(j-1)*napx00) + torby(1)
-      yv(2,i)  = c1e3 * myyp(i+(j-1)*napx00) + torbyp(1)
-      sigmv(i) = mys(i+(j-1)*napx00)
-      ejv(i)   = myp(i+(j-1)*napx00)
-    end if
+  if(do_thisdis /= 0) then
+    xv(1,1:napx00)  = c1e3 *  myx(1:napx00) + torbx(1)
+    yv(1,1:napx00)  = c1e3 * myxp(1:napx00) + torbxp(1)
+    xv(2,1:napx00)  = c1e3 *  myy(1:napx00) + torby(1)
+    yv(2,1:napx00)  = c1e3 * myyp(1:napx00) + torbyp(1)
+    sigmv(1:napx00) = mys(1:napx00)
+    ejv(1:napx00)   = myp(1:napx00)
+    call part_updatePartEnergy(1)
+  end if
 
-!GRD FOR NOT FAST TRACKING ONLY
-    ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-    dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-    oidpsv(j)=one/(one+dpsv(j))
-    moidpsv(j)=mtc(j)/(one+dpsv(j))
-    omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-    dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-
+  do i=1, napx00
     nlostp(i)=i
-
     do ieff =1, numeff
       counted_r(i,ieff) = 0
       counted_x(i,ieff) = 0
       counted_y(i,ieff) = 0
-
       do ieffdpop =1, numeffdpop
         counted2d(i,ieff,ieffdpop) = 0
       end do
-
     end do
-
     do ieffdpop =1, numeffdpop
       counteddpop(i,ieffdpop) = 0
     end do
-
   end do
 
 !!!!!!!!!!!!!!!!!!!!!!START THIN6D CUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
