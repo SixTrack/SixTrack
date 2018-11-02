@@ -1337,7 +1337,7 @@ end interface
   else if(idfor == 2) then
     ! Read from fort.13
     call readFort13
-    call part_updateEnergy(e0,3)
+    call part_updatePartEnergy(3)
     ! Note that this effectively overrides the particle energy set in fort.13
     ! as energy is recalculated from delta.
   endif

@@ -201,7 +201,7 @@ subroutine dist_readDist
   write(lout,"(a,i0,a)") "DIST> Read ",j," particles from file '"//trim(dist_readFile)//"'"
 
   ! Update longitudinal particle arrays from read momentum
-  call part_updateEnergy(e0,2)
+  call part_updatePartEnergy(2)
 
   if(j < napx) then
     write(lout,"(a,i0)") "DIST> WARNING Read a number of particles LOWER than requested: ",napx

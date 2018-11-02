@@ -46,46 +46,70 @@ subroutine part_applyClosedOrbit
     xv(2,1:napx)  = xv(2,1:napx)  +   clov(2,1:napx) * real(idz(2),fPrec)
     yv(2,1:napx)  = yv(2,1:napx)  +  clopv(2,1:napx) * real(idz(2),fPrec)
   end if
-  call part_updateEnergy(e0,3)
+  call part_updatePartEnergy(3)
 
 end subroutine part_applyClosedOrbit
 
 ! ================================================================================================ !
 !  K.N. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-08-13
-!  Updates the relevant particle arrays after the particle energies or the reference energy changed.
-!  If only the ejv array has been changed, pass e0 to refEnergy
+!  Last modified: 2018-11-02
+!  Updates the reference energy and momentum
 ! ================================================================================================ !
-subroutine part_updateEnergy(refEnergy, refArray)
+subroutine part_updateRefEnergy(refEnergy)
+
+  use mod_hions
+  use mod_common
+  use mod_commonmn
+  use numerical_constants
+
+  implicit none
+
+  real(kind=fPrec), intent(in) :: refEnergy
+
+  real(kind=fPrec) e0o, e0fo
+
+  if(e0 == refEnergy) return
+
+  ! Save previous values
+  e0o    = e0
+  e0fo   = e0f
+
+  ! Modify the reference particle
+  e0     = refEnergy
+  e0f    = sqrt(e0**2 - nucm0**2)
+  gammar = nucm0/e0
+
+  ! Also update sigmv with the new beta0 = e0f/e0
+  sigmv(1:napx) = ((e0f*e0o)/(e0fo*e0))*sigmv(1:napx)
+
+  if(e0 <= pieni) then
+    write(lout,"(a)") "PART> ERROR Reference energy ~= 0"
+    call prror(-1)
+  end if
+
+  call part_updatePartEnergy(1)
+
+end subroutine part_updateRefEnergy
+
+! ================================================================================================ !
+!  K.N. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-11-02
+!  Updates the relevant particle arrays after the particle's energy, momentum or delta has changed.
+! ================================================================================================ !
+subroutine part_updatePartEnergy(refArray)
 
   use mod_hions
   use mod_common
   use mod_commont
   use mod_commonmn
   use numerical_constants
-  use physical_constants
 
   implicit none
 
-  real(kind=fPrec), intent(in) :: refEnergy
-  integer,          intent(in) :: refArray
+  integer, intent(in) :: refArray
 
   real(kind=fPrec) e0o, e0fo
   integer          j
-
-  ! Modify the reference particle
-  e0o  = e0
-  e0fo = e0f
-  if(e0 /= refEnergy) then
-    e0     = refEnergy
-    e0f    = sqrt(e0**2 - nucm0**2)
-    gammar = nucm0/e0
-  end if
-
-  if(e0 <= pieni) then
-    write(lout,"(a)") "PART> ERROR Reference energy ~= 0"
-    call prror(-1)
-  end if
 
   select case(refArray)
   case(1) ! Update from energy array
@@ -104,7 +128,7 @@ subroutine part_updateEnergy(refEnergy, refArray)
       ejv(j)  = sqrt(ejfv(j)**2 + nucm(j)**2)       ! Energy [MeV]
     end do
   case default
-    write(lout,"(a)") "PART> ERROR Internal error in part_updateEnergy"
+    write(lout,"(a)") "PART> ERROR Internal error in part_updatePartEnergy"
     call prror(-1)
   end select
 
@@ -119,13 +143,8 @@ subroutine part_updateEnergy(refEnergy, refArray)
     rvv(j)      = (ejv(j)*e0f)/(e0*ejfv(j))          ! Beta_0 / beta(j)
   end do
 
-  if(e0 /= e0o) then
-    ! Also update sigmv with the new beta0 = e0f/e0
-    sigmv = ((e0f*e0o)/(e0fo*e0))*sigmv
-  end if
-
   if(ithick == 1) call synuthck
 
-end subroutine part_updateEnergy
+end subroutine part_updatePartEnergy
 
 end module mod_particles

@@ -2336,7 +2336,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   if(element_name == "GLOBAL-VARS") then
     if(att_name == "E0" ) then
       ! Modify the reference particle
-      call part_updateEnergy(newValue,1)
+      call part_updateRefEnergy(newValue)
     end if
     ldoubleElement = .true.
   end if
