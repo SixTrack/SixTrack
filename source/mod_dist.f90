@@ -124,8 +124,10 @@ subroutine dist_readDist
 
   write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_readFile)//"'"
 
-  xv(:,:)  = zero
-  yv(:,:)  = zero
+  xv1(:)  = zero
+  yv1(:)  = zero
+  xv2(:)  = zero
+  yv2(:)  = zero
   sigmv(:) = zero
   ejfv(:)  = zero
   naa(:)   = 0
@@ -159,11 +161,11 @@ subroutine dist_readDist
   if(nSplit > 0)  call chr_cast(lnSplit(1),  id,      cErr)
   if(nSplit > 1)  call chr_cast(lnSplit(2),  gen,     cErr)
   if(nSplit > 2)  call chr_cast(lnSplit(3),  weight,  cErr)
-  if(nSplit > 3)  call chr_cast(lnSplit(4),  xv(1,j), cErr)
-  if(nSplit > 4)  call chr_cast(lnSplit(5),  xv(2,j), cErr)
+  if(nSplit > 3)  call chr_cast(lnSplit(4),  xv1(j),  cErr)
+  if(nSplit > 4)  call chr_cast(lnSplit(5),  xv2(j),  cErr)
   if(nSplit > 5)  call chr_cast(lnSplit(6),  z,       cErr)
-  if(nSplit > 6)  call chr_cast(lnSplit(7),  yv(1,j), cErr)
-  if(nSplit > 7)  call chr_cast(lnSplit(8),  yv(2,j), cErr)
+  if(nSplit > 6)  call chr_cast(lnSplit(7),  yv1(j),  cErr)
+  if(nSplit > 7)  call chr_cast(lnSplit(8),  yv2(j),  cErr)
   if(nSplit > 8)  call chr_cast(lnSplit(9),  zp,      cErr)
   if(nSplit > 9)  call chr_cast(lnSplit(10), naa(j),  cErr)
   if(nSplit > 10) call chr_cast(lnSplit(11), nzz(j),  cErr)
@@ -172,10 +174,10 @@ subroutine dist_readDist
   if(nSplit > 13) call chr_cast(lnSplit(14), dt(j),   cErr)
   if(cErr) goto 20
 
-  xv(1,j)   = xv(1,j)*c1e3
-  xv(2,j)   = xv(2,j)*c1e3
-  yv(1,j)   = yv(1,j)*c1e3
-  yv(2,j)   = yv(2,j)*c1e3
+  xv1(j)    = xv1(j)*c1e3
+  xv2(j)    = xv2(j)*c1e3
+  yv1(j)    = yv1(j)*c1e3
+  yv2(j)    = yv2(j)*c1e3
   ejfv(j)   = ejfv(j)*c1e3
   nucm(j)   = nucm(j)*c1e3
   sigmv(j)  = -(e0f/e0)*((dt(j)*clight)*c1e3)
@@ -300,7 +302,7 @@ subroutine dist_echoDist
   write(dist_echoUnit,"(a)")          "#"
   write(dist_echoUnit,"(a)")          "# x[mm], y[mm], xp[mrad], yp[mrad], sigmv[mm], ejfv[MeV/c]"
   do j=1, napx
-    write(dist_echoUnit,"(6(1x,1pe25.18))") xv(1,j), yv(1,j), xv(2,j), yv(2,j), sigmv(j), ejfv(j)
+    write(dist_echoUnit,"(6(1x,1pe25.18))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejfv(j)
   end do
   close(dist_echoUnit)
 

@@ -3562,10 +3562,10 @@ end subroutine join
 
                if(ntwin.ne.2) then !Write particle nlostp(ia) only
                   dam_tmp      = real(dam(ia),   real64)
-                  xv_tmp(1,1)  = real(xv(1,ia),  real64)
-                  yv_tmp(1,1)  = real(yv(1,ia),  real64)
-                  xv_tmp(2,1)  = real(xv(2,ia),  real64)
-                  yv_tmp(2,1)  = real(yv(2,ia),  real64)
+                  xv_tmp(1,1)  = real(xv1(ia),  real64)
+                  yv_tmp(1,1)  = real(yv1(ia),  real64)
+                  xv_tmp(2,1)  = real(xv2(ia),  real64)
+                  yv_tmp(2,1)  = real(yv2(ia),  real64)
                   sigmv_tmp(1) = real(sigmv(ia), real64)
                   dpsv_tmp(1)  = real(dpsv(ia),  real64)
                   e0_tmp       = real(e0,        real64)
@@ -3597,17 +3597,17 @@ end subroutine join
                     ! is written twice.
                   dam_tmp      = real(dam(ia),   real64)
 
-                  xv_tmp(1,1)  = real(xv(1,ia),  real64)
-                  yv_tmp(1,1)  = real(yv(1,ia),  real64)
-                  xv_tmp(2,1)  = real(xv(2,ia),  real64)
-                  yv_tmp(2,1)  = real(yv(2,ia),  real64)
+                  xv_tmp(1,1)  = real(xv1(ia),  real64)
+                  yv_tmp(1,1)  = real(yv1(ia),  real64)
+                  xv_tmp(2,1)  = real(xv2(ia),  real64)
+                  yv_tmp(2,1)  = real(yv2(ia),  real64)
                   sigmv_tmp(1) = real(sigmv(ia), real64)
                   dpsv_tmp(1)  = real(dpsv(ia),  real64)
 
-                  xv_tmp(1,2)  = real(xv(1,ie),  real64)
-                  yv_tmp(1,2)  = real(yv(1,ie),  real64)
-                  xv_tmp(2,2)  = real(xv(2,ie),  real64)
-                  yv_tmp(2,2)  = real(yv(2,ie),  real64)
+                  xv_tmp(1,2)  = real(xv1(ie),  real64)
+                  yv_tmp(1,2)  = real(yv1(ie),  real64)
+                  xv_tmp(2,2)  = real(xv2(ie),  real64)
+                  yv_tmp(2,2)  = real(yv2(ie),  real64)
                   sigmv_tmp(2) = real(sigmv(ie), real64)
                   dpsv_tmp(2)  = real(dpsv(ie),  real64)
 

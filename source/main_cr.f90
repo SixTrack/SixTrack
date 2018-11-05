@@ -1303,19 +1303,18 @@ end interface
           x2(3) = zero
           x2(4) = zero
         end if
-        do l=1,2
-          ll = (l-1)*2
-          xv(l,i3) = x2(1+ll)+exz(i2,1+ll)
-          yv(l,i3) = x2(2+ll)+exz(i2,2+ll)
-        end do
+        xv1(i3)   = x2(1)+exz(i2,1)
+        yv1(i3)   = x2(2)+exz(i2,2)
+        xv2(i3)   = x2(3)+exz(i2,3)
+        yv2(i3)   = x2(4)+exz(i2,4)
         sigmv(i3) = x2(5)+exz(i2,5)
         dpsv(i3)  = x2(6)
         dpsic     = dpsv(i3)+clop6v(3,ia)
         if(idp == 1 .and. abs(ition) == 1 .and. iclo6 == 0) then
-          xv(1,i3) = xv(1,i3) + di0xs(ia)*dpsic
-          xv(2,i3) = xv(2,i3) + di0zs(ia)*dpsic
-          yv(1,i3) = yv(1,i3) + dip0xs(ia)*dpsic
-          yv(2,i3) = yv(2,i3) + dip0zs(ia)*dpsic
+          xv1(i3) = xv1(i3) + di0xs(ia)*dpsic
+          xv2(i3) = xv2(i3) + di0zs(ia)*dpsic
+          yv1(i3) = yv1(i3) + dip0xs(ia)*dpsic
+          yv2(i3) = yv2(i3) + dip0zs(ia)*dpsic
         end if
         chi = chi+dchi
       end do
@@ -1327,8 +1326,8 @@ end interface
 
       if(st_quiet == 0) then
         write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
-        write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia), &
-          xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1)
+        write(lout,10060) xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
+          xv1(ia+1),yv1(ia+1),xv2(ia+1),yv2(ia+1),sigmv(ia+1),dpsv(ia+1)
         write(lout,10020) ampv(ia),amp(2),epsa
       end if
     end do
@@ -1344,17 +1343,17 @@ end interface
 
   do ia=1,napx,2
     if(.not.dist_enable .and. st_quiet == 0) then
-      write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),xv(1,ia+1),&
-        yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
+      write(lout,10090) xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia),xv1(ia+1),&
+        yv1(ia+1),xv2(ia+1),yv2(ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
     end if
     idam  = 3
     icode = 0
-    if(abs(xv(1,ia)) <= pieni .and. abs(yv(1,ia)) <= pieni) then
+    if(abs(xv1(ia)) <= pieni .and. abs(yv1(ia)) <= pieni) then
       idam  = idam-1
     else
       icode = icode+1
     endif
-    if(abs(xv(2,ia)) <= pieni .and. abs(yv(2,ia)) <= pieni) then
+    if(abs(xv2(ia)) <= pieni .and. abs(yv2(ia)) <= pieni) then
       idam  = idam-1
     else
       icode = icode+2
@@ -1369,16 +1368,16 @@ end interface
     ia2 = (ia+1)/2
     if(ntwin /= 2) then
       if(mod(ia+1,2) == 0) then
-        xau(1,1) = xv(1,ia)
-        xau(1,2) = yv(1,ia)
-        xau(1,3) = xv(2,ia)
-        xau(1,4) = yv(2,ia)
+        xau(1,1) = xv1(ia)
+        xau(1,2) = yv1(ia)
+        xau(1,3) = xv2(ia)
+        xau(1,4) = yv2(ia)
         xau(1,5) = sigmv(ia)
         xau(1,6) = dpsv(ia)
-        xau(2,1) = xv(1,ia+1)
-        xau(2,2) = yv(1,ia+1)
-        xau(2,3) = xv(2,ia+1)
-        xau(2,4) = yv(2,ia+1)
+        xau(2,1) = xv1(ia+1)
+        xau(2,2) = yv1(ia+1)
+        xau(2,3) = xv2(ia+1)
+        xau(2,4) = yv2(ia+1)
         xau(2,5) = sigmv(ia+1)
         xau(2,6) = dpsv(ia+1)
         cloau(1) = clo6v(1,ia)
@@ -1682,9 +1681,9 @@ end interface
             write(lout,10241) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
           end if
           write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          if(st_quiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+          if(st_quiet==0) write(lout,10280) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
-          write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+          write(12,10280,iostat=ierro) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
           if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output, probably due to lost particle ",ie
         end if
@@ -1698,9 +1697,9 @@ end interface
             write(lout,10241) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
           end if
           if(st_quiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
-            xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
+            xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
           write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
-            xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
+            xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
           if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output, probably due to lost particle ",ia
         end if
 
@@ -1712,10 +1711,10 @@ end interface
           else if(st_quiet == 1) then
             write(lout,10271) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
           end if
-          if(st_quiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
-            xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
-          write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
-            xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
+          if(st_quiet==0) write(lout,10280) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
+            xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
+          write(12,10280,iostat=ierro) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
+            xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
           if(ierro.ne.0) write(lout,"(a)") "MAINCR> WARNING fort.12 has corrupted output, although particles are stable"
           id=ig
         end if
@@ -1737,7 +1736,7 @@ end interface
         do ia=1,napxo
           if(.not.pstop(ia)) then
             write(lout,10370) fluka_uid(ia),fluka_gen(ia),fluka_weight(ia), &
-              xv(1,ia)*c1m3, yv(1,ia)*c1m3, xv(2,ia)*c1m3, yv(2,ia)*c1m3, &
+              xv1(ia)*c1m3, yv1(ia)*c1m3, xv2(ia)*c1m3, yv2(ia)*c1m3, &
               ejfv(ia)*c1m3,(ejv(ia)-e0)*c1e6,-c1m3*(sigmv(ia)/clight)*(e0/e0f)
           end if
         end do

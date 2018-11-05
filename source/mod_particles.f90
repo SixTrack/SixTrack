@@ -34,17 +34,17 @@ subroutine part_applyClosedOrbit
   integer j
 
   if(iclo6 == 2) then
-    xv(1,1:napx)  = xv(1,1:napx)  +  clo6v(1,1:napx)
-    yv(1,1:napx)  = yv(1,1:napx)  + clop6v(1,1:napx)
-    xv(2,1:napx)  = xv(2,1:napx)  +  clo6v(2,1:napx)
-    yv(2,1:napx)  = yv(2,1:napx)  + clop6v(2,1:napx)
+    xv1(1:napx)   = xv1(1:napx)   +  clo6v(1,1:napx)
+    yv1(1:napx)   = yv1(1:napx)   + clop6v(1,1:napx)
+    xv2(1:napx)   = xv2(1:napx)   +  clo6v(2,1:napx)
+    yv2(1:napx)   = yv2(1:napx)   + clop6v(2,1:napx)
     sigmv(1:napx) = sigmv(1:napx) +  clo6v(3,1:napx)
     dpsv(1:napx)  = dpsv(1:napx)  + clop6v(3,1:napx)
   else if(idfor == 0) then
-    xv(1,1:napx)  = xv(1,1:napx)  +   clov(1,1:napx) * real(idz(1),fPrec)
-    yv(1,1:napx)  = yv(1,1:napx)  +  clopv(1,1:napx) * real(idz(1),fPrec)
-    xv(2,1:napx)  = xv(2,1:napx)  +   clov(2,1:napx) * real(idz(2),fPrec)
-    yv(2,1:napx)  = yv(2,1:napx)  +  clopv(2,1:napx) * real(idz(2),fPrec)
+    xv1(1:napx)   = xv1(1:napx)   +   clov(1,1:napx) * real(idz(1),fPrec)
+    yv1(1:napx)   = yv1(1:napx)   +  clopv(1,1:napx) * real(idz(1),fPrec)
+    xv2(1:napx)   = xv2(1:napx)   +   clov(2,1:napx) * real(idz(2),fPrec)
+    yv2(1:napx)   = yv2(1:napx)   +  clopv(2,1:napx) * real(idz(2),fPrec)
   end if
   call part_updatePartEnergy(3)
 
