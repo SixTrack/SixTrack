@@ -967,7 +967,7 @@ subroutine collimate_init()
   if(h5_useForCOLL) call h5_initForCollimation
 #endif
 
-#ifdef G4COLLIMAT
+#ifdef G4COLLIMATION
 ! These should be configured in the scatter block when possible/enabled
   real(kind=fPrec) g4_ecut
   integer g4_physics
@@ -1369,7 +1369,7 @@ subroutine collimate_init()
   call collimate_init_merlin
 #endif
 
-#ifdef G4COLLIMAT
+#ifdef G4COLLIMATION
 !! This function lives in the G4Interface.cpp file in the g4collimat folder
 !! Accessed by linking libg4collimat.a
 !! Set the energy cut at 70% - i.e. 30% energy loss
@@ -1560,7 +1560,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 2)  call chr_cast(lnSPlit(3), pencil_rmsx,  iErr)
     if(nSplit > 3)  call chr_cast(lnSPlit(4), pencil_rmsy,  iErr)
     if(nSplit > 4)  call chr_cast(lnSPlit(5), pencil_distr, iErr)
-#ifdef G4COLLIMAT
+#ifdef G4COLLIMATION
     if(ipencil > 0) then
       write(lout,"(a)") "COLL> ERROR Pencil distribution not supported with geant4"
       iErr = .true.
@@ -2442,7 +2442,7 @@ subroutine collimate_do_collimator(stracki)
 
   real(kind=fPrec), intent(in) :: stracki
 
-#ifdef G4COLLIMAT
+#ifdef G4COLLIMATION
   integer g4_lostc
   integer :: part_hit_flag = 0
   integer :: part_abs_flag = 0
@@ -3080,7 +3080,7 @@ subroutine collimate_do_collimator(stracki)
       else !if(n_slices.gt.one .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and.
 !     Treatment of non-sliced collimators
 
-#ifdef G4COLLIMAT
+#ifdef G4COLLIMATION
 !! Add the geant4 geometry
         if(firstrun.and.iturn.eq.1) then
           call g4_add_collimator(db_name1(icoll), c_material, c_length, c_aperture, c_rotation, c_offset)
@@ -3151,7 +3151,7 @@ subroutine collimate_do_collimator(stracki)
         end do   !do j = 1, napx
 !      write(lout,*) 'COLLIMATOR LOSSES ', db_name1(icoll), g4_lostc
 #endif
-#ifndef G4COLLIMAT
+#ifndef G4COLLIMATION
 ! This is what is called in a normal collimation run
                   call collimate2(c_material, c_length, c_rotation,     &
      &                 c_aperture, c_offset, c_tilt,                    &
@@ -3939,7 +3939,7 @@ subroutine collimate_exit()
   close(orbitchecking_unit)
   close(CollPositions_unit)
 
-#ifdef G4COLLIMAT
+#ifdef G4COLLIMATION
   call g4_terminate()
 #endif
 

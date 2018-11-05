@@ -93,7 +93,7 @@ OPTION(DEBUG "Debugging output" OFF)
 OPTION(HDF5 "Adds support for the HDF5 block which enables writing output to a single HDF5 file." OFF)
 OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output" OFF)
 OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
-OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
+OPTION(G4COLLIMATION "Interaction physics for collimation from Geant4" OFF)
 OPTION(FLUKA "Couple to FLUKA for beam collimation" OFF)
 OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
 OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
@@ -192,9 +192,9 @@ endif()
 if(MERLINSCATTER)
   SET(SIXTRACK_FEAT_CR "merlinscatter_${SIXTRACK_FEAT_CR}")
 endif()
-if(G4COLLIMAT)
+if(G4COLLIMATION)
   SET(SIXTRACK_FEAT_CR "g4collimat_${SIXTRACK_FEAT_CR}")
-endif()
+endif(G4COLLIMATION)
 if(FLUKA)
   SET(SIXTRACK_FEAT_CR "FLUKA_${SIXTRACK_FEAT_CR}")
 endif(FLUKA)
@@ -265,7 +265,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR)
+LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMATION FLUKA CR)
 LIST(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
 LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
@@ -349,7 +349,7 @@ endif(LIBARCHIVE OR HDF5)
 # Checking if some requested packages exist
 ###################################################################################################
 
-if(G4COLLIMAT)
+if(G4COLLIMATION)
   if(STATIC)
     find_package(Geant4 REQUIRED static)
   else()
@@ -363,7 +363,7 @@ if(G4COLLIMAT)
   message(STATUS "Geant4 definitions: ${Geant4_DEFINITIONS}")
 #	include(${Geant4_USE_FILE})
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/g4collimat)
-endif(G4COLLIMAT)
+endif(G4COLLIMATION)
 
 ##Possible check for Root
 if(ROOT)
@@ -380,14 +380,14 @@ if(ROOT)
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/root_output)
 endif(ROOT)
 
-if(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMAT OR CERNLIB)
+if(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMATION OR CERNLIB)
 
   find_package(Threads REQUIRED)
   if(NOT Threads_FOUND)
     message(FATAL_ERROR "Could not find a thread library! This is required for your selected build configuration.")
   endif(NOT Threads_FOUND)
 
-endif(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMAT OR CERNLIB)
+endif(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMATION OR CERNLIB)
 
 ###################################################################################################
 # Checking if requested options are compatible
@@ -438,9 +438,9 @@ if(FLUKA)
     set(SIXDA OFF)
   endif()
 endif()
-if(G4COLLIMAT)
+if(G4COLLIMATION)
   if(SIXDA)
-    message(STATUS "Will not build SixDA when G4COLLIMAT is enabled.")
+    message(STATUS "Will not build SixDA when G4COLLIMATION is enabled.")
     set(SIXDA OFF)
   endif()
 endif()
@@ -1150,9 +1150,9 @@ if(HDF5)
   target_link_libraries(SixTrackLib ${HDF5_LIBRARIES})
 endif(HDF5)
 
-if(G4COLLIMAT)
-  target_link_libraries(SixTrackCR g4collimat ${Geant4_LIBRARIES} Threads::Threads)
-endif(G4COLLIMAT)
+if(G4COLLIMATION)
+  target_link_libraries(SixTrackCR g4collimation ${Geant4_LIBRARIES} Threads::Threads)
+endif(G4COLLIMATION)
 
 IF(COVERAGE)
   target_compile_options(SixTrackLib PRIVATE -fprofile-arcs -ftest-coverage)
