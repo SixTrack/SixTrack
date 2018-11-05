@@ -857,16 +857,16 @@ subroutine dump_initialise
           setFields(7)  = h5_dataField(name="Y",      type=h5_typeReal)
           setFields(8)  = h5_dataField(name="YP",     type=h5_typeReal)
           setFields(9)  = h5_dataField(name="SIGMA",  type=h5_typeReal)
-          setFields(10) = h5_dataField(name="(E-E0)/E0",   type=h5_typeReal)
+          setFields(10) = h5_dataField(name="DELTAE",   type=h5_typeReal) !(E-E0)/E0
           setFields(11) = h5_dataField(name="E",      type=h5_typeReal)
           setFields(12) = h5_dataField(name="PC",     type=h5_typeReal)
-          setFields(13) = h5_dataField(name="BETA0/BETA",     type=h5_typeReal)
-          setFields(14) = h5_dataField(name="(P-P0)/P0",   type=h5_typeReal)
-          setFields(14) = h5_dataField(name="1000*(P-P0)/P0",   type=h5_typeReal)
+          setFields(13) = h5_dataField(name="RVV",     type=h5_typeReal)!BETA0/BETA
+          setFields(14) = h5_dataField(name="DELTA",   type=h5_typeReal)!(P-P0)/P0
+          setFields(14) = h5_dataField(name="DELTA1000",   type=h5_typeReal)!1000*(P-P0)/P0
           setFields(15) = h5_dataField(name="P0/P",   type=h5_typeReal)
           setFields(16) = h5_dataField(name="MASS",   type=h5_typeReal)
           setFields(17) = h5_dataField(name="CHARGE", type=h5_typeReal)
-          setFields(18) = h5_dataField(name="(CHARGE/CHARGE0)*(MASS0/MASS)", type=h5_typeReal)
+          setFields(18) = h5_dataField(name="MTC", type=h5_typeReal)!(CHARGE/CHARGE0)*(MASS0/MASS)
           setFields(19) = h5_dataField(name="MASS0",  type=h5_typeReal)
           setFields(20) = h5_dataField(name="CHARGE0",type=h5_typeReal)
           setFields(21) = h5_dataField(name="ENERGY0",type=h5_typeReal)
@@ -967,10 +967,10 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     end if
     if(lhighprec) then
       do j=1,napx
-        call chr_fromReal(xv(1,j)*c1m3,                    xyz_h(1),19,2,rErr)
-        call chr_fromReal(yv(1,j)*c1m3,                    xyz_h(2),19,2,rErr)
-        call chr_fromReal(xv(2,j)*c1m3,                    xyz_h(3),19,2,rErr)
-        call chr_fromReal(yv(2,j)*c1m3,                    xyz_h(4),19,2,rErr)
+        call chr_fromReal(xv1(j)*c1m3,                    xyz_h(1),19,2,rErr)
+        call chr_fromReal(yv1(j)*c1m3,                    xyz_h(2),19,2,rErr)
+        call chr_fromReal(xv2(j)*c1m3,                    xyz_h(3),19,2,rErr)
+        call chr_fromReal(yv2(j)*c1m3,                    xyz_h(4),19,2,rErr)
         call chr_fromReal(ejfv(j)*c1m3,                    xyz_h(5),19,2,rErr)
         call chr_fromReal((ejv(j)-e0)*c1e6,                xyz_h(6),19,2,rErr)
         call chr_fromReal(-c1m3*(sigmv(j)/clight)*(e0/e0f),xyz_h(7),19,2,rErr)
@@ -979,10 +979,10 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
       end do
     else
       do j=1,napx
-        call chr_fromReal(xv(1,j)*c1m3,                    xyz_l(1),10,2,rErr)
-        call chr_fromReal(yv(1,j)*c1m3,                    xyz_l(2),10,2,rErr)
-        call chr_fromReal(xv(2,j)*c1m3,                    xyz_l(3),10,2,rErr)
-        call chr_fromReal(yv(2,j)*c1m3,                    xyz_l(4),10,2,rErr)
+        call chr_fromReal(xv1(j)*c1m3,                    xyz_l(1),10,2,rErr)
+        call chr_fromReal(yv1(j)*c1m3,                    xyz_l(2),10,2,rErr)
+        call chr_fromReal(xv2(j)*c1m3,                    xyz_l(3),10,2,rErr)
+        call chr_fromReal(yv2(j)*c1m3,                    xyz_l(4),10,2,rErr)
         call chr_fromReal(ejfv(j)*c1m3,                    xyz_l(5),10,2,rErr)
         call chr_fromReal((ejv(j)-e0)*c1e6,                xyz_l(6),10,2,rErr)
         call chr_fromReal(-c1m3*(sigmv(j)/clight)*(e0/e0f),xyz_l(7),10,2,rErr)
@@ -1018,10 +1018,10 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
       call h5_writeData(dump_hdf5DataSet(ix), 1, napx, nlostp)
       call h5_writeData(dump_hdf5DataSet(ix), 2, napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3, napx, localDcum)
-      call h5_writeData(dump_hdf5DataSet(ix), 4, napx, xv(1,:))
-      call h5_writeData(dump_hdf5DataSet(ix), 5, napx, yv(1,:))
-      call h5_writeData(dump_hdf5DataSet(ix), 6, napx, xv(2,:))
-      call h5_writeData(dump_hdf5DataSet(ix), 7, napx, yv(2,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 4, napx, xv1(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 5, napx, yv1(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 6, napx, xv2(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 7, napx, yv2(:))
       call h5_writeData(dump_hdf5DataSet(ix), 8, napx, (ejv-e0)/e0)
       call h5_writeData(dump_hdf5DataSet(ix), 9, napx, localKtrack)
       call h5_finaliseWrite(dump_hdf5DataSet(ix))
@@ -1029,20 +1029,20 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #endif
       if(lhighprec) then
         do j=1,napx
-          call chr_fromReal(xv(1,j),       xyz_h(1),19,2,rErr)
-          call chr_fromReal(yv(1,j),       xyz_h(2),19,2,rErr)
-          call chr_fromReal(xv(2,j),       xyz_h(3),19,2,rErr)
-          call chr_fromReal(yv(2,j),       xyz_h(4),19,2,rErr)
+          call chr_fromReal(xv1(j),       xyz_h(1),19,2,rErr)
+          call chr_fromReal(yv1(j),       xyz_h(2),19,2,rErr)
+          call chr_fromReal(xv2(j),       xyz_h(3),19,2,rErr)
+          call chr_fromReal(yv2(j),       xyz_h(4),19,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_h(5),19,2,rErr)
           write(unit,"(2(1x,i8),1x,f12.5,5(1x,a25),1x,i8)") nlostp(j),nturn,localDcum, &
             xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),localKtrack
         end do
       else
         do j=1,napx
-          call chr_fromReal(xv(1,j),       xyz_l(1),10,2,rErr)
-          call chr_fromReal(yv(1,j),       xyz_l(2),10,2,rErr)
-          call chr_fromReal(xv(2,j),       xyz_l(3),10,2,rErr)
-          call chr_fromReal(yv(2,j),       xyz_l(4),10,2,rErr)
+          call chr_fromReal(xv1(j),       xyz_l(1),10,2,rErr)
+          call chr_fromReal(yv1(j),       xyz_l(2),10,2,rErr)
+          call chr_fromReal(xv2(j),       xyz_l(3),10,2,rErr)
+          call chr_fromReal(yv2(j),       xyz_l(4),10,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_l(5),10,2,rErr)
           write(unit,"(2(1x,i8),1x,f12.5,5(1x,a16),1x,i8)") nlostp(j),nturn,localDcum, &
             xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),localKtrack
@@ -1077,10 +1077,10 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
       call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)
       call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
-      call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv(1,:))
-      call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, yv(1,:))
-      call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, xv(2,:))
-      call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, yv(2,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv1(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, yv1(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, xv2(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, yv2(:))
       call h5_writeData(dump_hdf5DataSet(ix), 8,  napx, sigmv)
       call h5_writeData(dump_hdf5DataSet(ix), 9,  napx, (ejv-e0)/e0)
       call h5_writeData(dump_hdf5DataSet(ix), 10, napx, localKtrack)
@@ -1089,10 +1089,10 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #endif
       if(lhighprec) then
         do j=1,napx
-          call chr_fromReal(xv(1,j),       xyz_h(1),19,2,rErr)
-          call chr_fromReal(yv(1,j),       xyz_h(2),19,2,rErr)
-          call chr_fromReal(xv(2,j),       xyz_h(3),19,2,rErr)
-          call chr_fromReal(yv(2,j),       xyz_h(4),19,2,rErr)
+          call chr_fromReal(xv1(j),       xyz_h(1),19,2,rErr)
+          call chr_fromReal(yv1(j),       xyz_h(2),19,2,rErr)
+          call chr_fromReal(xv2(j),       xyz_h(3),19,2,rErr)
+          call chr_fromReal(yv2(j),       xyz_h(4),19,2,rErr)
           call chr_fromReal(sigmv(j),      xyz_h(5),19,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_h(6),19,2,rErr)
           write(unit,"(2(1x,i8),1x,f12.5,6(1x,a25),1x,i8)") nlostp(j),nturn,localDcum,&
@@ -1100,10 +1100,10 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
         end do
       else
         do j=1,napx
-          call chr_fromReal(xv(1,j),       xyz_l(1),10,2,rErr)
-          call chr_fromReal(yv(1,j),       xyz_l(2),10,2,rErr)
-          call chr_fromReal(xv(2,j),       xyz_l(3),10,2,rErr)
-          call chr_fromReal(yv(2,j),       xyz_l(4),10,2,rErr)
+          call chr_fromReal(xv1(j),       xyz_l(1),10,2,rErr)
+          call chr_fromReal(yv1(j),       xyz_l(2),10,2,rErr)
+          call chr_fromReal(xv2(j),       xyz_l(3),10,2,rErr)
+          call chr_fromReal(yv2(j),       xyz_l(4),10,2,rErr)
           call chr_fromReal(sigmv(j),      xyz_l(5),10,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_l(6),10,2,rErr)
           write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16),1x,i8)") nlostp(j),nturn,localDcum,&
@@ -1139,10 +1139,10 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
       call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)
       call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
-      call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv(1,:))
-      call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, yv(1,:))
-      call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, xv(2,:))
-      call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, yv(2,:))
+      call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv1(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, yv1(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, xv2(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, yv2(:))
       call h5_writeData(dump_hdf5DataSet(ix), 8,  napx, sigmv)
       call h5_writeData(dump_hdf5DataSet(ix), 9,  napx, (ejv-e0)/e0)
       call h5_writeData(dump_hdf5DataSet(ix), 10, napx, localKtrack)
@@ -1150,7 +1150,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     else
 #endif
       do j=1,napx
-        write(unit) nlostp(j),nturn,localDcum,xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
+        write(unit) nlostp(j),nturn,localDcum,xv1(j),yv1(j),xv2(j),yv2(j), &
           sigmv(j),(ejv(j)-e0)/e0,localKtrack
       end do
 
@@ -1176,10 +1176,10 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     end if
     xyz(:) = zero
     do j=1,napx
-      xyz(1) = xyz(1) + xv(1,j)
-      xyz(2) = xyz(2) + yv(1,j)
-      xyz(3) = xyz(3) + xv(2,j)
-      xyz(4) = xyz(4) + yv(2,j)
+      xyz(1) = xyz(1) + xv1(j)
+      xyz(2) = xyz(2) + yv1(j)
+      xyz(3) = xyz(3) + xv2(j)
+      xyz(4) = xyz(4) + yv2(j)
       xyz(5) = xyz(5) + sigmv(j)
       xyz(6) = xyz(6) + (ejv(j)-e0)/e0
     end do
@@ -1251,35 +1251,35 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
         xyz_particle(6)=(ejv(j)-e0)/e0
 
         ! Average beam position
-        xyz(1) = xyz(1) + xv(1,j)
-        xyz(2) = xyz(2) + yv(1,j)
-        xyz(3) = xyz(3) + xv(2,j)
-        xyz(4) = xyz(4) + yv(2,j)
+        xyz(1) = xyz(1) + xv1(j)
+        xyz(2) = xyz(2) + yv1(j)
+        xyz(3) = xyz(3) + xv2(j)
+        xyz(4) = xyz(4) + yv2(j)
         xyz(5) = xyz(5) + sigmv(j)
         xyz(6) = xyz(6) + xyz_particle(6)
 
         ! Beam matrix (don't calulate identical elements twice (symmetry))
-        xyz2(1,1) = xyz2(1,1) + xv(1,j)*xv(1,j)
-        xyz2(2,1) = xyz2(2,1) + xv(1,j)*yv(1,j)
-        xyz2(3,1) = xyz2(3,1) + xv(1,j)*xv(2,j)
-        xyz2(4,1) = xyz2(4,1) + xv(1,j)*yv(2,j)
-        xyz2(5,1) = xyz2(5,1) + xv(1,j)*sigmv(j)
-        xyz2(6,1) = xyz2(6,1) + xv(1,j)*xyz_particle(6)
+        xyz2(1,1) = xyz2(1,1) + xv1(j)*xv1(j)
+        xyz2(2,1) = xyz2(2,1) + xv1(j)*yv1(j)
+        xyz2(3,1) = xyz2(3,1) + xv1(j)*xv2(j)
+        xyz2(4,1) = xyz2(4,1) + xv1(j)*yv2(j)
+        xyz2(5,1) = xyz2(5,1) + xv1(j)*sigmv(j)
+        xyz2(6,1) = xyz2(6,1) + xv1(j)*xyz_particle(6)
 
-        xyz2(2,2) = xyz2(2,2) + yv(1,j)*yv(1,j)
-        xyz2(3,2) = xyz2(3,2) + yv(1,j)*xv(2,j)
-        xyz2(4,2) = xyz2(4,2) + yv(1,j)*yv(2,j)
-        xyz2(5,2) = xyz2(5,2) + yv(1,j)*sigmv(j)
-        xyz2(6,2) = xyz2(6,2) + yv(1,j)*xyz_particle(6)
+        xyz2(2,2) = xyz2(2,2) + yv1(j)*yv1(j)
+        xyz2(3,2) = xyz2(3,2) + yv1(j)*xv2(j)
+        xyz2(4,2) = xyz2(4,2) + yv1(j)*yv2(j)
+        xyz2(5,2) = xyz2(5,2) + yv1(j)*sigmv(j)
+        xyz2(6,2) = xyz2(6,2) + yv1(j)*xyz_particle(6)
 
-        xyz2(3,3) = xyz2(3,3) + xv(2,j)*xv(2,j)
-        xyz2(4,3) = xyz2(4,3) + xv(2,j)*yv(2,j)
-        xyz2(5,3) = xyz2(5,3) + xv(2,j)*sigmv(j)
-        xyz2(6,3) = xyz2(6,3) + xv(2,j)*xyz_particle(6)
+        xyz2(3,3) = xyz2(3,3) + xv2(j)*xv2(j)
+        xyz2(4,3) = xyz2(4,3) + xv2(j)*yv2(j)
+        xyz2(5,3) = xyz2(5,3) + xv2(j)*sigmv(j)
+        xyz2(6,3) = xyz2(6,3) + xv2(j)*xyz_particle(6)
 
-        xyz2(4,4) = xyz2(4,4) + yv(2,j)*yv(2,j)
-        xyz2(5,4) = xyz2(5,4) + yv(2,j)*sigmv(j)
-        xyz2(6,4) = xyz2(6,4) + yv(2,j)*xyz_particle(6)
+        xyz2(4,4) = xyz2(4,4) + yv2(j)*yv2(j)
+        xyz2(5,4) = xyz2(5,4) + yv2(j)*sigmv(j)
+        xyz2(6,4) = xyz2(6,4) + yv2(j)*xyz_particle(6)
 
         xyz2(5,5) = xyz2(5,5) + sigmv(j)*sigmv(j)
         xyz2(6,5) = xyz2(6,5) + sigmv(j)*xyz_particle(6)
@@ -1289,10 +1289,10 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 
     else if (fmt == 6) then ! Canonical
       do j=1,napx
-        xyz_particle(1) = xv(1,j)*c1m3                 !x:      [mm]   -> [m]
-        xyz_particle(2) = (yv(1,j)*c1m3)*(one+dpsv(j)) !px:     [mrad] -> [1]
-        xyz_particle(3) = xv(2,j)*c1m3                 !y:      [mm]   -> [m]
-        xyz_particle(4) = (yv(2,j)*c1m3)*(one+dpsv(j)) !py:     [mrad] -> [1]
+        xyz_particle(1) = xv1(j)*c1m3                 !x:      [mm]   -> [m]
+        xyz_particle(2) = (yv1(j)*c1m3)*(one+dpsv(j)) !px:     [mrad] -> [1]
+        xyz_particle(3) = xv2(j)*c1m3                 !y:      [mm]   -> [m]
+        xyz_particle(4) = (yv2(j)*c1m3)*(one+dpsv(j)) !py:     [mrad] -> [1]
         xyz_particle(5) = sigmv(j)*c1m3                !sigma:  [mm]   -> [m]
         xyz_particle(6) = (((ejv(j)-e0)*e0)/e0f)/e0f   !psigma: [MeV]  -> [1]
 
@@ -1491,10 +1491,10 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 
     ! normalize particle coordinates
     do j=1,napx
-      xyz_particle(1) = xv(1,j)
-      xyz_particle(2) = yv(1,j)
-      xyz_particle(3) = xv(2,j)
-      xyz_particle(4) = yv(2,j)
+      xyz_particle(1) = xv1(j)
+      xyz_particle(2) = yv1(j)
+      xyz_particle(3) = xv2(j)
+      xyz_particle(4) = yv2(j)
       xyz_particle(5) = sigmv(j)
       xyz_particle(6) = (ejv(j)-e0)/e0
       ! Remove closed orbit -> check units used in dumpclo (is x' or px used?)
@@ -1735,15 +1735,18 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
       call h5_writeData(dump_hdf5DataSet(ix), 20, napx, nucm0) !MASS0
       call h5_writeData(dump_hdf5DataSet(ix), 21, napx, e0) ! E0
       call h5_writeData(dump_hdf5DataSet(ix), 22, napx, e0f) ! P0C
+
       call h5_finaliseWrite(dump_hdf5DataSet(ix))
     else
 #endif
       do j=1,napx
+
         write(unit) nlostp(j),nturn, localKtrack, localDcum, &
                     xv(1,j),yv(1,j),xv(2,j),yv(2,j), &
                     sigmv(j),(ejv(j)-e0)/e0, rvv(j), &
                     ejv(j), ejfv(j), rvv(j), dpsv(j), oidpsv(j), &
                     nucm(j), nzz(j), mtc(j), zz0, nucm0, e0, e0f
+
       end do
 
       ! Flush

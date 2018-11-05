@@ -86,7 +86,7 @@ subroutine dumpxy(dumpname,n,i,k)
   save
 
   write(99,*) dumpname,'   Turn ',n,' Element ',i
-  write(99,*) (xv(1,j),j=1,k),(xv(2,j),j=1,k),(yv(1,j),j=1,k),(yv(2,j),j=1,k),&
+  write(99,*) (xv1(j),j=1,k),(xv2(j),j=1,k),(yv1(j),j=1,k),(yv2(j),j=1,k),&
     (sigmv(j),j=1,k),(ejv(j),j=1,k),(ejfv(j),j=1,k),(rvv(j),j=1,k),           &
     (dpsv(j),j=1,k),(dpsv1(j),j=1,k),(oidpsv(j),j=1,k)
   endfile (99,iostat=ierro)

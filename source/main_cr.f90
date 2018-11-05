@@ -72,7 +72,7 @@ program maincr
   use mod_alloc,      only : alloc_init
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
-  use read_input,     only : readFort33
+  use read_input,     only : readFort13, readFort33
 
 #ifdef FLUKA
   use mod_fluka
@@ -138,13 +138,6 @@ end interface
                                       !DANGER: If the len changes, CRCHECK will break.
 #ifdef BOINC
   character(len=256) filename
-#endif
-#ifdef CRLIBM
-  integer nchars
-  parameter (nchars=160)
-  character(len=nchars) ch
-  character(len=nchars+nchars) ch1
-  real(kind=fPrec) round_near
 #endif
 #ifdef FLUKA
   integer fluka_con
@@ -314,12 +307,10 @@ end interface
   ! Open Regular File Units
   call units_openUnit(unit=2, fileName="fort.2", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
   call units_openUnit(unit=3, fileName="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
-! call units_openUnit(unit=4, fileName="fort.4", formatted=.true., mode="w", err=fErr) ! Handled by mod_fluc
   call units_openUnit(unit=7, fileName="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
   call units_openUnit(unit=9, fileName="fort.9", formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=11,fileName="fort.11",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=12,fileName="fort.12",formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=13,fileName="fort.13",formatted=.true., mode="r", err=fErr) ! Should only be opened when reading
   call units_openUnit(unit=14,fileName="fort.14",formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=15,fileName="fort.15",formatted=.true., mode="w", err=fErr)
 ! call units_openUnit(unit=17,fileName="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use? Should mirror fort.16
@@ -1258,144 +1249,16 @@ end interface
 
       rat0=rat
 
+  ! Initial distribution creation
+  if(dist_enable) then
+    e0f=sqrt(e0**2-nucm0**2)
+    call dist_readDist
+    call dist_finaliseDist
+    if(dist_echo) call dist_echoDist
+  end if
 
-!----- Initial distribution creation
-
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 14-06-2014
-!     acquisition of initial distribution moved out of loop
-!     always in main code
-
-      if ( idfor.eq.3 ) then
-!       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!       last modified: 17-07-2013
-!       initialize particle distribution, read from file
-!       always in main code
-
-        if(.not. dist_enable) then
-          write(lout,"(a)") "MAINCR> ERROR idfor set to 3 but DIST block not present."
-          call prror(-1)
-        endif
-
-
-        e0f=sqrt(e0**2-nucm0**2)       ! hisix
-
-        call dist_readdis( napx, npart, e0, e0f, clight, xv(1,:), xv(2,:), yv(1,:), yv(2,:), sigmv(:), ejfv(:) &
-& ,naa(:), nzz(:), nucm(:) )      ! hisix
-
-!       finalise beam distribution creation
-        do j=1, napx
-!         values related to losses
-          nlostp(j) = j
-          pstop (j) = .false.
-
-!         values related to momentum
-!         old proton only terms:
-!          ejv   (j) = sqrt(ejfv(j)**2+pma**2)
-!          dpsv  (j) = (ejfv(j)-e0f)/e0f
-!          oidpsv(j) = one/(one+dpsv(j))
-
-          ejv   (j)   = sqrt(ejfv(j)**2+nucm(j)**2)              ! hiSix
-          dpsv  (j)   = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hiSix
-          oidpsv(j)   = one/(one+dpsv(j))
-          mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))
-          moidpsv (j) = mtc(j)*oidpsv(j)
-          omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
-
-!         check existence of on-momentum particles in the distribution
-          if ( abs(dpsv(j)).lt.c1m15 .or.  abs( (ejv(j)-e0)/e0 ) .lt.c1m15 ) then
-
-!           warning with old infos:
-            write(lout,*)''
-            write(lout,'(5X,A22)') 'on-momentum particle!!'
-            write(lout,'(5X,10X,4(1X,A25))') "momentum [MeV/c]","total energy [MeV]","Dp/p","1/(1+Dp/p)"
-            write(lout,'(5X,"ORIGINAL: ",4(1X,1PE25.18))') ejfv(j), ejv(j), dpsv(j), oidpsv(j)
-
-!            ejfv(j)   = e0f
-!            ejv(j)    = e0
-            ejfv(j)   = e0f*(nucm(j)/nucm0)          ! P. HERMES for hiSix
-            ejv(j)    = sqrt(ejfv(j)**2+nucm(j)**2)  ! P. HERMES for hiSix
-            dpsv(j)   = zero
-            oidpsv(j) = one
-
-!           warning with new infos:
-            write(lout,'(5X,"CORRECTED:",4(1X,1PE25.18))') ejfv(j), ejv(j), dpsv(j), oidpsv(j)
-            write(lout,*)''
-          endif
-        end do
-
-! hisix
-        write(lout,*) 'Heavy-Ion SixTrack'
-        write(lout,*) '------------------'
-        write(lout,*) 'Reference ion species: [A,Z,M]', aa0, zz0, nucm0
-        write(lout,*) 'Reference energy [Z TeV]: ', c1m6*e0/zz0
-
-! hisix - debugging
-!        write(lout,*) 'Properties of tracked ion bunch [A,Z,E(MeV)], etc'
-!        do j=1,napx
-!          write(lout,*) naa(j),nzz(j),e0f*(nucm(j)/nucm0), ejfv(j), mtc(j), dpsv(j), ejv(j)
-!        end do
-
-!       A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!       last modified: 07-02-2014
-!       in principle there is no need to fill in the unused places:
-!       - nlostp(j) = j        with j=1,npart    filled in trauthin/trauthck
-!       - pstop (j) = .false.  with j=1,npart    filled in maincr
-!       - ejv   (j) = zero     with j=1,npart    filled in maincr
-!       - dpsv  (j) = zero     with j=1,npart    filled in maincr
-!       - oidpsv(j) = one      with j=1,npart    filled in maincr
-!       nevertheless, let's do it, to be fully sure:
-        do j=napx+1,npart
-!         values related to losses
-          nlostp(j) = j
-          pstop (j) = .true.
-!         values related to momentum
-          ejv   (j) = zero
-          dpsv  (j) = zero
-          oidpsv(j) = one
-
-          mtc   (j) = one         ! P. HERMES for hiSix
-          naa   (j) = aa0
-          nzz   (j) = zz0
-          nucm  (j) = nucm0
-          moidpsv (j) = one
-          omoidpsv(j) = zero      ! P. HERMES for hiSix
-        enddo
-
-!       add closed orbit
-        if(iclo6.eq.2) then
-          do j=1, napx
-            xv(1,j)=xv(1,j)+clo6v(1,j)
-            yv(1,j)=yv(1,j)+clop6v(1,j)
-            xv(2,j)=xv(2,j)+clo6v(2,j)
-            yv(2,j)=yv(2,j)+clop6v(2,j)
-            sigmv(j)=sigmv(j)+clo6v(3,j)
-            dpsv(j)=dpsv(j)+clop6v(3,j)
-            oidpsv(j)=one/(one+dpsv(j))
-            moidpsv(j)=mtc(j)/(one+dpsv(j))
-            omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
-          end do
-        end if
-
-!       echo
-        if ( dist_echo ) then
-           open(unit=dist_echo_unit)
-           rewind(dist_echo_unit)
-           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " total energy of synch part [MeV]: ", e0
-           write(dist_echo_unit,'(" # ",A40,1PE25.18)') " momentum of synch part [MeV/c]: ", e0f
-           write(dist_echo_unit,*) '#'
-           write(dist_echo_unit,*) '# for every particle (j)'
-           write(dist_echo_unit,*) '# xv(1), yv(1), xv(2), yv(2), sigmv, ejfv'
-           do j = 1, napx
-             write(dist_echo_unit,'(6(1X,1PE25.18))') xv(1, j), yv(1, j), xv(2,j), yv(2,j), sigmv(j), ejfv(j)
-           end do
-           close(dist_echo_unit)
-        endif
-
-      endif
-
-      do 340 ia=1,napx,2
-        if(idfor.ne.2.and.idfor.ne.3) then
+      if(idfor.ne.2.and..not.dist_enable) then
+        do ia=1,napx,2
 !---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
           if(st_quiet==0) write(lout,10050)
           tasia56=tas(ia,5,6)*c1m3
@@ -1436,59 +1299,60 @@ end interface
               x2(3)=zero
               x2(4)=zero
             endif
-            do 310 l=1,2
-              ll=(l-1)*2
-              xv(l,i3)=x2(1+ll)+exz(i2,1+ll)
-              yv(l,i3)=x2(2+ll)+exz(i2,2+ll)
-  310       continue
+            ll=(1-1)*2
+            xv1(i3)=x2(1+ll)+exz(i2,1+ll)
+            yv1(i3)=x2(2+ll)+exz(i2,2+ll)
+            ll=(2-1)*2
+            xv2(i3)=x2(1+ll)+exz(i2,1+ll)
+            yv2(i3)=x2(2+ll)+exz(i2,2+ll)
             sigmv(i3)=x2(5)+exz(i2,5)
             dpsv(i3)=x2(6)
             dpsic=dpsv(i3)+clop6v(3,ia)
             if(idp.eq.1.and.abs(ition).eq.1.and.iclo6.eq.0) then
-              xv(1,i3)=xv(1,i3)+di0xs(ia)*dpsic
-              xv(2,i3)=xv(2,i3)+di0zs(ia)*dpsic
-              yv(1,i3)=yv(1,i3)+dip0xs(ia)*dpsic
-              yv(2,i3)=yv(2,i3)+dip0zs(ia)*dpsic
+              xv1(i3)=xv1(i3)+di0xs(ia)*dpsic
+              xv2(i3)=xv2(i3)+di0zs(ia)*dpsic
+              yv1(i3)=yv1(i3)+dip0xs(ia)*dpsic
+              yv2(i3)=yv2(i3)+dip0zs(ia)*dpsic
             endif
             chi=chi+dchi
   320     continue
           if(st_quiet==0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
           if(st_quiet == 0) then
-            write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia), &
-                              xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1)
+            write(lout,10060) xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
+                              xv1(ia+1),yv1(ia+1),xv2(ia+1),yv2(ia+1),sigmv(ia+1),dpsv(ia+1)
           end if
 !---------------------------------------  END OF 'ANFB'
           if(iclo6.eq.2) then
-            xv(1,ia)=xv(1,ia)+clo6v(1,ia)
-            yv(1,ia)=yv(1,ia)+clop6v(1,ia)
-            xv(2,ia)=xv(2,ia)+clo6v(2,ia)
-            yv(2,ia)=yv(2,ia)+clop6v(2,ia)
+            xv1(ia)=xv1(ia)+clo6v(1,ia)
+            yv1(ia)=yv1(ia)+clop6v(1,ia)
+            xv2(ia)=xv2(ia)+clo6v(2,ia)
+            yv2(ia)=yv2(ia)+clop6v(2,ia)
             sigmv(ia)=sigmv(ia)+clo6v(3,ia)
             dpsv(ia)=dpsv(ia)+clop6v(3,ia)
-            xv(1,ia+1)=xv(1,ia+1)+clo6v(1,ia)
-            yv(1,ia+1)=yv(1,ia+1)+clop6v(1,ia)
-            xv(2,ia+1)=xv(2,ia+1)+clo6v(2,ia)
-            yv(2,ia+1)=yv(2,ia+1)+clop6v(2,ia)
+            xv1(ia+1)=xv1(ia+1)+clo6v(1,ia)
+            yv1(ia+1)=yv1(ia+1)+clop6v(1,ia)
+            xv2(ia+1)=xv2(ia+1)+clo6v(2,ia)
+            yv2(ia+1)=yv2(ia+1)+clop6v(2,ia)
             sigmv(ia+1)=sigmv(ia+1)+clo6v(3,ia)
             dpsv(ia+1)=dpsv(ia+1)+clop6v(3,ia)
             oidpsv(ia)=one/(one+dpsv(ia))
             oidpsv(ia+1)=one/(one+dpsv(ia+1))
           else
-            xv(1,ia)=xv(1,ia)+(clov(1,ia)*real(idz(1),fPrec))*          &
+            xv1(ia)=xv1(ia)+(clov(1,ia)*real(idz(1),fPrec))*          &
      &real(1-idfor,fPrec)    !hr05
-            yv(1,ia)=yv(1,ia)+(clopv(1,ia)*real(idz(1),fPrec))*         &
+            yv1(ia)=yv1(ia)+(clopv(1,ia)*real(idz(1),fPrec))*         &
      &real(1-idfor,fPrec)   !hr05
-            xv(2,ia)=xv(2,ia)+(clov(2,ia)*real(idz(2),fPrec))*          &
+            xv2(ia)=xv2(ia)+(clov(2,ia)*real(idz(2),fPrec))*          &
      &real(1-idfor,fPrec)    !hr05
-            yv(2,ia)=yv(2,ia)+(clopv(2,ia)*real(idz(2),fPrec))*         &
+            yv2(ia)=yv2(ia)+(clopv(2,ia)*real(idz(2),fPrec))*         &
      &real(1-idfor,fPrec)   !hr05
-            xv(1,ia+1)=xv(1,ia+1)+(clov(1,ia)*real(idz(1),fPrec))*      &
+            xv1(ia+1)=xv1(ia+1)+(clov(1,ia)*real(idz(1),fPrec))*      &
      &real(1-idfor,fPrec)  !hr05
-            yv(1,ia+1)=yv(1,ia+1)+(clopv(1,ia)*real(idz(1),fPrec))*     &
+            yv1(ia+1)=yv1(ia+1)+(clopv(1,ia)*real(idz(1),fPrec))*     &
      &real(1-idfor,fPrec) !hr05
-            xv(2,ia+1)=xv(2,ia+1)+(clov(2,ia)*real(idz(2),fPrec))*      &
+            xv2(ia+1)=xv2(ia+1)+(clov(2,ia)*real(idz(2),fPrec))*      &
      &real(1-idfor,fPrec)  !hr05
-            yv(2,ia+1)=yv(2,ia+1)+(clopv(2,ia)*real(idz(2),fPrec))*     &
+            yv2(ia+1)=yv2(ia+1)+(clopv(2,ia)*real(idz(2),fPrec))*     &
      &real(1-idfor,fPrec) !hr05
           endif
           ejfv(ia)=e0f*(one+dpsv(ia))
@@ -1506,210 +1370,23 @@ end interface
           nucm(ia+1)=nucm0
 
           if(st_quiet==0) write(lout,10020) ampv(ia),amp(2),epsa
-        else if(idfor.eq.2) then
-#ifndef CRLIBM
-          read(13,*,iostat=ierro) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),  &
-     &sigmv(ia),dpsv(ia),xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv            &
-     &(2,ia+1), sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
-#endif
-#ifdef CRLIBM
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ xv(1,ia)]"
-             call prror(-1)
-          endif
-          xv(1,ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV xv(1,ia)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ yv(1,ia)]"
-             call prror(-1)
-          endif
-          yv(1,ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV yv(1,ia)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ xv(2,ia)]"
-             call prror(-1)
-          endif
-          xv(2,ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV xv(2,ia)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ yv(2,ia)]"
-             call prror(-1)
-          endif
-          yv(2,ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV yv(2,ia)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ sigmv(ia)]"
-             call prror(-1)
-          endif
-          sigmv(ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV sigmv(ia)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ dpsv(ia)]"
-             call prror(-1)
-          endif
-          dpsv(ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV dpsv(ia)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ xv(1,ia+1)]"
-             call prror(-1)
-          endif
-          xv(1,ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV xv(1,ia+1)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ yv(1,ia+1)]"
-             call prror(-1)
-          endif
-          yv(1,ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV yv(1,ia+1)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ xv(2,ia+1)]"
-             call prror(-1)
-          endif
-          xv(2,ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV xv(2,ia+1)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ yv(2,ia+1)]"
-             call prror(-1)
-          endif
-          yv(2,ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV yv(2,ia+1)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)                                              &
-     &            "Error when reading fort.13 [READ sigmv(ia+1)]"
-             call prror(-1)
-          endif
-          sigmv(ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)                                              &
-     &            "Error when reading fort.13 [CONV sigmv(ia+1)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)                                              &
-     &            "Error when reading fort.13 [READ dpsv(ia+1)]"
-             call prror(-1)
-          endif
-          dpsv(ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)                                              &
-     &            "Error when reading fort.13 [CONV dpsv(ia+1)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ e0]"
-             call prror(-1)
-          endif
-          e0 = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV e0]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ ejv(ia)]"
-             call prror(-1)
-          endif
-          ejv(ia) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV ejv(ia)]"
-             call prror(-1)
-          endif
-
-          read(13,'(a)', iostat=ierro) ch
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [READ ejv(ia+1)]"
-             call prror(-1)
-          endif
-          ejv(ia+1) = round_near(ierro,nchars,ch)
-          if(ierro.gt.0) then
-             write(lout,*)"Error when reading fort.13 [CONV ejv(ia+1)]"
-             call prror(-1)
-          endif
-
-#endif
-          if(ierro.ne.0) call prror(56)
-          mtc(ia)=one
-          mtc(ia+1)=one
-          nucm(ia)=nucm0
-          nucm(ia+1)=nucm0
-          e0f=sqrt(e0**2-nucm0**2)                                         !hr05
-          ejfv(ia)=sqrt(ejv(ia)**2-nucm(ia)**2)                               !hr05
-          ejfv(ia+1)=sqrt(ejv(ia+1)**2-nucm(ia+1)**2)                           !hr05
-          oidpsv(ia)=one/(one+dpsv(ia))
-          oidpsv(ia+1)=one/(one+dpsv(ia+1))
-          moidpsv(ia)=mtc(ia)/(one+dpsv(ia))
-          moidpsv(ia+1)=mtc(ia+1)/(one+dpsv(ia+1))
-          omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
-          omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
-        endif
-        if (idfor /= 3 .and. st_quiet == 0) then
-          write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),xv(1,ia+1),&
-                            yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
+        end do
+      else if(idfor.eq.2) then
+        call readFort13
+      endif
+      do ia=1,napx,2
+        if (.not.dist_enable .and. st_quiet == 0) then
+          write(lout,10090) xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia),xv1(ia+1),&
+                            yv1(ia+1),xv2(ia+1),yv2(ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
         end if
         idam=3
         icode=0
-        if(abs(xv(1,ia)).le.pieni.and.abs(yv(1,ia)).le.pieni) then
+        if(abs(xv1(ia)).le.pieni.and.abs(yv1(ia)).le.pieni) then
           idam=idam-1
         else
           icode=icode+1
         endif
-        if(abs(xv(2,ia)).le.pieni.and.abs(yv(2,ia)).le.pieni) then
+        if(abs(xv2(ia)).le.pieni.and.abs(yv2(ia)).le.pieni) then
           idam=idam-1
         else
           icode=icode+2
@@ -1724,16 +1401,16 @@ end interface
         ia2=(ia+1)/2
         if(ntwin.ne.2) then
           if(mod(ia+1,2).eq.0) then
-            xau(1,1)= xv(1,ia)
-            xau(1,2)= yv(1,ia)
-            xau(1,3)= xv(2,ia)
-            xau(1,4)= yv(2,ia)
+            xau(1,1)= xv1(ia)
+            xau(1,2)= yv1(ia)
+            xau(1,3)= xv2(ia)
+            xau(1,4)= yv2(ia)
             xau(1,5)=sigmv(ia)
             xau(1,6)= dpsv(ia)
-            xau(2,1)= xv(1,ia+1)
-            xau(2,2)= yv(1,ia+1)
-            xau(2,3)= xv(2,ia+1)
-            xau(2,4)= yv(2,ia+1)
+            xau(2,1)= xv1(ia+1)
+            xau(2,2)= yv1(ia+1)
+            xau(2,3)= xv2(ia+1)
+            xau(2,4)= yv2(ia+1)
             xau(2,5)=sigmv(ia+1)
             xau(2,6)= dpsv(ia+1)
             cloau(1)= clo6v(1,ia)
@@ -1817,7 +1494,7 @@ end interface
           write(lout,*)
           goto 520
         endif
-  340 continue
+      end do
 #ifdef CR
       if (lhc.ne.9) binrec=1    ! binrec:
                                 ! The maximum number of reccords writen for all tracking data files
@@ -2050,9 +1727,9 @@ end interface
             write(lout,10241) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
           end if
           write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          if(st_quiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+          if(st_quiet==0) write(lout,10280) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
-          write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
+          write(12,10280,iostat=ierro) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
             xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
           if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output, probably due to lost particle ",ie
         end if
@@ -2066,9 +1743,9 @@ end interface
             write(lout,10241) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
           end if
           if(st_quiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
-            xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
+            xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
           write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
-            xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
+            xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
           if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output, probably due to lost particle ",ia
         end if
 
@@ -2080,10 +1757,10 @@ end interface
           else if(st_quiet == 1) then
             write(lout,10271) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
           end if
-          if(st_quiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
-            xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
-          write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
-            xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
+          if(st_quiet==0) write(lout,10280) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
+            xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
+          write(12,10280,iostat=ierro) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
+            xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
           if(ierro.ne.0) write(lout,"(a)") "MAINCR> WARNING fort.12 has corrupted output, although particles are stable"
           id=ig
         end if
@@ -2105,7 +1782,7 @@ end interface
         do ia=1,napxo
           if(.not.pstop(ia)) then
             write(lout,10370) fluka_uid(ia),fluka_gen(ia),fluka_weight(ia), &
-              xv(1,ia)*c1m3, yv(1,ia)*c1m3, xv(2,ia)*c1m3, yv(2,ia)*c1m3, &
+              xv1(ia)*c1m3, yv1(ia)*c1m3, xv2(ia)*c1m3, yv2(ia)*c1m3, &
               ejfv(ia)*c1m3,(ejv(ia)-e0)*c1e6,-c1m3*(sigmv(ia)/clight)*(e0/e0f)
           end if
         end do
