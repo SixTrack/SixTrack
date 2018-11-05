@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "cprintarr.h"
 
 struct distparam* dist;
@@ -38,7 +39,22 @@ canonical2six_(double *canonical, double *ref_momentum, double *mass, double *co
 
 double momentum2energy(double momentum, double mass){
 	return sqrt(pow(momentum,2)+pow(mass,2));
-} 
+}
+void print2file(double **coord, int length){
+	FILE *fptr;
+
+   fptr = fopen("coordinates.out", "w");
+   if(fptr == NULL)
+   {
+      printf("Error!");
+      exit(1);
+   }
+   for(int i=0;i < length; i++)
+   {
+   		fprintf(fptr,"%f  %f  %f  %f %f  %f  \n", coord[i][1] );
+   }
+   fclose(fptr);
+}
 
 
 /* 
@@ -84,6 +100,7 @@ void setEmittance(double *e1, double *e2, double *e3){
 		dist->emitt->e2=*e2; 
 		dist->emitt->e3=*e3; 
 }
+
 void initializedistribution_(int *numberOfDist, int *dimension){
 
 	dist = (struct distparam*)malloc((*numberOfDist)*sizeof(struct distparam));
@@ -109,7 +126,7 @@ void initializedistribution_(int *numberOfDist, int *dimension){
 	}
 }
 
-void setmassmom(int ndist*, double *mass, double *momentum ){
+void setmassmom(int *ndist, double *mass, double *momentum ){
 	(dist+*ndist)-> mass = *mass;
 	(dist+*ndist)-> momentum = *momentum;
 }
@@ -124,15 +141,13 @@ void setParameter(int *index,  double *start, double *stop, int *length, int *ty
 
 }
 
+void createLinearSpaced(int length, double start, double stop, double *eqspaced ){
 
-double* createLinearSpaced(int length, double start, double stop){
-	double eqspaced [length];
 	double distance = (start-stop)/length;
 	for(int i; i<length; i++){
 		eqspaced[i] = distance*i;
 	}
-	return eqspaced;
-
+	
 }
 
 void createTasWithNoCoupling(double betax, double alfax, double betay, double alfay, double tas[6][6]){
