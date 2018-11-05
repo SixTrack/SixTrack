@@ -26,10 +26,10 @@ program slice
 
 
       real(kind=real64), dimension(6) :: coordinates, physcord
-      double precision, external :: test
+      double precision, external :: test, normalcdfinv
       real(kind=real64) canon(1:6), compare(1:6)
       real(kind=real64) identity2(1:6,1:6)
-      real(kind=real64) momentum, mass, one, e1,e2, e3, betx1,zero, angle, energy
+      real(kind=real64) momentum, mass, one, e1,e2, e3, betx1,zero, angle, energy, ppf
       real(kind=real64), dimension(6, 6) :: identity, results, testm, tas, emit
       call readMatrixFromFile(tas)
       e1 = 1.0d0
@@ -66,8 +66,9 @@ program slice
       identity(5,5) = one
       identity(6,6) = one
       results(:,:) = 0
+      ppf= 0.9999d0
+      print *, "ppf", normalcdfinv(ppf)
 
-      print *, "valllueee", e2
       !call six2canonical(coordinates, momentum,mass, canon)
       !call canonical2six(canon, momentum, mass, compare)
 

@@ -3,36 +3,9 @@
 #include <math.h>
 #include "cprintarr.h"
 
-void 
-six2canonical_(double * coord, double *ref_momentum, double *mass, double *canonical){
-	double deltap = *(coord+5); 
-
-	double beta0 = *ref_momentum/momentum2energy(*ref_momentum, *mass);
-	double beta = (*ref_momentum+deltap)/momentum2energy((*ref_momentum)+deltap, *mass);
-	double rv = beta0/beta;	
-
-	 *(canonical+0) = *(coord+0);
-	 *(canonical+1) = *(coord+1)*(1+deltap);
-	 *(canonical+2) = *(coord+2);
-	 *(canonical+3) = *(coord+3)*(1+deltap);
-	 *(canonical+4) = *(coord+4)/rv;
-	 *(canonical+5) = *(coord+5);
-
-}
-
-void 
-canonical2six_(double *canonical, double *ref_momentum, double *mass, double *coord){
-	double deltap = *(canonical+5);
-	double beta0 = *ref_momentum/momentum2energy(*ref_momentum, *mass);
-	double beta = (*ref_momentum+deltap)/momentum2energy((*ref_momentum)+deltap, *mass);
-	double rv = beta0/beta;	
-	*(coord+0) = *(canonical+0);
-	*(coord+1) = *(canonical+1)/(1+deltap);
-	*(coord+2) = *(canonical+2);
-	*(coord+3) = *(canonical+3)/(1+deltap);
-	*(coord+4) = *(canonical+4)*rv;
-	*(coord+5) = *(canonical+5);	 
-}
+double momentum2energy(double momentum, double mass){
+	return sqrt(pow(momentum,2)+pow(mass,2));
+} 
 
 
 /* 
