@@ -871,10 +871,10 @@ subroutine scatter_thin(iElem, ix, turn)
 
       ! Compute the cross section at this s
       ! (in most cases roughly equal for all particles; use mean x,y,xp,yp,E)
-      crossSection = scatter_generator_getCrossSection(idPro,idGen,xv(1,j),xv(2,j),yv(1,j),yv(2,j),ejv(j))
+      crossSection = scatter_generator_getCrossSection(idPro,idGen,xv1(j),xv2(j),yv1(j),yv2(j),ejv(j))
 
       ! Ask profile for density at x,y
-      N = scatter_profile_getDensity(idPro,xv(1,j),xv(2,j))
+      N = scatter_profile_getDensity(idPro,xv1(j),xv2(j))
 
       ! Compute probability P
       P = (N*crossSection)*scaling
@@ -910,8 +910,8 @@ subroutine scatter_thin(iElem, ix, turn)
         end if
 
         ! Update particle trajectory
-        yv(1,j) = theta*cos_mb(rndPhi(j)) + yv(1,j)
-        yv(2,j) = theta*sin_mb(rndPhi(j)) + yv(2,j)
+        yv1(j) = theta*cos_mb(rndPhi(j)) + yv1(j)
+        yv2(j) = theta*sin_mb(rndPhi(j)) + yv2(j)
       end if
 
       ! Output to file

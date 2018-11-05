@@ -21,8 +21,8 @@ subroutine daten
   use numerical_constants
   use string_tools
   use mod_alloc
-  use mod_dist
 
+  use mod_dist,  only : dist_enable, dist_parseInputLine
   use scatter,   only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
   use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
@@ -705,7 +705,7 @@ subroutine daten
 
   case("DIST") ! Beam Distribution
     if(openBlock) then
-      continue
+      dist_enable = .true.
     elseif(closeBlock) then
       continue
     else

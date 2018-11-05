@@ -1,10 +1,81 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
 
+clight=299792458 # [m/s]
+
+# fields in dump files
 wantedFields=['x[mm]','xp[mrad]','y[mm]','yp[mrad]','sigma[mm]','(E-E0)/E0[1]']
 requiredFields=wantedFields+['s[m]','particleID','turn']
 
+# particles in the test
+particlesToPlot=['p','C-12','Fe-56','Xe-129','Tl-208','Pb-207','Pb-208']
+Zs=[1,6,26,54,81,82,82]
+Ms=[
+    9.38272310000000000E-01,
+    1.11748668832345430E+01,
+    5.20898291529666722E+01,
+    1.20046674254009602E+02,
+    1.93693186632179675E+02,
+    1.92755492342666344E+02,
+    1.93687690162648124E+02
+] # [GeV/c2]
+
+# reference of machine
+P00=7000
+Laccel=26658.883200 # [m]
+h=35640 # []
+alfa=0.000348470016216039
+
+# reference particle
+kRef=6
+M0=Ms[kRef]
+Z0=Zs[kRef]
+P0=P00*Z0
+E0=574000.032678502
+
+# what to do
+lInfos=True
+lOffset=False
+lPlot=True
+lPlotRF=True
+lPng=False
+
+# what to plot
+# in the test, each particle species is replicated 4 times:
+# - onMom, no betatron amplitude and with betatron amplitude;
+# - offMom, no betatron amplitude and with betatron amplitude;
+amplitudeClasses=['NObetaAmpl','BETAampl']
+momentumClasses=['ONmom','OFFmom']
+firstTurnDumpName='ALL_DUMP_first'
+firstElemDumpName='IP4_DUMP_2'
+Mss=[]
+Zss=[]
+particleNames=[]
+for M,Z,particle in zip(Ms,Zs,particlesToPlot):
+  for momentumClass in momentumClasses:
+    for amplitudeClass in amplitudeClasses:
+      Mss.append(M)
+      Zss.append(Z)
+      particleNames.append(particle)
+
+def pc2E(pc,M=M0,Z=Z0):
+  return np.sqrt(pc**2+M0**2)
+
+def dE2E(dE,E=E0):
+  return (dE+1)*E
+
+def E2pc(E,M=M0):
+  return np.sqrt(E**2-M**2)
+def E2pcPC(E,M=M0,Z=Z0):
+  return E2pc(E,M=M)/Z
+
+def betgam(Z,M,delta=0.0,P00=P00):
+    return P00*Z*(1+delta)/M
+def bet(betgam):
+    return betgam/np.sqrt(1+betgam**2)
+def gam(betgam):
+    return np.sqrt(1+betgam**2)
+  
 class PARTICLE():
   def __init__(self):
     for field in wantedFields:
@@ -27,121 +98,298 @@ class PARTICLE():
     if atLeastOne:
       self._t.append(int(float(data[fields.index('turn')])))
       
-def plotDumpALL( particles, IDs, title ):
+def plotDumpSingleTurn( particles, IDs, title, lPng=False, symbols=['o','*','.'] ):
   '''
-  plotting particle x/xp/y/yp vs s in a given turn
+  plotting particle x/y/sigma vs s in a given turn
   '''
+  # auto-palette
+  NUM_COLORS=len(IDs)
+  cm = plt.get_cmap('gist_rainbow')
+                          
+  # x vs s, y vs s, delta vs s
+  f, axarr = plt.subplots(3,sharex=True)
+  for ll in range(3):
+    axarr[ll].set_color_cycle([cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)])
+    mm=0
+    for kk in IDs:
+      axarr[ll].plot([tmpT*0.001 for tmpT in particles[kk]._t],
+                          particles[kk].__dict__[wantedFields[ll*2]],'%s-'%(symbols[mm]),label='ID %.0f - %s'%(kk+1,particleNames[kk]),markeredgewidth=0.0)
+      mm+=1
+    axarr[ll].grid()
+    axarr[ll].legend(loc='best',fontsize=10)
+    axarr[ll].set_xlabel('s [km]')
+    axarr[ll].set_ylabel(wantedFields[ll*2])
+  
+  f.suptitle(title)
+  if (lPng):
+    plt.savefig(('%s_%s.png'%(title,firstTurnDumpName)).replace(' ',''))
+  else:
+    plt.draw()
+
+def plotDumpSingleTurnMulti( particles, kPart, lPng=False, symbols=['o','*','.'] ):
+  '''
+  plotting particle x/y/sigma vs s in a given turn
+  '''
+  # auto-palette
+  kks=[kPart,kRef]
+  NUM_COLORS=len(kks)
+  cm = plt.get_cmap('gist_rainbow')
+  plt.rcParams.update({'font.size': 7})
+                          
+  # x vs s, y vs s, delta vs s
+  f, axarr = plt.subplots(3,len(momentumClasses)*len(amplitudeClasses),sharex=True)
+  for ii in range(len(amplitudeClasses)):
+    for jj in range(len(momentumClasses)):
+      iCol=jj+ii*len(momentumClasses)
+      for iRow in range(3):
+        axarr[iRow,iCol].set_color_cycle([cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)])
+        for mm in range(len(kks)):
+          kk=kks[mm]*len(momentumClasses)*len(amplitudeClasses)+jj*len(momentumClasses)+ii
+          axarr[iRow,iCol].plot( [tmpT*0.001 for tmpT in particles[kk]._t],
+                                 particles[kk].__dict__[wantedFields[iRow*2]],
+                                 '%s-'%(symbols[mm]),label='ID %.0f - %s'%(kk+1,particleNames[kk]),
+                                 markeredgewidth=0.0)
+        axarr[iRow,iCol].grid()
+        axarr[iRow,iCol].legend(loc='best',fontsize=7)
+        axarr[iRow,iCol].set_xlabel('s [km]')
+        axarr[iRow,iCol].set_xlim(0,Laccel*0.001)
+        axarr[iRow,iCol].set_ylabel(wantedFields[iRow*2])
+        if (iRow==0):
+          axarr[iRow,iCol].set_title('%s - %s'%(amplitudeClasses[ii],momentumClasses[jj]))
+  
+  f.suptitle(particlesToPlot[kPart],fontsize=12)
+  if (lPng):
+    plt.savefig(('%s_%s.png'%(particlesToPlot[kPart],firstTurnDumpName)).replace(' ',''))
+  else:
+    plt.draw()
+
+def plotDumpSingleElement( particles, IDs, title, lPng=False, symbols=['o','*','.'] ):
+  '''
+  plotting particle phase spaces: hor, ver, long at a given element
+  '''
+  # auto-palette
+  NUM_COLORS=len(IDs)
+  cm = plt.get_cmap('gist_rainbow')
+                          
+  # x-xp, y-yp
   f, axarr = plt.subplots(2,2)
-  ii=jj=0
-  for ll in range(4):
-    # auto-palette
-    NUM_COLORS=len(particles)
-    cm = plt.get_cmap('gist_rainbow')
+  for ll in range(2):
+    axarr[0,ll].set_color_cycle([cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)])
+    mm=0
     for kk in IDs:
-      axarr[ii,jj].set_color_cycle([cm(1.*kk/NUM_COLORS) for i in range(NUM_COLORS)])
-      axarr[ii,jj].plot([tmpT*0.001 for tmpT in particles[kk]._t],
-                        particles[kk].__dict__[wantedFields[ii]],'o-',label='ID %.0f'%(kk+1))
-    axarr[ii,jj].grid()
-    axarr[ii,jj].legend(loc='best',fontsize=10)
-    axarr[ii,jj].set_xlabel('s [km]')
-    axarr[ii,jj].set_ylabel(wantedFields[ll])
-    ii+=1
-    if ( ii%2==0 ):
-      jj+=1
-      ii=0
+      axarr[0,ll].plot(particles[kk].__dict__[wantedFields[ll*2]],
+                      particles[kk].__dict__[wantedFields[ll*2+1]],'%s-'%(symbols[mm]),label='ID %.0f - %s'%(kk+1,particleNames[kk]),markeredgewidth=0.0)
+    axarr[0,ll].grid()
+    axarr[0,ll].legend(loc='best',fontsize=10)
+    axarr[0,ll].set_xlabel(wantedFields[ll*2])
+    axarr[0,ll].set_ylabel(wantedFields[ll*2+1])
+  # delta vs sigma
+  ll=2
+  axarr[1,0].set_color_cycle([cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)])
+  mm=0
+  for kk in IDs:
+    Ys=E2pcPC(dE2E(np.array(particles[kk].__dict__['(E-E0)/E0[1]'])),M=Mss[kk],Z=Zss[kk])/P00-1
+    axarr[1,0].plot(particles[kk].__dict__[wantedFields[ll*2]],
+                       Ys,'%s-'%(symbols[mm]),label='ID %.0f - %s'%(kk+1,particleNames[kk]),markeredgewidth=0.0)
+    mm+=1
+  axarr[1,0].grid()
+  axarr[1,0].legend(loc='best',fontsize=10)
+  axarr[1,0].set_xlabel(wantedFields[ll*2])
+  axarr[1,0].set_ylabel(r'$\delta$/q []')
+  
   f.suptitle(title)
-  plt.draw()
+  if (lPng):
+    plt.savefig(('%s_%s.png'%(title,firstElemDumpName)).replace(' ',''))
+  else:
+    plt.draw()
 
-def plotDumpSingle( particles, IDs, title ):
+def plotDumpSingleElementMulti( particles, kPart, lPng=False, symbols=['o','*','.'] ):
   '''
-  plotting particle phase spaces at a given turn
+  plotting particle phase spaces: hor, ver, long at a given element
   '''
-  f, axarr = plt.subplots(3,2)
-  for ii in range(3):
-    # auto-palette
-    NUM_COLORS=len(particles)
-    cm = plt.get_cmap('gist_rainbow')
-    jj=0
-    for kk in IDs:
-      axarr[ii,jj].set_color_cycle([cm(1.*kk/NUM_COLORS) for i in range(NUM_COLORS)])
-      axarr[ii,jj].plot(particles[kk]._t,
-                        particles[kk].__dict__[wantedFields[ii*2]],'o-',label='ID %.0f'%(kk+1))
-    axarr[ii,jj].grid()
-    axarr[ii,jj].legend(loc='best',fontsize=10)
-    axarr[ii,jj].set_xlabel('turn []')
-    axarr[ii,jj].set_ylabel(wantedFields[ii*2])
-    jj=1
-    for kk in IDs:
-      axarr[ii,jj].set_color_cycle([cm(1.*kk/NUM_COLORS) for i in range(NUM_COLORS)])
-      axarr[ii,jj].plot(particles[kk].__dict__[wantedFields[ii*2]],
-                        particles[kk].__dict__[wantedFields[ii*2+1]],'o-',label='ID %.0f'%(kk+1))
-    axarr[ii,jj].grid()
-    axarr[ii,jj].legend(loc='best',fontsize=10)
-    axarr[ii,jj].set_xlabel(wantedFields[ii*2])
-    axarr[ii,jj].set_ylabel(wantedFields[ii*2+1])
-  f.suptitle(title)
-  plt.draw()
+  # auto-palette
+  kks=[kPart,kRef]
+  NUM_COLORS=len(kks)
+  cm = plt.get_cmap('gist_rainbow')
+  plt.rcParams.update({'font.size': 7})
+                          
+  # x vs s, y vs s, delta vs s
+  f, axarr = plt.subplots(3,len(momentumClasses)*len(amplitudeClasses))
+  for ii in range(len(amplitudeClasses)):
+    for jj in range(len(momentumClasses)):
+      iCol=jj+ii*len(momentumClasses)
+      # x-xp, y-yp
+      for iRow in range(2):
+        axarr[iRow,iCol].set_color_cycle([cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)])
+        for mm in range(len(kks)):
+          kk=kks[mm]*len(momentumClasses)*len(amplitudeClasses)+jj*len(momentumClasses)+ii
+          axarr[iRow,iCol].plot(particles[kk].__dict__[wantedFields[iRow*2]],
+                                particles[kk].__dict__[wantedFields[iRow*2+1]],
+                                '%s-'%(symbols[mm]),label='ID %.0f - %s'%(kk+1,particleNames[kk]),
+                                markeredgewidth=0.0)
+        axarr[iRow,iCol].grid()
+        axarr[iRow,iCol].legend(loc='best',fontsize=7)
+        axarr[iRow,iCol].set_xlabel(wantedFields[iRow*2])
+        axarr[iRow,iCol].set_ylabel(wantedFields[iRow*2+1])
+        if (iRow==0):
+          axarr[iRow,iCol].set_title('%s - %s'%(amplitudeClasses[ii],momentumClasses[jj]))
+          
+      # delta vs sigma
+      iRow+=1
+      axarr[iRow,iCol].set_color_cycle([cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)])
+      for mm in range(len(kks)):
+        kk=kks[mm]*len(momentumClasses)*len(amplitudeClasses)+jj*len(momentumClasses)+ii
+        Ys=E2pcPC(dE2E(np.array(particles[kk].__dict__['(E-E0)/E0[1]'])),M=Mss[kk],Z=Zss[kk])/P00-1
+        axarr[iRow,iCol].plot(particles[kk].__dict__[wantedFields[iRow*2]],Ys,
+                              '%s-'%(symbols[mm]),label='ID %.0f - %s'%(kk+1,particleNames[kk]),
+                              markeredgewidth=0.0)
+      axarr[iRow,iCol].grid()
+      axarr[iRow,iCol].legend(loc='best',fontsize=7)
+      axarr[iRow,iCol].set_xlabel(wantedFields[iRow*2])
+      axarr[iRow,iCol].set_ylabel(r'$\delta$/q []')
+  
+  f.suptitle(particlesToPlot[kPart],fontsize=12)
+  if (lPng):
+    plt.savefig(('%s_%s.png'%(particlesToPlot[kPart],firstElemDumpName)).replace(' ',''))
+  else:
+    plt.draw()
 
-# parse files
-fields=None
-particles=[]
-with open('ALL_DUMP_first','r') as iFile:
-  print 'reading file ALL_DUMP_first ...'
-  for line in iFile.readlines():
-    if (line.startswith('#')):
-      if ('particleID' in line):
-        fields=line.split()[1:]
-        for tmpField in requiredFields:
-          if ( tmpField not in fields ):
-            print 'header does not contain mandatory field:',tmpField
-            sys.exit()
-      continue
-    if (fields is None):
-      print 'no header found in file!'
-      sys.exit()
+def plotAllLong( particles, lPng=False ):
+  '''
+  plotting all particles in longitudinal phase space: hor, ver, long at a given element
+  '''
+  # auto-palette
+  NUM_COLORS=len(particlesToPlot)
+  cm = plt.get_cmap('gist_rainbow')
+  f, axarr = plt.subplots(1,2)
+  plt.rcParams.update({'font.size': 7})
+                          
+  # delta vs sigma
+  for ii in range(len(amplitudeClasses)):
+    for jj in range(len(momentumClasses)):
+      axarr[ii].set_color_cycle([cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)])
+      for mm in range(len(particlesToPlot)):
+        kk=mm*len(amplitudeClasses)*len(momentumClasses)+jj*len(amplitudeClasses)+ii
+        Ys=E2pcPC(dE2E(np.array(particles[kk].__dict__['(E-E0)/E0[1]'])),M=Mss[kk],Z=Zss[kk])/P00-1
+        if ( jj==0 ):
+          axarr[ii].plot(particles[kk].__dict__['sigma[mm]'],Ys,
+                         'o-',label=particleNames[kk],markeredgewidth=0.0)
+        else:
+          axarr[ii].plot(particles[kk].__dict__['sigma[mm]'],Ys,
+                         'o-',markeredgewidth=0.0)
+    axarr[ii].set_title(amplitudeClasses[ii])
+    axarr[ii].grid()
+    axarr[ii].legend(loc='best',fontsize=7)
+    axarr[ii].set_xlabel('sigma[mm]')
+    axarr[ii].set_xlim(-300,300)
+    axarr[ii].set_ylabel(r'$\delta$/q []')
+  
+  f.suptitle('Longitudinal plane - all particles')
+  if (lPng):
+    plt.savefig('allLong.png')
+  else:
+    plt.draw()
 
-    # read line
-    data=line.split()
-    for datum,field in zip(data,fields):
-      if (field=='particleID'):
-        ID=int(float(datum))
-        if (len(particles)==ID-1):
-          particles.append(PARTICLE())
-        particles[ID-1].fromDumpALL(data,fields)
-#
-print 'plotting...'
-plotDumpALL( particles, range(0,18,2), 'small amplitude' )
-plotDumpALL( particles, range(1,18,2), 'big amplitude' )
-plt.show()
+if (lInfos):
+  for iPart in range(len(particlesToPlot)):
+    Z=Zs[iPart]
+    M=Ms[iPart]
+    chi=(Z/M)/(Z0/M0)
+    p=P00*Z
+    beta=np.sqrt((p/M)**2/(1+(p/M)**2))
+    tau=Laccel/(beta*clight)
+    F=h/tau
+    print '%15s: Z=%4.0f M=%7.3f chi=%.4f beta_rel=%.10f F=%.9E'%(particlesToPlot[iPart],Z,M,chi,beta,F)
+if (lOffset):
+  dMin=-0.0002
+  dMax= 0.0002
+  n=200
+  dDelta=(dMax-dMin)/n
+  deltas=np.arange(dMin,dMax,dDelta)
+  for iPart in range(len(particlesToPlot)):
+    Z=Zs[iPart]
+    M=Ms[iPart]
+    chi=(Z/M)/(Z0/M0)
+    beta0=bet(betgam(Z0,M0))
+    lengthsBeta=np.array([Laccel*(bet(betgam(Z,M,delta=delta))/beta0-1) for delta in deltas])
+    lengthsMomCF=np.array([Laccel*alfa*delta for delta in deltas ])
+    f, axarr = plt.subplots()
+    axarr.plot(deltas,lengthsBeta,'ro-',markeredgewidth=0.0,label='betas')
+    axarr.plot(deltas,lengthsMomCF,'go-',markeredgewidth=0.0,label='MomCompFact')
+    axarr.grid()
+    axarr.set_title('Z=%i,M=%.3f'%(Z,M))
+    axarr.legend(loc='best',fontsize=10)
+    plt.show()
 
-# parse files
-fields=None
-particles=[]
-with open('IP3_DUMP_2','r') as iFile:
-  print 'reading file IP3_DUMP_2 ...'
-  for line in iFile.readlines():
-    if (line.startswith('#')):
-      if ('particleID' in line):
-        fields=line.split()[1:]
-        for tmpField in requiredFields:
-          if ( tmpField not in fields ):
-            print 'header does not contain mandatory field:',tmpField
-            sys.exit()
-      continue
-    if (fields is None):
-      print 'no header found in file!'
-      sys.exit()
-
-    # read line
-    data=line.split()
-    for datum,field in zip(data,fields):
-      if (field=='particleID'):
-        ID=int(float(datum))
-        if (len(particles)==ID-1):
-          particles.append(PARTICLE())
-        particles[ID-1].fromDumpSingle(data,fields)
-print 'plotting...'
-plotDumpSingle( particles, range(0,18,2), 'small amplitude' )
-plotDumpSingle( particles, range(1,18,2), 'big amplitude' )
-plt.show()
-sys.exit()
+if (lPlot):
+  # parse files
+  # - first turn, all elements
+  fields=None
+  particlesDumpFirstTurn=[]
+  with open(firstTurnDumpName,'r') as iFile:
+    print 'reading file %s ...'%(firstTurnDumpName)
+    for line in iFile.readlines():
+      if (line.startswith('#')):
+        if ('particleID' in line):
+          fields=line.split()[1:]
+          for tmpField in requiredFields:
+            if ( tmpField not in fields ):
+              print 'header does not contain mandatory field:',tmpField
+              exit()
+        continue
+      if (fields is None):
+        print 'no header found in file!'
+        exit()
+  
+      # read line
+      data=line.split()
+      for datum,field in zip(data,fields):
+        if (field=='particleID'):
+          ID=int(float(datum))
+          if (len(particlesDumpFirstTurn)==ID-1):
+            particlesDumpFirstTurn.append(PARTICLE())
+          particlesDumpFirstTurn[ID-1].fromDumpALL(data,fields)
+if (lPlot or lPlotRF):
+  # - first element, all turns
+  fields=None
+  particlesDumpFirstElement=[]
+  with open(firstElemDumpName,'r') as iFile:
+    print 'reading file %s ...'%(firstElemDumpName)
+    for line in iFile.readlines():
+      if (line.startswith('#')):
+        if ('particleID' in line):
+          fields=line.split()[1:]
+          for tmpField in requiredFields:
+            if ( tmpField not in fields ):
+              print 'header does not contain mandatory field:',tmpField
+              exit()
+        continue
+      if (fields is None):
+        print 'no header found in file!'
+        exit()
+  
+      # read line
+      data=line.split()
+      for datum,field in zip(data,fields):
+        if (field=='particleID'):
+          ID=int(float(datum))
+          if (len(particlesDumpFirstElement)==ID-1):
+            particlesDumpFirstElement.append(PARTICLE())
+          particlesDumpFirstElement[ID-1].fromDumpSingle(data,fields)
+if (lPlot or lPlotRF):
+  print 'plotting...'
+if (lPlot):
+  # plot single particles
+  particlesToPlotTemp=particlesToPlot[:]
+  nPlots=len(amplitudeClasses)*len(momentumClasses)
+  for iPlot in range(len(particlesToPlotTemp.pop(kRef))):
+    print "plotting %s - Z=%.0f, M=%.3f"%(particlesToPlot[iPlot],Zs[iPlot],Ms[iPlot])
+    # - first turn, all elements
+    plotDumpSingleTurnMulti(particlesDumpFirstTurn,iPlot,lPng=lPng)
+    # - first element, all turns
+    plotDumpSingleElementMulti(particlesDumpFirstElement,iPlot,lPng=lPng)
+    plt.show()
+if (lPlot or lPlotRF):
+  # plot all longitudinal phase spaces
+  plotAllLong(particlesDumpFirstElement,lPng=lPng)
+  plt.show()

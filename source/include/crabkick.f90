@@ -20,8 +20,8 @@
     moidpsv(j)=mtc(j)/(one+dpsv(j))
     dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
     omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-    yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-    yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+    yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
+    yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
     if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
   end do
 ! end include/crabkick.f90

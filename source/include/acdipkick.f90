@@ -34,17 +34,17 @@ if(n.gt.nfree) then
       acdipamp1=-acdipamp*tilts(i)
     endif
     if(nramp1.gt.nac) then
-      yv(1,j)=yv(1,j)+(((acdipamp1*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)
-      yv(2,j)=yv(2,j)+(((acdipamp2*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)
+      yv1(j)=yv1(j)+(((acdipamp1*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)
+      yv2(j)=yv2(j)+(((acdipamp2*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)
     endif
     if(nac.ge.nramp1.and.(nramp1+nplato).gt.nac) then
-      yv(1,j)=yv(1,j)+(acdipamp1*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)             !hr03
-      yv(2,j)=yv(2,j)+(acdipamp2*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)             !hr03
+      yv1(j)=yv1(j)+(acdipamp1*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)             !hr03
+      yv2(j)=yv2(j)+(acdipamp2*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)             !hr03
     endif
     if(nac.ge.(nramp1+nplato).and.(nramp2+nramp1+nplato).gt.nac)then
-      yv(1,j)=yv(1,j)+((acdipamp1*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))&
+      yv1(j)=yv1(j)+((acdipamp1*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))&
             *((-one*real(nac-nramp1-nramp2-nplato,fPrec))/real(nramp2,fPrec)))/ejfv(j)      !hr03
-      yv(2,j)=yv(2,j)+((acdipamp2*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))&
+      yv2(j)=yv2(j)+((acdipamp2*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))&
             *((-one*real(nac-nramp1-nramp2-nplato,fPrec))/real(nramp2,fPrec)))/ejfv(j)      !hr03
     endif
 #endif

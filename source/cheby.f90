@@ -73,14 +73,14 @@ end subroutine cheby_expand_arrays
     do j=1,napx
        
        ! apply offset
-       xx=xv(1,j)-cheby_offset_x(jcheby)
-       yy=xv(2,j)-cheby_offset_y(jcheby)
+       xx=xv1(j)-cheby_offset_x(jcheby)
+       yy=xv2(j)-cheby_offset_y(jcheby)
 
        ! check that particle is within the domain of chebyshev polynomials
        rr=sqrt(xx**2+yy**2)
        if (rr.gt.cheby_refRadius(cheby_itable(jcheby))) then
           write(lout,*) 'ERROR in cheby_kick: particle at position (x,y,r): ',     &
-               xv(1,j), xv(2,j), rr,' is outside radial domain of Chebyshev polinomials: ', &
+               xv1(j), xv2(j), rr,' is outside radial domain of Chebyshev polinomials: ', &
                cheby_refRadius(cheby_itable(jcheby))
           call prror(-1)
        end if
@@ -108,8 +108,8 @@ end subroutine cheby_expand_arrays
        end if
 
        ! apply kicks, taking into account magnetic rigidity of particle being tracked;
-       yv(1,j)=yv(1,j)+dxp *oidpsv(j)
-       yv(2,j)=yv(2,j)+dyp *oidpsv(j)
+       yv1(j)=yv1(j)+dxp *oidpsv(j)
+       yv2(j)=yv2(j)+dyp *oidpsv(j)
     end do
     return
     
