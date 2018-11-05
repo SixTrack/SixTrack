@@ -2,8 +2,8 @@
 ! 1) apply offset of e-lens
 !    xelens = x(proton) - elens_offset_x
 !    yelens = y(proton) - elens_offset_y
-xelens=xv(1,j)-elens_offset_x(ielens(ix))
-yelens=xv(2,j)-elens_offset_y(ielens(ix))
+xelens=xv1(j)-elens_offset_x(ielens(ix))
+yelens=xv2(j)-elens_offset_y(ielens(ix))
 ! 2) calculate radius
 !    radial position of main beam relative to center of elens beam
 !    -> internal parameters to calculate kick:
@@ -36,7 +36,7 @@ if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
     frrelens = one
   endif
   frrelens = elens_r2(ielens(ix))/rrelens * frrelens
-  yv(1,j)=yv(1,j)-elens_theta_r2(ielens(ix))*frrelens*xelens/rrelens * oidpsv(j)
-  yv(2,j)=yv(2,j)-elens_theta_r2(ielens(ix))*frrelens*yelens/rrelens * oidpsv(j)
+  yv1(j)=yv1(j)-elens_theta_r2(ielens(ix))*frrelens*xelens/rrelens * oidpsv(j)
+  yv2(j)=yv2(j)-elens_theta_r2(ielens(ix))*frrelens*yelens/rrelens * oidpsv(j)
 endif
 ! end include/kickelens.f90

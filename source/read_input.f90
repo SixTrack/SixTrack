@@ -52,19 +52,19 @@ subroutine readFort13
 
     read(13,"(a)", iostat=ioStat) inLine
     rErr = ioStat /= 0
-    call chr_cast(trim(inLine), xv(1,j), cErr)
+    call chr_cast(trim(inLine), xv1(j), cErr)
 
     read(13,"(a)", iostat=ioStat) inLine
     rErr = ioStat /= 0
-    call chr_cast(trim(inLine), yv(1,j), cErr)
+    call chr_cast(trim(inLine), yv1(j), cErr)
 
     read(13,"(a)", iostat=ioStat) inLine
     rErr = ioStat /= 0
-    call chr_cast(trim(inLine), xv(2,j), cErr)
+    call chr_cast(trim(inLine), xv2(j), cErr)
 
     read(13,"(a)", iostat=ioStat) inLine
     rErr = ioStat /= 0
-    call chr_cast(trim(inLine), yv(2,j), cErr)
+    call chr_cast(trim(inLine), yv2(j), cErr)
 
     read(13,"(a)", iostat=ioStat) inLine
     rErr = ioStat /= 0
@@ -78,19 +78,19 @@ subroutine readFort13
 
     read(13,"(a)", iostat=ioStat) inLine
     rErr = ioStat /= 0
-    call chr_cast(trim(inLine), xv(1,j+1), cErr)
+    call chr_cast(trim(inLine), xv1(j+1), cErr)
 
     read(13,"(a)", iostat=ioStat) inLine
     rErr = ioStat /= 0
-    call chr_cast(trim(inLine), yv(1,j+1), cErr)
+    call chr_cast(trim(inLine), yv1(j+1), cErr)
 
     read(13,"(a)", iostat=ioStat) inLine
     rErr = ioStat /= 0
-    call chr_cast(trim(inLine), xv(2,j+1), cErr)
+    call chr_cast(trim(inLine), xv2(j+1), cErr)
 
     read(13,"(a)", iostat=ioStat) inLine
     rErr = ioStat /= 0
-    call chr_cast(trim(inLine), yv(2,j+1), cErr)
+    call chr_cast(trim(inLine), yv2(j+1), cErr)
 
     read(13,"(a)", iostat=ioStat) inLine
     rErr = ioStat /= 0
