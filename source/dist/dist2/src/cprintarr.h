@@ -1,23 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
-struct distpara
+//extern struct distparam* dist;
+//extern int dim;
+struct distparam
 {
-	struct parameters* coord;
+	struct parameters** coord;
 	struct emittances* emitt;
-	int dim;
 	double mass;
 	double momentum;
+	int coordtype; // This tells which type of coordinates the input is given.  // 1-Normalized 
 };
 
 struct parameters
 {
-  double value;
   double start;
   double stop;   
   int length;
-  int type;
+  int type; //This gives the type of distribution, constant, linear, gaussian, 
+  double * values; 
 };
 
 struct emittances{

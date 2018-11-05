@@ -3,6 +3,39 @@
 #include <math.h>
 #include "cprintarr.h"
 
+struct distparam* dist;
+
+void 
+six2canonical_(double * coord, double *ref_momentum, double *mass, double *canonical){
+	double deltap = *(coord+5); 
+
+	double beta0 = *ref_momentum/momentum2energy(*ref_momentum, *mass);
+	double beta = (*ref_momentum+deltap)/momentum2energy((*ref_momentum)+deltap, *mass);
+	double rv = beta0/beta;	
+
+	 *(canonical+0) = *(coord+0);
+	 *(canonical+1) = *(coord+1)*(1+deltap);
+	 *(canonical+2) = *(coord+2);
+	 *(canonical+3) = *(coord+3)*(1+deltap);
+	 *(canonical+4) = *(coord+4)/rv;
+	 *(canonical+5) = *(coord+5);
+
+}
+
+void 
+canonical2six_(double *canonical, double *ref_momentum, double *mass, double *coord){
+	double deltap = *(canonical+5);
+	double beta0 = *ref_momentum/momentum2energy(*ref_momentum, *mass);
+	double beta = (*ref_momentum+deltap)/momentum2energy((*ref_momentum)+deltap, *mass);
+	double rv = beta0/beta;	
+	*(coord+0) = *(canonical+0);
+	*(coord+1) = *(canonical+1)/(1+deltap);
+	*(coord+2) = *(canonical+2);
+	*(coord+3) = *(canonical+3)/(1+deltap);
+	*(coord+4) = *(canonical+4)*rv;
+	*(coord+5) = *(canonical+5);	 
+}
+
 double momentum2energy(double momentum, double mass){
 	return sqrt(pow(momentum,2)+pow(mass,2));
 } 
@@ -47,24 +80,47 @@ void a2c_(double *e1, double *a1, double *e2, double *a2, double *e3, double *a3
 
 }
 void setEmittance(double *e1, double *e2, double *e3){
-
+		dist->emitt->e1=*e1; 
+		dist->emitt->e2=*e2; 
+		dist->emitt->e3=*e3; 
 }
-void initializeDistribution(int numberOfDist, int dim){
+void initializedistribution_(int *numberOfDist, int *dimension){
 
+	dist = (struct distparam*)malloc((*numberOfDist)*sizeof(struct distparam));
+	int dim = *dimension;
+	for(int i = 0; i <*numberOfDist; i++)
+		{
+		struct parameters para_tmp;
+		(dist + i)->coord  =   (struct parameters**)malloc(6*sizeof(struct parameters*));
+		(dist + i)->emitt =   (struct emittances*)malloc(sizeof(struct emittances));
+		(dist + i)->mass  = 0;
+		(dist + i)->momentum  = 0;
+		(dist + i)->emitt->e1=0; 
+		(dist + i)->emitt->e2=0; 
+		(dist + i)->emitt->e3=0; 
+		for(int j=0; j<dim; j++)
+		{
+			(dist +i)->coord[j] = (struct parameters*)malloc(sizeof(struct parameters));
+			(dist +i)->coord[j]->start=0;
+			(dist +i)->coord[j]->stop=0;
+			(dist +i)->coord[j]->length=1;
+			(dist +i)->coord[j]->type=-1;
+		}
+	}
 }
-void setMass(double *mass){
 
+void setmassmom(int ndist*, double *mass, double *momentum ){
+	(dist+*ndist)-> mass = *mass;
+	(dist+*ndist)-> momentum = *momentum;
 }
 
-void setMomentum(double *momentum){
-
-}
-void setJx(int *index,  double *start, double *stop, int *length, int *type){
+void setParameter(int *index,  double *start, double *stop, int *length, int *type){
 	struct parameters can;
 	can.start = *start;
 	can.stop = *stop;
 	can.length = *length;
 	can.type = *type;
+	memcpy(dist->coord[*index], &can, sizeof(struct parameters));
 
 }
 

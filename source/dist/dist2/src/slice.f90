@@ -68,6 +68,9 @@ program slice
       results(:,:) = 0
       ppf= 0.9999d0
       print *, "ppf", normalcdfinv(ppf)
+      index = 1;
+      maxa = 6;
+      call initializeDistribution(index, maxa)
 
       !call six2canonical(coordinates, momentum,mass, canon)
       !call canonical2six(canon, momentum, mass, compare)
