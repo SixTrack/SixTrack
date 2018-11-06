@@ -1178,7 +1178,8 @@ end interface
 !     call abend('ado 260                                           ')
 #endif
 
-      napx=(napx*imc)*mmac                                               !hr05
+      napx = napx*imc
+      call expand_arrays(nele, napx, nblz, nblo)
 
 #ifdef FLUKA
 
