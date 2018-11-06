@@ -522,8 +522,10 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'ekk ',ekk
   write(99,*) 'cr ',cr
   write(99,*) 'ci ',ci
-  write(99,*) 'xv ',xv
-  write(99,*) 'yv ',yv
+  write(99,*) 'xv1 ',xv1
+  write(99,*) 'yv1 ',yv1
+  write(99,*) 'xv2 ',xv2
+  write(99,*) 'yv2 ',yv2
   write(99,*) 'dam ',dam
   write(99,*) 'ekkv ',ekkv
   write(99,*) 'sigmv ',sigmv
@@ -1004,8 +1006,10 @@ subroutine dumpbin(dumpname,n,i)
   write(99) ekk
   write(99) cr
   write(99) ci
-  write(99) xv
-  write(99) yv
+  write(99) xv1
+  write(99) yv1
+  write(99) xv2
+  write(99) yv2
   write(99) dam
   write(99) ekkv
   write(99) sigmv
