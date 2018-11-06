@@ -9,6 +9,7 @@ struct distparam
 	struct emittances* emitt;
 	double mass;
 	double momentum;
+	double **tas;
 	int coordtype; // This tells which type of coordinates the input is given.  // 1-Normalized 
 };
 
@@ -25,7 +26,8 @@ struct emittances{
 	double e1, e2, e3;
 };
 
-
+void a2cp(double tc[6], double cancord[6]);
+void action2sixinternal_(double tc[6], double results[6]);
 double momentum2energy(double momentum, double mass);
 void  six2canonical_(double * coord, double *ref_momentum, double *mass, double *canonical);
 void canonical2six_(double *canonical, double *ref_momentum, double *mass, double *coord);

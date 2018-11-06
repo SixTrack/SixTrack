@@ -74,10 +74,34 @@ void mtrx_vector_mult_(int *mp, int *np,  double mtrx_a[6][6], double mtrx_b[6],
     {
             for (k = 0; k < n; k++)
             {
+            	//printf("NOTTT matrix %f, %d, %d \n", mtrx_a [i][k], i, k );
                 result [i] += mtrx_a [i][k] * mtrx_b [k];
+                   //  printf("bbbbb000 %f \n", mtrx_b[k]);
                 
             }
     }
+      //printf(" ab %f %f %f %f %f %f \n", result[0],result[1],result[2],result[3],result[4],result[5]);
+}
+
+void mtrx_vector_mult_pointer(int mp, int np,  double **mtrx_a, double mtrx_b[6], double result[6])
+{
+
+	int m = mp;
+	int n = np;
+
+
+    register int i=0, j=0, k=0;
+    for (i = 0; i < m; i++)
+    {
+            for (k = 0; k < n; k++)
+            {
+            	//printf("pointer matrix %f, %d, %d \n", mtrx_a [i][k], i, k );
+                result [i] += mtrx_a [i][k] * mtrx_b [k];
+              //  printf("bbbbb pointer %f \n", result [i]);
+                
+            }
+    }
+   // printf("%f %f %f %f %f %f \n", result[0],result[1],result[2],result[3],result[4],result[5]);
 }
 
 
@@ -90,11 +114,27 @@ void a2c_(double *e1, double *a1, double *e2, double *a2, double *e3, double *a3
 	acoord[3]=-sqrt(*e2)*sin(*a2);
 	acoord[4]=sqrt(*e3)*cos(*a3);
 	acoord[5]=-sqrt(*e3/1000)*sin(*a3);
-
+	printf("%f %f %f %f %f %f \n", acoord[0],acoord[1],acoord[2],acoord[3],acoord[4],acoord[5]);
 	int dim, one;
 	dim = 6;
 	mtrx_vector_mult_(&dim,&dim, tas, acoord,results);
+	//printf("%f %f %f %f %f %f \n", acoord[0],acoord[1],acoord[2],acoord[3],acoord[4],acoord[5]);
 
+}
+void a2cp(double tc[6], double cancord[6]){
+
+	double acoord[6];
+	//printf("accord %f", accord[0]);
+	acoord[0]= sqrt((dist->emitt->e1)*tc[0])*cos(tc[1]);
+	acoord[1]=-sqrt((dist->emitt->e1)*tc[0])*sin(tc[1]);
+	acoord[2]= sqrt((dist->emitt->e2)*tc[2])*cos(tc[3]);
+	acoord[3]=-sqrt((dist->emitt->e2)*tc[2])*sin(tc[3]);
+	acoord[4]= sqrt((dist->emitt->e3)*tc[5])*cos(tc[4]);
+	acoord[5]=-sqrt((dist->emitt->e3)*tc[5]/1000)*sin(tc[4]);
+    int dima = 6;
+	printf("%f %f %f %f %f %f \n", acoord[0],acoord[1],acoord[2],acoord[3],acoord[4],acoord[5]);
+	mtrx_vector_mult_pointer(dima,dima, dist->tas, acoord,cancord);
+	//printf("%f %f %f %f %f %f \n", cancord[0],cancord[1],cancord[2],cancord[3],cancord[4],cancord[5]);
 }
 void createDistribution(){
 
@@ -118,11 +158,15 @@ void initializedistribution_(int *numberOfDist, int *dimension){
 		struct parameters para_tmp;
 		(dist + i)->coord  =   (struct parameters**)malloc(6*sizeof(struct parameters*));
 		(dist + i)->emitt =   (struct emittances*)malloc(sizeof(struct emittances));
+		(dist + i)->tas =(double**)malloc(dim*sizeof(double*));
+		for(int k=0; k<dim;k++){
+			(dist + i)->tas[k] =(double*)malloc(dim*sizeof(double));
+		}
 		(dist + i)->mass  = 0;
 		(dist + i)->momentum  = 0;
 		(dist + i)->emitt->e1=0; 
 		(dist + i)->emitt->e2=0; 
-		(dist + i)->emitt->e3=0; 
+		(dist + i)->emitt->e3=0;
 		(dist + i)->coordtype=-1;
 		for(int j=0; j<dim; j++)
 		{
@@ -153,13 +197,20 @@ void printdistsettings_(int *ndist){
 
 }
 
-void settasmatrix(double **tas){
-	
+void settasmatrix_(double tas[6][6]){
+	for(int i =0; i< dim; i++){
+		for(int j =0; j< dim; j++){
+			printf("howloooong,,,,%d %d %f \n", i, j, tas[i][j]);
+			dist->tas[j][j] = tas[i][j];
+		}
+	}
 }
+
 //int arr[numRows][numCols]
 void dist2sixcoord_(double **results){
 	int counter = 0;
 	double tc[6];
+	double tmp[6];
 	for(int i =0; i< dist->coord[0]->length; i++){
 		for(int j =0; j< dist->coord[1]->length; j++){
 			for(int k =0; k< dist->coord[2]->length; k++){
@@ -173,7 +224,11 @@ void dist2sixcoord_(double **results){
 							tc[4]=dist->coord[4]->values[m];
 							tc[5]=dist->coord[5]->values[n];
 
-							printf("%f %f %f %f %f %f \n", tc[0],tc[1],tc[2],tc[3],tc[4],tc[5]);
+							//sprintf("%f %f %f %f %f %f \n", tc[0],tc[1],tc[2],tc[3],tc[4],tc[5]);
+							action2sixinternal_(tc, tmp);
+
+
+
 
 						}
 					}
@@ -265,6 +320,23 @@ double normalcdfinv_(double p)
         // F^-1(p) = G^-1(1-p)
         return RationalApproximation( sqrt(-2.0*log(1-p)) );
     }
+}
+
+
+//void action2sixcoordv_(double *acoord, double tas[6][6],double *ref_momentum, double *mass, double results [6]){
+	//double cancord[6] ;
+//	a2c_(acoord[0], acoord[1], acoord[2], acoord[3], acoord[4], acoord[0],tas, cancord);
+//	canonical2six_(cancord, ref_momentum, mass, results);
+//}
+void action2sixinternal_(double tc[6], double results[6]){
+	double cancord[6];
+	//printf("%f %f %f %f %f %f \n", tc[0],tc[1],tc[2],tc[3],tc[4],tc[5]);
+	a2cp(tc, cancord);
+	//printf("%f %f %f %f %f %f \n", cancord[0],cancord[1],cancord[2],cancord[3],cancord[4],cancord[5]);
+
+	canonical2six_(cancord, &dist->momentum, &dist->mass, results);
+	//printf("%f %f %f %f %f %f \n", results[0],results[1],results[2],results[3],results[4],results[5]);
+
 }
 
 void action2sixcoord_(double *e1, double *a1, double *e2, double *a2, double *e3, double *a3, double tas[6][6]
