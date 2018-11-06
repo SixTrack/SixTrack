@@ -584,7 +584,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'ixv ',ixv
   write(99,*) 'clov ',clov
   write(99,*) 'clopv ',clopv
-  write(99,*) 'bet0v ',bet0v
   write(99,*) 'ampv ',ampv
   write(99,*) 'clo6v ',clo6v
   write(99,*) 'clop6v ',clop6v
@@ -1069,7 +1068,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) ixv
   write(99) clov
   write(99) clopv
-  write(99) bet0v
   write(99) ampv
   write(99) clo6v
   write(99) clop6v
@@ -1548,7 +1546,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'ixv ',ixv
   write(99,100) 'clov ',clov
   write(99,100) 'clopv ',clopv
-  write(99,100) 'bet0v ',bet0v
   write(99,100) 'ampv ',ampv
   write(99,100) 'clo6v ',clo6v
   write(99,100) 'clop6v ',clop6v

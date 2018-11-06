@@ -1151,8 +1151,6 @@ end interface
             clov(2,ib2)=clo(2)
             clopv(1,ib2)=clop(1)
             clopv(2,ib2)=clop(2)
-            bet0v(ib2,1)=bet0(1)
-            bet0v(ib2,2)=bet0(2)
             ampv(ib2)=amp(1)-damp*real(ib1-1,fPrec) !hr05
 
             if(ib1.eq.napx-1 .and. ib1.ne.1) then
@@ -1271,9 +1269,9 @@ end interface
       rat     = rat0
       if(tas(ia,3,3) < (-one*pieni)) rat = -one*rat
       if(rat < (-one*pieni)) dsign = -one*one
-      x11    = ampv(ia)/(sqrt(bet0v(ia,1))+sqrt(abs(rat)*bet0x2))
+      x11    = ampv(ia)/(sqrt(bet0(1))+sqrt(abs(rat)*bet0x2))
       x13    = (x11*dsign)*sqrt(abs(rat))
-      amp(2) = (dsign*real(1-iver,fPrec))*(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0v(ia,2)))
+      amp(2) = (dsign*real(1-iver,fPrec))*(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0(2)))
       x1(5)  = zero
       x1(6)  = dpsv(ia)*sqrt(bet0s1)
       chi    = chi0*rad
@@ -1317,8 +1315,8 @@ end interface
         chi = chi+dchi
       end do
 
-      epsa(1)    = (ampv(ia)**2/bet0v(ia,1))
-      epsa(2)    = (amp(2)**2/bet0v(ia,2))
+      epsa(1)    = (ampv(ia)**2/bet0(1))
+      epsa(2)    = (amp(2)**2/bet0(2))
       nucm(ia)   = nucm0
       nucm(ia+1) = nucm0
 
