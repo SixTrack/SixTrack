@@ -639,8 +639,6 @@ module mod_commonmn
   real(kind=fPrec), allocatable, save :: xvl(:,:)     ! (2,npart)
   real(kind=fPrec), allocatable, save :: yvl(:,:)     ! (2,npart)
   real(kind=fPrec), allocatable, save :: aperv(:,:)   ! (npart,2)
-  real(kind=fPrec), allocatable, save :: clov(:,:)    ! (2,npart)
-  real(kind=fPrec), allocatable, save :: clopv(:,:)   ! (2,npart)
 
   integer,          allocatable, save :: iv(:)        ! (npart)
   integer,          allocatable, save :: ixv(:)       ! (npart)
@@ -753,8 +751,6 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   call alloc(xvl,       2,     npart_new,      zero,    "xvl")
   call alloc(yvl,       2,     npart_new,      zero,    "yvl")
   call alloc(aperv,            npart_new, 2,   zero,    "aperv")
-  call alloc(clov,      2,     npart_new,      zero,    "clov")
-  call alloc(clopv,     2,     npart_new,      zero,    "clopv")
   call alloc(iv,               npart_new,      0,       "iv")
   call alloc(ixv,              npart_new,      0,       "ixv")
 

@@ -1147,10 +1147,6 @@ end interface
             !  m (seed,               1..mmac).
             !It appears that only the odd (1,3,5,..) indices are actually used?
             ib2=ib0+ib1        ! ib0 is fixed to 0 => ib2 equals ib1
-            clov(1,ib2)=clo(1)
-            clov(2,ib2)=clo(2)
-            clopv(1,ib2)=clop(1)
-            clopv(2,ib2)=clop(2)
             ampv(ib2)=amp(1)-damp*real(ib1-1,fPrec) !hr05
 
             if(ib1.eq.napx-1 .and. ib1.ne.1) then
