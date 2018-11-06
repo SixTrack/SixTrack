@@ -1153,8 +1153,6 @@ end interface
             clopv(2,ib2)=clop(2)
             bet0v(ib2,1)=bet0(1)
             bet0v(ib2,2)=bet0(2)
-            alf0v(ib2,1)=alf0(1)
-            alf0v(ib2,2)=alf0(2)
             ampv(ib2)=amp(1)-damp*real(ib1-1,fPrec) !hr05
 
             if(ib1.eq.napx-1 .and. ib1.ne.1) then
