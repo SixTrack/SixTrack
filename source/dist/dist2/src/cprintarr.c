@@ -5,9 +5,8 @@
 #include "cprintarr.h"
 
 struct distparam* dist;
-
-void 
-six2canonical_(double * coord, double *ref_momentum, double *mass, double *canonical){
+int dim;
+void six2canonical_(double * coord, double *ref_momentum, double *mass, double *canonical){
 	double deltap = *(coord+5); 
 
 	double beta0 = *ref_momentum/momentum2energy(*ref_momentum, *mass);
@@ -25,6 +24,7 @@ six2canonical_(double * coord, double *ref_momentum, double *mass, double *canon
 
 void 
 canonical2six_(double *canonical, double *ref_momentum, double *mass, double *coord){
+	
 	double deltap = *(canonical+5);
 	double beta0 = *ref_momentum/momentum2energy(*ref_momentum, *mass);
 	double beta = (*ref_momentum+deltap)/momentum2energy((*ref_momentum)+deltap, *mass);
@@ -40,6 +40,7 @@ canonical2six_(double *canonical, double *ref_momentum, double *mass, double *co
 double momentum2energy(double momentum, double mass){
 	return sqrt(pow(momentum,2)+pow(mass,2));
 }
+
 void print2file(double **coord, int length){
 	FILE *fptr;
 
@@ -51,7 +52,7 @@ void print2file(double **coord, int length){
    }
    for(int i=0;i < length; i++)
    {
-   		fprintf(fptr,"%f  %f  %f  %f %f  %f  \n", coord[i][1] );
+   		fprintf(fptr,"%f  %f  %f  %f %f  %f  \n", coord[i][1], coord[i][2],coord[i][3], coord[i][4], coord[i][5], coord[i][6]);
    }
    fclose(fptr);
 }
@@ -95,7 +96,14 @@ void a2c_(double *e1, double *a1, double *e2, double *a2, double *e3, double *a3
 	mtrx_vector_mult_(&dim,&dim, tas, acoord,results);
 
 }
-void setEmittance(double *e1, double *e2, double *e3){
+void createDistribution(){
+
+}
+
+int getlengthdist(){
+	return 100;
+}
+void setemittance_(double *e1, double *e2, double *e3){
 		dist->emitt->e1=*e1; 
 		dist->emitt->e2=*e2; 
 		dist->emitt->e3=*e3; 
@@ -104,7 +112,7 @@ void setEmittance(double *e1, double *e2, double *e3){
 void initializedistribution_(int *numberOfDist, int *dimension){
 
 	dist = (struct distparam*)malloc((*numberOfDist)*sizeof(struct distparam));
-	int dim = *dimension;
+	dim = *dimension;
 	for(int i = 0; i <*numberOfDist; i++)
 		{
 		struct parameters para_tmp;
@@ -115,30 +123,69 @@ void initializedistribution_(int *numberOfDist, int *dimension){
 		(dist + i)->emitt->e1=0; 
 		(dist + i)->emitt->e2=0; 
 		(dist + i)->emitt->e3=0; 
+		(dist + i)->coordtype=-1;
 		for(int j=0; j<dim; j++)
 		{
 			(dist +i)->coord[j] = (struct parameters*)malloc(sizeof(struct parameters));
 			(dist +i)->coord[j]->start=0;
 			(dist +i)->coord[j]->stop=0;
 			(dist +i)->coord[j]->length=1;
-			(dist +i)->coord[j]->type=-1;
+			(dist +i)->coord[j]->type=0;
 		}
 	}
 }
 
-void setmassmom(int *ndist, double *mass, double *momentum ){
-	(dist+*ndist)-> mass = *mass;
-	(dist+*ndist)-> momentum = *momentum;
+void printdistsettings_(int *ndist){
+	printf("Printing info about distribution: \n");
+	printf("Distribution type (input), 1=normalized coordinates %d \n", dist->coordtype );
+	printf("Mass: %f \n", dist ->mass);
+	printf("Momentum: %f \n", dist ->momentum);
+	printf("Emttiance, e1, e2, e3: %f, %f, %f \n", dist->emitt->e1, dist->emitt->e2, dist->emitt->e3);
+	for(int j=0; j<dim; j++)
+	{
+		printf("coordinate index: %d \n",(j+1));
+		printf("start: %f \n", (dist)->coord[j]->start);
+		printf("stop: %f \n", (dist)->coord[j]->stop);
+		printf("length: %d \n", (dist)->coord[j]->length);
+		printf("type: %d \n", (dist)->coord[j]->type);
+		printf("######################### \n");
+	}
+
 }
 
-void setParameter(int *index,  double *start, double *stop, int *length, int *type){
-	struct parameters can;
-	can.start = *start;
-	can.stop = *stop;
-	can.length = *length;
-	can.type = *type;
-	memcpy(dist->coord[*index], &can, sizeof(struct parameters));
+void settasmatrix(double **tas){
+	
+}
+//int arr[numRows][numCols]
+void dist2sixcoord_(double **results){
+	int counter = 0;
+	double tc[6];
+	for(int i =0; i< dist->coord[0]->length; i++){
+		for(int j =0; j< dist->coord[1]->length; j++){
+			for(int k =0; k< dist->coord[2]->length; k++){
+				for(int l =0; l< dist->coord[3]->length; l++){
+					for(int m =0; m< dist->coord[4]->length; m++){
+						for(int n =0; n< dist->coord[5]->length; n++){
+							tc[0]=dist->coord[0]->values[i];
+							tc[1]=dist->coord[1]->values[j];
+							tc[2]=dist->coord[2]->values[k];
+							tc[3]=dist->coord[3]->values[l];
+							tc[4]=dist->coord[4]->values[m];
+							tc[5]=dist->coord[5]->values[n];
 
+							printf("%f %f %f %f %f %f \n", tc[0],tc[1],tc[2],tc[3],tc[4],tc[5]);
+
+						}
+					}
+				}
+			}
+		}	
+	}
+}
+
+void setmassmom_(double *mass, double *momentum ){
+	(dist)-> mass = *mass;
+	(dist)-> momentum = *momentum;
 }
 
 void createLinearSpaced(int length, double start, double stop, double *eqspaced ){
@@ -149,6 +196,29 @@ void createLinearSpaced(int length, double start, double stop, double *eqspaced 
 	}
 	
 }
+
+void setparameter_(int *index,  double *start, double *stop, int *length, int *type){
+
+	dist->coord[*index-1]->start = *start;
+	dist->coord[*index-1]->stop = *stop;
+	dist->coord[*index-1]->length = *length;
+	dist->coord[*index-1]->type = *type;
+	if(*type ==0){
+		dist->coord[*index-1]->values = (double*)malloc(sizeof(double));
+		dist->coord[*index-1]->values = start;
+	}
+
+	if(*type > 0){
+		dist->coord[*index-1]->values = (double*)malloc((*length)*sizeof(double));
+		memcpy(dist->coord[*index-1]->values , start, sizeof(double));  
+
+	}
+	if(*type==1){
+		createLinearSpaced(*length, *start, *stop,dist->coord[*index-1]->values);
+	}
+}
+
+
 
 void createTasWithNoCoupling(double betax, double alfax, double betay, double alfay, double tas[6][6]){
 
@@ -166,7 +236,6 @@ void createTasWithNoCoupling(double betax, double alfax, double betay, double al
     tas[4][3] =-alfay/sqrt(betay);
 
 }
-
 double RationalApproximation(double t)
 {
     // Abramowitz and Stegun formula 26.2.23.

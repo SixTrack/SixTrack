@@ -29,7 +29,7 @@ program slice
       double precision, external :: test, normalcdfinv
       real(kind=real64) canon(1:6), compare(1:6)
       real(kind=real64) identity2(1:6,1:6)
-      real(kind=real64) momentum, mass, one, e1,e2, e3, betx1,zero, angle, energy, ppf
+      real(kind=real64) momentum, mass, one, e1,e2, e3, betx1,zero, angle, energy, ppf, pia2
       real(kind=real64), dimension(6, 6) :: identity, results, testm, tas, emit
       call readMatrixFromFile(tas)
       e1 = 1.0d0
@@ -41,7 +41,7 @@ program slice
       emit(2,2) = e1
       emit(3,3) = e2
       emit(4,4) = e3
-
+      pia2 = 2.00d0*3.1415
       maxa = 6
       one =1.0d0
       zero = 0.0d0
@@ -49,28 +49,44 @@ program slice
       mass = 3000.0
       energy = 5000.0
       !print *, tas
-      do i=1,630
-        angle = 0.01*i
-        call a2c(e1, angle, e2, angle, e3, angle, tas, physcord)
-        print *, e1, angle, physcord(1), physcord(2),physcord(3), physcord(4),physcord(5), physcord(6)
-        physcord(:)= 0
-      end do
-      identity(:,:) = 0
-      results(:,:) = 0
-      testm(:,:) = 0
-      testm(2,3) = one
-      identity(1,1) = one
-      identity(2,2) = one
-      identity(3,3) = one
-      identity(4,4) = one
-      identity(5,5) = one
-      identity(6,6) = one
-      results(:,:) = 0
-      ppf= 0.9999d0
-      print *, "ppf", normalcdfinv(ppf)
+      !do i=1,630
+      !  angle = 0.01*i
+      !  call a2c(e1, angle, e2, angle, e3, angle, tas, physcord)
+      !!  print *, e1, angle, physcord(1), physcord(2),physcord(3), physcord(4),physcord(5), physcord(6)
+       ! physcord(:)= 0
+      !end do
+      !identity(:,:) = 0
+      !results(:,:) = 0
+      !testm(:,:) = 0
+      !testm(2,3) = one
+      !identity(1,1) = one
+      !identity(2,2) = one
+      !identity(3,3) = one
+      !identity(4,4) = one
+      !!identity(5,5) = one
+      !identity(6,6) = one
+      !results(:,:) = 0
+      !ppf= 0.9999d0
+      
       index = 1;
       maxa = 6;
-      call initializeDistribution(index, maxa)
+      call initializedistribution(index, maxa)
+      call setemittance(e1,e2,e3)
+      call setmassmom(mass, momentum)
+
+      call setparameter(1,one,one,index,0);
+      call setparameter(2,zero,pia2,100,1);
+      call setparameter(3,one,one,index,0);
+      call setparameter(4,zero,pia2,100,1);
+      call setparameter(5,one,one,index,0);
+      call setparameter(6,one,one,index,0);
+      call dist2sixcoord(emit)
+      call printdistsettings(index)
+
+      !print *, "ppf", normalcdfinv(ppf)
+      !index = 1;
+      !maxa = 6;
+      !call initializeDistribution(index, maxa)
 
       !call six2canonical(coordinates, momentum,mass, canon)
       !call canonical2six(canon, momentum, mass, compare)
