@@ -31,8 +31,6 @@ subroutine part_applyClosedOrbit
 
   implicit none
 
-  integer j
-
   if(iclo6 == 2) then
     xv1(1:napx)   = xv1(1:napx)   +  clo6v(1,1:napx)
     yv1(1:napx)   = yv1(1:napx)   + clop6v(1,1:napx)
@@ -108,40 +106,29 @@ subroutine part_updatePartEnergy(refArray)
 
   integer, intent(in) :: refArray
 
-  real(kind=fPrec) e0o, e0fo
-  integer          j
-
   select case(refArray)
   case(1) ! Update from energy array
-    do j=1, napx
-      ejfv(j) = sqrt(ejv(j)**2 - nucm(j)**2)        ! Momentum [MeV/c]
-      dpsv(j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f   ! Delta_p/p0 = delta
-    end do
+    ejfv(1:napx) = sqrt(ejv(1:napx)**2 - nucm(1:napx)**2)        ! Momentum [MeV/c]
+    dpsv(1:napx) = (ejfv(1:napx)*(nucm0/nucm(1:napx))-e0f)/e0f   ! Delta_p/p0 = delta
   case(2) ! Update from momentum array
-    do j=1, napx
-      ejv(j)  = sqrt(ejfv(j)**2 + nucm(j)**2)       ! Energy [MeV]
-      dpsv(j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f   ! Delta_p/p0 = delta
-    end do
+    ejv(1:napx)  = sqrt(ejfv(1:napx)**2 + nucm(1:napx)**2)       ! Energy [MeV]
+    dpsv(1:napx) = (ejfv(1:napx)*(nucm0/nucm(1:napx))-e0f)/e0f   ! Delta_p/p0 = delta
   case(3) ! Update from delta array
-    do j=1, napx
-      ejfv(j) = ((nucm(j)/nucm0)*(dpsv(j)+one))*e0f ! Momentum [MeV/c]
-      ejv(j)  = sqrt(ejfv(j)**2 + nucm(j)**2)       ! Energy [MeV]
-    end do
+    ejfv(1:napx) = ((nucm(1:napx)/nucm0)*(dpsv(1:napx)+one))*e0f ! Momentum [MeV/c]
+    ejv(1:napx)  = sqrt(ejfv(1:napx)**2 + nucm(1:napx)**2)       ! Energy [MeV]
   case default
     write(lout,"(a)") "PART> ERROR Internal error in part_updatePartEnergy"
     call prror(-1)
   end select
 
   ! Modify the Energy Dependent Arrays
-  do j=1, napx
-    dpsv1(j)    = (dpsv(j)*c1e3)/(one + dpsv(j))
-    dpd(j)      = one + dpsv(j)                      ! For thick tracking
-    dpsq(j)     = sqrt(dpd(j))                       ! For thick tracking
-    oidpsv(j)   = one/(one + dpsv(j))
-    moidpsv(j)  = mtc(j)/(one + dpsv(j))             ! Relative rigidity offset (mod_hions) [MV/c^2]
-    omoidpsv(j) = ((one-mtc(j))*oidpsv(j))*c1e3
-    rvv(j)      = (ejv(j)*e0f)/(e0*ejfv(j))          ! Beta_0 / beta(j)
-  end do
+  dpsv1(1:napx)    = (dpsv(1:napx)*c1e3)/(one + dpsv(1:napx))
+  dpd(1:napx)      = one + dpsv(1:napx)                      ! For thick tracking
+  dpsq(1:napx)     = sqrt(dpd(1:napx))                       ! For thick tracking
+  oidpsv(1:napx)   = one/(one + dpsv(1:napx))
+  moidpsv(1:napx)  = mtc(1:napx)/(one + dpsv(1:napx))        ! Relative rigidity offset (mod_hions) [MV/c^2]
+  omoidpsv(1:napx) = ((one-mtc(1:napx))*oidpsv(1:napx))*c1e3
+  rvv(1:napx)      = (ejv(1:napx)*e0f)/(e0*ejfv(1:napx))     ! Beta_0 / beta(j)
 
   if(ithick == 1) call synuthck
 
