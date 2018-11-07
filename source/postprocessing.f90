@@ -3436,7 +3436,7 @@ end subroutine join
          enddo
       enddo
 
-      mmac_tmp   = real(mmac,       real64)
+      mmac_tmp   = 1.0_real64
       nms_tmp    = real(nms(ia_p1), real64)
       izu0_tmp   = real(izu0,       real64)
       numlr_tmp  = real(numlr,      real64)

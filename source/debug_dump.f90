@@ -299,7 +299,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'mzu ',mzu
   write(99,*) 'bezr ',bezr
   write(99,*) 'izu0 ',izu0
-  write(99,*) 'mmac ',mmac
   write(99,*) 'mcut ',mcut
 ! write(99,*) 'exterr ',exterr
 ! write(99,*) 'extalign ',extalign
@@ -783,7 +782,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) mzu
   write(99) bezr
   write(99) izu0
-  write(99) mmac
   write(99) mcut
 ! write(99) exterr
 ! write(99) extalign
@@ -1261,7 +1259,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'mzu ',mzu
   write(99,100) 'bezr ',bezr
   write(99,100) 'izu0 ',izu0
-  write(99,100) 'mmac ',mmac
   write(99,100) 'mcut ',mcut
 ! write(99,100) 'exterr ',exterr
 ! write(99,100) 'extalign ',extalign
