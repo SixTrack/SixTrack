@@ -1092,19 +1092,7 @@ subroutine thin4d(nthinerr)
 !----------------------------
 620 continue
 
-      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-      ! last modified: 17-07-2013
-      ! on-line aperture check
-      ! always in main code
-      call lostpart( n, i, ix, llost, nthinerr )
-      ! stop tracking if no particle survives to this element
-      if(nthinerr.ne.0) return
-      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-      ! last modified: 16-07-2018
-      if ( lbacktracking ) then
-         ! store infos of last aperture marker
-         if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
-      end if
+#include "include/lostpart.f90"
 
 625 continue
     if (.not. ldumpfront) then
@@ -2075,23 +2063,7 @@ subroutine thin6d(nthinerr)
         call collimate_end_element
       end if
 
-      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-      ! last modified: 17-07-2013
-      ! on-line aperture check
-      ! always in main code
-      call lostpart( n, i, ix, llost, nthinerr )
-
-      ! stop tracking if no particle survives to this element
-      if(nthinerr.ne.0) then
-        return
-      end if
-
-      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-      ! last modified: 16-07-2018
-      if ( lbacktracking ) then
-         ! store infos of last aperture marker
-         if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
-      end if
+#include "include/lostpart.f90"
 
 645   continue
 
