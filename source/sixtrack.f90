@@ -3901,6 +3901,7 @@ subroutine chroma
       use mod_common
       use mod_commons
       use mod_commont
+      use closed_orbit
       implicit none
       integer i,ii,isl,j,jj,l,n
       real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens,sm0,su2,suxy,suzy,xi,zi
@@ -3945,7 +3946,7 @@ subroutine chroma
    30     continue
           do 40 n=1,5
             dpp=de2*real(3-n,fPrec)                                            !hr06
-            call clorb(dpp)
+            call calcClosedOrbit(dpp,.true.)
             if(ierro.gt.0) call prror(12)
             call phasad(dpp,qwc)
             if(ierro.gt.0) call prror(13)
@@ -4030,6 +4031,7 @@ end subroutine chroma
       use mod_commons
       use mod_commont
       use mod_commond
+      use closed_orbit
       implicit none
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
       real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
@@ -4042,7 +4044,7 @@ end subroutine chroma
       dps(1)=dp1+dppoff
       ncorruo=ncorru
       ncorru=1
-      call clorb(dp1)
+      call calcClosedOrbit(dp1,.true.)
       call betalf(dp1,qw)
       call phasad(dp1,qwc)
       if(nbeam.ge.1) then
@@ -4146,163 +4148,6 @@ end subroutine chroma
      &'MAXIMUM NUMBER OF ITERATIONS ACHIEVED--->',2x,i4/ t10,           &
      &'PROCEDURE MAY NOT HAVE CONVERGED')
 end
-
-subroutine clorb(dpp)
-!-----------------------------------------------------------------------
-!  CALCULATION OF THE CLOSED ORBIT   'CLO(2),CLOP(2)'
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      use parpro
-      use mod_settings
-      use mod_common
-      use mod_commons
-      use mod_commont
-
-      implicit none
-      integer ierr,ii,l,ll
-      real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,  &
-     &dy,x0,x1,y0,y1
-      dimension x1(2),y1(2),x0(2),y0(2)
-      dimension dclo(2),dclop(2)
-      dimension dx(2),dy(2),am(4,4)
-      save ! Saving DPP?
-!-----------------------------------------------------------------------
-      ierro=0
-      do 10 l=1,2
-        clo(l)=dpp*di0(l)
-        clop(l)=dpp*dip0(l)
-        dx(l)=c1e6
-        dy(l)=c1e6
-   10 continue
-      call envar(dpp)
-      call umlauf(dpp,1,ierr)
-      ierro=ierr
-      if(ierro.ne.0) return
-      do 40 ii=1,itco
-        dcx=abs(dx(1))
-        dcxp=abs(dy(1))
-        dcz=abs(dx(2))
-        dczp=abs(dy(2))
-        if(dcx.le.dma.and.dcz.le.dma.and.dcxp.le.dmap.and.dczp.le.dmap) &
-     &goto 50
-
-        do l=1,2
-          x(1,l)=clo(l)
-          y(1,l)=clop(l)
-          x0(l)=x(1,l)
-         y0(l)=y(1,l)
-        end do
-
-        call matrix(dpp,am)
-        if(ierro.ne.0) return
-        do 30 l=1,2
-          ll=2*l
-          x1(l)=x(1,l)
-          y1(l)=y(1,l)
-          det=(two-am(ll-1,ll-1))-am(ll,ll)                              !hr06
-          dx(l)=x0(l)-x1(l)
-          dy(l)=y0(l)-y1(l)
-          dclo(l)=(dx(l)*(am(ll,ll)-one)-dy(l)*am(ll-1,ll))/det
-          dclop(l)=(dy(l)*(am(ll-1,ll-1)-one)-dx(l)*am(ll,ll-1))/det
-          clo(l)=clo(l)+dclo(l)
-          clop(l)=clop(l)+dclop(l)
-   30   continue
-   40 continue
-      if(ncorru.ne.1) write(lout,10000) itco
-   50 cor=c1e3*sqrt(dcx**2+dcz**2)                                       !hr06
-      if(st_print .and. ncorru /= 1) then
-        write(lout,10010) dpp,clo(1),clop(1),clo(2),clop(2),ii,cor
-#ifdef DEBUG
-!     call warr('dpp',dpp,0,0,0,0)
-!     call warr('dpp',dpp,0,0,0,0)
-!     call warr('clo(1)',clo(1),0,0,0,0)
-!     call warr('clop(1)',clop(1),0,0,0,0)
-!     call warr('clo(2)',clo(2),0,0,0,0)
-!     call warr('clop(2)',clop(2),0,0,0,0)
-!     call warr('ii',0d0,ii,0,0,0)
-!     call warr('cor',cor,0,0,0,0)
-#endif
-      endif
-!-----------------------------------------------------------------------
-      return
-10000 format(t5/t10,'CLOSED ORBIT CALCULATION'/ t10,                    &
-     &'MAXIMUM NUMBER OF ITERATIONS ACHIEVED--->',2x,i4/ t10,           &
-     &'PROCEDURE MAY NOT HAVE CONVERGED')
-10010 format(t5,'---- ENTRY CLORB ----/DPP=',f8.5,' /CLOX/', 2f10.5,    &
-     &' /CLOY/',2f10.5,' /ITERAT.=',i3,'/ ACCURACY=',d13.6)
-end
-
-subroutine clorb2(dpp)
-!-----------------------------------------------------------------------
-!  CALCULATION OF THE CLOSED ORBIT - NO WRITEOUT
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use parpro
-      use mod_common
-      use mod_commons
-      use mod_commont
-      implicit none
-      integer ierr,ii,l,ll
-      real(kind=fPrec) am,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,x1,y0,y1
-      dimension x1(2),y1(2),x0(2),y0(2)
-      dimension dclo(2),dclop(2)
-      dimension dx(2),dy(2),am(4,4)
-      save
-!-----------------------------------------------------------------------
-      ierro=0
-      do 10 l=1,2
-        clo(l)=dpp*di0(l)
-        clop(l)=dpp*dip0(l)
-        dx(l)=c1e6                                                        !hr06
-        dy(l)=c1e6                                                        !hr06
-   10 continue
-
-      call envar(dpp)
-      call umlauf(dpp,1,ierr)
-      ierro=ierr
-      if(ierro.ne.0) call prror(36)
-
-      do 40 ii=1,itco
-        dcx=abs(dx(1))
-        dcxp=abs(dy(1))
-        dcz=abs(dx(2))
-        dczp=abs(dy(2))
-        if(dcx.le.dma.and.dcz.le.dma.and.dcxp.le.dmap.and.dczp.le.dmap) &
-     &return
-
-        do l=1,2
-          x(1,l)=clo(l)
-          y(1,l)=clop(l)
-          x0(l)=x(1,l)
-          y0(l)=y(1,l)
-        end do
-
-        call matrix(dpp,am)
-
-        if(ierro.ne.0) call prror(36)
-
-        do 30 l=1,2
-          ll=2*l
-          x1(l)=x(1,l)
-          y1(l)=y(1,l)
-          det=two-am(ll-1,ll-1)-am(ll,ll)
-          dx(l)=x0(l)-x1(l)
-          dy(l)=y0(l)-y1(l)
-          dclo(l)=(dx(l)*(am(ll,ll)-one)-dy(l)*am(ll-1,ll))/det
-          dclop(l)=(dy(l)*(am(ll-1,ll-1)-one)-dx(l)*am(ll,ll-1))/det
-          clo(l)=clo(l)+dclo(l)
-          clop(l)=clop(l)+dclop(l)
-   30   continue
-
-   40 continue
-!-----------------------------------------------------------------------
-      return
-end subroutine clorb2
 
 subroutine combel(iql)
 !-----------------------------------------------------------------------
@@ -4853,6 +4698,7 @@ subroutine linopt(dpp)
 #endif
 
   use collimation
+  use closed_orbit
 
   implicit none
 
@@ -4923,14 +4769,14 @@ subroutine linopt(dpp)
       dpr(1)=dpp*c1e3
       dpr(6)=one
       dpp1=dpp+ded
-      call clorb(dpp1)
+      call calcClosedOrbit(dpp1,.true.)
 
       do l=1,2
         clo0(l)=clo(l)
         clop0(l)=clop(l)
       end do
 
-      call clorb(dpp)
+      call calcClosedOrbit(dpp,.true.)
 
       do l=1,2
         ll=2*l
@@ -5709,12 +5555,12 @@ subroutine linopt(dpp)
       if(h5_writeOptics) call h5lin_saveData
 #endif
 
-      call clorb(ded)
+      call calcClosedOrbit(ded,.true.)
       do 510 l=1,2
         clo0(l)=clo(l)
         clop0(l)=clop(l)
   510 continue
-      call clorb(zero)
+      call calcClosedOrbit(zero,.true.)
       do 520 l=1,2
         ll=2*l
         di0(l)=(clo0(l)-clo(l))/ded
@@ -6119,6 +5965,7 @@ subroutine corrorb
       use mod_common
       use mod_commons
       use mod_commont
+      use closed_orbit
       implicit none
       integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,nlino,ntcoo,nto,nx
       real(kind=fPrec) ar(nmon1,ncor1)
@@ -6139,7 +5986,7 @@ subroutine corrorb
        dip0(l)=zero
       end do
 
-      call clorb(ded)
+      call calcClosedOrbit(ded,.true.)
       if(ierro.gt.0) call prror(4)
 
       do l=1,2
@@ -6147,7 +5994,7 @@ subroutine corrorb
         clop0(l)=clop(l)
       end do
 
-      call clorb(zero)
+      call calcClosedOrbit(zero,.true.)
       if(ierro.gt.0) call prror(5)
 
       do l=1,2
@@ -7237,6 +7084,7 @@ subroutine phasad(dpp,qwc)
   use mod_common
   use mod_commons
   use mod_commont
+  use closed_orbit
   implicit none
   integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,dj
   real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk,dphi,dpp,dppi,dpr,&
@@ -7287,7 +7135,7 @@ subroutine phasad(dpp,qwc)
       pie=two*pi
       ikpv=0
       dpr(1)=dpp*c1e3
-      call clorb(dpp)
+      call calcClosedOrbit(dpp,.true.)
       call betalf(dpp,qw)
       if(ierro.ne.0) call prror(22+ierro)
       call envar(dpp)
@@ -7757,6 +7605,7 @@ subroutine qmod0
       use mod_common
       use mod_commons
       use mod_commont
+      use closed_orbit
       implicit none
       integer i,ierr,ii,iq1,iq2,iq3,iql,j,l,n,nite
       real(kind=fPrec) a11,a12,a13,a21,a22,a23,a31,a32,a33,aa,aa1,bb,   &
@@ -7824,7 +7673,7 @@ subroutine qmod0
         nite=2
       endif
 
-      call clorb(dpp)
+      call calcClosedOrbit(dpp,.true.)
       if(ierro.gt.0) call prror(9)
       call phasad(dpp,qwc)
       sens(1,5)=qwc(1)
@@ -7847,7 +7696,7 @@ subroutine qmod0
             ek(iql)=ek(iql)+dkq
           endif
           if(kp(iql).eq.5) call combel(iql)
-          call clorb(dpp)
+          call calcClosedOrbit(dpp,.true.)
           if(ierro.gt.0) call prror(9)
           call phasad(dpp,qwc)
           sens(1,n+1)=qwc(1)
@@ -7909,7 +7758,7 @@ subroutine qmod0
           endif
           if(kp(iql).eq.5) call combel(iql)
    50   continue
-        call clorb(dpp)
+        call calcClosedOrbit(dpp,.true.)
         if(ierro.gt.0) call prror(9)
         call phasad(dpp,qwc)
         sens(1,5)=qwc(1)
@@ -8725,6 +8574,7 @@ subroutine resex(dpp)
   use mod_common
   use mod_commons
   use mod_commont
+  use closed_orbit
   implicit none
   integer i,i1,i2,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jl,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,m2,m4,m6,min,&
           mm,mpe,mx,n,n2,n2e,nf1,nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
@@ -8813,7 +8663,7 @@ subroutine resex(dpp)
       radi=totl/pie
       dpr(1)=dpp*c1e3
 
-      call clorb(dpp)
+      call calcClosedOrbit(dpp,.true.)
       call betalf(dpp,qw)
 
       if(ierro.ne.0) call prror(22+ierro)
@@ -9490,6 +9340,7 @@ subroutine rmod(dppr)
   use mod_common
   use mod_commons
   use mod_commont
+  use closed_orbit
   implicit none
   integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,nteo
   real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,se2,sen,sen15,sen16,sen17,sen18,sn,ss
@@ -9571,7 +9422,7 @@ subroutine rmod(dppr)
       se12=zero
       do 80 n=1,5
         dpp=de2*real(3-n,fPrec)                                                !hr06
-        call clorb2(dpp)
+        call calcClosedOrbit(dpp,.false.)
         call phasad(dpp,qwc)
         ox=qwc(1)
         oz=qwc(2)
@@ -9603,7 +9454,7 @@ subroutine rmod(dppr)
       dsm(j1)=dkq
       dsm(j2)=dkq
       dpp=zero
-      call clorb2(dpp)
+      call calcClosedOrbit(dpp,.false.)
       call phasad(dpp,qwc)
       sen(j1)=qwc(1)
       sen(j2)=qwc(2)
@@ -9635,7 +9486,7 @@ subroutine rmod(dppr)
           se12=zero
           do 130 n=1,5
             dpp=de2*real(3-n,fPrec)                                            !hr06
-            call clorb2(dpp)
+            call calcClosedOrbit(dpp,.false.)
             call phasad(dpp,qwc)
             ox=qwc(1)
             oz=qwc(2)
@@ -9649,7 +9500,7 @@ subroutine rmod(dppr)
           aa(i,j4)=(sen16-ss(j4))/dsm(i)
   140     if(nqc.eq.0) goto 150
           dpp=zero
-          call clorb2(dpp)
+          call calcClosedOrbit(dpp,.false.)
           call phasad(dpp,qwc)
           sen17=qwc(1)
           sen18=qwc(2)
@@ -9693,7 +9544,7 @@ subroutine rmod(dppr)
         se12=zero
         do 200 n=1,5
           dpp=de2*real(3-n,fPrec)                                              !hr06
-          call clorb2(dpp)
+          call calcClosedOrbit(dpp,.false.)
           call phasad(dpp,qwc)
           ox=qwc(1)
           oz=qwc(2)
@@ -9707,7 +9558,7 @@ subroutine rmod(dppr)
         d1(j4)=abs(ss(j4))
   210   if(nqc.eq.0) goto 220
         dpp=zero
-        call clorb2(dpp)
+        call calcClosedOrbit(dpp,.false.)
         call phasad(dpp,qwc)
         ss(j1)=qwc(1)
         ss(j2)=qwc(2)
@@ -9898,6 +9749,7 @@ subroutine subre(dpp)
   use mod_common
   use mod_commons
   use mod_commont
+  use closed_orbit
   implicit none
 
   integer i,ii,ik,im,ip,ipc,ipcc,ipl,ium,iv,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,min1,min2,&
@@ -10032,14 +9884,14 @@ subroutine subre(dpp)
         dpr(6)=c1e3
         dpp1=dpp+ded
 
-        call clorb(dpp1)
+        call calcClosedOrbit(dpp1,.true.)
 
         do l=1,2
           clo0(l)=clo(l)
           clop0(l)=clop(l)
         end do
 
-        call clorb(dpp)
+        call calcClosedOrbit(dpp,.true.)
 
         do l=1,2
           di0(l)=(clo0(l)-clo(l))/ded
@@ -10807,12 +10659,12 @@ subroutine subre(dpp)
   920     continue
   930   continue
   940 continue
-      call clorb(ded)
+      call calcClosedOrbit(ded,.true.)
       do 950 l=1,2
         clo0(l)=clo(l)
         clop0(l)=clop(l)
   950 continue
-      call clorb(zero)
+      call calcClosedOrbit(zero,.true.)
       do 960 l=1,2
         ll=2*l
         di0(l)=(clo0(l)-clo(l))/ded
@@ -10877,6 +10729,7 @@ end subroutine subre
       use mathlib_bouncer
       use crcoall
       use parpro
+      use closed_orbit
       implicit none
       integer iv,iv2,iv3,iv4,iv5,iv6
       real(kind=fPrec) beta,dfac,dtu,dtu1,dtu2,dtup,ekk,ep,vor,vtu1,vtu2
@@ -10941,6 +10794,7 @@ subroutine subsea(dpp)
   use mod_common
   use mod_commons
   use mod_commont
+  use closed_orbit
   implicit none
   integer i,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,mm,mpe,mx,n2,n2e,nf1,nf3,&
           nf4,nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
@@ -11024,7 +10878,7 @@ subroutine subsea(dpp)
       etl=zero
       radi=totl/pie
       dpr(1)=dpp*c1e3
-      call clorb2(dpp)
+      call calcClosedOrbit(dpp,.false.)
       call betalf(dpp,qw)
       if(ierro.ne.0) call prror(22+ierro)
       call envar(dpp)

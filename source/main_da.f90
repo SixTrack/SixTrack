@@ -25,6 +25,7 @@ program mainda
   use, intrinsic :: iso_fortran_env, only : output_unit
   use crcoall
   use parpro
+  use closed_orbit
   use mod_common
   use mod_commons
   use mod_commont
@@ -135,14 +136,14 @@ featList = ""
   call orglat
   call ord
   if(allocated(zfz)) call fluc_randomReport
-  call clorb(ded)
+  call calcClosedOrbit(ded,.true.)
 
   do l=1,2
     clo0(l)=clo(l)
     clop0(l)=clop(l)
   end do
 
-  call clorb(zero)
+  call calcClosedOrbit(zero,.true.)
 
   do l=1,2
     ll=2*l
@@ -258,7 +259,7 @@ featList = ""
       write(lout,"(a)") "MAINDA> Reading closed orbit guess from fort.33"
       call readFort33
     end if
-    call clorb(zero)
+    call calcClosedOrbit(zero,.true.)
     call betalf(zero,qw)
     call phasad(zero,qwc)
     sigm(1) = clo6(3)
@@ -284,10 +285,10 @@ featList = ""
   else
     ncorruo=ncorru
     ncorru=1
-    call clorb(zero)
+    call calcClosedOrbit(zero,.true.)
     call betalf(zero,qw)
     call phasad(zero,qwc)
-    call clorb(dp1)
+    call calcClosedOrbit(dp1,.true.)
     call betalf(dp1,qw)
     call phasad(dp1,qwc)
     ncorru=ncorruo
