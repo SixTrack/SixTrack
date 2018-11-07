@@ -166,6 +166,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use crcoall
   use parpro
   use mod_commond
+  use closed_orbit
   use mod_common,  only : iqmodc,ichromc,ilinc
   use mod_lie_dab, only : iscrda,mld_allocArrays
 
@@ -201,7 +202,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   call daall(iscrda,100,'$$IS      ',nord,nvar)
 
   ! closed orbit
-  if(ncase.eq.1) call clorda(2*ndimf,idummy,am)
+  if(ncase.eq.1) call calcClosedOrbit6D(2*ndimf,idummy,am)
 
   ! tune variation
   if(ncase.eq.2) call umlauda

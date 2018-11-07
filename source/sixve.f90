@@ -721,6 +721,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use mathlib_bouncer
   use crcoall
   use parpro
+  use closed_orbit
   use mod_common, only : ichromc,ilinc,iqmodc
   use mod_commond
   use mod_lie_dab, only : iscrda,mld_allocArrays
@@ -759,12 +760,12 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   call daall(iscrda,100,'$$IS      ',nord,nvar)
 !--closed orbit
 #ifdef DEBUG
-!     write(*,*) 'ncase=',ncase,' if 1 call clorda'
+!     write(*,*) 'ncase=',ncase,' if 1 call calcClosedOrbit6D'
 #endif
-  if(ncase.eq.1) call clorda(2*ndimf,idummy,am)
+  if(ncase.eq.1) call calcClosedOrbit6D(2*ndimf,idummy,am)
 #ifdef DEBUG
-!     call dumpbin('aclorda',1,11)
-!     call abend('aclorda                                           ')
+!     call dumpbin('acalcClosedOrbit6D',1,11)
+!     call abend('acalcClosedOrbit6D                                           ')
 #endif
 !--tune variation
 #ifdef DEBUG
