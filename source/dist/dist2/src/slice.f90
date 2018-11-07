@@ -4,7 +4,7 @@ subroutine readMatrixFromFile(matrix)
          use, intrinsic :: iso_fortran_env
     real(kind=real64), dimension(36) :: reada
     real(kind=real64), dimension(6, 6) :: matrix
-   open (2, file = 'data1.dat', status = 'old')
+    open (2, file = 'data1.dat', status = 'old')
 
     
       read(2,*) reada
@@ -48,25 +48,13 @@ program slice
       momentum = 4000.0
       mass = 1000.0
       energy = 5000.0
-      print *, tas
-      do i=1,630
-        angle = 0.01*i
-        call a2c(e1, angle, e2, angle, e3, angle, tas, physcord)
+    
+      !do i=1,630
+        !angle = 0.01*i
+        !call a2c(e1, angle, e2, angle, e3, angle, tas, physcord)
        ! print *, e1, angle, physcord(1), physcord(2),physcord(3), physcord(4),physcord(5), physcord(6)
-       physcord(:)= 0
-      end do
-      !identity(:,:) = 0
-      !results(:,:) = 0
-      !testm(:,:) = 0
-      !testm(2,3) = one
-      !identity(1,1) = one
-      !identity(2,2) = one
-      !identity(3,3) = one
-      !identity(4,4) = one
-      !!identity(5,5) = one
-      !identity(6,6) = one
-      !results(:,:) = 0
-      !ppf= 0.9999d0
+       !physcord(:)= 0
+      !end do
       
       maxa = 6;
       index = 1;
@@ -75,46 +63,15 @@ program slice
       call setmassmom(mass, momentum)
 
       call setparameter(1,one,one,index,0);
-      call setparameter(2,zero,pia2,10,1);
+      call setparameter(2,zero,pia2,100,1);
       call setparameter(3,one,one,index,0);
-      call setparameter(4,zero,pia2,10,1);
+      call setparameter(4,zero,pia2,100,1);
       call setparameter(5,zero,zero,index,0);
       call setparameter(6,zero,zero,index,0);
       call settasmatrix(tas)
       call dist2sixcoord(emit)
 
-      !call printdistsettings(index)
 
-      !print *, "ppf", normalcdfinv(ppf)
-      !index = 1;
-      !maxa = 6;
-      !call initializeDistribution(index, maxa)
-
-      !call six2canonical(coordinates, momentum,mass, canon)
-      !call canonical2six(canon, momentum, mass, compare)
-
-      !print *, canon
-      !print *, compare
-      !print *, coordinates
-      !print*, identity
-    
-      !call mtrx_mult(maxa,maxa,maxa, identity, testm, results)
-      !print *, "ouuttt"
-      !print*, results(1,1),results(2,2),results(3,3), results(2,3)
-      !call readtas
-! Populate my 2D array with some values.
-    !  index = 1
-    !  do j = 1,MAX
-    !      do i = 1,MAX
-    !!          arr(i,j) = index
-     !         index = index + 1
-      !    enddo
-      !enddo
- 
-      
-      !call cprintarr(arr, MAX, MAX)
-!# Pass an array slice to C
-      !call cprintarr(arr(2:MAX-1,2:MAX-1), MAX-2, MAX-2)
  
       end program slice
  
