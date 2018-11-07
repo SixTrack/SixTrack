@@ -264,7 +264,7 @@ subroutine dist_finaliseDist
     end if
   end do
 
-  write(lout,"(a,2(1x,i0),f15.7)") "DIST> Reference particle species [A,Z,M]:", aa0, zz0, nucm0
+  write(lout,"(a,2(1x,i0),1x,f15.7)") "DIST> Reference particle species [A,Z,M]:", aa0, zz0, nucm0
   write(lout,"(a,1x,f15.7)")       "DIST> Reference energy [Z TeV]:", c1m6*e0/zz0
 
   do j=napx+1,npart
