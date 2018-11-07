@@ -57,6 +57,7 @@ SET(TESTS_NOFORT10
   dump5
   dump6
   fileunits_DYNK_DUMP
+  momentum_scan
   multipoles_DYNK
   beambeamDYNK
   beambeam4dDYNK
@@ -165,6 +166,7 @@ SET(SIXTRACK_TESTS
   fileunits_DYNK_DUMP
   multipoles_DYNK
   geometry
+  momentum_scan
   beambeamDYNK
   beambeam4dDYNK
   beam-HO_4D-newstyle
@@ -406,6 +408,7 @@ SET(FAST_TESTS
   fileunits_DYNK_DUMP
   multipoles_DYNK
   geometry
+  momentum_scan
   fcc
   beambeamDYNK
   beambeam4dDYNK
