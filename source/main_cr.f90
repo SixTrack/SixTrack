@@ -511,6 +511,7 @@ end interface
   amp00=amp(1)
   if(napx.ne.1) damp=((amp00-amp0)/real(napx-1,fPrec))/two                 !hr05
   napx=2*napx
+  call expand_arrays(nele, napx*imc, nblz, nblo)
   aperture_napxStart=napx
   iation=abs(ition)
   ib0=0
@@ -1179,7 +1180,7 @@ end interface
 #endif
 
       napx = napx*imc
-      call expand_arrays(nele, napx, nblz, nblo)
+      ! call expand_arrays(nele, napx, nblz, nblo) ! Moved to where napx = napx*2
 
 #ifdef FLUKA
 
