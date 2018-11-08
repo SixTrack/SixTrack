@@ -50,7 +50,7 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  integer nSplit
+  integer nSplit, iDummy
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -69,7 +69,7 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr)
   fluc_mRead = 0
 
   if(nSplit > 0) call chr_cast(lnSplit(1),izu0,      iErr)
-! if(nSplit > 1) call chr_cast(lnSplit(2),mmac,      iErr) <-- No longer in use
+  if(nSplit > 1) call chr_cast(lnSplit(2),iDummy,    iErr)
   if(nSplit > 2) call chr_cast(lnSplit(3),fluc_mRead,iErr)
   if(nSplit > 3) call chr_cast(lnSplit(4),mcut,      iErr)
 
@@ -83,6 +83,12 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr)
   mcut        = iabs(mcut)
   fluc_iSeed1 = izu0
   fluc_iSeed2 = 0
+
+  if(iDummy > 1) then
+    write(lout,"(a,i0)") "FLUC> ERROR Multiple seeds for vectorisation (mmac) is no longer supported. You requested ",iDummy
+    iErr = .true.
+    return
+  end if
 
   if(fluc_mRead < 0 .or. fluc_mRead > 15) then
     write(lout,"(a,i0)") "FLUC> ERROR I/O options (mout) must be a number between 0 and 15, got ",fluc_mRead
