@@ -6,9 +6,10 @@
 
 struct distparam* dist;
 int dim;
-void six2canonical_(double * coord, double *ref_momentum, double *mass, double *canonical){
-	double deltap = *(coord+5); 
 
+void six2canonical_(double * coord, double *ref_momentum, double *mass, double *canonical){
+	
+	double deltap = *(coord+5); 
 	double beta0 = *ref_momentum/momentum2energy(*ref_momentum, *mass);
 	double beta = (*ref_momentum+deltap)/momentum2energy((*ref_momentum)+deltap, *mass);
 	double rv = beta0/beta;	
@@ -24,7 +25,7 @@ void six2canonical_(double * coord, double *ref_momentum, double *mass, double *
 
 void 
 canonical2six_(double *canonical, double *ref_momentum, double *mass, double *coord){
-	
+
 	double deltap = *(canonical+5);
 	double beta0 = *ref_momentum/momentum2energy(*ref_momentum, *mass);
 	double beta = (*ref_momentum+deltap)/momentum2energy((*ref_momentum)+deltap, *mass);
@@ -87,19 +88,11 @@ void mtrx_vector_mult_(int *mp, int *np,  double mtrx_a[6][6], double mtrx_b[6],
 void mtrx_vector_mult_pointer(int mp, int np,  double **mtrx_a, double mtrx_b[6], double result[6])
 {
 
-	int m = mp;
-	int n = np;
-	result[0]=0;
-	result[1]=0;
-	result[2]=0;
-	result[3]=0;
-	result[4]=0;
-	result[5]=0;
 
     register int i=0, j=0, k=0;
-    for (i = 0; i < m; i++)
+    for (i = 0; i < mp; i++)
     {
-            for (k = 0; k < n; k++)
+            for (k = 0; k < np; k++)
             {
             	
                 
@@ -244,7 +237,7 @@ void setmassmom_(double *mass, double *momentum ){
 
 void createLinearSpaced(int length, double start, double stop, double *eqspaced ){
 
-	double distance = (start-stop)/length;
+	double distance = (stop-start)/length;
 	for(int i; i<length; i++){
 		eqspaced[i] = distance*i;
 	}
@@ -270,8 +263,30 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 	if(*type==1){
 		createLinearSpaced(*length, *start, *stop,dist->coord[*index-1]->values);
 	}
-}
+	if(*type==2){
 
+	createLinearSpaced(*length, *start, *stop,dist->coord[*index-1]->values);
+		for(int i=0;i <*length; i++){
+			   
+			dist->coord[*index-1]->values[i] = exp(dist->coord[*index-1]->values[i]);
+				
+		}
+
+	}
+	if(*type==3){
+
+	createLinearSpaced(*length, *start, *stop,dist->coord[*index-1]->values);
+		for(int i=0;i <*length; i++){
+			   
+			dist->coord[*index-1]->values[i] = pow(dist->coord[*index-1]->values[i],2);
+		
+		}
+
+	}
+
+
+
+}
 
 
 void createTasWithNoCoupling(double betax, double alfax, double betay, double alfay, double tas[6][6]){
@@ -290,6 +305,7 @@ void createTasWithNoCoupling(double betax, double alfax, double betay, double al
     tas[4][3] =-alfay/sqrt(betay);
 
 }
+
 double RationalApproximation(double t)
 {
     // Abramowitz and Stegun formula 26.2.23.
@@ -327,7 +343,6 @@ void action2sixinternal_(double tc[6], double results[6]){
 	a2cp(tc, cancord);
 
 	canonical2six_(cancord, &dist->momentum, &dist->mass, results);
-	
 	printf("%f %f %f %f %f %f \n", results[0],results[1],results[2],results[3],results[4],results[5]);
 
 }
