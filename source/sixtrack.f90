@@ -3946,7 +3946,7 @@ subroutine chroma
    30     continue
           do 40 n=1,5
             dpp=de2*real(3-n,fPrec)                                            !hr06
-            call calcClosedOrbit(dpp,.true.)
+            call clorb(dpp,.true.)
             if(ierro.gt.0) call prror(12)
             call phasad(dpp,qwc)
             if(ierro.gt.0) call prror(13)
@@ -4044,7 +4044,7 @@ end subroutine chroma
       dps(1)=dp1+dppoff
       ncorruo=ncorru
       ncorru=1
-      call calcClosedOrbit(dp1,.true.)
+      call clorb(dp1,.true.)
       call betalf(dp1,qw)
       call phasad(dp1,qwc)
       if(nbeam.ge.1) then
@@ -4769,14 +4769,14 @@ subroutine linopt(dpp)
       dpr(1)=dpp*c1e3
       dpr(6)=one
       dpp1=dpp+ded
-      call calcClosedOrbit(dpp1,.true.)
+      call clorb(dpp1,.true.)
 
       do l=1,2
         clo0(l)=clo(l)
         clop0(l)=clop(l)
       end do
 
-      call calcClosedOrbit(dpp,.true.)
+      call clorb(dpp,.true.)
 
       do l=1,2
         ll=2*l
@@ -5555,12 +5555,12 @@ subroutine linopt(dpp)
       if(h5_writeOptics) call h5lin_saveData
 #endif
 
-      call calcClosedOrbit(ded,.true.)
+      call clorb(ded,.true.)
       do 510 l=1,2
         clo0(l)=clo(l)
         clop0(l)=clop(l)
   510 continue
-      call calcClosedOrbit(zero,.true.)
+      call clorb(zero,.true.)
       do 520 l=1,2
         ll=2*l
         di0(l)=(clo0(l)-clo(l))/ded
@@ -5986,7 +5986,7 @@ subroutine corrorb
        dip0(l)=zero
       end do
 
-      call calcClosedOrbit(ded,.true.)
+      call clorb(ded,.true.)
       if(ierro.gt.0) call prror(4)
 
       do l=1,2
@@ -5994,7 +5994,7 @@ subroutine corrorb
         clop0(l)=clop(l)
       end do
 
-      call calcClosedOrbit(zero,.true.)
+      call clorb(zero,.true.)
       if(ierro.gt.0) call prror(5)
 
       do l=1,2
@@ -7135,7 +7135,7 @@ subroutine phasad(dpp,qwc)
       pie=two*pi
       ikpv=0
       dpr(1)=dpp*c1e3
-      call calcClosedOrbit(dpp,.true.)
+      call clorb(dpp,.true.)
       call betalf(dpp,qw)
       if(ierro.ne.0) call prror(22+ierro)
       call envar(dpp)
@@ -7673,7 +7673,7 @@ subroutine qmod0
         nite=2
       endif
 
-      call calcClosedOrbit(dpp,.true.)
+      call clorb(dpp,.true.)
       if(ierro.gt.0) call prror(9)
       call phasad(dpp,qwc)
       sens(1,5)=qwc(1)
@@ -7696,7 +7696,7 @@ subroutine qmod0
             ek(iql)=ek(iql)+dkq
           endif
           if(kp(iql).eq.5) call combel(iql)
-          call calcClosedOrbit(dpp,.true.)
+          call clorb(dpp,.true.)
           if(ierro.gt.0) call prror(9)
           call phasad(dpp,qwc)
           sens(1,n+1)=qwc(1)
@@ -7758,7 +7758,7 @@ subroutine qmod0
           endif
           if(kp(iql).eq.5) call combel(iql)
    50   continue
-        call calcClosedOrbit(dpp,.true.)
+        call clorb(dpp,.true.)
         if(ierro.gt.0) call prror(9)
         call phasad(dpp,qwc)
         sens(1,5)=qwc(1)
@@ -8663,7 +8663,7 @@ subroutine resex(dpp)
       radi=totl/pie
       dpr(1)=dpp*c1e3
 
-      call calcClosedOrbit(dpp,.true.)
+      call clorb(dpp,.true.)
       call betalf(dpp,qw)
 
       if(ierro.ne.0) call prror(22+ierro)
@@ -9422,7 +9422,7 @@ subroutine rmod(dppr)
       se12=zero
       do 80 n=1,5
         dpp=de2*real(3-n,fPrec)                                                !hr06
-        call calcClosedOrbit(dpp,.false.)
+        call clorb(dpp,.false.)
         call phasad(dpp,qwc)
         ox=qwc(1)
         oz=qwc(2)
@@ -9454,7 +9454,7 @@ subroutine rmod(dppr)
       dsm(j1)=dkq
       dsm(j2)=dkq
       dpp=zero
-      call calcClosedOrbit(dpp,.false.)
+      call clorb(dpp,.false.)
       call phasad(dpp,qwc)
       sen(j1)=qwc(1)
       sen(j2)=qwc(2)
@@ -9486,7 +9486,7 @@ subroutine rmod(dppr)
           se12=zero
           do 130 n=1,5
             dpp=de2*real(3-n,fPrec)                                            !hr06
-            call calcClosedOrbit(dpp,.false.)
+            call clorb(dpp,.false.)
             call phasad(dpp,qwc)
             ox=qwc(1)
             oz=qwc(2)
@@ -9500,7 +9500,7 @@ subroutine rmod(dppr)
           aa(i,j4)=(sen16-ss(j4))/dsm(i)
   140     if(nqc.eq.0) goto 150
           dpp=zero
-          call calcClosedOrbit(dpp,.false.)
+          call clorb(dpp,.false.)
           call phasad(dpp,qwc)
           sen17=qwc(1)
           sen18=qwc(2)
@@ -9544,7 +9544,7 @@ subroutine rmod(dppr)
         se12=zero
         do 200 n=1,5
           dpp=de2*real(3-n,fPrec)                                              !hr06
-          call calcClosedOrbit(dpp,.false.)
+          call clorb(dpp,.false.)
           call phasad(dpp,qwc)
           ox=qwc(1)
           oz=qwc(2)
@@ -9558,7 +9558,7 @@ subroutine rmod(dppr)
         d1(j4)=abs(ss(j4))
   210   if(nqc.eq.0) goto 220
         dpp=zero
-        call calcClosedOrbit(dpp,.false.)
+        call clorb(dpp,.false.)
         call phasad(dpp,qwc)
         ss(j1)=qwc(1)
         ss(j2)=qwc(2)
@@ -9884,14 +9884,14 @@ subroutine subre(dpp)
         dpr(6)=c1e3
         dpp1=dpp+ded
 
-        call calcClosedOrbit(dpp1,.true.)
+        call clorb(dpp1,.true.)
 
         do l=1,2
           clo0(l)=clo(l)
           clop0(l)=clop(l)
         end do
 
-        call calcClosedOrbit(dpp,.true.)
+        call clorb(dpp,.true.)
 
         do l=1,2
           di0(l)=(clo0(l)-clo(l))/ded
@@ -10659,12 +10659,12 @@ subroutine subre(dpp)
   920     continue
   930   continue
   940 continue
-      call calcClosedOrbit(ded,.true.)
+      call clorb(ded,.true.)
       do 950 l=1,2
         clo0(l)=clo(l)
         clop0(l)=clop(l)
   950 continue
-      call calcClosedOrbit(zero,.true.)
+      call clorb(zero,.true.)
       do 960 l=1,2
         ll=2*l
         di0(l)=(clo0(l)-clo(l))/ded
@@ -10878,7 +10878,7 @@ subroutine subsea(dpp)
       etl=zero
       radi=totl/pie
       dpr(1)=dpp*c1e3
-      call calcClosedOrbit(dpp,.false.)
+      call clorb(dpp,.false.)
       call betalf(dpp,qw)
       if(ierro.ne.0) call prror(22+ierro)
       call envar(dpp)

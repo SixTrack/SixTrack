@@ -136,14 +136,14 @@ featList = ""
   call orglat
   call ord
   if(allocated(zfz)) call fluc_randomReport
-  call calcClosedOrbit(ded,.true.)
+  call clorb(ded,.true.)
 
   do l=1,2
     clo0(l)=clo(l)
     clop0(l)=clop(l)
   end do
 
-  call calcClosedOrbit(zero,.true.)
+  call clorb(zero,.true.)
 
   do l=1,2
     ll=2*l
@@ -259,7 +259,7 @@ featList = ""
       write(lout,"(a)") "MAINDA> Reading closed orbit guess from fort.33"
       call readFort33
     end if
-    call calcClosedOrbit(zero,.true.)
+    call clorb(zero,.true.)
     call betalf(zero,qw)
     call phasad(zero,qwc)
     sigm(1) = clo6(3)
@@ -285,10 +285,10 @@ featList = ""
   else
     ncorruo=ncorru
     ncorru=1
-    call calcClosedOrbit(zero,.true.)
+    call clorb(zero,.true.)
     call betalf(zero,qw)
     call phasad(zero,qwc)
-    call calcClosedOrbit(dp1,.true.)
+    call clorb(dp1,.true.)
     call betalf(dp1,qw)
     call phasad(dp1,qwc)
     ncorru=ncorruo

@@ -14,7 +14,7 @@ contains
 !  CALCULATION OF THE CLOSED ORBIT
 !  Last modified: 2018-11-07
 ! ================================================================================================ !
-subroutine calcClosedOrbit(dpp, doWrite)
+subroutine clorb(dpp, doWrite)
 
   use floatPrecision
   use numerical_constants
@@ -98,13 +98,13 @@ subroutine calcClosedOrbit(dpp, doWrite)
     write(lout,"(a)")               ""
   end if
 
-end subroutine calcClosedOrbit
+end subroutine clorb
 
 ! ================================================================================================ !
 !  CALCULATION OF THE SIX-DIMENSIONAL CLOSED ORBIT
 !  Last modified: 2018-11-07
 ! ================================================================================================ !
-subroutine calcClosedOrbit6D(nn,idummy,am)
+subroutine clorda(nn,idummy,am)
 
   use floatPrecision
   use numerical_constants
@@ -368,6 +368,6 @@ subroutine calcClosedOrbit6D(nn,idummy,am)
 10060 format(5x,a6,1p,2(1x,g16.9))
 10070 format(5x,a6,1p,2(1x,g16.9)/5x,a6,1p,2(1x,g16.9))
 10080 format(5x,' ITERAT.=',i3,' ACCURACY=',d13.6/)
-end subroutine calcClosedOrbit6D
+end subroutine clorda
 
 end module closed_orbit

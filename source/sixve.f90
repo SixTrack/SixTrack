@@ -760,12 +760,12 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   call daall(iscrda,100,'$$IS      ',nord,nvar)
 !--closed orbit
 #ifdef DEBUG
-!     write(*,*) 'ncase=',ncase,' if 1 call calcClosedOrbit6D'
+!     write(*,*) 'ncase=',ncase,' if 1 call clorda'
 #endif
-  if(ncase.eq.1) call calcClosedOrbit6D(2*ndimf,idummy,am)
+  if(ncase.eq.1) call clorda(2*ndimf,idummy,am)
 #ifdef DEBUG
-!     call dumpbin('acalcClosedOrbit6D',1,11)
-!     call abend('acalcClosedOrbit6D                                           ')
+!     call dumpbin('aclorda',1,11)
+!     call abend('aclorda                                           ')
 #endif
 !--tune variation
 #ifdef DEBUG

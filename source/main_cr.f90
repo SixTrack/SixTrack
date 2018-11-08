@@ -570,7 +570,7 @@ end interface
     call ord
     if(allocated(zfz)) call fluc_randomReport
 
-    call calcClosedOrbit(ded,.true.)
+    call clorb(ded,.true.)
 
 #ifdef ROOT
     if(root_flag) then
@@ -616,7 +616,7 @@ end interface
       clo0(l)=clo(l)
       clop0(l)=clop(l)
     end do
-    call calcClosedOrbit(zero,.true.)
+    call clorb(zero,.true.)
 #ifdef DEBUG
 !     call dumpbin('aclorb',1,1)
 !     call abend('after  clorb                                      ')
@@ -771,7 +771,7 @@ end interface
                 write(lout,"(a)") "MAINCR> Reading closed orbit guess from fort.33"
                 call readFort33
               end if
-              call calcClosedOrbit(zero,.true.)
+              call clorb(zero,.true.)
               call betalf(zero,qw)
               call phasad(zero,qwc)
               sigm(1) = clo6(3)
@@ -826,7 +826,7 @@ end interface
             if(idp.eq.1.and.iation.eq.1) then
               ncorruo=ncorru
               ncorru=1
-              call calcClosedOrbit(zero,.true.)
+              call clorb(zero,.true.)
 #ifdef DEBUG
 !     call dumpbin('aclorb',1,1)
 !     call abend('after  clorb                                      ')
@@ -872,7 +872,7 @@ end interface
               dps(1)=dp1
               ncorruo=ncorru
               ncorru=1
-              call calcClosedOrbit(dp1,.true.)
+              call clorb(dp1,.true.)
               call betalf(dp1,qw)
               call phasad(dp1,qwc)
 #ifdef DEBUG
