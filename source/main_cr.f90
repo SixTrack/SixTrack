@@ -954,11 +954,22 @@ end interface
 ! -> implement a check for this!
 ! In 4d,6d thin+thick and 5d thin we have:
 !   tas(ia,*,*) = tas(1,*,*) for all particles ia
-          if (iar .eq. 1) then
-            do i3=1,3
-              dumpclo(-1,i3*2-1) = clo6(i3)
-              dumpclo(-1,i3*2)   = clop6(i3)
-            enddo
+          if(iar == 1) then
+            if(iclo6 == 0) then
+              dumpclo(-1,1) = clo(1)
+              dumpclo(-1,2) = clop(1)
+              dumpclo(-1,3) = clo(2)
+              dumpclo(-1,4) = clop(2)
+              dumpclo(-1,5) = zero
+              dumpclo(-1,6) = zero
+            else
+              dumpclo(-1,1) = clo6(1)
+              dumpclo(-1,2) = clop6(1)
+              dumpclo(-1,3) = clo6(2)
+              dumpclo(-1,4) = clop6(2)
+              dumpclo(-1,5) = clo6(3)
+              dumpclo(-1,6) = clop6(3)
+            end if
             dumptas(-1,:,:) = tas(1,:,:)
 !     invert the tas matrix
             call invert_tas(dumptasinv(-1,:,:),dumptas(-1,:,:))
@@ -977,33 +988,33 @@ end interface
           tasiar63=tas(iar,6,3)*c1e3
           tasiar64=tas(iar,6,4)*c1e3
           tasiar65=tas(iar,6,5)*c1e3
-          bet0(1)=tas(iar,1,1)**2+tas(iar,1,2)**2                        !hr05
-          bet0x2 =tas(iar,1,3)**2+tas(iar,1,4)**2                        !hr05
-          bet0x3 =tas(iar,1,5)**2+tasiar16**2                            !hr05
-          gam0x1 =tas(iar,2,1)**2+tas(iar,2,2)**2                        !hr05
-          gam0x2 =tas(iar,2,3)**2+tas(iar,2,4)**2                        !hr05
-          gam0x3 =tas(iar,2,5)**2+tasiar26**2                            !hr05
-      alf0(1)=-one*(tas(iar,1,1)*tas(iar,2,1)+tas(iar,1,2)*tas(iar,2,2)) !hr05
-      alf0x2 =-one*(tas(iar,1,3)*tas(iar,2,3)+tas(iar,1,4)*tas(iar,2,4)) !hr05
-      alf0x3 =-one*(tas(iar,1,5)*tas(iar,2,5)+tasiar16*tasiar26)         !hr05
-          bet0(2)=tas(iar,3,3)**2+tas(iar,3,4)**2                        !hr05
-          bet0z2 =tas(iar,3,1)**2+tas(iar,3,2)**2                        !hr05
-          bet0z3 =tas(iar,3,5)**2+tasiar36**2                            !hr05
-          gam0z1 =tas(iar,4,3)**2+tas(iar,4,4)**2                        !hr05
-          gam0z2 =tas(iar,4,1)**2+tas(iar,4,2)**2                        !hr05
-          gam0z3 =tas(iar,4,5)**2+tasiar46**2                            !hr05
-      alf0(2)=-one*(tas(iar,3,3)*tas(iar,4,3)+tas(iar,3,4)*tas(iar,4,4)) !hr05
-      alf0z2 =-one*(tas(iar,3,1)*tas(iar,4,1)+tas(iar,3,2)*tas(iar,4,2)) !hr05
-      alf0z3 =-one*(tas(iar,3,5)*tas(iar,4,5)+tasiar36*tasiar46)         !hr05
-          bet0s1 =tas(iar,5,5)**2+tasiar56**2                            !hr05
-          bet0s2 =tas(iar,5,1)**2+tas(iar,5,2)**2                        !hr05
-          bet0s3 =tas(iar,5,3)**2+tas(iar,5,4)**2                        !hr05
-          gam0s1 =tasiar65**2+tas(iar,6,6)**2                            !hr05
-          gam0s2 =tasiar61**2+tasiar62**2                                !hr05
-          gam0s3 =tasiar63**2+tasiar64**2                                !hr05
-          alf0s1 =-one*(tas(iar,5,5)*tasiar65+tasiar56*tas(iar,6,6))     !hr05
-          alf0s2 =-one*(tas(iar,5,1)*tasiar61+tas(iar,5,2)*tasiar62)     !hr05
-          alf0s3 =-one*(tas(iar,5,3)*tasiar63+tas(iar,5,4)*tasiar64)     !hr05
+          bet0(1)=tas(iar,1,1)**2+tas(iar,1,2)**2
+          bet0x2 =tas(iar,1,3)**2+tas(iar,1,4)**2
+          bet0x3 =tas(iar,1,5)**2+tasiar16**2
+          gam0x1 =tas(iar,2,1)**2+tas(iar,2,2)**2
+          gam0x2 =tas(iar,2,3)**2+tas(iar,2,4)**2
+          gam0x3 =tas(iar,2,5)**2+tasiar26**2
+          alf0(1)=-one*(tas(iar,1,1)*tas(iar,2,1)+tas(iar,1,2)*tas(iar,2,2))
+          alf0x2 =-one*(tas(iar,1,3)*tas(iar,2,3)+tas(iar,1,4)*tas(iar,2,4))
+          alf0x3 =-one*(tas(iar,1,5)*tas(iar,2,5)+tasiar16*tasiar26)
+          bet0(2)=tas(iar,3,3)**2+tas(iar,3,4)**2
+          bet0z2 =tas(iar,3,1)**2+tas(iar,3,2)**2
+          bet0z3 =tas(iar,3,5)**2+tasiar36**2
+          gam0z1 =tas(iar,4,3)**2+tas(iar,4,4)**2
+          gam0z2 =tas(iar,4,1)**2+tas(iar,4,2)**2
+          gam0z3 =tas(iar,4,5)**2+tasiar46**2
+          alf0(2)=-one*(tas(iar,3,3)*tas(iar,4,3)+tas(iar,3,4)*tas(iar,4,4))
+          alf0z2 =-one*(tas(iar,3,1)*tas(iar,4,1)+tas(iar,3,2)*tas(iar,4,2))
+          alf0z3 =-one*(tas(iar,3,5)*tas(iar,4,5)+tasiar36*tasiar46)
+          bet0s1 =tas(iar,5,5)**2+tasiar56**2
+          bet0s2 =tas(iar,5,1)**2+tas(iar,5,2)**2
+          bet0s3 =tas(iar,5,3)**2+tas(iar,5,4)**2
+          gam0s1 =tasiar65**2+tas(iar,6,6)**2
+          gam0s2 =tasiar61**2+tasiar62**2
+          gam0s3 =tasiar63**2+tasiar64**2
+          alf0s1 =-one*(tas(iar,5,5)*tasiar65+tasiar56*tas(iar,6,6))
+          alf0s2 =-one*(tas(iar,5,1)*tasiar61+tas(iar,5,2)*tasiar62)
+          alf0s3 =-one*(tas(iar,5,3)*tasiar63+tas(iar,5,4)*tasiar64)
 #ifdef DEBUG
 !     call dumpbin('abib1',1,1)
 !     call abend('after bib1                                        ')
