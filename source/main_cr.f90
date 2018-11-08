@@ -981,13 +981,13 @@ end interface
 ! In 4d,6d thin+thick and 5d thin we have:
 !   tas(ia,*,*) = tas(1,*,*) for all particles ia
           if (iar .eq. 1) then
-             do i3=1,3
-                dumpclo(-1,i3*2-1) = clo6v(i3,1)
-                dumpclo(-1,i3*2)   = clop6v(i3,1)
-             enddo
-             dumptas(-1,:,:) = tas(1,:,:)
+            do i3=1,3
+              dumpclo(-1,i3*2-1) = clo6(i3)
+              dumpclo(-1,i3*2)   = clop6(i3)
+            enddo
+            dumptas(-1,:,:) = tas(1,:,:)
 !     invert the tas matrix
-             call invert_tas(dumptasinv(-1,:,:),dumptas(-1,:,:))
+            call invert_tas(dumptasinv(-1,:,:),dumptas(-1,:,:))
 !     dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
           endif
 !     tas(iar,*,*) [mm,mrad,mm,mrad,1]
@@ -1289,8 +1289,8 @@ end interface
           end do
         end do
         if(iclo6 == 1 .or. iclo6 == 2) then
-          x2(2) = x2(2)/((one+x2(6))+clop6v(3,ia))
-          x2(4) = x2(4)/((one+x2(6))+clop6v(3,ia))
+          x2(2) = x2(2)/((one+x2(6))+clop6(3))
+          x2(4) = x2(4)/((one+x2(6))+clop6(3))
         end if
         if(abs(bet0s1) <= pieni) x2(6) = dpsv(ia)
         if(iver == 1) then
@@ -1303,7 +1303,7 @@ end interface
         yv2(i3)   = x2(4)+exz(i2,4)
         sigmv(i3) = x2(5)+exz(i2,5)
         dpsv(i3)  = x2(6)
-        dpsic     = dpsv(i3)+clop6v(3,ia)
+        dpsic     = dpsv(i3)+clop6(3)
         if(idp == 1 .and. abs(ition) == 1 .and. iclo6 == 0) then
           xv1(i3) = xv1(i3) + di0xs(ia)*dpsic
           xv2(i3) = xv2(i3) + di0zs(ia)*dpsic
@@ -1374,12 +1374,12 @@ end interface
         xau(2,4) = yv2(ia+1)
         xau(2,5) = sigmv(ia+1)
         xau(2,6) = dpsv(ia+1)
-        cloau(1) = clo6v(1,ia)
-        cloau(2) = clop6v(1,ia)
-        cloau(3) = clo6v(2,ia)
-        cloau(4) = clop6v(2,ia)
-        cloau(5) = clo6v(3,ia)
-        cloau(6) = clop6v(3,ia)
+        cloau(1) = clo6(1)
+        cloau(2) = clop6(1)
+        cloau(3) = clo6(2)
+        cloau(4) = clop6(2)
+        cloau(5) = clo6(3)
+        cloau(6) = clop6(3)
         di0au(1) = di0xs(ia)
         di0au(2) = dip0xs(ia)
         di0au(3) = di0zs(ia)

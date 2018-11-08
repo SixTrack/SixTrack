@@ -585,8 +585,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'aperv ',aperv
   write(99,*) 'ixv ',ixv
   write(99,*) 'ampv ',ampv
-  write(99,*) 'clo6v ',clo6v
-  write(99,*) 'clop6v ',clop6v
   write(99,*) 'hv ',hv
   write(99,*) 'bl1v ',bl1v
   write(99,*) 'tas ',tas
@@ -1069,8 +1067,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) aperv
   write(99) ixv
   write(99) ampv
-  write(99) clo6v
-  write(99) clop6v
   write(99) hv
   write(99) bl1v
   write(99) tas
@@ -1545,8 +1541,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'aperv ',aperv
   write(99,100) 'ixv ',ixv
   write(99,100) 'ampv ',ampv
-  write(99,100) 'clo6v ',clo6v
-  write(99,100) 'clop6v ',clop6v
   write(99,100) 'hv ',hv
   write(99,100) 'bl1v ',bl1v
   write(99,100) 'tas ',tas
