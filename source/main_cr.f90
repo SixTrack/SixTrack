@@ -797,15 +797,9 @@ end interface
               enddo
             endif
 
-            do 190 ib1=1,napx
+            do ib1=1,napx
               ib3=ib1+(ib-1)*napx
 !--beam-beam element
-              clo6v(1,ib3)=clo6(1)
-              clo6v(2,ib3)=clo6(2)
-              clo6v(3,ib3)=clo6(3)
-              clop6v(1,ib3)=clop6(1)
-              clop6v(2,ib3)=clop6(2)
-              clop6v(3,ib3)=clop6(3)
               di0xs(ib3)=di0(1)
               di0zs(ib3)=di0(2)
               dip0xs(ib3)=dip0(1)
@@ -820,7 +814,7 @@ end interface
                 end do
               end do
 
-  190       continue
+            end do
           else
             if(idp.eq.1.and.iation.eq.1) then
               ncorruo=ncorru
@@ -920,12 +914,8 @@ end interface
               enddo
             endif
 
-            do 170 i=1,napx
+            do i=1,napx
               iar=(ib-1)*napx+i
-              clo6v(1,iar)=clo(1)
-              clop6v(1,iar)=clop(1)
-              clo6v(2,iar)=clo(2)
-              clop6v(2,iar)=clop(2)
               di0xs(iar)=di0(1)
               di0zs(iar)=di0(2)
               dip0xs(iar)=dip0(1)
@@ -940,7 +930,7 @@ end interface
                 end do
               end do
 
-  170       continue
+            end do
           endif
           iar=(ib-1)*napx+1
 

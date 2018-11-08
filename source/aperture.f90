@@ -2973,12 +2973,6 @@ subroutine compactArrays(llostp)
             ! ph: hisix
             oidpsv(jj)=oidpsv(jj1)
             dpsv1(jj)=dpsv1(jj1)
-            clo6v(1,jj)=clo6v(1,jj1)
-            clo6v(2,jj)=clo6v(2,jj1)
-            clo6v(3,jj)=clo6v(3,jj1)
-            clop6v(1,jj)=clop6v(1,jj1)
-            clop6v(2,jj)=clop6v(2,jj1)
-            clop6v(3,jj)=clop6v(3,jj1)
 
             !--beam-beam element
             di0xs(jj)=di0xs(jj1)

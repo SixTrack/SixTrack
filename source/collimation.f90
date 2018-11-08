@@ -6977,8 +6977,8 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
 ! dE/E with unit [1] from the closed orbit is added
 !For the 4D coordinates the closed orbit
 ! will be added by SixTrack itself later on.
-     myxp(j)  = myxp(j)*(one+myp(j)+clop6v(3,1))
-     myyp(j)  = myyp(j)*(one+myp(j)+clop6v(3,1))
+     myxp(j)  = myxp(j)*(one+myp(j)+clop6(3))
+     myyp(j)  = myyp(j)*(one+myp(j)+clop6(3))
 ! unit conversion for collimation [m] to [mm]
      mys(j)   = mys(j)*c1e3
      myp(j)   = myenom*(one+myp(j))
