@@ -3396,6 +3396,7 @@ end subroutine join
       use, intrinsic :: iso_fortran_env, only : real64
       use parpro
       use mod_common
+      use mod_commont
       use mod_commonmn
       implicit none
 
@@ -3420,10 +3421,23 @@ end subroutine join
       !Convert from whatever precission is used internally to real64,
       ! which is what should go in the output file
       do i=1,3
-         qwcs_tmp  (i) = real(qwcs  (ia_p1,i), real64)
-         clo6v_tmp (i) = real(clo6v (i,ia_p1), real64)
-         clop6v_tmp(i) = real(clop6v(i,ia_p1), real64)
+        qwcs_tmp  (i) = real(qwcs  (ia_p1,i), real64)
       enddo
+      if(iclo6 == 0) then
+        clo6v_tmp(1)  = real(clo(1), real64)
+        clop6v_tmp(1) = real(clop(1), real64)
+        clo6v_tmp(2)  = real(clo(2), real64)
+        clop6v_tmp(2) = real(clop(2), real64)
+        clo6v_tmp(3)  = zero64
+        clop6v_tmp(3) = zero64
+      else
+        clo6v_tmp(1)  = real(clo6(1), real64)
+        clop6v_tmp(1) = real(clop6(1), real64)
+        clo6v_tmp(2)  = real(clo6(2), real64)
+        clop6v_tmp(2) = real(clop6(2), real64)
+        clo6v_tmp(3)  = real(clo6(3), real64)
+        clop6v_tmp(3) = real(clop6(3), real64)
+      end if
 
       di0xs_tmp  = real(di0xs (ia_p1), real64)
       dip0xs_tmp = real(dip0xs(ia_p1), real64)
