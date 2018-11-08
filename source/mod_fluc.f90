@@ -39,8 +39,7 @@ contains
 subroutine fluc_parseInputLine(inLine, iLine, iErr)
 
   use string_tools
-  use parpro,         only : nmac
-  use mod_common,     only : izu0,mmac,mcut
+  use mod_common,     only : izu0,mcut
   use mod_settings,   only : st_debug
   use sixtrack_input, only : sixin_echoVal
 
@@ -70,13 +69,12 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr)
   fluc_mRead = 0
 
   if(nSplit > 0) call chr_cast(lnSplit(1),izu0,      iErr)
-  if(nSplit > 1) call chr_cast(lnSplit(2),mmac,      iErr)
+! if(nSplit > 1) call chr_cast(lnSplit(2),mmac,      iErr) <-- No longer in use
   if(nSplit > 2) call chr_cast(lnSplit(3),fluc_mRead,iErr)
   if(nSplit > 3) call chr_cast(lnSplit(4),mcut,      iErr)
 
   if(st_debug) then
     call sixin_echoVal("izu0",izu0,      "FLUC",iLine)
-    call sixin_echoVal("mmac",mmac,      "FLUC",iLine)
     call sixin_echoVal("mout",fluc_mRead,"FLUC",iLine)
     call sixin_echoVal("mcut",mcut,      "FLUC",iLine)
   end if
@@ -85,12 +83,6 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr)
   mcut        = iabs(mcut)
   fluc_iSeed1 = izu0
   fluc_iSeed2 = 0
-
-  if(mmac > nmac) then
-    write(lout,"(a,i0)") "FLUC> ERROR Maximum number of seeds for vectorisation is ",nmac
-    iErr = .true.
-    return
-  end if
 
   if(fluc_mRead < 0 .or. fluc_mRead > 15) then
     write(lout,"(a,i0)") "FLUC> ERROR I/O options (mout) must be a number between 0 and 15, got ",fluc_mRead

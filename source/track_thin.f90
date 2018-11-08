@@ -180,70 +180,70 @@ subroutine trauthin(nthinerr)
 
     select case (kzz)
     case (1)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 11
 #include "include/stra01.f90"
       end if
     case (2)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i)=12
 #include "include/stra02.f90"
       end if
     case (3)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 13
 #include "include/stra03.f90"
       end if
     case (4)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 14
 #include "include/stra04.f90"
       end if
     case (5)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 15
 #include "include/stra05.f90"
       end if
     case (6)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 16
 #include "include/stra06.f90"
       end if
     case (7)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 17
 #include "include/stra07.f90"
       end if
     case (8)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 18
 #include "include/stra08.f90"
       end if
     case (9)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 19
 #include "include/stra09.f90"
       end if
     case (10)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 20
@@ -344,70 +344,70 @@ subroutine trauthin(nthinerr)
     !--Negative KZZ--
     !----------------
     case (-1)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 21
 #include "include/stra01.f90"
       end if
     case (-2)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 22
 #include "include/stra02.f90"
       end if
     case (-3)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 23
 #include "include/stra03.f90"
       end if
     case (-4)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 24
 #include "include/stra04.f90"
       end if
     case (-5)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 25
 #include "include/stra05.f90"
       end if
     case (-6)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 26
 #include "include/stra06.f90"
       end if
     case (-7)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 27
 #include "include/stra07.f90"
       end if
     case (-8)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 28
 #include "include/stra08.f90"
       end if
     case (-9)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 29
 #include "include/stra09.f90"
       end if
     case (-10)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 30
