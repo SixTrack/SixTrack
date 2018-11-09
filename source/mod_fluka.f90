@@ -300,7 +300,7 @@ module mod_fluka
 
   !----------------------------------------------------------------------------
   ! send and receive particles from Fluka
-  integer function fluka_send_receive(turn, ipt, el, npart, xv, yv, s, etot, aa, zz, mass)
+  integer function fluka_send_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
     implicit none
 
     ! Parameters
@@ -308,10 +308,10 @@ module mod_fluka
     integer           ::  npart
     real(kind=fPrec)  :: el
 
-    real(kind=fPrec), allocatable :: xv(:,:)
-    real(kind=fPrec), allocatable :: yv(:,:)
-!    real(kind=fPrec), allocatable :: y(:)
-!    real(kind=fPrec), allocatable :: yp(:)
+    real(kind=fPrec), allocatable :: xv1(:)
+    real(kind=fPrec), allocatable :: yv1(:)
+    real(kind=fPrec), allocatable :: xv2(:)
+    real(kind=fPrec), allocatable :: yv2(:)
     real(kind=fPrec), allocatable :: s(:)
     real(kind=fPrec), allocatable :: etot(:)
 
@@ -319,15 +319,15 @@ module mod_fluka
     integer(kind=int16), allocatable :: aa(:)
     integer(kind=int16), allocatable :: zz(:)
 
-    fluka_send_receive = fluka_send(turn, ipt, el, npart, xv, yv, s, etot, aa, zz, mass)
+    fluka_send_receive = fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
     if(fluka_send_receive.eq.-1) return
 
-    fluka_send_receive = fluka_receive(turn, ipt, el, npart, xv, yv, s, etot, aa, zz, mass)
+    fluka_send_receive = fluka_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
   end function fluka_send_receive
 
   !----------------------------------------------------------------------------
   ! just send particles to Fluka
-  integer function fluka_send(turn, ipt, el, npart, xv, yv, s, etot, aa, zz, mass)
+  integer function fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
     implicit none
 
     ! Interface variables
@@ -335,10 +335,10 @@ module mod_fluka
     integer           :: npart
     real(kind=fPrec)  :: el
 
-    real(kind=fPrec), allocatable :: xv(:,:)
-    real(kind=fPrec), allocatable :: yv(:,:)
-!    real(kind=fPrec), allocatable :: y(:)
-!    real(kind=fPrec), allocatable :: yp(:)
+    real(kind=fPrec), allocatable :: xv1(:)
+    real(kind=fPrec), allocatable :: yv1(:)
+    real(kind=fPrec), allocatable :: xv2(:)
+    real(kind=fPrec), allocatable :: yv2(:)
     real(kind=fPrec), allocatable :: s(:)
     real(kind=fPrec), allocatable :: etot(:)
 
@@ -457,7 +457,7 @@ module mod_fluka
   ! The call from fluka.s90 is:
   ! fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv1(:), yv1(:), xv2(:), yv2(:), sigmv, ejv, naa(:), nzz(:), nucm(:))
   ! When the above arrays are made allocatable, the below variables will need updating - see mod_commonmn and mod_hions
-  integer function fluka_receive(turn, ipt, el, napx, xv, yv, s, etot, aa, zz, mass)
+  integer function fluka_receive(turn, ipt, el, napx, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
 
     use parpro
 
@@ -468,10 +468,10 @@ module mod_fluka
     integer           :: napx
     real(kind=fPrec)  :: el
 
-    real(kind=fPrec), allocatable :: xv(:,:)
-    real(kind=fPrec), allocatable :: yv(:,:)
-!    real(kind=fPrec), allocatable :: y(:)
-!    real(kind=fPrec), allocatable :: yp(:)
+    real(kind=fPrec), allocatable :: xv1(:)
+    real(kind=fPrec), allocatable :: yv1(:)
+    real(kind=fPrec), allocatable :: xv2(:)
+    real(kind=fPrec), allocatable :: yv2(:)
     real(kind=fPrec), allocatable :: s(:)
     real(kind=fPrec), allocatable :: etot(:)
 
@@ -500,16 +500,16 @@ module mod_fluka
 
       fluka_weight(j) = one
 
-      xv  (1,j) = zero
-      xv  (2,j) = zero
-      yv  (1,j) = zero
-      yv  (2,j) = zero
-      etot(j)   = zero
-      s   (j)   = zero
+      xv1 (j) = zero
+      xv2 (j) = zero
+      yv1 (j) = zero
+      yv2 (j) = zero
+      etot(j) = zero
+      s   (j) = zero
 ! hisix: we should also parse m0,A0,Z0
-      aa  (j)   = 1
-      zz  (j)   = 1
-      mass(j)   = zero
+      aa  (j) = 1
+      zz  (j) = 1
+      mass(j) = zero
     end do
 
     ! Wait until end of turn (Synchronize)

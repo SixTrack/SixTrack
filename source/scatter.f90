@@ -784,7 +784,7 @@ subroutine scatter_thin(iElem, ix, turn)
   use mod_common
   use mod_commonmn
   use mod_particles
-  use numerical_constants, only : one, pi
+  use numerical_constants
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -902,7 +902,7 @@ subroutine scatter_thin(iElem, ix, turn)
         ! Update particle energy and momentum
         if(abs(dPP) >= pieni) then
           ejfv(j) = (one+dPP)*ejfv(j)                                   ! Momentum [MeV/c]
-          ejv(j)  = sqrt(ejfv(j)**2 + nucm(j)**2)                       ! Energy [MeV]
+        ! ejv(j)  = sqrt(ejfv(j)**2 + nucm(j)**2)                       ! Energy [MeV]
           theta   = acos_mb(one - (t/((2*ejfv(j)**2)*(one+dPP))))*c1e3  ! Scattering angle [mrad]
           updateE = .true.                                              ! Re-calculate energy-dependent vectors
         else
@@ -1006,7 +1006,7 @@ subroutine scatter_thin(iElem, ix, turn)
   end if
 
   if(updateE) then
-    call part_updateEnergy(e0)
+    call part_updatePartEnergy(2)
   end if
 
 #ifdef CR
