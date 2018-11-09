@@ -5,7 +5,7 @@
 #include "cprintarr.h"
 
 struct distparam* dist;
-int dim;
+
 
 void six2canonical_(double * coord, double *ref_momentum, double *mass, double *canonical){
 	
@@ -88,6 +88,14 @@ void mtrx_vector_mult_(int *mp, int *np,  double mtrx_a[6][6], double mtrx_b[6],
 void mtrx_vector_mult_pointer(int mp, int np,  double **mtrx_a, double mtrx_b[6], double result[6])
 {
 
+	int m = mp;
+	int n = np;
+	result[0]=0;
+	result[1]=0;
+	result[2]=0;
+	result[3]=0;
+	result[4]=0;
+	result[5]=0;
 
     register int i=0, j=0, k=0;
     for (i = 0; i < mp; i++)
