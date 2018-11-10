@@ -47,6 +47,7 @@ module scatter
     "DoubD_XX","CentDiff","Unknown ","Error   "                &
   /)
 
+  ! Element Storage
   type, private :: scatter_elemStore
     character(len=mNameLen) :: bezName
     integer                 :: bezID
@@ -67,13 +68,6 @@ module scatter
   ! Statistical correction factor for a specific particle
   real(kind=fPrec), allocatable, public, save :: scatter_statScale(:)
 
-  ! Configuration for an ELEM, columns are:
-  ! (1)   : pointer to the SingleElement
-  ! (2)   : pointer to PROFILE
-  ! (3-5) : pointer to GENERATORs
-  integer,          allocatable, public, save :: scatter_ELEM(:,:)
-  real(kind=fPrec), allocatable, public, save :: scatter_ELEM_scale(:)
-
   ! Configuration for PROFILE and GENERATOR
   ! Columns of scatter_PROFILE:
   ! (1)   : Profile name in fort.3 (points within scatter_cData)
@@ -87,7 +81,6 @@ module scatter
   character(len=:), allocatable, private, save :: scatter_cData(:)
 
   ! Number of currently used positions in arrays
-! integer, public,  save :: scatter_nElem      = 0
   integer, public,  save :: scatter_nProfile   = 0
   integer, public,  save :: scatter_nGenerator = 0
   integer, private, save :: scatter_niData     = 0
@@ -129,8 +122,6 @@ subroutine scatter_allocate
   use mod_alloc
   implicit none
 
-  call alloc(scatter_ELEM,              1,5, 0,          "scatter_ELEM")
-  call alloc(scatter_ELEM_scale,        1,   zero,       "scatter_ELEM_scale")
   call alloc(scatter_PROFILE,           1,5, 0,          "scatter_PROFILE")
   call alloc(scatter_GENERATOR,         1,5, 0,          "scatter_GENERATOR")
 
@@ -396,7 +387,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   integer, allocatable    :: generatorID(:)
   real(kind=fPrec)        :: elemScale
 
-  integer  i, ii, j
+  integer  i, ii
 
   ! Check number of arguments
   if(nSplit < 5) then
@@ -422,18 +413,9 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   profileID      = -1
   generatorID(:) = -1
 
-  ! Add the element to the list
-  ! scatter_nELEM = scatter_nELEM + 1
-  call alloc(scatter_ELEM,       scatter_nELEM, 5, 0, "scatter_ELEM")
-  call alloc(scatter_ELEM_scale, scatter_nELEM, zero, "scatter_ELEM_scale")
-
-
   ! Find the single element referenced
-  ii = -1
   do i=1,il
     if(bez(i) == lnSplit(2)) then
-      ii = i
-
       if(scatter_elemPointer(i) /= 0) then
         write(lout,"(a)") "SCATTER> ERROR Tried to define element '"//trim(lnSplit(2))//"' twice."
         iErr = .true.
@@ -464,12 +446,9 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
     return
   end if
 
-  scatter_ELEM(scatter_nELEM,1) = bezID
-
   ! Find the profile name referenced
   do i=1,scatter_nPROFILE
     if(trim(scatter_cData(scatter_PROFILE(i,1))) == lnSplit(3)) then
-      scatter_ELEM(scatter_nELEM,2) = i
       profileID = i
       exit
     end if
@@ -481,17 +460,12 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   end if
 
   ! Store the scaling
-  call str_cast(lnSplit(4),scatter_ELEM_scale(scatter_nELEM),iErr)
   call str_cast(lnSplit(4),elemScale,iErr)
 
   do ii=5,nSplit
-    ! In case we won't find the generator name
-    scatter_ELEM(scatter_nELEM,ii-4+2) = -1
-
     ! Search for the generator with the right name
     do i=1, scatter_nGENERATOR
       if(trim(scatter_cData(scatter_GENERATOR(i,1))) == lnSplit(ii)) then
-        scatter_ELEM(scatter_nELEM,ii-4+2) = i
         generatorID(ii-4) = i
         exit
       end if
@@ -1543,16 +1517,6 @@ subroutine scatter_dumpData
   write(lout,"(2(a,i8))") "Seeds          =", scatter_seed1, ";", scatter_seed2
 
   write(lout,"(a)")       "Arrays:"
-
-  write(lout,"(a,2(i3,a))") "scatter_ELEM: (",scatter_nELEM,",",5,"):"
-  do i=1,scatter_nELEM
-    write(lout,"(i4,a,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3)") i,":",scatter_ELEM(i,:)
-  end do
-
-  write(lout,"(a,i3,a)") "scatter_ELEM_scale: (",scatter_nELEM,"):"
-  do i=1,scatter_nELEM
-    write(lout,"(i4,a,e14.7)") i,":",scatter_ELEM_scale(i)
-  end do
 
   write(lout,"(a,2(i3,a))") "scatter_PROFILE: (", scatter_nPROFILE,",",5,"):"
   do i=1,scatter_nPROFILE
