@@ -2300,7 +2300,7 @@ end function dynk_computeFUN
 ! ================================================================================================ !
 subroutine dynk_setvalue(element_name, att_name, newValue)
 
-  use scatter, only : scatter_ELEM_scale, scatter_elemPointer
+  use scatter, only : scatter_ELEM_scale, scatter_elemPointer, scatter_elemList
   use crcoall
   use mod_common
   use mod_commont
@@ -2492,6 +2492,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
       case(40) ! Scatter
         if(att_name == "scaling") then
           scatter_ELEM_scale(scatter_elemPointer(ii)) = newValue
+          scatter_elemList(scatter_elemPointer(ii))%elemScale = newValue
         else
           goto 100 ! ERROR
         end if

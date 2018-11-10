@@ -55,7 +55,7 @@ module scatter
     integer, allocatable    :: generatorID(:)
   end type scatter_elemStore
 
-  type(scatter_elemStore), allocatable, private, save :: scatter_elemList(:)
+  type(scatter_elemStore), allocatable, public,  save :: scatter_elemList(:)
   integer,                              public,  save :: scatter_nElem = 0
 
   ! Total cross section
@@ -806,7 +806,7 @@ subroutine scatter_thin(iElem, ix, turn)
   integer, intent(in) :: iElem, ix, turn
 
   ! Temp variables
-  integer          idElem, idPro, idGen, iError
+  integer          idElem, idPro, nGen, idGen, iError
   integer          i, j, k, iLost, nLost(9), nScatter(9), procID
   integer          tmpSeed1, tmpSeed2
   logical          isDiff, updateE, hasProc(9)
@@ -827,8 +827,9 @@ subroutine scatter_thin(iElem, ix, turn)
 #endif
 
   idElem  = scatter_elemPointer(ix)
-  idPro   = scatter_ELEM(idElem,2)
-  scaling = scatter_ELEM_scale(idElem)
+  idPro   = scatter_elemList(idElem)%profileID
+  scaling = scatter_elemList(idElem)%elemScale
+  nGen    = size(scatter_elemList(idElem)%generatorID,1)
 
   ! if(scatter_debug) then
   !   write(lout,"(a)")       "SCATTER> DEBUG In scatter_thin"
@@ -856,7 +857,7 @@ subroutine scatter_thin(iElem, ix, turn)
   updateE = .false.
 
   ! Loop over generators
-  do i=3,5
+  do i=1,nGen
 
     nLost(:)    = 0
     nScatter(:) = 0
@@ -868,8 +869,8 @@ subroutine scatter_thin(iElem, ix, turn)
     dEE    = zero
     dPP    = zero
 
-    idGen = scatter_ELEM(idElem,i)
-    if(idGen == 0) exit ! No generator
+    idGen = scatter_elemList(idElem)%generatorID(i)
+    if(idGen <= 0) exit ! No generator
 
     ! Generate a random phi
     call ranecu(rndPhi, napx, -1)
