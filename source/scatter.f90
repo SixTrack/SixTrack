@@ -96,11 +96,13 @@ module scatter
 #endif
 
 #ifdef CR
-  integer, public,  save :: scatter_filePos     = -1
-  integer, public,  save :: scatter_filePos_CR  = 0
+  integer, public,  save :: scatter_logFilePos     = -1
+  integer, public,  save :: scatter_logFilePos_CR  =  0
+  integer, public,  save :: scatter_sumFilePos     = -1
+  integer, public,  save :: scatter_sumFilePos_CR  =  0
 
-  integer, private, save :: scatter_seed1_CR   = -1
-  integer, private, save :: scatter_seed2_CR   = -1
+  integer, private, save :: scatter_seed1_CR       = -1
+  integer, private, save :: scatter_seed2_CR       = -1
 #endif
 
 contains
@@ -145,11 +147,12 @@ subroutine scatter_initialise
   use crcoall
   use parpro
   use file_units
+  use mod_units
 
   implicit none
 
   integer iError
-  logical isOpen
+  logical fErr
 
 #ifdef HDF5
 
@@ -221,49 +224,50 @@ subroutine scatter_initialise
 
     ! Write Attributes
     call h5_writeAttr(h5_scatID,"SEED",scatter_seed1)
+
+    return ! No need to open files
+  end if
+#endif
+
+  ! Open scatter_log.dat
+  if(scatter_logFile == -1) call funit_requestUnit("scatter_log.dat", scatter_logFile)
+#ifdef CR
+  if(scatter_logFilePos == -1) then
+    write(93,"(a)") "SCATTER> scatter_initialise opening new file 'scatter_log.dat'"
+#endif
+    call units_openUnit(unit=scatter_logFile,fileName="scatter_log.dat",formatted=.true.,mode="w",err=fErr,status="replace")
+    write(scatter_logFile,"(a)") "# scatter_log"
+    write(scatter_logFile,"(a1,a8,1x,a8,2(1x,a20),1x,a8,1x,a4,1x,a13,7(1x,a16))") &
+      "#","ID","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8),&
+      "lost","t[MeV^2]","dE/E","dP/P","theta[mrad]","phi[rad]","density","prob","stat_corr"
+    flush(scatter_logFile)
+#ifdef CR
+    scatter_logFilePos = 2
+    endfile(scatter_logFile,iostat=iError)
+    backspace(scatter_logFile,iostat=iError)
   else
+    write(93,"(a)") "SCATTER> scatter_initialise kept already opened file 'scatter_log.dat'"
+  end if
 #endif
 
-    ! Open scatter_log.dat
-    if(scatter_logFile == -1) call funit_requestUnit("scatter_log.dat",    scatter_logFile)
-    if(scatter_sumFile == -1) call funit_requestUnit("scatter_summary.dat",scatter_sumFile)
+  ! Open scatter_summary.dat
+  if(scatter_sumFile == -1) call funit_requestUnit("scatter_summary.dat",scatter_sumFile)
 #ifdef CR
-    ! Could have loaded a CR just before the start of the tracking;
-    ! in this case the scatter_log.dat is already open and positioned,
-    ! so don't try to open the file again.
-    if(scatter_filePos == -1) then
-      write(93,"(a)") "SCATTER> scatter_initialise opening new file scatter_log.dat"
+  if(scatter_sumFilePos == -1) then
+    write(93,"(a)") "SCATTER> scatter_initialise opening new file 'scatter_summary.dat'"
 #endif
-
-      inquire(unit=scatter_logFile, opened=isOpen)
-      if(isOpen) then
-        write(lout,"(a)") "SCATTER> ERROR Could not open scatter_log.dat, unit already taken."
-        call prror(-1)
-      end if
-
-      open(scatter_logFile,file="scatter_log.dat",status="replace",form="formatted")
-      write(scatter_logFile,"(a)") "# scatter_log"
-      write(scatter_logFile,"(a1,a8,1x,a8,2(1x,a20),1x,a8,1x,a4,1x,a13,7(1x,a16))") &
-        "#","ID","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8),&
-        "lost","t[MeV^2]","dE/E","dP/P","theta[mrad]","phi[rad]","density","prob","stat_corr"
-      flush(scatter_logFile)
-
-      open(scatter_sumFile,file="scatter_summary.dat",status="replace",form="formatted")
-      write(scatter_sumFile,"(a)") "# scatter_summary"
-      write(scatter_sumFile,"(a1,a8,2(1x,a20),1x,a8,2(1x,a8),2(1x,a13))") &
-        "#","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8), &
-        "nScatt","nLost","crossSec[mb]","scaling"
-      flush(scatter_sumFile)
-
+    call units_openUnit(unit=scatter_sumFile,fileName="scatter_summary.dat",formatted=.true.,mode="w",err=fErr,status="replace")
+    write(scatter_sumFile,"(a)") "# scatter_summary"
+    write(scatter_sumFile,"(a1,a8,2(1x,a20),1x,a8,2(1x,a8),2(1x,a13))") &
+      "#","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8), &
+      "nScatt","nLost","crossSec[mb]","scaling"
+    flush(scatter_sumFile)
 #ifdef CR
-      scatter_filePos = 2
-      endfile(scatter_logFile,iostat=iError)
-      backspace(scatter_logFile,iostat=iError)
-    else
-      write(93,"(a)") "SCATTER> scatter_initialise kept already opened file scatter_log.dat"
-    end if
-#endif
-#ifdef HDF5
+    scatter_sumFilePos = 2
+    endfile(scatter_sumFile,iostat=iError)
+    backspace(scatter_sumFile,iostat=iError)
+  else
+    write(93,"(a)") "SCATTER> scatter_initialise kept already opened file 'scatter_summary.dat'"
   end if
 #endif
 
@@ -907,7 +911,7 @@ subroutine scatter_thin(iElem, ix, turn)
       end if
 #endif
 #ifdef CR
-      scatter_filePos = scatter_filePos + 1
+      scatter_logFilePos = scatter_logFilePos + 1
 #endif
       if(do_coll) then
         scatterhit(j)    = 8
@@ -1319,7 +1323,7 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
 
   integer j
 
-  read(fileUnit, err=10, end=10) scatter_filePos_CR, scatter_seed1_CR, scatter_seed2_CR
+  read(fileUnit, err=10, end=10) scatter_logFilePos_CR, scatter_seed1_CR, scatter_seed2_CR
 
   readErr = .false.
   return
@@ -1364,20 +1368,20 @@ subroutine scatter_crcheck_positionFiles
     call prror(-1)
   end if
 
-  if(scatter_filePos_CR /= -1) then
+  if(scatter_logFilePos_CR /= -1) then
 #ifdef BOINC
     call boincrf("scatter_log.dat",fileName)
     open(unit=scatter_logFile,file=fileName,status="old",action="readwrite", err=10)
 #else
     open(unit=scatter_logFile,file="scatter_log.dat",status="old",action="readwrite", err=10)
 #endif
-    scatter_filePos=0
-    do j=1, scatter_filePos_CR
+    scatter_logFilePos=0
+    do j=1, scatter_logFilePos_CR
       read(scatter_logFile,"(a1024)",end=10,err=10,iostat=iError) aRecord
-      scatter_filePos = scatter_filePos+1
+      scatter_logFilePos = scatter_logFilePos+1
     end do
 
-    ! Truncate the file after scatter_filePos_CR lines
+    ! Truncate the file after scatter_logFilePos_CR lines
     endfile(scatter_logFile,iostat=iError)
     close(scatter_logFile)
 
@@ -1388,13 +1392,13 @@ subroutine scatter_crcheck_positionFiles
     open(unit=scatter_logFile,file="scatter_log.dat",status="old",position="append",action="write",err=10)
 #endif
     write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned scatter_log.dat, "//&
-                "scatter_filePos=",scatter_filePos," scatter_filePos_CR=",scatter_filePos_CR
+                "scatter_logFilePos=",scatter_logFilePos," scatter_logFilePos_CR=",scatter_logFilePos_CR
     endfile(93,iostat=iError)
     backspace(93,iostat=iError)
 
   else
     write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning "// &
-      "of scatter_log.dat, scatter_filePos_CR=",scatter_filePos_CR
+      "of scatter_log.dat, scatter_logFilePos_CR=",scatter_logFilePos_CR
     write(93,"(a)")    "SIXTRACR> If anything has been written to the file, "// &
       "it will be correctly truncated in scatter_initialise."
     endfile(93,iostat=iError)
@@ -1405,7 +1409,7 @@ subroutine scatter_crcheck_positionFiles
 
 10 continue
   write(93,"(a,i0)")    "SIXTRACR> ERROR reading scatter_log.dat, iostat=",iError
-  write(93,"(2(a,i0))") "SIXTRACR> scatter_filePos=",scatter_filePos," scatter_filePos_CR=",scatter_filePos_CR
+  write(93,"(2(a,i0))") "SIXTRACR> scatter_logFilePos=",scatter_logFilePos," scatter_logFilePos_CR=",scatter_logFilePos_CR
   endfile(93,iostat=iError)
   backspace(93,iostat=iError)
   write(lout,"(a)")"SIXTRACR> ERROR CRCHECK failure positioning scatter_log.dat"
@@ -1430,11 +1434,7 @@ subroutine scatter_crpoint(fileUnit, writeErr, iError)
 
   integer j
 
-  write(fileunit,err=10,iostat=iError) scatter_filePos, scatter_seed1, scatter_seed2
-  write(fileunit,err=10,iostat=iError) scatter_niData, scatter_nfData, scatter_ncData
-  write(fileunit,err=10,iostat=iError) (scatter_iData(j), j=1, scatter_niData)
-  write(fileunit,err=10,iostat=iError) (scatter_fData(j), j=1, scatter_nfData)
-  write(fileunit,err=10,iostat=iError) (scatter_cData(j), j=1, scatter_ncData)
+  write(fileunit,err=10,iostat=iError) scatter_logFilePos, scatter_seed1, scatter_seed2
   endfile(fileUnit,iostat=iError)
   backspace(fileUnit,iostat=iError)
 
