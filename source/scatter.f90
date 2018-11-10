@@ -45,6 +45,9 @@ module scatter
   character(len=8), parameter :: scatter_procNames(9)     = &
     (/"Absorbed","NonDiff ","Elastic ","SingD_XB","SingD_AX","DoubD_XX","CentDiff","Unknown ","Error   "/)
 
+  ! Total cross section
+  real(kind=fPrec), private, save :: scatter_sigmaTot     = one
+
   ! Pointer from an element back to an ELEM statement (0 => not used)
   integer,          allocatable, public, save :: scatter_elemPointer(:)
 
@@ -337,6 +340,17 @@ subroutine scatter_parseInputLine(inLine, iErr)
     pythia_allowLosses = .true.
 #endif
 
+  case("SEED")
+    if(nSplit /= 2) then
+      write(lout,"(a)") "SCATTER> ERROR SEED expected 1 arguments:"
+      write(lout,"(a)") "SCATTER>       SEED seed"
+      iErr = .true.
+      return
+    end if
+    call str_cast(lnSplit(2), scatter_seed1, iErr)
+    call recuinit(scatter_seed1)
+    call recuut(scatter_seed1, scatter_seed2)
+
   case("ELEM")
     call scatter_parseElem(lnSplit, nSplit, iErr)
 
@@ -345,9 +359,6 @@ subroutine scatter_parseInputLine(inLine, iErr)
 
   case("GEN")
     call scatter_parseGenerator(lnSplit, nSplit, iErr)
-
-  case("SEED")
-    call scatter_parseSeed(lnSplit, nSplit, iErr)
 
   case default
     write(lout,"(a)") "SCATTER> ERROR Keyword not recognised: '"//keyWord//"'"
@@ -732,40 +743,6 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
   end select
 
 end subroutine scatter_parseGenerator
-
-! =================================================================================================
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 09-2017
-! =================================================================================================
-subroutine scatter_parseSeed(lnSplit, nSplit, iErr)
-
-  use crcoall
-  use strings
-  use mod_ranecu
-  use string_tools
-
-  implicit none
-
-  type(string), allocatable, intent(in)    :: lnSplit(:)
-  integer,                   intent(in)    :: nSplit
-  logical,                   intent(inout) :: iErr
-
-  integer tmpSeed
-
-  ! Check the number of arguments
-  if(nSplit /= 2) then
-    write(lout,"(a)") "SCATTER> ERROR SEED expected 1 arguments:"
-    write(lout,"(a)") "SCATTER>       SEED seed"
-    iErr = .true.
-    return
-  end if
-
-  ! Read the seed and initialise ranecu
-  call str_cast(lnSplit(2), tmpSeed, iErr)
-  call recuinit(tmpSeed)
-  call recuut(scatter_seed1, scatter_seed2)
-
-end subroutine scatter_parseSeed
 
 ! =================================================================================================
 ! END Input Parser Functions
