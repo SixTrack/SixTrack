@@ -82,7 +82,6 @@ module scatter
   ! (1)   : Profile name in fort.3 (points within scatter_cData)
   ! (2)   : Profile type
   ! (3-5) : Arguments (often pointing within scatter_{i|c|f}Data)
-  integer, allocatable, public, save :: scatter_PROFILE(:,:)
   integer, allocatable, public, save :: scatter_GENERATOR(:,:)
 
   integer,          allocatable, private, save :: scatter_iData(:)
@@ -130,7 +129,6 @@ subroutine scatter_allocate
   use mod_alloc
   implicit none
 
-  call alloc(scatter_PROFILE,           1,5, 0,          "scatter_PROFILE")
   call alloc(scatter_GENERATOR,         1,5, 0,          "scatter_GENERATOR")
 
   call alloc(scatter_iData,             1,   0,          "scatter_iData")
@@ -321,11 +319,6 @@ subroutine scatter_parseInputLine(inLine, iErr)
     return
   end if
 
-  ! if(scatter_debug) then
-  !   write (lout,"(a,i3,a)")  "SCATTER> DEBUG Input line len=",len(inLine),": '"//trim(inLine)//"'"
-  !   write (lout,"(a,i2,a)") ("SCATTER> DEBUG  * Field(",i,") = '"//lnSplit(i)//"'",i=1,nSplit)
-  ! end if
-
   keyWord = lnSplit(1)%upper()
 
   select case(keyWord%get())
@@ -456,7 +449,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
   ! Find the profile name referenced
   do i=1,scatter_nPro
-    if(trim(scatter_cData(scatter_PROFILE(i,1))) == lnSplit(3)) then
+    if(scatter_proList(i)%proName == lnSplit(3)) then
       profileID = i
       exit
     end if
@@ -564,16 +557,6 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
   proType    = -1
   fParams(:) = zero
 
-  ! Add a profile to the list
-  call alloc(scatter_PROFILE, scatter_nPro, 5, 0, "scatter_PROFILE")
-
-  ! Store the profile name
-  scatter_ncData = scatter_ncData + 1
-  call alloc(scatter_cData, mStrLen, scatter_ncData, str_dSpace, "scatter_cData")
-
-  scatter_cData(scatter_ncData)       = lnSplit(2)
-  scatter_PROFILE(scatter_nPro,1) = scatter_ncData
-
   ! Check that the profile name is unique
   do i=1,scatter_nPro-1
     if(scatter_proList(i)%proName == lnSplit(2)) then
@@ -586,8 +569,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
   ! Profile type dependent code
   select case (lnSplit(3)%get())
   case("FLAT")
-    scatter_PROFILE(scatter_nPro,2) = 1 ! Integer code for FLAT
-    proType = 1
+    proType = 1 ! Integer code for FLAT
     if(nSplit /= 6) then
       write(lout,"(a)") "SCATTER> ERROR PROfile type FLAT expected 6 arguments:"
       write(lout,"(a)") "SCATTER>       PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
@@ -595,23 +577,12 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
       return
     end if
 
-    ! Request space to store the density
-    tmpIdx = scatter_nfData + 1
-    scatter_PROFILE(scatter_nPro,3) = tmpIdx
-    scatter_nfData = scatter_nfData + 3
-    call alloc(scatter_fData, scatter_nfData, zero, "scatter_fData")
-
-    call str_cast(lnSplit(4),scatter_fData(tmpIdx),  iErr) ! Density
-    call str_cast(lnSplit(5),scatter_fData(tmpIdx+1),iErr) ! Mass
-    call str_cast(lnSplit(6),scatter_fData(tmpIdx+2),iErr) ! Momentum
-
     call str_cast(lnSplit(4),fParams(1),iErr) ! Density
     call str_cast(lnSplit(5),fParams(2),iErr) ! Mass
     call str_cast(lnSplit(6),fParams(3),iErr) ! Momentum
 
   case("FIXED")
-    scatter_PROFILE(scatter_nPro,2) = 2 ! Integer code for FIXED
-    proType = 2
+    proType = 2 ! Integer code for FIXED
     if(nSplit /= 4) then
       write(lout,"(a)") "SCATTER> ERROR PROfile type FIXED expected 4 arguments:"
       write(lout,"(a)") "SCATTER>       PRO name FIXED density[targets/m^2]"
@@ -619,37 +590,16 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
       return
     end if
 
-    ! Request space to store the density
-    tmpIdx = scatter_nfData + 1
-    scatter_PROFILE(scatter_nPro,3) = tmpIdx
-    scatter_nfData = scatter_nfData + 1
-    call alloc(scatter_fData, scatter_nfData, zero, "scatter_fData")
-
-    call str_cast(lnSplit(4),scatter_fData(tmpIdx),iErr) ! Density
-
     call str_cast(lnSplit(4),fParams(1),iErr) ! Density
 
   case("GAUSS1")
-    scatter_PROFILE(scatter_nPro,2) = 10  ! Integer code for BEAM_GAUSS1
-    proType = 10
+    proType = 10  ! Integer code for BEAM_GAUSS1
     if(nSplit /= 8) then
       write(lout,"(a)") "SCATTER> ERROR PROfile type GAUSS1 expected 8 arguments:"
       write(lout,"(a)") "SCATTER        PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] offset_x[mm] offset_y[mm]"
       iErr = .true.
       return
     end if
-
-    ! Request space to store the density
-    tmpIdx = scatter_nfData + 1
-    scatter_PROFILE(scatter_nPro,3) = tmpIdx
-    scatter_nfData = scatter_nfData + 5
-    call alloc(scatter_fData, scatter_nfData, zero, "scatter_fData")
-
-    call str_cast(lnSplit(4),scatter_fData(tmpIdx),iErr)   ! Beam Charge
-    call str_cast(lnSplit(5),scatter_fData(tmpIdx+1),iErr) ! Sigma X
-    call str_cast(lnSplit(6),scatter_fData(tmpIdx+2),iErr) ! Sigma Y
-    call str_cast(lnSplit(7),scatter_fData(tmpIdx+3),iErr) ! Offset X
-    call str_cast(lnSplit(8),scatter_fData(tmpIdx+4),iErr) ! Offset Y
 
     call str_cast(lnSplit(4),fParams(1),iErr) ! Beam Charge
     call str_cast(lnSplit(5),fParams(2),iErr) ! Sigma X
@@ -1092,28 +1042,26 @@ real(kind=fPrec) function scatter_profile_getDensity(idPro, x, y) result(retval)
   real(kind=fPrec) beamtot, sigmaX, sigmaY, offsetX, offsetY
   integer tmpIdx
 
-  tmpIdx = scatter_PROFILE(idPro,3)
-
-  select case(scatter_PROFILE(idPro,2))
+  select case(scatter_proList(idPro)%proType)
   case (1)  ! FLAT
-    retval  = scatter_fData(tmpIdx)
+    retval  = scatter_proList(idPro)%fParams(1)
 
   case (2)  ! FIXED
-    retval  = scatter_fData(tmpIdx)
+    retval  = scatter_proList(idPro)%fParams(1)
 
   case (10) ! GAUSS1
-    beamtot = scatter_fData(tmpIdx)
-    sigmaX  = scatter_fData(tmpIdx + 1)
-    sigmaY  = scatter_fData(tmpIdx + 2)
-    offsetX = scatter_fData(tmpIdx + 3)
-    offsetY = scatter_fData(tmpIdx + 4)
+    beamtot = scatter_proList(idPro)%fParams(1)
+    sigmaX  = scatter_proList(idPro)%fParams(2)
+    sigmaY  = scatter_proList(idPro)%fParams(3)
+    offsetX = scatter_proList(idPro)%fParams(4)
+    offsetY = scatter_proList(idPro)%fParams(5)
     retval  = ((beamtot/(two*(pi*(sigmaX*sigmaY)))) &
       * exp_mb(-half*((x-offsetX)/sigmaX)**2))      &
       * exp_mb(-half*((y-offsetY)/sigmaY)**2)
 
   case default
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ", scatter_PROFILE(idPro,2)," for profile '"//&
-      trim(scatter_cData(scatter_PROFILE(idPro,1)))//"' not understood."
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ", scatter_proList(idPro)%proType," for profile '"//&
+      trim(scatter_proList(idPro)%proName)//"' not understood."
     call prror(-1)
   end select
 
@@ -1182,8 +1130,8 @@ real(kind=fPrec) function scatter_generator_getCrossSection(idPro, genID, x, y, 
     end if
 
   case default
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_PROFILE(idPro,2)," for profile '"//&
-      trim(scatter_cData(scatter_PROFILE(idPro,1)))//"' not understood."
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_proList(idPro)%proType," for profile '"//&
+      trim(scatter_proList(idPro)%proName)//"' not understood."
     call prror(-1)
 
   end select
@@ -1572,11 +1520,6 @@ subroutine scatter_dumpData
   write(lout,"(2(a,i8))") "Seeds          =", scatter_seed1, ";", scatter_seed2
 
   write(lout,"(a)")       "Arrays:"
-
-  write(lout,"(a,2(i3,a))") "scatter_PROFILE: (", scatter_nPro,",",5,"):"
-  do i=1,scatter_nPro
-    write(lout,"(i4,a,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3,1x,i3)") i,":",scatter_PROFILE(i,:)
-  end do
 
   write(lout,"(a,2(i3,a))") "scatter_GENERATOR: (",scatter_nGENERATOR,",",5,"):"
   do i=1,scatter_nGENERATOR
