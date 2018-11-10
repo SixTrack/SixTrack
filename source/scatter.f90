@@ -1351,61 +1351,89 @@ subroutine scatter_crcheck_positionFiles
 
   use crcoall
   use file_units
+  use mod_units
 
   implicit none
 
-  logical isOpen
+  logical isOpen, fErr
   integer iError
-#ifdef BOINC
-  character(len=256) fileName
-#endif
   integer j
   character(len=1024) aRecord
 
   if(scatter_logFile == -1) call funit_requestUnit("scatter_log.dat",scatter_logFile)
   inquire(unit=scatter_logFile, opened=isOpen)
   if(isOpen) then
-    write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning scatter_log.dat"
+    write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning 'scatter_log.dat'"
     write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_logFile," already in use!"
 
     endfile(93,iostat=iError)
     backspace(93,iostat=iError)
 
-    write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning scatter_log.dat"
+    write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning 'scatter_log.dat'"
     call prror(-1)
   end if
 
   if(scatter_logFilePos_CR /= -1) then
-#ifdef BOINC
-    call boincrf("scatter_log.dat",fileName)
-    open(unit=scatter_logFile,file=fileName,status="old",action="readwrite", err=10)
-#else
-    open(unit=scatter_logFile,file="scatter_log.dat",status="old",action="readwrite", err=10)
-#endif
-    scatter_logFilePos=0
+    call units_openUnit(unit=scatter_logFile,fileName="scatter_log.dat",formatted=.true.,mode="rw",err=fErr,status="old")
+    if(fErr) goto 10
+    scatter_logFilePos = 0
     do j=1, scatter_logFilePos_CR
       read(scatter_logFile,"(a1024)",end=10,err=10,iostat=iError) aRecord
-      scatter_logFilePos = scatter_logFilePos+1
+      scatter_logFilePos = scatter_logFilePos + 1
     end do
-
-    ! Truncate the file after scatter_logFilePos_CR lines
     endfile(scatter_logFile,iostat=iError)
     close(scatter_logFile)
 
-#ifdef BOINC
-    call boincrf("scatter_log.dat",fileName)
-    open(unit=scatter_logFile,file=fileName,status="old",position="append",action="write",err=10)
-#else
-    open(unit=scatter_logFile,file="scatter_log.dat",status="old",position="append",action="write",err=10)
-#endif
-    write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned scatter_log.dat, "//&
-                "scatter_logFilePos=",scatter_logFilePos," scatter_logFilePos_CR=",scatter_logFilePos_CR
+    call units_openUnit(unit=scatter_logFile,fileName="scatter_log.dat",formatted=.true.,mode="w+",err=fErr,status="old")
+    if(fErr) goto 10
+    write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned 'scatter_log.dat': "//&
+      "scatter_logFilePos = ",scatter_logFilePos,", scatter_logFilePos_CR = ",scatter_logFilePos_CR
     endfile(93,iostat=iError)
     backspace(93,iostat=iError)
 
   else
     write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning "// &
-      "of scatter_log.dat, scatter_logFilePos_CR=",scatter_logFilePos_CR
+      "of 'scatter_log.dat', scatter_logFilePos_CR = ",scatter_logFilePos_CR
+    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, "// &
+      "it will be correctly truncated in scatter_initialise."
+    endfile(93,iostat=iError)
+    backspace(93,iostat=iError)
+  end if
+
+  if(scatter_sumFile == -1) call funit_requestUnit("scatter_summary.dat",scatter_sumFile)
+  inquire(unit=scatter_sumFile, opened=isOpen)
+  if(isOpen) then
+    write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning 'scatter_summary.dat'"
+    write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_sumFile," already in use!"
+
+    endfile(93,iostat=iError)
+    backspace(93,iostat=iError)
+
+    write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning 'scatter_summary.dat'"
+    call prror(-1)
+  end if
+
+  if(scatter_sumFilePos_CR /= -1) then
+    call units_openUnit(unit=scatter_sumFile,fileName="scatter_summary.dat",formatted=.true.,mode="rw",err=fErr,status="old")
+    if(fErr) goto 10
+    scatter_sumFilePos = 0
+    do j=1, scatter_sumFilePos_CR
+      read(scatter_sumFile,"(a1024)",end=10,err=10,iostat=iError) aRecord
+      scatter_sumFilePos = scatter_sumFilePos + 1
+    end do
+    endfile(scatter_sumFile,iostat=iError)
+    close(scatter_sumFile)
+
+    call units_openUnit(unit=scatter_sumFile,fileName="scatter_summary.dat",formatted=.true.,mode="w+",err=fErr,status="old")
+    if(fErr) goto 10
+    write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned 'scatter_summary.dat': "//&
+      "scatter_sumFilePos = ",scatter_sumFilePos,", scatter_sumFilePos_CR = ",scatter_sumFilePos_CR
+    endfile(93,iostat=iError)
+    backspace(93,iostat=iError)
+
+  else
+    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning "// &
+      "of 'scatter_summary.dat', scatter_sumFilePos_CR = ",scatter_sumFilePos_CR
     write(93,"(a)")    "SIXTRACR> If anything has been written to the file, "// &
       "it will be correctly truncated in scatter_initialise."
     endfile(93,iostat=iError)
@@ -1415,11 +1443,12 @@ subroutine scatter_crcheck_positionFiles
   return
 
 10 continue
-  write(93,"(a,i0)")    "SIXTRACR> ERROR reading scatter_log.dat, iostat=",iError
-  write(93,"(2(a,i0))") "SIXTRACR> scatter_logFilePos=",scatter_logFilePos," scatter_logFilePos_CR=",scatter_logFilePos_CR
+  write(93,"(a,i0)")    "SIXTRACR> ERROR reading 'scatter_log.dat' or 'scatter_summary.dat', iostat=",iError
+  write(93,"(2(a,i0))") "SIXTRACR> scatter_logFilePos = ",scatter_logFilePos,", scatter_logFilePos_CR = ",scatter_logFilePos_CR
+  write(93,"(2(a,i0))") "SIXTRACR> scatter_sumFilePos = ",scatter_sumFilePos,", scatter_sumFilePos_CR = ",scatter_sumFilePos_CR
   endfile(93,iostat=iError)
   backspace(93,iostat=iError)
-  write(lout,"(a)")"SIXTRACR> ERROR CRCHECK failure positioning scatter_log.dat"
+  write(lout,"(a)")"SIXTRACR> ERROR CRCHECK failure positioning 'scatter_log.dat' or 'scatter_summary.dat'."
   call prror(-1)
 
 end subroutine scatter_crcheck_positionFiles
