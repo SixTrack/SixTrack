@@ -907,12 +907,13 @@ subroutine scatter_thin(iElem, ix, turn)
         write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f13.3,7(1x,1pe16.9))") &
           nlostp(j), turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(idGen,1))),20), &
           scatter_procNames(procID), iLost, t, dEE, dPP, theta, rndPhi(j), N, P, scatter_statScale(nlostp(j))
+#ifdef CR
+        scatter_logFilePos = scatter_logFilePos + 1
+#endif
 #ifdef HDF5
       end if
 #endif
-#ifdef CR
-      scatter_logFilePos = scatter_logFilePos + 1
-#endif
+
       if(do_coll) then
         scatterhit(j)    = 8
         part_hit_pos(j)  = iElem
@@ -961,6 +962,9 @@ subroutine scatter_thin(iElem, ix, turn)
           write(scatter_sumFile,"(1x,i8,2(1x,a20),1x,a8,2(1x,i8),2(1x,f13.6))") &
             turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(idGen,1))),20), &
             scatter_procNames(k), nScatter(k), nLost(k), crossSection*c1e27, scaling
+#ifdef CR
+            scatter_sumFilePos = scatter_sumFilePos + 1
+#endif
         end if
       end do
       flush(scatter_logFile)
@@ -982,6 +986,8 @@ subroutine scatter_thin(iElem, ix, turn)
 #ifdef CR
   endfile(scatter_logFile,iostat=iError)
   backspace(scatter_logFile,iostat=iError)
+  endfile(scatter_sumFile,iostat=iError)
+  backspace(scatter_sumFile,iostat=iError)
 #endif
 
   ! Restore seeds in random generator
@@ -1323,7 +1329,8 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
 
   integer j
 
-  read(fileUnit, err=10, end=10) scatter_logFilePos_CR, scatter_seed1_CR, scatter_seed2_CR
+  read(fileUnit, err=10, end=10) scatter_logFilePos_CR, scatter_sumFilePos_CR
+  read(fileUnit, err=10, end=10) scatter_seed1_CR, scatter_seed2_CR
 
   readErr = .false.
   return
@@ -1434,7 +1441,8 @@ subroutine scatter_crpoint(fileUnit, writeErr, iError)
 
   integer j
 
-  write(fileunit,err=10,iostat=iError) scatter_logFilePos, scatter_seed1, scatter_seed2
+  write(fileunit,err=10,iostat=iError) scatter_logFilePos, scatter_sumFilePos
+  write(fileunit,err=10,iostat=iError) scatter_seed1, scatter_seed2
   endfile(fileUnit,iostat=iError)
   backspace(fileUnit,iostat=iError)
 
