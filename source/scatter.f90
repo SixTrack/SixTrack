@@ -96,16 +96,9 @@ module scatter
 #endif
 
 #ifdef CR
-  integer, public, save :: scatter_filePos     = -1
-  integer, public, save :: scatter_filePos_CR  = 0
+  integer, public,  save :: scatter_filePos     = -1
+  integer, public,  save :: scatter_filePos_CR  = 0
 
-  integer,          allocatable, private, save :: scatter_iData_CR(:)
-  real(kind=fPrec), allocatable, private, save :: scatter_fData_CR(:)
-  character(len=:), allocatable, private, save :: scatter_cData_CR(:)
-
-  integer, private, save :: scatter_niData_CR  = 0
-  integer, private, save :: scatter_nfData_CR  = 0
-  integer, private, save :: scatter_ncData_CR  = 0
   integer, private, save :: scatter_seed1_CR   = -1
   integer, private, save :: scatter_seed2_CR   = -1
 #endif
@@ -129,12 +122,6 @@ subroutine scatter_allocate
   call alloc(scatter_iData,             1,   0,          "scatter_iData")
   call alloc(scatter_fData,             1,   zero,       "scatter_fData")
   call alloc(scatter_cData,    mStrLen, 1,   str_dSpace, "scatter_cData")
-
-#ifdef CR
-  call alloc(scatter_iData_CR,          1,   0,          "scatter_iData_CR")
-  call alloc(scatter_fData_CR,          1,   zero,       "scatter_fData_CR")
-  call alloc(scatter_cData_CR, mStrLen, 1,   str_dSpace, "scatter_cData_CR")
-#endif
 
 end subroutine scatter_allocate
 
@@ -773,7 +760,7 @@ subroutine scatter_thin(iElem, ix, turn)
   integer, intent(in) :: iElem, ix, turn
 
   ! Temp variables
-  integer          idElem, idPro, idGen
+  integer          idElem, idPro, idGen, iError
   integer          i, j, k, iLost, nLost(9), nScatter(9), procID
   integer          tmpSeed1, tmpSeed2
   logical          isDiff, updateE, hasProc(9)
@@ -1333,15 +1320,6 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
   integer j
 
   read(fileUnit, err=10, end=10) scatter_filePos_CR, scatter_seed1_CR, scatter_seed2_CR
-  read(fileUnit, err=10, end=10) scatter_niData_CR, scatter_nfData_CR, scatter_ncData_CR
-
-  call alloc(scatter_iData_CR,          scatter_niData_CR, 0,          "scatter_iData_CR")
-  call alloc(scatter_fData_CR,          scatter_nfData_CR, zero,       "scatter_fData_CR")
-  call alloc(scatter_cData_CR, mStrLen, scatter_ncData_CR, str_dSpace, "scatter_cData_CR")
-
-  read(fileUnit, err=10, end=10) (scatter_iData_CR(j), j=1, scatter_niData_CR)
-  read(fileUnit, err=10, end=10) (scatter_fData_CR(j), j=1, scatter_nfData_CR)
-  read(fileUnit, err=10, end=10) (scatter_cData_CR(j), j=1, scatter_ncData_CR)
 
   readErr = .false.
   return
@@ -1466,36 +1444,6 @@ subroutine scatter_crpoint(fileUnit, writeErr, iError)
   writeErr = .true.
 
 end subroutine scatter_crpoint
-
-! =================================================================================================
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-26
-!  Called from CRSTART; copies the _CR arrays into the normal arrays used during tracking in order
-!  to recreate the state of the SCATTER block at the time of the checkpoint.
-! =================================================================================================
-subroutine scatter_crstart
-
-  use mod_alloc
-
-  implicit none
-
-  scatter_niData = scatter_niData_CR
-  scatter_nfData = scatter_nfData_CR
-  scatter_ncData = scatter_ncData_CR
-
-  call alloc(scatter_iData,          scatter_niData, 0,          "scatter_iData")
-  call alloc(scatter_fData,          scatter_nfData, zero,       "scatter_fData")
-  call alloc(scatter_cData, mStrLen, scatter_ncData, str_dSpace, "scatter_cData")
-
-  scatter_iData(1:scatter_niData) = scatter_iData_CR(1:scatter_niData)
-  scatter_fData(1:scatter_nfData) = scatter_fData_CR(1:scatter_nfData)
-  scatter_cData(1:scatter_ncData) = scatter_cData_CR(1:scatter_ncData)
-
-  call dealloc(scatter_iData_CR,          "scatter_iData_CR")
-  call dealloc(scatter_fData_CR,          "scatter_fData_CR")
-  call dealloc(scatter_cData_CR, mStrLen, "scatter_cData_CR")
-
-end subroutine scatter_crstart
 #endif
 ! End of CR
 

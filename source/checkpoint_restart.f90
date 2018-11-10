@@ -1256,8 +1256,6 @@ subroutine crstart
       use numerical_constants
       use dynk, only : dynk_enabled, dynk_crstart
 
-      use scatter, only: scatter_active, scatter_crstart
-
       use crcoall
       use parpro
       use mod_common
@@ -1340,10 +1338,6 @@ subroutine crstart
 
       if (dynk_enabled) then
           call dynk_crstart
-      endif
-
-      if (scatter_active) then
-          call scatter_crstart
       endif
 
       call hions_crstart
