@@ -47,7 +47,7 @@ module mod_pythia
   logical,            private, save :: pythia_useNDiffractive = .false.
   logical,            public,  save :: pythia_allowLosses     = .false.
   logical,            private, save :: pythia_useCoulomb      = .false.
-  real(kind=fPrec),   private, save :: pythia_elasticTMin     = 5.0e-5_fPrec ! Pythia default value
+  real(kind=fPrec),   private, save :: pythia_elasticTMin     =  5.0e-5_fPrec ! Pythia default value
   real(kind=fPrec),   private, save :: pythia_csElastic       = -1.0_fPrec
   real(kind=fPrec),   private, save :: pythia_csSDiffractive  = -1.0_fPrec
   real(kind=fPrec),   private, save :: pythia_csDDiffractive  = -1.0_fPrec
@@ -108,11 +108,11 @@ module mod_pythia
       real(kind=C_DOUBLE), intent(inout) :: sigTot, sigEl
     end subroutine pythia_getCrossSection
 
-    subroutine pythia_getEvent(status,code,t,dEE,dPP) bind(C, name="pythiaWrapper_getEvent")
+    subroutine pythia_getEvent(status,code,t,theta,dEE,dPP) bind(C, name="pythiaWrapper_getEvent")
       use, intrinsic :: iso_c_binding
       logical(kind=C_BOOL), intent(inout) :: status
       integer(kind=C_INT),  intent(inout) :: code
-      real(kind=C_DOUBLE),  intent(inout) :: t,dEE,dPP
+      real(kind=C_DOUBLE),  intent(inout) :: t,theta,dEE,dPP
     end subroutine pythia_getEvent
 
   end interface

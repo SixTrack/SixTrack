@@ -63,39 +63,45 @@ extern "C" void pythiaWrapper_getCrossSection(double& sigTot, double& sigEl) {
   sigEl  = pythia.parm("SigmaTotal:sigmaEl");
 }
 
-extern "C" void pythiaWrapper_getEvent(bool& status, int& code, double& t, double& dEE, double& dPP) {
+extern "C" void pythiaWrapper_getEvent(bool& status, int& code, double& t, double& theta, double& dEE, double& dPP) {
   status = pythia.next();
   code   = pythia.info.code();
   if(!status) {
-    code = 0;
-    t    = 0.0;
-    dEE  = 0.0;
-    dPP  = 0.0;
+    code  = 0;
+    t     = 0.0;
+    theta = 0.0;
+    dEE   = 0.0;
+    dPP   = 0.0;
     return;
   }
   if(code == 101) {
-    t   = 0.0;
-    dEE = 0.0;
-    dPP = 0.0;
+    t     = 0.0;
+    theta = 0.0;
+    dEE   = 0.0;
+    dPP   = 0.0;
   }
   else if(code == 102) { // Elastic
-    t   = pythia.info.tHat();
-    dEE = (pythia.event[3].e()    - pythia.event[1].e())    / pythia.event[1].e();
-    dPP = (pythia.event[3].pAbs() - pythia.event[1].pAbs()) / pythia.event[1].pAbs();
+    t     =  pythia.info.tHat();
+    theta =  pythia.event[3].theta();
+    dEE   = (pythia.event[3].e()    - pythia.event[1].e())    / pythia.event[1].e();
+    dPP   = (pythia.event[3].pAbs() - pythia.event[1].pAbs()) / pythia.event[1].pAbs();
   }
   else if(code == 104) { // Single Diffractive AB->AX
-    t   = pythia.info.tHat();
-    dEE = (pythia.event[3].e()    - pythia.event[1].e())    / pythia.event[1].e();
-    dPP = (pythia.event[3].pAbs() - pythia.event[1].pAbs()) / pythia.event[1].pAbs();
+    t     =  pythia.info.tHat();
+    theta =  pythia.event[3].theta();
+    dEE   = (pythia.event[3].e()    - pythia.event[1].e())    / pythia.event[1].e();
+    dPP   = (pythia.event[3].pAbs() - pythia.event[1].pAbs()) / pythia.event[1].pAbs();
   }
   else if(code == 106) { // Central Diffractive AB->AXB
-    t   = (pythia.event[3].p()    - pythia.event[1].p()).m2Calc();
-    dEE = (pythia.event[3].e()    - pythia.event[1].e())    / pythia.event[1].e();
-    dPP = (pythia.event[3].pAbs() - pythia.event[1].pAbs()) / pythia.event[1].pAbs();
+    t     = (pythia.event[3].p()    - pythia.event[1].p()).m2Calc();
+    theta =  pythia.event[3].theta();
+    dEE   = (pythia.event[3].e()    - pythia.event[1].e())    / pythia.event[1].e();
+    dPP   = (pythia.event[3].pAbs() - pythia.event[1].pAbs()) / pythia.event[1].pAbs();
   }
   else {
-    t   = 0.0;
-    dEE = 0.0;
-    dPP = 0.0;
+    t     = 0.0;
+    theta = 0.0;
+    dEE   = 0.0;
+    dPP   = 0.0;
   }
 }

@@ -800,7 +800,7 @@ subroutine scatter_thin(iElem, ix, turn)
   integer          i, j, k, iLost, nLost(9), nScatter(9), procID
   integer          tmpSeed1, tmpSeed2
   logical          isDiff, updateE, hasProc(9)
-  real(kind=fPrec) s, t, dEE, dPP, theta
+  real(kind=fPrec) s, t, dEE, dPP, theta, theta2
   real(kind=fPrec) crossSection, N, P
   real(kind=fPrec) rndPhi(napx), rndP(napx)
   real(kind=fPrec) scaling
@@ -852,6 +852,12 @@ subroutine scatter_thin(iElem, ix, turn)
     nScatter(:) = 0
     hasProc(:)  = .false.
 
+    t      = zero
+    theta  = zero
+    theta2 = zero
+    dEE    = zero
+    dPP    = zero
+
     idGen = scatter_ELEM(idElem,i)
     if(idGen == 0) exit ! No generator
 
@@ -887,26 +893,22 @@ subroutine scatter_thin(iElem, ix, turn)
       end if
       scatter_statScale(nlostp(j)) = scatter_statScale(nlostp(j)) / scaling
 
-      ! Ask generator for t and dEE
-      call scatter_generator_getTandE(idGen,t,dEE,dPP,procID,iLost,isDiff)
+      ! Get scattering event
+      call scatter_generator_getEvent(idGen,j,t,theta,dEE,dPP,procID,iLost,isDiff)
       hasProc(procID)  = .true.
       nScatter(procID) = nScatter(procID) + 1
 
-      ! If lost, flag it, put no need to update energy and angle
       if(scatter_allowLosses .and. iLost == 1) then
+        ! If lost, flag it, put no need to update energy and angle
         pLost(j)      = .true.
         nLost(procID) = nLost(procID) + 1
         theta         = zero
         rndPhi(j)     = zero
       else
-        ! Update particle energy and momentum
+        ! Calculate new energy, and scattering angle assuming energy >> mass
         if(abs(dPP) >= pieni) then
-          ejfv(j) = (one+dPP)*ejfv(j)                                   ! Momentum [MeV/c]
-        ! ejv(j)  = sqrt(ejfv(j)**2 + nucm(j)**2)                       ! Energy [MeV]
-          theta   = acos_mb(one - (t/((2*ejfv(j)**2)*(one+dPP))))*c1e3  ! Scattering angle [mrad]
-          updateE = .true.                                              ! Re-calculate energy-dependent vectors
-        else
-          theta   = acos_mb(one - (t/(2*ejfv(j)**2)))*c1e3              ! Scatter Angle [mrad]
+          ejfv(j) = (one+dPP)*ejfv(j) ! Momentum [MeV/c]
+          updateE = .true.            ! Re-calculate energy-dependent vectors
         end if
 
         ! Update particle trajectory
@@ -1146,15 +1148,18 @@ end function scatter_generator_getCrossSection
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
-subroutine scatter_generator_getTandE(genID, t, dEE, dPP, procID, iLost, isDiff)
+subroutine scatter_generator_getEvent(genID, partID, t, theta, dEE, dPP, procID, iLost, isDiff)
 
-  use, intrinsic :: iso_c_binding
   use crcoall
+  use mod_commonmn
+  use, intrinsic :: iso_c_binding
 
   implicit none
 
   integer,          intent(in)  :: genID
+  integer,          intent(in)  :: partID
   real(kind=fPrec), intent(out) :: t
+  real(kind=fPrec), intent(out) :: theta
   real(kind=fPrec), intent(out) :: dEE
   real(kind=fPrec), intent(out) :: dPP
   integer,          intent(out) :: procID
@@ -1169,13 +1174,14 @@ subroutine scatter_generator_getTandE(genID, t, dEE, dPP, procID, iLost, isDiff)
   dEE    = zero
   dPP    = zero
   t      = zero
+  theta  = zero
   iLost  = 0
   nRetry = 0
   isDiff = .false.
 
   select case(scatter_GENERATOR(genID,2))
   case(1)  ! ABSORBER
-    !...
+
     procID = scatter_idAbsorb
 
   case(10) ! PPBEAMELASTIC
@@ -1188,14 +1194,15 @@ subroutine scatter_generator_getTandE(genID, t, dEE, dPP, procID, iLost, isDiff)
     tmin   = scatter_fData(tmpIdx+4)
 
     t      = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
-    t      = t*c1e6 ! Scale return variable to MeV^2
+    t      = t*c1e6                                      ! Scale return variable to MeV^2
+    theta  = acos_mb(one - (t/(2*ejfv(partID)**2)))*c1e3 ! Get angle from t
     procID = scatter_idElastic
 
   case(20) ! PYTHIA
 
 #ifdef PYTHIA
 10  continue
-    call pythia_getEvent(evStat, evType, t, dEE, dPP)
+    call pythia_getEvent(evStat, evType, t, theta, dEE, dPP)
     nRetry = nRetry + 1
     if(nRetry > 100) then
       write(lout,"(a)") "SCATTER> WARNING Pythia failed to generate event. Skipping Particle."
@@ -1204,8 +1211,10 @@ subroutine scatter_generator_getTandE(genID, t, dEE, dPP, procID, iLost, isDiff)
       return
     end if
     if(evStat) then
-      t = abs(t)*c1e6 ! Scale return variable to MeV^2
-      select case(evType)
+      t     = abs(t)*c1e6 ! Scale t to MeV^2
+      theta = theta*c1e3  ! Scale angle to mrad
+    ! theta = acos_mb(one - (t/((2*ejfv(j)**2)*(one+dPP))))*c1e3 ! Calculated from t
+    select case(evType)
       case(pythia_idNonDiff)
         if(scatter_allowLosses) then
           procID = scatter_idNonDiff
@@ -1264,7 +1273,7 @@ subroutine scatter_generator_getTandE(genID, t, dEE, dPP, procID, iLost, isDiff)
 
   end select
 
-end subroutine scatter_generator_getTandE
+end subroutine scatter_generator_getEvent
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
