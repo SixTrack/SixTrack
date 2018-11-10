@@ -47,6 +47,17 @@ module scatter
     "DoubD_XX","CentDiff","Unknown ","Error   "                &
   /)
 
+  type, private :: scatter_elemStore
+    character(len=mNameLen) :: bezName
+    integer                 :: bezID
+    real(kind=fPrec)        :: elemScale
+    integer                 :: profileID
+    integer, allocatable    :: generatorID(:)
+  end type scatter_elemStore
+
+  type(scatter_elemStore), allocatable, private, save :: scatter_elemList(:)
+  integer,                              public,  save :: scatter_nElem = 0
+
   ! Total cross section
   real(kind=fPrec), private, save :: scatter_sigmaTot     = one
 
@@ -76,9 +87,9 @@ module scatter
   character(len=:), allocatable, private, save :: scatter_cData(:)
 
   ! Number of currently used positions in arrays
-  integer, public,  save :: scatter_nELEM      = 0
-  integer, public,  save :: scatter_nPROFILE   = 0
-  integer, public,  save :: scatter_nGENERATOR = 0
+! integer, public,  save :: scatter_nElem      = 0
+  integer, public,  save :: scatter_nProfile   = 0
+  integer, public,  save :: scatter_nGenerator = 0
   integer, private, save :: scatter_niData     = 0
   integer, private, save :: scatter_nfData     = 0
   integer, private, save :: scatter_ncData     = 0
@@ -155,9 +166,7 @@ subroutine scatter_initialise
 
   integer iError
   logical fErr
-
 #ifdef HDF5
-
   type(h5_dataField), allocatable :: setFields(:)
 
   if(h5_useForSCAT) then
@@ -372,6 +381,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   use mod_alloc
   use mod_common
   use mod_commonmn
+  use mod_settings
 
   implicit none
 
@@ -380,74 +390,91 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   logical,                   intent(inout) :: iErr
 
   ! Temporary Variables
-  integer ii, j
+  type(scatter_elemStore), allocatable :: tmpElem(:)
+  character(len=mNameLen) :: bezName
+  integer                 :: bezID, profileID
+  integer, allocatable    :: generatorID(:)
+  real(kind=fPrec)        :: elemScale
+
+  integer  i, ii, j
 
   ! Check number of arguments
   if(nSplit < 5) then
     write(lout,"(a)") "SCATTER> ERROR ELEM expected at least 5 arguments:"
-    write(lout,"(a)") "SCATTER>       ELEM elemname profile scaling gen1 (gen2 gen3)"
+    write(lout,"(a)") "SCATTER>       ELEM elemname profile scaling gen1 ... genN"
     iErr = .true.
     return
   end if
 
+  if(allocated(scatter_elemList)) then
+    allocate(tmpElem(scatter_nElem+1))
+    tmpElem(1:scatter_nElem) = scatter_elemList(1:scatter_nElem)
+    call move_alloc(tmpElem, scatter_elemList)
+    scatter_nElem = scatter_nElem + 1
+  else
+    allocate(scatter_elemList(1))
+    scatter_nElem = 1
+  end if
+
+  allocate(generatorID(nSplit-4))
+  bezName        = trim(lnSplit(2))
+  bezID          = -1
+  profileID      = -1
+  generatorID(:) = -1
+
   ! Add the element to the list
-  scatter_nELEM = scatter_nELEM + 1
+  ! scatter_nELEM = scatter_nELEM + 1
   call alloc(scatter_ELEM,       scatter_nELEM, 5, 0, "scatter_ELEM")
   call alloc(scatter_ELEM_scale, scatter_nELEM, zero, "scatter_ELEM_scale")
 
+
   ! Find the single element referenced
   ii = -1
-  do j=1,il
-    if(bez(j) == lnSplit(2)) then
-      if(ii /= -1) then
-        write(lout,"(a)") "SCATTER> ERROR Found element '"//lnSplit(2)//"' twice in SINGLE ELEMENTS list."
-        iErr = .true.
-        return
-      end if
-      ii = j
+  do i=1,il
+    if(bez(i) == lnSplit(2)) then
+      ii = i
 
-      if(scatter_elemPointer(j) /= 0) then
-        write(lout,"(a)") "SCATTER> ERROR Tried to define element '"//lnSplit(2)//"' twice."
+      if(scatter_elemPointer(i) /= 0) then
+        write(lout,"(a)") "SCATTER> ERROR Tried to define element '"//trim(lnSplit(2))//"' twice."
         iErr = .true.
         return
       end if
 
-      if(kz(j) /= 40) then
+      if(kz(i) /= 40) then
         write(lout,"(a)")    "SCATTER> ERROR SCATTER can only work on SINGLE ELEMENTs of type 40."
-        write(lout,"(a,i0)") "SCATTER>       The referenced element '"//lnSplit(2)//"'is of type ", kz(j)
+        write(lout,"(a,i0)") "SCATTER>       The referenced element '"//trim(lnSplit(2))//"'is of type ", kz(i)
         iErr = .true.
         return
       end if
 
-      if(el(j) /= 0 .or. ek(j) /= 0 .or. ed(j) /= 0) then
-        write(lout,"(6(a,i0))") "SCATTER> ERROR Length el(j) (SCATTER is treated as thin element), "//&
-          " and first and second field have to be zero: el(j)=ed(j)=ek(j)=0; "//&
-          "but el(",j,")=",el(j),", ed(",j,")=",ed(j),", ek(",j,")=",ek(j),"."
-        write(lout,"(a)") "SCATTER>       Please check your input in the single element "//&
+      if(el(i) /= 0 .or. ek(i) /= 0 .or. ed(i) /= 0) then
+        write(lout,"(a)") "SCATTER> ERROR Please check your input in the single element "//&
           "definition of your SCATTER. All values except for the type must be zero."
         iErr = .true.
         return
       end if
 
-      scatter_elemPointer(j) = scatter_nELEM
-      scatter_ELEM(scatter_nELEM,1) = j
+      bezID = i
+      exit
     end if
   end do
-
-  if(scatter_ELEM(scatter_nELEM,1) == 0) then
-    write(lout,"(a)") "SCATTER> ERROR Could not find element '"//lnSplit(2)//"'"
+  if(bezID == -1) then
+    write(lout,"(a)") "SCATTER> ERROR Could not find element '"//trim(lnSplit(2))//"'"
     iErr = .true.
     return
   end if
 
+  scatter_ELEM(scatter_nELEM,1) = bezID
+
   ! Find the profile name referenced
-  do j=1,scatter_nPROFILE
-    if(trim(scatter_cData(scatter_PROFILE(j,1))) == lnSplit(3)) then
-      scatter_ELEM(scatter_nELEM,2) = j
+  do i=1,scatter_nPROFILE
+    if(trim(scatter_cData(scatter_PROFILE(i,1))) == lnSplit(3)) then
+      scatter_ELEM(scatter_nELEM,2) = i
+      profileID = i
+      exit
     end if
   end do
-
-  if(scatter_ELEM(scatter_nELEM,2) == 0) then
+  if(profileID == -1) then
     write(lout,"(a)") "SCATTER> ERROR Could not find profile '"//lnSplit(3)//"'"
     iErr = .true.
     return
@@ -455,29 +482,24 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
   ! Store the scaling
   call str_cast(lnSplit(4),scatter_ELEM_scale(scatter_nELEM),iErr)
-
-  ! Find the generator(s) referenced
-  if(nSplit-4 > 3) then
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Parsing ELEM, ",nSplit-4," generators specified, max is 3"
-    iErr = .true.
-    return
-  end if
+  call str_cast(lnSplit(4),elemScale,iErr)
 
   do ii=5,nSplit
     ! In case we won't find the generator name
     scatter_ELEM(scatter_nELEM,ii-4+2) = -1
 
     ! Search for the generator with the right name
-    do j=1, scatter_nGENERATOR
-      if(trim(scatter_cData(scatter_GENERATOR(j,1))) == lnSplit(ii)) then
-        ! Found it
-        scatter_ELEM(scatter_nELEM,ii-4+2) = j
+    do i=1, scatter_nGENERATOR
+      if(trim(scatter_cData(scatter_GENERATOR(i,1))) == lnSplit(ii)) then
+        scatter_ELEM(scatter_nELEM,ii-4+2) = i
+        generatorID(ii-4) = i
+        exit
       end if
     end do
 
     ! If it is still -1, it wasn't found
-    if(scatter_ELEM(scatter_nELEM,ii-4+2) == -1) then
-      write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//lnSplit(ii)//"' not found."
+    if(generatorID(ii-4) == -1) then
+      write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(ii))//"' not found."
       iErr = .true.
       return
     end if
@@ -485,14 +507,32 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
     ! Loop over those GENerators we've filled before
     ! (i.e. up to but not including column ii-4+2)
     ! to check for duplicates
-    do j=3, ii-4+2-1
-      if(scatter_ELEM(scatter_nELEM,j) == scatter_ELEM(scatter_nELEM,ii-4+2)) then
-        write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//lnSplit(ii)//"' used twice."
+    do i=1,ii-5
+      if(generatorID(ii-4) == generatorID(i)) then
+        write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(ii))//"' used twice."
         iErr = .true.
         return
       end if
     end do
   end do
+
+  scatter_elemPointer(bezID)                  = scatter_nElem
+  scatter_elemList(scatter_nElem)%bezName     = bezName
+  scatter_elemList(scatter_nElem)%bezID       = bezID
+  scatter_elemList(scatter_nElem)%elemScale   = elemScale
+  scatter_elemList(scatter_nElem)%profileID   = profileID
+  scatter_elemList(scatter_nElem)%generatorID = generatorID
+
+  if(scatter_debug .or. st_debug) then
+    write(lout,"(a,i0,a)")    "SCATTER> DEBUG Element ",scatter_nElem,":"
+    write(lout,"(a)")         "SCATTER> DEBUG  * bezName        = '"//trim(bezName)//"'"
+    write(lout,"(a,i0)")      "SCATTER> DEBUG  * bezID          = ",bezID
+    write(lout,"(a,f13.6)")   "SCATTER> DEBUG  * elemScale      = ",elemScale
+    write(lout,"(a,i0)")      "SCATTER> DEBUG  * profileID      = ",profileID
+    do i=1,size(generatorID,1)
+      write(lout,"(2(a,i0))") "SCATTER> DEBUG  * generatorID(",i,") = ",generatorID(i)
+    end do
+  end if
 
 end subroutine scatter_parseElem
 
