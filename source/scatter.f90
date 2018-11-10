@@ -42,8 +42,10 @@ module scatter
   integer,          parameter :: scatter_idCentralDiff    = 7
   integer,          parameter :: scatter_idUnknown        = 8
   integer,          parameter :: scatter_idError          = 9
-  character(len=8), parameter :: scatter_procNames(9)     = &
-    (/"Absorbed","NonDiff ","Elastic ","SingD_XB","SingD_AX","DoubD_XX","CentDiff","Unknown ","Error   "/)
+  character(len=8), parameter :: scatter_procNames(9)     = (/ &
+    "Absorbed","NonDiff ","Elastic ","SingD_XB","SingD_AX",    &
+    "DoubD_XX","CentDiff","Unknown ","Error   "                &
+  /)
 
   ! Total cross section
   real(kind=fPrec), private, save :: scatter_sigmaTot     = one
@@ -1392,10 +1394,8 @@ subroutine scatter_crcheck_positionFiles
     backspace(93,iostat=iError)
 
   else
-    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning "// &
-      "of 'scatter_log.dat', scatter_logFilePos_CR = ",scatter_logFilePos_CR
-    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, "// &
-      "it will be correctly truncated in scatter_initialise."
+    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning 'scatter_log.dat' at line ",scatter_logFilePos_CR
+    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, it will be correctly truncated in scatter_initialise."
     endfile(93,iostat=iError)
     backspace(93,iostat=iError)
   end if
@@ -1432,10 +1432,8 @@ subroutine scatter_crcheck_positionFiles
     backspace(93,iostat=iError)
 
   else
-    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning "// &
-      "of 'scatter_summary.dat', scatter_sumFilePos_CR = ",scatter_sumFilePos_CR
-    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, "// &
-      "it will be correctly truncated in scatter_initialise."
+    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning 'scatter_summary.dat' at line ",scatter_sumFilePos_CR
+    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, it will be correctly truncated in scatter_initialise."
     endfile(93,iostat=iError)
     backspace(93,iostat=iError)
   end if
@@ -1443,7 +1441,7 @@ subroutine scatter_crcheck_positionFiles
   return
 
 10 continue
-  write(93,"(a,i0)")    "SIXTRACR> ERROR reading 'scatter_log.dat' or 'scatter_summary.dat', iostat=",iError
+  write(93,"(a,i0)")    "SIXTRACR> ERROR While reading 'scatter_log.dat' or 'scatter_summary.dat', iostat = ",iError
   write(93,"(2(a,i0))") "SIXTRACR> scatter_logFilePos = ",scatter_logFilePos,", scatter_logFilePos_CR = ",scatter_logFilePos_CR
   write(93,"(2(a,i0))") "SIXTRACR> scatter_sumFilePos = ",scatter_sumFilePos,", scatter_sumFilePos_CR = ",scatter_sumFilePos_CR
   endfile(93,iostat=iError)
