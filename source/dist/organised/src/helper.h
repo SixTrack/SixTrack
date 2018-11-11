@@ -6,8 +6,6 @@ void createLinearSpaced(int length, double start, double stop, double *eqspaced 
 double momentum2energy(double momentum, double mass);
 void mtrx_vector_mult_(int *mp, int *np,  double mtrx_a[6][6], double mtrx_b[6], double result[6]);
 void mtrx_vector_mult_pointer(int mp, int np,  double **mtrx_a, double mtrx_b[6], double result[6]);
-void transpose(double num[25][25],double fac[25][25],double  r);
-void cofactor(double num[25][25],double f);
-double determinant(double a[25][25],double  k);
-double det(double a[100][100],int n);
-void minora(double b[100][100],double a[100][100],int i,int n);
+void transpose(double num[6][6],double fac[6][6],double  r);
+void cofactor(double num[6][6],double f);
+double determinant(double a[6][6],double  k);

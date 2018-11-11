@@ -6,6 +6,7 @@ struct distparam
 	double momentum;
 	double **tas;
 	double **invtas;
+	double *closedorbit;
 	int coordtype; // This tells which type of coordinates the input is given.  // 1-Normalized 
 };
 
@@ -29,11 +30,11 @@ void setemittance12_(double *e1, double *e2);
 void initializedistribution_(int *numberOfDist, int *dimension);
 void printdistsettings_(int *ndist);
 void settasmatrix_(double tas[6][6]);
-void dist2sixcoord_(double **results);
+void dist2sixcoord_(double results[6][1000]);
 void setmassmom_(double *mass, double *momentum);
 void setparameter_(int *index,  double *start, double *stop, int *length, int *type);
-void deltap(double *dp);
-double convertdp2emittance(double dp, double **invtas);
+void setdeltap_(double *dp);
+double convertdp2emittance(double dp);
 void setemittance3_(double *e3);
 void createTasWithNoCoupling(double betax, double alfax, double betay, double alfay, double tas[6][6]);
 void action2sixinternal_(double tc[6], double results[6]);

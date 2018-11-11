@@ -148,9 +148,9 @@ void mtrx_vector_mult_pointer(int mp, int np,  double **mtrx_a, double mtrx_b[6]
 }
 
 /*For calculating Determinant of the Matrix */
-double determinant(double a[25][25],double k)
+double determinant(double a[6][6],double k)
 {
-  double s=1,det=0,b[25][25];
+  double s=1,det=0,b[6][6];
   int i,j,m,n,c;
   if (k==1)
     {
@@ -188,10 +188,10 @@ double determinant(double a[25][25],double k)
  
     return (det);
 }
- 
-void cofactor(double num[25][25],double f)
+
+void cofactor(double num[6][6],double f)
 {
- double b[25][25],fac[25][25];
+ double b[6][6],fac[6][6];
  int p,q,m,n,i,j;
  for (q=0;q<f;q++)
  {
@@ -223,10 +223,10 @@ void cofactor(double num[25][25],double f)
 }
 
 /*Finding transpose of matrix*/ 
-void transpose(double num[25][25],double fac[25][25],double r)
+void transpose(double num[6][6],double fac[6][6],double r)
 {
   int i,j;
-  double b[25][25],inverse[25][25],d;
+  double b[6][6],inverse[6][6],d;
  
   for (i=0;i<r;i++)
     {
@@ -252,53 +252,6 @@ void transpose(double num[25][25],double fac[25][25],double r)
          printf("\t%f",inverse[i][j]);
         }
     printf("\n");
+
      }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void minora(double b[100][100],double a[100][100],int i,int n){
-    int j,l,h=0,k=0;
-    for(l=1;l<n;l++)
-        for( j=0;j<n;j++){
-            if(j == i)
-                continue;
-            b[h][k] = a[l][j];
-            k++;
-            if(k == (n-1)){
-                h++;
-                k=0;
-            }
-        }
-}// end function
-
-//---------------------------------------------------
-//  calculate determinte of matrix
-double det(double a[100][100],int n){
-    int i;
-    double b[100][100],sum=0;
-    if (n == 1)
-return a[0][0];
-    else if(n == 2){
-printf("heeereeee %f %f \n",a[0][0], a[1][1] );
-return (a[0][0]*a[1][1]-a[0][1]*a[1][0]);
-
-}
-    else
-        for(i=0;i<n;i++){
-            minora(b,a,i,n);    // read function
-            sum = (double) (sum+a[0][i]*pow(-1,i)*det(b,(n-1))); // read function    // sum = determinte matrix
-        }
-return sum;
-}// end function

@@ -26,6 +26,7 @@ program slice
 
 
       real(kind=real64), dimension(6) :: coordinates, physcord
+      real(kind=real64), dimension(2500,2500) :: distribution
       double precision, external :: test, normalcdfinv
       real(kind=real64) canon(1:6), compare(1:6)
       real(kind=real64) identity2(1:6,1:6)
@@ -55,13 +56,12 @@ program slice
        ! print *, e1, angle, physcord(1), physcord(2),physcord(3), physcord(4),physcord(5), physcord(6)
        !physcord(:)= 0
       !end do
-      
+      print *, tas
       maxa = 6;
       index = 1;
       call initializedistribution(index, maxa)
       call setemittance12(one,one)
       call setmassmom(mass, momentum)
-
       call setparameter(1,zero,six,50,3);
       call setparameter(2,zero,zero,index,0);
       call setparameter(3,zero,six,50,3);
@@ -69,10 +69,12 @@ program slice
       call setparameter(5,zero,zero,index,0);
       call setparameter(6,zero,zero,index,0);
       call settasmatrix(tas)
+      !call dist2sixcoord(distribution)
+
       !call dist2sixcoord(emit)
       call calcualteInverse
-
-
+      !call testmatrix(tas)
+      call setdeltap(0.01d0)
  
       end program slice
  

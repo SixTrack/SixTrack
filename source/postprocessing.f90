@@ -1259,7 +1259,7 @@ subroutine postpr(nfile)
       else
         emiii=zero
       endif
-
+      print *, "e3", emiii
 !--COURANT SYNDER CONT.
       do iq=1,6
         txyz(iq)=txyz(iq)*rbeta(iq)
@@ -1871,7 +1871,7 @@ subroutine postpr(nfile)
           xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                        !hr06
           xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                        !hr06
         endif
-
+!canonical - > 
 ! normalisation with t-matrix = inverse matrix of eigenvectors
         do iq=1,6
           txyz(iq)=zero
@@ -1883,7 +1883,7 @@ subroutine postpr(nfile)
 !--MEAN EMITTANCES WITH LINEAR COUPLING
         evx=txyz(1)**2+txyz(2)**2                                        !hr06
         evz=txyz(3)**2+txyz(4)**2                                        !hr06
-
+        print *, "e1", evx, "e2", evz
 !--COURANT SYNDER CONT.
         do iq=1,6
           txyz(iq)=txyz(iq)*rbeta(iq)

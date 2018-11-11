@@ -20,7 +20,6 @@ void action2canonical_(double acangl[6], double cancord[6]){
 
 	//This is the multiplication with the tas matrix 
 	mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
-
 }
 /*
 Returns the total number of particles that will be created for the distribution.  
@@ -41,8 +40,9 @@ void setemittance12_(double *e1, double *e2){
 void setemittance3_(double *e3){
 	dist->emitt->e3=*e3;  	
 }
+
 void calcualteinverse_(){
-	double invtas[25][25];
+	double invtas[6][6];
 	double result[dim][dim];
 	for(int i =0; i< dim; i++){
 		for(int j =0; j< dim; j++){
@@ -56,16 +56,23 @@ void calcualteinverse_(){
 		}
 	}
 
-
 	printf("the inversa %f", invtas[0][0]);
 
 }
-void deltap(double *dp){
+void addclosedorbit(double *clo){
+	for(int i=0; i<dim;i++){
+		dist->closedorbit[i] = *(clo+i);
+	}
+
+}
+void setdeltap_(double *dp){
 	dist->emitt->e3 = convertdp2emittance(*dp);
 }
 
+//This emittance is oversimplified but gives a good approximation. 
 double convertdp2emittance(double dp){
-	double emit=0;	
+
+	dist->emitt->e3 = pow(1000*dp*dist->invtas[4][4],2);
 }
 
 /*
@@ -81,7 +88,7 @@ void initializedistribution_(int *numberOfDist, int *dimension){
 		(dist + i)->emitt = (struct emittances*)malloc(sizeof(struct emittances));
 		(dist + i)->tas   = (double**)malloc(dim*sizeof(double*));
 		(dist + i)->invtas   = (double**)malloc(dim*sizeof(double*));
-		
+		(dist + i)->closedorbit   = (double*)malloc(dim*sizeof(double));
 		for(int k=0; k<dim;k++){
 			(dist + i)->tas[k] =(double*)malloc(dim*sizeof(double));
 			(dist + i)->invtas[k] =(double*)malloc(dim*sizeof(double));
@@ -101,6 +108,7 @@ void initializedistribution_(int *numberOfDist, int *dimension){
 			(dist +i)->coord[j]->stop=0;
 			(dist +i)->coord[j]->length=1;
 			(dist +i)->coord[j]->type=0;
+			(dist +i)->closedorbit[j]=0;
 		}
 	}
 }
@@ -130,9 +138,12 @@ void settasmatrix_(double tas[6][6]){
 		}
 	}
 }
-
+void testmatrix_(double results[][6]){
+ printf("value %f", results[4][4]);
+}
 //int arr[numRows][numCols]
-void dist2sixcoord_(double **results){
+
+void dist2sixcoord_(double results[6][1000]){
 	int counter = 0;
 	double tc[6];
 	double tmp[6];
@@ -142,14 +153,20 @@ void dist2sixcoord_(double **results){
 				for(int l =0; l< dist->coord[3]->length; l++){
 					for(int m =0; m< dist->coord[4]->length; m++){
 						for(int n =0; n< dist->coord[5]->length; n++){
-							tc[0]=dist->coord[0]->values[i];
-							tc[1]=dist->coord[1]->values[j];
-							tc[2]=dist->coord[2]->values[k];
-							tc[3]=dist->coord[3]->values[l];
-							tc[4]=dist->coord[4]->values[m];
-							tc[5]=dist->coord[5]->values[n];
+							tc[0]=dist->coord[0]->values[i]+dist->closedorbit[0];
+							tc[1]=dist->coord[1]->values[j]+dist->closedorbit[1];
+							tc[2]=dist->coord[2]->values[k]+dist->closedorbit[2];
+							tc[3]=dist->coord[3]->values[l]+dist->closedorbit[3];
+							tc[4]=dist->coord[4]->values[m]+dist->closedorbit[4];
+							tc[5]=dist->coord[5]->values[n]+dist->closedorbit[5];
 							action2sixinternal_(tc, tmp);
-
+								printf("inside loop %d \n", counter);
+							for(int p=0; p<dim; p++){
+								results[counter][p] = tc[p];
+								printf("inside loop %d \n", counter);
+							}
+							counter++;
+							printf("counter %d", counter);
 						}
 					}
 				}
@@ -162,7 +179,6 @@ void setmassmom_(double *mass, double *momentum){
 	(dist)-> mass = *mass;
 	(dist)-> momentum = *momentum;
 }
-
 
 void setparameter_(int *index,  double *start, double *stop, int *length, int *type){
 
@@ -216,6 +232,7 @@ void createtas0coupling_(double betax, double alfax, double betay, double alfay)
     dist->tas[2][2] = sqrt(betay);
     dist->tas[1][2] =-alfax/sqrt(betax);
     dist->tas[4][3] =-alfay/sqrt(betay);
+
 
 }
 
