@@ -59,7 +59,6 @@ program maincr
   use physical_constants
   use numerical_constants
 
-  use scatter, only : scatter_active, scatter_initialise
   use dynk,    only : dynk_izuIndex
   use fma,     only : fma_postpr, fma_flag
   use dump,    only : dump_initialise, dumpclo,dumptas,dumptasinv
@@ -1533,9 +1532,6 @@ end interface
 #endif
 
   call dump_initialise
-  if (scatter_active) then
-    call scatter_initialise
-  end if
 
 #ifdef ROOT
 ! flush the root file

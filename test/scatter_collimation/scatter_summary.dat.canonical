@@ -1,3 +1,22 @@
-# scatter_summary
-#    turn bez                  generator            process    nScatt    nLost  crossSec[mb]       scaling
-        3 ip5_scatter          sc_thin              Elastic        26        0     30.000000      1.000000
+#
+#  SCATTER SUMMARY
+# =================
+#
+#  Read 1 element(s)
+#  Read 1 profile(s)
+#  Read 1 generator(s)
+# 
+#  Generators
+# =============
+#  Generator(1): 'sc_thin'
+#
+#  Cross Sections
+# ================
+#  Element(1): 'ip5_scatter' [Probability: Auto]
+#   + Generator(1):       30.000000 mb [BR: 1.000000]
+#   = Sigma Total:        30.000000 mb [BR: 1.000000]
+#
+#  Summary Log
+# =============
+#    turn bez                  generator            process    nScatt    nLost  crossSec[mb]        scaling
+        3 ip5_scatter          sc_thin              Elastic        26        0     30.000000   0.100000E+01

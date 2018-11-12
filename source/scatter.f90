@@ -1,7 +1,7 @@
 ! ================================================================================================ !
 !  SixTrack SCATTER Module
 !  V.K. Berglyd Olsen, K.N. Sjobak, H. Burkhardt, BE-ABP-HSS
-!  Last modified: 2018-06-18
+!  Last modified: 2018-11-12
 !
 !  References:
 !  "Elastic pp scattering estimates and simulation relevant for burn-off"
@@ -13,7 +13,7 @@ module scatter
 
   use floatPrecision
   use mathlib_bouncer
-  use numerical_constants, only : zero, half, one, two, c1e3, c1e6, c1m27, pieni
+  use numerical_constants
   use parpro
   use mod_ranecu
   use strings
@@ -47,33 +47,25 @@ module scatter
     "DoubD_XX","CentDiff","Unknown ","Error   "                &
   /)
 
-  ! Element Storage
+  ! Storage Structs
   type, private :: scatter_elemStore
-    character(len=mNameLen) :: bezName
-    integer                 :: bezID
-    real(kind=fPrec)        :: elemScale
-    integer                 :: profileID
-    integer, allocatable    :: generatorID(:)
+    character(len=mNameLen)       :: bezName
+    integer                       :: bezID
+    real(kind=fPrec)              :: elemScale
+    real(kind=fPrec)              :: sigmaTot
+    real(kind=fPrec)              :: ratioTot
+    logical                       :: autoRatio
+    integer                       :: profileID
+    integer,          allocatable :: generatorID(:)
+    real(kind=fPrec), allocatable :: brRatio(:)
   end type scatter_elemStore
 
-  type(scatter_elemStore), allocatable, public, save :: scatter_elemList(:)
-  integer,                 allocatable, public, save :: scatter_elemPointer(:)
-  integer,                              public, save :: scatter_nElem = 0
-
-  ! Profile Storage
   type, private :: scatter_proStore
     character(len=:), allocatable :: proName
     integer                       :: proType
     real(kind=fPrec), allocatable :: fParams(:)
   end type scatter_proStore
 
-  type(scatter_proStore), allocatable, public, save :: scatter_proList(:)
-  integer,                             public, save :: scatter_nPro = 0
-
-  ! Total cross section
-  real(kind=fPrec), private, save :: scatter_sigmaTot     = one
-
-  ! Generator Storage
   type, private :: scatter_genStore
     character(len=:), allocatable :: genName
     integer                       :: genType
@@ -81,11 +73,15 @@ module scatter
     real(kind=fPrec), allocatable :: fParams(:)
   end type scatter_genStore
 
-  type(scatter_genStore), allocatable, public, save :: scatter_genList(:)
-  integer,                             public, save :: scatter_nGen = 0
-
-  ! Statistical correction factor for a specific particle
-  real(kind=fPrec), allocatable, public, save :: scatter_statScale(:)
+  ! Storage Arrays
+  type(scatter_elemStore), allocatable, private, save :: scatter_elemList(:)
+  type(scatter_proStore),  allocatable, private, save :: scatter_proList(:)
+  type(scatter_genStore),  allocatable, private, save :: scatter_genList(:)
+  integer,                              private, save :: scatter_nElem = 0
+  integer,                              private, save :: scatter_nPro  = 0
+  integer,                              private, save :: scatter_nGen  = 0
+  integer,                 allocatable, public,  save :: scatter_elemPointer(:) ! (nele)
+  real(kind=fPrec),        allocatable, private, save :: scatter_statScale(:)   ! (npart)
 
   ! Random generator seeds
   integer, public,  save :: scatter_seed1      = -1
@@ -111,6 +107,8 @@ module scatter
   integer, private, save :: scatter_seed2_CR       = -1
 #endif
 
+  public :: scatter_getScaling
+
 contains
 
 ! =================================================================================================
@@ -127,9 +125,9 @@ end subroutine scatter_expand_arrays
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-04-16
+!  Last Modified: 2018-11-12
 ! =================================================================================================
-subroutine scatter_initialise
+subroutine scatter_postInput
 
   use crcoall
   use parpro
@@ -140,9 +138,15 @@ subroutine scatter_initialise
 
   integer iError
   logical fErr
+  real(kind=fPrec) sigmaTot
 #ifdef HDF5
   type(h5_dataField), allocatable :: setFields(:)
+#endif
 
+  if(scatter_active .eqv. .false.) return
+
+  ! Initialise data output
+#ifdef HDF5
   if(h5_useForSCAT) then
 
     call h5_initForScatter()
@@ -210,7 +214,7 @@ subroutine scatter_initialise
     ! Write Attributes
     call h5_writeAttr(h5_scatID,"SEED",scatter_seed1)
 
-    return ! No need to open files
+    return ! No need to open files if we're using HDF5
   end if
 #endif
 
@@ -218,7 +222,7 @@ subroutine scatter_initialise
   if(scatter_logFile == -1) call funit_requestUnit("scatter_log.dat", scatter_logFile)
 #ifdef CR
   if(scatter_logFilePos == -1) then
-    write(93,"(a)") "SCATTER> scatter_initialise opening new file 'scatter_log.dat'"
+    write(93,"(a)") "SCATTER> INIT opening new file 'scatter_log.dat'"
 #endif
     call units_openUnit(unit=scatter_logFile,fileName="scatter_log.dat",formatted=.true.,mode="w",err=fErr,status="replace")
     write(scatter_logFile,"(a)") "# scatter_log"
@@ -231,7 +235,7 @@ subroutine scatter_initialise
     endfile(scatter_logFile,iostat=iError)
     backspace(scatter_logFile,iostat=iError)
   else
-    write(93,"(a)") "SCATTER> scatter_initialise kept already opened file 'scatter_log.dat'"
+    write(93,"(a)") "SCATTER> INIT kept already opened file 'scatter_log.dat'"
   end if
 #endif
 
@@ -239,24 +243,26 @@ subroutine scatter_initialise
   if(scatter_sumFile == -1) call funit_requestUnit("scatter_summary.dat",scatter_sumFile)
 #ifdef CR
   if(scatter_sumFilePos == -1) then
-    write(93,"(a)") "SCATTER> scatter_initialise opening new file 'scatter_summary.dat'"
+    write(93,"(a)") "SCATTER> INIT opening new file 'scatter_summary.dat'"
 #endif
     call units_openUnit(unit=scatter_sumFile,fileName="scatter_summary.dat",formatted=.true.,mode="w",err=fErr,status="replace")
-    write(scatter_sumFile,"(a)") "# scatter_summary"
-    write(scatter_sumFile,"(a1,a8,2(1x,a20),1x,a8,2(1x,a8),2(1x,a13))") &
+    call scatter_writeReport
+    write(scatter_sumFile,"(a)") "#  Summary Log"
+    write(scatter_sumFile,"(a)") "# ============="
+    write(scatter_sumFile,"(a1,a8,2(1x,a20),1x,a8,2(1x,a8),1x,a13,1x,a14)") &
       "#","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8), &
       "nScatt","nLost","crossSec[mb]","scaling"
     flush(scatter_sumFile)
 #ifdef CR
-    scatter_sumFilePos = 2
+    scatter_sumFilePos = scatter_sumFilePos + 3
     endfile(scatter_sumFile,iostat=iError)
     backspace(scatter_sumFile,iostat=iError)
   else
-    write(93,"(a)") "SCATTER> scatter_initialise kept already opened file 'scatter_summary.dat'"
+    write(93,"(a)") "SCATTER> INIT kept already opened file 'scatter_summary.dat'"
   end if
 #endif
 
-end subroutine scatter_initialise
+end subroutine scatter_postInput
 
 ! =================================================================================================
 !  BEGIN Input Parser Functions
@@ -313,7 +319,7 @@ subroutine scatter_parseInputLine(inLine, iErr)
 
   case("SEED")
     if(nSplit /= 2) then
-      write(lout,"(a)") "SCATTER> ERROR SEED expected 1 arguments:"
+      write(lout,"(a)") "SCATTER> ERROR SEED expected 2 arguments:"
       write(lout,"(a)") "SCATTER>       SEED seed"
       iErr = .true.
       return
@@ -360,17 +366,19 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
   ! Temporary Variables
   type(scatter_elemStore), allocatable :: tmpElem(:)
-  character(len=mNameLen) :: bezName
-  integer                 :: bezID, profileID
-  integer, allocatable    :: generatorID(:)
-  real(kind=fPrec)        :: elemScale
+  real(kind=fPrec),        allocatable :: brRatio(:)
+  integer,                 allocatable :: generatorID(:)
+  character(len=mNameLen)              :: bezName
+  integer                              :: bezID, profileID
+  real(kind=fPrec)                     :: elemScale, sigmaTot, ratioTot
+  logical                              :: autoRatio
 
   integer i, j
 
   ! Check number of arguments
   if(nSplit < 5) then
     write(lout,"(a)") "SCATTER> ERROR ELEM expected at least 5 arguments:"
-    write(lout,"(a)") "SCATTER>       ELEM elemname profile scaling gen1 ... genN"
+    write(lout,"(a)") "SCATTER>       ELEM elemname profile scaling gen1 (... genN)"
     iErr = .true.
     return
   end if
@@ -386,10 +394,17 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   end if
 
   allocate(generatorID(nSplit-4))
+  allocate(brRatio(nSplit-4))
+
   bezName        = trim(lnSplit(2))
   bezID          = -1
+  elemScale      = zero
+  sigmaTot       = zero
+  ratioTot       = one
+  autoRatio      = .false.
   profileID      = -1
   generatorID(:) = -1
+  brRatio(:)     = zero
 
   ! Find the single element referenced
   do i=1,il
@@ -437,14 +452,21 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
     return
   end if
 
-  ! Store the scaling
-  call str_cast(lnSplit(4),elemScale,iErr)
+  ! Store the ratio
+  if(lnSplit(4)%lower() == "auto") then
+    autoRatio = .true.
+  else
+    autoRatio = .false.
+    call str_cast(lnSplit(4),ratioTot,iErr)
+  end if
 
   do i=5,nSplit
     ! Search for the generator with the right name
     do j=1, scatter_nGen
       if(scatter_genList(j)%genName == lnSplit(i)) then
         generatorID(i-4) = j
+        brRatio(i-4)     = scatter_genList(j)%crossSection
+        sigmaTot         = sigmaTot + scatter_genList(j)%crossSection
         exit
       end if
     end do
@@ -468,21 +490,35 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
     end do
   end do
 
+  do i=1,size(brRatio,1)
+    brRatio(i) = brRatio(i) / sigmaTot
+  end do
+
   scatter_elemPointer(bezID)                  = scatter_nElem
   scatter_elemList(scatter_nElem)%bezName     = bezName
   scatter_elemList(scatter_nElem)%bezID       = bezID
   scatter_elemList(scatter_nElem)%elemScale   = elemScale
+  scatter_elemList(scatter_nElem)%sigmaTot    = sigmaTot
+  scatter_elemList(scatter_nElem)%ratioTot    = ratioTot
+  scatter_elemList(scatter_nElem)%autoRatio   = autoRatio
   scatter_elemList(scatter_nElem)%profileID   = profileID
   scatter_elemList(scatter_nElem)%generatorID = generatorID
+  scatter_elemList(scatter_nElem)%brRatio     = brRatio
 
   if(scatter_debug .or. st_debug) then
     write(lout,"(a,i0,a)")    "SCATTER> DEBUG Element ",scatter_nElem,":"
     write(lout,"(a)")         "SCATTER> DEBUG  * bezName        = '"//trim(bezName)//"'"
-    write(lout,"(a,i0)")      "SCATTER> DEBUG  * bezID          = ",bezID
-    write(lout,"(a,f13.6)")   "SCATTER> DEBUG  * elemScale      = ",elemScale
-    write(lout,"(a,i0)")      "SCATTER> DEBUG  * profileID      = ",profileID
+    write(lout,"(a,i4)")      "SCATTER> DEBUG  * bezID          = ",bezID
+  ! write(lout,"(a,f13.6)")   "SCATTER> DEBUG  * elemScale      = ",elemScale
+    write(lout,"(a,f11.6)")   "SCATTER> DEBUG  * sigmaTot       = ",sigmaTot*c1e27
+    write(lout,"(a,f11.6)")   "SCATTER> DEBUG  * ratioTot       = ",ratioTot
+    write(lout,"(a,3x,l1)")   "SCATTER> DEBUG  * autoRatio      = ",autoRatio
+    write(lout,"(a,i4)")      "SCATTER> DEBUG  * profileID      = ",profileID
     do i=1,size(generatorID,1)
-      write(lout,"(2(a,i0))") "SCATTER> DEBUG  * generatorID(",i,") = ",generatorID(i)
+      write(lout,"(a,i0,a,i4)")    "SCATTER> DEBUG  * generatorID(",i,") = ",generatorID(i)
+    end do
+    do i=1,size(brRatio,1)
+      write(lout,"(a,i0,a,f11.6)") "SCATTER> DEBUG  * brRatio(",i,")     = ",brRatio(i)
     end do
   end if
 
@@ -753,6 +789,26 @@ end subroutine scatter_parseGenerator
 ! =================================================================================================
 
 ! =================================================================================================
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-11-12
+! =================================================================================================
+subroutine scatter_setScaling(iElem, scaleVal)
+  integer,          intent(in) :: iElem
+  real(kind=fPrec), intent(in) :: scaleVal
+  scatter_elemList(scatter_elemPointer(iElem))%elemScale = scaleVal
+end subroutine scatter_setScaling
+
+! =================================================================================================
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-11-12
+! =================================================================================================
+pure function scatter_getScaling(iElem) result(scaleVal)
+  integer, intent(in) :: iElem
+  real(kind=fPrec)    :: scaleVal
+  scaleVal = scatter_elemList(scatter_elemPointer(iElem))%elemScale
+end function scatter_getScaling
+
+! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
@@ -765,7 +821,6 @@ subroutine scatter_thin(iElem, ix, turn)
   use mod_common
   use mod_commonmn
   use mod_particles
-  use numerical_constants
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -973,7 +1028,7 @@ subroutine scatter_thin(iElem, ix, turn)
 
       do k=1,9
         if(hasProc(k)) then
-          write(scatter_sumFile,"(1x,i8,2(1x,a20),1x,a8,2(1x,i8),2(1x,f13.6))") &
+          write(scatter_sumFile,"(1x,i8,2(1x,a20),1x,a8,2(1x,i8),1x,f13.6,1x,e14.6)") &
             turn, bez(ix)(1:20), chr_rPad(trim(scatter_genList(idGen)%genName),20), &
             scatter_procNames(k), nScatter(k), nLost(k), crossSection*c1e27, scaling
 #ifdef CR
@@ -1313,8 +1368,71 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
 end function scatter_generator_getPPElastic
 
 ! =================================================================================================
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-11-12
+!  Write a report of all the calculated cross sections and branching ratios
+! =================================================================================================
+subroutine scatter_writeReport
+
+  use crcoall
+
+  implicit none
+
+  integer i, iElem, iGen, nLine
+
+  nLine = 0
+
+  ! Calculate branching ratios and write summary
+  write(scatter_sumFile,"(a)")      "#"
+  write(scatter_sumFile,"(a)")      "#  SCATTER SUMMARY"
+  write(scatter_sumFile,"(a)")      "# ================="
+  write(scatter_sumFile,"(a)")      "#"
+  write(scatter_sumFile,"(a,i0,a)") "#  Read ",scatter_nElem," element(s)"
+  write(scatter_sumFile,"(a,i0,a)") "#  Read ",scatter_nPro," profile(s)"
+  write(scatter_sumFile,"(a,i0,a)") "#  Read ",scatter_nGen," generator(s)"
+  write(scatter_sumFile,"(a)")      "# "
+  nLine = nLine + 8
+
+  write(scatter_sumFile,"(a)")      "#  Generators"
+  write(scatter_sumFile,"(a)")      "# ============="
+  do iGen=1,scatter_nGen
+    write(scatter_sumFile,"(a,i0,a)") "#  Generator(",iGen,"): '"//trim(scatter_genList(iGen)%genName)//"'"
+    nLine = nLine + 1
+  end do
+  write(scatter_sumFile,"(a)")      "#"
+  nLine = nLine + 3
+
+  write(scatter_sumFile,"(a)")      "#  Cross Sections"
+  write(scatter_sumFile,"(a)")      "# ================"
+  do iElem=1,scatter_nElem
+    if(scatter_elemList(iElem)%autoRatio) then
+      write(scatter_sumFile,"(a,i0,a)") "#  Element(",iElem,"): '"//trim(scatter_elemList(iElem)%bezName)//"' "//&
+        "[Probability: Auto]"
+    else
+      write(scatter_sumFile,"(a,i0,a,f8.6,a)") "#  Element(",iElem,"): '"//trim(scatter_elemList(iElem)%bezName)//"' "//&
+        "[Probability: ",scatter_elemList(iElem)%ratioTot,"]"
+    end if
+    do i=1,size(scatter_elemList(iElem)%generatorID)
+      iGen = scatter_elemList(iElem)%generatorID(i)
+      write(scatter_sumFile,"(a,i0,a,f15.6,a,f8.6,a)") "#   + Generator(",iGen,"): ",&
+        (scatter_genList(iGen)%crossSection*c1e27)," mb [BR: ",scatter_elemList(iElem)%brRatio(i),"]"
+      nLine = nLine + 1
+    end do
+    write(scatter_sumFile,"(a,f15.6,a,f8.6,a)") "#   = Sigma Total:  ",(scatter_elemList(iElem)%sigmaTot*c1e27)," mb [BR: ",one,"]"
+    nLine = nLine + 2
+  end do
+  write(scatter_sumFile,"(a)")      "#"
+  nLine = nLine + 3
+
+#ifdef CR
+  scatter_sumFilePos = nLine
+#endif
+
+end subroutine scatter_writeReport
+
+! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-26
+!  Last modified: 2018-11-10
 !  Called from CRCHECK; reads the _CR arrays for scatter from file-
 !  Sets readerr=.true. if something goes wrong while reading.
 ! =================================================================================================
@@ -1395,7 +1513,7 @@ subroutine scatter_crcheck_positionFiles
 
   else
     write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning 'scatter_log.dat' at line ",scatter_logFilePos_CR
-    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, it will be correctly truncated in scatter_initialise."
+    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
     endfile(93,iostat=iError)
     backspace(93,iostat=iError)
   end if
@@ -1433,7 +1551,7 @@ subroutine scatter_crcheck_positionFiles
 
   else
     write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning 'scatter_summary.dat' at line ",scatter_sumFilePos_CR
-    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, it will be correctly truncated in scatter_initialise."
+    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
     endfile(93,iostat=iError)
     backspace(93,iostat=iError)
   end if

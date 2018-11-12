@@ -2300,7 +2300,7 @@ end function dynk_computeFUN
 ! ================================================================================================ !
 subroutine dynk_setvalue(element_name, att_name, newValue)
 
-  use scatter, only : scatter_elemPointer, scatter_elemList
+  use scatter, only : scatter_setScaling
   use crcoall
   use mod_common
   use mod_commont
@@ -2491,7 +2491,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
       case(40) ! Scatter
         if(att_name == "scaling") then
-          scatter_elemList(scatter_elemPointer(ii))%elemScale = newValue
+          call scatter_setScaling(ii, newValue)
         else
           goto 100 ! ERROR
         end if
@@ -2533,7 +2533,7 @@ end subroutine dynk_setvalue
 ! ================================================================================================ !
 real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
-  use scatter, only : scatter_elemPointer, scatter_elemList
+  use scatter, only : scatter_getScaling
   use crcoall
   use mod_common
   use mod_commont
@@ -2697,7 +2697,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
       case(40) ! Scatter
         if(att_name == "scaling") then
-          dynk_getvalue = scatter_elemList(scatter_elemPointer(ii))%elemScale
+          dynk_getvalue = scatter_getScaling(ii)
         else
           goto 100 ! ERROR
         end if
