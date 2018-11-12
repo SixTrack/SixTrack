@@ -20,7 +20,6 @@ module parpro
   integer, parameter :: nema  = 15        ! Maximum order of the one turn map (DIFF block)
   integer, parameter :: ninv  = 1000      ! Number of invariances (postprocessing)
   integer, parameter :: nlya  = 10000     ! Something something postprocessing
-  integer, parameter :: nmac  = 1         ! Maximum number of seeds for vectorisation, machines
   integer, parameter :: nmon1 = 600       ! Maximum number of monitors (closed orbit)
   integer, parameter :: nper  = 16        ! Maximum number of super periods (BLOC list, line 1)
   integer, parameter :: nplo  = 20000     ! Plotting
@@ -185,7 +184,7 @@ module mod_common
 
   ! common /rand0/
   real(kind=fPrec), allocatable, save :: zfz(:) ! (nzfz)
-  integer,          save :: iorg,izu0,mmac,mcut
+  integer,          save :: iorg,izu0,mcut
 
   character(len=:), allocatable, save :: bezr(:,:) ! (mNameLen)(3,nele)
   integer,          allocatable, save :: mzu(:)    ! (nblz)
@@ -554,9 +553,9 @@ module mod_commonmn
 
   ! common /main1/
   real(kind=fPrec), allocatable, save :: ekv(:,:)     ! (npart,nele)
-  real(kind=fPrec), allocatable, save :: smiv(:,:)    ! (nmac,nblz)
-  real(kind=fPrec), allocatable, save :: zsiv(:,:)    ! (nmac,nblz)
-  real(kind=fPrec), allocatable, save :: xsiv(:,:)    ! (nmac,nblz)
+  real(kind=fPrec), allocatable, save :: smiv(:)      ! (nblz)
+  real(kind=fPrec), allocatable, save :: zsiv(:)      ! (nblz)
+  real(kind=fPrec), allocatable, save :: xsiv(:)      ! (nblz)
 
   real(kind=fPrec), allocatable, save :: fokqv(:)     ! (npart)
   real(kind=fPrec), allocatable, save :: xsv(:)       ! (npart)
@@ -682,9 +681,9 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   integer, intent(in) :: npart_new
 
 
-  call alloc(smiv,       nmac, nblz_new,       zero,    "smiv")
-  call alloc(zsiv,       nmac, nblz_new,       zero,    "zsiv")
-  call alloc(xsiv,       nmac, nblz_new,       zero,    "xsiv")
+  call alloc(smiv,             nblz_new,       zero,    "smiv")
+  call alloc(zsiv,             nblz_new,       zero,    "zsiv")
+  call alloc(xsiv,             nblz_new,       zero,    "xsiv")
 
   call alloc(fokqv,            npart_new,      zero,    "fokqv")
   call alloc(xsv,              npart_new,      zero,    "xsv")
