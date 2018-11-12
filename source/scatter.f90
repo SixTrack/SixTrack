@@ -87,15 +87,6 @@ module scatter
   ! Statistical correction factor for a specific particle
   real(kind=fPrec), allocatable, public, save :: scatter_statScale(:)
 
-  integer,          allocatable, private, save :: scatter_iData(:)
-  real(kind=fPrec), allocatable, private, save :: scatter_fData(:)
-  character(len=:), allocatable, private, save :: scatter_cData(:)
-
-  ! Number of currently used positions in arrays
-  integer, private, save :: scatter_niData     = 0
-  integer, private, save :: scatter_nfData     = 0
-  integer, private, save :: scatter_ncData     = 0
-
   ! Random generator seeds
   integer, public,  save :: scatter_seed1      = -1
   integer, public,  save :: scatter_seed2      = -1
@@ -124,21 +115,7 @@ contains
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 02-11-2017
-! =================================================================================================
-subroutine scatter_allocate
-
-  use mod_alloc
-  implicit none
-
-  call alloc(scatter_iData,             1,   0,          "scatter_iData")
-  call alloc(scatter_fData,             1,   zero,       "scatter_fData")
-  call alloc(scatter_cData,    mStrLen, 1,   str_dSpace, "scatter_cData")
-
-end subroutine scatter_allocate
-
-! =================================================================================================
-!  Used for changing the allocation of arrays that scale with global parameters like NELE
+!  Last modified: 2018-11-12
 ! =================================================================================================
 subroutine scatter_expand_arrays(nele_new, npart_new)
   use mod_alloc
@@ -388,7 +365,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   integer, allocatable    :: generatorID(:)
   real(kind=fPrec)        :: elemScale
 
-  integer  i, ii
+  integer i, j
 
   ! Check number of arguments
   if(nSplit < 5) then
@@ -455,7 +432,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
     end if
   end do
   if(profileID == -1) then
-    write(lout,"(a)") "SCATTER> ERROR Could not find profile '"//lnSplit(3)//"'"
+    write(lout,"(a)") "SCATTER> ERROR Could not find profile '"//trim(lnSplit(3))//"'"
     iErr = .true.
     return
   end if
@@ -463,18 +440,18 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   ! Store the scaling
   call str_cast(lnSplit(4),elemScale,iErr)
 
-  do ii=5,nSplit
+  do i=5,nSplit
     ! Search for the generator with the right name
-    do i=1, scatter_nGen
-      if(scatter_genList(i)%genName == lnSplit(ii)) then
-        generatorID(ii-4) = i
+    do j=1, scatter_nGen
+      if(scatter_genList(j)%genName == lnSplit(i)) then
+        generatorID(i-4) = j
         exit
       end if
     end do
 
     ! If it is still -1, it wasn't found
-    if(generatorID(ii-4) == -1) then
-      write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(ii))//"' not found."
+    if(generatorID(i-4) == -1) then
+      write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(i))//"' not found."
       iErr = .true.
       return
     end if
@@ -482,9 +459,9 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
     ! Loop over those GENerators we've filled before
     ! (i.e. up to but not including column ii-4+2)
     ! to check for duplicates
-    do i=1,ii-5
-      if(generatorID(ii-4) == generatorID(i)) then
-        write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(ii))//"' used twice."
+    do j=1,i-5
+      if(generatorID(i-4) == generatorID(j)) then
+        write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(i))//"' used twice."
         iErr = .true.
         return
       end if
@@ -1504,45 +1481,5 @@ subroutine scatter_crpoint(fileUnit, writeErr, iError)
 end subroutine scatter_crpoint
 #endif
 ! End of CR
-
-! =================================================================================================
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-20
-! =================================================================================================
-subroutine scatter_dumpData
-
-  use crcoall
-
-  implicit none
-
-  integer i
-
-  write(lout,"(a)")       "SCATTER> DEBUG Data Dump"
-
-  write(lout,"(a)")       "Options:"
-  write(lout,"(a,l2)")    "scatter_active =", scatter_active
-  write(lout,"(a,l2)")    "scatter_debug  =", scatter_debug
-  write(lout,"(2(a,i8))") "Seeds          =", scatter_seed1, ";", scatter_seed2
-
-  write(lout,"(a)")       "Arrays:"
-
-  write(lout,"(a,i3,a)") "scatter_iData: (",scatter_niData,"):"
-  do i=1,scatter_niData
-    write(lout,"(i4,a,i4)") i,":",scatter_iData(i)
-  end do
-
-  write(lout,"(a,i3,a)") "scatter_fData: (",scatter_nfData,"):"
-  do i=1,scatter_nfData
-    write(lout,"(i4,a,e14.7)") i,":",scatter_fData(i)
-  end do
-
-  write(lout,"(a,i3,a)") "scatter_cData: (",scatter_ncData,"):"
-  do i=1,scatter_ncData
-    write(lout,"(i4,a)") i,": '"//chr_trimZero(scatter_cData(i))//"'"
-  end do
-
-  write(lout,"(a)") "SCATTER> DEBUG END DUMP"
-
-end subroutine scatter_dumpData
 
 end module scatter

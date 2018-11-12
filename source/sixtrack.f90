@@ -23,7 +23,7 @@ subroutine daten
   use mod_alloc
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
-  use scatter,   only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
+  use scatter,   only : scatter_active,scatter_debug,scatter_parseInputLine
   use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
@@ -809,9 +809,8 @@ subroutine daten
   case("SCAT") ! SCATTER Input Block
     if(openBlock) then
       scatter_active = .true.
-      call scatter_allocate
     elseif(closeBlock) then
-      if(scatter_debug) call scatter_dumpData
+      continue
     else
       call scatter_parseInputLine(string(inLine),inErr)
       if(inErr) goto 9999
