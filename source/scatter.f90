@@ -87,13 +87,6 @@ module scatter
   ! Statistical correction factor for a specific particle
   real(kind=fPrec), allocatable, public, save :: scatter_statScale(:)
 
-  ! Configuration for PROFILE and GENERATOR
-  ! Columns of scatter_PROFILE:
-  ! (1)   : Profile name in fort.3 (points within scatter_cData)
-  ! (2)   : Profile type
-  ! (3-5) : Arguments (often pointing within scatter_{i|c|f}Data)
-  integer, allocatable, public, save :: scatter_GENERATOR(:,:)
-
   integer,          allocatable, private, save :: scatter_iData(:)
   real(kind=fPrec), allocatable, private, save :: scatter_fData(:)
   character(len=:), allocatable, private, save :: scatter_cData(:)
@@ -137,8 +130,6 @@ subroutine scatter_allocate
 
   use mod_alloc
   implicit none
-
-  call alloc(scatter_GENERATOR,         1,5, 0,          "scatter_GENERATOR")
 
   call alloc(scatter_iData,             1,   0,          "scatter_iData")
   call alloc(scatter_fData,             1,   zero,       "scatter_fData")
@@ -475,7 +466,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   do ii=5,nSplit
     ! Search for the generator with the right name
     do i=1, scatter_nGen
-      if(trim(scatter_cData(scatter_GENERATOR(i,1))) == lnSplit(ii)) then
+      if(scatter_genList(i)%genName == lnSplit(ii)) then
         generatorID(ii-4) = i
         exit
       end if
@@ -689,17 +680,6 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
   crossSection = zero
   fParams(:)   = zero
 
-  ! Add a generator to the list
-  ! scatter_nGen = scatter_nGen + 1
-  call alloc(scatter_GENERATOR, scatter_nGen, 5, 0, "scatter_GENERATOR")
-
-  ! Store the generator name
-  scatter_ncData = scatter_ncData + 1
-  call alloc(scatter_cData, mStrLen, scatter_ncData, str_dSpace, "scatter_cData")
-
-  scatter_cData(scatter_ncData)     = lnSplit(2)
-  scatter_GENERATOR(scatter_nGen,1) = scatter_ncData
-
   ! Check that the generator name is unique
   do i=1,scatter_nGen-1
     if(scatter_genList(i)%genName == genName) then
@@ -713,12 +693,10 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
   select case (lnSplit(3)%get())
   case("ABSORBER")
 
-    scatter_GENERATOR(scatter_nGen,2) = 1  ! Code for ABSORBER
     genType = 1
 
   case("PPBEAMELASTIC")
 
-    scatter_GENERATOR(scatter_nGen,2) = 10 ! Code for PPBEAMELASTIC
     genType = 10
     if(nSplit /= 9) then
       write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC expected 9 arguments:"
@@ -728,19 +706,6 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
       return
     end if
 
-    ! Request space to store the arguments
-    tmpIdx = scatter_nfData + 1
-    scatter_GENERATOR(scatter_nGen,3) = tmpIdx ! Parameters
-    scatter_GENERATOR(scatter_nGen,4) = 0      ! CrossSection
-    scatter_nfData = scatter_nfData + nSplit - 3
-    call alloc(scatter_fData, scatter_nfData, zero, "scatter_fData")
-
-    call str_cast(lnSplit(4),scatter_fData(tmpIdx),iErr)   ! PPBEAMELASTIC a
-    call str_cast(lnSplit(5),scatter_fData(tmpIdx+1),iErr) ! PPBEAMELASTIC b1
-    call str_cast(lnSplit(6),scatter_fData(tmpIdx+2),iErr) ! PPBEAMELASTIC b2
-    call str_cast(lnSplit(7),scatter_fData(tmpIdx+3),iErr) ! PPBEAMELASTIC phi
-    call str_cast(lnSplit(8),scatter_fData(tmpIdx+4),iErr) ! PPBEAMELASTIC tmin
-
     call str_cast(lnSplit(4),fParams(1),iErr) ! a
     call str_cast(lnSplit(5),fParams(2),iErr) ! b1
     call str_cast(lnSplit(6),fParams(3),iErr) ! b2
@@ -748,12 +713,6 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
     call str_cast(lnSplit(8),fParams(5),iErr) ! tmin
     call str_cast(lnSplit(9),fParams(6),iErr) ! crossSection
     crossSection = fParams(6) * c1m27         ! Set crossSection explicitly in mb
-
-    if(nSplit == 9) then
-      call str_cast(lnSplit(9),scatter_fData(tmpIdx+5),iErr)  ! crossSection
-      scatter_fData(tmpIdx+5) = scatter_fData(tmpIdx+5)*c1m27 ! Scale to mb
-      scatter_GENERATOR(scatter_nGen,4) = tmpIdx+5
-    end if
 
     ! Check sanity of input values
     if(fParams(2) <= zero) then
@@ -782,24 +741,10 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
       return
     end if
 
-    scatter_GENERATOR(scatter_nGen,2) = 20 ! Code for PYTHIASIMPLE
-    scatter_GENERATOR(scatter_nGen,3) = 0  ! Parameters
-    scatter_GENERATOR(scatter_nGen,4) = 0  ! CrossSection
-
     genType = 20
 
     call str_cast(lnSplit(4),fParams(1),iErr) ! crossSection
     crossSection = fParams(1) * c1m27         ! Set crossSection explicitly in mb
-
-    if(nSplit == 4) then
-      ! Save specified crossSection
-      tmpIdx = scatter_nfData + 1
-      scatter_GENERATOR(scatter_nGen,4) = tmpIdx
-      scatter_nfData = scatter_nfData + 1
-      call alloc(scatter_fData, scatter_nfData, zero, "scatter_fData")
-      call str_cast(lnSplit(4),scatter_fData(tmpIdx),iErr)
-      scatter_fData(tmpIdx) = scatter_fData(tmpIdx)*c1m27 ! Scale to mb
-    end if
 
   case default
 
@@ -983,7 +928,7 @@ subroutine scatter_thin(iElem, ix, turn)
         iRecords(1,nRecords) = nlostp(j)
         iRecords(2,nRecords) = turn
         cRecords(1,nRecords) = bez(ix)
-        cRecords(2,nRecords) = trim(scatter_cData(scatter_GENERATOR(idGen,1)))
+        cRecords(2,nRecords) = trim(scatter_genList(idGen)%genName)
         cRecords(3,nRecords) = scatter_procNames(procID)
         iRecords(3,nRecords) = iLost
         rRecords(1,nRecords) = t
@@ -997,7 +942,7 @@ subroutine scatter_thin(iElem, ix, turn)
       else
 #endif
         write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f13.3,7(1x,1pe16.9))") &
-          nlostp(j), turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(idGen,1))),20), &
+          nlostp(j), turn, bez(ix)(1:20), chr_rPad(trim(scatter_genList(idGen)%genName),20), &
           scatter_procNames(procID), iLost, t, dEE, dPP, theta, rndPhi(j), N, P, scatter_statScale(nlostp(j))
 #ifdef CR
         scatter_logFilePos = scatter_logFilePos + 1
@@ -1037,7 +982,7 @@ subroutine scatter_thin(iElem, ix, turn)
           call h5_prepareWrite(scatter_sumDataSet, 1)
           call h5_writeData(scatter_sumDataSet, 1, 1, turn)
           call h5_writeData(scatter_sumDataSet, 2, 1, bez(ix))
-          call h5_writeData(scatter_sumDataSet, 3, 1, scatter_cData(scatter_GENERATOR(idGen,1)))
+          call h5_writeData(scatter_sumDataSet, 3, 1, trim(scatter_genList(idGen)%genName))
           call h5_writeData(scatter_sumDataSet, 4, 1, scatter_procNames(k))
           call h5_writeData(scatter_sumDataSet, 5, 1, nScatter(k))
           call h5_writeData(scatter_sumDataSet, 6, 1, nLost(k))
@@ -1052,7 +997,7 @@ subroutine scatter_thin(iElem, ix, turn)
       do k=1,9
         if(hasProc(k)) then
           write(scatter_sumFile,"(1x,i8,2(1x,a20),1x,a8,2(1x,i8),2(1x,f13.6))") &
-            turn, bez(ix)(1:20), chr_rPad(trim(scatter_cData(scatter_GENERATOR(idGen,1))),20), &
+            turn, bez(ix)(1:20), chr_rPad(trim(scatter_genList(idGen)%genName),20), &
             scatter_procNames(k), nScatter(k), nLost(k), crossSection*c1e27, scaling
 #ifdef CR
             scatter_sumFilePos = scatter_sumFilePos + 1
@@ -1179,25 +1124,16 @@ real(kind=fPrec) function scatter_generator_getCrossSection(idPro, genID, x, y, 
   call scatter_profile_getParticle(idPro, x, y, xpTarget, ypTarget, ETarget)
 
   ! Calculate the cross section as function of S
-  select case(scatter_GENERATOR(genID,2))
+  ! This is currently a fixed value
+  select case(scatter_genList(genID)%genType)
   case(1)  ! ABSORBER
-    !...
+    scatter_generator_getCrossSection = scatter_genList(genID)%crossSection
 
   case(10) ! PPBEAMELASTIC
-    tmpIdx = scatter_GENERATOR(genID,4)
-    if(tmpIdx == 0) then
-      scatter_generator_getCrossSection = 30d-27
-    else
-      scatter_generator_getCrossSection = scatter_fData(tmpIdx)
-    end if
+    scatter_generator_getCrossSection = scatter_genList(genID)%crossSection
 
   case(20) ! PYTHIASIMPLE
-    tmpIdx = scatter_GENERATOR(genID,4)
-    if(tmpIdx == 0) then
-      scatter_generator_getCrossSection = 30d-27
-    else
-      scatter_generator_getCrossSection = scatter_fData(tmpIdx)
-    end if
+    scatter_generator_getCrossSection = scatter_genList(genID)%crossSection
 
   case default
     write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_proList(idPro)%proType," for profile '"//&
@@ -1243,19 +1179,18 @@ subroutine scatter_generator_getEvent(genID, partID, t, theta, dEE, dPP, procID,
   nRetry = 0
   isDiff = .false.
 
-  select case(scatter_GENERATOR(genID,2))
+  select case(scatter_genList(genID)%genType)
   case(1)  ! ABSORBER
 
     procID = scatter_idAbsorb
 
   case(10) ! PPBEAMELASTIC
 
-    tmpIdx = scatter_GENERATOR(genID,3)
-    a      = scatter_fData(tmpIdx)
-    b1     = scatter_fData(tmpIdx+1)
-    b2     = scatter_fData(tmpIdx+2)
-    phi    = scatter_fData(tmpIdx+3)
-    tmin   = scatter_fData(tmpIdx+4)
+    a      = scatter_genList(genID)%fParams(1)
+    b1     = scatter_genList(genID)%fParams(2)
+    b2     = scatter_genList(genID)%fParams(3)
+    phi    = scatter_genList(genID)%fParams(4)
+    tmin   = scatter_genList(genID)%fParams(5)
 
     t      = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
     t      = t*c1e6                                      ! Scale return variable to MeV^2
@@ -1332,7 +1267,7 @@ subroutine scatter_generator_getEvent(genID, partID, t, theta, dEE, dPP, procID,
 #endif
 
   case default
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Generator type ",scatter_GENERATOR(genID,2)," not understood"
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Generator type ",scatter_genList(genID)%genType," not understood"
     call prror(-1)
 
   end select
@@ -1590,11 +1525,6 @@ subroutine scatter_dumpData
   write(lout,"(2(a,i8))") "Seeds          =", scatter_seed1, ";", scatter_seed2
 
   write(lout,"(a)")       "Arrays:"
-
-  write(lout,"(a,2(i3,a))") "scatter_GENERATOR: (",scatter_nGen,",",5,"):"
-  do i=1,scatter_nGen
-    write(lout,"(i4,a,5(1x,i3))") i,":",scatter_GENERATOR(i,:)
-  end do
 
   write(lout,"(a,i3,a)") "scatter_iData: (",scatter_niData,"):"
   do i=1,scatter_niData
