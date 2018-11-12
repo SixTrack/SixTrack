@@ -1,0 +1,17 @@
+Tests:
+- tests (thin6d/thin4d) based on HL-LHC v1p4 lattice;
+- optics: IR1/5 beta*=15cm, flat machine;
+- machine set for Pb ions, 7 Z TeV;
+- lattice starts at IR4 CAV, where DX=0;
+
+Test tracks 24 particles for 4k turns:
+- 8 species: proton, C-12, Fe-56, Xe-129, Tl-208, Pb-207, Pb-208;
+- for each species, 4 starting conditions:
+  - 2 on-momentum, with ~0 and ~6sig (30degs on xy-plane) amplitude;
+  - 2 off-momentum, with same starting conditions (betatron) and -2*sigdpp/Z (sigdpp/Z=1.1E-4);
+
+Checks:
+- all particles are dumped at the first turn at every element;
+- all particles are dumped at the first element at every turn;
+The python script shows the output of the two dumps and some infos on the ion species:
+python2.7 show_particles.py

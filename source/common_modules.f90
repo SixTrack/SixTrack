@@ -20,7 +20,6 @@ module parpro
   integer, parameter :: nema  = 15        ! Maximum order of the one turn map (DIFF block)
   integer, parameter :: ninv  = 1000      ! Number of invariances (postprocessing)
   integer, parameter :: nlya  = 10000     ! Something something postprocessing
-  integer, parameter :: nmac  = 1         ! Maximum number of seeds for vectorisation, machines
   integer, parameter :: nmon1 = 600       ! Maximum number of monitors (closed orbit)
   integer, parameter :: nper  = 16        ! Maximum number of super periods (BLOC list, line 1)
   integer, parameter :: nplo  = 20000     ! Plotting
@@ -185,7 +184,7 @@ module mod_common
 
   ! common /rand0/
   real(kind=fPrec), allocatable, save :: zfz(:) ! (nzfz)
-  integer,          save :: iorg,izu0,mmac,mcut
+  integer,          save :: iorg,izu0,mcut
 
   character(len=:), allocatable, save :: bezr(:,:) ! (mNameLen)(3,nele)
   integer,          allocatable, save :: mzu(:)    ! (nblz)
@@ -554,15 +553,17 @@ module mod_commonmn
 
   ! common /main1/
   real(kind=fPrec), allocatable, save :: ekv(:,:)     ! (npart,nele)
-  real(kind=fPrec), allocatable, save :: smiv(:,:)    ! (nmac,nblz)
-  real(kind=fPrec), allocatable, save :: zsiv(:,:)    ! (nmac,nblz)
-  real(kind=fPrec), allocatable, save :: xsiv(:,:)    ! (nmac,nblz)
+  real(kind=fPrec), allocatable, save :: smiv(:)      ! (nblz)
+  real(kind=fPrec), allocatable, save :: zsiv(:)      ! (nblz)
+  real(kind=fPrec), allocatable, save :: xsiv(:)      ! (nblz)
 
   real(kind=fPrec), allocatable, save :: fokqv(:)     ! (npart)
   real(kind=fPrec), allocatable, save :: xsv(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: zsv(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: xv(:,:)      ! (2,npart)
-  real(kind=fPrec), allocatable, save :: yv(:,:)      ! (2,npart)
+  real(kind=fPrec), allocatable, save :: xv1(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: yv1(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: xv2(:)       ! (npart)
+  real(kind=fPrec), allocatable, save :: yv2(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: dam(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: ekkv(:)      ! (npart)
   real(kind=fPrec), allocatable, save :: sigmv(:)     ! (npart)
@@ -637,10 +638,6 @@ module mod_commonmn
   real(kind=fPrec), allocatable, save :: xvl(:,:)     ! (2,npart)
   real(kind=fPrec), allocatable, save :: yvl(:,:)     ! (2,npart)
   real(kind=fPrec), allocatable, save :: aperv(:,:)   ! (npart,2)
-  real(kind=fPrec), allocatable, save :: clov(:,:)    ! (2,npart)
-  real(kind=fPrec), allocatable, save :: clopv(:,:)   ! (2,npart)
-  real(kind=fPrec), allocatable, save :: alf0v(:,:)   ! (npart,2)
-  real(kind=fPrec), allocatable, save :: bet0v(:,:)   ! (npart,2)
 
   integer,          allocatable, save :: iv(:)        ! (npart)
   integer,          allocatable, save :: ixv(:)       ! (npart)
@@ -684,15 +681,17 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   integer, intent(in) :: npart_new
 
 
-  call alloc(smiv,       nmac, nblz_new,       zero,    "smiv")
-  call alloc(zsiv,       nmac, nblz_new,       zero,    "zsiv")
-  call alloc(xsiv,       nmac, nblz_new,       zero,    "xsiv")
+  call alloc(smiv,             nblz_new,       zero,    "smiv")
+  call alloc(zsiv,             nblz_new,       zero,    "zsiv")
+  call alloc(xsiv,             nblz_new,       zero,    "xsiv")
 
   call alloc(fokqv,            npart_new,      zero,    "fokqv")
   call alloc(xsv,              npart_new,      zero,    "xsv")
   call alloc(zsv,              npart_new,      zero,    "zsv")
-  call alloc(xv,         2,    npart_new,      zero,    "xv")
-  call alloc(yv,         2,    npart_new,      zero,    "yv")
+  call alloc(xv1,              npart_new,      zero,    "xv1")
+  call alloc(yv1,              npart_new,      zero,    "yv1")
+  call alloc(xv2,              npart_new,      zero,    "xv2")
+  call alloc(yv2,              npart_new,      zero,    "yv2")
   call alloc(dam,              npart_new,      zero,    "dam")
   call alloc(ekkv,             npart_new,      zero,    "ekkv")
   call alloc(sigmv,            npart_new,      zero,    "sigmv")
@@ -751,10 +750,6 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   call alloc(xvl,       2,     npart_new,      zero,    "xvl")
   call alloc(yvl,       2,     npart_new,      zero,    "yvl")
   call alloc(aperv,            npart_new, 2,   zero,    "aperv")
-  call alloc(clov,      2,     npart_new,      zero,    "clov")
-  call alloc(clopv,     2,     npart_new,      zero,    "clopv")
-  call alloc(alf0v,            npart_new, 2,   zero,    "alf0v")
-  call alloc(bet0v,            npart_new, 2,   zero,    "bet0v")
   call alloc(iv,               npart_new,      0,       "iv")
   call alloc(ixv,              npart_new,      0,       "ixv")
 

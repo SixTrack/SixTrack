@@ -20,40 +20,21 @@
 *    WHAT(5) : bunch length (actually 4*sigma_l) [s]
 *    WHAT(6) : not used
 *
+* e_N [um rad]:
+* - p:  3.5
+* - Pb: 1.3903
 * Horizontal plane
-PARAM     1         121.600622     2.2947979  -0.4946175  -0.0075348   3.75E-06
+PARAM     1         250.196047  0.5198641     0.0         0.0        3.5E-06
 * Vertical plane
-PARAM     2         218.591022    -2.6433874  -0.0475363  -0.0009996   3.75E-06
-*
-*
-* specific to protons:
-* Longitudinal plane
-* - on momentum
-* PARAM     3         0.93827231     449.99902182679494   1.129E-04   2.5E-09
-* - off-momentum by -2sig
-* PARAM     3         0.93827231     449.8974120476664    1.129E-04   2.5E-09
-* - off-momentum by +2sig
-* PARAM     3         0.93827231     450.1006316059234    1.129E-04   2.5E-09
-*
-*
-* specific to xenon ions:
-PARAM     4        129 54
-* - on momentum
-* PARAM     3        120.046674254  24299.703471359495   1.129E-04   2.5E-09
-* - off-momentum by -2sig
-* PARAM     3        120.046674254  24294.21659831566    1.129E-04   2.5E-09
-* - off-momentum by +2sig
-PARAM     3        120.046674254  24305.190344403327   1.129E-04   2.5E-09
+PARAM     2         295.290779 -0.3483150     0.0         0.0        3.5E-06
 *
 *
 * specific to lead ions:
-* PARAM     4        208 82
+PARAM     4        208 82
 * - on momentum
-* PARAM     3        193.687690162648  36899.49166423136    1.129E-04   2.5E-09
-* - off-momentum by -2sig
-* PARAM     3        193.687690162648  36891.15975901358    1.129E-04   2.5E-09
-* - off-momentum by +2sig
-* PARAM     3        193.687690162648  36907.823569449145   1.129E-04   2.5E-09
+* PARAM     3        193.687690162648  574000.0      1.1E-04   2.5E-09
+* - off-momentum by -1sig
+* PARAM     3        193.687690162648  573936.86     1.1E-04   2.5E-09
 *
 ****    Sampling distributions ********************************************
 *
@@ -113,7 +94,7 @@ DTYPE     3         PENCIL
 * WHAT(5) : time delay                  [s] [Default: 0] 
 * WHAT(6) : offset of particles in pc [GeV] [Default: 0]
 *
-OFFSET    0.0002237E-3 0.0000098E-3 0.0000409E-3 0.0000009E-3 0.0 0.0
+OFFSET    0.0     0.0     0.0     0.0     0.0      0.0
 *
 *
 ****    Geometrical Acceptance ********************************************

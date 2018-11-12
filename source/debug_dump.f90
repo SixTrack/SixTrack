@@ -86,7 +86,7 @@ subroutine dumpxy(dumpname,n,i,k)
   save
 
   write(99,*) dumpname,'   Turn ',n,' Element ',i
-  write(99,*) (xv(1,j),j=1,k),(xv(2,j),j=1,k),(yv(1,j),j=1,k),(yv(2,j),j=1,k),&
+  write(99,*) (xv1(j),j=1,k),(xv2(j),j=1,k),(yv1(j),j=1,k),(yv2(j),j=1,k),&
     (sigmv(j),j=1,k),(ejv(j),j=1,k),(ejfv(j),j=1,k),(rvv(j),j=1,k),           &
     (dpsv(j),j=1,k),(dpsv1(j),j=1,k),(oidpsv(j),j=1,k)
   endfile (99,iostat=ierro)
@@ -299,7 +299,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'mzu ',mzu
   write(99,*) 'bezr ',bezr
   write(99,*) 'izu0 ',izu0
-  write(99,*) 'mmac ',mmac
   write(99,*) 'mcut ',mcut
 ! write(99,*) 'exterr ',exterr
 ! write(99,*) 'extalign ',extalign
@@ -522,8 +521,10 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'ekk ',ekk
   write(99,*) 'cr ',cr
   write(99,*) 'ci ',ci
-  write(99,*) 'xv ',xv
-  write(99,*) 'yv ',yv
+  write(99,*) 'xv1 ',xv1
+  write(99,*) 'yv1 ',yv1
+  write(99,*) 'xv2 ',xv2
+  write(99,*) 'yv2 ',yv2
   write(99,*) 'dam ',dam
   write(99,*) 'ekkv ',ekkv
   write(99,*) 'sigmv ',sigmv
@@ -582,10 +583,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'iv ',iv
   write(99,*) 'aperv ',aperv
   write(99,*) 'ixv ',ixv
-  write(99,*) 'clov ',clov
-  write(99,*) 'clopv ',clopv
-  write(99,*) 'alf0v ',alf0v
-  write(99,*) 'bet0v ',bet0v
   write(99,*) 'ampv ',ampv
   write(99,*) 'clo6v ',clo6v
   write(99,*) 'clop6v ',clop6v
@@ -785,7 +782,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) mzu
   write(99) bezr
   write(99) izu0
-  write(99) mmac
   write(99) mcut
 ! write(99) exterr
 ! write(99) extalign
@@ -1008,8 +1004,10 @@ subroutine dumpbin(dumpname,n,i)
   write(99) ekk
   write(99) cr
   write(99) ci
-  write(99) xv
-  write(99) yv
+  write(99) xv1
+  write(99) yv1
+  write(99) xv2
+  write(99) yv2
   write(99) dam
   write(99) ekkv
   write(99) sigmv
@@ -1068,10 +1066,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) iv
   write(99) aperv
   write(99) ixv
-  write(99) clov
-  write(99) clopv
-  write(99) alf0v
-  write(99) bet0v
   write(99) ampv
   write(99) clo6v
   write(99) clop6v
@@ -1265,7 +1259,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'mzu ',mzu
   write(99,100) 'bezr ',bezr
   write(99,100) 'izu0 ',izu0
-  write(99,100) 'mmac ',mmac
   write(99,100) 'mcut ',mcut
 ! write(99,100) 'exterr ',exterr
 ! write(99,100) 'extalign ',extalign
@@ -1548,10 +1541,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'iv ',iv
   write(99,100) 'aperv ',aperv
   write(99,100) 'ixv ',ixv
-  write(99,100) 'clov ',clov
-  write(99,100) 'clopv ',clopv
-  write(99,100) 'alf0v ',alf0v
-  write(99,100) 'bet0v ',bet0v
   write(99,100) 'ampv ',ampv
   write(99,100) 'clo6v ',clo6v
   write(99,100) 'clop6v ',clop6v

@@ -482,10 +482,10 @@ subroutine aperture_saveLastCoordinates( i, ix, iBack )
   integer j
   
   do j=1,napx
-    xLast(1,j) = xv(1,j)
-    xLast(2,j) = xv(2,j)
-    yLast(1,j) = yv(1,j)
-    yLast(2,j) = yv(2,j)
+    xLast(1,j) = xv1(j)
+    xLast(2,j) = xv2(j)
+    yLast(1,j) = yv1(j)
+    yLast(2,j) = yv2(j)
     ejfvLast(j) = ejfv(j)
     ejvLast(j) = ejv(j)
     nucmLast(j) = nucm(j)
@@ -568,9 +568,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   integer ix    ! single element type index
   logical llost ! at least one particle was lost
 
-
-! logical isnan
-  logical myisnan
   integer ib2,ib3,ilostch,j,jj,jj1,jjx
 
 ! temporary variables
@@ -613,8 +610,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     do j=1,napx
 
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
-        llostp(j)=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2)).or. &
-             (xv(1,j).ne.xv(1,j)).or.(xv(2,j).ne.xv(2,j))
+        llostp(j)=(abs(xv1(j)).gt.aper(1)).or.(abs(xv2(j)).gt.aper(2))
         llost=llost.or.llostp(j)
       else if (do_coll) then
         llostp(j)=.false.
@@ -636,19 +632,19 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             if(lbacktracking) then
               call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             else
-              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)).or. &
-                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)= &
-                   checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)) .or. &
-                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+                checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)) .or. &
+                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
             else
               llostp(j)= &
-                   checkTR(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
-                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+                checkTR(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
+                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -668,17 +664,17 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             if(lbacktracking) then
               call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             else
-              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkCR( xchk(1),xchk(2),radius2 ) .or. &
-                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkCR( xLast(1,j),xLast(2,j),radius2 ) .or. &
-                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
             else
-              llostp(j)=checkCR( xv(1,j),xv(2,j),radius2 ) .or. &
-                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+              llostp(j)=checkCR( xv1(j),xv2(j),radius2 ) .or. &
+                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -697,17 +693,17 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             if(lbacktracking) then
               call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             else
-              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkRE( xchk(1),xchk(2),ape(1,ix),ape(2,ix) ) .or. &
-                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkRE( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix) ) .or. &
-                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
             else
-              llostp(j)=checkRE( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix) ) .or. &
-                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+              llostp(j)=checkRE( xv1(j),xv2(j),ape(1,ix),ape(2,ix) ) .or. &
+                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -728,17 +724,17 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             if(lbacktracking) then
               call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             else
-              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkEL( xchk(1),xchk(2),apxx,apyy,apxy ) .or. &
-                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkEL( xLast(1,j),xLast(2,j),apxx,apyy,apxy ) .or. &
-                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
             else
-              llostp(j)=checkEL( xv(1,j),xv(2,j),apxx,apyy,apxy ) .or. &
-                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+              llostp(j)=checkEL( xv1(j),xv2(j),apxx,apyy,apxy ) .or. &
+                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -759,17 +755,17 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             if(lbacktracking) then
               call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             else
-              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkRL( xchk(1),xchk(2),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
-                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkRL( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
-                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
             else
-              llostp(j)=checkRL( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
-                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+              llostp(j)=checkRL( xv1(j),xv2(j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -787,17 +783,17 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             if(lbacktracking) then
               call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             else
-              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkOC(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
-                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkOC(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
-                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
             else
-              llostp(j)=checkOC(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
-                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+              llostp(j)=checkOC(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -817,17 +813,17 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             if(lbacktracking) then
               call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             else
-              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
-                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
-                   myisnan(xLast(1,j),xLast(1,j)).or.myisnan(xLast(2,j),xLast(2,j))
+                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
             else
-              llostp(j)=checkRT(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
-                   myisnan(xv(1,j),xv(1,j)).or.myisnan(xv(2,j),xv(2,j))
+              llostp(j)=checkRT(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -929,32 +925,32 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               apyy = aprr(4)**2.
               apxy = apxx * apyy
               llos=checkTR(xchk(1),xchk(2),aprr(1),aprr(2),aprr(3),aprr(4),apxx,apyy,apxy,aprr(5),aprr(6)).or. &
- &                 myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+                isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
             case (1) ! Circle
               radius2 = aprr(3)**2
               llos=checkCR(xchk(1),xchk(2),radius2) .or. &
- &                  myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+                isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
             case (2) ! Rectangle
               llos=checkRE(xchk(1),xchk(2),aprr(1),aprr(2)) .or. &
- &                  myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+                isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
             case (3) ! Ellipse
               apxx = aprr(3)**2.
               apyy = aprr(4)**2.
               apxy = apxx * apyy
               llos=checkEL( xchk(1),xchk(2),apxx,apyy,apxy )  .or. &
- &                  myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+                isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
             case (4) ! RectEllipse
               apxx = aprr(3)**2.
               apyy = aprr(4)**2.
               apxy = apxx * apyy
               llos = checkRL( xchk(1),xchk(2),aprr(1),aprr(2),apxx, apyy, apxy ) .or. &
- &                      myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+                isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
             case (5) ! Octagon
               llos=checkOC(xchk(1), xchk(2), aprr(1), aprr(2), aprr(5), aprr(6) ) .or. &
- &                    myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+                isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
             case (6) ! RaceTrack
               llos=checkRT( xchk(1), xchk(2), aprr(1), aprr(2), aprr(3), aprr(3)**2. ) .or. &
- &                    myisnan(xchk(1),xchk(1)).or.myisnan(xchk(2),xchk(2))
+                isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
             end select
           end do !do jj=1,niter
 
@@ -971,10 +967,10 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             ylos(2) = yLast(2,j)
             slos    = dcum(iLastThick)
           else
-            xlos(1) = xv(1,j)
-            xlos(2) = xv(2,j)
-            ylos(1) = yv(1,j)
-            ylos(2) = yv(2,j)
+            xlos(1) = xv1(j)
+            xlos(2) = xv2(j)
+            ylos(1) = yv1(j)
+            ylos(2) = yv2(j)
             slos    = dcum(i)
           end if
         end if ! if(lback)
@@ -2958,10 +2954,10 @@ subroutine compactArrays(llostp)
           do jj=j,lnapx-1
             jj1=jj+1
             nlostp(jj)=nlostp(jj1)
-            xv(1,jj)=xv(1,jj1)
-            xv(2,jj)=xv(2,jj1)
-            yv(1,jj)=yv(1,jj1)
-            yv(2,jj)=yv(2,jj1)
+            xv1(jj)=xv1(jj1)
+            xv2(jj)=xv2(jj1)
+            yv1(jj)=yv1(jj1)
+            yv2(jj)=yv2(jj1)
             dpsv(jj)=dpsv(jj1)
             sigmv(jj)=sigmv(jj1)
             ejfv(jj)=ejfv(jj1)
