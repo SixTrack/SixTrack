@@ -73,6 +73,16 @@ module scatter
   ! Total cross section
   real(kind=fPrec), private, save :: scatter_sigmaTot     = one
 
+  ! Generator Storage
+  type, private :: scatter_genStore
+    character(len=:), allocatable :: genName
+    integer                       :: genType
+    real(kind=fPrec)              :: crossSection
+    real(kind=fPrec), allocatable :: fParams(:)
+  end type scatter_genStore
+
+  type(scatter_genStore), allocatable, public, save :: scatter_genList(:)
+  integer,                             public, save :: scatter_nGen = 0
 
   ! Statistical correction factor for a specific particle
   real(kind=fPrec), allocatable, public, save :: scatter_statScale(:)
@@ -89,7 +99,6 @@ module scatter
   character(len=:), allocatable, private, save :: scatter_cData(:)
 
   ! Number of currently used positions in arrays
-  integer, public,  save :: scatter_nGenerator = 0
   integer, private, save :: scatter_niData     = 0
   integer, private, save :: scatter_nfData     = 0
   integer, private, save :: scatter_ncData     = 0
@@ -365,7 +374,7 @@ end subroutine scatter_parseInputLine
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-20
+!  Last modified: 2018-11-10
 ! =================================================================================================
 subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
@@ -465,7 +474,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
   do ii=5,nSplit
     ! Search for the generator with the right name
-    do i=1, scatter_nGENERATOR
+    do i=1, scatter_nGen
       if(trim(scatter_cData(scatter_GENERATOR(i,1))) == lnSplit(ii)) then
         generatorID(ii-4) = i
         exit
@@ -513,7 +522,7 @@ end subroutine scatter_parseElem
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-20
+!  Last modified: 2018-11-10
 ! =================================================================================================
 subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
 
@@ -529,8 +538,8 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
 
   ! Temporary Variables
   type(scatter_proStore), allocatable :: tmpPro(:)
-  character(len=:), allocatable :: proName
-  real(kind=fPrec), allocatable :: fParams(:)
+  character(len=:),       allocatable :: proName
+  real(kind=fPrec),       allocatable :: fParams(:)
   integer proType
   integer i, ii, tmpIdx
 
@@ -631,7 +640,7 @@ end subroutine scatter_parseProfile
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 09-2017
+!  Last modified: 2018-11-12
 ! =================================================================================================
 subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
@@ -639,6 +648,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
   use mod_alloc
   use strings
   use string_tools
+  use mod_settings
 
   implicit none
 
@@ -647,7 +657,13 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
   logical,                   intent(inout) :: iErr
 
   ! Temporary Variables
-  integer ii, tmpIdx
+  type(scatter_genStore), allocatable :: tmpGen(:)
+  character(len=:),       allocatable :: genName
+  real(kind=fPrec),       allocatable :: fParams(:)
+
+  real(kind=fPrec) crossSection
+  integer genType
+  integer i, ii, tmpIdx
 
   ! Check number of arguments
   if(nSplit < 3) then
@@ -657,21 +673,37 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
     return
   end if
 
+  if(allocated(scatter_genList)) then
+    allocate(tmpGen(scatter_nGen+1))
+    tmpGen(1:scatter_nGen) = scatter_genList(1:scatter_nGen)
+    call move_alloc(tmpGen, scatter_genList)
+    scatter_nGen = scatter_nGen + 1
+  else
+    allocate(scatter_genList(1))
+    scatter_nGen = 1
+  end if
+
+  allocate(fParams(nSplit-3))
+  genName      = trim(lnSplit(2))
+  genType      = -1
+  crossSection = zero
+  fParams(:)   = zero
+
   ! Add a generator to the list
-  scatter_nGENERATOR = scatter_nGENERATOR + 1
-  call alloc(scatter_GENERATOR, scatter_nGENERATOR, 5, 0, "scatter_GENERATOR")
+  ! scatter_nGen = scatter_nGen + 1
+  call alloc(scatter_GENERATOR, scatter_nGen, 5, 0, "scatter_GENERATOR")
 
   ! Store the generator name
   scatter_ncData = scatter_ncData + 1
   call alloc(scatter_cData, mStrLen, scatter_ncData, str_dSpace, "scatter_cData")
 
-  scatter_cData(scatter_ncData)           = lnSplit(2)
-  scatter_GENERATOR(scatter_nGENERATOR,1) = scatter_ncData
+  scatter_cData(scatter_ncData)     = lnSplit(2)
+  scatter_GENERATOR(scatter_nGen,1) = scatter_ncData
 
   ! Check that the generator name is unique
-  do ii=1,scatter_nGENERATOR-1
-    if(trim(scatter_cData(scatter_GENERATOR(ii,1))) == lnSplit(2)) then
-      write(lout,"(a)") "SCATTER> ERROR Generator name '"//lnSplit(2)//"' is not unique."
+  do i=1,scatter_nGen-1
+    if(scatter_genList(i)%genName == genName) then
+      write(lout,"(a)") "SCATTER> ERROR Generator name '"//trim(genName)//"' is not unique."
       iErr = .true.
       return
     end if
@@ -681,14 +713,16 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
   select case (lnSplit(3)%get())
   case("ABSORBER")
 
-    scatter_GENERATOR(scatter_nGENERATOR,2) = 1  ! Code for ABSORBER
+    scatter_GENERATOR(scatter_nGen,2) = 1  ! Code for ABSORBER
+    genType = 1
 
   case("PPBEAMELASTIC")
 
-    scatter_GENERATOR(scatter_nGENERATOR,2) = 10 ! Code for PPBEAMELASTIC
-    if(nSplit < 8 .or. nSplit > 9) then
-      write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC expected 8 or 9 arguments:"
-      write(lout,"(a)") "SCATTER>       GEN name PPBEAMELASTIC a b1 b2 phi tmin (crossSection)"
+    scatter_GENERATOR(scatter_nGen,2) = 10 ! Code for PPBEAMELASTIC
+    genType = 10
+    if(nSplit /= 9) then
+      write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC expected 9 arguments:"
+      write(lout,"(a)") "SCATTER>       GEN name PPBEAMELASTIC a b1 b2 phi tmin crossSection"
       call prror(-1)
       iErr = .true.
       return
@@ -696,8 +730,8 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
     ! Request space to store the arguments
     tmpIdx = scatter_nfData + 1
-    scatter_GENERATOR(scatter_nGENERATOR,3) = tmpIdx ! Parameters
-    scatter_GENERATOR(scatter_nGENERATOR,4) = 0      ! CrossSection
+    scatter_GENERATOR(scatter_nGen,3) = tmpIdx ! Parameters
+    scatter_GENERATOR(scatter_nGen,4) = 0      ! CrossSection
     scatter_nfData = scatter_nfData + nSplit - 3
     call alloc(scatter_fData, scatter_nfData, zero, "scatter_fData")
 
@@ -707,19 +741,27 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
     call str_cast(lnSplit(7),scatter_fData(tmpIdx+3),iErr) ! PPBEAMELASTIC phi
     call str_cast(lnSplit(8),scatter_fData(tmpIdx+4),iErr) ! PPBEAMELASTIC tmin
 
+    call str_cast(lnSplit(4),fParams(1),iErr) ! a
+    call str_cast(lnSplit(5),fParams(2),iErr) ! b1
+    call str_cast(lnSplit(6),fParams(3),iErr) ! b2
+    call str_cast(lnSplit(7),fParams(4),iErr) ! phi
+    call str_cast(lnSplit(8),fParams(5),iErr) ! tmin
+    call str_cast(lnSplit(9),fParams(6),iErr) ! crossSection
+    crossSection = fParams(6) * c1m27         ! Set crossSection explicitly in mb
+
     if(nSplit == 9) then
       call str_cast(lnSplit(9),scatter_fData(tmpIdx+5),iErr)  ! crossSection
       scatter_fData(tmpIdx+5) = scatter_fData(tmpIdx+5)*c1m27 ! Scale to mb
-      scatter_GENERATOR(scatter_nGENERATOR,4) = tmpIdx+5
+      scatter_GENERATOR(scatter_nGen,4) = tmpIdx+5
     end if
 
     ! Check sanity of input values
-    if(scatter_fData(tmpIdx+1) < pieni) then
+    if(fParams(2) <= zero) then
       write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC 5th input (b1) must be larger than zero"
       iErr = .true.
       return
     end if
-    if(scatter_fData(tmpIdx+2) < pieni) then
+    if(fParams(3) <= zero) then
       write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC 6th input (b2) must be larger than zero"
       iErr = .true.
       return
@@ -732,14 +774,27 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
     iErr = .true.
     return
 #endif
-    scatter_GENERATOR(scatter_nGENERATOR,2) = 20 ! Code for PYTHIASIMPLE
-    scatter_GENERATOR(scatter_nGENERATOR,3) = 0  ! Parameters
-    scatter_GENERATOR(scatter_nGENERATOR,4) = 0  ! CrossSection
+    if(nSplit /= 4) then
+      write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC expected 4 arguments:"
+      write(lout,"(a)") "SCATTER>       GEN name PYTHIASIMPLE crossSection"
+      call prror(-1)
+      iErr = .true.
+      return
+    end if
+
+    scatter_GENERATOR(scatter_nGen,2) = 20 ! Code for PYTHIASIMPLE
+    scatter_GENERATOR(scatter_nGen,3) = 0  ! Parameters
+    scatter_GENERATOR(scatter_nGen,4) = 0  ! CrossSection
+
+    genType = 20
+
+    call str_cast(lnSplit(4),fParams(1),iErr) ! crossSection
+    crossSection = fParams(1) * c1m27         ! Set crossSection explicitly in mb
 
     if(nSplit == 4) then
       ! Save specified crossSection
       tmpIdx = scatter_nfData + 1
-      scatter_GENERATOR(scatter_nGENERATOR,4) = tmpIdx
+      scatter_GENERATOR(scatter_nGen,4) = tmpIdx
       scatter_nfData = scatter_nfData + 1
       call alloc(scatter_fData, scatter_nfData, zero, "scatter_fData")
       call str_cast(lnSplit(4),scatter_fData(tmpIdx),iErr)
@@ -748,11 +803,26 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
   case default
 
-    write(lout,"(a)") "SCATTER> ERROR GEN name '"//lnSplit(3)//"' not recognized."
+    write(lout,"(a)") "SCATTER> ERROR GEN name '"//trim(lnSplit(3))//"' not recognised."
     iErr = .true.
     return
 
   end select
+
+  scatter_genList(scatter_nGen)%genName      = genName
+  scatter_genList(scatter_nGen)%genType      = genType
+  scatter_genList(scatter_nGen)%crossSection = crossSection
+  scatter_genList(scatter_nGen)%fParams      = fParams
+
+  if(scatter_debug .or. st_debug) then
+    write(lout,"(a,i0,a)")    "SCATTER> DEBUG Generator ",scatter_nGen,":"
+    write(lout,"(a)")         "SCATTER> DEBUG  * genName      = '"//trim(genName)//"'"
+    write(lout,"(a,i0)")      "SCATTER> DEBUG  * genType      = ",genType
+    write(lout,"(a,e22.15)")  "SCATTER> DEBUG  * crossSection = ",crossSection
+    do i=1,size(fParams,1)
+      write(lout,"(a,i0,a,e22.15)") "SCATTER> DEBUG  * fParams(",i,")   = ",fParams(i)
+    end do
+  end if
 
 end subroutine scatter_parseGenerator
 
@@ -1521,8 +1591,8 @@ subroutine scatter_dumpData
 
   write(lout,"(a)")       "Arrays:"
 
-  write(lout,"(a,2(i3,a))") "scatter_GENERATOR: (",scatter_nGENERATOR,",",5,"):"
-  do i=1,scatter_nGENERATOR
+  write(lout,"(a,2(i3,a))") "scatter_GENERATOR: (",scatter_nGen,",",5,"):"
+  do i=1,scatter_nGen
     write(lout,"(i4,a,5(1x,i3))") i,":",scatter_GENERATOR(i,:)
   end do
 
