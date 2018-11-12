@@ -537,7 +537,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
   ! Check that the profile name is unique
   do i=1,scatter_nPro-1
     if(scatter_proList(i)%proName == lnSplit(2)) then
-      write(lout,"(a)") "SCATTER> ERROR Profile name '"//lnSplit(2)//"' is not unique."
+      write(lout,"(a)") "SCATTER> ERROR Profile name '"//trim(lnSplit(2))//"' is not unique."
       iErr = .true.
       return
     end if
@@ -585,7 +585,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
     call str_cast(lnSplit(8),fParams(5),iErr) ! Offset Y
 
   case default
-    write(lout,"(a)") "SCATTER> ERROR PRO name '"//lnSplit(3)//"' not recognized."
+    write(lout,"(a)") "SCATTER> ERROR PRO name '"//trim(lnSplit(3))//"' not recognized."
     iErr = .true.
     return
 
@@ -1052,7 +1052,7 @@ real(kind=fPrec) function scatter_profile_getDensity(idPro, x, y) result(retval)
       * exp_mb(-half*((y-offsetY)/sigmaY)**2)
 
   case default
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ", scatter_proList(idPro)%proType," for profile '"//&
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_proList(idPro)%proType," for profile '"//&
       trim(scatter_proList(idPro)%proName)//"' not understood."
     call prror(-1)
   end select
@@ -1252,9 +1252,9 @@ subroutine scatter_generator_getEvent(genID, partID, t, theta, dEE, dPP, procID,
 end subroutine scatter_generator_getEvent
 
 ! =================================================================================================
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 02-11-2017
-!  Based on Helmut Burkhardt's code presented on 05-04-2017
+!  H. Burkhardt, K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2017-11-02
+!  Converted from C++ code from:
 !  "Elastic pp scattering estimates and simulation relevant for burn-off"
 !  https://indico.cern.ch/event/625576/
 ! =================================================================================================
@@ -1346,7 +1346,7 @@ end subroutine scatter_crcheck_readdata
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-26
+!  Last modified: 2018-11-10
 !  Called from CRCHECK; resets the position of scatter_log.dat
 ! =================================================================================================
 subroutine scatter_crcheck_positionFiles
@@ -1453,7 +1453,7 @@ end subroutine scatter_crcheck_positionFiles
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-26
+!  Last modified: 2018-11-10
 !  Called from CRPOINT; write checkpoint data to fort.95/96
 ! =================================================================================================
 subroutine scatter_crpoint(fileUnit, writeErr, iError)
