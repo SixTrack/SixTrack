@@ -7,7 +7,9 @@ struct distparam
 	double **tas;
 	double **invtas;
 	double *closedorbit;
-	int coordtype; // This tells which type of coordinates the input is given.  // 1-Normalized 
+	int coordtype; // This tells which type of coordinates the input is given.  // 1-Normalized
+	double **distout;
+	int isDistrcalculated;
 };
 
 struct parameters
@@ -30,7 +32,7 @@ void setemittance12_(double *e1, double *e2);
 void initializedistribution_(int *numberOfDist, int *dimension);
 void printdistsettings_(int *ndist);
 void settasmatrix_(double tas[6][6]);
-void dist2sixcoord_(double results[6][1000]);
+void dist2sixcoord_();
 void setmassmom_(double *mass, double *momentum);
 void setparameter_(int *index,  double *start, double *stop, int *length, int *type);
 void setdeltap_(double *dp);

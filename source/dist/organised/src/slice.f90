@@ -25,7 +25,7 @@ program slice
       integer i,j,index, maxa
 
 
-      real(kind=real64), dimension(6) :: coordinates, physcord
+      real(kind=real64), dimension(6) :: coordinates, physcord, output,output2
       real(kind=real64), dimension(2500,2500) :: distribution
       double precision, external :: test, normalcdfinv
       real(kind=real64) canon(1:6), compare(1:6)
@@ -59,8 +59,9 @@ program slice
       print *, tas
       maxa = 6;
       index = 1;
-      call initializedistribution(index, maxa)
+      call initializedistribution(3, maxa)
       call setemittance12(one,one)
+      call setemittance3(one)
       call setmassmom(mass, momentum)
       call setparameter(1,zero,six,50,3);
       call setparameter(2,zero,zero,index,0);
@@ -69,12 +70,27 @@ program slice
       call setparameter(5,zero,zero,index,0);
       call setparameter(6,zero,zero,index,0);
       call settasmatrix(tas)
-      !call dist2sixcoord(distribution)
+      
+
+
+      i = 1
+      !call getcoord(output, i )
+      !call getcoord(output, 2490 )
+      !output2 = output
+      !call getcoord(output, 1 )
+      !print *, "clean"
+      !print *, "before" , output2
+
+      call printdistsettings()
+      call setdistribution(2)
+      call printdistsettings()
+      call setdistribution(0)
+      call printdistsettings()
 
       !call dist2sixcoord(emit)
-      call calcualteInverse
+      !call calcualteInverse
       !call testmatrix(tas)
-      call setdeltap(0.01d0)
+     ! call setdeltap(0.01d0)
  
       end program slice
  

@@ -7,7 +7,9 @@
 
 
 struct distparam* dist;
+struct distparam* diststart;
 int dim;
+int distn=0;
 
 void action2canonical_(double acangl[6], double cancord[6]){
 	double acoord[6];
@@ -20,6 +22,12 @@ void action2canonical_(double acangl[6], double cancord[6]){
 
 	//This is the multiplication with the tas matrix 
 	mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
+}
+void setdistribution_(int *ndist){
+
+		dist = diststart + *ndist;
+		printf("NOT FIERST %p %p %d \n", dist,diststart, *ndist);
+
 }
 /*
 Returns the total number of particles that will be created for the distribution.  
@@ -37,6 +45,7 @@ void setemittance12_(double *e1, double *e2){
 	dist->emitt->e2=*e2; 
 
 }
+
 void setemittance3_(double *e3){
 	dist->emitt->e3=*e3;  	
 }
@@ -56,15 +65,15 @@ void calcualteinverse_(){
 		}
 	}
 
-	printf("the inversa %f", invtas[0][0]);
-
 }
+
 void addclosedorbit(double *clo){
 	for(int i=0; i<dim;i++){
-		dist->closedorbit[i] = *(clo+i);
+		dist->closedorbit[i] = clo[i];
 	}
 
 }
+
 void setdeltap_(double *dp){
 	dist->emitt->e3 = convertdp2emittance(*dp);
 }
@@ -81,7 +90,8 @@ Initalizes the distributinos
 void initializedistribution_(int *numberOfDist, int *dimension){
 	dist = (struct distparam*)malloc((*numberOfDist)*sizeof(struct distparam));
 	dim  = *dimension;
-	for(int i = 0; i <*numberOfDist; i++)
+	dist->isDistrcalculated = 0;
+		for(int i = 0; i <*numberOfDist; i++)
 		{
 		struct parameters para_tmp;
 		(dist + i)->coord = (struct parameters**)malloc(dim*sizeof(struct parameters*));
@@ -89,6 +99,7 @@ void initializedistribution_(int *numberOfDist, int *dimension){
 		(dist + i)->tas   = (double**)malloc(dim*sizeof(double*));
 		(dist + i)->invtas   = (double**)malloc(dim*sizeof(double*));
 		(dist + i)->closedorbit   = (double*)malloc(dim*sizeof(double));
+
 		for(int k=0; k<dim;k++){
 			(dist + i)->tas[k] =(double*)malloc(dim*sizeof(double));
 			(dist + i)->invtas[k] =(double*)malloc(dim*sizeof(double));
@@ -111,6 +122,7 @@ void initializedistribution_(int *numberOfDist, int *dimension){
 			(dist +i)->closedorbit[j]=0;
 		}
 	}
+	diststart=dist;
 }
 
 void printdistsettings_(int *ndist){
@@ -138,21 +150,23 @@ void settasmatrix_(double tas[6][6]){
 		}
 	}
 }
-void testmatrix_(double results[][6]){
- printf("value %f", results[4][4]);
-}
-//int arr[numRows][numCols]
 
-void dist2sixcoord_(double results[6][1000]){
+void testmatrix_(double results[][6]){
+	printf("value %f", results[4][4]);
+}
+
+void dist2sixcoord_(){
 	int counter = 0;
 	double tc[6];
 	double tmp[6];
+	dist->distout = (double**)malloc(getnumberdist_()*sizeof(double*));
 	for(int i =0; i< dist->coord[0]->length; i++){
 		for(int j =0; j< dist->coord[1]->length; j++){
 			for(int k =0; k< dist->coord[2]->length; k++){
 				for(int l =0; l< dist->coord[3]->length; l++){
 					for(int m =0; m< dist->coord[4]->length; m++){
 						for(int n =0; n< dist->coord[5]->length; n++){
+							dist->distout[counter] = (double*)malloc(dim*sizeof(double));
 							tc[0]=dist->coord[0]->values[i]+dist->closedorbit[0];
 							tc[1]=dist->coord[1]->values[j]+dist->closedorbit[1];
 							tc[2]=dist->coord[2]->values[k]+dist->closedorbit[2];
@@ -160,18 +174,30 @@ void dist2sixcoord_(double results[6][1000]){
 							tc[4]=dist->coord[4]->values[m]+dist->closedorbit[4];
 							tc[5]=dist->coord[5]->values[n]+dist->closedorbit[5];
 							action2sixinternal_(tc, tmp);
-								printf("inside loop %d \n", counter);
 							for(int p=0; p<dim; p++){
-								results[counter][p] = tc[p];
-								printf("inside loop %d \n", counter);
+								dist->distout[counter][p] = tmp[p];
 							}
 							counter++;
-							printf("counter %d", counter);
+							
 						}
 					}
 				}
 			}
 		}	
+	}
+	dist->isDistrcalculated=1;
+}
+
+void getcoord_(double *coordinate, int *initial ){
+	if(dist->isDistrcalculated==0){
+		dist2sixcoord_();
+	}
+	if(*initial > getnumberdist_()){
+		printf("Not generated, total inital coordinates generated is %f:",getnumberdist_() );
+	}
+	for(int i=0; i<dim; i++){
+		printf("outputtt %f", dist->distout[*initial][i]);
+		coordinate[i] = dist->distout[*initial][i];
 	}
 }
 
@@ -232,7 +258,6 @@ void createtas0coupling_(double betax, double alfax, double betay, double alfay)
     dist->tas[2][2] = sqrt(betay);
     dist->tas[1][2] =-alfax/sqrt(betax);
     dist->tas[4][3] =-alfay/sqrt(betay);
-
 
 }
 
