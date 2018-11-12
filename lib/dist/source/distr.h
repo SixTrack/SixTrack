@@ -27,10 +27,13 @@ struct emittances{
 
 
 void action2canonical_(double tc[6], double cancord[6]);
+void setdistribution_(int *ndist);
 int getnumberdist_();
 void setemittance12_(double *e1, double *e2);
+void setemittance3_(double *e3);
 void initializedistribution_(int *numberOfDist, int *dimension);
 void printdistsettings_(int *ndist);
+void addclosedorbit_(double *clo);
 void settasmatrix_(double tas[6][6]);
 void dist2sixcoord_();
 void setmassmom_(double *mass, double *momentum);

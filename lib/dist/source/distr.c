@@ -47,7 +47,7 @@ void setemittance3_(double *e3){
 	dist->emitt->e3=*e3;  	
 }
 
-void calcualteinverse_(){
+void calcualteinverse(){
 	double invtas[6][6];
 	double result[dim][dim];
 	for(int i =0; i< dim; i++){
@@ -65,7 +65,7 @@ void calcualteinverse_(){
 
 }
 
-void addclosedorbit(double *clo){
+void addclosedorbit_(double *clo){
 	for(int i=0; i<dim;i++){
 		dist->closedorbit[i] = clo[i];
 	}
@@ -78,7 +78,7 @@ void setdeltap_(double *dp){
 
 //This emittance is oversimplified but gives a good approximation. 
 void convertdp2emittance(double dp){
-	calcualteinverse_();
+	calcualteinverse();
 	dist->emitt->e3 = pow(1000*dp*dist->invtas[5][5],2);
 
 }
