@@ -33,6 +33,7 @@ module scatter
   logical, public, save :: scatter_allowLosses = .false.
 
   ! Scatter Parameters
+  integer,          parameter :: scatter_nProc            = 9
   integer,          parameter :: scatter_idAbsorb         = 1
   integer,          parameter :: scatter_idNonDiff        = 2
   integer,          parameter :: scatter_idElastic        = 3
@@ -42,9 +43,9 @@ module scatter
   integer,          parameter :: scatter_idCentralDiff    = 7
   integer,          parameter :: scatter_idUnknown        = 8
   integer,          parameter :: scatter_idError          = 9
-  character(len=8), parameter :: scatter_procNames(9)     = (/ &
-    "Absorbed","NonDiff ","Elastic ","SingD_XB","SingD_AX",    &
-    "DoubD_XX","CentDiff","Unknown ","Error   "                &
+  character(len=8), parameter :: scatter_procNames(scatter_nProc) = (/  &
+    "Absorbed","NonDiff ","Elastic ","SingD_XB","SingD_AX",             &
+    "DoubD_XX","CentDiff","Unknown ","Error   "                         &
   /)
 
   ! Storage Structs
@@ -161,10 +162,10 @@ subroutine scatter_postInput
     setFields(5)  = h5_dataField(name="PROCESS", type=h5_typeChar, size=8)
     setFields(6)  = h5_dataField(name="LOST",    type=h5_typeInt)
     setFields(7)  = h5_dataField(name="T",       type=h5_typeReal)
-    setFields(8)  = h5_dataField(name="dE/E",    type=h5_typeReal)
-    setFields(9)  = h5_dataField(name="dP/P",    type=h5_typeReal)
-    setFields(10) = h5_dataField(name="THETA",   type=h5_typeReal)
-    setFields(11) = h5_dataField(name="PHI",     type=h5_typeReal)
+    setFields(8)  = h5_dataField(name="THETA",   type=h5_typeReal)
+    setFields(9)  = h5_dataField(name="PHI",     type=h5_typeReal)
+    setFields(10) = h5_dataField(name="dE/E",    type=h5_typeReal)
+    setFields(11) = h5_dataField(name="dP/P",    type=h5_typeReal)
     setFields(12) = h5_dataField(name="DENSITY", type=h5_typeReal)
     setFields(13) = h5_dataField(name="PROB",    type=h5_typeReal)
     setFields(14) = h5_dataField(name="STATCORR",type=h5_typeReal)
@@ -185,16 +186,18 @@ subroutine scatter_postInput
     deallocate(setFields)
 
     ! Scatter Summary
-    allocate(setFields(8))
+    allocate(setFields(10))
 
-    setFields(1) = h5_dataField(name="TURN",     type=h5_typeInt)
-    setFields(2) = h5_dataField(name="BEZ",      type=h5_typeChar, size=mNameLen)
-    setFields(3) = h5_dataField(name="GEN",      type=h5_typeChar, size=mNameLen)
-    setFields(4) = h5_dataField(name="PROCESS",  type=h5_typeChar, size=8)
-    setFields(5) = h5_dataField(name="NSCATT",   type=h5_typeInt)
-    setFields(6) = h5_dataField(name="NLOST",    type=h5_typeInt)
-    setFields(7) = h5_dataField(name="CROSSSEC", type=h5_typeReal)
-    setFields(8) = h5_dataField(name="SCALING",  type=h5_typeReal)
+    setFields(1)  = h5_dataField(name="TURN",      type=h5_typeInt)
+    setFields(2)  = h5_dataField(name="NAPX",      type=h5_typeInt)
+    setFields(3)  = h5_dataField(name="BEZ",       type=h5_typeChar, size=mNameLen)
+    setFields(4)  = h5_dataField(name="GEN",       type=h5_typeChar, size=mNameLen)
+    setFields(5)  = h5_dataField(name="PROCESS",   type=h5_typeChar, size=8)
+    setFields(5)  = h5_dataField(name="NSCAT",     type=h5_typeInt)
+    setFields(7)  = h5_dataField(name="NLOST",     type=h5_typeInt)
+    setFields(8)  = h5_dataField(name="SCATRATIO", type=h5_typeReal)
+    setFields(9)  = h5_dataField(name="CROSSSEC",  type=h5_typeReal)
+    setFields(10) = h5_dataField(name="SCALING",   type=h5_typeReal)
 
     call h5_createFormat("scatter_summary_fmt", setFields, scatter_sumFormat)
     call h5_createDataSet("summary", h5_scatID, scatter_sumFormat, scatter_sumDataSet)
@@ -203,8 +206,8 @@ subroutine scatter_postInput
       character(len=:), allocatable :: colUnits(:)
       logical spErr
       integer nSplit
-      call chr_split("turn bez generator process nScatt nLost crossSec scaling",colNames,nSplit,spErr)
-      call chr_split("1 text text text 1 1 mb 1",colUnits,nSplit,spErr)
+      call chr_split("turn napx bez generator process nScat nLost scatRat scaling",colNames,nSplit,spErr)
+      call chr_split("1 1 text text text 1 1 1 1",colUnits,nSplit,spErr)
       call h5_writeDataSetAttr(scatter_sumDataSet,"colNames",colNames)
       call h5_writeDataSetAttr(scatter_sumDataSet,"colUnits",colUnits)
     end block
@@ -213,9 +216,7 @@ subroutine scatter_postInput
 
     ! Write Attributes
     call h5_writeAttr(h5_scatID,"SEED",scatter_seed1)
-
-    return ! No need to open files if we're using HDF5
-  end if
+  else
 #endif
 
   ! Open scatter_log.dat
@@ -226,9 +227,9 @@ subroutine scatter_postInput
 #endif
     call units_openUnit(unit=scatter_logFile,fileName="scatter_log.dat",formatted=.true.,mode="w",err=fErr,status="replace")
     write(scatter_logFile,"(a)") "# scatter_log"
-    write(scatter_logFile,"(a1,a8,1x,a8,2(1x,a20),1x,a8,1x,a4,1x,a13,7(1x,a16))") &
+    write(scatter_logFile,"(a1,a8,1x,a8,2(1x,a20),1x,a8,1x,a4,2(1x,a12),1x,a9,5(1x,a16))") &
       "#","ID","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8),&
-      "lost","t[MeV^2]","dE/E","dP/P","theta[mrad]","phi[rad]","density","prob","stat_corr"
+      "lost","t[MeV^2]","theta[mrad]","phi[rad]","dE/E","dP/P","density","prob","stat_corr"
     flush(scatter_logFile)
 #ifdef CR
     scatter_logFilePos = 2
@@ -236,6 +237,9 @@ subroutine scatter_postInput
     backspace(scatter_logFile,iostat=iError)
   else
     write(93,"(a)") "SCATTER> INIT kept already opened file 'scatter_log.dat'"
+  end if
+#endif
+#ifdef HDF5
   end if
 #endif
 
@@ -249,9 +253,9 @@ subroutine scatter_postInput
     call scatter_writeReport
     write(scatter_sumFile,"(a)") "#  Summary Log"
     write(scatter_sumFile,"(a)") "# ============="
-    write(scatter_sumFile,"(a1,a8,2(1x,a20),1x,a8,2(1x,a8),1x,a13,1x,a14)") &
-      "#","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8), &
-      "nScatt","nLost","crossSec[mb]","scaling"
+    write(scatter_sumFile,"(a1,a8,1x,a8,2(1x,a20),3(1x,a8),1x,a9,2(1x,a13))") &
+      "#","turn","napx",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8), &
+      "nScat","nLost","scatRat","crossSec[mb]","scaling"
     flush(scatter_sumFile)
 #ifdef CR
     scatter_sumFilePos = scatter_sumFilePos + 3
@@ -824,50 +828,46 @@ subroutine scatter_thin(iElem, ix, turn)
 #ifdef HDF5
   use hdf5_output
 #endif
-
   use collimation, only : do_coll, scatterhit, part_hit_pos, part_hit_turn
 
   implicit none
 
   integer, intent(in) :: iElem, ix, turn
 
-  ! Temp variables
-  integer          idElem, idPro, nGen, idGen, iError
-  integer          i, j, k, iLost, nLost(9), nScatter(9), procID
+  integer          idElem, idPro, iGen, nGen, idGen, iError
+  integer          i, j, k
   integer          tmpSeed1, tmpSeed2
-  logical          isDiff, updateE, hasProc(9)
-  real(kind=fPrec) s, t, dEE, dPP, theta, theta2
-  real(kind=fPrec) crossSection, N, P
-  real(kind=fPrec) rndPhi(napx), rndP(napx)
-  real(kind=fPrec) scaling
+  logical          updateE, autoRatio, isDiff
+  integer          iLost, procID
+  real(kind=fPrec) t, dEE, dPP, theta, phi
+  real(kind=fPrec) elemScale, sigmaTot, ratioTot, crossSection, scatterProb, targetDensity, scRatio, brRatio
 
-  logical, allocatable :: pLost(:)
-  logical, allocatable :: pScattered(:)
+  real(kind=fPrec), allocatable :: brThreshold(:)
+  real(kind=fPrec), allocatable :: rndVals(:)
+  logical,          allocatable :: pLost(:)
+  logical,          allocatable :: pScattered(:)
+  logical,          allocatable :: hasProc(:,:)
+  integer,          allocatable :: nLost(:,:)
+  integer,          allocatable :: nScattered(:,:)
 
 #ifdef HDF5
-  ! For HDF5 it is best to write in chuncks, so we will make arrays of size napx
+  ! For HDF5 it is best to write in chuncks, so we will make arrays of size napx to cache everything
   integer                 :: iRecords(3,napx)
   real(kind=fPrec)        :: rRecords(8,napx)
   character(len=mNameLen) :: cRecords(3,napx)
   integer                 :: nRecords
 #endif
 
-  idElem  = scatter_elemPointer(ix)
-  idPro   = scatter_elemList(idElem)%profileID
-  scaling = scatter_elemList(idElem)%elemScale
-  nGen    = size(scatter_elemList(idElem)%generatorID,1)
+  idElem    = scatter_elemPointer(ix)
+  idPro     = scatter_elemList(idElem)%profileID
+  elemScale = scatter_elemList(idElem)%elemScale
+  sigmaTot  = scatter_elemList(idElem)%sigmaTot
+  ratioTot  = scatter_elemList(idElem)%ratioTot
+  autoRatio = scatter_elemList(idElem)%autoRatio
+  nGen      = size(scatter_elemList(idElem)%generatorID,1)
 
-  ! if(scatter_debug) then
-  !   write(lout,"(a)")       "SCATTER> DEBUG In scatter_thin"
-  !   write(lout,"(a,i0)")    "SCATTER> DEBUG  * ix      = ",ix
-  !   write(lout,"(a)")       "SCATTER> DEBUG  * bez     = '"//trim(bez(ix))//"'"
-  !   write(lout,"(a,i0)")    "SCATTER> DEBUG  * napx    = ",napx
-  !   write(lout,"(a,i0)")    "SCATTER> DEBUG  * turn    = ",turn
-  !   write(lout,"(a,e13.6)") "SCATTER> DEBUG  * scaling = ",scaling
-  ! end if
-
-  if(scaling <= pieni) then
-    ! Skip the whole thing if the scaling is zero
+  if(elemScale <= pieni) then
+    ! Skip the whole thing if the scaling is ~zero
     return
   end if
 
@@ -875,174 +875,196 @@ subroutine scatter_thin(iElem, ix, turn)
   call recuut(tmpSeed1,tmpSeed2)
   call recuin(scatter_seed1,scatter_seed2)
 
-  if(scatter_allowLosses) then
-    call alloc(pLost,napx,.false.,"pLost")
-  end if
-  call alloc(pScattered,napx,.false.,"pScattered")
+  call alloc(rndVals,   napx*3,             zero,   "rndVals")
+  call alloc(pLost,     napx,               .false.,"pLost")
+  call alloc(pScattered,napx,               .false.,"pScattered")
+  call alloc(hasProc,   nGen,scatter_nProc, .false.,"hasProc")
+  call alloc(nLost,     nGen,scatter_nProc, 0,      "nLost")
+  call alloc(nScattered,nGen,scatter_nProc, 0,      "nScattered")
 
+  t       = zero
+  theta   = zero
+  dEE     = zero
+  dPP     = zero
+  procID  = 0
+  iLost   = 0
+  isDiff  = .false.
   updateE = .false.
 
-  ! Loop over generators
+  ! Compute Thresholds
+  allocate(brThreshold(nGen))
   do i=1,nGen
+    brThreshold(i) = sum(scatter_elemList(idElem)%brRatio(1:i))
+    write(lout,"(a,i0,a,f13.6)") "SCATTER> Threshold ",i," = ",brThreshold(i)
+  end do
 
-    nLost(:)    = 0
-    nScatter(:) = 0
-    hasProc(:)  = .false.
+  ! Generate random numbers for probability, branching ratio and phi angle
+  call ranecu(rndVals, napx*3, -1)
 
-    t      = zero
-    theta  = zero
-    theta2 = zero
-    dEE    = zero
-    dPP    = zero
+  ! Loop over particles
+  do j=1,napx
 
-    idGen = scatter_elemList(idElem)%generatorID(i)
-    if(idGen <= 0) exit ! No generator
+    k = 3*j-2 ! Indices in the random number array
 
-    ! Generate a random phi
-    call ranecu(rndPhi, napx, -1)
-    call ranecu(rndP,   napx, -1)
-    rndPhi = rndPhi*(two*pi)
-#ifdef HDF5
-    ! Reset counter
-    nRecords = 0
-#endif
+    ! Compute Scattering Probability
+    if(autoRatio) then
+      targetDensity = scatter_profile_getDensity(idPro,xv1(j),xv2(j))
+      scatterProb   = (targetDensity*sigmaTot)*elemScale
+    else
+      scatterProb   = ratioTot*elemScale
+    end if
+    if(rndVals(k) > scatterProb) then
+      cycle
+    else
+      pScattered(j) = .true.
+    end if
 
-    do j=1, napx
-
-      ! Do not scatter the same particle twice in the same turn
-      if(pScattered(j)) cycle
-
-      ! Compute the cross section at this s
-      ! (in most cases roughly equal for all particles; use mean x,y,xp,yp,E)
-      crossSection = scatter_generator_getCrossSection(idPro,idGen,xv1(j),xv2(j),yv1(j),yv2(j),ejv(j))
-
-      ! Ask profile for density at x,y
-      N = scatter_profile_getDensity(idPro,xv1(j),xv2(j))
-
-      ! Compute probability P
-      P = (N*crossSection)*scaling
-
-      ! If RNG > P -> go to next particle, else scatter
-      if(rndP(j) > P) then
-        cycle
-      else
-        pScattered(j) = .true.
+    ! Select Generator
+    idGen = 0
+    iGen  = 0
+    do i=1,nGen
+      if(rndVals(k+1) <= brThreshold(i)) then
+        idGen = scatter_elemList(idElem)%generatorID(i)
+        iGen  = i
+        exit
       end if
-      scatter_statScale(nlostp(j)) = scatter_statScale(nlostp(j)) / scaling
+    end do
+    if(idGen == 0) then
+      write(lout,"(a,i0,a)") "SCATTER> WARNING Scattering for particle #",j," occured, but no generator was selected."
+      pScattered(j) = .false.
+      cycle
+    end if
 
-      ! Get scattering event
-      call scatter_generator_getEvent(idGen,j,t,theta,dEE,dPP,procID,iLost,isDiff)
-      hasProc(procID)  = .true.
-      nScatter(procID) = nScatter(procID) + 1
+    phi = 2*pi*rndVals(k+2)
 
-      if(scatter_allowLosses .and. iLost == 1) then
-        ! If lost, flag it, put no need to update energy and angle
-        pLost(j)      = .true.
-        nLost(procID) = nLost(procID) + 1
-        theta         = zero
-        rndPhi(j)     = zero
-      else
-        ! Calculate new energy, and scattering angle assuming energy >> mass
-        if(abs(dPP) >= pieni) then
-          ejfv(j) = (one+dPP)*ejfv(j) ! Momentum [MeV/c]
-          updateE = .true.            ! Re-calculate energy-dependent vectors
-        end if
+    ! If we're scaling the probability with DYNK, update the statistical weight
+    scatter_statScale(nlostp(j)) = scatter_statScale(nlostp(j)) / elemScale
 
-        ! Update particle trajectory
-        yv1(j) = theta*cos_mb(rndPhi(j)) + yv1(j)
-        yv2(j) = theta*sin_mb(rndPhi(j)) + yv2(j)
+    ! Get event
+    call scatter_generator_getEvent(idGen,j,t,theta,dEE,dPP,procID,iLost,isDiff)
+    hasProc(iGen,procID)    = .true.
+    nScattered(iGen,procID) = nScattered(iGen,procID) + 1
+
+    if(scatter_allowLosses .and. iLost == 1) then
+      ! If lost, flag it, count it, but no need to update energy and angle
+      nLost(iGen,procID) = nLost(iGen,procID) + 1
+      pLost(j) = .true.
+      phi      = zero
+    else
+      ! Calculate new energy, and scattering angle assuming energy >> mass
+      if(abs(dPP) >= pieni) then
+        ejfv(j) = (one+dPP)*ejfv(j) ! Momentum [MeV/c]
+        updateE = .true.            ! Re-calculate energy-dependent vectors after loop
       end if
 
-      ! Output to file
-#ifdef HDF5
-      if(h5_useForSCAT) then
-        nRecords = nRecords + 1
-        iRecords(1,nRecords) = nlostp(j)
-        iRecords(2,nRecords) = turn
-        cRecords(1,nRecords) = bez(ix)
-        cRecords(2,nRecords) = trim(scatter_genList(idGen)%genName)
-        cRecords(3,nRecords) = scatter_procNames(procID)
-        iRecords(3,nRecords) = iLost
-        rRecords(1,nRecords) = t
-        rRecords(2,nRecords) = dEE
-        rRecords(3,nRecords) = dPP
-        rRecords(4,nRecords) = theta
-        rRecords(5,nRecords) = rndPhi(j)
-        rRecords(6,nRecords) = N
-        rRecords(7,nRecords) = P
-        rRecords(8,nRecords) = scatter_statScale(nlostp(j))
-      else
-#endif
-        write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f13.3,7(1x,1pe16.9))") &
-          nlostp(j), turn, bez(ix)(1:20), chr_rPad(trim(scatter_genList(idGen)%genName),20), &
-          scatter_procNames(procID), iLost, t, dEE, dPP, theta, rndPhi(j), N, P, scatter_statScale(nlostp(j))
-#ifdef CR
-        scatter_logFilePos = scatter_logFilePos + 1
-#endif
-#ifdef HDF5
-      end if
-#endif
+      ! Update particle trajectory
+      yv1(j) = theta*cos_mb(phi) + yv1(j)
+      yv2(j) = theta*sin_mb(phi) + yv2(j)
+    end if
 
-      if(do_coll) then
-        scatterhit(j)    = 8
-        part_hit_pos(j)  = iElem
-        part_hit_turn(j) = turn
-      endif
-    end do ! END Loop over particles
-
+    ! Output to file
 #ifdef HDF5
     if(h5_useForSCAT) then
-      call h5_prepareWrite(scatter_logDataSet, nRecords)
-      call h5_writeData(scatter_logDataSet, 1,  nRecords, iRecords(1,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 2,  nRecords, iRecords(2,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 3,  nRecords, cRecords(1,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 4,  nRecords, cRecords(2,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 5,  nRecords, cRecords(3,1:nRecords)(1:8))
-      call h5_writeData(scatter_logDataSet, 6,  nRecords, iRecords(3,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 7,  nRecords, rRecords(1,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 8,  nRecords, rRecords(2,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 9,  nRecords, rRecords(3,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 10, nRecords, rRecords(4,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 11, nRecords, rRecords(5,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 12, nRecords, rRecords(6,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 13, nRecords, rRecords(7,1:nRecords))
-      call h5_writeData(scatter_logDataSet, 14, nRecords, rRecords(8,1:nRecords))
-      call h5_finaliseWrite(scatter_logDataSet)
-
-      do k=1,9
-        if(hasProc(k)) then
-          call h5_prepareWrite(scatter_sumDataSet, 1)
-          call h5_writeData(scatter_sumDataSet, 1, 1, turn)
-          call h5_writeData(scatter_sumDataSet, 2, 1, bez(ix))
-          call h5_writeData(scatter_sumDataSet, 3, 1, trim(scatter_genList(idGen)%genName))
-          call h5_writeData(scatter_sumDataSet, 4, 1, scatter_procNames(k))
-          call h5_writeData(scatter_sumDataSet, 5, 1, nScatter(k))
-          call h5_writeData(scatter_sumDataSet, 6, 1, nLost(k))
-          call h5_writeData(scatter_sumDataSet, 7, 1, crossSection*c1e27)
-          call h5_writeData(scatter_sumDataSet, 8, 1, scaling)
-          call h5_finaliseWrite(scatter_sumDataSet)
-        end if
-      end do
+      nRecords = nRecords + 1
+      iRecords(1,nRecords) = nlostp(j)
+      iRecords(2,nRecords) = turn
+      cRecords(1,nRecords) = bez(ix)
+      cRecords(2,nRecords) = trim(scatter_genList(idGen)%genName)
+      cRecords(3,nRecords) = scatter_procNames(procID)
+      iRecords(3,nRecords) = iLost
+      rRecords(1,nRecords) = t
+      rRecords(2,nRecords) = theta
+      rRecords(3,nRecords) = phi
+      rRecords(4,nRecords) = dEE
+      rRecords(5,nRecords) = dPP
+      rRecords(6,nRecords) = targetDensity
+      rRecords(7,nRecords) = scatterProb
+      rRecords(8,nRecords) = scatter_statScale(nlostp(j))
     else
 #endif
-
-      do k=1,9
-        if(hasProc(k)) then
-          write(scatter_sumFile,"(1x,i8,2(1x,a20),1x,a8,2(1x,i8),1x,f13.6,1x,e14.6)") &
-            turn, bez(ix)(1:20), chr_rPad(trim(scatter_genList(idGen)%genName),20), &
-            scatter_procNames(k), nScatter(k), nLost(k), crossSection*c1e27, scaling
+      write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f12.3,1x,f12.6,1x,f9.6,5(1x,1pe16.9))") &
+        nlostp(j), turn, bez(ix)(1:20), chr_rPad(trim(scatter_genList(idGen)%genName),20), scatter_procNames(procID), &
+        iLost, t, theta, phi, dEE, dPP, targetDensity, scatterProb, scatter_statScale(nlostp(j))
 #ifdef CR
-            scatter_sumFilePos = scatter_sumFilePos + 1
+      scatter_logFilePos = scatter_logFilePos + 1
 #endif
-        end if
-      end do
-      flush(scatter_logFile)
-      flush(scatter_sumFile)
-
 #ifdef HDF5
     end if
 #endif
-  end do ! END Loop over generators
+
+    if(do_coll) then
+      scatterhit(j)    = 8
+      part_hit_pos(j)  = iElem
+      part_hit_turn(j) = turn
+    endif
+
+  end do
+
+#ifdef HDF5
+  if(h5_useForSCAT) then
+    call h5_prepareWrite(scatter_logDataSet, nRecords)
+    call h5_writeData(scatter_logDataSet, 1,  nRecords, iRecords(1,1:nRecords))
+    call h5_writeData(scatter_logDataSet, 2,  nRecords, iRecords(2,1:nRecords))
+    call h5_writeData(scatter_logDataSet, 3,  nRecords, cRecords(1,1:nRecords))
+    call h5_writeData(scatter_logDataSet, 4,  nRecords, cRecords(2,1:nRecords))
+    call h5_writeData(scatter_logDataSet, 5,  nRecords, cRecords(3,1:nRecords)(1:8))
+    call h5_writeData(scatter_logDataSet, 6,  nRecords, iRecords(3,1:nRecords))
+    call h5_writeData(scatter_logDataSet, 7,  nRecords, rRecords(1,1:nRecords))
+    call h5_writeData(scatter_logDataSet, 8,  nRecords, rRecords(2,1:nRecords))
+    call h5_writeData(scatter_logDataSet, 9,  nRecords, rRecords(3,1:nRecords))
+    call h5_writeData(scatter_logDataSet, 10, nRecords, rRecords(4,1:nRecords))
+    call h5_writeData(scatter_logDataSet, 11, nRecords, rRecords(5,1:nRecords))
+    call h5_writeData(scatter_logDataSet, 12, nRecords, rRecords(6,1:nRecords))
+    call h5_writeData(scatter_logDataSet, 13, nRecords, rRecords(7,1:nRecords))
+    call h5_writeData(scatter_logDataSet, 14, nRecords, rRecords(8,1:nRecords))
+    call h5_finaliseWrite(scatter_logDataSet)
+
+    do i=1,nGen
+      do k=1,scatter_nProc
+        if(hasProc(i,k)) then
+          idGen        = scatter_elemList(idElem)%generatorID(i)
+          brRatio      = scatter_elemList(idElem)%brRatio(i)
+          scRatio      = real(nScattered(i,k),fPrec)/napx
+          crossSection = scatter_genList(idGen)%crossSection
+          crossSection = crossSection*(scRatio/brRatio)
+          call h5_prepareWrite(scatter_sumDataSet, 1)
+          call h5_writeData(scatter_sumDataSet, 1,  1, turn)
+          call h5_writeData(scatter_sumDataSet, 2,  1, napx)
+          call h5_writeData(scatter_sumDataSet, 3,  1, bez(ix))
+          call h5_writeData(scatter_sumDataSet, 4,  1, trim(scatter_genList(idGen)%genName))
+          call h5_writeData(scatter_sumDataSet, 5,  1, scatter_procNames(k))
+          call h5_writeData(scatter_sumDataSet, 6,  1, nScattered(i,k))
+          call h5_writeData(scatter_sumDataSet, 7,  1, nLost(i,k))
+          call h5_writeData(scatter_sumDataSet, 8,  1, scRatio)
+          call h5_writeData(scatter_sumDataSet, 9,  1, crossSection*c1e27)
+          call h5_writeData(scatter_sumDataSet, 10, 1, elemScale)
+          call h5_finaliseWrite(scatter_sumDataSet)
+        end if
+      end do
+    end do
+  end if
+#else
+  flush(scatter_logFile)
+#endif
+
+  do i=1,nGen
+    do k=1,scatter_nProc
+      if(hasProc(i,k)) then
+        idGen        = scatter_elemList(idElem)%generatorID(i)
+        brRatio      = scatter_elemList(idElem)%brRatio(i)
+        scRatio      = real(nScattered(i,k),fPrec)/napx
+        crossSection = scatter_genList(idGen)%crossSection
+        crossSection = crossSection*(scRatio/brRatio)
+        write(scatter_sumFile,"(2(1x,i8),2(1x,a20),1x,a8,2(1x,i8),1x,f9.6,1x,f13.6,1x,1pe13.6)") &
+          turn, napx, bez(ix)(1:20), chr_rPad(trim(scatter_genList(idGen)%genName),20), scatter_procNames(k), &
+          nScattered(i,k), nLost(i,k), real(nScattered(i,k),fPrec)/napx, crossSection*c1e27, elemScale
+#ifdef CR
+        scatter_sumFilePos = scatter_sumFilePos + 1
+#endif
+      end if
+    end do
+  end do
+  flush(scatter_sumFile)
 
   if(scatter_allowLosses) then
     call compactArrays(pLost)
@@ -1063,10 +1085,12 @@ subroutine scatter_thin(iElem, ix, turn)
   call recuut(scatter_seed1,scatter_seed2)
   call recuin(tmpSeed1,tmpSeed2)
 
-  if(scatter_allowLosses) then
-    call dealloc(pLost,"pLost")
-  end if
+  call dealloc(rndVals,   "rndVals")
+  call dealloc(hasProc,   "hasProc")
+  call dealloc(pLost,     "pLost")
   call dealloc(pScattered,"pScattered")
+  call dealloc(nLost,     "nLost")
+  call dealloc(nScattered,"nScattered")
 
 end subroutine scatter_thin
 
@@ -1138,14 +1162,14 @@ end subroutine scatter_profile_getParticle
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 ! =================================================================================================
-real(kind=fPrec) function scatter_generator_getCrossSection(idPro, genID, x, y, xp, yp, E)
+real(kind=fPrec) function scatter_generator_getCrossSection(idPro, idGen, x, y, xp, yp, E)
 
   use string_tools
   use crcoall
 
   implicit none
 
-  integer,          intent(in) :: idPro, genID
+  integer,          intent(in) :: idPro, idGen
   real(kind=fPrec), intent(in) :: x, y, xp, yp, E
 
   ! Temporary variables
@@ -1157,19 +1181,19 @@ real(kind=fPrec) function scatter_generator_getCrossSection(idPro, genID, x, y, 
 
   ! Calculate the cross section as function of S
   ! This is currently a fixed value
-  select case(scatter_genList(genID)%genType)
+  select case(scatter_genList(idGen)%genType)
   case(1)  ! ABSORBER
-    scatter_generator_getCrossSection = scatter_genList(genID)%crossSection
+    scatter_generator_getCrossSection = scatter_genList(idGen)%crossSection
 
   case(10) ! PPBEAMELASTIC
-    scatter_generator_getCrossSection = scatter_genList(genID)%crossSection
+    scatter_generator_getCrossSection = scatter_genList(idGen)%crossSection
 
   case(20) ! PYTHIASIMPLE
-    scatter_generator_getCrossSection = scatter_genList(genID)%crossSection
+    scatter_generator_getCrossSection = scatter_genList(idGen)%crossSection
 
   case default
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_proList(idPro)%proType," for profile '"//&
-      trim(scatter_proList(idPro)%proName)//"' not understood."
+    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_genList(idGen)%genType," for generator '"//&
+      trim(scatter_genList(idGen)%genName)//"' not understood."
     call prror(-1)
 
   end select
