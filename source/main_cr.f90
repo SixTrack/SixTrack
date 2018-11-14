@@ -124,7 +124,7 @@ end interface
 
   ! "Old" variables
   integer i,itiono,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,ie,ig,ii,im,iposc,ix,izu,j,j2,jj,  &
-    k,kpz,kzz,l,ll,m,ncorruo,ncrr,nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
+    k,kpz,kzz,l,ll,ncorruo,ncrr,nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
     bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,ddp1,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,&
     gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
@@ -519,35 +519,11 @@ end interface
   ib0=0
   dp00=dp1
   if(napx.le.0.or.imc.le.0) goto 490
-  do 260 m=1,mmac
-#ifdef DEBUG
-!       call warr('mmac and m',0d0,nmac,m,0,0)
-!       write(*,*) 'do 260 mmac/m',mmac,m
-#endif
     !--MULTIPOLE WITH THEIR RANDOM VALUES ADDED
-    ! mmac is currently not allowed to be larger than 1
-    ! zfz array is n ow handled by mod_fluc, and using the below code
-    ! will break tests
-    ! if(m.ge.2) then
-    !   call recuin(m*izu0,irecuin)
-    !   call ranecu(zfz,nzfz,mcut)
-    !   rsum=zero
-    !   do i=1,nzfz
-    !     rsum=rsum+zfz(i)
-    !   end do
-    !   rmean=rsum/real(nzfz,fPrec)
-    !   rsqsum=zero
-    !   do i=1,nzfz
-    !     rsqsum=rsqsum+(zfz(i)-rmean)*(zfz(i)-rmean)
-    !   end do
-    !   rdev=sqrt(rsqsum/real(nzfz,fPrec))
-    !   write(lout,10320) m*izu0,nzfz,rmean,rdev
-    !   write(lout,10070)
-    ! endif
 
     ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
     ! possible to re-shuffle lattice structure
-    if(m.eq.1) call orglat
+    call orglat
 
     ! A.Mereghetti, P. G. Ortega and D.Sinuela Pastor, for the FLUKA Team
     ! last modified: 01-07-2014
@@ -602,10 +578,8 @@ end interface
     ! dump x-sections at specific locations
     if (mxsec.gt.0) call dump_aperture_xsecs
     ! map errors, now that the sequence is no longer going to change
-    if(m.eq.1) then
-      call ord
-      if(allocated(zfz)) call fluc_randomReport
-    end if
+    call ord
+    if(allocated(zfz)) call fluc_randomReport
 
     call clorb(ded)
 
@@ -711,19 +685,19 @@ end interface
       if(iorg.lt.0) mzu(i)=izu
       izu=mzu(i)+1
       smizf(i)=zfz(izu)*ek(ix)
-      smiv(m,i)=sm(ix)+smizf(i) ! Also in initalize_element!
-      smi(i)=smiv(m,i)          ! Also in initalize_element!
+      smiv(i)=sm(ix)+smizf(i) ! Also in initalize_element!
+      smi(i)=smiv(i)          ! Also in initalize_element!
 #ifdef DEBUG
 !         call warr('smizf(i)',smizf(i),i,0,0,0)
 !         call warr('smiv(m,i)',smiv(m,i),m,i,0,0)
 !         call warr('smi(i)',smi(i),i,0,0,0)
 #endif
       izu=izu+1
-      xsiv(m,i)=xpl(ix)+zfz(izu)*xrms(ix)
-      xsi(i)=xsiv(m,i)
+      xsiv(i)=xpl(ix)+zfz(izu)*xrms(ix)
+      xsi(i)=xsiv(i)
       izu=izu+1
-      zsiv(m,i)=zpl(ix)+zfz(izu)*zrms(ix)
-      zsi(i)=zsiv(m,i)
+      zsiv(i)=zpl(ix)+zfz(izu)*zrms(ix)
+      zsi(i)=zsiv(i)
       if(mout2.eq.1) then
         if(kzz.eq.11) zfz(izu-2)=zero
         if(abs(ek(ix)).le.pieni) zfz(izu-2)=zero
@@ -777,9 +751,9 @@ end interface
             ix=ic(ncrr)
             if(ix.gt.nblo) ix=ix-nblo
             if(ix.eq.is(1).or.iratioe(ix).eq.is(1)) then
-              smiv(m,ncrr)=smi(ncrr)
+              smiv(ncrr)=smi(ncrr)
             else if(ix.eq.is(2).or.iratioe(ix).eq.is(2)) then
-              smiv(m,ncrr)=smi(ncrr)
+              smiv(ncrr)=smi(ncrr)
             endif
           enddo
         endif
@@ -828,15 +802,15 @@ end interface
                 ix=ic(ncrr)
                 if(ix.gt.nblo) ix=ix-nblo
                 if(ix.eq.iq(1).or.iratioe(ix).eq.iq(1)) then
-                  smiv(m,ncrr)=smi(ncrr)
+                  smiv(ncrr)=smi(ncrr)
                 else if(ix.eq.iq(2).or.iratioe(ix).eq.iq(2)) then
-                  smiv(m,ncrr)=smi(ncrr)
+                  smiv(ncrr)=smi(ncrr)
                 endif
               enddo
             endif
 
             do 190 ib1=1,napx
-              ib3=ib1+(m+ib-2)*napx
+              ib3=ib1+(ib-1)*napx
 !--beam-beam element
               clo6v(1,ib3)=clo6(1)
               clo6v(2,ib3)=clo6(2)
@@ -951,15 +925,15 @@ end interface
                 ix=ic(ncrr)
                 if(ix.gt.nblo) ix=ix-nblo
                 if(ix.eq.iq(1).or.iratioe(ix).eq.iq(1)) then
-                  smiv(m,ncrr)=smi(ncrr)
+                  smiv(ncrr)=smi(ncrr)
                 else if(ix.eq.iq(2).or.iratioe(ix).eq.iq(2)) then
-                  smiv(m,ncrr)=smi(ncrr)
+                  smiv(ncrr)=smi(ncrr)
                 endif
               enddo
             endif
 
             do 170 i=1,napx
-              iar=(m+ib-2)*napx+i
+              iar=(ib-1)*napx+i
               clo6v(1,iar)=clo(1)
               clop6v(1,iar)=clop(1)
               clo6v(2,iar)=clo(2)
@@ -980,7 +954,7 @@ end interface
 
   170       continue
           endif
-          iar=(m+ib-2)*napx+1
+          iar=(ib-1)*napx+1
 
 ! save tas matrix and closed orbit for later dumping of the beam
 ! distribution at the first element (i=-1)
@@ -1047,7 +1021,7 @@ end interface
 !     call abend('after bib1                                        ')
 #endif
           do 220 ib1=1,napx
-            iar=ib1+(m+ib-2)*napx
+            iar=ib1+(ib-1)*napx
 
             do ib2=1,6
               do ib3=1,6
@@ -1173,7 +1147,7 @@ end interface
             oidpsv(ib2)=one/(one+dp1)
 ! Heavy ion variable
             moidpsv(ib2)=mtc(ib2)/(one+dp1)
-            nms(ib2)=m
+            nms(ib2)=1
 
             if(ithick.eq.1) then
               do i=1,nele
@@ -1185,7 +1159,6 @@ end interface
 
           ib0=ib0+napx
   250   continue
-  260 continue
 #ifdef DEBUG
 !     call dumpbin('ado 260',260,260)
 !     call abend('ado 260                                           ')
