@@ -397,8 +397,8 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
     scatter_nElem = 1
   end if
 
-  allocate(generatorID(nSplit-4))
-  allocate(brRatio(nSplit-4))
+  allocate(generatorID(nSplit-5))
+  allocate(brRatio(nSplit-5))
 
   bezName        = trim(lnSplit(2))
   bezID          = -1
@@ -464,19 +464,22 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
     call str_cast(lnSplit(4),ratioTot,iErr)
   end if
 
-  do i=5,nSplit
+  ! Store the scaling
+  call str_cast(lnSplit(5),elemScale,iErr)
+
+  do i=6,nSplit
     ! Search for the generator with the right name
     do j=1, scatter_nGen
       if(scatter_genList(j)%genName == lnSplit(i)) then
-        generatorID(i-4) = j
-        brRatio(i-4)     = scatter_genList(j)%crossSection
+        generatorID(i-5) = j
+        brRatio(i-5)     = scatter_genList(j)%crossSection
         sigmaTot         = sigmaTot + scatter_genList(j)%crossSection
         exit
       end if
     end do
 
     ! If it is still -1, it wasn't found
-    if(generatorID(i-4) == -1) then
+    if(generatorID(i-5) == -1) then
       write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(i))//"' not found."
       iErr = .true.
       return
@@ -485,8 +488,8 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
     ! Loop over those GENerators we've filled before
     ! (i.e. up to but not including column ii-4+2)
     ! to check for duplicates
-    do j=1,i-5
-      if(generatorID(i-4) == generatorID(j)) then
+    do j=1,i-6
+      if(generatorID(i-5) == generatorID(j)) then
         write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(i))//"' used twice."
         iErr = .true.
         return
@@ -513,10 +516,10 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
     write(lout,"(a,i0,a)")    "SCATTER> DEBUG Element ",scatter_nElem,":"
     write(lout,"(a)")         "SCATTER> DEBUG  * bezName        = '"//trim(bezName)//"'"
     write(lout,"(a,i4)")      "SCATTER> DEBUG  * bezID          = ",bezID
-  ! write(lout,"(a,f13.6)")   "SCATTER> DEBUG  * elemScale      = ",elemScale
-    write(lout,"(a,f11.6)")   "SCATTER> DEBUG  * sigmaTot       = ",sigmaTot*c1e27
     write(lout,"(a,f11.6)")   "SCATTER> DEBUG  * ratioTot       = ",ratioTot
     write(lout,"(a,3x,l1)")   "SCATTER> DEBUG  * autoRatio      = ",autoRatio
+    write(lout,"(a,1pe15.6)") "SCATTER> DEBUG  * elemScale      = ",elemScale
+    write(lout,"(a,f11.6)")   "SCATTER> DEBUG  * sigmaTot       = ",sigmaTot*c1e27
     write(lout,"(a,i4)")      "SCATTER> DEBUG  * profileID      = ",profileID
     do i=1,size(generatorID,1)
       write(lout,"(a,i0,a,i4)")    "SCATTER> DEBUG  * generatorID(",i,") = ",generatorID(i)
