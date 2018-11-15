@@ -63,108 +63,108 @@ end subroutine meta_finalise
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-11-15
 ! ================================================================================================ !
-subroutine meta_write_char(metaName, metaValue, fmt)
-  character(len=*),           intent(in) :: metaName
-  character(len=*),           intent(in) :: metaValue
+subroutine meta_write_char(name, value, fmt)
+  character(len=*),           intent(in) :: name
+  character(len=*),           intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
   if(present(fmt)) then
-    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(metaName)//" : "//metaValue
+    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : "//value
   else
-    write(meta_fileUnit,"(a)")           meta_padName(metaName)//" : "//metaValue
+    write(meta_fileUnit,"(a)")           meta_padName(name)//" : "//value
   end if
 end subroutine meta_write_char
 
-subroutine meta_write_real32(metaName, metaValue, fmt)
+subroutine meta_write_real32(name, value, fmt)
   use, intrinsic :: iso_fortran_env, only : real32
-  character(len=*),           intent(in) :: metaName
-  real(kind=real32),          intent(in) :: metaValue
+  character(len=*),           intent(in) :: name
+  real(kind=real32),          intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
   if(present(fmt)) then
-    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(metaName)//" : ",metaValue
+    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : ",value
   else
-    write(meta_fileUnit,"(a,es15.7e3)")  meta_padName(metaName)//" : ",metaValue
+    write(meta_fileUnit,"(a,es15.7e3)")  meta_padName(name)//" : ",value
   end if
 end subroutine meta_write_real32
 
-subroutine meta_write_real64(metaName, metaValue, fmt)
+subroutine meta_write_real64(name, value, fmt)
   use, intrinsic :: iso_fortran_env, only : real64
-  character(len=*),           intent(in) :: metaName
-  real(kind=real64),          intent(in) :: metaValue
+  character(len=*),           intent(in) :: name
+  real(kind=real64),          intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
   if(present(fmt)) then
-    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(metaName)//" : ",metaValue
+    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : ",value
   else
-    write(meta_fileUnit,"(a,es24.16e3)") meta_padName(metaName)//" : ",metaValue
+    write(meta_fileUnit,"(a,es24.16e3)") meta_padName(name)//" : ",value
   end if
 end subroutine meta_write_real64
 
-subroutine meta_write_real128(metaName, metaValue, fmt)
+subroutine meta_write_real128(name, value, fmt)
   use, intrinsic :: iso_fortran_env, only : real128
-  character(len=*),           intent(in) :: metaName
-  real(kind=real128),         intent(in) :: metaValue
+  character(len=*),           intent(in) :: name
+  real(kind=real128),         intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
   if(present(fmt)) then
-    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(metaName)//" : ",metaValue
+    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : ",value
   else
-    write(meta_fileUnit,"(a,es41.33e3)") meta_padName(metaName)//" : ",metaValue
+    write(meta_fileUnit,"(a,es41.33e3)") meta_padName(name)//" : ",value
   end if
 end subroutine meta_write_real128
 
-subroutine meta_write_int16(metaName, metaValue, fmt)
+subroutine meta_write_int16(name, value, fmt)
   use, intrinsic :: iso_fortran_env, only : int16
-  character(len=*),           intent(in) :: metaName
-  integer(kind=int16),        intent(in) :: metaValue
+  character(len=*),           intent(in) :: name
+  integer(kind=int16),        intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
   if(present(fmt)) then
-    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(metaName)//" : ",metaValue
+    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : ",value
   else
-    write(meta_fileUnit,"(a,i6)")        meta_padName(metaName)//" : ",metaValue
+    write(meta_fileUnit,"(a,i6)")        meta_padName(name)//" : ",value
   end if
 end subroutine meta_write_int16
 
-subroutine meta_write_int32(metaName, metaValue, fmt)
+subroutine meta_write_int32(name, value, fmt)
   use, intrinsic :: iso_fortran_env, only : int32
-  character(len=*),           intent(in) :: metaName
-  integer(kind=int32),        intent(in) :: metaValue
+  character(len=*),           intent(in) :: name
+  integer(kind=int32),        intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
   if(present(fmt)) then
-    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(metaName)//" : ",metaValue
+    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : ",value
   else
-    write(meta_fileUnit,"(a,i11)")       meta_padName(metaName)//" : ",metaValue
+    write(meta_fileUnit,"(a,i11)")       meta_padName(name)//" : ",value
   end if
 end subroutine meta_write_int32
 
-subroutine meta_write_int64(metaName, metaValue, fmt)
+subroutine meta_write_int64(name, value, fmt)
   use, intrinsic :: iso_fortran_env, only : int64
-  character(len=*),           intent(in) :: metaName
-  integer(kind=int64),        intent(in) :: metaValue
+  character(len=*),           intent(in) :: name
+  integer(kind=int64),        intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
   if(present(fmt)) then
-    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(metaName)//" : ",metaValue
+    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : ",value
   else
-    write(meta_fileUnit,"(a,i20)")       meta_padName(metaName)//" : ",metaValue
+    write(meta_fileUnit,"(a,i20)")       meta_padName(name)//" : ",value
   end if
 end subroutine meta_write_int64
 
-subroutine meta_write_log(metaName, metaValue, fmt)
-  character(len=*),           intent(in) :: metaName
-  logical,                    intent(in) :: metaValue
+subroutine meta_write_log(name, value, fmt)
+  character(len=*),           intent(in) :: name
+  logical,                    intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
   if(present(fmt)) then
-    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(metaName)//" : ",metaValue
+    write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : ",value
   else
-    if(metaValue) then
-      write(meta_fileUnit,"(a)") meta_padName(metaName)//" : true"
+    if(value) then
+      write(meta_fileUnit,"(a)") meta_padName(name)//" : true"
     else
-      write(meta_fileUnit,"(a)") meta_padName(metaName)//" : false"
+      write(meta_fileUnit,"(a)") meta_padName(name)//" : false"
     end if
   end if
 end subroutine meta_write_log
 
 function meta_padName(inName) result(padName)
-  character(len=*),  intent(in)  :: inName
-  character(len=32), allocatable :: padName
-  integer iLen, i, j
+  character(len=*), intent(in) :: inName
+  character(len=32) padName
+  integer i, j
   padName = " "
   j = 0
   do i=1,len(inName)
