@@ -233,4 +233,4 @@ if ( __name__ == '__main__' ):
     for testName in testNames:
         plotSingleTests(stats,testNames=[testName],commitHashes=commmitHashes.values(),commitNames=commmitHashes.keys(),oFileName='%s.png'%(testName))
     if (lSum):
-        plotSingleTests(stats,testNames=['sum'],commitHashes=commmitHashes.values(),commitNames=commmitHashes.keys())
+        plotSingleTests(stats,testNames=['sum'],commitHashes=commmitHashes.values(),commitNames=commmitHashes.keys(),oFileName='sum.png')
