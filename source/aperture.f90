@@ -1194,7 +1194,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 end subroutine lostpart
 
 
-subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
+subroutine aperture_checkApeMarker(turn, i, ix)
 !-----------------------------------------------------------------------
 !     P.Garcia Ortega, A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified:  8-12-2014
@@ -1223,13 +1223,11 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
   integer turn  ! turn number
   integer i     ! element entry in the lattice
   integer ix    ! single element type index
-  logical llost ! at least one particle was lost
 
   integer ib2,ib3,ilostch,j,jj,jj1,jjx
 
 ! temporary variables
   logical lparID
-  integer nthinerr
   real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
   real(kind=fPrec) xchk(2)
 
@@ -1285,8 +1283,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
-        llost=llost.or.llostp(j)
-
       end if
     end do
 
@@ -1313,16 +1309,12 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
-        llost=llost.or.llostp(j)
-
       end if
-
     end do
 
   case (2) ! Rectangle
     do j=1,napx
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll) ) then
-
         if(lapeofftlt(ix)) then
           if(lbacktracking) then
             call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
@@ -1340,10 +1332,7 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
-        llost=llost.or.llostp(j)
-
       end if
-
     end do
 
   case (3) ! Ellipse
@@ -1369,10 +1358,7 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
-        llost=llost.or.llostp(j)
-
       end if
-
     end do
 
   case (4) ! RectEllipse
@@ -1398,15 +1384,12 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
-        llost=llost.or.llostp(j)
-
       end if
     end do
 
   case (5) ! Octagon
     do j=1,napx
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
-
         if(lapeofftlt(ix)) then
           if(lbacktracking) then
             call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
@@ -1424,10 +1407,7 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
-        llost=llost.or.llostp(j)
-
       end if
-
     end do
 
   case (6) ! Racetrack
@@ -1452,8 +1432,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
-        llost=llost.or.llostp(j)
-
       end if
     end do
 
