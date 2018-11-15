@@ -67,6 +67,7 @@ program maincr
 
   use, intrinsic :: iso_fortran_env, only : output_unit
   use mod_units
+  use mod_meta
   use aperture
   use mod_ranecu
   use mod_particles
@@ -163,6 +164,7 @@ end interface
 #endif
 
   call funit_initUnits ! This one has to be first
+  call meta_initialise ! The meta data file. Need to be as early as possible as it sets cpu time 0.
   call units_initUnits
   call alloc_init      ! Initialise tmod_alloc
   call allocate_arrays ! Initial allocation of memory
@@ -374,6 +376,11 @@ end interface
   write(lout,"(a)") "    Start Time:   "//timeStamp
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
+
+  call meta_write("SixTrackVersion", trim(version))
+  call meta_write("ReleaseDate",     trim(moddate))
+  call meta_write("GitHash",         trim(git_revision))
+  call meta_write("StartTime",       timeStamp)
 
 #ifdef CR
   ! Log start messages
