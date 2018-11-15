@@ -39,6 +39,12 @@ module mod_meta
   private :: meta_write_int64
   private :: meta_write_log
 
+#ifdef CR
+  integer, public,  save :: meta_nRestarts    = 0
+  integer, public,  save :: meta_nRestarts_CR = 0
+  integer, private, save :: meta_nPartTurn_CR = 0
+#endif
+
 contains
 
 subroutine meta_initialise
@@ -57,6 +63,7 @@ subroutine meta_initialise
 
   write(meta_fileUnit,"(a)") "# SixTrack Simulation Meta Data"
   write(meta_fileUnit,"(a)") repeat("#",80)
+  flush(meta_fileUnit)
 
   meta_isActive = .true.
 
@@ -64,7 +71,10 @@ end subroutine meta_initialise
 
 subroutine meta_finalise
 
-  call meta_write("NumParticleTurns", meta_nPartTurn)
+  call meta_write("NumParticleTurns",      meta_nPartTurn)
+#ifdef CR
+  call meta_write("NumCheckPointRestarts", meta_nRestarts)
+#endif
 
   meta_isActive = .false.
   close(meta_fileUnit)
@@ -86,6 +96,7 @@ subroutine meta_write_char(name, value, fmt)
   else
     write(meta_fileUnit,"(a)")           meta_padName(name)//" : "//value
   end if
+  flush(meta_fileUnit)
 end subroutine meta_write_char
 
 subroutine meta_write_real32(name, value, fmt)
@@ -99,6 +110,7 @@ subroutine meta_write_real32(name, value, fmt)
   else
     write(meta_fileUnit,"(a,es15.7e3)")  meta_padName(name)//" : ",value
   end if
+  flush(meta_fileUnit)
 end subroutine meta_write_real32
 
 subroutine meta_write_real64(name, value, fmt)
@@ -112,6 +124,7 @@ subroutine meta_write_real64(name, value, fmt)
   else
     write(meta_fileUnit,"(a,es24.16e3)") meta_padName(name)//" : ",value
   end if
+  flush(meta_fileUnit)
 end subroutine meta_write_real64
 
 subroutine meta_write_real128(name, value, fmt)
@@ -125,6 +138,7 @@ subroutine meta_write_real128(name, value, fmt)
   else
     write(meta_fileUnit,"(a,es41.33e3)") meta_padName(name)//" : ",value
   end if
+  flush(meta_fileUnit)
 end subroutine meta_write_real128
 
 subroutine meta_write_int16(name, value, fmt)
@@ -138,6 +152,7 @@ subroutine meta_write_int16(name, value, fmt)
   else
     write(meta_fileUnit,"(a,i6)")        meta_padName(name)//" : ",value
   end if
+  flush(meta_fileUnit)
 end subroutine meta_write_int16
 
 subroutine meta_write_int32(name, value, fmt)
@@ -151,6 +166,7 @@ subroutine meta_write_int32(name, value, fmt)
   else
     write(meta_fileUnit,"(a,i11)")       meta_padName(name)//" : ",value
   end if
+  flush(meta_fileUnit)
 end subroutine meta_write_int32
 
 subroutine meta_write_int64(name, value, fmt)
@@ -164,6 +180,7 @@ subroutine meta_write_int64(name, value, fmt)
   else
     write(meta_fileUnit,"(a,i20)")       meta_padName(name)//" : ",value
   end if
+  flush(meta_fileUnit)
 end subroutine meta_write_int64
 
 subroutine meta_write_log(name, value, fmt)
@@ -180,6 +197,7 @@ subroutine meta_write_log(name, value, fmt)
       write(meta_fileUnit,"(a)") meta_padName(name)//" : false"
     end if
   end if
+  flush(meta_fileUnit)
 end subroutine meta_write_log
 
 function meta_padName(inName) result(padName)
@@ -203,5 +221,48 @@ subroutine meta_checkActive
     call prror(-1)
   end if
 end subroutine meta_checkActive
+
+#ifdef CR
+subroutine meta_crcheck(fileUnit, readErr)
+
+  use crcoall
+
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: readErr
+
+  read(fileUnit, err=10, end=10) meta_nRestarts_CR, meta_nPartTurn_CR
+
+  readErr = .false.
+  return
+
+10 continue
+  write(lout,"(a,i0)") "META> READERR meta_crcheck, fileUnit = ",fileUnit
+  write(93,  "(a,i0)") "META> READERR meta_crcheck, fileUnit = ",fileUnit
+  readErr = .true.
+
+end subroutine meta_crcheck
+
+subroutine meta_crpoint(fileUnit, writeErr, iErro)
+
+  integer, intent(in)    :: fileUnit
+  logical, intent(out)   :: writeErr
+  integer, intent(inout) :: iErro
+
+  write(fileunit,err=10,iostat=iErro) meta_nRestarts, meta_nPartTurn
+  endfile(fileUnit,iostat=iErro)
+  backspace(fileUnit,iostat=iErro)
+
+  return
+
+10 continue
+  writeErr = .true.
+
+end subroutine meta_crpoint
+
+subroutine meta_crstart
+  meta_nRestarts = meta_nRestarts_CR + 1
+  meta_nPartTurn = meta_nPartTurn_CR
+end subroutine meta_crstart
+#endif
 
 end module mod_meta
