@@ -21,8 +21,8 @@ subroutine daten
   use numerical_constants
   use string_tools
   use mod_alloc
-  use mod_dist
 
+  use mod_dist,  only : dist_enable, dist_parseInputLine
   use scatter,   only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
   use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
@@ -131,7 +131,6 @@ subroutine daten
 
   ! RANDOM FLUCTUATIONS
   izu0         = 0
-  mmac         = 1
   mcut         = 0
   mout2        = 0
 
@@ -702,7 +701,7 @@ subroutine daten
 
   case("DIST") ! Beam Distribution
     if(openBlock) then
-      continue
+      dist_enable = .true.
     elseif(closeBlock) then
       continue
     else
@@ -1717,8 +1716,8 @@ subroutine initialize_element(ix,lfirst)
                if ( ic(i)-nblo.eq.ix ) then
                  if(ktrack(i).eq.31) goto 100 !ERROR
                  sm(ix)=ed(ix)             ! Also done in envar() which is called from clorb()
-                 smiv(1,i)=sm(ix)+smizf(i) ! Also done in program maincr
-                 smi(i)=smiv(1,i)          ! Also done in program maincr
+                 smiv(i)=sm(ix)+smizf(i) ! Also done in program maincr
+                 smi(i)=smiv(i)          ! Also done in program maincr
 #include "include/stra01.f90"
                endif
             enddo
@@ -1730,8 +1729,8 @@ subroutine initialize_element(ix,lfirst)
                if ( ic(i)-nblo.eq.ix ) then
                  if(ktrack(i).eq.31) goto 100 !ERROR
                  sm(ix)=ed(ix)
-                 smiv(1,i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(1,i)
+                 smiv(i)=sm(ix)+smizf(i)
+                 smi(i)=smiv(i)
 #include "include/stra02.f90"
                endif
             enddo
@@ -1742,8 +1741,8 @@ subroutine initialize_element(ix,lfirst)
                if ( ic(i)-nblo.eq.ix ) then
                  if(ktrack(i).eq.31) goto 100 !ERROR
                  sm(ix)=ed(ix)
-                 smiv(1,i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(1,i)
+                 smiv(i)=sm(ix)+smizf(i)
+                 smi(i)=smiv(i)
 #include "include/stra03.f90"
                endif
             enddo
@@ -1755,8 +1754,8 @@ subroutine initialize_element(ix,lfirst)
                if ( ic(i)-nblo.eq.ix ) then
                  if(ktrack(i).eq.31) goto 100 !ERROR
                  sm(ix)=ed(ix)
-                 smiv(1,i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(1,i)
+                 smiv(i)=sm(ix)+smizf(i)
+                 smi(i)=smiv(i)
 #include "include/stra04.f90"
                endif
             enddo
@@ -1768,8 +1767,8 @@ subroutine initialize_element(ix,lfirst)
                if ( ic(i)-nblo.eq.ix ) then
                  if(ktrack(i).eq.31) goto 100 !ERROR
                  sm(ix)=ed(ix)
-                 smiv(1,i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(1,i)
+                 smiv(i)=sm(ix)+smizf(i)
+                 smi(i)=smiv(i)
 #include "include/stra05.f90"
                endif
             enddo
@@ -1781,8 +1780,8 @@ subroutine initialize_element(ix,lfirst)
                if ( ic(i)-nblo.eq.ix ) then
                  if(ktrack(i).eq.31) goto 100 !ERROR
                  sm(ix)=ed(ix)
-                 smiv(1,i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(1,i)
+                 smiv(i)=sm(ix)+smizf(i)
+                 smi(i)=smiv(i)
 #include "include/stra06.f90"
                endif
             enddo
@@ -1794,8 +1793,8 @@ subroutine initialize_element(ix,lfirst)
                if ( ic(i)-nblo.eq.ix ) then
                  if(ktrack(i).eq.31) goto 100 !ERROR
                  sm(ix)=ed(ix)
-                 smiv(1,i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(1,i)
+                 smiv(i)=sm(ix)+smizf(i)
+                 smi(i)=smiv(i)
 #include "include/stra07.f90"
                endif
             enddo
@@ -1807,8 +1806,8 @@ subroutine initialize_element(ix,lfirst)
                if ( ic(i)-nblo.eq.ix ) then
                  if(ktrack(i).eq.31) goto 100 !ERROR
                  sm(ix)=ed(ix)
-                 smiv(1,i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(1,i)
+                 smiv(i)=sm(ix)+smizf(i)
+                 smi(i)=smiv(i)
 #include "include/stra08.f90"
                endif
             enddo
@@ -1820,8 +1819,8 @@ subroutine initialize_element(ix,lfirst)
                if ( ic(i)-nblo.eq.ix ) then
                  if(ktrack(i).eq.31) goto 100 !ERROR
                  sm(ix)=ed(ix)
-                 smiv(1,i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(1,i)
+                 smiv(i)=sm(ix)+smizf(i)
+                 smi(i)=smiv(i)
 #include "include/stra09.f90"
                endif
             enddo
@@ -1833,8 +1832,8 @@ subroutine initialize_element(ix,lfirst)
                if ( ic(i)-nblo.eq.ix ) then
                  if(ktrack(i).eq.31) goto 100 !ERROR
                  sm(ix)=ed(ix)
-                 smiv(1,i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(1,i)
+                 smiv(i)=sm(ix)+smizf(i)
+                 smi(i)=smiv(i)
 #include "include/stra10.f90"
                endif
             enddo

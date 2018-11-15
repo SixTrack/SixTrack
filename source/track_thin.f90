@@ -180,70 +180,70 @@ subroutine trauthin(nthinerr)
 
     select case (kzz)
     case (1)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 11
 #include "include/stra01.f90"
       end if
     case (2)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i)=12
 #include "include/stra02.f90"
       end if
     case (3)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 13
 #include "include/stra03.f90"
       end if
     case (4)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 14
 #include "include/stra04.f90"
       end if
     case (5)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 15
 #include "include/stra05.f90"
       end if
     case (6)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 16
 #include "include/stra06.f90"
       end if
     case (7)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 17
 #include "include/stra07.f90"
       end if
     case (8)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 18
 #include "include/stra08.f90"
       end if
     case (9)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 19
 #include "include/stra09.f90"
       end if
     case (10)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 20
@@ -344,70 +344,70 @@ subroutine trauthin(nthinerr)
     !--Negative KZZ--
     !----------------
     case (-1)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 21
 #include "include/stra01.f90"
       end if
     case (-2)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 22
 #include "include/stra02.f90"
       end if
     case (-3)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 23
 #include "include/stra03.f90"
       end if
     case (-4)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 24
 #include "include/stra04.f90"
       end if
     case (-5)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 25
 #include "include/stra05.f90"
       end if
     case (-6)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 26
 #include "include/stra06.f90"
       end if
     case (-7)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 27
 #include "include/stra07.f90"
       end if
     case (-8)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 28
 #include "include/stra08.f90"
       end if
     case (-9)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 29
 #include "include/stra09.f90"
       end if
     case (-10)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 30
@@ -672,22 +672,22 @@ subroutine thin4d(nthinerr)
         stracki=strack(i)
         if(iexact.eq.0) then ! exact drift?
           do j=1,napx
-            xv(1,j)=xv(1,j)+stracki*yv(1,j)
-            xv(2,j)=xv(2,j)+stracki*yv(2,j)
+            xv1(j)=xv1(j)+stracki*yv1(j)
+            xv2(j)=xv2(j)+stracki*yv2(j)
           end do
         else
           do j=1,napx
-            xv(1,j)=xv(1,j)*c1m3
-            xv(2,j)=xv(2,j)*c1m3
-            yv(1,j)=yv(1,j)*c1m3
-            yv(2,j)=yv(2,j)*c1m3
-            pz=sqrt(one-(yv(1,j)**2+yv(2,j)**2))
-            xv(1,j)=xv(1,j)+stracki*(yv(1,j)/pz)
-            xv(2,j)=xv(2,j)+stracki*(yv(2,j)/pz)
-            xv(1,j)=xv(1,j)*c1e3
-            xv(2,j)=xv(2,j)*c1e3
-            yv(1,j)=yv(1,j)*c1e3
-            yv(2,j)=yv(2,j)*c1e3
+            xv1(j)=xv1(j)*c1m3
+            xv2(j)=xv2(j)*c1m3
+            yv1(j)=yv1(j)*c1m3
+            yv2(j)=yv2(j)*c1m3
+            pz=sqrt(one-(yv1(j)**2+yv2(j)**2))
+            xv1(j)=xv1(j)+stracki*(yv1(j)/pz)
+            xv2(j)=xv2(j)+stracki*(yv2(j)/pz)
+            xv1(j)=xv1(j)*c1e3
+            xv2(j)=xv2(j)*c1e3
+            yv1(j)=yv1(j)*c1e3
+            yv2(j)=yv2(j)*c1e3
           enddo
         end if
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -699,26 +699,26 @@ subroutine thin4d(nthinerr)
         irrtr=imtr(ix)
         do j=1,napx
             !The values are stored in the temp vector which are used for the multiplication.
-          temptr(1)=xv(1,j)
-          temptr(2)=yv(1,j)/moidpsv(j)
-          temptr(3)=xv(2,j)
-          temptr(4)=yv(2,j)/moidpsv(j)
+          temptr(1)=xv1(j)
+          temptr(2)=yv1(j)/moidpsv(j)
+          temptr(3)=xv2(j)
+          temptr(4)=yv2(j)/moidpsv(j)
           temptr(5)=sigmv(j)
           temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
           ! Adding the closed orbit. The previous values are stored in the temptr vector.
-          xv(1,j)  = cotr(irrtr,1)
-          yv(1,j)  = cotr(irrtr,2)
-          xv(2,j)  = cotr(irrtr,3)
-          yv(2,j)  = cotr(irrtr,4)
+          xv1(j)  = cotr(irrtr,1)
+          yv1(j)  = cotr(irrtr,2)
+          xv2(j)  = cotr(irrtr,3)
+          yv2(j)  = cotr(irrtr,4)
           sigmv(j) = cotr(irrtr,5)
           pttemp   = cotr(irrtr,6)
 
           ! Multiplying the arbitrary matrix to the coordinates.
           do kxxa=1,6
-            xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
-            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
-            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
+            xv1(j)   =  xv1(j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
+            yv1(j)   =  yv1(j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
+            xv2(j)   =  xv2(j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
+            yv2(j)   =  yv2(j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
             sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)
             pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)
           enddo
@@ -736,10 +736,10 @@ subroutine thin4d(nthinerr)
 
 
           ! We have to go back to angles after we updated the energy.
-          yv(1,j) = yv(1,j)*mtc(j)/(one+dpsv(j))
-          yv(2,j) = yv(2,j)*mtc(j)/(one+dpsv(j))
-          !yv(j,1) = yv(j,1)*moidpsv(j)
-          !yv(j,2) = yv(j,2)*moidpsv(j)
+          yv1(j) = yv1(j)*moidpsv(j)
+          yv2(j) = yv2(j)*moidpsv(j)
+
+
         enddo
       goto 620
       case (2,4,5,6,7,8,9,10)
@@ -1030,20 +1030,16 @@ subroutine thin4d(nthinerr)
 #include "include/wirekick.f90"
         goto 620
       case (51)
-        xory=1
-#include "include/acdipkick.f90"
+#include "include/acdipkick1.f90"
         goto 620
       case (52)
-        xory=2
-#include "include/acdipkick.f90"
+#include "include/acdipkick2.f90"
         goto 620
       case (53)
-        xory=1
-#include "include/crabkick.f90"
+#include "include/crabkick1.f90"
         goto 620
       case (54)
-        xory=2
-#include "include/crabkick.f90"
+#include "include/crabkick2.f90"
         goto 620
       case (55) ! DIPEDGE ELEMENT
         do j=1,napx
@@ -1404,17 +1400,17 @@ subroutine thin6d(nthinerr)
           else
             ! TODO: Could just as well call normal sixtrack code (below)...
             do j=1,napx
-              xv(1,j)  = xv(1,j) + stracki*yv(1,j)
-              xv(2,j)  = xv(2,j) + stracki*yv(2,j)
+              xv1(j)  = xv1(j) + stracki*yv1(j)
+              xv2(j)  = xv2(j) + stracki*yv2(j)
 #ifdef FAST
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)*yv(1,j)+yv(2,j)*yv(2,j))*c5m4))
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)*yv1(j)+yv2(j)*yv2(j))*c5m4))
 #else
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt(c1e6+yv(1,j)*yv(1,j)+yv(2,j)*yv(2,j)))
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt(c1e6+yv1(j)*yv1(j)+yv2(j)*yv2(j)))
 #endif
-              xj     = (xv(1,j)-torbx(ie))/c1e3
-              xpj    = (yv(1,j)-torbxp(ie))/c1e3
-              yj     = (xv(2,j)-torby(ie))/c1e3
-              ypj    = (yv(2,j)-torbyp(ie))/c1e3
+              xj     = (xv1(j)-torbx(ie))/c1e3
+              xpj    = (yv1(j)-torbxp(ie))/c1e3
+              yj     = (xv2(j)-torby(ie))/c1e3
+              ypj    = (yv2(j)-torbyp(ie))/c1e3
               pj     = ejv(j)/c1e3
 
               if(firstrun) then
@@ -1448,30 +1444,30 @@ subroutine thin6d(nthinerr)
         else ! Normal SixTrack drifts
           if(iexact.eq.0) then
             do j=1,napx
-              xv(1,j)  = xv(1,j) + stracki*yv(1,j)
-              xv(2,j)  = xv(2,j) + stracki*yv(2,j)
+              xv1(j)  = xv1(j) + stracki*yv1(j)
+              xv2(j)  = xv2(j) + stracki*yv2(j)
 #ifdef FAST
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv(1,j)**2+yv(2,j)**2)*c5m4))
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)**2+yv2(j)**2)*c5m4))
 #else
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt((c1e6+yv(1,j)**2)+yv(2,j)**2))
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt((c1e6+yv1(j)**2)+yv2(j)**2))
 #endif
             end do
           else
             ! EXACT DRIFT
             do j=1,napx
-              xv(1,j)=xv(1,j)*c1m3
-              xv(2,j)=xv(2,j)*c1m3
-              yv(1,j)=yv(1,j)*c1m3
-              yv(2,j)=yv(2,j)*c1m3
+              xv1(j)=xv1(j)*c1m3
+              xv2(j)=xv2(j)*c1m3
+              yv1(j)=yv1(j)*c1m3
+              yv2(j)=yv2(j)*c1m3
               sigmv(j)=sigmv(j)*c1m3
-              pz=sqrt(one-(yv(1,j)**2+yv(2,j)**2))
-              xv(1,j)=xv(1,j)+stracki*(yv(1,j)/pz)
-              xv(2,j)=xv(2,j)+stracki*(yv(2,j)/pz)
+              pz=sqrt(one-(yv1(j)**2+yv2(j)**2))
+              xv1(j)=xv1(j)+stracki*(yv1(j)/pz)
+              xv2(j)=xv2(j)+stracki*(yv2(j)/pz)
               sigmv(j)=sigmv(j)+stracki*(one-(rvv(j)/pz))
-              xv(1,j)=xv(1,j)*c1e3
-              xv(2,j)=xv(2,j)*c1e3
-              yv(1,j)=yv(1,j)*c1e3
-              yv(2,j)=yv(2,j)*c1e3
+              xv1(j)=xv1(j)*c1e3
+              xv2(j)=xv2(j)*c1e3
+              yv1(j)=yv1(j)*c1e3
+              yv2(j)=yv2(j)*c1e3
               sigmv(j)=sigmv(j)*c1e3
             enddo
           end if
@@ -1505,35 +1501,35 @@ subroutine thin6d(nthinerr)
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                           !hr01
-          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                           !hr01
-          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                           !hr01
+          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)                           !hr01
+          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)                           !hr01
         end do
-        if(n.eq.1) write(98,'(1p,6(2x,e25.18))') (xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),dpsv(j),j=1,napx)
+        if(n.eq.1) write(98,'(1p,6(2x,e25.18))') (xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j),dpsv(j),j=1,napx)
         goto 640
       case (3)
         irrtr=imtr(ix)
         do j=1,napx
             !The values are stored in the temp vector which are used for the multiplication.
-          temptr(1)=xv(1,j)
-          temptr(2)=yv(1,j)/moidpsv(j)
-          temptr(3)=xv(2,j)
-          temptr(4)=yv(2,j)/moidpsv(j)
+          temptr(1)=xv1(j)
+          temptr(2)=yv1(j)/moidpsv(j)
+          temptr(3)=xv2(j)
+          temptr(4)=yv2(j)/moidpsv(j)
           temptr(5)=sigmv(j)
           temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
           ! Adding the closed orbit. The previous values are stored in the temptr vector.
-          xv(1,j)  = cotr(irrtr,1)
-          yv(1,j)  = cotr(irrtr,2)
-          xv(2,j)  = cotr(irrtr,3)
-          yv(2,j)  = cotr(irrtr,4)
+          xv1(j)  = cotr(irrtr,1)
+          yv1(j)  = cotr(irrtr,2)
+          xv2(j)  = cotr(irrtr,3)
+          yv2(j)  = cotr(irrtr,4)
           sigmv(j) = cotr(irrtr,5)
           pttemp   = cotr(irrtr,6)
 
           ! Multiplying the arbitrary matrix to the coordinates.
           do kxxa=1,6
-            xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
-            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
-            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
+            xv1(j)   =  xv1(j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
+            yv1(j)   =  yv1(j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
+            xv2(j)   =  xv2(j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
+            yv2(j)   =  yv2(j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
             sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)
             pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)
           enddo
@@ -1551,8 +1547,8 @@ subroutine thin6d(nthinerr)
 
 
           ! We have to go back to angles after we updated the energy.
-          yv(1,j) = yv(1,j)*mtc(j)/(one+dpsv(j))
-          yv(2,j) = yv(2,j)*mtc(j)/(one+dpsv(j))
+          yv1(j) = yv1(j)*mtc(j)/(one+dpsv(j))
+          yv2(j) = yv2(j)*mtc(j)/(one+dpsv(j))
 
           !yv(j,1) = yv(j,1)*moidpsv(j)
           !yv(j,2) = yv(j,2)*moidpsv(j)
@@ -1868,20 +1864,16 @@ subroutine thin6d(nthinerr)
       case (46,47,48,49,50)
         goto 650
       case (51)
-        xory=1
-#include "include/acdipkick.f90"
+#include "include/acdipkick1.f90"
         goto 640
       case (52)
-        xory=2
-#include "include/acdipkick.f90"
+#include "include/acdipkick2.f90"
         goto 640
       case (53)
-        xory=1
-#include "include/crabkick.f90"
+#include "include/crabkick1.f90"
         goto 640
       case (54)
-        xory=2
-#include "include/crabkick.f90"
+#include "include/crabkick2.f90"
         goto 640
       case (55) ! DIPEDGE ELEMENT
         do j=1,napx
@@ -1902,8 +1894,8 @@ subroutine thin6d(nthinerr)
           crabamp2 = ed(ix)*nzz(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
 #include "include/alignva.f90"
-          yv(1,j)=yv(1,j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
-          yv(2,j)=yv(2,j) - ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
+          yv1(j)=yv1(j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
+          yv2(j)=yv2(j) - ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
           ejf0v(j)=ejfv(j)
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
@@ -1913,8 +1905,8 @@ subroutine thin6d(nthinerr)
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
+          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
         goto 640
@@ -1925,8 +1917,8 @@ subroutine thin6d(nthinerr)
           crabamp2 = ed(ix)*nzz(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
 #include "include/alignva.f90"
-          yv(2,j)=yv(2,j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
-          yv(1,j)=yv(1,j) + ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
+          yv2(j)=yv2(j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
+          yv1(j)=yv1(j) + ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
           ejf0v(j)=ejfv(j)
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
@@ -1936,8 +1928,8 @@ subroutine thin6d(nthinerr)
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
+          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
         goto 640
@@ -1948,8 +1940,8 @@ subroutine thin6d(nthinerr)
           crabamp3 = ed(ix)*nzz(j)
           kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(two*pi)+crabph3(ix)
 #include "include/alignva.f90"
-          yv(1,j)=yv(1,j)+(((crabamp3*moidpsv(j))*c1m3)*(crkve**2-cikve**2))*cos_mb(kcrab)
-          yv(2,j)=yv(2,j)-((two*(((crabamp3*crkve)*cikve)*moidpsv(j)))*c1m3)*cos_mb(kcrab)
+          yv1(j)=yv1(j)+(((crabamp3*moidpsv(j))*c1m3)*(crkve**2-cikve**2))*cos_mb(kcrab)
+          yv2(j)=yv2(j)-((two*(((crabamp3*crkve)*cikve)*moidpsv(j)))*c1m3)*cos_mb(kcrab)
           ejv(j)=ejv(j)-(((((one/three)*(crabamp3))*(crkve**3-(three*cikve**2)*crkve))&
                 *(((crabfreq*two)*pi)/clight)*c1m6)*sin_mb(kcrab))*e0f
           ejf0v(j)=ejfv(j)
@@ -1960,8 +1952,8 @@ subroutine thin6d(nthinerr)
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
+          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
         goto 640
@@ -1972,8 +1964,8 @@ subroutine thin6d(nthinerr)
           crabamp3 = ed(ix)*nzz(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph3(ix)
 #include "include/alignva.f90"
-          yv(2,j)=yv(2,j)-(((crabamp3*moidpsv(j))*c1m3)*((cikve**2)-(crkve**2)))*cos_mb(kcrab)
-          yv(1,j)=yv(1,j)+((two*(crabamp3*(crkve*(cikve*oidpsv(j)))))*c1m3)*cos_mb(kcrab)
+          yv2(j)=yv2(j)-(((crabamp3*moidpsv(j))*c1m3)*((cikve**2)-(crkve**2)))*cos_mb(kcrab)
+          yv1(j)=yv1(j)+((two*(crabamp3*(crkve*(cikve*oidpsv(j)))))*c1m3)*cos_mb(kcrab)
           ejv(j)=ejv(j)+(((((one/three)*(crabamp3))*(cikve**3- &
                 ((three*crkve**2)*cikve)))*(((crabfreq*two)*pi)/clight))*c1m6)*(sin_mb(kcrab)*e0f)
           ejf0v(j)=ejfv(j)
@@ -1984,8 +1976,8 @@ subroutine thin6d(nthinerr)
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
+          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
         goto 640
@@ -1996,8 +1988,8 @@ subroutine thin6d(nthinerr)
           crabamp4 = ed(ix)*nzz(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
 #include "include/alignva.f90"
-          yv(1,j)=yv(1,j) + (((crabamp4*moidpsv(j))*(crkve**3-(three*crkve)*cikve**2))*c1m6)*cos_mb(kcrab)
-          yv(2,j)=yv(2,j) - (((crabamp4*moidpsv(j))*((three*cikve)*crkve**2-cikve**3))*c1m6)*cos_mb(kcrab)
+          yv1(j)=yv1(j) + (((crabamp4*moidpsv(j))*(crkve**3-(three*crkve)*cikve**2))*c1m6)*cos_mb(kcrab)
+          yv2(j)=yv2(j) - (((crabamp4*moidpsv(j))*((three*cikve)*crkve**2-cikve**3))*c1m6)*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((0.25_fPrec*(crabamp4))*(crkve**4-(six*crkve**2)*cikve**2+cikve**4))&
                 *(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
         ejf0v(j)=ejfv(j)
@@ -2008,8 +2000,8 @@ subroutine thin6d(nthinerr)
         moidpsv(j)=mtc(j)/(one+dpsv(j))
         omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
         dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-        yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-        yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+        yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
+        yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
         if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
         goto 640
@@ -2020,8 +2012,8 @@ subroutine thin6d(nthinerr)
           crabamp4 = ed(ix)*nzz(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
 #include "include/alignva.f90"
-          yv(1,j)=yv(1,j) - (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)
-          yv(2,j)=yv(2,j) - (((crabamp4*moidpsv(j))*((three*crkve)*cikve**2-crkve**3))*c1m6)*cos_mb(kcrab)
+          yv1(j)=yv1(j) - (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)
+          yv2(j)=yv2(j) - (((crabamp4*moidpsv(j))*((three*crkve)*cikve**2-crkve**3))*c1m6)*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3*cikve)-(cikve**3*crkve)))*(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
           ejf0v(j)=ejfv(j)
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
@@ -2031,8 +2023,8 @@ subroutine thin6d(nthinerr)
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)
-          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)
+          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
+          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
           if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
         goto 640
@@ -2257,16 +2249,16 @@ subroutine dist1
       ie=ia+1
       dam(ia)=zero
       dam(ie)=zero
-      xau(1,1)= xv(1,ia)
-      xau(1,2)= yv(1,ia)
-      xau(1,3)= xv(2,ia)
-      xau(1,4)= yv(2,ia)
+      xau(1,1)= xv1(ia)
+      xau(1,2)= yv1(ia)
+      xau(1,3)= xv2(ia)
+      xau(1,4)= yv2(ia)
       xau(1,5)=sigmv(ia)
       xau(1,6)= dpsv(ia)
-      xau(2,1)= xv(1,ie)
-      xau(2,2)= yv(1,ie)
-      xau(2,3)= xv(2,ie)
-      xau(2,4)= yv(2,ie)
+      xau(2,1)= xv1(ie)
+      xau(2,2)= yv1(ie)
+      xau(2,3)= xv2(ie)
+      xau(2,4)= yv2(ie)
       xau(2,5)=sigmv(ie)
       xau(2,6)= dpsv(ie)
       cloau(1)= clo6v(1,ia)
@@ -2336,12 +2328,12 @@ subroutine write6(n)
       id=id+1
       ie=id+1
       if(st_quiet < 1) write(lout,10010)                                &
-        xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),         &
-        xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),         &
+        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),         &
+        xv1(ie),yv1(ie),xv2(ie),yv2(ie),sigmv(ie),dpsv(ie),         &
         e0,ejv(id),ejv(ie)
       write(12,10010,iostat=ierro)                                      &
-        xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),         &
-         xv(1,ie),yv(1,ie),xv(2,ie),yv(2,ie),sigmv(ie),dpsv(ie),        &
+        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),         &
+         xv1(ie),yv1(ie),xv2(ie),yv2(ie),sigmv(ie),dpsv(ie),        &
          e0,ejv(id),ejv(ie)
       id=id+1
 
@@ -2350,14 +2342,14 @@ subroutine write6(n)
       id=id+1
       write(12,10010,iostat=ierro)                                      &
         xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),   &
-        xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),         &
+        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),         &
         e0,ejvl(ia),ejv(id)
 
     !-- SECOND PARTICLES LOST
     else if(.not.pstop(ia).and.pstop(ig)) then
       id=id+1
       write(12,10010,iostat=ierro)                                      &
-        xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),         &
+        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),         &
         xvl(1,ig),yvl(1,ig),xvl(2,ig),yvl(2,ig),sigmvl(ig),dpsvl(ig),   &
         e0,ejv(id),ejvl(ig)
 
