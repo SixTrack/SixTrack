@@ -512,6 +512,7 @@ subroutine thin4d(nthinerr)
   use root_output
 #endif
 
+  use mod_meta
   use mod_hions
   use mod_settings
   use postprocessing, only : writebin
@@ -582,6 +583,7 @@ subroutine thin4d(nthinerr)
   if(st_quiet < 3) then
     if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
   end if
+  meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
     ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
@@ -1160,6 +1162,7 @@ subroutine thin6d(nthinerr)
   use aperture
   use mod_hions
   use mod_settings
+  use mod_meta
 
 #ifdef FLUKA
   use mod_fluka
@@ -1239,6 +1242,7 @@ subroutine thin6d(nthinerr)
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
     end if
+    meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
     ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))

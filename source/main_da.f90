@@ -482,8 +482,8 @@ featList = ""
 ! We're done in mainda, no error :)
 !-----------------------------------------------------------------------
   call time_timeStamp(time_beforeExit)
-  call meta_finalise
   call time_finalise
+  call meta_finalise
   call closeUnits
 #ifdef CR
   call abend('                                                  ')

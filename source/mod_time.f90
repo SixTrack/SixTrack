@@ -55,14 +55,37 @@ subroutine time_initialise
   write(time_fileUnit,"(a)") "# SixTrack Simulation Time Data"
   write(time_fileUnit,"(a)") repeat("#",80)
 
-  call time_writeTime("Internal_ZeroTime",time_timeZero)
+  call time_writeReal("Internal_ZeroTime",time_timeZero,"sec")
 
   time_timeRecord(:) = 0.0
 
 end subroutine time_initialise
 
 subroutine time_finalise
+
+  use mod_meta
+  use mod_common, only : numl, mbloz
+
+  real(kind=fPrec) trackTime, nP, nT, nE, nPT, nPTE
+
+  trackTime = time_timeRecord(time_afterTracking) - time_timeRecord(time_afterPreTrack)
+
+  nT   = real(numl,fPrec)
+  nE   = real(mbloz,fPrec)
+  nPT  = real(meta_nPartTurn,fPrec)
+  nP   = nPT/nT
+  nPTE = nPT*nE
+
+  call time_writeReal("Sum_Tracking",                     trackTime,      "sec")
+  call time_writeReal("Avg_PerParticle",            1.0e3*trackTime/nP,   "msec")
+  call time_writeReal("Avg_PerTurn",                1.0e3*trackTime/nT,   "msec")
+  call time_writeReal("Avg_PerElement",             1.0e3*trackTime/nE,   "msec")
+  call time_writeReal("Avg_PerParticleTurn",        1.0e6*trackTime/nPT,  "usec")
+  call time_writeReal("Avg_PerParticleTurnElement", 1.0e9*trackTime/nPTE, "nsec")
+  call time_writeReal("Avg_ParticlesPerTurn",             nP,             "")
+
   close(time_fileUnit)
+
 end subroutine time_finalise
 
 subroutine time_timeStamp(timeStamp)
@@ -77,46 +100,47 @@ subroutine time_timeStamp(timeStamp)
 
   select case(timeStamp)
   case(time_afterFileUnits)
-    call time_writeTime("Stamp_AfterFileUnits",      timeValue)
+    call time_writeReal("Stamp_AfterFileUnits",      timeValue, "sec")
   case(time_afterDaten)
-    call time_writeTime("Stamp_AfterDaten",          timeValue)
+    call time_writeReal("Stamp_AfterDaten",          timeValue, "sec")
   case(time_afterCRCheck)
-    call time_writeTime("Stamp_AfterCRCheck",        timeValue)
+    call time_writeReal("Stamp_AfterCRCheck",        timeValue, "sec")
   case(time_afterClosedOrbit)
-    call time_writeTime("Stamp_AfterClosedOrbit",    timeValue)
+    call time_writeReal("Stamp_AfterClosedOrbit",    timeValue, "sec")
   case(time_afterBeamDist)
-    call time_writeTime("Stamp_AfterBeamDist",       timeValue)
+    call time_writeReal("Stamp_AfterBeamDist",       timeValue, "sec")
   case(time_afterInitialisation)
-    call time_writeTime("Stamp_AfterInitialisation", timeValue)
+    call time_writeReal("Stamp_AfterInitialisation", timeValue, "sec")
   case(time_afterPreTrack)
-    call time_writeTime("Stamp_AfterPreTrack",       timeValue)
+    call time_writeReal("Stamp_AfterPreTrack",       timeValue, "sec")
   case(time_afterTracking)
-    call time_writeTime("Stamp_AfterTracking",       timeValue)
+    call time_writeReal("Stamp_AfterTracking",       timeValue, "sec")
   case(time_afterPostTrack)
-    call time_writeTime("Stamp_AfterPostTrack",      timeValue)
+    call time_writeReal("Stamp_AfterPostTrack",      timeValue, "sec")
   case(time_afterPostProcessing)
-    call time_writeTime("Stamp_AfterPostProcessing", timeValue)
+    call time_writeReal("Stamp_AfterPostProcessing", timeValue, "sec")
   case(time_afterFMA)
-    call time_writeTime("Stamp_AfterFMA",            timeValue)
+    call time_writeReal("Stamp_AfterFMA",            timeValue, "sec")
   case(time_afterZIPF)
-    call time_writeTime("Stamp_AfterZIPF",           timeValue)
+    call time_writeReal("Stamp_AfterZIPF",           timeValue, "sec")
   case(time_beforeExit)
-    call time_writeTime("Stamp_BeforeExit",          timeValue)
+    call time_writeReal("Stamp_BeforeExit",          timeValue, "sec")
   end select
 
 end subroutine time_timeStamp
 
-subroutine time_writeTime(timeLabel, timeValue)
+subroutine time_writeReal(timeLabel, timeValue, timeUnit)
   character(len=*), intent(in) :: timeLabel
   real(kind=fPrec), intent(in) :: timeValue
+  character(len=*), intent(in) :: timeUnit
   integer iLen
   iLen = len_trim(timeLabel)
   if(iLen > 32) then
-    write(time_fileUnit,"(a,f13.6,a)") timeLabel(1:32)//" : ",timeValue," sec"
+    write(time_fileUnit,"(a,f14.6,a)") timeLabel(1:32)//" : ",timeValue," "//timeUnit
   else
-    write(time_fileUnit,"(a,f13.6,a)") trim(timeLabel)//repeat(" ",32-iLen)//" : ",timeValue," sec"
+    write(time_fileUnit,"(a,f14.6,a)") trim(timeLabel)//repeat(" ",32-iLen)//" : ",timeValue," "//timeUnit
   end if
-end subroutine time_writeTime
+end subroutine time_writeReal
 
 ! ================================================================================================ !
 !  Old timing routines from sixtrack.f90, moved and leaned up.

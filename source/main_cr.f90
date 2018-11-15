@@ -147,7 +147,7 @@ end interface
 #endif
 
   ! New Variables
-  character(len=:), allocatable :: featList
+  character(len=:), allocatable :: featList, compName
 #ifndef STF
   character(len=7)  tmpFile
 #endif
@@ -214,6 +214,17 @@ end interface
 #endif
 #ifdef LIBARCHIVE
   featList = featList//" LIBARCHIVE"
+#endif
+
+  compName = "default"
+#ifdef GFORTRAN
+  compName = "gfortran"
+#endif
+#ifdef IFORT
+  compName = "ifort"
+#endif
+#ifdef NAGFOR
+  compName = "nagfor"
 #endif
 
 #ifdef CR
@@ -376,6 +387,7 @@ end interface
   write(lout,"(a)") "    SixTrack :: Version "//trim(version)//" :: Released "//trim(moddate)
   write(lout,"(a)") "  "//repeat("=",128)
   write(lout,"(a)") "    Git SHA Hash: "//trim(git_revision)
+  write(lout,"(a)") "    Compiler:     "//trim(compName)
   write(lout,"(a)") "    Built With:   "//trim(adjustl(featList))
   write(lout,"(a)") "    Start Time:   "//timeStamp
   write(lout,"(a)") ""
@@ -384,6 +396,8 @@ end interface
   call meta_write("SixTrackVersion", trim(version))
   call meta_write("ReleaseDate",     trim(moddate))
   call meta_write("GitHash",         trim(git_revision))
+  call meta_write("Compiler",        trim(compName))
+  call meta_write("Features",        trim(adjustl(featList)))
   call meta_write("StartTime",       timeStamp)
 
 #ifdef CR
@@ -525,6 +539,15 @@ end interface
   if(napx.ne.1) damp=((amp00-amp0)/real(napx-1,fPrec))/two                 !hr05
   napx=2*napx
   call expand_arrays(nele, napx*imc, nblz, nblo)
+
+  ! Log some meta data
+  meta_nPartInit = napx*imc
+  call meta_write("NumParticles",         napx*imc)
+  call meta_write("NumTurns",             numl)
+  call meta_write("NumSingleElements",    il)
+  call meta_write("NumBlockElements",     mblo)
+  call meta_write("NumStructureElements", mbloz)
+
   aperture_napxStart=napx
   iation=abs(ition)
   ib0=0
@@ -1930,8 +1953,8 @@ end interface
 #endif
   call alloc_exit
   call time_timeStamp(time_beforeExit)
-  call meta_finalise
   call time_finalise
+  call meta_finalise
   call closeUnits ! Must be last as it also closes fort.6
 ! ----------------------------------------------------------------------
 !   We're done in maincr, no error :)

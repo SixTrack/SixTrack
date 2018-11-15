@@ -12,7 +12,13 @@ module mod_meta
 
   character(len=12), parameter     :: meta_fileName = "sim_meta.dat"
   integer,           private, save :: meta_fileUnit
+  logical,           public,  save :: meta_isActive = .false.
 
+  ! Collected MetaData
+  integer,           public,  save :: meta_nPartInit = 0 ! Initial number of particles
+  integer,           public,  save :: meta_nPartTurn = 0 ! Counted in tracking routines
+
+  ! Meta Write Interface
   interface meta_write
     module procedure meta_write_char
     module procedure meta_write_real32
@@ -52,10 +58,17 @@ subroutine meta_initialise
   write(meta_fileUnit,"(a)") "# SixTrack Simulation Meta Data"
   write(meta_fileUnit,"(a)") repeat("#",80)
 
+  meta_isActive = .true.
+
 end subroutine meta_initialise
 
 subroutine meta_finalise
+
+  call meta_write("NumParticleTurns", meta_nPartTurn)
+
+  meta_isActive = .false.
   close(meta_fileUnit)
+
 end subroutine meta_finalise
 
 ! ================================================================================================ !
@@ -67,6 +80,7 @@ subroutine meta_write_char(name, value, fmt)
   character(len=*),           intent(in) :: name
   character(len=*),           intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
+  call meta_checkActive
   if(present(fmt)) then
     write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : "//value
   else
@@ -79,6 +93,7 @@ subroutine meta_write_real32(name, value, fmt)
   character(len=*),           intent(in) :: name
   real(kind=real32),          intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
+  call meta_checkActive
   if(present(fmt)) then
     write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : ",value
   else
@@ -91,6 +106,7 @@ subroutine meta_write_real64(name, value, fmt)
   character(len=*),           intent(in) :: name
   real(kind=real64),          intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
+  call meta_checkActive
   if(present(fmt)) then
     write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : ",value
   else
@@ -103,6 +119,7 @@ subroutine meta_write_real128(name, value, fmt)
   character(len=*),           intent(in) :: name
   real(kind=real128),         intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
+  call meta_checkActive
   if(present(fmt)) then
     write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : ",value
   else
@@ -115,6 +132,7 @@ subroutine meta_write_int16(name, value, fmt)
   character(len=*),           intent(in) :: name
   integer(kind=int16),        intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
+  call meta_checkActive
   if(present(fmt)) then
     write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : ",value
   else
@@ -127,6 +145,7 @@ subroutine meta_write_int32(name, value, fmt)
   character(len=*),           intent(in) :: name
   integer(kind=int32),        intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
+  call meta_checkActive
   if(present(fmt)) then
     write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : ",value
   else
@@ -139,6 +158,7 @@ subroutine meta_write_int64(name, value, fmt)
   character(len=*),           intent(in) :: name
   integer(kind=int64),        intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
+  call meta_checkActive
   if(present(fmt)) then
     write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : ",value
   else
@@ -150,6 +170,7 @@ subroutine meta_write_log(name, value, fmt)
   character(len=*),           intent(in) :: name
   logical,                    intent(in) :: value
   character(len=*), optional, intent(in) :: fmt
+  call meta_checkActive
   if(present(fmt)) then
     write(meta_fileUnit,"(a,"//fmt//")") meta_padName(name)//" : ",value
   else
@@ -174,5 +195,13 @@ function meta_padName(inName) result(padName)
     padName(j:j) = inName(i:i)
   end do
 end function meta_padName
+
+subroutine meta_checkActive
+  use crcoall
+  if(meta_isActive .eqv. .false.) then
+    write(lout,"(a)") "META> ERROR Trying to write meta data before initialisation or after finalisation."
+    call prror(-1)
+  end if
+end subroutine meta_checkActive
 
 end module mod_meta
