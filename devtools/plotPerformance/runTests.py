@@ -4,14 +4,14 @@ class test():
         self.name=''
         self.duration=0 # [s]
     @staticmethod
-    def fromLineCTestCostData(line):
+    def fromLineCTestCostData(line): # acquire a single line
         data=line.strip().split()
         newTest=test()
         newTest.name=data[0]
         newTest.duration=float(data[2])
         return newTest
     @staticmethod
-    def fromLineCTestSTDOUT(line):
+    def fromLineCTestSTDOUT(line): # acquire a single line
         data=line.strip().split()
         newTest=test()
         newTest.name=data[3]
@@ -20,8 +20,13 @@ class test():
 
 def runTests(cmd='ctest -L fast -j 6',nTimes=5,dest='../..'):
     '''
-    run the tests and copy the CTestCostData.txt in a specific folder
-    
+    run the tests and copy the CTestCostData.txt/STDOUT in a specific folder
+    ctest is then run nTimes, and each file will be saved with a time stamp, eg:
+    commit_5d495f366e641e0c7ac972b9a422f74d296d02e6/
+    |_ ctest_STDOUT_2018-11-14_15-40-32.txt
+    |_ ctest_STDOUT_2018-11-14_15-42-50.txt
+    ...
+
     NB: it is not at all clear to me why:
     subprocess.call(['ctest','-L fast','-j 6'])
     leads to executing all tests and not only the fast ones...
@@ -40,10 +45,13 @@ def runTests(cmd='ctest -L fast -j 6',nTimes=5,dest='../..'):
             #subprocess.call('cp Testing/Temporary/CTestCostData.txt %s/CTestCostData_%s.txt'%(dest,now.strftime('%Y-%m-%d_%H-%M-%S')),shell=True)
 
 def acquireDataSetCostData(files='../CTestCostData_*.txt'):
+    '''
+    parse CTestCostData.txt files
+    returns testSet[testName][fileName]
+    '''
     import glob
-    # - acquire all files
     testSet={}
-    for fname in glob.glob(files):
+    for fname in glob.glob(files): # parse all available files
         tmpTestSet=parseCTestCostDataFile(fname)
         for tmpTest in tmpTestSet.values():
             if ( not testSet.has_key(tmpTest.name) ):
@@ -52,10 +60,13 @@ def acquireDataSetCostData(files='../CTestCostData_*.txt'):
     return testSet
         
 def acquireDataSetCTestSTDOUT(files='../ctest_STDOUT_*.txt'):
+    '''
+    parse STDOUT files of ctest
+    returns testSet[testName][fileName]
+    '''
     import glob
-    # - acquire all files
     testSet={}
-    for fname in glob.glob(files):
+    for fname in glob.glob(files): # parse all available files
         tmpTestSet=parseCTestSTDOUTFile(fname)
         for tmpTest in tmpTestSet.values():
             if ( not testSet.has_key(tmpTest.name) ):
@@ -64,6 +75,10 @@ def acquireDataSetCTestSTDOUT(files='../ctest_STDOUT_*.txt'):
     return testSet
         
 def parseCTestCostDataFile(iFileName):
+    '''
+    parse a single CTestCostData.txt file
+    returns testSet[testName]
+    '''
     print 'getting ctest times from file %s ...'%(iFileName)
     tests={}
     nFailed=0
@@ -82,6 +97,10 @@ def parseCTestCostDataFile(iFileName):
     return tests
 
 def parseCTestSTDOUTFile(iFileName):
+    '''
+    parse a single STDOUT file of ctest
+    returns testSet[testName]
+    '''
     print 'getting ctest times from file %s ...'%(iFileName)
     tests={}
     nFailed=0
@@ -154,11 +173,12 @@ def plotSingleTests(stats,testNames=[],commitHashes=[],commitNames=[],oFileName=
         
 if ( __name__ == '__main__' ):
     import collections
-    # ctest
+    # ctest command and number of repetitions:
     cmd='ctest -L fast -j 6'
-    nTimes=5 # repetitions
+    nTimes=5
     
     # what to plot
+    # - commits (example):
     commmitHashes=collections.OrderedDict()
     commmitHashes['master, 2018-11-09']='5d495f366e641e0c7ac972b9a422f74d296d02e6'
     commmitHashes['refactoring code']='cecf082ef5d6c7d28be4f8c7176afa2b3ba428a7'
@@ -168,7 +188,7 @@ if ( __name__ == '__main__' ):
     commmitHashes['interface aperture_reportLoss']='674e91b7a0f95eafadeac325d645d0107ac7974e'
     commmitHashes['restoring llostp']='7dca82d467199d9b0b97d8628aa851fca36a919b'
     lastCommitHash=commmitHashes['restoring llostp']
-    # what you want to see plotted - can also contain 'all'
+    # - which tests (can contain 'all')
     testNames=[
         'thin6d_ions',
         'thin4d_ions',
@@ -179,6 +199,7 @@ if ( __name__ == '__main__' ):
         # 'prob1',  # 1M turns (non-fast)
         # 'prob3',  # 1M turns (non-fast)
     ]
+    # plot also sum of all tests
     lSum=True
     
     # run tests
