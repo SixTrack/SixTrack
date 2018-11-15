@@ -21,11 +21,8 @@
         llostp(j)=(abs(xv1(j)).gt.aper(1)).or.(abs(xv2(j)).gt.aper(2))
       end do
     end if
-
   else
-
-    call aperture_checkApeMarker( n, i, ix )
-
+    call aperture_checkApeMarker(n,i,ix)
   end if
   
   ! any particle loss?
@@ -38,7 +35,7 @@
   ! dump coordinates in case of losses
   if(llost) then
     ! report losses to user
-    call aperture_reportLoss( n, i, ix, llost, nthinerr )
+    call aperture_reportLoss(n,i,ix)
     call compactArrays
     ! store old particle coordinates
     ! necessary since aperture markers are downstream of lenses...
