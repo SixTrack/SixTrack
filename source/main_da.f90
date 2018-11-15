@@ -56,13 +56,6 @@ program mainda
   character(len=10) tsTime
   logical fErr
 
-#ifdef CRLIBM
-  integer nchars
-  parameter (nchars=160)
-  character(len=nchars) ch
-  character(len=nchars+nchars) ch1
-#endif
-
   ! Features
 featList = ""
 #ifdef TILT
@@ -234,9 +227,9 @@ featList = ""
 
       do k=1,nmz
         izu=izu+1
-        aai(i,k)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a         !hr08
+        aaiv(k,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a         !hr08
         izu=izu+1
-        bbi(i,k)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a         !hr08
+        bbiv(k,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a         !hr08
         r0a=r0a*r0
       end do
 

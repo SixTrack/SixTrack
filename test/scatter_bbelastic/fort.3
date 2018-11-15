@@ -1,7 +1,8 @@
 GEOM
-PRIN
-/
-/ Lifted from test elensidealthin6d'
+SETTINGS
+  DEBUG
+  PRINT
+NEXT
 TRACKING PARAMETERS-----------------------------------------------------
 1000 0 32 0 6.89493 0 1
 1 1 2 1 2
@@ -34,14 +35,6 @@ NEXT
 FLUCTUATION
 100000 1 7 3
 NEXT
-/POSTPROCESSING----------------------------------------------------------
-/LHC Dynamic Aperture at Injection Version 5 (1998)
-/20 0 0 1 .08 .08 1 0 0 1. 1.
-/62. 60. 1 1 10 .005 1 .050
-/0 1 0 1 1 1 1 1 30
-/NEXT
-/
-/ FROM FC.3.AUX
 LINEAR OPTICS
 ELEMENT  0 1 1 2.5 2.5
 NEXT
@@ -82,6 +75,6 @@ PRO  ipPRO       FLAT 1e25 938.0 6500000
 ELEM ip1_scatter ipPRO 1.0 sc_thin
 NEXT
 DUMP
-ip1 1 650 2 dump.txt 1 -1
+  ip1 1 -1 2 dump.txt 990 1000
 NEXT
 ENDE
