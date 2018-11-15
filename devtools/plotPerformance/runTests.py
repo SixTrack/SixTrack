@@ -167,7 +167,7 @@ def plotSingleTests(stats,testNames=[],commitHashes=[],commitNames=[],oFileName=
         if (len(x)>0 ):
             axarr.plot(x,y,marker='*')
     axarr.legend(loc='best')
-    plt.savefig(oFileName)
+    plt.savefig(oFileName,bbox_inches='tight')
     plt.show()
     plt.close()
         
