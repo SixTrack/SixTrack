@@ -319,7 +319,7 @@ module mod_common
 
   ! common /ttime/
   integer,          save :: napxto
-  real(kind=fPrec), save :: tlim,time0,time1,time2,time3,trtime,pretime,posttime,tottime
+  real,             save :: tlim,time0,time1,time2,time3,trtime,pretime,posttime,tottime
 
   ! common /xz/
   real(kind=fPrec), allocatable, save :: xsi(:),zsi(:)     ! (nblz)

@@ -391,6 +391,7 @@ subroutine abend(cstring)
   use string_tools
   use mod_units
   use mod_version
+  use mod_time
 
   implicit none
 

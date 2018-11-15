@@ -767,6 +767,7 @@ subroutine crpoint
       use mod_commond
       use mod_hions
       use mod_version
+      use mod_time
 
       implicit none
 

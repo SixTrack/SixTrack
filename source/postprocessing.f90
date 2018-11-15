@@ -60,8 +60,8 @@ subroutine postpr(nfile)
 #ifdef STF
       integer posi,posi1, ia_stf,ifipa_stf,ilapa_stf
 #endif
-      real fxs,fzs
-      real(kind=fPrec) const,dle,slope,tle,varlea,wgh,tim1,tim2
+      real tim1,tim2,fxs,fzs
+      real(kind=fPrec) const,dle,slope,tle,varlea,wgh
       real(kind=fPrec) alf0,alf04,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,   &
      &alf0z3,ampx0,ampz0,angi,angii,angiii,ared,ares,armin,armin0,b,b0, &
      &bet0,bet04,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,biav,bold,c, &

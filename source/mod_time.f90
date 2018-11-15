@@ -31,7 +31,7 @@ module mod_time
   real(kind=fPrec), public,  save :: time_timeZero = 0.0
   real(kind=fPrec), public,  save :: time_timeRecord(time_beforeExit)
 
-  real(kind=fPrec), private, save :: time_timerRef     = 0.0
+  real,             private, save :: time_timerRef     = 0.0
   logical,          private, save :: time_timerStarted = .false.
 
 contains
@@ -153,8 +153,8 @@ subroutine time_timerStart
 end subroutine time_timerStart
 
 subroutine time_timerCheck(timeValue)
-  real(kind=fPrec), intent(inout) :: timeValue
-  real(kind=fPrec) currTime
+  real, intent(inout) :: timeValue
+  real currTime
   call time_timerStart
   call cpu_time(currTime)
   timeValue = currTime - time_timerRef

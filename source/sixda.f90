@@ -12,7 +12,8 @@ subroutine daliesix
   implicit none
 
   integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
-  real(kind=fPrec) tlim,time0,time1,time,angle,coe,rad,x2pi
+  real tlim,time0,time1,time
+  real(kind=fPrec) angle,coe,rad,x2pi
   dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
   dimension rot(6),xy(6),df(6)
   dimension angle(3),rad(3)
