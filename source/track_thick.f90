@@ -20,6 +20,7 @@ subroutine trauthck(nthinerr)
 #endif
 
   use collimation
+  use mod_time
 
   use crcoall
   use parpro
@@ -430,6 +431,7 @@ subroutine trauthck(nthinerr)
     ! save original kicks
     ! always in main code
     if (dynk_enabled) call dynk_pretrack
+    call time_timeStamp(time_afterPreTrack)
 
     if(idp.eq.0.or.ition.eq.0) then
       write(lout,*) ''

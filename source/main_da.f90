@@ -31,6 +31,8 @@ program mainda
   use mod_commond
   use mod_units
   use file_units
+  use mod_meta
+  use mod_time
   use mod_alloc,  only : alloc_init
   use mod_fluc,   only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use read_input, only : readFort33
@@ -83,6 +85,8 @@ featList = ""
   lout=output_unit
 #endif
   call funit_initUnits ! This one has to be first
+  call meta_initialise ! The meta data file.
+  call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call units_initUnits
   call alloc_init      ! Initialise tmod_alloc
   call allocate_arrays ! Initial allocation of memory
@@ -96,6 +100,8 @@ featList = ""
   call units_openUnit(unit=19, fileName="fort.19", formatted=.true., mode="w", err=fErr)
   call units_openUnit(unit=110,fileName="fort.110",formatted=.false.,mode="w", err=fErr)
   call units_openUnit(unit=111,fileName="fort.111",formatted=.false.,mode="rw",err=fErr)
+
+  call time_timeStamp(time_afterFileUnits)
 
   ! Print Header Info
   tlim=1e7
@@ -117,6 +123,11 @@ featList = ""
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
 
+  call meta_write("SixTrackDAVersion", trim(version))
+  call meta_write("ReleaseDate",       trim(moddate))
+  call meta_write("GitHash",           trim(git_revision))
+  call meta_write("StartTime",         timeStamp)
+
   ! Init stuff
   do i=1,2
     eps(i)=zero
@@ -128,6 +139,7 @@ featList = ""
   call comnul
 
   call daten
+  call time_timeStamp(time_afterDaten)
   if (ithick.eq.1) call allocate_thickarrays
   if(nord.le.0.or.nvar.le.0) call prror(91)
   if(ithick.eq.1) write(lout,10020)
@@ -469,6 +481,9 @@ featList = ""
 !-----------------------------------------------------------------------
 ! We're done in mainda, no error :)
 !-----------------------------------------------------------------------
+  call time_timeStamp(time_beforeExit)
+  call meta_finalise
+  call time_finalise
   call closeUnits
 #ifdef CR
   call abend('                                                  ')

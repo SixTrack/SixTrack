@@ -12,6 +12,7 @@ subroutine trauthin(nthinerr)
   use dynk, only : dynk_enabled, dynk_isused, dynk_pretrack
 
   use mod_alloc
+  use mod_time
 
 #ifdef FLUKA
   use mod_fluka
@@ -425,6 +426,7 @@ subroutine trauthin(nthinerr)
   if(nwri.eq.0) nwri=(numl+numlr)+1
 
   if (dynk_enabled) call dynk_pretrack
+  call time_timeStamp(time_afterPreTrack)
 
   if ((idp == 0 .or. ition == 0) .and. .not.do_coll) then !4D tracking (not collimat compatible)
     write(lout,"(a)") ""

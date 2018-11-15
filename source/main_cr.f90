@@ -68,6 +68,7 @@ program maincr
   use, intrinsic :: iso_fortran_env, only : output_unit
   use mod_units
   use mod_meta
+  use mod_time
   use aperture
   use mod_ranecu
   use mod_particles
@@ -164,7 +165,8 @@ end interface
 #endif
 
   call funit_initUnits ! This one has to be first
-  call meta_initialise ! The meta data file. Need to be as early as possible as it sets cpu time 0.
+  call meta_initialise ! The meta data file.
+  call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call units_initUnits
   call alloc_init      ! Initialise tmod_alloc
   call allocate_arrays ! Initial allocation of memory
@@ -360,6 +362,8 @@ end interface
   call units_openUnit(unit=209,fileName="fort.209",formatted=.true.,mode="w",err=fErr) ! coll losses in function of particle i
   call units_openUnit(unit=210,fileName="fort.210",formatted=.true.,mode="w",err=fErr) ! mtc after each collimator interaction
 
+  call time_timeStamp(time_afterFileUnits)
+
   ! ---------------------------------------------------------------------------------------------- !
   ! Write Header
 
@@ -428,6 +432,7 @@ end interface
 #endif
 
   call daten
+  call time_timeStamp(time_afterDaten)
 
 #ifdef HDF5
   if(h5_isActive) then
@@ -451,6 +456,7 @@ end interface
 #ifdef CR
       checkp=.true.
       call crcheck
+      call time_timeStamp(time_afterCRCheck)
 #endif
       if(ithick.eq.1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
       if(ithick.eq.0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
@@ -1215,6 +1221,8 @@ end interface
          endif
       endif
 
+  call time_timeStamp(time_afterClosedOrbit)
+
 ! ---------------------------------------------------------------------------- !
 !  GENERATE THE INITIAL DISTRIBUTION
 ! ---------------------------------------------------------------------------- !
@@ -1434,6 +1442,8 @@ end interface
   ! binrec:  The maximum number of reccords writen for all tracking data files. Thus crbinrecs(:) <= binrec
 #endif
 
+  call time_timeStamp(time_afterBeamDist)
+
 ! ---------------------------------------------------------------------------- !
 !  END GENERATE THE INITIAL DISTRIBUTION
 ! ---------------------------------------------------------------------------- !
@@ -1519,6 +1529,7 @@ end interface
 !  call SixTrackRootWrite()
 #endif
 
+  call time_timeStamp(time_afterInitialisation)
 !                                !
 !     ****** TRACKING ******     !
 !                                !
@@ -1536,7 +1547,7 @@ end interface
 ! note that this will be reset evry restart as we redo pre-processing
       pretime=time1-time0
 !---------------------------------------  LOOP OVER TURNS TO BE TRACKED
-      if(ithick.eq.0) call trauthin(nthinerr)
+      if(ithick == 0) call trauthin(nthinerr)
       if(ithick.eq.1) call trauthck(nthinerr)
 #ifdef DEBUG
 !     call dumpbin('atrack',1,1)
@@ -1620,6 +1631,7 @@ end interface
       write(lout,"(a)") ""
       write(lout,"(a)") str_divLine
       write(lout,"(a)") ""
+      call time_timeStamp(time_afterTracking)
 
       if(st_partsum .eqv. .false.) then
         write(lout,"(a)") "MAINCR> NOTE Particle summary report is disabled."
@@ -1829,18 +1841,17 @@ end interface
 #endif
 
  520  continue !Finished postprocessing (POST in fort.3)
-
-!     start fma
-      if(fma_flag) then
-        write(lout,*)'Calling FMA_POSTPR'
-        call fma_postpr
-      endif
-!--HPLOTTING END
-      if(ipos.eq.1.and.                                                 &
-     &(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
-        call igmeta(999,0)
-        call hplend
-      endif
+  call time_timeStamp(time_afterPostProcessing)
+  if(fma_flag) then
+    write(lout,"(a)") "MAINCR> Calling FMA_POSTPR"
+    call fma_postpr
+    call time_timeStamp(time_afterFMA)
+  endif
+  ! HPLOTTING END
+  if(ipos.eq.1.and.(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
+    call igmeta(999,0)
+    call hplend
+  endif
 #endif
 
 #ifdef FLUKA
@@ -1901,6 +1912,7 @@ end interface
 
   if (zipf_numfiles.gt.0) then
     call zipf_dozip
+    call time_timeStamp(time_afterZIPF)
   endif
 #ifdef HDF5
   if(h5_isReady) then
@@ -1917,14 +1929,16 @@ end interface
   end if
 #endif
   call alloc_exit
+  call time_timeStamp(time_beforeExit)
+  call meta_finalise
+  call time_finalise
   call closeUnits ! Must be last as it also closes fort.6
 ! ----------------------------------------------------------------------
 !   We're done in maincr, no error :)
 ! ----------------------------------------------------------------------
 #ifdef CR
   call abend('                                                  ')
-#endif
-#ifndef CR
+#else
   stop
 #endif
 10000 format(/4x,"Tracking ended abnormally for particle: ",i0,         &

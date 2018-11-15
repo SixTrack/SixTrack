@@ -2,7 +2,7 @@
 !  SixTrack Meta Data Module
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-11-15
-!  Records simulation meta data in a file, and keeps track of time
+!  Records simulation meta data in a file
 ! ================================================================================================ !
 module mod_meta
 
@@ -12,8 +12,6 @@ module mod_meta
 
   character(len=12), parameter     :: meta_fileName = "sim_meta.dat"
   integer,           private, save :: meta_fileUnit
-
-  real(kind=fPrec),  public,  save :: meta_timeZero = 0.0
 
   interface meta_write
     module procedure meta_write_char
@@ -54,14 +52,10 @@ subroutine meta_initialise
   write(meta_fileUnit,"(a)") "# SixTrack Simulation Meta Data"
   write(meta_fileUnit,"(a)") repeat("#",80)
 
-  call cpu_time(meta_timeZero)
-
 end subroutine meta_initialise
 
 subroutine meta_finalise
-
   close(meta_fileUnit)
-
 end subroutine meta_finalise
 
 ! ================================================================================================ !
