@@ -14,22 +14,18 @@
       do j=1,napx
         if(part_abs_turn(j).eq.0) then
           llostp(j)=(abs(xv1(j)).gt.aper(1)).or.(abs(xv2(j)).gt.aper(2))
+          llost=llost.or.llostp(j)
         end if
       end do
     else
       do j=1,napx
         llostp(j)=(abs(xv1(j)).gt.aper(1)).or.(abs(xv2(j)).gt.aper(2))
+        llost=llost.or.llostp(j)
       end do
     end if
   else
-    call aperture_checkApeMarker(n,i,ix)
+    call aperture_checkApeMarker(n,i,ix,llost)
   end if
-  
-  ! any particle loss?
-  do j=1,napx
-    llost=llost.or.llostp(j)
-    if (llost) exit
-  end do
 
   !-----------------------------------------------------------------------
   ! dump coordinates in case of losses

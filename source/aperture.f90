@@ -1194,7 +1194,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 end subroutine lostpart
 
 
-subroutine aperture_checkApeMarker(turn, i, ix)
+subroutine aperture_checkApeMarker(turn, i, ix, llost)
 !-----------------------------------------------------------------------
 !     P.Garcia Ortega, A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified:  8-12-2014
@@ -1223,6 +1223,7 @@ subroutine aperture_checkApeMarker(turn, i, ix)
   integer turn  ! turn number
   integer i     ! element entry in the lattice
   integer ix    ! single element type index
+  logical llost ! at least a particle loss
 
   integer ib2,ib3,ilostch,j,jj,jj1,jjx
 
@@ -1283,6 +1284,7 @@ subroutine aperture_checkApeMarker(turn, i, ix)
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
+        llost=llost.or.llostp(j)
       end if
     end do
 
@@ -1332,6 +1334,7 @@ subroutine aperture_checkApeMarker(turn, i, ix)
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
+        llost=llost.or.llostp(j)
       end if
     end do
 
@@ -1358,6 +1361,7 @@ subroutine aperture_checkApeMarker(turn, i, ix)
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
+        llost=llost.or.llostp(j)
       end if
     end do
 
@@ -1384,6 +1388,7 @@ subroutine aperture_checkApeMarker(turn, i, ix)
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
+        llost=llost.or.llostp(j)
       end if
     end do
 
@@ -1407,6 +1412,7 @@ subroutine aperture_checkApeMarker(turn, i, ix)
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
+        llost=llost.or.llostp(j)
       end if
     end do
 
@@ -1432,6 +1438,7 @@ subroutine aperture_checkApeMarker(turn, i, ix)
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
+        llost=llost.or.llostp(j)
       end if
     end do
 
