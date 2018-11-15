@@ -496,6 +496,7 @@ subroutine thin4d(nthinerr)
   use mathlib_bouncer
   use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
+  use collimation, only: do_coll, part_abs_turn
   use aperture
 
 #ifdef FLUKA

@@ -474,6 +474,7 @@ subroutine thck4d(nthinerr)
   use bdex, only : bdex_enable
   use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
+  use collimation, only: do_coll, part_abs_turn
   use aperture
 
 #ifdef FLUKA
@@ -1118,6 +1119,7 @@ subroutine thck6d(nthinerr)
   use bdex, only : bdex_enable
   use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
+  use collimation, only: do_coll, part_abs_turn
   use aperture
 
 #ifdef FLUKA

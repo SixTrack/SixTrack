@@ -1245,7 +1245,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
   integer niter       ! number of iterations
   integer kapert      ! temporal integer for aperture type
   logical llos        ! temporal logic array for interpolation
-  logical lback       ! actually perform backtracking
   real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
   integer naalos, nzzlos
 
@@ -1258,239 +1257,221 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
   ! check against current aperture marker
   !-----------------------------------------------------------------------
 
-  lback=.false.
+  ! go through all possible types
+  select case(kape(ix))
 
-  if(.not.limifound.or.kape(ix).eq.0) then
-    ! limi block not there or aperture type not assigned
-    ! general check (set in the ITER block)
+  case (-1) ! Transition
+    apxx = ape(3,ix)**2.
+    apyy = ape(4,ix)**2.
+    apxy = apxx * apyy
     do j=1,napx
-
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
-        llostp(j)=(abs(xv1(j)).gt.aper(1)).or.(abs(xv2(j)).gt.aper(2))
+        if(lapeofftlt(ix)) then
+          if(lbacktracking) then
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          else
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          end if
+          llostp(j)=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)).or. &
+            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        else
+          if(lbacktracking) then
+            llostp(j)= &
+              checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)) .or. &
+              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
+          else
+            llostp(j)= &
+              checkTR(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
+              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
+          end if
+        end if
         llost=llost.or.llostp(j)
+
       else if (do_coll) then
         llostp(j)=.false.
       end if
     end do
 
-  else
+  case (1) ! circle
+    radius2 = ape(3,ix)**2
+    do j=1,napx
 
-    ! go through all possible types
-    select case(kape(ix))
+      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
 
-    case (-1) ! Transition
-      apxx = ape(3,ix)**2.
-      apyy = ape(4,ix)**2.
-      apxy = apxx * apyy
-      do j=1,napx
-        if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
-          if(lapeofftlt(ix)) then
-            if(lbacktracking) then
-              call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
-            else
-              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
-            end if
-            llostp(j)=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)).or. &
-              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        if(lapeofftlt(ix)) then
+          if(lbacktracking) then
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           else
-            if(lbacktracking) then
-              llostp(j)= &
-                checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)) .or. &
-                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
-            else
-              llostp(j)= &
-                checkTR(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
-                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
-            end if
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          llost=llost.or.llostp(j)
-
-        else if (do_coll) then
-          llostp(j)=.false.
-        end if
-      end do
-
-    case (1) ! circle
-      radius2 = ape(3,ix)**2
-      do j=1,napx
-
-        if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
-
-          if(lapeofftlt(ix)) then
-            if(lbacktracking) then
-              call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
-            else
-              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
-            end if
-            llostp(j)=checkCR( xchk(1),xchk(2),radius2 ) .or. &
-              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+          llostp(j)=checkCR( xchk(1),xchk(2),radius2 ) .or. &
+            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        else
+          if(lbacktracking) then
+            llostp(j)=checkCR( xLast(1,j),xLast(2,j),radius2 ) .or. &
+              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
           else
-            if(lbacktracking) then
-              llostp(j)=checkCR( xLast(1,j),xLast(2,j),radius2 ) .or. &
-                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
-            else
-              llostp(j)=checkCR( xv1(j),xv2(j),radius2 ) .or. &
-                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
-            end if
+            llostp(j)=checkCR( xv1(j),xv2(j),radius2 ) .or. &
+              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
-          llost=llost.or.llostp(j)
-
-        else if (do_coll) then
-          llostp(j)=.false.
         end if
+        llost=llost.or.llostp(j)
 
-      end do
+      else if (do_coll) then
+        llostp(j)=.false.
+      end if
 
-    case (2) ! Rectangle
-      do j=1,napx
-        if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll) ) then
+    end do
 
-          if(lapeofftlt(ix)) then
-            if(lbacktracking) then
-              call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
-            else
-              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
-            end if
-            llostp(j)=checkRE( xchk(1),xchk(2),ape(1,ix),ape(2,ix) ) .or. &
-              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+  case (2) ! Rectangle
+    do j=1,napx
+      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll) ) then
+
+        if(lapeofftlt(ix)) then
+          if(lbacktracking) then
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           else
-            if(lbacktracking) then
-              llostp(j)=checkRE( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix) ) .or. &
-                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
-            else
-              llostp(j)=checkRE( xv1(j),xv2(j),ape(1,ix),ape(2,ix) ) .or. &
-                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
-            end if
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          llost=llost.or.llostp(j)
-
-        else if (do_coll) then
-          llostp(j)=.false.
-        end if
-
-      end do
-
-    case (3) ! Ellipse
-      apxx = ape(3,ix)**2.
-      apyy = ape(4,ix)**2.
-      apxy = apxx * apyy
-      do j=1,napx
-        if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
-          if(lapeofftlt(ix)) then
-            if(lbacktracking) then
-              call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
-            else
-              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
-            end if
-            llostp(j)=checkEL( xchk(1),xchk(2),apxx,apyy,apxy ) .or. &
-              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+          llostp(j)=checkRE( xchk(1),xchk(2),ape(1,ix),ape(2,ix) ) .or. &
+            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        else
+          if(lbacktracking) then
+            llostp(j)=checkRE( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix) ) .or. &
+              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
           else
-            if(lbacktracking) then
-              llostp(j)=checkEL( xLast(1,j),xLast(2,j),apxx,apyy,apxy ) .or. &
-                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
-            else
-              llostp(j)=checkEL( xv1(j),xv2(j),apxx,apyy,apxy ) .or. &
-                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
-            end if
+            llostp(j)=checkRE( xv1(j),xv2(j),ape(1,ix),ape(2,ix) ) .or. &
+              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
-          llost=llost.or.llostp(j)
-
-        else if (do_coll) then
-          llostp(j)=.false.
         end if
+        llost=llost.or.llostp(j)
 
-      end do
+      else if (do_coll) then
+        llostp(j)=.false.
+      end if
 
-    case (4) ! RectEllipse
-      apxx = ape(3,ix)**2.
-      apyy = ape(4,ix)**2.
-      apxy = apxx * apyy
-      do j=1,napx
-        if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
-          if(lapeofftlt(ix)) then
-            if(lbacktracking) then
-              call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
-            else
-              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
-            end if
-            llostp(j)=checkRL( xchk(1),xchk(2),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
-              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+    end do
+
+  case (3) ! Ellipse
+    apxx = ape(3,ix)**2.
+    apyy = ape(4,ix)**2.
+    apxy = apxx * apyy
+    do j=1,napx
+      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+        if(lapeofftlt(ix)) then
+          if(lbacktracking) then
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           else
-            if(lbacktracking) then
-              llostp(j)=checkRL( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
-                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
-            else
-              llostp(j)=checkRL( xv1(j),xv2(j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
-                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
-            end if
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          llost=llost.or.llostp(j)
-
-        else if (do_coll) then
-          llostp(j)=.false.
-        end if
-      end do
-
-    case (5) ! Octagon
-      do j=1,napx
-        if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
-
-          if(lapeofftlt(ix)) then
-            if(lbacktracking) then
-              call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
-            else
-              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
-            end if
-            llostp(j)=checkOC(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
-              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+          llostp(j)=checkEL( xchk(1),xchk(2),apxx,apyy,apxy ) .or. &
+            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        else
+          if(lbacktracking) then
+            llostp(j)=checkEL( xLast(1,j),xLast(2,j),apxx,apyy,apxy ) .or. &
+              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
           else
-            if(lbacktracking) then
-              llostp(j)=checkOC(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
-                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
-            else
-              llostp(j)=checkOC(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
-                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
-            end if
+            llostp(j)=checkEL( xv1(j),xv2(j),apxx,apyy,apxy ) .or. &
+              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
-          llost=llost.or.llostp(j)
-
-        else if (do_coll) then
-          llostp(j)=.false.
         end if
+        llost=llost.or.llostp(j)
 
-      end do
+      else if (do_coll) then
+        llostp(j)=.false.
+      end if
 
-    case (6) ! Racetrack
-      !   NB: it follows the MadX definition
-      apxy = ape(3,ix)**2.
-      do j=1,napx
-        if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
-          if(lapeofftlt(ix)) then
-            if(lbacktracking) then
-              call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
-            else
-              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
-            end if
-            llostp(j)=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
-              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+    end do
+
+  case (4) ! RectEllipse
+    apxx = ape(3,ix)**2.
+    apyy = ape(4,ix)**2.
+    apxy = apxx * apyy
+    do j=1,napx
+      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+        if(lapeofftlt(ix)) then
+          if(lbacktracking) then
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           else
-            if(lbacktracking) then
-              llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
-                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
-            else
-              llostp(j)=checkRT(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
-                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
-            end if
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          llost=llost.or.llostp(j)
-
-        else if (do_coll) then
-          llostp(j)=.false.
+          llostp(j)=checkRL( xchk(1),xchk(2),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        else
+          if(lbacktracking) then
+            llostp(j)=checkRL( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
+          else
+            llostp(j)=checkRL( xv1(j),xv2(j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
+          end if
         end if
-      end do
+        llost=llost.or.llostp(j)
 
-    end select
-  end if ! if(.not.limifound.or.kape(ix).eq.0)
+      else if (do_coll) then
+        llostp(j)=.false.
+      end if
+    end do
+
+  case (5) ! Octagon
+    do j=1,napx
+      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+
+        if(lapeofftlt(ix)) then
+          if(lbacktracking) then
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          else
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          end if
+          llostp(j)=checkOC(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        else
+          if(lbacktracking) then
+            llostp(j)=checkOC(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
+          else
+            llostp(j)=checkOC(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
+          end if
+        end if
+        llost=llost.or.llostp(j)
+
+      else if (do_coll) then
+        llostp(j)=.false.
+      end if
+
+    end do
+
+  case (6) ! Racetrack
+    !   NB: it follows the MadX definition
+    apxy = ape(3,ix)**2.
+    do j=1,napx
+      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+        if(lapeofftlt(ix)) then
+          if(lbacktracking) then
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          else
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          end if
+          llostp(j)=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        else
+          if(lbacktracking) then
+            llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
+          else
+            llostp(j)=checkRT(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
+          end if
+        end if
+        llost=llost.or.llostp(j)
+
+      else if (do_coll) then
+        llostp(j)=.false.
+      end if
+    end do
+
+  end select
 
 end subroutine aperture_checkApeMarker
 
