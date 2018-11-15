@@ -28,8 +28,11 @@ module mod_time
   integer, parameter :: time_afterZIPF           = 12
   integer, parameter :: time_beforeExit          = 13
 
-  real(kind=fPrec), public, save :: time_timeZero = 0.0
-  real(kind=fPrec), public, save :: time_timeRecord(time_beforeExit)
+  real(kind=fPrec), public,  save :: time_timeZero = 0.0
+  real(kind=fPrec), public,  save :: time_timeRecord(time_beforeExit)
+
+  real(kind=fPrec), private, save :: time_timerRef     = 0.0
+  logical,          private, save :: time_timerStarted = .false.
 
 contains
 
@@ -103,12 +106,6 @@ subroutine time_timeStamp(timeStamp)
 
 end subroutine time_timeStamp
 
-subroutine time_cpuTime(timeValue)
-  real(kind=fPrec), intent(inout) :: timeValue
-  call cpu_time(timeValue)
-  timeValue = timeValue - time_timeZero
-end subroutine time_cpuTime
-
 subroutine time_writeTime(timeLabel, timeValue)
   character(len=*), intent(in) :: timeLabel
   real(kind=fPrec), intent(in) :: timeValue
@@ -120,5 +117,23 @@ subroutine time_writeTime(timeLabel, timeValue)
     write(time_fileUnit,"(a,f13.6,a)") trim(timeLabel)//repeat(" ",32-iLen)//" : ",timeValue," sec"
   end if
 end subroutine time_writeTime
+
+! ================================================================================================ !
+!  Old timing routines from sixtrack.f90, moved and leaned up.
+!  Last modified: 2018-11-15
+! ================================================================================================ !
+subroutine time_timerStart
+  if(time_timerStarted) return
+  time_timerStarted = .true.
+  call cpu_time(time_timerRef)
+end subroutine time_timerStart
+
+subroutine time_timerCheck(timeValue)
+  real(kind=fPrec), intent(inout) :: timeValue
+  real(kind=fPrec) currTime
+  call time_timerStart
+  call cpu_time(currTime)
+  timeValue = currTime - time_timerRef
+end subroutine time_timerCheck
 
 end module mod_time

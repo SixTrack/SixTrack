@@ -105,9 +105,9 @@ featList = ""
 
   ! Print Header Info
   tlim=1e7
-  call timest
+  call time_timerStart
   time0=0.
-  call timex(time0)
+  call time_timerCheck(time0)
 
   ! TimeStamp
   call date_and_time(tsDate,tsTime)

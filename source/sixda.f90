@@ -6,13 +6,13 @@ subroutine daliesix
   use crcoall
   use parpro
   use mod_commond
+  use mod_time
   use mod_lie_dab, only : mld_allocArrays
 
   implicit none
 
   integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
-  real tlim,time0,time1,time
-  real(kind=fPrec) angle,coe,rad,x2pi
+  real(kind=fPrec) tlim,time0,time1,time,angle,coe,rad,x2pi
   dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
   dimension rot(6),xy(6),df(6)
   dimension angle(3),rad(3)
@@ -20,9 +20,9 @@ subroutine daliesix
   save
 
   tlim=1e7
-  call timest
+  call time_timerStart
   time0=0.
-  call timex(time0)
+  call time_timerCheck(time0)
 
   ! Initialization
   x2pi=atan_mb(one)*eight
@@ -137,7 +137,7 @@ subroutine daliesix
   call dadal(bb2,1)
   call dadal(haux,1)
   time1=0.
-  call timex(time1)
+  call time_timerCheck(time1)
   time = time1-time0
   write(lout,10000) no,time
 
@@ -239,6 +239,7 @@ subroutine runcav
   use numerical_constants
   use crcoall
   use parpro
+  use mod_time
   use mod_common
   use mod_commonmn, only : e0f
   use mod_commons
@@ -319,7 +320,7 @@ subroutine runcav
 !-----------------------------------------------------------------------
 !     DADAL AUTOMATIC INCLUSION
   time2=0.
-  call timex(time2)
+  call time_timerCheck(time2)
 !     time=time2-time1
   write(lout,10020) time1-time0
   write(lout,10030) nord,time2-time1
@@ -437,6 +438,7 @@ subroutine runda
   use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   use mod_units
+  use mod_time
   use mod_fluc,    only : fluc_errAlign,fluc_writeFort4
 
   implicit none
@@ -477,7 +479,7 @@ subroutine runda
     fake(2,i)=zero
   end do
   time1=0.
-  call timex(time1)
+  call time_timerCheck(time1)
   if(niu(1).gt.1) then
     do i=1,2
       ii=2*i
@@ -1666,7 +1668,7 @@ subroutine runda
 520 continue
 !     DADAL AUTOMATIC INCLUSION
   time2=0.
-  call timex(time2)
+  call time_timerCheck(time2)
 !     time=time2-time1
   write(lout,10020) time1-time0
   write(lout,10030) nord,time2-time1

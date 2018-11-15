@@ -844,7 +844,7 @@ subroutine crpoint
       else
         rewind lout
       endif
-      call timex(time3)
+      call time_timerCheck(time3)
 ! Hope this is correct
 ! Maybe not!!!! this should be accumulative over multiple C/Rs
       time3=(time3-time1)+crtime3

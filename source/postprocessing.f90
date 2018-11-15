@@ -38,6 +38,7 @@ subroutine postpr(nfile)
       use parpro
       use string_tools
       use mod_version
+      use mod_time
       use mod_common, only : dpscor,sigcor,icode,idam,its6d, &
            dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad, &
            ipos,iav,iwg,ivox,ivoz,ires,ifh,toptit, &
@@ -59,8 +60,8 @@ subroutine postpr(nfile)
 #ifdef STF
       integer posi,posi1, ia_stf,ifipa_stf,ilapa_stf
 #endif
-      real tim1,tim2,fxs,fzs
-      real(kind=fPrec) const,dle,slope,tle,varlea,wgh
+      real fxs,fzs
+      real(kind=fPrec) const,dle,slope,tle,varlea,wgh,tim1,tim2
       real(kind=fPrec) alf0,alf04,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,   &
      &alf0z3,ampx0,ampz0,angi,angii,angiii,ared,ares,armin,armin0,b,b0, &
      &bet0,bet04,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,biav,bold,c, &
@@ -121,9 +122,9 @@ subroutine postpr(nfile)
 !--TIME START
       pieni2=c1m8
       tlim=c1e7
-      call timest
+      call time_timerStart
       tim1=zero
-      call timex(tim1)
+      call time_timerCheck(tim1)
 
       do i=1,npos
         do j=1,3
@@ -2699,7 +2700,7 @@ subroutine postpr(nfile)
       rewind 15
 !--TIME COUNT
       tim2=0.
-      call timex(tim2)
+      call time_timerCheck(tim2)
       if(nprint.eq.1) write(lout,10280) tim2-tim1
 !----------------------------------------------------------------------
       return

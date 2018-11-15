@@ -405,8 +405,8 @@ end interface
       time2=0.0
       time3=0.0
       tlim=1e7
-      call timest
-      call timex(time0)
+      call time_timerStart
+      call time_timerCheck(time0)
       do 20 i=1,mmul
         cr(i)=zero
         ci(i)=zero
@@ -1542,7 +1542,7 @@ end interface
                    !call system('../crmain  >> crlog')
 #endif
       time1=0.
-      call timex(time1)
+      call time_timerCheck(time1)
 ! time1 is now pre-processing CPU
 ! note that this will be reset evry restart as we redo pre-processing
       pretime=time1-time0
@@ -1554,7 +1554,7 @@ end interface
 !     call abend('atrack                                            ')
 #endif
       time2=0.
-      call timex(time2)
+      call time_timerCheck(time2)
 ! trtime is now the tracking time, BUT we must add other time for C/R
       trtime=time2-time1
 #ifdef CR
@@ -1866,7 +1866,7 @@ end interface
   call fluka_close
 #endif
       time3=0.
-      call timex(time3)
+      call time_timerCheck(time3)
 ! Note that crpoint no longer destroys time2
       posttime=time3-time2
 #ifdef DEBUG

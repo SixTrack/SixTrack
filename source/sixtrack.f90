@@ -11897,27 +11897,3 @@ subroutine datime(nd,nt)
       nt=values(5)*100+values(6)
       return
 end subroutine datime
-
-subroutine timest
-  use mod_common, only : timestart
-  implicit none
-  logical start
-  data start /.false./
-  save
-  if (.not.start) then
-    start=.true.
-    call cpu_time(timestart)
-  endif
-  return
-end subroutine timest
-
-subroutine timex(r1)
-  use mod_common, only : timestart
-  implicit none
-  real r1,timenow
-  save
-  call timest
-  call cpu_time(timenow)
-  r1=timenow-timestart
-  return
-end subroutine timex

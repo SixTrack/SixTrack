@@ -454,7 +454,7 @@ subroutine abend(cstring)
   end do
   sumda(52)=real(ttot,fPrec)
   ! The CPU
-  call timex(time1)
+  call time_timerCheck(time1)
   trtime=time1-time0
 #ifdef CR
   trtime=trtime+crtime3
