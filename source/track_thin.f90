@@ -1163,6 +1163,7 @@ subroutine thin6d(nthinerr)
   use mod_hions
   use mod_settings
   use mod_meta
+  use mod_time
 
 #ifdef FLUKA
   use mod_fluka
@@ -1392,6 +1393,7 @@ subroutine thin6d(nthinerr)
             .or.  bez(myix)(1:3) == 'COL' .or. bez(myix)(1:3) == 'col') &
             .and. bez(myix)(elemEnd-2:elemEnd) /= "_AP") then
 
+            call time_startClock(time_clockCOLL)
             call collimate_start_collimator(stracki)
 
             !++ For known collimators
@@ -1399,6 +1401,7 @@ subroutine thin6d(nthinerr)
               call collimate_do_collimator(stracki)
               call collimate_end_collimator()
             end if ! end of check for 'found'
+            call time_stopClock(time_clockCOLL)
             !------------------------------------------------------------------
             !++  Here leave the known collimator IF loop...
             !_______________________________________________________________________

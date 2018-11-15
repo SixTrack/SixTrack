@@ -71,7 +71,10 @@ end subroutine meta_initialise
 
 subroutine meta_finalise
 
+  use mod_common, only : numl
+
   call meta_write("NumParticleTurns",      meta_nPartTurn)
+  call meta_write("AvgParticlesPerTurn",   real(meta_nPartTurn,fPrec)/numl, "f15.3")
 #ifdef CR
   call meta_write("NumCheckPointRestarts", meta_nRestarts)
 #endif

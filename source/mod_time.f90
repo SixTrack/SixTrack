@@ -31,6 +31,16 @@ module mod_time
   real(kind=fPrec), public,  save :: time_timeZero = 0.0
   real(kind=fPrec), public,  save :: time_timeRecord(time_beforeExit)
 
+  ! Constants for accumulated time
+  integer, parameter :: time_clockDUMP = 1
+  integer, parameter :: time_clockCOLL = 2
+  integer, parameter :: time_clockSCAT = 3
+
+  real(kind=fPrec), public,  save :: time_clockStart(3)
+  real(kind=fPrec), public,  save :: time_clockTotal(3)
+  integer,          public,  save :: time_clockCount(3)
+  integer,          public,  save :: time_clockStops(3)
+
   real,             private, save :: time_timerRef     = 0.0
   logical,          private, save :: time_timerStarted = .false.
 
@@ -58,6 +68,10 @@ subroutine time_initialise
   call time_writeReal("Internal_ZeroTime",time_timeZero,"sec")
 
   time_timeRecord(:) = 0.0
+  time_clockStart(:) = 0.0
+  time_clockTotal(:) = 0.0
+  time_clockCount(:) = 0
+  time_clockStops(:) = 0
 
 end subroutine time_initialise
 
@@ -67,6 +81,8 @@ subroutine time_finalise
   use mod_common, only : numl, mbloz
 
   real(kind=fPrec) trackTime, nP, nT, nE, nPT, nPTE
+
+  ! Tracking Averages
 
   trackTime = time_timeRecord(time_afterTracking) - time_timeRecord(time_afterPreTrack)
 
@@ -82,7 +98,12 @@ subroutine time_finalise
   call time_writeReal("Avg_PerElement",             1.0e3*trackTime/nE,   "msec")
   call time_writeReal("Avg_PerParticleTurn",        1.0e6*trackTime/nPT,  "usec")
   call time_writeReal("Avg_PerParticleTurnElement", 1.0e9*trackTime/nPTE, "nsec")
-  call time_writeReal("Avg_ParticlesPerTurn",             nP,             "")
+
+  ! Timer Reports
+
+  call time_writeReal("Cost_DumpModule",        time_clockTotal(time_clockDUMP), "sec", time_clockCount(time_clockDUMP))
+  call time_writeReal("Cost_CollimationModule", time_clockTotal(time_clockCOLL), "sec", time_clockCount(time_clockCOLL))
+  call time_writeReal("Cost_ScatterModule",     time_clockTotal(time_clockSCAT), "sec", time_clockCount(time_clockSCAT))
 
   close(time_fileUnit)
 
@@ -129,17 +150,45 @@ subroutine time_timeStamp(timeStamp)
 
 end subroutine time_timeStamp
 
-subroutine time_writeReal(timeLabel, timeValue, timeUnit)
-  character(len=*), intent(in) :: timeLabel
-  real(kind=fPrec), intent(in) :: timeValue
-  character(len=*), intent(in) :: timeUnit
+subroutine time_startClock(timerNo)
+  integer, intent(in) :: timerNo
+  time_clockCount(timerNo) = time_clockCount(timerNo) + 1
+  call cpu_time(time_clockStart(timerNo))
+end subroutine time_startClock
+
+subroutine time_stopClock(timerNo)
+  use crcoall
+  integer, intent(in) :: timerNo
+  real(kind=fPrec) currTime
+  call cpu_time(currTime)
+  time_clockStops(timerNo) = time_clockStops(timerNo) + 1
+  time_clockTotal(timerNo) = time_clockTotal(timerNo) + currTime - time_clockStart(timerNo)
+end subroutine time_stopClock
+
+subroutine time_writeReal(timeLabel, timeValue, timeUnit, dataCount)
+
+  character(len=*),  intent(in) :: timeLabel
+  real(kind=fPrec),  intent(in) :: timeValue
+  character(len=*),  intent(in) :: timeUnit
+  integer, optional, intent(in) :: dataCount
+
+  character(len=40) :: endText
   integer iLen
+
+  if(present(dataCount)) then
+    iLen = len_trim(timeUnit)
+    write(endText,"(a,i0,a)") " "//trim(timeUnit)//repeat(" ",6-iLen)//"[N = ",dataCount,"]"
+  else
+    endText = " "//timeUnit
+  end if
+
   iLen = len_trim(timeLabel)
   if(iLen > 32) then
-    write(time_fileUnit,"(a,f14.6,a)") timeLabel(1:32)//" : ",timeValue," "//timeUnit
+    write(time_fileUnit,"(a,f14.6,a)") timeLabel(1:32)//" : ",timeValue,trim(endText)
   else
-    write(time_fileUnit,"(a,f14.6,a)") trim(timeLabel)//repeat(" ",32-iLen)//" : ",timeValue," "//timeUnit
+    write(time_fileUnit,"(a,f14.6,a)") trim(timeLabel)//repeat(" ",32-iLen)//" : ",timeValue,trim(endText)
   end if
+
 end subroutine time_writeReal
 
 ! ================================================================================================ !
