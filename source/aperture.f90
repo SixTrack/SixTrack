@@ -1287,8 +1287,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
         end if
         llost=llost.or.llostp(j)
 
-      else if (do_coll) then
-        llostp(j)=.false.
       end if
     end do
 
@@ -1317,8 +1315,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
         end if
         llost=llost.or.llostp(j)
 
-      else if (do_coll) then
-        llostp(j)=.false.
       end if
 
     end do
@@ -1346,8 +1342,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
         end if
         llost=llost.or.llostp(j)
 
-      else if (do_coll) then
-        llostp(j)=.false.
       end if
 
     end do
@@ -1377,8 +1371,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
         end if
         llost=llost.or.llostp(j)
 
-      else if (do_coll) then
-        llostp(j)=.false.
       end if
 
     end do
@@ -1408,8 +1400,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
         end if
         llost=llost.or.llostp(j)
 
-      else if (do_coll) then
-        llostp(j)=.false.
       end if
     end do
 
@@ -1436,8 +1426,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
         end if
         llost=llost.or.llostp(j)
 
-      else if (do_coll) then
-        llostp(j)=.false.
       end if
 
     end do
@@ -1466,8 +1454,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost, nthinerr)
         end if
         llost=llost.or.llostp(j)
 
-      else if (do_coll) then
-        llostp(j)=.false.
       end if
     end do
 

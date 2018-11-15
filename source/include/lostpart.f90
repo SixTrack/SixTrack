@@ -10,14 +10,19 @@
   if(.not.limifound.or.kape(ix).eq.0) then
     ! limi block not there or aperture type not assigned
     ! general check (set in the ITER block)
-    do j=1,napx
-      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+    if (do_coll) then
+      do j=1,napx
+        if(part_abs_turn(j).eq.0) then
+          llostp(j)=(abs(xv1(j)).gt.aper(1)).or.(abs(xv2(j)).gt.aper(2))
+          llost=llost.or.llostp(j)
+        end if
+      end do
+    else
+      do j=1,napx
         llostp(j)=(abs(xv1(j)).gt.aper(1)).or.(abs(xv2(j)).gt.aper(2))
         llost=llost.or.llostp(j)
-      else if (do_coll) then
-        llostp(j)=.false.
-      end if
-    end do
+      end do
+    end if
 
   else
 
