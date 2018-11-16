@@ -583,6 +583,7 @@ module mod_commonmn
   integer,          allocatable, save :: nlostp(:)    ! (npart)
 
   logical,          allocatable, save :: pstop(:)     ! (npart)
+  logical,          allocatable, save :: llostp(:)    ! (npart)
 
   real(kind=fPrec),              save :: qw(2)
   real(kind=fPrec),              save :: qwc(3)
@@ -709,6 +710,7 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   call alloc(nms,              npart_new,      0,       "nms")
   call alloc(nlostp,           npart_new,      0,       "nlostp")
   call alloc(pstop,            npart_new,      .false., "pstop")
+  call alloc(llostp,           npart_new,      .false., "llostp")
 
   call alloc(dpd,              npart_new,      zero,    "dpd")
   call alloc(dpsq,             npart_new,      zero,    "dpsq")
