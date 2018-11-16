@@ -823,6 +823,7 @@ subroutine scatter_thin(iElem, ix, turn)
 
   use string_tools
   use crcoall
+  use mod_time
   use mod_hions
   use mod_alloc
   use mod_common
@@ -872,6 +873,9 @@ subroutine scatter_thin(iElem, ix, turn)
     ! Skip the whole thing if the scaling is ~zero
     return
   end if
+
+  ! If not, we're doing something, so start the stop watch
+  call time_startClock(time_clockSCAT)
 
   ! Store the seeds in the randum number generator, and set ours
   call recuut(tmpSeed1,tmpSeed2)
@@ -1091,6 +1095,8 @@ subroutine scatter_thin(iElem, ix, turn)
   call dealloc(pScattered,"pScattered")
   call dealloc(nLost,     "nLost")
   call dealloc(nScattered,"nScattered")
+
+  call time_stopClock(time_clockSCAT)
 
 end subroutine scatter_thin
 
