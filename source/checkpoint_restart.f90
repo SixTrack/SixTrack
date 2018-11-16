@@ -121,7 +121,7 @@ subroutine cr_killSwitch(iTurn)
   use crcoall
   use file_units
   use mod_settings
-  
+
   integer, intent(in) :: iTurn
 
   logical killIt
@@ -189,6 +189,7 @@ subroutine crcheck
   use mod_commond
   use mod_hions
   use mod_version
+  use mod_meta
 
   implicit none
 
@@ -273,6 +274,11 @@ subroutine crcheck
       (crdpsvl(j),j=1,crnapxo),         &
       (crejvl(j),j=1,crnapxo),          &
       (crsigmvl(j),j=1,crnapxo)
+
+    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record META"
+    flush(93)
+    call meta_crcheck(95,lerror)
+    if(lerror) goto 100
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 5 DUMP"
     flush(93)
@@ -365,8 +371,8 @@ subroutine crcheck
 
     read(96,err=101,end=101) cr_version,cr_moddate
     if ((cr_version /= version) .or. (cr_moddate /= moddate)) then
-      write(93,"(a)") "SIXTRACR> CRCHECK: fort.96 was written by SixTrack version="//cr_version//" moddate="//cr_moddate
-      write(93,"(a)") "          This is SixTrack version="//version//" moddate="//moddate
+      write(93,"(a)") "SIXTRACR> CRCHECK: fort.96 was written by SixTrack version='"//cr_version//"' moddate='"//cr_moddate//"'"
+      write(93,"(a)") "          This is SixTrack version='"//version//"' moddate='"//moddate//"'"
       write(93,"(a)") "          Version mismatch; giving up on this file."
       flush(93)
       goto 101
@@ -402,6 +408,11 @@ subroutine crcheck
       (crdpsvl(j),j=1,crnapxo),          &
       (crejvl(j),j=1,crnapxo),           &
       (crsigmvl(j),j=1,crnapxo)
+
+    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record META"
+    flush(93)
+    call meta_crcheck(96,lerror)
+    if(lerror) goto 100
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 5 DUMP"
     flush(93)
@@ -819,6 +830,8 @@ subroutine crpoint
       use mod_commond
       use mod_hions
       use mod_version
+      use mod_time
+      use mod_meta
 
       implicit none
 
@@ -896,7 +909,7 @@ subroutine crpoint
       else
         rewind lout
       endif
-      call timex(time3)
+      call time_timerCheck(time3)
 ! Hope this is correct
 ! Maybe not!!!! this should be accumulative over multiple C/Rs
       time3=(time3-time1)+crtime3
@@ -980,6 +993,14 @@ subroutine crpoint
       &(sigmvl(j),j=1,napxo)
       endfile (95,iostat=ierro)
       backspace (95,iostat=ierro)
+
+      if(ncalls <= 20 .or. numx >= numl-20) then
+        write(93,"(a)") "SIXTRACR> CRPOINT Writing META variables to fort.95"
+        endfile(93,iostat=ierro)
+        backspace(93,iostat=ierro)
+      endif
+      call meta_crpoint(95,lerror,ierro)
+      if(lerror) goto 100
 
 #ifndef DEBUG
       if (ncalls.le.20.or.numx.ge.numl-20) then
@@ -1159,6 +1180,14 @@ subroutine crpoint
       endfile (96,iostat=ierro)
       backspace (96,iostat=ierro)
 
+      if(ncalls <= 20 .or. numx >= numl-20) then
+        write(93,"(a)") "SIXTRACR> CRPOINT Writing META variables to fort.96"
+        endfile(93,iostat=ierro)
+        backspace(93,iostat=ierro)
+      end if
+      call meta_crpoint(96,lerror,ierro)
+      if(lerror) goto 100
+
 #ifndef DEBUG
       if (ncalls.le.20.or.numx.ge.numl-20) then
 #endif
@@ -1317,7 +1346,7 @@ subroutine crstart
       use mod_commons
       use mod_commont
       use mod_commond
-
+      use mod_meta
       use mod_alloc
       use mod_hions
 
@@ -1328,8 +1357,7 @@ subroutine crstart
       integer j,l,k,m,i
       character(len=256) filename
       save
-      write(93,*)                                                       &
-      &'SIXTRACR CRSTART called crnumlcr',crnumlcr
+      write(93,"(a,i0)") "SIXTRACR> CRSTART called crnumlcr ",crnumlcr
       endfile (93,iostat=ierro)
       backspace (93,iostat=ierro)
       numlcr=crnumlcr
@@ -1389,6 +1417,8 @@ subroutine crstart
         endif
       enddo
 !ERIC new extended checkpoint for synuthck
+
+      call meta_crstart
 
       if (dynk_enabled) then
           call dynk_crstart
