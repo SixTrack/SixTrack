@@ -57,6 +57,7 @@ SET(TESTS_NOFORT10
   dump5
   dump6
   fileunits_DYNK_DUMP
+  momentum_scan
   multipoles_DYNK
   beambeamDYNK
   beambeam4dDYNK
@@ -83,7 +84,8 @@ SET(TESTS_NO_STF_FORT90
   dynk_operators
   dynk_random
   dynk_polynomial
-  )
+  scatter_bbelastic
+)
 
 # List of tests that absolutely require STF to be on (> 64 particles)
 IF(STF)
@@ -95,7 +97,7 @@ IF(STF)
     dynk_operators
     scatter_aperture
     ${SIXTRACK_TESTS}
-    )
+  )
 ENDIF(STF)
 
 if(LIBARCHIVE)
@@ -164,6 +166,7 @@ SET(SIXTRACK_TESTS
   fileunits_DYNK_DUMP
   multipoles_DYNK
   geometry
+  momentum_scan
   beambeamDYNK
   beambeam4dDYNK
   beam-HO_4D-newstyle
@@ -405,6 +408,7 @@ SET(FAST_TESTS
   fileunits_DYNK_DUMP
   multipoles_DYNK
   geometry
+  momentum_scan
   fcc
   beambeamDYNK
   beambeam4dDYNK

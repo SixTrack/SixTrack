@@ -1,9 +1,9 @@
 ! start include/alignvb.f90
 #ifndef TILT
-  xlvj=xv(1,j)-xsiv(1,i)
-  zlvj=xv(2,j)-zsiv(1,i)
+  xlvj=xv1(j)-xsiv(i)
+  zlvj=xv2(j)-zsiv(i)
 #else
-  xlvj=(xv(1,j)-xsiv(1,i))*tiltc(i)+(xv(2,j)-zsiv(1,i))*tilts(i)
-  zlvj=(xv(2,j)-zsiv(1,i))*tiltc(i)-(xv(1,j)-xsiv(1,i))*tilts(i)
+  xlvj=(xv1(j)-xsiv(i))*tiltc(i)+(xv2(j)-zsiv(i))*tilts(i)
+  zlvj=(xv2(j)-zsiv(i))*tiltc(i)-(xv1(j)-xsiv(i))*tilts(i)
 #endif
 ! end include/alignvb.f90
