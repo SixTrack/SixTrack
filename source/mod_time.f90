@@ -66,7 +66,7 @@ subroutine time_initialise
   write(time_fileUnit,"(a)") repeat("#",80)
   flush(time_fileUnit)
 
-  call time_writeReal("Internal_ZeroTime",time_timeZero,"sec")
+  call time_writeReal("Internal_ZeroTime",time_timeZero,"s")
 
   time_timeRecord(:) = 0.0
   time_clockStart(:) = 0.0
@@ -93,18 +93,18 @@ subroutine time_finalise
   nP   = nPT/nT
   nPTE = nPT*nE
 
-  call time_writeReal("Sum_Tracking",                     trackTime,      "sec")
-  call time_writeReal("Avg_PerParticle",            1.0e3*trackTime/nP,   "msec")
-  call time_writeReal("Avg_PerTurn",                1.0e3*trackTime/nT,   "msec")
-  call time_writeReal("Avg_PerElement",             1.0e3*trackTime/nE,   "msec")
-  call time_writeReal("Avg_PerParticleTurn",        1.0e6*trackTime/nPT,  "usec")
-  call time_writeReal("Avg_PerParticleTurnElement", 1.0e9*trackTime/nPTE, "nsec")
+  call time_writeReal("Sum_Tracking",                     trackTime,      "s")
+  call time_writeReal("Avg_PerParticle",            1.0e3*trackTime/nP,   "ms")
+  call time_writeReal("Avg_PerTurn",                1.0e3*trackTime/nT,   "ms")
+  call time_writeReal("Avg_PerElement",             1.0e3*trackTime/nE,   "ms")
+  call time_writeReal("Avg_PerParticleTurn",        1.0e6*trackTime/nPT,  "us")
+  call time_writeReal("Avg_PerParticleTurnElement", 1.0e9*trackTime/nPTE, "ns")
 
   ! Timer Reports
 
-  call time_writeReal("Cost_DumpModule",        time_clockTotal(time_clockDUMP), "sec", time_clockCount(time_clockDUMP))
-  call time_writeReal("Cost_CollimationModule", time_clockTotal(time_clockCOLL), "sec", time_clockCount(time_clockCOLL))
-  call time_writeReal("Cost_ScatterModule",     time_clockTotal(time_clockSCAT), "sec", time_clockCount(time_clockSCAT))
+  call time_writeReal("Cost_DumpModule",        time_clockTotal(time_clockDUMP), "s", time_clockCount(time_clockDUMP))
+  call time_writeReal("Cost_CollimationModule", time_clockTotal(time_clockCOLL), "s", time_clockCount(time_clockCOLL))
+  call time_writeReal("Cost_ScatterModule",     time_clockTotal(time_clockSCAT), "s", time_clockCount(time_clockSCAT))
 
   write(time_fileUnit,"(a)") "# END"
   flush(time_fileUnit)
@@ -124,31 +124,31 @@ subroutine time_timeStamp(timeStamp)
 
   select case(timeStamp)
   case(time_afterFileUnits)
-    call time_writeReal("Stamp_AfterFileUnits",      timeValue, "sec")
+    call time_writeReal("Stamp_AfterFileUnits",      timeValue, "s")
   case(time_afterDaten)
-    call time_writeReal("Stamp_AfterDaten",          timeValue, "sec")
+    call time_writeReal("Stamp_AfterDaten",          timeValue, "s")
   case(time_afterCRCheck)
-    call time_writeReal("Stamp_AfterCRCheck",        timeValue, "sec")
+    call time_writeReal("Stamp_AfterCRCheck",        timeValue, "s")
   case(time_afterClosedOrbit)
-    call time_writeReal("Stamp_AfterClosedOrbit",    timeValue, "sec")
+    call time_writeReal("Stamp_AfterClosedOrbit",    timeValue, "s")
   case(time_afterBeamDist)
-    call time_writeReal("Stamp_AfterBeamDist",       timeValue, "sec")
+    call time_writeReal("Stamp_AfterBeamDist",       timeValue, "s")
   case(time_afterInitialisation)
-    call time_writeReal("Stamp_AfterInitialisation", timeValue, "sec")
+    call time_writeReal("Stamp_AfterInitialisation", timeValue, "s")
   case(time_afterPreTrack)
-    call time_writeReal("Stamp_AfterPreTrack",       timeValue, "sec")
+    call time_writeReal("Stamp_AfterPreTrack",       timeValue, "s")
   case(time_afterTracking)
-    call time_writeReal("Stamp_AfterTracking",       timeValue, "sec")
+    call time_writeReal("Stamp_AfterTracking",       timeValue, "s")
   case(time_afterPostTrack)
-    call time_writeReal("Stamp_AfterPostTrack",      timeValue, "sec")
+    call time_writeReal("Stamp_AfterPostTrack",      timeValue, "s")
   case(time_afterPostProcessing)
-    call time_writeReal("Stamp_AfterPostProcessing", timeValue, "sec")
+    call time_writeReal("Stamp_AfterPostProcessing", timeValue, "s")
   case(time_afterFMA)
-    call time_writeReal("Stamp_AfterFMA",            timeValue, "sec")
+    call time_writeReal("Stamp_AfterFMA",            timeValue, "s")
   case(time_afterZIPF)
-    call time_writeReal("Stamp_AfterZIPF",           timeValue, "sec")
+    call time_writeReal("Stamp_AfterZIPF",           timeValue, "s")
   case(time_beforeExit)
-    call time_writeReal("Stamp_BeforeExit",          timeValue, "sec")
+    call time_writeReal("Stamp_BeforeExit",          timeValue, "s")
   end select
 
 end subroutine time_timeStamp
@@ -179,7 +179,7 @@ subroutine time_writeReal(timeLabel, timeValue, timeUnit, dataCount)
 
   if(present(dataCount)) then
     iLen = len_trim(timeUnit)
-    write(endText,"(a,i0,a)") " "//trim(timeUnit)//repeat(" ",6-iLen)//"[N = ",dataCount,"]"
+    write(endText,"(a,i0,a)") " "//trim(timeUnit)//repeat(" ",4-iLen)//"[N = ",dataCount,"]"
   else
     endText = " "//timeUnit
   end if
