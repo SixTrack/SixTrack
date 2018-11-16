@@ -12,6 +12,7 @@ subroutine trauthin(nthinerr)
   use dynk, only : dynk_enabled, dynk_isused, dynk_pretrack
 
   use mod_alloc
+  use mod_time
 
 #ifdef FLUKA
   use mod_fluka
@@ -425,6 +426,7 @@ subroutine trauthin(nthinerr)
   if(nwri.eq.0) nwri=(numl+numlr)+1
 
   if (dynk_enabled) call dynk_pretrack
+  call time_timeStamp(time_afterPreTrack)
 
   if ((idp == 0 .or. ition == 0) .and. .not.do_coll) then !4D tracking (not collimat compatible)
     write(lout,"(a)") ""
@@ -511,6 +513,7 @@ subroutine thin4d(nthinerr)
   use root_output
 #endif
 
+  use mod_meta
   use mod_hions
   use mod_settings
   use postprocessing, only : writebin
@@ -581,6 +584,7 @@ subroutine thin4d(nthinerr)
   if(st_quiet < 3) then
     if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
   end if
+  meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
     ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
@@ -1147,6 +1151,8 @@ subroutine thin6d(nthinerr)
   use aperture
   use mod_hions
   use mod_settings
+  use mod_meta
+  use mod_time
 
 #ifdef FLUKA
   use mod_fluka
@@ -1226,6 +1232,7 @@ subroutine thin6d(nthinerr)
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
     end if
+    meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
     ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
@@ -1375,6 +1382,7 @@ subroutine thin6d(nthinerr)
             .or.  bez(myix)(1:3) == 'COL' .or. bez(myix)(1:3) == 'col') &
             .and. bez(myix)(elemEnd-2:elemEnd) /= "_AP") then
 
+            call time_startClock(time_clockCOLL)
             call collimate_start_collimator(stracki)
 
             !++ For known collimators
@@ -1382,6 +1390,7 @@ subroutine thin6d(nthinerr)
               call collimate_do_collimator(stracki)
               call collimate_end_collimator()
             end if ! end of check for 'found'
+            call time_stopClock(time_clockCOLL)
             !------------------------------------------------------------------
             !++  Here leave the known collimator IF loop...
             !_______________________________________________________________________
