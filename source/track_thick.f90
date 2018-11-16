@@ -474,6 +474,7 @@ subroutine thck4d(nthinerr)
   use bdex, only : bdex_enable
   use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
+  use collimation, only: do_coll, part_abs_turn
   use aperture
 
 #ifdef FLUKA
@@ -1048,19 +1049,7 @@ subroutine thck4d(nthinerr)
 
 470   continue
 
-      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-      ! last modified: 17-07-2013
-      ! on-line aperture check
-      ! always in main code
-      call lostpart( n, i, ix, llost, nthinerr )
-      ! stop tracking if no particle survives to this element
-      if(nthinerr.ne.0) return
-      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-      ! last modified: 16-07-2018
-      if ( lbacktracking ) then
-         ! store infos of last aperture marker
-         if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
-      end if
+#include "include/lostpart.f90"
 
 #ifdef FLUKA
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -1130,6 +1119,7 @@ subroutine thck6d(nthinerr)
   use bdex, only : bdex_enable
   use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
+  use collimation, only: do_coll, part_abs_turn
   use aperture
 
 #ifdef FLUKA
@@ -1785,19 +1775,7 @@ subroutine thck6d(nthinerr)
 
 490   continue
 
-      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-      ! last modified: 17-07-2013
-      ! on-line aperture check
-      ! always in main code
-      call lostpart( n, i, ix, llost, nthinerr )
-      ! stop tracking if no particle survives to this element
-      if(nthinerr.ne.0) return
-      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-      ! last modified: 16-07-2018
-      if ( lbacktracking ) then
-         ! store infos of last aperture marker
-         if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
-      end if
+#include "include/lostpart.f90"
 
 #ifdef FLUKA
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
