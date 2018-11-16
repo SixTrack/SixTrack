@@ -17,6 +17,7 @@ module mod_meta
   ! Collected MetaData
   integer,           public,  save :: meta_nPartInit = 0 ! Initial number of particles
   integer,           public,  save :: meta_nPartTurn = 0 ! Counted in tracking routines
+  integer,           public,  save :: meta_nRestarts = 0 ! Number of C/Rs
 
   ! Meta Write Interface
   interface meta_write
@@ -40,7 +41,6 @@ module mod_meta
   private :: meta_write_log
 
 #ifdef CR
-  integer, public,  save :: meta_nRestarts    = 0
   integer, public,  save :: meta_nRestarts_CR = 0
   integer, private, save :: meta_nPartTurn_CR = 0
 #endif
@@ -75,9 +75,7 @@ subroutine meta_finalise
 
   call meta_write("NumParticleTurns",      meta_nPartTurn)
   call meta_write("AvgParticlesPerTurn",   real(meta_nPartTurn,fPrec)/numl, "f15.3")
-#ifdef CR
   call meta_write("NumCheckPointRestarts", meta_nRestarts)
-#endif
 
   meta_isActive = .false.
   close(meta_fileUnit)
@@ -226,6 +224,11 @@ subroutine meta_checkActive
 end subroutine meta_checkActive
 
 #ifdef CR
+! ================================================================================================ !
+!  CheckPoint/Restart Routines
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-11-16
+! ================================================================================================ !
 subroutine meta_crcheck(fileUnit, readErr)
 
   use crcoall
@@ -239,8 +242,8 @@ subroutine meta_crcheck(fileUnit, readErr)
   return
 
 10 continue
-  write(lout,"(a,i0)") "META> READERR meta_crcheck, fileUnit = ",fileUnit
-  write(93,  "(a,i0)") "META> READERR meta_crcheck, fileUnit = ",fileUnit
+  write(lout,"(a,i0)") "META> ERROR Reading in meta_crcheck from fileUnit #",fileUnit
+  write(93,  "(a,i0)") "META> ERROR Reading in meta_crcheck from fileUnit #",fileUnit
   readErr = .true.
 
 end subroutine meta_crcheck
@@ -258,12 +261,14 @@ subroutine meta_crpoint(fileUnit, writeErr, iErro)
   return
 
 10 continue
+  write(lout,"(a,i0)") "META> ERROR Writing in meta_crpoint to fileUnit #",fileUnit
+  write(93,  "(a,i0)") "META> ERROR Writing in meta_crpoint to fileUnit #",fileUnit
   writeErr = .true.
 
 end subroutine meta_crpoint
 
 subroutine meta_crstart
-  meta_nRestarts = meta_nRestarts_CR + 1
+  meta_nRestarts = meta_nRestarts_CR + 1 ! Restore previous value, and increment
   meta_nPartTurn = meta_nPartTurn_CR
 end subroutine meta_crstart
 #endif
