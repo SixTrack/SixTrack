@@ -1503,7 +1503,6 @@ end interface
   ! P.Garcia Ortega, A.Mereghetti and V.Vlachoudis, for the FLUKA Team
   ! last modified: 26-08-2014
   ! send napx to fluka
-  ! inserted in main code by the 'fluka' compilation flag
   if(fluka_enable) then
     write(lout,"(a,i0)") "FLUKA> Sending napx = ",napx
     write(fluka_log_unit,*) "# Sending napx: ", napx
@@ -1526,7 +1525,6 @@ end interface
   ! initialise energy/momentum/rest mass of reference particle in mod_fluka
   !     and synch magnetic rigidity with Fluka (for the time being, consider
   !     only protons);
-  ! inserted in main code by the 'fluka' compilation flag
   if(fluka_enable) then
     write(lout,"(a)") "FLUKA> Updating the reference particle"
     write(fluka_log_unit,*) "# Updating ref particle"
@@ -1726,7 +1724,6 @@ end interface
   ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
   ! last modified: 17-07-2013
   ! print stable particles only
-  ! inserted in main code by the 'fluka' compilation flag
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
   if(napxo > 0) then
@@ -1850,9 +1847,8 @@ end interface
   ! collect a couple of goto statements, sending code flow
   !   to different plotting points, which are not actually
   !   inserted
-  ! inserted in main code by the 'fluka' compilation flag
- 490  continue
- 520  continue
+490 continue
+520 continue
   call fluka_close
 #endif
 
@@ -1868,11 +1864,11 @@ end interface
   write(lout,"(a)")         ""
   write(lout,"(a)")         "    Computing Time Summary"
   write(lout,"(a)")         "  =========================="
-  write(lout,"(a,f14.3,a)") "    Preparating Calculations: ",pretime, " second(s)"
-  write(lout,"(a,f14.3,a)") "    Particle Tracking:        ",trtime,  " second(s)"
-  write(lout,"(a,f14.3,a)") "    Post Processing:          ",posttime," second(s)"
-  write(lout,"(a,f14.3,a)") "    Total Time Used:          ",tottime, " second(s)"
-  write(lout,"(a,i10)")     "    Particle Turns:           ",meta_nPartTurn
+  write(lout,"(a,f12.3,a)") "    Preparating Calculations: ",pretime, " second(s)"
+  write(lout,"(a,f12.3,a)") "    Particle Tracking:        ",trtime,  " second(s)"
+  write(lout,"(a,f12.3,a)") "    Post Processing:          ",posttime," second(s)"
+  write(lout,"(a,f12.3,a)") "    Total Time Used:          ",tottime, " second(s)"
+  write(lout,"(a,i8)")      "    Particle Turns:           ",meta_nPartTurn
   write(lout,"(a)")         ""
   write(lout,"(a)")         str_divLine
 
@@ -2011,7 +2007,6 @@ end interface
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
 !     print stable particles only (format directives)
-!     inserted in main code by the 'fluka' compilation flag
 10350 format(4X,I8,1X,'SURVIVING PARTICLES:')
 10360 format(2(1X,A8),8(1X,A16))
 10370 format(2(1X,I8),8(1X,1PE16.9))
