@@ -64,6 +64,7 @@ subroutine time_initialise
 
   write(time_fileUnit,"(a)") "# SixTrack Simulation Time Data"
   write(time_fileUnit,"(a)") repeat("#",80)
+  flush(time_fileUnit)
 
   call time_writeReal("Internal_ZeroTime",time_timeZero,"sec")
 
@@ -105,6 +106,8 @@ subroutine time_finalise
   call time_writeReal("Cost_CollimationModule", time_clockTotal(time_clockCOLL), "sec", time_clockCount(time_clockCOLL))
   call time_writeReal("Cost_ScatterModule",     time_clockTotal(time_clockSCAT), "sec", time_clockCount(time_clockSCAT))
 
+  write(time_fileUnit,"(a)") "# END"
+  flush(time_fileUnit)
   close(time_fileUnit)
 
 end subroutine time_finalise
@@ -157,7 +160,6 @@ subroutine time_startClock(timerNo)
 end subroutine time_startClock
 
 subroutine time_stopClock(timerNo)
-  use crcoall
   integer, intent(in) :: timerNo
   real(kind=fPrec) currTime
   call cpu_time(currTime)
@@ -188,6 +190,8 @@ subroutine time_writeReal(timeLabel, timeValue, timeUnit, dataCount)
   else
     write(time_fileUnit,"(a,f14.6,a)") trim(timeLabel)//repeat(" ",32-iLen)//" : ",timeValue,trim(endText)
   end if
+
+  flush(time_fileUnit)
 
 end subroutine time_writeReal
 

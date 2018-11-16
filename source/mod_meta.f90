@@ -77,8 +77,11 @@ subroutine meta_finalise
   call meta_write("AvgParticlesPerTurn",   real(meta_nPartTurn,fPrec)/numl, "f15.3")
   call meta_write("NumCheckPointRestarts", meta_nRestarts)
 
-  meta_isActive = .false.
+  write(meta_fileUnit,"(a)") "# END"
+  flush(meta_fileUnit)
   close(meta_fileUnit)
+
+  meta_isActive = .false.
 
 end subroutine meta_finalise
 
@@ -249,6 +252,8 @@ subroutine meta_crcheck(fileUnit, readErr)
 end subroutine meta_crcheck
 
 subroutine meta_crpoint(fileUnit, writeErr, iErro)
+
+  use crcoall
 
   integer, intent(in)    :: fileUnit
   logical, intent(out)   :: writeErr
