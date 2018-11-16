@@ -20,6 +20,9 @@
 * The FMA output files will no longer contain NaN values. The NaN values were deliberate return values for `atan2(0,0)` call. This behaviour has been changed to return `0d0` instead, following [IEEE Std 1003.1-2017 (Revision of IEEE Std 1003.1-2008)](http://pubs.opengroup.org/onlinepubs/9699919799/). The nagfor compiler does not comply with this standard, and the return value for the nagfor built executables is handled by an additional if statement.
 * Added DYNK support for coupled 4D beam-beam elements.
 * Introduced consistent settings of coupling in the strong beam for 4D.
+* A new output file, `sim_meta.dat`, has been added. The file lists name value pairs of information about the last run simulation.
+* A new output file, `sim-time.dat`, has been added. The file lists time stamps throughout the simulation in key points, as well as compute cpu time averages.
+* Parsing of beam distribution file `fort.13` has been changed. It now uses the `CRLIBM` rounding library. In addition, the energy per particle value read from the file is ignored and computed from the delta_p value provided.
 
 **Build System**
 
@@ -33,6 +36,8 @@
 * A set of developer tools for MAD-X/SixTrack output testing and comparison has been added in the `devtools` folder.
 * The standard output from SixTrack has been cleaned up and tweaked a little.
 * A new subroutine for initialising the random number generator has been added. This routine has proper boundary checks on the seeds. It can also optionally accept one seed. instead ow two. The second seed is then calculated by a fixed offset.
+* The internal NAFF library has been replaced by a rewritten external library now included as a submodule.
+* Remaining code for multiple machines (different random seeds) has bean cleaned out. The feature was already disabled.
 
 ### Version 5.0.2 [23.08.2018] - Release
 
