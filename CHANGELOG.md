@@ -1,6 +1,6 @@
 # SixTrack Changelog
 
-### Version 5.0.3 [25.10.2018] - Release
+### Version 5.0.3 [XX.11.2018] - Release
 
 **Bug Fixes**
 
@@ -13,6 +13,8 @@
 * Fixed a bug where ifort would not accept `180_fPrec` as a valid floating point number in the `aperture` module.
 * Removed references to intrinsic `ieee_arithmetic` due to significant performance loss when building with gfortran.
 * The particle array `dpsv1` was wrongly updated in various parts of SixTrack. This has now been corrected. The error only affected ion tracking, but not protons.
+* Previous fix to trombone elements in v5.0.1 was only for thin tracking. The same fix has now been applied to thick tracking.
+* Loading beam population with the `DIST` block did not update all energy/momentum arrays correctly on initialisation. This is now fixed. The change is very small.
 
 **User Side Changes**
 
@@ -21,8 +23,10 @@
 * Added DYNK support for coupled 4D beam-beam elements.
 * Introduced consistent settings of coupling in the strong beam for 4D.
 * A new output file, `sim_meta.dat`, has been added. The file lists name value pairs of information about the last run simulation.
-* A new output file, `sim-time.dat`, has been added. The file lists time stamps throughout the simulation in key points, as well as compute cpu time averages.
-* Parsing of beam distribution file `fort.13` has been changed. It now uses the `CRLIBM` rounding library. In addition, the energy per particle value read from the file is ignored and computed from the delta_p value provided.
+* A new output file, `sim_time.dat`, has been added. The file lists time stamps throughout the simulation in key points, as well as compute cpu time averages.
+* Parsing of beam distribution file `fort.13` has been updated. The energy per particle value read from the file is ignored and computed from the delta_p (`dpsv`) value provided.
+* The `DIST` block has been updated to use the `CRLIBM` rounding library.
+* The Collimation module now accepts dist format 0, which bypasses the internal beam distribution generator and instead uses the one defined by the `INIT` or `DIST` block.
 
 **Build System**
 
@@ -35,9 +39,14 @@
 
 * A set of developer tools for MAD-X/SixTrack output testing and comparison has been added in the `devtools` folder.
 * The standard output from SixTrack has been cleaned up and tweaked a little.
-* A new subroutine for initialising the random number generator has been added. This routine has proper boundary checks on the seeds. It can also optionally accept one seed. instead ow two. The second seed is then calculated by a fixed offset.
+
+**Code Improvements and Changes**
+
+* A new subroutine for initialising the random number generator has been added. This routine has proper boundary checks on the seeds. It can also optionally accept one seed. instead of two. The second seed is then calculated by a fixed offset.
 * The internal NAFF library has been replaced by a rewritten external library now included as a submodule.
 * Remaining code for multiple machines (different random seeds) has bean cleaned out. The feature was already disabled.
+* Aperture checks have been inlined to improve performance.
+* Particle vectors for [x,y] and [xp,yp] has been split up into 4 separate vectors.
 
 ### Version 5.0.2 [23.08.2018] - Release
 
