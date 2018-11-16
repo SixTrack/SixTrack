@@ -2336,7 +2336,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   if(element_name == "GLOBAL-VARS") then
     if(att_name == "E0" ) then
       ! Modify the reference particle
-      call part_updateEnergy(newValue)
+      call part_updateRefEnergy(newValue)
     end if
     ldoubleElement = .true.
   end if
@@ -2349,47 +2349,46 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
       el_type=kz(ii)      ! type found
 
       if(ldoubleElement) then ! Sanity check
-        write(lout,*) "DYNK> ERROR Two elements with the same BEZ"
+        write(lout,"(a)") "DYNK> ERROR Two elements with the same BEZ"
         call prror(-1)
       end if
       ldoubleElement = .true.
 
       select case(abs(el_type))
-        
+
       case(1,2,3,4,5,6,7,8,9,10)
         ! horizontal bending kick, quadrupole kick, sextupole kick, octupole kick, decapole kick,
         ! dodecapole kick, 14th pole kick, 16th pole kick, 18th pole kick,20th pole kick
-
         if(att_name == "average_ms") then
           ed(ii) = newValue
         else
           goto 100 ! ERROR
         end if
         call initialize_element(ii, .false.)
-  
+
       case(11)
-        im=irm(ii)
-        if(att_name=="scaleall") then
-          scalemu(im) = newValue 
+        im = irm(ii)
+        if(att_name == "scaleall") then
+          scalemu(im) = newValue
         else if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
-          if(LEN_TRIM(att_name) .eq. 5) then
+          if(len_trim(att_name) == 5) then
             range = 3
             call chr_cast(att_name(2:2), orderMult, iErr)
-          else if(LEN_TRIM(att_name) .eq. 6) then
+          else if(len_trim(att_name) == 6) then
             call chr_cast(att_name(2:3), orderMult, iErr)
             range = 4
           else
             goto 100
-          endif
+          end if
           if(iErr) goto 100
-          if(nmu(ii) .lt. orderMult) then
+          if(nmu(ii) < orderMult) then
             nmu(ii) = orderMult
-          endif
-          
-          r0 = r00(im)
+          end if
+
+          r0  = r00(im)
           r0a = one
           do k=2,orderMult
-            r0a=r0a*r0
+            r0a = r0a*r0
           end do
           if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
             aka(im,orderMult) = newValue*benkc(im)/r0a
@@ -2399,13 +2398,12 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
             ak0(im,orderMult) = newValue*benkc(im)/r0a
           else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "str") then
             bk0(im,orderMult) = newValue*benkc(im)/r0a
-          else 
+          else
             goto 100 ! ERROR
-          endif
-        endif
-
+          end if
+        end if
         call initialize_element(ii, .false.)
-     
+
       case(12)
         if(att_name == "voltage") then ! [MV]
           ed(ii) = newValue
@@ -2424,48 +2422,50 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         end if
 
       ! Not yet supported : AC dipole (16)
+
       case(20)
-       if(beam_expflag.eq.1) then
-         if (att_name == "h-sep") then ! [mm]
-           parbe(ii,5) = newValue
-         else if (att_name == "v-sep") then ! [mm]
-           parbe(ii,6) = newValue
-         else if (att_name=="4dSxx") then !strong I think
-           parbe(ii,1) = newValue
-         else if (att_name=="4dSyy") then
-           parbe(ii,3) = newValue
-         else if (att_name=="4dSxy") then
-           parbe(ii,13) = newValue
-         else if (att_name == "strength") then ! 
-           ptnfac(ii) = newValue
-           parbe(ii,4)=(((-one*crad)*ptnfac(ii))*half)*c1m6
-         else if(att_name == "Sxx") then
-           parbe(ii,7) = newValue 
-         else if(att_name == "Sxxp") then
-           parbe(ii,8) = newValue
-         else if(att_name == "Sxpxp") then
-           parbe(ii,9) = newValue
-         else if(att_name == "Syy") then
-           parbe(ii,10) = newValue
-         else if(att_name == "Syyp") then
-           parbe(ii,11) = newValue
-         else if(att_name == "Sypyp") then
-           parbe(ii,12) = newValue
-         else if(att_name == "Sxy") then
-           parbe(ii,13) = newValue
-         else if(att_name == "Sxyp") then
-           parbe(ii,14) = newValue 
-         else if(att_name == "Sxpy") then
-           parbe(ii,15) = newValue
-         else if(att_name == "Sxpyp") then
-           parbe(ii,16) = newValue
-         else 
-           go to 100
-         endif
-         call initialize_element(ii, .false.)
-       else 
-         go to 102
-       end if
+        if(beam_expflag == 1) then
+          if(att_name == "h-sep") then ! [mm]
+            parbe(ii,5)  = newValue
+          else if(att_name == "v-sep") then ! [mm]
+            parbe(ii,6)  = newValue
+          else if(att_name == "4dSxx") then ! strong I think
+            parbe(ii,1)  = newValue
+          else if(att_name == "4dSyy") then
+            parbe(ii,3)  = newValue
+          else if(att_name == "4dSxy") then
+            parbe(ii,13) = newValue
+          else if(att_name == "strength") then
+            ptnfac(ii)   = newValue
+            parbe(ii,4)  = (((-one*crad)*ptnfac(ii))*half)*c1m6
+          else if(att_name == "Sxx") then
+            parbe(ii,7)   = newValue
+          else if(att_name == "Sxxp") then
+            parbe(ii,8)   = newValue
+          else if(att_name == "Sxpxp") then
+            parbe(ii,9) = newValue
+          else if(att_name == "Syy") then
+            parbe(ii,10) = newValue
+          else if(att_name == "Syyp") then
+            parbe(ii,11) = newValue
+          else if(att_name == "Sypyp") then
+            parbe(ii,12) = newValue
+          else if(att_name == "Sxy") then
+            parbe(ii,13) = newValue
+          else if(att_name == "Sxyp") then
+            parbe(ii,14) = newValue
+          else if(att_name == "Sxpy") then
+            parbe(ii,15) = newValue
+          else if(att_name == "Sxpyp") then
+            parbe(ii,16) = newValue
+          else
+            goto 100
+          end if
+          call initialize_element(ii, .false.)
+        else
+          goto 102
+        end if
+
       case(23,26,27,28)
         ! crab cavity, cc mult. kick order 2,3 and 4
         if(att_name == "voltage") then ! [MV]
@@ -2482,7 +2482,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
           goto 100 ! ERROR
         end if
 
-      case(29)! Electron lens
+      case(29) ! Electron lens
         if(att_name == "theta_r2") then ! [mrad]
           elens_theta_r2(ielens(ii)) = newValue
         else
@@ -2521,7 +2521,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   call prror(-1)
 
 102 continue
-  write(lout,"(a)") "DYNK> ERROR  --- Only Beam-beam expert mode is supported for DYNK"
+  write(lout,"(a)") "DYNK> ERROR setValue Only Beam-beam expert mode is supported for DYNK"
   call prror(-1)
 
 end subroutine dynk_setvalue
@@ -2589,7 +2589,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
       case(11)
         im=irm(ii)
         if(att_name=="scaleall") then
-          dynk_getvalue = scalemu(im) 
+          dynk_getvalue = scalemu(im)
         else if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
           if(LEN_TRIM(att_name) .eq. 5) then
              range = 3
@@ -2601,15 +2601,15 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
             goto 100
           endif
           if(iErr) goto 100
-          
+
           if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
             dynk_getvalue = aka(im,orderMult)
           else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "rms") then
-            dynk_getvalue = bka(im,orderMult)  
+            dynk_getvalue = bka(im,orderMult)
           else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "str") then
-            dynk_getvalue = ak0(im,orderMult)  
+            dynk_getvalue = ak0(im,orderMult)
           else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "str") then
-            dynk_getvalue = bk0(im,orderMult) 
+            dynk_getvalue = bk0(im,orderMult)
           else
             goto 100 ! ERROR
           endif
@@ -2631,41 +2631,41 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
       case(20)
         if(beam_expflag.eq.1) then
           if (att_name == "h-sep") then ! [mm]
-            dynk_getvalue = parbe(ii,5)  
+            dynk_getvalue = parbe(ii,5)
           else if (att_name == "v-sep") then ! [mm]
-            dynk_getvalue = parbe(ii,6)  
+            dynk_getvalue = parbe(ii,6)
           else if (att_name=="4dSxx") then !strong I think
-            dynk_getvalue = parbe(ii,1)  
+            dynk_getvalue = parbe(ii,1)
           else if (att_name=="4dSyy") then
             dynk_getvalue = parbe(ii,3)
           else if (att_name=="4dSxy") then
             dynk_getvalue = parbe(ii,13)
-          else if (att_name == "strength") then ! 
+          else if (att_name == "strength") then !
             dynk_getvalue = ptnfac(ii)
           else if(att_name == "Sxx") then
-            dynk_getvalue = parbe(ii,7)   
+            dynk_getvalue = parbe(ii,7)
           else if(att_name == "Sxxp") then
-            dynk_getvalue = parbe(ii,8)  
+            dynk_getvalue = parbe(ii,8)
           else if(att_name == "Sxpxp") then
-            dynk_getvalue = parbe(ii,9)  
+            dynk_getvalue = parbe(ii,9)
           else if(att_name == "Syy") then
-            dynk_getvalue = parbe(ii,10)  
+            dynk_getvalue = parbe(ii,10)
           else if(att_name == "Syyp") then
-            dynk_getvalue = parbe(ii,11)  
+            dynk_getvalue = parbe(ii,11)
           else if(att_name == "Sypyp") then
-            dynk_getvalue = parbe(ii,12)  
+            dynk_getvalue = parbe(ii,12)
           else if(att_name == "Sxy") then
-            dynk_getvalue = parbe(ii,13)  
+            dynk_getvalue = parbe(ii,13)
           else if(att_name == "Sxyp") then
-            dynk_getvalue = parbe(ii,14)   
+            dynk_getvalue = parbe(ii,14)
           else if(att_name == "Sxpy") then
-            dynk_getvalue = parbe(ii,15)  
+            dynk_getvalue = parbe(ii,15)
           else if(att_name == "Sxpyp") then
-            dynk_getvalue = parbe(ii,16) 
-          else 
+            dynk_getvalue = parbe(ii,16)
+          else
             go to 100
           endif
-        else 
+        else
           go to 102
         end if
 

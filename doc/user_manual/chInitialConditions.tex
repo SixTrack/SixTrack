@@ -45,7 +45,6 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
                            &          & \texttt{idfor = 0}: closed orbit added. \\
                            &          & \texttt{idfor = 1}: initial coordinates\index{initial coordinates} unchanged. \\
                            &          & \texttt{idfor = 2}: prolongation of a run, taken the initial coordinates from \texttt{fort.13}\index{fort.15}. \\
-                           &          & \texttt{idfor = 3}: initial coordinates read via the DIST block\index{DIST}. \\
     \texttt{irew}          & integer  & To reduce the amount of tracking data after each amplitude and relative momentum deviation iteration $\Delta p/p_0$ the binary output units 90 and lower (see Appendix~\ref{Files}) are rewound. This is always done when the post-processing is activated (\ref{PosPro}). For certain applications it may be useful to store all data. The switch \texttt{irew} allows for that. \\
                            &          & \texttt{irew = 0}: unit 90 (and lower) rewound. \\
                            &          & \texttt{irew = 1}: all data on unit 90 (and lower). \\
@@ -92,6 +91,7 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
         \end{itemize}
     \end{enumerate}
     \item A feature is installed for a prolongation of a run by using \texttt{idfor = 2} and reading the initial data from file \texttt{fort.13}. The end coordinates are now written to \texttt{fort.12} after each run. Intermediate coordinates are also written to \texttt{fort.12} in case the turn number \texttt{nwr(4)} is exceeded in the run. The user takes responsibility to transfer the required data from \texttt{fort.12} to \texttt{fort.13} if a prolongation is requested.
+    \item As of version 5.0.3 the particle energy read from \texttt{fort.13} is re-calculated from the particle momentum offset to ensure these are consistent. The particle energy in \texttt{fort.13} is therefore ignored.
     \item Some illogical combinations of parameters have been suppressed.
     \item The initial coordinates are calculated using a proper linear 6D transformation: \texttt{amp(1)} is still the maximum horizontal starting amplitude (excluding the dispersion contribution) from which the emittance of mode 1 $e_I$ is derived, \texttt{rat} (see~\ref{IniCoo}) is the ratio of $e_{II}/e_I$ of the emittances of the two modes. The momentum deviation $\frac{\Delta p}{p_{0,1}}$ is used to define a longitudinal amplitude. The 6 normalized coordinates read:
         \begin{enumerate}

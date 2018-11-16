@@ -6,7 +6,7 @@
 subroutine prror(ier)
 
   use crcoall
-  use parpro,     only : mcor,mmul,mran,nbb,nmac,nran,nrco
+  use parpro,     only : mcor,mmul,mran,nbb,nran,nrco
   use mod_common, only : ierro,errout_status
 
 #ifdef FLUKA

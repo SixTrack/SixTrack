@@ -1,12 +1,12 @@
 ! start include/alignva.f90
 #ifndef TILT
-  xlv(j)=xv(1,j)-xsiv(1,i)
-  zlv(j)=xv(2,j)-zsiv(1,i)
+  xlv(j)=xv1(j)-xsiv(i)
+  zlv(j)=xv2(j)-zsiv(i)
   crkve=xlv(j)
   cikve=zlv(j)
 #else
-  xlv(j)=(xv(1,j)-xsiv(1,i))*tiltc(i)+(xv(2,j)-zsiv(1,i))*tilts(i)
-  zlv(j)=(xv(2,j)-zsiv(1,i))*tiltc(i)-(xv(1,j)-xsiv(1,i))*tilts(i)
+  xlv(j)=(xv1(j)-xsiv(i))*tiltc(i)+(xv2(j)-zsiv(i))*tilts(i)
+  zlv(j)=(xv2(j)-zsiv(i))*tiltc(i)-(xv1(j)-xsiv(i))*tilts(i)
   crkve=xlv(j)
   cikve=zlv(j)
 #endif
