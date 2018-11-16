@@ -1509,7 +1509,7 @@ end interface
     fluka_con = fluka_init_max_uid( napx )
 
     if(fluka_con < 0) then
-      write(lout,"(a,i0,a)") "FLUKA> ERROR Failed to send napx ,"napx", to fluka "
+      write(lout,"(a,i0,a)") "FLUKA> ERROR Failed to send napx ",napx," to fluka "
       write(fluka_log_unit, *) "# failed to send napx to fluka ",napx
       call prror(-1)
     end if
