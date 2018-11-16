@@ -103,6 +103,10 @@ module mod_settings
   logical, save :: st_debug   = .false. ! Global DEBUG flag
   logical, save :: st_partsum = .false. ! Flag to print final particle summary
 
+  ! Checpoint/Restart Kills Switch Settings
+  logical,              save :: st_killswitch = .false. ! Enables the kill on turn number debug feature
+  integer, allocatable, save :: st_killturns(:)         ! List of killswitch turns
+
 end module mod_settings
 
 ! ================================================================================================ !

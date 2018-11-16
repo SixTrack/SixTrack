@@ -576,6 +576,7 @@ subroutine thck4d(nthinerr)
     !  (and note that writebin does nothing if restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
+    if(st_killswitch) call cr_killSwitc(n)
 #endif
 
 !       A.Mereghetti, for the FLUKA Team
@@ -1235,6 +1236,7 @@ subroutine thck6d(nthinerr)
 !  (and note that writebin does nothing if restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
+    if(st_killswitch) call cr_killSwitc(n)
 #endif
 
 !       A.Mereghetti, for the FLUKA Team

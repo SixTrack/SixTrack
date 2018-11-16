@@ -27,6 +27,7 @@ module checkpoint_restart
   integer,             public, save :: bllrec
   integer,             public, save :: numlcr
   integer,             public, save :: sixrecs
+  integer,             public, save :: crksunit = -1             ! File unit for the kill switch file
 
   logical,             public, save :: rerun
   logical,             public, save :: start
@@ -108,6 +109,57 @@ subroutine cr_expand_arrays(npart_new)
   crnpart_old = npart_new
 
 end subroutine cr_expand_arrays
+
+! ================================================================================================ !
+!  CR KILL SWITCH
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-11-16
+!  This routine will kill SixTrack if the current turn number matches a number in crkillturns
+! ================================================================================================ !
+subroutine cr_killSwitch(iTurn)
+
+  use crcoall
+  use file_units
+  use mod_settings
+  
+  integer, intent(in) :: iTurn
+
+  logical killIt
+  integer pTurn, nKills, i
+
+  killIt = .false.
+
+  if(crksunit == -1) then
+    call funit_requestUnit("crkillswitch.tmp",crksunit)
+    open(crksunit,file="crkillswitch.tmp",status="replace")
+    write(crksunit,*) 0
+    write(crksunit,*) 0
+    close(crksunit)
+  end if
+
+  open(crksunit,file="crkillswitch.tmp",status="old")
+  read(crksunit,*) pTurn
+  read(crksunit,*) nKills
+  close(crksunit)
+
+  do i=1,size(st_killturns,1)
+    if(iTurn == st_killturns(i) .and. iTurn > pTurn) then
+      killIt = .true.
+      exit
+    end if
+  end do
+
+  if(killIt) then
+    write(lout,"(a,i0)") "CRKILL> Triggering kill switch on turn ",iTurn
+    write(93,  "(a,i0)") "CRKILL> Triggering kill switch on turn ",iTurn
+    open(crksunit,file="crkillswitch.tmp",status="replace")
+    write(crksunit,*) iTurn
+    write(crksunit,*) nKills + 1
+    close(crksunit)
+    stop
+  end if
+
+end subroutine cr_killSwitch
 
 ! ================================================================================================ !
 !  CRCHECK

@@ -578,9 +578,9 @@ subroutine thin4d(nthinerr)
 #else
   do 640 n=1,numl !loop over turns
 #endif
-  if(st_quiet < 3) then
-    if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
-  end if
+    if(st_quiet < 3) then
+      if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
+    end if
 #ifdef BOINC
     ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
@@ -599,6 +599,7 @@ subroutine thin4d(nthinerr)
     ! (and note that writebin does nothing if restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
+    if(st_killswitch) call cr_killSwitc(n)
 #endif
 
     ! A.Mereghetti, for the FLUKA Team
@@ -1250,6 +1251,7 @@ subroutine thin6d(nthinerr)
     ! (and note that writebin does nothing if restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
+    if(st_killswitch) call cr_killSwitc(n)
 #endif
 
     ! A.Mereghetti, for the FLUKA Team
@@ -2113,8 +2115,6 @@ subroutine thin6d(nthinerr)
     endif
 
 660 continue !END loop over turns
-
-    return
 
 end subroutine thin6d
 
