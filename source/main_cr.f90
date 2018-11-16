@@ -1602,9 +1602,9 @@ end interface
       ! We REALLY have finished (or all particles lost)
       ! When all lost, nthinerr=3001, we set nnuml=numl
       ! and make sure we do the last WRITEBIN
-      write(93,*) 'Very last call to WRITEBIN'
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+      write(93,"(a)") "MAINCR> Very last call to WRITEBIN"
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
       call writebin(nthinerr)
       if(nthinerr == 3000) goto 520
     else
@@ -1835,7 +1835,7 @@ end interface
     call time_timeStamp(time_afterFMA)
   endif
   ! HPLOTTING END
-  if(ipos.eq.1.and.(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
+  if(ipos == 1 .and. (idis /= 0 .or. icow /= 0 .or. istw /= 0 .or. iffw /= 0)) then
     call igmeta(999,0)
     call hplend
   endif
