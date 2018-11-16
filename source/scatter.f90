@@ -847,7 +847,6 @@ subroutine scatter_thin(iElem, ix, turn)
 
   real(kind=fPrec), allocatable :: brThreshold(:)
   real(kind=fPrec), allocatable :: rndVals(:)
-  logical,          allocatable :: pLost(:)
   logical,          allocatable :: pScattered(:)
   logical,          allocatable :: hasProc(:,:)
   integer,          allocatable :: nLost(:,:)
@@ -879,7 +878,6 @@ subroutine scatter_thin(iElem, ix, turn)
   call recuin(scatter_seed1,scatter_seed2)
 
   call alloc(rndVals,   napx*3,             zero,   "rndVals")
-  call alloc(pLost,     napx,               .false.,"pLost")
   call alloc(pScattered,napx,               .false.,"pScattered")
   call alloc(hasProc,   nGen,scatter_nProc, .false.,"hasProc")
   call alloc(nLost,     nGen,scatter_nProc, 0,      "nLost")
@@ -951,8 +949,8 @@ subroutine scatter_thin(iElem, ix, turn)
     if(scatter_allowLosses .and. iLost == 1) then
       ! If lost, flag it, count it, but no need to update energy and angle
       nLost(iGen,procID) = nLost(iGen,procID) + 1
-      pLost(j) = .true.
-      phi      = zero
+      llostp(j) = .true.
+      phi       = zero
     else
       ! Calculate new energy, and scattering angle assuming energy >> mass
       if(abs(dPP) >= pieni) then
@@ -1070,7 +1068,7 @@ subroutine scatter_thin(iElem, ix, turn)
   flush(scatter_sumFile)
 
   if(scatter_allowLosses) then
-    call compactArrays(pLost)
+    call compactArrays
   end if
 
   if(updateE) then
@@ -1090,7 +1088,6 @@ subroutine scatter_thin(iElem, ix, turn)
 
   call dealloc(rndVals,   "rndVals")
   call dealloc(hasProc,   "hasProc")
-  call dealloc(pLost,     "pLost")
   call dealloc(pScattered,"pScattered")
   call dealloc(nLost,     "nLost")
   call dealloc(nScattered,"nScattered")
