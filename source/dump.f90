@@ -979,6 +979,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   use mod_commont
   use mod_commonmn
   use mod_hions
+  use mod_time
 
   implicit none
 
@@ -1016,6 +1017,8 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     dumpIdx = ix
   end if
 #endif
+
+  call time_startClock(time_clockDUMP)
 
   ! ------------------------------------------------------------------ !
   !  Format #0
@@ -1826,6 +1829,8 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
     write(lout,"(a,i0,a)") "DUMP> ERROR Format ",fmt," not understood for file '"//trim(dump_fname(i))//"'"
     call prror(-1)
   end if
+
+  call time_stopClock(time_clockDUMP)
 
   return
 

@@ -281,7 +281,7 @@ list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR)
 
 list(APPEND FORT90_LIB
   sixtrack version core_tools constants sixtrack_input mod_units
-  common_modules close strings string_tools mainarrays
+  common_modules close strings string_tools mainarrays mod_meta mod_time
   file_units mod_alloc zipf matrix_inv lielib beam6d
   bouncy_castle plato_seq bdex fma dabnew end_sixtrack
   ranecu wire hions elens mod_dist scatter dump dynk
@@ -966,11 +966,14 @@ if(MERLINSCATTER)
   endif(64BIT)
 endif()
 
-file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/source/naff/*.cpp ${CMAKE_SOURCE_DIR}/source/naff/*.cc)
+#build NAFFlib
+file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/lib/NAFFlib/source/*.c ${CMAKE_SOURCE_DIR}/lib/NAFFlib/naff_sixtrack_interface.c)
 add_library(naff STATIC ${NAFF_SOURCES})
+target_include_directories(naff PRIVATE ${CMAKE_SOURCE_DIR}/lib/NAFFlib/include)
+target_compile_options(naff PRIVATE -DCOMPILE_WITHOUT_FFTW)
 
-#Enable c++11
-set_property(TARGET naff PROPERTY CXX_STANDARD 11)
+#Enable c99
+set_property(TARGET naff PROPERTY C_STANDARD 99)
 
 if(32BIT)
   SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m32")
