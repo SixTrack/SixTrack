@@ -1716,11 +1716,11 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
       call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)    !TURN
       call h5_writeData(dump_hdf5DataSet(ix), 3, napx, localKtrack) !KTRACK
       call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, localDcum) !S
-      call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, xv(1,:)) !X
-      call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, yv(1:)) !XP
-      call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, xv(2,:)) !Y
-      call h5_writeData(dump_hdf5DataSet(ix), 8,  napx, yv(2,: !YP
-      call h5_writeData(dump_hdf5DataSet(ix), 9,  napx, sigmv!SIGMA
+      call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, xv1) !X
+      call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, yv1) !XP
+      call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, xv2) !Y
+      call h5_writeData(dump_hdf5DataSet(ix), 8,  napx, yv2) !YP
+      call h5_writeData(dump_hdf5DataSet(ix), 9,  napx, sigmv)!SIGMA
       call h5_writeData(dump_hdf5DataSet(ix), 10, napx, (ejv-e0)/e0) !DELTAE/E0
       call h5_writeData(dump_hdf5DataSet(ix), 11, napx, ejv(j)) ! E
       call h5_writeData(dump_hdf5DataSet(ix), 12, napx, ejfv(j)) ! PC
