@@ -11,6 +11,7 @@ jobs:
       - run:
           name: build and test
           command: |
+             git submodule update --init lib/NAFFlib
              ./cmake_six BUILD_TESTING 
              cd build/*BUILD_TESTING*
              make -j4
