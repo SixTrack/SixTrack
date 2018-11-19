@@ -1157,8 +1157,10 @@ endif(CRLIBM)
 if(MERLINSCATTER)
   target_link_libraries(SixTrackCR merlinscatter)
 endif(MERLINSCATTER)
-#if we are using naff, link to the naff library
-target_link_libraries(SixTrackLib naff)
+# if we are using naff, link to the naff library
+if(NAFF)
+  target_link_libraries(SixTrackLib naff)
+endif(NAFF)
 
 #if we are using root, link to all the root libraries
 if(ROOT)
