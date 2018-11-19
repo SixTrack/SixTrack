@@ -1158,7 +1158,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     end if
 #endif
 
-    call compactArrays(llostp)
+    call compactArrays
 
     ! store old particle coordinates
     ! necessary since aperture markers are downstream of lenses...
