@@ -962,7 +962,8 @@ endif()
 # Build NAFFlib
 if(NAFF)
   if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/NAFFlib/naff_sixtrack_interface.c)
-    message(FATAL_ERROR "The git submodules NAFFlib is not available. Please run 'git submodule update --init lib/NAFFlib'")
+    message(FATAL_ERROR "The git submodules NAFFlib is not available. Please run:
+    git submodule update --init lib/NAFFlib")
   endif()
 
   file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/lib/NAFFlib/source/*.c ${CMAKE_SOURCE_DIR}/lib/NAFFlib/naff_sixtrack_interface.c)
