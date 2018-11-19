@@ -81,11 +81,12 @@ OPTION(TILT "Allow elements to be tilted (by error)" ON)
 OPTION(FAST "Which implementation of drifts to use in thin6d" ON)
 OPTION(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 OPTION(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
-OPTION(STF "Single Track File: Write all tracks for postprocessing to fort.90, instead of 32 separate files fort.59 to fort.90. Required for increased particle numbers" ON)
+OPTION(STF "Single Track File: Write all tracks for postprocessing to fort.90 instead of 32 separate files fort.59 to fort.90. Required for >64 particles" ON)
+OPTION(NAFF "Link to external NAFFlib for FMA." ON)
 
 # Default OFF
 OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
-OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal 'myboinc.f' dummy library)" OFF)
+OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal dummy library)" OFF)
 OPTION(BOINC "BOINC distributed computing support" OFF)
 OPTION(CR "Checkpoint / restarting" OFF)
 OPTION(BEAMGAS "Beam-gas scattering" OFF)
@@ -107,12 +108,12 @@ OPTION(AVX2 "Enable use of the Advanced Vector Extensions 2 (AVX2) instruction s
 OPTION(AVX-512 "Enable use of the Advanced Vector Extensions 512 (AVX-512) instruction set - (Currently targeting Skylake-X)" OFF)
 OPTION(LTO "Enable link time optimisations" OFF)
 
-# Float Precision
+# Float Precision (Default: 64BITM)
 OPTION(32BITM "Floats are 32bit (single precision)" OFF)
 OPTION(64BITM "Floats are 64bit (double precision)" ON)
 OPTION(128BITM "Floats are 128bit (quad precision)" OFF)
 
-# Rounding
+# Rounding (Default: ROUND_NEAR)
 OPTION(ROUND_NEAR "Always round to the nearest number after floating point operations" ON)
 OPTION(ROUND_UP "Always round up after floating point operations" OFF)
 OPTION(ROUND_DOWN "Always round down after floating point operations" OFF)
@@ -269,7 +270,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR)
+list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR NAFF)
 list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR)
 
@@ -958,22 +959,27 @@ if(MERLINSCATTER)
   endif(64BIT)
 endif()
 
-#build NAFFlib
-file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/lib/NAFFlib/source/*.c ${CMAKE_SOURCE_DIR}/lib/NAFFlib/naff_sixtrack_interface.c)
-add_library(naff STATIC ${NAFF_SOURCES})
-target_include_directories(naff PRIVATE ${CMAKE_SOURCE_DIR}/lib/NAFFlib/include)
-target_compile_options(naff PRIVATE -DCOMPILE_WITHOUT_FFTW)
+# Build NAFFlib
+if(NAFF)
+  if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/NAFFlib/naff_sixtrack_interface.c)
+    message(FATAL_ERROR "The git submodules NAFFlib is not available. Please run 'git submodule update --init lib/NAFFlib'")
+  endif()
 
-#Enable c99
-set_property(TARGET naff PROPERTY C_STANDARD 99)
+  file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/lib/NAFFlib/source/*.c ${CMAKE_SOURCE_DIR}/lib/NAFFlib/naff_sixtrack_interface.c)
+  add_library(naff STATIC ${NAFF_SOURCES})
+  target_include_directories(naff PRIVATE ${CMAKE_SOURCE_DIR}/lib/NAFFlib/include)
+  target_compile_options(naff PRIVATE -DCOMPILE_WITHOUT_FFTW)
 
-if(32BIT)
-  SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m32")
-endif(32BIT)
-if(64BIT)
-  SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m64")
-endif(64BIT)
-#endif()
+  # Enable c99
+  set_property(TARGET naff PROPERTY C_STANDARD 99)
+
+  if(32BIT)
+    SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m32")
+  endif(32BIT)
+  if(64BIT)
+    SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m64")
+  endif(64BIT)
+endif(NAFF)
 
 if(BOINC AND API)
   include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
