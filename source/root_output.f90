@@ -349,7 +349,7 @@ subroutine root_daten(inLine,iErr)
 
   call chr_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
-    write(lout,"(a)") "ZIPF> ERROR Failed to parse input line."
+    write(lout,"(a)") "ROOT> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -357,10 +357,10 @@ subroutine root_daten(inLine,iErr)
   !ROOT is enabled
   root_flag = .true.
 
-  if(nSplit /=. 2) then
+  if(nSplit /= 2) then
     write(lout,"(a,i0)") "ROOT> ERROR Expected 2 entries per line, got ",nSplit
     iErr = .true.
-    retirn
+    return
   end if
 
 !  For input debugging if needed

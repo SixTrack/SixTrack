@@ -78,6 +78,8 @@ module aperture
   real(kind=fPrec), allocatable, save :: dpsvLast(:)  ! (npart)
   integer, allocatable, save :: naaLast(:)            ! nuclear mass [] (npart)
   integer, allocatable, save :: nzzLast(:)            ! atomic number [] (npart)
+  integer, allocatable, save :: nqqLast(:)            ! charge [] (npart)
+  integer, allocatable, save :: pdgidLast(:)          ! PDGid [] (npart)
   real(kind=fPrec), save :: bktpre                 ! precision of back-tracking [m]
   integer, save :: iLast, ixLast                   ! indeces of last aperture marker
   integer, save :: iLastThick, ixLastThick         ! indeces of last thick element
@@ -138,6 +140,8 @@ subroutine aperture_expand_arrays(nele_new, npart_new)
   call alloc(dpsvLast,  npart_new, zero, "dpsvLast")  ! (npart)
   call alloc(naaLast,   npart_new, 0, "naaLast")      ! nuclear mass [] (npart)
   call alloc(nzzLast,   npart_new, 0, "nzzLast")      ! atomic number [] (npart)
+  call alloc(nqqLast,   npart_new, 0, "nqqLast")      ! charge [] (npart)
+  call alloc(pdgidLast, npart_new, 0, "pdgidLast")    ! PDG id [] (npart)
 
 end subroutine aperture_expand_arrays
 
@@ -265,7 +269,7 @@ subroutine aperture_init
 #else
       "partid "// &
 #endif
-      "x xp y yp etot dE dT A_atom Z_atom "
+      "x xp y yp etot dE dT A_atom Z_atom Q PDGid"
 #ifdef HDF5
   end if
 #endif
@@ -493,6 +497,8 @@ subroutine aperture_saveLastCoordinates( i, ix, iBack )
     dpsvLast(j) = dpsv(j)
     naaLast(j) = naa(j)
     nzzLast(j) = nzz(j)
+    nqqLast(j) = nqq(j)
+    pdgidLast(j) = pdgid(j)
   end do
 
   iLastThick = i
@@ -591,7 +597,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   logical llos        ! temporal logic array for interpolation
   logical lback       ! actually perform backtracking
   real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
-  integer naalos, nzzlos
+  integer naalos, nzzlos, nqqlos, pdgidlos
 
   integer npart_tmp ! Temporary holder for number of particles,
                     ! used to switch between collimat/standard version at runtime
@@ -986,6 +992,8 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           dpsvlos = dpsvLast(j)
           naalos = naaLast(j)
           nzzlos = nzzLast(j)
+          nqqlos = nqqLast(j)
+          pdgidlos = pdgidLast(j)
         else
           ejfvlos = ejfv(j)
           ejvlos = ejv(j)
@@ -994,6 +1002,8 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
           dpsvlos = dpsv(j)
           naalos = naa(j)
           nzzlos = nzz(j)
+          nqqlos = nqq(j)
+          pdgidlos = pdgid(j)
         end if
 
         ! ==============================================================
@@ -1082,7 +1092,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 #ifdef FLUKA
           write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')&
 #else
-          write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')   &
+          write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),3(1X,I8),1X,I12)')   &
 #endif
 
      &         turn, i, ix, bez(ix), slos,                                     &
@@ -1095,7 +1105,8 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
      &         xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3,         &
      &         ejfvlos*c1m3, (ejvlos*(nucm0/nucmlos)-e0)*c1e6,                 &
      &         -c1m3 * (sigmvlos/clight) * (e0/e0f),                           &
-     &         naalos, nzzlos
+     &         naalos, nzzlos, nqqlos, pdgidlos
+          flush(losses_unit)
 #ifdef HDF5
         end if
 #endif
@@ -3109,6 +3120,8 @@ subroutine compactArrays(llostp)
             ! ph: hisix
             nzz(jj)=nzz(jj1)
             naa(jj)=naa(jj1)
+            nqq(jj)=nqq(jj1)
+            pdgid(jj)=pdgid(jj1)
             nucm(jj)=nucm(jj1)
             mtc(jj)=mtc(jj1)
             moidpsv(jj)=moidpsv(jj1)
@@ -3151,6 +3164,8 @@ subroutine compactArrays(llostp)
             dpsvLast(jj)  =  dpsvLast(jj1)  ! (npart)
             naaLast(jj)   =  naaLast(jj1)   ! nuclear mass [] (npart)
             nzzLast(jj)   =  nzzLast(jj1)   ! atomic number [] (npart)
+            nqqLast(jj)   =  nqqLast(jj1)   ! Charge [] (npart)
+            pdgidLast(jj) =  pdgidLast(jj1) ! PDG id number (npart)
 
 
             if(do_coll) then

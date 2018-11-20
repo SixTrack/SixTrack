@@ -17,6 +17,9 @@
 #include "G4PhysicalVolumeStore.hh"
 #include "G4LogicalVolumeStore.hh"
 #include "G4SolidStore.hh"
+
+#include "Storage.h"
+
 CollimationParticleGun* part;
 G4RunManager* runManager;
 //CollimationGeometry* CollimatorJaw;
@@ -30,6 +33,9 @@ CollimationGeometry* geometry;
 
 
 std::string CleanFortranString(char* str, size_t count);
+
+std::vector<G4Stuff> input_particles;
+std::vector<G4Stuff> output_particles;
 
 
 /**
@@ -79,6 +85,8 @@ extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* ecut
 	part->SetReferenceEnergy(*ReferenceE);
 
 	event = new CollimationEventAction();
+	event->SetOutputVector(&output_particles);
+
 	tracking = new CollimationTrackingAction();
 	tracking->SetEventAction(event);
 	tracking->SetEnergyCut(*ecut);
@@ -113,7 +121,7 @@ extern "C" void g4_add_collimator_(char* name, char* material, double* length, d
 	//rcy(j)  = (xv(2,j)-torby(ie))/1d3
 	//Therefore we do not need to take it into account here...
 
-	std::string CollimatorName = CleanFortranString(name, 16);
+	std::string CollimatorName = CleanFortranString(name, 48);
 	std::string CollimatorMaterialName = CleanFortranString(material, 4);
 	std::cout << "Adding \"" << CollimatorName << "\" with material \"" << CollimatorMaterialName << "\" and rotation \"" << *rotation << "\" and offset \"" << *offset << "\" and length \"";
 	std::cout << *length << "\"" << std::endl;
@@ -143,7 +151,7 @@ extern "C" void g4_terminate_()
 //runManager->ReinitializeGeometry();
 extern "C" void g4_set_collimator_(char* name)
 {
-	std::string CollimatorName = CleanFortranString(name, 16);
+	std::string CollimatorName = CleanFortranString(name, 48);
 	geometry->SetCollimator(CollimatorName);
 
 	G4GeometryManager::GetInstance()->OpenGeometry();
@@ -154,7 +162,7 @@ extern "C" void g4_set_collimator_(char* name)
 	runManager->ReinitializeGeometry();
 }
 
-extern "C" void g4_collimate_(double* x, double* y, double* xp, double* yp, double* p)
+extern "C" void g4_add_particle_(double* x, double* y, double* xp, double* yp, double* p, int32_t* pdgid, int16_t* nzz, int16_t* naa, int16_t* nqq)
 {
 //WARNING: at this stage in SixTrack the units have been converted to GeV, m, and rad!
 //The particle energy input is the TOTAL energy
@@ -168,20 +176,47 @@ extern "C" void g4_collimate_(double* x, double* y, double* xp, double* yp, doub
 	double py_in = (*p) * (*yp) * CLHEP::GeV;
 	double p_in = (*p) * CLHEP::GeV;
 
+	G4Stuff in_particle;
+	in_particle.x = x_in;
+	in_particle.y = y_in;
+
+	in_particle.px = px_in;
+	in_particle.py = py_in;
+
+	in_particle.p = p_in;
+	in_particle.pdgid = *pdgid;
+	in_particle.z = *nzz;
+	in_particle.a = *naa;
+	in_particle.q = *nqq;
+	in_particle.id = input_particles.size();
+
+	input_particles.push_back(in_particle);
+//	std::cout << "c++ nqq: " << *nqq << "\t" << in_particle.q << std::endl;
+}
+
+extern "C" void g4_collimate_()
+{
+//std::cout << "----------------------------------------------------------------------------" << std::endl;
 //Store the input particle for a check vs the output particle!
-	event->SetInputParticle(x_in, px_in, y_in, py_in, p_in);
-
+//	event->SetInputParticle(x_in, px_in, y_in, py_in, p_in);
+	output_particles.clear();
 	//Update the gun with this particle's details
-	part->SetParticleDetails(x_in, y_in, px_in, py_in, p_in);
+//	part->SetParticleDetails(x_in, y_in, px_in, py_in, p_in);
+	for(size_t n=0; n < input_particles.size(); n++)
+	{
+		part->SetParticleDetails(input_particles.at(n).x, input_particles.at(n).y, input_particles.at(n).px, input_particles.at(n).py, input_particles.at(n).p, input_particles.at(n).pdgid, input_particles.at(n).q);
 
-	//Run!
-	runManager->BeamOn(1);
+		//Run!
+		runManager->BeamOn(1);
+	}
+//	output_particles = input_particles;
+	input_particles.clear();
 }
 
 /**
 * Here we put the particles back into sixtrack and set any flags if needed
 */
-extern "C" void g4_collimate_return_(double* x, double* y, double* xp, double* yp, double* p, int *part_hit, int *part_abs, double *part_impact, double *part_indiv, double *part_linteract)
+extern "C" void g4_collimate_return_(int* j, double* x, double* y, double* xp, double* yp, double* p, int32_t* pdgid, double* m, int16_t* z, int16_t* a, int16_t* q, int *part_hit, int *part_abs, double *part_impact, double *part_indiv, double *part_linteract)
 {
 /*
 part_hit(j), part_abs(j), part_impact(j), part_indiv(j),
@@ -193,8 +228,26 @@ part_hit(j), part_abs(j), part_impact(j), part_indiv(j),
 !++  PART_IMPACT(MAX_NPART)  Impact parameter (0 for inner face)
 !++  PART_INDIV(MAX_NPART)   Divergence of impacting particles
 */
-event->PostProcessEvent(x, y, xp, yp, p, part_hit, part_abs, part_impact, part_indiv, part_linteract);
+//event->PostProcessEvent(x, y, xp, yp, p, part_hit, part_abs, part_impact, part_indiv, part_linteract);
 //CollimatorKeyMap.clear();
+/*
+*x= OutputParticle->x / CLHEP::m;
+*y= OutputParticle->y / CLHEP::m;
+*xp= (OutputParticle->xp / OutputParticle->p);
+*yp= (OutputParticle->yp / OutputParticle->p);
+*p = OutputParticle->p / CLHEP::GeV;
+*/
+*x  = output_particles.at(*j).x;
+*y  = output_particles.at(*j).y;
+*xp = output_particles.at(*j).px / output_particles.at(*j).p;
+*yp = output_particles.at(*j).py / output_particles.at(*j).p;
+*p  = output_particles.at(*j).p;
+*pdgid  = output_particles.at(*j).pdgid;
+*z = output_particles.at(*j).z;
+*a  = output_particles.at(*j).a;
+*q  = output_particles.at(*j).q;
+*m  = output_particles.at(*j).m;
+//	std::cout << "TrackReturn:" << output_particles.at(*j).pdgid << "\t" << output_particles.at(*j).p  << std::endl;
 }
 
 std::string CleanFortranString(char* str, size_t count)
@@ -213,3 +266,13 @@ std::string CleanFortranString(char* str, size_t count)
 	return sstring;
 }
 
+extern "C" void g4_get_particle_count_(int* g4_npart)
+{
+	*g4_npart = output_particles.size(); 
+}
+
+extern "C" void g4_collimation_clear_()
+{
+	input_particles.clear();
+	output_particles.clear();
+}

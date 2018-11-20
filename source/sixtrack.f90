@@ -43,6 +43,11 @@ subroutine daten
 #ifdef ROOT
   use root_output
 #endif
+
+#ifdef G4COLLIMATION
+  use geant4
+#endif
+
   use collimation
 
   implicit none
@@ -206,6 +211,8 @@ subroutine daten
   ! HIONS MODULE
   zz0          = 1
   aa0          = 1
+  qq0          = 1
+  pdgid0       = 2212
   nucm0        = pmap
   has_hion     = .false.
 
@@ -838,6 +845,21 @@ subroutine daten
     call root_parseInputDone
   else
     call root_daten(inLine,inErr)
+    if(inErr) goto 9999
+  end if
+#endif
+
+  case("GEANT4") ! ROOT Input Block
+#ifndef G4COLLIMATION
+    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the G4COLLIMATION flag."
+    goto 9999
+#else
+  if(openBlock) then
+    continue
+  elseif(closeBlock) then
+    call geant4_parseInputDone
+  else
+    call geant4_daten(inLine,inErr)
     if(inErr) goto 9999
   end if
 #endif
@@ -3576,6 +3598,7 @@ subroutine betalf(dpp,qw)
       use mod_common
       use mod_commons
       use mod_commont
+      use crcoall
       implicit none
       integer i,j
       real(kind=fPrec) am,det,detb,detc,dpp,egwg1,egwg2,f0,f1,f2,fak1,  &
@@ -3595,7 +3618,10 @@ subroutine betalf(dpp,qw)
       f0=spa-spd
       f1=spa+spd
       f2=f0**2+four*det                                                  !hr06
-      if(f2 .lt. zero) goto 160
+      if(f2 .lt. zero) then 
+        write(lout,*) 'ERROR in betalf() - f2 < 0: ',  f2, ' f0: ', f0, ' det: ', det
+        goto 160
+      end if
       f2=sqrt(f2)
       if(f0.lt.zero) goto 30                                              !hr06
       if(f0.ge.zero) goto 20                                              !hr06
@@ -3627,8 +3653,16 @@ subroutine betalf(dpp,qw)
       yclam1=yca1*half
       rclam2=(egwg2+rca2)*half
       yclam2=yca2*half
-      if(egwg1**2 .ge. four) goto 160                                    !hr06
-      if(egwg2**2 .ge. four) goto 160                                    !hr06
+      if(egwg1**2 .ge. four) then 
+        write(lout,*) 'ERROR in betalf() - egwg1**2 > 4: ',  egwg1**2, ' f0: ', spa-spd, &
+        ' f1: ', spa+spd, ' f2: ', f0**2+four*det, ' spa: ', spa, ' spd: ', spd
+        write(lout,*) 'ERROR in betalf() - am: ',  am
+        goto 160                                    !hr06
+      end if
+      if(egwg2**2 .ge. four) then
+        write(lout,*) 'ERROR in betalf() - egwg2**2 > 4: ',  egwg2**2
+        goto 160                                    !hr06
+      end if
    50 continue
       detb=am(1,3)*am(2,4)-am(1,4)*am(2,3)
       detc=am(3,1)*am(4,2)-am(3,2)*am(4,1)
@@ -3695,7 +3729,10 @@ subroutine betalf(dpp,qw)
       rn1=((ta(1,1)*ta(2,2)-ta(2,1)*ta(1,2))                            &!hr06
      &+ta(3,1)*ta(4,2))-ta(4,1)*ta(3,2)                                  !hr06
       if(rn1.lt.zero) goto 70                                             !hr06
-      if(rn1.eq.zero) goto 160                                            !hr06
+      if(rn1.eq.zero) then 
+        write(lout,*) 'ERROR in betalf() - rn1 = 0: ',  rn1
+        goto 160                                            !hr06
+      end if
       if(rn1.gt.zero) goto 90                                             !hr06
    70 yclam1=-one*yclam1                                                 !hr06
 
@@ -3713,7 +3750,10 @@ subroutine betalf(dpp,qw)
       rn2=((ta(1,3)*ta(2,4)-ta(2,3)*ta(1,4))                            &!hr06
      &+ta(3,3)*ta(4,4))-ta(4,3)*ta(3,4)                                  !hr06
       if(rn2.lt.zero) goto 110                                           !hr06
-      if(rn2.eq.zero) goto 160                                           !hr06
+      if(rn2.eq.zero) then
+        write(lout,*) 'ERROR in betalf() - rn2 = 0: ',  rn1
+        goto 160                                           !hr06
+      end if
       if(rn2.gt.zero) goto 130                                           !hr06
   110 yclam2=-one*yclam2                                                 !hr06
 

@@ -77,6 +77,9 @@ program maincr
 #ifdef FLUKA
   use mod_fluka
 #endif
+#ifdef G4COLLIMATION
+  use geant4
+#endif
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -426,6 +429,10 @@ end interface
 
 #ifdef FLUKA
   call fluka_mod_init(npart_initial, nele_initial, clight)
+#endif
+
+#ifdef G4COLLIMATION
+  call geant4_fortran_init()
 #endif
 
   call daten
@@ -1336,6 +1343,7 @@ end interface
         write(lout,*) '------------------'
         write(lout,*) 'Reference ion species: [A,Z,Q,M]', aa0, zz0, qq0, nucm0
         write(lout,*) 'Reference energy [Z TeV]: ', c1m6*e0/qq0
+        write(lout,*) 'Reference PDG id: ', pdgid0
 
 ! hisix - debugging
 !        write(lout,*) 'Properties of tracked ion bunch [A,Z,E(MeV)], etc'
@@ -1364,7 +1372,9 @@ end interface
           mtc   (j) = one         ! P. HERMES for hiSix
           naa   (j) = aa0
           nzz   (j) = zz0
+          nqq   (j) = qq0
           nucm  (j) = nucm0
+          pdgid (j) = pdgid0
           moidpsv (j) = one
           omoidpsv(j) = zero      ! P. HERMES for hiSix
         enddo

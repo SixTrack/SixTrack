@@ -7,6 +7,7 @@
 
 G4ClassificationOfNewTrack CollimationStackingAction::ClassifyNewTrack(const G4Track* aTrack)
 {
+/*
 	//See G4 example B3
 	if(aTrack->GetParentID() == 0) return fUrgent;
 
@@ -20,4 +21,6 @@ G4ClassificationOfNewTrack CollimationStackingAction::ClassifyNewTrack(const G4T
 	{
 		return fUrgent;
 	}
+*/
+		return fUrgent;
 }

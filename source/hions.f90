@@ -43,6 +43,9 @@ module mod_hions
   ! In most cases - qq0 == zz0
   integer(kind=int16), save :: qq0
 
+  ! Reference particle PDG id
+  integer(kind=int32), save :: pdgid0
+
   integer(kind=int16), save :: nnuc0
   integer(kind=int16), save :: nnuc1
 
@@ -56,7 +59,7 @@ module mod_hions
   integer(kind=int16), allocatable, save :: nqq(:) !(npart)
 
   ! Particle data group id of the tracked particle
-  integer(kind=int16), allocatable, save :: pdgid(:) !(npart)
+  integer(kind=int32), allocatable, save :: pdgid(:) !(npart)
 
   ! SixTrack particle IDs
   integer, allocatable, save :: pids(:) !(npart)
@@ -75,7 +78,7 @@ module mod_hions
   integer(kind=int16), allocatable, save :: naa_cr(:)
   integer(kind=int16), allocatable, save :: nzz_cr(:)
   integer(kind=int16), allocatable, save :: nqq_cr(:)
-  integer(kind=int16), allocatable, save :: pdgid_cr(:)
+  integer(kind=int32), allocatable, save :: pdgid_cr(:)
   integer,             allocatable, save :: pids_cr(:)
 #endif
 
@@ -89,7 +92,7 @@ subroutine hions_allocate_arrays
   call alloc(naa,npart,aa0,'naa')
   call alloc(nzz,npart,zz0,'nzz')
   call alloc(nqq,npart,qq0,'nqq')
-  call alloc(pdgid,npart,0_int16,'pdgid')
+  call alloc(pdgid,npart,0_int32,'pdgid')
   call alloc(pids,npart,0,'pids')
 end subroutine hions_allocate_arrays
 
@@ -102,7 +105,7 @@ subroutine hions_expand_arrays(npart_new)
   call alloc(naa,npart_new,aa0,'naa')
   call alloc(nzz,npart_new,zz0,'nzz')
   call alloc(nqq,npart_new,qq0,'nqq')
-  call alloc(pdgid,npart_new,0_int16,'pdgid')
+  call alloc(pdgid,npart_new,0_int32,'pdgid')
   call alloc(pids,npart_new,0,'pids')
 end subroutine hions_expand_arrays
 
@@ -131,8 +134,8 @@ subroutine hions_parseInputLine(inLine, iLine, iErr)
     write(lout,"(a)") "HIONS> WARNING Only expected one input line."
   end if
 
-  if(nSplit /= 3) then
-    write(lout,"(a,i0)") "HIONS> ERROR Line must have 3 values, got ",nSplit
+  if(nSplit /= 4) then
+    write(lout,"(a,i0)") "HIONS> ERROR Line must have 4 values, got ",nSplit
     iErr = .true.
     return
   end if
@@ -140,6 +143,7 @@ subroutine hions_parseInputLine(inLine, iLine, iErr)
   call chr_cast(lnSplit(1),aa0,  iErr)
   call chr_cast(lnSplit(2),zz0,  iErr)
   call chr_cast(lnSplit(3),nucm0,iErr)
+  call chr_cast(lnSplit(4),qq0,  iErr) !ion charge
 
   nucm0 = nucm0*c1e3 ! [GeV/c^2] -> [MeV/c^2]
 
@@ -148,18 +152,26 @@ end subroutine hions_parseInputLine
 subroutine hions_postInput
 
   use mod_common, only : pma
+  use mod_pdgid
 
   if(.not. has_hion) then
     ! If we don't have the HION block, we need to set some variables - default to the proton values
     zz0   = 1
-    qq0   = 1
     aa0   = 1
     nucm0 = pma
+    qq0   = 1
     write(lout,"(a)")        "HION> No HION block found. Defaulting to the proton values: "
     write(lout,"(a,i0)")     "HION>  * Z = ",zz0
     write(lout,"(a,i0)")     "HION>  * A = ",aa0
     write(lout,"(a,e22.15)") "HION>  * M = ",nucm0
     write(lout,"(a,i0)")     "HION>  * Q = ",qq0
+  end if
+
+  !Calculate the ID of this ion
+  if(zz0 .eq. 1 .and. aa0 .eq. 1) then
+     pdgid0 = 2212
+  else
+    call CalculatePDGid(pdgid0, aa0, zz0)
   end if
 
   ! Init arrays
@@ -168,6 +180,7 @@ subroutine hions_postInput
   nzz(:)      = zz0
   nqq(:)      = qq0
   nucm(:)     = nucm0
+  pdgid(:)    = pdgid0
   moidpsv(:)  = one
   omoidpsv(:) = zero
 

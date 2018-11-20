@@ -41,10 +41,19 @@ void CollimationTrackingAction::PreUserTrackingAction(const G4Track* Track)
 //G4StepStatus Tstatus = Track->GetStep()->GetPreStepPoint()->GetStepStatus();
 //if(Tstatus == fGeomBoundary)
 //Record initial impact point
+
+/*
+	if(Track->GetParticleDefinition()->GetAtomicMass() > 1)
+	{
+		std::cout << "GetCharge() - pre: " << Track->GetDynamicParticle()->GetCharge() << std::endl;
+	}
+
+*/
 }
 
 void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 {
+/*
 	//Check if we have impacted
 	G4StepPoint* point_in = Track->GetStep()->GetPreStepPoint();
 	G4TouchableHandle touch_in = point_in->GetTouchableHandle();
@@ -54,27 +63,44 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 //		std::cout << "PARTICLE INTERACTED" << std::endl;
 		EventAction->OutputParticle->interacted = 1;
 	}
+*/
 
 	G4StepStatus Tstatus = Track->GetStep()->GetPostStepPoint()->GetStepStatus();
-    if (Tstatus == fWorldBoundary && Track->GetParticleDefinition() == G4Proton::ProtonDefinition())
+//    if (Tstatus == fWorldBoundary && Track->GetParticleDefinition() == G4Proton::ProtonDefinition())
+    if (Tstatus == fWorldBoundary && Track->GetParticleDefinition()->GetPDGCharge() != 0)
 	{
 //		std::cout << "AT EXIT PLANE" << std::endl;
 		if(Track->GetKineticEnergy() > ReferenceEnergy*EnergyCut)
 		{
-			double x = Track->GetPosition().x();
-			double y = Track->GetPosition().y();
-			double px = Track->GetMomentum().x();
-			double py = Track->GetMomentum().y();
-			double p = Track->GetMomentum().z();
+			G4Stuff exit_particle;
+
+			exit_particle.x = Track->GetPosition().x()  / CLHEP::m;
+			exit_particle.y = Track->GetPosition().y()  / CLHEP::m;
+			exit_particle.px = Track->GetMomentum().x() / CLHEP::GeV;
+			exit_particle.py = Track->GetMomentum().y() / CLHEP::GeV;
+			exit_particle.p  = sqrt(pow(Track->GetMomentum().z()/CLHEP::GeV,2) + pow(Track->GetParticleDefinition()->GetPDGMass()/CLHEP::GeV,2));
+			exit_particle.pdgid = Track->GetParticleDefinition()->GetPDGEncoding();
+			exit_particle.z = Track->GetParticleDefinition()->GetAtomicNumber();
+			exit_particle.a = Track->GetParticleDefinition()->GetAtomicMass();
+			exit_particle.m = Track->GetParticleDefinition()->GetPDGMass()/CLHEP::GeV;
+
+			exit_particle.q = Track->GetDynamicParticle()->GetCharge();
+			EventAction->AddOutputParticle(exit_particle);
+//			std::cout << "TrackEnd: " << Track->GetParticleDefinition()->GetParticleName() << "\t" << Track->GetKineticEnergy() /CLHEP::GeV << "\t" << Track->GetMomentum().z()/CLHEP::GeV << std::endl;
+/*
+			if(exit_particle.z > 1 && exit_particle.a > 1)
+			{
+				std::cout << "GetCharge() - post: " << Track->GetDynamicParticle()->GetCharge() << std::endl;
+			}
+*/
 			//double p = Track->GetKineticEnergy();
 //			std::cout << "KEEPING: ";// << std::endl;
 //			std::cout << x / CLHEP::m << "\t" << px << "\t" << y << "\t" << py << "\t" << p << std::endl;
-			EventAction->SetOutputParticle(x,px,y,py,p);
+//			EventAction->AddOutputParticle(x,px,y,py,p);
 //      G4double  energy = aStep->GetTrack()->GetKineticEnergy();
-			EventAction->IncrementProtonCount();
+//			EventAction->IncrementProtonCount();
 		}
 	}
-	
 }
 
 void CollimationTrackingAction::SetEventAction(CollimationEventAction* ev)
@@ -91,3 +117,4 @@ void CollimationTrackingAction::SetEnergyCut(double cut)
 {
 	EnergyCut = cut;
 }
+

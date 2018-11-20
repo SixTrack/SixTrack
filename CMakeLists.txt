@@ -281,6 +281,7 @@ list(APPEND FORT90_LIB
   ranecu wire hions elens mod_dist scatter dump dynk
   aperture mod_fluc beam6d_fox six_fox postprocessing
   read_input ranlux collimation mod_particles cheby utils
+  pdgid geant4
 )
 
 # Files unique to DA or CR version

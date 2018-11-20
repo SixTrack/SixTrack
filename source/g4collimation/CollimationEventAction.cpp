@@ -18,12 +18,11 @@ CollimationSteppingAction::CollimationSteppingAction(CollimatorGeometry* col, Co
 {}
 */
 
-CollimationEventAction::CollimationEventAction() : InputParticle(new TempParticle), OutputParticle(new TempParticle)
+CollimationEventAction::CollimationEventAction() 
 {}
 
 void CollimationEventAction::BeginOfEventAction(const G4Event* event)
 {
-	ProtonCount = 0;
 	ThisEvent = event;
 }
 
@@ -33,42 +32,7 @@ void CollimationEventAction::EndOfEventAction(const G4Event*)
 //	std::cout << "Exiting were " << ProtonCount << " protons" << std::endl;
 }
 
-
-void CollimationEventAction::IncrementProtonCount()
-{
-	ProtonCount++;
-}
-
-void CollimationEventAction::SetInputParticle(double x, double px, double y, double py, double p)
-{
-	InputParticle->x = x;
-	InputParticle->xp = px;
-	InputParticle->y = y;
-	InputParticle->yp = py;
-	InputParticle->p = p;
-	size_t oldprec = std::cout.precision(15);
-	//std::cout << "IN:  " << x << "\t" << px << "\t" << y << "\t" << py << "\t" << p << std::endl;
-	std::cout.precision(oldprec);
-}
-
-void CollimationEventAction::SetOutputParticle(double x, double px, double y, double py, double p)
-{
-	OutputParticle->x = x;
-	OutputParticle->xp = px;
-	OutputParticle->y = y;
-	OutputParticle->yp = py;
-
-	G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-	G4ParticleDefinition* particle = particleTable->FindParticle("proton");
-	const G4double mp = particle->GetPDGMass();
-	double pp= sqrt(p*p + mp*mp);
-
-	OutputParticle->p = pp;
-	size_t oldprec = std::cout.precision(15);
-	//std::cout << "OUT: " << x << "\t" << px << "\t" << y << "\t" << py << "\t" << pp << std::endl;
-	std::cout.precision(oldprec);
-}
-
+#ifdef noway
 void CollimationEventAction::PostProcessEvent(double* x, double* y, double* xp, double* yp, double* p, int *part_hit, int *part_abs, double *part_impact, double *part_indiv, double *part_linteract)
 {
 /*
@@ -147,8 +111,15 @@ void CollimationEventAction::PostProcessEvent(double* x, double* y, double* xp, 
 	OutputParticle->yp = 0;
 	OutputParticle->interacted = 0;
 }
+#endif
 
-unsigned int CollimationEventAction::GetProtonCount() const
+void CollimationEventAction::SetOutputVector(std::vector<G4Stuff>* out)
 {
-	return ProtonCount;
+	output_particles = out;
 }
+
+void CollimationEventAction::AddOutputParticle(G4Stuff stuff)
+{
+	output_particles->push_back(stuff);
+}
+
