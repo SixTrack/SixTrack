@@ -276,7 +276,7 @@ list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR)
 
 list(APPEND FORT90_LIB
   sixtrack version core_tools constants sixtrack_input mod_units
-  common_modules close strings string_tools mainarrays
+  common_modules close strings string_tools mainarrays mod_meta mod_time
   file_units mod_alloc zipf matrix_inv lielib beam6d
   bouncy_castle plato_seq bdex fma dabnew end_sixtrack
   ranecu wire hions elens mod_dist scatter dump dynk
@@ -955,11 +955,14 @@ if(MERLINSCATTER)
   endif(64BIT)
 endif()
 
-file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/source/naff/*.cpp ${CMAKE_SOURCE_DIR}/source/naff/*.cc)
+#build NAFFlib
+file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/lib/NAFFlib/source/*.c ${CMAKE_SOURCE_DIR}/lib/NAFFlib/naff_sixtrack_interface.c)
 add_library(naff STATIC ${NAFF_SOURCES})
+target_include_directories(naff PRIVATE ${CMAKE_SOURCE_DIR}/lib/NAFFlib/include)
+target_compile_options(naff PRIVATE -DCOMPILE_WITHOUT_FFTW)
 
-#Enable c++11
-set_property(TARGET naff PROPERTY CXX_STANDARD 11)
+#Enable c99
+set_property(TARGET naff PROPERTY C_STANDARD 99)
 
 if(32BIT)
   SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m32")
@@ -1098,7 +1101,15 @@ endif()
 #same with OSX, using gfortran from homebrew
 if(STATIC)
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    find_library(lquadmath NAMES libquadmath.a PATHS /usr/local/opt/gcc/lib/gcc/6/ /usr/local/opt/gcc/lib/gcc/7/ /usr/local/opt/gcc/lib/gcc/8/)
+    get_filename_component(COMPILERDIR ${CMAKE_Fortran_COMPILER} DIRECTORY)
+    string(SUBSTRING ${CMAKE_Fortran_COMPILER_VERSION} 0 1 COMPILER_MAJOR_VERSION)
+    # search relative to the compiler executable
+    find_library(lquadmath NAMES libquadmath.a PATHS "${COMPILERDIR}/../lib/gcc${COMPILER_MAJOR_VERSION}/" "${COMPILERDIR}/../lib/gcc/${COMPILER_MAJOR_VERSION}/")
+    if (lquadmath)
+      message(STATUS "Looking for lquadmath... - found")
+    else()
+      message(FATAL_ERROR "lquadmath not found!")
+    endif()
     target_link_libraries(SixTrackLib ${lquadmath})
   endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(STATIC)
