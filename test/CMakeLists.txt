@@ -89,23 +89,25 @@ set(TESTS_NO_STF_FORT90
 
 # List of tests that absolutely require STF to be on (> 64 particles)
 if(STF)
-  set(SIXTRACK_TESTS
+  list(APPEND SIXTRACK_TESTS
     beam-HO_6D-simple-newstyle-coupling
     dynk_IIR
     dynk_polynomial
     dynk_random
     dynk_operators
     scatter_aperture
-    ${SIXTRACK_TESTS}
   )
 endif(STF)
 
 if(LIBARCHIVE)
-  set(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
+  list(APPEND SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF)
+endif()
+if(NAFF)
+  list(APPEND SIXTRACK_TESTS fma_naff)
 endif()
 
 #General tests
-set(SIXTRACK_TESTS
+list(APPEND SIXTRACK_TESTS
   bbe51
   bbe52
   bbe571ib0
@@ -148,7 +150,6 @@ set(SIXTRACK_TESTS
   elensidealthck6d
   fma
   fma_binary
-  fma_naff
   dump7_fma
   dump7_fma_thin4d
   dump8_fma
@@ -191,14 +192,12 @@ set(SIXTRACK_TESTS
   dump_all_highprec
   dump_2_all_ele_highprec
   perf1
-  ${SIXTRACK_TESTS}
 )
 
 # Tests that require SixDA executable
 if(SIXDA)
   list(APPEND SIXTRACK_DA_TESTS frs_da thick4_da)
-endif()
-
+endif(SIXDA)
 
 ## UNUSED TESTS
 
@@ -438,10 +437,9 @@ set(FAST_TESTS
   orbit6d-element-trombone-kick
   orbit6d-ions
   beam-HO_6D-simple-newstyle-orbit
+  thick4_da
+  frs_da
 )
-if(SIXDA)
-  list(APPEND FAST_TESTS thick4_da frs_da)
-endif()
 
 #Medium tests take < 30 mins to run
 set(MEDIUM_TESTS
@@ -461,13 +459,13 @@ set(MEDIUM_TESTS
   orbit6d-ions-long
 )
 
-#Slow is everything longer
+# Slow is everything longer
 set(SLOW_TESTS
   prob1
   prob3
 )
 
-#Performance test
+# Performance test
 set(PERF_TESTS
   perf1
 )

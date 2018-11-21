@@ -1,9 +1,0 @@
-#!/bin/sh
-#
-for i in `ls *.s`
-do
-  gawk -f continue.awk $i > tmp$$
-  mv tmp$$ $i
-  gawk -f beauty.awk $i > tmp$$
-  mv tmp$$ $i
-done

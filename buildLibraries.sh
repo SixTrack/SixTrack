@@ -14,6 +14,7 @@ LIBARCH=false
 ZLIB=false
 HDF5=false
 PYTHIA=false
+NAFF=false
 
 for ARG in "$@"; do
     if [[ $ARG == "boinc" ]]; then
@@ -31,6 +32,8 @@ for ARG in "$@"; do
         echo "HDF5 depends zlib, zlib enabled as well."
     elif [[ $ARG == "pythia" ]]; then
         PYTHIA=true
+    elif [[ $ARG == "naff" ]]; then
+        NAFF=true
     else
         echo "Unknown library $ARG requested."
         exit 1
@@ -67,8 +70,14 @@ if [ $HDF5 = true ] || [ $ALL = true ]; then
     cd ..
 fi
 
+<<<<<<< HEAD
 if [ $PYTHIA = true ] || [ $ALL = true ]; then
     cd lib
     ./buildPythia.sh
+=======
+if [ $NAFF = true ] || [ $ALL = true ]; then
+    cd lib
+    ./buildNAFF.sh
+>>>>>>> master
     cd ..
 fi
