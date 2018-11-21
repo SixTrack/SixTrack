@@ -67,6 +67,13 @@ subroutine fma_parseInputline(inLine,iErr)
 
   fma_fname(fma_numfiles)  = trim(lnSplit(1))
   fma_method(fma_numfiles) = trim(lnSplit(2))
+#ifndef NAFF
+  if(fma_method(fma_numfiles) == "NAFF") then
+    write(lout,"(a)") "FMA> ERROR NAFF requested, but SixTrack was not built with the NAFF flag."
+    iErr = .true.
+    return
+  end if
+#endif
   if(nSplit == 2) then
     fma_norm_flag(fma_numfiles) = 1 ! default: normalise phase space
   else if(nSplit == 3) then
@@ -163,6 +170,7 @@ subroutine fma_postpr
   ! Normalised emittances
   real(kind=fPrec), allocatable :: epsnxyzv(:,:,:)
 
+#ifdef NAFF
 interface
   real(c_double) function tunenaff(x,xp,maxn,plane_idx,norm_flag, fft_naff) bind(c)
     use, intrinsic :: iso_c_binding
@@ -172,14 +180,15 @@ interface
     real(c_double), intent(in), value :: fft_naff
   end function tunenaff
 end interface
+#endif
 
-! need to pass a single dimension array to naff,
-!  since the stride in the xyzv/nxyzv arrays are difficult to pass correctly to c++.
-! (we can't interpret the struct that fortran is passing us;
-!  see the naff_interface.cpp for more info                 )
-real(kind=fPrec), allocatable :: naff_xyzv1(:)
-real(kind=fPrec), allocatable :: naff_xyzv2(:)
-!#endif
+  ! need to pass a single dimension array to naff,
+  !  since the stride in the xyzv/nxyzv arrays are difficult to pass correctly to c++.
+  ! (we can't interpret the struct that fortran is passing us;
+  !  see the naff_interface.cpp for more info                 )
+  real(kind=fPrec), allocatable :: naff_xyzv1(:)
+  real(kind=fPrec), allocatable :: naff_xyzv2(:)
+
   ! dummy variables for readin + normalisation + loops
   integer :: id,kt,counter,thisturn
   real(kind=fPrec) :: pos, fft_naff
@@ -625,6 +634,7 @@ real(kind=fPrec), allocatable :: naff_xyzv2(:)
                 q123(m) = tunenewt1(nxyzv(l,1:nturns(l),2*(m-1)+1),nxyzv(l,1:nturns(l),2*m), nturns(l) )
               endif
 
+#ifdef NAFF
             case("NAFF")
               ! write(lout,*) "DBG", fma_nturn(i),l
               ! write(lout,*) "DBG", nxyzv(l,1,2*(m-1)+1), nxyzv(l,1,2*m)
@@ -659,7 +669,7 @@ real(kind=fPrec), allocatable :: naff_xyzv2(:)
 #endif
 
               flush(lout)
-              ! stop
+#endif
 
             case default
               write(lout,"(a)") "FMA> ERROR Method '"//trim(fma_method(i))//&

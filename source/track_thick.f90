@@ -20,6 +20,7 @@ subroutine trauthck(nthinerr)
 #endif
 
   use collimation
+  use mod_time
 
   use crcoall
   use parpro
@@ -430,6 +431,7 @@ subroutine trauthck(nthinerr)
     ! save original kicks
     ! always in main code
     if (dynk_enabled) call dynk_pretrack
+    call time_timeStamp(time_afterPreTrack)
 
     if(idp.eq.0.or.ition.eq.0) then
       write(lout,*) ''
@@ -485,6 +487,8 @@ subroutine thck4d(nthinerr)
   use mod_fluka
 #endif
 
+  use mod_settings
+  use mod_meta
   use mod_hions
   use postprocessing, only : writebin
   use crcoall
@@ -501,7 +505,7 @@ subroutine thck4d(nthinerr)
 #endif
   implicit none
 
-  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2
+  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve,puxve1,puxve2,puzve1,puzve2,puzve,r0,xlvj,yv1j,   &
     yv2j,zlvj,acdipamp,qd,acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,  &
     dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,         &
@@ -536,6 +540,12 @@ subroutine thck4d(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
   napxto = 0
 #endif
+  ! Determine which turns to print tracking report on
+  if(numl > 1000) then
+    turnrep = nint(numl/1000.0)
+  else
+    turnrep = 1
+  end if
 
 #ifdef CR
   if (restart) then
@@ -558,6 +568,10 @@ subroutine thck4d(nthinerr)
 #ifndef CR
   do 490 n=1,numl
 #endif
+    if(st_quiet < 3) then
+      if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thick 4D turn ",n," of ",numl
+    end if
+    meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
 !   call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
@@ -1130,6 +1144,8 @@ subroutine thck6d(nthinerr)
   use mod_fluka
 #endif
 
+  use mod_meta
+  use mod_settings
   use mod_hions
   use postprocessing, only : writebin
   use crcoall
@@ -1148,7 +1164,7 @@ subroutine thck6d(nthinerr)
 
   implicit none
 
-  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2
+  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve1,puxve2,puzve1,puzve2,r0,xlvj,yv1j,yv2j,zlvj,     &
     acdipamp,qd,acphase,acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,    &
     embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,   &
@@ -1194,6 +1210,13 @@ subroutine thck6d(nthinerr)
   napxto = 0
 #endif
 
+  ! Determine which turns to print tracking report on
+  if(numl > 1000) then
+    turnrep = nint(numl/1000.0)
+  else
+    turnrep = 1
+  end if
+
 ! Now the outer loop over turns
 #ifdef CR
   if (restart) then
@@ -1216,6 +1239,10 @@ subroutine thck6d(nthinerr)
 #ifndef CR
   do 510 n=1,numl
 #endif
+    if(st_quiet < 3) then
+      if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thick 6D turn ",n," of ",numl
+    end if
+    meta_nPartTurn = meta_nPartTurn + napx
 ! To do a dump and abend
 #ifdef BOINC
 !   call boinc_sixtrack_progress(n,numl)
