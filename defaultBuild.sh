@@ -2,10 +2,12 @@
 
 set -e #Exit on error
 
+# Build default external libraries
+./buildLibraries.sh naff libarchive
+
 echo ""
-echo " Building Standard SixTrack"
-echo "============================"
+echo " Building SixTrack with Defaults"
+echo "================================="
 echo ""
 
-./buildLibraries.sh naff
-./cmake_six gfortran release
+./cmake_six gfortran release LIBARCHIVE
