@@ -70,14 +70,14 @@ if [ $HDF5 = true ] || [ $ALL = true ]; then
     cd ..
 fi
 
-<<<<<<< HEAD
 if [ $PYTHIA = true ] || [ $ALL = true ]; then
     cd lib
     ./buildPythia.sh
-=======
+    cd ..
+fi
+
 if [ $NAFF = true ] || [ $ALL = true ]; then
     cd lib
     ./buildNAFF.sh
->>>>>>> master
     cd ..
 fi
