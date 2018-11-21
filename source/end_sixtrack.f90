@@ -6,7 +6,7 @@
 subroutine prror(ier)
 
   use crcoall
-  use parpro,     only : mcor,mmul,mran,nbb,nmac,nran,nrco, npart, nelb, nele, nblo, nzfz, ntr, nper, nema, mNameLen
+  use parpro,     only : mcor,mmul,mran,nbb,nran,nrco, npart, nelb, nele, nblo, nzfz, ntr, nper, nema, mNameLen
   use mod_common, only : ierro,errout_status, erbez
 
 #ifdef FLUKA
@@ -142,8 +142,8 @@ subroutine prror(ier)
      write(lout,10530)
    case (54)
      write(lout,10540) npart
-   case (55)
-     write(lout,10550) nmac
+!   case (55)
+!     write(lout,10550) nmac
   case (56)
     write(lout,10560) ierro
    case (57)
@@ -391,6 +391,7 @@ subroutine abend(cstring)
   use string_tools
   use mod_units
   use mod_version
+  use mod_time
 
   implicit none
 
@@ -454,7 +455,7 @@ subroutine abend(cstring)
   end do
   sumda(52)=real(ttot,fPrec)
   ! The CPU
-  call timex(time1)
+  call time_timerCheck(time1)
   trtime=time1-time0
 #ifdef CR
   trtime=trtime+crtime3

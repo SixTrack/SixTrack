@@ -1044,8 +1044,8 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(idfor < 0 .or. idfor > 3) then
-      write(lout,"(a,i0,a)") "TRAC> ERROR Third value (idfor) can only be 0, 1, 2 or 3, but ",idfor," given."
+    if(idfor < 0 .or. idfor > 2) then
+      write(lout,"(a,i0,a)") "TRAC> ERROR Third value (idfor) can only be 0, 1, or 2, but ",idfor," given."
       iErr = .true.
       return
     end if

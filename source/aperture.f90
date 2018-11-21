@@ -486,10 +486,10 @@ subroutine aperture_saveLastCoordinates( i, ix, iBack )
   integer j
   
   do j=1,napx
-    xLast(1,j) = xv(1,j)
-    xLast(2,j) = xv(2,j)
-    yLast(1,j) = yv(1,j)
-    yLast(2,j) = yv(2,j)
+    xLast(1,j) = xv1(j)
+    xLast(2,j) = xv2(j)
+    yLast(1,j) = yv1(j)
+    yLast(2,j) = yv2(j)
     ejfvLast(j) = ejfv(j)
     ejvLast(j) = ejv(j)
     nucmLast(j) = nucm(j)
@@ -553,7 +553,6 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 !     7 April 2014
 !-----------------------------------------------------------------------
 
-  use, intrinsic :: ieee_arithmetic, only : ieee_is_nan
   use physical_constants
 
 #ifdef FLUKA
@@ -617,8 +616,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
     do j=1,napx
 
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
-        llostp(j)=(abs(xv(1,j)).gt.aper(1)).or.(abs(xv(2,j)).gt.aper(2)).or. &
-             (xv(1,j).ne.xv(1,j)).or.(xv(2,j).ne.xv(2,j))
+        llostp(j)=(abs(xv1(j)).gt.aper(1)).or.(abs(xv2(j)).gt.aper(2))
         llost=llost.or.llostp(j)
       else if (do_coll) then
         llostp(j)=.false.
@@ -640,19 +638,19 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             if(lbacktracking) then
               call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             else
-              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)).or. &
-              ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)= &
                 checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)) .or. &
-                ieee_is_nan(xLast(1,j)).or.ieee_is_nan(xLast(2,j))
+                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
             else
               llostp(j)= &
-                checkTR(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
-                ieee_is_nan(xv(1,j)).or.ieee_is_nan(xv(2,j))
+                checkTR(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
+                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -672,17 +670,17 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             if(lbacktracking) then
               call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             else
-              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkCR( xchk(1),xchk(2),radius2 ) .or. &
-              ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkCR( xLast(1,j),xLast(2,j),radius2 ) .or. &
-                ieee_is_nan(xLast(1,j)).or.ieee_is_nan(xLast(2,j))
+                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
             else
-              llostp(j)=checkCR( xv(1,j),xv(2,j),radius2 ) .or. &
-                ieee_is_nan(xv(1,j)).or.ieee_is_nan(xv(2,j))
+              llostp(j)=checkCR( xv1(j),xv2(j),radius2 ) .or. &
+                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -701,17 +699,17 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             if(lbacktracking) then
               call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             else
-              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkRE( xchk(1),xchk(2),ape(1,ix),ape(2,ix) ) .or. &
-              ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkRE( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix) ) .or. &
-                ieee_is_nan(xLast(1,j)).or.ieee_is_nan(xLast(2,j))
+                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
             else
-              llostp(j)=checkRE( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix) ) .or. &
-                ieee_is_nan(xv(1,j)).or.ieee_is_nan(xv(2,j))
+              llostp(j)=checkRE( xv1(j),xv2(j),ape(1,ix),ape(2,ix) ) .or. &
+                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -732,17 +730,17 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             if(lbacktracking) then
               call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             else
-              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkEL( xchk(1),xchk(2),apxx,apyy,apxy ) .or. &
-              ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkEL( xLast(1,j),xLast(2,j),apxx,apyy,apxy ) .or. &
-                ieee_is_nan(xLast(1,j)).or.ieee_is_nan(xLast(2,j))
+                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
             else
-              llostp(j)=checkEL( xv(1,j),xv(2,j),apxx,apyy,apxy ) .or. &
-                ieee_is_nan(xv(1,j)).or.ieee_is_nan(xv(2,j))
+              llostp(j)=checkEL( xv1(j),xv2(j),apxx,apyy,apxy ) .or. &
+                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -763,17 +761,17 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             if(lbacktracking) then
               call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             else
-              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkRL( xchk(1),xchk(2),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
-              ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkRL( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
-                ieee_is_nan(xLast(1,j)).or.ieee_is_nan(xLast(2,j))
+                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
             else
-              llostp(j)=checkRL( xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
-                ieee_is_nan(xv(1,j)).or.ieee_is_nan(xv(2,j))
+              llostp(j)=checkRL( xv1(j),xv2(j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -791,17 +789,17 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             if(lbacktracking) then
               call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             else
-              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkOC(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
-              ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkOC(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
-                ieee_is_nan(xLast(1,j)).or.ieee_is_nan(xLast(2,j))
+                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
             else
-              llostp(j)=checkOC(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
-                ieee_is_nan(xv(1,j)).or.ieee_is_nan(xv(2,j))
+              llostp(j)=checkOC(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -821,17 +819,17 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             if(lbacktracking) then
               call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             else
-              call roffpos(xv(1,j),xv(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+              call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
             end if
             llostp(j)=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
-              ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           else
             if(lbacktracking) then
               llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
-                ieee_is_nan(xLast(1,j)).or.ieee_is_nan(xLast(2,j))
+                isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
             else
-              llostp(j)=checkRT(xv(1,j),xv(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
-                ieee_is_nan(xv(1,j)).or.ieee_is_nan(xv(2,j))
+              llostp(j)=checkRT(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+                isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
             end if
           end if
           llost=llost.or.llostp(j)
@@ -933,32 +931,32 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
               apyy = aprr(4)**2.
               apxy = apxx * apyy
               llos=checkTR(xchk(1),xchk(2),aprr(1),aprr(2),aprr(3),aprr(4),apxx,apyy,apxy,aprr(5),aprr(6)).or. &
-                ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
+                isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
             case (1) ! Circle
               radius2 = aprr(3)**2
               llos=checkCR(xchk(1),xchk(2),radius2) .or. &
-                ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
+                isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
             case (2) ! Rectangle
               llos=checkRE(xchk(1),xchk(2),aprr(1),aprr(2)) .or. &
-                ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
+                isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
             case (3) ! Ellipse
               apxx = aprr(3)**2.
               apyy = aprr(4)**2.
               apxy = apxx * apyy
               llos=checkEL( xchk(1),xchk(2),apxx,apyy,apxy )  .or. &
-                ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
+                isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
             case (4) ! RectEllipse
               apxx = aprr(3)**2.
               apyy = aprr(4)**2.
               apxy = apxx * apyy
               llos = checkRL( xchk(1),xchk(2),aprr(1),aprr(2),apxx, apyy, apxy ) .or. &
-                ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
+                isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
             case (5) ! Octagon
               llos=checkOC(xchk(1), xchk(2), aprr(1), aprr(2), aprr(5), aprr(6) ) .or. &
-                ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
+                isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
             case (6) ! RaceTrack
               llos=checkRT( xchk(1), xchk(2), aprr(1), aprr(2), aprr(3), aprr(3)**2. ) .or. &
-                ieee_is_nan(xchk(1)).or.ieee_is_nan(xchk(2))
+                isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
             end select
           end do !do jj=1,niter
 
@@ -975,10 +973,10 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
             ylos(2) = yLast(2,j)
             slos    = dcum(iLastThick)
           else
-            xlos(1) = xv(1,j)
-            xlos(2) = xv(2,j)
-            ylos(1) = yv(1,j)
-            ylos(2) = yv(2,j)
+            xlos(1) = xv1(j)
+            xlos(2) = xv2(j)
+            ylos(1) = yv1(j)
+            ylos(2) = yv2(j)
             slos    = dcum(i)
           end if
         end if ! if(lback)
@@ -1205,6 +1203,642 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
   end if
 
 end subroutine lostpart
+
+
+subroutine aperture_checkApeMarker(turn, i, ix, llost)
+!-----------------------------------------------------------------------
+!     P.Garcia Ortega, A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified:  8-12-2014
+!     aperture check and dump lost particles
+!     always in main code
+!-----------------------------------------------------------------------
+!     7 April 2014
+!-----------------------------------------------------------------------
+
+  use physical_constants
+
+#ifdef FLUKA
+  use mod_fluka
+#endif
+
+#ifdef ROOT
+  use iso_c_binding
+  use root_output
+#endif
+
+  use collimation, only : do_coll, part_abs_turn, ipart
+
+  implicit none
+
+! parameters
+  integer turn  ! turn number
+  integer i     ! element entry in the lattice
+  integer ix    ! single element type index
+  logical llost ! at least a particle loss
+
+  integer ib2,ib3,ilostch,j,jj,jj1,jjx
+
+! temporary variables
+  logical lparID
+  real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
+  real(kind=fPrec) xchk(2)
+
+#ifdef ROOT
+  character(len=mNameLen+1) this_name
+#endif
+
+! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+! last modified: 12-06-2014
+! additional variables for back-tracking, when computing locations of
+! lost particles
+! inserted in main code by the 'backtrk' compilation flag
+  integer niter       ! number of iterations
+  integer kapert      ! temporal integer for aperture type
+  logical llos        ! temporal logic array for interpolation
+  real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
+  integer naalos, nzzlos
+
+  integer npart_tmp ! Temporary holder for number of particles,
+                    ! used to switch between collimat/standard version at runtime
+
+  save
+
+  !-----------------------------------------------------------------------
+  ! check against current aperture marker
+  !-----------------------------------------------------------------------
+
+  ! go through all possible types
+  select case(kape(ix))
+
+  case (-1) ! Transition
+    apxx = ape(3,ix)**2.
+    apyy = ape(4,ix)**2.
+    apxy = apxx * apyy
+    do j=1,napx
+      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+        if(lapeofftlt(ix)) then
+          if(lbacktracking) then
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          else
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          end if
+          llostp(j)=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)).or. &
+            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        else
+          if(lbacktracking) then
+            llostp(j)= &
+              checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)) .or. &
+              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
+          else
+            llostp(j)= &
+              checkTR(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
+              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
+          end if
+        end if
+        llost=llost.or.llostp(j)
+      end if
+    end do
+
+  case (1) ! circle
+    radius2 = ape(3,ix)**2
+    do j=1,napx
+
+      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+
+        if(lapeofftlt(ix)) then
+          if(lbacktracking) then
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          else
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          end if
+          llostp(j)=checkCR( xchk(1),xchk(2),radius2 ) .or. &
+            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        else
+          if(lbacktracking) then
+            llostp(j)=checkCR( xLast(1,j),xLast(2,j),radius2 ) .or. &
+              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
+          else
+            llostp(j)=checkCR( xv1(j),xv2(j),radius2 ) .or. &
+              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
+          end if
+        end if
+      end if
+    end do
+
+  case (2) ! Rectangle
+    do j=1,napx
+      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll) ) then
+        if(lapeofftlt(ix)) then
+          if(lbacktracking) then
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          else
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          end if
+          llostp(j)=checkRE( xchk(1),xchk(2),ape(1,ix),ape(2,ix) ) .or. &
+            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        else
+          if(lbacktracking) then
+            llostp(j)=checkRE( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix) ) .or. &
+              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
+          else
+            llostp(j)=checkRE( xv1(j),xv2(j),ape(1,ix),ape(2,ix) ) .or. &
+              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
+          end if
+        end if
+        llost=llost.or.llostp(j)
+      end if
+    end do
+
+  case (3) ! Ellipse
+    apxx = ape(3,ix)**2.
+    apyy = ape(4,ix)**2.
+    apxy = apxx * apyy
+    do j=1,napx
+      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+        if(lapeofftlt(ix)) then
+          if(lbacktracking) then
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          else
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          end if
+          llostp(j)=checkEL( xchk(1),xchk(2),apxx,apyy,apxy ) .or. &
+            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        else
+          if(lbacktracking) then
+            llostp(j)=checkEL( xLast(1,j),xLast(2,j),apxx,apyy,apxy ) .or. &
+              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
+          else
+            llostp(j)=checkEL( xv1(j),xv2(j),apxx,apyy,apxy ) .or. &
+              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
+          end if
+        end if
+        llost=llost.or.llostp(j)
+      end if
+    end do
+
+  case (4) ! RectEllipse
+    apxx = ape(3,ix)**2.
+    apyy = ape(4,ix)**2.
+    apxy = apxx * apyy
+    do j=1,napx
+      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+        if(lapeofftlt(ix)) then
+          if(lbacktracking) then
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          else
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          end if
+          llostp(j)=checkRL( xchk(1),xchk(2),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        else
+          if(lbacktracking) then
+            llostp(j)=checkRL( xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
+          else
+            llostp(j)=checkRL( xv1(j),xv2(j),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
+              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
+          end if
+        end if
+        llost=llost.or.llostp(j)
+      end if
+    end do
+
+  case (5) ! Octagon
+    do j=1,napx
+      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+        if(lapeofftlt(ix)) then
+          if(lbacktracking) then
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          else
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          end if
+          llostp(j)=checkOC(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        else
+          if(lbacktracking) then
+            llostp(j)=checkOC(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
+          else
+            llostp(j)=checkOC(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
+          end if
+        end if
+        llost=llost.or.llostp(j)
+      end if
+    end do
+
+  case (6) ! Racetrack
+    !   NB: it follows the MadX definition
+    apxy = ape(3,ix)**2.
+    do j=1,napx
+      if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
+        if(lapeofftlt(ix)) then
+          if(lbacktracking) then
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          else
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+          end if
+          llostp(j)=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+        else
+          if(lbacktracking) then
+            llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
+          else
+            llostp(j)=checkRT(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
+          end if
+        end if
+        llost=llost.or.llostp(j)
+      end if
+    end do
+
+  end select
+
+end subroutine aperture_checkApeMarker
+
+
+subroutine aperture_reportLoss(turn, i, ix)
+!-----------------------------------------------------------------------
+!     P.Garcia Ortega, A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified:  8-12-2014
+!     aperture check and dump lost particles
+!     always in main code
+!-----------------------------------------------------------------------
+!     7 April 2014
+!-----------------------------------------------------------------------
+
+  use physical_constants
+
+#ifdef FLUKA
+  use mod_fluka
+#endif
+
+#ifdef ROOT
+  use iso_c_binding
+  use root_output
+#endif
+
+  use collimation, only : do_coll, part_abs_turn, ipart
+
+  implicit none
+
+! parameters
+  integer turn  ! turn number
+  integer i     ! element entry in the lattice
+  integer ix    ! single element type index
+
+  integer ib2,ib3,ilostch,j,jj,jj1,jjx
+
+! temporary variables
+  logical lparID
+  real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
+  real(kind=fPrec) xchk(2)
+
+#ifdef ROOT
+  character(len=mNameLen+1) this_name
+#endif
+
+! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
+! last modified: 12-06-2014
+! additional variables for back-tracking, when computing locations of
+! lost particles
+! inserted in main code by the 'backtrk' compilation flag
+  integer niter       ! number of iterations
+  integer kapert      ! temporal integer for aperture type
+  logical llos        ! temporal logic array for interpolation
+  logical lback       ! actually perform backtracking
+  real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
+  integer naalos, nzzlos
+
+  integer npart_tmp ! Temporary holder for number of particles,
+                    ! used to switch between collimat/standard version at runtime
+
+  save
+
+  lback=.false.
+
+  !-----------------------------------------------------------------------
+  ! dump coordinates in case of losses
+  ! if back-tracking is requested, get more detailed point of loss
+  ! for the moment, only bi-section method
+  !-----------------------------------------------------------------------
+
+  if(lbacktracking.and.kape(ix).ne.0.and.iBckTypeLast.ge.0) then
+    lback=.true.
+
+    ! Length between elements
+    length = dcum(i) - dcum(iLast)
+
+    ! - pay attention to overflow:
+    if( length .lt. zero ) then
+      length = length+tlen
+    end if
+
+    ! - pay attention to too short thick elements
+    if( length .le. bktpre ) then
+      lback=.false.
+    end if
+
+  end if
+
+  ! Number of iterations for bisection method (ln(2x/precision)/ln(2)+1)
+  if(lback) then
+    niter=nint(inv_ln2*log_mb(two*length/bktpre)+2)
+  end if
+
+  do j=1,napx
+    if(llostp(j)) then
+      ! treat a lost particle
+
+      ! ==============================================================
+      ! point of loss
+      if(lback) then
+        ! A. Mereghetti and P. Garcia Ortega, for the FLUKA Team
+        ! last modified: 21-03-2018
+        ! back-track particles, in order to better estimate actual loss point
+
+        ylos(1)=yLast(1,j)
+        ylos(2)=yLast(2,j)
+
+        ! actual algorithm
+        llos = llostp(j)
+        step = one
+
+        do jj=1,niter
+          ! current step (bisection method):
+          if( llos ) then
+            step = step - one / (two**(jj))
+          else
+            step = step + one / (two**(jj))
+          end if
+
+          ! - step discretized if last iteration, to compare with BeamLossPattern
+          if(jj.eq.niter) then
+            slos = int((dcum(iLast)+length*step)/bktpre+one)*bktpre
+            step = (slos-dcum(iLast))/length
+          end if
+
+          ! - particle coordinates at current step
+          select case(iBckTypeLast)
+          case (0)
+            ! back-track along a drift
+            xlos(1) = xLast(1,j)  - yLast(1,j)*((one-step)*length)
+            xlos(2) = xLast(2,j)  - yLast(2,j)*((one-step)*length)
+            slos    = dcum(iLast) + (step*length)
+          end select
+
+          ! - aperture at current step
+          call interp_aperture( iLast, ixLast, i, ix, kapert, aprr, slos )
+
+          ! Check aperture
+          if( lapeofftlt(ix).or.lapeofftlt(ixLast) ) then
+            call roffpos( xlos(1), xlos(2), xchk(1),xchk(2), aprr(7), aprr(8), aprr(9) )
+          else
+            xchk(1) = xlos(1)
+            xchk(2) = xlos(2)
+          end if
+
+          select case(kapert)
+          case(-1) ! Transition
+            apxx = aprr(3)**2.
+            apyy = aprr(4)**2.
+            apxy = apxx * apyy
+            llos=checkTR(xchk(1),xchk(2),aprr(1),aprr(2),aprr(3),aprr(4),apxx,apyy,apxy,aprr(5),aprr(6)).or. &
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+          case (1) ! Circle
+            radius2 = aprr(3)**2
+            llos=checkCR(xchk(1),xchk(2),radius2) .or. &
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+          case (2) ! Rectangle
+            llos=checkRE(xchk(1),xchk(2),aprr(1),aprr(2)) .or. &
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+          case (3) ! Ellipse
+            apxx = aprr(3)**2.
+            apyy = aprr(4)**2.
+            apxy = apxx * apyy
+            llos=checkEL( xchk(1),xchk(2),apxx,apyy,apxy )  .or. &
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+          case (4) ! RectEllipse
+            apxx = aprr(3)**2.
+            apyy = aprr(4)**2.
+            apxy = apxx * apyy
+            llos = checkRL( xchk(1),xchk(2),aprr(1),aprr(2),apxx, apyy, apxy ) .or. &
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+          case (5) ! Octagon
+            llos=checkOC(xchk(1), xchk(2), aprr(1), aprr(2), aprr(5), aprr(6) ) .or. &
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+          case (6) ! RaceTrack
+            llos=checkRT( xchk(1), xchk(2), aprr(1), aprr(2), aprr(3), aprr(3)**2. ) .or. &
+              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+          end select
+        end do !do jj=1,niter
+
+        ! pay attention to overflow
+        if( slos.gt.tlen ) then
+          slos=slos-tlen
+        end if
+
+      else !if(lback)
+        if(lbacktracking) then
+          xlos(1) = xLast(1,j)
+          xlos(2) = xLast(2,j)
+          ylos(1) = yLast(1,j)
+          ylos(2) = yLast(2,j)
+          slos    = dcum(iLastThick)
+        else
+          xlos(1) = xv1(j)
+          xlos(2) = xv2(j)
+          ylos(1) = yv1(j)
+          ylos(2) = yv2(j)
+          slos    = dcum(i)
+        end if
+      end if ! if(lback)
+
+      ! get ready for dumping infos
+      if(lbacktracking) then
+        ejfvlos = ejfvLast(j)
+        ejvlos = ejvLast(j)
+        nucmlos = nucmLast(j)
+        sigmvlos = sigmv(j)
+        dpsvlos = dpsvLast(j)
+        naalos = naaLast(j)
+        nzzlos = nzzLast(j)
+      else
+        ejfvlos = ejfv(j)
+        ejvlos = ejv(j)
+        nucmlos = nucm(j)
+        sigmvlos = sigmv(j)
+        dpsvlos = dpsv(j)
+        naalos = naa(j)
+        nzzlos = nzz(j)
+      end if
+
+      ! ==============================================================
+      ! If lost particles aren't killed, the lost info is dumped only
+      ! the first time they hit the aperture. Their secondaries generated
+      ! from a lost particles are considered lost as well
+      if( apflag ) then
+        lparID = .false.
+        jjx=1
+
+        !TODO is this really needed?
+        if (do_coll) then
+          npart_tmp = npart
+        else
+          npart_tmp = napx
+        endif
+
+        do jj=1,npart_tmp
+          if(plost(jj).ne.0) then
+#ifdef FLUKA
+            if( fluka_uid(j).eq.plost(jj).or. fluka_gen(j).eq.plost(jj) ) then
+#else
+            if ( (     do_coll .and. (  ipart(j) .eq. plost(jj) )) .or. &
+                 (.not.do_coll .and. ( nlostp(j) .eq. plost(jj) ))       ) then
+#endif
+              lparID=.true.
+            end if
+
+            jjx=jj+1 !points to the last zero
+          end if
+        end do
+
+        if(lparID) then
+          !old lost particle or secondary, don't print it
+          goto 1982
+        else
+          !new lost particle, store ID and print it
+#ifdef FLUKA
+          plost(jjx) = fluka_uid(j)
+#else
+          if (do_coll) then
+            plost(jjx) = ipart(j)
+          else
+            plost(jjx) = j
+          endif
+#endif
+        end if !if(lparID) then
+      end if !if( apflag ) then
+
+#ifdef HDF5
+      if(h5_useForAPER) then
+        call h5_prepareWrite(aper_setLostPart, 1)
+        call h5_writeData(aper_setLostPart, 1,  1, turn)
+        call h5_writeData(aper_setLostPart, 2,  1, i)
+        call h5_writeData(aper_setLostPart, 3,  1, ix)
+        call h5_writeData(aper_setLostPart, 4,  1, bez(ix))
+        call h5_writeData(aper_setLostPart, 5,  1, slos)
+        call h5_writeData(aper_setLostPart, 6,  1, xlos(1)*c1m3)
+        call h5_writeData(aper_setLostPart, 7,  1, xlos(2)*c1m3)
+        call h5_writeData(aper_setLostPart, 8,  1, ylos(1)*c1m3)
+        call h5_writeData(aper_setLostPart, 9,  1, ylos(2)*c1m3)
+        call h5_writeData(aper_setLostPart, 10, 1, ejfvlos*c1m3)
+        call h5_writeData(aper_setLostPart, 11, 1, (ejvlos*(nucm0/nucmlos)-e0)*c1e6)
+        call h5_writeData(aper_setLostPart, 12, 1, -c1m3 * (sigmvlos/clight) * (e0/e0f))
+        call h5_writeData(aper_setLostPart, 13, 1, naalos)
+        call h5_writeData(aper_setLostPart, 14, 1, nzzlos)
+#ifdef FLUKA
+        call h5_writeData(aper_setLostPart, 15, 1, fluka_uid(j))
+        call h5_writeData(aper_setLostPart, 16, 1, fluka_gen(j))
+        call h5_writeData(aper_setLostPart, 17, 1, fluka_weight(j))
+#endif
+        if (do_coll) then
+          call h5_writeData(aper_setLostPart, 15, 1, ipart(j))
+        endif
+#ifndef FLUKA
+        if (.not. do_coll) then
+          call h5_writeData(aper_setLostPart, 15, 1, nlostp(j))
+        endif
+#endif
+        call h5_finaliseWrite(aper_setLostPart)
+      else
+  ! END of #ifdef HDF5
+#endif
+
+        ! Print to unit 999 (fort.999)
+#ifdef FLUKA
+        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')&
+#else
+        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')   &
+#endif
+
+     &       turn, i, ix, bez(ix), slos,                                     &
+#ifdef FLUKA
+     &       fluka_uid(j), fluka_gen(j), fluka_weight(j),                    &
+#else
+     &       nlostp(j),                                                      &
+#endif
+
+     &       xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3,         &
+     &       ejfvlos*c1m3, (ejvlos*(nucm0/nucmlos)-e0)*c1e6,                 &
+     &       -c1m3 * (sigmvlos/clight) * (e0/e0f),                           &
+     &       naalos, nzzlos
+#ifdef HDF5
+      end if
+#endif
+
+#if defined(ROOT)
+! root output
+      if(root_flag .and. root_ApertureCheck.eq.1) then
+        this_name = trim(adjustl(bez(ix))) // C_NULL_CHAR
+#if defined(FLUKA)
+        call ApertureCheckWriteLossParticleF(turn, i, ix, this_name, len_trim(this_name), slos, &
+     &  fluka_uid(j), fluka_gen(j), fluka_weight(j), &
+     &  xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
+     &  -c1m3 * (sigmvlos/clight) * (e0/e0f), naalos, nzzlos)
+#else
+        call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos, plost(j),&
+     &  xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
+     &  -c1m3 * (sigmvlos/clight) * (e0/e0f), naalos, nzzlos)
+#endif
+      end if
+#endif
+
+#ifdef FLUKA
+      if(nlostp(j).le.aperture_napxStart) then
+#else
+      if(((nlostp(j).le.aperture_napxStart) .and. do_coll) &
+           .or. .not.do_coll) then
+#endif
+         pstop(nlostp(j))=.true.
+         ! Record for postpr
+         if(.not.limifound.or.kape(ix).eq.0) then
+           aperv(nlostp(j),1) = aper(1)
+           aperv(nlostp(j),2) = aper(2)
+         else
+           aperv(nlostp(j),1) = min(ape(1,ix),ape(3,ix))
+           aperv(nlostp(j),2) = min(ape(2,ix),ape(4,ix))
+         end if
+         ixv(nlostp(j))     = ix
+         xvl(1,nlostp(j))   = xlos(1)
+         xvl(2,nlostp(j))   = xlos(2)
+         yvl(1,nlostp(j))   = ylos(1)
+         yvl(2,nlostp(j))   = ylos(2)
+         dpsvl(nlostp(j))   = dpsvlos
+         ejvl(nlostp(j))    = ejvlos
+         sigmvl(nlostp(j))  = sigmvlos
+         numxv(nlostp(j))   = numx
+         nnumxv(nlostp(j))  = numx
+
+      end if !  (nlostp(j).le.aperture_napxStart) OR
+             ! ((nlostp(j).le.aperture_napxStart) .and. do_coll)
+
+1982  continue
+
+    end if ! if(llostp(j))
+  end do ! do j=1,napx
+
+  ! flush loss particle file
+#ifdef HDF5
+  if(.not. h5_useForAPER) then
+#endif
+     flush(losses_unit)
+#ifdef HDF5
+  end if
+#endif
+
+end subroutine aperture_reportLoss
 
 
 logical function checkRE( x, y, apex, apey )
@@ -3084,7 +3718,7 @@ end module aperture
 !! compactArrays(llostp)
 !! This routine is called to compact all relevant arrays when a particle is lost
 !<
-subroutine compactArrays(llostp)
+subroutine compactArrays
 
   use aperture
 
@@ -3097,7 +3731,6 @@ subroutine compactArrays(llostp)
   implicit none
 
   integer j,jj,jj1,ib2,ib3,lnapx
-  logical llostp(npart)
 
   ! Compact array
   if(.not.apflag) then
@@ -3108,10 +3741,10 @@ subroutine compactArrays(llostp)
           do jj=j,lnapx-1
             jj1=jj+1
             nlostp(jj)=nlostp(jj1)
-            xv(1,jj)=xv(1,jj1)
-            xv(2,jj)=xv(2,jj1)
-            yv(1,jj)=yv(1,jj1)
-            yv(2,jj)=yv(2,jj1)
+            xv1(jj)=xv1(jj1)
+            xv2(jj)=xv2(jj1)
+            yv1(jj)=yv1(jj1)
+            yv2(jj)=yv2(jj1)
             dpsv(jj)=dpsv(jj1)
             sigmv(jj)=sigmv(jj1)
             ejfv(jj)=ejfv(jj1)
