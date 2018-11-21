@@ -76,10 +76,10 @@ module aperture
   real(kind=fPrec), allocatable, save :: nucmLast(:)  ! nuclear mass [GeV/c2] (npart)
   real(kind=fPrec), allocatable, save :: sigmvLast(:) ! lag [mm] (npart)
   real(kind=fPrec), allocatable, save :: dpsvLast(:)  ! (npart)
-  integer, allocatable, save :: naaLast(:)            ! nuclear mass [] (npart)
-  integer, allocatable, save :: nzzLast(:)            ! atomic number [] (npart)
-  integer, allocatable, save :: nqqLast(:)            ! charge [] (npart)
-  integer, allocatable, save :: pdgidLast(:)          ! PDGid [] (npart)
+  integer(kind=int16), allocatable, save :: naaLast(:)            ! nuclear mass [] (npart)
+  integer(kind=int16), allocatable, save :: nzzLast(:)            ! atomic number [] (npart)
+  integer(kind=int16), allocatable, save :: nqqLast(:)            ! charge [] (npart)
+  integer(kind=int32), allocatable, save :: pdgidLast(:)          ! PDGid [] (npart)
   real(kind=fPrec), save :: bktpre                 ! precision of back-tracking [m]
   integer, save :: iLast, ixLast                   ! indeces of last aperture marker
   integer, save :: iLastThick, ixLastThick         ! indeces of last thick element
@@ -138,10 +138,10 @@ subroutine aperture_expand_arrays(nele_new, npart_new)
   call alloc(nucmLast,  npart_new, zero, "nucmLast")  ! nuclear mass [GeV/c2] (npart)
   call alloc(sigmvLast, npart_new, zero, "sigmvLast") ! lag [mm] (npart)
   call alloc(dpsvLast,  npart_new, zero, "dpsvLast")  ! (npart)
-  call alloc(naaLast,   npart_new, 0, "naaLast")      ! nuclear mass [] (npart)
-  call alloc(nzzLast,   npart_new, 0, "nzzLast")      ! atomic number [] (npart)
-  call alloc(nqqLast,   npart_new, 0, "nqqLast")      ! charge [] (npart)
-  call alloc(pdgidLast, npart_new, 0, "pdgidLast")    ! PDG id [] (npart)
+  call alloc(naaLast,   npart_new, 0_int16, "naaLast")      ! nuclear mass [] (npart)
+  call alloc(nzzLast,   npart_new, 0_int16, "nzzLast")      ! atomic number [] (npart)
+  call alloc(nqqLast,   npart_new, 0_int16, "nqqLast")      ! charge [] (npart)
+  call alloc(pdgidLast, npart_new, 0_int32, "pdgidLast")    ! PDG id [] (npart)
 
 end subroutine aperture_expand_arrays
 
@@ -1088,7 +1088,7 @@ subroutine lostpart(turn, i, ix, llost, nthinerr)
 
           ! Print to unit 999 (fort.999)
 #ifdef FLUKA
-          write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')&
+          write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I8),8(1X,1PE14.7),3(1X,I8),1X,I12)')&
 #else
           write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),3(1X,I8),1X,I12)')   &
 #endif
@@ -1509,7 +1509,7 @@ subroutine aperture_reportLoss(turn, i, ix)
   logical llos        ! temporal logic array for interpolation
   logical lback       ! actually perform backtracking
   real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
-  integer naalos, nzzlos
+  integer naalos, nzzlos, nqqlos, pdgidlos
 
   integer npart_tmp ! Temporary holder for number of particles,
                     ! used to switch between collimat/standard version at runtime
@@ -1664,6 +1664,8 @@ subroutine aperture_reportLoss(turn, i, ix)
         dpsvlos = dpsvLast(j)
         naalos = naaLast(j)
         nzzlos = nzzLast(j)
+        nqqlos = nqqLast(j)
+        pdgidlos = pdgidLast(j)
       else
         ejfvlos = ejfv(j)
         ejvlos = ejv(j)
@@ -1672,6 +1674,8 @@ subroutine aperture_reportLoss(turn, i, ix)
         dpsvlos = dpsv(j)
         naalos = naa(j)
         nzzlos = nzz(j)
+        nqqlos = nqq(j)
+        pdgidlos = pdgid(j)
       end if
 
       ! ==============================================================
@@ -1758,9 +1762,9 @@ subroutine aperture_reportLoss(turn, i, ix)
 
         ! Print to unit 999 (fort.999)
 #ifdef FLUKA
-        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')&
+        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I8),8(1X,1PE14.7),3(1X,I8),1X,I12)')&
 #else
-        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')   &
+        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),3(1X,I8),1X,I12)')   &
 #endif
 
      &       turn, i, ix, bez(ix), slos,                                     &
@@ -1773,7 +1777,7 @@ subroutine aperture_reportLoss(turn, i, ix)
      &       xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3,         &
      &       ejfvlos*c1m3, (ejvlos*(nucm0/nucmlos)-e0)*c1e6,                 &
      &       -c1m3 * (sigmvlos/clight) * (e0/e0f),                           &
-     &       naalos, nzzlos
+     &       naalos, nzzlos, nqqlos, pdgidlos
 #ifdef HDF5
       end if
 #endif

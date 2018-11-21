@@ -17,7 +17,14 @@ integer(kind=int16), intent(in) :: z
 
 !Nuclear codes are given as 10-digit numbers ±10LZZZAAAI.
 
- id = 1000000000 + (a * 10) + (z * 10000)
+  if(a .eq. 1 .and. z .eq. 1) then
+    id = 2212
+    goto 10
+  end if
+
+  id = 1000000000 + (a * 10) + (z * 10000)
+
+  10 continue
 
 end subroutine CalculatePDGid
 

@@ -184,6 +184,7 @@ subroutine dist_readDist
   ejfv(j)   = ejfv(j)*c1e3
   nucm(j)   = nucm(j)*c1e3
   sigmv(j)  = -(e0f/e0)*((dt(j)*clight)*c1e3)
+  nqq(j)    = qq0
   mtc(j)    = (nqq(j)*nucm0)/(qq0*nucm(j))
   nlostp(j) = j
   pstop(j)  = .false.
@@ -267,7 +268,7 @@ subroutine dist_finaliseDist
     end if
   end do
 
-  write(lout,"(a,2(1x,i0),1x,f15.7,1x,i0)") "DIST> Reference particle species [A,Z,M,Q]:", aa0, zz0, nucm0, qq0
+  write(lout,"(a,2(1x,i0),1x,f15.7,2(1x,i0))") "DIST> Reference particle species [A,Z,M,Q,ID]:", aa0, zz0, nucm0, qq0, pdgid0
   write(lout,"(a,1x,f15.7)")       "DIST> Reference energy [Z TeV]:", c1m6*e0/qq0
 
   do j=napx+1,npart
