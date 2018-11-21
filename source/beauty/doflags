@@ -1,7 +1,0 @@
-#!/bin/sh
-set -x
-for i in `ls *.s`
-do
-  sed -f sedflags $i > tmp
-  mv tmp $i
-done

@@ -1,7 +1,0 @@
-s/[iI][mM][pP][lL][iI][cC][iI][tT].*/implicit none\
-+if cr\
-+ca crcoall\
-+ei\
-+if crlibm\
-+ca crlibco\
-+ei/
