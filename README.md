@@ -61,6 +61,10 @@ Copyright 2018 CERN. This software is distributed under the terms of the GNU Les
 
 In applying this licence, CERN does not waive the privileges and immunities granted to it by virtue of its status as an Intergovernmental Organization or submit itself to any jurisdiction.
 
+## Quick Build
+
+To build the standard release version of SixTrack with default options, run the script `defaultBuild.sh`.
+
 ## Resources
 
   * Main Website: [sixtrack.web.cern.ch/SixTrack](http://sixtrack.web.cern.ch/SixTrack/)

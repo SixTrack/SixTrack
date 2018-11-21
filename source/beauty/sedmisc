@@ -1,9 +1,0 @@
-s/tle1=log_rn(real(ia))/tle1=real(log_rn(dble(ia)))/
-s/rvv(j)=ejv(j)\/e0\*e0f\/ejfv(j)/rvv(j)=(ejv(j)*e0f)\/(e0*ejfv(j))/
-s/rv=ej(1)\/e0\*e0f\/ejf(1)/rv=(ej(1)*e0f)\/(e0*ejf(1))/
-s/\([1-9 ].*\) stop *\(.*\)/+if cr\
-\1 call abend('\2')\
-+ei\
-+if .not.cr\
-\1 stop \2\
-+ei/

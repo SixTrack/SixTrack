@@ -1,8 +1,0 @@
-#!/bin/sh
-
-for i in madxe.c madxc.c eric.c
-do
-  echo $i
-  sed -e 's?\(\([^/][^/]\)*\)//\(.*\)?\1/* \3 */?' $i > tmp$$
-  mv tmp$$ $i
-done
