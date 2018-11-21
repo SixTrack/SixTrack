@@ -319,20 +319,35 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
       get_filename_component(TFILE ${TSFILE} NAME)
 
       if(NOT WIN32)
-        #create_symlink old new
+        # create_symlink old new
         add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${TSFILE} ${CMAKE_BINARY_DIR}/test/${TST}/${TFILE})
       else()
         add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${TSFILE} ${CMAKE_BINARY_DIR}/test/${TST}/${TFILE})
       endif()
     endforeach()
   else()
-    if(NOT WIN32)
-      add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/test/${TST}/Sixin.zip ${CMAKE_BINARY_DIR}/test/${TST}/Sixin.zip)
+    # Create Sixin.zip files
+    set(TST_TO_ZIP fort.3) # Required
+    foreach(ZIP_INPUT IN ITEMS fort.2 fort.8 fort.13 fort.16) # Optional
+      if(EXISTS ${CMAKE_SOURCE_DIR}/test/${TST}/${ZIP_INPUT})
+        set(TST_TO_ZIP ${TST_TO_ZIP} ${ZIP_INPUT})
+      endif()
+    endforeach()
+    if(EXISTS ${CMAKE_SOURCE_DIR}/test/${TST}/extra_inputs.txt)
+      add_custom_command(
+        TARGET test_copy_${TST} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${CMAKE_BINARY_DIR}/test/${TST}/Sixin.zip" --format=zip --files-from=${CMAKE_SOURCE_DIR}/test/${TST}/extra_inputs.txt -- ${TST_TO_ZIP}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test/${TST}/
+      )
     else()
-      add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/test/${TST}/Sixin.zip ${CMAKE_BINARY_DIR}/test/${TST}/Sixin.zip)
+      add_custom_command(
+        TARGET test_copy_${TST} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${CMAKE_BINARY_DIR}/test/${TST}/Sixin.zip" --format=zip -- ${TST_TO_ZIP}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test/${TST}/
+      )
     endif()
 
-    #Also need the canonicals
+    # Copy/link the canonicals
     file(GLOB TEST_INPUT_CANONICAL LIST_DIRECTORIES FALSE ${CMAKE_SOURCE_DIR}/test/${TST}/*canonical)
     foreach(CANONICAL_FILES IN ITEMS ${TEST_INPUT_CANONICAL})
       get_filename_component(CANONICAL_FILE ${CANONICAL_FILES} NAME)
@@ -356,7 +371,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
 
   endif(NOT BOINC)
 
-  add_dependencies( SixTrackLib test_copy_${TST})
+  add_dependencies(SixTrackLib test_copy_${TST})
 endforeach()
 
 #add labels to tests
