@@ -1,6 +1,6 @@
 # SixTrack Changelog
 
-### Version 5.0.3 [XX.11.2018] - Release
+### Version 5.0.3 [22.11.2018] - Release
 
 **Bug Fixes**
 
@@ -30,10 +30,12 @@
 
 **Build System**
 
+* Added a `defaultBuild.sh` script that builds SixTrack with NAFF and libArchive support.
 * The `buildLibraries.sh` script has been split up and rewritten to support more libraries. The script can be called with no arguments to build all libraries, or with `boinc`, `libarchive` or `hdf5` to build the respective libraries only. Dependencies are handled automatically.
 * Building with flags `G4COLLIMAT`, `BEAMGAS` and `MERLINSCATTER` now disables building of the Differential Algebra executable (SixDA).
 * The first 7 characters of the git hash is now added to the executable name as part of the version number.
 * Added symlink name `sixtrack` pointing to the SixTrack executable in the build directory.
+* Changed the way lquadmath is linked on Mac to make it more robust.
 
 **Other Changes**
 
