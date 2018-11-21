@@ -1,7 +1,0 @@
-s?\(.*\)common/main4/ e0f,numx?+if cr\
-      logical sythckcr\
-\1common/main4/ e0f,numx,sythckcr\
-+ei\
-+if .not.cr\
-\1common/main4/ e0f,numx\
-+ei?

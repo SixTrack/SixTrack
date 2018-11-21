@@ -32,7 +32,7 @@ set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR"
 ##
 
 # List of tests that do not produce a valid fort.10
-SET(TESTS_NOFORT10
+set(TESTS_NOFORT10
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
   orbit6d-element-quadrupole
@@ -77,7 +77,7 @@ SET(TESTS_NOFORT10
 )
 
 # List of tests that do not produce singletrackfile.dat or a fort.90
-SET(TESTS_NO_STF_FORT90
+set(TESTS_NO_STF_FORT90
   dynk_operators
   dynk_random
   dynk_polynomial
@@ -85,24 +85,26 @@ SET(TESTS_NO_STF_FORT90
 )
 
 # List of tests that absolutely require STF to be on (> 64 particles)
-IF(STF)
-  SET(SIXTRACK_TESTS
+if(STF)
+  list(APPEND SIXTRACK_TESTS
     beam-HO_6D-simple-newstyle-coupling
     dynk_IIR
     dynk_polynomial
     dynk_random
     dynk_operators
     scatter_aperture
-    ${SIXTRACK_TESTS}
   )
-ENDIF(STF)
+endif(STF)
 
 if(LIBARCHIVE)
-  SET(SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF ${SIXTRACK_TESTS})
+  list(APPEND SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF)
+endif()
+if(NAFF)
+  list(APPEND SIXTRACK_TESTS fma_naff)
 endif()
 
 #General tests
-SET(SIXTRACK_TESTS
+list(APPEND SIXTRACK_TESTS
   bbe51
   bbe52
   bbe571ib0
@@ -145,7 +147,6 @@ SET(SIXTRACK_TESTS
   elensidealthck6d
   fma
   fma_binary
-  fma_naff
   dump7_fma
   dump7_fma_thin4d
   dump8_fma
@@ -188,14 +189,12 @@ SET(SIXTRACK_TESTS
   dump_all_highprec
   dump_2_all_ele_highprec
   perf1
-  ${SIXTRACK_TESTS}
 )
 
 # Tests that require SixDA executable
 if(SIXDA)
   list(APPEND SIXTRACK_DA_TESTS frs_da thick4_da)
-endif()
-
+endif(SIXDA)
 
 ## UNUSED TESTS
 
@@ -373,7 +372,7 @@ endforeach()
 
 #add labels to tests
 #Lets say fast tests take <60 seconds to run
-SET(FAST_TESTS
+set(FAST_TESTS
   orbit6d-element-quadrupole
   orbit6d-element-solenoid
   orbit6d-element-combinedFunction
@@ -450,13 +449,12 @@ SET(FAST_TESTS
   orbit6d-element-trombone-kick
   orbit6d-ions
   beam-HO_6D-simple-newstyle-orbit
+  thick4_da
+  frs_da
 )
-if(SIXDA)
-  list(APPEND FAST_TESTS thick4_da frs_da)
-endif()
 
 #Medium tests take < 30 mins to run
-SET(MEDIUM_TESTS
+set(MEDIUM_TESTS
   bbe571ib0
   tilt
   lostevery
@@ -473,14 +471,14 @@ SET(MEDIUM_TESTS
   orbit6d-ions-long
 )
 
-#Slow is everything longer
-SET(SLOW_TESTS
+# Slow is everything longer
+set(SLOW_TESTS
   prob1
   prob3
 )
 
-#Performance test
-SET(PERF_TESTS
+# Performance test
+set(PERF_TESTS
   perf1
 )
 
