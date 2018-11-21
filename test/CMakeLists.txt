@@ -333,13 +333,13 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
     if(EXISTS ${CMAKE_SOURCE_DIR}/test/${TST}/extra_inputs.txt)
       add_custom_command(
         TARGET test_copy_${TST} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${CMAKE_BINARY_DIR}/test/${TST}/Sixin.zip" --format=zip --files-from=${CMAKE_SOURCE_DIR}/test/${TST}/extra_inputs.txt -- ${TST_TO_ZIP}
+        COMMAND ${CMAKE_COMMAND} -E tar "cf" "${CMAKE_BINARY_DIR}/test/${TST}/Sixin.zip" --format=zip --files-from=${CMAKE_SOURCE_DIR}/test/${TST}/extra_inputs.txt -- ${TST_TO_ZIP}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test/${TST}/
       )
     else()
       add_custom_command(
         TARGET test_copy_${TST} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${CMAKE_BINARY_DIR}/test/${TST}/Sixin.zip" --format=zip -- ${TST_TO_ZIP}
+        COMMAND ${CMAKE_COMMAND} -E tar "cf" "${CMAKE_BINARY_DIR}/test/${TST}/Sixin.zip" --format=zip -- ${TST_TO_ZIP}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test/${TST}/
       )
     endif()
