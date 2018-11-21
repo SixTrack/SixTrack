@@ -15,37 +15,38 @@ V.K.&nbsp;Berglyd&nbsp;Olsen,
 C.&nbsp;Bracco,
 R.&nbsp;Bruce,
 R.&nbsp;De&nbsp;Maria,
-H.&nbsp;Grote,
-F.&nbsp;James,
 M.&nbsp;Fiascaris,
 M.&nbsp;Fjellstrom,
-R.&nbsp;Kwee-Hinzmann,
-K.&nbsp;Koelbig,
+H.&nbsp;Grote,
 K.&nbsp;Heinemann,
+F.&nbsp;James,
+K.&nbsp;Koelbig,
+R.&nbsp;Kwee-Hinzmann,
 Y.&nbsp;Levinsen,
 E.&nbsp;Mcintosh,
 A.&nbsp;Mereghetti,
 D.&nbsp;Mirarchi,
+K.&nbsp;Paraschou,
 T.&nbsp;Persson,
 V.&nbsp;Previtali,
 E.&nbsp;Quaranta,
 H.&nbsp;Ranshall,
-M.&nbsp;Vaenttinen,
 S.&nbsp;Redaelli,
 A.&nbsp;Rossi,
-C.&nbsp;Tambasco,
 A.&nbsp;Santamaria,
-T.&nbsp;Weiler,
-Y.&nbsp;Sun,
 K.&nbsp;Sjobak,
+Y.&nbsp;Sun,
+C.&nbsp;Tambasco,
+M.&nbsp;Vaenttinen,
 J.F.&nbsp;Wagner,
+T.&nbsp;Weiler,
 J.&nbsp;Wretborn (CERN),
 M.&nbsp;Fitterer (FNAL, CERN),
-A.&nbsp;Patapenka (NIU, CERN),
-G.&nbsp;Robert-Demolaize (BNL, CERN),
 V.&nbsp;Gupta (Google Summer of Code),
+S.&nbsp;Kostoglou (NTUA, CERN),
 J.&nbsp;Molson (UMAN, LAL, CERN),
-S.&nbsp;Kostoglou (NTUA, CERN)
+A.&nbsp;Patapenka (NIU, CERN),
+G.&nbsp;Robert-Demolaize (BNL, CERN)
 
 **Core Devs:**
 V.K.&nbsp;Berglyd&nbsp;Olsen,
@@ -79,3 +80,7 @@ To build the standard release version of SixTrack with default options, run the 
 
   * [General Requirements and Build Options](doc/build_sixtrack.md)
   * Further details covered in the [build manual](http://sixtrack.web.cern.ch/SixTrack/docs/build_full/manual.php)
+
+## Developer Tools
+
+  * [A MAD-X/SixTrack output testing and comparison framework](devtools/physicsBenchmark/README.md)
