@@ -8,7 +8,7 @@ CollimationParticleGun::CollimationParticleGun(
                                 G4ThreeVector momentumDirection)
   : G4VUserPrimaryGeneratorAction(), fParticleGun(0)
 */
-CollimationParticleGun::CollimationParticleGun() : G4VUserPrimaryGeneratorAction(), ParticleGun(new G4ParticleGun(1)),  particleTable(G4ParticleTable::GetParticleTable()), particle(nullptr)
+CollimationParticleGun::CollimationParticleGun() : G4VUserPrimaryGeneratorAction(), ParticleGun(new G4ParticleGun(1)),  particleTable(G4ParticleTable::GetParticleTable()), particle(nullptr), do_debug(false)
 {
 	//1 proton at a time
 //	ParticleGun  = new G4ParticleGun(1);
@@ -39,16 +39,14 @@ void CollimationParticleGun::GeneratePrimaries(G4Event* anEvent)
 void CollimationParticleGun::SetParticleDetails(double x, double y, double xp, double yp, double dp, int pdgid, int q)
 {
 //UNITS MUST BE MeV, mm, rad!
-	bool verbose = true;
-
-	if(verbose)
+	if(do_debug)
 	std::cout << "PDG id: " << pdgid << std::endl;
 
 	if(pdgid < 1000000000)
 	{
 		particle = particleTable->FindParticle(pdgid);
 
-		if(verbose)
+		if(do_debug)
 		std::cout << "name: " << particle->GetParticleName();// << std::endl;
 	}
 	else
@@ -77,7 +75,7 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double xp, d
 		int Z3 = (tmpid%10);
 		int Z = Z1 + 10*Z2 + 100*Z3;
 
-		if(verbose)
+		if(do_debug)
 		std::cout << "Ion: A: " << A << "\tZ: " << Z << "\tQ: " << q; // << std::endl;
 
 		particle = G4IonTable::GetIonTable()->GetIon(pdgid);
@@ -105,7 +103,7 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double xp, d
 	ParticleGun->SetParticlePosition(G4ThreeVector(x, y, 0));
 	ParticleGun->SetParticleMomentumDirection(G4ThreeVector(xp,yp,p));
 
-	if(verbose)
+	if(do_debug)
 	{
 		std::cout << "\tP(GeV): " << p/CLHEP::GeV <<  "\t" << dp/CLHEP::GeV << std::endl;
 		std::cout << std::endl;
@@ -121,3 +119,9 @@ double CollimationParticleGun::GetReferenceEnergy()
 {
 	return ReferenceEnergy;
 }
+
+void CollimationParticleGun::SetDebug(bool flag)
+{
+	do_debug = flag;
+}
+

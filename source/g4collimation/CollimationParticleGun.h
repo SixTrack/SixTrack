@@ -16,6 +16,7 @@ public:
 	void SetParticleDetails(double x, double y, double xp, double yp, double dp, int pdgid, int q);
 	void SetReferenceEnergy(double);
 	double GetReferenceEnergy();
+	void SetDebug(bool);
 
 private:
 	G4ParticleGun* ParticleGun;
@@ -23,6 +24,7 @@ private:
 //	const G4IonTable* ionTable;
 	G4ParticleDefinition* particle;
 	G4double ReferenceEnergy;
+	bool do_debug;
 };
 
 #endif

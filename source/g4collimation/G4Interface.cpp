@@ -37,6 +37,7 @@ std::string CleanFortranString(char* str, size_t count);
 std::vector<G4Stuff> input_particles;
 std::vector<G4Stuff> output_particles;
 
+bool do_debug;
 
 /**
 Geant4 needs the user to define several user classes.
@@ -45,8 +46,9 @@ These include:
 2: The Physics to use.
 3: A particle source.
 */
-extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* ecut, int* PhysicsSelect)
+extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* ecut, int* PhysicsSelect, bool* g4_debug)
 {
+	do_debug = *g4_debug;
 	std::cout << "Using seed " << *seed << " in geant4 C++" << std::endl;
 	std::cout << "The reference energy is " << *ReferenceE / CLHEP::GeV<< " and the cut will be at "<< (*ReferenceE * *ecut ) / CLHEP::GeV << " GeV!" << std::endl;
 	CLHEP::HepRandom::setTheSeed(*seed);
@@ -83,6 +85,7 @@ extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* ecut
 
 	//This is in MeV in both sixtrack (e0) and in geant4.
 	part->SetReferenceEnergy(*ReferenceE);
+	part->SetDebug(do_debug);
 
 	event = new CollimationEventAction();
 	event->SetOutputVector(&output_particles);
@@ -112,6 +115,7 @@ extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* ecut
 
 	//Added everything now set up the run manager
 	runManager->Initialize();
+
 }
 
 extern "C" void g4_add_collimator_(char* name, char* material, double* length, double* aperture, double* rotation, double* offset)

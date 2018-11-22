@@ -14,7 +14,8 @@ module geant4
 
   character(len=64) :: phys_str
 
-  logical geant4_flag
+  logical :: g4_enabled
+  logical :: g4_debug
 
 contains
 
@@ -35,6 +36,10 @@ subroutine geant4_fortran_init()
 
 !Default absecut = none
   g4_absecut = zero
+
+  g4_enabled = .false.
+
+  g4_debug = .false.
 
 end subroutine
 
@@ -76,19 +81,23 @@ subroutine geant4_daten(inLine,iErr)
   else if(lnSplit(1) == 'RELRIGIDITYCUT') then
     call chr_cast(lnSplit(2),g4_rcut,cErr)
 
-!PREFIX sixtrack_
+!absolute energy cut (GeV)
   else if(lnSplit(1) == 'ABSENERGYCUT') then
     call chr_cast(lnSplit(2),g4_absecut,cErr)
 
+!Range cut
   else if(lnSplit(1) == 'RANGECUT') then
     call chr_cast(lnSplit(2),g4_absecut,cErr)
 
+!Enable/disable debug
+  else if(lnSplit(1) == 'DEBUG') then
+    g4_debug = .true.
 !Physics to use number
 !FTFP_BERT
 !QGSP_BERT
 !Anything else? -> error
   else if(lnSplit(1) == 'PHYSICS') then
-    phys_str = trim(lnSplit(2)) // C_NULL_CHAR
+    phys_str = trim(lnSplit(2))
     if(phys_str .eq. 'FTFP_BERT') then
       g4_physics = 0
     else if(phys_str .eq. 'QGSP_BERT') then
@@ -111,7 +120,7 @@ subroutine geant4_parseInputDone
   implicit none
 
   !GEANT4 is enabled
-  geant4_flag = .true.
+  g4_enabled = .true.
 end subroutine
 
 end module geant4
