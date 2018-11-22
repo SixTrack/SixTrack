@@ -4,7 +4,7 @@
 
 **Other Changes**
 
-* The `Sixin.zip` files have been removed from the test suite. These are now generated when needed by the test cmake.
+* The `Sixin.zip` files used for testing BOINC builds have been removed from the test suite. These are now generated when needed by the test cmake.
 
 ### Version 5.0.3 [22.11.2018] - Release
 
