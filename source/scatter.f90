@@ -128,7 +128,7 @@ end subroutine scatter_expand_arrays
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-11-12
 ! =================================================================================================
-subroutine scatter_postInput
+subroutine scatter_init
 
   use crcoall
   use parpro
@@ -150,7 +150,7 @@ subroutine scatter_postInput
 #ifdef HDF5
   if(h5_useForSCAT) then
 
-    call h5_initForScatter()
+    call h5_initForScatter
 
     ! Scatter Log
     allocate(setFields(14))
@@ -266,7 +266,7 @@ subroutine scatter_postInput
   end if
 #endif
 
-end subroutine scatter_postInput
+end subroutine scatter_init
 
 ! =================================================================================================
 !  BEGIN Input Parser Functions
@@ -855,10 +855,10 @@ subroutine scatter_thin(iElem, ix, turn)
 
 #ifdef HDF5
   ! For HDF5 it is best to write in chuncks, so we will make arrays of size napx to cache everything
-  integer                 :: iRecords(3,napx)
-  real(kind=fPrec)        :: rRecords(8,napx)
-  character(len=mNameLen) :: cRecords(3,napx)
-  integer                 :: nRecords
+  integer,          allocatable :: iRecords(:,:)
+  real(kind=fPrec), allocatable :: rRecords(:,:)
+  character(len=:), allocatable :: cRecords(:,:)
+  integer nRecords
 #endif
 
   idElem    = scatter_elemPointer(ix)
@@ -886,15 +886,22 @@ subroutine scatter_thin(iElem, ix, turn)
   call alloc(hasProc,   nGen,scatter_nProc, .false.,"hasProc")
   call alloc(nLost,     nGen,scatter_nProc, 0,      "nLost")
   call alloc(nScattered,nGen,scatter_nProc, 0,      "nScattered")
+#ifdef HDF5
+  call alloc(iRecords,         3,napx,      0,      "iRecords")
+  call alloc(rRecords,         8,napx,      zero,   "rRecords")
+  call alloc(cRecords,mNameLen,3,napx,      " ",    "cRecords")
 
-  t       = zero
-  theta   = zero
-  dEE     = zero
-  dPP     = zero
-  procID  = 0
-  iLost   = 0
-  isDiff  = .false.
-  updateE = .false.
+  nRecords = 0
+#endif
+
+  t        = zero
+  theta    = zero
+  dEE      = zero
+  dPP      = zero
+  procID   = 0
+  iLost    = 0
+  isDiff   = .false.
+  updateE  = .false.
 
   ! Compute Thresholds
   allocate(brThreshold(nGen))
@@ -1095,6 +1102,11 @@ subroutine scatter_thin(iElem, ix, turn)
   call dealloc(pScattered,"pScattered")
   call dealloc(nLost,     "nLost")
   call dealloc(nScattered,"nScattered")
+#ifdef HDF5
+  call dealloc(iRecords,  "iRecords")
+  call dealloc(rRecords,  "rRecords")
+  call dealloc(cRecords,  "cRecords")
+#endif
 
   call time_stopClock(time_clockSCAT)
 

@@ -55,10 +55,10 @@ module hdf5_output
   type(string),     private, save :: h5_rootPath             ! The root group where the data for this session is stored
 
   ! Input Block Switches
-  logical, public, save :: h5_useForAPER = .false.
-  logical, public, save :: h5_useForCOLL = .false.
-  logical, public, save :: h5_useForDUMP = .false.
-  logical, public, save :: h5_useForSCAT = .false.
+  logical, public,  save :: h5_useForAPER = .false.
+  logical, public,  save :: h5_useForCOLL = .false.
+  logical, public,  save :: h5_useForDUMP = .false.
+  logical, public,  save :: h5_useForSCAT = .false.
 
   ! Additional Write Flags
   logical, public,  save :: h5_writeOptics  = .false. ! Write the linear optics parameters
@@ -261,7 +261,7 @@ subroutine h5_parseInputLine(inLine,iErr)
 
   if(nSplit == 0) then
     if(h5_debugOn) then
-      write (lout,"(a,i0,a)") "HDF5> DEBUG Input line len=",len(inLine),": '"//inLine%strip()//"'."
+      write (lout,"(a,i0,a)") "HDF5> DEBUG Input line len=",len_trim(inLine),": '"//inLine%strip()//"'."
       write (lout,"(a)")      "HDF5> DEBUG  * No fields found."
     end if
     return
@@ -269,7 +269,7 @@ subroutine h5_parseInputLine(inLine,iErr)
 
   ! Report if debugging is ON
   if(h5_debugOn) then
-    write (lout,"(a,i0,a)")  "HDF5> DEBUG Input line len=",len(inLine),": '"//inLine%strip()//"'."
+    write (lout,"(a,i0,a)")  "HDF5> DEBUG Input line len=",len_trim(inLine),": '"//inLine%strip()//"'."
     write (lout,"(a,i3,a)") ("HDF5> DEBUG  * Field(",i,") = '"//lnSplit(i)//"'",i=1,nSplit)
   end if
 
@@ -424,7 +424,7 @@ end subroutine h5_parseInputLine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-16
 ! ================================================================================================ !
-subroutine h5_initHDF5()
+subroutine h5_initHDF5
 
   call h5open_f(h5_fileError)
   call h5pcreate_f(H5P_DATASET_XFER_F, h5_plistID, h5_fileError)
@@ -433,6 +433,7 @@ subroutine h5_initHDF5()
     write(lout,"(a)") "HDF5> ERROR Failed to initialise Fortran HDF5."
     call prror(-1)
   end if
+  write(lout,"(a)") "HDF5> Fortran HDF5 initialised."
 
 end subroutine h5_initHDF5
 
@@ -441,7 +442,7 @@ end subroutine h5_initHDF5
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-16
 ! ================================================================================================ !
-subroutine h5_openFile()
+subroutine h5_openFile
 
   integer accessFlag
   logical doesExist
@@ -501,10 +502,11 @@ end subroutine h5_openFile
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-05-31
 ! ================================================================================================ !
-subroutine h5_writeSimInfo()
+subroutine h5_writeSimInfo
 
   use mod_common, only : napx, numl
   use mod_version
+  use mod_meta
 
   character(len=23) timeStamp
   character(len=8)  cDate
@@ -527,6 +529,10 @@ subroutine h5_writeSimInfo()
   call h5_writeAttr(h5_rootID,"ExecNumVersion",numvers)
   call h5_writeAttr(h5_rootID,"ExecReleased",  moddate)
 
+  ! Write some additional infor to sim meta
+  call meta_write("HDF5Active",   h5_isActive)
+  call meta_write("HDF5DataFile", h5_fileName%chr)
+
 end subroutine h5_writeSimInfo
 
 ! ================================================================================================ !
@@ -534,7 +540,7 @@ end subroutine h5_writeSimInfo
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last Modified: 2018-04-16
 ! ================================================================================================ !
-subroutine h5_closeHDF5()
+subroutine h5_closeHDF5
 
   integer i,j
 

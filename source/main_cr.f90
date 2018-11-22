@@ -63,6 +63,7 @@ program maincr
   use fma,     only : fma_postpr, fma_flag
   use dump,    only : dump_initialise, dumpclo,dumptas,dumptasinv
   use zipf,    only : zipf_numfiles, zipf_dozip
+  use scatter, only : scatter_init
 
   use, intrinsic :: iso_fortran_env, only : output_unit
   use mod_units
@@ -204,7 +205,7 @@ end interface
 #endif
 #ifdef HDF5
   featList = featList//" HDF5"
-  call h5_initHDF5()
+  call h5_initHDF5
 #endif
 #ifdef BOINC
   featList = featList//" BOINC"
@@ -440,7 +441,7 @@ end interface
       progrm='SIXTRACK'
 
 #ifdef ROOT
-      call SixTrackRootFortranInit
+  call SixTrackRootFortranInit
 #endif
 
 #ifdef FLUKA
@@ -452,30 +453,22 @@ end interface
 
 #ifdef HDF5
   if(h5_isActive) then
-    call h5_openFile()
-    call h5_writeSimInfo()
+    call h5_openFile
+    call h5_writeSimInfo
   end if
 #endif
   call aperture_init
+  call scatter_init
 
-  if (ithick.eq.1) call allocate_thickarrays
+  if(ithick == 1) call allocate_thickarrays
+  if(ithick == 1) write(lout,"(a)") "MAINCR> Structure input file has thick linear elements"
+  if(ithick == 0) write(lout,"(a)") "MAINCR> Structure input file has thin linear elements"
 
-#ifdef DEBUG
-!     call dumpbin('adaten',999,9999)
-!     call abend('after  daten                                      ')
-#endif
-#if defined(DEBUG) && defined(CR)
-!     write(93,*) 'ERIC IL= ',il
-!     endfile (93,iostat=ierro)
-!     backspace (93,iostat=ierro)
-#endif
 #ifdef CR
-      checkp=.true.
-      call crcheck
-      call time_timeStamp(time_afterCRCheck)
+  checkp = .true.
+  call crcheck
+  call time_timeStamp(time_afterCRCheck)
 #endif
-      if(ithick.eq.1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
-      if(ithick.eq.0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
 
 #ifndef FLUKA
   ! SETTING UP THE PLOTTING

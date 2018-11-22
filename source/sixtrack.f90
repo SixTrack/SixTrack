@@ -23,7 +23,7 @@ subroutine daten
   use mod_alloc
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
-  use scatter,   only : scatter_active,scatter_debug,scatter_parseInputLine,scatter_postInput
+  use scatter,   only : scatter_active,scatter_debug,scatter_parseInputLine
   use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
@@ -939,7 +939,6 @@ subroutine daten
 #ifdef PYTHIA
   call pythia_postInput
 #endif
-  call scatter_postInput
 
   if(idp == 0 .or. ition == 0 .or. nbeam < 1) then
     do j=1,il

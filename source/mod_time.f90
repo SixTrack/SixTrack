@@ -32,14 +32,16 @@ module mod_time
   real(kind=fPrec), public,  save :: time_timeRecord(time_beforeExit)
 
   ! Constants for accumulated time
+  integer, parameter :: time_nClocks   = 4
   integer, parameter :: time_clockDUMP = 1
   integer, parameter :: time_clockCOLL = 2
   integer, parameter :: time_clockSCAT = 3
+  integer, parameter :: time_clockHDF5 = 4
 
-  real(kind=fPrec), public,  save :: time_clockStart(3)
-  real(kind=fPrec), public,  save :: time_clockTotal(3)
-  integer,          public,  save :: time_clockCount(3)
-  integer,          public,  save :: time_clockStops(3)
+  real(kind=fPrec), public,  save :: time_clockStart(time_nClocks)
+  real(kind=fPrec), public,  save :: time_clockTotal(time_nClocks)
+  integer,          public,  save :: time_clockCount(time_nClocks)
+  integer,          public,  save :: time_clockStops(time_nClocks)
 
   real,             private, save :: time_timerRef     = 0.0
   logical,          private, save :: time_timerStarted = .false.
@@ -111,6 +113,7 @@ subroutine time_finalise
   call time_writeReal("Cost_DumpModule",        time_clockTotal(time_clockDUMP), "s", time_clockCount(time_clockDUMP))
   call time_writeReal("Cost_CollimationModule", time_clockTotal(time_clockCOLL), "s", time_clockCount(time_clockCOLL))
   call time_writeReal("Cost_ScatterModule",     time_clockTotal(time_clockSCAT), "s", time_clockCount(time_clockSCAT))
+  call time_writeReal("Cost_HDF5Module",        time_clockTotal(time_clockHDF5), "s", time_clockCount(time_clockHDF5))
 
   write(time_fileUnit,"(a)") "# END"
   flush(time_fileUnit)
