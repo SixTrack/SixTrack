@@ -85,11 +85,11 @@ subroutine zipf_dozip
   implicit none
 
 #ifdef BOINC
-  character(256)               zipf_outFile_boinc
+  character(256) zipf_outFile_boinc
   character(len=:), allocatable :: zipf_fileNames_boinc(:)
   integer ii
 
-  call alloc(zipf_fileNames_boinc, 256, zipf_numFiles, str_dSpace, "zipf_fileNames_boinc")
+  call alloc(zipf_fileNames_boinc, 256, zipf_numFiles, " ", "zipf_fileNames_boinc")
 #endif
 
 !+if libarchive
