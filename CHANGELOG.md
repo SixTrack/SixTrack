@@ -1,5 +1,11 @@
 # SixTrack Changelog
 
+### Not Yet Released
+
+**Other Changes**
+
+* The `Sixin.zip` files used for testing BOINC builds have been removed from the test suite. These are now generated when needed by the test cmake.
+
 ### Version 5.0.3 [22.11.2018] - Release
 
 **Bug Fixes**
