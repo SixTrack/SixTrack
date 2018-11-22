@@ -3283,7 +3283,7 @@ subroutine collimate_end_collimator()
 !++  Fill the change in particle angle into histogram
       if(dowrite_impact) then
 #ifdef HDF5
-        if(h5_useForSCAT) then
+        if(h5_useForCOLL) then
           call h5_prepareWrite(coll_hdf5_allImpacts, 1)
           call h5_writeData(coll_hdf5_allImpacts, 1, 1, ipart(j))
           call h5_writeData(coll_hdf5_allImpacts, 2, 1, iturn)
@@ -3301,7 +3301,7 @@ subroutine collimate_end_collimator()
       if(part_abs_pos(j) .ne.0 .and. part_abs_turn(j).ne.0) then
         if(dowrite_impact) then
 #ifdef HDF5
-          if(h5_useForSCAT) then
+          if(h5_useForCOLL) then
             call h5_prepareWrite(coll_hdf5_allAbsorb, 1)
             call h5_writeData(coll_hdf5_allAbsorb, 1, 1, ipart(j))
             call h5_writeData(coll_hdf5_allAbsorb, 2, 1, iturn)
