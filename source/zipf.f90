@@ -85,7 +85,11 @@ subroutine zipf_dozip
   implicit none
 
 #ifdef BOINC
+<<<<<<< HEAD
   character(len=256)               zipf_outFile_boinc
+=======
+  character(256) zipf_outFile_boinc
+>>>>>>> master
   character(len=:), allocatable :: zipf_fileNames_boinc(:)
   integer ii
 
