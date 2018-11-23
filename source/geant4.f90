@@ -7,9 +7,10 @@ module geant4
 
   implicit none
 
-  real(kind=fPrec) :: g4_ecut
+  real(kind=fPrec) :: g4_recut
+  real(kind=fPrec) :: g4_aecut
   real(kind=fPrec) :: g4_rcut
-  real(kind=fPrec) :: g4_absecut
+  real(kind=fPrec) :: g4_rangecut
   integer :: g4_physics
 
   character(len=64) :: phys_str
@@ -29,13 +30,15 @@ subroutine geant4_fortran_init()
   g4_physics = 0
 
 !Default ecut = none
-  g4_ecut = zero
+  g4_recut = zero
 
 !Default rcut = none
   g4_rcut = zero
 
 !Default absecut = none
-  g4_absecut = zero
+  g4_aecut = zero
+
+  g4_rangecut = zero
 
   g4_enabled = .false.
 
@@ -75,19 +78,19 @@ subroutine geant4_daten(inLine,iErr)
 
 !relative energy cut
   if(lnSplit(1) == 'RELENERGYCUT') then
-    call chr_cast(lnSplit(2),g4_ecut,cErr)
+    call chr_cast(lnSplit(2),g4_recut,cErr)
+
+!absolute energy cut (GeV)
+  else if(lnSplit(1) == 'ABSENERGYCUT') then
+    call chr_cast(lnSplit(2),g4_aecut,cErr)
 
 !relative rigidity cut
   else if(lnSplit(1) == 'RELRIGIDITYCUT') then
     call chr_cast(lnSplit(2),g4_rcut,cErr)
 
-!absolute energy cut (GeV)
-  else if(lnSplit(1) == 'ABSENERGYCUT') then
-    call chr_cast(lnSplit(2),g4_absecut,cErr)
-
 !Range cut
   else if(lnSplit(1) == 'RANGECUT') then
-    call chr_cast(lnSplit(2),g4_absecut,cErr)
+    call chr_cast(lnSplit(2),g4_rangecut,cErr)
 
 !Enable/disable debug
   else if(lnSplit(1) == 'DEBUG') then

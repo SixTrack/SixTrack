@@ -76,7 +76,14 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double xp, d
 		int Z = Z1 + 10*Z2 + 100*Z3;
 
 		if(do_debug)
-		std::cout << "Ion: A: " << A << "\tZ: " << Z << "\tQ: " << q; // << std::endl;
+		{
+			std::cout << "Ion: A: " << A << "\tZ: " << Z << "\tQ: " << q; // << std::endl;
+		}
+
+		while(pdgid%10 !=0)
+		{
+			pdgid--;
+		}
 
 		particle = G4IonTable::GetIonTable()->GetIon(pdgid);
 

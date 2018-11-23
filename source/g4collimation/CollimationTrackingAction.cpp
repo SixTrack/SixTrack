@@ -67,10 +67,11 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 
 	G4StepStatus Tstatus = Track->GetStep()->GetPostStepPoint()->GetStepStatus();
 //    if (Tstatus == fWorldBoundary && Track->GetParticleDefinition() == G4Proton::ProtonDefinition())
+
     if (Tstatus == fWorldBoundary && Track->GetParticleDefinition()->GetPDGCharge() != 0)
 	{
 //		std::cout << "AT EXIT PLANE" << std::endl;
-		if(Track->GetKineticEnergy() > ReferenceEnergy*EnergyCut)
+		if(Track->GetKineticEnergy() > ReferenceEnergy*RelativeEnergyCut && Track->GetKineticEnergy() > AbsoluteEnergyCut)
 		{
 			G4Stuff exit_particle;
 
@@ -99,6 +100,7 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 //			EventAction->AddOutputParticle(x,px,y,py,p);
 //      G4double  energy = aStep->GetTrack()->GetKineticEnergy();
 //			EventAction->IncrementProtonCount();
+		
 		}
 	}
 }
@@ -113,8 +115,20 @@ void CollimationTrackingAction::SetReferenceEnergy(double e0)
 	ReferenceEnergy = e0;
 }
 
-void CollimationTrackingAction::SetEnergyCut(double cut)
+void CollimationTrackingAction::SetAbsoluteEnergyCut(double cut)
 {
-	EnergyCut = cut;
+	AbsoluteEnergyCut = cut;
+}
+
+
+void CollimationTrackingAction::SetRigidityCut(double cut)
+{
+	RigidityCut = cut;
+}
+
+
+void CollimationTrackingAction::SetRelativeEnergyCut(double cut)
+{
+	RelativeEnergyCut = cut;
 }
 

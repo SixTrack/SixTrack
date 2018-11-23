@@ -46,11 +46,12 @@ These include:
 2: The Physics to use.
 3: A particle source.
 */
-extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* ecut, int* PhysicsSelect, bool* g4_debug)
+extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* recut, double* aecut, double* rcut, int* PhysicsSelect, bool* g4_debug)
 {
 	do_debug = *g4_debug;
 	std::cout << "Using seed " << *seed << " in geant4 C++" << std::endl;
-	std::cout << "The reference energy is " << *ReferenceE / CLHEP::GeV<< " and the cut will be at "<< (*ReferenceE * *ecut ) / CLHEP::GeV << " GeV!" << std::endl;
+	std::cout << "The reference energy is " << *ReferenceE / CLHEP::GeV<< " and the relative energy cut will be at "<< (*ReferenceE * *recut ) / CLHEP::GeV << " GeV!" << std::endl;
+	std::cout << "The reference energy is " << *ReferenceE / CLHEP::GeV<< " and the absolute energy cut will be at "<< *aecut << " GeV!" << std::endl;
 	CLHEP::HepRandom::setTheSeed(*seed);
 
 	//Construct the run manager
@@ -92,10 +93,17 @@ extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* ecut
 
 	tracking = new CollimationTrackingAction();
 	tracking->SetEventAction(event);
-	tracking->SetEnergyCut(*ecut);
 	tracking->SetReferenceEnergy(*ReferenceE);
+	tracking->SetRelativeEnergyCut(*recut);
+	tracking->SetAbsoluteEnergyCut(*aecut * CLHEP::GeV);
+	tracking->SetRigidityCut(*rcut);
 
 	stack = new CollimationStackingAction();
+	stack->SetDebug(do_debug);
+	stack->SetReferenceEnergy(*ReferenceE);
+	stack->SetRelativeEnergyCut(*recut);
+	stack->SetAbsoluteEnergyCut(*aecut * CLHEP::GeV);
+	stack->SetRigidityCut(*rcut);
 
 	//Add our geometry class
 	//runManager->SetUserInitialization(CollimatorJaw);

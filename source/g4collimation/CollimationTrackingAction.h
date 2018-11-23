@@ -18,10 +18,14 @@ public:
 
 	CollimationEventAction* EventAction;
 	void SetReferenceEnergy(double e0);
-	void SetEnergyCut(double cut);
+	void SetRelativeEnergyCut(double cut);
+	void SetAbsoluteEnergyCut(double cut);
+	void SetRigidityCut(double cut);
 
 	double ReferenceEnergy;
-	double EnergyCut;
+	double RelativeEnergyCut;
+	double AbsoluteEnergyCut;
+	double RigidityCut;
 };
 
 #endif

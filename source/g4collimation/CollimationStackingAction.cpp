@@ -22,5 +22,44 @@ G4ClassificationOfNewTrack CollimationStackingAction::ClassifyNewTrack(const G4T
 		return fUrgent;
 	}
 */
+
+	//Always kill things that go below the energy cut
+	if(aTrack->GetKineticEnergy() < AbsoluteEnergyCut)
+	{
+		if(do_debug)
+		{
+			std::cout << "ABSENERGYCUT> Killing particle with Kinetic energy " << aTrack->GetKineticEnergy() << " < " << AbsoluteEnergyCut << " MeV" << std::endl;
+		}
+		return fKill;
+	}
+	else
+	{
 		return fUrgent;
+	}
 }
+
+void CollimationStackingAction::SetReferenceEnergy(double e0)
+{
+	ReferenceEnergy = e0;
+}
+
+void CollimationStackingAction::SetAbsoluteEnergyCut(double cut)
+{
+	AbsoluteEnergyCut = cut;
+}
+
+void CollimationStackingAction::SetRigidityCut(double cut)
+{
+	RigidityCut = cut;
+}
+
+void CollimationStackingAction::SetRelativeEnergyCut(double cut)
+{
+	RelativeEnergyCut = cut;
+}
+
+void CollimationStackingAction::SetDebug(bool flag)
+{
+	do_debug = flag;
+}
+

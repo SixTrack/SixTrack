@@ -1382,7 +1382,7 @@ subroutine collimate_init()
 !! 1 = QGSP_BERT
 !  g4_physics = 0
 
-  call g4_collimation_init(e0, rnd_seed, g4_ecut, g4_physics, g4_debug)
+  call g4_collimation_init(e0, rnd_seed, g4_recut, g4_aecut, g4_rcut, g4_physics, g4_debug)
 #endif
   write (lout,"(a)") ""
   write (lout,"(a)") "COLL> Finished collimate initialisation"
@@ -2409,6 +2409,7 @@ subroutine collimate_start_collimator(stracki)
         if(firstrun) then
           coll_found(j) = .TRUE.
           write(CollPositions_unit,*) j, db_name1(j), totals
+          flush(CollPositions_unit)
         end if
       end if
     end if
