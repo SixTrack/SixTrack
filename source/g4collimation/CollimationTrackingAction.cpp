@@ -82,7 +82,7 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 
 			double p2 = pow(Track->GetMomentum().x()/CLHEP::GeV,2) + pow(Track->GetMomentum().y()/CLHEP::GeV,2) + pow(Track->GetMomentum().z()/CLHEP::GeV,2); 
 
-			exit_particle.p  = sqrt(pow(p2 + pow(Track->GetParticleDefinition()->GetPDGMass()/CLHEP::GeV,2));
+			exit_particle.p  = sqrt(p2 + pow(Track->GetParticleDefinition()->GetPDGMass()/CLHEP::GeV,2));
 			exit_particle.pdgid = Track->GetParticleDefinition()->GetPDGEncoding();
 			exit_particle.z = Track->GetParticleDefinition()->GetAtomicNumber();
 			exit_particle.a = Track->GetParticleDefinition()->GetAtomicMass();
