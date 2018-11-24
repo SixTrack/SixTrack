@@ -7,11 +7,12 @@
 extern "C" void CollimationRootInit();
 extern "C" void CollimationDBRootInit();
 extern "C" void CollimationFLUKARootInit();
+extern "C" void CollimationEnergyRootInit();
 
 extern "C" void CollimatorLossRootWrite(int, char*, int, int, int, double, double, double);
 extern "C" void SurvivalRootWrite(int, int);
 extern "C" void CollimatorDatabaseRootWrite(int, char*, int, char*, int, double, double, double, double);
-extern "C" void root_FLUKA_EnergyDeposition(int, int16_t, double);
+extern "C" void root_EnergyDeposition(int, int16_t, double);
 extern "C" void root_FLUKA_Names(int, char*, int, int);
 
 
@@ -69,17 +70,33 @@ Int_t icoll;
 
 };
 
+/**
+* This class outputs the energy and nucleons dumped in collimators due to FLUKA/Geant4/etc
+*/
+class CollimationEnergyRootOutput
+{
+public:
+
+    CollimationEnergyRootOutput();
+    void CollimatorEnergyRootOutputWrite(int, int16_t, double);
+
+private:
+
+    TTree *CollimationEnergyTree;
+
+    Int_t id;
+    int16_t nucleons;
+    Double_t energy;
+};
 
 /**
-* This class outputs the energy and nucleons dumped in collimators due to FLUKA
-*
+* This class outputs the FLUKA insertion info 
 */
 class CollimationFLUKARootOutput
 {
 public:
 
     CollimationFLUKARootOutput();
-    void CollimatorFLUKARootOutputWrite(int, int16_t, double);
 
     void FLUKANamesRootOutputWrite(int, char*, int, int);
 
@@ -88,15 +105,11 @@ public:
 
 private:
 
-    TTree *CollimationFLUKATree;
     TTree *FLUKANamesTree;
 
     Int_t id;
     Int_t ins_type;
-    int16_t nucleons;
-    Double_t energy;
     Char_t name[49];
-
     Double_t length;
 
 };

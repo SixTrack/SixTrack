@@ -273,12 +273,12 @@ subroutine ConfigurationRootWrite() bind(C,name="ConfigurationRootWrite")
   implicit none
 end subroutine
 
-subroutine root_FLUKA_EnergyDeposition(id_in, nucleons_in, energy_in) bind(C,name="root_FLUKA_EnergyDeposition")
+subroutine root_EnergyDeposition(id_in, nucleons_in, energy_in) bind(C,name="root_EnergyDeposition")
   use, intrinsic :: iso_c_binding
   implicit none
-  integer(kind=C_INT),    intent(in), value :: id_in
-  integer(kind=C_INT16_T),    intent(in), value :: nucleons_in
-  real(kind=C_DOUBLE), intent(in), value :: energy_in
+  integer(kind=C_INT),     intent(in), value :: id_in
+  integer(kind=C_INT16_T), intent(in), value :: nucleons_in
+  real(kind=C_DOUBLE),     intent(in), value :: energy_in
 end subroutine
 
 subroutine root_FLUKA_Names(id_in, name_in, name_len, ins_type) bind(C,name="root_FLUKA_Names")
@@ -399,8 +399,10 @@ subroutine root_daten(inLine,iErr)
       root_Collimation = 1
       root_CollimationDB = 1
       root_Optics = 1
-      root_FLUKA = 1
       root_DumpPipe = 1
+#ifdef FLUKA
+      root_FLUKA = 1
+#endif
     else if(lnSplit(2) == 'ACCEL') then
       root_Accelerator = 1
     else if(lnSplit(2) == 'COLL') then

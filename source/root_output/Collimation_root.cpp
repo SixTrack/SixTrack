@@ -9,6 +9,7 @@
 CollimationRootOutput* CollimationLossOutput;
 CollimationDBRootOutput* CollimationDBOutput;
 CollimationFLUKARootOutput* CollimationFLUKAOutput;
+CollimationEnergyRootOutput* CollimationEnergyOutput;
 
 /**
 * Collimation start up and tree creation
@@ -25,6 +26,11 @@ extern "C" void CollimationDBRootInit()
 	CollimationDBOutput = new CollimationDBRootOutput();
 }
 
+extern "C" void CollimationEnergyRootInit()
+{
+	CollimationEnergyOutput = new CollimationEnergyRootOutput();
+}
+
 extern "C" void CollimationFLUKARootInit()
 {
 	CollimationFLUKAOutput = new CollimationFLUKARootOutput();
@@ -35,7 +41,7 @@ extern "C" void CollimationFLUKARootInit()
 
 	if(!insertion_in->good())
 	{
-		std::cerr << "Failed to load insertion.txt" << std::endl;
+		std::cerr << "Failed to load insertion.txt for root output processing." << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -75,9 +81,9 @@ extern "C" void CollimatorDatabaseRootWrite(int j, char* db_name_in, int db_name
 	CollimationDBOutput->CollimatorDatabaseRootOutputWrite(j, db_name_in, db_name_len, db_material_in, db_material_len, db_nsig_in, db_length_in, db_rotation_in, db_offset_in);
 }
 
-extern "C" void root_FLUKA_EnergyDeposition(int id_in, int16_t nucleons_in, double energy_in)
+extern "C" void root_EnergyDeposition(int id_in, int16_t nucleons_in, double energy_in)
 {
-	CollimationFLUKAOutput->CollimatorFLUKARootOutputWrite(id_in, nucleons_in, energy_in);
+	CollimationEnergyOutput->CollimatorEnergyRootOutputWrite(id_in, nucleons_in, energy_in);
 }
 
 extern "C" void root_FLUKA_Names(int id_in, char* name_in, int name_len, int ins_type_in)
@@ -166,13 +172,16 @@ void CollimationDBRootOutput::CollimatorDatabaseRootOutputWrite(int j, char* db_
 * Collimator FLUKA output 
 */
 
+CollimationEnergyRootOutput::CollimationEnergyRootOutput()
+{
+	CollimationEnergyTree = new TTree("CollimatorFLUKA","CollimationFLUKATree");
+	CollimationEnergyTree->Branch("id",&id,"id/I");
+	CollimationEnergyTree->Branch("nucleons",&nucleons,"nucleons/I");
+	CollimationEnergyTree->Branch("energy",&energy,"energy/D");
+}
+
 CollimationFLUKARootOutput::CollimationFLUKARootOutput()
 {
-	CollimationFLUKATree = new TTree("CollimatorFLUKA","CollimationFLUKATree");
-	CollimationFLUKATree->Branch("id",&id,"id/I");
-	CollimationFLUKATree->Branch("nucleons",&nucleons,"nucleons/I");
-	CollimationFLUKATree->Branch("energy",&energy,"energy/D");
-
 	FLUKANamesTree = new TTree("FLUKA_id","FLUKA_idTree");
 	FLUKANamesTree->Branch("id",&id,"id/I");
 	FLUKANamesTree->Branch("name",name,"name[49]/C");
@@ -180,14 +189,14 @@ CollimationFLUKARootOutput::CollimationFLUKARootOutput()
 	FLUKANamesTree->Branch("length",&length,"length/D");
 }
 
-void CollimationFLUKARootOutput::CollimatorFLUKARootOutputWrite(int id_in, int16_t nucleons_in, double energy_in)
+void CollimationEnergyRootOutput::CollimatorEnergyRootOutputWrite(int id_in, int16_t nucleons_in, double energy_in)
 {
 	id = id_in;
 
 	nucleons = nucleons_in;
 	energy = energy_in;
 
-	CollimationFLUKATree->Fill();
+	CollimationEnergyTree->Fill();
 }
 
 void CollimationFLUKARootOutput::FLUKANamesRootOutputWrite(int id_in, char* name_in, int name_len, int ins_type_in)

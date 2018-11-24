@@ -3207,8 +3207,8 @@ subroutine collimate_do_collimator(stracki)
 
   if((ien0-ien1).gt.one) then
 #ifdef ROOT
-    if(root_flag .and. root_FLUKA .eq. 1) then
-      call root_FLUKA_EnergyDeposition(icoll, nnuc0-nnuc1,c1m3*(ien0-ien1))
+    if(root_flag .and. root_Collimation .eq. 1) then
+      call root_EnergyDeposition(icoll, nnuc0-nnuc1,c1m3*(ien0-ien1))
     end if
 #endif
     write(208,*) icoll, (nnuc0-nnuc1), c1m3*(ien0-ien1)

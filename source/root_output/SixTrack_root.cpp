@@ -16,7 +16,6 @@
 
 TFile *RootFile;
 
-
 /**
 * General configuration and start up
 * i.e. opening files on EOS
@@ -78,6 +77,7 @@ extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, ch
     if(Collimation)
     {
         CollimationRootInit();
+		CollimationEnergyRootInit();
     }
 
     if(CollimationDB)
