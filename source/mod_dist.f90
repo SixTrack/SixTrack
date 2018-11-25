@@ -184,7 +184,7 @@ subroutine dist_readDist
   ejfv(j)   = ejfv(j)*c1e3
   nucm(j)   = nucm(j)*c1e3
   sigmv(j)  = -(e0f/e0)*((dt(j)*clight)*c1e3)
-  nqq(j)    = qq0
+  nqq(j)    = nzz(j)
   mtc(j)    = (nqq(j)*nucm0)/(qq0*nucm(j))
   nlostp(j) = j
   pstop(j)  = .false.
