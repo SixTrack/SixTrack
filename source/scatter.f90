@@ -1103,9 +1103,9 @@ subroutine scatter_thin(iElem, ix, turn)
   call dealloc(nLost,     "nLost")
   call dealloc(nScattered,"nScattered")
 #ifdef HDF5
-  call dealloc(iRecords,  "iRecords")
-  call dealloc(rRecords,  "rRecords")
-  call dealloc(cRecords,  "cRecords")
+  call dealloc(iRecords,           "iRecords")
+  call dealloc(rRecords,           "rRecords")
+  call dealloc(cRecords, mNameLen, "cRecords")
 #endif
 
   call time_stopClock(time_clockSCAT)
