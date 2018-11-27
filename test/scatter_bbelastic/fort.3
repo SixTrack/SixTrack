@@ -61,7 +61,7 @@ SCATTER
   SEED 42
   GEN  sc_thin     PPBEAMELASTIC 0.046 18.52 4.601 2.647 0.0 30
   PRO  ipPRO       FLAT 1e25 938.0 6500000
-  ELEM ip1_scatter ipPRO auto sc_thin
+  ELEM ip1_scatter ipPRO auto 1.0 sc_thin
 NEXT
 DUMP
   ip1 1 -1 2 dump_ip1.dat 1000 1000
