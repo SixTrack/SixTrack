@@ -920,11 +920,11 @@ subroutine scatter_thin(iElem, ix, turn)
     k = 3*j-2 ! Indices in the random number array
 
     ! Compute Scattering Probability
+    targetDensity = scatter_profile_getDensity(idPro,xv1(j),xv2(j))
     if(autoRatio) then
-      targetDensity = scatter_profile_getDensity(idPro,xv1(j),xv2(j))
-      scatterProb   = (targetDensity*sigmaTot)*elemScale
+      scatterProb = (targetDensity*sigmaTot)*elemScale
     else
-      scatterProb   = ratioTot*elemScale
+      scatterProb = ratioTot*elemScale
     end if
     if(rndVals(k) > scatterProb) then
       cycle
