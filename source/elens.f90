@@ -45,7 +45,7 @@ module elens
   integer, parameter     :: elens_cheby_unit=107      ! unit for reading the chebyshev coefficients
   integer, parameter     :: elens_cheby_order=18      ! max order of chebyshev polynomials
   integer, save          :: melens_cheby_tables       ! tables available in memory
-  character(len=16), save:: elens_cheby_filename(nelens_cheby_tables) ! names
+  character(len=60), save:: elens_cheby_filename(nelens_cheby_tables) ! names
   real(kind=fPrec), save :: elens_cheby_coeffs(0:elens_cheby_order,0:elens_cheby_order,nelens_cheby_tables)
   real(kind=fPrec), save :: elens_cheby_refCurr(nelens_cheby_tables) ! reference current [A]
   real(kind=fPrec), save :: elens_cheby_refRadius(nelens_cheby_tables) ! reference radius [mm]
@@ -54,8 +54,8 @@ module elens
   integer, parameter     :: nelens_radial_profiles=20 ! max number of radial profiles
   integer, parameter     :: elens_radial_unit=107     ! unit for reading radial profiles
   integer, save          :: melens_radial_profiles    ! radial profiles available in memory
-  integer, parameter     :: elens_radial_dim=60       ! max number of points in radial profiles
-  character(len=16), save:: elens_radial_filename(nelens_radial_profiles) ! names
+  integer, parameter     :: elens_radial_dim=500      ! max number of points in radial profiles
+  character(len=60), save:: elens_radial_filename(nelens_radial_profiles) ! names
   real(kind=fPrec), save :: elens_radial_profile_R(0:elens_radial_dim,nelens_radial_profiles)
   real(kind=fPrec), save :: elens_radial_profile_J(0:elens_radial_dim,nelens_radial_profiles)
   integer, save          :: elens_radial_profile_nPoints(nelens_radial_profiles)
@@ -526,7 +526,7 @@ subroutine parseRadialProfile(ifile)
     ii=ii+1
     if(ii>elens_radial_dim) then
       iErr = 2
-      write(lout,"(a)") "ELENS> ERROR too many points in radial profile: ",ii,&
+      write(lout,"(a,i0,a,i0)") "ELENS> ERROR too many points in radial profile: ",ii, &
            ". Max is ",elens_radial_dim
       goto 30
     end if
@@ -539,7 +539,8 @@ subroutine parseRadialProfile(ifile)
 
 20 continue
 
-  close(elens_cheby_unit)
+  close(elens_radial_unit)
+  write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile),"points."
 
   if(st_quiet < 2) then
     ! Echo parsed data (unless told to be quiet!)
@@ -583,6 +584,7 @@ subroutine integrateRadialProfile(ifile)
   integer ii
   real(kind=fPrec) tmpTot
 
+  write(lout,"(a)") "ELENS> Normalising radial profile described in "//trim(elens_radial_filename(ifile))
   tmpTot=zero
   do ii=1,elens_radial_profile_nPoints(ifile)
     tmpTot=tmpTot+elens_radial_profile_J(ii,ifile)*pi* &
@@ -590,7 +592,7 @@ subroutine integrateRadialProfile(ifile)
          ( elens_radial_profile_R(ii,ifile)+elens_radial_profile_R(ii-1,ifile) )
     elens_radial_profile_J(ii,ifile)=tmpTot
   end do
-  write(lout,"(a,e22.15)") "ELENS> Total current in radial profile described in "//trim(elens_radial_filename(ifile))//": ",&
+  write(lout,"(a,e22.15)") "ELENS> Total current in radial profile: ", &
          elens_radial_profile_J(elens_radial_profile_nPoints(ifile),ifile)
   
 end subroutine integrateRadialProfile
