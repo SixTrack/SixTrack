@@ -208,7 +208,7 @@ if(FLUKA)
   SET(SIXTRACK_FEAT_CR "FLUKA_${SIXTRACK_FEAT_CR}")
 endif(FLUKA)
 if(PYTHIA)
-	SET(SIXTRACK_FEAT_CR "pythia_${SIXTRACK_FEAT_CR}")
+  SET(SIXTRACK_FEAT_CR "pythia_${SIXTRACK_FEAT_CR}")
 endif()
 if(LIBARCHIVE)
   SET(SIXTRACK_FEAT_CR "libarchive_${SIXTRACK_FEAT_CR}")
@@ -332,9 +332,9 @@ if(BOINC AND NOT API)
 endif(BOINC AND NOT API)
 
 if(PYTHIA)
-	add_library(pythia_wrapper STATIC pythia_wrapper.h pythia_wrapper.cpp)
-	target_compile_options(pythia_wrapper PRIVATE)
-	list(APPEND FORT90_LIB mod_pythia)
+  add_library(pythia_wrapper STATIC pythia_wrapper.h pythia_wrapper.cpp)
+  target_compile_options(pythia_wrapper PRIVATE)
+  list(APPEND FORT90_LIB mod_pythia)
 endif(PYTHIA)
 
 foreach(loop IN LISTS FORT90_LIB)
@@ -1037,24 +1037,24 @@ endif(FLUKA)
 
 if(PYTHIA)
 
-	add_custom_command(
-		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/pythia_wrapper.h POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/pythia/pythia_wrapper.h ${CMAKE_BINARY_DIR}/pythia_wrapper.h
-		DEPENDS copy_input_files
-	)
-	add_custom_command(
-		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/pythia_wrapper.cpp POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/pythia/pythia_wrapper.cpp ${CMAKE_BINARY_DIR}/pythia_wrapper.cpp
-		DEPENDS copy_input_files
-	)
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/pythia_wrapper.h POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/pythia/pythia_wrapper.h ${CMAKE_BINARY_DIR}/pythia_wrapper.h
+    DEPENDS copy_input_files
+  )
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/pythia_wrapper.cpp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/pythia/pythia_wrapper.cpp ${CMAKE_BINARY_DIR}/pythia_wrapper.cpp
+    DEPENDS copy_input_files
+  )
 
-	include_directories(${PYTHIA_DIR}/include)
-	include_directories(${CMAKE_CURRENT_BINARY_DIR})
+  include_directories(${PYTHIA_DIR}/include)
+  include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-	target_link_libraries(SixTrackLib pythia_wrapper)
-	add_library(pythia STATIC IMPORTED)
-	set_target_properties(pythia PROPERTIES IMPORTED_LOCATION ${PYTHIA_DIR}/lib/libpythia8.a)
-	target_link_libraries(SixTrackLib pythia dl)
+  target_link_libraries(SixTrackLib pythia_wrapper)
+  add_library(pythia STATIC IMPORTED)
+  set_target_properties(pythia PROPERTIES IMPORTED_LOCATION ${PYTHIA_DIR}/lib/libpythia8.a)
+  target_link_libraries(SixTrackLib pythia dl)
 
 endif(PYTHIA)
 
