@@ -286,7 +286,7 @@ list(APPEND FORT90_LIB
   ranecu wire hions elens mod_dist scatter dump dynk
   aperture mod_fluc beam6d_fox six_fox postprocessing
   read_input ranlux collimation mod_particles cheby utils
-  pdgid geant4
+  pdgid
 )
 
 # Files unique to DA or CR version
@@ -319,6 +319,10 @@ endif(FLUKA)
 if(ROOT)
   LIST(APPEND FORT90_LIB root_output)
 endif(ROOT)
+
+if(G4COLLIMATION)
+  LIST(APPEND FORT90_LIB geant4)
+endif(G4COLLIMATION)
 
 if(BOINC AND NOT API)
   # We have a BOINC build but no API, load the fake API substitute for debugging.
