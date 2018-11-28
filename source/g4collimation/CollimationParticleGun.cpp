@@ -38,30 +38,30 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double xp, d
 	{
 		//Example: 1000822080
 
-		//Now 822080
-		int tmpid = pdgid - 1000000000;
-
-		//Now 82208
-		tmpid /= 10;
-
-		int A1 = (tmpid%10);
-		tmpid /= 10;
-		int A2 = (tmpid%10);
-		tmpid /= 10;
-		int A3 = (tmpid%10);
-
-		int A = A1 + 10*A2 + 100*A3;
-
-		tmpid /= 10;
-		int Z1 = (tmpid%10);
-		tmpid /= 10;
-		int Z2 = (tmpid%10);
-		tmpid /= 10;
-		int Z3 = (tmpid%10);
-		int Z = Z1 + 10*Z2 + 100*Z3;
-
 		if(do_debug)
 		{
+			//Now 822080
+			int tmpid = pdgid - 1000000000;
+
+			//Now 82208
+			tmpid /= 10;
+
+			int A1 = (tmpid%10);
+			tmpid /= 10;
+			int A2 = (tmpid%10);
+			tmpid /= 10;
+			int A3 = (tmpid%10);
+
+			int A = A1 + 10*A2 + 100*A3;
+
+			tmpid /= 10;
+			int Z1 = (tmpid%10);
+			tmpid /= 10;
+			int Z2 = (tmpid%10);
+			tmpid /= 10;
+			int Z3 = (tmpid%10);
+			int Z = Z1 + 10*Z2 + 100*Z3;
+
 			std::cout << "Ion: A: " << A << "\tZ: " << Z << "\tQ: " << q; // << std::endl;
 		}
 
