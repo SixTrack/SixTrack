@@ -135,4 +135,48 @@ subroutine part_updatePartEnergy(refArray)
 
 end subroutine part_updatePartEnergy
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-11-28
+!  Dumps the final state of the particle arrays to a binary file.
+! ================================================================================================ !
+subroutine part_dumpFinalState
+
+  use, intrinsic :: iso_fortran_env, only : int32, real64
+
+  use file_units
+  use parpro
+  use mod_common
+  use mod_commonmn
+
+  implicit none
+
+  character(len=15), parameter :: fileName = "final_state.dat"
+  integer                      :: fileUnit, j
+
+  call funit_requestUnit(fileName, fileUnit)
+
+  open(fileUnit,file=fileName,form="unformatted",access="stream",status="new")
+
+  write(fileUnit) int(napx, kind=int32)
+  write(fileUnit) int(npart,kind=int32)
+
+  do j=1,npart
+    write(fileUnit) logical(llostp(j), kind=int32)
+    write(fileUnit)     int(nlostp(j), kind=int32)
+    write(fileUnit)    real(   xv1(j), kind=real64)
+    write(fileUnit)    real(   xv2(j), kind=real64)
+    write(fileUnit)    real(   yv1(j), kind=real64)
+    write(fileUnit)    real(   yv2(j), kind=real64)
+    write(fileUnit)    real( sigmv(j), kind=real64)
+    write(fileUnit)    real(  dpsv(j), kind=real64)
+    write(fileUnit)    real(  ejfv(j), kind=real64)
+    write(fileUnit)    real(   ejv(j), kind=real64)
+  end do
+
+  flush(fileUnit)
+  close(fileUnit)
+
+end subroutine part_dumpFinalState
+
 end module mod_particles
