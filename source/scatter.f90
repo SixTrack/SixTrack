@@ -948,7 +948,7 @@ subroutine scatter_thin(iElem, ix, turn)
       cycle
     end if
 
-    phi = 2*pi*rndVals(k+2)
+    phi = (2*pi)*rndVals(k+2)
 
     ! If we're scaling the probability with DYNK, update the statistical weight
     scatter_statScale(nlostp(j)) = scatter_statScale(nlostp(j)) / elemScale
