@@ -233,7 +233,7 @@ The default tracking in SixTrack is for protons. In case tracking of ions is wan
 \begin{tabular}{@{}llp{0.7\linewidth}}
     \textbf{Keyword}    & \texttt{HION}\index{HION} \\
     \textbf{Data lines} & 1 \\
-    \textbf{Format}     & Line 1: \texttt{A Z u}
+    \textbf{Format}     & Line 1: \texttt{A Z $m_a$ Q}
 \end{tabular}
 
 \paragraph{Format Description}~
@@ -241,6 +241,7 @@ The default tracking in SixTrack is for protons. In case tracking of ions is wan
 \bigskip
 \begin{longtabu}{@{}llp{0.65\linewidth}}
     \texttt{A}   & integer & Total number of nucleons (atomic mass number). \\
-    \texttt{Z}   & integer & Electrical charge. \\
+    \texttt{Z}   & integer & Total number of protons. \\
     \texttt{$m_a$}   & float   & Mass of the ion [GeV/$c^2$]. 
+    \texttt{Q}   & integer & Electrical charge. \\
 \end{longtabu}
