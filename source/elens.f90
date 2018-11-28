@@ -391,11 +391,11 @@ subroutine elens_postInput
       elens_radial_fr1(j) = lininterp( elens_r1(j), &
             elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
             elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-            elens_radial_profile_nPoints(elens_iRadial(j)) )
+            elens_radial_profile_nPoints(elens_iRadial(j))+1 )
       elens_radial_fr2(j) = lininterp( elens_r2(j), &
             elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
             elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-            elens_radial_profile_nPoints(elens_iRadial(j)) )
+            elens_radial_profile_nPoints(elens_iRadial(j))+1 )
       elens_geo_norm(j) = elens_radial_fr2(j) -elens_radial_fr1(j)
     end if
   end do
@@ -592,7 +592,7 @@ subroutine integrateRadialProfile(ifile)
          ( elens_radial_profile_R(ii,ifile)+elens_radial_profile_R(ii-1,ifile) )
     elens_radial_profile_J(ii,ifile)=tmpTot
   end do
-  write(lout,"(a,e22.15)") "ELENS> Total current in radial profile: ", &
+  write(lout,"(a,e22.15)") "ELENS> Total current in radial profile [A]: ", &
          elens_radial_profile_J(elens_radial_profile_nPoints(ifile),ifile)
   
 end subroutine integrateRadialProfile

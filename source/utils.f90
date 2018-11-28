@@ -23,8 +23,8 @@ contains
     use crcoall
     implicit none
   
-    real(kind=fPrec), intent(in) :: x, xvals(*), yvals(*)
     integer,          intent(in) :: datalen
+    real(kind=fPrec), intent(in) :: x, xvals(1:datalen), yvals(1:datalen)
   
     integer ii
     real(kind=fPrec) dydx, y0
