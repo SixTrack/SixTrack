@@ -37,18 +37,6 @@ void CollimationTrackingAction::PreUserTrackingAction(const G4Track* Track)
 		//Track->SetTrackStatus(fStopAndKill);
 	}
 */
-
-//G4StepStatus Tstatus = Track->GetStep()->GetPreStepPoint()->GetStepStatus();
-//if(Tstatus == fGeomBoundary)
-//Record initial impact point
-
-/*
-	if(Track->GetParticleDefinition()->GetAtomicMass() > 1)
-	{
-		std::cout << "GetCharge() - pre: " << Track->GetDynamicParticle()->GetCharge() << std::endl;
-	}
-
-*/
 }
 
 void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
@@ -60,17 +48,13 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 	G4VPhysicalVolume* volume = touch_in->GetVolume();
 	if(volume->GetName().substr(0,3) == "jaw")
 	{
-//		std::cout << "PARTICLE INTERACTED" << std::endl;
 		EventAction->OutputParticle->interacted = 1;
 	}
 */
 
 	G4StepStatus Tstatus = Track->GetStep()->GetPostStepPoint()->GetStepStatus();
-//    if (Tstatus == fWorldBoundary && Track->GetParticleDefinition() == G4Proton::ProtonDefinition())
-
     if (Tstatus == fWorldBoundary && Track->GetParticleDefinition()->GetPDGCharge() != 0)
 	{
-//		std::cout << "AT EXIT PLANE" << std::endl;
 		if(Track->GetKineticEnergy() > ReferenceEnergy*RelativeEnergyCut && Track->GetKineticEnergy() > AbsoluteEnergyCut)
 		{
 			G4Stuff exit_particle;
@@ -90,20 +74,6 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 
 			exit_particle.q = Track->GetDynamicParticle()->GetCharge();
 			EventAction->AddOutputParticle(exit_particle);
-//			std::cout << "TrackEnd: " << Track->GetParticleDefinition()->GetParticleName() << "\t" << Track->GetKineticEnergy() /CLHEP::GeV << "\t" << Track->GetMomentum().z()/CLHEP::GeV << std::endl;
-/*
-			if(exit_particle.z > 1 && exit_particle.a > 1)
-			{
-				std::cout << "GetCharge() - post: " << Track->GetDynamicParticle()->GetCharge() << std::endl;
-			}
-*/
-			//double p = Track->GetKineticEnergy();
-//			std::cout << "KEEPING: ";// << std::endl;
-//			std::cout << x / CLHEP::m << "\t" << px << "\t" << y << "\t" << py << "\t" << p << std::endl;
-//			EventAction->AddOutputParticle(x,px,y,py,p);
-//      G4double  energy = aStep->GetTrack()->GetKineticEnergy();
-//			EventAction->IncrementProtonCount();
-		
 		}
 	}
 }

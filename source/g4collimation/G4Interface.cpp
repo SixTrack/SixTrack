@@ -6,7 +6,6 @@
 
 #include "CollimationGeometry.h"
 #include "CollimationParticleGun.h"
-//#include "CollimationSteppingAction.h"
 #include "CollimationStackingAction.h"
 #include "CollimationTrackingAction.h"
 
@@ -25,7 +24,6 @@ G4RunManager* runManager;
 //CollimationGeometry* CollimatorJaw;
 FTFP_BERT* physlist_FTFP;
 QGSP_BERT* physlist_QGSP;
-//CollimationSteppingAction* step;
 CollimationStackingAction* stack;
 CollimationEventAction* event;
 CollimationTrackingAction* tracking;
@@ -78,7 +76,6 @@ extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* recu
 	}
 
 	//Construct our collimator jaw geometry
-	//CollimatorJaw = new CollimationGeometry("TempCollimator",10, 0.0,0,0, JawMaterial);
 	geometry = new CollimationGeometry();
 
 	//Make the particle gun
@@ -106,7 +103,6 @@ extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* recu
 	stack->SetRigidityCut(*rcut);
 
 	//Add our geometry class
-	//runManager->SetUserInitialization(CollimatorJaw);
 	runManager->SetUserInitialization(geometry);
 
 	//Add our particle source class
@@ -143,7 +139,6 @@ extern "C" void g4_add_collimator_(char* name, char* material, double* length, d
 	G4double rotation_in = *rotation *CLHEP::rad;
 	G4double offset_in = *offset *CLHEP::m;
 
-//	CollimationGeometry* NewCollimator = new CollimationGeometry(CollimatorName, length_in, aperture_in, rotation_in, offset_in, JawMaterial);
 	geometry->AddCollimator(CollimatorName, length_in, aperture_in, rotation_in, offset_in, CollimatorMaterialName);
 
 }
@@ -182,8 +177,6 @@ extern "C" void g4_add_particle_(double* x, double* y, double* xp, double* yp, d
 	double y_in = (*y) * CLHEP::m;
 
 //We want px and py, not the angle!
-	//double px_in = *p * tan(*xp) * CLHEP::GeV;
-	//double py_in = *p * tan(*yp) * CLHEP::GeV;
 	double px_in = (*p) * (*xp) * CLHEP::GeV;
 	double py_in = (*p) * (*yp) * CLHEP::GeV;
 	double p_in = (*p) * CLHEP::GeV;
@@ -203,17 +196,12 @@ extern "C" void g4_add_particle_(double* x, double* y, double* xp, double* yp, d
 	in_particle.id = input_particles.size();
 
 	input_particles.push_back(in_particle);
-//	std::cout << "c++ nqq: " << *nqq << "\t" << in_particle.q << std::endl;
 }
 
 extern "C" void g4_collimate_()
 {
-//std::cout << "----------------------------------------------------------------------------" << std::endl;
-//Store the input particle for a check vs the output particle!
-//	event->SetInputParticle(x_in, px_in, y_in, py_in, p_in);
 	output_particles.clear();
 	//Update the gun with this particle's details
-//	part->SetParticleDetails(x_in, y_in, px_in, py_in, p_in);
 	for(size_t n=0; n < input_particles.size(); n++)
 	{
 		part->SetParticleDetails(input_particles.at(n).x, input_particles.at(n).y, input_particles.at(n).px, input_particles.at(n).py, input_particles.at(n).p, input_particles.at(n).pdgid, input_particles.at(n).q);
@@ -221,7 +209,6 @@ extern "C" void g4_collimate_()
 		//Run!
 		runManager->BeamOn(1);
 	}
-//	output_particles = input_particles;
 	input_particles.clear();
 }
 
@@ -259,7 +246,6 @@ part_hit(j), part_abs(j), part_impact(j), part_indiv(j),
 *a  = output_particles.at(*j).a;
 *q  = output_particles.at(*j).q;
 *m  = output_particles.at(*j).m;
-//	std::cout << "TrackReturn:" << output_particles.at(*j).pdgid << "\t" << output_particles.at(*j).p  << std::endl;
 }
 
 std::string CleanFortranString(char* str, size_t count)

@@ -39,12 +39,6 @@ class CollimationGeometry : public G4VUserDetectorConstruction
 	};
 
 	G4VPhysicalVolume* Construct();
-/*
-	G4VPhysicalVolume* GetWorldVolume();
-
-	G4double GetLength();
-	G4double GetHalfGap();
-*/
 	void SetCollimator(std::string);
 	void AddCollimator(std::string name, double length, double gap, double rotation, double offset, std::string Material);
 

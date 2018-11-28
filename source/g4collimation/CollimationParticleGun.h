@@ -21,7 +21,6 @@ public:
 private:
 	G4ParticleGun* ParticleGun;
 	G4ParticleTable* particleTable;
-//	const G4IonTable* ionTable;
 	G4ParticleDefinition* particle;
 	G4double ReferenceEnergy;
 	bool do_debug;
