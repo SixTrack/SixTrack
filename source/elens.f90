@@ -396,15 +396,15 @@ subroutine eLensTheta( j, Etot )
   integer j
   real(kind=fPrec) gamma, beta_e, beta_b, brho, Etot
 
-  gamma  = elens_Ek(j)*c1m3/pmae+one ! from kinetic energy
+  gamma  = ((elens_Ek(j)*c1m3)/pmae)+one ! from kinetic energy
   beta_e = sqrt((gamma+one)*(gamma-one))/(gamma)
   gamma  = Etot/nucm0                ! from total energy
   beta_b = sqrt((gamma+one)*(gamma-one))/(gamma)
-  brho   = Etot/(clight*c1m6)/zz0
+  brho   = (Etot/(clight*c1m6))/zz0
 
   ! r2: from mm to m (c1m3)
   ! theta: from rad to mrad (c1e3)
-  elens_theta_r2(j) = elens_len(j)*abs(elens_I(j))/(two*pi*eps0*brho*clight**2*elens_r2(j)*c1m3)*c1e3
+  elens_theta_r2(j) = ((elens_len(j)*abs(elens_I(j)))/((((two*pi)*((eps0*clight)*clight))*brho)*(elens_r2(j)*c1m3)))*c1e3
   if(elens_I(j) < zero) then
     elens_theta_r2(j) = elens_theta_r2(j)*(one/(beta_e*beta_b)+one)
   else
@@ -486,7 +486,7 @@ subroutine parseChebyFile(ifile)
       goto 30
     end if
     call chr_cast(lnSplit(3),tmpflt,spErr)
-    gamma = tmpflt*c1m3/pmae+one ! from kinetic energy
+    gamma = (tmpflt*c1m3)/pmae+one ! from kinetic energy
     elens_cheby_refBeta(ifile) = sqrt((gamma+one)*(gamma-one))/(gamma)
 
   else if(inLine(1:3) == "rad") then
