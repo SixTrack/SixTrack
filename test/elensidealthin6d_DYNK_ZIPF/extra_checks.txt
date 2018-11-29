@@ -1,7 +1,3 @@
-HEL_DUMP_1
-HEL_DUMP_2
-HEL_DUMP_3
-HEL_DUMP_4
-HEL_DUMP_5
 dynksets.dat
 aperture_losses.dat
+IP4_DUMP_last.canonical
