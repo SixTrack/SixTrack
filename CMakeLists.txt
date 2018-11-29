@@ -7,7 +7,7 @@
 ###################################################################################################
 
 #Set the cmake version required
-cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 #set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 # Set the project name and options
@@ -883,7 +883,11 @@ endif()
 #check that the compiler has the features we need!
 # Disabling this test until its cmake version is in sync with the main build script as this breaks on Ubuntu 16.04
 # See https://github.com/SixTrack/SixTrack/issues/594
-#include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
+if(${CMAKE_VERSION} VERSION_GREATER "3.7.0")
+	include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
+elseif(${CMAKE_VERSION} VERSION_EQUAL "3.7.0")
+	include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
+endif()
 
 ###################################################################################################
 # Settings for what exactly to build
