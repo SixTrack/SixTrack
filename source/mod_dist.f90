@@ -103,19 +103,20 @@ end subroutine dist_parseInputLine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-10-30
 ! ================================================================================================ !
-subroutine dist_readDist()
+subroutine dist_readDist
 
-  use numerical_constants, only : zero, c1e3
-  use physical_constants,  only : clight
-  use parpro,              only : mInputLn, npart
-  use mod_hions,           only : naa, nzz, nucm
-  use mod_common,          only : napx, e0
-  use mod_commonmn,        only : e0f, xv, yv, ejfv, sigmv
+  use parpro
+  use mod_hions
+  use mod_common
+  use mod_commonmn
   use string_tools
+  use mod_particles
+  use physical_constants
+  use numerical_constants
 
   implicit none
 
-  integer                 id, gen, jj, ln, nSplit
+  integer                 id, gen, j, ln, nSplit
   real(kind=fPrec)        weight, z, zp, dt(npart)
   logical                 spErr, cErr
   character(len=mInputLn) inLine
@@ -123,8 +124,10 @@ subroutine dist_readDist()
 
   write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_readFile)//"'"
 
-  xv(:,:)  = zero
-  yv(:,:)  = zero
+  xv1(:)  = zero
+  yv1(:)  = zero
+  xv2(:)  = zero
+  yv2(:)  = zero
   sigmv(:) = zero
   ejfv(:)  = zero
   naa(:)   = 0
@@ -132,7 +135,7 @@ subroutine dist_readDist()
   nucm(:)  = zero
   dt(:)    = zero
 
-  jj   = 0
+  j    = 0
   ln   = 0
   cErr = .false.
 
@@ -145,39 +148,42 @@ subroutine dist_readDist()
   if(inLine(1:1) == "*") goto 10
   if(inLine(1:1) == "#") goto 10
   if(inLine(1:1) == "!") goto 10
-  jj = jj+1
+  j = j+1
 
-  if(jj > napx) then
+  if(j > napx) then
     write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been read, as requested in fort.3"
-    jj = napx
+    j = napx
     goto 30
   end if
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) goto 20
-  if(nSplit > 0)  call chr_cast(lnSplit(1),  id,       cErr)
-  if(nSplit > 1)  call chr_cast(lnSplit(2),  gen,      cErr)
-  if(nSplit > 2)  call chr_cast(lnSplit(3),  weight,   cErr)
-  if(nSplit > 3)  call chr_cast(lnSplit(4),  xv(1,jj), cErr)
-  if(nSplit > 4)  call chr_cast(lnSplit(5),  xv(2,jj), cErr)
-  if(nSplit > 5)  call chr_cast(lnSplit(6),  z,        cErr)
-  if(nSplit > 6)  call chr_cast(lnSplit(7),  yv(1,jj), cErr)
-  if(nSplit > 7)  call chr_cast(lnSplit(8),  yv(2,jj), cErr)
-  if(nSplit > 8)  call chr_cast(lnSplit(9),  zp,       cErr)
-  if(nSplit > 9)  call chr_cast(lnSplit(10), naa(jj),  cErr)
-  if(nSplit > 10) call chr_cast(lnSplit(11), nzz(jj),  cErr)
-  if(nSplit > 11) call chr_cast(lnSplit(12), nucm(jj), cErr)
-  if(nSplit > 12) call chr_cast(lnSplit(13), ejfv(jj), cErr)
-  if(nSplit > 13) call chr_cast(lnSplit(14), dt(jj),   cErr)
+  if(nSplit > 0)  call chr_cast(lnSplit(1),  id,      cErr)
+  if(nSplit > 1)  call chr_cast(lnSplit(2),  gen,     cErr)
+  if(nSplit > 2)  call chr_cast(lnSplit(3),  weight,  cErr)
+  if(nSplit > 3)  call chr_cast(lnSplit(4),  xv1(j),  cErr)
+  if(nSplit > 4)  call chr_cast(lnSplit(5),  xv2(j),  cErr)
+  if(nSplit > 5)  call chr_cast(lnSplit(6),  z,       cErr)
+  if(nSplit > 6)  call chr_cast(lnSplit(7),  yv1(j),  cErr)
+  if(nSplit > 7)  call chr_cast(lnSplit(8),  yv2(j),  cErr)
+  if(nSplit > 8)  call chr_cast(lnSplit(9),  zp,      cErr)
+  if(nSplit > 9)  call chr_cast(lnSplit(10), naa(j),  cErr)
+  if(nSplit > 10) call chr_cast(lnSplit(11), nzz(j),  cErr)
+  if(nSplit > 11) call chr_cast(lnSplit(12), nucm(j), cErr)
+  if(nSplit > 12) call chr_cast(lnSplit(13), ejfv(j), cErr)
+  if(nSplit > 13) call chr_cast(lnSplit(14), dt(j),   cErr)
   if(cErr) goto 20
 
-  xv(1,jj)  = xv(1,jj)*c1e3
-  xv(2,jj)  = xv(2,jj)*c1e3
-  yv(1,jj)  = yv(1,jj)*c1e3
-  yv(2,jj)  = yv(2,jj)*c1e3
-  ejfv(jj)  = ejfv(jj)*c1e3
-  nucm(jj)  = nucm(jj)*c1e3
-  sigmv(jj) = -(e0f/e0)*((dt(jj)*clight)*c1e3)
+  xv1(j)    = xv1(j)*c1e3
+  xv2(j)    = xv2(j)*c1e3
+  yv1(j)    = yv1(j)*c1e3
+  yv2(j)    = yv2(j)*c1e3
+  ejfv(j)   = ejfv(j)*c1e3
+  nucm(j)   = nucm(j)*c1e3
+  sigmv(j)  = -(e0f/e0)*((dt(j)*clight)*c1e3)
+  mtc(j)    = (nzz(j)*nucm0)/(zz0*nucm(j))
+  nlostp(j) = j
+  pstop(j)  = .false.
 
   goto 10
 
@@ -187,18 +193,21 @@ subroutine dist_readDist()
   return
 
 30 continue
-  if(jj == 0) then
+  if(j == 0) then
     write(lout,"(a)") "DIST> ERROR Reading particles. No particles read from file."
     call prror(-1)
     return
   end if
 
   close(dist_readUnit)
-  write(lout,"(a,i0,a)") "DIST> Read ",jj," particles from file '"//trim(dist_readFile)//"'"
+  write(lout,"(a,i0,a)") "DIST> Read ",j," particles from file '"//trim(dist_readFile)//"'"
 
-  if(jj < napx) then
+  ! Update longitudinal particle arrays from read momentum
+  call part_updatePartEnergy(2)
+
+  if(j < napx) then
     write(lout,"(a,i0)") "DIST> WARNING Read a number of particles LOWER than requested: ",napx
-    napx = jj
+    napx = j
   end if
 
 end subroutine dist_readDist
@@ -208,11 +217,12 @@ end subroutine dist_readDist
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-10-31
 ! ================================================================================================ !
-subroutine dist_finaliseDist()
+subroutine dist_finaliseDist
 
   use parpro
   use mod_hions
   use mod_common
+  use mod_commont
   use mod_commonmn
   use numerical_constants
 
@@ -221,19 +231,8 @@ subroutine dist_finaliseDist()
   integer          :: j
   real(kind=fPrec) :: chkP, chkE
 
+  ! Check existence of on-momentum particles in the distribution
   do j=1, napx
-
-    nlostp(j)   = j
-    pstop(j)    = .false.
-
-    ejv(j)      = sqrt(ejfv(j)**2 + nucm(j)**2)
-    dpsv(j)     = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-    oidpsv(j)   = one/(one+dpsv(j))
-    mtc(j)      = (nzz(j)*nucm0)/(zz0*nucm(j))
-    moidpsv(j)  = mtc(j)*oidpsv(j)
-    omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
-
-    ! Check existence of on-momentum particles in the distribution
     chkP = (ejfv(j)/nucm(j))/(e0f/nucm0)-one
     chkE = (ejv(j)/nucm(j))/(e0/nucm0)-one
     if(abs(chkP) < c1m15 .or. abs(chkE) < c1m15) then
@@ -243,6 +242,7 @@ subroutine dist_finaliseDist()
 
       ejfv(j)     = e0f*(nucm(j)/nucm0)
       ejv(j)      = sqrt(ejfv(j)**2+nucm(j)**2)
+      dpsv1(j)    = zero
       dpsv(j)     = zero
       oidpsv(j)   = one
       moidpsv(j)  = mtc(j)
@@ -264,7 +264,7 @@ subroutine dist_finaliseDist()
     end if
   end do
 
-  write(lout,"(a,2(1x,i0),f15.7)") "DIST> Reference ion species [A,Z,M]:", aa0, zz0, nucm0
+  write(lout,"(a,2(1x,i0),1x,f15.7)") "DIST> Reference particle species [A,Z,M]:", aa0, zz0, nucm0
   write(lout,"(a,1x,f15.7)")       "DIST> Reference energy [Z TeV]:", c1m6*e0/zz0
 
   do j=napx+1,npart
@@ -281,21 +281,6 @@ subroutine dist_finaliseDist()
     omoidpsv(j) = zero
   end do
 
-  ! Add closed orbit
-  if(iclo6 == 2) then
-    do j=1, napx
-      xv(1,j)     = xv(1,j)  + clo6v(1,j)
-      yv(1,j)     = yv(1,j)  + clop6v(1,j)
-      xv(2,j)     = xv(2,j)  + clo6v(2,j)
-      yv(2,j)     = yv(2,j)  + clop6v(2,j)
-      sigmv(j)    = sigmv(j) + clo6v(3,j)
-      dpsv(j)     = dpsv(j)  + clop6v(3,j)
-      oidpsv(j)   = one/(one+dpsv(j))
-      moidpsv(j)  = mtc(j)/(one+dpsv(j))
-      omoidpsv(j) = ((one-mtc(j))*oidpsv(j))*c1e3
-    end do
-  end if
-
 end subroutine dist_finaliseDist
 
 ! ================================================================================================ !
@@ -303,7 +288,7 @@ end subroutine dist_finaliseDist
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-10-30
 ! ================================================================================================ !
-subroutine dist_echoDist()
+subroutine dist_echoDist
 
   use mod_common
   use mod_commonmn
@@ -317,7 +302,7 @@ subroutine dist_echoDist()
   write(dist_echoUnit,"(a)")          "#"
   write(dist_echoUnit,"(a)")          "# x[mm], y[mm], xp[mrad], yp[mrad], sigmv[mm], ejfv[MeV/c]"
   do j=1, napx
-    write(dist_echoUnit,"(6(1x,1pe25.18))") xv(1,j), yv(1,j), xv(2,j), yv(2,j), sigmv(j), ejfv(j)
+    write(dist_echoUnit,"(6(1x,1pe25.18))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejfv(j)
   end do
   close(dist_echoUnit)
 

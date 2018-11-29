@@ -67,8 +67,11 @@ program maincr
 
   use, intrinsic :: iso_fortran_env, only : output_unit
   use mod_units
+  use mod_meta
+  use mod_time
   use aperture
   use mod_ranecu
+  use mod_particles
   use mod_alloc,      only : alloc_init
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
@@ -124,7 +127,7 @@ end interface
 
   ! "Old" variables
   integer i,itiono,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,ie,ig,ii,im,iposc,ix,izu,j,j2,jj,  &
-    k,kpz,kzz,l,ll,m,ncorruo,ncrr,nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
+    k,kpz,kzz,l,ll,ncorruo,ncrr,nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
     bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,ddp1,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,&
     gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
@@ -144,7 +147,7 @@ end interface
 #endif
 
   ! New Variables
-  character(len=:), allocatable :: featList
+  character(len=:), allocatable :: featList, compName
 #ifndef STF
   character(len=7)  tmpFile
 #endif
@@ -162,6 +165,8 @@ end interface
 #endif
 
   call funit_initUnits ! This one has to be first
+  call meta_initialise ! The meta data file.
+  call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call units_initUnits
   call alloc_init      ! Initialise tmod_alloc
   call allocate_arrays ! Initial allocation of memory
@@ -209,6 +214,17 @@ end interface
 #endif
 #ifdef LIBARCHIVE
   featList = featList//" LIBARCHIVE"
+#endif
+
+  compName = "default"
+#ifdef GFORTRAN
+  compName = "gfortran"
+#endif
+#ifdef IFORT
+  compName = "ifort"
+#endif
+#ifdef NAGFOR
+  compName = "nagfor"
 #endif
 
 #ifdef CR
@@ -357,6 +373,8 @@ end interface
   call units_openUnit(unit=209,fileName="fort.209",formatted=.true.,mode="w",err=fErr) ! coll losses in function of particle i
   call units_openUnit(unit=210,fileName="fort.210",formatted=.true.,mode="w",err=fErr) ! mtc after each collimator interaction
 
+  call time_timeStamp(time_afterFileUnits)
+
   ! ---------------------------------------------------------------------------------------------- !
   ! Write Header
 
@@ -369,10 +387,18 @@ end interface
   write(lout,"(a)") "    SixTrack :: Version "//trim(version)//" :: Released "//trim(moddate)
   write(lout,"(a)") "  "//repeat("=",128)
   write(lout,"(a)") "    Git SHA Hash: "//trim(git_revision)
+  write(lout,"(a)") "    Compiler:     "//trim(compName)
   write(lout,"(a)") "    Built With:   "//trim(adjustl(featList))
   write(lout,"(a)") "    Start Time:   "//timeStamp
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
+
+  call meta_write("SixTrackVersion", trim(version))
+  call meta_write("ReleaseDate",     trim(moddate))
+  call meta_write("GitHash",         trim(git_revision))
+  call meta_write("Compiler",        trim(compName))
+  call meta_write("Features",        trim(adjustl(featList)))
+  call meta_write("StartTime",       timeStamp)
 
 #ifdef CR
   ! Log start messages
@@ -393,8 +419,8 @@ end interface
       time2=0.0
       time3=0.0
       tlim=1e7
-      call timest
-      call timex(time0)
+      call time_timerStart
+      call time_timerCheck(time0)
       do 20 i=1,mmul
         cr(i)=zero
         ci(i)=zero
@@ -420,6 +446,7 @@ end interface
 #endif
 
   call daten
+  call time_timeStamp(time_afterDaten)
 
 #ifdef HDF5
   if(h5_isActive) then
@@ -443,6 +470,7 @@ end interface
 #ifdef CR
       checkp=.true.
       call crcheck
+      call time_timeStamp(time_afterCRCheck)
 #endif
       if(ithick.eq.1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
       if(ithick.eq.0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
@@ -510,40 +538,26 @@ end interface
   amp00=amp(1)
   if(napx.ne.1) damp=((amp00-amp0)/real(napx-1,fPrec))/two                 !hr05
   napx=2*napx
+  call expand_arrays(nele, napx*imc, nblz, nblo)
+
+  ! Log some meta data
+  meta_nPartInit = napx*imc
+  call meta_write("NumParticles",         napx*imc)
+  call meta_write("NumTurns",             numl)
+  call meta_write("NumSingleElements",    il)
+  call meta_write("NumBlockElements",     mblo)
+  call meta_write("NumStructureElements", mbloz)
+
   aperture_napxStart=napx
   iation=abs(ition)
   ib0=0
   dp00=dp1
   if(napx.le.0.or.imc.le.0) goto 490
-  do 260 m=1,mmac
-#ifdef DEBUG
-!       call warr('mmac and m',0d0,nmac,m,0,0)
-!       write(*,*) 'do 260 mmac/m',mmac,m
-#endif
     !--MULTIPOLE WITH THEIR RANDOM VALUES ADDED
-    ! mmac is currently not allowed to be larger than 1
-    ! zfz array is n ow handled by mod_fluc, and using the below code
-    ! will break tests
-    ! if(m.ge.2) then
-    !   call recuin(m*izu0,irecuin)
-    !   call ranecu(zfz,nzfz,mcut)
-    !   rsum=zero
-    !   do i=1,nzfz
-    !     rsum=rsum+zfz(i)
-    !   end do
-    !   rmean=rsum/real(nzfz,fPrec)
-    !   rsqsum=zero
-    !   do i=1,nzfz
-    !     rsqsum=rsqsum+(zfz(i)-rmean)*(zfz(i)-rmean)
-    !   end do
-    !   rdev=sqrt(rsqsum/real(nzfz,fPrec))
-    !   write(lout,10320) m*izu0,nzfz,rmean,rdev
-    !   write(lout,10070)
-    ! endif
 
     ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
     ! possible to re-shuffle lattice structure
-    if(m.eq.1) call orglat
+    call orglat
 
     ! A.Mereghetti, P. G. Ortega and D.Sinuela Pastor, for the FLUKA Team
     ! last modified: 01-07-2014
@@ -588,10 +602,8 @@ end interface
     ! dump x-sections at specific locations
     if (mxsec.gt.0) call dump_aperture_xsecs
     ! map errors, now that the sequence is no longer going to change
-    if(m.eq.1) then
-      call ord
-      if(allocated(zfz)) call fluc_randomReport
-    end if
+    call ord
+    if(allocated(zfz)) call fluc_randomReport
 
     call clorb(ded)
 
@@ -697,19 +709,19 @@ end interface
       if(iorg.lt.0) mzu(i)=izu
       izu=mzu(i)+1
       smizf(i)=zfz(izu)*ek(ix)
-      smiv(m,i)=sm(ix)+smizf(i) ! Also in initalize_element!
-      smi(i)=smiv(m,i)          ! Also in initalize_element!
+      smiv(i)=sm(ix)+smizf(i) ! Also in initalize_element!
+      smi(i)=smiv(i)          ! Also in initalize_element!
 #ifdef DEBUG
 !         call warr('smizf(i)',smizf(i),i,0,0,0)
 !         call warr('smiv(m,i)',smiv(m,i),m,i,0,0)
 !         call warr('smi(i)',smi(i),i,0,0,0)
 #endif
       izu=izu+1
-      xsiv(m,i)=xpl(ix)+zfz(izu)*xrms(ix)
-      xsi(i)=xsiv(m,i)
+      xsiv(i)=xpl(ix)+zfz(izu)*xrms(ix)
+      xsi(i)=xsiv(i)
       izu=izu+1
-      zsiv(m,i)=zpl(ix)+zfz(izu)*zrms(ix)
-      zsi(i)=zsiv(m,i)
+      zsiv(i)=zpl(ix)+zfz(izu)*zrms(ix)
+      zsi(i)=zsiv(i)
       if(mout2.eq.1) then
         if(kzz.eq.11) zfz(izu-2)=zero
         if(abs(ek(ix)).le.pieni) zfz(izu-2)=zero
@@ -730,7 +742,7 @@ end interface
 !-- Initialize multipoles, combining settings from fort.2 with
 !-- coefficients from MULT and random values from FLUC.
 !-- Used in program maincr and from initialize_element.
-         
+
         if(abs(ek(ix)).le.pieni) cycle
         nmz=nmu(ix)
         if(nmz.eq.0) then
@@ -763,9 +775,9 @@ end interface
             ix=ic(ncrr)
             if(ix.gt.nblo) ix=ix-nblo
             if(ix.eq.is(1).or.iratioe(ix).eq.is(1)) then
-              smiv(m,ncrr)=smi(ncrr)
+              smiv(ncrr)=smi(ncrr)
             else if(ix.eq.is(2).or.iratioe(ix).eq.is(2)) then
-              smiv(m,ncrr)=smi(ncrr)
+              smiv(ncrr)=smi(ncrr)
             endif
           enddo
         endif
@@ -814,15 +826,15 @@ end interface
                 ix=ic(ncrr)
                 if(ix.gt.nblo) ix=ix-nblo
                 if(ix.eq.iq(1).or.iratioe(ix).eq.iq(1)) then
-                  smiv(m,ncrr)=smi(ncrr)
+                  smiv(ncrr)=smi(ncrr)
                 else if(ix.eq.iq(2).or.iratioe(ix).eq.iq(2)) then
-                  smiv(m,ncrr)=smi(ncrr)
+                  smiv(ncrr)=smi(ncrr)
                 endif
               enddo
             endif
 
             do 190 ib1=1,napx
-              ib3=ib1+(m+ib-2)*napx
+              ib3=ib1+(ib-1)*napx
 !--beam-beam element
               clo6v(1,ib3)=clo6(1)
               clo6v(2,ib3)=clo6(2)
@@ -937,15 +949,15 @@ end interface
                 ix=ic(ncrr)
                 if(ix.gt.nblo) ix=ix-nblo
                 if(ix.eq.iq(1).or.iratioe(ix).eq.iq(1)) then
-                  smiv(m,ncrr)=smi(ncrr)
+                  smiv(ncrr)=smi(ncrr)
                 else if(ix.eq.iq(2).or.iratioe(ix).eq.iq(2)) then
-                  smiv(m,ncrr)=smi(ncrr)
+                  smiv(ncrr)=smi(ncrr)
                 endif
               enddo
             endif
 
             do 170 i=1,napx
-              iar=(m+ib-2)*napx+i
+              iar=(ib-1)*napx+i
               clo6v(1,iar)=clo(1)
               clop6v(1,iar)=clop(1)
               clo6v(2,iar)=clo(2)
@@ -966,7 +978,7 @@ end interface
 
   170       continue
           endif
-          iar=(m+ib-2)*napx+1
+          iar=(ib-1)*napx+1
 
 ! save tas matrix and closed orbit for later dumping of the beam
 ! distribution at the first element (i=-1)
@@ -1033,7 +1045,7 @@ end interface
 !     call abend('after bib1                                        ')
 #endif
           do 220 ib1=1,napx
-            iar=ib1+(m+ib-2)*napx
+            iar=ib1+(ib-1)*napx
 
             do ib2=1,6
               do ib3=1,6
@@ -1146,14 +1158,6 @@ end interface
             !  m (seed,               1..mmac).
             !It appears that only the odd (1,3,5,..) indices are actually used?
             ib2=ib0+ib1        ! ib0 is fixed to 0 => ib2 equals ib1
-            clov(1,ib2)=clo(1)
-            clov(2,ib2)=clo(2)
-            clopv(1,ib2)=clop(1)
-            clopv(2,ib2)=clop(2)
-            bet0v(ib2,1)=bet0(1)
-            bet0v(ib2,2)=bet0(2)
-            alf0v(ib2,1)=alf0(1)
-            alf0v(ib2,2)=alf0(2)
             ampv(ib2)=amp(1)-damp*real(ib1-1,fPrec) !hr05
 
             if(ib1.eq.napx-1 .and. ib1.ne.1) then
@@ -1167,7 +1171,7 @@ end interface
             oidpsv(ib2)=one/(one+dp1)
 ! Heavy ion variable
             moidpsv(ib2)=mtc(ib2)/(one+dp1)
-            nms(ib2)=m
+            nms(ib2)=1
 
             if(ithick.eq.1) then
               do i=1,nele
@@ -1179,781 +1183,679 @@ end interface
 
           ib0=ib0+napx
   250   continue
-  260 continue
 #ifdef DEBUG
 !     call dumpbin('ado 260',260,260)
 !     call abend('ado 260                                           ')
 #endif
-
-      napx=(napx*imc)*mmac                                               !hr05
+  napx = napx*imc
 
 #ifdef FLUKA
-
-!     A.Mereghetti, P. Garcia Ortega, D.Sinuela Pastor, V. Vlachoudis
-!             for the FLUKA Team
-!     last modified: 11-06-2014
-!     start connection to FLUKA and initialise max ID
-!     inserted in main code by the 'fluka' compilation flag
-      if(fluka_enable) then
-        fluka_con = fluka_is_running()
-        if(fluka_con.eq.-1) then
-          write(lout,*) '[Fluka] Error: Fluka is expected to run but it is'
-           write(lout,*) '               NOT actually the case'
-          write(fluka_log_unit,*) '# Fluka is expected to run but it is'
-          write(fluka_log_unit,*) '               NOT actually the case'
-          call prror(-1)
-        endif
-        write(lout,*) '[Fluka] Initializing FlukaIO interface...'
-        write(fluka_log_unit,*) '# Initializing FlukaIO interface...'
-        fluka_con = fluka_connect()
-        if(fluka_con.eq.-1) then
-          write(lout,*) '[Fluka] Error connecting to Fluka server'
-          write(fluka_log_unit,*) '# Error connecting to Fluka server'
-          call prror(-1)
-        endif
-        write(lout,*) '[Fluka] Successfully connected to Fluka server'
-        write(fluka_log_unit,*) '# Successfully connected to Fluka server'
-        fluka_connected = .true.
-      endif
-
+  ! A.Mereghetti, P. Garcia Ortega, D.Sinuela Pastor, V. Vlachoudis for the FLUKA Team
+  ! last modified: 11-06-2014
+  ! start connection to FLUKA and initialise max ID
+  ! inserted in main code by the 'fluka' compilation flag
+  if(fluka_enable) then
+    fluka_con = fluka_is_running()
+    if(fluka_con == -1) then
+      write(lout,"(a)") "FLUKA> ERROR Fluka is expected to run but it is NOT actually the case"
+      write(fluka_log_unit,*) "# Fluka is expected to run but it is NOT actually the case"
+      call prror(-1)
+    end if
+    write(lout,"(a)") "FLUKA> Initializing FlukaIO interface ..."
+    write(fluka_log_unit,*) "# Initializing FlukaIO interface ..."
+    fluka_con = fluka_connect()
+    if(fluka_con == -1) then
+      write(lout,"(a)") "FLUKA> ERROR Cannot connect to Fluka server"
+      write(fluka_log_unit,*) "# Error connecting to Fluka server"
+      call prror(-1)
+    endif
+    write(lout,"(a)") "FLUKA> Successfully connected to Fluka server"
+    write(fluka_log_unit,*) "# Successfully connected to Fluka server"
+    fluka_connected = .true.
+  endif
 #endif
 
 #ifdef CR
-      write(93,*) 'MAINCR setting napxo=',napx
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+  write(93,"(a,i0)") "MAINCR> Setting napxo = ",napx
+  endfile(93,iostat=ierro)
+  backspace(93,iostat=ierro)
 #endif
-      napxo=napx
-      if (idp.eq.0.or.ition.eq.0) then
-         !4D tracking
-         if (iclo6 .ne. 0) then
-            write(lout,*) "ERROR: Doing 4D tracking but iclo6=",iclo6
-            write(lout,*) "Expected iclo6.eq.0. for 4D tracking."
-            call prror(-1)
-         endif
-      else
-         !6D tracking
-         if (iclo6 .eq. 0) then
-            write(lout,*) "ERROR: Doing 6D tracking but iclo6=",iclo6
-            write(lout,*) "Expected iclo6.ne.0. for 6D tracking."
-            call prror(-1)
-         endif
-      endif
+  napxo = napx
 
-!!!   GENERATE THE INITIAL DISTRIBUTION
-      do i=1,npart
-        pstop(i)=.false.
-        nnumxv(i)=numl
-        numxv(i)=numl
-      end do
+  if(idp == 0 .or. ition == 0) then
+    ! 4D tracking
+    if(ithick == 1) then
+      call meta_write("TrackingMethod", "Thick 4D")
+    else
+      call meta_write("TrackingMethod", "Thin 4D")
+    end if
+    if(iclo6 /= 0) then
+      write(lout,"(a,i0)") "MAINCR> ERROR Doing 4D tracking but iclo6 = ",iclo6
+      write(lout,"(a)")    "MAINCR>       Expected iclo6 = 0 for 4D tracking."
+      call prror(-1)
+    end if
+  else
+    ! 6D tracking
+    if(ithick == 1) then
+      call meta_write("TrackingMethod", "Thick 6D")
+    else
+      call meta_write("TrackingMethod", "Thin 6D")
+    end if
+    if(iclo6 == 0) then
+      write(lout,"(a,i0)") "MAINCR> ERROR Doing 6D tracking but iclo6 = ",iclo6
+      write(lout,"(a)")    "MAINCR>       Expected iclo6 <> 0 for 6D tracking."
+      call prror(-1)
+    end if
+  end if
 
-      rat0=rat
+  call time_timeStamp(time_afterClosedOrbit)
+  call meta_write("4D_ClosedOrbitCorr_x",  clo(1))
+  call meta_write("4D_ClosedOrbitCorr_xp", clop(1))
+  call meta_write("4D_ClosedOrbitCorr_y",  clo(2))
+  call meta_write("4D_ClosedOrbitCorr_yp", clop(2))
+  if(iclo6 /= 0) then
+    call meta_write("6D_ClosedOrbitCorr_x",     clo6(1))
+    call meta_write("6D_ClosedOrbitCorr_xp",    clop6(1))
+    call meta_write("6D_ClosedOrbitCorr_y",     clo6(2))
+    call meta_write("6D_ClosedOrbitCorr_yp",    clop6(2))
+    call meta_write("6D_ClosedOrbitCorr_sigma", clo6(3))
+    call meta_write("6D_ClosedOrbitCorr_dp",    clop6(3))
+  end if
 
-  ! Initial distribution creation
+! ---------------------------------------------------------------------------- !
+!  GENERATE THE INITIAL DISTRIBUTION
+! ---------------------------------------------------------------------------- !
+
+  do i=1,npart
+    pstop(i)  = .false.
+    nnumxv(i) = numl
+    numxv(i)  = numl
+  end do
+  rat0 = rat
+
+  ! DIST Block
   if(dist_enable) then
     e0f=sqrt(e0**2-nucm0**2)
     call dist_readDist
     call dist_finaliseDist
+    call part_applyClosedOrbit
     if(dist_echo) call dist_echoDist
   end if
 
-      if(idfor.ne.2.and..not.dist_enable) then
-        do ia=1,napx,2
-!---------------------------------------  SUBROUTINE 'ANFB' IN-LINE
-          if(st_quiet==0) write(lout,10050)
-          tasia56=tas(ia,5,6)*c1m3
-          bet0x2=tas(ia,1,3)**2+tas(ia,1,4)**2                           !hr05
-          bet0z2=tas(ia,3,1)**2+tas(ia,3,2)**2                           !hr05
-          bet0s1=tas(ia,5,5)**2+tasia56**2                               !hr05
-          dsign=one
-          rat=rat0
-          if(tas(ia,3,3).lt.(-one*pieni)) rat=-one*rat                   !hr05
-          if(rat.lt.(-one*pieni)) dsign=-one*one                         !hr05
-          x11=ampv(ia)/(sqrt(bet0v(ia,1))+sqrt(abs(rat)*bet0x2))
-          x13=(x11*dsign)*sqrt(abs(rat))                                 !hr05
-          amp(2)=(dsign*real(1-iver,fPrec))*(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0v(ia,2)))                 !hr05
-          x1(5)=zero
-          x1(6)=dpsv(ia)*sqrt(bet0s1)
-          chi=chi0*rad
-          dchi=chid*rad
-          do 320 i2=1,2
-            i3=ia+i2-1
-            sic=sin_mb(chi)
-            coc=cos_mb(chi)
-            x1(1)=x11*coc
-            x1(2)=x11*sic
-            x1(3)=x13*coc
-            x1(4)=x13*sic
-            do 300 ii=1,6
-              x2(ii)=zero
-              do 290 jj=1,6
-                x2(ii)=x2(ii)+tas(ia,ii,jj)*x1(jj)
-  290         continue
-  300       continue
-            if(iclo6.eq.1.or.iclo6.eq.2) then
-              x2(2)=x2(2)/((one+x2(6))+clop6v(3,ia))                     !hr05
-              x2(4)=x2(4)/((one+x2(6))+clop6v(3,ia))                     !hr05
-            endif
-            if(abs(bet0s1).le.pieni) x2(6)=dpsv(ia)
-            if(iver.eq.1) then
-              x2(3)=zero
-              x2(4)=zero
-            endif
-            do 310 l=1,2
-              ll=(l-1)*2
-              xv(l,i3)=x2(1+ll)+exz(i2,1+ll)
-              yv(l,i3)=x2(2+ll)+exz(i2,2+ll)
-  310       continue
-            sigmv(i3)=x2(5)+exz(i2,5)
-            dpsv(i3)=x2(6)
-            dpsic=dpsv(i3)+clop6v(3,ia)
-            if(idp.eq.1.and.abs(ition).eq.1.and.iclo6.eq.0) then
-              xv(1,i3)=xv(1,i3)+di0xs(ia)*dpsic
-              xv(2,i3)=xv(2,i3)+di0zs(ia)*dpsic
-              yv(1,i3)=yv(1,i3)+dip0xs(ia)*dpsic
-              yv(2,i3)=yv(2,i3)+dip0zs(ia)*dpsic
-            endif
-            chi=chi+dchi
-  320     continue
-          if(st_quiet==0) write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
-          if(st_quiet == 0) then
-            write(lout,10060) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia), &
-                              xv(1,ia+1),yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1)
-          end if
-!---------------------------------------  END OF 'ANFB'
-          if(iclo6.eq.2) then
-            xv(1,ia)=xv(1,ia)+clo6v(1,ia)
-            yv(1,ia)=yv(1,ia)+clop6v(1,ia)
-            xv(2,ia)=xv(2,ia)+clo6v(2,ia)
-            yv(2,ia)=yv(2,ia)+clop6v(2,ia)
-            sigmv(ia)=sigmv(ia)+clo6v(3,ia)
-            dpsv(ia)=dpsv(ia)+clop6v(3,ia)
-            xv(1,ia+1)=xv(1,ia+1)+clo6v(1,ia)
-            yv(1,ia+1)=yv(1,ia+1)+clop6v(1,ia)
-            xv(2,ia+1)=xv(2,ia+1)+clo6v(2,ia)
-            yv(2,ia+1)=yv(2,ia+1)+clop6v(2,ia)
-            sigmv(ia+1)=sigmv(ia+1)+clo6v(3,ia)
-            dpsv(ia+1)=dpsv(ia+1)+clop6v(3,ia)
-            oidpsv(ia)=one/(one+dpsv(ia))
-            oidpsv(ia+1)=one/(one+dpsv(ia+1))
-          else
-            xv(1,ia)=xv(1,ia)+(clov(1,ia)*real(idz(1),fPrec))*          &
-     &real(1-idfor,fPrec)    !hr05
-            yv(1,ia)=yv(1,ia)+(clopv(1,ia)*real(idz(1),fPrec))*         &
-     &real(1-idfor,fPrec)   !hr05
-            xv(2,ia)=xv(2,ia)+(clov(2,ia)*real(idz(2),fPrec))*          &
-     &real(1-idfor,fPrec)    !hr05
-            yv(2,ia)=yv(2,ia)+(clopv(2,ia)*real(idz(2),fPrec))*         &
-     &real(1-idfor,fPrec)   !hr05
-            xv(1,ia+1)=xv(1,ia+1)+(clov(1,ia)*real(idz(1),fPrec))*      &
-     &real(1-idfor,fPrec)  !hr05
-            yv(1,ia+1)=yv(1,ia+1)+(clopv(1,ia)*real(idz(1),fPrec))*     &
-     &real(1-idfor,fPrec) !hr05
-            xv(2,ia+1)=xv(2,ia+1)+(clov(2,ia)*real(idz(2),fPrec))*      &
-     &real(1-idfor,fPrec)  !hr05
-            yv(2,ia+1)=yv(2,ia+1)+(clopv(2,ia)*real(idz(2),fPrec))*     &
-     &real(1-idfor,fPrec) !hr05
-          endif
-          ejfv(ia)=e0f*(one+dpsv(ia))
-          ejfv(ia+1)=e0f*(one+dpsv(ia+1))
-          ejv(ia)=sqrt(ejfv(ia)**2+nucm0**2)                               !hr05
-          ejv(ia+1)=sqrt(ejfv(ia+1)**2+nucm0**2)                           !hr05
-          epsa(1)=(ampv(ia)**2/bet0v(ia,1))                              !hr05
-          epsa(2)=(amp(2)**2/bet0v(ia,2))                                !hr05
-
-          moidpsv(ia)=mtc(ia)/(one+dpsv(ia))
-          moidpsv(ia+1)=mtc(ia+1)/(one+dpsv(ia+1))
-          omoidpsv(ia)=c1e3*((one-mtc(ia))*oidpsv(ia))
-          omoidpsv(ia+1)=c1e3*((one-mtc(ia+1))*oidpsv(ia+1))
-          nucm(ia)=nucm0
-          nucm(ia+1)=nucm0
-
-          if(st_quiet==0) write(lout,10020) ampv(ia),amp(2),epsa
+  if(idfor /= 2 .and. .not.dist_enable) then
+    ! Generated from INIT Distribution Block
+    do ia=1,napx,2
+      if(st_quiet == 0) write(lout,10050)
+      tasia56 = tas(ia,5,6)*c1m3
+      bet0x2  = tas(ia,1,3)**2+tas(ia,1,4)**2
+      bet0z2  = tas(ia,3,1)**2+tas(ia,3,2)**2
+      bet0s1  = tas(ia,5,5)**2+tasia56**2
+      dsign   = one
+      rat     = rat0
+      if(tas(ia,3,3) < (-one*pieni)) rat = -one*rat
+      if(rat < (-one*pieni)) dsign = -one*one
+      x11    = ampv(ia)/(sqrt(bet0(1))+sqrt(abs(rat)*bet0x2))
+      x13    = (x11*dsign)*sqrt(abs(rat))
+      amp(2) = (dsign*real(1-iver,fPrec))*(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0(2)))
+      x1(5)  = zero
+      x1(6)  = dpsv(ia)*sqrt(bet0s1)
+      chi    = chi0*rad
+      dchi   = chid*rad
+      do i2=1,2
+        i3    = ia+i2-1
+        sic   = sin_mb(chi)
+        coc   = cos_mb(chi)
+        x1(1) = x11*coc
+        x1(2) = x11*sic
+        x1(3) = x13*coc
+        x1(4) = x13*sic
+        do ii=1,6
+          x2(ii) = zero
+          do jj=1,6
+            x2(ii) = x2(ii)+tas(ia,ii,jj)*x1(jj)
+          end do
         end do
-      else if(idfor.eq.2) then
-        call readFort13
-      endif
-      do ia=1,napx,2
-        if (.not.dist_enable .and. st_quiet == 0) then
-          write(lout,10090) xv(1,ia),yv(1,ia),xv(2,ia),yv(2,ia),sigmv(ia),dpsv(ia),xv(1,ia+1),&
-                            yv(1,ia+1),xv(2,ia+1),yv(2,ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
+        if(iclo6 == 1 .or. iclo6 == 2) then
+          x2(2) = x2(2)/((one+x2(6))+clop6v(3,ia))
+          x2(4) = x2(4)/((one+x2(6))+clop6v(3,ia))
         end if
-        idam=3
-        icode=0
-        if(abs(xv(1,ia)).le.pieni.and.abs(yv(1,ia)).le.pieni) then
-          idam=idam-1
-        else
-          icode=icode+1
-        endif
-        if(abs(xv(2,ia)).le.pieni.and.abs(yv(2,ia)).le.pieni) then
-          idam=idam-1
-        else
-          icode=icode+2
-        endif
-        if(idp.eq.0.or.abs(ition).eq.0) then
-          idam=idam-1
-        else
-          icode=icode+4
-        endif
-        if(idam.le.0) idam=1
-        if(icode.le.0) icode=1
-        ia2=(ia+1)/2
-        if(ntwin.ne.2) then
-          if(mod(ia+1,2).eq.0) then
-            xau(1,1)= xv(1,ia)
-            xau(1,2)= yv(1,ia)
-            xau(1,3)= xv(2,ia)
-            xau(1,4)= yv(2,ia)
-            xau(1,5)=sigmv(ia)
-            xau(1,6)= dpsv(ia)
-            xau(2,1)= xv(1,ia+1)
-            xau(2,2)= yv(1,ia+1)
-            xau(2,3)= xv(2,ia+1)
-            xau(2,4)= yv(2,ia+1)
-            xau(2,5)=sigmv(ia+1)
-            xau(2,6)= dpsv(ia+1)
-            cloau(1)= clo6v(1,ia)
-            cloau(2)=clop6v(1,ia)
-            cloau(3)= clo6v(2,ia)
-            cloau(4)=clop6v(2,ia)
-            cloau(5)= clo6v(3,ia)
-            cloau(6)=clop6v(3,ia)
-            di0au(1)= di0xs(ia)
-            di0au(2)=dip0xs(ia)
-            di0au(3)= di0zs(ia)
-            di0au(4)=dip0zs(ia)
-
-            do ib2=1,6
-              do ib3=1,6
-                tau(ib2,ib3)=tasau(ia,ib2,ib3)
-              end do
-            end do
-
-            call distance(xau,cloau,di0au,tau,dam1)
-            dam(ia)=dam1
-            dam(ia+1)=dam1
-          endif !endif(mod(ia+1,2).eq.0)
-
-
-!     Write header of track output file(s) used by postprocessing
-!     for case ntwin.ne.2
-#ifdef CR
-          if (.not.restart) then
-#endif
-#ifndef STF
-            call writebin_header(ia,ia,91-ia2,ierro,                    &
-     &        cdate,ctime,progrm)
-#ifdef CR
-            flush(91-ia2)
-            binrecs(ia2)=1
-          endif
-#endif
-#endif
-#ifdef STF
-            call writebin_header(ia,ia,90,ierro,                        &
-     &        cdate,ctime,progrm)
-#ifdef CR
-            flush(90)
-            binrecs(ia2)=1
-          endif
-#endif
-#endif
-        else !ELSE for "if(ntwin.ne.2)"
-
-!     Write header of track output file(s) used by postprocessing
-!     for case ntwin.eq.2
-
-#ifdef CR
-          if (.not.restart) then
-#endif
-#ifndef STF
-            call writebin_header(ia,ia+1,91-ia2,ierro,                  &
-     &        cdate,ctime,progrm)
-#ifdef CR
-            flush(91-ia2)
-            binrecs(ia2)=1
-          endif
-#endif
-#endif
-#ifdef STF
-            call writebin_header(ia,ia+1,90,ierro,                      &
-     &        cdate,ctime,progrm)
-#ifdef CR
-            flush(90)
-            binrecs(ia2)=1
-          endif
-#endif
-#endif
-        endif !ENDIF (ntwin.ne.2)
-        if(ierro.ne.0) then
-          write(lout,*)
-          write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : ',91&
-     &-ia2
-          write(lout,*) 'ERROR CODE : ',ierro
-          write(lout,*)
-          goto 520
-        endif
+        if(abs(bet0s1) <= pieni) x2(6) = dpsv(ia)
+        if(iver == 1) then
+          x2(3) = zero
+          x2(4) = zero
+        end if
+        xv1(i3)   = x2(1)+exz(i2,1)
+        yv1(i3)   = x2(2)+exz(i2,2)
+        xv2(i3)   = x2(3)+exz(i2,3)
+        yv2(i3)   = x2(4)+exz(i2,4)
+        sigmv(i3) = x2(5)+exz(i2,5)
+        dpsv(i3)  = x2(6)
+        dpsic     = dpsv(i3)+clop6v(3,ia)
+        if(idp == 1 .and. abs(ition) == 1 .and. iclo6 == 0) then
+          xv1(i3) = xv1(i3) + di0xs(ia)*dpsic
+          xv2(i3) = xv2(i3) + di0zs(ia)*dpsic
+          yv1(i3) = yv1(i3) + dip0xs(ia)*dpsic
+          yv2(i3) = yv2(i3) + dip0zs(ia)*dpsic
+        end if
+        chi = chi+dchi
       end do
-#ifdef CR
-      if (lhc.ne.9) binrec=1    ! binrec:
-                                ! The maximum number of reccords writen for all tracking data files
-                                ! Thus crbinrecs(:) .le. binrec
-#endif
-      if(e0.gt.pieni) then
-        do j=1,napx
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+
+      epsa(1)    = (ampv(ia)**2/bet0(1))
+      epsa(2)    = (amp(2)**2/bet0(2))
+      nucm(ia)   = nucm0
+      nucm(ia+1) = nucm0
+
+      if(st_quiet == 0) then
+        write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
+        write(lout,10060) xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
+          xv1(ia+1),yv1(ia+1),xv2(ia+1),yv2(ia+1),sigmv(ia+1),dpsv(ia+1)
+        write(lout,10020) ampv(ia),amp(2),epsa
+      end if
+    end do
+    call part_applyClosedOrbit
+
+  else if(idfor == 2) then
+    ! Read from fort.13
+    call readFort13
+    call part_updatePartEnergy(3)
+    ! Note that this effectively overrides the particle energy set in fort.13
+    ! as energy is recalculated from delta.
+  endif
+
+  do ia=1,napx,2
+    if(.not.dist_enable .and. st_quiet == 0) then
+      write(lout,10090) xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia),xv1(ia+1),&
+        yv1(ia+1),xv2(ia+1),yv2(ia+1),sigmv(ia+1),dpsv(ia+1),e0,ejv(ia),ejv(ia+1)
+    end if
+    idam  = 3
+    icode = 0
+    if(abs(xv1(ia)) <= pieni .and. abs(yv1(ia)) <= pieni) then
+      idam  = idam-1
+    else
+      icode = icode+1
+    endif
+    if(abs(xv2(ia)) <= pieni .and. abs(yv2(ia)) <= pieni) then
+      idam  = idam-1
+    else
+      icode = icode+2
+    endif
+    if(idp == 0 .or. abs(ition) == 0) then
+      idam  = idam-1
+    else
+      icode = icode+4
+    endif
+    if(idam  <= 0) idam  = 1
+    if(icode <= 0) icode = 1
+    ia2 = (ia+1)/2
+    if(ntwin /= 2) then
+      if(mod(ia+1,2) == 0) then
+        xau(1,1) = xv1(ia)
+        xau(1,2) = yv1(ia)
+        xau(1,3) = xv2(ia)
+        xau(1,4) = yv2(ia)
+        xau(1,5) = sigmv(ia)
+        xau(1,6) = dpsv(ia)
+        xau(2,1) = xv1(ia+1)
+        xau(2,2) = yv1(ia+1)
+        xau(2,3) = xv2(ia+1)
+        xau(2,4) = yv2(ia+1)
+        xau(2,5) = sigmv(ia+1)
+        xau(2,6) = dpsv(ia+1)
+        cloau(1) = clo6v(1,ia)
+        cloau(2) = clop6v(1,ia)
+        cloau(3) = clo6v(2,ia)
+        cloau(4) = clop6v(2,ia)
+        cloau(5) = clo6v(3,ia)
+        cloau(6) = clop6v(3,ia)
+        di0au(1) = di0xs(ia)
+        di0au(2) = dip0xs(ia)
+        di0au(3) = di0zs(ia)
+        di0au(4) = dip0zs(ia)
+
+        do ib2=1,6
+          do ib3=1,6
+            tau(ib2,ib3)=tasau(ia,ib2,ib3)
+          end do
         end do
-      else
-        call prror(79)
+
+        call distance(xau,cloau,di0au,tau,dam1)
+        dam(ia)   = dam1
+        dam(ia+1) = dam1
+      end if
+
+      ! Write header of track output file(s) used by postprocessing for case ntwin /= 2
+#ifndef STF
+#ifdef CR
+      if(.not.restart) then
+#endif
+        call writebin_header(ia,ia,91-ia2,ierro,cdate,ctime,progrm)
+#ifdef CR
+        flush(91-ia2)
+        binrecs(ia2)=1
       endif
+#endif
+#else
+#ifdef CR
+      if(.not.restart) then
+#endif
+        call writebin_header(ia,ia,90,ierro,cdate,ctime,progrm)
+#ifdef CR
+        flush(90)
+        binrecs(ia2)=1
+      endif
+#endif
+#endif
+    else !ELSE for "if(ntwin.ne.2)"
+      ! Write header of track output file(s) used by postprocessing for case ntwin == 2
+#ifndef STF
+#ifdef CR
+      if(.not.restart) then
+#endif
+        call writebin_header(ia,ia+1,91-ia2,ierro,cdate,ctime,progrm)
+#ifdef CR
+        flush(91-ia2)
+        binrecs(ia2)=1
+      endif
+#endif
+#else
+#ifdef CR
+      if(.not.restart) then
+#endif
+        call writebin_header(ia,ia+1,90,ierro,cdate,ctime,progrm)
+#ifdef CR
+        flush(90)
+        binrecs(ia2)=1
+      endif
+#endif
+#endif
+    endif !ENDIF (ntwin.ne.2)
+    if(ierro /= 0) then
+      write(lout,"(a,i0)") "MAINCR> ERROR Problems writing to file #",91-ia2
+      write(lout,"(a,i0)") "MAINCR> ERROR Code: ",ierro
+      goto 520
+    endif
+  end do ! napx
 
-!-----/ End of initial distribution
+#ifdef CR
+  if(lhc /= 9) binrec = 1
+  ! binrec:  The maximum number of reccords writen for all tracking data files. Thus crbinrecs(:) <= binrec
+#endif
 
-  if(ithick.eq.1) then
-!------ Compute matrices for linear tracking
+  call time_timeStamp(time_afterBeamDist)
+
+! ---------------------------------------------------------------------------- !
+!  END GENERATE THE INITIAL DISTRIBUTION
+! ---------------------------------------------------------------------------- !
+
+! ---------------------------------------------------------------------------- !
+!  PRE-TRACKING INITIALISATION
+! ---------------------------------------------------------------------------- !
+
+  if(ithick == 1) then
+    ! Compute matrices for linear tracking
     call envarsv(dpsv,moidpsv,rvv,ekv)
-    if(idp.eq.0 .or. ition.eq.0) then
-! ------- Only in case of thck4d
+    if(idp == 0 .or. ition == 0) then ! Only in case of thck4d
       call blocksv
     end if
   end if
 
 #ifdef FLUKA
-!     P.Garcia Ortega, A.Mereghetti and V.Vlachoudis, for the FLUKA Team
-!     last modified: 26-08-2014
-!     send napx to fluka
-!     inserted in main code by the 'fluka' compilation flag
-      if(fluka_enable) then
-        write(lout,*) '[Fluka] Sending napx: ', napx
-        write(fluka_log_unit,*) '# Sending napx: ', napx
-        fluka_con = fluka_init_max_uid( napx )
+  ! P.Garcia Ortega, A.Mereghetti and V.Vlachoudis, for the FLUKA Team
+  ! last modified: 26-08-2014
+  ! send napx to fluka
+  if(fluka_enable) then
+    write(lout,"(a,i0)") "FLUKA> Sending napx = ",napx
+    write(fluka_log_unit,*) "# Sending napx: ", napx
+    fluka_con = fluka_init_max_uid( napx )
 
-        if (fluka_con .lt. 0) then
-           write(lout,*) '[Fluka] Error: failed to send napx to fluka ',&
-     &  napx
-           write(fluka_log_unit, *) '# failed to send napx to fluka ',  &
-     &  napx
-           call prror(-1)
-        end if
+    if(fluka_con < 0) then
+      write(lout,"(a,i0,a)") "FLUKA> ERROR Failed to send napx ",napx," to fluka "
+      write(fluka_log_unit, *) "# failed to send napx to fluka ",napx
+      call prror(-1)
+    end if
 
-        write(lout,*) '[Fluka] Sending napx successful;'
-        write(fluka_log_unit,*) '# Sending napx successful;'
-        flush(lout)
-        flush(fluka_log_unit)
-      endif
+    write(lout,"(a)") "FLUKA> Sending napx successful"
+    write(fluka_log_unit,*) "# Sending napx successful;"
+    flush(lout)
+    flush(fluka_log_unit)
+  end if
 
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 18-01-2016
-!     initialise energy/momentum/rest mass of reference particle in mod_fluka
-!         and synch magnetic rigidity with Fluka (for the time being, consider
-!         only protons);
-!     inserted in main code by the 'fluka' compilation flag
-      if(fluka_enable) then
-        write(lout,*) '[Fluka] Updating ref particle'
-        write(fluka_log_unit,*) '# Updating ref particle'
-        flush(lout)
-        flush(fluka_log_unit)
+  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+  ! last modified: 18-01-2016
+  ! initialise energy/momentum/rest mass of reference particle in mod_fluka
+  !     and synch magnetic rigidity with Fluka (for the time being, consider
+  !     only protons);
+  if(fluka_enable) then
+    write(lout,"(a)") "FLUKA> Updating the reference particle"
+    write(fluka_log_unit,*) "# Updating ref particle"
+    flush(lout)
+    flush(fluka_log_unit)
 
-        fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0 )
+    fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0)
 
-        if (fluka_con .lt. 0) then
-          write(lout, *) '[Fluka] Error: failed to update ref particle'
-          write(fluka_log_unit, *) '# failed to update ref particle'
-          call prror(-1)
-        end if
+    if(fluka_con < 0) then
+      write(lout,"(a)") "FLUKA> ERROR Failed to update the reference particle"
+      write(fluka_log_unit,*) "# failed to update ref particle"
+      call prror(-1)
+    end if
 
-        write(lout,*) '[Fluka] Updating ref successful;'
-        write(fluka_log_unit,*) '# Updating ref particle successful;'
-        flush(lout)
-        flush(fluka_log_unit)
-      endif
+    write(lout,"(a)") "FLUKA> Updating the reference particle successful"
+    write(fluka_log_unit,*) "# Updating ref particle successful;"
+    flush(lout)
+    flush(fluka_log_unit)
+  end if
 
 #endif
 
-!     A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
-!     K. Sjobak, for BE/ABP-HSS
-!     M. Fitterer, for FNAL
-!     last modified: 21/02-2016
-!     open units for dumping particle population or statistics
-!     always in main code
+  ! Initialise Modules
+  call dump_initialise
+  if(scatter_active) then
+    call scatter_initialise
+  end if
 
-      ! Initialise DUMP
-      call dump_initialise
+  call time_timeStamp(time_afterInitialisation)
 
-      ! ! ! Initialize SCATTER ! ! !
-      if (scatter_active) then
-         call scatter_initialise
-      endif
+! ---------------------------------------------------------------------------- !
+!  START OF TRACKING
+! ---------------------------------------------------------------------------- !
+  write(lout,10200)
 
-#ifdef ROOT
-! flush the root file
-!  call SixTrackRootWrite()
-#endif
+  time1=0.
+  call time_timerCheck(time1)
 
-!                                !
-!     ****** TRACKING ******     !
-!                                !
-      write(lout,10200)
-#ifdef DEBUG
-!     call dumpbin('btrack',1,1)
-!     call abend('btrack                                            ')
-#endif
-#ifdef DEBUG
-                   !call system('../crmain  >> crlog')
-#endif
-      time1=0.
-      call timex(time1)
-! time1 is now pre-processing CPU
+  ! time1 is now pre-processing CPU
 ! note that this will be reset evry restart as we redo pre-processing
-      pretime=time1-time0
-!---------------------------------------  LOOP OVER TURNS TO BE TRACKED
-      if(ithick.eq.0) call trauthin(nthinerr)
-      if(ithick.eq.1) call trauthck(nthinerr)
-#ifdef DEBUG
-!     call dumpbin('atrack',1,1)
-!     call abend('atrack                                            ')
-#endif
-      time2=0.
-      call timex(time2)
-! trtime is now the tracking time, BUT we must add other time for C/R
-      trtime=time2-time1
+  pretime=time1-time0
+  if(ithick == 0) call trauthin(nthinerr)
+  if(ithick == 1) call trauthck(nthinerr)
+
+  time2=0.
+  call time_timerCheck(time2)
+
+  ! trtime is now the tracking time, BUT we must add other time for C/R
+  trtime=time2-time1
 #ifdef CR
-! because now crpoint will write tracking time
-! using time3 as a temp
-! and crcheck/crstart will reset crtime3
-      trtime=trtime+crtime3
+  ! because now crpoint will write tracking time using time3 as a temp and crcheck/crstart will reset crtime3
+  trtime=trtime+crtime3
 #endif
-      if(nthinerr.eq.3000) goto 520
-      if(nthinerr.eq.3001) goto 460
-!---------------------------------------  END OF LOOP OVER TURNS
+  if(nthinerr == 3000) goto 520
+  if(nthinerr == 3001) goto 460
+
+  ! END OF LOOP OVER TURNS
   460 continue
-#ifndef FLUKA
-      napxto=0
-#endif
-! and set numx=nnuml (for writebin) NOT for LOST particles
-! because all lost set nnuml=numl
-      numx=nnuml
-      id=0
+
+  ! Set numx=nnuml (for writebin) NOT for LOST particles because all lost set nnuml=numl
+  numx = nnuml
+  id   = 0
 
 #ifndef FLUKA
+  napxto = 0
+
 #ifdef CR
-      if (.not.restart) then
-! If restart is true , we haven't done any tracking
-! and must be running from very last checkpoint
-        write(93,*) 'Very last call to WRITEBIN?'
-        write(93,*) 'numlmax,nnuml,numl',numlmax,nnuml,numl
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
-        if (nnuml.eq.numl) then
-! We REALLY have finished (or all particles lost)
-! When all lost, nthinerr=3001, we set nnuml=numl
-! and make sure we do the last WRITEBIN
-          write(93,*) 'Very last call to WRITEBIN'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-          call writebin(nthinerr)
-          if(nthinerr.eq.3000) goto 520
-        else
-! I assume we are stopping because we have done nnuml turns
-! which should be numlmax and do a writebin only if time
-          write(93,*) 'Very last call to WRITEBIN?'
-          write(93,*) 'numlmax,nnuml,nwri',numlmax,nnuml,nwri
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-          if(mod(nnuml,nwri).eq.0) then
-            write(93,*) 'Very last call to WRITEBIN'
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-            call writebin(nthinerr)
-            if(nthinerr.eq.3000) goto 520
-          endif
-        endif
-! and do the very last checkpoint
-        call callcrp()
-      endif
-#endif
-#ifndef CR
+  if(.not.restart) then
+    ! If restart is true , we haven't done any tracking and must be running from very last checkpoint
+    write(93,"(a)")          "MAINCR> Very last call to WRITEBIN?"
+    write(93,"(a,3(1x,i0))") "MAINCR> numlmax, nnuml, numl = ",numlmax,nnuml,numl
+    endfile(93,iostat=ierro)
+    backspace(93,iostat=ierro)
+    if(nnuml == numl) then
+      ! We REALLY have finished (or all particles lost)
+      ! When all lost, nthinerr=3001, we set nnuml=numl
+      ! and make sure we do the last WRITEBIN
+      write(93,"(a)") "MAINCR> Very last call to WRITEBIN"
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
       call writebin(nthinerr)
-      if(nthinerr.eq.3000) goto 520
-#endif
-      ! If CR we have to worry about turns printed in fort.6
-      ! If lost should be OK, otherwise we need to use nnuml instead
-      ! of the numl in numxv/nnumxv???? Eric.
-      ! where we reset [n]numxv to nnuml UNLESS particle lost
-      ! Now we shall try using that fix at start of tracking
-      write(lout,"(a)") str_divLine
-      write(lout,"(a)") ""
-      write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOOOOO"
-      write(lout,"(a)") "    OO                     OO"
-      write(lout,"(a)") "    OO  TRACKING COMPLETE  OO"
-      write(lout,"(a)") "    OO                     OO"
-      write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOOOOO"
-      write(lout,"(a)") ""
-      write(lout,"(a)") str_divLine
-      write(lout,"(a)") ""
-
-      if(st_partsum .eqv. .false.) then
-        write(lout,"(a)") "MAINCR> NOTE Particle summary report is disabled."
-        write(lout,"(a)") "MAINCR>      This is controlled by the PARTICLESUMMARY flag in the SETTINGS block in fort.3."
-        write(lout,"(a)") ""
-        goto 470
+      if(nthinerr == 3000) goto 520
+    else
+      ! I assume we are stopping because we have done nnuml turns which should be numlmax and do a writebin only if time
+      write(93,"(a)")          "MAINCR> Very last call to WRITEBIN?"
+      write(93,"(a,3(1x,i0))") "MAINCR> numlmax, nnuml, numl = ",numlmax,nnuml,numl
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+      if(mod(nnuml,nwri) == 0) then
+        write(93,"(a)") "MAINCR> Very last call to WRITEBIN"
+        endfile(93,iostat=ierro)
+        backspace(93,iostat=ierro)
+        call writebin(nthinerr)
+        if(nthinerr == 3000) goto 520
       end if
-
-      write(lout,"(a)") "    PARTICLE SUMMARY:"
-      write(lout,"(a)") ""
-
-      do ia=1,napxo,2
-        ie=ia+1
-        ia2=(ie)/2
-        napxto = napxto+numxv(ia)+numxv(ie)
-
-        if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
-          write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-          write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          if(st_quiet == 0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
-            xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
-          write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
-            xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
-          if(ierro /= 0) write(lout,"(2(a,i0))") "MAINCR> WARNING fort.12 has corrupted output probably due to lost particle ",&
-            ia," or ",ie
-        end if
-
-        if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
-          id=id+1
-          if(st_quiet == 0) then
-            write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
-          else if(st_quiet == 1) then
-            write(lout,10241) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
-          end if
-          write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-          if(st_quiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
-            xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
-          write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
-            xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
-          if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output, probably due to lost particle ",ie
-        end if
-
-        if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
-          id=id+1
-          write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-          if(st_quiet == 0) then
-            write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
-          else if(st_quiet == 1) then
-            write(lout,10241) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
-          end if
-          if(st_quiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
-            xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
-          write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
-            xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
-          if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output, probably due to lost particle ",ia
-        end if
-
-        if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
-          id=id+1
-          ig=id+1
-          if(st_quiet == 0) then
-            write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
-          else if(st_quiet == 1) then
-            write(lout,10271) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
-          end if
-          if(st_quiet==0) write(lout,10280) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
-            xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
-          write(12,10280,iostat=ierro) xv(1,id),yv(1,id),xv(2,id),yv(2,id),sigmv(id),dpsv(id), &
-            xv(1,ig),yv(1,ig),xv(2,ig),yv(2,ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
-          if(ierro.ne.0) write(lout,"(a)") "MAINCR> WARNING fort.12 has corrupted output, although particles are stable"
-          id=ig
-        end if
-      end do
+    end if
+    ! do the very last checkpoint
+    call callcrp()
+  end if
+#else
+  call writebin(nthinerr)
+  if(nthinerr == 3000) goto 520
 #endif
-#ifdef FLUKA
-      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-      ! last modified: 17-07-2013
-      ! print stable particles only
-      ! inserted in main code by the 'fluka' compilation flag
-      write(lout,"(a)") ""
-      write(lout,"(a)") str_divLine
-      if ( napxo .gt. 0 ) then
-        write(lout,"(a)") ""
-        write(lout,10350) napxo
-        write(lout,"(a)") ""
-        write(lout,10360) 'ID', 'GEN', 'WEIGHT', 'X [m]', 'XP []', 'Y [m]', 'YP[]', 'PC [GeV]', 'DE [eV]', 'DT [s]'
-        write(lout,"(a)") ""
-        do ia=1,napxo
-          if(.not.pstop(ia)) then
-            write(lout,10370) fluka_uid(ia),fluka_gen(ia),fluka_weight(ia), &
-              xv(1,ia)*c1m3, yv(1,ia)*c1m3, xv(2,ia)*c1m3, yv(2,ia)*c1m3, &
-              ejfv(ia)*c1m3,(ejv(ia)-e0)*c1e6,-c1m3*(sigmv(ia)/clight)*(e0/e0f)
-          end if
-        end do
+
+  ! If CR we have to worry about turns printed in fort.6
+  ! If lost should be OK, otherwise we need to use nnuml instead
+  ! of the numl in numxv/nnumxv???? Eric.
+  ! where we reset [n]numxv to nnuml UNLESS particle lost
+  ! Now we shall try using that fix at start of tracking
+  write(lout,"(a)") str_divLine
+  write(lout,"(a)") ""
+  write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") "    OO                     OO"
+  write(lout,"(a)") "    OO  TRACKING COMPLETE  OO"
+  write(lout,"(a)") "    OO                     OO"
+  write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOOOOO"
+  write(lout,"(a)") ""
+  write(lout,"(a)") str_divLine
+  write(lout,"(a)") ""
+  call time_timeStamp(time_afterTracking)
+
+  if(st_partsum .eqv. .false.) then
+    write(lout,"(a)") "MAINCR> NOTE Particle summary report is disabled."
+    write(lout,"(a)") "MAINCR>      This is controlled by the PARTICLESUMMARY flag in the SETTINGS block in fort.3."
+    write(lout,"(a)") ""
+    goto 470
+  end if
+
+  write(lout,"(a)") "    PARTICLE SUMMARY:"
+  write(lout,"(a)") ""
+
+  do ia=1,napxo,2
+    ie=ia+1
+    ia2=(ie)/2
+    napxto = napxto+numxv(ia)+numxv(ie)
+
+    if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
+      write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
+      write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
+      if(st_quiet == 0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+        xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
+      write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+        xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
+      if(ierro /= 0) write(lout,"(2(a,i0))") "MAINCR> WARNING fort.12 has corrupted output probably due to lost particle ",&
+        ia," or ",ie
+    end if
+
+    if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
+      id=id+1
+      if(st_quiet == 0) then
+        write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
+      else if(st_quiet == 1) then
+        write(lout,10241) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
       end if
+      write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
+      if(st_quiet==0) write(lout,10280) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
+        xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
+      write(12,10280,iostat=ierro) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
+        xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
+      if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output, probably due to lost particle ",ie
+    end if
+
+    if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
+      id=id+1
+      write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
+      if(st_quiet == 0) then
+        write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
+      else if(st_quiet == 1) then
+        write(lout,10241) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
+      end if
+      if(st_quiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
+      write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
+        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
+      if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output, probably due to lost particle ",ia
+    end if
+
+    if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
+      id=id+1
+      ig=id+1
+      if(st_quiet == 0) then
+        write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
+      else if(st_quiet == 1) then
+        write(lout,10271) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
+      end if
+      if(st_quiet==0) write(lout,10280) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
+        xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
+      write(12,10280,iostat=ierro) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
+        xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
+      if(ierro.ne.0) write(lout,"(a)") "MAINCR> WARNING fort.12 has corrupted output, although particles are stable"
+      id=ig
+    end if
+  end do
+
+#else
+  ! IFDEF FLUKA
+  ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+  ! last modified: 17-07-2013
+  ! print stable particles only
+  write(lout,"(a)") ""
+  write(lout,"(a)") str_divLine
+  if(napxo > 0) then
+    write(lout,"(a)") ""
+    write(lout,10350) napxo
+    write(lout,"(a)") ""
+    write(lout,10360) 'ID', 'GEN', 'WEIGHT', 'X [m]', 'XP []', 'Y [m]', 'YP[]', 'PC [GeV]', 'DE [eV]', 'DT [s]'
+    write(lout,"(a)") ""
+    do ia=1,napxo
+      if(.not.pstop(ia)) then
+        write(lout,10370) fluka_uid(ia),fluka_gen(ia),fluka_weight(ia), &
+          xv1(ia)*c1m3, yv1(ia)*c1m3, xv2(ia)*c1m3, yv2(ia)*c1m3, &
+          ejfv(ia)*c1m3,(ejv(ia)-e0)*c1e6,-c1m3*(sigmv(ia)/clight)*(e0/e0f)
+      end if
+    end do
+  end if
 #endif
 
-! POSTPROCESSING (POSTPR)
+! ---------------------------------------------------------------------------- !
+!  POSTPROCESSING (POSTPR)
+! ---------------------------------------------------------------------------- !
 
 470 continue
-! and we need to open fort.10 unless already opened for BOINC
-#ifdef NAGFOR
-#ifdef BOINC
-  call boincrf('fort.10',filename)
-#ifdef FIO
-  open(10,file=filename,form='formatted',status='unknown',round='nearest',recl=8195)
-#else
-  open(10,file=filename,form='formatted',status='unknown',recl=8195)
-#endif
-#else
-#ifdef FIO
-  open(10,file='fort.10',form='formatted',status='unknown',round='nearest',recl=8195)
-#else
-  open(10,file='fort.10',form='formatted',status='unknown',recl=8195)
-#endif
-#endif
-#else
-#ifdef BOINC
-  call boincrf('fort.10',filename)
-#ifdef FIO
-  open(10,file=filename,form='formatted',status='unknown',round='nearest')
-#else
-  open(10,file=filename,form='formatted',status='unknown')
-#endif
-#else
-#ifdef FIO
-  open(10,file='fort.10',form='formatted',status='unknown',round='nearest')
-#else
-  open(10,file='fort.10',form='formatted',status='unknown')
-#endif
-#endif
-#endif
+  ! and we need to open fort.10 unless already opened for BOINC
+  call units_openUnit(unit=10,fileName="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
 
 #ifndef FLUKA
 #ifndef STF
-        iposc=0
-        if(ipos.eq.1) then !Variable IPOS=1 -> postprocessing block present in fort.3
-          do 480 ia=1,napxo,2
-            ia2=(ia+1)/2
-            iposc=iposc+1
+  iposc = 0
+  if(ipos == 1) then ! Variable IPOS=1 -> postprocessing block present in fort.3
+    do ia=1,napxo,2
+      ia2=(ia+1)/2
+      iposc=iposc+1
 #ifndef CR
-            call postpr(91-ia2) !Postprocess file "fort.(91-ia2)"
+      call postpr(91-ia2) ! Postprocess file "fort.(91-ia2)"
+#else
+      write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+      call postpr(91-ia2,nnuml)
 #endif
-#ifdef CR
-            write(93,*) 'Calling POSTPR nnuml=',nnuml
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-            call postpr(91-ia2,nnuml)
-#endif
-  480     continue
-          if(iposc.ge.1) call sumpos
-        endif !END if(ipos.eq.1)
-        goto 520 !Done postprocessing
+    end do
+    if(iposc >= 1) call sumpos
+  end if ! END if(ipos.eq.1)
+  goto 520 ! Done postprocessing
 
-  490   if(ipos.eq.1) then !GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
-          ndafi2=ndafi
-          do 500 ia=1,ndafi2
-            if(ia.gt.ndafi) goto 510
+490 continue ! GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
+  if(ipos == 1) then
+    ndafi2=ndafi
+    do ia=1,ndafi2
+      if(ia > ndafi) exit
 #ifndef CR
-            call postpr(91-ia)
+      call postpr(91-ia)
+#else
+      write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+      call postpr(91-ia,nnuml)
 #endif
-#ifdef CR
-            write(93,*) 'Calling POSTPR nnuml=',nnuml
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-            call postpr(91-ia,nnuml)
-#endif
-  500     continue
-  510     if(ndafi.ge.1) call sumpos
-        endif
-#endif
-#ifdef STF
-        iposc=0
-        if(ipos.eq.1) then !Variable IPOS=1 -> postprocessing block present in fort.3
-           do 480 ia=1,napxo,2
-              iposc=iposc+1
+    end do
+    if(ndafi >= 1) call sumpos
+  end if
+#else
+  ! IFDEF STF
+  iposc=0
+  if(ipos == 1) then ! Variable IPOS=1 -> postprocessing block present in fort.3
+    do ia=1,napxo,2
+      iposc=iposc+1
 #ifndef CR
-              call postpr(ia) !Postprocess particle ia (and ia+1 if ntwin=2)
+      call postpr(ia) ! Postprocess particle ia (and ia+1 if ntwin=2)
+#else
+      write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+      call postpr(ia,nnuml)
 #endif
-#ifdef CR
-              write(93,*) 'Calling POSTPR nnuml=',nnuml
-              endfile (93,iostat=ierro)
-              backspace (93,iostat=ierro)
-              call postpr(ia,nnuml)
-#endif
-  480      continue
-          if(iposc.ge.1) call sumpos
-        endif
-        goto 520 !Done postprocessing
+    end do
+    if(iposc >= 1) call sumpos
+  end if
+  goto 520 ! Done postprocessing
 
-  490   if(ipos.eq.1) then !GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
-          ndafi2=ndafi
-          do 500 ia=1,(2*ndafi2),2
-            if(ia.gt.ndafi) goto 510
+490 continue ! GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
+  if(ipos == 1) then
+    ndafi2=ndafi
+    do ia=1,(2*ndafi2),2
+      if(ia > ndafi) exit
 #ifndef CR
-            call postpr(ia)
+      call postpr(ia)
+#else
+      write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+      call postpr(ia,nnuml)
 #endif
-#ifdef CR
-            write(93,*) 'Calling POSTPR nnuml=',nnuml
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-            call postpr(ia,nnuml)
-#endif
-  500     continue
-  510     if(ndafi.ge.1) call sumpos
-        endif
+    end do
+    if(ndafi >= 1) call sumpos
+  end if
 #endif
 
- 520  continue !Finished postprocessing (POST in fort.3)
+! ---------------------------------------------------------------------------- !
+!  DONE POSTPROCESSING (POSTPR)
+! ---------------------------------------------------------------------------- !
 
-!     start fma
-      if(fma_flag) then
-        write(lout,*)'Calling FMA_POSTPR'
-        call fma_postpr
-      endif
-!--HPLOTTING END
-      if(ipos.eq.1.and.                                                 &
-     &(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
-        call igmeta(999,0)
-        call hplend
-      endif
+520 continue
+  call time_timeStamp(time_afterPostProcessing)
+  if(fma_flag) then
+    write(lout,"(a)") "MAINCR> Calling FMA_POSTPR"
+    call fma_postpr
+    call time_timeStamp(time_afterFMA)
+  endif
+  ! HPLOTTING END
+  if(ipos == 1 .and. (idis /= 0 .or. icow /= 0 .or. istw /= 0 .or. iffw /= 0)) then
+    call igmeta(999,0)
+    call hplend
+  endif
 #endif
 
 #ifdef FLUKA
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 28-05-2014
-!     collect a couple of goto statements, sending code flow
-!       to different plotting points, which are not actually
-!       inserted
-!     inserted in main code by the 'fluka' compilation flag
- 490  continue
- 520  continue
+  ! A.Mereghetti, for the FLUKA Team
+  ! last modified: 28-05-2014
+  ! collect a couple of goto statements, sending code flow
+  !   to different plotting points, which are not actually
+  !   inserted
+490 continue
+520 continue
   call fluka_close
 #endif
-      time3=0.
-      call timex(time3)
-! Note that crpoint no longer destroys time2
-      posttime=time3-time2
-#ifdef DEBUG
-      write(lout,*) 'BUG:',time3,time2,pretime,trtime,posttime
-#ifdef CR
-      write(93,*)   'BUG:',time3,time2,pretime,trtime,posttime
-#endif
-#endif
-#ifdef CR
-! and TRY a FIX for napxto
-!     if (nnuml.ne.numl) then
-!       napxto=0
-!       write(lout,*) 'numl=',numl,' nnuml=',nnuml
-! We may have stopped because of numlmax
-!       do ia=1,napxo
-!         if (numxv(ia).eq.numl) then
-! assumed stable
-!     write(lout,*) 'ia=',ia,nnuml
-!           napxto=napxto+nnuml
-!         else
-! assumed lost
-!     write(lout,*) 'ia=',ia,' numxv=',numxv
-!           napxto=napxto+numxv(ia)
-!         endif
-!       enddo
-!     endif
-#endif
+
+  time3=0.
+  call time_timerCheck(time3)
+  ! Note that crpoint no longer destroys time2
+  posttime=time3-time2
 
   ! Get grand total including post-processing
   tottime = (pretime+trtime)+posttime
@@ -1966,12 +1868,13 @@ end interface
   write(lout,"(a,f12.3,a)") "    Particle Tracking:        ",trtime,  " second(s)"
   write(lout,"(a,f12.3,a)") "    Post Processing:          ",posttime," second(s)"
   write(lout,"(a,f12.3,a)") "    Total Time Used:          ",tottime, " second(s)"
-  write(lout,"(a,i8)")      "    Particle Turns:           ",napxto
+  write(lout,"(a,i8)")      "    Particle Turns:           ",meta_nPartTurn
   write(lout,"(a)")         ""
   write(lout,"(a)")         str_divLine
 
-  if (zipf_numfiles.gt.0) then
+  if(zipf_numfiles > 0) then
     call zipf_dozip
+    call time_timeStamp(time_afterZIPF)
   endif
 #ifdef HDF5
   if(h5_isReady) then
@@ -1987,15 +1890,20 @@ end interface
     call SixTrackRootExit()
   end if
 #endif
+
   call alloc_exit
+  call time_timeStamp(time_beforeExit)
+  call time_finalise
+  call meta_finalise
   call closeUnits ! Must be last as it also closes fort.6
-! ----------------------------------------------------------------------
-!   We're done in maincr, no error :)
-! ----------------------------------------------------------------------
+
+! ---------------------------------------------------------------------------- !
+!  DONE MAINCR
+! ---------------------------------------------------------------------------- !
+
 #ifdef CR
   call abend('                                                  ')
-#endif
-#ifndef CR
+#else
   stop
 #endif
 10000 format(/4x,"Tracking ended abnormally for particle: ",i0,         &
@@ -2099,7 +2007,6 @@ end interface
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
 !     print stable particles only (format directives)
-!     inserted in main code by the 'fluka' compilation flag
 10350 format(4X,I8,1X,'SURVIVING PARTICLES:')
 10360 format(2(1X,A8),8(1X,A16))
 10370 format(2(1X,I8),8(1X,1PE16.9))

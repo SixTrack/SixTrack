@@ -479,10 +479,10 @@ subroutine bdex_track(i,ix,n)
 
       ! Write out particles
       do j=1,napx
-        call chr_fromReal(xv(1,j),  tmpStr(1), 19,2,rErr)
-        call chr_fromReal(yv(1,j),  tmpStr(2), 19,2,rErr)
-        call chr_fromReal(xv(2,j),  tmpStr(3), 19,2,rErr)
-        call chr_fromReal(yv(2,j),  tmpStr(4), 19,2,rErr)
+        call chr_fromReal(xv1(j),  tmpStr(1), 19,2,rErr)
+        call chr_fromReal(yv1(j),  tmpStr(2), 19,2,rErr)
+        call chr_fromReal(xv2(j),  tmpStr(3), 19,2,rErr)
+        call chr_fromReal(yv2(j),  tmpStr(4), 19,2,rErr)
         call chr_fromReal(sigmv(j), tmpStr(5), 19,2,rErr)
         call chr_fromReal(ejv(j),   tmpStr(6), 19,2,rErr)
         call chr_fromReal(ejfv(j),  tmpStr(7), 19,2,rErr)
@@ -515,7 +515,7 @@ subroutine bdex_track(i,ix,n)
         endif
         do j=1,napx
           read(bdex_channels(bdex_elementChannel(ix),4),*) &
-                xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j), &
+                xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j), &
                 ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j), &
                 dpsv1(j),nlostp(j)
           ! TODO: Handle secondary particle tracking arrays properly

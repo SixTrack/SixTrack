@@ -1,12 +1,11 @@
 GEOME-STRENG TITLE:eltck4_9mrad2016injnocollc15o+19_6noerru%1%s%62.28_60.31%0_10%2%30 
-PRINTOUT OF INPUT PARAMETERS--------------------------------------------
-NEXT
 TRACKING PARAMETERS-----------------------------------------------------
 4000 0 14 0 6.89493 0 1
 1 1 1 1 1
 0 0 1 1 1 50000 2
 NEXT
 SETT--------------------------------------------------------------------
+PRINT
 DEBUG
 NEXT
 INITIAL COORDINATES-----------------------------------------------------
@@ -63,8 +62,9 @@ NEXT
 /%NO  %NV 1E-38 %nsix 0
 /NEXT
 DUMP
-ip4..2 1     -1 2 IP4_DUMP_2
-ALL    10000 -1 2 ALL_DUMP_first 1 -1
+ip4    1 -1 2 IP4_DUMP_2_last 4000 4000
+ip4..2 1 -1 2 IP4_DUMP_2
+ALL    1 -1 2 ALL_DUMP_first  4000 4000
 NEXT
 LINEAR OPTICS
 ELEMENT  0 2 1 2.5 2.5

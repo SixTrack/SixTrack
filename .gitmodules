@@ -4,3 +4,6 @@
 [submodule "lib/boinc"]
 	path = lib/boinc
 	url = https://github.com/SixTrack/boinc.git
+[submodule "lib/NAFFlib"]
+	path = lib/NAFFlib
+	url = https://github.com/SixTrack/NAFFlib

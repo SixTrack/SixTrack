@@ -978,11 +978,11 @@ subroutine scatter_thin(i_elem, ix, turn)
       ! Compute the cross section at this s
       ! (in most cases roughly equal for all particles; use mean x,y,xp,yp,E)
       crossSection = scatter_generator_getCrossSection( &
-        PROidx,GENidx, xv(1,j),xv(2,j),yv(1,j),yv(2,j),ejv(j) &
+        PROidx,GENidx, xv1(j),xv2(j),yv1(j),yv2(j),ejv(j) &
       )
 
       ! Ask profile for density at x,y
-      N = scatter_profile_getDensity(PROidx,xv(1,j),xv(2,j))
+      N = scatter_profile_getDensity(PROidx,xv1(j),xv2(j))
 
       ! Compute probability P
       P = (N*crossSection)*scaling
@@ -996,8 +996,8 @@ subroutine scatter_thin(i_elem, ix, turn)
       ! Use generator t and xi to update particle j;
       ! remember to update ALL the energy arrays
       theta   = c1e3*sqrt(t)/ejfv(j)                  ! Scale to mrad
-      yv(1,j) = theta*cos_mb(rndPhi(j)) + yv(1,j)
-      yv(2,j) = theta*sin_mb(rndPhi(j)) + yv(2,j)
+      yv1(j) = theta*cos_mb(rndPhi(j)) + yv1(j)
+      yv2(j) = theta*sin_mb(rndPhi(j)) + yv2(j)
 
       ! Output to file
 #ifdef HDF5

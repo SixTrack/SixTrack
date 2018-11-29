@@ -1,6 +1,0 @@
-#!/bin/sh
-for i in  maincr.f
-do
-  sed -f sedmain $i > tmp
-  mv tmp $i
-done

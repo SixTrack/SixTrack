@@ -2,8 +2,8 @@
 ! 1) apply offset of e-lens
 !    xelens = x(proton) - elens_offset_x
 !    yelens = y(proton) - elens_offset_y
-xelens=xv(1,j)-elens_offset_x(ielens(ix))
-yelens=xv(2,j)-elens_offset_y(ielens(ix))
+xelens=xv1(j)-elens_offset_x(ielens(ix))
+yelens=xv2(j)-elens_offset_y(ielens(ix))
 ! 2) calculate radius
 !    radial position of main beam relative to center of elens beam
 !    -> internal parameters to calculate kick:
@@ -25,7 +25,7 @@ if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
       ! GAUSSIAN: eLens with Gaussian profile
       ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
       frrelens=( exp_mb(-0.5*(elens_r1(ielens(ix))/elens_sig(ielens(ix)))**2)    &
-                              -exp_mb(-0.5*(rrelens             /elens_sig(ielens(ix)))**2) )/ &
+                -exp_mb(-0.5*(rrelens             /elens_sig(ielens(ix)))**2) )/ &
                               elens_geo_norm(ielens(ix))
     case default
       write(lout,"(a,i0)") "ELENS> ERROR in kickelens: elens_type=",elens_type(ielens(ix))," not recognized. "
@@ -35,8 +35,9 @@ if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
   else ! r1 < r2 <= rrelens
     frrelens = one
   endif
-  frrelens = elens_r2(ielens(ix))/rrelens * frrelens
-  yv(1,j)=yv(1,j)-elens_theta_r2(ielens(ix))*frrelens*xelens/rrelens * oidpsv(j)
-  yv(2,j)=yv(2,j)-elens_theta_r2(ielens(ix))*frrelens*yelens/rrelens * oidpsv(j)
+  ! 'radial kick'
+  frrelens = ((((elens_theta_r2(ielens(ix))*elens_r2(ielens(ix)))/rrelens)*frrelens)*oidpsv(j))*mtc(j)
+  yv1(j)=yv1(j)-(frrelens*xelens)/rrelens
+  yv2(j)=yv2(j)-(frrelens*yelens)/rrelens
 endif
 ! end include/kickelens.f90
