@@ -456,7 +456,7 @@ subroutine eLensTheta( j, Etot )
     elens_theta_r2(j) = elens_theta_r2(j)*(one/(beta_e*beta_b)-one)
   end if
 
-  if ( elens_type(j) == 2 ) then
+  if ( elens_type(j) >= 2 ) then
      elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)
   end if
 
