@@ -113,7 +113,7 @@ module mod_common
 
   use parpro
   use floatPrecision
-  use numerical_constants, only : c1m6, c180e0, pi, two, half
+  use numerical_constants, only : c1m6, c180e0, pi, two, half, one, zero
 
   implicit none
 
