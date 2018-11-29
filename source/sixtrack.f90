@@ -3618,7 +3618,7 @@ subroutine betalf(dpp,qw)
       f1=spa+spd
       f2=f0**2+four*det                                                  !hr06
       if(f2 .lt. zero) then 
-        write(lout,*) 'ERROR in betalf() - f2 < 0: ',  f2, ' f0: ', f0, ' det: ', det
+        write(lout,'(a,F12.5, a, F12.5, a, F12.5)') 'ERROR in betalf() - f2 < 0: ',  f2, ' f0: ', f0, ' det: ', det
         goto 160
       end if
       f2=sqrt(f2)
@@ -3653,13 +3653,13 @@ subroutine betalf(dpp,qw)
       rclam2=(egwg2+rca2)*half
       yclam2=yca2*half
       if(egwg1**2 .ge. four) then 
-        write(lout,*) 'ERROR in betalf() - egwg1**2 > 4: ',  egwg1**2, ' f0: ', spa-spd, &
-        ' f1: ', spa+spd, ' f2: ', f0**2+four*det, ' spa: ', spa, ' spd: ', spd
-        write(lout,*) 'ERROR in betalf() - am: ',  am
+        write(lout,'(a,F12.5,a,F12.5,a,F12.5,a,F12.5,a,F12.5,a,F12.5)') 'ERROR in betalf() - egwg1**2 > 4: ',&
+        egwg1**2, ' f0: ', spa-spd, ' f1: ', spa+spd, ' f2: ', f0**2+four*det, ' spa: ', spa, ' spd: ', spd
+        write(lout,'(a,F12.5)') 'ERROR in betalf() - am: ',  am
         goto 160                                    !hr06
       end if
       if(egwg2**2 .ge. four) then
-        write(lout,*) 'ERROR in betalf() - egwg2**2 > 4: ',  egwg2**2
+        write(lout,'(a,F12.5)') 'ERROR in betalf() - egwg2**2 > 4: ',  egwg2**2
         goto 160                                    !hr06
       end if
    50 continue
@@ -3729,7 +3729,7 @@ subroutine betalf(dpp,qw)
      &+ta(3,1)*ta(4,2))-ta(4,1)*ta(3,2)                                  !hr06
       if(rn1.lt.zero) goto 70                                             !hr06
       if(rn1.eq.zero) then 
-        write(lout,*) 'ERROR in betalf() - rn1 = 0: ',  rn1
+        write(lout,'(a,F12.5)') 'ERROR in betalf() - rn1 = 0: ', rn1
         goto 160                                            !hr06
       end if
       if(rn1.gt.zero) goto 90                                             !hr06
@@ -3750,7 +3750,7 @@ subroutine betalf(dpp,qw)
      &+ta(3,3)*ta(4,4))-ta(4,3)*ta(3,4)                                  !hr06
       if(rn2.lt.zero) goto 110                                           !hr06
       if(rn2.eq.zero) then
-        write(lout,*) 'ERROR in betalf() - rn2 = 0: ',  rn1
+        write(lout,'(a,F12.5)') 'ERROR in betalf() - rn2 = 0: ', rn2
         goto 160                                           !hr06
       end if
       if(rn2.gt.zero) goto 130                                           !hr06
