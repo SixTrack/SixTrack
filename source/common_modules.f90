@@ -278,7 +278,9 @@ module mod_common
   real(kind=fPrec),              save :: sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb)
   real(kind=fPrec),              save :: clobeam(6,nbb),beamoff(6,nbb)
   real(kind=fPrec), allocatable, save :: track6d(:,:) ! (6,npart)
-  real(kind=fPrec),              save :: sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar
+  real(kind=fPrec),              save :: sigz,sige,partnum,parbe14,emitx,emity,emitz
+  real(kind=fPrec),              save :: gammar = one
+  real(kind=fPrec),              save :: betrel = zero
   integer,                       save :: nbeam,ibbc,ibeco,ibtyp,lhc
   real(kind=fPrec), allocatable, save :: parbe(:,:) ! (nele,18)
   real(kind=fPrec), allocatable, save :: ptnfac(:)  ! (nele)
