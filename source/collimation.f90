@@ -3119,7 +3119,7 @@ subroutine collimate_do_collimator(stracki)
 
 !! Add all particles
 !            write(lout,*) 'adding particle: ', pdgid(j), nucm(j), rcp(j)
-            call g4_add_particle(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nzz(j), naa(j), nqq(j))
+            call g4_add_particle(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nzz(j), naa(j), nqq(j), nucm(j))
 !!!!          end if
 
 ! Log input energy + nucleons as per the FLUKA coupling

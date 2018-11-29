@@ -5,7 +5,7 @@
 
 #include "G4UserEventAction.hh"
 
-#include "Storage.h"
+#include "CollimationStorage.h"
 
 class CollimationEventAction : public G4UserEventAction
 {

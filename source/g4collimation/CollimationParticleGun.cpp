@@ -21,7 +21,7 @@ void CollimationParticleGun::GeneratePrimaries(G4Event* anEvent)
 	ParticleGun->GeneratePrimaryVertex(anEvent);
 }
 
-void CollimationParticleGun::SetParticleDetails(double x, double y, double xp, double yp, double dp, int pdgid, int q)
+void CollimationParticleGun::SetParticleDetails(double x, double y, double xp, double yp, double e, double p, int pdgid, int q)
 {
 //UNITS MUST BE MeV, mm, rad!
 	if(do_debug)
@@ -65,6 +65,7 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double xp, d
 			std::cout << "Ion: A: " << A << "\tZ: " << Z << "\tQ: " << q; // << std::endl;
 		}
 
+		//Remove states other than the ground state otherwise we get a crash.
 		while(pdgid%10 !=0)
 		{
 			pdgid--;
@@ -83,15 +84,16 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double xp, d
 	const G4double mp = particle->GetPDGMass();
 
 	//The kinetic energy (Total energy - rest mass)
-	ParticleGun->SetParticleEnergy(dp - mp);
-	double p = sqrt(dp*dp - mp*mp);
+	ParticleGun->SetParticleEnergy(e - mp);
+
+	double pz = sqrt((p*p) - (xp*xp) - (yp*yp));
 	//How to deal with longitudinal coordinate?
 	ParticleGun->SetParticlePosition(G4ThreeVector(x, y, 0));
-	ParticleGun->SetParticleMomentumDirection(G4ThreeVector(xp,yp,p));
+	ParticleGun->SetParticleMomentumDirection(G4ThreeVector(xp,yp,pz));
 
 	if(do_debug)
 	{
-		std::cout << "\tP(GeV): " << p/CLHEP::GeV <<  "\t" << dp/CLHEP::GeV << std::endl;
+		std::cout << "\tP(GeV): " << p/CLHEP::GeV <<  "\t" << e/CLHEP::GeV << std::endl;
 		std::cout << std::endl;
 	}
 }
