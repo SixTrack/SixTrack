@@ -1,6 +1,0 @@
-s/\(^[ 1-9].*[+= (/*,-]\) *[dD]\? *\([sS][iI][nN]\|[cC][oO][sS]\|[tT][aA][nN]\|[aA][sS][iI][nN]\|[aA][cC][oO][sS]\|[aA][tT][aA][nN]\|[sS][iI][nN][hH]\|[cC][oO][sS][hH]\|[aA][tT][aA][nN]2\|[lL][oO][gG]\|[lL][oO][gG]10\|[eE][xX][pP]\) *(\(.*\)/+if crlibm\
-\1\2_rn(\3\
-+ei\
-+if .not.crlibm\
-;\1\2(\3\
-+ei/

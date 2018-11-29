@@ -12,6 +12,7 @@ ALL=true
 BOINC=false
 LIBARCH=false
 HDF5=false
+NAFF=false
 
 for ARG in "$@"; do
     if [[ $ARG == "boinc" ]]; then
@@ -22,6 +23,8 @@ for ARG in "$@"; do
         LIBARCH=true
     elif [[ $ARG == "hdf5" ]]; then
         HDF5=true
+    elif [[ $ARG == "naff" ]]; then
+        NAFF=true
     else
         echo "Unknown library $ARG requested."
         exit 1
@@ -49,5 +52,11 @@ fi
 if [ $HDF5 = true ] || [ $ALL = true ]; then
     cd lib
     ./buildHDF5.sh
+    cd ..
+fi
+
+if [ $NAFF = true ] || [ $ALL = true ]; then
+    cd lib
+    ./buildNAFF.sh
     cd ..
 fi
