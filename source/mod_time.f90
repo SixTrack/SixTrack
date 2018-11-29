@@ -79,26 +79,32 @@ end subroutine time_initialise
 subroutine time_finalise
 
   use mod_meta
-  use mod_common, only : numl, mbloz
+  use mod_common, only : numl, mbloz, napx
+  use numerical_constants, only : zero
 
   real(kind=fPrec) trackTime, nP, nT, nE, nPT, nPTE
 
   ! Tracking Averages
 
   trackTime = time_timeRecord(time_afterTracking) - time_timeRecord(time_afterPreTrack)
+  call time_writeReal("Sum_Tracking", trackTime, "s")
 
   nT   = real(numl,fPrec)
   nE   = real(mbloz,fPrec)
   nPT  = real(meta_nPartTurn,fPrec)
-  nP   = nPT/nT
   nPTE = nPT*nE
+  if(nT > zero) then
+    nP = nPT/nT
+  else
+    nP = nPT
+  end if
 
-  call time_writeReal("Sum_Tracking",                     trackTime,      "s")
-  call time_writeReal("Avg_PerParticle",            1.0e3*trackTime/nP,   "ms")
-  call time_writeReal("Avg_PerTurn",                1.0e3*trackTime/nT,   "ms")
-  call time_writeReal("Avg_PerElement",             1.0e3*trackTime/nE,   "ms")
-  call time_writeReal("Avg_PerParticleTurn",        1.0e6*trackTime/nPT,  "us")
-  call time_writeReal("Avg_PerParticleTurnElement", 1.0e9*trackTime/nPTE, "ns")
+  ! Check for zeros just to be safe
+  if(nP   > zero) call time_writeReal("Avg_PerParticle",            1.0e3*trackTime/nP,   "ms")
+  if(nT   > zero) call time_writeReal("Avg_PerTurn",                1.0e3*trackTime/nT,   "ms")
+  if(nE   > zero) call time_writeReal("Avg_PerElement",             1.0e3*trackTime/nE,   "ms")
+  if(nPT  > zero) call time_writeReal("Avg_PerParticleTurn",        1.0e6*trackTime/nPT,  "us")
+  if(nPTE > zero) call time_writeReal("Avg_PerParticleTurnElement", 1.0e9*trackTime/nPTE, "ns")
 
   ! Timer Reports
 

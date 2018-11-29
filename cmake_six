@@ -226,10 +226,6 @@ echo ""
 
 
 #Run cmake
-
-git submodule init ../lib/NAFFlib
-git submodule update ../lib/NAFFlib
-
 if [ -d $NAME ]; then
     echo "Folder '"$NAME"' already exists, deleting!"
     rm -rf $NAME
