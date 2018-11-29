@@ -253,7 +253,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 
   if(LIBARCHIVE)
     if(TST MATCHES elensidealthin6d_DYNK_ZIPF)
-      SET(SIXOUT_NUMFILES 6)
+      SET(SIXOUT_NUMFILES 2)
     else()
       SET(SIXOUT_NUMFILES 0)
     endif()
