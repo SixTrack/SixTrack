@@ -66,7 +66,7 @@ subroutine elens_allocate_arrays
   use crcoall
   implicit none
   integer stat
-    call alloc(ielens,nele,0,'ielens')
+  call alloc(ielens,nele,0,'ielens')
 end subroutine elens_allocate_arrays
 
 subroutine elens_expand_arrays(nele_new)
