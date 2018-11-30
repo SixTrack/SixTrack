@@ -885,10 +885,13 @@ subroutine daten
       call prror(-1)
     end if
 
+    call hions_postInput
+    gammar = nucm0/e0
+    betrel = sqrt((one+gammar)*(one-gammar))
+    
     if(nbeam >= 1) then
       parbe14 = (((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6
     end if
-    gammar = pma/e0
     crad   = (((two*crad)*partnum)*gammar)*c1e6
     emitx  = sixin_emitNX*gammar
     emity  = sixin_emitNY*gammar
@@ -918,7 +921,6 @@ subroutine daten
 
   end if
 
-  call hions_postInput
   call elens_postInput
 
   if(idp == 0 .or. ition == 0 .or. nbeam < 1) then
@@ -2871,7 +2873,6 @@ subroutine comnul
       emitx=zero
       emity=zero
       emitz=zero
-      gammar=one
       sigz=zero
       sige=zero
       damp=zero
