@@ -157,7 +157,7 @@ subroutine part_dumpFinalState
   implicit none
 
   character(len=15), parameter :: fileName = "final_state.dat"
-  integer                      :: fileUnit, j, k
+  integer                      :: fileUnit, j, k, l, m, n
 #ifdef HASHLIB
   character(len=32) md5Digest
 #endif
@@ -192,9 +192,13 @@ subroutine part_dumpFinalState
   do k=0,4
     call hash_md5Update(k,"1234567890123456789012345678901234567890123456789012345678901234",64)
     call hash_md5Update(k,"5678901234567890",16)
-    call hash_md5Final(k)
-    ! call hash_md5Final(k,md5Digest)
-    ! write(lout,"(a)") md5Digest
+    call hash_md5Final(k,md5Digest)
+    ! do l=0,15
+    !   m = 2*l+1
+    !   n = 2*l+2
+    !   call hash_md5Digest(k,l,md5Digest(m:m),md5Digest(n:n))
+    ! end do
+    write(lout,"(a)") "Fortran> '"//md5Digest//"'"
   end do
 #endif
 

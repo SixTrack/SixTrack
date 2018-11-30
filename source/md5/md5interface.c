@@ -35,24 +35,13 @@ void md5wrapper_md5Update(int ctxID, unsigned char* inStr, unsigned int strLen) 
   MD5Update(&mdCtx[ctxID], inStr, strLen);
 }
 
-// void md5wrapper_md5Final(int ctxID, unsigned char* md5Digest) {
-void md5wrapper_md5Final(int ctxID) {
-  // md5Digest = malloc(32);
-  unsigned char* md5Digest[32];
+void md5wrapper_md5Final(int ctxID, int* md5Vals, int md5Size) {
+  // md5Vals = malloc(md5Size*sizeof(int));
   MD5Final(&mdCtx[ctxID]);
+  printf("C One>   '");
   for(int i = 0; i < 16; i++) {
     printf("%02x", mdCtx[ctxID].digest[i]);
+    md5Vals[i] = (int)mdCtx[ctxID].digest[i];
   }
-  printf("\n");
-  sprintf(md5Digest,"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-    mdCtx[ctxID].digest[0],  mdCtx[ctxID].digest[1],
-    mdCtx[ctxID].digest[2],  mdCtx[ctxID].digest[3],
-    mdCtx[ctxID].digest[4],  mdCtx[ctxID].digest[5],
-    mdCtx[ctxID].digest[6],  mdCtx[ctxID].digest[7],
-    mdCtx[ctxID].digest[8],  mdCtx[ctxID].digest[9],
-    mdCtx[ctxID].digest[10], mdCtx[ctxID].digest[11],
-    mdCtx[ctxID].digest[12], mdCtx[ctxID].digest[13],
-    mdCtx[ctxID].digest[14], mdCtx[ctxID].digest[15]
-  );
-  printf("%s\n",md5Digest);
+  printf("'\n");
 }
