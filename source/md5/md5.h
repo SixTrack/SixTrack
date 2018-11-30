@@ -11,6 +11,7 @@
  **   -- distinct additive constant for each step                    **
  **   -- round 4 added, working mod 7                                **
  **********************************************************************
+ ** 2018-11-30: Changed UINT4 to uint32_t for -m64 build - VKBO
  */
 
 /*
@@ -37,8 +38,13 @@
  **********************************************************************
  */
 
+#include <stdint.h>
+
 /* typedef a 32 bit type */
-typedef unsigned long int UINT4;
+// typedef unsigned long int UINT4;
+
+// Fix for building 64bit exec that produces the correct RFC1321 hashes
+typedef uint32_t UINT4;
 
 /* Data structure for MD5 (Message Digest) computation */
 typedef struct {
