@@ -478,9 +478,9 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     & \texttt{b\{ORDER\}str, e.g b4str}& radians * m\textsuperscript{-n}  & Corresponds to the 3th column in the multipole block. \\
   \hline
     \multirow{3}{*}{\parbox{4cm}{Electron lens \\ (29),\\ Section~\ref{sec:elen}}}
-    & \texttt{thetamax}     & mrad      & Maximum angular kick \\
-    &      &       &  \\
-    &      &       &  \\
+    & \texttt{theta\_R2}     & mrad      & Angular kick at R2 \\
+    & \texttt{elens\_I}      & A         & Electron current   \\
+    & \texttt{elens\_Ek}     & keV       & Electron kinetic energy \\
   \hline
     \multirow{3}{*}{\parbox{4cm}{Scattering\index{elastic scattering} \\ (40),\\ Section~\ref{sec:scatter}} }
     & \texttt{scaling}     & --      & Scaling of probability, see Section~\ref{sec:scatter}, paragraph about ELEM command.\\
@@ -1177,7 +1177,7 @@ For the time being, \texttt{r\_1} cannot be \texttt{0}; hence, the electron lens
   All parameters in the single element definition except the type (type \texttt{29}) are ignored.
 \item The current implementation (ideal e--lenses) has no explicit energy--dependency, except for the user defined parameter \texttt{theta\_r2} (see \cite{sixphys}), in case the user specifies \texttt{L}, \texttt{E\_k} and \texttt{I}. In fact, in this case, \texttt{theta\_r2} is re-calculated after input parsing, taking into account the beam energy.
 \item The implementation is compatible with ion tracking and tracking of species different from the synchronous one.
-\item In case of energy ramping, the kick stays constant, as if the e-lens was ramped in beam current in synch with the rest of the machine. On the contrary, if the user specifies the three main optional parameters (i.e.~length, kinetic energy of electrons and current), the kick is recomputed at any update of the reference energy. Hence, it is responsibility of the user to define the ramping of the e-lens with beam energy.
+\item In case of energy ramping, if not \texttt{DYNK}-ed, the kick stays constant, as if the e-lens was ramped in beam current in synch with the rest of the machine. On the contrary, if the user specifies the three main optional parameters (i.e.~length, kinetic energy of electrons and current), if not \texttt{DYNK}-ed, the kick is recomputed at any update of the reference energy, as if the e-lens was not ramped. Hence, it is responsibility of the user to define the way the e-lens is ramped with beam energy.
 \item The kick given by the e-lens is fully chromatic only if the three main optional parameters (i.e.~length, kinetic energy of electrons and current) are specified by the user. In fact, only in this case, the code knows the value of the normalised relativistic speed $\beta_e$.
 \end{enumerate}
 
