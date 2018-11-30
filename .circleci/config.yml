@@ -12,7 +12,7 @@ jobs:
           name: build and test
           command: |
              repo_size=`git count-objects -v | grep size-pack | awk '{print $2}' `
-             echo "Repository size is $repo_size bytes."
+             echo "Repository size is $repo_size kbytes."
              if [ "$repo_size" -gt "610000" ]
                 then
                 echo "Repository size has grown too much, please contact admins."
@@ -23,4 +23,4 @@ jobs:
              cd build/*BUILD_TESTING*
              make -j4
              ctest -j4 -L fast
-             echo "Repository size is $repo_size bytes."
+             echo "Repository size is $repo_size kbytes."
