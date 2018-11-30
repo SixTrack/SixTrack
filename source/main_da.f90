@@ -31,6 +31,8 @@ program mainda
   use mod_commond
   use mod_units
   use file_units
+  use mod_meta
+  use mod_time
   use mod_alloc,  only : alloc_init
   use mod_fluc,   only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use read_input, only : readFort33
@@ -83,6 +85,8 @@ featList = ""
   lout=output_unit
 #endif
   call funit_initUnits ! This one has to be first
+  call meta_initialise ! The meta data file.
+  call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call units_initUnits
   call alloc_init      ! Initialise tmod_alloc
   call allocate_arrays ! Initial allocation of memory
@@ -97,11 +101,13 @@ featList = ""
   call units_openUnit(unit=110,fileName="fort.110",formatted=.false.,mode="w", err=fErr)
   call units_openUnit(unit=111,fileName="fort.111",formatted=.false.,mode="rw",err=fErr)
 
+  call time_timeStamp(time_afterFileUnits)
+
   ! Print Header Info
   tlim=1e7
-  call timest
+  call time_timerStart
   time0=0.
-  call timex(time0)
+  call time_timerCheck(time0)
 
   ! TimeStamp
   call date_and_time(tsDate,tsTime)
@@ -117,6 +123,13 @@ featList = ""
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
 
+  call meta_write("SixTrackDAVersion", trim(version))
+  call meta_write("ReleaseDate",       trim(moddate))
+  call meta_write("GitHash",           trim(git_revision))
+  call meta_write("StartTime",         timeStamp)
+
+  meta_nPartTurn = 2
+
   ! Init stuff
   do i=1,2
     eps(i)=zero
@@ -128,8 +141,12 @@ featList = ""
   call comnul
 
   call daten
+  call time_timeStamp(time_afterDaten)
   if (ithick.eq.1) call allocate_thickarrays
-  if(nord.le.0.or.nvar.le.0) call prror(91)
+  if(nord <= 0 .or. nvar <= 0) then
+    write(lout,"(a)") "MAINDA> ERROR Order and number of variables have to be larger than 0 to calculate a differential algebra map"
+    call prror(-1)
+  end if
   if(ithick.eq.1) write(lout,10020)
   if(ithick.eq.0) write(lout,10030)
   call orglat
@@ -176,7 +193,10 @@ featList = ""
     do i=1,nele
       if((kz(i).eq.20).or.(kz(i).eq.15)) then
         nlin=nlin+1
-        if(nlin.gt.nele) call prror(81)
+        if(nlin.gt.nele) then
+          write(lout,"(a)") "MAINDA> ERROR Too many elements for linear optics write-out"
+          call prror(-1)
+        end if
         bezl(nlin)=bez(i)
       end if
     end do
@@ -438,9 +458,10 @@ featList = ""
   write(lout,10170)
   if(e0.gt.pieni) then
     rv=(ej(1)*e0f)/(e0*ejf(1))
-    if(ithick.eq.1) call envars(1,dps(1),rv)
+    if(ithick == 1) call envars(1,dps(1),rv)
   else
-    call prror(79)
+    write(lout,"(a)") "MAINDA> ERROR Zero or negative energy does not make much sense."
+    call prror(-1)
   end if
   if(numl.eq.0.or.numlr.ne.0) then
     write(lout,10070)
@@ -469,6 +490,9 @@ featList = ""
 !-----------------------------------------------------------------------
 ! We're done in mainda, no error :)
 !-----------------------------------------------------------------------
+  call time_timeStamp(time_beforeExit)
+  call time_finalise
+  call meta_finalise
   call closeUnits
 #ifdef CR
   call abend('                                                  ')

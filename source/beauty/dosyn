@@ -1,6 +1,0 @@
-#!/bin/sh
-for i in `ls *.s`
-do
-  sed -f sedsyn $i > tmp
-  mv tmp $i
-done

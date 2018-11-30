@@ -38,6 +38,7 @@ subroutine postpr(nfile)
       use parpro
       use string_tools
       use mod_version
+      use mod_time
       use mod_common, only : dpscor,sigcor,icode,idam,its6d, &
            dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad, &
            ipos,iav,iwg,ivox,ivoz,ires,ifh,toptit, &
@@ -121,9 +122,9 @@ subroutine postpr(nfile)
 !--TIME START
       pieni2=c1m8
       tlim=c1e7
-      call timest
+      call time_timerStart
       tim1=zero
-      call timex(tim1)
+      call time_timerCheck(tim1)
 
       do i=1,npos
         do j=1,3
@@ -2699,7 +2700,7 @@ subroutine postpr(nfile)
       rewind 15
 !--TIME COUNT
       tim2=0.
-      call timex(tim2)
+      call time_timerCheck(tim2)
       if(nprint.eq.1) write(lout,10280) tim2-tim1
 !----------------------------------------------------------------------
       return

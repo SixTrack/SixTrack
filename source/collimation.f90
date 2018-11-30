@@ -4219,8 +4219,6 @@ subroutine collimate_end_turn
   integer fmtHdf, setHdf
 #endif
 
-  logical :: turnlostp(npart)
-
 !__________________________________________________________________
 !++  Now do analysis at selected elements...
 
@@ -4434,9 +4432,9 @@ subroutine collimate_end_turn
     imov = 0
     do j = 1, napx
       if(xgrd(j).lt.99.0_fPrec .and. ygrd(j).lt.99.0_fPrec) then
-        turnlostp(j) = .false.
+        llostp(j) = .false.
       else
-        turnlostp(j) = .true.
+        llostp(j) = .true.
 
 !        imov = imov + 1
 !        xgrd(imov)           = xgrd(j)
@@ -4479,7 +4477,7 @@ subroutine collimate_end_turn
     end do
 
 !   A call to the array compression function in the aperture module
-    call compactArrays(turnlostp)
+    call compactArrays
 
     write(lout,"(a,i8,a,i8,a,i0)") "COLL> Compacted the particle distributions: ",napx_pre," --> ",napx,", turn = ",iturn
     flush(lout)

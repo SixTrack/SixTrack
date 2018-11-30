@@ -113,7 +113,7 @@ module mod_common
 
   use parpro
   use floatPrecision
-  use numerical_constants, only : c1m6, c180e0, pi, two, half
+  use numerical_constants, only : c1m6, c180e0, pi, two, half, one, zero
 
   implicit none
 
@@ -278,7 +278,9 @@ module mod_common
   real(kind=fPrec),              save :: sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb)
   real(kind=fPrec),              save :: clobeam(6,nbb),beamoff(6,nbb)
   real(kind=fPrec), allocatable, save :: track6d(:,:) ! (6,npart)
-  real(kind=fPrec),              save :: sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar
+  real(kind=fPrec),              save :: sigz,sige,partnum,parbe14,emitx,emity,emitz
+  real(kind=fPrec),              save :: gammar = one
+  real(kind=fPrec),              save :: betrel = zero
   integer,                       save :: nbeam,ibbc,ibeco,ibtyp,lhc
   real(kind=fPrec), allocatable, save :: parbe(:,:) ! (nele,18)
   real(kind=fPrec), allocatable, save :: ptnfac(:)  ! (nele)
@@ -321,14 +323,12 @@ module mod_common
   integer,          save :: napxto
   real,             save :: tlim,time0,time1,time2,time3,trtime,pretime,posttime,tottime
 
-  ! common /mytimes/
-  real,             save :: timestart
-
   ! common /xz/
   real(kind=fPrec), allocatable, save :: xsi(:),zsi(:)     ! (nblz)
   real(kind=fPrec), allocatable, save :: smi(:),smizf(:)   ! (nblz)
   real(kind=fPrec), allocatable, save :: aaiv(:,:),bbiv(:,:) ! (nblz,mmul)
   real(kind=fPrec), allocatable, save :: amultip(:,:), bmultip(:,:) ! (nblz,mmul)
+
   ! common /dcumdb/
   real(kind=fPrec), allocatable, save :: dcum(:)              ! (0:nblz+1) Machine length in m
   real(kind=fPrec), parameter         :: eps_dcum   = c1m6    ! Tolerance for machine length mismatch [m]
@@ -424,10 +424,10 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(zsi,                  nblz_new,       zero,        "zsi")
   call alloc(smi,                  nblz_new,       zero,        "smi")
   call alloc(smizf,                nblz_new,       zero,        "smizf")
-  call alloc(aaiv,         mmul,  nblz_new,            zero,    "aaiv")
-  call alloc(bbiv,         mmul,  nblz_new,            zero,    "bbiv")
-  call alloc(amultip,         mmul,  nblz_new,            zero,    "amultip")
-  call alloc(bmultip,         mmul,  nblz_new,            zero,    "bmultip")
+  call alloc(aaiv,          mmul,  nblz_new,       zero,        "aaiv")
+  call alloc(bbiv,          mmul,  nblz_new,       zero,        "bbiv")
+  call alloc(amultip,       mmul,  nblz_new,       zero,        "amultip")
+  call alloc(bmultip,       mmul,  nblz_new,       zero,        "bmultip")
   call alloc(dcum,                 nblz_new+1,     zero,        "dcum", 0)
   call alloc(sigmoff,              nblz_new,       zero,        "sigmoff")
 
@@ -583,6 +583,7 @@ module mod_commonmn
   integer,          allocatable, save :: nlostp(:)    ! (npart)
 
   logical,          allocatable, save :: pstop(:)     ! (npart)
+  logical,          allocatable, save :: llostp(:)    ! (npart)
 
   real(kind=fPrec),              save :: qw(2)
   real(kind=fPrec),              save :: qwc(3)
@@ -709,6 +710,7 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   call alloc(nms,              npart_new,      0,       "nms")
   call alloc(nlostp,           npart_new,      0,       "nlostp")
   call alloc(pstop,            npart_new,      .false., "pstop")
+  call alloc(llostp,           npart_new,      .false., "llostp")
 
   call alloc(dpd,              npart_new,      zero,    "dpd")
   call alloc(dpsq,             npart_new,      zero,    "dpsq")
