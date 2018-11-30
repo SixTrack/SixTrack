@@ -149,6 +149,7 @@ subroutine part_dumpFinalState
   use mod_common
   use mod_commonmn
 #ifdef HASHLIB
+  use crcoall
   use mod_hash
 #endif
 
@@ -156,6 +157,9 @@ subroutine part_dumpFinalState
 
   character(len=15), parameter :: fileName = "final_state.dat"
   integer                      :: fileUnit, j, k
+#ifdef HASHLIB
+  character(len=32) md5Digest
+#endif
 
   call funit_requestUnit(fileName, fileUnit)
 
@@ -188,6 +192,8 @@ subroutine part_dumpFinalState
     call hash_md5Update(k,"1234567890123456789012345678901234567890123456789012345678901234",64)
     call hash_md5Update(k,"5678901234567890",16)
     call hash_md5Final(k)
+    ! call hash_md5Final(k,md5Digest)
+    ! write(lout,"(a)") md5Digest
   end do
 #endif
 

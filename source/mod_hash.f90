@@ -37,7 +37,7 @@ module mod_hash
 
     subroutine hash_md5Final(ctxID) bind(C, name="md5wrapper_md5Final")
       use, intrinsic :: iso_c_binding
-      integer(kind=C_INT), value, intent(in) :: ctxID
+      integer(kind=C_INT), value,   intent(in)  :: ctxID
     end subroutine hash_md5Final
 
   end interface

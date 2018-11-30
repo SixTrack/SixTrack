@@ -2,6 +2,7 @@
  *  Fortran Interface for MD5
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include "md5.h"
 
@@ -34,10 +35,24 @@ void md5wrapper_md5Update(int ctxID, unsigned char* inStr, unsigned int strLen) 
   MD5Update(&mdCtx[ctxID], inStr, strLen);
 }
 
+// void md5wrapper_md5Final(int ctxID, unsigned char* md5Digest) {
 void md5wrapper_md5Final(int ctxID) {
+  // md5Digest = malloc(32);
+  unsigned char* md5Digest[32];
   MD5Final(&mdCtx[ctxID]);
   for(int i = 0; i < 16; i++) {
     printf("%02x", mdCtx[ctxID].digest[i]);
   }
   printf("\n");
+  sprintf(md5Digest,"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+    mdCtx[ctxID].digest[0],  mdCtx[ctxID].digest[1],
+    mdCtx[ctxID].digest[2],  mdCtx[ctxID].digest[3],
+    mdCtx[ctxID].digest[4],  mdCtx[ctxID].digest[5],
+    mdCtx[ctxID].digest[6],  mdCtx[ctxID].digest[7],
+    mdCtx[ctxID].digest[8],  mdCtx[ctxID].digest[9],
+    mdCtx[ctxID].digest[10], mdCtx[ctxID].digest[11],
+    mdCtx[ctxID].digest[12], mdCtx[ctxID].digest[13],
+    mdCtx[ctxID].digest[14], mdCtx[ctxID].digest[15]
+  );
+  printf("%s\n",md5Digest);
 }

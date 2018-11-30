@@ -161,7 +161,7 @@ static void MDTestSuite ()
   MDFile ("foo");
 }
 
-void main (argc, argv)
+int main (argc, argv)
 int argc;
 char *argv[];
 {
@@ -185,6 +185,8 @@ char *argv[];
       else if (strcmp (argv[i], "-x") == 0)
         MDTestSuite ();
       else MDFile (argv[i]);
+
+  return 0;
 }
 
 /*
