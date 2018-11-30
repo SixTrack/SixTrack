@@ -16,7 +16,7 @@ module elens
   integer, save          :: melens
 
   ! index of elens:
-  integer,allocatable, save          :: ielens(:) !(nele)
+  integer,allocatable, save :: ielens(:) !(nele)
 
   ! variables to save elens parameters for tracking etc.
   integer, save          :: elens_type(nelens)        ! integer for elens type
@@ -35,6 +35,7 @@ module elens
                                                       ! <0: e-beam opposite to beam
   real(kind=fPrec), save :: elens_Ek(nelens)          ! kinetic energy of e-beam [keV]
   logical, save          :: elens_lThetaR2(nelens)    ! flag for computing theta@R2
+  real(kind=fPrec), save :: elens_beta_e(nelens)      ! relativistic beta of electrons
   integer, save          :: elens_iCheby(nelens)      ! mapping to the table with chebyshev coeffs
   real(kind=fPrec), save :: elens_cheby_angle(nelens) ! angle for getting the real bends [deg]
   integer, save          :: elens_iRadial(nelens)     ! mapping to the radial profile
@@ -347,8 +348,6 @@ end subroutine elens_parseInputDone
 
 subroutine elens_postInput
   
-  use mod_common, only : e0,bez,kz
-  use mod_hions, only : aa0, zz0
   use mathlib_bouncer
   use utils
   
@@ -399,21 +398,9 @@ subroutine elens_postInput
       elens_geo_norm(j) = elens_radial_fr2(j) -elens_radial_fr1(j)
     end if
   end do
-
+ 
   ! Compute elens theta at R2, if requested by user
-  do j=1,melens
-    if(elens_lThetaR2(j)) then
-      do jj=1,nele
-        if(kz(jj)==29) then
-          if (ielens(jj).eq.j) then
-            exit
-          end if
-        end if
-      end do
-      call eLensTheta( j, e0 )
-      write(lout,"(a,i0,a,e22.15)") "ELENS> New theta at r2 for elens #",j," named "//trim(bez(jj))//": ",elens_theta_r2(j)
-    end if
-  end do
+  call eLensThetas
 
 end subroutine elens_postInput
 
@@ -426,40 +413,72 @@ end subroutine elens_postInput
 !  - total beam energy [MeV]
 !  - outer radius [mm]
 ! ================================================================================================ !
-subroutine eLensTheta( j, Etot )
+subroutine eLensThetas()
+
+  use crcoall
+  use mod_common, only : bez,kz
+
+  implicit none
+
+  integer j,jj
+  real(kind=fPrec) gamma, brho
+
+  do j=1,melens
+    if(elens_lThetaR2(j)) then
+      do jj=1,nele
+        if(kz(jj)==29) then
+          if (ielens(jj).eq.j) then
+            exit
+          end if
+        end if
+      end do
+      call eLensTheta(j)
+      write(lout,"(a,i0,a,e22.15)") "ELENS> New theta at r2 for elens #",j," named "//trim(bez(jj))//": ",elens_theta_r2(j)
+    end if
+  end do
+
+end subroutine eLensThetas
+
+! ================================================================================================ !
+!  Compute eLens theta at r2
+!  input variables:
+!  - length of eLens [m];
+!  - current intensity of e-beam [A]
+!  - kinetic energy of electrons [keV]
+!  - total beam energy [MeV]
+!  - outer radius [mm]
+! ================================================================================================ !
+subroutine eLensTheta(j)
 
   use floatPrecision
   use mathlib_bouncer
-  use numerical_constants
-  use physical_constants
-  use crcoall
-  use mod_common
-  use mod_hions, only : nucm0, zz0
+  use numerical_constants, only : zero, one, two, pi, c1e3, c1m3, c1m6
+  use physical_constants, only: clight, pmae, eps0
+  use mod_hions, only : zz0
+  use mod_common, only : e0, betrel
 
   implicit none
 
   integer j
-  real(kind=fPrec) gamma, beta_e, beta_b, brho, Etot
+  real(kind=fPrec) gamma, brho
 
+  ! the update of elens_radial_beta_e is not strictly needed here,
+  !   but it can be useful in future if elens_Ek is DYNK-ed...
   gamma  = ((elens_Ek(j)*c1m3)/pmae)+one ! from kinetic energy
-  beta_e = sqrt((gamma+one)*(gamma-one))/(gamma)
-  gamma  = Etot/nucm0                ! from total energy
-  beta_b = sqrt((gamma+one)*(gamma-one))/(gamma)
-  brho   = (Etot/(clight*c1m6))/zz0
+  elens_beta_e(j) = sqrt((one+one/gamma)*(one-one/gamma))
+  brho   = (e0/(clight*c1m6))/zz0
 
   ! r2: from mm to m (c1m3)
   ! theta: from rad to mrad (c1e3)
   elens_theta_r2(j) = ((elens_len(j)*abs(elens_I(j)))/((((two*pi)*((eps0*clight)*clight))*brho)*(elens_r2(j)*c1m3)))*c1e3
   if(elens_I(j) < zero) then
-    elens_theta_r2(j) = elens_theta_r2(j)*(one/(beta_e*beta_b)+one)
+    elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betrel)+one)
   else
-    elens_theta_r2(j) = elens_theta_r2(j)*(one/(beta_e*beta_b)-one)
+    elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betrel)-one)
   end if
-
-  if ( elens_type(j) >= 2 ) then
-     elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)
-  end if
-
+ 
+  if ( elens_type(j)>=2 ) elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)
+  
 end subroutine eLensTheta
 
 ! ================================================================================================ !
