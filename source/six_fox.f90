@@ -403,8 +403,9 @@ subroutine umlauda
     endif
     ix=ic(i)
     if(ix.gt.nblo) goto 50
-    if(ix.le.0) then
-      call prror(93)
+    if(ix <= 0) then
+      write(lout,"(a)") "UMLAUDA> ERROR Inverted linear blocks not allowed."
+      call prror(-1)
     endif
 #include "include/dalin1.f90"
 #ifdef DEBUG
@@ -531,10 +532,11 @@ subroutine umlauda
 !     call abend('a50                                               ')
 !     endif
 #endif
-    if(abs(dare(x(1))).gt.aint(aper(1)).or. abs(dare(x(2))).gt.aint(aper(2))) then
+    if(abs(dare(x(1))) > aint(aper(1)) .or. abs(dare(x(2))) > aint(aper(2))) then
       write(lout,10120)j,i,dare(x(1)),aper(1),dare(x(2)),aper(2),ix,kz(ix),bez(ix)
-      call prror(97)
-    endif
+      write(lout,"(a)") "UMLAUDA> ERROR Unstable closed orbit in DA calculation."
+      call prror(-1)
+    end if
     kpz=abs(kp(ix))
     if(kpz.ge.0 .and. kpz.lt.6) goto 80
     if(kpz.eq.6) goto 70
@@ -629,7 +631,10 @@ subroutine umlauda
     if(ilinc.eq.2.and.kzz.eq.20) then
       if(nbeam.ge.1) then
         ibb=ibb+1
-        if(ibb.gt.nbb) call prror(102)
+        if(ibb > nbb) then
+          write(lout,"(a,i0)") "UMLAUDA> ERROR Maximum element number for beam-beam with coupling exceeded: nbb = ",nbb
+          call prror(-1)
+        end if
         imbb(i)=ibb
 !FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
@@ -789,7 +794,7 @@ subroutine umlauda
         endif !END if(parbe(ix,2).eq.0.0)
 
         if((bbcu(ibb,1).le.pieni).or.(bbcu(ibb,2).le.pieni)) then
-          call prror(88)
+          goto 9088
         endif
         if(ibbc.eq.1) then
           sfac1=bbcu(ibb,1)+bbcu(ibb,2)
@@ -797,7 +802,10 @@ subroutine umlauda
           sfac2s=one
           if(sfac2.lt.zero) sfac2s=-one                            !hr08
           sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          !hr03
-          if(sfac3.gt.sfac1) call prror(103)
+          if(sfac3 > sfac1) then
+            write(lout,"(a)") "UMLAUDA> ERROR 6D beam-beam with tilt not possible."
+            call prror(-1)
+          end if
           sfac4=(sfac2s*sfac2)/sfac3                                   !hr03
           sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3                !hr03
           sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)    !hr03
@@ -842,7 +850,7 @@ subroutine umlauda
             endif
             rho2b=crk**2+cik**2                                          !hr03
             if(rho2b.gt.pieni) then
-              if(abs(sigman(1,imbb(i))).lt.pieni) call prror(88)
+              if(abs(sigman(1,imbb(i))).lt.pieni) goto 9088
               tkb=rho2b/((two*sigman(1,imbb(i)))*sigman(1,imbb(i)))        !hr03
               beamoff4=(((crad*ptnfac(ix))*crk)/rho2b)*(one-exp_mb(-one*tkb)) !hr03
               beamoff5=(((crad*ptnfac(ix))*cik)/rho2b)*(one-exp_mb(-one*tkb)) !hr03
@@ -851,7 +859,7 @@ subroutine umlauda
 #include "include/beamcof.f90"
 !FOX  RHO2BF=CRKVEBF*CRKVEBF+CIKVEBF*CIKVEBF ;
           if(abs(dare(rho2bf)).gt.pieni) then
-            if(abs(sigman(1,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni) goto 9088
 !FOX  TKBF=RHO2BF/(TWO*SIGMAN(1,IMBB(I))*SIGMAN(1,IMBB(I))) ;
             if(ibbc.eq.0) then
 !FOX   Y(1)=Y(1)+(CRAD*CRKVEBF/RHO2BF*
@@ -873,7 +881,7 @@ subroutine umlauda
           endif
         else if(sigman(1,imbb(i)).gt.sigman(2,imbb(i))) then
           if(ibeco.eq.1) then
-            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
             r2b=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
             rb=sqrt(r2b)
             rkb=((crad*ptnfac(ix))*pisqrt)/rb                            !hr03
@@ -887,7 +895,7 @@ subroutine umlauda
             xrb=abs(crk)/rb
             zrb=abs(cik)/rb
             call errf(xrb,zrb,crxb,crzb)
-            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
             tkb=(crk**2/sigman(1,imbb(i))**2+cik**2/sigman(2,imbb(i))**2)*half  !hr03
             xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb                !hr03
             zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb                !hr03
@@ -895,7 +903,7 @@ subroutine umlauda
             beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
             beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
           endif
-          if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+          if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
           r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
           rbf=sqrt(r2bf)
           rkbf=((crad*ptnfac(ix))*pisqrt)/rbf                          !hr03
@@ -909,7 +917,7 @@ subroutine umlauda
 !FOX  ZRBF=-ZRBF ;
             endif
             call errff(xrbf,zrbf,crxbf,crzbf)
-            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
 !FOX  TKBF=(CRKVEBF*CRKVEBF/(SIGMAN(1,IMBB(I))*SIGMAN(1,IMBB(I)))+
 !FOX  CIKVEBF*CIKVEBF/(SIGMAN(2,IMBB(I))*SIGMAN(2,IMBB(I))))*HALF ;
 !FOX  XBBF=SIGMAN(2,IMBB(I))/SIGMAN(1,IMBB(I))*XRBF ;
@@ -936,7 +944,7 @@ subroutine umlauda
             endif
         else if(sigman(1,imbb(i)).lt.sigman(2,imbb(i))) then
           if(ibeco.eq.1) then
-            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
             r2b=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2)   !hr08
             rb=sqrt(r2b)
             rkb=((crad*ptnfac(ix))*pisqrt)/rb                            !hr03
@@ -950,7 +958,7 @@ subroutine umlauda
             xrb=abs(crk)/rb
             zrb=abs(cik)/rb
             call errf(zrb,xrb,crzb,crxb)
-            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
             tkb=(crk**2/sigman(1,imbb(i))**2+cik**2/sigman(2,imbb(i))**2)*half  !hr03
             xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb                !hr03
             zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb                !hr03
@@ -958,7 +966,7 @@ subroutine umlauda
             beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
             beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
           endif
-          if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+          if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
           r2bf=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2) !hr08
           rbf=sqrt(r2bf)
           rkbf=((crad*ptnfac(ix))*pisqrt)/rbf                          !hr03
@@ -972,7 +980,7 @@ subroutine umlauda
 !FOX  ZRBF=-ZRBF ;
             endif
             call errff(zrbf,xrbf,crzbf,crxbf)
-            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
 !FOX  TKBF=(CRKVEBF*CRKVEBF/(SIGMAN(1,IMBB(I))*SIGMAN(1,IMBB(I)))+
 !FOX  CIKVEBF*CIKVEBF/(SIGMAN(2,IMBB(I))*SIGMAN(2,IMBB(I))))*HALF ;
 !FOX  XBBF=SIGMAN(2,IMBB(I))/SIGMAN(1,IMBB(I))*XRBF ;
@@ -1693,7 +1701,10 @@ subroutine umlauda
     call dapek(df(ndimf+2),jj,coefv2)
     jj(nd2+2)=0
     det1=coefh1*coefv2-coefv1*coefh2
-    if(abs(det1).le.pieni) call prror(90)
+    if(abs(det1) <= pieni) then
+      write(lout,"(a)") "UMLAUDA> ERROR Quadrupoles are not suited to adjust the tunes."
+      call prror(-1)
+    end if
     corr(2,1)=coefv2/det1
     corr(2,2)=(-one*coefh2)/det1                                     !hr05
     corr(3,1)=(-one*coefv1)/det1                                     !hr05
@@ -1714,7 +1725,10 @@ subroutine umlauda
     jj(nd2+3)=0
     jj(nd2+1)=0
     det1=coefh1*coefv2-coefv1*coefh2
-    if(abs(det1).le.pieni) call prror(96)
+    if(abs(det1) <= pieni) then
+      write(lout,"(a)") "UMLAUDA> ERROR Sextupoles are not suited to adjust the chromaticity."
+      call prror(-1)
+    end if
     corr(2,1)=coefv2/det1
     corr(2,2)=(-one*coefh2)/det1                                     !hr05
     corr(3,1)=(-one*coefv1)/det1                                     !hr05
@@ -1743,6 +1757,11 @@ subroutine umlauda
   call dadal(df,6)
 !     DADAL AUTOMATIC INCLUSION
   call comt_daEnd
+  return
+
+9088 continue
+  write(lout,"(a)") "UMLAUDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
+  call prror(-1)
   return
 !-----------------------------------------------------------------------
 10000 format(/t5 ,'---- ENTRY ',i1,'D LINOPT ----')

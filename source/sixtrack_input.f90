@@ -2252,7 +2252,9 @@ subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
   do i=1,nComb
     ico = icomb(icoe,i)
     if(ico == ii) then
-      call prror(92)
+      write(lout,"(a)") "COMB> ERROR You cannot combine an element with itself."
+      iErr = .true.
+      return
     end if
     if(ico == 0) cycle
     write(lout,"(a,e13.6)") "COMB> "//bez(ii)(1:20)//" : "//bez(ico)(1:20)//" : ",ratio(icoe,i)
@@ -2368,7 +2370,6 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
       write(lout,"(a)") "RESO> ERROR The multipole order for the sub-resonance compensation should not exceed 9."
       iErr = .true.
       return
-      call prror(50)
     end if
 
   case(3)
