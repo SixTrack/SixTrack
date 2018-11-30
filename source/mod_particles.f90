@@ -149,22 +149,15 @@ subroutine part_dumpFinalState
   use parpro
   use mod_common
   use mod_commonmn
-#ifdef HASHLIB
-  use crcoall
-  use mod_hash
-#endif
 
   implicit none
 
   character(len=15), parameter :: fileName = "final_state.dat"
-  integer                      :: fileUnit, j, k, l, m, n
-#ifdef HASHLIB
-  character(len=32) md5Digest
-#endif
+  integer                      :: fileUnit, j
 
   call funit_requestUnit(fileName, fileUnit)
 
-  open(fileUnit,file=fileName,form="unformatted",access="stream",status="new")
+  open(fileUnit,file=fileName,form="unformatted",access="stream",status="unknown")
 
   write(fileUnit) int(napx, kind=int32)
   write(fileUnit) int(npart,kind=int32)
@@ -184,23 +177,6 @@ subroutine part_dumpFinalState
 
   flush(fileUnit)
   close(fileUnit)
-
-#ifdef HASHLIB
-  call hash_digestFloatArray(xv1(1), 10)
-
-  call hash_md5Init(5)
-  do k=0,4
-    call hash_md5Update(k,"1234567890123456789012345678901234567890123456789012345678901234",64)
-    call hash_md5Update(k,"5678901234567890",16)
-    call hash_md5Final(k,md5Digest)
-    ! do l=0,15
-    !   m = 2*l+1
-    !   n = 2*l+2
-    !   call hash_md5Digest(k,l,md5Digest(m:m),md5Digest(n:n))
-    ! end do
-    write(lout,"(a)") "Fortran> '"//md5Digest//"'"
-  end do
-#endif
 
 end subroutine part_dumpFinalState
 

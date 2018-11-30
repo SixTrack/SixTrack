@@ -104,6 +104,9 @@ program maincr
   use aperture
   use wire
   use mod_version
+#ifdef HASHLIB
+  use mod_hash
+#endif
 
   implicit none
 
@@ -170,6 +173,9 @@ end interface
   call units_initUnits
   call alloc_init      ! Initialise tmod_alloc
   call allocate_arrays ! Initial allocation of memory
+#ifdef HASHLIB
+  call hash_initialise
+#endif
 
   ! Set napx,napxo,trtime for error handling
   napx   = 0
@@ -1877,6 +1883,11 @@ end interface
   write(lout,"(a,i8)")      "    Particle Turns:           ",meta_nPartTurn
   write(lout,"(a)")         ""
   write(lout,"(a)")         str_divLine
+
+#ifdef HASHLIB
+  ! HASH library. Must be before ZIPF
+  ! call hash_initialise
+#endif
 
   if(zipf_numfiles > 0) then
     call zipf_dozip
