@@ -30,6 +30,7 @@ module elens
   real(kind=fPrec), save :: elens_geo_norm(nelens)    ! normalisation of f(r)
   real(kind=fPrec), save :: elens_len(nelens)         ! length of eLens (e-beam region) [m]
   real(kind=fPrec), save :: elens_I(nelens)           ! current of e-beam [A]
+                                                      ! <0: e-beam opposite to beam
   real(kind=fPrec), save :: elens_Ek(nelens)          ! kinetic energy of e-beam [keV]
   logical, save          :: elens_lThetaR2(nelens)    ! flag for computing theta@R2
   integer, save          :: elens_iCheby(nelens)      ! mapping to the table with chebyshev coeffs
@@ -143,15 +144,12 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   case("UNIFORM")
     elens_type(ielens(iElem)) = 1
   case("GAUSSIAN")
-    write(lout,"(a)") "ELENS> ERROR GAUSSIAN type not fully supported yet - elens name: '"//trim(bez(iElem))
-    iErr = .true.
-    return
-!     elens_type(ielens(iElem)) = 2
-!     if(nSplit < 8) then
-!       write(lout,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for GAUSSIAN, got ",nSplit
-!       iErr = .true.
-!       return
-!     end if
+    elens_type(ielens(iElem)) = 2
+    if(nSplit < 8) then
+      write(lout,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for GAUSSIAN, got ",nSplit
+      iErr = .true.
+      return
+    end if
   case("CHEBYSHEV")
     write(lout,"(a)") "ELENS> ERROR CHEBYSHEV type not fully supported yet - elens name: '"//trim(bez(iElem))
     iErr = .true.
@@ -174,10 +172,10 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   call chr_cast(lnSplit(6),elens_offset_x(ielens(iElem)),iErr)
   call chr_cast(lnSplit(7),elens_offset_y(ielens(iElem)),iErr)
 
-!   if(elens_type(ielens(iElem)) == 2) then
-!     ! GAUSSIAN profile of electrons: need also sigma of e-beam
-!     call chr_cast(lnSplit(8),elens_sig(ielens(iElem)),iErr)
-! 
+  if(elens_type(ielens(iElem)) == 2) then
+    ! GAUSSIAN profile of electrons: need also sigma of e-beam
+    call chr_cast(lnSplit(8),elens_sig(ielens(iElem)),iErr)
+
 !   elseif(elens_type(ielens(iElem)) == 3 )then
 !     ! Profile of electrons given by Chebyshev polynomials: need also
 !     !   name of file where coefficients are stored and angle
@@ -205,7 +203,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
 !       elens_iCheby(ielens(iElem)) = melens_cheby_tables
 !       elens_cheby_filename(tmpi1) = tmpch
 !     end if
-!   end if
+  end if
 
   ! Additional geometrical infos:
   ! Depending on profile, the position of these parameters change
@@ -217,11 +215,11 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     tmpi2 = 9
     tmpi3 = 10
     elens_lThetaR2(ielens(iElem)) = .true.
-!   else if(elens_type(ielens(iElem)) == 2 .and. nSplit >= 11) then
-!     tmpi1 = 9
-!     tmpi2 = 10
-!     tmpi3 = 11
-!     elens_lThetaR2(ielens(iElem)) = .true.
+  else if(elens_type(ielens(iElem)) == 2 .and. nSplit >= 11) then
+    tmpi1 = 9
+    tmpi2 = 10
+    tmpi3 = 11
+    elens_lThetaR2(ielens(iElem)) = .true.
 !   else if(elens_type(ielens(iElem)) == 3 .and. nSplit >= 12) then
 !     tmpi1 = 10
 !     tmpi2 = 11
@@ -235,7 +233,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(tmpi3),elens_Ek(ielens(iElem)), iErr)
   end if
 
-  ! Make checks for this case
+  ! sanity checks
   if(elens_r2(ielens(iElem)) < elens_r1(ielens(iElem))) then
     write(lout,"(a)") "ELENS> WARNING ELEN R2<R1. Inverting."
     tmpflt=elens_r2(ielens(iElem))
@@ -273,16 +271,23 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       return
     end if
   end if
+  if( elens_type(ielens(iElem)) == 2 ) then
+    if ( elens_sig(ielens(iElem)).le.zero ) then
+       write(lout,"(a)") "ELENS> ERROR sigma of electron beam <=0 in Elens '"//trim(bez(iElem))//"'."
+       iErr = .true.
+       return
+    end if
+  end if
 
   ! Proper normalisation
   if(elens_type(ielens(iElem)) == 1) then
     ! Uniform distribution
     elens_geo_norm(ielens(iElem)) = (elens_r2(ielens(iElem))+elens_r1(ielens(iElem)))*&
                                     (elens_r2(ielens(iElem))-elens_r1(ielens(iElem)))
-!   else if(elens_type(ielens(iElem)) == 2) then
-!     ! Gaussian distribution
-!     elens_geo_norm(ielens(iElem)) = exp_mb(-0.5*(elens_r1(ielens(iElem))/elens_sig(ielens(iElem)))**2)&
-!                                     -exp_mb(-0.5*(elens_r2(ielens(iElem))/elens_sig(ielens(iElem)))**2)
+  else if(elens_type(ielens(iElem)) == 2) then
+    ! Gaussian distribution
+    elens_geo_norm(ielens(iElem)) = exp_mb(-0.5*(elens_r1(ielens(iElem))/elens_sig(ielens(iElem)))**2)&
+                                   -exp_mb(-0.5*(elens_r2(ielens(iElem))/elens_sig(ielens(iElem)))**2)
   end if
 
   if(st_debug) then
@@ -340,13 +345,6 @@ subroutine elens_postInput
   integer j,jj
   logical exist
 
-  if ( melens /= 0) then
-     if ( aa0.ne.1 .or. zz0.ne.1 ) then
-        write(lout,"(a)") "ELENS> ERROR Elens available only for proton beam, no ion beams"
-        call prror(-1)
-     end if
-  end if
-     
   ! Compute elens theta at R2, if requested by user
   do j=1,melens
     if(elens_lThetaR2(j)) then
@@ -357,12 +355,12 @@ subroutine elens_postInput
           end if
         end if
       end do
-      elens_theta_r2(j) = eLensTheta(elens_len(j), elens_I(j),elens_Ek(j), e0, elens_r2(j) )
+      call eLensTheta( j, e0 )
       write(lout,"(a,i0,a,e22.15)") "ELENS> New theta at r2 for elens #",j," named "//trim(bez(jj))//": ",elens_theta_r2(j)
     end if
   end do
 
-  ! Parse files with coefficients for chekyshev polynomials:
+  ! Parse files with coefficients for Chebyshev polynomials:
    do j=1,melens_cheby_tables
     inquire(file=elens_cheby_filename(j), exist=exist)
     if(.not. exist) then
@@ -383,7 +381,7 @@ end subroutine elens_postInput
 !  - total beam energy [MeV]
 !  - outer radius [mm]
 ! ================================================================================================ !
-real(kind=fPrec) function eLensTheta( len, Int, Ekin, Etot, r2 )
+subroutine eLensTheta( j, Etot )
 
   use floatPrecision
   use mathlib_bouncer
@@ -391,27 +389,33 @@ real(kind=fPrec) function eLensTheta( len, Int, Ekin, Etot, r2 )
   use physical_constants
   use crcoall
   use mod_common
+  use mod_hions, only : nucm0, zz0
 
   implicit none
 
-  real(kind=fPrec) gamma, beta_e, beta_b, brho, len, Int, Ekin, Etot, r2
+  integer j
+  real(kind=fPrec) gamma, beta_e, beta_b, brho, Etot
 
-  gamma  = Ekin*c1m3/pmae+1 ! from kinetic energy
+  gamma  = ((elens_Ek(j)*c1m3)/pmae)+one ! from kinetic energy
   beta_e = sqrt((gamma+one)*(gamma-one))/(gamma)
-  gamma  = Etot/pma ! from total energy
+  gamma  = Etot/nucm0                ! from total energy
   beta_b = sqrt((gamma+one)*(gamma-one))/(gamma)
-  brho   = Etot/(clight*c1m6)
+  brho   = (Etot/(clight*c1m6))/zz0
 
-  ! r2: from mm to m
-  ! theta: from rad to mrad
-  eLensTheta = len*abs(Int)/(2*pi*eps0*brho*clight**2*r2*c1m3)*c1e3
-  if(Int < zero) then
-    eLensTheta = eLensTheta*(one/(beta_e*beta_b)+one)
+  ! r2: from mm to m (c1m3)
+  ! theta: from rad to mrad (c1e3)
+  elens_theta_r2(j) = ((elens_len(j)*abs(elens_I(j)))/((((two*pi)*((eps0*clight)*clight))*brho)*(elens_r2(j)*c1m3)))*c1e3
+  if(elens_I(j) < zero) then
+    elens_theta_r2(j) = elens_theta_r2(j)*(one/(beta_e*beta_b)+one)
   else
-    eLensTheta = eLensTheta*(one/(beta_e*beta_b)-one)
+    elens_theta_r2(j) = elens_theta_r2(j)*(one/(beta_e*beta_b)-one)
   end if
 
-end function eLensTheta
+  if ( elens_type(j) == 2 ) then
+     elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)
+  end if
+
+end subroutine eLensTheta
 
 ! ================================================================================================ !
 !  Last modified: 2018-06-25
@@ -482,7 +486,7 @@ subroutine parseChebyFile(ifile)
       goto 30
     end if
     call chr_cast(lnSplit(3),tmpflt,spErr)
-    gamma = tmpflt*c1m3/pmae+1 ! from kinetic energy
+    gamma = (tmpflt*c1m3)/pmae+one ! from kinetic energy
     elens_cheby_refBeta(ifile) = sqrt((gamma+one)*(gamma-one))/(gamma)
 
   else if(inLine(1:3) == "rad") then

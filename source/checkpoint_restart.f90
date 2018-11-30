@@ -360,7 +360,7 @@ subroutine crcheck
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record META"
     flush(93)
     call meta_crcheck(96,lerror)
-    if(lerror) goto 100
+    if(lerror) goto 101
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 5 DUMP"
     flush(93)

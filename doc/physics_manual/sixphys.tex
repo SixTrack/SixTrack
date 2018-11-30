@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\author{R.~De~Maria, M.~Fitterer, M.~Fjellstrom, A.~Patapenka}
+\author{R.~De~Maria, A.~Mereghetti, M.~Fitterer, M.~Fjellstrom, A.~Patapenka}
 \title{SixTrack Physics Manual (Draft)}
 \date{\today}
 
@@ -977,48 +977,141 @@ The effect of the AC-dipole is split into four stages. The turn number is denote
 
 \subsection{Electron lens}
 \label{elense}
-\subsubsection{Hollow electron lens - uniform annular profile}
-For a uniform distribution of the electron beam between $R_1$ and $R_2$, the radial kick can be described by a shape function $f(r)$ and a maximum kick strength $\theta_{\rm max}$:
-\begin{equation}
-\theta(r)=\frac{f(r)}{(r/R_2)}\cdot \theta_{\rm max}
-\end{equation}
-with $r=\sqrt{x^2+y^2}$ and $\theta_{\rm max}$ independent of $r$. The shape function $f(r)$ is defined as
-\begin{equation}
-f(r) = \frac{I(r)}{I_T}=\frac{2\pi}{I_T}\int_{0}^r r\rho(r) \mathrm{d}r
-\end{equation}
-where $I_T$ is the total electron beam current, $I(r)$ is the current enclosed in a radius $r$ and $\rho(r)$ is the electron beam density distribution.
+Electron lenses are devices where the tracked beam interacts with a beam of electrons. The electron beam travels co--axial to the main beam; it
+is contained in a thick cylinder of inner radius $R_1$ and outer radius $R_2$.
+If $R_1>0$, then the lens is hollow. The interaction is purely via the Lorentz
+force. These devices can be used for compensating beam--beam effects or as
+collimation devices~\cite{Shiltsev:2112966}.
 
-For a uniform profile one then obtains:
+The implementation in SixTrack does not start from the Hamiltonian but from the
+integration of the Lorentz force along the length of the e--lens in idealised
+conditions. The e--lens \emph{must be a thin lens};
+the derivation of the kick assumes electrons moving along straight paths,
+parallel to the beam, for an indefinite length, and an axis--symmetric
+transverse distribution (cylindrical symmetry). Hence,
+the derivation of the kicks and the implemented tracking is developed in cylindrical coordinates, where
+\begin{equation}
+  r=\sqrt{x^2+y^2}
+\end{equation}
+is the radial coordinate used to compute the kick. Moreover,
+the implementation of the hollow e--lens has no explicit dependence on the
+beam energy, taken into account only in the form of the input parameter
+$\theta_{\rm max}$ provided by the user. Moreover, a change of the particle
+energy could occur if the particle enters with an initial $x'$ or
+$y'$ and thus sees an accelerating or decelerating field. These effects
+are not taken into account for the time being.
+
+The implementation in SixTrack is very similar to the one in
+Merlin~\cite{HReLens}. There you can also find a complete derivation of
+the equations laid down in the following.
+
+\subsubsection{Treatment of the Kick}
+The kick received by a beam particle can be conveniently described as:
+\begin{equation}
+  \theta(r)=\frac{f(r)}{r/R_2} \theta_{\rm R_2}
+  \label{elense:eqn:0}
+\end{equation}
+where $\theta_{\rm R_2}$ is the kick imparted by the electron beam when the beam particle
+is at $r=R_2$ and $f(r)$ is a shape function which depends on the radial distribution of the
+electron beam.
+$\theta_{\rm R_2}$ reads like
+\begin{equation}
+\theta_{\rm R_2} = \frac{LI_T(1\pm\beta_e\beta_b)}{2\pi\epsilon_0  \left(B\rho\right)_b\beta_e\beta_b c^2}\cdot\frac{1}{R_2}
+\end{equation}
+where $L$ is the length of the e--lens, $I_T$ the total electron beam current, $\beta_{e}$ and $\beta_{b}$ the relativistic $\beta$ of electron and tracked beam, $(B\rho)|_b$ the magnetic rigidity of the beam (synchronous particle), $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The $\pm$-sign represents the two cases of the electron beam travelling in the direction of the tracked beam ($v_e v_b>0$) leading to ``$-$" or in the opposite direction ($v_e v_b<0$) leading to ``$+$". For hollow electron beam collimation, electron and tracked beam travel in opposite directions. It should be noted that $\theta_{\rm R_2}$ depends on the magnetic rigidity $(B\rho)_b$ of the tracked beam and thus on the beam momentum; hence, during tracking, the actual magnetic rigidity of each beam particle and its charge--to--mass ration is taken into account when computing the kick to be imparted.
+
+$f(r)$ reads like
+\begin{equation}
+  f(r) = \frac{I(r)}{I_T}=\frac{2\pi}{I_T}\int_{0}^r r\rho(r) \mathrm{d}r,
+  \label{elense:eqn:1}
+\end{equation}
+where $I(r)$ is the current enclosed in a radius
+$r$ and $\rho(r)$ is the electron beam density distribution. Taking into account the
+cylindrical symmetry of the electron distribution and the fact that the electron
+distribution is contained in a cylinder $R_1<r<R_2$, $f(r)$ can be split into
+three expressions based on respective domains as follows
 \begin{equation}
 f(r) =
-\begin{cases} 0 &,\quad r< R_1\\
-\frac{r^2-R_1^2}{R_2^2-R_1^2} &,\quad R_1 \leq r < R_2\\
+\begin{cases} 0 &,\quad r \leq R_1\\
+\tilde f(r) &,\quad R_1 < r < R_2\\
 1 &,\quad R_2 \leq r
 \end{cases}
+\label{elense:eqn:5}
 \end{equation}
-and
-\begin{equation}
-\theta_{\rm max} = \theta(R_2) = \frac{2LI_T(1\pm\beta_e\beta_p)}{4\pi\epsilon_0  \left(B\rho\right)_p\beta_e\beta_p c^2}\cdot\frac{1}{R_2}
-\end{equation}
-where $L$ is the length of the e-lens, $I_T$ the total electron beam current, $\beta_{e}$ and $\beta_{p}$ the relativistic $\beta$ of electron and proton beam, $B\rho$ the magnetic rigidity, $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The $\pm$-sign represents the two cases of the electron beam traveling in the direction of the proton beam ($v_e v_p>0$) leading to ``$-$" or in the opposite direction ($v_e v_p<0$) leading to ``$+$". For hollow electron beam collimation, electron and proton beam travel in opposite directions.
+where $\tilde f(r)$ changes functional shape according to the transverse
+distribution to be simulated.
 
-The kick in $(x',y')$ can then be expressed as (note $\frac{x}{r}=\cos(\phi),\frac{y}{r}=\sin(\phi)$):
+Using Eq.~\ref{elense:eqn:0}, the kick in $(x',y')$ can then be expressed as
 \begin{align}
-x'&=x'-\theta_{\rm max}\cdot\frac{R_2}{r^2}\cdot f(r)\cdot x \cdot \frac{1}{1+\delta}\label{elense:eqn:1}\\
-y'&=y'-\theta_{\rm max}\cdot\frac{R_2}{r^2}\cdot f(r)\cdot y \cdot \frac{1}{1+\delta}\label{elense:eqn:2}
+x'&=x'-\frac{x}{r}\;\frac{f(r)}{r/R_2}\;\theta_{\rm R_2}\frac{\chi}{1+\delta}\label{elense:eqn:2}\\
+y'&=y'-\frac{y}{r}\;\frac{f(r)}{r/R_2}\;\theta_{\rm R_2}\frac{\chi}{1+\delta}\label{elense:eqn:3}
 \end{align}
-The maximum kick angle $\theta_{\max}$ depends on the magnetic rigidity $(B\rho)_p$ of the proton beam and thus on the particle momentum. For off-momentum particles this results in a factor $(B\rho)(\delta) = (B\rho)(0)\cdot(1+\delta)$ which has been added in Eqn.~\ref{elense:eqn:1}--\ref{elense:eqn:2}. If the electron lens is offset by $(x_{\rm offset},y_{\rm offset})$, the coordinates $(x,y)$ are simply transfered to:
+where $\frac{x}{r}=\cos(\phi)$ and $\frac{y}{r}=\sin(\phi)$ allow to get the
+horizontal and vertical kicks from the radial one.
+Off-momentum particles and different ion species are taken into
+account via the factor $\chi/(1+\delta)$, which comes from the definition of
+magnetic rigidity of ion species different from the nominal one
+($B\rho|_b$) given by
+\begin{equation}
+  B\rho = B\rho|_b \frac{1+\delta}{\chi},
+\end{equation}
+where $\chi$ is the charge--over--mass ratio of the tracked and synchronous
+particles, i.e.~$\chi=(q/m)/(q_0/m_0)$ and $\delta$ is the one used in case of
+multi--isotop tracking, i.e.~$\frac{(p/m)}{p_0/m_0}-1$~\cite{Hermes:2241364};
+hence, the current implementation of
+e--lenses is compatible with ion tracking.
+
+If the electron lens is centred around $(x_{\rm offset},y_{\rm offset})$
+(local reference frame), particle coordinates $(x,y)$ are simply transformed
+into:
 \begin{align}
-\tilde x&=x+x_{\rm offset}\\
-\tilde y&=y+y_{\rm offset}\\
-\tilde r&=\sqrt{\tilde x^2+\tilde y^2}
+\tilde x&\rightarrow x-x_{\rm offset}\\
+\tilde y&\rightarrow y-y_{\rm offset}\\
 \end{align}
-and the kick is then given by:
-\begin{align}
-x'&=x'-\theta_{\rm max}\cdot\frac{R_2}{\tilde r^2}\cdot f(\tilde r)\cdot \tilde x\cdot\frac{1}{1+\delta}\\
-y'&=y'-\theta_{\rm max}\cdot\frac{R_2}{\tilde r^2}\cdot f(\tilde r)\cdot \tilde y\cdot\frac{1}{1+\delta}
-\end{align}
-This idealized implementation of the hollow e-lens has no explicit dependence on the particle energy. The particle energy is only taken into account in form of the input parameter $\theta_{\rm max}$ provided by the user. A change of the particle energy could occur if the particle enters with an initial $x'$ or $y'$ and thus sees an accelerating or respectively decelerating field.
+before computing the radial position, without touching the above processing.
+
+\subsubsection{Uniform electron profile}
+The uniform distribution of the electron beam between $R_1$ and $R_2$
+can be described as:
+\begin{equation}
+\rho(r) = \frac{I_T}{\pi (R_2^2 -R_1^2) } \quad R_1 < r < R_2
+\end{equation}
+This leads the middle term of $f(r)$ (see Eq.~\ref{elense:eqn:1}) to be:
+\begin{equation}
+\tilde f(r)=\frac{r^2-R_1^2}{R_2^2-R_1^2}
+\end{equation}
+
+\subsubsection{Gaussian electron profile}
+The Gaussian distribution of the electron beam between $R_1$ and $R_2$
+can be described as:
+\begin{equation}
+\rho(r) = \frac{I_T \exp\left[-\frac{r^2}{2\sigma^2}\right]}{2\pi\sigma^2} \quad R_1 < r < R_2
+\end{equation}
+This leads the middle term of $f(r)$ (see Eq.~\ref{elense:eqn:1}) to be:
+\begin{equation}
+  \tilde f(r)=\frac{\exp\left[-\frac{R_1^2}{2\sigma^2}\right]-\exp\left[-\frac{r^2}{2\sigma^2}\right]}
+                   {\exp\left[-\frac{R_1^2}{2\sigma^2}\right]-\exp\left[-\frac{R_2^2}{2\sigma^2}\right]}
+  \label{elense:eqn:4}
+\end{equation}
+The denominator in Eq.~\ref{elense:eqn:4}, which is added after integrating
+the Gaussian profile as in Eq.~\ref{elense:eqn:1}, is a normalisation factor
+necessary to have $\tilde f(R_2)=1$. Hence, the same factor must be considered
+in the expression of $\theta_{\rm R_2}$, which then becomes
+\begin{equation}
+  \theta_{\rm R_2} = \frac{LI_T(1\pm\beta_e\beta_b)}{2\pi\epsilon_0  \left(B\rho\right)_b\beta_e\beta_b c^2}\cdot\frac{1}{R_2}
+  \cdot\left\{\exp\left[-\frac{R_1^2}{2\sigma^2}\right]-\exp\left[-\frac{R_2^2}{2\sigma^2}\right]\right\}
+\end{equation}
+It should be noted that, contrary to the case of the uniform distribution,
+$\theta_{\rm R_2}$ does not coincide with the highest kick; the highest kick is
+found only at:
+\begin{equation}
+  \frac{\textrm{d}f}{\textrm{d}r}=0
+\end{equation}
+which leads to the following equation
+\begin{equation}
+  \exp\left[-\frac{r^2}{2\sigma^2}\right] = \frac{\exp\left[-\frac{R_1^2}{2\sigma^2}\right]}{r^2+\sigma^2},
+\end{equation}
+that can be solved graphically or numerically, not analitically.
 
 \subsection{Misalignment}
 
