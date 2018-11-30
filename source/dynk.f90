@@ -2338,6 +2338,8 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
     if(att_name == "E0" ) then
       ! Modify the reference particle
       call part_updateRefEnergy(newValue)
+      ! Modify energy-dependent element parameters
+      call eLensThetas
     end if
     ldoubleElement = .true.
   end if
@@ -2486,6 +2488,12 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
       case(29) ! Electron lens
         if(att_name == "theta_r2") then ! [mrad]
           elens_theta_r2(ielens(ii)) = newValue
+        elseif(att_name == "elens_I") then ! [A]
+          elens_I(ielens(ii)) = newValue
+          call eLensTheta(ielens(ii))
+        elseif(att_name == "elens_Ek") then ! [keV]
+          elens_Ek(ielens(ii)) = newValue
+          call eLensTheta(ielens(ii))
         else
           goto 100 ! ERROR
         end if
@@ -2692,6 +2700,10 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
       case(29) ! Electron lens
         if(att_name == "theta_r2") then ! [mrad]
           dynk_getvalue = elens_theta_r2(ielens(ii))
+        elseif(att_name == "elens_I") then ! [A]
+          dynk_getvalue = elens_I(ielens(ii))
+        elseif(att_name == "elens_Ek") then ! [keV]
+          dynk_getvalue = elens_Ek(ielens(ii))
         else
           goto 100 ! ERROR
         end if
