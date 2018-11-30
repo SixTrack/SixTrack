@@ -969,8 +969,9 @@ if(NAFF)
 
   file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/lib/NAFFlib/source/*.c ${CMAKE_SOURCE_DIR}/lib/NAFFlib/naff_sixtrack_interface.c)
   add_library(naff STATIC ${NAFF_SOURCES})
-  target_include_directories(naff PRIVATE ${CMAKE_SOURCE_DIR}/lib/NAFFlib/include)
-  target_compile_options(naff PRIVATE -DCOMPILE_WITHOUT_FFTW)
+  target_link_libraries(naff crlibm)
+  target_include_directories(naff PRIVATE ${CMAKE_SOURCE_DIR}/lib/NAFFlib/include ${CMAKE_SOURCE_DIR}/source/crlibm)
+  target_compile_options(naff PRIVATE -DCOMPILE_WITHOUT_PYTHON -DCOMPILE_WITH_CRLIBM)
 
   # Enable c99
   set_property(TARGET naff PROPERTY C_STANDARD 99)
