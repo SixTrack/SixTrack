@@ -695,7 +695,10 @@ end interface
       do i=1,nele
         if(kz(i).eq.20) then
           nlin=nlin+1
-          if(nlin.gt.nele) call prror(81)
+          if(nlin.gt.nele) then
+            write(lout,"(a)") "MAINCR> ERROR Too many elements for linear optics write-out"
+            call prror(-1)
+          end if
           bezl(nlin)=bez(i)
         end if
       end do
