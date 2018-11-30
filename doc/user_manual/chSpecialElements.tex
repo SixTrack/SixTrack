@@ -1061,7 +1061,7 @@ Currently, the ideal electron lens is implemented, i.e.
     \textbf{Data lines} & Variable \\
     \textbf{Format}     & \texttt{name type theta\_r2 r2 r1 offset\_x offset\_y (L I E\_k) } \\
     & The last three parameters are optional, but if specified, all of them must be present; they allow to re-compute the angle at \texttt{r2} \texttt{theta\_r2}, taking into account also the beam energy.  \\
-    & Additional paramters specific to the electron distributions (see later) must be specified before the optional ones. \\
+    & Additional parameters specific to the electron distributions (see later) must be specified before the optional ones. \\
 \end{tabular}
 
 \bigskip
@@ -1177,7 +1177,8 @@ For the time being, \texttt{r\_1} cannot be \texttt{0}; hence, the electron lens
   All parameters in the single element definition except the type (type \texttt{29}) are ignored.
 \item The current implementation (ideal e--lenses) has no explicit energy--dependency, except for the user defined parameter \texttt{theta\_r2} (see \cite{sixphys}), in case the user specifies \texttt{L}, \texttt{E\_k} and \texttt{I}. In fact, in this case, \texttt{theta\_r2} is re-calculated after input parsing, taking into account the beam energy.
 \item The implementation is compatible with ion tracking and tracking of species different from the synchronous one.
-\item In case of energy ramping, the kick is kept constant, as done for any other magnetic element in the machine.
+\item In case of energy ramping, the kick stays constant, as if the e-lens was ramped in beam current in synch with the rest of the machine. On the contrary, if the user specifies the three main optional parameters (i.e.~length, kinetic energy of electrons and current), the kick is recomputed at any update of the reference energy. Hence, it is responsibility of the user to define the ramping of the e-lens with beam energy.
+\item The kick given by the e-lens is fully chromatic only if the three main optional parameters (i.e.~length, kinetic energy of electrons and current) are specified by the user. In fact, only in this case, the code knows the value of the normalised relativistic speed $\beta_e$.
 \end{enumerate}
 
 \paragraph{Examples}~\\
