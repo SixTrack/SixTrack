@@ -77,6 +77,7 @@ subroutine part_updateRefEnergy(refEnergy)
   e0     = refEnergy
   e0f    = sqrt(e0**2 - nucm0**2)
   gammar = nucm0/e0
+  betrel = sqrt((one+gammar)*(one-gammar))
 
   ! Also update sigmv with the new beta0 = e0f/e0
   sigmv(1:napx) = ((e0f*e0o)/(e0fo*e0))*sigmv(1:napx)
