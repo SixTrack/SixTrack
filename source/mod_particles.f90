@@ -148,34 +148,60 @@ subroutine part_dumpFinalState
   use parpro
   use mod_common
   use mod_commonmn
+  use mod_settings
 
   implicit none
 
-  character(len=15), parameter :: fileName = "final_state.dat"
-  integer                      :: fileUnit, j
+  character(len=15) :: fileName
+  integer           :: fileUnit, j
 
-  call funit_requestUnit(fileName, fileUnit)
+  select case(st_finalstate)
 
-  open(fileUnit,file=fileName,form="unformatted",access="stream",status="new")
+  case(1) ! Binary file
 
-  write(fileUnit) int(napx, kind=int32)
-  write(fileUnit) int(npart,kind=int32)
+    fileName = "final_state.bin"
+    call funit_requestUnit(fileName, fileUnit)
 
-  do j=1,npart
-    write(fileUnit) logical(llostp(j), kind=int32)
-    write(fileUnit)     int(nlostp(j), kind=int32)
-    write(fileUnit)    real(   xv1(j), kind=real64)
-    write(fileUnit)    real(   xv2(j), kind=real64)
-    write(fileUnit)    real(   yv1(j), kind=real64)
-    write(fileUnit)    real(   yv2(j), kind=real64)
-    write(fileUnit)    real( sigmv(j), kind=real64)
-    write(fileUnit)    real(  dpsv(j), kind=real64)
-    write(fileUnit)    real(  ejfv(j), kind=real64)
-    write(fileUnit)    real(   ejv(j), kind=real64)
-  end do
+    open(fileUnit,file=fileName,form="unformatted",access="stream",status="new")
 
-  flush(fileUnit)
-  close(fileUnit)
+    write(fileUnit) int(napx, kind=int32)
+    write(fileUnit) int(npart,kind=int32)
+
+    do j=1,npart
+      write(fileUnit)     int(nlostp(j), kind=int32)
+      write(fileUnit) logical(llostp(j), kind=int32)
+      write(fileUnit)    real(   xv1(j), kind=real64)
+      write(fileUnit)    real(   xv2(j), kind=real64)
+      write(fileUnit)    real(   yv1(j), kind=real64)
+      write(fileUnit)    real(   yv2(j), kind=real64)
+      write(fileUnit)    real( sigmv(j), kind=real64)
+      write(fileUnit)    real(  dpsv(j), kind=real64)
+      write(fileUnit)    real(  ejfv(j), kind=real64)
+      write(fileUnit)    real(   ejv(j), kind=real64)
+    end do
+
+    flush(fileUnit)
+    close(fileUnit)
+
+  case(2) ! Text file
+
+    fileName = "final_state.dat"
+    call funit_requestUnit(fileName, fileUnit)
+
+    open(fileUnit,file=fileName,form="formatted",status="new")
+
+    write(fileUnit,"(a,i0)") "# napx  : ",napx
+    write(fileUnit,"(a,i0)") "# npart : ",npart
+    write(fileUnit,"(a1,a7,1x,a4,8(1x,a23))") "#","partID","lost","x","y","xp","yp","sigma","dp","p","e"
+
+    do j=1,npart
+      write(fileUnit, "(i8,1x,l4,8(1x,es23.16))") nlostp(j),llostp(j),xv1(j),xv2(j),yv1(j),yv2(j),sigmv(j),dpsv(j),ejfv(j),ejv(j)
+    end do
+
+    flush(fileUnit)
+    close(fileUnit)
+
+  end select
 
 end subroutine part_dumpFinalState
 

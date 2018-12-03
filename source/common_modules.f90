@@ -95,13 +95,12 @@ module mod_settings
 
   implicit none
 
-  ! PRINT Flag (fort.3)
-  logical, save :: st_print   = .false.
-
   ! SETTINGS Block (fort.3)
-  integer, save :: st_quiet   = 0       ! QUIET Level
-  logical, save :: st_debug   = .false. ! Global DEBUG flag
-  logical, save :: st_partsum = .false. ! Flag to print final particle summary
+  logical, save :: st_print      = .false. ! PRINT flag (fort.3)
+  integer, save :: st_quiet      = 0       ! QUIET Level
+  logical, save :: st_debug      = .false. ! Global DEBUG flag
+  logical, save :: st_partsum    = .false. ! Flag to print final particle summary
+  integer, save :: st_finalstate = 0       ! Dump particle final state (mod_particles)
 
 end module mod_settings
 

@@ -333,6 +333,28 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       write(lout,"(a,i0)") "INPUT> Printing of particle summary is DISABLED"
     end if
 
+  case("FINALSTATE")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "INPUT> ERROR FINALSTATE takes one value, got ",nSplit-1
+      iErr = .true.
+      return
+    end if
+    select case(lnSplit(2))
+    case("binary")
+      st_finalstate = 1
+    case("text")
+      st_finalstate = 2
+    case default
+      write(lout,"(a)") "INPUT> ERROR FINALSTATE type myst be either 'binary' or 'text'"
+      iErr = .true.
+      return
+    end select
+    if(st_finalstate == 1) then
+      write(lout,"(a,i0)") "INPUT> Particle final ftate will be dumped as a binary file"
+    else
+      write(lout,"(a,i0)") "INPUT> Particle final ftate will be dumped as a text file"
+    end if
+
   case("QUIET")
     if(nSplit > 1) then
       call chr_cast(lnSplit(2),st_quiet,iErr)
