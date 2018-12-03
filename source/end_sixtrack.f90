@@ -64,19 +64,18 @@ subroutine abend(cstring)
 
   implicit none
 
-  integer i,lstring,j,itot,ttot
-  character(len=*) cstring
-  character(len=256) filename
+  character(len=*), intent(in) :: cstring
+
   real(kind=fPrec) sumda(60)
-  logical fopen, rErr, fErr
+  integer i, lstring, j, itot, ttot, errno, l1, l2, ich, fSize
+  logical fOpen, rErr, fErr, fExists
+  character(len=256) filename
   character(len=8192) ch
   character(len=25) ch1
-  integer errno,l1,l2
-  integer ich
 
   save
 
-  write(93,*) 'SIXTRACR STOP/ABEND called and closing files'
+  write(93,"(a)") "SIXTRACR> STOP/ABEND called and closing files"
   endfile(93,iostat=ierro)
   backspace(93,iostat=ierro)
 
@@ -86,85 +85,63 @@ subroutine abend(cstring)
 
   ! If fort.10 is inexistent (physics error or some other problem)
   ! we try and write a 0d0 file with a turn number and CPU time
-  write(93,"(a)") 'SIXTRACR STOP/ABEND checking fort.10'
+  write(93,"(a)") "SIXTRACR> STOP/ABEND checking fort.10"
   endfile(93,iostat=ierro)
   backspace(93,iostat=ierro)
 
-  call units_openUnit(unit=10,fileName="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
+  call units_openUnit(unit=10,fileName="fort.10",formatted=.true.,mode="r",err=fErr,status="old",recl=8195)
   if(fErr) goto 11
 
   ! Now we try and read fort.10 i.e. is it empty?
-  read(10,'(a1024)',end=11,err=11,iostat=ierro) arecord
+  read(10,"(a1024)",end=11,err=11,iostat=ierro) arecord
   ! Seems to be OK
   goto 12
 
 11 continue
   ! Now we try and write a fort.10
   ! We put some CPU for Igor, a version, and turn number 0
-  write(93,*) 'SIXTRACR STOP/ABEND writing a fort.10'
+  ! call units_openUnit(unit=10,fileName="fort.10",formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
+  write(93,"(a)") "SIXTRACR> STOP/ABEND writing dummy fort.10"
   endfile(93,iostat=ierro)
   backspace(93,iostat=ierro)
 
-  ! The version
-  itot=0
-  ttot=0
-  do i=1,8
-    if (version(i:i).ne.' ') then
-      if (version(i:i).ne.'.') then
-        itot=itot*10+ichar(version(i:i))-ichar('0')
-      else
-        ttot=ttot*10**2+itot
-        itot=0
-      end if
-    end if
-  end do
-  ttot=ttot*10**2+itot
-  do i=1,60
-    sumda(i)=zero
-  end do
-  sumda(52)=real(ttot,fPrec)
-  ! The CPU
+  ! Make sure it is closed properly before we re-open for dummy write
+  inquire(10,opened=fOpen)
+  if(fOpen) close(10)
+  call units_openUnit(unit=10,fileName="fort.10",formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
+
+  sumda(:) = zero
   call time_timerCheck(time1)
-  trtime=time1-time0
+  trtime = time1 - time0
 #ifdef CR
-  trtime=trtime+crtime3
+  trtime = trtime + crtime3
 #endif
-  sumda(60)=real(trtime,fPrec)
+  sumda(60) = real(trtime,fPrec)  ! Track time
+  sumda(52) = real(numvers,fPrec) ! SixTrack version
+
   ! Note it COULD happen that napxo is 0 for a very very early error and even napx!!!
-  if (napxo.eq.0.and.napx.eq.0) napxo=1
-  write(93,*) 'SIXTRACR STOP/ABEND writing fort.10, lines',napxo,'/',napx
+  if(napxo == 0 .and. napx == 0) napxo = 1
+  if(napxo == 0) napxo = napx
+  write(93,"(2(a,i0))") "SIXTRACR> STOP/ABEND writing fort.10, lines ",napxo,"/",napx
   endfile(93,iostat=ierro)
   backspace(93,iostat=ierro)
-  if (napxo.eq.0.and.napx.eq.0) napxo=1
-  if (napxo.eq.0) napxo=napx
   do j=1,napxo
-#ifndef CRLIBM
-    write(ch,*,iostat=ierro) (sumda(i),i=1,60)
-    do ich=8192,1,-1
-      if(ch(ich:ich).ne.' ') goto 707
-    end do
-707 write(10,'(a)',iostat=ierro) ch(:ich)
-#else
-    l1=1
+    l1 = 1
     do i=1,60
-      ! We return the length of the string (always 24)
       call chr_fromReal(sumda(i),ch1,19,2,rErr)
-      ch(l1:l1+25)=' '//ch1(1:25)
+      ch(l1:l1+25)=" "//ch1(1:25)
       l1=l1+26
     end do
-    write(10,'(a)',iostat=ierro) ch(1:l1-1)
-#endif
-    if(ierro.ne.0) then
+    write(10,"(a)",iostat=ierro) ch(1:l1-1)
+    if(ierro /= 0) then
       write(lout,"(a,i0)") "ABEND> ERROR Problems writing to fort.10. ierro = ",ierro
     end if
   end do
 
 12 continue
   close (10,iostat=ierro)
+
 #ifdef CR
-#ifdef DEBUG
-  ! call system('../crend   >> crlog')
-#endif
   close(91,err=4)
 4 continue
   close(94,err=5)
@@ -174,7 +151,7 @@ subroutine abend(cstring)
   close(96,err=7)
 7 continue
   if (lout.eq.92) then
-    write(93,*) 'SIXTRACR STOP/ABEND copying fort.92 to fort.6'
+    write(93,"(a)") "SIXTRACR> STOP/ABEND copying fort.92 to fort.6"
     endfile(93,iostat=ierro)
     backspace(93,iostat=ierro)
     rewind 92
@@ -189,21 +166,20 @@ subroutine abend(cstring)
     goto 3
   end if
 
-1 write(6,"(a)",iostat=ierro) 'SIXTRACR> Stop '//cstring
+1 write(6,"(a)",iostat=ierro) "SIXTRACR> Stop "//cstring
   close(6,iostat=ierro)
   ! and get rid of fort.92
   rewind 92
   endfile(92,iostat=ierro)
   close(92)
-  write(93,*) 'SIXTRACR stop '//cstring
-  write(93,*)
+  write(93,"(a)") "SIXTRACR> Stop "//cstring
 #ifdef DEBUG
   ! call system('../crend   >> crlog')
 #endif
 #ifdef BOINC
   do i=2,120
-    inquire(i,opened=fopen)
-    write(93,*) 'UNIT ',i,' opened ',fopen
+    inquire(i,opened=fOpen)
+    write(93,"(a,i0.a.l1)") "SIXTRACR> Unit ",i,": Opened = ",fOpen
   end do
   ! call boinc_zipitall()
   ! call boinc_finish_graphics()
@@ -221,7 +197,7 @@ subroutine abend(cstring)
     call print_lastlines_to_stderr(93,"fort.93")
     call print_lastlines_to_stderr(6,"fort.6")
 
-    write(error_unit,'(a,i5)') "Stopping, errout_status=",errout_status
+    write(error_unit,"(a,i0)") "ABEND> Stopping, errout_status = ",errout_status
     stop 1
   else
     ! No error
@@ -231,16 +207,13 @@ subroutine abend(cstring)
 
 !!!!!! In case of errors when copying fort.92 (lout) -> fort.6 !!!!!!!!!
 
-8 write(93,*) 'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',ierro
+8 write(93,"(a,i0)") "SIXTRACR> CR ABEND ERROR reading fort.92, iostat = ",ierro
   close(93)
-  write(6,*) 'SIXTRACR CR ABEND *** ERROR *** reading fort.92, iostat=',ierro
-#ifdef DEBUG
-  ! call system('../crend   >> crlog')
-#endif
+  write(6,"(a,i0)") "SIXTRACR> CR ABEND ERROR reading fort.92, iostat = ",ierro
 #ifdef BOINC
   do i=2,120
-    inquire(i,opened=fopen)
-    write(6,*) 'UNIT ',i,' opened ',fopen
+    inquire(i,opened=fOpen)
+    write(6,"(a,i0,a,l1") "ABEND> Unit ",i,": Opened = ",fOpen
   end do
   close(6,err=31)
 31 continue
@@ -260,7 +233,7 @@ subroutine abend(cstring)
     call print_lastlines_to_stderr(93,"fort.93")
     call print_lastlines_to_stderr(6,"fort.6")
 
-    write(error_unit,'(a,i5)') "Stopping, errout_status=",errout_status
+    write(error_unit,"(a,i0)") "Stopping, errout_status = ",errout_status
     stop 1
   else
     ! No error
@@ -268,11 +241,7 @@ subroutine abend(cstring)
   end if
 #endif
 #else
-  ! This one should probably remain as write(*,*) or use output_unit
-  write(*,*) 'SIXTRACK STOP/ABEND '//cstring
-#ifdef DEBUG
-  ! call system('../crend   >> crlog')
-#endif
+  write(output_unit,"(a)") "SIXTRACK STOP/ABEND "//cstring
   ! No fort.6 and 93 if not CR -> don't do print_lastlines_to_stderr()
   if(errout_status.ne.0) then
     write(error_unit,'(a,i5)') "Stopping, errout_status=",errout_status
@@ -321,14 +290,13 @@ subroutine print_lastlines_to_stderr(file_unit, file_name)
   ! Open the file
   inquire(unit=file_unit,opened=lopen)
   if(lopen) then
-    write(error_unit,'(a,1x,i5,1x,a)') "Error when opening unit #",file_unit,": The file is already open."
+    write(error_unit,"(a,1x,i0,1x,a)") "Error when opening unit #",file_unit,": The file is already open."
     return
   end if
 
   open(file_unit,file=file_name,form="formatted",status="old",iostat=ierro)
   if(ierro .ne. 0) then
-    write(error_unit,'(a,a,a,1x,i5,1x,a,1x,i5)') &
-      "Error when opening file '",trim(file_name),"' on unit #", file_unit,", iostat =",ierro
+    write(error_unit,'(a,i0,a,i0)') "Error when opening file '"//trim(file_name)//"' on unit #",file_unit,", iostat = ",ierro
     return
   end if
 
@@ -344,7 +312,7 @@ subroutine print_lastlines_to_stderr(file_unit, file_name)
   goto 1
 
 2 continue ! An error occured
-  write(error_unit,'(a,1x,i5)') "An error occured while reading the file, iostat=",ierro
+  write(error_unit,'(a,i0)') "An error occured while reading the file, iostat = ",ierro
 
 
 3 continue ! EOF or error; anyway we're done.
@@ -357,17 +325,18 @@ subroutine print_lastlines_to_stderr(file_unit, file_name)
   else
     printLines = nlines
   end if
-  write(error_unit,'(a,1x,i5,1x,a,a,a)') "******* Last",printLines,"lines of file '",trim(file_name),"': *******"
+  write(error_unit,"(a,i0,a)") "******* Last ",printLines," lines of file '"//trim(file_name)//"': *******"
 
   i = fileBuff_idx  ! Position in buffer (we have already incremented i)
   j = 0             ! How many have we printed
 
 10 continue
   if(i.gt.nlines) i=1      ! i is wrapping
-    write(error_unit,'(a)') trim(fileBuff(i))
-    i = i+1
-    j = j+1                   ! j just counts
-    if(j.lt.printLines) goto 10
-      write(error_unit,'(a,a,a)') "******* Done writing tail of file '",trim(file_name),"' to stderr *******"
+  write(error_unit,'(a)') trim(fileBuff(i))
+  i = i+1
+  j = j+1                   ! j just counts
+  if(j.lt.printLines) goto 10
+
+  write(error_unit,"(a)") "******* Done writing tail of file '"//trim(file_name)//"' to stderr *******"
 
 end subroutine print_lastlines_to_stderr
