@@ -256,7 +256,7 @@ subroutine meta_crpoint(fileUnit, writeErr, iErro)
   use crcoall
 
   integer, intent(in)    :: fileUnit
-  logical, intent(out)   :: writeErr
+  logical, intent(inout) :: writeErr
   integer, intent(inout) :: iErro
 
   write(fileunit,err=10,iostat=iErro) meta_nRestarts, meta_nPartTurn
