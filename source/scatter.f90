@@ -380,7 +380,7 @@ subroutine scatter_crpoint(fileUnit, writeErr, iErro)
   implicit none
 
   integer, intent(in)    :: fileUnit
-  logical, intent(out)   :: writeErr
+  logical, intent(inout) :: writeErr
   integer, intent(inout) :: iErro
 
   integer j
