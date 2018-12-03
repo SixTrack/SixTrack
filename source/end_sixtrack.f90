@@ -179,7 +179,7 @@ subroutine abend(cstring)
 #ifdef BOINC
   do i=2,120
     inquire(i,opened=fOpen)
-    write(93,"(a,i0.a.l1)") "SIXTRACR> Unit ",i,": Opened = ",fOpen
+    write(93,"(a,i0,a,l1)") "SIXTRACR> Unit ",i,": Opened = ",fOpen
   end do
   ! call boinc_zipitall()
   ! call boinc_finish_graphics()
@@ -213,7 +213,7 @@ subroutine abend(cstring)
 #ifdef BOINC
   do i=2,120
     inquire(i,opened=fOpen)
-    write(6,"(a,i0,a,l1") "ABEND> Unit ",i,": Opened = ",fOpen
+    write(6,"(a,i0,a,l1)") "ABEND> Unit ",i,": Opened = ",fOpen
   end do
   close(6,err=31)
 31 continue
