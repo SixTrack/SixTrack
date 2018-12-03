@@ -405,7 +405,7 @@ subroutine aperture_initRT( ix, aprx, apry, radius )
   ape(3,ix)=radius
   ape(4,ix)=radius
   ape(5,ix)=-one
-  ape(6,ix)=sqrt(ape(3,ix)**2+ape(4,ix)**2)+(ape(1,ix)-ape(3,ix))+(ape(2,ix)-ape(4,ix))
+  ape(6,ix)=(sqrt(ape(3,ix)**2+ape(4,ix)**2)+(ape(1,ix)-ape(3,ix)))+(ape(2,ix)-ape(4,ix))
 end subroutine aperture_initRT
 
 
@@ -877,7 +877,7 @@ subroutine aperture_reportLoss(turn, i, ix)
 
   ! Number of iterations for bisection method (ln(2x/precision)/ln(2)+1)
   if(lback) then
-    niter=nint(inv_ln2*log_mb(two*length/bktpre)+2)
+    niter=nint(inv_ln2*log_mb((two*length)/bktpre)+2)
   end if
 
   do j=1,napx
@@ -1107,7 +1107,7 @@ subroutine aperture_reportLoss(turn, i, ix)
 
      &       xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3,         &
      &       ejfvlos*c1m3, (ejvlos*(nucm0/nucmlos)-e0)*c1e6,                 &
-     &       -c1m3 * (sigmvlos/clight) * (e0/e0f),                           &
+     &       (-one*(c1m3 * (sigmvlos/clight) ))* (e0/e0f),                   &
      &       naalos, nzzlos
 #ifdef HDF5
       end if
@@ -1760,7 +1760,7 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
      mdcum = dcum(iDw)-dcum(iUp)
      if( mdcum.lt.zero ) mdcum=tlen+mdcum
      do jj=1,9
-        oApe(jj)=(ape(jj,ixDw)-ape(jj,ixUp))/mdcum*ddcum+ape(jj,ixUp)
+        oApe(jj)=((ape(jj,ixDw)-ape(jj,ixUp))/mdcum)*ddcum+ape(jj,ixUp)
      end do
   end if
   return
@@ -2169,7 +2169,7 @@ subroutine intersectCR( xRay, yRay, thetaRay, radius, x0, y0, xChk, yChk, nChk )
   else if(abs(thetaRay/pi-one).lt.c1m6) then ! thetaRay=pi
      yChk=zero
      xChk=-radius
-  else if(abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
+  else if(abs(thetaRay/(pi*(three/two))-one).lt.c1m6) then ! thetaRay=1.5pi
      yChk=-radius
      xChk=zero
   else
@@ -2188,13 +2188,13 @@ subroutine intersectCR( xRay, yRay, thetaRay, radius, x0, y0, xChk, yChk, nChk )
         tmpX0=abs(x0)
         tmpY0=-abs(y0)
      end if
-     delta=-(mRay*tmpX0-tmpY0+qRay)**2+radius**2*(one+mRay**2)
+     delta=-((mRay*tmpX0-tmpY0)+qRay)**2+radius**2*(one+mRay**2)
      if(delta.lt.zero) return
      if((zero.lt.thetaRay.and.thetaRay.lt.pi/two) .or. & ! first quadrant
- &       (pi/two*three.lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
-        xChk=(tmpX0+mRay*(tmpY0-qRay)+sqrt(delta))/(one+mRay**2)
+ &       (pi*(three/two).lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
+        xChk=((tmpX0+mRay*(tmpY0-qRay))+sqrt(delta))/(one+mRay**2)
      else
-        xChk=(tmpX0+mRay*(tmpY0-qRay)-sqrt(delta))/(one+mRay**2)
+        xChk=((tmpX0+mRay*(tmpY0-qRay))-sqrt(delta))/(one+mRay**2)
      end if
      yChk=mRay*xChk+qRay
   end if
@@ -2228,7 +2228,7 @@ subroutine intersectRE( xRay, yRay, thetaRay, xRe, yRe, xChk, yChk, nChk )
      yChk=zero
      xChk=-xRe
      nChk=xRe
-  else if(abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
+  else if(abs(thetaRay/(pi*(three/two))-one).lt.c1m6) then ! thetaRay=1.5pi
      yChk=-yRe
      xChk=zero
      nChk=yRe
@@ -2241,7 +2241,7 @@ subroutine intersectRE( xRay, yRay, thetaRay, xRe, yRe, xChk, yChk, nChk )
      else if(pi/two.lt.thetaRay.and.thetaRay.lt.pi) then ! second quadrant
         xTmp(1)=-xRe
         yTmp(2)=yRe
-     else if(pi.lt.thetaRay.and.thetaRay.lt.pi/two*three) then ! third quadrant
+     else if(pi.lt.thetaRay.and.thetaRay.lt.pi*(three/two)) then ! third quadrant
         xTmp(1)=-xRe
         yTmp(2)=-yRe
      else ! fourth quadrant
@@ -2290,7 +2290,7 @@ subroutine intersectEL( xRay, yRay, thetaRay, aa, bb, x0, y0, xChk, yChk, nChk )
      yChk=zero
      xChk=-aa
      nChk=aa
-  else if(abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
+  else if(abs(thetaRay/(pi*(three/two))-one).lt.c1m6) then ! thetaRay=1.5pi
      yChk=-bb
      xChk=zero
      nChk=bb
@@ -2303,7 +2303,7 @@ subroutine intersectEL( xRay, yRay, thetaRay, aa, bb, x0, y0, xChk, yChk, nChk )
      else if(pi/two.lt.thetaRay.and.thetaRay.lt.pi) then ! second quadrant
         tmpX0=-abs(x0)
         tmpY0=abs(y0)
-     else if(pi.lt.thetaRay.and.thetaRay.lt.pi/two*three) then ! second quadrant
+     else if(pi.lt.thetaRay.and.thetaRay.lt.pi*(three/two)) then ! second quadrant
         tmpX0=-abs(x0)
         tmpY0=-abs(y0)
      else ! fourth quadrant
@@ -2313,10 +2313,10 @@ subroutine intersectEL( xRay, yRay, thetaRay, aa, bb, x0, y0, xChk, yChk, nChk )
      delta=-(mRay*tmpX0-tmpY0+qRay)**2+(bb**2+aa**2*mRay**2)
      if(delta.lt.zero) return
      if((zero.lt.thetaRay.and.thetaRay.lt.pi/two).or. & ! first quadrant
- &       (pi/two*three.lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
-        xChk=(aa**2*mRay*(tmpY0-qRay)+bb**2*tmpX0+aa*bb*sqrt(delta))/(bb**2+aa**2*mRay**2)
+ &       (pi*(three/two).lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
+        xChk=((aa**2*(mRay*(tmpY0-qRay))+bb**2*tmpX0)+(aa*bb)*sqrt(delta))/(bb**2+aa**2*mRay**2)
      else
-        xChk=(aa**2*mRay*(tmpY0-qRay)+bb**2*tmpX0-aa*bb*sqrt(delta))/(bb**2+aa**2*mRay**2)
+        xChk=((aa**2*(mRay*(tmpY0-qRay))+bb**2*tmpX0)+(-one*(aa*bb))*sqrt(delta))/(bb**2+aa**2*mRay**2)
      end if
      yChk=mRay*xChk+qRay
      nChk=sqrt(xChk**2+yChk**2)
@@ -2373,7 +2373,7 @@ subroutine intersectLN( xRay, yRay, thetaRay, mLine, qLine, xChk, yChk, nChk )
      yChk=zero
      xChk=qLine/mLine
      nChk=abs(qLine/mLine)
-  else if(abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
+  else if(abs(thetaRay/(pi*(three/two))-one).lt.c1m6) then ! thetaRay=1.5pi
      yChk=-qLine
      xChk=zero
      nChk=abs(qLine)
@@ -2386,7 +2386,7 @@ subroutine intersectLN( xRay, yRay, thetaRay, mLine, qLine, xChk, yChk, nChk )
      else if(pi/two.lt.thetaRay.and.thetaRay.lt.pi) then ! second quadrant
         mTmp=-mLine
         qTmp=qLine
-     else if(pi.lt.thetaRay.and.thetaRay.lt.pi/two*three) then ! third quadrant
+     else if(pi.lt.thetaRay.and.thetaRay.lt.pi*(three/two)) then ! third quadrant
         mTmp=mLine
         qTmp=-qLine
      else ! fourth quadrant
