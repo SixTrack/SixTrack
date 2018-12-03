@@ -183,7 +183,7 @@ subroutine abend(cstring)
   end do
   ! call boinc_zipitall()
   ! call boinc_finish_graphics()
-  if(errout_status.ne.0) then
+  if(errout_status /= 0) then
     close(93)
     call boincrf('fort.93',filename)
     call print_lastlines_to_stderr(93,filename)
@@ -192,7 +192,7 @@ subroutine abend(cstring)
   end if
   call boinc_finish(errout_status) !This call does not return
 #else
-  if(errout_status.ne.0) then
+  if(errout_status /= 0) then
     close(93)
     call print_lastlines_to_stderr(93,"fort.93")
     call print_lastlines_to_stderr(6,"fort.6")
