@@ -345,14 +345,14 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     case("text")
       st_finalstate = 2
     case default
-      write(lout,"(a)") "INPUT> ERROR FINALSTATE type myst be either 'binary' or 'text'"
+      write(lout,"(a)") "INPUT> ERROR FINALSTATE type must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
       iErr = .true.
       return
     end select
     if(st_finalstate == 1) then
-      write(lout,"(a,i0)") "INPUT> Particle final ftate will be dumped as a binary file"
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file"
     else
-      write(lout,"(a,i0)") "INPUT> Particle final ftate will be dumped as a text file"
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file"
     end if
 
   case("QUIET")
