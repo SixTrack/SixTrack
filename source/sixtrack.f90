@@ -56,7 +56,7 @@ subroutine daten
   integer blockLine,blockCount
 
   logical blockOpened,blockClosed,blockReopen,openBlock,closeBlock
-  logical inErr,parseFort2,prevPrint
+  logical inErr,parseFort2
 
   integer icc,il1,ilin0,iMod,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
 
@@ -214,7 +214,6 @@ subroutine daten
 
   ! SIXTRACK INPUT MODULE
   inErr       = .false.
-  prevPrint   = .false.
   sixin_ncy2  = 0
   sixin_icy   = 0
 
@@ -303,7 +302,6 @@ subroutine daten
 
   ! Check for end of block flag
   if(cCheck == "NEXT") then
-    if(prevPrint) goto 110 ! If previous block was PRIN, just cycle. We've already closed it.
     if(currBlock == "NONE") then
       ! Catch orphaned NEXT blocks here.
       write(lout,"(a)") "INPUT> ERROR Unexpected NEXT block encountered. There is no open block to close."
@@ -314,7 +312,6 @@ subroutine daten
       closeBlock = .true.
     end if
   end if
-  prevPrint = .false.
 
   ! Check for end of fort.3 input
   if(cCheck == "ENDE") goto 9000
@@ -354,9 +351,9 @@ subroutine daten
   case("PRIN") ! Enable the PRINT flag
     write(lout,"(a)") "INPUT> Note: The PRINT block is replaced by the PRINT flag in the SETT block."
     write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
-    st_print   = .true.
-    prevPrint  = .true.
-    closeBlock = .true.
+    if(openBlock) then
+      st_print = .true.
+    end if
 
   case("SETT") ! Global Settings Block
     if(openBlock) then
