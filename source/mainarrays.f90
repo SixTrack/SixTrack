@@ -244,9 +244,9 @@ subroutine compactArrays
     naaLast(j:tnapx)   = cshift(naaLast(j:tnapx),   1)
     nzzLast(j:tnapx)   = cshift(nzzLast(j:tnapx),   1)
 
-    tnapx    = tnapx - 1
-    napx_new = napx_new - 1
+    tnapx = tnapx - 1
   end do
+  napx_new = tnapx
 
   ! Collimation
   if(do_coll) then
