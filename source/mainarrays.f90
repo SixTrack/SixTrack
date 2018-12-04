@@ -162,3 +162,148 @@ subroutine expand_thickarrays(nele_request, npart_request, nblz_request, nblo_re
 ! nblz = nblz_new
 
 end subroutine expand_thickarrays
+
+! ================================================================================================ !
+!  Compact Particle Arrays
+!  A. Mereghetti, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-12-04
+!  This routine is called to compact all relevant arrays when a particle is lost
+! ================================================================================================ !
+subroutine compactArrays
+
+  use floatPrecision
+  use mod_hions
+  use mod_common
+  use mod_commont
+  use mod_commonmn
+  use aperture
+  use collimation
+#ifdef FLUKA
+  use mod_fluka
+#endif
+
+  implicit none
+
+  integer j, napx_new, tnapx
+  logical, allocatable :: tmp_lostP(:)
+
+  napx_new = napx
+
+  allocate(tmp_lostP(npart))
+  tmp_lostP(1:npart) = llostp(1:npart)
+
+  tnapx = napx
+  do j=napx,1,-1
+    if(llostp(j) .eqv. .false.) cycle
+
+    ! Move lost particle to the back
+    nlostp(j:tnapx)    = cshift(nlostp(j:tnapx),    1)
+    tmp_lostP(j:tnapx) = cshift(tmp_lostP(j:tnapx), 1)
+
+    ! Main Particle Arrays
+    xv1(j:tnapx)       = cshift(xv1(j:tnapx),       1)
+    xv2(j:tnapx)       = cshift(xv2(j:tnapx),       1)
+    yv1(j:tnapx)       = cshift(yv1(j:tnapx),       1)
+    yv2(j:tnapx)       = cshift(yv2(j:tnapx),       1)
+    dpsv(j:tnapx)      = cshift(dpsv(j:tnapx),      1)
+    sigmv(j:tnapx)     = cshift(sigmv(j:tnapx),     1)
+    ejfv(j:tnapx)      = cshift(ejfv(j:tnapx),      1)
+    ejv(j:tnapx)       = cshift(ejv(j:tnapx),       1)
+    rvv(j:tnapx)       = cshift(rvv(j:tnapx),       1)
+
+    ! Ion Arrays
+    nzz(j:tnapx)       = cshift(nzz(j:tnapx),       1)
+    naa(j:tnapx)       = cshift(naa(j:tnapx),       1)
+    nucm(j:tnapx)      = cshift(nucm(j:tnapx),      1)
+    mtc(j:tnapx)       = cshift(mtc(j:tnapx),       1)
+    dpsv1(j:tnapx)     = cshift(dpsv1(j:tnapx),     1)
+    oidpsv(j:tnapx)    = cshift(oidpsv(j:tnapx),    1)
+    moidpsv(j:tnapx)   = cshift(moidpsv(j:tnapx),   1)
+    omoidpsv(j:tnapx)  = cshift(omoidpsv(j:tnapx),  1)
+
+    ! Beam--Beam
+    di0xs(j:tnapx)     = cshift(di0xs(j:tnapx),     1)
+    dip0xs(j:tnapx)    = cshift(dip0xs(j:tnapx),    1)
+    di0zs(j:tnapx)     = cshift(di0zs(j:tnapx),     1)
+    dip0zs(j:tnapx)    = cshift(dip0zs(j:tnapx),    1)
+    tasau(j:tnapx,:,:) = cshift(tasau(j:tnapx,:,:), 1, 1)
+
+    ! Closed Orbit
+    clo6v(:,j:tnapx)   = cshift(clo6v(:,j:tnapx),   1, 2)
+    clop6v(:,j:tnapx)  = cshift(clop6v(:,j:tnapx),  1, 2)
+
+    ! Backtracking + Aperture
+    plost(j:tnapx)     = cshift(plost(j:tnapx),     1)
+    xLast(:,j:tnapx)   = cshift(xLast(:,j:tnapx),   1, 2)
+    yLast(:,j:tnapx)   = cshift(yLast(:,j:tnapx),   1, 2)
+    ejfvLast(j:tnapx)  = cshift(ejfvLast(j:tnapx),  1)
+    ejvLast(j:tnapx)   = cshift(ejvLast(j:tnapx),   1)
+    nucmLast(j:tnapx)  = cshift(nucmLast(j:tnapx),  1)
+    sigmvLast(j:tnapx) = cshift(sigmvLast(j:tnapx), 1)
+    dpsvLast(j:tnapx)  = cshift(dpsvLast(j:tnapx),  1)
+    naaLast(j:tnapx)   = cshift(naaLast(j:tnapx),   1)
+    nzzLast(j:tnapx)   = cshift(nzzLast(j:tnapx),   1)
+
+    tnapx = tnapx - 1
+  end do
+  napx_new = tnapx
+
+  ! Collimation
+  if(do_coll) then
+    tnapx = napx
+    do j=napx,1,-1
+      if(llostp(j) .eqv. .false.) cycle
+
+      xgrd(j:tnapx)                 = cshift(xgrd(j:tnapx),                 1)
+      ygrd(j:tnapx)                 = cshift(ygrd(j:tnapx),                 1)
+      xpgrd(j:tnapx)                = cshift(xpgrd(j:tnapx),                1)
+      ypgrd(j:tnapx)                = cshift(ypgrd(j:tnapx),                1)
+      pgrd(j:tnapx)                 = cshift(pgrd(j:tnapx),                 1)
+      ejfvgrd(j:tnapx)              = cshift(ejfvgrd(j:tnapx),              1)
+      sigmvgrd(j:tnapx)             = cshift(sigmvgrd(j:tnapx),             1)
+      rvvgrd(j:tnapx)               = cshift(rvvgrd(j:tnapx),               1)
+      dpsvgrd(j:tnapx)              = cshift(dpsvgrd(j:tnapx),              1)
+      oidpsvgrd(j:tnapx)            = cshift(oidpsvgrd(j:tnapx),            1)
+      dpsv1grd(j:tnapx)             = cshift(dpsv1grd(j:tnapx),             1)
+
+      part_hit_pos(j:tnapx)         = cshift(part_hit_pos(j:tnapx),         1)
+      part_hit_turn(j:tnapx)        = cshift(part_hit_turn(j:tnapx),        1)
+      part_abs_pos(j:tnapx)         = cshift(part_abs_pos(j:tnapx),         1)
+      part_abs_turn(j:tnapx)        = cshift(part_abs_turn(j:tnapx),        1)
+      part_select(j:tnapx)          = cshift(part_select(j:tnapx),          1)
+      part_impact(j:tnapx)          = cshift(part_impact(j:tnapx),          1)
+      part_indiv(j:tnapx)           = cshift(part_indiv(j:tnapx),           1)
+      part_linteract(j:tnapx)       = cshift(part_linteract(j:tnapx),       1)
+      part_hit_before_pos(j:tnapx)  = cshift(part_hit_before_pos(j:tnapx),  1)
+      part_hit_before_turn(j:tnapx) = cshift(part_hit_before_turn(j:tnapx), 1)
+
+      secondary(j:tnapx)            = cshift(secondary(j:tnapx),            1)
+      tertiary(j:tnapx)             = cshift(tertiary(j:tnapx),             1)
+      other(j:tnapx)                = cshift(other(j:tnapx),                1)
+      scatterhit(j:tnapx)           = cshift(scatterhit(j:tnapx),           1)
+      nabs_type(j:tnapx)            = cshift(nabs_type(j:tnapx),            1)
+      ipart(j:tnapx)                = cshift(ipart(j:tnapx),                1)
+      flukaname(j:tnapx)            = cshift(flukaname(j:tnapx),            1)
+
+      counted_r(j:tnapx,:)          = cshift(counted_r(j:tnapx,:),          1, 1)
+      counted_x(j:tnapx,:)          = cshift(counted_x(j:tnapx,:),          1, 1)
+      counted_y(j:tnapx,:)          = cshift(counted_y(j:tnapx,:),          1, 1)
+
+      tnapx = tnapx - 1
+    end do
+  end if
+
+#ifdef FLUKA
+  if(fluka_enable) then
+    tnapx = napx
+    do j=napx,1,-1
+      if(llostp(j)) call fluka_lostpart(tnapx, j) ! Inform fluka
+      tnapx = tnapx - 1
+    end do
+  end if
+#endif
+
+  napx = napx_new
+  call move_alloc(tmp_lostP, llostp)
+
+end subroutine compactArrays

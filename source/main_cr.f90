@@ -498,7 +498,7 @@ end interface
   ! Postprocessing is on, but there are no particles
   if(ipos.eq.1.and.napx.eq.0) then
     ! Now we open fort.10 unless already opened for BOINC
-    call units_openUnit(unit=10,fileName="fort.10",formatted=.true.,mode="w",err=fErr,recl=8195)
+    call units_openUnit(unit=10,fileName="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
 
 #ifndef STF
     do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)

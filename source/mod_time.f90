@@ -59,7 +59,7 @@ subroutine time_initialise
   open(time_fileUnit,file=time_fileName,status="replace",form="formatted",iostat=ioStat)
   if(ioStat /= 0) then
     write(lout,"(2(a,i0))") "TIME> ERROR Opening of '"//time_fileName//"' on unit #",time_fileUnit," failed with iostat = ",ioStat
-    call prror(-1)
+    call prror
   end if
 
   write(time_fileUnit,"(a)") "# SixTrack Simulation Time Data"
@@ -67,6 +67,12 @@ subroutine time_initialise
   flush(time_fileUnit)
 
   call time_writeReal("Internal_ZeroTime",time_timeZero,"s")
+  if(time_timeZero > 0.0 .and. time_timeZero < 0.1) then
+    ! There is no guarantee that cpu-time is zero at start, but if it is close to 0.0, we will assume that
+    ! it was actually the exec start time. If that is the case, it should be within a few ms of 0.0.
+    time_timeZero = 0.0
+  end if
+  call time_writeReal("Stamp_AtStart",time_timeZero,"s")
 
   time_timeRecord(:) = 0.0
   time_clockStart(:) = 0.0
