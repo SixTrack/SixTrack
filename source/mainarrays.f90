@@ -184,7 +184,7 @@ subroutine compactArrays
 
   implicit none
 
-  integer j, napx_new
+  integer j, napx_new, tnapx
   logical, allocatable :: tmp_lostP(:)
 
   napx_new = napx
@@ -192,106 +192,113 @@ subroutine compactArrays
   allocate(tmp_lostP(npart))
   tmp_lostP(1:npart) = llostp(1:npart)
 
+  tnapx = napx
   do j=napx,1,-1
     if(llostp(j) .eqv. .false.) cycle
 
     ! Move lost particle to the back
-    nlostp(j:npart)    = cshift(nlostp(j:npart),    1)
-    tmp_lostP(j:npart) = cshift(tmp_lostP(j:npart), 1)
+    nlostp(j:tnapx)    = cshift(nlostp(j:tnapx),    1)
+    tmp_lostP(j:tnapx) = cshift(tmp_lostP(j:tnapx), 1)
 
     ! Main Particle Arrays
-    xv1(j:npart)       = cshift(xv1(j:npart),       1)
-    xv2(j:npart)       = cshift(xv2(j:npart),       1)
-    yv1(j:npart)       = cshift(yv1(j:npart),       1)
-    yv2(j:npart)       = cshift(yv2(j:npart),       1)
-    dpsv(j:npart)      = cshift(dpsv(j:npart),      1)
-    sigmv(j:npart)     = cshift(sigmv(j:npart),     1)
-    ejfv(j:npart)      = cshift(ejfv(j:npart),      1)
-    ejv(j:npart)       = cshift(ejv(j:npart),       1)
-    rvv(j:npart)       = cshift(rvv(j:npart),       1)
+    xv1(j:tnapx)       = cshift(xv1(j:tnapx),       1)
+    xv2(j:tnapx)       = cshift(xv2(j:tnapx),       1)
+    yv1(j:tnapx)       = cshift(yv1(j:tnapx),       1)
+    yv2(j:tnapx)       = cshift(yv2(j:tnapx),       1)
+    dpsv(j:tnapx)      = cshift(dpsv(j:tnapx),      1)
+    sigmv(j:tnapx)     = cshift(sigmv(j:tnapx),     1)
+    ejfv(j:tnapx)      = cshift(ejfv(j:tnapx),      1)
+    ejv(j:tnapx)       = cshift(ejv(j:tnapx),       1)
+    rvv(j:tnapx)       = cshift(rvv(j:tnapx),       1)
 
     ! Ion Arrays
-    nzz(j:npart)       = cshift(nzz(j:npart),       1)
-    naa(j:npart)       = cshift(naa(j:npart),       1)
-    nucm(j:npart)      = cshift(nucm(j:npart),      1)
-    mtc(j:npart)       = cshift(mtc(j:npart),       1)
-    dpsv1(j:npart)     = cshift(dpsv1(j:npart),     1)
-    oidpsv(j:npart)    = cshift(oidpsv(j:npart),    1)
-    moidpsv(j:npart)   = cshift(moidpsv(j:npart),   1)
-    omoidpsv(j:npart)  = cshift(omoidpsv(j:npart),  1)
+    nzz(j:tnapx)       = cshift(nzz(j:tnapx),       1)
+    naa(j:tnapx)       = cshift(naa(j:tnapx),       1)
+    nucm(j:tnapx)      = cshift(nucm(j:tnapx),      1)
+    mtc(j:tnapx)       = cshift(mtc(j:tnapx),       1)
+    dpsv1(j:tnapx)     = cshift(dpsv1(j:tnapx),     1)
+    oidpsv(j:tnapx)    = cshift(oidpsv(j:tnapx),    1)
+    moidpsv(j:tnapx)   = cshift(moidpsv(j:tnapx),   1)
+    omoidpsv(j:tnapx)  = cshift(omoidpsv(j:tnapx),  1)
 
     ! Beam--Beam
-    di0xs(j:npart)     = cshift(di0xs(j:npart),     1)
-    dip0xs(j:npart)    = cshift(dip0xs(j:npart),    1)
-    di0zs(j:npart)     = cshift(di0zs(j:npart),     1)
-    dip0zs(j:npart)    = cshift(dip0zs(j:npart),    1)
-    tasau(j:npart,:,:) = cshift(tasau(j:npart,:,:), 1, 1)
+    di0xs(j:tnapx)     = cshift(di0xs(j:tnapx),     1)
+    dip0xs(j:tnapx)    = cshift(dip0xs(j:tnapx),    1)
+    di0zs(j:tnapx)     = cshift(di0zs(j:tnapx),     1)
+    dip0zs(j:tnapx)    = cshift(dip0zs(j:tnapx),    1)
+    tasau(j:tnapx,:,:) = cshift(tasau(j:tnapx,:,:), 1, 1)
 
     ! Closed Orbit
-    clo6v(:,j:npart)   = cshift(clo6v(:,j:npart),   1, 2)
-    clop6v(:,j:npart)  = cshift(clop6v(:,j:npart),  1, 2)
+    clo6v(:,j:tnapx)   = cshift(clo6v(:,j:tnapx),   1, 2)
+    clop6v(:,j:tnapx)  = cshift(clop6v(:,j:tnapx),  1, 2)
 
     ! Backtracking + Aperture
-    plost(j:npart)     = cshift(plost(j:npart),     1)
-    xLast(:,j:npart)   = cshift(xLast(:,j:npart),   1, 2)
-    yLast(:,j:npart)   = cshift(yLast(:,j:npart),   1, 2)
-    ejfvLast(j:npart)  = cshift(ejfvLast(j:npart),  1)
-    ejvLast(j:npart)   = cshift(ejvLast(j:npart),   1)
-    nucmLast(j:npart)  = cshift(nucmLast(j:npart),  1)
-    sigmvLast(j:npart) = cshift(sigmvLast(j:npart), 1)
-    dpsvLast(j:npart)  = cshift(dpsvLast(j:npart),  1)
-    naaLast(j:npart)   = cshift(naaLast(j:npart),   1)
-    nzzLast(j:npart)   = cshift(nzzLast(j:npart),   1)
+    plost(j:tnapx)     = cshift(plost(j:tnapx),     1)
+    xLast(:,j:tnapx)   = cshift(xLast(:,j:tnapx),   1, 2)
+    yLast(:,j:tnapx)   = cshift(yLast(:,j:tnapx),   1, 2)
+    ejfvLast(j:tnapx)  = cshift(ejfvLast(j:tnapx),  1)
+    ejvLast(j:tnapx)   = cshift(ejvLast(j:tnapx),   1)
+    nucmLast(j:tnapx)  = cshift(nucmLast(j:tnapx),  1)
+    sigmvLast(j:tnapx) = cshift(sigmvLast(j:tnapx), 1)
+    dpsvLast(j:tnapx)  = cshift(dpsvLast(j:tnapx),  1)
+    naaLast(j:tnapx)   = cshift(naaLast(j:tnapx),   1)
+    nzzLast(j:tnapx)   = cshift(nzzLast(j:tnapx),   1)
 
+    tnapx    = tnapx - 1
     napx_new = napx_new - 1
   end do
 
   ! Collimation
   if(do_coll) then
+    tnapx = napx
     do j=napx,1,-1
       if(llostp(j) .eqv. .false.) cycle
 
-      xgrd(j:npart)                 = cshift(xgrd(j:npart),                 1)
-      ygrd(j:npart)                 = cshift(ygrd(j:npart),                 1)
-      xpgrd(j:npart)                = cshift(xpgrd(j:npart),                1)
-      ypgrd(j:npart)                = cshift(ypgrd(j:npart),                1)
-      pgrd(j:npart)                 = cshift(pgrd(j:npart),                 1)
-      ejfvgrd(j:npart)              = cshift(ejfvgrd(j:npart),              1)
-      sigmvgrd(j:npart)             = cshift(sigmvgrd(j:npart),             1)
-      rvvgrd(j:npart)               = cshift(rvvgrd(j:npart),               1)
-      dpsvgrd(j:npart)              = cshift(dpsvgrd(j:npart),              1)
-      oidpsvgrd(j:npart)            = cshift(oidpsvgrd(j:npart),            1)
-      dpsv1grd(j:npart)             = cshift(dpsv1grd(j:npart),             1)
+      xgrd(j:tnapx)                 = cshift(xgrd(j:tnapx),                 1)
+      ygrd(j:tnapx)                 = cshift(ygrd(j:tnapx),                 1)
+      xpgrd(j:tnapx)                = cshift(xpgrd(j:tnapx),                1)
+      ypgrd(j:tnapx)                = cshift(ypgrd(j:tnapx),                1)
+      pgrd(j:tnapx)                 = cshift(pgrd(j:tnapx),                 1)
+      ejfvgrd(j:tnapx)              = cshift(ejfvgrd(j:tnapx),              1)
+      sigmvgrd(j:tnapx)             = cshift(sigmvgrd(j:tnapx),             1)
+      rvvgrd(j:tnapx)               = cshift(rvvgrd(j:tnapx),               1)
+      dpsvgrd(j:tnapx)              = cshift(dpsvgrd(j:tnapx),              1)
+      oidpsvgrd(j:tnapx)            = cshift(oidpsvgrd(j:tnapx),            1)
+      dpsv1grd(j:tnapx)             = cshift(dpsv1grd(j:tnapx),             1)
 
-      part_hit_pos(j:npart)         = cshift(part_hit_pos(j:npart),         1)
-      part_hit_turn(j:npart)        = cshift(part_hit_turn(j:npart),        1)
-      part_abs_pos(j:npart)         = cshift(part_abs_pos(j:npart),         1)
-      part_abs_turn(j:npart)        = cshift(part_abs_turn(j:npart),        1)
-      part_select(j:npart)          = cshift(part_select(j:npart),          1)
-      part_impact(j:npart)          = cshift(part_impact(j:npart),          1)
-      part_indiv(j:npart)           = cshift(part_indiv(j:npart),           1)
-      part_linteract(j:npart)       = cshift(part_linteract(j:npart),       1)
-      part_hit_before_pos(j:npart)  = cshift(part_hit_before_pos(j:npart),  1)
-      part_hit_before_turn(j:npart) = cshift(part_hit_before_turn(j:npart), 1)
+      part_hit_pos(j:tnapx)         = cshift(part_hit_pos(j:tnapx),         1)
+      part_hit_turn(j:tnapx)        = cshift(part_hit_turn(j:tnapx),        1)
+      part_abs_pos(j:tnapx)         = cshift(part_abs_pos(j:tnapx),         1)
+      part_abs_turn(j:tnapx)        = cshift(part_abs_turn(j:tnapx),        1)
+      part_select(j:tnapx)          = cshift(part_select(j:tnapx),          1)
+      part_impact(j:tnapx)          = cshift(part_impact(j:tnapx),          1)
+      part_indiv(j:tnapx)           = cshift(part_indiv(j:tnapx),           1)
+      part_linteract(j:tnapx)       = cshift(part_linteract(j:tnapx),       1)
+      part_hit_before_pos(j:tnapx)  = cshift(part_hit_before_pos(j:tnapx),  1)
+      part_hit_before_turn(j:tnapx) = cshift(part_hit_before_turn(j:tnapx), 1)
 
-      secondary(j:npart)            = cshift(secondary(j:npart),            1)
-      tertiary(j:npart)             = cshift(tertiary(j:npart),             1)
-      other(j:npart)                = cshift(other(j:npart),                1)
-      scatterhit(j:npart)           = cshift(scatterhit(j:npart),           1)
-      nabs_type(j:npart)            = cshift(nabs_type(j:npart),            1)
-      ipart(j:npart)                = cshift(ipart(j:npart),                1)
-      flukaname(j:npart)            = cshift(flukaname(j:npart),            1)
+      secondary(j:tnapx)            = cshift(secondary(j:tnapx),            1)
+      tertiary(j:tnapx)             = cshift(tertiary(j:tnapx),             1)
+      other(j:tnapx)                = cshift(other(j:tnapx),                1)
+      scatterhit(j:tnapx)           = cshift(scatterhit(j:tnapx),           1)
+      nabs_type(j:tnapx)            = cshift(nabs_type(j:tnapx),            1)
+      ipart(j:tnapx)                = cshift(ipart(j:tnapx),                1)
+      flukaname(j:tnapx)            = cshift(flukaname(j:tnapx),            1)
 
-      counted_r(j:npart,:)          = cshift(counted_r(j:npart,:),          1, 1)
-      counted_x(j:npart,:)          = cshift(counted_x(j:npart,:),          1, 1)
-      counted_y(j:npart,:)          = cshift(counted_y(j:npart,:),          1, 1)
+      counted_r(j:tnapx,:)          = cshift(counted_r(j:tnapx,:),          1, 1)
+      counted_x(j:tnapx,:)          = cshift(counted_x(j:tnapx,:),          1, 1)
+      counted_y(j:tnapx,:)          = cshift(counted_y(j:tnapx,:),          1, 1)
+
+      tnapx = tnapx - 1
     end do
   end if
 
 #ifdef FLUKA
   if(fluka_enable) then
+    tnapx = napx
     do j=napx,1,-1
-      if(llostp(j)) call fluka_lostpart(napx, j) ! Inform fluka
+      if(llostp(j)) call fluka_lostpart(tnapx, j) ! Inform fluka
+      tnapx = tnapx - 1
     end do
   end if
 #endif
