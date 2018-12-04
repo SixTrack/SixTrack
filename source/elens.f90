@@ -370,7 +370,8 @@ subroutine elens_postInput
    do j=1,melens_cheby_tables
     inquire(file=elens_cheby_filename(j), exist=exist)
     if(.not. exist) then
-      write(lout,"(a)") "ELENS> ERROR Problems with file with coefficients for Chebyshev polynominals: ",trim(elens_cheby_filename(j))
+      write(lout,"(a)") "ELENS> ERROR Problems with file with coefficients for Chebyshev polynominals: ", &
+            trim(elens_cheby_filename(j))
       call prror(-1)
     end if
     call parseChebyFile(j)
@@ -417,6 +418,7 @@ subroutine eLensThetas()
 
   use crcoall
   use mod_common, only : bez,kz
+  use mod_settings, only : st_quiet
 
   implicit none
 
