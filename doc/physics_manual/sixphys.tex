@@ -984,8 +984,8 @@ force. These devices can be used for compensating beam--beam effects or for
 enhancing the beam diffusion speed for collimation purposes~\cite{Shiltsev:2112966}.
 
 The implementation in SixTrack does not start from the Hamiltonian but from the
-integration of the Lorentz force along the length of the e--lens in idealised
-conditions. The e--lens \emph{must be a thin lens};
+integration of the Lorentz force along the length of the e-lens in idealised
+conditions. The e-lens \emph{must be a thin lens};
 the derivation of the kick assumes electrons moving along straight paths,
 parallel to the beam, for an indefinite length, and an axis--symmetric
 transverse distribution (cylindrical symmetry). Hence,
@@ -994,7 +994,7 @@ the derivation of the kicks and the implemented tracking is developed in cylindr
   r=\sqrt{x^2+y^2}
 \end{equation}
 is the radial coordinate used to compute the kick. Moreover,
-the implementation of the hollow e--lens has no explicit dependence on the
+the implementation of the hollow e-lens has no explicit dependence on the
 beam energy, taken into account only in the form of the input parameter
 $\theta_{\rm max}$ provided by the user. Moreover, a change of the particle
 energy could occur if the particle enters with an initial $x'$ or
@@ -1019,7 +1019,7 @@ $\theta_{\rm R_2}$ reads like
 \theta_{\rm R_2} = \frac{LI_T(1\pm\beta_e\beta_b)}{2\pi\epsilon_0  \left(B\rho\right)_b\beta_e\beta_b c^2}\cdot\frac{1}{R_2}
 \label{elense:eqn:6}
 \end{equation}
-where $L$ is the length of the e--lens, $I_T$ the total electron beam current, $\beta_{e}$ and $\beta_{b}$ the relativistic $\beta$ of electron and tracked beam, $(B\rho)|_b$ the magnetic rigidity of the beam (synchronous particle), $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The $\pm$-sign represents the two cases of the electron beam travelling in the direction of the tracked beam ($v_e v_b>0$) leading to ``$-$" or in the opposite direction ($v_e v_b<0$) leading to ``$+$". For hollow electron beam collimation, electron and tracked beam travel in opposite directions. It should be noted that $\theta_{\rm R_2}$ depends on the magnetic rigidity $(B\rho)_b$ of the tracked beam and on its relativistic normalised speed $\beta_b$, and thus on the beam momentum and speed; hence, during tracking of non--monochromatic beams, the actual magnetic rigidity of each beam particle, its charge--to--mass ratio and its speed are taken into account when computing the kick to be imparted.
+where $L$ is the length of the e-lens, $I_T$ the total electron beam current, $\beta_{e}$ and $\beta_{b}$ the relativistic $\beta$ of electron and tracked beam, $(B\rho)|_b$ the magnetic rigidity of the beam (synchronous particle), $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The $\pm$-sign represents the two cases of the electron beam travelling in the direction of the tracked beam ($v_e v_b>0$) leading to ``$-$" or in the opposite direction ($v_e v_b<0$) leading to ``$+$". For hollow electron beam collimation, electron and tracked beam travel in opposite directions. It should be noted that $\theta_{\rm R_2}$ depends on the magnetic rigidity $(B\rho)_b$ of the tracked beam and on its relativistic normalised speed $\beta_b$, and thus on the beam momentum and speed; hence, during tracking of non--monochromatic beams, the actual magnetic rigidity of each beam particle, its charge--to--mass ratio and its speed are taken into account when computing the kick to be imparted.
 
 $f(r)$ reads like
 \begin{equation}
@@ -1043,7 +1043,7 @@ f(r) =
 where the mathematical expression of $\tilde f(r)$ depends on the transverse
 distribution to be simulated.
 
-The change in $(x',y')$ due to the e--lens kick can then be expressed as
+The change in $(x',y')$ due to the e-lens kick can then be expressed as
 \begin{align}
 x'&=x'-\frac{x}{r}\;\frac{f(r)}{r/R_2}\;\theta_{\rm R_2}\frac{\chi}{1+\delta}\frac{\beta_b/\beta\pm\beta_b\beta_e}{1\pm\beta_b\beta_e}\label{elense:eqn:2}\\
 y'&=y'-\frac{y}{r}\;\frac{f(r)}{r/R_2}\;\theta_{\rm R_2}\frac{\chi}{1+\delta}\frac{\beta_b/\beta\pm\beta_b\beta_e}{1\pm\beta_b\beta_e}\label{elense:eqn:3}
@@ -1065,7 +1065,7 @@ The latter comes from the definition of $\theta_{\rm R_2}$ in Eq.~\ref{elense:eq
 and takes into account the fact that each tracked particle may have a value of
 the relativistic $\beta$ different from that of the reference particle $\beta_b$;
 to do so, the relativistic normalised speed of electrons is also necessary,
-i.e.~$\beta_e$. Hence, the current implementation of e--lenses is fully compatible
+i.e.~$\beta_e$. Hence, the current implementation of e-lenses is fully compatible
 with ion tracking \emph{only if} the three optional parameters (i.e.~e-lens length,
 electron current and kinetic energy) are provided by the user.
 
