@@ -753,902 +753,585 @@ subroutine crcheck
 
 end subroutine crcheck
 
+! ================================================================================================ !
+!  This subroutine writes the checkpoint data to fort.95/96, and copies the new output from the
+!  temporary (lout/fort.92) output file into fort.6.
+!  The file fort.93 is used as a log file for the checkpoint/restarting.
+! ================================================================================================ !
 subroutine crpoint
-!     This subroutine writes the checkpoint data to fort.95/96,
-!     and copies the new output from the temporary (lout/fort.92) output file into fort.6.
-!
-!     The file fort.93 is used as a log file for the checkpoint/restarting.
-!
-!     See also subroutine crcheck and crstart.
-      use floatPrecision
-      use numerical_constants
 
-      use dynk, only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_filePos,dynk_crpoint
+  use floatPrecision
+  use numerical_constants
 
-      use dump, only : dump_crpoint
+  use dynk, only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_filePos,dynk_crpoint
+  use dump, only : dump_crpoint
+  use scatter, only : scatter_active, scatter_crpoint
 
-      use scatter, only : scatter_active, scatter_crpoint
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
+  use mod_commont
+  use mod_commond
+  use mod_hions
+  use mod_version
+  use mod_time
+  use mod_meta
+  use mod_units
 
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_commonmn
-      use mod_commons
-      use mod_commont
-      use mod_commond
-      use mod_hions
-      use mod_version
-      use mod_time
-      use mod_meta
+  implicit none
 
-      implicit none
-
-      integer i,j,l,k,m
-      integer lstring,osixrecs,ncalls
-      logical lerror
+  integer i,j,l,k,m,lstring,osixrecs,ncalls,maxncalls,crUnit
+  logical lerror, fErr
 #ifdef BOINC
-      character(len=256) filename
+  character(len=256) filename
 #endif
-      data ncalls /0/
-      save
-!     call system('echo "CPSTART `date`" >> crtimes')
-#ifndef DEBUG
-      if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-        write(93,*)                                                     &
-      &'SIXTRACR CRPOINT CALLED numlmax=',numlmax,' numlcp=',numlcp
-        write(93,*)                                                     &
-      &'SIXTRACR CRPOINT CALLED lout=',lout,' numx=',numx,'numl',numl
-        write(93,*)                                                     &
-      &'SIXTRACR CRPOINT CALLED binrec/sixrec ',binrec,sixrecs
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
-#ifndef DEBUG
-      endif
-#endif
-      ncalls=ncalls+1
-      if (restart) then
-        restart=.false.
-        return
-      endif
-!--   We need to copy fort.92 (lout) to fort.6 (sixrecs)
-!--   (if it exists and we are not already using fort.6)
+  save
+
+  ncalls = 0
 #ifdef DEBUG
-                    !call system('../crpoint >> crlog')
+  maxncalls = 2000
+#else
+  maxncalls = 20
 #endif
-      osixrecs=sixrecs
-      rewind lout
-    3 read(lout,'(a1024)',end=1,err=101,iostat=ierro) arecord
-      lstring=1024
-      do i=1024,2,-1
-        lstring=i
-        if (arecord(i:i).ne.' ') goto 2
-        lstring=lstring-1
-      enddo
-    2 write(6,'(a)',err=102,iostat=ierro) arecord(1:lstring)
-      sixrecs=sixrecs+1
-      goto 3
-    1 if (sixrecs.ne.osixrecs) then
-        endfile (6,iostat=ierro)
-        backspace (6,iostat=ierro)
-        rewind lout
-        endfile (lout,iostat=ierro)
-        close(lout)
-#ifdef DEBUG
-                    !call system('../crpoint >> crlog')
-#endif
-#ifdef BOINC
-        call boincrf('fort.92',filename)
-        open(lout,file=filename,form='formatted',status='unknown')
-#endif
-#ifndef BOINC
-        open(lout,file='fort.92',form='formatted',status='unknown')
-#endif
-#ifndef DEBUG
-        if (ncalls.le.5.or.numx.ge.numl) then
-#endif
-          write(93,*)                                                   &
-      &'SIXTRACR CRPOINT copied lout=',lout,'sixrecs=',sixrecs
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-#ifndef DEBUG
-        endif
-#endif
-      else
-        rewind lout
-      endif
-      call time_timerCheck(time3)
-! Hope this is correct
-! Maybe not!!!! this should be accumulative over multiple C/Rs
-      time3=(time3-time1)+crtime3
-      crnumlcr=numx+1
 
-      if (dynk_enabled) then ! Store current settings of elements affected by DYNK
-#ifndef DEBUG
-          if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-            write(93,*) 'SIXTRACR CRPOINT filling dynk_fSets_cr'
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-#ifndef DEBUG
-          endif
-#endif
-          do j=1,dynk_nSets_unique
-            dynk_fSets_cr(j) =                                          &
-      &           dynk_getvalue(dynk_cSets_unique(j,1),                  &
-      &                         dynk_cSets_unique(j,2))
-          end do
+  if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
+    write(93,"(2(a,i0))") "SIXTRACR> CRPOINT CALLED numlmax = ",numlmax,", numlcp = ",numlcp
+    write(93,"(3(a,i0))") "SIXTRACR> CRPOINT CALLED lout = ",lout,", numx = ",numx,", numl = ",numl
+    write(93,"(2(a,i0))") "SIXTRACR> CRPOINT CALLED binrec = ",binrec,", sixrec = ",sixrecs
+    endfile(93,iostat=ierro)
+    backspace(93,iostat=ierro)
+  end if
+  ncalls=ncalls+1
+  if(restart) then
+    restart=.false.
+    return
+  end if
 
-!c$$$         write (93,*) "Contents: (dynk_nSets_unique=",
-!c$$$     &        dynk_nSets_unique,")"
-!c$$$         do j=1,dynk_nSets_unique
-!c$$$            write(93,*) dynk_cSets_unique(j,1),dynk_cSets_unique(j,2),
-!c$$$     &                  dynk_fSets_cr(j)
-!c$$$         enddo
-!c$$$         write(93,*) "DONE"
-!c$$$         endfile (93,iostat=ierro)
-!c$$$         backspace (93,iostat=ierro)
-      end if
+  ! We need to copy fort.92 (lout) to fort.6 (sixrecs) (if it exists and we are not already using fort.6)
+  osixrecs=sixrecs
+  rewind lout
+3 read(lout,'(a1024)',end=1,err=101,iostat=ierro) arecord
+  lstring=1024
+  do i=1024,2,-1
+    lstring=i
+    if (arecord(i:i) /= ' ') goto 2
+    lstring=lstring-1
+  end do
+2 write(6,'(a)',err=102,iostat=ierro) arecord(1:lstring)
+  sixrecs=sixrecs+1
+  goto 3
+1 if(sixrecs /= osixrecs) then
+    endfile (6,iostat=ierro)
+    backspace (6,iostat=ierro)
+    rewind lout
+    endfile(lout,iostat=ierro)
+    close(lout)
+    call units_openUnit(unit=92,fileName="fort.92",formatted=.true.,mode="rw",err=fErr)
+#ifndef DEBUG
+    if(ncalls <= 5 .or. numx >= numl) then
+#endif
+      write(93,"(2(a,i0))") "SIXTRACR> CRPOINT copied lout = ",lout,", sixrecs = ",sixrecs
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+#ifndef DEBUG
+    end if
+#endif
+  else
+    rewind lout
+  end if
+  call time_timerCheck(time3)
+  ! Hope this is correct
+  ! Maybe not!!!! this should be accumulative over multiple C/Rs
+  time3=(time3-time1)+crtime3
+  crnumlcr=numx+1
 
-#ifndef DEBUG
-      if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-        write(93,*) 'SIXTRACR CRPOINT writing fort.95'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
-#ifndef DEBUG
-      endif
-#endif
-      rewind 95
-      write(95,err=100,iostat=ierro)                                    &
-      &     version, moddate
-      write(95,err=100,iostat=ierro)                                    &
-      &crnumlcr,                                                         &
-      &numl,                                                             &
-      &sixrecs,                                                          &
-      &binrec,                                                           &
-      &bnlrec,                                                           &
-      &bllrec,                                                           &
-      &sythckcr,                                                         &
-      &il,                                                               &
-      &time3,                                                            &
-      &napxo,                                                            &
-      &napx,                                                             &
-      &e0
-      write(95,err=100,iostat=ierro)                                    &
-      &(binrecs(j),j=1,(napxo+1)/2),                                     &
-      &(numxv(j),j=1,napxo),                                             &
-      &(nnumxv(j),j=1,napxo),                                            &
-      &(nlostp(j),j=1,napxo),                                            &
-      &(pstop(j),j=1,napxo),                                             &
-      &(xv1(j),j=1,napxo),                                              &
-      &(yv1(j),j=1,napxo),                                              &
-      &(xv2(j),j=1,napxo),                                              &
-      &(yv2(j),j=1,napxo),                                              &
-      &(sigmv(j),j=1,napxo),                                             &
-      &(dpsv(j),j=1,napxo),                                              &
-      &(dpsv1(j),j=1,napxo),                                             &
-      &(ejv(j),j=1,napxo),                                               &
-      &(ejfv(j),j=1,napxo),                                              &
-      &(aperv(j,1),j=1,napxo),                                           &
-      &(aperv(j,2),j=1,napxo),                                           &
-      &(xvl(1,j),j=1,napxo),                                             &
-      &(xvl(2,j),j=1,napxo),                                             &
-      &(yvl(1,j),j=1,napxo),                                             &
-      &(yvl(2,j),j=1,napxo),                                             &
-      &(dpsvl(j),j=1,napxo),                                             &
-      &(ejvl(j),j=1,napxo),                                              &
-      &(sigmvl(j),j=1,napxo)
-      endfile (95,iostat=ierro)
-      backspace (95,iostat=ierro)
+  if(dynk_enabled) then ! Store current settings of elements affected by DYNK
+    if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
+      write(93,"(a)") "SIXTRACR> CRPOINT filling dynk_fSets_cr"
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+    end if
+    do j=1,dynk_nSets_unique
+      dynk_fSets_cr(j) = dynk_getvalue(dynk_cSets_unique(j,1),dynk_cSets_unique(j,2))
+    end do
+  end if
 
-      if(ncalls <= 20 .or. numx >= numl-20) then
-        write(93,"(a)") "SIXTRACR> CRPOINT Writing META variables to fort.95"
-        endfile(93,iostat=ierro)
-        backspace(93,iostat=ierro)
-      endif
-      call meta_crpoint(95,lerror,ierro)
-      if(lerror) goto 100
+  ! ********************
+  !  Write the CR files
+  ! ********************
 
-#ifndef DEBUG
-      if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-          write(93,*) 'SIXTRACR CRPOINT writing DUMP vars fort.95'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-#ifndef DEBUG
-      endif
-#endif
-      call dump_crpoint(95, lerror,ierro)
-      if (lerror) then
-          goto 100
-      endif
+  do crUnit=95,96
 
-#ifndef DEBUG
-      if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-        write(93,*) 'SIXTRACR CRPOINT writing HION vars fort.95'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
-#ifndef DEBUG
-      end if
-#endif
-      call hions_crpoint(95,lerror,ierro)
-      if (lerror) then
-        goto 100
-      end if
+    lerror = .false.
+    if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
+      write(93,"(a,i0)") "SIXTRACR> CRPOINT writing fort.",crUnit
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+    end if
+    rewind crUnit
 
-      if (dynk_enabled) then
-#ifndef DEBUG
-        if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-          write(93,*) 'SIXTRACR CRPOINT writing DYNK vars fort.95'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-#ifndef DEBUG
-        endif
-#endif
-        call dynk_crpoint(95,lerror,ierro)
-        if (lerror) goto 100
-      endif
+    write(crUnit,err=100,iostat=ierro) version, moddate
+    write(crUnit,err=100,iostat=ierro) &
+      crnumlcr,                     &
+      numl,                         &
+      sixrecs,                      &
+      binrec,                       &
+      bnlrec,                       &
+      bllrec,                       &
+      sythckcr,                     &
+      il,                           &
+      time3,                        &
+      napxo,                        &
+      napx,                         &
+      e0
+    write(crUnit,err=100,iostat=ierro) &
+      (binrecs(j),j=1,(napxo+1)/2), &
+      (numxv(j),j=1,napxo),         &
+      (nnumxv(j),j=1,napxo),        &
+      (nlostp(j),j=1,napxo),        &
+      (pstop(j),j=1,napxo),         &
+      (xv1(j),j=1,napxo),           &
+      (yv1(j),j=1,napxo),           &
+      (xv2(j),j=1,napxo),           &
+      (yv2(j),j=1,napxo),           &
+      (sigmv(j),j=1,napxo),         &
+      (dpsv(j),j=1,napxo),          &
+      (dpsv1(j),j=1,napxo),         &
+      (ejv(j),j=1,napxo),           &
+      (ejfv(j),j=1,napxo),          &
+      (aperv(j,1),j=1,napxo),       &
+      (aperv(j,2),j=1,napxo),       &
+      (xvl(1,j),j=1,napxo),         &
+      (xvl(2,j),j=1,napxo),         &
+      (yvl(1,j),j=1,napxo),         &
+      (yvl(2,j),j=1,napxo),         &
+      (dpsvl(j),j=1,napxo),         &
+      (ejvl(j),j=1,napxo),          &
+      (sigmvl(j),j=1,napxo)
+    endfile(crUnit,iostat=ierro)
+    backspace(crUnit,iostat=ierro)
 
-      if (scatter_active) then
-#ifndef DEBUG
-          if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-            write(93,*) 'SIXTRACR CRPOINT writing SCATTER vars fort.95'
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-#ifndef DEBUG
-          endif
-#endif
-          call scatter_crpoint(95,lerror,ierro)
-          if (lerror) goto 100
-      endif
+    if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
+      write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing META variables to fort.",crUnit
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+    end if
+    call meta_crpoint(crUnit,lerror,ierro)
+    if(lerror) goto 100
 
-      if (sythckcr) then
-#ifndef DEBUG
-        if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-!ERIC new extended checkpoint for synuthck
-          write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars fort.95'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-#ifndef DEBUG
-        endif
-#endif
-        if(ithick.eq.1) then
-#ifndef DEBUG
-          if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-            write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//      &
-      & ' for THICK to fort.95'
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-#ifndef DEBUG
-          endif
-#endif
-          write(95,err=100,iostat=ierro)                                &
-      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-          endfile (95,iostat=ierro)
-          backspace (95,iostat=ierro)
-        endif
+    if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
+      write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing DUMP variables to fort.",crUnit
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+    end if
+    call dump_crpoint(crUnit, lerror,ierro)
+    if(lerror) goto 100
 
-        write(95,err=100,iostat=ierro)                                  &
-      &(aek(j),j=1,napxo),                                               &
-      &(afok(j),j=1,napxo),                                              &
-      &(as3(j),j=1,napxo),                                               &
-      &(as4(j),j=1,napxo),                                               &
-      &(as6(j),j=1,napxo),                                               &
-      &(co(j),j=1,napxo),                                                &
-      &(dpd(j),j=1,napxo),                                               &
-      &(dpsq(j),j=1,napxo),                                              &
-      &(fi(j),j=1,napxo),                                                &
-      &(fok(j),j=1,napxo),                                               &
-      &(fok1(j),j=1,napxo),                                              &
-      &(fokqv(j),j=1,napxo),                                             &
-      &(g(j),j=1,napxo),                                                 &
-      &(gl(j),j=1,napxo),                                                &
-      &(hc(j),j=1,napxo),                                                &
-      &(hi(j),j=1,napxo),                                                &
-      &(hi1(j),j=1,napxo),                                               &
-      &(hm(j),j=1,napxo),                                                &
-      &(hp(j),j=1,napxo),                                                &
-      &(hs(j),j=1,napxo),                                                &
-      &(rho(j),j=1,napxo),                                               &
-      &(rhoc(j),j=1,napxo),                                              &
-      &(rhoi(j),j=1,napxo),                                              &
-      &(si(j),j=1,napxo),                                                &
-      &(siq(j),j=1,napxo),                                               &
-      &(sm1(j),j=1,napxo),                                               &
-      &(sm12(j),j=1,napxo),                                              &
-      &(sm2(j),j=1,napxo),                                               &
-      &(sm23(j),j=1,napxo),                                              &
-      &(sm3(j),j=1,napxo),                                               &
-      &(wf(j),j=1,napxo),                                                &
-      &(wfa(j),j=1,napxo),                                               &
-      &(wfhi(j),j=1,napxo)
+    if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
+      write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing HION variables to fort.",crUnit
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+    end if
+    call hions_crpoint(crUnit,lerror,ierro)
+    if(lerror) goto 100
 
-        endfile (95,iostat=ierro)
-        backspace (95,iostat=ierro)
-      endif
-
-!--   and finally a second checkpoint copy, or maybe not!
-!--   Well, a second copy is indeed required as shown by testing
-#ifndef DEBUG
-      if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-        write(93,*) 'SIXTRACR CRPOINT writing fort.96'
-        endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
-#ifndef DEBUG
-      endif
-#endif
-      rewind 96
-      write(96,err=100,iostat=ierro)                                    &
-      &     version, moddate
-      write(96,err=100,iostat=ierro)                                    &
-      &crnumlcr,                                                         &
-      &numl,                                                             &
-      &sixrecs,                                                          &
-      &binrec,                                                           &
-      &bnlrec,                                                           &
-      &bllrec,                                                           &
-      &sythckcr,                                                         &
-      &il,                                                               &
-      &time3,                                                            &
-      &napxo,                                                            &
-      &napx,                                                             &
-      &e0
-      write(96,err=100,iostat=ierro)                                    &
-      &(binrecs(j),j=1,(napxo+1)/2),                                     &
-      &(numxv(j),j=1,napxo),                                             &
-      &(nnumxv(j),j=1,napxo),                                            &
-      &(nlostp(j),j=1,napxo),                                            &
-      &(pstop(j),j=1,napxo),                                             &
-      &(xv1(j),j=1,napxo),                                              &
-      &(yv1(j),j=1,napxo),                                              &
-      &(xv2(j),j=1,napxo),                                              &
-      &(yv2(j),j=1,napxo),                                              &
-      &(sigmv(j),j=1,napxo),                                             &
-      &(dpsv(j),j=1,napxo),                                              &
-      &(dpsv1(j),j=1,napxo),                                             &
-      &(ejv(j),j=1,napxo),                                               &
-      &(ejfv(j),j=1,napxo),                                              &
-      &(aperv(j,1),j=1,napxo),                                           &
-      &(aperv(j,2),j=1,napxo),                                           &
-      &(xvl(1,j),j=1,napxo),                                             &
-      &(xvl(2,j),j=1,napxo),                                             &
-      &(yvl(1,j),j=1,napxo),                                             &
-      &(yvl(2,j),j=1,napxo),                                             &
-      &(dpsvl(j),j=1,napxo),                                             &
-      &(ejvl(j),j=1,napxo),                                              &
-      &(sigmvl(j),j=1,napxo)
-      endfile (96,iostat=ierro)
-      backspace (96,iostat=ierro)
-
-      if(ncalls <= 20 .or. numx >= numl-20) then
-        write(93,"(a)") "SIXTRACR> CRPOINT Writing META variables to fort.96"
+    if(dynk_enabled) then
+      if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
+        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing DYNK variables to fort.",crUnit
         endfile(93,iostat=ierro)
         backspace(93,iostat=ierro)
       end if
-      call meta_crpoint(96,lerror,ierro)
+      call dynk_crpoint(crUnit,lerror,ierro)
       if(lerror) goto 100
+    end if
 
-#ifndef DEBUG
-      if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-          write(93,*) 'SIXTRACR CRPOINT writing DUMP vars fort.96'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-#ifndef DEBUG
-      endif
-#endif
-      call dump_crpoint(95, lerror,ierro)
-      if (lerror) then
-          goto 100
-      endif
+    if(scatter_active) then
+      if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
+        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing SCATTER variabless to fort.",crUnit
+        endfile(93,iostat=ierro)
+        backspace(93,iostat=ierro)
+      end if
+      call scatter_crpoint(crUnit,lerror,ierro)
+      if(lerror) goto 100
+    end if
 
-      if (dynk_enabled) then
-#ifndef DEBUG
-        if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-          write(93,*) 'SIXTRACR CRPOINT writing DYNK vars fort.96'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-#ifndef DEBUG
-        endif
-#endif
-        call dynk_crpoint(96,lerror,ierro)
-        if (lerror) goto 100
-      endif
+    if(sythckcr) then
+      if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
+        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing EXTENDED varibless to fort.",crUnit
+        endfile(93,iostat=ierro)
+        backspace(93,iostat=ierro)
+      end if
+      if(ithick == 1) then
+        if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
+          write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing EXTENDED variabless for THICK to fort.",crUnit
+          endfile(93,iostat=ierro)
+          backspace(93,iostat=ierro)
+        end if
+        write(crUnit,err=100,iostat=ierro) &
+          ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6), &
+          ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+        endfile(crUnit,iostat=ierro)
+        backspace(crUnit,iostat=ierro)
+      end if
 
-      if (scatter_active) then
-#ifndef DEBUG
-          if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-            write(93,*) 'SIXTRACR CRPOINT writing SCATTER vars fort.96'
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-#ifndef DEBUG
-          endif
-#endif
-          call scatter_crpoint(96,lerror,ierro)
-          if (lerror) goto 100
-      endif
+      write(crUnit,err=100,iostat=ierro) &
+        (aek(j),j=1,napxo),          &
+        (afok(j),j=1,napxo),         &
+        (as3(j),j=1,napxo),          &
+        (as4(j),j=1,napxo),          &
+        (as6(j),j=1,napxo),          &
+        (co(j),j=1,napxo),           &
+        (dpd(j),j=1,napxo),          &
+        (dpsq(j),j=1,napxo),         &
+        (fi(j),j=1,napxo),           &
+        (fok(j),j=1,napxo),          &
+        (fok1(j),j=1,napxo),         &
+        (fokqv(j),j=1,napxo),        &
+        (g(j),j=1,napxo),            &
+        (gl(j),j=1,napxo),           &
+        (hc(j),j=1,napxo),           &
+        (hi(j),j=1,napxo),           &
+        (hi1(j),j=1,napxo),          &
+        (hm(j),j=1,napxo),           &
+        (hp(j),j=1,napxo),           &
+        (hs(j),j=1,napxo),           &
+        (rho(j),j=1,napxo),          &
+        (rhoc(j),j=1,napxo),         &
+        (rhoi(j),j=1,napxo),         &
+        (si(j),j=1,napxo),           &
+        (siq(j),j=1,napxo),          &
+        (sm1(j),j=1,napxo),          &
+        (sm12(j),j=1,napxo),         &
+        (sm2(j),j=1,napxo),          &
+        (sm23(j),j=1,napxo),         &
+        (sm3(j),j=1,napxo),          &
+        (wf(j),j=1,napxo),           &
+        (wfa(j),j=1,napxo),          &
+        (wfhi(j),j=1,napxo)
 
-      if (sythckcr) then
-!ERIC new extended checkpoint for synuthck
-#ifndef DEBUG
-        if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-          write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars fort.96'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-#ifndef DEBUG
-        endif
-#endif
-        if (ithick.eq.1) then
-#ifndef DEBUG
-          if (ncalls.le.20.or.numx.ge.numl-20) then
-#endif
-            write(93,*) 'SIXTRACR CRPOINT writing EXTENDED vars'//      &
-      & ' for THICK to fort.96'
-            endfile (93,iostat=ierro)
-            backspace (93,iostat=ierro)
-#ifndef DEBUG
-          endif
-#endif
-          write(96,err=100,iostat=ierro)                                &
-      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-          endfile   (96,iostat=ierro)
-          backspace (96,iostat=ierro)
-        endif
+      endfile(crUnit,iostat=ierro)
+      backspace(crUnit,iostat=ierro)
+    end if
 
-        write(96,err=100,iostat=ierro)                                  &
-      &(aek(j),j=1,napxo),                                               &
-      &(afok(j),j=1,napxo),                                              &
-      &(as3(j),j=1,napxo),                                               &
-      &(as4(j),j=1,napxo),                                               &
-      &(as6(j),j=1,napxo),                                               &
-      &(co(j),j=1,napxo),                                                &
-      &(dpd(j),j=1,napxo),                                               &
-      &(dpsq(j),j=1,napxo),                                              &
-      &(fi(j),j=1,napxo),                                                &
-      &(fok(j),j=1,napxo),                                               &
-      &(fok1(j),j=1,napxo),                                              &
-      &(fokqv(j),j=1,napxo),                                             &
-      &(g(j),j=1,napxo),                                                 &
-      &(gl(j),j=1,napxo),                                                &
-      &(hc(j),j=1,napxo),                                                &
-      &(hi(j),j=1,napxo),                                                &
-      &(hi1(j),j=1,napxo),                                               &
-      &(hm(j),j=1,napxo),                                                &
-      &(hp(j),j=1,napxo),                                                &
-      &(hs(j),j=1,napxo),                                                &
-      &(rho(j),j=1,napxo),                                               &
-      &(rhoc(j),j=1,napxo),                                              &
-      &(rhoi(j),j=1,napxo),                                              &
-      &(si(j),j=1,napxo),                                                &
-      &(siq(j),j=1,napxo),                                               &
-      &(sm1(j),j=1,napxo),                                               &
-      &(sm12(j),j=1,napxo),                                              &
-      &(sm2(j),j=1,napxo),                                               &
-      &(sm23(j),j=1,napxo),                                              &
-      &(sm3(j),j=1,napxo),                                               &
-      &(wf(j),j=1,napxo),                                                &
-      &(wfa(j),j=1,napxo),                                               &
-      &(wfhi(j),j=1,napxo)
+  end do ! Loop over crUnit
 
-      endif
-      endfile (96,iostat=ierro)
-      backspace (96,iostat=ierro)
-#ifdef DEBUG
-                    !call system('../crpoint >> crlog')
-#endif
-#ifdef DEBUG
-!ERIC
-!     call dump('1st Checkpoint',numx,i)
-!     call abend('SIXTRACR CHECKPOINT written                       ')
-#endif
-!     call system('echo "CPEND   `date`" >> crtimes')
-  104 return
-  100 write(93,*)                                                       &
-      &'SIXTRACR CRPOINT *** ERROR *** writing checkpt file,iostat=',    &
-      &ierro
-      goto 103
-  101 write(93,*)                                                       &
-      &'SIXTRACR CRPOINT *** ERROR *** reading lout fort.92,iostat=',    &
-      &ierro
-      goto 103
-  102 write(93,*)                                                       &
-      &'SIXTRACR CRPOINT *** ERROR *** writing fort.6,iostat=',          &
-      &ierro
-  103 endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
-      write(lout,"(a)") "SIXTRACR> CHECKPOINT I/O Error"
-      call prror(-1)
+104 continue
+  return
+
+100 continue
+  write(93,"(a,i0)") "SIXTRACR> CRPOINT ERROR writing checkpt file, iostat = ",ierro
+  goto 103
+
+101 continue
+  write(93,"(a,i0)") "SIXTRACR> CRPOINT ERROR reading lout fort.92, iostat = ",ierro
+  goto 103
+
+102 continue
+  write(93,"(a,i0)") "SIXTRACR> CRPOINT ERROR writing fort.6, iostat = ",ierro
+
+103 continue
+  endfile(93,iostat=ierro)
+  backspace (93,iostat=ierro)
+  write(lout,"(a)") "SIXTRACR> CHECKPOINT I/O Error"
+  call prror
+
 end subroutine crpoint
 
+! ================================================================================================ !
+!  If we are restarting (restart is TRUE), this routine is called in the beginning of the tracking
+!  loops. It is used to copy the cr* variables to the normal variables, e.g. crnapx -> napx etc.
+!  The file fort.93 is used as a log file for the checkpoint/restarting.
+! ================================================================================================ !
 subroutine crstart
-!     If we are restarting (restart is TRUE), this routine is called
-!     in the beginning of the tracking loops.
-!     It is used to copy the cr* variables to the normal variables,
-!     e.g. crnapx -> napx etc.
-!
-!     The file fort.93 is used as a log file for the checkpoint/restarting.
-!
-!     See also subroutines crpoint and crcheck.
-      use floatPrecision
-      use numerical_constants
-      use dynk, only : dynk_enabled, dynk_crstart
 
-      use scatter, only: scatter_active, scatter_crstart
+  use floatPrecision
+  use numerical_constants
+  use dynk, only : dynk_enabled, dynk_crstart
+  use scatter, only: scatter_active, scatter_crstart
 
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_commonmn
-      use mod_commons
-      use mod_commont
-      use mod_commond
-      use mod_meta
-      use mod_alloc
-      use mod_hions
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_commons
+  use mod_commont
+  use mod_commond
+  use mod_meta
+  use mod_alloc
+  use mod_hions
+  use mod_units
 
-      implicit none
+  implicit none
 
-      real(kind=fPrec) dynk_newValue
+  real(kind=fPrec) dynk_newValue
+  logical fErr
+  integer j,l,k,m,i
+  character(len=256) filename
 
-      integer j,l,k,m,i
-      character(len=256) filename
-      save
-      write(93,"(a,i0)") "SIXTRACR> CRSTART called crnumlcr ",crnumlcr
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
-      numlcr=crnumlcr
-!--   We do NOT reset numl so that a run can be extended for
-!--   for more turns from the last checkpoint
-!--   but we need to worry about numxv, nnumxv
-      binrec=crbinrec
-      bnlrec=crbnlrec
-      bllrec=crbllrec
-      sythckcr=crsythck
-! the crtime3 is required (crtime0/1 removed)
-      napxo=crnapxo
-      napx=crnapx
-      e0=cre0
-      e0f=sqrt(e0**2-nucm0**2)                                             !hr08
-      write(93,*) 'CRSTART doing binrecs'
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
-      do j=1,(napxo+1)/2
-        binrecs(j)=crbinrecs(j)
-      enddo
-      write(93,*) 'CRSTART doing normal NPART vars'
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
-      do j=1,napxo
-        numxv(j)=crnumxv(j)
-        nnumxv(j)=crnnumxv(j)
-        nlostp(j)=crnlostp(j)
-        pstop(j)=crpstop(j)
-        xv1(j)=crxv(1,j)
-        yv1(j)=cryv(1,j)
-        xv2(j)=crxv(2,j)
-        yv2(j)=cryv(2,j)
-        sigmv(j)=crsigmv(j)
-        dpsv(j)=crdpsv(j)
-        dpsv1(j)=crdpsv1(j)
-! TEMPORARY? fix for crabamp/multipole problem
-!       oidpsv(j)=croidpsv(j)
-        oidpsv(j)=one/(one+dpsv(j))
-        moidpsv(j)=mtc(j)/(one+dpsv(j))
-        omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-        ejv(j)=crejv(j)
-        ejfv(j)=crejfv(j)
-        rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-        aperv(j,1)=craperv(j,1)
-        aperv(j,2)=craperv(j,2)
-        xvl(1,j)=crxvl(1,j)
-        xvl(2,j)=crxvl(2,j)
-        yvl(1,j)=cryvl(1,j)
-        yvl(2,j)=cryvl(2,j)
-        dpsvl(j)=crdpsvl(j)
-        ejvl(j)=crejvl(j)
-        sigmvl(j)=crsigmvl(j)
-        if (.not.pstop(j)) then
-          numxv(j)=numl
-          nnumxv(j)=numl
-        endif
-      enddo
-!ERIC new extended checkpoint for synuthck
+  save
 
-      call meta_crstart
+  write(93,"(a,i0)") "SIXTRACR> CRSTART called crnumlcr = ",crnumlcr
+  endfile(93,iostat=ierro)
+  backspace(93,iostat=ierro)
+  numlcr=crnumlcr
 
-      if (dynk_enabled) then
-          call dynk_crstart
-      endif
+  ! We do NOT reset numl so that a run can be extended for
+  ! for more turns from the last checkpoint
+  ! but we need to worry about numxv, nnumxv
+  binrec=crbinrec
+  bnlrec=crbnlrec
+  bllrec=crbllrec
+  sythckcr=crsythck
 
-      if (scatter_active) then
-          call scatter_crstart
-      endif
+  ! the crtime3 is required (crtime0/1 removed)
+  napxo=crnapxo
+  napx=crnapx
+  e0=cre0
+  e0f=sqrt(e0**2-nucm0**2)
 
-      call hions_crstart
+  write(93,"(a)") "SIXTRACR> CRSTART doing binrecs"
+  endfile(93,iostat=ierro)
+  backspace(93,iostat=ierro)
 
-      if (crsythck) then
-!ERICVARS now read the extended vars from fort.95/96.
-        if (cril.ne.il) then
-          write(lout,"(2(a,i0))") "SIXTRACR> CRSTART Problem as cril/il are different cril=",cril," il=",il
-          write(93,  "(2(a,i0))") "SIXTRACR> CRSTART Problem as cril/il are different cril=",cril," il=",il
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-          write(lout,"(a)") "SIXTRACR> CRSTART Problem wih cril/il extended C/R"
-          call prror(-1)
-        endif
-!ERICVARS now read the extended vars from fort.95/96.
+  do j=1,(napxo+1)/2
+    binrecs(j)=crbinrecs(j)
+  end do
+
+  write(93,"(a)") "SIXTRACR> CRSTART doing normal NPART vars"
+  endfile(93,iostat=ierro)
+  backspace (93,iostat=ierro)
+  do j=1,napxo
+    numxv(j)=crnumxv(j)
+    nnumxv(j)=crnnumxv(j)
+    nlostp(j)=crnlostp(j)
+    pstop(j)=crpstop(j)
+    xv1(j)=crxv(1,j)
+    yv1(j)=cryv(1,j)
+    xv2(j)=crxv(2,j)
+    yv2(j)=cryv(2,j)
+    sigmv(j)=crsigmv(j)
+    dpsv(j)=crdpsv(j)
+    dpsv1(j)=crdpsv1(j)
+    ! TEMPORARY? fix for crabamp/multipole problem
+    !       oidpsv(j)=croidpsv(j)
+    oidpsv(j)=one/(one+dpsv(j))
+    moidpsv(j)=mtc(j)/(one+dpsv(j))
+    omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+    ejv(j)=crejv(j)
+    ejfv(j)=crejfv(j)
+    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+    aperv(j,1)=craperv(j,1)
+    aperv(j,2)=craperv(j,2)
+    xvl(1,j)=crxvl(1,j)
+    xvl(2,j)=crxvl(2,j)
+    yvl(1,j)=cryvl(1,j)
+    yvl(2,j)=cryvl(2,j)
+    dpsvl(j)=crdpsvl(j)
+    ejvl(j)=crejvl(j)
+    sigmvl(j)=crsigmvl(j)
+    if(pstop(j) .eqv. .false.) then
+      numxv(j)=numl
+      nnumxv(j)=numl
+    endif
+  end do
+
+  !ERIC new extended checkpoint for synuthck
+  call meta_crstart
+  if(dynk_enabled) call dynk_crstart
+  if(scatter_active) call scatter_crstart
+  call hions_crstart
+
+  if (crsythck) then
+    !ERICVARS now read the extended vars from fort.95/96.
+    if(cril /= il) then
+      write(lout,"(2(a,i0))") "SIXTRACR> CRSTART Problem as cril/il are different cril = ",cril,", il = ",il
+      write(93,  "(2(a,i0))") "SIXTRACR> CRSTART Problem as cril/il are different cril = ",cril,", il = ",il
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+      write(lout,"(a)") "SIXTRACR> CRSTART Problem wih cril/il extended C/R"
+      call prror
+    end if
+
+    !ERICVARS now read the extended vars from fort.95/96.
 #ifdef DEBUG
-! Commented out code for multiple records
-!       write(93,*) 'CRSTART DEBUG DUMP'
-!       call dump('Before xcrstart',0,0)
-!       endfile (93,iostat=ierro)
-!       backspace (93,iostat=ierro)
-!       write(93,*) 'CRSTART reading EXTENDED vars'
-!       endfile (93,iostat=ierro)
-!       backspace (93,iostat=ierro)
-!       if (read95) then
-!         i=1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(aek(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(afok(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(as3(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(as4(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(as6(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(co(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(dpd(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(dpsq(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(fi(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(fok(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(fok1(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(fokqv(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(g(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(gl(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(hc(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(hi(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(hi1(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(hm(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(hp(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(hs(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(rho(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(rhoc(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(rhoi(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(si(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(siq(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(sm1(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(sm12(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(sm2(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(sm23(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(sm3(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(wf(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(wfa(j),j=1,napxo)
-!         i=i+1
-!         read(95,end=100,err=100,iostat=ierro)                         &
-!    &(wfhi(j),j=1,napxo)
-!         go to 102
-!       endif
+  ! Commented out code for multiple records
+  ! write(93,"(a)") "SIXTRACR> CRSTART DEBUG DUMP"
+  ! call dump('Before xcrstart',0,0)
+  ! endfile (93,iostat=ierro)
+  ! backspace (93,iostat=ierro)
+  ! write(93,"(a)") "SIXTRACR> CRSTART reading EXTENDED vars"
+  ! endfile (93,iostat=ierro)
+  ! backspace (93,iostat=ierro)
+  ! if(read95) then
+  !   read(95,end=100,err=100,iostat=ierro) ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+  !   read(95,end=100,err=100,iostat=ierro) ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+  !   read(95,end=100,err=100,iostat=ierro) (aek(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (afok(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (as3(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (as4(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (as6(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (co(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (dpd(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (dpsq(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (fi(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (fok(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (fok1(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (fokqv(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (g(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (gl(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (hc(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (hi(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (hi1(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (hm(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (hp(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (hs(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (rho(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (rhoc(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (rhoi(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (si(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (siq(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (sm1(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (sm12(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (sm2(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (sm23(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (sm3(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (wf(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (wfa(j),j=1,napxo)
+  !   read(95,end=100,err=100,iostat=ierro) (wfhi(j),j=1,napxo)
+  !   go to 102
+  ! endif
 #endif
-        if (read95) then
-          if (ithick.eq.1) then
-            read(95,end=100,err=100,iostat=ierro)                       &
-      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-          endif
+    if(read95) then
+      if(ithick == 1) then
+        read(95,end=100,err=100,iostat=ierro) &
+          ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),&
+          ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+      end if
 
-          read(95,end=100,err=100,iostat=ierro)                         &
-      &(aek(j),j=1,napxo),                                               &
-      &(afok(j),j=1,napxo),                                              &
-      &(as3(j),j=1,napxo),                                               &
-      &(as4(j),j=1,napxo),                                               &
-      &(as6(j),j=1,napxo),                                               &
-      &(co(j),j=1,napxo),                                                &
-      &(dpd(j),j=1,napxo),                                               &
-      &(dpsq(j),j=1,napxo),                                              &
-      &(fi(j),j=1,napxo),                                                &
-      &(fok(j),j=1,napxo),                                               &
-      &(fok1(j),j=1,napxo),                                              &
-      &(fokqv(j),j=1,napxo),                                             &
-      &(g(j),j=1,napxo),                                                 &
-      &(gl(j),j=1,napxo),                                                &
-      &(hc(j),j=1,napxo),                                                &
-      &(hi(j),j=1,napxo),                                                &
-      &(hi1(j),j=1,napxo),                                               &
-      &(hm(j),j=1,napxo),                                                &
-      &(hp(j),j=1,napxo),                                                &
-      &(hs(j),j=1,napxo),                                                &
-      &(rho(j),j=1,napxo),                                               &
-      &(rhoc(j),j=1,napxo),                                              &
-      &(rhoi(j),j=1,napxo),                                              &
-      &(si(j),j=1,napxo),                                                &
-      &(siq(j),j=1,napxo),                                               &
-      &(sm1(j),j=1,napxo),                                               &
-      &(sm12(j),j=1,napxo),                                              &
-      &(sm2(j),j=1,napxo),                                               &
-      &(sm23(j),j=1,napxo),                                              &
-      &(sm3(j),j=1,napxo),                                               &
-      &(wf(j),j=1,napxo),                                                &
-      &(wfa(j),j=1,napxo),                                               &
-      &(wfhi(j),j=1,napxo)
-          write(93,*) 'CRSTART read fort.95 EXTENDED OK'
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
-          go to 102
-        endif
-        if (read96) then
-          if (ithick.eq.1) then
-            read(96,end=101,err=101,iostat=ierro)                       &
-      &((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),                 &
-      &((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-          endif
-          read(96,end=101,err=101,iostat=ierro)                         &
-      &(aek(j),j=1,napxo),                                               &
-      &(afok(j),j=1,napxo),                                              &
-      &(as3(j),j=1,napxo),                                               &
-      &(as4(j),j=1,napxo),                                               &
-      &(as6(j),j=1,napxo),                                               &
-      &(co(j),j=1,napxo),                                                &
-      &(dpd(j),j=1,napxo),                                               &
-      &(dpsq(j),j=1,napxo),                                              &
-      &(fi(j),j=1,napxo),                                                &
-      &(fok(j),j=1,napxo),                                               &
-      &(fok1(j),j=1,napxo),                                              &
-      &(fokqv(j),j=1,napxo),                                             &
-      &(g(j),j=1,napxo),                                                 &
-      &(gl(j),j=1,napxo),                                                &
-      &(hc(j),j=1,napxo),                                                &
-      &(hi(j),j=1,napxo),                                                &
-      &(hi1(j),j=1,napxo),                                               &
-      &(hm(j),j=1,napxo),                                                &
-      &(hp(j),j=1,napxo),                                                &
-      &(hs(j),j=1,napxo),                                                &
-      &(rho(j),j=1,napxo),                                               &
-      &(rhoc(j),j=1,napxo),                                              &
-      &(rhoi(j),j=1,napxo),                                              &
-      &(si(j),j=1,napxo),                                                &
-      &(siq(j),j=1,napxo),                                               &
-      &(sm1(j),j=1,napxo),                                               &
-      &(sm12(j),j=1,napxo),                                              &
-      &(sm2(j),j=1,napxo),                                               &
-      &(sm23(j),j=1,napxo),                                              &
-      &(sm3(j),j=1,napxo),                                               &
-      &(wf(j),j=1,napxo),                                                &
-      &(wfa(j),j=1,napxo),                                               &
-      &(wfhi(j),j=1,napxo)
+      read(95,end=100,err=100,iostat=ierro) &
+        (aek(j),j=1,napxo),   &
+        (afok(j),j=1,napxo),  &
+        (as3(j),j=1,napxo),   &
+        (as4(j),j=1,napxo),   &
+        (as6(j),j=1,napxo),   &
+        (co(j),j=1,napxo),    &
+        (dpd(j),j=1,napxo),   &
+        (dpsq(j),j=1,napxo),  &
+        (fi(j),j=1,napxo),    &
+        (fok(j),j=1,napxo),   &
+        (fok1(j),j=1,napxo),  &
+        (fokqv(j),j=1,napxo), &
+        (g(j),j=1,napxo),     &
+        (gl(j),j=1,napxo),    &
+        (hc(j),j=1,napxo),    &
+        (hi(j),j=1,napxo),    &
+        (hi1(j),j=1,napxo),   &
+        (hm(j),j=1,napxo),    &
+        (hp(j),j=1,napxo),    &
+        (hs(j),j=1,napxo),    &
+        (rho(j),j=1,napxo),   &
+        (rhoc(j),j=1,napxo),  &
+        (rhoi(j),j=1,napxo),  &
+        (si(j),j=1,napxo),    &
+        (siq(j),j=1,napxo),   &
+        (sm1(j),j=1,napxo),   &
+        (sm12(j),j=1,napxo),  &
+        (sm2(j),j=1,napxo),   &
+        (sm23(j),j=1,napxo),  &
+        (sm3(j),j=1,napxo),   &
+        (wf(j),j=1,napxo),    &
+        (wfa(j),j=1,napxo),   &
+        (wfhi(j),j=1,napxo)
+      write(93,"(a)") "SIXTRACR> CRSTART read fort.95 EXTENDED OK"
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+      goto 102
+    end if
+    if(read96) then
+      if(ithick == 1) then
+        read(96,end=101,err=101,iostat=ierro) &
+          ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6), &
+          ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+      end if
+      read(96,end=101,err=101,iostat=ierro) &
+        (aek(j),j=1,napxo),   &
+        (afok(j),j=1,napxo),  &
+        (as3(j),j=1,napxo),   &
+        (as4(j),j=1,napxo),   &
+        (as6(j),j=1,napxo),   &
+        (co(j),j=1,napxo),    &
+        (dpd(j),j=1,napxo),   &
+        (dpsq(j),j=1,napxo),  &
+        (fi(j),j=1,napxo),    &
+        (fok(j),j=1,napxo),   &
+        (fok1(j),j=1,napxo),  &
+        (fokqv(j),j=1,napxo), &
+        (g(j),j=1,napxo),     &
+        (gl(j),j=1,napxo),    &
+        (hc(j),j=1,napxo),    &
+        (hi(j),j=1,napxo),    &
+        (hi1(j),j=1,napxo),   &
+        (hm(j),j=1,napxo),    &
+        (hp(j),j=1,napxo),    &
+        (hs(j),j=1,napxo),    &
+        (rho(j),j=1,napxo),   &
+        (rhoc(j),j=1,napxo),  &
+        (rhoi(j),j=1,napxo),  &
+        (si(j),j=1,napxo),    &
+        (siq(j),j=1,napxo),   &
+        (sm1(j),j=1,napxo),   &
+        (sm12(j),j=1,napxo),  &
+        (sm2(j),j=1,napxo),   &
+        (sm23(j),j=1,napxo),  &
+        (sm3(j),j=1,napxo),   &
+        (wf(j),j=1,napxo),    &
+        (wfa(j),j=1,napxo),   &
+        (wfhi(j),j=1,napxo)
 
-      write(93,*) 'CRSTART read fort.96 EXTENDED OK'
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
-          go to 102
-        endif
-  100   write(93,*)                                                     &
-      &'SIXTRACR CRSTART COULD NOT READ CHECKPOINT FILE 95 (extended)',  &
-      &' iostat=',ierro
-#ifdef DEBUG
-! Multiple record debug code commented out
-!       write(93,*) 'CRSTART This was the ith READ, I=',i
-!       endfile (93,iostat=ierro)
-!       backspace (93,iostat=ierro)
-#endif
-        go to 103
-  101   write(93,"(a,i0)") "SIXTRACR> CRSTART COULD NOT READ CHECKPOINT FILE 96 (extended) iostat=",ierro
-  103   endfile (93,iostat=ierro)
-        backspace (93,iostat=ierro)
-        write(lout,"(a)") "SIXTRACR> CRSTART Problem with extended checkpoint"
-        call prror(-1)
-      endif
-  102 write(93,*) "SIXTRACR> CRSTART six/crsix/bin recs",sixrecs,crsixrecs,binrec
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
-#ifdef DEBUG
-                    !call system('../crstart >> crlog')
-#endif
-!--   Just throw away our fort.92 stuff.
-      rewind lout
-      endfile (lout,iostat=ierro)
-      close(lout)
-#ifdef DEBUG
-                    !call system('../crstart >> crlog')
-#endif
-#ifdef BOINC
-      call boincrf('fort.92',filename)
-      open(lout,file=filename,form='formatted',status='unknown')
-#endif
-#ifndef BOINC
-      open(lout,file='fort.92',form='formatted',status='unknown')
-#endif
-! but also add the rerun message
-      write(lout,'(a80)')                                                     &
-      &runtim
-      runtim(1:20)='SIXTRACR restarted: '
-      write(lout,'(a80)')                                                     &
-      &runtim
-      endfile (lout,iostat=ierro)
-      backspace (lout,iostat=ierro)
-#ifdef DEBUG
-                    !call system('../crstart >> crlog')
-#endif
-      return
-  606 backspace (6,iostat=ierro)
-      write(lout,"(2(a,i0))") "SIXTRACR> CRSTART Problem re-positioning fort.6: sixrecs = ",sixrecs,", crsixrecs = ",crsixrecs
-      call prror(-1)
+      write(93,"(a)") "SIXTRACR> CRSTART read fort.96 EXTENDED OK"
+      endfile(93,iostat=ierro)
+      backspace(93,iostat=ierro)
+      goto 102
+    end if
+100 continue
+    write(93,"(a,i0)") "SIXTRACR> CRSTART Could not read checkpoint file 95 (extended), iostat = ",ierro
+    goto 103
+101 continue
+    write(93,"(a,i0)") "SIXTRACR> CRSTART Could not read checkpoint file 96 (extended), iostat = ",ierro
+103 continue
+    endfile(93,iostat=ierro)
+    backspace(93,iostat=ierro)
+    write(lout,"(a)") "SIXTRACR> CRSTART Problem with extended checkpoint"
+    call prror
+  end if
+
+102 continue
+  write(93,"(3(a,i0))") "SIXTRACR> CRSTART sixrecs = ",sixrecs,", crsixrecs = ",crsixrecs,", binrec = ",binrec
+  endfile(93,iostat=ierro)
+  backspace(93,iostat=ierro)
+
+  ! Just throw away our fort.92 stuff.
+  rewind lout
+  endfile(lout,iostat=ierro)
+  close(lout)
+
+  call units_openUnit(unit=lout,fileName="fort.92",formatted=.true.,mode="rw",err=fErr)
+  ! but also add the rerun message
+  write(lout,"(a80)") runtim
+  runtim(1:20)="SIXTRACR restarted: "
+  write(lout,"(a80)") runtim
+  endfile(lout,iostat=ierro)
+  backspace(lout,iostat=ierro)
+
+  return
+
+606 continue
+  backspace(6,iostat=ierro)
+  write(lout,"(2(a,i0))") "SIXTRACR> CRSTART Problem re-positioning fort.6: sixrecs = ",sixrecs,", crsixrecs = ",crsixrecs
+  call prror
+
 end subroutine crstart
+
 end module checkpoint_restart

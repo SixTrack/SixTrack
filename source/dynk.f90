@@ -2944,7 +2944,7 @@ subroutine dynk_crpoint(fileunit,fileerror,ierro)
   implicit none
 
   integer, intent(in)    :: fileunit
-  logical, intent(out)   :: fileerror
+  logical, intent(inout) :: fileerror
   integer, intent(inout) :: ierro
 
   integer j

@@ -2135,7 +2135,7 @@ end subroutine thin6d
 !-----------------------------------------------------------------------
 !  3 February 1999
 !-----------------------------------------------------------------------
-subroutine callcrp()
+subroutine callcrp
 
   use floatPrecision
   use mathlib_bouncer
@@ -2167,19 +2167,19 @@ subroutine callcrp()
   write(91,*,iostat=ierro,err=11) numx,numl
   rewind 91
   if (restart) then
-    write(93,*) 'CALLCRP/CRPOINT bailing out'
-    write(93,*) 'numl, nnuml, numx, numlcr ',numl,nnuml,numx,numlcr
-    endfile (93,iostat=ierro)
-    backspace (93,iostat=ierro)
+    write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
+      " numx = ",numx,", numlcr = ",numlcr
+    endfile(93,iostat=ierro)
+    backspace(93,iostat=ierro)
     return
   else
 #ifndef DEBUG
     if (ncalls.le.20.or.numx.ge.nnuml-20) then
 #endif
-    write(93,*) 'CALLCRP numl, nnuml, numlcr, numx, nwri, numlcp '
-    write(93,*) numl,nnuml,numlcr,numx,nwri,numlcp
-    endfile (93,iostat=ierro)
-    backspace (93,iostat=ierro)
+    write(93,"(6(a,i0))") "SIXTRACR> CALLCRP numl = ",numl,", nnuml = ",nnuml,", numlcr = ",numlcr,", "//&
+     "numx = ",numx,", nwri = ",nwri,", numlcp = ",numlcp
+    endfile(93,iostat=ierro)
+    backspace(93,iostat=ierro)
 #ifndef DEBUG
     endif
 #endif
@@ -2199,8 +2199,8 @@ subroutine callcrp()
   if (checkp) call crpoint
 #endif
   return
-11 write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : 91',ierro
-  write(lout,*)'SIXTRACR WRITEBIN IO ERROR on Unit 91'
+11 write(lout,"(a,i0)") "CALLCRP> ERROR Problems writing to file #91, ierro= ",ierro
+  ! write(lout,"(a)")'SIXTRACR WRITEBIN IO ERROR on Unit 91'
   call prror(-1)
 #endif
   return

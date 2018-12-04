@@ -58,7 +58,7 @@ subroutine meta_initialise
   open(meta_fileUnit,file=meta_fileName,status="replace",form="formatted",iostat=ioStat)
   if(ioStat /= 0) then
     write(lout,"(2(a,i0))") "META> ERROR Opening of '"//meta_fileName//"' on unit #",meta_fileUnit," failed with iostat = ",ioStat
-    call prror(-1)
+    call prror
   end if
 
   write(meta_fileUnit,"(a)") "# SixTrack Simulation Meta Data"
@@ -207,14 +207,23 @@ end subroutine meta_write_log
 function meta_padName(inName) result(padName)
   character(len=*), intent(in) :: inName
   character(len=32) padName
-  integer i, j
+  integer i, j, ic
   padName = " "
   j = 0
   do i=1,len(inName)
-    if(ichar(inName(i:i)) <= 32 .or. ichar(inName(i:i)) >= 127) cycle
-    j = j + 1
-    if(j > 32) cycle
-    padName(j:j) = inName(i:i)
+    ic = ichar(inName(i:i))
+    if( ic == 40  .or.  ic == 41  .or. & ! (, )
+        ic >= 48  .and. ic <= 57  .or. & ! 0-9
+        ic >= 65  .and. ic <= 90  .or. & ! A-Z
+        ic == 91  .or.  ic == 93  .or. & ! [, ]
+        ic == 45  .or.  ic == 95  .or. & ! -, _
+        ic >= 97  .and. ic <= 122 .or. & ! a-z
+        ic == 123 .or.  ic == 125      & ! {, }
+      ) then
+      j = j + 1
+      if(j > 32) exit
+      padName(j:j) = inName(i:i)
+    end if
   end do
 end function meta_padName
 
@@ -222,7 +231,7 @@ subroutine meta_checkActive
   use crcoall
   if(meta_isActive .eqv. .false.) then
     write(lout,"(a)") "META> ERROR Trying to write meta data before initialisation or after finalisation."
-    call prror(-1)
+    call prror
   end if
 end subroutine meta_checkActive
 
@@ -256,7 +265,7 @@ subroutine meta_crpoint(fileUnit, writeErr, iErro)
   use crcoall
 
   integer, intent(in)    :: fileUnit
-  logical, intent(out)   :: writeErr
+  logical, intent(inout) :: writeErr
   integer, intent(inout) :: iErro
 
   write(fileunit,err=10,iostat=iErro) meta_nRestarts, meta_nPartTurn
