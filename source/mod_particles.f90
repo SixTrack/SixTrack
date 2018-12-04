@@ -161,11 +161,7 @@ subroutine part_dumpFinalState
 
   select case(st_finalstate)
 
-<<<<<<< HEAD
-  open(fileUnit,file=fileName,form="unformatted",access="stream",status="unknown")
-=======
   case(1) ! Binary file
->>>>>>> dump_final_state
 
     fileName = "final_state.bin"
     call funit_requestUnit(fileName, fileUnit)
