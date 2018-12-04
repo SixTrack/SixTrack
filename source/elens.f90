@@ -112,6 +112,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     return
   end if
 
+  iElem = -1
   do j=1,nele
     if(bez(j) == trim(lnSplit(1))) then
       iElem = j
