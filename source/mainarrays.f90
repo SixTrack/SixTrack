@@ -171,6 +171,7 @@ end subroutine expand_thickarrays
 ! ================================================================================================ !
 subroutine compactArrays
 
+  use floatPrecision
   use mod_hions
   use mod_common
   use mod_commont
@@ -183,124 +184,119 @@ subroutine compactArrays
 
   implicit none
 
-  integer j,jj,jj1,ib2,ib3,lnapx
+  integer j, napx_new
+  logical, allocatable :: tmp_lostP(:)
 
-  ! Compact array
-  lnapx=napx
+  napx_new = napx
+
+  allocate(tmp_lostP(npart))
+  tmp_lostP(1:npart) = llostp(1:npart)
+
   do j=napx,1,-1
-    if(llostp(j)) then
-      if(j.ne.lnapx) then
-        do jj=j,lnapx-1
-          jj1=jj+1
-          nlostp(jj)=nlostp(jj1)
-          xv1(jj)=xv1(jj1)
-          xv2(jj)=xv2(jj1)
-          yv1(jj)=yv1(jj1)
-          yv2(jj)=yv2(jj1)
-          dpsv(jj)=dpsv(jj1)
-          sigmv(jj)=sigmv(jj1)
-          ejfv(jj)=ejfv(jj1)
-          ejv(jj)=ejv(jj1)
-          rvv(jj)=rvv(jj1)
-          ! ph: hisix
-          nzz(jj)=nzz(jj1)
-          naa(jj)=naa(jj1)
-          nucm(jj)=nucm(jj1)
-          mtc(jj)=mtc(jj1)
-          moidpsv(jj)=moidpsv(jj1)
-          omoidpsv(jj)=omoidpsv(jj1)
-          ! ph: hisix
-          oidpsv(jj)=oidpsv(jj1)
-          dpsv1(jj)=dpsv1(jj1)
-          clo6v(1,jj)=clo6v(1,jj1)
-          clo6v(2,jj)=clo6v(2,jj1)
-          clo6v(3,jj)=clo6v(3,jj1)
-          clop6v(1,jj)=clop6v(1,jj1)
-          clop6v(2,jj)=clop6v(2,jj1)
-          clop6v(3,jj)=clop6v(3,jj1)
+    if(llostp(j) .eqv. .false.) cycle
 
-          !--beam-beam element
-          di0xs(jj)=di0xs(jj1)
-          dip0xs(jj)=dip0xs(jj1)
-          di0zs(jj)=di0zs(jj1)
-          dip0zs(jj)=dip0zs(jj1)
-          do ib2=1,6
-            do ib3=1,6
-              tasau(jj,ib2,ib3)=tasau(jj1,ib2,ib3)
-            end do
-          end do
+    ! Move lost particle to the back
+    nlostp(j:npart)    = cshift(nlostp(j:npart),    1)
+    tmp_lostP(j:npart) = cshift(tmp_lostP(j:npart), 1)
 
-          ! Backtracking + aperture arrays
-          ! These should get reset each time,
-          ! but potentially there could be a collimator
-          ! losing particles before the next usage
-          ! So we compress these for now
-          plost(jj) = plost(jj1)
-          xLast(1,jj)   =  xLast(1,jj1)   ! position after last thick element [mm] (2,npart)
-          xLast(1,jj)   =  xLast(1,jj1)   ! position after last thick element [mm] (2,npart)
-          yLast(1,jj)   =  yLast(1,jj1)   ! angles after last thick element [mrad] (2,npart)
-          yLast(2,jj)   =  yLast(2,jj1)   ! angles after last thick element [mrad] (2,npart)
-          ejfvLast(jj)  =  ejfvLast(jj1)  ! linear momentum [MeV/c] (npart)
-          ejvLast(jj)   =  ejvLast(jj1)   ! total energy [MeV] (npart)
-          nucmLast(jj)  =  nucmLast(jj1)  ! nuclear mass [GeV/c2] (npart)
-          sigmvLast(jj) =  sigmvLast(jj1) ! lag [mm] (npart)
-          dpsvLast(jj)  =  dpsvLast(jj1)  ! (npart)
-          naaLast(jj)   =  naaLast(jj1)   ! nuclear mass [] (npart)
-          nzzLast(jj)   =  nzzLast(jj1)   ! atomic number [] (npart)
+    ! Main Particle Arrays
+    xv1(j:npart)       = cshift(xv1(j:npart),       1)
+    xv2(j:npart)       = cshift(xv2(j:npart),       1)
+    yv1(j:npart)       = cshift(yv1(j:npart),       1)
+    yv2(j:npart)       = cshift(yv2(j:npart),       1)
+    dpsv(j:npart)      = cshift(dpsv(j:npart),      1)
+    sigmv(j:npart)     = cshift(sigmv(j:npart),     1)
+    ejfv(j:npart)      = cshift(ejfv(j:npart),      1)
+    ejv(j:npart)       = cshift(ejv(j:npart),       1)
+    rvv(j:npart)       = cshift(rvv(j:npart),       1)
 
+    ! Ion Arrays
+    nzz(j:npart)       = cshift(nzz(j:npart),       1)
+    naa(j:npart)       = cshift(naa(j:npart),       1)
+    nucm(j:npart)      = cshift(nucm(j:npart),      1)
+    mtc(j:npart)       = cshift(mtc(j:npart),       1)
+    dpsv1(j:npart)     = cshift(dpsv1(j:npart),     1)
+    oidpsv(j:npart)    = cshift(oidpsv(j:npart),    1)
+    moidpsv(j:npart)   = cshift(moidpsv(j:npart),   1)
+    omoidpsv(j:npart)  = cshift(omoidpsv(j:npart),  1)
 
-          if(do_coll) then
-            ! If collimation is enabled,
-            ! all the collimation arrays must also be compressed
-            xgrd(jj)           = xgrd(jj1)
-            ygrd(jj)           = ygrd(jj1)
-            xpgrd(jj)          = xpgrd(jj1)
-            ypgrd(jj)          = ypgrd(jj1)
-            pgrd(jj)           = pgrd(jj1)
-            ejfvgrd(jj)        = ejfvgrd(jj1)
-            sigmvgrd(jj)       = sigmvgrd(jj1)
-            rvvgrd(jj)         = rvvgrd(jj1)
-            dpsvgrd(jj)        = dpsvgrd(jj1)
-            oidpsvgrd(jj)      = oidpsvgrd(jj1)
-            dpsv1grd(jj)       = dpsv1grd(jj1)
-            part_hit_pos(jj)   = part_hit_pos(jj1)
-            part_hit_turn(jj)  = part_hit_turn(jj1)
-            part_abs_pos(jj)   = part_abs_pos(jj1)
-            part_abs_turn(jj)  = part_abs_turn(jj1)
-            part_select(jj)    = part_select(jj1)
-            part_impact(jj)    = part_impact(jj1)
-            part_indiv(jj)     = part_indiv(jj1)
-            part_linteract(jj) = part_linteract(jj1)
-            part_hit_before_pos(jj)  = part_hit_before_pos(jj1)
-            part_hit_before_turn(jj) = part_hit_before_turn(jj1)
-            secondary(jj)  = secondary(jj1)
-            tertiary(jj)   = tertiary(jj1)
-            other(jj)      = other(jj1)
-            scatterhit(jj) = scatterhit(jj1)
-            nabs_type(jj)  = nabs_type(jj1)
-            !GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
-            ipart(jj)      = ipart(jj1)
-            flukaname(jj)  = flukaname(jj1)
-            do ieff = 1, numeff
-              counted_r(jj,ieff) = counted_r(jj1,ieff)
-              counted_x(jj,ieff) = counted_x(jj1,ieff)
-              counted_y(jj,ieff) = counted_y(jj1,ieff)
-            end do
-          endif
+    ! Beam--Beam
+    di0xs(j:npart)     = cshift(di0xs(j:npart),     1)
+    dip0xs(j:npart)    = cshift(dip0xs(j:npart),    1)
+    di0zs(j:npart)     = cshift(di0zs(j:npart),     1)
+    dip0zs(j:npart)    = cshift(dip0zs(j:npart),    1)
+    tasau(j:npart,:,:) = cshift(tasau(j:npart,:,:), 1, 1)
 
-        end do !do jj=j,lnapx-1
+    ! Closed Orbit
+    clo6v(:,j:npart)   = cshift(clo6v(:,j:npart),   1, 2)
+    clop6v(:,j:npart)  = cshift(clop6v(:,j:npart),  1, 2)
+
+    ! Backtracking + Aperture
+    plost(j:npart)     = cshift(plost(j:npart),     1)
+    xLast(:,j:npart)   = cshift(xLast(:,j:npart),   1, 2)
+    yLast(:,j:npart)   = cshift(yLast(:,j:npart),   1, 2)
+    ejfvLast(j:npart)  = cshift(ejfvLast(j:npart),  1)
+    ejvLast(j:npart)   = cshift(ejvLast(j:npart),   1)
+    nucmLast(j:npart)  = cshift(nucmLast(j:npart),  1)
+    sigmvLast(j:npart) = cshift(sigmvLast(j:npart), 1)
+    dpsvLast(j:npart)  = cshift(dpsvLast(j:npart),  1)
+    naaLast(j:npart)   = cshift(naaLast(j:npart),   1)
+    nzzLast(j:npart)   = cshift(nzzLast(j:npart),   1)
+
+    napx_new = napx_new - 1
+  end do
+
+  ! Collimation
+  if(do_coll) then
+    do j=napx,1,-1
+      if(llostp(j) .eqv. .false.) cycle
+
+      xgrd(j:npart)                 = cshift(xgrd(j:npart),                 1)
+      ygrd(j:npart)                 = cshift(ygrd(j:npart),                 1)
+      xpgrd(j:npart)                = cshift(xpgrd(j:npart),                1)
+      ypgrd(j:npart)                = cshift(ypgrd(j:npart),                1)
+      pgrd(j:npart)                 = cshift(pgrd(j:npart),                 1)
+      ejfvgrd(j:npart)              = cshift(ejfvgrd(j:npart),              1)
+      sigmvgrd(j:npart)             = cshift(sigmvgrd(j:npart),             1)
+      rvvgrd(j:npart)               = cshift(rvvgrd(j:npart),               1)
+      dpsvgrd(j:npart)              = cshift(dpsvgrd(j:npart),              1)
+      oidpsvgrd(j:npart)            = cshift(oidpsvgrd(j:npart),            1)
+      dpsv1grd(j:npart)             = cshift(dpsv1grd(j:npart),             1)
+
+      part_hit_pos(j:npart)         = cshift(part_hit_pos(j:npart),         1)
+      part_hit_turn(j:npart)        = cshift(part_hit_turn(j:npart),        1)
+      part_abs_pos(j:npart)         = cshift(part_abs_pos(j:npart),         1)
+      part_abs_turn(j:npart)        = cshift(part_abs_turn(j:npart),        1)
+      part_select(j:npart)          = cshift(part_select(j:npart),          1)
+      part_impact(j:npart)          = cshift(part_impact(j:npart),          1)
+      part_indiv(j:npart)           = cshift(part_indiv(j:npart),           1)
+      part_linteract(j:npart)       = cshift(part_linteract(j:npart),       1)
+      part_hit_before_pos(j:npart)  = cshift(part_hit_before_pos(j:npart),  1)
+      part_hit_before_turn(j:npart) = cshift(part_hit_before_turn(j:npart), 1)
+
+      secondary(j:npart)            = cshift(secondary(j:npart),            1)
+      tertiary(j:npart)             = cshift(tertiary(j:npart),             1)
+      other(j:npart)                = cshift(other(j:npart),                1)
+      scatterhit(j:npart)           = cshift(scatterhit(j:npart),           1)
+      nabs_type(j:npart)            = cshift(nabs_type(j:npart),            1)
+      ipart(j:npart)                = cshift(ipart(j:npart),                1)
+      flukaname(j:npart)            = cshift(flukaname(j:npart),            1)
+
+      counted_r(j:npart,:)          = cshift(counted_r(j:npart,:),          1, 1)
+      counted_x(j:npart,:)          = cshift(counted_x(j:npart,:),          1, 1)
+      counted_y(j:npart,:)          = cshift(counted_y(j:npart,:),          1, 1)
+    end do
+  end if
 
 #ifdef FLUKA
-        if(fluka_enable) then
-          call fluka_lostpart(lnapx, j) ! Inform fluka
-        end if
+  if(fluka_enable) then
+    do j=napx,1,-1
+      if(llostp(j)) call fluka_lostpart(napx, j) ! Inform fluka
+    end do
+  end if
 #endif
 
-      end if !if(j.ne.lnapx) then
-
-      lnapx=lnapx-1
-    end if !if(llostp(j)) then
-  end do !do j=napx,1,-1
-  napx=lnapx
+  napx = napx_new
+  call move_alloc(tmp_lostP, llostp)
 
 end subroutine compactArrays
