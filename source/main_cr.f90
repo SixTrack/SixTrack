@@ -1869,6 +1869,17 @@ end interface
   ! Note that crpoint no longer destroys time2
   posttime=time3-time2
 
+#ifdef HASHLIB
+  ! HASH library. Must be before ZIPF
+  call hash_fileSums
+  call time_timeStamp(time_afterHASH)
+#endif
+
+  if(zipf_numfiles > 0) then
+    call zipf_dozip
+    call time_timeStamp(time_afterZIPF)
+  endif
+
   ! Get grand total including post-processing
   tottime = (pretime+trtime)+posttime
   write(lout,"(a)")         ""
@@ -1884,15 +1895,6 @@ end interface
   write(lout,"(a)")         ""
   write(lout,"(a)")         str_divLine
 
-#ifdef HASHLIB
-  ! HASH library. Must be before ZIPF
-  ! call hash_initialise
-#endif
-
-  if(zipf_numfiles > 0) then
-    call zipf_dozip
-    call time_timeStamp(time_afterZIPF)
-  endif
 #ifdef HDF5
   if(h5_isReady) then
     call h5_writeAttr(h5_rootID,"PreTime",  pretime)

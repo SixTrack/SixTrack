@@ -60,7 +60,7 @@ void md5wrapper_digestString(char* inStr, int strLen, int* md5Vals, int md5Size)
   }
 }
 
-void md5wrapper_digestFile(char* fileName, int* md5Vals, int md5Size) {
+void md5wrapper_digestFile(char* fileName, int strLen, int* md5Vals, int md5Size) {
   MD5_CTX mdCtx;
   int bytes;
   unsigned char data[1024];

@@ -7,7 +7,6 @@
 !  The source code is available under source/md5. Note that this implementation is not compliant
 !  with RFC1321, as it produces different hash values than the standard.
 ! ================================================================================================ !
-
 module mod_hash
 
   use floatPrecision
@@ -18,7 +17,7 @@ module mod_hash
   integer,                       private, save :: hash_nHashFiles  =  0
   logical,                       private, save :: hash_selfTestOK  = .false.
   integer,                       private, save :: hash_sumFileUnit = -1
-  character(len=12),             parameter     :: hash_sumFileName = "checksum.md5"
+  character(len=8),              parameter     :: hash_sumFileName = "hash.md5"
 
   ! C Interface
   interface
@@ -55,6 +54,14 @@ module mod_hash
       integer(kind=C_INT),          intent(inout) :: md5Vals(*)
       integer(kind=C_INT), value,   intent(in)    :: md5Size
     end subroutine hash_digestStringC
+
+    subroutine hash_digestFileC(fileName, strLen, md5Vals, md5Size) bind(C, name="md5wrapper_digestFile")
+      use, intrinsic :: iso_c_binding
+      character(kind=C_CHAR,len=1), intent(in)    :: fileName
+      integer(kind=C_INT), value,   intent(in)    :: strLen
+      integer(kind=C_INT),          intent(inout) :: md5Vals(*)
+      integer(kind=C_INT), value,   intent(in)    :: md5Size
+    end subroutine hash_digestFileC
 
   end interface
 
@@ -153,9 +160,12 @@ end subroutine hash_parseInputLine
 
 subroutine hash_fileSums
 
+  use parpro
+  use crcoall
   use file_units
 
-  integer nFile
+  character(len=32) md5Digest
+  integer           nFile
 
   if(hash_nHashFiles == 0) return
 
@@ -169,9 +179,18 @@ subroutine hash_fileSums
     return
   end if
 
+  write(lout,"(a)") ""
+  write(lout,"(a)") str_divLine
+  write(lout,"(a)") ""
+  write(lout,"(a)") "    Computing MD5 Hash of Files"
+  write(lout,"(a)") "   ============================="
   do nFile=1,hash_nHashFiles
-    continue
+    call hash_digestFile(trim(hash_listHashFiles(nFile)), md5Digest)
+    write(hash_sumFileUnit,"(a32,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
+    write(lout,            "(a36,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
+    flush(hash_sumFileUnit)
   end do
+  close(hash_sumFileUnit)
 
 end subroutine hash_fileSums
 
@@ -215,5 +234,23 @@ subroutine hash_digestString(inStr, md5Digest)
   md5Digest = chr_toLower(md5Digest)
 
 end subroutine hash_digestString
+
+subroutine hash_digestFile(fileName, md5Digest)
+
+  use, intrinsic :: iso_c_binding
+  use string_tools
+
+  character(len=*),  intent(in)  :: fileName
+  character(len=32), intent(out) :: md5Digest
+
+  integer(kind=C_INT) tmpVals(16)
+  integer     i
+
+  tmpVals(:) = 0
+  call hash_digestFileC(fileName//char(0), len(fileName)+1, tmpVals, 16)
+  write(md5Digest,"(16(z2.2))") tmpVals
+  md5Digest = chr_toLower(md5Digest)
+
+end subroutine hash_digestFile
 
 end module mod_hash
