@@ -358,7 +358,7 @@ subroutine elens_postInput
    do j=1,melens_radial_profiles
     inquire(file=elens_radial_filename(j), exist=exist)
     if(.not. exist) then
-      write(lout,"(a)") "ELENS> Problems with file with radial profile: ",trim(elens_radial_filename(j))
+      write(lout,"(a)") "ELENS> ERROR Problems with file with radial profile: ",trim(elens_radial_filename(j))
       call prror(-1)
     end if
     call parseRadialProfile(j)
@@ -370,7 +370,7 @@ subroutine elens_postInput
    do j=1,melens_cheby_tables
     inquire(file=elens_cheby_filename(j), exist=exist)
     if(.not. exist) then
-      write(lout,"(a)") "ELENS> Problems with file with coefficients for Chebyshev polynominals: ",trim(elens_cheby_filename(j))
+      write(lout,"(a)") "ELENS> ERROR Problems with file with coefficients for Chebyshev polynominals: ",trim(elens_cheby_filename(j))
       call prror(-1)
     end if
     call parseChebyFile(j)
@@ -433,7 +433,9 @@ subroutine eLensThetas()
         end if
       end do
       call eLensTheta(j)
-      write(lout,"(a,i0,a,e22.15)") "ELENS> New theta at r2 for elens #",j," named "//trim(bez(jj))//": ",elens_theta_r2(j)
+      if(st_quiet < 2) then
+        write(lout,"(a,i0,a,e22.15)") "ELENS> New theta at r2 for elens #",j," named "//trim(bez(jj))//": ",elens_theta_r2(j)
+      end if
     end if
   end do
 
