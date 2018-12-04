@@ -150,11 +150,14 @@ subroutine part_dumpFinalState
   use mod_common
   use mod_commonmn
   use mod_settings
+  use string_tools
 
   implicit none
 
-  character(len=15) :: fileName
-  integer           :: fileUnit, j
+  character(len=200) :: roundBuf
+  character(len=15)  :: fileName
+  integer            :: fileUnit, j, k
+  logical            :: rErr
 
   select case(st_finalstate)
 
@@ -163,7 +166,7 @@ subroutine part_dumpFinalState
     fileName = "final_state.bin"
     call funit_requestUnit(fileName, fileUnit)
 
-    open(fileUnit,file=fileName,form="unformatted",access="stream",status="new")
+    open(fileUnit,file=fileName,form="unformatted",access="stream",status="replace")
 
     write(fileUnit) int(napx, kind=int32)
     write(fileUnit) int(npart,kind=int32)
@@ -189,14 +192,24 @@ subroutine part_dumpFinalState
     fileName = "final_state.dat"
     call funit_requestUnit(fileName, fileUnit)
 
-    open(fileUnit,file=fileName,form="formatted",status="new")
+    open(fileUnit,file=fileName,form="formatted",status="replace")
 
     write(fileUnit,"(a,i0)") "# napx  : ",napx
     write(fileUnit,"(a,i0)") "# npart : ",npart
-    write(fileUnit,"(a1,a7,1x,a4,8(1x,a23))") "#","partID","lost","x","y","xp","yp","sigma","dp","p","e"
+    write(fileUnit,"(a1,a7,1x,a4,8(1x,a24))") "#","partID","lost","x","y","xp","yp","sigma","dp","p","e"
 
     do j=1,npart
-      write(fileUnit, "(i8,1x,l4,8(1x,es23.16))") nlostp(j),llostp(j),xv1(j),xv2(j),yv1(j),yv2(j),sigmv(j),dpsv(j),ejfv(j),ejv(j)
+      roundBuf = " "
+      call chr_fromReal(xv1(j),  roundBuf(  2:25 ),17,3,rErr)
+      call chr_fromReal(xv2(j),  roundBuf( 27:50 ),17,3,rErr)
+      call chr_fromReal(yv1(j),  roundBuf( 52:75 ),17,3,rErr)
+      call chr_fromReal(yv2(j),  roundBuf( 77:100),17,3,rErr)
+      call chr_fromReal(sigmv(j),roundBuf(102:125),17,3,rErr)
+      call chr_fromReal(dpsv(j), roundBuf(127:150),17,3,rErr)
+      call chr_fromReal(ejfv(j), roundBuf(152:175),17,3,rErr)
+      call chr_fromReal(ejv(j),  roundBuf(177:200),17,3,rErr)
+      write(fileUnit, "(i8,1x,l4,a200)") nlostp(j),llostp(j),roundBuf
+      ! write(fileUnit, "(i8,1x,l4,8(1x,es23.16))") nlostp(j),llostp(j),xv1(j),xv2(j),yv1(j),yv2(j),sigmv(j),dpsv(j),ejfv(j),ejv(j)
     end do
 
     flush(fileUnit)
