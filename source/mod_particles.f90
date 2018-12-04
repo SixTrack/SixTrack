@@ -209,7 +209,6 @@ subroutine part_dumpFinalState
       call chr_fromReal(ejfv(j), roundBuf(152:175),17,3,rErr)
       call chr_fromReal(ejv(j),  roundBuf(177:200),17,3,rErr)
       write(fileUnit, "(i8,1x,l4,a200)") nlostp(j),llostp(j),roundBuf
-      ! write(fileUnit, "(i8,1x,l4,8(1x,es23.16))") nlostp(j),llostp(j),xv1(j),xv2(j),yv1(j),yv2(j),sigmv(j),dpsv(j),ejfv(j),ejv(j)
     end do
 
     flush(fileUnit)
