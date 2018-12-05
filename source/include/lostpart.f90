@@ -32,7 +32,7 @@
   if(llost) then
     ! report losses to user
     call aperture_reportLoss(n,i,ix)
-    if(.not.apflag) call compactArrays
+    if(.not.apflag) call shuffleLostParticles
     ! store old particle coordinates
     ! necessary since aperture markers are downstream of lenses...
     if ( lbacktracking ) call aperture_saveLastCoordinates(i,ix,-1)
