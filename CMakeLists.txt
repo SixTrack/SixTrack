@@ -82,6 +82,7 @@ OPTION(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 OPTION(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
 OPTION(STF "Single Track File: Write all tracks for postprocessing to fort.90 instead of 32 separate files fort.59 to fort.90. Required for >64 particles" ON)
 OPTION(NAFF "Link to external NAFFlib for FMA." ON)
+OPTION(HASHLIB "Build the md5 hash library" ON)
 
 # Default OFF
 OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
@@ -270,7 +271,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 ###################################################################################################
 
 list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR NAFF)
-list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
+list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT HASHLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR)
 
 ###################################################################################################
@@ -305,6 +306,10 @@ endif(DEBUG)
 if(HDF5)
   list(APPEND FORT90_LIB hdf5_output hdf5_sixtrack)
 endif(HDF5)
+
+if(HASHLIB)
+  list(APPEND FORT90_LIB mod_hash)
+endif(HASHLIB)
 
 if(BEAMGAS)
   LIST(APPEND FORT90_CR beamgas)
@@ -945,6 +950,25 @@ if(HDF5)
   target_include_directories(SixTrackLib PRIVATE ${CMAKE_SOURCE_DIR}/lib/hdf5/build/fortran)
 endif(HDF5)
 
+if(HASHLIB)
+  # ${CMAKE_SOURCE_DIR}/source/md5/md5.h
+  set(MD5_SOURCES
+    ${CMAKE_SOURCE_DIR}/source/md5/md5.c
+    ${CMAKE_SOURCE_DIR}/source/md5/md5interface.c
+  )
+  add_library(md5_lib STATIC  ${MD5_SOURCES})
+  target_include_directories(md5_lib PRIVATE ${CMAKE_SOURCE_DIR}/source/md5/)
+  set_property(TARGET md5_lib PROPERTY C_STANDARD 99)
+  target_link_libraries(md5_lib roundctl)
+  if(32BIT)
+    set_target_properties(md5_lib PROPERTIES LINK_FLAGS "-m32")
+  endif(32BIT)
+  if(64BIT)
+    set_target_properties(md5_lib PROPERTIES LINK_FLAGS "-m64")
+  endif(64BIT)
+  target_link_libraries(SixTrackLib md5_lib)
+endif(HASHLIB)
+
 if(MERLINSCATTER)
   file(GLOB MERLINSCATTER_SOURCES ${CMAKE_SOURCE_DIR}/source/merlinscatter/*.cpp ${CMAKE_SOURCE_DIR}/source/merlinscatter/RandomNG/*.cpp)
   add_library(merlinscatter STATIC ${MERLINSCATTER_SOURCES})
@@ -1167,6 +1191,7 @@ endif(CRLIBM)
 if(MERLINSCATTER)
   target_link_libraries(SixTrackCR merlinscatter)
 endif(MERLINSCATTER)
+
 # if we are using naff, link to the naff library
 if(NAFF)
   target_link_libraries(SixTrackLib naff)
@@ -1180,6 +1205,10 @@ endif(ROOT)
 if(HDF5)
   target_link_libraries(SixTrackLib ${HDF5_LIBRARIES})
 endif(HDF5)
+
+if(HASHLIB)
+  target_link_libraries(SixTrackLib md5_lib)
+endif(HASHLIB)
 
 if(G4COLLIMAT)
   target_link_libraries(SixTrackCR g4collimat ${Geant4_LIBRARIES} Threads::Threads)

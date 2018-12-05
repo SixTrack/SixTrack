@@ -53,6 +53,7 @@ However, for backwards compatibility, the \texttt{PRIN} flag is still accepted.
     \texttt{QUIET} & Followed by an integer specifying how ``quiet'' the output should be. A higher value causes less information to be printed back out. If the keyword is not present, the default value is 0, which means it is disabled. If it is present, but the integer value is omitted, it is set to be 1. This flag does not interfere with the \texttt{PRINT} flag.\index{QUIET}\\
     \texttt{PRINT\_DCUM} & This will cause the calculated s-coordinate of each structure element to be printed to \texttt{fort.6}. \\
     \texttt{PARTSUMMARY} & Enable or disable the printing of a particle summary after tracking. The flag takes an optional parameter to explicitly state whether it is ON or OFF. If omitted, it is assumed the user requests it to be ON. If the flag is omitted entirely, the default behaviour is determined by the particle count. If SixTrack is running with 64 particles or less, it is ON by default, otherwise OFF.\\
+    \texttt{FINALSTATE} & Followed by either ``binary'' or ``text''. This will write a file after tracking containing the final state of all particles, including those lost during tracking, to either a binary or text file.\\
 \end{tabular}
 
 
