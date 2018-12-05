@@ -359,7 +359,7 @@ subroutine elens_postInput
    do j=1,melens_radial_profiles
     inquire(file=elens_radial_filename(j), exist=exist)
     if(.not. exist) then
-      write(lout,"(a)") "ELENS> ERROR Problems with file with radial profile: ",trim(elens_radial_filename(j))
+      write(lout,"(a)") "ELENS> ERROR Problems with file with radial profile: "//trim(elens_radial_filename(j))
       call prror(-1)
     end if
     call parseRadialProfile(j)
