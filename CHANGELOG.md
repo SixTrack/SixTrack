@@ -4,11 +4,16 @@
 
 **User Side Changes**
 
-* Added a `FINALSTATE` flag in the `SETTINGS` block in `fort.3` for writes a binary or text file of all particles at the end of tracking (before post-processing). The flag takes `binary` or `text` as an option, specifying the file format. The `final_state.dat` or `final_state.bin` file produced also contains the particles flagged as lost during tracking.
+* Added a `FINALSTATE` flag in the `SETTINGS` block in `fort.3` that writes a binary or text file (via roundctl) of all particles at the end of tracking (but before post-processing). The flag takes `binary` or `text` as an option, specifying the file format. The `final_state.dat` or `final_state.bin` file produced also contains the particles flagged as lost during tracking.
+* Added a `HASH` module that can be used for computing the md5sum of output files. The primary purpose of this is for checking that the output is consistent in the test suite or when results are returned from BOINC.
 
 **Other Changes**
 
 * The `Sixin.zip` files used for testing BOINC builds have been removed from the test suite. These are now generated when needed by the test cmake.
+
+**Code Improvements and Changes**
+
+* All open file units registered in the module `mod_units` and `file_units` are now flushed after post-processing, and before the `HASH` and `ZIPF` modules are called.
 
 ### Version 5.0.3 [22.11.2018] - Release
 

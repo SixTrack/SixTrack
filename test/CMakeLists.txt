@@ -82,6 +82,7 @@ set(TESTS_NO_STF_FORT90
   dynk_random
   dynk_polynomial
   scatter_bbelastic
+  scatter_aperture
 )
 
 # List of tests that absolutely require STF to be on (> 64 particles)

@@ -25,8 +25,9 @@ module mod_time
   integer, parameter :: time_afterPostTrack      = 9
   integer, parameter :: time_afterPostProcessing = 10
   integer, parameter :: time_afterFMA            = 11
-  integer, parameter :: time_afterZIPF           = 12
-  integer, parameter :: time_beforeExit          = 13
+  integer, parameter :: time_afterHASH           = 12
+  integer, parameter :: time_afterZIPF           = 13
+  integer, parameter :: time_beforeExit          = 14
 
   real(kind=fPrec), public,  save :: time_timeZero = 0.0
   real(kind=fPrec), public,  save :: time_timeRecord(time_beforeExit)
@@ -157,6 +158,8 @@ subroutine time_timeStamp(timeStamp)
     call time_writeReal("Stamp_AfterPostProcessing", timeValue, "s")
   case(time_afterFMA)
     call time_writeReal("Stamp_AfterFMA",            timeValue, "s")
+  case(time_afterHASH)
+    call time_writeReal("Stamp_AfterHASH",           timeValue, "s")
   case(time_afterZIPF)
     call time_writeReal("Stamp_AfterZIPF",           timeValue, "s")
   case(time_beforeExit)

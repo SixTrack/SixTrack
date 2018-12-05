@@ -104,6 +104,9 @@ program maincr
   use aperture
   use wire
   use mod_version
+#ifdef HASHLIB
+  use mod_hash
+#endif
 
   implicit none
 
@@ -170,6 +173,9 @@ end interface
   call units_initUnits
   call alloc_init      ! Initialise tmod_alloc
   call allocate_arrays ! Initial allocation of memory
+#ifdef HASHLIB
+  call hash_initialise
+#endif
 
   ! Set napx,napxo,trtime for error handling
   napx   = 0
@@ -1863,6 +1869,21 @@ end interface
   ! Note that crpoint no longer destroys time2
   posttime=time3-time2
 
+  ! Make sure all files are flushed before we do stuff with them
+  call units_flushUnits
+  call funit_flushUnits
+
+#ifdef HASHLIB
+  ! HASH library. Must be before ZIPF
+  call hash_fileSums
+  call time_timeStamp(time_afterHASH)
+#endif
+
+  if(zipf_numfiles > 0) then
+    call zipf_dozip
+    call time_timeStamp(time_afterZIPF)
+  endif
+
   ! Get grand total including post-processing
   tottime = (pretime+trtime)+posttime
   write(lout,"(a)")         ""
@@ -1878,10 +1899,6 @@ end interface
   write(lout,"(a)")         ""
   write(lout,"(a)")         str_divLine
 
-  if(zipf_numfiles > 0) then
-    call zipf_dozip
-    call time_timeStamp(time_afterZIPF)
-  endif
 #ifdef HDF5
   if(h5_isReady) then
     call h5_writeAttr(h5_rootID,"PreTime",  pretime)
