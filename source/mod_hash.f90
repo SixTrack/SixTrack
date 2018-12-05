@@ -260,8 +260,12 @@ subroutine hash_digestFile(fileName, md5Digest)
 
   tmpVals(:) = 0
   call hash_digestFileC(fileName//char(0), len(fileName)+1, tmpVals, 16)
-  write(md5Digest,"(16(z2.2))") tmpVals
-  md5Digest = chr_toLower(md5Digest)
+  if(tmpVals(1) == -1) then
+    md5Digest = "***** ERROR File Not Found *****"
+  else
+    write(md5Digest,"(16(z2.2))") tmpVals
+    md5Digest = chr_toLower(md5Digest)
+  end if
 
 end subroutine hash_digestFile
 
