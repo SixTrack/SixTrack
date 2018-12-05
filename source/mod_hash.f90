@@ -22,12 +22,6 @@ module mod_hash
   ! C Interface
   interface
 
-    subroutine hash_digestFloatArray(inArr, arrLen) bind(C, name="md5wrapper_digestFloatArray")
-      use, intrinsic :: iso_c_binding
-      real(kind=C_DOUBLE),        intent(in) :: inArr
-      integer(kind=C_INT), value, intent(in) :: arrLen
-    end subroutine hash_digestFloatArray
-
     subroutine hash_md5Init(nInst) bind(C, name="md5wrapper_md5Init")
       use, intrinsic :: iso_c_binding
       integer(kind=C_INT), value, intent(in) :: nInst
