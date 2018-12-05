@@ -64,6 +64,8 @@ module aperture
   character(len=16), save :: load_file             ! file name
   ! File unit for aperture losses
   integer, save :: losses_unit
+  ! File name for aperture losses
+  character(len=19), parameter :: losses_filename="aperture_losses.dat"
 
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
   ! last modified: 02-03-2018
@@ -114,6 +116,11 @@ module aperture
 #ifdef HDF5
   integer, private, save :: aper_fmtLostPart
   integer, private, save :: aper_setLostPart
+#endif
+
+#ifdef CR
+  ! For resetting file positions
+  integer, private, save :: apefilepos=0, apefilepos_cr=0
 #endif
 
 contains
@@ -252,13 +259,13 @@ subroutine aperture_init
     call h5_createDataSet("losses", h5_aperID, aper_fmtLostPart, aper_setLostPart)
   else
 #endif
-    call funit_requestUnit("aperture_losses.dat",losses_unit)
+    call funit_requestUnit(losses_filename,losses_unit)
     inquire(unit=losses_unit, opened=isOpen) ! Was 999
     if(isOpen) then
       write(lout,"(a,i0,a)") "APER> ERROR Unit ",losses_unit," is already open."
       call prror(-1)
     end if
-    open(unit=losses_unit,file="aperture_losses.dat")
+    open(unit=losses_unit,file=losses_filename)
     write(losses_unit,"(a)") "# turn block bezid bez slos "// &
 #ifdef FLUKA
       "fluka_uid fluka_gen fluka_weight "// &
@@ -2906,4 +2913,114 @@ end subroutine aper_inputParsingDone
 !  END APERTURE LIMITATIONS PARSING
 ! ================================================================================================ !
 
+
+! ================================================================================================================================ !
+!  Begin Checkpoint Restart
+! ================================================================================================================================ !
+#ifdef CR
+
+! ================================================================================================================================ !
+subroutine aper_crcheck_readdata(fileunit, readerr)
+
+  implicit none
+
+  integer, intent(in) :: fileunit
+  logical, intent(out) :: readerr
+
+  integer j
+
+  read(fileunit,err=100,end=100) apefilepos_cr
+
+  readerr = .false.
+  return
+
+100 continue
+  readerr = .true.
+
+end subroutine aper_crcheck_readdata
+
+! ================================================================================================================================ !
+subroutine aper_crcheck_positionFiles
+
+  use crcoall
+  use string_tools
+  use mod_common
+
+  implicit none
+
+  integer i,j
+  logical lerror,lopen
+#ifdef BOINC
+  character(len=256) filename
+#endif
+  character(len=1024) arecord
+
+  write(93,*) "SIXTRACR CRCHECK REPOSITIONING file of APERTURE LOSSES"
+  flush(93)
+
+  inquire( unit=losses_unit, opened=lopen )
+  if (.not. lopen) then
+#ifdef BOINC
+    call boincrf(losses_filename,filename)
+    open(losses_unit,file=filename, status='old',form='formatted',action='readwrite')
+#else
+    open(losses_unit,file=losses_filename, status='old',form='formatted',action='readwrite')
+#endif
+  end if
+
+  apefilepos = 0
+  do j=1,apefilepos_cr
+    read(losses_unit,'(a1024)',end=111,err=111,iostat=ierro) arecord
+    apefilepos += 1
+  end do
+
+  ! Crop aperture losses file
+  ! This is not a FLUSH!
+  endfile (losses_unit,iostat=ierro)
+
+  ! Change from 'readwrite' to 'write'
+  close(losses_unit)
+#ifdef BOINC
+  call boincrf(losses_filename,filename)
+  open(losses_unit,file=filename, status='old',position='append',form='formatted',action='write')
+#else
+  open(losses_unit,file=losses_filename, status='old',position='append',form='formatted',action='write')
+#endif
+
+  return
+
+111 continue
+  write(93,*) 'SIXTRACR> APER_CRCHECK_POSITIONFILE *** ERROR *** reading file of APERTURE LOSSES, iostat=',ierro
+  write(93,*) 'apefilepos=',apefilepos,' apefilepos_cr=',apefilepos_cr
+  flush(93)
+  write(lout,"(a)") "SIXTRACR> ERROR APER_CRCHECK_POSITIONFILES failure positioning file of APERTURE LOSSES"
+  call prror(-1)
+
+end subroutine aper_crcheck_positionFiles
+
+! ================================================================================================================================ !
+subroutine aper_crpoint(fileunit,lerror,ierro)
+
+  use parpro !nele
+  implicit none
+
+  integer, intent(in)    :: fileunit
+  logical, intent(inout) :: lerror
+  integer, intent(inout) :: ierro
+  integer j
+
+  write(fileUnit,err=100,iostat=ierro) apefilepos
+  return
+
+100 continue
+  lerror = .true.
+  return
+
+end subroutine aper_crpoint
+! ================================================================================================================================ !
+
+#endif
+! ================================================================================================================================ !
+!  End Checkpoint Restart
+! ================================================================================================================================ !
 end module aperture

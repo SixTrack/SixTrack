@@ -111,11 +111,12 @@ end subroutine cr_expand_arrays
 
 ! ================================================================================================ !
 !  CRCHECK
-!  Last modified: 2018-06-12
+!  Last modified: 2018-12-05
 !
 !  This subroutine checks if the C/R files fort.95 and fort.96 exists, and if so tries to load
 !  them into the cr* variables.
-!  This routine also repositions the output files for fort.90..91-napx/2 or STF, DUMP, and DYNK.
+!  This routine also repositions the output files for fort.90..91-napx/2 or STF, DUMP, DYNK and
+!     aperture losses
 !
 !  The file fort.93 is used as a log file for the checkpoint/restarting.
 ! ================================================================================================ !
@@ -126,6 +127,7 @@ subroutine crcheck
   use numerical_constants
   use dynk,    only : dynk_enabled, dynk_noDynkSets,dynk_crcheck_readdata,dynk_crcheck_positionFiles
   use dump,    only : dump_crcheck_readdata,dump_crcheck_positionFiles
+  use aperture,only : aper_crcheck_readdata,aper_crcheck_positionFiles,limifound,losses_filename
   use scatter, only : scatter_active,scatter_crcheck_readdata,scatter_crcheck_positionFiles
   use, intrinsic :: iso_fortran_env, only : int32
   use crcoall
@@ -249,6 +251,13 @@ subroutine crcheck
       write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 7 SCATTER"
       flush(93)
       call scatter_crcheck_readdata(95,lerror)
+      if (lerror) goto 100
+    end if
+
+    if(limifound) then
+      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 8 APERTURE LOSSES FILE"
+      flush(93)
+      call aper_crcheck_readdata(95,lerror)
       if (lerror) goto 100
     end if
 
@@ -378,6 +387,13 @@ subroutine crcheck
       write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 7 SCATTER"
       flush(93)
       call scatter_crcheck_readdata(96,lerror)
+      if (lerror) goto 101
+    end if
+
+    if(limifound) then
+      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 8 APERTURE LOSSES FILE"
+      flush(93)
+      call aper_crcheck_readdata(96,lerror)
       if (lerror) goto 101
     end if
 
@@ -652,6 +668,12 @@ subroutine crcheck
       call scatter_crcheck_positionFiles
     endif
 
+    if(limifound) then
+      write(93,"(a)") "SIXTRACR> CRCHECK REPOSITIONING ",losses_filename
+      flush(93)
+      call aper_crcheck_positionFiles
+    endif
+
     ! Set up flag for tracking routines to call CRSTART
     restart=.true.
     write(lout,"(a80)") runtim
@@ -765,6 +787,7 @@ subroutine crpoint
 
   use dynk, only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_filePos,dynk_crpoint
   use dump, only : dump_crpoint
+  use aperture,only : aper_crpoint,limifound
   use scatter, only : scatter_active, scatter_crpoint
 
   use crcoall
@@ -954,6 +977,16 @@ subroutine crpoint
         backspace(93,iostat=ierro)
       end if
       call scatter_crpoint(crUnit,lerror,ierro)
+      if(lerror) goto 100
+    end if
+
+    if(limifound) then
+      if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
+        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing APERTURE LOSSES variables to fort.",crUnit
+        endfile(93,iostat=ierro)
+        backspace(93,iostat=ierro)
+      end if
+      call aper_crpoint(crUnit,lerror,ierro)
       if(lerror) goto 100
     end if
 
