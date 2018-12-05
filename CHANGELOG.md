@@ -2,6 +2,10 @@
 
 ### Not Yet Released
 
+**User Side Changes**
+
+* Added a `FINALSTATE` flag in the `SETTINGS` block in `fort.3` for writes a binary or text file of all particles at the end of tracking (before post-processing). The flag takes `binary` or `text` as an option, specifying the file format. The `final_state.dat` or `final_state.bin` file produced also contains the particles flagged as lost during tracking.
+
 **Other Changes**
 
 * The `Sixin.zip` files used for testing BOINC builds have been removed from the test suite. These are now generated when needed by the test cmake.
