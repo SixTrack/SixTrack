@@ -164,12 +164,13 @@ subroutine expand_thickarrays(nele_request, npart_request, nblz_request, nblo_re
 end subroutine expand_thickarrays
 
 ! ================================================================================================ !
-!  Compact Particle Arrays
+!  Shuffle Lost Particles
 !  A. Mereghetti, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-12-04
-!  This routine is called to compact all relevant arrays when a particle is lost
+!  This routine is called to move all lost particles to the end of particle arrays (after napx)
+!  Routine has ben renamed from compactArrays.
 ! ================================================================================================ !
-subroutine compactArrays
+subroutine shuffleLostParticles
 
   use floatPrecision
   use mod_hions
@@ -297,8 +298,10 @@ subroutine compactArrays
   if(fluka_enable) then
     tnapx = napx
     do j=napx,1,-1
-      if(llostp(j)) call fluka_lostpart(tnapx, j) ! Inform fluka
-      tnapx = tnapx - 1
+      if(llostp(j)) then
+        call fluka_shuffleLostParticles(tnapx, j) ! Inform fluka
+        tnapx = tnapx - 1
+      end if
     end do
   end if
 #endif
@@ -306,4 +309,4 @@ subroutine compactArrays
   napx = napx_new
   call move_alloc(tmp_lostP, llostp)
 
-end subroutine compactArrays
+end subroutine shuffleLostParticles

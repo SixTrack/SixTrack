@@ -4476,13 +4476,13 @@ subroutine collimate_end_turn
       end if
     end do
 
-!   A call to the array compression function in the aperture module
-    call compactArrays
+    ! Move the lost particles to the end of the arrays
+    call shuffleLostParticles
 
-    write(lout,"(a,i8,a,i8,a,i0)") "COLL> Compacted the particle distributions: ",napx_pre," --> ",napx,", turn = ",iturn
+    write(lout,"(3(a,i0))") "COLL> Compacted the particle distributions: ",napx_pre," --> ",napx,", turn = ",iturn
     flush(lout)
 
-! napx gets updated by compactArrays
+! napx gets updated by shuffleLostParticles
 !    napx = imov
   endif
 
