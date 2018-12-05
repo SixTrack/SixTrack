@@ -1869,6 +1869,10 @@ end interface
   ! Note that crpoint no longer destroys time2
   posttime=time3-time2
 
+  ! Make sure all files are flushed before we do stuff with them
+  call units_flushUnits
+  call funit_flushUnits
+
 #ifdef HASHLIB
   ! HASH library. Must be before ZIPF
   call hash_fileSums

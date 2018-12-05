@@ -110,7 +110,22 @@ subroutine funit_listUnits
 
 end subroutine funit_listUnits
 
-! Closes all units opened by the module
+! Flushes all units opened by the module
+subroutine funit_flushUnits
+
+  implicit none
+
+  integer chkUnit
+  logical isOpen
+
+  do chkUnit=funit_minUnit, funit_nextUnit-1
+    inquire(unit=chkUnit, opened=isOpen)
+    if(isOpen) flush(chkUnit)
+  end do
+
+end subroutine funit_flushUnits
+
+! Closes all units opened by the module (also flushes)
 subroutine funit_closeUnits
 
   implicit none
@@ -120,7 +135,10 @@ subroutine funit_closeUnits
 
   do chkUnit=funit_minUnit, funit_nextUnit-1
     inquire(unit=chkUnit, opened=isOpen)
-    if(isOpen) close(chkUnit)
+    if(isOpen) then
+      flush(chkUnit)
+      close(chkUnit)
+    end if
   end do
 
 end subroutine funit_closeUnits
