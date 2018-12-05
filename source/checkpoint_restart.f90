@@ -266,7 +266,7 @@ subroutine crcheck
       !ERICVARS
       ! and make sure we can read the extended vars before leaving fort.95
       ! We will re-read them in crstart to be sure they are restored correctly
-      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 8 extended vars fort.95 crnapxo=",crnapxo
+      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 9 extended vars fort.95 crnapxo=",crnapxo
       flush(93)
       read(95,end=100,err=100,iostat=ierro) &
         ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
@@ -402,7 +402,7 @@ subroutine crcheck
       !ERICVARS
       ! and make sure we can read the extended vars before leaving fort.96
       ! We will re-read them in crstart to be sure they are correct
-      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 8 extended vars fort.96, crnapxo=",crnapxo
+      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 9 extended vars fort.96, crnapxo=",crnapxo
       flush(93)
       write(93,"(a)") "SIXTRACR> CRCHECK verifying extended vars fort.96"
       flush(93)
@@ -669,7 +669,7 @@ subroutine crcheck
     endif
 
     if(limifound) then
-      write(93,"(a)") "SIXTRACR> CRCHECK REPOSITIONING ",losses_filename
+      write(93,"(a)") "SIXTRACR> CRCHECK REPOSITIONING "//trim(losses_filename)
       flush(93)
       call aper_crcheck_positionFiles
     endif
