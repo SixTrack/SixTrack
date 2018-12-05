@@ -1753,6 +1753,9 @@ end interface
   ! and we need to open fort.10 unless already opened for BOINC
   call units_openUnit(unit=10,fileName="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
 
+  ! Also dump the final state of the particle arrays
+  call part_dumpFinalState
+
 #ifndef FLUKA
 #ifndef STF
   iposc = 0
