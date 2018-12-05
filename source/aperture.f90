@@ -2971,7 +2971,7 @@ subroutine aper_crcheck_positionFiles
   apefilepos = 0
   do j=1,apefilepos_cr
     read(losses_unit,'(a1024)',end=111,err=111,iostat=ierro) arecord
-    apefilepos += 1
+    apefilepos = apefilepos +1
   end do
 
   ! Crop aperture losses file
