@@ -1927,7 +1927,7 @@ subroutine dump_crpoint(fileunit,lerror,ierro)
   integer, intent(inout) :: ierro
   integer j
 
-  write(95,err=100,iostat=ierro) (dumpfilepos(j),j=-1,nele)
+  write(fileunit,err=100,iostat=ierro) (dumpfilepos(j),j=-1,nele)
   return
 
 100 continue
