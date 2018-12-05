@@ -82,6 +82,7 @@ OPTION(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 OPTION(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
 OPTION(STF "Single Track File: Write all tracks for postprocessing to fort.90 instead of 32 separate files fort.59 to fort.90. Required for >64 particles" ON)
 OPTION(NAFF "Link to external NAFFlib for FMA." ON)
+OPTION(HASHLIB "Build the md5 hash library" ON)
 
 # Default OFF
 OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
@@ -96,7 +97,6 @@ OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 OPTION(FLUKA "Couple to FLUKA for beam collimation" OFF)
 OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPF block" OFF)
 OPTION(ROOT "Link to the root libraries" OFF)
-OPTION(HASHLIB "Build the md5 hash library" OFF)
 
 # Build Options
 OPTION(32BIT "Create a 32bit binary" OFF)
