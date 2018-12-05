@@ -1070,7 +1070,7 @@ subroutine aperture_reportLoss(turn, i, ix)
         call h5_writeData(aper_setLostPart, 9,  1, ylos(2)*c1m3)
         call h5_writeData(aper_setLostPart, 10, 1, ejfvlos*c1m3)
         call h5_writeData(aper_setLostPart, 11, 1, (ejvlos*(nucm0/nucmlos)-e0)*c1e6)
-        call h5_writeData(aper_setLostPart, 12, 1, -c1m3 * (sigmvlos/clight) * (e0/e0f))
+        call h5_writeData(aper_setLostPart, 12, 1, (-(c1m3 * (sigmvlos/clight) ))* (e0/e0f))
         call h5_writeData(aper_setLostPart, 13, 1, naalos)
         call h5_writeData(aper_setLostPart, 14, 1, nzzlos)
 #ifdef FLUKA
@@ -1107,7 +1107,7 @@ subroutine aperture_reportLoss(turn, i, ix)
 
      &       xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3,         &
      &       ejfvlos*c1m3, (ejvlos*(nucm0/nucmlos)-e0)*c1e6,                 &
-     &       (-one*(c1m3 * (sigmvlos/clight) ))* (e0/e0f),                   &
+     &       (-(c1m3 * (sigmvlos/clight) ))* (e0/e0f),                       &
      &       naalos, nzzlos
 #ifdef HDF5
       end if
@@ -1121,11 +1121,11 @@ subroutine aperture_reportLoss(turn, i, ix)
         call ApertureCheckWriteLossParticleF(turn, i, ix, this_name, len_trim(this_name), slos, &
           fluka_uid(j), fluka_gen(j), fluka_weight(j), &
           xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
-          -c1m3 * (sigmvlos/clight) * (e0/e0f), naalos, nzzlos)
+          (-(c1m3 * (sigmvlos/clight))) * (e0/e0f), naalos, nzzlos)
 #else
         call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos, plost(j),&
           xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
-          -c1m3 * (sigmvlos/clight) * (e0/e0f), naalos, nzzlos)
+          (-(c1m3 * (sigmvlos/clight))) * (e0/e0f), naalos, nzzlos)
 #endif
       end if
 #endif
@@ -1851,7 +1851,7 @@ subroutine dump_aperture_model
         if(lbacktracking) then
           ! Number of iterations
           if( (dcum(i)-dcum(iOld)).gt.zero) then
-            niter = nint((dcum(i)-dcum(iOld))/bktpre+1)
+            niter = nint((dcum(i)-dcum(iOld))/bktpre+one)
             do jj=1,niter
               slos = int(dcum(iOld)/bktpre+jj)*bktpre
               if( slos.lt.dcum(iOld) .or. slos.gt.dcum(i) ) exit
@@ -2069,7 +2069,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
   select case(itmpape)
   case(-1) ! transition
      do i=1,nAzim
-        thetaRay=i/real(nAzim)*two*pi ! radians
+        thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
         call intersectTR(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(3),tmpape(4),tmpape(5),tmpape(6),xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2079,7 +2079,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(1) ! circle
      do i=1,nAzim
-        thetaRay=i/real(nAzim)*two*pi ! radians
+        thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
         call intersectCR(xRay,yRay,thetaRay-tmpape(7),tmpape(3),zero,zero,xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2089,7 +2089,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(2) ! rectangle
      do i=1,nAzim
-        thetaRay=i/real(nAzim)*two*pi ! radians
+        thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
         call intersectRE(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2099,7 +2099,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(3) ! ellipse
      do i=1,nAzim
-        thetaRay=i/real(nAzim)*two*pi ! radians
+        thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
         call intersectEL(xRay,yRay,thetaRay-tmpape(7),tmpape(3),tmpape(4),zero,zero,xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2109,7 +2109,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(4) ! rectellipse
      do i=1,nAzim
-        thetaRay=i/real(nAzim)*two*pi ! radians
+        thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
         call intersectRL(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(3),tmpape(4),xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2119,7 +2119,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(5) ! octagon
      do i=1,nAzim
-        thetaRay=i/real(nAzim)*two*pi ! radians
+        thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
         call intersectOC(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(5),tmpape(6),xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2129,7 +2129,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(6) ! racetrack
      do i=1,nAzim
-        thetaRay=i/real(nAzim)*two*pi ! radians
+        thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
         call intersectRT(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(3),xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2181,7 +2181,7 @@ subroutine intersectCR( xRay, yRay, thetaRay, radius, x0, y0, xChk, yChk, nChk )
      else if(pi/two.lt.thetaRay.and.thetaRay.lt.pi) then ! second quadrant
         tmpX0=-abs(x0)
         tmpY0=abs(y0)
-     else if(pi.lt.thetaRay.and.thetaRay.lt.pi/two*three) then ! second quadrant
+     else if(pi.lt.thetaRay.and.thetaRay.lt.pi*(three/two)) then ! second quadrant
         tmpX0=-abs(x0)
         tmpY0=-abs(y0)
      else ! fourth quadrant
@@ -2310,13 +2310,13 @@ subroutine intersectEL( xRay, yRay, thetaRay, aa, bb, x0, y0, xChk, yChk, nChk )
         tmpX0=abs(x0)
         tmpY0=-abs(y0)
      end if
-     delta=-(mRay*tmpX0-tmpY0+qRay)**2+(bb**2+aa**2*mRay**2)
+     delta=-((mRay*tmpX0-tmpY0)+qRay)**2+(bb**2+aa**2*mRay**2)
      if(delta.lt.zero) return
      if((zero.lt.thetaRay.and.thetaRay.lt.pi/two).or. & ! first quadrant
  &       (pi*(three/two).lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
         xChk=((aa**2*(mRay*(tmpY0-qRay))+bb**2*tmpX0)+(aa*bb)*sqrt(delta))/(bb**2+aa**2*mRay**2)
      else
-        xChk=((aa**2*(mRay*(tmpY0-qRay))+bb**2*tmpX0)+(-one*(aa*bb))*sqrt(delta))/(bb**2+aa**2*mRay**2)
+        xChk=((aa**2*(mRay*(tmpY0-qRay))+bb**2*tmpX0)+(-(aa*bb))*sqrt(delta))/(bb**2+aa**2*mRay**2)
      end if
      yChk=mRay*xChk+qRay
      nChk=sqrt(xChk**2+yChk**2)
