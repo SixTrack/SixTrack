@@ -4,8 +4,7 @@
 !  Last modified: 2018-11-30
 !
 !  This module provides an interface to the MD5 implementation written by Ronald L. Rivest (MIT).
-!  The source code is available under source/md5. Note that this implementation is not compliant
-!  with RFC1321, as it produces different hash values than the standard.
+!  The source code is available under source/md5.
 ! ================================================================================================ !
 module mod_hash
 
@@ -22,6 +21,7 @@ module mod_hash
   ! C Interface
   interface
 
+    ! Direct interfaces to the MD5 main functions.
     subroutine hash_md5Init(nInst) bind(C, name="md5wrapper_md5Init")
       use, intrinsic :: iso_c_binding
       integer(kind=C_INT), value, intent(in) :: nInst
@@ -41,6 +41,7 @@ module mod_hash
       integer(kind=C_INT), value, intent(in)    :: md5Size
     end subroutine hash_md5FinalC
 
+    ! Interfaces to complete digest functions
     subroutine hash_digestStringC(inStr, strLen, md5Vals, md5Size) bind(C, name="md5wrapper_digestString")
       use, intrinsic :: iso_c_binding
       character(kind=C_CHAR,len=1), intent(in)    :: inStr
@@ -61,6 +62,12 @@ module mod_hash
 
 contains
 
+! ================================================================================================ !
+!  INIT THE HASH MODULE
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-11-30
+!  Performs a self test to check that it complies with the RFC1321 standard.
+! ================================================================================================ !
 subroutine hash_initialise
 
   use crcoall
@@ -106,6 +113,11 @@ subroutine hash_initialise
 
 end subroutine hash_initialise
 
+! ================================================================================================ !
+!  INPUT LINE PARSING
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-11-30
+! ================================================================================================ !
 subroutine hash_parseInputLine(inLine, iErr)
 
   use crcoall
@@ -152,6 +164,12 @@ subroutine hash_parseInputLine(inLine, iErr)
 
 end subroutine hash_parseInputLine
 
+! ================================================================================================ !
+!  COMPUTE MD5SUMS
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-12-04
+!  Computes the md5 digest of files listed in the HASH block
+! ================================================================================================ !
 subroutine hash_fileSums
 
   use parpro
@@ -189,7 +207,7 @@ subroutine hash_fileSums
 end subroutine hash_fileSums
 
 ! ================================================================================================ !
-!  Wrapper Subroutines
+!  Wrapper Subroutines for the Interface
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-11-30
 ! ================================================================================================ !
