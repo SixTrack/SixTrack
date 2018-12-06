@@ -198,7 +198,8 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'cre0',cre0
   write(99,*) 'crnumxv(npart)',crnumxv
   write(99,*) 'crnnumxv(npart)',crnnumxv
-  write(99,*) 'crnlostp(npart)',crnlostp
+  write(99,*) 'crpartID(npart)',crpartID
+  write(99,*) 'crparentID(npart)',crparentID
   write(99,*) 'crpstop(npart)',crpstop
   write(99,*) 'crxv',crxv
   write(99,*) 'cryv',cryv
@@ -541,7 +542,8 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'ejf0v ',ejf0v
   write(99,*) 'numxv ',numxv
   write(99,*) 'nms ',nms
-  write(99,*) 'nlostp ',nlostp
+  write(99,*) 'partID ',partID
+  write(99,*) 'parentID ',parentID
   write(99,*) 'dpd ',dpd
   write(99,*) 'dpsq ',dpsq
   write(99,*) 'fok ',fok
@@ -681,7 +683,8 @@ subroutine dumpbin(dumpname,n,i)
   write(99) cre0
   write(99) crnumxv
   write(99) crnnumxv
-  write(99) crnlostp
+  write(99) crpartID
+  write(99) crparentID
   write(99) crpstop
   write(99) crxv
   write(99) cryv
@@ -1024,7 +1027,7 @@ subroutine dumpbin(dumpname,n,i)
   write(99) ejf0v
   write(99) numxv
   write(99) nms
-  write(99) nlostp
+  write(99) parentID
   write(99) dpd
   write(99) dpsq
   write(99) fok
@@ -1158,7 +1161,8 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'cre0',cre0
   write(99,100) 'crnumxv(npart)',crnumxv
   write(99,100) 'crnnumxv(npart)',crnnumxv
-  write(99,100) 'crnlostp(npart)',crnlostp
+  write(99,100) 'crpartID(npart)',crpartID
+  write(99,100) 'crparentID(npart)',crparentID
   write(99,100) 'crpstop(npart)',crpstop
   write(99,100) 'crxv',crxv
   write(99,100) 'cryv',cryv
@@ -1499,7 +1503,8 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'ejf0v ',ejf0v
   write(99,100) 'numxv ',numxv
   write(99,100) 'nms ',nms
-  write(99,100) 'nlostp ',nlostp
+  write(99,100) 'partID ',partID
+  write(99,100) 'parentID ',parentID
   write(99,100) 'dpd ',dpd
   write(99,100) 'dpsq ',dpsq
   write(99,100) 'fok ',fok

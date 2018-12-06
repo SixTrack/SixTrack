@@ -172,16 +172,17 @@ subroutine part_dumpFinalState
     write(fileUnit) int(npart,kind=int32)
 
     do j=1,npart
-      write(fileUnit)     int(nlostp(j), kind=int32)
-      write(fileUnit) logical(llostp(j), kind=int32)
-      write(fileUnit)    real(   xv1(j), kind=real64)
-      write(fileUnit)    real(   xv2(j), kind=real64)
-      write(fileUnit)    real(   yv1(j), kind=real64)
-      write(fileUnit)    real(   yv2(j), kind=real64)
-      write(fileUnit)    real( sigmv(j), kind=real64)
-      write(fileUnit)    real(  dpsv(j), kind=real64)
-      write(fileUnit)    real(  ejfv(j), kind=real64)
-      write(fileUnit)    real(   ejv(j), kind=real64)
+      write(fileUnit)     int(partID(j),   kind=int32)
+      write(fileUnit)     int(parentID(j), kind=int32)
+      write(fileUnit) logical(llostp(j),   kind=int32)
+      write(fileUnit)    real(   xv1(j),   kind=real64)
+      write(fileUnit)    real(   xv2(j),   kind=real64)
+      write(fileUnit)    real(   yv1(j),   kind=real64)
+      write(fileUnit)    real(   yv2(j),   kind=real64)
+      write(fileUnit)    real( sigmv(j),   kind=real64)
+      write(fileUnit)    real(  dpsv(j),   kind=real64)
+      write(fileUnit)    real(  ejfv(j),   kind=real64)
+      write(fileUnit)    real(   ejv(j),   kind=real64)
     end do
 
     flush(fileUnit)
@@ -196,7 +197,7 @@ subroutine part_dumpFinalState
 
     write(fileUnit,"(a,i0)") "# napx  : ",napx
     write(fileUnit,"(a,i0)") "# npart : ",npart
-    write(fileUnit,"(a1,a7,1x,a4,8(1x,a24))") "#","partID","lost","x","y","xp","yp","sigma","dp","p","e"
+    write(fileUnit,"(a1,a7,1x,a8,1x,a4,8(1x,a24))") "#","partID","parentID","lost","x","y","xp","yp","sigma","dp","p","e"
 
     do j=1,npart
       roundBuf = " "
@@ -208,7 +209,7 @@ subroutine part_dumpFinalState
       call chr_fromReal(dpsv(j), roundBuf(127:150),17,3,rErr)
       call chr_fromReal(ejfv(j), roundBuf(152:175),17,3,rErr)
       call chr_fromReal(ejv(j),  roundBuf(177:200),17,3,rErr)
-      write(fileUnit, "(i8,1x,l4,a200)") nlostp(j),llostp(j),roundBuf
+      write(fileUnit, "(2(i8,1x),l4,a200)") partID(j),parentID(j),llostp(j),roundBuf
     end do
 
     flush(fileUnit)

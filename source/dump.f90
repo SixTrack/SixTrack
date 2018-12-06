@@ -1014,7 +1014,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1, napx, nlostp)
+      call h5_writeData(dump_hdf5DataSet(ix), 1, napx, partID)
       call h5_writeData(dump_hdf5DataSet(ix), 2, napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3, napx, localDcum)
       call h5_writeData(dump_hdf5DataSet(ix), 4, napx, xv1(:))
@@ -1033,7 +1033,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
           call chr_fromReal(xv2(j),       xyz_h(3),19,2,rErr)
           call chr_fromReal(yv2(j),       xyz_h(4),19,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_h(5),19,2,rErr)
-          write(unit,"(2(1x,i8),1x,f12.5,5(1x,a25),1x,i8)") nlostp(j),nturn,localDcum, &
+          write(unit,"(2(1x,i8),1x,f12.5,5(1x,a25),1x,i8)") partID(j),nturn,localDcum, &
             xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),localKtrack
         end do
       else
@@ -1043,7 +1043,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
           call chr_fromReal(xv2(j),       xyz_l(3),10,2,rErr)
           call chr_fromReal(yv2(j),       xyz_l(4),10,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_l(5),10,2,rErr)
-          write(unit,"(2(1x,i8),1x,f12.5,5(1x,a16),1x,i8)") nlostp(j),nturn,localDcum, &
+          write(unit,"(2(1x,i8),1x,f12.5,5(1x,a16),1x,i8)") partID(j),nturn,localDcum, &
             xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),localKtrack
         end do
       end if
@@ -1073,7 +1073,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, partID)
       call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
       call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv1(:))
@@ -1094,7 +1094,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
           call chr_fromReal(yv2(j),       xyz_h(4),19,2,rErr)
           call chr_fromReal(sigmv(j),      xyz_h(5),19,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_h(6),19,2,rErr)
-          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a25),1x,i8)") nlostp(j),nturn,localDcum,&
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a25),1x,i8)") partID(j),nturn,localDcum,&
             xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),xyz_h(6),localKtrack
         end do
       else
@@ -1105,7 +1105,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
           call chr_fromReal(yv2(j),       xyz_l(4),10,2,rErr)
           call chr_fromReal(sigmv(j),      xyz_l(5),10,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_l(6),10,2,rErr)
-          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16),1x,i8)") nlostp(j),nturn,localDcum,&
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16),1x,i8)") partID(j),nturn,localDcum,&
             xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),localKtrack
         end do
       end if
@@ -1135,7 +1135,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, partID)
       call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
       call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv1(:))
@@ -1149,7 +1149,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     else
 #endif
       do j=1,napx
-        write(unit) nlostp(j),nturn,localDcum,xv1(j),yv1(j),xv2(j),yv2(j), &
+        write(unit) partID(j),nturn,localDcum,xv1(j),yv1(j),xv2(j),yv2(j), &
           sigmv(j),(ejv(j)-e0)/e0,localKtrack
       end do
 
@@ -1524,7 +1524,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
           call chr_fromReal(nxyz_particle(4),xyz_h(4),19,2,rErr)
           call chr_fromReal(nxyz_particle(5),xyz_h(5),19,2,rErr)
           call chr_fromReal(nxyz_particle(6),xyz_h(6),19,2,rErr)
-          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a25),1x,i8)") nlostp(j),nturn,localDcum, &
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a25),1x,i8)") partID(j),nturn,localDcum, &
             xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),xyz_h(6),localKtrack
         else
           call chr_fromReal(nxyz_particle(1),xyz_l(1),10,2,rErr)
@@ -1533,12 +1533,12 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
           call chr_fromReal(nxyz_particle(4),xyz_l(4),10,2,rErr)
           call chr_fromReal(nxyz_particle(5),xyz_l(5),10,2,rErr)
           call chr_fromReal(nxyz_particle(6),xyz_l(6),10,2,rErr)
-          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16),1x,i8)") nlostp(j),nturn,localDcum, &
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16),1x,i8)") partID(j),nturn,localDcum, &
             xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),localKtrack
         end if
 
       else if(fmt == 8) then
-        write(unit) nlostp(j),nturn,localDcum, &
+        write(unit) partID(j),nturn,localDcum, &
           nxyz_particle(1),nxyz_particle(2),nxyz_particle(3),nxyz_particle(4),nxyz_particle(5),nxyz_particle(6),localKtrack
 
       else if(fmt == 9) then
@@ -1711,7 +1711,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, partID)
       call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
       call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv1(:))
@@ -1734,7 +1734,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
     else
 #endif
       do j=1,napx
-        write(unit) nlostp(j),nturn,localDcum, &
+        write(unit) partID(j),nturn,localDcum, &
                     xv1(j),yv1(j),xv2(j),yv2(j), &
                     sigmv(j),(ejv(j)-e0)/e0,localKtrack, &
                     ejv(j), ejfv(j), dpsv(j), oidpsv(j), &

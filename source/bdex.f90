@@ -491,7 +491,7 @@ subroutine bdex_track(i,ix,n)
         call chr_fromReal(oidpsv(j),tmpStr(10),19,2,rErr)
         call chr_fromReal(dpsv1(j), tmpStr(11),19,2,rErr)
         write(bdex_channels(bdex_elementChannel(ix),4)+1,"(11(a25,1x),i24)") tmpStr(1),tmpStr(2),tmpStr(3),tmpStr(4),tmpStr(5),&
-          tmpStr(6),tmpStr(7),tmpStr(8),tmpStr(9),tmpStr(10),tmpStr(11),nlostp(j)
+          tmpStr(6),tmpStr(7),tmpStr(8),tmpStr(9),tmpStr(10),tmpStr(11),partID(j)
       end do
       write(bdex_channels(bdex_elementChannel(ix),4)+1,'(a)') "BDEX WAITING..."
 
@@ -517,7 +517,7 @@ subroutine bdex_track(i,ix,n)
           read(bdex_channels(bdex_elementChannel(ix),4),*) &
                 xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j), &
                 ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j), &
-                dpsv1(j),nlostp(j)
+                dpsv1(j),partID(j)
           ! TODO: Handle secondary particle tracking arrays properly
           ! TODO: CRLIBM
         enddo

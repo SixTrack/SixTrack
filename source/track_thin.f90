@@ -67,7 +67,8 @@ subroutine trauthin(nthinerr)
   call alloc(cbzb, npart, zero, "cbzb")
 
   do i=1,npart
-    nlostp(i)=i
+    partID(i)=i
+    parentID(i)=i
   end do
   do i=1,nblz
     ktrack(i)=0
@@ -2228,8 +2229,8 @@ subroutine dist1
   save
 !-----------------------------------------------------------------------
   do 20 ia=1,napx,2
-    if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.     &
-  &(mod(nlostp(ia),2).ne.0)) then
+    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.     &
+  &(mod(partID(ia),2).ne.0)) then
       ie=ia+1
       dam(ia)=zero
       dam(ie)=zero

@@ -56,7 +56,8 @@ module checkpoint_restart
   integer,             allocatable, public, save :: crbinrecs(:) ! (npart+1)/2)
   integer,             allocatable, public, save :: crnumxv(:)   ! (npart)
   integer,             allocatable, public, save :: crnnumxv(:)  ! (npart)
-  integer,             allocatable, public, save :: crnlostp(:)  ! (npart)
+  integer,             allocatable, public, save :: crpartID(:)  ! (npart)
+  integer,             allocatable, public, save :: crparentID(:) ! (npart)
 
   logical,             allocatable, public, save :: crpstop(:)   ! (npart)
 
@@ -102,7 +103,8 @@ subroutine cr_expand_arrays(npart_new)
   call alloc(crbinrecs,    npair_new,      0,       "crbinrecs")
   call alloc(crnumxv,      npart_new,      0,       "crnumxv")
   call alloc(crnnumxv,     npart_new,      0,       "crnnumxv")
-  call alloc(crnlostp,     npart_new,      0,       "crnlostp")
+  call alloc(crpartID,     npart_new,      0,       "crpartID")
+  call alloc(crparentID,   npart_new,      0,       "crparentID")
   call alloc(crpstop,      npart_new,      .false., "crpstop")
 
   crnpart_old = npart_new
@@ -202,7 +204,8 @@ subroutine crcheck
       (crbinrecs(j),j=1,(crnapxo+1)/2), &
       (crnumxv(j),j=1,crnapxo),         &
       (crnnumxv(j),j=1,crnapxo),        &
-      (crnlostp(j),j=1,crnapxo),        &
+      (crpartID(j),j=1,crnapxo),        &
+      (crparentID(j),j=1,crnapxo),      &
       (crpstop(j),j=1,crnapxo),         &
       (crxv(1,j),j=1,crnapxo),          &
       (cryv(1,j),j=1,crnapxo),          &
@@ -336,7 +339,8 @@ subroutine crcheck
       (crbinrecs(j),j=1,(crnapxo+1)/2),  &
       (crnumxv(j),j=1,crnapxo),          &
       (crnnumxv(j),j=1,crnapxo),         &
-      (crnlostp(j),j=1,crnapxo),         &
+      (crpartID(j),j=1,crnapxo),         &
+      (crparentID(j),j=1,crnapxo),       &
       (crpstop(j),j=1,crnapxo),          &
       (crxv(1,j),j=1,crnapxo),           &
       (cryv(1,j),j=1,crnapxo),           &
@@ -890,7 +894,8 @@ subroutine crpoint
       (binrecs(j),j=1,(napxo+1)/2), &
       (numxv(j),j=1,napxo),         &
       (nnumxv(j),j=1,napxo),        &
-      (nlostp(j),j=1,napxo),        &
+      (partID(j),j=1,napxo),        &
+      (parentID(j),j=1,napxo),      &
       (pstop(j),j=1,napxo),         &
       (xv1(j),j=1,napxo),           &
       (yv1(j),j=1,napxo),           &
@@ -1105,7 +1110,8 @@ subroutine crstart
   do j=1,napxo
     numxv(j)=crnumxv(j)
     nnumxv(j)=crnnumxv(j)
-    nlostp(j)=crnlostp(j)
+    partID(j)=crpartID(j)
+    parentID(j)=crparentID(j)
     pstop(j)=crpstop(j)
     xv1(j)=crxv(1,j)
     yv1(j)=cryv(1,j)

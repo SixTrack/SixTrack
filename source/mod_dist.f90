@@ -174,16 +174,17 @@ subroutine dist_readDist
   if(nSplit > 13) call chr_cast(lnSplit(14), dt(j),   cErr)
   if(cErr) goto 20
 
-  xv1(j)    = xv1(j)*c1e3
-  xv2(j)    = xv2(j)*c1e3
-  yv1(j)    = yv1(j)*c1e3
-  yv2(j)    = yv2(j)*c1e3
-  ejfv(j)   = ejfv(j)*c1e3
-  nucm(j)   = nucm(j)*c1e3
-  sigmv(j)  = -(e0f/e0)*((dt(j)*clight)*c1e3)
-  mtc(j)    = (nzz(j)*nucm0)/(zz0*nucm(j))
-  nlostp(j) = j
-  pstop(j)  = .false.
+  xv1(j)      = xv1(j)*c1e3
+  xv2(j)      = xv2(j)*c1e3
+  yv1(j)      = yv1(j)*c1e3
+  yv2(j)      = yv2(j)*c1e3
+  ejfv(j)     = ejfv(j)*c1e3
+  nucm(j)     = nucm(j)*c1e3
+  sigmv(j)    = -(e0f/e0)*((dt(j)*clight)*c1e3)
+  mtc(j)      = (nzz(j)*nucm0)/(zz0*nucm(j))
+  partID(j)   = j
+  parentID(j) = j
+  pstop(j)    = .false.
 
   goto 10
 
@@ -268,7 +269,7 @@ subroutine dist_finaliseDist
   write(lout,"(a,1x,f15.7)")       "DIST> Reference energy [Z TeV]:", c1m6*e0/zz0
 
   do j=napx+1,npart
-    nlostp(j)   = j
+    partID(j)   = j
     pstop(j)    = .true.
     ejv(j)      = zero
     dpsv(j)     = zero

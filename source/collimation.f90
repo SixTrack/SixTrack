@@ -1822,7 +1822,8 @@ subroutine collimate_start_sample(nsample)
     omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
     dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 
-    nlostp(i)=i
+    partID(i)=i
+    parentID(i)=i
 
     do ieff =1, numeff
       counted_r(i,ieff) = 0
@@ -4435,44 +4436,6 @@ subroutine collimate_end_turn
         llostp(j) = .false.
       else
         llostp(j) = .true.
-
-!        imov = imov + 1
-!        xgrd(imov)           = xgrd(j)
-!        ygrd(imov)           = ygrd(j)
-!        xpgrd(imov)          = xpgrd(j)
-!        ypgrd(imov)          = ypgrd(j)
-!        pgrd(imov)           = pgrd(j)
-!        ejfvgrd(imov)        = ejfvgrd(j)
-!        sigmvgrd(imov)       = sigmvgrd(j)
-!        rvvgrd(imov)         = rvvgrd(j)
-!        dpsvgrd(imov)        = dpsvgrd(j)
-!        oidpsvgrd(imov)      = oidpsvgrd(j)
-!        dpsv1grd(imov)       = dpsv1grd(j)
-!        part_hit_pos(imov)   = part_hit_pos(j)
-!        part_hit_turn(imov)  = part_hit_turn(j)
-!        part_abs_pos(imov)   = part_abs_pos(j)
-!        part_abs_turn(imov)  = part_abs_turn(j)
-!        part_select(imov)    = part_select(j)
-!        part_impact(imov)    = part_impact(j)
-!        part_indiv(imov)     = part_indiv(j)
-!        part_linteract(imov) = part_linteract(j)
-!        part_hit_before_pos(imov)  = part_hit_before_pos(j)
-!        part_hit_before_turn(imov) = part_hit_before_turn(j)
-!        secondary(imov) = secondary(j)
-!        tertiary(imov) = tertiary(j)
-!        other(imov) = other(j)
-!        scatterhit(imov) = scatterhit(j)
-!        nabs_type(imov) = nabs_type(j)
-!!GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
-!        ipart(imov) = ipart(j)
-!        flukaname(imov) = flukaname(j)
-!!KNS: Also compact nlostp (used for standard LOST calculations + output)
-!        nlostp(imov) = nlostp(j)
-!        do ieff = 1, numeff
-!          counted_r(imov,ieff) = counted_r(j,ieff)
-!          counted_x(imov,ieff) = counted_x(j,ieff)
-!          counted_y(imov,ieff) = counted_y(j,ieff)
-!        end do
       end if
     end do
 
