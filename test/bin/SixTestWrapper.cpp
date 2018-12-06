@@ -110,7 +110,9 @@ int main(int argc, char* argv[])
 {
     //First check we have the correct number of arguments
     if(argc != 12) {
-        std::cout << argv[0] << " called with the incorrect number of arguments, should be 11, but was called with " << argc - 1 << " arguments" << std::endl;
+        std::cout << argv[0]
+                  << " called with the incorrect number of arguments, should be 11, "
+                  << "but was called with " << argc - 1 << " arguments" << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -1340,14 +1342,20 @@ DWORD winthread_kill_sixtrack(LPVOID InputStruct) {
 */
 void UnlinkCRFiles() {
     int forts[] = {6, 10, 90, 93, 95, 96};
-    for(int n=0; n < 6; n++) {
-        std::stringstream fname;
-        fname << "fort." << forts[n];
-        std::cout << "Deleting old " << fname.str().c_str() << std::endl;
+    std::vector<std::string> unlinkFiles;
+    unlinkFiles.push_back("fort.6");
+    unlinkFiles.push_back("fort.10");
+    unlinkFiles.push_back("fort.90");
+    unlinkFiles.push_back("fort.93");
+    unlinkFiles.push_back("fort.95");
+    unlinkFiles.push_back("fort.96");
 
-        int unlink_status= unlink(fname.str().c_str());
+    for (auto fname : unlinkFiles) {
+        std::cout << "Deleting old '" << fname << "'" << std::endl;
+
+        int unlink_status= unlink(fname.c_str());
         if(unlink_status != 0) {
-            std::string er = "WARNING: Could not unlink " + fname.str();
+            std::string er = "WARNING: Could not unlink '" + fname + "'";
             perror(er.c_str());
         }
     }
