@@ -460,7 +460,6 @@ end interface
     call h5_writeSimInfo()
   end if
 #endif
-  call aperture_init
 
   if (ithick.eq.1) call allocate_thickarrays
 
@@ -481,6 +480,8 @@ end interface
       if(ithick.eq.1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
       if(ithick.eq.0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
 
+  call aperture_init
+      
 #ifndef FLUKA
   ! SETTING UP THE PLOTTING
   if(ipos.eq.1.and.(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then

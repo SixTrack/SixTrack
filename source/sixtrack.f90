@@ -938,7 +938,9 @@ subroutine daten
     endif
 
   end if
-
+ 
+  call aper_postInput
+  
   call elens_postInput
 
   if(idp == 0 .or. ition == 0 .or. nbeam < 1) then

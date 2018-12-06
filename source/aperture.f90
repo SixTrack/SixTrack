@@ -120,7 +120,7 @@ module aperture
 
 #ifdef CR
   ! For resetting file positions
-  integer, private, save :: apefilepos=0, apefilepos_cr=0
+  integer, private, save :: apefilepos=-1, apefilepos_cr
 #endif
 
 contains
@@ -217,9 +217,11 @@ end subroutine aperture_comnul
 ! ================================================================================================ !
 subroutine aperture_init
 
-  use file_units
-
   implicit none
+
+#ifdef BOINC
+  character(len=256) filename
+#endif
 
 #ifdef HDF5
   type(h5_dataField), allocatable :: setFields(:)
@@ -259,20 +261,49 @@ subroutine aperture_init
     call h5_createDataSet("losses", h5_aperID, aper_fmtLostPart, aper_setLostPart)
   else
 #endif
-    call funit_requestUnit(losses_filename,losses_unit)
-    inquire(unit=losses_unit, opened=isOpen) ! Was 999
-    if(isOpen) then
-      write(lout,"(a,i0,a)") "APER> ERROR Unit ",losses_unit," is already open."
-      call prror(-1)
-    end if
-    open(unit=losses_unit,file=losses_filename)
-    write(losses_unit,"(a)") "# turn block bezid bez slos "// &
-#ifdef FLUKA
-      "fluka_uid fluka_gen fluka_weight "// &
-#else
-      "partid "// &
+     
+#ifdef CR
+    if (apefilepos >= 0) then
+      ! Expect the file to be opened already, in crcheck
+      inquire( unit=losses_unit, opened=isOpen )
+      if (.not.isOpen) then
+        write(lout,"(2(a,i0),a)") "LIMI> ERROR The unit ",losses_unit," has apefilepos = ", apefilepos, " >= 0, "//&
+          "but the file is NOT open. This is probably a bug."
+        call prror(-1)
+      end if
+    else
 #endif
-      "x xp y yp etot dE dT A_atom Z_atom "
+       
+      inquire(unit=losses_unit, opened=isOpen) ! Was 999
+      if(isOpen) then
+        write(lout,"(a,i0,a)") "APER> ERROR Unit ",losses_unit," is already open."
+        call prror(-1)
+      end if
+   
+#ifdef BOINC
+      call boincrf(losses_filename,filename)
+      open(losses_unit,file=filename,status='replace',form='formatted')
+#else
+      open(losses_unit,file=trim(losses_filename),status='replace',form='formatted')
+#endif
+    
+#ifdef CR
+      apefilepos=0
+#endif
+    
+      write(losses_unit,"(a)") "# turn block bezid bez slos "// &
+#ifdef FLUKA
+        "fluka_uid fluka_gen fluka_weight "// &
+#else
+        "partid "// &
+#endif
+        "x xp y yp etot dE dT A_atom Z_atom "
+      ! Flush file
+      flush(losses_unit)
+#ifdef CR
+      apefilepos=apefilepos+1
+    end if
+#endif
 #ifdef HDF5
   end if
 #endif
@@ -1116,6 +1147,9 @@ subroutine aperture_reportLoss(turn, i, ix)
      &       ejfvlos*c1m3, (ejvlos*(nucm0/nucmlos)-e0)*c1e6,                 &
      &       (-(c1m3 * (sigmvlos/clight) ))* (e0/e0f),                       &
      &       naalos, nzzlos
+#ifdef CR
+        apefilepos=apefilepos+1
+#endif
 #ifdef HDF5
       end if
 #endif
@@ -2913,6 +2947,15 @@ end subroutine aper_inputParsingDone
 !  END APERTURE LIMITATIONS PARSING
 ! ================================================================================================ !
 
+subroutine aper_postInput
+
+  use file_units
+  implicit none
+
+  ! request unit
+  call funit_requestUnit(trim(losses_filename),losses_unit)
+
+end subroutine aper_postInput
 
 ! ================================================================================================================================ !
 !  Begin Checkpoint Restart
@@ -2955,7 +2998,7 @@ subroutine aper_crcheck_positionFiles
 #endif
   character(len=1024) arecord
 
-  write(93,*) "SIXTRACR CRCHECK REPOSITIONING file of APERTURE LOSSES"
+  write(93,*) "SIXTRACR CRCHECK REPOSITIONING file of APERTURE LOSSES to apefilepos_cr=",apefilepos_cr
   flush(93)
 
   inquire( unit=losses_unit, opened=lopen )
@@ -2964,7 +3007,7 @@ subroutine aper_crcheck_positionFiles
     call boincrf(losses_filename,filename)
     open(losses_unit,file=filename, status='old',form='formatted',action='readwrite')
 #else
-    open(losses_unit,file=losses_filename, status='old',form='formatted',action='readwrite')
+    open(losses_unit,file=trim(losses_filename), status='old',form='formatted',action='readwrite')
 #endif
   end if
 
@@ -2984,14 +3027,14 @@ subroutine aper_crcheck_positionFiles
   call boincrf(losses_filename,filename)
   open(losses_unit,file=filename, status='old',position='append',form='formatted',action='write')
 #else
-  open(losses_unit,file=losses_filename, status='old',position='append',form='formatted',action='write')
+  open(losses_unit,file=trim(losses_filename), status='old',position='append',form='formatted',action='write')
 #endif
 
   return
 
 111 continue
   write(93,*) 'SIXTRACR> APER_CRCHECK_POSITIONFILE *** ERROR *** reading file of APERTURE LOSSES, iostat=',ierro
-  write(93,*) 'apefilepos=',apefilepos,' apefilepos_cr=',apefilepos_cr
+  write(93,*) 'apefilepos=',apefilepos,' apefilepos_cr=',apefilepos_cr,' losses_unit=',losses_unit
   flush(93)
   write(lout,"(a)") "SIXTRACR> ERROR APER_CRCHECK_POSITIONFILES failure positioning file of APERTURE LOSSES"
   call prror(-1)
@@ -3001,15 +3044,15 @@ end subroutine aper_crcheck_positionFiles
 ! ================================================================================================================================ !
 subroutine aper_crpoint(fileunit,lerror,ierro)
 
-  use parpro !nele
   implicit none
 
   integer, intent(in)    :: fileunit
   logical, intent(inout) :: lerror
   integer, intent(inout) :: ierro
-  integer j
 
   write(fileUnit,err=100,iostat=ierro) apefilepos
+  endfile (fileunit,iostat=ierro)
+  backspace (fileunit,iostat=ierro)
   return
 
 100 continue
