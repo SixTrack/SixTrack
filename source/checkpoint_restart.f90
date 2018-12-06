@@ -150,7 +150,6 @@ subroutine cr_killSwitch(iTurn)
     write(lout,"(a,i0)") "CRKILL> Kill switch previously triggered on turn ",pTurn
     write(93,  "(a,i0)") "SIXTRACR> Kill switch previously triggered on turn ",pTurn
   end if
-  call meta_write("NumCheckPointRestartKillSwitch", nKills)
 
   do i=1,size(st_killturns,1)
     if(iTurn == st_killturns(i) .and. iTurn > pTurn) then
@@ -160,8 +159,11 @@ subroutine cr_killSwitch(iTurn)
   end do
 
   if(killIt) then
+    nKills = nKilld + 1
+
     write(lout,"(a,i0)") "CRKILL> Triggering kill switch on turn ",iTurn
     write(93,  "(a,i0)") "SIXTRACR> Triggering kill switch on turn ",iTurn
+    call meta_write("NumCheckPointRestartKillSwitch", nKills)
 
     open(crksunit,file="crrestartme.tmp",form="unformatted",access="stream",status="replace")
     write(crksunit) 1
@@ -169,7 +171,7 @@ subroutine cr_killSwitch(iTurn)
     close(crksunit)
 
     open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace")
-    write(crksunit) iTurn,nKills + 1
+    write(crksunit) iTurn,nKills
     flush(crksunit)
     close(crksunit)
     stop
