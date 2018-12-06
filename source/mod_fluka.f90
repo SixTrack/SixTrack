@@ -27,7 +27,7 @@ module mod_fluka
   public :: fluka_send_receive
   public :: fluka_send
   public :: fluka_receive
-  public :: fluka_lostpart
+  public :: fluka_shuffleLostParticles
   public :: fluka_set_synch_part
   public :: fluka_init_max_uid
   public :: fluka_is_running
@@ -598,7 +598,7 @@ module mod_fluka
     integer, intent(in) :: j
 
     if(fluka_debug) then
-      write(fluka_log_unit, *) '# fluka_lostpart called with npart (lnapx for SixTrack) = ', tnapx, ', j = ', j
+      write(fluka_log_unit, *) '# fluka_shuffleLostParticles called with napx (lnapx for SixTrack) = ', tnapx, ', j = ', j
       flush(fluka_log_unit)
     end if
 

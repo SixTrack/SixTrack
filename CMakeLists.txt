@@ -951,7 +951,6 @@ if(HDF5)
 endif(HDF5)
 
 if(HASHLIB)
-  # ${CMAKE_SOURCE_DIR}/source/md5/md5.h
   set(MD5_SOURCES
     ${CMAKE_SOURCE_DIR}/source/md5/md5.c
     ${CMAKE_SOURCE_DIR}/source/md5/md5interface.c
@@ -959,7 +958,6 @@ if(HASHLIB)
   add_library(md5_lib STATIC  ${MD5_SOURCES})
   target_include_directories(md5_lib PRIVATE ${CMAKE_SOURCE_DIR}/source/md5/)
   set_property(TARGET md5_lib PROPERTY C_STANDARD 99)
-  target_link_libraries(md5_lib roundctl)
   if(32BIT)
     set_target_properties(md5_lib PROPERTIES LINK_FLAGS "-m32")
   endif(32BIT)
