@@ -217,16 +217,14 @@ end subroutine aperture_comnul
 ! ================================================================================================ !
 subroutine aperture_init
 
+  use mod_units, only: units_openUnit
+  
   implicit none
-
-#ifdef BOINC
-  character(len=256) filename
-#endif
 
 #ifdef HDF5
   type(h5_dataField), allocatable :: setFields(:)
 #endif
-  logical isOpen
+  logical isOpen,err
 
 #ifdef HDF5
   if(h5_useForAPER) then
@@ -279,14 +277,8 @@ subroutine aperture_init
         write(lout,"(a,i0,a)") "APER> ERROR Unit ",losses_unit," is already open."
         call prror(-1)
       end if
-   
-#ifdef BOINC
-      call boincrf(losses_filename,filename)
-      open(losses_unit,file=filename,status='replace',form='formatted')
-#else
-      open(losses_unit,file=trim(losses_filename),status='replace',form='formatted')
-#endif
-    
+
+      call units_openUnit(unit=losses_unit,fileName=losses_filename,formatted=.true.,mode='w',err=err)
 #ifdef CR
       apefilepos=0
 #endif
@@ -1847,14 +1839,12 @@ subroutine dump_aperture_model
 !     always in main code
 !-----------------------------------------------------------------------
   use parpro
+  use mod_units, only: units_openUnit
   implicit none
 
 ! temporary variables
   integer i, ix
-  logical lopen
-#ifdef BOINC
-  character(len=256) filename
-#endif
+  logical lopen,err
 
   integer iOld, ixOld, niter, oKApe, jj
   real(kind=fPrec) aprr(9),slos
@@ -1868,12 +1858,7 @@ subroutine dump_aperture_model
   inquire( unit=aperunit, opened=lopen )
   if( .not.lopen ) then
     if( aperunit.ne.0 ) then
-#ifdef BOINC
-      call boincrf(aper_filename,filename)
-      open(aperunit,file=filename,status='replace',form='formatted')
-#else
-      open(aperunit,file=trim(aper_filename),status='replace',form='formatted')
-#endif
+      call units_openUnit(unit=aperunit,fileName=aper_filename,formatted=.true.,mode='w',err=err)
       write(lout,"(a)") "APER> Profile dumped in file: '"//trim(aper_filename)//"'"
     end if
   end if
@@ -2032,14 +2017,12 @@ subroutine dump_aperture_xsecs
   ! A.Mereghetti (CERN, BE/ABP-HSS), 22-03-2018
   ! dump cross-sections of apertures at specific locations (loop)
   !-----------------------------------------------------------------------
+  use mod_units, only: units_openUnit
   implicit none
   ! temporary variables
-  logical lfound, lopen, lApeUp, lApeDw
+  logical lfound, lopen, lApeUp, lApeDw, err
   integer ixsec, ierro, iEl, ixEl, iApeUp, ixApeUp, iApeDw, ixApeDw, itmpape
   real(kind=fPrec) sLoc, tmpape(9)
-#ifdef BOINC
-  character(len=256) filename
-#endif
 
   ! loop over requested lines
   do ixsec=1,mxsec
@@ -2050,12 +2033,7 @@ subroutine dump_aperture_xsecs
           "' with unit ",xsecunit(ixsec)
         call prror(-1)
      end if
-#ifdef BOINC
-     call boincrf(xsec_filename(ixsec),filename)
-     open(xsecunit(ixsec),file=filename,status='replace',form='formatted')
-#else
-     open(xsecunit(ixsec),file=trim(xsec_filename(ixsec)),status='replace',form='formatted')
-#endif
+     call units_openUnit(unit=xsecunit(ixsec),fileName=xsec_filename(ixsec),formatted=.true.,mode='w',err=err)
      if(ierro .ne. 0) then
         write(lout,"(2(a,i0))") "APER> ERROR Opening file '"//trim(xsec_filename(ixsec))//&
           "' on unit # ",xsecunit(ixsec),", iostat = ",ierro
@@ -2594,6 +2572,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   use string_tools
   use file_units
   use sixtrack_input
+  use mod_units, only: units_openUnit
 
   implicit none
 
@@ -2604,12 +2583,8 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   real(kind=fPrec) tmplen,tmpflts(3)
   integer          nSplit, i
-  logical          spErr, lExist, apeFound
+  logical          spErr, lExist, apeFound, err
   
-#ifdef BOINC
-  character(len=256) filename
-#endif
-
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
     write(lout,"(a)") "LIMI> ERROR Failed to parse input line."
@@ -2643,12 +2618,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-#ifdef BOINC
-    call boincrf(load_file,filename)
-    open(loadunit,file=filename,status='old',form='formatted')
-#else
-    open(loadunit,file=trim(load_file),status='old',form='formatted')
-#endif
+    call units_openUnit(unit=loadunit,fileName=load_file,formatted=.true.,mode='r',err=err)
     write(lout,"(a)") "LIMI> Apertures will be read from file '"//trim(load_file)//"'"
 
   case("PRIN")
@@ -3013,28 +2983,19 @@ subroutine aper_crcheck_positionFiles
   use crcoall
   use string_tools
   use mod_common
+  use mod_units, only: units_openUnit
 
   implicit none
 
   integer i,j
-  logical lerror,lopen
-#ifdef BOINC
-  character(len=256) filename
-#endif
+  logical lerror,lopen,err
   character(len=1024) arecord
 
   write(93,*) "SIXTRACR CRCHECK REPOSITIONING file of APERTURE LOSSES to apefilepos_cr=",apefilepos_cr
   flush(93)
 
   inquire( unit=losses_unit, opened=lopen )
-  if (.not. lopen) then
-#ifdef BOINC
-    call boincrf(losses_filename,filename)
-    open(losses_unit,file=filename, status='old',form='formatted',action='readwrite')
-#else
-    open(losses_unit,file=trim(losses_filename), status='old',form='formatted',action='readwrite')
-#endif
-  end if
+  if (.not. lopen) call units_openUnit(unit=losses_unit,fileName=losses_filename,status='old',formatted=.true.,mode='rw',err=err)
 
   apefilepos = 0
   do j=1,apefilepos_cr
@@ -3048,12 +3009,7 @@ subroutine aper_crcheck_positionFiles
 
   ! Change from 'readwrite' to 'write'
   close(losses_unit)
-#ifdef BOINC
-  call boincrf(losses_filename,filename)
-  open(losses_unit,file=filename, status='old',position='append',form='formatted',action='write')
-#else
-  open(losses_unit,file=trim(losses_filename), status='old',position='append',form='formatted',action='write')
-#endif
+  call units_openUnit(unit=losses_unit,fileName=losses_filename,status='old',formatted=.true.,mode='w+',err=err)
 
   return
 
