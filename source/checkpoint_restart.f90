@@ -184,7 +184,7 @@ subroutine cr_killSwitch(iTurn)
     write(crksunit) iTurn,nKills
     flush(crksunit)
     close(crksunit)
-    stop
+    stop 0
   end if
 
 end subroutine cr_killSwitch

@@ -70,14 +70,16 @@ void UnlinkCRFiles();
 #ifndef WIN32
 struct KillInfo {
     pid_t SixPID;       //The pid
-    int kTime;          //The time to kill for
-    bool RunStatus;     //Did the run finish whilst we were waiting to kill?
+    int   kTime;        //The time to kill for
+    bool  RunStatus;    //Did the run finish whilst we were waiting to kill?
+    bool  CRKILLSWITCH; //SixTrack was stopped by the internal CRKILLSWITCH
 };
 #else
 struct KillInfo {
     HANDLE SixHANDLE;   //The handle
     DWORD kTime;        //The time to kill for
     BOOL RunStatus;     //Did the run finish whilst we were waiting to kill?
+    BOOL CRKILLSWITCH;  //SixTrack was stopped by the internal CRKILLSWITCH
 };
 #endif
 
@@ -181,7 +183,14 @@ int main(int argc, char* argv[])
         std::cout << "Starting CR run loop - will clear out any files from a previous run" << std::endl;
         UnlinkCRFiles();
 
-        for(size_t KillCount=0; KillCount < KillTimes.size(); KillCount++) {
+        size_t KillCount=0;
+        while(true) {
+
+            if (KillCount >= KillTimes.size()){
+                std::cout << "Reached maximum KillCount = " << KillCount
+                          << ", exiting now." << std::endl;
+                break;
+            }
             KillTime = KillTimes.at(KillCount);
 
             std::cout << "Starting Checkpoint/Resume (CR) SixTrack run" << std::endl;
@@ -210,27 +219,42 @@ int main(int argc, char* argv[])
                 KillInfo th_wait_struct;
                 th_wait_struct.SixPID = SixTrackpid;
                 th_wait_struct.kTime = 0;
-                th_wait_struct.RunStatus = false;
+                th_wait_struct.RunStatus = false; // True if SixTrack was finished
+                th_wait_struct.CRKILLSWITCH = false; // True if SixTrack killed itself
 
                 KillInfo th_kill_struct;
                 th_kill_struct.SixPID = SixTrackpid;
                 th_kill_struct.kTime = KillTime;
                 th_kill_struct.RunStatus = false;
+                th_kill_struct.CRKILLSWITCH = false;
 
-                //The wait thread needs the pid + to return the status of the CR run (killed or finished).
-                int th_wait_ret = pthread_create(&th_wait, NULL, pthread_wait_sixtrack,(void*) &th_wait_struct);
+                //The wait thread needs the pid + to return the status of the CR run
+                // (killed or finished).
+                int th_wait_ret = pthread_create(&th_wait,
+                                                 NULL,
+                                                 pthread_wait_sixtrack,
+                                                 (void*) &th_wait_struct
+                                                 );
 
                 //The kill thread needs the pid to kill + the kill time for this cycle
-                int th_kill_ret = pthread_create(&th_kill, NULL, pthread_kill_sixtrack,(void*) &th_kill_struct);
+                int th_kill_ret = pthread_create(&th_kill,
+                                                 NULL,
+                                                 pthread_kill_sixtrack,
+                                                 (void*) &th_kill_struct
+                                                 );
 
                 pthread_join(th_kill, NULL);
                 pthread_join(th_wait, NULL);
 
-                if(th_wait_struct.RunStatus == true) {
+                if (th_wait_struct.RunStatus == true) {
                     std::cout << "CR run finished! Will terminate the loop." << std::endl;
-                    KillCount = KillTimes.size();
+                    break;
                 }
-            }
+                if (th_wait_struct.CRKILLSWITCH == false) {
+                    KillCount++;
+                }
+            } // END WHILE(TRUE)
+
 #else
             //a DWORD is a 32bit unsigned int
 
@@ -1204,12 +1228,26 @@ void *pthread_wait_sixtrack(void* InputStruct) {
 
     //If the thread exited (and was not killed), then we can exit this run.
     if(waitpidStatus == 0) {
-        std::cout << "SixTrack CR exited okay: " << waitpidStatus << std::endl;
-        ThreadStruct->RunStatus = true;
+        //Check if it was stopped by CRKILLSWITCH; if so remove the file
+        int unlink_status = unlink("crrestartme.tmp");
+        if (unlink_status != 0) {
+            std::cout << "SixTrack CR exited okay: " << waitpidStatus << std::endl;
+            ThreadStruct->RunStatus    = true;
+            ThreadStruct->CRKILLSWITCH = false;
+        }
+        else {
+            std::cout << "SixTrack CR was stopped by CRKILLSWITCH; 'crrestartme.tmp' was deleted."
+                      << std::endl;
+            ThreadStruct->RunStatus    = false;
+            ThreadStruct->CRKILLSWITCH = true;
+        }
     }
     else {
         std::cout << "SixTrack CR was killed: " << waitpidStatus << std::endl;
+        ThreadStruct->RunStatus    = false;
+        ThreadStruct->CRKILLSWITCH = false;
     }
+
     pthread_exit(NULL);
 }
 
@@ -1224,6 +1262,7 @@ void *pthread_kill_sixtrack(void* InputStruct) {
     pid_t sixpid = ThreadStruct->SixPID;
     bool ArmKill=true;
 
+    //Countdown clock
     for(int tt=0; tt < KillTime; tt++) {
         sleep(1);
         //std::cout << "At " << tt+1 << " of " << KillTime << " Testing pid " << sixpid << ": ";
@@ -1241,12 +1280,15 @@ void *pthread_kill_sixtrack(void* InputStruct) {
             tt=KillTime;
         }
     }
+
+    // Do the actual kill
     if(ArmKill == true) {
         //Try and kill
         std::cout << "Kill thread - killing pid: " << sixpid << std::endl;
         int res = kill(sixpid, SIGKILL);
         std::cout << "Kill thread - kill() result: " << res << std::endl;
     }
+
     pthread_exit(NULL);
 }
 #else
@@ -1349,6 +1391,9 @@ void UnlinkCRFiles() {
     unlinkFiles.push_back("fort.93");
     unlinkFiles.push_back("fort.95");
     unlinkFiles.push_back("fort.96");
+
+    unlinkFiles.push_back("crrestartme.tmp");
+    unlinkFiles.push_back("crkillswitch.tmp");
 
     for (auto fname : unlinkFiles) {
         std::cout << "Deleting old '" << fname << "'" << std::endl;
