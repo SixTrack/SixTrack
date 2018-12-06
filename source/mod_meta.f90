@@ -71,11 +71,27 @@ end subroutine meta_initialise
 
 subroutine meta_finalise
 
+  use file_units
   use mod_common, only : numl
 
-  call meta_write("NumParticleTurns",      meta_nPartTurn)
-  call meta_write("AvgParticlesPerTurn",   real(meta_nPartTurn,fPrec)/numl, "f15.3")
-  call meta_write("NumCheckPointRestarts", meta_nRestarts)
+  integer nCRKills1,nCRKills2,tmpUnit
+  logical fExist
+
+  nCRKills1 = 0
+  nCRKills2 = 0
+ 
+  call funit_requestUnit("meta_tmp_unit",tmpUnit)
+  inquire(file="crkillswitch.tmp",exist=fExist)
+  if(fExist .eqv. .false.) then
+    open(tmpUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace")
+    write(tmpUnit) nCRKills1,nCRKills2
+    close(tmpUnit)
+  end if
+
+  call meta_write("NumParticleTurns",    meta_nPartTurn)
+  call meta_write("AvgParticlesPerTurn", real(meta_nPartTurn,fPrec)/numl, "f15.3")
+  call meta_write("CR_RestartCount",     meta_nRestarts)
+  call meta_write("CR_KillSwitchCount",  nCRKills2)
 
   write(meta_fileUnit,"(a)") "# END"
   flush(meta_fileUnit)
