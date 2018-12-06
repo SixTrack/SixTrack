@@ -121,7 +121,6 @@ subroutine cr_killSwitch(iTurn)
   use crcoall
   use file_units
   use mod_settings
-  use mod_meta
 
   integer, intent(in) :: iTurn
 
@@ -146,13 +145,13 @@ subroutine cr_killSwitch(iTurn)
 
   inquire(file="crkillswitch.tmp",exist=fExist)
   if(fExist .eqv. .false.) then
-    open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace")
+    open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace",action="write")
     write(crksunit) 0,0
     flush(crksunit)
     close(crksunit)
   end if
 
-  open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old")
+  open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")
   read(crksunit) pTurn,nKills
   flush(crksunit)
   close(crksunit)
@@ -173,14 +172,13 @@ subroutine cr_killSwitch(iTurn)
 
     write(lout,"(a,i0)") "CRKILL> Triggering kill switch on turn ",iTurn
     write(93,  "(a,i0)") "SIXTRACR> Triggering kill switch on turn ",iTurn
-    call meta_write("NumCheckPointRestartKillSwitch", nKills)
 
-    open(crksunit,file="crrestartme.tmp",form="unformatted",access="stream",status="replace")
+    open(crksunit,file="crrestartme.tmp",form="unformatted",access="stream",status="replace",action="write")
     write(crksunit) 1
     flush(crksunit)
     close(crksunit)
 
-    open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace")
+    open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace",action="write")
     write(crksunit) iTurn,nKills
     flush(crksunit)
     close(crksunit)
