@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
                 KillInfo th_wait_struct;
                 th_wait_struct.SixPID = SixTrackpid;
                 th_wait_struct.kTime = 0;
-                th_wait_struct.RunStatus = false; // True if SixTrack was finished
+                th_wait_struct.RunStatus = false;    // True if SixTrack was finished
                 th_wait_struct.CRKILLSWITCH = false; // True if SixTrack killed itself
 
                 KillInfo th_kill_struct;
@@ -253,7 +253,7 @@ int main(int argc, char* argv[])
                 if (th_wait_struct.CRKILLSWITCH == false) {
                     KillCount++;
                 }
-            } // END WHILE(TRUE)
+            } // END IF
 
 #else
             //a DWORD is a 32bit unsigned int
@@ -326,14 +326,16 @@ int main(int argc, char* argv[])
 
                 //Make 2 threads, one to just wait, one to kill
                 KillInfo th_wait_struct;
-                th_wait_struct.SixHANDLE = SixTrack_pi.hProcess;
-                th_wait_struct.kTime = 0;
-                th_wait_struct.RunStatus = false;
+                th_wait_struct.SixHANDLE    = SixTrack_pi.hProcess;
+                th_wait_struct.kTime        = 0;
+                th_wait_struct.RunStatus    = false; // True if SixTrack was finished
+                th_wait_struct.CRKILLSWITCH = false; // True if SixTrack killed itself
 
                 KillInfo th_kill_struct;
-                th_kill_struct.SixHANDLE = SixTrack_pi.hProcess;
-                th_kill_struct.kTime = KillTime;
-                th_kill_struct.RunStatus = false;
+                th_kill_struct.SixHANDLE    = SixTrack_pi.hProcess;
+                th_kill_struct.kTime        = KillTime;
+                th_kill_struct.RunStatus    = false;
+                th_kill_struct.CRKILLSWITCH = false;
 
                 /*
                   HANDLE WINAPI CreateThread(
@@ -359,15 +361,18 @@ int main(int argc, char* argv[])
 
                 if(th_wait_struct.RunStatus == true) {
                     std::cout << "CR run finished! Will terminate the loop." << std::endl;
-                    KillCount = KillTimes.size();
+                    break;
                 }
-            }
+                if (th_wait_struct.CRKILLSWITCH == false) {
+                    KillCount++;
+                }
+            } // ENDIF
 #endif
 
             //Wait a moment until the next run attempt is started?
             sleep(1);
 
-        }//End for loop
+        } // End WHILE(TRUE)
 
         std::cout << "End CR run loop" << std::endl;
     }
@@ -1317,11 +1322,24 @@ DWORD winthread_wait_sixtrack(LPVOID InputStruct) {
     }
     else {
         if(excode == 0) {
-            std::cout << "SixTrack CR exited okay: " << excode << std::endl;
-            ThreadStruct->RunStatus = true;
+            //Check if it was stopped by CRKILLSWITCH; if so remove the file
+            int unlink_status = unlink("crrestartme.tmp");
+            if (unlink_status != 0) {
+                std::cout << "SixTrack CR exited okay: " << excode << std::endl;
+                ThreadStruct->RunStatus    = true;
+                ThreadStruct->CRKILLSWITCH = false;
+            }
+            else {
+                std::cout << "SixTrack CR was stopped by CRKILLSWITCH; 'crrestartme.tmp' was deleted."
+                          << std::endl;
+                ThreadStruct->RunStatus    = false;
+                ThreadStruct->CRKILLSWITCH = true;
+            }
         }
         else {
             std::cout << "SixTrack CR was killed: " << excode << std::endl;
+            ThreadStruct->RunStatus    = false;
+            ThreadStruct->CRKILLSWITCH = false;
         }
     }
 
