@@ -11,7 +11,7 @@ colors=['b','g','r','c','m','k','y']
 # particlesToPlot=particlesToPlot[::-1]
 
 plt.figure('elens kick',figsize=(10,10))
-for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,0.),(2,3,offsetx,offsety,1,6,0.),(3,4,-offsetx,0,1,5,2.91604),(4,5,0,-offsety,1/2.,3,3.48995)]:
+for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,7),(2,3,offsetx,offsety,1,12,10.8),(3,4,-offsetx,0,1,5,2.91604),(4,5,0,-offsety,1/2.,3,3.48995)]:
   theta_max=theta_r2*R
   plt.subplot(2,2,fnin)
   helin=np.loadtxt('HEL_DUMP_%s'%fnin)
@@ -28,9 +28,8 @@ for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,0.),(2,3,offsetx,offsety
         else:
           plt.plot(rrin[kk::28]/sig,fff[kk::28],'%s.'%(colors[iPart]))
     plt.plot(rrin/sig,np.ones(len(rrin))*theta_max,'k-',label=r'$\theta_{R_2}$')
-    if (fnin>=3):
-      plt.plot([R2f,R2f],[0,theta_max*1.05],'g-',label=r'$n_{\mathrm{max}}$')
-      plt.plot([peakT,peakT],[0,max(fff)*1.05],'r-',label=r'$n_{\mathrm{peak}}$')
+    plt.plot([R2f,R2f],[0,theta_max*1.1],'g-',label=r'$n_{\mathrm{max}}$')
+    plt.plot([peakT,peakT],[0,max(fff)*1.05],'r-',label=r'$n_{\mathrm{peak}}$')
     plt.xlabel(r'$n_{\sigma}=\sqrt{(x-x_{\mathrm{off}})^2+(y-y_{\mathrm{off}})^2)}$    [$\sigma$]')
     plt.ylabel(r'$\theta(r)=\sqrt{xp^2+yp^2}$ [mrad]')
     plt.legend(loc='best',fontsize=10)

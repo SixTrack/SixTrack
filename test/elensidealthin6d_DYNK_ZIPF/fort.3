@@ -66,13 +66,13 @@ ELEN
 / 4 lenses: 450GeV, sig=1.1547mm,
 /      offset=(-1sig,-2sig), theta_r2=4.92mrad
 / 1. - UNIFORM, 3-7 sig, half kick, no offsets
-/ 2. - UNIFORM, 4-6 sig, full kick, all offsets
+/ 2. - RADIAL, 5-12 sig, full kick, all offsets
 / 3. - GAUSSIAN, 2-5 sig, full kick, -h_offset, sig_e=sig_b
 / 4. - GAUSSIAN, 1-3 sig, half kick, -v_offset, sig_e=2sig_b
-hel1 UNIFORM  2.460e-03 8.083 3.464   0       0
-hel2 UNIFORM  4.920e-03 6.928 4.619  -1.1547 -2.3093         4 4.26144 1
-hel3 GAUSSIAN 4.920e-03 5.773 2.3093  1.1547  0       1.1547
-hel4 GAUSSIAN 2.460e-03 3.464 1.1547  0       2.3093  2.3093 4 4.62226 5
+hel1 UNIFORM  2.460e-03 8.083   3.464    0       0
+hel2 RADIAL   4.920e-03 5.7735 13.8564  -1.1547 -2.3093  CHG1b_170523_8p75A_2-4-2kG_500V_75mA_hires_j-vs-r.txt
+hel3 GAUSSIAN 4.920e-03 5.773   2.3093   1.1547  0       1.1547
+hel4 GAUSSIAN 2.460e-03 3.464   1.1547   0       2.3093  2.3093 4 4.62226 5
 NEXT
 DUMP
 ip4..2 1 1030 2 HEL_DUMP_1 1 100
@@ -116,12 +116,8 @@ ELEMENT  0 2 1 2.5 2.5
 NEXT
 ZIPF
 dynksets.dat
-HEL_DUMP_1
 NoSuchFILE!
-HEL_DUMP_2
-HEL_DUMP_3
-HEL_DUMP_4
-HEL_DUMP_5
+IP4_DUMP_last
 NEXT
 ENDE====================================================================
 ORGA--------------------------------------------------------------------

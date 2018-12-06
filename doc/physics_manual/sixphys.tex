@@ -980,12 +980,12 @@ The effect of the AC-dipole is split into four stages. The turn number is denote
 Electron lenses are devices where the tracked beam interacts with a beam of electrons. The electron beam travels co--axial to the main beam; it
 is contained in a thick cylinder of inner radius $R_1$ and outer radius $R_2$.
 If $R_1>0$, then the lens is hollow. The interaction is purely via the Lorentz
-force. These devices can be used for compensating beam--beam effects or as
-collimation devices~\cite{Shiltsev:2112966}.
+force. These devices can be used for compensating beam--beam effects or for
+enhancing the beam diffusion speed for collimation purposes~\cite{Shiltsev:2112966}.
 
 The implementation in SixTrack does not start from the Hamiltonian but from the
-integration of the Lorentz force along the length of the e--lens in idealised
-conditions. The e--lens \emph{must be a thin lens};
+integration of the Lorentz force along the length of the e-lens in idealised
+conditions. The e-lens \emph{must be a thin lens};
 the derivation of the kick assumes electrons moving along straight paths,
 parallel to the beam, for an indefinite length, and an axis--symmetric
 transverse distribution (cylindrical symmetry). Hence,
@@ -994,7 +994,7 @@ the derivation of the kicks and the implemented tracking is developed in cylindr
   r=\sqrt{x^2+y^2}
 \end{equation}
 is the radial coordinate used to compute the kick. Moreover,
-the implementation of the hollow e--lens has no explicit dependence on the
+the implementation of the hollow e-lens has no explicit dependence on the
 beam energy, taken into account only in the form of the input parameter
 $\theta_{\rm max}$ provided by the user. Moreover, a change of the particle
 energy could occur if the particle enters with an initial $x'$ or
@@ -1006,7 +1006,7 @@ Merlin~\cite{HReLens}. There you can also find a complete derivation of
 the equations laid down in the following.
 
 \subsubsection{Treatment of the Kick}
-The kick received by a beam particle can be conveniently described as:
+The kick received by a beam particle can be conveniently described in cylindrical coordinates as:
 \begin{equation}
   \theta(r)=\frac{f(r)}{r/R_2} \theta_{\rm R_2}
   \label{elense:eqn:0}
@@ -1017,8 +1017,9 @@ electron beam.
 $\theta_{\rm R_2}$ reads like
 \begin{equation}
 \theta_{\rm R_2} = \frac{LI_T(1\pm\beta_e\beta_b)}{2\pi\epsilon_0  \left(B\rho\right)_b\beta_e\beta_b c^2}\cdot\frac{1}{R_2}
+\label{elense:eqn:6}
 \end{equation}
-where $L$ is the length of the e--lens, $I_T$ the total electron beam current, $\beta_{e}$ and $\beta_{b}$ the relativistic $\beta$ of electron and tracked beam, $(B\rho)|_b$ the magnetic rigidity of the beam (synchronous particle), $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The $\pm$-sign represents the two cases of the electron beam travelling in the direction of the tracked beam ($v_e v_b>0$) leading to ``$-$" or in the opposite direction ($v_e v_b<0$) leading to ``$+$". For hollow electron beam collimation, electron and tracked beam travel in opposite directions. It should be noted that $\theta_{\rm R_2}$ depends on the magnetic rigidity $(B\rho)_b$ of the tracked beam and thus on the beam momentum; hence, during tracking, the actual magnetic rigidity of each beam particle and its charge--to--mass ration is taken into account when computing the kick to be imparted.
+where $L$ is the length of the e-lens, $I_T$ the total electron beam current, $\beta_{e}$ and $\beta_{b}$ the relativistic $\beta$ of electron and tracked beam, $(B\rho)|_b$ the magnetic rigidity of the beam (synchronous particle), $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The $\pm$-sign represents the two cases of the electron beam travelling in the direction of the tracked beam ($v_e v_b>0$) leading to ``$-$" or in the opposite direction ($v_e v_b<0$) leading to ``$+$". For hollow electron beam collimation, electron and tracked beam travel in opposite directions. It should be noted that $\theta_{\rm R_2}$ depends on the magnetic rigidity $(B\rho)_b$ of the tracked beam and on its relativistic normalised speed $\beta_b$, and thus on the beam momentum and speed; hence, during tracking of non--monochromatic beams, the actual magnetic rigidity of each beam particle, its charge--to--mass ratio and its speed are taken into account when computing the kick to be imparted.
 
 $f(r)$ reads like
 \begin{equation}
@@ -1028,7 +1029,8 @@ $f(r)$ reads like
 where $I(r)$ is the current enclosed in a radius
 $r$ and $\rho(r)$ is the electron beam density distribution. Taking into account the
 cylindrical symmetry of the electron distribution and the fact that the electron
-distribution is contained in a cylinder $R_1<r<R_2$, $f(r)$ can be split into
+distribution is contained in a thick cylinder with $R_1<r<R_2$,
+$f(r)$ can be split into
 three expressions based on respective domains as follows
 \begin{equation}
 f(r) =
@@ -1038,28 +1040,34 @@ f(r) =
 \end{cases}
 \label{elense:eqn:5}
 \end{equation}
-where $\tilde f(r)$ changes functional shape according to the transverse
+where the mathematical expression of $\tilde f(r)$ depends on the transverse
 distribution to be simulated.
 
-Using Eq.~\ref{elense:eqn:0}, the kick in $(x',y')$ can then be expressed as
+The change in $(x',y')$ due to the e-lens kick can then be expressed as
 \begin{align}
-x'&=x'-\frac{x}{r}\;\frac{f(r)}{r/R_2}\;\theta_{\rm R_2}\frac{\chi}{1+\delta}\label{elense:eqn:2}\\
-y'&=y'-\frac{y}{r}\;\frac{f(r)}{r/R_2}\;\theta_{\rm R_2}\frac{\chi}{1+\delta}\label{elense:eqn:3}
+x'&=x'-\frac{x}{r}\;\frac{f(r)}{r/R_2}\;\theta_{\rm R_2}\frac{\chi}{1+\delta}\frac{\beta_b/\beta\pm\beta_b\beta_e}{1\pm\beta_b\beta_e}\label{elense:eqn:2}\\
+y'&=y'-\frac{y}{r}\;\frac{f(r)}{r/R_2}\;\theta_{\rm R_2}\frac{\chi}{1+\delta}\frac{\beta_b/\beta\pm\beta_b\beta_e}{1\pm\beta_b\beta_e}\label{elense:eqn:3}
 \end{align}
 where $\frac{x}{r}=\cos(\phi)$ and $\frac{y}{r}=\sin(\phi)$ allow to get the
-horizontal and vertical kicks from the radial one.
+horizontal and vertical kicks from the radial one expressed by
+Eq.~\ref{elense:eqn:0}.
 Off-momentum particles and different ion species are taken into
-account via the factor $\chi/(1+\delta)$, which comes from the definition of
-magnetic rigidity of ion species different from the nominal one
-($B\rho|_b$) given by
+account via the last two fractions. The former, $\chi/(1+\delta)$,
+comes from the definition of magnetic rigidity of ion species different
+from the nominal one ($B\rho|_b$) given by
 \begin{equation}
   B\rho = B\rho|_b \frac{1+\delta}{\chi},
 \end{equation}
 where $\chi$ is the charge--over--mass ratio of the tracked and synchronous
 particles, i.e.~$\chi=(q/m)/(q_0/m_0)$ and $\delta$ is the one used in case of
-multi--isotop tracking, i.e.~$\frac{(p/m)}{p_0/m_0}-1$~\cite{Hermes:2241364};
-hence, the current implementation of
-e--lenses is compatible with ion tracking.
+multi--isotop tracking, i.e.~$\frac{(p/m)}{p_0/m_0}-1$~\cite{Hermes:2241364}.
+The latter comes from the definition of $\theta_{\rm R_2}$ in Eq.~\ref{elense:eqn:6},
+and takes into account the fact that each tracked particle may have a value of
+the relativistic $\beta$ different from that of the reference particle $\beta_b$;
+to do so, the relativistic normalised speed of electrons is also necessary,
+i.e.~$\beta_e$. Hence, the current implementation of e-lenses is fully compatible
+with ion tracking \emph{only if} the three optional parameters (i.e.~e-lens length,
+electron current and kinetic energy) are provided by the user.
 
 If the electron lens is centred around $(x_{\rm offset},y_{\rm offset})$
 (local reference frame), particle coordinates $(x,y)$ are simply transformed
@@ -1085,7 +1093,7 @@ This leads the middle term of $f(r)$ (see Eq.~\ref{elense:eqn:1}) to be:
 The Gaussian distribution of the electron beam between $R_1$ and $R_2$
 can be described as:
 \begin{equation}
-\rho(r) = \frac{I_T \exp\left[-\frac{r^2}{2\sigma^2}\right]}{2\pi\sigma^2} \quad R_1 < r < R_2
+\rho(r) = \frac{I_T}{2\pi\sigma^2} \exp\left[-\frac{r^2}{2\sigma^2}\right] \quad R_1 < r < R_2
 \end{equation}
 This leads the middle term of $f(r)$ (see Eq.~\ref{elense:eqn:1}) to be:
 \begin{equation}
@@ -1096,7 +1104,7 @@ This leads the middle term of $f(r)$ (see Eq.~\ref{elense:eqn:1}) to be:
 The denominator in Eq.~\ref{elense:eqn:4}, which is added after integrating
 the Gaussian profile as in Eq.~\ref{elense:eqn:1}, is a normalisation factor
 necessary to have $\tilde f(R_2)=1$. Hence, the same factor must be considered
-in the expression of $\theta_{\rm R_2}$, which then becomes
+in the expression of $\theta_{\rm R_2}$ (see Eq.~\ref{elense:eqn:6}), which then becomes
 \begin{equation}
   \theta_{\rm R_2} = \frac{LI_T(1\pm\beta_e\beta_b)}{2\pi\epsilon_0  \left(B\rho\right)_b\beta_e\beta_b c^2}\cdot\frac{1}{R_2}
   \cdot\left\{\exp\left[-\frac{R_1^2}{2\sigma^2}\right]-\exp\left[-\frac{R_2^2}{2\sigma^2}\right]\right\}
@@ -1112,6 +1120,32 @@ which leads to the following equation
   \exp\left[-\frac{r^2}{2\sigma^2}\right] = \frac{\exp\left[-\frac{R_1^2}{2\sigma^2}\right]}{r^2+\sigma^2},
 \end{equation}
 that can be solved graphically or numerically, not analitically.
+
+\subsubsection{Radial electron profile from file}
+A radial electron profile read from a plain ASCII file is treated numerically.
+The code expects the file to contain $\rho(r)$ on its appropriate domain.
+$R_1$ and $R_2$ are stated by the user in the \texttt{fort.3} file; hence,
+the domain of the radial profile must contain the one set by $R_1$ and $R_2$.
+
+The radial distribution $\rho(r)$ is numerically integrated and normalised
+according to Eq.~\ref{elense:eqn:1}. The numerical integration actually reads as
+\begin{equation}
+  I(R) = 2\pi \sum_{i=1}^{N_R} \frac{(r_i+r_{i-1})}{2} \, \rho_i \, (r_i-r_{i-1}).
+\label{elense:eqn:5}
+\end{equation}
+A point $(r=0,\rho=0)$ is automatically taken at $i=0$ for the numerical
+integration. $I(R)$ is then normalised by the total current $I(R_{\textrm{max}})$.
+
+The middle term of $f(r)$ (see Eq.~\ref{elense:eqn:1}) reads:
+\begin{equation}
+\tilde f(r)=\frac{I(r)-I(R_1)}{I(R_2)-I(R_1)}.
+\end{equation}
+Similarly to what happes with the Gaussian profile, also in this case
+$\theta_{\rm R_2}$ (see Eq.~\ref{elense:eqn:6}) must be updated as
+\begin{equation}
+  \theta_{\rm R_2} = \frac{LI_T(1\pm\beta_e\beta_b)}{2\pi\epsilon_0  \left(B\rho\right)_b\beta_e\beta_b c^2}\cdot\frac{1}{R_2}
+  \cdot\left[ I(R_2)-I(R_1) \right]
+\end{equation}
 
 \subsection{Misalignment}
 
