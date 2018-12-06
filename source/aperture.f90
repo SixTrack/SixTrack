@@ -1852,6 +1852,9 @@ subroutine dump_aperture_model
 ! temporary variables
   integer i, ix
   logical lopen
+#ifdef BOINC
+  character(len=256) filename
+#endif
 
   integer iOld, ixOld, niter, oKApe, jj
   real(kind=fPrec) aprr(9),slos
@@ -1865,7 +1868,12 @@ subroutine dump_aperture_model
   inquire( unit=aperunit, opened=lopen )
   if( .not.lopen ) then
     if( aperunit.ne.0 ) then
-      open( aperunit, file=aper_filename, form='formatted' )
+#ifdef BOINC
+      call boincrf(aper_filename,filename)
+      open(aperunit,file=filename,status='replace',form='formatted')
+#else
+      open(aperunit,file=trim(aper_filename),status='replace',form='formatted')
+#endif
       write(lout,"(a)") "APER> Profile dumped in file: '"//trim(aper_filename)//"'"
     end if
   end if
@@ -2029,6 +2037,9 @@ subroutine dump_aperture_xsecs
   logical lfound, lopen, lApeUp, lApeDw
   integer ixsec, ierro, iEl, ixEl, iApeUp, ixApeUp, iApeDw, ixApeDw, itmpape
   real(kind=fPrec) sLoc, tmpape(9)
+#ifdef BOINC
+  character(len=256) filename
+#endif
 
   ! loop over requested lines
   do ixsec=1,mxsec
@@ -2039,7 +2050,12 @@ subroutine dump_aperture_xsecs
           "' with unit ",xsecunit(ixsec)
         call prror(-1)
      end if
-     open(unit=xsecunit(ixsec),file=xsec_filename(ixsec),form="formatted",status="old",iostat=ierro)
+#ifdef BOINC
+     call boincrf(xsec_filename(ixsec),filename)
+     open(xsecunit(ixsec),file=filename,status='replace',form='formatted')
+#else
+     open(xsecunit(ixsec),file=trim(xsec_filename(ixsec)),status='replace',form='formatted')
+#endif
      if(ierro .ne. 0) then
         write(lout,"(2(a,i0))") "APER> ERROR Opening file '"//trim(xsec_filename(ixsec))//&
           "' on unit # ",xsecunit(ixsec),", iostat = ",ierro
@@ -2589,6 +2605,10 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   real(kind=fPrec) tmplen,tmpflts(3)
   integer          nSplit, i
   logical          spErr, lExist, apeFound
+  
+#ifdef BOINC
+  character(len=256) filename
+#endif
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -2623,7 +2643,12 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    open(loadunit,file=load_file,form="formatted")
+#ifdef BOINC
+    call boincrf(load_file,filename)
+    open(loadunit,file=filename,status='old',form='formatted')
+#else
+    open(loadunit,file=trim(load_file),status='old',form='formatted')
+#endif
     write(lout,"(a)") "LIMI> Apertures will be read from file '"//trim(load_file)//"'"
 
   case("PRIN")
