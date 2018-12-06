@@ -30,7 +30,10 @@ subroutine trauthin(nthinerr)
   use mod_fluc, only : fluc_errAlign,fluc_writeFort4
   implicit none
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nmz,nthinerr
-  real(kind=fPrec) benkcc,r0,r000,r0a
+  real(kind=fPrec) benkcc,r0,r000,r0a, ten6p
+  
+
+  
 
   real(kind=fPrec), allocatable :: crkveb(:) !(npart)
   real(kind=fPrec), allocatable :: cikveb(:) !(npart)
@@ -542,6 +545,13 @@ subroutine thin4d(nthinerr)
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
+ real(kind=fPrec) :: normal(0:4), skew(0:4), krf, freq, ten6p, dpx, dpy, dpt, x_t, y_t
+  integer iord, isSkew, nordm
+  real(kind=fPrec) :: field_cos(2,0:4)
+  real(kind=fPrec) :: field_sin(2,0:4)
+  complex(kind=fPrec) :: Cm2, Sm2a, Cm1, Sm1a, Cp0, Sp0, Cp1, Sp1
+  real(kind=fPrec) :: pnl(0:4), psl(0:4)
+  complex(kind=fPrec), parameter :: imag=(zero,one)
 
   save
 !-----------------------------------------------------------------------
@@ -1042,9 +1052,11 @@ subroutine thin4d(nthinerr)
         goto 620
       case (53)
 #include "include/crabkick1.f90"
+#include "include/rfmulti.f90"
         goto 620
       case (54)
 #include "include/crabkick2.f90"
+#include "include/rfmulti.f90"
         goto 620
       case (55) ! DIPEDGE ELEMENT
         do j=1,napx
@@ -1189,6 +1201,13 @@ subroutine thin6d(nthinerr)
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
+ real(kind=fPrec) :: normal(0:4), skew(0:4), krf, freq, ten6p, dpx, dpy, dpt, x_t, y_t
+  integer iord, isSkew, nordm
+  real(kind=fPrec) :: field_cos(2,0:4)
+  real(kind=fPrec) :: field_sin(2,0:4)
+  complex(kind=fPrec) :: Cm2, Sm2a, Cm1, Sm1a, Cp0, Sp0, Cp1, Sp1
+  real(kind=fPrec) :: pnl(0:4), psl(0:4)
+  complex(kind=fPrec), parameter :: imag=(zero,one)
   save
 
   nthinerr=0
@@ -1869,9 +1888,11 @@ subroutine thin6d(nthinerr)
         goto 640
       case (53)
 #include "include/crabkick1.f90"
+#include "include/rfmulti.f90"
         goto 640
       case (54)
 #include "include/crabkick2.f90"
+#include "include/rfmulti.f90"
         goto 640
       case (55) ! DIPEDGE ELEMENT
         do j=1,napx
