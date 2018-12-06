@@ -1,7 +1,0 @@
-s/^\(...... *\)\(open(.*file=\)\([']fort\.[0-9]*[']\),\(.*\)/+if boinc\
-\1call boincrf(\3,filename)\
-\1\2filename,\4\
-+ei\
-+if .not.boinc\
-\1\2\3,\4\
-+ei/

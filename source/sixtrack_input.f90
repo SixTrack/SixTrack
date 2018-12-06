@@ -347,6 +347,28 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       write(lout,"(a,i0)") "INPUT> Printing of particle summary is DISABLED"
     end if
 
+  case("FINALSTATE")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "INPUT> ERROR FINALSTATE takes one value, got ",nSplit-1
+      iErr = .true.
+      return
+    end if
+    select case(lnSplit(2))
+    case("binary")
+      st_finalstate = 1
+    case("text")
+      st_finalstate = 2
+    case default
+      write(lout,"(a)") "INPUT> ERROR FINALSTATE type must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
+      iErr = .true.
+      return
+    end select
+    if(st_finalstate == 1) then
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file"
+    else
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file"
+    end if
+
   case("QUIET")
     if(nSplit > 1) then
       call chr_cast(lnSplit(2),st_quiet,iErr)
@@ -2266,7 +2288,9 @@ subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
   do i=1,nComb
     ico = icomb(icoe,i)
     if(ico == ii) then
-      call prror(92)
+      write(lout,"(a)") "COMB> ERROR You cannot combine an element with itself."
+      iErr = .true.
+      return
     end if
     if(ico == 0) cycle
     write(lout,"(a,e13.6)") "COMB> "//bez(ii)(1:20)//" : "//bez(ico)(1:20)//" : ",ratio(icoe,i)
@@ -2382,7 +2406,6 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
       write(lout,"(a)") "RESO> ERROR The multipole order for the sub-resonance compensation should not exceed 9."
       iErr = .true.
       return
-      call prror(50)
     end if
 
   case(3)

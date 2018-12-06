@@ -1922,8 +1922,8 @@ subroutine dump_crpoint(fileunit,lerror,ierro)
   use parpro !nele
   implicit none
 
-  integer, intent(in) :: fileunit
-  logical, intent(out) :: lerror
+  integer, intent(in)    :: fileunit
+  logical, intent(inout) :: lerror
   integer, intent(inout) :: ierro
   integer j
 

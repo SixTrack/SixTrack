@@ -396,6 +396,41 @@ For \texttt{IP3\_DUMP\_2} and \texttt{IP3\_DUMP\_4} the turns from 512 to 1024 a
 Note that all element names have to be different due to a limitation in DUMP module. This means practically, that one needs to insert additional markers (here \texttt{IP3..1} etc.) in the SixDesk \cite{sixdesk1,sixdesk2} mask file prior to the SixTrack run. It is important to install the additional markers after cycling the machine if the machine is cycled at the location of the additional (e.g. \texttt{IP3}), as they are installed in front of the element given in the from statement in the cycle command.
 
 % ================================================================================================================================ %
+\section{File Hash} \label{sec:HASH}
+
+The hash module can optionally compute the MD5 digest of a selected set of output files listed in a \texttt{HASH} block\index{HASH}\index{md5}.
+The hash values are written to the output file \texttt{hash.md5}.
+The hash values are computed just before the \texttt{ZIPF} file compression routine is called, so the hash file can be included in the final archive.
+
+During initialisation, the module will perform a self test to ensure it generates valid md5 hashes according to the RFC1321 standard.
+If this is not achieved, the module is disabled, and the \texttt{hash.md5} file contains an error message instead.
+
+The primary purpose of this module is for validation of results for BOINC and the test suite.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{HASH} \\
+    \textbf{Data lines} & Variable, one for each file to be hashed. \\
+\end{tabular}
+
+\paragraph{Usage}~\\
+
+The module accepts a single keyword, \texttt{MD5SUM}, followed by a file name.
+This can be repeated multiple times.
+If the md5sum tool is installed on the user's computer, the results can be validated with the command:
+\begin{cverbatim}
+md5sum -c hash.md5
+\end{cverbatim}
+    
+\paragraph{Example}~
+\begin{cverbatim}
+HASH
+    MD5SUM final_state.dat
+    MD5SUM fort.10
+NEXT
+\end{cverbatim}
+
+% ================================================================================================================================ %
 \section{ZIPFile Combined and Compressed Output} \label{sec:ZIPF}
 
 In order to retrieve extra simulation output such as \texttt{DUMP} or \texttt{FMA} from BOINC, it is necessary to pack the output files into a single file with a special name that will be retrieved.\index{zip}\index{ZIPF}
@@ -412,9 +447,9 @@ Note that if one of the files do not exist at the end of the simulation, it will
 \paragraph{Example}~
 \begin{cverbatim}
 ZIPF
-fma_sixtrack
-IP3_DUMP_1
-fort.90
+    fma_sixtrack
+    IP3_DUMP_1
+    fort.90
 NEXT
 \end{cverbatim}
 

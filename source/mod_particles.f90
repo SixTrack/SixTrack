@@ -77,6 +77,7 @@ subroutine part_updateRefEnergy(refEnergy)
   e0     = refEnergy
   e0f    = sqrt(e0**2 - nucm0**2)
   gammar = nucm0/e0
+  betrel = sqrt((one+gammar)*(one-gammar))
 
   ! Also update sigmv with the new beta0 = e0f/e0
   sigmv(1:napx) = ((e0f*e0o)/(e0fo*e0))*sigmv(1:napx)
@@ -134,5 +135,87 @@ subroutine part_updatePartEnergy(refArray)
   if(ithick == 1) call synuthck
 
 end subroutine part_updatePartEnergy
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-11-28
+!  Dumps the final state of the particle arrays to a binary file.
+! ================================================================================================ !
+subroutine part_dumpFinalState
+
+  use, intrinsic :: iso_fortran_env, only : int32, real64
+
+  use file_units
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_settings
+  use string_tools
+
+  implicit none
+
+  character(len=200) :: roundBuf
+  character(len=15)  :: fileName
+  integer            :: fileUnit, j, k
+  logical            :: rErr
+
+  select case(st_finalstate)
+
+  case(1) ! Binary file
+
+    fileName = "final_state.bin"
+    call funit_requestUnit(fileName, fileUnit)
+
+    open(fileUnit,file=fileName,form="unformatted",access="stream",status="replace")
+
+    write(fileUnit) int(napx, kind=int32)
+    write(fileUnit) int(npart,kind=int32)
+
+    do j=1,npart
+      write(fileUnit)     int(nlostp(j), kind=int32)
+      write(fileUnit) logical(llostp(j), kind=int32)
+      write(fileUnit)    real(   xv1(j), kind=real64)
+      write(fileUnit)    real(   xv2(j), kind=real64)
+      write(fileUnit)    real(   yv1(j), kind=real64)
+      write(fileUnit)    real(   yv2(j), kind=real64)
+      write(fileUnit)    real( sigmv(j), kind=real64)
+      write(fileUnit)    real(  dpsv(j), kind=real64)
+      write(fileUnit)    real(  ejfv(j), kind=real64)
+      write(fileUnit)    real(   ejv(j), kind=real64)
+    end do
+
+    flush(fileUnit)
+    close(fileUnit)
+
+  case(2) ! Text file
+
+    fileName = "final_state.dat"
+    call funit_requestUnit(fileName, fileUnit)
+
+    open(fileUnit,file=fileName,form="formatted",status="replace")
+
+    write(fileUnit,"(a,i0)") "# napx  : ",napx
+    write(fileUnit,"(a,i0)") "# npart : ",npart
+    write(fileUnit,"(a1,a7,1x,a4,8(1x,a24))") "#","partID","lost","x","y","xp","yp","sigma","dp","p","e"
+
+    do j=1,npart
+      roundBuf = " "
+      call chr_fromReal(xv1(j),  roundBuf(  2:25 ),17,3,rErr)
+      call chr_fromReal(xv2(j),  roundBuf( 27:50 ),17,3,rErr)
+      call chr_fromReal(yv1(j),  roundBuf( 52:75 ),17,3,rErr)
+      call chr_fromReal(yv2(j),  roundBuf( 77:100),17,3,rErr)
+      call chr_fromReal(sigmv(j),roundBuf(102:125),17,3,rErr)
+      call chr_fromReal(dpsv(j), roundBuf(127:150),17,3,rErr)
+      call chr_fromReal(ejfv(j), roundBuf(152:175),17,3,rErr)
+      call chr_fromReal(ejv(j),  roundBuf(177:200),17,3,rErr)
+      write(fileUnit, "(i8,1x,l4,a200)") nlostp(j),llostp(j),roundBuf
+    end do
+
+    flush(fileUnit)
+    close(fileUnit)
+
+  end select
+
+end subroutine part_dumpFinalState
 
 end module mod_particles
