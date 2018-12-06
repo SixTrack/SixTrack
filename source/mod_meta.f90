@@ -50,14 +50,16 @@ contains
 subroutine meta_initialise
 
   use crcoall
+  use mod_units
   use file_units
 
-  integer ioStat
+  logical fErr
 
+  fErr = .false.
   call funit_requestUnit(meta_fileName, meta_fileUnit)
-  open(meta_fileUnit,file=meta_fileName,status="replace",form="formatted",iostat=ioStat)
-  if(ioStat /= 0) then
-    write(lout,"(2(a,i0))") "META> ERROR Opening of '"//meta_fileName//"' on unit #",meta_fileUnit," failed with iostat = ",ioStat
+  call units_openUnit(unit=meta_fileUnit,filename=meta_fileName,formatted=.true.,mode="w",err=fErr,status="replace")
+  if(fErr) then
+    write(lout,"(a,i0)") "META> ERROR Opening of '"//meta_fileName//"' on unit #",meta_fileUnit
     call prror
   end if
 
@@ -80,7 +82,7 @@ subroutine meta_finalise
   nCRKills1 = 0
   nCRKills2 = 0
  
-  call funit_requestUnit("meta_tmp_unit",tmpUnit)
+  call funit_requestUnit("mod_meta_tmpUnit",tmpUnit)
   inquire(file="crkillswitch.tmp",exist=fExist)
   if(fExist .eqv. .false.) then
     open(tmpUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace")
