@@ -565,11 +565,11 @@ subroutine thin4d(nthinerr)
 #ifdef CR
   if (restart) then
     call crstart
-    write(93,*) 'THIN4D SIXTRACR restart numlcr',numlcr,'numl',numl
+    write(93,"(2(a,i0))") "SIXTRACR> Thin 4D restart numlcr = ",numlcr,", numl = ",numl
   end if
 ! and now reset numl to do only numlmax turns
   nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
 ! and reset [n]numxv unless particle is lost
 ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
@@ -1214,11 +1214,11 @@ subroutine thin6d(nthinerr)
 #ifdef CR
   if (restart) then
     call crstart
-    write(93,*) 'THIN6D ','SIXTRACR restart numlcr',numlcr,'numl',numl
+    write(93,"(2(a,i0))") "SIXTRACR> Thin 6D restart numlcr = ",numlcr,", numl = ",numl
   end if
   ! and now reset numl to do only numlmax turns
   nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
   ! and reset [n]numxv unless particle is lost
   ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then

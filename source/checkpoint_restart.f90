@@ -121,26 +121,36 @@ subroutine cr_killSwitch(iTurn)
   use crcoall
   use file_units
   use mod_settings
+  use mod_meta
 
   integer, intent(in) :: iTurn
 
-  logical killIt
+  logical killIt, fExist
   integer pTurn, nKills, i
 
   killIt = .false.
 
   if(crksunit == -1) then
     call funit_requestUnit("crkillswitch.tmp",crksunit)
-    open(crksunit,file="crkillswitch.tmp",status="replace")
-    write(crksunit,*) 0
-    write(crksunit,*) 0
+  end if
+
+  inquire(file="crkillswitch.tmp",exist=fExist)
+  if(fExist .eqv. .false.) then
+    open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace")
+    write(crksunit) 0,0
+    flush(crksunit)
     close(crksunit)
   end if
 
-  open(crksunit,file="crkillswitch.tmp",status="old")
-  read(crksunit,*) pTurn
-  read(crksunit,*) nKills
+  open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old")
+  read(crksunit) pTurn,nKills
+  flush(crksunit)
   close(crksunit)
+  if(st_debug .and. pTurn > 0) then
+    write(lout,"(a,i0)") "CRKILL> Kill switch previously triggered on turn ",pTurn
+    write(93,  "(a,i0)") "SIXTRACR> Kill switch previously triggered on turn ",pTurn
+  end if
+  call meta_write("NumCheckPointRestartKillSwitch", nKills)
 
   do i=1,size(st_killturns,1)
     if(iTurn == st_killturns(i) .and. iTurn > pTurn) then
@@ -151,10 +161,16 @@ subroutine cr_killSwitch(iTurn)
 
   if(killIt) then
     write(lout,"(a,i0)") "CRKILL> Triggering kill switch on turn ",iTurn
-    write(93,  "(a,i0)") "CRKILL> Triggering kill switch on turn ",iTurn
-    open(crksunit,file="crkillswitch.tmp",status="replace")
-    write(crksunit,*) iTurn
-    write(crksunit,*) nKills + 1
+    write(93,  "(a,i0)") "SIXTRACR> Triggering kill switch on turn ",iTurn
+
+    open(crksunit,file="crrestartme.tmp",form="unformatted",access="stream",status="replace")
+    write(crksunit) 1
+    flush(crksunit)
+    close(crksunit)
+
+    open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace")
+    write(crksunit) iTurn,nKills + 1
+    flush(crksunit)
     close(crksunit)
     stop
   end if
