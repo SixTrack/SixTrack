@@ -1172,7 +1172,7 @@ subroutine aperture_reportLoss(turn, i, ix)
 #endif
 
 #ifdef FLUKA
-      if(nlostp(j).le.aperture_napxStart) then
+      if(((nlostp(j).le.aperture_napxStart) .and. fluka_enable) .or. .not.fluka_enable) then
 #else
       if(((nlostp(j).le.aperture_napxStart) .and. do_coll) .or. .not.do_coll) then
 #endif
