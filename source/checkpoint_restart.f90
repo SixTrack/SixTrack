@@ -125,10 +125,20 @@ subroutine cr_killSwitch(iTurn)
 
   integer, intent(in) :: iTurn
 
-  logical killIt, fExist
+  logical killIt, fExist, onKillTurn
   integer pTurn, nKills, i
 
   killIt = .false.
+  onKillTurn = .false.
+
+  do i=1,size(st_killturns,1)
+    if(iTurn == st_killturns(i)) then
+      onKillTurn = .true.
+    end if
+  end do
+  if (onKillTurn .eqv. .false.) then
+    return
+  end if
 
   if(crksunit == -1) then
     call funit_requestUnit("crkillswitch.tmp",crksunit)
@@ -159,7 +169,7 @@ subroutine cr_killSwitch(iTurn)
   end do
 
   if(killIt) then
-    nKills = nKilld + 1
+    nKills = nKills + 1
 
     write(lout,"(a,i0)") "CRKILL> Triggering kill switch on turn ",iTurn
     write(93,  "(a,i0)") "SIXTRACR> Triggering kill switch on turn ",iTurn
