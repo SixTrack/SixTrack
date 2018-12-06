@@ -270,6 +270,7 @@ subroutine dist_finaliseDist
 
   do j=napx+1,npart
     partID(j)   = j
+    parentID(j) = j
     pstop(j)    = .true.
     ejv(j)      = zero
     dpsv(j)     = zero

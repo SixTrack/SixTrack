@@ -1027,6 +1027,7 @@ subroutine dumpbin(dumpname,n,i)
   write(99) ejf0v
   write(99) numxv
   write(99) nms
+  write(99) partID
   write(99) parentID
   write(99) dpd
   write(99) dpsq
