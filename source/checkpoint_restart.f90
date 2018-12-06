@@ -59,6 +59,7 @@ module checkpoint_restart
   integer,             allocatable, public, save :: crnlostp(:)  ! (npart)
 
   logical,             allocatable, public, save :: crpstop(:)   ! (npart)
+  logical,             allocatable, public, save :: crllostp(:)  ! (npart)
 
   integer,                          public, save :: crnpart_old = -1
 
@@ -104,6 +105,7 @@ subroutine cr_expand_arrays(npart_new)
   call alloc(crnnumxv,     npart_new,      0,       "crnnumxv")
   call alloc(crnlostp,     npart_new,      0,       "crnlostp")
   call alloc(crpstop,      npart_new,      .false., "crpstop")
+  call alloc(crllostp,     npart_new,      .false., "crllostp")
 
   crnpart_old = npart_new
 
@@ -223,7 +225,8 @@ subroutine crcheck
       (cryvl(2,j),j=1,crnapxo),         &
       (crdpsvl(j),j=1,crnapxo),         &
       (crejvl(j),j=1,crnapxo),          &
-      (crsigmvl(j),j=1,crnapxo)
+      (crsigmvl(j),j=1,crnapxo),        &
+      (crllostp(j),j=1,crnapxo)
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record META"
     flush(93)
@@ -364,7 +367,8 @@ subroutine crcheck
       (cryvl(2,j),j=1,crnapxo),          &
       (crdpsvl(j),j=1,crnapxo),          &
       (crejvl(j),j=1,crnapxo),           &
-      (crsigmvl(j),j=1,crnapxo)
+      (crsigmvl(j),j=1,crnapxo),         &
+      (crllostp(j),j=1,crnapxo)
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record META"
     flush(93)
@@ -932,7 +936,8 @@ subroutine crpoint
       (yvl(2,j),j=1,napxo),         &
       (dpsvl(j),j=1,napxo),         &
       (ejvl(j),j=1,napxo),          &
-      (sigmvl(j),j=1,napxo)
+      (sigmvl(j),j=1,napxo),        &
+      (llostp(j),j=1,napxo)
     endfile(crUnit,iostat=ierro)
     backspace(crUnit,iostat=ierro)
 
@@ -1140,6 +1145,7 @@ subroutine crstart
     nnumxv(j)=crnnumxv(j)
     nlostp(j)=crnlostp(j)
     pstop(j)=crpstop(j)
+    llostp(j)=crllostp(j)
     xv1(j)=crxv(1,j)
     yv1(j)=cryv(1,j)
     xv2(j)=crxv(2,j)
