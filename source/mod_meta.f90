@@ -84,9 +84,9 @@ subroutine meta_finalise
  
   call funit_requestUnit("mod_meta_tmpUnit",tmpUnit)
   inquire(file="crkillswitch.tmp",exist=fExist)
-  if(fExist .eqv. .false.) then
-    open(tmpUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace")
-    write(tmpUnit) nCRKills1,nCRKills2
+  if(fExist) then
+    open(tmpUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")
+    read(tmpUnit) nCRKills1,nCRKills2
     close(tmpUnit)
   end if
 
