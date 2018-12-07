@@ -1183,7 +1183,7 @@ For the time being, \texttt{r\_1} cannot be \texttt{0}; hence, the electron lens
 \item In case of energy ramping, if not \texttt{DYNK}-ed, the kick stays constant, as if the e-lens was ramped in beam current in synch with the rest of the machine.
   On the contrary, if the user specifies the three main optional parameters (i.e.~length, kinetic energy of electrons and current), if not \texttt{DYNK}-ed, the kick is recomputed at any update of the reference energy, as if the e-lens was not ramped.
   Hence, it is responsibility of the user to define the way the e-lens is ramped with beam energy.
-\item Note that if the user specifies \texttt{theta\_r2} with DYNK, starting with the first turn where it set via DYNK it is no longer ramped with the energy; as if the elens was specified using only this parameter in \texttt{fort.3}.
+\item Note that if the user specifies \texttt{theta\_r2} with DYNK, then, starting with the first turn where it is set via \texttt{DYNK}, \texttt{theta\_R2} is no longer ramped with the energy, as if the elens was specified using only this parameter in \texttt{fort.3}.
   However note that the chromatic behaviour, which requires \texttt{E\_k}, is still handled in a physically correct way.
 \end{enumerate}
 
