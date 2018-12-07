@@ -27,7 +27,7 @@ module mod_fluka
   public :: fluka_send_receive
   public :: fluka_send
   public :: fluka_receive
-  public :: fluka_lostpart
+  public :: fluka_shuffleLostParticles
   public :: fluka_set_synch_part
   public :: fluka_init_max_uid
   public :: fluka_is_running
@@ -592,19 +592,21 @@ module mod_fluka
 
   !----------------------------------------------------------------------------
   ! compact ancillary tracking arrays
-  subroutine fluka_lostpart(npart, i)
-    integer, intent(in) :: npart, i
+  subroutine fluka_shuffleLostParticles(tnapx, j)
+
+    integer, intent(in) :: tnapx
+    integer, intent(in) :: j
 
     if(fluka_debug) then
-      write(fluka_log_unit, *) '# fluka_lostpart called with npart (lnapx for SixTrack) = ', npart, ', i = ', i
+      write(fluka_log_unit, *) '# fluka_shuffleLostParticles called with napx (lnapx for SixTrack) = ', tnapx, ', j = ', j
       flush(fluka_log_unit)
     end if
 
-    fluka_uid(i:npart-1) = fluka_uid(i+1:npart)
-    fluka_gen(i:npart-1) = fluka_gen(i+1:npart)
-    fluka_weight(i:npart-1) = fluka_weight(i+1:npart)
+    fluka_uid(j:tnapx)    = cshift(fluka_uid(j:tnapx),    1)
+    fluka_gen(j:tnapx)    = cshift(fluka_gen(j:tnapx),    1)
+    fluka_weight(j:tnapx) = cshift(fluka_weight(j:tnapx), 1)
 
-  end subroutine fluka_lostpart
+  end subroutine fluka_shuffleLostParticles
 
   !----------------------------------------------------------------------------
   ! set reference particle properties (mainly for longitudinal dynamics)

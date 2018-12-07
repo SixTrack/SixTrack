@@ -34,6 +34,9 @@ subroutine daten
   use elens,     only : elens_parseInputLine,elens_parseInputDone,elens_postInput
   use aperture
   use mod_hions
+#ifdef HASHLIB
+  use mod_hash
+#endif
 #ifdef FLUKA
   use mod_fluka, only : fluka_parsingDone,fluka_parseInputLine,fluka_enable
 #endif
@@ -847,6 +850,21 @@ subroutine daten
     end if
 #endif
 
+  case("HASH") ! HASH Library
+#ifndef HASHLIB
+    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the HASHLIB flag."
+    goto 9999
+#else
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call hash_parseInputLine(inLine,inErr)
+      if(inErr) goto 9999
+    end if
+#endif
+
   case("ROOT") ! ROOT Input Block
 #ifndef ROOT
     write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the ROOT flag."
@@ -938,7 +956,9 @@ subroutine daten
     endif
 
   end if
-
+ 
+  call aper_postInput
+  
   call elens_postInput
 
   if(idp == 0 .or. ition == 0 .or. nbeam < 1) then

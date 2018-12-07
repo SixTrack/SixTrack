@@ -82,6 +82,7 @@ set(TESTS_NO_STF_FORT90
   dynk_random
   dynk_polynomial
   scatter_bbelastic
+  scatter_aperture
 )
 
 # List of tests that absolutely require STF to be on (> 64 particles)
@@ -117,6 +118,7 @@ list(APPEND SIXTRACK_TESTS
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
+  elensidealthin6d_ramp_DYNK
   elensidealthin6d_ions
   eric
   exact
@@ -249,7 +251,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 
   if(LIBARCHIVE)
     if(TST MATCHES elensidealthin6d_DYNK_ZIPF)
-      SET(SIXOUT_NUMFILES 6)
+      SET(SIXOUT_NUMFILES 2)
     else()
       SET(SIXOUT_NUMFILES 0)
     endif()
@@ -402,6 +404,7 @@ set(FAST_TESTS
   elensidealthin6d
   elensidealthin6d_DYNK
   elensidealthin6d_DYNK_ZIPF
+  elensidealthin6d_ramp_DYNK
   elensidealthin6d_ions
   thin4d_ions
   thin6d_ions
