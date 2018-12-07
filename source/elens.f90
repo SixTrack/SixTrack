@@ -611,8 +611,8 @@ subroutine integrateRadialProfile(ifile)
   write(lout,"(a)") "ELENS> Normalising radial profile described in "//trim(elens_radial_filename(ifile))
   tmpTot=zero
   do ii=1,elens_radial_profile_nPoints(ifile)
-    tmpTot=tmpTot+elens_radial_profile_J(ii,ifile)*pi* &
-         ( elens_radial_profile_R(ii,ifile)-elens_radial_profile_R(ii-1,ifile) )* &
+    tmpTot=tmpTot+((elens_radial_profile_J(ii,ifile)*pi)* &
+         ( elens_radial_profile_R(ii,ifile)-elens_radial_profile_R(ii-1,ifile) ))* &
          ( elens_radial_profile_R(ii,ifile)+elens_radial_profile_R(ii-1,ifile) )
     elens_radial_profile_J(ii,ifile)=tmpTot
   end do
@@ -717,7 +717,7 @@ subroutine parseChebyFile(ifile)
     end if
     call chr_cast(lnSplit(3),tmpflt,spErr)
     gamma = (tmpflt*c1m3)/pmae+one ! from kinetic energy
-    elens_cheby_refBeta(ifile) = sqrt((gamma+one)*(gamma-one))/(gamma)
+    elens_cheby_refBeta(ifile) = sqrt((gamma+one)*(gamma-one))/gamma
 
   else if(inLine(1:3) == "rad") then
     ! Read reference radius e-beam in e-lens
