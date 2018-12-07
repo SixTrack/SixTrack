@@ -99,12 +99,13 @@ numerical specifiers:
                       aligned to those of MAD-X~\cite{MAD}. See Tab.~\ref{tab:apeSpecs} for their
                       meanings.\\
     \texttt{x\_off} and \texttt{y\_off}  & Hor.~and ver.~aperture offsets in mm. \\
-    \texttt{angle}  & Tilt angle in rad. \\
+    \texttt{angle}  & Tilt angle in rad. The tilt is around the offset point.\\
 \end{longtabu}
 
-The last three numerical specifiers are optional, whereas the others are variable, depending
+The last three numerical specifiers are optional, whereas the others are mandatory, depending
 on the type. Tab.~\ref{tab:apeSpecs} summarises the aperture types presently available
-and the meaning of the numerical specifiers.
+and the meaning of the necessary numerical specifiers; see also Fig.~\ref{fig:APE_sketch}
+for further geometrical clarifications.
 
 \begin{center}
 \begin{longtable}{|c|c|c|c|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
@@ -160,6 +161,14 @@ and the meaning of the numerical specifiers.
 %     \texttt{GAUSSIAN} & \texttt{$\sigma$} & mm & Sigma of the e--beam.\\*
 \end{longtable}
 \end{center}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.65\textwidth]{figures/apertureSketch.png}
+  \caption{Sketch of the most general aperture currently treated by the aperture module. The purple line marks the actual aperture restriction as interpreted by the code with the given parameters.}
+  \label{fig:APE_sketch}
+\end{figure}
+
 
 \bigskip
 \subsection{Other input options}\label{ApeLim:inpOptions}
