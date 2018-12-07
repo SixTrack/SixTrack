@@ -1,19 +1,46 @@
 # SixTrack Changelog
 
-### Not Yet Released
+### Version 5.1.0 [10.12.2018] - BOINC Release
 
-**User Side Changes**
+While this release includes regular bug fixes and changes, the primary focus is on making code improvements that allows for a wider range of studies to be run on BOINC.
+
+**BOINC Specific Changes**
+
+* The elens module is now compatible with BOINC, meaning that it is properly checkpointed and the output files are properly wrapped for use with BOINC.
+* The aperture module is now compatible with BOINC, meaning that it is properly checkpointed and the output files are properly wrapped for use with BOINC.
+
+**Input File Format Changes**
+
+* The input parser now enforces the use of a `NEXT` flag after the `PRINT` block. That is, the block must be properly closed like all other input blocks. The fact that such a flag has not been required in the past is due to a loophole in the old input parsing code. Note that usage of the `PRINT` block is deprecated. The same functionality is achieved by specifying a `PRINT` command in the `SETTINGS` block. The `PRINT` block will be removed in a future release.
+* The format of aperture input information (`LIMI` block) has been changed, breaking compatibility with previous versions. In particular, tilt angle is now set as last column, as implemented in MADX, instead of being last but two. All users of the Fluka-SixTrack coupling will have to update their aperture model.
+
+**Other User Side Changes**
 
 * Added a `FINALSTATE` flag in the `SETTINGS` block in `fort.3` that writes a binary or text file (via roundctl) of all particles at the end of tracking (but before post-processing). The flag takes `binary` or `text` as an option, specifying the file format. The `final_state.dat` or `final_state.bin` file produced also contains the particles flagged as lost during tracking.
 * Added a `HASH` module that can be used for computing the md5sum of output files. The primary purpose of this is for checking that the output is consistent in the test suite or when results are returned from BOINC.
+* Increased information in the error message produced when an error is encountered in the parsing of the `fort.3` input file.
+* E-lens module can now handle a radial profile read from text file.
+* E-lens kick are now fully chromatic.
+* E-lens current and kinetic energy can be modified during tracking via DYNK.
 
-**Other Changes**
+**Build System**
 
-* The `Sixin.zip` files used for testing BOINC builds have been removed from the test suite. These are now generated when needed by the test cmake.
+* The build system now requires CMake 3.2; up from 3.0.
+
+**Bug Fixes**
+
+* Minor bug in parsing of the `ELENS` input block where specifying a non-existent element would trigger the wrong error message to be returned.
+* Fixes a bug in checkpoint/restarting where `DUMP` restart information was not written to the secondary checkpoint file.
+* Fixed a bug in checkpoint/restarting where an infinite loop might occur when both primary and secondary checkpoint files were corrupt.
+* Checkpoint/restarting did not work as expected when building with the nagfor compiler. This compiler is more strict than gfortran and ifort on how files are accessed, which caused a nagfor built executable to try to overwrite `fort.10` with a dummy file even if it existed.
 
 **Code Improvements and Changes**
 
 * All open file units registered in the module `mod_units` and `file_units` are now flushed after post-processing, and before the `HASH` and `ZIPF` modules are called.
+
+**Test Suite**
+
+* The `Sixin.zip` files used for testing BOINC builds have been removed from the repository. These are now generated when needed by the test suite CMake.
 
 ### Version 5.0.3 [22.11.2018] - Release
 
