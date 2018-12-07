@@ -1,8 +1,8 @@
 ! ================================================================================================ !
-!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!  last modified: 2018-06-02
-!  read a beam distribution
-!  always in main code
+!  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-10-30
+!  Read a beam distribution
 !
 !  Format of the input file:
 !    id:         unique identifier of the particle (integer)
@@ -14,28 +14,13 @@
 !    m:          rest mass [GeV/c2]
 !    pc:         particle momentum [GeV/c]
 !    dt:         time delay with respect to the reference particle [s]
-!  - aa,zz and m are now taken into account for hisix
+!
+!    aa,zz and m are now taken into account for hisix!
 !
 !  NOTA BENE:
 !  - id, gen and weight are assigned by the fluka_mod_init subroutine;
 !  - z and zp are actually useless (but we never know);
-!  - aa, zz and m are not stored at the moment (safer decision from the code
-!    point of view, until a decision about ion tracking is taken);
-!    the subroutine fluka_send is then responsible for using the corresponding
-!    values for protons through the interface, whereas the subroutine fluka_receive
-!    simply ignores the values passed through the FlukaIO interface;
-!
-!  variables in input to routine:
-!  - napx: number of protons to be tracked (from fort.3 file);
-!  - npart: max number of protons that can be tracked (array dimensioning);
-!  - enom: nominal total energy of the beam (ie of synch particle) [MeV];
-!  - pnom: nominal linear momentum of the beam (ie of synch particle) [MeV/c];
-!  - clight: speed of light [m/s];
-!  NB: in case the file contains less particle than napx, napx is
-!      re-assigned
-!
-!  output variables:
-!    all other variables in the interface (6D tracking variables);
+!  - in case the file contains less particle than napx, napx is re-assigned
 !
 ! ================================================================================================ !
 module mod_dist
@@ -45,14 +30,20 @@ module mod_dist
 
   implicit none
 
-  logical,           public, save :: dist_enable      ! DIST input block given
-  logical,           public, save :: dist_echo        ! echo the read distribution?
-  character(len=16), public, save :: dist_filename    !
-  integer,           public, save :: dist_read_unit   ! unit for reading the distribution
-  integer,           public, save :: dist_echo_unit   ! unit for echoing the distribution
+  logical,            public,  save :: dist_enable     ! DIST input block given
+  logical,            public,  save :: dist_echo       ! Echo the read distribution?
+  character(len=256), public,  save :: dist_readFile   ! File name for reading the distribution
+  character(len=256), public,  save :: dist_echoFile   ! File name for echoing the distribution
+  integer,            private, save :: dist_readUnit   ! Unit for reading the distribution
+  integer,            private, save :: dist_echoUnit   ! Unit for echoing the distribution
 
 contains
 
+! ================================================================================================ !
+!  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-10-30
+! ================================================================================================ !
 subroutine dist_parseInputLine(inLine, iLine, iErr)
 
   use string_tools
@@ -79,138 +70,242 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
 
   select case(lnSplit(1))
 
-  case("ECHO")
-    dist_echo = .true.
-
-  case("RDUN")
-    write(lout,"(a)") "DIST> INFO RDUN is deprecated. A unit will be assigned automatically."
-
-  case("ECUN")
-    if(nSplit < 2) then
-      write(lout,"(a,i0)") "DIST> ERROR ECUN must have 1 value, got ",(nSplit-1)
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2),dist_echo_unit,iErr)
-
   case("READ")
     if(nSplit < 2) then
-      write(lout,"(a,i0)") "DIST> ERROR READ must have 1 value, got ",(nSplit-1)
+      write(lout,"(a)") "DIST> ERROR READ must be followed by one file name only."
       iErr = .true.
       return
     end if
-    dist_filename = trim(lnSplit(2))
-    call funit_requestUnit(dist_filename,dist_read_unit)
+    dist_readFile = trim(lnSplit(2))
+    call funit_requestUnit(dist_readFile, dist_readUnit)
     if(.not.dist_enable) dist_enable = .true.
+
+  case("ECHO")
+    if(nSplit >= 2) then
+      dist_echoFile = trim(lnSplit(2))
+    else
+      dist_echoFile = "echo_distribution.dat"
+    end if
+    dist_echo = .true.
+    call funit_requestUnit(dist_echoFile, dist_echoUnit)
+
+  case default
+    write(lout,"(a)") "DIST> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
+    iErr = .true.
+    return
 
   end select
 
 end subroutine dist_parseInputLine
 
-subroutine dist_readdis(napx, npart, enom, pnom, clight, x, y, xp, yp, s, pc, aa, zz, m)
+! ================================================================================================ !
+!  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-10-30
+! ================================================================================================ !
+subroutine dist_readDist
 
+  use parpro
+  use mod_hions
+  use mod_common
+  use mod_commonmn
+  use string_tools
+  use mod_particles
+  use physical_constants
   use numerical_constants
-  use parpro, only : mInputLn
-  use, intrinsic :: iso_fortran_env, only : int16
+
   implicit none
 
-! interface variables:
-  integer, intent(inout) :: napx
-  integer, intent(in) :: npart
-  real(kind=fPrec) enom, pnom, clight
-  real(kind=fPrec) :: x(npart)  !(npart)
-  real(kind=fPrec) :: y(npart)  !(npart)
-  real(kind=fPrec) :: xp(npart) !(npart)
-  real(kind=fPrec) :: yp(npart) !(npart)
-  real(kind=fPrec) :: s(npart)  !(npart)
-  real(kind=fPrec) :: pc(npart) !(npart)
-  real(kind=fPrec) m0
+  integer                 id, gen, j, ln, nSplit
+  real(kind=fPrec)        weight, z, zp, dt(npart)
+  logical                 spErr, cErr
+  character(len=mInputLn) inLine
+  character(len=:), allocatable :: lnSplit(:)
 
-! temporary variables:
-  integer id, gen
-  integer(kind=int16) :: aa(npart) !(npart)
-  integer(kind=int16) :: zz(npart) !(npart)
-  real(kind=fPrec) :: weight, z, zp
-  real(kind=fPrec) :: dt(npart)
-  real(kind=fPrec) :: m(npart) !(npart)
+  write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_readFile)//"'"
 
-  integer jj
-  character(len=mInputLn) tmp_line
+  xv1(:)  = zero
+  yv1(:)  = zero
+  xv2(:)  = zero
+  yv2(:)  = zero
+  sigmv(:) = zero
+  ejfv(:)  = zero
+  naa(:)   = 0
+  nzz(:)   = 0
+  nucm(:)  = zero
+  dt(:)    = zero
 
-  character, parameter :: comment_char = '*'
+  j    = 0
+  ln   = 0
+  cErr = .false.
 
-  write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_filename)//"'"
+  open(unit=dist_readUnit, file=dist_readFile)
 
-! initialise tracking variables:
-  do jj=1,npart
-    x (jj) = zero
-    y (jj) = zero
-    xp(jj) = zero
-    yp(jj) = zero
-    pc(jj) = zero
-    s (jj) = zero
-    aa(jj) = 0            ! hisix
-    zz(jj) = 0            ! hisix
-    m (jj) = zero         ! hisix
-  end do
+10 continue
+  read(dist_readUnit,"(a)",end=30,err=20) inLine
+  ln = ln+1
 
-! initialise particle counter
-  jj = 0
+  if(inLine(1:1) == "*") goto 10
+  if(inLine(1:1) == "#") goto 10
+  if(inLine(1:1) == "!") goto 10
+  j = j+1
 
-  open( unit=dist_read_unit, file=dist_filename )
-
-! cycle on lines in file:
-1981 continue
-  read(dist_read_unit,"(a)",end=1983,err=1982) tmp_line
-  if( tmp_line(1:1).eq.comment_char ) goto 1981
-  jj = jj+1
-
-  if( jj.gt.napx ) then
-    write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been as requested in fort.3"
-    jj = napx
-    goto 1983
+  if(j > napx) then
+    write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been read, as requested in fort.3"
+    j = napx
+    goto 30
   end if
 
-  read(tmp_line, *, err=1982) id, gen, weight, x(jj), y(jj), z, xp(jj), yp(jj), zp, aa(jj), zz(jj), m(jj), pc(jj), dt(jj)
-  goto 1981
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) goto 20
+  if(nSplit > 0)  call chr_cast(lnSplit(1),  id,      cErr)
+  if(nSplit > 1)  call chr_cast(lnSplit(2),  gen,     cErr)
+  if(nSplit > 2)  call chr_cast(lnSplit(3),  weight,  cErr)
+  if(nSplit > 3)  call chr_cast(lnSplit(4),  xv1(j),  cErr)
+  if(nSplit > 4)  call chr_cast(lnSplit(5),  xv2(j),  cErr)
+  if(nSplit > 5)  call chr_cast(lnSplit(6),  z,       cErr)
+  if(nSplit > 6)  call chr_cast(lnSplit(7),  yv1(j),  cErr)
+  if(nSplit > 7)  call chr_cast(lnSplit(8),  yv2(j),  cErr)
+  if(nSplit > 8)  call chr_cast(lnSplit(9),  zp,      cErr)
+  if(nSplit > 9)  call chr_cast(lnSplit(10), naa(j),  cErr)
+  if(nSplit > 10) call chr_cast(lnSplit(11), nzz(j),  cErr)
+  if(nSplit > 11) call chr_cast(lnSplit(12), nucm(j), cErr)
+  if(nSplit > 12) call chr_cast(lnSplit(13), ejfv(j), cErr)
+  if(nSplit > 13) call chr_cast(lnSplit(14), dt(j),   cErr)
+  if(cErr) goto 20
 
-! error while parsing file:
-1982 continue
-  write(lout,"(a)") "DIST> ERROR Reading particles from line: '"//trim(tmp_line)//"'"
-  goto 1984
+  xv1(j)    = xv1(j)*c1e3
+  xv2(j)    = xv2(j)*c1e3
+  yv1(j)    = yv1(j)*c1e3
+  yv2(j)    = yv2(j)*c1e3
+  ejfv(j)   = ejfv(j)*c1e3
+  nucm(j)   = nucm(j)*c1e3
+  sigmv(j)  = -(e0f/e0)*((dt(j)*clight)*c1e3)
+  mtc(j)    = (nzz(j)*nucm0)/(zz0*nucm(j))
+  nlostp(j) = j
+  pstop(j)  = .false.
 
-1983 continue
-  if( jj.eq.0 ) then
-    write(lout,"(a)") "DIST> ERROR Reading particles. No particles read from file."
-    goto 1984
-  end if
+  goto 10
 
-  close(dist_read_unit)
-  write(lout,"(a,i0)") "DIST> Number of particles read = ",jj
-
-  if( jj.lt.napx ) then
-    write(lout,"(a,i0)") "DIST> WARNING Read a number of particles LOWER than the one requested for tracking. Requested: ",napx
-    napx = jj
-  end if
-
-! fix units:
-  do jj=1,napx
-    x (jj) = x(jj)  * c1e3 ! [m]     -> [mm]
-    y (jj) = y(jj)  * c1e3 ! [m]     -> [mm]
-    xp(jj) = xp(jj) * c1e3 ! []      -> [1.0E-03]
-    yp(jj) = yp(jj) * c1e3 ! []      -> [1.0E-03]
-    pc(jj) = pc(jj) * c1e3 ! [GeV/c] -> [MeV/c]
-    m (jj) = m(jj)  * c1e3 ! [GeV/c^2] -> [MeV/c^2] ! P. HERMES
-    s (jj) = -pnom/enom * dt(jj)*clight * c1e3
-  end do
-
-  return
-
-! exit with error
-1984 continue
-  close(dist_read_unit)
+20 continue
+  write(lout,"(a,i0)") "DIST> ERROR Reading particles from line ",ln
   call prror(-1)
   return
-end subroutine dist_readdis
+
+30 continue
+  if(j == 0) then
+    write(lout,"(a)") "DIST> ERROR Reading particles. No particles read from file."
+    call prror(-1)
+    return
+  end if
+
+  close(dist_readUnit)
+  write(lout,"(a,i0,a)") "DIST> Read ",j," particles from file '"//trim(dist_readFile)//"'"
+
+  ! Update longitudinal particle arrays from read momentum
+  call part_updatePartEnergy(2)
+
+  if(j < napx) then
+    write(lout,"(a,i0)") "DIST> WARNING Read a number of particles LOWER than requested: ",napx
+    napx = j
+  end if
+
+end subroutine dist_readDist
+
+! ================================================================================================ !
+!  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-10-31
+! ================================================================================================ !
+subroutine dist_finaliseDist
+
+  use parpro
+  use mod_hions
+  use mod_common
+  use mod_commont
+  use mod_commonmn
+  use numerical_constants
+
+  implicit none
+
+  integer          :: j
+  real(kind=fPrec) :: chkP, chkE
+
+  ! Check existence of on-momentum particles in the distribution
+  do j=1, napx
+    chkP = (ejfv(j)/nucm(j))/(e0f/nucm0)-one
+    chkE = (ejv(j)/nucm(j))/(e0/nucm0)-one
+    if(abs(chkP) < c1m15 .or. abs(chkE) < c1m15) then
+      write(lout,"(a)")                "DIST> WARNING Encountered on-momentum particle."
+      write(lout,"(a,4(1x,a25))")      "DIST>           ","momentum [MeV/c]","total energy [MeV]","Dp/p","1/(1+Dp/p)"
+      write(lout,"(a,4(1x,1pe25.18))") "DIST> ORIGINAL: ", ejfv(j), ejv(j), dpsv(j), oidpsv(j)
+
+      ejfv(j)     = e0f*(nucm(j)/nucm0)
+      ejv(j)      = sqrt(ejfv(j)**2+nucm(j)**2)
+      dpsv1(j)    = zero
+      dpsv(j)     = zero
+      oidpsv(j)   = one
+      moidpsv(j)  = mtc(j)
+      omoidpsv(j) = c1e3*(one-mtc(j))
+
+      if(abs(nucm(j)/nucm0-one) < c1m15) then
+        nucm(j) = nucm0
+        if(nzz(j) == zz0 .or. naa(j) == aa0) then
+          naa(j) = aa0
+          nzz(j) = zz0
+          mtc(j) = one
+        else
+          write(lout,"(a)") "DIST> ERROR Mass and/or charge mismatch with relation to sync particle"
+          call prror(-1)
+        end if
+      end if
+
+      write(lout,"(a,4(1x,1pe25.18))") "DIST> CORRECTED:", ejfv(j), ejv(j), dpsv(j), oidpsv(j)
+    end if
+  end do
+
+  write(lout,"(a,2(1x,i0),1x,f15.7)") "DIST> Reference particle species [A,Z,M]:", aa0, zz0, nucm0
+  write(lout,"(a,1x,f15.7)")       "DIST> Reference energy [Z TeV]:", c1m6*e0/zz0
+
+  do j=napx+1,npart
+    nlostp(j)   = j
+    pstop(j)    = .true.
+    ejv(j)      = zero
+    dpsv(j)     = zero
+    oidpsv(j)   = one
+    mtc(j)      = one
+    naa(j)      = aa0
+    nzz(j)      = zz0
+    nucm(j)     = nucm0
+    moidpsv(j)  = one
+    omoidpsv(j) = zero
+  end do
+
+end subroutine dist_finaliseDist
+
+! ================================================================================================ !
+!  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-10-30
+! ================================================================================================ !
+subroutine dist_echoDist
+
+  use mod_common
+  use mod_commonmn
+
+  integer j
+
+  open(unit=dist_echoUnit, file=dist_echoFile)
+  rewind(dist_echoUnit)
+  write(dist_echoUnit,"(a,1pe25.18)") "# Total energy of synch part [MeV]: ",e0
+  write(dist_echoUnit,"(a,1pe25.18)") "# Momentum of synch part [MeV/c]:   ",e0f
+  write(dist_echoUnit,"(a)")          "#"
+  write(dist_echoUnit,"(a)")          "# x[mm], y[mm], xp[mrad], yp[mrad], sigmv[mm], ejfv[MeV/c]"
+  do j=1, napx
+    write(dist_echoUnit,"(6(1x,1pe25.18))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejfv(j)
+  end do
+  close(dist_echoUnit)
+
+end subroutine dist_echoDist
 
 end module mod_dist

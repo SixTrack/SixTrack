@@ -165,7 +165,10 @@ subroutine units_closeUnits(unit)
   logical isOpen
 
   inquire(unit=unit, opened=isOpen)
-  if(isOpen) close(unit)
+  if(isOpen) then
+    flush(unit)
+    close(unit)
+  end if
 
   do i=1,units_nList
     if(units_uList(i)%unit == unit) then

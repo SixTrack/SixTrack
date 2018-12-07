@@ -1786,7 +1786,7 @@ subroutine damult(ina,inb,inc)
       integer i,i1ia,i2ia,ia,ib,ic,illa,illb,illc,ilma,ilmb,ilmc,ina,   &
      &inb,inc,inoa,inob,inoc,inva,invb,invc,ioffb,ipno,ipoa,ipob,ipoc,  &
      &ipos,minv,noff,noib,nom
-      real(kind=fPrec) ccia,ccipoa,ccipob,tmpA,tmpB
+      real(kind=fPrec) ccia,ccipoa,ccipob
       logical checkMultUnderflow
 !     *****************************
 !
@@ -1812,27 +1812,10 @@ subroutine damult(ina,inb,inc)
         minv = min(inva,invb,invc)
         ccipoa = cc(ipoa)
         ccipob = cc(ipob)
-        if(checkMultUnderflow(ccipoa,ccipob)) then
-          write(lout,"(a)") "DABNEW> WARNING Underflow intercepted in routine damult at 1."
-          cc(ipoc) = zero
-        else
-          cc(ipoc) = ccipoa*ccipob
-        end if
+        cc(ipoc) = ccipoa*ccipob
 
         do i=1,minv
-          if(checkMultUnderflow(ccipoa,cc(ipob+i))) then
-            write(lout,"(a)") "DABNEW> WARNING Underflow intercepted in routine damult at 2."
-            tmpA = zero
-          else
-            tmpA = ccipoa*cc(ipob+i)
-          end if
-          if(checkMultUnderflow(ccipob,cc(ipoa+i))) then
-            write(lout,"(a)") "DABNEW> WARNING Underflow intercepted in routine damult at 3."
-            tmpB = zero
-          else
-            tmpB = ccipob*cc(ipoa+i)
-          end if
-          cc(ipoc+i) = tmpA + tmpB
+          cc(ipoc+i) = ccipoa*cc(ipob+i) + ccipob*cc(ipoa+i)
         end do
 
          do i=ipoc+minv+1,ipoc+invc

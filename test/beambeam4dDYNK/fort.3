@@ -29,9 +29,11 @@ FUN sxxstr CONST 5.0e-003
 FUN syystr CONST 4.0e-003 
 FUN hsepstr CONST 3.0e-001 
 FUN vsepstr CONST 4.0e-001
+FUN sxystr CONST 1.0e-003
 FUN strengthstr CONST 0.1 
 SET bb 4dSxx sxxstr 1 1 0
 SET bb 4dSyy syystr 1 1 0
+SET bb 4dSxy sxystr 1 1 0
 SET bb h-sep hsepstr 1 1 0
 SET bb v-sep vsepstr 1 1 0
 SET bb strength strengthstr 1 1 0
@@ -42,8 +44,8 @@ SYNC
 NEXT
 BEAM
 EXPERT
-10e10          5    5            1.  1.0000e-03  1  0 0 0
-bb                  0 55.0e-003  45.0e-3  30.0e-1  400.0e-1 0.3
+10e10          5    5            1.  1.0000e-03  1  0 0 1
+bb                  0 55.0e-003  45.0e-3  30.0e-1  400.0e-1 0.3 3.e-3
 !bb                  0 5.0e-003  4.0e-3  3.0e-1  4.0e-1 0.1
 NEXT
 

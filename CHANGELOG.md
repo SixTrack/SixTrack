@@ -1,5 +1,70 @@
 # SixTrack Changelog
 
+### Not Yet Released
+
+**User Side Changes**
+
+* Added a `FINALSTATE` flag in the `SETTINGS` block in `fort.3` that writes a binary or text file (via roundctl) of all particles at the end of tracking (but before post-processing). The flag takes `binary` or `text` as an option, specifying the file format. The `final_state.dat` or `final_state.bin` file produced also contains the particles flagged as lost during tracking.
+* Added a `HASH` module that can be used for computing the md5sum of output files. The primary purpose of this is for checking that the output is consistent in the test suite or when results are returned from BOINC.
+
+**Other Changes**
+
+* The `Sixin.zip` files used for testing BOINC builds have been removed from the test suite. These are now generated when needed by the test cmake.
+
+**Code Improvements and Changes**
+
+* All open file units registered in the module `mod_units` and `file_units` are now flushed after post-processing, and before the `HASH` and `ZIPF` modules are called.
+
+### Version 5.0.3 [22.11.2018] - Release
+
+**Bug Fixes**
+
+* Due to inconsistent if-statements, FMA would sometimes write to a non-existent file unit without opening the file properly.
+* DYNK would not build with nagfor due to two malformed strings.
+* Fixed building with `ROUND_ZERO` flag. The `matlib_bouncer` was trying to call non-existent round-towards-zero routines for `exp_mb()` functions (which is handled by round down `exp_rd()`), and `log10_mb` which was missing for `ROUND_ZERO` and has been added to `CRLIBM`.
+* A variable for DYNK FIR/IIR functions was written to memory twice, but with an invalid index for one of those writes. This write has been removed.
+* Removed a remaining `COLLIMAT` flag in the beam-gas module that prevented the `BEAMGAS` flag from building.
+* Fixed an infinite loop bug in Checkpoint/Restart where the restart would repeatedly try to open `fort.96` if the reading failed while reading DUMP checkpoint data. This would only occur if both `fort.95` and `fort.96` files were corrupt.
+* Fixed a bug where ifort would not accept `180_fPrec` as a valid floating point number in the `aperture` module.
+* Removed references to intrinsic `ieee_arithmetic` due to significant performance loss when building with gfortran.
+* The particle array `dpsv1` was wrongly updated in various parts of SixTrack. This has now been corrected. The error only affected ion tracking, but not protons.
+* Previous fix to trombone elements in v5.0.1 was only for thin tracking. The same fix has now been applied to thick tracking.
+* Loading beam population with the `DIST` block did not update all energy/momentum arrays correctly on initialisation. This is now fixed. The change is very small.
+
+**User Side Changes**
+
+* Electron lenses have been re-enabled, and the code reverted/rewritten to produce the same results as for SixTrack 4.7.18. Further updates will be made.
+* The FMA output files will no longer contain NaN values. The NaN values were deliberate return values for `atan2(0,0)` call. This behaviour has been changed to return `0d0` instead, following [IEEE Std 1003.1-2017 (Revision of IEEE Std 1003.1-2008)](http://pubs.opengroup.org/onlinepubs/9699919799/). The nagfor compiler does not comply with this standard, and the return value for the nagfor built executables is handled by an additional if statement.
+* Added DYNK support for coupled 4D beam-beam elements.
+* Introduced consistent settings of coupling in the strong beam for 4D.
+* A new output file, `sim_meta.dat`, has been added. The file lists name value pairs of information about the last run simulation.
+* A new output file, `sim_time.dat`, has been added. The file lists time stamps throughout the simulation in key points, as well as compute cpu time averages.
+* Parsing of beam distribution file `fort.13` has been updated. The energy per particle value read from the file is ignored and computed from the delta_p (`dpsv`) value provided.
+* The `DIST` block has been updated to use the `CRLIBM` rounding library.
+* The Collimation module now accepts dist format 0, which bypasses the internal beam distribution generator and instead uses the one defined by the `INIT` or `DIST` block.
+
+**Build System**
+
+* Added a `defaultBuild.sh` script that builds SixTrack with NAFF and libArchive support.
+* The `buildLibraries.sh` script has been split up and rewritten to support more libraries. The script can be called with no arguments to build all libraries, or with `boinc`, `libarchive` or `hdf5` to build the respective libraries only. Dependencies are handled automatically.
+* Building with flags `G4COLLIMAT`, `BEAMGAS` and `MERLINSCATTER` now disables building of the Differential Algebra executable (SixDA).
+* The first 7 characters of the git hash is now added to the executable name as part of the version number.
+* Added symlink name `sixtrack` pointing to the SixTrack executable in the build directory.
+* Changed the way lquadmath is linked on Mac to make it more robust.
+
+**Other Changes**
+
+* A set of developer tools for MAD-X/SixTrack output testing and comparison has been added in the `devtools` folder.
+* The standard output from SixTrack has been cleaned up and tweaked a little.
+
+**Code Improvements and Changes**
+
+* A new subroutine for initialising the random number generator has been added. This routine has proper boundary checks on the seeds. It can also optionally accept one seed. instead of two. The second seed is then calculated by a fixed offset.
+* The internal NAFF library has been replaced by a rewritten external library now included as a submodule.
+* Remaining code for multiple machines (different random seeds) has bean cleaned out. The feature was already disabled.
+* Aperture checks have been inlined to improve performance.
+* Particle vectors for [x,y] and [xp,yp] has been split up into 4 separate vectors.
+
 ### Version 5.0.2 [23.08.2018] - Release
 
 **Bug Fixes**
