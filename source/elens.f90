@@ -523,7 +523,7 @@ subroutine parseRadialProfile(ifile)
   elens_radial_profile_R(ii,ifile) = zero
   elens_radial_profile_J(ii,ifile) = zero
   write(lout,"(a)") "ELENS> Parsing file with radial profile "//trim(elens_radial_filename(ifile))
-  call units_openUnit(unit=elens_radial_unit,fileName=elens_radial_filename(ifile),mode='r',err=err,status="old")
+  call units_openUnit(unit=elens_radial_unit,fileName=elens_radial_filename(ifile),mode='r',err=err,formatted=.true.,status="old")
 
 10 continue
   read(elens_radial_unit,"(a)",end=20,err=30) inLine
@@ -690,7 +690,7 @@ subroutine parseChebyFile(ifile)
 
   ierr = 0
   write(lout,"(a)") "ELENS> Parsing file with coefficients for Chebyshev polynomials "//trim(elens_cheby_filename(ifile))
-  call units_openUnit(unit=elens_cheby_unit,fileName=elens_cheby_filename(ifile),mode='r',err=err,status="old")
+  call units_openUnit(unit=elens_cheby_unit,fileName=elens_cheby_filename(ifile),mode='r',err=err,formatted=.true.,status="old")
 
 10 continue
   read(elens_cheby_unit,"(a)",end=20,err=30) inLine
