@@ -428,7 +428,9 @@ subroutine dump_initialise
 
   integer i,j,k,l
   logical lOpen, rErr
+#ifdef BOINC
   character(len=256) filename
+#endif
   character(len=16) tasbuf(6,6)
 
 #ifdef HDF5
@@ -1927,7 +1929,9 @@ subroutine dump_crpoint(fileunit,lerror,ierro)
   integer, intent(inout) :: ierro
   integer j
 
-  write(95,err=100,iostat=ierro) (dumpfilepos(j),j=-1,nele)
+  write(fileunit,err=100,iostat=ierro) (dumpfilepos(j),j=-1,nele)
+  endfile (fileunit,iostat=ierro)
+  backspace (fileunit,iostat=ierro)
   return
 
 100 continue
