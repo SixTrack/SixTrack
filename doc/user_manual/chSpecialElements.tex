@@ -44,31 +44,19 @@ Moreover, using the multipole block reduces the number of elements in the single
 % ================================================================================================================================ %
 \section{Aperture Limitations} \label{ApeLim}
 
-The aperture LIMItation block allows to define aperture limitations in the machine
-and hence describe the mechanical acceptance of the machine.\index{aperture limit}\index{LIMI}
-In addition, there is a general (rectangular) aperture check at each non-zero
-length element. The general aperture values are chosen to be large enough (\ref{T-DTP})
-to define the short term dynamic aperture.
+The aperture LIMItation block allows to define aperture limitations in the machine and hence describe the mechanical acceptance of the machine.\index{aperture limit}\index{LIMI}
+In addition, there is a general (rectangular) aperture check at each non-zero length element. The general aperture values are chosen to be large enough~(\ref{T-DTP}) to define the short term dynamic aperture.
 
 \subsection{General Description} \label{ApeLim:GenDesc}
-Each non-linear (zero length) element defined in the \textit{Single Element} input block
-(\ref{NonEle}) except multipole blocks (\ref{MulBlo}) can be used to define aperture limitations,
-but it is highly recommended to use dedicated markers. Several aperture types are available to
-the user (see later).
+Each non-linear (zero length) element defined in the \textit{Single Element} input block~(\ref{NonEle}) except multipole blocks~(\ref{MulBlo}) can be used to define aperture limitations, but it is highly recommended to use dedicated markers.
+Several aperture types are available to the user (see later).
 
-The aperture limitations are taken into account during tracking by the online aperture checking, which
-verifies that the tracked particles falls within the mechanical acceptance of the machine. When a
-particle does not fit into the mechanical acceptance, it is removed from tracking; its
-coordinates at the point of loss are reported in a text file. A back-tracking algorithm
-finds the actual loss location interpolating the aperture profile by means of a bi-section
-method; the user can set the precision with which the longitudinal position is found
-(default is 10~cm).
-While on by default, the algorithm can be switched off by the user; in this case, the
-particle coordinates reported in the loss file are those at the aperture marker where
-the particle is found out of the mechanical aperture of the machine.
+The aperture limitations are taken into account during tracking by the online aperture checking, which verifies that the tracked particles falls within the mechanical acceptance of the machine.\
+When a particle does not fit into the mechanical acceptance, it is removed from tracking; its coordinates at the point of loss are reported in a text file.
+A back-tracking algorithm finds the actual loss location interpolating the aperture profile by means of a bi-section method; the user can set the precision with which the longitudinal position is found (default is 10~cm).
+While on by default, the algorithm can be switched off by the user; in this case, the particle coordinates reported in the loss file are those at the aperture marker where the particle is found out of the mechanical aperture of the machine.
 
-The present implementation extends the functionalities developed in the
-context of the Fluka-SixTrack coupling~\cite{coupling:1,coupling:2}.
+The present implementation extends the functionalities developed in the context of the Fluka-SixTrack coupling~\cite{coupling:1,coupling:2}.
 
 \paragraph{Format Description}~
 
@@ -84,14 +72,13 @@ context of the Fluka-SixTrack coupling~\cite{coupling:1,coupling:2}.
 
 \bigskip
 \subsection{Specifying Aperture Marker}\label{ApeLim:ApeSpecs}
-An aperture profile can be assigned to a SINGLE ELEMENT specifying its type and
-numerical specifiers:
+An aperture profile can be assigned to a SINGLE ELEMENT specifying its type and numerical specifiers:
 
 \paragraph{Format:}
 \texttt{name type aper\_1 aper\_2 aper\_3 aper\_4 aper\_5 aper\_6 x\_off y\_off angle}
 
 \begin{longtabu}{@{}lp{0.8\linewidth}}
-    \texttt{name}   & The name of any non-linear (zero length) element in the \textit{Single Element} input block (\ref{NonEle}) except multipole blocks (\ref{MulBlo}). \\
+    \texttt{name}   & The name of any non-linear (zero length) element in the \textit{Single Element} input block~(\ref{NonEle}) except multipole blocks~(\ref{MulBlo}). \\
     \texttt{type}   & Type of aperture limitation (string). See Tab.~\ref{tab:apeSpecs} for the types
                       presently available. \\
     \texttt{aper\_1} to \texttt{aper\_6}  & Aperture specifiers (floats).
@@ -216,12 +203,12 @@ and the meaning of the numerical specifiers.
 \section{Power Supply Ripple} \label{PowRip}
 
 \textcolor{notered}{\textbf{Note:}
-The \texttt{RIPP} block is been deprecated since release 4.5.20, and the functionality is now provided by the \texttt{DYNK} block (\ref{sec:DYNK}).\index{power supply ripple}\index{RIPP}
+The \texttt{RIPP} block is deprecated since release 4.5.20, and the functionality is now provided by the \texttt{DYNK} block~(\ref{sec:DYNK}).\index{power supply ripple}\index{RIPP}
 A \texttt{fort.3} file containing a \texttt{RIPP} block is therefore no longer valid, and will result in an error message.
 The description below is therefore only provided as a reference for those who need to convert old input files.}
 
 \bigskip
-\noindent If power supply ripple is to be considered this input data block can be used. A non-linear quadrupole is expected as a ripple element (\texttt{type=2} and zero length in the single element list (\ref{NonEle})), but in principle other non-linear elements are also allowed.
+\noindent If power supply ripple is to be considered this input data block can be used. A non-linear quadrupole is expected as a ripple element (\texttt{type=2} and zero length in the single element list~(\ref{NonEle})), but in principle other non-linear elements are also allowed.
 Ripple depth, ripple frequency and starting phase of the ripple frequency are the input parameters.
 
 \bigskip
@@ -235,7 +222,7 @@ Ripple depth, ripple frequency and starting phase of the ripple frequency are th
 
 \bigskip
 \begin{longtabu}{@{}lp{0.75\linewidth}}
-    \texttt{name}        & Name of the non-linear element in the \textit{single element} block (\ref{NonEle}). \\
+    \texttt{name}        & Name of the non-linear element in the \textit{single element} block~(\ref{NonEle}). \\
     \texttt{depth}       & Maximum kick strength of the ripple element. A quadrupole kick is usually expected. \\
     \texttt{frequency}   & Given in number of turns (a real value is allowed) of one ripple period. \\
     \texttt{start-phase} & Initial phase of the ripple element. \\
