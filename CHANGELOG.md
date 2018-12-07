@@ -12,16 +12,16 @@ While this release includes regular bug fixes and changes, the primary focus is 
 **Input File Format Changes**
 
 * The input parser now enforces the use of a `NEXT` flag after the `PRINT` block. That is, the block must be properly closed like all other input blocks. The fact that such a flag has not been required in the past is due to a loophole in the old input parsing code. Note that usage of the `PRINT` block is deprecated. The same functionality is achieved by specifying a `PRINT` command in the `SETTINGS` block. The `PRINT` block will be removed in a future release.
-* The format of aperture input information (`LIMI` block) has been changed, breaking compatibility with previous versions. In particular, tilt angle is now set as last column, as implemented in MADX, instead of being last but two. All users of the Fluka-SixTrack coupling will have to update their aperture model.
+* The format of aperture input information (`LIMI` block) has been changed, breaking compatibility with previous versions. In particular, tilt angle is now set as last column, as implemented by MADX-to-SixTrack converter, instead of being last but two. Moreover, the aperture offset is not expressed in terms of local value of the survey but as actual offset; hence, offset values are subtracted from particle coordinates and not summed when the aperture is checked. All users of the Fluka-SixTrack coupling will have to update their aperture model - the change in the pre-processing script to do so will come shortly.
 
 **Other User Side Changes**
 
-* Added a `FINALSTATE` flag in the `SETTINGS` block in `fort.3` that writes a binary or text file (via roundctl) of all particles at the end of tracking (but before post-processing). The flag takes `binary` or `text` as an option, specifying the file format. The `final_state.dat` or `final_state.bin` file produced also contains the particles flagged as lost during tracking.
-* Added a `HASH` module that can be used for computing the md5sum of output files. The primary purpose of this is for checking that the output is consistent in the test suite or when results are returned from BOINC.
+* Added a `FINALSTATE` flag in the `SETTINGS` block in `fort.3` that writes a binary or text file (via `roundctl`) of all particles at the end of tracking (but before post-processing). The flag takes `binary` or `text` as an option, specifying the file format. The `final_state.dat` or `final_state.bin` file produced also contains the particles flagged as lost during tracking.
+* Added a `HASH` module that can be used for computing the `md5sum` of output files. The primary purpose of this is for checking that the output is consistent in the test suite or when results are returned from BOINC.
 * Increased information in the error message produced when an error is encountered in the parsing of the `fort.3` input file.
 * E-lens module can now handle a radial profile read from text file.
 * E-lens kick are now fully chromatic.
-* E-lens current and kinetic energy can be modified during tracking via DYNK.
+* E-lens current and kinetic energy can be modified during tracking via `DYNK`.
 
 **Build System**
 
