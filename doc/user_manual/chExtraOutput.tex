@@ -573,3 +573,20 @@ HDF5
     WRITE OPTICS
 NEXT
 \end{cverbatim}
+
+% ================================================================================================================================ %
+\section{Simulation Meta Data and Timing Output} \label{sec:METATIME}
+
+SixTrack produces two text files containing meta data and timing data for the last run simulation.
+Both these files are in a fixed column with format, making them straight forward to parse with other tools.
+
+\paragraph{META:}~
+\index{Meta Data}
+The file \texttt{sim\_meta.dat} contains information about the SixTrack executable such as version information, build details and execution time.
+The file also contains initial values and values calculated during tracking that may be useful for further post-processing.
+
+\paragraph{TIME:}~
+\index{Timing Data}
+The file \texttt{sim\_time.dat} contains information about the execution time of the last SixTrack run.
+There are a number of time stamp at key points during execution written to the file.
+In addition, the total tracking time is extracted, and various averages computed based on number of particles, turns or the size of the lattice.
