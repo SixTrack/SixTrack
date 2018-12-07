@@ -428,6 +428,9 @@ subroutine scatter_crstart
   call dealloc(scatter_fData_CR,          "scatter_fData_CR")
   call dealloc(scatter_cData_CR, mStrLen, "scatter_cData_CR")
 
+  scatter_seed1 = scatter_seed1_CR
+  scatter_seed2 = scatter_seed2_CR
+
 end subroutine scatter_crstart
 #endif
 ! End of CR
