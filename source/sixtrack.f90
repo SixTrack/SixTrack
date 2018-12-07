@@ -50,18 +50,19 @@ subroutine daten
 
   implicit none
 
-  character(len=mInputLn) inLine
+  character(len=mInputLn) inLine, pLines(5)
   character(len=mNameLen) ic0(10)
   character(len=60)       iHead
+  character(len=8)        cPad
   character(len=4)        currBlock, cCheck
 
   integer nUnit,lineNo2,lineNo3,nGeom
   integer blockLine,blockCount
 
   logical blockOpened,blockClosed,blockReopen,openBlock,closeBlock
-  logical inErr,parseFort2,prevPrint
+  logical inErr,parseFort2
 
-  integer icc,il1,ilin0,iMod,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
+  integer icc,il1,ilin0,iMod,i,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
 
 ! ================================================================================================ !
 !  SET DEFAULT VALUES
@@ -217,7 +218,6 @@ subroutine daten
 
   ! SIXTRACK INPUT MODULE
   inErr       = .false.
-  prevPrint   = .false.
   sixin_ncy2  = 0
   sixin_icy   = 0
 
@@ -227,17 +227,19 @@ subroutine daten
   nGeom       = 0
   lineNo2     = 0
   lineNo3     = 0
+  pLines(:)   = " "
 
 ! ================================================================================================ !
 !  READ FORT.3 HEADER
 ! ================================================================================================ !
 
 90 continue
-  read(3,"(a4,8x,a60)",end=9998,iostat=ierro) cCheck,iHead
+  read(3,"(a4,a8,a60)",end=9998,iostat=ierro) cCheck,cPad,iHead
   if(ierro > 0) then
     write(lout,"(a)") "INPUT> ERROR Could not read from fort.3"
     call prror(-1)
   end if
+  pLines(5) = cCheck//cPad//iHead
   lineNo3 = lineNo3+1
   if(cCheck(1:1) == "/") goto 90
   if(cCheck(1:1) == "!") goto 90
@@ -299,6 +301,14 @@ subroutine daten
     call prror(-1)
   end if
 
+  ! Keep the last few lines for error output, but only fort fort.3
+  if(nUnit == 3) then
+    do i=1,4
+      pLines(i) = pLines(i+1)
+    end do
+    pLines(5) = inLine
+  end if
+
   if(len_trim(inLine) == 0) goto 110 ! Empty line, ignore
   if(inLine(1:1) == "/")    goto 110 ! Comment line, ignore
   if(inLine(1:1) == "!")    goto 110 ! Comment line, ignore
@@ -306,7 +316,6 @@ subroutine daten
 
   ! Check for end of block flag
   if(cCheck == "NEXT") then
-    if(prevPrint) goto 110 ! If previous block was PRIN, just cycle. We've already closed it.
     if(currBlock == "NONE") then
       ! Catch orphaned NEXT blocks here.
       write(lout,"(a)") "INPUT> ERROR Unexpected NEXT block encountered. There is no open block to close."
@@ -317,7 +326,6 @@ subroutine daten
       closeBlock = .true.
     end if
   end if
-  prevPrint = .false.
 
   ! Check for end of fort.3 input
   if(cCheck == "ENDE") goto 9000
@@ -355,11 +363,21 @@ subroutine daten
   select case(currBlock)
 
   case("PRIN") ! Enable the PRINT flag
-    write(lout,"(a)") "INPUT> Note: The PRINT block is replaced by the PRINT flag in the SETT block."
-    write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
-    st_print   = .true.
-    prevPrint  = .true.
-    closeBlock = .true.
+    if(openBlock) then
+      st_print = .true.
+      write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
+      write(lout,"(a)") "INPUT> WARNING The PRINT block is deprectaed and will be removed in a future release. Please use:"
+      write(lout,"(a)") ""
+      write(lout,"(a)") "SETTINGS"
+      write(lout,"(a)") "  PRINT"
+      write(lout,"(a)") "NEXT"
+      write(lout,"(a)") ""
+    elseif(closeBlock) then
+      continue
+    else
+      write(lout,"(a)") "INPUT> ERROR PRINT block does not take any parameters. Did you forget to close it with a NEXT?"
+      goto 9999
+    end if
 
   case("SETT") ! Global Settings Block
     if(openBlock) then
@@ -1232,6 +1250,12 @@ subroutine daten
   else
     write(lout,"(a)")      "INPUT> ERROR in fort.3"
     write(lout,"(a,i0,a)") "INPUT> Line ",lineNo3,": '"//trim(inLine)//"'"
+    write(lout,"(a)")      "INPUT> Previous Lines:"
+    write(lout,"(a)")      ""
+    do i=1,5
+      if(lineNo3-5+i <= 0) cycle
+      write(lout,"(i5,a)") lineNo3-5+i," | "//trim(pLines(i))
+    end do
   end if
   call prror(-1)
   return
