@@ -3152,6 +3152,7 @@ subroutine comnul
         elens_I(i)             = zero
         elens_Ek(i)            = zero
         elens_lThetaR2(i)      = .false.
+        elens_lAllowUpdate(i)  = .true.
         elens_iCheby(i)        = 0
         elens_cheby_angle(i)   = zero
       end do

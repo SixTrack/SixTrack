@@ -35,6 +35,9 @@ module elens
                                                       ! <0: e-beam opposite to beam
   real(kind=fPrec), save :: elens_Ek(nelens)          ! kinetic energy of e-beam [keV]
   logical, save          :: elens_lThetaR2(nelens)    ! flag for computing theta@R2
+  logical, save          :: elens_lAllowUpdate(nelens)! Flag for disabling updating of kick,
+                                                      ! i.e. after DYNK has touched thetaR2
+                                                      ! the energy update is disabled.
   real(kind=fPrec), save :: elens_beta_e(nelens)      ! relativistic beta of electrons
   integer, save          :: elens_iCheby(nelens)      ! mapping to the table with chebyshev coeffs
   real(kind=fPrec), save :: elens_cheby_angle(nelens) ! angle for getting the real bends [deg]
@@ -427,7 +430,7 @@ subroutine eLensThetas()
   real(kind=fPrec) gamma, brho
 
   do j=1,melens
-    if(elens_lThetaR2(j)) then
+    if(elens_lThetaR2(j) .and. elens_lAllowUpdate(j)) then
       do jj=1,nele
         if(kz(jj)==29) then
           if (ielens(jj).eq.j) then
