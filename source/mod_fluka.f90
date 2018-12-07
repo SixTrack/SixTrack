@@ -300,7 +300,7 @@ module mod_fluka
 
   !----------------------------------------------------------------------------
   ! send and receive particles from Fluka
-  integer function fluka_send_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
+  integer function fluka_send_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
     implicit none
 
     ! Parameters
@@ -318,16 +318,18 @@ module mod_fluka
     real(kind=fPrec), allocatable :: mass(:)
     integer(kind=int16), allocatable :: aa(:)
     integer(kind=int16), allocatable :: zz(:)
+    integer(kind=int16), allocatable :: qq(:)
+    integer(kind=int32), allocatable :: pdg_id(:)
 
-    fluka_send_receive = fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
+    fluka_send_receive = fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
     if(fluka_send_receive.eq.-1) return
 
-    fluka_send_receive = fluka_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
+    fluka_send_receive = fluka_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
   end function fluka_send_receive
 
   !----------------------------------------------------------------------------
   ! just send particles to Fluka
-  integer function fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
+  integer function fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
     implicit none
 
     ! Interface variables
@@ -345,6 +347,8 @@ module mod_fluka
     real(kind=fPrec), allocatable :: mass(:)
     integer(kind=int16), allocatable :: aa(:)
     integer(kind=int16), allocatable :: zz(:)
+    integer(kind=int16), allocatable :: qq(:)
+    integer(kind=int32), allocatable :: pdg_id(:)
 
     ! Fluka I/O parameters
     integer(kind=int32) :: flid, flgen
@@ -457,9 +461,10 @@ module mod_fluka
   ! The call from fluka.s90 is:
   ! fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv1(:), yv1(:), xv2(:), yv2(:), sigmv, ejv, naa(:), nzz(:), nucm(:))
   ! When the above arrays are made allocatable, the below variables will need updating - see mod_commonmn and mod_hions
-  integer function fluka_receive(turn, ipt, el, napx, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
+  integer function fluka_receive(turn, ipt, el, napx, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
 
     use parpro
+    use mod_pdgid
 
     implicit none
 
@@ -478,6 +483,8 @@ module mod_fluka
     real(kind=fPrec), allocatable :: mass(:)
     integer(kind=int16), allocatable :: aa(:)
     integer(kind=int16), allocatable :: zz(:)
+    integer(kind=int16), allocatable :: qq(:)
+    integer(kind=int32), allocatable :: pdg_id(:)
 
     ! Fluka I/O parameters
     integer(kind=int32) :: flid, flgen
@@ -510,6 +517,8 @@ module mod_fluka
       aa  (j) = 1
       zz  (j) = 1
       mass(j) = zero
+      qq  (j) = 1
+      pdg_id(j) = 0
     end do
 
     ! Wait until end of turn (Synchronize)
@@ -574,6 +583,8 @@ module mod_fluka
             aa(fluka_nrecv)           = flaa          !PH for hiSix
             zz(fluka_nrecv)           = flzz          !PH for hiSix
             mass(fluka_nrecv)         = flm  * c1e3  ! from [GeV] to [MeV]         !PH for hiSix
+            qq(fluka_nrecv)           = flzz
+            call GetPDGid_fromFLUKA(-2, pdg_id(fluka_nrecv), flaa, flzz)
       end if
 
       !Finished waiting end of turn

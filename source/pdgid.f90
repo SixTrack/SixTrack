@@ -68,7 +68,7 @@ integer(kind=int16) :: tmpid
 end subroutine CalculateAZ
 
 !Learn to speak "FLUKA"
-subroutine GetFLUKA_id(pdgid, fluka_id)
+subroutine GetFLUKAid_fromPDG(pdgid, fluka_id)
 
   use crcoall
 
@@ -214,6 +214,125 @@ end if
 
 return
 
-end subroutine GetFLUKA_id
+end subroutine GetFLUKAid_fromPDG
+
+
+!FLUKA -> PDGid conversion
+subroutine GetPDGid_fromFLUKA(fluka_id, pdg_id, A, Z)
+
+  use crcoall
+
+implicit none
+
+integer(kind=int32), intent(in)  :: fluka_id
+integer(kind=int32), intent(out) :: pdg_id
+
+integer(kind=int16), intent(in) :: A
+integer(kind=int16), intent(in) :: Z
+
+!Only way is to do an A->B translation using the numbers in the FLUKA manual
+!FM.pdf "Table 5.1: Fluka particle names and code numbers"
+
+!proton
+if(fluka_id .eq. 1) then
+  pdg_id = 2212
+
+!anti proton
+else if(fluka_id .eq. 2) then
+  pdg_id = -2212
+
+!electron
+else if(fluka_id .eq. 3) then
+  pdg_id = 11
+
+!positron
+else if(fluka_id .eq. 4) then
+  pdg_id = -11
+
+!5 to 9 are neutrals
+
+!mu+
+else if(fluka_id .eq. 10) then
+  pdg_id = -13
+
+!mu-
+else if(fluka_id .eq. 11) then
+  pdg_id = 13
+
+!pi+
+else if(fluka_id .eq. 13) then
+  pdg_id = 211
+
+!pi-
+else if(fluka_id .eq. 14) then
+  pdg_id = -211
+
+!k+
+else if(fluka_id .eq. 15) then
+  pdg_id = 321
+
+!k-
+else if(fluka_id .eq. 16) then
+  pdg_id = -321
+
+!lambda
+else if(fluka_id .eq. 17) then
+  pdg_id = 3122
+
+!anti lambda
+else if(fluka_id .eq. 18) then
+  pdg_id = -3122
+
+!sigma-
+else if(fluka_id .eq. 20) then
+  pdg_id = 3112
+
+!sigma+
+else if(fluka_id .eq. 21) then
+  pdg_id = 3222
+
+!anti-sigma-
+else if(fluka_id .eq. 31) then
+  pdg_id = -3222
+
+!anti-sigma+
+else if(fluka_id .eq. 33) then
+  pdg_id = -3112
+
+!Xi-
+else if(fluka_id .eq. 36) then
+  pdg_id = 3312
+
+!Xi+
+else if(fluka_id .eq. 37) then
+  pdg_id = -3312
+
+!Omega-
+else if(fluka_id .eq. 38) then
+  pdg_id = 3334
+
+!anti omega
+else if(fluka_id .eq. 39) then
+  pdg_id = -3334
+
+!tau+
+else if(fluka_id .eq. 41) then
+  pdg_id = -15
+
+!tau-
+else if(fluka_id .eq. 42) then
+  pdg_id = 15
+
+!ion
+else if(fluka_id .eq. -2 .or. fluka_id .eq. -3 .or. fluka_id .eq. -4 .or. fluka_id .eq. -5 .or. fluka_id .eq. -6) then
+  call CalculatePDGid(pdg_id, A, Z)
+!something else
+else
+  write(lout,'(a,i12,a)') 'Unknown particle ID in FLUKA to PDG id conversion: ', fluka_id, '  - exiting!'
+  call prror(-1)
+end if
+
+return
+end subroutine GetPDGid_fromFLUKA
 
 end module mod_pdgid

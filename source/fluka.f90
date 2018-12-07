@@ -183,7 +183,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
       end do
 
 
-      ret = fluka_send_receive( nturn, fluka_geo_index(ix), eltot, napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm )
+      ret = fluka_send_receive( nturn, fluka_geo_index(ix), eltot, napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm, nqq, pdgid )
 
       if (ret.eq.-1) then
          write(lout,*)'[Fluka] Error in Fluka communication in kernel_fluka_element...'
