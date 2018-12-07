@@ -132,6 +132,7 @@ subroutine crcheck
   use dump,    only : dump_crcheck_readdata,dump_crcheck_positionFiles
   use aperture,only : aper_crcheck_readdata,aper_crcheck_positionFiles,limifound,losses_filename
   use scatter, only : scatter_active,scatter_crcheck_readdata,scatter_crcheck_positionFiles
+  use elens,   only : melens, elens_crcheck
   use, intrinsic :: iso_fortran_env, only : int32
   use crcoall
   use parpro
@@ -266,12 +267,19 @@ subroutine crcheck
       if (lerror) goto 100
     end if
 
+    if(melens .gt. 0) then
+      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 9 ELENS"
+      flush(93)
+      call elens_crcheck(95,lerror)
+      if (lerror) goto 100
+    endif
+
     !ERIC new extended checkpoint for synuthck
     if (crsythck) then
       !ERICVARS
       ! and make sure we can read the extended vars before leaving fort.95
       ! We will re-read them in crstart to be sure they are restored correctly
-      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 9 extended vars fort.95 crnapxo=",crnapxo
+      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 10 extended vars fort.95 crnapxo=",crnapxo
       flush(93)
       read(95,end=100,err=100,iostat=ierro) &
         ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
@@ -403,12 +411,19 @@ subroutine crcheck
       if (lerror) goto 101
     end if
 
+    if(melens .gt. 0) then
+      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 9 ELENS"
+      flush(93)
+      call elens_crcheck(96,lerror)
+      if (lerror) goto 101
+    endif
+
     !ERIC new extended checkpoint for synuthck
     if (crsythck) then
       !ERICVARS
       ! and make sure we can read the extended vars before leaving fort.96
       ! We will re-read them in crstart to be sure they are correct
-      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 9 extended vars fort.96, crnapxo=",crnapxo
+      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 10 extended vars fort.96, crnapxo=",crnapxo
       flush(93)
       write(93,"(a)") "SIXTRACR> CRCHECK verifying extended vars fort.96"
       flush(93)
@@ -795,6 +810,7 @@ subroutine crpoint
   use dump, only : dump_crpoint
   use aperture,only : aper_crpoint,limifound
   use scatter, only : scatter_active, scatter_crpoint
+  use elens,   only : melens, elens_crpoint
 
   use crcoall
   use parpro
@@ -998,6 +1014,16 @@ subroutine crpoint
       if(lerror) goto 100
     end if
 
+    if(melens .gt. 0) then
+      if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
+        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing ELENS variables to fort.",crUnit
+        endfile(93,iostat=ierro)
+        backspace(93,iostat=ierro)
+      end if
+      call elens_crpoint(crUnit,lerror,ierro)
+      if(lerror) goto 100
+    end if
+
     if(sythckcr) then
       if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
         write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing EXTENDED varibless to fort.",crUnit
@@ -1091,6 +1117,7 @@ subroutine crstart
   use numerical_constants
   use dynk, only : dynk_enabled, dynk_crstart
   use scatter, only: scatter_active, scatter_crstart
+  use elens,   only : melens, elens_crstart
 
   use crcoall
   use parpro
@@ -1185,6 +1212,7 @@ subroutine crstart
   if(dynk_enabled) call dynk_crstart
   if(scatter_active) call scatter_crstart
   call hions_crstart
+  if(melens .gt. 0) call elens_crstart
 
   if (crsythck) then
     !ERICVARS now read the extended vars from fort.95/96.
