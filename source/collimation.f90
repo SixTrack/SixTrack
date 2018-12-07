@@ -1382,7 +1382,7 @@ subroutine collimate_init()
 !! 1 = QGSP_BERT
 !  g4_physics = 0
 
-  call g4_collimation_init(e0, rnd_seed, g4_recut, g4_aecut, g4_rcut, g4_physics, g4_debug)
+  call g4_collimation_init(e0, rnd_seed, g4_recut, g4_aecut, g4_rcut, g4_physics, g4_debug, g4_keep_stable)
 #endif
   write (lout,"(a)") ""
   write (lout,"(a)") "COLL> Finished collimate initialisation"

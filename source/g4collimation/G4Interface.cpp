@@ -10,7 +10,7 @@
 #include "CollimationTrackingAction.h"
 
 #include <string>
-
+#include <set>
 
 #include "G4GeometryManager.hh"
 #include "G4PhysicalVolumeStore.hh"
@@ -35,7 +35,7 @@ std::string CleanFortranString(char* str, size_t count);
 std::vector<G4Stuff> input_particles;
 std::vector<G4Stuff> output_particles;
 
-bool do_debug;
+std::set<int> keep_ids;
 
 /**
 Geant4 needs the user to define several user classes.
@@ -44,9 +44,8 @@ These include:
 2: The Physics to use.
 3: A particle source.
 */
-extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* recut, double* aecut, double* rcut, int* PhysicsSelect, bool* g4_debug)
+extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* recut, double* aecut, double* rcut, int* PhysicsSelect, bool* g4_debug, bool* g4_keep_stable)
 {
-	do_debug = *g4_debug;
 	std::cout << "Using seed " << *seed << " in geant4 C++" << std::endl;
 	std::cout << "The reference energy is " << *ReferenceE / CLHEP::GeV<< " and the relative energy cut will be at "<< (*ReferenceE * *recut ) / CLHEP::GeV << " GeV!" << std::endl;
 	std::cout << "The reference energy is " << *ReferenceE / CLHEP::GeV<< " and the absolute energy cut will be at "<< *aecut << " GeV!" << std::endl;
@@ -77,13 +76,14 @@ extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* recu
 
 	//Construct our collimator jaw geometry
 	geometry = new CollimationGeometry();
+	geometry->SetDebug(*g4_debug);
 
 	//Make the particle gun
 	part = new CollimationParticleGun();
 
 	//This is in MeV in both sixtrack (e0) and in geant4.
 	part->SetReferenceEnergy(*ReferenceE);
-	part->SetDebug(do_debug);
+	part->SetDebug(*g4_debug);
 
 	event = new CollimationEventAction();
 	event->SetOutputVector(&output_particles);
@@ -95,8 +95,24 @@ extern "C" void g4_collimation_init_(double* ReferenceE, int* seed, double* recu
 	tracking->SetAbsoluteEnergyCut(*aecut * CLHEP::GeV);
 	tracking->SetRigidityCut(*rcut);
 
+	if(*g4_debug)
+	{
+		std::cout << "GEANT4> Keeping: " << keep_ids.size() << " types of particles" << std::endl;
+		std::set<int>::const_iterator it = keep_ids.begin();
+		while(it != keep_ids.end())
+		{
+			std::cout << "GEANT4 RETURNING> " << *it << std::endl;
+			it++;
+		}
+	}
+	tracking->SetParticlesToKeep(&keep_ids);
+
+	tracking->SetKeepStableParticles(g4_keep_stable);
+	tracking->SetDebug(*g4_debug);
+
+
 	stack = new CollimationStackingAction();
-	stack->SetDebug(do_debug);
+	stack->SetDebug(*g4_debug);
 	stack->SetReferenceEnergy(*ReferenceE);
 	stack->SetRelativeEnergyCut(*recut);
 	stack->SetAbsoluteEnergyCut(*aecut * CLHEP::GeV);
@@ -278,3 +294,9 @@ extern "C" void g4_collimation_clear_()
 	input_particles.clear();
 	output_particles.clear();
 }
+
+extern "C" void g4_keep_id_(int* id)
+{
+	keep_ids.insert(*id);
+}
+

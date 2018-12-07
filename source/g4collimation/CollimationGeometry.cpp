@@ -24,16 +24,14 @@ G4VPhysicalVolume* CollimationGeometry::Construct()
 {
 	if(Assembled == true)
 	{
-
 		Assembled = false;
 	}
 	//Change this to true if there are future geometry issues
-	bool DoDebug = false;
 	bool OverlapCheck = false;
 	if(DoDebug)
 	{
 		OverlapCheck = true;
-		std::cout << "GAP :" << ThisCollimatorJawHalfGap << std::endl;
+		std::cout << "ThisCollimatorJawHalfGap :" << ThisCollimatorJawHalfGap << std::endl;
 	}
 
 	//Make materials
@@ -76,15 +74,17 @@ G4VPhysicalVolume* CollimationGeometry::Construct()
 
 	if(DoDebug)
 	{
+		G4int OldPrecision = G4cout.precision(9);
 		G4cout << "Adding new collimator with name: " << ThisCollimatorName << " and material " << ThisCollimatorJawMaterial->GetName() << std::endl;
 		G4cout << "Total Jaw Length: " << Length/CLHEP::m <<  "m" << G4endl;
 		G4cout << "Jaw Rotation: " << ThisCollimatorJawRotation/CLHEP::rad <<  "rad" << G4endl;
 		G4cout << "+ve Jaw position: " << ((jaw_x)+HalfGap)/CLHEP::m << "m" << G4endl;
 		G4cout << "-ve Jaw position: " << (-(jaw_x)-HalfGap)/CLHEP::m << "m" << G4endl;
-		G4cout << "Jaw Gap: " << (HalfGap)/CLHEP::mm << "mm" << G4endl;
+		G4cout << "Jaw Half Gap: " << (HalfGap)/CLHEP::mm << "mm" << G4endl;
 //		G4cout << "t1: " << position1 << G4endl; 
 //		G4cout << "t1: " << rotation << G4endl; 
 //		G4cout << "t2: " << position2 << G4endl; 
+		G4cout.precision(OldPrecision);
 	}
 
 	Assembled = true;
@@ -130,4 +130,9 @@ void CollimationGeometry::SetCollimator(std::string CollimatorName)
 	ThisCollimatorJawOffset = CollimatorKey_itr->second.CollimatorJawOffset;
 	ThisCollimatorJawMaterial = CollimatorKey_itr->second.CollimatorJawMaterial;
 	ThisCollimatorName = CollimatorKey_itr->second.CollimatorName;
+}
+
+void CollimationGeometry::SetDebug(bool flag)
+{
+	DoDebug = flag;
 }

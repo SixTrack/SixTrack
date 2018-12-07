@@ -20,6 +20,7 @@ class CollimationGeometry : public G4VUserDetectorConstruction
 		Mmap = new CollimationMaterials();
 
 		Assembled = false;
+		DoDebug = false;
 		world_box = nullptr;
 		Jaw1 = nullptr;
 		Jaw2 = nullptr;
@@ -41,6 +42,7 @@ class CollimationGeometry : public G4VUserDetectorConstruction
 	G4VPhysicalVolume* Construct();
 	void SetCollimator(std::string);
 	void AddCollimator(std::string name, double length, double gap, double rotation, double offset, std::string Material);
+	void SetDebug(bool flag);
 
 
 	private:
@@ -69,6 +71,7 @@ class CollimationGeometry : public G4VUserDetectorConstruction
 	std::map<std::string,CollimatorSettings> CollimatorKeyMap;
 
 	bool Assembled;
+	bool DoDebug;
 
 	G4Box* world_box;
 	G4Box* Jaw1;

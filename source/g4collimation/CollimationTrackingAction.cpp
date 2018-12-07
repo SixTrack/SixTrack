@@ -7,7 +7,7 @@
 
 #include "G4Proton.hh"
 
-CollimationTrackingAction::CollimationTrackingAction()
+CollimationTrackingAction::CollimationTrackingAction() : do_debug(false),KeepOnlyStable(false)
 {}
 
 void CollimationTrackingAction::PreUserTrackingAction(const G4Track* Track)
@@ -53,9 +53,48 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 */
 
 	G4StepStatus Tstatus = Track->GetStep()->GetPostStepPoint()->GetStepStatus();
+
+//Extraction plane and charge cut
     if (Tstatus == fWorldBoundary && Track->GetParticleDefinition()->GetPDGCharge() != 0)
 	{
-		if(Track->GetKineticEnergy() > ReferenceEnergy*RelativeEnergyCut && Track->GetKineticEnergy() > AbsoluteEnergyCut)
+		bool keep_this = false;
+
+//PDG id cuts
+		if(keep_ids->empty())
+		{
+			keep_this = true;
+		}
+		//Deal with ions
+		else if(Track->GetParticleDefinition()->GetPDGEncoding() > 1000000000 && (keep_ids->count(-1) != 0))
+		{
+			keep_this = true;
+		}
+		//Non-ions
+		else if(keep_ids->count( std::abs(Track->GetParticleDefinition()->GetPDGEncoding()) )  != 0)
+		{
+			keep_this = true;
+		}
+		else
+		{
+			if(do_debug)
+			{
+				std::cout << "RETURN PID> Not returning particle: " << Track->GetParticleDefinition()->GetParticleName() << "\t" << Track->GetParticleDefinition()->GetPDGEncoding() << std::endl;
+			}
+			keep_this = false;
+		}
+
+//Particle Stability cut
+		if(KeepOnlyStable && !Track->GetParticleDefinition()->GetPDGStable())
+		{
+			keep_this = false;
+			if(do_debug)
+			{
+				std::cout << "RETURN STABLE> Not returning particle: " << Track->GetParticleDefinition()->GetParticleName() << "\t" << Track->GetParticleDefinition()->GetPDGEncoding() << "\t" << !Track->GetParticleDefinition()->GetPDGStable() << std::endl;
+			}
+		}
+
+//Energy cut
+		if((Track->GetKineticEnergy() > ReferenceEnergy*RelativeEnergyCut) && (Track->GetKineticEnergy() > AbsoluteEnergyCut) && (keep_this == true))
 		{
 			G4Stuff exit_particle;
 
@@ -75,6 +114,11 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 
 			exit_particle.q = Track->GetDynamicParticle()->GetCharge();
 			EventAction->AddOutputParticle(exit_particle);
+
+			if(do_debug)
+			{
+				std::cout << "RETURN OK> "<< Track->GetParticleDefinition()->GetParticleName() << "\t" << Track->GetParticleDefinition()->GetPDGEncoding() << "\t" << Track->GetKineticEnergy() << std::endl;
+			}
 		}
 	}
 }
@@ -94,15 +138,27 @@ void CollimationTrackingAction::SetAbsoluteEnergyCut(double cut)
 	AbsoluteEnergyCut = cut;
 }
 
-
 void CollimationTrackingAction::SetRigidityCut(double cut)
 {
 	RigidityCut = cut;
 }
-
 
 void CollimationTrackingAction::SetRelativeEnergyCut(double cut)
 {
 	RelativeEnergyCut = cut;
 }
 
+void CollimationTrackingAction::SetDebug(bool flag)
+{
+	do_debug = flag;
+}
+
+void CollimationTrackingAction::SetParticlesToKeep(std::set<int>* iset)
+{
+	keep_ids = iset;
+}
+
+void CollimationTrackingAction::SetKeepStableParticles(bool flag)
+{
+	KeepOnlyStable = flag;
+}

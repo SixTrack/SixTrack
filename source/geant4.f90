@@ -12,11 +12,13 @@ module geant4
   real(kind=fPrec) :: g4_rcut
   real(kind=fPrec) :: g4_rangecut
   integer :: g4_physics
+  integer :: g4_keep
 
   character(len=64) :: phys_str
 
   logical :: g4_enabled
   logical :: g4_debug
+  logical :: g4_keep_stable
 
 contains
 
@@ -43,6 +45,8 @@ subroutine geant4_fortran_init()
   g4_enabled = .false.
 
   g4_debug = .false.
+
+  g4_keep_stable = .false.
 
 end subroutine
 
@@ -95,6 +99,19 @@ subroutine geant4_daten(inLine,iErr)
 !Enable/disable debug
   else if(lnSplit(1) == 'DEBUG') then
     g4_debug = .true.
+  else if(lnSplit(1) == 'RETURN') then
+    phys_str = trim(lnSplit(2))
+    if(phys_str .eq. 'STABLE') then
+      g4_keep_stable = .true.
+    else if(phys_str .eq. 'IONS') then
+      g4_keep = -1
+      call g4_keep_id(g4_keep)
+    else
+      call chr_cast(lnSplit(2),g4_keep,cErr)
+      call g4_keep_id(g4_keep)
+    end if
+
+
 !Physics to use number
 !FTFP_BERT
 !QGSP_BERT
@@ -109,8 +126,6 @@ subroutine geant4_daten(inLine,iErr)
       write(lout,'(a)') 'GEANT4> WARNING: Unknown physics model requested: ',phys_str, ' defaulting to FTFP_BERT'
       g4_physics = 0
     end if
-  else if(lnSplit(1) == 'RETURN') then
-    write(lout,'(a)') 'GEANT4> WARNING: RETURN not yet implemented!'
   end if
 
 !Check configuration
