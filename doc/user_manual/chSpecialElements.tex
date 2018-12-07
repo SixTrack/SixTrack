@@ -44,36 +44,173 @@ Moreover, using the multipole block reduces the number of elements in the single
 % ================================================================================================================================ %
 \section{Aperture Limitations} \label{ApeLim}
 
-This input data block is used to introduce additional collimators or aperture limitations in the machine.\index{aperture limit}\index{LIMI}
-Each non-linear element can be used for this purpose.
-Rectangular or elliptical shapes of the aperture limitations are allowed.
-On top of that, there is a general (rectangular) aperture check at each non-zero length element.
-The general aperture values are chosen to be large enough (\ref{T-DTP}) to define the short term dynamic aperture.
+The aperture LIMItation block allows to define aperture limitations in the machine
+and hence describe the mechanical acceptance of the machine.\index{aperture limit}\index{LIMI}
+In addition, there is a general (rectangular) aperture check at each non-zero
+length element. The general aperture values are chosen to be large enough (\ref{T-DTP})
+to define the short term dynamic aperture.
+
+\subsection{General Description} \label{ApeLim:GenDesc}
+Each non-linear (zero length) element defined in the \textit{Single Element} input block
+(\ref{NonEle}) except multipole blocks (\ref{MulBlo}) can be used to define aperture limitations,
+but it is highly recommended to use dedicated markers. Several aperture types are available to
+the user (see later).
+
+The aperture limitations are taken into account during tracking by the online aperture checking, which
+verifies that the tracked particles falls within the mechanical acceptance of the machine. When a
+particle does not fit into the mechanical acceptance, it is removed from tracking; its
+coordinates at the point of loss are reported in a text file. A back-tracking algorithm
+finds the actual loss location interpolating the aperture profile by means of a bi-section
+method; the user can set the precision with which the longitudinal position is found
+(default is 10~cm).
+While on by default, the algorithm can be switched off by the user; in this case, the
+particle coordinates reported in the loss file are those at the aperture marker where
+the particle is found out of the mechanical aperture of the machine.
+
+The present implementation extends the functionalities developed in the
+context of the Fluka-SixTrack coupling~\cite{coupling:1,coupling:2}.
+
+\paragraph{Format Description}~
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
     \textbf{Keyword}    & \texttt{LIMI}\index{LIMI} \\
     \textbf{Data lines} & Variable \\
-    \textbf{Format}     & \texttt{name type xaper yaper}
+    \textbf{Format}     & Each aperture marker is fully specified by means of its type and
+                          numerical parameters (see Sec.~\ref{ApeLim:ApeSpecs}).
+                          Other input options are available to the user,
+                          headed by specific keywords, to control other parameters.
 \end{tabular}
 
-\paragraph{Format Description}~
-
 \bigskip
+\subsection{Specifying Aperture Marker}\label{ApeLim:ApeSpecs}
+An aperture profile can be assigned to a SINGLE ELEMENT specifying its type and
+numerical specifiers:
+
+\paragraph{Format:}
+\texttt{name type aper\_1 aper\_2 aper\_3 aper\_4 aper\_5 aper\_6 x\_off y\_off angle}
+
 \begin{longtabu}{@{}lp{0.8\linewidth}}
     \texttt{name}   & The name of any non-linear (zero length) element in the \textit{Single Element} input block (\ref{NonEle}) except multipole blocks (\ref{MulBlo}). \\
-    \texttt{type}   & Two types of aperture limitations are allowed: \\
-                    & \texttt{RE} for a rectangular aperture shape, i.e.
-                      \begin{equation*}
-                          x_{i} < \mathrm{xaper},\; y_{i} < \mathrm{yaper}
-                      \end{equation*}\\
-                    & \texttt{EL} for an elliptical aperture shape, i.e.
-                      \begin{equation*}
-                          \frac{x_{i}^{2}}{\mathrm{xaper}^{2}} + \frac{y_{i}^{2}} {\mathrm{yaper}^{2}} < 1
-                      \end{equation*}\\
-    \texttt{xaper}  & Aperture in the horizontal plane in mm. \\
-    \texttt{yaper}  & Aperture in the vertical plane in mm.
+    \texttt{type}   & Type of aperture limitation (string). See Tab.~\ref{tab:apeSpecs} for the types
+                      presently available. \\
+    \texttt{aper\_1} to \texttt{aper\_6}  & Aperture specifiers (floats).
+                      Their actual meaning depend on the aperture type. The aperture specifiers are
+                      aligned to those of MAD-X~\cite{MAD}. See Tab.~\ref{tab:apeSpecs} for their
+                      meanings.\\
+    \texttt{x\_off} and \texttt{y\_off}  & Hor.~and ver.~aperture offsets in mm. \\
+    \texttt{angle}  & Tilt angle in rad. \\
 \end{longtabu}
+
+The last three numerical specifiers are optional, whereas the others are variable, depending
+on the type. Tab.~\ref{tab:apeSpecs} summarises the aperture types presently available
+and the meaning of the numerical specifiers.
+
+\begin{center}
+\begin{longtable}{|c|c|c|c|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
+    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+    \caption{Aperture types and specifiers. Only the mandatory specifiers are reported.}
+    \label{tab:apeSpecs} \\*
+    \hline
+    \rowcolor{blue!30}
+    & & \multicolumn{2}{|c|}{Aperture specifier} \\*
+    \rowcolor{blue!30}
+    Name & \texttt{Type} & name & meaning \\*
+    \hline
+    \endfirsthead
+
+    Circle  & \texttt{CR} & \texttt{aper\_1} & radius [mm] \\*
+    \hline
+
+    Rectangle & \texttt{RE} & \texttt{aper\_1} & hor.~half-size [mm] \\*
+    & & \texttt{aper\_2} & ver.~half-size [mm] \\*
+    \hline
+    
+    Ellipse & \texttt{EL} & \texttt{aper\_1} & hor.~semi-axis [mm] \\*
+    & & \texttt{aper\_2} & ver.~semi-axis [mm] \\*
+    \hline
+    
+    RectEllipse & \texttt{RL} & \texttt{aper\_1} & hor.~half-size [mm] \\*
+    & & \texttt{aper\_2} & ver.~half-size [mm] \\*
+    & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
+    & & \texttt{aper\_4} & ver.~semi-axis [mm] \\*
+    \hline
+    
+    Octagon & \texttt{OC} & \texttt{aper\_1} & hor.~position of ver.~side [mm] \\*
+    & & \texttt{aper\_2} & ver.~position of hor.~side [mm] \\*
+    & & \texttt{aper\_3} & angle of first cut corner [rad] \\*
+    & & \texttt{aper\_4} & angle of second cut corner [rad] \\*
+    \hline
+    
+    Ractetrack & \texttt{RT} & \texttt{aper\_1} & hor.~half-size [mm] \\*
+    & & \texttt{aper\_2} & ver.~half-size [mm] \\*
+    & & \texttt{aper\_3} & radius [mm] \\*
+    \hline
+    
+    Transition & \texttt{TR} & \texttt{aper\_1} & hor.~half-size [mm] \\*
+    & & \texttt{aper\_2} & ver.~half-size [mm] \\*
+    & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
+    & & \texttt{aper\_4} & ver.~semi-axis [mm] \\*
+    & & \texttt{aper\_5} & angle of first cut corner [rad] \\*
+    & & \texttt{aper\_6} & angle of second cut corner [rad] \\*
+    \hline
+
+%     \rowcolor{blue!15}
+%     \multicolumn{4}{|l|}{Type specific parameters} \\*
+%     \texttt{GAUSSIAN} & \texttt{$\sigma$} & mm & Sigma of the e--beam.\\*
+\end{longtable}
+\end{center}
+
+\bigskip
+\subsection{Other input options}\label{ApeLim:inpOptions}
+
+\begin{center}
+\begin{longtable}{|c|c|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
+    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+    \caption{Other input options of the \texttt{LIMI} block. Options are listed in alphabetical order.}
+    \label{tab:inpOptions} \\*
+    \hline
+    \rowcolor{blue!30}
+    keyword & argument & description \\*
+    \hline
+    \endfirsthead
+
+    \texttt{BACKTRKOFF} & \multicolumn{2}{l|}{to disable back-tracking} \\*
+    \hline
+
+    \texttt{DEBUG} & \multicolumn{2}{l|}{to enable debugging output for the aperture code} \\*
+    \hline
+
+    \texttt{LOAD}  & \multicolumn{2}{l|}{to load specifications of apertures from a file} \\*
+                   & filename & ASCII file containing the specifications of apertures \\*
+    \hline
+
+    \texttt{PREC}  & \multicolumn{2}{l|}{to set custom accuracy in finding the actual loss location} \\*
+                   & precision & precision of back-tracking [m] \\*
+    \hline
+
+    \texttt{PRIN}  & \multicolumn{2}{l|}{to echo the profile of the machine aperture with $s$ to a file} \\*
+                   & filename & ASCII file where to echo the machine aperture \\*
+                   & \texttt{MEM} & optional flag to dump aperture profile as in memory \\*
+    \hline
+
+    \texttt{SAVE}  & \multicolumn{2}{c|}{to save particles at aperture check for direct comparison with colltrack losses} \\*
+    \hline
+
+    \texttt{XSEC}  & \multicolumn{2}{l|}{to dump aperture cross sections at specific $s$-locations} \\*
+                   & \multicolumn{2}{l|}{(NOT OPERATIONAL YET!)} \\*
+                   & filename & ASCII file where to echo the cross section \\*
+                   & $s_{\textrm{min}}$ & first $s$-location where to get the cross-section [m] \\*
+                   & $s_{\textrm{max}}$ & last $s$-location where to get the cross-section [m] (optional) \\*
+                   & $\Delta s$ & longitudinal steps where to calculate the cross-section [m] (optional) \\*
+                   & N & number of azimuthal angles (optional) \\*
+    \hline
+
+%     \rowcolor{blue!15}
+%     \multicolumn{4}{|l|}{Type specific parameters} \\*
+%     \texttt{GAUSSIAN} & \texttt{$\sigma$} & mm & Sigma of the e--beam.\\*
+\end{longtable}
+\end{center}
 
 % ================================================================================================================================ %
 \section{Power Supply Ripple} \label{PowRip}
