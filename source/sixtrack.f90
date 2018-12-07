@@ -3130,7 +3130,7 @@ subroutine comnul
 !     always in main code
       call dump_comnul
 
-    !1) --ELEN - ELECTRON LENS---------------------------------------------------------
+!--ELEN - ELECTRON LENS---------------------------------------------------------
 !     M. Fitterer (FNAL), A. Mereghetti
 !     last modified: 09-02-2018
 !     always in main code
@@ -3152,6 +3152,7 @@ subroutine comnul
         elens_I(i)             = zero
         elens_Ek(i)            = zero
         elens_lThetaR2(i)      = .false.
+        elens_lAllowUpdate(i)  = .true.
         elens_iCheby(i)        = 0
         elens_cheby_angle(i)   = zero
       end do
@@ -3169,10 +3170,10 @@ subroutine comnul
          elens_cheby_refBeta(i)=zero
          elens_cheby_refRadius(i)=zero
       end do
-!2) --WIRE - WIRE ELEMENT---------------------------------------------------------
+!--WIRE - WIRE ELEMENT---------------------------------------------------------
 !     M. Fitterer (FNAL), A. Patapenka (NIU)
 !     last modified: 22-12-2016
-!     wireparam - used for tracking (parameters of single element)
+! 1)  wireparam - used for tracking (parameters of single element)
       do i=1,nele
         wire_flagco(i)  = 0
         wire_current(i) = 0
