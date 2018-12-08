@@ -145,8 +145,8 @@ end do
     dpx = -REAL(Cp0)*c1e3*moidpsv(j);
     dpy = AIMAG(Cp0)*c1e3*moidpsv(j);
     dpt = - krf * REAL(Sp1)*c1e3*e0f;
-    xv1(j) = xv1(j) + dpx
-    xv2(j) = xv2(j) + dpy
+    yv1(j) = yv1(j) + dpx
+    yv2(j) = yv2(j) + dpy
     ejv(j)=ejv(j)+dpt
     
 
