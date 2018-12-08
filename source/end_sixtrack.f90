@@ -173,13 +173,10 @@ subroutine abend(cstring)
   endfile(92,iostat=ierro)
   close(92)
   write(93,"(a)") "SIXTRACR> Stop "//cstring
-#ifdef DEBUG
-  ! call system('../crend   >> crlog')
-#endif
 #ifdef BOINC
   do i=2,120
     inquire(i,opened=fOpen)
-    write(93,"(a,i0,a,l1)") "SIXTRACR> Unit ",i,": Opened = ",fOpen
+    if (fOpen) write(93,"(a,i0,a)") "SIXTRACR> Unit ",i," is open"
   end do
   ! call boinc_zipitall()
   ! call boinc_finish_graphics()
@@ -207,19 +204,19 @@ subroutine abend(cstring)
 
 !!!!!! In case of errors when copying fort.92 (lout) -> fort.6 !!!!!!!!!
 
-8 write(93,"(a,i0)") "SIXTRACR> CR ABEND ERROR reading fort.92, iostat = ",ierro
+8 write(93,"(a,i0)") "SIXTRACR> ERROR Reading fort.92 (abend), iostat = ",ierro
   close(93)
-  write(6,"(a,i0)") "SIXTRACR> CR ABEND ERROR reading fort.92, iostat = ",ierro
+  write(6,"(a,i0)") "ABEND> ERROR Reading fort.92, iostat = ",ierro
 #ifdef BOINC
   do i=2,120
     inquire(i,opened=fOpen)
-    write(6,"(a,i0,a,l1)") "ABEND> Unit ",i,": Opened = ",fOpen
+    if (fOpen) write(6,"(a,i0,a)") "ABEND> Unit ",i," is open"
   end do
   close(6,err=31)
 31 continue
   ! call boinc_zipitall()
   ! call boinc_finish_graphics()
-  if(errout_status.ne.0) then
+  if(errout_status /= 0) then
     close(93)
     call boincrf('fort.93',filename)
     call print_lastlines_to_stderr(93,filename)
@@ -228,27 +225,25 @@ subroutine abend(cstring)
   end if
   call boinc_finish(errout_status) !This call does not return
 #else
-  if(errout_status.ne.0) then
+  if(errout_status /= 0) then
     close(93)
     call print_lastlines_to_stderr(93,"fort.93")
     call print_lastlines_to_stderr(6,"fort.6")
 
     write(error_unit,"(a,i0)") "Stopping, errout_status = ",errout_status
     stop 1
-  else
-    ! No error
-    stop
+  else ! No error
+    stop 0
   end if
 #endif
 #else
   write(output_unit,"(a)") "SIXTRACK STOP/ABEND "//cstring
   ! No fort.6 and 93 if not CR -> don't do print_lastlines_to_stderr()
-  if(errout_status.ne.0) then
-    write(error_unit,'(a,i5)') "Stopping, errout_status=",errout_status
+  if(errout_status /= 0) then
+    write(error_unit,"(a,i5)") "ABEND> Stopping, errout_status = ",errout_status
     stop 1
-  else
-    ! No error
-    stop
+  else ! No error
+    stop 0
   end if
 #endif
 
