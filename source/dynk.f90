@@ -2488,6 +2488,8 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
       case(29) ! Electron lens
         if(att_name == "theta_r2") then ! [mrad]
           elens_theta_r2(ielens(ii)) = newValue
+          !Energy update is locked down after setting theta_r2 with DYNK
+          elens_lAllowUpdate(ielens(ii)) = .false.
         elseif(att_name == "elens_I") then ! [A]
           elens_I(ielens(ii)) = newValue
           call eLensTheta(ielens(ii))

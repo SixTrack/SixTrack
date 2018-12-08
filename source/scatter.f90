@@ -282,8 +282,8 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
   return
 
 10 continue
-  write(lout,"(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
-  write(93,  "(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
+  write(lout,"(a,i0)") "READERR in scatter_crcheck_readdata; fileUnit = ",fileUnit
+  write(93,  "(a,i0)") "READERR in scatter_crcheck_readdata; fileUnit = ",fileUnit
   readErr = .true.
 
 end subroutine scatter_crcheck_readdata
@@ -393,6 +393,7 @@ subroutine scatter_crpoint(fileUnit, writeErr, iErro)
   endfile(fileUnit,iostat=iErro)
   backspace(fileUnit,iostat=iErro)
 
+  writeErr = .false.
   return
 
 10 continue
