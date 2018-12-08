@@ -328,11 +328,11 @@ subroutine crcheck
   end if
 100 continue
   if (.not.read95) then
-    write(93,"(a)") "SIXTRACR> CRCHECK COULD NOT READ CHECKPOINT FILE 95"
+    write(93,"(a)") "SIXTRACR> CRCHECK ERROR Could not read checkpoint file.95"
     flush(93)
   end if
   if (fort96) then
-    write(93,"(a)") "SIXTRACR> CRCHECK trying fort.96 instead"
+    write(93,"(a)") "SIXTRACR> CRCHECK Trying fort.96 instead"
     flush(93)
     rewind 96
 
@@ -466,7 +466,7 @@ subroutine crcheck
       backspace (96,iostat=ierro)
       write(93,"(a)") "SIXTRACR> CRCHECK read fort.96 EXTENDED OK"
       flush(93)
-      write(93,"(a)") "SIXTRACR> CRCHECK, leaving fort.96 for CRSTART EXTENDED"
+      write(93,"(a)") "SIXTRACR> CRCHECK Leaving fort.96 for CRSTART EXTENDED"
       flush(93)
     end if
     read96=.true.
@@ -474,7 +474,7 @@ subroutine crcheck
   end if
 101 continue
   if (.not.read96) then
-    write(93,"(a)") "SIXTRACR> CRCHECK, COULD NOT READ CHECKPOINT FILE 96"
+    write(93,"(a)") "SIXTRACR> CRCHECK ERROR Could not read checkpoint file.96"
     flush(93)
   end if
 103 continue
