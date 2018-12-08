@@ -550,7 +550,7 @@ subroutine thin4d(nthinerr)
   real(kind=fPrec) :: field_cos(2,0:4)
   real(kind=fPrec) :: field_sin(2,0:4)
   complex(kind=fPrec) :: Cm2, Sm2a, Cm1, Sm1a, Cp0, Sp0, Cp1, Sp1
-  real(kind=fPrec) :: pnl(0:4), psl(0:4)
+  real(kind=fPrec) :: pnl(0:4), psl(0:4), crabpase_t,fact
   complex(kind=fPrec), parameter :: imag=(zero,one)
 
   save
@@ -1206,7 +1206,7 @@ subroutine thin6d(nthinerr)
   real(kind=fPrec) :: field_cos(2,0:4)
   real(kind=fPrec) :: field_sin(2,0:4)
   complex(kind=fPrec) :: Cm2, Sm2a, Cm1, Sm1a, Cp0, Sp0, Cp1, Sp1
-  real(kind=fPrec) :: pnl(0:4), psl(0:4)
+  real(kind=fPrec) :: pnl(0:4), psl(0:4), crabpase_t,fact
   complex(kind=fPrec), parameter :: imag=(zero,one)
   save
 
@@ -1908,144 +1908,53 @@ subroutine thin6d(nthinerr)
         goto 640
       case (57) ! JBG RF CC Multipoles
         xory=1
+        nordm = 2
+        isSkew = 0
         crabfreq=ek(ix)*c1e3
-        do j=1,napx
-          crabamp2 = ed(ix)*nzz(j)
-          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
-#include "include/alignva.f90"
-          yv1(j)=yv1(j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
-          yv2(j)=yv2(j) - ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
-          ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
-        end do
+        crabpase_t = crabph2(ix)
+#include "include/rfmulti.f90"
+
         goto 640
       case (58) ! JBG RF CC Multipoles
         xory=1
+        nordm = 2
+        isSkew = 1
         crabfreq=ek(ix)*c1e3
-        do j=1,napx
-          crabamp2 = ed(ix)*nzz(j)
-          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
-#include "include/alignva.f90"
-          yv2(j)=yv2(j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
-          yv1(j)=yv1(j) + ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
-          ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
-        end do
+        crabpase_t = crabph2(ix)
+#include "include/rfmulti.f90"        
+
         goto 640
       case (59) ! JBG RF CC Multipoles
         xory=1
+        nordm = 3
+        isSkew = 0
         crabfreq=ek(ix)*c1e3
-        do j=1,napx
-          crabamp3 = ed(ix)*nzz(j)
-          kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(two*pi)+crabph3(ix)
-#include "include/alignva.f90"
-          yv1(j)=yv1(j)+(((crabamp3*moidpsv(j))*c1m3)*(crkve**2-cikve**2))*cos_mb(kcrab)
-          yv2(j)=yv2(j)-((two*(((crabamp3*crkve)*cikve)*moidpsv(j)))*c1m3)*cos_mb(kcrab)
-          ejv(j)=ejv(j)-(((((one/three)*(crabamp3))*(crkve**3-(three*cikve**2)*crkve))&
-                *(((crabfreq*two)*pi)/clight)*c1m6)*sin_mb(kcrab))*e0f
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
-        end do
+        crabpase_t = crabph3(ix)
+#include "include/rfmulti.f90"  
         goto 640
       case (60) ! JBG RF CC Multipoles
         xory=1
+        nordm = 3
+        isSkew = 1
         crabfreq=ek(ix)*c1e3
-        do j=1,napx
-          crabamp3 = ed(ix)*nzz(j)
-          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph3(ix)
-#include "include/alignva.f90"
-          yv2(j)=yv2(j)-(((crabamp3*moidpsv(j))*c1m3)*((cikve**2)-(crkve**2)))*cos_mb(kcrab)
-          yv1(j)=yv1(j)+((two*(crabamp3*(crkve*(cikve*oidpsv(j)))))*c1m3)*cos_mb(kcrab)
-          ejv(j)=ejv(j)+(((((one/three)*(crabamp3))*(cikve**3- &
-                ((three*crkve**2)*cikve)))*(((crabfreq*two)*pi)/clight))*c1m6)*(sin_mb(kcrab)*e0f)
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
-        end do
+        crabpase_t = crabph3(ix)
+#include "include/rfmulti.f90" 
         goto 640
       case (61) ! JBG RF CC Multipoles
         xory=1
+        nordm = 4
+        isSkew = 0
         crabfreq=ek(ix)*c1e3
-        do j=1,napx
-          crabamp4 = ed(ix)*nzz(j)
-          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
-#include "include/alignva.f90"
-          yv1(j)=yv1(j) + (((crabamp4*moidpsv(j))*(crkve**3-(three*crkve)*cikve**2))*c1m6)*cos_mb(kcrab)
-          yv2(j)=yv2(j) - (((crabamp4*moidpsv(j))*((three*cikve)*crkve**2-cikve**3))*c1m6)*cos_mb(kcrab)
-          ejv(j)=ejv(j) - ((((0.25_fPrec*(crabamp4))*(crkve**4-(six*crkve**2)*cikve**2+cikve**4))&
-                *(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
-        ejf0v(j)=ejfv(j)
-        ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-        rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-        dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-        oidpsv(j)=one/(one+dpsv(j))
-        moidpsv(j)=mtc(j)/(one+dpsv(j))
-        omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-        dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-        yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-        yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-        if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
-        end do
+        crabpase_t = crabph4(ix)
+#include "include/rfmulti.f90"
         goto 640
       case (62) ! JBG RF CC Multipoles
         xory=1
+        nordm = 4
+        isSkew = 1
         crabfreq=ek(ix)*c1e3
-        do j=1,napx
-          crabamp4 = ed(ix)*nzz(j)
-          kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
-#include "include/alignva.f90"
-          yv1(j)=yv1(j) - (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)
-          yv2(j)=yv2(j) - (((crabamp4*moidpsv(j))*((three*crkve)*cikve**2-crkve**3))*c1m6)*cos_mb(kcrab)
-          ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3*cikve)-(cikve**3*crkve)))*(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
-        end do
+        crabpase_t = crabph4(ix)
+#include "include/rfmulti.f90"
         goto 640
       case (63) ! Elens
         do j=1,napx
