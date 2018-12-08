@@ -1051,11 +1051,19 @@ subroutine thin4d(nthinerr)
 #include "include/acdipkick2.f90"
         goto 620
       case (53)
-#include "include/crabkick1.f90"
+!#include "include/crabkick1.f90"
+        nordm = 1
+        isSkew = 0
+        crabfreq=ek(ix)*c1e3
+        crabpase_t = crabph(ix)
 #include "include/rfmulti.f90"
         goto 620
       case (54)
-#include "include/crabkick2.f90"
+!#include "include/crabkick2.f90"
+        nordm = 1
+        isSkew = 1
+        crabfreq=ek(ix)*c1e3
+        crabpase_t = crabph(ix)
 #include "include/rfmulti.f90"
         goto 620
       case (55) ! DIPEDGE ELEMENT
@@ -1887,11 +1895,19 @@ subroutine thin6d(nthinerr)
 #include "include/acdipkick2.f90"
         goto 640
       case (53)
-#include "include/crabkick1.f90"
+!#include "include/crabkick1.f90"
+        nordm = 1
+        isSkew = 0
+        crabfreq=ek(ix)*c1e3
+        crabpase_t = crabph(ix)
 #include "include/rfmulti.f90"
         goto 640
       case (54)
-#include "include/crabkick2.f90"
+!#include "include/crabkick2.f90"
+        nordm = 1
+        isSkew = 0
+        crabfreq=ek(ix)*c1e3
+        crabpase_t = crabph(ix)
 #include "include/rfmulti.f90"
         goto 640
       case (55) ! DIPEDGE ELEMENT
