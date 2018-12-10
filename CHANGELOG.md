@@ -33,6 +33,7 @@ While this release includes regular bug fixes and changes, the primary focus is 
 * Fixes a bug in checkpoint/restarting where `DUMP` restart information was not written to the secondary checkpoint file.
 * Fixed a bug in checkpoint/restarting where an infinite loop might occur when both primary and secondary checkpoint files were corrupt.
 * Checkpoint/restarting did not work as expected when building with the nagfor compiler. This compiler is more strict than gfortran and ifort on how files are accessed, which caused a nagfor built executable to try to overwrite `fort.10` with a dummy file even if it existed.
+* Fixed a bug in beam--beam in the case of the `ibeco` flag being set to 0. In this case the beam offset would be computed with uninitialised variables.
 
 **Code Improvements and Changes**
 
