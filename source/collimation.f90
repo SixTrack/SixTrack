@@ -2811,8 +2811,8 @@ subroutine collimate_do_collimator(stracki)
         rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
       end if
     else
-      write(lout,*) 'ERROR: Non-zero length collimator: ', db_name1(icoll), ' length = ', stracki
-      call prror(-1)
+      write(lout,"(a,f13.6)") "COLL> ERROR Non-zero length collimator: '"//trim(db_name1(icoll))//"' length = ",stracki
+      call prror
     end if
 
     flukaname(j) = ipart(j)
@@ -3194,7 +3194,7 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
 #endif
 
-  real(kind=fPrec) stracki
+  ! real(kind=fPrec) stracki ! stracki makes no sense here
 
 !++  Output information:
 !++
@@ -3221,7 +3221,7 @@ subroutine collimate_end_collimator()
     if(part_hit_pos(j) .eq.ie .and. part_hit_turn(j).eq.iturn) then
 !++  For zero length element track back half collimator length
 ! DRIFT PART
-      if (stracki.eq.0.) then
+      ! if (stracki.eq.0.) then ! stracki makes no sense here
         if(iexact.eq.0) then
           rcx(j)  = rcx(j) - half*c_length*rcxp(j)
           rcy(j)  = rcy(j) - half*c_length*rcyp(j)
@@ -3230,7 +3230,7 @@ subroutine collimate_end_collimator()
           rcx(j) = rcx(j) - half*c_length*(rcxp(j)/zpj)
           rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
         end if
-      end if
+      ! end if ! stracki makes no sense here
 
 !++  Now copy data back to original verctor
       xv1(j) = rcx(j)  * c1e3 + torbx(ie)
