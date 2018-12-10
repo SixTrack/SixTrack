@@ -1375,8 +1375,8 @@ subroutine roffpos_inv( x, y, xnew, ynew, tlt, xoff, yoff )
   ttmp = theta+tlt
   xnew = radio * cos_mb(ttmp)
   ynew = radio * sin_mb(ttmp)
-  xnew = xnew-xoff
-  ynew = ynew-yoff
+  xnew = xnew+xoff
+  ynew = ynew+yoff
   return
 end subroutine roffpos_inv
 
@@ -2676,6 +2676,10 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
     endif
 
   case("XSEC")
+    write(lout,"(a)") "LIMI> ERROR Dump of aperture cross sections at specific locations are not available yet"
+    iErr = .true.
+    return
+    
     ! A.Mereghetti, 22-03-2018
     ! ask for xsec at specific locations
     ! example input line:        XSEC myCrossSec.dat 12355.78 12356.78 0.1 180
