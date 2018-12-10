@@ -1,6 +1,6 @@
 # SixTrack Changelog
 
-### Version 5.1.0 [10.12.2018] - BOINC Release
+### Version 5.1.0 [11.12.2018] - BOINC Release
 
 While this release includes regular bug fixes and changes, the primary focus is on making code improvements that allows for a wider range of studies to be run on BOINC.
 
