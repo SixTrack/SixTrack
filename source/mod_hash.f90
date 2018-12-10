@@ -145,7 +145,7 @@ subroutine hash_parseInputLine(inLine, iErr)
   select case(trim(lnSplit(1)))
 
   case("MD5SUM")
-    if(.not. (nSplit.eq.2 .or. nSplit.eq.3)) then
+    if(nSplit /= 2 .and. nSplit /= 3) then
       write(lout,"(a,i3)") "HASH> ERROR MD5SUM expected 1 or 2 arguments, got ",nSplit-1
       iErr = .true.
       return
@@ -153,15 +153,15 @@ subroutine hash_parseInputLine(inLine, iErr)
     if (nSplit == 3) then
       call chr_cast(trim(lnSplit(3)), tmpIsAscii, cErr)
       if (cErr) then
-        write(lout,'(a)') "HASH> ERROR MD5SUM optional argument expected a logical variable, but '"// &
-             trim(lnSplit(3)) // "' didn't match."
+        write(lout,"(a)") "HASH> ERROR MD5SUM optional argument expected a logical variable, but '"// &
+             trim(lnSplit(3))//"' didn't match."
         call prror
       endif
     else
       tmpIsAscii = .false.
     endif
     if(len_trim(lnSplit(2)) > 255) then
-      write(lout,"(a,i3)") "HASH> ERROR MD5SUM filename is too long. Max is 255."
+      write(lout,"(a)") "HASH> ERROR MD5SUM filename is too long. Max is 255."
       iErr = .true.
       return
     end if
@@ -253,7 +253,7 @@ subroutine hash_md5Final(ctxID, md5Digest)
   character(len=32), intent(out) :: md5Digest
 
   integer(kind=C_INT) tmpVals(16)
-  integer     i
+  integer i
 
   tmpVals(:) = 0
   call hash_md5FinalC(ctxID, tmpVals, 16)
@@ -271,7 +271,7 @@ subroutine hash_digestString(inStr, md5Digest)
   character(len=32), intent(out) :: md5Digest
 
   integer(kind=C_INT) tmpVals(16)
-  integer     i
+  integer i
 
   tmpVals(:) = 0
   call hash_digestStringC(inStr//char(0), len(inStr), tmpVals, 16)
@@ -292,7 +292,7 @@ subroutine hash_digestFile(fileName, md5Digest, isAscii)
   integer tmpIsAscii
 
   integer(kind=C_INT) tmpVals(16)
-  integer     i
+  integer i
 
   if (isAscii) then
     tmpIsAscii = 1
