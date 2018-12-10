@@ -16,7 +16,6 @@ module mod_hash
   logical,          allocatable, private, save :: hash_isAscii(:)
   integer,                       private, save :: hash_nHashFiles  =  0
   logical,                       private, save :: hash_selfTestOK  = .false.
-  integer,                       private, save :: hash_sumFileUnit = -1
   character(len=8),              parameter     :: hash_sumFileName = "hash.md5"
 
   ! C Interface
@@ -196,10 +195,19 @@ subroutine hash_fileSums
   character(len=32) md5Digest
   integer           nFile
 
+  integer hash_sumFileUnit
+#ifdef WIN32
+  integer hash_sumFileUnit_win32
+#endif
+
   if(hash_nHashFiles == 0) return
 
   call funit_requestUnit(hash_sumFileName, hash_sumFileUnit)
   open(hash_sumFileUnit, file=hash_sumFileName)
+#ifdef WIN32
+  call funit_requestUnit(hash_sumFileName, hash_sumFileUnit_win32)
+  open(hash_sumFileUnit_win32, file=hash_sumFileName//".win32")
+#endif
 
   if(hash_selfTestOK .eqv. .false.) then
     write(hash_sumFileUnit,"(a)") "HASH library failed self test. No hashes written."
@@ -216,15 +224,18 @@ subroutine hash_fileSums
   do nFile=1,hash_nHashFiles
     call hash_digestFile(trim(hash_listHashFiles(nFile)), md5Digest, hash_isAscii(nFile))
 #ifdef WIN32
-    write(hash_sumFileUnit,"(a32,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))//".tmp"
-    write(lout,            "(a36,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))//".tmp"
+    write(hash_sumFileUnit_win32,"(a32,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))//".tmp"
+    flush(hash_sumFileUnit_win32)
 #else
-    write(hash_sumFileUnit,"(a32,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
-    write(lout,            "(a36,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
+    write(hash_sumFileUnit,      "(a32,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
+    write(lout,                  "(a36,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
 #endif
     flush(hash_sumFileUnit)
   end do
   close(hash_sumFileUnit)
+#ifdef WIN32
+  close(hash_sumFileUnit_win32)
+#endif
 
 end subroutine hash_fileSums
 
