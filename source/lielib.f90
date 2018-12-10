@@ -3114,6 +3114,7 @@ real(kind=fPrec) function rext(j)
         lie=ista(i)*j(2*i)+lie
       enddo
       mo=mod(lie,4)+1
+      rext = zero ! -Wmaybe-uninitialized
 
       select case (mo)
       case (1)
@@ -3523,12 +3524,16 @@ subroutine ety2(nm,n,low,igh,h,wr,wi,z,ierr)
       use mathlib_bouncer
       use numerical_constants
       implicit none
-      integer i,j,k,l,m,n,en,ii,jj,ll,mm,na,nm,nn,                      &
-     &igh,its,low,mp2,enm2,ierr
+      integer i,j,k,l,m,n,en,ii,jj,ll,mm,na,nm,nn,igh,its,low,mp2,enm2,ierr
       real(kind=fPrec) h(nm,n),wr(n),wi(n),z(nm,n)
       real(kind=fPrec) p,q,r,s,t,w,x,y,ra,sa,vi,vr,zz,norm,machep
       logical notlas
       real(kind=fPrec) z3r,z3i
+
+      m = 0    ! -Wmaybe-uninitialized
+      p = zero ! -Wmaybe-uninitialized
+      r = zero ! -Wmaybe-uninitialized
+      s = zero ! -Wmaybe-uninitialized
 !
 !
 !

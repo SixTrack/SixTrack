@@ -21,6 +21,7 @@ contains
   real(kind=fPrec) function lininterp(x,xvals,yvals,datalen)
   
     use crcoall
+    use numerical_constants, only : zero
     implicit none
   
     integer,          intent(in) :: datalen
@@ -28,6 +29,8 @@ contains
   
     integer ii
     real(kind=fPrec) dydx, y0
+
+    lininterp = zero ! -Wmaybe-uninitialized
   
     ! Sanity checks
     if(datalen <= 0) then

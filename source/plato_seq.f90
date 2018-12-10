@@ -314,7 +314,7 @@ module platoFMA
       CF3=ABS(ZSING(NFTMAX+1))
       IF (CF3.GT.CF1) THEN
         ASSK=REAL(NFTMAX,fPrec)+(NPOINT/PI)*ATAN2_MB(CF3*SIN_MB(PI/NPOINT),CF2+CF3*COS_MB(PI/NPOINT))
-      ELSEIF (CF3.LE.CF1) THEN
+      ELSE
         ASSK=REAL(NFTMAX-1,fPrec)+(NPOINT/PI)*ATAN2_MB(CF2*SIN_MB(PI/NPOINT),CF1+CF2*COS_MB(PI/NPOINT))
       ENDIF
       TUNEABT=one-(ASSK-one)/REAL(NPOINT,fPrec) !1D+0 = 1D0, i.e. real(kind=fPrec) 1.0?
@@ -380,7 +380,7 @@ module platoFMA
         P1=CF2
         P2=CF3
         NN=NFTMAX
-      ELSEIF (CF3.LE.CF1) THEN
+      ELSE
         P1=CF1
         P2=CF2
         NN=NFTMAX-1
@@ -806,6 +806,7 @@ module platoFMA
       REAL(KIND=fPrec) FUNCTION TUNEFFT(X,P,N)
 !C............................................................
       use crcoall
+      use numerical_constants, only : zero
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -813,6 +814,9 @@ module platoFMA
       REAL(KIND=fPrec) SUM,AMAX
       REAL(KIND=fPrec) X(*),P(*)
       COMPLEX(kind=fPrec)  Z(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
+
+      TUNEFFT = ZERO
+
 !C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
         write(lout,'(a)') '***ERROR(TUNEFFT): TOO MANY ITERATES'
@@ -839,7 +843,7 @@ module platoFMA
 !C...........................................FOURIER TRANSFORM
       CALL CFFT(Z,-M)
 !C.........COMPUTATION OF THE MAXIMUM OF THE FOURIER TRANSFORM
-      AMAX=0
+      AMAX=ZERO
       NPMIN=1
       IF (SUM.EQ.ZERO) THEN
         NPMAX=NPOINT/2     !..REAL FFT ONLY HALF COEFFICIENTS
@@ -886,6 +890,8 @@ module platoFMA
       REAL(KIND=fPrec) SUM,AMAX,X1,X2,X3,Y1,Y2,Y3,X12,X13,Y12,Y13,X212,X213,A,B
       REAL(KIND=fPrec) X(*),P(*)
       COMPLEX(kind=fPrec) Z(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
+
+      ITUNE = 0
 
 !C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
@@ -974,6 +980,7 @@ module platoFMA
       REAL(KIND=fPrec) FUNCTION TUNELASK(X,PX,MAX)
 !C............................................................
       use crcoall
+      use numerical_constants, only : zero
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -984,6 +991,8 @@ module platoFMA
       COMPLEX(kind=fPrec) Z(MAXITER),FOME,ZC,SD,SP
 
       DUEPI=EIGHT*ATAN_MB(ONE)
+      TUNELASK = zero
+      JOM = 0
 !C...............................CHECK OF THE ITERATION NUMBER
       IF(MAX.GT.MAXITER) THEN
         write(lout,'(a)') '***ERROR(TUNELASK): TOO MANY ITERATIONS'
