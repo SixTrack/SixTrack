@@ -68,7 +68,7 @@ void md5wrapper_digestFile(char* fileName, int strLen, int* md5Vals, int md5Size
                   j++;
               }
           }
-          int err = fwrite(data, sizeof(char), j, outFile);
+          int err = fwrite(dataTmp, sizeof(char), j, outFile);
           if (err) {
               printf("MD5> ERROR in stripping file '%s'->'%s'.\n", fileName,fileNameMod);
           }
