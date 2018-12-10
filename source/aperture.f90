@@ -278,7 +278,7 @@ subroutine aperture_init
         call prror(-1)
       end if
 
-      call units_openUnit(unit=losses_unit,fileName=losses_filename,formatted=.true.,mode='w',err=err)
+      call units_openUnit(unit=losses_unit,file=losses_filename,formatted=.true.,mode='w',err=err)
 #ifdef CR
       apefilepos=0
 #endif
@@ -1858,7 +1858,7 @@ subroutine dump_aperture_model
   inquire( unit=aperunit, opened=lopen )
   if( .not.lopen ) then
     if( aperunit.ne.0 ) then
-      call units_openUnit(unit=aperunit,fileName=aper_filename,formatted=.true.,mode='w',err=err)
+      call units_openUnit(unit=aperunit,file=aper_filename,formatted=.true.,mode='w',err=err)
       write(lout,"(a)") "APER> Profile dumped in file: '"//trim(aper_filename)//"'"
     end if
   end if
@@ -2033,7 +2033,7 @@ subroutine dump_aperture_xsecs
           "' with unit ",xsecunit(ixsec)
         call prror(-1)
      end if
-     call units_openUnit(unit=xsecunit(ixsec),fileName=xsec_filename(ixsec),formatted=.true.,mode='w',err=err)
+     call units_openUnit(unit=xsecunit(ixsec),file=xsec_filename(ixsec),formatted=.true.,mode='w',err=err)
      if(ierro .ne. 0) then
         write(lout,"(2(a,i0))") "APER> ERROR Opening file '"//trim(xsec_filename(ixsec))//&
           "' on unit # ",xsecunit(ixsec),", iostat = ",ierro
@@ -2611,7 +2611,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    call units_openUnit(unit=loadunit,fileName=load_file,formatted=.true.,mode='r',err=err)
+    call units_openUnit(unit=loadunit,file=load_file,formatted=.true.,mode='r',err=err)
     write(lout,"(a)") "LIMI> Apertures will be read from file '"//trim(load_file)//"'"
 
   case("PRIN")
@@ -2987,7 +2987,7 @@ subroutine aper_crcheck_positionFiles
   flush(93)
 
   inquire( unit=losses_unit, opened=lopen )
-  if (.not. lopen) call units_openUnit(unit=losses_unit,fileName=losses_filename,status='old',formatted=.true.,mode='rw',err=err)
+  if (.not. lopen) call units_openUnit(unit=losses_unit,file=losses_filename,status='old',formatted=.true.,mode='rw',err=err)
 
   apefilepos = 0
   do j=1,apefilepos_cr
@@ -3001,7 +3001,7 @@ subroutine aper_crcheck_positionFiles
 
   ! Change from 'readwrite' to 'write'
   close(losses_unit)
-  call units_openUnit(unit=losses_unit,fileName=losses_filename,status='old',formatted=.true.,mode='w+',err=err)
+  call units_openUnit(unit=losses_unit,file=losses_filename,status='old',formatted=.true.,mode='w+',err=err)
 
   return
 

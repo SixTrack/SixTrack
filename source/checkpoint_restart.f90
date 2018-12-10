@@ -873,7 +873,7 @@ subroutine crpoint
     rewind lout
     endfile(lout,iostat=ierro)
     close(lout)
-    call units_openUnit(unit=92,fileName="fort.92",formatted=.true.,mode="rw",err=fErr)
+    call units_openUnit(unit=92,file="fort.92",formatted=.true.,mode="rw",err=fErr)
 #ifndef DEBUG
     if(ncalls <= 5 .or. numx >= numl) then
 #endif
@@ -1388,7 +1388,7 @@ subroutine crstart
   endfile(lout,iostat=ierro)
   close(lout)
 
-  call units_openUnit(unit=lout,fileName="fort.92",formatted=.true.,mode="rw",err=fErr)
+  call units_openUnit(unit=lout,file="fort.92",formatted=.true.,mode="rw",err=fErr)
   ! but also add the rerun message
   write(lout,"(a80)") runtim
   runtim(1:20)="SIXTRACR restarted: "

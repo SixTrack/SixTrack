@@ -21,14 +21,14 @@ subroutine units_initUnits
   units_nList = 0
 end subroutine units_initUnits
 
-subroutine units_openUnit(unit,fileName,formatted,mode,err,status,recl)
+subroutine units_openUnit(unit,file,formatted,mode,err,status,recl)
 
   use crcoall
 
   implicit none
 
   integer,                    intent(in)    :: unit
-  character(len=*),           intent(in)    :: fileName
+  character(len=*),           intent(in)    :: file
   logical,                    intent(in)    :: formatted
   character(len=*),           intent(in)    :: mode
   logical,                    intent(inout) :: err
@@ -69,10 +69,10 @@ subroutine units_openUnit(unit,fileName,formatted,mode,err,status,recl)
   end if
 
 #ifdef BOINC
-  call boincrf(fileName,tmpBoinc)
+  call boincrf(file,tmpBoinc)
   fFileName = trim(tmpBoinc)
 #else
-  fFileName = fileName
+  fFileName = file
 #endif
 #ifdef FIO
   fFio = .true.
@@ -116,7 +116,7 @@ subroutine units_openUnit(unit,fileName,formatted,mode,err,status,recl)
   end select
 
   units_uList(units_nList)%unit      = unit
-  units_uList(units_nList)%filename  = fileName
+  units_uList(units_nList)%filename  = file
   units_uList(units_nList)%formatted = formatted
   units_uList(units_nList)%mode      = mode
   units_uList(units_nList)%recl      = fRecl

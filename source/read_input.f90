@@ -39,7 +39,7 @@ subroutine readFort13
   cErr  = .false.
   fErr  = .false.
 
-  call units_openUnit(13,"fort.13",.true.,"r",fErr)
+  call units_openUnit(unit=13,file="fort.13",formatted=.true.,mode="r",err=fErr)
   if(fErr) then
     write(lout,"(a)") "FORT13> ERROR Could not open fort.13."
     call prror(-1)
@@ -165,7 +165,7 @@ subroutine readFort33
   integer nSplit, ioStat
   logical spErr, fErr
 
-  call units_openUnit(33,"fort.33",.true.,"r",fErr)
+  call units_openUnit(unit=33,file="fort.33",formatted=.true.,mode="r",err=fErr)
 
   read(33,"(a)",iostat=ioStat) inLine
   if(ioStat /= 0) then
