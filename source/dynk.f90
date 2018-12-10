@@ -786,7 +786,7 @@ subroutine dynk_parseFUN(inLine, iErr)
     select case(trim(lnSplit(3)))
     case("FIR")
       isFIR = .true.
-    case("IIR")
+    case default
       isFIR = .false.
     end select
 
