@@ -748,6 +748,9 @@ module collimation
   integer, private, save :: coll_hdf5_collScatter
 #endif
 
+  ! For input parsing
+  character(len=:), allocatable, private :: lnSplit(:)
+
 contains
 
 ! General routines:
@@ -1405,7 +1408,6 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
-  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
   logical spErr
 
@@ -6764,7 +6766,6 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
   integer stat
 
   character(len=mInputLn) inLine
-  character(len=:), allocatable :: lnSplit(:)
   integer nSplit
   logical spErr
 
@@ -6855,7 +6856,6 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
   real(kind=fPrec) myemitz
 
   character(len=mInputLn) inLine
-  character(len=:), allocatable :: lnSplit(:)
   integer nSplit
   logical spErr
 

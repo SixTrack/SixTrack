@@ -19,6 +19,9 @@ module root_output
 
   save
 
+  ! For input parsing
+  character(len=:), allocatable, private :: lnSplit(:)
+
 interface
 
 !General stuff
@@ -301,7 +304,6 @@ subroutine root_daten(inLine,iErr)
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
-  character(len=:), allocatable :: lnSplit(:)
   integer nSplit
   logical spErr, cErr
 

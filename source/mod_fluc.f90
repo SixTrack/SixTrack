@@ -34,6 +34,8 @@ module mod_fluc
   integer, public, save :: fluc_iSeed1
   integer, public, save :: fluc_iSeed2
 
+  character(len=:), allocatable, private :: lnSplit(:)              ! For input parsing
+
 contains
 
 subroutine fluc_parseInputLine(inLine, iLine, iErr)
@@ -49,7 +51,6 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
-  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit, iDummy
   logical spErr
 
@@ -200,7 +201,6 @@ subroutine fluc_readFort8
   implicit none
 
   character(len=1024) :: inLine
-  character(len=:), allocatable :: lnSplit(:)
   real(kind=fPrec) alignx, alignz, tilt
   integer lineNo, ioStat, nSplit, mAlign, nAlign, iStru, iSing
   logical iErr, isOpen, isFile, inSing
@@ -312,7 +312,6 @@ subroutine fluc_readFort16
   implicit none
 
   character(len=1024) :: inLine
-  character(len=:), allocatable :: lnSplit(:)
   character(len=mNameLen) bezExt
   integer mType, lineNo, ioStat, nSplit, lMode, nVals, mVal, mExt, iStru, iSing, nExt
   logical iErr, isOpen, isFile, inSing
@@ -469,7 +468,6 @@ subroutine fluc_readFort30
   implicit none
 
   character(len=1024) :: inLine
-  character(len=:), allocatable :: lnSplit(:)
   real(kind=fPrec) alignx, alignz, tilt
   integer lineNo, ioStat, nSplit, mZFZ, nZFZ, iStru, iSing, iZ
   logical iErr, isOpen, isFile, inSing
@@ -589,7 +587,6 @@ subroutine fluc_writeFort4
 
   implicit none
 
-  character(len=:), allocatable :: lnSplit(:)
   character(len=1024) inLine
   character(len=mNameLen) elemName
   real(kind=fPrec) inVal(6)

@@ -16,6 +16,9 @@ module zipf
   character(len=:), allocatable, save :: zipf_fileNames(:)  ! Name of files to pack into the zip file.
   character(len=mStrLen),        save :: zipf_outFile = " " ! Name of output file (Default: Sixout.zip)
 
+  ! For input parsing
+  character(len=:), allocatable, private :: lnSplit(:)
+
 contains
 
 subroutine zipf_parseInputLine(inLine,iErr)
@@ -29,7 +32,6 @@ subroutine zipf_parseInputLine(inLine,iErr)
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
-  character(len=:), allocatable :: lnSplit(:)
   integer nSplit
   logical spErr
 

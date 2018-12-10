@@ -42,6 +42,9 @@ module wire
   ! wire number for each structure element (default = 0 if no wire)
   integer, allocatable, save :: wire_num(:) ! (nblz)
 
+  ! For input parsing
+  character(len=:), allocatable, private :: lnSplit(:)
+
 contains
 
 subroutine wire_expand_arrays(nele_new, nblz_new)
@@ -85,7 +88,6 @@ subroutine wire_parseInputLine(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
-  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit, j, iElem
   logical spErr
 

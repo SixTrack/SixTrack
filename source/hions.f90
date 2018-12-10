@@ -51,6 +51,9 @@ module mod_hions
   ! SixTrack particle IDs
   integer, allocatable, save :: pids(:) !(npart)
 
+  ! For input parsing
+  character(len=:), allocatable, private :: lnSplit(:)
+
 #ifdef CR
   real(kind=fPrec),                 save :: nucmda_cr
   real(kind=fPrec),                 save :: brhono_cr
@@ -100,7 +103,6 @@ subroutine hions_parseInputLine(inLine, iLine, iErr)
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
-  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
   logical spErr
 

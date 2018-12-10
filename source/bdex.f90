@@ -55,6 +55,9 @@ module bdex
   integer, save :: bdex_nstringStorage
   character(len=mStrLen), save :: bdex_stringStorage ( bdex_maxStore )
 
+  ! For input parsing
+  character(len=:), allocatable, private :: lnSplit(:)
+
 contains
 
 subroutine bdex_allocate_arrays
@@ -113,7 +116,6 @@ subroutine bdex_parseInputLine(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
-  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
   logical spErr
 
@@ -157,7 +159,6 @@ subroutine bdex_parseElem(inLine,iErr)
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
-  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit, ii, jj
   logical spErr
 
@@ -235,7 +236,6 @@ subroutine bdex_parseChan(inLine,iErr)
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
-  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit, ii, jj
   logical spErr
 
@@ -326,7 +326,6 @@ subroutine bdex_initialisePIPE(inLine,iErr)
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
-  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
   logical spErr
 
@@ -425,7 +424,6 @@ subroutine bdex_initialiseTCPIP(inLine,iErr)
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
-  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
   logical spErr
 
