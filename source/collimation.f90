@@ -5488,7 +5488,7 @@ end function ichoix
 !! Note: For single-diffractive scattering the vector p of momentum
 !! is modified (energy loss is applied)
 !<
-function gettran(inter,xmat,p)
+real(kind=fPrec) function gettran(inter,xmat,p)
 
   implicit none
 
@@ -5496,8 +5496,11 @@ function gettran(inter,xmat,p)
   real(kind=fPrec) :: p
 
   integer :: length
-  real(kind=fPrec) :: gettran,t,xm2,bsd
+  real(kind=fPrec) :: t,xm2,bsd
   real(kind=fPrec) :: truth,xran(1)
+
+  ! Neither if-statements below have an else, so defaultingfuction return to zero.
+  gettran = zero ! -Wmaybe-uninitialized
 
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
 #ifndef MERLINSCATTER
@@ -5527,8 +5530,7 @@ function gettran(inter,xmat,p)
     t=real(truth,fPrec)                                                    !hr09
     gettran = t
   end if
-#endif
-#ifdef MERLINSCATTER
+#else
 
   if( inter.eq.2 ) then
     gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)                  !hr09
@@ -7562,6 +7564,7 @@ subroutine funlux(array,xran,len)
 !        ARRAY(151-200) contains the 49-bin blowup of main bins
 !                       98 and 99 (right tail of distribution)
 !
+      x = zero ! -Wmaybe-uninitialized
       call ranlux(xran,len)
 !      call ranecu(xran,len,-1)
 
