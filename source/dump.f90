@@ -59,9 +59,6 @@ module dump
   ! TODO: check units used in dumpclo; is x' or px used?
   real(kind=fPrec), allocatable, save :: dumpclo(:,:)      ! (-1:nblz,6)
 
-  ! For input parsing
-  character(len=:), allocatable, private :: lnSplit(:)
-
 #ifdef HDF5
   ! Array to save hdf5 formats for each dump format
   integer, allocatable, save :: dump_hdf5Format(:)
@@ -200,6 +197,7 @@ subroutine dump_parseInputLine(inLine,iErr)
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) elemName
   character(len=mStrLen) fileName
   integer i1,i2,i3,i4,i5,kk,j

@@ -18,8 +18,6 @@ module mod_hash
   integer,                       private, save :: hash_sumFileUnit = -1
   character(len=8),              parameter     :: hash_sumFileName = "hash.md5"
 
-  character(len=:), allocatable, private :: lnSplit(:)
-
   ! C Interface
   interface
 
@@ -129,6 +127,7 @@ subroutine hash_parseInputLine(inLine, iErr)
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable :: lnSplit(:)
   integer nSplit
   logical spErr
 

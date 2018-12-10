@@ -37,8 +37,6 @@ module mod_dist
   integer,            private, save :: dist_readUnit   ! Unit for reading the distribution
   integer,            private, save :: dist_echoUnit   ! Unit for echoing the distribution
 
-  character(len=:), allocatable, private :: lnSplit(:) ! For input parsing
-
 contains
 
 ! ================================================================================================ !
@@ -57,6 +55,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
   logical spErr
 
@@ -121,6 +120,7 @@ subroutine dist_readDist
   real(kind=fPrec)        weight, z, zp, dt(npart)
   logical                 spErr, cErr
   character(len=mInputLn) inLine
+  character(len=:), allocatable :: lnSplit(:)
 
   write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_readFile)//"'"
 

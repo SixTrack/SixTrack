@@ -12,9 +12,6 @@ module read_input
 
   implicit none
 
-  ! For input parsing
-  character(len=:), allocatable, private :: lnSplit(:)
-
 contains
 
 ! ================================================================================================ !
@@ -163,6 +160,7 @@ subroutine readFort33
 
   implicit none
 
+  character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn)       :: inLine
   integer nSplit, ioStat
   logical spErr, fErr

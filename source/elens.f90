@@ -67,9 +67,6 @@ module elens
   real(kind=fPrec), save :: elens_radial_profile_J(0:elens_radial_dim,nelens_radial_profiles)
   integer, save          :: elens_radial_profile_nPoints(nelens_radial_profiles)
 
-  ! For input parsing
-  character(len=:), allocatable, private :: lnSplit(:)
-
 contains
 
 subroutine elens_allocate_arrays
@@ -102,6 +99,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mStrLen) tmpch
   real(kind=fPrec) tmpflt
   integer nSplit, iElem, j, chIdx, tmpi1, tmpi2, tmpi3
@@ -518,6 +516,7 @@ subroutine parseRadialProfile(ifile)
 
   integer, intent(in) :: ifile
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mInputLn) inLine
   integer nSplit
   logical spErr, err
@@ -687,6 +686,7 @@ subroutine parseChebyFile(ifile)
 
   integer, intent(in) :: ifile
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mInputLn) inLine
   integer nSplit
   logical spErr,err

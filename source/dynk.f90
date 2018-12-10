@@ -70,10 +70,6 @@ module dynk
   integer,          allocatable, public,  save :: dynk_izuIndex(:)
   real(kind=fPrec), allocatable, public,  save :: dynk_elemData(:,:)
 
-  ! For input parsing
-  character(len=:), allocatable, private :: lnSplit(:)
-  character(len=:), allocatable, private :: lnFile(:)
-
 #ifdef CR
   ! Number of records written to dynkfile (dynksets.dat)
   integer, public,  save :: dynk_filePos   = -1
@@ -155,6 +151,7 @@ subroutine dynk_parseInputLine(inLine,iErr)
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable :: lnSplit(:)
   integer i, nSplit
   logical spErr
 
@@ -219,7 +216,8 @@ subroutine dynk_parseFUN(inLine, iErr)
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
-  character(len=mInputLn) fLine
+  character(len=:), allocatable :: lnSplit(:), lnFile(:)
+  character(len=mInputLn)       :: fLine
   integer nSplit, nFile
   logical spErr, cErr
 
@@ -1465,6 +1463,7 @@ subroutine dynk_parseSET(inLine, iErr)
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable :: lnSplit(:)
   integer nSplit, ii
   logical spErr, cErr
 
@@ -2029,7 +2028,8 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
   ! Temporaries for FILELIN
   integer filelin_start, filelin_xypoints
 
-  character(len=mInputLn) fLine
+  character(len=:), allocatable :: lnFile(:)
+  character(len=mInputLn)       :: fLine
   integer nFile, ioStat
   logical spErr, cErr
 

@@ -12,7 +12,6 @@ module fma
   integer,          allocatable, private, save :: fma_first(:)     ! First turn used for FMA
   integer,          allocatable, private, save :: fma_last(:)      ! Last turn used for FMA
   integer,          allocatable, private, save :: fma_norm_flag(:) ! normalise phase space before FFT
-  character(len=:), allocatable, private       :: lnSplit(:)       ! For input parsing
 
 contains
 
@@ -36,6 +35,7 @@ subroutine fma_parseInputline(inLine,iErr)
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
   logical spErr, cErr
 
@@ -148,8 +148,9 @@ subroutine fma_postpr
 
   implicit none
 
-  character(len=mInputLn) rLine
-  character(len=mStrLen)  ch, ch1
+  character(len=:), allocatable :: lnSplit(:)
+  character(len=mInputLn)       :: rLine
+  character(len=mStrLen)        :: ch, ch1
   integer nSplit, fmaUnit, tmpUnit, dumpLastTurn, numModes
   logical spErr, fErr, cErr, isOpen, fExist
   integer i,j,k,l,m,n

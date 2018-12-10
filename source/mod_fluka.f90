@@ -120,9 +120,6 @@ module mod_fluka
   integer(kind=int16),          public :: fluka_a0     ! nucelon number (hisix)
   integer(kind=int16),          public :: fluka_z0     ! charge multiplicity (hisix)
 
-  ! For input parsing
-  character(len=:), allocatable, private :: lnSplit(:)
-
   save
 
   contains
@@ -776,6 +773,7 @@ subroutine fluka_parseInputLine(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) entrElem, exitElem
   real(kind=fPrec) tmplen
   integer nSplit, i, entrIdx, exitIdx, ii

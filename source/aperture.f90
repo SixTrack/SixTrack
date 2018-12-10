@@ -113,9 +113,6 @@ module aperture
   real(kind=fPrec), parameter :: aPrec=c1m6 ! identify two ap. markers as identical [mm]
   real(kind=fPrec), parameter :: sPrec=c1m7 ! identify two ap. markers as at the same s-pos [m]
 
-  ! For input parsing
-  character(len=:), allocatable, private :: lnSplit(:)
-
 #ifdef HDF5
   integer, private, save :: aper_fmtLostPart
   integer, private, save :: aper_setLostPart
@@ -2583,6 +2580,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   real(kind=fPrec) tmplen,tmpflts(3)
   integer          nSplit, i
   logical          spErr, lExist, apeFound, err
@@ -2778,6 +2776,7 @@ subroutine aper_parseElement(inLine, iElem, iErr)
   integer,          intent(in)    :: iElem
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   real(kind=fPrec) tmpflts(6)
   integer          nSplit, i
   logical          spErr

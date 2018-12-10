@@ -63,9 +63,6 @@ module sixtrack_input
   ! Settings
   logical,                       private, save :: sixin_forcePartSummary = .false.
 
-  ! For input parsing
-  character(len=:), allocatable, private :: lnSplit(:)
-
   interface sixin_echoVal
     module procedure sixin_echoVal_int
     module procedure sixin_echoVal_real32
@@ -285,6 +282,7 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
   logical spErr
 
@@ -382,6 +380,7 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: elemName
   integer nSplit
   logical spErr
@@ -521,6 +520,7 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: blocName
   integer nSplit
   logical spErr
@@ -655,6 +655,7 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
   integer nSplit
   logical spErr
@@ -732,6 +733,7 @@ subroutine sixin_parseInputLineDISP(inLine, iErr)
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: elemName
   integer nSplit
   logical spErr
@@ -821,6 +823,7 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
   integer nSplit
   logical spErr
@@ -971,6 +974,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
   integer nSplit, iDummy
   logical spErr
@@ -1149,6 +1153,7 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) ilm0(40)
   integer i, j1, j2, nSplit
   logical spErr
@@ -1271,7 +1276,8 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
-  character(len=mNameLen) tmp_is(2)
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen)      :: tmp_is(2)
   integer nSplit,i,ichrom0
   logical spErr
 
@@ -1347,7 +1353,8 @@ subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
-  character(len=mNameLen) tmp_iq(5)
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen)      :: tmp_iq(5)
   integer nSplit,i,nLines
   logical spErr
 
@@ -1491,6 +1498,7 @@ subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) mode
   integer nSplit,i,nlin
   logical spErr
@@ -1573,6 +1581,7 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   real(kind=fPrec) cosy,halc,halc2,halc3,qigam,pmat,qbet
   integer          nSplit,i,ix
   logical          spErr
@@ -1719,6 +1728,7 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) imn
   real(kind=fPrec) ak0d,akad,bk0d,bkad,r0,r0a
   integer          nSplit,i,nmul,iil
@@ -1826,8 +1836,9 @@ subroutine sixin_parseInputLineSUBR(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
-  integer nSplit
-  logical spErr
+  character(len=:), allocatable   :: lnSplit(:)
+  integer          nSplit
+  logical          spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -1889,6 +1900,7 @@ subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) elemOne
   integer nSplit, i, j0, j1, imo
   logical spErr
@@ -1987,6 +1999,7 @@ subroutine sixin_parseInputLineITER(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
   logical spErr
 
@@ -2077,6 +2090,7 @@ subroutine sixin_parseInputLineORBI(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit, i, iElem
   logical spErr
 
@@ -2200,6 +2214,7 @@ subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) elemName, elemComb(20)
   integer nSplit, nComb, i, j, ii, ico
   logical spErr
@@ -2296,6 +2311,7 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) name(10)
   integer nSplit, j, k
   logical spErr
@@ -2519,6 +2535,7 @@ subroutine sixin_parseInputLineSEAR(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) name(40)
   integer nSplit, j, k, k0, ka, ke, ki
   logical spErr
@@ -2627,6 +2644,7 @@ subroutine sixin_parseInputLinePOST(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
   logical spErr
 
@@ -2765,6 +2783,7 @@ subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) name(6)
   integer nSplit, i, j, k
   logical spErr
@@ -2875,6 +2894,7 @@ subroutine sixin_parseInputLineNORM(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   integer nSplit
   logical spErr
 
@@ -2944,6 +2964,7 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) elemName
   real(kind=fPrec) xang,xstr,xplane
   integer nSplit, ibsix, j
@@ -3084,6 +3105,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) elemName
   real(kind=fPrec) sxx,syy,sxy,separx,separy,mm(11)
   integer nSplit, n6D, ibsix, j
@@ -3346,6 +3368,7 @@ subroutine sixin_parseInputLineTROM(inLine, iLine, iErr)
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
+  character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) elemName
   real(kind=fPrec) cloOrb(6), matElems(6,6)
   integer nSplit, nLines, iElem, i, l, m, n
