@@ -215,8 +215,13 @@ subroutine hash_fileSums
   write(lout,"(a)") "   ============================="
   do nFile=1,hash_nHashFiles
     call hash_digestFile(trim(hash_listHashFiles(nFile)), md5Digest, hash_isAscii(nFile))
+#ifdef WIN32
+    write(hash_sumFileUnit,"(a32,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))//".tmp"
+    write(lout,            "(a36,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))//".tmp"
+#else
     write(hash_sumFileUnit,"(a32,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
     write(lout,            "(a36,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
+#endif
     flush(hash_sumFileUnit)
   end do
   close(hash_sumFileUnit)
