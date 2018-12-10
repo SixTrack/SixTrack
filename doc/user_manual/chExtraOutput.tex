@@ -415,8 +415,9 @@ The primary purpose of this module is for validation of results for BOINC and th
 
 \paragraph{Usage}~\\
 
-The module accepts a single keyword, \texttt{MD5SUM}, followed by a file name.
+The module accepts a single keyword, \texttt{MD5SUM}, followed by a file name, which is optionally followed by a bolean to specify if this is an ASCII file.
 This can be repeated multiple times.
+The ASCII flag is used on Windows to strip carriage returns from the file before hashing.
 If the md5sum tool is installed on the user's computer, the results can be validated with the command:
 \begin{cverbatim}
 md5sum -c hash.md5
@@ -425,7 +426,7 @@ md5sum -c hash.md5
 \paragraph{Example}~
 \begin{cverbatim}
 HASH
-    MD5SUM final_state.dat
+    MD5SUM final_state.dat ON
     MD5SUM fort.10
 NEXT
 \end{cverbatim}
