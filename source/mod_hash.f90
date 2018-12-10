@@ -226,10 +226,10 @@ subroutine hash_fileSums
 #ifdef WIN32
     write(hash_sumFileUnit_win32,"(a32,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))//".tmp"
     flush(hash_sumFileUnit_win32)
-#else
+#endif
+
     write(hash_sumFileUnit,      "(a32,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
     write(lout,                  "(a36,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
-#endif
     flush(hash_sumFileUnit)
   end do
   close(hash_sumFileUnit)
