@@ -274,9 +274,14 @@ function chr_expandBrackets(theString) result(theResult)
   integer ch, nLB, nRB, nB, tSP, lSP, lLB, iSet, nSet, iPos, iMult
   logical iErr
 
+  lSP  = 0
+  tSP  = 0
+  lLB  = 0
+  iSet = 0
+  nLB  = 0
+  nRB  = 0
+
   ! Count the brackets
-  nLB = 0
-  nRB = 0
   do ch=1,len(theString)
     if(theString(ch:ch) == "(") nLB = nLB + 1
     if(theString(ch:ch) == ")") nRB = nRB + 1
@@ -292,16 +297,13 @@ function chr_expandBrackets(theString) result(theResult)
   allocate(bPos(3,nLB))
   theBuffer = " "//theString//" "
   bPos(:,:) = 0
-  lSP  = 0
-  lLB  = 0
-  iSet = 0
   do ch=1,len(theBuffer)
-    if(theBuffer(ch:ch) == " ") tSP = ch
-    if(theBuffer(ch:ch) == "(") then
+    if(theBuffer(ch:ch) == " ") then
+      tSP = ch
+    elseif(theBuffer(ch:ch) == "(") then
       lSP = tSP
       lLB = ch
-    end if
-    if(theBuffer(ch:ch) == ")") then
+    elseif(theBuffer(ch:ch) == ")") then
       if(lSP > 0 .and. lLB > 0 .and. lLB-lSP > 1 .and. ch-lSP > 2) then
         iSet = iSet + 1
         bPos(1,iSet) = lSP
