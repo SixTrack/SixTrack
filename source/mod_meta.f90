@@ -50,14 +50,16 @@ contains
 subroutine meta_initialise
 
   use crcoall
+  use mod_units
   use file_units
 
-  integer ioStat
+  logical fErr
 
+  fErr = .false.
   call funit_requestUnit(meta_fileName, meta_fileUnit)
-  open(meta_fileUnit,file=meta_fileName,status="replace",form="formatted",iostat=ioStat)
-  if(ioStat /= 0) then
-    write(lout,"(2(a,i0))") "META> ERROR Opening of '"//meta_fileName//"' on unit #",meta_fileUnit," failed with iostat = ",ioStat
+  call units_openUnit(unit=meta_fileUnit,filename=meta_fileName,formatted=.true.,mode="w",err=fErr,status="replace")
+  if(fErr) then
+    write(lout,"(a,i0)") "META> ERROR Opening of '"//meta_fileName//"' on unit #",meta_fileUnit
     call prror
   end if
 
@@ -71,11 +73,27 @@ end subroutine meta_initialise
 
 subroutine meta_finalise
 
+  use file_units
   use mod_common, only : numl
 
-  call meta_write("NumParticleTurns",      meta_nPartTurn)
-  call meta_write("AvgParticlesPerTurn",   real(meta_nPartTurn,fPrec)/numl, "f15.3")
-  call meta_write("NumCheckPointRestarts", meta_nRestarts)
+  integer nCRKills1,nCRKills2,tmpUnit
+  logical fExist
+
+  nCRKills1 = 0
+  nCRKills2 = 0
+ 
+  call funit_requestUnit("mod_meta_tmpUnit",tmpUnit)
+  inquire(file="crkillswitch.tmp",exist=fExist)
+  if(fExist) then
+    open(tmpUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")
+    read(tmpUnit) nCRKills1,nCRKills2
+    close(tmpUnit)
+  end if
+
+  call meta_write("NumParticleTurns",    meta_nPartTurn)
+  call meta_write("AvgParticlesPerTurn", real(meta_nPartTurn,fPrec)/numl, "f15.3")
+  call meta_write("CR_RestartCount",     meta_nRestarts)
+  call meta_write("CR_KillSwitchCount",  nCRKills2)
 
   write(meta_fileUnit,"(a)") "# END"
   flush(meta_fileUnit)

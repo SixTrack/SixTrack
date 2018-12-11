@@ -565,11 +565,11 @@ subroutine thin4d(nthinerr)
 #ifdef CR
   if (restart) then
     call crstart
-    write(93,*) 'THIN4D SIXTRACR restart numlcr',numlcr,'numl',numl
+    write(93,"(2(a,i0))") "SIXTRACR> Thin 4D restart numlcr = ",numlcr,", numl = ",numl
   end if
 ! and now reset numl to do only numlmax turns
   nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
 ! and reset [n]numxv unless particle is lost
 ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
@@ -582,10 +582,10 @@ subroutine thin4d(nthinerr)
 #else
   do 640 n=1,numl !loop over turns
 #endif
-  if(st_quiet < 3) then
-    if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
-  end if
-  meta_nPartTurn = meta_nPartTurn + napx
+    if(st_quiet < 3) then
+      if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
+    end if
+    meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
     ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
@@ -604,6 +604,7 @@ subroutine thin4d(nthinerr)
     ! (and note that writebin does nothing if restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
+    if(st_killswitch) call cr_killSwitch(n)
 #endif
 
     ! A.Mereghetti, for the FLUKA Team
@@ -1213,11 +1214,11 @@ subroutine thin6d(nthinerr)
 #ifdef CR
   if (restart) then
     call crstart
-    write(93,*) 'THIN6D ','SIXTRACR restart numlcr',numlcr,'numl',numl
+    write(93,"(2(a,i0))") "SIXTRACR> Thin 6D restart numlcr = ",numlcr,", numl = ",numl
   end if
   ! and now reset numl to do only numlmax turns
   nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
   ! and reset [n]numxv unless particle is lost
   ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
@@ -1259,6 +1260,7 @@ subroutine thin6d(nthinerr)
     ! (and note that writebin does nothing if restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
+    if(st_killswitch) call cr_killSwitch(n)
 #endif
 
     ! A.Mereghetti, for the FLUKA Team
@@ -2124,8 +2126,6 @@ subroutine thin6d(nthinerr)
     endif
 
 660 continue !END loop over turns
-
-    return
 
 end subroutine thin6d
 
