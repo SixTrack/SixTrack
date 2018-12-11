@@ -28,6 +28,7 @@ module checkpoint_restart
   integer,             public, save :: bllrec
   integer,             public, save :: numlcr
   integer,             public, save :: sixrecs
+  integer,             public, save :: crksunit = -1             ! File unit for the kill switch file
 
   logical,             public, save :: rerun
   logical,             public, save :: start
@@ -111,6 +112,83 @@ subroutine cr_expand_arrays(npart_new)
   crnpart_old = npart_new
 
 end subroutine cr_expand_arrays
+
+! ================================================================================================ !
+!  CR KILL SWITCH
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-11-16
+!  This routine will kill SixTrack if the current turn number matches a number in crkillturns
+! ================================================================================================ !
+subroutine cr_killSwitch(iTurn)
+
+  use crcoall
+  use file_units
+  use mod_settings
+
+  integer, intent(in) :: iTurn
+
+  logical killIt, fExist, onKillTurn
+  integer pTurn, nKills, i
+
+  killIt = .false.
+  onKillTurn = .false.
+
+  do i=1,size(st_killturns,1)
+    if(iTurn == st_killturns(i)) then
+      onKillTurn = .true.
+    end if
+  end do
+  if (onKillTurn .eqv. .false.) then
+    return
+  end if
+
+  if(crksunit == -1) then
+    call funit_requestUnit("crkillswitch.tmp",crksunit)
+  end if
+
+  inquire(file="crkillswitch.tmp",exist=fExist)
+  if(fExist .eqv. .false.) then
+    open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace",action="write")
+    write(crksunit) 0,0
+    flush(crksunit)
+    close(crksunit)
+  end if
+
+  open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")
+  read(crksunit) pTurn,nKills
+  flush(crksunit)
+  close(crksunit)
+  if(st_debug .and. pTurn > 0) then
+    write(lout,"(a,i0)") "CRKILL> Kill switch previously triggered on turn ",pTurn
+    write(93,  "(a,i0)") "SIXTRACR> Kill switch previously triggered on turn ",pTurn
+  end if
+
+  do i=1,size(st_killturns,1)
+    if(iTurn == st_killturns(i) .and. iTurn > pTurn) then
+      killIt = .true.
+      exit
+    end if
+  end do
+
+  if(killIt) then
+    nKills = nKills + 1
+
+    write(lout,"(a,i0)") "CRKILL> Triggering kill switch on turn ",iTurn
+    write(93,  "(a,i0)") "SIXTRACR> Triggering kill switch on turn ",iTurn
+
+    open(crksunit,file="crrestartme.tmp",form="unformatted",access="stream",status="replace",action="write")
+    write(crksunit) 1
+    flush(crksunit)
+    close(crksunit)
+
+    open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace",action="write")
+    write(crksunit) iTurn,nKills
+    flush(crksunit)
+    close(crksunit)
+    stop 0
+  end if
+
+end subroutine cr_killSwitch
 
 ! ================================================================================================ !
 !  CRCHECK
