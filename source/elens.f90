@@ -35,6 +35,12 @@ module elens
                                                       ! <0: e-beam opposite to beam
   real(kind=fPrec), save :: elens_Ek(nelens)          ! kinetic energy of e-beam [keV]
   logical, save          :: elens_lThetaR2(nelens)    ! flag for computing theta@R2
+  logical, save          :: elens_lAllowUpdate(nelens)! Flag for disabling updating of kick,
+                                                      ! i.e. after DYNK has touched thetaR2
+                                                      ! the energy update is disabled.
+#ifdef CR
+  logical, save          :: elens_lAllowUpdate_CR(nelens)
+#endif
   real(kind=fPrec), save :: elens_beta_e(nelens)      ! relativistic beta of electrons
   integer, save          :: elens_iCheby(nelens)      ! mapping to the table with chebyshev coeffs
   real(kind=fPrec), save :: elens_cheby_angle(nelens) ! angle for getting the real bends [deg]
@@ -427,7 +433,7 @@ subroutine eLensThetas()
   real(kind=fPrec) gamma, brho
 
   do j=1,melens
-    if(elens_lThetaR2(j)) then
+    if(elens_lThetaR2(j) .and. elens_lAllowUpdate(j)) then
       do jj=1,nele
         if(kz(jj)==29) then
           if (ielens(jj).eq.j) then
@@ -778,5 +784,56 @@ subroutine parseChebyFile(ifile)
   call prror(-1)
 
 end subroutine parseChebyFile
+
+#ifdef CR
+subroutine elens_crcheck(fileUnit,readErr)
+  implicit none
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: readErr
+
+  integer j
+
+  read(fileUnit,err=10,end=10) (elens_lAllowUpdate_CR(j), j=1, nelens)
+
+  readErr = .false.
+  return
+
+10 continue
+
+  write(lout,"(a,i0)") "READERR in elens_crcheck; fileUnit = ",fileUnit
+  write(93,  "(a,i0)") "READERR in elens_crcheck; fileUnit = ",fileUnit
+  readErr = .true.
+
+end subroutine elens_crcheck
+
+subroutine elens_crpoint(fileUnit, writeErr,iErro)
+  implicit none
+
+  integer, intent(in)    :: fileUnit
+  logical, intent(inout) :: writeErr
+  integer, intent(inout) :: iErro
+
+  integer j
+
+  write(fileunit,err=10,iostat=iErro) (elens_lAllowUpdate(j), j=1, nelens)
+  endfile(fileunit,iostat=iErro)
+  backspace(fileunit,iostat=iErro)
+
+  writeErr = .false.
+  return
+
+10 continue
+
+  writeErr = .true.
+  return
+
+end subroutine elens_crpoint
+
+subroutine elens_crstart
+  implicit none
+  elens_lAllowUpdate(1:nelens) = elens_lAllowUpdate_CR(1:nelens)
+end subroutine elens_crstart
+
+#endif
 
 end module elens

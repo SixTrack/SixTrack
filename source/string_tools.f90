@@ -293,15 +293,16 @@ function chr_expandBrackets(theString) result(theResult)
   theBuffer = " "//theString//" "
   bPos(:,:) = 0
   lSP  = 0
+  tSP  = 0
   lLB  = 0
   iSet = 0
   do ch=1,len(theBuffer)
-    if(theBuffer(ch:ch) == " ") tSP = ch
-    if(theBuffer(ch:ch) == "(") then
+    if(theBuffer(ch:ch) == " ") then
+      tSP = ch
+    elseif(theBuffer(ch:ch) == "(") then
       lSP = tSP
       lLB = ch
-    end if
-    if(theBuffer(ch:ch) == ")") then
+    elseif(theBuffer(ch:ch) == ")") then
       if(lSP > 0 .and. lLB > 0 .and. lLB-lSP > 1 .and. ch-lSP > 2) then
         iSet = iSet + 1
         bPos(1,iSet) = lSP
