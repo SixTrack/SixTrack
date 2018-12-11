@@ -8,6 +8,7 @@ module checkpoint_restart
 
   real,                public, save :: crtime3
   real(kind=fPrec),    public, save :: cre0
+  real(kind=fPrec),    public, save :: crbetrel
 
   character(len=1024), public, save :: arecord
   character(len=20),   public, save :: stxt
@@ -60,6 +61,7 @@ module checkpoint_restart
   integer,             allocatable, public, save :: crnlostp(:)  ! (npart)
 
   logical,             allocatable, public, save :: crpstop(:)   ! (npart)
+  logical,             allocatable, public, save :: crllostp(:)  ! (npart)
 
   integer,                          public, save :: crnpart_old = -1
 
@@ -105,6 +107,7 @@ subroutine cr_expand_arrays(npart_new)
   call alloc(crnnumxv,     npart_new,      0,       "crnnumxv")
   call alloc(crnlostp,     npart_new,      0,       "crnlostp")
   call alloc(crpstop,      npart_new,      .false., "crpstop")
+  call alloc(crllostp,     npart_new,      .false., "crllostp")
 
   crnpart_old = npart_new
 
@@ -189,11 +192,12 @@ end subroutine cr_killSwitch
 
 ! ================================================================================================ !
 !  CRCHECK
-!  Last modified: 2018-06-12
+!  Last modified: 2018-12-05
 !
 !  This subroutine checks if the C/R files fort.95 and fort.96 exists, and if so tries to load
 !  them into the cr* variables.
-!  This routine also repositions the output files for fort.90..91-napx/2 or STF, DUMP, and DYNK.
+!  This routine also repositions the output files for fort.90..91-napx/2 or STF, DUMP, DYNK and
+!     aperture losses
 !
 !  The file fort.93 is used as a log file for the checkpoint/restarting.
 ! ================================================================================================ !
@@ -204,7 +208,9 @@ subroutine crcheck
   use numerical_constants
   use dynk,    only : dynk_enabled, dynk_noDynkSets,dynk_crcheck_readdata,dynk_crcheck_positionFiles
   use dump,    only : dump_crcheck_readdata,dump_crcheck_positionFiles
+  use aperture,only : aper_crcheck_readdata,aper_crcheck_positionFiles,limifound,losses_filename
   use scatter, only : scatter_active,scatter_crcheck_readdata,scatter_crcheck_positionFiles
+  use elens,   only : melens, elens_crcheck
   use, intrinsic :: iso_fortran_env, only : int32
   use crcoall
   use parpro
@@ -272,7 +278,8 @@ subroutine crcheck
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 2"
     flush(93)
-    read(95,err=100,end=100) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec,crsythck,cril,crtime3,crnapxo,crnapx,cre0
+    read(95,err=100,end=100) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec, &
+         crsythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 3"
     flush(93)
@@ -299,7 +306,8 @@ subroutine crcheck
       (cryvl(2,j),j=1,crnapxo),         &
       (crdpsvl(j),j=1,crnapxo),         &
       (crejvl(j),j=1,crnapxo),          &
-      (crsigmvl(j),j=1,crnapxo)
+      (crsigmvl(j),j=1,crnapxo),        &
+      (crllostp(j),j=1,crnapxo)
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record META"
     flush(93)
@@ -330,12 +338,26 @@ subroutine crcheck
       if (lerror) goto 100
     end if
 
+    if(limifound) then
+      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 8 APERTURE LOSSES FILE"
+      flush(93)
+      call aper_crcheck_readdata(95,lerror)
+      if (lerror) goto 100
+    end if
+
+    if(melens .gt. 0) then
+      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 9 ELENS"
+      flush(93)
+      call elens_crcheck(95,lerror)
+      if (lerror) goto 100
+    endif
+
     !ERIC new extended checkpoint for synuthck
     if (crsythck) then
       !ERICVARS
       ! and make sure we can read the extended vars before leaving fort.95
       ! We will re-read them in crstart to be sure they are restored correctly
-      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 8 extended vars fort.95 crnapxo=",crnapxo
+      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 10 extended vars fort.95 crnapxo=",crnapxo
       flush(93)
       read(95,end=100,err=100,iostat=ierro) &
         ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
@@ -384,11 +406,11 @@ subroutine crcheck
   end if
 100 continue
   if (.not.read95) then
-    write(93,"(a)") "SIXTRACR> CRCHECK COULD NOT READ CHECKPOINT FILE 95"
+    write(93,"(a)") "SIXTRACR> CRCHECK ERROR Could not read checkpoint file.95"
     flush(93)
   end if
   if (fort96) then
-    write(93,"(a)") "SIXTRACR> CRCHECK trying fort.96 instead"
+    write(93,"(a)") "SIXTRACR> CRCHECK Trying fort.96 instead"
     flush(93)
     rewind 96
 
@@ -407,7 +429,7 @@ subroutine crcheck
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 2"
     flush(93)
     read(96,err=101,end=101,iostat=ierro) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec,&
-      crsythck,cril,crtime3,crnapxo,crnapx,cre0
+      crsythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 3"
     flush(93)
     read(96,err=101,end=101,iostat=ierro) &
@@ -433,7 +455,8 @@ subroutine crcheck
       (cryvl(2,j),j=1,crnapxo),          &
       (crdpsvl(j),j=1,crnapxo),          &
       (crejvl(j),j=1,crnapxo),           &
-      (crsigmvl(j),j=1,crnapxo)
+      (crsigmvl(j),j=1,crnapxo),         &
+      (crllostp(j),j=1,crnapxo)
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record META"
     flush(93)
@@ -459,12 +482,26 @@ subroutine crcheck
       if (lerror) goto 101
     end if
 
+    if(limifound) then
+      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 8 APERTURE LOSSES FILE"
+      flush(93)
+      call aper_crcheck_readdata(96,lerror)
+      if (lerror) goto 101
+    end if
+
+    if(melens .gt. 0) then
+      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 9 ELENS"
+      flush(93)
+      call elens_crcheck(96,lerror)
+      if (lerror) goto 101
+    endif
+
     !ERIC new extended checkpoint for synuthck
     if (crsythck) then
       !ERICVARS
       ! and make sure we can read the extended vars before leaving fort.96
       ! We will re-read them in crstart to be sure they are correct
-      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 8 extended vars fort.96, crnapxo=",crnapxo
+      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 10 extended vars fort.96, crnapxo=",crnapxo
       flush(93)
       write(93,"(a)") "SIXTRACR> CRCHECK verifying extended vars fort.96"
       flush(93)
@@ -507,7 +544,7 @@ subroutine crcheck
       backspace (96,iostat=ierro)
       write(93,"(a)") "SIXTRACR> CRCHECK read fort.96 EXTENDED OK"
       flush(93)
-      write(93,"(a)") "SIXTRACR> CRCHECK, leaving fort.96 for CRSTART EXTENDED"
+      write(93,"(a)") "SIXTRACR> CRCHECK Leaving fort.96 for CRSTART EXTENDED"
       flush(93)
     end if
     read96=.true.
@@ -515,7 +552,7 @@ subroutine crcheck
   end if
 101 continue
   if (.not.read96) then
-    write(93,"(a)") "SIXTRACR> CRCHECK, COULD NOT READ CHECKPOINT FILE 96"
+    write(93,"(a)") "SIXTRACR> CRCHECK ERROR Could not read checkpoint file.96"
     flush(93)
   end if
 103 continue
@@ -730,6 +767,12 @@ subroutine crcheck
       call scatter_crcheck_positionFiles
     endif
 
+    if(limifound) then
+      write(93,"(a)") "SIXTRACR> CRCHECK REPOSITIONING "//trim(losses_filename)
+      flush(93)
+      call aper_crcheck_positionFiles
+    endif
+
     ! Set up flag for tracking routines to call CRSTART
     restart=.true.
     write(lout,"(a80)") runtim
@@ -843,7 +886,9 @@ subroutine crpoint
 
   use dynk, only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_filePos,dynk_crpoint
   use dump, only : dump_crpoint
+  use aperture,only : aper_crpoint,limifound
   use scatter, only : scatter_active, scatter_crpoint
+  use elens,   only : melens, elens_crpoint
 
   use crcoall
   use parpro
@@ -963,7 +1008,8 @@ subroutine crpoint
       time3,                        &
       napxo,                        &
       napx,                         &
-      e0
+      e0,                           &
+      betrel
     write(crUnit,err=100,iostat=ierro) &
       (binrecs(j),j=1,(napxo+1)/2), &
       (numxv(j),j=1,napxo),         &
@@ -987,7 +1033,8 @@ subroutine crpoint
       (yvl(2,j),j=1,napxo),         &
       (dpsvl(j),j=1,napxo),         &
       (ejvl(j),j=1,napxo),          &
-      (sigmvl(j),j=1,napxo)
+      (sigmvl(j),j=1,napxo),        &
+      (llostp(j),j=1,napxo)
     endfile(crUnit,iostat=ierro)
     backspace(crUnit,iostat=ierro)
 
@@ -1032,6 +1079,26 @@ subroutine crpoint
         backspace(93,iostat=ierro)
       end if
       call scatter_crpoint(crUnit,lerror,ierro)
+      if(lerror) goto 100
+    end if
+
+    if(limifound) then
+      if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
+        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing APERTURE LOSSES variables to fort.",crUnit
+        endfile(93,iostat=ierro)
+        backspace(93,iostat=ierro)
+      end if
+      call aper_crpoint(crUnit,lerror,ierro)
+      if(lerror) goto 100
+    end if
+
+    if(melens .gt. 0) then
+      if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
+        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing ELENS variables to fort.",crUnit
+        endfile(93,iostat=ierro)
+        backspace(93,iostat=ierro)
+      end if
+      call elens_crpoint(crUnit,lerror,ierro)
       if(lerror) goto 100
     end if
 
@@ -1128,6 +1195,7 @@ subroutine crstart
   use numerical_constants
   use dynk, only : dynk_enabled, dynk_crstart
   use scatter, only: scatter_active, scatter_crstart
+  use elens,   only : melens, elens_crstart
 
   use crcoall
   use parpro
@@ -1168,6 +1236,7 @@ subroutine crstart
   napx=crnapx
   e0=cre0
   e0f=sqrt(e0**2-nucm0**2)
+  betrel=crbetrel
 
   write(93,"(a)") "SIXTRACR> CRSTART doing binrecs"
   endfile(93,iostat=ierro)
@@ -1185,6 +1254,7 @@ subroutine crstart
     nnumxv(j)=crnnumxv(j)
     nlostp(j)=crnlostp(j)
     pstop(j)=crpstop(j)
+    llostp(j)=crllostp(j)
     xv1(j)=crxv(1,j)
     yv1(j)=cryv(1,j)
     xv2(j)=crxv(2,j)
@@ -1220,6 +1290,7 @@ subroutine crstart
   if(dynk_enabled) call dynk_crstart
   if(scatter_active) call scatter_crstart
   call hions_crstart
+  if(melens .gt. 0) call elens_crstart
 
   if (crsythck) then
     !ERICVARS now read the extended vars from fort.95/96.

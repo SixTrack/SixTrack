@@ -258,12 +258,14 @@ featList = ""
   end do
   dp10=dp1
   dp1=zero
-  if(ichrom.gt.1) then
+  if(ichrom > 1) then
     itiono=ition
     ition=0
     call chromda
     ition=itiono
-  endif
+  else
+    itiono = 0 ! -Wmaybe-uninitialized
+  end if
   dp1=dp10
   if(idp /= 1 .or. iation /= 1) iclo6 = 0
   if(iclo6 == 1 .or. iclo6 == 2) then

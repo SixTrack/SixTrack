@@ -272,7 +272,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 
 list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR NAFF)
 list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT HASHLIB)
-list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR)
+list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32)
 
 ###################################################################################################
 # Select which fortran files to generate and compile
@@ -544,6 +544,10 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
   set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
   set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow -fcheck=all")
+
+  if(WARN)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-Wuninitialized ${CMAKE_Fortran_FLAGS_RELEASE}")
+  endif()
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES ppc64le )
     set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fno-expensive-optimizations -fno-inline-functions")
@@ -951,7 +955,6 @@ if(HDF5)
 endif(HDF5)
 
 if(HASHLIB)
-  # ${CMAKE_SOURCE_DIR}/source/md5/md5.h
   set(MD5_SOURCES
     ${CMAKE_SOURCE_DIR}/source/md5/md5.c
     ${CMAKE_SOURCE_DIR}/source/md5/md5interface.c
@@ -959,7 +962,6 @@ if(HASHLIB)
   add_library(md5_lib STATIC  ${MD5_SOURCES})
   target_include_directories(md5_lib PRIVATE ${CMAKE_SOURCE_DIR}/source/md5/)
   set_property(TARGET md5_lib PROPERTY C_STANDARD 99)
-  target_link_libraries(md5_lib roundctl)
   if(32BIT)
     set_target_properties(md5_lib PROPERTIES LINK_FLAGS "-m32")
   endif(32BIT)

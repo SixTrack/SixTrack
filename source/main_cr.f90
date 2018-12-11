@@ -460,7 +460,6 @@ end interface
     call h5_writeSimInfo()
   end if
 #endif
-  call aperture_init
 
   if (ithick.eq.1) call allocate_thickarrays
 
@@ -481,6 +480,8 @@ end interface
       if(ithick.eq.1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
       if(ithick.eq.0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
 
+  call aperture_init
+      
 #ifndef FLUKA
   ! SETTING UP THE PLOTTING
   if(ipos.eq.1.and.(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
@@ -775,7 +776,7 @@ end interface
 !     call abend('ado 150                                           ')
 #endif
         dp1=zero
-        if(ichrom.gt.1) then
+        if(ichrom > 1) then
           itiono=ition
           ition=0
           call chromda
@@ -789,11 +790,15 @@ end interface
               smiv(ncrr)=smi(ncrr)
             endif
           enddo
+        else
+          itiono = 0 ! -Wmaybe-uninitialized
         endif
         dp1=dp00
         dp0=dp00
-        if(imc.gt.1) then
-          ddp1=(two*dp0)/(real(imc,fPrec)-one)                                 !hr05
+        if(imc > 1) then
+          ddp1 = (two*dp0)/(real(imc,fPrec)-one)
+        else
+          ddp1 = zero ! -Wmaybe-uninitialized
         endif
         do 250 ib=1,imc
           if(imc.gt.1) then

@@ -38,6 +38,7 @@ contains
 !  If mcut == -1, generate uniformly distributed random numbers
 subroutine ranecu(rvec,len,mcut)
 
+  use crcoall
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -51,6 +52,11 @@ subroutine ranecu(rvec,len,mcut)
   real(kind=fPrec), dimension(2) :: r
 
   i=1
+  rvec0 = zero
+  if(mcut < -1) then
+    write(lout,"(a,i0)") "RANECU> ERROR mcut must be greater or equal to -1, got ", mcut
+    call prror
+  end if
 
 10 continue
   do j = 1,2
