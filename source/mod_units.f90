@@ -1,25 +1,81 @@
+! ================================================================================================ !
+!  FILE UNITS MODULE
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-12-10
+!
+!  Module for keeping track of opened file units, their file names, and open the files correctly
+!  depending on build flags.
+! ================================================================================================ !
 module mod_units
 
   implicit none
 
-  type, private :: unitSpec
-    integer,            private :: unit
-    character(len=256), private :: filename
-    logical,            private :: formatted
-    character(len=2),   private :: mode
-    integer,            private :: recl
-    logical,            private :: open
-  end type unitSpec
+  ! Keep track of units
+  integer, parameter     :: units_minUnit  = 1    ! First unit to keep track of
+  integer, parameter     :: units_maxUnit  = 250  ! Last unit to keep track of
+  integer, parameter     :: units_minAuto  = 100  ! First unit available for dynamic allocation
+  integer, private, save :: units_nextUnit = -1   ! Next unit available for dynamic allocation
+  integer, private, save :: units_logUnit  = -1   ! File unit for internal log file
 
-  type(unitSpec), allocatable, private :: units_uList(:)
-  integer,                     private :: units_nList
+  type, private :: unitRecord
+    character(len=64), private :: file  = " "     ! The requested file name (not BOINC)
+    character(len=3),  private :: mode  = " "     ! Read/write mode
+    logical,           private :: taken = .false. ! Whether a unit is known to be taken or not
+    logical,           private :: open  = .false. ! Whether file is opened by the module or not
+    logical,           private :: fixed = .false. ! Whether the unit was requested as a fixed unit or not
+  end type unitRecord
+
+  ! Array to keep track of files
+  type(unitRecord), private, save :: units_uList(units_minUnit:units_maxUnit)
 
 contains
 
 subroutine units_initUnits
-  allocate(units_uList(10))
-  units_nList = 0
+
+  ! Open a log file for this module
+
 end subroutine units_initUnits
+
+subroutine units_requestNew(file,unit)
+
+  character(len=*), intent(in)  :: file
+  integer,          intent(out) :: unit
+
+  integer i
+  logical isOpen
+
+  unit = -1
+  call units_lookUp(file,unit)
+  if(unit > 0) then
+    write(*,"(a)") "REQUEST> Found #",unit," for file: '"//trim(file)//"'"
+  end if
+
+  do i=units_nextUnit:units_maxUnit
+    if(units_uList(i)%taken) cycle
+    inquire(unit=i, opened=isOpen)
+    if(isOpen) then
+    end if
+  end do
+
+
+end subroutine units_requestNew
+
+subroutine units_lookUp(file,unit)
+
+  character(len=*), intent(in)  :: file
+  integer,          intent(out) :: unit
+
+  integer i
+
+  unit = -1
+  do i=units_minUnit:units_maxUnit
+    if(units_uList(i)%file == file) then
+      unit = i
+      exit
+    end if
+  end do
+
+end subroutine units_lookUp
 
 subroutine units_openUnit(unit,file,formatted,mode,err,status,recl)
 
