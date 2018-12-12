@@ -2186,16 +2186,16 @@ subroutine callcrp
   endif
 #ifdef BOINC
   if (checkp) then
-! Now ALWAYS checkpoint
-! NO, re-instated at user request
+    ! Now ALWAYS checkpoint
+    ! NO, re-instated at user request
+    ! What was the user request?
     call boinc_time_to_checkpoint(timech)
-    if (timech.ne.0) then
+    if (timech /= 0) then
       call crpoint
       call boinc_checkpoint_completed()
     endif
   endif
-#endif
-#ifndef BOINC
+#else
   if (checkp) call crpoint
 #endif
   return
