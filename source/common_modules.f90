@@ -102,6 +102,10 @@ module mod_settings
   logical, save :: st_partsum    = .false. ! Flag to print final particle summary
   integer, save :: st_finalstate = 0       ! Dump particle final state (mod_particles)
 
+  ! Checpoint/Restart Kills Switch Settings
+  logical,              save :: st_killswitch = .false. ! Enables the kill on turn number debug feature
+  integer, allocatable, save :: st_killturns(:)         ! List of killswitch turns
+
 end module mod_settings
 
 ! ================================================================================================ !

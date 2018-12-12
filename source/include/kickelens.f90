@@ -8,7 +8,7 @@ yelens=xv2(j)-elens_offset_y(ielens(ix))
 !    radial position of main beam relative to center of elens beam
 !    -> internal parameters to calculate kick:
 !    rrelens = sqrt(xelens**2+yelens**2)
-rrelens=sqrt((xelens)**2+(yelens**2))
+rrelens=sqrt(xelens**2+yelens**2)
 ! 3) calculate kick
 !    shape function: spatial charge density depends on type:
 !    0        if r < R1

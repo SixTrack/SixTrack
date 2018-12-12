@@ -185,6 +185,8 @@ subroutine print_alloc(ename, type, requested_bits)
     write(alloc_log,"(a,f7.2,a)") "ALLOC>   Requested allocation is: ",real(requested_bits,real64)/byte," b"
   end if
 
+  flush(alloc_log)
+
   if(allocated_bits > maximum_bits) then
     maximum_bits = allocated_bits
   end if
@@ -202,6 +204,7 @@ subroutine alloc_exit
   call funit_requestUnit("maximum_memory_allocation_mbytes.txt",memunit)
   open(memunit, file="maximum_memory_allocation_mbytes.txt", form="formatted")
   write(memunit,"(f10.3)") real(maximum_bits,real64)/real(mbyte,real64)
+  flush(memunit)
   close(memunit)
 
 end subroutine alloc_exit

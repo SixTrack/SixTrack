@@ -34,6 +34,7 @@ subroutine funit_initUnits
   open(funit_logUnit,file="file_units.dat",form="formatted")
   write(funit_logUnit,"(a)")    "# unit  assigned_to"
   write(funit_logUnit,"(i6,a)") funit_usedUnits(1),"  "//funit_usedByFile(1)
+  flush(funit_logUnit)
 
 end subroutine funit_initUnits
 
@@ -85,6 +86,7 @@ subroutine funit_requestUnit(fileName, fileUnit)
     write(funit_logUnit,"(i6,a)") funit_usedUnits(funit_nUnits),"  "//funit_usedByFile(funit_nUnits)
     return
   end if
+  flush(funit_logUnit)
 
   return
 

@@ -64,6 +64,8 @@ module aperture
   character(len=16), save :: load_file             ! file name
   ! File unit for aperture losses
   integer, save :: losses_unit
+  ! File name for aperture losses
+  character(len=19), parameter :: losses_filename="aperture_losses.dat"
 
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
   ! last modified: 02-03-2018
@@ -114,6 +116,11 @@ module aperture
 #ifdef HDF5
   integer, private, save :: aper_fmtLostPart
   integer, private, save :: aper_setLostPart
+#endif
+
+#ifdef CR
+  ! For resetting file positions
+  integer, private, save :: apefilepos=-1, apefilepos_cr
 #endif
 
 contains
@@ -210,14 +217,14 @@ end subroutine aperture_comnul
 ! ================================================================================================ !
 subroutine aperture_init
 
-  use file_units
-
+  use mod_units, only: units_openUnit
+  
   implicit none
 
 #ifdef HDF5
   type(h5_dataField), allocatable :: setFields(:)
 #endif
-  logical isOpen
+  logical isOpen,err
 
 #ifdef HDF5
   if(h5_useForAPER) then
@@ -252,20 +259,43 @@ subroutine aperture_init
     call h5_createDataSet("losses", h5_aperID, aper_fmtLostPart, aper_setLostPart)
   else
 #endif
-    call funit_requestUnit("aperture_losses.dat",losses_unit)
-    inquire(unit=losses_unit, opened=isOpen) ! Was 999
-    if(isOpen) then
-      write(lout,"(a,i0,a)") "APER> ERROR Unit ",losses_unit," is already open."
-      call prror(-1)
-    end if
-    open(unit=losses_unit,file="aperture_losses.dat")
-    write(losses_unit,"(a)") "# turn block bezid bez slos "// &
-#ifdef FLUKA
-      "fluka_uid fluka_gen fluka_weight "// &
-#else
-      "partid "// &
+     
+#ifdef CR
+    if (apefilepos >= 0) then
+      ! Expect the file to be opened already, in crcheck
+      inquire( unit=losses_unit, opened=isOpen )
+      if (.not.isOpen) then
+        write(lout,"(2(a,i0),a)") "LIMI> ERROR The unit ",losses_unit," has apefilepos = ", apefilepos, " >= 0, "//&
+          "but the file is NOT open. This is probably a bug."
+        call prror(-1)
+      end if
+    else
 #endif
-      "x xp y yp etot dE dT A_atom Z_atom "
+       
+      inquire(unit=losses_unit, opened=isOpen) ! Was 999
+      if(isOpen) then
+        write(lout,"(a,i0,a)") "APER> ERROR Unit ",losses_unit," is already open."
+        call prror(-1)
+      end if
+
+      call units_openUnit(unit=losses_unit,fileName=losses_filename,formatted=.true.,mode='w',err=err)
+#ifdef CR
+      apefilepos=0
+#endif
+    
+      write(losses_unit,"(a)") "# turn block bezid bez slos "// &
+#ifdef FLUKA
+        "fluka_uid fluka_gen fluka_weight "// &
+#else
+        "partid "// &
+#endif
+        "x xp y yp etot dE dT A_atom Z_atom "
+      ! Flush file
+      flush(losses_unit)
+#ifdef CR
+      apefilepos=apefilepos+1
+    end if
+#endif
 #ifdef HDF5
   end if
 #endif
@@ -405,7 +435,7 @@ subroutine aperture_initRT( ix, aprx, apry, radius )
   ape(3,ix)=radius
   ape(4,ix)=radius
   ape(5,ix)=-one
-  ape(6,ix)=sqrt(ape(3,ix)**2+ape(4,ix)**2)+(ape(1,ix)-ape(3,ix))+(ape(2,ix)-ape(4,ix))
+  ape(6,ix)=(sqrt(ape(3,ix)**2+ape(4,ix)**2)+(ape(1,ix)-ape(3,ix)))+(ape(2,ix)-ape(4,ix))
 end subroutine aperture_initRT
 
 
@@ -435,7 +465,7 @@ subroutine aperture_initTR( ix, aprx, apry, apex, apey, theta1, theta2 )
 end subroutine aperture_initTR
 
 
-subroutine aperture_initroffpos( ix, tilt, xoff, yoff )
+subroutine aperture_initroffpos( ix, xoff, yoff, tilt )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-22
   ! initialise offset/tilt of aperture marker
@@ -877,7 +907,7 @@ subroutine aperture_reportLoss(turn, i, ix)
 
   ! Number of iterations for bisection method (ln(2x/precision)/ln(2)+1)
   if(lback) then
-    niter=nint(inv_ln2*log_mb(two*length/bktpre)+2)
+    niter=nint(inv_ln2*log_mb((two*length)/bktpre)+2)
   end if
 
   do j=1,napx
@@ -1070,7 +1100,7 @@ subroutine aperture_reportLoss(turn, i, ix)
         call h5_writeData(aper_setLostPart, 9,  1, ylos(2)*c1m3)
         call h5_writeData(aper_setLostPart, 10, 1, ejfvlos*c1m3)
         call h5_writeData(aper_setLostPart, 11, 1, (ejvlos*(nucm0/nucmlos)-e0)*c1e6)
-        call h5_writeData(aper_setLostPart, 12, 1, -c1m3 * (sigmvlos/clight) * (e0/e0f))
+        call h5_writeData(aper_setLostPart, 12, 1, (-(c1m3 * (sigmvlos/clight) ))* (e0/e0f))
         call h5_writeData(aper_setLostPart, 13, 1, naalos)
         call h5_writeData(aper_setLostPart, 14, 1, nzzlos)
 #ifdef FLUKA
@@ -1107,8 +1137,11 @@ subroutine aperture_reportLoss(turn, i, ix)
 
      &       xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3,         &
      &       ejfvlos*c1m3, (ejvlos*(nucm0/nucmlos)-e0)*c1e6,                 &
-     &       -c1m3 * (sigmvlos/clight) * (e0/e0f),                           &
+     &       (-(c1m3 * (sigmvlos/clight) ))* (e0/e0f),                       &
      &       naalos, nzzlos
+#ifdef CR
+        apefilepos=apefilepos+1
+#endif
 #ifdef HDF5
       end if
 #endif
@@ -1121,17 +1154,17 @@ subroutine aperture_reportLoss(turn, i, ix)
         call ApertureCheckWriteLossParticleF(turn, i, ix, this_name, len_trim(this_name), slos, &
           fluka_uid(j), fluka_gen(j), fluka_weight(j), &
           xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
-          -c1m3 * (sigmvlos/clight) * (e0/e0f), naalos, nzzlos)
+          (-(c1m3 * (sigmvlos/clight))) * (e0/e0f), naalos, nzzlos)
 #else
         call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos, plost(j),&
           xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
-          -c1m3 * (sigmvlos/clight) * (e0/e0f), naalos, nzzlos)
+          (-(c1m3 * (sigmvlos/clight))) * (e0/e0f), naalos, nzzlos)
 #endif
       end if
 #endif
 
 #ifdef FLUKA
-      if(partID(j).le.aperture_napxStart) then
+      if(((partID(j).le.aperture_napxStart) .and. fluka_enable) .or. .not.fluka_enable) then
 #else
       if(((partID(j).le.aperture_napxStart) .and. do_coll) .or. .not.do_coll) then
 #endif
@@ -1314,8 +1347,8 @@ subroutine roffpos( x, y, xnew, ynew, tlt, xoff, yoff )
 ! temporary variables
   real(kind=fPrec) theta, radio, xtmp, ytmp, ttmp
 
-  xtmp = x+xoff
-  ytmp = y+yoff
+  xtmp = x-xoff
+  ytmp = y-yoff
   theta = atan2_mb(ytmp, xtmp)
   radio = sqrt(xtmp**two + ytmp**two)
   ttmp = theta-tlt
@@ -1342,8 +1375,8 @@ subroutine roffpos_inv( x, y, xnew, ynew, tlt, xoff, yoff )
   ttmp = theta+tlt
   xnew = radio * cos_mb(ttmp)
   ynew = radio * sin_mb(ttmp)
-  xnew = xnew-xoff
-  ynew = ynew-yoff
+  xnew = xnew+xoff
+  ynew = ynew+yoff
   return
 end subroutine roffpos_inv
 
@@ -1760,7 +1793,7 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
      mdcum = dcum(iDw)-dcum(iUp)
      if( mdcum.lt.zero ) mdcum=tlen+mdcum
      do jj=1,9
-        oApe(jj)=(ape(jj,ixDw)-ape(jj,ixUp))/mdcum*ddcum+ape(jj,ixUp)
+        oApe(jj)=((ape(jj,ixDw)-ape(jj,ixUp))/mdcum)*ddcum+ape(jj,ixUp)
      end do
   end if
   return
@@ -1806,11 +1839,12 @@ subroutine dump_aperture_model
 !     always in main code
 !-----------------------------------------------------------------------
   use parpro
+  use mod_units, only: units_openUnit
   implicit none
 
 ! temporary variables
   integer i, ix
-  logical lopen
+  logical lopen,err
 
   integer iOld, ixOld, niter, oKApe, jj
   real(kind=fPrec) aprr(9),slos
@@ -1824,7 +1858,7 @@ subroutine dump_aperture_model
   inquire( unit=aperunit, opened=lopen )
   if( .not.lopen ) then
     if( aperunit.ne.0 ) then
-      open( aperunit, file=aper_filename, form='formatted' )
+      call units_openUnit(unit=aperunit,fileName=aper_filename,formatted=.true.,mode='w',err=err)
       write(lout,"(a)") "APER> Profile dumped in file: '"//trim(aper_filename)//"'"
     end if
   end if
@@ -1851,7 +1885,7 @@ subroutine dump_aperture_model
         if(lbacktracking) then
           ! Number of iterations
           if( (dcum(i)-dcum(iOld)).gt.zero) then
-            niter = nint((dcum(i)-dcum(iOld))/bktpre+1)
+            niter = nint((dcum(i)-dcum(iOld))/bktpre+one)
             do jj=1,niter
               slos = int(dcum(iOld)/bktpre+jj)*bktpre
               if( slos.lt.dcum(iOld) .or. slos.gt.dcum(i) ) exit
@@ -1983,9 +2017,10 @@ subroutine dump_aperture_xsecs
   ! A.Mereghetti (CERN, BE/ABP-HSS), 22-03-2018
   ! dump cross-sections of apertures at specific locations (loop)
   !-----------------------------------------------------------------------
+  use mod_units, only: units_openUnit
   implicit none
   ! temporary variables
-  logical lfound, lopen, lApeUp, lApeDw
+  logical lfound, lopen, lApeUp, lApeDw, err
   integer ixsec, ierro, iEl, ixEl, iApeUp, ixApeUp, iApeDw, ixApeDw, itmpape
   real(kind=fPrec) sLoc, tmpape(9)
 
@@ -1998,7 +2033,7 @@ subroutine dump_aperture_xsecs
           "' with unit ",xsecunit(ixsec)
         call prror(-1)
      end if
-     open(unit=xsecunit(ixsec),file=xsec_filename(ixsec),form="formatted",status="old",iostat=ierro)
+     call units_openUnit(unit=xsecunit(ixsec),fileName=xsec_filename(ixsec),formatted=.true.,mode='w',err=err)
      if(ierro .ne. 0) then
         write(lout,"(2(a,i0))") "APER> ERROR Opening file '"//trim(xsec_filename(ixsec))//&
           "' on unit # ",xsecunit(ixsec),", iostat = ",ierro
@@ -2069,7 +2104,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
   select case(itmpape)
   case(-1) ! transition
      do i=1,nAzim
-        thetaRay=i/real(nAzim)*two*pi ! radians
+        thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
         call intersectTR(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(3),tmpape(4),tmpape(5),tmpape(6),xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2079,7 +2114,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(1) ! circle
      do i=1,nAzim
-        thetaRay=i/real(nAzim)*two*pi ! radians
+        thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
         call intersectCR(xRay,yRay,thetaRay-tmpape(7),tmpape(3),zero,zero,xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2089,7 +2124,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(2) ! rectangle
      do i=1,nAzim
-        thetaRay=i/real(nAzim)*two*pi ! radians
+        thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
         call intersectRE(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2099,7 +2134,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(3) ! ellipse
      do i=1,nAzim
-        thetaRay=i/real(nAzim)*two*pi ! radians
+        thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
         call intersectEL(xRay,yRay,thetaRay-tmpape(7),tmpape(3),tmpape(4),zero,zero,xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2109,7 +2144,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(4) ! rectellipse
      do i=1,nAzim
-        thetaRay=i/real(nAzim)*two*pi ! radians
+        thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
         call intersectRL(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(3),tmpape(4),xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2119,7 +2154,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(5) ! octagon
      do i=1,nAzim
-        thetaRay=i/real(nAzim)*two*pi ! radians
+        thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
         call intersectOC(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(5),tmpape(6),xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2129,7 +2164,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(6) ! racetrack
      do i=1,nAzim
-        thetaRay=i/real(nAzim)*two*pi ! radians
+        thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
         call intersectRT(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(3),xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2169,7 +2204,7 @@ subroutine intersectCR( xRay, yRay, thetaRay, radius, x0, y0, xChk, yChk, nChk )
   else if(abs(thetaRay/pi-one).lt.c1m6) then ! thetaRay=pi
      yChk=zero
      xChk=-radius
-  else if(abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
+  else if(abs(thetaRay/(pi*(three/two))-one).lt.c1m6) then ! thetaRay=1.5pi
      yChk=-radius
      xChk=zero
   else
@@ -2181,20 +2216,20 @@ subroutine intersectCR( xRay, yRay, thetaRay, radius, x0, y0, xChk, yChk, nChk )
      else if(pi/two.lt.thetaRay.and.thetaRay.lt.pi) then ! second quadrant
         tmpX0=-abs(x0)
         tmpY0=abs(y0)
-     else if(pi.lt.thetaRay.and.thetaRay.lt.pi/two*three) then ! second quadrant
+     else if(pi.lt.thetaRay.and.thetaRay.lt.pi*(three/two)) then ! second quadrant
         tmpX0=-abs(x0)
         tmpY0=-abs(y0)
      else ! fourth quadrant
         tmpX0=abs(x0)
         tmpY0=-abs(y0)
      end if
-     delta=-(mRay*tmpX0-tmpY0+qRay)**2+radius**2*(one+mRay**2)
+     delta=-((mRay*tmpX0-tmpY0)+qRay)**2+radius**2*(one+mRay**2)
      if(delta.lt.zero) return
      if((zero.lt.thetaRay.and.thetaRay.lt.pi/two) .or. & ! first quadrant
- &       (pi/two*three.lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
-        xChk=(tmpX0+mRay*(tmpY0-qRay)+sqrt(delta))/(one+mRay**2)
+ &       (pi*(three/two).lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
+        xChk=((tmpX0+mRay*(tmpY0-qRay))+sqrt(delta))/(one+mRay**2)
      else
-        xChk=(tmpX0+mRay*(tmpY0-qRay)-sqrt(delta))/(one+mRay**2)
+        xChk=((tmpX0+mRay*(tmpY0-qRay))-sqrt(delta))/(one+mRay**2)
      end if
      yChk=mRay*xChk+qRay
   end if
@@ -2228,7 +2263,7 @@ subroutine intersectRE( xRay, yRay, thetaRay, xRe, yRe, xChk, yChk, nChk )
      yChk=zero
      xChk=-xRe
      nChk=xRe
-  else if(abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
+  else if(abs(thetaRay/(pi*(three/two))-one).lt.c1m6) then ! thetaRay=1.5pi
      yChk=-yRe
      xChk=zero
      nChk=yRe
@@ -2241,7 +2276,7 @@ subroutine intersectRE( xRay, yRay, thetaRay, xRe, yRe, xChk, yChk, nChk )
      else if(pi/two.lt.thetaRay.and.thetaRay.lt.pi) then ! second quadrant
         xTmp(1)=-xRe
         yTmp(2)=yRe
-     else if(pi.lt.thetaRay.and.thetaRay.lt.pi/two*three) then ! third quadrant
+     else if(pi.lt.thetaRay.and.thetaRay.lt.pi*(three/two)) then ! third quadrant
         xTmp(1)=-xRe
         yTmp(2)=-yRe
      else ! fourth quadrant
@@ -2290,7 +2325,7 @@ subroutine intersectEL( xRay, yRay, thetaRay, aa, bb, x0, y0, xChk, yChk, nChk )
      yChk=zero
      xChk=-aa
      nChk=aa
-  else if(abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
+  else if(abs(thetaRay/(pi*(three/two))-one).lt.c1m6) then ! thetaRay=1.5pi
      yChk=-bb
      xChk=zero
      nChk=bb
@@ -2303,20 +2338,20 @@ subroutine intersectEL( xRay, yRay, thetaRay, aa, bb, x0, y0, xChk, yChk, nChk )
      else if(pi/two.lt.thetaRay.and.thetaRay.lt.pi) then ! second quadrant
         tmpX0=-abs(x0)
         tmpY0=abs(y0)
-     else if(pi.lt.thetaRay.and.thetaRay.lt.pi/two*three) then ! second quadrant
+     else if(pi.lt.thetaRay.and.thetaRay.lt.pi*(three/two)) then ! second quadrant
         tmpX0=-abs(x0)
         tmpY0=-abs(y0)
      else ! fourth quadrant
         tmpX0=abs(x0)
         tmpY0=-abs(y0)
      end if
-     delta=-(mRay*tmpX0-tmpY0+qRay)**2+(bb**2+aa**2*mRay**2)
+     delta=-((mRay*tmpX0-tmpY0)+qRay)**2+(bb**2+aa**2*mRay**2)
      if(delta.lt.zero) return
      if((zero.lt.thetaRay.and.thetaRay.lt.pi/two).or. & ! first quadrant
- &       (pi/two*three.lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
-        xChk=(aa**2*mRay*(tmpY0-qRay)+bb**2*tmpX0+aa*bb*sqrt(delta))/(bb**2+aa**2*mRay**2)
+ &       (pi*(three/two).lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
+        xChk=((aa**2*(mRay*(tmpY0-qRay))+bb**2*tmpX0)+(aa*bb)*sqrt(delta))/(bb**2+aa**2*mRay**2)
      else
-        xChk=(aa**2*mRay*(tmpY0-qRay)+bb**2*tmpX0-aa*bb*sqrt(delta))/(bb**2+aa**2*mRay**2)
+        xChk=((aa**2*(mRay*(tmpY0-qRay))+bb**2*tmpX0)+(-(aa*bb))*sqrt(delta))/(bb**2+aa**2*mRay**2)
      end if
      yChk=mRay*xChk+qRay
      nChk=sqrt(xChk**2+yChk**2)
@@ -2373,7 +2408,7 @@ subroutine intersectLN( xRay, yRay, thetaRay, mLine, qLine, xChk, yChk, nChk )
      yChk=zero
      xChk=qLine/mLine
      nChk=abs(qLine/mLine)
-  else if(abs(thetaRay/(pi*three/two)-one).lt.c1m6) then ! thetaRay=1.5pi
+  else if(abs(thetaRay/(pi*(three/two))-one).lt.c1m6) then ! thetaRay=1.5pi
      yChk=-qLine
      xChk=zero
      nChk=abs(qLine)
@@ -2386,7 +2421,7 @@ subroutine intersectLN( xRay, yRay, thetaRay, mLine, qLine, xChk, yChk, nChk )
      else if(pi/two.lt.thetaRay.and.thetaRay.lt.pi) then ! second quadrant
         mTmp=-mLine
         qTmp=qLine
-     else if(pi.lt.thetaRay.and.thetaRay.lt.pi/two*three) then ! third quadrant
+     else if(pi.lt.thetaRay.and.thetaRay.lt.pi*(three/two)) then ! third quadrant
         mTmp=mLine
         qTmp=-qLine
      else ! fourth quadrant
@@ -2537,6 +2572,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   use string_tools
   use file_units
   use sixtrack_input
+  use mod_units, only: units_openUnit
 
   implicit none
 
@@ -2547,8 +2583,8 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   real(kind=fPrec) tmplen,tmpflts(3)
   integer          nSplit, i
-  logical          spErr, lExist, apeFound
-
+  logical          spErr, lExist, apeFound, err
+  
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
     write(lout,"(a)") "LIMI> ERROR Failed to parse input line."
@@ -2561,51 +2597,43 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   case("LOAD")
     ! P.G.Ortega and A.Mereghetti, 02-03-2018
     ! Reading apertures from external file
-    if(nSplit < 2 .or. nSplit > 3) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword LOAD. Expected 2 or 3, got ",nSplit
+    if(nSplit .ne. 2 ) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword LOAD. Expected 2, got ",nSplit
       iErr = .true.
       return
     end if
 
-    if(nSplit == 3) then
-      call chr_cast(lnSplit(2),loadunit,iErr)
-      load_file = trim(lnSplit(3))
-      write(lout,"(a)") "LIMI> Note: Specifying unit for the external file is deprecated. A unit is assigned automatically."
-    else
-      load_file = trim(lnSplit(2))
-    end if
+    load_file = trim(lnSplit(2))
     call funit_requestUnit(trim(load_file),loadunit)
-
     inquire(file=load_file, exist=lExist)
     if(.not.lexist) then
       write(lout,"(a)") "LIMI> ERROR LOAD file '"//trim(load_file)//"' not found in the running folder."
       iErr = .true.
       return
     end if
-    open(loadunit,file=load_file,form="formatted")
+    call units_openUnit(unit=loadunit,fileName=load_file,formatted=.true.,mode='r',err=err)
     write(lout,"(a)") "LIMI> Apertures will be read from file '"//trim(load_file)//"'"
 
   case("PRIN")
     ! P.G.Ortega and A.Mereghetti, 02-03-2018
     ! flag for dumping the aperture model
-    if(nSplit < 2) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword PRIN. Expected 2, got ",nSplit
+    if(nSplit < 2 .and. nSplit > 3 ) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword PRIN. Expected 2 or 3, got ",nSplit
       iErr = .true.
       return
     end if
 
-    if(nSplit == 3) then
-      aper_filename = trim(lnSplit(3))
-      write(lout,"(a)") "LIMI> Note: Specifying unit for the PRIN file is deprecated. A unit is assigned automatically."
-    else
-      aper_filename = trim(lnSplit(2))
-    end if
+    aper_filename = trim(lnSplit(2))
     call funit_requestUnit(trim(aper_filename),aperunit)
 
     ldmpaper = .true.
-    if(nSplit > 3) then
-      if(lnSPlit(4) == "MEM") then
+    if(nSplit .eq. 3) then
+      if(lnSPlit(3) == "MEM") then
         ldmpaperMem=.true.
+      else 
+        write(lout,"(a,a)") "LIMI> ERROR Unknown third argument to PRIN keyword: ",lnSPlit(3)
+        iErr = .true.
+        return
       end if
     end if
 
@@ -2648,6 +2676,10 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
     endif
 
   case("XSEC")
+    write(lout,"(a)") "LIMI> ERROR Dump of aperture cross sections at specific locations are not available yet"
+    iErr = .true.
+    return
+    
     ! A.Mereghetti, 22-03-2018
     ! ask for xsec at specific locations
     ! example input line:        XSEC myCrossSec.dat 12355.78 12356.78 0.1 180
@@ -2906,4 +2938,109 @@ end subroutine aper_inputParsingDone
 !  END APERTURE LIMITATIONS PARSING
 ! ================================================================================================ !
 
+subroutine aper_postInput
+
+  use file_units
+  implicit none
+
+  ! request unit
+  call funit_requestUnit(trim(losses_filename),losses_unit)
+
+end subroutine aper_postInput
+
+! ================================================================================================================================ !
+!  Begin Checkpoint Restart
+! ================================================================================================================================ !
+#ifdef CR
+
+! ================================================================================================================================ !
+subroutine aper_crcheck_readdata(fileunit, readerr)
+
+  implicit none
+
+  integer, intent(in) :: fileunit
+  logical, intent(out) :: readerr
+
+  integer j
+
+  read(fileunit,err=100,end=100) apefilepos_cr
+
+  readerr = .false.
+  return
+
+100 continue
+  readerr = .true.
+
+end subroutine aper_crcheck_readdata
+
+! ================================================================================================================================ !
+subroutine aper_crcheck_positionFiles
+
+  use crcoall
+  use string_tools
+  use mod_common
+  use mod_units, only: units_openUnit
+
+  implicit none
+
+  integer i,j
+  logical lerror,lopen,err
+  character(len=1024) arecord
+
+  write(93,*) "SIXTRACR CRCHECK REPOSITIONING file of APERTURE LOSSES to apefilepos_cr=",apefilepos_cr
+  flush(93)
+
+  inquire( unit=losses_unit, opened=lopen )
+  if (.not. lopen) call units_openUnit(unit=losses_unit,fileName=losses_filename,status='old',formatted=.true.,mode='rw',err=err)
+
+  apefilepos = 0
+  do j=1,apefilepos_cr
+    read(losses_unit,'(a1024)',end=111,err=111,iostat=ierro) arecord
+    apefilepos = apefilepos +1
+  end do
+
+  ! Crop aperture losses file
+  ! This is not a FLUSH!
+  endfile (losses_unit,iostat=ierro)
+
+  ! Change from 'readwrite' to 'write'
+  close(losses_unit)
+  call units_openUnit(unit=losses_unit,fileName=losses_filename,status='old',formatted=.true.,mode='w+',err=err)
+
+  return
+
+111 continue
+  write(93,*) 'SIXTRACR> APER_CRCHECK_POSITIONFILE *** ERROR *** reading file of APERTURE LOSSES, iostat=',ierro
+  write(93,*) 'apefilepos=',apefilepos,' apefilepos_cr=',apefilepos_cr,' losses_unit=',losses_unit
+  flush(93)
+  write(lout,"(a)") "SIXTRACR> ERROR APER_CRCHECK_POSITIONFILES failure positioning file of APERTURE LOSSES"
+  call prror(-1)
+
+end subroutine aper_crcheck_positionFiles
+
+! ================================================================================================================================ !
+subroutine aper_crpoint(fileunit,lerror,ierro)
+
+  implicit none
+
+  integer, intent(in)    :: fileunit
+  logical, intent(inout) :: lerror
+  integer, intent(inout) :: ierro
+
+  write(fileUnit,err=100,iostat=ierro) apefilepos
+  endfile (fileunit,iostat=ierro)
+  backspace (fileunit,iostat=ierro)
+  return
+
+100 continue
+  lerror = .true.
+  return
+
+end subroutine aper_crpoint
+! ================================================================================================================================ !
+
+#endif
+! ================================================================================================================================ !
+!  End Checkpoint Restart
+! ================================================================================================================================ !
 end module aperture

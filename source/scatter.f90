@@ -282,8 +282,8 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
   return
 
 10 continue
-  write(lout,"(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
-  write(93,  "(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
+  write(lout,"(a,i0)") "READERR in scatter_crcheck_readdata; fileUnit = ",fileUnit
+  write(93,  "(a,i0)") "READERR in scatter_crcheck_readdata; fileUnit = ",fileUnit
   readErr = .true.
 
 end subroutine scatter_crcheck_readdata
@@ -393,6 +393,7 @@ subroutine scatter_crpoint(fileUnit, writeErr, iErro)
   endfile(fileUnit,iostat=iErro)
   backspace(fileUnit,iostat=iErro)
 
+  writeErr = .false.
   return
 
 10 continue
@@ -427,6 +428,9 @@ subroutine scatter_crstart
   call dealloc(scatter_iData_CR,          "scatter_iData_CR")
   call dealloc(scatter_fData_CR,          "scatter_fData_CR")
   call dealloc(scatter_cData_CR, mStrLen, "scatter_cData_CR")
+
+  scatter_seed1 = scatter_seed1_CR
+  scatter_seed2 = scatter_seed2_CR
 
 end subroutine scatter_crstart
 #endif
@@ -1061,20 +1065,22 @@ end subroutine scatter_thin
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
-real(kind=fPrec) function scatter_profile_getDensity(profileIdx, x, y) result(retval)
+function scatter_profile_getDensity(profileIdx, x, y) result(retval)
 
   use string_tools
   use crcoall
   use mod_common
-  use numerical_constants, only : pi
+  use numerical_constants, only : pi, zero
 
   implicit none
 
   integer,          intent(in) :: profileIdx
   real(kind=fPrec), intent(in) :: x, y
 
-  real(kind=fPrec) beamtot, sigmaX, sigmaY, offsetX, offsetY
+  real(kind=fPrec) beamtot, sigmaX, sigmaY, offsetX, offsetY, retVal
   integer tmpIdx
+
+  retVal = zero
 
   tmpIdx = scatter_PROFILE(profileIdx,3)
 
@@ -1125,10 +1131,11 @@ end subroutine scatter_profile_getParticle
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 ! =================================================================================================
-real(kind=fPrec) function scatter_generator_getCrossSection(profileIDX, generatorIDX, x, y, xp, yp, E)
+function scatter_generator_getCrossSection(profileIDX, generatorIDX, x, y, xp, yp, E) result(retval)
 
   use string_tools
   use crcoall
+  use numerical_constants, only : zero
 
   implicit none
 
@@ -1137,10 +1144,12 @@ real(kind=fPrec) function scatter_generator_getCrossSection(profileIDX, generato
 
   ! Temporary variables
   integer          tmpIdx
-  real(kind=fPrec) xp_target, yp_target, E_target
+  real(kind=fPrec) xp_target, yp_target, E_target, retVal
 
   ! Calculate S
   call scatter_profile_getParticle(profileIDX, x, y, xp_target, yp_target, E_target)
+
+  retVal = zero
 
   ! Calculate the cross section as function of S
   select case(scatter_GENERATOR(generatorIDX,2))
@@ -1150,9 +1159,9 @@ real(kind=fPrec) function scatter_generator_getCrossSection(profileIDX, generato
   case (10) ! PPBEAMELASTIC
     tmpIdx = scatter_GENERATOR(generatorIDX,4)
     if(tmpIdx .eq. 0) then
-      scatter_generator_getCrossSection = 30d-27
+      retVal = 30d-27
     else
-      scatter_generator_getCrossSection = scatter_fData(tmpIdx)
+      retVal = scatter_fData(tmpIdx)
     end if
 
   case default
