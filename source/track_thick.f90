@@ -45,7 +45,8 @@ subroutine trauthck(nthinerr)
   endif
 
   do i=1,npart
-    nlostp(i)=i
+    partID(i)=i
+    parentID(i)=i
   end do
   do i=1,nblz
     ktrack(i)=0
