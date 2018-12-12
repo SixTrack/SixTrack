@@ -157,7 +157,7 @@ subroutine part_dumpFinalState
   character(len=200) :: roundBuf
   character(len=15)  :: fileName
   integer            :: fileUnit, j, k
-  logical            :: rErr
+  logical            :: rErr, isPrim
 
   select case(st_finalstate)
 
@@ -168,20 +168,25 @@ subroutine part_dumpFinalState
 
     open(fileUnit,file=fileName,form="unformatted",access="stream",status="replace")
 
+    write(fileUnit) int(imc,  kind=int32)
     write(fileUnit) int(napx, kind=int32)
+    write(fileUnit) int(napxo,kind=int32)
     write(fileUnit) int(npart,kind=int32)
 
     do j=1,npart
-      write(fileUnit)     int(nlostp(j), kind=int32)
-      write(fileUnit) logical(llostp(j), kind=int32)
-      write(fileUnit)    real(   xv1(j), kind=real64)
-      write(fileUnit)    real(   xv2(j), kind=real64)
-      write(fileUnit)    real(   yv1(j), kind=real64)
-      write(fileUnit)    real(   yv2(j), kind=real64)
-      write(fileUnit)    real( sigmv(j), kind=real64)
-      write(fileUnit)    real(  dpsv(j), kind=real64)
-      write(fileUnit)    real(  ejfv(j), kind=real64)
-      write(fileUnit)    real(   ejv(j), kind=real64)
+      isPrim = partID(j) <= napxo
+      write(fileUnit)     int(  partID(j), kind=int32)
+      write(fileUnit)     int(parentID(j), kind=int32)
+      write(fileUnit) logical(  llostp(j), kind=int32)
+      write(fileUnit) logical(  isPrim,    kind=int32)
+      write(fileUnit)    real(     xv1(j), kind=real64)
+      write(fileUnit)    real(     xv2(j), kind=real64)
+      write(fileUnit)    real(     yv1(j), kind=real64)
+      write(fileUnit)    real(     yv2(j), kind=real64)
+      write(fileUnit)    real(   sigmv(j), kind=real64)
+      write(fileUnit)    real(    dpsv(j), kind=real64)
+      write(fileUnit)    real(    ejfv(j), kind=real64)
+      write(fileUnit)    real(     ejv(j), kind=real64)
     end do
 
     flush(fileUnit)
@@ -194,12 +199,15 @@ subroutine part_dumpFinalState
 
     open(fileUnit,file=fileName,form="formatted",status="replace")
 
-    write(fileUnit,"(a,i0)") "# napx  : ",napx
-    write(fileUnit,"(a,i0)") "# npart : ",npart
-    write(fileUnit,"(a1,a7,1x,a4,8(1x,a24))") "#","partID","lost","x","y","xp","yp","sigma","dp","p","e"
+    write(fileUnit,"(a,i0)") "# imc   = ",imc
+    write(fileUnit,"(a,i0)") "# napx  = ",napx
+    write(fileUnit,"(a,i0)") "# napxo = ",napxo
+    write(fileUnit,"(a,i0)") "# npart = ",npart
+    write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),8(1x,a24))") "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e"
 
     do j=1,npart
       roundBuf = " "
+      isPrim = partID(j) <= napxo
       call chr_fromReal(xv1(j),  roundBuf(  2:25 ),17,3,rErr)
       call chr_fromReal(xv2(j),  roundBuf( 27:50 ),17,3,rErr)
       call chr_fromReal(yv1(j),  roundBuf( 52:75 ),17,3,rErr)
@@ -208,7 +216,7 @@ subroutine part_dumpFinalState
       call chr_fromReal(dpsv(j), roundBuf(127:150),17,3,rErr)
       call chr_fromReal(ejfv(j), roundBuf(152:175),17,3,rErr)
       call chr_fromReal(ejv(j),  roundBuf(177:200),17,3,rErr)
-      write(fileUnit, "(i8,1x,l4,a200)") nlostp(j),llostp(j),roundBuf
+      write(fileUnit, "(i8,1x,i8,2(1x,l4),a200)") partID(j),parentID(j),llostp(j),isPrim,roundBuf
     end do
 
     flush(fileUnit)

@@ -198,7 +198,8 @@ subroutine shuffleLostParticles
     if(llostp(j) .eqv. .false.) cycle
 
     ! Move lost particle to the back
-    nlostp(j:tnapx)    = cshift(nlostp(j:tnapx),    1)
+    partID(j:tnapx)    = cshift(partID(j:tnapx),    1)
+    parentID(j:tnapx)  = cshift(parentID(j:tnapx),  1)
     tmp_lostP(j:tnapx) = cshift(tmp_lostP(j:tnapx), 1)
 
     ! Main Particle Arrays

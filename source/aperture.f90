@@ -1060,7 +1060,7 @@ subroutine aperture_reportLoss(turn, i, ix)
             end if
 #else
             if ( (     do_coll .and. (  ipart(j) .eq. plost(jj) )) .or. &
-                 (.not.do_coll .and. ( nlostp(j) .eq. plost(jj) ))       ) then
+                 (.not.do_coll .and. ( partID(j) .eq. plost(jj) ))       ) then
               lparID=.true.
             end if
 #endif
@@ -1113,7 +1113,7 @@ subroutine aperture_reportLoss(turn, i, ix)
         endif
 #ifndef FLUKA
         if (.not. do_coll) then
-          call h5_writeData(aper_setLostPart, 15, 1, nlostp(j))
+          call h5_writeData(aper_setLostPart, 15, 1, partID(j))
         endif
 #endif
         call h5_finaliseWrite(aper_setLostPart)
@@ -1132,7 +1132,7 @@ subroutine aperture_reportLoss(turn, i, ix)
 #ifdef FLUKA
      &       fluka_uid(j), fluka_gen(j), fluka_weight(j),                    &
 #else
-     &       nlostp(j),                                                      &
+     &       partID(j),                                                      &
 #endif
 
      &       xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3,         &
@@ -1164,33 +1164,33 @@ subroutine aperture_reportLoss(turn, i, ix)
 #endif
 
 #ifdef FLUKA
-      if(((nlostp(j).le.aperture_napxStart) .and. fluka_enable) .or. .not.fluka_enable) then
+      if(((partID(j).le.aperture_napxStart) .and. fluka_enable) .or. .not.fluka_enable) then
 #else
-      if(((nlostp(j).le.aperture_napxStart) .and. do_coll) .or. .not.do_coll) then
+      if(((partID(j).le.aperture_napxStart) .and. do_coll) .or. .not.do_coll) then
 #endif
-        pstop(nlostp(j))=.true.
+        pstop(partID(j))=.true.
         ! Record for postpr
         if(.not.limifound.or.kape(ix).eq.0) then
-          aperv(nlostp(j),1) = aper(1)
-          aperv(nlostp(j),2) = aper(2)
+          aperv(partID(j),1) = aper(1)
+          aperv(partID(j),2) = aper(2)
         else
-          aperv(nlostp(j),1) = min(ape(1,ix),ape(3,ix))
-          aperv(nlostp(j),2) = min(ape(2,ix),ape(4,ix))
+          aperv(partID(j),1) = min(ape(1,ix),ape(3,ix))
+          aperv(partID(j),2) = min(ape(2,ix),ape(4,ix))
         end if
-        ixv(nlostp(j))     = ix
-        xvl(1,nlostp(j))   = xlos(1)
-        xvl(2,nlostp(j))   = xlos(2)
-        yvl(1,nlostp(j))   = ylos(1)
-        yvl(2,nlostp(j))   = ylos(2)
-        dpsvl(nlostp(j))   = dpsvlos
-        ejvl(nlostp(j))    = ejvlos
-        sigmvl(nlostp(j))  = sigmvlos
-        numxv(nlostp(j))   = numx
-        nnumxv(nlostp(j))  = numx
+        ixv(partID(j))     = ix
+        xvl(1,partID(j))   = xlos(1)
+        xvl(2,partID(j))   = xlos(2)
+        yvl(1,partID(j))   = ylos(1)
+        yvl(2,partID(j))   = ylos(2)
+        dpsvl(partID(j))   = dpsvlos
+        ejvl(partID(j))    = ejvlos
+        sigmvl(partID(j))  = sigmvlos
+        numxv(partID(j))   = numx
+        nnumxv(partID(j))  = numx
 #ifdef FLUKA
-      end if ! nlostp(j).le.aperture_napxStart
+      end if ! partID(j).le.aperture_napxStart
 #else
-      end if ! (nlostp(j).le.aperture_napxStart .and. do_coll) .or. .not.do_coll
+      end if ! (partID(j).le.aperture_napxStart .and. do_coll) .or. .not.do_coll
 #endif
 
 1982  continue
