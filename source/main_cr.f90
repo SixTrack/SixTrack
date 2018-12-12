@@ -162,20 +162,18 @@ end interface
 
   ! ---------------------------------------------------------------------------------------------- !
   errout_status = 0 ! Set to nonzero before calling abend in case of error.
-
-  call units_initUnits
-#ifdef BOINC
-  call boinc_init()
-! call boinc_init_graphics()
-#endif
 #ifdef CR
   lout = 92
-  call units_openUnit(unit=lout,fileName="fort.92",formatted=.true.,mode="rw",err=fErr,status="replace")
 #else
   lout = output_unit
 #endif
 
+#ifdef BOINC
+  call boinc_init
+! call boinc_init_graphics
+#endif
   call funit_initUnits ! This one has to be first
+  call units_initUnits ! And this one second
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call alloc_init      ! Initialise mod_alloc
@@ -259,7 +257,13 @@ end interface
 
 #ifdef BOINC
 611 continue
+  ! Goes here after unzip for BOINC
 #endif
+  ! Very first get rid of any previous partial output
+  inquire(unit=lout, opened=isOpen)
+  if(isOpen) close(lout)
+  call units_openUnit(unit=lout,fileName="fort.92",formatted=.true.,mode="rw",err=fErr,status="replace")
+
   ! Now position the checkpoint/restart logfile=93
   call units_openUnit(unit=93,fileName="fort.93",formatted=.true.,mode="rw",err=fErr)
 606 continue
