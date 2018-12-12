@@ -99,7 +99,8 @@ struct KillInfo {
 * 8: CR enabled
 * 9: CR kill time
 * 10: Path to readDump3 binary to run
-* 11: Name of files (comma-separated list) in extra_checks that is a dump format 3 (binary) or NONE
+* 11: Name of files (comma-separated list) in extra_checks that is a dump format 3/8 (binary) or NONE
+* 12: Minimum number of sucessfull checkpointed restarts to pass the test [int]
 *
 * For running the tools:
 * On "Unix" we call fork() and exec()
@@ -111,9 +112,9 @@ struct KillInfo {
 int main(int argc, char* argv[])
 {
     //First check we have the correct number of arguments
-    if(argc != 12) {
+    if(argc != 13) {
         std::cout << argv[0]
-                  << " called with the incorrect number of arguments, should be 11, "
+                  << " called with the incorrect number of arguments, should be 12, "
                   << "but was called with " << argc - 1 << " arguments" << std::endl;
         return EXIT_FAILURE;
     }
@@ -137,13 +138,15 @@ int main(int argc, char* argv[])
     bool fort90 = false;
     bool STF = false;
     bool extrachecks = false; //Returned from PerformExtraChecks
-    int sixoutzip = 0;
+    int  sixoutzip = 0;
 
     bool fort10fail = false;
     bool fort90fail = false;
     bool STFfail = false;
     bool ExtraChecksfail = false;
     bool sixoutzipfail = false;
+    bool crRestartFail = false;
+
 #ifdef LIBARCHIVE
     const char* const tmpdir = "sixoutzip_tmpdir";
     const char* const sixoutzip_fname = "Sixout.zip";
@@ -375,6 +378,58 @@ int main(int argc, char* argv[])
         } // End WHILE(TRUE)
 
         std::cout << "End CR run loop" << std::endl;
+
+        // If a minimum number of restarts have been set, check this.
+        if (atoi(argv[12]) > 0) {
+            std::cout << "------------------------ Checking restarts -----------------------------------"
+                      << std::endl;
+
+            // Open metadata file
+            std::ifstream MetaFile("sim_meta.dat", std::ifstream::in);
+            std::string metaStr;
+            bool foundCR_RestartCount = false;
+            while(std::getline(MetaFile, metaStr)) {
+                if (metaStr.substr(0,32) == "CR_RestartCount                 ") {
+                    if(foundCR_RestartCount) {
+                        std::cout << "ERROR in sim_meta.dat: Found two lines with 'CR_RestartCount'"
+                                  << std::endl;
+                        crRestartFail = true;
+                    }
+                    foundCR_RestartCount = true;
+
+                    std::string metaSubStr = metaStr.substr(34,std::string::npos);
+                    metaSubStr.erase( std::remove( metaSubStr.begin(), metaSubStr.end(), ' ' ),
+                                      metaSubStr.end() );
+
+                    if (metaSubStr.length() == 0) {
+                        std::cout << "ERROR when reading sim_meta.dat; "
+                                  << "could not find the number of restarts in the line '"
+                                  << metaStr << "'" << std::endl;
+                        crRestartFail = true;
+                    }
+
+                    int numRestarts = atoi(metaSubStr.c_str());
+                    if (numRestarts < atoi(argv[12])) {
+                        std::cout << "Found " << numRestarts
+                                  << "restarts, but require at least" << atoi(argv[12])
+                                  << "." << std::endl;
+                        crRestartFail = true;
+                    }
+                    else {
+                        std::cout << "Found " << numRestarts << " -> OK" << std::endl;
+                    }
+                }
+            }
+            if (not foundCR_RestartCount) {
+                std::cout << "Did not find 'CR_RestartCount' in sim_meta.dat" << std::endl;
+                crRestartFail = true;
+            }
+            MetaFile.close();
+
+            std::cout << "---------------------- End checking restarts ---------------------------------"
+                      << std::endl;
+
+        }
     }
 
     //Normal run
@@ -692,13 +747,21 @@ int main(int argc, char* argv[])
         }
     }
 #endif
+    if(CRon && atoi(argv[12]) > 0) {
+        if(crRestartFail) {
+            std::cout << "CR check on number of restarts FAILED" << std::endl;
+        }
+        else {
+            std::cout << "CR check on number of restarts PASS" << std::endl;
+        }
+    }
     std::cout << "------------------------------------ EXIT ----------------------------------------"
               << std::endl;
 
     //or together any fail bits.
     //If all tests pass this will return 0 (good)
     //if not we get something else out (bad)
-    return (fort10fail || fort90fail || STFfail || ExtraChecksfail || sixoutzipfail);
+    return (fort10fail || fort90fail || STFfail || ExtraChecksfail || sixoutzipfail || crRestartFail);
 }
 
 /**

@@ -274,9 +274,15 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
     SET( DUMP_BIN_FILE dump3.dat,dump8.dat )
   endif()
 
+  if (TST STREQUAL dipedge)
+    set(CR_NUMRESTARTS 1)
+  else()
+    set(CR_NUMRESTARTS 0)
+  endif()
+
   ADD_TEST(
     NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
-    COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE}
+    COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} ${CR_NUMRESTARTS}
   )
 
   #some tests take a very long time (set a 2 day timeout)
