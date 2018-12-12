@@ -27,13 +27,13 @@ subroutine units_openUnit(unit,fileName,formatted,mode,err,status,recl)
 
   implicit none
 
-  integer,                    intent(in)    :: unit
-  character(len=*),           intent(in)    :: fileName
-  logical,                    intent(in)    :: formatted
-  character(len=*),           intent(in)    :: mode
-  logical,                    intent(inout) :: err
-  character(len=*), optional, intent(in)    :: status
-  integer,          optional, intent(in)    :: recl
+  integer,                    intent(in)  :: unit
+  character(len=*),           intent(in)  :: fileName
+  logical,                    intent(in)  :: formatted
+  character(len=*),           intent(in)  :: mode
+  logical,                    intent(out) :: err
+  character(len=*), optional, intent(in)  :: status
+  integer,          optional, intent(in)  :: recl
 
   type(unitSpec),   allocatable :: tmpUnits(:)
   character(len=:), allocatable :: fFileName, fStatus, fAction, fPosition
@@ -122,36 +122,39 @@ subroutine units_openUnit(unit,fileName,formatted,mode,err,status,recl)
   units_uList(units_nList)%recl      = fRecl
   units_uList(units_nList)%open      = .true.
 
+  err = .false.
   if(formatted) then
     if(fRecl > 0) then
       if(fFio) then
         open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
-          action=fAction,position=fPosition,round="nearest",recl=fRecl)
+          action=fAction,position=fPosition,round="nearest",recl=fRecl,err=10)
       else
         open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
-          action=fAction,position=fPosition,recl=fRecl)
+          action=fAction,position=fPosition,recl=fRecl,err=10)
       end if
     else
       if(fFio) then
         open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
-          action=fAction,position=fPosition,round="nearest")
+          action=fAction,position=fPosition,round="nearest",err=10)
       else
         open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
-          action=fAction,position=fPosition)
+          action=fAction,position=fPosition,err=10)
       end if
     end if
   else
     open(unit,file=fFileName,form="unformatted",status=fStatus,iostat=ioStat,&
-      action=fAction,position=fPosition)
+      action=fAction,position=fPosition,err=10)
   endif
 
   if(ioStat /= 0) then
     err = .true.
     write(lout,"(a,i0)") "UNITS> File '"//trim(fFileName)//"' reported iostat = ",ioStat
-  else
-    err = .false.
   end if
   return
+
+10 continue
+  err = .true.
+  write(lout,"(a)") "UNITS> File '"//trim(fFileName)//"' reported an error"
 
 end subroutine units_openUnit
 

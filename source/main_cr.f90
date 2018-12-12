@@ -162,11 +162,16 @@ end interface
 
   ! ---------------------------------------------------------------------------------------------- !
   errout_status = 0 ! Set to nonzero before calling abend in case of error.
+#ifdef CR
   lout = 92
-#ifndef CR
+#else
   lout = output_unit
 #endif
 
+#ifdef BOINC
+  call boinc_init
+! call boinc_init_graphics
+#endif
   call funit_initUnits ! This one has to be first
   call units_initUnits ! And this one second
   call meta_initialise ! The meta data file.
@@ -215,8 +220,6 @@ end interface
 #endif
 #ifdef BOINC
   featList = featList//" BOINC"
-  call boinc_init()
-! call boinc_init_graphics()
 #endif
 #ifdef LIBARCHIVE
   featList = featList//" LIBARCHIVE"
@@ -254,6 +257,7 @@ end interface
 
 #ifdef BOINC
 611 continue
+  ! Goes here after unzip for BOINC
 #endif
   ! Very first get rid of any previous partial output
   inquire(unit=lout, opened=isOpen)
