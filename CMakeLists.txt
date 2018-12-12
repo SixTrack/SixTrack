@@ -1022,7 +1022,7 @@ if(BOINC AND API)
   add_library(boinc_api_fortran STATIC IMPORTED)
   set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
   # add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp) #Alternative way of building and linking boinc_api_fortran.cpp/.o
-  target_link_libraries(SixTrackCR boinc_api_fortran)
+  target_link_libraries(SixTrackLib boinc_api_fortran)
 
   #add the libs
   add_library(boinc STATIC IMPORTED)
@@ -1030,9 +1030,9 @@ if(BOINC AND API)
 
   add_library(boinc_api STATIC IMPORTED)
   set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
-  target_link_libraries(SixTrackCR boinc_api)
+  target_link_libraries(SixTrackLib boinc_api)
 
-  target_link_libraries(SixTrackCR boinc)
+  target_link_libraries(SixTrackLib boinc)
 
   find_library(stdc++ STATIC stdc++)
   target_link_libraries(SixTrackLib stdc++ Threads::Threads)
@@ -1045,7 +1045,7 @@ if(BOINC AND API)
   #fix osx linking to the correct c++ stdlib
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     find_library(c++ STATIC c++)
-    target_link_libraries(SixTrackCR c++)
+    target_link_libraries(SixTrackLib c++)
   endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
