@@ -1037,10 +1037,10 @@ if(BOINC AND API)
   find_library(stdc++ STATIC stdc++)
   target_link_libraries(SixTrackLib stdc++ Threads::Threads)
 
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    find_library(nsl STATIC nsl)
-    target_link_libraries(SixTrackCR nsl)
-  endif()
+  # if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  #   find_library(nsl STATIC nsl)
+  #   target_link_libraries(SixTrackCR nsl)
+  # endif()
 
   #fix osx linking to the correct c++ stdlib
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
