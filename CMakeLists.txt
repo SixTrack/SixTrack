@@ -1015,34 +1015,26 @@ if(NAFF)
 endif(NAFF)
 
 if(BOINC AND API)
+  find_library(stdc++ STATIC stdc++)
   include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
 
-  #The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
-  #go into the boinc source folder, cd api; make boinc_api_fortran.o
-  add_library(boinc_api_fortran STATIC IMPORTED)
-  set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
-  # add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp) #Alternative way of building and linking boinc_api_fortran.cpp/.o
-  target_link_libraries(SixTrackLib boinc_api_fortran)
+  add_library(boinc       STATIC IMPORTED)
+  add_library(boinc_api   STATIC IMPORTED)
+  add_library(boinc_api_f STATIC IMPORTED)
 
-  #add the libs
-  add_library(boinc STATIC IMPORTED)
-  set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
+  set_target_properties(boinc       PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
+  set_target_properties(boinc_api   PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
+  set_target_properties(boinc_api_f PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
 
-  add_library(boinc_api STATIC IMPORTED)
-  set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
-  target_link_libraries(SixTrackLib boinc_api)
-
-  target_link_libraries(SixTrackLib boinc)
-
-  find_library(stdc++ STATIC stdc++)
-  target_link_libraries(SixTrackLib stdc++ Threads::Threads)
+  target_link_libraries(SixTrackCR boinc_api_f boinc_api boinc stdc++)
+  # target_link_libraries(SixTrackCR Threads::Threads)
 
   # if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   #   find_library(nsl STATIC nsl)
   #   target_link_libraries(SixTrackCR nsl)
   # endif()
 
-  #fix osx linking to the correct c++ stdlib
+  # Fix OSX linking to the correct c++ stdlib
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     find_library(c++ STATIC c++)
     target_link_libraries(SixTrackLib c++)
