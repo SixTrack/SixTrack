@@ -87,6 +87,7 @@ end subroutine time_initialise
 subroutine time_finalise
 
   use mod_meta
+  use mod_units
   use mod_common, only : numl, mbloz, napx
   use numerical_constants, only : zero
 
@@ -122,7 +123,7 @@ subroutine time_finalise
 
   write(time_fileUnit,"(a)") "# END"
   flush(time_fileUnit)
-  close(time_fileUnit)
+  call f_close(time_fileUnit)
 
 end subroutine time_finalise
 

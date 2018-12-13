@@ -4,7 +4,7 @@
 !  Last modified: 2018-12-13
 !
 !  Module for keeping track of opened file units, their file names, and open the files correctly
-!  depending on build flags.
+!  depending on build flags like BOINC or FIO.
 ! ================================================================================================ !
 module mod_units
 
@@ -33,6 +33,12 @@ module mod_units
 
 contains
 
+! ================================================================================================ !
+!  Initialise Units Module
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-12-13
+!  This subroutine opens the log file at the highest unit. Make sure this unit is free!
+! ================================================================================================ !
 subroutine f_initUnits
 
   ! All we need to do is open the log file
@@ -52,6 +58,13 @@ subroutine f_initUnits
 
 end subroutine f_initUnits
 
+! ================================================================================================ !
+!  Request New File Units
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-12-13
+!  Send in a file name, and get a unit back. If the has already been assigned a unit, this is
+!  returned. Otherwise, a new unit is selected.
+! ================================================================================================ !
 subroutine f_requestUnit(file,unit)
 
   use, intrinsic :: iso_fortran_env, only : error_unit
@@ -103,6 +116,12 @@ end if
 
 end subroutine f_requestUnit
 
+! ================================================================================================ !
+!  Get Existing File Units
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-12-13
+!  Will search through the record for a filename, and return its unit. -1 if it is not assigned.
+! ================================================================================================ !
 subroutine f_getUnit(file,unit)
 
   character(len=*), intent(in)  :: file
@@ -120,6 +139,23 @@ subroutine f_getUnit(file,unit)
 
 end subroutine f_getUnit
 
+! ================================================================================================ !
+!  Open a File
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-12-13
+!  This is a wrapper for Fortran open that also handles all the various build options.
+!  The parameters are:
+!   - unit      :: The unit number. Either a previously assigned one, or a fixed unit
+!   - file      :: The file name. The file name will be checked to ensure that the unit value
+!                  matches previous assigned or used unit.
+!   - formatted :: .true. for formatted file, .false. for unformatted
+!   - mode      :: Short form for action and position keywords.
+!                  r, w,and rw correspond to read, write, and readwrite
+!                  - corresponds to rewind, + to append, and default is asis
+!   - err       :: Optional: If ommitted, errors will cause a call to prror.
+!   - status    :: Optional: File status. Defaults to unknown
+!   - recl      :: Optional: Record length. Is only used for nagfor
+! ================================================================================================ !
 subroutine f_open(unit,file,formatted,mode,err,status,recl)
 
   use, intrinsic :: iso_fortran_env, only : error_unit
@@ -284,6 +320,12 @@ subroutine f_open(unit,file,formatted,mode,err,status,recl)
 
 end subroutine f_open
 
+! ================================================================================================ !
+!  Close File Units
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-12-13
+!  Preferred method for closing file as it keeps the record up to date
+! ================================================================================================ !
 subroutine f_close(unit)
 
   use, intrinsic :: iso_fortran_env, only : error_unit
@@ -314,6 +356,11 @@ subroutine f_close(unit)
 
 end subroutine f_close
 
+! ================================================================================================ !
+!  Flush Single or All File Units
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-12-13
+! ================================================================================================ !
 subroutine f_flush(unit)
 
   implicit none
@@ -336,6 +383,11 @@ subroutine f_flush(unit)
 
 end subroutine f_flush
 
+! ================================================================================================ !
+!  Internal Log File Writer
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-12-13
+! ================================================================================================ !
 subroutine f_writeLog(action,unit,status,file)
 
   use floatPrecision

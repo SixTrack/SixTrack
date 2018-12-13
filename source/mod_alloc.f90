@@ -205,7 +205,7 @@ subroutine alloc_exit
   open(memunit, file="maximum_memory_allocation_mbytes.txt", form="formatted")
   write(memunit,"(f10.3)") real(maximum_bits,real64)/real(mbyte,real64)
   flush(memunit)
-  close(memunit)
+  call f_close(memunit)
 
 end subroutine alloc_exit
 

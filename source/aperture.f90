@@ -2017,7 +2017,7 @@ subroutine dump_aperture_xsecs
   ! A.Mereghetti (CERN, BE/ABP-HSS), 22-03-2018
   ! dump cross-sections of apertures at specific locations (loop)
   !-----------------------------------------------------------------------
-  use mod_units, only: f_open
+  use mod_units, only: f_open, f_close
   implicit none
   ! temporary variables
   logical lfound, lopen, lApeUp, lApeDw, err
@@ -2064,7 +2064,7 @@ subroutine dump_aperture_xsecs
         sLoc=sLoc+sLocDel(ixsec)
      end do
 
-     close(xsecunit(ixsec))
+     call f_close(xsecunit(ixsec))
   end do
 
   return
@@ -2519,6 +2519,7 @@ end subroutine intersectTR
 subroutine aper_inputUnitWrapper(inLine, iLine, iErr)
 
   use parpro, only : mInputLn
+  use mod_units
 
   implicit none
 
@@ -2562,7 +2563,7 @@ subroutine aper_inputUnitWrapper(inLine, iLine, iErr)
 
 90 continue
   write(lout,"(a,i0,a)") "LIMI> Read ",lineNo," lines from external file."
-  close(loadunit)
+  call f_close(loadunit)
   return
 
 end subroutine aper_inputUnitWrapper
@@ -2978,7 +2979,7 @@ subroutine aper_crcheck_positionFiles
   use crcoall
   use string_tools
   use mod_common
-  use mod_units, only: f_open
+  use mod_units, only: f_open, f_close
 
   implicit none
 
@@ -3003,7 +3004,7 @@ subroutine aper_crcheck_positionFiles
   endfile (losses_unit,iostat=ierro)
 
   ! Change from 'readwrite' to 'write'
-  close(losses_unit)
+  call f_close(losses_unit)
   call f_open(unit=losses_unit,file=losses_filename,status='old',formatted=.true.,mode='w+',err=err)
 
   return

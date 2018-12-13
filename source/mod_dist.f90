@@ -113,7 +113,7 @@ subroutine dist_readDist
   use mod_particles
   use physical_constants
   use numerical_constants
-  use mod_units, only : f_open
+  use mod_units, only : f_open, f_close
 
   implicit none
 
@@ -207,7 +207,7 @@ subroutine dist_readDist
     return
   end if
 
-  close(dist_readUnit)
+  call f_close(dist_readUnit)
   write(lout,"(a,i0,a)") "DIST> Read ",j," particles from file '"//trim(dist_readFile)//"'"
 
   ! Update longitudinal particle arrays from read momentum
@@ -301,7 +301,7 @@ subroutine dist_echoDist
 
   use mod_common
   use mod_commonmn
-  use mod_units, only : f_open
+  use mod_units, only : f_open, f_close
 
   integer j
   logical cErr
@@ -317,7 +317,7 @@ subroutine dist_echoDist
   do j=1, napx
     write(dist_echoUnit,"(6(1x,1pe25.18))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejfv(j)
   end do
-  close(dist_echoUnit)
+  call f_close(dist_echoUnit)
 
   return
 

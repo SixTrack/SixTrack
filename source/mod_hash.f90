@@ -203,16 +203,16 @@ subroutine hash_fileSums
   if(hash_nHashFiles == 0) return
 
   call f_requestUnit(hash_sumFileName, hash_sumFileUnit)
-  open(hash_sumFileUnit, file=hash_sumFileName)
+  call f_open(unit=hash_sumFileUnit,file=hash_sumFileName,formatted=.true.,mode="w")
 #ifdef WIN32
-  call f_requestUnit(hash_sumFileName, hash_sumFileUnit_win32)
-  open(hash_sumFileUnit_win32, file=hash_sumFileName//".win32")
+  call f_requestUnit(hash_sumFileName//".win32", hash_sumFileUnit_win32)
+  call f_open(unit=hash_sumFileUnit_win32,file=hash_sumFileName//".win32",formatted=.true.,mode="w")
 #endif
 
   if(hash_selfTestOK .eqv. .false.) then
     write(hash_sumFileUnit,"(a)") "HASH library failed self test. No hashes written."
     flush(hash_sumFileUnit)
-    close(hash_sumFileUnit)
+    call f_close(hash_sumFileUnit)
     return
   end if
 
@@ -232,9 +232,9 @@ subroutine hash_fileSums
     write(lout,                  "(a36,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
     flush(hash_sumFileUnit)
   end do
-  close(hash_sumFileUnit)
+  call f_close(hash_sumFileUnit)
 #ifdef WIN32
-  close(hash_sumFileUnit_win32)
+  call f_close(hash_sumFileUnit_win32)
 #endif
 
 end subroutine hash_fileSums

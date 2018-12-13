@@ -248,7 +248,7 @@ end interface
         ! Open dump file for reading, resume to original position before exiting the subroutine
         inquire(unit=dumpunit(j),opened=isOpen)
         if(isOpen) then
-          close(dumpunit(j))
+          call f_close(dumpunit(j))
         else ! File has to be open if nothing went wrong
           write(lout,"(a)") "FMA> ERROR Expected file '"//trim(dump_fname(j))//"' to be open."
           call prror(-1)
@@ -712,12 +712,12 @@ end interface
 
         if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j)) then
           ! filename NORM_* (normalised particle amplitudes)
-          close(tmpUnit)
+          call f_close(tmpUnit)
           hasNormDumped(j) = .true.
         end if
 
         ! resume initial position of dumpfile = end of file
-        close(dumpunit(j))
+        call f_close(dumpunit(j))
         if(dumpfmt(j) == 2 .or. dumpfmt(j) == 7) then ! ASCII
           call f_open(unit=dumpunit(j),file=dump_fname(j),formatted=.true.,mode="rw+",err=fErr)
           if(fErr) then
@@ -745,7 +745,7 @@ end interface
 
   end do ! END: loop over fma files
 
-  close(fmaUnit) !filename: fma_sixtrack
+  call f_close(fmaUnit) !filename: fma_sixtrack
 
   call dealloc(turn,         "turn")
   call dealloc(nturns,       "nturns")

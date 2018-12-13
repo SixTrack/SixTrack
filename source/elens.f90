@@ -510,7 +510,7 @@ subroutine parseRadialProfile(ifile)
   use mod_common
   use mod_settings
   use string_tools
-  use mod_units, only : f_open
+  use mod_units, only : f_open, f_close
 
   implicit none
 
@@ -570,7 +570,7 @@ subroutine parseRadialProfile(ifile)
 
 20 continue
 
-  close(elens_radial_unit)
+  call f_close(elens_radial_unit)
   write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile),"points."
 
   if(st_quiet < 2) then
@@ -680,7 +680,7 @@ subroutine parseChebyFile(ifile)
   use mod_common
   use mod_settings
   use string_tools
-  use mod_units, only : f_open
+  use mod_units, only : f_open, f_close
 
   implicit none
 
@@ -760,7 +760,7 @@ subroutine parseChebyFile(ifile)
 
 20 continue
 
-  close(elens_cheby_unit)
+  call f_close(elens_cheby_unit)
 
   if(st_quiet < 2) then
     ! Echo parsed data (unless told to be quiet!)

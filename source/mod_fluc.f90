@@ -203,7 +203,7 @@ subroutine fluc_readFort8
   character(len=:), allocatable :: lnSplit(:)
   real(kind=fPrec) alignx, alignz, tilt
   integer lineNo, ioStat, nSplit, mAlign, nAlign, iStru, iSing
-  logical iErr, isOpen, isFile, inSing
+  logical iErr, isFile, inSing
   integer i
 
   lineNo = 0
@@ -212,8 +212,7 @@ subroutine fluc_readFort8
   inquire(file="fort.8", exist=isFile)
   if(.not.isFile) return
 
-  inquire(unit=8, opened=isOpen)
-  if(isOpen) close(8)
+  call f_close(8)
 
   call f_open(unit=8,file="fort.8",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
@@ -257,7 +256,7 @@ subroutine fluc_readFort8
   goto 10
 
 20 continue
-  close(8)
+  call f_close(8)
   if(fluc_nAlign == 0) then
     write(lout,"(a)") "FLUC> Reading of fort.8 requested in FLUC block, but no elements read."
     return
@@ -315,7 +314,7 @@ subroutine fluc_readFort16
   character(len=:), allocatable :: lnSplit(:)
   character(len=mNameLen) bezExt
   integer mType, lineNo, ioStat, nSplit, lMode, nVals, mVal, mExt, iStru, iSing, nExt
-  logical iErr, isOpen, isFile, inSing
+  logical iErr, isFile, inSing
   integer i
 
   mVal   = 0
@@ -327,8 +326,7 @@ subroutine fluc_readFort16
   inquire(file="fort.16", exist=isFile)
   if(.not.isFile) return
 
-  inquire(unit=16, opened=isOpen)
-  if(isOpen) close(16)
+  call f_close(16)
 
   call f_open(unit=16,file="fort.16",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
@@ -410,7 +408,7 @@ subroutine fluc_readFort16
   goto 10
 
 20 continue
-  close(16)
+  call f_close(16)
   if(fluc_nExt == 0) then
     write(lout,"(a)") "FLUC> Reading of fort.16 requested in FLUC block, but no elements read."
     return
@@ -473,7 +471,7 @@ subroutine fluc_readFort30
   character(len=:), allocatable :: lnSplit(:)
   real(kind=fPrec) alignx, alignz, tilt
   integer lineNo, ioStat, nSplit, mZFZ, nZFZ, iStru, iSing, iZ
-  logical iErr, isOpen, isFile, inSing
+  logical iErr, isFile, inSing
   integer i
 
   lineNo = 0
@@ -482,8 +480,7 @@ subroutine fluc_readFort30
   inquire(file="fort.30", exist=isFile)
   if(.not.isFile) return
 
-  inquire(unit=30, opened=isOpen)
-  if(isOpen) close(30)
+  call f_close(30)
 
   call f_open(unit=30,file="fort.30",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
@@ -528,7 +525,7 @@ subroutine fluc_readFort30
   goto 10
 
 20 continue
-  close(30)
+  call f_close(30)
   if(fluc_nZFZ == 0) then
     write(lout,"(a)") "FLUC> Reading of fort.30 requested in FLUC block, but no elements read."
     return
@@ -662,7 +659,7 @@ subroutine fluc_writeFort4
   goto 30
 
 90 continue
-  close(4)
+  call f_close(4)
   return
 end subroutine fluc_writeFort4
 

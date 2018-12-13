@@ -258,8 +258,7 @@ end interface
   ! Goes here after unzip for BOINC
 #endif
   ! Very first get rid of any previous partial output
-  inquire(unit=lout, opened=isOpen)
-  if(isOpen) close(lout)
+  call f_close(lout)
   call f_open(unit=lout,file="fort.92",formatted=.true.,mode="rw",err=fErr,status="replace")
 
   ! Now position the checkpoint/restart logfile=93
@@ -290,8 +289,8 @@ end interface
     ! and CLOSE 92 and 93
     if(start) then
       start=.false.
-      close(92)
-      close(93)
+      call f_close(92)
+      call f_close(93)
       ! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
       ! Name hard-wired in our boinc_unzip_.
       ! Either it is only the fort.* input data or it is a restart.

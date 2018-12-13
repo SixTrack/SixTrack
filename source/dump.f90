@@ -164,8 +164,8 @@ end subroutine dump_linesFirst
 subroutine dump_closeUnits
 
   use mod_common
+  use mod_units
   implicit none
-  logical lopen
   integer i
 
 #ifdef HDF5
@@ -174,8 +174,7 @@ subroutine dump_closeUnits
     do i=0,il
       if (ldump(i)) then
         ! The same file could be used by more than one SINGLE ELEMENT
-        inquire( unit=dumpunit(i), opened=lopen )
-        if (lopen) close(dumpunit(i))
+        call f_close(dumpunit(i))
       end if
     end do
 #ifdef HDF5
@@ -421,14 +420,12 @@ subroutine dump_initialise
   use crcoall
   use string_tools
   use mod_common
+  use mod_units
 
   implicit none
 
   integer i,j,k,l
   logical lOpen, rErr
-#ifdef BOINC
-  character(len=256) filename
-#endif
   character(len=16) tasbuf(6,6)
 
 #ifdef HDF5
@@ -464,22 +461,10 @@ subroutine dump_initialise
             call prror(-1)
           end if
         end do
-        if (dumpfmt(i) == 3            &
-           .or. dumpfmt(i) == 8        &
-           .or. dumpfmt(i) == 101) then ! Binary dump
-#ifdef BOINC
-          call boincrf(dump_fname(i),filename)
-          open(dumpunit(i),file=filename,status='replace',form='unformatted')
-#else
-          open(dumpunit(i),file=trim(dump_fname(i)),status='replace',form='unformatted')
-#endif
+        if (dumpfmt(i) == 3 .or. dumpfmt(i) == 8 .or. dumpfmt(i) == 101) then ! Binary dump
+          call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.false.,mode="w",status="replace")
         else ! ASCII dump
-#ifdef BOINC
-          call boincrf(dump_fname(i),filename)
-          open(dumpunit(i),file=filename,status='replace',form='formatted')
-#else
-          open(dumpunit(i),file=trim(dump_fname(i)),status='replace',form='formatted')
-#endif
+          call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.true.,mode="w",status="replace")
         end if
 #ifdef CR
         dumpfilepos(i) = 0
@@ -1802,6 +1787,7 @@ subroutine dump_crcheck_positionFiles
   use crcoall
   use string_tools
   use mod_common
+  use mod_units
 
   implicit none
 
@@ -1832,12 +1818,7 @@ subroutine dump_crcheck_positionFiles
       inquire( unit=dumpunit(i), opened=lopen )
       if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8 .and. dumpfmt(i) /= 101) then ! ASCII
         if (.not. lopen) then
-#ifdef BOINC
-          call boincrf(dump_fname(i),filename)
-          open(dumpunit(i),file=filename, status='old',form='formatted',action='readwrite')
-#else
-          open(dumpunit(i),file=dump_fname(i), status='old',form='formatted',action='readwrite')
-#endif
+          call f_open(unit=dumpunit(i),file=filename,formatted=.true.,mode="rw",status="old")
         end if
 
         dumpfilepos(i) = 0
@@ -1848,12 +1829,7 @@ subroutine dump_crcheck_positionFiles
 
       else                         ! BINARY (format = 3 & 8 & 101)
         if (.not. lopen) then
-#ifdef BOINC
-          call boincrf(dump_fname(i),filename)
-          open(dumpunit(i),file=filename,status='old',form='unformatted',action='readwrite')
-#else
-          open(dumpunit(i),file=dump_fname(i),status='old',form='unformatted',action='readwrite')
-#endif
+          call f_open(unit=dumpunit(i),file=filename,formatted=.false.,mode="rw",status="old")
         end if
         dumpfilepos(i) = 0
         do j=1,dumpfilepos_cr(i)
@@ -1886,21 +1862,11 @@ subroutine dump_crcheck_positionFiles
       endfile (dumpunit(i),iostat=ierro)
 
       ! Change from 'readwrite' to 'write'
-      close(dumpunit(i))
+      call f_close(dumpunit(i))
       if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8 .and. dumpfmt(i) /= 101) then ! ASCII
-#ifdef BOINC
-        call boincrf(dump_fname(i),filename)
-        open(dumpunit(i),file=filename, status='old',position='append',form='formatted',action='write')
-#else
-        open(dumpunit(i),file=dump_fname(i), status='old',position='append',form='formatted',action='write')
-#endif
+        call f_open(unit=dumpunit(i),file=filename,formatted=.true.,mode="w+",status="old")
       else ! Binary (format = 3)
-#ifdef BOINC
-        call boincrf(dump_fname(i),filename)
-        open(dumpunit(i),file=filename, status='old',position='append',form='unformatted',action='write')
-#else
-        open(dumpunit(i),file=dump_fname(i), status='old',position='append',form='unformatted',action='write')
-#endif
+        call f_open(unit=dumpunit(i),file=filename,formatted=.false.,mode="w+",status="old")
       end if
     end if
   end do
@@ -1908,8 +1874,8 @@ subroutine dump_crcheck_positionFiles
   return
 
 111 continue
-  write(93,*) 'SIXTRACR> DUMP_CRCHECK_POSITIONFILES *** ERROR *** reading DUMP file#', dumpunit(i),' iostat=',ierro
-  write(93,*) 'dumpfilepos=',dumpfilepos(i),' dumpfilepos_cr=',dumpfilepos_cr(i)
+  write(93,"(2(a,i0))") "SIXTRACR> ERROR Repositioning file #",dumpunit(i),", iostat = ",ierro
+  write(93,"(2(a,i0))") "          dumpfilepos = ",dumpfilepos(i),", dumpfilepos_cr = ",dumpfilepos_cr(i)
   flush(93)
   write(lout,"(a)") "SIXTRACR> ERROR DUMP_CRCHECK_POSITIONFILES failure positioning DUMP file"
   call prror(-1)
