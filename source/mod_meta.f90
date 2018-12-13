@@ -73,6 +73,7 @@ end subroutine meta_initialise
 subroutine meta_finalise
 
   use mod_units
+  use mod_alloc
   use mod_common, only : numl
 
   integer nCRKills1,nCRKills2,tmpUnit
@@ -89,10 +90,11 @@ subroutine meta_finalise
     close(tmpUnit)
   end if
 
-  call meta_write("NumParticleTurns",    meta_nPartTurn)
-  call meta_write("AvgParticlesPerTurn", real(meta_nPartTurn,fPrec)/numl, "f15.3")
-  call meta_write("CR_RestartCount",     meta_nRestarts)
-  call meta_write("CR_KillSwitchCount",  nCRKills2)
+  call meta_write("NumParticleTurns",        meta_nPartTurn)
+  call meta_write("AvgParticlesPerTurn",     real(meta_nPartTurn,fPrec)/numl, "f15.3")
+  call meta_write("CR_RestartCount",         meta_nRestarts)
+  call meta_write("CR_KillSwitchCount",      nCRKills2)
+  call meta_write("PeakDynamicMemAlloc[MB]", real(maximum_bits,fPrec)/1024/1024, "f15.3")
 
   write(meta_fileUnit,"(a)") "# END"
   flush(meta_fileUnit)
