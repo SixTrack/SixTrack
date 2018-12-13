@@ -1818,7 +1818,7 @@ subroutine dump_crcheck_positionFiles
       inquire( unit=dumpunit(i), opened=lopen )
       if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8 .and. dumpfmt(i) /= 101) then ! ASCII
         if (.not. lopen) then
-          call f_open(unit=dumpunit(i),file=filename,formatted=.true.,mode="rw",status="old")
+          call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.true.,mode="rw",status="old")
         end if
 
         dumpfilepos(i) = 0
@@ -1829,7 +1829,7 @@ subroutine dump_crcheck_positionFiles
 
       else                         ! BINARY (format = 3 & 8 & 101)
         if (.not. lopen) then
-          call f_open(unit=dumpunit(i),file=filename,formatted=.false.,mode="rw",status="old")
+          call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.false.,mode="rw",status="old")
         end if
         dumpfilepos(i) = 0
         do j=1,dumpfilepos_cr(i)
@@ -1864,9 +1864,9 @@ subroutine dump_crcheck_positionFiles
       ! Change from 'readwrite' to 'write'
       call f_close(dumpunit(i))
       if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8 .and. dumpfmt(i) /= 101) then ! ASCII
-        call f_open(unit=dumpunit(i),file=filename,formatted=.true.,mode="w+",status="old")
+        call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.true.,mode="w+",status="old")
       else ! Binary (format = 3)
-        call f_open(unit=dumpunit(i),file=filename,formatted=.false.,mode="w+",status="old")
+        call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.false.,mode="w+",status="old")
       end if
     end if
   end do

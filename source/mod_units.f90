@@ -76,7 +76,7 @@ subroutine f_requestUnit(file,unit)
   logical isOpen
 
   if(len_trim(file) > 64) then
-    write(error_unit,"(a,i0)") "UNITS> ERROR Max length of file name in f_requestUnit is 64 characters, got ",len(file)
+    write(error_unit,"(a,i0)") "UNITS> ERROR Max length of file name in f_requestUnit is 64 characters, got ",len_trim(file)
     call prror
   end if
 
@@ -189,7 +189,7 @@ subroutine f_open(unit,file,formatted,mode,err,status,recl)
   end if
 
   if(len_trim(file) > 64) then
-    write(error_unit,"(a,i0)") "UNITS> ERROR Max length of file name in f_open is 64 characters, got ",len(file)
+    write(error_unit,"(a,i0)") "UNITS> ERROR Max length of file name in f_open is 64 characters, got ",len_trim(file)
     call prror
   end if
 
