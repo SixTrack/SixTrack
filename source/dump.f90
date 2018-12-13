@@ -336,9 +336,7 @@ subroutine dump_parseInputLine(inLine,iErr)
 #ifdef HDF5
   if(h5_useForDUMP .eqv. .false.) then
 #endif
-    if(dumpunit(j) == -1) then
-      call f_requestUnit(trim(dump_fname(j)),dumpunit(j))
-    end if
+    call f_requestUnit(trim(dump_fname(j)),dumpunit(j))
 #ifdef HDF5
   end if
 #endif
