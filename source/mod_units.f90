@@ -1,7 +1,7 @@
 ! ================================================================================================ !
 !  FILE UNITS MODULE
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-12-10
+!  Last modified: 2018-12-13
 !
 !  Module for keeping track of opened file units, their file names, and open the files correctly
 !  depending on build flags.
@@ -11,11 +11,12 @@ module mod_units
   implicit none
 
   ! Keep track of units
-  integer, parameter     :: units_minUnit  = 1    ! First unit to keep track of
-  integer, parameter     :: units_maxUnit  = 250  ! Last unit to keep track of
-  integer, parameter     :: units_minAuto  = 100  ! First unit available for dynamic allocation
-  integer, private, save :: units_nextUnit = -1   ! Next unit available for dynamic allocation
-  integer, private, save :: units_logUnit  = -1   ! File unit for internal log file
+  integer, parameter           :: units_minUnit  = 1                ! First unit to keep track of
+  integer, parameter           :: units_maxUnit  = 250              ! Last unit to keep track of
+  integer, parameter           :: units_minAuto  = 100              ! First unit available for dynamic allocation
+  integer, private, save       :: units_nextUnit = -1               ! Next unit available for dynamic allocation
+  integer, private, save       :: units_logUnit  = -1               ! File unit for internal log file
+  character(len=14), parameter :: units_logFile  = "file_units.dat" ! File unit for internal log file
 
   type, private :: unitRecord
     character(len=64), private :: file  = " "     ! The requested file name (not BOINC)
@@ -30,13 +31,26 @@ module mod_units
 
 contains
 
-subroutine units_initUnits
+subroutine f_initUnits
 
-  ! Open a log file for this module
+  ! Grab the first unit for the mod_units log file
+  units_logUnit  = units_minAuto
+  units_nextUnit = units_nextUnit + 1
 
-end subroutine units_initUnits
+  units_uList(units_logUnit)%file  = units_logFile
+  units_uList(units_logUnit)%mode  = "w"
+  units_uList(units_logUnit)%taken = .true.
+  units_uList(units_logUnit)%open  = .true.
 
-subroutine units_requestNew(file,unit)
+  open(units_logUnit,file=units_logFile,form="formatted",status="replace",action="write")
+  write(units_logUnit,"(a)") "# File Units Log"
+  write(units_logUnit,"(a)") repeat("#",80)
+  write(units_logUnit,"(a)") "ASSIGNED Unit ",units_logUnit," to '"//units_logFile//"'"
+  flush(units_logUnit)
+
+end subroutine f_initUnits
+
+subroutine f_requestUnit(file,unit)
 
   character(len=*), intent(in)  :: file
   integer,          intent(out) :: unit
@@ -45,7 +59,7 @@ subroutine units_requestNew(file,unit)
   logical isOpen
 
   unit = -1
-  call units_lookUp(file,unit)
+  call f_getUnit(file,unit)
   if(unit > 0) then
     write(*,"(a)") "REQUEST> Found #",unit," for file: '"//trim(file)//"'"
   end if
@@ -58,9 +72,9 @@ subroutine units_requestNew(file,unit)
   end do
 
 
-end subroutine units_requestNew
+end subroutine f_requestUnit
 
-subroutine units_lookUp(file,unit)
+subroutine f_getUnit(file,unit)
 
   character(len=*), intent(in)  :: file
   integer,          intent(out) :: unit
@@ -68,16 +82,16 @@ subroutine units_lookUp(file,unit)
   integer i
 
   unit = -1
-  do i=units_minUnit:units_maxUnit
+  do i=units_minUnit,units_maxUnit
     if(units_uList(i)%file == file) then
       unit = i
       exit
     end if
   end do
 
-end subroutine units_lookUp
+end subroutine f_getUnit
 
-subroutine units_openUnit(unit,file,formatted,mode,err,status,recl)
+subroutine f_open(unit,file,formatted,mode,err,status,recl)
 
   use crcoall
 
@@ -91,7 +105,7 @@ subroutine units_openUnit(unit,file,formatted,mode,err,status,recl)
   character(len=*), optional, intent(in)  :: status
   integer,          optional, intent(in)  :: recl
 
-  type(unitSpec),   allocatable :: tmpUnits(:)
+  ! type(unitSpec),   allocatable :: tmpUnits(:)
   character(len=:), allocatable :: fFileName, fStatus, fAction, fPosition
   character(len=256) :: tmpBoinc
   integer i, fRecl, nUnits, ioStat
@@ -104,13 +118,13 @@ subroutine units_openUnit(unit,file,formatted,mode,err,status,recl)
   !   return
   ! end if
 
-  nUnits      = size(units_uList)
-  units_nList = units_nList + 1
-  if(units_nList > nUnits) then
-    allocate(tmpUnits(units_nList + 10))
-    tmpUnits(1:units_nList-1) = units_uList(1:units_nList-1)
-    call move_alloc(tmpUnits,units_uList)
-  end if
+  ! nUnits      = size(units_uList)
+  ! units_nList = units_nList + 1
+  ! if(units_nList > nUnits) then
+  !   allocate(tmpUnits(units_nList + 10))
+  !   tmpUnits(1:units_nList-1) = units_uList(1:units_nList-1)
+  !   call move_alloc(tmpUnits,units_uList)
+  ! end if
 
   if(present(recl)) then
     fRecl = recl
@@ -171,12 +185,12 @@ subroutine units_openUnit(unit,file,formatted,mode,err,status,recl)
     fPosition = "asis"
   end select
 
-  units_uList(units_nList)%unit      = unit
-  units_uList(units_nList)%filename  = file
-  units_uList(units_nList)%formatted = formatted
-  units_uList(units_nList)%mode      = mode
-  units_uList(units_nList)%recl      = fRecl
-  units_uList(units_nList)%open      = .true.
+  ! units_uList(units_nList)%unit      = unit
+  ! units_uList(units_nList)%filename  = file
+  ! units_uList(units_nList)%formatted = formatted
+  ! units_uList(units_nList)%mode      = mode
+  ! units_uList(units_nList)%recl      = fRecl
+  ! units_uList(units_nList)%open      = .true.
 
   err = .false.
   if(formatted) then
@@ -212,9 +226,9 @@ subroutine units_openUnit(unit,file,formatted,mode,err,status,recl)
   err = .true.
   write(lout,"(a)") "UNITS> File '"//trim(fFileName)//"' reported an error"
 
-end subroutine units_openUnit
+end subroutine f_open
 
-subroutine units_closeUnits(unit)
+subroutine f_close(unit)
 
   implicit none
 
@@ -235,9 +249,9 @@ subroutine units_closeUnits(unit)
     end if
   end do
 
-end subroutine units_closeUnits
+end subroutine f_close
 
-subroutine units_flushUnits(unit)
+subroutine f_flush(unit)
 
   implicit none
 
@@ -257,22 +271,6 @@ subroutine units_flushUnits(unit)
     if(isOpen) flush(units_uList(i)%unit)
   end do
 
-end subroutine units_flushUnits
-
-logical function units_isReserved(nUnit)
-
-  integer, intent(in) :: nUnit
-  
-  integer i
-  
-  units_isReserved = .false.
-  do i=1,units_nList
-    if(units_uList(i)%unit == nUnit) then
-      units_isReserved = .true.
-      return
-    end if
-  end do
-
-end function units_isReserved
+end subroutine f_flush
 
 end module mod_units

@@ -59,7 +59,7 @@ subroutine time_initialise
 
   fErr = .false.
   call funit_requestUnit(time_fileName, time_fileUnit)
-  call units_openUnit(unit=time_fileUnit,filename=time_fileName,formatted=.true.,mode="w",err=fErr,status="replace")
+  call f_open(unit=time_fileUnit,filename=time_fileName,formatted=.true.,mode="w",err=fErr,status="replace")
   if(fErr) then
     write(lout,"(a,i0)") "TIME> ERROR Opening of '"//time_fileName//"' on unit #",time_fileUnit
     call prror

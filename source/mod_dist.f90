@@ -113,7 +113,7 @@ subroutine dist_readDist
   use mod_particles
   use physical_constants
   use numerical_constants
-  use mod_units, only : units_openUnit
+  use mod_units, only : f_open
 
   implicit none
 
@@ -140,7 +140,7 @@ subroutine dist_readDist
   ln   = 0
   cErr = .false.
 
-  call units_openUnit(unit=dist_readUnit,fileName=dist_readFile,mode='r',err=cErr,formatted=.true.,status="old")
+  call f_open(unit=dist_readUnit,fileName=dist_readFile,mode='r',err=cErr,formatted=.true.,status="old")
   if(cErr) goto 19
 
 10 continue
@@ -301,12 +301,12 @@ subroutine dist_echoDist
 
   use mod_common
   use mod_commonmn
-  use mod_units, only : units_openUnit
+  use mod_units, only : f_open
 
   integer j
   logical cErr
 
-  call units_openUnit(unit=dist_echoUnit,fileName=dist_echoFile,mode='w',err=cErr,formatted=.true.)
+  call f_open(unit=dist_echoUnit,fileName=dist_echoFile,mode='w',err=cErr,formatted=.true.)
   if(cErr) goto 19
 
   rewind(dist_echoUnit)

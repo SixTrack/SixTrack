@@ -85,7 +85,7 @@ featList = ""
   lout=output_unit
 #endif
   call funit_initUnits ! This one has to be first
-  call units_initUnits ! And this one second
+  call f_initUnits ! And this one second
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call alloc_init      ! Initialise mod_alloc
@@ -93,13 +93,13 @@ featList = ""
 
   ! Open files
   fErr = .false.
-  call units_openUnit(unit=2,  file="fort.2",  formatted=.true., mode="r", err=fErr)
-  call units_openUnit(unit=3,  file="fort.3",  formatted=.true., mode="r", err=fErr)
-  call units_openUnit(unit=12, file="fort.12", formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=18, file="fort.18", formatted=.true., mode="rw",err=fErr)
-  call units_openUnit(unit=19, file="fort.19", formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
-  call units_openUnit(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr)
+  call f_open(unit=2,  file="fort.2",  formatted=.true., mode="r", err=fErr)
+  call f_open(unit=3,  file="fort.3",  formatted=.true., mode="r", err=fErr)
+  call f_open(unit=12, file="fort.12", formatted=.true., mode="w", err=fErr)
+  call f_open(unit=18, file="fort.18", formatted=.true., mode="rw",err=fErr)
+  call f_open(unit=19, file="fort.19", formatted=.true., mode="w", err=fErr)
+  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
+  call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr)
 
   call time_timeStamp(time_afterFileUnits)
 

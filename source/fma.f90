@@ -213,7 +213,7 @@ end interface
 
   ! fma_six = data file for storing the results of the FMA analysis
   call funit_requestUnit("fma_sixtrack",fmaUnit)
-  call units_openUnit(unit=fmaUnit,file="fma_sixtrack",formatted=.true.,mode="w",err=fErr,status="replace")
+  call f_open(unit=fmaUnit,file="fma_sixtrack",formatted=.true.,mode="w",err=fErr,status="replace")
   if(fErr) then
     write(lout, "(a)") "FMA> ERROR Cannot open file 'fma_sixtrack' for writing."
     call prror(-1)
@@ -256,13 +256,13 @@ end interface
         end if
 
         if(dumpfmt(j) == 2 .or. dumpfmt(j) == 7) then
-          call units_openUnit(unit=dumpunit(j),file=dump_fname(j),formatted=.true.,mode="r",err=fErr,status="old")
+          call f_open(unit=dumpunit(j),file=dump_fname(j),formatted=.true.,mode="r",err=fErr,status="old")
           if(fErr) then
             write(lout,"(a,i0,a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"' (dumpfmt=",dumpfmt(j),")"
             call prror(-1)
           end if
         else if(dumpfmt(j) == 3 .or. dumpfmt(j) == 8) then
-          call units_openUnit(unit=dumpunit(j),file=dump_fname(j),formatted=.false.,mode="r",err=fErr,status="old")
+          call f_open(unit=dumpunit(j),file=dump_fname(j),formatted=.false.,mode="r",err=fErr,status="old")
           if(fErr) then
             write(lout,"(a,i0,a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"' (dumpfmt=",dumpfmt(j),")"
             call prror(-1)
@@ -383,7 +383,7 @@ end interface
         if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j)) then
           ! Get a file unit, if needed
           call funit_requestUnit("NORM_"//dump_fname(j),tmpUnit)
-          call units_openUnit(unit=tmpUnit,file="NORM_"//dump_fname(j),formatted=.true.,mode="w",err=fErr,status="replace")
+          call f_open(unit=tmpUnit,file="NORM_"//dump_fname(j),formatted=.true.,mode="w",err=fErr,status="replace")
           if(fErr) then
             write(lout,"(a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"'"
             call prror(-1)
@@ -720,13 +720,13 @@ end interface
         ! resume initial position of dumpfile = end of file
         close(dumpunit(j))
         if(dumpfmt(j) == 2 .or. dumpfmt(j) == 7) then ! ASCII
-          call units_openUnit(unit=dumpunit(j),file=dump_fname(j),formatted=.true.,mode="rw+",err=fErr)
+          call f_open(unit=dumpunit(j),file=dump_fname(j),formatted=.true.,mode="rw+",err=fErr)
           if(fErr) then
             write(lout,"(a,i0,a)") "FMA> ERROR Resuming file '"//trim(dump_fname(j))//"' (dumpfmt = ",dumpfmt(j),")"
             call prror(-1)
           end if
         elseif (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then !BINARY
-          call units_openUnit(unit=dumpunit(j),file=dump_fname(j),formatted=.false.,mode="rw+",err=fErr)
+          call f_open(unit=dumpunit(j),file=dump_fname(j),formatted=.false.,mode="rw+",err=fErr)
           if(fErr) then
             write(lout,"(a,i0,a)") "FMA> ERROR Resuming file '"//trim(dump_fname(j))//"' (dumpfmt = ",dumpfmt(j),")"
             call prror(-1)

@@ -173,7 +173,7 @@ end interface
 ! call boinc_init_graphics
 #endif
   call funit_initUnits ! This one has to be first
-  call units_initUnits ! And this one second
+  call f_initUnits ! And this one second
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call alloc_init      ! Initialise mod_alloc
@@ -262,10 +262,10 @@ end interface
   ! Very first get rid of any previous partial output
   inquire(unit=lout, opened=isOpen)
   if(isOpen) close(lout)
-  call units_openUnit(unit=lout,file="fort.92",formatted=.true.,mode="rw",err=fErr,status="replace")
+  call f_open(unit=lout,file="fort.92",formatted=.true.,mode="rw",err=fErr,status="replace")
 
   ! Now position the checkpoint/restart logfile=93
-  call units_openUnit(unit=93,file="fort.93",formatted=.true.,mode="rw",err=fErr)
+  call f_open(unit=93,file="fort.93",formatted=.true.,mode="rw",err=fErr)
 606 continue
   read(93,"(a1024)",end=607) arecord
   goto 606
@@ -281,10 +281,10 @@ end interface
 #endif
   ! Now we see if we have a fort.6 which implies that we can perhaps just restart using all exisiting files
   ! including the last checkpoints. If not, we just do a start (with an unzip for BOINC)
-  ! call units_openUnit(unit=6,file="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
+  ! call f_open(unit=6,file="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
   ! if(fErr) goto 602
   ! stxt = "SIXTRACR reruns on: "
-  call units_openUnit(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr,status="old")
+  call f_open(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr,status="old")
   if(fErr) then
 #ifdef BOINC
     ! No fort.6 so we do an unzip of Sixin.zip
@@ -302,9 +302,9 @@ end interface
       call f_read_archive(trim(filename),".")
       goto 611
     end if
-    call units_openUnit(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr)
+    call f_open(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr)
 #else
-    call units_openUnit(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr,status="new")
+    call f_open(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr,status="new")
 #endif
     ! Set up start message depending on fort.6 or not
     stxt = "SIXTRACR> starts on: "
@@ -313,75 +313,75 @@ end interface
     stxt = "SIXTRACR> reruns on: "
     rerun=.true.
   end if
-  call units_openUnit(unit=95,file="fort.95",formatted=.false.,mode="rw",err=fErr,status="old")
+  call f_open(unit=95,file="fort.95",formatted=.false.,mode="rw",err=fErr,status="old")
   if(fErr) then
-    call units_openUnit(unit=95,file="fort.95",formatted=.false.,mode="rw",err=fErr,status="new")
+    call f_open(unit=95,file="fort.95",formatted=.false.,mode="rw",err=fErr,status="new")
   else
     fort95 = .true.
   end if
-  call units_openUnit(unit=96,file="fort.96",formatted=.false.,mode="rw",err=fErr,status="old")
+  call f_open(unit=96,file="fort.96",formatted=.false.,mode="rw",err=fErr,status="old")
   if(fErr) then
-    call units_openUnit(unit=96,file="fort.96",formatted=.false.,mode="rw",err=fErr,status="new")
+    call f_open(unit=96,file="fort.96",formatted=.false.,mode="rw",err=fErr,status="new")
   else
     fort96 = .true.
   end if
-  call units_openUnit(unit=91,file="fort.91",formatted=.true.,mode="rw",err=fErr)
+  call f_open(unit=91,file="fort.91",formatted=.true.,mode="rw",err=fErr)
 #else
   lout = output_unit
 #endif
 
   ! Open Regular File Units
-  call units_openUnit(unit=2, file="fort.2", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
-  call units_openUnit(unit=3, file="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
-  call units_openUnit(unit=7, file="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
-  call units_openUnit(unit=9, file="fort.9", formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=11,file="fort.11",formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=12,file="fort.12",formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=14,file="fort.14",formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=15,file="fort.15",formatted=.true., mode="w", err=fErr)
-! call units_openUnit(unit=17,file="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use? Should mirror fort.16
-  call units_openUnit(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr)
-! call units_openUnit(unit=19,file="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
-  call units_openUnit(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=21,file="fort.21",formatted=.true., mode="w", err=fErr)
-! call units_openUnit(unit=22,file="fort.22",formatted=.true. ,mode="w", err=fErr) ! Not in use?
-! call units_openUnit(unit=23,file="fort.23",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call units_openUnit(unit=24,file="fort.24",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call units_openUnit(unit=25,file="fort.25",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call units_openUnit(unit=26,file="fort.26",formatted=.true., mode="w", err=fErr) ! Not in use?
-  call units_openUnit(unit=27,file="fort.27",formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=28,file="fort.28",formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=29,file="fort.29",formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=31,file="fort.31",formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=34,file="fort.34",formatted=.true., mode="w", err=fErr)
-! call units_openUnit(unit=35,file="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call f_open(unit=2, file="fort.2", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
+  call f_open(unit=3, file="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
+  call f_open(unit=7, file="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
+  call f_open(unit=9, file="fort.9", formatted=.true., mode="w", err=fErr)
+  call f_open(unit=11,file="fort.11",formatted=.true., mode="w", err=fErr)
+  call f_open(unit=12,file="fort.12",formatted=.true., mode="w", err=fErr)
+  call f_open(unit=14,file="fort.14",formatted=.true., mode="w", err=fErr)
+  call f_open(unit=15,file="fort.15",formatted=.true., mode="w", err=fErr)
+! call f_open(unit=17,file="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use? Should mirror fort.16
+  call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr)
+! call f_open(unit=19,file="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
+  call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr)
+  call f_open(unit=21,file="fort.21",formatted=.true., mode="w", err=fErr)
+! call f_open(unit=22,file="fort.22",formatted=.true. ,mode="w", err=fErr) ! Not in use?
+! call f_open(unit=23,file="fort.23",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call f_open(unit=24,file="fort.24",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call f_open(unit=25,file="fort.25",formatted=.true., mode="w", err=fErr) ! Not in use?
+! call f_open(unit=26,file="fort.26",formatted=.true., mode="w", err=fErr) ! Not in use?
+  call f_open(unit=27,file="fort.27",formatted=.true., mode="w", err=fErr)
+  call f_open(unit=28,file="fort.28",formatted=.true., mode="w", err=fErr)
+  call f_open(unit=29,file="fort.29",formatted=.true., mode="w", err=fErr)
+  call f_open(unit=31,file="fort.31",formatted=.true., mode="w", err=fErr)
+  call f_open(unit=34,file="fort.34",formatted=.true., mode="w", err=fErr)
+! call f_open(unit=35,file="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
 
 #ifdef STF
   ! Open Single Track File
-  call units_openUnit(unit=90,file="singletrackfile.dat",formatted=.false.,mode="rw",err=fErr)
+  call f_open(unit=90,file="singletrackfile.dat",formatted=.false.,mode="rw",err=fErr)
 #else
   ! Open binary files 59 to 90 for particle pair 1 to 32
   do i=59,90
     write(tmpFile,"(a5,i2)") "fort.",i
-    call units_openUnit(unit=i,file=tmpFile,formatted=.false.,mode="rw",err=fErr)
+    call f_open(unit=i,file=tmpFile,formatted=.false.,mode="rw",err=fErr)
   end do
 #endif
 
-  call units_openUnit(unit=98,file="fort.98",formatted=.true.,mode="w",err=fErr)
+  call f_open(unit=98,file="fort.98",formatted=.true.,mode="w",err=fErr)
 
   ! Eric for the DA coefficients in BINARY
-  call units_openUnit(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
-  call units_openUnit(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr)
+  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
+  call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr)
 
 #ifdef DEBUG
-  call units_openUnit(unit=99 ,file="dump",  formatted=.false.,mode="rw",err=fErr)
-  call units_openUnit(unit=100,file="arrays",formatted=.false.,mode="rw",err=fErr)
+  call f_open(unit=99 ,file="dump",  formatted=.false.,mode="rw",err=fErr)
+  call f_open(unit=100,file="arrays",formatted=.false.,mode="rw",err=fErr)
 #endif
 
   ! Heavy Ion Output
-  call units_openUnit(unit=208,file="fort.208",formatted=.true.,mode="w",err=fErr) ! coll losses (energy)
-  call units_openUnit(unit=209,file="fort.209",formatted=.true.,mode="w",err=fErr) ! coll losses in function of particle i
-  call units_openUnit(unit=210,file="fort.210",formatted=.true.,mode="w",err=fErr) ! mtc after each collimator interaction
+  call f_open(unit=208,file="fort.208",formatted=.true.,mode="w",err=fErr) ! coll losses (energy)
+  call f_open(unit=209,file="fort.209",formatted=.true.,mode="w",err=fErr) ! coll losses in function of particle i
+  call f_open(unit=210,file="fort.210",formatted=.true.,mode="w",err=fErr) ! mtc after each collimator interaction
 
   call time_timeStamp(time_afterFileUnits)
 
@@ -503,7 +503,7 @@ end interface
   ! Postprocessing is on, but there are no particles
   if(ipos.eq.1.and.napx.eq.0) then
     ! Now we open fort.10 unless already opened for BOINC
-    call units_openUnit(unit=10,file="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
+    call f_open(unit=10,file="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
 
 #ifndef STF
     do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
@@ -1766,7 +1766,7 @@ end interface
 
 470 continue
   ! and we need to open fort.10 unless already opened for BOINC
-  call units_openUnit(unit=10,file="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
+  call f_open(unit=10,file="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
 
   ! Also dump the final state of the particle arrays
   call part_dumpFinalState
@@ -1879,7 +1879,7 @@ end interface
   posttime=time3-time2
 
   ! Make sure all files are flushed before we do stuff with them
-  call units_flushUnits
+  call f_flush
   call funit_flushUnits
 
 #ifdef HASHLIB

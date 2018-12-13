@@ -215,7 +215,7 @@ subroutine fluc_readFort8
   inquire(unit=8, opened=isOpen)
   if(isOpen) close(8)
 
-  call units_openUnit(unit=8,file="fort.8",formatted=.true.,mode="r",err=iErr)
+  call f_open(unit=8,file="fort.8",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
     write(lout,"(a)") "FLUC> ERROR Failed to open fort.8"
     goto 30
@@ -330,7 +330,7 @@ subroutine fluc_readFort16
   inquire(unit=16, opened=isOpen)
   if(isOpen) close(16)
 
-  call units_openUnit(unit=16,file="fort.16",formatted=.true.,mode="r",err=iErr)
+  call f_open(unit=16,file="fort.16",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
     write(lout,"(a)") "FLUC> ERROR Failed to open fort.16"
     goto 30
@@ -485,7 +485,7 @@ subroutine fluc_readFort30
   inquire(unit=30, opened=isOpen)
   if(isOpen) close(30)
 
-  call units_openUnit(unit=30,file="fort.30",formatted=.true.,mode="r",err=iErr)
+  call f_open(unit=30,file="fort.30",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
     write(lout,"(a)") "FLUC> ERROR Failed to open fort.30"
     goto 30
@@ -600,7 +600,7 @@ subroutine fluc_writeFort4
   ii      = 0
   lineNo2 = 0
 
-  call units_openUnit(unit=4,file="fort.4",formatted=.true.,mode="w",err=iErr)
+  call f_open(unit=4,file="fort.4",formatted=.true.,mode="w",err=iErr)
 
   rewind(2)
 10 continue

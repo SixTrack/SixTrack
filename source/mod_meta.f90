@@ -57,7 +57,7 @@ subroutine meta_initialise
 
   fErr = .false.
   call funit_requestUnit(meta_fileName, meta_fileUnit)
-  call units_openUnit(unit=meta_fileUnit,filename=meta_fileName,formatted=.true.,mode="w",err=fErr,status="replace")
+  call f_open(unit=meta_fileUnit,filename=meta_fileName,formatted=.true.,mode="w",err=fErr,status="replace")
   if(fErr) then
     write(lout,"(a,i0)") "META> ERROR Opening of '"//meta_fileName//"' on unit #",meta_fileUnit
     call prror
