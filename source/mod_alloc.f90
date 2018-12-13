@@ -130,13 +130,13 @@ contains
 
 subroutine alloc_init
 
-  use file_units
+  use mod_units
 
   implicit none
 
   logical isOpen
 
-  call funit_requestUnit("mem_alloc.log",alloc_log)
+  call f_requestUnit("mem_alloc.log",alloc_log)
   open(alloc_log,file="mem_alloc.log",form="formatted",status="unknown")
 
 end subroutine alloc_init
@@ -195,13 +195,13 @@ end subroutine print_alloc
 
 subroutine alloc_exit
 
-  use file_units
+  use mod_units
 
   implicit none
 
   integer memunit
 
-  call funit_requestUnit("maximum_memory_allocation_mbytes.txt",memunit)
+  call f_requestUnit("maximum_memory_allocation_mbytes.txt",memunit)
   open(memunit, file="maximum_memory_allocation_mbytes.txt", form="formatted")
   write(memunit,"(f10.3)") real(maximum_bits,real64)/real(mbyte,real64)
   flush(memunit)

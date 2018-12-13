@@ -30,7 +30,6 @@ program mainda
   use mod_commont
   use mod_commond
   use mod_units
-  use file_units
   use mod_meta
   use mod_time
   use mod_alloc,  only : alloc_init
@@ -84,7 +83,6 @@ featList = ""
 #ifndef CR
   lout=output_unit
 #endif
-  call funit_initUnits ! This one has to be first
   call f_initUnits ! And this one second
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.

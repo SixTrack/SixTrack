@@ -51,13 +51,12 @@ subroutine meta_initialise
 
   use crcoall
   use mod_units
-  use file_units
 
   logical fErr
 
   fErr = .false.
-  call funit_requestUnit(meta_fileName, meta_fileUnit)
-  call f_open(unit=meta_fileUnit,filename=meta_fileName,formatted=.true.,mode="w",err=fErr,status="replace")
+  call f_requestUnit(meta_fileName, meta_fileUnit)
+  call f_open(unit=meta_fileUnit,file=meta_fileName,formatted=.true.,mode="w",err=fErr,status="replace")
   if(fErr) then
     write(lout,"(a,i0)") "META> ERROR Opening of '"//meta_fileName//"' on unit #",meta_fileUnit
     call prror
@@ -73,7 +72,7 @@ end subroutine meta_initialise
 
 subroutine meta_finalise
 
-  use file_units
+  use mod_units
   use mod_common, only : numl
 
   integer nCRKills1,nCRKills2,tmpUnit
@@ -82,7 +81,7 @@ subroutine meta_finalise
   nCRKills1 = 0
   nCRKills2 = 0
  
-  call funit_requestUnit("mod_meta_tmpUnit",tmpUnit)
+  call f_requestUnit("mod_meta_tmpUnit",tmpUnit)
   inquire(file="crkillswitch.tmp",exist=fExist)
   if(fExist) then
     open(tmpUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")

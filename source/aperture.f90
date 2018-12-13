@@ -2570,9 +2570,8 @@ end subroutine aper_inputUnitWrapper
 subroutine aper_parseInputLine(inLine, iLine, iErr)
 
   use string_tools
-  use file_units
   use sixtrack_input
-  use mod_units, only: f_open
+  use mod_units
 
   implicit none
 
@@ -2604,7 +2603,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
     end if
 
     load_file = trim(lnSplit(2))
-    call funit_requestUnit(trim(load_file),loadunit)
+    call f_requestUnit(trim(load_file),loadunit)
     inquire(file=load_file, exist=lExist)
     if(.not.lexist) then
       write(lout,"(a)") "LIMI> ERROR LOAD file '"//trim(load_file)//"' not found in the running folder."
@@ -2624,7 +2623,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
     end if
 
     aper_filename = trim(lnSplit(2))
-    call funit_requestUnit(trim(aper_filename),aperunit)
+    call f_requestUnit(trim(aper_filename),aperunit)
 
     ldmpaper = .true.
     if(nSplit .eq. 3) then
@@ -2698,7 +2697,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
 
     xsec_filename(mxsec) = lnSplit(2)
     call chr_cast(lnSplit(3),sLocMin(mxsec),iErr)
-    call funit_requestUnit(xsec_filename(mxsec),xsecunit(mxsec))
+    call f_requestUnit(xsec_filename(mxsec),xsecunit(mxsec))
 
     if(sLocMin(mxsec) < zero) then
       write(lout,"(a)") "LIMI> ERROR Negative min s-value for xsecs!"
@@ -2940,11 +2939,11 @@ end subroutine aper_inputParsingDone
 
 subroutine aper_postInput
 
-  use file_units
+  use mod_units
   implicit none
 
   ! request unit
-  call funit_requestUnit(trim(losses_filename),losses_unit)
+  call f_requestUnit(trim(losses_filename),losses_unit)
 
 end subroutine aper_postInput
 

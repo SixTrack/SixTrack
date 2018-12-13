@@ -47,7 +47,7 @@ contains
 subroutine dist_parseInputLine(inLine, iLine, iErr)
 
   use string_tools
-  use file_units
+  use mod_units
 
   implicit none
 
@@ -77,7 +77,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
       return
     end if
     dist_readFile = trim(lnSplit(2))
-    call funit_requestUnit(dist_readFile, dist_readUnit)
+    call f_requestUnit(dist_readFile, dist_readUnit)
     if(.not.dist_enable) dist_enable = .true.
 
   case("ECHO")
@@ -87,7 +87,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
       dist_echoFile = "echo_distribution.dat"
     end if
     dist_echo = .true.
-    call funit_requestUnit(dist_echoFile, dist_echoUnit)
+    call f_requestUnit(dist_echoFile, dist_echoUnit)
 
   case default
     write(lout,"(a)") "DIST> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
@@ -140,7 +140,7 @@ subroutine dist_readDist
   ln   = 0
   cErr = .false.
 
-  call f_open(unit=dist_readUnit,fileName=dist_readFile,mode='r',err=cErr,formatted=.true.,status="old")
+  call f_open(unit=dist_readUnit,file=dist_readFile,mode='r',err=cErr,formatted=.true.,status="old")
   if(cErr) goto 19
 
 10 continue
@@ -306,7 +306,7 @@ subroutine dist_echoDist
   integer j
   logical cErr
 
-  call f_open(unit=dist_echoUnit,fileName=dist_echoFile,mode='w',err=cErr,formatted=.true.)
+  call f_open(unit=dist_echoUnit,file=dist_echoFile,mode='w',err=cErr,formatted=.true.)
   if(cErr) goto 19
 
   rewind(dist_echoUnit)

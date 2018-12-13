@@ -144,7 +144,6 @@ subroutine fma_postpr
   use mod_commont
   use mod_alloc
   use mod_units
-  use file_units
 
   implicit none
 
@@ -212,7 +211,7 @@ end interface
   call alloc(naff_xyzv2,   fma_nturn_max,        zero,   "naff_xyzv2")
 
   ! fma_six = data file for storing the results of the FMA analysis
-  call funit_requestUnit("fma_sixtrack",fmaUnit)
+  call f_requestUnit("fma_sixtrack",fmaUnit)
   call f_open(unit=fmaUnit,file="fma_sixtrack",formatted=.true.,mode="w",err=fErr,status="replace")
   if(fErr) then
     write(lout, "(a)") "FMA> ERROR Cannot open file 'fma_sixtrack' for writing."
@@ -382,7 +381,7 @@ end interface
         !Normalized copy of the dump
         if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j)) then
           ! Get a file unit, if needed
-          call funit_requestUnit("NORM_"//dump_fname(j),tmpUnit)
+          call f_requestUnit("NORM_"//dump_fname(j),tmpUnit)
           call f_open(unit=tmpUnit,file="NORM_"//dump_fname(j),formatted=.true.,mode="w",err=fErr,status="replace")
           if(fErr) then
             write(lout,"(a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"'"

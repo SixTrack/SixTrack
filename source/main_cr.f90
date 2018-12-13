@@ -53,7 +53,7 @@
 program maincr
 
   use floatPrecision
-  use file_units
+  use mod_units
   use string_tools
   use mathlib_bouncer
   use physical_constants
@@ -66,7 +66,6 @@ program maincr
   use zipf,    only : zipf_numfiles, zipf_dozip
 
   use, intrinsic :: iso_fortran_env, only : output_unit
-  use mod_units
   use mod_meta
   use mod_time
   use aperture
@@ -172,7 +171,6 @@ end interface
   call boinc_init
 ! call boinc_init_graphics
 #endif
-  call funit_initUnits ! This one has to be first
   call f_initUnits ! And this one second
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
@@ -1880,7 +1878,6 @@ end interface
 
   ! Make sure all files are flushed before we do stuff with them
   call f_flush
-  call funit_flushUnits
 
 #ifdef HASHLIB
   ! HASH library. Must be before ZIPF

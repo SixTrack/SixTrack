@@ -189,7 +189,7 @@ subroutine dump_parseInputLine(inLine,iErr)
 
   use crcoall
   use mod_common
-  use file_units
+  use mod_units
   use string_tools
 
   implicit none
@@ -337,7 +337,7 @@ subroutine dump_parseInputLine(inLine,iErr)
   if(h5_useForDUMP .eqv. .false.) then
 #endif
     if(dumpunit(j) == -1) then
-      call funit_requestUnit(trim(dump_fname(j)),dumpunit(j))
+      call f_requestUnit(trim(dump_fname(j)),dumpunit(j))
     end if
 #ifdef HDF5
   end if
@@ -527,7 +527,7 @@ subroutine dump_initialise
         ! LOPEN not set to true by sanity check in loop above
         ! => File was already open, but not by DUMP.
         if (.not.lopen) then
-          write(lout,"(a,i0,a)") "DUMP> ERROR Unit",dumpunit(i)," is already open, but not by DUMP. Please pick another unit!"
+          write(lout,"(a,i0,a)") "DUMP> ERROR Unit ",dumpunit(i)," is already open, but not by DUMP. Please pick another unit!"
           write(lout,"(a)")      "DUMP> Note: This check is not watertight as other parts of the program may later open the "
           write(lout,"(a)")      "DUMP>       same unit. Althernatively, the unit can be specified as -1 and a unit is assigned."
           call prror(-1)

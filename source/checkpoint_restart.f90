@@ -124,7 +124,7 @@ end subroutine cr_expand_arrays
 subroutine cr_killSwitch(iTurn)
 
   use crcoall
-  use file_units
+  use mod_units
   use mod_settings
 
   integer, intent(in) :: iTurn
@@ -145,7 +145,7 @@ subroutine cr_killSwitch(iTurn)
   end if
 
   if(crksunit == -1) then
-    call funit_requestUnit("crkillswitch.tmp",crksunit)
+    call f_requestUnit("crkillswitch.tmp",crksunit)
   end if
 
   inquire(file="crkillswitch.tmp",exist=fExist)

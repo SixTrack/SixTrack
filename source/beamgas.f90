@@ -293,7 +293,7 @@ subroutine beamGasInit(myenom)
   use numerical_constants
   use beamgascommon
   use crcoall
-  use file_units
+  use mod_units
 
   use collimation, only : mynp
 
@@ -309,11 +309,11 @@ subroutine beamGasInit(myenom)
   write(lout,"(a)") "BEAMGAS> Initialising"
 
   ! Get file units
-  call funit_requestUnit("dpmjet.eve",          bg_dpmJetUnit)
-  call funit_requestUnit("scatterLOC.txt",      bg_scatterLocUnit)
-  call funit_requestUnit("beamgas_config.txt",  bg_configUnit)
-  call funit_requestUnit("pressure_profile.txt",bg_pressProUnit)
-  call funit_requestUnit("localLOSSES.txt",     bg_locLossesUnit)
+  call f_requestUnit("dpmjet.eve",          bg_dpmJetUnit)
+  call f_requestUnit("scatterLOC.txt",      bg_scatterLocUnit)
+  call f_requestUnit("beamgas_config.txt",  bg_configUnit)
+  call f_requestUnit("pressure_profile.txt",bg_pressProUnit)
+  call f_requestUnit("localLOSSES.txt",     bg_locLossesUnit)
 
   open(bg_dpmJetUnit,file='dpmjet.eve')
   open(bg_scatterLocUnit,file='scatterLOC.txt')

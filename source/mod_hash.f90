@@ -190,7 +190,7 @@ subroutine hash_fileSums
 
   use parpro
   use crcoall
-  use file_units
+  use mod_units
 
   character(len=32) md5Digest
   integer           nFile
@@ -202,10 +202,10 @@ subroutine hash_fileSums
 
   if(hash_nHashFiles == 0) return
 
-  call funit_requestUnit(hash_sumFileName, hash_sumFileUnit)
+  call f_requestUnit(hash_sumFileName, hash_sumFileUnit)
   open(hash_sumFileUnit, file=hash_sumFileName)
 #ifdef WIN32
-  call funit_requestUnit(hash_sumFileName, hash_sumFileUnit_win32)
+  call f_requestUnit(hash_sumFileName, hash_sumFileUnit_win32)
   open(hash_sumFileUnit_win32, file=hash_sumFileName//".win32")
 #endif
 
