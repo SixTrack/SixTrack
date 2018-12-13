@@ -276,14 +276,12 @@ end subroutine sixin_echoVal_char
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
 
-  implicit none
-
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  integer nSplit
+  integer nSplit, i
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -309,6 +307,22 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     write(lout,"(a)") "INPUT> DEBUG FIO is ON"
 #else
     write(lout,"(a)") "INPUT> DEBUG FIO is OFF"
+#endif
+
+  case("CRKILLSWITCH")
+#ifdef CR
+    if(nSplit < 2) then
+      write(lout,"(a)") "INPUT> ERROR CRKILLSWITCH requires at least one turn number."
+    end if
+    st_killswitch = .true.
+    write(lout,"(a)") "INPUT> C/R kill switch ENABLED"
+    allocate(st_killturns(nSplit-1))
+    do i=1,nSplit-1
+      call chr_cast(lnSplit(i+1),st_killturns(i),iErr)
+      write(lout,"(a,i0)") "INPUT>  * Will kill after turn ",st_killturns(i)
+    end do
+#else
+    write(lout,"(a)") "INPUT> Ignoring CRKILLSWITCH flag. Not using CR version of SixTrack. "
 #endif
 
   case("PRINT")

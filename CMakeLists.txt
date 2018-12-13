@@ -272,7 +272,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 
 list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR NAFF)
 list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT HASHLIB)
-list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR)
+list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32)
 
 ###################################################################################################
 # Select which fortran files to generate and compile
@@ -544,6 +544,10 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
   set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
   set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow -fcheck=all")
+
+  if(WARN)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-Wuninitialized ${CMAKE_Fortran_FLAGS_RELEASE}")
+  endif()
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES ppc64le )
     set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fno-expensive-optimizations -fno-inline-functions")
@@ -984,14 +988,14 @@ endif()
 
 # Build NAFFlib
 if(NAFF)
-  if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/NAFFlib/naff_sixtrack_interface.c)
+  if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/interface/naff_sixtrack_interface.c)
     message(FATAL_ERROR "The git submodules NAFFlib is not available. Please run:
     git submodule update --init lib/NAFFlib")
   endif()
 
-  file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/lib/NAFFlib/source/*.c ${CMAKE_SOURCE_DIR}/lib/NAFFlib/naff_sixtrack_interface.c)
+  file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/source/*.c ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/interface/naff_sixtrack_interface.c)
   add_library(naff STATIC ${NAFF_SOURCES})
-  target_include_directories(naff PRIVATE ${CMAKE_SOURCE_DIR}/lib/NAFFlib/include)
+  target_include_directories(naff PRIVATE ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/include)
   target_compile_options(naff PRIVATE -DCOMPILE_WITHOUT_PYTHON)
   if(CRLIBM)
     target_include_directories(naff PRIVATE ${CMAKE_SOURCE_DIR}/source/crlibm)
@@ -1011,37 +1015,29 @@ if(NAFF)
 endif(NAFF)
 
 if(BOINC AND API)
+  find_library(stdc++ STATIC stdc++)
   include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
 
-  #The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
-  #go into the boinc source folder, cd api; make boinc_api_fortran.o
-  add_library(boinc_api_fortran STATIC IMPORTED)
-  set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
-  # add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp) #Alternative way of building and linking boinc_api_fortran.cpp/.o
-  target_link_libraries(SixTrackCR boinc_api_fortran)
+  add_library(boinc       STATIC IMPORTED)
+  add_library(boinc_api   STATIC IMPORTED)
+  add_library(boinc_api_f STATIC IMPORTED)
 
-  #add the libs
-  add_library(boinc STATIC IMPORTED)
-  set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
+  set_target_properties(boinc       PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
+  set_target_properties(boinc_api   PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
+  set_target_properties(boinc_api_f PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
 
-  add_library(boinc_api STATIC IMPORTED)
-  set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
-  target_link_libraries(SixTrackCR boinc_api)
+  target_link_libraries(SixTrackCR boinc_api_f boinc_api boinc stdc++)
+  # target_link_libraries(SixTrackCR Threads::Threads)
 
-  target_link_libraries(SixTrackCR boinc)
+  # if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  #   find_library(nsl STATIC nsl)
+  #   target_link_libraries(SixTrackCR nsl)
+  # endif()
 
-  find_library(stdc++ STATIC stdc++)
-  target_link_libraries(SixTrackLib stdc++ Threads::Threads)
-
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    find_library(nsl STATIC nsl)
-    target_link_libraries(SixTrackCR nsl)
-  endif()
-
-  #fix osx linking to the correct c++ stdlib
+  # Fix OSX linking to the correct c++ stdlib
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     find_library(c++ STATIC c++)
-    target_link_libraries(SixTrackCR c++)
+    target_link_libraries(SixTrackLib c++)
   endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 

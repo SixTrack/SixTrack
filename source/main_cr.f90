@@ -162,16 +162,21 @@ end interface
 
   ! ---------------------------------------------------------------------------------------------- !
   errout_status = 0 ! Set to nonzero before calling abend in case of error.
+#ifdef CR
   lout = 92
-#ifndef CR
+#else
   lout = output_unit
 #endif
 
+#ifdef BOINC
+  call boinc_init
+! call boinc_init_graphics
+#endif
   call funit_initUnits ! This one has to be first
+  call units_initUnits ! And this one second
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
-  call units_initUnits
-  call alloc_init      ! Initialise tmod_alloc
+  call alloc_init      ! Initialise mod_alloc
   call allocate_arrays ! Initial allocation of memory
 #ifdef HASHLIB
   call hash_initialise
@@ -215,8 +220,6 @@ end interface
 #endif
 #ifdef BOINC
   featList = featList//" BOINC"
-  call boinc_init()
-! call boinc_init_graphics()
 #endif
 #ifdef LIBARCHIVE
   featList = featList//" LIBARCHIVE"
@@ -254,6 +257,7 @@ end interface
 
 #ifdef BOINC
 611 continue
+  ! Goes here after unzip for BOINC
 #endif
   ! Very first get rid of any previous partial output
   inquire(unit=lout, opened=isOpen)
@@ -776,7 +780,7 @@ end interface
 !     call abend('ado 150                                           ')
 #endif
         dp1=zero
-        if(ichrom.gt.1) then
+        if(ichrom > 1) then
           itiono=ition
           ition=0
           call chromda
@@ -790,11 +794,15 @@ end interface
               smiv(ncrr)=smi(ncrr)
             endif
           enddo
+        else
+          itiono = 0 ! -Wmaybe-uninitialized
         endif
         dp1=dp00
         dp0=dp00
-        if(imc.gt.1) then
-          ddp1=(two*dp0)/(real(imc,fPrec)-one)                                 !hr05
+        if(imc > 1) then
+          ddp1 = (two*dp0)/(real(imc,fPrec)-one)
+        else
+          ddp1 = zero ! -Wmaybe-uninitialized
         endif
         do 250 ib=1,imc
           if(imc.gt.1) then

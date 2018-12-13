@@ -85,10 +85,10 @@ featList = ""
   lout=output_unit
 #endif
   call funit_initUnits ! This one has to be first
+  call units_initUnits ! And this one second
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
-  call units_initUnits
-  call alloc_init      ! Initialise tmod_alloc
+  call alloc_init      ! Initialise mod_alloc
   call allocate_arrays ! Initial allocation of memory
 
   ! Open files
@@ -258,12 +258,14 @@ featList = ""
   end do
   dp10=dp1
   dp1=zero
-  if(ichrom.gt.1) then
+  if(ichrom > 1) then
     itiono=ition
     ition=0
     call chromda
     ition=itiono
-  endif
+  else
+    itiono = 0 ! -Wmaybe-uninitialized
+  end if
   dp1=dp10
   if(idp /= 1 .or. iation /= 1) iclo6 = 0
   if(iclo6 == 1 .or. iclo6 == 2) then

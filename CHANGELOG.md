@@ -1,6 +1,21 @@
 # SixTrack Changelog
 
-### Version 5.1.0 [10.12.2018] - BOINC Release
+### Version 5.1.1 [13.12.2018] - BOINC Release
+
+**BOINC Specific Changes**
+
+* Updated to use BOINC lib and API 7.14.2.
+
+**Known Issues**
+
+* BOINC with API does not run properly when built on latest Ubuntu LTS and Debian when both the BOINC API and SixTrack is built with the Gnu compiler. Mixing gcc and ifort or nagfor runs fine. This does not seem to be an issue when building on fedora and CentOS. The executables provided for this release are built on CentOS 7.
+
+**Test Suite**
+
+* A test can now be configured to automaticall stop on certain turn numbers using the `CRKILLSWITCH` flag in the `SETTINGS` block. This will help ensuring that tests actually restart from checkpoint data.
+* The test suite can now verify that specified tests actually do restart when building with checkpoint/restart support.
+
+### Version 5.1.0 [11.12.2018] - Release
 
 While this release includes regular bug fixes and changes, the primary focus is on making code improvements that allows for a wider range of studies to be run on BOINC.
 
@@ -33,6 +48,7 @@ While this release includes regular bug fixes and changes, the primary focus is 
 * Fixes a bug in checkpoint/restarting where `DUMP` restart information was not written to the secondary checkpoint file.
 * Fixed a bug in checkpoint/restarting where an infinite loop might occur when both primary and secondary checkpoint files were corrupt.
 * Checkpoint/restarting did not work as expected when building with the nagfor compiler. This compiler is more strict than gfortran and ifort on how files are accessed, which caused a nagfor built executable to try to overwrite `fort.10` with a dummy file even if it existed.
+* Fixed a bug in beam--beam in the case of the `ibeco` flag being set to 0. In this case the beam offset would be computed with uninitialised variables.
 
 **Code Improvements and Changes**
 

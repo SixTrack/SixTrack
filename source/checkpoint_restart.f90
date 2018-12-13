@@ -28,6 +28,7 @@ module checkpoint_restart
   integer,             public, save :: bllrec
   integer,             public, save :: numlcr
   integer,             public, save :: sixrecs
+  integer,             public, save :: crksunit = -1             ! File unit for the kill switch file
 
   logical,             public, save :: rerun
   logical,             public, save :: start
@@ -57,7 +58,8 @@ module checkpoint_restart
   integer,             allocatable, public, save :: crbinrecs(:) ! (npart+1)/2)
   integer,             allocatable, public, save :: crnumxv(:)   ! (npart)
   integer,             allocatable, public, save :: crnnumxv(:)  ! (npart)
-  integer,             allocatable, public, save :: crnlostp(:)  ! (npart)
+  integer,             allocatable, public, save :: crpartID(:)  ! (npart)
+  integer,             allocatable, public, save :: crparentID(:) ! (npart)
 
   logical,             allocatable, public, save :: crpstop(:)   ! (npart)
   logical,             allocatable, public, save :: crllostp(:)  ! (npart)
@@ -104,13 +106,91 @@ subroutine cr_expand_arrays(npart_new)
   call alloc(crbinrecs,    npair_new,      0,       "crbinrecs")
   call alloc(crnumxv,      npart_new,      0,       "crnumxv")
   call alloc(crnnumxv,     npart_new,      0,       "crnnumxv")
-  call alloc(crnlostp,     npart_new,      0,       "crnlostp")
+  call alloc(crpartID,     npart_new,      0,       "crpartID")
+  call alloc(crparentID,   npart_new,      0,       "crparentID")
   call alloc(crpstop,      npart_new,      .false., "crpstop")
   call alloc(crllostp,     npart_new,      .false., "crllostp")
 
   crnpart_old = npart_new
 
 end subroutine cr_expand_arrays
+
+! ================================================================================================ !
+!  CR KILL SWITCH
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-11-16
+!  This routine will kill SixTrack if the current turn number matches a number in crkillturns
+! ================================================================================================ !
+subroutine cr_killSwitch(iTurn)
+
+  use crcoall
+  use file_units
+  use mod_settings
+
+  integer, intent(in) :: iTurn
+
+  logical killIt, fExist, onKillTurn
+  integer pTurn, nKills, i
+
+  killIt = .false.
+  onKillTurn = .false.
+
+  do i=1,size(st_killturns,1)
+    if(iTurn == st_killturns(i)) then
+      onKillTurn = .true.
+    end if
+  end do
+  if (onKillTurn .eqv. .false.) then
+    return
+  end if
+
+  if(crksunit == -1) then
+    call funit_requestUnit("crkillswitch.tmp",crksunit)
+  end if
+
+  inquire(file="crkillswitch.tmp",exist=fExist)
+  if(fExist .eqv. .false.) then
+    open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace",action="write")
+    write(crksunit) 0,0
+    flush(crksunit)
+    close(crksunit)
+  end if
+
+  open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")
+  read(crksunit) pTurn,nKills
+  flush(crksunit)
+  close(crksunit)
+  if(st_debug .and. pTurn > 0) then
+    write(lout,"(a,i0)") "CRKILL> Kill switch previously triggered on turn ",pTurn
+    write(93,  "(a,i0)") "SIXTRACR> Kill switch previously triggered on turn ",pTurn
+  end if
+
+  do i=1,size(st_killturns,1)
+    if(iTurn == st_killturns(i) .and. iTurn > pTurn) then
+      killIt = .true.
+      exit
+    end if
+  end do
+
+  if(killIt) then
+    nKills = nKills + 1
+
+    write(lout,"(a,i0)") "CRKILL> Triggering kill switch on turn ",iTurn
+    write(93,  "(a,i0)") "SIXTRACR> Triggering kill switch on turn ",iTurn
+
+    open(crksunit,file="crrestartme.tmp",form="unformatted",access="stream",status="replace",action="write")
+    write(crksunit) 1
+    flush(crksunit)
+    close(crksunit)
+
+    open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace",action="write")
+    write(crksunit) iTurn,nKills
+    flush(crksunit)
+    close(crksunit)
+    stop 0
+  end if
+
+end subroutine cr_killSwitch
 
 ! ================================================================================================ !
 !  CRCHECK
@@ -209,7 +289,8 @@ subroutine crcheck
       (crbinrecs(j),j=1,(crnapxo+1)/2), &
       (crnumxv(j),j=1,crnapxo),         &
       (crnnumxv(j),j=1,crnapxo),        &
-      (crnlostp(j),j=1,crnapxo),        &
+      (crpartID(j),j=1,crnapxo),        &
+      (crparentID(j),j=1,crnapxo),      &
       (crpstop(j),j=1,crnapxo),         &
       (crxv(1,j),j=1,crnapxo),          &
       (cryv(1,j),j=1,crnapxo),          &
@@ -358,7 +439,8 @@ subroutine crcheck
       (crbinrecs(j),j=1,(crnapxo+1)/2),  &
       (crnumxv(j),j=1,crnapxo),          &
       (crnnumxv(j),j=1,crnapxo),         &
-      (crnlostp(j),j=1,crnapxo),         &
+      (crpartID(j),j=1,crnapxo),         &
+      (crparentID(j),j=1,crnapxo),       &
       (crpstop(j),j=1,crnapxo),          &
       (crxv(1,j),j=1,crnapxo),           &
       (cryv(1,j),j=1,crnapxo),           &
@@ -936,7 +1018,8 @@ subroutine crpoint
       (binrecs(j),j=1,(napxo+1)/2), &
       (numxv(j),j=1,napxo),         &
       (nnumxv(j),j=1,napxo),        &
-      (nlostp(j),j=1,napxo),        &
+      (partID(j),j=1,napxo),        &
+      (parentID(j),j=1,napxo),      &
       (pstop(j),j=1,napxo),         &
       (xv1(j),j=1,napxo),           &
       (yv1(j),j=1,napxo),           &
@@ -1174,7 +1257,8 @@ subroutine crstart
   do j=1,napxo
     numxv(j)=crnumxv(j)
     nnumxv(j)=crnnumxv(j)
-    nlostp(j)=crnlostp(j)
+    partID(j)=crpartID(j)
+    parentID(j)=crparentID(j)
     pstop(j)=crpstop(j)
     llostp(j)=crllostp(j)
     xv1(j)=crxv(1,j)

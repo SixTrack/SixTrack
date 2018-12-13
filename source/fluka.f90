@@ -196,7 +196,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
 !     particles to be tracked
       do j=1,napx
 !        Update values related to losses
-         nlostp(j) = j
+         partID(j) = j
          pstop (j) = .false.
 !        Update variables depending on total energy
 !         ejfv  (j) = sqrt((ejv(j)-pma)*(ejv(j)+pma))
@@ -252,7 +252,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
 !     empty places
       do j=napx+1,npart
 !        Update values related to losses
-         nlostp(j) = j
+         partID(j) = j
          pstop (j) = .true.
 !        Update values related to momentum
          ejv   (j) = zero
@@ -408,7 +408,7 @@ subroutine kernel_fluka_exit( nturn, i, ix )
 !     particles to be tracked
       do j=1,napx
 !        Update values related to losses
-         nlostp(j) = j
+         partID(j) = j
          pstop (j) = .false.
 !        Update variables depending on total energy
 !         ejfv  (j) = sqrt((ejv(j)-pma)*(ejv(j)+pma))
@@ -464,7 +464,7 @@ subroutine kernel_fluka_exit( nturn, i, ix )
 !     empty places
       do j=napx+1,npart
 !        Update values related to losses
-         nlostp(j) = j
+         partID(j) = j
          pstop (j) = .true.
 !        Update values related to momentum
          ejv   (j) = zero

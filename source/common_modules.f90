@@ -102,6 +102,10 @@ module mod_settings
   logical, save :: st_partsum    = .false. ! Flag to print final particle summary
   integer, save :: st_finalstate = 0       ! Dump particle final state (mod_particles)
 
+  ! Checpoint/Restart Kills Switch Settings
+  logical,              save :: st_killswitch = .false. ! Enables the kill on turn number debug feature
+  integer, allocatable, save :: st_killturns(:)         ! List of killswitch turns
+
 end module mod_settings
 
 ! ================================================================================================ !
@@ -579,7 +583,8 @@ module mod_commonmn
 
   integer,          allocatable, save :: numxv(:)     ! (npart)
   integer,          allocatable, save :: nms(:)       ! (npart)
-  integer,          allocatable, save :: nlostp(:)    ! (npart)
+  integer,          allocatable, save :: partID(:)    ! (npart)
+  integer,          allocatable, save :: parentID(:)  ! (npart)
 
   logical,          allocatable, save :: pstop(:)     ! (npart)
   logical,          allocatable, save :: llostp(:)    ! (npart)
@@ -707,7 +712,8 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   call alloc(ejf0v,            npart_new,      zero,    "ejf0v")
   call alloc(numxv,            npart_new,      0,       "numxv")
   call alloc(nms,              npart_new,      0,       "nms")
-  call alloc(nlostp,           npart_new,      0,       "nlostp")
+  call alloc(partID,           npart_new,      0,       "partID")
+  call alloc(parentID,         npart_new,      0,       "parentID")
   call alloc(pstop,            npart_new,      .false., "pstop")
   call alloc(llostp,           npart_new,      .false., "llostp")
 

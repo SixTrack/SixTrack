@@ -3552,16 +3552,16 @@ end subroutine join
          do ia=1,napx-1
 !GRD
 !     PSTOP=true -> particle lost,
-!     nlostp(ia)=particle ID that is not changing
+!     partID(ia)=particle ID that is not changing
 !     (the particle arrays are compressed to remove lost particles)
-!     In the case of no lost particles, all nlostp(i)=i for 1..npart
-            if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and. &
-     &           (mod(nlostp(ia),2).ne.0)) then !Skip odd particle IDs
+!     In the case of no lost particles, all partID(i)=i for 1..npart
+            if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and. &
+     &           (mod(partID(ia),2).ne.0)) then !Skip odd particle IDs
 
-               ia2=(nlostp(ia)+1)/2 !File ID for non-STF & binrecs
+               ia2=(partID(ia)+1)/2 !File ID for non-STF & binrecs
                ie=ia+1              !ia = Particle ID 1, ie = Particle ID 2
 
-               if(ntwin.ne.2) then !Write particle nlostp(ia) only
+               if(ntwin.ne.2) then !Write particle partID(ia) only
                   dam_tmp      = real(dam(ia),   real64)
                   xv_tmp(1,1)  = real(xv1(ia),  real64)
                   yv_tmp(1,1)  = real(yv1(ia),  real64)
@@ -3580,7 +3580,7 @@ end subroutine join
 #else
                   write(90,iostat=ierro)                                &
 #endif
-     &               numx,nlostp(ia),dam_tmp,                           &
+     &               numx,partID(ia),dam_tmp,                           &
      &               xv_tmp(1,1),yv_tmp(1,1),                           &
      &               xv_tmp(2,1),yv_tmp(2,1),                           &
      &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp
@@ -3593,7 +3593,7 @@ end subroutine join
                   binrecs(ia2)=binrecs(ia2)+1
 #endif
 
-               else !Write both particles nlostp(ia) and nlostp(ia)+1
+               else !Write both particles partID(ia) and partID(ia)+1
                     ! Note that dam(ia) (distance in angular phase space)
                     ! is written twice.
                   dam_tmp      = real(dam(ia),   real64)
@@ -3622,11 +3622,11 @@ end subroutine join
 #else
                   write(90,iostat=ierro)                                &
 #endif
-     &               numx,nlostp(ia),dam_tmp,                           &
+     &               numx,partID(ia),dam_tmp,                           &
      &               xv_tmp(1,1),yv_tmp(1,1),                           &
      &               xv_tmp(2,1),yv_tmp(2,1),                           &
      &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp,                   &
-     &               nlostp(ia)+1,dam_tmp,                              &
+     &               partID(ia)+1,dam_tmp,                              &
      &               xv_tmp(1,2),yv_tmp(1,2),                           &
      &               xv_tmp(2,2),yv_tmp(2,2),                           &
      &               sigmv_tmp(2),dpsv_tmp(2),e0_tmp

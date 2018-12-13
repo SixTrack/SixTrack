@@ -1822,7 +1822,8 @@ subroutine collimate_start_sample(nsample)
     omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
     dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 
-    nlostp(i)=i
+    partID(i)=i
+    parentID(i)=i
 
     do ieff =1, numeff
       counted_r(i,ieff) = 0
@@ -2809,8 +2810,8 @@ subroutine collimate_do_collimator(stracki)
         rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
       end if
     else
-      write(lout,*) 'ERROR: Non-zero length collimator: ', db_name1(icoll), ' length = ', stracki
-      call prror(-1)
+      write(lout,"(a,f13.6)") "COLL> ERROR Non-zero length collimator: '"//trim(db_name1(icoll))//"' length = ",stracki
+      call prror
     end if
 
     flukaname(j) = ipart(j)
@@ -3192,7 +3193,7 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
 #endif
 
-  real(kind=fPrec) stracki
+  ! real(kind=fPrec) stracki ! stracki makes no sense here
 
 !++  Output information:
 !++
@@ -3219,7 +3220,7 @@ subroutine collimate_end_collimator()
     if(part_hit_pos(j) .eq.ie .and. part_hit_turn(j).eq.iturn) then
 !++  For zero length element track back half collimator length
 ! DRIFT PART
-      if (stracki.eq.0.) then
+      ! if (stracki.eq.0.) then ! stracki makes no sense here
         if(iexact.eq.0) then
           rcx(j)  = rcx(j) - half*c_length*rcxp(j)
           rcy(j)  = rcy(j) - half*c_length*rcyp(j)
@@ -3228,7 +3229,7 @@ subroutine collimate_end_collimator()
           rcx(j) = rcx(j) - half*c_length*(rcxp(j)/zpj)
           rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
         end if
-      end if
+      ! end if ! stracki makes no sense here
 
 !++  Now copy data back to original verctor
       xv1(j) = rcx(j)  * c1e3 + torbx(ie)
@@ -4435,44 +4436,6 @@ subroutine collimate_end_turn
         llostp(j) = .false.
       else
         llostp(j) = .true.
-
-!        imov = imov + 1
-!        xgrd(imov)           = xgrd(j)
-!        ygrd(imov)           = ygrd(j)
-!        xpgrd(imov)          = xpgrd(j)
-!        ypgrd(imov)          = ypgrd(j)
-!        pgrd(imov)           = pgrd(j)
-!        ejfvgrd(imov)        = ejfvgrd(j)
-!        sigmvgrd(imov)       = sigmvgrd(j)
-!        rvvgrd(imov)         = rvvgrd(j)
-!        dpsvgrd(imov)        = dpsvgrd(j)
-!        oidpsvgrd(imov)      = oidpsvgrd(j)
-!        dpsv1grd(imov)       = dpsv1grd(j)
-!        part_hit_pos(imov)   = part_hit_pos(j)
-!        part_hit_turn(imov)  = part_hit_turn(j)
-!        part_abs_pos(imov)   = part_abs_pos(j)
-!        part_abs_turn(imov)  = part_abs_turn(j)
-!        part_select(imov)    = part_select(j)
-!        part_impact(imov)    = part_impact(j)
-!        part_indiv(imov)     = part_indiv(j)
-!        part_linteract(imov) = part_linteract(j)
-!        part_hit_before_pos(imov)  = part_hit_before_pos(j)
-!        part_hit_before_turn(imov) = part_hit_before_turn(j)
-!        secondary(imov) = secondary(j)
-!        tertiary(imov) = tertiary(j)
-!        other(imov) = other(j)
-!        scatterhit(imov) = scatterhit(j)
-!        nabs_type(imov) = nabs_type(j)
-!!GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
-!        ipart(imov) = ipart(j)
-!        flukaname(imov) = flukaname(j)
-!!KNS: Also compact nlostp (used for standard LOST calculations + output)
-!        nlostp(imov) = nlostp(j)
-!        do ieff = 1, numeff
-!          counted_r(imov,ieff) = counted_r(j,ieff)
-!          counted_x(imov,ieff) = counted_x(j,ieff)
-!          counted_y(imov,ieff) = counted_y(j,ieff)
-!        end do
       end if
     end do
 
@@ -5486,7 +5449,7 @@ end function ichoix
 !! Note: For single-diffractive scattering the vector p of momentum
 !! is modified (energy loss is applied)
 !<
-function gettran(inter,xmat,p)
+real(kind=fPrec) function gettran(inter,xmat,p)
 
   implicit none
 
@@ -5494,8 +5457,11 @@ function gettran(inter,xmat,p)
   real(kind=fPrec) :: p
 
   integer :: length
-  real(kind=fPrec) :: gettran,t,xm2,bsd
+  real(kind=fPrec) :: t,xm2,bsd
   real(kind=fPrec) :: truth,xran(1)
+
+  ! Neither if-statements below have an else, so defaultingfuction return to zero.
+  gettran = zero ! -Wmaybe-uninitialized
 
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
 #ifndef MERLINSCATTER
@@ -5525,8 +5491,7 @@ function gettran(inter,xmat,p)
     t=real(truth,fPrec)                                                    !hr09
     gettran = t
   end if
-#endif
-#ifdef MERLINSCATTER
+#else
 
   if( inter.eq.2 ) then
     gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)                  !hr09
@@ -7562,6 +7527,7 @@ subroutine funlux(array,xran,len)
 !        ARRAY(151-200) contains the 49-bin blowup of main bins
 !                       98 and 99 (right tail of distribution)
 !
+      x = zero ! -Wmaybe-uninitialized
       call ranlux(xran,len)
 !      call ranecu(xran,len,-1)
 

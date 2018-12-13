@@ -781,12 +781,11 @@ subroutine dynk_parseFUN(inLine, iErr)
 
     call dynk_checkargs(nSplit,6,"FUN funname {FIR|IIR} N filename baseFUN")
 
-    select case(trim(lnSplit(3)))
-    case("FIR")
+    if(trim(lnSplit(3)) == "FIR") then
       isFIR = .true.
-    case("IIR")
+    else
       isFIR = .false.
-    end select
+    end if
 
     call chr_cast(lnSplit(4),t,cErr) ! N
     if(isFIR) then

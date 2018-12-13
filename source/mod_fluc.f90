@@ -318,6 +318,7 @@ subroutine fluc_readFort16
   logical iErr, isOpen, isFile, inSing
   integer i
 
+  mVal   = 0
   mType  = 0
   lineNo = 0
   lMode  = 0

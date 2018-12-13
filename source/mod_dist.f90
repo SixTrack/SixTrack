@@ -113,6 +113,7 @@ subroutine dist_readDist
   use mod_particles
   use physical_constants
   use numerical_constants
+  use mod_units, only : units_openUnit
 
   implicit none
 
@@ -139,7 +140,8 @@ subroutine dist_readDist
   ln   = 0
   cErr = .false.
 
-  open(unit=dist_readUnit, file=dist_readFile)
+  call units_openUnit(unit=dist_readUnit,fileName=dist_readFile,mode='r',err=cErr,formatted=.true.,status="old")
+  if(cErr) goto 19
 
 10 continue
   read(dist_readUnit,"(a)",end=30,err=20) inLine
@@ -174,19 +176,25 @@ subroutine dist_readDist
   if(nSplit > 13) call chr_cast(lnSplit(14), dt(j),   cErr)
   if(cErr) goto 20
 
-  xv1(j)    = xv1(j)*c1e3
-  xv2(j)    = xv2(j)*c1e3
-  yv1(j)    = yv1(j)*c1e3
-  yv2(j)    = yv2(j)*c1e3
-  ejfv(j)   = ejfv(j)*c1e3
-  nucm(j)   = nucm(j)*c1e3
-  sigmv(j)  = -(e0f/e0)*((dt(j)*clight)*c1e3)
-  mtc(j)    = (nzz(j)*nucm0)/(zz0*nucm(j))
-  nlostp(j) = j
-  pstop(j)  = .false.
+  xv1(j)      = xv1(j)*c1e3
+  xv2(j)      = xv2(j)*c1e3
+  yv1(j)      = yv1(j)*c1e3
+  yv2(j)      = yv2(j)*c1e3
+  ejfv(j)     = ejfv(j)*c1e3
+  nucm(j)     = nucm(j)*c1e3
+  sigmv(j)    = -(e0f/e0)*((dt(j)*clight)*c1e3)
+  mtc(j)      = (nzz(j)*nucm0)/(zz0*nucm(j))
+  partID(j)   = j
+  parentID(j) = j
+  pstop(j)    = .false.
 
   goto 10
 
+19 continue
+  write(lout,"(a)") "DIST> ERROR Opening file '"//trim(dist_readFile)//"'"
+  call prror(-1)
+  return
+  
 20 continue
   write(lout,"(a,i0)") "DIST> ERROR Reading particles from line ",ln
   call prror(-1)
@@ -268,7 +276,8 @@ subroutine dist_finaliseDist
   write(lout,"(a,1x,f15.7)")       "DIST> Reference energy [Z TeV]:", c1m6*e0/zz0
 
   do j=napx+1,npart
-    nlostp(j)   = j
+    partID(j)   = j
+    parentID(j) = j
     pstop(j)    = .true.
     ejv(j)      = zero
     dpsv(j)     = zero
@@ -292,10 +301,14 @@ subroutine dist_echoDist
 
   use mod_common
   use mod_commonmn
+  use mod_units, only : units_openUnit
 
   integer j
+  logical cErr
 
-  open(unit=dist_echoUnit, file=dist_echoFile)
+  call units_openUnit(unit=dist_echoUnit,fileName=dist_echoFile,mode='w',err=cErr,formatted=.true.)
+  if(cErr) goto 19
+
   rewind(dist_echoUnit)
   write(dist_echoUnit,"(a,1pe25.18)") "# Total energy of synch part [MeV]: ",e0
   write(dist_echoUnit,"(a,1pe25.18)") "# Momentum of synch part [MeV/c]:   ",e0f
@@ -306,6 +319,13 @@ subroutine dist_echoDist
   end do
   close(dist_echoUnit)
 
+  return
+
+19 continue
+  write(lout,"(a)") "DIST> ERROR Opening file '"//trim(dist_echoFile)//"'"
+  call prror(-1)
+  return
+  
 end subroutine dist_echoDist
 
 end module mod_dist
