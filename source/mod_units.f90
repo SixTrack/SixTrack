@@ -29,6 +29,8 @@ module mod_units
   ! Array to keep track of files
   type(unitRecord), private, save :: units_uList(units_minUnit:units_maxUnit)
 
+  private :: f_writeLog
+
 contains
 
 subroutine f_initUnits
@@ -128,7 +130,7 @@ subroutine f_open(unit,file,formatted,mode,err,status,recl)
   character(len=*),           intent(in)  :: file
   logical,                    intent(in)  :: formatted
   character(len=*),           intent(in)  :: mode
-  logical,                    intent(out) :: err
+  logical,          optional, intent(out) :: err
   character(len=*), optional, intent(in)  :: status
   integer,          optional, intent(in)  :: recl
 
@@ -226,7 +228,6 @@ subroutine f_open(unit,file,formatted,mode,err,status,recl)
     units_uList(unit)%fixed = .true.
   end if
 
-  err = .false.
   if(formatted) then
     if(fRecl > 0) then
       if(fFio) then
@@ -251,9 +252,14 @@ subroutine f_open(unit,file,formatted,mode,err,status,recl)
   endif
 
   if(ioStat /= 0) then
-    err = .true.
-    write(error_unit,"(a,i0)") "UNITS> File '"//trim(file)//"' reported iostat = ",ioStat
     call f_writeLog("OPEN",unit,"ERROR",file)
+    if(present(err)) then
+      err = .true.
+      write(error_unit,"(a,i0)") "UNITS> File '"//trim(file)//"' reported iostat = ",ioStat
+    else
+      write(error_unit,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' reported iostat = ",ioStat
+      call prror
+    end if
   end if
 
   if(units_uList(unit)%fixed) then
@@ -261,12 +267,20 @@ subroutine f_open(unit,file,formatted,mode,err,status,recl)
   else
     call f_writeLog("OPEN",unit,"ASSIGNED",file)
   end if
+  if(present(err)) then
+    err = .false.
+  end if
   return
 
 10 continue
-  err = .true.
-  write(error_unit,"(a)") "UNITS> File '"//trim(file)//"' reported an error"
   call f_writeLog("OPEN",unit,"ERROR",file)
+  if(present(err)) then
+    write(error_unit,"(a)") "UNITS> File '"//trim(file)//"' reported an error"
+    err = .true.
+  else
+    write(error_unit,"(a)") "UNITS> ERROR File '"//trim(file)//"' reported an error"
+    call prror
+  end if
 
 end subroutine f_open
 
