@@ -196,10 +196,6 @@ end interface
   real(kind=fPrec), dimension(3) :: eps123_0,eps123_min,eps123_max,eps123_avg !initial,minimum,maximum,average emittance
   real(kind=fPrec), dimension(3) :: phi123_0  !initial phase
 
-#ifdef BOINC
-  character(len=256) filename
-#endif
-
   call alloc(turn,         napx,fma_nturn_max,   0,      "turn")
   call alloc(nturns,       napx,                 0,      "nturns")
   call alloc(hasNormDumped,nele,                 .false.,"hasNormDumped",-1)
