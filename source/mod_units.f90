@@ -44,9 +44,9 @@ subroutine f_initUnits
   open(units_logUnit,file=units_logFile,form="formatted",status="replace",action="write")
   write(units_logUnit,"(a)") "# File Units Log"
   write(units_logUnit,"(a)") repeat("#",100)
-  write(units_logUnit,"(a)") "#   AtTime  Action      Status    Unit  FileName"
+  write(units_logUnit,"(a)") "#   AtTime  Action    Unit  Status    FileName"
   flush(units_logUnit)
-  call f_writeLog("ASSIGNED","OK",units_logUnit,units_logFile)
+  call f_writeLog("INIT",units_logUnit,"FIXED",units_logFile)
 
 end subroutine f_initUnits
 
@@ -68,7 +68,7 @@ subroutine f_requestUnit(file,unit)
   unit = -1
   call f_getUnit(file,unit)
   if(unit > 0) then
-    call f_writeLog("REQUEST","EXISTS",unit,trim(file))
+    call f_writeLog("REQUEST",unit,"EXISTS",trim(file))
     return
   end if
 
@@ -82,7 +82,7 @@ subroutine f_requestUnit(file,unit)
         units_uList(i)%taken = .true.
         units_uList(i)%open  = .false.
         units_uList(i)%fixed = .false.
-        call f_writeLog("REQUEST","TAKEN",i,trim(file))
+        call f_writeLog("REQUEST",i,"TAKEN",trim(file))
       end if
     else
       unit = i
@@ -91,7 +91,7 @@ subroutine f_requestUnit(file,unit)
   end do
 
   if(unit > 0) then
-    call f_writeLog("REQUEST","NEW",unit,trim(file))
+    call f_writeLog("REQUEST",unit,"NEW",trim(file))
     units_uList(unit)%file  = trim(file)
     units_uList(unit)%mode  = ""
     units_uList(unit)%taken = .true.
@@ -137,21 +137,6 @@ subroutine f_open(unit,file,formatted,mode,err,status,recl)
   character(len=256) :: tmpBoinc
   integer i, fRecl, nUnits, ioStat, chkUnit
   logical fFio, isOpen
-
-  ! The code below breaks CR. Must look into later.
-  ! inquire(unit=unit, opened=isOpen)
-  ! if(isOpen) then
-  !   write(lout,"(a,i0,a)") "UNITS> WARNING Attemting to open already opened unit ",unit," ... ignoring"
-  !   return
-  ! end if
-
-  ! nUnits      = size(units_uList)
-  ! units_nList = units_nList + 1
-  ! if(units_nList > nUnits) then
-  !   allocate(tmpUnits(units_nList + 10))
-  !   tmpUnits(1:units_nList-1) = units_uList(1:units_nList-1)
-  !   call move_alloc(tmpUnits,units_uList)
-  ! end if
 
   if(present(recl)) then
     fRecl = recl
@@ -268,20 +253,20 @@ subroutine f_open(unit,file,formatted,mode,err,status,recl)
   if(ioStat /= 0) then
     err = .true.
     write(error_unit,"(a,i0)") "UNITS> File '"//trim(file)//"' reported iostat = ",ioStat
-    call f_writeLog("OPEN","ERROR",unit,file)
+    call f_writeLog("OPEN",unit,"ERROR",file)
   end if
 
   if(units_uList(unit)%fixed) then
-    call f_writeLog("OPEN","FiXED",unit,file)
+    call f_writeLog("OPEN",unit,"FiXED",file)
   else
-    call f_writeLog("OPEN","ASSIGNED",unit,file)
+    call f_writeLog("OPEN",unit,"ASSIGNED",file)
   end if
   return
 
 10 continue
   err = .true.
   write(error_unit,"(a)") "UNITS> File '"//trim(file)//"' reported an error"
-  call f_writeLog("OPEN","ERROR",unit,file)
+  call f_writeLog("OPEN",unit,"ERROR",file)
 
 end subroutine f_open
 
@@ -305,12 +290,12 @@ subroutine f_close(unit)
     close(unit)
     units_uList(unit)%open = .false.
     if(units_uList(unit)%taken) then
-      call f_writeLog("CLOSE","CLOSED",unit,units_uList(unit)%file)
+      call f_writeLog("CLOSE",unit,"CLOSED",units_uList(unit)%file)
     else
-      call f_writeLog("CLOSE","CLOSED",unit,"*** Unknown File ***")
+      call f_writeLog("CLOSE",unit,"CLOSED","*** Unknown File ***")
     end if
   else
-    call f_writeLog("CLOSE","NOTOPEN",unit,units_uList(unit)%file)
+    call f_writeLog("CLOSE",unit,"NOTOPEN",units_uList(unit)%file)
   end if
 
 end subroutine f_close
@@ -337,17 +322,17 @@ subroutine f_flush(unit)
 
 end subroutine f_flush
 
-subroutine f_writeLog(action,status,unit,file)
+subroutine f_writeLog(action,unit,status,file)
 
   use floatPrecision
 
   character(len=*), intent(in) :: action
-  character(len=*), intent(in) :: status
   integer,          intent(in) :: unit
+  character(len=*), intent(in) :: status
   character(len=*), intent(in) :: file
 
   real(kind=fPrec) cpuTime
-  character(len=10) wAction
+  character(len=8)  wAction
   character(len=8)  wStatus
   character(len=64) wFile
   
@@ -358,7 +343,7 @@ subroutine f_writeLog(action,status,unit,file)
   wFile   = file
 
   call cpu_time(cpuTime)
-  write(units_logUnit,"(f10.3,2x,a10,2x,a8,2x,i4,2x,a64)") cpuTime,adjustl(wAction),adjustl(wStatus),unit,adjustl(wFile)
+  write(units_logUnit,"(f10.3,2x,a8,2x,i4,2x,a8,2x,a64)") cpuTime,adjustl(wAction),unit,adjustl(wStatus),adjustl(wFile)
   flush(units_logUnit)
 
 end subroutine f_writeLog
