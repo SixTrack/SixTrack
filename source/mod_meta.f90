@@ -82,7 +82,7 @@ subroutine meta_finalise
   nCRKills1 = 0
   nCRKills2 = 0
  
-  call f_requestUnit("mod_meta_tmpUnit",tmpUnit)
+  call f_requestUnit("crkillswitch.tmp",tmpUnit)
   inquire(file="crkillswitch.tmp",exist=fExist)
   if(fExist) then
     open(tmpUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")

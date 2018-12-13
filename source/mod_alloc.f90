@@ -202,7 +202,7 @@ subroutine alloc_exit
   integer memunit
 
   call f_requestUnit("maximum_memory_allocation_mbytes.txt",memunit)
-  open(memunit, file="maximum_memory_allocation_mbytes.txt", form="formatted")
+  call f_open(unit=memunit,file="maximum_memory_allocation_mbytes.txt",formatted=.true.,mode="w")
   write(memunit,"(f10.3)") real(maximum_bits,real64)/real(mbyte,real64)
   flush(memunit)
   call f_close(memunit)

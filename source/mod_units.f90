@@ -112,7 +112,11 @@ subroutine f_requestUnit(file,unit)
     units_uList(unit)%taken = .true.
     units_uList(unit)%open  = .false.
     units_uList(unit)%fixed = .false.
-end if
+    units_nextUnit = unit + 1
+  else
+    write(error_unit,"(a,i0)") "UNITS> ERROR Could not find an available file unit within the allowed range."
+    call prror
+  end if
 
 end subroutine f_requestUnit
 
@@ -299,7 +303,7 @@ subroutine f_open(unit,file,formatted,mode,err,status,recl)
   end if
 
   if(units_uList(unit)%fixed) then
-    call f_writeLog("OPEN",unit,"FiXED",file)
+    call f_writeLog("OPEN",unit,"FIXED",file)
   else
     call f_writeLog("OPEN",unit,"ASSIGNED",file)
   end if
@@ -351,7 +355,11 @@ subroutine f_close(unit)
       call f_writeLog("CLOSE",unit,"CLOSED","*** Unknown File ***")
     end if
   else
-    call f_writeLog("CLOSE",unit,"NOTOPEN",units_uList(unit)%file)
+    if(units_uList(unit)%taken) then
+      call f_writeLog("CLOSE",unit,"NOTOPEN",units_uList(unit)%file)
+    else
+      call f_writeLog("CLOSE",unit,"NOTOPEN","*** Unknown File ***")
+    end if
   end if
 
 end subroutine f_close
