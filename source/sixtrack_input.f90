@@ -53,6 +53,9 @@ module sixtrack_input
   ! Multipole Coefficients
   integer,                       public, save :: sixin_im
 
+  ! RF-multipoles
+  integer,                       public, save :: sixin_rfm
+
   ! Beam-Beam Elements
   real(kind=fPrec),              public, save :: sixin_emitNX
   real(kind=fPrec),              public, save :: sixin_emitNY
@@ -1821,6 +1824,101 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
   end if
 
 end subroutine sixin_parseInputLineMULT
+
+
+subroutine sixin_parseInputLineRF_MULT(inLine, iLine, iErr)
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen) imn
+  real(kind=fPrec) namp0,nphase0,samp0,sphase0, freq0
+  integer          nSplit,i,nmul,iil
+  logical          spErr
+
+  save nmul,iil
+   
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "MULT> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  if(iLine == 1) then
+
+    if(nSplit > 0) imn = lnSplit(1)
+    if(nSplit > 1) call chr_cast(lnSplit(2),freq0,   iErr)
+
+
+    iil      = -1
+    nmul     = 1
+    sixin_rfm = sixin_rfm + 1
+    freq_rfm(sixin_rfm) = freq0
+    
+    do i=1,il
+      if(imn == bez(i)) then
+        irm_rf(i) = sixin_rfm
+        iil    = i
+        exit
+      end if
+    end do
+
+    if(iil == -1) then
+      write(lout,"(a)") "RF-MULT> ERROR Single element '"//trim(imn)//"' not found in single element list."
+      iErr = .true.
+      return
+    end if
+
+    if(st_debug) then
+      call sixin_echoVal("imn",  imn,  "MULT",iLine)
+    end if
+
+    if(iErr) return
+
+  else
+
+    namp0 = zero
+    nphase0 = zero
+    samp0 = zero
+    sphase0 = zero
+    if(nSplit > 0) call chr_cast(lnSplit(1),namp0,iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),nphase0,iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),samp0,iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),sphase0,iErr)
+    if(st_debug) then
+      call sixin_echoVal("namp0",namp0,"MULT",iLine)
+      call sixin_echoVal("nphase0",nphase0,"MULT",iLine)
+      call sixin_echoVal("samp0",samp0,"MULT",iLine)
+      call sixin_echoVal("sphase0",sphase0,"MULT",iLine)
+    end if
+    if(iErr) return
+
+    ! Set nmu for the current single element (j)
+    ! to the currently highest multipole seen (i)
+    ! Changed so also 0 is considered to be a mutipole, since it might be changed later by dynk 
+  
+    nmu_rf(iil) = nmul
+    nor_rf_amp(sixin_rfm,nmul) = namp0
+    nor_rf_ph(sixin_rfm,nmul) = nphase0
+    skew_rf_amp(sixin_rfm,nmul) = samp0
+    skew_rf_ph(sixin_rfm,nmul) = sphase0
+    nmul = nmul + 1
+
+    if(nmul > mmul+1) then
+      write(lout,"(a,i0)") "RF MULT> ERROR The order of multipoles is too large. Maximum is ",mmul
+      iErr = .true.
+      return
+    end if
+
+  end if
+
+end subroutine sixin_parseInputLineRF_MULT
 
 ! ================================================================================================ !
 !  Parse Sub-Resonance Calculation Line

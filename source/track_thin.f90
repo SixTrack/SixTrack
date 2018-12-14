@@ -343,6 +343,8 @@ subroutine trauthin(nthinerr)
     case (25) ! Solenoid
 #include "include/solenoid.f90"
       ktrack(i) = 56
+    case (41) ! 
+      ktrack(i) = 71
 
     !----------------
     !--Negative KZZ--
@@ -546,7 +548,7 @@ subroutine thin4d(nthinerr)
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
  real(kind=fPrec) :: normal(0:4), skew(0:4), krf, freq, ten6p, dpx, dpy, dpt, x_t, y_t
-  integer iord, isSkew, nordm
+  integer iord, isSkew, nordm, newstyle_rf
   real(kind=fPrec) :: field_cos(2,0:4)
   real(kind=fPrec) :: field_sin(2,0:4)
   complex(kind=fPrec) :: Cm2, Sm2a, Cm1, Sm1a, Cp0, Sp0, Cp1, Sp1
@@ -1082,6 +1084,12 @@ subroutine thin4d(nthinerr)
 #include "include/kickelens.f90"
         end do
         goto 620
+       case (71) ! Rf-multi
+         newstyle_rf = 1
+#include "include/rfmulti.f90"
+        goto 620
+
+
       end select
       goto 630
 
@@ -1210,7 +1218,7 @@ subroutine thin6d(nthinerr)
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
  real(kind=fPrec) :: normal(0:4), skew(0:4), krf, freq, ten6p, dpx, dpy, dpt, x_t, y_t
-  integer iord, isSkew, nordm
+  integer iord, isSkew, nordm, newstyle_rf
   real(kind=fPrec) :: field_cos(2,0:4)
   real(kind=fPrec) :: field_sin(2,0:4)
   complex(kind=fPrec) :: Cm2, Sm2a, Cm1, Sm1a, Cp0, Sp0, Cp1, Sp1
@@ -1977,6 +1985,11 @@ subroutine thin6d(nthinerr)
 #include "include/kickelens.f90"
         end do
         goto 640
+      case (71) ! Rf-multi
+         newstyle_rf = 1
+#include "include/rfmulti.f90"
+        goto 640
+
       case (64) ! Scatter (thin)
         !Thin scattering
         ! It is already checked that scatter_elemPointer != 0

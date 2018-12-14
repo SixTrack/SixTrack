@@ -181,6 +181,11 @@ module mod_common
   real(kind=fPrec), allocatable, save :: bk0(:,:),ak0(:,:),bka(:,:),aka(:,:) ! (nele,mmul)
   integer,          allocatable, save :: irm(:),nmu(:)                       ! (nele)
 
+  ! RF multipoles
+  real(kind=fPrec), allocatable, save :: nor_rf_amp(:,:),nor_rf_ph(:,:),skew_rf_amp(:,:),skew_rf_ph(:,:) ! (nele,mmul)
+  integer,          allocatable, save :: nmu_rf(:), irm_rf(:)
+  real(kind=fPrec), allocatable, save :: freq_rfm(:)
+
   ! common /rand0/
   real(kind=fPrec), allocatable, save :: zfz(:) ! (nzfz)
   integer,          save :: iorg,izu0,mcut
@@ -375,10 +380,17 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(bka,                  nele_new, mmul, zero,        "bka")
   call alloc(aka,                  nele_new, mmul, zero,        "aka")
   call alloc(benkc,                nele_new,       zero,        "benkc")
+  call alloc(nor_rf_amp,           nele_new, mmul, zero,        "nor_rf_amp")
+  call alloc(nor_rf_ph,            nele_new, mmul, zero,        "nor_rf_ph")
+  call alloc(skew_rf_amp,          nele_new, mmul, zero,        "skew_rf_amp")
+  call alloc(skew_rf_ph,           nele_new, mmul, zero,        "skew_rf_ph")
+  call alloc(freq_rfm,             nele_new,       zero,        "freq_rfm")
   call alloc(r00,                  nele_new,       zero,        "r00")
   call alloc(scalemu,              nele_new,        one,        "scalemu")
   call alloc(irm,                  nele_new,       0,           "irm")
+  call alloc(irm_rf,                  nele_new,       0,        "irm_rf")
   call alloc(nmu,                  nele_new,       0,           "nmu")
+  call alloc(nmu_rf,                  nele_new,       0,        "nmu_rf")
   call alloc(bezr,    mNameLen, 3, nele_new,       str_nmSpace, "bezr")
   call alloc(kpa,                  nele_new,       0,           "kpa")
   call alloc(bez,     mNameLen,    nele_new,       str_nmSpace, "bez")
