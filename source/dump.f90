@@ -117,7 +117,7 @@ subroutine dump_lines(n,i,ix)
 
   integer, intent(in) :: n,i,ix
 
-  if ( ldump(0) ) then
+  if (ldump(0)) then
     ! Dump at all SINGLE ELEMENTs
     if (ndumpt(0) == 1 .or. mod(n,ndumpt(0)) == 1) then
       if ((n >= dumpfirst(0)) .and. ((n <= dumplast(0)) .or. (dumplast(0) == -1))) then
@@ -244,15 +244,8 @@ subroutine dump_parseInputLine(inLine,iErr)
   call chr_cast(lnSplit(2),i1,spErr)
   call chr_cast(lnSplit(3),i2,spErr)
   call chr_cast(lnSplit(4),i3,spErr)
-  if(nSplit == 4) then
-    ! Automatic fname
-    write(fileName,"(a5,i0)") "fort.",i2
-  else if(nSplit == 5 .or. nSplit  == 7) then
-    ! Given fname
+  if(nSplit >= 5) then
     fileName = trim(lnSplit(5))
-  else
-    iErr = .true.
-    return
   end if
   if(nSplit == 7) then
     call chr_cast(lnSplit(6),i4,spErr)
@@ -335,6 +328,9 @@ subroutine dump_parseInputLine(inLine,iErr)
 #ifdef HDF5
   if(h5_useForDUMP .eqv. .false.) then
 #endif
+    if(dump_fname(j) == " ") then
+      dump_fname(j) = "dump_"//trim(bez(j))
+    end if
     call f_requestUnit(trim(dump_fname(j)),dumpunit(j))
 #ifdef HDF5
   end if
