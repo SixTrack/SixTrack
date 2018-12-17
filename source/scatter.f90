@@ -224,7 +224,7 @@ end subroutine scatter_closeUnits
 ! =================================================================================================
 subroutine scatter_comnul
 
-  use file_units
+  use mod_units
 
   implicit none
 
@@ -244,7 +244,7 @@ subroutine scatter_comnul
   scatter_filePos    = -1
 #endif
 
-  call funit_requestUnit("scatter_log.dat",scatter_logFile)
+  call f_requestUnit("scatter_log.dat",scatter_logFile)
 
 end subroutine scatter_comnul
 

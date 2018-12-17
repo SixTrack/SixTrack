@@ -583,10 +583,13 @@ subroutine thin4d(nthinerr)
 #else
   do 640 n=1,numl !loop over turns
 #endif
-    if(st_quiet < 3) then
-      if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
+  if(st_quiet < 3) then
+    if(mod(n,turnrep) == 0) then
+      write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
+      flush(lout)
     end if
-    meta_nPartTurn = meta_nPartTurn + napx
+  end if
+  meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
     ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
@@ -1234,7 +1237,10 @@ subroutine thin6d(nthinerr)
   do 660 n=1,numl       ! Loop over turns
 #endif
     if(st_quiet < 3) then
-      if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
+      if(mod(n,turnrep) == 0) then
+        write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
+        flush(lout)
+      end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC

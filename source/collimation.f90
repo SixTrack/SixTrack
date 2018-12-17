@@ -24,7 +24,7 @@ module collimation
   use numerical_constants
   use mod_hions
   use mod_alloc
-  use file_units
+  use mod_units
 !  use mod_ranecu
   use mod_ranlux
 
@@ -973,7 +973,7 @@ subroutine collimate_init()
   integer g4_physics
 #endif
 
-  call funit_requestUnit('colltrack.out', outlun)
+  call f_requestUnit('colltrack.out', outlun)
   open(unit=outlun, file='colltrack.out')
 
   if(st_quiet == 0) then
@@ -1313,7 +1313,7 @@ subroutine collimate_init()
       deallocate(fldDist0)
     else
 #endif
-      call funit_requestUnit('dist0.dat', dist0_unit)
+      call f_requestUnit('dist0.dat', dist0_unit)
       open(unit=dist0_unit,file='dist0.dat') !was 52
       do j = 1, mynp
         write(dist0_unit,'(6(1X,E23.15))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
@@ -1357,7 +1357,7 @@ subroutine collimate_init()
   end if
 
 
-  call funit_requestUnit('CollPositions.dat', CollPositions_unit)
+  call f_requestUnit('CollPositions.dat', CollPositions_unit)
   open(unit=CollPositions_unit, file='CollPositions.dat')
 
 !++  Read collimator database
@@ -1644,24 +1644,24 @@ subroutine collimate_start_sample(nsample)
     deallocate(setFields)
   else
 #endif
-    call funit_requestUnit('survival.dat', survival_unit)
+    call f_requestUnit('survival.dat', survival_unit)
     open(unit=survival_unit, file='survival.dat') ! RB, DM: 2014 bug fix !was 44
     write(survival_unit,*) '# 1=turn 2=n_particle'
 #ifdef HDF5
   end if
 #endif
 
-  call funit_requestUnit('collgaps.dat', collgaps_unit)
+  call f_requestUnit('collgaps.dat', collgaps_unit)
   open(unit=collgaps_unit, file='collgaps.dat') !was 43
   if(firstrun) write(collgaps_unit,*) '# ID name  angle[rad]  betax[m]  betay[m] halfgap[m]', &
  & '  Material  Length[m]  sigx[m]  sigy[m] tilt1[rad] tilt2[rad] nsig'
 
-  call funit_requestUnit('collimator-temp.db', collimator_temp_db_unit)
+  call f_requestUnit('collimator-temp.db', collimator_temp_db_unit)
   open(unit=collimator_temp_db_unit, file='collimator-temp.db') !was 40
 !
 
 ! TW06/08 added ouputfile for real collimator settings (incluing slicing, ...)
-  call funit_requestUnit('collsettings.dat', collsettings_unit)
+  call f_requestUnit('collsettings.dat', collsettings_unit)
   open(unit=collsettings_unit, file='collsettings.dat') !was 55
 
   if(firstrun) then
@@ -1670,7 +1670,7 @@ subroutine collimate_start_sample(nsample)
   end if
 
   if(dowrite_impact) then
-    call funit_requestUnit('impact.db', impact_unit)
+    call f_requestUnit('impact.db', impact_unit)
     open(unit=impact_unit,file='impact.dat') !was 49
     write(impact_unit,*) '# 1=impact 2=divergence'
   endif
@@ -1685,18 +1685,18 @@ subroutine collimate_start_sample(nsample)
       pfile(9:9) = smpl
       pfile(10:13) = '.dat'
 
-      call funit_requestUnit(pfile(1:13), tracks2_unit)
+      call f_requestUnit(pfile(1:13), tracks2_unit)
       open(unit=tracks2_unit,file=pfile(1:13))
 
     else
-      call funit_requestUnit('tracks2.dat', tracks2_unit)
+      call f_requestUnit('tracks2.dat', tracks2_unit)
       open(unit=tracks2_unit,file='tracks2.dat') !was 38
     end if !end if (cern)
 
     if(firstrun) write(tracks2_unit,*) '# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=DE/E 9=type'
 
 !AUGUST2006:write pencul sheet beam coordiantes to file ---- TW
-    call funit_requestUnit('pencilbeam_distr.dat', pencilbeam_distr_unit)
+    call f_requestUnit('pencilbeam_distr.dat', pencilbeam_distr_unit)
     open(unit=pencilbeam_distr_unit, file='pencilbeam_distr.dat') !was 9997
     if(firstrun) write(pencilbeam_distr_unit,*) 'x    xp    y      yp'
 #ifdef HDF5
@@ -1706,7 +1706,7 @@ subroutine collimate_start_sample(nsample)
 
 !GRD-SR,09-02-2006 => new series of output controlled by the 'dowrite_impact flag
   if(do_select) then
-    call funit_requestUnit('coll_ellipse.dat', coll_ellipse_unit)
+    call f_requestUnit('coll_ellipse.dat', coll_ellipse_unit)
     open(unit=coll_ellipse_unit, file='coll_ellipse.dat') !was 45
     if(firstrun) then
       write(coll_ellipse_unit,*) '#  1=name 2=x 3=y 4=xp 5=yp 6=E 7=s 8=turn 9=halo 10=nabs_type'
@@ -1762,10 +1762,10 @@ subroutine collimate_start_sample(nsample)
 
     else
 #endif
-      call funit_requestUnit('all_impacts.dat', all_impacts_unit)
-      call funit_requestUnit('all_absorptions.dat', all_absorptions_unit)
-      call funit_requestUnit('Coll_Scatter.dat', coll_scatter_unit)
-      call funit_requestUnit('FirstImpacts.dat', FirstImpacts_unit)
+      call f_requestUnit('all_impacts.dat', all_impacts_unit)
+      call f_requestUnit('all_absorptions.dat', all_absorptions_unit)
+      call f_requestUnit('Coll_Scatter.dat', coll_scatter_unit)
+      call f_requestUnit('FirstImpacts.dat', FirstImpacts_unit)
 
       open(unit=all_impacts_unit, file='all_impacts.dat') !was 46
       open(unit=all_absorptions_unit, file='all_absorptions.dat') !was 47
@@ -1786,8 +1786,8 @@ subroutine collimate_start_sample(nsample)
 #ifdef HDF5
     end if
 #endif
-    call funit_requestUnit('FLUKA_impacts.dat', FLUKA_impacts_unit)
-    call funit_requestUnit('FLUKA_impacts_all.dat', FLUKA_impacts_all_unit)
+    call f_requestUnit('FLUKA_impacts.dat', FLUKA_impacts_unit)
+    call f_requestUnit('FLUKA_impacts_all.dat', FLUKA_impacts_all_unit)
     open(unit=FLUKA_impacts_unit, file='FLUKA_impacts.dat') !was 48
     open(unit=FLUKA_impacts_all_unit, file='FLUKA_impacts_all.dat') !was 4801
     if (firstrun) then
@@ -1797,7 +1797,7 @@ subroutine collimate_start_sample(nsample)
   end if ! if(dowrite_impact) then
 
   if(name_sel(1:3).eq.'COL') then
-    call funit_requestUnit('RHIClosses.dat', RHIClosses_unit)
+    call f_requestUnit('RHIClosses.dat', RHIClosses_unit)
     open(unit=RHIClosses_unit, file='RHIClosses.dat') !was 555
     if(firstrun) write(RHIClosses_unit,'(a)') '# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=dp/p 9=type'
   end if
@@ -1987,9 +1987,9 @@ subroutine collimate_start_sample(nsample)
   end do
 
 !---- creating a file with beta-functions at TCP/TCS
-  call funit_requestUnit('twisslike.out', twisslike_unit)
+  call f_requestUnit('twisslike.out', twisslike_unit)
   open(unit=twisslike_unit, file='twisslike.out') !was 10000
-  call funit_requestUnit('sigmasettings.out', sigmasettings_unit)
+  call f_requestUnit('sigmasettings.out', sigmasettings_unit)
   open(unit=sigmasettings_unit, file='sigmasettings.out') !was 10001
   mingap = 20
 
@@ -2644,7 +2644,7 @@ subroutine collimate_do_collimator(stracki)
 !          C_APERTURE = 2.*pencil_aperture
 
   if(firstrun.and.iturn.eq.1.and.icoll.eq.7) then
-    call funit_requestUnit('distsec', distsec_unit)
+    call f_requestUnit('distsec', distsec_unit)
     open(unit=distsec_unit,file='distsec') !was 99
     do j=1,napx
       write(distsec_unit,'(4(1X,E15.7))') xv1(j),yv1(j),xv2(j),yv2(j)
@@ -3646,7 +3646,7 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call funit_requestUnit('efficiency.dat', efficiency_unit)
+    call f_requestUnit('efficiency.dat', efficiency_unit)
     open(unit=efficiency_unit, file='efficiency.dat') !was 1991
     if(n_tot_absorbed /= 0) then
       write(efficiency_unit,*) '# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r' ! This is not correct?
@@ -3683,7 +3683,7 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call funit_requestUnit('efficiency_dpop.dat', efficiency_dpop_unit)
+    call f_requestUnit('efficiency_dpop.dat', efficiency_dpop_unit)
     open(unit=efficiency_dpop_unit, file='efficiency_dpop.dat') !was 1992
     if(n_tot_absorbed /= 0) then
       write(efficiency_dpop_unit,*) '# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart'
@@ -3722,7 +3722,7 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call funit_requestUnit('efficiency_2d.dat', efficiency_2d_unit)
+    call f_requestUnit('efficiency_2d.dat', efficiency_2d_unit)
     open(unit=efficiency_2d_unit, file='efficiency_2d.dat') !was 1993
     if(n_tot_absorbed /= 0) then
       write(efficiency_2d_unit,*) '# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs'
@@ -3770,7 +3770,7 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call funit_requestUnit('coll_summary.dat', coll_summary_unit)
+    call f_requestUnit('coll_summary.dat', coll_summary_unit)
     open(unit=coll_summary_unit, file='coll_summary.dat') !was 50
     write(coll_summary_unit,*) '# 1=icoll 2=collname 3=nimp 4=nabs 5=imp_av 6=imp_sig 7=length'
     do icoll = 1, db_ncoll
@@ -3843,9 +3843,9 @@ subroutine collimate_exit()
     close(FirstImpacts_unit)
   endif
 
-  call funit_requestUnit('amplitude.dat', amplitude_unit)
-  call funit_requestUnit('amplitude2.dat', amplitude2_unit)
-  call funit_requestUnit('betafunctions.dat', betafunctions_unit)
+  call f_requestUnit('amplitude.dat', amplitude_unit)
+  call f_requestUnit('amplitude2.dat', amplitude2_unit)
+  call f_requestUnit('betafunctions.dat', betafunctions_unit)
   open(unit=amplitude_unit, file='amplitude.dat') !was 56
   open(unit=amplitude2_unit, file='amplitude2.dat') !was 51
   open(unit=betafunctions_unit, file='betafunctions.dat') !was 57
@@ -3929,7 +3929,7 @@ subroutine collimate_exit()
 !GRD WE CAN ALSO MAKE AN ORBIT CHECKING
 !GRD
 
-  call funit_requestUnit('orbitchecking.dat', orbitchecking_unit)
+  call f_requestUnit('orbitchecking.dat', orbitchecking_unit)
   open(unit=orbitchecking_unit, file='orbitchecking.dat') !was 99
   write(orbitchecking_unit,*) '# 1=s 2=torbitx 3=torbity'
 
@@ -4473,7 +4473,7 @@ subroutine collimate_end_turn
       deallocate(fldHdf)
     else
 #endif
-      call funit_requestUnit('distn.dat', distn_unit)
+      call f_requestUnit('distn.dat', distn_unit)
       open(unit=distn_unit, file='distn.dat') !was 9998
       write(distn_unit,*) '# 1=x 2=xp 3=y 4=yp 5=z 6 =E'
       do j = 1, napx
@@ -6737,7 +6737,7 @@ subroutine readdis(filename_dis,mynp,myx,myxp,myy,myyp,myp,mys)
 
   write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
 
-  call funit_requestUnit(filename_dis, filename_dis_unit)
+  call f_requestUnit(filename_dis, filename_dis_unit)
   open(unit=filename_dis_unit, file=filename_dis, iostat=stat,status="OLD",action="read") !was 53
   if(stat.ne.0)then
     write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
@@ -6837,7 +6837,7 @@ subroutine readdis_norm(filename_dis, mynp, myalphax, myalphay, mybetax, mybetay
 
   write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
 
-  call funit_requestUnit(filename_dis, filename_dis_unit)
+  call f_requestUnit(filename_dis, filename_dis_unit)
   open(unit=filename_dis_unit, file=filename_dis, iostat=stat, status="OLD",action="read") !was 53
   if(stat.ne.0)then
     write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
@@ -7884,7 +7884,7 @@ subroutine readcollimator
 !--------------------------------------------------------------------
 !++  Read collimator database
 
-  call funit_requestUnit(coll_db, coll_db_unit)
+  call f_requestUnit(coll_db, coll_db_unit)
   open(unit=coll_db_unit,file=coll_db, iostat=ios, status="OLD",action="read") !was 53
   if(ios.ne.0)then
     write(lout,"(a)")    "COLL> ERROR in subroutine readcollimator: Could not open the file '"//coll_db//"'"
