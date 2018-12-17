@@ -47,7 +47,7 @@ contains
 subroutine dist_parseInputLine(inLine, iLine, iErr)
 
   use string_tools
-  use file_units
+  use mod_units
 
   implicit none
 
@@ -77,7 +77,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
       return
     end if
     dist_readFile = trim(lnSplit(2))
-    call funit_requestUnit(dist_readFile, dist_readUnit)
+    call f_requestUnit(dist_readFile, dist_readUnit)
     if(.not.dist_enable) dist_enable = .true.
 
   case("ECHO")
@@ -87,7 +87,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
       dist_echoFile = "echo_distribution.dat"
     end if
     dist_echo = .true.
-    call funit_requestUnit(dist_echoFile, dist_echoUnit)
+    call f_requestUnit(dist_echoFile, dist_echoUnit)
 
   case default
     write(lout,"(a)") "DIST> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
@@ -113,7 +113,7 @@ subroutine dist_readDist
   use mod_particles
   use physical_constants
   use numerical_constants
-  use mod_units, only : units_openUnit
+  use mod_units, only : f_open, f_close
 
   implicit none
 
@@ -140,7 +140,7 @@ subroutine dist_readDist
   ln   = 0
   cErr = .false.
 
-  call units_openUnit(unit=dist_readUnit,fileName=dist_readFile,mode='r',err=cErr,formatted=.true.,status="old")
+  call f_open(unit=dist_readUnit,file=dist_readFile,mode='r',err=cErr,formatted=.true.,status="old")
   if(cErr) goto 19
 
 10 continue
@@ -207,7 +207,7 @@ subroutine dist_readDist
     return
   end if
 
-  close(dist_readUnit)
+  call f_close(dist_readUnit)
   write(lout,"(a,i0,a)") "DIST> Read ",j," particles from file '"//trim(dist_readFile)//"'"
 
   ! Update longitudinal particle arrays from read momentum
@@ -301,12 +301,12 @@ subroutine dist_echoDist
 
   use mod_common
   use mod_commonmn
-  use mod_units, only : units_openUnit
+  use mod_units, only : f_open, f_close
 
   integer j
   logical cErr
 
-  call units_openUnit(unit=dist_echoUnit,fileName=dist_echoFile,mode='w',err=cErr,formatted=.true.)
+  call f_open(unit=dist_echoUnit,file=dist_echoFile,mode='w',err=cErr,formatted=.true.)
   if(cErr) goto 19
 
   rewind(dist_echoUnit)
@@ -317,7 +317,7 @@ subroutine dist_echoDist
   do j=1, napx
     write(dist_echoUnit,"(6(1x,1pe25.18))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejfv(j)
   end do
-  close(dist_echoUnit)
+  call f_close(dist_echoUnit)
 
   return
 

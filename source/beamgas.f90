@@ -293,7 +293,7 @@ subroutine beamGasInit(myenom)
   use numerical_constants
   use beamgascommon
   use crcoall
-  use file_units
+  use mod_units
 
   use collimation, only : mynp
 
@@ -309,11 +309,11 @@ subroutine beamGasInit(myenom)
   write(lout,"(a)") "BEAMGAS> Initialising"
 
   ! Get file units
-  call funit_requestUnit("dpmjet.eve",          bg_dpmJetUnit)
-  call funit_requestUnit("scatterLOC.txt",      bg_scatterLocUnit)
-  call funit_requestUnit("beamgas_config.txt",  bg_configUnit)
-  call funit_requestUnit("pressure_profile.txt",bg_pressProUnit)
-  call funit_requestUnit("localLOSSES.txt",     bg_locLossesUnit)
+  call f_requestUnit("dpmjet.eve",          bg_dpmJetUnit)
+  call f_requestUnit("scatterLOC.txt",      bg_scatterLocUnit)
+  call f_requestUnit("beamgas_config.txt",  bg_configUnit)
+  call f_requestUnit("pressure_profile.txt",bg_pressProUnit)
+  call f_requestUnit("localLOSSES.txt",     bg_locLossesUnit)
 
   open(bg_dpmJetUnit,file='dpmjet.eve')
   open(bg_scatterLocUnit,file='scatterLOC.txt')
@@ -399,7 +399,7 @@ subroutine beamGasInit(myenom)
   enddo
 ! number of lines in dpmjet - 1
   bgmax=j
-  close(bg_dpmJetUnit)
+  call f_close(bg_dpmJetUnit)
   write(lout,"(a,i0)") "BREAMGAS> Trackable events in dpmjet.eve: ",bgmax-1
 
   if (numberOfEvents.gt.mynp) then
@@ -411,7 +411,7 @@ subroutine beamGasInit(myenom)
   write(lout,"(a,i0)") "BEAMGAS> This is job number: ", njobthis
   write(lout,"(a,i0)") "BEAMGAS> Total number of jobs: ", njobs
   write(lout,"(a,i0)") "BEAMGAS> Total number of particles in simulation: ", njobs*dpmjetevents
-  close(bg_configUnit)
+  call f_close(bg_configUnit)
 
   open(bg_locLossesUnit,file='localLOSSES.txt')
   write(bg_locLossesUnit,*) '# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=z 9=DE/E 10=CollisionID'

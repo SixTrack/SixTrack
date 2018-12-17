@@ -145,7 +145,7 @@ subroutine part_dumpFinalState
 
   use, intrinsic :: iso_fortran_env, only : int32, real64
 
-  use file_units
+  use mod_units
   use parpro
   use mod_common
   use mod_commonmn
@@ -164,7 +164,7 @@ subroutine part_dumpFinalState
   case(1) ! Binary file
 
     fileName = "final_state.bin"
-    call funit_requestUnit(fileName, fileUnit)
+    call f_requestUnit(fileName, fileUnit)
 
     open(fileUnit,file=fileName,form="unformatted",access="stream",status="replace")
 
@@ -195,7 +195,7 @@ subroutine part_dumpFinalState
   case(2) ! Text file
 
     fileName = "final_state.dat"
-    call funit_requestUnit(fileName, fileUnit)
+    call f_requestUnit(fileName, fileUnit)
 
     open(fileUnit,file=fileName,form="formatted",status="replace")
 

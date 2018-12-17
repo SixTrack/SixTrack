@@ -109,7 +109,7 @@ end subroutine dynk_expand_arrays
 subroutine dynk_allocate
 
   use crcoall
-  use file_units
+  use mod_units
 
   ! Setting inital allocations
   ! These values are increased if needed when dynk_checkspace is called
@@ -132,8 +132,8 @@ subroutine dynk_allocate
   call alloc(dynk_sets,                dynk_maxSets,4, 0,         "dynk_sets")
 
   ! Set file units for I/O files
-  call funit_requestUnit("dynksets.dat",    dynk_fileUnit)
-  call funit_requestUnit("dynk_parseFUN_IO",dynk_fileUnitFUN)
+  call f_requestUnit("dynksets.dat",    dynk_fileUnit)
+  call f_requestUnit("dynk_parseFUN_IO",dynk_fileUnitFUN)
 
 end subroutine dynk_allocate
 
@@ -209,7 +209,7 @@ end subroutine dynk_parseInputLine
 subroutine dynk_parseFUN(inLine, iErr)
 
   use crcoall
-  use file_units
+  use mod_units
 
   implicit none
 
@@ -547,8 +547,8 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_cData(dynk_ncData+3) = trim(lnSplit(6)) ! ID
     dynk_ncData = dynk_ncData+3
 
-    call funit_requestUnit(dynk_cData(dynk_ncData+1),dynk_iData(dynk_niData))   ! fileUnit 1
-    call funit_requestUnit(dynk_cData(dynk_ncData+2),dynk_iData(dynk_niData+1)) ! fileUnit 2
+    call f_requestUnit(dynk_cData(dynk_ncData+1),dynk_iData(dynk_niData))   ! fileUnit 1
+    call f_requestUnit(dynk_cData(dynk_ncData+2),dynk_iData(dynk_niData+1)) ! fileUnit 2
     dynk_niData = dynk_niData+1
 
     ! Look if the filenames are used in a different FUN PIPE
