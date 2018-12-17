@@ -138,13 +138,14 @@ subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc,mtc)
   real(kind=fPrec) :: track(6,npart) !(6,npart)
   real(kind=fPrec) :: bcu(nbb,12) !(nbb,12)
   real(kind=fPrec) :: star(3,mbea) !(3,mbea)
-  real(kind=fPrec) :: mtc(npart) 
-  real(kind=fPrec), allocatable :: dum(:) !(13)
+  real(kind=fPrec) :: mtc(npart)
+!  real(kind=fPrec), allocatable :: dum(:) !(13)
+  real(kind=fPrec) :: dum(13) !(13)
 
   save
 !-----------------------------------------------------------------------
 
-  call alloc(dum,13,zero,"dum")
+  !call alloc(dum,13,zero,"dum")
 
   do jsli=1,nsli
     do i=1,np
@@ -255,7 +256,7 @@ subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc,mtc)
     end do
   end do
 
-  call dealloc(dum, "dum")
+  !call dealloc(dum, "dum")
 
   return
 
