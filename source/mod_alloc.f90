@@ -21,7 +21,7 @@ module mod_alloc
 
   ! The maximum quantity of memory allocated (bits)
   integer(kind=int64) :: maximum_bits = 0
-  integer(kind=int64) :: alloc_count  = 0
+  integer(kind=int32) :: alloc_count  = 0
 
   integer(kind=int64), parameter :: mbyte = 1024*1024*8
   integer(kind=int64), parameter :: kbyte = 1024*8
