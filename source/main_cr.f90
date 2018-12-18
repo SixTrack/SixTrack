@@ -328,8 +328,6 @@ end interface
 #endif
 
   ! Open Regular File Units
-  call f_open(unit=2, file="fort.2", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
-  call f_open(unit=3, file="fort.3", formatted=.true., mode="r", err=fErr) ! Should be opened in DATEN
   call f_open(unit=7, file="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
   call f_open(unit=9, file="fort.9", formatted=.true., mode="w", err=fErr)
   call f_open(unit=11,file="fort.11",formatted=.true., mode="w", err=fErr)

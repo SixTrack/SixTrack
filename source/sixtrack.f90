@@ -21,6 +21,7 @@ subroutine daten
   use numerical_constants
   use string_tools
   use mod_alloc
+  use mod_units
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
   use scatter,   only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
@@ -60,7 +61,7 @@ subroutine daten
   integer blockLine,blockCount
 
   logical blockOpened,blockClosed,blockReopen,openBlock,closeBlock
-  logical inErr,parseFort2
+  logical inErr,fErr,parseFort2
 
   integer icc,il1,ilin0,iMod,i,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
 
@@ -233,11 +234,17 @@ subroutine daten
 !  READ FORT.3 HEADER
 ! ================================================================================================ !
 
+  call f_open(unit=3,file="fort.3",formatted=.true.,mode="r",err=fErr)
+  if(fErr) then
+    write(lout,"(a)") "INPUT> ERROR Could not open fort.2"
+    call prror
+  end if
+
 90 continue
   read(3,"(a4,a8,a60)",end=9997,iostat=ierro) cCheck,cPad,iHead
   if(ierro > 0) then
     write(lout,"(a)") "INPUT> ERROR Could not read from fort.3"
-    call prror(-1)
+    call prror
   end if
   pLines(5) = cCheck//cPad//iHead
   lineNo3 = lineNo3+1
@@ -251,6 +258,11 @@ subroutine daten
   case("GEOM") ! Mode GEOM. Elements in fort.2
     iMod       = 2
     parseFort2 = .true.
+    call f_open(unit=2,file="fort.2",formatted=.true.,mode="r",err=fErr)
+    if(fErr) then
+      write(lout,"(a)") "INPUT> ERROR Could not open fort.2"
+      call prror
+    end if
   case default
     write(lout,"(a)") "INPUT> ERROR Unknown mode '"//cCheck//"'"
     goto 9999
@@ -284,7 +296,9 @@ subroutine daten
 110 continue ! fort.3 loop
 
   ! We have our three geometry blocks, stop parsing fort.2
-  if(nGeom >= 3) parseFort2 = .false.
+  if(nGeom >= 3) then
+    parseFort2 = .false.
+  end if
 
   ! Select unit, and increment line number for error output
   if(parseFort2) then
@@ -298,7 +312,7 @@ subroutine daten
   read(nUnit,"(a)",end=9998,iostat=iErro) inLine
   if(iErro > 0) then
     write(lout,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
-    call prror(-1)
+    call prror
   end if
 
   ! Keep the last few lines for error output, but only fort fort.3
@@ -328,7 +342,11 @@ subroutine daten
   end if
 
   ! Check for end of fort.3 input
-  if(cCheck == "ENDE") goto 9000
+  if(cCheck == "ENDE") then
+    if(iMod == 2) call f_close(2)
+    call f_close(3)
+    goto 9000
+  end if
 
   ! Check if no block is active. If so, there should be a new one if input is sane.
   if(currBlock == "NONE") then
@@ -918,7 +936,7 @@ subroutine daten
   if(napx >= 1) then
     if(e0 < pieni .or. e0 < pma) then
       write(lout,"(a)") "ENDE> ERROR Kinetic energy of the particle is less or equal to zero."
-      call prror(-1)
+      call prror
     end if
 
     call hions_postInput
