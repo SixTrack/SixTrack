@@ -924,7 +924,7 @@ subroutine daten
     call hions_postInput
     gammar = nucm0/e0
     betrel = sqrt((one+gammar)*(one-gammar))
-    
+
     if(nbeam >= 1) then
       parbe14 = (((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6
     end if
@@ -956,7 +956,7 @@ subroutine daten
     endif
 
   end if
- 
+
   call elens_postInput
 
   if(idp == 0 .or. ition == 0 .or. nbeam < 1) then

@@ -333,7 +333,7 @@ end subroutine f_open
 subroutine f_close(unit)
 
   use, intrinsic :: iso_fortran_env, only : error_unit
-  
+
   integer, intent(in) :: unit
 
   integer i
@@ -409,7 +409,7 @@ subroutine f_writeLog(action,unit,status,file)
   character(len=8)  wAction
   character(len=8)  wStatus
   character(len=64) wFile
-  
+
   if(units_logUnit <= 0) return ! Only write if we have a log file
 
   wAction = action

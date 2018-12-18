@@ -218,7 +218,7 @@ end subroutine aperture_comnul
 subroutine aperture_init
 
   use mod_units, only: f_open, f_requestUnit
-  
+
   implicit none
 
 #ifdef HDF5
@@ -259,7 +259,7 @@ subroutine aperture_init
     call h5_createDataSet("losses", h5_aperID, aper_fmtLostPart, aper_setLostPart)
   else
 #endif
-     
+
 #ifdef CR
     if (apefilepos >= 0) then
       ! Expect the file to be opened already, in crcheck
@@ -271,7 +271,7 @@ subroutine aperture_init
       end if
     else
 #endif
-       
+
     call f_requestUnit(losses_filename,losses_unit)
     inquire(unit=losses_unit, opened=isOpen) ! Was 999
       if(isOpen) then
@@ -283,7 +283,7 @@ subroutine aperture_init
 #ifdef CR
       apefilepos=0
 #endif
-    
+
       write(losses_unit,"(a)") "# turn block bezid bez slos "// &
 #ifdef FLUKA
         "fluka_uid fluka_gen fluka_weight "// &
@@ -511,7 +511,7 @@ subroutine aperture_saveLastCoordinates( i, ix, iBack )
   integer i, ix, iBack
   ! temporary variables
   integer j
-  
+
   do j=1,napx
     xLast(1,j) = xv1(j)
     xLast(2,j) = xv2(j)
@@ -2585,7 +2585,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   real(kind=fPrec) tmplen,tmpflts(3)
   integer          nSplit, i
   logical          spErr, lExist, apeFound, err
-  
+
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
     write(lout,"(a)") "LIMI> ERROR Failed to parse input line."
@@ -2631,7 +2631,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
     if(nSplit .eq. 3) then
       if(lnSPlit(3) == "MEM") then
         ldmpaperMem=.true.
-      else 
+      else
         write(lout,"(a,a)") "LIMI> ERROR Unknown third argument to PRIN keyword: ",lnSPlit(3)
         iErr = .true.
         return
@@ -2680,7 +2680,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
     write(lout,"(a)") "LIMI> ERROR Dump of aperture cross sections at specific locations are not available yet"
     iErr = .true.
     return
-    
+
     ! A.Mereghetti, 22-03-2018
     ! ask for xsec at specific locations
     ! example input line:        XSEC myCrossSec.dat 12355.78 12356.78 0.1 180
