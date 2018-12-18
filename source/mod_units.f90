@@ -272,23 +272,23 @@ subroutine f_open(unit,file,formatted,mode,err,status,recl)
     if(fRecl > 0) then
       if(fFio) then
         open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
-          action=fAction,position=fPosition,round="nearest",recl=fRecl)
+          action=fAction,position=fPosition,round="nearest",recl=fRecl,err=10)
       else
         open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
-          action=fAction,position=fPosition,recl=fRecl)
+          action=fAction,position=fPosition,recl=fRecl,err=10)
       end if
     else
       if(fFio) then
         open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
-          action=fAction,position=fPosition,round="nearest")
+          action=fAction,position=fPosition,round="nearest",err=10)
       else
         open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
-          action=fAction,position=fPosition)
+          action=fAction,position=fPosition,err=10)
       end if
     end if
   else
     open(unit,file=fFileName,form="unformatted",status=fStatus,iostat=ioStat,&
-      action=fAction,position=fPosition)
+      action=fAction,position=fPosition,err=10)
   endif
 
   if(ioStat /= 0) then
@@ -309,6 +309,17 @@ subroutine f_open(unit,file,formatted,mode,err,status,recl)
   end if
   if(present(err)) then
     err = .false.
+  end if
+  return
+
+10 continue
+  call f_writeLog("OPEN",unit,"ERROR",file)
+  if(present(err)) then
+    err = .true.
+    write(error_unit,"(a)") "UNITS> Could not open '"//trim(file)//"'"
+  else
+    write(error_unit,"(a)") "UNITS> ERROR Could not open '"//trim(file)//"'"
+    call prror
   end if
 
 end subroutine f_open
