@@ -234,7 +234,7 @@ subroutine daten
 ! ================================================================================================ !
 
 90 continue
-  read(3,"(a4,a8,a60)",end=9998,iostat=ierro) cCheck,cPad,iHead
+  read(3,"(a4,a8,a60)",end=9997,iostat=ierro) cCheck,cPad,iHead
   if(ierro > 0) then
     write(lout,"(a)") "INPUT> ERROR Could not read from fort.3"
     call prror(-1)
@@ -957,8 +957,6 @@ subroutine daten
 
   end if
  
-  call aper_postInput
-  
   call elens_postInput
 
   if(idp == 0 .or. ition == 0 .or. nbeam < 1) then
@@ -1238,9 +1236,14 @@ subroutine daten
 !  END OF INPUT PARSING
 ! ================================================================================================ !
 
+9997 continue
+  write(lout,"(a)") "INPUT> ERROR Header could not be read from fort.3"
+  call prror
+  return
+
 9998 continue
   write(lout,"(a,i0,a)") "INPUT> ERROR fort.",nUnit," is missing or empty, or end was reached without an ENDE flag."
-  call prror(-1)
+  call prror
   return
 
 9999 continue
@@ -1257,7 +1260,7 @@ subroutine daten
       write(lout,"(i5,a)") lineNo3-5+i," | "//trim(pLines(i))
     end do
   end if
-  call prror(-1)
+  call prror
   return
 
 end subroutine daten
