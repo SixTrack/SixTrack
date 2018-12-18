@@ -166,7 +166,7 @@ subroutine aperture_comnul
   end do
 
   ldmpaper            = .false.
-  aperunit            = 0
+  aperunit            = -1
   aper_filename(1:16) = ' '
   ldmpaperMem         = .false.
   loadunit            = 3 ! default: read aperture markers in fort.3
@@ -217,7 +217,7 @@ end subroutine aperture_comnul
 ! ================================================================================================ !
 subroutine aperture_init
 
-  use mod_units, only: f_open
+  use mod_units, only: f_open, f_requestUnit
   
   implicit none
 
@@ -272,7 +272,8 @@ subroutine aperture_init
     else
 #endif
        
-      inquire(unit=losses_unit, opened=isOpen) ! Was 999
+    call f_requestUnit(losses_filename,losses_unit)
+    inquire(unit=losses_unit, opened=isOpen) ! Was 999
       if(isOpen) then
         write(lout,"(a,i0,a)") "APER> ERROR Unit ",losses_unit," is already open."
         call prror(-1)
@@ -2938,16 +2939,6 @@ end subroutine aper_inputParsingDone
 !  END APERTURE LIMITATIONS PARSING
 ! ================================================================================================ !
 
-subroutine aper_postInput
-
-  use mod_units
-  implicit none
-
-  ! request unit
-  call f_requestUnit(trim(losses_filename),losses_unit)
-
-end subroutine aper_postInput
-
 ! ================================================================================================================================ !
 !  Begin Checkpoint Restart
 ! ================================================================================================================================ !
@@ -2979,7 +2970,7 @@ subroutine aper_crcheck_positionFiles
   use crcoall
   use string_tools
   use mod_common
-  use mod_units, only: f_open, f_close
+  use mod_units, only: f_open, f_close, f_requestUnit
 
   implicit none
 
@@ -2987,10 +2978,11 @@ subroutine aper_crcheck_positionFiles
   logical lerror,lopen,err
   character(len=1024) arecord
 
-  write(93,*) "SIXTRACR CRCHECK REPOSITIONING file of APERTURE LOSSES to apefilepos_cr=",apefilepos_cr
+  call f_requestUnit(losses_filename,losses_unit)
+  write(93,"(a,i0)") "SIXTRACR> CRCHECK REPOSITIONING file of APERTURE LOSSES to apefilepos_cr = ",apefilepos_cr
   flush(93)
 
-  inquire( unit=losses_unit, opened=lopen )
+  inquire(unit=losses_unit, opened=lopen)
   if (.not. lopen) call f_open(unit=losses_unit,file=losses_filename,status='old',formatted=.true.,mode='rw',err=err)
 
   apefilepos = 0
