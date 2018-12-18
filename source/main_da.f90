@@ -91,8 +91,6 @@ featList = ""
 
   ! Open files
   fErr = .false.
-  call f_open(unit=2,  file="fort.2",  formatted=.true., mode="r", err=fErr)
-  call f_open(unit=3,  file="fort.3",  formatted=.true., mode="r", err=fErr)
   call f_open(unit=12, file="fort.12", formatted=.true., mode="w", err=fErr)
   call f_open(unit=18, file="fort.18", formatted=.true., mode="rw",err=fErr)
   call f_open(unit=19, file="fort.19", formatted=.true., mode="w", err=fErr)
