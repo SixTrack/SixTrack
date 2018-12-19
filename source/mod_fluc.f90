@@ -597,6 +597,7 @@ subroutine fluc_writeFort4
   ii      = 0
   lineNo2 = 0
 
+  call f_open(unit=2,file="fort.2",formatted=.true.,mode="r",err=fErr)
   call f_open(unit=4,file="fort.4",formatted=.true.,mode="w",err=iErr)
 
   rewind(2)
@@ -659,6 +660,7 @@ subroutine fluc_writeFort4
   goto 30
 
 90 continue
+  call f_close(2)
   call f_close(4)
   return
 end subroutine fluc_writeFort4
