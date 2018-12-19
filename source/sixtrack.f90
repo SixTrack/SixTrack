@@ -236,7 +236,7 @@ subroutine daten
 
   call f_open(unit=3,file="fort.3",formatted=.true.,mode="r",err=fErr)
   if(fErr) then
-    write(lout,"(a)") "INPUT> ERROR Could not open fort.2"
+    write(lout,"(a)") "INPUT> ERROR Could not open fort.3"
     call prror
   end if
 
