@@ -89,7 +89,7 @@ subroutine abend(cstring)
   endfile(93,iostat=ierro)
   backspace(93,iostat=ierro)
 
-  call units_openUnit(unit=10,fileName="fort.10",formatted=.true.,mode="r",err=fErr,status="old",recl=8195)
+  call f_open(unit=10,file="fort.10",formatted=.true.,mode="r",err=fErr,status="old",recl=8195)
   if(fErr) goto 11
 
   ! Now we try and read fort.10 i.e. is it empty?
@@ -100,7 +100,7 @@ subroutine abend(cstring)
 11 continue
   ! Now we try and write a fort.10
   ! We put some CPU for Igor, a version, and turn number 0
-  ! call units_openUnit(unit=10,fileName="fort.10",formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
+  ! call f_open(unit=10,file="fort.10",formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
   write(93,"(a)") "SIXTRACR> STOP/ABEND writing dummy fort.10"
   endfile(93,iostat=ierro)
   backspace(93,iostat=ierro)
@@ -108,7 +108,7 @@ subroutine abend(cstring)
   ! Make sure it is closed properly before we re-open for dummy write
   inquire(10,opened=fOpen)
   if(fOpen) close(10)
-  call units_openUnit(unit=10,fileName="fort.10",formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
+  call f_open(unit=10,file="fort.10",formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
 
   sumda(:) = zero
   call time_timerCheck(time1)

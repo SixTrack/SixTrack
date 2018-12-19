@@ -61,7 +61,9 @@ end subroutine allocate_arrays
 ! Change the allocation of the arrays scaling with the main memry parameter nele, npart, etc.
 subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 
+#ifdef DEBUG
   use mod_alloc, only : alloc_log
+#endif
 
   use parpro
   use crcoall
@@ -92,7 +94,9 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   integer, intent(in) :: nblz_new
   integer, intent(in) :: nblo_new
 
+#ifdef DEBUG
   write(alloc_log,"(a,4(1x,i0))") "ALLOC> Expanding (nele,npart,nblz,nblo):",nele_new,npart_new,nblz_new,nblo_new
+#endif
 
   !Call sub-subroutines to actually expand
   call mod_common_expand_arrays(nele_new,nblo_new,nblz_new,npart_new)

@@ -2645,7 +2645,7 @@ subroutine mapflol(sa,sai,cr,cm,st)
       use numerical_constants
       use mod_lie_dab, only : nd,nd2,no,idpr,ndc,ndc2,ndpt,ndt,nplane,epsplane,xplane,ndim,ndim2
       use crcoall
-      use file_units
+      use mod_units
       implicit none
 
       integer symplecticity_check_unit
@@ -2700,7 +2700,7 @@ subroutine mapflol(sa,sai,cr,cm,st)
         write(lout,*)'deviation for symplecticity ', c1e2*(xsu-nd2)/xsu,' %'
 
 !        Each time this is run we dump out the "deviation for symplecticity". This is re-written each time the check is run
-        call funit_requestUnit('symplecticity_check.txt', symplecticity_check_unit)
+        call f_requestUnit('symplecticity_check.txt', symplecticity_check_unit)
         open(symplecticity_check_unit,file="symplecticity_check.txt", status='replace')
         write(symplecticity_check_unit,*) c1e2*(xsu-nd2)/xsu
         close(symplecticity_check_unit)

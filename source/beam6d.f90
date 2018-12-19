@@ -128,23 +128,20 @@ subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc,mtc)
   use mathlib_bouncer
   use numerical_constants
   use parpro
-  use mod_alloc
 
   implicit none
 
   integer i,ibb,ibbc,ibbc1,ibtyp,jsli,np,nsli
   real(kind=fPrec) bbf0,bbfx,bbfy,bbgx,bbgy,costh,costhp,cphi,f,s,sepx,sepx0,sepy,sepy0,sfac,sinth,sinthp,sp,sx,sy,cphi2
 
-  real(kind=fPrec) :: track(6,npart) !(6,npart)
-  real(kind=fPrec) :: bcu(nbb,12) !(nbb,12)
-  real(kind=fPrec) :: star(3,mbea) !(3,mbea)
-  real(kind=fPrec) :: mtc(npart) 
-  real(kind=fPrec), allocatable :: dum(:) !(13)
+  real(kind=fPrec) :: track(6,npart)
+  real(kind=fPrec) :: bcu(nbb,12)
+  real(kind=fPrec) :: star(3,mbea)
+  real(kind=fPrec) :: mtc(npart)
+  real(kind=fPrec) :: dum(13)
 
   save
 !-----------------------------------------------------------------------
-
-  call alloc(dum,13,zero,"dum")
 
   do jsli=1,nsli
     do i=1,np
@@ -254,8 +251,6 @@ subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc,mtc)
       track(4,i)=track(4,i)-bbfy
     end do
   end do
-
-  call dealloc(dum, "dum")
 
   return
 

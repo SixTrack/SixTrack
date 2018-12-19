@@ -10,7 +10,7 @@ subroutine umlauda
   use dump, only : dumpclo, dumptas, dumptasinv, ldump
   use crcoall
   use string_tools
-  use file_units
+  use mod_units
   use parpro
   use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
@@ -748,7 +748,7 @@ subroutine umlauda
         end if
 
         if (.not.beam_expfile_open) then
-          call funit_requestUnit("beam_expert.txt",expertUnit)
+          call f_requestUnit("beam_expert.txt",expertUnit)
 #ifdef BOINC
           call boincrf("beam_expert.txt",filename)
           open(expertUnit,file=filename,status="replace",action="write")

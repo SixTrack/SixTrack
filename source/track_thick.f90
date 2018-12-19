@@ -570,7 +570,10 @@ subroutine thck4d(nthinerr)
   do 490 n=1,numl
 #endif
     if(st_quiet < 3) then
-      if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thick 4D turn ",n," of ",numl
+      if(mod(n,turnrep) == 0) then
+        write(lout,"(a,i8,a,i8)") "TRACKING> Thick 4D turn ",n," of ",numl
+        flush(lout)
+      end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
@@ -1243,7 +1246,10 @@ subroutine thck6d(nthinerr)
   do 510 n=1,numl
 #endif
     if(st_quiet < 3) then
-      if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thick 6D turn ",n," of ",numl
+      if(mod(n,turnrep) == 0) then
+        write(lout,"(a,i8,a,i8)") "TRACKING> Thick 6D turn ",n," of ",numl
+        flush(lout)
+      end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
 ! To do a dump and abend

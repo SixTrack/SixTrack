@@ -72,11 +72,14 @@ contains
 subroutine hash_initialise
 
   use crcoall
+  use mod_settings
 
   character(len=32) md5Digest, md5Valid
   character(len=6)  tStatus
 
-  write(lout,"(a)") "HASH> Library Self Test:"
+  if(st_debug) then
+    write(lout,"(a)") "HASH> Library Self Test:"
+  end if
   hash_selfTestOK = .true.
 
   call hash_digestString("",md5Digest)
@@ -87,8 +90,10 @@ subroutine hash_initialise
     tStatus = "Failed"
     hash_selfTestOK = .false.
   end if
-  write(lout,"(a)") "HASH>   #1 : "//md5Digest//" < ''"
-  write(lout,"(a)") "HASH>    1 : "//md5Valid//" > "//tStatus
+  if(st_debug) then
+    write(lout,"(a)") "HASH>   #1 : "//md5Digest//" < ''"
+    write(lout,"(a)") "HASH>    1 : "//md5Valid//" > "//tStatus
+  end if
 
   call hash_digestString("message digest",md5Digest)
   md5Valid = "f96b697d7cb7938d525a2f31aaf161d0"
@@ -98,8 +103,10 @@ subroutine hash_initialise
     tStatus = "Failed"
     hash_selfTestOK = .false.
   end if
-  write(lout,"(a)") "HASH>   #2 : "//md5Digest//" < 'message digest'"
-  write(lout,"(a)") "HASH>    2 : "//md5Valid//" > "//tStatus
+  if(st_debug) then
+    write(lout,"(a)") "HASH>   #2 : "//md5Digest//" < 'message digest'"
+    write(lout,"(a)") "HASH>    2 : "//md5Valid//" > "//tStatus
+  end if
 
   call hash_digestString("abcdefghijklmnopqrstuvwxyz",md5Digest)
   md5Valid = "c3fcd3d76192e4007dfb496cca67e13b"
@@ -109,8 +116,10 @@ subroutine hash_initialise
     tStatus = "Failed"
     hash_selfTestOK = .false.
   end if
-  write(lout,"(a)") "HASH>   #3 : "//md5Digest//" < 'abcdefghijklmnopqrstuvwxyz'"
-  write(lout,"(a)") "HASH>    3 : "//md5Valid//" > "//tStatus
+  if(st_debug) then
+    write(lout,"(a)") "HASH>   #3 : "//md5Digest//" < 'abcdefghijklmnopqrstuvwxyz'"
+    write(lout,"(a)") "HASH>    3 : "//md5Valid//" > "//tStatus
+  end if
 
 end subroutine hash_initialise
 
@@ -190,7 +199,7 @@ subroutine hash_fileSums
 
   use parpro
   use crcoall
-  use file_units
+  use mod_units
 
   character(len=32) md5Digest
   integer           nFile
@@ -202,17 +211,17 @@ subroutine hash_fileSums
 
   if(hash_nHashFiles == 0) return
 
-  call funit_requestUnit(hash_sumFileName, hash_sumFileUnit)
-  open(hash_sumFileUnit, file=hash_sumFileName)
+  call f_requestUnit(hash_sumFileName, hash_sumFileUnit)
+  call f_open(unit=hash_sumFileUnit,file=hash_sumFileName,formatted=.true.,mode="w")
 #ifdef WIN32
-  call funit_requestUnit(hash_sumFileName, hash_sumFileUnit_win32)
-  open(hash_sumFileUnit_win32, file=hash_sumFileName//".win32")
+  call f_requestUnit(hash_sumFileName//".win32", hash_sumFileUnit_win32)
+  call f_open(unit=hash_sumFileUnit_win32,file=hash_sumFileName//".win32",formatted=.true.,mode="w")
 #endif
 
   if(hash_selfTestOK .eqv. .false.) then
     write(hash_sumFileUnit,"(a)") "HASH library failed self test. No hashes written."
     flush(hash_sumFileUnit)
-    close(hash_sumFileUnit)
+    call f_close(hash_sumFileUnit)
     return
   end if
 
@@ -220,7 +229,7 @@ subroutine hash_fileSums
   write(lout,"(a)") str_divLine
   write(lout,"(a)") ""
   write(lout,"(a)") "    Computing MD5 Hash of Files"
-  write(lout,"(a)") "   ============================="
+  write(lout,"(a)") "  ==============================="
   do nFile=1,hash_nHashFiles
     call hash_digestFile(trim(hash_listHashFiles(nFile)), md5Digest, hash_isAscii(nFile))
 #ifdef WIN32
@@ -232,9 +241,9 @@ subroutine hash_fileSums
     write(lout,                  "(a36,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
     flush(hash_sumFileUnit)
   end do
-  close(hash_sumFileUnit)
+  call f_close(hash_sumFileUnit)
 #ifdef WIN32
-  close(hash_sumFileUnit_win32)
+  call f_close(hash_sumFileUnit_win32)
 #endif
 
 end subroutine hash_fileSums

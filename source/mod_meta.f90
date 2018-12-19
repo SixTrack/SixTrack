@@ -51,13 +51,12 @@ subroutine meta_initialise
 
   use crcoall
   use mod_units
-  use file_units
 
   logical fErr
 
   fErr = .false.
-  call funit_requestUnit(meta_fileName, meta_fileUnit)
-  call units_openUnit(unit=meta_fileUnit,filename=meta_fileName,formatted=.true.,mode="w",err=fErr,status="replace")
+  call f_requestUnit(meta_fileName, meta_fileUnit)
+  call f_open(unit=meta_fileUnit,file=meta_fileName,formatted=.true.,mode="w",err=fErr,status="replace")
   if(fErr) then
     write(lout,"(a,i0)") "META> ERROR Opening of '"//meta_fileName//"' on unit #",meta_fileUnit
     call prror
@@ -73,7 +72,8 @@ end subroutine meta_initialise
 
 subroutine meta_finalise
 
-  use file_units
+  use mod_units
+  use mod_alloc
   use mod_common, only : numl
 
   integer nCRKills1,nCRKills2,tmpUnit
@@ -82,7 +82,7 @@ subroutine meta_finalise
   nCRKills1 = 0
   nCRKills2 = 0
  
-  call funit_requestUnit("mod_meta_tmpUnit",tmpUnit)
+  call f_requestUnit("crkillswitch.tmp",tmpUnit)
   inquire(file="crkillswitch.tmp",exist=fExist)
   if(fExist) then
     open(tmpUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")
@@ -90,10 +90,12 @@ subroutine meta_finalise
     close(tmpUnit)
   end if
 
-  call meta_write("NumParticleTurns",    meta_nPartTurn)
-  call meta_write("AvgParticlesPerTurn", real(meta_nPartTurn,fPrec)/numl, "f15.3")
-  call meta_write("CR_RestartCount",     meta_nRestarts)
-  call meta_write("CR_KillSwitchCount",  nCRKills2)
+  call meta_write("NumParticleTurns",        meta_nPartTurn)
+  call meta_write("AvgParticlesPerTurn",     real(meta_nPartTurn,fPrec)/numl, "f15.3")
+  call meta_write("CR_RestartCount",         meta_nRestarts)
+  call meta_write("CR_KillSwitchCount",      nCRKills2)
+  call meta_write("PeakDynamicMemAlloc[MB]", real(maximum_bits,fPrec)/1024/1024/8, "f15.3")
+  call meta_write("NumDynamicMemAllocCalls", alloc_count)
 
   write(meta_fileUnit,"(a)") "# END"
   flush(meta_fileUnit)

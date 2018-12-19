@@ -79,7 +79,7 @@ To build the standard release version of SixTrack with default options, run the 
 ## Building SixTrack
 
   * [General Requirements and Build Options](doc/build_sixtrack.md)
-  * Further details covered in the [build manual](http://sixtrack.web.cern.ch/SixTrack/docs/build_full/manual.php)
+  * Further details covered in the [build manual](http://sixtrack.web.cern.ch/SixTrack/docs/building_sixtrack.pdf)
 
 ## Developer Tools
 
