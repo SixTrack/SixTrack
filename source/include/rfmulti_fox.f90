@@ -35,11 +35,9 @@ print *, "sida1daaaaa", dare(fsida(1,iord))
 print *, "sida1daaaaa", dare(fsida(2,iord))
 print *, "sida1daaaaa", dare(fcoda(1,iord))
 print *, "sida1daaaaa", dare(fcoda(2,iord))
+
 enddo
 
-
-print *, "sid2aaaaa", dare(fsida(1,2))
-print *, "cod1aaaaa", dare(fcoda(1,1))
 
 do iord = nordm, 1, -1
 
