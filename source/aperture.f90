@@ -2546,9 +2546,11 @@ subroutine aper_parseLoadFile(load_file, iLine, iErr)
   end if
   lineNo = lineNo + 1
 
-  if(len_trim(unitLine) == 0) goto 10 ! Empty line, ignore
-  if(unitLine(1:1) == "/")    goto 10 ! Comment line, ignore
-  if(unitLine(1:1) == "!")    goto 10 ! Comment line, ignore
+  if(len_trim(unitLine) == 0)  goto 10 ! Empty line, ignore
+  if(unitLine(1:1) == "/")     goto 10 ! Comment line, ignore
+  if(unitLine(1:1) == "!")     goto 10 ! Comment line, ignore
+  if(unitLine(1:4) == "LIMI")  goto 10 ! header from MADX, ignore
+  if(unitLine(1:4) == "NEXT")  goto 10 ! closure by MADX, ignore
 
   call aper_parseInputLine(unitLine, iLine, iErr)
   if(iErr) then
@@ -2666,6 +2668,8 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
     else
       bktpre = tmplen
     endif
+    lbacktracking=.true.
+    write(lout,"(a)") "LIMI> Backtracking is on."
 
   case("XSEC")
     write(lout,"(a)") "LIMI> ERROR Dump of aperture cross sections at specific locations are not available yet"
