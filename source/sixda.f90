@@ -259,7 +259,7 @@ subroutine runcav
 
   integer idaa
   real(kind=fPrec) betr0,dare,sigmdac
-  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
+  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv,fcoda,fsida
   save
 !-----------------------------------------------------------------------
 #include "include/daini.f90"
@@ -458,7 +458,7 @@ subroutine runda
     crabpht,crabpht2,crabpht3,crabpht4
   logical fErr
   character(len=300) ch
-  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
+  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv,fcoda,fsida
   dimension zfeld1(100),zfeld2(100)
   dimension iverg(mcor)
   dimension fake(2,20),dpdav2(6),jj(100)

@@ -309,8 +309,8 @@ module mod_common
   ! common /general-rf multi/
   real(kind=fPrec), save :: normal(mmul),skew(mmul),pnl(mmul),psl(mmul) ! (nele)
   integer, save :: iord, isSkew, nordm, newstyle_rf
-  real(kind=fPrec), save :: field_cos(2,mmul)
-  real(kind=fPrec), save :: field_sin(2,mmul)
+  real(kind=fPrec), save :: field_cos(2,mmul), fsddida(2,mmul)
+  real(kind=fPrec), save :: field_sin(2,mmul), fcodda(2,mmul)
   ! common /exact/
   integer, save :: iexact
   integer, save :: curveff

@@ -36,7 +36,7 @@ subroutine umlauda
   real(kind=fPrec) zfeld1(100),zfeld2(100),dpdav2(6),rrad(3),rdd(6,6),dicu(20),angnoe(3),angp(2,6), &
     phi(3),dphi(3),b1(3),b2(3),b3(3),al1(3),al2(3),al3(3),g1(3),g2(3),g3(3),d(3),dp(3),c(3),cp(3),  &
     au(6,6),aui(2)
-  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
+  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv,fcoda,fsida
   character(len=mNameLen) typ
 #ifdef BOINC
   character(len=256) filename
@@ -1026,7 +1026,7 @@ subroutine umlauda
     endif
     if(kzz.eq.41) then
 #include "include/alignf.f90"
-!#include "include/rfmulti_fox.f90"                  
+#include "include/rfmulti_fox.f90"                  
     print * , "outttt41"
       goto 440
     endif
@@ -1834,7 +1834,7 @@ subroutine envada
   implicit none
   integer i,ien,ih,ip,l,idaa
   real(kind=fPrec) dare,result
-  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
+  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv,fcoda,fsida
   save
 !FOX  B D ;
 #include "include/dainicom.f90"
@@ -2217,7 +2217,7 @@ subroutine envquad(i,ipch)
   implicit none
   integer i,ih,ipch,idaa
   real(kind=fPrec) dare
-  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
+  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv,fcoda,fsida
   save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -2315,7 +2315,7 @@ subroutine synoda
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   implicit none
   integer ix,idaa
-  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
+  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv,fcoda,fsida
   save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -2513,7 +2513,7 @@ subroutine wireda(ix,i)
   integer ix,idaa,i
   real(kind=fPrec) NNORM_, XCLO, YCLO
   real(kind=fPrec) l,cur,dx,dy,tx,ty,embl,chi
-  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
+  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv,fcoda,fsida
   save
 !-----------------------------------------------------------------------
 !FOX  B D ;
