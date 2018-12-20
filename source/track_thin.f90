@@ -547,12 +547,12 @@ subroutine thin4d(nthinerr)
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
- real(kind=fPrec) :: normal(0:4), skew(0:4), krf, freq, ten6p, dpx, dpy, dpt, x_t, y_t
+ real(kind=fPrec) :: krf, freq, ten6p, dpx, dpy, dpt, x_t, y_t
   integer iord, isSkew, nordm, newstyle_rf
   real(kind=fPrec) :: field_cos(2,0:4)
   real(kind=fPrec) :: field_sin(2,0:4)
   complex(kind=fPrec) :: Cm2, Sm2a, Cm1, Sm1a, Cp0, Sp0, Cp1, Sp1
-  real(kind=fPrec) :: pnl(0:4), psl(0:4), crabpase_t,fact
+  real(kind=fPrec) :: crabpase_t,fact
   complex(kind=fPrec), parameter :: imag=(zero,one)
 
   save
@@ -1217,12 +1217,12 @@ subroutine thin6d(nthinerr)
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
- real(kind=fPrec) :: normal(0:4), skew(0:4), krf, freq, ten6p, dpx, dpy, dpt, x_t, y_t
+ real(kind=fPrec) :: krf, freq, ten6p, dpx, dpy, dpt, x_t, y_t
   integer iord, isSkew, nordm, newstyle_rf
   real(kind=fPrec) :: field_cos(2,0:4)
   real(kind=fPrec) :: field_sin(2,0:4)
   complex(kind=fPrec) :: Cm2, Sm2a, Cm1, Sm1a, Cp0, Sp0, Cp1, Sp1
-  real(kind=fPrec) :: pnl(0:4), psl(0:4), crabpase_t,fact
+  real(kind=fPrec) :: crabpase_t,fact
   complex(kind=fPrec), parameter :: imag=(zero,one)
   save
 

@@ -15,10 +15,10 @@
 do j=1,napx 
   if(newstyle_rf .eq. 1) then
     irrtr = irm_rf(ix)
-    NORMAL = nor_rf_amp(irrtr,1:5)
-    SKEW = skew_rf_amp(irrtr,1:5)
-    PNL = nor_rf_ph(irrtr,1:5)
-    PSL = skew_rf_ph(irrtr,1:5)
+    NORMAL(1:5) = nor_rf_amp(irrtr,1:5)
+    SKEW(1:5) = skew_rf_amp(irrtr,1:5)
+    PNL(1:5) = nor_rf_ph(irrtr,1:5)
+    PSL(1:5) = skew_rf_ph(irrtr,1:5)
     nordm=nmu_rf(irrtr)
     crabfreq = freq_rfm(irrtr)
     print *, "uuuu", crabfreq, nordm
@@ -67,7 +67,7 @@ do j=1,napx
     y_t = cikve*c1m3
     !---- Vector with strengths
 
-    do iord = 0, nordm
+    do iord = 1, nordm
       print *, "sigmmmma", sigmv(j)
       print *, "pnnnllll", pnl(iord)
       print *, "streeeeength", normal(iord)
@@ -81,12 +81,12 @@ do j=1,napx
     Cp0 = zero; Sp0 = zero; Cp1 = zero; Sp1 = zero;
     print *, "is fieeeld", field_cos(1,0), field_cos(1,1),field_cos(1,2), field_cos(1,3), nordm
 
-    do iord = nordm, 0, -1
+    do iord = nordm, 1, -1
 
-      Cp0 = Cp0 * (x_t+imag*y_t) / (iord+1)   + field_cos(1,iord)+imag*field_cos(2,iord);
+      Cp0 = Cp0 * (x_t+imag*y_t) / (iord)   + field_cos(1,iord)+imag*field_cos(2,iord);
       !Sp0 = Sp0 * (x_t+imag*y_t) / (iord+1)   + field_sin(1,iord)+imag*field_sin(2,iord);
       !Cp1 = Cp1 * (x_t+imag*y_t) / (iord+2)   + field_cos(1,iord)+imag*field_cos(2,iord);
-      Sp1 = Sp1 * (x_t+imag*y_t) / (iord+2)   + field_sin(1,iord)+imag*field_sin(2,iord);
+      Sp1 = Sp1 * (x_t+imag*y_t) / (iord+1)   + field_sin(1,iord)+imag*field_sin(2,iord);
     enddo
     Sp1 = Sp1 * (x_t+imag*y_t);
     

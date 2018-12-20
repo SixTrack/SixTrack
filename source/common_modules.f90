@@ -306,6 +306,10 @@ module mod_common
   ! common /crabco/
   real(kind=fPrec), allocatable, save :: crabph(:),crabph2(:),crabph3(:),crabph4(:) ! (nele)
 
+  ! common /general-rf multi/
+  real(kind=fPrec), save :: normal(0:mmul),skew(0:mmul),pnl(0:mmul),psl(0:mmul) ! (nele)
+  !real(kind=fPrec), save :: normal(0:4),skew(0:4),pnl(0:4),psl(0:4) ! (nele)
+
   ! common /exact/
   integer, save :: iexact
   integer, save :: curveff

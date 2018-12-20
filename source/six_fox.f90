@@ -1024,6 +1024,15 @@ subroutine umlauda
 #include "include/beam6dfi.f90"
       goto 440
     endif
+    if(kzz.eq.41) then
+#include "include/alignf.f90"
+!#include "include/rfmulti_fox.f90"                  
+    print * , "outttt41"
+      goto 440
+    endif
+
+
+
     if(kzz.eq.23) then
 !FOX  CRABAMP=ED(IX)*ZZ0 ;
 
