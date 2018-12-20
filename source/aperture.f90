@@ -59,13 +59,9 @@ module aperture
   integer, save :: aperunit                        ! fortran unit
   character(len=16), save :: aper_filename         ! file name
   logical, save :: ldmpaperMem                     ! dump aperture marker parameters as in memory
-  ! load aperture markers from external file:
-  integer, save :: loadunit                        ! fortran unit
-  character(len=16), save :: load_file             ! file name
-  ! File unit for aperture losses
-  integer, save :: losses_unit
-  ! File name for aperture losses
-  character(len=19), parameter :: losses_filename="aperture_losses.dat"
+  ! File for aperture losses
+  integer, save :: losses_unit                                             ! unit
+  character(len=19), parameter :: losses_filename="aperture_losses.dat"    ! name
 
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
   ! last modified: 02-03-2018
@@ -169,8 +165,6 @@ subroutine aperture_comnul
   aperunit            = -1
   aper_filename(1:16) = ' '
   ldmpaperMem         = .false.
-  loadunit            = 3 ! default: read aperture markers in fort.3
-  load_file(1:16)     = ' '
 
   lbacktracking = .false. ! backtracking off by default
   ! do ii=1,npart
@@ -2511,37 +2505,39 @@ end subroutine intersectTR
 !  APERTURE LIMITATIONS PARSING
 !  A. Mereghetti, P. Garcia Ortega and D. Sinuela Pastor, for the FLUKA Team
 !  J. Molson, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-06-26
+!  Last modified: 2018-12-20
 !  Input parsing split up, updated and moved from DATEN by VKBO.
 !  Original LIMI block extended to deal with RectEllipse, Octagon and RaceTrack aperture types,
 !    and with offset/tilting of profile.
 !  Possibility to read the apertures from external file with LOAD keyword
 ! ================================================================================================ !
-subroutine aper_inputUnitWrapper(inLine, iLine, iErr)
+subroutine aper_parseLoadFile(load_file, iLine, iErr)
 
   use parpro, only : mInputLn
   use mod_units
 
   implicit none
 
-  character(len=*), intent(in)    :: inLine
+  character(len=16),intent(in)    :: load_file
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
   character(len=mInputLn) unitLine
-  integer                 iErro, lineNo
+  integer                 iErro, lineNo, loadunit
+  logical                 err, lExist
 
-  save :: lineNo
-
-  if(loadunit == 3) then
-    ! If we're in fort.3, let daten handle line reading and error reporting.
-    call aper_parseInputLine(inLine, iLine, iErr)
-    lineNo = 0
-    if(loadunit /= 3) goto 10
+  lineNo=0
+  
+  call f_requestUnit(trim(load_file),loadunit)
+  inquire(file=load_file, exist=lExist)
+  if(.not.lexist) then
+    write(lout,"(a)") "LIMI> ERROR LOAD file '"//trim(load_file)//"' not found in the running folder."
+    iErr = .true.
     return
   end if
+  call f_open(unit=loadunit,file=load_file,formatted=.true.,mode='r',err=err)
 
-  ! Otherwise, iterate through LOAD file
+  ! iterate through LOAD file
 10 continue
   read(loadunit,"(a)",end=90,iostat=iErro) unitLine
   if(iErro > 0) then
@@ -2567,7 +2563,7 @@ subroutine aper_inputUnitWrapper(inLine, iLine, iErr)
   call f_close(loadunit)
   return
 
-end subroutine aper_inputUnitWrapper
+end subroutine aper_parseLoadFile
 
 subroutine aper_parseInputLine(inLine, iLine, iErr)
 
@@ -2582,6 +2578,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
+  character(len=16)               :: load_file
   real(kind=fPrec) tmplen,tmpflts(3)
   integer          nSplit, i
   logical          spErr, lExist, apeFound, err
@@ -2605,15 +2602,9 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
     end if
 
     load_file = trim(lnSplit(2))
-    call f_requestUnit(trim(load_file),loadunit)
-    inquire(file=load_file, exist=lExist)
-    if(.not.lexist) then
-      write(lout,"(a)") "LIMI> ERROR LOAD file '"//trim(load_file)//"' not found in the running folder."
-      iErr = .true.
-      return
-    end if
-    call f_open(unit=loadunit,file=load_file,formatted=.true.,mode='r',err=err)
     write(lout,"(a)") "LIMI> Apertures will be read from file '"//trim(load_file)//"'"
+    call aper_parseLoadFile(load_file, iLine, iErr)
+    if(iErr) return
 
   case("PRIN")
     ! P.G.Ortega and A.Mereghetti, 02-03-2018
