@@ -1904,10 +1904,10 @@ subroutine sixin_parseInputLineRF_MULT(inLine, iLine, iErr)
     ! Changed so also 0 is considered to be a mutipole, since it might be changed later by dynk 
   
     nmu_rf(iil) = nmul
-    nor_rf_amp(sixin_rfm,nmul) = namp0
-    nor_rf_ph(sixin_rfm,nmul) = nphase0
-    skew_rf_amp(sixin_rfm,nmul) = samp0
-    skew_rf_ph(sixin_rfm,nmul) = sphase0
+    norrfamp(sixin_rfm,nmul) = namp0
+    norrfph(sixin_rfm,nmul) = nphase0
+    skrfamp(sixin_rfm,nmul) = samp0
+    skrfph(sixin_rfm,nmul) = sphase0
     nmul = nmul + 1
 
     if(nmul > mmul+1) then

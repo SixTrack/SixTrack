@@ -5,25 +5,22 @@
   PNL = zero
   PSL = zero
 
+fact=1   
+do j=1,nordm-1   
+  fact=fact*j   
+end do
 
 
-
-    fact=1   
-    do j=1,nordm-1   
-      fact=fact*j   
-    end do
 do j=1,napx 
   if(newstyle_rf .eq. 1) then
     irrtr = irm_rf(ix)
-    NORMAL(1:5) = nor_rf_amp(irrtr,1:5)
-    SKEW(1:5) = skew_rf_amp(irrtr,1:5)
-    PNL(1:5) = nor_rf_ph(irrtr,1:5)
-    PSL(1:5) = skew_rf_ph(irrtr,1:5)
+    NORMAL = norrfamp(irrtr,:)
+    SKEW = skrfamp(irrtr,:)
+    PNL = norrfph(irrtr,:)
+    PSL = skrfph(irrtr,:)
     nordm=nmu_rf(irrtr)
     crabfreq = freq_rfm(irrtr)
-    print *, "uuuu", crabfreq, nordm
-    print *, "yyyyn", NORMAL 
-    print *, "yyyys", SKEW
+
   else
     crabamp=ed(ix)*nzz(j)
     NORMAL = zero
@@ -34,19 +31,19 @@ do j=1,napx
     !nord = max(nn, ns, n_ferr/2-1)
     if(isSkew .eq. 0) then 
       if(nordm .eq. 1) then
-        pnl(0) = pi/2 - crabpase_t
-        normal(0) = crabamp/e0f
+        pnl(1) = pi/2 - crabpase_t
+        normal(1) = crabamp/e0f
       else
-        pnl(nordm-1) =  -crabpase_t
-        normal(nordm-1) = -crabamp*fact
+        pnl(nordm) =  -crabpase_t
+        normal(nordm) = -crabamp*fact
       endif
     else
       if(nordm .eq. 1) then
-        psl(0) = -pi/2 - crabpase_t
-        skew(0) = crabamp/e0f
+        psl(1) = -pi/2 - crabpase_t
+        skew(1) = crabamp/e0f
       else
-        psl(nordm-1) = - crabpase_t
-        skew(nordm-1) = crabamp*fact
+        psl(nordm) = - crabpase_t
+        skew(nordm) = crabamp*fact
       endif
     endif
   endif
@@ -55,7 +52,7 @@ do j=1,napx
   
 
 
-  print * , "krf",  "crabfreq", "crabamp",  "phase", pnl(0), normal(0)
+
   print * , krf, crabfreq, crabamp, crabph(ix), pnl(1), normal(1), "ddddd"
   print *, psl(1), skew(1), "skeeewww11"
 
@@ -79,7 +76,6 @@ do j=1,napx
     enddo
     Cm2 = zero; Sm2a = zero; Cm1 = zero; Sm1a = zero;
     Cp0 = zero; Sp0 = zero; Cp1 = zero; Sp1 = zero;
-    print *, "is fieeeld", field_cos(1,0), field_cos(1,1),field_cos(1,2), field_cos(1,3), nordm
 
     do iord = nordm, 1, -1
 

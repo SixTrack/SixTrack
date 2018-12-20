@@ -182,7 +182,7 @@ module mod_common
   integer,          allocatable, save :: irm(:),nmu(:)                       ! (nele)
 
   ! RF multipoles
-  real(kind=fPrec), allocatable, save :: nor_rf_amp(:,:),nor_rf_ph(:,:),skew_rf_amp(:,:),skew_rf_ph(:,:) ! (nele,mmul)
+  real(kind=fPrec), allocatable, save :: norrfamp(:,:),norrfph(:,:),skrfamp(:,:),skrfph(:,:) ! (nele,mmul)
   integer,          allocatable, save :: nmu_rf(:), irm_rf(:)
   real(kind=fPrec), allocatable, save :: freq_rfm(:)
 
@@ -307,9 +307,10 @@ module mod_common
   real(kind=fPrec), allocatable, save :: crabph(:),crabph2(:),crabph3(:),crabph4(:) ! (nele)
 
   ! common /general-rf multi/
-  real(kind=fPrec), save :: normal(0:mmul),skew(0:mmul),pnl(0:mmul),psl(0:mmul) ! (nele)
-  !real(kind=fPrec), save :: normal(0:4),skew(0:4),pnl(0:4),psl(0:4) ! (nele)
-
+  real(kind=fPrec), save :: normal(mmul),skew(mmul),pnl(mmul),psl(mmul) ! (nele)
+  integer, save :: iord, isSkew, nordm, newstyle_rf
+  real(kind=fPrec), save :: field_cos(2,mmul)
+  real(kind=fPrec), save :: field_sin(2,mmul)
   ! common /exact/
   integer, save :: iexact
   integer, save :: curveff
@@ -384,10 +385,10 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(bka,                  nele_new, mmul, zero,        "bka")
   call alloc(aka,                  nele_new, mmul, zero,        "aka")
   call alloc(benkc,                nele_new,       zero,        "benkc")
-  call alloc(nor_rf_amp,           nele_new, mmul, zero,        "nor_rf_amp")
-  call alloc(nor_rf_ph,            nele_new, mmul, zero,        "nor_rf_ph")
-  call alloc(skew_rf_amp,          nele_new, mmul, zero,        "skew_rf_amp")
-  call alloc(skew_rf_ph,           nele_new, mmul, zero,        "skew_rf_ph")
+  call alloc(norrfamp,             nele_new, mmul, zero,        "norrfamp")
+  call alloc(norrfph,              nele_new, mmul, zero,        "norrfph")
+  call alloc(skrfamp,              nele_new, mmul, zero,        "skrfamp")
+  call alloc(skrfph,               nele_new, mmul, zero,        "skrfph")
   call alloc(freq_rfm,             nele_new,       zero,        "freq_rfm")
   call alloc(r00,                  nele_new,       zero,        "r00")
   call alloc(scalemu,              nele_new,        one,        "scalemu")
