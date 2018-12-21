@@ -2518,7 +2518,7 @@ subroutine aper_parseLoadFile(load_file, iLine, iErr)
 
   implicit none
 
-  character(len=16),intent(in)    :: load_file
+  character(len=64),intent(in)    :: load_file
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
@@ -2580,7 +2580,7 @@ subroutine aper_parseInputLine(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=16)               :: load_file
+  character(len=64)               :: load_file
   real(kind=fPrec) tmplen,tmpflts(3)
   integer          nSplit, i
   logical          spErr, lExist, apeFound, err
