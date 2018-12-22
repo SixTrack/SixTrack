@@ -92,7 +92,10 @@ do j=1,napx
     dpt = - krf * REAL(Sp1)*c1e3*e0f;
     yv1(j) = yv1(j) + dpx
     yv2(j) = yv2(j) + dpy
+    print *, "ejjjbefore", ejv(j)
     ejv(j) = ejv(j) + dpt
+    print *, "ejjjafter", ejv(j)
+
     
 
     ejf0v(j)=ejfv(j)

@@ -13,48 +13,55 @@ crabfreq = freq_rfm(irrtr)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI) ;
     
-!FOX  DXRF=XL*C1M3;
-!FOX  DYRF=ZL*C1M3;
+!FOX  DXRF=ONE*C1M3 ;
+!FOX  DYRF=3D0*C1M3 ;
 print *, "crabdaaaaa", dare(kcrabda)
 print *, "DXRFaaaa", dare(dxrf)
 print *, "DYRFaaaa", dare(dyrf)
 
  do iord = 1, nordm
-!FOX  FSIDA(1, IORD)=(NORRFAMP(IORD, IRRTR)* 
-!FOX  COS(NORRFPH(IORD, IRRTR)*2D0*PI  - KCRABDA)) ;
+!FOX  FCODA(1, IORD)=(NORRFAMP(IRRTR, IORD)* 
+!FOX  COS(NORRFPH(IRRTR, IORD)*2D0*PI  - KCRABDA)) ;
 
-!FOX  FSIDA(1, IORD)=(NORRFAMP(IORD, IRRTR)*
-!FOX  SIN(NORRFPH(IORD, IRRTR)*2D0*PI  - KCRABDA)) ;
+!FOX  FSIDA(1, IORD)=(NORRFAMP(IRRTR, IORD)*
+!FOX  SIN(NORRFPH(IRRTR, IORD)*2D0*PI  - KCRABDA)) ;
 
-!FOX  FCODA(2, IORD)=(SKRFAMP(IORD, IRRTR)*
-!FOX  COS(SKRFPH(IORD, IRRTR)*2D0*PI  - KCRABDA)) ;
+!FOX  FCODA(2, IORD)=(SKRFAMP(IRRTR, IORD)*
+!FOX  COS(SKRFPH(IRRTR, IORD)*2D0*PI  - KCRABDA)) ;
 
-!FOX  FSIDA(2, IORD)=(SKRFAMP(IORD, IRRTR)*
-!FOX  SIN(SKRFPH(IORD, IRRTR)*2D0*PI  - KCRABDA)) ;
-print *, "sida1daaaaa", dare(fsida(1,iord))
-print *, "sida1daaaaa", dare(fsida(2,iord))
-print *, "sida1daaaaa", dare(fcoda(1,iord))
-print *, "sida1daaaaa", dare(fcoda(2,iord))
+!FOX  FSIDA(2, IORD)=(SKRFAMP(IRRTR, IORD)*
+!FOX  SIN(SKRFPH(IRRTR, IORD)*2D0*PI  - KCRABDA)) ;
+print * , "irrrtr", irrtr
+print *, "sida1daaaaa", iord, dare(fsida(1,iord))
+print *, "sida1daaaaa",iord, dare(fsida(2,iord))
+print *, "sida1daaaaa",iord, dare(fcoda(1,iord))
+print *, "sida1daaaaa",iord, dare(fcoda(2,iord))
 
 enddo
 
-
+!FOX  CP_RE=ZERO ;
+!FOX  CP_IM=ZERO ;
+!FOX  SP_RE=ZERO ;
+!FOX  SP_IM=ZERO ;
 do iord = nordm, 1, -1
+! Måste fixaaaa temp variablens!!!
+!FOX  CP_RETP = CP_RE ;
+!FOX  CP_RE=(CP_RETP*DXRF - CP_IM*DYRF)/(IORD)  + FCODA(1, IORD) ;
+!FOX  CP_IM=(CP_RETP*DYRF + CP_IM*DXRF)/(IORD)  + FCODA(2, IORD) ;
 
-!FOX  CP_RE=(CP_RE*DXRF - CP_IM*DYRF)/(IORD)  + FCODA(1, IORD) ;
-!FOX  CP_IM=(CP_RE*DYRF + CP_IM*DXRF)/(IORD)  + FCODA(2, IORD) ;
+!FOX  SP_RETP = SP_RE ;
+!FOX  SP_RE=(SP_RETP*DXRF - SP_IM*DYRF)/(IORD+1)  + FSIDA(1, IORD) ;
+!FOX  SP_IM=(SP_RETP*DYRF + SP_IM*DXRF)/(IORD+1)  + FSIDA(2, IORD) ;
+print *, "sida1daaaaapppppsp_resp", dare(sp_re)
+print *, "sida1daaaaapppppsp_resp", dare(sp_im)
 
-!FOX  SP_RE=(SP_RE*DXRF - SP_IM*DYRF)/(IORD+1)  + FSIDA(1, IORD) ;
-!FOX  SP_IM=(SP_RE*DYRF + SP_IM*DXRF)/(IORD+1)  + FSIDA(2, IORD) ;
-print *, "sida1daaaaapppppsp_re", dare(sp_re)
-print *, "sida1daaaaapppppsp_re", dare(sp_im)
-
-print *, "sida1daaaaapppppcp_re", dare(cp_re)
-print *, "sida1daaaaapppppcp_re", dare(cp_im)
+print *, "sida1daaaaapppppcp_recp", dare(cp_re)
+print *, "sida1daaaaapppppcp_recp", dare(cp_im)
 enddo
 
-!FOX  SP_RE = SP_RE*DXRF;
-!FOX  SP_IM = SP_IM*DYRF;
+!FOX  SP_RETP = SP_RE ;
+!FOX  SP_RE=(SP_RETP*DXRF - SP_IM*DYRF) ;
+!FOX  SP_IM=(SP_RETP*DYRF + SP_IM*DXRF) ;
 
 print *, "sida1daaaaapppppsp_re_after", dare(sp_re)
 print *, "sida1daaaaapppppsp_re_after", dare(sp_im)
@@ -65,8 +72,15 @@ print *, "sida1daaaaapppppsp_re_aftercp", dare(cp_im)
 !FOX  Y(2)=Y(2) + CP_IM*C1E3*MTCDA/(ONE+DPDA);
 print *, "sida1daaaaapppppsp_y1", dare(y(1))
 print *, "sida1daaaaapppppsp_y2", dare(y(2))
-!FOX  EJ1 = EJ1 - C1E3*E0F*SP_RE/((CLIGHT*(E0F/E0))
+
+print *, "ejjjjj111before", dare(ej1)
+!FOX  EJ1 = EJ1 - (C1E3*E0F*SP_RE)/((CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI);
+
+
+
+print *, "ejjjjj111", dare(ej1)
+
 print *, "sida1daaaaapppppsp_y1", dare(y(1))
 print *, "sida1daaaaapppppsp_y2", dare(y(2))
 
