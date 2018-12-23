@@ -89,7 +89,9 @@ do j=1,napx
 
     dpx = -REAL(Cp0)*c1e3*moidpsv(j);
     dpy = AIMAG(Cp0)*c1e3*moidpsv(j);
-    dpt = - krf * REAL(Sp1)*c1e3*e0f;
+    dpt = - (REAL(Sp1)*c1e3*e0f*crabfreq*two*pi)/clight;
+
+
     yv1(j) = yv1(j) + dpx
     yv2(j) = yv2(j) + dpy
     print *, "ejjjbefore", ejv(j)

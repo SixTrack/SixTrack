@@ -1,20 +1,15 @@
 
   !---- Zero the arrays
 
-
-
- 
-
 irrtr = irm_rf(ix)
 nordm=nmu_rf(irrtr)
-crabfreq = freq_rfm(irrtr)
-  
+crabfreq = freq_rfm(irrtr)  
 
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI) ;
     
-!FOX  DXRF=ONE*C1M3 ;
-!FOX  DYRF=3D0*C1M3 ;
+!FOX  DXRF=XL*C1M3 ;
+!FOX  DYRF=ZL*C1M3 ;
 print *, "crabdaaaaa", dare(kcrabda)
 print *, "DXRFaaaa", dare(dxrf)
 print *, "DYRFaaaa", dare(dyrf)
@@ -74,15 +69,23 @@ print *, "sida1daaaaapppppsp_y1", dare(y(1))
 print *, "sida1daaaaapppppsp_y2", dare(y(2))
 
 print *, "ejjjjj111before", dare(ej1)
-!FOX  EJ1 = EJ1 - (C1E3*E0F*SP_RE)/((CLIGHT*(E0F/E0))
-!FOX  *CRABFREQ*2D0*PI);
-
-
+!FOX  EJ1 = EJ1 - (C1E3*E0F*SP_RE*CRABFREQ*2D0*PI)
+!FOX  /(CLIGHT) ;
 
 print *, "ejjjjj111", dare(ej1)
 
 print *, "sida1daaaaapppppsp_y1", dare(y(1))
 print *, "sida1daaaaapppppsp_y2", dare(y(2))
+
+!FOX  EJF0=EJF1 ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
+!FOX  DPDA1=(EJF1-E0F)/E0F*C1E3 ;
+
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  Y(1)=EJF0/EJF1*Y(1) ;
+!FOX  Y(2)=EJF0/EJF1*Y(2) ;
 
 
 
