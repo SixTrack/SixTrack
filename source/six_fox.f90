@@ -1202,7 +1202,6 @@ subroutine umlauda
 !FOX  CRABAMP3=ED(IX)*ZZ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
-print *, "areeeeeeeee heres "
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI + CRABPHT3) ;
 
@@ -1215,7 +1214,6 @@ print *, "areeeeeeeee heres "
 !FOX  3.0*CIKVE*CRKVE*CRKVE)*(((CRABFREQ*2.0)*PI)/CLIGHT)*
 !FOX  E0F*C1M6*
 !FOX  SIN(KCRABDA);
-print *, dare(crkve), dare(cikve), dare(crabamp3), dare(ej1), "uuuuuuuuu"
 
 !FOX  EJF0=EJF1 ;
 !FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
