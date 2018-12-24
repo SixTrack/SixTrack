@@ -1141,7 +1141,7 @@ subroutine umlauda
           crabfreq=ek(ix)*c1e3
           crabpht2=crabph2(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
-!FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
+!FOX  *CRABFREQ*2D0*PI + CRABPHT2) ;
 
 !FOX  Y(2)=Y(2) + (CRABAMP2*CRKVE)*
 !FOX  COS(KCRABDA)
@@ -1153,7 +1153,7 @@ subroutine umlauda
 !FOX  *(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3*
 !FOX  SIN(KCRABDA) ;
  
-   
+       
 
 !FOX  EJF0=EJF1 ;
 !FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
@@ -1177,7 +1177,7 @@ subroutine umlauda
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
-!FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
+!FOX  *CRABFREQ*2D0*PI + CRABPHT3) ;
 
 !FOX  Y(1)=Y(1) + 2*(0.5D0)*CRABAMP3*((CRKVE*CRKVE)-
 !FOX  (CIKVE*CIKVE))*C1M3*MTCDA/(ONE+DPDA)*

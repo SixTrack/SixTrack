@@ -63,7 +63,7 @@ do j=1,napx
     x_t = crkve*c1m3 
     y_t = cikve*c1m3
     !---- Vector with strengths
-
+print *, "nooordm", nordm
     do iord = 1, nordm
       print *, "sigmmmma", sigmv(j)
       print *, "pnnnllll", pnl(iord)
