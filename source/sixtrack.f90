@@ -335,6 +335,7 @@ subroutine daten
   if(currBlock == "LINE") blockReopen = .true.
   if(currBlock == "MULT") blockReopen = .true.
   if(currBlock == "TROM") blockReopen = .true.
+  if(currBlock == "RFMU") blockReopen = .true.
 
   ! Check the status of the current block
   call sixin_checkBlock(currBlock, nUnit, blockOpened, blockClosed, blockLine, blockCount)
