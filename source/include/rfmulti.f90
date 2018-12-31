@@ -1,10 +1,5 @@
 
   !---- Zero the arrays
-  NORMAL = zero
-  SKEW = zero
-  PNL = zero
-  PSL = zero
-
 
 do j=1,napx 
 
@@ -26,28 +21,25 @@ do j=1,napx
     do iord = 1, nordm
       field_cos(1,iord) = (norrfamp(irrtr,iord) * cos(norrfph(irrtr,iord)*twopi  - krf * sigmv(j)))
       field_sin(1,iord) = (norrfamp(irrtr,iord) * sin(norrfph(irrtr,iord)*twopi  - krf * sigmv(j)))
-      field_cos(2,iord) = (skrfamp(irrtr,iord)   * cos(skrfph(irrtr,iord)*twopi  - krf * sigmv(j)))
-      field_sin(2,iord) = (skrfamp(irrtr,iord)   * sin(skrfph(irrtr,iord)*twopi  - krf * sigmv(j)))
+      field_cos(2,iord) = (skrfamp(irrtr,iord)  * cos(skrfph(irrtr,iord)*twopi  - krf * sigmv(j)))
+      field_sin(2,iord) = (skrfamp(irrtr,iord)  * sin(skrfph(irrtr,iord)*twopi  - krf * sigmv(j)))
     
     enddo
-    Cm2 = zero; Sm2a = zero; Cm1 = zero; Sm1a = zero;
-    Cp0 = zero; Sp0 = zero; Cp1 = zero; Sp1 = zero;
+    
+    Cp0 = zero 
+    Sp1 = zero
 
     do iord = nordm, 1, -1
-
       Cp0 = Cp0 * (x_t+imag*y_t) / (iord)   + field_cos(1,iord)+imag*field_cos(2,iord);
       Sp1 = Sp1 * (x_t+imag*y_t) / (iord+1)   + field_sin(1,iord)+imag*field_sin(2,iord);
     enddo
+    
     Sp1 = Sp1 * (x_t+imag*y_t);
     
 
-    dpx = -REAL(Cp0)*c1e3*moidpsv(j);
-    dpy = AIMAG(Cp0)*c1e3*moidpsv(j);
-    dpt = - (REAL(Sp1)*c1e3*e0f*crabfreq*two*pi)/clight;
-
-    yv1(j) = yv1(j) + dpx
-    yv2(j) = yv2(j) + dpy 
-    ejv(j) = ejv(j) + dpt
+    yv1(j) = yv1(j) -REAL(Cp0)*c1e3*moidpsv(j)
+    yv2(j) = yv2(j) + AIMAG(Cp0)*c1e3*moidpsv(j) 
+    ejv(j) = ejv(j)  - (REAL(Sp1)*c1e3*e0f*crabfreq*two*pi)/clight
 
 
     ejf0v(j)=ejfv(j)
