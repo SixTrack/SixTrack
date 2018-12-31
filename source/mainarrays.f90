@@ -61,7 +61,9 @@ end subroutine allocate_arrays
 ! Change the allocation of the arrays scaling with the main memry parameter nele, npart, etc.
 subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 
+#ifdef DEBUG
   use mod_alloc, only : alloc_log
+#endif
 
   use parpro
   use crcoall
@@ -92,7 +94,9 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   integer, intent(in) :: nblz_new
   integer, intent(in) :: nblo_new
 
+#ifdef DEBUG
   write(alloc_log,"(a,4(1x,i0))") "ALLOC> Expanding (nele,npart,nblz,nblo):",nele_new,npart_new,nblz_new,nblo_new
+#endif
 
   !Call sub-subroutines to actually expand
   call mod_common_expand_arrays(nele_new,nblo_new,nblz_new,npart_new)
@@ -198,7 +202,8 @@ subroutine shuffleLostParticles
     if(llostp(j) .eqv. .false.) cycle
 
     ! Move lost particle to the back
-    nlostp(j:tnapx)    = cshift(nlostp(j:tnapx),    1)
+    partID(j:tnapx)    = cshift(partID(j:tnapx),    1)
+    parentID(j:tnapx)  = cshift(parentID(j:tnapx),  1)
     tmp_lostP(j:tnapx) = cshift(tmp_lostP(j:tnapx), 1)
 
     ! Main Particle Arrays

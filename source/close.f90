@@ -1,7 +1,7 @@
 ! This lives in its own file to prevent circular dependencies
 subroutine closeUnits
 
-  use file_units,  only : funit_closeUnits, funit_minUnit
+  use mod_units,   only : units_maxUnit, f_close
   use scatter,     only : scatter_closeUnits
   use dynk,        only : dynk_closeFiles
   use dump,        only : dump_closeUnits
@@ -17,7 +17,6 @@ subroutine closeUnits
 
   ! Call specific close units routines for modules
   !   that assign units dynamically or via input.
-  call funit_closeUnits
   call dump_closeUnits
   call dynk_closeFiles
   call bdex_closeFiles
@@ -27,11 +26,11 @@ subroutine closeUnits
 #endif
 
   ! Then iterate through the first 1000 units
-  do chkUnit=1, funit_minUnit-1
+  do chkUnit=1, units_maxUnit
     ! Do not close the following units:
     if(chkUnit == 6 .or. chkUnit >= 91 .and. chkUnit <= 97) cycle
     inquire(unit=chkUnit, opened=isOpen)
-    if(isOpen) close(chkUnit)
+    if(isOpen) call f_close(chkUnit)
   end do
 
   return

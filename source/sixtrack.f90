@@ -21,6 +21,7 @@ subroutine daten
   use numerical_constants
   use string_tools
   use mod_alloc
+  use mod_units
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
   use scatter,   only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
@@ -50,18 +51,19 @@ subroutine daten
 
   implicit none
 
-  character(len=mInputLn) inLine
+  character(len=mInputLn) inLine, pLines(5)
   character(len=mNameLen) ic0(10)
   character(len=60)       iHead
+  character(len=8)        cPad
   character(len=4)        currBlock, cCheck
 
   integer nUnit,lineNo2,lineNo3,nGeom
   integer blockLine,blockCount
 
   logical blockOpened,blockClosed,blockReopen,openBlock,closeBlock
-  logical inErr,parseFort2,prevPrint
+  logical inErr,fErr,parseFort2
 
-  integer icc,il1,ilin0,iMod,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
+  integer icc,il1,ilin0,iMod,i,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
 
 ! ================================================================================================ !
 !  SET DEFAULT VALUES
@@ -219,7 +221,6 @@ subroutine daten
 
   ! SIXTRACK INPUT MODULE
   inErr       = .false.
-  prevPrint   = .false.
   sixin_ncy2  = 0
   sixin_icy   = 0
 
@@ -229,17 +230,25 @@ subroutine daten
   nGeom       = 0
   lineNo2     = 0
   lineNo3     = 0
+  pLines(:)   = " "
 
 ! ================================================================================================ !
 !  READ FORT.3 HEADER
 ! ================================================================================================ !
 
+  call f_open(unit=3,file="fort.3",formatted=.true.,mode="r",err=fErr)
+  if(fErr) then
+    write(lout,"(a)") "INPUT> ERROR Could not open fort.3"
+    call prror
+  end if
+
 90 continue
-  read(3,"(a4,8x,a60)",end=9998,iostat=ierro) cCheck,iHead
+  read(3,"(a4,a8,a60)",end=9997,iostat=ierro) cCheck,cPad,iHead
   if(ierro > 0) then
     write(lout,"(a)") "INPUT> ERROR Could not read from fort.3"
-    call prror(-1)
+    call prror
   end if
+  pLines(5) = cCheck//cPad//iHead
   lineNo3 = lineNo3+1
   if(cCheck(1:1) == "/") goto 90
   if(cCheck(1:1) == "!") goto 90
@@ -251,6 +260,11 @@ subroutine daten
   case("GEOM") ! Mode GEOM. Elements in fort.2
     iMod       = 2
     parseFort2 = .true.
+    call f_open(unit=2,file="fort.2",formatted=.true.,mode="r",err=fErr)
+    if(fErr) then
+      write(lout,"(a)") "INPUT> ERROR Could not open fort.2"
+      call prror
+    end if
   case default
     write(lout,"(a)") "INPUT> ERROR Unknown mode '"//cCheck//"'"
     goto 9999
@@ -284,7 +298,9 @@ subroutine daten
 110 continue ! fort.3 loop
 
   ! We have our three geometry blocks, stop parsing fort.2
-  if(nGeom >= 3) parseFort2 = .false.
+  if(nGeom >= 3) then
+    parseFort2 = .false.
+  end if
 
   ! Select unit, and increment line number for error output
   if(parseFort2) then
@@ -298,7 +314,15 @@ subroutine daten
   read(nUnit,"(a)",end=9998,iostat=iErro) inLine
   if(iErro > 0) then
     write(lout,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
-    call prror(-1)
+    call prror
+  end if
+
+  ! Keep the last few lines for error output, but only fort fort.3
+  if(nUnit == 3) then
+    do i=1,4
+      pLines(i) = pLines(i+1)
+    end do
+    pLines(5) = inLine
   end if
 
   if(len_trim(inLine) == 0) goto 110 ! Empty line, ignore
@@ -308,7 +332,6 @@ subroutine daten
 
   ! Check for end of block flag
   if(cCheck == "NEXT") then
-    if(prevPrint) goto 110 ! If previous block was PRIN, just cycle. We've already closed it.
     if(currBlock == "NONE") then
       ! Catch orphaned NEXT blocks here.
       write(lout,"(a)") "INPUT> ERROR Unexpected NEXT block encountered. There is no open block to close."
@@ -319,10 +342,13 @@ subroutine daten
       closeBlock = .true.
     end if
   end if
-  prevPrint = .false.
 
   ! Check for end of fort.3 input
-  if(cCheck == "ENDE") goto 9000
+  if(cCheck == "ENDE") then
+    if(iMod == 2) call f_close(2)
+    call f_close(3)
+    goto 9000
+  end if
 
   ! Check if no block is active. If so, there should be a new one if input is sane.
   if(currBlock == "NONE") then
@@ -358,11 +384,21 @@ subroutine daten
   select case(currBlock)
 
   case("PRIN") ! Enable the PRINT flag
-    write(lout,"(a)") "INPUT> Note: The PRINT block is replaced by the PRINT flag in the SETT block."
-    write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
-    st_print   = .true.
-    prevPrint  = .true.
-    closeBlock = .true.
+    if(openBlock) then
+      st_print = .true.
+      write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
+      write(lout,"(a)") "INPUT> WARNING The PRINT block is deprectaed and will be removed in a future release. Please use:"
+      write(lout,"(a)") ""
+      write(lout,"(a)") "SETTINGS"
+      write(lout,"(a)") "  PRINT"
+      write(lout,"(a)") "NEXT"
+      write(lout,"(a)") ""
+    elseif(closeBlock) then
+      continue
+    else
+      write(lout,"(a)") "INPUT> ERROR PRINT block does not take any parameters. Did you forget to close it with a NEXT?"
+      goto 9999
+    end if
 
   case("SETT") ! Global Settings Block
     if(openBlock) then
@@ -913,13 +949,13 @@ subroutine daten
   if(napx >= 1) then
     if(e0 < pieni .or. e0 < pma) then
       write(lout,"(a)") "ENDE> ERROR Kinetic energy of the particle is less or equal to zero."
-      call prror(-1)
+      call prror
     end if
 
     call hions_postInput
     gammar = nucm0/e0
     betrel = sqrt((one+gammar)*(one-gammar))
-    
+
     if(nbeam >= 1) then
       parbe14 = (((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6
     end if
@@ -1231,9 +1267,14 @@ subroutine daten
 !  END OF INPUT PARSING
 ! ================================================================================================ !
 
+9997 continue
+  write(lout,"(a)") "INPUT> ERROR Header could not be read from fort.3"
+  call prror
+  return
+
 9998 continue
   write(lout,"(a,i0,a)") "INPUT> ERROR fort.",nUnit," is missing or empty, or end was reached without an ENDE flag."
-  call prror(-1)
+  call prror
   return
 
 9999 continue
@@ -1243,8 +1284,14 @@ subroutine daten
   else
     write(lout,"(a)")      "INPUT> ERROR in fort.3"
     write(lout,"(a,i0,a)") "INPUT> Line ",lineNo3,": '"//trim(inLine)//"'"
+    write(lout,"(a)")      "INPUT> Previous Lines:"
+    write(lout,"(a)")      ""
+    do i=1,5
+      if(lineNo3-5+i <= 0) cycle
+      write(lout,"(i5,a)") lineNo3-5+i," | "//trim(pLines(i))
+    end do
   end if
-  call prror(-1)
+  call prror
   return
 
 end subroutine daten
@@ -2067,50 +2114,58 @@ subroutine initialize_element(ix,lfirst)
                   endif
                 endif
 
-
-                if(ktrack(i).eq.42) then
-                  if(ibeco.eq.1) then
+                if(ktrack(i) == 42) then
+                  if(ibeco == 1) then
                     r2b_d=two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
                     rb_d=sqrt(r2b_d)
                     rkb_d=(strack(i)*pisqrt)/rb_d
                     xrb_d=abs(crkveb_d)/rb_d
                     zrb_d=abs(cikveb_d)/rb_d
-                    if(ibtyp.eq.0) then
+                    if(ibtyp == 0) then
                       call errf(xrb_d,zrb_d,crxb_d,crzb_d)
                       tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
                       xbb_d=sigmanq(2,imbb(i))*xrb_d
                       zbb_d=sigmanq(1,imbb(i))*zrb_d
                       call errf(xbb_d,zbb_d,cbxb_d,cbzb_d)
-                    else if(ibtyp.eq.1) then
+                    else if(ibtyp == 1) then
                       tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
                       xbb_d=sigmanq(2,imbb(i))*xrb_d
                       zbb_d=sigmanq(1,imbb(i))*zrb_d
+                    else
+                      tkb_d = zero ! -Wmaybe-uninitialized
                     endif
-                  endif
+                  else
+                    rkb_d = zero ! -Wmaybe-uninitialized
+                    tkb_d = zero ! -Wmaybe-uninitialized
+                  end if
                   beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
                   beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
                 endif
 
-
-                if(ktrack(i).eq.43) then
-                  if(ibeco.eq.1) then
+                if(ktrack(i) == 43) then
+                  if(ibeco == 1) then
                     r2b_d=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
                     rb_d=sqrt(r2b_d)
                     rkb_d=(strack(i)*pisqrt)/rb_d
                     xrb_d=abs(crkveb_d)/rb_d
                     zrb_d=abs(cikveb_d)/rb_d
-                    if(ibtyp.eq.0) then
+                    if(ibtyp == 0) then
                       call errf(zrb_d,xrb_d,crzb_d,crxb_d)
                       tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
                       xbb_d=sigmanq(2,imbb(i))*xrb_d
                       zbb_d=sigmanq(1,imbb(i))*zrb_d
                       call errf(zbb_d,xbb_d,cbzb_d,cbxb_d)
-                    else if(ibtyp.eq.1) then
+                    else if(ibtyp == 1) then
                       tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
                       xbb_d=sigmanq(2,imbb(i))*xrb_d
                       zbb_d=sigmanq(1,imbb(i))*zrb_d
+                    else
+                      tkb_d = zero ! -Wmaybe-uninitialized
                     endif
-                  endif
+                  else
+                    rkb_d = zero ! -Wmaybe-uninitialized
+                    tkb_d = zero ! -Wmaybe-uninitialized
+                  end if
                   beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
                   beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
                 endif
@@ -3117,7 +3172,7 @@ subroutine comnul
 !     always in main code
       call dump_comnul
 
-    !1) --ELEN - ELECTRON LENS---------------------------------------------------------
+!--ELEN - ELECTRON LENS---------------------------------------------------------
 !     M. Fitterer (FNAL), A. Mereghetti
 !     last modified: 09-02-2018
 !     always in main code
@@ -3139,6 +3194,7 @@ subroutine comnul
         elens_I(i)             = zero
         elens_Ek(i)            = zero
         elens_lThetaR2(i)      = .false.
+        elens_lAllowUpdate(i)  = .true.
         elens_iCheby(i)        = 0
         elens_cheby_angle(i)   = zero
       end do
@@ -3156,10 +3212,10 @@ subroutine comnul
          elens_cheby_refBeta(i)=zero
          elens_cheby_refRadius(i)=zero
       end do
-!2) --WIRE - WIRE ELEMENT---------------------------------------------------------
+!--WIRE - WIRE ELEMENT---------------------------------------------------------
 !     M. Fitterer (FNAL), A. Patapenka (NIU)
 !     last modified: 22-12-2016
-!     wireparam - used for tracking (parameters of single element)
+! 1)  wireparam - used for tracking (parameters of single element)
       do i=1,nele
         wire_flagco(i)  = 0
         wire_current(i) = 0

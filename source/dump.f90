@@ -117,7 +117,7 @@ subroutine dump_lines(n,i,ix)
 
   integer, intent(in) :: n,i,ix
 
-  if ( ldump(0) ) then
+  if (ldump(0)) then
     ! Dump at all SINGLE ELEMENTs
     if (ndumpt(0) == 1 .or. mod(n,ndumpt(0)) == 1) then
       if ((n >= dumpfirst(0)) .and. ((n <= dumplast(0)) .or. (dumplast(0) == -1))) then
@@ -164,8 +164,8 @@ end subroutine dump_linesFirst
 subroutine dump_closeUnits
 
   use mod_common
+  use mod_units
   implicit none
-  logical lopen
   integer i
 
 #ifdef HDF5
@@ -174,8 +174,7 @@ subroutine dump_closeUnits
     do i=0,il
       if (ldump(i)) then
         ! The same file could be used by more than one SINGLE ELEMENT
-        inquire( unit=dumpunit(i), opened=lopen )
-        if (lopen) close(dumpunit(i))
+        call f_close(dumpunit(i))
       end if
     end do
 #ifdef HDF5
@@ -189,7 +188,7 @@ subroutine dump_parseInputLine(inLine,iErr)
 
   use crcoall
   use mod_common
-  use file_units
+  use mod_units
   use string_tools
 
   implicit none
@@ -245,15 +244,8 @@ subroutine dump_parseInputLine(inLine,iErr)
   call chr_cast(lnSplit(2),i1,spErr)
   call chr_cast(lnSplit(3),i2,spErr)
   call chr_cast(lnSplit(4),i3,spErr)
-  if(nSplit == 4) then
-    ! Automatic fname
-    write(fileName,"(a5,i0)") "fort.",i2
-  else if(nSplit == 5 .or. nSplit  == 7) then
-    ! Given fname
+  if(nSplit >= 5) then
     fileName = trim(lnSplit(5))
-  else
-    iErr = .true.
-    return
   end if
   if(nSplit == 7) then
     call chr_cast(lnSplit(6),i4,spErr)
@@ -336,9 +328,10 @@ subroutine dump_parseInputLine(inLine,iErr)
 #ifdef HDF5
   if(h5_useForDUMP .eqv. .false.) then
 #endif
-    if(dumpunit(j) == -1) then
-      call funit_requestUnit(trim(dump_fname(j)),dumpunit(j))
+    if(dump_fname(j) == " ") then
+      dump_fname(j) = "dump_"//trim(bez(j))
     end if
+    call f_requestUnit(trim(dump_fname(j)),dumpunit(j))
 #ifdef HDF5
   end if
 #endif
@@ -423,12 +416,12 @@ subroutine dump_initialise
   use crcoall
   use string_tools
   use mod_common
+  use mod_units
 
   implicit none
 
   integer i,j,k,l
   logical lOpen, rErr
-  character(len=256) filename
   character(len=16) tasbuf(6,6)
 
 #ifdef HDF5
@@ -464,22 +457,10 @@ subroutine dump_initialise
             call prror(-1)
           end if
         end do
-        if (dumpfmt(i) == 3            &
-           .or. dumpfmt(i) == 8        &
-           .or. dumpfmt(i) == 101) then ! Binary dump
-#ifdef BOINC
-          call boincrf(dump_fname(i),filename)
-          open(dumpunit(i),file=filename,status='replace',form='unformatted')
-#else
-          open(dumpunit(i),file=trim(dump_fname(i)),status='replace',form='unformatted')
-#endif
+        if (dumpfmt(i) == 3 .or. dumpfmt(i) == 8 .or. dumpfmt(i) == 101) then ! Binary dump
+          call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.false.,mode="w",status="replace")
         else ! ASCII dump
-#ifdef BOINC
-          call boincrf(dump_fname(i),filename)
-          open(dumpunit(i),file=filename,status='replace',form='formatted')
-#else
-          open(dumpunit(i),file=trim(dump_fname(i)),status='replace',form='formatted')
-#endif
+          call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.true.,mode="w",status="replace")
         end if
 #ifdef CR
         dumpfilepos(i) = 0
@@ -525,7 +506,7 @@ subroutine dump_initialise
         ! LOPEN not set to true by sanity check in loop above
         ! => File was already open, but not by DUMP.
         if (.not.lopen) then
-          write(lout,"(a,i0,a)") "DUMP> ERROR Unit",dumpunit(i)," is already open, but not by DUMP. Please pick another unit!"
+          write(lout,"(a,i0,a)") "DUMP> ERROR Unit ",dumpunit(i)," is already open, but not by DUMP. Please pick another unit!"
           write(lout,"(a)")      "DUMP> Note: This check is not watertight as other parts of the program may later open the "
           write(lout,"(a)")      "DUMP>       same unit. Althernatively, the unit can be specified as -1 and a unit is assigned."
           call prror(-1)
@@ -1014,7 +995,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1, napx, nlostp)
+      call h5_writeData(dump_hdf5DataSet(ix), 1, napx, partID)
       call h5_writeData(dump_hdf5DataSet(ix), 2, napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3, napx, localDcum)
       call h5_writeData(dump_hdf5DataSet(ix), 4, napx, xv1(:))
@@ -1033,7 +1014,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
           call chr_fromReal(xv2(j),       xyz_h(3),19,2,rErr)
           call chr_fromReal(yv2(j),       xyz_h(4),19,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_h(5),19,2,rErr)
-          write(unit,"(2(1x,i8),1x,f12.5,5(1x,a25),1x,i8)") nlostp(j),nturn,localDcum, &
+          write(unit,"(2(1x,i8),1x,f12.5,5(1x,a25),1x,i8)") partID(j),nturn,localDcum, &
             xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),localKtrack
         end do
       else
@@ -1043,7 +1024,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
           call chr_fromReal(xv2(j),       xyz_l(3),10,2,rErr)
           call chr_fromReal(yv2(j),       xyz_l(4),10,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_l(5),10,2,rErr)
-          write(unit,"(2(1x,i8),1x,f12.5,5(1x,a16),1x,i8)") nlostp(j),nturn,localDcum, &
+          write(unit,"(2(1x,i8),1x,f12.5,5(1x,a16),1x,i8)") partID(j),nturn,localDcum, &
             xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),localKtrack
         end do
       end if
@@ -1073,7 +1054,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, partID)
       call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
       call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv1(:))
@@ -1094,7 +1075,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
           call chr_fromReal(yv2(j),       xyz_h(4),19,2,rErr)
           call chr_fromReal(sigmv(j),      xyz_h(5),19,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_h(6),19,2,rErr)
-          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a25),1x,i8)") nlostp(j),nturn,localDcum,&
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a25),1x,i8)") partID(j),nturn,localDcum,&
             xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),xyz_h(6),localKtrack
         end do
       else
@@ -1105,7 +1086,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
           call chr_fromReal(yv2(j),       xyz_l(4),10,2,rErr)
           call chr_fromReal(sigmv(j),      xyz_l(5),10,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_l(6),10,2,rErr)
-          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16),1x,i8)") nlostp(j),nturn,localDcum,&
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16),1x,i8)") partID(j),nturn,localDcum,&
             xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),localKtrack
         end do
       end if
@@ -1135,7 +1116,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, partID)
       call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
       call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv1(:))
@@ -1149,7 +1130,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     else
 #endif
       do j=1,napx
-        write(unit) nlostp(j),nturn,localDcum,xv1(j),yv1(j),xv2(j),yv2(j), &
+        write(unit) partID(j),nturn,localDcum,xv1(j),yv1(j),xv2(j),yv2(j), &
           sigmv(j),(ejv(j)-e0)/e0,localKtrack
       end do
 
@@ -1524,7 +1505,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
           call chr_fromReal(nxyz_particle(4),xyz_h(4),19,2,rErr)
           call chr_fromReal(nxyz_particle(5),xyz_h(5),19,2,rErr)
           call chr_fromReal(nxyz_particle(6),xyz_h(6),19,2,rErr)
-          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a25),1x,i8)") nlostp(j),nturn,localDcum, &
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a25),1x,i8)") partID(j),nturn,localDcum, &
             xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),xyz_h(6),localKtrack
         else
           call chr_fromReal(nxyz_particle(1),xyz_l(1),10,2,rErr)
@@ -1533,12 +1514,12 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
           call chr_fromReal(nxyz_particle(4),xyz_l(4),10,2,rErr)
           call chr_fromReal(nxyz_particle(5),xyz_l(5),10,2,rErr)
           call chr_fromReal(nxyz_particle(6),xyz_l(6),10,2,rErr)
-          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16),1x,i8)") nlostp(j),nturn,localDcum, &
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16),1x,i8)") partID(j),nturn,localDcum, &
             xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),localKtrack
         end if
 
       else if(fmt == 8) then
-        write(unit) nlostp(j),nturn,localDcum, &
+        write(unit) partID(j),nturn,localDcum, &
           nxyz_particle(1),nxyz_particle(2),nxyz_particle(3),nxyz_particle(4),nxyz_particle(5),nxyz_particle(6),localKtrack
 
       else if(fmt == 9) then
@@ -1711,7 +1692,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 #ifdef HDF5
     if(h5_useForDUMP) then
       call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
-      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, nlostp)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, partID)
       call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
       call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
       call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv1(:))
@@ -1734,7 +1715,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
     else
 #endif
       do j=1,napx
-        write(unit) nlostp(j),nturn,localDcum, &
+        write(unit) partID(j),nturn,localDcum, &
                     xv1(j),yv1(j),xv2(j),yv2(j), &
                     sigmv(j),(ejv(j)-e0)/e0,localKtrack, &
                     ejv(j), ejfv(j), dpsv(j), oidpsv(j), &
@@ -1802,6 +1783,7 @@ subroutine dump_crcheck_positionFiles
   use crcoall
   use string_tools
   use mod_common
+  use mod_units
 
   implicit none
 
@@ -1832,12 +1814,7 @@ subroutine dump_crcheck_positionFiles
       inquire( unit=dumpunit(i), opened=lopen )
       if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8 .and. dumpfmt(i) /= 101) then ! ASCII
         if (.not. lopen) then
-#ifdef BOINC
-          call boincrf(dump_fname(i),filename)
-          open(dumpunit(i),file=filename, status='old',form='formatted',action='readwrite')
-#else
-          open(dumpunit(i),file=dump_fname(i), status='old',form='formatted',action='readwrite')
-#endif
+          call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.true.,mode="rw",status="old")
         end if
 
         dumpfilepos(i) = 0
@@ -1848,12 +1825,7 @@ subroutine dump_crcheck_positionFiles
 
       else                         ! BINARY (format = 3 & 8 & 101)
         if (.not. lopen) then
-#ifdef BOINC
-          call boincrf(dump_fname(i),filename)
-          open(dumpunit(i),file=filename,status='old',form='unformatted',action='readwrite')
-#else
-          open(dumpunit(i),file=dump_fname(i),status='old',form='unformatted',action='readwrite')
-#endif
+          call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.false.,mode="rw",status="old")
         end if
         dumpfilepos(i) = 0
         do j=1,dumpfilepos_cr(i)
@@ -1886,21 +1858,11 @@ subroutine dump_crcheck_positionFiles
       endfile (dumpunit(i),iostat=ierro)
 
       ! Change from 'readwrite' to 'write'
-      close(dumpunit(i))
+      call f_close(dumpunit(i))
       if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8 .and. dumpfmt(i) /= 101) then ! ASCII
-#ifdef BOINC
-        call boincrf(dump_fname(i),filename)
-        open(dumpunit(i),file=filename, status='old',position='append',form='formatted',action='write')
-#else
-        open(dumpunit(i),file=dump_fname(i), status='old',position='append',form='formatted',action='write')
-#endif
+        call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.true.,mode="w+",status="old")
       else ! Binary (format = 3)
-#ifdef BOINC
-        call boincrf(dump_fname(i),filename)
-        open(dumpunit(i),file=filename, status='old',position='append',form='unformatted',action='write')
-#else
-        open(dumpunit(i),file=dump_fname(i), status='old',position='append',form='unformatted',action='write')
-#endif
+        call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.false.,mode="w+",status="old")
       end if
     end if
   end do
@@ -1908,8 +1870,8 @@ subroutine dump_crcheck_positionFiles
   return
 
 111 continue
-  write(93,*) 'SIXTRACR> DUMP_CRCHECK_POSITIONFILES *** ERROR *** reading DUMP file#', dumpunit(i),' iostat=',ierro
-  write(93,*) 'dumpfilepos=',dumpfilepos(i),' dumpfilepos_cr=',dumpfilepos_cr(i)
+  write(93,"(2(a,i0))") "SIXTRACR> ERROR Repositioning file #",dumpunit(i),", iostat = ",ierro
+  write(93,"(2(a,i0))") "          dumpfilepos = ",dumpfilepos(i),", dumpfilepos_cr = ",dumpfilepos_cr(i)
   flush(93)
   write(lout,"(a)") "SIXTRACR> ERROR DUMP_CRCHECK_POSITIONFILES failure positioning DUMP file"
   call prror(-1)
@@ -1927,7 +1889,9 @@ subroutine dump_crpoint(fileunit,lerror,ierro)
   integer, intent(inout) :: ierro
   integer j
 
-  write(95,err=100,iostat=ierro) (dumpfilepos(j),j=-1,nele)
+  write(fileunit,err=100,iostat=ierro) (dumpfilepos(j),j=-1,nele)
+  endfile (fileunit,iostat=ierro)
+  backspace (fileunit,iostat=ierro)
   return
 
 100 continue

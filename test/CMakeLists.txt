@@ -119,6 +119,7 @@ list(APPEND SIXTRACK_TESTS
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
+  elensidealthin6d_ramp_DYNK
   elensidealthin6d_ions
   eric
   exact
@@ -165,7 +166,6 @@ list(APPEND SIXTRACK_TESTS
   dump4
   dump5
   dump6
-  fileunits_DYNK_DUMP
   multipoles_DYNK
   geometry
   momentum_scan
@@ -251,8 +251,8 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
   endif()
 
   if(LIBARCHIVE)
-    if(TST MATCHES elensidealthin6d_DYNK_ZIPF)
-      SET(SIXOUT_NUMFILES 6)
+    if(TST STREQUAL elensidealthin6d_DYNK_ZIPF)
+      SET(SIXOUT_NUMFILES 2)
     else()
       SET(SIXOUT_NUMFILES 0)
     endif()
@@ -261,21 +261,29 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
   endif(LIBARCHIVE)
 
   SET( DUMP_BIN_FILE NONE )
-  if(TST MATCHES dump_binary)
+  if(TST STREQUAL dump_binary)
     SET( DUMP_BIN_FILE dump.dat,dumpStart.dat )
-  elseif(TST MATCHES fma_binary)
+  elseif(TST STREQUAL fma_binary)
     SET( DUMP_BIN_FILE START_DUMP_1,IP2_DUMP_1,IP2_DUMP_2,IP2_DUMP_3,IP3_DUMP_1,IP3_DUMP_2,IP3_DUMP_3 )
-  elseif(TST MATCHES dump7_fma)
+  elseif(TST STREQUAL dump7_fma)
     SET( DUMP_BIN_FILE IP3_DUMP_1 )
-  elseif(TST MATCHES dump8_fma)
+  elseif(TST STREQUAL dump8_fma)
     SET( DUMP_BIN_FILE START_DUMP_1,IP3_DUMP_1 )
-  elseif(TST MATCHES dump7_fma_thin4d)
+  elseif(TST STREQUAL dump7_fma_thin4d)
     SET( DUMP_BIN_FILE dump_ip3 )
+  elseif(TST STREQUAL dump_all_highprec)
+    SET( DUMP_BIN_FILE dump3.dat,dump8.dat )
+  endif()
+
+  if (TST STREQUAL dipedge)
+    set(CR_NUMRESTARTS 1)
+  else()
+    set(CR_NUMRESTARTS 0)
   endif()
 
   ADD_TEST(
     NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
-    COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE}
+    COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} ${CR_NUMRESTARTS}
   )
 
   #some tests take a very long time (set a 2 day timeout)
@@ -297,8 +305,7 @@ if(SIXDA)
 
     ADD_TEST(
       NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
-      COMMAND SixTestWrapper $<TARGET_FILE:SixTrackDA> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE}
-    )
+      COMMAND SixTestWrapper $<TARGET_FILE:SixTrackDA> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} 0)
 
     #some tests take a very long time (set a 2 day timeout)
     set_tests_properties(${TST} PROPERTIES TIMEOUT "172800")
@@ -405,6 +412,7 @@ set(FAST_TESTS
   elensidealthin6d
   elensidealthin6d_DYNK
   elensidealthin6d_DYNK_ZIPF
+  elensidealthin6d_ramp_DYNK
   elensidealthin6d_ions
   thin4d_ions
   thin6d_ions
@@ -421,7 +429,6 @@ set(FAST_TESTS
   dump7_fma_thin4d
   dump8_fma
   dump9
-  fileunits_DYNK_DUMP
   multipoles_DYNK
   geometry
   generalized-rf-multipoles

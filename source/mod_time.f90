@@ -50,16 +50,17 @@ contains
 subroutine time_initialise
 
   use crcoall
-  use file_units
+  use mod_units
 
-  integer ioStat
+  logical fErr
 
   call cpu_time(time_timeZero)
 
-  call funit_requestUnit(time_fileName, time_fileUnit)
-  open(time_fileUnit,file=time_fileName,status="replace",form="formatted",iostat=ioStat)
-  if(ioStat /= 0) then
-    write(lout,"(2(a,i0))") "TIME> ERROR Opening of '"//time_fileName//"' on unit #",time_fileUnit," failed with iostat = ",ioStat
+  fErr = .false.
+  call f_requestUnit(time_fileName, time_fileUnit)
+  call f_open(unit=time_fileUnit,file=time_fileName,formatted=.true.,mode="w",err=fErr,status="replace")
+  if(fErr) then
+    write(lout,"(a,i0)") "TIME> ERROR Opening of '"//time_fileName//"' on unit #",time_fileUnit
     call prror
   end if
 
@@ -86,6 +87,7 @@ end subroutine time_initialise
 subroutine time_finalise
 
   use mod_meta
+  use mod_units
   use mod_common, only : numl, mbloz, napx
   use numerical_constants, only : zero
 
@@ -121,7 +123,7 @@ subroutine time_finalise
 
   write(time_fileUnit,"(a)") "# END"
   flush(time_fileUnit)
-  close(time_fileUnit)
+  call f_close(time_fileUnit)
 
 end subroutine time_finalise
 

@@ -30,7 +30,6 @@ program mainda
   use mod_commont
   use mod_commond
   use mod_units
-  use file_units
   use mod_meta
   use mod_time
   use mod_alloc,  only : alloc_init
@@ -84,22 +83,19 @@ featList = ""
 #ifndef CR
   lout=output_unit
 #endif
-  call funit_initUnits ! This one has to be first
+  call f_initUnits ! And this one second
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
-  call units_initUnits
-  call alloc_init      ! Initialise tmod_alloc
+  call alloc_init      ! Initialise mod_alloc
   call allocate_arrays ! Initial allocation of memory
 
   ! Open files
   fErr = .false.
-  call units_openUnit(unit=2,  fileName="fort.2",  formatted=.true., mode="r", err=fErr)
-  call units_openUnit(unit=3,  fileName="fort.3",  formatted=.true., mode="r", err=fErr)
-  call units_openUnit(unit=12, fileName="fort.12", formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=18, fileName="fort.18", formatted=.true., mode="rw",err=fErr)
-  call units_openUnit(unit=19, fileName="fort.19", formatted=.true., mode="w", err=fErr)
-  call units_openUnit(unit=110,fileName="fort.110",formatted=.false.,mode="w", err=fErr)
-  call units_openUnit(unit=111,fileName="fort.111",formatted=.false.,mode="rw",err=fErr)
+  call f_open(unit=12, file="fort.12", formatted=.true., mode="w", err=fErr)
+  call f_open(unit=18, file="fort.18", formatted=.true., mode="rw",err=fErr)
+  call f_open(unit=19, file="fort.19", formatted=.true., mode="w", err=fErr)
+  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
+  call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr)
 
   call time_timeStamp(time_afterFileUnits)
 
@@ -258,12 +254,14 @@ featList = ""
   end do
   dp10=dp1
   dp1=zero
-  if(ichrom.gt.1) then
+  if(ichrom > 1) then
     itiono=ition
     ition=0
     call chromda
     ition=itiono
-  endif
+  else
+    itiono = 0 ! -Wmaybe-uninitialized
+  end if
   dp1=dp10
   if(idp /= 1 .or. iation /= 1) iclo6 = 0
   if(iclo6 == 1 .or. iclo6 == 2) then

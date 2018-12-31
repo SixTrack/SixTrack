@@ -70,7 +70,8 @@ subroutine trauthin(nthinerr)
   call alloc(cbzb, npart, zero, "cbzb")
 
   do i=1,npart
-    nlostp(i)=i
+    partID(i)=i
+    parentID(i)=i
   end do
   do i=1,nblz
     ktrack(i)=0
@@ -532,6 +533,7 @@ subroutine thin4d(nthinerr)
   use bdex, only : bdex_enable
   use aperture
   use elens
+  use utils
   use wire
 #ifdef CR
   use checkpoint_restart
@@ -572,11 +574,11 @@ subroutine thin4d(nthinerr)
 #ifdef CR
   if (restart) then
     call crstart
-    write(93,*) 'THIN4D SIXTRACR restart numlcr',numlcr,'numl',numl
+    write(93,"(2(a,i0))") "SIXTRACR> Thin 4D restart numlcr = ",numlcr,", numl = ",numl
   end if
 ! and now reset numl to do only numlmax turns
   nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
 ! and reset [n]numxv unless particle is lost
 ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
@@ -590,7 +592,10 @@ subroutine thin4d(nthinerr)
   do 640 n=1,numl !loop over turns
 #endif
   if(st_quiet < 3) then
-    if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
+    if(mod(n,turnrep) == 0) then
+      write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
+      flush(lout)
+    end if
   end if
   meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
@@ -611,6 +616,7 @@ subroutine thin4d(nthinerr)
     ! (and note that writebin does nothing if restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
+    if(st_killswitch) call cr_killSwitch(n)
 #endif
 
     ! A.Mereghetti, for the FLUKA Team
@@ -1187,6 +1193,7 @@ subroutine thin6d(nthinerr)
   use mod_commond
   use aperture
   use elens
+  use utils
   use wire
 #ifdef CR
   use checkpoint_restart
@@ -1227,11 +1234,11 @@ subroutine thin6d(nthinerr)
 #ifdef CR
   if (restart) then
     call crstart
-    write(93,*) 'THIN6D ','SIXTRACR restart numlcr',numlcr,'numl',numl
+    write(93,"(2(a,i0))") "SIXTRACR> Thin 6D restart numlcr = ",numlcr,", numl = ",numl
   end if
   ! and now reset numl to do only numlmax turns
   nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
   ! and reset [n]numxv unless particle is lost
   ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
@@ -1246,7 +1253,10 @@ subroutine thin6d(nthinerr)
   do 660 n=1,numl       ! Loop over turns
 #endif
     if(st_quiet < 3) then
-      if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
+      if(mod(n,turnrep) == 0) then
+        write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
+        flush(lout)
+      end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
@@ -1273,6 +1283,7 @@ subroutine thin6d(nthinerr)
     ! (and note that writebin does nothing if restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
+    if(st_killswitch) call cr_killSwitch(n)
 #endif
 
     ! A.Mereghetti, for the FLUKA Team
@@ -2143,8 +2154,6 @@ subroutine thin6d(nthinerr)
 
 660 continue !END loop over turns
 
-    return
-
 end subroutine thin6d
 
 !-----------------------------------------------------------------------
@@ -2204,16 +2213,16 @@ subroutine callcrp
   endif
 #ifdef BOINC
   if (checkp) then
-! Now ALWAYS checkpoint
-! NO, re-instated at user request
+    ! Now ALWAYS checkpoint
+    ! NO, re-instated at user request
+    ! What was the user request?
     call boinc_time_to_checkpoint(timech)
-    if (timech.ne.0) then
+    if (timech /= 0) then
       call crpoint
       call boinc_checkpoint_completed()
     endif
   endif
-#endif
-#ifndef BOINC
+#else
   if (checkp) call crpoint
 #endif
   return
@@ -2246,8 +2255,8 @@ subroutine dist1
   save
 !-----------------------------------------------------------------------
   do 20 ia=1,napx,2
-    if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.     &
-  &(mod(nlostp(ia),2).ne.0)) then
+    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.     &
+  &(mod(partID(ia),2).ne.0)) then
       ie=ia+1
       dam(ia)=zero
       dam(ie)=zero

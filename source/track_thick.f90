@@ -45,7 +45,8 @@ subroutine trauthck(nthinerr)
   endif
 
   do i=1,npart
-    nlostp(i)=i
+    partID(i)=i
+    parentID(i)=i
   end do
   do i=1,nblz
     ktrack(i)=0
@@ -499,6 +500,7 @@ subroutine thck4d(nthinerr)
   use mod_commont
   use mod_commond
   use elens
+  use utils
   use wire
 #ifdef CR
   use checkpoint_restart
@@ -548,13 +550,13 @@ subroutine thck4d(nthinerr)
   end if
 
 #ifdef CR
-  if (restart) then
+  if(restart) then
     call crstart
-    write(93,*) 'THCK4D ','SIXTRACR restart numlcr',numlcr,'numl',numl
+    write(93,"(2(a,i0))") "SIXTRACR> Thick 4D restart numlcr = ",numlcr,", numl = ",numl
     ! and now reset numl to do only numlmax turns
   end if
   nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
   ! and reset [n]numxv unless particle is lost
   ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
@@ -564,12 +566,14 @@ subroutine thck4d(nthinerr)
     end do
   end if
   do 490 n=numlcr,nnuml
-#endif
-#ifndef CR
+#else
   do 490 n=1,numl
 #endif
     if(st_quiet < 3) then
-      if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thick 4D turn ",n," of ",numl
+      if(mod(n,turnrep) == 0) then
+        write(lout,"(a,i8,a,i8)") "TRACKING> Thick 4D turn ",n," of ",numl
+        flush(lout)
+      end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
@@ -590,6 +594,7 @@ subroutine thck4d(nthinerr)
     !  (and note that writebin does nothing if restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
+    if(st_killswitch) call cr_killSwitch(n)
 #endif
 
 !       A.Mereghetti, for the FLUKA Team
@@ -608,9 +613,9 @@ subroutine thck4d(nthinerr)
       else
         ix=ic(i)-nblo
 
-        if (ldumpfront) then
-          write (lout,*) "DUMP/FRONT not yet supported on thick elements "// &
-                         "due to lack of test cases. Please contact developers!"
+        if(ldumpfront) then
+          write(lout,"(a)") "TRACKING> DUMP/FRONT not yet supported on thick elements "//&
+            "due to lack of test cases. Please contact developers!"
           call prror(-1)
         end if
 
@@ -665,7 +670,7 @@ subroutine thck4d(nthinerr)
 
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
-               write(lout,*) "BDEX> BDEX only available for thin6d"
+               write(lout,"(a)") "BDEX> BDEX only available for thin6d"
                call prror(-1)
             endif
 
@@ -1157,6 +1162,7 @@ subroutine thck6d(nthinerr)
   use mod_commond
   use aperture
   use elens
+  use utils
   use wire
 #ifdef CR
   use checkpoint_restart
@@ -1221,11 +1227,11 @@ subroutine thck6d(nthinerr)
 #ifdef CR
   if (restart) then
     call crstart
-    write(93,*) 'THCK6D ','SIXTRACR restart numlcr',numlcr,'numl',numl
+    write(93,"(2(a,i0))") "SIXTRACR> Thick 6D restart numlcr = ",numlcr,", numl = ",numl
 ! and now reset numl to do only numlmax turns
   end if
   nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
 ! and reset [n]numxv unless particle is lost
 ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
@@ -1240,7 +1246,10 @@ subroutine thck6d(nthinerr)
   do 510 n=1,numl
 #endif
     if(st_quiet < 3) then
-      if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thick 6D turn ",n," of ",numl
+      if(mod(n,turnrep) == 0) then
+        write(lout,"(a,i8,a,i8)") "TRACKING> Thick 6D turn ",n," of ",numl
+        flush(lout)
+      end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
 ! To do a dump and abend
@@ -1262,6 +1271,7 @@ subroutine thck6d(nthinerr)
 !  (and note that writebin does nothing if restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
+    if(st_killswitch) call cr_killSwitch(n)
 #endif
 
 !       A.Mereghetti, for the FLUKA Team

@@ -27,10 +27,9 @@ Please note that each single element can only be selected once; however it is po
 \begin{longtabu}{@{}llp{0.65\linewidth}}
     \texttt{element\_name} & char    & One of the \textit{single elements}, or \texttt{ALL} to dump at the exit of all single elements, or \texttt{StartDUMP} to dump at the injection point. Note that if \texttt{ALL} or \texttt{StartDUMP} is in use, these cannot be used as single element names. \\
     \texttt{frequency}     & integer & How often the beam population should be dumped in number of turns. \\
-    \texttt{unit}          & integer & Value $-1$: An available unit number will be assigned automatically.\\
-                           &         & Value $>0$: Fortran unit number to use. This unit number should not be used in other parts of SixTrack. The unit number and filename may be shared between different \texttt{DUMP} outputs, as long as they have the same format and \texttt{element\_name} is not \texttt{ALL}. \\
-    \texttt{format}        & integer & A switch specifying the output format. See table (\ref{tab:dumpformat}). \\
-    \texttt{filename}      & char    & The name of the file to write to. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so, then \texttt{filename} must also be present), and if so the output file is named fort.\texttt{unit}. \\
+    \texttt{unit}          & integer & This value is ignored. Unit numbers are now assigned automatically. \\
+    \texttt{format}        & integer & A switch specifying the output format. See table~(\ref{tab:dumpformat}). \\
+    \texttt{filename}      & char    & The name of the file to write to. The filename may be shared between different \texttt{DUMP} outputs, as long as they have the same format and \texttt{element\_name} is not \texttt{ALL}. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so, then \texttt{filename} must also be present), and if so the output file is named dump\_\texttt{element\_name}. \\
     \texttt{first}         & integer & The first turn where this dump should be active. This argument may be omitted if \texttt{last} is also omitted, and if so it defaults to turn 1. \\
     \texttt{last}          & integer & The last turn where this dump should be active, --1 meaning ``untill the end of the simulation''. This argument may be omitted if \texttt{first} is also omitted, and if so it defaults to -1. \\
     \texttt{HIGH}          & keyword & If present anywhere in the \texttt{DUMP} block, this triggers high-precission output, meaning more digits in the output files. \\
@@ -415,8 +414,9 @@ The primary purpose of this module is for validation of results for BOINC and th
 
 \paragraph{Usage}~\\
 
-The module accepts a single keyword, \texttt{MD5SUM}, followed by a file name.
+The module accepts a single keyword, \texttt{MD5SUM}, followed by a file name, which is optionally followed by a bolean to specify if this is an ASCII file.
 This can be repeated multiple times.
+The ASCII flag is used on Windows to strip carriage returns from the file before hashing.
 If the md5sum tool is installed on the user's computer, the results can be validated with the command:
 \begin{cverbatim}
 md5sum -c hash.md5
@@ -425,7 +425,7 @@ md5sum -c hash.md5
 \paragraph{Example}~
 \begin{cverbatim}
 HASH
-    MD5SUM final_state.dat
+    MD5SUM final_state.dat ON
     MD5SUM fort.10
 NEXT
 \end{cverbatim}
@@ -573,3 +573,20 @@ HDF5
     WRITE OPTICS
 NEXT
 \end{cverbatim}
+
+% ================================================================================================================================ %
+\section{Simulation Meta Data and Timing Output} \label{sec:METATIME}
+
+SixTrack produces two text files containing meta data and timing data for the last run simulation.
+Both these files are in a fixed column width format, making them straightforward to parse with other tools.
+
+\paragraph{META:}~
+\index{Meta Data}
+The file \texttt{sim\_meta.dat} contains information about the SixTrack executable such as version information, build details and execution time.
+The file also contains initial values and values calculated during tracking that may be useful for further post-processing.
+
+\paragraph{TIME:}~
+\index{Timing Data}
+The file \texttt{sim\_time.dat} contains information about the execution time of the last SixTrack run.
+There are a number of time stamp at key points during execution written to the file.
+In addition, the total tracking time is extracted, and various averages computed based on number of particles, turns or the size of the lattice.

@@ -14,7 +14,7 @@ cd boinc
 if [[ $(uname) == FreeBSD* ]]; then
     MAKE=/usr/local/bin/gmake ./_autosetup -f
 elif [[ $(uname) == OpenBSD* ]]; then
-#These numbers will need updating in the future.
+    # These numbers will need updating in the future.
     AUTOCONF_VERSION=2.69 AUTOMAKE_VERSION=1.15 MAKE=/usr/local/bin/gmake ./_autosetup -f
 elif [[ $(uname) == NetBSD* ]]; then
     MAKE=/usr/pkg/bin/gmake ./_autosetup -f
@@ -26,33 +26,12 @@ fi
 
 ./configure --disable-client --disable-server --disable-manager --disable-boinczip
 
-# This is a terrible hack for building on MinGW, but it works.
-# Line numbers may need to be updated if BOINC is updated.
-if [[ $(uname) == MINGW* ]]; then
-    cd lib
-
-    if [ ! -f "boinc_win.h.bak" ]; then
-        mv boinc_win.h boinc_win.h.bak
-        cat boinc_win.h.bak | head -n27 > boinc_win.h
-        echo "#include \"windows.h\"" >> boinc_win.h
-        cat boinc_win.h.bak | tail -n+28 >> boinc_win.h
-    fi
-
-    if [ ! -f "util.cpp.bak" ]; then
-        mv util.cpp util.cpp.bak
-        cat util.cpp.bak | head -n631 > util.cpp
-        echo "int get_real_executable_path(char* , size_t ) {return ERR_NOT_IMPLEMENTED;}" >> util.cpp
-    fi
-
-    cd ..
-fi
-
 if [[ $(pwd) == /afs/* ]]; then
-    #AFS doesn't like hardlinks between files in different directories and configure doesn't check for this corner case...
+    # AFS doesn't like hardlinks between files in different directories and configure doesn't check for this corner case...
     sed -i 's/\/bin\/ln/cp/g' Makefile
     sed -i 's/\/bin\/ln/cp/g' api/Makefile
     sed -i 's/\/bin\/ln/cp/g' lib/Makefile
-    #AFS doesn't like parallel make
+    # AFS doesn't like parallel make
     make
 else
     # Machines with low memory doesn't like an automatic -j

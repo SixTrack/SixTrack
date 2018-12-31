@@ -13,9 +13,9 @@ module mod_hash
   implicit none
 
   character(len=:), allocatable, private, save :: hash_listHashFiles(:)
+  logical,          allocatable, private, save :: hash_isAscii(:)
   integer,                       private, save :: hash_nHashFiles  =  0
   logical,                       private, save :: hash_selfTestOK  = .false.
-  integer,                       private, save :: hash_sumFileUnit = -1
   character(len=8),              parameter     :: hash_sumFileName = "hash.md5"
 
   ! C Interface
@@ -50,12 +50,13 @@ module mod_hash
       integer(kind=C_INT), value,   intent(in)    :: md5Size
     end subroutine hash_digestStringC
 
-    subroutine hash_digestFileC(fileName, strLen, md5Vals, md5Size) bind(C, name="md5wrapper_digestFile")
+    subroutine hash_digestFileC(fileName, strLen, md5Vals, md5Size, isAscii) bind(C, name="md5wrapper_digestFile")
       use, intrinsic :: iso_c_binding
       character(kind=C_CHAR,len=1), intent(in)    :: fileName
       integer(kind=C_INT), value,   intent(in)    :: strLen
       integer(kind=C_INT),          intent(inout) :: md5Vals(*)
       integer(kind=C_INT), value,   intent(in)    :: md5Size
+      integer(kind=C_INT), value,   intent(in)    :: isAscii
     end subroutine hash_digestFileC
 
   end interface
@@ -71,11 +72,14 @@ contains
 subroutine hash_initialise
 
   use crcoall
+  use mod_settings
 
   character(len=32) md5Digest, md5Valid
   character(len=6)  tStatus
 
-  write(lout,"(a)") "HASH> Library Self Test:"
+  if(st_debug) then
+    write(lout,"(a)") "HASH> Library Self Test:"
+  end if
   hash_selfTestOK = .true.
 
   call hash_digestString("",md5Digest)
@@ -86,8 +90,10 @@ subroutine hash_initialise
     tStatus = "Failed"
     hash_selfTestOK = .false.
   end if
-  write(lout,"(a)") "HASH>   #1 : "//md5Digest//" < ''"
-  write(lout,"(a)") "HASH>    1 : "//md5Valid//" > "//tStatus
+  if(st_debug) then
+    write(lout,"(a)") "HASH>   #1 : "//md5Digest//" < ''"
+    write(lout,"(a)") "HASH>    1 : "//md5Valid//" > "//tStatus
+  end if
 
   call hash_digestString("message digest",md5Digest)
   md5Valid = "f96b697d7cb7938d525a2f31aaf161d0"
@@ -97,8 +103,10 @@ subroutine hash_initialise
     tStatus = "Failed"
     hash_selfTestOK = .false.
   end if
-  write(lout,"(a)") "HASH>   #2 : "//md5Digest//" < 'message digest'"
-  write(lout,"(a)") "HASH>    2 : "//md5Valid//" > "//tStatus
+  if(st_debug) then
+    write(lout,"(a)") "HASH>   #2 : "//md5Digest//" < 'message digest'"
+    write(lout,"(a)") "HASH>    2 : "//md5Valid//" > "//tStatus
+  end if
 
   call hash_digestString("abcdefghijklmnopqrstuvwxyz",md5Digest)
   md5Valid = "c3fcd3d76192e4007dfb496cca67e13b"
@@ -108,8 +116,10 @@ subroutine hash_initialise
     tStatus = "Failed"
     hash_selfTestOK = .false.
   end if
-  write(lout,"(a)") "HASH>   #3 : "//md5Digest//" < 'abcdefghijklmnopqrstuvwxyz'"
-  write(lout,"(a)") "HASH>    3 : "//md5Valid//" > "//tStatus
+  if(st_debug) then
+    write(lout,"(a)") "HASH>   #3 : "//md5Digest//" < 'abcdefghijklmnopqrstuvwxyz'"
+    write(lout,"(a)") "HASH>    3 : "//md5Valid//" > "//tStatus
+  end if
 
 end subroutine hash_initialise
 
@@ -129,7 +139,10 @@ subroutine hash_parseInputLine(inLine, iErr)
 
   character(len=:), allocatable :: lnSplit(:)
   integer nSplit
-  logical spErr
+  logical spErr, cErr
+  logical tmpIsAscii
+
+  cErr = .false.
 
   call chr_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
@@ -141,20 +154,32 @@ subroutine hash_parseInputLine(inLine, iErr)
   select case(trim(lnSplit(1)))
 
   case("MD5SUM")
-    if(nSplit /= 2) then
-      write(lout,"(a,i3)") "HASH> ERROR MD5SUM expected 1 argument, got ",nSplit-1
+    if(nSplit /= 2 .and. nSplit /= 3) then
+      write(lout,"(a,i3)") "HASH> ERROR MD5SUM expected 1 or 2 arguments, got ",nSplit-1
       iErr = .true.
       return
     end if
+    if (nSplit == 3) then
+      call chr_cast(trim(lnSplit(3)), tmpIsAscii, cErr)
+      if (cErr) then
+        write(lout,"(a)") "HASH> ERROR MD5SUM optional argument expected a logical variable, but '"// &
+             trim(lnSplit(3))//"' didn't match."
+        call prror
+      endif
+    else
+      tmpIsAscii = .false.
+    endif
     if(len_trim(lnSplit(2)) > 255) then
-      write(lout,"(a,i3)") "HASH> ERROR MD5SUM filename is too long. Max is 255."
+      write(lout,"(a)") "HASH> ERROR MD5SUM filename is too long. Max is 255."
       iErr = .true.
       return
     end if
+
     hash_nHashFiles = hash_nHashFiles + 1
-    call alloc(hash_listHashFiles, 255, hash_nHashFiles, " ", "hash_listHashFiles")
+    call alloc(hash_listHashFiles, 255, hash_nHashFiles,     " ", "hash_listHashFiles")
+    call alloc(hash_isAscii,            hash_nHashFiles, .false., "hash_isAscii")
     hash_listHashFiles(hash_nHashFiles) = trim(lnSplit(2))
-  
+    hash_isAscii(hash_nHashFiles)       = tmpIsAscii
   case default
     write(lout,"(a)") "HASH> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
     iErr = .true.
@@ -174,20 +199,29 @@ subroutine hash_fileSums
 
   use parpro
   use crcoall
-  use file_units
+  use mod_units
 
   character(len=32) md5Digest
   integer           nFile
 
+  integer hash_sumFileUnit
+#ifdef WIN32
+  integer hash_sumFileUnit_win32
+#endif
+
   if(hash_nHashFiles == 0) return
 
-  call funit_requestUnit(hash_sumFileName, hash_sumFileUnit)
-  open(hash_sumFileUnit, file=hash_sumFileName)
+  call f_requestUnit(hash_sumFileName, hash_sumFileUnit)
+  call f_open(unit=hash_sumFileUnit,file=hash_sumFileName,formatted=.true.,mode="w")
+#ifdef WIN32
+  call f_requestUnit(hash_sumFileName//".win32", hash_sumFileUnit_win32)
+  call f_open(unit=hash_sumFileUnit_win32,file=hash_sumFileName//".win32",formatted=.true.,mode="w")
+#endif
 
   if(hash_selfTestOK .eqv. .false.) then
     write(hash_sumFileUnit,"(a)") "HASH library failed self test. No hashes written."
     flush(hash_sumFileUnit)
-    close(hash_sumFileUnit)
+    call f_close(hash_sumFileUnit)
     return
   end if
 
@@ -195,14 +229,22 @@ subroutine hash_fileSums
   write(lout,"(a)") str_divLine
   write(lout,"(a)") ""
   write(lout,"(a)") "    Computing MD5 Hash of Files"
-  write(lout,"(a)") "   ============================="
+  write(lout,"(a)") "  ==============================="
   do nFile=1,hash_nHashFiles
-    call hash_digestFile(trim(hash_listHashFiles(nFile)), md5Digest)
-    write(hash_sumFileUnit,"(a32,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
-    write(lout,            "(a36,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
+    call hash_digestFile(trim(hash_listHashFiles(nFile)), md5Digest, hash_isAscii(nFile))
+#ifdef WIN32
+    write(hash_sumFileUnit_win32,"(a32,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))//".tmp"
+    flush(hash_sumFileUnit_win32)
+#endif
+
+    write(hash_sumFileUnit,      "(a32,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
+    write(lout,                  "(a36,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
     flush(hash_sumFileUnit)
   end do
-  close(hash_sumFileUnit)
+  call f_close(hash_sumFileUnit)
+#ifdef WIN32
+  call f_close(hash_sumFileUnit_win32)
+#endif
 
 end subroutine hash_fileSums
 
@@ -220,7 +262,7 @@ subroutine hash_md5Final(ctxID, md5Digest)
   character(len=32), intent(out) :: md5Digest
 
   integer(kind=C_INT) tmpVals(16)
-  integer     i
+  integer i
 
   tmpVals(:) = 0
   call hash_md5FinalC(ctxID, tmpVals, 16)
@@ -238,7 +280,7 @@ subroutine hash_digestString(inStr, md5Digest)
   character(len=32), intent(out) :: md5Digest
 
   integer(kind=C_INT) tmpVals(16)
-  integer     i
+  integer i
 
   tmpVals(:) = 0
   call hash_digestStringC(inStr//char(0), len(inStr), tmpVals, 16)
@@ -247,19 +289,28 @@ subroutine hash_digestString(inStr, md5Digest)
 
 end subroutine hash_digestString
 
-subroutine hash_digestFile(fileName, md5Digest)
+subroutine hash_digestFile(fileName, md5Digest, isAscii)
 
   use, intrinsic :: iso_c_binding
   use string_tools
 
   character(len=*),  intent(in)  :: fileName
   character(len=32), intent(out) :: md5Digest
+  logical,           intent(in)  :: isAscii
+
+  integer tmpIsAscii
 
   integer(kind=C_INT) tmpVals(16)
-  integer     i
+  integer i
+
+  if (isAscii) then
+    tmpIsAscii = 1
+  else
+    tmpIsAscii = 0
+  end if
 
   tmpVals(:) = 0
-  call hash_digestFileC(fileName//char(0), len(fileName)+1, tmpVals, 16)
+  call hash_digestFileC(fileName//char(0), len(fileName)+1, tmpVals, 16, tmpIsAscii)
   if(tmpVals(1) == -1) then
     md5Digest = "***** ERROR File Not Found *****"
   else
