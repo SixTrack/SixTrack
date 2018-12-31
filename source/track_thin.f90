@@ -30,7 +30,7 @@ subroutine trauthin(nthinerr)
   use mod_fluc, only : fluc_errAlign,fluc_writeFort4
   implicit none
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nmz,nthinerr
-  real(kind=fPrec) benkcc,r0,r000,r0a, ten6p
+  real(kind=fPrec) benkcc,r0,r000,r0a
   
 
   
