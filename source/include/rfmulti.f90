@@ -19,10 +19,10 @@ do j=1,napx
     y_t = cikve*c1m3
     !---- Vector with strengths
     do iord = 1, nordm
-      field_cos(1,iord) = (norrfamp(irrtr,iord) * cos(norrfph(irrtr,iord)*twopi  - krf * sigmv(j)))
-      field_sin(1,iord) = (norrfamp(irrtr,iord) * sin(norrfph(irrtr,iord)*twopi  - krf * sigmv(j)))
-      field_cos(2,iord) = (skrfamp(irrtr,iord)  * cos(skrfph(irrtr,iord)*twopi  - krf * sigmv(j)))
-      field_sin(2,iord) = (skrfamp(irrtr,iord)  * sin(skrfph(irrtr,iord)*twopi  - krf * sigmv(j)))
+      field_cos(1,iord) = nzz(j)*(norrfamp(irrtr,iord) * cos(norrfph(irrtr,iord)*twopi  - krf * sigmv(j)))
+      field_sin(1,iord) = nzz(j)*(norrfamp(irrtr,iord) * sin(norrfph(irrtr,iord)*twopi  - krf * sigmv(j)))
+      field_cos(2,iord) = nzz(j)*(skrfamp(irrtr,iord)  * cos(skrfph(irrtr,iord)*twopi  - krf * sigmv(j)))
+      field_sin(2,iord) = nzz(j)*(skrfamp(irrtr,iord)  * sin(skrfph(irrtr,iord)*twopi  - krf * sigmv(j)))
     
     enddo
     
@@ -55,6 +55,3 @@ do j=1,napx
     if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
 
   end do
-
-
-

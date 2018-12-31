@@ -1071,7 +1071,6 @@ subroutine thin4d(nthinerr)
         end do
         goto 620
        case (71) ! Rf-multi
-         newstyle_rf = 1
 #include "include/rfmulti.f90"
         goto 620
 
@@ -2049,7 +2048,6 @@ subroutine thin6d(nthinerr)
         end do
         goto 640
       case (71) ! Rf-multi
-         newstyle_rf = 1
 #include "include/rfmulti.f90"
         goto 640
 
