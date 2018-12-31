@@ -41,6 +41,27 @@ Moreover, using the multipole block reduces the number of elements in the single
     \item 22-poles are included ($n=11$). By enlarging the parameter \texttt{MMUL} (Appendix~\ref{DSP}) up to 40-poles (\texttt{MMUL=20})\index{MMUL} can be treated. To make the change of \texttt{MMUL} effective, it is of course necessary to recompile the program.
 \end{enumerate}
 
+\section{Generalized RF-Multipoles} \label{generalrf}
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{RFMU}\index{RFMU} \\
+    \textbf{Data lines} & 2 to 21 \\
+    \textbf{Format}     & First line: \texttt{name frequency}  . \\
+                        & Lines 2 to 21: \texttt{$B_{n}$ $\phi_{Bn}$ $A_{n}$ $\phi_{An}$}.
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{name}    & Name of the block which must appear in the list of single elements\index{single elements} (\ref{rfmulbloc}). \\
+    \texttt{$B_{n}$} & Strength of the normal multipole of order n.  \\
+    \texttt{$\phi_{Bn}$} & Phase (in radians) of the normal multipole of order n.  \\
+    \texttt{$A_{n}$} & Strength of the skew multipole of order n.  \\
+    \texttt{$\phi_{An}$} & Phase (in radians) of the skew multipole of order n.  \\
+\end{tabular}
+
 % ================================================================================================================================ %
 \section{Aperture Limitations} \label{ApeLim}
 
@@ -409,7 +430,7 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
 %\begin{longtable}{|p{2.25cm} | p{4cm} p{9.5cm}|}
 %\begin{longtable}{|l | l l l|}
   %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
-\caption{Element types and attributes available in \texttt{DYNK}.}
+\caption{Element types and attributes available in \texttt{DYNK}  (part 1).}
 \label{tab:DYNK_SET} %\\*
 \begin{tabular}{|l | l | l | p{6cm}|}
 
@@ -417,23 +438,7 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
   \rowcolor{blue!30}
   Element type (idx) & Attribute & Units & Description \\
   \hline
-  % \endfirsthead
 
-  % \hline
-  % \rowcolor{blue!30}
-  % Element type (idx) & Attribute & Units & Description \\*
-  % %\hline
-  % \endhead
-
-  % \rowcolor{gray!15}
-  % \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
-  % \hline
-  % \endfoot
-
-  % \hline
-  % \endlastfoot
-
-  %\hline
   \parbox{4cm}{~\\[-1mm] Standard thin elements\index{thin element}\\ ($\pm$1 -- $\pm$10),\\ Section~\ref{NonEle}\\[-3mm]}
     & \texttt{average\_ms} & radians * m\textsuperscript{-n} & See Table~\ref{T-NonEle} \\
   \hline
@@ -473,9 +478,28 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     \multirow{3}{*}{\parbox{4cm}{Multipoles \index{Multipoles}\\ (11),\\ Section~\ref{MulCoe}}}
     & \texttt{scaleall}  & -       & Multiplies all order by this factor \\
     & \texttt{a\{ORDER\}rms, e.g a1rms}& radians * m\textsuperscript{-n}  & Corresponds to the 4th column in the multipole block. \\
-    & \texttt{b\{ORDER\}rms, e.g b2rms}& radians * m\textsuperscript{-n}  & Corresponds to the 2th column in the multipole block. \\
+    & \texttt{b\{ORDER\}rms, e.g b2rms}& radians * m\textsuperscript{-n}  & Corresponds to the 2nd column in the multipole block. \\
     & \texttt{a\{ORDER\}str, e.g a3str}& radians * m\textsuperscript{-n}  & Corresponds to the 1th column in the multipole block. \\
-    & \texttt{b\{ORDER\}str, e.g b4str}& radians * m\textsuperscript{-n}  & Corresponds to the 3th column in the multipole block. \\
+    & \texttt{b\{ORDER\}str, e.g b4str}& radians * m\textsuperscript{-n}  & Corresponds to the 3rd column in the multipole block. \\
+  \hline
+
+
+
+%\end{longtable}
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[ht]
+\begin{center}
+
+\caption{Element types and attributes available in \texttt{DYNK}  (part 2).}
+\label{tab:DYNK_SET} %\\*
+\begin{tabular}{|l | l | l | p{6cm}|}
+
+  \hline
+  \rowcolor{blue!30}
+  Element type (idx) & Attribute & Units & Description \\
   \hline
     \multirow{3}{*}{\parbox{4cm}{Electron lens \\ (29),\\ Section~\ref{sec:elen}}}
     & \texttt{thetamax}     & mrad      & Maximum angular kick \\
@@ -486,6 +510,12 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     & \texttt{scaling}     & --      & Scaling of probability, see Section~\ref{sec:scatter}, paragraph about ELEM command.\\
     % &      &       &  \\
     % &      &       &  \\
+    \hline
+    \multirow{3}{*}{\parbox{4cm}{Generalized RF-multipoles \\ (41),\\ Section~\ref{generalrf}}}
+    & \texttt{a\{ORDER\}amp, e.g a1amp}& m\textsuperscript{-n}  & Corresponds to the 3rd column in the generalized RF-multipole blocks. \\
+    & \texttt{b\{ORDER\}amp, e.g b2amp}& m\textsuperscript{-n}  & Corresponds to the 1st column in the multipole block. \\
+    & \texttt{a\{ORDER\}pha, e.g a3pha}& radians & Corresponds to the 4th column in the multipole block. \\
+    & \texttt{b\{ORDER\}pha, e.g b4pha}& radians & Corresponds to the 2nd column in the multipole block. \\
   \hline
     \multirow{3}{*}{\parbox{4cm}{\texttt{GLOBAL-VARS} \\ Not a real element,\\ changes global variable}}
     & \texttt{E0}     & MeV      & Reference energy of synchronous particle \\
@@ -493,11 +523,9 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     % &      &       &  \\
   \hline
 
-%\end{longtable}
 \end{tabular}
 \end{center}
 \end{table}
-
 \subsection{Additional Flags}
 
 \paragraph{Flag:} \texttt{NOFILE}\\
