@@ -344,7 +344,7 @@ subroutine trauthin(nthinerr)
 #include "include/solenoid.f90"
       ktrack(i) = 56
     case (41) ! 
-      ktrack(i) = 71
+      ktrack(i) = 66
 
     !----------------
     !--Negative KZZ--
@@ -1070,7 +1070,7 @@ subroutine thin4d(nthinerr)
 #include "include/kickelens.f90"
         end do
         goto 620
-       case (71) ! Rf-multi
+       case (66) ! Rf-multi
 #include "include/rfmulti.f90"
         goto 620
 
@@ -2047,7 +2047,7 @@ subroutine thin6d(nthinerr)
 #include "include/kickelens.f90"
         end do
         goto 640
-      case (71) ! Rf-multi
+      case (66) ! Rf-multi
 #include "include/rfmulti.f90"
         goto 640
 
