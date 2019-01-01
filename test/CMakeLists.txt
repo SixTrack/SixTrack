@@ -53,7 +53,6 @@ set(TESTS_NOFORT10
   dump4
   dump5
   dump6
-  fileunits_DYNK_DUMP
   generalized-rf-multipoles
   momentum_scan
   multipoles_DYNK
