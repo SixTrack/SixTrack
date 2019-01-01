@@ -1840,7 +1840,7 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
 end subroutine sixin_parseInputLineMULT
 
 
-subroutine sixin_parseInputLineRF_MULT(inLine, iLine, iErr)
+subroutine sixin_parseInputLineRFMU(inLine, iLine, iErr)
 
   implicit none
 
@@ -1859,7 +1859,7 @@ subroutine sixin_parseInputLineRF_MULT(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "MULT> ERROR Failed to parse input line."
+    write(lout,"(a)") "RF-MULT> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -1932,7 +1932,7 @@ subroutine sixin_parseInputLineRF_MULT(inLine, iLine, iErr)
 
   end if
 
-end subroutine sixin_parseInputLineRF_MULT
+end subroutine sixin_parseInputLineRFMU
 
 ! ================================================================================================ !
 !  Parse Sub-Resonance Calculation Line

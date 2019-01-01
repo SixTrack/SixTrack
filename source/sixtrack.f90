@@ -549,7 +549,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineRF_MULT(inLine,blockLine,inErr)
+      call sixin_parseInputLineRFMU(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
