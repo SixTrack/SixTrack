@@ -1239,34 +1239,33 @@ subroutine collimate_init()
 !Call distribution routines only if collimation block is in fort.3, otherwise
 !the standard sixtrack would be prevented by the 'stop' command
   if(radial) then
-    call makedis_radial(myalphax, myalphay, mybetax, &
-         &      mybetay, myemitx0_dist, myemity0_dist, myenom, nr, ndr, myx, myxp, myy, myyp, myp, mys)
+    call makedis_radial(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
+                        myenom, nr, ndr, myx, myxp, myy, myyp, myp, mys)
   else
     select case(do_thisdis)
     case(0)
       continue
     case(1)
       call makedis(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-           &           myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
+                   myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
     case(2)
       call makedis_st(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-           &           myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
+                      myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
     case(3)
       call makedis_de(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-           &           myenom, mynex, mdex, myney, mdey,myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
+                      myenom, mynex, mdex, myney, mdey,myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
     case(4)
       call readdis(filename_dis, myx, myxp, myy, myyp, myp, mys)
     case(5)
       call makedis_ga(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-           &           myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength )
+                      myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength )
     case(6)
       call readdis_norm(filename_dis, myalphax, myalphay, mybetax, mybetay, &
-           &           myemitx0_dist, myemity0_dist, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
+                        myemitx0_dist, myemity0_dist, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
     case default
-          write(lout,"(a)") "COLL> ERROR Review your distribution parameters!"
-          call prror(-1)
-      end select
-    end if
+      write(lout,"(a)") "COLL> ERROR Review your distribution parameters!"
+      call prror(-1)
+    end select
   end if
 
 !++  Reset distribution for pencil beam
@@ -1294,21 +1293,21 @@ subroutine collimate_init()
       fldDist0(5)  = h5_dataField(name="S",  type=h5_typeReal)
       fldDist0(6)  = h5_dataField(name="P",  type=h5_typeReal)
       call h5_createFormat("collDist0", fldDist0, fmtDist0)
-      call h5_createDataSet("dist0", h5_collID, fmtDist0, setDist0, mynp)
-      call h5_prepareWrite(setDist0, mynp)
-      call h5_writeData(setDist0, 1, mynp, myx(1:mynp))
-      call h5_writeData(setDist0, 2, mynp, myxp(1:mynp))
-      call h5_writeData(setDist0, 3, mynp, myy(1:mynp))
-      call h5_writeData(setDist0, 4, mynp, myyp(1:mynp))
-      call h5_writeData(setDist0, 5, mynp, mys(1:mynp))
-      call h5_writeData(setDist0, 6, mynp, myp(1:mynp))
+      call h5_createDataSet("dist0", h5_collID, fmtDist0, setDist0, napx)
+      call h5_prepareWrite(setDist0, napx)
+      call h5_writeData(setDist0, 1, mynp, myx(1:napx))
+      call h5_writeData(setDist0, 2, mynp, myxp(1:napx))
+      call h5_writeData(setDist0, 3, mynp, myy(1:napx))
+      call h5_writeData(setDist0, 4, mynp, myyp(1:napx))
+      call h5_writeData(setDist0, 5, mynp, mys(1:napx))
+      call h5_writeData(setDist0, 6, mynp, myp(1:napx))
       call h5_finaliseWrite(setDist0)
       deallocate(fldDist0)
     else
 #endif
       call f_requestUnit('dist0.dat', dist0_unit)
       open(unit=dist0_unit,file='dist0.dat') !was 52
-      do j = 1, mynp
+      do j = 1, napx
         write(dist0_unit,'(6(1X,E23.15))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
       end do
       close(dist0_unit)
@@ -1338,15 +1337,6 @@ subroutine collimate_init()
   iturn = 1
   ie    = 1
   n_tot_absorbed = 0
-
-  if(int(mynp/napx00) .eq. 0) then
-    write (lout,"(a)")    "COLL> ERROR Setting up collimation tracking: Number of samples is zero!"
-    write (lout,"(a)")    "COLL> ERROR Did you forget the COLL block in fort.3?"
-    write (lout,"(a,l1)") "COLL> * Value of do_coll = ", do_coll
-    write (lout,"(a,i0)") "COLL> * Value of mynp    = ", mynp
-    write (lout,"(a,i0)") "COLL> * Value of napx00  = ", napx00
-    call prror(-1)
-  end if
 
   call f_requestUnit('CollPositions.dat', CollPositions_unit)
   open(unit=CollPositions_unit, file='CollPositions.dat')
