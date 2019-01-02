@@ -6,13 +6,13 @@ module cheby
   ! A.Mereghetti (CERN, BE-ABP-HSS)
   ! last modified: 28-02-2018
   ! module for handling lenses with kicks expressed by Chebyshev polynomials
-  
+
   integer,allocatable, save  :: icheby(:)              ! index of chebyshev lens
   integer, parameter     :: ncheby=20                 ! max number of chebyshev lenses treated (in LATTICE structure)
   integer, save          :: mcheby                    ! last chebyshev lens read
   integer, parameter     :: ncheby_tables=5           ! max number of chebyshev tables in memory (in SINGLE ELEMENT array)
   integer, save          :: mcheby_tables             ! last chebyshev table read
-  
+
   ! variables to save parameters for tracking etc.
   real(kind=fPrec), save :: cheby_offset_x(ncheby), cheby_offset_y(ncheby)  ! hor./vert. offset [mm]
   real(kind=fPrec), save :: cheby_angle(ncheby)       ! rotation angle about the longitudinal axis [rad]
@@ -27,7 +27,7 @@ module cheby
   real(kind=fPrec), save :: cheby_coeffs(0:cheby_max_order,0:cheby_max_order,ncheby_tables) ! coefficients
   integer, save          :: cheby_maxOrder(ncheby_tables)  ! max order of the current map
   real(kind=fPrec), save :: cheby_refRadius(ncheby_tables) ! reference radius [mm]
-  
+
 
 contains
 
@@ -50,19 +50,21 @@ end subroutine cheby_expand_arrays
     ! A. Mereghetti (CERN, BE-ABP-HSS)
     ! last modified: 20-02-2018
     ! apply kick of electron lens
-    
+
     use crcoall
     use mod_common
     use mod_commonmn
     use mathlib_bouncer
     use numerical_constants
     use physical_constants
-        
+
     real(kind=fPrec) :: xx, yy, rr, frr, dxp, dyp
     real(kind=fPrec) :: theta, radio, angle_rad, brho_b, beta_b
     integer          :: j, jcheby
     logical          :: lrotate
-        
+
+    angle_rad = zero ! -Wmaybe-uninitialized
+
     ! rotation angle
     lrotate=cheby_angle(jcheby).ne.zero
 
@@ -71,20 +73,20 @@ end subroutine cheby_expand_arrays
     brho_b=e0f/(clight*c1m6)
 
     do j=1,napx
-       
+
        ! apply offset
-       xx=xv(1,j)-cheby_offset_x(jcheby)
-       yy=xv(2,j)-cheby_offset_y(jcheby)
+       xx=xv1(j)-cheby_offset_x(jcheby)
+       yy=xv2(j)-cheby_offset_y(jcheby)
 
        ! check that particle is within the domain of chebyshev polynomials
        rr=sqrt(xx**2+yy**2)
        if (rr.gt.cheby_refRadius(cheby_itable(jcheby))) then
           write(lout,*) 'ERROR in cheby_kick: particle at position (x,y,r): ',     &
-               xv(1,j), xv(2,j), rr,' is outside radial domain of Chebyshev polinomials: ', &
+               xv1(j), xv2(j), rr,' is outside radial domain of Chebyshev polinomials: ', &
                cheby_refRadius(cheby_itable(jcheby))
           call prror(-1)
        end if
-       
+
        ! in case of non-zero tilt angle, rotate coordinates
        if (lrotate) then
           theta = atan2_mb(yy, xx)-angle_rad
@@ -97,7 +99,7 @@ end subroutine cheby_expand_arrays
        ! take into account scaling factor
        dxp=dxp *cheby_scalingFact(jcheby)
        dyp=dyp *cheby_scalingFact(jcheby)
-              
+
        ! in case cheby has a non-zero angle, rotate kicks
        if (lrotate) then
           ! NB: cheby_angle(jcheby) is the rotation angle of the cheby
@@ -108,26 +110,26 @@ end subroutine cheby_expand_arrays
        end if
 
        ! apply kicks, taking into account magnetic rigidity of particle being tracked;
-       yv(1,j)=yv(1,j)+dxp *oidpsv(j)
-       yv(2,j)=yv(2,j)+dyp *oidpsv(j)
+       yv1(j)=yv1(j)+dxp *oidpsv(j)
+       yv2(j)=yv2(j)+dyp *oidpsv(j)
     end do
     return
-    
+
   end subroutine cheby_kick
-      
+
 
   subroutine cheby_comnul
-        
+
     ! A. Mereghetti (CERN, BE-ABP-HSS)
     ! last modified: 28-02-2018
     ! always in main code
-    
+
     use mod_common
     use mod_commonmn
     use numerical_constants
-    
+
     integer          :: i, j, i1, i2
-    
+
     do i=1,nele
        icheby(i) = 0
     end do
@@ -139,7 +141,7 @@ end subroutine cheby_expand_arrays
        cheby_angle(i)       = zero
        cheby_scalingFact(i) = one
     end do
-    
+
     ! table with coefficients of chebyshev polynominals
     mcheby_tables=0
     do i=1,ncheby_tables
@@ -156,35 +158,35 @@ end subroutine cheby_expand_arrays
     end do
     return
   end subroutine cheby_comnul
-  
+
 
   subroutine cheby_getKick( xx, yy, dxp, dyp, iTable, brho_b, beta_b )
-    
+
     ! A. Mereghetti (CERN, BE-ABP-HSS)
     ! last modified: 28-02-2018
     ! compute kicks from Chebyshev polinomials - see FermiLAB-FN-0972-APC
-    
+
     use mathlib_bouncer
     use physical_constants
     use numerical_constants
-    
+
     ! interface vars
     real(kind=fPrec) :: xx, yy, dxp, dyp, brho_b, beta_b
     integer          :: iTable
-     
+
     ! temp vars
     real(kind=fPrec) :: uu, vv, Tx (0:cheby_maxOrder(iTable)), Ty (0:cheby_maxOrder(iTable)), &
                         kx, ky, Tpx(0:cheby_maxOrder(iTable)), Tpy(0:cheby_maxOrder(iTable)), &
                         fu, fv
     integer          :: ii, jj
-     
+
     ! normalised variables
     uu=xx/cheby_refRadius(iTable)
     vv=yy/cheby_refRadius(iTable)
     ! normalisation factors of derivatives
     fu=(one-uu)*(one+uu)
     fv=(one-vv)*(one+vv)
-     
+
     ! polynomials:
     Tx(0)=one
     Ty(0)=one
@@ -201,10 +203,10 @@ end subroutine cheby_expand_arrays
        Tpx(ii)=real(ii,fPrec)*(Tx(ii-1)-uu*Tx(ii))/fu
        Tpy(ii)=real(ii,fPrec)*(Ty(ii-1)-vv*Ty(ii))/fv
     end do
-     
+
     ! get kicks
     dxp=zero
-    dyp=zero 
+    dyp=zero
     do ii=0,cheby_maxOrder(iTable)
        do jj=0,ii
           dxp=dxp+cheby_coeffs(jj,ii,iTable)*Tpx(jj)*Ty (ii-jj)
@@ -213,12 +215,12 @@ end subroutine cheby_expand_arrays
     end do
     dxp=-dxp/cheby_refRadius(iTable)
     dyp=-dyp/cheby_refRadius(iTable)
-    
+
     ! take into account Brho and beta
     dxp=dxp/(brho_b*clight*beta_b)
     dyp=dyp/(brho_b*clight*beta_b)
-     
+
    end subroutine cheby_getKick
-   
-   
+
+
 end module cheby

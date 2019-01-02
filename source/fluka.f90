@@ -183,7 +183,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
       end do
 
 
-      ret = fluka_send_receive( nturn, fluka_geo_index(ix), eltot, napx, xv, yv, sigmv, ejv, naa, nzz, nucm )
+      ret = fluka_send_receive( nturn, fluka_geo_index(ix), eltot, napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm )
 
       if (ret.eq.-1) then
          write(lout,*)'[Fluka] Error in Fluka communication in kernel_fluka_element...'
@@ -196,7 +196,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
 !     particles to be tracked
       do j=1,napx
 !        Update values related to losses
-         nlostp(j) = j
+         partID(j) = j
          pstop (j) = .false.
 !        Update variables depending on total energy
 !         ejfv  (j) = sqrt((ejv(j)-pma)*(ejv(j)+pma))
@@ -252,7 +252,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
 !     empty places
       do j=napx+1,npart
 !        Update values related to losses
-         nlostp(j) = j
+         partID(j) = j
          pstop (j) = .true.
 !        Update values related to momentum
          ejv   (j) = zero
@@ -336,7 +336,7 @@ subroutine kernel_fluka_entrance( nturn, i, ix )
 !    write(*,*),'PH:',pids(j)
       end do
 
-      ret = fluka_send( nturn, fluka_geo_index(ix), eltot, napx, xv, yv, sigmv, ejv, naa, nzz, nucm )
+      ret = fluka_send( nturn, fluka_geo_index(ix), eltot, napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm )
 
       if (ret.eq.-1) then
          write(lout,*)'[Fluka] Error in Fluka communication in kernel_fluka_entrance...'
@@ -395,7 +395,7 @@ subroutine kernel_fluka_exit( nturn, i, ix )
          write(fluka_log_unit,*)'#   eltot=',eltot
       end if
 
-      ret = fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv, yv, sigmv, ejv, naa, nzz, nucm )
+      ret = fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm )
 
       if (ret.eq.-1) then
          write(lout,*)'[Fluka] Error in Fluka communication in kernel_fluka_exit...'
@@ -408,7 +408,7 @@ subroutine kernel_fluka_exit( nturn, i, ix )
 !     particles to be tracked
       do j=1,napx
 !        Update values related to losses
-         nlostp(j) = j
+         partID(j) = j
          pstop (j) = .false.
 !        Update variables depending on total energy
 !         ejfv  (j) = sqrt((ejv(j)-pma)*(ejv(j)+pma))
@@ -464,7 +464,7 @@ subroutine kernel_fluka_exit( nturn, i, ix )
 !     empty places
       do j=napx+1,npart
 !        Update values related to losses
-         nlostp(j) = j
+         partID(j) = j
          pstop (j) = .true.
 !        Update values related to momentum
          ejv   (j) = zero

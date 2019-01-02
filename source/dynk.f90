@@ -109,7 +109,7 @@ end subroutine dynk_expand_arrays
 subroutine dynk_allocate
 
   use crcoall
-  use file_units
+  use mod_units
 
   ! Setting inital allocations
   ! These values are increased if needed when dynk_checkspace is called
@@ -132,8 +132,8 @@ subroutine dynk_allocate
   call alloc(dynk_sets,                dynk_maxSets,4, 0,         "dynk_sets")
 
   ! Set file units for I/O files
-  call funit_requestUnit("dynksets.dat",    dynk_fileUnit)
-  call funit_requestUnit("dynk_parseFUN_IO",dynk_fileUnitFUN)
+  call f_requestUnit("dynksets.dat",    dynk_fileUnit)
+  call f_requestUnit("dynk_parseFUN_IO",dynk_fileUnitFUN)
 
 end subroutine dynk_allocate
 
@@ -209,7 +209,7 @@ end subroutine dynk_parseInputLine
 subroutine dynk_parseFUN(inLine, iErr)
 
   use crcoall
-  use file_units
+  use mod_units
 
   implicit none
 
@@ -547,8 +547,8 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_cData(dynk_ncData+3) = trim(lnSplit(6)) ! ID
     dynk_ncData = dynk_ncData+3
 
-    call funit_requestUnit(dynk_cData(dynk_ncData+1),dynk_iData(dynk_niData))   ! fileUnit 1
-    call funit_requestUnit(dynk_cData(dynk_ncData+2),dynk_iData(dynk_niData+1)) ! fileUnit 2
+    call f_requestUnit(dynk_cData(dynk_ncData+1),dynk_iData(dynk_niData))   ! fileUnit 1
+    call f_requestUnit(dynk_cData(dynk_ncData+2),dynk_iData(dynk_niData+1)) ! fileUnit 2
     dynk_niData = dynk_niData+1
 
     ! Look if the filenames are used in a different FUN PIPE
@@ -781,12 +781,11 @@ subroutine dynk_parseFUN(inLine, iErr)
 
     call dynk_checkargs(nSplit,6,"FUN funname {FIR|IIR} N filename baseFUN")
 
-    select case(trim(lnSplit(3)))
-    case("FIR")
+    if(trim(lnSplit(3)) == "FIR") then
       isFIR = .true.
-    case("IIR")
+    else
       isFIR = .false.
-    end select
+    end if
 
     call chr_cast(lnSplit(4),t,cErr) ! N
     if(isFIR) then
@@ -2019,6 +2018,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
   use mod_common
   use mod_ranecu
   use numerical_constants, only : pi
+  use utils
 
   implicit none
 
@@ -2069,8 +2069,8 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
   case(2) ! FILELIN
     filelin_start    = dynk_funcs(funNum,4)
     filelin_xypoints = dynk_funcs(funNum,5)
-    ! Pass the correct array views/sections to dynk_lininterp
-    retval = dynk_lininterp( real(turn,fPrec), &
+    ! Pass the correct array views/sections to lininterp
+    retval = lininterp( real(turn,fPrec), &
              dynk_fData(filelin_start:filelin_start+filelin_xypoints-1), &
              dynk_fData(filelin_start +  filelin_xypoints: &
                         filelin_start +2*filelin_xypoints-1), &
@@ -2227,8 +2227,8 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
   case(43) ! LINSEG
     filelin_start    = dynk_funcs(funNum,3)
     filelin_xypoints = 2
-    ! Pass the correct array views/sections to dynk_lininterp
-    retval = dynk_lininterp( real(turn,fPrec), &
+    ! Pass the correct array views/sections to lininterp
+    retval = lininterp( real(turn,fPrec), &
              dynk_fData(filelin_start:filelin_start+1), &
              dynk_fData(filelin_start+2:filelin_xypoints+3), &
              filelin_xypoints )
@@ -2336,7 +2336,9 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   if(element_name == "GLOBAL-VARS") then
     if(att_name == "E0" ) then
       ! Modify the reference particle
-      call part_updateEnergy(newValue)
+      call part_updateRefEnergy(newValue)
+      ! Modify energy-dependent element parameters
+      call eLensThetas
     end if
     ldoubleElement = .true.
   end if
@@ -2349,47 +2351,46 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
       el_type=kz(ii)      ! type found
 
       if(ldoubleElement) then ! Sanity check
-        write(lout,*) "DYNK> ERROR Two elements with the same BEZ"
+        write(lout,"(a)") "DYNK> ERROR Two elements with the same BEZ"
         call prror(-1)
       end if
       ldoubleElement = .true.
 
       select case(abs(el_type))
-        
+
       case(1,2,3,4,5,6,7,8,9,10)
         ! horizontal bending kick, quadrupole kick, sextupole kick, octupole kick, decapole kick,
         ! dodecapole kick, 14th pole kick, 16th pole kick, 18th pole kick,20th pole kick
-
         if(att_name == "average_ms") then
           ed(ii) = newValue
         else
           goto 100 ! ERROR
         end if
         call initialize_element(ii, .false.)
-  
+
       case(11)
-        im=irm(ii)
-        if(att_name=="scaleall") then
-          scalemu(im) = newValue 
+        im = irm(ii)
+        if(att_name == "scaleall") then
+          scalemu(im) = newValue
         else if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
-          if(LEN_TRIM(att_name) .eq. 5) then
+          if(len_trim(att_name) == 5) then
             range = 3
             call chr_cast(att_name(2:2), orderMult, iErr)
-          else if(LEN_TRIM(att_name) .eq. 6) then
+          else if(len_trim(att_name) == 6) then
             call chr_cast(att_name(2:3), orderMult, iErr)
             range = 4
           else
             goto 100
-          endif
+          end if
           if(iErr) goto 100
-          if(nmu(ii) .lt. orderMult) then
+          if(nmu(ii) < orderMult) then
             nmu(ii) = orderMult
-          endif
-          
-          r0 = r00(im)
+          end if
+
+          r0  = r00(im)
           r0a = one
           do k=2,orderMult
-            r0a=r0a*r0
+            r0a = r0a*r0
           end do
           if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
             aka(im,orderMult) = newValue*benkc(im)/r0a
@@ -2399,13 +2400,12 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
             ak0(im,orderMult) = newValue*benkc(im)/r0a
           else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "str") then
             bk0(im,orderMult) = newValue*benkc(im)/r0a
-          else 
+          else
             goto 100 ! ERROR
-          endif
-        endif
-
+          end if
+        end if
         call initialize_element(ii, .false.)
-     
+
       case(12)
         if(att_name == "voltage") then ! [MV]
           ed(ii) = newValue
@@ -2424,48 +2424,50 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         end if
 
       ! Not yet supported : AC dipole (16)
+
       case(20)
-       if(beam_expflag.eq.1) then
-         if (att_name == "h-sep") then ! [mm]
-           parbe(ii,5) = newValue
-         else if (att_name == "v-sep") then ! [mm]
-           parbe(ii,6) = newValue
-         else if (att_name=="4dSxx") then !strong I think
-           parbe(ii,1) = newValue
-         else if (att_name=="4dSyy") then
-           parbe(ii,3) = newValue
-         else if (att_name=="4dSxy") then
-           parbe(ii,13) = newValue
-         else if (att_name == "strength") then ! 
-           ptnfac(ii) = newValue
-           parbe(ii,4)=(((-one*crad)*ptnfac(ii))*half)*c1m6
-         else if(att_name == "Sxx") then
-           parbe(ii,7) = newValue 
-         else if(att_name == "Sxxp") then
-           parbe(ii,8) = newValue
-         else if(att_name == "Sxpxp") then
-           parbe(ii,9) = newValue
-         else if(att_name == "Syy") then
-           parbe(ii,10) = newValue
-         else if(att_name == "Syyp") then
-           parbe(ii,11) = newValue
-         else if(att_name == "Sypyp") then
-           parbe(ii,12) = newValue
-         else if(att_name == "Sxy") then
-           parbe(ii,13) = newValue
-         else if(att_name == "Sxyp") then
-           parbe(ii,14) = newValue 
-         else if(att_name == "Sxpy") then
-           parbe(ii,15) = newValue
-         else if(att_name == "Sxpyp") then
-           parbe(ii,16) = newValue
-         else 
-           go to 100
-         endif
-         call initialize_element(ii, .false.)
-       else 
-         go to 102
-       end if
+        if(beam_expflag == 1) then
+          if(att_name == "h-sep") then ! [mm]
+            parbe(ii,5)  = newValue
+          else if(att_name == "v-sep") then ! [mm]
+            parbe(ii,6)  = newValue
+          else if(att_name == "4dSxx") then ! strong I think
+            parbe(ii,1)  = newValue
+          else if(att_name == "4dSyy") then
+            parbe(ii,3)  = newValue
+          else if(att_name == "4dSxy") then
+            parbe(ii,13) = newValue
+          else if(att_name == "strength") then
+            ptnfac(ii)   = newValue
+            parbe(ii,4)  = (((-one*crad)*ptnfac(ii))*half)*c1m6
+          else if(att_name == "Sxx") then
+            parbe(ii,7)   = newValue
+          else if(att_name == "Sxxp") then
+            parbe(ii,8)   = newValue
+          else if(att_name == "Sxpxp") then
+            parbe(ii,9) = newValue
+          else if(att_name == "Syy") then
+            parbe(ii,10) = newValue
+          else if(att_name == "Syyp") then
+            parbe(ii,11) = newValue
+          else if(att_name == "Sypyp") then
+            parbe(ii,12) = newValue
+          else if(att_name == "Sxy") then
+            parbe(ii,13) = newValue
+          else if(att_name == "Sxyp") then
+            parbe(ii,14) = newValue
+          else if(att_name == "Sxpy") then
+            parbe(ii,15) = newValue
+          else if(att_name == "Sxpyp") then
+            parbe(ii,16) = newValue
+          else
+            goto 100
+          end if
+          call initialize_element(ii, .false.)
+        else
+          goto 102
+        end if
+
       case(23,26,27,28)
         ! crab cavity, cc mult. kick order 2,3 and 4
         if(att_name == "voltage") then ! [MV]
@@ -2482,9 +2484,17 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
           goto 100 ! ERROR
         end if
 
-      case(29)! Electron lens
+      case(29) ! Electron lens
         if(att_name == "theta_r2") then ! [mrad]
           elens_theta_r2(ielens(ii)) = newValue
+          !Energy update is locked down after setting theta_r2 with DYNK
+          elens_lAllowUpdate(ielens(ii)) = .false.
+        elseif(att_name == "elens_I") then ! [A]
+          elens_I(ielens(ii)) = newValue
+          call eLensTheta(ielens(ii))
+        elseif(att_name == "elens_Ek") then ! [keV]
+          elens_Ek(ielens(ii)) = newValue
+          call eLensTheta(ielens(ii))
         else
           goto 100 ! ERROR
         end if
@@ -2521,7 +2531,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   call prror(-1)
 
 102 continue
-  write(lout,"(a)") "DYNK> ERROR  --- Only Beam-beam expert mode is supported for DYNK"
+  write(lout,"(a)") "DYNK> ERROR setValue Only Beam-beam expert mode is supported for DYNK"
   call prror(-1)
 
 end subroutine dynk_setvalue
@@ -2589,7 +2599,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
       case(11)
         im=irm(ii)
         if(att_name=="scaleall") then
-          dynk_getvalue = scalemu(im) 
+          dynk_getvalue = scalemu(im)
         else if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
           if(LEN_TRIM(att_name) .eq. 5) then
              range = 3
@@ -2601,15 +2611,15 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
             goto 100
           endif
           if(iErr) goto 100
-          
+
           if(att_name(1:1) == "a" .and. att_name(range:range+3) == "rms") then
             dynk_getvalue = aka(im,orderMult)
           else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "rms") then
-            dynk_getvalue = bka(im,orderMult)  
+            dynk_getvalue = bka(im,orderMult)
           else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "str") then
-            dynk_getvalue = ak0(im,orderMult)  
+            dynk_getvalue = ak0(im,orderMult)
           else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "str") then
-            dynk_getvalue = bk0(im,orderMult) 
+            dynk_getvalue = bk0(im,orderMult)
           else
             goto 100 ! ERROR
           endif
@@ -2631,41 +2641,41 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
       case(20)
         if(beam_expflag.eq.1) then
           if (att_name == "h-sep") then ! [mm]
-            dynk_getvalue = parbe(ii,5)  
+            dynk_getvalue = parbe(ii,5)
           else if (att_name == "v-sep") then ! [mm]
-            dynk_getvalue = parbe(ii,6)  
+            dynk_getvalue = parbe(ii,6)
           else if (att_name=="4dSxx") then !strong I think
-            dynk_getvalue = parbe(ii,1)  
+            dynk_getvalue = parbe(ii,1)
           else if (att_name=="4dSyy") then
             dynk_getvalue = parbe(ii,3)
           else if (att_name=="4dSxy") then
             dynk_getvalue = parbe(ii,13)
-          else if (att_name == "strength") then ! 
+          else if (att_name == "strength") then !
             dynk_getvalue = ptnfac(ii)
           else if(att_name == "Sxx") then
-            dynk_getvalue = parbe(ii,7)   
+            dynk_getvalue = parbe(ii,7)
           else if(att_name == "Sxxp") then
-            dynk_getvalue = parbe(ii,8)  
+            dynk_getvalue = parbe(ii,8)
           else if(att_name == "Sxpxp") then
-            dynk_getvalue = parbe(ii,9)  
+            dynk_getvalue = parbe(ii,9)
           else if(att_name == "Syy") then
-            dynk_getvalue = parbe(ii,10)  
+            dynk_getvalue = parbe(ii,10)
           else if(att_name == "Syyp") then
-            dynk_getvalue = parbe(ii,11)  
+            dynk_getvalue = parbe(ii,11)
           else if(att_name == "Sypyp") then
-            dynk_getvalue = parbe(ii,12)  
+            dynk_getvalue = parbe(ii,12)
           else if(att_name == "Sxy") then
-            dynk_getvalue = parbe(ii,13)  
+            dynk_getvalue = parbe(ii,13)
           else if(att_name == "Sxyp") then
-            dynk_getvalue = parbe(ii,14)   
+            dynk_getvalue = parbe(ii,14)
           else if(att_name == "Sxpy") then
-            dynk_getvalue = parbe(ii,15)  
+            dynk_getvalue = parbe(ii,15)
           else if(att_name == "Sxpyp") then
-            dynk_getvalue = parbe(ii,16) 
-          else 
+            dynk_getvalue = parbe(ii,16)
+          else
             go to 100
           endif
-        else 
+        else
           go to 102
         end if
 
@@ -2691,6 +2701,10 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
       case(29) ! Electron lens
         if(att_name == "theta_r2") then ! [mrad]
           dynk_getvalue = elens_theta_r2(ielens(ii))
+        elseif(att_name == "elens_I") then ! [A]
+          dynk_getvalue = elens_I(ielens(ii))
+        elseif(att_name == "elens_Ek") then ! [keV]
+          dynk_getvalue = elens_Ek(ielens(ii))
         else
           goto 100 ! ERROR
         end if
@@ -2723,67 +2737,6 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
   call prror(-1)
 
 end function dynk_getvalue
-
-! ================================================================================================ !
-!  A.Mereghetti, for the FLUKA Team and K.Sjobak for BE-ABP/HSS
-!  Last modified: 29-10-2014
-!
-!  - Define a linear function with a set of x,y-coordinates xvals, yvals
-!  - Return this function evaluated at the point x.
-!  - The length of the arrays xvals and yvals should be given in datalen.
-!
-!  - xvals should be in increasing order, if not then program is aborted.
-!  - If x < min(xvals) or x>max(xvals), program is aborted.
-!  - If datalen <= 0, program is aborted.
-! ================================================================================================ !
-real(kind=fPrec) function dynk_lininterp(x,xvals,yvals,datalen)
-
-  use crcoall
-  implicit none
-
-  real(kind=fPrec), intent(in) :: x, xvals(*),yvals(*)
-  integer,          intent(in) :: datalen
-
-  integer ii
-  real(kind=fPrec) dydx, y0
-
-  ! Sanity checks
-  if(datalen <= 0) then
-    write(lout,"(a)") "DYNK> ERROR lininterp: datalen was 0!"
-    call prror(-1)
-  end if
-  if(x < xvals(1) .or. x > xvals(datalen)) then
-    write(lout,"(3(a,e16.9))") "DYNK> ERROR lininterp: x = ",x," outside range",xvals(1)," - ",xvals(datalen)
-    call prror(-1)
-  end if
-
-  ! Find the right indexes i1 and i2
-  ! Special case: first value at first point
-  if(x == xvals(1)) then
-    dynk_lininterp = yvals(1)
-    return
-  end if
-
-  do ii=1, datalen-1
-    if(xvals(ii) >= xvals(ii+1)) then
-      write(lout,"(a)") "DYNK> ERROR lininterp: xvals should be in increasing order"
-      call prror(-1)
-    end if
-
-    if(x <= xvals(ii+1)) then
-      ! We're in the right interval
-      dydx = (yvals(ii+1)-yvals(ii)) / (xvals(ii+1)-xvals(ii))
-      y0   = yvals(ii) - dydx*xvals(ii)
-      dynk_lininterp = dydx*x + y0
-      return
-    end if
-  end do
-
-  ! We didn't return yet: Something wrong
-  write(lout,"(a)") "DYNK> ERROR lininterp: Reached the end of the function. This should not happen, please contact developers"
-  call prror(-1)
-
-end function dynk_lininterp
 
 ! ================================================================================================ !
 !  K. Sjobak, BE-ABP-HSS,
@@ -2992,7 +2945,7 @@ subroutine dynk_crpoint(fileunit,fileerror,ierro)
   implicit none
 
   integer, intent(in)    :: fileunit
-  logical, intent(out)   :: fileerror
+  logical, intent(inout) :: fileerror
   integer, intent(inout) :: ierro
 
   integer j

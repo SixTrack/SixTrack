@@ -276,14 +276,12 @@ end subroutine sixin_echoVal_char
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
 
-  implicit none
-
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  integer nSplit
+  integer nSplit, i
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -311,6 +309,22 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     write(lout,"(a)") "INPUT> DEBUG FIO is OFF"
 #endif
 
+  case("CRKILLSWITCH")
+#ifdef CR
+    if(nSplit < 2) then
+      write(lout,"(a)") "INPUT> ERROR CRKILLSWITCH requires at least one turn number."
+    end if
+    st_killswitch = .true.
+    write(lout,"(a)") "INPUT> C/R kill switch ENABLED"
+    allocate(st_killturns(nSplit-1))
+    do i=1,nSplit-1
+      call chr_cast(lnSplit(i+1),st_killturns(i),iErr)
+      write(lout,"(a,i0)") "INPUT>  * Will kill after turn ",st_killturns(i)
+    end do
+#else
+    write(lout,"(a)") "INPUT> Ignoring CRKILLSWITCH flag. Not using CR version of SixTrack. "
+#endif
+
   case("PRINT")
     st_print = .true.
     write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
@@ -331,6 +345,28 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       write(lout,"(a,i0)") "INPUT> Printing of particle summary is ENABLED"
     else
       write(lout,"(a,i0)") "INPUT> Printing of particle summary is DISABLED"
+    end if
+
+  case("FINALSTATE")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "INPUT> ERROR FINALSTATE takes one value, got ",nSplit-1
+      iErr = .true.
+      return
+    end if
+    select case(lnSplit(2))
+    case("binary")
+      st_finalstate = 1
+    case("text")
+      st_finalstate = 2
+    case default
+      write(lout,"(a)") "INPUT> ERROR FINALSTATE type must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
+      iErr = .true.
+      return
+    end select
+    if(st_finalstate == 1) then
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file"
+    else
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file"
     end if
 
   case("QUIET")
@@ -1044,8 +1080,8 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(idfor < 0 .or. idfor > 3) then
-      write(lout,"(a,i0,a)") "TRAC> ERROR Third value (idfor) can only be 0, 1, 2 or 3, but ",idfor," given."
+    if(idfor < 0 .or. idfor > 2) then
+      write(lout,"(a,i0,a)") "TRAC> ERROR Third value (idfor) can only be 0, 1, or 2, but ",idfor," given."
       iErr = .true.
       return
     end if
@@ -2252,7 +2288,9 @@ subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
   do i=1,nComb
     ico = icomb(icoe,i)
     if(ico == ii) then
-      call prror(92)
+      write(lout,"(a)") "COMB> ERROR You cannot combine an element with itself."
+      iErr = .true.
+      return
     end if
     if(ico == 0) cycle
     write(lout,"(a,e13.6)") "COMB> "//bez(ii)(1:20)//" : "//bez(ico)(1:20)//" : ",ratio(icoe,i)
@@ -2368,7 +2406,6 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
       write(lout,"(a)") "RESO> ERROR The multipole order for the sub-resonance compensation should not exceed 9."
       iErr = .true.
       return
-      call prror(50)
     end if
 
   case(3)

@@ -38,6 +38,7 @@ subroutine postpr(nfile)
       use parpro
       use string_tools
       use mod_version
+      use mod_time
       use mod_common, only : dpscor,sigcor,icode,idam,its6d, &
            dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad, &
            ipos,iav,iwg,ivox,ivoz,ires,ifh,toptit, &
@@ -121,9 +122,9 @@ subroutine postpr(nfile)
 !--TIME START
       pieni2=c1m8
       tlim=c1e7
-      call timest
+      call time_timerStart
       tim1=zero
-      call timex(tim1)
+      call time_timerCheck(tim1)
 
       do i=1,npos
         do j=1,3
@@ -2699,7 +2700,7 @@ subroutine postpr(nfile)
       rewind 15
 !--TIME COUNT
       tim2=0.
-      call timex(tim2)
+      call time_timerCheck(tim2)
       if(nprint.eq.1) write(lout,10280) tim2-tim1
 !----------------------------------------------------------------------
       return
@@ -3436,7 +3437,7 @@ end subroutine join
          enddo
       enddo
 
-      mmac_tmp   = real(mmac,       real64)
+      mmac_tmp   = 1.0_real64
       nms_tmp    = real(nms(ia_p1), real64)
       izu0_tmp   = real(izu0,       real64)
       numlr_tmp  = real(numlr,      real64)
@@ -3551,21 +3552,21 @@ end subroutine join
          do ia=1,napx-1
 !GRD
 !     PSTOP=true -> particle lost,
-!     nlostp(ia)=particle ID that is not changing
+!     partID(ia)=particle ID that is not changing
 !     (the particle arrays are compressed to remove lost particles)
-!     In the case of no lost particles, all nlostp(i)=i for 1..npart
-            if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and. &
-     &           (mod(nlostp(ia),2).ne.0)) then !Skip odd particle IDs
+!     In the case of no lost particles, all partID(i)=i for 1..npart
+            if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and. &
+     &           (mod(partID(ia),2).ne.0)) then !Skip odd particle IDs
 
-               ia2=(nlostp(ia)+1)/2 !File ID for non-STF & binrecs
+               ia2=(partID(ia)+1)/2 !File ID for non-STF & binrecs
                ie=ia+1              !ia = Particle ID 1, ie = Particle ID 2
 
-               if(ntwin.ne.2) then !Write particle nlostp(ia) only
+               if(ntwin.ne.2) then !Write particle partID(ia) only
                   dam_tmp      = real(dam(ia),   real64)
-                  xv_tmp(1,1)  = real(xv(1,ia),  real64)
-                  yv_tmp(1,1)  = real(yv(1,ia),  real64)
-                  xv_tmp(2,1)  = real(xv(2,ia),  real64)
-                  yv_tmp(2,1)  = real(yv(2,ia),  real64)
+                  xv_tmp(1,1)  = real(xv1(ia),  real64)
+                  yv_tmp(1,1)  = real(yv1(ia),  real64)
+                  xv_tmp(2,1)  = real(xv2(ia),  real64)
+                  yv_tmp(2,1)  = real(yv2(ia),  real64)
                   sigmv_tmp(1) = real(sigmv(ia), real64)
                   dpsv_tmp(1)  = real(dpsv(ia),  real64)
                   e0_tmp       = real(e0,        real64)
@@ -3579,7 +3580,7 @@ end subroutine join
 #else
                   write(90,iostat=ierro)                                &
 #endif
-     &               numx,nlostp(ia),dam_tmp,                           &
+     &               numx,partID(ia),dam_tmp,                           &
      &               xv_tmp(1,1),yv_tmp(1,1),                           &
      &               xv_tmp(2,1),yv_tmp(2,1),                           &
      &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp
@@ -3592,22 +3593,22 @@ end subroutine join
                   binrecs(ia2)=binrecs(ia2)+1
 #endif
 
-               else !Write both particles nlostp(ia) and nlostp(ia)+1
+               else !Write both particles partID(ia) and partID(ia)+1
                     ! Note that dam(ia) (distance in angular phase space)
                     ! is written twice.
                   dam_tmp      = real(dam(ia),   real64)
 
-                  xv_tmp(1,1)  = real(xv(1,ia),  real64)
-                  yv_tmp(1,1)  = real(yv(1,ia),  real64)
-                  xv_tmp(2,1)  = real(xv(2,ia),  real64)
-                  yv_tmp(2,1)  = real(yv(2,ia),  real64)
+                  xv_tmp(1,1)  = real(xv1(ia),  real64)
+                  yv_tmp(1,1)  = real(yv1(ia),  real64)
+                  xv_tmp(2,1)  = real(xv2(ia),  real64)
+                  yv_tmp(2,1)  = real(yv2(ia),  real64)
                   sigmv_tmp(1) = real(sigmv(ia), real64)
                   dpsv_tmp(1)  = real(dpsv(ia),  real64)
 
-                  xv_tmp(1,2)  = real(xv(1,ie),  real64)
-                  yv_tmp(1,2)  = real(yv(1,ie),  real64)
-                  xv_tmp(2,2)  = real(xv(2,ie),  real64)
-                  yv_tmp(2,2)  = real(yv(2,ie),  real64)
+                  xv_tmp(1,2)  = real(xv1(ie),  real64)
+                  yv_tmp(1,2)  = real(yv1(ie),  real64)
+                  xv_tmp(2,2)  = real(xv2(ie),  real64)
+                  yv_tmp(2,2)  = real(yv2(ie),  real64)
                   sigmv_tmp(2) = real(sigmv(ie), real64)
                   dpsv_tmp(2)  = real(dpsv(ie),  real64)
 
@@ -3621,11 +3622,11 @@ end subroutine join
 #else
                   write(90,iostat=ierro)                                &
 #endif
-     &               numx,nlostp(ia),dam_tmp,                           &
+     &               numx,partID(ia),dam_tmp,                           &
      &               xv_tmp(1,1),yv_tmp(1,1),                           &
      &               xv_tmp(2,1),yv_tmp(2,1),                           &
      &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp,                   &
-     &               nlostp(ia)+1,dam_tmp,                              &
+     &               partID(ia)+1,dam_tmp,                              &
      &               xv_tmp(1,2),yv_tmp(1,2),                           &
      &               xv_tmp(2,2),yv_tmp(2,2),                           &
      &               sigmv_tmp(2),dpsv_tmp(2),e0_tmp

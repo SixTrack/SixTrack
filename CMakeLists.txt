@@ -6,9 +6,8 @@
 # General configuration
 ###################################################################################################
 
-#Set the cmake version required
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-#set(CMAKE_LEGACY_CYGWIN_WIN32 0)
+# Set the cmake version required
+cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
 # Set the project name and options
 PROJECT(SixTrack)
@@ -73,7 +72,7 @@ else()
 endif()
 
 ###################################################################################################
-# Sixtrack configuration options
+# SixTrack configuration options
 ###################################################################################################
 
 # Default ON
@@ -81,45 +80,51 @@ OPTION(TILT "Allow elements to be tilted (by error)" ON)
 OPTION(FAST "Which implementation of drifts to use in thin6d" ON)
 OPTION(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 OPTION(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
-OPTION(STF "Single Track File - write all tracks for postprocessing to fort.90, instead of 32 separate files fort.90 to fort.(90-32). Required for increased particle numbers" ON)
+OPTION(STF "Single Track File: Write all tracks for postprocessing to fort.90 instead of 32 separate files fort.59 to fort.90. Required for >64 particles" ON)
+OPTION(NAFF "Link to external NAFFlib for FMA." ON)
+OPTION(HASHLIB "Build the md5 hash library" ON)
 
 # Default OFF
 OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
-OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal 'myboinc.f' dummy library)" OFF)
+OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal dummy library)" OFF)
 OPTION(BOINC "BOINC distributed computing support" OFF)
 OPTION(CR "Checkpoint / restarting" OFF)
 OPTION(BEAMGAS "Beam-gas scattering" OFF)
-OPTION(DEBUG "Debugging output" OFF)
 OPTION(HDF5 "Adds support for the HDF5 block which enables writing output to a single HDF5 file." OFF)
 OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output" OFF)
 OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 OPTION(FLUKA "Couple to FLUKA for beam collimation" OFF)
-OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
-OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
-OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
-OPTION(WARN "Enable build flags for additional compiler warnings" OFF)
+OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPF block" OFF)
 OPTION(ROOT "Link to the root libraries" OFF)
 
-# Build options
+# Build Options
 OPTION(32BIT "Create a 32bit binary" OFF)
 OPTION(64BIT "Create a 64bit binary" ON)
 OPTION(STATIC "Create a statically linked binary" ON)
-OPTION(NATIVE "Enable optimizations for the current machine" OFF)
+OPTION(NATIVE "Enable optimisations for the current machine" OFF)
 OPTION(AVX "Enable use of the Advanced Vector Extensions (AVX) instruction set - Sandy Bridge and later" OFF)
 OPTION(AVX2 "Enable use of the Advanced Vector Extensions 2 (AVX2) instruction set - Haswell and later" OFF)
 OPTION(AVX-512 "Enable use of the Advanced Vector Extensions 512 (AVX-512) instruction set - (Currently targeting Skylake-X)" OFF)
+OPTION(LTO "Enable link time optimisations" OFF)
 
-OPTION(BUILD_TESTING "Enable the test suite" OFF)
-
+# Float Precision (Default: 64BITM)
 OPTION(32BITM "Floats are 32bit (single precision)" OFF)
 OPTION(64BITM "Floats are 64bit (double precision)" ON)
 OPTION(128BITM "Floats are 128bit (quad precision)" OFF)
 
+# Rounding (Default: ROUND_NEAR)
 OPTION(ROUND_NEAR "Always round to the nearest number after floating point operations" ON)
 OPTION(ROUND_UP "Always round up after floating point operations" OFF)
 OPTION(ROUND_DOWN "Always round down after floating point operations" OFF)
 OPTION(ROUND_ZERO "Always round towards zero after floating point operations" OFF)
+
+# Testing nd Debug Options
+OPTION(BUILD_TESTING "Enable the test suite" OFF)
+OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
+OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
+OPTION(WARN "Enable build flags for additional compiler warnings" OFF)
+OPTION(DEBUG "Debugging output" OFF)
 
 SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/lib/boinc CACHE PATH "Path to the boinc build folder")
 SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive_build CACHE PATH "Path to the libarchive build folder")
@@ -265,9 +270,9 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR)
-LIST(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
-LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
+list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR NAFF)
+list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT HASHLIB)
+list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32)
 
 ###################################################################################################
 # Select which fortran files to generate and compile
@@ -275,8 +280,8 @@ LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
 list(APPEND FORT90_LIB
   sixtrack version core_tools constants sixtrack_input mod_units
-  common_modules close strings string_tools mainarrays
-  file_units mod_alloc zipf matrix_inv lielib beam6d
+  common_modules close strings string_tools mainarrays mod_meta
+  mod_time mod_alloc zipf matrix_inv lielib beam6d
   bouncy_castle plato_seq bdex fma dabnew end_sixtrack
   ranecu wire hions elens mod_dist scatter dump dynk
   aperture mod_fluc beam6d_fox six_fox postprocessing
@@ -301,6 +306,10 @@ endif(DEBUG)
 if(HDF5)
   list(APPEND FORT90_LIB hdf5_output hdf5_sixtrack)
 endif(HDF5)
+
+if(HASHLIB)
+  list(APPEND FORT90_LIB mod_hash)
+endif(HASHLIB)
 
 if(BEAMGAS)
   LIST(APPEND FORT90_CR beamgas)
@@ -524,7 +533,8 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
   #  gfortran  #
   ##############
 
-  SET(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
+  set(GFORTRAN ON)
+  set(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
   set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
   set(PREPRO_FLAGS -cpp -E -P)
 
@@ -532,12 +542,18 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
     set (CMAKE_Fortran_FLAGS "-ffp-contract=off ${CMAKE_Fortran_FLAGS}")
   endif()
 
-  SET(CMAKE_Fortran_FLAGS_RELEASE "-O3")
-  # SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow,underflow -fcheck=all")
-  SET(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow -fcheck=all")
+  set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow -fcheck=all")
+
+  if(WARN)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-Wuninitialized ${CMAKE_Fortran_FLAGS_RELEASE}")
+  endif()
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES ppc64le )
-    SET(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fno-expensive-optimizations -fno-inline-functions")
+    set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fno-expensive-optimizations -fno-inline-functions")
+  endif()
+  if(LTO)
+    set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -flto")
   endif()
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
@@ -564,7 +580,7 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
     endif(AVX-512)
 
     if(NATIVE)
-      SET(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+      set(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
     endif(NATIVE)
   endif()
 
@@ -591,10 +607,15 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
   #  ifort  #
   ###########
 
+  set(IFORT ON)
   set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
   set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
   set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
   set(PREPRO_FLAGS -fpp -E -P)
+
+  if(LTO)
+    set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -ffat-lto-objects -ipo")
+  endif()
 
   if(WARN)
     set(CMAKE_Fortran_FLAGS "-warn unused ${CMAKE_Fortran_FLAGS}")
@@ -603,13 +624,13 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
   if(32BIT)
     set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
     set(CMAKE_Fortran_FLAGS_DEBUG "-m32 ${CMAKE_Fortran_FLAGS_DEBUG}")
-    SET(CMAKE_Fortran_LINKER_FLAGS "-m32 ${CMAKE_Fortran_LINKER_FLAGS}")
+    set(CMAKE_Fortran_LINKER_FLAGS "-m32 ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(32BIT)
 
   if(64BIT)
     set(CMAKE_Fortran_FLAGS_RELEASE "-m64 ${CMAKE_Fortran_FLAGS_RELEASE}")
     set(CMAKE_Fortran_FLAGS_DEBUG "-m64 ${CMAKE_Fortran_FLAGS_DEBUG}")
-    SET(CMAKE_Fortran_LINKER_FLAGS "-m64 ${CMAKE_Fortran_LINKER_FLAGS}")
+    set(CMAKE_Fortran_LINKER_FLAGS "-m64 ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(64BIT)
 
   if(AVX)
@@ -625,12 +646,11 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
   endif(AVX-512)
 
   if(NATIVE)
-    SET(CMAKE_Fortran_FLAGS_RELEASE "-xHost ${CMAKE_Fortran_FLAGS_RELEASE}")
-    #Nothing to do for DEBUG
+    set(CMAKE_Fortran_FLAGS_RELEASE "-xHost ${CMAKE_Fortran_FLAGS_RELEASE}")
   endif(NATIVE)
 
   if(STATIC)
-    SET(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
+    set(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(STATIC)
 
 elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
@@ -638,18 +658,19 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
   #  nagfor  #
   ############
 
-  SET(NAGFOR ON)
-  #Here I am going to assume that since we are using nagfor we are on lxplus for now
+  set(NAGFOR ON)
   set(CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns")
   set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -gline")
-  set(PREPRO_EXEC  fpp)
-  set(PREPRO_FLAGS -P -free)
+  set(PREPRO_EXEC  ${CMAKE_CXX_COMPILER})
+  set(PREPRO_FLAGS -cpp -E -P)
+  # set(PREPRO_EXEC  ${CMAKE_Fotran_COMPILER})
+  # set(PREPRO_FLAGS -F)
 
-if(WARN)
-  set(CMAKE_Fortran_FLAGS "-w=ulv -w=uparam ${CMAKE_Fortran_FLAGS}")
-else()
-  set(CMAKE_Fortran_FLAGS "-w=all ${CMAKE_Fortran_FLAGS}")
-endif(WARN)
+  if(WARN)
+    set(CMAKE_Fortran_FLAGS "-w=ulv -w=uparam ${CMAKE_Fortran_FLAGS}")
+  else()
+    set(CMAKE_Fortran_FLAGS "-w=all ${CMAKE_Fortran_FLAGS}")
+  endif(WARN)
 
   if(32BIT)
     set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -933,6 +954,23 @@ if(HDF5)
   target_include_directories(SixTrackLib PRIVATE ${CMAKE_SOURCE_DIR}/lib/hdf5/build/fortran)
 endif(HDF5)
 
+if(HASHLIB)
+  set(MD5_SOURCES
+    ${CMAKE_SOURCE_DIR}/source/md5/md5.c
+    ${CMAKE_SOURCE_DIR}/source/md5/md5interface.c
+  )
+  add_library(md5_lib STATIC  ${MD5_SOURCES})
+  target_include_directories(md5_lib PRIVATE ${CMAKE_SOURCE_DIR}/source/md5/)
+  set_property(TARGET md5_lib PROPERTY C_STANDARD 99)
+  if(32BIT)
+    set_target_properties(md5_lib PROPERTIES LINK_FLAGS "-m32")
+  endif(32BIT)
+  if(64BIT)
+    set_target_properties(md5_lib PROPERTIES LINK_FLAGS "-m64")
+  endif(64BIT)
+  target_link_libraries(SixTrackLib md5_lib)
+endif(HASHLIB)
+
 if(MERLINSCATTER)
   file(GLOB MERLINSCATTER_SOURCES ${CMAKE_SOURCE_DIR}/source/merlinscatter/*.cpp ${CMAKE_SOURCE_DIR}/source/merlinscatter/RandomNG/*.cpp)
   add_library(merlinscatter STATIC ${MERLINSCATTER_SOURCES})
@@ -948,52 +986,58 @@ if(MERLINSCATTER)
   endif(64BIT)
 endif()
 
-file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/source/naff/*.cpp ${CMAKE_SOURCE_DIR}/source/naff/*.cc)
-add_library(naff STATIC ${NAFF_SOURCES})
-
-#Enable c++11
-set_property(TARGET naff PROPERTY CXX_STANDARD 11)
-
-if(32BIT)
-  SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m32")
-endif(32BIT)
-if(64BIT)
-  SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m64")
-endif(64BIT)
-#endif()
-
-if(BOINC AND API)
-  include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
-
-  #The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
-  #go into the boinc source folder, cd api; make boinc_api_fortran.o
-  add_library(boinc_api_fortran STATIC IMPORTED)
-  set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
-  # add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp) #Alternative way of building and linking boinc_api_fortran.cpp/.o
-  target_link_libraries(SixTrackCR boinc_api_fortran)
-
-  #add the libs
-  add_library(boinc STATIC IMPORTED)
-  set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
-
-  add_library(boinc_api STATIC IMPORTED)
-  set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
-  target_link_libraries(SixTrackCR boinc_api)
-
-  target_link_libraries(SixTrackCR boinc)
-
-  find_library(stdc++ STATIC stdc++)
-  target_link_libraries(SixTrackLib stdc++ Threads::Threads)
-
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    find_library(nsl STATIC nsl)
-    target_link_libraries(SixTrackCR nsl)
+# Build NAFFlib
+if(NAFF)
+  if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/interface/naff_sixtrack_interface.c)
+    message(FATAL_ERROR "The git submodules NAFFlib is not available. Please run:
+    git submodule update --init lib/NAFFlib")
   endif()
 
-  #fix osx linking to the correct c++ stdlib
+  file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/source/*.c ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/interface/naff_sixtrack_interface.c)
+  add_library(naff STATIC ${NAFF_SOURCES})
+  target_include_directories(naff PRIVATE ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/include)
+  target_compile_options(naff PRIVATE -DCOMPILE_WITHOUT_PYTHON)
+  if(CRLIBM)
+    target_include_directories(naff PRIVATE ${CMAKE_SOURCE_DIR}/source/crlibm)
+    target_compile_options(naff PRIVATE -DCOMPILE_WITH_CRLIBM)
+    target_link_libraries(naff crlibm)
+  endif()
+
+  # Enable c99
+  set_property(TARGET naff PROPERTY C_STANDARD 99)
+
+  if(32BIT)
+    SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m32")
+  endif(32BIT)
+  if(64BIT)
+    SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m64")
+  endif(64BIT)
+endif(NAFF)
+
+if(BOINC AND API)
+  find_library(stdc++ STATIC stdc++)
+  include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
+
+  add_library(boinc       STATIC IMPORTED)
+  add_library(boinc_api   STATIC IMPORTED)
+  add_library(boinc_api_f STATIC IMPORTED)
+
+  set_target_properties(boinc       PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
+  set_target_properties(boinc_api   PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
+  set_target_properties(boinc_api_f PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
+
+  target_link_libraries(SixTrackCR boinc_api_f boinc_api boinc stdc++)
+  # target_link_libraries(SixTrackCR Threads::Threads)
+
+  # if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  #   find_library(nsl STATIC nsl)
+  #   target_link_libraries(SixTrackCR nsl)
+  # endif()
+
+  # Fix OSX linking to the correct c++ stdlib
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     find_library(c++ STATIC c++)
-    target_link_libraries(SixTrackCR c++)
+    target_link_libraries(SixTrackLib c++)
   endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
@@ -1091,42 +1135,45 @@ endif()
 #same with OSX, using gfortran from homebrew
 if(STATIC)
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    find_library(lquadmath NAMES libquadmath.a PATHS /usr/local/opt/gcc/lib/gcc/6/ /usr/local/opt/gcc/lib/gcc/7/ /usr/local/opt/gcc/lib/gcc/8/)
+    get_filename_component(COMPILERDIR ${CMAKE_Fortran_COMPILER} DIRECTORY)
+    string(SUBSTRING ${CMAKE_Fortran_COMPILER_VERSION} 0 1 COMPILER_MAJOR_VERSION)
+    # search relative to the compiler executable
+    find_library(lquadmath NAMES libquadmath.a PATHS "${COMPILERDIR}/../lib/gcc${COMPILER_MAJOR_VERSION}/" "${COMPILERDIR}/../lib/gcc/${COMPILER_MAJOR_VERSION}/")
+    if (lquadmath)
+      message(STATUS "Looking for lquadmath... - found")
+    else()
+      message(FATAL_ERROR "lquadmath not found!")
+    endif()
     target_link_libraries(SixTrackLib ${lquadmath})
   endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(STATIC)
 
 if(CERNLIB)
-#	if(EXISTS "/cern/pro/bin/cernlib")
-    #running on lxplus and friends
-#		SET_TARGET_PROPERTIES(SixTrack PROPERTIES LINK_FLAGS "`cernlib -u graflib packlib_noshift kernlib_noshift` -lg2c -lpthread")
-#	else()
-    # Use precompiled CERNLIB from lib32 folder
-    add_library(g2c STATIC IMPORTED)
-    add_library(graflib STATIC IMPORTED)
-    add_library(grafX11 STATIC IMPORTED)
-    add_library(kernlib_noshift STATIC IMPORTED)
-    add_library(packlib_noshift STATIC IMPORTED)
-    add_library(X11 STATIC IMPORTED)
-    add_library(Xau STATIC IMPORTED)
-    add_library(xcb STATIC IMPORTED)
-    add_library(Xdmcp STATIC IMPORTED)
+  # Use precompiled CERNLIB from lib32 folder
+  add_library(g2c STATIC IMPORTED)
+  add_library(graflib STATIC IMPORTED)
+  add_library(grafX11 STATIC IMPORTED)
+  add_library(kernlib_noshift STATIC IMPORTED)
+  add_library(packlib_noshift STATIC IMPORTED)
+  add_library(X11 STATIC IMPORTED)
+  add_library(Xau STATIC IMPORTED)
+  add_library(xcb STATIC IMPORTED)
+  add_library(Xdmcp STATIC IMPORTED)
 
-    set_target_properties(g2c PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libg2c.a)
-    set_target_properties(graflib PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libgraflib.a)
-    set_target_properties(grafX11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libgrafX11.a)
-    set_target_properties(kernlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libkernlib_noshift.a)
-    set_target_properties(packlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libpacklib_noshift.a)
-    set_target_properties(X11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libX11.a)
-    set_target_properties(Xau PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libXau.a)
-    set_target_properties(xcb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libxcb.a)
-    set_target_properties(Xdmcp PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libXdmcp.a)
+  set_target_properties(g2c PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libg2c.a)
+  set_target_properties(graflib PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libgraflib.a)
+  set_target_properties(grafX11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libgrafX11.a)
+  set_target_properties(kernlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libkernlib_noshift.a)
+  set_target_properties(packlib_noshift PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libpacklib_noshift.a)
+  set_target_properties(X11 PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libX11.a)
+  set_target_properties(Xau PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libXau.a)
+  set_target_properties(xcb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libxcb.a)
+  set_target_properties(Xdmcp PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/source/lib32/libXdmcp.a)
 
-    find_library(dl STATIC dl)
-    find_library(gcc_eh STATIC gcc_eh)
+  find_library(dl STATIC dl)
+  find_library(gcc_eh STATIC gcc_eh)
 
-    target_link_libraries(SixTrackLib graflib grafX11 packlib_noshift kernlib_noshift g2c X11 xcb Xau Xdmcp dl Threads::Threads gcc_eh)
-#	endif()
+  target_link_libraries(SixTrackLib graflib grafX11 packlib_noshift kernlib_noshift g2c X11 xcb Xau Xdmcp dl Threads::Threads gcc_eh)
 endif(CERNLIB)
 
 #if we are using crlibm, link to the crlibm library
@@ -1138,8 +1185,11 @@ endif(CRLIBM)
 if(MERLINSCATTER)
   target_link_libraries(SixTrackCR merlinscatter)
 endif(MERLINSCATTER)
-#if we are using naff, link to the naff library
-target_link_libraries(SixTrackLib naff)
+
+# if we are using naff, link to the naff library
+if(NAFF)
+  target_link_libraries(SixTrackLib naff)
+endif(NAFF)
 
 #if we are using root, link to all the root libraries
 if(ROOT)
@@ -1149,6 +1199,10 @@ endif(ROOT)
 if(HDF5)
   target_link_libraries(SixTrackLib ${HDF5_LIBRARIES})
 endif(HDF5)
+
+if(HASHLIB)
+  target_link_libraries(SixTrackLib md5_lib)
+endif(HASHLIB)
 
 if(G4COLLIMAT)
   target_link_libraries(SixTrackCR g4collimat ${Geant4_LIBRARIES} Threads::Threads)

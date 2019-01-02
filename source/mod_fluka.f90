@@ -3,7 +3,7 @@ module mod_fluka
   use floatPrecision
   use numerical_constants
   use mod_alloc
-  use file_units, only : funit_requestUnit
+  use mod_units, only : f_requestUnit
 
   use, intrinsic :: ISO_FORTRAN_ENV, only : int8, int16, int32, int64
 
@@ -27,7 +27,7 @@ module mod_fluka
   public :: fluka_send_receive
   public :: fluka_send
   public :: fluka_receive
-  public :: fluka_lostpart
+  public :: fluka_shuffleLostParticles
   public :: fluka_set_synch_part
   public :: fluka_init_max_uid
   public :: fluka_is_running
@@ -157,8 +157,8 @@ module mod_fluka
 !    fluka_geo_index    = 0
 !    fluka_synch_length = zero
 
-    call funit_requestUnit('fluka.log', fluka_log_unit)
-    call funit_requestUnit('fluka_isotope.log', isotope_log_unit)
+    call f_requestUnit('fluka.log', fluka_log_unit)
+    call f_requestUnit('fluka_isotope.log', isotope_log_unit)
     open(unit=fluka_log_unit, file='fluka.log')
     open(unit=isotope_log_unit, file='fluka_isotope.log')
 
@@ -215,7 +215,7 @@ module mod_fluka
     integer :: net_nfo_unit
     integer :: ios
 
-    call funit_requestUnit(net_nfo_file, net_nfo_unit)
+    call f_requestUnit(net_nfo_file, net_nfo_unit)
     open(net_nfo_unit, file=net_nfo_file, status='old')
     read(unit=net_nfo_unit, fmt=*, iostat=ios) host
     if(ios .ne. 0) then
@@ -300,7 +300,7 @@ module mod_fluka
 
   !----------------------------------------------------------------------------
   ! send and receive particles from Fluka
-  integer function fluka_send_receive(turn, ipt, el, npart, xv, yv, s, etot, aa, zz, mass)
+  integer function fluka_send_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
     implicit none
 
     ! Parameters
@@ -308,10 +308,10 @@ module mod_fluka
     integer           ::  npart
     real(kind=fPrec)  :: el
 
-    real(kind=fPrec), allocatable :: xv(:,:)
-    real(kind=fPrec), allocatable :: yv(:,:)
-!    real(kind=fPrec), allocatable :: y(:)
-!    real(kind=fPrec), allocatable :: yp(:)
+    real(kind=fPrec), allocatable :: xv1(:)
+    real(kind=fPrec), allocatable :: yv1(:)
+    real(kind=fPrec), allocatable :: xv2(:)
+    real(kind=fPrec), allocatable :: yv2(:)
     real(kind=fPrec), allocatable :: s(:)
     real(kind=fPrec), allocatable :: etot(:)
 
@@ -319,15 +319,15 @@ module mod_fluka
     integer(kind=int16), allocatable :: aa(:)
     integer(kind=int16), allocatable :: zz(:)
 
-    fluka_send_receive = fluka_send(turn, ipt, el, npart, xv, yv, s, etot, aa, zz, mass)
+    fluka_send_receive = fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
     if(fluka_send_receive.eq.-1) return
 
-    fluka_send_receive = fluka_receive(turn, ipt, el, npart, xv, yv, s, etot, aa, zz, mass)
+    fluka_send_receive = fluka_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
   end function fluka_send_receive
 
   !----------------------------------------------------------------------------
   ! just send particles to Fluka
-  integer function fluka_send(turn, ipt, el, npart, xv, yv, s, etot, aa, zz, mass)
+  integer function fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
     implicit none
 
     ! Interface variables
@@ -335,10 +335,10 @@ module mod_fluka
     integer           :: npart
     real(kind=fPrec)  :: el
 
-    real(kind=fPrec), allocatable :: xv(:,:)
-    real(kind=fPrec), allocatable :: yv(:,:)
-!    real(kind=fPrec), allocatable :: y(:)
-!    real(kind=fPrec), allocatable :: yp(:)
+    real(kind=fPrec), allocatable :: xv1(:)
+    real(kind=fPrec), allocatable :: yv1(:)
+    real(kind=fPrec), allocatable :: xv2(:)
+    real(kind=fPrec), allocatable :: yv2(:)
     real(kind=fPrec), allocatable :: s(:)
     real(kind=fPrec), allocatable :: etot(:)
 
@@ -385,12 +385,12 @@ module mod_fluka
       flgen = fluka_gen(j)
       flwgt = fluka_weight(j)
 
-      flx   = xv(1,j) * c1m1  ! from [mm] to [cm]
-      fly   = xv(2,j) * c1m1  ! from [mm] to [cm]
+      flx   = xv1(j) * c1m1  ! from [mm] to [cm]
+      fly   = xv2(j) * c1m1  ! from [mm] to [cm]
       flz   = zero
 
-      flxp  = yv(1,j) * c1m3 ! from [1.0E-03] to [1.0]
-      flyp  = yv(2,j) * c1m3 ! from [1.0E-03] to [1.0]
+      flxp  = yv1(j) * c1m3 ! from [1.0E-03] to [1.0]
+      flyp  = yv2(j) * c1m3 ! from [1.0E-03] to [1.0]
       ! director cosines:
       ! full transformation:
       flzp  = sqrt( one / ( flxp**2 + flyp**2 + one ) )
@@ -455,9 +455,9 @@ module mod_fluka
   !----------------------------------------------------------------------------
   ! just receive particles from Fluka
   ! The call from fluka.s90 is:
-  ! fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv(1,:), yv(1,:), xv(2,:), yv(2,:), sigmv, ejv, naa(:), nzz(:), nucm(:))
+  ! fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv1(:), yv1(:), xv2(:), yv2(:), sigmv, ejv, naa(:), nzz(:), nucm(:))
   ! When the above arrays are made allocatable, the below variables will need updating - see mod_commonmn and mod_hions
-  integer function fluka_receive(turn, ipt, el, napx, xv, yv, s, etot, aa, zz, mass)
+  integer function fluka_receive(turn, ipt, el, napx, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
 
     use parpro
 
@@ -468,10 +468,10 @@ module mod_fluka
     integer           :: napx
     real(kind=fPrec)  :: el
 
-    real(kind=fPrec), allocatable :: xv(:,:)
-    real(kind=fPrec), allocatable :: yv(:,:)
-!    real(kind=fPrec), allocatable :: y(:)
-!    real(kind=fPrec), allocatable :: yp(:)
+    real(kind=fPrec), allocatable :: xv1(:)
+    real(kind=fPrec), allocatable :: yv1(:)
+    real(kind=fPrec), allocatable :: xv2(:)
+    real(kind=fPrec), allocatable :: yv2(:)
     real(kind=fPrec), allocatable :: s(:)
     real(kind=fPrec), allocatable :: etot(:)
 
@@ -500,16 +500,16 @@ module mod_fluka
 
       fluka_weight(j) = one
 
-      xv  (1,j) = zero
-      xv  (2,j) = zero
-      yv  (1,j) = zero
-      yv  (2,j) = zero
-      etot(j)   = zero
-      s   (j)   = zero
+      xv1 (j) = zero
+      xv2 (j) = zero
+      yv1 (j) = zero
+      yv2 (j) = zero
+      etot(j) = zero
+      s   (j) = zero
 ! hisix: we should also parse m0,A0,Z0
-      aa  (j)   = 1
-      zz  (j)   = 1
-      mass(j)   = zero
+      aa  (j) = 1
+      zz  (j) = 1
+      mass(j) = zero
     end do
 
     ! Wait until end of turn (Synchronize)
@@ -565,10 +565,10 @@ module mod_fluka
             end if
 
             fluka_weight(fluka_nrecv) = flwgt
-            xv(1,fluka_nrecv)         = flx * c1e1   ! from [cm]  to [mm]
-            xv(2,fluka_nrecv)         = fly * c1e1   ! from [cm]  to [mm]
-            yv(1,fluka_nrecv)         = flxp / flzp * c1e3 ! from director cosine to x' [1.0E-03]
-            yv(2,fluka_nrecv)         = flyp / flzp * c1e3 ! from director cosine to x' [1.0E-03]
+            xv1(fluka_nrecv)         = flx * c1e1   ! from [cm]  to [mm]
+            xv2(fluka_nrecv)         = fly * c1e1   ! from [cm]  to [mm]
+            yv1(fluka_nrecv)         = flxp / flzp * c1e3 ! from director cosine to x' [1.0E-03]
+            yv2(fluka_nrecv)         = flyp / flzp * c1e3 ! from director cosine to x' [1.0E-03]
             etot(fluka_nrecv)         = flet * c1e3  ! from [GeV] to [MeV]
             s(fluka_nrecv)            = ( el - (fluka_pc0/fluka_e0)*(flt*fluka_clight) ) * c1e3 ! from [s] to [mm]
             aa(fluka_nrecv)           = flaa          !PH for hiSix
@@ -592,19 +592,21 @@ module mod_fluka
 
   !----------------------------------------------------------------------------
   ! compact ancillary tracking arrays
-  subroutine fluka_lostpart(npart, i)
-    integer, intent(in) :: npart, i
+  subroutine fluka_shuffleLostParticles(tnapx, j)
+
+    integer, intent(in) :: tnapx
+    integer, intent(in) :: j
 
     if(fluka_debug) then
-      write(fluka_log_unit, *) '# fluka_lostpart called with npart (lnapx for SixTrack) = ', npart, ', i = ', i
+      write(fluka_log_unit, *) '# fluka_shuffleLostParticles called with napx (lnapx for SixTrack) = ', tnapx, ', j = ', j
       flush(fluka_log_unit)
     end if
 
-    fluka_uid(i:npart-1) = fluka_uid(i+1:npart)
-    fluka_gen(i:npart-1) = fluka_gen(i+1:npart)
-    fluka_weight(i:npart-1) = fluka_weight(i+1:npart)
+    fluka_uid(j:tnapx)    = cshift(fluka_uid(j:tnapx),    1)
+    fluka_gen(j:tnapx)    = cshift(fluka_gen(j:tnapx),    1)
+    fluka_weight(j:tnapx) = cshift(fluka_weight(j:tnapx), 1)
 
-  end subroutine fluka_lostpart
+  end subroutine fluka_shuffleLostParticles
 
   !----------------------------------------------------------------------------
   ! set reference particle properties (mainly for longitudinal dynamics)

@@ -1,7 +1,0 @@
-s/\([ 0-9]*\)call *flush *(\(.*\))/+if cr\
-\1endfile \2\
-\1backspace \2\
-+ei\
-+if .not.cr\
-\1call flush(\2)\
-+ei/

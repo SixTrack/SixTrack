@@ -93,7 +93,7 @@ subroutine sumpos
     ! and we always print the maximum DMMAC as NMAC
     ! or zero which should really be OK I think.
     ! N.B. If particle is lost nms is 0, so we set mmac to zero too
-    d(60) = real(nmac,fPrec)
+    d(60) = one ! was real(nmac)
     if(nint(d(59)) == 0) d(60) = zero
     write(lout,10030) i,nint(d(59)),nint(d(60)),nint(d(59))*nint(d(24))
   end do
@@ -730,7 +730,10 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   dimension am(6,6),idummy(6)
   save
 !-----------------------------------------------------------------------
-  if(nndim.lt.2.or.nndim.gt.3) call prror(95)
+  if(nndim < 2 .or. nndim > 3) then
+    write(lout,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
+    call prror(-1)
+  end if
 !--------------------
   nordo=nord
   nvaro=nvar

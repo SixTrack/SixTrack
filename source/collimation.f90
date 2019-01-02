@@ -24,7 +24,7 @@ module collimation
   use numerical_constants
   use mod_hions
   use mod_alloc
-  use file_units
+  use mod_units
 !  use mod_ranecu
   use mod_ranlux
 
@@ -968,7 +968,7 @@ subroutine collimate_init()
   integer g4_physics
 #endif
 
-  call funit_requestUnit('colltrack.out', outlun)
+  call f_requestUnit('colltrack.out', outlun)
   open(unit=outlun, file='colltrack.out')
 
   if(st_quiet == 0) then
@@ -1242,26 +1242,30 @@ subroutine collimate_init()
     call makedis_radial(myalphax, myalphay, mybetax, &
          &      mybetay, myemitx0_dist, myemity0_dist, myenom, nr, ndr, myx, myxp, myy, myyp, myp, mys)
   else
-    if(do_thisdis.eq.1) then
+    select case(do_thisdis)
+    case(0)
+      continue
+    case(1)
       call makedis(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
            &           myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
-    else if(do_thisdis.eq.2) then
+    case(2)
       call makedis_st(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
            &           myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
-    else if(do_thisdis.eq.3) then
+    case(3)
       call makedis_de(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
            &           myenom, mynex, mdex, myney, mdey,myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
-    else if(do_thisdis.eq.4) then
+    case(4)
       call readdis(filename_dis, myx, myxp, myy, myyp, myp, mys)
-    else if(do_thisdis.eq.5) then
+    case(5)
       call makedis_ga(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
            &           myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength )
-    else if(do_thisdis.eq.6) then
+    case(6)
       call readdis_norm(filename_dis, myalphax, myalphay, mybetax, mybetay, &
            &           myemitx0_dist, myemity0_dist, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
-    else
-      write(lout,"(a)") "COLL> ERROR Review your distribution parameters!"
-      call prror(-1)
+    case default
+          write(lout,"(a)") "COLL> ERROR Review your distribution parameters!"
+          call prror(-1)
+      end select
     end if
   end if
 
@@ -1278,40 +1282,40 @@ subroutine collimate_init()
     end do
   endif
 
-!++  Optionally write the generated particle distribution
+  ! Optionally write the generated particle distribution
+  if(dowrite_dist .and. do_thisdis /= 0) then
 #ifdef HDF5
-  if(h5_useForCOLL .and. dowrite_dist) then
-    allocate(fldDist0(6))
-    fldDist0(1)  = h5_dataField(name="X",  type=h5_typeReal)
-    fldDist0(2)  = h5_dataField(name="XP", type=h5_typeReal)
-    fldDist0(3)  = h5_dataField(name="Y",  type=h5_typeReal)
-    fldDist0(4)  = h5_dataField(name="YP", type=h5_typeReal)
-    fldDist0(5)  = h5_dataField(name="S",  type=h5_typeReal)
-    fldDist0(6)  = h5_dataField(name="P",  type=h5_typeReal)
-    call h5_createFormat("collDist0", fldDist0, fmtDist0)
-    call h5_createDataSet("dist0", h5_collID, fmtDist0, setDist0, napx)
-    call h5_prepareWrite(setDist0, napx)
-    call h5_writeData(setDist0, 1, napx, myx(1:napx))
-    call h5_writeData(setDist0, 2, napx, myxp(1:napx))
-    call h5_writeData(setDist0, 3, napx, myy(1:napx))
-    call h5_writeData(setDist0, 4, napx, myyp(1:napx))
-    call h5_writeData(setDist0, 5, napx, mys(1:napx))
-    call h5_writeData(setDist0, 6, napx, myp(1:napx))
-    call h5_finaliseWrite(setDist0)
-    deallocate(fldDist0)
-  else
+    if(h5_useForCOLL) then
+      allocate(fldDist0(6))
+      fldDist0(1)  = h5_dataField(name="X",  type=h5_typeReal)
+      fldDist0(2)  = h5_dataField(name="XP", type=h5_typeReal)
+      fldDist0(3)  = h5_dataField(name="Y",  type=h5_typeReal)
+      fldDist0(4)  = h5_dataField(name="YP", type=h5_typeReal)
+      fldDist0(5)  = h5_dataField(name="S",  type=h5_typeReal)
+      fldDist0(6)  = h5_dataField(name="P",  type=h5_typeReal)
+      call h5_createFormat("collDist0", fldDist0, fmtDist0)
+      call h5_createDataSet("dist0", h5_collID, fmtDist0, setDist0, mynp)
+      call h5_prepareWrite(setDist0, mynp)
+      call h5_writeData(setDist0, 1, mynp, myx(1:mynp))
+      call h5_writeData(setDist0, 2, mynp, myxp(1:mynp))
+      call h5_writeData(setDist0, 3, mynp, myy(1:mynp))
+      call h5_writeData(setDist0, 4, mynp, myyp(1:mynp))
+      call h5_writeData(setDist0, 5, mynp, mys(1:mynp))
+      call h5_writeData(setDist0, 6, mynp, myp(1:mynp))
+      call h5_finaliseWrite(setDist0)
+      deallocate(fldDist0)
+    else
 #endif
-    call funit_requestUnit('dist0.dat', dist0_unit)
-    open(unit=dist0_unit,file='dist0.dat') !was 52
-    if(dowrite_dist) then
-      do j = 1, napx
+      call f_requestUnit('dist0.dat', dist0_unit)
+      open(unit=dist0_unit,file='dist0.dat') !was 52
+      do j = 1, mynp
         write(dist0_unit,'(6(1X,E23.15))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
       end do
-    end if
-    close(dist0_unit)
+      close(dist0_unit)
 #ifdef HDF5
-  end if
+    end if
 #endif
+  end if
 
 !++  Initialize efficiency array
   do i=1,iu
@@ -1335,7 +1339,16 @@ subroutine collimate_init()
   ie    = 1
   n_tot_absorbed = 0
 
-  call funit_requestUnit('CollPositions.dat', CollPositions_unit)
+  if(int(mynp/napx00) .eq. 0) then
+    write (lout,"(a)")    "COLL> ERROR Setting up collimation tracking: Number of samples is zero!"
+    write (lout,"(a)")    "COLL> ERROR Did you forget the COLL block in fort.3?"
+    write (lout,"(a,l1)") "COLL> * Value of do_coll = ", do_coll
+    write (lout,"(a,i0)") "COLL> * Value of mynp    = ", mynp
+    write (lout,"(a,i0)") "COLL> * Value of napx00  = ", napx00
+    call prror(-1)
+  end if
+
+  call f_requestUnit('CollPositions.dat', CollPositions_unit)
   open(unit=CollPositions_unit, file='CollPositions.dat')
 
 !++  Read collimator database
@@ -1622,24 +1635,24 @@ subroutine collimate_start_sample(nsample)
     deallocate(setFields)
   else
 #endif
-    call funit_requestUnit('survival.dat', survival_unit)
+    call f_requestUnit('survival.dat', survival_unit)
     open(unit=survival_unit, file='survival.dat') ! RB, DM: 2014 bug fix !was 44
     write(survival_unit,*) '# 1=turn 2=n_particle'
 #ifdef HDF5
   end if
 #endif
 
-  call funit_requestUnit('collgaps.dat', collgaps_unit)
+  call f_requestUnit('collgaps.dat', collgaps_unit)
   open(unit=collgaps_unit, file='collgaps.dat') !was 43
   if(firstrun) write(collgaps_unit,*) '# ID name  angle[rad]  betax[m]  betay[m] halfgap[m]', &
  & '  Material  Length[m]  sigx[m]  sigy[m] tilt1[rad] tilt2[rad] nsig'
 
-  call funit_requestUnit('collimator-temp.db', collimator_temp_db_unit)
+  call f_requestUnit('collimator-temp.db', collimator_temp_db_unit)
   open(unit=collimator_temp_db_unit, file='collimator-temp.db') !was 40
 !
 
 ! TW06/08 added ouputfile for real collimator settings (incluing slicing, ...)
-  call funit_requestUnit('collsettings.dat', collsettings_unit)
+  call f_requestUnit('collsettings.dat', collsettings_unit)
   open(unit=collsettings_unit, file='collsettings.dat') !was 55
 
   if(firstrun) then
@@ -1648,7 +1661,7 @@ subroutine collimate_start_sample(nsample)
   end if
 
   if(dowrite_impact) then
-    call funit_requestUnit('impact.db', impact_unit)
+    call f_requestUnit('impact.db', impact_unit)
     open(unit=impact_unit,file='impact.dat') !was 49
     write(impact_unit,*) '# 1=impact 2=divergence'
   endif
@@ -1663,18 +1676,18 @@ subroutine collimate_start_sample(nsample)
       pfile(9:9) = smpl
       pfile(10:13) = '.dat'
 
-      call funit_requestUnit(pfile(1:13), tracks2_unit)
+      call f_requestUnit(pfile(1:13), tracks2_unit)
       open(unit=tracks2_unit,file=pfile(1:13))
 
     else
-      call funit_requestUnit('tracks2.dat', tracks2_unit)
+      call f_requestUnit('tracks2.dat', tracks2_unit)
       open(unit=tracks2_unit,file='tracks2.dat') !was 38
     end if !end if (cern)
 
     if(firstrun) write(tracks2_unit,*) '# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=DE/E 9=type'
 
 !AUGUST2006:write pencul sheet beam coordiantes to file ---- TW
-    call funit_requestUnit('pencilbeam_distr.dat', pencilbeam_distr_unit)
+    call f_requestUnit('pencilbeam_distr.dat', pencilbeam_distr_unit)
     open(unit=pencilbeam_distr_unit, file='pencilbeam_distr.dat') !was 9997
     if(firstrun) write(pencilbeam_distr_unit,*) 'x    xp    y      yp'
 #ifdef HDF5
@@ -1684,7 +1697,7 @@ subroutine collimate_start_sample(nsample)
 
 !GRD-SR,09-02-2006 => new series of output controlled by the 'dowrite_impact flag
   if(do_select) then
-    call funit_requestUnit('coll_ellipse.dat', coll_ellipse_unit)
+    call f_requestUnit('coll_ellipse.dat', coll_ellipse_unit)
     open(unit=coll_ellipse_unit, file='coll_ellipse.dat') !was 45
     if(firstrun) then
       write(coll_ellipse_unit,*) '#  1=name 2=x 3=y 4=xp 5=yp 6=E 7=s 8=turn 9=halo 10=nabs_type'
@@ -1740,10 +1753,10 @@ subroutine collimate_start_sample(nsample)
 
     else
 #endif
-      call funit_requestUnit('all_impacts.dat', all_impacts_unit)
-      call funit_requestUnit('all_absorptions.dat', all_absorptions_unit)
-      call funit_requestUnit('Coll_Scatter.dat', coll_scatter_unit)
-      call funit_requestUnit('FirstImpacts.dat', FirstImpacts_unit)
+      call f_requestUnit('all_impacts.dat', all_impacts_unit)
+      call f_requestUnit('all_absorptions.dat', all_absorptions_unit)
+      call f_requestUnit('Coll_Scatter.dat', coll_scatter_unit)
+      call f_requestUnit('FirstImpacts.dat', FirstImpacts_unit)
 
       open(unit=all_impacts_unit, file='all_impacts.dat') !was 46
       open(unit=all_absorptions_unit, file='all_absorptions.dat') !was 47
@@ -1764,8 +1777,8 @@ subroutine collimate_start_sample(nsample)
 #ifdef HDF5
     end if
 #endif
-    call funit_requestUnit('FLUKA_impacts.dat', FLUKA_impacts_unit)
-    call funit_requestUnit('FLUKA_impacts_all.dat', FLUKA_impacts_all_unit)
+    call f_requestUnit('FLUKA_impacts.dat', FLUKA_impacts_unit)
+    call f_requestUnit('FLUKA_impacts_all.dat', FLUKA_impacts_all_unit)
     open(unit=FLUKA_impacts_unit, file='FLUKA_impacts.dat') !was 48
     open(unit=FLUKA_impacts_all_unit, file='FLUKA_impacts_all.dat') !was 4801
     if (firstrun) then
@@ -1775,25 +1788,23 @@ subroutine collimate_start_sample(nsample)
   end if ! if(dowrite_impact) then
 
   if(name_sel(1:3).eq.'COL') then
-    call funit_requestUnit('RHIClosses.dat', RHIClosses_unit)
+    call f_requestUnit('RHIClosses.dat', RHIClosses_unit)
     open(unit=RHIClosses_unit, file='RHIClosses.dat') !was 555
     if(firstrun) write(RHIClosses_unit,'(a)') '# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=dp/p 9=type'
   end if
 
-!++  Copy new particles to tracking arrays. Also add the orbit offset at
-!++  start of ring!
+  ! Copy new particles to tracking arrays. Also add the orbit offset at start of ring!
+  if(do_thisdis /= 0) then
+    xv1(1:napx00)   = c1e3 *  myx(1:napx00) + torbx(1)
+    yv1(1:napx00)   = c1e3 * myxp(1:napx00) + torbxp(1)
+    xv2(1:napx00)   = c1e3 *  myy(1:napx00) + torby(1)
+    yv2(1:napx00)   = c1e3 * myyp(1:napx00) + torbyp(1)
+    sigmv(1:napx00) = mys(1:napx00)
+    ejv(1:napx00)   = myp(1:napx00)
+  end if
 
   do i = 1, napx00
-    xv(1,i)  = c1e3 *  myx(i+(j-1)*napx00) + torbx(1)              !hr08
-    yv(1,i)  = c1e3 * myxp(i+(j-1)*napx00) + torbxp(1)             !hr08
-    xv(2,i)  = c1e3 *  myy(i+(j-1)*napx00) + torby(1)              !hr08
-    yv(2,i)  = c1e3 * myyp(i+(j-1)*napx00) + torbyp(1)             !hr08
-
-!JULY2005 assignation of the proper bunch length
-    sigmv(i) = mys(i+(j-1)*napx00)
-    ejv(i)   = myp(i+(j-1)*napx00)
-
-!GRD FOR NOT FAST TRACKING ONLY
+    ! FOR NOT FAST TRACKING ONLY
     ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
     rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
     dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
@@ -1802,8 +1813,8 @@ subroutine collimate_start_sample(nsample)
     omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
     dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 
-
-    nlostp(i)=i
+    partID(i)=i
+    parentID(i)=i
 
     do ieff =1, numeff
       counted_r(i,ieff) = 0
@@ -1967,9 +1978,9 @@ subroutine collimate_start_sample(nsample)
   end do
 
 !---- creating a file with beta-functions at TCP/TCS
-  call funit_requestUnit('twisslike.out', twisslike_unit)
+  call f_requestUnit('twisslike.out', twisslike_unit)
   open(unit=twisslike_unit, file='twisslike.out') !was 10000
-  call funit_requestUnit('sigmasettings.out', sigmasettings_unit)
+  call f_requestUnit('sigmasettings.out', sigmasettings_unit)
   open(unit=sigmasettings_unit, file='sigmasettings.out') !was 10001
   mingap = 20
 
@@ -2333,10 +2344,10 @@ subroutine collimate_start_collimator(stracki)
   if( firstrun ) then
     if(rselect.gt.0 .and. rselect.lt.65) then
       do j = 1, napx
-        xj  = (xv(1,j)-torbx(ie))/c1e3
-        xpj = (yv(1,j)-torbxp(ie))/c1e3
-        yj  = (xv(2,j)-torby(ie))/c1e3
-        ypj = (yv(2,j)-torbyp(ie))/c1e3
+        xj  = (xv1(j)-torbx(ie))/c1e3
+        xpj = (yv1(j)-torbxp(ie))/c1e3
+        yj  = (xv2(j)-torby(ie))/c1e3
+        ypj = (yv2(j)-torbyp(ie))/c1e3
         pj  = ejv(j)/c1e3
 
         if(iturn.eq.1.and.j.eq.1) then
@@ -2459,7 +2470,7 @@ subroutine collimate_do_collimator(stracki)
 !++  Write beam ellipse at selected collimator
   if (((db_name1(icoll).eq.name_sel(1:mNameLen)) .or. (db_name2(icoll).eq.name_sel(1:mNameLen))) .and. do_select) then
     do j = 1, napx
-      write(coll_ellipse_unit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv(1,j), xv(2,j), yv(1,j), yv(2,j), &
+      write(coll_ellipse_unit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv1(j), xv2(j), yv1(j), yv2(j), &
      &        ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
     end do
   end if
@@ -2624,10 +2635,10 @@ subroutine collimate_do_collimator(stracki)
 !          C_APERTURE = 2.*pencil_aperture
 
   if(firstrun.and.iturn.eq.1.and.icoll.eq.7) then
-    call funit_requestUnit('distsec', distsec_unit)
+    call f_requestUnit('distsec', distsec_unit)
     open(unit=distsec_unit,file='distsec') !was 99
     do j=1,napx
-      write(distsec_unit,'(4(1X,E15.7))') xv(1,j),yv(1,j),xv(2,j),yv(2,j)
+      write(distsec_unit,'(4(1X,E15.7))') xv1(j),yv1(j),xv2(j),yv2(j)
     end do
     close(distsec_unit)
   end if
@@ -2740,18 +2751,18 @@ subroutine collimate_do_collimator(stracki)
  &                    myenom, mynex2, mdex, myney2, mdey, myx, myxp, myy, myyp, myp, mys)
 
     do j = 1, napx
-      xv(1,j)  = c1e3*myx(j)  + torbx(ie)
-      yv(1,j)  = c1e3*myxp(j) + torbxp(ie)
-      xv(2,j)  = c1e3*myy(j)  + torby(ie)
-      yv(2,j)  = c1e3*myyp(j) + torbyp(ie)
+      xv1(j)  = c1e3*myx(j)  + torbx(ie)
+      yv1(j)  = c1e3*myxp(j) + torbxp(ie)
+      xv2(j)  = c1e3*myy(j)  + torby(ie)
+      yv2(j)  = c1e3*myyp(j) + torbyp(ie)
       sigmv(j) = mys(j)
       ejv(j)   = myp(j)
 
 !      as main routine will track particles back half a collimator length (to start of jaw),
 !      track them now forward (if generated at face) or backward (if generated at end)
 !      1/2 collimator length to center of collimator (ldrift pos or neg)
-       xv(1,j)  = xv(1,j) - ldrift*yv(1,j)
-       xv(2,j)  = xv(2,j) - ldrift*yv(2,j)
+       xv1(j)  = xv1(j) - ldrift*yv1(j)
+       xv2(j)  = xv2(j) - ldrift*yv2(j)
 
 !      write out distribution - generated either at the BEGINNING or END of the collimator
 !       write(4997,'(6(1X,E15.7))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
@@ -2763,10 +2774,10 @@ subroutine collimate_do_collimator(stracki)
 
 !++  Copy particle data to 1-dim array and go back to meters
   do j = 1, napx
-    rcx(j)  = (xv(1,j)-torbx(ie)) /c1e3
-    rcxp(j) = (yv(1,j)-torbxp(ie))/c1e3
-    rcy(j)  = (xv(2,j)-torby(ie)) /c1e3
-    rcyp(j) = (yv(2,j)-torbyp(ie))/c1e3
+    rcx(j)  = (xv1(j)-torbx(ie)) /c1e3
+    rcxp(j) = (yv1(j)-torbxp(ie))/c1e3
+    rcy(j)  = (xv2(j)-torby(ie)) /c1e3
+    rcyp(j) = (yv2(j)-torbyp(ie))/c1e3
     rcp(j)  = ejv(j)/c1e3
     rcs(j)  = zero
     part_hit_before_turn(j) = part_hit_turn(j)
@@ -2790,8 +2801,8 @@ subroutine collimate_do_collimator(stracki)
         rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
       end if
     else
-      write(lout,*) 'ERROR: Non-zero length collimator: ', db_name1(icoll), ' length = ', stracki
-      call prror(-1)
+      write(lout,"(a,f13.6)") "COLL> ERROR Non-zero length collimator: '"//trim(db_name1(icoll))//"' length = ",stracki
+      call prror
     end if
 
     flukaname(j) = ipart(j)
@@ -3173,7 +3184,7 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
 #endif
 
-  real(kind=fPrec) stracki
+  ! real(kind=fPrec) stracki ! stracki makes no sense here
 
 !++  Output information:
 !++
@@ -3200,7 +3211,7 @@ subroutine collimate_end_collimator()
     if(part_hit_pos(j) .eq.ie .and. part_hit_turn(j).eq.iturn) then
 !++  For zero length element track back half collimator length
 ! DRIFT PART
-      if (stracki.eq.0.) then
+      ! if (stracki.eq.0.) then ! stracki makes no sense here
         if(iexact.eq.0) then
           rcx(j)  = rcx(j) - half*c_length*rcxp(j)
           rcy(j)  = rcy(j) - half*c_length*rcyp(j)
@@ -3209,13 +3220,13 @@ subroutine collimate_end_collimator()
           rcx(j) = rcx(j) - half*c_length*(rcxp(j)/zpj)
           rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
         end if
-      end if
+      ! end if ! stracki makes no sense here
 
 !++  Now copy data back to original verctor
-      xv(1,j) = rcx(j)  * c1e3 + torbx(ie)
-      yv(1,j) = rcxp(j) * c1e3 + torbxp(ie)
-      xv(2,j) = rcy(j)  * c1e3 + torby(ie)
-      yv(2,j) = rcyp(j) * c1e3 + torbyp(ie)
+      xv1(j) = rcx(j)  * c1e3 + torbx(ie)
+      yv1(j) = rcxp(j) * c1e3 + torbxp(ie)
+      xv2(j) = rcy(j)  * c1e3 + torby(ie)
+      yv2(j) = rcyp(j) * c1e3 + torbyp(ie)
       ejv(j)  = rcp(j)  * c1e3
 
 !++  Energy update, as recommended by Frank
@@ -3226,18 +3237,18 @@ subroutine collimate_end_collimator()
       moidpsv(j)=mtc(j)/(one+dpsv(j))
       omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
       dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-      yv(1,j)   = ejf0v(j)/ejfv(j)*yv(1,j)
-      yv(2,j)   = ejf0v(j)/ejfv(j)*yv(2,j)
+      yv1(j)   = ejf0v(j)/ejfv(j)*yv1(j)
+      yv2(j)   = ejf0v(j)/ejfv(j)*yv2(j)
 
 !++   For absorbed particles set all coordinates to zero. Also
 !++   include very large offsets, let's say above 100mm or
 !++   100mrad.
       if( (part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) .or.&
- &      xv(1,j).gt.c1e2 .or. yv(1,j).gt.c1e2 .or. xv(2,j).gt.c1e2 .or. yv(2,j).gt.c1e2) then
-        xv(1,j) = zero
-        yv(1,j) = zero
-        xv(2,j) = zero
-        yv(2,j) = zero
+ &      xv1(j).gt.c1e2 .or. yv1(j).gt.c1e2 .or. xv2(j).gt.c1e2 .or. yv2(j).gt.c1e2) then
+        xv1(j) = zero
+        yv1(j) = zero
+        xv2(j) = zero
+        yv2(j) = zero
         ejv(j)  = myenom
         sigmv(j)= zero
         part_abs_pos(j)=ie
@@ -3251,10 +3262,10 @@ subroutine collimate_end_collimator()
 
 !APRIL2005 ...OTHERWISE JUST GET BACK FORMER COORDINATES
     else
-      xv(1,j) = rcx0(j)  * c1e3 + torbx(ie)
-      yv(1,j) = rcxp0(j) * c1e3 + torbxp(ie)
-      xv(2,j) = rcy0(j)  * c1e3 + torby(ie)
-      yv(2,j) = rcyp0(j) * c1e3 + torbyp(ie)
+      xv1(j) = rcx0(j)  * c1e3 + torbx(ie)
+      yv1(j) = rcxp0(j) * c1e3 + torbxp(ie)
+      xv2(j) = rcy0(j)  * c1e3 + torby(ie)
+      yv2(j) = rcyp0(j) * c1e3 + torbyp(ie)
       ejv(j)  = rcp0(j)  * c1e3
     end if
 
@@ -3333,18 +3344,18 @@ subroutine collimate_end_collimator()
               tertiary(j)  .eq. 2 .or. &
               other(j)     .eq. 4 .or. &
               scatterhit(j).eq.8         ) .and. &
-             (xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec).and.&
+             (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec).and.&
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
-             ((((xv(1,j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)) .or. &
-             (((xv(2,j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)) .or. &
-             (((xv(1,j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
-             ((xv(2,j)*c1m3)**2   / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
+             ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)) .or. &
+             (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)) .or. &
+             (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
+             ((xv2(j)*c1m3)**2   / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
              then
 
-            xj  = (xv(1,j)-torbx(ie))  /c1e3
-            xpj = (yv(1,j)-torbxp(ie)) /c1e3
-            yj  = (xv(2,j)-torby(ie))  /c1e3
-            ypj = (yv(2,j)-torbyp(ie)) /c1e3
+            xj  = (xv1(j)-torbx(ie))  /c1e3
+            xpj = (yv1(j)-torbxp(ie)) /c1e3
+            yj  = (xv2(j)-torby(ie))  /c1e3
+            ypj = (yv2(j)-torbyp(ie)) /c1e3
 
 #ifdef HDF5
             if(h5_writeTracks2) then
@@ -3361,10 +3372,10 @@ subroutine collimate_end_collimator()
               call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
 
               hdfs  = sampl(ie)+half*c_length
-              hdfx  = xv(1,j) + half*c_length*yv(1,j)
-              hdfxp = yv(1,j)
-              hdfy  = xv(2,j) + half*c_length*yv(2,j)
-              hdfyp = yv(2,j)
+              hdfx  = xv1(j) + half*c_length*yv1(j)
+              hdfxp = yv1(j)
+              hdfy  = xv2(j) + half*c_length*yv2(j)
+              hdfyp = yv2(j)
               call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
             else
 #endif
@@ -3378,14 +3389,14 @@ subroutine collimate_end_collimator()
 
               write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') &
                 ipart(j),iturn,sampl(ie)+half*c_length,           &
-                xv(1,j)+half*c_length*yv(1,j),yv(1,j),                             &
-                xv(2,j)+half*c_length*yv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,      &
+                xv1(j)+half*c_length*yv1(j),yv1(j),                             &
+                xv2(j)+half*c_length*yv2(j),yv2(j),(ejv(j)-myenom)/myenom,      &
                 secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
             end if
 #endif
           end if ! if((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
-          ! .and.(xv(1,j).lt.99.0_fPrec.and.xv(2,j).lt.99.0_fPrec) and.
+          ! .and.(xv1(j).lt.99.0_fPrec.and.xv2(j).lt.99.0_fPrec) and.
         end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
       end if !if(dowritetracks) then
 
@@ -3626,7 +3637,7 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call funit_requestUnit('efficiency.dat', efficiency_unit)
+    call f_requestUnit('efficiency.dat', efficiency_unit)
     open(unit=efficiency_unit, file='efficiency.dat') !was 1991
     if(n_tot_absorbed /= 0) then
       write(efficiency_unit,*) '# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r' ! This is not correct?
@@ -3663,7 +3674,7 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call funit_requestUnit('efficiency_dpop.dat', efficiency_dpop_unit)
+    call f_requestUnit('efficiency_dpop.dat', efficiency_dpop_unit)
     open(unit=efficiency_dpop_unit, file='efficiency_dpop.dat') !was 1992
     if(n_tot_absorbed /= 0) then
       write(efficiency_dpop_unit,*) '# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart'
@@ -3702,7 +3713,7 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call funit_requestUnit('efficiency_2d.dat', efficiency_2d_unit)
+    call f_requestUnit('efficiency_2d.dat', efficiency_2d_unit)
     open(unit=efficiency_2d_unit, file='efficiency_2d.dat') !was 1993
     if(n_tot_absorbed /= 0) then
       write(efficiency_2d_unit,*) '# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs'
@@ -3750,7 +3761,7 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call funit_requestUnit('coll_summary.dat', coll_summary_unit)
+    call f_requestUnit('coll_summary.dat', coll_summary_unit)
     open(unit=coll_summary_unit, file='coll_summary.dat') !was 50
     write(coll_summary_unit,*) '# 1=icoll 2=collname 3=nimp 4=nabs 5=imp_av 6=imp_sig 7=length'
     do icoll = 1, db_ncoll
@@ -3823,9 +3834,9 @@ subroutine collimate_exit()
     close(FirstImpacts_unit)
   endif
 
-  call funit_requestUnit('amplitude.dat', amplitude_unit)
-  call funit_requestUnit('amplitude2.dat', amplitude2_unit)
-  call funit_requestUnit('betafunctions.dat', betafunctions_unit)
+  call f_requestUnit('amplitude.dat', amplitude_unit)
+  call f_requestUnit('amplitude2.dat', amplitude2_unit)
+  call f_requestUnit('betafunctions.dat', betafunctions_unit)
   open(unit=amplitude_unit, file='amplitude.dat') !was 56
   open(unit=amplitude2_unit, file='amplitude2.dat') !was 51
   open(unit=betafunctions_unit, file='betafunctions.dat') !was 57
@@ -3909,7 +3920,7 @@ subroutine collimate_exit()
 !GRD WE CAN ALSO MAKE AN ORBIT CHECKING
 !GRD
 
-  call funit_requestUnit('orbitchecking.dat', orbitchecking_unit)
+  call f_requestUnit('orbitchecking.dat', orbitchecking_unit)
   open(unit=orbitchecking_unit, file='orbitchecking.dat') !was 99
   write(orbitchecking_unit,*) '# 1=s 2=torbitx 3=torbity'
 
@@ -3971,11 +3982,11 @@ subroutine collimate_start_element(i)
 !++  100mrad.
   do j = 1, napx
     if( (part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) .or.&
- &  xv(1,j).gt.c1e2 .or. yv(1,j).gt.c1e2 .or. xv(2,j).gt.c1e2 .or. yv(2,j).gt.c1e2) then
-      xv(1,j) = zero
-      yv(1,j) = zero
-      xv(2,j) = zero
-      yv(2,j) = zero
+ &  xv1(j).gt.c1e2 .or. yv1(j).gt.c1e2 .or. xv2(j).gt.c1e2 .or. yv2(j).gt.c1e2) then
+      xv1(j) = zero
+      yv1(j) = zero
+      xv2(j) = zero
+      yv2(j) = zero
       ejv(j)  = myenom
       sigmv(j)= zero
       part_abs_pos(j)=ie
@@ -3990,10 +4001,10 @@ subroutine collimate_start_element(i)
 
 !GRD SAVE COORDINATES OF PARTICLE 1 TO CHECK ORBIT
   if(firstrun) then
-    xbob(ie)=xv(1,1)
-    ybob(ie)=xv(2,1)
-    xpbob(ie)=yv(1,1)
-    ypbob(ie)=yv(2,1)
+    xbob(ie)=xv1(1)
+    ybob(ie)=xv2(1)
+    xpbob(ie)=yv1(1)
+    ypbob(ie)=yv2(1)
   end if
 
 !++  Here comes sixtrack stuff
@@ -4057,10 +4068,10 @@ subroutine collimate_end_element
   if(firstrun) then
     if(rselect.gt.0 .and. rselect.lt.65) then
       do j = 1, napx
-        xj  = (xv(1,j)-torbx(ie)) /c1e3
-        xpj = (yv(1,j)-torbxp(ie))/c1e3
-        yj  = (xv(2,j)-torby(ie)) /c1e3
-        ypj = (yv(2,j)-torbyp(ie))/c1e3
+        xj  = (xv1(j)-torbx(ie)) /c1e3
+        xpj = (yv1(j)-torbxp(ie))/c1e3
+        yj  = (xv2(j)-torby(ie)) /c1e3
+        ypj = (yv2(j)-torbyp(ie))/c1e3
         pj  = ejv(j)/c1e3
 
         if(iturn.eq.1.and.j.eq.1) then
@@ -4104,10 +4115,10 @@ subroutine collimate_end_element
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
   if (dowritetracks) then
     do j = 1, napx
-      xj     = (xv(1,j)-torbx(ie)) /c1e3
-      xpj    = (yv(1,j)-torbxp(ie))/c1e3
-      yj     = (xv(2,j)-torby(ie)) /c1e3
-      ypj    = (yv(2,j)-torbyp(ie))/c1e3
+      xj     = (xv1(j)-torbx(ie)) /c1e3
+      xpj    = (yv1(j)-torbxp(ie))/c1e3
+      yj     = (xv2(j)-torby(ie)) /c1e3
+      ypj    = (yv2(j)-torbyp(ie))/c1e3
 
       arcdx = 2.5_fPrec
       arcbetax = c180e0
@@ -4131,33 +4142,33 @@ subroutine collimate_end_element
              tertiary(j)  .eq. 2 .or. &
              other(j)     .eq. 4 .or. &
              scatterhit(j).eq. 8       ) .and. &
-             (xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec) .and. &
-             ((((xv(1,j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
-             (((xv(2,j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
-             (((xv(1,j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
-             ((xv(2,j)*c1m3)**2  /  (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
+             (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
+             ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
+             (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
+             (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
+             ((xv2(j)*c1m3)**2  /  (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
              then
 
-          xj  = (xv(1,j)-torbx(ie)) /c1e3
-          xpj = (yv(1,j)-torbxp(ie))/c1e3
-          yj  = (xv(2,j)-torby(ie)) /c1e3
-          ypj = (yv(2,j)-torbyp(ie))/c1e3
+          xj  = (xv1(j)-torbx(ie)) /c1e3
+          xpj = (yv1(j)-torbxp(ie))/c1e3
+          yj  = (xv2(j)-torby(ie)) /c1e3
+          ypj = (yv2(j)-torbyp(ie))/c1e3
 #ifdef HDF5
           if(h5_writeTracks2) then
             hdfpid=ipart(j)
             hdfturn=iturn
             hdfs=sampl(ie)
-            hdfx=xv(1,j)
-            hdfxp=yv(1,j)
-            hdfy=xv(2,j)
-            hdfyp=yv(2,j)
+            hdfx=xv1(j)
+            hdfxp=yv1(j)
+            hdfy=xv2(j)
+            hdfyp=yv2(j)
             hdfdee=(ejv(j)-myenom)/myenom
             hdftyp=secondary(j)+tertiary(j)+other(j)+scatterhit(j)
             call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
           else
 #endif
             write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j), iturn, sampl(ie), &
-              xv(1,j), yv(1,j), xv(2,j), yv(2,j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+              xv1(j), yv1(j), xv2(j), yv2(j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
 #endif
@@ -4200,8 +4211,6 @@ subroutine collimate_end_turn
   integer fmtHdf, setHdf
 #endif
 
-  logical :: turnlostp(npart)
-
 !__________________________________________________________________
 !++  Now do analysis at selected elements...
 
@@ -4215,15 +4224,15 @@ subroutine collimate_end_turn
 
 !GRD GET THE COORDINATES OF THE PARTICLES AT THE IEth ELEMENT:
   do j = 1,napx
-    xgrd(j)  = xv(1,j)
-    xpgrd(j) = yv(1,j)
-    ygrd(j)  = xv(2,j)
-    ypgrd(j) = yv(2,j)
+    xgrd(j)  = xv1(j)
+    xpgrd(j) = yv1(j)
+    ygrd(j)  = xv2(j)
+    ypgrd(j) = yv2(j)
 
-    xineff(j)  = xv(1,j) - torbx (ie)
-    xpineff(j) = yv(1,j) - torbxp(ie)
-    yineff(j)  = xv(2,j) - torby (ie)
-    ypineff(j) = yv(2,j) - torbyp(ie)
+    xineff(j)  = xv1(j) - torbx (ie)
+    xpineff(j) = yv1(j) - torbxp(ie)
+    yineff(j)  = xv2(j) - torby (ie)
+    ypineff(j) = yv2(j) - torbyp(ie)
 
     pgrd(j)  = ejv(j)
     ejfvgrd(j) = ejfv(j)
@@ -4415,57 +4424,19 @@ subroutine collimate_end_turn
     imov = 0
     do j = 1, napx
       if(xgrd(j).lt.99.0_fPrec .and. ygrd(j).lt.99.0_fPrec) then
-        turnlostp(j) = .false.
+        llostp(j) = .false.
       else
-        turnlostp(j) = .true.
-
-!        imov = imov + 1
-!        xgrd(imov)           = xgrd(j)
-!        ygrd(imov)           = ygrd(j)
-!        xpgrd(imov)          = xpgrd(j)
-!        ypgrd(imov)          = ypgrd(j)
-!        pgrd(imov)           = pgrd(j)
-!        ejfvgrd(imov)        = ejfvgrd(j)
-!        sigmvgrd(imov)       = sigmvgrd(j)
-!        rvvgrd(imov)         = rvvgrd(j)
-!        dpsvgrd(imov)        = dpsvgrd(j)
-!        oidpsvgrd(imov)      = oidpsvgrd(j)
-!        dpsv1grd(imov)       = dpsv1grd(j)
-!        part_hit_pos(imov)   = part_hit_pos(j)
-!        part_hit_turn(imov)  = part_hit_turn(j)
-!        part_abs_pos(imov)   = part_abs_pos(j)
-!        part_abs_turn(imov)  = part_abs_turn(j)
-!        part_select(imov)    = part_select(j)
-!        part_impact(imov)    = part_impact(j)
-!        part_indiv(imov)     = part_indiv(j)
-!        part_linteract(imov) = part_linteract(j)
-!        part_hit_before_pos(imov)  = part_hit_before_pos(j)
-!        part_hit_before_turn(imov) = part_hit_before_turn(j)
-!        secondary(imov) = secondary(j)
-!        tertiary(imov) = tertiary(j)
-!        other(imov) = other(j)
-!        scatterhit(imov) = scatterhit(j)
-!        nabs_type(imov) = nabs_type(j)
-!!GRD HERE WE ADD A MARKER FOR THE PARTICLE FORMER NAME
-!        ipart(imov) = ipart(j)
-!        flukaname(imov) = flukaname(j)
-!!KNS: Also compact nlostp (used for standard LOST calculations + output)
-!        nlostp(imov) = nlostp(j)
-!        do ieff = 1, numeff
-!          counted_r(imov,ieff) = counted_r(j,ieff)
-!          counted_x(imov,ieff) = counted_x(j,ieff)
-!          counted_y(imov,ieff) = counted_y(j,ieff)
-!        end do
+        llostp(j) = .true.
       end if
     end do
 
-!   A call to the array compression function in the aperture module
-    call compactArrays(turnlostp)
+    ! Move the lost particles to the end of the arrays
+    call shuffleLostParticles
 
-    write(lout,"(a,i8,a,i8,a,i0)") "COLL> Compacted the particle distributions: ",napx_pre," --> ",napx,", turn = ",iturn
+    write(lout,"(3(a,i0))") "COLL> Compacted the particle distributions: ",napx_pre," --> ",napx,", turn = ",iturn
     flush(lout)
 
-! napx gets updated by compactArrays
+! napx gets updated by shuffleLostParticles
 !    napx = imov
   endif
 
@@ -4493,7 +4464,7 @@ subroutine collimate_end_turn
       deallocate(fldHdf)
     else
 #endif
-      call funit_requestUnit('distn.dat', distn_unit)
+      call f_requestUnit('distn.dat', distn_unit)
       open(unit=distn_unit, file='distn.dat') !was 9998
       write(distn_unit,*) '# 1=x 2=xp 3=y 4=yp 5=z 6 =E'
       do j = 1, napx
@@ -4510,10 +4481,10 @@ subroutine collimate_end_turn
 !GRD AT THE END OF EACH TURN
   if(ie.eq.iu) then
     do j = 1,napx
-      xv(1,j) = xgrd(j)
-      yv(1,j) = xpgrd(j)
-      xv(2,j) = ygrd(j)
-      yv(2,j) = ypgrd(j)
+      xv1(j) = xgrd(j)
+      yv1(j) = xpgrd(j)
+      xv2(j) = ygrd(j)
+      yv2(j) = ypgrd(j)
       ejv(j)  = pgrd(j)
       ejfv(j)   = ejfvgrd(j)
       sigmv(j)  = sigmvgrd(j)
@@ -4527,10 +4498,10 @@ subroutine collimate_end_turn
   if(firstrun) then
     if(rselect.gt.0 .and. rselect.lt.65) then
       do j = 1, napx
-        xj  = (xv(1,j)-torbx(ie)) /c1e3
-        xpj = (yv(1,j)-torbxp(ie))/c1e3
-        yj  = (xv(2,j)-torby(ie)) /c1e3
-        ypj = (yv(2,j)-torbyp(ie))/c1e3
+        xj  = (xv1(j)-torbx(ie)) /c1e3
+        xpj = (yv1(j)-torbxp(ie))/c1e3
+        yj  = (xv2(j)-torby(ie)) /c1e3
+        ypj = (yv2(j)-torbyp(ie))/c1e3
         pj  = ejv(j)/c1e3
 
         if(iturn.eq.1.and.j.eq.1) then
@@ -4573,10 +4544,10 @@ subroutine collimate_end_turn
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
   if(dowritetracks) then
     do j = 1, napx
-      xj    = (xv(1,j)-torbx(ie))/c1e3
-      xpj   = (yv(1,j)-torbxp(ie))/c1e3
-      yj    = (xv(2,j)-torby(ie))/c1e3
-      ypj   = (yv(2,j)-torbyp(ie))/c1e3
+      xj    = (xv1(j)-torbx(ie))/c1e3
+      xpj   = (yv1(j)-torbxp(ie))/c1e3
+      yj    = (xv2(j)-torby(ie))/c1e3
+      ypj   = (yv2(j)-torbyp(ie))/c1e3
       arcdx = 2.5_fPrec
       arcbetax = c180e0
 
@@ -4597,33 +4568,33 @@ subroutine collimate_end_turn
             tertiary(j)  .eq. 2 .or. &
             other(j)     .eq. 4 .or. &
             scatterhit(j).eq. 8        ) .and. &
-            (xv(1,j).lt.99.0_fPrec .and. xv(2,j).lt.99.0_fPrec) .and. &
-            ((((xv(1,j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
-            (((xv(2,j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
-            (((xv(1,j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
-            ((xv(2,j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
+            (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
+            ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
+            (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
+            (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
+            ((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
             then
 
-          xj     = (xv(1,j)-torbx(ie))/c1e3
-          xpj    = (yv(1,j)-torbxp(ie))/c1e3
-          yj     = (xv(2,j)-torby(ie))/c1e3
-          ypj    = (yv(2,j)-torbyp(ie))/c1e3
+          xj     = (xv1(j)-torbx(ie))/c1e3
+          xpj    = (yv1(j)-torbxp(ie))/c1e3
+          yj     = (xv2(j)-torby(ie))/c1e3
+          ypj    = (yv2(j)-torbyp(ie))/c1e3
 #ifdef HDF5
           if(h5_writeTracks2) then
             hdfpid=ipart(j)
             hdfturn=iturn
             hdfs=sampl(ie)
-            hdfx=xv(1,j)
-            hdfxp=yv(1,j)
-            hdfy=xv(2,j)
-            hdfyp=yv(2,j)
+            hdfx=xv1(j)
+            hdfxp=yv1(j)
+            hdfy=xv2(j)
+            hdfyp=yv2(j)
             hdfdee=(ejv(j)-myenom)/myenom
             hdftyp=secondary(j)+tertiary(j)+other(j)+scatterhit(j)
             call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
           else
 #endif
             write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j),iturn,sampl(ie), &
-              xv(1,j),yv(1,j),xv(2,j),yv(2,j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+              xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
 #endif
@@ -5469,7 +5440,7 @@ end function ichoix
 !! Note: For single-diffractive scattering the vector p of momentum
 !! is modified (energy loss is applied)
 !<
-function gettran(inter,xmat,p)
+real(kind=fPrec) function gettran(inter,xmat,p)
 
   implicit none
 
@@ -5477,8 +5448,11 @@ function gettran(inter,xmat,p)
   real(kind=fPrec) :: p
 
   integer :: length
-  real(kind=fPrec) :: gettran,t,xm2,bsd
+  real(kind=fPrec) :: t,xm2,bsd
   real(kind=fPrec) :: truth,xran(1)
+
+  ! Neither if-statements below have an else, so defaultingfuction return to zero.
+  gettran = zero ! -Wmaybe-uninitialized
 
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
 #ifndef MERLINSCATTER
@@ -5508,8 +5482,7 @@ function gettran(inter,xmat,p)
     t=real(truth,fPrec)                                                    !hr09
     gettran = t
   end if
-#endif
-#ifdef MERLINSCATTER
+#else
 
   if( inter.eq.2 ) then
     gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)                  !hr09
@@ -6760,7 +6733,7 @@ subroutine readdis(filename_dis,myx,myxp,myy,myyp,myp,mys)
 
   write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
 
-  call funit_requestUnit(filename_dis, filename_dis_unit)
+  call f_requestUnit(filename_dis, filename_dis_unit)
   open(unit=filename_dis_unit, file=filename_dis, iostat=stat,status="OLD",action="read") !was 53
   if(stat.ne.0)then
     write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
@@ -6861,7 +6834,7 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
 
   write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
 
-  call funit_requestUnit(filename_dis, filename_dis_unit)
+  call f_requestUnit(filename_dis, filename_dis_unit)
   open(unit=filename_dis_unit, file=filename_dis, iostat=stat, status="OLD",action="read") !was 53
   if(stat.ne.0)then
     write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
@@ -7552,6 +7525,7 @@ subroutine funlux(array,xran,len)
 !        ARRAY(151-200) contains the 49-bin blowup of main bins
 !                       98 and 99 (right tail of distribution)
 !
+      x = zero ! -Wmaybe-uninitialized
       call ranlux(xran,len)
 !      call ranecu(xran,len,-1)
 
@@ -7908,7 +7882,7 @@ subroutine readcollimator
 !--------------------------------------------------------------------
 !++  Read collimator database
 
-  call funit_requestUnit(coll_db, coll_db_unit)
+  call f_requestUnit(coll_db, coll_db_unit)
   open(unit=coll_db_unit,file=coll_db, iostat=ios, status="OLD",action="read") !was 53
   if(ios.ne.0)then
     write(lout,"(a)")    "COLL> ERROR in subroutine readcollimator: Could not open the file '"//coll_db//"'"

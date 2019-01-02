@@ -119,12 +119,12 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   end if
 
   doLorentz=0
-  if((abs(yv(1,1)).gt.3e-3_fPrec).or.(abs(yv(2,1)).gt.3e-3_fPrec)) then ! do a Lorentz boost of DPMJET events
+  if((abs(yv1(1)).gt.3e-3_fPrec).or.(abs(yv2(1)).gt.3e-3_fPrec)) then ! do a Lorentz boost of DPMJET events
  !YIL warning: hardcoded mass of protons:
     protonmass=pmap
     doLorentz=1
-    tmpPX=yv(1,1) !don't think I can send array elements to functions??
-    tmpPY=yv(2,1)
+    tmpPX=yv1(1) !don't think I can send array elements to functions??
+    tmpPY=yv2(1)
     call createLorentzMatrix(myenom,tmpPX,tmpPY,protonmass)
   end if
 
@@ -149,12 +149,12 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 
   if(bgid.lt.bgiddb(ibgloc)) then ! no proton for this scattering event
 !   check that this works correctly!!!!!!
-    write(bg_locLossesUnit,*) ipart(j),iturn,totals,xv(1,j),yv(1,j),xv(2,j),yv(2,j),mys(j),(0-myenom)/myenom, &
+    write(bg_locLossesUnit,*) ipart(j),iturn,totals,xv1(j),yv1(j),xv2(j),yv2(j),mys(j),(0-myenom)/myenom, &
       bgid+njobthis*dpmjetevents
 
 !   writing down the scattering location information
-    write(bg_scatterLocUnit,*) ipart(j),iturn,totals,xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),ejv(j),bgid+njobthis*dpmjetevents,&
-      bgid,ejv(j),xv(1,j),xv(2,j),yv(1,j),yv(2,j)
+    write(bg_scatterLocUnit,*) ipart(j),iturn,totals,xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j),ejv(j),bgid+njobthis*dpmjetevents,&
+      bgid,ejv(j),xv1(j),xv2(j),yv1(j),yv2(j)
 !    part_abs(j) = 1
     part_abs_pos(j)  = el_idx
     part_abs_turn(j) = turn
@@ -174,11 +174,11 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
     end if
   end do
 
-     oldCoordinates(1)=yv(1,j)
-     oldCoordinates(2)=yv(2,j)
+     oldCoordinates(1)=yv1(j)
+     oldCoordinates(2)=yv2(j)
      oldCoordinates(3)=ejv(j)
-     oldCoordinates(4)=xv(1,j)
-     oldCoordinates(5)=xv(2,j)
+     oldCoordinates(4)=xv1(j)
+     oldCoordinates(5)=xv2(j)
 
      if(doLorentz.eq.one) then ! we need to boost the dpmjet event first:
      totMomentum=sqrt(bgEdb(choice)**2-(protonmass*c1m3)**2)
@@ -189,7 +189,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
      protonmass=protonmass*c1e3
 !    This returns E,px,py,pz, need xp,yp
      totMomentum=sqrt(new4MomCoord(2)**2+new4MomCoord(3)**2+new4MomCoord(4)**2)
-     call rotateMatrix(yv(1,1),yv(2,1),rotm) !we also need to "rotate back" before we're in the "same state"
+     call rotateMatrix(yv1(1),yv2(1),rotm) !we also need to "rotate back" before we're in the "same state"
      z(1) = (new4MomCoord(2)/totMomentum)
      z(2) = (new4MomCoord(3)/totMomentum)
      z(3) = (new4MomCoord(4)/totMomentum)
@@ -213,7 +213,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 ! END DEBUG
       endif
      endif ! doLorentz
-     call rotateMatrix(yv(1,j),yv(2,j),rotm)
+     call rotateMatrix(yv1(j),yv2(j),rotm)
 !    creating resulting vector [x,y,z] from dpmjet:
      z(1) = (bgxpdb(choice)) ! this is correct, since dpmjet gives xp=px/p and so on...
      z(2) = (bgypdb(choice))
@@ -224,13 +224,13 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
       z=matmul(rotm,z)
 ! adding the angles to the yv vector:
   if (z(3).eq.0) then
-    yv(1,j) = acos_mb(zero)*c1e3
-    yv(2,j) = one*yv(1,j)
+    yv1(j) = acos_mb(zero)*c1e3
+    yv2(j) = one*yv1(j)
   else
 !   xp
-    yv(1,j) = atan_mb(z(1)/z(3))*c1e3
+    yv1(j) = atan_mb(z(1)/z(3))*c1e3
 !   yp
-    yv(2,j) = atan_mb(z(2)/z(3))*c1e3
+    yv2(j) = atan_mb(z(2)/z(3))*c1e3
   endif
 !    energy WARNING: I DO NOT KNOW ALL THE PLACES I NEED TO INSERT THE ENERGY????
      ejv(j) = bgEdb(choice)*c1e3
@@ -245,8 +245,8 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
     omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
     dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 ! writing down the scattering location information
-  write(bg_scatterLocUnit,*) ipart(j),iturn,totals,xv(1,j),        &
-    yv(1,j),xv(2,j),yv(2,j),sigmv(j),oldCoordinates(3),            &
+  write(bg_scatterLocUnit,*) ipart(j),iturn,totals,xv1(j),        &
+    yv1(j),xv2(j),yv2(j),sigmv(j),oldCoordinates(3),            &
     bgid+njobthis*dpmjetevents,bgid,ejv(j),oldCoordinates(4),      &
     oldCoordinates(5),oldCoordinates(1),oldCoordinates(2)
     mysecondary(j)=1
@@ -293,7 +293,7 @@ subroutine beamGasInit(myenom)
   use numerical_constants
   use beamgascommon
   use crcoall
-  use file_units
+  use mod_units
 
   use collimation, only : mynp
 
@@ -309,11 +309,11 @@ subroutine beamGasInit(myenom)
   write(lout,"(a)") "BEAMGAS> Initialising"
 
   ! Get file units
-  call funit_requestUnit("dpmjet.eve",          bg_dpmJetUnit)
-  call funit_requestUnit("scatterLOC.txt",      bg_scatterLocUnit)
-  call funit_requestUnit("beamgas_config.txt",  bg_configUnit)
-  call funit_requestUnit("pressure_profile.txt",bg_pressProUnit)
-  call funit_requestUnit("localLOSSES.txt",     bg_locLossesUnit)
+  call f_requestUnit("dpmjet.eve",          bg_dpmJetUnit)
+  call f_requestUnit("scatterLOC.txt",      bg_scatterLocUnit)
+  call f_requestUnit("beamgas_config.txt",  bg_configUnit)
+  call f_requestUnit("pressure_profile.txt",bg_pressProUnit)
+  call f_requestUnit("localLOSSES.txt",     bg_locLossesUnit)
 
   open(bg_dpmJetUnit,file='dpmjet.eve')
   open(bg_scatterLocUnit,file='scatterLOC.txt')
@@ -399,7 +399,7 @@ subroutine beamGasInit(myenom)
   enddo
 ! number of lines in dpmjet - 1
   bgmax=j
-  close(bg_dpmJetUnit)
+  call f_close(bg_dpmJetUnit)
   write(lout,"(a,i0)") "BREAMGAS> Trackable events in dpmjet.eve: ",bgmax-1
 
   if (numberOfEvents.gt.mynp) then
@@ -411,7 +411,7 @@ subroutine beamGasInit(myenom)
   write(lout,"(a,i0)") "BEAMGAS> This is job number: ", njobthis
   write(lout,"(a,i0)") "BEAMGAS> Total number of jobs: ", njobs
   write(lout,"(a,i0)") "BEAMGAS> Total number of particles in simulation: ", njobs*dpmjetevents
-  close(bg_configUnit)
+  call f_close(bg_configUnit)
 
   open(bg_locLossesUnit,file='localLOSSES.txt')
   write(bg_locLossesUnit,*) '# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=z 9=DE/E 10=CollisionID'

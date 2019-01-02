@@ -6,6 +6,7 @@ subroutine daliesix
   use crcoall
   use parpro
   use mod_commond
+  use mod_time
   use mod_lie_dab, only : mld_allocArrays
 
   implicit none
@@ -20,9 +21,9 @@ subroutine daliesix
   save
 
   tlim=1e7
-  call timest
+  call time_timerStart
   time0=0.
-  call timex(time0)
+  call time_timerCheck(time0)
 
   ! Initialization
   x2pi=atan_mb(one)*eight
@@ -31,7 +32,10 @@ subroutine daliesix
   if(nord1.gt.no) nord1=no
   ndim=nvar2/2
   if(nvarf/2.lt.ndim) ndim=nvarf/2
-  if(ndim.eq.0) call prror(94)
+  if(ndim == 0) then
+    write(lout,"(a)") "DALIESIX> ERROR Number of normal form variables have to be: 2, 4, 5, 6 + parameters."
+    call prror(-1)
+  end if
   nv=nvarf
   nd2=2*ndim
   ndpt=idptr
@@ -137,7 +141,7 @@ subroutine daliesix
   call dadal(bb2,1)
   call dadal(haux,1)
   time1=0.
-  call timex(time1)
+  call time_timerCheck(time1)
   time = time1-time0
   write(lout,10000) no,time
 
@@ -176,7 +180,10 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   dimension am(6,6),idummy(6)
   save
 
-  if(nndim.lt.2.or.nndim.gt.3) call prror(95)
+  if(nndim < 2 .or. nndim > 3) then
+    write(lout,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
+    call prror(-1)
+  end if
 
   nordo=nord
   nvaro=nvar
@@ -239,6 +246,7 @@ subroutine runcav
   use numerical_constants
   use crcoall
   use parpro
+  use mod_time
   use mod_common
   use mod_commonmn, only : e0f
   use mod_commons
@@ -319,7 +327,7 @@ subroutine runcav
 !-----------------------------------------------------------------------
 !     DADAL AUTOMATIC INCLUSION
   time2=0.
-  call timex(time2)
+  call time_timerCheck(time2)
 !     time=time2-time1
   write(lout,10020) time1-time0
   write(lout,10030) nord,time2-time1
@@ -437,6 +445,7 @@ subroutine runda
   use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   use mod_units
+  use mod_time
   use mod_fluc,    only : fluc_errAlign,fluc_writeFort4
 
   implicit none
@@ -460,7 +469,7 @@ subroutine runda
 !-----------------------------------------------------------------------
   call comt_daStart
   if(mout2.eq.1) then
-    call units_openUnit(unit=99,fileName="fort.99",formatted=.true.,mode="w",err=fErr,recl=303)
+    call f_open(unit=99,file="fort.99",formatted=.true.,mode="w",err=fErr,recl=303)
   end if
   do i=1,100
     jj(i)=0
@@ -477,7 +486,7 @@ subroutine runda
     fake(2,i)=zero
   end do
   time1=0.
-  call timex(time1)
+  call time_timerCheck(time1)
   if(niu(1).gt.1) then
     do i=1,2
       ii=2*i
@@ -723,8 +732,9 @@ subroutine runda
           endif
         enddo
       endif
-      if(ix.le.0) then
-        call prror(93)
+      if(ix <= 0) then
+        write(lout,"(a)") "RUNDA> ERROR Inverted linear blocks not allowed."
+        call prror(-1)
       endif
 #include "include/dalin1.f90"
 #include "include/dalin2.f90"
@@ -880,7 +890,7 @@ subroutine runda
               endif
               rho2b=crk**2+cik**2
               if(rho2b.gt.pieni) then
-                if(abs(sigman(1,imbb(i))).lt.pieni) call prror(88)
+                if(abs(sigman(1,imbb(i))).lt.pieni) goto 9088
                 tkb=rho2b/((two*sigman(1,imbb(i)))*sigman(1,imbb(i)))
                 beamoff4=(((crad*ptnfac(ix))*crk)/rho2b)*(one-exp_mb(-one*tkb))
                 beamoff5=(((crad*ptnfac(ix))*cik)/rho2b)*(one-exp_mb(-one*tkb))
@@ -889,7 +899,7 @@ subroutine runda
 #include "include/beamcof.f90"
 !FOX  RHO2BF=CRKVEBF*CRKVEBF+CIKVEBF*CIKVEBF ;
             if(abs(dare(rho2bf)).gt.pieni) then
-              if(abs(sigman(1,imbb(i))).lt.pieni) call prror(88)
+              if(abs(sigman(1,imbb(i))).lt.pieni) goto 9088
 !FOX  TKBF=RHO2BF/(TWO*SIGMAN(1,IMBB(I))*SIGMAN(1,IMBB(I))) ;
               if(ibbc.eq.0) then
 !FOX   Y(1)=Y(1)+(CRAD*CRKVEBF/RHO2BF*
@@ -911,7 +921,7 @@ subroutine runda
             endif
           else if(sigman(1,imbb(i)).gt.sigman(2,imbb(i))) then
             if(ibeco.eq.1) then
-              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
               r2b=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
               rb=sqrt(r2b)
               rkb=((crad*ptnfac(ix))*pisqrt)/rb
@@ -925,7 +935,7 @@ subroutine runda
               xrb=abs(crk)/rb
               zrb=abs(cik)/rb
               call errf(xrb,zrb,crxb,crzb)
-              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
               tkb=(crk**2/sigman(1,imbb(i))**2+cik**2/sigman(2,imbb(i))**2)*half
               xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb
               zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb
@@ -933,7 +943,7 @@ subroutine runda
               beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
               beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
             endif
-            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
             r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
             rbf=sqrt(r2bf)
             rkbf=((crad*ptnfac(ix))*pisqrt)/rbf
@@ -947,7 +957,7 @@ subroutine runda
 !FOX  ZRBF=-ZRBF ;
             endif
             call errff(xrbf,zrbf,crxbf,crzbf)
-            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
 !FOX  TKBF=(CRKVEBF*CRKVEBF/(SIGMAN(1,IMBB(I))*SIGMAN(1,IMBB(I)))+
 !FOX  CIKVEBF*CIKVEBF/(SIGMAN(2,IMBB(I))*SIGMAN(2,IMBB(I))))*HALF ;
 !FOX  XBBF=SIGMAN(2,IMBB(I))/SIGMAN(1,IMBB(I))*XRBF ;
@@ -974,7 +984,7 @@ subroutine runda
             endif
           else if(sigman(1,imbb(i)).lt.sigman(2,imbb(i))) then
             if(ibeco.eq.1) then
-              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
               r2b=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2)
               rb=sqrt(r2b)
               rkb=((crad*ptnfac(ix))*pisqrt)/rb
@@ -988,7 +998,7 @@ subroutine runda
               xrb=abs(crk)/rb
               zrb=abs(cik)/rb
               call errf(zrb,xrb,crzb,crxb)
-              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
               tkb=(crk**2/sigman(1,imbb(i))**2+cik**2/sigman(2,imbb(i))**2)*half
               xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb
               zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb
@@ -996,7 +1006,7 @@ subroutine runda
               beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
               beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
             endif
-            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
             r2bf=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2)
             rbf=sqrt(r2bf)
             rkbf=((crad*ptnfac(ix))*pisqrt)/rbf
@@ -1010,7 +1020,7 @@ subroutine runda
 !FOX  ZRBF=-ZRBF ;
             endif
             call errff(zrbf,xrbf,crzbf,crxbf)
-            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
 !FOX  TKBF=(CRKVEBF*CRKVEBF/(SIGMAN(1,IMBB(I))*SIGMAN(1,IMBB(I)))+
 !FOX  CIKVEBF*CIKVEBF/(SIGMAN(2,IMBB(I))*SIGMAN(2,IMBB(I))))*HALF ;
 !FOX  XBBF=SIGMAN(2,IMBB(I))/SIGMAN(1,IMBB(I))*XRBF ;
@@ -1666,13 +1676,19 @@ subroutine runda
 520 continue
 !     DADAL AUTOMATIC INCLUSION
   time2=0.
-  call timex(time2)
+  call time_timerCheck(time2)
 !     time=time2-time1
   write(lout,10020) time1-time0
   write(lout,10030) nord,time2-time1
 !-----------------------------------------------------------------------
 call comt_daEnd
   return
+
+9088 continue
+  write(lout,"(a)") "RUNDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
+  call prror(-1)
+  return
+
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
   &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
   &'HORIZ:  AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,       &
