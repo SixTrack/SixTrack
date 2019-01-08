@@ -890,7 +890,7 @@ subroutine aperture_reportLoss(turn, i, ix)
 
     ! - pay attention to overflow:
     if( length .lt. zero ) then
-      length = length+tlen
+      length = length+dcum(iu)
     end if
 
     ! - pay attention to too short thick elements
@@ -993,8 +993,8 @@ subroutine aperture_reportLoss(turn, i, ix)
         end do !do jj=1,niter
 
         ! pay attention to overflow
-        if( slos.gt.tlen ) then
-          slos=slos-tlen
+        if( slos.gt.dcum(iu) ) then
+          slos=slos-dcum(iu)
         end if
 
       else !if(lback)
@@ -1579,14 +1579,14 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 ! . iNew is iApeUp
   lApeUp=iApeUp.eq.iNew.and.ixApeUp.eq.ixNew
 
-! . iNew is at the same s as iApeUp (inlcuding ring overvlow)
-  lAupDcum=abs(dcum(iNew)-dcum(iApeUp)).lt.sPrec.or.abs(dcum(iNew)-dcum(iApeUp)-tlen).lt.sPrec
+! . iNew is at the same s as iApeUp (inlcuding ring overflow)
+  lAupDcum=abs(dcum(iNew)-dcum(iApeUp)).lt.sPrec.or.abs(dcum(iNew)-dcum(iApeUp)-dcum(iu)).lt.sPrec
 
 ! . iNew is iApeDw
   lApeDw=iApeDw.eq.iNew.and.ixApeDw.eq.ixNew
 
-! . iNew is at the same s as ApeDw (inlcuding ring overvlow)
-  lAdwDcum=abs(dcum(iNew)-dcum(iApeDw)).lt.sPrec.or.abs(dcum(iNew)-dcum(iApeDw)-tlen).lt.sPrec
+! . iNew is at the same s as ApeDw (inlcuding ring overflow)
+  lAdwDcum=abs(dcum(iNew)-dcum(iApeDw)).lt.sPrec.or.abs(dcum(iNew)-dcum(iApeDw)-dcum(iu)).lt.sPrec
 
 ! . constant aperture?
   lconst = sameAperture( ixApeUp, ixApeDw )
@@ -1784,9 +1784,9 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
 
      ! actual interpolation
      ddcum = spos-dcum(iUp)
-     if( ddcum.lt.zero ) ddcum=tlen+ddcum
+     if( ddcum.lt.zero ) ddcum=dcum(iu)+ddcum
      mdcum = dcum(iDw)-dcum(iUp)
-     if( mdcum.lt.zero ) mdcum=tlen+mdcum
+     if( mdcum.lt.zero ) mdcum=dcum(iu)+mdcum
      do jj=1,9
         oApe(jj)=((ape(jj,ixDw)-ape(jj,ixUp))/mdcum)*ddcum+ape(jj,ixUp)
      end do
