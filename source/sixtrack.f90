@@ -776,11 +776,10 @@ subroutine daten
   case("LIMI") ! Aperture Limitations
     if(openBlock) then
       lbacktracking = .true.
-      loadunit      = 3
     elseif(closeBlock) then
       call aper_inputParsingDone
     else
-      call aper_inputUnitWrapper(inLine,blockLine,inErr)
+      call aper_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
