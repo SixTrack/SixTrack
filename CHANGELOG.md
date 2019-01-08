@@ -1,5 +1,23 @@
 # SixTrack Changelog
 
+### Version 5.1.2 [XX.01.2019] - Release
+
+**User Side Changes**
+
+* The memory allocation log is now only written when SixTrack is built with the `DEBUG` flag. This file can grow fairly large, and has caused issues when running on BOINC. PR #750
+
+**Bug Fixes**
+
+* An allocatable array was declared and passed to `mod_alloc` per particle/turn/element in subroutine `sbc` in `beam6d.f90`. This caused the memory log file to grow very large, and likely had a performance cost. The call to `mod_alloc` has been removed. PR #749
+* Fixed an issue where the extraction of `Sixin.zip` would not trigger properly. The decision on whether to call the extraction is taken on the existence of a specific file in the run folder. The file exist check didn't trigger properly with the new file open wrapper in `mod_units`. PR #751
+* When writing `fort.4` (a duplicate of `fort.2`), both files need to be opened in module `mod_fluc`. Previously `fort.2` was opened globally during init, but is now only opened when input parsing is run. An additional open call was missing in `mod_fluc`. This makes the nagfor compiler very unhappy. PR #752
+* Fixed a little bug in aperture which becomes evident if `tlen` starts to deviate from `dcum(iu)`. All the calculations in aperture (especially for the backtracking algorithm) are based on `dcum`, but if the code has to deal with the beginning/end of the ring, it was using `tlen`, whereas, to be consistent, it should use `dcum(iu)`. PR #755
+
+**Code Improvements and Changes**
+
+* The two modules handling file units have been merged to a single module. Each previous module was handling dynamic allocation of file unit and wrapping the open statement for compiler options separately. The new module now also writes a log file listing all files opened and closed through the module. PR #747
+* The parsing of the aperture limitations file in the `LIMI` block has been updated and made more consistent with how other secondary input files are handled elsewhere in SixTrack. This simplifies the code. PR #754
+
 ### Version 5.1.1 [13.12.2018] - BOINC Release
 
 **BOINC Specific Changes**
@@ -8,7 +26,7 @@
 
 **Known Issues**
 
-* BOINC with API does not run properly when built on latest Ubuntu LTS and Debian when both the BOINC API and SixTrack is built with the Gnu compiler. Mixing gcc and ifort or nagfor runs fine. This does not seem to be an issue when building on fedora and CentOS. The executables provided for this release are built on CentOS 7.
+* BOINC with API does not run properly when built on latest Ubuntu LTS and Debian when both the BOINC API and SixTrack is built with the Gnu compiler. Mixing gcc and ifort or nagfor runs fine. This does not seem to be an issue when building on Fedora and CentOS. The Linux executables provided for this release are built on CentOS 7.
 
 **Test Suite**
 
