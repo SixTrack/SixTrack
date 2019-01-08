@@ -133,7 +133,9 @@ subroutine daten
 
   ! MULTIPOLE COEFFICIENTS
   sixin_im     = 0
-
+  
+  ! RF - MULTIPOLE
+  sixin_rfm    = 0
   ! RANDOM FLUCTUATIONS
   izu0         = 0
   mcut         = 0
@@ -359,6 +361,7 @@ subroutine daten
   if(currBlock == "LINE") blockReopen = .true.
   if(currBlock == "MULT") blockReopen = .true.
   if(currBlock == "TROM") blockReopen = .true.
+  if(currBlock == "RFMU") blockReopen = .true.
 
   ! Check the status of the current block
   call sixin_checkBlock(currBlock, nUnit, blockOpened, blockClosed, blockLine, blockCount)
@@ -537,6 +540,16 @@ subroutine daten
       continue
     else
       call sixin_parseInputLineMULT(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("RFMU") ! Multipole Coefficients
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineRFMU(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 

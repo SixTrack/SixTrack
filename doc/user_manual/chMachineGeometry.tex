@@ -167,6 +167,22 @@ To consider the curvature of dipoles which are replaced by drifts and dipole kic
 The definition of the multipole strength in a block will be given in (\ref{MulCoe}).
 
 % ================================================================================================================================ %
+
+\subsection{Generalized RF-Multipoles} \label{rfmulbloc}
+
+A set of normal and skew RF-multipoles.
+The actual values for the strengths have to be given in a separate \textit{Generalized RF-multipoles} input block (\ref{generalrf}) which must have the same name.
+
+\paragraph{Format} \texttt{name type }
+
+
+    \begin{tabular}{@{}lp{0.8\linewidth}}
+        \texttt{name} & May contain up to 47 characters. \\
+        \texttt{type} & Must be 11. \\
+    \end{tabular}
+
+
+
 \subsection{Solenoid} \label{Solenoid}
 
 \paragraph{Format} \texttt{name type $k_s$ $ks*l$}
