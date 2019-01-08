@@ -1024,6 +1024,14 @@ subroutine umlauda
 #include "include/beam6dfi.f90"
       goto 440
     endif
+    if(kzz.eq.41) then
+#include "include/alignf.f90"
+#include "include/rfmulti_fox.f90"
+      goto 440
+    endif
+
+
+
     if(kzz.eq.23) then
 !FOX  CRABAMP=ED(IX)*ZZ0 ;
 
@@ -1097,15 +1105,17 @@ subroutine umlauda
     crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
     crabpht2=crabph2(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
-!FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
+!FOX  *CRABFREQ*2D0*PI + CRABPHT2) ;
 
 !FOX  Y(1)=Y(1) + (CRABAMP2*CRKVE)*
-!FOX  COS(KCRABDA);
+!FOX  COS(KCRABDA)*MTCDA/(ONE+DPDA);
 !FOX  Y(2)=Y(2) - (CRABAMP2*CIKVE)*
 !FOX  COS(KCRABDA)*MTCDA/(ONE+DPDA);
 !FOX  EJ1=EJ1 - (0.5D0)*(CRABAMP2)*(CRKVE*CRKVE-
 !FOX  CIKVE*CIKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3*
 !FOX  SIN(KCRABDA) ;
+
+
 
 !FOX  EJF0=EJF1 ;
 !FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
@@ -1130,7 +1140,7 @@ subroutine umlauda
           crabfreq=ek(ix)*c1e3
           crabpht2=crabph2(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
-!FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
+!FOX  *CRABFREQ*2D0*PI + CRABPHT2) ;
 
 !FOX  Y(2)=Y(2) + (CRABAMP2*CRKVE)*
 !FOX  COS(KCRABDA)
@@ -1138,9 +1148,11 @@ subroutine umlauda
 !FOX  Y(1)=Y(1) + (CRABAMP2*CIKVE)*
 !FOX  COS(KCRABDA)
 !FOX  *MTCDA/(ONE+DPDA) ;
-!FOX  EJ1=EJ1 - (0.5D0)*(CRABAMP2)*(CIKVE*CRKVE)
+!FOX  EJ1=EJ1 -(CRABAMP2)*(CIKVE*CRKVE)
 !FOX  *(((CRABFREQ*2D0)*PI)/CLIGHT)*E0F*C1M3*
 !FOX  SIN(KCRABDA) ;
+ 
+       
 
 !FOX  EJF0=EJF1 ;
 !FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
@@ -1164,7 +1176,7 @@ subroutine umlauda
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
-!FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
+!FOX  *CRABFREQ*2D0*PI + CRABPHT3) ;
 
 !FOX  Y(1)=Y(1) + 2*(0.5D0)*CRABAMP3*((CRKVE*CRKVE)-
 !FOX  (CIKVE*CIKVE))*C1M3*MTCDA/(ONE+DPDA)*
@@ -1199,16 +1211,16 @@ subroutine umlauda
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
-!FOX  *CRABFREQ*2D0*PI + CRABPHT) ;
+!FOX  *CRABFREQ*2D0*PI + CRABPHT3) ;
 
-!FOX  Y(2)=Y(2) - 2*(0.5D0)*CRABAMP3*((CIKVE*CIKVE)-
-!FOX  (CRKVE*CRKVE))*C1M3*MTCDA/(ONE+DPDA)*
+!FOX  Y(2)=Y(2) - (CRABAMP3*C1M3*
+!FOX  COS(KCRABDA)*(MTCDA/(ONE+DPDA))*
+!FOX  ((CIKVE*CIKVE)-(CRKVE*CRKVE))) ;
+!FOX  Y(1)=Y(1) + 2D0*CRABAMP3*(CRKVE*CIKVE)*C1M3*(MTCDA/(ONE+DPDA))*
 !FOX  COS(KCRABDA);
-!FOX  Y(1)=Y(1) + 2*CRABAMP3*(CRKVE*CIKVE)*C1M3*MTCDA/(ONE+DPDA)*
-!FOX  COS(KCRABDA);
-!FOX  EJ1=EJ1 + 2*(1D0/6D0)*(CRABAMP3)*(CIKVE*CIKVE*CIKVE-
-!FOX  3*CIKVE*CRKVE*CRKVE)*(((CRABFREQ*2D0)*PI)/CLIGHT)*
-!FOX  C1M6*E0F*
+!FOX  EJ1=EJ1 + (ONE/3.0)*(CRABAMP3)*(CIKVE*CIKVE*CIKVE-
+!FOX  3.0*CIKVE*CRKVE*CRKVE)*(((CRABFREQ*2.0)*PI)/CLIGHT)*
+!FOX  E0F*C1M6*
 !FOX  SIN(KCRABDA);
 
 !FOX  EJF0=EJF1 ;

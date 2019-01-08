@@ -185,6 +185,11 @@ module mod_common
   real(kind=fPrec), allocatable, save :: bk0(:,:),ak0(:,:),bka(:,:),aka(:,:) ! (nele,mmul)
   integer,          allocatable, save :: irm(:),nmu(:)                       ! (nele)
 
+  ! RF multipoles
+  real(kind=fPrec), allocatable, save :: norrfamp(:,:),norrfph(:,:),skrfamp(:,:),skrfph(:,:) ! (nele,mmul)
+  integer,          allocatable, save :: nmu_rf(:), irm_rf(:)
+  real(kind=fPrec), allocatable, save :: freq_rfm(:)
+
   ! common /rand0/
   real(kind=fPrec), allocatable, save :: zfz(:) ! (nzfz)
   integer,          save :: iorg,izu0,mcut
@@ -305,6 +310,10 @@ module mod_common
   ! common /crabco/
   real(kind=fPrec), allocatable, save :: crabph(:),crabph2(:),crabph3(:),crabph4(:) ! (nele)
 
+  ! common /general-rf multi/
+  integer, save :: iord, nordm
+  real(kind=fPrec), save :: field_cos(2,mmul), fsddida(2,mmul)
+  real(kind=fPrec), save :: field_sin(2,mmul), fcodda(2,mmul)
   ! common /exact/
   integer, save :: iexact
   integer, save :: curveff
@@ -379,10 +388,17 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(bka,                  nele_new, mmul, zero,        "bka")
   call alloc(aka,                  nele_new, mmul, zero,        "aka")
   call alloc(benkc,                nele_new,       zero,        "benkc")
+  call alloc(norrfamp,             nele_new, mmul, zero,        "norrfamp")
+  call alloc(norrfph,              nele_new, mmul, zero,        "norrfph")
+  call alloc(skrfamp,              nele_new, mmul, zero,        "skrfamp")
+  call alloc(skrfph,               nele_new, mmul, zero,        "skrfph")
+  call alloc(freq_rfm,             nele_new,       zero,        "freq_rfm")
   call alloc(r00,                  nele_new,       zero,        "r00")
   call alloc(scalemu,              nele_new,        one,        "scalemu")
   call alloc(irm,                  nele_new,       0,           "irm")
+  call alloc(irm_rf,                  nele_new,       0,        "irm_rf")
   call alloc(nmu,                  nele_new,       0,           "nmu")
+  call alloc(nmu_rf,                  nele_new,       0,        "nmu_rf")
   call alloc(bezr,    mNameLen, 3, nele_new,       str_nmSpace, "bezr")
   call alloc(kpa,                  nele_new,       0,           "kpa")
   call alloc(bez,     mNameLen,    nele_new,       str_nmSpace, "bez")

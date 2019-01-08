@@ -2368,6 +2368,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         end if
         call initialize_element(ii, .false.)
 
+   
       case(11)
         im = irm(ii)
         if(att_name == "scaleall") then
@@ -2505,11 +2506,39 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         else
           goto 100 ! ERROR
         end if
+      case(41)
+        im = irm_rf(ii)
+        if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
+          if(len_trim(att_name) == 5) then
+            range = 3
+            call chr_cast(att_name(2:2), orderMult, iErr)
+          else if(len_trim(att_name) == 6) then
+            call chr_cast(att_name(2:3), orderMult, iErr)
+            range = 4
+          else
+            goto 100
+          end if
+          if(iErr) goto 100
+          if(nmu_rf(im) < orderMult) then
+            nmu_rf(im) = orderMult
+          end if
 
+          if(att_name(1:1) == "a" .and. att_name(range:range+3) == "amp") then
+            skrfamp(im,orderMult) = newValue
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "amp") then
+            norrfamp(im,orderMult) = newValue
+          else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "pha") then
+            skrfph(im,orderMult) = newValue
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "pha") then
+            norrfph(im,orderMult) = newValue
+          else
+            goto 100 ! ERROR
+          end if
+        end if
+        
       case default
         write(lout,"(a,i0,a)") "DYNK> ERROR setValu Unsupported element type ",el_type," element name = '"//trim(element_name)//"'"
         call prror(-1)
-
       end select
     end if
   end do
@@ -2594,6 +2623,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
         else
           goto 100 ! ERROR
         end if
+      
 
 
       case(11)
@@ -2716,9 +2746,40 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
           goto 100 ! ERROR
         end if
 
+      case(41)
+        im = irm_rf(ii)
+        if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
+          if(len_trim(att_name) == 5) then
+            range = 3
+            call chr_cast(att_name(2:2), orderMult, iErr)
+          else if(len_trim(att_name) == 6) then
+            call chr_cast(att_name(2:3), orderMult, iErr)
+            range = 4
+          else
+            goto 100
+          end if
+          if(iErr) goto 100
+          if(nmu_rf(im) < orderMult) then
+            nmu_rf(im) = orderMult
+          end if
+
+          if(att_name(1:1) == "a" .and. att_name(range:range+3) == "amp") then
+            dynk_getvalue = skrfamp(im,orderMult) 
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "amp") then
+            dynk_getvalue = norrfamp(im,orderMult) 
+          else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "pha") then
+            dynk_getvalue = skrfph(im,orderMult) 
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "pha") then
+            dynk_getvalue = norrfph(im,orderMult) 
+          else
+            goto 100 ! ERROR
+          end if
+        end if
+
       end select
     end if ! bez
   end do
+
 
   if(dynk_debug) then
     write(lout,"(a,e16.9)") "DYNK> DEBUG getValue, returning = ",dynk_getvalue
