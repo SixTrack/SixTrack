@@ -1819,10 +1819,10 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
 
     ! Set nmu for the current single element (j)
     ! to the currently highest multipole seen (i)
-    ! Changed so also 0 is considered to be a mutipole, since it might be changed later by dynk 
-  
-      nmu(iil) = nmul
-   
+    ! Changed so also 0 is considered to be a mutipole, since it might be changed later by dynk
+
+    nmu(iil) = nmul
+
     bk0(sixin_im,nmul) = (benki*bk0d)/r0a
     ak0(sixin_im,nmul) = (benki*ak0d)/r0a
     bka(sixin_im,nmul) = (benki*bkad)/r0a
@@ -1839,7 +1839,10 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
 
 end subroutine sixin_parseInputLineMULT
 
-
+! ================================================================================================ !
+!  Parse RF Multipoles
+!  Last modified: 2018-12-31
+! ================================================================================================ !
 subroutine sixin_parseInputLineRFMU(inLine, iLine, iErr)
 
   implicit none
@@ -1855,11 +1858,10 @@ subroutine sixin_parseInputLineRFMU(inLine, iLine, iErr)
   logical          spErr
 
   save nmul,iil
-   
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "RF-MULT> ERROR Failed to parse input line."
+    write(lout,"(a)") "RFMU> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -1874,7 +1876,7 @@ subroutine sixin_parseInputLineRFMU(inLine, iLine, iErr)
     nmul     = 1
     sixin_rfm = sixin_rfm + 1
     freq_rfm(sixin_rfm) = freq0
-    
+
     do i=1,il
       if(imn == bez(i)) then
         irm_rf(i) = sixin_rfm
@@ -1884,48 +1886,48 @@ subroutine sixin_parseInputLineRFMU(inLine, iLine, iErr)
     end do
 
     if(iil == -1) then
-      write(lout,"(a)") "RF-MULT> ERROR Single element '"//trim(imn)//"' not found in single element list."
+      write(lout,"(a)") "RFMU> ERROR Single element '"//trim(imn)//"' not found in single element list."
       iErr = .true.
       return
     end if
 
     if(st_debug) then
-      call sixin_echoVal("imn",  imn,  "MULT",iLine)
+      call sixin_echoVal("imn",imn,"RFMU",iLine)
     end if
 
     if(iErr) return
 
   else
 
-    namp0 = zero
+    namp0   = zero
     nphase0 = zero
-    samp0 = zero
+    samp0   = zero
     sphase0 = zero
-    if(nSplit > 0) call chr_cast(lnSplit(1),namp0,iErr)
+    if(nSplit > 0) call chr_cast(lnSplit(1),namp0,  iErr)
     if(nSplit > 1) call chr_cast(lnSplit(2),nphase0,iErr)
-    if(nSplit > 2) call chr_cast(lnSplit(3),samp0,iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),samp0,  iErr)
     if(nSplit > 3) call chr_cast(lnSplit(4),sphase0,iErr)
     if(st_debug) then
-      call sixin_echoVal("namp0",namp0,"MULT",iLine)
-      call sixin_echoVal("nphase0",nphase0,"MULT",iLine)
-      call sixin_echoVal("samp0",samp0,"MULT",iLine)
-      call sixin_echoVal("sphase0",sphase0,"MULT",iLine)
+      call sixin_echoVal("namp0",  namp0,  "RFMU",iLine)
+      call sixin_echoVal("nphase0",nphase0,"RFMU",iLine)
+      call sixin_echoVal("samp0",  samp0,  "RFMU",iLine)
+      call sixin_echoVal("sphase0",sphase0,"RFMU",iLine)
     end if
     if(iErr) return
 
     ! Set nmu for the current single element (j)
     ! to the currently highest multipole seen (i)
-    ! Changed so also 0 is considered to be a mutipole, since it might be changed later by dynk 
-  
-    nmu_rf(iil) = nmul
+    ! Changed so also 0 is considered to be a mutipole, since it might be changed later by dynk
+
+    nmu_rf(iil)              = nmul
     norrfamp(sixin_rfm,nmul) = namp0
-    norrfph(sixin_rfm,nmul) = nphase0
-    skrfamp(sixin_rfm,nmul) = samp0
-    skrfph(sixin_rfm,nmul) = sphase0
+    norrfph(sixin_rfm,nmul)  = nphase0
+    skrfamp(sixin_rfm,nmul)  = samp0
+    skrfph(sixin_rfm,nmul)   = sphase0
     nmul = nmul + 1
 
     if(nmul > mmul+1) then
-      write(lout,"(a,i0)") "RF MULT> ERROR The order of multipoles is too large. Maximum is ",mmul
+      write(lout,"(a,i0)") "RFMU> ERROR The order of multipoles is too large. Maximum is ",mmul
       iErr = .true.
       return
     end if

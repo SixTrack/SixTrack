@@ -31,9 +31,6 @@ subroutine trauthin(nthinerr)
   implicit none
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nmz,nthinerr
   real(kind=fPrec) benkcc,r0,r000,r0a
-  
-
-  
 
   real(kind=fPrec), allocatable :: crkveb(:) !(npart)
   real(kind=fPrec), allocatable :: cikveb(:) !(npart)
@@ -344,7 +341,7 @@ subroutine trauthin(nthinerr)
     case (25) ! Solenoid
 #include "include/solenoid.f90"
       ktrack(i) = 56
-    case (41) ! 
+    case (41) ! RF Multipole
       ktrack(i) = 66
 
     !----------------
