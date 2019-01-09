@@ -81,7 +81,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   use mod_common
   use mod_commont
   use mod_commonmn
-  use collimation, only : numeff, numeffdpop, max_ncoll, maxn, iturn, mynp, part_abs_pos, part_abs_turn, secondary, mys
+  use collimation, only : numeff, numeffdpop, max_ncoll, iturn, part_abs_pos, part_abs_turn, secondary, mys
 
   implicit none
 
@@ -294,8 +294,7 @@ subroutine beamGasInit(myenom)
   use beamgascommon
   use crcoall
   use mod_units
-
-  use collimation, only : mynp
+  use parpro, only : npart
 
   implicit none
 
@@ -402,8 +401,8 @@ subroutine beamGasInit(myenom)
   call f_close(bg_dpmJetUnit)
   write(lout,"(a,i0)") "BREAMGAS> Trackable events in dpmjet.eve: ",bgmax-1
 
-  if (numberOfEvents.gt.mynp) then
-     write(lout,"(2(a,i0))") "BEAMGAS> ERROR There were too many trackable events. Maximum for this run is ",mynp,&
+  if (numberOfEvents.gt.npart) then
+     write(lout,"(2(a,i0))") "BEAMGAS> ERROR There were too many trackable events. Maximum for this run is ",npart,&
       " you generated ",numberOfEvents
      call prror(-1)
   endif
