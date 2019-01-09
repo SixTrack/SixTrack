@@ -42,9 +42,10 @@ do j=1,napx
   moidpsv(j)=mtc(j)/(one+dpsv(j))
   omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
   dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-  yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-  yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-
-  if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
 
 end do
+
+yv1(1:napx)=(ejf0v(1:napx)/ejfv(1:napx))*yv1(1:napx)
+yv2(1:napx)=(ejf0v(1:napx)/ejfv(1:napx))*yv2(1:napx)
+
+if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
