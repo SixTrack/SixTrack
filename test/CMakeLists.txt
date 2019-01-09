@@ -53,6 +53,7 @@ set(TESTS_NOFORT10
   dump4
   dump5
   dump6
+  generalized-rf-multipoles
   momentum_scan
   multipoles_DYNK
   beambeamDYNK
@@ -130,6 +131,7 @@ list(APPEND SIXTRACK_TESTS
   lostnumxv
   lostnotilt
   notilt
+  generalized-rf-multipoles
   orbit6d-element-quadrupole
   orbit6d-element-solenoid
   orbit6d-element-trombone
@@ -428,6 +430,7 @@ set(FAST_TESTS
   dump9
   multipoles_DYNK
   geometry
+  generalized-rf-multipoles
   momentum_scan
   fcc
   beambeamDYNK
