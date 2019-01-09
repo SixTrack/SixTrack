@@ -499,6 +499,7 @@ subroutine thin4d(nthinerr)
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
+  use mod_particles
   use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use collimation, only: do_coll, part_abs_turn
@@ -1159,6 +1160,7 @@ subroutine thin6d(nthinerr)
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
+  use mod_particles
 
   use bdex,    only : bdex_track, bdex_enable, bdex_elementAction
   use scatter, only : scatter_thin, scatter_debug
