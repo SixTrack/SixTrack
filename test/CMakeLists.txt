@@ -81,6 +81,7 @@ set(TESTS_NO_STF_FORT90
   dynk_operators
   dynk_random
   dynk_polynomial
+  dynk_IIR
   scatter_bbelastic
   scatter_aperture
 )
