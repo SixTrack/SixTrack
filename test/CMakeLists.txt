@@ -82,6 +82,7 @@ set(TESTS_NO_STF_FORT90
   dump4
   dump5
   dump6
+  dump_all_highprec
   dynk_IIR
   dynk_operators
   dynk_polynomial
