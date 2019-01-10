@@ -346,14 +346,14 @@ subroutine f_close(unit)
 
   inquire(unit=unit, opened=isOpen)
   if(isOpen) then
-    flush(unit)
-    close(unit)
-    units_uList(unit)%open = .false.
     if(units_uList(unit)%taken) then
       call f_writeLog("CLOSE",unit,"CLOSED",units_uList(unit)%file)
     else
       call f_writeLog("CLOSE",unit,"CLOSED","*** Unknown File ***")
     end if
+    flush(unit)
+    close(unit)
+    units_uList(unit)%open = .false.
   else
     if(units_uList(unit)%taken) then
       call f_writeLog("CLOSE",unit,"NOTOPEN",units_uList(unit)%file)
