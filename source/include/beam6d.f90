@@ -32,7 +32,6 @@ do j=1,napx
   !We want to go back to sixtrack variables (15.03.2018)
   track6d(5,j) = track6d(5,j)*rvv(j)
   sigmv(j)=(track6d(5,j)*c1e3+clobeam(3,imbb(i)))- beamoff(3,imbb(i))
-
-  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
 end do
+if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
 ! end include/beam6d.f90

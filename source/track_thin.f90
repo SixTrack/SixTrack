@@ -1931,8 +1931,8 @@ subroutine thin6d(nthinerr)
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
           yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (58) ! JBG RF CC Multipoles
         xory=1
@@ -1954,8 +1954,8 @@ subroutine thin6d(nthinerr)
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
           yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (59) ! JBG RF CC Multipoles
         xory=1
@@ -1978,8 +1978,8 @@ subroutine thin6d(nthinerr)
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
           yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (60) ! JBG RF CC Multipoles
         xory=1
@@ -2002,8 +2002,8 @@ subroutine thin6d(nthinerr)
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
           yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (61) ! JBG RF CC Multipoles
         xory=1
@@ -2016,18 +2016,18 @@ subroutine thin6d(nthinerr)
           yv2(j)=yv2(j) - (((crabamp4*moidpsv(j))*((three*cikve)*crkve**2-cikve**3))*c1m6)*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((0.25_fPrec*(crabamp4))*(crkve**4-(six*crkve**2)*cikve**2+cikve**4))&
                 *(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
-        ejf0v(j)=ejfv(j)
-        ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-        rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-        dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-        oidpsv(j)=one/(one+dpsv(j))
-        moidpsv(j)=mtc(j)/(one+dpsv(j))
-        omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-        dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-        yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-        yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-        if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
+          ejf0v(j)=ejfv(j)
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+          oidpsv(j)=one/(one+dpsv(j))
+          moidpsv(j)=mtc(j)/(one+dpsv(j))
+          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
+          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
         end do
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (62) ! JBG RF CC Multipoles
         xory=1
@@ -2049,8 +2049,8 @@ subroutine thin6d(nthinerr)
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
           yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
           yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (63) ! Elens
         do j=1,napx
