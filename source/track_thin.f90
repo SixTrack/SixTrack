@@ -31,9 +31,6 @@ subroutine trauthin(nthinerr)
   implicit none
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nmz,nthinerr
   real(kind=fPrec) benkcc,r0,r000,r0a
-  
-
-  
 
   real(kind=fPrec), allocatable :: crkveb(:) !(npart)
   real(kind=fPrec), allocatable :: cikveb(:) !(npart)
@@ -344,7 +341,7 @@ subroutine trauthin(nthinerr)
     case (25) ! Solenoid
 #include "include/solenoid.f90"
       ktrack(i) = 56
-    case (41) ! 
+    case (41) ! RF Multipole
       ktrack(i) = 66
 
     !----------------
@@ -502,6 +499,7 @@ subroutine thin4d(nthinerr)
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
+  use mod_particles
   use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use collimation, only: do_coll, part_abs_turn
@@ -1162,6 +1160,7 @@ subroutine thin6d(nthinerr)
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
+  use mod_particles
 
   use bdex,    only : bdex_track, bdex_enable, bdex_elementAction
   use scatter, only : scatter_thin, scatter_debug

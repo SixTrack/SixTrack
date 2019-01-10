@@ -1,18 +1,18 @@
 
-  !---- Zero the arrays
+!---- Zero the arrays
 
 irrtr = irm_rf(ix)
 nordm=nmu_rf(irrtr)
-crabfreq = freq_rfm(irrtr)*c1e3  
+crabfreq = freq_rfm(irrtr)*c1e3
 
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
 !FOX  *CRABFREQ*2D0*PI) ;
-    
+
 !FOX  DXRF=XL*C1M3 ;
 !FOX  DYRF=ZL*C1M3 ;
 
- do iord = 1, nordm
-!FOX  FCODA(1, IORD)=((NORRFAMP(IRRTR, IORD)*ZZ0)* 
+do iord = 1, nordm
+!FOX  FCODA(1, IORD)=((NORRFAMP(IRRTR, IORD)*ZZ0)*
 !FOX  COS(NORRFPH(IRRTR, IORD)*2D0*PI  - KCRABDA)) ;
 
 !FOX  FSIDA(1, IORD)=((NORRFAMP(IRRTR, IORD)*ZZ0)*
