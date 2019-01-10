@@ -78,13 +78,14 @@ set(TESTS_NOFORT10
 
 # List of tests that do not produce singletrackfile.dat or a fort.90
 set(TESTS_NO_STF_FORT90
-  dynk_operators
-  dynk_random
-  dynk_polynomial
-  dynk_IIR
-  scatter_bbelastic
-  scatter_aperture
   crabs
+  dump5
+  dynk_IIR
+  dynk_operators
+  dynk_polynomial
+  dynk_random
+  scatter_aperture
+  scatter_bbelastic
 )
 
 # List of tests that absolutely require STF to be on (> 64 particles)
@@ -92,9 +93,9 @@ if(STF)
   list(APPEND SIXTRACK_TESTS
     beam-HO_6D-simple-newstyle-coupling
     dynk_IIR
+    dynk_operators
     dynk_polynomial
     dynk_random
-    dynk_operators
     scatter_aperture
   )
 endif(STF)
