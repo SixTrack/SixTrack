@@ -81,6 +81,7 @@ set(TESTS_NO_STF_FORT90
   crabs
   dump4
   dump5
+  dump6
   dynk_IIR
   dynk_operators
   dynk_polynomial
