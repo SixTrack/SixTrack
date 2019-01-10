@@ -1577,8 +1577,9 @@ end interface
   call time_timerCheck(time1)
 
   ! time1 is now pre-processing CPU
-! note that this will be reset evry restart as we redo pre-processing
+  ! note that this will be reset every restart as we redo pre-processing
   pretime=time1-time0
+  part_isTracking = .true.
   if(ithick == 0) call trauthin(nthinerr)
   if(ithick == 1) call trauthck(nthinerr)
 

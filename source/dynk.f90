@@ -2536,7 +2536,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         end if
 
       case default
-        write(lout,"(a,i0,a)") "DYNK> ERROR setValu Unsupported element type ",el_type," element name = '"//trim(element_name)//"'"
+        write(lout,"(a,i0,a)") "DYNK> ERROR setValue Unsupported element type ",el_type," element name = '"//trim(element_name)//"'"
         call prror(-1)
       end select
     end if

@@ -23,8 +23,8 @@ do j=1,napx
   yv1(j)=((track6d(2,j)*c1e3+clobeam(4,imbb(i)))-beamoff(4,imbb(i)))*moidpsv(j)
   yv2(j)=((track6d(4,j)*c1e3+clobeam(5,imbb(i)))-beamoff(5,imbb(i)))*moidpsv(j)
   !TODO check for ions?
-  
-  ejfv(j)=(dpsv(j)*e0f+e0f)*(nucm(j)/nucm0) 
+
+  ejfv(j)=(dpsv(j)*e0f+e0f)*(nucm(j)/nucm0)
   ejv(j)=sqrt(ejfv(j)**2+nucm(j)**2)
   rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
   dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
