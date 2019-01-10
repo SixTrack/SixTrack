@@ -394,6 +394,7 @@ set(FAST_TESTS
   orbit6d-element-quadrupole
   orbit6d-element-solenoid
   orbit6d-element-combinedFunction
+  orbit6d-ions-long
   thick4
   thick6dblocks
   thick6ddynk
@@ -406,7 +407,6 @@ set(FAST_TESTS
   lostnotilt
   lostnumxv
   s316
-  dipedge
   dynk_globalvars
   dynk_filelin
   dynk_operators
@@ -476,6 +476,7 @@ set(FAST_TESTS
 #Medium tests take < 30 mins to run
 set(MEDIUM_TESTS
   bbe571ib0
+  dipedge
   tilt
   lostevery
   fma
@@ -488,7 +489,6 @@ set(MEDIUM_TESTS
   bbe51
   bbe52
   collimation_k2_fcc_2017_h1_collision
-  orbit6d-ions-long
 )
 
 # Slow is everything longer
