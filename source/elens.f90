@@ -49,20 +49,20 @@ module elens
   real(kind=fPrec), save :: elens_radial_fr2(nelens)  ! value of f(R2) in case of radial profiles from file [0:1]
   ! file with chebyshev coefficients
   integer, parameter     :: nelens_cheby_tables=20    ! max number of tables with chebyshev coefficients
-  integer, parameter     :: elens_cheby_unit=107      ! unit for reading the chebyshev coefficients
+  integer, save          :: elens_cheby_unit=-1       ! unit for reading the chebyshev coefficients
   integer, parameter     :: elens_cheby_order=18      ! max order of chebyshev polynomials
   integer, save          :: melens_cheby_tables       ! tables available in memory
-  character(len=60), save:: elens_cheby_filename(nelens_cheby_tables) ! names
+  character(len=mFNameLen), save:: elens_cheby_filename(nelens_cheby_tables) ! names
   real(kind=fPrec), save :: elens_cheby_coeffs(0:elens_cheby_order,0:elens_cheby_order,nelens_cheby_tables)
   real(kind=fPrec), save :: elens_cheby_refCurr(nelens_cheby_tables) ! reference current [A]
   real(kind=fPrec), save :: elens_cheby_refRadius(nelens_cheby_tables) ! reference radius [mm]
   real(kind=fPrec), save :: elens_cheby_refBeta(nelens_cheby_tables) ! reference e-beta []
   ! file with radial profile
   integer, parameter     :: nelens_radial_profiles=20 ! max number of radial profiles
-  integer, parameter     :: elens_radial_unit=107     ! unit for reading radial profiles
+  integer, save          :: elens_radial_unit=-1      ! unit for reading radial profiles
   integer, save          :: melens_radial_profiles    ! radial profiles available in memory
   integer, parameter     :: elens_radial_dim=500      ! max number of points in radial profiles
-  character(len=60), save:: elens_radial_filename(nelens_radial_profiles) ! names
+  character(len=mFNameLen), save:: elens_radial_filename(nelens_radial_profiles) ! names
   real(kind=fPrec), save :: elens_radial_profile_R(0:elens_radial_dim,nelens_radial_profiles)
   real(kind=fPrec), save :: elens_radial_profile_J(0:elens_radial_dim,nelens_radial_profiles)
   integer, save          :: elens_radial_profile_nPoints(nelens_radial_profiles)
@@ -510,7 +510,7 @@ subroutine parseRadialProfile(ifile)
   use mod_common
   use mod_settings
   use string_tools
-  use mod_units, only : f_open, f_close
+  use mod_units
 
   implicit none
 
@@ -529,6 +529,7 @@ subroutine parseRadialProfile(ifile)
   elens_radial_profile_R(ii,ifile) = zero
   elens_radial_profile_J(ii,ifile) = zero
   write(lout,"(a)") "ELENS> Parsing file with radial profile "//trim(elens_radial_filename(ifile))
+  call f_requestUnit(elens_radial_filename(ifile),elens_radial_unit)
   call f_open(unit=elens_radial_unit,file=elens_radial_filename(ifile),mode='r',err=err,formatted=.true.,status="old")
 
 10 continue
@@ -680,7 +681,7 @@ subroutine parseChebyFile(ifile)
   use mod_common
   use mod_settings
   use string_tools
-  use mod_units, only : f_open, f_close
+  use mod_units
 
   implicit none
 
@@ -696,6 +697,7 @@ subroutine parseChebyFile(ifile)
 
   ierr = 0
   write(lout,"(a)") "ELENS> Parsing file with coefficients for Chebyshev polynomials "//trim(elens_cheby_filename(ifile))
+  call f_requestUnit(elens_cheby_filename(ifile),elens_cheby_unit)
   call f_open(unit=elens_cheby_unit,file=elens_cheby_filename(ifile),mode='r',err=err,formatted=.true.,status="old")
 
 10 continue
