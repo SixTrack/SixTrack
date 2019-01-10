@@ -88,6 +88,7 @@ set(TESTS_NO_STF_FORT90
   dynk_polynomial
   dynk_random
   rfMultipoles_2ndOrder
+  rfMultipoles_4thOrder
   scatter_aperture
   scatter_bbelastic
 )
