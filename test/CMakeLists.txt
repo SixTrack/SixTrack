@@ -79,6 +79,7 @@ set(TESTS_NOFORT10
 # List of tests that do not produce singletrackfile.dat or a fort.90
 set(TESTS_NO_STF_FORT90
   crabs
+  dump4
   dump5
   dynk_IIR
   dynk_operators
