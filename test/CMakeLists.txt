@@ -33,56 +33,56 @@ set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR"
 
 # List of tests that do not produce a valid fort.10
 set(TESTS_NOFORT10
-  orbit6d-element-trombone
-  orbit6d-element-trombone-kick
-  orbit6d-element-quadrupole
-  orbit6d-ions
-  orbit6d-element-solenoid
-  orbit6d-element-combinedFunction
-  orbit6d-ions-long
-  exact
-  thick6dblocks
-  elensidealthck6d
-  dynk_globalvars
-  dynk_filelin
-  dynk_operators
-  dynk_random
-  dynk_polynomial
-  thick6ddynk
+  beam-HO_6D-simple-newstyle
+  beam-HO_6D-simple-newstyle-coupling
+  beam-HO_6D-simple-newstyle-orbit
+  beam-HO_6D-simple-oldstyle
+  beambeam4dDYNK
+  beambeamDYNK
+  collimation_k2_fcc_2017_h1_collision
+  dump_2_all_ele_highprec
+  dump_all_highprec
   dump_binary
   dump4
   dump5
   dump6
+  dynk_filelin
+  dynk_globalvars
+  dynk_IIR
+  dynk_operators
+  dynk_polynomial
+  dynk_random
+  elensidealthck6d
+  exact
   generalized-rf-multipoles
+  geometry
   momentum_scan
   multipoles_DYNK
-  beambeamDYNK
-  beambeam4dDYNK
+  orbit6d-element-combinedFunction
+  orbit6d-element-quadrupole
+  orbit6d-element-solenoid
+  orbit6d-element-trombone
+  orbit6d-element-trombone-kick
+  orbit6d-ions
+  orbit6d-ions-long
+  rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
-  rfMultipoles_2nd3rd4th_skew
-  beam-HO_6D-simple-oldstyle
-  beam-HO_6D-simple-newstyle
-  beam-HO_6D-simple-newstyle-coupling
+  scatter_aperture
   scatter_bbelastic
   scatter_collimation
-  scatter_aperture
-  geometry
-  collimation_k2_fcc_2017_h1_collision
-  dump_all_highprec
-  dump_2_all_ele_highprec
-  beam-HO_6D-simple-newstyle-orbit
-  dynk_IIR
+  thick6dblocks
+  thick6ddynk
 )
 
 # List of tests that do not produce singletrackfile.dat or a fort.90
 set(TESTS_NO_STF_FORT90
   crabs
+  dump_all_highprec
   dump4
   dump5
   dump6
-  dump_all_highprec
   dynk_IIR
   dynk_operators
   dynk_polynomial
@@ -114,92 +114,92 @@ endif()
 
 #General tests
 list(APPEND SIXTRACK_TESTS
+  bb
+  bb_ntwin1
   bbe51
   bbe52
   bbe571ib0
-  bb
-  bb_ntwin1
-  dipedge
-  distance
-  dynk_globalvars
-  dynk_filelin
-  elensidealthin4d
-  elensidealthin6d
-  elensidealthin6d_DYNK
-  elensidealthin6d_ramp_DYNK
-  elensidealthin6d_ions
-  eric
-  exact
-  fcc
-  frs60
-  frs
-  crabs
-  lostevery
-  lost
-  lostnumxv
-  lostnotilt
-  notilt
-  generalized-rf-multipoles
-  orbit6d-element-quadrupole
-  orbit6d-element-solenoid
-  orbit6d-element-trombone
-  orbit6d-element-trombone-kick
-  orbit6d-element-combinedFunction
-  orbit6d-ions
-  orbit6d-ions-long
-  thin4d_ions
-  thin6d_ions
-  prob1
-  prob3
-  s316
-  thick4
-  thick6dblocks
-  tilt
-  elensidealthck4d
-  elensidealthck6d
-  fma
-  fma_binary
-  dump7_fma
-  dump7_fma_thin4d
-  dump8_fma
-  dump9
-  thick6ddynk
-  wire_thck4d
-  wire_thck6d
-  wire_thin4d
-  wire_thin6d
-  wire_thin6d_ibeco0
-  dump_binary
-  dump4
-  dump5
-  dump6
-  multipoles_DYNK
-  geometry
-  momentum_scan
-  beambeamDYNK
-  beambeam4dDYNK
   beam-HO_4D-newstyle
   beam-HO_4D-newstyle-loadParticles
   beam-HO_4D-oldstyle
   beam-HO_6D-newstyle
   beam-HO_6D-oldstyle
-  beam-HO_6D-simple-oldstyle
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-orbit
+  beam-HO_6D-simple-oldstyle
+  beam-HO_LR-ibbc-newstyle
+  beam-HO_LR-ibbc-oldstyle
   beam-HO_LR-newstyle
   beam-HO_LR-oldstyle
-  beam-HO_LR-ibbc-oldstyle
-  beam-HO_LR-ibbc-newstyle
+  beambeam4dDYNK
+  beambeamDYNK
+  crabs
+  dipedge
+  distance
+  dump_2_all_ele_highprec
+  dump_all_highprec
+  dump_binary
+  dump4
+  dump5
+  dump6
+  dump7_fma
+  dump7_fma_thin4d
+  dump8_fma
+  dump9
+  dynk_filelin
+  dynk_globalvars
+  elensidealthck4d
+  elensidealthck6d
+  elensidealthin4d
+  elensidealthin6d
+  elensidealthin6d_DYNK
+  elensidealthin6d_ions
+  elensidealthin6d_ramp_DYNK
+  eric
+  exact
+  fcc
+  fma
+  fma_binary
+  frs
+  frs60
+  generalized-rf-multipoles
+  geometry
+  last_amp
+  lost
+  lostevery
+  lostnotilt
+  lostnumxv
+  momentum_scan
+  multipoles_DYNK
+  notilt
+  orbit6d-element-combinedFunction
+  orbit6d-element-quadrupole
+  orbit6d-element-solenoid
+  orbit6d-element-trombone
+  orbit6d-element-trombone-kick
+  orbit6d-ions
+  orbit6d-ions-long
+  perf1
+  prob1
+  prob3
+  rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
-  rfMultipoles_2nd3rd4th_skew
-  last_amp
+  s316
   scatter_bbelastic
   scatter_collimation
-  dump_all_highprec
-  dump_2_all_ele_highprec
-  perf1
+  thick4
+  thick6dblocks
+  thick6ddynk
+  thin4d_ions
+  thin6d_ions
+  tilt
+  wire_thck4d
+  wire_thck6d
+  wire_thin4d
+  wire_thin6d
+  wire_thin6d_ibeco0
 )
 
 # Tests that require SixDA executable
@@ -391,43 +391,26 @@ endforeach()
 #add labels to tests
 #Lets say fast tests take <60 seconds to run
 set(FAST_TESTS
-  orbit6d-element-quadrupole
-  orbit6d-element-solenoid
-  orbit6d-element-combinedFunction
-  orbit6d-ions-long
-  thick4
-  thick6dblocks
-  thick6ddynk
-  exact
-  crabs
   bb
   bb_ntwin1
-  notilt
-  lost
-  lostnotilt
-  lostnumxv
-  s316
-  dynk_globalvars
-  dynk_filelin
-  dynk_operators
-  dynk_random
-  dynk_polynomial
-  dynk_IIR
-  elensidealthin4d
-  elensidealthck4d
-  elensidealthck6d
-  elensidealthin6d
-  elensidealthin6d_DYNK
-  elensidealthin6d_DYNK_ZIPF
-  elensidealthin6d_ramp_DYNK
-  elensidealthin6d_ions
-  thin4d_ions
-  thin6d_ions
-  wire_thck4d
-  wire_thck6d
-  wire_thin4d
-  wire_thin6d
-  wire_thin6d_ibeco0
+  beam-HO_4D-newstyle
+  beam-HO_4D-newstyle-loadParticles
+  beam-HO_4D-oldstyle
+  beam-HO_6D-newstyle
+  beam-HO_6D-oldstyle
+  beam-HO_6D-simple-newstyle
+  beam-HO_6D-simple-newstyle-coupling
+  beam-HO_6D-simple-newstyle-orbit
+  beam-HO_6D-simple-oldstyle
+  beam-HO_LR-ibbc-newstyle
+  beam-HO_LR-ibbc-oldstyle
+  beam-HO_LR-newstyle
+  beam-HO_LR-oldstyle
+  beambeam4dDYNK
+  beambeamDYNK
+  crabs
+  dump_2_all_ele_highprec
+  dump_all_highprec
   dump_binary
   dump4
   dump5
@@ -436,59 +419,76 @@ set(FAST_TESTS
   dump7_fma_thin4d
   dump8_fma
   dump9
-  multipoles_DYNK
-  geometry
-  generalized-rf-multipoles
-  momentum_scan
+  dynk_filelin
+  dynk_globalvars
+  dynk_IIR
+  dynk_operators
+  dynk_polynomial
+  dynk_random
+  elensidealthck4d
+  elensidealthck6d
+  elensidealthin4d
+  elensidealthin6d
+  elensidealthin6d_DYNK
+  elensidealthin6d_DYNK_ZIPF
+  elensidealthin6d_ions
+  elensidealthin6d_ramp_DYNK
+  exact
   fcc
-  beambeamDYNK
-  beambeam4dDYNK
-  beam-HO_4D-newstyle
-  beam-HO_4D-newstyle-loadParticles
-  beam-HO_4D-oldstyle
-  beam-HO_6D-newstyle
-  beam-HO_6D-oldstyle
-  beam-HO_LR-newstyle
-  beam-HO_LR-oldstyle
-  beam-HO_6D-simple-newstyle
-  beam-HO_6D-simple-oldstyle
-  beam-HO_6D-simple-newstyle-coupling
-  beam-HO_LR-ibbc-oldstyle
-  beam-HO_LR-ibbc-newstyle
-  rfMultipoles_2ndOrder
-  rfMultipoles_3rdOrder
-  rfMultipoles_4thOrder
-  rfMultipoles_2nd3rd4th_skew
+  frs_da
+  generalized-rf-multipoles
+  geometry
   last_amp
-  scatter_bbelastic
-  scatter_collimation
-  scatter_aperture
-  dump_all_highprec
-  dump_2_all_ele_highprec
+  lost
+  lostnotilt
+  lostnumxv
+  momentum_scan
+  multipoles_DYNK
+  notilt
+  orbit6d-element-combinedFunction
+  orbit6d-element-quadrupole
+  orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
   orbit6d-ions
-  beam-HO_6D-simple-newstyle-orbit
+  orbit6d-ions-long
+  rfMultipoles_2nd3rd4th_skew
+  rfMultipoles_2ndOrder
+  rfMultipoles_3rdOrder
+  rfMultipoles_4thOrder
+  s316
+  scatter_aperture
+  scatter_bbelastic
+  scatter_collimation
+  thick4
   thick4_da
-  frs_da
+  thick6dblocks
+  thick6ddynk
+  thin4d_ions
+  thin6d_ions
+  wire_thck4d
+  wire_thck6d
+  wire_thin4d
+  wire_thin6d
+  wire_thin6d_ibeco0
 )
 
 #Medium tests take < 30 mins to run
 set(MEDIUM_TESTS
+  bbe51
+  bbe52
   bbe571ib0
+  collimation_k2_fcc_2017_h1_collision
   dipedge
-  tilt
-  lostevery
+  distance
+  eric
   fma
   fma_binary
   fma_naff
   frs
   frs60
-  eric
-  distance
-  bbe51
-  bbe52
-  collimation_k2_fcc_2017_h1_collision
+  lostevery
+  tilt
 )
 
 # Slow is everything longer
