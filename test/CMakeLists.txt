@@ -84,6 +84,7 @@ set(TESTS_NO_STF_FORT90
   dynk_IIR
   scatter_bbelastic
   scatter_aperture
+  crabs
 )
 
 # List of tests that absolutely require STF to be on (> 64 particles)
