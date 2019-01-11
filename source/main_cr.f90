@@ -462,6 +462,7 @@ end interface
     call h5_writeSimInfo
   end if
 #endif
+  call scatter_init
 
   if(ithick == 1) call allocate_thickarrays
   if(ithick == 1) write(lout,"(a)") "MAINCR> Structure input file has thick linear elements"

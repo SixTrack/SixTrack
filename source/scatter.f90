@@ -1085,13 +1085,6 @@ subroutine scatter_thin(iElem, ix, turn)
     call part_updatePartEnergy(2)
   end if
 
-#ifdef CR
-  endfile(scatter_logFile,iostat=iError)
-  backspace(scatter_logFile,iostat=iError)
-  endfile(scatter_sumFile,iostat=iError)
-  backspace(scatter_sumFile,iostat=iError)
-#endif
-
   ! Restore seeds in random generator
   call recuut(scatter_seed1,scatter_seed2)
   call recuin(tmpSeed1,tmpSeed2)

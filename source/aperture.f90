@@ -2720,7 +2720,7 @@ subroutine aper_parseLoadFile(load_file, iLine, iErr)
 
 end subroutine aper_parseLoadFile
 
-subroutine aper_parseInputLine(inLine, iLine, iErr)
+recursive subroutine aper_parseInputLine(inLine, iLine, iErr)
 
   use string_tools
   use sixtrack_input
