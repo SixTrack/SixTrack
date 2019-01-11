@@ -1,4 +1,5 @@
-dump_ip1.dat
 scatter_log.dat
 scatter_summary.dat
 dynksets.dat
+final_state.dat
+hash.md5

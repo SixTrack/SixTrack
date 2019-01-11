@@ -1,3 +1,2 @@
 scatter_summary.dat
-aperture_losses.dat
 hash.md5

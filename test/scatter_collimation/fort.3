@@ -2,9 +2,14 @@ GEOMETRY----------------------------------------------------------------
 SETTINGS
   PRINT
   DEBUG
+  FINALSTATE text
+NEXT
+HASH
+  MD5SUM dump_ip1.dat
+  MD5SUM dump_ip5.dat
 NEXT
 TRACKING PARAMETERS-----------------------------------------------------
-  12 0 32  0 6.89493 0     1
+  50 0 32  0 6.89493 0     1
   1  1 1   1 2
   0  0 1   1 1       50000 2
 NEXT
@@ -46,9 +51,9 @@ DYNK--------------------------------------------------------------------
   FUN zero        CONST   0.0
   FUN ten         CONST   10.0
   FUN one         CONST   1.0
-  SET ip5_scatter scaling zero 1 2  0
-  SET ip5_scatter scaling one  3 3  0
-  SET ip5_scatter scaling zero 4 -1 0
+  SET ip5_scatter scaling zero 1  2  0
+  SET ip5_scatter scaling one  3  13 0
+  SET ip5_scatter scaling zero 14 -1 0
 NEXT
 SCATTER-----------------------------------------------------------------
   DEBUG
@@ -58,8 +63,8 @@ SCATTER-----------------------------------------------------------------
   ELEM  ip5_scatter ipPRO         auto  1.0 sc_thin
 NEXT
 DUMP--------------------------------------------------------------------
-  ip1   1  -1 2 dump_ip1.dat     12  12
-  ip5   1  -1 2 dump_ip5.dat     12  12
+  ip1 1 -1 2 dump_ip1.dat 1 -1
+  ip5 1 -1 2 dump_ip5.dat 1 -1
 NEXT
 LINEAR OPTICS-----------------------------------------------------------
   ELEMENT 0 1 1 2.5 2.5
