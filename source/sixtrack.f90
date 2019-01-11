@@ -133,9 +133,10 @@ subroutine daten
 
   ! MULTIPOLE COEFFICIENTS
   sixin_im     = 0
-  
+
   ! RF - MULTIPOLE
   sixin_rfm    = 0
+
   ! RANDOM FLUCTUATIONS
   izu0         = 0
   mcut         = 0
@@ -543,7 +544,7 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
-  case("RFMU") ! Multipole Coefficients
+  case("RFMU") ! RF - Multipole
     if(openBlock) then
       continue
     elseif(closeBlock) then

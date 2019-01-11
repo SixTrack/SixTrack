@@ -1572,13 +1572,16 @@ end interface
 !  START OF TRACKING
 ! ---------------------------------------------------------------------------- !
   write(lout,10200)
+  call part_setParticleID
+  call part_writeState(0)
 
   time1=0.
   call time_timerCheck(time1)
 
   ! time1 is now pre-processing CPU
-! note that this will be reset evry restart as we redo pre-processing
+  ! note that this will be reset every restart as we redo pre-processing
   pretime=time1-time0
+  part_isTracking = .true.
   if(ithick == 0) call trauthin(nthinerr)
   if(ithick == 1) call trauthck(nthinerr)
 
@@ -1764,7 +1767,7 @@ end interface
   call f_open(unit=10,file="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
 
   ! Also dump the final state of the particle arrays
-  call part_dumpFinalState
+  call part_writeState(1)
 
 #ifndef FLUKA
 #ifndef STF

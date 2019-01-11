@@ -611,7 +611,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
   set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
   set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
   set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
-  set(PREPRO_FLAGS -fpp -E -P)
+  set(PREPRO_FLAGS -I${CMAKE_SOURCE_DIR}/source/include -fpp -E -P)
 
   if(LTO)
     set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -ffat-lto-objects -ipo")
@@ -1095,12 +1095,11 @@ if(SIXDA)
 endif()
 
 ###################################################################################################
-# Running dafor
+# Running Pre-Processors
 ###################################################################################################
 
 add_custom_target(generate_input)
 add_dependencies(generate_input dafor)
-file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/source/include/*.f90)
 
 ## Run the preprocessor on all .f90 files and output them to the build directory
 foreach(loop IN ITEMS ${FORT90_LIB} ${FORT90_CR} ${FORT90_DA})
