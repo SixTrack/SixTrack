@@ -876,7 +876,7 @@ subroutine scatter_thin(iElem, ix, turn)
   ! If not, we're doing something, so start the stop watch
   call time_startClock(time_clockSCAT)
 
-  ! Store the seeds in the randum number generator, and set ours
+  ! Store the seeds in the random number generator, and set ours
   call recuut(tmpSeed1,tmpSeed2)
   call recuin(scatter_seed1,scatter_seed2)
 
@@ -963,10 +963,10 @@ subroutine scatter_thin(iElem, ix, turn)
       llostp(j) = .true.
       phi       = zero
     else
-      ! Calculate new energy, and scattering angle assuming energy >> mass
-      if(abs(dPP) >= pieni) then
-        ejfv(j) = (one+dPP)*ejfv(j) ! Momentum [MeV/c]
-        updateE = .true.            ! Re-calculate energy-dependent vectors after loop
+      ! Calculate new energy, and scattering angle
+      if(abs(dPP) >= pieni) then ! Update the energy
+        ejv(j)  = sqrt(((one+dPP)*ejfv(j))**2 + nucm(j)**2)
+        updateE = .true.
       end if
 
       ! Update particle trajectory
@@ -1083,7 +1083,7 @@ subroutine scatter_thin(iElem, ix, turn)
   end if
 
   if(updateE) then
-    call part_updatePartEnergy(2)
+    call part_updatePartEnergy(1,.false.)
   end if
 
   ! Restore seeds in random generator
