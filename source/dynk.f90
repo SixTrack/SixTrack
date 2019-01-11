@@ -109,7 +109,7 @@ end subroutine dynk_expand_arrays
 subroutine dynk_allocate
 
   use crcoall
-  use file_units
+  use mod_units
 
   ! Setting inital allocations
   ! These values are increased if needed when dynk_checkspace is called
@@ -132,8 +132,8 @@ subroutine dynk_allocate
   call alloc(dynk_sets,                dynk_maxSets,4, 0,         "dynk_sets")
 
   ! Set file units for I/O files
-  call funit_requestUnit("dynksets.dat",    dynk_fileUnit)
-  call funit_requestUnit("dynk_parseFUN_IO",dynk_fileUnitFUN)
+  call f_requestUnit("dynksets.dat",    dynk_fileUnit)
+  call f_requestUnit("dynk_parseFUN_IO",dynk_fileUnitFUN)
 
 end subroutine dynk_allocate
 
@@ -209,7 +209,7 @@ end subroutine dynk_parseInputLine
 subroutine dynk_parseFUN(inLine, iErr)
 
   use crcoall
-  use file_units
+  use mod_units
 
   implicit none
 
@@ -547,8 +547,8 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_cData(dynk_ncData+3) = trim(lnSplit(6)) ! ID
     dynk_ncData = dynk_ncData+3
 
-    call funit_requestUnit(dynk_cData(dynk_ncData+1),dynk_iData(dynk_niData))   ! fileUnit 1
-    call funit_requestUnit(dynk_cData(dynk_ncData+2),dynk_iData(dynk_niData+1)) ! fileUnit 2
+    call f_requestUnit(dynk_cData(dynk_ncData+1),dynk_iData(dynk_niData))   ! fileUnit 1
+    call f_requestUnit(dynk_cData(dynk_ncData+2),dynk_iData(dynk_niData+1)) ! fileUnit 2
     dynk_niData = dynk_niData+1
 
     ! Look if the filenames are used in a different FUN PIPE
@@ -781,12 +781,11 @@ subroutine dynk_parseFUN(inLine, iErr)
 
     call dynk_checkargs(nSplit,6,"FUN funname {FIR|IIR} N filename baseFUN")
 
-    select case(trim(lnSplit(3)))
-    case("FIR")
+    if(trim(lnSplit(3)) == "FIR") then
       isFIR = .true.
-    case("IIR")
+    else
       isFIR = .false.
-    end select
+    end if
 
     call chr_cast(lnSplit(4),t,cErr) ! N
     if(isFIR) then
@@ -2019,6 +2018,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
   use mod_common
   use mod_ranecu
   use numerical_constants, only : pi
+  use utils
 
   implicit none
 
@@ -2069,8 +2069,8 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
   case(2) ! FILELIN
     filelin_start    = dynk_funcs(funNum,4)
     filelin_xypoints = dynk_funcs(funNum,5)
-    ! Pass the correct array views/sections to dynk_lininterp
-    retval = dynk_lininterp( real(turn,fPrec), &
+    ! Pass the correct array views/sections to lininterp
+    retval = lininterp( real(turn,fPrec), &
              dynk_fData(filelin_start:filelin_start+filelin_xypoints-1), &
              dynk_fData(filelin_start +  filelin_xypoints: &
                         filelin_start +2*filelin_xypoints-1), &
@@ -2227,8 +2227,8 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
   case(43) ! LINSEG
     filelin_start    = dynk_funcs(funNum,3)
     filelin_xypoints = 2
-    ! Pass the correct array views/sections to dynk_lininterp
-    retval = dynk_lininterp( real(turn,fPrec), &
+    ! Pass the correct array views/sections to lininterp
+    retval = lininterp( real(turn,fPrec), &
              dynk_fData(filelin_start:filelin_start+1), &
              dynk_fData(filelin_start+2:filelin_xypoints+3), &
              filelin_xypoints )
@@ -2337,6 +2337,8 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
     if(att_name == "E0" ) then
       ! Modify the reference particle
       call part_updateRefEnergy(newValue)
+      ! Modify energy-dependent element parameters
+      call eLensThetas
     end if
     ldoubleElement = .true.
   end if
@@ -2485,6 +2487,14 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
       case(29) ! Electron lens
         if(att_name == "theta_r2") then ! [mrad]
           elens_theta_r2(ielens(ii)) = newValue
+          !Energy update is locked down after setting theta_r2 with DYNK
+          elens_lAllowUpdate(ielens(ii)) = .false.
+        elseif(att_name == "elens_I") then ! [A]
+          elens_I(ielens(ii)) = newValue
+          call eLensTheta(ielens(ii))
+        elseif(att_name == "elens_Ek") then ! [keV]
+          elens_Ek(ielens(ii)) = newValue
+          call eLensTheta(ielens(ii))
         else
           goto 100 ! ERROR
         end if
@@ -2495,11 +2505,39 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         else
           goto 100 ! ERROR
         end if
+      case(41)
+        im = irm_rf(ii)
+        if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
+          if(len_trim(att_name) == 5) then
+            range = 3
+            call chr_cast(att_name(2:2), orderMult, iErr)
+          else if(len_trim(att_name) == 6) then
+            call chr_cast(att_name(2:3), orderMult, iErr)
+            range = 4
+          else
+            goto 100
+          end if
+          if(iErr) goto 100
+          if(nmu_rf(im) < orderMult) then
+            nmu_rf(im) = orderMult
+          end if
+
+          if(att_name(1:1) == "a" .and. att_name(range:range+3) == "amp") then
+            skrfamp(im,orderMult) = newValue
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "amp") then
+            norrfamp(im,orderMult) = newValue
+          else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "pha") then
+            skrfph(im,orderMult) = newValue
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "pha") then
+            norrfph(im,orderMult) = newValue
+          else
+            goto 100 ! ERROR
+          end if
+        end if
 
       case default
-        write(lout,"(a,i0,a)") "DYNK> ERROR setValu Unsupported element type ",el_type," element name = '"//trim(element_name)//"'"
+        write(lout,"(a,i0,a)") "DYNK> ERROR setValue Unsupported element type ",el_type," element name = '"//trim(element_name)//"'"
         call prror(-1)
-
       end select
     end if
   end do
@@ -2584,6 +2622,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
         else
           goto 100 ! ERROR
         end if
+
 
 
       case(11)
@@ -2691,6 +2730,10 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
       case(29) ! Electron lens
         if(att_name == "theta_r2") then ! [mrad]
           dynk_getvalue = elens_theta_r2(ielens(ii))
+        elseif(att_name == "elens_I") then ! [A]
+          dynk_getvalue = elens_I(ielens(ii))
+        elseif(att_name == "elens_Ek") then ! [keV]
+          dynk_getvalue = elens_Ek(ielens(ii))
         else
           goto 100 ! ERROR
         end if
@@ -2702,9 +2745,40 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
           goto 100 ! ERROR
         end if
 
+      case(41)
+        im = irm_rf(ii)
+        if(att_name(1:1) == "a" .or. att_name(1:1) == "b") then
+          if(len_trim(att_name) == 5) then
+            range = 3
+            call chr_cast(att_name(2:2), orderMult, iErr)
+          else if(len_trim(att_name) == 6) then
+            call chr_cast(att_name(2:3), orderMult, iErr)
+            range = 4
+          else
+            goto 100
+          end if
+          if(iErr) goto 100
+          if(nmu_rf(im) < orderMult) then
+            nmu_rf(im) = orderMult
+          end if
+
+          if(att_name(1:1) == "a" .and. att_name(range:range+3) == "amp") then
+            dynk_getvalue = skrfamp(im,orderMult)
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "amp") then
+            dynk_getvalue = norrfamp(im,orderMult)
+          else if(att_name(1:1) == "a" .and. att_name(range:range+3) == "pha") then
+            dynk_getvalue = skrfph(im,orderMult)
+          else if(att_name(1:1) == "b" .and. att_name(range:range+3) == "pha") then
+            dynk_getvalue = norrfph(im,orderMult)
+          else
+            goto 100 ! ERROR
+          end if
+        end if
+
       end select
     end if ! bez
   end do
+
 
   if(dynk_debug) then
     write(lout,"(a,e16.9)") "DYNK> DEBUG getValue, returning = ",dynk_getvalue
@@ -2723,67 +2797,6 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
   call prror(-1)
 
 end function dynk_getvalue
-
-! ================================================================================================ !
-!  A.Mereghetti, for the FLUKA Team and K.Sjobak for BE-ABP/HSS
-!  Last modified: 29-10-2014
-!
-!  - Define a linear function with a set of x,y-coordinates xvals, yvals
-!  - Return this function evaluated at the point x.
-!  - The length of the arrays xvals and yvals should be given in datalen.
-!
-!  - xvals should be in increasing order, if not then program is aborted.
-!  - If x < min(xvals) or x>max(xvals), program is aborted.
-!  - If datalen <= 0, program is aborted.
-! ================================================================================================ !
-real(kind=fPrec) function dynk_lininterp(x,xvals,yvals,datalen)
-
-  use crcoall
-  implicit none
-
-  real(kind=fPrec), intent(in) :: x, xvals(*),yvals(*)
-  integer,          intent(in) :: datalen
-
-  integer ii
-  real(kind=fPrec) dydx, y0
-
-  ! Sanity checks
-  if(datalen <= 0) then
-    write(lout,"(a)") "DYNK> ERROR lininterp: datalen was 0!"
-    call prror(-1)
-  end if
-  if(x < xvals(1) .or. x > xvals(datalen)) then
-    write(lout,"(3(a,e16.9))") "DYNK> ERROR lininterp: x = ",x," outside range",xvals(1)," - ",xvals(datalen)
-    call prror(-1)
-  end if
-
-  ! Find the right indexes i1 and i2
-  ! Special case: first value at first point
-  if(x == xvals(1)) then
-    dynk_lininterp = yvals(1)
-    return
-  end if
-
-  do ii=1, datalen-1
-    if(xvals(ii) >= xvals(ii+1)) then
-      write(lout,"(a)") "DYNK> ERROR lininterp: xvals should be in increasing order"
-      call prror(-1)
-    end if
-
-    if(x <= xvals(ii+1)) then
-      ! We're in the right interval
-      dydx = (yvals(ii+1)-yvals(ii)) / (xvals(ii+1)-xvals(ii))
-      y0   = yvals(ii) - dydx*xvals(ii)
-      dynk_lininterp = dydx*x + y0
-      return
-    end if
-  end do
-
-  ! We didn't return yet: Something wrong
-  write(lout,"(a)") "DYNK> ERROR lininterp: Reached the end of the function. This should not happen, please contact developers"
-  call prror(-1)
-
-end function dynk_lininterp
 
 ! ================================================================================================ !
 !  K. Sjobak, BE-ABP-HSS,
@@ -2992,7 +3005,7 @@ subroutine dynk_crpoint(fileunit,fileerror,ierro)
   implicit none
 
   integer, intent(in)    :: fileunit
-  logical, intent(out)   :: fileerror
+  logical, intent(inout) :: fileerror
   integer, intent(inout) :: ierro
 
   integer j

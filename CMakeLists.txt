@@ -82,6 +82,7 @@ OPTION(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 OPTION(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
 OPTION(STF "Single Track File: Write all tracks for postprocessing to fort.90 instead of 32 separate files fort.59 to fort.90. Required for >64 particles" ON)
 OPTION(NAFF "Link to external NAFFlib for FMA." ON)
+OPTION(HASHLIB "Build the md5 hash library" ON)
 
 # Default OFF
 OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
@@ -277,9 +278,9 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
-list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
-list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR)
+list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIS NAFF)
+list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT HASHLIB)
+list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32)
 
 ###################################################################################################
 # Select which fortran files to generate and compile
@@ -287,8 +288,8 @@ list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR)
 
 list(APPEND FORT90_LIB
   sixtrack version core_tools constants sixtrack_input mod_units
-  common_modules close strings string_tools mainarrays mod_meta mod_time
-  file_units mod_alloc zipf matrix_inv lielib beam6d
+  common_modules close strings string_tools mainarrays mod_meta
+  mod_time mod_alloc zipf matrix_inv lielib beam6d
   bouncy_castle plato_seq bdex fma dabnew end_sixtrack
   ranecu wire hions elens mod_dist scatter dump dynk
   aperture mod_fluc beam6d_fox six_fox postprocessing
@@ -313,6 +314,10 @@ endif(DEBUG)
 if(HDF5)
   list(APPEND FORT90_LIB hdf5_output hdf5_sixtrack)
 endif(HDF5)
+
+if(HASHLIB)
+  list(APPEND FORT90_LIB mod_hash)
+endif(HASHLIB)
 
 if(BEAMGAS)
   LIST(APPEND FORT90_CR beamgas)
@@ -554,6 +559,10 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
   set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
   set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow -fcheck=all")
 
+  if(WARN)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-Wuninitialized ${CMAKE_Fortran_FLAGS_RELEASE}")
+  endif()
+
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES ppc64le )
     set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fno-expensive-optimizations -fno-inline-functions")
   endif()
@@ -616,7 +625,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
   set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
   set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
   set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
-  set(PREPRO_FLAGS -fpp -E -P)
+  set(PREPRO_FLAGS -I${CMAKE_SOURCE_DIR}/source/include -fpp -E -P)
 
   if(LTO)
     set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -ffat-lto-objects -ipo")
@@ -666,8 +675,10 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
   set(NAGFOR ON)
   set(CMAKE_Fortran_FLAGS_RELEASE "-O4 -dusty -ieee=full -dcfuns")
   set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -gline")
-  set(PREPRO_EXEC  fpp)
-  set(PREPRO_FLAGS -P -free)
+  set(PREPRO_EXEC  ${CMAKE_CXX_COMPILER})
+  set(PREPRO_FLAGS -cpp -E -P)
+  # set(PREPRO_EXEC  ${CMAKE_Fotran_COMPILER})
+  # set(PREPRO_FLAGS -F)
 
   if(WARN)
     set(CMAKE_Fortran_FLAGS "-w=ulv -w=uparam ${CMAKE_Fortran_FLAGS}")
@@ -957,6 +968,23 @@ if(HDF5)
   target_include_directories(SixTrackLib PRIVATE ${CMAKE_SOURCE_DIR}/lib/hdf5/build/fortran)
 endif(HDF5)
 
+if(HASHLIB)
+  set(MD5_SOURCES
+    ${CMAKE_SOURCE_DIR}/source/md5/md5.c
+    ${CMAKE_SOURCE_DIR}/source/md5/md5interface.c
+  )
+  add_library(md5_lib STATIC  ${MD5_SOURCES})
+  target_include_directories(md5_lib PRIVATE ${CMAKE_SOURCE_DIR}/source/md5/)
+  set_property(TARGET md5_lib PROPERTY C_STANDARD 99)
+  if(32BIT)
+    set_target_properties(md5_lib PROPERTIES LINK_FLAGS "-m32")
+  endif(32BIT)
+  if(64BIT)
+    set_target_properties(md5_lib PROPERTIES LINK_FLAGS "-m64")
+  endif(64BIT)
+  target_link_libraries(SixTrackLib md5_lib)
+endif(HASHLIB)
+
 if(MERLINSCATTER)
   file(GLOB MERLINSCATTER_SOURCES ${CMAKE_SOURCE_DIR}/source/merlinscatter/*.cpp ${CMAKE_SOURCE_DIR}/source/merlinscatter/RandomNG/*.cpp)
   add_library(merlinscatter STATIC ${MERLINSCATTER_SOURCES})
@@ -974,15 +1002,20 @@ endif()
 
 # Build NAFFlib
 if(NAFF)
-  if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/NAFFlib/naff_sixtrack_interface.c)
+  if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/interface/naff_sixtrack_interface.c)
     message(FATAL_ERROR "The git submodules NAFFlib is not available. Please run:
     git submodule update --init lib/NAFFlib")
   endif()
 
-  file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/lib/NAFFlib/source/*.c ${CMAKE_SOURCE_DIR}/lib/NAFFlib/naff_sixtrack_interface.c)
+  file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/source/*.c ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/interface/naff_sixtrack_interface.c)
   add_library(naff STATIC ${NAFF_SOURCES})
-  target_include_directories(naff PRIVATE ${CMAKE_SOURCE_DIR}/lib/NAFFlib/include)
-  target_compile_options(naff PRIVATE -DCOMPILE_WITHOUT_FFTW)
+  target_include_directories(naff PRIVATE ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/include)
+  target_compile_options(naff PRIVATE -DCOMPILE_WITHOUT_PYTHON)
+  if(CRLIBM)
+    target_include_directories(naff PRIVATE ${CMAKE_SOURCE_DIR}/source/crlibm)
+    target_compile_options(naff PRIVATE -DCOMPILE_WITH_CRLIBM)
+    target_link_libraries(naff crlibm)
+  endif()
 
   # Enable c99
   set_property(TARGET naff PROPERTY C_STANDARD 99)
@@ -996,37 +1029,29 @@ if(NAFF)
 endif(NAFF)
 
 if(BOINC AND API)
+  find_library(stdc++ STATIC stdc++)
   include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
 
-  #The fortran interface needs boinc_api_fortran.o building, which does not seem to happen by default
-  #go into the boinc source folder, cd api; make boinc_api_fortran.o
-  add_library(boinc_api_fortran STATIC IMPORTED)
-  set_target_properties(boinc_api_fortran PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
-  # add_library(boinc_api_fortran STATIC ${BOINC_DIR}/api/boinc_api_fortran.cpp) #Alternative way of building and linking boinc_api_fortran.cpp/.o
-  target_link_libraries(SixTrackCR boinc_api_fortran)
+  add_library(boinc       STATIC IMPORTED)
+  add_library(boinc_api   STATIC IMPORTED)
+  add_library(boinc_api_f STATIC IMPORTED)
 
-  #add the libs
-  add_library(boinc STATIC IMPORTED)
-  set_target_properties(boinc PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
+  set_target_properties(boinc       PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/lib/libboinc.a)
+  set_target_properties(boinc_api   PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
+  set_target_properties(boinc_api_f PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
 
-  add_library(boinc_api STATIC IMPORTED)
-  set_target_properties(boinc_api PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
-  target_link_libraries(SixTrackCR boinc_api)
+  target_link_libraries(SixTrackCR boinc_api_f boinc_api boinc stdc++)
+  # target_link_libraries(SixTrackCR Threads::Threads)
 
-  target_link_libraries(SixTrackCR boinc)
+  # if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  #   find_library(nsl STATIC nsl)
+  #   target_link_libraries(SixTrackCR nsl)
+  # endif()
 
-  find_library(stdc++ STATIC stdc++)
-  target_link_libraries(SixTrackLib stdc++ Threads::Threads)
-
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    find_library(nsl STATIC nsl)
-    target_link_libraries(SixTrackCR nsl)
-  endif()
-
-  #fix osx linking to the correct c++ stdlib
+  # Fix OSX linking to the correct c++ stdlib
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     find_library(c++ STATIC c++)
-    target_link_libraries(SixTrackCR c++)
+    target_link_libraries(SixTrackLib c++)
   endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
@@ -1107,12 +1132,11 @@ if(SIXDA)
 endif()
 
 ###################################################################################################
-# Running dafor
+# Running Pre-Processors
 ###################################################################################################
 
 add_custom_target(generate_input)
 add_dependencies(generate_input dafor)
-file(GLOB SIXTRACK_INCL ${CMAKE_SOURCE_DIR}/source/include/*.f90)
 
 ## Run the preprocessor on all .f90 files and output them to the build directory
 foreach(loop IN ITEMS ${FORT90_LIB} ${FORT90_CR} ${FORT90_DA})
@@ -1197,6 +1221,7 @@ endif(CRLIBM)
 if(MERLINSCATTER)
   target_link_libraries(SixTrackCR merlinscatter)
 endif(MERLINSCATTER)
+
 # if we are using naff, link to the naff library
 if(NAFF)
   target_link_libraries(SixTrackLib naff)
@@ -1210,6 +1235,10 @@ endif(ROOT)
 if(HDF5)
   target_link_libraries(SixTrackLib ${HDF5_LIBRARIES})
 endif(HDF5)
+
+if(HASHLIB)
+  target_link_libraries(SixTrackLib md5_lib)
+endif(HASHLIB)
 
 if(G4COLLIMAT)
   target_link_libraries(SixTrackCR g4collimat ${Geant4_LIBRARIES} Threads::Threads)

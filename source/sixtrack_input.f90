@@ -53,6 +53,9 @@ module sixtrack_input
   ! Multipole Coefficients
   integer,                       public, save :: sixin_im
 
+  ! RF-multipoles
+  integer,                       public, save :: sixin_rfm
+
   ! Beam-Beam Elements
   real(kind=fPrec),              public, save :: sixin_emitNX
   real(kind=fPrec),              public, save :: sixin_emitNY
@@ -298,14 +301,12 @@ end subroutine sixin_echoVal_logical
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
 
-  implicit none
-
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  integer nSplit
+  integer nSplit, i
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -333,6 +334,22 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     write(lout,"(a)") "INPUT> DEBUG FIO is OFF"
 #endif
 
+  case("CRKILLSWITCH")
+#ifdef CR
+    if(nSplit < 2) then
+      write(lout,"(a)") "INPUT> ERROR CRKILLSWITCH requires at least one turn number."
+    end if
+    st_killswitch = .true.
+    write(lout,"(a)") "INPUT> C/R kill switch ENABLED"
+    allocate(st_killturns(nSplit-1))
+    do i=1,nSplit-1
+      call chr_cast(lnSplit(i+1),st_killturns(i),iErr)
+      write(lout,"(a,i0)") "INPUT>  * Will kill after turn ",st_killturns(i)
+    end do
+#else
+    write(lout,"(a)") "INPUT> Ignoring CRKILLSWITCH flag. Not using CR version of SixTrack. "
+#endif
+
   case("PRINT")
     st_print = .true.
     write(lout,"(a)") "INPUT> Printout of input parameters ENABLED"
@@ -353,6 +370,50 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       write(lout,"(a,i0)") "INPUT> Printing of particle summary is ENABLED"
     else
       write(lout,"(a,i0)") "INPUT> Printing of particle summary is DISABLED"
+    end if
+
+  case("INITIALSTATE")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "INPUT> ERROR INITIALSTATE takes one value, got ",nSplit-1
+      iErr = .true.
+      return
+    end if
+    select case(lnSplit(2))
+    case("binary")
+      st_initialstate = 1
+    case("text")
+      st_initialstate = 2
+    case default
+      write(lout,"(a)") "INPUT> ERROR INITIALSTATE type must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
+      iErr = .true.
+      return
+    end select
+    if(st_initialstate == 1) then
+      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a binary file"
+    else
+      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a text file"
+    end if
+
+  case("FINALSTATE")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "INPUT> ERROR FINALSTATE takes one value, got ",nSplit-1
+      iErr = .true.
+      return
+    end if
+    select case(lnSplit(2))
+    case("binary")
+      st_finalstate = 1
+    case("text")
+      st_finalstate = 2
+    case default
+      write(lout,"(a)") "INPUT> ERROR FINALSTATE type must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
+      iErr = .true.
+      return
+    end select
+    if(st_finalstate == 1) then
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file"
+    else
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file"
     end if
 
   case("QUIET")
@@ -1802,10 +1863,10 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
 
     ! Set nmu for the current single element (j)
     ! to the currently highest multipole seen (i)
-    ! Changed so also 0 is considered to be a mutipole, since it might be changed later by dynk 
-  
-      nmu(iil) = nmul
-   
+    ! Changed so also 0 is considered to be a mutipole, since it might be changed later by dynk
+
+    nmu(iil) = nmul
+
     bk0(sixin_im,nmul) = (benki*bk0d)/r0a
     ak0(sixin_im,nmul) = (benki*ak0d)/r0a
     bka(sixin_im,nmul) = (benki*bkad)/r0a
@@ -1821,6 +1882,103 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
   end if
 
 end subroutine sixin_parseInputLineMULT
+
+! ================================================================================================ !
+!  Parse RF Multipoles
+!  Last modified: 2018-12-31
+! ================================================================================================ !
+subroutine sixin_parseInputLineRFMU(inLine, iLine, iErr)
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen) imn
+  real(kind=fPrec) namp0,nphase0,samp0,sphase0, freq0
+  integer          nSplit,i,nmul,iil
+  logical          spErr
+
+  save nmul,iil
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "RFMU> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  if(iLine == 1) then
+
+    if(nSplit > 0) imn = lnSplit(1)
+    if(nSplit > 1) call chr_cast(lnSplit(2),freq0,   iErr)
+
+
+    iil      = -1
+    nmul     = 1
+    sixin_rfm = sixin_rfm + 1
+    freq_rfm(sixin_rfm) = freq0
+
+    do i=1,il
+      if(imn == bez(i)) then
+        irm_rf(i) = sixin_rfm
+        iil    = i
+        exit
+      end if
+    end do
+
+    if(iil == -1) then
+      write(lout,"(a)") "RFMU> ERROR Single element '"//trim(imn)//"' not found in single element list."
+      iErr = .true.
+      return
+    end if
+
+    if(st_debug) then
+      call sixin_echoVal("imn",imn,"RFMU",iLine)
+    end if
+
+    if(iErr) return
+
+  else
+
+    namp0   = zero
+    nphase0 = zero
+    samp0   = zero
+    sphase0 = zero
+    if(nSplit > 0) call chr_cast(lnSplit(1),namp0,  iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),nphase0,iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),samp0,  iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),sphase0,iErr)
+    if(st_debug) then
+      call sixin_echoVal("namp0",  namp0,  "RFMU",iLine)
+      call sixin_echoVal("nphase0",nphase0,"RFMU",iLine)
+      call sixin_echoVal("samp0",  samp0,  "RFMU",iLine)
+      call sixin_echoVal("sphase0",sphase0,"RFMU",iLine)
+    end if
+    if(iErr) return
+
+    ! Set nmu for the current single element (j)
+    ! to the currently highest multipole seen (i)
+    ! Changed so also 0 is considered to be a mutipole, since it might be changed later by dynk
+
+    nmu_rf(iil)              = nmul
+    norrfamp(sixin_rfm,nmul) = namp0
+    norrfph(sixin_rfm,nmul)  = nphase0
+    skrfamp(sixin_rfm,nmul)  = samp0
+    skrfph(sixin_rfm,nmul)   = sphase0
+    nmul = nmul + 1
+
+    if(nmul > mmul+1) then
+      write(lout,"(a,i0)") "RFMU> ERROR The order of multipoles is too large. Maximum is ",mmul
+      iErr = .true.
+      return
+    end if
+
+  end if
+
+end subroutine sixin_parseInputLineRFMU
 
 ! ================================================================================================ !
 !  Parse Sub-Resonance Calculation Line
@@ -2274,7 +2432,9 @@ subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
   do i=1,nComb
     ico = icomb(icoe,i)
     if(ico == ii) then
-      call prror(92)
+      write(lout,"(a)") "COMB> ERROR You cannot combine an element with itself."
+      iErr = .true.
+      return
     end if
     if(ico == 0) cycle
     write(lout,"(a,e13.6)") "COMB> "//bez(ii)(1:20)//" : "//bez(ico)(1:20)//" : ",ratio(icoe,i)
@@ -2390,7 +2550,6 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
       write(lout,"(a)") "RESO> ERROR The multipole order for the sub-resonance compensation should not exceed 9."
       iErr = .true.
       return
-      call prror(50)
     end if
 
   case(3)

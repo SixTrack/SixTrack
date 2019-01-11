@@ -1,5 +1,7 @@
 GEOM
-PRINTOUT
+SETTINGS
+  PRINT
+  FINALSTATE text
 NEXT
 TRACKING
 5 0 5 0 0.25 0 1
@@ -66,15 +68,15 @@ SET ACFCA.DR1.B1 voltage ccinit_3 2 -1 0
 NEXT
 DUMP
 HIGH
-ip1 1 1661 1 dump1.dat
-ip2 1 1662 2 dump2.dat
-ip3 1 1663 3 dump3.dat
-ip4 1 1664 4 dump4.dat
-ip5 1 1665 5 dump5.dat
-ip6 1 1666 6 dump6.dat
-ip7 1 1667 7 dump7.dat
-ip8 1 1668 8 dump8.dat
-tcp.6l3.b1 1 1660 0 dump0.dat
-tcp.c6l7.b1 1 1669 9 dump9.dat
+tcp.6l3.b1  1 -1 0 dump0.dat
+ip1         1 -1 1 dump1.dat
+ip2         1 -1 2 dump2.dat
+ip3         1 -1 3 dump3.dat
+ip4         1 -1 4 dump4.dat
+ip5         1 -1 5 dump5.dat
+ip6         1 -1 6 dump6.dat
+ip7         1 -1 7 dump7.dat
+ip8         1 -1 8 dump8.dat
+tcp.c6l7.b1 1 -1 9 dump9.dat
 NEXT
 ENDE

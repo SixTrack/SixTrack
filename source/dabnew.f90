@@ -4031,6 +4031,7 @@ subroutine ludcmp(a,n,np,indx,d,ier)
       dimension a(np,np), indx(np), vv(nmax)
       ier=0.
       d=one
+      imax = 0 ! -Wmaybe-uninitialized
       do 12 i=1,n
          aamax=zero
          do 11 j=1,n

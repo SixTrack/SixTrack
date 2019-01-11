@@ -1,6 +1,0 @@
-dump_ip1.dat
-dump_ip5.dat
-dump_all.dat
-StartDUMP.dat
-dynksets.dat
-file_units.dat

@@ -66,9 +66,6 @@ subroutine trauthin(nthinerr)
   call alloc(cbxb, npart, zero, "cbxb")
   call alloc(cbzb, npart, zero, "cbzb")
 
-  do i=1,npart
-    nlostp(i)=i
-  end do
   do i=1,nblz
     ktrack(i)=0
     strack(i)=zero
@@ -340,6 +337,8 @@ subroutine trauthin(nthinerr)
     case (25) ! Solenoid
 #include "include/solenoid.f90"
       ktrack(i) = 56
+    case (41) ! RF Multipole
+      ktrack(i) = 66
 
     !----------------
     !--Negative KZZ--
@@ -496,6 +495,7 @@ subroutine thin4d(nthinerr)
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
+  use mod_particles
   use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use collimation, only: do_coll, part_abs_turn
@@ -527,6 +527,7 @@ subroutine thin4d(nthinerr)
   use bdex, only : bdex_enable
   use aperture
   use elens
+  use utils
   use wire
 #ifdef CR
   use checkpoint_restart
@@ -542,6 +543,9 @@ subroutine thin4d(nthinerr)
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
+  real(kind=fPrec) :: krf, x_t, y_t
+  complex(kind=fPrec) :: Cp0, Sp1
+  complex(kind=fPrec), parameter :: imag=(zero,one)
 
   save
 !-----------------------------------------------------------------------
@@ -564,11 +568,11 @@ subroutine thin4d(nthinerr)
 #ifdef CR
   if (restart) then
     call crstart
-    write(93,*) 'THIN4D SIXTRACR restart numlcr',numlcr,'numl',numl
+    write(93,"(2(a,i0))") "SIXTRACR> Thin 4D restart numlcr = ",numlcr,", numl = ",numl
   end if
 ! and now reset numl to do only numlmax turns
   nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
 ! and reset [n]numxv unless particle is lost
 ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
@@ -582,7 +586,10 @@ subroutine thin4d(nthinerr)
   do 640 n=1,numl !loop over turns
 #endif
   if(st_quiet < 3) then
-    if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
+    if(mod(n,turnrep) == 0) then
+      write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
+      flush(lout)
+    end if
   end if
   meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
@@ -603,6 +610,7 @@ subroutine thin4d(nthinerr)
     ! (and note that writebin does nothing if restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
+    if(st_killswitch) call cr_killSwitch(n)
 #endif
 
     ! A.Mereghetti, for the FLUKA Team
@@ -1062,6 +1070,11 @@ subroutine thin4d(nthinerr)
 #include "include/kickelens.f90"
         end do
         goto 620
+       case (66) ! Rf-multi
+#include "include/rfmulti.f90"
+        goto 620
+
+
       end select
       goto 630
 
@@ -1143,6 +1156,7 @@ subroutine thin6d(nthinerr)
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
+  use mod_particles
 
   use bdex,    only : bdex_track, bdex_enable, bdex_elementAction
   use scatter, only : scatter_thin, scatter_debug
@@ -1174,6 +1188,7 @@ subroutine thin6d(nthinerr)
   use mod_commond
   use aperture
   use elens
+  use utils
   use wire
 #ifdef CR
   use checkpoint_restart
@@ -1189,6 +1204,9 @@ subroutine thin6d(nthinerr)
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
+  real(kind=fPrec) :: krf, x_t, y_t
+  complex(kind=fPrec) :: Cp0, Sp1
+  complex(kind=fPrec), parameter :: imag=(zero,one)
   save
 
   nthinerr=0
@@ -1211,11 +1229,11 @@ subroutine thin6d(nthinerr)
 #ifdef CR
   if (restart) then
     call crstart
-    write(93,*) 'THIN6D ','SIXTRACR restart numlcr',numlcr,'numl',numl
+    write(93,"(2(a,i0))") "SIXTRACR> Thin 6D restart numlcr = ",numlcr,", numl = ",numl
   end if
   ! and now reset numl to do only numlmax turns
   nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
   ! and reset [n]numxv unless particle is lost
   ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
@@ -1230,7 +1248,10 @@ subroutine thin6d(nthinerr)
   do 660 n=1,numl       ! Loop over turns
 #endif
     if(st_quiet < 3) then
-      if(mod(n,turnrep) == 0) write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
+      if(mod(n,turnrep) == 0) then
+        write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
+        flush(lout)
+      end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
@@ -1257,6 +1278,7 @@ subroutine thin6d(nthinerr)
     ! (and note that writebin does nothing if restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
+    if(st_killswitch) call cr_killSwitch(n)
 #endif
 
     ! A.Mereghetti, for the FLUKA Team
@@ -1895,18 +1917,9 @@ subroutine thin6d(nthinerr)
           yv1(j)=yv1(j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
           yv2(j)=yv2(j) - ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        call part_updatePartEnergy(1,.true.)
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (58) ! JBG RF CC Multipoles
         xory=1
@@ -1918,18 +1931,9 @@ subroutine thin6d(nthinerr)
           yv2(j)=yv2(j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
           yv1(j)=yv1(j) + ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        call part_updatePartEnergy(1,.true.)
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (59) ! JBG RF CC Multipoles
         xory=1
@@ -1942,18 +1946,9 @@ subroutine thin6d(nthinerr)
           yv2(j)=yv2(j)-((two*(((crabamp3*crkve)*cikve)*moidpsv(j)))*c1m3)*cos_mb(kcrab)
           ejv(j)=ejv(j)-(((((one/three)*(crabamp3))*(crkve**3-(three*cikve**2)*crkve))&
                 *(((crabfreq*two)*pi)/clight)*c1m6)*sin_mb(kcrab))*e0f
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        call part_updatePartEnergy(1,.true.)
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (60) ! JBG RF CC Multipoles
         xory=1
@@ -1966,18 +1961,9 @@ subroutine thin6d(nthinerr)
           yv1(j)=yv1(j)+((two*(crabamp3*(crkve*(cikve*oidpsv(j)))))*c1m3)*cos_mb(kcrab)
           ejv(j)=ejv(j)+(((((one/three)*(crabamp3))*(cikve**3- &
                 ((three*crkve**2)*cikve)))*(((crabfreq*two)*pi)/clight))*c1m6)*(sin_mb(kcrab)*e0f)
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        call part_updatePartEnergy(1,.true.)
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (61) ! JBG RF CC Multipoles
         xory=1
@@ -1990,18 +1976,9 @@ subroutine thin6d(nthinerr)
           yv2(j)=yv2(j) - (((crabamp4*moidpsv(j))*((three*cikve)*crkve**2-cikve**3))*c1m6)*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((0.25_fPrec*(crabamp4))*(crkve**4-(six*crkve**2)*cikve**2+cikve**4))&
                 *(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
-        ejf0v(j)=ejfv(j)
-        ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-        rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-        dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-        oidpsv(j)=one/(one+dpsv(j))
-        moidpsv(j)=mtc(j)/(one+dpsv(j))
-        omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-        dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-        yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-        yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-        if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        call part_updatePartEnergy(1,.true.)
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (62) ! JBG RF CC Multipoles
         xory=1
@@ -2013,24 +1990,19 @@ subroutine thin6d(nthinerr)
           yv1(j)=yv1(j) - (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)
           yv2(j)=yv2(j) - (((crabamp4*moidpsv(j))*((three*crkve)*cikve**2-crkve**3))*c1m6)*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3*cikve)-(cikve**3*crkve)))*(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        call part_updatePartEnergy(1,.true.)
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (63) ! Elens
         do j=1,napx
 #include "include/kickelens.f90"
         end do
         goto 640
+      case (66) ! Rf-multi
+#include "include/rfmulti.f90"
+        goto 640
+
       case (64) ! Scatter (thin)
         !Thin scattering
         ! It is already checked that scatter_elemPointer != 0
@@ -2123,8 +2095,6 @@ subroutine thin6d(nthinerr)
 
 660 continue !END loop over turns
 
-    return
-
 end subroutine thin6d
 
 !-----------------------------------------------------------------------
@@ -2133,7 +2103,7 @@ end subroutine thin6d
 !-----------------------------------------------------------------------
 !  3 February 1999
 !-----------------------------------------------------------------------
-subroutine callcrp()
+subroutine callcrp
 
   use floatPrecision
   use mathlib_bouncer
@@ -2165,40 +2135,40 @@ subroutine callcrp()
   write(91,*,iostat=ierro,err=11) numx,numl
   rewind 91
   if (restart) then
-    write(93,*) 'CALLCRP/CRPOINT bailing out'
-    write(93,*) 'numl, nnuml, numx, numlcr ',numl,nnuml,numx,numlcr
-    endfile (93,iostat=ierro)
-    backspace (93,iostat=ierro)
+    write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
+      " numx = ",numx,", numlcr = ",numlcr
+    endfile(93,iostat=ierro)
+    backspace(93,iostat=ierro)
     return
   else
 #ifndef DEBUG
     if (ncalls.le.20.or.numx.ge.nnuml-20) then
 #endif
-    write(93,*) 'CALLCRP numl, nnuml, numlcr, numx, nwri, numlcp '
-    write(93,*) numl,nnuml,numlcr,numx,nwri,numlcp
-    endfile (93,iostat=ierro)
-    backspace (93,iostat=ierro)
+    write(93,"(6(a,i0))") "SIXTRACR> CALLCRP numl = ",numl,", nnuml = ",nnuml,", numlcr = ",numlcr,", "//&
+     "numx = ",numx,", nwri = ",nwri,", numlcp = ",numlcp
+    endfile(93,iostat=ierro)
+    backspace(93,iostat=ierro)
 #ifndef DEBUG
     endif
 #endif
   endif
 #ifdef BOINC
   if (checkp) then
-! Now ALWAYS checkpoint
-! NO, re-instated at user request
+    ! Now ALWAYS checkpoint
+    ! NO, re-instated at user request
+    ! What was the user request?
     call boinc_time_to_checkpoint(timech)
-    if (timech.ne.0) then
+    if (timech /= 0) then
       call crpoint
       call boinc_checkpoint_completed()
     endif
   endif
-#endif
-#ifndef BOINC
+#else
   if (checkp) call crpoint
 #endif
   return
-11 write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : 91',ierro
-  write(lout,*)'SIXTRACR WRITEBIN IO ERROR on Unit 91'
+11 write(lout,"(a,i0)") "CALLCRP> ERROR Problems writing to file #91, ierro= ",ierro
+  ! write(lout,"(a)")'SIXTRACR WRITEBIN IO ERROR on Unit 91'
   call prror(-1)
 #endif
   return
@@ -2226,8 +2196,8 @@ subroutine dist1
   save
 !-----------------------------------------------------------------------
   do 20 ia=1,napx,2
-    if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and.     &
-  &(mod(nlostp(ia),2).ne.0)) then
+    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.     &
+  &(mod(partID(ia),2).ne.0)) then
       ie=ia+1
       dam(ia)=zero
       dam(ie)=zero

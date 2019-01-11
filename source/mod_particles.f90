@@ -10,13 +10,23 @@ module mod_particles
 
   implicit none
 
+  logical, public, save :: part_isTracking = .false.
 contains
 
-subroutine part_allocate
-end subroutine part_allocate
-
-subroutine part_expand
-end subroutine part_expand
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2019-01-11
+!  Set the initial particle IDs (called before tracking, formerly in trauthin/trauthck)
+! ================================================================================================ !
+subroutine part_setParticleID
+  use parpro
+  use mod_commonmn
+  integer i
+  do i=1,npart
+    partID(i)   = i
+    parentID(i) = i
+  end do
+end subroutine part_setParticleID
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -77,13 +87,14 @@ subroutine part_updateRefEnergy(refEnergy)
   e0     = refEnergy
   e0f    = sqrt(e0**2 - nucm0**2)
   gammar = nucm0/e0
+  betrel = sqrt((one+gammar)*(one-gammar))
 
   ! Also update sigmv with the new beta0 = e0f/e0
   sigmv(1:napx) = ((e0f*e0o)/(e0fo*e0))*sigmv(1:napx)
 
   if(e0 <= pieni) then
     write(lout,"(a)") "PART> ERROR Reference energy ~= 0"
-    call prror(-1)
+    call prror
   end if
 
   call part_updatePartEnergy(1)
@@ -92,10 +103,10 @@ end subroutine part_updateRefEnergy
 
 ! ================================================================================================ !
 !  K.N. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-02
+!  Last modified: 2019-01-10
 !  Updates the relevant particle arrays after the particle's energy, momentum or delta has changed.
 ! ================================================================================================ !
-subroutine part_updatePartEnergy(refArray)
+subroutine part_updatePartEnergy(refArray,updateAngle)
 
   use mod_hions
   use mod_common
@@ -105,7 +116,24 @@ subroutine part_updatePartEnergy(refArray)
 
   implicit none
 
-  integer, intent(in) :: refArray
+  integer,           intent(in) :: refArray
+  logical, optional, intent(in) :: updateAngle
+
+  logical :: doUpdateAngle = .false.
+
+  if(part_isTracking .and. refArray /= 1) then
+    write(lout,"(a)") "PART> ERROR During tracking, only energy updates are allowed in part_updatePartEnergy."
+    call prror
+  end if
+
+  if(present(updateAngle)) then
+    doUpdateAngle = updateAngle
+  end if
+
+  if(doUpdateAngle .and. refArray /= 2) then
+    ! If momentum is updated before the call, then ejf0v must be too
+    ejf0v(1:napx) = ejfv(1:napx)
+  end if
 
   select case(refArray)
   case(1) ! Update from energy array
@@ -119,7 +147,7 @@ subroutine part_updatePartEnergy(refArray)
     ejv(1:napx)  = sqrt(ejfv(1:napx)**2 + nucm(1:napx)**2)       ! Energy [MeV]
   case default
     write(lout,"(a)") "PART> ERROR Internal error in part_updatePartEnergy"
-    call prror(-1)
+    call prror
   end select
 
   ! Modify the Energy Dependent Arrays
@@ -131,8 +159,114 @@ subroutine part_updatePartEnergy(refArray)
   omoidpsv(1:napx) = ((one-mtc(1:napx))*oidpsv(1:napx))*c1e3
   rvv(1:napx)      = (ejv(1:napx)*e0f)/(e0*ejfv(1:napx))     ! Beta_0 / beta(j)
 
+  if(doUpdateAngle) then ! Update particle angles
+    yv1(1:napx)    = (ejf0v(1:napx)/ejfv(1:napx))*yv1(1:napx)
+    yv2(1:napx)    = (ejf0v(1:napx)/ejfv(1:napx))*yv2(1:napx)
+  end if
+
   if(ithick == 1) call synuthck
 
 end subroutine part_updatePartEnergy
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-11-28
+!  Dumps the final state of the particle arrays to a binary file.
+! ================================================================================================ !
+subroutine part_writeState(theState)
+
+  use, intrinsic :: iso_fortran_env, only : int32, real64
+
+  use mod_units
+  use parpro
+  use mod_common
+  use mod_commonmn
+  use mod_settings
+  use string_tools
+
+  implicit none
+
+  integer, intent(in) :: theState
+
+  character(len=200) :: roundBuf
+  character(len=17)  :: fileName
+  integer            :: fileUnit, j, k
+  logical            :: rErr, isPrim, isBin
+
+  if(theState == 0 .and. st_initialState == 1) then
+    isBin    = .true.
+    fileName = "initial_state.bin"
+  elseif(theState == 0 .and. st_initialState == 2) then
+    isBin    = .false.
+    fileName = "initial_state.dat"
+  elseif(theState == 1 .and. st_finalState == 1) then
+    isBin    = .true.
+    fileName = "final_state.bin"
+  elseif(theState == 1 .and. st_finalState == 2) then
+    isBin    = .false.
+    fileName = "final_state.dat"
+  else
+    ! Nothing to do
+    return
+  end if
+
+  if(isBin) then
+
+    call f_requestUnit(fileName, fileUnit)
+    call f_open(unit=fileUnit,file=fileName,formatted=.false.,mode="w",status="replace",access="stream")
+
+    write(fileUnit) int(imc,  kind=int32)
+    write(fileUnit) int(napx, kind=int32)
+    write(fileUnit) int(napxo,kind=int32)
+    write(fileUnit) int(npart,kind=int32)
+
+    do j=1,npart
+      isPrim = partID(j) <= napxo
+      write(fileUnit)     int(  partID(j), kind=int32)
+      write(fileUnit)     int(parentID(j), kind=int32)
+      write(fileUnit) logical(  llostp(j), kind=int32)
+      write(fileUnit) logical(  isPrim,    kind=int32)
+      write(fileUnit)    real(     xv1(j), kind=real64)
+      write(fileUnit)    real(     xv2(j), kind=real64)
+      write(fileUnit)    real(     yv1(j), kind=real64)
+      write(fileUnit)    real(     yv2(j), kind=real64)
+      write(fileUnit)    real(   sigmv(j), kind=real64)
+      write(fileUnit)    real(    dpsv(j), kind=real64)
+      write(fileUnit)    real(    ejfv(j), kind=real64)
+      write(fileUnit)    real(     ejv(j), kind=real64)
+    end do
+
+    call f_close(fileUnit)
+
+  else
+
+    call f_requestUnit(fileName, fileUnit)
+    call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="w",status="replace")
+
+    write(fileUnit,"(a,i0)") "# imc   = ",imc
+    write(fileUnit,"(a,i0)") "# napx  = ",napx
+    write(fileUnit,"(a,i0)") "# napxo = ",napxo
+    write(fileUnit,"(a,i0)") "# npart = ",npart
+    write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),8(1x,a24))") "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e"
+
+    do j=1,npart
+      roundBuf = " "
+      isPrim = partID(j) <= napxo
+      call chr_fromReal(xv1(j),  roundBuf(  2:25 ),17,3,rErr)
+      call chr_fromReal(xv2(j),  roundBuf( 27:50 ),17,3,rErr)
+      call chr_fromReal(yv1(j),  roundBuf( 52:75 ),17,3,rErr)
+      call chr_fromReal(yv2(j),  roundBuf( 77:100),17,3,rErr)
+      call chr_fromReal(sigmv(j),roundBuf(102:125),17,3,rErr)
+      call chr_fromReal(dpsv(j), roundBuf(127:150),17,3,rErr)
+      call chr_fromReal(ejfv(j), roundBuf(152:175),17,3,rErr)
+      call chr_fromReal(ejv(j),  roundBuf(177:200),17,3,rErr)
+      write(fileUnit, "(i8,1x,i8,2(1x,l4),a200)") partID(j),parentID(j),llostp(j),isPrim,roundBuf
+    end do
+
+    call f_close(fileUnit)
+
+  end if
+
+end subroutine part_writeState
 
 end module mod_particles

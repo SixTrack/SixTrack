@@ -132,7 +132,6 @@ subroutine scatter_init
 
   use crcoall
   use parpro
-  use file_units
   use mod_units
 
   implicit none
@@ -220,12 +219,12 @@ subroutine scatter_init
 #endif
 
   ! Open scatter_log.dat
-  if(scatter_logFile == -1) call funit_requestUnit("scatter_log.dat", scatter_logFile)
+  call f_requestUnit("scatter_log.dat", scatter_logFile)
 #ifdef CR
   if(scatter_logFilePos == -1) then
     write(93,"(a)") "SCATTER> INIT opening new file 'scatter_log.dat'"
 #endif
-    call units_openUnit(unit=scatter_logFile,fileName="scatter_log.dat",formatted=.true.,mode="w",err=fErr,status="replace")
+    call f_open(unit=scatter_logFile,file="scatter_log.dat",formatted=.true.,mode="w",err=fErr,status="replace")
     write(scatter_logFile,"(a)") "# scatter_log"
     write(scatter_logFile,"(a1,a8,1x,a8,2(1x,a20),1x,a8,1x,a4,2(1x,a12),1x,a9,5(1x,a16))") &
       "#","ID","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8),&
@@ -244,12 +243,12 @@ subroutine scatter_init
 #endif
 
   ! Open scatter_summary.dat
-  if(scatter_sumFile == -1) call funit_requestUnit("scatter_summary.dat",scatter_sumFile)
+  call f_requestUnit("scatter_summary.dat",scatter_sumFile)
 #ifdef CR
   if(scatter_sumFilePos == -1) then
     write(93,"(a)") "SCATTER> INIT opening new file 'scatter_summary.dat'"
 #endif
-    call units_openUnit(unit=scatter_sumFile,fileName="scatter_summary.dat",formatted=.true.,mode="w",err=fErr,status="replace")
+    call f_open(unit=scatter_sumFile,file="scatter_summary.dat",formatted=.true.,mode="w",err=fErr,status="replace")
     call scatter_writeReport
     write(scatter_sumFile,"(a)") "#  Summary Log"
     write(scatter_sumFile,"(a)") "# ============="
@@ -721,7 +720,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
     if(nSplit /= 9) then
       write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC expected 9 arguments:"
       write(lout,"(a)") "SCATTER>       GEN name PPBEAMELASTIC a b1 b2 phi tmin crossSection"
-      call prror(-1)
+      call prror
       iErr = .true.
       return
     end if
@@ -756,7 +755,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
     if(nSplit /= 4) then
       write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC expected 4 arguments:"
       write(lout,"(a)") "SCATTER>       GEN name PYTHIASIMPLE crossSection"
-      call prror(-1)
+      call prror
       iErr = .true.
       return
     end if
@@ -950,7 +949,7 @@ subroutine scatter_thin(iElem, ix, turn)
     phi = 2*pi*rndVals(k+2)
 
     ! If we're scaling the probability with DYNK, update the statistical weight
-    scatter_statScale(nlostp(j)) = scatter_statScale(nlostp(j)) / elemScale
+    scatter_statScale(partID(j)) = scatter_statScale(partID(j)) / elemScale
 
     ! Get event
     call scatter_generator_getEvent(idGen,j,t,theta,dEE,dPP,procID,iLost,isDiff)
@@ -978,7 +977,7 @@ subroutine scatter_thin(iElem, ix, turn)
 #ifdef HDF5
     if(h5_useForSCAT) then
       nRecords = nRecords + 1
-      iRecords(1,nRecords) = nlostp(j)
+      iRecords(1,nRecords) = partID(j)
       iRecords(2,nRecords) = turn
       cRecords(1,nRecords) = bez(ix)
       cRecords(2,nRecords) = trim(scatter_genList(idGen)%genName)
@@ -991,12 +990,12 @@ subroutine scatter_thin(iElem, ix, turn)
       rRecords(5,nRecords) = dPP
       rRecords(6,nRecords) = targetDensity
       rRecords(7,nRecords) = scatterProb
-      rRecords(8,nRecords) = scatter_statScale(nlostp(j))
+      rRecords(8,nRecords) = scatter_statScale(partID(j))
     else
 #endif
       write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f12.3,1x,f12.6,1x,f9.6,5(1x,1pe16.9))") &
-        nlostp(j), turn, bez(ix)(1:20), chr_rPad(trim(scatter_genList(idGen)%genName),20), scatter_procNames(procID), &
-        iLost, t, theta, phi, dEE, dPP, targetDensity, scatterProb, scatter_statScale(nlostp(j))
+        partID(j), turn, bez(ix)(1:20), chr_rPad(trim(scatter_genList(idGen)%genName),20), scatter_procNames(procID), &
+        iLost, t, theta, phi, dEE, dPP, targetDensity, scatterProb, scatter_statScale(partID(j))
 #ifdef CR
       scatter_logFilePos = scatter_logFilePos + 1
 #endif
@@ -1079,7 +1078,7 @@ subroutine scatter_thin(iElem, ix, turn)
   flush(scatter_sumFile)
 
   if(scatter_allowLosses) then
-    call compactArrays
+    call shuffleLostParticles
   end if
 
   if(updateE) then
@@ -1116,19 +1115,19 @@ end subroutine scatter_thin
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
-real(kind=fPrec) function scatter_profile_getDensity(idPro, x, y) result(retval)
+function scatter_profile_getDensity(idPro, x, y) result(retval)
 
   use string_tools
   use crcoall
   use mod_common
-  use numerical_constants, only : pi
+  use numerical_constants, only : pi, zero
 
   implicit none
 
   integer,          intent(in) :: idPro
   real(kind=fPrec), intent(in) :: x, y
 
-  real(kind=fPrec) beamtot, sigmaX, sigmaY, offsetX, offsetY
+  real(kind=fPrec) beamtot, sigmaX, sigmaY, offsetX, offsetY, retVal
   integer tmpIdx
 
   select case(scatter_proList(idPro)%proType)
@@ -1151,7 +1150,7 @@ real(kind=fPrec) function scatter_profile_getDensity(idPro, x, y) result(retval)
   case default
     write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_proList(idPro)%proType," for profile '"//&
       trim(scatter_proList(idPro)%proName)//"' not understood."
-    call prror(-1)
+    call prror
   end select
 
 end function scatter_profile_getDensity
@@ -1180,10 +1179,11 @@ end subroutine scatter_profile_getParticle
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 09-2017
 ! =================================================================================================
-real(kind=fPrec) function scatter_generator_getCrossSection(idPro, idGen, x, y, xp, yp, E)
+function scatter_generator_getCrossSection(idPro, idGen, x, y, xp, yp, E) result(retVal)
 
   use string_tools
   use crcoall
+  use numerical_constants, only : zero
 
   implicit none
 
@@ -1192,27 +1192,29 @@ real(kind=fPrec) function scatter_generator_getCrossSection(idPro, idGen, x, y, 
 
   ! Temporary variables
   integer          tmpIdx
-  real(kind=fPrec) xpTarget, ypTarget, ETarget
+  real(kind=fPrec) xpTarget, ypTarget, ETarget, retVal
 
   ! Calculate S
   call scatter_profile_getParticle(idPro, x, y, xpTarget, ypTarget, ETarget)
+
+  retVal = zero
 
   ! Calculate the cross section as function of S
   ! This is currently a fixed value
   select case(scatter_genList(idGen)%genType)
   case(1)  ! ABSORBER
-    scatter_generator_getCrossSection = scatter_genList(idGen)%crossSection
+    retVal = scatter_genList(idGen)%crossSection
 
   case(10) ! PPBEAMELASTIC
-    scatter_generator_getCrossSection = scatter_genList(idGen)%crossSection
+    retVal = scatter_genList(idGen)%crossSection
 
   case(20) ! PYTHIASIMPLE
-    scatter_generator_getCrossSection = scatter_genList(idGen)%crossSection
+    retVal = scatter_genList(idGen)%crossSection
 
   case default
     write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_genList(idGen)%genType," for generator '"//&
       trim(scatter_genList(idGen)%genName)//"' not understood."
-    call prror(-1)
+    call prror
 
   end select
 
@@ -1222,7 +1224,7 @@ end function scatter_generator_getCrossSection
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 02-11-2017
 ! =================================================================================================
-subroutine scatter_generator_getEvent(genID, partID, t, theta, dEE, dPP, procID, iLost, isDiff)
+subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iLost, isDiff)
 
   use crcoall
   use mod_commonmn
@@ -1231,7 +1233,7 @@ subroutine scatter_generator_getEvent(genID, partID, t, theta, dEE, dPP, procID,
   implicit none
 
   integer,          intent(in)  :: genID
-  integer,          intent(in)  :: partID
+  integer,          intent(in)  :: pID
   real(kind=fPrec), intent(out) :: t
   real(kind=fPrec), intent(out) :: theta
   real(kind=fPrec), intent(out) :: dEE
@@ -1268,7 +1270,7 @@ subroutine scatter_generator_getEvent(genID, partID, t, theta, dEE, dPP, procID,
 
     t      = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
     t      = t*c1e6                                      ! Scale return variable to MeV^2
-    theta  = acos_mb(one - (t/(2*ejfv(partID)**2)))*c1e3 ! Get angle from t
+    theta  = acos_mb(one - (t/(2*ejfv(pID)**2)))*c1e3 ! Get angle from t
     procID = scatter_idElastic
 
   case(20) ! PYTHIA
@@ -1295,7 +1297,7 @@ subroutine scatter_generator_getEvent(genID, partID, t, theta, dEE, dPP, procID,
           isDiff = .false.
         else
           write(lout,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in fort.3"
-          call prror(-1)
+          call prror
         end if
       case(pythia_idElastic)
         procID = scatter_idElastic
@@ -1320,7 +1322,7 @@ subroutine scatter_generator_getEvent(genID, partID, t, theta, dEE, dPP, procID,
           isDiff = .true.
         else
           write(lout,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in fort.3"
-          call prror(-1)
+          call prror
         end if
       case(pythia_idCentralDiff)
         procID = scatter_idCentralDiff
@@ -1337,12 +1339,12 @@ subroutine scatter_generator_getEvent(genID, partID, t, theta, dEE, dPP, procID,
     end if
 #else
     write(lout,"(a,i0,a)") "SCATTER> ERROR This version of SixTrack was built without PYTHIA support,"
-    call prror(-1)
+    call prror
 #endif
 
   case default
     write(lout,"(a,i0,a)") "SCATTER> ERROR Generator type ",scatter_genList(genID)%genType," not understood"
-    call prror(-1)
+    call prror
 
   end select
 
@@ -1355,7 +1357,7 @@ end subroutine scatter_generator_getEvent
 !  "Elastic pp scattering estimates and simulation relevant for burn-off"
 !  https://indico.cern.ch/event/625576/
 ! =================================================================================================
-real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
+function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
 
   use crcoall
 
@@ -1365,7 +1367,7 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
 
   ! Temp Variables
   integer          nItt, maxItt
-  real(kind=fPrec) g1, g2, g3, gg, prob3, invB1, invB2, rndArr(3)
+  real(kind=fPrec) g1, g2, g3, gg, prob3, invB1, invB2, rndArr(3), t
 
   ! Approximate distribution
   g1    =           exp_mb(-b1*tmin)/b1  ! Soft scatter term
@@ -1404,7 +1406,7 @@ real(kind=fPrec) function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) r
   if(nItt > maxItt) then
     write(lout,"(a)")      "SCATTER> ERROR in generator PPBEAMELASTIC"
     write(lout,"(a,i0,a)") "SCATTER>       Limit of ",maxItt," misses in generator loop reached."
-    call prror(-1)
+    call prror
   end if
 
 end function scatter_generator_getPPElastic
@@ -1512,7 +1514,6 @@ end subroutine scatter_crcheck_readdata
 subroutine scatter_crcheck_positionFiles
 
   use crcoall
-  use file_units
   use mod_units
 
   implicit none
@@ -1522,7 +1523,7 @@ subroutine scatter_crcheck_positionFiles
   integer j
   character(len=1024) aRecord
 
-  if(scatter_logFile == -1) call funit_requestUnit("scatter_log.dat",scatter_logFile)
+  call f_requestUnit("scatter_log.dat",scatter_logFile)
   inquire(unit=scatter_logFile, opened=isOpen)
   if(isOpen) then
     write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning 'scatter_log.dat'"
@@ -1532,11 +1533,11 @@ subroutine scatter_crcheck_positionFiles
     backspace(93,iostat=iError)
 
     write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning 'scatter_log.dat'"
-    call prror(-1)
+    call prror
   end if
 
   if(scatter_logFilePos_CR /= -1) then
-    call units_openUnit(unit=scatter_logFile,fileName="scatter_log.dat",formatted=.true.,mode="rw",err=fErr,status="old")
+    call f_open(unit=scatter_logFile,file="scatter_log.dat",formatted=.true.,mode="rw",err=fErr,status="old")
     if(fErr) goto 10
     scatter_logFilePos = 0
     do j=1, scatter_logFilePos_CR
@@ -1544,9 +1545,9 @@ subroutine scatter_crcheck_positionFiles
       scatter_logFilePos = scatter_logFilePos + 1
     end do
     endfile(scatter_logFile,iostat=iError)
-    close(scatter_logFile)
+    call f_close(scatter_logFile)
 
-    call units_openUnit(unit=scatter_logFile,fileName="scatter_log.dat",formatted=.true.,mode="w+",err=fErr,status="old")
+    call f_open(unit=scatter_logFile,file="scatter_log.dat",formatted=.true.,mode="w+",err=fErr,status="old")
     if(fErr) goto 10
     write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned 'scatter_log.dat': "//&
       "scatter_logFilePos = ",scatter_logFilePos,", scatter_logFilePos_CR = ",scatter_logFilePos_CR
@@ -1560,7 +1561,7 @@ subroutine scatter_crcheck_positionFiles
     backspace(93,iostat=iError)
   end if
 
-  if(scatter_sumFile == -1) call funit_requestUnit("scatter_summary.dat",scatter_sumFile)
+  call f_requestUnit("scatter_summary.dat",scatter_sumFile)
   inquire(unit=scatter_sumFile, opened=isOpen)
   if(isOpen) then
     write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning 'scatter_summary.dat'"
@@ -1570,11 +1571,11 @@ subroutine scatter_crcheck_positionFiles
     backspace(93,iostat=iError)
 
     write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning 'scatter_summary.dat'"
-    call prror(-1)
+    call prror
   end if
 
   if(scatter_sumFilePos_CR /= -1) then
-    call units_openUnit(unit=scatter_sumFile,fileName="scatter_summary.dat",formatted=.true.,mode="rw",err=fErr,status="old")
+    call f_open(unit=scatter_sumFile,file="scatter_summary.dat",formatted=.true.,mode="rw",err=fErr,status="old")
     if(fErr) goto 10
     scatter_sumFilePos = 0
     do j=1, scatter_sumFilePos_CR
@@ -1584,7 +1585,7 @@ subroutine scatter_crcheck_positionFiles
     endfile(scatter_sumFile,iostat=iError)
     close(scatter_sumFile)
 
-    call units_openUnit(unit=scatter_sumFile,fileName="scatter_summary.dat",formatted=.true.,mode="w+",err=fErr,status="old")
+    call f_open(unit=scatter_sumFile,file="scatter_summary.dat",formatted=.true.,mode="w+",err=fErr,status="old")
     if(fErr) goto 10
     write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned 'scatter_summary.dat': "//&
       "scatter_sumFilePos = ",scatter_sumFilePos,", scatter_sumFilePos_CR = ",scatter_sumFilePos_CR
@@ -1607,7 +1608,7 @@ subroutine scatter_crcheck_positionFiles
   endfile(93,iostat=iError)
   backspace(93,iostat=iError)
   write(lout,"(a)")"SIXTRACR> ERROR CRCHECK failure positioning 'scatter_log.dat' or 'scatter_summary.dat'."
-  call prror(-1)
+  call prror
 
 end subroutine scatter_crcheck_positionFiles
 

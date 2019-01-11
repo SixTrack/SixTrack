@@ -31,10 +31,11 @@ module parpro
   integer, parameter :: nelb  = 280       ! Maximum elements per BLOC
 
   ! Maximum length of element names
-  integer, parameter :: mNameLen = 48     ! Maximum length of element names. Keep in sync with MadX
-  integer, parameter :: mStrLen  = 161    ! Standard string length
-  integer, parameter :: mDivLen  = 132    ! Length of lout output lines
-  integer, parameter :: mInputLn = 1600   ! Buffer size for single lines read from input files
+  integer, parameter :: mNameLen  = 48     ! Maximum length of element names. Keep in sync with MadX
+  integer, parameter :: mFNameLen = 64     ! Maximum length of file names
+  integer, parameter :: mStrLen   = 161    ! Standard string length
+  integer, parameter :: mDivLen   = 132    ! Length of lout output lines
+  integer, parameter :: mInputLn  = 1600   ! Buffer size for single lines read from input files
 
   integer :: ntr   = -1   ! Number of phase trombones
 
@@ -95,13 +96,17 @@ module mod_settings
 
   implicit none
 
-  ! PRINT Flag (fort.3)
-  logical, save :: st_print   = .false.
-
   ! SETTINGS Block (fort.3)
-  integer, save :: st_quiet   = 0       ! QUIET Level
-  logical, save :: st_debug   = .false. ! Global DEBUG flag
-  logical, save :: st_partsum = .false. ! Flag to print final particle summary
+  logical, save :: st_print        = .false. ! PRINT flag (fort.3)
+  integer, save :: st_quiet        = 0       ! QUIET Level 0=verbose, 1=minimal, 2=quiet
+  logical, save :: st_debug        = .false. ! Global DEBUG flag
+  logical, save :: st_partsum      = .false. ! Flag to print final particle summary
+  integer, save :: st_initialstate = 0       ! Dump particle initial state (mod_particles)
+  integer, save :: st_finalstate   = 0       ! Dump particle final state (mod_particles)
+
+  ! Checpoint/Restart Kills Switch Settings
+  logical,              save :: st_killswitch = .false. ! Enables the kill on turn number debug feature
+  integer, allocatable, save :: st_killturns(:)         ! List of killswitch turns
 
 end module mod_settings
 
@@ -113,7 +118,7 @@ module mod_common
 
   use parpro
   use floatPrecision
-  use numerical_constants, only : c1m6, c180e0, pi, two, half
+  use numerical_constants, only : c1m6, c180e0, pi, two, half, one, zero
 
   implicit none
 
@@ -181,6 +186,11 @@ module mod_common
   real(kind=fPrec), allocatable, save :: benkc(:),r00(:),scalemu(:)         ! (nele)
   real(kind=fPrec), allocatable, save :: bk0(:,:),ak0(:,:),bka(:,:),aka(:,:) ! (nele,mmul)
   integer,          allocatable, save :: irm(:),nmu(:)                       ! (nele)
+
+  ! RF multipoles
+  real(kind=fPrec), allocatable, save :: norrfamp(:,:),norrfph(:,:),skrfamp(:,:),skrfph(:,:) ! (nele,mmul)
+  integer,          allocatable, save :: nmu_rf(:), irm_rf(:)
+  real(kind=fPrec), allocatable, save :: freq_rfm(:)
 
   ! common /rand0/
   real(kind=fPrec), allocatable, save :: zfz(:) ! (nzfz)
@@ -278,7 +288,9 @@ module mod_common
   real(kind=fPrec),              save :: sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb)
   real(kind=fPrec),              save :: clobeam(6,nbb),beamoff(6,nbb)
   real(kind=fPrec), allocatable, save :: track6d(:,:) ! (6,npart)
-  real(kind=fPrec),              save :: sigz,sige,partnum,parbe14,emitx,emity,emitz,gammar
+  real(kind=fPrec),              save :: sigz,sige,partnum,parbe14,emitx,emity,emitz
+  real(kind=fPrec),              save :: gammar = one
+  real(kind=fPrec),              save :: betrel = zero
   integer,                       save :: nbeam,ibbc,ibeco,ibtyp,lhc
   real(kind=fPrec), allocatable, save :: parbe(:,:) ! (nele,18)
   real(kind=fPrec), allocatable, save :: ptnfac(:)  ! (nele)
@@ -300,6 +312,10 @@ module mod_common
   ! common /crabco/
   real(kind=fPrec), allocatable, save :: crabph(:),crabph2(:),crabph3(:),crabph4(:) ! (nele)
 
+  ! common /general-rf multi/
+  integer, save :: iord, nordm
+  real(kind=fPrec), save :: field_cos(2,mmul), fsddida(2,mmul)
+  real(kind=fPrec), save :: field_sin(2,mmul), fcodda(2,mmul)
   ! common /exact/
   integer, save :: iexact
   integer, save :: curveff
@@ -374,10 +390,17 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(bka,                  nele_new, mmul, zero,        "bka")
   call alloc(aka,                  nele_new, mmul, zero,        "aka")
   call alloc(benkc,                nele_new,       zero,        "benkc")
+  call alloc(norrfamp,             nele_new, mmul, zero,        "norrfamp")
+  call alloc(norrfph,              nele_new, mmul, zero,        "norrfph")
+  call alloc(skrfamp,              nele_new, mmul, zero,        "skrfamp")
+  call alloc(skrfph,               nele_new, mmul, zero,        "skrfph")
+  call alloc(freq_rfm,             nele_new,       zero,        "freq_rfm")
   call alloc(r00,                  nele_new,       zero,        "r00")
   call alloc(scalemu,              nele_new,        one,        "scalemu")
   call alloc(irm,                  nele_new,       0,           "irm")
+  call alloc(irm_rf,               nele_new,       0,           "irm_rf")
   call alloc(nmu,                  nele_new,       0,           "nmu")
+  call alloc(nmu_rf,               nele_new,       0,           "nmu_rf")
   call alloc(bezr,    mNameLen, 3, nele_new,       str_nmSpace, "bezr")
   call alloc(kpa,                  nele_new,       0,           "kpa")
   call alloc(bez,     mNameLen,    nele_new,       str_nmSpace, "bez")
@@ -578,7 +601,8 @@ module mod_commonmn
 
   integer,          allocatable, save :: numxv(:)     ! (npart)
   integer,          allocatable, save :: nms(:)       ! (npart)
-  integer,          allocatable, save :: nlostp(:)    ! (npart)
+  integer,          allocatable, save :: partID(:)    ! (npart)
+  integer,          allocatable, save :: parentID(:)  ! (npart)
 
   logical,          allocatable, save :: pstop(:)     ! (npart)
   logical,          allocatable, save :: llostp(:)    ! (npart)
@@ -706,7 +730,8 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   call alloc(ejf0v,            npart_new,      zero,    "ejf0v")
   call alloc(numxv,            npart_new,      0,       "numxv")
   call alloc(nms,              npart_new,      0,       "nms")
-  call alloc(nlostp,           npart_new,      0,       "nlostp")
+  call alloc(partID,           npart_new,      0,       "partID")
+  call alloc(parentID,         npart_new,      0,       "parentID")
   call alloc(pstop,            npart_new,      .false., "pstop")
   call alloc(llostp,           npart_new,      .false., "llostp")
 
