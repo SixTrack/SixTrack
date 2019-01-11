@@ -430,9 +430,9 @@ subroutine trauthck(nthinerr)
     call time_timeStamp(time_afterPreTrack)
 
     if(idp.eq.0.or.ition.eq.0) then
-      write(lout,*) ''
-      write(lout,*) 'Calling thck4d subroutine'
-      write(lout,*) ''
+      write(lout,"(a)") ""
+      write(lout,"(a)") "TRACKING> Calling thck4d subroutine"
+      write(lout,"(a)") ""
       call thck4d(nthinerr)
     else
       hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)                                 !hr01
@@ -445,9 +445,9 @@ subroutine trauthck(nthinerr)
         write(lout,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
         call prror(-1)
       else
-        write(lout,*) ''
-        write(lout,*) 'Calling thck6d subroutine'
-        write(lout,*) ''
+        write(lout,"(a)") ""
+        write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
+        write(lout,"(a)") ""
         call thck6d(nthinerr)
       end if
     end if
@@ -468,7 +468,7 @@ subroutine thck4d(nthinerr)
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
-
+  use mod_particles
   use bdex, only : bdex_enable
   use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
@@ -1130,6 +1130,7 @@ subroutine thck6d(nthinerr)
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
+  use mod_particles
   use bdex, only : bdex_enable
   use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront

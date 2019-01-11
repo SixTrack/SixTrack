@@ -77,9 +77,7 @@ subroutine hash_initialise
   character(len=32) md5Digest, md5Valid
   character(len=6)  tStatus
 
-  if(st_debug) then
-    write(lout,"(a)") "HASH> Library Self Test:"
-  end if
+  ! write(lout,"(a)") "HASH> Library Self Test:"
   hash_selfTestOK = .true.
 
   call hash_digestString("",md5Digest)
@@ -90,10 +88,8 @@ subroutine hash_initialise
     tStatus = "Failed"
     hash_selfTestOK = .false.
   end if
-  if(st_debug) then
-    write(lout,"(a)") "HASH>   #1 : "//md5Digest//" < ''"
-    write(lout,"(a)") "HASH>    1 : "//md5Valid//" > "//tStatus
-  end if
+  ! write(lout,"(a)") "HASH>   #1 : "//md5Digest//" < ''"
+  ! write(lout,"(a)") "HASH>    1 : "//md5Valid//" > "//tStatus
 
   call hash_digestString("message digest",md5Digest)
   md5Valid = "f96b697d7cb7938d525a2f31aaf161d0"
@@ -103,10 +99,8 @@ subroutine hash_initialise
     tStatus = "Failed"
     hash_selfTestOK = .false.
   end if
-  if(st_debug) then
-    write(lout,"(a)") "HASH>   #2 : "//md5Digest//" < 'message digest'"
-    write(lout,"(a)") "HASH>    2 : "//md5Valid//" > "//tStatus
-  end if
+  ! write(lout,"(a)") "HASH>   #2 : "//md5Digest//" < 'message digest'"
+  ! write(lout,"(a)") "HASH>    2 : "//md5Valid//" > "//tStatus
 
   call hash_digestString("abcdefghijklmnopqrstuvwxyz",md5Digest)
   md5Valid = "c3fcd3d76192e4007dfb496cca67e13b"
@@ -116,10 +110,8 @@ subroutine hash_initialise
     tStatus = "Failed"
     hash_selfTestOK = .false.
   end if
-  if(st_debug) then
-    write(lout,"(a)") "HASH>   #3 : "//md5Digest//" < 'abcdefghijklmnopqrstuvwxyz'"
-    write(lout,"(a)") "HASH>    3 : "//md5Valid//" > "//tStatus
-  end if
+  ! write(lout,"(a)") "HASH>   #3 : "//md5Digest//" < 'abcdefghijklmnopqrstuvwxyz'"
+  ! write(lout,"(a)") "HASH>    3 : "//md5Valid//" > "//tStatus
 
 end subroutine hash_initialise
 

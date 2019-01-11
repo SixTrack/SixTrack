@@ -30,16 +30,11 @@ do j=1,napx
 
   Sp1 = Sp1 * (x_t+imag*y_t);
 
-  yv1(j)   = yv1(j) - ((real(Cp0)*c1e3)*moidpsv(j))
-  yv2(j)   = yv2(j) + ((aimag(Cp0)*c1e3)*moidpsv(j))
-  ejv(j)   = ejv(j) - ((real(Sp1)*(c1e3*(e0f*(crabfreq*(two*pi))))))/clight
-  ejf0v(j) = ejfv(j)
+  yv1(j) = yv1(j) - ((real(Cp0)*c1e3)*moidpsv(j))
+  yv2(j) = yv2(j) + ((aimag(Cp0)*c1e3)*moidpsv(j))
+  ejv(j) = ejv(j) - ((real(Sp1)*(c1e3*(e0f*(crabfreq*(two*pi))))))/clight
 
 end do
 
-call part_updatePartEnergy(1)
-
-yv1(1:napx) = (ejf0v(1:napx)/ejfv(1:napx))*yv1(1:napx)
-yv2(1:napx) = (ejf0v(1:napx)/ejfv(1:napx))*yv2(1:napx)
-
+call part_updatePartEnergy(1,.true.)
 if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
