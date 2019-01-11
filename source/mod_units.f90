@@ -160,7 +160,7 @@ end subroutine f_getUnit
 !   - status    :: Optional: File status. Defaults to unknown
 !   - recl      :: Optional: Record length. Is only used for nagfor
 ! ================================================================================================ !
-subroutine f_open(unit,file,formatted,mode,err,status,recl)
+subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
 
   use, intrinsic :: iso_fortran_env, only : error_unit
 
@@ -172,10 +172,11 @@ subroutine f_open(unit,file,formatted,mode,err,status,recl)
   character(len=*),           intent(in)  :: mode
   logical,          optional, intent(out) :: err
   character(len=*), optional, intent(in)  :: status
+  character(len=*), optional, intent(in)  :: access
   integer,          optional, intent(in)  :: recl
 
   ! type(unitSpec),   allocatable :: tmpUnits(:)
-  character(len=:), allocatable :: fFileName, fStatus, fAction, fPosition, fMode
+  character(len=:), allocatable :: fFileName, fStatus, fAction, fPosition, fMode, fAccess
   character(len=256) :: tmpBoinc
   integer i, fRecl, nUnits, ioStat, chkUnit
   logical fFio, isOpen
@@ -190,6 +191,12 @@ subroutine f_open(unit,file,formatted,mode,err,status,recl)
     fStatus = status
   else
     fStatus = "unknown"
+  end if
+
+  if(present(access)) then
+    fAccess = access
+  else
+    fAccess = "sequential"
   end if
 
   if(len_trim(file) > 64) then
@@ -272,23 +279,23 @@ subroutine f_open(unit,file,formatted,mode,err,status,recl)
     if(fRecl > 0) then
       if(fFio) then
         open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
-          action=fAction,position=fPosition,round="nearest",recl=fRecl,err=10)
+          action=fAction,access=fAccess,position=fPosition,round="nearest",recl=fRecl,err=10)
       else
         open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
-          action=fAction,position=fPosition,recl=fRecl,err=10)
+          action=fAction,access=fAccess,position=fPosition,recl=fRecl,err=10)
       end if
     else
       if(fFio) then
         open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
-          action=fAction,position=fPosition,round="nearest",err=10)
+          action=fAction,access=fAccess,position=fPosition,round="nearest",err=10)
       else
         open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
-          action=fAction,position=fPosition,err=10)
+          action=fAction,access=fAccess,position=fPosition,err=10)
       end if
     end if
   else
     open(unit,file=fFileName,form="unformatted",status=fStatus,iostat=ioStat,&
-      action=fAction,position=fPosition,err=10)
+      action=fAction,access=fAccess,position=fPosition,err=10)
   endif
 
   if(ioStat /= 0) then
