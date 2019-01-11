@@ -97,11 +97,12 @@ module mod_settings
   implicit none
 
   ! SETTINGS Block (fort.3)
-  logical, save :: st_print      = .false. ! PRINT flag (fort.3)
-  integer, save :: st_quiet      = 0       ! QUIET Level 0=verbose, 1=minimal, 2=quiet
-  logical, save :: st_debug      = .false. ! Global DEBUG flag
-  logical, save :: st_partsum    = .false. ! Flag to print final particle summary
-  integer, save :: st_finalstate = 0       ! Dump particle final state (mod_particles)
+  logical, save :: st_print        = .false. ! PRINT flag (fort.3)
+  integer, save :: st_quiet        = 0       ! QUIET Level 0=verbose, 1=minimal, 2=quiet
+  logical, save :: st_debug        = .false. ! Global DEBUG flag
+  logical, save :: st_partsum      = .false. ! Flag to print final particle summary
+  integer, save :: st_initialstate = 0       ! Dump particle initial state (mod_particles)
+  integer, save :: st_finalstate   = 0       ! Dump particle final state (mod_particles)
 
   ! Checpoint/Restart Kills Switch Settings
   logical,              save :: st_killswitch = .false. ! Enables the kill on turn number debug feature

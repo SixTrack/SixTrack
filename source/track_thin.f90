@@ -66,10 +66,6 @@ subroutine trauthin(nthinerr)
   call alloc(cbxb, npart, zero, "cbxb")
   call alloc(cbzb, npart, zero, "cbzb")
 
-  do i=1,npart
-    partID(i)=i
-    parentID(i)=i
-  end do
   do i=1,nblz
     ktrack(i)=0
     strack(i)=zero
