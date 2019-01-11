@@ -39,15 +39,10 @@ subroutine trauthck(nthinerr)
   save
 
   if (do_coll) then
-     write(lout,*) "Error: in trauthck and do_coll is TRUE"
-     write(lout,*) "Collimation is not supported for thick tracking"
-     call prror(-1)
+    write(lout,"(a)") "TRACKING> ERROR Collimation is not supported for thick tracking"
+    call prror
   endif
 
-  do i=1,npart
-    partID(i)=i
-    parentID(i)=i
-  end do
   do i=1,nblz
     ktrack(i)=0
     strack(i)=zero
