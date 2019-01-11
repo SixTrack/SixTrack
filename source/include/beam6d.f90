@@ -23,8 +23,8 @@ do j=1,napx
   yv1(j)=((track6d(2,j)*c1e3+clobeam(4,imbb(i)))-beamoff(4,imbb(i)))*moidpsv(j)
   yv2(j)=((track6d(4,j)*c1e3+clobeam(5,imbb(i)))-beamoff(5,imbb(i)))*moidpsv(j)
   !TODO check for ions?
-  
-  ejfv(j)=(dpsv(j)*e0f+e0f)*(nucm(j)/nucm0) 
+
+  ejfv(j)=(dpsv(j)*e0f+e0f)*(nucm(j)/nucm0)
   ejv(j)=sqrt(ejfv(j)**2+nucm(j)**2)
   rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
   dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
@@ -32,7 +32,6 @@ do j=1,napx
   !We want to go back to sixtrack variables (15.03.2018)
   track6d(5,j) = track6d(5,j)*rvv(j)
   sigmv(j)=(track6d(5,j)*c1e3+clobeam(3,imbb(i)))- beamoff(3,imbb(i))
-
-  if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
 end do
+if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
 ! end include/beam6d.f90

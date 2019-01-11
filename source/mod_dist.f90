@@ -125,12 +125,13 @@ subroutine dist_readDist
 
   write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_readFile)//"'"
 
-  xv1(:)  = zero
-  yv1(:)  = zero
-  xv2(:)  = zero
-  yv2(:)  = zero
+  xv1(:)   = zero
+  yv1(:)   = zero
+  xv2(:)   = zero
+  yv2(:)   = zero
   sigmv(:) = zero
   ejfv(:)  = zero
+  ejf0v(:) = zero
   naa(:)   = 0
   nzz(:)   = 0
   nucm(:)  = zero
@@ -187,6 +188,7 @@ subroutine dist_readDist
   partID(j)   = j
   parentID(j) = j
   pstop(j)    = .false.
+  ejf0v(j)    = ejfv(j)
 
   goto 10
 

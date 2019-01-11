@@ -1,2 +1,3 @@
-dump.dat             diff -q --strip-trailing-cr
-dynksets.dat         diff -q --strip-trailing-cr
+dump.dat
+dynksets.dat
+final_state.dat

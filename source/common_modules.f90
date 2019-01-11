@@ -31,10 +31,11 @@ module parpro
   integer, parameter :: nelb  = 280       ! Maximum elements per BLOC
 
   ! Maximum length of element names
-  integer, parameter :: mNameLen = 48     ! Maximum length of element names. Keep in sync with MadX
-  integer, parameter :: mStrLen  = 161    ! Standard string length
-  integer, parameter :: mDivLen  = 132    ! Length of lout output lines
-  integer, parameter :: mInputLn = 1600   ! Buffer size for single lines read from input files
+  integer, parameter :: mNameLen  = 48     ! Maximum length of element names. Keep in sync with MadX
+  integer, parameter :: mFNameLen = 64     ! Maximum length of file names
+  integer, parameter :: mStrLen   = 161    ! Standard string length
+  integer, parameter :: mDivLen   = 132    ! Length of lout output lines
+  integer, parameter :: mInputLn  = 1600   ! Buffer size for single lines read from input files
 
   integer :: ntr   = -1   ! Number of phase trombones
 
