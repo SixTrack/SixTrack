@@ -1665,7 +1665,7 @@ end interface
   call time_timeStamp(time_afterTracking)
 
   if(st_partsum .eqv. .false.) then
-    write(lout,"(a)") "MAINCR> NOTE Particle summary report is disabled."
+    write(lout,"(a)") "MAINCR> NOTE Particle summary report is disabled; either manually, or because npart > 64."
     write(lout,"(a)") "MAINCR>      This is controlled by the PARTICLESUMMARY flag in the SETTINGS block in fort.3."
     write(lout,"(a)") ""
     goto 470

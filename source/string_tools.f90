@@ -17,7 +17,7 @@ module string_tools
   public str_strip, chr_strip, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
   public str_sub, chr_expandBrackets
-  public chr_lpad, chr_rpad
+  public chr_lPad, chr_rPad, chr_lPadCut, chr_rPadCut
   public chr_toUpper, chr_toLower
   public str_inStr, chr_inStr
 
@@ -384,11 +384,15 @@ function chr_strip(theString) result(retString)
 end function chr_strip
 
 ! ================================================================================================ !
-!  Pad String Spaces
+!  Pad String With Spaces
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-05-18
+!  Last modified: 2018-11-27
+!   * chr_lPad    :: Pad a string to the left to specified size. Does not trunctae if longer.
+!   * chr_rPad    :: Pad a string to the right to specified size. Does not trunctae if longer.
+!   * chr_lPadCut :: Pad a string to the left to specified size. Does trunctae if longer.
+!   * chr_rPadCut :: Pad a string to the right to specified size. Does trunctae if longer.
 ! ================================================================================================ !
-function chr_lpad(theString, theSize) result(retString)
+function chr_lPad(theString, theSize) result(retString)
   character(len=*), intent(in)  :: theString
   integer,          intent(in)  :: theSize
   character(len=:), allocatable :: retString
@@ -399,9 +403,9 @@ function chr_lpad(theString, theSize) result(retString)
   else
     retString = theString
   end if
-end function chr_lpad
+end function chr_lPad
 
-function chr_rpad(theString, theSize) result(retString)
+function chr_rPad(theString, theSize) result(retString)
   character(len=*), intent(in)  :: theString
   integer,          intent(in)  :: theSize
   character(len=:), allocatable :: retString
@@ -412,7 +416,37 @@ function chr_rpad(theString, theSize) result(retString)
   else
     retString = theString
   end if
-end function chr_rpad
+end function chr_rPad
+
+function chr_lPadCut(theString, theSize) result(retString)
+  character(len=*), intent(in) :: theString
+  integer,          intent(in) :: theSize
+  character(len=theSize) :: retString
+  integer                :: inSize
+  inSize = len(theString)
+  if(inSize > theSize) then
+    retString = theString(1:theSize)
+  elseif(inSize > 0) then
+    retString = repeat(" ",theSize-inSize)//theString(1:inSize)
+  else
+    retString = repeat(" ",theSize)
+  end if
+end function chr_lPadCut
+
+function chr_rPadCut(theString, theSize) result(retString)
+  character(len=*), intent(in) :: theString
+  integer,          intent(in) :: theSize
+  character(len=theSize) :: retString
+  integer                :: inSize
+  inSize = len(theString)
+  if(inSize > theSize) then
+    retString = theString(1:theSize)
+  elseif(inSize > 0) then
+    retString = theString(1:inSize)//repeat(" ",theSize-inSize)
+  else
+    retString = repeat(" ",theSize)
+  end if
+end function chr_rPadCut
 
 ! ================================================================================================ !
 !  Convert to Lower/Upper Case

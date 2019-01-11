@@ -192,7 +192,7 @@ subroutine scatter_init
     setFields(3)  = h5_dataField(name="BEZ",       type=h5_typeChar, size=mNameLen)
     setFields(4)  = h5_dataField(name="GEN",       type=h5_typeChar, size=mNameLen)
     setFields(5)  = h5_dataField(name="PROCESS",   type=h5_typeChar, size=8)
-    setFields(5)  = h5_dataField(name="NSCAT",     type=h5_typeInt)
+    setFields(6)  = h5_dataField(name="NSCAT",     type=h5_typeInt)
     setFields(7)  = h5_dataField(name="NLOST",     type=h5_typeInt)
     setFields(8)  = h5_dataField(name="SCATRATIO", type=h5_typeReal)
     setFields(9)  = h5_dataField(name="CROSSSEC",  type=h5_typeReal)
@@ -886,10 +886,11 @@ subroutine scatter_thin(iElem, ix, turn)
   call alloc(nLost,     nGen,scatter_nProc, 0,      "nLost")
   call alloc(nScattered,nGen,scatter_nProc, 0,      "nScattered")
 #ifdef HDF5
-  call alloc(iRecords,         3,napx,      0,      "iRecords")
-  call alloc(rRecords,         8,napx,      zero,   "rRecords")
-  call alloc(cRecords,mNameLen,3,napx,      " ",    "cRecords")
-
+  if(h5_useForSCAT) then
+    call alloc(iRecords,         3,napx,    0,      "iRecords")
+    call alloc(rRecords,         8,napx,    zero,   "rRecords")
+    call alloc(cRecords,mNameLen,3,napx,    " ",    "cRecords")
+  end if
   nRecords = 0
 #endif
 
@@ -918,11 +919,11 @@ subroutine scatter_thin(iElem, ix, turn)
     k = 3*j-2 ! Indices in the random number array
 
     ! Compute Scattering Probability
+    targetDensity = scatter_profile_getDensity(idPro,xv1(j),xv2(j))
     if(autoRatio) then
-      targetDensity = scatter_profile_getDensity(idPro,xv1(j),xv2(j))
-      scatterProb   = (targetDensity*sigmaTot)*elemScale
+      scatterProb = (targetDensity*sigmaTot)*elemScale
     else
-      scatterProb   = ratioTot*elemScale
+      scatterProb = ratioTot*elemScale
     end if
     if(rndVals(k) > scatterProb) then
       cycle
@@ -946,7 +947,7 @@ subroutine scatter_thin(iElem, ix, turn)
       cycle
     end if
 
-    phi = 2*pi*rndVals(k+2)
+    phi = (2*pi)*rndVals(k+2)
 
     ! If we're scaling the probability with DYNK, update the statistical weight
     scatter_statScale(partID(j)) = scatter_statScale(partID(j)) / elemScale
@@ -980,7 +981,7 @@ subroutine scatter_thin(iElem, ix, turn)
       iRecords(1,nRecords) = partID(j)
       iRecords(2,nRecords) = turn
       cRecords(1,nRecords) = bez(ix)
-      cRecords(2,nRecords) = trim(scatter_genList(idGen)%genName)
+      cRecords(2,nRecords) = chr_rPadCut(scatter_genList(idGen)%genName,mNameLen)
       cRecords(3,nRecords) = scatter_procNames(procID)
       iRecords(3,nRecords) = iLost
       rRecords(1,nRecords) = t
@@ -994,7 +995,7 @@ subroutine scatter_thin(iElem, ix, turn)
     else
 #endif
       write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f12.3,1x,f12.6,1x,f9.6,5(1x,1pe16.9))") &
-        partID(j), turn, bez(ix)(1:20), chr_rPad(trim(scatter_genList(idGen)%genName),20), scatter_procNames(procID), &
+        partID(j), turn, chr_rPadCut(bez(ix),20), chr_rPadCut(scatter_genList(idGen)%genName,20), scatter_procNames(procID), &
         iLost, t, theta, phi, dEE, dPP, targetDensity, scatterProb, scatter_statScale(partID(j))
 #ifdef CR
       scatter_logFilePos = scatter_logFilePos + 1
@@ -1016,8 +1017,8 @@ subroutine scatter_thin(iElem, ix, turn)
     call h5_prepareWrite(scatter_logDataSet, nRecords)
     call h5_writeData(scatter_logDataSet, 1,  nRecords, iRecords(1,1:nRecords))
     call h5_writeData(scatter_logDataSet, 2,  nRecords, iRecords(2,1:nRecords))
-    call h5_writeData(scatter_logDataSet, 3,  nRecords, cRecords(1,1:nRecords))
-    call h5_writeData(scatter_logDataSet, 4,  nRecords, cRecords(2,1:nRecords))
+    call h5_writeData(scatter_logDataSet, 3,  nRecords, cRecords(1,1:nRecords)(1:mNameLen))
+    call h5_writeData(scatter_logDataSet, 4,  nRecords, cRecords(2,1:nRecords)(1:mNameLen))
     call h5_writeData(scatter_logDataSet, 5,  nRecords, cRecords(3,1:nRecords)(1:8))
     call h5_writeData(scatter_logDataSet, 6,  nRecords, iRecords(3,1:nRecords))
     call h5_writeData(scatter_logDataSet, 7,  nRecords, rRecords(1,1:nRecords))
@@ -1095,9 +1096,11 @@ subroutine scatter_thin(iElem, ix, turn)
   call dealloc(nLost,     "nLost")
   call dealloc(nScattered,"nScattered")
 #ifdef HDF5
-  call dealloc(iRecords,           "iRecords")
-  call dealloc(rRecords,           "rRecords")
-  call dealloc(cRecords, mNameLen, "cRecords")
+  if(h5_useForSCAT) then
+    call dealloc(iRecords,           "iRecords")
+    call dealloc(rRecords,           "rRecords")
+    call dealloc(cRecords, mNameLen, "cRecords")
+  end if
 #endif
 
   call time_stopClock(time_clockSCAT)

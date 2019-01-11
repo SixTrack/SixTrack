@@ -8,14 +8,16 @@
 
 using namespace Pythia8;
 
-extern "C" bool pythiaWrapper_init() {
+extern "C" {
+
+bool pythiaWrapper_init() {
   if(!pythia.init()) return false;
   pythia.settings.writeFile("pythia_settings.dat", true);
   std::cout << "PYTHIA> Done" << std::endl;
   return true;
 }
 
-extern "C" bool pythiaWrapper_defaults() {
+bool pythiaWrapper_defaults() {
   std::cout << "PYTHIA> Setting defaults" << std::endl;
   pythia.settings.flag("Init:showChangedSettings", true);
   pythia.settings.flag("Init:showChangedParticleData", false);
@@ -24,7 +26,7 @@ extern "C" bool pythiaWrapper_defaults() {
   return true;
 }
 
-extern "C" void pythiaWrapper_setProcess(bool sEL, bool sSD, bool sDD, bool sCD, bool sND) {
+void pythiaWrapper_setProcess(bool sEL, bool sSD, bool sDD, bool sCD, bool sND) {
   std::cout << "PYTHIA> Setting processes" << std::endl;
   pythia.settings.flag("SoftQCD:elastic", sEL);
   pythia.settings.flag("SoftQCD:singleDiffractive", sSD);
@@ -33,17 +35,17 @@ extern "C" void pythiaWrapper_setProcess(bool sEL, bool sSD, bool sDD, bool sCD,
   pythia.settings.flag("SoftQCD:nonDiffractive", sND);
 }
 
-extern "C" void pythiaWrapper_setCoulomb(bool sCMB, double tAbsMin) {
+void pythiaWrapper_setCoulomb(bool sCMB, double tAbsMin) {
   pythia.settings.flag("SigmaElastic:Coulomb", sCMB);
   pythia.settings.parm("SigmaElastic:tAbsMin", tAbsMin);
 }
 
-extern "C" void pythiaWrapper_setSeed(int rndSeed) {
+void pythiaWrapper_setSeed(int rndSeed) {
   std::cout << "PYTHIA> Setting random seed" << std::endl;
   pythia.settings.mode("Random:seed", rndSeed);
 }
 
-extern "C" void pythiaWrapper_setBeam(int frameType, int idA, int idB, double eA, double eB) {
+void pythiaWrapper_setBeam(int frameType, int idA, int idB, double eA, double eB) {
   std::cout << "PYTHIA> Setting beam parameters" << std::endl;
   pythia.settings.mode("Beams:frameType", frameType);
   pythia.settings.mode("Beams:idA", idA);
@@ -52,18 +54,18 @@ extern "C" void pythiaWrapper_setBeam(int frameType, int idA, int idB, double eA
   pythia.settings.parm("Beams:eB", eB);
 }
 
-extern "C" void pythiaWrapper_readFile(char* fileName) {
+void pythiaWrapper_readFile(char* fileName) {
   std::cout << "PYTHIA> Loading settings from external file" << std::endl;
   pythia.readFile(std::string(fileName));
 }
 
-extern "C" void pythiaWrapper_getCrossSection(double& sigTot, double& sigEl) {
+void pythiaWrapper_getCrossSection(double& sigTot, double& sigEl) {
   // sigTot = pythia.info.sigmaGen(0);
   sigTot = pythia.parm("SigmaTotal:sigmaTot");
   sigEl  = pythia.parm("SigmaTotal:sigmaEl");
 }
 
-extern "C" void pythiaWrapper_getEvent(bool& status, int& code, double& t, double& theta, double& dEE, double& dPP) {
+void pythiaWrapper_getEvent(bool& status, int& code, double& t, double& theta, double& dEE, double& dPP) {
   status = pythia.next();
   code   = pythia.info.code();
   if(!status) {
@@ -104,4 +106,6 @@ extern "C" void pythiaWrapper_getEvent(bool& status, int& code, double& t, doubl
     dEE   = 0.0;
     dPP   = 0.0;
   }
+}
+
 }
