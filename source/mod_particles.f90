@@ -159,7 +159,7 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
   omoidpsv(1:napx) = ((one-mtc(1:napx))*oidpsv(1:napx))*c1e3
   rvv(1:napx)      = (ejv(1:napx)*e0f)/(e0*ejfv(1:napx))     ! Beta_0 / beta(j)
 
-  if(doUpdateAngle) then ! Update particle angle, but only if energy change during tracking
+  if(doUpdateAngle) then ! Update particle angles
     yv1(1:napx)    = (ejf0v(1:napx)/ejfv(1:napx))*yv1(1:napx)
     yv2(1:napx)    = (ejf0v(1:napx)/ejfv(1:napx))*yv2(1:napx)
   end if
