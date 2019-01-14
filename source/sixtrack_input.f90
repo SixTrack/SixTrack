@@ -1963,7 +1963,7 @@ subroutine sixin_parseInputLineRFMU(inLine, iLine, iErr)
     ! to the currently highest multipole seen (i)
     ! Changed so also 0 is considered to be a mutipole, since it might be changed later by dynk
 
-    nmu_rf(iil)              = nmul
+    nmu_rf(sixin_rfm)        = nmul
     norrfamp(sixin_rfm,nmul) = namp0
     norrfph(sixin_rfm,nmul)  = nphase0
     skrfamp(sixin_rfm,nmul)  = samp0
