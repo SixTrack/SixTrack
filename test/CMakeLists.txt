@@ -55,6 +55,7 @@ set(TESTS_NOFORT10
   elensidealthck6d
   exact
   generalized-rf-multipoles
+  generalized-rf-multipoles-missalignments
   geometry
   momentum_scan
   multipoles_DYNK
@@ -163,6 +164,7 @@ list(APPEND SIXTRACK_TESTS
   frs
   frs60
   generalized-rf-multipoles
+  generalized-rf-multipoles-missalignments
   geometry
   last_amp
   lost
@@ -437,6 +439,7 @@ set(FAST_TESTS
   fcc
   frs_da
   generalized-rf-multipoles
+  generalized-rf-multipoles-missalignments
   geometry
   last_amp
   lost
