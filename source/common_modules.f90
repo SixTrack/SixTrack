@@ -112,7 +112,7 @@ end module mod_settings
 
 ! ================================================================================================ !
 !  THAT BIG COMMON VARIABLES MODULE
-!  Last modified: 2018-06-13
+!  Last modified: 2019-01-14
 ! ================================================================================================ !
 module mod_common
 
@@ -138,10 +138,10 @@ module mod_common
   integer,          save :: kanf       = 0    ! Structure index where the GO keyword is issued
 
   ! TRACK Block Variables
+  real(kind=fPrec), save :: amp0       = zero ! End amplitude
   integer,          save :: numl       = 0    ! Number of turns in the forward direction
   integer,          save :: numlr      = 0    ! Number of turns in the backward direction
   integer,          save :: napx       = 0    ! Number of amplitude variations
-  real(kind=fPrec), save :: amp0       = zero ! End amplitude
   integer,          save :: ird        = 0    ! Ignored
   integer,          save :: imc        = 0    ! Variations of relative momentum deviation
   integer,          save :: niu(2)     = 0    ! Unknown
@@ -253,6 +253,7 @@ module mod_common
   real(kind=fPrec), allocatable, save :: sm(:)         ! Single Elements: Non-linear field, avg strength
   integer,          allocatable, save :: kz(:)         ! Single Elements: 2nd field, type
   integer,          allocatable, save :: kp(:)         ! Single Elements: Additional flag
+  real(kind=fPrec), allocatable, save :: dki(:,:)      ! Single Elements: [H bend kick, V bend kick, dipole length] (:,3)
 
   real(kind=fPrec), allocatable, save :: a(:,:,:)      ! Something Something Matrix (:,2,6)
 
@@ -281,7 +282,7 @@ module mod_common
 
   ! Single Element and Multipole Indexed (nele,mmul)
   real(kind=fPrec), allocatable, save :: bk0(:,:)      ! Multipoles: B-value
-  real(kind=fPrec), allocatable, save :: ak0(:,:)      ! Multipoles: A-Value
+  real(kind=fPrec), allocatable, save :: ak0(:,:)      ! Multipoles: A-value
   real(kind=fPrec), allocatable, save :: bka(:,:)      ! Multipoles: B-RMS
   real(kind=fPrec), allocatable, save :: aka(:,:)      ! Multipoles: A-RMS
   real(kind=fPrec), allocatable, save :: norrfamp(:,:) ! RF Multipoles:
@@ -376,9 +377,6 @@ module mod_common
 
   ! common/co6d/
   real(kind=fPrec), save :: clo6(3),clop6(3)
-
-  ! common /dkic/
-  real(kind=fPrec), allocatable, save :: dki(:,:) !(nele,3)
 
   ! common /beam/
   real(kind=fPrec),              save :: sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb)
@@ -499,7 +497,6 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(bezr,    mNameLen, 3, nele_new,       str_nmSpace, "bezr")
   call alloc(kpa,                  nele_new,       0,           "kpa")
   call alloc(bez,     mNameLen,    nele_new,       str_nmSpace, "bez")
-! call alloc(bezb,    mNameLen,    nele_new,       str_nmSpace, "bezb")
   call alloc(bezl,    mNameLen,    nele_new,       str_nmSpace, "bezl")
   call alloc(ncororb,              nele_new,       0,           "ncororb")
   call alloc(ratioe,               nele_new,       one,         "ratioe")
