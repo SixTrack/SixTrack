@@ -6,7 +6,7 @@
 
 * The memory allocation log is now only written when SixTrack is built with the `DEBUG` flag. This file can grow fairly large, and has caused issues when running on BOINC. PR #750 (V.K. Berglyd Olsen)
 * Added the option to write a file with the initial (pre-tracking) coordinates of all particles. This is the same format as the final state files added earlier. The feature is enabled with the `INITIALSTATE` and `FINALSTATE` keywords in the `SETTINGS` block. PR #760 (V.K. Berglyd Olsen)
-* Generalised RF-Multipoles have been added to SixTrack. See manual. PR #756 (Tobias Persson)
+* Generalised RF-Multipoles have been added to SixTrack. See manual. PR #756 (T. Persson)
 
 **Bug Fixes**
 
