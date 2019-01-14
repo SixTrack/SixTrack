@@ -126,16 +126,16 @@ module mod_common
   integer, save :: ierro         = 0
   integer, save :: errout_status = 0
 
-  ! Constants
-  real(kind=fPrec),     save :: pi2    = half*pi
-  real(kind=fPrec),     save :: twopi  = two*pi
-  real(kind=fPrec),     save :: pisqrt = sqrt(pi)
-  real(kind=fPrec),     save :: rad    = pi/c180e0
+  ! Pi Constants
+  real(kind=fPrec), save :: pi2        = half*pi
+  real(kind=fPrec), save :: twopi      = two*pi
+  real(kind=fPrec), save :: pisqrt     = sqrt(pi)
+  real(kind=fPrec), save :: rad        = pi/c180e0
 
   ! Loop Variables
-  integer,              save :: iu   = 0 ! Number of entries in the accelerator
-  integer,              save :: il   = 0 ! Number of single elements
-  integer,              save :: kanf = 0 ! Structure index where the GO keyword is issued
+  integer,          save :: iu         = 0    ! Number of entries in the accelerator
+  integer,          save :: il         = 0    ! Number of single elements
+  integer,          save :: kanf       = 0    ! Structure index where the GO keyword is issued
 
   ! TRACK Block Variables
   integer,          save :: numl       = 0    ! Number of turns in the forward direction
@@ -169,6 +169,24 @@ module mod_common
   integer,          save :: mblo       = 0
   integer,          save :: mbloz      = 0
 
+  ! Synchrotron Motion and Differential Algebra Block
+  real(kind=fPrec), save :: qs         = zero ! Synchrotron tune [N/turn]
+  real(kind=fPrec), save :: pma        = zero ! Rest mass of the particle in MeV/c^2
+  real(kind=fPrec), save :: phas       = zero ! Synchrotron acceleration phase [rad]
+  real(kind=fPrec), save :: hsy(3)     = zero ! Cavity [voltage, unused, RF frequency]
+  real(kind=fPrec), save :: crad       = zero ! electron radius * electron mass / pma
+  real(kind=fPrec), save :: dppoff     = zero ! Offset relative momentum deviation
+  real(kind=fPrec), save :: tlen       = zero ! Length of the accelerator [m]
+  real(kind=fPrec), save :: mtcda      = one  ! Somthing FOX
+  integer,          save :: iicav      = 0    ! Used between runcav and runda
+  integer,          save :: ition      = 0    ! Transition energy switch:
+  integer,          save :: idp        = 0    ! Synchrotron motion
+  integer,          save :: ncy        = 0    ! Number of cavity locations
+  integer,          save :: ixcav      = 0    ! Stores ix, presumably for cavity
+
+  ! Various Flags
+  integer,          save :: mout2      = 0    ! Magnet Fluctuations: Write fort.2 > fort.4 (mod_fluc)
+
   ! Reference Particle
   real(kind=fPrec), save :: e0         = zero ! Reference energy
 
@@ -180,10 +198,13 @@ module mod_common
   ! ==============
 
   ! Block Element Indexed (nblo)
+  character(len=:), allocatable, save :: bezb(:)       ! Block Elements: Name
+  real(kind=fPrec), allocatable, save :: elbe(:)       ! Block Elements: Length
+  integer,          allocatable, save :: mtyp(:,:)     ! Block Elements: Indices of single elements (:,nelb)
+
   real(kind=fPrec), allocatable, save :: bl1(:,:,:)    ! Block Elements: (:,2,6)
   real(kind=fPrec), allocatable, save :: bl2(:,:,:)    ! Block Elements: (:,2,6)
   integer,          allocatable, save :: mel(:)        ! Block Elements: Number of single elements
-  integer,          allocatable, save :: mtyp(:,:)     ! Block Elements: Indices of single elements (:,nelb)
 
   ! Single Element Indexed (nele)
   character(len=:), allocatable, save :: bez(:)        ! Single Elements: 1st field, name
@@ -231,19 +252,22 @@ module mod_common
 
   ! Structure Element Indexed (nblz)
   real(kind=fPrec), allocatable, save :: sigmoff(:)
-  real(kind=fPrec), allocatable, save :: tiltc(:)      ! Magnet tilt, cos component
-  real(kind=fPrec), allocatable, save :: tilts(:)      ! Magnet tilt, sin component
-  integer,          allocatable, save :: icext(:)      ! Magnet error index (mod_fluc)
-  integer,          allocatable, save :: icextal(:)    ! Magnet misalignemnt index (mod_fluc)
+  real(kind=fPrec), allocatable, save :: tiltc(:)      ! Magnet Tilt: Cos component
+  real(kind=fPrec), allocatable, save :: tilts(:)      ! Magnet Tilt: Sin component
+  integer,          allocatable, save :: icext(:)      ! Magnet Error: Index (mod_fluc)
+  integer,          allocatable, save :: mzu(:)        ! Magnet Error: Random number index
+  integer,          allocatable, save :: icextal(:)    ! Magnet Misalignment: index (mod_fluc)
+
   integer,          allocatable, save :: ic(:)         ! Structure to single/block element map
 
+  ! Random Numbers Indexed (nzfz)
+  real(kind=fPrec), allocatable, save :: zfz(:)        ! Magnet errors
 
 
 
 
-  ! common /syn/
-  real(kind=fPrec), save :: qs,pma,phas0,phas,hsy(3),crad,dppoff,tlen,mtcda
-  integer,          save :: iicav,ition,idp,ncy,ixcav
+
+
 
 
   ! common /corcom/
@@ -251,14 +275,9 @@ module mod_common
   integer,          save :: icode,idam,its6d
 
   ! common /rand0/
-  real(kind=fPrec), allocatable, save :: zfz(:) ! (nzfz)
   integer,          save :: iorg,izu0,mcut
 
   character(len=:), allocatable, save :: bezr(:,:) ! (mNameLen)(3,nele)
-  integer,          allocatable, save :: mzu(:)    ! (nblz)
-
-  ! common /rand1/
-  integer,                       save :: mout2
 
   ! common /beo/
   real(kind=fPrec), save :: aper(2),di0(2),dip0(2),ta(6,6)
@@ -273,8 +292,6 @@ module mod_common
   integer,          allocatable, save :: kpa(:) !(nele)
 
   ! common /linop/
-  character(len=:), allocatable, save :: bezb(:)         ! (nblo)
-  real(kind=fPrec), allocatable, save :: elbe(:)         ! (nblo)
   real(kind=fPrec),              save :: eui,euii
   integer,                       save :: ilin = 0
   integer,                       save :: nt

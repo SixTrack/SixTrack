@@ -263,7 +263,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'pma ',pma
   write(99,*) 'ej ',ej
   write(99,*) 'ejf ',ejf
-  write(99,*) 'phas0 ',phas0
   write(99,*) 'phas ',phas
   write(99,*) 'hsy ',hsy
   write(99,*) 'crad ',crad
@@ -745,7 +744,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) pma
   write(99) ej
   write(99) ejf
-  write(99) phas0
   write(99) phas
   write(99) hsy
   write(99) crad
@@ -1221,7 +1219,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'pma ',pma
   write(99,100) 'ej ',ej
   write(99,100) 'ejf ',ejf
-  write(99,100) 'phas0 ',phas0
   write(99,100) 'phas ',phas
   write(99,100) 'hsy ',hsy
   write(99,100) 'crad ',crad

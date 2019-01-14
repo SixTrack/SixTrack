@@ -2746,9 +2746,6 @@ subroutine comnul
   ! SINGLE ELEMENT BLOCK
   ithick  = 0     ! mod_common
 
-  ! DIFFERENTIAL ALGEBRA BLOCK
-  idp     = 0     ! mod_common
-
   ! RANDOM NUMBERS VARIABLES
   iorg    = 0     ! mod_common
 
@@ -2795,9 +2792,6 @@ subroutine comnul
   ! RESONANCE COMPENSATION BLOCK
   irmod2  = 0     ! mod_common
   nre     = 0     ! mod_common
-
-  ! SYNCHROTRON OSCILLATIONS BLOCK
-  phas    = zero  ! mod_common
 
   ! POSTPROCESSING
   toptit(:)  = " "  ! mod_common
@@ -2846,24 +2840,6 @@ subroutine comnul
       imod1=0
       imod2=0
 !-----------------------------------------------------------------------
-      ! icorr=0
-      ! nctype=0
-      ! namp=0
-      ! nmom=0
-      ! nmom1=0
-      ! nmom2=0
-      ! weig1=zero
-      ! weig2=zero
-      ! dpmax=zero
-!-----------------------------------------------------------------------
-!     dp1=zero
-      qs=zero
-      crad=zero
-      dppoff=zero
-      tlen=zero
-      pma=zero
-      phas0=zero
-      ition=0
       dpscor=one
       sigcor=one
       dma=zero
@@ -2922,7 +2898,6 @@ subroutine comnul
 
       do 20 i=1,3
         iq(i)=0
-        hsy(i)=zero
         clo6(i)=zero
         clop6(i)=zero
         clon(i)=zero
