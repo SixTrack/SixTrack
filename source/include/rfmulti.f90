@@ -38,9 +38,5 @@ do j=1,napx
 
 end do
 
-call part_updatePartEnergy(1)
-
-yv1(1:napx) = (ejf0v(1:napx)/ejfv(1:napx))*yv1(1:napx)
-yv2(1:napx) = (ejf0v(1:napx)/ejfv(1:napx))*yv2(1:napx)
-
+call part_updatePartEnergy(1,.true.)
 if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)

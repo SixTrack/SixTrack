@@ -2,3 +2,4 @@ dump.dat
 dumpAll.dat
 StartDUMP.dat
 dynksets.dat
+final_state.dat

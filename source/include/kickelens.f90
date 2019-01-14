@@ -35,9 +35,9 @@ if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
             elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
             elens_radial_profile_nPoints(elens_iRadial(ielens(ix)))+1)-elens_radial_fr1(ielens(ix)) )/elens_geo_norm(ielens(ix))
     case default
-      write(lout,"(a,i0)") "ELENS> ERROR in kickelens: elens_type=",elens_type(ielens(ix))," not recognized. "
-      write(lout,"(a)")    "ELENS>       Possible values for type are: 1 and 2"
-      call prror(-1)
+      write(lout,"(a,i0,a)") "ELENS> ERROR in kickelens: elens_type=",elens_type(ielens(ix))," not recognized. "
+      write(lout,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
+      call prror
     end select
   else ! r1 < r2 <= rrelens
     frrelens = one

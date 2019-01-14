@@ -66,10 +66,6 @@ subroutine trauthin(nthinerr)
   call alloc(cbxb, npart, zero, "cbxb")
   call alloc(cbzb, npart, zero, "cbzb")
 
-  do i=1,npart
-    partID(i)=i
-    parentID(i)=i
-  end do
   do i=1,nblz
     ktrack(i)=0
     strack(i)=zero
@@ -1921,18 +1917,9 @@ subroutine thin6d(nthinerr)
           yv1(j)=yv1(j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
           yv2(j)=yv2(j) - ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        call part_updatePartEnergy(1,.true.)
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (58) ! JBG RF CC Multipoles
         xory=1
@@ -1944,18 +1931,9 @@ subroutine thin6d(nthinerr)
           yv2(j)=yv2(j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
           yv1(j)=yv1(j) + ((crabamp2*cikve)*moidpsv(j))*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        call part_updatePartEnergy(1,.true.)
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (59) ! JBG RF CC Multipoles
         xory=1
@@ -1968,18 +1946,9 @@ subroutine thin6d(nthinerr)
           yv2(j)=yv2(j)-((two*(((crabamp3*crkve)*cikve)*moidpsv(j)))*c1m3)*cos_mb(kcrab)
           ejv(j)=ejv(j)-(((((one/three)*(crabamp3))*(crkve**3-(three*cikve**2)*crkve))&
                 *(((crabfreq*two)*pi)/clight)*c1m6)*sin_mb(kcrab))*e0f
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        call part_updatePartEnergy(1,.true.)
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (60) ! JBG RF CC Multipoles
         xory=1
@@ -1992,18 +1961,9 @@ subroutine thin6d(nthinerr)
           yv1(j)=yv1(j)+((two*(crabamp3*(crkve*(cikve*oidpsv(j)))))*c1m3)*cos_mb(kcrab)
           ejv(j)=ejv(j)+(((((one/three)*(crabamp3))*(cikve**3- &
                 ((three*crkve**2)*cikve)))*(((crabfreq*two)*pi)/clight))*c1m6)*(sin_mb(kcrab)*e0f)
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        call part_updatePartEnergy(1,.true.)
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (61) ! JBG RF CC Multipoles
         xory=1
@@ -2016,18 +1976,9 @@ subroutine thin6d(nthinerr)
           yv2(j)=yv2(j) - (((crabamp4*moidpsv(j))*((three*cikve)*crkve**2-cikve**3))*c1m6)*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((0.25_fPrec*(crabamp4))*(crkve**4-(six*crkve**2)*cikve**2+cikve**4))&
                 *(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
-        ejf0v(j)=ejfv(j)
-        ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-        rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-        dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-        oidpsv(j)=one/(one+dpsv(j))
-        moidpsv(j)=mtc(j)/(one+dpsv(j))
-        omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-        dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-        yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-        yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-        if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        call part_updatePartEnergy(1,.true.)
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (62) ! JBG RF CC Multipoles
         xory=1
@@ -2039,18 +1990,9 @@ subroutine thin6d(nthinerr)
           yv1(j)=yv1(j) - (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)
           yv2(j)=yv2(j) - (((crabamp4*moidpsv(j))*((three*crkve)*cikve**2-crkve**3))*c1m6)*cos_mb(kcrab)
           ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3*cikve)-(cikve**3*crkve)))*(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
-          ejf0v(j)=ejfv(j)
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-          if(ithick.eq.1) call envarsv(dpsv,moidpsv,rvv,ekv)
         end do
+        call part_updatePartEnergy(1,.true.)
+        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (63) ! Elens
         do j=1,napx

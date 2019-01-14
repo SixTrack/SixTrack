@@ -350,6 +350,28 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       write(lout,"(a,i0)") "INPUT> Printing of particle summary is DISABLED"
     end if
 
+  case("INITIALSTATE")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "INPUT> ERROR INITIALSTATE takes one value, got ",nSplit-1
+      iErr = .true.
+      return
+    end if
+    select case(lnSplit(2))
+    case("binary")
+      st_initialstate = 1
+    case("text")
+      st_initialstate = 2
+    case default
+      write(lout,"(a)") "INPUT> ERROR INITIALSTATE type must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
+      iErr = .true.
+      return
+    end select
+    if(st_initialstate == 1) then
+      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a binary file"
+    else
+      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a text file"
+    end if
+
   case("FINALSTATE")
     if(nSplit /= 2) then
       write(lout,"(a,i0)") "INPUT> ERROR FINALSTATE takes one value, got ",nSplit-1
