@@ -2745,10 +2745,6 @@ subroutine comnul
 
   ! SINGLE ELEMENT BLOCK
   ithick  = 0     ! mod_common
-  il      = 0     ! mod_common
-
-  ! STRUCTURE INPUT BLOCK
-  kanf    = 0     ! mod_common
 
   ! DIFFERENTIAL ALGEBRA BLOCK
   idp     = 0     ! mod_common
@@ -2979,41 +2975,16 @@ subroutine comnul
 
 !--NUMBER OF ELEMENTS---------------------------------------------------
       do i=1,nele
-        ! kz(i)=0
-        ! kp(i)=0
-        ! imtr(i)=0
-        ! kpa(i)=0
-        ! isea(i)=0
-        ! ncororb(i)=0
-        ! iratioe(i)=0
-        ! itionc(i)=0
         dki(i,1)=zero
         dki(i,2)=zero
         dki(i,3)=zero
-        ed(i)=zero
-        el(i)=zero
-        ek(i)=zero
-        sm(i)=zero
-        xpl(i)=zero
-        xrms(i)=zero
-        zpl(i)=zero
-        zrms(i)=zero
         ratioe(i)=one
-        ! hsyc(i)=zero
-        ! phasc(i)=zero
         ptnfac(i)=zero
         acdipph(i)=zero
         crabph(i)=zero
         crabph2(i)=zero
         crabph3(i)=zero
         crabph4(i)=zero
-        bez(i)=' '
-        bezl(i)=' '
-        do i3=1,2
-          do i4=1,6
-            a(i,i3,i4)=zero
-          end do
-        end do
 
         do 140 i1=1,3
           bezr(i1,i)=' '
@@ -3035,7 +3006,6 @@ subroutine comnul
 
 !--# OF TRAJECTORIES----------------------------------------------------
       do 220 i=1,mpa
-        rvf(i)=one
         do 210 i1=1,2
           x(i,i1)=zero
           y(i,i1)=zero

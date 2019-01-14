@@ -132,34 +132,12 @@ module mod_common
   real(kind=fPrec),     save :: pisqrt = sqrt(pi)
   real(kind=fPrec),     save :: rad    = pi/c180e0
 
-  ! common /str/
-  integer,              save :: il,kanf
-  integer,              save :: iu = 0
+  ! Loop Variables
+  integer,              save :: iu   = 0 ! Number of entries in the accelerator
+  integer,              save :: il   = 0 ! Number of single elements
+  integer,              save :: kanf = 0 ! Structure index where the GO keyword is issued
 
-  ! common /ell/
-  real(kind=fPrec), allocatable, save :: ed(:),el(:),ek(:),sm(:)        ! (nele)
-  integer,          allocatable, save :: kz(:),kp(:)                    ! (nele)
-
-  ! common /bbb/
-  real(kind=fPrec), allocatable, save :: bbbx(:),bbby(:),bbbs(:)        ! (nele)
-
-  ! common /pla/
-  real(kind=fPrec), allocatable, save :: xpl(:),xrms(:),zpl(:),zrms(:)  ! (nele)
-
-  ! common /str2/
-  integer,          allocatable, save :: mel(:)    ! (nblo)
-  integer,          allocatable, save :: mtyp(:,:) ! (nblo,nelb)
-  integer,          allocatable, save :: mstr(:)   ! (nblo)
-
-  ! common /mat/
-  real(kind=fPrec), allocatable, save :: a(:,:,:)   ! (nele,2,6)
-  real(kind=fPrec), allocatable, save :: bl1(:,:,:) ! (nblo,2,6)
-  real(kind=fPrec), allocatable, save :: bl2(:,:,:) ! (nblo,2,6)
-
-  ! common /syos2/
-  real(kind=fPrec), save :: rvf(mpa)
-
-  ! TRACK Block
+  ! TRACK Block Variables
   integer,          save :: numl       = 0    ! Number of turns in the forward direction
   integer,          save :: numlr      = 0    ! Number of turns in the backward direction
   integer,          save :: napx       = 0    ! Number of amplitude variations
@@ -181,7 +159,7 @@ module mod_common
   integer,          save :: napxo      = 0    ! Original value of napx
   integer,          save :: nnuml      = 0
 
-  ! INITIAL COORDINATES Block
+  ! INITIAL COORDINATES Block Variables
   real(kind=fPrec), save :: rat        = zero
   integer,          save :: iver       = 0
 
@@ -201,29 +179,63 @@ module mod_common
   !  ALLOCATABLES
   ! ==============
 
+  ! Block Element Indexed (nblo)
+  real(kind=fPrec), allocatable, save :: bl1(:,:,:)    ! Block Elements: (:,2,6)
+  real(kind=fPrec), allocatable, save :: bl2(:,:,:)    ! Block Elements: (:,2,6)
+  integer,          allocatable, save :: mel(:)        ! Block Elements: Number of single elements
+  integer,          allocatable, save :: mtyp(:,:)     ! Block Elements: Indices of single elements (:,nelb)
+
   ! Single Element Indexed (nele)
-  real(kind=fPrec), allocatable, save :: hsyc(:)    ! Accelerating cavity: 'Frequency'
-  real(kind=fPrec), allocatable, save :: phasc(:)   ! Accelerating cavity: Lag phase
-  real(kind=fPrec), allocatable, save :: benkc(:)   ! Multipoles: Bending strength of the dipole [mrad]
-  real(kind=fPrec), allocatable, save :: r00(:)     ! Multipoles: Reference radius [mm]
-  real(kind=fPrec), allocatable, save :: scalemu(:) ! Multipoles: Scale (DYNK)
-  integer,          allocatable, save :: itionc(:)  ! Accelerating cavity: Regime
-  integer,          allocatable, save :: nmu(:)     ! Multipoles: Max multipole order
-  integer,          allocatable, save :: irm(:)     ! Multipoles: Index of the associated element
+  character(len=:), allocatable, save :: bez(:)        ! Single Elements: 1st field, name
+  character(len=:), allocatable, save :: bezl(:)       ! Single Elements: Linear optics write out
+  real(kind=fPrec), allocatable, save :: ed(:)         ! Single Elements: 3rd field, additional
+  real(kind=fPrec), allocatable, save :: ek(:)         ! Single Elements: 4th field, additional
+  real(kind=fPrec), allocatable, save :: el(:)         ! Single Elements: 5th field, length [m]
+  real(kind=fPrec), allocatable, save :: bbbx(:)       ! Single Elements: 6th field
+  real(kind=fPrec), allocatable, save :: bbby(:)       ! Single Elements: 7th field
+  real(kind=fPrec), allocatable, save :: bbbs(:)       ! Single Elements: 8th field
+  real(kind=fPrec), allocatable, save :: sm(:)         ! Single Elements: Non-linear field, avg strength
+  integer,          allocatable, save :: kz(:)         ! Single Elements: 2nd field, type
+  integer,          allocatable, save :: kp(:)         ! Single Elements: Additional flag
+  
+  real(kind=fPrec), allocatable, save :: a(:,:,:)      ! Something Something Matrix (:,2,6)
+
+  real(kind=fPrec), allocatable, save :: hsyc(:)       ! Accelerating cavity: 'Frequency'
+  real(kind=fPrec), allocatable, save :: phasc(:)      ! Accelerating cavity: Lag phase
+  integer,          allocatable, save :: itionc(:)     ! Accelerating cavity: Regime
+
+  real(kind=fPrec), allocatable, save :: benkc(:)      ! Multipoles: Bending strength of the dipole [mrad]
+  real(kind=fPrec), allocatable, save :: r00(:)        ! Multipoles: Reference radius [mm]
+  real(kind=fPrec), allocatable, save :: scalemu(:)    ! Multipoles: Scale (DYNK)
+  integer,          allocatable, save :: nmu(:)        ! Multipoles: Max multipole order
+  integer,          allocatable, save :: irm(:)        ! Multipoles: Index of the associated element
+
+  real(kind=fPrec), allocatable, save :: freq_rfm(:)   ! RF Multipoles:
+  integer,          allocatable, save :: nmu_rf(:)     ! RF Multipoles: Max multipole order
+  integer,          allocatable, save :: irm_rf(:)     ! RF Multipoles: Index of the associated element
+
+  real(kind=fPrec), allocatable, save :: xpl(:)        ! Displacement (DISP): Value of horizontal displacement [mm]
+  real(kind=fPrec), allocatable, save :: xrms(:)       ! Displacement (DISP): RMS of horizontal displacement [mm]
+  real(kind=fPrec), allocatable, save :: zpl(:)        ! Displacement (DISP): Value of vertical displacement [mm]
+  real(kind=fPrec), allocatable, save :: zrms(:)       ! Displacement (DISP): RMS of vertical displacement [mm]
 
   ! Single Element and Multipole Indexed (nele,mmul)
-  real(kind=fPrec), allocatable, save :: bk0(:,:)   ! Multipoles: B-value
-  real(kind=fPrec), allocatable, save :: ak0(:,:)   ! Multipoles: A-Value
-  real(kind=fPrec), allocatable, save :: bka(:,:)   ! Multipoles: B-RMS
-  real(kind=fPrec), allocatable, save :: aka(:,:)   ! Multipoles: A-RMS
+  real(kind=fPrec), allocatable, save :: bk0(:,:)      ! Multipoles: B-value
+  real(kind=fPrec), allocatable, save :: ak0(:,:)      ! Multipoles: A-Value
+  real(kind=fPrec), allocatable, save :: bka(:,:)      ! Multipoles: B-RMS
+  real(kind=fPrec), allocatable, save :: aka(:,:)      ! Multipoles: A-RMS
+  real(kind=fPrec), allocatable, save :: norrfamp(:,:) ! RF Multipoles:
+  real(kind=fPrec), allocatable, save :: norrfph(:,:)  ! RF Multipoles:
+  real(kind=fPrec), allocatable, save :: skrfamp(:,:)  ! RF Multipoles:
+  real(kind=fPrec), allocatable, save :: skrfph(:,:)   ! RF Multipoles:
 
   ! Structure Element Indexed (nblz)
   real(kind=fPrec), allocatable, save :: sigmoff(:)
-  real(kind=fPrec), allocatable, save :: tiltc(:)   ! Magnet tilt, cos component
-  real(kind=fPrec), allocatable, save :: tilts(:)   ! Magnet tilt, sin component
-  integer,          allocatable, save :: icext(:)   ! Magnet error index (mod_fluc)
-  integer,          allocatable, save :: icextal(:) ! Magnet misalignemnt index (mod_fluc)
-  integer,          allocatable, save :: ic(:)      ! Structure to single/block element map
+  real(kind=fPrec), allocatable, save :: tiltc(:)      ! Magnet tilt, cos component
+  real(kind=fPrec), allocatable, save :: tilts(:)      ! Magnet tilt, sin component
+  integer,          allocatable, save :: icext(:)      ! Magnet error index (mod_fluc)
+  integer,          allocatable, save :: icextal(:)    ! Magnet misalignemnt index (mod_fluc)
+  integer,          allocatable, save :: ic(:)         ! Structure to single/block element map
 
 
 
@@ -237,12 +249,6 @@ module mod_common
   ! common /corcom/
   real(kind=fPrec), save :: dpscor,sigcor
   integer,          save :: icode,idam,its6d
-
-  ! RF multipoles
-  real(kind=fPrec), allocatable, save :: norrfamp(:,:),norrfph(:,:)          ! (nele,mmul)
-  real(kind=fPrec), allocatable, save :: skrfamp(:,:),skrfph(:,:)            ! (nele,mmul)
-  real(kind=fPrec), allocatable, save :: freq_rfm(:)
-  integer,          allocatable, save :: nmu_rf(:), irm_rf(:)
 
   ! common /rand0/
   real(kind=fPrec), allocatable, save :: zfz(:) ! (nzfz)
@@ -267,7 +273,6 @@ module mod_common
   integer,          allocatable, save :: kpa(:) !(nele)
 
   ! common /linop/
-  character(len=:), allocatable, save :: bez(:), bezl(:) ! (nele)
   character(len=:), allocatable, save :: bezb(:)         ! (nblo)
   real(kind=fPrec), allocatable, save :: elbe(:)         ! (nblo)
   real(kind=fPrec),              save :: eui,euii
@@ -481,7 +486,6 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(elbe,                 nblo_new,       zero,        "elbe")
   call alloc(mel,                  nblo_new,       0,           "mel")
   call alloc(mtyp,                 nblo_new, nelb, 0,           "mtyp")
-  call alloc(mstr,                 nblo_new,       0,           "mstr")
   call alloc(bl1,                  nblo_new, 2, 6, zero,        "bl1")
   call alloc(bl2,                  nblo_new, 2, 6, zero,        "bl2")
 
@@ -490,8 +494,6 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(imbb,                 nblz_new,       0,           "imbb")
   call alloc(icext,                nblz_new,       0,           "icext")
   call alloc(icextal,              nblz_new,       0,           "icextal")
-! call alloc(exterr,               nblz_new, 40,   zero,        "exterr")   ! Replaced by compact array in mod_fluc
-! call alloc(extalign,             nblz_new, 3,    zero,        "extalign") ! Replaced by compact array in mod_fluc
   call alloc(tiltc,                nblz_new,       one,         "tiltc")
   call alloc(tilts,                nblz_new,       zero,        "tilts")
   call alloc(xsi,                  nblz_new,       zero,        "xsi")

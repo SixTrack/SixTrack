@@ -1592,7 +1592,7 @@ subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
 
     do i=1,nSplit
       nlin = nlin + 1
-      if(nlin >nele) then
+      if(nlin > nele) then
         write(lout,"(2(a,i0))") "LINE> ERROR Too many elements for linear optics write out. Max is ",nele," got ",nlin
         iErr = .true.
         return

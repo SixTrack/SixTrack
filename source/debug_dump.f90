@@ -242,11 +242,9 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'zrms ',zrms
   write(99,*) 'mel ',mel
   write(99,*) 'mtyp ',mtyp
-  write(99,*) 'mstr ',mstr
   write(99,*) 'a ',a
   write(99,*) 'bl1 ',bl1
   write(99,*) 'bl2 ',bl2
-  write(99,*) 'rvf ',rvf
   write(99,*) 'idfor ',idfor
   write(99,*) 'napx ',napx
   write(99,*) 'napxo ',napxo
@@ -726,11 +724,9 @@ subroutine dumpbin(dumpname,n,i)
   write(99) zrms
   write(99) mel
   write(99) mtyp
-  write(99) mstr
   write(99) a
   write(99) bl1
   write(99) bl2
-  write(99) rvf
   write(99) idfor
   write(99) napx
   write(99) napxo
@@ -1204,11 +1200,9 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'zrms ',zrms
   write(99,100) 'mel ',mel
   write(99,100) 'mtyp ',mtyp
-  write(99,100) 'mstr ',mstr
   write(99,100) 'a ',a
   write(99,100) 'bl1 ',bl1
   write(99,100) 'bl2 ',bl2
-  write(99,100) 'rvf ',rvf
   write(99,100) 'idfor ',idfor
   write(99,100) 'napx ',napx
   write(99,100) 'napxo ',napxo
