@@ -133,9 +133,8 @@ module mod_common
   real(kind=fPrec),     save :: rad    = pi/c180e0
 
   ! common /str/
-  integer,              save :: il,mper,mblo,mbloz,msym(nper),kanf
+  integer,              save :: il,kanf
   integer,              save :: iu = 0
-  integer, allocatable, save :: ic(:) !(nblz)
 
   ! common /ell/
   real(kind=fPrec), allocatable, save :: ed(:),el(:),ek(:),sm(:)        ! (nele)
@@ -184,14 +183,41 @@ module mod_common
   integer,          save :: nnuml   = 0
 
   ! INITIAL COORDINATES Block
-  real(kind=fPrec), save :: rat     = zero
-  integer,          save :: iver    = 0
+  real(kind=fPrec), save :: rat        = zero
+  integer,          save :: iver       = 0
+
+  ! BLOC DEFINITONS Block
+  integer,          save :: mper       = 0    ! Number of super periods
+  integer,          save :: msym(nper) = 0
+  integer,          save :: mblo       = 0
+  integer,          save :: mbloz      = 0
+
+  ! Reference Particle
+  real(kind=fPrec), save :: e0         = zero ! Reference energy
+
+  ! Tracking Particles
+  real(kind=fPrec), save :: ej(mpa)    = zero ! Particle energy
+  real(kind=fPrec), save :: ejf(mpa)   = zero ! Particle momentum
+
+  !  ALLOCATABLES
+  ! ==============
+
+  ! Structure Element Indexed (nblz)
+  real(kind=fPrec), allocatable, save :: sigmoff(:)
+  real(kind=fPrec), allocatable, save :: tiltc(:)   ! Magnet tilt, cos component
+  real(kind=fPrec), allocatable, save :: tilts(:)   ! Magnet tilt, sin component
+  integer,          allocatable, save :: icext(:)   ! Magnet error index (mod_fluc)
+  integer,          allocatable, save :: icextal(:) ! Magnet misalignemnt index (mod_fluc)
+  integer,          allocatable, save :: ic(:)      ! Structure to siingle/block element map
+
+
+
+
 
   ! common /syn/
-  real(kind=fPrec), save :: qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3),crad,dppoff,tlen,mtcda
+  real(kind=fPrec), save :: qs,pma,phas0,phas,hsy(3),crad,dppoff,tlen,mtcda
   integer,          save :: iicav,ition,idp,ncy,ixcav
 
-  real(kind=fPrec), allocatable, save :: sigmoff(:)       ! (nblz)
   real(kind=fPrec), allocatable, save :: hsyc(:),phasc(:) ! (nele)
   integer,          allocatable, save :: itionc(:)        ! (nele)
 
@@ -201,14 +227,15 @@ module mod_common
 
   ! Multipole Coefficients
   real(kind=fPrec),              save :: benki
-  real(kind=fPrec), allocatable, save :: benkc(:),r00(:),scalemu(:)         ! (nele)
+  real(kind=fPrec), allocatable, save :: benkc(:),r00(:),scalemu(:)          ! (nele)
   real(kind=fPrec), allocatable, save :: bk0(:,:),ak0(:,:),bka(:,:),aka(:,:) ! (nele,mmul)
   integer,          allocatable, save :: irm(:),nmu(:)                       ! (nele)
 
   ! RF multipoles
-  real(kind=fPrec), allocatable, save :: norrfamp(:,:),norrfph(:,:),skrfamp(:,:),skrfph(:,:) ! (nele,mmul)
-  integer,          allocatable, save :: nmu_rf(:), irm_rf(:)
+  real(kind=fPrec), allocatable, save :: norrfamp(:,:),norrfph(:,:)          ! (nele,mmul)
+  real(kind=fPrec), allocatable, save :: skrfamp(:,:),skrfph(:,:)            ! (nele,mmul)
   real(kind=fPrec), allocatable, save :: freq_rfm(:)
+  integer,          allocatable, save :: nmu_rf(:), irm_rf(:)
 
   ! common /rand0/
   real(kind=fPrec), allocatable, save :: zfz(:) ! (nzfz)
@@ -219,10 +246,6 @@ module mod_common
 
   ! common /rand1/
   integer,                       save :: mout2
-  integer,          allocatable, save :: icext(:),icextal(:) ! (nblz)
-! real(kind=fPrec), allocatable, save :: exterr(:,:)         ! (nblz,40)
-! real(kind=fPrec), allocatable, save :: extalign(:,:)       ! (nblz,3)
-  real(kind=fPrec), allocatable, save :: tiltc(:),tilts(:)   ! (nblz)
 
   ! common /beo/
   real(kind=fPrec), save :: aper(2),di0(2),dip0(2),ta(6,6)
@@ -849,20 +872,25 @@ end module mod_commonmn
 ! ================================================================================================ !
 module mod_commons
 
-  use floatPrecision
   use parpro
+  use floatPrecision
+  use numerical_constants
 
   implicit none
 
-  ! common /syos/
-  real(kind=fPrec), allocatable, save :: as(:,:,:,:),al(:,:,:,:) !(6,2,npart,nele)
-  real(kind=fPrec), allocatable, save :: at(:,:,:,:),a2(:,:,:,:) !(6,2,npart,nele)
-  real(kind=fPrec), save :: sigm(mpa),dps(mpa)
-  integer,          save :: idz(2) = 0 ! Coupling on/off
+  real(kind=fPrec), allocatable, save :: as(:,:,:,:) ! (6,2,npart,nele)
+  real(kind=fPrec), allocatable, save :: al(:,:,:,:) ! (6,2,npart,nele)
+  real(kind=fPrec), allocatable, save :: at(:,:,:,:) ! (6,2,npart,nele)
+  real(kind=fPrec), allocatable, save :: a2(:,:,:,:) ! (6,2,npart,nele)
 
-  ! common /anf/
-  real(kind=fPrec), save :: chi0,chid,exz(2,6),dp1
-  integer, save :: itra
+  real(kind=fPrec), save :: sigm(mpa) = zero
+  real(kind=fPrec), save :: dps(mpa)  = zero
+  real(kind=fPrec), save :: chi0      = zero ! Starting phase of the initial coordinate
+  real(kind=fPrec), save :: chid      = zero ! Phase difference between first and second particles
+  real(kind=fPrec), save :: exz(2,6)  = zero
+  real(kind=fPrec), save :: dp1       = zero
+  integer,          save :: idz(2)    = 0    ! Coupling on/off
+  integer,          save :: itra      = 0    ! Number of particles
 
 contains
 

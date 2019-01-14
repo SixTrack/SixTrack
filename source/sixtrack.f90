@@ -2743,63 +2743,12 @@ subroutine comnul
 
   save
 
-! ncorru  = 0     ! mod_common
-! ncorrep = 0     ! mod_common
-! ierro   = 0     ! mod_common
-! iu      = 0     ! mod_common
-! ilin    = 0     ! mod_common
-! iqmodc  = 0     ! mod_common
-! ichromc = 0     ! mod_common
-! ilinc   = 0     ! mod_common
-! iprint  = 0     ! mod_common
-
-  ! TRACKING BLOCK
-  ! Line 1
-! numl    = 0     ! mod_common
-! numlr   = 0     ! mod_common
-! napx    = 0     ! mod_common
-! amp0    = zero  ! mod_common
-! amp(:)  = zero  ! mod_commont
-! ird     = 0     ! mod_common
-! imc     = 0     ! mod_common
-! niu(1)  = 0     ! mod_common
-! niu(2)  = 0     ! mod_common
-! numlcp  = 0     ! mod_common
-! numlmax = 0     ! mod_common
-  ! Line 2
-! idz(:)  = 0     ! mod_commons
-! idfor   = 0     ! mod_common
-! irew    = 0     ! mod_common
-! iclo6   = 0     ! mod_common
-! iclo6r  = 0     ! mod_common
-  ! Line 3
-! nde(:)  = 0     ! mod_common
-! nwr(:)  = 0     ! mod_common
-! ntwin   = 0     ! mod_common
-! iexact  = 0     ! mod_common
-! curveff = 0     ! mod_common
-
   ! SINGLE ELEMENT BLOCK
   ithick  = 0     ! mod_common
   il      = 0     ! mod_common
 
-  ! BLOC DEFINITONS BLOCK
-  mper    = 0     ! mod_common
-  mblo    = 0     ! mod_common
-  mbloz   = 0     ! mod_common
-
   ! STRUCTURE INPUT BLOCK
   kanf    = 0     ! mod_common
-
-  ! INITIAL COORDINATES BLOCK
-  itra     = 0    ! mod_commons
-  chi0     = zero ! mod_commons
-  chid     = zero ! mod_commons
-  rat      = zero ! mod_common
-  iver     = 0    ! mod_common
-  exz(:,:) = zero ! mod_commons
-  e0       = zero ! mod_common
-  ej(:)    = zero ! mod_common
 
   ! DIFFERENTIAL ALGEBRA BLOCK
   idp     = 0     ! mod_common
@@ -2922,7 +2871,7 @@ subroutine comnul
       ! weig2=zero
       ! dpmax=zero
 !-----------------------------------------------------------------------
-      dp1=zero
+!     dp1=zero
       qs=zero
       crad=zero
       dppoff=zero
@@ -3021,10 +2970,6 @@ subroutine comnul
         ire(i)=0
    70 continue
 
-      do 80 i=1,nper
-        msym(i)=0
-   80 continue
-
       do i=1,6
         do j=1,6
           ta(i,j)=zero
@@ -3102,9 +3047,6 @@ subroutine comnul
 !--# OF TRAJECTORIES----------------------------------------------------
       do 220 i=1,mpa
         rvf(i)=one
-        sigm(i)=zero
-        dps(i)=zero
-        ejf(i)=zero
         do 210 i1=1,2
           x(i,i1)=zero
           y(i,i1)=zero
