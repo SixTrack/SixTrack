@@ -1,5 +1,11 @@
 # SixTrack Changelog
 
+### Not Released
+
+**User Side Changes**
+
+* Misalignment of RF-multipoles is now possible. PR #763 (T. Persson)
+
 ### Version 5.1.2 [14.01.2019] - Release
 
 **User Side Changes**
