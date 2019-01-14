@@ -1,6 +1,6 @@
 # SixTrack Changelog
 
-### Version 5.1.2 [12.01.2019] - Release
+### Version 5.1.2 [14.01.2019] - Release
 
 **User Side Changes**
 
