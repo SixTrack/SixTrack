@@ -2749,18 +2749,8 @@ subroutine comnul
   ! RANDOM NUMBERS VARIABLES
   iorg    = 0     ! mod_common
 
-  ! ITERATION ERRORS BLOCK
-  itco    = 0     ! mod_common
-  itcro   = 0     ! mod_common
-  itqv    = 0     ! mod_common
-
   ! CHROMATICITY ADJUSTMENT BLOCK
   ichrom  = 0     ! mod_common
-
-  ! TUNE ADJUSTMENT BLOCK
-  iqmod   = 0     ! mod_common
-  iqmod6  = 0     ! mod_common
-  qw0(:)  = zero  ! mod_common
 
   ! LINEAR OPTICS BLOCK
   ntco    = 0     ! mod_common
@@ -2840,17 +2830,6 @@ subroutine comnul
       imod1=0
       imod2=0
 !-----------------------------------------------------------------------
-      dpscor=one
-      sigcor=one
-      dma=zero
-      dmap=zero
-      dkq=zero
-      dqq=zero
-      de0=zero
-      ded=zero
-      dsi=zero
-      dech=zero
-      dsm0=zero
       qxt=zero
       qzt=zero
       eui=zero
@@ -2884,9 +2863,6 @@ subroutine comnul
         alf0(i)=zero
         clo(i)=zero
         clop(i)=zero
-        aper(i)=c1e3
-        di0(i)=zero
-        dip0(i)=zero
         cro(i)=zero
         sigma0(i)=zero
         qwsk(i)=zero
@@ -2897,7 +2873,6 @@ subroutine comnul
    10 continue
 
       do 20 i=1,3
-        iq(i)=0
         clo6(i)=zero
         clop6(i)=zero
         clon(i)=zero
@@ -2930,13 +2905,6 @@ subroutine comnul
         ire(i)=0
    70 continue
 
-      do i=1,6
-        do j=1,6
-          ta(i,j)=zero
-        end do
-      end do
-
-
       do i1=1,9
         do i2=1,18
           do i3=1,10
@@ -2960,10 +2928,6 @@ subroutine comnul
         crabph2(i)=zero
         crabph3(i)=zero
         crabph4(i)=zero
-
-        do 140 i1=1,3
-          bezr(i1,i)=' '
-  140   continue
 
         do i1=1,18
           parbe(i,i1)=zero

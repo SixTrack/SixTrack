@@ -2052,7 +2052,7 @@ subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
 
   iorg = iorg + 1
   elemOne    = str_nmSpace
-  if(nSplit > 0) elemOne            = trim(lnSplit(1))
+  if(nSplit > 0) elemOne      = trim(lnSplit(1))
   if(nSplit > 1) bezr(2,iorg) = trim(lnSplit(2))
   if(nSplit > 2) bezr(3,iorg) = trim(lnSplit(3))
 

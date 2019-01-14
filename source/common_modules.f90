@@ -118,7 +118,7 @@ module mod_common
 
   use parpro
   use floatPrecision
-  use numerical_constants, only : c1m6, c180e0, pi, two, half, one, zero
+  use numerical_constants
 
   implicit none
 
@@ -178,14 +178,49 @@ module mod_common
   real(kind=fPrec), save :: dppoff     = zero ! Offset relative momentum deviation
   real(kind=fPrec), save :: tlen       = zero ! Length of the accelerator [m]
   real(kind=fPrec), save :: mtcda      = one  ! Somthing FOX
+  real(kind=fPrec), save :: dpscor     = one  ! Scaling factor for relative momentum deviation
+  real(kind=fPrec), save :: sigcor     = one  ! Path length difference
   integer,          save :: iicav      = 0    ! Used between runcav and runda
   integer,          save :: ition      = 0    ! Transition energy switch:
   integer,          save :: idp        = 0    ! Synchrotron motion
   integer,          save :: ncy        = 0    ! Number of cavity locations
   integer,          save :: ixcav      = 0    ! Stores ix, presumably for cavity
+  integer,          save :: icode      = 0
+  integer,          save :: idam       = 0
+  integer,          save :: its6d      = 0
 
-  ! Various Flags
+  ! Organisation of Random Numbers
+  integer,          save :: iorg       = 0    ! Organisation of random numbers flag
+  integer,          save :: izu0       = 0    ! Start value for the random number generator
+  integer,          save :: mcut       = 0    ! Sigma cut for random numbers
   integer,          save :: mout2      = 0    ! Magnet Fluctuations: Write fort.2 > fort.4 (mod_fluc)
+
+  ! Iteration Errors
+  real(kind=fPrec), save :: dma        = zero ! Precision of closed orbit displacements
+  real(kind=fPrec), save :: dmap       = zero ! Precision of derivative of closed orbit displacements
+  real(kind=fPrec), save :: dkq        = zero ! Variations of quadrupole strengths
+  real(kind=fPrec), save :: dqq        = zero ! Precision of tunes
+  real(kind=fPrec), save :: dsm0       = zero ! Variations of sextupole strengths
+  real(kind=fPrec), save :: dech       = zero ! Precision of chromaticity correction
+  real(kind=fPrec), save :: de0        = zero ! Variations of momentum spread for chromaticity calculation
+  real(kind=fPrec), save :: ded        = zero ! Variations of momentum spread for evaluation of dispersion
+  real(kind=fPrec), save :: dsi        = zero ! Precision of desired orbit r.m.s. value
+  real(kind=fPrec), save :: aper(2)    = c1e3 ! Precision of aperture limits
+
+  integer,          save :: itco       = 0    ! Number of iterations for closed orbit calculation
+  integer,          save :: itcro      = 0    ! Number of iterations for chromaticity correction
+  integer,          save :: itqv       = 0    ! Number of iterations for Q adjustment
+
+  ! Closed Orbit
+  real(kind=fPrec), save :: di0(2)     = zero
+  real(kind=fPrec), save :: dip0(2)    = zero
+  real(kind=fPrec), save :: ta(6,6)    = zero
+
+  ! Tune Variation
+  real(kind=fPrec), save :: qw0(3)     = zero ! Qx/Qy/delta_Q
+  integer,          save :: iq(3)      = 0    ! Index of elements
+  integer,          save :: iqmod      = 0    ! Switch to calculate the tunes
+  integer,          save :: iqmod6     = 0    ! Switch to calculate the tunes
 
   ! Reference Particle
   real(kind=fPrec), save :: e0         = zero ! Reference energy
@@ -218,7 +253,7 @@ module mod_common
   real(kind=fPrec), allocatable, save :: sm(:)         ! Single Elements: Non-linear field, avg strength
   integer,          allocatable, save :: kz(:)         ! Single Elements: 2nd field, type
   integer,          allocatable, save :: kp(:)         ! Single Elements: Additional flag
-  
+
   real(kind=fPrec), allocatable, save :: a(:,:,:)      ! Something Something Matrix (:,2,6)
 
   real(kind=fPrec), allocatable, save :: hsyc(:)       ! Accelerating cavity: 'Frequency'
@@ -239,6 +274,10 @@ module mod_common
   real(kind=fPrec), allocatable, save :: xrms(:)       ! Displacement (DISP): RMS of horizontal displacement [mm]
   real(kind=fPrec), allocatable, save :: zpl(:)        ! Displacement (DISP): Value of vertical displacement [mm]
   real(kind=fPrec), allocatable, save :: zrms(:)       ! Displacement (DISP): RMS of vertical displacement [mm]
+
+  character(len=:), allocatable, save :: bezr(:,:)     ! Organisation of Random Numbers (3,:)
+
+  integer,          allocatable, save :: kpa(:)        ! Tune Variations: Element markers
 
   ! Single Element and Multipole Indexed (nele,mmul)
   real(kind=fPrec), allocatable, save :: bk0(:,:)      ! Multipoles: B-value
@@ -270,26 +309,7 @@ module mod_common
 
 
 
-  ! common /corcom/
-  real(kind=fPrec), save :: dpscor,sigcor
-  integer,          save :: icode,idam,its6d
 
-  ! common /rand0/
-  integer,          save :: iorg,izu0,mcut
-
-  character(len=:), allocatable, save :: bezr(:,:) ! (mNameLen)(3,nele)
-
-  ! common /beo/
-  real(kind=fPrec), save :: aper(2),di0(2),dip0(2),ta(6,6)
-
-  ! common /clo/
-  real(kind=fPrec), save :: dma,dmap,dkq,dqq,de0,ded,dsi,dech,dsm0
-  integer, save :: itco,itcro,itqv
-
-  ! common /qmodi/
-  real(kind=fPrec),              save :: qw0(3)
-  integer,                       save :: iq(3),iqmod,iqmod6
-  integer,          allocatable, save :: kpa(:) !(nele)
 
   ! common /linop/
   real(kind=fPrec),              save :: eui,euii
