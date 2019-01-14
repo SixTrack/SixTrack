@@ -1773,7 +1773,9 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
   integer          nSplit,i,nmul,iil
   logical          spErr
 
-  save nmul,iil,r0,r0a
+  real(kind=fPrec) :: benki = zero
+
+  save nmul,iil,r0,r0a,benki
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then

@@ -160,27 +160,26 @@ module mod_common
   real(kind=fPrec), save :: rvf(mpa)
 
   ! TRACK Block
-  integer,          save :: numl    = 0    ! Number of turns in the forward direction
-  integer,          save :: numlr   = 0    ! Number of turns in the backward direction
-  integer,          save :: napx    = 0    ! Number of amplitude variations
-  real(kind=fPrec), save :: amp0    = zero ! End amplitude
-  integer,          save :: ird     = 0    ! Ignored
-  integer,          save :: imc     = 0    ! Variations of relative momentum deviation
-  integer,          save :: niu(2)  = 0    ! Unknown
-  integer,          save :: numlcp  = 0    ! How often to write checkpointing files
-  integer,          save :: numlmax = 0    ! Max number of C/R turns
-  integer,          save :: idfor   = 0    ! Add closed orbit to initia coordinates
-  integer,          save :: irew    = 0    ! Rewind fort.59-90
-  integer,          save :: iclo6   = 0    ! 6D closed orbit flags
-  integer,          save :: iclo6r  = 0    ! 6D closed orbit flags
-  integer,          save :: nde(2)  = 0    ! Number of turns at flat bottom / energy ramping
-  integer,          save :: nwr(4)  = 0    ! Writings to fort.90
-  integer,          save :: ntwin   = 0    ! How to calculate the distance in phase space
-  integer,          save :: iexact  = 0    ! Exact solution of the equation of motion
-  integer,          save :: curveff = 0    ! Enable the curvature effect in a combined function magnet
-
-  integer,          save :: napxo   = 0    ! Original value of napx
-  integer,          save :: nnuml   = 0
+  integer,          save :: numl       = 0    ! Number of turns in the forward direction
+  integer,          save :: numlr      = 0    ! Number of turns in the backward direction
+  integer,          save :: napx       = 0    ! Number of amplitude variations
+  real(kind=fPrec), save :: amp0       = zero ! End amplitude
+  integer,          save :: ird        = 0    ! Ignored
+  integer,          save :: imc        = 0    ! Variations of relative momentum deviation
+  integer,          save :: niu(2)     = 0    ! Unknown
+  integer,          save :: numlcp     = 0    ! How often to write checkpointing files
+  integer,          save :: numlmax    = 0    ! Max number of C/R turns
+  integer,          save :: idfor      = 0    ! Add closed orbit to initia coordinates
+  integer,          save :: irew       = 0    ! Rewind fort.59-90
+  integer,          save :: iclo6      = 0    ! 6D closed orbit flags
+  integer,          save :: iclo6r     = 0    ! 6D closed orbit flags
+  integer,          save :: nde(2)     = 0    ! Number of turns at flat bottom / energy ramping
+  integer,          save :: nwr(4)     = 0    ! Writings to fort.90
+  integer,          save :: ntwin      = 0    ! How to calculate the distance in phase space
+  integer,          save :: iexact     = 0    ! Exact solution of the equation of motion
+  integer,          save :: curveff    = 0    ! Enable the curvature effect in a combined function magnet
+  integer,          save :: napxo      = 0    ! Original value of napx
+  integer,          save :: nnuml      = 0
 
   ! INITIAL COORDINATES Block
   real(kind=fPrec), save :: rat        = zero
@@ -202,13 +201,29 @@ module mod_common
   !  ALLOCATABLES
   ! ==============
 
+  ! Single Element Indexed (nele)
+  real(kind=fPrec), allocatable, save :: hsyc(:)    ! Accelerating cavity: 'Frequency'
+  real(kind=fPrec), allocatable, save :: phasc(:)   ! Accelerating cavity: Lag phase
+  real(kind=fPrec), allocatable, save :: benkc(:)   ! Multipoles: Bending strength of the dipole [mrad]
+  real(kind=fPrec), allocatable, save :: r00(:)     ! Multipoles: Reference radius [mm]
+  real(kind=fPrec), allocatable, save :: scalemu(:) ! Multipoles: Scale (DYNK)
+  integer,          allocatable, save :: itionc(:)  ! Accelerating cavity: Regime
+  integer,          allocatable, save :: nmu(:)     ! Multipoles: Max multipole order
+  integer,          allocatable, save :: irm(:)     ! Multipoles: Index of the associated element
+
+  ! Single Element and Multipole Indexed (nele,mmul)
+  real(kind=fPrec), allocatable, save :: bk0(:,:)   ! Multipoles: B-value
+  real(kind=fPrec), allocatable, save :: ak0(:,:)   ! Multipoles: A-Value
+  real(kind=fPrec), allocatable, save :: bka(:,:)   ! Multipoles: B-RMS
+  real(kind=fPrec), allocatable, save :: aka(:,:)   ! Multipoles: A-RMS
+
   ! Structure Element Indexed (nblz)
   real(kind=fPrec), allocatable, save :: sigmoff(:)
   real(kind=fPrec), allocatable, save :: tiltc(:)   ! Magnet tilt, cos component
   real(kind=fPrec), allocatable, save :: tilts(:)   ! Magnet tilt, sin component
   integer,          allocatable, save :: icext(:)   ! Magnet error index (mod_fluc)
   integer,          allocatable, save :: icextal(:) ! Magnet misalignemnt index (mod_fluc)
-  integer,          allocatable, save :: ic(:)      ! Structure to siingle/block element map
+  integer,          allocatable, save :: ic(:)      ! Structure to single/block element map
 
 
 
@@ -218,18 +233,10 @@ module mod_common
   real(kind=fPrec), save :: qs,pma,phas0,phas,hsy(3),crad,dppoff,tlen,mtcda
   integer,          save :: iicav,ition,idp,ncy,ixcav
 
-  real(kind=fPrec), allocatable, save :: hsyc(:),phasc(:) ! (nele)
-  integer,          allocatable, save :: itionc(:)        ! (nele)
 
   ! common /corcom/
   real(kind=fPrec), save :: dpscor,sigcor
   integer,          save :: icode,idam,its6d
-
-  ! Multipole Coefficients
-  real(kind=fPrec),              save :: benki
-  real(kind=fPrec), allocatable, save :: benkc(:),r00(:),scalemu(:)          ! (nele)
-  real(kind=fPrec), allocatable, save :: bk0(:,:),ak0(:,:),bka(:,:),aka(:,:) ! (nele,mmul)
-  integer,          allocatable, save :: irm(:),nmu(:)                       ! (nele)
 
   ! RF multipoles
   real(kind=fPrec), allocatable, save :: norrfamp(:,:),norrfph(:,:)          ! (nele,mmul)

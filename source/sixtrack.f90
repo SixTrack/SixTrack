@@ -2803,17 +2803,6 @@ subroutine comnul
   ! SYNCHROTRON OSCILLATIONS BLOCK
   phas    = zero  ! mod_common
 
-  ! MULTIPOLE COEFFICIENT BLOCK
-  benki      = zero ! mod_common
-  benkc(:)   = zero ! mod_common
-  r00(:)     = zero ! mod_common
-  irm(:)     = 0    ! mod_common
-  nmu(:)     = 0    ! mod_common
-  bk0(:,:)   = zero ! mod_common
-  ak0(:,:)   = zero ! mod_common
-  bka(:,:)   = zero ! mod_common
-  aka(:,:)   = zero ! mod_common
-
   ! POSTPROCESSING
   toptit(:)  = " "  ! mod_common
 
@@ -2997,7 +2986,7 @@ subroutine comnul
         ! isea(i)=0
         ! ncororb(i)=0
         ! iratioe(i)=0
-        itionc(i)=0
+        ! itionc(i)=0
         dki(i,1)=zero
         dki(i,2)=zero
         dki(i,3)=zero
@@ -3010,8 +2999,8 @@ subroutine comnul
         zpl(i)=zero
         zrms(i)=zero
         ratioe(i)=one
-        hsyc(i)=zero
-        phasc(i)=zero
+        ! hsyc(i)=zero
+        ! phasc(i)=zero
         ptnfac(i)=zero
         acdipph(i)=zero
         crabph(i)=zero
