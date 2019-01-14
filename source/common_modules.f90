@@ -122,19 +122,19 @@ module mod_common
 
   implicit none
 
-  ! common /erro/
-  integer, save :: ierro
-  integer, save :: errout_status
-  character(len=mNameLen), save :: erbez
+  ! Error Variables
+  integer, save :: ierro         = 0
+  integer, save :: errout_status = 0
 
-  ! common /kons/
+  ! Constants
   real(kind=fPrec),     save :: pi2    = half*pi
   real(kind=fPrec),     save :: twopi  = two*pi
   real(kind=fPrec),     save :: pisqrt = sqrt(pi)
   real(kind=fPrec),     save :: rad    = pi/c180e0
 
   ! common /str/
-  integer,              save :: il,mper,mblo,mbloz,msym(nper),kanf,iu
+  integer,              save :: il,mper,mblo,mbloz,msym(nper),kanf
+  integer,              save :: iu = 0
   integer, allocatable, save :: ic(:) !(nblz)
 
   ! common /ell/
@@ -160,14 +160,32 @@ module mod_common
   ! common /syos2/
   real(kind=fPrec), save :: rvf(mpa)
 
-  ! common /tra1/
-  real(kind=fPrec), save :: rat
-  integer,          save :: idfor
-  integer,          save :: napx, napxo
-  integer,          save :: numl, niu(2), numlr, nde(2), nwr(4)
-  integer,          save :: ird, imc, irew, ntwin
-  integer,          save :: iclo6, iclo6r, iver
-  integer,          save :: numlcp, numlmax, nnuml
+  ! TRACK Block
+  integer,          save :: numl    = 0    ! Number of turns in the forward direction
+  integer,          save :: numlr   = 0    ! Number of turns in the backward direction
+  integer,          save :: napx    = 0    ! Number of amplitude variations
+  real(kind=fPrec), save :: amp0    = zero ! End amplitude
+  integer,          save :: ird     = 0    ! Ignored
+  integer,          save :: imc     = 0    ! Variations of relative momentum deviation
+  integer,          save :: niu(2)  = 0    ! Unknown
+  integer,          save :: numlcp  = 0    ! How often to write checkpointing files
+  integer,          save :: numlmax = 0    ! Max number of C/R turns
+  integer,          save :: idfor   = 0    ! Add closed orbit to initia coordinates
+  integer,          save :: irew    = 0    ! Rewind fort.59-90
+  integer,          save :: iclo6   = 0    ! 6D closed orbit flags
+  integer,          save :: iclo6r  = 0    ! 6D closed orbit flags
+  integer,          save :: nde(2)  = 0    ! Number of turns at flat bottom / energy ramping
+  integer,          save :: nwr(4)  = 0    ! Writings to fort.90
+  integer,          save :: ntwin   = 0    ! How to calculate the distance in phase space
+  integer,          save :: iexact  = 0    ! Exact solution of the equation of motion
+  integer,          save :: curveff = 0    ! Enable the curvature effect in a combined function magnet
+
+  integer,          save :: napxo   = 0    ! Original value of napx
+  integer,          save :: nnuml   = 0
+
+  ! INITIAL COORDINATES Block
+  real(kind=fPrec), save :: rat     = zero
+  integer,          save :: iver    = 0
 
   ! common /syn/
   real(kind=fPrec), save :: qs,e0,pma,ej(mpa),ejf(mpa),phas0,phas,hsy(3),crad,dppoff,tlen,mtcda
@@ -214,7 +232,7 @@ module mod_common
   integer, save :: itco,itcro,itqv
 
   ! common /qmodi/
-  real(kind=fPrec),              save :: qw0(3),amp0
+  real(kind=fPrec),              save :: qw0(3)
   integer,                       save :: iq(3),iqmod,iqmod6
   integer,          allocatable, save :: kpa(:) !(nele)
 
@@ -223,7 +241,11 @@ module mod_common
   character(len=:), allocatable, save :: bezb(:)         ! (nblo)
   real(kind=fPrec), allocatable, save :: elbe(:)         ! (nblo)
   real(kind=fPrec),              save :: eui,euii
-  integer,                       save :: ilin,nt,iprint,ntco,nlin
+  integer,                       save :: ilin = 0
+  integer,                       save :: nt
+  integer,                       save :: iprint = 0
+  integer,                       save :: ntco
+  integer,                       save :: nlin
 
   ! common /cororb/
   real(kind=fPrec),              save :: betam(nmon1,2),pam(nmon1,2),betac(ncor1,2),pac(ncor1,2),bclorb(nmon1,2)
@@ -232,7 +254,9 @@ module mod_common
 
   ! common /clos/
   real(kind=fPrec), save :: sigma0(2)
-  integer,          save :: iclo, ncorru,ncorrep
+  integer,          save :: iclo    = 0
+  integer,          save :: ncorru  = 0
+  integer,          save :: ncorrep = 0
 
   ! common /combin/
   real(kind=fPrec),              save :: ratio(ncom,20)
@@ -316,9 +340,6 @@ module mod_common
   integer, save :: iord, nordm
   real(kind=fPrec), save :: field_cos(2,mmul), fsddida(2,mmul)
   real(kind=fPrec), save :: field_sin(2,mmul), fcodda(2,mmul)
-  ! common /exact/
-  integer, save :: iexact
-  integer, save :: curveff
 
   ! common /sixdim/
   real(kind=fPrec), save :: aml6(6,6),edcor(2)
@@ -327,7 +348,9 @@ module mod_common
   integer,          allocatable, save :: nnumxv(:) ! (npart)
 
   ! common /correct/
-  integer,          save :: ichromc,ilinc,iqmodc
+  integer,          save :: ichromc = 0
+  integer,          save :: ilinc   = 0
+  integer,          save :: iqmodc  = 0
   real(kind=fPrec), save :: corr(3,3),chromc(2),wxys(3),clon(6)
 
   ! common /damp/
@@ -835,7 +858,7 @@ module mod_commons
   real(kind=fPrec), allocatable, save :: as(:,:,:,:),al(:,:,:,:) !(6,2,npart,nele)
   real(kind=fPrec), allocatable, save :: at(:,:,:,:),a2(:,:,:,:) !(6,2,npart,nele)
   real(kind=fPrec), save :: sigm(mpa),dps(mpa)
-  integer, save :: idz(2)
+  integer,          save :: idz(2) = 0 ! Coupling on/off
 
   ! common /anf/
   real(kind=fPrec), save :: chi0,chid,exz(2,6),dp1

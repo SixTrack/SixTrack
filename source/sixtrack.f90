@@ -2743,41 +2743,41 @@ subroutine comnul
 
   save
 
-  ncorru  = 0     ! mod_common
-  ncorrep = 0     ! mod_common
-  ierro   = 0     ! mod_common
-  iu      = 0     ! mod_common
-  ilin    = 0     ! mod_common
-  iqmodc  = 0     ! mod_common
-  ichromc = 0     ! mod_common
-  ilinc   = 0     ! mod_common
-  iprint  = 0     ! mod_common
+! ncorru  = 0     ! mod_common
+! ncorrep = 0     ! mod_common
+! ierro   = 0     ! mod_common
+! iu      = 0     ! mod_common
+! ilin    = 0     ! mod_common
+! iqmodc  = 0     ! mod_common
+! ichromc = 0     ! mod_common
+! ilinc   = 0     ! mod_common
+! iprint  = 0     ! mod_common
 
   ! TRACKING BLOCK
   ! Line 1
-  numl    = 0     ! mod_common
-  numlr   = 0     ! mod_common
-  napx    = 0     ! mod_common
-  amp0    = zero  ! mod_common
-  amp(:)  = zero  ! mod_commont
-  ird     = 0     ! mod_common
-  imc     = 0     ! mod_common
-  niu(1)  = 0     ! mod_common
-  niu(2)  = 0     ! mod_common
-  numlcp  = 0     ! mod_common
-  numlmax = 0     ! mod_common
+! numl    = 0     ! mod_common
+! numlr   = 0     ! mod_common
+! napx    = 0     ! mod_common
+! amp0    = zero  ! mod_common
+! amp(:)  = zero  ! mod_commont
+! ird     = 0     ! mod_common
+! imc     = 0     ! mod_common
+! niu(1)  = 0     ! mod_common
+! niu(2)  = 0     ! mod_common
+! numlcp  = 0     ! mod_common
+! numlmax = 0     ! mod_common
   ! Line 2
-  idz(:)  = 0     ! mod_commons
-  idfor   = 0     ! mod_common
-  irew    = 0     ! mod_common
-  iclo6   = 0     ! mod_common
-  iclo6r  = 0     ! mod_common
+! idz(:)  = 0     ! mod_commons
+! idfor   = 0     ! mod_common
+! irew    = 0     ! mod_common
+! iclo6   = 0     ! mod_common
+! iclo6r  = 0     ! mod_common
   ! Line 3
-  nde(:)  = 0     ! mod_common
-  nwr(:)  = 0     ! mod_common
-  ntwin   = 0     ! mod_common
-  iexact  = 0     ! mod_common
-  curveff = 0     ! mod_common
+! nde(:)  = 0     ! mod_common
+! nwr(:)  = 0     ! mod_common
+! ntwin   = 0     ! mod_common
+! iexact  = 0     ! mod_common
+! curveff = 0     ! mod_common
 
   ! SINGLE ELEMENT BLOCK
   ithick  = 0     ! mod_common
@@ -2825,7 +2825,7 @@ subroutine comnul
   nt      = 0     ! mod_common
 
   ! ORBIT CORRECTION BLOCK
-  iclo    = 0     ! mod_common
+! iclo    = 0     ! mod_common
 
   ! COMBINATION OF ELEMENTS BLOCK
   icoe    = 0     ! mod_common

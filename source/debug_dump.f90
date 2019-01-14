@@ -218,7 +218,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'dpsv1',dpsv1
 
   write(99,*) 'ierro ',ierro
-  write(99,*) 'erbez ',erbez
   write(99,*) 'pi ',pi
   write(99,*) 'pi2 ',pi2
   write(99,*) 'pisqrt ',pisqrt
@@ -703,7 +702,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) dpsv1
 
   write(99) ierro
-  write(99) erbez
   write(99) pi
   write(99) pi2
   write(99) pisqrt
@@ -1182,7 +1180,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'dpsv1',dpsv1
 
   write(99,100) 'ierro ',ierro
-  write(99,100) 'erbez ',erbez
   write(99,100) 'pi ',pi
   write(99,100) 'pi2 ',pi2
   write(99,100) 'pisqrt ',pisqrt
