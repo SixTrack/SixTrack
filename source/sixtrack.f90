@@ -71,144 +71,9 @@ subroutine daten
 
   ! Main Variables
   iHead        = " "
-  sixtit       = " "
   ic0(:)       = " "
   cCheck       = " "
   kanf         = 1
-
-  ! TRACKING PARAMETERS
-  numl         = 1
-  napx         = 0
-  amp0         = zero
-  amp(1)       = c1m3
-  ird          = 0
-  imc          = 0
-  numlcp       = 1000
-  numlmax      = 1000000000
-  iclo6        = 0
-  iclo6r       = 0
-
-  idz(:)       = 1
-  idfor        = 0
-  irew         = 0
-  iclo         = 0
-
-  nde(:)       = 0
-  nwr(:)       = 1
-  nwr(4)       = 10000
-  ntwin        = 1
-
-  ! INITIAL COORDINATES
-  itra         = 0
-  chi0         = zero
-  chid         = zero
-  rat          = zero
-
-  ! CHROMATICITY ADJUSTMENTS
-  ichrom       = 0
-
-  ! TUNE ADJUSTMENTS
-  iqmod        = 0
-
-  ! LINEAR OPTICS CALCULATION
-  ilin         = 0
-  sixin_ilin0  = 1
-  nlin         = 0
-
-  ! DIFFERENTIAL ALGEBRA
-  preda        = c1m38
-
-  ! SYNCHROTRON OSCILLATIONS
-  sixin_alc    = c1m3
-  sixin_harm   = one
-  sixin_phag   = zero
-  idp          = 0
-  ncy          = 0
-  tlen         = one
-  pma          = pmap
-  ition        = 0
-  dpscor       = one
-  sigcor       = one
-  qs           = zero
-
-  ! MULTIPOLE COEFFICIENTS
-  sixin_im     = 0
-
-  ! RF - MULTIPOLE
-  sixin_rfm    = 0
-
-  ! RANDOM FLUCTUATIONS
-  izu0         = 0
-  mcut         = 0
-  mout2        = 0
-
-  ! SUB-RESONANCE CALCULATION
-  isub         = 0
-
-  ! ORGANISATION OF RANDOM NUMBERS
-  iorg         = 0
-
-  ! RESONANCE COMPENSATION
-  irmod2       = 0
-
-  ! DECOUPLING OF MOTION
-  iskew        = 0
-
-  ! NORMAL FORMS
-  idial        = 0
-
-  ! SEARCH
-  ise          = 0
-
-  ! ITERATION ERRORS
-  itco         = 500
-  dma          = c1m12
-  dmap         = c1m15
-  itcro        = 10
-  dech         = c1m10
-  de0          = c1m9
-  ded          = c1m9
-  dsi          = c1m9
-  dsm0         = c1m10
-  itqv         = 10
-  dkq          = c1m10
-  dqq          = c1m10
-
-  ! BEAM-BEAM ELEMENT
-  sixin_emitNX = zero
-  sixin_emitNY = zero
-
-  ! PHASE TROMBONE
-  sixin_imtr0  = 0
-  ntr          = 1
-  call alloc(cotr,1,6,  zero,"cotr")
-  call alloc(rrtr,1,6,6,zero,"rrtr")
-
-  ! POST PROCESSING
-  ipos         = 0
-  iconv        = 0
-  imad         = 0
-  iskip        = 1
-  cma1         = one
-  cma2         = one
-  iav          = 1
-  iwg          = 1
-  dphix        = zero
-  dphiz        = zero
-  qx0          = zero
-  qz0          = zero
-  ivox         = 1
-  ivoz         = 1
-  ires         = 1
-  dres         = one
-  ifh          = 0
-  dfft         = one
-  idis         = 0
-  icow         = 0
-  istw         = 0
-  iffw         = 0
-  nprint       = 1
-  ndafi        = 1
 
   ! HIONS MODULE
   zz0          = 1
@@ -216,14 +81,8 @@ subroutine daten
   nucm0        = pmap
   has_hion     = .false.
 
-! ================================================================================================ !
-!  SET DEFAULT INPUT PARSING VALUES
-! ================================================================================================ !
-
   ! SIXTRACK INPUT MODULE
   inErr       = .false.
-  sixin_ncy2  = 0
-  sixin_icy   = 0
 
   call alloc(sixin_bez0,mNameLen,nele,str_nmSpace,"sixin_bez0")
 

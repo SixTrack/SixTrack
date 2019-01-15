@@ -25,8 +25,8 @@ module sixtrack_input
   integer,                       public, save :: sixin_nBlock    ! Number of blocks
 
   ! Single Element Variables
-  integer,                       public, save :: sixin_nSing
-  integer,                       public, save :: sixin_ncy2
+  integer,                       public, save :: sixin_nSing  = 0
+  integer,                       public, save :: sixin_ncy2   = 0
   character(len=:), allocatable, public, save :: sixin_bez0(:) ! (mNameLen)(nele)
   character(len=3), parameter,   public       :: sixin_cavity = "CAV"
 
@@ -37,31 +37,31 @@ module sixtrack_input
   integer,                       public, save :: sixin_k0
 
   ! Structure Input Variables
-  integer,                       public, save :: sixin_nStru
-  integer,                       public, save :: sixin_icy
-  character(len=2), parameter,   public       :: sixin_go = "GO"
+  integer,                       public, save :: sixin_nStru = 0
+  integer,                       public, save :: sixin_icy   = 0
+  character(len=2), parameter,   public       :: sixin_go    = "GO"
 
   ! Linear Optics Variables
-  integer,                       public, save :: sixin_ilin0
+  integer,                       public, save :: sixin_ilin0 = 1
 
   ! Synchrotron Oscillations
-  real(kind=fPrec),              public, save :: sixin_alc
-  real(kind=fPrec),              public, save :: sixin_harm
-  real(kind=fPrec),              public, save :: sixin_phag
-  real(kind=fPrec),              public, save :: sixin_u0
+  real(kind=fPrec),              public, save :: sixin_alc  = c1m3
+  real(kind=fPrec),              public, save :: sixin_harm = one
+  real(kind=fPrec),              public, save :: sixin_phag = zero
+  real(kind=fPrec),              public, save :: sixin_u0   = zero
 
   ! Multipole Coefficients
-  integer,                       public, save :: sixin_im
+  integer,                       public, save :: sixin_im = 0
 
   ! RF-multipoles
-  integer,                       public, save :: sixin_rfm
+  integer,                       public, save :: sixin_rfm = 0
 
   ! Beam-Beam Elements
-  real(kind=fPrec),              public, save :: sixin_emitNX
-  real(kind=fPrec),              public, save :: sixin_emitNY
+  real(kind=fPrec),              public, save :: sixin_emitNX = zero
+  real(kind=fPrec),              public, save :: sixin_emitNY = zero
 
   ! "Phase Trombone" Element
-  integer,                       public, save :: sixin_imtr0
+  integer,                       public, save :: sixin_imtr0 = 0
 
   ! Settings
   logical,                       private, save :: sixin_forcePartSummary = .false.
@@ -1144,6 +1144,8 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
+
+    nwr(4) = 10000
 
     if(nSplit > 0) call chr_cast(lnSplit(1),nde(1),  iErr) ! Number of turns at flat bottom
     if(nSplit > 1) call chr_cast(lnSplit(2),nde(2),  iErr) ! Number of turns for the energy ramping

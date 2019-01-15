@@ -37,7 +37,7 @@ module parpro
   integer, parameter :: mDivLen   = 132    ! Length of lout output lines
   integer, parameter :: mInputLn  = 1600   ! Buffer size for single lines read from input files
 
-  integer :: ntr   = -1   ! Number of phase trombones
+  integer :: ntr   =  1   ! Number of phase trombones
 
   integer :: nzfz  = -1   ! Number of allocated multipole random numbers
   integer :: nele  = -1   ! Number of allocated SINGle elements
@@ -118,6 +118,7 @@ module mod_common
 
   use parpro
   use floatPrecision
+  use physical_constants
   use numerical_constants
 
   implicit none
@@ -155,21 +156,21 @@ module mod_common
 
   ! TRACK Block Variables
   real(kind=fPrec), save :: amp0       = zero ! End amplitude
-  integer,          save :: numl       = 0    ! Number of turns in the forward direction
+  integer,          save :: numl       = 1    ! Number of turns in the forward direction
   integer,          save :: numlr      = 0    ! Number of turns in the backward direction
   integer,          save :: napx       = 0    ! Number of amplitude variations
   integer,          save :: ird        = 0    ! Ignored
   integer,          save :: imc        = 0    ! Variations of relative momentum deviation
   integer,          save :: niu(2)     = 0    ! Unknown
-  integer,          save :: numlcp     = 0    ! How often to write checkpointing files
-  integer,          save :: numlmax    = 0    ! Max number of C/R turns
+  integer,          save :: numlcp     = 1000 ! How often to write checkpointing files
+  integer,          save :: numlmax    = 1e9  ! Max number of C/R turns
   integer,          save :: idfor      = 0    ! Add closed orbit to initia coordinates
   integer,          save :: irew       = 0    ! Rewind fort.59-90
   integer,          save :: iclo6      = 0    ! 6D closed orbit flags
   integer,          save :: iclo6r     = 0    ! 6D closed orbit flags
   integer,          save :: nde(2)     = 0    ! Number of turns at flat bottom / energy ramping
-  integer,          save :: nwr(4)     = 0    ! Writings to fort.90
-  integer,          save :: ntwin      = 0    ! How to calculate the distance in phase space
+  integer,          save :: nwr(4)     = 1    ! Writings to fort.90
+  integer,          save :: ntwin      = 1    ! How to calculate the distance in phase space
   integer,          save :: iexact     = 0    ! Exact solution of the equation of motion
   integer,          save :: curveff    = 0    ! Enable the curvature effect in a combined function magnet
   integer,          save :: napxo      = 0    ! Original value of napx
@@ -188,12 +189,12 @@ module mod_common
 
   ! Synchrotron Motion and Differential Algebra Block
   real(kind=fPrec), save :: qs         = zero ! Synchrotron tune [N/turn]
-  real(kind=fPrec), save :: pma        = zero ! Rest mass of the particle in MeV/c^2
+  real(kind=fPrec), save :: pma        = pmap ! Rest mass of the particle in MeV/c^2
   real(kind=fPrec), save :: phas       = zero ! Synchrotron acceleration phase [rad]
   real(kind=fPrec), save :: hsy(3)     = zero ! Cavity [voltage, unused, RF frequency]
   real(kind=fPrec), save :: crad       = zero ! electron radius * electron mass / pma
   real(kind=fPrec), save :: dppoff     = zero ! Offset relative momentum deviation
-  real(kind=fPrec), save :: tlen       = zero ! Length of the accelerator [m]
+  real(kind=fPrec), save :: tlen       = one  ! Length of the accelerator [m]
   real(kind=fPrec), save :: mtcda      = one  ! Somthing FOX
   real(kind=fPrec), save :: dpscor     = one  ! Scaling factor for relative momentum deviation
   real(kind=fPrec), save :: sigcor     = one  ! Path length difference
@@ -213,20 +214,20 @@ module mod_common
   integer,          save :: mout2      = 0    ! Magnet Fluctuations: Write fort.2 > fort.4 (mod_fluc)
 
   ! Iteration Errors
-  real(kind=fPrec), save :: dma        = zero ! Precision of closed orbit displacements
-  real(kind=fPrec), save :: dmap       = zero ! Precision of derivative of closed orbit displacements
-  real(kind=fPrec), save :: dkq        = zero ! Variations of quadrupole strengths
-  real(kind=fPrec), save :: dqq        = zero ! Precision of tunes
-  real(kind=fPrec), save :: dsm0       = zero ! Variations of sextupole strengths
-  real(kind=fPrec), save :: dech       = zero ! Precision of chromaticity correction
-  real(kind=fPrec), save :: de0        = zero ! Variations of momentum spread for chromaticity calculation
-  real(kind=fPrec), save :: ded        = zero ! Variations of momentum spread for evaluation of dispersion
-  real(kind=fPrec), save :: dsi        = zero ! Precision of desired orbit r.m.s. value
-  real(kind=fPrec), save :: aper(2)    = c1e3 ! Precision of aperture limits
+  real(kind=fPrec), save :: dma        = c1m12 ! Precision of closed orbit displacements
+  real(kind=fPrec), save :: dmap       = c1m15 ! Precision of derivative of closed orbit displacements
+  real(kind=fPrec), save :: dkq        = c1m10 ! Variations of quadrupole strengths
+  real(kind=fPrec), save :: dqq        = c1m10 ! Precision of tunes
+  real(kind=fPrec), save :: dsm0       = c1m10 ! Variations of sextupole strengths
+  real(kind=fPrec), save :: dech       = c1m10 ! Precision of chromaticity correction
+  real(kind=fPrec), save :: de0        = c1m9  ! Variations of momentum spread for chromaticity calculation
+  real(kind=fPrec), save :: ded        = c1m9  ! Variations of momentum spread for evaluation of dispersion
+  real(kind=fPrec), save :: dsi        = c1m9  ! Precision of desired orbit r.m.s. value
+  real(kind=fPrec), save :: aper(2)    = c1e3  ! Precision of aperture limits
 
-  integer,          save :: itco       = 0    ! Number of iterations for closed orbit calculation
-  integer,          save :: itcro      = 0    ! Number of iterations for chromaticity correction
-  integer,          save :: itqv       = 0    ! Number of iterations for Q adjustment
+  integer,          save :: itco       = 500   ! Number of iterations for closed orbit calculation
+  integer,          save :: itcro      = 10    ! Number of iterations for chromaticity correction
+  integer,          save :: itqv       = 10    ! Number of iterations for Q adjustment
 
   ! Closed Orbit
   real(kind=fPrec), save :: di0(2)     = zero
@@ -367,10 +368,10 @@ module mod_common
   real(kind=fPrec), save :: dphiz      = zero ! Vertical angle interval used to stroboscope phase space [rad]
   real(kind=fPrec), save :: qx0        = zero ! Horisontal tune
   real(kind=fPrec), save :: qz0        = zero ! Vertical tune
-  real(kind=fPrec), save :: dres       = zero ! Maximum distance to the resonance
-  real(kind=fPrec), save :: dfft       = zero ! Find resonances with the FFT spectrum below
-  real(kind=fPrec), save :: cma1       = zero ! Scale for Lyapunov analysis
-  real(kind=fPrec), save :: cma2       = zero ! Scale for Lyapunov analysis
+  real(kind=fPrec), save :: dres       = one  ! Maximum distance to the resonance
+  real(kind=fPrec), save :: dfft       = one  ! Find resonances with the FFT spectrum below
+  real(kind=fPrec), save :: cma1       = one  ! Scale for Lyapunov analysis
+  real(kind=fPrec), save :: cma2       = one  ! Scale for Lyapunov analysis
 
   integer,          save :: nstart     = 0    ! Start turn number for the analysis
   integer,          save :: nstop      = 0    ! Stop turn number for the analysis
@@ -379,11 +380,11 @@ module mod_common
   integer,          save :: imad       = 0    ! Switch: MAD-X related
 
   integer,          save :: ipos       = 0    ! Post-processing on/off
-  integer,          save :: iav        = 0    ! Averaging interval of the values of the distance in phase space
-  integer,          save :: iwg        = 0    ! Switch: weighting of the slope calculation of the distance in phase space
-  integer,          save :: ivox       = 0    ! Switch: tune close to an integer
-  integer,          save :: ivoz       = 0    ! Switch: tune close to an integer
-  integer,          save :: ires       = 0    ! Closest resonances search up to order
+  integer,          save :: iav        = 1    ! Averaging interval of the values of the distance in phase space
+  integer,          save :: iwg        = 1    ! Switch: weighting of the slope calculation of the distance in phase space
+  integer,          save :: ivox       = 1    ! Switch: tune close to an integer
+  integer,          save :: ivoz       = 1    ! Switch: tune close to an integer
+  integer,          save :: ires       = 1    ! Closest resonances search up to order
   integer,          save :: ifh        = 0    ! FFT analysis tune interval
 
   integer,          save :: kwtype     = 0    ! Disabled
@@ -393,8 +394,8 @@ module mod_common
   integer,          save :: icow       = 0    ! Switch to select plot
   integer,          save :: istw       = 0    ! Switch to select plot
   integer,          save :: iffw       = 0    ! Switch to select plot
-  integer,          save :: nprint     = 0    ! Switch to stop the printing of the post-processing fort.6
-  integer,          save :: ndafi      = 0    ! Number of data files to be processed
+  integer,          save :: nprint     = 1    ! Switch to stop the printing of the post-processing fort.6
+  integer,          save :: ndafi      = 1    ! Number of data files to be processed
 
   !  ALLOCATABLES
   ! ==============
@@ -676,6 +677,9 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
     call alloc(fsddida,           2, mmul,           zero,   "fsddida")
     call alloc(field_sin,         2, mmul,           zero,   "field_sin")
     call alloc(fcodda,            2, mmul,           zero,   "fcodda")
+
+    call alloc(cotr,                 ntr,  6,        zero,   "cotr")
+    call alloc(rrtr,                 ntr,  6,6,      zero,   "rrtr")
   end if
 
   firstRun   = .false.
@@ -701,24 +705,24 @@ module mod_common_da
   implicit none
 
   ! Differential Algebra (DIFF)
-  real(kind=fPrec), save :: preda      = zero ! Precision needed by the DA package
-  integer,          save :: idial      = 0    ! DIFF block switch
-  integer,          save :: nord       = 0    ! Order of the map
-  integer,          save :: nvar       = 0    ! Number of the variables
-  integer,          save :: nvar2      = 0    ! Number of the variables (not with ncor added)
-  integer,          save :: nsix       = 0    ! Switch to calculate a 5x6 instead of a 6x6 map
-  integer,          save :: ncor       = 0    ! Number of zero-length elements to be additional parameters
-  integer,          save :: ipar(mcor) = 0    ! DIFF variable
+  real(kind=fPrec), save :: preda      = c1m38 ! Precision needed by the DA package
+  integer,          save :: idial      = 0     ! DIFF block switch
+  integer,          save :: nord       = 0     ! Order of the map
+  integer,          save :: nvar       = 0     ! Number of the variables
+  integer,          save :: nvar2      = 0     ! Number of the variables (not with ncor added)
+  integer,          save :: nsix       = 0     ! Switch to calculate a 5x6 instead of a 6x6 map
+  integer,          save :: ncor       = 0     ! Number of zero-length elements to be additional parameters
+  integer,          save :: ipar(mcor) = 0     ! DIFF variable
 
   ! Normal Forms (NORM)
-  integer,          save :: inorm      = 0    ! NORM block switch
-  integer,          save :: nordf      = 0    ! Order of the Normal Form
-  integer,          save :: nvarf      = 0    ! Number of variables
-  integer,          save :: nord1      = 1    ! 3rd variable in NORM (not in manual)
-  integer,          save :: idptr      = 0    ! 4th variable in NORM (not in manual)
-  integer,          save :: imod1      = 0    ! Mode
-  integer,          save :: imod2      = 0    ! Mode
-  integer,          save :: ndimf      = 0    ! NORM vriable
+  integer,          save :: inorm      = 0     ! NORM block switch
+  integer,          save :: nordf      = 0     ! Order of the Normal Form
+  integer,          save :: nvarf      = 0     ! Number of variables
+  integer,          save :: nord1      = 1     ! 3rd variable in NORM (not in manual)
+  integer,          save :: idptr      = 0     ! 4th variable in NORM (not in manual)
+  integer,          save :: imod1      = 0     ! Mode
+  integer,          save :: imod2      = 0     ! Mode
+  integer,          save :: ndimf      = 0     ! NORM vriable
 
 end module mod_common_da
 
@@ -737,7 +741,7 @@ module mod_common_track
   ! Tracking
   real(kind=fPrec), save :: x(mpa,2) = zero
   real(kind=fPrec), save :: y(mpa,2) = zero
-  real(kind=fPrec), save :: amp(2)   = zero
+  real(kind=fPrec), save :: amp(2)   = [c1m3,zero]
   real(kind=fPrec), save :: bet0(2)  = zero
   real(kind=fPrec), save :: alf0(2)  = zero
   real(kind=fPrec), save :: clo(2)   = zero
@@ -1095,12 +1099,12 @@ module mod_commons
 
   real(kind=fPrec), save :: sigm(mpa) = zero
   real(kind=fPrec), save :: dps(mpa)  = zero
-  real(kind=fPrec), save :: chi0      = zero ! Starting phase of the initial coordinate
-  real(kind=fPrec), save :: chid      = zero ! Phase difference between first and second particles
+  real(kind=fPrec), save :: chi0      = zero  ! Starting phase of the initial coordinate
+  real(kind=fPrec), save :: chid      = zero  ! Phase difference between first and second particles
   real(kind=fPrec), save :: exz(2,6)  = zero
   real(kind=fPrec), save :: dp1       = zero
-  integer,          save :: idz(2)    = 0    ! Coupling on/off
-  integer,          save :: itra      = 0    ! Number of particles
+  integer,          save :: idz(2)    = [1,0] ! Coupling on/off
+  integer,          save :: itra      = 0     ! Number of particles
 
 contains
 
