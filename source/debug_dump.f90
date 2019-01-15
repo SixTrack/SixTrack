@@ -427,7 +427,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'alfz ',alfz
   write(99,*) 'iskew ',iskew
   write(99,*) 'nskew ',nskew
-  write(99,*) 'hmal ',hmal
   write(99,*) 'sixtit ',sixtit
   write(99,*) 'commen ',commen
   write(99,*) 'ithick ',ithick
@@ -481,7 +480,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'xsi ',xsi
   write(99,*) 'zsi ',zsi
   write(99,*) 'smi ',smi
-  write(99,*) 'ampt ',ampt
   write(99,*) 'tlim ',tlim
   write(99,*) 'tasm ',tasm
   write(99,*) 'preda ',preda
@@ -908,7 +906,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) alfz
   write(99) iskew
   write(99) nskew
-  write(99) hmal
   write(99) sixtit
   write(99) commen
   write(99) ithick
@@ -962,7 +959,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) xsi
   write(99) zsi
   write(99) smi
-  write(99) ampt
   write(99) tlim
   write(99) tasm
   write(99) preda
@@ -1383,7 +1379,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'alfz ',alfz
   write(99,100) 'iskew ',iskew
   write(99,100) 'nskew ',nskew
-  write(99,100) 'hmal ',hmal
   write(99,100) 'sixtit ',sixtit
   write(99,100) 'commen ',commen
   write(99,100) 'ithick ',ithick
@@ -1437,7 +1432,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'xsi ',xsi
   write(99,100) 'zsi ',zsi
   write(99,100) 'smi ',smi
-  write(99,100) 'ampt ',ampt
   write(99,100) 'tlim ',tlim
   write(99,100) 'tasm ',tasm
   write(99,100) 'preda ',preda

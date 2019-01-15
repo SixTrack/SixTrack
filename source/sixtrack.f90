@@ -2743,9 +2743,6 @@ subroutine comnul
 
   save
 
-  ! CHROMATICITY ADJUSTMENT BLOCK
-  ichrom  = 0     ! mod_common
-
   ! TODO
       idial=0
       nord=0
@@ -2764,8 +2761,6 @@ subroutine comnul
       imod1=0
       imod2=0
       preda=zero
-      damp=zero
-      ampt=zero
 !-----------------------------------------------------------------------
       do 10 i=1,2
         is(i)=0
@@ -2774,29 +2769,7 @@ subroutine comnul
         clo(i)=zero
         clop(i)=zero
         cro(i)=zero
-        qwsk(i)=zero
-        betx(i)=zero
-        betz(i)=zero
-        alfx(i)=zero
-        alfz(i)=zero
    10 continue
-
-      do 20 i=1,3
-        clon(i)=zero
-        wxys(i)=zero
-        do i1=1,3
-          corr(i,i1)=zero
-        enddo
-   20 continue
-
-      corr(1,1)=zero
-      corr(1,2)=zero
-      chromc(1)=9.999999e23_fPrec
-      chromc(2)=9.999999e23_fPrec
-
-      do 50 i=1,6
-        nskew(i)=0
-   50 continue
 
 !     From the FLUKA version
       do i=1,nele
@@ -2814,21 +2787,6 @@ subroutine comnul
           y(i,i1)=zero
   210   continue
   220 continue
-
-!--PAW------------------------------------------------------------------
-      do i=1,nplo
-        hmal(i)=0.0
-      end do
-
-!--TROMBONES------------------------------------------------------------
-      do i=1,ntr
-        do i1=1,6
-          cotr(i,i1)=zero
-          do i2=1,6
-            rrtr(i,i1,i2)=zero
-          end do
-        end do
-      end do
 
 !--DUMP BEAM POPULATION-------------------------------------------------
 !     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team

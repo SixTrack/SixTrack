@@ -299,7 +299,6 @@ module mod_common
   real(kind=fPrec), save :: dtr(10)    = zero
   integer,          save :: ire(12)    = 0
 
-
   real(kind=fPrec), save :: rtc(9,18,10,5) = zero
   real(kind=fPrec), save :: rts(9,18,10,5) = zero
 
@@ -320,6 +319,19 @@ module mod_common
   integer,          save :: ibtyp      = 0    ! Switch to use the fast beam–beam algorithms
   integer,          save :: lhc        = 1    ! Switch for the LHC with its anti-symmetric IR
 
+  ! Decoupling of Motion
+  integer,          save :: iskew      = 0    ! Skew switch
+  integer,          save :: nskew(6)   = 0    ! Index to skew quadrupole families
+  real(kind=fPrec), save :: qwsk(2)    = zero ! Horisontal and vertical tune
+  real(kind=fPrec), save :: betx(2)    = zero
+  real(kind=fPrec), save :: betz(2)    = zero
+  real(kind=fPrec), save :: alfx(2)    = zero
+  real(kind=fPrec), save :: alfz(2)    = zero
+
+  ! RF Multipoles
+  integer,          save :: iord       = 0
+  integer,          save :: nordm      = 0
+
   ! Reference Particle
   real(kind=fPrec), save :: e0         = zero ! Reference energy
 
@@ -337,6 +349,18 @@ module mod_common
   real,             save :: pretime    = 0.0
   real,             save :: posttime   = 0.0
   real,             save :: tottime    = 0.0
+
+  ! Other Variables
+  integer,          save :: ichromc    = 0
+  integer,          save :: ilinc      = 0
+  integer,          save :: iqmodc     = 0
+  real(kind=fPrec), save :: corr(3,3)  = zero
+  real(kind=fPrec), save :: chromc(2)  = 9.999999e23_fPrec
+  real(kind=fPrec), save :: wxys(3)    = zero
+  real(kind=fPrec), save :: clon(6)    = zero
+
+  real(kind=fPrec), save :: aml6(6,6)  = zero ! 6D / FOX
+  real(kind=fPrec), save :: edcor(2)   = zero ! Chromaticity-related
 
   ! Post-Procesing
   real(kind=fPrec), save :: dphix      = zero ! Horisontal angle interval used to stroboscope phase space [rad]
@@ -376,169 +400,147 @@ module mod_common
   ! ==============
 
   ! Block Element Indexed (nblo)
-  character(len=:), allocatable, save :: bezb(:)       ! Block Elements: Name
-  real(kind=fPrec), allocatable, save :: elbe(:)       ! Block Elements: Length
-  integer,          allocatable, save :: mtyp(:,:)     ! Block Elements: Indices of single elements (:,nelb)
+  character(len=:), allocatable, save :: bezb(:)        ! Block Elements: Name
+  real(kind=fPrec), allocatable, save :: elbe(:)        ! Block Elements: Length
+  integer,          allocatable, save :: mtyp(:,:)      ! Block Elements: Indices of single elements (:,nelb)
 
-  real(kind=fPrec), allocatable, save :: bl1(:,:,:)    ! Block Elements: (:,2,6)
-  real(kind=fPrec), allocatable, save :: bl2(:,:,:)    ! Block Elements: (:,2,6)
-  integer,          allocatable, save :: mel(:)        ! Block Elements: Number of single elements
+  real(kind=fPrec), allocatable, save :: bl1(:,:,:)     ! Block Elements: (:,2,6)
+  real(kind=fPrec), allocatable, save :: bl2(:,:,:)     ! Block Elements: (:,2,6)
+  integer,          allocatable, save :: mel(:)         ! Block Elements: Number of single elements
 
   ! Single Element Indexed (nele)
-  character(len=:), allocatable, save :: bez(:)        ! Single Elements: 1st field, name
-  character(len=:), allocatable, save :: bezl(:)       ! Single Elements: Linear optics write out
-  real(kind=fPrec), allocatable, save :: ed(:)         ! Single Elements: 3rd field, additional
-  real(kind=fPrec), allocatable, save :: ek(:)         ! Single Elements: 4th field, additional
-  real(kind=fPrec), allocatable, save :: el(:)         ! Single Elements: 5th field, length [m]
-  real(kind=fPrec), allocatable, save :: bbbx(:)       ! Single Elements: 6th field
-  real(kind=fPrec), allocatable, save :: bbby(:)       ! Single Elements: 7th field
-  real(kind=fPrec), allocatable, save :: bbbs(:)       ! Single Elements: 8th field
-  real(kind=fPrec), allocatable, save :: sm(:)         ! Single Elements: Non-linear field, avg strength
-  integer,          allocatable, save :: kz(:)         ! Single Elements: 2nd field, type
-  integer,          allocatable, save :: kp(:)         ! Single Elements: Additional flag
-  real(kind=fPrec), allocatable, save :: dki(:,:)      ! Single Elements: [H bend kick, V bend kick, dipole length] (:,3)
+  character(len=:), allocatable, save :: bez(:)         ! Single Elements: 1st field, name
+  character(len=:), allocatable, save :: bezl(:)        ! Single Elements: Linear optics write out
+  real(kind=fPrec), allocatable, save :: ed(:)          ! Single Elements: 3rd field, additional
+  real(kind=fPrec), allocatable, save :: ek(:)          ! Single Elements: 4th field, additional
+  real(kind=fPrec), allocatable, save :: el(:)          ! Single Elements: 5th field, length [m]
+  real(kind=fPrec), allocatable, save :: bbbx(:)        ! Single Elements: 6th field
+  real(kind=fPrec), allocatable, save :: bbby(:)        ! Single Elements: 7th field
+  real(kind=fPrec), allocatable, save :: bbbs(:)        ! Single Elements: 8th field
+  real(kind=fPrec), allocatable, save :: sm(:)          ! Single Elements: Non-linear field, avg strength
+  integer,          allocatable, save :: kz(:)          ! Single Elements: 2nd field, type
+  integer,          allocatable, save :: kp(:)          ! Single Elements: Additional flag
+  real(kind=fPrec), allocatable, save :: dki(:,:)       ! Single Elements: [H bend kick, V bend kick, dipole length] (:,3)
 
-  real(kind=fPrec), allocatable, save :: a(:,:,:)      ! Something Something Matrix (:,2,6)
+  real(kind=fPrec), allocatable, save :: a(:,:,:)       ! Something Something Matrix (:,2,6)
 
-  real(kind=fPrec), allocatable, save :: hsyc(:)       ! Accelerating cavity: 'Frequency'
-  real(kind=fPrec), allocatable, save :: phasc(:)      ! Accelerating cavity: Lag phase
-  integer,          allocatable, save :: itionc(:)     ! Accelerating cavity: Regime
+  real(kind=fPrec), allocatable, save :: hsyc(:)        ! Accelerating cavity: 'Frequency'
+  real(kind=fPrec), allocatable, save :: phasc(:)       ! Accelerating cavity: Lag phase
+  integer,          allocatable, save :: itionc(:)      ! Accelerating cavity: Regime
 
-  real(kind=fPrec), allocatable, save :: benkc(:)      ! Multipoles: Bending strength of the dipole [mrad]
-  real(kind=fPrec), allocatable, save :: r00(:)        ! Multipoles: Reference radius [mm]
-  real(kind=fPrec), allocatable, save :: scalemu(:)    ! Multipoles: Scale (DYNK)
-  integer,          allocatable, save :: nmu(:)        ! Multipoles: Max multipole order
-  integer,          allocatable, save :: irm(:)        ! Multipoles: Index of the associated element
+  real(kind=fPrec), allocatable, save :: benkc(:)       ! Multipoles: Bending strength of the dipole [mrad]
+  real(kind=fPrec), allocatable, save :: r00(:)         ! Multipoles: Reference radius [mm]
+  real(kind=fPrec), allocatable, save :: scalemu(:)     ! Multipoles: Scale (DYNK)
+  integer,          allocatable, save :: nmu(:)         ! Multipoles: Max multipole order
+  integer,          allocatable, save :: irm(:)         ! Multipoles: Index of the associated element
 
-  real(kind=fPrec), allocatable, save :: freq_rfm(:)   ! RF Multipoles:
-  integer,          allocatable, save :: nmu_rf(:)     ! RF Multipoles: Max multipole order
-  integer,          allocatable, save :: irm_rf(:)     ! RF Multipoles: Index of the associated element
+  real(kind=fPrec), allocatable, save :: freq_rfm(:)    ! RF Multipoles:
+  integer,          allocatable, save :: nmu_rf(:)      ! RF Multipoles: Max multipole order
+  integer,          allocatable, save :: irm_rf(:)      ! RF Multipoles: Index of the associated element
 
-  real(kind=fPrec), allocatable, save :: xpl(:)        ! Displacement (DISP): Value of horizontal displacement [mm]
-  real(kind=fPrec), allocatable, save :: xrms(:)       ! Displacement (DISP): RMS of horizontal displacement [mm]
-  real(kind=fPrec), allocatable, save :: zpl(:)        ! Displacement (DISP): Value of vertical displacement [mm]
-  real(kind=fPrec), allocatable, save :: zrms(:)       ! Displacement (DISP): RMS of vertical displacement [mm]
+  real(kind=fPrec), allocatable, save :: xpl(:)         ! Displacement (DISP): Value of horizontal displacement [mm]
+  real(kind=fPrec), allocatable, save :: xrms(:)        ! Displacement (DISP): RMS of horizontal displacement [mm]
+  real(kind=fPrec), allocatable, save :: zpl(:)         ! Displacement (DISP): Value of vertical displacement [mm]
+  real(kind=fPrec), allocatable, save :: zrms(:)        ! Displacement (DISP): RMS of vertical displacement [mm]
 
-  character(len=:), allocatable, save :: bezr(:,:)     ! Organisation of Random Numbers (3,:)
+  character(len=:), allocatable, save :: bezr(:,:)      ! Organisation of Random Numbers (3,:)
 
-  integer,          allocatable, save :: kpa(:)        ! Tune Variations: Element markers
+  integer,          allocatable, save :: kpa(:)         ! Tune Variations: Element markers
 
-  integer,          allocatable, save :: ncororb(:)    ! Obrit Correctors: Flag
+  integer,          allocatable, save :: ncororb(:)     ! Obrit Correctors: Flag
 
-  real(kind=fPrec), allocatable, save :: crabph(:)     ! Crab Cavities: Phase of the excitation
-  real(kind=fPrec), allocatable, save :: crabph2(:)    ! Crab Cavities: Order 2
-  real(kind=fPrec), allocatable, save :: crabph3(:)    ! Crab Cavities: Order 3
-  real(kind=fPrec), allocatable, save :: crabph4(:)    ! Crab Cavities: Order 4
+  real(kind=fPrec), allocatable, save :: crabph(:)      ! Crab Cavities: Phase of the excitation
+  real(kind=fPrec), allocatable, save :: crabph2(:)     ! Crab Cavities: Order 2
+  real(kind=fPrec), allocatable, save :: crabph3(:)     ! Crab Cavities: Order 3
+  real(kind=fPrec), allocatable, save :: crabph4(:)     ! Crab Cavities: Order 4
 
-  real(kind=fPrec), allocatable, save :: ratioe(:)     ! Combination of Elements: Ratio of the magnetic strength
-  integer,          allocatable, save :: iratioe(:)    ! Combination of Elements: Index
+  real(kind=fPrec), allocatable, save :: ratioe(:)      ! Combination of Elements: Ratio of the magnetic strength
+  integer,          allocatable, save :: iratioe(:)     ! Combination of Elements: Index
 
-  integer,          allocatable, save :: isea(:)       ! Compensate Resonance: Element index
+  integer,          allocatable, save :: isea(:)        ! Compensate Resonance: Element index
 
-  real(kind=fPrec), allocatable, save :: parbe(:,:)    ! Beam-Beam: Input values (:,18)
-  real(kind=fPrec), allocatable, save :: ptnfac(:)     ! Beam-Beam: Strength ratio
+  real(kind=fPrec), allocatable, save :: parbe(:,:)     ! Beam-Beam: Input values (:,18)
+  real(kind=fPrec), allocatable, save :: ptnfac(:)      ! Beam-Beam: Strength ratio
 
-  real(kind=fPrec), allocatable, save :: acdipph(:)    ! AC Dipole: Phase (el)
-  integer,          allocatable, save :: nturn1(:)     ! AC Dipole: Turns to free of excitation at the beginning of the run
-  integer,          allocatable, save :: nturn2(:)     ! AC Dipole: Turns to ramp up the excitation amplitude
-  integer,          allocatable, save :: nturn3(:)     ! AC Dipole: Turns of constant excitation amplitude
-  integer,          allocatable, save :: nturn4(:)     ! AC Dipole: Turns to ramp down the excitation amplitude
+  real(kind=fPrec), allocatable, save :: acdipph(:)     ! AC Dipole: Phase (el)
+  integer,          allocatable, save :: nturn1(:)      ! AC Dipole: Turns to free of excitation at the beginning of the run
+  integer,          allocatable, save :: nturn2(:)      ! AC Dipole: Turns to ramp up the excitation amplitude
+  integer,          allocatable, save :: nturn3(:)      ! AC Dipole: Turns of constant excitation amplitude
+  integer,          allocatable, save :: nturn4(:)      ! AC Dipole: Turns to ramp down the excitation amplitude
+
+  integer,          allocatable, save :: imtr(:)        ! Phase Trombones
 
   ! Single Element and Multipole Indexed (nele,mmul)
-  real(kind=fPrec), allocatable, save :: bk0(:,:)      ! Multipoles: B-value
-  real(kind=fPrec), allocatable, save :: ak0(:,:)      ! Multipoles: A-value
-  real(kind=fPrec), allocatable, save :: bka(:,:)      ! Multipoles: B-RMS
-  real(kind=fPrec), allocatable, save :: aka(:,:)      ! Multipoles: A-RMS
-  real(kind=fPrec), allocatable, save :: norrfamp(:,:) ! RF Multipoles:
-  real(kind=fPrec), allocatable, save :: norrfph(:,:)  ! RF Multipoles:
-  real(kind=fPrec), allocatable, save :: skrfamp(:,:)  ! RF Multipoles:
-  real(kind=fPrec), allocatable, save :: skrfph(:,:)   ! RF Multipoles:
+  real(kind=fPrec), allocatable, save :: bk0(:,:)       ! Multipoles: B-value
+  real(kind=fPrec), allocatable, save :: ak0(:,:)       ! Multipoles: A-value
+  real(kind=fPrec), allocatable, save :: bka(:,:)       ! Multipoles: B-RMS
+  real(kind=fPrec), allocatable, save :: aka(:,:)       ! Multipoles: A-RMS
+  real(kind=fPrec), allocatable, save :: norrfamp(:,:)  ! RF Multipoles:
+  real(kind=fPrec), allocatable, save :: norrfph(:,:)   ! RF Multipoles:
+  real(kind=fPrec), allocatable, save :: skrfamp(:,:)   ! RF Multipoles:
+  real(kind=fPrec), allocatable, save :: skrfph(:,:)    ! RF Multipoles:
 
   ! Structure Element Indexed (nblz)
   real(kind=fPrec), allocatable, save :: sigmoff(:)
-  real(kind=fPrec), allocatable, save :: tiltc(:)      ! Magnet Tilt: Cos component
-  real(kind=fPrec), allocatable, save :: tilts(:)      ! Magnet Tilt: Sin component
-  integer,          allocatable, save :: icext(:)      ! Magnet Error: Index (mod_fluc)
-  integer,          allocatable, save :: mzu(:)        ! Magnet Error: Random number index
-  integer,          allocatable, save :: icextal(:)    ! Magnet Misalignment: index (mod_fluc)
+  real(kind=fPrec), allocatable, save :: tiltc(:)       ! Magnet Tilt: Cos component
+  real(kind=fPrec), allocatable, save :: tilts(:)       ! Magnet Tilt: Sin component
+  integer,          allocatable, save :: icext(:)       ! Magnet Error: Index (mod_fluc)
+  integer,          allocatable, save :: mzu(:)         ! Magnet Error: Random number index
+  integer,          allocatable, save :: icextal(:)     ! Magnet Misalignment: index (mod_fluc)
 
-  integer,          allocatable, save :: ic(:)         ! Structure to single/block element map0
+  integer,          allocatable, save :: ic(:)          ! Structure to single/block element map0
 
-  real(kind=fPrec), allocatable, save :: xsi(:)        ! Tracking: Horisontal displacement
-  real(kind=fPrec), allocatable, save :: zsi(:)        ! Tracking: Vertical displacement
-  real(kind=fPrec), allocatable, save :: smi(:)        ! Tracking: Magnetic kick
-  real(kind=fPrec), allocatable, save :: smizf(:)      ! Random Numbers: zfz*ek
+  real(kind=fPrec), allocatable, save :: xsi(:)         ! Tracking: Horisontal displacement
+  real(kind=fPrec), allocatable, save :: zsi(:)         ! Tracking: Vertical displacement
+  real(kind=fPrec), allocatable, save :: smi(:)         ! Tracking: Magnetic kick
+  real(kind=fPrec), allocatable, save :: smizf(:)       ! Random Numbers: zfz*ek
 
-  real(kind=fPrec), allocatable, save :: dcum(:)       ! Machine length in m (0:nblz+1)
+  real(kind=fPrec), allocatable, save :: dcum(:)        ! Machine length in m (0:nblz+1)
 
-  integer,          allocatable, save :: imbb(:)       ! Beam-Beam:
+  integer,          allocatable, save :: imbb(:)        ! Beam-Beam:
 
   ! Structure Element and Multipole Indexed (nblz,mmul)
-  real(kind=fPrec), allocatable, save :: aaiv(:,:)     ! Multipoles:
-  real(kind=fPrec), allocatable, save :: bbiv(:,:)     ! Multipoles:
-  real(kind=fPrec), allocatable, save :: amultip(:,:)  ! Multipoles:
-  real(kind=fPrec), allocatable, save :: bmultip(:,:)  ! Multipoles:
+  real(kind=fPrec), allocatable, save :: aaiv(:,:)      ! Multipoles:
+  real(kind=fPrec), allocatable, save :: bbiv(:,:)      ! Multipoles:
+  real(kind=fPrec), allocatable, save :: amultip(:,:)   ! Multipoles:
+  real(kind=fPrec), allocatable, save :: bmultip(:,:)   ! Multipoles:
 
   ! Number of Particles (npart)
-  real(kind=fPrec), allocatable, save :: track6d(:,:)  ! Beam-Beam (6,:)
+  real(kind=fPrec), allocatable, save :: track6d(:,:)   ! Beam-Beam (6,:)
 
   ! Random Numbers Indexed (nzfz)
-  real(kind=fPrec), allocatable, save :: zfz(:)        ! Magnet errors
+  real(kind=fPrec), allocatable, save :: zfz(:)         ! Magnet errors
+
+  ! Number of Multipoles (mmul)
+  real(kind=fPrec), allocatable, save :: field_cos(:,:) ! RF Multipoiles (2,:)
+  real(kind=fPrec), allocatable, save :: fsddida(:,:)   ! RF Multipoiles (2,:)
+  real(kind=fPrec), allocatable, save :: field_sin(:,:) ! RF Multipoiles (2,:)
+  real(kind=fPrec), allocatable, save :: fcodda(:,:)    ! RF Multipoiles (2,:)
 
   ! Number of Monitors (nmon1)
-  real(kind=fPrec), allocatable, save :: betam(:,:)    ! Orbit Correction: (:,2)
-  real(kind=fPrec), allocatable, save :: pam(:,:)      ! Orbit Correction: (:,2)
-  real(kind=fPrec), allocatable, save :: bclorb(:,:)   ! Orbit Correction: (:,2)
+  real(kind=fPrec), allocatable, save :: betam(:,:)     ! Orbit Correction: (:,2)
+  real(kind=fPrec), allocatable, save :: pam(:,:)       ! Orbit Correction: (:,2)
+  real(kind=fPrec), allocatable, save :: bclorb(:,:)    ! Orbit Correction: (:,2)
 
   ! Number of Orbit Corrections (ncor1)
-  real(kind=fPrec), allocatable, save :: betac(:,:)    ! Orbit Correction: (:,2)
-  real(kind=fPrec), allocatable, save :: pac(:,:)      ! Orbit Correction: (:,2)
+  real(kind=fPrec), allocatable, save :: betac(:,:)     ! Orbit Correction: (:,2)
+  real(kind=fPrec), allocatable, save :: pac(:,:)       ! Orbit Correction: (:,2)
 
   ! Number of Combinations of Elements (ncom)
-  real(kind=fPrec), allocatable, save :: ratio(:,:)    ! Combination of Elements: Ratio (:,20)
-  integer,          allocatable, save :: icomb(:,:)    ! Combination of Elements: Index (:,20)
+  real(kind=fPrec), allocatable, save :: ratio(:,:)     ! Combination of Elements: Ratio (:,20)
+  integer,          allocatable, save :: icomb(:,:)     ! Combination of Elements: Index (:,20)
 
   ! Number of Beam-Beam Lenses (nbb)
-  real(kind=fPrec), allocatable, save :: sigman(:,:)   ! (2,:)
-  real(kind=fPrec), allocatable, save :: sigman2(:,:)  ! sigman^2 (2,:)
-  real(kind=fPrec), allocatable, save :: sigmanq(:,:)  ! (2,:)
-  real(kind=fPrec), allocatable, save :: clobeam(:,:)  ! (6,:)
-  real(kind=fPrec), allocatable, save :: beamoff(:,:)  ! (6,:)
-  real(kind=fPrec), allocatable, save :: bbcu(:,:)     ! (:,12)
+  real(kind=fPrec), allocatable, save :: sigman(:,:)    ! (2,:)
+  real(kind=fPrec), allocatable, save :: sigman2(:,:)   ! sigman^2 (2,:)
+  real(kind=fPrec), allocatable, save :: sigmanq(:,:)   ! (2,:)
+  real(kind=fPrec), allocatable, save :: clobeam(:,:)   ! (6,:)
+  real(kind=fPrec), allocatable, save :: beamoff(:,:)   ! (6,:)
+  real(kind=fPrec), allocatable, save :: bbcu(:,:)      ! (:,12)
 
-
-
-
-
-
-  ! common /skew/
-  real(kind=fPrec), save :: qwsk(2),betx(2),betz(2),alfx(2),alfz(2)
-  integer,          save :: iskew,nskew(6)
-
-  ! common /pawc/
-  real, save :: hmal(nplo)
-
-  ! common/trom/
-  real(kind=fPrec), allocatable, save :: cotr(:,:)   ! (ntr,6)
-  real(kind=fPrec), allocatable, save :: rrtr(:,:,:) ! (ntr,6,6)
-  integer,          allocatable, save :: imtr(:)     ! (nele)
-
-  ! common /general-rf multi/
-  integer, save :: iord, nordm
-  real(kind=fPrec), save :: field_cos(2,mmul), fsddida(2,mmul)
-  real(kind=fPrec), save :: field_sin(2,mmul), fcodda(2,mmul)
-
-  ! common /sixdim/
-  real(kind=fPrec), save :: aml6(6,6),edcor(2)
-
-  ! common /correct/
-  integer,          save :: ichromc = 0
-  integer,          save :: ilinc   = 0
-  integer,          save :: iqmodc  = 0
-  real(kind=fPrec), save :: corr(3,3),chromc(2),wxys(3),clon(6)
-
-  ! common /damp/
-  real(kind=fPrec), save :: damp,ampt
+  ! Number of Phase Trombones (ntr)
+  real(kind=fPrec), allocatable, save :: cotr(:,:)      ! (:,6)
+  real(kind=fPrec), allocatable, save :: rrtr(:,:,:)    ! (:,6,6)
 
 contains
 
@@ -657,6 +659,11 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
     call alloc(clobeam,           6, nbb,            zero,        "clobeam")
     call alloc(beamoff,           6, nbb,            zero,        "beamoff")
     call alloc(bbcu,                 nbb, 12,        zero,        "bbcu")
+
+    call alloc(field_cos,         2, mmul,           zero,        "field_cos")
+    call alloc(fsddida,           2, mmul,           zero,        "fsddida")
+    call alloc(field_sin,         2, mmul,           zero,        "field_sin")
+    call alloc(fcodda,            2, mmul,           zero,        "fcodda")
   end if
 
   firstRun = .false.
