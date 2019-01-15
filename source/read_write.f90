@@ -2,8 +2,8 @@
 !  Read Input
 ! ~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-05-18
-!  Module for parsing special input files like fort.33, fort.13, fort.10, etc.
+!  Last Modified: 2019-01-15
+!  Module for reading and writing special fort.xx files
 ! ================================================================================================ !
 
 module read_write
@@ -169,15 +169,6 @@ subroutine readFort13
     mtc(j+1)      = one
     nucm(j)       = nucm0
     nucm(j+1)     = nucm0
-
-    ejfv(j)       = sqrt(ejv(j)**2   - nucm(j)**2)
-    ejfv(j+1)     = sqrt(ejv(j+1)**2 - nucm(j+1)**2)
-    oidpsv(j)     = one/(one + dpsv(j))
-    oidpsv(j+1)   = one/(one + dpsv(j+1))
-    moidpsv(j)    = mtc(j)   / (one+dpsv(j))
-    moidpsv(j+1)  = mtc(j+1) / (one+dpsv(j+1))
-    omoidpsv(j)   = c1e3*((one-mtc(j))   * oidpsv(j))
-    omoidpsv(j+1) = c1e3*((one-mtc(j+1)) * oidpsv(j+1))
 
   end do
 
