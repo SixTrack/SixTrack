@@ -171,7 +171,7 @@ end interface
   call boinc_init
 ! call boinc_init_graphics
 #endif
-  call f_initUnits ! And this one second
+  call f_initUnits     ! mod_units
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call alloc_init      ! Initialise mod_alloc
@@ -1369,9 +1369,8 @@ end interface
   else if(idfor == 2) then
     ! Read from fort.13
     call readFort13
-    call part_updatePartEnergy(3)
-    ! Note that this effectively overrides the particle energy set in fort.13
-    ! as energy is recalculated from delta.
+    call part_updatePartEnergy(1)
+    ! Note that this effectively overrides the particle delta set in fort.13
   endif
 
   do ia=1,napx,2
