@@ -1744,7 +1744,7 @@ subroutine dynk_pretrack
 
   use crcoall
   use mod_common
-  use mod_commond
+  use mod_common_da
 
   implicit none
 
@@ -1872,8 +1872,8 @@ subroutine dynk_apply(turn)
 
   use crcoall
   use mod_common
-  use mod_commont
-  use mod_commonmn
+  use mod_common_track
+  use mod_common_main
   use string_tools
 
   implicit none
@@ -2303,8 +2303,8 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   use scatter, only : scatter_setScaling
   use crcoall
   use mod_common
-  use mod_commont
-  use mod_commonmn
+  use mod_common_track
+  use mod_common_main
   use mod_particles
 
   use elens
@@ -2574,8 +2574,8 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
   use scatter, only : scatter_getScaling
   use crcoall
   use mod_common
-  use mod_commont
-  use mod_commonmn
+  use mod_common_track
+  use mod_common_main
   use elens
   use parbeam, only : beam_expflag
 

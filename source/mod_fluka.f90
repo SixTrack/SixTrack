@@ -456,7 +456,7 @@ module mod_fluka
   ! just receive particles from Fluka
   ! The call from fluka.s90 is:
   ! fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv1(:), yv1(:), xv2(:), yv2(:), sigmv, ejv, naa(:), nzz(:), nucm(:))
-  ! When the above arrays are made allocatable, the below variables will need updating - see mod_commonmn and mod_hions
+  ! When the above arrays are made allocatable, the below variables will need updating - see mod_common_main and mod_hions
   integer function fluka_receive(turn, ipt, el, napx, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
 
     use parpro

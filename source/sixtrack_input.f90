@@ -25,8 +25,8 @@ module sixtrack_input
   integer,                       public, save :: sixin_nBlock    ! Number of blocks
 
   ! Single Element Variables
-  integer,                       public, save :: sixin_nSing
-  integer,                       public, save :: sixin_ncy2
+  integer,                       public, save :: sixin_nSing  = 0
+  integer,                       public, save :: sixin_ncy2   = 0
   character(len=:), allocatable, public, save :: sixin_bez0(:) ! (mNameLen)(nele)
   character(len=3), parameter,   public       :: sixin_cavity = "CAV"
 
@@ -37,31 +37,31 @@ module sixtrack_input
   integer,                       public, save :: sixin_k0
 
   ! Structure Input Variables
-  integer,                       public, save :: sixin_nStru
-  integer,                       public, save :: sixin_icy
-  character(len=2), parameter,   public       :: sixin_go = "GO"
+  integer,                       public, save :: sixin_nStru = 0
+  integer,                       public, save :: sixin_icy   = 0
+  character(len=2), parameter,   public       :: sixin_go    = "GO"
 
   ! Linear Optics Variables
-  integer,                       public, save :: sixin_ilin0
+  integer,                       public, save :: sixin_ilin0 = 1
 
   ! Synchrotron Oscillations
-  real(kind=fPrec),              public, save :: sixin_alc
-  real(kind=fPrec),              public, save :: sixin_harm
-  real(kind=fPrec),              public, save :: sixin_phag
-  real(kind=fPrec),              public, save :: sixin_u0
+  real(kind=fPrec),              public, save :: sixin_alc  = c1m3
+  real(kind=fPrec),              public, save :: sixin_harm = one
+  real(kind=fPrec),              public, save :: sixin_phag = zero
+  real(kind=fPrec),              public, save :: sixin_u0   = zero
 
   ! Multipole Coefficients
-  integer,                       public, save :: sixin_im
+  integer,                       public, save :: sixin_im = 0
 
   ! RF-multipoles
-  integer,                       public, save :: sixin_rfm
+  integer,                       public, save :: sixin_rfm = 0
 
   ! Beam-Beam Elements
-  real(kind=fPrec),              public, save :: sixin_emitNX
-  real(kind=fPrec),              public, save :: sixin_emitNY
+  real(kind=fPrec),              public, save :: sixin_emitNX = zero
+  real(kind=fPrec),              public, save :: sixin_emitNY = zero
 
   ! "Phase Trombone" Element
-  integer,                       public, save :: sixin_imtr0
+  integer,                       public, save :: sixin_imtr0 = 0
 
   ! Settings
   logical,                       private, save :: sixin_forcePartSummary = .false.
@@ -1026,8 +1026,8 @@ end subroutine sixin_parseInputLineINIT
 ! ================================================================================================ !
 subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
 
   implicit none
 
@@ -1167,6 +1167,8 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       return
     end if
 
+    nwr(4) = 10000
+
     if(nSplit > 0) call chr_cast(lnSplit(1),nde(1),  iErr) ! Number of turns at flat bottom
     if(nSplit > 1) call chr_cast(lnSplit(2),nde(2),  iErr) ! Number of turns for the energy ramping
     if(nSplit > 2) call chr_cast(lnSplit(3),nwr(1),  iErr) ! Every nth turn coordinates will be written
@@ -1206,7 +1208,7 @@ end subroutine sixin_parseInputLineTRAC
 ! ================================================================================================ !
 subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
 
-  use mod_commond
+  use mod_common_da
 
   implicit none
 
@@ -1329,7 +1331,7 @@ end subroutine sixin_parseInputLineDIFF
 ! ================================================================================================ !
 subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
 
-  use mod_commont
+  use mod_common_track
 
   implicit none
 
@@ -1614,7 +1616,7 @@ subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
 
     do i=1,nSplit
       nlin = nlin + 1
-      if(nlin >nele) then
+      if(nlin > nele) then
         write(lout,"(2(a,i0))") "LINE> ERROR Too many elements for linear optics write out. Max is ",nele," got ",nlin
         iErr = .true.
         return
@@ -1633,7 +1635,7 @@ end subroutine sixin_parseInputLineLINE
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
 
-  use mod_commond,     only : nvar
+  use mod_common_da,     only : nvar
   use mathlib_bouncer, only : cos_mb
 
   implicit none
@@ -1795,7 +1797,9 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
   integer          nSplit,i,nmul,iil
   logical          spErr
 
-  save nmul,iil,r0,r0a
+  real(kind=fPrec) :: benki = zero
+
+  save nmul,iil,r0,r0a,benki
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -2029,7 +2033,7 @@ subroutine sixin_parseInputLineSUBR(inLine, iLine, iErr)
     if(iErr) return
 
     if(nta < 2 .or. nte < nta .or. nte > 9) then
-      write(lout,"(a)") "SUBR> ERROR Chosen orderas of resonances can not be calculated."
+      write(lout,"(a)") "SUBR> ERROR Chosen orders of resonances can not be calculated."
       iErr = .true.
       return
     end if
@@ -2072,7 +2076,7 @@ subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
 
   iorg = iorg + 1
   elemOne    = str_nmSpace
-  if(nSplit > 0) elemOne            = trim(lnSplit(1))
+  if(nSplit > 0) elemOne      = trim(lnSplit(1))
   if(nSplit > 1) bezr(2,iorg) = trim(lnSplit(2))
   if(nSplit > 2) bezr(3,iorg) = trim(lnSplit(3))
 
@@ -2773,6 +2777,8 @@ subroutine sixin_parseInputLineSEAR(inLine, iLine, iErr)
             write(lout,"(a)") "SEAR> ERROR Resonance order and element type # must be the same."
             iErr = .true.
             return
+          else
+            ise = 1
           end if
           exit
         end if
@@ -3044,7 +3050,7 @@ end subroutine sixin_parseInputLineDECO
 ! ================================================================================================ !
 subroutine sixin_parseInputLineNORM(inLine, iLine, iErr)
 
-  use mod_commond
+  use mod_common_da
 
   implicit none
 

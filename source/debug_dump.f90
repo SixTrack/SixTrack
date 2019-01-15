@@ -76,8 +76,8 @@ subroutine dumpxy(dumpname,n,i,k)
   use floatPrecision
   use parpro
   use mod_common
-  use mod_commont
-  use mod_commonmn
+  use mod_common_track
+  use mod_common_main
 
   implicit none
 
@@ -99,7 +99,7 @@ subroutine dumpsynu(dumpname,n,i)
   use floatPrecision
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
 
   implicit none
@@ -155,10 +155,10 @@ subroutine dump(dumpname,n,i)
   use floatPrecision
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use checkpoint_restart
 
   implicit none
@@ -218,7 +218,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'dpsv1',dpsv1
 
   write(99,*) 'ierro ',ierro
-  write(99,*) 'erbez ',erbez
   write(99,*) 'pi ',pi
   write(99,*) 'pi2 ',pi2
   write(99,*) 'pisqrt ',pisqrt
@@ -243,11 +242,9 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'zrms ',zrms
   write(99,*) 'mel ',mel
   write(99,*) 'mtyp ',mtyp
-  write(99,*) 'mstr ',mstr
   write(99,*) 'a ',a
   write(99,*) 'bl1 ',bl1
   write(99,*) 'bl2 ',bl2
-  write(99,*) 'rvf ',rvf
   write(99,*) 'idfor ',idfor
   write(99,*) 'napx ',napx
   write(99,*) 'napxo ',napxo
@@ -266,7 +263,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'pma ',pma
   write(99,*) 'ej ',ej
   write(99,*) 'ejf ',ejf
-  write(99,*) 'phas0 ',phas0
   write(99,*) 'phas ',phas
   write(99,*) 'hsy ',hsy
   write(99,*) 'crad ',crad
@@ -431,7 +427,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'alfz ',alfz
   write(99,*) 'iskew ',iskew
   write(99,*) 'nskew ',nskew
-  write(99,*) 'hmal ',hmal
   write(99,*) 'sixtit ',sixtit
   write(99,*) 'commen ',commen
   write(99,*) 'ithick ',ithick
@@ -485,7 +480,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'xsi ',xsi
   write(99,*) 'zsi ',zsi
   write(99,*) 'smi ',smi
-  write(99,*) 'ampt ',ampt
   write(99,*) 'tlim ',tlim
   write(99,*) 'tasm ',tasm
   write(99,*) 'preda ',preda
@@ -635,10 +629,10 @@ subroutine dumpbin(dumpname,n,i)
   use floatPrecision
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use checkpoint_restart
 
   implicit none
@@ -703,7 +697,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) dpsv1
 
   write(99) ierro
-  write(99) erbez
   write(99) pi
   write(99) pi2
   write(99) pisqrt
@@ -728,11 +721,9 @@ subroutine dumpbin(dumpname,n,i)
   write(99) zrms
   write(99) mel
   write(99) mtyp
-  write(99) mstr
   write(99) a
   write(99) bl1
   write(99) bl2
-  write(99) rvf
   write(99) idfor
   write(99) napx
   write(99) napxo
@@ -751,7 +742,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) pma
   write(99) ej
   write(99) ejf
-  write(99) phas0
   write(99) phas
   write(99) hsy
   write(99) crad
@@ -916,7 +906,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) alfz
   write(99) iskew
   write(99) nskew
-  write(99) hmal
   write(99) sixtit
   write(99) commen
   write(99) ithick
@@ -970,7 +959,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) xsi
   write(99) zsi
   write(99) smi
-  write(99) ampt
   write(99) tlim
   write(99) tasm
   write(99) preda
@@ -1119,10 +1107,10 @@ subroutine dumphex(dumpname,n,i)
   use floatPrecision
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use checkpoint_restart
 
   implicit none
@@ -1182,7 +1170,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'dpsv1',dpsv1
 
   write(99,100) 'ierro ',ierro
-  write(99,100) 'erbez ',erbez
   write(99,100) 'pi ',pi
   write(99,100) 'pi2 ',pi2
   write(99,100) 'pisqrt ',pisqrt
@@ -1207,11 +1194,9 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'zrms ',zrms
   write(99,100) 'mel ',mel
   write(99,100) 'mtyp ',mtyp
-  write(99,100) 'mstr ',mstr
   write(99,100) 'a ',a
   write(99,100) 'bl1 ',bl1
   write(99,100) 'bl2 ',bl2
-  write(99,100) 'rvf ',rvf
   write(99,100) 'idfor ',idfor
   write(99,100) 'napx ',napx
   write(99,100) 'napxo ',napxo
@@ -1230,7 +1215,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'pma ',pma
   write(99,100) 'ej ',ej
   write(99,100) 'ejf ',ejf
-  write(99,100) 'phas0 ',phas0
   write(99,100) 'phas ',phas
   write(99,100) 'hsy ',hsy
   write(99,100) 'crad ',crad
@@ -1395,7 +1379,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'alfz ',alfz
   write(99,100) 'iskew ',iskew
   write(99,100) 'nskew ',nskew
-  write(99,100) 'hmal ',hmal
   write(99,100) 'sixtit ',sixtit
   write(99,100) 'commen ',commen
   write(99,100) 'ithick ',ithick
@@ -1449,7 +1432,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'xsi ',xsi
   write(99,100) 'zsi ',zsi
   write(99,100) 'smi ',smi
-  write(99,100) 'ampt ',ampt
   write(99,100) 'tlim ',tlim
   write(99,100) 'tasm ',tasm
   write(99,100) 'preda ',preda

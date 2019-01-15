@@ -358,8 +358,8 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   use crcoall
   use mod_alloc
   use mod_common
-  use mod_commonmn
   use mod_settings
+  use mod_common_main
 
   implicit none
 
@@ -826,8 +826,9 @@ subroutine scatter_thin(iElem, ix, turn)
   use mod_hions
   use mod_alloc
   use mod_common
-  use mod_commonmn
   use mod_particles
+  use mod_common_main
+  use numerical_constants, only : pi
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -1223,7 +1224,7 @@ end function scatter_generator_getCrossSection
 subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iLost, isDiff)
 
   use crcoall
-  use mod_commonmn
+  use mod_common_main
   use, intrinsic :: iso_c_binding
 
   implicit none

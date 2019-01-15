@@ -19,9 +19,9 @@ module bdex
   implicit none
 
   ! Is BDEX in use?
-  logical, save :: bdex_enable
+  logical, save :: bdex_enable = .false.
   ! Debug mode?
-  logical, save :: bdex_debug
+  logical, save :: bdex_debug  = .false.
 
   ! BDEX in use for this element?
   ! 0: No.
@@ -33,7 +33,7 @@ module bdex
   integer, allocatable, save :: bdex_elementChannel(:) !(nele)
 
   integer, parameter :: bdex_maxchannels = 16
-  integer, save :: bdex_nchannels
+  integer, save      :: bdex_nchannels   = 0
 
   ! Basic data for the bdex_channels, one row/channel
   ! Column 1: Type of channel. Values:
@@ -46,14 +46,14 @@ module bdex
   !           If col 1 is PIPE, it points to the first (of two) files in bdex_stringStorage.
   ! Column 4: Meaning varies, based on the value of col. 1:
   !           If col 1 is PIPE, then it is the unit number to use (first of two consecutive).
-  integer, save :: bdex_channels(bdex_maxchannels,4)
+  integer, save :: bdex_channels(bdex_maxchannels,4) = 0
   ! The names of the BDEX channel
-  character(len=mStrLen), save :: bdex_channelNames(bdex_maxchannels)
+  character(len=mStrLen), save :: bdex_channelNames(bdex_maxchannels) = " "
 
   !Number of places in the bdex_xxStorage arrays
-  integer, parameter :: bdex_maxStore=20
-  integer, save :: bdex_nstringStorage
-  character(len=mStrLen), save :: bdex_stringStorage ( bdex_maxStore )
+  integer, parameter :: bdex_maxStore       = 20
+  integer, save      :: bdex_nstringStorage = 0
+  character(len=mStrLen), save :: bdex_stringStorage(bdex_maxStore) = " "
 
 contains
 
@@ -71,16 +71,6 @@ subroutine bdex_expand_arrays(nele_new)
   call alloc(bdex_elementAction,nele_new,0,'bdex_elementAction')
   call alloc(bdex_elementChannel,nele_new,0,'bdex_elementChannel')
 end subroutine bdex_expand_arrays
-
-subroutine bdex_comnul
-  bdex_enable=.false.
-  bdex_debug =.false.
-  bdex_nchannels=0
-  bdex_channels(:,:) = 0
-  bdex_channelNames(:) = " "
-  bdex_nstringStorage = 0
-  bdex_stringStorage(:) = " "
-end subroutine bdex_comnul
 
 subroutine bdex_closeFiles
   integer i
@@ -454,8 +444,8 @@ subroutine bdex_track(i,ix,n)
   use parpro
   use string_tools
   use mod_common
-  use mod_commont
-  use mod_commonmn
+  use mod_common_track
+  use mod_common_main
 
   implicit none
 

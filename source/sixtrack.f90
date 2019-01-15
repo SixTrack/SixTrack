@@ -15,8 +15,8 @@ subroutine daten
   use mod_settings
   use mod_common
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use physical_constants
   use numerical_constants
   use string_tools
@@ -74,159 +74,12 @@ subroutine daten
 
   ! Main Variables
   iHead        = " "
-  sixtit       = " "
   ic0(:)       = " "
   cCheck       = " "
   kanf         = 1
 
-  ! TRACKING PARAMETERS
-  numl         = 1
-  napx         = 0
-  amp0         = zero
-  amp(1)       = c1m3
-  ird          = 0
-  imc          = 0
-  numlcp       = 1000
-  numlmax      = 1000000000
-  iclo6        = 0
-  iclo6r       = 0
-
-  idz(:)       = 1
-  idfor        = 0
-  irew         = 0
-  iclo         = 0
-
-  nde(:)       = 0
-  nwr(:)       = 1
-  nwr(4)       = 10000
-  ntwin        = 1
-
-  ! INITIAL COORDINATES
-  itra         = 0
-  chi0         = zero
-  chid         = zero
-  rat          = zero
-
-  ! CHROMATICITY ADJUSTMENTS
-  ichrom       = 0
-
-  ! TUNE ADJUSTMENTS
-  iqmod        = 0
-
-  ! LINEAR OPTICS CALCULATION
-  ilin         = 0
-  sixin_ilin0  = 1
-  nlin         = 0
-
-  ! DIFFERENTIAL ALGEBRA
-  preda        = c1m38
-
-  ! SYNCHROTRON OSCILLATIONS
-  sixin_alc    = c1m3
-  sixin_harm   = one
-  sixin_phag   = zero
-  idp          = 0
-  ncy          = 0
-  tlen         = one
-  pma          = pmap
-  ition        = 0
-  dpscor       = one
-  sigcor       = one
-  qs           = zero
-
-  ! MULTIPOLE COEFFICIENTS
-  sixin_im     = 0
-
-  ! RF - MULTIPOLE
-  sixin_rfm    = 0
-
-  ! RANDOM FLUCTUATIONS
-  izu0         = 0
-  mcut         = 0
-  mout2        = 0
-
-  ! SUB-RESONANCE CALCULATION
-  isub         = 0
-
-  ! ORGANISATION OF RANDOM NUMBERS
-  iorg         = 0
-
-  ! RESONANCE COMPENSATION
-  irmod2       = 0
-
-  ! DECOUPLING OF MOTION
-  iskew        = 0
-
-  ! NORMAL FORMS
-  idial        = 0
-
-  ! SEARCH
-  ise          = 0
-
-  ! ITERATION ERRORS
-  itco         = 500
-  dma          = c1m12
-  dmap         = c1m15
-  itcro        = 10
-  dech         = c1m10
-  de0          = c1m9
-  ded          = c1m9
-  dsi          = c1m9
-  dsm0         = c1m10
-  itqv         = 10
-  dkq          = c1m10
-  dqq          = c1m10
-
-  ! BEAM-BEAM ELEMENT
-  sixin_emitNX = zero
-  sixin_emitNY = zero
-
-  ! PHASE TROMBONE
-  sixin_imtr0  = 0
-  ntr          = 1
-  call alloc(cotr,1,6,  zero,"cotr")
-  call alloc(rrtr,1,6,6,zero,"rrtr")
-
-  ! POST PROCESSING
-  ipos         = 0
-  iconv        = 0
-  imad         = 0
-  iskip        = 1
-  cma1         = one
-  cma2         = one
-  iav          = 1
-  iwg          = 1
-  dphix        = zero
-  dphiz        = zero
-  qx0          = zero
-  qz0          = zero
-  ivox         = 1
-  ivoz         = 1
-  ires         = 1
-  dres         = one
-  ifh          = 0
-  dfft         = one
-  idis         = 0
-  icow         = 0
-  istw         = 0
-  iffw         = 0
-  nprint       = 1
-  ndafi        = 1
-
-  ! HIONS MODULE
-  zz0          = 1
-  aa0          = 1
-  nucm0        = pmap
-  has_hion     = .false.
-
-! ================================================================================================ !
-!  SET DEFAULT INPUT PARSING VALUES
-! ================================================================================================ !
-
   ! SIXTRACK INPUT MODULE
   inErr       = .false.
-  sixin_ncy2  = 0
-  sixin_icy   = 0
 
   call alloc(sixin_bez0,mNameLen,nele,str_nmSpace,"sixin_bez0")
 
@@ -1792,8 +1645,8 @@ subroutine initialize_element(ix,lfirst)
       use parpro
       use parbeam, only : beam_expflag,beam_expfile_open
       use mod_common
-      use mod_commont
-      use mod_commonmn
+      use mod_common_track
+      use mod_common_main
       use mod_hions
       use elens
       use wire
@@ -2400,8 +2253,8 @@ subroutine envars(j,dpp,rv)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   implicit none
   integer i,ih,j,kz1,l,ll
   real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpp,dpsq,fi,fok,fok1,fokq,g,gl,hc,hi,hi1,hm,&
@@ -2737,539 +2590,18 @@ end subroutine envars
 !-----------------------------------------------------------------------
 subroutine comnul
 
-  use floatPrecision
-  use numerical_constants
-  use mathlib_bouncer
   use parpro
-  use parbeam, only : beam_expflag,beam_expfile_open
-  use mod_common
-  use mod_commonmn
-  use mod_commons
-  use mod_commont
-  use mod_commond
-
   use aperture
-  use elens
-  use wire
-  use dump,        only : dump_comnul
-  use bdex,        only : bdex_comnul
   use collimation, only : collimation_comnul
 
-  implicit none
+ ! From the FLUKA version
+  do i=1,nele
+    call selnul(i)
+  end do
 
-  integer i,i1,i2,i3,i4,j
+  call aperture_comnul
+  call collimation_comnul
 
-  save
-
-  ncorru  = 0     ! mod_common
-  ncorrep = 0     ! mod_common
-  ierro   = 0     ! mod_common
-  iu      = 0     ! mod_common
-  ilin    = 0     ! mod_common
-  iqmodc  = 0     ! mod_common
-  ichromc = 0     ! mod_common
-  ilinc   = 0     ! mod_common
-  iprint  = 0     ! mod_common
-
-  ! TRACKING BLOCK
-  ! Line 1
-  numl    = 0     ! mod_common
-  numlr   = 0     ! mod_common
-  napx    = 0     ! mod_common
-  amp0    = zero  ! mod_common
-  amp(:)  = zero  ! mod_commont
-  ird     = 0     ! mod_common
-  imc     = 0     ! mod_common
-  niu(1)  = 0     ! mod_common
-  niu(2)  = 0     ! mod_common
-  numlcp  = 0     ! mod_common
-  numlmax = 0     ! mod_common
-  ! Line 2
-  idz(:)  = 0     ! mod_commons
-  idfor   = 0     ! mod_common
-  irew    = 0     ! mod_common
-  iclo6   = 0     ! mod_common
-  iclo6r  = 0     ! mod_common
-  ! Line 3
-  nde(:)  = 0     ! mod_common
-  nwr(:)  = 0     ! mod_common
-  ntwin   = 0     ! mod_common
-  iexact  = 0     ! mod_common
-  curveff = 0     ! mod_common
-
-  ! SINGLE ELEMENT BLOCK
-  ithick  = 0     ! mod_common
-  il      = 0     ! mod_common
-
-  ! BLOC DEFINITONS BLOCK
-  mper    = 0     ! mod_common
-  mblo    = 0     ! mod_common
-  mbloz   = 0     ! mod_common
-
-  ! STRUCTURE INPUT BLOCK
-  kanf    = 0     ! mod_common
-
-  ! INITIAL COORDINATES BLOCK
-  itra     = 0    ! mod_commons
-  chi0     = zero ! mod_commons
-  chid     = zero ! mod_commons
-  rat      = zero ! mod_common
-  iver     = 0    ! mod_common
-  exz(:,:) = zero ! mod_commons
-  e0       = zero ! mod_common
-  ej(:)    = zero ! mod_common
-
-  ! DIFFERENTIAL ALGEBRA BLOCK
-  idp     = 0     ! mod_common
-
-  ! RANDOM NUMBERS VARIABLES
-  iorg    = 0     ! mod_common
-
-  ! ITERATION ERRORS BLOCK
-  itco    = 0     ! mod_common
-  itcro   = 0     ! mod_common
-  itqv    = 0     ! mod_common
-
-  ! CHROMATICITY ADJUSTMENT BLOCK
-  ichrom  = 0     ! mod_common
-
-  ! TUNE ADJUSTMENT BLOCK
-  iqmod   = 0     ! mod_common
-  iqmod6  = 0     ! mod_common
-  qw0(:)  = zero  ! mod_common
-
-  ! LINEAR OPTICS BLOCK
-  ntco    = 0     ! mod_common
-  nt      = 0     ! mod_common
-
-  ! ORBIT CORRECTION BLOCK
-  iclo    = 0     ! mod_common
-
-  ! COMBINATION OF ELEMENTS BLOCK
-  icoe    = 0     ! mod_common
-
-  ! SEARCH BLOCK
-  ise     = 0     ! mod_common
-  mesa    = 0     ! mod_common
-  mp      = 0     ! mod_common
-  m21     = 0     ! mod_common
-  m22     = 0     ! mod_common
-  m23     = 0     ! mod_common
-  ise1    = 0     ! mod_common
-  ise2    = 0     ! mod_common
-  ise3    = 0     ! mod_common
-
-  ! SUBRESONANCE CALCULATION BLOCK
-  isub    = 0     ! mod_common
-  nta     = 0     ! mod_common
-  nte     = 0     ! mod_common
-  ipt     = 0     ! mod_common
-
-  ! RESONANCE COMPENSATION BLOCK
-  irmod2  = 0     ! mod_common
-  nre     = 0     ! mod_common
-
-  ! SYNCHROTRON OSCILLATIONS BLOCK
-  phas    = zero  ! mod_common
-
-  ! MULTIPOLE COEFFICIENT BLOCK
-  benki      = zero ! mod_common
-  benkc(:)   = zero ! mod_common
-  r00(:)     = zero ! mod_common
-  irm(:)     = 0    ! mod_common
-  nmu(:)     = 0    ! mod_common
-  bk0(:,:)   = zero ! mod_common
-  ak0(:,:)   = zero ! mod_common
-  bka(:,:)   = zero ! mod_common
-  aka(:,:)   = zero ! mod_common
-
-  ! POSTPROCESSING
-  toptit(:)  = " "  ! mod_common
-
-  ! TODO
-      nur=0
-      nch=0
-      nqc=0
-      npp=0
-      ipos=0
-      iconv=0
-      imad=0
-      nstart=0
-      nstop=0
-      iskip=1
-      iav=0
-      iwg=0
-      ivox=0
-      ivoz=0
-      ires=0
-      ifh=0
-      idis=0
-      icow=0
-      istw=0
-      iffw=0
-      idial=0
-      nord=0
-      nvar=0
-      nvar2=0
-      ndimf=0
-      nordf=0
-      nvarf=0
-      nord1=1
-      nsix=0
-      nvar2=0
-      ncor=0
-      idptr=0
-      nbeam=0
-      ibb6d=0
-      ibeco=1
-      ibtyp=0
-      lhc=1
-      ibbc=0
-!-----------------------------------------------------------------------
-      inorm=0
-      imod1=0
-      imod2=0
-!-----------------------------------------------------------------------
-      ! icorr=0
-      ! nctype=0
-      ! namp=0
-      ! nmom=0
-      ! nmom1=0
-      ! nmom2=0
-      ! weig1=zero
-      ! weig2=zero
-      ! dpmax=zero
-!-----------------------------------------------------------------------
-      dp1=zero
-      qs=zero
-      crad=zero
-      dppoff=zero
-      tlen=zero
-      pma=zero
-      phas0=zero
-      ition=0
-      dpscor=one
-      sigcor=one
-      dma=zero
-      dmap=zero
-      dkq=zero
-      dqq=zero
-      de0=zero
-      ded=zero
-      dsi=zero
-      dech=zero
-      dsm0=zero
-      qxt=zero
-      qzt=zero
-      eui=zero
-      euii=zero
-      tam1=zero
-      tam2=zero
-      totl=zero
-      dphix=zero
-      dphiz=zero
-      qx0=zero
-      qz0=zero
-      dres=zero
-      dfft=zero
-      preda=zero
-      partnum=zero
-      emitx=zero
-      emity=zero
-      emitz=zero
-      sigz=zero
-      sige=zero
-      damp=zero
-      ampt=zero
-!-----------------------------------------------------------------------
-      tlim=0.
-      time0=0.
-      time1=0.
-!-----------------------------------------------------------------------
-      do 10 i=1,2
-        is(i)=0
-        bet0(i)=zero
-        alf0(i)=zero
-        clo(i)=zero
-        clop(i)=zero
-        aper(i)=c1e3
-        di0(i)=zero
-        dip0(i)=zero
-        cro(i)=zero
-        sigma0(i)=zero
-        qwsk(i)=zero
-        betx(i)=zero
-        betz(i)=zero
-        alfx(i)=zero
-        alfz(i)=zero
-   10 continue
-
-      do 20 i=1,3
-        iq(i)=0
-        hsy(i)=zero
-        clo6(i)=zero
-        clop6(i)=zero
-        clon(i)=zero
-        wxys(i)=zero
-        do i1=1,3
-          corr(i,i1)=zero
-        enddo
-   20 continue
-
-      corr(1,1)=zero
-      corr(1,2)=zero
-      chromc(1)=9.999999e23_fPrec
-      chromc(2)=9.999999e23_fPrec
-
-      do 40 i=1,5
-        ipr(i)=0
-        nrr(i)=0
-        nu(i)=0
-   40 continue
-
-      do 50 i=1,6
-        nskew(i)=0
-   50 continue
-
-      do 60 i=1,10
-        dtr(i)=zero
-   60 continue
-
-      do 70 i=1,12
-        ire(i)=0
-   70 continue
-
-      do 80 i=1,nper
-        msym(i)=0
-   80 continue
-
-      do i=1,6
-        do j=1,6
-          ta(i,j)=zero
-        end do
-      end do
-
-
-      do i1=1,9
-        do i2=1,18
-          do i3=1,10
-            do i4=1,5
-              rtc(i1,i2,i3,i4)=zero
-              rts(i1,i2,i3,i4)=zero
-            end do
-          end do
-        end do
-      end do
-
-!--NUMBER OF ELEMENTS---------------------------------------------------
-      do i=1,nele
-        ! kz(i)=0
-        ! kp(i)=0
-        ! imtr(i)=0
-        ! kpa(i)=0
-        ! isea(i)=0
-        ! ncororb(i)=0
-        ! iratioe(i)=0
-        itionc(i)=0
-        dki(i,1)=zero
-        dki(i,2)=zero
-        dki(i,3)=zero
-        ed(i)=zero
-        el(i)=zero
-        ek(i)=zero
-        sm(i)=zero
-        xpl(i)=zero
-        xrms(i)=zero
-        zpl(i)=zero
-        zrms(i)=zero
-        ratioe(i)=one
-        hsyc(i)=zero
-        phasc(i)=zero
-        ptnfac(i)=zero
-        acdipph(i)=zero
-        crabph(i)=zero
-        crabph2(i)=zero
-        crabph3(i)=zero
-        crabph4(i)=zero
-        bez(i)=' '
-        bezl(i)=' '
-        do i3=1,2
-          do i4=1,6
-            a(i,i3,i4)=zero
-          end do
-        end do
-
-        do 140 i1=1,3
-          bezr(i1,i)=' '
-  140   continue
-
-        do i1=1,18
-          parbe(i,i1)=zero
-        enddo
-      end do
-
-!     From the FLUKA version
-      do i=1,nele
-         call SELNUL(i)
-      end do
-
-!-- BEAM-EXP------------------------------------------------------------
-      beam_expflag = 0
-      beam_expfile_open = .false.
-
-!--# OF TRAJECTORIES----------------------------------------------------
-      do 220 i=1,mpa
-        rvf(i)=one
-        sigm(i)=zero
-        dps(i)=zero
-        ejf(i)=zero
-        do 210 i1=1,2
-          x(i,i1)=zero
-          y(i,i1)=zero
-  210   continue
-  220 continue
-
-!--COMBINATION OF ELEMENTS----------------------------------------------
-      do i1=1,20
-        icomb0(i1)=0
-        do i=1,ncom
-          icomb(i,i1)=0
-          ratio(i,i1)=zero
-        end do
-      end do
-
-!--PAW------------------------------------------------------------------
-      do i=1,nplo
-        hmal(i)=0.0
-      end do
-
-!--TROMBONES------------------------------------------------------------
-      do i=1,ntr
-        do i1=1,6
-          cotr(i,i1)=zero
-          do i2=1,6
-            rrtr(i,i1,i2)=zero
-          end do
-        end do
-      end do
-
-!--Beam-Beam------------------------------------------------------------
-      do i=1,nbb
-        do j=1,2
-          sigman(j,i)=zero
-          sigman2(j,i)=zero
-          sigmanq(j,i)=zero
-        end do
-
-        do j=1,6
-          clobeam(j,i)=zero
-          beamoff(j,i)=zero
-        end do
-
-        do j=1,12
-          bbcu(i,j)=zero
-        end do
-
-        bbcu(i,11)=one
-      end do
-
-!--CADCUM---------------------------------------------------------------
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     initialise common
-!     always in main code
-      do i=0,nblz+1
-         dcum(i)=zero
-      end do
-
-!--DUMP BEAM POPULATION-------------------------------------------------
-!     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!     K.Sjobak, BE-ABP/HSS
-!     last modified: 03-09-2015
-!     initialise common
-!     always in main code
-      call dump_comnul
-
-!--ELEN - ELECTRON LENS---------------------------------------------------------
-!     M. Fitterer (FNAL), A. Mereghetti
-!     last modified: 09-02-2018
-!     always in main code
-!     elensparam - used for tracking (parameters of single element)
-      do i=1,nele
-         ielens(i) = 0
-      end do
-      melens=0
-      do i=1,nelens
-        elens_type(i)          = 0
-        elens_theta_r2(i)      = zero
-        elens_r2(i)            = zero
-        elens_r1(i)            = zero
-        elens_offset_x(i)      = zero
-        elens_offset_y(i)      = zero
-        elens_sig(i)           = zero
-        elens_geo_norm(i)      = zero
-        elens_len(i)           = zero
-        elens_I(i)             = zero
-        elens_Ek(i)            = zero
-        elens_lThetaR2(i)      = .false.
-        elens_lAllowUpdate(i)  = .true.
-        elens_iCheby(i)        = 0
-        elens_cheby_angle(i)   = zero
-      end do
-!     table with coefficients of chebyshev polynominals
-      do i=1,nelens_cheby_tables
-         do j=1,16
-            elens_cheby_filename(i)(j:j)=' '
-         end do
-         do i1=0,elens_cheby_order
-            do i2=0,elens_cheby_order
-               elens_cheby_coeffs(i1,i2,i)=zero
-            end do
-         end do
-         elens_cheby_refCurr(i)=zero
-         elens_cheby_refBeta(i)=zero
-         elens_cheby_refRadius(i)=zero
-      end do
-!--WIRE - WIRE ELEMENT---------------------------------------------------------
-!     M. Fitterer (FNAL), A. Patapenka (NIU)
-!     last modified: 22-12-2016
-! 1)  wireparam - used for tracking (parameters of single element)
-      do i=1,nele
-        wire_flagco(i)  = 0
-        wire_current(i) = 0
-        wire_lint(i)    = 0
-        wire_lphys(i)   = 0
-        wire_dispx(i)   = 0
-        wire_dispy(i)   = 0
-        wire_tiltx(i)   = 0
-        wire_tilty(i)   = 0
-      end do
-
-! 2) loop over structure elements
-      do i=1,nblz
-        wire_num(i)=0
-      end do
-
-! 3) loop over number of wires
-      do i=1,wire_max
-        do j=1,6
-          wire_clo(j,i)=zero
-        end do
-      end do
-
-!--APERTURE-------------------------------------------------------------
-!     P.G.Ortega and A.Mereghetti, for the FLUKA Team
-!     last modified: 02-03-2018
-!     initialise common
-!     always in main code
-      call aperture_comnul
-
-!--COLLIMATION----------------------------------------------------------
-      call collimation_comnul
-!--BDEX-----------------------------------------------------------------
-      call bdex_comnul
-!-----------------------------------------------------------------------
-      return
 end subroutine comnul
 
 subroutine SELNUL( iel )
@@ -3361,7 +2693,7 @@ subroutine STRNUL( iel )
       use numerical_constants
       use parpro
       use mod_common
-      use mod_commonmn
+      use mod_common_main
       implicit none
 
 !     local variables
@@ -3409,8 +2741,8 @@ integer function INEELS( iEl )
   use crcoall
   use parpro
   use mod_common
-  use mod_commont
-  use mod_commonmn
+  use mod_common_track
+  use mod_common_main
   implicit none
 
 !     interface variables
@@ -3464,8 +2796,8 @@ integer function INEESE()
 
   use parpro
   use mod_common
-  use mod_commont
-  use mod_commonmn
+  use mod_common_track
+  use mod_common_main
   implicit none
 
   il=il+1
@@ -3499,8 +2831,8 @@ integer function check_SE_unique( iEl, ixEl )
 
   use parpro
   use mod_common
-  use mod_commont
-  use mod_commonmn
+  use mod_common_track
+  use mod_common_main
   implicit none
 
 ! interface variables
@@ -3686,7 +3018,7 @@ subroutine betalf(dpp,qw)
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,j
       real(kind=fPrec) am,det,detb,detc,dpp,egwg1,egwg2,f0,f1,f2,fak1,  &
@@ -3882,7 +3214,7 @@ subroutine block
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) g,h
@@ -3944,7 +3276,7 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) aeg,bl1eg,bl2eg,g,h
@@ -4012,7 +3344,7 @@ subroutine chroma
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,ii,isl,j,jj,l,n
       real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens,sm0,su2,suxy,suzy,xi,zi
@@ -4149,8 +3481,8 @@ end subroutine chroma
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
-      use mod_commond
+      use mod_common_track
+      use mod_common_da
       implicit none
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
       real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
@@ -4280,7 +3612,7 @@ subroutine clorb(dpp)
       use mod_settings
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
 
       implicit none
       integer ierr,ii,l,ll
@@ -4367,7 +3699,7 @@ subroutine clorb2(dpp)
       use crcoall
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer ierr,ii,l,ll
       real(kind=fPrec) am,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,x1,y0,y1
@@ -4443,7 +3775,7 @@ subroutine combel(iql)
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer ico,ico0,iql,j,m
       save
@@ -4491,7 +3823,7 @@ subroutine envar(dpp)
     use parpro
     use mod_common
     use mod_commons
-    use mod_commont
+    use mod_common_track
     implicit none
     integer i,ih,kz1,l,ll
     real(kind=fPrec) afok,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
@@ -4734,7 +4066,7 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
     use parpro
     use mod_common
     use mod_commons
-    use mod_commont
+    use mod_common_track
     implicit none
     integer i,ih,kz1,l,ll
     real(kind=fPrec) aeg,afok,bl1eg,bl2eg,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
@@ -4973,7 +4305,7 @@ subroutine linopt(dpp)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
 
 #ifdef ROOT
   use root_output
@@ -5895,7 +5227,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   use mod_settings
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
 
 #ifdef ROOT
   use iso_c_binding, only: C_NULL_CHAR
@@ -6040,7 +5372,7 @@ subroutine cpltwis(typ,t,etl,phi)
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,iwrite
       real(kind=fPrec) alxi,alxii,alzi,alzii,bexi,bexii,bezi,bezii,     &
@@ -6203,7 +5535,7 @@ subroutine matrix(dpp,am)
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,ierr,l
       real(kind=fPrec) am,dpp
@@ -6253,7 +5585,7 @@ subroutine corrorb
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,nlino,ntcoo,nto,nx
       real(kind=fPrec) ar(nmon1,ncor1)
@@ -6592,7 +5924,7 @@ end subroutine corrorb
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
 
       integer i,im,ix,izu,j,k,kcorr,kcorru,kpz,kzz,nmz,npflag,nx
@@ -6692,7 +6024,7 @@ end subroutine corrorb
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,im,ix,izu,kpz,kzz,nmz
       real(kind=fPrec) r0
@@ -7118,7 +6450,7 @@ subroutine ord
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_fluc
 
   implicit none
@@ -7329,7 +6661,7 @@ subroutine orglat
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
   integer i,icext1,icextal1,ihi,ii,ilf,ilfr,j,kanf1
   real(kind=fPrec) extalig1 !,exterr1
@@ -7403,7 +6735,7 @@ subroutine phasad(dpp,qwc)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
   integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,dj
   real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk,dphi,dpp,dppi,dpr,&
@@ -7926,7 +7258,7 @@ subroutine qmod0
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,ierr,ii,iq1,iq2,iq3,iql,j,l,n,nite
       real(kind=fPrec) a11,a12,a13,a21,a22,a23,a31,a32,a33,aa,aa1,bb,   &
@@ -8198,8 +7530,8 @@ end subroutine qmod0
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
-      use mod_commond
+      use mod_common_track
+      use mod_common_da
       implicit none
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
       real(kind=fPrec) cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc
@@ -8490,7 +7822,7 @@ subroutine umlauf(dpp,ium,ierr)
   use crcoall
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
   integer i,ierr,im,ium,ix,izu,j,k,kpz,kx,kzz,l,ll,l1,nmz
   real(kind=fPrec) aa,bb,benkr,ci,cikve,cr,crkve,crkveuk,dpp,dpr,dyy1,dyy2,ekk,puf,qu,qv,quz,qvz,r0,r0a,xl,xs,zl,zs
@@ -8914,7 +8246,7 @@ subroutine resex(dpp)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
   integer i,i1,i2,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jl,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,m2,m4,m6,min,&
           mm,mpe,mx,n,n2,n2e,nf1,nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
@@ -9682,7 +9014,7 @@ subroutine rmod(dppr)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
   integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,nteo
   real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,se2,sen,sen15,sen16,sen17,sen18,sn,ss
@@ -10009,7 +9341,7 @@ subroutine search(dpp)
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,id,n21,n22,n23,ntao,nteo
       real(kind=fPrec) b,c,c1,c2,c3,d,dpp,e,f,g,s1,s2,s3
@@ -10093,7 +9425,7 @@ subroutine subre(dpp)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
 
   integer i,ii,ik,im,ip,ipc,ipcc,ipl,ium,iv,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,min1,min2,&
@@ -11140,7 +10472,7 @@ subroutine subsea(dpp)
   use crcoall
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
   integer i,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,mm,mpe,mx,n2,n2e,nf1,nf3,&
           nf4,nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
@@ -11889,7 +11221,7 @@ subroutine decoup
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,ierr,j,no
       real(kind=fPrec) aa,bb,d1,dpp,dsm,qw,qwc,sen,sn,ss

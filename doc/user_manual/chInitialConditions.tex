@@ -38,9 +38,9 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
     \texttt{niu(1),niu(2)} &          & Unknown; default values are 0. \\
     \texttt{numlcp}        & integer  & Checkpoint/restart\index{checkpoint/restart} version: How often to write checkpointing files. \\
     \texttt{numlmax}       & integer  & Checkpoint/restart version: Maximum amount of turns; default is $10^6$. \\
-    \texttt{idy(1),idy(2)} & integers & A tracking where one of the transversal motion planes shall be ignored is only possible when all coupling terms are switched off.  The part of the coupling that is due to closed orbit and other effects can be turned off with these switches. \\
-                           &          & \texttt{idy(1), idy(2) = 1}: coupling on. \\
-                           &          & \texttt{idy(1), idy(2) = 0}: coupling to the horizontal and vertical motion plane respectively switched off. \\
+    \texttt{idz(1),idz(2)} & integers & A tracking where one of the transversal motion planes shall be ignored is only possible when all coupling terms are switched off.  The part of the coupling that is due to closed orbit and other effects can be turned off with these switches. \\
+                           &          & \texttt{idz(1), idz(2) = 1}: coupling on. \\
+                           &          & \texttt{idz(1), idz(2) = 0}: coupling to the horizontal and vertical motion plane respectively switched off. \\
     \texttt{idfor}         & integer  & Usually the closed orbit is added to the initial coordinates. This can be turned off using \texttt{idfor}, for instance when a run is to be prolonged. \\
                            &          & \texttt{idfor = 0}: closed orbit added. \\
                            &          & \texttt{idfor = 1}: initial coordinates\index{initial coordinates} unchanged. \\

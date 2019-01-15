@@ -8,16 +8,18 @@ module mod_hions
   use floatPrecision
   use parpro
   use mod_alloc
+  use physical_constants, only : pmap
   use numerical_constants, only : zero, one, c1e3
   use, intrinsic :: iso_fortran_env, only : int16
 
   implicit none
 
   ! Checking for the HION block
-  logical, save :: has_hion
+  logical, save :: has_hion = .false.
 
   ! Rest mass of the reference ion species
-  real(kind=fPrec), save :: nucm0,nucmda
+  real(kind=fPrec), save :: nucm0 = pmap
+  real(kind=fPrec), save :: nucmda
   real(kind=fPrec), save :: brhono
 
   ! ien0,ien1: ion energy entering/leaving the collimator
@@ -34,10 +36,10 @@ module mod_hions
   real(kind=fPrec), allocatable, save :: mtc(:) !(npart)
 
   ! Nucleon number of the reference ion species
-  integer(kind=int16), save :: aa0
+  integer(kind=int16), save :: aa0 = 1
 
   ! Charge multiplicity of the reference ion species
-  integer(kind=int16), save :: zz0
+  integer(kind=int16), save :: zz0 = 1
 
   integer(kind=int16), save :: nnuc0
   integer(kind=int16), save :: nnuc1
