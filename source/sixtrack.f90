@@ -2752,13 +2752,6 @@ subroutine comnul
   ! CHROMATICITY ADJUSTMENT BLOCK
   ichrom  = 0     ! mod_common
 
-  ! LINEAR OPTICS BLOCK
-  ntco    = 0     ! mod_common
-  nt      = 0     ! mod_common
-
-  ! ORBIT CORRECTION BLOCK
-! iclo    = 0     ! mod_common
-
   ! COMBINATION OF ELEMENTS BLOCK
   icoe    = 0     ! mod_common
 
@@ -2832,8 +2825,6 @@ subroutine comnul
 !-----------------------------------------------------------------------
       qxt=zero
       qzt=zero
-      eui=zero
-      euii=zero
       tam1=zero
       tam2=zero
       totl=zero
@@ -2853,10 +2844,6 @@ subroutine comnul
       damp=zero
       ampt=zero
 !-----------------------------------------------------------------------
-      tlim=0.
-      time0=0.
-      time1=0.
-!-----------------------------------------------------------------------
       do 10 i=1,2
         is(i)=0
         bet0(i)=zero
@@ -2864,7 +2851,6 @@ subroutine comnul
         clo(i)=zero
         clop(i)=zero
         cro(i)=zero
-        sigma0(i)=zero
         qwsk(i)=zero
         betx(i)=zero
         betz(i)=zero
@@ -2924,10 +2910,6 @@ subroutine comnul
         ratioe(i)=one
         ptnfac(i)=zero
         acdipph(i)=zero
-        crabph(i)=zero
-        crabph2(i)=zero
-        crabph3(i)=zero
-        crabph4(i)=zero
 
         do i1=1,18
           parbe(i,i1)=zero

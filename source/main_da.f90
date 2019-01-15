@@ -78,7 +78,7 @@ featList = ""
 
   ! Set to nonzero before calling abend in case of error.
   ! If prror is called, it will be set internally.
-  errout_status = 0
+  errout = 0
 
 #ifndef CR
   lout=output_unit
@@ -100,9 +100,7 @@ featList = ""
   call time_timeStamp(time_afterFileUnits)
 
   ! Print Header Info
-  tlim=1e7
   call time_timerStart
-  time0=0.
   call time_timerCheck(time0)
 
   ! TimeStamp

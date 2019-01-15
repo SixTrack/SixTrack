@@ -122,15 +122,24 @@ module mod_common
 
   implicit none
 
-  ! Error Variables
-  integer, save :: ierro         = 0
-  integer, save :: errout_status = 0
+  ! Parameters
+  real(kind=fPrec), parameter :: cc       = 1.12837916709551_fPrec ! Used in errf
+  real(kind=fPrec), parameter :: xlim     = 5.33_fPrec             ! Used in errf
+  real(kind=fPrec), parameter :: ylim     = 4.29_fPrec             ! Used in errf
+  real(kind=fPrec), parameter :: eps_dcum = c1m6                   ! Tolerance for machine length mismatch [m]
+
+  ! Various Flags
+  logical,          save :: print_dcum = .false. ! Print dcum. Set in the SETTINGS block
 
   ! Pi Constants
   real(kind=fPrec), save :: pi2        = half*pi
   real(kind=fPrec), save :: twopi      = two*pi
   real(kind=fPrec), save :: pisqrt     = sqrt(pi)
   real(kind=fPrec), save :: rad        = pi/c180e0
+
+  ! Error Variables
+  integer,          save :: ierro      = 0
+  integer,          save :: errout     = 0    ! Used in prror and abend
 
   ! Loop Variables
   integer,          save :: iu         = 0    ! Number of entries in the accelerator
@@ -157,6 +166,7 @@ module mod_common
   integer,          save :: iexact     = 0    ! Exact solution of the equation of motion
   integer,          save :: curveff    = 0    ! Enable the curvature effect in a combined function magnet
   integer,          save :: napxo      = 0    ! Original value of napx
+  integer,          save :: napxto     = 0    ! Particles times turns
   integer,          save :: nnuml      = 0
 
   ! INITIAL COORDINATES Block Variables
@@ -216,11 +226,31 @@ module mod_common
   real(kind=fPrec), save :: dip0(2)    = zero
   real(kind=fPrec), save :: ta(6,6)    = zero
 
+  ! Correction of Closed Orbit
+  real(kind=fPrec), save :: sigma0(2)  = zero ! Desired RMS values of the randomly distributed closed orbit
+  integer,          save :: iclo       = 0    ! Closed orbit correction switch
+  integer,          save :: ncorru     = 0    ! Number of correctors to be used
+  integer,          save :: ncorrep    = 0    ! Number of corrections
+
+  integer,          save :: nhmoni     = 0
+  integer,          save :: nhcorr     = 0
+  integer,          save :: nvmoni     = 0
+  integer,          save :: nvcorr     = 0
+
   ! Tune Variation
   real(kind=fPrec), save :: qw0(3)     = zero ! Qx/Qy/delta_Q
   integer,          save :: iq(3)      = 0    ! Index of elements
   integer,          save :: iqmod      = 0    ! Switch to calculate the tunes
   integer,          save :: iqmod6     = 0    ! Switch to calculate the tunes
+
+  ! Linear Optics
+  real(kind=fPrec), save :: eui        = 0    ! Eigenemittance
+  real(kind=fPrec), save :: euii       = 0    ! Eigenemittance
+  integer,          save :: ilin       = 0    ! Linear optics 4D/6D calculation flag
+  integer,          save :: nt         = 0    ! Number of the blocks to which the linear parameter will be printed
+  integer,          save :: ntco       = 0    ! Switch to write out linear coupling parameters
+  integer,          save :: iprint     = 0    ! Print the linear optics functions at ...
+  integer,          save :: nlin       = 0    ! Number of elements for write out
 
   ! Reference Particle
   real(kind=fPrec), save :: e0         = zero ! Reference energy
@@ -228,6 +258,17 @@ module mod_common
   ! Tracking Particles
   real(kind=fPrec), save :: ej(mpa)    = zero ! Particle energy
   real(kind=fPrec), save :: ejf(mpa)   = zero ! Particle momentum
+
+  ! Timing Variables
+  real,             save :: tlim       = 1.0e7
+  real,             save :: time0      = 0.0
+  real,             save :: time1      = 0.0
+  real,             save :: time2      = 0.0
+  real,             save :: time3      = 0.0
+  real,             save :: trtime     = 0.0
+  real,             save :: pretime    = 0.0
+  real,             save :: posttime   = 0.0
+  real,             save :: tottime    = 0.0
 
   !  ALLOCATABLES
   ! ==============
@@ -280,6 +321,13 @@ module mod_common
 
   integer,          allocatable, save :: kpa(:)        ! Tune Variations: Element markers
 
+  integer,          allocatable, save :: ncororb(:)    ! Obrit Correctors: Flag
+
+  real(kind=fPrec), allocatable, save :: crabph(:)     ! Crab Cavities: Phase of the excitation
+  real(kind=fPrec), allocatable, save :: crabph2(:)    ! Crab Cavities: Order 2
+  real(kind=fPrec), allocatable, save :: crabph3(:)    ! Crab Cavities: Order 3
+  real(kind=fPrec), allocatable, save :: crabph4(:)    ! Crab Cavities: Order 4
+
   ! Single Element and Multipole Indexed (nele,mmul)
   real(kind=fPrec), allocatable, save :: bk0(:,:)      ! Multipoles: B-value
   real(kind=fPrec), allocatable, save :: ak0(:,:)      ! Multipoles: A-value
@@ -298,11 +346,32 @@ module mod_common
   integer,          allocatable, save :: mzu(:)        ! Magnet Error: Random number index
   integer,          allocatable, save :: icextal(:)    ! Magnet Misalignment: index (mod_fluc)
 
-  integer,          allocatable, save :: ic(:)         ! Structure to single/block element map
+  integer,          allocatable, save :: ic(:)         ! Structure to single/block element map0
+
+  real(kind=fPrec), allocatable, save :: xsi(:)        ! Tracking: Horisontal displacement
+  real(kind=fPrec), allocatable, save :: zsi(:)        ! Tracking: Vertical displacement
+  real(kind=fPrec), allocatable, save :: smi(:)        ! Tracking: Magnetic kick
+  real(kind=fPrec), allocatable, save :: smizf(:)      ! Random Numbers: zfz*ek
+
+  real(kind=fPrec), allocatable, save :: dcum(:)       ! Machine length in m (0:nblz+1)
+
+  ! Structure Element and Multipole Indexed (nblz,mmul)
+  real(kind=fPrec), allocatable, save :: aaiv(:,:)     ! Multipoles:
+  real(kind=fPrec), allocatable, save :: bbiv(:,:)     ! Multipoles:
+  real(kind=fPrec), allocatable, save :: amultip(:,:)  ! Multipoles:
+  real(kind=fPrec), allocatable, save :: bmultip(:,:)  ! Multipoles:
 
   ! Random Numbers Indexed (nzfz)
   real(kind=fPrec), allocatable, save :: zfz(:)        ! Magnet errors
 
+  ! Number of Monitors (nmon1)
+  real(kind=fPrec), allocatable, save :: betam(:,:)    ! Orbit Correction: (:,2)
+  real(kind=fPrec), allocatable, save :: pam(:,:)      ! Orbit Correction: (:,2)
+  real(kind=fPrec), allocatable, save :: bclorb(:,:)   ! Orbit Correction: (:,2)
+
+  ! Number of Orbit Corrections (ncor1)
+  real(kind=fPrec), allocatable, save :: betac(:,:)    ! Orbit Correction: (:,2)
+  real(kind=fPrec), allocatable, save :: pac(:,:)      ! Orbit Correction: (:,2)
 
 
 
@@ -311,25 +380,6 @@ module mod_common
 
 
 
-
-  ! common /linop/
-  real(kind=fPrec),              save :: eui,euii
-  integer,                       save :: ilin = 0
-  integer,                       save :: nt
-  integer,                       save :: iprint = 0
-  integer,                       save :: ntco
-  integer,                       save :: nlin
-
-  ! common /cororb/
-  real(kind=fPrec),              save :: betam(nmon1,2),pam(nmon1,2),betac(ncor1,2),pac(ncor1,2),bclorb(nmon1,2)
-  integer,                       save :: nhmoni,nhcorr,nvmoni,nvcorr
-  integer,          allocatable, save :: ncororb(:) ! nele
-
-  ! common /clos/
-  real(kind=fPrec), save :: sigma0(2)
-  integer,          save :: iclo    = 0
-  integer,          save :: ncorru  = 0
-  integer,          save :: ncorrep = 0
 
   ! common /combin/
   real(kind=fPrec),              save :: ratio(ncom,20)
@@ -403,9 +453,6 @@ module mod_common
   real(kind=fPrec), allocatable, save :: acdipph(:) ! (nele)
   integer,          allocatable, save :: nturn1(:),nturn2(:),nturn3(:),nturn4(:) ! (nele)
 
-  ! common /crabco/
-  real(kind=fPrec), allocatable, save :: crabph(:),crabph2(:),crabph3(:),crabph4(:) ! (nele)
-
   ! common /general-rf multi/
   integer, save :: iord, nordm
   real(kind=fPrec), save :: field_cos(2,mmul), fsddida(2,mmul)
@@ -426,26 +473,6 @@ module mod_common
   ! common /damp/
   real(kind=fPrec), save :: damp,ampt
 
-  ! common /ttime/
-  integer,          save :: napxto
-  real,             save :: tlim,time0,time1,time2,time3,trtime,pretime,posttime,tottime
-
-  ! common /xz/
-  real(kind=fPrec), allocatable, save :: xsi(:),zsi(:)     ! (nblz)
-  real(kind=fPrec), allocatable, save :: smi(:),smizf(:)   ! (nblz)
-  real(kind=fPrec), allocatable, save :: aaiv(:,:),bbiv(:,:) ! (nblz,mmul)
-  real(kind=fPrec), allocatable, save :: amultip(:,:), bmultip(:,:) ! (nblz,mmul)
-
-  ! common /dcumdb/
-  real(kind=fPrec), allocatable, save :: dcum(:)              ! (0:nblz+1) Machine length in m
-  real(kind=fPrec), parameter         :: eps_dcum   = c1m6    ! Tolerance for machine length mismatch [m]
-  logical,                       save :: print_dcum = .false. ! Set in the SETTINGS block
-
-  ! beamdim
-  real(kind=fPrec), parameter         :: cc   = 1.12837916709551_fPrec
-  real(kind=fPrec), parameter         :: xlim = 5.33_fPrec
-  real(kind=fPrec), parameter         :: ylim = 4.29_fPrec
-
 contains
 
 subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
@@ -460,6 +487,8 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   integer, intent(in) :: nblo_new
   integer, intent(in) :: nblz_new
   integer, intent(in) :: npart_new
+
+  logical :: firstRun = .true.
 
   call alloc(ed,                   nele_new,       zero,        "ed")
   call alloc(el,                   nele_new,       zero,        "el")
@@ -543,6 +572,16 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
 
   call alloc(nnumxv,               npart_new,      0,           "nnumxv")
   call alloc(track6d, 6,           npart_new,      zero,        "track6d")
+
+  if(firstRun) then
+    call alloc(betam,                nmon1, 2,       zero,        "betam")
+    call alloc(pam,                  nmon1, 2,       zero,        "pam")
+    call alloc(bclorb,               nmon1, 2,       zero,        "bclorb")
+    call alloc(betac,                ncor1, 2,       zero,        "betac")
+    call alloc(pac,                  ncor1, 2,       zero,        "pac")
+  end if
+
+  firstRun = .false.
 
 end subroutine mod_common_expand_arrays
 

@@ -160,7 +160,7 @@ end interface
   logical fErr ! For file units
 
   ! ---------------------------------------------------------------------------------------------- !
-  errout_status = 0 ! Set to nonzero before calling abend in case of error.
+  errout = 0 ! Set to nonzero before calling abend in case of error.
 #ifdef CR
   lout = 92
 #else
@@ -415,15 +415,6 @@ end interface
 #endif
 
 !     A normal start, time0 is beginning
-      pretime=0.0
-      trtime=0.0
-      posttime=0.0
-      tottime=0.0
-      time0=0.0
-      time1=0.0
-      time2=0.0
-      time3=0.0
-      tlim=1e7
       call time_timerStart
       call time_timerCheck(time0)
       do 20 i=1,mmul

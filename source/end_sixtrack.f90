@@ -6,7 +6,7 @@
 subroutine prror(ier)
 
   use crcoall
-  use mod_common, only : errout_status
+  use mod_common, only : errout
 #ifdef FLUKA
   use mod_fluka
 #endif
@@ -20,9 +20,9 @@ subroutine prror(ier)
 #endif
 
   if(present(ier)) then
-    errout_status = ier
+    errout = ier
   else
-    errout_status = -1
+    errout = -1
   end if
 
   write(lout,"(a)") ""
@@ -180,21 +180,21 @@ subroutine abend(cstring)
   end do
   ! call boinc_zipitall()
   ! call boinc_finish_graphics()
-  if(errout_status /= 0) then
+  if(errout /= 0) then
     close(93)
     call boincrf('fort.93',filename)
     call print_lastlines_to_stderr(93,filename)
     call boincrf('fort.6',filename)
     call print_lastlines_to_stderr(6,filename)
   end if
-  call boinc_finish(errout_status) !This call does not return
+  call boinc_finish(errout) !This call does not return
 #else
-  if(errout_status /= 0) then
+  if(errout /= 0) then
     close(93)
     call print_lastlines_to_stderr(93,"fort.93")
     call print_lastlines_to_stderr(6,"fort.6")
 
-    write(error_unit,"(a,i0)") "ABEND> Stopping, errout_status = ",errout_status
+    write(error_unit,"(a,i0)") "ABEND> Stopping, errout = ",errout
     stop 1
   else
     ! No error
@@ -216,21 +216,21 @@ subroutine abend(cstring)
 31 continue
   ! call boinc_zipitall()
   ! call boinc_finish_graphics()
-  if(errout_status /= 0) then
+  if(errout /= 0) then
     close(93)
     call boincrf('fort.93',filename)
     call print_lastlines_to_stderr(93,filename)
     call boincrf('fort.6',filename)
     call print_lastlines_to_stderr(6,filename)
   end if
-  call boinc_finish(errout_status) !This call does not return
+  call boinc_finish(errout) !This call does not return
 #else
-  if(errout_status /= 0) then
+  if(errout /= 0) then
     close(93)
     call print_lastlines_to_stderr(93,"fort.93")
     call print_lastlines_to_stderr(6,"fort.6")
 
-    write(error_unit,"(a,i0)") "Stopping, errout_status = ",errout_status
+    write(error_unit,"(a,i0)") "Stopping, errout = ",errout
     stop 1
   else ! No error
     stop 0
@@ -239,8 +239,8 @@ subroutine abend(cstring)
 #else
   write(output_unit,"(a)") "SIXTRACK STOP/ABEND "//cstring
   ! No fort.6 and 93 if not CR -> don't do print_lastlines_to_stderr()
-  if(errout_status /= 0) then
-    write(error_unit,"(a,i5)") "ABEND> Stopping, errout_status = ",errout_status
+  if(errout /= 0) then
+    write(error_unit,"(a,i5)") "ABEND> Stopping, errout = ",errout
     stop 1
   else ! No error
     stop 0
