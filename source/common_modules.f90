@@ -135,8 +135,9 @@ module mod_common
   real(kind=fPrec),  save      :: rad        = pi/c180e0
 
   ! Various Flags and Variables
-  character(len=80), save      :: sixtit     = " "     ! DANGER: If the len changes, CRCHECK will break.
-  character(len=80), save      :: commen     = " "     ! DANGER: If the len changes, CRCHECK will break.
+  character(len=80), save      :: toptit(5)  = " "     ! DANGER: If the len changes, CRCHECK will break
+  character(len=80), save      :: sixtit     = " "     ! DANGER: If the len changes, CRCHECK will break
+  character(len=80), save      :: commen     = " "     ! DANGER: If the len changes, CRCHECK will break
   logical,           save      :: print_dcum = .false. ! Print dcum. Set in the SETTINGS block
   integer,           save      :: ithick     = 0       ! Thick tracking flag
 
@@ -315,6 +316,40 @@ module mod_common
   real,             save :: posttime   = 0.0
   real,             save :: tottime    = 0.0
 
+  ! Post-Procesing
+  real(kind=fPrec), save :: dphix      = zero ! Horisontal angle interval used to stroboscope phase space [rad]
+  real(kind=fPrec), save :: dphiz      = zero ! Vertical angle interval used to stroboscope phase space [rad]
+  real(kind=fPrec), save :: qx0        = zero ! Horisontal tune
+  real(kind=fPrec), save :: qz0        = zero ! Vertical tune
+  real(kind=fPrec), save :: dres       = zero ! Maximum distance to the resonance
+  real(kind=fPrec), save :: dfft       = zero ! Find resonances with the FFT spectrum below
+  real(kind=fPrec), save :: cma1       = zero ! Scale for Lyapunov analysis
+  real(kind=fPrec), save :: cma2       = zero ! Scale for Lyapunov analysis
+
+  integer,          save :: nstart     = 0    ! Start turn number for the analysis
+  integer,          save :: nstop      = 0    ! Stop turn number for the analysis
+  integer,          save :: iskip      = 1    ! Number of samples to skip
+  integer,          save :: iconv      = 0    ! Switch: tracking data are not normalised linearly
+  integer,          save :: imad       = 0    ! Switch: MAD-X related
+
+  integer,          save :: ipos       = 0    ! Post-processing on/off
+  integer,          save :: iav        = 0    ! Averaging interval of the values of the distance in phase space
+  integer,          save :: iwg        = 0    ! Switch: weighting of the slope calculation of the distance in phase space
+  integer,          save :: ivox       = 0    ! Switch: tune close to an integer
+  integer,          save :: ivoz       = 0    ! Switch: tune close to an integer
+  integer,          save :: ires       = 0    ! Closest resonances search up to order
+  integer,          save :: ifh        = 0    ! FFT analysis tune interval
+
+  integer,          save :: kwtype     = 0    ! Disabled
+  integer,          save :: itf        = 0    ! Switch to get PS file of plots
+  integer,          save :: icr        = 0    ! Disabled
+  integer,          save :: idis       = 0    ! Switch to select plot
+  integer,          save :: icow       = 0    ! Switch to select plot
+  integer,          save :: istw       = 0    ! Switch to select plot
+  integer,          save :: iffw       = 0    ! Switch to select plot
+  integer,          save :: nprint     = 0    ! Switch to stop the printing of the post-processing fort.6
+  integer,          save :: ndafi      = 0    ! Number of data files to be processed
+
   !  ALLOCATABLES
   ! ==============
 
@@ -380,6 +415,12 @@ module mod_common
 
   real(kind=fPrec), allocatable, save :: parbe(:,:)    ! Beam-Beam: Input values (:,18)
   real(kind=fPrec), allocatable, save :: ptnfac(:)     ! Beam-Beam: Strength ratio
+
+  real(kind=fPrec), allocatable, save :: acdipph(:)    ! AC Dipole: Phase (el)
+  integer,          allocatable, save :: nturn1(:)     ! AC Dipole: Turns to free of excitation at the beginning of the run
+  integer,          allocatable, save :: nturn2(:)     ! AC Dipole: Turns to ramp up the excitation amplitude
+  integer,          allocatable, save :: nturn3(:)     ! AC Dipole: Turns of constant excitation amplitude
+  integer,          allocatable, save :: nturn4(:)     ! AC Dipole: Turns to ramp down the excitation amplitude
 
   ! Single Element and Multipole Indexed (nele,mmul)
   real(kind=fPrec), allocatable, save :: bk0(:,:)      ! Multipoles: B-value
@@ -459,17 +500,6 @@ module mod_common
   real(kind=fPrec), save :: dtr(10)
   integer,          save :: nre,nur,nch,nqc,npp,nrr(5),nu(5)
 
-  ! common /postr/
-  real(kind=fPrec), save :: dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2
-  integer,          save :: nstart,nstop,iskip,iconv,imad
-
-  ! common /posti1/
-  integer,           save :: ipos,iav,iwg,ivox,ivoz,ires,ifh
-  character(len=80), save :: toptit(5) !DANGER: If the len changes, CRCHECK will break.
-
-  ! common /posti2/
-  integer, save :: kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi
-
   ! common /skew/
   real(kind=fPrec), save :: qwsk(2),betx(2),betz(2),alfx(2),alfz(2)
   integer,          save :: iskew,nskew(6)
@@ -484,10 +514,6 @@ module mod_common
 
   ! common /bb6d/
   integer,          save :: ibb6d
-
-  ! common /acdipco/
-  real(kind=fPrec), allocatable, save :: acdipph(:) ! (nele)
-  integer,          allocatable, save :: nturn1(:),nturn2(:),nturn3(:),nturn4(:) ! (nele)
 
   ! common /general-rf multi/
   integer, save :: iord, nordm

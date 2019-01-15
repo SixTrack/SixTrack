@@ -2761,22 +2761,6 @@ subroutine comnul
       nch=0
       nqc=0
       npp=0
-      ipos=0
-      iconv=0
-      imad=0
-      nstart=0
-      nstop=0
-      iskip=1
-      iav=0
-      iwg=0
-      ivox=0
-      ivoz=0
-      ires=0
-      ifh=0
-      idis=0
-      icow=0
-      istw=0
-      iffw=0
       idial=0
       nord=0
       nvar=0
@@ -2794,13 +2778,6 @@ subroutine comnul
       inorm=0
       imod1=0
       imod2=0
-!-----------------------------------------------------------------------
-      dphix=zero
-      dphiz=zero
-      qx0=zero
-      qz0=zero
-      dres=zero
-      dfft=zero
       preda=zero
       damp=zero
       ampt=zero
@@ -2859,14 +2836,6 @@ subroutine comnul
             end do
           end do
         end do
-      end do
-
-!--NUMBER OF ELEMENTS---------------------------------------------------
-      do i=1,nele
-        dki(i,1)=zero
-        dki(i,2)=zero
-        dki(i,3)=zero
-        acdipph(i)=zero
       end do
 
 !     From the FLUKA version
