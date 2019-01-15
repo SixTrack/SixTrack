@@ -7,37 +7,39 @@ module elens
   use floatPrecision
   use crcoall
   use mod_alloc
+  use numerical_constants, only : zero
 
   implicit none
 
   ! size of table with elens data
-  integer, parameter     :: nelens=125
+  integer, parameter :: nelens = 125
   ! last elens read
-  integer, save          :: melens
+  integer, save      :: melens = 0
 
   ! index of elens:
   integer,allocatable, save :: ielens(:) !(nele)
 
   ! variables to save elens parameters for tracking etc.
-  integer, save          :: elens_type(nelens)        ! integer for elens type
-                                                      ! 0 : Un-initialized.
-                                                      ! 1 : uniform profile
-                                                      ! 2 : Gaussian profile
-                                                      ! 3 : radial profile from file
-  real(kind=fPrec), save :: elens_theta_r2(nelens)    ! kick strength at R2 [mrad]
-  real(kind=fPrec), save :: elens_r2(nelens)          ! outer radius R2 [mm]
-  real(kind=fPrec), save :: elens_r1(nelens)          ! inner radius R1 [mm]
-  real(kind=fPrec), save :: elens_offset_x(nelens), elens_offset_y(nelens)  ! hor./vert. offset of elens [mm]
-  real(kind=fPrec), save :: elens_sig(nelens)         ! sig (Gaussian profile) [mm]
-  real(kind=fPrec), save :: elens_geo_norm(nelens)    ! normalisation of f(r)
-  real(kind=fPrec), save :: elens_len(nelens)         ! length of eLens (e-beam region) [m]
-  real(kind=fPrec), save :: elens_I(nelens)           ! current of e-beam [A]
-                                                      ! <0: e-beam opposite to beam
-  real(kind=fPrec), save :: elens_Ek(nelens)          ! kinetic energy of e-beam [keV]
-  logical, save          :: elens_lThetaR2(nelens)    ! flag for computing theta@R2
-  logical, save          :: elens_lAllowUpdate(nelens)! Flag for disabling updating of kick,
-                                                      ! i.e. after DYNK has touched thetaR2
-                                                      ! the energy update is disabled.
+  integer, save          :: elens_type(nelens)         = 0       ! integer for elens type
+                                                                 ! 0 : Un-initialized.
+                                                                 ! 1 : uniform profile
+                                                                 ! 2 : Gaussian profile
+                                                                 ! 3 : radial profile from file
+  real(kind=fPrec), save :: elens_theta_r2(nelens)     = zero    ! kick strength at R2 [mrad]
+  real(kind=fPrec), save :: elens_r2(nelens)           = zero    ! outer radius R2 [mm]
+  real(kind=fPrec), save :: elens_r1(nelens)           = zero    ! inner radius R1 [mm]
+  real(kind=fPrec), save :: elens_offset_x(nelens)     = zero    ! hor offset of elens [mm]
+  real(kind=fPrec), save :: elens_offset_y(nelens)     = zero    ! vert. offset of elens [mm]
+  real(kind=fPrec), save :: elens_sig(nelens)          = zero    ! sig (Gaussian profile) [mm]
+  real(kind=fPrec), save :: elens_geo_norm(nelens)     = zero    ! normalisation of f(r)
+  real(kind=fPrec), save :: elens_len(nelens)          = zero    ! length of eLens (e-beam region) [m]
+  real(kind=fPrec), save :: elens_I(nelens)            = zero    ! current of e-beam [A]
+                                                                 ! <0: e-beam opposite to beam
+  real(kind=fPrec), save :: elens_Ek(nelens)           = zero    ! kinetic energy of e-beam [keV]
+  logical, save          :: elens_lThetaR2(nelens)     = .false. ! flag for computing theta@R2
+  logical, save          :: elens_lAllowUpdate(nelens) = .true.  ! Flag for disabling updating of kick,
+                                                      !          i.e. after DYNK has touched thetaR2
+                                                      !          the energy update is disabled.
 #ifdef CR
   logical, save          :: elens_lAllowUpdate_CR(nelens)
 #endif
@@ -52,11 +54,11 @@ module elens
   integer, save          :: elens_cheby_unit=-1       ! unit for reading the chebyshev coefficients
   integer, parameter     :: elens_cheby_order=18      ! max order of chebyshev polynomials
   integer, save          :: melens_cheby_tables       ! tables available in memory
-  character(len=mFNameLen), save:: elens_cheby_filename(nelens_cheby_tables) ! names
-  real(kind=fPrec), save :: elens_cheby_coeffs(0:elens_cheby_order,0:elens_cheby_order,nelens_cheby_tables)
-  real(kind=fPrec), save :: elens_cheby_refCurr(nelens_cheby_tables) ! reference current [A]
-  real(kind=fPrec), save :: elens_cheby_refRadius(nelens_cheby_tables) ! reference radius [mm]
-  real(kind=fPrec), save :: elens_cheby_refBeta(nelens_cheby_tables) ! reference e-beta []
+  character(len=mFNameLen), save:: elens_cheby_filename(nelens_cheby_tables) = " "! names
+  real(kind=fPrec), save :: elens_cheby_coeffs(0:elens_cheby_order,0:elens_cheby_order,nelens_cheby_tables) = zero
+  real(kind=fPrec), save :: elens_cheby_refCurr(nelens_cheby_tables)   = zero ! reference current [A]
+  real(kind=fPrec), save :: elens_cheby_refRadius(nelens_cheby_tables) = zero ! reference radius [mm]
+  real(kind=fPrec), save :: elens_cheby_refBeta(nelens_cheby_tables)   = zero ! reference e-beta []
   ! file with radial profile
   integer, parameter     :: nelens_radial_profiles=20 ! max number of radial profiles
   integer, save          :: elens_radial_unit=-1      ! unit for reading radial profiles

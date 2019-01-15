@@ -2568,137 +2568,26 @@ end subroutine envars
 !-----------------------------------------------------------------------
 subroutine comnul
 
-  use floatPrecision
-  use numerical_constants
-  use mathlib_bouncer
   use parpro
-  use parbeam, only : beam_expflag,beam_expfile_open
-  use mod_common
-  use mod_common_main
-  use mod_commons
-  use mod_common_track
-  use mod_common_da
-
   use aperture
-  use elens
-  use wire
   use scatter,     only : scatter_comnul
-  use dump,        only : dump_comnul
-  use bdex,        only : bdex_comnul
   use collimation, only : collimation_comnul
 #ifdef HDF5
   use hdf5_output, only : h5_comnul
 #endif
 
-  implicit none
+ ! From the FLUKA version
+  do i=1,nele
+    call selnul(i)
+  end do
 
-  integer i,i1,i2,i3,i4,j
-
-  save
-
-!     From the FLUKA version
-      do i=1,nele
-         call SELNUL(i)
-      end do
-
-!-- BEAM-EXP------------------------------------------------------------
-      beam_expflag = 0
-      beam_expfile_open = .false.
-
-!--DUMP BEAM POPULATION-------------------------------------------------
-!     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
-!     K.Sjobak, BE-ABP/HSS
-!     last modified: 03-09-2015
-!     initialise common
-!     always in main code
-      call dump_comnul
-
-!--ELEN - ELECTRON LENS---------------------------------------------------------
-!     M. Fitterer (FNAL), A. Mereghetti
-!     last modified: 09-02-2018
-!     always in main code
-!     elensparam - used for tracking (parameters of single element)
-      do i=1,nele
-         ielens(i) = 0
-      end do
-      melens=0
-      do i=1,nelens
-        elens_type(i)          = 0
-        elens_theta_r2(i)      = zero
-        elens_r2(i)            = zero
-        elens_r1(i)            = zero
-        elens_offset_x(i)      = zero
-        elens_offset_y(i)      = zero
-        elens_sig(i)           = zero
-        elens_geo_norm(i)      = zero
-        elens_len(i)           = zero
-        elens_I(i)             = zero
-        elens_Ek(i)            = zero
-        elens_lThetaR2(i)      = .false.
-        elens_lAllowUpdate(i)  = .true.
-        elens_iCheby(i)        = 0
-        elens_cheby_angle(i)   = zero
-      end do
-!     table with coefficients of chebyshev polynominals
-      do i=1,nelens_cheby_tables
-         do j=1,16
-            elens_cheby_filename(i)(j:j)=' '
-         end do
-         do i1=0,elens_cheby_order
-            do i2=0,elens_cheby_order
-               elens_cheby_coeffs(i1,i2,i)=zero
-            end do
-         end do
-         elens_cheby_refCurr(i)=zero
-         elens_cheby_refBeta(i)=zero
-         elens_cheby_refRadius(i)=zero
-      end do
-!--WIRE - WIRE ELEMENT---------------------------------------------------------
-!     M. Fitterer (FNAL), A. Patapenka (NIU)
-!     last modified: 22-12-2016
-! 1)  wireparam - used for tracking (parameters of single element)
-      do i=1,nele
-        wire_flagco(i)  = 0
-        wire_current(i) = 0
-        wire_lint(i)    = 0
-        wire_lphys(i)   = 0
-        wire_dispx(i)   = 0
-        wire_dispy(i)   = 0
-        wire_tiltx(i)   = 0
-        wire_tilty(i)   = 0
-      end do
-
-! 2) loop over structure elements
-      do i=1,nblz
-        wire_num(i)=0
-      end do
-
-! 3) loop over number of wires
-      do i=1,wire_max
-        do j=1,6
-          wire_clo(j,i)=zero
-        end do
-      end do
-
-!--APERTURE-------------------------------------------------------------
-!     P.G.Ortega and A.Mereghetti, for the FLUKA Team
-!     last modified: 02-03-2018
-!     initialise common
-!     always in main code
-      call aperture_comnul
-
-!--SCATTER--------------------------------------------------------------
-      call scatter_comnul
-!--HDF5-----------------------------------------------------------------
+  call aperture_comnul
+  call scatter_comnul
 #ifdef HDF5
-      call h5_comnul
+  call h5_comnul
 #endif
-!--COLLIMATION----------------------------------------------------------
-      call collimation_comnul
-!--BDEX-----------------------------------------------------------------
-      call bdex_comnul
-!-----------------------------------------------------------------------
-      return
+  call collimation_comnul
+
 end subroutine comnul
 
 subroutine SELNUL( iel )

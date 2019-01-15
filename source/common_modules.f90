@@ -82,8 +82,8 @@ module parbeam
   real(kind=fPrec), save :: wtreal(idim),wtimag(idim)
 
   ! common /beam_exp/
-  integer,          save :: beam_expflag      ! 0: Old BEAM block, 1: New BEAM::EXPERT
-  logical,          save :: beam_expfile_open ! Have we opened the file 'beam_expert.txt'?
+  integer,          save :: beam_expflag      = 0       ! 0: Old BEAM block, 1: New BEAM::EXPERT
+  logical,          save :: beam_expfile_open = .false. ! Have we opened the file 'beam_expert.txt'?
 
 end module parbeam
 
