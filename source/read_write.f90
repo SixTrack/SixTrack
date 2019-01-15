@@ -16,8 +16,8 @@ contains
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-10-31
-!  Write fort.13 with rounctl library
+!  Last Modified: 2019-01-15
+!  Write fort.12 with rounctl library
 ! ================================================================================================ !
 subroutine writeFort12
 
