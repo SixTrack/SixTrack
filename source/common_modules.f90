@@ -243,6 +243,9 @@ module mod_common
   integer,          save :: nvmoni     = 0
   integer,          save :: nvcorr     = 0
 
+  real(kind=fPrec), save :: clo6(3)    = zero ! 6D closed orbit correction position
+  real(kind=fPrec), save :: clop6(3)   = zero ! 6D closed orbit correction momentum
+
   ! Tune Variation
   real(kind=fPrec), save :: qw0(3)     = zero ! Qx/Qy/delta_Q
   integer,          save :: iq(3)      = 0    ! Index of elements
@@ -277,6 +280,22 @@ module mod_common
   integer,          save :: ise2       = 0    ! Distance to a resonance
   integer,          save :: ise3       = 0    ! Distance to a resonance
   integer,          save :: ise        = 0    ! Flag on/off
+
+  ! Beam-Beam Variables
+  real(kind=fPrec), save :: sigz       = zero ! RMS bunch length
+  real(kind=fPrec), save :: sige       = zero ! RMS energy spread
+  real(kind=fPrec), save :: partnum    = zero ! Number of particles in bunch
+  real(kind=fPrec), save :: parbe14    = zero !
+  real(kind=fPrec), save :: emitx      = zero ! Horisontal emittance
+  real(kind=fPrec), save :: emity      = zero ! Vertical emittance
+  real(kind=fPrec), save :: emitz      = zero ! Longitudinal emittance
+  real(kind=fPrec), save :: gammar     = one  ! Gamma factor
+  real(kind=fPrec), save :: betrel     = zero ! Relativistic beta
+  integer,          save :: nbeam      = 0    ! Beam-beam elements flag
+  integer,          save :: ibbc       = 0    ! Switch for linear coupling considered in 4D and 6D
+  integer,          save :: ibeco      = 1    ! Subtract the closed orbit introduced by BEAM/WIRE
+  integer,          save :: ibtyp      = 0    ! Switch to use the fast beam–beam algorithms
+  integer,          save :: lhc        = 1    ! Switch for the LHC with its anti-symmetric IR
 
   ! Reference Particle
   real(kind=fPrec), save :: e0         = zero ! Reference energy
@@ -359,6 +378,9 @@ module mod_common
 
   integer,          allocatable, save :: isea(:)       ! Compensate Resonance: Element index
 
+  real(kind=fPrec), allocatable, save :: parbe(:,:)    ! Beam-Beam: Input values (:,18)
+  real(kind=fPrec), allocatable, save :: ptnfac(:)     ! Beam-Beam: Strength ratio
+
   ! Single Element and Multipole Indexed (nele,mmul)
   real(kind=fPrec), allocatable, save :: bk0(:,:)      ! Multipoles: B-value
   real(kind=fPrec), allocatable, save :: ak0(:,:)      ! Multipoles: A-value
@@ -386,11 +408,16 @@ module mod_common
 
   real(kind=fPrec), allocatable, save :: dcum(:)       ! Machine length in m (0:nblz+1)
 
+  integer,          allocatable, save :: imbb(:)       ! Beam-Beam:
+
   ! Structure Element and Multipole Indexed (nblz,mmul)
   real(kind=fPrec), allocatable, save :: aaiv(:,:)     ! Multipoles:
   real(kind=fPrec), allocatable, save :: bbiv(:,:)     ! Multipoles:
   real(kind=fPrec), allocatable, save :: amultip(:,:)  ! Multipoles:
   real(kind=fPrec), allocatable, save :: bmultip(:,:)  ! Multipoles:
+
+  ! Number of Particles (npart)
+  real(kind=fPrec), allocatable, save :: track6d(:,:)  ! Beam-Beam (6,:)
 
   ! Random Numbers Indexed (nzfz)
   real(kind=fPrec), allocatable, save :: zfz(:)        ! Magnet errors
@@ -408,6 +435,13 @@ module mod_common
   real(kind=fPrec), allocatable, save :: ratio(:,:)    ! Combination of Elements: Ratio (:,20)
   integer,          allocatable, save :: icomb(:,:)    ! Combination of Elements: Index (:,20)
 
+  ! Number of Beam-Beam Lenses (nbb)
+  real(kind=fPrec), allocatable, save :: sigman(:,:)   ! (2,:)
+  real(kind=fPrec), allocatable, save :: sigman2(:,:)  ! sigman^2 (2,:)
+  real(kind=fPrec), allocatable, save :: sigmanq(:,:)  ! (2,:)
+  real(kind=fPrec), allocatable, save :: clobeam(:,:)  ! (6,:)
+  real(kind=fPrec), allocatable, save :: beamoff(:,:)  ! (6,:)
+  real(kind=fPrec), allocatable, save :: bbcu(:,:)     ! (:,12)
 
 
 
@@ -443,29 +477,13 @@ module mod_common
   ! common /pawc/
   real, save :: hmal(nplo)
 
-  ! common/co6d/
-  real(kind=fPrec), save :: clo6(3),clop6(3)
-
-  ! common /beam/
-  real(kind=fPrec),              save :: sigman(2,nbb),sigman2(2,nbb),sigmanq(2,nbb)
-  real(kind=fPrec),              save :: clobeam(6,nbb),beamoff(6,nbb)
-  real(kind=fPrec), allocatable, save :: track6d(:,:) ! (6,npart)
-  real(kind=fPrec),              save :: sigz,sige,partnum,parbe14,emitx,emity,emitz
-  real(kind=fPrec),              save :: gammar = one
-  real(kind=fPrec),              save :: betrel = zero
-  integer,                       save :: nbeam,ibbc,ibeco,ibtyp,lhc
-  real(kind=fPrec), allocatable, save :: parbe(:,:) ! (nele,18)
-  real(kind=fPrec), allocatable, save :: ptnfac(:)  ! (nele)
-
   ! common/trom/
   real(kind=fPrec), allocatable, save :: cotr(:,:)   ! (ntr,6)
   real(kind=fPrec), allocatable, save :: rrtr(:,:,:) ! (ntr,6,6)
   integer,          allocatable, save :: imtr(:)     ! (nele)
 
   ! common /bb6d/
-  real(kind=fPrec), save :: bbcu(nbb,12)
   integer,          save :: ibb6d
-  integer,          allocatable, save :: imbb(:) ! (nblz)
 
   ! common /acdipco/
   real(kind=fPrec), allocatable, save :: acdipph(:) ! (nele)
@@ -478,9 +496,6 @@ module mod_common
 
   ! common /sixdim/
   real(kind=fPrec), save :: aml6(6,6),edcor(2)
-
-  ! common /postr2/
-  integer,          allocatable, save :: nnumxv(:) ! (npart)
 
   ! common /correct/
   integer,          save :: ichromc = 0
@@ -588,7 +603,6 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(dcum,                 nblz_new+1,     zero,        "dcum", 0)
   call alloc(sigmoff,              nblz_new,       zero,        "sigmoff")
 
-  call alloc(nnumxv,               npart_new,      0,           "nnumxv")
   call alloc(track6d, 6,           npart_new,      zero,        "track6d")
 
   ! The arrays that don't currently have scalable sizes only need to be allocated once
@@ -596,10 +610,19 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
     call alloc(betam,                nmon1, 2,       zero,        "betam")
     call alloc(pam,                  nmon1, 2,       zero,        "pam")
     call alloc(bclorb,               nmon1, 2,       zero,        "bclorb")
+
     call alloc(betac,                ncor1, 2,       zero,        "betac")
     call alloc(pac,                  ncor1, 2,       zero,        "pac")
+
     call alloc(ratio,                ncom,  20,      zero,        "ratio")
     call alloc(icomb,                ncom,  20,      0,           "icomb")
+
+    call alloc(sigman,            2, nbb,            zero,        "sigman")
+    call alloc(sigman2,           2, nbb,            zero,        "sigman2")
+    call alloc(sigmanq,           2, nbb,            zero,        "sigmanq")
+    call alloc(clobeam,           6, nbb,            zero,        "clobeam")
+    call alloc(beamoff,           6, nbb,            zero,        "beamoff")
+    call alloc(bbcu,                 nbb, 12,        zero,        "bbcu")
   end if
 
   firstRun = .false.
@@ -749,6 +772,7 @@ module mod_commonmn
   real(kind=fPrec), allocatable, save :: ejf0v(:)     ! (npart)
 
   integer,          allocatable, save :: numxv(:)     ! (npart)
+  integer,          allocatable, save :: nnumxv(:)    ! (npart)
   integer,          allocatable, save :: nms(:)       ! (npart)
   integer,          allocatable, save :: partID(:)    ! (npart)
   integer,          allocatable, save :: parentID(:)  ! (npart)
@@ -878,6 +902,7 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   call alloc(rvv,              npart_new,      one,     "rvv")
   call alloc(ejf0v,            npart_new,      zero,    "ejf0v")
   call alloc(numxv,            npart_new,      0,       "numxv")
+  call alloc(nnumxv,           npart_new,      0,       "nnumxv")
   call alloc(nms,              npart_new,      0,       "nms")
   call alloc(partID,           npart_new,      0,       "partID")
   call alloc(parentID,         npart_new,      0,       "parentID")

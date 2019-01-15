@@ -2743,28 +2743,8 @@ subroutine comnul
 
   save
 
-  ! SINGLE ELEMENT BLOCK
-  ithick  = 0     ! mod_common
-
-  ! RANDOM NUMBERS VARIABLES
-  iorg    = 0     ! mod_common
-
   ! CHROMATICITY ADJUSTMENT BLOCK
   ichrom  = 0     ! mod_common
-
-  ! COMBINATION OF ELEMENTS BLOCK
-  icoe    = 0     ! mod_common
-
-  ! ! SEARCH BLOCK
-  ! ise     = 0     ! mod_common
-  ! mesa    = 0     ! mod_common
-  ! mp      = 0     ! mod_common
-  ! m21     = 0     ! mod_common
-  ! m22     = 0     ! mod_common
-  ! m23     = 0     ! mod_common
-  ! ise1    = 0     ! mod_common
-  ! ise2    = 0     ! mod_common
-  ! ise3    = 0     ! mod_common
 
   ! SUBRESONANCE CALCULATION BLOCK
   isub    = 0     ! mod_common
@@ -2775,9 +2755,6 @@ subroutine comnul
   ! RESONANCE COMPENSATION BLOCK
   irmod2  = 0     ! mod_common
   nre     = 0     ! mod_common
-
-  ! POSTPROCESSING
-  toptit(:)  = " "  ! mod_common
 
   ! TODO
       nur=0
@@ -2812,22 +2789,12 @@ subroutine comnul
       nvar2=0
       ncor=0
       idptr=0
-      nbeam=0
       ibb6d=0
-      ibeco=1
-      ibtyp=0
-      lhc=1
-      ibbc=0
 !-----------------------------------------------------------------------
       inorm=0
       imod1=0
       imod2=0
 !-----------------------------------------------------------------------
-      ! qxt=zero
-      ! qzt=zero
-      ! tam1=zero
-      ! tam2=zero
-      ! totl=zero
       dphix=zero
       dphiz=zero
       qx0=zero
@@ -2835,12 +2802,6 @@ subroutine comnul
       dres=zero
       dfft=zero
       preda=zero
-      partnum=zero
-      emitx=zero
-      emity=zero
-      emitz=zero
-      sigz=zero
-      sige=zero
       damp=zero
       ampt=zero
 !-----------------------------------------------------------------------
@@ -2859,8 +2820,6 @@ subroutine comnul
    10 continue
 
       do 20 i=1,3
-        clo6(i)=zero
-        clop6(i)=zero
         clon(i)=zero
         wxys(i)=zero
         do i1=1,3
@@ -2907,13 +2866,7 @@ subroutine comnul
         dki(i,1)=zero
         dki(i,2)=zero
         dki(i,3)=zero
-        ratioe(i)=one
-        ptnfac(i)=zero
         acdipph(i)=zero
-
-        do i1=1,18
-          parbe(i,i1)=zero
-        enddo
       end do
 
 !     From the FLUKA version
@@ -2946,35 +2899,6 @@ subroutine comnul
             rrtr(i,i1,i2)=zero
           end do
         end do
-      end do
-
-!--Beam-Beam------------------------------------------------------------
-      do i=1,nbb
-        do j=1,2
-          sigman(j,i)=zero
-          sigman2(j,i)=zero
-          sigmanq(j,i)=zero
-        end do
-
-        do j=1,6
-          clobeam(j,i)=zero
-          beamoff(j,i)=zero
-        end do
-
-        do j=1,12
-          bbcu(i,j)=zero
-        end do
-
-        bbcu(i,11)=one
-      end do
-
-!--CADCUM---------------------------------------------------------------
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 17-07-2013
-!     initialise common
-!     always in main code
-      do i=0,nblz+1
-         dcum(i)=zero
       end do
 
 !--DUMP BEAM POPULATION-------------------------------------------------

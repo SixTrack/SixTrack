@@ -39,11 +39,11 @@ subroutine postpr(nfile)
       use string_tools
       use mod_version
       use mod_time
-      use mod_common, only : dpscor,sigcor,icode,idam,its6d, &
-           dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad, &
-           ipos,iav,iwg,ivox,ivoz,ires,ifh,toptit, &
-           kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi, &
-           hmal,nnumxv,chromc,tlim,trtime
+      use mod_commonmn, only : nnumxv
+      use mod_common, only : dpscor,sigcor,icode,idam,its6d,dphix,dphiz,qx0,qz0,&
+        dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,iwg,ivox,    &
+        ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi,   &
+        hmal,chromc,tlim,trtime
 #ifdef ROOT
       use root_output
 #endif
