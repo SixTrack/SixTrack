@@ -946,7 +946,7 @@ subroutine collimate_init()
   use mod_common
   use mod_commonmn
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_common_da
   use mod_settings
 
@@ -1597,7 +1597,7 @@ subroutine collimate_start_sample(nsample)
   use mod_common
   use mod_commonmn
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_common_da
 
   implicit none
@@ -2228,7 +2228,7 @@ subroutine collimate_start_collimator(stracki)
   use mod_common
   use mod_commonmn
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_common_da
   use numerical_constants, only : c5m4
 
@@ -2414,7 +2414,7 @@ subroutine collimate_do_collimator(stracki)
   use mod_common
   use mod_commonmn
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_common_da
   use numerical_constants, only : c5m4
 
@@ -3160,7 +3160,7 @@ subroutine collimate_end_collimator()
   use mod_common
   use mod_commonmn
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_common_da
   use numerical_constants, only : c5m4
 
@@ -3535,7 +3535,7 @@ subroutine collimate_end_sample(j)
   use mod_common
   use mod_commonmn
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_common_da
   use crcoall
 #ifdef ROOT
@@ -3793,7 +3793,7 @@ subroutine collimate_exit()
   use mod_common
   use mod_commonmn
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_common_da
 
   implicit none
@@ -3937,7 +3937,7 @@ subroutine collimate_start_turn(n)
   use mod_common
   use mod_commonmn
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_common_da
 
   implicit none
@@ -3958,7 +3958,7 @@ subroutine collimate_start_element(i)
   use mod_common
   use mod_commonmn
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_common_da
 
   implicit none
@@ -4043,7 +4043,7 @@ subroutine collimate_end_element
   use mod_common
   use mod_commonmn
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_common_da
 
   implicit none
@@ -4179,7 +4179,7 @@ subroutine collimate_end_turn
   use mod_common
   use mod_commonmn
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_common_da
   use crcoall
 
@@ -7102,7 +7102,7 @@ subroutine makedis_ga( myalphax, myalphay, mybetax, mybetay, myemitx0, myemity0,
 
   use crcoall
   use parpro
-  use mod_commont
+  use mod_common_track
   use mod_common, only : napx
   implicit none
 

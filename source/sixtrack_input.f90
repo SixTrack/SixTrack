@@ -1004,7 +1004,7 @@ end subroutine sixin_parseInputLineINIT
 ! ================================================================================================ !
 subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
-  use mod_commont
+  use mod_common_track
   use mod_common_da
 
   implicit none
@@ -1307,7 +1307,7 @@ end subroutine sixin_parseInputLineDIFF
 ! ================================================================================================ !
 subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
 
-  use mod_commont
+  use mod_common_track
 
   implicit none
 

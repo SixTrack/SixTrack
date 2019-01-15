@@ -710,32 +710,33 @@ end module mod_common_da
 !  TRACKING COMMON VARIABLES
 !  Last modified: 2018-06-21
 ! ================================================================================================ !
-module mod_commont
+module mod_common_track
 
   use parpro
   use floatPrecision
+  use numerical_constants
 
   implicit none
 
-  ! common /tra/
-  real(kind=fPrec), save :: x(mpa,2)
-  real(kind=fPrec), save :: y(mpa,2)
-  real(kind=fPrec), save :: amp(2)
-  real(kind=fPrec), save :: bet0(2)
-  real(kind=fPrec), save :: alf0(2)
-  real(kind=fPrec), save :: clo(2)
-  real(kind=fPrec), save :: clop(2)
+  ! Tracking
+  real(kind=fPrec), save :: x(mpa,2) = zero
+  real(kind=fPrec), save :: y(mpa,2) = zero
+  real(kind=fPrec), save :: amp(2)   = zero
+  real(kind=fPrec), save :: bet0(2)  = zero
+  real(kind=fPrec), save :: alf0(2)  = zero
+  real(kind=fPrec), save :: clo(2)   = zero
+  real(kind=fPrec), save :: clop(2)  = zero
+  integer,          save :: nwri     = 0
 
-  ! common /chrom/
-  real(kind=fPrec), save :: cro(2)
-  integer,          save :: is(2)
-  integer,          save :: ichrom
+  ! Chromaticity
+  real(kind=fPrec), save :: cro(2)   = zero
+  integer,          save :: is(2)    = 0
+  integer,          save :: ichrom   = 0
 
-  ! common /tasm/
+  ! tas
   real(kind=fPrec), save :: tasm(6,6)
 
-  ! common /track/
-  integer,                       save :: nwri
+  ! Allocatables
   integer,          allocatable, save :: ktrack(:)  ! (nblz)
   real(kind=fPrec), allocatable, save :: strack(:)  ! (nblz)
   real(kind=fPrec), allocatable, save :: strackc(:) ! (nblz)
@@ -786,7 +787,7 @@ subroutine comt_daEnd
   is(1:2)      = issss(1:2)
 end subroutine comt_daEnd
 
-end module mod_commont
+end module mod_common_track
 
 ! ================================================================================================ !
 !  MAIN COMMON VARIABLES

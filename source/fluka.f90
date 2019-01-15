@@ -15,7 +15,7 @@ subroutine check_coupling_integrity
       use crcoall
       use parpro
       use mod_common
-      use mod_commont
+      use mod_common_track
       use aperture
       implicit none
 
@@ -140,7 +140,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
       use crcoall
       use parpro
       use mod_common
-      use mod_commont
+      use mod_common_track
       use mod_commonmn
 
       use mod_hions
@@ -363,7 +363,7 @@ subroutine kernel_fluka_exit( nturn, i, ix )
       use crcoall
       use parpro
       use mod_common
-      use mod_commont
+      use mod_common_track
       use mod_commonmn
 
       use mod_hions

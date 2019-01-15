@@ -15,7 +15,7 @@ subroutine daten
   use mod_settings
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_common_da
   use physical_constants
   use numerical_constants
@@ -1770,7 +1770,7 @@ subroutine initialize_element(ix,lfirst)
       use parpro
       use parbeam, only : beam_expflag,beam_expfile_open
       use mod_common
-      use mod_commont
+      use mod_common_track
       use mod_commonmn
       use mod_hions
       use elens
@@ -2378,7 +2378,7 @@ subroutine envars(j,dpp,rv)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_common_da
   implicit none
   integer i,ih,j,kz1,l,ll
@@ -2723,7 +2723,7 @@ subroutine comnul
   use mod_common
   use mod_commonmn
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_common_da
 
   use aperture
@@ -2743,15 +2743,6 @@ subroutine comnul
 
   save
 
-      do 10 i=1,2
-        is(i)=0
-        bet0(i)=zero
-        alf0(i)=zero
-        clo(i)=zero
-        clop(i)=zero
-        cro(i)=zero
-   10 continue
-
 !     From the FLUKA version
       do i=1,nele
          call SELNUL(i)
@@ -2760,14 +2751,6 @@ subroutine comnul
 !-- BEAM-EXP------------------------------------------------------------
       beam_expflag = 0
       beam_expfile_open = .false.
-
-!--# OF TRAJECTORIES----------------------------------------------------
-      do 220 i=1,mpa
-        do 210 i1=1,2
-          x(i,i1)=zero
-          y(i,i1)=zero
-  210   continue
-  220 continue
 
 !--DUMP BEAM POPULATION-------------------------------------------------
 !     A.Mereghetti, D.Sinuela Pastor and P.Garcia Ortega, for the FLUKA Team
@@ -3002,7 +2985,7 @@ integer function INEELS( iEl )
   use crcoall
   use parpro
   use mod_common
-  use mod_commont
+  use mod_common_track
   use mod_commonmn
   implicit none
 
@@ -3057,7 +3040,7 @@ integer function INEESE()
 
   use parpro
   use mod_common
-  use mod_commont
+  use mod_common_track
   use mod_commonmn
   implicit none
 
@@ -3092,7 +3075,7 @@ integer function check_SE_unique( iEl, ixEl )
 
   use parpro
   use mod_common
-  use mod_commont
+  use mod_common_track
   use mod_commonmn
   implicit none
 
@@ -3279,7 +3262,7 @@ subroutine betalf(dpp,qw)
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,j
       real(kind=fPrec) am,det,detb,detc,dpp,egwg1,egwg2,f0,f1,f2,fak1,  &
@@ -3475,7 +3458,7 @@ subroutine block
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) g,h
@@ -3537,7 +3520,7 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,j,jm,k,l,m,n
       real(kind=fPrec) aeg,bl1eg,bl2eg,g,h
@@ -3605,7 +3588,7 @@ subroutine chroma
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,ii,isl,j,jj,l,n
       real(kind=fPrec) cor,coro,cro0,de2,det,dm,dpp,dsm,ox,oz,qwc,sens,sm0,su2,suxy,suzy,xi,zi
@@ -3742,7 +3725,7 @@ end subroutine chroma
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       use mod_common_da
       implicit none
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
@@ -3873,7 +3856,7 @@ subroutine clorb(dpp)
       use mod_settings
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
 
       implicit none
       integer ierr,ii,l,ll
@@ -3960,7 +3943,7 @@ subroutine clorb2(dpp)
       use crcoall
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer ierr,ii,l,ll
       real(kind=fPrec) am,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,x1,y0,y1
@@ -4036,7 +4019,7 @@ subroutine combel(iql)
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer ico,ico0,iql,j,m
       save
@@ -4084,7 +4067,7 @@ subroutine envar(dpp)
     use parpro
     use mod_common
     use mod_commons
-    use mod_commont
+    use mod_common_track
     implicit none
     integer i,ih,kz1,l,ll
     real(kind=fPrec) afok,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
@@ -4327,7 +4310,7 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
     use parpro
     use mod_common
     use mod_commons
-    use mod_commont
+    use mod_common_track
     implicit none
     integer i,ih,kz1,l,ll
     real(kind=fPrec) aeg,afok,bl1eg,bl2eg,co,dpd,dpp,dpsq,fi,fok,fokq,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoi,si,wf
@@ -4566,7 +4549,7 @@ subroutine linopt(dpp)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
 
 #ifdef ROOT
   use root_output
@@ -5488,7 +5471,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   use mod_settings
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
 
 #ifdef ROOT
   use iso_c_binding, only: C_NULL_CHAR
@@ -5633,7 +5616,7 @@ subroutine cpltwis(typ,t,etl,phi)
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,iwrite
       real(kind=fPrec) alxi,alxii,alzi,alzii,bexi,bexii,bezi,bezii,     &
@@ -5796,7 +5779,7 @@ subroutine matrix(dpp,am)
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,ierr,l
       real(kind=fPrec) am,dpp
@@ -5846,7 +5829,7 @@ subroutine corrorb
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,nlino,ntcoo,nto,nx
       real(kind=fPrec) ar(nmon1,ncor1)
@@ -6185,7 +6168,7 @@ end subroutine corrorb
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
 
       integer i,im,ix,izu,j,k,kcorr,kcorru,kpz,kzz,nmz,npflag,nx
@@ -6285,7 +6268,7 @@ end subroutine corrorb
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,im,ix,izu,kpz,kzz,nmz
       real(kind=fPrec) r0
@@ -6711,7 +6694,7 @@ subroutine ord
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   use mod_fluc
 
   implicit none
@@ -6922,7 +6905,7 @@ subroutine orglat
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
   integer i,icext1,icextal1,ihi,ii,ilf,ilfr,j,kanf1
   real(kind=fPrec) extalig1 !,exterr1
@@ -6996,7 +6979,7 @@ subroutine phasad(dpp,qwc)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
   integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,dj
   real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk,dphi,dpp,dppi,dpr,&
@@ -7519,7 +7502,7 @@ subroutine qmod0
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,ierr,ii,iq1,iq2,iq3,iql,j,l,n,nite
       real(kind=fPrec) a11,a12,a13,a21,a22,a23,a31,a32,a33,aa,aa1,bb,   &
@@ -7791,7 +7774,7 @@ end subroutine qmod0
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       use mod_common_da
       implicit none
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
@@ -8083,7 +8066,7 @@ subroutine umlauf(dpp,ium,ierr)
   use crcoall
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
   integer i,ierr,im,ium,ix,izu,j,k,kpz,kx,kzz,l,ll,l1,nmz
   real(kind=fPrec) aa,bb,benkr,ci,cikve,cr,crkve,crkveuk,dpp,dpr,dyy1,dyy2,ekk,puf,qu,qv,quz,qvz,r0,r0a,xl,xs,zl,zs
@@ -8507,7 +8490,7 @@ subroutine resex(dpp)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
   integer i,i1,i2,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jl,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,m2,m4,m6,min,&
           mm,mpe,mx,n,n2,n2e,nf1,nf3,nf4,nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
@@ -9275,7 +9258,7 @@ subroutine rmod(dppr)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
   integer i,i1,i2,ierr,irr,j,j1,j2,j3,j4,jj1,jj2,jjr,k,n,no,ntao,nteo
   real(kind=fPrec) aa,bb,d1,de2,dpp,dppr,dsm,ox,oz,qwc,se11,se12,se2,sen,sen15,sen16,sen17,sen18,sn,ss
@@ -9602,7 +9585,7 @@ subroutine search(dpp)
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,id,n21,n22,n23,ntao,nteo
       real(kind=fPrec) b,c,c1,c2,c3,d,dpp,e,f,g,s1,s2,s3
@@ -9686,7 +9669,7 @@ subroutine subre(dpp)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
 
   integer i,ii,ik,im,ip,ipc,ipcc,ipl,ium,iv,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,min1,min2,&
@@ -10733,7 +10716,7 @@ subroutine subsea(dpp)
   use crcoall
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
   integer i,ii,ik,im,ip,ium,ix,izu,j,jj,jk,jm,k,k1,kpz,kzz,l,l1,l2,ll,lmin,mm,mpe,mx,n2,n2e,nf1,nf3,&
           nf4,nkk,nmz,nn1,nn2,nnf,np,np2,ns,nv,nv1,nv11,nv2,nv21,nz2,dj
@@ -11482,7 +11465,7 @@ subroutine decoup
       use parpro
       use mod_common
       use mod_commons
-      use mod_commont
+      use mod_common_track
       implicit none
       integer i,ierr,j,no
       real(kind=fPrec) aa,bb,d1,dpp,dsm,qw,qwc,sen,sn,ss
