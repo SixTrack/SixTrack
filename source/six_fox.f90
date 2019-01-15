@@ -14,10 +14,10 @@ subroutine umlauda
   use parpro
   use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
-  use mod_commonmn, only : e0f
+  use mod_common_main, only : e0f
   use mod_commons
-  use mod_commont, only : xxtr,yytr,issss,tasm,comt_daStart,comt_daEnd
-  use mod_commond
+  use mod_common_track, only : xxtr,yytr,issss,tasm,comt_daStart,comt_daEnd
+  use mod_common_da
   use mod_commond2
   use wire
   use mod_hions
@@ -1828,8 +1828,8 @@ subroutine envada
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use mod_commond2
   use mod_lie_dab, only : idao,rscrri,iscrda
   implicit none
@@ -2213,7 +2213,7 @@ subroutine envquad(i,ipch)
   use numerical_constants
   use parpro
   use mod_common
-  use mod_commond
+  use mod_common_da
   use mod_lie_dab, only : idao,rscrri,iscrda
   implicit none
   integer i,ih,ipch,idaa
@@ -2308,10 +2308,10 @@ subroutine synoda
   use numerical_constants
   use parpro
   use mod_common
-  use mod_commonmn, only : e0f
+  use mod_common_main, only : e0f
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   implicit none
@@ -2363,8 +2363,8 @@ subroutine errff(xx,yy,wx,wy)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
-  use mod_commond
+  use mod_common_track, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+  use mod_common_da
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   implicit none
   integer n,n1,nc,nuu,nuu1,idaa
@@ -2505,8 +2505,8 @@ subroutine wireda(ix,i)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
-  use mod_commond
+  use mod_common_track, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+  use mod_common_da
   use wire
   use mod_hions
   use mod_lie_dab, only : idao,rscrri,iscrda
@@ -2698,8 +2698,8 @@ subroutine clorda(nn,idummy,am)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   implicit none
   integer i,i4,icheck,ii,j,j4,k,l,ll,nd2,nn
   real(kind=fPrec) am,cloc,cor,coro,dc,dd,dlo,xx
@@ -3027,7 +3027,7 @@ subroutine invert_tas(fma_tas_inv,fma_tas)
   use floatPrecision
   use numerical_constants
   use matrix_inv
-  use mod_commont
+  use mod_common_track
   use crcoall
   implicit none
 

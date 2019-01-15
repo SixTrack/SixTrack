@@ -23,7 +23,7 @@ subroutine writeFort12
 
   use mod_units
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use string_tools
 
   character(len=24) :: roundBuf(15)
@@ -65,7 +65,7 @@ subroutine readFort13
   use parpro
   use mod_hions
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use string_tools
   use mod_units
 

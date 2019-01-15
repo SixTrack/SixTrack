@@ -31,9 +31,9 @@ module dump
   implicit none
 
   ! High precision printout required at all flagged SINGLE ELEMENTs
-  logical, save :: ldumphighprec
+  logical, save :: ldumphighprec = .false.
   ! Dump at the beginning of each element, not at the end.
-  logical, save :: ldumpfront
+  logical, save :: ldumpfront    = .false.
   ! flag the SINGLE ELEMENT for dumping
   logical, allocatable, save :: ldump(:)  !(-1:nele)
 
@@ -111,7 +111,7 @@ end subroutine dump_expand_arrays
 
 subroutine dump_lines(n,i,ix)
 
-  use mod_commont
+  use mod_common_track
 
   implicit none
 
@@ -885,8 +885,8 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 
   use parpro
   use mod_common
-  use mod_commont
-  use mod_commonmn
+  use mod_common_track
+  use mod_common_main
   use mod_hions
   use mod_time
 
@@ -1744,13 +1744,6 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
   return
 
 end subroutine dump_beam_population
-
-! ================================================================================================================================ !
-subroutine dump_comnul
-  implicit none
-  ldumphighprec = .false.
-  ldumpfront    = .false.
-end subroutine dump_comnul
 
 ! ================================================================================================================================ !
 !  Begin Checkpoint Restart

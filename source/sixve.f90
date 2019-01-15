@@ -215,10 +215,10 @@ subroutine blocksv
 
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   implicit none
 
   integer ia, ikk, j, jm, k, lkk, mkk
@@ -313,15 +313,15 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
 
   use mod_alloc
 
   implicit none
   integer ih1,ih2,j,kz1,l,l1,l2
 
-  !Local version of variables normally found in mod_commonmn
+  !Local version of variables normally found in mod_common_main
   real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpsq,dpsv,fi,    &
         fok,fok1,fokqv,g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,rho,rhoc,rhoi, &
         rvv,si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi
@@ -722,7 +722,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use crcoall
   use parpro
   use mod_common, only : ichromc,ilinc,iqmodc
-  use mod_commond
+  use mod_common_da
   use mod_lie_dab, only : iscrda,mld_allocArrays
   implicit none
   integer idummy,ncase,ndimfo,ndpt,nis,nndim,nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
