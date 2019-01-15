@@ -2753,6 +2753,8 @@ subroutine sixin_parseInputLineSEAR(inLine, iLine, iErr)
             write(lout,"(a)") "SEAR> ERROR Resonance order and element type # must be the same."
             iErr = .true.
             return
+          else
+            ise = 1
           end if
           exit
         end if

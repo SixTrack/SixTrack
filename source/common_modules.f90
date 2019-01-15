@@ -123,19 +123,25 @@ module mod_common
   implicit none
 
   ! Parameters
-  real(kind=fPrec), parameter :: cc       = 1.12837916709551_fPrec ! Used in errf
-  real(kind=fPrec), parameter :: xlim     = 5.33_fPrec             ! Used in errf
-  real(kind=fPrec), parameter :: ylim     = 4.29_fPrec             ! Used in errf
-  real(kind=fPrec), parameter :: eps_dcum = c1m6                   ! Tolerance for machine length mismatch [m]
-
-  ! Various Flags
-  logical,          save :: print_dcum = .false. ! Print dcum. Set in the SETTINGS block
+  real(kind=fPrec),  parameter :: cc         = 1.12837916709551_fPrec ! Used in errf
+  real(kind=fPrec),  parameter :: xlim       = 5.33_fPrec             ! Used in errf
+  real(kind=fPrec),  parameter :: ylim       = 4.29_fPrec             ! Used in errf
+  real(kind=fPrec),  parameter :: eps_dcum   = c1m6                   ! Tolerance for machine length mismatch [m]
 
   ! Pi Constants
-  real(kind=fPrec), save :: pi2        = half*pi
-  real(kind=fPrec), save :: twopi      = two*pi
-  real(kind=fPrec), save :: pisqrt     = sqrt(pi)
-  real(kind=fPrec), save :: rad        = pi/c180e0
+  real(kind=fPrec),  save      :: pi2        = half*pi
+  real(kind=fPrec),  save      :: twopi      = two*pi
+  real(kind=fPrec),  save      :: pisqrt     = sqrt(pi)
+  real(kind=fPrec),  save      :: rad        = pi/c180e0
+
+  ! Various Flags and Variables
+  character(len=80), save      :: sixtit     = " "     ! DANGER: If the len changes, CRCHECK will break.
+  character(len=80), save      :: commen     = " "     ! DANGER: If the len changes, CRCHECK will break.
+  logical,           save      :: print_dcum = .false. ! Print dcum. Set in the SETTINGS block
+  integer,           save      :: ithick     = 0       ! Thick tracking flag
+
+  !  GENERAL VARIABLES
+  ! ===================
 
   ! Error Variables
   integer,          save :: ierro      = 0
@@ -252,6 +258,26 @@ module mod_common
   integer,          save :: iprint     = 0    ! Print the linear optics functions at ...
   integer,          save :: nlin       = 0    ! Number of elements for write out
 
+  ! Combination of Elements
+  integer,          save :: icomb0(20) = 0    ! Index of single element
+  integer,          save :: icoe       = 0    ! Number of combinations (lines in block)
+
+  ! Search for Optimum Places to Compensate Resonances
+  real(kind=fPrec), save :: qxt        = zero ! Horizontal tune including the integer part
+  real(kind=fPrec), save :: qzt        = zero ! Vertical tune including the integer part
+  real(kind=fPrec), save :: tam1       = zero ! Horizontal amplitudes [mm]
+  real(kind=fPrec), save :: tam2       = zero ! Vertical amplitudes [mm]
+  real(kind=fPrec), save :: totl       = zero ! Length of the accelerator [m]
+  integer,          save :: mesa       = 0    ! Number of positions to be checked
+  integer,          save :: mp         = 0    ! Order of the resonance
+  integer,          save :: m21        = 0    ! Resonances of order 1
+  integer,          save :: m22        = 0    ! Resonances of order 2
+  integer,          save :: m23        = 0    ! Resonances of order 3
+  integer,          save :: ise1       = 0    ! Distance to a resonance
+  integer,          save :: ise2       = 0    ! Distance to a resonance
+  integer,          save :: ise3       = 0    ! Distance to a resonance
+  integer,          save :: ise        = 0    ! Flag on/off
+
   ! Reference Particle
   real(kind=fPrec), save :: e0         = zero ! Reference energy
 
@@ -328,6 +354,11 @@ module mod_common
   real(kind=fPrec), allocatable, save :: crabph3(:)    ! Crab Cavities: Order 3
   real(kind=fPrec), allocatable, save :: crabph4(:)    ! Crab Cavities: Order 4
 
+  real(kind=fPrec), allocatable, save :: ratioe(:)     ! Combination of Elements: Ratio of the magnetic strength
+  integer,          allocatable, save :: iratioe(:)    ! Combination of Elements: Index
+
+  integer,          allocatable, save :: isea(:)       ! Compensate Resonance: Element index
+
   ! Single Element and Multipole Indexed (nele,mmul)
   real(kind=fPrec), allocatable, save :: bk0(:,:)      ! Multipoles: B-value
   real(kind=fPrec), allocatable, save :: ak0(:,:)      ! Multipoles: A-value
@@ -373,26 +404,17 @@ module mod_common
   real(kind=fPrec), allocatable, save :: betac(:,:)    ! Orbit Correction: (:,2)
   real(kind=fPrec), allocatable, save :: pac(:,:)      ! Orbit Correction: (:,2)
 
+  ! Number of Combinations of Elements (ncom)
+  real(kind=fPrec), allocatable, save :: ratio(:,:)    ! Combination of Elements: Ratio (:,20)
+  integer,          allocatable, save :: icomb(:,:)    ! Combination of Elements: Index (:,20)
 
 
 
 
 
 
-
-
-  ! common /combin/
-  real(kind=fPrec),              save :: ratio(ncom,20)
-  real(kind=fPrec), allocatable, save :: ratioe(:) ! (nele)
-  integer,                       save :: icomb0(20),icomb(ncom,20),icoe
-  integer,          allocatable, save :: iratioe(:) ! (nele)
-
-  ! common/seacom/m21,m22,m23
-  integer,              save :: ise,ise1,ise2,ise3,mesa,mp,m21,m22,m23
-  integer, allocatable, save :: isea(:) ! (nele)
 
   ! common /subres/
-  real(kind=fPrec), save :: qxt,qzt,tam1,tam2,totl
   integer,          save :: isub,nta,nte,ipt
 
   ! common /secom/
@@ -420,10 +442,6 @@ module mod_common
 
   ! common /pawc/
   real, save :: hmal(nplo)
-
-  ! common /tit/
-  character (len=80), save :: sixtit,commen !DANGER: If the len changes, CRCHECK will break.
-  integer,            save :: ithick
 
   ! common/co6d/
   real(kind=fPrec), save :: clo6(3),clop6(3)
@@ -573,12 +591,15 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   call alloc(nnumxv,               npart_new,      0,           "nnumxv")
   call alloc(track6d, 6,           npart_new,      zero,        "track6d")
 
+  ! The arrays that don't currently have scalable sizes only need to be allocated once
   if(firstRun) then
     call alloc(betam,                nmon1, 2,       zero,        "betam")
     call alloc(pam,                  nmon1, 2,       zero,        "pam")
     call alloc(bclorb,               nmon1, 2,       zero,        "bclorb")
     call alloc(betac,                ncor1, 2,       zero,        "betac")
     call alloc(pac,                  ncor1, 2,       zero,        "pac")
+    call alloc(ratio,                ncom,  20,      zero,        "ratio")
+    call alloc(icomb,                ncom,  20,      0,           "icomb")
   end if
 
   firstRun = .false.

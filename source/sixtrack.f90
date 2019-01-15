@@ -2755,16 +2755,16 @@ subroutine comnul
   ! COMBINATION OF ELEMENTS BLOCK
   icoe    = 0     ! mod_common
 
-  ! SEARCH BLOCK
-  ise     = 0     ! mod_common
-  mesa    = 0     ! mod_common
-  mp      = 0     ! mod_common
-  m21     = 0     ! mod_common
-  m22     = 0     ! mod_common
-  m23     = 0     ! mod_common
-  ise1    = 0     ! mod_common
-  ise2    = 0     ! mod_common
-  ise3    = 0     ! mod_common
+  ! ! SEARCH BLOCK
+  ! ise     = 0     ! mod_common
+  ! mesa    = 0     ! mod_common
+  ! mp      = 0     ! mod_common
+  ! m21     = 0     ! mod_common
+  ! m22     = 0     ! mod_common
+  ! m23     = 0     ! mod_common
+  ! ise1    = 0     ! mod_common
+  ! ise2    = 0     ! mod_common
+  ! ise3    = 0     ! mod_common
 
   ! SUBRESONANCE CALCULATION BLOCK
   isub    = 0     ! mod_common
@@ -2823,11 +2823,11 @@ subroutine comnul
       imod1=0
       imod2=0
 !-----------------------------------------------------------------------
-      qxt=zero
-      qzt=zero
-      tam1=zero
-      tam2=zero
-      totl=zero
+      ! qxt=zero
+      ! qzt=zero
+      ! tam1=zero
+      ! tam2=zero
+      ! totl=zero
       dphix=zero
       dphiz=zero
       qx0=zero
@@ -2932,15 +2932,6 @@ subroutine comnul
           y(i,i1)=zero
   210   continue
   220 continue
-
-!--COMBINATION OF ELEMENTS----------------------------------------------
-      do i1=1,20
-        icomb0(i1)=0
-        do i=1,ncom
-          icomb(i,i1)=0
-          ratio(i,i1)=zero
-        end do
-      end do
 
 !--PAW------------------------------------------------------------------
       do i=1,nplo
