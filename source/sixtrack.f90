@@ -2746,21 +2746,7 @@ subroutine comnul
   ! CHROMATICITY ADJUSTMENT BLOCK
   ichrom  = 0     ! mod_common
 
-  ! SUBRESONANCE CALCULATION BLOCK
-  isub    = 0     ! mod_common
-  nta     = 0     ! mod_common
-  nte     = 0     ! mod_common
-  ipt     = 0     ! mod_common
-
-  ! RESONANCE COMPENSATION BLOCK
-  irmod2  = 0     ! mod_common
-  nre     = 0     ! mod_common
-
   ! TODO
-      nur=0
-      nch=0
-      nqc=0
-      npp=0
       idial=0
       nord=0
       nvar=0
@@ -2773,7 +2759,6 @@ subroutine comnul
       nvar2=0
       ncor=0
       idptr=0
-      ibb6d=0
 !-----------------------------------------------------------------------
       inorm=0
       imod1=0
@@ -2809,34 +2794,9 @@ subroutine comnul
       chromc(1)=9.999999e23_fPrec
       chromc(2)=9.999999e23_fPrec
 
-      do 40 i=1,5
-        ipr(i)=0
-        nrr(i)=0
-        nu(i)=0
-   40 continue
-
       do 50 i=1,6
         nskew(i)=0
    50 continue
-
-      do 60 i=1,10
-        dtr(i)=zero
-   60 continue
-
-      do 70 i=1,12
-        ire(i)=0
-   70 continue
-
-      do i1=1,9
-        do i2=1,18
-          do i3=1,10
-            do i4=1,5
-              rtc(i1,i2,i3,i4)=zero
-              rts(i1,i2,i3,i4)=zero
-            end do
-          end do
-        end do
-      end do
 
 !     From the FLUKA version
       do i=1,nele

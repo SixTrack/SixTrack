@@ -266,12 +266,7 @@ module mod_common
   integer,          save :: icomb0(20) = 0    ! Index of single element
   integer,          save :: icoe       = 0    ! Number of combinations (lines in block)
 
-  ! Search for Optimum Places to Compensate Resonances
-  real(kind=fPrec), save :: qxt        = zero ! Horizontal tune including the integer part
-  real(kind=fPrec), save :: qzt        = zero ! Vertical tune including the integer part
-  real(kind=fPrec), save :: tam1       = zero ! Horizontal amplitudes [mm]
-  real(kind=fPrec), save :: tam2       = zero ! Vertical amplitudes [mm]
-  real(kind=fPrec), save :: totl       = zero ! Length of the accelerator [m]
+  ! Search for Optimum Places to Compensate Resonances and Sub-Resonance Calculation
   integer,          save :: mesa       = 0    ! Number of positions to be checked
   integer,          save :: mp         = 0    ! Order of the resonance
   integer,          save :: m21        = 0    ! Resonances of order 1
@@ -281,6 +276,32 @@ module mod_common
   integer,          save :: ise2       = 0    ! Distance to a resonance
   integer,          save :: ise3       = 0    ! Distance to a resonance
   integer,          save :: ise        = 0    ! Flag on/off
+  integer,          save :: isub       = 0    ! Sub-resonance calculation switch
+  integer,          save :: nta        = 0    ! Lowest order of the resonance
+  integer,          save :: nte        = 0    ! Highest order of the resonance
+  integer,          save :: ipt        = 0    ! Switch to change the nearest distance to the resonance
+
+  integer,          save :: nre        = 0    ! Number of resonances
+  integer,          save :: npp        = 0    ! Order of the resonance
+  integer,          save :: nrr(5)     = 0    ! Resonances of order n
+  integer,          save :: ipr(5)     = 0    ! Distance to the resonance
+  integer,          save :: nur        = 0    ! Number of sub-resonances
+  integer,          save :: nu(5)      = 0    ! Order of the multipole
+  real(kind=fPrec), save :: totl       = zero ! Length of the accelerator [m]
+  real(kind=fPrec), save :: qxt        = zero ! Horizontal tune including the integer part
+  real(kind=fPrec), save :: qzt        = zero ! Vertical tune including the integer part
+  real(kind=fPrec), save :: tam1       = zero ! Horizontal amplitudes [mm]
+  real(kind=fPrec), save :: tam2       = zero ! Vertical amplitudes [mm]
+  integer,          save :: irmod2     = 0    ! Resonance compensation on/off
+  integer,          save :: nch        = 0    ! Switch for the chromaticity correction
+  integer,          save :: nqc        = 0    ! Switch for the tune adjustment
+
+  real(kind=fPrec), save :: dtr(10)    = zero
+  integer,          save :: ire(12)    = 0
+
+
+  real(kind=fPrec), save :: rtc(9,18,10,5) = zero
+  real(kind=fPrec), save :: rts(9,18,10,5) = zero
 
   ! Beam-Beam Variables
   real(kind=fPrec), save :: sigz       = zero ! RMS bunch length
@@ -292,6 +313,7 @@ module mod_common
   real(kind=fPrec), save :: emitz      = zero ! Longitudinal emittance
   real(kind=fPrec), save :: gammar     = one  ! Gamma factor
   real(kind=fPrec), save :: betrel     = zero ! Relativistic beta
+  integer,          save :: ibb6d      = 0    ! 6D beam-beam switch
   integer,          save :: nbeam      = 0    ! Beam-beam elements flag
   integer,          save :: ibbc       = 0    ! Switch for linear coupling considered in 4D and 6D
   integer,          save :: ibeco      = 1    ! Subtract the closed orbit introduced by BEAM/WIRE
@@ -489,17 +511,6 @@ module mod_common
 
 
 
-  ! common /subres/
-  integer,          save :: isub,nta,nte,ipt
-
-  ! common /secom/
-  real(kind=fPrec), save :: rtc(9,18,10,5),rts(9,18,10,5)
-  integer,          save :: ire(12),ipr(5),irmod2
-
-  ! common /secom1/
-  real(kind=fPrec), save :: dtr(10)
-  integer,          save :: nre,nur,nch,nqc,npp,nrr(5),nu(5)
-
   ! common /skew/
   real(kind=fPrec), save :: qwsk(2),betx(2),betz(2),alfx(2),alfz(2)
   integer,          save :: iskew,nskew(6)
@@ -511,9 +522,6 @@ module mod_common
   real(kind=fPrec), allocatable, save :: cotr(:,:)   ! (ntr,6)
   real(kind=fPrec), allocatable, save :: rrtr(:,:,:) ! (ntr,6,6)
   integer,          allocatable, save :: imtr(:)     ! (nele)
-
-  ! common /bb6d/
-  integer,          save :: ibb6d
 
   ! common /general-rf multi/
   integer, save :: iord, nordm

@@ -2009,7 +2009,7 @@ subroutine sixin_parseInputLineSUBR(inLine, iLine, iErr)
     if(iErr) return
 
     if(nta < 2 .or. nte < nta .or. nte > 9) then
-      write(lout,"(a)") "SUBR> ERROR Chosen orderas of resonances can not be calculated."
+      write(lout,"(a)") "SUBR> ERROR Chosen orders of resonances can not be calculated."
       iErr = .true.
       return
     end if
