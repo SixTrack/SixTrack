@@ -567,7 +567,7 @@ subroutine scatter_parseElem(lnSplit, nSplit)
   use crcoall
   use mod_alloc
   use mod_common
-  use mod_commonmn
+  use mod_common_main
 
   implicit none
 
@@ -913,7 +913,7 @@ subroutine scatter_thin(i_elem, ix, turn)
   use string_tools
   use crcoall
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use numerical_constants, only : pi
 #ifdef HDF5
   use hdf5_output

@@ -25,10 +25,10 @@ subroutine trauthck(nthinerr)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use mod_fluc, only : fluc_errAlign,fluc_writeFort4
   implicit none
 
@@ -490,10 +490,10 @@ subroutine thck4d(nthinerr)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use elens
   use utils
   use wire
@@ -1152,10 +1152,10 @@ subroutine thck6d(nthinerr)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use aperture
   use elens
   use utils
@@ -1899,10 +1899,10 @@ subroutine synuthck
   use numerical_constants
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   implicit none
   integer ih1,ih2,j,kz1,l
   real(kind=fPrec) fokm

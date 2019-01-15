@@ -93,9 +93,9 @@ program maincr
   use parpro
   use mod_settings
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
+  use mod_common_track
 
   use mod_hions
   use mod_dist
@@ -115,7 +115,7 @@ interface
 
     use floatPrecision
     use parpro
-    use mod_commond
+    use mod_common_da
 
     implicit none
 
@@ -133,7 +133,7 @@ end interface
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
     bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,ddp1,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,&
     gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
-    tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13
+    tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13,damp
   integer idummy(6)
   character(len=4) cpto
 #ifdef CR
@@ -160,7 +160,7 @@ end interface
   logical fErr ! For file units
 
   ! ---------------------------------------------------------------------------------------------- !
-  errout_status = 0 ! Set to nonzero before calling abend in case of error.
+  errout = 0 ! Set to nonzero before calling abend in case of error.
 #ifdef CR
   lout = 92
 #else
@@ -185,6 +185,7 @@ end interface
   napxo  = 0
   trtime = 0.0
   napxto = 0
+  damp   = zero ! Moved from mod_common
 
   !----------------------------------------------------------------------------------------------- !
   ! Features
@@ -415,15 +416,6 @@ end interface
 #endif
 
 !     A normal start, time0 is beginning
-      pretime=0.0
-      trtime=0.0
-      posttime=0.0
-      tottime=0.0
-      time0=0.0
-      time1=0.0
-      time2=0.0
-      time3=0.0
-      tlim=1e7
       call time_timerStart
       call time_timerCheck(time0)
       do 20 i=1,mmul

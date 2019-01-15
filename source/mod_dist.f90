@@ -108,7 +108,7 @@ subroutine dist_readDist
   use parpro
   use mod_hions
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use string_tools
   use mod_particles
   use physical_constants
@@ -232,8 +232,8 @@ subroutine dist_finaliseDist
   use parpro
   use mod_hions
   use mod_common
-  use mod_commont
-  use mod_commonmn
+  use mod_common_track
+  use mod_common_main
   use numerical_constants
 
   implicit none
@@ -302,7 +302,7 @@ end subroutine dist_finaliseDist
 subroutine dist_echoDist
 
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_units, only : f_open, f_close
 
   integer j

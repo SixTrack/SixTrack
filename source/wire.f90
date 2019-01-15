@@ -1,8 +1,9 @@
 module wire
 
+  use mod_alloc
   use floatPrecision
   use parpro, only : nele, nblz
-  use mod_alloc
+  use numerical_constants, only : zero
 
   implicit none
 
@@ -37,7 +38,7 @@ module wire
   ! wire parameters for closed orbit calculation (FOX part)
   ! for FOX length of variable names must be smaller 8
   integer, parameter :: wire_max = 350 ! max. number of wires (same as BB interactions)
-  real(kind=fPrec), save :: wire_clo(6,wire_max) ! closed orbit at wire
+  real(kind=fPrec), save :: wire_clo(6,wire_max) = zero ! closed orbit at wire
 
   ! wire number for each structure element (default = 0 if no wire)
   integer, allocatable, save :: wire_num(:) ! (nblz)
