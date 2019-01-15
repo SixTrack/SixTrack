@@ -6,13 +6,54 @@
 !  Module for parsing special input files like fort.33, fort.13, fort.10, etc.
 ! ================================================================================================ !
 
-module read_input
+module read_write
 
   use crcoall
 
   implicit none
 
 contains
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2018-10-31
+!  Write fort.13 with rounctl library
+! ================================================================================================ !
+subroutine writeFort12
+
+  use mod_units
+  use mod_common
+  use mod_commonmn
+  use string_tools
+
+  character(len=24) :: roundBuf(15)
+  logical           :: rErr = .false.
+  integer           :: j, k
+
+  call f_open(unit=12,file="fort.12",formatted=.true.,mode="w",status="replace")
+
+  do j=1,napxo,2
+    call chr_fromReal(xv1(j),    roundBuf(1), 17,3,rErr)
+    call chr_fromReal(yv1(j),    roundBuf(2), 17,3,rErr)
+    call chr_fromReal(xv2(j),    roundBuf(3), 17,3,rErr)
+    call chr_fromReal(yv2(j),    roundBuf(4), 17,3,rErr)
+    call chr_fromReal(sigmv(j),  roundBuf(5), 17,3,rErr)
+    call chr_fromReal(dpsv(j),   roundBuf(6), 17,3,rErr)
+    call chr_fromReal(xv1(j+1),  roundBuf(7), 17,3,rErr)
+    call chr_fromReal(yv1(j+1),  roundBuf(8), 17,3,rErr)
+    call chr_fromReal(xv2(j+1),  roundBuf(9), 17,3,rErr)
+    call chr_fromReal(yv2(j+1),  roundBuf(10),17,3,rErr)
+    call chr_fromReal(sigmv(j+1),roundBuf(11),17,3,rErr)
+    call chr_fromReal(dpsv(j+1), roundBuf(12),17,3,rErr)
+    call chr_fromReal(e0,        roundBuf(13),17,3,rErr)
+    call chr_fromReal(ejv(j),    roundBuf(14),17,3,rErr)
+    call chr_fromReal(ejv(j+1),  roundBuf(15),17,3,rErr)
+    write(12,"(a)") (roundBuf(k), k=1,15)
+  end do
+
+  call f_close(12)
+
+end subroutine writeFort12
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -197,4 +238,4 @@ subroutine readFort33
 
 end subroutine readFort33
 
-end module read_input
+end module read_write

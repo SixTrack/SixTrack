@@ -34,7 +34,7 @@ program mainda
   use mod_time
   use mod_alloc,  only : alloc_init
   use mod_fluc,   only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
-  use read_input, only : readFort33
+  use read_write, only : readFort33
   use mod_version
 
   implicit none

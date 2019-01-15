@@ -2248,83 +2248,36 @@ end subroutine dist1
 !-----------------------------------------------------------------------
 subroutine write6(n)
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
   use crcoall
-  use parpro
   use mod_common
   use mod_commonmn
-  use mod_commons
-  use mod_commont
-  use mod_commond
   use mod_settings
+  use read_write
 
   implicit none
 
-  integer ia,ia2,id,ie,ig,n
-  save
+  integer ia,ig,n
 
-  id=0
-  do 10 ia=1,napxo,2
+  call writeFort12
+
+  do ia=1,napxo,2
     ig=ia+1
-    ia2=ig/2
 #ifndef CR
-    endfile (91-ia2,iostat=ierro)
-    backspace (91-ia2,iostat=ierro)
+#ifndef STF
+    flush(91-(ig/2))
+#else
+    flush(90)
 #endif
-
-    !-- PARTICLES STABLE (Only of QUIET < 2)
+#endif
+    !-- PARTICLES STABLE (Only if QUIET < 2)
     if(.not.pstop(ia).and..not.pstop(ig)) then
       if(st_quiet < 2) write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),n
-      id=id+1
-      ie=id+1
-      if(st_quiet < 1) write(lout,10010)                                &
-        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),         &
-        xv1(ie),yv1(ie),xv2(ie),yv2(ie),sigmv(ie),dpsv(ie),         &
-        e0,ejv(id),ejv(ie)
-      write(12,10010,iostat=ierro)                                      &
-        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),         &
-         xv1(ie),yv1(ie),xv2(ie),yv2(ie),sigmv(ie),dpsv(ie),        &
-         e0,ejv(id),ejv(ie)
-      id=id+1
-
-    !-- FIRST PARTICLES LOST
-    else if(pstop(ia).and..not.pstop(ig)) then
-      id=id+1
-      write(12,10010,iostat=ierro)                                      &
-        xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),   &
-        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),         &
-        e0,ejvl(ia),ejv(id)
-
-    !-- SECOND PARTICLES LOST
-    else if(.not.pstop(ia).and.pstop(ig)) then
-      id=id+1
-      write(12,10010,iostat=ierro)                                      &
-        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),         &
-        xvl(1,ig),yvl(1,ig),xvl(2,ig),yvl(2,ig),sigmvl(ig),dpsvl(ig),   &
-        e0,ejv(id),ejvl(ig)
-
-    !-- BOTH PARTICLES LOST
-    else if(pstop(ia).and.pstop(ig)) then
-      write(12,10010,iostat=ierro)                                      &
-        xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),   &
-        xvl(1,ig),yvl(1,ig),xvl(2,ig),yvl(2,ig),sigmvl(ig),dpsvl(ig),   &
-        e0,ejvl(ia),ejvl(ig)
-    endif
-10 continue
-#ifndef CR
-  if(ierro.ne.0) then
-    write(lout,"(a)") "WRITE6> ERROR fort.12 has corrupted output probably due to lost particles"
-    call prror(-1)
-  endif
-#endif
-  endfile (12,iostat=ierro)
-  backspace (12,iostat=ierro)
-#ifdef CR
-  endfile (lout,iostat=ierro)
-  backspace (lout,iostat=ierro)
-#endif
+      if(st_quiet < 1) write(lout,10010)                    &
+        xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
+        xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig), &
+        e0,ejv(ia),ejv(ig)
+    end if
+  end do
   return
 10000 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10010 format(10x,f47.33)
