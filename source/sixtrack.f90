@@ -75,12 +75,6 @@ subroutine daten
   cCheck       = " "
   kanf         = 1
 
-  ! HIONS MODULE
-  zz0          = 1
-  aa0          = 1
-  nucm0        = pmap
-  has_hion     = .false.
-
   ! SIXTRACK INPUT MODULE
   inErr       = .false.
 
