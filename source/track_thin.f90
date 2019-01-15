@@ -23,7 +23,7 @@ subroutine trauthin(nthinerr)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -520,7 +520,7 @@ subroutine thin4d(nthinerr)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -1182,7 +1182,7 @@ subroutine thin6d(nthinerr)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -2111,7 +2111,7 @@ subroutine callcrp
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -2186,7 +2186,7 @@ subroutine dist1
   use numerical_constants
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -2254,7 +2254,7 @@ subroutine write6(n)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da

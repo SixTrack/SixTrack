@@ -53,7 +53,7 @@ end subroutine cheby_expand_arrays
 
     use crcoall
     use mod_common
-    use mod_commonmn
+    use mod_common_main
     use mathlib_bouncer
     use numerical_constants
     use physical_constants
@@ -125,7 +125,7 @@ end subroutine cheby_expand_arrays
     ! always in main code
 
     use mod_common
-    use mod_commonmn
+    use mod_common_main
     use numerical_constants
 
     integer          :: i, j, i1, i2

@@ -11,7 +11,7 @@ module aperture
   use parpro !For nele, npart
 
   !contains pstop(npart) etc
-  use mod_commonmn
+  use mod_common_main
   use crcoall
   use mod_common
   use mod_commons
@@ -499,7 +499,7 @@ subroutine aperture_saveLastCoordinates( i, ix, iBack )
   ! - at last thick element (iBack>=0)
   !-----------------------------------------------------------------------
 
-  use mod_commonmn ! for napx, xv and yv
+  use mod_common_main ! for napx, xv and yv
   implicit none
   ! interface variables
   integer i, ix, iBack

@@ -20,7 +20,7 @@ contains
 ! ================================================================================================ !
 subroutine part_setParticleID
   use parpro
-  use mod_commonmn
+  use mod_common_main
   integer i
   do i=1,npart
     partID(i)   = i
@@ -38,7 +38,7 @@ subroutine part_applyClosedOrbit
   use mod_common
   use mod_commons
   use mod_common_track
-  use mod_commonmn
+  use mod_common_main
 
   implicit none
 
@@ -68,7 +68,7 @@ subroutine part_updateRefEnergy(refEnergy)
 
   use mod_hions
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use numerical_constants
 
   implicit none
@@ -111,7 +111,7 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
   use mod_hions
   use mod_common
   use mod_common_track
-  use mod_commonmn
+  use mod_common_main
   use numerical_constants
 
   implicit none
@@ -180,7 +180,7 @@ subroutine part_writeState(theState)
   use mod_units
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_settings
   use string_tools
 

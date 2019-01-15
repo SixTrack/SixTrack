@@ -248,7 +248,7 @@ subroutine runcav
   use parpro
   use mod_time
   use mod_common
-  use mod_commonmn, only : e0f
+  use mod_common_main, only : e0f
   use mod_commons
   use mod_common_track, only : comt_daStart,comt_daEnd
   use mod_common_da
@@ -437,7 +437,7 @@ subroutine runda
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn, only : e0f,numx
+  use mod_common_main, only : e0f,numx
   use mod_commons
   use mod_common_track, only : xxtr,yytr,comt_daStart,comt_daEnd
   use mod_common_da

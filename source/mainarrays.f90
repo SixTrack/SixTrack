@@ -13,7 +13,7 @@ subroutine allocate_arrays
 
   use mod_common,         only : mod_common_expand_arrays
   use mod_common_track,        only : mod_commont_expand_arrays
-  use mod_commonmn,       only : mod_commonmn_expand_arrays
+  use mod_common_main,       only : mod_commonmn_expand_arrays
   use mod_commond2,       only : mod_commond2_expand_arrays
   use aperture,           only : aperture_expand_arrays
   use elens,              only : elens_allocate_arrays
@@ -70,7 +70,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 
   use mod_common,         only : mod_common_expand_arrays
   use mod_common_track,        only : mod_commont_expand_arrays
-  use mod_commonmn,       only : mod_commonmn_expand_arrays
+  use mod_common_main,       only : mod_commonmn_expand_arrays
   use mod_commond2,       only : mod_commond2_expand_arrays
   use aperture,           only : aperture_expand_arrays
   use elens,              only : elens_expand_arrays
@@ -133,7 +133,7 @@ end subroutine expand_arrays
 ! Kicks off the allocation of the thick tracking arrays
 subroutine allocate_thickarrays
   use parpro
-  use mod_commonmn, only : mod_commonmn_allocate_thickarrays
+  use mod_common_main, only : mod_commonmn_allocate_thickarrays
   use mod_commons,  only : mod_commons_allocate_thickarrays
   implicit none
   call mod_commonmn_allocate_thickarrays
@@ -143,7 +143,7 @@ end subroutine allocate_thickarrays
 ! Kicks off the allocation of the thick tracking arrays
 subroutine expand_thickarrays(nele_request, npart_request, nblz_request, nblo_request)
   use parpro
-  use mod_commonmn, only : mod_commonmn_expand_thickarrays
+  use mod_common_main, only : mod_commonmn_expand_thickarrays
   use mod_commons,  only : mod_commons_expand_thickarrays
   use mod_alloc
   implicit none
@@ -180,7 +180,7 @@ subroutine shuffleLostParticles
   use mod_hions
   use mod_common
   use mod_common_track
-  use mod_commonmn
+  use mod_common_main
   use aperture
   use collimation
 #ifdef FLUKA

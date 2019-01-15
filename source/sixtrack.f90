@@ -1771,7 +1771,7 @@ subroutine initialize_element(ix,lfirst)
       use parbeam, only : beam_expflag,beam_expfile_open
       use mod_common
       use mod_common_track
-      use mod_commonmn
+      use mod_common_main
       use mod_hions
       use elens
       use wire
@@ -2721,7 +2721,7 @@ subroutine comnul
   use parpro
   use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -2937,7 +2937,7 @@ subroutine STRNUL( iel )
       use numerical_constants
       use parpro
       use mod_common
-      use mod_commonmn
+      use mod_common_main
       implicit none
 
 !     local variables
@@ -2986,7 +2986,7 @@ integer function INEELS( iEl )
   use parpro
   use mod_common
   use mod_common_track
-  use mod_commonmn
+  use mod_common_main
   implicit none
 
 !     interface variables
@@ -3041,7 +3041,7 @@ integer function INEESE()
   use parpro
   use mod_common
   use mod_common_track
-  use mod_commonmn
+  use mod_common_main
   implicit none
 
   il=il+1
@@ -3076,7 +3076,7 @@ integer function check_SE_unique( iEl, ixEl )
   use parpro
   use mod_common
   use mod_common_track
-  use mod_commonmn
+  use mod_common_main
   implicit none
 
 ! interface variables

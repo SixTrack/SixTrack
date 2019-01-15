@@ -25,7 +25,7 @@ subroutine trauthck(nthinerr)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -490,7 +490,7 @@ subroutine thck4d(nthinerr)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -1152,7 +1152,7 @@ subroutine thck6d(nthinerr)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -1899,7 +1899,7 @@ subroutine synuthck
   use numerical_constants
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da

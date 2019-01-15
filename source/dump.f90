@@ -886,7 +886,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   use parpro
   use mod_common
   use mod_common_track
-  use mod_commonmn
+  use mod_common_main
   use mod_hions
   use mod_time
 

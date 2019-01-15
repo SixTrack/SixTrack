@@ -14,7 +14,7 @@ subroutine umlauda
   use parpro
   use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
-  use mod_commonmn, only : e0f
+  use mod_common_main, only : e0f
   use mod_commons
   use mod_common_track, only : xxtr,yytr,issss,tasm,comt_daStart,comt_daEnd
   use mod_common_da
@@ -2308,7 +2308,7 @@ subroutine synoda
   use numerical_constants
   use parpro
   use mod_common
-  use mod_commonmn, only : e0f
+  use mod_common_main, only : e0f
   use mod_commons
   use mod_common_track
   use mod_common_da

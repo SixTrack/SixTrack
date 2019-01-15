@@ -809,14 +809,14 @@ end module mod_common_track
 !  MAIN COMMON VARIABLES
 !  Last modified: 2018-06-13
 ! ================================================================================================ !
-module mod_commonmn
+module mod_common_main
 
   use parpro
   use floatPrecision
 
   implicit none
 
-  ! common /main1/
+  ! Main 1
   real(kind=fPrec), allocatable, save :: ekv(:,:)     ! (npart,nele)
   real(kind=fPrec), allocatable, save :: smiv(:)      ! (nblz)
   real(kind=fPrec), allocatable, save :: zsiv(:)      ! (nblz)
@@ -865,7 +865,7 @@ module mod_commonmn
   real(kind=fPrec),              save :: temptr(6)
   integer,                       save :: kxxa
 
-  ! common /main2/
+  ! Main 2
   real(kind=fPrec), allocatable, save :: dpd(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: dpsq(:)      ! (npart)
   real(kind=fPrec), allocatable, save :: fok(:)       ! (npart)
@@ -910,7 +910,7 @@ module mod_commonmn
   integer,          allocatable, save :: iv(:)        ! (npart)
   integer,          allocatable, save :: ixv(:)       ! (npart)
 
-  ! common /main3/
+  ! Main 3
   real(kind=fPrec), allocatable, save :: hv(:,:,:,:)   ! (6,2,npart,nblo)
   real(kind=fPrec), allocatable, save :: bl1v(:,:,:,:) ! (6,2,npart,nblo)
   real(kind=fPrec), allocatable, save :: tasau(:,:,:)  ! (npart,6,6)
@@ -931,7 +931,7 @@ module mod_commonmn
   real(kind=fPrec),              save :: xau(2,6)
   real(kind=fPrec),              save :: cloau(6)
 
-  ! common /main4/
+  ! Main 4
   integer,          save :: numx
   real(kind=fPrec), save :: e0f
   logical,          save :: sythckcr ! Only used for CR
@@ -1074,7 +1074,7 @@ subroutine mod_commonmn_expand_thickarrays(nele_new, npart_new, nblo_new)
 
 end subroutine mod_commonmn_expand_thickarrays
 
-end module mod_commonmn
+end module mod_common_main
 
 ! ================================================================================================ !
 !  SOMETHING-SOMETHING COMMON VARIABLES

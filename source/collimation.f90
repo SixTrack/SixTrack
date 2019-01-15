@@ -944,7 +944,7 @@ subroutine collimate_init()
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -1595,7 +1595,7 @@ subroutine collimate_start_sample(nsample)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -2226,7 +2226,7 @@ subroutine collimate_start_collimator(stracki)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -2412,7 +2412,7 @@ subroutine collimate_do_collimator(stracki)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -3158,7 +3158,7 @@ subroutine collimate_end_collimator()
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -3533,7 +3533,7 @@ subroutine collimate_end_sample(j)
 
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -3791,7 +3791,7 @@ subroutine collimate_exit()
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -3935,7 +3935,7 @@ subroutine collimate_start_turn(n)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -3956,7 +3956,7 @@ subroutine collimate_start_element(i)
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -4041,7 +4041,7 @@ subroutine collimate_end_element
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -4177,7 +4177,7 @@ subroutine collimate_end_turn
 
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -6782,7 +6782,7 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use string_tools
   implicit none
 

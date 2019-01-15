@@ -77,7 +77,7 @@ subroutine dumpxy(dumpname,n,i,k)
   use parpro
   use mod_common
   use mod_common_track
-  use mod_commonmn
+  use mod_common_main
 
   implicit none
 
@@ -99,7 +99,7 @@ subroutine dumpsynu(dumpname,n,i)
   use floatPrecision
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
 
   implicit none
@@ -155,7 +155,7 @@ subroutine dump(dumpname,n,i)
   use floatPrecision
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -629,7 +629,7 @@ subroutine dumpbin(dumpname,n,i)
   use floatPrecision
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
@@ -1107,7 +1107,7 @@ subroutine dumphex(dumpname,n,i)
   use floatPrecision
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da

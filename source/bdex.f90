@@ -455,7 +455,7 @@ subroutine bdex_track(i,ix,n)
   use string_tools
   use mod_common
   use mod_common_track
-  use mod_commonmn
+  use mod_common_main
 
   implicit none
 

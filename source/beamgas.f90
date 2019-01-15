@@ -80,7 +80,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   use mod_hions
   use mod_common
   use mod_common_track
-  use mod_commonmn
+  use mod_common_main
   use collimation, only : numeff, numeffdpop, max_ncoll, iturn, part_abs_pos, part_abs_turn, secondary, mys
 
   implicit none

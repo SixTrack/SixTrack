@@ -39,7 +39,7 @@ subroutine postpr(nfile)
       use string_tools
       use mod_version
       use mod_time
-      use mod_commonmn, only : nnumxv
+      use mod_common_main, only : nnumxv
       use mod_common, only : dpscor,sigcor,icode,idam,its6d,dphix,dphiz,qx0,qz0,&
         dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,iwg,ivox,    &
         ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi,   &
@@ -3397,7 +3397,7 @@ end subroutine join
       use, intrinsic :: iso_fortran_env, only : real64
       use parpro
       use mod_common
-      use mod_commonmn
+      use mod_common_main
       implicit none
 
       integer, intent(in) :: ia_p1, ia_p2, fileunit_in
@@ -3493,7 +3493,7 @@ end subroutine join
       use crcoall
       use parpro
       use mod_common
-      use mod_commonmn
+      use mod_common_main
       use mod_commons
       use mod_common_track
       use mod_common_da
