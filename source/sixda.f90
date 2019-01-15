@@ -5,7 +5,7 @@ subroutine daliesix
   use mathlib_bouncer
   use crcoall
   use parpro
-  use mod_commond
+  use mod_common_da
   use mod_time
   use mod_lie_dab, only : mld_allocArrays
 
@@ -169,7 +169,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use mathlib_bouncer
   use crcoall
   use parpro
-  use mod_commond
+  use mod_common_da
   use mod_common,  only : iqmodc,ichromc,ilinc
   use mod_lie_dab, only : iscrda,mld_allocArrays
 
@@ -251,7 +251,7 @@ subroutine runcav
   use mod_commonmn, only : e0f
   use mod_commons
   use mod_commont, only : comt_daStart,comt_daEnd
-  use mod_commond
+  use mod_common_da
   use mod_hions
   use mod_lie_dab, only : idao,rscrri,iscrda
 
@@ -440,7 +440,7 @@ subroutine runda
   use mod_commonmn, only : e0f,numx
   use mod_commons
   use mod_commont, only : xxtr,yytr,comt_daStart,comt_daEnd
-  use mod_commond
+  use mod_common_da
   use mod_commond2
   use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda

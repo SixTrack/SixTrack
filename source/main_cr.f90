@@ -115,7 +115,7 @@ interface
 
     use floatPrecision
     use parpro
-    use mod_commond
+    use mod_common_da
 
     implicit none
 

@@ -218,7 +218,7 @@ subroutine blocksv
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   implicit none
 
   integer ia, ikk, j, jm, k, lkk, mkk
@@ -314,7 +314,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   use mod_common
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
 
   use mod_alloc
 
@@ -722,7 +722,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use crcoall
   use parpro
   use mod_common, only : ichromc,ilinc,iqmodc
-  use mod_commond
+  use mod_common_da
   use mod_lie_dab, only : iscrda,mld_allocArrays
   implicit none
   integer idummy,ncase,ndimfo,ndpt,nis,nndim,nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro

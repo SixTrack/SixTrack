@@ -26,7 +26,7 @@ subroutine trauthin(nthinerr)
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   use mod_fluc, only : fluc_errAlign,fluc_writeFort4
   implicit none
   integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nmz,nthinerr
@@ -523,7 +523,7 @@ subroutine thin4d(nthinerr)
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   use bdex, only : bdex_enable
   use aperture
   use elens
@@ -1185,7 +1185,7 @@ subroutine thin6d(nthinerr)
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   use aperture
   use elens
   use utils
@@ -2114,7 +2114,7 @@ subroutine callcrp
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
 #ifdef CR
   use checkpoint_restart
 #endif
@@ -2189,7 +2189,7 @@ subroutine dist1
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   implicit none
   integer ia,ib2,ib3,ie
   real(kind=fPrec) dam1
@@ -2257,7 +2257,7 @@ subroutine write6(n)
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   use mod_settings
 
   implicit none

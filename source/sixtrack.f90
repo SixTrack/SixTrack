@@ -16,7 +16,7 @@ subroutine daten
   use mod_common
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   use physical_constants
   use numerical_constants
   use string_tools
@@ -2379,7 +2379,7 @@ subroutine envars(j,dpp,rv)
   use mod_common
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   implicit none
   integer i,ih,j,kz1,l,ll
   real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpp,dpsq,fi,fok,fok1,fokq,g,gl,hc,hi,hi1,hm,&
@@ -2724,7 +2724,7 @@ subroutine comnul
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
 
   use aperture
   use elens
@@ -2743,25 +2743,6 @@ subroutine comnul
 
   save
 
-  ! TODO
-      idial=0
-      nord=0
-      nvar=0
-      nvar2=0
-      ndimf=0
-      nordf=0
-      nvarf=0
-      nord1=1
-      nsix=0
-      nvar2=0
-      ncor=0
-      idptr=0
-!-----------------------------------------------------------------------
-      inorm=0
-      imod1=0
-      imod2=0
-      preda=zero
-!-----------------------------------------------------------------------
       do 10 i=1,2
         is(i)=0
         bet0(i)=zero
@@ -3762,7 +3743,7 @@ end subroutine chroma
       use mod_common
       use mod_commons
       use mod_commont
-      use mod_commond
+      use mod_common_da
       implicit none
       integer icht,iq1,iq2,ix,ncorr,ncorruo,nd,nd2
       real(kind=fPrec) cor,coro,dps0,dq1,dq2,edcor1,edcor2,qw,qwc
@@ -7811,7 +7792,7 @@ end subroutine qmod0
       use mod_common
       use mod_commons
       use mod_commont
-      use mod_commond
+      use mod_common_da
       implicit none
       integer i,intwq,ix,mm,ncorr,ncorruo,ncrr,nd,nd2,ndh
       real(kind=fPrec) cor,coro,dq1,dq2,dps0,edcor1,edcor2,qwc

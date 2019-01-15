@@ -220,7 +220,7 @@ subroutine crcheck
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   use mod_hions
   use mod_version
   use mod_meta
@@ -900,7 +900,7 @@ subroutine crpoint
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   use mod_hions
   use mod_version
   use mod_time
@@ -1208,7 +1208,7 @@ subroutine crstart
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   use mod_meta
   use mod_alloc
   use mod_hions

@@ -947,7 +947,7 @@ subroutine collimate_init()
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   use mod_settings
 
   implicit none
@@ -1598,7 +1598,7 @@ subroutine collimate_start_sample(nsample)
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
 
   implicit none
 
@@ -2229,7 +2229,7 @@ subroutine collimate_start_collimator(stracki)
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   use numerical_constants, only : c5m4
 
   implicit none
@@ -2415,7 +2415,7 @@ subroutine collimate_do_collimator(stracki)
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   use numerical_constants, only : c5m4
 
   implicit none
@@ -3161,7 +3161,7 @@ subroutine collimate_end_collimator()
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   use numerical_constants, only : c5m4
 
   implicit none
@@ -3536,7 +3536,7 @@ subroutine collimate_end_sample(j)
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   use crcoall
 #ifdef ROOT
   use root_output
@@ -3794,7 +3794,7 @@ subroutine collimate_exit()
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
 
   implicit none
 
@@ -3938,7 +3938,7 @@ subroutine collimate_start_turn(n)
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
 
   implicit none
 
@@ -3959,7 +3959,7 @@ subroutine collimate_start_element(i)
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
 
   implicit none
 
@@ -4044,7 +4044,7 @@ subroutine collimate_end_element
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
 
   implicit none
 
@@ -4180,7 +4180,7 @@ subroutine collimate_end_turn
   use mod_commonmn
   use mod_commons
   use mod_commont
-  use mod_commond
+  use mod_common_da
   use crcoall
 
 #ifdef ROOT

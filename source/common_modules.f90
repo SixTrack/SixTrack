@@ -673,24 +673,38 @@ end subroutine mod_common_expand_arrays
 end module mod_common
 
 ! ================================================================================================ !
-!  DA COMMON VARIABLES 1
-!  Last modified: 2018-06-12
+!  DA COMMON VARIABLES
+!  Last modified: 2019-01-15
 ! ================================================================================================ !
-module mod_commond
+module mod_common_da
 
   use parpro
   use floatPrecision
+  use numerical_constants
 
   implicit none
 
-  ! common /dial/
-  real(kind=fPrec),        save :: preda
-  integer,                 save :: idial,nord,nvar,nvar2,nsix,ncor,ipar(mcor)
+  ! Differential Algebra (DIFF)
+  real(kind=fPrec), save :: preda      = zero ! Precision needed by the DA package
+  integer,          save :: idial      = 0    ! DIFF block switch
+  integer,          save :: nord       = 0    ! Order of the map
+  integer,          save :: nvar       = 0    ! Number of the variables
+  integer,          save :: nvar2      = 0    ! Number of the variables (not with ncor added)
+  integer,          save :: nsix       = 0    ! Switch to calculate a 5x6 instead of a 6x6 map
+  integer,          save :: ncor       = 0    ! Number of zero-length elements to be additional parameters
+  integer,          save :: ipar(mcor) = 0    ! DIFF variable
 
-  ! common /norf/
-  integer,                 save :: nordf,nvarf,nord1,ndimf,idptr,inorm,imod1,imod2
+  ! Normal Forms (NORM)
+  integer,          save :: inorm      = 0    ! NORM block switch
+  integer,          save :: nordf      = 0    ! Order of the Normal Form
+  integer,          save :: nvarf      = 0    ! Number of variables
+  integer,          save :: nord1      = 1    ! 3rd variable in NORM (not in manual)
+  integer,          save :: idptr      = 0    ! 4th variable in NORM (not in manual)
+  integer,          save :: imod1      = 0    ! Mode
+  integer,          save :: imod2      = 0    ! Mode
+  integer,          save :: ndimf      = 0    ! NORM vriable
 
-end module mod_commond
+end module mod_common_da
 
 ! ================================================================================================ !
 !  TRACKING COMMON VARIABLES

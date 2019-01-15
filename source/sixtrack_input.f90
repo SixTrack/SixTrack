@@ -1005,7 +1005,7 @@ end subroutine sixin_parseInputLineINIT
 subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
   use mod_commont
-  use mod_commond
+  use mod_common_da
 
   implicit none
 
@@ -1184,7 +1184,7 @@ end subroutine sixin_parseInputLineTRAC
 ! ================================================================================================ !
 subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
 
-  use mod_commond
+  use mod_common_da
 
   implicit none
 
@@ -1611,7 +1611,7 @@ end subroutine sixin_parseInputLineLINE
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
 
-  use mod_commond,     only : nvar
+  use mod_common_da,     only : nvar
   use mathlib_bouncer, only : cos_mb
 
   implicit none
@@ -3026,7 +3026,7 @@ end subroutine sixin_parseInputLineDECO
 ! ================================================================================================ !
 subroutine sixin_parseInputLineNORM(inLine, iLine, iErr)
 
-  use mod_commond
+  use mod_common_da
 
   implicit none
 

@@ -3496,7 +3496,7 @@ end subroutine join
       use mod_commonmn
       use mod_commons
       use mod_commont
-      use mod_commond
+      use mod_common_da
 #ifdef CR
       use checkpoint_restart
 #endif
