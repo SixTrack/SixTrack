@@ -1172,7 +1172,6 @@ subroutine aperture_reportLoss(turn, i, ix)
           aperv(partID(j),1) = min(ape(1,ix),ape(3,ix))
           aperv(partID(j),2) = min(ape(2,ix),ape(4,ix))
         end if
-        ixv(partID(j))     = ix
         numxv(partID(j))   = numx
         nnumxv(partID(j))  = numx
 #ifdef FLUKA

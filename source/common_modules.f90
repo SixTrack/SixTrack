@@ -907,7 +907,6 @@ module mod_common_main
   real(kind=fPrec), allocatable, save :: aperv(:,:)   ! (npart,2)
 
   integer,          allocatable, save :: iv(:)        ! (npart)
-  integer,          allocatable, save :: ixv(:)       ! (npart)
 
   ! Main 3
   real(kind=fPrec), allocatable, save :: hv(:,:,:,:)   ! (6,2,npart,nblo)
@@ -1022,7 +1021,6 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
     call alloc(ampv,             npart_new,      zero,    "ampv")
     call alloc(aperv,            npart_new, 2,   zero,    "aperv")
     call alloc(iv,               npart_new,      0,       "iv")
-    call alloc(ixv,              npart_new,      0,       "ixv")
 
     call alloc(tasau,            npart_new, 6,6, zero,    "tasau")
     call alloc(tas,              npart_new, 6,6, zero,    "tas")
