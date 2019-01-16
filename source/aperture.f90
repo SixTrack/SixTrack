@@ -2818,10 +2818,10 @@ subroutine aper_parseElement(inLine, iElem, iErr)
     call chr_cast(lnSplit(5),tmpflts(3),iErr)
     if(nSplit >=6) then
        chr_cast(lnSplit(6),tmpflts(4),iErr)
-       call aperture_initRT(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(4))
     else
-       call aperture_initRT(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(3))
+       tmpflts(4)=tmpflts(3)
     endif
+    call aperture_initRT(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(4))
 
   case(apeName(-1)) ! Transition
     if(nSplit < 8) then
