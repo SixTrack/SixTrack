@@ -109,7 +109,8 @@ An aperture profile can be assigned to a SINGLE ELEMENT specifying its type and 
                       presently available. \\
     \texttt{aper\_1} to \texttt{aper\_6}  & Aperture specifiers (floats).
                       Their actual meaning depend on the aperture type. The aperture specifiers are
-                      aligned to those of MAD-X~\cite{MAD}. See Tab.~\ref{tab:apeSpecs} for their
+                      aligned to those of MAD-X~\cite{MAD}, with the exception of the Racetrack,
+                      that can have an ellyptical corner. See Tab.~\ref{tab:apeSpecs} for their
                       meanings.\\
     \texttt{x\_off} and \texttt{y\_off}  & Hor.~and ver.~aperture offsets in mm. \\
     \texttt{angle}  & Tilt angle in rad. The tilt is around the offset point.\\
@@ -156,9 +157,10 @@ For the convention on signs for the last three (optional) aperture specifiers, p
     & & \texttt{aper\_4} & angle of second cut corner [rad] \\*
     \hline
     
-    Ractetrack & \texttt{RT} & \texttt{aper\_1} & hor.~half-size [mm] \\*
-    & & \texttt{aper\_2} & ver.~half-size [mm] \\*
-    & & \texttt{aper\_3} & radius [mm] \\*
+    Ractetrack & \texttt{RT} & \texttt{aper\_1} & hor.~displ.~of ellypse centre [mm] \\*
+    & & \texttt{aper\_2} & ver.~displ.~of ellypse centre [mm] \\*
+    & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
+    & & \texttt{aper\_4} & ver.~semi-axis [mm] \\*
     \hline
     
     Transition & \texttt{TR} & \texttt{aper\_1} & hor.~half-size [mm] \\*
