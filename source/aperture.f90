@@ -47,10 +47,10 @@ module aperture
   character(len=2), parameter, dimension(-1:6) :: apeName=(/'TR','NA','CR','RE','EL','RL','OC','RT'/)
 
   ! aperture parameteres ape(9,nele)
-  ! ape(1,:): hor dimension (RECT/RECTELLIPSE/OCT) [mm]
-  ! ape(2,:): ver dimension (RECT/RECTELLIPSE/OCT) [mm]
-  ! ape(3,:): hor dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]
-  ! ape(4,:): ver dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]
+  ! ape(1,:): hor rect dimension (RECT/RECTELLIPSE/OCT/RACETR) [mm]
+  ! ape(2,:): ver rect dimension (RECT/RECTELLIPSE/OCT/RACETR) [mm]
+  ! ape(3,:): hor elliptical dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]
+  ! ape(4,:): ver elliptical dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]
   ! ape(5,:): m of sloped side (OCT) []
   ! ape(6,:): q of sloped side (OCT) [mm]
   ! ape(7,:): tilt angle of marker (all) [rad]
@@ -376,32 +376,6 @@ subroutine aperture_initRT( ix, aprx, apry, apex, apey )
   ape(5,ix)=-one
   ape(6,ix)=(sqrt(ape(3,ix)**2+ape(4,ix)**2)+(ape(1,ix)-ape(3,ix)))+(ape(2,ix)-ape(4,ix))
 end subroutine aperture_initRT
-
-
-subroutine aperture_initTR( ix, aprx, apry, apex, apey, theta1, theta2 )
-  !-----------------------------------------------------------------------
-  ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
-  ! initialise aperture marker to transition
-  !-----------------------------------------------------------------------
-  implicit none
-  integer ix
-  real(kind=fPrec) aprx, apry, apex, apey, theta1, theta2
-  call aperture_nul( ix )
-  kape(ix)=5
-  ape(1,ix)=aprx
-  ape(2,ix)=apry
-  ape(3,ix)=apex
-  ape(4,ix)=apey
-  ! x1=aprx=ape(1,ix)
-  ! y1=ape(1,ix)*tan_mb(theta1)
-  ! x2=ape(2,ix)/tan_mb(theta2)
-  ! y2=apry=ape(2,ix)
-  ! m and q of sloped side
-  ! m = (y2-y1)/(x2-x1)
-  ! q = y1 -m*x1
-  ape(5,ix)=(ape(2,ix)-ape(1,ix)*tan_mb(theta1))/(ape(2,ix)/tan_mb(theta2)-ape(1,ix))
-  ape(6,ix)=ape(1,ix)*tan_mb(theta1)-ape(5,ix)*ape(1,ix)
-end subroutine aperture_initTR
 
 
 subroutine aperture_initroffpos( ix, xoff, yoff, tilt )
@@ -2825,19 +2799,10 @@ subroutine aper_parseElement(inLine, iElem, iErr)
     call aperture_initRT(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(4))
 
   case(apeName(-1)) ! Transition
-    if(nSplit < 8) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(-1)//&
-        "' aperture marker. Expected 8, got ",nSplit
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(3),tmpflts(1),iErr)
-    call chr_cast(lnSplit(4),tmpflts(2),iErr)
-    call chr_cast(lnSplit(5),tmpflts(3),iErr)
-    call chr_cast(lnSplit(6),tmpflts(4),iErr)
-    call chr_cast(lnSplit(7),tmpflts(5),iErr)
-    call chr_cast(lnSplit(8),tmpflts(6),iErr)
-    call aperture_initTR(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(4),tmpflts(5),tmpflts(6))
+    write(lout,"(a,i0)") "LIMI> ERROR Cannot define '"//apeName(-1)//&
+        "' aperture marker."
+    iErr = .true.
+    return
 
   case default
     write(lout,"(a)") "LIMI> ERROR Aperture profile not identified for element '"//lnSplit(1)//"' value '"//lnSplit(2)//"'"
