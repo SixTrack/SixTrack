@@ -37,24 +37,26 @@ rm -rfv $TUSER
 rsync -avPh $MUSER/ $TUSER
 cd $TUSER
 
-# Remove unsupported stuff for LaTeX source
+# Build PDF
+make clean
+make | tee ../latexUserManual.log
+cp $TUSER/six.pdf $CURR/html/user_manual.pdf
+
+# Remove unsupported stuff for LaTeX source for HTML build
 for FILE in *.tex; do
-    echo "Cleaning up file $FILE"
-    sed -i 's/\\begin{cverbatim}/\\begin{verbatim}/g' $FILE
-    sed -i 's/\\end{cverbatim}/\\end{verbatim}/g' $FILE
-    sed -i 's/\\begin{ctverbatim}/\\begin{verbatim}/g' $FILE
-    sed -i 's/\\end{ctverbatim}/\\end{verbatim}/g' $FILE
-    sed -i 's/\\begin{longtabu}/\\begin{tabular}/g' $FILE
-    sed -i 's/\\end{longtabu}/\\end{tabular}/g' $FILE
-    sed -i 's/\\arraybackslash//g' $FILE
-    sed -i '/\\todo/d' $FILE
-    sed -i '/\\pdfbookmark/d' $FILE
+  echo "Cleaning up file $FILE"
+  sed -i 's/\\begin{cverbatim}/\\begin{verbatim}/g' $FILE
+  sed -i 's/\\end{cverbatim}/\\end{verbatim}/g' $FILE
+  sed -i 's/\\begin{ctverbatim}/\\begin{verbatim}/g' $FILE
+  sed -i 's/\\end{ctverbatim}/\\end{verbatim}/g' $FILE
+  sed -i 's/\\begin{longtabu}/\\begin{tabular}/g' $FILE
+  sed -i 's/\\end{longtabu}/\\end{tabular}/g' $FILE
+  sed -i 's/\\arraybackslash//g' $FILE
+  sed -i '/\\todo/d' $FILE
+  sed -i '/\\pdfbookmark/d' $FILE
 done
 
-# Build
-make clean &> /dev/null
-make TEXFLAGS=-interaction=nonstopmode | tee ../latexUserManual.log
-cp $TUSER/six.pdf $CURR/html/user_manual.pdf
+# Build HTML
 latexml six.tex | latexmlpost --dest=$OUSERF/manual.html --format=$FORMAT --javascript=$MATHJAX - | tee ../htmlUserManual.log
 $CURR/cleanupHTML.py $OUSERF
 rm -v $OUSERF/*.html
@@ -87,4 +89,5 @@ echo "*  DONE  *"
 echo "**********"
 echo ""
 echo "The content of the folder 'html' can now be uploaded to /afs/cern.ch/project/sixtrack/web/docs/"
+echo "RUN: rsync -rvPh html/ /afs/cern.ch/project/sixtrack/docs/"
 echo ""
