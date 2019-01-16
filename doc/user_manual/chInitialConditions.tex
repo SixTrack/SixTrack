@@ -8,6 +8,69 @@ In order to derive the Lyapunov exponent\index{Lyapunov exponent}, and thereby t
 Moreover, experience has shown that varying only the amplitude while keeping the phases constant is sufficient to understand the non-linear dynamics, as a subsequent detailed post-processing allows to find the dependence of the parameter of interest on these phases.
 
 % ================================================================================================================================ %
+\section{Simulation Parameters} \label{SIMUParam}
+
+\textcolor{notered}{\textbf{Note:} This block is experimental. The format may change slightly in future versions.}
+
+\bigskip
+The main simulation parameters are defined in this input block.\index{simulation}\index{SIMU}
+This block was introduced in SixTrack~5.2, and cannot be used together with the \texttt{TRAC} block or the \texttt{INIT} block.
+When using this block, the beam particles must be specified with the \texttt{DIST} block.
+Parsing of \texttt{fort.13} is also disabled.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{SIMU}\index{SIMU} \\
+    \textbf{Data lines} & Variable \\
+    \textbf{Format}     & Keyword/value(s), see below.
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\paragraph{Number of Particles}~ \texttt{NPART part\_count}
+\index{particles}\\
+One integer setting the number of particles for the simulation. This number needs to be an even number.
+
+\paragraph{Number of Turns}~ \texttt{NTURN forward [backward]}
+\index{turns}\index{forward turns}\index{backward turns}\\
+One or two integers setting the number of turns in the forward, and optionally backward, direction.
+The default value for backwards tracking is 0.
+
+\paragraph{Checkpointing}~ \texttt{CHECKPOINT every\_n\_turn [max\_turn]}
+\index{checkpointing}\\
+One or two integers setting the interval between checkpoints, an optionally the maximum turn number to checkpoint.
+The first checkpointed turn is 1, and the default interval between checkpoints is 1000.
+The default maximum turn value is 1e9.
+This flag only has an effect if sixTrack was built with the \texttt{CR} flag.
+
+\paragraph{Rewind fort.90}~ \texttt{REWIND90 flag}
+\index{fort.90}\\
+A flag specifying if the \texttt{singletrackfile.dat} or \texttt{fort.59-90} should be rewound (see Appendix~\ref{Files}).
+This reduces the size of these files.
+
+\paragraph{Exact Tracking}~ \texttt{EXACTTRACKING flag}
+\index{exact tracking}\\
+A flag to enable exact solution of the equation of motion into tracking and 6D (no 4D) optics calculations.\\
+Off: approximated equation
+\begin{equation*}
+    \mbox{e.g.}
+    \quad x^\prime \simeq \frac{P_x}{P_0(1+\delta)},
+    \quad y^\prime \simeq \frac{P_y}{P_0(1+\delta)};
+\end{equation*}
+On: exact equation
+\begin{equation*}
+    \mbox{e.g.}
+    \quad x^\prime \simeq \frac{P_x}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}},
+    \quad y^\prime \simeq \frac{P_y}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}}.
+\end{equation*}
+
+\paragraph{Curve Effect}~ \texttt{CURVEEFFECT flag}
+\index{curve effect}\index{combined function magnet}\\
+If on, the curvature effect in a combined function magnet (bending + quadrupole) is applied.
+Otherwise, the effect is neglected.
+Note that the weak focusing effect is always included.
+
+% ================================================================================================================================ %
 \section{Tracking Parameters} \label{TraPar}
 
 All tracking parameters are defined with this input block.\index{tracking}\index{TRAC}
