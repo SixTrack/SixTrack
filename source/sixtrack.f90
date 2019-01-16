@@ -2569,7 +2569,6 @@ end subroutine envars
 subroutine comnul
 
   use parpro
-  use aperture
   use scatter,     only : scatter_comnul
   use collimation, only : collimation_comnul
 #ifdef HDF5
@@ -2581,7 +2580,6 @@ subroutine comnul
     call selnul(i)
   end do
 
-  call aperture_comnul
   call scatter_comnul
 #ifdef HDF5
   call h5_comnul

@@ -30,9 +30,9 @@ module aperture
   ! last modified: 02-03-2018
   ! always in main code
 
-  logical, save :: limifound                       ! limi block in fort.3
+  logical, save :: limifound=.false.               ! limi block in fort.3
 
-  logical, save :: aperture_debug                  ! Enable/disable debugging output for the aperture code
+  logical, save :: aperture_debug=.false.          ! Enable/disable debugging output for the aperture code
 
   integer, allocatable, save :: kape(:)            ! type of aperture (nele)
   ! aperture parameteres ape(9,nele)
@@ -49,24 +49,24 @@ module aperture
   logical, allocatable, save :: lapeofftlt(:)      ! aperture is tilted/offcentred (nele)
 
   ! save (i.e. do not kill) lost particles
-  logical, save :: apflag                          ! save or not
+  logical, save :: apflag=.false.                  ! save or not
   integer, allocatable, save :: plost(:)           ! particle ID (npart)
 
-  integer, save :: aperture_napxStart              ! initial napx
+  integer, save :: aperture_napxStart=0            ! initial napx
 
   ! dump aperture profile:
-  logical, save :: ldmpaper                        ! dump or not
-  integer, save :: aperunit                        ! fortran unit
-  character(len=16), save :: aper_filename         ! file name
-  logical, save :: ldmpaperMem                     ! dump aperture marker parameters as in memory
+  logical, save :: ldmpaper=.false.                   ! dump or not
+  integer, save :: aperunit=-1                        ! fortran unit
+  character(len=mFNameLen), save :: aper_filename=' ' ! file name
+  logical, save :: ldmpaperMem=.false.                ! dump aperture marker parameters as in memory
   ! File for aperture losses
-  integer, save :: losses_unit                                             ! unit
-  character(len=19), parameter :: losses_filename="aperture_losses.dat"    ! name
+  integer, save :: losses_unit=-1                                                 ! unit
+  character(len=mFNameLen), parameter :: losses_filename="aperture_losses.dat"    ! name
 
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
   ! last modified: 02-03-2018
   ! variables for back-tracking
-  logical, save :: lbacktracking                      ! activate back-tracking
+  logical, save :: lbacktracking=.false.              ! activate back-tracking
   real(kind=fPrec), allocatable, save :: xLast(:,:)   ! position after last thick element [mm] (2,npart)
   real(kind=fPrec), allocatable, save :: yLast(:,:)   ! angles after last thick element [mrad] (2,npart)
   real(kind=fPrec), allocatable, save :: ejfvLast(:)  ! linear momentum [MeV/c] (npart)
@@ -76,20 +76,24 @@ module aperture
   real(kind=fPrec), allocatable, save :: dpsvLast(:)  ! (npart)
   integer, allocatable, save :: naaLast(:)            ! nuclear mass [] (npart)
   integer, allocatable, save :: nzzLast(:)            ! atomic number [] (npart)
-  real(kind=fPrec), save :: bktpre                 ! precision of back-tracking [m]
-  integer, save :: iLast, ixLast                   ! indeces of last aperture marker
-  integer, save :: iLastThick, ixLastThick         ! indeces of last thick element
-  integer, save :: iBckTypeLast                    ! map of back-tracking - it follows kz values, eg:
+  real(kind=fPrec), save :: bktpre=c1m1            ! precision of back-tracking [m]
+  integer, save :: iLast=0                         ! index of last aperture marker (lattice structure)
+  integer, save :: ixLast=0                        ! index of last aperture marker (SING list)
+  integer, save :: iLastThick=0                    ! index of last thick element (lattice structure)
+  integer, save :: ixLastThick=0                   ! index of last thick element (SING list)
+  integer, save :: iBckTypeLast=-1                 ! map of back-tracking - it follows kz values, eg:
                                                    ! -1: generic (eg after aperture check)
                                                    !  0: drift (the only one available)
 
   ! A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-22
   ! x-sec at specific locations
-  integer, save :: mxsec                           ! current number of requested x-secs
+  integer, save :: mxsec=0                         ! current number of requested x-secs
   integer, parameter :: nxsec=10                   ! max number of requested x-secs
-  integer, save :: xsecunit(nxsec)                 ! fortran units
-  character(len=16), save :: xsec_filename(nxsec)  ! file names
-  real(kind=fPrec), save :: sLocMin(nxsec), sLocMax(nxsec), sLocDel(nxsec) ! locations
+  integer, save :: xsecunit(nxsec)=-1              ! fortran units
+  character(len=mFNameLen), save :: xsec_filename(nxsec)=' '! file names
+  real(kind=fPrec), save :: sLocMin(nxsec)=zero    ! locations
+  real(kind=fPrec), save :: sLocMax(nxsec)=zero    ! locations
+  real(kind=fPrec), save :: sLocDel(nxsec)=zero    ! locations
   integer, save :: nAzimuts(nxsec)                 ! number of points (azimuth angles)
   integer, parameter :: nAzimutDef=72              ! default number of points
 
@@ -143,66 +147,6 @@ subroutine aperture_expand_arrays(nele_new, npart_new)
   call alloc(nzzLast,   npart_new, 0, "nzzLast")      ! atomic number [] (npart)
 
 end subroutine aperture_expand_arrays
-
-
-subroutine aperture_comnul
-
-  use numerical_constants
-  implicit none
-  integer ii, jj
-
-  limifound=.false.
-
-  aperture_debug=.false.
-
-  apflag=.false.
-
-  do ii=1,npart
-    plost(ii)=0
-  end do
-
-  ldmpaper            = .false.
-  aperunit            = -1
-  aper_filename(1:16) = ' '
-  ldmpaperMem         = .false.
-
-  lbacktracking = .false. ! backtracking off by default
-  ! do ii=1,npart
-  !   do jj=1,2
-  !     xLast(jj,ii) = zero
-  !     yLast(jj,ii) = zero
-  !   end do
-  !   ejfvLast(jj)  = zero
-  !   ejvLast(jj)   = zero
-  !   nucmLast(jj)  = zero
-  !   sigmvLast(jj) = zero
-  !   dpsvLast(jj)  = zero
-  !   naaLast(jj)   = 0
-  !   nzzLast(jj)   = 0
-  ! end do
-
-  bktpre=c1m1 ! default precision: 0.1m
-  iLast = 0
-  ixLast = 0
-  iLastThick = 0
-  ixLastThick = 0
-  iBckTypeLast = -1
-
-  mxsec = 0
-  do ii=1,nxsec
-    xsecunit(ii) = 0
-    xsec_filename(ii)(1:16) = ' '
-    sLocMin(ii) = zero
-    sLocMax(ii) = zero
-    sLocDel(ii) = zero
-    nAzimuts(ii) = nAzimutDef
-  end do
-
-  aperture_napxStart = 0
-
-  return
-
-end subroutine aperture_comnul
 
 ! ================================================================================================ !
 !  Aperture module initialisation
