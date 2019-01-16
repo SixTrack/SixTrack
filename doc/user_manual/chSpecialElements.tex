@@ -124,7 +124,11 @@ For the convention on signs for the last three (optional) aperture specifiers, p
 \begin{center}
 \begin{longtable}{|c|c|c|c|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
     %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
-    \caption{Aperture types and specifiers. Only the mandatory specifiers are reported.}
+    \caption{Aperture types and specifiers. Only the mandatory specifiers are reported.
+      The Transition aperture cannot be defined in the LIMI block (if found during
+      input parsing, the code will raise an error and stop execution) but since it is used
+      internally for interpolating aperture profiles, it is reported for the sake of
+      completeness.}
     \label{tab:apeSpecs} \\*
     \hline
     \rowcolor{blue!30}
