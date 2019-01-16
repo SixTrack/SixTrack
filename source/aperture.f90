@@ -34,7 +34,18 @@ module aperture
 
   logical, save :: aperture_debug=.false.          ! Enable/disable debugging output for the aperture code
 
+  ! aperture types  -- kape
+  ! no aperture     -- 0
+  ! circle          -- 1
+  ! rectangle       -- 2
+  ! ellipse         -- 3
+  ! rectellipse     -- 4
+  ! octagon         -- 5
+  ! racetrack       -- 6
+  ! transition      -- 7
   integer, allocatable, save :: kape(:)            ! type of aperture (nele)
+  character(len=2), parameter, dimension(-1:6) :: apeName=(/'TR','NA','CR','RE','EL','RL','OC','RT'/)
+
   ! aperture parameteres ape(9,nele)
   ! ape(1,:): hor dimension (RECT/RECTELLIPSE/OCT) [mm]
   ! ape(2,:): ver dimension (RECT/RECTELLIPSE/OCT) [mm]
@@ -97,17 +108,6 @@ module aperture
   integer, save :: nAzimuts(nxsec)                 ! number of points (azimuth angles)
   integer, parameter :: nAzimutDef=72              ! default number of points
 
-
-  ! aperture types  -- kape
-  ! no aperture     -- 0
-  ! circle          -- 1
-  ! rectangle       -- 2
-  ! ellipse         -- 3
-  ! rectellipse     -- 4
-  ! octagon         -- 5
-  ! racetrack       -- 6
-  ! transition      -- 7
-  character(len=2), parameter, dimension(-1:6) :: apeName=(/'TR','NA','CR','RE','EL','RL','OC','RT'/)
 
   ! precision parameters:
   real(kind=fPrec), parameter :: aPrec=c1m6 ! identify two ap. markers as identical [mm]
@@ -359,7 +359,7 @@ subroutine aperture_initOC( ix, aprx, apry, theta1, theta2 )
 end subroutine aperture_initOC
 
 
-subroutine aperture_initRT( ix, aprx, apry, radius )
+subroutine aperture_initRT( ix, aprx, apry, apex, apey )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-22
   ! initialise aperture marker to racetrack
@@ -371,8 +371,8 @@ subroutine aperture_initRT( ix, aprx, apry, radius )
   kape(ix)=6
   ape(1,ix)=aprx
   ape(2,ix)=apry
-  ape(3,ix)=radius
-  ape(4,ix)=radius
+  ape(3,ix)=apex
+  ape(4,ix)=apey
   ape(5,ix)=-one
   ape(6,ix)=(sqrt(ape(3,ix)**2+ape(4,ix)**2)+(ape(1,ix)-ape(3,ix)))+(ape(2,ix)-ape(4,ix))
 end subroutine aperture_initRT
@@ -729,7 +729,9 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
 
   case (6) ! Racetrack
     !   NB: it follows the MadX definition
-    apxy = ape(3,ix)**2.
+    apxx = ape(3,ix)**2.
+    apyy = ape(4,ix)**2.
+    apxy = apxx * apyy
     do j=1,napx
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
         if(lapeofftlt(ix)) then
@@ -738,14 +740,14 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
           else
             call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          llostp(j)=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+          llostp(j)=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
             isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
         else
           if(lbacktracking) then
-            llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+            llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
               isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
           else
-            llostp(j)=checkRT(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),apxy).or. &
+            llostp(j)=checkRT(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
@@ -931,7 +933,10 @@ subroutine aperture_reportLoss(turn, i, ix)
             llos=checkOC(xchk(1), xchk(2), aprr(1), aprr(2), aprr(5), aprr(6) ) .or. &
               isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           case (6) ! RaceTrack
-            llos=checkRT( xchk(1), xchk(2), aprr(1), aprr(2), aprr(3), aprr(3)**2. ) .or. &
+            apxx = aprr(3)**2.
+            apyy = aprr(4)**2.
+            apxy = apxx * apyy
+            llos=checkRT( xchk(1), xchk(2), aprr(1), aprr(2), aprr(3), aprr(4), apxx, apyy, apxy ) .or. &
               isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           end select
         end do !do jj=1,niter
@@ -1211,19 +1216,20 @@ logical function checkOC( x, y, ap1, ap2, m, q )
   return
 end function checkOC
 
-logical function checkRT( x, y, apex, apey, r, r2 )
+logical function checkRT( x, y, aprx, apry, apex, apey, apxx, apyy, apxy )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 19-05-2014
+!     last modified: 16-01-2019
 !     check particle position against RaceTrack aperture
 !     always in main code
 !-----------------------------------------------------------------------
   implicit none
 
 ! parameters
-  real(kind=fPrec) x, y, apex, apey, r, r2
+  real(kind=fPrec) x, y, aprx, apry, apex, apey, apxx, apyy, apxy
 
-  checkRT = checkRE( x, y, apex+r, apey+r ) .or. ( ( (abs(x)-apex)**2.+(abs(y)-apey)**2.).gt.r2 )
+  checkRT = checkRE( x, y, aprx+apex, apry+apey ) .or. &
+            checkEL( abs(x)-aprx, abs(y)-apry, apxx, apyy, apxy )
   return
 end function checkRT
 
@@ -1244,7 +1250,7 @@ end function checkCR
 logical function checkTR( x, y, aprx, apry, apex, apey, apxx, apyy, apxy, m, q )
 !-----------------------------------------------------------------------
 !     A.Mereghetti (CERN, BE/ABP-HSS)
-!     last modified: 22-03-2018
+!     last modified: 16-01-2019
 !     check particle position against Transition aperture
 !     always in main code
 !-----------------------------------------------------------------------
@@ -1254,7 +1260,9 @@ logical function checkTR( x, y, aprx, apry, apex, apey, apxx, apyy, apxy, m, q )
   real(kind=fPrec) x, y, aprx, apry, apex, apey, apxx, apyy, apxy, m, q
 
   checkTR = checkRL(x,y,aprx,apry,apxx,apyy,apxy).or.checkOC(x,y,aprx,apry,m,q)
-  if(aprx-apex.gt.zero.and.apry-apey.gt.zero) checkTR=checkTR.or.checkRT(x,y,aprx,apry,apex,apxx)
+  if(aprx-apex.gt.zero.and.apry-apey.gt.zero) then
+    checkTR=checkTR.or.checkRT(x,y,aprx,apry,apex,apey,apxx,apyy,apxy)
+  end if
   return
 end function checkTR
 
@@ -2808,7 +2816,12 @@ subroutine aper_parseElement(inLine, iElem, iErr)
     call chr_cast(lnSplit(3),tmpflts(1),iErr)
     call chr_cast(lnSplit(4),tmpflts(2),iErr)
     call chr_cast(lnSplit(5),tmpflts(3),iErr)
-    call aperture_initRT(iElem,tmpflts(1),tmpflts(2),tmpflts(3))
+    if(nSplit >=6) then
+       chr_cast(lnSplit(6),tmpflts(4),iErr)
+       call aperture_initRT(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(4))
+    else
+       call aperture_initRT(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(3))
+    endif
 
   case(apeName(-1)) ! Transition
     if(nSplit < 8) then
