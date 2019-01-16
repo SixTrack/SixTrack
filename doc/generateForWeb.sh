@@ -52,7 +52,6 @@ for FILE in *.tex; do
 done
 
 # Build
-make clean &> /dev/null
 make TEXFLAGS=-interaction=nonstopmode | tee ../latexUserManual.log
 cp $TUSER/six.pdf $CURR/html/user_manual.pdf
 latexml six.tex | latexmlpost --dest=$OUSERF/manual.html --format=$FORMAT --javascript=$MATHJAX - | tee ../htmlUserManual.log
@@ -87,4 +86,5 @@ echo "*  DONE  *"
 echo "**********"
 echo ""
 echo "The content of the folder 'html' can now be uploaded to /afs/cern.ch/project/sixtrack/web/docs/"
+echo "RUN: rsync -rvPh html/ /afs/cern.ch/project/sixtrack/docs/"
 echo ""
