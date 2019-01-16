@@ -2252,13 +2252,10 @@ subroutine write6(n)
   use mod_common
   use mod_common_main
   use mod_settings
-  use read_write
 
   implicit none
 
   integer ia,ig,n
-
-  call writeFort12
 
   do ia=1,napxo,2
     ig=ia+1

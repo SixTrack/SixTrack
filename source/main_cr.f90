@@ -1650,6 +1650,9 @@ end interface
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
   write(lout,"(a)") ""
+#ifndef STF
+  call writeFort12
+#endif
   call time_timeStamp(time_afterTracking)
 
   if(st_partsum .eqv. .false.) then
@@ -1661,7 +1664,6 @@ end interface
 
   write(lout,"(a)") "    PARTICLE SUMMARY:"
   write(lout,"(a)") ""
-  call writeFort12
 
   do ia=1,napxo,2
     ie=ia+1
