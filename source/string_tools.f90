@@ -1099,15 +1099,15 @@ subroutine str_toLog(theString, theValue, rErr)
   logical,          intent(out)   :: theValue
   logical,          intent(inout) :: rErr
 
-  character(len=:), allocatable   :: tmpString
-  integer                         :: readErr
-
-  tmpString = trim(theString%chr)
-  read(tmpString,*,iostat=readErr) theValue
-  if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to logical width error ",readErr
+  select case(chr_toLower(trim(theString%chr)))
+  case(".true.","true","on","yes","1")
+    theValue = .true.
+  case(".false.","false","off","no","0")
+    theValue = .false.
+  case default
+    write (lout,"(a)") "TYPECAST> Failed to parse '"//trim(theString)//"' as logical"
     rErr = .true.
-  end if
+  end select
 
 end subroutine str_toLog
 
@@ -1119,21 +1119,14 @@ subroutine chr_toLog(theString, theValue, rErr)
   logical,          intent(out)   :: theValue
   logical,          intent(inout) :: rErr
 
-  character(len=:), allocatable   :: tmpString
-  integer                         :: readErr
-
-  tmpString = chr_toUpper(trim(theString))
-  select case(tmpString)
-  case("ON")
+  select case(chr_toLower(trim(theString)))
+  case(".true.","true","on","yes","1")
     theValue = .true.
-  case("OFF")
+  case(".false.","false","off","no","0")
     theValue = .false.
   case default
-    read(tmpString,*,iostat=readErr) theValue
-    if(readErr /= 0) then
-      write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to logical width error ",readErr
-      rErr = .true.
-    end if
+    write (lout,"(a)") "TYPECAST> Failed to parse '"//trim(theString)//"' as logical"
+    rErr = .true.
   end select
 
 end subroutine chr_toLog
