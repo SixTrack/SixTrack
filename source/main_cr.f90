@@ -1650,9 +1650,6 @@ end interface
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
   write(lout,"(a)") ""
-#ifndef STF
-  call writeFort12
-#endif
   call time_timeStamp(time_afterTracking)
 
   if(st_partsum .eqv. .false.) then
@@ -1667,59 +1664,42 @@ end interface
 
   do ia=1,napxo,2
     ie=ia+1
-    ia2=(ie)/2
     napxto = napxto+numxv(ia)+numxv(ie)
 
     if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
-      write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-      write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-      if(st_quiet == 0) then
-        write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
-          xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
-      end if
+      write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
+      write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
     end if
 
     if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
-      id=id+1
       if(st_quiet == 0) then
         write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
       else if(st_quiet == 1) then
         write(lout,10241) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
       end if
-      write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-      if(st_quiet==0) then
-        write(lout,10280) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
-          xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
-      end if
+      write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
     end if
 
     if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
-      id=id+1
-      write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
+      write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
       if(st_quiet == 0) then
         write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
       else if(st_quiet == 1) then
         write(lout,10241) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
       end if
-      if(st_quiet==0) then
-        write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
-          xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
-      end if
     end if
 
     if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
-      id=id+1
-      ig=id+1
       if(st_quiet == 0) then
         write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
       else if(st_quiet == 1) then
         write(lout,10271) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
       end if
-      if(st_quiet==0) then
-        write(lout,10280) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
-          xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
-      end if
-      id=ig
+    end if
+
+    if(st_quiet == 0) then
+      write(lout,"(4x,f47.33)") xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
+        xv1(ie),yv1(ie),xv2(ie),yv2(ie),sigmv(ie),dpsv(ie),e0,ejv(ia),ejv(ie)
     end if
   end do
 
@@ -1979,7 +1959,6 @@ end interface
      &t62,f15.9,1x,f15.10,f15.9/                                        &
      &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
      &t62,f15.9,1x,f15.10,f15.9/)
-10180 format(t5//t5,'BACK-TRACKING'/ t5, '============='//)
 10190 format(t10,'TRACKING FOR CONSTANT MOMENTUM DEVIATION'// 15x,      &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
      &'       TUNE         CLO            CLOP           ',             &
@@ -2014,12 +1993,6 @@ end interface
 10260 format(/4x,"Particle ",i7,"                     Random seed: ",i0," Momentum deviation: ",g12.5/)
 10270 format(/4x,"Particle ",i7," and ",i7, " Stable. Random seed: ",i0," Momentum deviation: ",g12.5," Revolution: ",i0/)
 10271 format( 4x,"Particle ",i7," and ",i7, " Stable. Random seed: ",i0," Momentum deviation: ",g12.5," Revolution: ",i0)
-10280 format(4x,f47.33)
-10320 format(//131('-')//t10,'DATA BLOCK FLUCTUATIONS OF MULTIPOLES'//  &
-     &t10,'RANDOM STARTING NUMBER=  ',i20/ t10,                         &
-     &'RANDOM NUMBERS GENERATED:',i20/ t10,'MEAN VALUE=',f15.7,         &
-     &'  -   DEVIATION=',f15.7)
-10330 format(/10x,'ERROR IN OPENING FILES')
 #ifdef FLUKA
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
@@ -2027,6 +2000,5 @@ end interface
 10350 format(4X,I8,1X,'SURVIVING PARTICLES:')
 10360 format(2(1X,A8),8(1X,A16))
 10370 format(2(1X,I8),8(1X,1PE16.9))
-10380 format(10x,f47.33)
 #endif
 end program maincr
