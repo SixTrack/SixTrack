@@ -817,6 +817,7 @@ module mod_common_main
 
   use parpro
   use floatPrecision
+  use numerical_constants
 
   implicit none
 
@@ -856,18 +857,16 @@ module mod_common_main
   logical,          allocatable, save :: pstop(:)     ! (npart)
   logical,          allocatable, save :: llostp(:)    ! (npart)
 
-  real(kind=fPrec),              save :: qw(2)
-  real(kind=fPrec),              save :: qwc(3)
-  real(kind=fPrec),              save :: clo0(2)
-  real(kind=fPrec),              save :: clop0(2)
-  real(kind=fPrec),              save :: eps(2)
-  real(kind=fPrec),              save :: epsa(2)
-  real(kind=fPrec),              save :: ekk(2)
-  real(kind=fPrec),              save :: cr(mmul)
-  real(kind=fPrec),              save :: ci(mmul)
-  real(kind=fPrec),              save :: pttemp
-  real(kind=fPrec),              save :: temptr(6)
-  integer,                       save :: kxxa
+  real(kind=fPrec),              save :: qw(2)     = zero
+  real(kind=fPrec),              save :: qwc(3)    = zero
+  real(kind=fPrec),              save :: clo0(2)   = zero
+  real(kind=fPrec),              save :: clop0(2)  = zero
+  real(kind=fPrec),              save :: eps(2)    = zero
+  real(kind=fPrec),              save :: epsa(2)   = zero
+  real(kind=fPrec),              save :: ekk(2)    = zero
+  real(kind=fPrec),              save :: cr(mmul)  = zero
+  real(kind=fPrec),              save :: ci(mmul)  = zero
+  real(kind=fPrec),              save :: temptr(6) = zero
 
   ! Main 2
   real(kind=fPrec), allocatable, save :: dpd(:)       ! (npart)
