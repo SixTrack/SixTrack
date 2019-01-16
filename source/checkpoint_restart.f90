@@ -48,11 +48,6 @@ module checkpoint_restart
   real(kind=fPrec),    allocatable, public, save :: crejv(:)     ! (npart)
   real(kind=fPrec),    allocatable, public, save :: crejfv(:)    ! (npart)
   real(kind=fPrec),    allocatable, public, save :: craperv(:,:) ! (npart,2)
-  real(kind=fPrec),    allocatable, public, save :: crxvl(:,:)   ! (2,npart)
-  real(kind=fPrec),    allocatable, public, save :: cryvl(:,:)   ! (2,npart)
-  real(kind=fPrec),    allocatable, public, save :: crdpsvl(:)   ! (npart)
-  real(kind=fPrec),    allocatable, public, save :: crejvl(:)    ! (npart)
-  real(kind=fPrec),    allocatable, public, save :: crsigmvl(:)  ! (npart)
 
   integer,             allocatable, public, save :: binrecs(:)   ! ((npart+1)/2)
   integer,             allocatable, public, save :: crbinrecs(:) ! (npart+1)/2)
@@ -97,11 +92,6 @@ subroutine cr_expand_arrays(npart_new)
   call alloc(crejv,        npart_new,      zero,    "crejv")
   call alloc(crejfv,       npart_new,      zero,    "crejfv")
   call alloc(craperv,      npart_new, 2,   zero,    "craperv")
-  call alloc(crxvl,     2, npart_new,      zero,    "crxvl")
-  call alloc(cryvl,     2, npart_new,      zero,    "cryvl")
-  call alloc(crdpsvl,      npart_new,      zero,    "crdpsvl")
-  call alloc(crejvl,       npart_new,      zero,    "crejvl")
-  call alloc(crsigmvl,     npart_new,      zero,    "crsigmvl")
   call alloc(binrecs,      npair_new,      0,       "binrecs")
   call alloc(crbinrecs,    npair_new,      0,       "crbinrecs")
   call alloc(crnumxv,      npart_new,      0,       "crnumxv")
@@ -303,13 +293,6 @@ subroutine crcheck
       (crejfv(j),j=1,crnapxo),          &
       (craperv(j,1),j=1,crnapxo),       &
       (craperv(j,2),j=1,crnapxo),       &
-      (crxvl(1,j),j=1,crnapxo),         &
-      (crxvl(2,j),j=1,crnapxo),         &
-      (cryvl(1,j),j=1,crnapxo),         &
-      (cryvl(2,j),j=1,crnapxo),         &
-      (crdpsvl(j),j=1,crnapxo),         &
-      (crejvl(j),j=1,crnapxo),          &
-      (crsigmvl(j),j=1,crnapxo),        &
       (crllostp(j),j=1,crnapxo)
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record META"
@@ -453,13 +436,6 @@ subroutine crcheck
       (crejfv(j),j=1,crnapxo),           &
       (craperv(j,1),j=1,crnapxo),        &
       (craperv(j,2),j=1,crnapxo),        &
-      (crxvl(1,j),j=1,crnapxo),          &
-      (crxvl(2,j),j=1,crnapxo),          &
-      (cryvl(1,j),j=1,crnapxo),          &
-      (cryvl(2,j),j=1,crnapxo),          &
-      (crdpsvl(j),j=1,crnapxo),          &
-      (crejvl(j),j=1,crnapxo),           &
-      (crsigmvl(j),j=1,crnapxo),         &
       (crllostp(j),j=1,crnapxo)
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record META"
@@ -1032,13 +1008,6 @@ subroutine crpoint
       (ejfv(j),j=1,napxo),          &
       (aperv(j,1),j=1,napxo),       &
       (aperv(j,2),j=1,napxo),       &
-      (xvl(1,j),j=1,napxo),         &
-      (xvl(2,j),j=1,napxo),         &
-      (yvl(1,j),j=1,napxo),         &
-      (yvl(2,j),j=1,napxo),         &
-      (dpsvl(j),j=1,napxo),         &
-      (ejvl(j),j=1,napxo),          &
-      (sigmvl(j),j=1,napxo),        &
       (llostp(j),j=1,napxo)
     endfile(crUnit,iostat=ierro)
     backspace(crUnit,iostat=ierro)
@@ -1278,13 +1247,6 @@ subroutine crstart
     rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
     aperv(j,1)=craperv(j,1)
     aperv(j,2)=craperv(j,2)
-    xvl(1,j)=crxvl(1,j)
-    xvl(2,j)=crxvl(2,j)
-    yvl(1,j)=cryvl(1,j)
-    yvl(2,j)=cryvl(2,j)
-    dpsvl(j)=crdpsvl(j)
-    ejvl(j)=crejvl(j)
-    sigmvl(j)=crsigmvl(j)
     if(pstop(j) .eqv. .false.) then
       numxv(j)=numl
       nnumxv(j)=numl
