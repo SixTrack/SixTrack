@@ -850,6 +850,47 @@ subroutine sixin_parseInputLineDISP(inLine, iErr)
 end subroutine sixin_parseInputLineDISP
 
 ! ================================================================================================ !
+!  Parse Simulation Block Line
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created:  2019-01-16
+!  Modified: 2019-01-16
+! ================================================================================================ !
+subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(inout) :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=:), allocatable   :: expLine
+  integer nSplit
+  logical spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "SIMU> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  if(nSplit < 1) then
+    write(lout,"(a,i0,a)") "SIMU> ERROR Block line ",iLine," did not receive any values."
+    iErr = .true.
+    return
+  end if
+
+  select case(lnSplit(1))
+
+  case default
+    write(lout,"(a)") "SIMU> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
+    iErr = .true.
+    return
+
+  end select
+
+end subroutine sixin_parseInputLineSIMU
+
+! ================================================================================================ !
 !  Parse Initial Coordinates Line
 !  Rewritten from code from DATEN by VKBO
 !  Last modified: 2018-06-xx
