@@ -62,6 +62,7 @@ subroutine daten
 
   logical blockOpened,blockClosed,blockReopen,openBlock,closeBlock
   logical inErr,fErr,parseFort2
+  logical hasSIMU, hasDIST, hasTRACorINIT
 
   integer icc,il1,ilin0,iMod,i,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
 
@@ -69,22 +70,23 @@ subroutine daten
 !  SET DEFAULT VALUES
 ! ================================================================================================ !
 
-  ! Main Variables
-  iHead        = " "
-  ic0(:)       = " "
-  cCheck       = " "
-  kanf         = 1
+  iHead         = " "
+  ic0(:)        = " "
+  cCheck        = " "
+  kanf          = 1
+  hasSIMU       = .false.
+  hasDIST       = .false.
+  hasTRACorINIT = .false.
 
   ! SIXTRACK INPUT MODULE
-  inErr       = .false.
-
+  inErr = .false.
   call alloc(sixin_bez0,mNameLen,nele,str_nmSpace,"sixin_bez0")
 
   ! DATEN INTERNAL
-  nGeom       = 0
-  lineNo2     = 0
-  lineNo3     = 0
-  pLines(:)   = " "
+  nGeom     = 0
+  lineNo2   = 0
+  lineNo3   = 0
+  pLines(:) = " "
 
 ! ================================================================================================ !
 !  READ FORT.3 HEADER
@@ -319,7 +321,7 @@ subroutine daten
 
   case("SIMU") ! Simulation Block
     if(openBlock) then
-      continue
+      hasSIMU = .true.
     elseif(closeBlock) then
       continue
     else
@@ -329,7 +331,7 @@ subroutine daten
 
   case("INIT") ! Initial Coordinates
     if(openBlock) then
-      continue
+      hasTRACorINIT = .true.
     elseif(closeBlock) then
       dp1 = exz(1,6)
     else
@@ -339,7 +341,7 @@ subroutine daten
 
   case("TRAC") ! Tracking Parameters
     if(openBlock) then
-      continue
+      hasTRACorINIT = .true.
     elseif(closeBlock) then
       continue
     else
@@ -620,6 +622,7 @@ subroutine daten
 
   case("DIST") ! Beam Distribution
     if(openBlock) then
+      hasDIST     = .true.
       dist_enable = .true.
     elseif(closeBlock) then
       continue
@@ -808,6 +811,15 @@ subroutine daten
 !  ENDE WAS REACHED
 ! ================================================================================================ !
 9000 continue
+
+  if(hasSIMU .and. .not. hasDIST) then
+    write(lout,"(a)") "ENDE> ERROR Using the SIMU block requires the DIST block for loading particles."
+    call prror
+  end if
+  if(hasSIMU .and. hasTRACorINIT) then
+    write(lout,"(a)") "ENDE> ERROR The SIMU block cannot be used together with TRAC and INIT."
+    call prror
+  end if
 
   if(napx >= 1) then
     if(e0 < pieni .or. e0 < pma) then

@@ -883,7 +883,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
   select case(lnSplit(1))
 
-  case("PARTICLES")
+  case("NPART")
     if(nSplit /= 2) then
       write(lout,"(a,i0)") "SIMU> ERROR PARTICLES takes 1 value, got ",nSplit-1
       write(lout,"(a)")    "SIMU>       PARTICLES part_count"
@@ -908,7 +908,11 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     napx = napx/2
     call sixin_echoVal("napx",napx,"SIMU",iLine)
 
-  case("TURNS")
+    if(napx*2 > npart) then
+      call expand_arrays(nele, napx*2, nblz, nblo)
+    end if
+
+  case("NTURN")
     if(nSplit /= 2 .and. nSplit /= 3) then
       write(lout,"(a,i0)") "SIMU> ERROR TURNS takes 1 or 2 values, got ",nSplit-1
       write(lout,"(a)")    "SIMU>       TURNS forward [backward]"
@@ -1273,16 +1277,16 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
     nwr(4) = 10000
 
-    if(nSplit > 0) call chr_cast(lnSplit(1),nde(1),  iErr) ! Number of turns at flat bottom
-    if(nSplit > 1) call chr_cast(lnSplit(2),nde(2),  iErr) ! Number of turns for the energy ramping
-    if(nSplit > 2) call chr_cast(lnSplit(3),nwr(1),  iErr) ! Every nth turn coordinates will be written
-    if(nSplit > 3) call chr_cast(lnSplit(4),nwr(2),  iErr) ! Every nth turn coordinates in the ramping region will be written
-    if(nSplit > 4) call chr_cast(lnSplit(5),nwr(3),  iErr) ! Every nth turn at the flat top a write out of the coordinates
-    if(nSplit > 5) call chr_cast(lnSplit(6),nwr(4),  iErr) ! Every nth turn coordinates are written to unit 6.
-    if(nSplit > 6) call chr_cast(lnSplit(7),ntwin,   iErr) ! Flag for calculated distance of phase space
-    if(nSplit > 7) call chr_cast(lnSplit(8),iDummy,  iErr) ! No longer in use. Formerly ibidu
-    if(nSplit > 8) call chr_cast(lnSplit(9),iexact,  iErr) ! Switch to enable exact solution of the equation of motion
-    if(nSplit > 9) call chr_cast(lnSplit(10),curveff,iErr) ! Switch to include curvatures effect on multipoles..
+    if(nSplit > 0) call chr_cast(lnSplit(1), nde(1), iErr) ! Number of turns at flat bottom
+    if(nSplit > 1) call chr_cast(lnSplit(2), nde(2), iErr) ! Number of turns for the energy ramping
+    if(nSplit > 2) call chr_cast(lnSplit(3), nwr(1), iErr) ! Every nth turn coordinates will be written
+    if(nSplit > 3) call chr_cast(lnSplit(4), nwr(2), iErr) ! Every nth turn coordinates in the ramping region will be written
+    if(nSplit > 4) call chr_cast(lnSplit(5), nwr(3), iErr) ! Every nth turn at the flat top a write out of the coordinates
+    if(nSplit > 5) call chr_cast(lnSplit(6), nwr(4), iErr) ! Every nth turn coordinates are written to unit 6.
+    if(nSplit > 6) call chr_cast(lnSplit(7), ntwin,  iErr) ! Flag for calculated distance of phase space
+    if(nSplit > 7) call chr_cast(lnSplit(8), iDummy, iErr) ! No longer in use. Formerly ibidu
+    if(nSplit > 8) call chr_cast(lnSplit(9), iexact, iErr) ! Switch to enable exact solution of the equation of motion
+    if(nSplit > 9) call chr_cast(lnSplit(10),curveff,iErr) ! Switch to include curvatures effect on multipoles
 
     if(st_debug) then
       call sixin_echoVal("nde(1)",nde(1),  "TRAC",iLine)
