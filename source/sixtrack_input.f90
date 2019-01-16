@@ -866,7 +866,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
   integer nSplit
-  logical spErr
+  logical spErr, aFlag
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -885,8 +885,8 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
   case("NPART")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "SIMU> ERROR PARTICLES takes 1 value, got ",nSplit-1
-      write(lout,"(a)")    "SIMU>       PARTICLES part_count"
+      write(lout,"(a,i0)") "SIMU> ERROR NPART takes 1 value, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       NPART part_count"
       iErr = .true.
       return
     end if
@@ -895,12 +895,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     if(iErr) return
 
     if(mod(napx,2) /= 0) then
-      write(lout,"(a,i0)") "SIMU> ERROR PARTICLES must be an even number, got ",napx
-      iErr = .true.
-      return
-    end if
-    if(napx < 2) then
-      write(lout,"(a,i0)") "SIMU> ERROR PARTICLES must be at least 2, got ",napx
+      write(lout,"(a,i0)") "SIMU> ERROR NPART must be an even number, got ",napx
       iErr = .true.
       return
     end if
@@ -914,8 +909,8 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
   case("NTURN")
     if(nSplit /= 2 .and. nSplit /= 3) then
-      write(lout,"(a,i0)") "SIMU> ERROR TURNS takes 1 or 2 values, got ",nSplit-1
-      write(lout,"(a)")    "SIMU>       TURNS forward [backward]"
+      write(lout,"(a,i0)") "SIMU> ERROR NTURN takes 1 or 2 values, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       NTURN forward [backward]"
       iErr = .true.
       return
     end if
@@ -927,33 +922,33 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     call sixin_echoVal("numl", numl, "SIMU",iLine)
     call sixin_echoVal("numlr",numlr,"SIMU",iLine)
 
-  case("AMPLITUDE")
-    if(nSplit /= 3) then
-      write(lout,"(a,i0)") "SIMU> ERROR AMPLITUDE takes 2 values, got ",nSplit-1
-      write(lout,"(a)")    "SIMU>       AMPLITUDE start end"
-      iErr = .true.
-      return
-    end if
+  ! case("AMPLITUDE")
+  !   if(nSplit /= 3) then
+  !     write(lout,"(a,i0)") "SIMU> ERROR AMPLITUDE takes 2 values, got ",nSplit-1
+  !     write(lout,"(a)")    "SIMU>       AMPLITUDE start end"
+  !     iErr = .true.
+  !     return
+  !   end if
 
-    if(nSplit > 1) call chr_cast(lnSplit(2),amp0,  iErr)
-    if(nSplit > 2) call chr_cast(lnSplit(3),amp(1),iErr)
-    if(iErr) return
+  !   if(nSplit > 1) call chr_cast(lnSplit(2),amp0,  iErr)
+  !   if(nSplit > 2) call chr_cast(lnSplit(3),amp(1),iErr)
+  !   if(iErr) return
 
-    call sixin_echoVal("amp0",  amp0,  "SIMU",iLine)
-    call sixin_echoVal("amp(1)",amp(1),"SIMU",iLine)
+  !   call sixin_echoVal("amp0",  amp0,  "SIMU",iLine)
+  !   call sixin_echoVal("amp(1)",amp(1),"SIMU",iLine)
 
-  case("MOMENTUMVAR")
-    if(nSplit /= 2) then
-      write(lout,"(a,i0)") "SIMU> ERROR MOMENTUMVAR takes 1 value, got ",nSplit-1
-      write(lout,"(a)")    "SIMU>       MOMENTUMVAR num_steps"
-      iErr = .true.
-      return
-    end if
+  ! case("MOMENTUMVAR")
+  !   if(nSplit /= 2) then
+  !     write(lout,"(a,i0)") "SIMU> ERROR MOMENTUMVAR takes 1 value, got ",nSplit-1
+  !     write(lout,"(a)")    "SIMU>       MOMENTUMVAR num_steps"
+  !     iErr = .true.
+  !     return
+  !   end if
 
-    call chr_cast(lnSplit(2),imc,iErr)
-    if(iErr) return
+  !   call chr_cast(lnSplit(2),imc,iErr)
+  !   if(iErr) return
 
-    call sixin_echoVal("imc",imc,"SIMU",iLine)
+  !   call sixin_echoVal("imc",imc,"SIMU",iLine)
 
   case("CHECKPOINT")
     if(nSplit /= 2 .and. nSplit /= 3) then
@@ -969,6 +964,63 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
     call sixin_echoVal("numlcp", numlcp, "SIMU",iLine)
     call sixin_echoVal("numlmax",numlmax,"SIMU",iLine)
+
+  case("REWIND90")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "SIMU> ERROR REWIND90 takes 1 value, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       REWIND90 flag"
+      iErr = .true.
+      return
+    end if
+
+    call chr_cast(lnSplit(2),aFlag,iErr)
+    if(iErr) return
+
+    if(aFlag) then
+      irew = 0 ! Rewind
+    else
+      irew = 1 ! Don't rewind
+    end if
+
+    call sixin_echoVal("irew",irew,"SIMU",iLine)
+
+  case("EXACTTRACKING")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "SIMU> ERROR EXACTTRACKING takes 1 value, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       EXACTTRACKING flag"
+      iErr = .true.
+      return
+    end if
+
+    call chr_cast(lnSplit(2),aFlag,iErr)
+    if(iErr) return
+
+    if(aFlag) then
+      iexact = 1 ! Exact equation
+    else
+      iexact = 0 ! Approximate equation
+    end if
+
+    call sixin_echoVal("iexact",iexact,"SIMU",iLine)
+
+  case("CURVEEFFECT")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "SIMU> ERROR CURVEEFFECT takes 1 value, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       CURVEEFFECT flag"
+      iErr = .true.
+      return
+    end if
+
+    call chr_cast(lnSplit(2),aFlag,iErr)
+    if(iErr) return
+
+    if(aFlag) then
+      curveff = 1
+    else
+      curveff = 0
+    end if
+
+    call sixin_echoVal("curveff",curveff,"SIMU",iLine)
 
   case default
     write(lout,"(a)") "SIMU> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"

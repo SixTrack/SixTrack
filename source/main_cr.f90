@@ -1248,7 +1248,7 @@ end interface
     end if
     if(iclo6 == 0) then
       write(lout,"(a,i0)") "MAINCR> ERROR Doing 6D tracking but iclo6 = ",iclo6
-      write(lout,"(a)")    "MAINCR>       Expected iclo6 <> 0 for 6D tracking."
+      write(lout,"(a)")    "MAINCR>       Expected iclo6 > 0 for 6D tracking."
       call prror(-1)
     end if
   end if

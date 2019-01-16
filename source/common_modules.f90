@@ -164,7 +164,7 @@ module mod_common
   integer,          save :: niu(2)     = 0    ! Unknown
   integer,          save :: numlcp     = 1000 ! How often to write checkpointing files
   integer,          save :: numlmax    = 1e9  ! Max number of C/R turns
-  integer,          save :: idfor      = 0    ! Add closed orbit to initia coordinates
+  integer,          save :: idfor      = 0    ! Add closed orbit to initial coordinates
   integer,          save :: irew       = 0    ! Rewind fort.59-90
   integer,          save :: iclo6      = 0    ! 6D closed orbit flags
   integer,          save :: iclo6r     = 0    ! 6D closed orbit flags
