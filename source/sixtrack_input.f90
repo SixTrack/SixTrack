@@ -857,6 +857,8 @@ end subroutine sixin_parseInputLineDISP
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
+  use mod_common_track
+
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
@@ -880,6 +882,89 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   end if
 
   select case(lnSplit(1))
+
+  case("PARTICLES")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "SIMU> ERROR PARTICLES takes 1 value, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       PARTICLES part_count"
+      iErr = .true.
+      return
+    end if
+
+    call chr_cast(lnSplit(2),napx,iErr)
+    if(iErr) return
+
+    if(mod(napx,2) /= 0) then
+      write(lout,"(a,i0)") "SIMU> ERROR PARTICLES must be an even number, got ",napx
+      iErr = .true.
+      return
+    end if
+    if(napx < 2) then
+      write(lout,"(a,i0)") "SIMU> ERROR PARTICLES must be at least 2, got ",napx
+      iErr = .true.
+      return
+    end if
+
+    napx = napx/2
+    call sixin_echoVal("napx",napx,"SIMU",iLine)
+
+  case("TURNS")
+    if(nSplit /= 2 .and. nSplit /= 3) then
+      write(lout,"(a,i0)") "SIMU> ERROR TURNS takes 1 or 2 values, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       TURNS forward [backward]"
+      iErr = .true.
+      return
+    end if
+
+    if(nSplit > 1) call chr_cast(lnSplit(2),numl, iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),numlr,iErr)
+    if(iErr) return
+
+    call sixin_echoVal("numl", numl, "SIMU",iLine)
+    call sixin_echoVal("numlr",numlr,"SIMU",iLine)
+
+  case("AMPLITUDE")
+    if(nSplit /= 3) then
+      write(lout,"(a,i0)") "SIMU> ERROR AMPLITUDE takes 2 values, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       AMPLITUDE start end"
+      iErr = .true.
+      return
+    end if
+
+    if(nSplit > 1) call chr_cast(lnSplit(2),amp0,  iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),amp(1),iErr)
+    if(iErr) return
+
+    call sixin_echoVal("amp0",  amp0,  "SIMU",iLine)
+    call sixin_echoVal("amp(1)",amp(1),"SIMU",iLine)
+
+  case("MOMENTUMVAR")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "SIMU> ERROR MOMENTUMVAR takes 1 value, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       MOMENTUMVAR num_steps"
+      iErr = .true.
+      return
+    end if
+
+    call chr_cast(lnSplit(2),imc,iErr)
+    if(iErr) return
+
+    call sixin_echoVal("imc",imc,"SIMU",iLine)
+
+  case("CHECKPOINT")
+    if(nSplit /= 2 .and. nSplit /= 3) then
+      write(lout,"(a,i0)") "SIMU> ERROR CHECKPOINT takes 1 or 2 values, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       CHECKPOINT every_n_turn [max_turn]"
+      iErr = .true.
+      return
+    end if
+
+    if(nSplit > 1) call chr_cast(lnSplit(2),numlcp, iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),numlmax,iErr)
+    if(iErr) return
+
+    call sixin_echoVal("numlcp", numlcp, "SIMU",iLine)
+    call sixin_echoVal("numlmax",numlmax,"SIMU",iLine)
 
   case default
     write(lout,"(a)") "SIMU> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
@@ -1085,7 +1170,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(nSplit > 7)  call chr_cast(lnSplit(8), niu(1), iErr) ! Unknown
     if(nSplit > 8)  call chr_cast(lnSplit(9), niu(2), iErr) ! Unknown
     if(nSplit > 9)  call chr_cast(lnSplit(10),numlcp, iErr) ! CR: How often to write checkpointing files
-    if(nSplit > 10) call chr_cast(lnSplit(11),numlmax,iErr) ! CR: Maximum amount of turns; default is 1e6
+    if(nSplit > 10) call chr_cast(lnSplit(11),numlmax,iErr) ! CR: Maximum amount of turns; default is 1e9
 
     ! Default nnuml to numl
     nnuml = numl
