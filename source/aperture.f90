@@ -366,7 +366,7 @@ subroutine aperture_initRT( ix, aprx, apry, apex, apey )
   !-----------------------------------------------------------------------
   implicit none
   integer ix
-  real(kind=fPrec) aprx, apry, radius
+  real(kind=fPrec) aprx, apry, apex, apey
   call aperture_nul( ix )
   kape(ix)=6
   ape(1,ix)=aprx
@@ -2838,7 +2838,7 @@ subroutine aper_parseElement(inLine, iElem, iErr)
     call chr_cast(lnSplit(4),tmpflts(2),iErr)
     call chr_cast(lnSplit(5),tmpflts(3),iErr)
     if(nSplit >=6) then
-       chr_cast(lnSplit(6),tmpflts(4),iErr)
+       call chr_cast(lnSplit(6),tmpflts(4),iErr)
        if (tmpflts(4).eq.zero) tmpflts(4)=tmpflts(3)
     else
        tmpflts(4)=tmpflts(3)
