@@ -91,6 +91,7 @@ end subroutine elens_expand_arrays
 ! ================================================================================================ !
 subroutine elens_parseInputLine(inLine, iLine, iErr)
 
+  use mod_common
   use mod_settings
   use sixtrack_input
   use string_tools

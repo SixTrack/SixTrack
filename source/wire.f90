@@ -1,6 +1,5 @@
 module wire
 
-  use mod_alloc
   use floatPrecision
   use parpro, only : nele, nblz
   use numerical_constants, only : zero
@@ -47,6 +46,7 @@ contains
 
 subroutine wire_expand_arrays(nele_new, nblz_new)
 
+  use mod_alloc
   use numerical_constants, only : zero
 
   implicit none
@@ -77,8 +77,10 @@ end subroutine wire_expand_arrays
 ! ================================================================================================ !
 subroutine wire_parseInputLine(inLine, iLine, iErr)
 
+  use mod_common
   use mod_settings
   use sixtrack_input
+  use string_tools
 
   implicit none
 
@@ -190,6 +192,7 @@ end subroutine wire_parseInputLine
 
 subroutine wire_parseInputDone(iErr)
 
+  use crcoall
   use mod_common, only : kz,bez
 
   implicit none
