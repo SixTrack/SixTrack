@@ -190,10 +190,9 @@ module mod_common
 
   ! Synchrotron Motion and Differential Algebra Block
   real(kind=fPrec), save :: qs         = zero ! Synchrotron tune [N/turn]
-  real(kind=fPrec), save :: pma        = pmap ! Rest mass of the particle in MeV/c^2
   real(kind=fPrec), save :: phas       = zero ! Synchrotron acceleration phase [rad]
   real(kind=fPrec), save :: hsy(3)     = zero ! Cavity [voltage, unused, RF frequency]
-  real(kind=fPrec), save :: crad       = zero ! electron radius * electron mass / pma
+  real(kind=fPrec), save :: crad       = zero ! electron radius * electron mass / nucm0
   real(kind=fPrec), save :: dppoff     = zero ! Offset relative momentum deviation
   real(kind=fPrec), save :: tlen       = one  ! Length of the accelerator [m]
   real(kind=fPrec), save :: mtcda      = one  ! Somthing FOX
@@ -337,6 +336,7 @@ module mod_common
 
   ! Reference Particle
   real(kind=fPrec), save :: e0         = zero ! Reference energy
+  real(kind=fPrec), save :: nucm0      = pmap ! Rest mass
 
   ! Tracking Particles
   real(kind=fPrec), save :: ej(mpa)    = zero ! Particle energy

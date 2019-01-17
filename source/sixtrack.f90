@@ -822,7 +822,7 @@ subroutine daten
   end if
 
   if(napx >= 1) then
-    if(e0 < pieni .or. e0 < pma) then
+    if(e0 < pieni .or. e0 < nucm0) then
       write(lout,"(a)") "ENDE> ERROR Kinetic energy of the particle is less or equal to zero."
       call prror
     end if
@@ -996,7 +996,7 @@ subroutine daten
   write(lout,"(a,f30.9)")     "  Momentum amplitude dP/P:               ",dp1
   write(lout,"(a,f30.9)")     "  Offset momentum amplitude dP/P:        ",dppoff
   write(lout,"(a,f30.9)")     "  Machine length in (m):                 ",tlen
-  write(lout,"(a,f30.9)")     "  Particle mass (MeV):                   ",pma
+  write(lout,"(a,f30.9)")     "  Particle mass (MeV):                   ",nucm0
   if(nbeam >= 1) then
     write(lout,"(a,f30.9)")   "  Particle number (1e9):                 ",abs(partnum/c1e9)
     if(partnum > zero) then

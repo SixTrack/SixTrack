@@ -1056,6 +1056,8 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     end if
     if(iErr) return
 
+    nucm0 = nucm0*c1e3
+
     call sixin_echoVal("nucm0",nucm0,   "SIMU",iLine)
     call sixin_echoVal("aa0",  int(aa0),"SIMU",iLine)
     call sixin_echoVal("zz0",  int(zz0),"SIMU",iLine)
@@ -1975,6 +1977,7 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
   use mod_settings
   use mathlib_bouncer
   use string_tools
+  use mod_hions
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2001,7 +2004,7 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
     if(nSplit > 2) call chr_cast(lnSplit(3),sixin_u0,  iErr)
     if(nSplit > 3) call chr_cast(lnSplit(4),sixin_phag,iErr)
     if(nSplit > 4) call chr_cast(lnSplit(5),tlen,      iErr)
-    if(nSplit > 5) call chr_cast(lnSplit(6),pma,       iErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6),nucm0,     iErr)
     if(nSplit > 6) call chr_cast(lnSplit(7),ition,     iErr)
     if(nSplit > 7) call chr_cast(lnSplit(8),dppoff,    iErr)
 
@@ -2011,7 +2014,7 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
       call sixin_echoVal("u0",    sixin_u0,  "SYNC",iLine)
       call sixin_echoVal("phag",  sixin_phag,"SYNC",iLine)
       call sixin_echoVal("tlen",  tlen,      "SYNC",iLine)
-      call sixin_echoVal("pma",   pma,       "SYNC",iLine)
+      call sixin_echoVal("nucm0", nucm0,     "SYNC",iLine)
       call sixin_echoVal("ition", ition,     "SYNC",iLine)
       call sixin_echoVal("dppoff",dppoff,    "SYNC",iLine)
     end if
@@ -2028,17 +2031,17 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-    if(abs(pma-pmap) <= c1m1) pmat = pmap
-    if(abs(pma-pmae) <= c1m1) pmat = pmae
+    if(abs(nucm0-pmap) <= c1m1) pmat = pmap
+    if(abs(nucm0-pmae) <= c1m1) pmat = pmae
     if(pmat /= pmap .and. pmat /= pmae) then
       write(lout,"(a)") "SYNC> WARNING Particle is neither proton nor electron"
     endif
-    if(pma < pieni) then
+    if(nucm0 < pieni) then
       write(lout,"(a)") "SYNC> ERROR Kinetic energy of the particle is less than or equal to zero"
       iErr = .true.
       return
     end if
-    crad = (crade*pmae)/pma
+    crad = (crade*pmae)/nucm0
     if(abs(tlen) <= pieni) then
       write(lout,"(a)") "SYNC> ERROR Please include length of the machine."
       iErr = .true.
@@ -2066,7 +2069,7 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
       halc2  = sixin_harm/tlen
       hsy(3) = (two*pi)*halc2
       cosy   = cos_mb(phas)
-      qigam  = (pma**2/e0)/e0
+      qigam  = (nucm0**2/e0)/e0
       qbet   = one-qigam
       halc3  = ((((((-one*(qigam-sixin_alc))*real(ition,fPrec))*sixin_harm)*sixin_u0)/e0)*cosy)/((two*pi)*qbet)
       qs     = sqrt(halc3)

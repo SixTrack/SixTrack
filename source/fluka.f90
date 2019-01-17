@@ -199,7 +199,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
          partID(j) = j
          pstop (j) = .false.
 !        Update variables depending on total energy
-!         ejfv  (j) = sqrt((ejv(j)-pma)*(ejv(j)+pma))
+!         ejfv  (j) = sqrt((ejv(j)-nucm0)*(ejv(j)+nucm0))
 !         rvv   (j) = (ejv(j)*e0f)/(e0*ejfv(j))
 !         dpsv  (j) = (ejfv(j)-e0f)/e0f
 !         oidpsv(j) = one/(one+dpsv(j))
@@ -411,7 +411,7 @@ subroutine kernel_fluka_exit( nturn, i, ix )
          partID(j) = j
          pstop (j) = .false.
 !        Update variables depending on total energy
-!         ejfv  (j) = sqrt((ejv(j)-pma)*(ejv(j)+pma))
+!         ejfv  (j) = sqrt((ejv(j)-nucm0)*(ejv(j)+nucm0))
 !         rvv   (j) = (ejv(j)*e0f)/(e0*ejfv(j))
 !         dpsv  (j) = (ejfv(j)-e0f)/e0f
 !         oidpsv(j) = one/(one+dpsv(j))

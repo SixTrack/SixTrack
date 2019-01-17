@@ -18,7 +18,7 @@ module mod_hions
   logical, save :: has_hion = .false.
 
   ! Rest mass of the reference ion species
-  real(kind=fPrec), save :: nucm0 = pmap
+! real(kind=fPrec), save :: nucm0 = pmap
   real(kind=fPrec), save :: nucmda
   real(kind=fPrec), save :: brhono
 
@@ -75,30 +75,26 @@ module mod_hions
 
 contains
 
-subroutine hions_allocate_arrays
-  call alloc(nucm,npart,nucm0,'nucm')
-  call alloc(moidpsv,npart,one,'moidpsv')
-  call alloc(omoidpsv,npart,zero,'omoidpsv')
-  call alloc(mtc,npart,one,'mtc')
-  call alloc(naa,npart,aa0,'naa')
-  call alloc(nzz,npart,zz0,'nzz')
-  call alloc(pids,npart,0,'pids')
-end subroutine hions_allocate_arrays
-
 subroutine hions_expand_arrays(npart_new)
+
+  use mod_common
+
   integer, intent(in) :: npart_new
-  call alloc(nucm,npart_new,nucm0,'nucm')
-  call alloc(moidpsv,npart_new,one,'moidpsv')
-  call alloc(omoidpsv,npart_new,zero,'omoidpsv')
-  call alloc(mtc,npart_new,one,'mtc')
-  call alloc(naa,npart_new,aa0,'naa')
-  call alloc(nzz,npart_new,zz0,'nzz')
-  call alloc(pids,npart_new,0,'pids')
+
+  call alloc(nucm,    npart_new,nucm0,'nucm')
+  call alloc(moidpsv, npart_new,one,  'moidpsv')
+  call alloc(omoidpsv,npart_new,zero, 'omoidpsv')
+  call alloc(mtc,     npart_new,one,  'mtc')
+  call alloc(naa,     npart_new,aa0,  'naa')
+  call alloc(nzz,     npart_new,zz0,  'nzz')
+  call alloc(pids,    npart_new,0,    'pids')
+
 end subroutine hions_expand_arrays
 
 subroutine hions_parseInputLine(inLine, iLine, iErr)
 
   use string_tools
+  use mod_common
 
   implicit none
 
@@ -137,13 +133,12 @@ end subroutine hions_parseInputLine
 
 subroutine hions_postInput
 
-  use mod_common, only : pma
+  use mod_common
 
   if(.not. has_hion) then
     ! If we don't have the HION block, we need to set some variables - default to the proton values
     zz0   = 1
     aa0   = 1
-    nucm0 = pma
     write(lout,"(a)")        "HION> No HION block found. Defaulting to the proton values: "
     write(lout,"(a,i0)")     "HION>  * Z = ",zz0
     write(lout,"(a,i0)")     "HION>  * A = ",aa0

@@ -260,7 +260,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'iver ',iver
   write(99,*) 'qs ',qs
   write(99,*) 'e0 ',e0
-  write(99,*) 'pma ',pma
   write(99,*) 'ej ',ej
   write(99,*) 'ejf ',ejf
   write(99,*) 'phas ',phas
@@ -739,7 +738,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) iver
   write(99) qs
   write(99) e0
-  write(99) pma
   write(99) ej
   write(99) ejf
   write(99) phas
@@ -1212,7 +1210,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'iver ',iver
   write(99,100) 'qs ',qs
   write(99,100) 'e0 ',e0
-  write(99,100) 'pma ',pma
   write(99,100) 'ej ',ej
   write(99,100) 'ejf ',ejf
   write(99,100) 'phas ',phas

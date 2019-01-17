@@ -433,7 +433,7 @@ featList = ""
     x(1,l)=x(1,l)+(clo(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)                !hr08
     y(1,l)=y(1,l)+(clop(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)               !hr08
   end do
-  e0f=sqrt(e0**2-pma**2)                                             !hr08
+  e0f=sqrt(e0**2-nucm0**2)                                             !hr08
   if(iclo6.eq.0) then
     write(lout,10080) clo(1),clop(1),clo(2),clop(2),idz(1),idz(2),iver, idfor,iclo6,ition
   else
@@ -442,12 +442,12 @@ featList = ""
   if(idfor.eq.1.and.iclo6.ne.2) goto 110
   ejf(1)=e0f*(one+dps(1))
   ejf(2)=e0f*(one+dps(2))
-  ej(1)=sqrt(ejf(1)**2+pma**2)                                       !hr08
-  ej(2)=sqrt(ejf(2)**2+pma**2)                                       !hr08
+  ej(1)=sqrt(ejf(1)**2+nucm0**2)                                       !hr08
+  ej(2)=sqrt(ejf(2)**2+nucm0**2)                                       !hr08
   goto 120
 110 continue
-  ejf(1)=sqrt(ej(1)**2-pma**2)                                       !hr08
-  ejf(2)=sqrt(ej(2)**2-pma**2)                                       !hr08
+  ejf(1)=sqrt(ej(1)**2-nucm0**2)                                       !hr08
+  ejf(2)=sqrt(ej(2)**2-nucm0**2)                                       !hr08
 120 continue
   write(lout,10060) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1), x(2,1),y(2,1),x(2,2),y(2,2),sigm(2),dps(2),e0,ej(1),ej(2)
   write(lout,10010) amp,epsa

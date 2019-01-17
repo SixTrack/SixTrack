@@ -69,7 +69,7 @@ end subroutine cheby_expand_arrays
     lrotate=cheby_angle(jcheby).ne.zero
 
     ! Brho of beam
-    beta_b=e0f*gammar/pma
+    beta_b=e0f*gammar/nucm0
     brho_b=e0f/(clight*c1m6)
 
     do j=1,napx
