@@ -46,6 +46,31 @@ The choice of thin or thick will be checked against the machine description in t
 Either a string specifying a file to read closed orbit guess from, or 6 float values.
 The file, if used, must also contain six float values on a single line.
 
+\paragraph{Reference Particle}~ \texttt{REFPART mass[GeV\/c\^2] [A Z Q]}
+\index{reference particle}\index{ion tracking}\\
+Either one or four values.
+Reference mass in GeV/c$^2$ is required.
+For ion tracking, total number of nucleons \texttt{A}, total number of protons \texttt{Z} and electrical charge \texttt{Q} is required as well.
+If not specified, these values default to 1.
+If this line is omitted, the mass defaults to the proton mass.
+
+\paragraph{Machine Length}~ \texttt{LENGTH length[m]}
+\index{accelerator length}\\
+The total length of the accelerator.
+If omitted or set to zero, the length is taken from the sum of the length of all the elements.
+
+\paragraph{Circumference Voltage}~ \texttt{CIRCVOLT u0[MV]}
+\index{voltage}\index{cavities}\\
+The circumference voltage of the accelerator.
+
+\paragraph{Harmonic Number}~ \texttt{HARMONIC harm}
+\index{harmonic number}\\
+The harmonic number of the accelerator.
+
+\paragraph{Accelerator Phase}~ \texttt{PHASE accelerator\_phase[deg]}
+\index{accelerator phase}\\
+The accelerator phase in degrees.
+
 \paragraph{Checkpointing}~ \texttt{CHECKPOINT every\_n\_turn [max\_turn]}
 \index{checkpointing}\\
 One or two integers setting the interval between checkpoints, an optionally the maximum turn number to checkpoint.
