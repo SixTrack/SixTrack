@@ -195,10 +195,10 @@ subroutine hions_crcheck_readdata(fileUnit, readErr)
 
   integer i
 
-  call alloc(nucm_cr,    npart,nucm0,"nucm_cr")
-  call alloc(moidpsv_cr, npart,one,  "moidpsv_cr")
+  call alloc(nucm_cr,    npart,zero, "nucm_cr")
+  call alloc(moidpsv_cr, npart,zero, "moidpsv_cr")
   call alloc(omoidpsv_cr,npart,zero, "omoidpsv_cr")
-  call alloc(mtc_cr,     npart,one,  "mtc_cr")
+  call alloc(mtc_cr,     npart,zero, "mtc_cr")
   call alloc(naa_cr,     npart,aa0,  "naa_cr")
   call alloc(nzz_cr,     npart,zz0,  "nzz_cr")
   call alloc(pids_cr,    npart,0,    "pids_cr")
