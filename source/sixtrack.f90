@@ -323,7 +323,8 @@ subroutine daten
     if(openBlock) then
       hasSIMU = .true.
     elseif(closeBlock) then
-      continue
+      call sixin_parseInputDoneSYNC(inErr)
+      if(inErr) goto 9999
     else
       call sixin_parseInputLineSIMU(inLine,blockLine,inErr)
       if(inErr) goto 9999
@@ -393,7 +394,8 @@ subroutine daten
     if(openBlock) then
       cantSIMU = .true.
     elseif(closeBlock) then
-      continue
+      call sixin_parseInputDoneSYNC(inErr)
+      if(inErr) goto 9999
     else
       call sixin_parseInputLineSYNC(inLine,blockLine,inErr)
       if(inErr) goto 9999
@@ -827,7 +829,9 @@ subroutine daten
       call prror
     end if
 
-    call hions_postInput
+    if(hasSIMU .eqv. .false.) then
+      call hions_postInput
+    end if
     gammar = nucm0/e0
     betrel = sqrt((one+gammar)*(one-gammar))
 

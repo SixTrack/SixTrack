@@ -901,6 +901,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   use mod_common_da
   use mod_common_track
   use string_tools
+  use mod_settings
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -943,7 +944,11 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     end if
 
     napx = napx/2
-    call sixin_echoVal("napx",napx,"SIMU",iLine)
+    imc  = 1
+    if(st_debug) then
+      call sixin_echoVal("napx",napx,"SIMU",iLine)
+      call sixin_echoVal("imc", imc, "SIMU",iLine)
+    end if
 
     if(napx*2 > npart) then
       call expand_arrays(nele, napx*2, nblz, nblo)
@@ -961,8 +966,13 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     if(nSplit > 2) call chr_cast(lnSplit(3),numlr,iErr)
     if(iErr) return
 
-    call sixin_echoVal("numl", numl, "SIMU",iLine)
-    call sixin_echoVal("numlr",numlr,"SIMU",iLine)
+    ! nwr(1:3) = 1
+    ! nwr(4)   = 50000
+    ! ntwin    = 2
+    if(st_debug) then
+      call sixin_echoVal("numl", numl, "SIMU",iLine)
+      call sixin_echoVal("numlr",numlr,"SIMU",iLine)
+    end if
 
   case("TRACKING") ! Tracking mode
     if(nSplit /= 3) then
@@ -1006,8 +1016,10 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       return
     end select
 
-    call sixin_echoVal("ithick",  ithick,  "SIMU",iLine)
-    call sixin_echoVal("trackdim",trackdim,"SIMU",iLine)
+    if(st_debug) then
+      call sixin_echoVal("ithick",  ithick,  "SIMU",iLine)
+      call sixin_echoVal("trackdim",trackdim,"SIMU",iLine)
+    end if
 
   case("CLO6GUESS") ! Glosed orbit starting values for 6D
     if(nSplit /= 2 .and. nSplit /= 7) then
@@ -1032,17 +1044,19 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       call chr_cast(lnSplit(7),clop6(3),iErr)
       if(iErr) return
 
-      call sixin_echoVal("clo6(1)", clo6(1), "SIMU",iLine)
-      call sixin_echoVal("clop6(1)",clop6(1),"SIMU",iLine)
-      call sixin_echoVal("clo6(2)", clo6(2), "SIMU",iLine)
-      call sixin_echoVal("clop6(2)",clop6(2),"SIMU",iLine)
-      call sixin_echoVal("clo6(3)", clo6(3), "SIMU",iLine)
-      call sixin_echoVal("clop6(3)",clop6(3),"SIMU",iLine)
+      if(st_debug) then
+        call sixin_echoVal("clo6(1)", clo6(1), "SIMU",iLine)
+        call sixin_echoVal("clop6(1)",clop6(1),"SIMU",iLine)
+        call sixin_echoVal("clo6(2)", clo6(2), "SIMU",iLine)
+        call sixin_echoVal("clop6(2)",clop6(2),"SIMU",iLine)
+        call sixin_echoVal("clo6(3)", clo6(3), "SIMU",iLine)
+        call sixin_echoVal("clop6(3)",clop6(3),"SIMU",iLine)
+      end if
     end if
 
   case("REFPART") ! Reference particle
     if(nSplit /= 2 .and. nSplit /= 5) then
-      write(lout,"(a,i0)") "SIMU> ERROR REFPART takes 1 or 4 value, got ",nSplit-1
+      write(lout,"(a,i0)") "SIMU> ERROR REFPART takes 1 or 4 values, got ",nSplit-1
       write(lout,"(a)")    "SIMU>       REFPART mass[GeV/c^2] [A Z Q]"
       iErr = .true.
       return
@@ -1058,10 +1072,27 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
     nucm0 = nucm0*c1e3
 
-    call sixin_echoVal("nucm0",nucm0,   "SIMU",iLine)
-    call sixin_echoVal("aa0",  int(aa0),"SIMU",iLine)
-    call sixin_echoVal("zz0",  int(zz0),"SIMU",iLine)
-    call sixin_echoVal("qq0",  int(qq0),"SIMU",iLine)
+    if(st_debug) then
+      call sixin_echoVal("nucm0",nucm0,   "SIMU",iLine)
+      call sixin_echoVal("aa0",  int(aa0),"SIMU",iLine)
+      call sixin_echoVal("zz0",  int(zz0),"SIMU",iLine)
+      call sixin_echoVal("qq0",  int(qq0),"SIMU",iLine)
+    end if
+
+  case("REFENERGY") ! Reference energy
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "SIMU> ERROR REFENERGY takes 1 value, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       REFENERGY e0[MeV]"
+      iErr = .true.
+      return
+    end if
+
+    call chr_cast(lnSplit(2),e0,iErr)
+    if(iErr) return
+
+    if(st_debug) then
+      call sixin_echoVal("e0",e0,"SIMU",iLine)
+    end if
 
   case("CHECKPOINT") ! Checkpointing intervals
     if(nSplit /= 2 .and. nSplit /= 3) then
@@ -1075,8 +1106,10 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     if(nSplit > 2) call chr_cast(lnSplit(3),numlmax,iErr)
     if(iErr) return
 
-    call sixin_echoVal("numlcp", numlcp, "SIMU",iLine)
-    call sixin_echoVal("numlmax",numlmax,"SIMU",iLine)
+    if(st_debug) then
+      call sixin_echoVal("numlcp", numlcp, "SIMU",iLine)
+      call sixin_echoVal("numlmax",numlmax,"SIMU",iLine)
+    end if
 
   case("REWIND90") ! Rewinding of the tracking files
     if(nSplit /= 2) then
@@ -1095,7 +1128,9 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       irew = 1 ! Don't rewind
     end if
 
-    call sixin_echoVal("irew",irew,"SIMU",iLine)
+    if(st_debug) then
+      call sixin_echoVal("irew",irew,"SIMU",iLine)
+    end if
 
   case("EXACTTRACKING")
     if(nSplit /= 2) then
@@ -1114,7 +1149,9 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       iexact = 0 ! Approximate equation
     end if
 
-    call sixin_echoVal("iexact",iexact,"SIMU",iLine)
+    if(st_debug) then
+      call sixin_echoVal("iexact",iexact,"SIMU",iLine)
+    end if
 
   case("CURVEEFFECT")
     if(nSplit /= 2) then
@@ -1133,7 +1170,9 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       curveff = 0
     end if
 
-    call sixin_echoVal("curveff",curveff,"SIMU",iLine)
+    if(st_debug) then
+      call sixin_echoVal("curveff",curveff,"SIMU",iLine)
+    end if
 
   case("CIRCVOLT") ! Circumference voltage
     if(nSplit /= 2) then
@@ -1146,7 +1185,9 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     call chr_cast(lnSplit(2),sixin_u0,iErr)
     if(iErr) return
 
-    call sixin_echoVal("u0",sixin_u0,"harm",iLine)
+    if(st_debug) then
+      call sixin_echoVal("u0",sixin_u0,"harm",iLine)
+    end if
 
   case("HARMONIC") ! Accelerator harmonic number
     if(nSplit /= 2) then
@@ -1159,7 +1200,9 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     call chr_cast(lnSplit(2),sixin_harm,iErr)
     if(iErr) return
 
-    call sixin_echoVal("harm",sixin_harm,"harm",iLine)
+    if(st_debug) then
+      call sixin_echoVal("harm",sixin_harm,"harm",iLine)
+    end if
 
   case("LENGTH") ! Accelerator length
     if(nSplit /= 2) then
@@ -1172,7 +1215,9 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     call chr_cast(lnSplit(2),tlen,iErr)
     if(iErr) return
 
-    call sixin_echoVal("tlen",tlen,"SIMU",iLine)
+    if(st_debug) then
+      call sixin_echoVal("tlen",tlen,"SIMU",iLine)
+    end if
 
   case("PHASE") ! Accelerator phase
     if(nSplit /= 2) then
@@ -1182,11 +1227,12 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       return
     end if
 
-    call chr_cast(lnSplit(2),phas,iErr)
+    call chr_cast(lnSplit(2),sixin_phag,iErr)
     if(iErr) return
 
-    phas = phas*rad
-    call sixin_echoVal("phas",phas,"SIMU",iLine)
+    if(st_debug) then
+      call sixin_echoVal("phag",sixin_phag,"SIMU",iLine)
+    end if
 
   case default
     write(lout,"(a)") "SIMU> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
@@ -1973,19 +2019,15 @@ end subroutine sixin_parseInputLineLINE
 subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
 
   use mod_common
-  use mod_common_da
   use mod_settings
-  use mathlib_bouncer
   use string_tools
-  use mod_hions
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  real(kind=fPrec) cosy,halc,halc2,halc3,qigam,pmat,qbet
-  integer          nSplit,i,ix
+  integer          nSplit
   logical          spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -2031,83 +2073,6 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-    if(abs(nucm0-pmap) <= c1m1) pmat = pmap
-    if(abs(nucm0-pmae) <= c1m1) pmat = pmae
-    if(pmat /= pmap .and. pmat /= pmae) then
-      write(lout,"(a)") "SYNC> WARNING Particle is neither proton nor electron"
-    endif
-    if(nucm0 < pieni) then
-      write(lout,"(a)") "SYNC> ERROR Kinetic energy of the particle is less than or equal to zero"
-      iErr = .true.
-      return
-    end if
-    crad = (crade*pmae)/nucm0
-    if(abs(tlen) <= pieni) then
-      write(lout,"(a)") "SYNC> ERROR Please include length of the machine."
-      iErr = .true.
-      return
-    end if
-    if(sixin_ncy2 == 0) then
-      ncy = sixin_icy*mper
-      idp = 1
-      if(ncy == 0) then
-        idp = 0
-        write(lout,"(a)") "SYNC> No cavities specified."
-      end if
-      phas = sixin_phag*rad
-      if(ncy /= 0) then
-        hsy(1) = sixin_u0/real(ncy,fPrec)
-      else
-        hsy(1) = sixin_u0
-      end if
-      if(nvar == 5) then
-        idp    = 1
-        ition  = 1
-        hsy(1) = zero
-      end if
-      halc   = sixin_harm*sixin_alc
-      halc2  = sixin_harm/tlen
-      hsy(3) = (two*pi)*halc2
-      cosy   = cos_mb(phas)
-      qigam  = (nucm0**2/e0)/e0
-      qbet   = one-qigam
-      halc3  = ((((((-one*(qigam-sixin_alc))*real(ition,fPrec))*sixin_harm)*sixin_u0)/e0)*cosy)/((two*pi)*qbet)
-      qs     = sqrt(halc3)
-      if(halc3 < zero) then
-        write(lout,"(a)") "SYNC> ERROR Either your frequency is shifted by 180 degrees,"
-        write(lout,"(a)") "SYNC>       then change the sign of ition in this block,"
-        write(lout,"(a)") "SYNC>       or your alpha-p is wrongly introducd."
-        iErr = .true.
-        return
-      end if
-    else
-      idp = 1
-      ncy = 0
-      do i=1,mper*mbloz
-        ix = ic(i)
-        if(ix > nblo) then
-          ix = ix-nblo
-          if(abs(kz(ix)) == 12) ncy = ncy+1
-        end if
-      end do
-      do i=1,il
-        if(abs(kz(i)) == 12) then
-          hsyc(i) = ((two*pi)*ek(i))/tlen
-          if(nvar == 5) then
-            ition = 1
-            ed(i) = zero
-          end if
-        end if
-      end do
-    endif
-
-    if(st_debug) then
-      call sixin_echoVal("phas",phas,"SYNC",iLine)
-      call sixin_echoVal("idp", idp, "SYNC",iLine)
-      call sixin_echoVal("ncy", ncy, "SYNC",iLine)
-    end if
-    if(iErr) return
-
   case default
     write(lout,"(a,i0)") "SYNC> ERROR Unexpected line number ",iLine
     iErr = .true.
@@ -2116,6 +2081,101 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
   end select
 
 end subroutine sixin_parseInputLineSYNC
+
+! ================================================================================================ !
+!  Parse Synchrotron Oscillations Line Done
+!  Rewritten from code from DATEN by VKBO
+!  Last modified: 2019-01-17
+! ================================================================================================ !
+subroutine sixin_parseInputDoneSYNC(iErr)
+
+  use mod_common
+  use mod_common_da
+  use mod_settings
+  use mathlib_bouncer
+
+  logical, intent(inout) :: iErr
+
+  real(kind=fPrec) cosy,halc,halc2,halc3,qigam,pmat,qbet
+  integer i,ix
+
+  if(abs(nucm0-pmap) <= c1m1) pmat = pmap
+  if(abs(nucm0-pmae) <= c1m1) pmat = pmae
+  if(pmat /= pmap .and. pmat /= pmae) then
+    write(lout,"(a)") "SYNC> WARNING Particle is neither proton nor electron"
+  endif
+  if(nucm0 < pieni) then
+    write(lout,"(a)") "SYNC> ERROR Kinetic energy of the particle is less than or equal to zero"
+    iErr = .true.
+    return
+  end if
+  crad = (crade*pmae)/nucm0
+  if(abs(tlen) <= pieni) then
+    write(lout,"(a)") "SYNC> ERROR Please include length of the machine."
+    iErr = .true.
+    return
+  end if
+  if(sixin_ncy2 == 0) then
+    ncy = sixin_icy*mper
+    idp = 1
+    if(ncy == 0) then
+      idp = 0
+      write(lout,"(a)") "SYNC> No cavities specified."
+    end if
+    phas = sixin_phag*rad
+    if(ncy /= 0) then
+      hsy(1) = sixin_u0/real(ncy,fPrec)
+    else
+      hsy(1) = sixin_u0
+    end if
+    if(nvar == 5) then
+      idp    = 1
+      ition  = 1
+      hsy(1) = zero
+    end if
+    halc   = sixin_harm*sixin_alc
+    halc2  = sixin_harm/tlen
+    hsy(3) = (two*pi)*halc2
+    cosy   = cos_mb(phas)
+    qigam  = (nucm0**2/e0)/e0
+    qbet   = one-qigam
+    halc3  = ((((((-one*(qigam-sixin_alc))*real(ition,fPrec))*sixin_harm)*sixin_u0)/e0)*cosy)/((two*pi)*qbet)
+    qs     = sqrt(halc3)
+    if(halc3 < zero) then
+      write(lout,"(a)") "SYNC> ERROR Either your frequency is shifted by 180 degrees,"
+      write(lout,"(a)") "SYNC>       then change the sign of ition in this block,"
+      write(lout,"(a)") "SYNC>       or your alpha-p is wrongly introducd."
+      iErr = .true.
+      return
+    end if
+  else
+    idp = 1
+    ncy = 0
+    do i=1,mper*mbloz
+      ix = ic(i)
+      if(ix > nblo) then
+        ix = ix-nblo
+        if(abs(kz(ix)) == 12) ncy = ncy+1
+      end if
+    end do
+    do i=1,il
+      if(abs(kz(i)) == 12) then
+        hsyc(i) = ((two*pi)*ek(i))/tlen
+        if(nvar == 5) then
+          ition = 1
+          ed(i) = zero
+        end if
+      end if
+    end do
+  endif
+
+  if(st_debug) then
+    call sixin_echoVal("phas",phas,"SYNC",-1)
+    call sixin_echoVal("idp", idp, "SYNC",-1)
+    call sixin_echoVal("ncy", ncy, "SYNC",-1)
+  end if
+
+end subroutine sixin_parseInputDoneSYNC
 
 ! ================================================================================================ !
 !  Parse Multipole Coefficient Line for KZ=11
