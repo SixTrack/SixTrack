@@ -786,7 +786,7 @@ subroutine aperture_reportLoss(turn, i, ix)
   integer kapert      ! temporal integer for aperture type
   logical llos        ! temporal logic array for interpolation
   logical lback       ! actually perform backtracking
-  real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
+  real(kind=fPrec) xlos(2), ylos(2), aprr(11), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
   integer naalos, nzzlos
 
   integer npart_tmp ! Temporary holder for number of particles,
@@ -1403,7 +1403,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   logical lInsUp
 ! temporary variables
   integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,itmpape,iNew,ixNew,check_SE_unique,INEESE,INEELS,ixApeNewFrom,ixEl
-  real(kind=fPrec) tmpape(9), ddcum
+  real(kind=fPrec) tmpape(11), ddcum
   logical lconst,lApeUp,lApeDw,lAupDcum,lAdwDcum,lApe,lAss,lfit
 
 ! echo of input parameters
@@ -1528,7 +1528,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
     ixApeNewFrom=-1
     lfit=.false.
     itmpape=0
-    do jj=1,9
+    do jj=1,11
       tmpape(jj)=zero
     end do
 
@@ -1683,39 +1683,86 @@ end function sameAperture
 subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
 !-----------------------------------------------------------------------
 !     by A.Mereghetti
-!     last modified: 21-03-2018
+!     last modified: 17-01-2019
 !     interpolate aperture
 !     always in main code
+!     capable of 8-parameters interpolation for aperture description:
+!     - the usual 6 parameters for aperture description (see header);
+!     - 2 additional parameters for offset of ellypse of RACETRACK;
+!     - the usual 3 parameters for aperture tilt/offset (see header);
+!     the 8-parameters interpolation is actually needed only in case
+!       a RACETRACK aperture marker is at the extremes of interpolation;
+!       in this case, ape(1) and ape(2) of the RACETRACK are copied to the end,
+!       i.e. ape(10) and ape(11), and set to 0.0 for the interpolation
 !-----------------------------------------------------------------------
   implicit none
 
 ! interface variables
   integer iUp, ixUp, iDw, ixDw, oKApe
-  real(kind=fPrec) oApe(9), spos
+  real(kind=fPrec) oApe(11),spos
 ! temporary variables
-  real(kind=fPrec) ddcum, mdcum
+  real(kind=fPrec) ddcum, mdcum, uApe(11), dApe(11)
   integer jj
+  logical fullParamFitNeeded
 
+  fullParamFitNeeded=.false.
+  oApe(:)=zero
+  uApe(:)=zero
+  dApe(:)=zero
+ 
   if( sameAperture(ixUp,ixDw ) ) then
-     ! constant aperture - no need to interpolate
-     oKApe=kape(ixUp)
-     do jj=1,9
-        oApe(jj)=ape(jj,ixUp)
-     end do
+    ! constant aperture - no need to interpolate
+    oKApe=kape(ixUp)
+    oApe(1:9)=ape(1:9,ixUp)
   else
-     ! non-constant aperture - interpolate
-     ! type: we may interpolate the same aperture type
-     oKApe=-1 ! transition
-     if( kape(ixUp).eq.kape(ixDw) ) oKApe=kape(ixUp)
-
-     ! actual interpolation
-     ddcum = spos-dcum(iUp)
-     if( ddcum.lt.zero ) ddcum=dcum(iu)+ddcum
-     mdcum = dcum(iDw)-dcum(iUp)
-     if( mdcum.lt.zero ) mdcum=dcum(iu)+mdcum
-     do jj=1,9
-        oApe(jj)=((ape(jj,ixDw)-ape(jj,ixUp))/mdcum)*ddcum+ape(jj,ixUp)
-     end do
+    ! non-constant aperture - interpolate
+    
+    ! s-position
+    ddcum = spos-dcum(iUp)
+    if( ddcum.lt.zero ) ddcum=dcum(iu)+ddcum
+    mdcum = dcum(iDw)-dcum(iUp)
+    if( mdcum.lt.zero ) mdcum=dcum(iu)+mdcum
+    
+    ! actually interpolate
+    if( kape(ixUp).eq.kape(ixDw) ) then
+      ! regular aperture type: 6+3 parameters fit is fine
+      ! this case includes also RACETRACK to RACETRACK 
+      oKApe=kape(ixUp)
+      oApe(1:9)=((ape(1:9,ixDw)-ape(1:9,ixUp))/mdcum)*ddcum+ape(1:9,ixUp)
+    else
+      ! transition
+      oKApe=-1
+      uApe(1:9)=ape(1:9,ixUp)
+      dApe(1:9)=ape(1:9,ixDw)
+      if ( kape(ixUp).eq.6 ) then
+        ! upstream marker is RACETRACK:
+        ! - offset of corners is copied in last 2 specifiers, whereas
+        !   all other specifiers are kept in their positions
+        do jj=1,2
+          uApe(9+jj)=uApe(jj) 
+          uApe(jj)=zero
+        end do
+        ! - 8-parameters fit is needed
+        fullParamFitNeeded=.true.
+      end if
+      if ( kape(ixDw).eq.6 ) then
+        ! downstream marker is RACETRACK:
+        ! - offset of corners is copied in last 2 specifiers, whereas
+        !   all other specifiers are kept in their positions
+        do jj=1,2
+          dApe(9+jj)=dApe(jj) 
+          dApe(jj)=zero
+        end do
+        ! - 8-parameters fit is needed
+        fullParamFitNeeded=.true.
+      end if
+      if (fullParamFitNeeded) then
+        oApe(1:11)=((dApe(1:11)-uApe(1:11))/mdcum)*ddcum+uApe(1:11)
+      else
+        oApe(1:9)=((dApe(1:9)-uApe(1:9))/mdcum)*ddcum+uApe(1:9)
+      end if
+    end if   
+    
   end if
   return
 end subroutine interp_aperture
@@ -1768,7 +1815,7 @@ subroutine dump_aperture_model
   logical lopen,err
 
   integer iOld, ixOld, niter, oKApe, jj
-  real(kind=fPrec) aprr(9),slos
+  real(kind=fPrec) aprr(11),slos
   character(len=mNameLen), parameter :: interpolated = 'interpolated'
 
   write(lout,"(a)") str_divLine
@@ -1943,7 +1990,7 @@ subroutine dump_aperture_xsecs
   ! temporary variables
   logical lfound, lopen, lApeUp, lApeDw, err
   integer ixsec, ierro, iEl, ixEl, iApeUp, ixApeUp, iApeDw, ixApeDw, itmpape
-  real(kind=fPrec) sLoc, tmpape(9)
+  real(kind=fPrec) sLoc, tmpape(11)
 
   ! loop over requested lines
   do ixsec=1,mxsec
