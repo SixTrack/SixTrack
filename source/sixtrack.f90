@@ -62,7 +62,7 @@ subroutine daten
 
   logical blockOpened,blockClosed,blockReopen,openBlock,closeBlock
   logical inErr,fErr,parseFort2
-  logical hasSIMU, hasDIST, hasTRACorINIT
+  logical hasSIMU, hasDIST, cantSIMU
 
   integer icc,il1,ilin0,iMod,i,j,k,k10,k11,kk,l,ll,l1,l2,l3,l4,mblozz,nac,nfb,nft
 
@@ -70,13 +70,13 @@ subroutine daten
 !  SET DEFAULT VALUES
 ! ================================================================================================ !
 
-  iHead         = " "
-  ic0(:)        = " "
-  cCheck        = " "
-  kanf          = 1
-  hasSIMU       = .false.
-  hasDIST       = .false.
-  hasTRACorINIT = .false.
+  iHead      = " "
+  ic0(:)     = " "
+  cCheck     = " "
+  kanf       = 1
+  hasSIMU    = .false.
+  hasDIST    = .false.
+  cantSIMU   = .false.
 
   ! SIXTRACK INPUT MODULE
   inErr = .false.
@@ -331,7 +331,7 @@ subroutine daten
 
   case("INIT") ! Initial Coordinates
     if(openBlock) then
-      hasTRACorINIT = .true.
+      cantSIMU = .true.
     elseif(closeBlock) then
       dp1 = exz(1,6)
     else
@@ -341,7 +341,7 @@ subroutine daten
 
   case("TRAC") ! Tracking Parameters
     if(openBlock) then
-      hasTRACorINIT = .true.
+      cantSIMU = .true.
     elseif(closeBlock) then
       continue
     else
@@ -391,7 +391,7 @@ subroutine daten
 
   case("SYNC") ! Synchrotron Oscillations
     if(openBlock) then
-      continue
+      cantSIMU = .true.
     elseif(closeBlock) then
       continue
     else
@@ -705,7 +705,7 @@ subroutine daten
 
   case("HION") ! Heavy Ion Input Block
     if(openBlock) then
-      continue
+      cantSIMU = .true.
     elseif(closeBlock) then
       has_hion = .true.
     else
@@ -816,8 +816,8 @@ subroutine daten
     write(lout,"(a)") "ENDE> ERROR Using the SIMU block requires the DIST block for loading particles."
     call prror
   end if
-  if(hasSIMU .and. hasTRACorINIT) then
-    write(lout,"(a)") "ENDE> ERROR The SIMU block cannot be used together with TRAC and INIT."
+  if(hasSIMU .and. cantSIMU) then
+    write(lout,"(a)") "ENDE> ERROR The SIMU block cannot be used together with TRAC, INIT, SYNC or HION."
     call prror
   end if
 

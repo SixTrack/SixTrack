@@ -858,8 +858,9 @@ end subroutine sixin_parseInputLineDISP
 subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
   use parpro
+  use mod_hions
+  use mod_common_da
   use mod_common_track
-  use read_input
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -884,7 +885,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
   select case(lnSplit(1))
 
-  case("NPART")
+  case("NPART") ! Number of particles (not pairs)
     if(nSplit /= 2) then
       write(lout,"(a,i0)") "SIMU> ERROR NPART takes 1 value, got ",nSplit-1
       write(lout,"(a)")    "SIMU>       NPART part_count"
@@ -908,7 +909,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       call expand_arrays(nele, napx*2, nblz, nblo)
     end if
 
-  case("NTURN")
+  case("NTURN") ! Number of turns
     if(nSplit /= 2 .and. nSplit /= 3) then
       write(lout,"(a,i0)") "SIMU> ERROR NTURN takes 1 or 2 values, got ",nSplit-1
       write(lout,"(a)")    "SIMU>       NTURN forward [backward]"
@@ -923,7 +924,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     call sixin_echoVal("numl", numl, "SIMU",iLine)
     call sixin_echoVal("numlr",numlr,"SIMU",iLine)
 
-  case("TRACKING")
+  case("TRACKING") ! Tracking mode
     if(nSplit /= 3) then
       write(lout,"(a,i0)") "SIMU> ERROR TRACKING takes 2 values, got ",nSplit-1
       write(lout,"(a)")    "SIMU>       TRACKING thin|thick 4D|6D"
@@ -968,7 +969,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     call sixin_echoVal("ithick",  ithick,  "SIMU",iLine)
     call sixin_echoVal("trackdim",trackdim,"SIMU",iLine)
 
-  case("CLO6GUESS")
+  case("CLO6GUESS") ! Glosed orbit starting values for 6D
     if(nSplit /= 2 .and. nSplit /= 7) then
       write(lout,"(a,i0)") "SIMU> ERROR CLO6GUESS takes 1 or 6 values, got ",nSplit-1
       write(lout,"(a)")    "SIMU>       CLO6GUESS file_name | x xp y yp sigma deltap"
@@ -980,7 +981,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       if(len_trim(lnSplit(2)) > mFNameLen) then
         write(lout,"(2(a,i0))") "SIMU> ERROR CLO6GUESS filename must be max ",mFNameLen,"characters, got ",len_trim(lnSplit(2))
       end if
-      clorb_fileName = trim(lnSplit(2))
+      clo6file = trim(lnSplit(2))
       iclo6r = 1
     else
       call chr_cast(lnSplit(2),clo6(1), iErr)
@@ -999,7 +1000,28 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       call sixin_echoVal("clop6(3)",clop6(3),"SIMU",iLine)
     end if
 
-  case("CHECKPOINT")
+  case("REFPART") ! Reference particle
+    if(nSplit /= 2 .and. nSplit /= 5) then
+      write(lout,"(a,i0)") "SIMU> ERROR REFPART takes 1 or 4 value, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       REFPART mass[GeV/c^2] [A Z Q]"
+      iErr = .true.
+      return
+    end if
+
+    call chr_cast(lnSplit(2),nucm0,iErr)
+    if(nSplit == 5) then
+      call chr_cast(lnSplit(3),aa0,iErr)
+      call chr_cast(lnSplit(4),zz0,iErr)
+      call chr_cast(lnSplit(5),qq0,iErr)
+    end if
+    if(iErr) return
+
+    call sixin_echoVal("nucm0",nucm0,   "SIMU",iLine)
+    call sixin_echoVal("aa0",  int(aa0),"SIMU",iLine)
+    call sixin_echoVal("zz0",  int(zz0),"SIMU",iLine)
+    call sixin_echoVal("qq0",  int(qq0),"SIMU",iLine)
+
+  case("CHECKPOINT") ! Checkpointing intervals
     if(nSplit /= 2 .and. nSplit /= 3) then
       write(lout,"(a,i0)") "SIMU> ERROR CHECKPOINT takes 1 or 2 values, got ",nSplit-1
       write(lout,"(a)")    "SIMU>       CHECKPOINT every_n_turn [max_turn]"
@@ -1014,7 +1036,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     call sixin_echoVal("numlcp", numlcp, "SIMU",iLine)
     call sixin_echoVal("numlmax",numlmax,"SIMU",iLine)
 
-  case("REWIND90")
+  case("REWIND90") ! Rewinding of the tracking files
     if(nSplit /= 2) then
       write(lout,"(a,i0)") "SIMU> ERROR REWIND90 takes 1 value, got ",nSplit-1
       write(lout,"(a)")    "SIMU>       REWIND90 flag"
@@ -1070,6 +1092,59 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     end if
 
     call sixin_echoVal("curveff",curveff,"SIMU",iLine)
+
+  case("CIRCVOLT") ! Circumference voltage
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "SIMU> ERROR CIRCVOLT takes 1 value, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       CIRCVOLT u0[MV]"
+      iErr = .true.
+      return
+    end if
+
+    call chr_cast(lnSplit(2),sixin_u0,iErr)
+    if(iErr) return
+
+    call sixin_echoVal("u0",sixin_u0,"harm",iLine)
+
+  case("HARMONIC") ! Accelerator harmonic number
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "SIMU> ERROR HARMONIC takes 1 value, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       HARMONIC harm"
+      iErr = .true.
+      return
+    end if
+
+    call chr_cast(lnSplit(2),sixin_harm,iErr)
+    if(iErr) return
+
+    call sixin_echoVal("harm",sixin_harm,"harm",iLine)
+
+  case("LENGTH") ! Accelerator length
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "SIMU> ERROR LENGTH takes 1 value, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       LENGTH length[m]"
+      iErr = .true.
+      return
+    end if
+
+    call chr_cast(lnSplit(2),tlen,iErr)
+    if(iErr) return
+
+    call sixin_echoVal("tlen",tlen,"SIMU",iLine)
+
+  case("PHASE") ! Accelerator phase
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "SIMU> ERROR PHASE takes 1 value, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       PHASE accelerator_phase[deg]"
+      iErr = .true.
+      return
+    end if
+
+    call chr_cast(lnSplit(2),phas,iErr)
+    if(iErr) return
+
+    phas = phas*rad
+    call sixin_echoVal("phas",phas,"SIMU",iLine)
 
   case default
     write(lout,"(a)") "SIMU> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
@@ -1844,7 +1919,7 @@ end subroutine sixin_parseInputLineLINE
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
 
-  use mod_common_da,     only : nvar
+  use mod_common_da,   only : nvar
   use mathlib_bouncer, only : cos_mb
 
   implicit none

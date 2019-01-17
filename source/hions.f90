@@ -41,6 +41,10 @@ module mod_hions
   ! Charge multiplicity of the reference ion species
   integer(kind=int16), save :: zz0 = 1
 
+  ! Real charge of the particle - could be an anti-particle or be a non-stripped ion
+  ! In most cases - qq0 == zz0
+  integer(kind=int16), save :: qq0 = 1
+
   integer(kind=int16), save :: nnuc0
   integer(kind=int16), save :: nnuc1
 

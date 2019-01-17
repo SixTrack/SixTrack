@@ -248,6 +248,7 @@ module mod_common
 
   real(kind=fPrec), save :: clo6(3)    = zero ! 6D closed orbit correction position
   real(kind=fPrec), save :: clop6(3)   = zero ! 6D closed orbit correction momentum
+  character(len=mFNameLen), save :: clo6file = "fort.33"
 
   ! Tune Variation
   real(kind=fPrec), save :: qw0(3)     = zero ! Qx/Qy/delta_Q

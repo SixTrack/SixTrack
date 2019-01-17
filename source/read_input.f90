@@ -9,11 +9,8 @@
 module read_input
 
   use crcoall
-  use parpro
 
   implicit none
-
-  character(len=mFNameLen), public, save :: clorb_fileName = "fort.33"
 
 contains
 
@@ -155,7 +152,7 @@ end subroutine readFort13
 subroutine readFort33
 
   use string_tools
-  use mod_common,     only : clo6, clop6
+  use mod_common,     only : clo6, clop6, clo6file
   use sixtrack_input, only : sixin_echoVal
   use mod_settings
   use mod_units
@@ -168,18 +165,18 @@ subroutine readFort33
   integer nSplit, ioStat, unit33
   logical spErr, fErr
 
-  call f_requestUnit(clorb_fileName,unit33)
-  call f_open(unit=unit33,file=clorb_fileName,formatted=.true.,mode="r",err=fErr)
+  call f_requestUnit(clo6file,unit33)
+  call f_open(unit=unit33,file=clo6file,formatted=.true.,mode="r",err=fErr)
 
   read(unit33,"(a)",iostat=ioStat) inLine
   if(ioStat /= 0) then
-    write(lout,"(a,i0)") "READ33> ERROR Failed to read line from '"//trim(clorb_fileName)//"'. iostat = ",ioStat
+    write(lout,"(a,i0)") "READ33> ERROR Failed to read line from '"//trim(clo6file)//"'. iostat = ",ioStat
     call prror
   end if
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "READ33> ERROR Failed to parse line from '"//trim(clorb_fileName)//"'"
+    write(lout,"(a)") "READ33> ERROR Failed to parse line from '"//trim(clo6file)//"'"
     call prror
   end if
 
