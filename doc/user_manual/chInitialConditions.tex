@@ -10,7 +10,7 @@ Moreover, experience has shown that varying only the amplitude while keeping the
 % ================================================================================================================================ %
 \section{Simulation Parameters} \label{SIMUParam}
 
-\textcolor{notered}{\textbf{Note:} This block is experimental. The format may change slightly in future versions.}
+\textcolor{notered}{\textbf{Note:} This block is experimental. The format may change in future versions.}
 
 \bigskip
 The main simulation parameters are defined in this input block.\index{simulation}\index{SIMU}
@@ -35,6 +35,16 @@ One integer setting the number of particles for the simulation. This number need
 \index{turns}\index{forward turns}\index{backward turns}\\
 One or two integers setting the number of turns in the forward, and optionally backward, direction.
 The default value for backwards tracking is 0.
+
+\paragraph{Tracking Mode}~ \texttt{TRACKING thin|thick 4D|6D}
+\index{tracking}\index{thin tracking}\index{thick tracking}\\
+Two strings selecting thin or thick tracking, and 4D or 6D tracking.
+The choice of thin or thick will be checked against the machine description in the Single Element list.
+
+\paragraph{6D Closed Orbit Guess}~ \texttt{CLO6GUESS file\_name | x xp y yp sigma deltap}
+\index{closed orbit}\\
+Either a string specifying a file to read closed orbit guess from, or 6 float values.
+The file, if used, must also contain six float values on a single line.
 
 \paragraph{Checkpointing}~ \texttt{CHECKPOINT every\_n\_turn [max\_turn]}
 \index{checkpointing}\\

@@ -857,14 +857,15 @@ end subroutine sixin_parseInputLineDISP
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
+  use parpro
   use mod_common_track
+  use read_input
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=:), allocatable   :: expLine
   integer nSplit
   logical spErr, aFlag
 
@@ -922,33 +923,81 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     call sixin_echoVal("numl", numl, "SIMU",iLine)
     call sixin_echoVal("numlr",numlr,"SIMU",iLine)
 
-  ! case("AMPLITUDE")
-  !   if(nSplit /= 3) then
-  !     write(lout,"(a,i0)") "SIMU> ERROR AMPLITUDE takes 2 values, got ",nSplit-1
-  !     write(lout,"(a)")    "SIMU>       AMPLITUDE start end"
-  !     iErr = .true.
-  !     return
-  !   end if
+  case("TRACKING")
+    if(nSplit /= 3) then
+      write(lout,"(a,i0)") "SIMU> ERROR TRACKING takes 2 values, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       TRACKING thin|thick 4D|6D"
+      iErr = .true.
+      return
+    end if
 
-  !   if(nSplit > 1) call chr_cast(lnSplit(2),amp0,  iErr)
-  !   if(nSplit > 2) call chr_cast(lnSplit(3),amp(1),iErr)
-  !   if(iErr) return
+    ! Check that thin/thick is consistent with the entries in the single element list
+    select case(chr_toLower(trim(lnSplit(2))))
+    case("thin")
+      if(ithick == 1) then
+        write(lout,"(a)") "SIMU> ERROR Thin tracking selected, but lattice is thick"
+        iErr = .true.
+        return
+      end if
+    case("thick")
+      if(ithick == 0) then
+        write(lout,"(a)") "SIMU> ERROR Thick tracking selected, but lattice is thin"
+        iErr = .true.
+        return
+      end if
+    case default
+      write(lout,"(a)") "SIMU> ERROR TRACKING value 1 must be 'thick' or 'thin', got '"//trim(lnSplit(2))//"'"
+      iErr = .true.
+      return
+    end select
 
-  !   call sixin_echoVal("amp0",  amp0,  "SIMU",iLine)
-  !   call sixin_echoVal("amp(1)",amp(1),"SIMU",iLine)
+    select case(chr_toUpper(trim(lnSplit(3))))
+    case("4D")
+      trackdim = 4
+      iclo6    = 0
+    case("6D")
+      trackdim = 6
+      iclo6    = 1
+      nsix     = 0
+    case default
+      write(lout,"(a)") "SIMU> ERROR TRACKING value 2 must be '4D' or '6D', got '"//trim(lnSplit(3))//"'"
+      iErr = .true.
+      return
+    end select
 
-  ! case("MOMENTUMVAR")
-  !   if(nSplit /= 2) then
-  !     write(lout,"(a,i0)") "SIMU> ERROR MOMENTUMVAR takes 1 value, got ",nSplit-1
-  !     write(lout,"(a)")    "SIMU>       MOMENTUMVAR num_steps"
-  !     iErr = .true.
-  !     return
-  !   end if
+    call sixin_echoVal("ithick",  ithick,  "SIMU",iLine)
+    call sixin_echoVal("trackdim",trackdim,"SIMU",iLine)
 
-  !   call chr_cast(lnSplit(2),imc,iErr)
-  !   if(iErr) return
+  case("CLO6GUESS")
+    if(nSplit /= 2 .and. nSplit /= 7) then
+      write(lout,"(a,i0)") "SIMU> ERROR CLO6GUESS takes 1 or 6 values, got ",nSplit-1
+      write(lout,"(a)")    "SIMU>       CLO6GUESS file_name | x xp y yp sigma deltap"
+      iErr = .true.
+      return
+    end if
 
-  !   call sixin_echoVal("imc",imc,"SIMU",iLine)
+    if(nSplit == 2) then
+      if(len_trim(lnSplit(2)) > mFNameLen) then
+        write(lout,"(2(a,i0))") "SIMU> ERROR CLO6GUESS filename must be max ",mFNameLen,"characters, got ",len_trim(lnSplit(2))
+      end if
+      clorb_fileName = trim(lnSplit(2))
+      iclo6r = 1
+    else
+      call chr_cast(lnSplit(2),clo6(1), iErr)
+      call chr_cast(lnSplit(3),clop6(1),iErr)
+      call chr_cast(lnSplit(4),clo6(2), iErr)
+      call chr_cast(lnSplit(5),clop6(2),iErr)
+      call chr_cast(lnSplit(6),clo6(3), iErr)
+      call chr_cast(lnSplit(7),clop6(3),iErr)
+      if(iErr) return
+
+      call sixin_echoVal("clo6(1)", clo6(1), "SIMU",iLine)
+      call sixin_echoVal("clop6(1)",clop6(1),"SIMU",iLine)
+      call sixin_echoVal("clo6(2)", clo6(2), "SIMU",iLine)
+      call sixin_echoVal("clop6(2)",clop6(2),"SIMU",iLine)
+      call sixin_echoVal("clo6(3)", clo6(3), "SIMU",iLine)
+      call sixin_echoVal("clop6(3)",clop6(3),"SIMU",iLine)
+    end if
 
   case("CHECKPOINT")
     if(nSplit /= 2 .and. nSplit /= 3) then

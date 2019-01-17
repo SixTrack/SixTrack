@@ -9,8 +9,11 @@
 module read_input
 
   use crcoall
+  use parpro
 
   implicit none
+
+  character(len=mFNameLen), public, save :: clorb_fileName = "fort.33"
 
 contains
 
@@ -162,21 +165,22 @@ subroutine readFort33
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn)       :: inLine
-  integer nSplit, ioStat
+  integer nSplit, ioStat, unit33
   logical spErr, fErr
 
-  call f_open(unit=33,file="fort.33",formatted=.true.,mode="r",err=fErr)
+  call f_requestUnit(clorb_fileName,unit33)
+  call f_open(unit=unit33,file=clorb_fileName,formatted=.true.,mode="r",err=fErr)
 
-  read(33,"(a)",iostat=ioStat) inLine
+  read(unit33,"(a)",iostat=ioStat) inLine
   if(ioStat /= 0) then
-    write(lout,"(a,i0)") "READ33> ERROR Failed to read line from 'fort.33'. iostat = ",ioStat
-    call prror(-1)
+    write(lout,"(a,i0)") "READ33> ERROR Failed to read line from '"//trim(clorb_fileName)//"'. iostat = ",ioStat
+    call prror
   end if
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "READ33> ERROR Failed to parse line from 'fort.33'"
-    call prror(-1)
+    write(lout,"(a)") "READ33> ERROR Failed to parse line from '"//trim(clorb_fileName)//"'"
+    call prror
   end if
 
   if(nSplit > 0) call chr_cast(lnSplit(1),clo6(1), spErr)
@@ -194,6 +198,8 @@ subroutine readFort33
     call sixin_echoVal("clo6(3)", clo6(3), "READ33",1)
     call sixin_echoVal("clop6(3)",clop6(3),"READ33",1)
   end if
+
+  call f_close(unit33)
 
 end subroutine readFort33
 

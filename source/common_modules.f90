@@ -154,7 +154,7 @@ module mod_common
   integer,          save :: il         = 0    ! Number of single elements
   integer,          save :: kanf       = 0    ! Structure index where the GO keyword is issued
 
-  ! TRACK Block Variables
+  ! TRACK/SIMU Block Variables
   real(kind=fPrec), save :: amp0       = zero ! End amplitude
   integer,          save :: numl       = 1    ! Number of turns in the forward direction
   integer,          save :: numlr      = 0    ! Number of turns in the backward direction
@@ -173,6 +173,7 @@ module mod_common
   integer,          save :: ntwin      = 1    ! How to calculate the distance in phase space
   integer,          save :: iexact     = 0    ! Exact solution of the equation of motion
   integer,          save :: curveff    = 0    ! Enable the curvature effect in a combined function magnet
+  integer,          save :: trackdim   = 0    ! 4D or 6D tracking
   integer,          save :: napxo      = 0    ! Original value of napx
   integer,          save :: napxto     = 0    ! Particles times turns
   integer,          save :: nnuml      = 0
