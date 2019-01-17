@@ -1,6 +1,14 @@
-!-----------------------------------------------------------------------
+! ============================================================================ !
+!
 !  SIXTRACK MAIN PROGRAM
-!-----------------------------------------------------------------------
+! =======================
+!  Authors:       See README.md
+!  Change Log:    See CHANGELOG.md
+!  Licence:       LGPL v2.1, See COPYING and LICENCE
+!  Documentation: See doc folder
+!  Website:       http://sixtrack.web.cern.ch
+!
+! ============================================================================ !
 program maincr
 
   use floatPrecision
