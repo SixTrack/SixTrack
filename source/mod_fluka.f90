@@ -3,7 +3,6 @@ module mod_fluka
   use floatPrecision
   use numerical_constants
   use mod_alloc
-  use mod_units, only : f_requestUnit
 
   use, intrinsic :: ISO_FORTRAN_ENV, only : int8, int16, int32, int64
 
@@ -89,6 +88,10 @@ module mod_fluka
   ! hisix: write isotope info
   integer, public :: isotope_log_unit                  ! logical unit for isotope-id output (was 822)
 
+  integer, public :: unit208 ! Holds the actual units of fort.208
+  integer, public :: unit209 ! Holds the actual units of fort.209
+  integer, public :: unit210 ! Holds the actual units of fort.210
+
   ! fluka insertions
   logical, public :: fluka_inside = .false.                        ! Are we in a fluka insertion?
   integer(kind=int32), public, allocatable :: fluka_type(:)        ! type of insertion (one per SINGLE ELEMENT)
@@ -122,11 +125,13 @@ module mod_fluka
 
   save
 
-  contains
+contains
 
   !----------------------------------------------------------------------------
   ! set the module up
   subroutine fluka_mod_init(npart, nele, clight)
+
+    use mod_units
 
     implicit none
 
@@ -157,10 +162,16 @@ module mod_fluka
 !    fluka_geo_index    = 0
 !    fluka_synch_length = zero
 
-    call f_requestUnit('fluka.log', fluka_log_unit)
-    call f_requestUnit('fluka_isotope.log', isotope_log_unit)
-    open(unit=fluka_log_unit, file='fluka.log')
-    open(unit=isotope_log_unit, file='fluka_isotope.log')
+    call f_requestUnit("fort.208",         unit208)
+    call f_requestUnit("fort.209",         unit209)
+    call f_requestUnit("fort.210",         unit210)
+    call f_requestUnit("fluka.log",        fluka_log_unit)
+    call f_requestUnit("fluka_isotope.log",isotope_log_unit)
+    call f_open(unit=unit208,         file="fort.208",         formatted=.true.,mode="w")
+    call f_open(unit=unit209,         file="fort.209",         formatted=.true.,mode="w")
+    call f_open(unit=unit210,         file="fort.210",         formatted=.true.,mode="w")
+    call f_open(unit=fluka_log_unit,  file="fluka.log",        formatted=.true.,mode="w")
+    call f_open(unit=isotope_log_unit,file="fluka_isotope.log",formatted=.true.,mode="w")
 
   end subroutine fluka_mod_init
 
@@ -206,6 +217,9 @@ module mod_fluka
   !----------------------------------------------------------------------------
   ! acquire info for network communication
   subroutine fluka_read_config(net_nfo_file, host, port)
+
+    use mod_units
+
     implicit none
 
     ! interface variables
@@ -216,7 +230,7 @@ module mod_fluka
     integer :: ios
 
     call f_requestUnit(net_nfo_file, net_nfo_unit)
-    open(net_nfo_unit, file=net_nfo_file, status='old')
+    call f_open(net_nfo_unit, file=net_nfo_file, formatted=.true., mode="rw", status='old')
     read(unit=net_nfo_unit, fmt=*, iostat=ios) host
     if(ios .ne. 0) then
       write(lout,*)
@@ -234,7 +248,7 @@ module mod_fluka
       call prror(-1)
     end if
 
-    close(net_nfo_unit)
+    call f_close(net_nfo_unit)
 
   end subroutine fluka_read_config
 

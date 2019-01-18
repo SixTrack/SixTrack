@@ -306,11 +306,6 @@ end interface
   call f_open(unit=100,file="arrays",formatted=.false.,mode="rw",err=fErr)
 #endif
 
-  ! Heavy Ion Output
-  call f_open(unit=208,file="fort.208",formatted=.true.,mode="w",err=fErr) ! coll losses (energy)
-  call f_open(unit=209,file="fort.209",formatted=.true.,mode="w",err=fErr) ! coll losses in function of particle i
-  call f_open(unit=210,file="fort.210",formatted=.true.,mode="w",err=fErr) ! mtc after each collimator interaction
-
   call time_timeStamp(time_afterFileUnits)
 
   ! ---------------------------------------------------------------------------------------------- !
