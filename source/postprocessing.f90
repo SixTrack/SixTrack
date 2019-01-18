@@ -2695,8 +2695,10 @@ subroutine postpr(nfile)
       endif
 !--REWIND USED FILES
   560 rewind nfile
-      rewind 14
-      rewind 15
+      if(nprint == 1) then
+        rewind 14
+        rewind 15
+      end if
 !--TIME COUNT
       tim2=0.
       call time_timerCheck(tim2)

@@ -282,8 +282,6 @@ end interface
 
   ! Open Regular File Units
   call f_open(unit=12,file="fort.12",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=14,file="fort.14",formatted=.true., mode="w", err=fErr) ! Postprocessing
-  call f_open(unit=15,file="fort.15",formatted=.true., mode="w", err=fErr) ! Postprocessing
   call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA file
   call f_open(unit=19,file="fort.19",formatted=.true., mode="r", err=fErr) ! DA file
   call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr) ! DA file
@@ -400,6 +398,12 @@ end interface
     call hplset('DATE',1.)
     call hplset('CSIZ',.15)
   endif
+
+  if(nprint == 1 .and. ipos == 1) then
+    ! Open fort.14 and fort.15 for postprocessing
+    call f_open(unit=14,file="fort.14",formatted=.true.,mode="w")
+    call f_open(unit=15,file="fort.15",formatted=.true.,mode="w")
+  end if
 
   ! Postprocessing is on, but there are no particles
   if(ipos.eq.1.and.napx.eq.0) then
