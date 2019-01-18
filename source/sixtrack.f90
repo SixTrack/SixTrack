@@ -5359,8 +5359,10 @@ subroutine cpltwis(typ,t,etl,phi)
       use mod_common
       use mod_commons
       use mod_common_track
+      use mod_units
       implicit none
       integer i,iwrite
+      logical :: open11 = .false.
       real(kind=fPrec) alxi,alxii,alzi,alzii,bexi,bexii,bezi,bezii,     &
      &couuang,etl,gaxi,gaxii,gazi,gazii,phi,phxi,phxii,phxpi,phxpii,    &
      &phzi,phzii,phzpi,phzpii,t
@@ -5426,6 +5428,11 @@ subroutine cpltwis(typ,t,etl,phi)
         else
           couuang=zero
         endif
+        if(open11 .eqv. .false.) then
+          ! Note: Description above says binary file, but the file has been opened as ascii since at least 4.x
+          call f_open(unit=11,file="fort.11",formatted=.true.,mode="w")
+          open11 = .true.
+        end if
         write(11,*) typ,etl,phi,bexi,bexii,bezi,bezii, alxi,alxii,alzi, &
      &alzii, gaxi,gaxii,gazi,gazii,phxi,phxii,phzi,phzii, phxpi,        &
      &phxpii,phzpi,phzpii,couuang,t(6,1),t(6,2),t(6,3),t(6,4),t(1,1),   &
