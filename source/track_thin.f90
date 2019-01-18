@@ -13,6 +13,7 @@ subroutine trauthin(nthinerr)
 
   use mod_alloc
   use mod_time
+  use mod_units
 
 #ifdef FLUKA
   use mod_fluka
@@ -445,6 +446,8 @@ subroutine trauthin(nthinerr)
       write(lout,"(a)") "TRACKING> ERROR thin6dua no longer supported. Please use DYNK instead."
       call prror(-1)
     else
+      ! Open file for writing coordinates at cavities
+      call f_open(unit=98,file="fort.98",formatted=.true.,mode="w")
       write(lout,"(a)") ""
       write(lout,"(a)") "TRACKING> Calling thin6d subroutine"
       write(lout,"(a)") ""

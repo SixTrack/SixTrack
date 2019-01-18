@@ -2214,11 +2214,6 @@ subroutine postpr(nfile)
         write(lout,*) 'ERROR CODE : ',ierro
         write(lout,*)
       endif
-#ifdef DEBUG
-#ifndef NAGFOR
-      write(210,'(60Z21)') (sumda(i),i=1,60)
-#endif
-#endif
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
       do ich=8192,1,-1
@@ -2667,11 +2662,6 @@ subroutine postpr(nfile)
         write(lout,*) 'ERROR CODE : ',ierro
         write(lout,*)
       endif
-#ifdef DEBUG
-#ifndef NAGFOR
-      write(210,'(60Z21)') (sumda(i),i=1,60)
-#endif
-#endif
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
       do ich=8192,1,-1

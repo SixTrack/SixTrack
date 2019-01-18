@@ -21,6 +21,7 @@ subroutine trauthck(nthinerr)
 
   use collimation
   use mod_time
+  use mod_units
 
   use crcoall
   use parpro
@@ -445,6 +446,8 @@ subroutine trauthck(nthinerr)
         write(lout,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
         call prror(-1)
       else
+        ! Open file for writing coordinates at cavities
+        call f_open(unit=98,file="fort.98",formatted=.true.,mode="w")
         write(lout,"(a)") ""
         write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
         write(lout,"(a)") ""

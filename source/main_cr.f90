@@ -299,10 +299,7 @@ end interface
   end do
 #endif
 
-  call f_open(unit=98,file="fort.98",formatted=.true.,mode="w",err=fErr)
-
-  ! Eric for the DA coefficients in BINARY
-  call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr)
+  call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr) ! DA file, binary
 
 #ifdef DEBUG
   call f_open(unit=99 ,file="dump",  formatted=.false.,mode="rw",err=fErr)
