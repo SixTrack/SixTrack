@@ -47,17 +47,17 @@ module aperture
   character(len=2), parameter, dimension(-1:6) :: apeName=(/'TR','NA','CR','RE','EL','RL','OC','RT'/)
 
   ! aperture parameteres ape(11,nele)
-  ! ape( 1,:): hor rect dimension (RECT/RECTELLIPSE/OCT) [mm]
-  ! ape( 2,:): ver rect dimension (RECT/RECTELLIPSE/OCT) [mm]
+  ! ape( 1,:): hor rect dimension (RECT/RECTELLIPSE/OCT/RACETR) [mm] for RACETRAK: ape(1)=ape(3)+ape(10)
+  ! ape( 2,:): ver rect dimension (RECT/RECTELLIPSE/OCT/RACETR) [mm] for RACETRAK: ape(2)=ape(4)+ape(11)
   ! ape( 3,:): hor elliptical dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]
   ! ape( 4,:): ver elliptical dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]
-  ! ape( 5,:): m of sloped side (OCT) []
-  ! ape( 6,:): q of sloped side (OCT) [mm]
-  ! ape( 7,:): tilt angle of marker (all) [rad]
-  ! ape( 8,:): hor offset of marker (all) [mm]
-  ! ape( 9,:): ver offset of marker (all) [mm]
-  ! ape(10,:): hor offset of rounded/ellyptical corner (RACETR) [mm]
-  ! ape(11,:): ver offset of rounded/ellyptical corner (RACETR) [mm]
+  ! ape( 5,:): hor offset of rounded/ellyptical corner (RACETR) [mm]
+  ! ape( 6,:): ver offset of rounded/ellyptical corner (RACETR) [mm]
+  ! ape( 7,:): m of sloped side (OCT) []
+  ! ape( 8,:): q of sloped side (OCT) [mm]
+  ! ape( 9,:): tilt angle of marker (all) [rad]
+  ! ape(10,:): hor offset of marker (all) [mm]
+  ! ape(11,:): ver offset of marker (all) [mm]
   real(kind=fPrec), allocatable, save ::  ape(:,:) !(11,nele)
   logical, allocatable, save :: lapeofftlt(:)      ! aperture is tilted/offcentred (nele)
 
@@ -256,20 +256,22 @@ subroutine aperture_nul( ix )
 end subroutine aperture_nul
 
 
-subroutine aperture_initTR( ix, aprx, apry, apex, apey, theta1, theta2, aptx, apty )
+subroutine aperture_initTR( ix, aprx, apry, apex, apey, aptx, apty, theta1, theta2 )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
   ! initialise aperture marker to transition
   !-----------------------------------------------------------------------
   implicit none
   integer ix
-  real(kind=fPrec) aprx, apry, apex, apey, theta1, theta2, aptx, apty
+  real(kind=fPrec) aprx, apry, apex, apey, aptx, apty, theta1, theta2
   call aperture_nul( ix )
   kape(ix)=-1
   ape(1,ix)=aprx
   ape(2,ix)=apry
   ape(3,ix)=apex
   ape(4,ix)=apey
+  ape(5,ix)=aptx
+  ape(6,ix)=apty
   ! x1=aprx=ape(1,ix)
   ! y1=ape(1,ix)*tan_mb(theta1)
   ! x2=ape(2,ix)/tan_mb(theta2)
@@ -277,10 +279,8 @@ subroutine aperture_initTR( ix, aprx, apry, apex, apey, theta1, theta2, aptx, ap
   ! m and q of sloped side
   ! m = (y2-y1)/(x2-x1)
   ! q = y1 -m*x1
-  ape(5,ix)=(ape(2,ix)-ape(1,ix)*tan_mb(theta1))/(ape(2,ix)/tan_mb(theta2)-ape(1,ix))		
-  ape(6,ix)=ape(1,ix)*tan_mb(theta1)-ape(5,ix)*ape(1,ix)		
-  ape(10,ix)=aptx
-  ape(11,ix)=apty
+  ape(7,ix)=(ape(2,ix)-ape(1,ix)*tan_mb(theta1))/(ape(2,ix)/tan_mb(theta2)-ape(1,ix))
+  ape(8,ix)=ape(1,ix)*tan_mb(theta1)-ape(7,ix)*ape(1,ix)
 end subroutine aperture_initTR
 
 
@@ -298,8 +298,8 @@ subroutine aperture_initCR( ix, aper )
   ape(2,ix)=aper
   ape(3,ix)=aper
   ape(4,ix)=aper
-  ape(5,ix)=-one
-  ape(6,ix)=ape(1,ix)*sqrt(two)
+  ape(7,ix)=-one
+  ape(8,ix)=ape(1,ix)*sqrt(two)
 end subroutine aperture_initCR
 
 
@@ -317,8 +317,8 @@ subroutine aperture_initRE( ix, aprx, apry )
   ape(2,ix)=apry
   ape(3,ix)=aprx*sqrt(two)
   ape(4,ix)=apry*sqrt(two)
-  ape(5,ix)=-one
-  ape(6,ix)=ape(2,ix)-ape(5,ix)*ape(1,ix)
+  ape(7,ix)=-one
+  ape(8,ix)=ape(2,ix)-ape(7,ix)*ape(1,ix)
 end subroutine aperture_initRE
 
 
@@ -336,8 +336,8 @@ subroutine aperture_initEL( ix, apex, apey )
   ape(2,ix)=apey
   ape(3,ix)=apex
   ape(4,ix)=apey
-  ape(5,ix)=-one
-  ape(6,ix)=sqrt(ape(3,ix)**2+ape(4,ix)**2)
+  ape(7,ix)=-one
+  ape(8,ix)=sqrt(ape(3,ix)**2+ape(4,ix)**2)
 end subroutine aperture_initEL
 
 
@@ -355,8 +355,8 @@ subroutine aperture_initRL( ix, aprx, apry, apex, apey )
   ape(2,ix)=apry
   ape(3,ix)=apex
   ape(4,ix)=apey
-  ape(5,ix)=-one
-  ape(6,ix)=max(ape(2,ix)-ape(5,ix)*ape(1,ix),sqrt(ape(3,ix)**2+ape(4,ix)**2))
+  ape(7,ix)=-one
+  ape(8,ix)=max(ape(2,ix)-ape(7,ix)*ape(1,ix),sqrt(ape(3,ix)**2+ape(4,ix)**2))
 end subroutine aperture_initRL
 
 
@@ -382,8 +382,8 @@ subroutine aperture_initOC( ix, aprx, apry, theta1, theta2 )
   ape(3,ix)=sqrt(N/((y2+y1)*(y2-y1)))  ! a=sqrt(N/(y2^2-y1^2))
   ape(4,ix)=sqrt(N/((x1+x2)*(x1-x2)))  ! b=sqrt(N/(x1^2-x2^2))
   ! m and q of sloped side
-  ape(5,ix)=(y2-y1)/(x2-x1)  ! m = (y2-y1)/(x2-x1)
-  ape(6,ix)=y1-ape(5,ix)*x1  ! q = y1 -m*x1
+  ape(7,ix)=(y2-y1)/(x2-x1)  ! m = (y2-y1)/(x2-x1)
+  ape(8,ix)=y1-ape(7,ix)*x1  ! q = y1 -m*x1
 end subroutine aperture_initOC
 
 
@@ -397,14 +397,14 @@ subroutine aperture_initRT( ix, aprx, apry, apex, apey )
   real(kind=fPrec) aprx, apry, apex, apey
   call aperture_nul( ix )
   kape(ix)=6
-  ape(1,ix)=aprx+apex
-  ape(2,ix)=apry+apey
+  ape(1,ix)=aprx+apex ! needed only for interpolation
+  ape(2,ix)=apry+apey ! needed only for interpolation
   ape(3,ix)=apex
   ape(4,ix)=apey
-  ape(5,ix)=-one
-  ape(6,ix)=(sqrt(ape(3,ix)**2+ape(4,ix)**2)+(ape(1,ix)-ape(3,ix)))+(ape(2,ix)-ape(4,ix))
-  ape(10,ix)=aprx
-  ape(11,ix)=apry
+  ape(5,ix)=aprx
+  ape(6,ix)=apry
+  ape(7,ix)=-one
+  ape(8,ix)=(sqrt(ape(3,ix)**2+ape(4,ix)**2)+(ape(1,ix)-ape(3,ix)))+(ape(2,ix)-ape(4,ix))
 end subroutine aperture_initRT
 
 
@@ -416,10 +416,10 @@ subroutine aperture_initroffpos( ix, xoff, yoff, tilt )
   implicit none
   integer ix
   real(kind=fPrec) tilt, xoff, yoff
-  ape(7,ix)=tilt
-  ape(8,ix)=xoff
-  ape(9,ix)=yoff
-  lapeofftlt(ix)=ape(7,ix).ne.zero.or.ape(8,ix).ne.zero.or.ape(9,ix).ne.zero
+  ape( 9,ix)=tilt
+  ape(10,ix)=xoff
+  ape(11,ix)=yoff
+  lapeofftlt(ix)=ape(9,ix).ne.zero.or.ape(10,ix).ne.zero.or.ape(11,ix).ne.zero
 end subroutine aperture_initroffpos
 
 
@@ -563,21 +563,21 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
         if(lapeofftlt(ix)) then
           if(lbacktracking) then
-            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           else
-            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           end if
           llostp(j)=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix), &
-               ape(10,ix),ape(11,ix)).or.isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+               ape(7,ix),ape(8,ix)).or.isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
         else
           if(lbacktracking) then
             llostp(j)= &
               checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix), &
-               ape(10,ix),ape(11,ix)).or.isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
+               ape(7,ix),ape(8,ix)).or.isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
           else
             llostp(j)= &
               checkTR(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix), &
-               ape(10,ix),ape(11,ix)).or.isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
+               ape(7,ix),ape(8,ix)).or.isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
         llost=llost.or.llostp(j)
@@ -592,9 +592,9 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
 
         if(lapeofftlt(ix)) then
           if(lbacktracking) then
-            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           else
-            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           end if
           llostp(j)=checkCR( xchk(1),xchk(2),radius2 ) .or. &
             isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
@@ -615,9 +615,9 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll) ) then
         if(lapeofftlt(ix)) then
           if(lbacktracking) then
-            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           else
-            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           end if
           llostp(j)=checkRE( xchk(1),xchk(2),ape(1,ix),ape(2,ix) ) .or. &
             isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
@@ -642,9 +642,9 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
         if(lapeofftlt(ix)) then
           if(lbacktracking) then
-            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           else
-            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           end if
           llostp(j)=checkEL( xchk(1),xchk(2),apxx,apyy,apxy ) .or. &
             isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
@@ -669,9 +669,9 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
         if(lapeofftlt(ix)) then
           if(lbacktracking) then
-            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           else
-            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           end if
           llostp(j)=checkRL( xchk(1),xchk(2),ape(1,ix),ape(2,ix),apxx,apyy,apxy ) .or. &
             isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
@@ -693,18 +693,18 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
         if(lapeofftlt(ix)) then
           if(lbacktracking) then
-            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           else
-            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           end if
-          llostp(j)=checkOC(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+          llostp(j)=checkOC(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(7,ix),ape(8,ix)).or. &
             isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
         else
           if(lbacktracking) then
-            llostp(j)=checkOC(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+            llostp(j)=checkOC(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(7,ix),ape(8,ix)).or. &
               isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
           else
-            llostp(j)=checkOC(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(5,ix),ape(6,ix)).or. &
+            llostp(j)=checkOC(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(7,ix),ape(8,ix)).or. &
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
@@ -721,18 +721,18 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
         if(lapeofftlt(ix)) then
           if(lbacktracking) then
-            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            call roffpos(xLast(1,j),xLast(2,j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           else
-            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
+            call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           end if
-          llostp(j)=checkRT(xchk(1),xchk(2),ape(10,ix),ape(11,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
+          llostp(j)=checkRT(xchk(1),xchk(2),ape(50,ix),ape(6,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
             isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
         else
           if(lbacktracking) then
-            llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(10,ix),ape(11,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
+            llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(5,ix),ape(6,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
               isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
           else
-            llostp(j)=checkRT(xv1(j),xv2(j),ape(10,ix),ape(11,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
+            llostp(j)=checkRT(xv1(j),xv2(j),ape(5,ix),ape(6,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
@@ -880,7 +880,7 @@ subroutine aperture_reportLoss(turn, i, ix)
 
           ! Check aperture
           if( lapeofftlt(ix).or.lapeofftlt(ixLast) ) then
-            call roffpos( xlos(1), xlos(2), xchk(1),xchk(2), aprr(7), aprr(8), aprr(9) )
+            call roffpos( xlos(1), xlos(2), xchk(1),xchk(2), aprr(9), aprr(10), aprr(11) )
           else
             xchk(1) = xlos(1)
             xchk(2) = xlos(2)
@@ -892,7 +892,7 @@ subroutine aperture_reportLoss(turn, i, ix)
             apyy = aprr(4)**2.
             apxy = apxx * apyy
             llos=checkTR(xchk(1),xchk(2),aprr(1),aprr(2),aprr(3),aprr(4), &
-                         apxx,apyy,apxy,aprr(5),aprr(6),aprr(10),aprr(11)).or. &
+                         apxx,apyy,apxy,aprr(5),aprr(6),aprr(7),aprr(8)).or. &
                          isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           case (1) ! Circle
             radius2 = aprr(3)**2
@@ -914,13 +914,13 @@ subroutine aperture_reportLoss(turn, i, ix)
             llos = checkRL( xchk(1),xchk(2),aprr(1),aprr(2),apxx, apyy, apxy ) .or. &
               isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           case (5) ! Octagon
-            llos=checkOC(xchk(1), xchk(2), aprr(1), aprr(2), aprr(5), aprr(6) ) .or. &
+            llos=checkOC(xchk(1), xchk(2), aprr(1), aprr(2), aprr(7), aprr(8) ) .or. &
               isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           case (6) ! RaceTrack
             apxx = aprr(3)**2.
             apyy = aprr(4)**2.
             apxy = apxx * apyy
-            llos=checkRT( xchk(1), xchk(2), aprr(10), aprr(11), aprr(3), aprr(4), apxx, apyy, apxy ) .or. &
+            llos=checkRT( xchk(1), xchk(2), aprr(5), aprr(6), aprr(3), aprr(4), apxx, apyy, apxy ) .or. &
               isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           end select
         end do !do jj=1,niter
@@ -1231,7 +1231,7 @@ logical function checkCR( x, y, radius2 )
   return
 end function checkCR
 
-logical function checkTR( x, y, aprx, apry, apex, apey, apxx, apyy, apxy, m, q, aptx, apty )
+logical function checkTR( x, y, aprx, apry, apex, apey, apxx, apyy, apxy, aptx, apty, m, q )
 !-----------------------------------------------------------------------
 !     A.Mereghetti (CERN, BE/ABP-HSS)
 !     last modified: 16-01-2019
@@ -1849,9 +1849,9 @@ subroutine dumpMe
   do i=1,iu
     ix=ic(i)-nblo
     if( ix.gt.0 ) then
-      write(lout,"(a,i8,1x,a48,1x,f15.6,1x,i8)") "APER> ",i,bez(ix),dcum(i),kape(ix)
+      write(lout,"(a,i8,1x,a,1x,f15.6,1x,i8)") "APER> ",i,bez(ix),dcum(i),kape(ix)
     else
-      write(lout,"(a,i8,1x,a48,1x,f15.6)") "APER> ",i,bezb(ic(i)),dcum(i)
+      write(lout,"(a,i8,1x,a,1x,f15.6)") "APER> ",i,bezb(ic(i)),dcum(i)
     end if
   end do
   write(lout,"(a)") "APER> dumpMe -----------------------------------------------------------------------------"
@@ -1888,13 +1888,13 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
      case(0) ! not an aperture marker
         write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9), ape(10), ape(11)
      case(1) ! Circle
-        write(iunit,1984) name, apeName(aptype), spos, ape(1),   zero,   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9), zero, zero
+        write(iunit,1984) name, apeName(aptype), spos, ape(1),   zero,   zero,   zero,   zero,   zero,   zero,   zero, ape(9), ape(10), ape(11)
      case(2) ! Rectangle
-        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2),   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9), zero, zero
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2),   zero,   zero,   zero,   zero,   zero,   zero, ape(9), ape(10), ape(11)
      case(3) ! Ellipse
-        write(iunit,1984) name, apeName(aptype), spos, ape(3), ape(4),   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9), zero, zero
+        write(iunit,1984) name, apeName(aptype), spos, ape(3), ape(4),   zero,   zero,   zero,   zero,   zero,   zero, ape(9), ape(10), ape(11)
      case(4) ! Rectellipse
-        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4),   zero,   zero, ape(7), ape(8), ape(9), zero, zero
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4),   zero,   zero,   zero,   zero, ape(9), ape(10), ape(11)
      case(5) ! Octagon
         ! get angles from points passing through x1,y1 and x2,y2
         ! x1=ape(1)
@@ -1902,9 +1902,9 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
         ! x2=ape(2)/tan(theta2)
         ! y2=ape(2)
         write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), atan2_mb(ape(1)*ape(5)+ape(6),ape(1)), &
-             &         atan2_mb(ape(2),(ape(2)-ape(6))/ape(5)),   zero,   zero, ape(7), ape(8), ape(9), zero, zero
+             &         atan2_mb(ape(2),(ape(2)-ape(6))/ape(5)),   zero,   zero,   zero,   zero, ape(9), ape(10), ape(11)
      case(6) ! Racetrack
-        write(iunit,1984) name, apeName(aptype), spos, ape(10), ape(11), ape(3), ape(4),   zero,   zero, ape(7), ape(8), ape(9), zero, zero
+        write(iunit,1984) name, apeName(aptype), spos, ape(5), ape(6), ape(3), ape(4),   zero,   zero,   zero,   zero, ape(9), ape(10), ape(11)
      end select
   end if
   return
@@ -1941,7 +1941,7 @@ subroutine dump_aperture_header( iunit )
   if(st_quiet > 0 .and. iunit == 6) return
   write(iunit,1984) '#', 'name', 'aptype', 's[m]', 'aper1[mm]', 'aper2[mm]', &
  &                  'aper3[mm][rad]', 'aper4[mm][rad]', 'aper5[mm][rad]', 'aper6[mm][rad]', &
- &                  'angle[rad]', 'xoff[mm]', 'yoff[mm]', 'aper7[mm][rad]', 'aper8[mm][rad]'
+ &                  'aper7[mm][rad]', 'aper8[mm][rad]', 'angle[rad]', 'xoff[mm]', 'yoff[mm]'
   return
  1984 format (a1,a,1x,a6,1x,12(1x,a15))
 end subroutine dump_aperture_header
@@ -2027,12 +2027,12 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
   end do
   write(iunit,*)'# number of points:',nAzim
   write(iunit,1981) '# ang[deg]', 'rad [mm]', 'x [mm]', 'y [mm]'
-  tmpOffTlt=tmpape(7).ne.zero.or.tmpape(8).ne.zero.or.tmpape(9).ne.zero
+  tmpOffTlt=tmpape(9).ne.zero.or.tmpape(10).ne.zero.or.tmpape(11).ne.zero
 
   ! origin of ray:
   xRay=zero
   yRay=zero
-  if(tmpOffTlt) call roffpos(xRay,yRay,xRay,yRay,tmpape(7),tmpape(8),tmpape(9))
+  if(tmpOffTlt) call roffpos(xRay,yRay,xRay,yRay,tmpape(9),tmpape(10),tmpape(11))
 
   ! loop over rays
   select case(itmpape)
@@ -2040,9 +2040,10 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      do i=1,nAzim
         thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
-        call intersectTR(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(3),tmpape(4),tmpape(5),tmpape(6),xChk,yChk,nChk)
+        call intersectTR(xRay,yRay,thetaRay-tmpape(9),tmpape(1),tmpape(2),tmpape(3),tmpape(4),tmpape(5),tmpape(6), &
+             tmpape(7),tmpape(8),xChk,yChk,nChk)
         ! go back to machine reference system
-        if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(9),tmpape(10),tmpape(11))
         ! echo result of scan
         write(iunit,1982) thetaRay/rad,sqrt(xChk**2+yChk**2),xChk,yChk
      end do
@@ -2050,9 +2051,9 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      do i=1,nAzim
         thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
-        call intersectCR(xRay,yRay,thetaRay-tmpape(7),tmpape(3),zero,zero,xChk,yChk,nChk)
+        call intersectCR(xRay,yRay,thetaRay-tmpape(9),tmpape(3),zero,zero,xChk,yChk,nChk)
         ! go back to machine reference system
-        if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(9),tmpape(10),tmpape(11))
         ! echo result of scan
         write(iunit,1982) thetaRay/rad,sqrt(xChk**2+yChk**2),xChk,yChk
      end do
@@ -2060,9 +2061,9 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      do i=1,nAzim
         thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
-        call intersectRE(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),xChk,yChk,nChk)
+        call intersectRE(xRay,yRay,thetaRay-tmpape(9),tmpape(1),tmpape(2),xChk,yChk,nChk)
         ! go back to machine reference system
-        if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(9),tmpape(10),tmpape(11))
         ! echo result of scan
         write(iunit,1982) thetaRay/rad,sqrt(xChk**2+yChk**2),xChk,yChk
      end do
@@ -2070,9 +2071,9 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      do i=1,nAzim
         thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
-        call intersectEL(xRay,yRay,thetaRay-tmpape(7),tmpape(3),tmpape(4),zero,zero,xChk,yChk,nChk)
+        call intersectEL(xRay,yRay,thetaRay-tmpape(9),tmpape(3),tmpape(4),zero,zero,xChk,yChk,nChk)
         ! go back to machine reference system
-        if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(9),tmpape(10),tmpape(11))
         ! echo result of scan
         write(iunit,1982) thetaRay/rad,sqrt(xChk**2+yChk**2),xChk,yChk
      end do
@@ -2080,9 +2081,9 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      do i=1,nAzim
         thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
-        call intersectRL(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(3),tmpape(4),xChk,yChk,nChk)
+        call intersectRL(xRay,yRay,thetaRay-tmpape(9),tmpape(1),tmpape(2),tmpape(3),tmpape(4),xChk,yChk,nChk)
         ! go back to machine reference system
-        if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(9),tmpape(10),tmpape(11))
         ! echo result of scan
         write(iunit,1982) thetaRay/rad,sqrt(xChk**2+yChk**2),xChk,yChk
      end do
@@ -2090,9 +2091,9 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      do i=1,nAzim
         thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
-        call intersectOC(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(5),tmpape(6),xChk,yChk,nChk)
+        call intersectOC(xRay,yRay,thetaRay-tmpape(9),tmpape(1),tmpape(2),tmpape(7),tmpape(8),xChk,yChk,nChk)
         ! go back to machine reference system
-        if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(9),tmpape(10),tmpape(11))
         ! echo result of scan
         write(iunit,1982) thetaRay/rad,sqrt(xChk**2+yChk**2),xChk,yChk
      end do
@@ -2100,9 +2101,9 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      do i=1,nAzim
         thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
-        call intersectRT(xRay,yRay,thetaRay-tmpape(7),tmpape(1),tmpape(2),tmpape(3),xChk,yChk,nChk)
+        call intersectRT(xRay,yRay,thetaRay-tmpape(9),tmpape(5),tmpape(6),tmpape(3),tmpape(4),xChk,yChk,nChk)
         ! go back to machine reference system
-        if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(7),tmpape(8),tmpape(9))
+        if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(9),tmpape(10),tmpape(11))
         ! echo result of scan
         write(iunit,1982) thetaRay/rad,sqrt(xChk**2+yChk**2),xChk,yChk
      end do
@@ -2413,11 +2414,11 @@ subroutine intersectRT( xRay, yRay, thetaRay, xRe, yRe, radius, xChk, yChk, nChk
   return
 end subroutine intersectRT
 
-subroutine intersectTR( xRay, yRay, thetaRay, xRe, yRe, aa, bb, mOct, qOct, xChk, yChk, nChk )
+subroutine intersectTR( xRay, yRay, thetaRay, xRe, yRe, aa, bb, xOf, yOf, mOct, qOct, xChk, yChk, nChk )
   ! 0.0<=thetaRay<=2pi!!!!!
   implicit none
   ! interface variables
-  real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, aa, bb, mOct, qOct, xChk, yChk, nChk
+  real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, aa, bb, xOf, yOf, mOct, qOct, xChk, yChk, nChk
   ! temp variables
   real(kind=fPrec) xTmp(2), yTmp(2), nTmp(2)
   call intersectRE( xRay, yRay, thetaRay, xRe, yRe, xTmp(1), yTmp(1), nTmp(1) )
@@ -2685,9 +2686,9 @@ recursive subroutine aper_parseInputLine(inLine, iLine, iErr)
         call aper_parseElement(inLine, i, iErr)
         apeFound = .true.
         if(kape(i) == -1) then
-          if(nSplit > 8)  call chr_cast(lnSplit(9), tmpflts(1),iErr)
-          if(nSplit > 9)  call chr_cast(lnSplit(10),tmpflts(2),iErr)
-          if(nSplit > 10) call chr_cast(lnSplit(11),tmpflts(3),iErr)
+          if(nSplit > 10) call chr_cast(lnSplit(11),tmpflts(1),iErr)
+          if(nSplit > 11) call chr_cast(lnSplit(12),tmpflts(2),iErr)
+          if(nSplit > 12) call chr_cast(lnSplit(13),tmpflts(3),iErr)
         else
           if(nSplit > 6)  call chr_cast(lnSplit(7), tmpflts(1),iErr)
           if(nSplit > 7)  call chr_cast(lnSplit(8), tmpflts(2),iErr)
@@ -2814,20 +2815,20 @@ subroutine aper_parseElement(inLine, iElem, iErr)
     call aperture_initRT(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(4))
 
   case(apeName(-1)) ! Transition
-    if(nSplit < 13) then
+    if(nSplit < 10) then
       write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(-1)//&
-        "' aperture marker. Expected 13, got ",nSplit
+        "' aperture marker. Expected 10, got ",nSplit
       iErr = .true.
       return		
     end if		
-    call chr_cast(lnSplit(3),tmpflts(1),iErr)		
-    call chr_cast(lnSplit(4),tmpflts(2),iErr)		
-    call chr_cast(lnSplit(5),tmpflts(3),iErr)		
-    call chr_cast(lnSplit(6),tmpflts(4),iErr)		
-    call chr_cast(lnSplit(7),tmpflts(5),iErr)		
-    call chr_cast(lnSplit(8),tmpflts(6),iErr)		
-    call chr_cast(lnSplit(11),tmpflts(7),iErr)		
-    call chr_cast(lnSplit(12),tmpflts(8),iErr)		
+    call chr_cast(lnSplit(3) ,tmpflts(1),iErr)		
+    call chr_cast(lnSplit(4) ,tmpflts(2),iErr)		
+    call chr_cast(lnSplit(5) ,tmpflts(3),iErr)		
+    call chr_cast(lnSplit(6) ,tmpflts(4),iErr)		
+    call chr_cast(lnSplit(7) ,tmpflts(5),iErr)		
+    call chr_cast(lnSplit(8) ,tmpflts(6),iErr)		
+    call chr_cast(lnSplit(9) ,tmpflts(7),iErr)		
+    call chr_cast(lnSplit(10),tmpflts(8),iErr)		
     call aperture_initTR(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(4),tmpflts(5),tmpflts(6),tmpflts(7),tmpflts(8))
 
   case default
