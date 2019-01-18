@@ -4289,6 +4289,7 @@ subroutine linopt(dpp)
   use mathlib_bouncer
   use crcoall
   use parpro
+  use mod_units
   use mod_common
   use mod_commons
   use mod_common_track
@@ -4391,6 +4392,7 @@ subroutine linopt(dpp)
       end do
 
       if(ncorru.eq.0) then
+        call f_open(unit=34,file="fort.34",formatted=.true.,mode="w")
         write(lout,10010)
         write(lout,10050) (di0(l),dip0(l),l=1,2)
       endif
