@@ -193,7 +193,6 @@ subroutine fluc_readFort8
   use mod_alloc
   use mod_units
   use string_tools
-  use parpro,              only : mNameLen,str_nmSpace
   use numerical_constants, only : zero
   use mod_common,          only : il,bez,icextal,nblz,nblo,ic
 
@@ -243,9 +242,9 @@ subroutine fluc_readFort8
 
   fluc_nAlign = fluc_nAlign + 1
   if(fluc_nAlign > mAlign) then
-    call alloc(fluc_errAlign,3,       mAlign+50,zero,       "fluc_errAlign")
-    call alloc(fluc_bezAlign,mNameLen,mAlign+50,str_nmSpace,"fluc_bezAlign")
-    call alloc(fluc_ixAlign,          mAlign+50,0,          "fluc_ixAlign")
+    call alloc(fluc_errAlign,3,       mAlign+50,zero, "fluc_errAlign")
+    call alloc(fluc_bezAlign,mNameLen,mAlign+50," ",  "fluc_bezAlign")
+    call alloc(fluc_ixAlign,          mAlign+50,0,    "fluc_ixAlign")
   end if
 
   if(nSplit > 0) fluc_bezAlign(fluc_nAlign) = trim(lnSplit(1))
@@ -304,7 +303,6 @@ subroutine fluc_readFort16
   use mod_alloc
   use mod_units
   use string_tools
-  use parpro,              only : mNameLen,str_nmSpace
   use numerical_constants, only : zero
   use mod_common,          only : il,bez,icext,nblz,nblo,ic
 
@@ -378,9 +376,9 @@ subroutine fluc_readFort16
 
       fluc_nExt = fluc_nExt + 1
       if(fluc_nExt > mExt) then
-        call alloc(fluc_errExt,40,      mExt+50,zero,       "fluc_errExt")
-        call alloc(fluc_bezExt,mNameLen,mExt+50,str_nmSpace,"fluc_bezExt")
-        call alloc(fluc_ixExt,          mExt+50,0,          "fluc_ixExt")
+        call alloc(fluc_errExt,40,      mExt+50,zero, "fluc_errExt")
+        call alloc(fluc_bezExt,mNameLen,mExt+50," ",  "fluc_bezExt")
+        call alloc(fluc_ixExt,          mExt+50,0,    "fluc_ixExt")
       end if
       fluc_bezExt(fluc_nExt) = bezExt
 
@@ -461,7 +459,7 @@ subroutine fluc_readFort30
   use mod_alloc
   use mod_units
   use string_tools
-  use parpro,              only : mNameLen,str_nmSpace,mmul
+  use parpro,              only : mmul
   use numerical_constants, only : zero
   use mod_common,          only : il,bez,icextal,nblz,nblo,ic,kp,kz
 
@@ -511,9 +509,9 @@ subroutine fluc_readFort30
 
   fluc_nZFZ = fluc_nZFZ + 1
   if(fluc_nZFZ > mZFZ) then
-    call alloc(fluc_errZFZ,4,       mZFZ+50,zero,       "fluc_errZFZ")
-    call alloc(fluc_bezZFZ,mNameLen,mZFZ+50,str_nmSpace,"fluc_bezZFZ")
-    call alloc(fluc_ixZFZ,          mZFZ+50,0,          "fluc_ixZFZ")
+    call alloc(fluc_errZFZ,4,       mZFZ+50,zero, "fluc_errZFZ")
+    call alloc(fluc_bezZFZ,mNameLen,mZFZ+50," ",  "fluc_bezZFZ")
+    call alloc(fluc_ixZFZ,          mZFZ+50,0,    "fluc_ixZFZ")
   end if
 
   if(nSplit > 0) fluc_bezZFZ(fluc_nZFZ) = trim(lnSplit(1))

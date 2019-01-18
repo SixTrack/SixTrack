@@ -78,7 +78,7 @@ subroutine daten
   ! SIXTRACK INPUT MODULE
   inErr       = .false.
 
-  call alloc(sixin_bez0,mNameLen,nele,str_nmSpace,"sixin_bez0")
+  call alloc(sixin_bez0,mNameLen,nele," ","sixin_bez0")
 
   ! DATEN INTERNAL
   nGeom       = 0

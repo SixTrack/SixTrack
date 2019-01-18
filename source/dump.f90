@@ -91,7 +91,7 @@ subroutine dump_expand_arrays(nele_new, nblz_new)
   call alloc(dumplast,            nele_new, 0,          "dumplast",   -1)
   call alloc(dumpunit,            nele_new, 0,          "dumpunit",   -1)
   call alloc(dumpfmt,             nele_new, 0,          "dumpfmt",    -1)
-  call alloc(dump_fname, mStrLen, nele_new, str_dSpace, "dump_fname", -1)
+  call alloc(dump_fname, mStrLen, nele_new, " ",        "dump_fname", -1)
 
   call alloc(dumptas,             nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
   call alloc(dumptasinv,          nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)

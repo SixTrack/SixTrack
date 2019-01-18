@@ -99,19 +99,19 @@ subroutine scatter_allocate
   use mod_alloc
   implicit none
 
-  call alloc(scatter_ELEM,              1,5, 0,          "scatter_ELEM")
-  call alloc(scatter_ELEM_scale,        1,   zero,       "scatter_ELEM_scale")
-  call alloc(scatter_PROFILE,           1,5, 0,          "scatter_PROFILE")
-  call alloc(scatter_GENERATOR,         1,5, 0,          "scatter_GENERATOR")
+  call alloc(scatter_ELEM,              1,5, 0,    "scatter_ELEM")
+  call alloc(scatter_ELEM_scale,        1,   zero, "scatter_ELEM_scale")
+  call alloc(scatter_PROFILE,           1,5, 0,    "scatter_PROFILE")
+  call alloc(scatter_GENERATOR,         1,5, 0,    "scatter_GENERATOR")
 
-  call alloc(scatter_iData,             1,   0,          "scatter_iData")
-  call alloc(scatter_fData,             1,   zero,       "scatter_fData")
-  call alloc(scatter_cData,    mStrLen, 1,   str_dSpace, "scatter_cData")
+  call alloc(scatter_iData,             1,   0,    "scatter_iData")
+  call alloc(scatter_fData,             1,   zero, "scatter_fData")
+  call alloc(scatter_cData,    mStrLen, 1,   " ",  "scatter_cData")
 
 #ifdef CR
-  call alloc(scatter_iData_CR,          1,   0,          "scatter_iData_CR")
-  call alloc(scatter_fData_CR,          1,   zero,       "scatter_fData_CR")
-  call alloc(scatter_cData_CR, mStrLen, 1,   str_dSpace, "scatter_cData_CR")
+  call alloc(scatter_iData_CR,          1,   0,    "scatter_iData_CR")
+  call alloc(scatter_fData_CR,          1,   zero, "scatter_fData_CR")
+  call alloc(scatter_cData_CR, mStrLen, 1,   " ",  "scatter_cData_CR")
 #endif
 
 end subroutine scatter_allocate
@@ -270,9 +270,9 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
   read(fileUnit, err=10, end=10) scatter_filePos_CR, scatter_seed1_CR, scatter_seed2_CR
   read(fileUnit, err=10, end=10) scatter_niData_CR, scatter_nfData_CR, scatter_ncData_CR
 
-  call alloc(scatter_iData_CR,          scatter_niData_CR, 0,          "scatter_iData_CR")
-  call alloc(scatter_fData_CR,          scatter_nfData_CR, zero,       "scatter_fData_CR")
-  call alloc(scatter_cData_CR, mStrLen, scatter_ncData_CR, str_dSpace, "scatter_cData_CR")
+  call alloc(scatter_iData_CR,          scatter_niData_CR, 0,    "scatter_iData_CR")
+  call alloc(scatter_fData_CR,          scatter_nfData_CR, zero, "scatter_fData_CR")
+  call alloc(scatter_cData_CR, mStrLen, scatter_ncData_CR, " ",  "scatter_cData_CR")
 
   read(fileUnit, err=10, end=10) (scatter_iData_CR(j), j=1, scatter_niData_CR)
   read(fileUnit, err=10, end=10) (scatter_fData_CR(j), j=1, scatter_nfData_CR)
@@ -417,9 +417,9 @@ subroutine scatter_crstart
   scatter_nfData = scatter_nfData_CR
   scatter_ncData = scatter_ncData_CR
 
-  call alloc(scatter_iData,          scatter_niData, 0,          "scatter_iData")
-  call alloc(scatter_fData,          scatter_nfData, zero,       "scatter_fData")
-  call alloc(scatter_cData, mStrLen, scatter_ncData, str_dSpace, "scatter_cData")
+  call alloc(scatter_iData,          scatter_niData, 0,    "scatter_iData")
+  call alloc(scatter_fData,          scatter_nfData, zero, "scatter_fData")
+  call alloc(scatter_cData, mStrLen, scatter_ncData, " ",  "scatter_cData")
 
   scatter_iData(1:scatter_niData) = scatter_iData_CR(1:scatter_niData)
   scatter_fData(1:scatter_nfData) = scatter_fData_CR(1:scatter_nfData)
@@ -713,7 +713,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit)
 
   ! Store the profile name
   scatter_ncData = scatter_ncData + 1
-  call alloc(scatter_cData, mStrLen, scatter_ncData, str_dSpace, "scatter_cData")
+  call alloc(scatter_cData, mStrLen, scatter_ncData, " ", "scatter_cData")
 
   scatter_cData(scatter_ncData)       = lnSplit(2)
   scatter_PROFILE(scatter_nPROFILE,1) = scatter_ncData
@@ -807,7 +807,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit)
 
   ! Store the generator name
   scatter_ncData = scatter_ncData + 1
-  call alloc(scatter_cData, mStrLen, scatter_ncData, str_dSpace, "scatter_cData")
+  call alloc(scatter_cData, mStrLen, scatter_ncData, " ", "scatter_cData")
 
   scatter_cData(scatter_ncData)           = lnSplit(2)
   scatter_GENERATOR(scatter_nGENERATOR,1) = scatter_ncData

@@ -47,7 +47,7 @@ subroutine zipf_parseInputLine(inLine,iErr)
   end if
 
   zipf_numFiles = zipf_numFiles + 1
-  call alloc(zipf_fileNames, mStrLen, zipf_numFiles, str_dSpace, "zipf_fileNames")
+  call alloc(zipf_fileNames, mStrLen, zipf_numFiles, " ", "zipf_fileNames")
   zipf_fileNames(zipf_numFiles) = trim(lnSplit(1))
 
 end subroutine zipf_parseInputLine
