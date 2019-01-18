@@ -91,9 +91,19 @@ featList = ""
 
   ! Open files
   fErr = .false.
-  call f_open(unit=12, file="fort.12", formatted=.true., mode="w", err=fErr)
-  call f_open(unit=18, file="fort.18", formatted=.true., mode="rw",err=fErr)
-  call f_open(unit=19, file="fort.19", formatted=.true., mode="w", err=fErr)
+  call f_open(unit=12,file="fort.12",formatted=.true.,mode="w", err=fErr)
+  call f_open(unit=17,file="fort.17",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=18,file="fort.18",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=19,file="fort.19",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=20,file="fort.20",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=21,file="fort.21",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=22,file="fort.22",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=23,file="fort.23",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=24,file="fort.24",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=25,file="fort.25",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=26,file="fort.26",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=27,file="fort.27",formatted=.true.,mode="rw",err=fErr) ! DA Files
+
   call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
   call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr)
 

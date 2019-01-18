@@ -286,10 +286,9 @@ end interface
   call f_open(unit=15,file="fort.15",formatted=.true., mode="w", err=fErr) ! Postprocessing
   call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA file
   call f_open(unit=19,file="fort.19",formatted=.true., mode="r", err=fErr) ! DA file
-  call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=21,file="fort.21",formatted=.true., mode="w", err=fErr)
+  call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr) ! DA file
+  call f_open(unit=21,file="fort.21",formatted=.true., mode="w", err=fErr) ! DA file
   call f_open(unit=31,file="fort.31",formatted=.true., mode="w", err=fErr)
-! call f_open(unit=35,file="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
 
 #ifdef STF
   ! Open Single Track File
