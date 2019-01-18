@@ -282,21 +282,12 @@ end interface
 
   ! Open Regular File Units
   call f_open(unit=12,file="fort.12",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=14,file="fort.14",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=15,file="fort.15",formatted=.true., mode="w", err=fErr)
-! call f_open(unit=17,file="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use? Should mirror fort.16
-  call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr)
-! call f_open(unit=19,file="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
+  call f_open(unit=14,file="fort.14",formatted=.true., mode="w", err=fErr) ! Postprocessing
+  call f_open(unit=15,file="fort.15",formatted=.true., mode="w", err=fErr) ! Postprocessing
+  call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA file
+  call f_open(unit=19,file="fort.19",formatted=.true., mode="r", err=fErr) ! DA file
   call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr)
   call f_open(unit=21,file="fort.21",formatted=.true., mode="w", err=fErr)
-! call f_open(unit=22,file="fort.22",formatted=.true. ,mode="w", err=fErr) ! Not in use?
-! call f_open(unit=23,file="fort.23",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call f_open(unit=24,file="fort.24",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call f_open(unit=25,file="fort.25",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call f_open(unit=26,file="fort.26",formatted=.true., mode="w", err=fErr) ! Not in use?
-  call f_open(unit=27,file="fort.27",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=28,file="fort.28",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=29,file="fort.29",formatted=.true., mode="w", err=fErr)
   call f_open(unit=31,file="fort.31",formatted=.true., mode="w", err=fErr)
   call f_open(unit=34,file="fort.34",formatted=.true., mode="w", err=fErr)
 ! call f_open(unit=35,file="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?

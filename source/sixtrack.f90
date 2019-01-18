@@ -5576,6 +5576,7 @@ subroutine corrorb
       use mathlib_bouncer
       use crcoall
       use parpro
+      use mod_units
       use mod_common
       use mod_commons
       use mod_common_track
@@ -5844,14 +5845,17 @@ subroutine corrorb
       if((ii-1).eq.itco) write(lout,10130) itco
   190 continue
 
-!-- WRITE OUT ADJUSTED CLOSED ORBIT
-      do 200 i=1,nhmoni
-        write(28,*) i,bclorb(i,1)
-  200 continue
-
-      do 210 i=1,nhmoni
-        write(29,*) i,bclorb(i,2)
-  210 continue
+  if(nhmoni > 0) then
+    ! WRITE OUT ADJUSTED CLOSED ORBIT
+    call f_open(unit=28,file="fort.28",formatted=.true.,mode="w")
+    call f_open(unit=29,file="fort.29",formatted=.true.,mode="w")
+    do i=1,nhmoni
+      write(28,*) i,bclorb(i,1)
+      write(29,*) i,bclorb(i,2)
+    end do
+    call f_close(28)
+    call f_close(29)
+  end if
 
 !-- CHANGE BACK TO OLD 'LINOPT' SETTINGS
       iprint=iprinto

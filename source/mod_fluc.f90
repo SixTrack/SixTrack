@@ -119,6 +119,7 @@ subroutine fluc_readInputs
   if(iand(fluc_mRead, 2) == 2) then
     mout2 = 1
     call f_open(unit=9, file="fort.9", formatted=.true., mode="w")
+    call f_open(unit=27,file="fort.27",formatted=.true., mode="w")
   end if
   if(iand(fluc_mRead, 4) == 4) call fluc_readFort8
   if(iand(fluc_mRead, 8) == 8) call fluc_readFort30
