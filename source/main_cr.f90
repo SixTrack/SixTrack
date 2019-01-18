@@ -302,7 +302,6 @@ end interface
   call f_open(unit=98,file="fort.98",formatted=.true.,mode="w",err=fErr)
 
   ! Eric for the DA coefficients in BINARY
-  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
   call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr)
 
 #ifdef DEBUG
@@ -408,7 +407,8 @@ end interface
   ! Postprocessing is on, but there are no particles
   if(ipos.eq.1.and.napx.eq.0) then
     ! Now we open fort.10 unless already opened for BOINC
-    call f_open(unit=10,file="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
+    call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
+    call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
 
 #ifndef STF
     do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
@@ -1665,7 +1665,8 @@ end interface
 
 470 continue
   ! and we need to open fort.10 unless already opened for BOINC
-  call f_open(unit=10,file="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
+  call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
+  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
 
   ! Also dump the final state of the particle arrays
   call part_writeState(1)
