@@ -17,7 +17,7 @@ sinth_temp = sin_mb(strackz(i)/onedp)
 
 q_temp = -strackz(i) * strackx(i) / (onedp)
 
-pxf  = temptr(2) + temptr(1)*q_temp / (onedp) 
+pxf  = temptr(2) + temptr(1)*q_temp / (onedp)
 pyf  = temptr(4) +  temptr(3) *q_temp / (onedp)
 
 

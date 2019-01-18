@@ -30,7 +30,7 @@ do j=1,napx
 
   Sp1 = Sp1 * (x_t+imag*y_t);
 
-  yv1(j) = yv1(j) - (((REAL(Cp0))*tiltc(i))  + ((AIMAG(Cp0)))*tilts(i))*(moidpsv(j)*c1e3)  
+  yv1(j) = yv1(j) - (((REAL(Cp0))*tiltc(i))  + ((AIMAG(Cp0)))*tilts(i))*(moidpsv(j)*c1e3)
   yv2(j) = yv2(j) + (((-REAL(Cp0))*tilts(i)) + ((AIMAG(Cp0)))*tiltc(i))*(moidpsv(j)*c1e3)
   ejv(j)   = ejv(j) - ((real(Sp1)*(c1e3*(e0f*(crabfreq*(two*pi))))))/clight
 
