@@ -106,6 +106,7 @@ end subroutine fluc_parseInputLine
 
 subroutine fluc_readInputs
 
+  use mod_units
   use mod_common, only : mout2
 
   implicit none
@@ -115,7 +116,10 @@ subroutine fluc_readInputs
   fluc_nZFZ   = 0 ! For fort.30
 
   if(iand(fluc_mRead, 1) == 1) call fluc_readFort16
-  if(iand(fluc_mRead, 2) == 2) mout2 = 1
+  if(iand(fluc_mRead, 2) == 2) then
+    mout2 = 1
+    call f_open(unit=9, file="fort.9", formatted=.true., mode="w")
+  end if
   if(iand(fluc_mRead, 4) == 4) call fluc_readFort8
   if(iand(fluc_mRead, 8) == 8) call fluc_readFort30
 

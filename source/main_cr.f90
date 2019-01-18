@@ -281,8 +281,6 @@ end interface
 #endif
 
   ! Open Regular File Units
-! call f_open(unit=7, file="fort.7", formatted=.true., mode="w", err=fErr,recl=303) ! Only used by SixDA
-  call f_open(unit=9, file="fort.9", formatted=.true., mode="w", err=fErr)
   call f_open(unit=11,file="fort.11",formatted=.true., mode="w", err=fErr)
   call f_open(unit=12,file="fort.12",formatted=.true., mode="w", err=fErr)
   call f_open(unit=14,file="fort.14",formatted=.true., mode="w", err=fErr)
