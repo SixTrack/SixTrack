@@ -1880,21 +1880,28 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
 
   ! dump info
   if(ldmpaperMem) then
-     write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9), ape(10), ape(11)
+     write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), &
+          ape(7), ape(8), ape(9), ape(10), ape(11)
   else
      select case(aptype)
      case(-1) ! transition
-        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9), ape(10), ape(11)
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), &
+             ape(7), ape(8), ape(9), ape(10), ape(11)
      case(0) ! not an aperture marker
-        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9), ape(10), ape(11)
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), &
+             ape(7), ape(8), ape(9), ape(10), ape(11)
      case(1) ! Circle
-        write(iunit,1984) name, apeName(aptype), spos, ape(1),   zero,   zero,   zero,   zero,   zero,   zero,   zero, ape(9), ape(10), ape(11)
+        write(iunit,1984) name, apeName(aptype), spos, ape(1),   zero,   zero,   zero,   zero,   zero, &
+             zero,   zero, ape(9), ape(10), ape(11)
      case(2) ! Rectangle
-        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2),   zero,   zero,   zero,   zero,   zero,   zero, ape(9), ape(10), ape(11)
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2),   zero,   zero,   zero,   zero, &
+             zero,   zero, ape(9), ape(10), ape(11)
      case(3) ! Ellipse
-        write(iunit,1984) name, apeName(aptype), spos, ape(3), ape(4),   zero,   zero,   zero,   zero,   zero,   zero, ape(9), ape(10), ape(11)
+        write(iunit,1984) name, apeName(aptype), spos, ape(3), ape(4),   zero,   zero,   zero,   zero, &
+             zero,   zero, ape(9), ape(10), ape(11)
      case(4) ! Rectellipse
-        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4),   zero,   zero,   zero,   zero, ape(9), ape(10), ape(11)
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4),   zero,   zero, &
+             zero,   zero, ape(9), ape(10), ape(11)
      case(5) ! Octagon
         ! get angles from points passing through x1,y1 and x2,y2
         ! x1=ape(1)
@@ -1904,7 +1911,8 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
         write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), atan2_mb(ape(1)*ape(5)+ape(6),ape(1)), &
              &         atan2_mb(ape(2),(ape(2)-ape(6))/ape(5)),   zero,   zero,   zero,   zero, ape(9), ape(10), ape(11)
      case(6) ! Racetrack
-        write(iunit,1984) name, apeName(aptype), spos, ape(5), ape(6), ape(3), ape(4),   zero,   zero,   zero,   zero, ape(9), ape(10), ape(11)
+        write(iunit,1984) name, apeName(aptype), spos, ape(5), ape(6), ape(3), ape(4),   zero,   zero, &
+             zero,   zero, ape(9), ape(10), ape(11)
      end select
   end if
   return
@@ -2393,15 +2401,15 @@ subroutine intersectOC( xRay, yRay, thetaRay, xRe, yRe, mOct, qOct, xChk, yChk, 
   return
 end subroutine intersectOC
 
-subroutine intersectRT( xRay, yRay, thetaRay, xRe, yRe, radius, xChk, yChk, nChk )
+subroutine intersectRT( xRay, yRay, thetaRay, xRe, yRe, aa, bb, xChk, yChk, nChk )
   ! 0.0<=thetaRay<=2pi!!!!!
   implicit none
   ! interface variables
-  real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, radius, xChk, yChk, nChk
+  real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, aa, bb, xChk, yChk, nChk
   ! temp variables
   real(kind=fPrec) xTmp(2), yTmp(2), nTmp(2)
   call intersectRE( xRay, yRay, thetaRay, xRe, yRe, xTmp(1), yTmp(1), nTmp(1) )
-  call intersectCR( xRay, yRay, thetaRay, radius, xRe-radius, yRe-radius, xTmp(2), yTmp(2), nTmp(2) )
+  call intersectEL( xRay, yRay, thetaRay, aa, bb, xRe-aa, yRe-bb, xTmp(2), yTmp(2), nTmp(2) )
   if(nTmp(1).lt.nTmp(2)) then
      xChk=xTmp(1)
      yChk=yTmp(1)
@@ -2819,16 +2827,16 @@ subroutine aper_parseElement(inLine, iElem, iErr)
       write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(-1)//&
         "' aperture marker. Expected 10, got ",nSplit
       iErr = .true.
-      return		
-    end if		
-    call chr_cast(lnSplit(3) ,tmpflts(1),iErr)		
-    call chr_cast(lnSplit(4) ,tmpflts(2),iErr)		
-    call chr_cast(lnSplit(5) ,tmpflts(3),iErr)		
-    call chr_cast(lnSplit(6) ,tmpflts(4),iErr)		
-    call chr_cast(lnSplit(7) ,tmpflts(5),iErr)		
-    call chr_cast(lnSplit(8) ,tmpflts(6),iErr)		
-    call chr_cast(lnSplit(9) ,tmpflts(7),iErr)		
-    call chr_cast(lnSplit(10),tmpflts(8),iErr)		
+      return
+    end if
+    call chr_cast(lnSplit(3) ,tmpflts(1),iErr)
+    call chr_cast(lnSplit(4) ,tmpflts(2),iErr)
+    call chr_cast(lnSplit(5) ,tmpflts(3),iErr)
+    call chr_cast(lnSplit(6) ,tmpflts(4),iErr)
+    call chr_cast(lnSplit(7) ,tmpflts(5),iErr)
+    call chr_cast(lnSplit(8) ,tmpflts(6),iErr)
+    call chr_cast(lnSplit(9) ,tmpflts(7),iErr)
+    call chr_cast(lnSplit(10),tmpflts(8),iErr)
     call aperture_initTR(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(4),tmpflts(5),tmpflts(6),tmpflts(7),tmpflts(8))
 
   case default
