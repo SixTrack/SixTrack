@@ -130,7 +130,7 @@ end interface
   call boinc_init
 ! call boinc_init_graphics
 #endif
-  call f_initUnits ! And this one second
+  call f_initUnits
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call alloc_init      ! Initialise mod_alloc
@@ -281,7 +281,7 @@ end interface
 #endif
 
   ! Open Regular File Units
-  call f_open(unit=7, file="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
+! call f_open(unit=7, file="fort.7", formatted=.true., mode="w", err=fErr,recl=303) ! Only used by SixDA
   call f_open(unit=9, file="fort.9", formatted=.true., mode="w", err=fErr)
   call f_open(unit=11,file="fort.11",formatted=.true., mode="w", err=fErr)
   call f_open(unit=12,file="fort.12",formatted=.true., mode="w", err=fErr)
