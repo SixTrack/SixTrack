@@ -25,7 +25,7 @@ The program uses a couple of files for its input and output procedures.
     \hline
     4 & & \checkmark & Ascii & Geometry and strength Parameters (format as file \texttt{fort.2}) \\
     \hline
-    6 & & \checkmark & Ascii & Input Parameters and Analysis of Data \\
+    6 & & \checkmark & Ascii & Simulation Output \\
     \hline
     8 & \checkmark & & Ascii & Name, hor., ver. Misalignment and Tilt \\
     \hline
@@ -35,45 +35,43 @@ The program uses a couple of files for its input and output procedures.
     \hline
     11 & & \checkmark & Ascii & This file is used to dump linear coupling parameters at locations of choice \\
     \hline
-    12 & & \checkmark & Ascii & End Coordinates of both Particles. Format: ($15 \times F10.6$) \\
+    12 & & \checkmark & Ascii & End coordinates of all particles. Format: ($15 \times F10.6$) \\
     \hline
-    13 & \checkmark & & Ascii & Start Coordinates for a Prolongation \\
+    13 & \checkmark & & Ascii & Start coordinates for a prolongation \\
     \hline
-    14 & & \checkmark & Ascii & Horizontal FFT Spectrum for detailed Analysis; Format: ($2 \times F10.6$) \\
+    14 & & \checkmark & Ascii & Horizontal FFT spectrum for detailed analysis. Format: ($2 \times F10.6$) \\
     \hline
-    15 & & \checkmark & Ascii & Vertical FFT Spectrum for detailed Analysis; Format: ($2 \times F10.6$) \\
+    15 & & \checkmark & Ascii & Vertical FFT spectrum for detailed analysis. Format: ($2 \times F10.6$) \\
     \hline
     16 & \checkmark & & Ascii & External multipole errors. Format: $a16,\ 2 \times \{6 \times (1p,3d23.15),(1p,2d23.15)\}$ \\
     % \hline
     % 17 & & \checkmark & Ascii & Additional Map at location of interest \\
     \hline
-    18 & & \checkmark & Ascii & One Turn Map with Differential Algebra \\
-    % \hline
-    % 19 & \checkmark & \checkmark & Ascii & Internal use for Differential Algebra \\
-    % \hline
-    % 20 & & \checkmark & Meta-file & PS-file of selected Plots \\
-    % % \hline
-    % % 21 & & \checkmark & Ascii & Factorisation of the one turn map \\
-    % \hline
-    % 22 & & \checkmark & Ascii & Transformation in the Normal Form coordinate \\
-    % \hline
-    % 23 & & \checkmark & Ascii & Hamiltonian in action variables \\
-    % \hline
-    % 24 & & \checkmark & Ascii & Tune-shift in action coordinates \\
-    % \hline
-    % 25 & & \checkmark & Ascii & Tune-shift in Cartesian coordinates \\
-    % \hline
-    % 26 & & \checkmark & Ascii & NAGLIB log file \\
-    % \hline
-    27 & & \checkmark & Ascii & Name, hor., ver. Misalignment and Tilt \\
+    18 & & \checkmark & Ascii & One turn map with differential algebra \\
+    \hline
+    19 & \checkmark & \checkmark & Ascii & Internal use for Differential Algebra \\
+    \hline
+    20 & & \checkmark & Meta-file & PS-file of selected Plots \\
+    \hline
+    21 & & \checkmark & Ascii & Factorisation of the one turn map \\
+    \hline
+    22 & & \checkmark & Ascii & Transformation in the Normal Form coordinate \\
+    \hline
+    23 & & \checkmark & Ascii & Hamiltonian in action variables \\
+    \hline
+    24 & & \checkmark & Ascii & Tune-shift in action coordinates \\
+    \hline
+    25 & & \checkmark & Ascii & Tune-shift in Cartesian coordinates \\
+    \hline
+    27 & & \checkmark & Ascii & Name, hor., ver. misalignment and tilt \\
     \hline
     28 & & \checkmark & Ascii & Horizontal closed orbit displacement, measured at monitors \\
     \hline
     29 & & \checkmark & Ascii & Vertical closed orbit displacement, measured at monitors \\
     \hline
-    30 & \checkmark & & Ascii & Name, Random strength, misalignments and tilt \\
+    30 & \checkmark & & Ascii & Name, random strength, misalignments and tilt \\
     \hline
-    31 & & \checkmark & Ascii & Name, Random strength, misalignments and tilt \\
+    31 & & \checkmark & Ascii & Name, random strength, misalignments and tilt \\
     % \hline
     % 32 & \checkmark & \checkmark & Binary & Binary dump of full accelerator description \\
     \hline
@@ -87,23 +85,19 @@ The program uses a couple of files for its input and output procedures.
     \hline
     92 & & \checkmark & Ascii & Checkpoint/Restart only: Program ``standard output'' (lout) \\
     \hline
-    93 & & \checkmark & Ascii & Checkpoint/Restart only: Log file \\
+    93 & & \checkmark & Ascii & Checkpoint/Restart only: log file \\
     \hline
-    94 & & \checkmark & Ascii & Checkpoint/Restart only: Temp file for resetting binary tracking data file(s) \\
+    % 94 & & \checkmark & Ascii & Checkpoint/Restart only: Temp file for resetting binary tracking data file(s) \\
+    % \hline
+    95 & \checkmark & \checkmark & Binary & Checkpoint/restart only: data file 1 \\
     \hline
-    95 & \checkmark & \checkmark & Ascii & Checkpoint/Restart only: Data file 1 \\
+    96 & \checkmark & \checkmark & Binary & Checkpoint/restart only: data file 2 \\
+    % \hline
+    % 98 & & \checkmark & Ascii & 6D coordinates at Cavity (\texttt{1p,6(2x,e25.18)}) \\
     \hline
-    96 & \checkmark & \checkmark & Ascii & Checkpoint/Restart only: Data file 2 \\
+    110 & & \checkmark & Binary & Binary version of unit 10 \\
     \hline
-    98 & & \checkmark & Ascii & 6D coordinates at Cavity (\texttt{1p,6(2x,e25.18)}) \\
-    % \hline
-    % 664 & \checkmark &  & Ascii & \texttt{DYNK} reading \texttt{FUN FILE(LIN)} (only during initialization) \\
-    % \hline
-    % 665 & & \checkmark & Ascii & \texttt{DYNK} output file \texttt{dynksets.dat} \\
-    % \hline
-    % 2001001 & & \checkmark & Ascii & \texttt{FMA} output file \texttt{fma\_sixtrack} \\
-    % \hline
-    % 200101+i*10 & & \checkmark & Ascii & \texttt{FMA} output file \texttt{NORM\_*}, where $i=1,\ldots,\mathrm{number \ of \ FMAs}$ \\
+    111 & & \checkmark & Binary & Binary version of unit 18 \\
     \hline
 \end{longtable}
 \end{center}
