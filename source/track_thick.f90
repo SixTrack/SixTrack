@@ -446,8 +446,6 @@ subroutine trauthck(nthinerr)
         write(lout,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
         call prror(-1)
       else
-        ! Open file for writing coordinates at cavities
-        call f_open(unit=98,file="fort.98",formatted=.true.,mode="w")
         write(lout,"(a)") ""
         write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
         write(lout,"(a)") ""
@@ -1398,7 +1396,6 @@ subroutine thck6d(nthinerr)
           yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)                         !hr01
           yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)                         !hr01
         end do
-        if(n.eq.1) write(98,'(1p,6(2x,e25.18))') (xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j),dpsv(j),j=1,napx)
         call synuthck
         goto 490
       case (3)
