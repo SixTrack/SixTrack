@@ -2139,8 +2139,7 @@ subroutine callcrp
   if (restart) then
     write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
       " numx = ",numx,", numlcr = ",numlcr
-    endfile(93,iostat=ierro)
-    backspace(93,iostat=ierro)
+    flush(93)
     return
   else
 #ifndef DEBUG
@@ -2148,8 +2147,7 @@ subroutine callcrp
 #endif
     write(93,"(6(a,i0))") "SIXTRACR> CALLCRP numl = ",numl,", nnuml = ",nnuml,", numlcr = ",numlcr,", "//&
      "numx = ",numx,", nwri = ",nwri,", numlcp = ",numlcp
-    endfile(93,iostat=ierro)
-    backspace(93,iostat=ierro)
+    flush(93)
 #ifndef DEBUG
     endif
 #endif

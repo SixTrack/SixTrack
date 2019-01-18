@@ -363,8 +363,7 @@ end interface
   write(93,"(a)") ""
   write(93,"(a)") "SIXTRACR MAINCR"
   write(93,"(a)") stxt//timeStamp
-  endfile(93,iostat=ierro)
-  backspace(93,iostat=ierro)
+  flush(93)
 #endif
 
   call time_timerStart
@@ -427,8 +426,7 @@ end interface
       call postpr(91-i)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(91-i,nnuml)
 #endif
     end do
@@ -442,8 +440,7 @@ end interface
       call postpr(i)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(i,nnuml)
 #endif
     end do
@@ -1149,8 +1146,7 @@ end interface
 
 #ifdef CR
   write(93,"(a,i0)") "MAINCR> Setting napxo = ",napx
-  endfile(93,iostat=ierro)
-  backspace(93,iostat=ierro)
+  flush(93)
 #endif
   napxo = napx
 
@@ -1531,27 +1527,23 @@ end interface
     ! If restart is true , we haven't done any tracking and must be running from very last checkpoint
     write(93,"(a)")          "MAINCR> Very last call to WRITEBIN?"
     write(93,"(a,3(1x,i0))") "MAINCR> numlmax, nnuml, numl = ",numlmax,nnuml,numl
-    endfile(93,iostat=ierro)
-    backspace(93,iostat=ierro)
+    flush(93)
     if(nnuml == numl) then
       ! We REALLY have finished (or all particles lost)
       ! When all lost, nthinerr=3001, we set nnuml=numl
       ! and make sure we do the last WRITEBIN
       write(93,"(a)") "MAINCR> Very last call to WRITEBIN"
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call writebin(nthinerr)
       if(nthinerr == 3000) goto 520
     else
       ! I assume we are stopping because we have done nnuml turns which should be numlmax and do a writebin only if time
       write(93,"(a)")          "MAINCR> Very last call to WRITEBIN?"
       write(93,"(a,3(1x,i0))") "MAINCR> numlmax, nnuml, numl = ",numlmax,nnuml,numl
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       if(mod(nnuml,nwri) == 0) then
         write(93,"(a)") "MAINCR> Very last call to WRITEBIN"
-        endfile(93,iostat=ierro)
-        backspace(93,iostat=ierro)
+        flush(93)
         call writebin(nthinerr)
         if(nthinerr == 3000) goto 520
       end if
@@ -1699,8 +1691,7 @@ end interface
       call postpr(91-ia2) ! Postprocess file "fort.(91-ia2)"
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(91-ia2,nnuml)
 #endif
     end do
@@ -1717,8 +1708,7 @@ end interface
       call postpr(91-ia)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(91-ia,nnuml)
 #endif
     end do
@@ -1734,8 +1724,7 @@ end interface
       call postpr(ia) ! Postprocess particle ia (and ia+1 if ntwin=2)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(ia,nnuml)
 #endif
     end do
@@ -1752,8 +1741,7 @@ end interface
       call postpr(ia)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(ia,nnuml)
 #endif
     end do

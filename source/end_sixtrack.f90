@@ -76,8 +76,7 @@ subroutine abend(cstring)
   save
 
   write(93,"(a)") "SIXTRACR> STOP/ABEND called and closing files"
-  endfile(93,iostat=ierro)
-  backspace(93,iostat=ierro)
+  flush(93)
 
   ! Calling close to be very safe.......96 calls to abend
   ! Easier than adding the call on every abend
@@ -86,8 +85,7 @@ subroutine abend(cstring)
   ! If fort.10 is inexistent (physics error or some other problem)
   ! we try and write a 0d0 file with a turn number and CPU time
   write(93,"(a)") "SIXTRACR> STOP/ABEND checking fort.10"
-  endfile(93,iostat=ierro)
-  backspace(93,iostat=ierro)
+  flush(93)
 
   call f_open(unit=10,file="fort.10",formatted=.true.,mode="r",err=fErr,status="old",recl=8195)
   if(fErr) goto 11
@@ -102,8 +100,7 @@ subroutine abend(cstring)
   ! We put some CPU for Igor, a version, and turn number 0
   ! call f_open(unit=10,file="fort.10",formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
   write(93,"(a)") "SIXTRACR> STOP/ABEND writing dummy fort.10"
-  endfile(93,iostat=ierro)
-  backspace(93,iostat=ierro)
+  flush(93)
 
   ! Make sure it is closed properly before we re-open for dummy write
   inquire(10,opened=fOpen)
@@ -123,8 +120,7 @@ subroutine abend(cstring)
   if(napxo == 0 .and. napx == 0) napxo = 1
   if(napxo == 0) napxo = napx
   write(93,"(2(a,i0))") "SIXTRACR> STOP/ABEND writing fort.10, lines ",napxo,"/",napx
-  endfile(93,iostat=ierro)
-  backspace(93,iostat=ierro)
+  flush(93)
   do j=1,napxo
     l1 = 1
     do i=1,60
@@ -152,8 +148,7 @@ subroutine abend(cstring)
 7 continue
   if (lout.eq.92) then
     write(93,"(a)") "SIXTRACR> STOP/ABEND copying fort.92 to fort.6"
-    endfile(93,iostat=ierro)
-    backspace(93,iostat=ierro)
+    flush(93)
     rewind 92
 3   read(92,'(a1024)',end=1,err=8,iostat=ierro) arecord
     lstring=1024

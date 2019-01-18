@@ -516,9 +516,7 @@ subroutine dump_initialise
       ! Write format-specific headers
       if (dumpfmt(i) == 1) then
         write(dumpunit(i),'(a)') '# particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] (E-E0)/E0[1] ktrack'
-        ! Flush file
-        endfile   (dumpunit(i))
-        backspace (dumpunit(i))
+        flush(dumpunit(i))
 #ifdef CR
         dumpfilepos(i) = dumpfilepos(i) + 1
 #endif
@@ -616,10 +614,7 @@ subroutine dump_initialise
             tasbuf(6,1),tasbuf(6,2),tasbuf(6,3),tasbuf(6,4),tasbuf(6,5),tasbuf(6,6)
 
         end if ! Format-specific headers
-
-        ! Flush file
-        endfile   (dumpunit(i))
-        backspace (dumpunit(i))
+        flush(dumpunit(i))
 #ifdef CR
         dumpfilepos(i) = dumpfilepos(i) + 2
         ! format 7 also writes clo, tas and tasinv
@@ -972,10 +967,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     end if
     write(unit,"(a)") ""
     write(unit,"(a)") ""
-
-    ! Flush
-    endfile (unit,iostat=ierro)
-    backspace (unit,iostat=ierro)
+    flush(unit,iostat=ierro)
 #ifdef CR
     dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx+2
 #endif
@@ -1028,10 +1020,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
             xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),localKtrack
         end do
       end if
-
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
@@ -1090,10 +1079,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
             xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),localKtrack
         end do
       end if
-
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
@@ -1133,10 +1119,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
         write(unit) partID(j),nturn,localDcum,xv1(j),yv1(j),xv2(j),yv2(j), &
           sigmv(j),(ejv(j)-e0)/e0,localKtrack
       end do
-
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
@@ -1197,10 +1180,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
         call chr_fromReal(xyz(6),xyz_l(6),10,2,rErr)
         write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16))") napx,nturn,localDcum,xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6)
       end if
-
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
 #endif
@@ -1439,10 +1419,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
           xyz_l(10),xyz_l(11),xyz_l(12),xyz_l(13),xyz_l(14),xyz_l(15),xyz_l(16),xyz_l(17),xyz_l(18),&
           xyz_l(19),xyz_l(20),xyz_l(21),xyz_l(22),xyz_l(23),xyz_l(24),xyz_l(25),xyz_l(26),xyz_l(27)
       end if
-
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
 #endif
@@ -1565,16 +1542,12 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
     end do ! END loop over particles (j)
 
     if(fmt == 7) then
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
     else if(fmt == 8) then
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
@@ -1668,10 +1641,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
           xyz_l(10),xyz_l(11),xyz_l(12),xyz_l(13),xyz_l(14),xyz_l(15),xyz_l(16),xyz_l(17),xyz_l(18),&
           xyz_l(19),xyz_l(20),xyz_l(21),xyz_l(22),xyz_l(23),xyz_l(24),xyz_l(25),xyz_l(26),xyz_l(27)
       end if
-
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
 #endif
@@ -1721,10 +1691,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
                     ejv(j), ejfv(j), dpsv(j), oidpsv(j), &
                     rvv(j), nucm(j), mtc(j), e0, e0f
       end do
-
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif

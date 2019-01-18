@@ -1677,8 +1677,7 @@ subroutine postpr(nfile)
           write(93,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
           write(93,*) 'Particle No ',posi,' binrec/binrecs/crbinrecs ', binrec,binrecs(posi1),crbinrecs(posi1)
 #endif
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
           goto 551
         endif
       endif
