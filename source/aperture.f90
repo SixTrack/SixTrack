@@ -256,6 +256,34 @@ subroutine aperture_nul( ix )
 end subroutine aperture_nul
 
 
+subroutine aperture_initTR( ix, aprx, apry, apex, apey, theta1, theta2, aptx, apty )
+  !-----------------------------------------------------------------------
+  ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
+  ! initialise aperture marker to transition
+  !-----------------------------------------------------------------------
+  implicit none
+  integer ix
+  real(kind=fPrec) aprx, apry, apex, apey, theta1, theta2, aptx, apty
+  call aperture_nul( ix )
+  kape(ix)=-1
+  ape(1,ix)=aprx
+  ape(2,ix)=apry
+  ape(3,ix)=apex
+  ape(4,ix)=apey
+  ! x1=aprx=ape(1,ix)
+  ! y1=ape(1,ix)*tan_mb(theta1)
+  ! x2=ape(2,ix)/tan_mb(theta2)
+  ! y2=apry=ape(2,ix)
+  ! m and q of sloped side
+  ! m = (y2-y1)/(x2-x1)
+  ! q = y1 -m*x1
+  ape(5,ix)=(ape(2,ix)-ape(1,ix)*tan_mb(theta1))/(ape(2,ix)/tan_mb(theta2)-ape(1,ix))		
+  ape(6,ix)=ape(1,ix)*tan_mb(theta1)-ape(5,ix)*ape(1,ix)		
+  ape(10,ix)=aptx
+  ape(11,ix)=apty
+end subroutine aperture_initTR
+
+
 subroutine aperture_initCR( ix, aper )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
@@ -369,6 +397,8 @@ subroutine aperture_initRT( ix, aprx, apry, apex, apey )
   real(kind=fPrec) aprx, apry, apex, apey
   call aperture_nul( ix )
   kape(ix)=6
+  ape(1,ix)=aprx+apex
+  ape(2,ix)=apry+apey
   ape(3,ix)=apex
   ape(4,ix)=apey
   ape(5,ix)=-one
@@ -695,14 +725,14 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
           else
             call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          llostp(j)=checkRT(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
+          llostp(j)=checkRT(xchk(1),xchk(2),ape(10,ix),ape(11,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
             isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
         else
           if(lbacktracking) then
-            llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
+            llostp(j)=checkRT(xLast(1,j),xLast(2,j),ape(10,ix),ape(11,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
               isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
           else
-            llostp(j)=checkRT(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
+            llostp(j)=checkRT(xv1(j),xv2(j),ape(10,ix),ape(11,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
@@ -890,7 +920,7 @@ subroutine aperture_reportLoss(turn, i, ix)
             apxx = aprr(3)**2.
             apyy = aprr(4)**2.
             apxy = apxx * apyy
-            llos=checkRT( xchk(1), xchk(2), aprr(1), aprr(2), aprr(3), aprr(4), apxx, apyy, apxy ) .or. &
+            llos=checkRT( xchk(1), xchk(2), aprr(10), aprr(11), aprr(3), aprr(4), apxx, apyy, apxy ) .or. &
               isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           end select
         end do !do jj=1,niter
@@ -1850,21 +1880,21 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
 
   ! dump info
   if(ldmpaperMem) then
-     write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9)
+     write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9), ape(10), ape(11)
   else
      select case(aptype)
      case(-1) ! transition
-        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9)
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9), ape(10), ape(11)
      case(0) ! not an aperture marker
-        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9)
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9), ape(10), ape(11)
      case(1) ! Circle
-        write(iunit,1984) name, apeName(aptype), spos, ape(1),   zero,   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9)
+        write(iunit,1984) name, apeName(aptype), spos, ape(1),   zero,   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9), zero, zero
      case(2) ! Rectangle
-        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2),   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9)
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2),   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9), zero, zero
      case(3) ! Ellipse
-        write(iunit,1984) name, apeName(aptype), spos, ape(3), ape(4),   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9)
+        write(iunit,1984) name, apeName(aptype), spos, ape(3), ape(4),   zero,   zero,   zero,   zero, ape(7), ape(8), ape(9), zero, zero
      case(4) ! Rectellipse
-        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4),   zero,   zero, ape(7), ape(8), ape(9)
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4),   zero,   zero, ape(7), ape(8), ape(9), zero, zero
      case(5) ! Octagon
         ! get angles from points passing through x1,y1 and x2,y2
         ! x1=ape(1)
@@ -1872,13 +1902,13 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
         ! x2=ape(2)/tan(theta2)
         ! y2=ape(2)
         write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), atan2_mb(ape(1)*ape(5)+ape(6),ape(1)), &
-             &         atan2_mb(ape(2),(ape(2)-ape(6))/ape(5)),   zero,   zero, ape(7), ape(8), ape(9)
+             &         atan2_mb(ape(2),(ape(2)-ape(6))/ape(5)),   zero,   zero, ape(7), ape(8), ape(9), zero, zero
      case(6) ! Racetrack
-        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3),   zero,   zero,   zero, ape(7), ape(8), ape(9)
+        write(iunit,1984) name, apeName(aptype), spos, ape(10), ape(11), ape(3), ape(4),   zero,   zero, ape(7), ape(8), ape(9), zero, zero
      end select
   end if
   return
- 1984 format (1x,a16,1x,a6,10(1x,f15.5))
+ 1984 format (1x,a,1x,a6,12(1x,f15.5))
 end subroutine dump_aperture
 
 subroutine dump_aperture_marker( iunit, ixEl, iEl )
@@ -1911,9 +1941,9 @@ subroutine dump_aperture_header( iunit )
   if(st_quiet > 0 .and. iunit == 6) return
   write(iunit,1984) '#', 'name', 'aptype', 's[m]', 'aper1[mm]', 'aper2[mm]', &
  &                  'aper3[mm][rad]', 'aper4[mm][rad]', 'aper5[mm][rad]', 'aper6[mm][rad]', &
- &                  'angle[rad]', 'xoff[mm]', 'yoff[mm]'
+ &                  'angle[rad]', 'xoff[mm]', 'yoff[mm]', 'aper7[mm][rad]', 'aper8[mm][rad]'
   return
- 1984 format (a1,a48,1x,a6,1x,10(1x,a15))
+ 1984 format (a1,a,1x,a6,1x,12(1x,a15))
 end subroutine dump_aperture_header
 
 subroutine dump_aperture_xsecs
@@ -2686,7 +2716,7 @@ subroutine aper_parseElement(inLine, iElem, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  real(kind=fPrec) tmpflts(6)
+  real(kind=fPrec) tmpflts(8)
   integer          nSplit, i
   logical          spErr
 
@@ -2702,6 +2732,8 @@ subroutine aper_parseElement(inLine, iElem, iErr)
     iErr = .true.
     return
   end if
+
+  tmpflts(:)=zero
 
   select case(lnSplit(2))
 
@@ -2782,10 +2814,21 @@ subroutine aper_parseElement(inLine, iElem, iErr)
     call aperture_initRT(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(4))
 
   case(apeName(-1)) ! Transition
-    write(lout,"(a,i0)") "LIMI> ERROR Cannot define '"//apeName(-1)//&
-        "' aperture marker."
-    iErr = .true.
-    return
+    if(nSplit < 13) then
+      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(-1)//&
+        "' aperture marker. Expected 13, got ",nSplit
+      iErr = .true.
+      return		
+    end if		
+    call chr_cast(lnSplit(3),tmpflts(1),iErr)		
+    call chr_cast(lnSplit(4),tmpflts(2),iErr)		
+    call chr_cast(lnSplit(5),tmpflts(3),iErr)		
+    call chr_cast(lnSplit(6),tmpflts(4),iErr)		
+    call chr_cast(lnSplit(7),tmpflts(5),iErr)		
+    call chr_cast(lnSplit(8),tmpflts(6),iErr)		
+    call chr_cast(lnSplit(11),tmpflts(7),iErr)		
+    call chr_cast(lnSplit(12),tmpflts(8),iErr)		
+    call aperture_initTR(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(4),tmpflts(5),tmpflts(6),tmpflts(7),tmpflts(8))
 
   case default
     write(lout,"(a)") "LIMI> ERROR Aperture profile not identified for element '"//lnSplit(1)//"' value '"//lnSplit(2)//"'"
