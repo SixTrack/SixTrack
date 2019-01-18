@@ -2646,9 +2646,9 @@ subroutine mapflol(sa,sai,cr,cm,st)
       use mod_lie_dab, only : nd,nd2,no,idpr,ndc,ndc2,ndpt,ndt,nplane,epsplane,xplane,ndim,ndim2
       use crcoall
       use mod_units
+      use mod_meta
       implicit none
 
-      integer symplecticity_check_unit
       integer i,ier,iunst,j,l,n,n1
       real(kind=fPrec) ap,ax,cm,cr,p,rd,rd1,ri,rr,s1,sa,sai,st,vi,vr,w,x,x2pi,xd,xj,xsu,xx
 !---- FROM TRACKING CODE
@@ -2697,16 +2697,9 @@ subroutine mapflol(sa,sai,cr,cm,st)
             xsu=xsu+abs(w(i,j))
           enddo
         enddo
-        write(lout,*)'deviation for symplecticity ', c1e2*(xsu-nd2)/xsu,' %'
-
-!        Each time this is run we dump out the "deviation for symplecticity". This is re-written each time the check is run
-        call f_requestUnit('symplecticity_check.txt', symplecticity_check_unit)
-        open(symplecticity_check_unit,file="symplecticity_check.txt", status='replace')
-        write(symplecticity_check_unit,*) c1e2*(xsu-nd2)/xsu
-        close(symplecticity_check_unit)
-#ifdef DEBUG
-!       call warr('symplcdev',100.d0*(xsu-nd2)/xsu,0,0,0,0)
-#endif
+        ! Report
+        meta_sympCheck = c1e2*(xsu-nd2)/xsu
+        write(lout,"(a,es13.6,a)") "LIELIB> Deviation for symplecticity = ",c1e2*(xsu-nd2)/xsu," %"
       endif
       call eig6(cr,rr,ri,vr,vi)
       if(idpr.ge.0) then
