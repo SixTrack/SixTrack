@@ -8,6 +8,8 @@
 ! ================================================================================================ !
 module mod_units
 
+  use parpro, only : mFNameLen
+
   implicit none
 
   ! Keep track of units
@@ -19,11 +21,11 @@ module mod_units
   character(len=14), parameter :: units_logFile  = "file_units.log"  ! File name for internal log file
 
   type, private :: unitRecord
-    character(len=64), private :: file  = " "     ! The requested file name (not BOINC)
-    character(len=3),  private :: mode  = " "     ! Read/write mode
-    logical,           private :: taken = .false. ! Whether a unit is known to be taken or not
-    logical,           private :: open  = .false. ! Whether file is opened by the module or not
-    logical,           private :: fixed = .true.  ! Whether the unit was requested as a fixed unit or not
+    character(len=mFNameLen), private :: file  = " "     ! The requested file name (not BOINC)
+    character(len=3),         private :: mode  = " "     ! Read/write mode
+    logical,                  private :: taken = .false. ! Whether a unit is known to be taken or not
+    logical,                  private :: open  = .false. ! Whether file is opened by the module or not
+    logical,                  private :: fixed = .true.  ! Whether the unit was requested as a fixed unit or not
   end type unitRecord
 
   ! Array to keep track of files
@@ -75,8 +77,9 @@ subroutine f_requestUnit(file,unit)
   integer i
   logical isOpen
 
-  if(len_trim(file) > 64) then
-    write(error_unit,"(a,i0)") "UNITS> ERROR Max length of file name in f_requestUnit is 64 characters, got ",len_trim(file)
+  if(len_trim(file) > mFNameLen) then
+    write(error_unit,"(2(a,i0))") "UNITS> ERROR Max length of file name in f_requestUnit is ",mFNameLen,&
+      " characters, got ",len_trim(file)
     call prror
   end if
 
@@ -199,8 +202,9 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
     fAccess = "sequential"
   end if
 
-  if(len_trim(file) > 64) then
-    write(error_unit,"(a,i0)") "UNITS> ERROR Max length of file name in f_open is 64 characters, got ",len_trim(file)
+  if(len_trim(file) > mFNameLen) then
+    write(error_unit,"(2(a,i0))") "UNITS> ERROR Max length of file name in f_open is ",mFNameLen,&
+      " characters, got ",len_trim(file)
     call prror
   end if
 
@@ -412,10 +416,10 @@ subroutine f_writeLog(action,unit,status,file)
   character(len=*), intent(in) :: status
   character(len=*), intent(in) :: file
 
-  real(kind=fPrec) cpuTime
-  character(len=8)  wAction
-  character(len=8)  wStatus
-  character(len=64) wFile
+  real(kind=fPrec)         cpuTime
+  character(len=8)         wAction
+  character(len=8)         wStatus
+  character(len=mFNameLen) wFile
 
   if(units_logUnit <= 0) return ! Only write if we have a log file
 
@@ -424,7 +428,7 @@ subroutine f_writeLog(action,unit,status,file)
   wFile   = file
 
   call cpu_time(cpuTime)
-  write(units_logUnit,"(f10.3,2x,a8,2x,i4,2x,a8,2x,a64)") cpuTime,adjustl(wAction),unit,adjustl(wStatus),adjustl(wFile)
+  write(units_logUnit,"(f10.3,2x,a8,2x,i4,2x,a8,2x,a)") cpuTime,adjustl(wAction),unit,adjustl(wStatus),adjustl(wFile)
   flush(units_logUnit)
 
 end subroutine f_writeLog
