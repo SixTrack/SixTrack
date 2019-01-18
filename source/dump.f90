@@ -48,7 +48,7 @@ module dump
   ! Flag the format of the dump
   integer, allocatable, save :: dumpfmt(:) !(-1:nele)
   ! Filename to write the dump to
-  character(len=:), allocatable, save :: dump_fname(:) !(mStrLen)(-1:nele)
+  character(len=:), allocatable, save :: dump_fname(:) !(mFNameLen)(-1:nele)
 
   ! tas matrix used for nomalisation of phase space in DUMP and FMA.
   ! First index = -1 -> StartDUMP, filled differently than idx > 0; First index = 0  -> Unused.
@@ -85,26 +85,26 @@ subroutine dump_expand_arrays(nele_new, nblz_new)
   integer, intent(in) :: nele_new
   integer, intent(in) :: nblz_new
 
-  call alloc(ldump,               nele_new, .false.,    "ldump",      -1)
-  call alloc(ndumpt,              nele_new, 0,          "ndumpt",     -1)
-  call alloc(dumpfirst,           nele_new, 0,          "dumpfirst",  -1)
-  call alloc(dumplast,            nele_new, 0,          "dumplast",   -1)
-  call alloc(dumpunit,            nele_new, 0,          "dumpunit",   -1)
-  call alloc(dumpfmt,             nele_new, 0,          "dumpfmt",    -1)
-  call alloc(dump_fname, mStrLen, nele_new, " ",        "dump_fname", -1)
+  call alloc(ldump,                 nele_new, .false.,    "ldump",      -1)
+  call alloc(ndumpt,                nele_new, 0,          "ndumpt",     -1)
+  call alloc(dumpfirst,             nele_new, 0,          "dumpfirst",  -1)
+  call alloc(dumplast,              nele_new, 0,          "dumplast",   -1)
+  call alloc(dumpunit,              nele_new, 0,          "dumpunit",   -1)
+  call alloc(dumpfmt,               nele_new, 0,          "dumpfmt",    -1)
+  call alloc(dump_fname, mFNameLen, nele_new, " ",        "dump_fname", -1)
 
-  call alloc(dumptas,             nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
-  call alloc(dumptasinv,          nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
-  call alloc(dumpclo,             nblz_new, 6,    zero, "dumpclo",    -1,1)
+  call alloc(dumptas,               nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
+  call alloc(dumptasinv,            nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
+  call alloc(dumpclo,               nblz_new, 6,    zero, "dumpclo",    -1,1)
 
 #ifdef CR
-  call alloc(dumpfilepos,         nele_new,-1,          "dumpfilepos",   -1)
-  call alloc(dumpfilepos_cr,      nele_new,-1,          "dumpfilepos_cr",-1)
+  call alloc(dumpfilepos,           nele_new,-1,          "dumpfilepos",   -1)
+  call alloc(dumpfilepos_cr,        nele_new,-1,          "dumpfilepos_cr",-1)
 #endif
 
 #ifdef HDF5
-  call alloc(dump_hdf5DataSet,    nele_new,0,           "dump_hdf5DataSet",-1)
-  call alloc(dump_hdf5Format,     9,       0,           "dump_hdf5Format")
+  call alloc(dump_hdf5DataSet,      nele_new,0,           "dump_hdf5DataSet",-1)
+  call alloc(dump_hdf5Format,       9,       0,           "dump_hdf5Format")
 #endif
 
 end subroutine dump_expand_arrays
@@ -198,7 +198,7 @@ subroutine dump_parseInputLine(inLine,iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) elemName
-  character(len=mStrLen) fileName
+  character(len=mFNameLen) fileName
   integer i1,i2,i3,i4,i5,kk,j
   integer nSplit
   logical spErr

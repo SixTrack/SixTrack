@@ -14,7 +14,7 @@ module zipf
   integer, save :: zipf_numFiles = 0
 
   character(len=:), allocatable, save :: zipf_fileNames(:)  ! Name of files to pack into the zip file.
-  character(len=mStrLen),        save :: zipf_outFile = " " ! Name of output file (Default: Sixout.zip)
+  character(len=mFNameLen),      save :: zipf_outFile = " " ! Name of output file (Default: Sixout.zip)
 
 contains
 
@@ -47,7 +47,7 @@ subroutine zipf_parseInputLine(inLine,iErr)
   end if
 
   zipf_numFiles = zipf_numFiles + 1
-  call alloc(zipf_fileNames, mStrLen, zipf_numFiles, " ", "zipf_fileNames")
+  call alloc(zipf_fileNames, mFNameLen, zipf_numFiles, " ", "zipf_fileNames")
   zipf_fileNames(zipf_numFiles) = trim(lnSplit(1))
 
 end subroutine zipf_parseInputLine
@@ -61,7 +61,7 @@ subroutine zipf_parseInputDone
 
   integer ii
 
-  zipf_outFile(1:10) = "Sixout.zip" ! Output name fixed for now
+  zipf_outFile = "Sixout.zip" ! Output name fixed for now
   write(lout,"(a)")     "ZIPF> Output file name = '"//trim(zipf_outFile)//"'"
   write(lout,"(a,i0)")  "ZIPF> Number of files to pack = ",zipf_numFiles
   write(lout,"(a)")     "ZIPF> Files:"

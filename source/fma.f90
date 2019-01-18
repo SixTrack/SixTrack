@@ -18,11 +18,11 @@ contains
 subroutine fma_allocate
   use mod_alloc
   use parpro
-  call alloc(fma_fname,  mStrLen, fma_max, " ", "fma_fname")
-  call alloc(fma_method, mStrLen, fma_max, " ", "fma_method")
-  call alloc(fma_first,           fma_max, 0,   "fma_first")
-  call alloc(fma_last,            fma_max, 0,   "fma_last")
-  call alloc(fma_norm_flag,       fma_max, 1,   "fma_norm_flag")
+  call alloc(fma_fname,  mFNameLen, fma_max, " ", "fma_fname")
+  call alloc(fma_method, mStrLen,   fma_max, " ", "fma_method")
+  call alloc(fma_first,             fma_max, 0,   "fma_first")
+  call alloc(fma_last,              fma_max, 0,   "fma_last")
+  call alloc(fma_norm_flag,         fma_max, 1,   "fma_norm_flag")
 end subroutine fma_allocate
 
 subroutine fma_parseInputline(inLine,iErr)
