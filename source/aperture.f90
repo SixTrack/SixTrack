@@ -46,17 +46,19 @@ module aperture
   integer, allocatable, save :: kape(:)            ! type of aperture (nele)
   character(len=2), parameter, dimension(-1:6) :: apeName=(/'TR','NA','CR','RE','EL','RL','OC','RT'/)
 
-  ! aperture parameteres ape(9,nele)
-  ! ape(1,:): hor rect dimension (RECT/RECTELLIPSE/OCT/RACETR) [mm]
-  ! ape(2,:): ver rect dimension (RECT/RECTELLIPSE/OCT/RACETR) [mm]
-  ! ape(3,:): hor elliptical dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]
-  ! ape(4,:): ver elliptical dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]
-  ! ape(5,:): m of sloped side (OCT) []
-  ! ape(6,:): q of sloped side (OCT) [mm]
-  ! ape(7,:): tilt angle of marker (all) [rad]
-  ! ape(8,:): hor offset of marker (all) [mm]
-  ! ape(9,:): ver offset of marker (all) [mm]
-  real(kind=fPrec), allocatable, save ::  ape(:,:) !(9,nele)
+  ! aperture parameteres ape(11,nele)
+  ! ape( 1,:): hor rect dimension (RECT/RECTELLIPSE/OCT) [mm]
+  ! ape( 2,:): ver rect dimension (RECT/RECTELLIPSE/OCT) [mm]
+  ! ape( 3,:): hor elliptical dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]
+  ! ape( 4,:): ver elliptical dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]
+  ! ape( 5,:): m of sloped side (OCT) []
+  ! ape( 6,:): q of sloped side (OCT) [mm]
+  ! ape( 7,:): tilt angle of marker (all) [rad]
+  ! ape( 8,:): hor offset of marker (all) [mm]
+  ! ape( 9,:): ver offset of marker (all) [mm]
+  ! ape(10,:): hor offset of rounded/ellyptical corner (RACETR) [mm]
+  ! ape(11,:): ver offset of rounded/ellyptical corner (RACETR) [mm]
+  real(kind=fPrec), allocatable, save ::  ape(:,:) !(11,nele)
   logical, allocatable, save :: lapeofftlt(:)      ! aperture is tilted/offcentred (nele)
 
   ! save (i.e. do not kill) lost particles
@@ -133,7 +135,7 @@ subroutine aperture_expand_arrays(nele_new, npart_new)
 
   call alloc(kape,       nele_new, 0, 'kape')
   call alloc(lapeofftlt, nele_new, .false., 'lapeofftlt')
-  call alloc(ape, 9,     nele_new, zero, 'ape')
+  call alloc(ape, 11,    nele_new, zero, 'ape')
 
   call alloc(plost,     npart_new, 0, "plost")        ! particle ID (npart)
   call alloc(xLast, 2,  npart_new, zero, "xLast")     ! position after last thick element [mm] (2,npart)
@@ -249,9 +251,7 @@ subroutine aperture_nul( ix )
   implicit none
   integer ix, jj
   kape(ix)=0
-  do jj=1,9
-     ape(jj,ix)=zero
-  end do
+  ape(:,ix)=zero
   lapeofftlt(ix)=.false.
 end subroutine aperture_nul
 
@@ -369,12 +369,12 @@ subroutine aperture_initRT( ix, aprx, apry, apex, apey )
   real(kind=fPrec) aprx, apry, apex, apey
   call aperture_nul( ix )
   kape(ix)=6
-  ape(1,ix)=aprx
-  ape(2,ix)=apry
   ape(3,ix)=apex
   ape(4,ix)=apey
   ape(5,ix)=-one
   ape(6,ix)=(sqrt(ape(3,ix)**2+ape(4,ix)**2)+(ape(1,ix)-ape(3,ix)))+(ape(2,ix)-ape(4,ix))
+  ape(10,ix)=aprx
+  ape(11,ix)=apry
 end subroutine aperture_initRT
 
 
@@ -500,7 +500,7 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
   use root_output
 #endif
 
-  use collimation, only : do_coll, part_abs_turn, ipart
+  use collimation, only : do_coll, part_abs_turn
 
   implicit none
 
@@ -510,30 +510,11 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
   integer ix    ! single element type index
   logical llost ! at least a particle loss
 
-  integer ib2,ib3,ilostch,j,jj,jj1,jjx
+  integer j,jj
 
 ! temporary variables
-  logical lparID
-  real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
+  real(kind=fPrec) apxx, apyy, apxy, radius2
   real(kind=fPrec) xchk(2)
-
-#ifdef ROOT
-  character(len=mNameLen+1) this_name
-#endif
-
-! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-! last modified: 12-06-2014
-! additional variables for back-tracking, when computing locations of
-! lost particles
-! inserted in main code by the 'backtrk' compilation flag
-  integer niter       ! number of iterations
-  integer kapert      ! temporal integer for aperture type
-  logical llos        ! temporal logic array for interpolation
-  real(kind=fPrec) xlos(2), ylos(2), aprr(9), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
-  integer naalos, nzzlos
-
-  integer npart_tmp ! Temporary holder for number of particles,
-                    ! used to switch between collimat/standard version at runtime
 
   save
 
@@ -556,17 +537,17 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
           else
             call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(7,ix),ape(8,ix),ape(9,ix))
           end if
-          llostp(j)=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)).or. &
-            isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+          llostp(j)=checkTR(xchk(1),xchk(2),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix), &
+               ape(10,ix),ape(11,ix)).or.isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
         else
           if(lbacktracking) then
             llostp(j)= &
-              checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix)) .or. &
-              isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
+              checkTR(xLast(1,j),xLast(2,j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix), &
+               ape(10,ix),ape(11,ix)).or.isnan_mb(xLast(1,j)).or.isnan_mb(xLast(2,j))
           else
             llostp(j)= &
-              checkTR(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix))       .or. &
-              isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
+              checkTR(xv1(j),xv2(j),ape(1,ix),ape(2,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy,ape(5,ix),ape(6,ix), &
+               ape(10,ix),ape(11,ix)).or.isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
         llost=llost.or.llostp(j)
@@ -737,7 +718,7 @@ end subroutine aperture_checkApeMarker
 subroutine aperture_reportLoss(turn, i, ix)
 !-----------------------------------------------------------------------
 !     P.Garcia Ortega, A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified:  8-12-2014
+!     last modified: 17-01-2019
 !     aperture check and dump lost particles
 !     always in main code
 !-----------------------------------------------------------------------
@@ -766,11 +747,11 @@ subroutine aperture_reportLoss(turn, i, ix)
   integer i     ! element entry in the lattice
   integer ix    ! single element type index
 
-  integer ib2,ib3,ilostch,j,jj,jj1,jjx
+  integer j,jj,jjx
 
 ! temporary variables
   logical lparID
-  real(kind=fPrec) apxx, apyy, apxy, aps, apc, radius2
+  real(kind=fPrec) apxx, apyy, apxy, radius2
   real(kind=fPrec) xchk(2)
 
 #ifdef ROOT
@@ -779,9 +760,7 @@ subroutine aperture_reportLoss(turn, i, ix)
 
 ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 ! last modified: 12-06-2014
-! additional variables for back-tracking, when computing locations of
-! lost particles
-! inserted in main code by the 'backtrk' compilation flag
+! additional variables for back-tracking, when computing locations of lost particles
   integer niter       ! number of iterations
   integer kapert      ! temporal integer for aperture type
   logical llos        ! temporal logic array for interpolation
@@ -882,8 +861,9 @@ subroutine aperture_reportLoss(turn, i, ix)
             apxx = aprr(3)**2.
             apyy = aprr(4)**2.
             apxy = apxx * apyy
-            llos=checkTR(xchk(1),xchk(2),aprr(1),aprr(2),aprr(3),aprr(4),apxx,apyy,apxy,aprr(5),aprr(6)).or. &
-              isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
+            llos=checkTR(xchk(1),xchk(2),aprr(1),aprr(2),aprr(3),aprr(4), &
+                         apxx,apyy,apxy,aprr(5),aprr(6),aprr(10),aprr(11)).or. &
+                         isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
           case (1) ! Circle
             radius2 = aprr(3)**2
             llos=checkCR(xchk(1),xchk(2),radius2) .or. &
@@ -1221,7 +1201,7 @@ logical function checkCR( x, y, radius2 )
   return
 end function checkCR
 
-logical function checkTR( x, y, aprx, apry, apex, apey, apxx, apyy, apxy, m, q )
+logical function checkTR( x, y, aprx, apry, apex, apey, apxx, apyy, apxy, m, q, aptx, apty )
 !-----------------------------------------------------------------------
 !     A.Mereghetti (CERN, BE/ABP-HSS)
 !     last modified: 16-01-2019
@@ -1231,11 +1211,11 @@ logical function checkTR( x, y, aprx, apry, apex, apey, apxx, apyy, apxy, m, q )
   implicit none
 
 ! parameters
-  real(kind=fPrec) x, y, aprx, apry, apex, apey, apxx, apyy, apxy, m, q
+  real(kind=fPrec) x, y, aprx, apry, apex, apey, apxx, apyy, apxy, m, q, aptx, apty
 
   checkTR = checkRL(x,y,aprx,apry,apxx,apyy,apxy).or.checkOC(x,y,aprx,apry,m,q)
-  if(aprx-apex.gt.zero.and.apry-apey.gt.zero) then
-    checkTR=checkTR.or.checkRT(x,y,aprx,apry,apex,apey,apxx,apyy,apxy)
+  if(aptx.gt.zero.or.apty.gt.zero) then
+    checkTR=checkTR.or.checkRT(x,y,aptx,apty,apex,apey,apxx,apyy,apxy)
   end if
   return
 end function checkTR
@@ -1673,7 +1653,7 @@ logical function sameAperture( ixApeUp, ixApeDw )
   integer ixApeUp, ixApeDw, jj
   sameAperture=ixApeDw.eq.ixApeUp.or.kape(ixApeDw).eq.kape(ixApeUp)
   if(sameAperture) then
-     do jj=1,9
+     do jj=1,11
         sameAperture=sameAperture.and.abs(ape(jj,ixApeDw)-ape(jj,ixApeUp)).lt.aPrec
         if(.not.sameAperture) exit
      end do
@@ -1690,10 +1670,6 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
 !     - the usual 6 parameters for aperture description (see header);
 !     - 2 additional parameters for offset of ellypse of RACETRACK;
 !     - the usual 3 parameters for aperture tilt/offset (see header);
-!     the 8-parameters interpolation is actually needed only in case
-!       a RACETRACK aperture marker is at the extremes of interpolation;
-!       in this case, ape(1) and ape(2) of the RACETRACK are copied to the end,
-!       i.e. ape(10) and ape(11), and set to 0.0 for the interpolation
 !-----------------------------------------------------------------------
   implicit none
 
@@ -1701,67 +1677,33 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
   integer iUp, ixUp, iDw, ixDw, oKApe
   real(kind=fPrec) oApe(11),spos
 ! temporary variables
-  real(kind=fPrec) ddcum, mdcum, uApe(11), dApe(11)
+  real(kind=fPrec) ddcum, mdcum
   integer jj
-  logical fullParamFitNeeded
 
-  fullParamFitNeeded=.false.
   oApe(:)=zero
-  uApe(:)=zero
-  dApe(:)=zero
  
   if( sameAperture(ixUp,ixDw ) ) then
     ! constant aperture - no need to interpolate
     oKApe=kape(ixUp)
-    oApe(1:9)=ape(1:9,ixUp)
+    oApe(:)=ape(:,ixUp)
   else
     ! non-constant aperture - interpolate
-    
-    ! s-position
+    ! type: we may interpolate the same aperture type
+    oKApe=-1 ! transition
+    if( kape(ixUp).eq.kape(ixDw) ) oKApe=kape(ixUp)
+     
+    ! actual interpolation
     ddcum = spos-dcum(iUp)
     if( ddcum.lt.zero ) ddcum=dcum(iu)+ddcum
     mdcum = dcum(iDw)-dcum(iUp)
     if( mdcum.lt.zero ) mdcum=dcum(iu)+mdcum
-    
-    ! actually interpolate
-    if( kape(ixUp).eq.kape(ixDw) ) then
-      ! regular aperture type: 6+3 parameters fit is fine
-      ! this case includes also RACETRACK to RACETRACK 
-      oKApe=kape(ixUp)
-      oApe(1:9)=((ape(1:9,ixDw)-ape(1:9,ixUp))/mdcum)*ddcum+ape(1:9,ixUp)
-    else
-      ! transition
-      oKApe=-1
-      uApe(1:9)=ape(1:9,ixUp)
-      dApe(1:9)=ape(1:9,ixDw)
-      if ( kape(ixUp).eq.6 ) then
-        ! upstream marker is RACETRACK:
-        ! - offset of corners is copied in last 2 specifiers, whereas
-        !   all other specifiers are kept in their positions
-        do jj=1,2
-          uApe(9+jj)=uApe(jj) 
-          uApe(jj)=zero
-        end do
-        ! - 8-parameters fit is needed
-        fullParamFitNeeded=.true.
-      end if
-      if ( kape(ixDw).eq.6 ) then
-        ! downstream marker is RACETRACK:
-        ! - offset of corners is copied in last 2 specifiers, whereas
-        !   all other specifiers are kept in their positions
-        do jj=1,2
-          dApe(9+jj)=dApe(jj) 
-          dApe(jj)=zero
-        end do
-        ! - 8-parameters fit is needed
-        fullParamFitNeeded=.true.
-      end if
-      if (fullParamFitNeeded) then
-        oApe(1:11)=((dApe(1:11)-uApe(1:11))/mdcum)*ddcum+uApe(1:11)
+    do jj=1,11
+      if ( abs(ape(jj,ixDw)-ape(jj,ixUp)).lt.aPrec ) then
+        oApe(jj)=ape(jj,ixUp)
       else
-        oApe(1:9)=((dApe(1:9)-uApe(1:9))/mdcum)*ddcum+uApe(1:9)
+        oApe(jj)=((ape(jj,ixDw)-ape(jj,ixUp))/mdcum)*ddcum+ape(jj,ixUp)
       end if
-    end if   
+    end do
     
   end if
   return
@@ -1779,22 +1721,16 @@ subroutine copy_aperture( ixApeTo, ixApeFrom, nKApe, nApe )
 
 ! interface variables
   integer ixApeTo, ixApeFrom, nKApe
-  real(kind=fPrec) nApe(9)
-! temporary variables
-  integer jj
+  real(kind=fPrec) nApe(11)
 
   if( ixApeFrom.gt.0 ) then
 ! copy aperture marker from existing SINGLE ELEMENT
     kape(ixApeTo)=kape(ixApeFrom)
-    do jj=1,9
-      ape(jj,ixApeTo)=ape(jj,ixApeFrom)
-    end do
+    ape(:,ixApeTo)=ape(:,ixApeFrom)
   else
 ! copy aperture marker from temporary one
     kape(ixApeTo)=nKApe
-    do jj=1,9
-      ape(jj,ixApeTo)=nApe(jj)
-    end do
+    ape(:,ixApeTo)=nApe(:)
   end if
 
 end subroutine copy_aperture
@@ -1906,7 +1842,7 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
   integer iunit
   integer aptype
   character(len=mNameLen) name
-  real(kind=fPrec) ape(9)
+  real(kind=fPrec) ape(11)
   real(kind=fPrec) spos
 
   ! Don't print to stdout if quiet flag is enabled.
@@ -1957,7 +1893,7 @@ subroutine dump_aperture_marker( iunit, ixEl, iEl )
 ! interface variables
   integer iunit, iEl, ixEl
 
-  call dump_aperture( iunit, bez(ixEl), kape(ixEl), dcum(iEl), ape(1:9,ixEl) )
+  call dump_aperture( iunit, bez(ixEl), kape(ixEl), dcum(iEl), ape(1:11,ixEl) )
   return
 end subroutine dump_aperture_marker
 
@@ -2047,7 +1983,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
   implicit none
   ! interface variables
   integer iunit, itmpape, nAzim
-  real(kind=fPrec) tmpape(9), sLoc
+  real(kind=fPrec) tmpape(11), sLoc
   ! temporary variables
   logical tmpOffTlt
   integer i
@@ -2056,7 +1992,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
   write(iunit,*)'# aperture at s=',sLoc
   write(iunit,*)'# type:',itmpape
   write(iunit,*)'# specifiers:'
-  do i=1,9
+  do i=1,11
      write(iunit,*)'# - ape(',i,')=',tmpape(i)
   end do
   write(iunit,*)'# number of points:',nAzim
