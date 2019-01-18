@@ -216,8 +216,6 @@ subroutine fluc_readFort8
   inquire(file="fort.8", exist=isFile)
   if(.not.isFile) return
 
-  call f_close(8)
-
   call f_open(unit=8,file="fort.8",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
     write(lout,"(a)") "FLUC> ERROR Failed to open fort.8"
@@ -328,8 +326,6 @@ subroutine fluc_readFort16
 
   inquire(file="fort.16", exist=isFile)
   if(.not.isFile) return
-
-  call f_close(16)
 
   call f_open(unit=16,file="fort.16",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
@@ -482,8 +478,6 @@ subroutine fluc_readFort30
 
   inquire(file="fort.30", exist=isFile)
   if(.not.isFile) return
-
-  call f_close(30)
 
   call f_open(unit=30,file="fort.30",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
