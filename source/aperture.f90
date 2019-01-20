@@ -26,10 +26,6 @@ module aperture
 
   implicit none
 
-  ! A.Mereghetti, P.Garcia Ortega and D.Sinuela Pastor, for the FLUKA Team
-  ! last modified: 02-03-2018
-  ! always in main code
-
   logical, save :: limifound=.false.               ! limi block in fort.3
 
   logical, save :: aperture_debug=.false.          ! Enable/disable debugging output for the aperture code
@@ -47,14 +43,14 @@ module aperture
   character(len=2), parameter, dimension(-1:6) :: apeName=(/'TR','NA','CR','RE','EL','RL','OC','RT'/)
 
   ! aperture parameteres ape(11,nele)
-  ! ape( 1,:): hor rect dimension (RECT/RECTELLIPSE/OCT/RACETR) [mm] for RACETRAK: ape(1)=ape(3)+ape(10)
-  ! ape( 2,:): ver rect dimension (RECT/RECTELLIPSE/OCT/RACETR) [mm] for RACETRAK: ape(2)=ape(4)+ape(11)
-  ! ape( 3,:): hor elliptical dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]
-  ! ape( 4,:): ver elliptical dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]
-  ! ape( 5,:): hor offset of rounded/ellyptical corner (RACETR) [mm]
-  ! ape( 6,:): ver offset of rounded/ellyptical corner (RACETR) [mm]
-  ! ape( 7,:): m of sloped side (OCT) []
-  ! ape( 8,:): q of sloped side (OCT) [mm]
+  ! ape( 1,:): hor rect dimension (RECT/RECTELLIPSE/OCT/RACETR) [mm] for RACETRAK: ape(1)=ape(3)+ape(5) - aprx
+  ! ape( 2,:): ver rect dimension (RECT/RECTELLIPSE/OCT/RACETR) [mm] for RACETRAK: ape(2)=ape(4)+ape(6) - apry
+  ! ape( 3,:): hor elliptical dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]                             - apex
+  ! ape( 4,:): ver elliptical dimension (CIRC/ELLI/RECTELLIPSE/RACETR) [mm]                             - apey
+  ! ape( 5,:): hor offset of rounded/ellyptical corner (RACETR) [mm]                                    - aptx
+  ! ape( 6,:): ver offset of rounded/ellyptical corner (RACETR) [mm]                                    - apty
+  ! ape( 7,:): m of sloped side (OCT) []                                                                - m
+  ! ape( 8,:): q of sloped side (OCT) [mm]                                                              - q
   ! ape( 9,:): tilt angle of marker (all) [rad]
   ! ape(10,:): hor offset of marker (all) [mm]
   ! ape(11,:): ver offset of marker (all) [mm]
@@ -288,6 +284,9 @@ subroutine aperture_initCR( ix, aper )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
   ! initialise aperture marker to circle
+  ! - rectangle 'tangent' to circle (actually, a squared)
+  ! - octagon 'tangent' to circle (m=-1)
+  ! - no offset for racetrack
   !-----------------------------------------------------------------------
   implicit none
   integer ix
@@ -295,11 +294,11 @@ subroutine aperture_initCR( ix, aper )
   call aperture_nul( ix )
   kape(ix)=1
   ape(1,ix)=aper
-  ape(2,ix)=aper
-  ape(3,ix)=aper
-  ape(4,ix)=aper
-  ape(7,ix)=-one
-  ape(8,ix)=ape(1,ix)*sqrt(two)
+  ape(2,ix)=aper                 ! needed only for interpolation
+  ape(3,ix)=aper                 ! needed only for interpolation
+  ape(4,ix)=aper                 ! needed only for interpolation
+  ape(7,ix)=-one                 ! needed only for interpolation
+  ape(8,ix)=ape(1,ix)*sqrt(two)  ! needed only for interpolation
 end subroutine aperture_initCR
 
 
@@ -307,6 +306,8 @@ subroutine aperture_initRE( ix, aprx, apry )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
   ! initialise aperture marker to rectangle
+  ! - ellipse/octagon intersecting rectangle at corner (m=-1)
+  ! - no offset for racetrack
   !-----------------------------------------------------------------------
   implicit none
   integer ix
@@ -315,10 +316,10 @@ subroutine aperture_initRE( ix, aprx, apry )
   kape(ix)=2
   ape(1,ix)=aprx
   ape(2,ix)=apry
-  ape(3,ix)=aprx*sqrt(two)
-  ape(4,ix)=apry*sqrt(two)
-  ape(7,ix)=-one
-  ape(8,ix)=ape(2,ix)-ape(7,ix)*ape(1,ix)
+  ape(3,ix)=aprx*sqrt(two)                ! needed only for interpolation
+  ape(4,ix)=apry*sqrt(two)                ! needed only for interpolation
+  ape(7,ix)=-one                          ! needed only for interpolation
+  ape(8,ix)=ape(2,ix)-ape(7,ix)*ape(1,ix) ! needed only for interpolation
 end subroutine aperture_initRE
 
 
@@ -326,18 +327,21 @@ subroutine aperture_initEL( ix, apex, apey )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
   ! initialise aperture marker to ellipse
+  ! - rectangle 'tangent' to ellypse at axes
+  ! - octagon tangent to ellypse (m=-1)
+  ! - no offset for racetrack
   !-----------------------------------------------------------------------
   implicit none
   integer ix
   real(kind=fPrec) apex, apey
   call aperture_nul( ix )
   kape(ix)=3
-  ape(1,ix)=apex
-  ape(2,ix)=apey
-  ape(3,ix)=apex
-  ape(4,ix)=apey
-  ape(7,ix)=-one
-  ape(8,ix)=sqrt(ape(3,ix)**2+ape(4,ix)**2)
+  ape(1,ix)=apex                             ! needed only for interpolation
+  ape(2,ix)=apey                             ! needed only for interpolation
+  ape(3,ix)=apex                             ! needed only for interpolation
+  ape(4,ix)=apey                             ! needed only for interpolation
+  ape(7,ix)=-one                             ! needed only for interpolation
+  ape(8,ix)=sqrt(ape(3,ix)**2+ape(4,ix)**2)  ! needed only for interpolation
 end subroutine aperture_initEL
 
 
@@ -345,6 +349,8 @@ subroutine aperture_initRL( ix, aprx, apry, apex, apey )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
   ! initialise aperture marker to rectellipse
+  ! - octagon touching the outermost between ellypse and rectangle (m=-1)
+  ! - no offset for racetrack
   !-----------------------------------------------------------------------
   implicit none
   integer ix
@@ -355,6 +361,10 @@ subroutine aperture_initRL( ix, aprx, apry, apex, apey )
   ape(2,ix)=apry
   ape(3,ix)=apex
   ape(4,ix)=apey
+  ! sanity checks
+  if (ape(1,ix).gt.ape(3,ix)) ape(1,ix)=ape(3,ix)
+  if (ape(2,ix).gt.ape(4,ix)) ape(2,ix)=ape(4,ix)
+  ! set only for interpolation
   ape(7,ix)=-one
   ape(8,ix)=max(ape(2,ix)-ape(7,ix)*ape(1,ix),sqrt(ape(3,ix)**2+ape(4,ix)**2))
 end subroutine aperture_initRL
@@ -364,6 +374,8 @@ subroutine aperture_initOC( ix, aprx, apry, theta1, theta2 )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-21
   ! initialise aperture marker to octagon
+  ! - ellipse passing through two corners between normal sides and sloped side
+  ! - no offset for racetrack
   !-----------------------------------------------------------------------
   use mod_common, only : rad
   implicit none
@@ -377,7 +389,7 @@ subroutine aperture_initOC( ix, aprx, apry, theta1, theta2 )
   y2=apry
   ape(1,ix)=aprx
   ape(2,ix)=apry
-  ! ellipse circumscribed to octagon
+  ! ellipse circumscribed to octagon - needed only for interpolation
   N=(x1*y2+y1*x2)*(x1*y2-y1*x2)        ! N=x1^2*y2^2-y1^2*x2^2
   ape(3,ix)=sqrt(N/((y2+y1)*(y2-y1)))  ! a=sqrt(N/(y2^2-y1^2))
   ape(4,ix)=sqrt(N/((x1+x2)*(x1-x2)))  ! b=sqrt(N/(x1^2-x2^2))
@@ -387,22 +399,22 @@ subroutine aperture_initOC( ix, aprx, apry, theta1, theta2 )
 end subroutine aperture_initOC
 
 
-subroutine aperture_initRT( ix, aprx, apry, apex, apey )
+subroutine aperture_initRT( ix, aptx, apty, apex, apey )
   !-----------------------------------------------------------------------
   ! A.Mereghetti (CERN, BE-ABP-HSS), 2018-03-22
   ! initialise aperture marker to racetrack
   !-----------------------------------------------------------------------
   implicit none
   integer ix
-  real(kind=fPrec) aprx, apry, apex, apey
+  real(kind=fPrec) aptx, apty, apex, apey
   call aperture_nul( ix )
   kape(ix)=6
-  ape(1,ix)=aprx+apex ! needed only for interpolation
-  ape(2,ix)=apry+apey ! needed only for interpolation
+  ape(1,ix)=aptx+apex ! needed only for interpolation
+  ape(2,ix)=apty+apey ! needed only for interpolation
   ape(3,ix)=apex
   ape(4,ix)=apey
-  ape(5,ix)=aprx
-  ape(6,ix)=apry
+  ape(5,ix)=aptx
+  ape(6,ix)=apty
   ape(7,ix)=-one
   ape(8,ix)=(sqrt(ape(3,ix)**2+ape(4,ix)**2)+(ape(1,ix)-ape(3,ix)))+(ape(2,ix)-ape(4,ix))
 end subroutine aperture_initRT
@@ -514,7 +526,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
 !     P.Garcia Ortega, A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified:  8-12-2014
 !     aperture check and dump lost particles
-!     always in main code
 !-----------------------------------------------------------------------
 !     7 April 2014
 !-----------------------------------------------------------------------
@@ -556,8 +567,8 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
   select case(kape(ix))
 
   case (-1) ! Transition
-    apxx = ape(3,ix)**2.
-    apyy = ape(4,ix)**2.
+    apxx = ape(3,ix)**2
+    apyy = ape(4,ix)**2
     apxy = apxx * apyy
     do j=1,napx
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
@@ -635,8 +646,8 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
     end do
 
   case (3) ! Ellipse
-    apxx = ape(3,ix)**2.
-    apyy = ape(4,ix)**2.
+    apxx = ape(3,ix)**2
+    apyy = ape(4,ix)**2
     apxy = apxx * apyy
     do j=1,napx
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
@@ -662,8 +673,8 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
     end do
 
   case (4) ! RectEllipse
-    apxx = ape(3,ix)**2.
-    apyy = ape(4,ix)**2.
+    apxx = ape(3,ix)**2
+    apyy = ape(4,ix)**2
     apxy = apxx * apyy
     do j=1,napx
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
@@ -714,8 +725,8 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
 
   case (6) ! Racetrack
     !   NB: it follows the MadX definition
-    apxx = ape(3,ix)**2.
-    apyy = ape(4,ix)**2.
+    apxx = ape(3,ix)**2
+    apyy = ape(4,ix)**2
     apxy = apxx * apyy
     do j=1,napx
       if((do_coll .and. part_abs_turn(j).eq.0) .or. (.not.do_coll)) then
@@ -725,7 +736,7 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
           else
             call roffpos(xv1(j),xv2(j),xchk(1),xchk(2),ape(9,ix),ape(10,ix),ape(11,ix))
           end if
-          llostp(j)=checkRT(xchk(1),xchk(2),ape(50,ix),ape(6,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
+          llostp(j)=checkRT(xchk(1),xchk(2),ape(5,ix),ape(6,ix),ape(3,ix),ape(4,ix),apxx,apyy,apxy).or. &
             isnan_mb(xchk(1)).or.isnan_mb(xchk(2))
         else
           if(lbacktracking) then
@@ -750,7 +761,6 @@ subroutine aperture_reportLoss(turn, i, ix)
 !     P.Garcia Ortega, A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-01-2019
 !     aperture check and dump lost particles
-!     always in main code
 !-----------------------------------------------------------------------
 !     7 April 2014
 !-----------------------------------------------------------------------
@@ -1138,17 +1148,16 @@ subroutine aperture_reportLoss(turn, i, ix)
 end subroutine aperture_reportLoss
 
 
-logical function checkRE( x, y, apex, apey )
+logical function checkRE( x, y, aprx, apry )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 16-05-2014
 !     check particle position against REctangle aperture
-!     always in main code
 !-----------------------------------------------------------------------
   implicit none
 ! parameters
-  real(kind=fPrec) x, y, apex, apey
-  checkRE = ( abs(x).gt.apex ).or.( abs(y).gt.apey )
+  real(kind=fPrec) x, y, aprx, apry
+  checkRE = ( abs(x).gt.aprx ).or.( abs(y).gt.apry )
   return
 end function
 
@@ -1157,70 +1166,65 @@ logical function checkEL( x, y, apxx, apyy, apxy )
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 16-05-2014
 !     check particle position against ELlipse aperture
-!     always in main code
 !-----------------------------------------------------------------------
   implicit none
 
 ! parameters
   real(kind=fPrec) x, y, apxx, apyy, apxy
 
-  checkEL = x**two*apyy+y**two*apxx .gt. apxy
+  checkEL = x**2*apyy+y**2*apxx .gt. apxy
   return
 end function checkEL
 
-logical function checkRL( x, y, apex, apey, apxx, apyy, apxy )
+logical function checkRL( x, y, aprx, apry, apxx, apyy, apxy )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 16-05-2014
 !     check particle position against Rect-Ellipse aperture
-!     always in main code
 !-----------------------------------------------------------------------
   implicit none
 
 ! parameters
-  real(kind=fPrec) x, y, apex, apey, apxx, apyy, apxy
+  real(kind=fPrec) x, y, aprx, apry, apxx, apyy, apxy
 
-  checkRL = checkRE( x, y, apex, apey ) .or. checkEL( x, y, apxx, apyy, apxy )
+  checkRL = checkRE( x, y, aprx, apry ) .or. checkEL( x, y, apxx, apyy, apxy )
   return
 end function checkRL
 
-logical function checkOC( x, y, ap1, ap2, m, q )
+logical function checkOC( x, y, aprx, apry, m, q )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 22-03-2018
 !     check particle position against OCtagon aperture
-!     always in main code
 !-----------------------------------------------------------------------
   implicit none
 
 ! parameters
-  real(kind=fPrec) x, y, ap1, ap2, m, q
+  real(kind=fPrec) x, y, aprx, apry, m, q
 
-  checkOC = checkRE(x,y,ap1,ap2).or.(abs(y).gt.m*abs(x)+q)
+  checkOC = checkRE(x,y,aprx,apry).or.(abs(y).gt.m*abs(x)+q)
   return
 end function checkOC
 
-logical function checkRT( x, y, aprx, apry, apex, apey, apxx, apyy, apxy )
+logical function checkRT( x, y, aptx, apty, apex, apey, apxx, apyy, apxy )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
 !     last modified: 16-01-2019
 !     check particle position against RaceTrack aperture
-!     always in main code
 !-----------------------------------------------------------------------
   implicit none
 
 ! parameters
-  real(kind=fPrec) x, y, aprx, apry, apex, apey, apxx, apyy, apxy
+  real(kind=fPrec) x, y, aptx, apty, apex, apey, apxx, apyy, apxy
 
-  checkRT = checkRE( x, y, aprx+apex, apry+apey ) .or. &
-            checkEL( abs(x)-aprx, abs(y)-apry, apxx, apyy, apxy )
+  checkRT = checkRE( x, y, aptx+apex, apty+apey ) .or. &
+            checkEL( abs(x)-aptx, abs(y)-apty, apxx, apyy, apxy )
   return
 end function checkRT
 
 logical function checkCR( x, y, radius2 )
 !-----------------------------------------------------------------------
 !     check particle position against CiRcle aperture
-!     always in main code
 !-----------------------------------------------------------------------
   implicit none
 
@@ -1234,19 +1238,16 @@ end function checkCR
 logical function checkTR( x, y, aprx, apry, apex, apey, apxx, apyy, apxy, aptx, apty, m, q )
 !-----------------------------------------------------------------------
 !     A.Mereghetti (CERN, BE/ABP-HSS)
-!     last modified: 16-01-2019
+!     last modified: 20-01-2019
 !     check particle position against Transition aperture
-!     always in main code
 !-----------------------------------------------------------------------
   implicit none
 
 ! parameters
   real(kind=fPrec) x, y, aprx, apry, apex, apey, apxx, apyy, apxy, m, q, aptx, apty
-
-  checkTR = checkRL(x,y,aprx,apry,apxx,apyy,apxy).or.checkOC(x,y,aprx,apry,m,q)
-  if(aptx.gt.zero.or.apty.gt.zero) then
-    checkTR=checkTR.or.checkRT(x,y,aptx,apty,apex,apey,apxx,apyy,apxy)
-  end if
+  checkTR = checkRE( x, y, aprx, apry ) .or.  &
+            checkRT( x, y, aptx, apty, apex, apey, apxx, apyy, apxy) .or.  &
+            checkOC( x, y, aprx, apry, m, q)
   return
 end function checkTR
 
@@ -1256,7 +1257,6 @@ subroutine roffpos( x, y, xnew, ynew, tlt, xoff, yoff )
 !     last modified: 16-05-2014
 !     centre/rotate position of particles in case of offcentered/tilted
 !        aperture types
-!     always in main code
 !
 !     input parameters:
 !        x : horizontal particle position [mm]
@@ -1315,7 +1315,6 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
 ! by A.Mereghetti
 ! last modified: 20-12-2016
-! always in main code
 ! check elements itElUp (upstream) and itElDw (downstream) and
 !   assign them (or insert) an aperture marker, in case;
 ! lInsUp: force the insertion of an aperture marker upstream
@@ -1398,7 +1397,6 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 !     interface variables:
 !     - iEl: entry in lattice sequence to be checked
 !     - lInsUp: if true, the new aperture marker is inserted upstream of iEl
-!     always in main code
 !-----------------------------------------------------------------------
 #ifdef FLUKA
 ! import mod_fluka
@@ -1654,7 +1652,6 @@ function CrtApeName() result(retValue)
 !     by A.Mereghetti (CERN, BE/ABP-HSS)
 !     last modified: 01-12-2016
 !     Create Aperture Name
-!     always in main code
 !-----------------------------------------------------------------------
   implicit none
 
@@ -1695,7 +1692,6 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
 !     by A.Mereghetti
 !     last modified: 17-01-2019
 !     interpolate aperture
-!     always in main code
 !     capable of 8-parameters interpolation for aperture description:
 !     - the usual 6 parameters for aperture description (see header);
 !     - 2 additional parameters for offset of ellypse of RACETRACK;
@@ -1745,7 +1741,6 @@ subroutine copy_aperture( ixApeTo, ixApeFrom, nKApe, nApe )
 !     last modified: 02-12-2016
 !     copy aperture, either from an existing one or from the one
 !       received on the fly
-!     always in main code
 !-----------------------------------------------------------------------
   implicit none
 
@@ -1770,7 +1765,6 @@ subroutine dump_aperture_model
 !     by P.Garcia Ortega, for the FLUKA Team, and A.Mereghetti
 !     last modified: 08-12-2016
 !     dump all apertures declared in machine
-!     always in main code
 !-----------------------------------------------------------------------
   use parpro
   use mod_units, only: f_open
@@ -1863,7 +1857,6 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
 !     by A.Mereghetti
 !     last modified: 08-12-2016
 !     dump any aperture marker
-!     always in main code
 !-----------------------------------------------------------------------
   use mod_settings
   implicit none
@@ -1886,10 +1879,7 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
      select case(aptype)
      case(-1) ! transition
         write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), &
-             ape(7), ape(8), ape(9), ape(10), ape(11)
-     case(0) ! not an aperture marker
-        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), &
-             ape(7), ape(8), ape(9), ape(10), ape(11)
+             atan2_mb(ape(1)*ape(7)+ape(8),ape(1)), atan2_mb(ape(2),(ape(2)-ape(8))/ape(7)), ape(9), ape(10), ape(11)
      case(1) ! Circle
         write(iunit,1984) name, apeName(aptype), spos, ape(1),   zero,   zero,   zero,   zero,   zero, &
              zero,   zero, ape(9), ape(10), ape(11)
@@ -1908,8 +1898,8 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
         ! y1=ape(1)*tan(theta1)
         ! x2=ape(2)/tan(theta2)
         ! y2=ape(2)
-        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), atan2_mb(ape(1)*ape(5)+ape(6),ape(1)), &
-             &         atan2_mb(ape(2),(ape(2)-ape(6))/ape(5)),   zero,   zero,   zero,   zero, ape(9), ape(10), ape(11)
+        write(iunit,1984) name, apeName(aptype), spos, ape(1), ape(2), atan2_mb(ape(1)*ape(7)+ape(8),ape(1)), &
+             &         atan2_mb(ape(2),(ape(2)-ape(8))/ape(7)),   zero,   zero,   zero,   zero, ape(9), ape(10), ape(11)
      case(6) ! Racetrack
         write(iunit,1984) name, apeName(aptype), spos, ape(5), ape(6), ape(3), ape(4),   zero,   zero, &
              zero,   zero, ape(9), ape(10), ape(11)
@@ -1924,7 +1914,6 @@ subroutine dump_aperture_marker( iunit, ixEl, iEl )
 !     by A.Mereghetti
 !     last modified: 08-12-2016
 !     dump single aperture marker, existing in aperture DB
-!     always in main code
 !-----------------------------------------------------------------------
   implicit none
 
@@ -1940,7 +1929,6 @@ subroutine dump_aperture_header( iunit )
 !     by A.Mereghetti
 !     last modified: 22-03-2018
 !     dump header of aperture marker
-!     always in main code
 !-----------------------------------------------------------------------
   use mod_settings
   implicit none
@@ -1951,7 +1939,7 @@ subroutine dump_aperture_header( iunit )
  &                  'aper3[mm][rad]', 'aper4[mm][rad]', 'aper5[mm][rad]', 'aper6[mm][rad]', &
  &                  'aper7[mm][rad]', 'aper8[mm][rad]', 'angle[rad]', 'xoff[mm]', 'yoff[mm]'
   return
- 1984 format (a1,a,1x,a6,1x,12(1x,a15))
+ 1984 format (a1,a64,1x,a6,1x,12(1x,a15))
 end subroutine dump_aperture_header
 
 subroutine dump_aperture_xsecs
