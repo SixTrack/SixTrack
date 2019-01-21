@@ -361,9 +361,6 @@ subroutine aperture_initRL( ix, aprx, apry, apex, apey )
   ape(2,ix)=apry
   ape(3,ix)=apex
   ape(4,ix)=apey
-  ! sanity checks
-  if (ape(1,ix).gt.ape(3,ix)) ape(1,ix)=ape(3,ix)
-  if (ape(2,ix).gt.ape(4,ix)) ape(2,ix)=ape(4,ix)
   ! set only for interpolation
   ape(7,ix)=-one
   ape(8,ix)=max(ape(2,ix)-ape(7,ix)*ape(1,ix),sqrt(ape(3,ix)**2+ape(4,ix)**2))
@@ -416,7 +413,7 @@ subroutine aperture_initRT( ix, aptx, apty, apex, apey )
   ape(5,ix)=aptx
   ape(6,ix)=apty
   ape(7,ix)=-one
-  ape(8,ix)=(sqrt(ape(3,ix)**2+ape(4,ix)**2)+(ape(1,ix)-ape(3,ix)))+(ape(2,ix)-ape(4,ix))
+  ape(8,ix)=(sqrt(ape(3,ix)**2+ape(4,ix)**2)+ape(6,ix))-ape(7,ix)*ape(5,ix)
 end subroutine aperture_initRT
 
 
