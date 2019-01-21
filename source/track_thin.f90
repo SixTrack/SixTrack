@@ -2251,11 +2251,14 @@ subroutine write6(n)
   use crcoall
   use mod_common
   use mod_common_main
+  use read_write
   use mod_settings
 
   implicit none
 
   integer ia,ig,n
+
+  call writeFort12
 
   do ia=1,napxo,2
     ig=ia+1

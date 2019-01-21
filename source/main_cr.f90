@@ -1652,6 +1652,10 @@ end interface
   write(lout,"(a)") ""
   call time_timeStamp(time_afterTracking)
 
+  if(st_writefort12) then
+    call writeFort12
+  end if
+
   if(st_partsum .eqv. .false.) then
     write(lout,"(a)") "MAINCR> NOTE Particle summary report is disabled."
     write(lout,"(a)") "MAINCR>      This is controlled by the PARTICLESUMMARY flag in the SETTINGS block in fort.3."
