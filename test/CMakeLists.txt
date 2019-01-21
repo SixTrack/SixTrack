@@ -113,6 +113,9 @@ endif()
 if(NAFF)
   list(APPEND SIXTRACK_TESTS fma_naff)
 endif()
+if(PYTHIA)
+  list(APPEND SIXTRACK_TESTS scatter_pythia)
+endif()
 
 #General tests
 list(APPEND SIXTRACK_TESTS
@@ -464,6 +467,7 @@ set(FAST_TESTS
   scatter_aperture
   scatter_bbelastic
   scatter_collimation
+  scatter_pythia
   thick4
   thick4_da
   thick6dblocks
