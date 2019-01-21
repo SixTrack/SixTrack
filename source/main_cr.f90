@@ -1,55 +1,14 @@
-!-----------------------------------------------------------------------
+! ============================================================================ !
 !
-!  SIXTRACK
+!  SIXTRACK MAIN PROGRAM
+! =======================
+!  Authors:       See README.md
+!  Change Log:    See CHANGELOG.md
+!  Licence:       LGPL v2.1, See COPYING and LICENCE
+!  Documentation: See doc folder
+!  Website:       http://sixtrack.web.cern.ch
 !
-!  SIXDIMENSIONAL PARTICLE-TRACKING
-!
-!-----------------------------------------------------------------------
-!
-!  F. SCHMIDT, M. VANTTINEN
-!
-!  COLLIMATION VERSION, NOVEMBER 2004
-!
-!  G. ROBERT-DEMOLAIZE
-!
-!  COLLIMATION UPGRADE, JUNE 2005
-!
-!  G. ROBERT-DEMOLAIZE, S. REDAELLI
-!
-!  UPGRADED FOR COUPLING TO FLUKA, JULY 2013
-!
-!  A. MEREGHETTI, D. SINUELA PASTOR
-!
-!  FURTHER UPGRADE FOR COUPLING TO FLUKA, MAY-JUNE 2014
-!
-!  A. MEREGHETTI, P. GARCIA ORTEGA
-!
-!-----------------------------------------------------------------------
-!  SIXTRACR CHECKPOINT/RESTART and CRLIBM (ENS Lyon)
-!
-!  E. MCINTOSH FEBRUARY 2005
-!-----------------------------------------------------------------------
-!  USED DISKS:
-!
-!  GEOMETRY AND STRENGTH OF THE ACCELERATOR : UNIT  2
-!  TRACKING PARAMETER                       : UNIT  3
-!  NORMAL PRINTOUT                          : UNIT  6
-!  TRACKING DATA                            : UNIT  8
-!  DATA FOR SUMMARY OF THE POSTPROCESSING   : UNIT 10
-!  AUXILIARY FILE FOR THE INPUT             : UNIT 11
-!  ASCII FILE WITH THE HORIZONTAL FFT DATA  : UNIT 14
-!  ASCII FILE WITH THE VERTICAL FFT DATA    : UNIT 15
-!  METAFILE FOR PLOTTING WITH GKS           : UNIT 20
-!
-!  FOR CR VERSION:
-!  CHECKPOINT/RESTART FILES                 : UNIT 95,96
-!  OPTIONAL DUMP.DEBUG FILE                 : UNIT 99
-!  PROGRESS FILE                            : UNIT 91
-!  INTERMEDIATE OUTPUT FILE (LOUT)          : UNIT 92
-!  CHECKPOINT/RESTART LOGFILE               : UNIT 93
-!  TEMPORARY SCRATCH FILE for C/R           : UNIT 94
-!-----------------------------------------------------------------------
-
+! ============================================================================ !
 program maincr
 
   use floatPrecision
@@ -179,13 +138,6 @@ end interface
 #ifdef HASHLIB
   call hash_initialise
 #endif
-
-  ! Set napx,napxo,trtime for error handling
-  napx   = 0
-  napxo  = 0
-  trtime = 0.0
-  napxto = 0
-  damp   = zero ! Moved from mod_common
 
   !----------------------------------------------------------------------------------------------- !
   ! Features
@@ -414,27 +366,13 @@ end interface
   backspace(93,iostat=ierro)
 #endif
 
-!     A normal start, time0 is beginning
-      call time_timerStart
-      call time_timerCheck(time0)
-      do 20 i=1,mmul
-        cr(i)=zero
-        ci(i)=zero
-   20 continue
-      do 30 i=1,2
-        eps(i)=zero
-        epsa(i)=zero
-        ekk(i)=zero
-        qw(i)=zero
-        qwc(i)=zero
-   30 continue
-      qwc(3)=zero
-      call comnul
-      commen=' '
-      progrm='SIXTRACK'
+  call time_timerStart
+  call time_timerCheck(time0)
+  call comnul
+  progrm = "SIXTRACK"
 
 #ifdef ROOT
-      call SixTrackRootFortranInit
+  call SixTrackRootFortranInit
 #endif
 
 #ifdef FLUKA
@@ -451,27 +389,18 @@ end interface
   end if
 #endif
 
-  if (ithick.eq.1) call allocate_thickarrays
+  if (ithick == 1) call allocate_thickarrays
 
-#ifdef DEBUG
-!     call dumpbin('adaten',999,9999)
-!     call abend('after  daten                                      ')
-#endif
-#if defined(DEBUG) && defined(CR)
-!     write(93,*) 'ERIC IL= ',il
-!     endfile (93,iostat=ierro)
-!     backspace (93,iostat=ierro)
-#endif
 #ifdef CR
-      checkp=.true.
-      call crcheck
-      call time_timeStamp(time_afterCRCheck)
+  checkp=.true.
+  call crcheck
+  call time_timeStamp(time_afterCRCheck)
 #endif
-      if(ithick.eq.1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
-      if(ithick.eq.0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
+  if(ithick == 1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
+  if(ithick == 0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
 
   call aperture_init
-      
+
 #ifndef FLUKA
   ! SETTING UP THE PLOTTING
   if(ipos.eq.1.and.(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
@@ -531,10 +460,11 @@ end interface
     fake(2,i)=zero
   end do
 
-  itra=2
-  amp00=amp(1)
-  if(napx.ne.1) damp=((amp00-amp0)/real(napx-1,fPrec))/two                 !hr05
-  napx=2*napx
+  itra  = 2
+  amp00 = amp(1)
+  damp  = zero
+  if(napx /= 1) damp=((amp00-amp0)/real(napx-1,fPrec))/two
+  napx  = 2*napx
   call expand_arrays(nele, napx*imc, nblz, nblo)
 
   ! Log some meta data
@@ -667,10 +597,7 @@ end interface
     if(ilin.eq.1.or.ilin.eq.3) then
       call linopt(dp1)
     end if
-#ifdef DEBUG
-!     call dumpbin('bbb',96,996)
-!     call abend('bbb                                               ')
-#endif
+
     ! beam-beam element
     nlino = nlin
     nlin  = 0
