@@ -1509,19 +1509,22 @@ The \texttt{SCATTER} module is a framework for scattering particles through Mont
 
 \bigskip
 
-\paragraph{DEBUG} \texttt{DEBUG}\\
+\paragraph{Module Debugging}~ \texttt{DEBUG}\\
 
 This statement switches on extra ``debugging'' output from \texttt{SCATTER}.
 This can be useful if debugging the code or if debugging the input.
 
-\paragraph{ELEMent} \texttt{ELEM elemname profile scaling gen1 (gen2, (gen3))}\\
+\paragraph{Scatter Elements}~ \texttt{ELEM elemname profile ratio scaling gen1 ... genN}\\
 
-This statements associates a \texttt{PRO}file and between one and 3\footnote{Controlled by the parameter \texttt{scatter\_maxGenELEM}.} \texttt{GEN}erators with a SINGLE ELEMENT which must be of type 40, as described in Section~\ref{SCAT}.
-The \texttt{scaling} argument, which is a floating point number, is used to scale the probability of an interaction.
-This can be controlled through DYNK, for example in order to scale only at one specified turn.
+This statements associates a \texttt{PRO}file and one or more \texttt{GEN}erators with a SINGLE ELEMENT.
+The element must be of type 40, as described in Section~\ref{SCAT}.
+The \texttt{ratio} argument (string/float) can be used to set a fixed scattering probability at the element.
+Alternatively, the field can be set to ``auto'', in which case the scattering probability is calculated from the cross section and density profile.
+The \texttt{scaling} argument (float) is used to scale the probability of an interaction when using cross section to claculate the scattering probability.
+This field can be controlled through DYNK, for example in order to scale only at one specified turn, or to switch off and on scattering at the element by scaling it by 0 and 1 respectively.
 The \texttt{PRO}file, \texttt{GEN}erator(s), and single elements are referenced through their names, and for the \texttt{GEN}erators and \texttt{PRO}file they must be defined above the \texttt{ELEM}ent in the \texttt{SCATTER} block.
 
-\paragraph{PROfile} \texttt{PRO name type (arguments)} \\
+\paragraph{Density Profiles}~ \texttt{PRO name type (arguments)} \\
 
 This statement defines a profile, that is a density profile and general properties of the targets which with the tracked particles are colliding.
 Several different types are available:
@@ -1532,20 +1535,20 @@ Several different types are available:
 \bigskip
 \noindent\texttt{PRO name GAUSS1 beamtot[particles] sigmaX[mm] sigmaY[mm] offsetX[mm] offsetY[mm]} \\
 
-The \texttt{GAUSS1} profile type us given by
+The \texttt{GAUSS1} profile type is given by
 \begin{align}
     \rho(x,y) = \frac{N_{\mathrm{tot}}}{2\pi\sigma_x\sigma_y}
                 \exp\left(-\frac{(x-\mu_x)^2}{2\sigma_x^2}\right)
                 \exp\left(-\frac{(y-\mu_y)^2}{2\sigma_y^2}\right).
 \end{align}
 
-\paragraph{GENerator} \texttt{GEN name type (arguments)} \\
+\paragraph{Event Generator}~ \texttt{GEN name type [arguments]} \\
 
 The generator block takes a name and a generator type input, followed by the parameters for the
 generator type.
 
 \bigskip
-\noindent\texttt{GEN name PPBEAMELASTIC a b1 b2 phi tmin (crossSection)} \\
+\noindent\texttt{GEN name PPBEAMELASTIC a b1 b2 phi tmin [crossSection]} \\
 
 Takes five or six input arguments, and generates the probability distribution given by
 \begin{align}
@@ -1553,19 +1556,18 @@ Takes five or six input arguments, and generates the probability distribution gi
 \end{align}
 where the first expression is a soft scatter data fit, the third expression a hard scatter fit, and the second expression is the interference. $a = a_2/a_1$ is the amplitudes of the expressions.\index{elastic scattering}
 These are combined into the first four input arguments $a$, $b_1$, $b_2$, and $\phi$, as well as $t_{min}$ which provides a cut-off limit.
-The optional sixth argument defines a fixed cross section for the scattering probability.
+The optional sixth argument defines a fixed cross section for the scattering probability in units of millibarn.
 
 Input example with values for a fit to 13 TeV LHC.
 \begin{cverbatim}
-GEN  sc_thin     PPBEAMELASTIC 0.046 18.52 4.601 2.647 0.0 30e-27
+GEN  sc_thin     PPBEAMELASTIC 0.046 18.52 4.601 2.647 0.0 30.0
 \end{cverbatim}
 
-\paragraph{SEED} \texttt{SEED seed1 seed2}\\
+\paragraph{SEED}~ \texttt{SEED seed}\\
 
-This sets the seed of the internal RNG used by the \texttt{SCATTER} block \cite{RANECU}.
-Two integer seeds are required, for this block.
+This sets the seed of the internal random nuber generator used by the \texttt{SCATTER} block~\cite{RANECU}.
 The \texttt{SEED} block is mandatory for the \texttt{SCATTER} block to work.
-Note that when running several simulations, the seed settings must be varied between each run in order to get uncorrelated results.
+Note that when running several simulations, the seed setting must be varied between each run in order to get uncorrelated results.
 
 % ================================================================================================================================ %
 \section{Tracking Code for Collimation Studies} \label{sec:collimat}
