@@ -103,8 +103,9 @@ subroutine abend(cstring)
   flush(93)
 
   ! Make sure it is closed properly before we re-open for dummy write
-  inquire(10,opened=fOpen)
-  if(fOpen) close(10)
+  ! inquire(10,opened=fOpen)
+  ! if(fOpen) close(10)
+  call f_close(10)
   call f_open(unit=10,file="fort.10",formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
 
   sumda(:) = zero
@@ -135,18 +136,13 @@ subroutine abend(cstring)
   end do
 
 12 continue
-  close (10,iostat=ierro)
+  call f_close(10)
 
 #ifdef CR
-  close(91,err=4)
-4 continue
-  close(94,err=5)
-5 continue
-  close(95,err=6)
-6 continue
-  close(96,err=7)
-7 continue
-  if (lout.eq.92) then
+  call f_close(91)
+  call f_close(95)
+  call f_close(96)
+  if(lout == 92) then
     write(93,"(a)") "SIXTRACR> STOP/ABEND copying fort.92 to fort.6"
     flush(93)
     rewind 92
@@ -162,11 +158,11 @@ subroutine abend(cstring)
   end if
 
 1 write(6,"(a)",iostat=ierro) "SIXTRACR> Stop "//cstring
-  close(6,iostat=ierro)
+  call f_close(6)
   ! and get rid of fort.92
   rewind 92
   endfile(92,iostat=ierro)
-  close(92)
+  call f_close(92)
   write(93,"(a)") "SIXTRACR> Stop "//cstring
 #ifdef BOINC
   do i=2,120
@@ -176,7 +172,7 @@ subroutine abend(cstring)
   ! call boinc_zipitall()
   ! call boinc_finish_graphics()
   if(errout /= 0) then
-    close(93)
+    call f_close(93)
     call boincrf('fort.93',filename)
     call print_lastlines_to_stderr(93,filename)
     call boincrf('fort.6',filename)
@@ -185,7 +181,7 @@ subroutine abend(cstring)
   call boinc_finish(errout) !This call does not return
 #else
   if(errout /= 0) then
-    close(93)
+    call f_close(93)
     call print_lastlines_to_stderr(93,"fort.93")
     call print_lastlines_to_stderr(6,"fort.6")
 
@@ -193,26 +189,25 @@ subroutine abend(cstring)
     stop 1
   else
     ! No error
-    stop
+    stop 0
   end if
 #endif
 
 !!!!!! In case of errors when copying fort.92 (lout) -> fort.6 !!!!!!!!!
 
 8 write(93,"(a,i0)") "SIXTRACR> ERROR Reading fort.92 (abend), iostat = ",ierro
-  close(93)
+  call f_close(93)
   write(6,"(a,i0)") "ABEND> ERROR Reading fort.92, iostat = ",ierro
 #ifdef BOINC
   do i=2,120
     inquire(i,opened=fOpen)
     if (fOpen) write(6,"(a,i0,a)") "ABEND> Unit ",i," is open"
   end do
-  close(6,err=31)
-31 continue
+  call f_close(6)
   ! call boinc_zipitall()
   ! call boinc_finish_graphics()
   if(errout /= 0) then
-    close(93)
+    call f_close(93)
     call boincrf('fort.93',filename)
     call print_lastlines_to_stderr(93,filename)
     call boincrf('fort.6',filename)
@@ -221,7 +216,7 @@ subroutine abend(cstring)
   call boinc_finish(errout) !This call does not return
 #else
   if(errout /= 0) then
-    close(93)
+    call f_close(93)
     call print_lastlines_to_stderr(93,"fort.93")
     call print_lastlines_to_stderr(6,"fort.6")
 

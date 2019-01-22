@@ -17,7 +17,7 @@ module mod_units
   integer, parameter           :: units_maxUnit  = 250               ! Last unit to keep track of
   integer, parameter           :: units_minAuto  = 100               ! First unit available for dynamic allocation
   integer, private, save       :: units_nextUnit = units_minAuto     ! Next unit available for dynamic allocation
-  integer, private, save       :: units_logUnit  = units_maxUnit     ! File unit for internal log file
+  integer, private, save       :: units_logUnit  = units_maxUnit+1   ! File unit for internal log file
   character(len=14), parameter :: units_logFile  = "file_units.log"  ! File name for internal log file
 
   type, private :: unitRecord
@@ -29,7 +29,7 @@ module mod_units
   end type unitRecord
 
   ! Array to keep track of files
-  type(unitRecord), private, save :: units_uList(units_minUnit:units_maxUnit)
+  type(unitRecord), private, save :: units_uList(units_minUnit:units_maxUnit+1)
 
   private :: f_writeLog
 

@@ -1814,7 +1814,6 @@ end interface
   call time_timeStamp(time_beforeExit)
   call time_finalise
   call meta_finalise
-  call closeUnits ! Must be last as it also closes fort.6
 
 ! ---------------------------------------------------------------------------- !
 !  DONE MAINCR
@@ -1823,7 +1822,8 @@ end interface
 #ifdef CR
   call abend('                                                  ')
 #else
-  stop
+  call closeUnits
+  stop 0
 #endif
 10000 format(/4x,"Tracking ended abnormally for particle: ",i0,         &
              /4x,"Random seed:        ",i8,                             &
