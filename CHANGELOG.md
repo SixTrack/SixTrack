@@ -1,10 +1,24 @@
 # SixTrack Changelog
 
-### Not Released
+### Version 5.1.3 [23.01.2019] - BOINC Release
 
 **User Side Changes**
 
 * Misalignment of RF-multipoles is now possible. PR #763 (T. Persson)
+
+**Bug Fixes**
+
+* Aperture checking along a transition takes into account RACETRACK properly. PR #771 (A. Mereghetti)
+
+**Documentation**
+
+* Build scripts for HTML version of the manual have been fixed. PR #767 (V.K. Berglyd Olsen)
+* Documentation on aperture limitations have been updated. PR #771 (A. Mereghetti)
+
+**Code Improvements and Changes**
+
+* The old `comnul` subroutine used to zero out old common blocks has been reduced to almost nothing. The default values are now set in their respective modules, mainly in `common_modules.f90`. PRs #765, #768 and #771 (V.K. Berglyd Olsen, A. Mereghetti)
+* Some general code clean-up of the aperture module. PR #771 (A. Mereghetti)
 
 ### Version 5.1.2 [14.01.2019] - Release
 
