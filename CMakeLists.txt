@@ -893,7 +893,8 @@ endif()
 ###################################################################################################
 # Add the source files that will be used to build SixTrack
 add_library(SixTrackCore STATIC ${SIXTRACK_SOURCES})
-set_target_properties(SixTrackCore PROPERTIES OUTPUT_NAME "SixTrack")
+set_target_properties(SixTrackCore PROPERTIES OUTPUT_NAME "SixTrackCore")
+set_target_properties(SixTrackCore PROPERTIES PREFIX "")
 add_executable(SixTrackCR ${SIXTRACK_SOURCES_CR})
 target_link_libraries(SixTrackCR SixTrackCore)
 set_target_properties(SixTrackCR PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
