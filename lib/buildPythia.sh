@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=pythia8235
+VERSION=pythia8240
 
 echo ""
 echo " Building PYTHIA support for SixTrack "
