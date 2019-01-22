@@ -73,6 +73,7 @@ set(TESTS_NOFORT10
   scatter_aperture
   scatter_bbelastic
   scatter_collimation
+  scatter_pythia
   thick6dblocks
   thick6ddynk
 )
@@ -93,6 +94,7 @@ set(TESTS_NO_STF_FORT90
   scatter_aperture
   scatter_bbelastic
   scatter_collimation
+  scatter_pythia
 )
 
 # List of tests that absolutely require STF to be on (> 64 particles)
