@@ -1,6 +1,6 @@
 # SixTrack Changelog
 
-### Version 5.1.3 [23.01.2019] - BOINC Release
+### Version 5.1.3 [25.01.2019] - BOINC Release
 
 **User Side Changes**
 
@@ -9,6 +9,7 @@
 **Bug Fixes**
 
 * Aperture checking along a transition takes into account RACETRACK properly. PR #771 (A. Mereghetti)
+* When built with checkpoint/restart, the `mod_units` would try to write to the `file_units.log` file after it was closed. This caused SixTrack to exit with an error code after tracking when building with the NAG compiler. PR #770 (V.K. Berglyd Olsen)
 
 **Documentation**
 
@@ -19,6 +20,8 @@
 
 * The old `comnul` subroutine used to zero out old common blocks has been reduced to almost nothing. The default values are now set in their respective modules, mainly in `common_modules.f90`. PRs #765, #768 and #771 (V.K. Berglyd Olsen, A. Mereghetti)
 * Some general code clean-up of the aperture module. PR #771 (A. Mereghetti)
+* Symplecticity deviation is now written to `sim_meta.dat` instead of its own file. PR #770 (V.K. Berglyd Olsen)
+* Files are no generally opened where they're needed rather than at the start of `maincr`. This helps to reduce the number of zero size fort.* files in the simulation folder. PR #770 (V.K. Berglyd Olsen)
 
 ### Version 5.1.2 [14.01.2019] - Release
 
