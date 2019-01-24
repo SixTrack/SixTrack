@@ -13,6 +13,7 @@ subroutine trauthin(nthinerr)
 
   use mod_alloc
   use mod_time
+  use mod_units
 
 #ifdef FLUKA
   use mod_fluka
@@ -1526,7 +1527,6 @@ subroutine thin6d(nthinerr)
           yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)                           !hr01
           yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)                           !hr01
         end do
-        if(n.eq.1) write(98,'(1p,6(2x,e25.18))') (xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j),dpsv(j),j=1,napx)
         goto 640
       case (3)
         irrtr=imtr(ix)
@@ -2139,8 +2139,7 @@ subroutine callcrp
   if (restart) then
     write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
       " numx = ",numx,", numlcr = ",numlcr
-    endfile(93,iostat=ierro)
-    backspace(93,iostat=ierro)
+    flush(93)
     return
   else
 #ifndef DEBUG
@@ -2148,8 +2147,7 @@ subroutine callcrp
 #endif
     write(93,"(6(a,i0))") "SIXTRACR> CALLCRP numl = ",numl,", nnuml = ",nnuml,", numlcr = ",numlcr,", "//&
      "numx = ",numx,", nwri = ",nwri,", numlcp = ",numlcp
-    endfile(93,iostat=ierro)
-    backspace(93,iostat=ierro)
+    flush(93)
 #ifndef DEBUG
     endif
 #endif

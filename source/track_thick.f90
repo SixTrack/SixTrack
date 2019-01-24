@@ -21,6 +21,7 @@ subroutine trauthck(nthinerr)
 
   use collimation
   use mod_time
+  use mod_units
 
   use crcoall
   use parpro
@@ -1395,12 +1396,6 @@ subroutine thck6d(nthinerr)
           yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)                         !hr01
           yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)                         !hr01
         end do
-        if(n.eq.1) write(98,'(1p,6(2x,e25.18))') (xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j),dpsv(j),j=1,napx)
-#ifdef CR
-        ! write(93,*) 'ERIC loop at 40 calling synuthck!!!'
-        ! endfile (93,iostat=ierro)
-        ! backspace (93,iostat=ierro)
-#endif
         call synuthck
         goto 490
       case (3)
@@ -1910,12 +1905,6 @@ subroutine synuthck
   save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 #ifdef CR
-#ifdef DEBUG
-!       write(93,*) 'ERIC synuthck called!!!'
-!       write(93,*) 'ERIC il= ',il
-!       endfile (93,iostat=ierro)
-!       backspace (93,iostat=ierro)
-#endif
   sythckcr=.true.
 #endif
   do 10 j=1,napx
