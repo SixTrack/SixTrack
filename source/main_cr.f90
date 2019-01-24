@@ -281,7 +281,6 @@ end interface
 #endif
 
   ! Open Regular File Units
-  call f_open(unit=12,file="fort.12",formatted=.true., mode="w", err=fErr)
   call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA file
   call f_open(unit=19,file="fort.19",formatted=.true., mode="r", err=fErr) ! DA file
   call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr) ! DA file
