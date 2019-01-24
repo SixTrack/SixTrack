@@ -64,10 +64,11 @@ Moreover, using the multipole block reduces the number of elements in the single
 
 % ================================================================================================================================ %
 \section{Aperture Limitations} \label{ApeLim}
-The aperture LIMItation block allows to define aperture limitations in the machine and hence describe the mechanical acceptance of the machine.\index{aperture limit}\index{LIMI} In this way, it is possible to check if particles being tracked still remain inside the machine aperture or will be lost against the beam pipe.
+The aperture LIMItation block allows to define aperture limitations in the machine and hence describe the mechanical acceptance of the machine.\index{aperture limit}\index{LIMI}
+In this way, it is possible to check if particles being tracked still remain inside the machine mechanical aperture or will be lost against the beam pipe.
 
 In addition to the check against the detailed model of the machine, there is also a general (rectangular) aperture check at each non-zero length element.
-The general aperture check is always on, but in general values are set large enough (\ref{T-DTP}) to define the short term dynamic aperture and be outside of any factual mechanical machine aperture.
+The general aperture check is always on, but in general values of the specifiers are set large enough (\ref{T-DTP}) to define the short term dynamic aperture and be outside of any factual machine mechanical aperture.
 
 \subsection{General Description} \label{ApeLim:GenDesc}
 Each non-linear (zero length) element defined in the \textit{Single Element} input block (\ref{NonEle}) except multipole blocks (\ref{MulBlo}) can be used to define aperture limitations, but it is highly recommended to use dedicated markers.
@@ -80,10 +81,11 @@ While on by default, the algorithm can be switched off by the user; in this case
 Particles outside of the mechanical acceptance will be mercilessly killed, unless explicitly requested by the user (see Sec.~\ref{ApeLim:inpOptions}).
 
 The present implementation extends the functionalities developed in the context of the Fluka-SixTrack coupling~\cite{coupling:1,coupling:2}.
-Please not that, if aperture markers are defined in the \texttt{LIMI} block, the aperture check is triggered only by the markers.
+Please note that, if aperture markers are defined in the \texttt{LIMI} block, the aperture check is triggered only by the markers.
 On the other hand, the general aperture check is performed at every element and it is always on.
-Finally, no matter if the \texttt{LIMI} block is present or not, or if the back-tracking algorithm is on or off, SixTrack dumps all particles at their loss point in the \texttt{aperture\_losses.dat} file (see Sec.~\ref{}).
+Finally, no matter if the \texttt{LIMI} block is present or not, or if the back-tracking algorithm is on or off, SixTrack dumps all particles at their loss point in the \texttt{aperture\_losses.dat} file (see Sec.~\ref{ApeLim:ApeLossesFileFormat}).
 
+\newpage
 \paragraph{Format Description}~
 
 \bigskip
@@ -93,7 +95,7 @@ Finally, no matter if the \texttt{LIMI} block is present or not, or if the back-
     \textbf{Format}     & Each aperture marker is fully specified by means of its type and
                           numerical parameters (see Sec.~\ref{ApeLim:ApeSpecs}).
                           Other input options are available to the user,
-                          headed by specific keywords, to control other parameters.
+                          headed by specific keywords, to control the respective parameters.
 \end{tabular}
 
 \bigskip
@@ -101,22 +103,23 @@ Finally, no matter if the \texttt{LIMI} block is present or not, or if the back-
 An aperture profile can be assigned to a SINGLE ELEMENT specifying its type and numerical specifiers:
 
 \paragraph{Format:}
-\texttt{name type aper\_1 aper\_2 aper\_3 aper\_4 aper\_5 aper\_6 x\_off y\_off angle}
+\texttt{name type aper\_1 aper\_2 aper\_3 aper\_4 x\_off y\_off angle}
 
 \begin{longtabu}{@{}lp{0.8\linewidth}}
     \texttt{name}   & The name of any non-linear (zero length) element in the \textit{Single Element} input block~(\ref{NonEle}) except multipole blocks~(\ref{MulBlo}). \\
     \texttt{type}   & Type of aperture limitation (string). See Tab.~\ref{tab:apeSpecs} for the types
                       presently available. \\
-    \texttt{aper\_1} to \texttt{aper\_6}  & Aperture specifiers (floats).
+    \texttt{aper\_1} to \texttt{aper\_4}  & Aperture specifiers (floats).
                       Their actual meaning depend on the aperture type. The aperture specifiers are
-                      aligned to those of MAD-X~\cite{MAD}. See Tab.~\ref{tab:apeSpecs} for their
-                      meanings.\\
-    \texttt{x\_off} and \texttt{y\_off}  & Hor.~and ver.~aperture offsets in mm. \\
+                      aligned to those of MAD-X~\cite{MAD}, with the exception of the Racetrack,
+                      that can have an ellyptical corner. See Tab.~\ref{tab:apeSpecs} for their
+                      meanings. Only the Transition type needs 8 specifiers (hence from \texttt{aper\_1} to \texttt{aper\_8}). \\
+    \texttt{x\_off} and \texttt{y\_off}  & Hor.~and ver.~offsets in mm. \\
     \texttt{angle}  & Tilt angle in rad. The tilt is around the offset point.\\
 \end{longtabu}
 
 The last three numerical specifiers are optional, whereas the others are mandatory, depending on the type.
-Tab.~\ref{tab:apeSpecs} summarises the aperture types presently available and the meaning of the necessary numerical specifiers; see also Fig.~\ref{fig:APE_sketch} for further geometrical clarifications.
+Tab.~\ref{tab:apeSpecs} summarises the aperture types presently available and the meaning of the respective numerical specifiers; see also Fig.~\ref{fig:APE_sketch} for further geometrical clarifications.
 The list of aperture markers and specifiers can be given directly in the \texttt{fort.3} file, in the \texttt{LIMI} block, or via a text file, the name of which must be specified in the \texttt{LIMI} block with the \texttt{LOAD} keyword (see Sec.~\ref{ApeLim:inpOptions}).
 For the convention on signs for the last three (optional) aperture specifiers, please see Fig.~\ref{fig:oct_sketch}.
 
@@ -156,17 +159,20 @@ For the convention on signs for the last three (optional) aperture specifiers, p
     & & \texttt{aper\_4} & angle of second cut corner [rad] \\*
     \hline
     
-    Ractetrack & \texttt{RT} & \texttt{aper\_1} & hor.~half-size [mm] \\*
-    & & \texttt{aper\_2} & ver.~half-size [mm] \\*
-    & & \texttt{aper\_3} & radius [mm] \\*
+    Ractetrack & \texttt{RT} & \texttt{aper\_1} & hor.~displ.~of ellypse centre [mm] \\*
+    & & \texttt{aper\_2} & ver.~displ.~of ellypse centre [mm] \\*
+    & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
+    & & \texttt{aper\_4} & ver.~semi-axis [mm] \\*
     \hline
     
     Transition & \texttt{TR} & \texttt{aper\_1} & hor.~half-size [mm] \\*
     & & \texttt{aper\_2} & ver.~half-size [mm] \\*
     & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
     & & \texttt{aper\_4} & ver.~semi-axis [mm] \\*
-    & & \texttt{aper\_5} & angle of first cut corner [rad] \\*
-    & & \texttt{aper\_6} & angle of second cut corner [rad] \\*
+    & & \texttt{aper\_5} & hor.~displ.~of ellypse centre (a-la RACETRACK) [mm] \\*
+    & & \texttt{aper\_6} & hor.~displ.~of ellypse centre (a-la RACETRACK) [mm] \\*
+    & & \texttt{aper\_7} & angle of first cut corner [rad] \\*
+    & & \texttt{aper\_8} & angle of second cut corner [rad] \\*
     \hline
 
 %     \rowcolor{blue!15}
@@ -214,19 +220,22 @@ Tab.~\ref{tab:apeInpOptions} lists all available options, their syntax and meani
     \hline
 
     \texttt{DEBUG} & \multicolumn{2}{l|}{to enable debugging output for the aperture code.} \\*
-                   & \multicolumn{2}{l|}{For the moment, this flag increase the verbosity during parsing of \texttt{fort.3}.} \\*
+                   & \multicolumn{2}{l|}{For the moment, this flag only increase the verbosity during parsing of \texttt{fort.3}.} \\*
     \hline
 
     \texttt{LOAD}  & \multicolumn{2}{l|}{to load specifications of apertures from a file.} \\*
+    \cline{2-3}
                    & filename & ASCII file containing the specifications of apertures \\*
     \hline
 
     \texttt{PREC}  & \multicolumn{2}{l|}{to set custom accuracy in finding the actual loss location} \\*
+    \cline{2-3}
                    & precision & precision of back-tracking [m] \\*
     \hline
 
     \texttt{PRIN}  & \multicolumn{2}{l|}{to echo the profile of the machine aperture with $s$ to a file.} \\*
                    & \multicolumn{2}{l|}{The precision set for back-tracking is used also as precision of the echo.} \\*
+    \cline{2-3}
                    & filename & ASCII file where to echo the machine aperture \\*
                    & \texttt{MEM} & optional flag to dump aperture profile as in memory \\*
     \hline
@@ -237,6 +246,7 @@ Tab.~\ref{tab:apeInpOptions} lists all available options, their syntax and meani
 
     \texttt{XSEC}  & \multicolumn{2}{l|}{to dump aperture cross sections at specific $s$-locations} \\*
                    & \multicolumn{2}{l|}{(NOT OPERATIONAL YET!)} \\*
+    \cline{2-3}
                    & filename & ASCII file where to echo the cross section \\*
                    & $s_{\textrm{min}}$ & first $s$-location where to get the cross-section [m] \\*
                    & $s_{\textrm{max}}$ & last $s$-location where to get the cross-section [m] (optional) \\*
@@ -261,7 +271,8 @@ If the code is compiled with the \texttt{FLUKA} compilation flag, the particle I
     %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
   \caption{Columns of the \texttt{aperture\_losses.dat} file. The number between
     parentheses refers to the case SixTrack is compiled for coupling to Fluka, i.e.~if
-    the \texttt{FLUKA} compilation flag is on.}
+    the \texttt{FLUKA} compilation flag is on. A '-' means that a given column is
+    not available when SixTrack is compiled the \texttt{FLUKA} compilation flag.}
     \label{tab:apeLossesFileFormat} \\*
     \hline
     \rowcolor{blue!30}
@@ -292,7 +303,7 @@ If the code is compiled with the \texttt{FLUKA} compilation flag, the particle I
 \end{longtable}
 \end{center}
 
-\subsection{Example}
+\subsection{Example}\label{ApeLim:Example}
 The following example shows a typical use of the \texttt{LIMI} block.
 Debug messages are requested by the user.
 The description of the aperture markers is provided by the \texttt{fort3.limi} file, and the aperture profile is echoed and saved in the \texttt{ape\_dump.dat} file.

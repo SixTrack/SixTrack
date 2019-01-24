@@ -20,7 +20,7 @@ subroutine sumpos
   real(kind=fPrec) d(60), dlost
   integer nSplit, ioStat, lineNo, i, j
   logical spErr, fErr
-  
+
   save
 
   rewind 10
@@ -31,7 +31,7 @@ subroutine sumpos
       write(lout,"(a,i0)") "SUMPOS> ERROR Failed to read line from 'fort.10'. iostat = ",ioStat
       call prror(-1)
     end if
-  
+
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
       write(lout,"(a)") "SUMPOS> ERROR Failed to parse line from 'fort.10'"
@@ -46,7 +46,7 @@ subroutine sumpos
     do j=1,nSplit
       call chr_cast(lnSplit(j),d(j),spErr)
     end do
-  
+
     if(i == 1) write(lout,10000)
     if(abs(d(2)) >= pieni) then
       ch = "LOST"
@@ -72,7 +72,7 @@ subroutine sumpos
       write(lout,"(a,i0)") "SUMPOS> ERROR Failed to read line from 'fort.10'. iostat = ",ioStat
       call prror(-1)
     end if
-  
+
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
       write(lout,"(a)") "SUMPOS> ERROR Failed to parse line from 'fort.10'"

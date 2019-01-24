@@ -16,8 +16,7 @@ subroutine warr(vname,value,i,j,k,l)
 
   myname=vname
   write(100) myname,value,i,j,k,l
-  endfile (100,iostat=ierro)
-  backspace (100,iostat=ierro)
+  flush(100)
 
   return
 
@@ -38,8 +37,7 @@ subroutine dumpbl1(dumpname,n,i)
   write(99,*) dumpname,'   Turn ',n,' Element ',i
   write(99,100) 'bl1 ',bl1
   write(99,100) 'bl2 ',bl2
-  endfile (99,iostat=ierro)
-  backspace (99,iostat=ierro)
+  flush(99)
 
 100  format (a10,(Z20))
 
@@ -66,8 +64,7 @@ subroutine dumpzfz(dumpname,n,i)
   do j=1,nzfz
     write(101) zfz(j)
   end do
-  endfile (101,iostat=ierro)
-  backspace (101,iostat=ierro)
+  flush(101)
 
 end subroutine dumpzfz
 
@@ -89,8 +86,7 @@ subroutine dumpxy(dumpname,n,i,k)
   write(99,*) (xv1(j),j=1,k),(xv2(j),j=1,k),(yv1(j),j=1,k),(yv2(j),j=1,k),&
     (sigmv(j),j=1,k),(ejv(j),j=1,k),(ejfv(j),j=1,k),(rvv(j),j=1,k),           &
     (dpsv(j),j=1,k),(dpsv1(j),j=1,k),(oidpsv(j),j=1,k)
-  endfile (99,iostat=ierro)
-  backspace (99,iostat=ierro)
+  flush(99)
 
 end subroutine dumpxy
 
@@ -144,9 +140,7 @@ subroutine dumpsynu(dumpname,n,i)
   write(99,*) (wfhi(j),j=1,napxo)
   write(99,*) ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
   write(99,*) ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-
-  endfile (99,iostat=ierro)
-  backspace (99,iostat=ierro)
+  flush(99)
 
 end subroutine dumpsynu
 
@@ -613,8 +607,7 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'time0 ',time0
   write(99,*) 'time1 ',time1
 
-  endfile (99,iostat=ierro)
-  backspace (99,iostat=ierro)
+  flush(99)
 
 end subroutine dump
 
@@ -1085,8 +1078,7 @@ subroutine dumpbin(dumpname,n,i)
   write(99) time0
   write(99) time1
 
-  endfile (99,iostat=ierro)
-  backspace (99,iostat=ierro)
+  flush(99)
 
 end subroutine dumpbin
 
@@ -1550,8 +1542,7 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'time0 ',time0
   write(99,100) 'time1 ',time1
 
-  endfile (99,iostat=ierro)
-  backspace (99,iostat=ierro)
+  flush(99)
 
 100 format (a10,(Z20))
 

@@ -210,7 +210,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     ! Radial profile of electrons given by file: need also
     !   name of file where coefficients are stored
     tmpch = trim(lnSplit(8))
- 
+
     ! Check if profile has already been requested:
     chIdx = -1
     do tmpi1=1,melens_radial_profiles
@@ -356,10 +356,10 @@ subroutine elens_parseInputDone(iErr)
 end subroutine elens_parseInputDone
 
 subroutine elens_postInput
-  
+
   use mathlib_bouncer
   use utils
-  
+
   integer j,jj
   logical exist
 
@@ -408,7 +408,7 @@ subroutine elens_postInput
       elens_geo_norm(j) = elens_radial_fr2(j) -elens_radial_fr1(j)
     end if
   end do
- 
+
   ! Compute elens theta at R2, if requested by user
   call eLensThetas
 
@@ -489,9 +489,9 @@ subroutine eLensTheta(j)
   else
     elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betrel)-one)
   end if
- 
+
   if ( elens_type(j)>=2 ) elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)
-  
+
 end subroutine eLensTheta
 
 ! ================================================================================================ !
@@ -628,7 +628,7 @@ subroutine integrateRadialProfile(ifile)
   end do
   write(lout,"(a,e22.15)") "ELENS> Total current in radial profile [A]: ", &
          elens_radial_profile_J(elens_radial_profile_nPoints(ifile),ifile)
-  
+
 end subroutine integrateRadialProfile
 
 ! ================================================================================================ !
@@ -654,7 +654,7 @@ subroutine normaliseRadialProfile(ifile)
     elens_radial_profile_J(ii,ifile)=elens_radial_profile_J(ii,ifile)/&
                                      elens_radial_profile_J(elens_radial_profile_nPoints(ifile),ifile)
   end do
-  
+
 end subroutine normaliseRadialProfile
 
 ! ================================================================================================ !
