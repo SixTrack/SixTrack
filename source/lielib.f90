@@ -2698,8 +2698,8 @@ subroutine mapflol(sa,sai,cr,cm,st)
           enddo
         enddo
         ! Report
-        meta_sympCheck = c1e2*(xsu-nd2)/xsu
-        write(lout,"(a,es13.6,a)") "LIELIB> Deviation for symplecticity = ",c1e2*(xsu-nd2)/xsu," %"
+        meta_sympCheck = (xsu-nd2)/xsu
+        write(lout,"(a,es13.6,a)") "LIELIB> Deviation for symplecticity = ",c1e2*meta_sympCheck," %"
       endif
       call eig6(cr,rr,ri,vr,vi)
       if(idpr.ge.0) then

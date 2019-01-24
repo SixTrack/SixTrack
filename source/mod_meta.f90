@@ -91,13 +91,13 @@ subroutine meta_finalise
     close(tmpUnit)
   end if
 
-  call meta_write("SymplecticityDeviation[%]", meta_sympCheck)
-  call meta_write("NumParticleTurns",          meta_nPartTurn)
-  call meta_write("AvgParticlesPerTurn",       real(meta_nPartTurn,fPrec)/numl, "f15.3")
-  call meta_write("CR_RestartCount",           meta_nRestarts)
-  call meta_write("CR_KillSwitchCount",        nCRKills2)
-  call meta_write("PeakDynamicMemAlloc[MB]",   real(maximum_bits,fPrec)/1024/1024/8, "f15.3")
-  call meta_write("NumDynamicMemAllocCalls",   alloc_count)
+  call meta_write("SymplecticityDeviation",  meta_sympCheck)
+  call meta_write("NumParticleTurns",        meta_nPartTurn)
+  call meta_write("AvgParticlesPerTurn",     real(meta_nPartTurn,fPrec)/numl, "f15.3")
+  call meta_write("CR_RestartCount",         meta_nRestarts)
+  call meta_write("CR_KillSwitchCount",      nCRKills2)
+  call meta_write("PeakDynamicMemAlloc[MB]", real(maximum_bits,fPrec)/1024/1024/8, "f15.3")
+  call meta_write("NumDynamicMemAllocCalls", alloc_count)
 
   write(meta_fileUnit,"(a)") "# END"
   flush(meta_fileUnit)
