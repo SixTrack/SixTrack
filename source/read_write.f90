@@ -51,6 +51,8 @@ subroutine writeFort12
     write(12,"(a)") (roundBuf(k), k=1,15)
   end do
 
+  write(lout,"(a,i0,a)") "FORT12> Wrote ",(napxo/2)," particle pairs to fort.12"
+
   call f_close(12)
 
 end subroutine writeFort12

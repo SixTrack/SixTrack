@@ -293,7 +293,7 @@ end interface
 #else
   ! Open binary files 59 to 90 for particle pair 1 to 32
   do i=59,90
-    write(tmpFile,"(a5,i2)") "fort.",i
+    write(tmpFile,"(a5,i0)") "fort.",i
     call f_open(unit=i,file=tmpFile,formatted=.false.,mode="rw",err=fErr)
   end do
 #endif
@@ -335,7 +335,7 @@ end interface
 #ifdef CR
   ! Log start messages
   write(93,"(a)") ""
-  write(93,"(a)") "SIXTRACR MAINCR"
+  write(93,"(a)") "SIXTRACR> MAINCR Starting"
   write(93,"(a)") stxt//timeStamp
   flush(93)
 #endif
