@@ -130,7 +130,7 @@ end interface
   call boinc_init
 ! call boinc_init_graphics
 #endif
-  call f_initUnits ! And this one second
+  call f_initUnits
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call alloc_init      ! Initialise mod_alloc
@@ -281,28 +281,12 @@ end interface
 #endif
 
   ! Open Regular File Units
-  call f_open(unit=7, file="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
-  call f_open(unit=9, file="fort.9", formatted=.true., mode="w", err=fErr)
-  call f_open(unit=11,file="fort.11",formatted=.true., mode="w", err=fErr)
   call f_open(unit=12,file="fort.12",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=14,file="fort.14",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=15,file="fort.15",formatted=.true., mode="w", err=fErr)
-! call f_open(unit=17,file="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use? Should mirror fort.16
-  call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr)
-! call f_open(unit=19,file="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
-  call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=21,file="fort.21",formatted=.true., mode="w", err=fErr)
-! call f_open(unit=22,file="fort.22",formatted=.true. ,mode="w", err=fErr) ! Not in use?
-! call f_open(unit=23,file="fort.23",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call f_open(unit=24,file="fort.24",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call f_open(unit=25,file="fort.25",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call f_open(unit=26,file="fort.26",formatted=.true., mode="w", err=fErr) ! Not in use?
-  call f_open(unit=27,file="fort.27",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=28,file="fort.28",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=29,file="fort.29",formatted=.true., mode="w", err=fErr)
+  call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA file
+  call f_open(unit=19,file="fort.19",formatted=.true., mode="r", err=fErr) ! DA file
+  call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr) ! DA file
+  call f_open(unit=21,file="fort.21",formatted=.true., mode="w", err=fErr) ! DA file
   call f_open(unit=31,file="fort.31",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=34,file="fort.34",formatted=.true., mode="w", err=fErr)
-! call f_open(unit=35,file="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
 
 #ifdef STF
   ! Open Single Track File
@@ -315,21 +299,12 @@ end interface
   end do
 #endif
 
-  call f_open(unit=98,file="fort.98",formatted=.true.,mode="w",err=fErr)
-
-  ! Eric for the DA coefficients in BINARY
-  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
-  call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr)
+  call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr) ! DA file, binary
 
 #ifdef DEBUG
   call f_open(unit=99 ,file="dump",  formatted=.false.,mode="rw",err=fErr)
   call f_open(unit=100,file="arrays",formatted=.false.,mode="rw",err=fErr)
 #endif
-
-  ! Heavy Ion Output
-  call f_open(unit=208,file="fort.208",formatted=.true.,mode="w",err=fErr) ! coll losses (energy)
-  call f_open(unit=209,file="fort.209",formatted=.true.,mode="w",err=fErr) ! coll losses in function of particle i
-  call f_open(unit=210,file="fort.210",formatted=.true.,mode="w",err=fErr) ! mtc after each collimator interaction
 
   call time_timeStamp(time_afterFileUnits)
 
@@ -363,8 +338,7 @@ end interface
   write(93,"(a)") ""
   write(93,"(a)") "SIXTRACR MAINCR"
   write(93,"(a)") stxt//timeStamp
-  endfile(93,iostat=ierro)
-  backspace(93,iostat=ierro)
+  flush(93)
 #endif
 
   call time_timerStart
@@ -416,10 +390,17 @@ end interface
     call hplset('CSIZ',.15)
   endif
 
+  if(nprint == 1 .and. ipos == 1) then
+    ! Open fort.14 and fort.15 for postprocessing
+    call f_open(unit=14,file="fort.14",formatted=.true.,mode="w")
+    call f_open(unit=15,file="fort.15",formatted=.true.,mode="w")
+  end if
+
   ! Postprocessing is on, but there are no particles
   if(ipos.eq.1.and.napx.eq.0) then
     ! Now we open fort.10 unless already opened for BOINC
-    call f_open(unit=10,file="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
+    call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
+    call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
 
 #ifndef STF
     do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
@@ -427,8 +408,7 @@ end interface
       call postpr(91-i)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(91-i,nnuml)
 #endif
     end do
@@ -442,8 +422,7 @@ end interface
       call postpr(i)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(i,nnuml)
 #endif
     end do
@@ -1149,8 +1128,7 @@ end interface
 
 #ifdef CR
   write(93,"(a,i0)") "MAINCR> Setting napxo = ",napx
-  endfile(93,iostat=ierro)
-  backspace(93,iostat=ierro)
+  flush(93)
 #endif
   napxo = napx
 
@@ -1531,27 +1509,23 @@ end interface
     ! If restart is true , we haven't done any tracking and must be running from very last checkpoint
     write(93,"(a)")          "MAINCR> Very last call to WRITEBIN?"
     write(93,"(a,3(1x,i0))") "MAINCR> numlmax, nnuml, numl = ",numlmax,nnuml,numl
-    endfile(93,iostat=ierro)
-    backspace(93,iostat=ierro)
+    flush(93)
     if(nnuml == numl) then
       ! We REALLY have finished (or all particles lost)
       ! When all lost, nthinerr=3001, we set nnuml=numl
       ! and make sure we do the last WRITEBIN
       write(93,"(a)") "MAINCR> Very last call to WRITEBIN"
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call writebin(nthinerr)
       if(nthinerr == 3000) goto 520
     else
       ! I assume we are stopping because we have done nnuml turns which should be numlmax and do a writebin only if time
       write(93,"(a)")          "MAINCR> Very last call to WRITEBIN?"
       write(93,"(a,3(1x,i0))") "MAINCR> numlmax, nnuml, numl = ",numlmax,nnuml,numl
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       if(mod(nnuml,nwri) == 0) then
         write(93,"(a)") "MAINCR> Very last call to WRITEBIN"
-        endfile(93,iostat=ierro)
-        backspace(93,iostat=ierro)
+        flush(93)
         call writebin(nthinerr)
         if(nthinerr == 3000) goto 520
       end if
@@ -1683,7 +1657,8 @@ end interface
 
 470 continue
   ! and we need to open fort.10 unless already opened for BOINC
-  call f_open(unit=10,file="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
+  call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
+  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
 
   ! Also dump the final state of the particle arrays
   call part_writeState(1)
@@ -1699,8 +1674,7 @@ end interface
       call postpr(91-ia2) ! Postprocess file "fort.(91-ia2)"
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(91-ia2,nnuml)
 #endif
     end do
@@ -1717,8 +1691,7 @@ end interface
       call postpr(91-ia)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(91-ia,nnuml)
 #endif
     end do
@@ -1734,8 +1707,7 @@ end interface
       call postpr(ia) ! Postprocess particle ia (and ia+1 if ntwin=2)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(ia,nnuml)
 #endif
     end do
@@ -1752,8 +1724,7 @@ end interface
       call postpr(ia)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(ia,nnuml)
 #endif
     end do
@@ -1843,7 +1814,6 @@ end interface
   call time_timeStamp(time_beforeExit)
   call time_finalise
   call meta_finalise
-  call closeUnits ! Must be last as it also closes fort.6
 
 ! ---------------------------------------------------------------------------- !
 !  DONE MAINCR
@@ -1852,7 +1822,8 @@ end interface
 #ifdef CR
   call abend('                                                  ')
 #else
-  stop
+  call closeUnits
+  stop 0
 #endif
 10000 format(/4x,"Tracking ended abnormally for particle: ",i0,         &
              /4x,"Random seed:        ",i8,                             &

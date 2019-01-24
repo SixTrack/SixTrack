@@ -78,7 +78,7 @@ subroutine daten
   ! SIXTRACK INPUT MODULE
   inErr       = .false.
 
-  call alloc(sixin_bez0,mNameLen,nele,str_nmSpace,"sixin_bez0")
+  call alloc(sixin_bez0,mNameLen,nele," ","sixin_bez0")
 
   ! DATEN INTERNAL
   nGeom       = 0
@@ -4287,6 +4287,7 @@ subroutine linopt(dpp)
   use mathlib_bouncer
   use crcoall
   use parpro
+  use mod_units
   use mod_common
   use mod_commons
   use mod_common_track
@@ -4389,6 +4390,7 @@ subroutine linopt(dpp)
       end do
 
       if(ncorru.eq.0) then
+        call f_open(unit=34,file="fort.34",formatted=.true.,mode="w")
         write(lout,10010)
         write(lout,10050) (di0(l),dip0(l),l=1,2)
       endif
@@ -5357,8 +5359,10 @@ subroutine cpltwis(typ,t,etl,phi)
       use mod_common
       use mod_commons
       use mod_common_track
+      use mod_units
       implicit none
       integer i,iwrite
+      logical :: open11 = .false.
       real(kind=fPrec) alxi,alxii,alzi,alzii,bexi,bexii,bezi,bezii,     &
      &couuang,etl,gaxi,gaxii,gazi,gazii,phi,phxi,phxii,phxpi,phxpii,    &
      &phzi,phzii,phzpi,phzpii,t
@@ -5424,6 +5428,11 @@ subroutine cpltwis(typ,t,etl,phi)
         else
           couuang=zero
         endif
+        if(open11 .eqv. .false.) then
+          ! Note: Description above says binary file, but the file has been opened as ascii since at least 4.x
+          call f_open(unit=11,file="fort.11",formatted=.true.,mode="w")
+          open11 = .true.
+        end if
         write(11,*) typ,etl,phi,bexi,bexii,bezi,bezii, alxi,alxii,alzi, &
      &alzii, gaxi,gaxii,gazi,gazii,phxi,phxii,phzi,phzii, phxpi,        &
      &phxpii,phzpi,phzpii,couuang,t(6,1),t(6,2),t(6,3),t(6,4),t(1,1),   &
@@ -5567,6 +5576,7 @@ subroutine corrorb
       use mathlib_bouncer
       use crcoall
       use parpro
+      use mod_units
       use mod_common
       use mod_commons
       use mod_common_track
@@ -5835,14 +5845,17 @@ subroutine corrorb
       if((ii-1).eq.itco) write(lout,10130) itco
   190 continue
 
-!-- WRITE OUT ADJUSTED CLOSED ORBIT
-      do 200 i=1,nhmoni
-        write(28,*) i,bclorb(i,1)
-  200 continue
-
-      do 210 i=1,nhmoni
-        write(29,*) i,bclorb(i,2)
-  210 continue
+  if(nhmoni > 0) then
+    ! WRITE OUT ADJUSTED CLOSED ORBIT
+    call f_open(unit=28,file="fort.28",formatted=.true.,mode="w")
+    call f_open(unit=29,file="fort.29",formatted=.true.,mode="w")
+    do i=1,nhmoni
+      write(28,*) i,bclorb(i,1)
+      write(29,*) i,bclorb(i,2)
+    end do
+    call f_close(28)
+    call f_close(29)
+  end if
 
 !-- CHANGE BACK TO OLD 'LINOPT' SETTINGS
       iprint=iprinto

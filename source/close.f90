@@ -28,7 +28,7 @@ subroutine closeUnits
   ! Then iterate through the first 1000 units
   do chkUnit=1, units_maxUnit
     ! Do not close the following units:
-    if(chkUnit == 6 .or. chkUnit >= 91 .and. chkUnit <= 97) cycle
+    if(chkUnit == 5 .or. chkUnit == 6 .or. chkUnit >= 91 .and. chkUnit <= 97) cycle
     inquire(unit=chkUnit, opened=isOpen)
     if(isOpen) call f_close(chkUnit)
   end do

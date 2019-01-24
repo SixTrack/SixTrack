@@ -218,7 +218,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
 !     hisix: compute the nucleon and energy difference
 !              reduce by factor 1e-3 to get the energy in GeV
       if((ien0-ien1).gt.one) then
-        write(208,*) fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
+        write(unit208,*) fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
 #ifdef ROOT
         if(root_flag .and. root_FLUKA .eq. 1) then
           call root_FLUKA_EnergyDeposition(fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
@@ -228,7 +228,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
       ! write out the particle distribution after the primary
         if(fluka_geo_index(ix).eq.11) then
           do j=1,napx
-            write(210,*) naa(j), nzz(j), nucm(j),ejfv(j),mtc(j),dpsv(j)
+            write(unit210,*) naa(j), nzz(j), nucm(j),ejfv(j),mtc(j),dpsv(j)
           end do
         end if
       end if
@@ -245,7 +245,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
         end do
 
         if(pid_q.eq.zero.and.pids(j).ne.zero) then
-          write(209,*) fluka_geo_index(ix), pids(j)
+          write(unit209,*) fluka_geo_index(ix), pids(j)
         end if
       end do
 
@@ -431,7 +431,7 @@ subroutine kernel_fluka_exit( nturn, i, ix )
 !       hisix: compute the nucleon and energy difference
 !              reduce by factor 1e-3 to get the energy in GeV
         if((ien0-ien1).gt.one) then
-          write(208,*) fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
+          write(unit208,*) fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
 #ifdef ROOT
           if(root_flag .and. root_FLUKA .eq. 1) then
             call root_FLUKA_EnergyDeposition(fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
@@ -442,7 +442,7 @@ subroutine kernel_fluka_exit( nturn, i, ix )
           ! write out the particle distribution after the primary
           if (fluka_geo_index(ix).eq.11) then
             do j=1,napx
-              write(210,*) naa(j), nzz(j), nucm(j),ejfv(j),mtc(j),dpsv(j)
+              write(unit210,*) naa(j), nzz(j), nucm(j),ejfv(j),mtc(j),dpsv(j)
             end do
           end if
         end if
@@ -457,7 +457,7 @@ subroutine kernel_fluka_exit( nturn, i, ix )
           end if
         end do
         if(pid_q.eq.zero.and.pids(j).ne.zero) then
-          write(209,*) fluka_geo_index(ix), pids(j)
+          write(unit209,*) fluka_geo_index(ix), pids(j)
         end if
       end do
 

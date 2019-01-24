@@ -1677,8 +1677,7 @@ subroutine postpr(nfile)
           write(93,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
           write(93,*) 'Particle No ',posi,' binrec/binrecs/crbinrecs ', binrec,binrecs(posi1),crbinrecs(posi1)
 #endif
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
           goto 551
         endif
       endif
@@ -2215,11 +2214,6 @@ subroutine postpr(nfile)
         write(lout,*) 'ERROR CODE : ',ierro
         write(lout,*)
       endif
-#ifdef DEBUG
-#ifndef NAGFOR
-      write(210,'(60Z21)') (sumda(i),i=1,60)
-#endif
-#endif
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
       do ich=8192,1,-1
@@ -2668,11 +2662,6 @@ subroutine postpr(nfile)
         write(lout,*) 'ERROR CODE : ',ierro
         write(lout,*)
       endif
-#ifdef DEBUG
-#ifndef NAGFOR
-      write(210,'(60Z21)') (sumda(i),i=1,60)
-#endif
-#endif
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
       do ich=8192,1,-1
@@ -2696,8 +2685,10 @@ subroutine postpr(nfile)
       endif
 !--REWIND USED FILES
   560 rewind nfile
-      rewind 14
-      rewind 15
+      if(nprint == 1) then
+        rewind 14
+        rewind 15
+      end if
 !--TIME COUNT
       tim2=0.
       call time_timerCheck(tim2)

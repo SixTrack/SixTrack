@@ -48,7 +48,7 @@ module dump
   ! Flag the format of the dump
   integer, allocatable, save :: dumpfmt(:) !(-1:nele)
   ! Filename to write the dump to
-  character(len=:), allocatable, save :: dump_fname(:) !(mStrLen)(-1:nele)
+  character(len=:), allocatable, save :: dump_fname(:) !(mFNameLen)(-1:nele)
 
   ! tas matrix used for nomalisation of phase space in DUMP and FMA.
   ! First index = -1 -> StartDUMP, filled differently than idx > 0; First index = 0  -> Unused.
@@ -85,26 +85,26 @@ subroutine dump_expand_arrays(nele_new, nblz_new)
   integer, intent(in) :: nele_new
   integer, intent(in) :: nblz_new
 
-  call alloc(ldump,               nele_new, .false.,    "ldump",      -1)
-  call alloc(ndumpt,              nele_new, 0,          "ndumpt",     -1)
-  call alloc(dumpfirst,           nele_new, 0,          "dumpfirst",  -1)
-  call alloc(dumplast,            nele_new, 0,          "dumplast",   -1)
-  call alloc(dumpunit,            nele_new, 0,          "dumpunit",   -1)
-  call alloc(dumpfmt,             nele_new, 0,          "dumpfmt",    -1)
-  call alloc(dump_fname, mStrLen, nele_new, str_dSpace, "dump_fname", -1)
+  call alloc(ldump,                 nele_new, .false.,    "ldump",      -1)
+  call alloc(ndumpt,                nele_new, 0,          "ndumpt",     -1)
+  call alloc(dumpfirst,             nele_new, 0,          "dumpfirst",  -1)
+  call alloc(dumplast,              nele_new, 0,          "dumplast",   -1)
+  call alloc(dumpunit,              nele_new, 0,          "dumpunit",   -1)
+  call alloc(dumpfmt,               nele_new, 0,          "dumpfmt",    -1)
+  call alloc(dump_fname, mFNameLen, nele_new, " ",        "dump_fname", -1)
 
-  call alloc(dumptas,             nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
-  call alloc(dumptasinv,          nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
-  call alloc(dumpclo,             nblz_new, 6,    zero, "dumpclo",    -1,1)
+  call alloc(dumptas,               nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
+  call alloc(dumptasinv,            nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
+  call alloc(dumpclo,               nblz_new, 6,    zero, "dumpclo",    -1,1)
 
 #ifdef CR
-  call alloc(dumpfilepos,         nele_new,-1,          "dumpfilepos",   -1)
-  call alloc(dumpfilepos_cr,      nele_new,-1,          "dumpfilepos_cr",-1)
+  call alloc(dumpfilepos,           nele_new,-1,          "dumpfilepos",   -1)
+  call alloc(dumpfilepos_cr,        nele_new,-1,          "dumpfilepos_cr",-1)
 #endif
 
 #ifdef HDF5
-  call alloc(dump_hdf5DataSet,    nele_new,0,           "dump_hdf5DataSet",-1)
-  call alloc(dump_hdf5Format,     9,       0,           "dump_hdf5Format")
+  call alloc(dump_hdf5DataSet,      nele_new,0,           "dump_hdf5DataSet",-1)
+  call alloc(dump_hdf5Format,       9,       0,           "dump_hdf5Format")
 #endif
 
 end subroutine dump_expand_arrays
@@ -198,7 +198,7 @@ subroutine dump_parseInputLine(inLine,iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) elemName
-  character(len=mStrLen) fileName
+  character(len=mFNameLen) fileName
   integer i1,i2,i3,i4,i5,kk,j
   integer nSplit
   logical spErr
@@ -516,9 +516,7 @@ subroutine dump_initialise
       ! Write format-specific headers
       if (dumpfmt(i) == 1) then
         write(dumpunit(i),'(a)') '# particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] (E-E0)/E0[1] ktrack'
-        ! Flush file
-        endfile   (dumpunit(i))
-        backspace (dumpunit(i))
+        flush(dumpunit(i))
 #ifdef CR
         dumpfilepos(i) = dumpfilepos(i) + 1
 #endif
@@ -616,10 +614,7 @@ subroutine dump_initialise
             tasbuf(6,1),tasbuf(6,2),tasbuf(6,3),tasbuf(6,4),tasbuf(6,5),tasbuf(6,6)
 
         end if ! Format-specific headers
-
-        ! Flush file
-        endfile   (dumpunit(i))
-        backspace (dumpunit(i))
+        flush(dumpunit(i))
 #ifdef CR
         dumpfilepos(i) = dumpfilepos(i) + 2
         ! format 7 also writes clo, tas and tasinv
@@ -972,10 +967,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
     end if
     write(unit,"(a)") ""
     write(unit,"(a)") ""
-
-    ! Flush
-    endfile (unit,iostat=ierro)
-    backspace (unit,iostat=ierro)
+    flush(unit,iostat=ierro)
 #ifdef CR
     dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx+2
 #endif
@@ -1028,10 +1020,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
             xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),localKtrack
         end do
       end if
-
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
@@ -1090,10 +1079,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
             xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),localKtrack
         end do
       end if
-
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
@@ -1133,10 +1119,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
         write(unit) partID(j),nturn,localDcum,xv1(j),yv1(j),xv2(j),yv2(j), &
           sigmv(j),(ejv(j)-e0)/e0,localKtrack
       end do
-
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
@@ -1197,10 +1180,7 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
         call chr_fromReal(xyz(6),xyz_l(6),10,2,rErr)
         write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16))") napx,nturn,localDcum,xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6)
       end if
-
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
 #endif
@@ -1439,10 +1419,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
           xyz_l(10),xyz_l(11),xyz_l(12),xyz_l(13),xyz_l(14),xyz_l(15),xyz_l(16),xyz_l(17),xyz_l(18),&
           xyz_l(19),xyz_l(20),xyz_l(21),xyz_l(22),xyz_l(23),xyz_l(24),xyz_l(25),xyz_l(26),xyz_l(27)
       end if
-
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
 #endif
@@ -1565,16 +1542,12 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
     end do ! END loop over particles (j)
 
     if(fmt == 7) then
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
     else if(fmt == 8) then
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
@@ -1668,10 +1641,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
           xyz_l(10),xyz_l(11),xyz_l(12),xyz_l(13),xyz_l(14),xyz_l(15),xyz_l(16),xyz_l(17),xyz_l(18),&
           xyz_l(19),xyz_l(20),xyz_l(21),xyz_l(22),xyz_l(23),xyz_l(24),xyz_l(25),xyz_l(26),xyz_l(27)
       end if
-
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+1
 #endif
@@ -1721,10 +1691,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
                     ejv(j), ejfv(j), dpsv(j), oidpsv(j), &
                     rvv(j), nucm(j), mtc(j), e0, e0f
       end do
-
-      ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
