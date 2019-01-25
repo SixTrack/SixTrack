@@ -34,7 +34,7 @@ program mainda
   use mod_time
   use mod_alloc,  only : alloc_init
   use mod_fluc,   only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
-  use read_input, only : readFort33
+  use read_write, only : readFort33
   use mod_version
 
   implicit none
@@ -83,7 +83,7 @@ featList = ""
 #ifndef CR
   lout=output_unit
 #endif
-  call f_initUnits ! And this one second
+  call f_initUnits
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call alloc_init      ! Initialise mod_alloc

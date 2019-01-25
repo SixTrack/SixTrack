@@ -65,6 +65,7 @@ module sixtrack_input
 
   ! Settings
   logical,                       private, save :: sixin_forcePartSummary = .false.
+  logical,                       private, save :: sixin_forceWriteFort12 = .false.
 
   interface sixin_echoVal
     module procedure sixin_echoVal_int
@@ -348,6 +349,20 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       write(lout,"(a,i0)") "INPUT> Printing of particle summary is ENABLED"
     else
       write(lout,"(a,i0)") "INPUT> Printing of particle summary is DISABLED"
+    end if
+
+  case("WRITEFORT12")
+    if(nSplit > 1) then
+      call chr_cast(lnSplit(2),st_writefort12,iErr)
+      sixin_forceWriteFort12 = .true.
+    else
+      st_writefort12 = .true.
+      sixin_forceWriteFort12 = .true.
+    end if
+    if(st_writefort12) then
+      write(lout,"(a,i0)") "INPUT> Writing of fort.12 after tracking is ENABLED"
+    else
+      write(lout,"(a,i0)") "INPUT> Writing of fort.12 after tracking is DISABLED"
     end if
 
   case("INITIALSTATE")
@@ -1079,6 +1094,11 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(napx > 32 .and. sixin_forcePartSummary .eqv. .false.) then
       write(lout,"(a)") "TRAC> NOTE More than 64 particles requested, switching off printing of particle summary."
       st_partsum = .false.
+    end if
+
+    if(napx > 32 .and. sixin_forceWriteFort12 .eqv. .false.) then
+      write(lout,"(a)") "TRAC> NOTE More than 64 particles requested, switching off wriritng of fort.12."
+      st_writefort12 = .false.
     end if
 
   case(2)

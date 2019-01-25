@@ -564,15 +564,9 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'hi ',hi
   write(99,*) 'fi ',fi
   write(99,*) 'hi1 ',hi1
-  write(99,*) 'xvl ',xvl
-  write(99,*) 'yvl ',yvl
-  write(99,*) 'ejvl ',ejvl
-  write(99,*) 'dpsvl ',dpsvl
   write(99,*) 'oidpsv ',oidpsv
-  write(99,*) 'sigmvl ',sigmvl
   write(99,*) 'iv ',iv
   write(99,*) 'aperv ',aperv
-  write(99,*) 'ixv ',ixv
   write(99,*) 'ampv ',ampv
   write(99,*) 'clo6v ',clo6v
   write(99,*) 'clop6v ',clop6v
@@ -1042,15 +1036,9 @@ subroutine dumpbin(dumpname,n,i)
   write(99) hi
   write(99) fi
   write(99) hi1
-  write(99) xvl
-  write(99) yvl
-  write(99) ejvl
-  write(99) dpsvl
   write(99) oidpsv
-  write(99) sigmvl
   write(99) iv
   write(99) aperv
-  write(99) ixv
   write(99) ampv
   write(99) clo6v
   write(99) clop6v
@@ -1512,15 +1500,9 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'hi ',hi
   write(99,100) 'fi ',fi
   write(99,100) 'hi1 ',hi1
-  write(99,100) 'xvl ',xvl
-  write(99,100) 'yvl ',yvl
-  write(99,100) 'ejvl ',ejvl
-  write(99,100) 'dpsvl ',dpsvl
   write(99,100) 'oidpsv ',oidpsv
-  write(99,100) 'sigmvl ',sigmvl
   write(99,100) 'iv ',iv
   write(99,100) 'aperv ',aperv
-  write(99,100) 'ixv ',ixv
   write(99,100) 'ampv ',ampv
   write(99,100) 'clo6v ',clo6v
   write(99,100) 'clop6v ',clop6v

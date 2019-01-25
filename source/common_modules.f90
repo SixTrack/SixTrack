@@ -99,6 +99,7 @@ module mod_settings
   integer, save :: st_quiet        = 0       ! QUIET Level 0=verbose, 1=minimal, 2=quiet
   logical, save :: st_debug        = .false. ! Global DEBUG flag
   logical, save :: st_partsum      = .false. ! Flag to print final particle summary
+  logical, save :: st_writefort12  = .false. ! Flag to write fort.12 after tracking
   integer, save :: st_initialstate = 0       ! Dump particle initial state (mod_particles)
   integer, save :: st_finalstate   = 0       ! Dump particle final state (mod_particles)
 
@@ -899,17 +900,11 @@ module mod_common_main
   real(kind=fPrec), allocatable, save :: hi(:)        ! (npart)
   real(kind=fPrec), allocatable, save :: fi(:)        ! (npart)
   real(kind=fPrec), allocatable, save :: hi1(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: dpsvl(:)     ! (npart)
   real(kind=fPrec), allocatable, save :: oidpsv(:)    ! (npart)
-  real(kind=fPrec), allocatable, save :: sigmvl(:)    ! (npart)
-  real(kind=fPrec), allocatable, save :: ejvl(:)      ! (npart)
   real(kind=fPrec), allocatable, save :: ampv(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: xvl(:,:)     ! (2,npart)
-  real(kind=fPrec), allocatable, save :: yvl(:,:)     ! (2,npart)
   real(kind=fPrec), allocatable, save :: aperv(:,:)   ! (npart,2)
 
   integer,          allocatable, save :: iv(:)        ! (npart)
-  integer,          allocatable, save :: ixv(:)       ! (npart)
 
   ! Main 3
   real(kind=fPrec), allocatable, save :: hv(:,:,:,:)   ! (6,2,npart,nblo)
@@ -1020,16 +1015,10 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
     call alloc(hi,               npart_new,      zero,    "hi")
     call alloc(fi,               npart_new,      zero,    "fi")
     call alloc(hi1,              npart_new,      zero,    "hi1")
-    call alloc(dpsvl,            npart_new,      zero,    "dpsvl")
     call alloc(oidpsv,           npart_new,      one,     "oidpsv")
-    call alloc(sigmvl,           npart_new,      zero,    "sigmvl")
-    call alloc(ejvl,             npart_new,      zero,    "ejvl")
     call alloc(ampv,             npart_new,      zero,    "ampv")
-    call alloc(xvl,       2,     npart_new,      zero,    "xvl")
-    call alloc(yvl,       2,     npart_new,      zero,    "yvl")
     call alloc(aperv,            npart_new, 2,   zero,    "aperv")
     call alloc(iv,               npart_new,      0,       "iv")
-    call alloc(ixv,              npart_new,      0,       "ixv")
 
     call alloc(tasau,            npart_new, 6,6, zero,    "tasau")
     call alloc(tas,              npart_new, 6,6, zero,    "tas")
