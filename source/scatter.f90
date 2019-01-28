@@ -232,8 +232,7 @@ subroutine scatter_init
     flush(scatter_logFile)
 #ifdef CR
     scatter_logFilePos = 2
-    endfile(scatter_logFile,iostat=iError)
-    backspace(scatter_logFile,iostat=iError)
+    flush(scatter_logFile)
   else
     write(93,"(a)") "SCATTER> INIT kept already opened file 'scatter_log.dat'"
   end if
@@ -258,8 +257,7 @@ subroutine scatter_init
     flush(scatter_sumFile)
 #ifdef CR
     scatter_sumFilePos = scatter_sumFilePos + 3
-    endfile(scatter_sumFile,iostat=iError)
-    backspace(scatter_sumFile,iostat=iError)
+    flush(scatter_sumFile)
   else
     write(93,"(a)") "SCATTER> INIT kept already opened file 'scatter_summary.dat'"
   end if
@@ -1510,25 +1508,21 @@ end subroutine scatter_crcheck_readdata
 ! =================================================================================================
 subroutine scatter_crcheck_positionFiles
 
+  use parpro
   use crcoall
   use mod_units
-
-  implicit none
 
   logical isOpen, fErr
   integer iError
   integer j
-  character(len=1024) aRecord
+  character(len=mInputLn) aRecord
 
   call f_requestUnit("scatter_log.dat",scatter_logFile)
   inquire(unit=scatter_logFile, opened=isOpen)
   if(isOpen) then
     write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning 'scatter_log.dat'"
     write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_logFile," already in use!"
-
-    endfile(93,iostat=iError)
-    backspace(93,iostat=iError)
-
+    flush(93)
     write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning 'scatter_log.dat'"
     call prror
   end if
@@ -1548,14 +1542,12 @@ subroutine scatter_crcheck_positionFiles
     if(fErr) goto 10
     write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned 'scatter_log.dat': "//&
       "scatter_logFilePos = ",scatter_logFilePos,", scatter_logFilePos_CR = ",scatter_logFilePos_CR
-    endfile(93,iostat=iError)
-    backspace(93,iostat=iError)
+    flush(93)
 
   else
     write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning 'scatter_log.dat' at line ",scatter_logFilePos_CR
     write(93,"(a)")    "SIXTRACR> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
-    endfile(93,iostat=iError)
-    backspace(93,iostat=iError)
+    flush(93)
   end if
 
   call f_requestUnit("scatter_summary.dat",scatter_sumFile)
@@ -1563,10 +1555,7 @@ subroutine scatter_crcheck_positionFiles
   if(isOpen) then
     write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning 'scatter_summary.dat'"
     write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_sumFile," already in use!"
-
-    endfile(93,iostat=iError)
-    backspace(93,iostat=iError)
-
+    flush(93)
     write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning 'scatter_summary.dat'"
     call prror
   end if
@@ -1586,14 +1575,12 @@ subroutine scatter_crcheck_positionFiles
     if(fErr) goto 10
     write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned 'scatter_summary.dat': "//&
       "scatter_sumFilePos = ",scatter_sumFilePos,", scatter_sumFilePos_CR = ",scatter_sumFilePos_CR
-    endfile(93,iostat=iError)
-    backspace(93,iostat=iError)
+    flush(93)
 
   else
     write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning 'scatter_summary.dat' at line ",scatter_sumFilePos_CR
     write(93,"(a)")    "SIXTRACR> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
-    endfile(93,iostat=iError)
-    backspace(93,iostat=iError)
+    flush(93)
   end if
 
   return
@@ -1602,8 +1589,7 @@ subroutine scatter_crcheck_positionFiles
   write(93,"(a,i0)")    "SIXTRACR> ERROR While reading 'scatter_log.dat' or 'scatter_summary.dat', iostat = ",iError
   write(93,"(2(a,i0))") "SIXTRACR> scatter_logFilePos = ",scatter_logFilePos,", scatter_logFilePos_CR = ",scatter_logFilePos_CR
   write(93,"(2(a,i0))") "SIXTRACR> scatter_sumFilePos = ",scatter_sumFilePos,", scatter_sumFilePos_CR = ",scatter_sumFilePos_CR
-  endfile(93,iostat=iError)
-  backspace(93,iostat=iError)
+  flush(93)
   write(lout,"(a)")"SIXTRACR> ERROR CRCHECK failure positioning 'scatter_log.dat' or 'scatter_summary.dat'."
   call prror
 
@@ -1637,6 +1623,16 @@ subroutine scatter_crpoint(fileUnit, writeErr, iError)
   writeErr = .true.
 
 end subroutine scatter_crpoint
+
+! =================================================================================================
+!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2019-01-28
+!  Called from CRSTART
+! =================================================================================================
+subroutine scatter_crstart
+  scatter_seed1 = scatter_seed1_CR
+  scatter_seed2 = scatter_seed2_CR
+end subroutine scatter_crstart
 #endif
 ! End of CR
 

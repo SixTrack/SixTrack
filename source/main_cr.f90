@@ -365,7 +365,6 @@ end interface
     call h5_writeSimInfo
   end if
 #endif
-  call scatter_init
 
   if (ithick == 1) call allocate_thickarrays
 
@@ -377,6 +376,7 @@ end interface
   if(ithick == 1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
   if(ithick == 0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
 
+  call scatter_init
   call aperture_init
 
 #ifndef FLUKA
