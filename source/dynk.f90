@@ -221,7 +221,7 @@ subroutine dynk_parseFUN(inLine, iErr)
   character(len=:), allocatable :: lnSplit(:), lnFile(:)
   character(len=mInputLn)       :: fLine
   integer nSplit, nFile
-  logical spErr, cErr
+  logical spErr, cErr, fErr
 
   ! Temp variables
   integer          ii,t,nLines,ioStat
@@ -232,10 +232,6 @@ subroutine dynk_parseFUN(inLine, iErr)
 
   logical isFIR ! FIR/IIR
   logical isOpen
-
-#ifdef BOINC
-  character(len=256) filename
-#endif
 
   if(dynk_nFuncs+1 > dynk_maxFuncs) then
     dynk_maxFuncs = dynk_maxFuncs + 10
@@ -282,12 +278,12 @@ subroutine dynk_parseFUN(inLine, iErr)
     if(len_trim(lnSplit(4)) > mNameLen) then
       write (lout,"(2(a,i0))") "DYNK> ERROR FUN:GET got an element name with length ",len_trim(lnSplit(4)),&
         ", but max is ", mNameLen
-      call prror(-1)
+      call prror
     end if
     if(len_trim(lnSplit(5)) > mStrLen-1) then
       write (lout,"(2(a,i0))") "DYNK> ERROR FUN:GET got an attribute name with length ",len_trim(lnSplit(5)),&
         ", but max is ",mStrLen-1
-      call prror(-1)
+      call prror
     end if
 
     ! Store data
@@ -331,13 +327,8 @@ subroutine dynk_parseFUN(inLine, iErr)
       return
     end if
 
-#ifdef BOINC
-    call boincrf(dynk_cData(dynk_ncData),filename)
-    open(unit=dynk_fileUnitFUN,file=filename,action="read",iostat=ioStat,status="old")
-#else
-    open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),action="read",iostat=ioStat,status="old")
-#endif
-    if(ioStat /= 0) then
+    call f_open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
+    if(fErr) then
       write(lout,"(a)") "DYNK> ERROR FUN:FILE ould not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
@@ -385,7 +376,7 @@ subroutine dynk_parseFUN(inLine, iErr)
       dynk_fData(dynk_nfData) = y
     end do
     dynk_funcs(dynk_nFuncs,5) = ii
-    close(dynk_fileUnitFUN)
+    call f_close(dynk_fileUnitFUN)
 
   ! END CASE FILE
 
@@ -421,14 +412,8 @@ subroutine dynk_parseFUN(inLine, iErr)
       return
     end if
 
-#ifdef BOINC
-    call boincrf(dynk_cData(dynk_ncData),filename)
-    open(unit=dynk_fileUnitFUN,file=filename,action="read",iostat=ioStat,status="old")
-#else
-    open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),action="read",iostat=ioStat,status="old")
-#endif
-
-    if(ioStat /= 0) then
+    call f_open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
+    if(fErr) then
       write(lout,"(a)") "DYNK> ERROR FUN:FILELIN Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
@@ -505,7 +490,7 @@ subroutine dynk_parseFUN(inLine, iErr)
 
     dynk_nfData = dynk_nfData + 2*t
     dynk_funcs(dynk_nFuncs,5) = t
-    close(dynk_fileUnitFUN)
+    call f_close(dynk_fileUnitFUN)
 
   ! END CASE FILELIN
 
@@ -842,14 +827,9 @@ subroutine dynk_parseFUN(inLine, iErr)
       write(lout,"(a)") "DYNK> ERROR FUN:FIR/IIR Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
-      end if
-#ifdef BOINC
-    call boincrf(dynk_cData(dynk_ncData),filename)
-    open(unit=dynk_fileUnitFUN,file=filename,action="read",iostat=ioStat,status="old")
-#else
-    open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),action="read",iostat=ioStat,status="old")
-#endif
-    if(ioStat /= 0) then
+    end if
+    call f_open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
+    if(fErr) then
       write(lout,"(a,i0)") "DYNK> ERROR FUN:FIR/IIR Could not open file '"//trim(dynk_cData(dynk_ncData))//"', stat = ",ioStat
       iErr = .true.
       return
@@ -917,7 +897,7 @@ subroutine dynk_parseFUN(inLine, iErr)
         dynk_fData(dynk_nfData) = u ! y_init[n-i]  (Not really needed anymore, but fixing allignment is painfull)
       end if
     end do
-    close(dynk_fileUnitFUN)
+    call f_close(dynk_fileUnitFUN)
 
   ! END CASES FIR & IIR
 
@@ -1393,7 +1373,7 @@ subroutine dynk_checkargs(nActual, nExpected, correctSyntax)
   if(nActual /= nExpected) then
     write(lout,"(2(a,i0))") "DYNK> ERROR Function expected ",nExpected," arguments, got ",nActual
     write(lout,"(a)")       "CYNK>       Correct Syntax: "//correctSyntax
-    call prror(-1)
+    call prror
   end if
 
 end subroutine dynk_checkargs
@@ -1642,7 +1622,7 @@ subroutine dynk_inputSanityCheck
   if(biggestTurn <= 0) then
     ! In case of integer overflow
     write(lout,"(a)") "DYNK> ERROR Integer overflow in sanity check"
-    call prror(-1)
+    call prror
   end if
 
   ! Do the search!
@@ -1685,7 +1665,7 @@ subroutine dynk_inputSanityCheck
   if(.not. sane) then
     write(lout,"(a)") "DYNK> ERROR Input was insane"
     ! call dynk_dumpdata
-    call prror(-1)
+    call prror
   else if(sane .and. dynk_debug) then
     write(lout,"(a)") "DYNK> DYNK input was sane"
   end if
@@ -1782,7 +1762,7 @@ subroutine dynk_pretrack
         if(att_name_s == "E0") then
           if(idp == 0 .or. ition == 0) then ! 4d tracking..
             write(lout,"(a)") "DYNK> ERROR Attribute '"//att_name_s//"' is not valid for 'GLOBAL-VARS' when doing 4d tracking"
-            call prror(-1)
+            call prror
           end if
         else
           badelem=.true.
@@ -1790,7 +1770,7 @@ subroutine dynk_pretrack
 
         if(badelem) then
           write(lout,"(a)") "DYNK> ERROR Attribute '"//att_name_s//"' is not valid for 'GLOBAL-VARS'"
-          call prror(-1)
+          call prror
         end if
       end if
 
@@ -1813,7 +1793,7 @@ subroutine dynk_pretrack
               write(lout,"(a)") "DYNK> ERROR Want to modify DISABLED RF cavity named '"//element_name_s//"'"
               write(lout,"(a)") "DYNK>       Please make sure that the voltage and harmonic number in the "//&
                 "SINGLE ELEMENTS block is not 0!"
-              call prror(-1)
+              call prror
             end if
             if(nvar == 5) then
               write(lout,"(a)") "DYNK> ERROR Want to modify RF cavity named '"//element_name_s//"', but nvars=5 (from DIFF block)."
@@ -1828,20 +1808,20 @@ subroutine dynk_pretrack
           ! Should the error only occur if we actually have a GLOBAL-VARS element?
           if(bez(jj) == "GLOBAL-VARS") then
             write(lout,"(a)") "DYNK> ERROR Element found 'GLOBAL-VARS' is not a valid element name, it is reserved"
-            call prror(-1)
+            call prror
           end if
 
           if(badelem) then
             write(lout,"(a,i0)") "DYNK> ERROR Attribute '"//att_name_s//"' is not valid for element '"//element_name_s//"'"//&
               " which is of type ",kz(jj)
-            call prror(-1)
+            call prror
           end if
         end if
       end do
 
       if(.not. found) then
         write(lout,"(a)") "DYNK> ERROR Element '",element_name_s,"' was not found"
-        call prror(-1)
+        call prror
       end if
     end if
   end do
@@ -2031,7 +2011,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     write(lout,"(a,i0)") "DYNK> ERROR computeFUN: funNum = ",funNum
     write(lout,"(a,i0)") "DYNK>       Invalid funNum, dynk_nFuncs = ", dynk_nFuncs
     if(dynk_debug) call dynk_dumpdata
-    call prror(-1)
+    call prror
   end if
 
   select case(dynk_funcs(funNum,2)) ! WHICH FUNCTION TYPE?
@@ -2044,12 +2024,12 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
       write(lout,"(2(a,i0))")"DYNK> ERROR computeFUN:FILE funNum = ",funNum,"turn = ",turn
       write(lout,"(a,i0)")   "DYNK>       Turn > length of file = ",dynk_funcs(funNum,5)
       if(dynk_debug) call dynk_dumpdata
-      call prror(-1)
+      call prror
     else if(turn < 1) then
       write(lout,"(2(a,i0))")"DYNK> ERROR computeFUN:FILE funNum = ",funNum,"turn = ",turn
       write(lout,"(a)")      "DYNK>       Turn < 1, check your turn-shift!"
       if(dynk_debug) call dynk_dumpdata
-      call prror(-1)
+      call prror
     end if
     retval = dynk_fData(dynk_funcs(funNum,4)+turn-1)
 
@@ -2070,17 +2050,17 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     read(dynk_iData(dynk_funcs(funNum,3)),"(a)",iostat=ioStat) fLine
     if(ioStat /= 0) then
       write(lout,"(a)") "DYNK> ERROR computeFUN:PIPE Failed to open file."
-      call prror(-1)
+      call prror
     end if
 
     call chr_split(fLine,lnFile,nFile,spErr)
     if(spErr) then
       write(lout,"(a)") "DYNK> ERROR computeFUN:PIPE Failed to parse input line."
-      call prror(-1)
+      call prror
     end if
     if(nFile /= 1) then
       write(lout,"(a,i0)") "DYNK> ERROR computeFUN:PIPE Expected one values per line, got ",nFIle
-      call prror(-1)
+      call prror
     end if
 
     call chr_cast(lnFile(1),retval,cErr)
@@ -2274,7 +2254,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     write(lout,"(2(a,i0))") "DYNK> ERROR computeFUN() funNum = ",funNum," turn = ",turn
     write(lout,"(a,i0)")    "DYNK>       Unknown function type ",dynk_funcs(funNum,2)
     if(dynk_debug) call dynk_dumpdata
-    call prror(-1)
+    call prror
 
   end select
 
@@ -2339,7 +2319,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
       if(ldoubleElement) then ! Sanity check
         write(lout,"(a)") "DYNK> ERROR Two elements with the same BEZ"
-        call prror(-1)
+        call prror
       end if
       ldoubleElement = .true.
 
@@ -2524,7 +2504,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
       case default
         write(lout,"(a,i0,a)") "DYNK> ERROR setValue Unsupported element type ",el_type," element name = '"//trim(element_name)//"'"
-        call prror(-1)
+        call prror
       end select
     end if
   end do
@@ -2539,15 +2519,15 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   ! Error handlers
 100 continue
   write(lout,"(a,i0)")"DYNK> ERROR setValue Attribute '"//trim(att_name)//"' does not exist for type = ",el_type
-  call prror(-1)
+  call prror
 
 101 continue
   write(lout,"(a)") "DYNK> ERROR setValue The element named '"//trim(element_name)//"' was not found."
-  call prror(-1)
+  call prror
 
 102 continue
   write(lout,"(a)") "DYNK> ERROR setValue Only Beam-beam expert mode is supported for DYNK"
-  call prror(-1)
+  call prror
 
 end subroutine dynk_setvalue
 
@@ -2597,7 +2577,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
       el_type=kz(ii)
       if(ldoubleElement) then
         write (lout,"(a)") "DYNK> ERROR Two elements with the same BEZ"
-        call prror(-1)
+        call prror
       end if
       ldoubleElement = .true.
 
@@ -2777,11 +2757,11 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 100 continue
   write(lout,"(a,i0,a)") "DYNK> ERROR getValueUnknown attribute '"//trim(att_name)//"'"//&
     " for type ",el_type," name '"//trim(bez(ii))//"'"
-  call prror(-1)
+  call prror
 
 102 continue
   write(lout,"(a)") "DYNK> ERROR  --- Only Beam-beam expert mode is supported for DYNK"
-  call prror(-1)
+  call prror
 
 end function dynk_getvalue
 
@@ -2804,12 +2784,12 @@ logical function dynk_isused(i)
   ! Sanity check
   if(i > iu .or. i <= 0) then
     write(lout,"(a,i0,a)") "DYNK> ERROR isused: i=",i," out of range"
-    call prror(-1)
+    call prror
   end if
   ix = ic(i)-nblo
   if(i <= 0) then
     write(lout,"(a,i0,a)") "DYNK> ERROR isused: ix-nblo = ",ix," is a block?"
-    call prror(-1)
+    call prror
   end if
 
   do k=1,dynk_nSets
