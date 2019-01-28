@@ -951,7 +951,7 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     r0=zero
     do l=1,this%lz
-      dj=dble(this%ij_TAz(1,l,z))
+      dj=dble(this%ij_TAz(2,l,z))
       if ((dj>zero).and.(this%ij_TAz(1,l,z)<=max_i).and.(this%ij_TAz(2,l,z)-1<=max_j)) then
         r0 = r0 + dj*xpow(this%ij_TAz(1,l,z))*ypow(this%ij_TAz(2,l,z)-1)*this%TAz(l,z)
       endif
