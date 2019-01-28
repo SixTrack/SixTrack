@@ -10,7 +10,7 @@ module dynk
   use mathlib_bouncer
   use mod_hions
   use numerical_constants, only : zero, one, two, c1e3
-  use parpro, only : nele, mNameLen, str_dSpace
+  use parpro, only : nele
   use mod_alloc
   use string_tools
 
@@ -119,17 +119,17 @@ subroutine dynk_allocate
   dynk_maxFuncs = 10
   dynk_maxSets  = 10
 
-  call alloc(dynk_iData,               dynk_maxiData,  0,         "dynk_iData")
-  call alloc(dynk_fData,               dynk_maxfData,  zero,      "dynk_fData")
-  call alloc(dynk_cData,       mStrLen,dynk_maxcData,  str_dSpace,"dynk_cData")
-  call alloc(dynk_funcs,               dynk_maxFuncs,5,0,         "dynk_funcs")
+  call alloc(dynk_iData,               dynk_maxiData,  0,    "dynk_iData")
+  call alloc(dynk_fData,               dynk_maxfData,  zero, "dynk_fData")
+  call alloc(dynk_cData,       mStrLen,dynk_maxcData,  " ",  "dynk_cData")
+  call alloc(dynk_funcs,               dynk_maxFuncs,5,0,    "dynk_funcs")
 
-  call alloc(dynk_cSets,       mStrLen,dynk_maxSets,2, str_dSpace,"dynk_cSets")
-  call alloc(dynk_cSets_unique,mStrLen,dynk_maxSets,2, str_dSpace,"dynk_cSets_unique")
+  call alloc(dynk_cSets,       mStrLen,dynk_maxSets,2, " ",  "dynk_cSets")
+  call alloc(dynk_cSets_unique,mStrLen,dynk_maxSets,2, " ",  "dynk_cSets_unique")
 #ifdef CR
-  call alloc(dynk_fSets_cr,            dynk_maxSets,   zero,      "dynk_fSets_cr")
+  call alloc(dynk_fSets_cr,            dynk_maxSets,   zero, "dynk_fSets_cr")
 #endif
-  call alloc(dynk_sets,                dynk_maxSets,4, 0,         "dynk_sets")
+  call alloc(dynk_sets,                dynk_maxSets,4, 0,    "dynk_sets")
 
   ! Set file units for I/O files
   call f_requestUnit("dynksets.dat",    dynk_fileUnit)
@@ -1442,7 +1442,7 @@ subroutine dynk_checkspace(iReq,fReq,cReq)
     else
       dynk_maxcData = cNeeded
     end if
-    call alloc(dynk_cData,mStrLen,dynk_maxcData,str_dSpace,"dynk_cData")
+    call alloc(dynk_cData,mStrLen,dynk_maxcData," ","dynk_cData")
   end if
 
 end subroutine dynk_checkspace
@@ -1475,12 +1475,12 @@ subroutine dynk_parseSET(inLine, iErr)
 
   if(dynk_nSets+1 > dynk_maxSets) then
     dynk_maxSets = dynk_maxSets + 10
-    call alloc(dynk_cSets,       mStrLen,dynk_maxSets,2, str_dSpace,"dynk_cSets")
-    call alloc(dynk_cSets_unique,mStrLen,dynk_maxSets,2, str_dSpace,"dynk_cSets_unique")
+    call alloc(dynk_cSets,       mStrLen,dynk_maxSets,2, " ",  "dynk_cSets")
+    call alloc(dynk_cSets_unique,mStrLen,dynk_maxSets,2, " ",  "dynk_cSets_unique")
 #ifdef CR
-    call alloc(dynk_fSets_cr,            dynk_maxSets,   zero,      "dynk_fSets_cr")
+    call alloc(dynk_fSets_cr,            dynk_maxSets,   zero, "dynk_fSets_cr")
 #endif
-    call alloc(dynk_sets,                dynk_maxSets,4, 0,         "dynk_sets")
+    call alloc(dynk_sets,                dynk_maxSets,4, 0,    "dynk_sets")
   end if
 
   if(nSplit /= 7) then
@@ -2900,9 +2900,9 @@ subroutine dynk_crcheck_readdata(fileunit,readerr)
 
   read(fileunit,err=100,end=100) dynk_filePosCR, dynk_niData_cr, dynk_nfData_cr, dynk_ncData_cr
 
-  call alloc(dynk_iData_cr,        dynk_niData_cr, 0,         "dynk_iData_cr")
-  call alloc(dynk_fData_cr,        dynk_nfData_cr, zero,      "dynk_fData_cr")
-  call alloc(dynk_cData_cr,mStrLen,dynk_ncData_cr, str_dSpace,"dynk_cData_cr")
+  call alloc(dynk_iData_cr,        dynk_niData_cr, 0,   "dynk_iData_cr")
+  call alloc(dynk_fData_cr,        dynk_nfData_cr, zero,"dynk_fData_cr")
+  call alloc(dynk_cData_cr,mStrLen,dynk_ncData_cr, " ", "dynk_cData_cr")
 
   read(fileunit,err=100,end=100) &
     (dynk_iData_cr(j),j=1,dynk_niData_cr), (dynk_fData_cr(j),j=1,dynk_nfData_cr), &

@@ -34,7 +34,7 @@ program mainda
   use mod_time
   use mod_alloc,  only : alloc_init
   use mod_fluc,   only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
-  use read_input, only : readFort33
+  use read_write, only : readFort33
   use mod_version
 
   implicit none
@@ -83,7 +83,7 @@ featList = ""
 #ifndef CR
   lout=output_unit
 #endif
-  call f_initUnits ! And this one second
+  call f_initUnits
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call alloc_init      ! Initialise mod_alloc
@@ -91,9 +91,17 @@ featList = ""
 
   ! Open files
   fErr = .false.
-  call f_open(unit=12, file="fort.12", formatted=.true., mode="w", err=fErr)
-  call f_open(unit=18, file="fort.18", formatted=.true., mode="rw",err=fErr)
-  call f_open(unit=19, file="fort.19", formatted=.true., mode="w", err=fErr)
+  call f_open(unit=12,file="fort.12",formatted=.true.,mode="w", err=fErr)
+  call f_open(unit=17,file="fort.17",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=18,file="fort.18",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=19,file="fort.19",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=20,file="fort.20",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=21,file="fort.21",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=22,file="fort.22",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=23,file="fort.23",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=24,file="fort.24",formatted=.true.,mode="rw",err=fErr) ! DA Files
+  call f_open(unit=25,file="fort.25",formatted=.true.,mode="rw",err=fErr) ! DA Files
+
   call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
   call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr)
 

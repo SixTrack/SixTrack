@@ -65,6 +65,7 @@ module sixtrack_input
 
   ! Settings
   logical,                       private, save :: sixin_forcePartSummary = .false.
+  logical,                       private, save :: sixin_forceWriteFort12 = .false.
 
   interface sixin_echoVal
     module procedure sixin_echoVal_int
@@ -372,6 +373,20 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       write(lout,"(a,i0)") "INPUT> Printing of particle summary is DISABLED"
     end if
 
+  case("WRITEFORT12")
+    if(nSplit > 1) then
+      call chr_cast(lnSplit(2),st_writefort12,iErr)
+      sixin_forceWriteFort12 = .true.
+    else
+      st_writefort12 = .true.
+      sixin_forceWriteFort12 = .true.
+    end if
+    if(st_writefort12) then
+      write(lout,"(a,i0)") "INPUT> Writing of fort.12 after tracking is ENABLED"
+    else
+      write(lout,"(a,i0)") "INPUT> Writing of fort.12 after tracking is DISABLED"
+    end if
+
   case("INITIALSTATE")
     if(nSplit /= 2) then
       write(lout,"(a,i0)") "INPUT> ERROR INITIALSTATE takes one value, got ",nSplit-1
@@ -539,7 +554,7 @@ subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
   ! Expand Arrays
   if(sixin_nSing > nele-2) then
     call expand_arrays(nele+100, npart, nblz, nblo)
-    call alloc(sixin_bez0, mNameLen, nele, str_nmSpace, "sixin_bez0")
+    call alloc(sixin_bez0, mNameLen, nele, " ", "sixin_bez0")
   end if
 
   if(abs(kz(sixin_nSing)) /= 12 .or. (abs(kz(sixin_nSing)) == 12 .and. sixin_ncy2 == 0)) then
@@ -629,8 +644,8 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
     if(iErr) return
 
     ! Init variables
-    call alloc(sixin_ilm,  mNameLen,       nelb, str_nmSpace, "sixin_ilm")
-    call alloc(sixin_beze, mNameLen, nblo, nelb, str_nmSpace, "sixin_beze")
+    call alloc(sixin_ilm,  mNameLen,       nelb, " ", "sixin_ilm")
+    call alloc(sixin_beze, mNameLen, nblo, nelb, " ", "sixin_beze")
 
     ! No need to parse anything more for this line
     return
@@ -638,11 +653,11 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
 
   ! Parse normal line, iLine > 1
   do i=1,40
-    ilm0(i) = str_nmSpace
+    ilm0(i) = " "
   end do
 
   if(isCont) then                             ! This line continues the previous BLOC
-    blocName = str_nmSpace                    ! No name returned, set an empty BLOC name
+    blocName = " "                            ! No name returned, set an empty BLOC name
     do i=1,nSplit                             ! All elements are sub-elements. Save to buffer.
       ilm0(i) = chr_rpad(lnSplit(i),mNameLen)
     end do
@@ -653,11 +668,11 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
     end do
   end if
 
-  if(blocName /= str_nmSpace) then            ! We have a new BLOC
+  if(blocName /= " ") then            ! We have a new BLOC
     sixin_nBloc = sixin_nBloc + 1             ! Increment the BLOC number
     if(sixin_nBloc > nblo-1) then             ! Expand arrays if needed
       call expand_arrays(nele, npart, nblz, nblo+50)
-      call alloc(sixin_beze, mNameLen, nblo, nelb, str_nmSpace, "sixin_beze")
+      call alloc(sixin_beze, mNameLen, nblo, nelb, " ", "sixin_beze")
     end if
     bezb(sixin_nBloc) = blocName              ! Set the BLOC name in bezb
     sixin_k0          = 0                     ! Reset the single element counter
@@ -675,7 +690,7 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
       return
     end if
     sixin_ilm(i) = ilm0(i-sixin_k0)           ! Append to sub-element buffer
-    if(sixin_ilm(i) == str_nmSpace) exit      ! No more sub-elements to append
+    if(sixin_ilm(i) == " ") exit              ! No more sub-elements to append
     mel(sixin_nBloc)          = i             ! Update number of single elements in this block
     sixin_beze(sixin_nBloc,i) = sixin_ilm(i)  ! Name of the current single element
 
@@ -725,7 +740,7 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   character(len=mNameLen) ilm0(40)
 
   do i=1,40
-    ilm0(i) = str_nmSpace
+    ilm0(i) = " "
   end do
 
   expLine = chr_expandBrackets(inLine)
@@ -748,7 +763,7 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
 
   do i=1,40
 
-    if(ilm0(i) == str_nmSpace) cycle
+    if(ilm0(i) == " ") cycle
     if(ilm0(i) == sixin_go) then
       kanf = sixin_nStru + 1
       cycle
@@ -1103,6 +1118,11 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       st_partsum = .false.
     end if
 
+    if(napx > 32 .and. sixin_forceWriteFort12 .eqv. .false.) then
+      write(lout,"(a)") "TRAC> NOTE More than 64 particles requested, switching off wriritng of fort.12."
+      st_writefort12 = .false.
+    end if
+
   case(2)
 
     if(nSplit < 4) then
@@ -1222,7 +1242,7 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
   logical spErr
 
   do i=1,40
-    ilm0(i) = str_nmSpace
+    ilm0(i) = " "
   end do
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -1358,7 +1378,7 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
   case(1)
 
     ichrom0   = 0
-    tmp_is(:) = str_nmSpace
+    tmp_is(:) = " "
 
     if(nSplit > 0) tmp_is(1) = lnSplit(1)
     if(nSplit > 1) call chr_cast(lnSplit(2),cro(1),   iErr)
@@ -1435,7 +1455,7 @@ subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
   case(1)
 
     nLines    = 1
-    tmp_iq(:) = str_nmSpace
+    tmp_iq(:) = " "
 
     if(nSplit > 0) tmp_iq(1) = lnSplit(1)
     if(nSplit > 1) call chr_cast(lnSplit(2),qw0(1),iErr)
@@ -2075,7 +2095,7 @@ subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
   end if
 
   iorg = iorg + 1
-  elemOne    = str_nmSpace
+  elemOne = " "
   if(nSplit > 0) elemOne      = trim(lnSplit(1))
   if(nSplit > 1) bezr(2,iorg) = trim(lnSplit(2))
   if(nSplit > 2) bezr(3,iorg) = trim(lnSplit(3))
@@ -2091,8 +2111,8 @@ subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
     "------------------+------------------+"
   end if
 
-  if(elemOne /= "MULT" .and. elemOne /= str_nmSpace) then
-    if(bezr(2,iorg) == str_nmSpace) then
+  if(elemOne /= "MULT" .and. elemOne /= " ") then
+    if(bezr(2,iorg) == " ") then
       write(lout,"(a,i4,a)") "ORGA> Elements ",iLine," |"//&
         " "//elemOne(1:16)//" |"                         //&
         "                  |"                            //&
@@ -2109,7 +2129,7 @@ subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
      end if
   end if
   if(elemOne /= "MULT") bezr(1,iorg) = elemOne
-  if(elemOne == "MULT" .and. bezr(2,iorg) /= str_nmSpace .and. bezr(3,iorg) /= str_nmSpace) then
+  if(elemOne == "MULT" .and. bezr(2,iorg) /= " " .and. bezr(3,iorg) /= " ") then
     write(lout,"(a,i4,a)") "ORGA> Elements ",iLine," |"//&
       "                  |"                            //&
       "                  |"                            //&
@@ -2403,7 +2423,7 @@ subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
   icoe        = iLine
   elemName    = trim(lnSplit(1))
   nComb       = (nSplit-1)/2
-  elemComb(:) = str_nmSpace
+  elemComb(:) = " "
   do i=1,nComb
     call chr_cast(lnSplit(2*i),ratio(icoe,i),iErr)
     elemComb(i) = trim(lnSplit(2*i+1))
@@ -2575,7 +2595,7 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
 
   case(4)
 
-    name(:) = str_nmSpace
+    name(:) = " "
 
     if(nSplit > 0) name(1) = trim(lnSplit(1))
     if(nSplit > 1) name(2) = trim(lnSplit(2))
@@ -2757,7 +2777,7 @@ subroutine sixin_parseInputLineSEAR(inLine, iLine, iErr)
 
   case default
 
-    name(:) = str_nmSpace
+    name(:) = " "
 
     ka = k0 + 1
     ke = k0 + nSplit
@@ -2965,7 +2985,7 @@ subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
 
   case(1)
 
-    name(:) = str_nmSpace
+    name(:) = " "
 
     if(nSplit > 0) name(1) = lnSplit(1)
     if(nSplit > 1) name(2) = lnSplit(2)

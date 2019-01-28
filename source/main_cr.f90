@@ -33,7 +33,7 @@ program maincr
   use mod_alloc,      only : alloc_init
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
-  use read_input,     only : readFort13, readFort33
+  use read_write,     only : writeFort12, readFort13, readFort33
 
 #ifdef FLUKA
   use mod_fluka
@@ -130,7 +130,7 @@ end interface
   call boinc_init
 ! call boinc_init_graphics
 #endif
-  call f_initUnits ! And this one second
+  call f_initUnits
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call alloc_init      ! Initialise mod_alloc
@@ -284,28 +284,11 @@ end interface
 #endif
 
   ! Open Regular File Units
-  call f_open(unit=7, file="fort.7", formatted=.true., mode="w", err=fErr,recl=303)
-  call f_open(unit=9, file="fort.9", formatted=.true., mode="w", err=fErr)
-  call f_open(unit=11,file="fort.11",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=12,file="fort.12",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=14,file="fort.14",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=15,file="fort.15",formatted=.true., mode="w", err=fErr)
-! call f_open(unit=17,file="fort.17",formatted=.true., mode="w", err=fErr) ! Not in use? Should mirror fort.16
-  call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr)
-! call f_open(unit=19,file="fort.19",formatted=.true., mode="rw",err=fErr) ! Not in use?
-  call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=21,file="fort.21",formatted=.true., mode="w", err=fErr)
-! call f_open(unit=22,file="fort.22",formatted=.true. ,mode="w", err=fErr) ! Not in use?
-! call f_open(unit=23,file="fort.23",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call f_open(unit=24,file="fort.24",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call f_open(unit=25,file="fort.25",formatted=.true., mode="w", err=fErr) ! Not in use?
-! call f_open(unit=26,file="fort.26",formatted=.true., mode="w", err=fErr) ! Not in use?
-  call f_open(unit=27,file="fort.27",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=28,file="fort.28",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=29,file="fort.29",formatted=.true., mode="w", err=fErr)
+  call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA file
+  call f_open(unit=19,file="fort.19",formatted=.true., mode="r", err=fErr) ! DA file
+  call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr) ! DA file
+  call f_open(unit=21,file="fort.21",formatted=.true., mode="w", err=fErr) ! DA file
   call f_open(unit=31,file="fort.31",formatted=.true., mode="w", err=fErr)
-  call f_open(unit=34,file="fort.34",formatted=.true., mode="w", err=fErr)
-! call f_open(unit=35,file="fort.35",formatted=.true., mode="w", err=fErr) ! Not in use?
 
 #ifdef STF
   ! Open Single Track File
@@ -313,26 +296,17 @@ end interface
 #else
   ! Open binary files 59 to 90 for particle pair 1 to 32
   do i=59,90
-    write(tmpFile,"(a5,i2)") "fort.",i
+    write(tmpFile,"(a5,i0)") "fort.",i
     call f_open(unit=i,file=tmpFile,formatted=.false.,mode="rw",err=fErr)
   end do
 #endif
 
-  call f_open(unit=98,file="fort.98",formatted=.true.,mode="w",err=fErr)
-
-  ! Eric for the DA coefficients in BINARY
-  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
-  call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr)
+  call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr) ! DA file, binary
 
 #ifdef DEBUG
   call f_open(unit=99 ,file="dump",  formatted=.false.,mode="rw",err=fErr)
   call f_open(unit=100,file="arrays",formatted=.false.,mode="rw",err=fErr)
 #endif
-
-  ! Heavy Ion Output
-  call f_open(unit=208,file="fort.208",formatted=.true.,mode="w",err=fErr) ! coll losses (energy)
-  call f_open(unit=209,file="fort.209",formatted=.true.,mode="w",err=fErr) ! coll losses in function of particle i
-  call f_open(unit=210,file="fort.210",formatted=.true.,mode="w",err=fErr) ! mtc after each collimator interaction
 
   call time_timeStamp(time_afterFileUnits)
 
@@ -364,10 +338,9 @@ end interface
 #ifdef CR
   ! Log start messages
   write(93,"(a)") ""
-  write(93,"(a)") "SIXTRACR MAINCR"
+  write(93,"(a)") "SIXTRACR> MAINCR Starting"
   write(93,"(a)") stxt//timeStamp
-  endfile(93,iostat=ierro)
-  backspace(93,iostat=ierro)
+  flush(93)
 #endif
 
   call time_timerStart
@@ -420,10 +393,17 @@ end interface
     call hplset('CSIZ',.15)
   endif
 
+  if(nprint == 1 .and. ipos == 1) then
+    ! Open fort.14 and fort.15 for postprocessing
+    call f_open(unit=14,file="fort.14",formatted=.true.,mode="w")
+    call f_open(unit=15,file="fort.15",formatted=.true.,mode="w")
+  end if
+
   ! Postprocessing is on, but there are no particles
   if(ipos.eq.1.and.napx.eq.0) then
     ! Now we open fort.10 unless already opened for BOINC
-    call f_open(unit=10,file="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
+    call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
+    call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
 
 #ifndef STF
     do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
@@ -431,8 +411,7 @@ end interface
       call postpr(91-i)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(91-i,nnuml)
 #endif
     end do
@@ -446,8 +425,7 @@ end interface
       call postpr(i)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(i,nnuml)
 #endif
     end do
@@ -1163,8 +1141,7 @@ end interface
 
 #ifdef CR
   write(93,"(a,i0)") "MAINCR> Setting napxo = ",napx
-  endfile(93,iostat=ierro)
-  backspace(93,iostat=ierro)
+  flush(93)
 #endif
   napxo = napx
 
@@ -1303,9 +1280,8 @@ end interface
   else if(idfor == 2) then
     ! Read from fort.13
     call readFort13
-    call part_updatePartEnergy(3)
-    ! Note that this effectively overrides the particle energy set in fort.13
-    ! as energy is recalculated from delta.
+    call part_updatePartEnergy(1)
+    ! Note that this effectively overrides the particle delta set in fort.13
   endif
 
   do ia=1,napx,2
@@ -1542,27 +1518,23 @@ end interface
     ! If restart is true , we haven't done any tracking and must be running from very last checkpoint
     write(93,"(a)")          "MAINCR> Very last call to WRITEBIN?"
     write(93,"(a,3(1x,i0))") "MAINCR> numlmax, nnuml, numl = ",numlmax,nnuml,numl
-    endfile(93,iostat=ierro)
-    backspace(93,iostat=ierro)
+    flush(93)
     if(nnuml == numl) then
       ! We REALLY have finished (or all particles lost)
       ! When all lost, nthinerr=3001, we set nnuml=numl
       ! and make sure we do the last WRITEBIN
       write(93,"(a)") "MAINCR> Very last call to WRITEBIN"
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call writebin(nthinerr)
       if(nthinerr == 3000) goto 520
     else
       ! I assume we are stopping because we have done nnuml turns which should be numlmax and do a writebin only if time
       write(93,"(a)")          "MAINCR> Very last call to WRITEBIN?"
       write(93,"(a,3(1x,i0))") "MAINCR> numlmax, nnuml, numl = ",numlmax,nnuml,numl
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       if(mod(nnuml,nwri) == 0) then
         write(93,"(a)") "MAINCR> Very last call to WRITEBIN"
-        endfile(93,iostat=ierro)
-        backspace(93,iostat=ierro)
+        flush(93)
         call writebin(nthinerr)
         if(nthinerr == 3000) goto 520
       end if
@@ -1592,6 +1564,10 @@ end interface
   write(lout,"(a)") ""
   call time_timeStamp(time_afterTracking)
 
+  if(st_writefort12) then
+    call writeFort12
+  end if
+
   if(st_partsum .eqv. .false.) then
     write(lout,"(a)") "MAINCR> NOTE Particle summary report is disabled; either manually, or because npart > 64."
     write(lout,"(a)") "MAINCR>      This is controlled by the PARTICLESUMMARY flag in the SETTINGS block in fort.3."
@@ -1604,64 +1580,42 @@ end interface
 
   do ia=1,napxo,2
     ie=ia+1
-    ia2=(ie)/2
     napxto = napxto+numxv(ia)+numxv(ie)
 
     if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
-      write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
-      write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-      if(st_quiet == 0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
-        xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
-      write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
-        xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejvl(ia),ejvl(ie)
-      if(ierro /= 0) write(lout,"(2(a,i0))") "MAINCR> WARNING fort.12 has corrupted output probably due to lost particle ",&
-        ia," or ",ie
+      write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
+      write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
     end if
 
     if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
-      id=id+1
       if(st_quiet == 0) then
         write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
       else if(st_quiet == 1) then
         write(lout,10241) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
       end if
-      write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xvl(1,ie)),aperv(ie,1),abs(xvl(2,ie)),aperv(ie,2)
-      if(st_quiet==0) write(lout,10280) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
-        xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
-      write(12,10280,iostat=ierro) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
-        xvl(1,ie),yvl(1,ie),xvl(2,ie),yvl(2,ie),sigmvl(ie),dpsvl(ie),e0,ejv(id),ejvl(ie)
-      if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output, probably due to lost particle ",ie
+      write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
     end if
 
     if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
-      id=id+1
-      write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xvl(1,ia)),aperv(ia,1),abs(xvl(2,ia)),aperv(ia,2)
+      write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
       if(st_quiet == 0) then
         write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
       else if(st_quiet == 1) then
         write(lout,10241) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
       end if
-      if(st_quiet==0) write(lout,10280) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
-        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
-      write(12,10280,iostat=ierro) xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia), &
-        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),e0,ejvl(ia),ejv(id)
-      if(ierro.ne.0) write(lout,"(a,i0)") "MAINCR> WARNING fort.12 has corrupted output, probably due to lost particle ",ia
     end if
 
     if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
-      id=id+1
-      ig=id+1
       if(st_quiet == 0) then
         write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
       else if(st_quiet == 1) then
         write(lout,10271) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
       end if
-      if(st_quiet==0) write(lout,10280) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
-        xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
-      write(12,10280,iostat=ierro) xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id), &
-        xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig),e0,ejv(id),ejv(ig)
-      if(ierro.ne.0) write(lout,"(a)") "MAINCR> WARNING fort.12 has corrupted output, although particles are stable"
-      id=ig
+    end if
+
+    if(st_quiet == 0) then
+      write(lout,"(4x,f47.33)") xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
+        xv1(ie),yv1(ie),xv2(ie),yv2(ie),sigmv(ie),dpsv(ie),e0,ejv(ia),ejv(ie)
     end if
   end do
 
@@ -1694,7 +1648,8 @@ end interface
 
 470 continue
   ! and we need to open fort.10 unless already opened for BOINC
-  call f_open(unit=10,file="fort.10",formatted=.true.,mode="rw",err=fErr,recl=8195)
+  call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
+  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
 
   ! Also dump the final state of the particle arrays
   call part_writeState(1)
@@ -1710,8 +1665,7 @@ end interface
       call postpr(91-ia2) ! Postprocess file "fort.(91-ia2)"
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(91-ia2,nnuml)
 #endif
     end do
@@ -1728,8 +1682,7 @@ end interface
       call postpr(91-ia)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(91-ia,nnuml)
 #endif
     end do
@@ -1745,8 +1698,7 @@ end interface
       call postpr(ia) ! Postprocess particle ia (and ia+1 if ntwin=2)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(ia,nnuml)
 #endif
     end do
@@ -1763,8 +1715,7 @@ end interface
       call postpr(ia)
 #else
       write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      endfile(93,iostat=ierro)
-      backspace(93,iostat=ierro)
+      flush(93)
       call postpr(ia,nnuml)
 #endif
     end do
@@ -1854,7 +1805,6 @@ end interface
   call time_timeStamp(time_beforeExit)
   call time_finalise
   call meta_finalise
-  call closeUnits ! Must be last as it also closes fort.6
 
 ! ---------------------------------------------------------------------------- !
 !  DONE MAINCR
@@ -1863,7 +1813,8 @@ end interface
 #ifdef CR
   call abend('                                                  ')
 #else
-  stop
+  call closeUnits
+  stop 0
 #endif
 10000 format(/4x,"Tracking ended abnormally for particle: ",i0,         &
              /4x,"Random seed:        ",i8,                             &
@@ -1921,7 +1872,6 @@ end interface
      &t62,f15.9,1x,f15.10,f15.9/                                        &
      &t10,'  Y  ',f14.10,2(1x,g15.8),1x,f15.9,1x,f15.10,f15.9/          &
      &t62,f15.9,1x,f15.10,f15.9/)
-10180 format(t5//t5,'BACK-TRACKING'/ t5, '============='//)
 10190 format(t10,'TRACKING FOR CONSTANT MOMENTUM DEVIATION'// 15x,      &
      &'ACCELERATION WITH PHASE = ',f8.4/ t15,                           &
      &'       TUNE         CLO            CLOP           ',             &
@@ -1956,12 +1906,6 @@ end interface
 10260 format(/4x,"Particle ",i7,"                     Random seed: ",i0," Momentum deviation: ",g12.5/)
 10270 format(/4x,"Particle ",i7," and ",i7, " Stable. Random seed: ",i0," Momentum deviation: ",g12.5," Revolution: ",i0/)
 10271 format( 4x,"Particle ",i7," and ",i7, " Stable. Random seed: ",i0," Momentum deviation: ",g12.5," Revolution: ",i0)
-10280 format(4x,f47.33)
-10320 format(//131('-')//t10,'DATA BLOCK FLUCTUATIONS OF MULTIPOLES'//  &
-     &t10,'RANDOM STARTING NUMBER=  ',i20/ t10,                         &
-     &'RANDOM NUMBERS GENERATED:',i20/ t10,'MEAN VALUE=',f15.7,         &
-     &'  -   DEVIATION=',f15.7)
-10330 format(/10x,'ERROR IN OPENING FILES')
 #ifdef FLUKA
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-07-2013
@@ -1969,6 +1913,5 @@ end interface
 10350 format(4X,I8,1X,'SURVIVING PARTICLES:')
 10360 format(2(1X,A8),8(1X,A16))
 10370 format(2(1X,I8),8(1X,1PE16.9))
-10380 format(10x,f47.33)
 #endif
 end program maincr

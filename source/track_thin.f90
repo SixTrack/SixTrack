@@ -13,6 +13,7 @@ subroutine trauthin(nthinerr)
 
   use mod_alloc
   use mod_time
+  use mod_units
 
 #ifdef FLUKA
   use mod_fluka
@@ -1526,7 +1527,6 @@ subroutine thin6d(nthinerr)
           yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)                           !hr01
           yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)                           !hr01
         end do
-        if(n.eq.1) write(98,'(1p,6(2x,e25.18))') (xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j),dpsv(j),j=1,napx)
         goto 640
       case (3)
         irrtr=imtr(ix)
@@ -2139,8 +2139,7 @@ subroutine callcrp
   if (restart) then
     write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
       " numx = ",numx,", numlcr = ",numlcr
-    endfile(93,iostat=ierro)
-    backspace(93,iostat=ierro)
+    flush(93)
     return
   else
 #ifndef DEBUG
@@ -2148,8 +2147,7 @@ subroutine callcrp
 #endif
     write(93,"(6(a,i0))") "SIXTRACR> CALLCRP numl = ",numl,", nnuml = ",nnuml,", numlcr = ",numlcr,", "//&
      "numx = ",numx,", nwri = ",nwri,", numlcp = ",numlcp
-    endfile(93,iostat=ierro)
-    backspace(93,iostat=ierro)
+    flush(93)
 #ifndef DEBUG
     endif
 #endif
@@ -2250,83 +2248,36 @@ end subroutine dist1
 !-----------------------------------------------------------------------
 subroutine write6(n)
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
   use crcoall
-  use parpro
   use mod_common
   use mod_common_main
-  use mod_commons
-  use mod_common_track
-  use mod_common_da
+  use read_write
   use mod_settings
 
   implicit none
 
-  integer ia,ia2,id,ie,ig,n
-  save
+  integer ia,ig,n
 
-  id=0
-  do 10 ia=1,napxo,2
+  call writeFort12
+
+  do ia=1,napxo,2
     ig=ia+1
-    ia2=ig/2
 #ifndef CR
-    endfile (91-ia2,iostat=ierro)
-    backspace (91-ia2,iostat=ierro)
+#ifndef STF
+    flush(91-(ig/2))
+#else
+    flush(90)
 #endif
-
-    !-- PARTICLES STABLE (Only of QUIET < 2)
+#endif
+    !-- PARTICLES STABLE (Only if QUIET < 2)
     if(.not.pstop(ia).and..not.pstop(ig)) then
       if(st_quiet < 2) write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),n
-      id=id+1
-      ie=id+1
-      if(st_quiet < 1) write(lout,10010)                                &
-        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),         &
-        xv1(ie),yv1(ie),xv2(ie),yv2(ie),sigmv(ie),dpsv(ie),         &
-        e0,ejv(id),ejv(ie)
-      write(12,10010,iostat=ierro)                                      &
-        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),         &
-         xv1(ie),yv1(ie),xv2(ie),yv2(ie),sigmv(ie),dpsv(ie),        &
-         e0,ejv(id),ejv(ie)
-      id=id+1
-
-    !-- FIRST PARTICLES LOST
-    else if(pstop(ia).and..not.pstop(ig)) then
-      id=id+1
-      write(12,10010,iostat=ierro)                                      &
-        xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),   &
-        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),         &
-        e0,ejvl(ia),ejv(id)
-
-    !-- SECOND PARTICLES LOST
-    else if(.not.pstop(ia).and.pstop(ig)) then
-      id=id+1
-      write(12,10010,iostat=ierro)                                      &
-        xv1(id),yv1(id),xv2(id),yv2(id),sigmv(id),dpsv(id),         &
-        xvl(1,ig),yvl(1,ig),xvl(2,ig),yvl(2,ig),sigmvl(ig),dpsvl(ig),   &
-        e0,ejv(id),ejvl(ig)
-
-    !-- BOTH PARTICLES LOST
-    else if(pstop(ia).and.pstop(ig)) then
-      write(12,10010,iostat=ierro)                                      &
-        xvl(1,ia),yvl(1,ia),xvl(2,ia),yvl(2,ia),sigmvl(ia),dpsvl(ia),   &
-        xvl(1,ig),yvl(1,ig),xvl(2,ig),yvl(2,ig),sigmvl(ig),dpsvl(ig),   &
-        e0,ejvl(ia),ejvl(ig)
-    endif
-10 continue
-#ifndef CR
-  if(ierro.ne.0) then
-    write(lout,"(a)") "WRITE6> ERROR fort.12 has corrupted output probably due to lost particles"
-    call prror(-1)
-  endif
-#endif
-  endfile (12,iostat=ierro)
-  backspace (12,iostat=ierro)
-#ifdef CR
-  endfile (lout,iostat=ierro)
-  backspace (lout,iostat=ierro)
-#endif
+      if(st_quiet < 1) write(lout,10010)                    &
+        xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
+        xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig), &
+        e0,ejv(ia),ejv(ig)
+    end if
+  end do
   return
 10000 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10010 format(10x,f47.33)

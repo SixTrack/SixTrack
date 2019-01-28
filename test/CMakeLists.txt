@@ -93,8 +93,12 @@ set(TESTS_NO_STF_FORT90
   rfMultipoles_4thOrder
   scatter_aperture
   scatter_bbelastic
+<<<<<<< HEAD
   scatter_collimation
   scatter_pythia
+=======
+  thick6ddynk
+>>>>>>> master
 )
 
 # List of tests that absolutely require STF to be on (> 64 particles)
@@ -393,7 +397,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
 
   endif(NOT BOINC)
 
-  add_dependencies(SixTrackLib test_copy_${TST})
+  add_dependencies(SixTrackCore test_copy_${TST})
 endforeach()
 
 #add labels to tests

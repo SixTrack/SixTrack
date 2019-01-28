@@ -196,7 +196,7 @@ subroutine dist_readDist
   write(lout,"(a)") "DIST> ERROR Opening file '"//trim(dist_readFile)//"'"
   call prror(-1)
   return
-  
+
 20 continue
   write(lout,"(a,i0)") "DIST> ERROR Reading particles from line ",ln
   call prror(-1)
@@ -327,7 +327,7 @@ subroutine dist_echoDist
   write(lout,"(a)") "DIST> ERROR Opening file '"//trim(dist_echoFile)//"'"
   call prror(-1)
   return
-  
+
 end subroutine dist_echoDist
 
 end module mod_dist

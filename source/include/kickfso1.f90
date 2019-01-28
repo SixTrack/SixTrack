@@ -8,7 +8,7 @@
 !FOX  TEMPI(6) = PUSIG ;
 
 
-!Full 6d-formula 
+!Full 6d-formula
 
 !FOX  ONEDPDA   = (ONE + DPDA)/MTCDA  ;
 !FOX  FPPSIGDA  = ( ONE + ((E0F/E0)*(E0F/E0))*TEMPI(6) ) / ONEDPDA ;
@@ -28,10 +28,10 @@
 
 !       R_DAipken formulae p.29 (3.37)
 !FOX  X(1) =  (TEMPI(1)  * COSTH_DA  +  TEMPI(3)  * SINTH_DA) ;
-!FOX  Y(1) =  ((TEMPI(2) + (TEMPI(1)*Q_DA/ONEDPDA)) * COSTH_DA  
+!FOX  Y(1) =  ((TEMPI(2) + (TEMPI(1)*Q_DA/ONEDPDA)) * COSTH_DA
 !FOX  +  (TEMPI(4) +  (TEMPI(3) *Q_DA/ONEDPDA)) * SINTH_DA) ;
 !FOX  X(2) = (-TEMPI(1)  * SINTH_DA  +  TEMPI(3)  * COSTH_DA) ;
-!FOX  Y(2) = (-(TEMPI(2) + (TEMPI(1)*Q_DA/ONEDPDA)) * SINTH_DA 
+!FOX  Y(2) = (-(TEMPI(2) + (TEMPI(1)*Q_DA/ONEDPDA)) * SINTH_DA
 !FOX  +  (TEMPI(4) +  (TEMPI(3) *Q_DA/ONEDPDA)) * COSTH_DA) ;
 
 !FOX  SIGMDA =  (SIGFDA + (TEMPI(1)*PYFDA - TEMPI(3)*PXFDA)*Z_DA*C1M3) ;

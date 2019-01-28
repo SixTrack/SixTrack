@@ -290,7 +290,7 @@ list(APPEND FORT90_LIB
   bouncy_castle plato_seq bdex fma dabnew end_sixtrack
   ranecu wire hions elens mod_dist scatter dump dynk
   aperture mod_fluc beam6d_fox six_fox postprocessing
-  read_input ranlux collimation mod_particles cheby utils
+  read_write ranlux collimation mod_particles cheby utils
 )
 
 # Files unique to DA or CR version
@@ -903,14 +903,15 @@ endif()
 # Settings for what exactly to build
 ###################################################################################################
 # Add the source files that will be used to build SixTrack
-add_library(SixTrackLib STATIC ${SIXTRACK_SOURCES})
-set_target_properties(SixTrackLib PROPERTIES OUTPUT_NAME "SixTrack" LINKER_LANGUAGE Fortran)
+add_library(SixTrackCore STATIC ${SIXTRACK_SOURCES})
+set_target_properties(SixTrackCore PROPERTIES OUTPUT_NAME "SixTrackCore")
+set_target_properties(SixTrackCore PROPERTIES PREFIX "")
 add_executable(SixTrackCR ${SIXTRACK_SOURCES_CR})
-target_link_libraries(SixTrackCR SixTrackLib)
+target_link_libraries(SixTrackCR SixTrackCore)
 set_target_properties(SixTrackCR PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
 if(SIXDA)
   add_executable(SixTrackDA ${SIXTRACK_SOURCES_DA})
-  target_link_libraries(SixTrackDA SixTrackLib)
+  target_link_libraries(SixTrackDA SixTrackCore)
   set_target_properties(SixTrackDA PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME_DA}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
 endif()
 
@@ -960,9 +961,9 @@ if(HDF5)
   set_target_properties(hdf5_local_f PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/hdf5/build/bin/libhdf5_fortran-static.a)
   set_target_properties(hdf5_local_s PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/hdf5/build/bin/libhdf5_f90cstub-static.a)
   set_target_properties(hdf5_local_c PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/hdf5/build/bin/libhdf5-static.a)
-  target_link_libraries(SixTrackLib hdf5_local_f hdf5_local_s hdf5_local_c z dl)
-  target_include_directories(SixTrackLib PRIVATE ${CMAKE_SOURCE_DIR}/lib/hdf5/build/bin/static)
-  target_include_directories(SixTrackLib PRIVATE ${CMAKE_SOURCE_DIR}/lib/hdf5/build/fortran)
+  target_link_libraries(SixTrackCore hdf5_local_f hdf5_local_s hdf5_local_c z dl)
+  target_include_directories(SixTrackCore PRIVATE ${CMAKE_SOURCE_DIR}/lib/hdf5/build/bin/static)
+  target_include_directories(SixTrackCore PRIVATE ${CMAKE_SOURCE_DIR}/lib/hdf5/build/fortran)
 endif(HDF5)
 
 if(HASHLIB)
@@ -979,7 +980,7 @@ if(HASHLIB)
   if(64BIT)
     set_target_properties(md5_lib PROPERTIES LINK_FLAGS "-m64")
   endif(64BIT)
-  target_link_libraries(SixTrackLib md5_lib)
+  target_link_libraries(SixTrackCore md5_lib)
 endif(HASHLIB)
 
 if(MERLINSCATTER)
@@ -1048,13 +1049,13 @@ if(BOINC AND API)
   # Fix OSX linking to the correct c++ stdlib
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     find_library(c++ STATIC c++)
-    target_link_libraries(SixTrackLib c++)
+    target_link_libraries(SixTrackCore c++)
   endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 if(FLUKA)
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/FlukaIO)
-  target_link_libraries(SixTrackLib flukaIO)
+  target_link_libraries(SixTrackCore flukaIO)
 endif(FLUKA)
 
 if(PYTHIA)
@@ -1106,7 +1107,7 @@ if(LIBARCHIVE)
   target_link_libraries(libArchiveTester libArchive_wrapper)
 
   #See also further down for SixTestWrapper linking
-  target_link_libraries(SixTrackLib libArchive_wrapper)
+  target_link_libraries(SixTrackCore libArchive_wrapper)
   add_library(libarchive STATIC IMPORTED)
   if(WIN32)
     set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive_static.a)
@@ -1115,17 +1116,17 @@ if(LIBARCHIVE)
     set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
   endif()
 
-  target_link_libraries(SixTrackLib libarchive z Threads::Threads)
+  target_link_libraries(SixTrackCore libarchive z Threads::Threads)
   target_link_libraries(libArchiveTester libarchive z Threads::Threads)
 
   add_definitions( -DLIBARCHIVE )
 endif()
 
 #We need to build dafor before we build SixTrack, but crlibm and so on can be built at the same time.
-add_dependencies(SixTrackLib copy_input_files generate_input)
-add_dependencies(SixTrackCR SixTrackLib)
+add_dependencies(SixTrackCore copy_input_files generate_input)
+add_dependencies(SixTrackCR SixTrackCore)
 if(SIXDA)
-  add_dependencies(SixTrackDA SixTrackLib)
+  add_dependencies(SixTrackDA SixTrackCore)
 endif()
 
 ###################################################################################################
@@ -1162,7 +1163,7 @@ set(MSYS_QUADMATH "/usr/lib/gcc/x86_64-pc-msys/6.3.0/libquadmath.a")
 #just a work around to build on MSYS2 for now
 if(MSYS AND STATIC)
   target_link_libraries(dafor ${MSYS_QUADMATH})
-  target_link_libraries(SixTrackLib ${MSYS_QUADMATH})
+  target_link_libraries(SixTrackCore ${MSYS_QUADMATH})
 endif()
 
 #same with OSX, using gfortran from homebrew
@@ -1177,7 +1178,7 @@ if(STATIC)
     else()
       message(FATAL_ERROR "lquadmath not found!")
     endif()
-    target_link_libraries(SixTrackLib ${lquadmath})
+    target_link_libraries(SixTrackCore ${lquadmath})
   endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(STATIC)
 
@@ -1206,12 +1207,12 @@ if(CERNLIB)
   find_library(dl STATIC dl)
   find_library(gcc_eh STATIC gcc_eh)
 
-  target_link_libraries(SixTrackLib graflib grafX11 packlib_noshift kernlib_noshift g2c X11 xcb Xau Xdmcp dl Threads::Threads gcc_eh)
+  target_link_libraries(SixTrackCore graflib grafX11 packlib_noshift kernlib_noshift g2c X11 xcb Xau Xdmcp dl Threads::Threads gcc_eh)
 endif(CERNLIB)
 
 #if we are using crlibm, link to the crlibm library
 if(CRLIBM)
-  target_link_libraries(SixTrackLib crlibm roundctl)
+  target_link_libraries(SixTrackCore crlibm roundctl)
 endif(CRLIBM)
 
 #if we are using merlinscatter, link to the merlinscatter library
@@ -1221,20 +1222,20 @@ endif(MERLINSCATTER)
 
 # if we are using naff, link to the naff library
 if(NAFF)
-  target_link_libraries(SixTrackLib naff)
+  target_link_libraries(SixTrackCore naff)
 endif(NAFF)
 
 #if we are using root, link to all the root libraries
 if(ROOT)
-  target_link_libraries(SixTrackLib root_output)
+  target_link_libraries(SixTrackCore root_output)
 endif(ROOT)
 
 if(HDF5)
-  target_link_libraries(SixTrackLib ${HDF5_LIBRARIES})
+  target_link_libraries(SixTrackCore ${HDF5_LIBRARIES})
 endif(HDF5)
 
 if(HASHLIB)
-  target_link_libraries(SixTrackLib md5_lib)
+  target_link_libraries(SixTrackCore md5_lib)
 endif(HASHLIB)
 
 if(G4COLLIMAT)
@@ -1242,10 +1243,10 @@ if(G4COLLIMAT)
 endif(G4COLLIMAT)
 
 IF(COVERAGE)
-  target_compile_options(SixTrackLib PRIVATE -fprofile-arcs -ftest-coverage)
-  target_compile_options(SixTrackCR  PRIVATE -fprofile-arcs -ftest-coverage)
-  SET_TARGET_PROPERTIES(SixTrackLib  PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
-  SET_TARGET_PROPERTIES(SixTrackCR   PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+  target_compile_options(SixTrackCore PRIVATE -fprofile-arcs -ftest-coverage)
+  target_compile_options(SixTrackCR   PRIVATE -fprofile-arcs -ftest-coverage)
+  SET_TARGET_PROPERTIES(SixTrackCore  PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+  SET_TARGET_PROPERTIES(SixTrackCR    PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
   if(SIXDA)
     target_compile_options(SixTrackDA PRIVATE -fprofile-arcs -ftest-coverage)
     SET_TARGET_PROPERTIES(SixTrackDA  PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")

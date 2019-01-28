@@ -15,9 +15,10 @@ module mod_meta
   logical,           public,  save :: meta_isActive = .false.
 
   ! Collected MetaData
-  integer,           public,  save :: meta_nPartInit = 0 ! Initial number of particles
-  integer,           public,  save :: meta_nPartTurn = 0 ! Counted in tracking routines
-  integer,           public,  save :: meta_nRestarts = 0 ! Number of C/Rs
+  integer,           public,  save :: meta_nPartInit = 0   ! Initial number of particles
+  integer,           public,  save :: meta_nPartTurn = 0   ! Counted in tracking routines
+  integer,           public,  save :: meta_nRestarts = 0   ! Number of C/Rs
+  real(kind=fPrec),  public,  save :: meta_sympCheck = 0.0 ! Symplecticity check
 
   ! Meta Write Interface
   interface meta_write
@@ -81,7 +82,7 @@ subroutine meta_finalise
 
   nCRKills1 = 0
   nCRKills2 = 0
- 
+
   call f_requestUnit("crkillswitch.tmp",tmpUnit)
   inquire(file="crkillswitch.tmp",exist=fExist)
   if(fExist) then
@@ -90,6 +91,7 @@ subroutine meta_finalise
     close(tmpUnit)
   end if
 
+  call meta_write("SymplecticityDeviation",  meta_sympCheck)
   call meta_write("NumParticleTurns",        meta_nPartTurn)
   call meta_write("AvgParticlesPerTurn",     real(meta_nPartTurn,fPrec)/numl, "f15.3")
   call meta_write("CR_RestartCount",         meta_nRestarts)
@@ -232,7 +234,8 @@ function meta_padName(inName) result(padName)
   j = 0
   do i=1,len(inName)
     ic = ichar(inName(i:i))
-    if( ic == 40  .or.  ic == 41  .or. & ! (, )
+    if( ic == 37  .or.  ic == 46  .or. & ! %, .
+        ic == 40  .or.  ic == 41  .or. & ! (, )
         ic >= 48  .and. ic <= 57  .or. & ! 0-9
         ic >= 65  .and. ic <= 90  .or. & ! A-Z
         ic == 91  .or.  ic == 93  .or. & ! [, ]

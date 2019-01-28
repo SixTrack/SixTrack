@@ -2,17 +2,60 @@
 !  Read Input
 ! ~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-05-18
-!  Module for parsing special input files like fort.33, fort.13, fort.10, etc.
+!  Last Modified: 2019-01-15
+!  Module for reading and writing special fort.xx files
 ! ================================================================================================ !
 
-module read_input
+module read_write
 
   use crcoall
 
   implicit none
 
 contains
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last Modified: 2019-01-15
+!  Write fort.12 with rounctl library
+! ================================================================================================ !
+subroutine writeFort12
+
+  use mod_units
+  use mod_common
+  use mod_common_main
+  use string_tools
+
+  character(len=24) :: roundBuf(15)
+  logical           :: rErr = .false.
+  integer           :: j, k
+
+  call f_open(unit=12,file="fort.12",formatted=.true.,mode="w",status="replace")
+
+  do j=1,napxo,2
+    call chr_fromReal(xv1(j),    roundBuf(1), 17,3,rErr)
+    call chr_fromReal(yv1(j),    roundBuf(2), 17,3,rErr)
+    call chr_fromReal(xv2(j),    roundBuf(3), 17,3,rErr)
+    call chr_fromReal(yv2(j),    roundBuf(4), 17,3,rErr)
+    call chr_fromReal(sigmv(j),  roundBuf(5), 17,3,rErr)
+    call chr_fromReal(dpsv(j),   roundBuf(6), 17,3,rErr)
+    call chr_fromReal(xv1(j+1),  roundBuf(7), 17,3,rErr)
+    call chr_fromReal(yv1(j+1),  roundBuf(8), 17,3,rErr)
+    call chr_fromReal(xv2(j+1),  roundBuf(9), 17,3,rErr)
+    call chr_fromReal(yv2(j+1),  roundBuf(10),17,3,rErr)
+    call chr_fromReal(sigmv(j+1),roundBuf(11),17,3,rErr)
+    call chr_fromReal(dpsv(j+1), roundBuf(12),17,3,rErr)
+    call chr_fromReal(e0,        roundBuf(13),17,3,rErr)
+    call chr_fromReal(ejv(j),    roundBuf(14),17,3,rErr)
+    call chr_fromReal(ejv(j+1),  roundBuf(15),17,3,rErr)
+    write(12,"(a)") (roundBuf(k), k=1,15)
+  end do
+
+  write(lout,"(a,i0,a)") "FORT12> Wrote ",(napxo/2)," particle pairs to fort.12"
+
+  call f_close(12)
+
+end subroutine writeFort12
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -129,15 +172,6 @@ subroutine readFort13
     nucm(j)       = nucm0
     nucm(j+1)     = nucm0
 
-    ejfv(j)       = sqrt(ejv(j)**2   - nucm(j)**2)
-    ejfv(j+1)     = sqrt(ejv(j+1)**2 - nucm(j+1)**2)
-    oidpsv(j)     = one/(one + dpsv(j))
-    oidpsv(j+1)   = one/(one + dpsv(j+1))
-    moidpsv(j)    = mtc(j)   / (one+dpsv(j))
-    moidpsv(j+1)  = mtc(j+1) / (one+dpsv(j+1))
-    omoidpsv(j)   = c1e3*((one-mtc(j))   * oidpsv(j))
-    omoidpsv(j+1) = c1e3*((one-mtc(j+1)) * oidpsv(j+1))
-
   end do
 
   e0f = sqrt(e0**2 - nucm0**2)
@@ -197,4 +231,4 @@ subroutine readFort33
 
 end subroutine readFort33
 
-end module read_input
+end module read_write
