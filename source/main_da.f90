@@ -34,6 +34,10 @@ program mainda
   use mod_alloc,  only : alloc_init
   use mod_fluc,   only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use read_input, only : readFort33
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+  use mod_ffield, only :ffield_mod_init,ffield_mod_end
+#endif
 
   implicit none
 
@@ -112,8 +116,15 @@ program mainda
   qwc(3)=zero
   call comnul
 
+
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+  call ffield_mod_init(npart_initial, nele_initial)
+#endif
+
   call daten
   if (ithick.eq.1) call allocate_thickarrays
+
   if(nord.le.0.or.nvar.le.0) call prror(91)
   if(ithick.eq.1) write(lout,10020)
   if(ithick.eq.0) write(lout,10030)
@@ -455,6 +466,11 @@ program mainda
     call mydaini(3,nord,nvar,ndim,nvar2,nord1)
   end if
 160 continue
+
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+  call ffield_mod_end()
+#endif
 
 !-----------------------------------------------------------------------
 ! We're done in mainda, no error :)

@@ -67,6 +67,10 @@ subroutine daten
 #ifdef FLUKA
   use mod_fluka, only : fluka_parsingDone,fluka_parseInputLine
 #endif
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+  use mod_ffield,only : ffield_parseInputLine,ffield_parsingDone,ffield_mod_link
+#endif
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -718,6 +722,26 @@ subroutine daten
     end if
 #endif
 
+  ! Modification by B.DALENA and T.PUGNAT
+  case("FFIE") ! Fringe field for Quadrupole
+#ifndef FFIELD
+    if(openBlock) then
+      write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the FFIELD flag."
+      goto 9999
+    else
+      continue
+    end if
+#else
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call ffield_parsingDone
+    else
+      call ffield_parseInputLine(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+#endif
+
   case("BDEX") ! Beam Distribution EXchange
     if(openBlock) then
       continue
@@ -979,6 +1003,13 @@ subroutine daten
       end if
     end do
   end if
+
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+  call ffield_mod_link(inErr)
+  if(inErr) goto 9999
+#endif
+
 
   ! Done with checks. Write the report
   call sixin_blockReport

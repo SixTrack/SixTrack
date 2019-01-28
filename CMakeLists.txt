@@ -94,6 +94,7 @@ OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 OPTION(NAFF "Use NAFF library for FMA analysis" OFF)
 OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 OPTION(FLUKA "Couple to FLUKA for beam collimation" OFF)
+OPTION(FFIELD "Fringe Field for Quadrupole" OFF)
 OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
 OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPIT block" OFF)
 OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
@@ -215,6 +216,9 @@ endif()
 if(FLUKA)
 	SET(SIXTRACK_FEAT_CR "FLUKA_${SIXTRACK_FEAT_CR}")
 endif(FLUKA)
+if(FFIELD)
+	SET(SIXTRACK_FEAT_CR "FFIELD_${SIXTRACK_FEAT_CR}")
+endif(FFIELD)
 if(LIBARCHIVE)
 	SET(SIXTRACK_FEAT_CR "libarchive_${SIXTRACK_FEAT_CR}")
 endif()
@@ -291,7 +295,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}_${SIXTRACK_FEAT_DA}")
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST COLLIMAT BOINC BEAMGAS STF MERLINSCATTER NAFF G4COLLIMAT FLUKA CR)
+LIST(APPEND PREPRO_FLAGS_TOOLS TILT FAST COLLIMAT BOINC BEAMGAS STF MERLINSCATTER NAFF G4COLLIMAT FLUKA CR FFIELD)
 LIST(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT)
 LIST(APPEND PREPRO_FLAGS_COMPILE NAGFOR)
 
@@ -339,6 +343,11 @@ endif(BEAMGAS)
 if(FLUKA)
 	list(APPEND FORT90_LIB mod_fluka fluka)
 endif(FLUKA)
+
+if(FFIELD)
+	list(APPEND FORT90_LIB  mod_ffield mod_ffield_Table_n_Track)
+endif(FFIELD)
+
 
 if(ROOT)
 	LIST(APPEND FORT90_LIB root_output)

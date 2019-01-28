@@ -77,6 +77,10 @@ program maincr
 #ifdef FLUKA
   use mod_fluka
 #endif
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+  use mod_ffield,     only :ffield_mod_init,ffield_mod_end
+#endif
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -434,6 +438,11 @@ end interface
 
 #ifdef FLUKA
   call fluka_mod_init(npart_initial, nele_initial, clight)
+#endif
+
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+  call ffield_mod_init(npart_initial, nele_initial)
 #endif
 
   call daten
@@ -2343,6 +2352,10 @@ end interface
  490  continue
  520  continue
   call fluka_close
+#endif
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+  call ffield_mod_end()
 #endif
       time3=0.
       call timex(time3)
