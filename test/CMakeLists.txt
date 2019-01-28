@@ -93,12 +93,9 @@ set(TESTS_NO_STF_FORT90
   rfMultipoles_4thOrder
   scatter_aperture
   scatter_bbelastic
-<<<<<<< HEAD
   scatter_collimation
   scatter_pythia
-=======
   thick6ddynk
->>>>>>> master
 )
 
 # List of tests that absolutely require STF to be on (> 64 particles)
