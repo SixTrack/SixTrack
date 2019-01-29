@@ -231,6 +231,9 @@ set(TESTS_NO_STF_FORT90
   dynk_operators
   dynk_polynomial
   dynk_random
+  fma
+  fma_binary
+  fma_naff
   rfMultipoles_2ndOrder
   rfMultipoles_4thOrder
   scatter_aperture
