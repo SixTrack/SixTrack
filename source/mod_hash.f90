@@ -143,6 +143,7 @@ subroutine hash_parseInputLine(inLine, iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   select case(trim(lnSplit(1)))
 

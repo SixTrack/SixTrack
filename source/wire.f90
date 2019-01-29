@@ -96,6 +96,7 @@ subroutine wire_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   if(nSplit /= 9) then
     write(lout,"(a,i0)") "WIRE> ERROR Expected 9 input va;ues, got ",nSplit

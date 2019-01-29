@@ -218,6 +218,7 @@ subroutine dump_parseInputLine(inLine,iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   if(lnSplit(1) == "HIGH") then
     ldumphighprec = .true.
