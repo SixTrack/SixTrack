@@ -1526,6 +1526,15 @@ The \texttt{SCATTER} module is a framework for scattering particles through Mont
 This statement switches on extra ``debugging'' output from \texttt{SCATTER}.
 This can be useful if debugging the code or if debugging the input.
 
+\paragraph{Particle Losses}~ \texttt{LOSSES}\\
+
+This statement switches on particle losses in the scatter module.
+This flag is propagated to the \texttt{PYTHIA} module (see Section~\ref{ExtPythia}), allowing for selecting double diffractive and non-diffractive processes.
+In addition, this will allow losses with single diffractive when the tracked prticle is destroyed and the target particle survives.
+If losses are disabled, the event generator will only accept events where the tracked particle survives.
+
+Particle losses are off by default.
+
 \paragraph{Scatter Elements}~ \texttt{ELEM elemname profile ratio scaling gen1 ... genN}\\
 
 This statements associates a \texttt{PRO}file and one or more \texttt{GEN}erators with a SINGLE ELEMENT.
@@ -1560,7 +1569,7 @@ The generator block takes a name and a generator type input, followed by the par
 generator type.
 
 \bigskip
-\noindent\texttt{GEN name PPBEAMELASTIC a b1 b2 phi tmin [crossSection]} \\
+\noindent\texttt{GEN name PPBEAMELASTIC a b1 b2 phi tmin crossSection} \\
 
 Takes five or six input arguments, and generates the probability distribution given by
 \begin{align}
@@ -1568,7 +1577,8 @@ Takes five or six input arguments, and generates the probability distribution gi
 \end{align}
 where the first expression is a soft scatter data fit, the third expression a hard scatter fit, and the second expression is the interference. $a = a_2/a_1$ is the amplitudes of the expressions.\index{elastic scattering}
 These are combined into the first four input arguments $a$, $b_1$, $b_2$, and $\phi$, as well as $t_{min}$ which provides a cut-off limit.
-The optional sixth argument defines a fixed cross section for the scattering probability in units of millibarn.
+The sixth argument defines a fixed cross section for the scattering probability in units of millibarn.
+If all elements have \texttt{ratio} set to a fixed value, the cross section set here is ignored.
 
 Input example with values for a fit to 13 TeV LHC.
 \begin{cverbatim}
