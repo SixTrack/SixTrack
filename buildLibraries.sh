@@ -25,11 +25,11 @@ for ARG in "$@"; do
     elif [[ $ARG == "libarchive" ]]; then
         LIBARCH=true
         ZLIB=true
-        echo "Libarchive depends zlib, zlib enabled as well."
+        echo "Libarchive depends on zlib, zlib enabled as well."
     elif [[ $ARG == "hdf5" ]]; then
         HDF5=true
         ZLIB=true
-        echo "HDF5 depends zlib, zlib enabled as well."
+        echo "HDF5 depends on zlib, zlib enabled as well."
     elif [[ $ARG == "pythia" ]]; then
         PYTHIA=true
     elif [[ $ARG == "naff" ]]; then
@@ -50,9 +50,10 @@ if [ $BOINC = true ] || [ $ALL = true ]; then
     cd ..
 fi
 
+# If building libArchive or HDF5, ZLib must be built first!
 if [ $ZLIB = true ] || [ $ALL = true ]; then
     cd lib
-    ./buildZlib.sh
+    source ./buildZlib.sh
     cd ..
 fi
 

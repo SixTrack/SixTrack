@@ -7,6 +7,9 @@ set -e #Exit on error
 echo ""
 echo " Building libArchive"
 echo "====================="
+echo ""
+echo " Linking to ZLib from: $ZLIB_BASE"
+echo ""
 
 if [[ -d libarchive_build ]]; then
     rm -rf libarchive_build

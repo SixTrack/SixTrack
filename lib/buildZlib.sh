@@ -10,7 +10,8 @@ echo "==============="
 echo
 
 cd zlib
-ZLIB_BASE=$(pwd)
+export ZLIB_BASE=$(pwd)
+
 if [[ -d build ]]; then
    rm -rf build
 fi
