@@ -1,2 +1,3 @@
+final_state.dat
 fma_sixtrack
 hash.md5
