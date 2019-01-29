@@ -1,26 +1,26 @@
 #Test that the testing tools run!
-ADD_TEST(NAME SelfTest_verify10 COMMAND verify10)
+add_test(NAME SelfTest_verify10 COMMAND verify10)
 set_tests_properties(SelfTest_verify10 PROPERTIES PASS_REGULAR_EXPRESSION "Error in verify10 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
-ADD_TEST(NAME SelfTest_checkf10 COMMAND checkf10)
+add_test(NAME SelfTest_checkf10 COMMAND checkf10)
 set_tests_properties(SelfTest_checkf10 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf10 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
-ADD_TEST(NAME SelfTest_compf10 COMMAND compf10)
+add_test(NAME SelfTest_compf10 COMMAND compf10)
 set_tests_properties(SelfTest_compf10 PROPERTIES PASS_REGULAR_EXPRESSION "Error in compf10 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
-ADD_TEST(NAME SelfTest_checkf110 COMMAND checkf110)
+add_test(NAME SelfTest_checkf110 COMMAND checkf110)
 set_tests_properties(SelfTest_checkf110 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf110 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
-ADD_TEST(NAME SelfTest_checkf1014 COMMAND checkf1014)
+add_test(NAME SelfTest_checkf1014 COMMAND checkf1014)
 set_tests_properties(SelfTest_checkf1014 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf1014 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
-ADD_TEST(NAME SelfTest_read90 COMMAND read90)
+add_test(NAME SelfTest_read90 COMMAND read90)
 set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error in read90 - file 'fort.190' was not found; try --help?\n.*19")
 
-ADD_TEST(NAME SelfTest_readDump3 COMMAND readDump3)
+add_test(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
 
-ADD_TEST(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/ COMMAND ${CMAKE_SOURCE_DIR}/test/CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
+add_test(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/ COMMAND ${CMAKE_SOURCE_DIR}/test/CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
 set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
 add_test(NAME CheckBuildManual COMMAND ${CMAKE_SOURCE_DIR}/test/CheckBuildManual.sh "${CMAKE_SOURCE_DIR}")
@@ -73,11 +73,12 @@ set(TESTS_NOFORT10
   scatter_aperture
   scatter_bbelastic
   scatter_collimation
+  scatter_pythia
   thick6dblocks
   thick6ddynk
 )
 
-# List of tests that do not produce singletrackfile.dat or a fort.90
+# List of tests that do not produce singletrackfile.dat or fort.90
 set(TESTS_NO_STF_FORT90
   crabs
   dump_all_highprec
@@ -92,6 +93,8 @@ set(TESTS_NO_STF_FORT90
   rfMultipoles_4thOrder
   scatter_aperture
   scatter_bbelastic
+  scatter_collimation
+  scatter_pythia
   thick6ddynk
 )
 
@@ -112,6 +115,9 @@ if(LIBARCHIVE)
 endif()
 if(NAFF)
   list(APPEND SIXTRACK_TESTS fma_naff)
+endif()
+if(PYTHIA)
+  list(APPEND SIXTRACK_TESTS scatter_pythia)
 endif()
 
 #General tests
@@ -224,12 +230,12 @@ endif(SIXDA)
 
 #For CR builds, test the CR functions, so kill/resume the test
 if(CR)
-  SET(CR_ENABLE 1)
+  set(CR_ENABLE 1)
   #Should at least be able to reach the standard TIMEOUT.
-  SET(CR_KILL_TIME "2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,16384,16384,16384,16384,16384,16384,16384,16384,16384")
+  set(CR_KILL_TIME "2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,16384,16384,16384,16384,16384,16384,16384,16384,16384")
 else()
-  SET(CR_ENABLE 0)
-  SET(CR_KILL_TIME 0)
+  set(CR_ENABLE 0)
+  set(CR_KILL_TIME 0)
 endif(CR)
 
 #Test commands
@@ -238,51 +244,51 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
   #determine what we need to do:
 
   #Check fort.10 by default
-  SET(FORT10 1)
-  LIST(FIND TESTS_NOFORT10 ${TST} NO_FORT10)
+  set(FORT10 1)
+  list(FIND TESTS_NOFORT10 ${TST} NO_FORT10)
   if(NOT ${NO_FORT10} MATCHES -1)
-    SET(FORT10 0)
+    set(FORT10 0)
   else()
-    SET(FORT10 1)
+    set(FORT10 1)
   endif()
 
   #if STF, we need to use the STF flag on read90, and disable checking fort.90
   if(STF)
-    SET(STF_ENABLE 1)
-    SET(FORT90 0)
+    set(STF_ENABLE 1)
+    set(FORT90 0)
   else()
-    SET(STF_ENABLE 0)
-    SET(FORT90 1)
+    set(STF_ENABLE 0)
+    set(FORT90 1)
   endif(STF)
-  LIST(FIND TESTS_NO_STF_FORT90 ${TST} NO_STF_FORT90)
+  list(FIND TESTS_NO_STF_FORT90 ${TST} NO_STF_FORT90)
   if(NOT ${NO_STF_FORT90} MATCHES -1)
-    SET(STF_ENABLE 0)
-    SET(FORT90 0)
+    set(STF_ENABLE 0)
+    set(FORT90 0)
   endif()
 
   if(LIBARCHIVE)
     if(TST STREQUAL elensidealthin6d_DYNK_ZIPF)
-      SET(SIXOUT_NUMFILES 2)
+      set(SIXOUT_NUMFILES 2)
     else()
-      SET(SIXOUT_NUMFILES 0)
+      set(SIXOUT_NUMFILES 0)
     endif()
   else()
-    SET(SIXOUT_NUMFILES 0)
+    set(SIXOUT_NUMFILES 0)
   endif(LIBARCHIVE)
 
   SET( DUMP_BIN_FILE NONE )
   if(TST STREQUAL dump_binary)
-    SET( DUMP_BIN_FILE dump.dat,dumpStart.dat )
+    set( DUMP_BIN_FILE dump.dat,dumpStart.dat )
   elseif(TST STREQUAL fma_binary)
-    SET( DUMP_BIN_FILE START_DUMP_1,IP2_DUMP_1,IP2_DUMP_2,IP2_DUMP_3,IP3_DUMP_1,IP3_DUMP_2,IP3_DUMP_3 )
+    set( DUMP_BIN_FILE START_DUMP_1,IP2_DUMP_1,IP2_DUMP_2,IP2_DUMP_3,IP3_DUMP_1,IP3_DUMP_2,IP3_DUMP_3 )
   elseif(TST STREQUAL dump7_fma)
-    SET( DUMP_BIN_FILE IP3_DUMP_1 )
+    set( DUMP_BIN_FILE IP3_DUMP_1 )
   elseif(TST STREQUAL dump8_fma)
-    SET( DUMP_BIN_FILE START_DUMP_1,IP3_DUMP_1 )
+    set( DUMP_BIN_FILE START_DUMP_1,IP3_DUMP_1 )
   elseif(TST STREQUAL dump7_fma_thin4d)
-    SET( DUMP_BIN_FILE dump_ip3 )
+    set( DUMP_BIN_FILE dump_ip3 )
   elseif(TST STREQUAL dump_all_highprec)
-    SET( DUMP_BIN_FILE dump3.dat,dump8.dat )
+    set( DUMP_BIN_FILE dump3.dat,dump8.dat )
   endif()
 
   if (TST STREQUAL dipedge)
@@ -291,7 +297,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
     set(CR_NUMRESTARTS 0)
   endif()
 
-  ADD_TEST(
+  add_test(
     NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
     COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} ${CR_NUMRESTARTS}
   )
@@ -305,15 +311,15 @@ endforeach()
 if(SIXDA)
   foreach(TST IN ITEMS ${SIXTRACK_DA_TESTS})
 
-    SET(FORT10 0)
-    SET(FORT90 0)
-    SET(STF_ENABLE 0)
-    SET(SIXOUT_NUMFILES 0)
-    SET(CR_ENABLE 0)
-    SET(CR_KILL_TIME 0)
-    SET(DUMP_BIN_FILE NONE)
+    set(FORT10 0)
+    set(FORT90 0)
+    set(STF_ENABLE 0)
+    set(SIXOUT_NUMFILES 0)
+    set(CR_ENABLE 0)
+    set(CR_KILL_TIME 0)
+    set(DUMP_BIN_FILE NONE)
 
-    ADD_TEST(
+    add_test(
       NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
       COMMAND SixTestWrapper $<TARGET_FILE:SixTrackDA> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} 0)
 
@@ -464,6 +470,7 @@ set(FAST_TESTS
   scatter_aperture
   scatter_bbelastic
   scatter_collimation
+  scatter_pythia
   thick4
   thick4_da
   thick6dblocks
@@ -528,7 +535,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
 endforeach()
 
 # Tools
-SET(SELFTEST_TOOLS
+set(SELFTEST_TOOLS
   SelfTest_verify10
   SelfTest_compf10
   SelfTest_checkf1014
@@ -542,7 +549,7 @@ foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
 endforeach()
 
 # Inputs
-SET(SELFTEST_INPUT
+set(SELFTEST_INPUT
   CheckTestInput_STF
 )
 foreach(TOOL IN ITEMS ${SELFTEST_INPUT})
@@ -550,7 +557,7 @@ foreach(TOOL IN ITEMS ${SELFTEST_INPUT})
 endforeach()
 
 # Other
-SET(SELFTEST_OTHER
+set(SELFTEST_OTHER
   CheckBuildManual
 )
 foreach(TOOL IN ITEMS ${SELFTEST_OTHER})

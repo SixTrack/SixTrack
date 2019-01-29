@@ -44,7 +44,7 @@ subroutine allocate_arrays
 
   call dump_expand_arrays(nele,nblz)
   call wire_expand_arrays(nele,nblz)
-  call scatter_expand_arrays(nele)
+  call scatter_expand_arrays(nele,npart)
   call aperture_expand_arrays(nele,npart)
 
   call elens_allocate_arrays
@@ -106,7 +106,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 
   call dump_expand_arrays(nele_new,nblz_new)
   call wire_expand_arrays(nele_new,nblz_new)
-  call scatter_expand_arrays(nele_new)
+  call scatter_expand_arrays(nele_new,npart_new)
   call aperture_expand_arrays(nele_new, npart_new)
 
   call elens_expand_arrays(nele_new)
