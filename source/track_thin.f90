@@ -254,8 +254,9 @@ subroutine trauthin(nthinerr)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           if ( dynk_isused(i) ) then
-            write(lout,*) "ERROR: Element of type 11 (bez=",bez(ix),") is off in fort.2, but on in DYNK. Not implemented."
-            call prror(-1)
+            write(lout,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
+              "') is off in fort.2, but on in DYNK. Not implemented."
+            call prror
           end if
           ktrack(i) = 31
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
@@ -435,7 +436,7 @@ subroutine trauthin(nthinerr)
     call thin4d(nthinerr)
   else !6D tracking
     if(idp == 0 .or. ition == 0) then !Actually 4D, but collimation needs 6D so goto 6D.
-      write(lout,*) "TRACKING> WARNING Calling 6D tracking due to collimation! Would normally have called thin4d"
+      write(lout,"(a)") "TRACKING> WARNING Calling 6D tracking due to collimation! Would normally have called thin4d"
     endif
 
     hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
@@ -669,7 +670,7 @@ subroutine thin4d(nthinerr)
         end if
         if(fluka_inside) then
           if(fluka_debug) then
-            write(lout,*) '[Fluka] Skipping lattice element at ', i
+            write(lout,"(a,i0)") "FLUKA> Skipping lattice element at ", i
             write(fluka_log_unit,*) '# Skipping lattice element at ', i
           end if
           goto 630
@@ -678,8 +679,8 @@ subroutine thin4d(nthinerr)
 #endif
 
           if (bdex_enable) then
-              write(lout,*) "BDEX> BDEX only available for thin6d"
-              call prror(-1)
+              write(lout,"(a)") "BDEX> ERROR BDEX only available for thin6d"
+              call prror
           endif
 
       select case (ktrack(i))
@@ -2011,16 +2012,11 @@ subroutine thin6d(nthinerr)
         call scatter_thin(i, ix,n)
         goto 640
       case (65) ! Scatter (thick)
-        !Thick scattering
-        if (scatter_debug) then
-          write(lout,*) "SCATTER> In scat_tck, ix=",ix, "bez='"//trim(bez(ix))//"' napx=",napx, "turn=",n
-        endif
         !     TODO
         goto 640
       case default
-        write (lout,*) "WARNING: Non-handled element in thin6d()!",  &
-                        " i=", i, "ix=", ix, "dotrack=",  dotrack,   &
-                        " bez(ix)='", bez(ix),"' SKIPPED"
+        write(lout,"(3(a,i0),a)") "TRACKING> WARNING Non-handled element in thin6d()!",  &
+          " i = ",i,", ix = ",ix,", dotrack = ",dotrack,", bez(ix) = '"//trim(bez(ix))//"' skipped."
       end select
       goto 650
 

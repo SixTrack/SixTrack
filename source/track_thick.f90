@@ -256,8 +256,9 @@ subroutine trauthck(nthinerr)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           if ( dynk_isused(i) ) then
-            write(lout,*) "ERROR: Element of type 11 (bez=",bez(ix),") is off in fort.2, but on in DYNK. Not implemented."
-            call prror(-1)
+            write(lout,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
+              "') is off in fort.2, but on in DYNK. Not implemented."
+            call prror
           end if
           ktrack(i)=31
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
@@ -656,7 +657,7 @@ subroutine thck4d(nthinerr)
         end if
         if(fluka_inside) then
           if(fluka_debug) then
-            write(lout,*) '[Fluka] Skipping lattice element at ',i
+            write(lout,"(a,i0)") "FLUKA> Skipping lattice element at ",i
             write(fluka_log_unit,*) '# Skipping lattice element at ', i
           end if
           goto 480
@@ -1302,9 +1303,9 @@ subroutine thck6d(nthinerr)
       end if
 
       if (ldumpfront) then
-        write (lout,*) "DUMP/FRONT not yet supported on thick elements "// &
-                       "due to lack of test cases. Please contact developers!"
-        call prror(-1)
+        write(lout,"(a)") "DUMP> ERROR FRONT not yet supported on thick elements due to lack of test cases. "//&
+          "Please contact developers!"
+        call prror
       end if
 
 #ifdef FLUKA
@@ -1344,7 +1345,7 @@ subroutine thck6d(nthinerr)
         end if
         if(fluka_inside) then
           if(fluka_debug) then
-            write(lout,*) '[Fluka] Skipping lattice element at ',i
+            write(lout,"(a,i0)") "FLUKA> Skipping lattice element at ",i
             write(fluka_log_unit,*) '# Skipping lattice element at ', i
           end if
           goto 500
@@ -1361,8 +1362,8 @@ subroutine thck6d(nthinerr)
 
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
-               write(lout,*) "BDEX> BDEX only available for thin6d"
-               call prror(-1)
+               write(lout,"(a)") "BDEX> BDEX only available for thin6d"
+               call prror
             endif
 
 !----------count 44
