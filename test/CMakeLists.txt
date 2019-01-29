@@ -55,6 +55,7 @@ list(APPEND SIXTRACK_TESTS
   beam-HO_LR-oldstyle
   beambeam4dDYNK
   beambeamDYNK
+  collimation_k2_fcc_2017_h1_collision
   crabs
   dipedge
   distance
@@ -158,10 +159,6 @@ endif(SIXDA)
 
 ## UNUSED TESTS
 
-# Standard (K2) collimation tests that needs backtrk
-# However the BACKTRK flag does no longer exist, and the test has not been kept up to date.
-# SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
-
 # orbit6d-element-wire
 # thick6dsingles (only contains one canonical, fort.6, which shows that it crashes. Not sure what it is supposed to show?)
 # thick4in_da (copy of thick4_da that contains an extra huge MULT block in fort.3?)
@@ -221,6 +218,7 @@ set(TESTS_NOFORT10
 
 # List of tests that do not produce singletrackfile.dat or fort.90
 set(TESTS_NO_STF_FORT90
+  collimation_k2_fcc_2017_h1_collision
   crabs
   dipedge
   dump_all_highprec
