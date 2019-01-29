@@ -1794,7 +1794,7 @@ subroutine dump_aperture_model
   i=1
   ix=ic(i)-nblo
   if( kape(ix).eq.0 ) then
-    write(lout,"(a)") "APER> ERROR Frst element of lattice structure is not assigned any aperture type"
+    write(lout,"(a)") "APER> ERROR First element of lattice structure is not assigned any aperture type"
     call prror(-1)
   end if
   call dump_aperture_marker( aperunit, ix, i )
@@ -1828,6 +1828,160 @@ subroutine dump_aperture_model
   return
 
 end subroutine dump_aperture_model
+
+#ifdef HDF5
+! ================================================================================================ !
+!  DUMP APERTURE MODEL - HDF5 Version
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2018-10-02
+! ================================================================================================ !
+subroutine dump_aperture_model_hdf5
+
+  use parpro
+  use hdf5_output
+  use string_tools
+
+  implicit none
+
+  integer i, ix
+  integer iOld, ixOld, niter, oKApe, jj
+  real(kind=fPrec) aprr(11),slos
+
+  type(h5_dataField), allocatable :: setFields(:)
+  character(len=:),   allocatable :: colNames(:)
+  character(len=:),   allocatable :: colUnits(:)
+  integer :: modelFmt, modelSet, nSplit, nTmp
+  logical :: spErr
+
+  allocate(setFields(12))
+
+  setFields(1)  = h5_dataField(name="NAME",  type=h5_typeChar, size=mNameLen)
+  setFields(2)  = h5_dataField(name="TYPE",  type=h5_typeChar, size=3)
+  setFields(3)  = h5_dataField(name="S",     type=h5_typeReal)
+  setFields(4)  = h5_dataField(name="APER1", type=h5_typeReal)
+  setFields(5)  = h5_dataField(name="APER2", type=h5_typeReal)
+  setFields(6)  = h5_dataField(name="APER3", type=h5_typeReal)
+  setFields(7)  = h5_dataField(name="APER4", type=h5_typeReal)
+  setFields(8)  = h5_dataField(name="APER5", type=h5_typeReal)
+  setFields(9)  = h5_dataField(name="APER6", type=h5_typeReal)
+  setFields(10) = h5_dataField(name="ANGLE", type=h5_typeReal)
+  setFields(11) = h5_dataField(name="XOFF",  type=h5_typeReal)
+  setFields(12) = h5_dataField(name="YOFF",  type=h5_typeReal)
+
+  call h5_createFormat("aperModelFmt", setFields, modelFmt)
+  call h5_createDataSet("model", h5_aperID, modelFmt, modelSet)
+  call chr_split("name type s aper1 aper2 aper3 aper4 aper5 aper6 angle xoff yoff",colNames,nSplit,spErr)
+  call chr_split("text text m mm mm mm*rad mm*rad mm*rad mm*rad rad mm mm",colUnits,nSplit,spErr)
+  call h5_writeDataSetAttr(modelSet,"colNames",colNames)
+  call h5_writeDataSetAttr(modelSet,"colUnits",colUnits)
+
+  deallocate(setFields)
+
+  ! First element of lattice
+  i  = 1
+  ix = ic(i)-nblo
+  if(kape(ix) == 0) then
+    write(lout,"(a)") "APER> ERROR First element of lattice structure is not assigned any aperture type"
+    call prror(-1)
+  end if
+  call dump_aperture_hdf5(bez(ix), kape(ix), dcum(i), ape(1:9,ix), modelSet, .false.)
+  iOld  = i
+  ixOld = ix
+
+  ! Loop over the rest of the elements
+  do i=2,iu
+    ix = ic(i)-nblo
+    if(ix > 0) then
+      ! SINGLE ELEMENT
+      if(kape(ix) /= 0) then
+        if(lbacktracking) then
+          ! Number of iterations
+          if((dcum(i)-dcum(iOld)) > zero) then
+            niter = nint((dcum(i)-dcum(iOld))/bktpre+1)
+            do jj=1,niter
+              slos = int(dcum(iOld)/bktpre+jj)*bktpre
+              if(slos < dcum(iOld) .or. slos > dcum(i)) exit
+              call interp_aperture(iOld,ixOld,i,ix,oKApe,aprr,slos)
+              call dump_aperture_hdf5("Interpolated", oKApe, slos, aprr, modelSet, .false.)
+            end do
+          end if
+          iOld  = i
+          ixOld = ix
+        end if
+        call dump_aperture_hdf5(bez(ix), kape(ix), dcum(i), ape(1:9,ix), modelSet, .false.)
+      end if
+    end if
+  end do
+
+  ! Force a write of whatever is left in the buffer
+  call dump_aperture_hdf5(" ", 0, zero, ape(1:9,1), modelSet, .true.)
+
+  write(lout,"(a,i0)") "APER> Aperture model dumped to HDF5 dataset ",modelSet
+
+end subroutine dump_aperture_model_hdf5
+
+subroutine dump_aperture_hdf5(apName, apType, apSPos, apArr, dataSet, isEnd)
+
+  character(len=*), intent(in) :: apName
+  integer,          intent(in) :: apType
+  real(kind=fPrec), intent(in) :: apSPos
+  real(kind=fPrec), intent(in) :: apArr(9)
+  integer,          intent(in) :: dataSet
+  logical,          intent(in) :: isEnd
+
+  ! Cache
+  integer                 :: nRec = 0
+  character(len=mNameLen) :: tmpName(1000)
+  character(len=3)        :: tmpType(1000)
+  real(kind=fPrec)        :: tmpSPos(1000)
+  real(kind=fPrec)        :: tmpVals(1000,9)
+
+  save nRec, tmpName, tmpType, tmpSPos, tmpVals
+
+  if(nRec >= 1000 .or. isEnd) then
+    call h5_prepareWrite(dataSet, nRec)
+    call h5_writeData(dataSet, 1,  nRec, tmpName(1:nRec))
+    call h5_writeData(dataSet, 2,  nRec, tmpType(1:nRec))
+    call h5_writeData(dataSet, 3,  nRec, tmpSPos(1:nRec))
+    call h5_writeData(dataSet, 4,  nRec, tmpVals(1:nRec,1))
+    call h5_writeData(dataSet, 5,  nRec, tmpVals(1:nRec,2))
+    call h5_writeData(dataSet, 6,  nRec, tmpVals(1:nRec,3))
+    call h5_writeData(dataSet, 7,  nRec, tmpVals(1:nRec,4))
+    call h5_writeData(dataSet, 8,  nRec, tmpVals(1:nRec,5))
+    call h5_writeData(dataSet, 9,  nRec, tmpVals(1:nRec,6))
+    call h5_writeData(dataSet, 10, nRec, tmpVals(1:nRec,7))
+    call h5_writeData(dataSet, 11, nRec, tmpVals(1:nRec,8))
+    call h5_writeData(dataSet, 12, nRec, tmpVals(1:nRec,9))
+    call h5_finaliseWrite(dataSet)
+    nRec = 0
+    if(isEnd) return
+  end if
+  nRec = nRec + 1
+
+  tmpName(nRec)      = apName
+  tmpType(nRec)      = apeName(apType)
+  tmpSPos(nRec)      = apSPos
+  tmpVals(nRec, 1:9) = apArr(1:9)
+  select case(apType)
+  case(1) ! Circle
+    tmpVals(nRec, 2:6) = zero
+  case(2) ! Rectangle
+    tmpVals(nRec, 3:6) = zero
+  case(3) ! Ellipse
+    tmpVals(nRec, 1:2) = apArr(3:4)
+    tmpVals(nRec, 3:6) = zero
+  case(4) ! Rectellipse
+    tmpVals(nRec, 5:6) = zero
+  case(5) ! Octagon
+    tmpVals(nRec, 3)   = atan2_mb(apArr(1)*apArr(5) + apArr(6), apArr(1))
+    tmpVals(nRec, 4)   = atan2_mb(apArr(2), (apArr(2) - apArr(6))/apArr(5))
+    tmpVals(nRec, 5:6) = zero
+  case(6) ! Racetrack
+    tmpVals(nRec, 4:6) = zero
+  end select
+
+end subroutine dump_aperture_hdf5
+#endif
 
 subroutine dumpMe
   implicit none
@@ -2540,7 +2694,7 @@ recursive subroutine aper_parseInputLine(inLine, iLine, iErr)
     call aper_parseLoadFile(load_file, iLine, iErr)
     if(iErr) return
 
-  case("PRIN")
+  case("PRIN","PRINT")
     ! P.G.Ortega and A.Mereghetti, 02-03-2018
     ! flag for dumping the aperture model
     if(nSplit < 2 .and. nSplit > 3 ) then

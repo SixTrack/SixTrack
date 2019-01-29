@@ -18,11 +18,11 @@ program maincr
   use physical_constants
   use numerical_constants
 
-  use scatter, only : scatter_active, scatter_initialise
   use dynk,    only : dynk_izuIndex
   use fma,     only : fma_postpr, fma_flag
   use dump,    only : dump_initialise, dumpclo,dumptas,dumptasinv
   use zipf,    only : zipf_numfiles, zipf_dozip
+  use scatter, only : scatter_init
 
   use, intrinsic :: iso_fortran_env, only : output_unit
   use mod_meta
@@ -167,13 +167,16 @@ end interface
 #endif
 #ifdef HDF5
   featList = featList//" HDF5"
-  call h5_initHDF5()
+  call h5_initHDF5
 #endif
 #ifdef BOINC
   featList = featList//" BOINC"
 #endif
 #ifdef LIBARCHIVE
   featList = featList//" LIBARCHIVE"
+#endif
+#ifdef PYTHIA
+  featList = featList//" PYTHIA"
 #endif
 
   compName = "default"
@@ -358,8 +361,8 @@ end interface
 
 #ifdef HDF5
   if(h5_isActive) then
-    call h5_openFile()
-    call h5_writeSimInfo()
+    call h5_openFile
+    call h5_writeSimInfo
   end if
 #endif
 
@@ -373,6 +376,7 @@ end interface
   if(ithick == 1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
   if(ithick == 0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
 
+  call scatter_init
   call aperture_init
 
 #ifndef FLUKA
@@ -504,7 +508,17 @@ end interface
 #endif
 
     ! dump aperture model
-    if (ldmpaper) call dump_aperture_model
+    if (ldmpaper) then
+#ifdef HDF5
+      if(h5_useForAPER) then
+        call dump_aperture_model_hdf5
+      else
+        call dump_aperture_model
+      end if
+#else
+      call dump_aperture_model
+#endif
+    end if
     ! dump x-sections at specific locations
     if (mxsec.gt.0) call dump_aperture_xsecs
     ! map errors, now that the sequence is no longer going to change
@@ -1457,9 +1471,6 @@ end interface
 
   ! Initialise Modules
   call dump_initialise
-  if(scatter_active) then
-    call scatter_initialise
-  end if
 
   call time_timeStamp(time_afterInitialisation)
 
@@ -1558,7 +1569,7 @@ end interface
   end if
 
   if(st_partsum .eqv. .false.) then
-    write(lout,"(a)") "MAINCR> NOTE Particle summary report is disabled."
+    write(lout,"(a)") "MAINCR> NOTE Particle summary report is disabled; either manually, or because npart > 64."
     write(lout,"(a)") "MAINCR>      This is controlled by the PARTICLESUMMARY flag in the SETTINGS block in fort.3."
     write(lout,"(a)") ""
     goto 470

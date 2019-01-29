@@ -73,6 +73,7 @@ module sixtrack_input
     module procedure sixin_echoVal_real64
     module procedure sixin_echoVal_real128
     module procedure sixin_echoVal_char
+    module procedure sixin_echoVal_logical
   end interface sixin_echoVal
 
   private :: sixin_echoVal_int
@@ -80,6 +81,7 @@ module sixtrack_input
   private :: sixin_echoVal_real64
   private :: sixin_echoVal_real128
   private :: sixin_echoVal_char
+  private :: sixin_echoVal_logical
 
 contains
 
@@ -270,6 +272,26 @@ subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
   end if
   write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = '"//varVal//"'"
 end subroutine sixin_echoVal_char
+
+subroutine sixin_echoVal_logical(varName, varVal, blockName, lineNo)
+  character(len=*), intent(in) :: varName
+  logical,          intent(in) :: varVal
+  character(len=*), intent(in) :: blockName
+  integer,          intent(in) :: lineNo
+  character(len=2) :: lineNm
+  if(lineNo == -1) then
+    lineNm = "PP"
+  else if(lineNo < 10) then
+    write(lineNm,"(i1,1x)") lineNo
+  else
+    write(lineNm,"(i2)") lineNo
+  end if
+  if(varVal) then
+    write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = True"
+  else
+    write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = False"
+  end if
+end subroutine sixin_echoVal_logical
 
 ! ================================================================================================ !
 !  LINE PARSING ROUTINES

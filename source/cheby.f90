@@ -20,7 +20,7 @@ module cheby
   real(kind=fPrec), save :: cheby_scalingFact(ncheby) ! scaling factor []
 
   ! tables with chebyshev coefficients
-  integer, parameter     :: cheby_unit=107            ! unit for reading the chebyshev coefficients
+  integer, parameter     :: cheby_unit=-1             ! unit for reading the chebyshev coefficients
   integer, parameter     :: cheby_max_order=60        ! max order of chebyshev polynomials
   integer, parameter     :: cheby_lFileName=16        ! length of filenames
   character(len=cheby_lFileName), save:: cheby_filename(ncheby_tables)  ! file names

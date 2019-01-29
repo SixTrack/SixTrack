@@ -24,7 +24,7 @@ subroutine daten
   use mod_units
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
-  use scatter,   only : scatter_active,scatter_debug,scatter_dumpdata,scatter_parseInputLine,scatter_allocate
+  use scatter,   only : scatter_active,scatter_debug,scatter_parseInputLine
   use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
@@ -48,6 +48,9 @@ subroutine daten
   use root_output
 #endif
   use collimation
+#ifdef PYTHIA
+  use mod_pythia
+#endif
 
   implicit none
 
@@ -420,7 +423,7 @@ subroutine daten
   case("SUBR") ! Sub-Resonance Calculation
     if(openBlock) then
       write(lout,"(a)") "SUBR> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "SUBR>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "SUBR>         It therefore may not produce the results expected."
       write(lout,"(a)") "SUBR>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       isub = 1
@@ -432,7 +435,7 @@ subroutine daten
   case("ORGA") ! Organisation of Random Numbers
     if(openBlock) then
       write(lout,"(a)") "ORGA> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "ORGA>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "ORGA>         It therefore may not produce the results expected."
       write(lout,"(a)") "ORGA>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
@@ -454,7 +457,7 @@ subroutine daten
   case("ORBI") ! Orbit Correction
     if(openBlock) then
       write(lout,"(a)") "ORBI> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "ORBI>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "ORBI>         It therefore may not produce the results expected."
       write(lout,"(a)") "ORBI>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
@@ -466,7 +469,7 @@ subroutine daten
   case("COMB") ! Combination of Elements
     if(openBlock) then
       write(lout,"(a)") "COMB> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "COMB>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "COMB>         It therefore may not produce the results expected."
       write(lout,"(a)") "COMB>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
@@ -478,7 +481,7 @@ subroutine daten
   case("RESO") ! Resonance Compensation
     if(openBlock) then
       write(lout,"(a)") "RESO> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "RESO>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "RESO>         It therefore may not produce the results expected."
       write(lout,"(a)") "RESO>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
@@ -490,7 +493,7 @@ subroutine daten
   case("SEAR") ! Search for Optimum Places to Compensate Resonances
     if(openBlock) then
       write(lout,"(a)") "SEAR> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "SEAR>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "SEAR>         It therefore may not produce the results expected."
       write(lout,"(a)") "SEAR>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
@@ -502,7 +505,7 @@ subroutine daten
   case("DECO") ! Decoupling of Motion in the Transverse Planes
     if(openBlock) then
       write(lout,"(a)") "DECO> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "DECO>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "DECO>         It therefore may not produce the results expected."
       write(lout,"(a)") "DECO>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
@@ -514,7 +517,7 @@ subroutine daten
   case("NORM") ! Normal Forms
     if(openBlock) then
       write(lout,"(a)") "NORM> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "NORM>         It therefore may not produce the rosults expected."
+      write(lout,"(a)") "NORM>         It therefore may not produce the results expected."
       write(lout,"(a)") "NORM>         Please report any bugs to the dev team."
     elseif(closeBlock) then
       continue
@@ -639,7 +642,7 @@ subroutine daten
 
   case("COLL") ! Collimation Block
 #ifdef CR
-    write(lout,'(a)') "INPUT> ERROR Collimation incompatible with checkpoint/restart (CR)"
+    write(lout,"(a)") "INPUT> ERROR Collimation incompatible with checkpoint/restart (CR)"
     goto 9999
 #endif
     if(openBlock) then
@@ -713,12 +716,27 @@ subroutine daten
   case("SCAT") ! SCATTER Input Block
     if(openBlock) then
       scatter_active = .true.
-      call scatter_allocate
     elseif(closeBlock) then
-      if(scatter_debug) call scatter_dumpData
+      continue
     else
-      call scatter_parseInputLine(string(inLine))
+      call scatter_parseInputLine(string(inLine),inErr)
+      if(inErr) goto 9999
     end if
+
+  case("PYTH") ! PYTHIA Input Block
+#ifndef PYTHIA
+    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the PYTHIA flag."
+    goto 9999
+#else
+    if(openBlock) then
+      pythia_isActive = .true.
+    elseif(closeBlock) then
+      continue
+    else
+      call pythia_parseInputLine(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+#endif
 
   case("HDF5") ! HDF5 Input Block
 #ifndef HDF5
@@ -730,7 +748,8 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call h5_parseInputLine(string(inLine))
+      call h5_parseInputLine(string(inLine),inErr)
+      if(inErr) goto 9999
     end if
 #endif
 
@@ -816,7 +835,7 @@ subroutine daten
     emitx  = sixin_emitNX*gammar
     emity  = sixin_emitNY*gammar
 
-    if (do_coll) then
+    if(do_coll) then
       call collimate_postInput(gammar)
     endif
 
@@ -842,6 +861,9 @@ subroutine daten
   end if
 
   call elens_postInput
+#ifdef PYTHIA
+  call pythia_postInput
+#endif
 
   if(idp == 0 .or. ition == 0 .or. nbeam < 1) then
     do j=1,il
@@ -2569,21 +2591,13 @@ end subroutine envars
 subroutine comnul
 
   use parpro
-  use scatter,     only : scatter_comnul
   use collimation, only : collimation_comnul
-#ifdef HDF5
-  use hdf5_output, only : h5_comnul
-#endif
 
  ! From the FLUKA version
   do i=1,nele
     call selnul(i)
   end do
 
-  call scatter_comnul
-#ifdef HDF5
-  call h5_comnul
-#endif
   call collimation_comnul
 
 end subroutine comnul
