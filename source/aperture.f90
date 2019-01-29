@@ -1845,7 +1845,7 @@ subroutine dump_aperture_model_hdf5
 
   integer i, ix
   integer iOld, ixOld, niter, oKApe, jj
-  real(kind=fPrec) aprr(9),slos
+  real(kind=fPrec) aprr(11),slos
 
   type(h5_dataField), allocatable :: setFields(:)
   character(len=:),   allocatable :: colNames(:)
@@ -1888,6 +1888,7 @@ subroutine dump_aperture_model_hdf5
   iOld  = i
   ixOld = ix
 
+  ! Loop over the rest of the elements
   do i=2,iu
     ix = ic(i)-nblo
     if(ix > 0) then

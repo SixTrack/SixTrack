@@ -904,7 +904,7 @@ subroutine dump_initialise
           setFields(6)  = h5_dataField(name="Y",          type=h5_typeReal)
           setFields(7)  = h5_dataField(name="YP",         type=h5_typeReal)
           setFields(8)  = h5_dataField(name="dE/E",       type=h5_typeReal)
-          setFields(9)  = h5_dataField(name="Z",          type=h5_typeReal)
+          setFields(9)  = h5_dataField(name="SIGMA",      type=h5_typeReal)
           setFields(10) = h5_dataField(name="KTRACK",     type=h5_typeInt)
           setFields(11) = h5_dataField(name="E",          type=h5_typeReal)
           setFields(12) = h5_dataField(name="PC",         type=h5_typeReal)

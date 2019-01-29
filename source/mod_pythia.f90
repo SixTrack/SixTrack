@@ -225,7 +225,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("SPECIES")
     if(nSplit /= 3) then
-      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword BEAM expected 2 arguments, got ",(nSplit-1)
+      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword SPECIES expected 2 arguments, got ",(nSplit-1)
       iErr = .true.
       return
     end if

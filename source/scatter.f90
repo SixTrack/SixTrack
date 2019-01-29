@@ -751,7 +751,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
     return
 #endif
     if(nSplit /= 4) then
-      write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC expected 4 arguments:"
+      write(lout,"(a)") "SCATTER> ERROR GEN PYTHIASIMPLE expected 4 arguments:"
       write(lout,"(a)") "SCATTER>       GEN name PYTHIASIMPLE crossSection"
       call prror
       iErr = .true.
