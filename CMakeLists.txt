@@ -95,6 +95,7 @@ OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output
 OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 OPTION(FLUKA "Couple to FLUKA for beam collimation" OFF)
+OPTION(PYTHIA "Link with Pythia8 for SCATTER module" OFF)
 OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPF block" OFF)
 OPTION(ROOT "Link to the root libraries" OFF)
 
@@ -129,6 +130,7 @@ OPTION(DEBUG "Debugging output" OFF)
 SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/lib/boinc CACHE PATH "Path to the boinc build folder")
 SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive_build CACHE PATH "Path to the libarchive build folder")
 SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive CACHE PATH "Path to the libarchive source folder")
+SET(PYTHIA_DIR ${CMAKE_SOURCE_DIR}/lib/pythia CACHE PATH "Path to the Pythia build folder")
 
 ###################################################################################################
 # Sixtrack binary name construction
@@ -203,6 +205,9 @@ endif()
 if(FLUKA)
   SET(SIXTRACK_FEAT_CR "FLUKA_${SIXTRACK_FEAT_CR}")
 endif(FLUKA)
+if(PYTHIA)
+  SET(SIXTRACK_FEAT_CR "pythia_${SIXTRACK_FEAT_CR}")
+endif()
 if(LIBARCHIVE)
   SET(SIXTRACK_FEAT_CR "libarchive_${SIXTRACK_FEAT_CR}")
 endif()
@@ -270,7 +275,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR NAFF)
+list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
 list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT HASHLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32)
 
@@ -327,6 +332,12 @@ if(BOINC AND NOT API)
   # We have a BOINC build but no API, load the fake API substitute for debugging.
   list(APPEND FORT90_LIB boinc_dummy)
 endif(BOINC AND NOT API)
+
+if(PYTHIA)
+  add_library(pythia_wrapper STATIC pythia_wrapper.h pythia_wrapper.cpp)
+  target_compile_options(pythia_wrapper PRIVATE)
+  list(APPEND FORT90_LIB mod_pythia)
+endif(PYTHIA)
 
 foreach(loop IN LISTS FORT90_LIB)
   list(APPEND SIXTRACK_SOURCES ${loop}.f90)
@@ -1046,6 +1057,29 @@ if(FLUKA)
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/FlukaIO)
   target_link_libraries(SixTrackCore flukaIO)
 endif(FLUKA)
+
+if(PYTHIA)
+
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/pythia_wrapper.h POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/pythia/pythia_wrapper.h ${CMAKE_BINARY_DIR}/pythia_wrapper.h
+    DEPENDS copy_input_files
+  )
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/pythia_wrapper.cpp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/pythia/pythia_wrapper.cpp ${CMAKE_BINARY_DIR}/pythia_wrapper.cpp
+    DEPENDS copy_input_files
+  )
+
+  include_directories(${PYTHIA_DIR}/include)
+  include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+  target_link_libraries(SixTrackCore pythia_wrapper)
+  add_library(pythia STATIC IMPORTED)
+  set_target_properties(pythia PROPERTIES IMPORTED_LOCATION ${PYTHIA_DIR}/lib/libpythia8.a)
+  target_link_libraries(SixTrackCore pythia dl)
+
+endif(PYTHIA)
 
 add_custom_target(copy_input_files)
 if(LIBARCHIVE)

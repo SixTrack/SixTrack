@@ -742,7 +742,7 @@ subroutine crcheck
     call dump_crcheck_positionFiles
 
     if(scatter_active) then
-      write(93,"(a)") "SIXTRACR> CRCHECK REPOSITIONING scatter_log.txt"
+      write(93,"(a)") "SIXTRACR> CRCHECK REPOSITIONING scatter_log.dat and scatter_summary.dat"
       flush(93)
       call scatter_crcheck_positionFiles
     endif

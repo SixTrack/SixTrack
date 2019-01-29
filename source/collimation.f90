@@ -3265,7 +3265,7 @@ subroutine collimate_end_collimator()
 !++  Fill the change in particle angle into histogram
       if(dowrite_impact) then
 #ifdef HDF5
-        if(h5_useForSCAT) then
+        if(h5_useForCOLL) then
           call h5_prepareWrite(coll_hdf5_allImpacts, 1)
           call h5_writeData(coll_hdf5_allImpacts, 1, 1, ipart(j))
           call h5_writeData(coll_hdf5_allImpacts, 2, 1, iturn)
@@ -3283,7 +3283,7 @@ subroutine collimate_end_collimator()
       if(part_abs_pos(j) .ne.0 .and. part_abs_turn(j).ne.0) then
         if(dowrite_impact) then
 #ifdef HDF5
-          if(h5_useForSCAT) then
+          if(h5_useForCOLL) then
             call h5_prepareWrite(coll_hdf5_allAbsorb, 1)
             call h5_writeData(coll_hdf5_allAbsorb, 1, 1, ipart(j))
             call h5_writeData(coll_hdf5_allAbsorb, 2, 1, iturn)
@@ -7847,10 +7847,10 @@ end function ran_gauss
 !! is used to read the collimator settings input file
 !<
 subroutine readcollimator
+
   use crcoall
   use parpro
-  use string_tools, only : chr_cast
-
+  use string_tools
 #ifdef ROOT
   use iso_c_binding
   use root_output
@@ -7861,6 +7861,13 @@ subroutine readcollimator
   integer J,ios
   character(len=1024) inVal
   logical cErr
+#ifdef HDF5
+  type(h5_dataField), allocatable :: fldCollDB(:)
+  character(len=:),   allocatable :: colNames(:)
+  character(len=:),   allocatable :: colUnits(:)
+  integer :: fmtCollDB, setCollDB, nSplit
+  logical :: spErr
+#endif
 
 #ifdef ROOT
 ! Temp variables to avoid fotran array -> C nightmares
@@ -7964,11 +7971,43 @@ subroutine readcollimator
       this_name = trim(adjustl(db_name1(j))) // C_NULL_CHAR
       this_material = trim(adjustl(db_material(j))) // C_NULL_CHAR
       call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), db_nsig(j), &
-&     db_length(j), db_rotation(j), db_offset(j))
+        db_length(j), db_rotation(j), db_offset(j))
     end if
 #endif
 
   end do
+
+#ifdef HDF5
+  if(h5_useForCOLL) then
+    allocate(fldCollDB(8))
+    fldCollDB(1) = h5_dataField(name="NAME",     type=h5_typeChar, size=mNameLen)
+    fldCollDB(2) = h5_dataField(name="OPENING",  type=h5_typeReal)
+    fldCollDB(3) = h5_dataField(name="MATERIAL", type=h5_typeChar, size=4)
+    fldCollDB(4) = h5_dataField(name="LENGTH",   type=h5_typeReal)
+    fldCollDB(5) = h5_dataField(name="ANGLE",    type=h5_typeReal)
+    fldCollDB(6) = h5_dataField(name="OFFSET",   type=h5_typeReal)
+    fldCollDB(7) = h5_dataField(name="BETAX",    type=h5_typeReal)
+    fldCollDB(8) = h5_dataField(name="BETAY",    type=h5_typeReal)
+    call h5_createFormat("collimation_db", fldCollDB, fmtCollDB)
+    call h5_createDataSet("collimation_db", h5_collID, fmtCollDB, setCollDB, db_ncoll)
+    call chr_split("name opening material length angle offset beta_x beta_y",colNames,nSplit,spErr)
+    call chr_split("text sigma text m rad m m m",colUnits,nSplit,spErr)
+    call h5_writeDataSetAttr(setCollDB,"nColl",   db_ncoll)
+    call h5_writeDataSetAttr(setCollDB,"colNames",colNames)
+    call h5_writeDataSetAttr(setCollDB,"colUnits",colUnits)
+    call h5_prepareWrite(setCollDB, db_ncoll)
+    call h5_writeData(setCollDB, 1, db_ncoll, db_name2(1:db_ncoll))
+    call h5_writeData(setCollDB, 2, db_ncoll, db_nsig(1:db_ncoll))
+    call h5_writeData(setCollDB, 3, db_ncoll, db_material(1:db_ncoll))
+    call h5_writeData(setCollDB, 4, db_ncoll, db_length(1:db_ncoll))
+    call h5_writeData(setCollDB, 5, db_ncoll, db_rotation(1:db_ncoll))
+    call h5_writeData(setCollDB, 6, db_ncoll, db_offset(1:db_ncoll))
+    call h5_writeData(setCollDB, 7, db_ncoll, db_bx(1:db_ncoll))
+    call h5_writeData(setCollDB, 8, db_ncoll, db_by(1:db_ncoll))
+    call h5_finaliseWrite(setCollDB)
+    deallocate(fldCollDB)
+  end if
+#endif
 
   close(coll_db_unit)
 
