@@ -186,11 +186,7 @@ subroutine dynk_parseInputLine(inLine,iErr)
 
   case("NOFILE")
     dynk_noDynkSets = .true.
-<<<<<<< HEAD
-    write(lout,"(a)") "DYNK> Disabled writing dynksets.dat"
-=======
     write(lout,"(a)") "DYNK> Disabled writing '"//dynk_fileName//"'"
->>>>>>> master
 
   case("FUN")
     call dynk_parseFUN(inLine,iErr)

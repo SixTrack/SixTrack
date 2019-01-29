@@ -31,96 +31,10 @@ set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR"
 ## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90 / STF.
 ##
 
-# List of tests that do not produce a valid fort.10
-set(TESTS_NOFORT10
-  beam-HO_6D-simple-newstyle
-  beam-HO_6D-simple-newstyle-coupling
-  beam-HO_6D-simple-newstyle-orbit
-  beam-HO_6D-simple-oldstyle
-  beambeam4dDYNK
-  beambeamDYNK
-  collimation_k2_fcc_2017_h1_collision
-  dump_2_all_ele_highprec
-  dump_all_highprec
-  dump_binary
-  dump4
-  dump5
-  dump6
-  dynk_filelin
-  dynk_globalvars
-  dynk_IIR
-  dynk_operators
-  dynk_polynomial
-  dynk_random
-  elensidealthck6d
-  exact
-  generalized-rf-multipoles
-  generalized-rf-multipoles-missalignments
-  geometry
-  momentum_scan
-  multipoles_DYNK
-  orbit6d-element-combinedFunction
-  orbit6d-element-quadrupole
-  orbit6d-element-solenoid
-  orbit6d-element-trombone
-  orbit6d-element-trombone-kick
-  orbit6d-ions
-  orbit6d-ions-long
-  rfMultipoles_2nd3rd4th_skew
-  rfMultipoles_2ndOrder
-  rfMultipoles_3rdOrder
-  rfMultipoles_4thOrder
-  scatter_aperture
-  scatter_bbelastic
-  scatter_collimation
-  scatter_pythia
-  thick6dblocks
-  thick6ddynk
-)
+##
+# List of Test
+##
 
-# List of tests that do not produce singletrackfile.dat or fort.90
-set(TESTS_NO_STF_FORT90
-  crabs
-  dump_all_highprec
-  dump4
-  dump5
-  dump6
-  dynk_IIR
-  dynk_operators
-  dynk_polynomial
-  dynk_random
-  rfMultipoles_2ndOrder
-  rfMultipoles_4thOrder
-  scatter_aperture
-  scatter_bbelastic
-  scatter_collimation
-  scatter_pythia
-  thick6ddynk
-)
-
-# List of tests that absolutely require STF to be on (> 64 particles)
-if(STF)
-  list(APPEND SIXTRACK_TESTS
-    beam-HO_6D-simple-newstyle-coupling
-    dynk_IIR
-    dynk_operators
-    dynk_polynomial
-    dynk_random
-    scatter_aperture
-  )
-endif(STF)
-
-if(LIBARCHIVE)
-  list(APPEND SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF)
-endif()
-if(NAFF)
-  list(APPEND SIXTRACK_TESTS fma_naff)
-endif()
-if(PYTHIA)
-  list(APPEND SIXTRACK_TESTS scatter_pythia)
-endif()
-
-#General tests
 list(APPEND SIXTRACK_TESTS
   bb
   bb_ntwin1
@@ -211,7 +125,33 @@ list(APPEND SIXTRACK_TESTS
   wire_thin6d_ibeco0
 )
 
-# Tests that require SixDA executable
+##
+# Tests depending on flags
+##
+
+if(STF)
+  list(APPEND SIXTRACK_TESTS
+    beam-HO_6D-simple-newstyle-coupling
+    dynk_IIR
+    dynk_operators
+    dynk_polynomial
+    dynk_random
+    scatter_aperture
+  )
+endif(STF)
+
+if(LIBARCHIVE)
+  list(APPEND SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF)
+endif()
+
+if(NAFF)
+  list(APPEND SIXTRACK_TESTS fma_naff)
+endif()
+
+if(PYTHIA)
+  list(APPEND SIXTRACK_TESTS scatter_pythia)
+endif()
+
 if(SIXDA)
   list(APPEND SIXTRACK_DA_TESTS frs_da thick4_da)
 endif(SIXDA)
@@ -228,31 +168,113 @@ endif(SIXDA)
 
 ## END UNUSED TESTS
 
-#For CR builds, test the CR functions, so kill/resume the test
+##
+# Test Configurations
+##
+
+# List of tests that do not produce a valid fort.10
+set(TESTS_NOFORT10
+  beam-HO_6D-simple-newstyle
+  beam-HO_6D-simple-newstyle-coupling
+  beam-HO_6D-simple-newstyle-orbit
+  beam-HO_6D-simple-oldstyle
+  beambeam4dDYNK
+  beambeamDYNK
+  collimation_k2_fcc_2017_h1_collision
+  dump_2_all_ele_highprec
+  dump_all_highprec
+  dump_binary
+  dump4
+  dump5
+  dump6
+  dynk_filelin
+  dynk_globalvars
+  dynk_IIR
+  dynk_operators
+  dynk_polynomial
+  dynk_random
+  elensidealthck6d
+  exact
+  generalized-rf-multipoles
+  generalized-rf-multipoles-missalignments
+  geometry
+  momentum_scan
+  multipoles_DYNK
+  orbit6d-element-combinedFunction
+  orbit6d-element-quadrupole
+  orbit6d-element-solenoid
+  orbit6d-element-trombone
+  orbit6d-element-trombone-kick
+  orbit6d-ions
+  orbit6d-ions-long
+  rfMultipoles_2nd3rd4th_skew
+  rfMultipoles_2ndOrder
+  rfMultipoles_3rdOrder
+  rfMultipoles_4thOrder
+  scatter_aperture
+  scatter_bbelastic
+  scatter_collimation
+  scatter_pythia
+  thick6dblocks
+  thick6ddynk
+)
+
+# List of tests that do not produce singletrackfile.dat or fort.90
+set(TESTS_NO_STF_FORT90
+  crabs
+  dipedge
+  dump_all_highprec
+  dump4
+  dump5
+  dump6
+  dynk_IIR
+  dynk_operators
+  dynk_polynomial
+  dynk_random
+  rfMultipoles_2ndOrder
+  rfMultipoles_4thOrder
+  scatter_aperture
+  scatter_bbelastic
+  scatter_collimation
+  scatter_pythia
+  thick6ddynk
+)
+
+# For CR builds, test the CR functions, so kill/resume the test
 if(CR)
   set(CR_ENABLE 1)
-  #Should at least be able to reach the standard TIMEOUT.
+  # Should at least be able to reach the standard TIMEOUT.
   set(CR_KILL_TIME "2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,16384,16384,16384,16384,16384,16384,16384,16384,16384")
+  list(APPEND CR_MUST_RESTART
+    dipedge
+    dynk_filelin
+    dynk_globalvars
+    dynk_IIR
+    dynk_operators
+    dynk_polynomial
+    dynk_random
+    scatter_aperture
+    scatter_bbelastic
+    dump4
+  )
 else()
   set(CR_ENABLE 0)
   set(CR_KILL_TIME 0)
+  set(CR_MUST_RESTART "")
 endif(CR)
 
-#Test commands
+# Set flags for specific tests
 foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 
-  #determine what we need to do:
-
-  #Check fort.10 by default
+  # Check fort.10 by default
   set(FORT10 1)
-  list(FIND TESTS_NOFORT10 ${TST} NO_FORT10)
-  if(NOT ${NO_FORT10} MATCHES -1)
+  if(TST IN_LIST TESTS_NOFORT10)
     set(FORT10 0)
   else()
     set(FORT10 1)
   endif()
 
-  #if STF, we need to use the STF flag on read90, and disable checking fort.90
+  # if STF, we need to use the STF flag on read90, and disable checking fort.90
   if(STF)
     set(STF_ENABLE 1)
     set(FORT90 0)
@@ -260,8 +282,8 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
     set(STF_ENABLE 0)
     set(FORT90 1)
   endif(STF)
-  list(FIND TESTS_NO_STF_FORT90 ${TST} NO_STF_FORT90)
-  if(NOT ${NO_STF_FORT90} MATCHES -1)
+
+  if(TST IN_LIST TESTS_NO_STF_FORT90)
     set(STF_ENABLE 0)
     set(FORT90 0)
   endif()
@@ -276,30 +298,31 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
     set(SIXOUT_NUMFILES 0)
   endif(LIBARCHIVE)
 
-  SET( DUMP_BIN_FILE NONE )
+  set(DUMP_BIN_FILE NONE)
   if(TST STREQUAL dump_binary)
-    set( DUMP_BIN_FILE dump.dat,dumpStart.dat )
+    set(DUMP_BIN_FILE dump.dat,dumpStart.dat)
   elseif(TST STREQUAL fma_binary)
-    set( DUMP_BIN_FILE START_DUMP_1,IP2_DUMP_1,IP2_DUMP_2,IP2_DUMP_3,IP3_DUMP_1,IP3_DUMP_2,IP3_DUMP_3 )
+    set(DUMP_BIN_FILE START_DUMP_1,IP2_DUMP_1,IP2_DUMP_2,IP2_DUMP_3,IP3_DUMP_1,IP3_DUMP_2,IP3_DUMP_3)
   elseif(TST STREQUAL dump7_fma)
-    set( DUMP_BIN_FILE IP3_DUMP_1 )
+    set(DUMP_BIN_FILE IP3_DUMP_1)
   elseif(TST STREQUAL dump8_fma)
-    set( DUMP_BIN_FILE START_DUMP_1,IP3_DUMP_1 )
+    set(DUMP_BIN_FILE START_DUMP_1,IP3_DUMP_1)
   elseif(TST STREQUAL dump7_fma_thin4d)
-    set( DUMP_BIN_FILE dump_ip3 )
+    set(DUMP_BIN_FILE dump_ip3)
   elseif(TST STREQUAL dump_all_highprec)
-    set( DUMP_BIN_FILE dump3.dat,dump8.dat )
+    set(DUMP_BIN_FILE dump3.dat,dump8.dat)
   endif()
 
-  if (TST STREQUAL dipedge)
+  set(CR_NUMRESTARTS 0)
+  if(TST IN_LIST CR_MUST_RESTART)
     set(CR_NUMRESTARTS 1)
-  else()
-    set(CR_NUMRESTARTS 0)
   endif()
 
   add_test(
     NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
-    COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} ${CR_NUMRESTARTS}
+    COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
+      ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME}
+      $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} ${CR_NUMRESTARTS}
   )
 
   #some tests take a very long time (set a 2 day timeout)
@@ -321,7 +344,10 @@ if(SIXDA)
 
     add_test(
       NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
-      COMMAND SixTestWrapper $<TARGET_FILE:SixTrackDA> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} 0)
+      COMMAND SixTestWrapper $<TARGET_FILE:SixTrackDA> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
+        ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME}
+        $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} 0
+    )
 
     #some tests take a very long time (set a 2 day timeout)
     set_tests_properties(${TST} PROPERTIES TIMEOUT "172800")
