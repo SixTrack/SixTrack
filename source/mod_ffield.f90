@@ -49,6 +49,7 @@ module mod_ffield
   ! ------------------------------------------------------------------------------------------------ !
   ! FFIELD table
   ! ------------------------------------------------------------------------------------------------ !
+  logical         , allocatable, private, save :: ffInQuad(:)  ! (1:npart)        Check if particle enter the Quad
   integer         , allocatable, public, save :: ffindex(:)    ! (0:nele)         Table with the index of the Quad in our study (0 = not studied)
   integer         , allocatable, public, save :: ffQ2File(:,:) ! (1:ffNLn, 1:2)   Link Quad/Files
 !  real(kind=fPrec), allocatable, public, save :: ffParam(:,:)  ! (1:ffNLFile,1:6) Kin, Lin, Corin, Kex, Lex, Corex
@@ -96,9 +97,10 @@ module mod_ffield
     
     ! allocation of the memory
     ! ---------------------------------------------------------------------------------------------- !
-    call alloc(ffindex,  nele,               0,    'ffindex')
-    call alloc(ffQ2File, ffNLFile_max, 2,    0,    'ffQ2File')
-    call alloc(ffParam,  ffNLn_max,    2,    zero, 'ffParam')
+    call alloc(ffInQuad, npart,           .false., 'ffInQuad')
+    call alloc(ffindex,  nele,            0,       'ffindex')
+    call alloc(ffQ2File, ffNLFile_max, 2, 0,       'ffQ2File')
+    call alloc(ffParam,  ffNLn_max,    2, zero,    'ffParam')
 
     call alloc(ffQNames,  mNameLen, ffNLn_max,    str_nmSpace, 'ffQNames')
     call alloc(ffMSNames, mNameLen, ffMSn_max,    str_nmSpace, 'ffMSNames')
@@ -127,7 +129,8 @@ module mod_ffield
 
     ! resizing of the memory
     ! ---------------------------------------------------------------------------------------------- !
-    call resize(ffindex, nele_new, 0, 'ffindex')
+    call resize(ffInQuad, npart_new, .false., 'ffInQuad')
+    call resize(ffindex,  nele_new,  0,       'ffindex')
 
   end subroutine ffield_mod_expand_arrays
 
@@ -201,9 +204,10 @@ module mod_ffield
 
     ! free the memory
     ! ---------------------------------------------------------------------------------------------- !
-    if (allocated(ffindex))  call dealloc(ffindex,  'ffindex')
-    if (allocated(ffQ2File)) call dealloc(ffQ2File, 'ffQ2File')
-    if (allocated(ffParam))  call dealloc(ffParam,  'ffParam')
+    if (allocated(ffInQuad))  call dealloc(ffindex,  'ffInQuad')
+    if (allocated(ffindex))   call dealloc(ffindex,  'ffindex')
+    if (allocated(ffQ2File))  call dealloc(ffQ2File, 'ffQ2File')
+    if (allocated(ffParam))   call dealloc(ffParam,  'ffParam')
 
 
     if (allocated(ffTable)) then
@@ -632,7 +636,7 @@ module mod_ffield
     use parpro,              only : nblo
     use mod_common,          only : napx, ic, tiltc, tilts
     use mod_commont,         only : strack
-    use mod_commonmn,        only : xv, yv, oidpsv, dpsv, rvv, ejv, zsiv, xsiv
+    use mod_commonmn,        only : xv, yv, oidpsv, dpsv, rvv, ejv, zsiv, xsiv, nlostp
     use numerical_constants, only : half, one, c1e3, c1m3, c1m6
 
     implicit none
@@ -657,8 +661,8 @@ module mod_ffield
     iFile=ffQ2File(ffindex(ic(ffi)-nblo),1)
 
 ! <<<<<<<<<<<<<<<<< Debug
-write(lout,*)"FFIELD> Debug ************ IN ************"
-write(lout,*)"FFIELD> Debug [etp ffj]  ->  x, px, y, py"
+!write(lout,*)"FFIELD> Debug ************ IN ************"
+!write(lout,*)"FFIELD> Debug [etp ffj]  ->  x, px, y, py"
 ! <<<<<<<<<<<<<<<<< Debug
     do ffj=1,napx
       ! Save data
@@ -666,9 +670,9 @@ write(lout,*)"FFIELD> Debug [etp ffj]  ->  x, px, y, py"
       x = xv(1,ffj);  y = xv(2,ffj);  px= yv(1,ffj);  py= yv(2,ffj)
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [0, ",ffj,"]  ->  ",x, px, y, py
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [0, ",ffj,"]  ->  ",x, px, y, py
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
 !  <<<<<<< IN
@@ -687,9 +691,9 @@ endif
 !  <<<<<<< IN
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [1, ",ffj,"]  ->  ",x, px, y, py,"   -> strack(ffi+2)*half*px",strack(ffi+2)*half*px
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [1, ",ffj,"]  ->  ",x, px, y, py,"   -> strack(ffi+2)*half*px",strack(ffi+2)*half*px
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
 
@@ -702,14 +706,17 @@ endif
       x=x_tp;   y=y_tp;   px=px_tp;   py=py_tp;   
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [2, ",ffj,"]  ->  ",x, px, y, py
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [2, ",ffj,"]  ->  ",x, px, y, py
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
      
       ! Selection of the particle that are only in the radius (r = 0.08m)
       ! -------------------------------------------------------------------------------------------- !
       if (x*x+y*y<=r0_2) then
+        ! Check particle enter the Quad
+        ffInQuad(nlostp(ffj))=.true.
+
         !   - 
         ffdelta    = dpsv(ffj);
 !        gam0     = gamma0;
@@ -729,18 +736,18 @@ endif
 !  <<<<<<< IN
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [3, ",ffj,"]  ->  ",x, px, y, py,"   -> diff oidpsv:",oidpsv(ffj)-(one/(one+dpsv(ffj)))
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [3, ",ffj,"]  ->  ",x, px, y, py,'  > oidpsv=',oidpsv(ffj)
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
   	!   - Compute Fringe Field using asymplectic Map (Lie2)
         call ffTable(iFile)%Lie2(x,px,y,py,zb,oidpsv(ffj))
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [4, ",ffj,"]  ->  ",x, px, y, py
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [4, ",ffj,"]  ->  ",x, px, y, py
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
 !  <<<<<<< IN
@@ -766,10 +773,10 @@ endif
         x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [5, ",ffj,"]  ->  ",x, px, y, py
-write(lout,*)"FFIELD> [5, ",ffj,"]  ->  ",itDlt," / ",ffTable(iFile)%nbDlt
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [5, ",ffj,"]  ->  ",x, px, y, py
+!write(lout,*)"FFIELD> [5, ",ffj,"]  ->  ",itDlt," / ",ffTable(iFile)%nbDlt
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
         x_tp=x+LoutQ*oidpsv(ffj)*px;
@@ -778,9 +785,9 @@ endif
 !  <<<<<<< IN
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [6, ",ffj,"]  ->  ",x, px, y, py
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [6, ",ffj,"]  ->  ",x, px, y, py
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
         ! Change to SixTrack referenciale
@@ -792,9 +799,9 @@ endif
         x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [7, ",ffj,"]  ->  ",x, px, y, py
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [7, ",ffj,"]  ->  ",x, px, y, py
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
 !  <<<<<<< IN
@@ -812,15 +819,17 @@ endif
 !  <<<<<<< IN
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [8, ",ffj,"]  ->  ",x, px, y, py
-write(lout,*)"FFIELD> Debug ****************************"
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [8, ",ffj,"]  ->  ",x, px, y, py
+!write(lout,*)"FFIELD> Debug ****************************"
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
         ! Save data
         ! ------------------------------------------------------------------------------------------ !
         xv(1,ffj) = x;  xv(2,ffj) = y;  yv(1,ffj) = px;  yv(2,ffj) = py;
+      else
+        ffInQuad(nlostp(ffj))=.false.
       end if
     end do
 
@@ -846,7 +855,7 @@ endif
     use parpro,              only : nblo
     use mod_common,          only : napx, ic, tiltc, tilts
     use mod_commont,         only : strack
-    use mod_commonmn,        only : xv, yv, oidpsv, dpsv, rvv, ejv, zsiv, xsiv
+    use mod_commonmn,        only : xv, yv, oidpsv, dpsv, rvv, ejv, zsiv, xsiv, nlostp
     use numerical_constants, only : half, one, c1e3, c1m3, c1m6
 
     implicit none
@@ -873,8 +882,8 @@ endif
 !  <<<<<<< OUT
 
 ! <<<<<<<<<<<<<<<<< Debug
-write(lout,*)"FFIELD> Debug ************ EX ************"
-write(lout,*)"FFIELD> Debug [etp ffj]  ->  x, px, y, py"
+!write(lout,*)"FFIELD> Debug ************ EX ************"
+!write(lout,*)"FFIELD> Debug [etp ffj]  ->  x, px, y, py"
 ! <<<<<<<<<<<<<<<<< Debug
     do ffj=1,napx
       ! Save data
@@ -882,9 +891,9 @@ write(lout,*)"FFIELD> Debug [etp ffj]  ->  x, px, y, py"
       x = xv(1,ffj);  y = xv(2,ffj);  px= yv(1,ffj);  py= yv(2,ffj);
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [0, ",ffj,"]  ->  ",x, px, y, py
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [0, ",ffj,"]  ->  ",x, px, y, py
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
 !  <<<<<<< OUT
@@ -903,9 +912,9 @@ endif
 !  <<<<<<< OUT
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [1, ",ffj,"]  ->  ",x, px, y, py,"   -> strack(ffi+2)*half*px",strack(ffi+2)*half*px
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [1, ",ffj,"]  ->  ",x, px, y, py,"   -> strack(ffi+2)*half*px",strack(ffi+2)*half*px
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
       ! Rotation error for the quad
@@ -917,14 +926,17 @@ endif
       x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [2, ",ffj,"]  ->  ",x, px, y, py
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [2, ",ffj,"]  ->  ",x, px, y, py
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
       ! Selection of the particle that are only in the radius (r = 0.08m)
       ! -------------------------------------------------------------------------------------------- !
-      if (x*x+y*y<=r0_2) then
+      if (ffInQuad(nlostp(ffj))) then
+        ! Check particle enter the Quad
+        ffInQuad(nlostp(ffj))=.false.
+
         !   - 
         ffdelta    = dpsv(ffj);
 !        gam0     = gamma0;
@@ -960,9 +972,9 @@ endif
         x=x_tp;   y=y_tp;
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [3, ",ffj,"]  ->  ",x, px, y, py
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [3, ",ffj,"]  ->  ",x, px, y, py
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
 
@@ -974,9 +986,9 @@ endif
 !  <<<<<<< OUT
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [4, ",ffj,"]  ->  ",x, px, y, py
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [4, ",ffj,"]  ->  ",x, px, y, py
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
 
@@ -984,9 +996,9 @@ endif
         call ffTable(iFile)%Lie2(x,px,y,py,zb,oidpsv(ffj))
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [5, ",ffj,"]  ->  ",x, px, y, py
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [5, ",ffj,"]  ->  ",x, px, y, py
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
 
@@ -998,9 +1010,9 @@ endif
 !  <<<<<<< OUT
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [6, ",ffj,"]  ->  ",x, px, y, py
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [6, ",ffj,"]  ->  ",x, px, y, py
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
 
@@ -1013,9 +1025,9 @@ endif
         x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [7, ",ffj,"]  ->  ",x, px, y, py
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [7, ",ffj,"]  ->  ",x, px, y, py
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
 
@@ -1035,10 +1047,10 @@ endif
 !  <<<<<<< OUT
 
 ! <<<<<<<<<<<<<<<<< Debug
-if (ffj==1) then
-write(lout,*)"FFIELD> [8, ",ffj,"]  ->  ",x, px, y, py
-write(lout,*)"FFIELD> Debug ****************************"
-endif
+!if (ffj==1) then
+!write(lout,*)"FFIELD> [8, ",ffj,"]  ->  ",x, px, y, py
+!write(lout,*)"FFIELD> Debug ****************************"
+!endif
 ! <<<<<<<<<<<<<<<<< Debug
 
 

@@ -660,17 +660,17 @@ contains
 !          a1=atp; b1=btp; c1=ctp; d1=dtp;
      
           ! Thin KDK
-          atp= (one+p0sp*C0x*this%dz*this%dz*half)*a1 + (p0sp*this%dz)*c1
-          btp= (one+p0sp*C0x*this%dz*this%dz*half)*b1 + (p0sp*this%dz)*d1
-          ctp= (one+p0sp*C0x*this%dz*this%dz*0.25_fPrec)*(C0x*this%dz)*a1 + (one+p0sp*C0x*this%dz*this%dz*half)*c1
-          dtp= (one+p0sp*C0x*this%dz*this%dz*0.25_fPrec)*(C0x*this%dz)*b1 + (one+p0sp*C0x*this%dz*this%dz*half)*d1
-          a1=atp; b1=btp; c1=ctp; d1=dtp;
+!          atp= (one+p0sp*C0x*this%dz*this%dz*half)*a1 + (p0sp*this%dz)*c1
+!          btp= (one+p0sp*C0x*this%dz*this%dz*half)*b1 + (p0sp*this%dz)*d1
+!          ctp= (one+p0sp*C0x*this%dz*this%dz*0.25_fPrec)*(C0x*this%dz)*a1 + (one+p0sp*C0x*this%dz*this%dz*half)*c1
+!          dtp= (one+p0sp*C0x*this%dz*this%dz*0.25_fPrec)*(C0x*this%dz)*b1 + (one+p0sp*C0x*this%dz*this%dz*half)*d1
+!          a1=atp; b1=btp; c1=ctp; d1=dtp;
 
-!          tp1= (one+p0sp*C0x*this%dz*this%dz*half)
-!          tp2= (p0sp*this%dz)
-!          tp3= (one+p0sp*C0x*this%dz*this%dz*0.25_fPrec)*(C0x*this%dz)
-!          atp= tp1*a1 + tp2*c1; btp= tp1*b1 + tp2*d1; ctp= tp3*a1 + tp1*c1; dtp= tp3*b1 + tp1*d1
-!            a1=atp; b1=btp; c1=ctp; d1=dtp;
+          tp1= (one+p0sp*C0x*this%dz*this%dz*half)
+          tp2= (p0sp*this%dz)
+          tp3= (one+p0sp*C0x*this%dz*this%dz*0.25_fPrec)*(C0x*this%dz)
+          atp= tp1*a1 + tp2*c1; btp= tp1*b1 + tp2*d1; ctp= tp3*a1 + tp1*c1; dtp= tp3*b1 + tp1*d1
+          a1=atp; b1=btp; c1=ctp; d1=dtp;
      
      
           ! Approx
@@ -687,27 +687,27 @@ contains
 !          a2=atp; b2=btp; c2=ctp; d2=dtp;
      
           ! Thin KDK
-          atp= (one+p0sp*C0y*this%dz*this%dz*half)*a2 + (p0sp*this%dz)*c2
-          btp= (one+p0sp*C0y*this%dz*this%dz*half)*b2 + (p0sp*this%dz)*d2
-          ctp= (one+p0sp*C0y*this%dz*this%dz*0.25_fPrec)*(C0y*this%dz)*a2 + (one+p0sp*C0y*this%dz*this%dz*half)*c2
-          dtp= (one+p0sp*C0y*this%dz*this%dz*0.25_fPrec)*(C0y*this%dz)*b2 + (one+p0sp*C0y*this%dz*this%dz*half)*d2
-          a2=atp; b2=btp; c2=ctp; d2=dtp;
-
-!          tp1= (one+p0sp*C0y*this%dz*this%dz*half)
-!          tp2= (p0sp*this%dz)
-!          tp3= (one+p0sp*C0y*this%dz*this%dz*0.25_fPrec)*(C0y*this%dz)
-!          atp= tp1*a2 + tp2*c2; btp= tp1*b2 + tp2*d2;  ctp= tp3*a2 + tp1*c2; dtp= tp3*b2 + tp1*d2
+!          atp= (one+p0sp*C0y*this%dz*this%dz*half)*a2 + (p0sp*this%dz)*c2
+!          btp= (one+p0sp*C0y*this%dz*this%dz*half)*b2 + (p0sp*this%dz)*d2
+!          ctp= (one+p0sp*C0y*this%dz*this%dz*0.25_fPrec)*(C0y*this%dz)*a2 + (one+p0sp*C0y*this%dz*this%dz*half)*c2
+!          dtp= (one+p0sp*C0y*this%dz*this%dz*0.25_fPrec)*(C0y*this%dz)*b2 + (one+p0sp*C0y*this%dz*this%dz*half)*d2
 !          a2=atp; b2=btp; c2=ctp; d2=dtp;
+
+          tp1= (one+p0sp*C0y*this%dz*this%dz*half)
+          tp2= (p0sp*this%dz)
+          tp3= (one+p0sp*C0y*this%dz*this%dz*0.25_fPrec)*(C0y*this%dz)
+          atp= tp1*a2 + tp2*c2; btp= tp1*b2 + tp2*d2;  ctp= tp3*a2 + tp1*c2; dtp= tp3*b2 + tp1*d2
+          a2=atp; b2=btp; c2=ctp; d2=dtp;
 
         end do
 
         ! Inversion of the matrix
         ! ---------------------------------------------------------------------------------------- !
-        bcmad=one/(a1*d1-b1*c1)
+        bcmad=one!/(a1*d1-b1*c1)
         atp=d1*bcmad;  btp=-b1*bcmad;  ctp=-c1*bcmad;  dtp=a1*bcmad;
         a1=atp; b1=btp; c1=ctp; d1=dtp
               
-        bcmad=one/(a2*d2-b2*c2)
+        bcmad=one!/(a2*d2-b2*c2)
         atp=d2*bcmad;  btp=-b2*bcmad;  ctp=-c2*bcmad;  dtp=a2*bcmad;
         a2=atp; b2=btp; c2=ctp; d2=dtp
 
