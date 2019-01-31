@@ -660,20 +660,10 @@ module mod_ffield
 
     iFile=ffQ2File(ffindex(ic(ffi)-nblo),1)
 
-! <<<<<<<<<<<<<<<<< Debug
-!write(lout,*)"FFIELD> Debug ************ IN ************"
-!write(lout,*)"FFIELD> Debug [etp ffj]  ->  x, px, y, py"
-! <<<<<<<<<<<<<<<<< Debug
     do ffj=1,napx
       ! Save data
       ! -------------------------------------------------------------------------------------------- !
       x = xv(1,ffj);  y = xv(2,ffj);  px= yv(1,ffj);  py= yv(2,ffj)
-
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [0, ",ffj,"]  ->  ",x, px, y, py
-!endif
-! <<<<<<<<<<<<<<<<< Debug
 
 !  <<<<<<< IN
       ! Return to beginning of the Quad
@@ -690,13 +680,6 @@ module mod_ffield
       x=x_tp;   y=y_tp;
 !  <<<<<<< IN
 
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [1, ",ffj,"]  ->  ",x, px, y, py,"   -> strack(ffi+2)*half*px",strack(ffi+2)*half*px
-!endif
-! <<<<<<<<<<<<<<<<< Debug
-
-
       ! Rotation error for the quad
       ! -------------------------------------------------------------------------------------------- !
       x_tp = ((x-xsiv(1,ffi))*tiltc(ffi) + (y-zsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
@@ -705,12 +688,6 @@ module mod_ffield
       py_tp= ((py           )*tiltc(ffi) - (px           )*tilts(ffi))*c1m3*(one+dpsv(ffj))
       x=x_tp;   y=y_tp;   px=px_tp;   py=py_tp;   
 
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [2, ",ffj,"]  ->  ",x, px, y, py
-!endif
-! <<<<<<<<<<<<<<<<< Debug
-     
       ! Selection of the particle that are only in the radius (r = 0.08m)
       ! -------------------------------------------------------------------------------------------- !
       if (x*x+y*y<=r0_2) then
@@ -735,20 +712,8 @@ module mod_ffield
         x=x_tp;   y=y_tp;
 !  <<<<<<< IN
 
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [3, ",ffj,"]  ->  ",x, px, y, py,'  > oidpsv=',oidpsv(ffj)
-!endif
-! <<<<<<<<<<<<<<<<< Debug
-
   	!   - Compute Fringe Field using asymplectic Map (Lie2)
         call ffTable(iFile)%Lie2(x,px,y,py,zb,oidpsv(ffj))
-
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [4, ",ffj,"]  ->  ",x, px, y, py
-!endif
-! <<<<<<<<<<<<<<<<< Debug
 
 !  <<<<<<< IN
         !   - Check AQ matrix are computed for a ffdelta in [Tdpsv(1),Tdpsv(nbDlt)]
@@ -772,23 +737,9 @@ module mod_ffield
         py_tp=ffTable(iFile)%TAQy(2,1,itDlt)*y + ffTable(iFile)%TAQy(2,2,itDlt)*py
         x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
 
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [5, ",ffj,"]  ->  ",x, px, y, py
-!write(lout,*)"FFIELD> [5, ",ffj,"]  ->  ",itDlt," / ",ffTable(iFile)%nbDlt
-!endif
-! <<<<<<<<<<<<<<<<< Debug
-
         x_tp=x+LoutQ*oidpsv(ffj)*px;
         y_tp=y+LoutQ*oidpsv(ffj)*py;
         x=x_tp;   y=y_tp;
-!  <<<<<<< IN
-
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [6, ",ffj,"]  ->  ",x, px, y, py
-!endif
-! <<<<<<<<<<<<<<<<< Debug
 
         ! Change to SixTrack referenciale
         ! ------------------------------------------------------------------------------------------ !
@@ -797,12 +748,6 @@ module mod_ffield
         x_tp = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(1,ffi)   ! m -> mm
         y_tp = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(1,ffi)   ! m -> mm
         x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
-
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [7, ",ffj,"]  ->  ",x, px, y, py
-!endif
-! <<<<<<<<<<<<<<<<< Debug
 
 !  <<<<<<< IN
         ! Return to beginning of the Quad
@@ -818,13 +763,6 @@ module mod_ffield
         x=x_tp;   y=y_tp;
 !  <<<<<<< IN
 
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [8, ",ffj,"]  ->  ",x, px, y, py
-!write(lout,*)"FFIELD> Debug ****************************"
-!endif
-! <<<<<<<<<<<<<<<<< Debug
-
         ! Save data
         ! ------------------------------------------------------------------------------------------ !
         xv(1,ffj) = x;  xv(2,ffj) = y;  yv(1,ffj) = px;  yv(2,ffj) = py;
@@ -832,10 +770,6 @@ module mod_ffield
         ffInQuad(nlostp(ffj))=.false.
       end if
     end do
-
-! <<<<<<<<<<<<<<<<< Debug
-!stop 1
-! <<<<<<<<<<<<<<<<< Debug!
 
   end subroutine ffield_enterQuad
 
@@ -881,20 +815,10 @@ module mod_ffield
     iFile=ffQ2File(ffindex(ic(ffi)-nblo),2)
 !  <<<<<<< OUT
 
-! <<<<<<<<<<<<<<<<< Debug
-!write(lout,*)"FFIELD> Debug ************ EX ************"
-!write(lout,*)"FFIELD> Debug [etp ffj]  ->  x, px, y, py"
-! <<<<<<<<<<<<<<<<< Debug
     do ffj=1,napx
       ! Save data
       ! -------------------------------------------------------------------------------------------- !
       x = xv(1,ffj);  y = xv(2,ffj);  px= yv(1,ffj);  py= yv(2,ffj);
-
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [0, ",ffj,"]  ->  ",x, px, y, py
-!endif
-! <<<<<<<<<<<<<<<<< Debug
 
 !  <<<<<<< OUT
       ! Return to beginning of the Quad
@@ -911,12 +835,6 @@ module mod_ffield
       x=x_tp;   y=y_tp;
 !  <<<<<<< OUT
 
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [1, ",ffj,"]  ->  ",x, px, y, py,"   -> strack(ffi+2)*half*px",strack(ffi+2)*half*px
-!endif
-! <<<<<<<<<<<<<<<<< Debug
-
       ! Rotation error for the quad
       ! -------------------------------------------------------------------------------------------- !
       x_tp = ((x-xsiv(1,ffi))*tiltc(ffi) + (y-zsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
@@ -924,12 +842,6 @@ module mod_ffield
       px_tp= ((px           )*tiltc(ffi) + (py           )*tilts(ffi))*c1m3*(one+dpsv(ffj))
       py_tp= ((py           )*tiltc(ffi) - (px           )*tilts(ffi))*c1m3*(one+dpsv(ffj))
       x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
-
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [2, ",ffj,"]  ->  ",x, px, y, py
-!endif
-! <<<<<<<<<<<<<<<<< Debug
 
       ! Selection of the particle that are only in the radius (r = 0.08m)
       ! -------------------------------------------------------------------------------------------- !
@@ -971,13 +883,6 @@ module mod_ffield
         y_tp=y+LoutQ*oidpsv(ffj)*py;
         x=x_tp;   y=y_tp;
 
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [3, ",ffj,"]  ->  ",x, px, y, py
-!endif
-! <<<<<<<<<<<<<<<<< Debug
-
-
         x_tp =ffTable(iFile)%TAQx(1,1,itDlt)*x + ffTable(iFile)%TAQx(1,2,itDlt)*px
         px_tp=ffTable(iFile)%TAQx(2,1,itDlt)*x + ffTable(iFile)%TAQx(2,2,itDlt)*px
         y_tp =ffTable(iFile)%TAQy(1,1,itDlt)*y + ffTable(iFile)%TAQy(1,2,itDlt)*py
@@ -985,22 +890,8 @@ module mod_ffield
         x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
 !  <<<<<<< OUT
 
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [4, ",ffj,"]  ->  ",x, px, y, py
-!endif
-! <<<<<<<<<<<<<<<<< Debug
-
-
   	!   - Compute Fringe Field using asymplectic Map (Lie2)
         call ffTable(iFile)%Lie2(x,px,y,py,zb,oidpsv(ffj))
-
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [5, ",ffj,"]  ->  ",x, px, y, py
-!endif
-! <<<<<<<<<<<<<<<<< Debug
-
 
 !  <<<<<<< OUT
   	!   - Initial repositionning (AntiDrift)
@@ -1009,13 +900,6 @@ module mod_ffield
         x=x_tp;   y=y_tp;
 !  <<<<<<< OUT
 
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [6, ",ffj,"]  ->  ",x, px, y, py
-!endif
-! <<<<<<<<<<<<<<<<< Debug
-
-
         ! Change to SixTrack referenciale
         ! ------------------------------------------------------------------------------------------ !
         px_tp= (tiltc(ffi)*px - tilts(ffi)*py)*c1e3*oidpsv(ffj)
@@ -1023,13 +907,6 @@ module mod_ffield
         x_tp = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(1,ffi)   ! m -> mm
         y_tp = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(1,ffi)   ! m -> mm
         x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
-
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [7, ",ffj,"]  ->  ",x, px, y, py
-!endif
-! <<<<<<<<<<<<<<<<< Debug
-
 
 !  <<<<<<< OUT
         ! Return to beginning of the Quad
@@ -1045,14 +922,6 @@ module mod_ffield
 
         x=x_tp;   y=y_tp;
 !  <<<<<<< OUT
-
-! <<<<<<<<<<<<<<<<< Debug
-!if (ffj==1) then
-!write(lout,*)"FFIELD> [8, ",ffj,"]  ->  ",x, px, y, py
-!write(lout,*)"FFIELD> Debug ****************************"
-!endif
-! <<<<<<<<<<<<<<<<< Debug
-
 
         ! Save data
         ! ------------------------------------------------------------------------------------------ !
