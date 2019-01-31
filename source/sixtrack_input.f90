@@ -316,7 +316,6 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
-
   if(nSplit == 0) return
 
   select case(lnSplit(1))
@@ -751,8 +750,8 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
     return
   end if
 
-  if(nSplit > 40) then
-    write(lout,"(a)") "GEOMETRY> ERROR Structure input line cannot have more then 40 elements."
+  if(nSplit < 1 .or. nSplit > 40) then
+    write(lout,"(a)") "GEOMETRY> ERROR Structure input line cannot have less than 1 or more then 40 elements."
     iErr = .true.
     return
   end if

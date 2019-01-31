@@ -39,6 +39,7 @@ subroutine zipf_parseInputLine(inLine,iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   if(nSplit /= 1) then
     write(lout,"(a,i3,3a)") "ZIPF> ERROR Expected 1 filename per line, got ",nSplit

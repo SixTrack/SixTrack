@@ -2086,11 +2086,9 @@ subroutine initialize_element(ix,lfirst)
       return
 
       !Error handlers
- 100  continue
-      write (lout,*) "ERROR in initialize_element, tried to set"
-      write (lout,*) "the strength of an element which is disabled."
-      write (lout,*) "bez = ", bez(ix)
-      call prror(-1)
+100 continue
+  write(lout,"(a,i0)") "INITELEM> ERROR Tried to set the strength of an element which is disabled. bez = ", bez(ix)
+  call prror
 
 end subroutine initialize_element
 
@@ -2888,54 +2886,50 @@ subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
   ixEl=-1
 
   if (sLoc.gt.tlen.or.sLoc.lt.zero) then
-     write(lout,'(a,f11.4,a,f11.4,a)')&
- &         "requested s-location: ",sLoc," is not inside accelerator range: [0:",tlen,"]"
-     call prror(-1)
+    write(lout,"(a,2(f11.4,a))") "FINDENTRY> ERROR Requested s-location: ",sLoc," is not inside accelerator range: [0:",tlen,"]"
+    call prror
   endif
 
   ! fast search
   iCheck=iu
   iDelta=iu
   do while(iDelta.gt.1.or.iCheck.gt.0.or.iCheck.lt.iu)
-     if (dcum(iCheck).eq.sLoc) exit
-     iDelta=nint(real(iDelta/2))
-     if (dcum(iCheck).lt.sLoc) then
-        iCheck=iCheck+iDelta
-     else
-        iCheck=iCheck-iDelta
-     endif
+    if (dcum(iCheck).eq.sLoc) exit
+    iDelta=nint(real(iDelta/2))
+    if (dcum(iCheck).lt.sLoc) then
+      iCheck=iCheck+iDelta
+    else
+      iCheck=iCheck-iDelta
+    endif
   end do
 
   ! finalise search
   if (dcum(iCheck).lt.sLoc.or.(dcum(iCheck).eq.sLoc.and.llast)) then
-     iMax=iu
-     iStep=1
-     lslide=llast
+    iMax=iu
+    iStep=1
+    lslide=llast
   else
-     iMax=1
-     iStep=-1
-     lSlide=.not.llast
+    iMax=1
+    iStep=-1
+    lSlide=.not.llast
   endif
   do i=iCheck,iMax,iStep
-     if (dcum(i).lt.sLoc) continue
-     if (dcum(i).gt.sLoc) then
-        if (iEl.eq.-1) iEl=i
-     else
-        iEl=i
-        if (lSlide) continue
-     endif
-     exit
+    if (dcum(i).lt.sLoc) continue
+    if (dcum(i).gt.sLoc) then
+      if (iEl.eq.-1) iEl=i
+    else
+      iEl=i
+      if (lSlide) continue
+    endif
+    exit
   enddo
 
   if (lfound) then
-     ixEl=ic(iEl)-nblo
-     if (ixEl.lt.0) ixEl=ic(iEl) ! drift
+    ixEl=ic(iEl)-nblo
+    if (ixEl.lt.0) ixEl=ic(iEl) ! drift
   else
-     write(lout,'(a,f11.4,a,f11.4,a)')&
- &         "s-location: ",sLoc," was not found in acclerator range: [0:",tlen,"]"
-     write(lout,*)"this is actually embarassing..."
+    write(lout,"(a,2(f11.4,a))") "FINDENTRY> s-location: ",sLoc," was not found in acclerator range: [0:",tlen,"]"
   endif
-  return
 
 end subroutine find_entry_at_s
 
@@ -5495,7 +5489,8 @@ subroutine loesd (rmat, vec,dimakt,dimtot,kod)
           indi=ik
    10   continue
         if(abs(emax).lt.eps) then
-          write(lout,*) '  ****   ERROR IN LOESD   **** '
+          write(lout,"(a)") "LOESD> WARNING abs(emax) < eps" ! ToDo: Add proper error description!
+          ! Made this a WARNING as it does not call prror
           return
         endif
 
@@ -5649,7 +5644,7 @@ subroutine corrorb
       ivflag=0
       icflag=0
 
-      write(lout,*)
+      write(lout,"(a)") ""
       write(lout,10000)
 
       if(ncorru == 0) then
@@ -5663,7 +5658,7 @@ subroutine corrorb
         endif
       endif
 
-      write(lout,*)
+      write(lout,"(a)") ""
 
 !-- SAVE OLD 'LINOPT' SETTINGS
       iprinto=iprint
@@ -5711,7 +5706,7 @@ subroutine corrorb
       endif
       if(nhmoni.lt.nhcorr.or.nvmoni.lt.nvcorr) write(lout,10090)
 
-      write(lout,*)
+      write(lout,"(a)") ""
       call orbinit
 
 !-- CORRECT BOTH PLANES
@@ -5757,7 +5752,7 @@ subroutine corrorb
         endif
 
         if(ihflag.eq.0) then
-          write(lout,*)
+          write(lout,"(a)") ""
 
           do ij=1,ncorru/10
             write(lout,10050) (nx(10*(ij-1)+k), k=1,10)
@@ -5773,7 +5768,7 @@ subroutine corrorb
         call htls(ar,b,nvmoni,nvcorr,xinc,nx,orbr,ncorru,rzero,rzero1)
 
         if(ivflag.eq.0) then
-          write(lout,*)
+          write(lout,"(a)") ""
           do 100 ij=1,ncorru/10
             write(lout,10060) (nx(10*(ij-1)+k), k=1,10)
   100     continue
@@ -5803,7 +5798,7 @@ subroutine corrorb
       call calrms(b,nvmoni,rmsz,ptpz)
       write(lout,10030) ncorrep,rmsx,rmsz
       write(lout,10040) ncorrep,ptpx,ptpz
-      write(lout,*)
+      write(lout,"(a)") ""
 
   140 continue
       if((ii-1).eq.itco) write(lout,10130) itco
@@ -5849,7 +5844,7 @@ subroutine corrorb
 
           write(lout,10150) ii,rmsx,rmsz
           write(lout,10160) ii,ptpx,ptpz
-          write(lout,*)
+          write(lout,"(a)") ""
           if(abs(real(rmsx,fPrec)-sigma0(1)).lt.dsi.and.                      &!hr06
      &       abs(real(rmsz,fPrec)-sigma0(2)).lt.dsi)                          &!hr06
      &goto 190
@@ -6203,13 +6198,10 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
           h=rho(j)-(a(k,j))*(a(k,j))
 
           if(h.lt.c1m7) then
-            write(lout,*)
-            write(lout,*) 'CORRECTION PROCESS ABORTED.'
-            write(lout,*) 'DIVISION BY ZERO EXPECTED.'
-            write(lout,*) 'PROBABLY TWO CORRECTORS TOO CLOSE.'
-            write(lout,10000) ' SUSPECTED CORRECTOR: ',j
-            write(lout,'(a)') "Error '777' in subroutine htls"
-            call prror(-1)
+            write(lout,"(a)")    ""
+            write(lout,"(a)")    "HTLS> ERROR Correction process aborted. Division by zero expected."
+            write(lout,"(a,i0)") "HTLS>       Probably two correctors too close. Suspected corrector: ",j
+            call prror
           endif
 
           rho(j)=h
@@ -10410,65 +10402,58 @@ subroutine subre(dpp)
      &3,1x,f6.2,1x,f6.3)
 end subroutine subre
 
-      subroutine detune(iv,ekk,ep,beta,dtu,dtup,dfac)
 !-----------------------------------------------------------------------
 !  USED FOR SUBRE - CALCULATES DETUNING
 !-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      use parpro
-      implicit none
-      integer iv,iv2,iv3,iv4,iv5,iv6
-      real(kind=fPrec) beta,dfac,dtu,dtu1,dtu2,dtup,ekk,ep,vor,vtu1,vtu2
-      dimension dfac(10),dtu(2,5),ep(2),beta(2),dtup(2,5,0:4,0:4)
-      save
+subroutine detune(iv,ekk,ep,beta,dtu,dtup,dfac)
+
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+
+  implicit none
+
+  integer iv,iv2,iv3,iv4,iv5,iv6
+  real(kind=fPrec) beta(2),dfac(10),dtu(2,5),dtu1,dtu2,dtup(2,5,0:4,0:4),ekk,ep(2),vor,vtu1,vtu2
+  save
 !-----------------------------------------------------------------------
-      if(iv.lt.2) then
-        write(lout,*)
-        write(lout,*) '       ***** ERROR IN DETUNE *****'
-        write(lout,*)
-        write(lout,*) '       IV LESS THAN 2, NO DETUNING POSSIBLE'
-        write(lout,*)
-        return
-      endif
-      iv2=2*iv
-      iv3=iv+1
-!      vtu1=(((-one*ekk)*(half**iv2))*dfac(iv2))/pi                       !hr06
-      vtu1=(((-one*ekk)*exp_mb(real(iv2,fPrec)*log_mb(half)))*          &
-     &dfac(iv2))/pi    !hr13
-      dtu1=zero
-      dtu2=zero
-      do 10 iv4=1,iv3
-        iv5=iv4-1
-        iv6=iv-iv5
-        vor=one
-        if(mod(iv6,2).ne.0) vor=-one                                 !hr06
-!        vtu2=vor/(dfac(iv5+1)**2)/(dfac(iv6+1)**2)*(beta(1)**iv5)* (beta&
-!     &(2)**iv6)
-        vtu2=(((vor/(dfac(iv5+1)**2))/(dfac(iv6+1)**2))*                &!hr13
-     &exp_mb(real(iv5,fPrec)*log_mb(beta(1))))*                         &!hr13
-     &exp_mb(real(iv6,fPrec)*log_mb(beta(2)))                            !hr13
-        if(iv5.ne.0) then
-!          dtu1=dtu1+((vtu2*dble(iv5))*(ep(1)**(iv5-1)))*(ep(2)**iv6)    !hr06
-         dtu1=dtu1+((vtu2*real(iv5,fPrec))*exp_mb(real(iv5-1,fPrec)*    &
-     &log_mb(ep(1))))*exp_mb(real(iv6,fPrec)*log_mb(ep(2)))                           !hr13
-         dtup(1,iv,iv5-1,iv6)=dtup(1,iv,iv5-1,iv6)+                     &
-     &(vtu2*real(iv5,fPrec))*vtu1 !hr06
-        endif
-        if(iv6.ne.0) then
-!          dtu2=dtu2+((vtu2*dble(iv6))*(ep(1)**iv5))*(ep(2)**(iv6-1))     !hr06
-          dtu2=dtu2+((vtu2*real(iv6,fPrec))*exp_mb(real(iv5,fPrec)*     &
-     &log_mb(ep(1))))*exp_mb(real(iv6-1,fPrec)*log_mb(ep(2)))                  !hr13
-         dtup(2,iv,iv5,iv6-1)=dtup(2,iv,iv5,iv6-1)+                     &
-     &(vtu2*real(iv6,fPrec))*vtu1 !hr06
-        endif
-   10 continue
-      dtu(1,iv)=dtu(1,iv)+vtu1*dtu1
-      dtu(2,iv)=dtu(2,iv)+vtu1*dtu2
-      return
-end
+  if(iv < 2) then
+    write(lout,"(a)") "DETUNE> WARNING iv less than 2, no detuning possible"
+    return
+  endif
+  iv2=2*iv
+  iv3=iv+1
+! vtu1=(((-one*ekk)*(half**iv2))*dfac(iv2))/pi
+  vtu1=(((-one*ekk)*exp_mb(real(iv2,fPrec)*log_mb(half)))*dfac(iv2))/pi
+  dtu1=zero
+  dtu2=zero
+  do iv4=1,iv3
+    iv5=iv4-1
+    iv6=iv-iv5
+    vor=one
+    if(mod(iv6,2) /= 0) vor=-one
+!   vtu2=vor/(dfac(iv5+1)**2)/(dfac(iv6+1)**2)*(beta(1)**iv5)* (beta(2)**iv6)
+    vtu2=(((vor/(dfac(iv5+1)**2))/(dfac(iv6+1)**2))* &
+      exp_mb(real(iv5,fPrec)*log_mb(beta(1))))*      &
+      exp_mb(real(iv6,fPrec)*log_mb(beta(2)))
+    if(iv5 /= 0) then
+!     dtu1=dtu1+((vtu2*dble(iv5))*(ep(1)**(iv5-1)))*(ep(2)**iv6)
+      dtu1=dtu1+((vtu2*real(iv5,fPrec))*exp_mb(real(iv5-1,fPrec)* &
+        log_mb(ep(1))))*exp_mb(real(iv6,fPrec)*log_mb(ep(2)))
+      dtup(1,iv,iv5-1,iv6)=dtup(1,iv,iv5-1,iv6)+(vtu2*real(iv5,fPrec))*vtu1
+    endif
+    if(iv6 /= 0) then
+!     dtu2=dtu2+((vtu2*dble(iv6))*(ep(1)**iv5))*(ep(2)**(iv6-1))
+      dtu2=dtu2+((vtu2*real(iv6,fPrec))*exp_mb(real(iv5,fPrec)* &
+        log_mb(ep(1))))*exp_mb(real(iv6-1,fPrec)*log_mb(ep(2)))
+      dtup(2,iv,iv5,iv6-1)=dtup(2,iv,iv5,iv6-1)+(vtu2*real(iv6,fPrec))*vtu1
+    endif
+  end do
+  dtu(1,iv)=dtu(1,iv)+vtu1*dtu1
+  dtu(2,iv)=dtu(2,iv)+vtu1*dtu2
+end subroutine detune
 
 !-----------------------------------------------------------------------
 !  CALCULATION OF DRIVINGTERMS OF RESONANCES INCLUDING SUBRESONANCE

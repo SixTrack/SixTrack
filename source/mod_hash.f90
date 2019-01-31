@@ -122,6 +122,7 @@ end subroutine hash_initialise
 ! ================================================================================================ !
 subroutine hash_parseInputLine(inLine, iErr)
 
+  use parpro
   use crcoall
   use string_tools
   use mod_alloc
@@ -142,34 +143,35 @@ subroutine hash_parseInputLine(inLine, iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   select case(trim(lnSplit(1)))
 
   case("MD5SUM")
-    if(nSplit /= 2 .and. nSplit /= 3) then
-      write(lout,"(a,i3)") "HASH> ERROR MD5SUM expected 1 or 2 arguments, got ",nSplit-1
+    if(nSplit /= 3) then
+      write(lout,"(a,i3)") "HASH> ERROR MD5SUM expected 2 arguments, got ",nSplit-1
       iErr = .true.
       return
     end if
-    if (nSplit == 3) then
-      call chr_cast(trim(lnSplit(3)), tmpIsAscii, cErr)
-      if (cErr) then
-        write(lout,"(a)") "HASH> ERROR MD5SUM optional argument expected a logical variable, but '"// &
-             trim(lnSplit(3))//"' didn't match."
-        call prror
-      endif
-    else
+    if(len_trim(lnSplit(2)) > mFNameLen) then
+      write(lout,"(a,i0)") "HASH> ERROR MD5SUM filename is too long. Max is ",mFNameLen
+      iErr = .true.
+      return
+    end if
+    select case(lnSplit(3))
+    case("text")
+      tmpIsAscii = .true.
+    case("binary")
       tmpIsAscii = .false.
-    endif
-    if(len_trim(lnSplit(2)) > 255) then
-      write(lout,"(a)") "HASH> ERROR MD5SUM filename is too long. Max is 255."
+    case default
+      write(lout,"(a)") "HASH> ERROR MD5SUM expected second value to be 'text' or 'binary', got '"//trim(lnSplit(3))//"'"
       iErr = .true.
       return
-    end if
+    end select
 
     hash_nHashFiles = hash_nHashFiles + 1
-    call alloc(hash_listHashFiles, 255, hash_nHashFiles,     " ", "hash_listHashFiles")
-    call alloc(hash_isAscii,            hash_nHashFiles, .false., "hash_isAscii")
+    call alloc(hash_listHashFiles, mFNameLen, hash_nHashFiles,     " ", "hash_listHashFiles")
+    call alloc(hash_isAscii,                  hash_nHashFiles, .false., "hash_isAscii")
     hash_listHashFiles(hash_nHashFiles) = trim(lnSplit(2))
     hash_isAscii(hash_nHashFiles)       = tmpIsAscii
   case default

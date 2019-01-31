@@ -45,77 +45,75 @@ subroutine cheby_expand_arrays(nele_new)
 end subroutine cheby_expand_arrays
 
 
-  subroutine cheby_kick(jcheby)
+subroutine cheby_kick(jcheby)
 
-    ! A. Mereghetti (CERN, BE-ABP-HSS)
-    ! last modified: 20-02-2018
-    ! apply kick of electron lens
+  ! A. Mereghetti (CERN, BE-ABP-HSS)
+  ! last modified: 20-02-2018
+  ! apply kick of electron lens
 
-    use crcoall
-    use mod_common
-    use mod_common_main
-    use mathlib_bouncer
-    use numerical_constants
-    use physical_constants
+  use crcoall
+  use mod_common
+  use mod_common_main
+  use mathlib_bouncer
+  use numerical_constants
+  use physical_constants
 
-    real(kind=fPrec) :: xx, yy, rr, frr, dxp, dyp
-    real(kind=fPrec) :: theta, radio, angle_rad, brho_b, beta_b
-    integer          :: j, jcheby
-    logical          :: lrotate
+  real(kind=fPrec) :: xx, yy, rr, frr, dxp, dyp
+  real(kind=fPrec) :: theta, radio, angle_rad, brho_b, beta_b
+  integer          :: j, jcheby
+  logical          :: lrotate
 
-    angle_rad = zero ! -Wmaybe-uninitialized
+  angle_rad = zero ! -Wmaybe-uninitialized
 
-    ! rotation angle
-    lrotate=cheby_angle(jcheby).ne.zero
+  ! rotation angle
+  lrotate=cheby_angle(jcheby).ne.zero
 
-    ! Brho of beam
-    beta_b=e0f*gammar/pma
-    brho_b=e0f/(clight*c1m6)
+  ! Brho of beam
+  beta_b=e0f*gammar/pma
+  brho_b=e0f/(clight*c1m6)
 
-    do j=1,napx
+  do j=1,napx
 
-       ! apply offset
-       xx=xv1(j)-cheby_offset_x(jcheby)
-       yy=xv2(j)-cheby_offset_y(jcheby)
+    ! apply offset
+    xx=xv1(j)-cheby_offset_x(jcheby)
+    yy=xv2(j)-cheby_offset_y(jcheby)
 
-       ! check that particle is within the domain of chebyshev polynomials
-       rr=sqrt(xx**2+yy**2)
-       if (rr.gt.cheby_refRadius(cheby_itable(jcheby))) then
-          write(lout,*) 'ERROR in cheby_kick: particle at position (x,y,r): ',     &
-               xv1(j), xv2(j), rr,' is outside radial domain of Chebyshev polinomials: ', &
-               cheby_refRadius(cheby_itable(jcheby))
-          call prror(-1)
-       end if
+    ! check that particle is within the domain of chebyshev polynomials
+    rr=sqrt(xx**2+yy**2)
+    if (rr.gt.cheby_refRadius(cheby_itable(jcheby))) then
+      write(lout,"(a,3(e12.6,1x),a,e12.6)") "CHEBY> ERROR in cheby_kick: particle at position (x,y,r): ",&
+        xv1(j), xv2(j), rr,' is outside radial domain of Chebyshev polinomials: ',cheby_refRadius(cheby_itable(jcheby))
+      call prror
+    end if
 
-       ! in case of non-zero tilt angle, rotate coordinates
-       if (lrotate) then
-          theta = atan2_mb(yy, xx)-angle_rad
-          xx = rr * cos_mb(theta)
-          yy = rr * sin_mb(theta)
-       end if
+    ! in case of non-zero tilt angle, rotate coordinates
+    if (lrotate) then
+      theta = atan2_mb(yy, xx)-angle_rad
+      xx = rr * cos_mb(theta)
+      yy = rr * sin_mb(theta)
+    end if
 
-       ! apply kick
-       call cheby_getKick( xx, yy, dxp, dyp, cheby_itable(jcheby), brho_b, beta_b )
-       ! take into account scaling factor
-       dxp=dxp *cheby_scalingFact(jcheby)
-       dyp=dyp *cheby_scalingFact(jcheby)
+    ! apply kick
+    call cheby_getKick( xx, yy, dxp, dyp, cheby_itable(jcheby), brho_b, beta_b )
+    ! take into account scaling factor
+    dxp=dxp *cheby_scalingFact(jcheby)
+    dyp=dyp *cheby_scalingFact(jcheby)
 
-       ! in case cheby has a non-zero angle, rotate kicks
-       if (lrotate) then
-          ! NB: cheby_angle(jcheby) is the rotation angle of the cheby
-          theta = atan2_mb(dyp, dxp)+angle_rad
-          radio = sqrt(dxp**2 + dyp**2)
-          dxp = radio * cos_mb(theta)
-          dyp = radio * sin_mb(theta)
-       end if
+    ! in case cheby has a non-zero angle, rotate kicks
+    if (lrotate) then
+      ! NB: cheby_angle(jcheby) is the rotation angle of the cheby
+      theta = atan2_mb(dyp, dxp)+angle_rad
+      radio = sqrt(dxp**2 + dyp**2)
+      dxp = radio * cos_mb(theta)
+      dyp = radio * sin_mb(theta)
+    end if
 
-       ! apply kicks, taking into account magnetic rigidity of particle being tracked;
-       yv1(j)=yv1(j)+dxp *oidpsv(j)
-       yv2(j)=yv2(j)+dyp *oidpsv(j)
-    end do
-    return
+    ! apply kicks, taking into account magnetic rigidity of particle being tracked;
+    yv1(j)=yv1(j)+dxp *oidpsv(j)
+    yv2(j)=yv2(j)+dyp *oidpsv(j)
+  end do
 
-  end subroutine cheby_kick
+end subroutine cheby_kick
 
 
   subroutine cheby_comnul
