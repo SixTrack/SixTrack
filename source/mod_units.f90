@@ -69,7 +69,7 @@ end subroutine f_initUnits
 ! ================================================================================================ !
 subroutine f_requestUnit(file,unit)
 
-  use, intrinsic :: iso_fortran_env, only : error_unit
+  use crcoall
 
   character(len=*), intent(in)  :: file
   integer,          intent(out) :: unit
@@ -78,7 +78,7 @@ subroutine f_requestUnit(file,unit)
   logical isOpen
 
   if(len_trim(file) > mFNameLen) then
-    write(error_unit,"(2(a,i0))") "UNITS> ERROR Max length of file name in f_requestUnit is ",mFNameLen,&
+    write(lout,"(2(a,i0))") "UNITS> ERROR Max length of file name in f_requestUnit is ",mFNameLen,&
       " characters, got ",len_trim(file)
     call prror
   end if
@@ -117,7 +117,7 @@ subroutine f_requestUnit(file,unit)
     units_uList(unit)%fixed = .false.
     units_nextUnit = unit + 1
   else
-    write(error_unit,"(a,i0)") "UNITS> ERROR Could not find an available file unit within the allowed range."
+    write(lout,"(a,i0)") "UNITS> ERROR Could not find an available file unit within the allowed range."
     call prror
   end if
 
@@ -165,7 +165,7 @@ end subroutine f_getUnit
 ! ================================================================================================ !
 subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
 
-  use, intrinsic :: iso_fortran_env, only : error_unit
+  use crcoall
 
   implicit none
 
@@ -203,13 +203,13 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
   end if
 
   if(len_trim(file) > mFNameLen) then
-    write(error_unit,"(2(a,i0))") "UNITS> ERROR Max length of file name in f_open is ",mFNameLen,&
+    write(lout,"(2(a,i0))") "UNITS> ERROR Max length of file name in f_open is ",mFNameLen,&
       " characters, got ",len_trim(file)
     call prror
   end if
 
   if(unit < units_minUnit .or. unit > units_maxUnit) then
-    write(error_unit,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_open"
+    write(lout,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_open"
     call prror
   end if
 
@@ -266,7 +266,7 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
   if(chkUnit > 0) then
     ! We already have that file name in the record
     if(chkUnit /= unit) then
-      write(error_unit,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' has already been assigned to unit ",chkUnit
+      write(lout,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' has already been assigned to unit ",chkUnit
       call prror
     end if
     units_uList(unit)%open  = .true.
@@ -306,9 +306,9 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
     call f_writeLog("OPEN",unit,"ERROR",file)
     if(present(err)) then
       err = .true.
-      write(error_unit,"(a,i0)") "UNITS> File '"//trim(file)//"' reported iostat = ",ioStat
+      write(lout,"(a,i0)") "UNITS> File '"//trim(file)//"' reported iostat = ",ioStat
     else
-      write(error_unit,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' reported iostat = ",ioStat
+      write(lout,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' reported iostat = ",ioStat
       call prror
     end if
   end if
@@ -327,9 +327,9 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
   call f_writeLog("OPEN",unit,"ERROR",file)
   if(present(err)) then
     err = .true.
-    write(error_unit,"(a)") "UNITS> Could not open '"//trim(file)//"'"
+    write(lout,"(a)") "UNITS> Could not open '"//trim(file)//"'"
   else
-    write(error_unit,"(a)") "UNITS> ERROR Could not open '"//trim(file)//"'"
+    write(lout,"(a)") "UNITS> ERROR Could not open '"//trim(file)//"'"
     call prror
   end if
 
@@ -343,7 +343,7 @@ end subroutine f_open
 ! ================================================================================================ !
 subroutine f_close(unit)
 
-  use, intrinsic :: iso_fortran_env, only : error_unit
+  use crcoall
 
   integer, intent(in) :: unit
 
@@ -351,7 +351,7 @@ subroutine f_close(unit)
   logical isOpen
 
   if(unit < units_minUnit .or. unit > units_maxUnit) then
-    write(error_unit,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_close"
+    write(lout,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_close"
     call prror
   end if
 

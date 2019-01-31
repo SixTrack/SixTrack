@@ -1814,7 +1814,7 @@ end interface
   call abend('                                                  ')
 #else
   call closeUnits
-  stop 0
+  stop
 #endif
 10000 format(/4x,"Tracking ended abnormally for particle: ",i0,         &
              /4x,"Random seed:        ",i8,                             &
