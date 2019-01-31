@@ -45,6 +45,7 @@ subroutine fma_parseInputline(inLine,iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   if(lnSplit(1) == "NoNormDUMP") then
     fma_writeNormDUMP = .false.

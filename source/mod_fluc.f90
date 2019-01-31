@@ -59,6 +59,7 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   if(iLine > 1) then
     write(lout,"(a)") "FLUC> ERROR This block only takes one line."

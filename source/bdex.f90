@@ -113,6 +113,7 @@ subroutine bdex_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   select case(lnSplit(1)(1:4))
 

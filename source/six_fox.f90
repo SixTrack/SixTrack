@@ -2395,11 +2395,11 @@ call comt_daStart
 !FOX  X=XX ;
 !FOX  Y=YY ;
   if(dare(x).lt.zero) then
-    write(lout,*) ' Problem in DA complex error function: dare(x) < 0'
+    write(lout,"(a)") "ERRFF> Problem in DA complex error function: dare(x) < 0"
 !FOX    X=-X ;
   endif
   if(dare(y).lt.zero) then
-    write(lout,*) ' Problem in DA complex error function: dare(y) < 0'
+    write(lout,"(a)") "ERRFF> Problem in DA complex error function: dare(y) < 0"
 !FOX    Y=-Y ;
   endif
   if(dare(y).lt.ylim.and.dare(x).lt.xlim) then

@@ -113,6 +113,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   if(nSplit < 7) then
     write(lout,"(a,i0)") "ELENS> ERROR Expected at least 7 input parameters, got ",nSplit
