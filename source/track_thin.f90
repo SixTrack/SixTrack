@@ -1822,9 +1822,27 @@ subroutine thin6d(nthinerr)
         end do
         goto 640
       case (31)
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        if((FFindex(ic(i)-nblo)==0))then
+#endif
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        endif
+#endif
         goto 640
       case (32)
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        if((FFindex(ic(i)-nblo)==0))then
+#endif
         goto 410
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        else
+        goto 640
+        endif
+#endif
       case (33)
 #ifdef FFIELD
   ! Modification by B.DALENA and T.PUGNAT
@@ -1850,11 +1868,13 @@ subroutine thin6d(nthinerr)
 #include "include/mul4v01.f90"
 #include "include/mul6v01.f90"
         end do
+        goto 410
 #ifdef FFIELD
   ! Modification by B.DALENA and T.PUGNAT
+        else
+        goto 640
         endif
 #endif
-        goto 410
       case (35)
 #ifdef FFIELD
   ! Modification by B.DALENA and T.PUGNAT
@@ -1880,11 +1900,13 @@ subroutine thin6d(nthinerr)
 #include "include/mul4v02.f90"
 #include "include/mul6v01.f90"
         end do
+        goto 410
 #ifdef FFIELD
   ! Modification by B.DALENA and T.PUGNAT
+        else
+        goto 640
         endif
 #endif
-        goto 410
       case (37)
 #ifdef FFIELD
   ! Modification by B.DALENA and T.PUGNAT
@@ -1910,11 +1932,13 @@ subroutine thin6d(nthinerr)
 #include "include/mul4v03.f90"
 #include "include/mul6v02.f90"
         end do
+        goto 410
 #ifdef FFIELD
   ! Modification by B.DALENA and T.PUGNAT
+        else
+        goto 640
         endif
 #endif
-        goto 410
       case (39)
 #ifdef FFIELD
   ! Modification by B.DALENA and T.PUGNAT
@@ -1940,11 +1964,13 @@ subroutine thin6d(nthinerr)
 #include "include/mul4v04.f90"
 #include "include/mul6v02.f90"
         end do
+        goto 410
 #ifdef FFIELD
   ! Modification by B.DALENA and T.PUGNAT
+        else
+        goto 640
         endif
 #endif
-        goto 410
       case (41) ! 4D BB kick
         do 690 j=1,napx
 #include "include/beamco.f90"
