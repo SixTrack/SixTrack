@@ -440,7 +440,7 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     end select
     if(nSplit == 3) then
       if(lnSplit(3) == "ions") then
-        st_initialstate = st_initialstate + 2
+        st_finalstate = st_finalstate + 2
       else
         write(lout,"(a)") "INPUT> ERROR FINALSTATE second value must be 'ions', got '"//trim(lnSplit(3))//"'"
         iErr = .true.

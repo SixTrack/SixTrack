@@ -229,6 +229,7 @@ set(TESTS_NO_STF_FORT90
   dynk_operators
   dynk_polynomial
   dynk_random
+  elensidealthin6d_ions
   fma
   fma_binary
   fma_naff
@@ -239,6 +240,8 @@ set(TESTS_NO_STF_FORT90
   scatter_collimation
   scatter_pythia
   thick6ddynk
+  thin4d_ions
+  thin6d_ions
 )
 
 # For CR builds, test the CR functions, so kill/resume the test
