@@ -9,7 +9,7 @@ subroutine trauthck(nthinerr)
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  use dynk, only : ldynk, dynk_isused, dynk_pretrack
+  use dynk, only : dynk_enabled, dynk_isused, dynk_pretrack
 
 #ifdef FLUKA
 ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -19,17 +19,17 @@ subroutine trauthck(nthinerr)
   use mod_fluka
 #endif
 
-#ifdef COLLIMAT
   use collimation
-#endif
+  use mod_time
+  use mod_units
 
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use mod_fluc, only : fluc_errAlign,fluc_writeFort4
   implicit none
 
@@ -39,17 +39,11 @@ subroutine trauthck(nthinerr)
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
   save
 
-#ifdef COLLIMAT
   if (do_coll) then
-     write(lout,*) "Error: in trauthck and do_coll is TRUE"
-     write(lout,*) "Collimation is not supported for thick tracking"
-     call prror(-1)
+    write(lout,"(a)") "TRACKING> ERROR Collimation is not supported for thick tracking"
+    call prror
   endif
-#endif
 
-  do i=1,npart
-    nlostp(i)=i
-  end do
   do i=1,nblz
     ktrack(i)=0
     strack(i)=zero
@@ -187,70 +181,70 @@ subroutine trauthck(nthinerr)
 
     select case (kzz)
     case (1)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 11
 #include "include/stra01.f90"
       end if
     case (2)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 12
 #include "include/stra02.f90"
       end if
     case (3)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) =31
       else
         ktrack(i) = 13
 #include "include/stra03.f90"
       end if
     case (4)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 14
 #include "include/stra04.f90"
       end if
     case (5)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 15
 #include "include/stra05.f90"
       end if
     case (6)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 16
 #include "include/stra06.f90"
       end if
     case (7)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 17
 #include "include/stra07.f90"
       end if
     case (8)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 18
 #include "include/stra08.f90"
       end if
     case (9)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 19
 #include "include/stra09.f90"
       end if
     case (10)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 20
@@ -262,8 +256,9 @@ subroutine trauthck(nthinerr)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           if ( dynk_isused(i) ) then
-            write(lout,*) "ERROR: Element of type 11 (bez=",bez(ix),") is off in fort.2, but on in DYNK. Not implemented."
-            call prror(-1)
+            write(lout,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
+              "') is off in fort.2, but on in DYNK. Not implemented."
+            call prror
           end if
           ktrack(i)=31
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
@@ -310,8 +305,8 @@ subroutine trauthck(nthinerr)
         r0a=one
         r000=r0*r00(irm(ix))
         do j=1,mmul
-          fake(1,j)=(bbiv(j,1,i)*r0a)/benkcc                           !hr01
-          fake(2,j)=(aaiv(j,1,i)*r0a)/benkcc                           !hr01
+          fake(1,j)=(bbiv(j,i)*r0a)/benkcc                           !hr01
+          fake(2,j)=(aaiv(j,i)*r0a)/benkcc                           !hr01
           r0a=r0a*r000
         end do
 
@@ -349,70 +344,70 @@ subroutine trauthck(nthinerr)
     !--Negative KZZ--
     !----------------
     case (-1)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 21
 #include "include/stra01.f90"
       end if
     case (-2)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 22
 #include "include/stra02.f90"
       end if
     case (-3)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 23
 #include "include/stra03.f90"
       end if
     case (-4)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 24
 #include "include/stra04.f90"
       end if
     case (-5)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 25
 #include "include/stra05.f90"
       end if
     case (-6)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 26
 #include "include/stra06.f90"
       end if
     case (-7)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 27
 #include "include/stra07.f90"
       end if
     case (-8)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 28
 #include "include/stra08.f90"
       end if
     case (-9)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 29
 #include "include/stra09.f90"
       end if
     case (-10)
-      if(abs(smiv(1,i)).le.pieni .and. .not.dynk_isused(i)) then
+      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 30
@@ -433,12 +428,13 @@ subroutine trauthck(nthinerr)
     ! last modified: 17-07-2013
     ! save original kicks
     ! always in main code
-    if (ldynk) call dynk_pretrack
+    if (dynk_enabled) call dynk_pretrack
+    call time_timeStamp(time_afterPreTrack)
 
     if(idp.eq.0.or.ition.eq.0) then
-      write(lout,*) ''
-      write(lout,*) 'Calling thck4d subroutine'
-      write(lout,*) ''
+      write(lout,"(a)") ""
+      write(lout,"(a)") "TRACKING> Calling thck4d subroutine"
+      write(lout,"(a)") ""
       call thck4d(nthinerr)
     else
       hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)                                 !hr01
@@ -451,9 +447,9 @@ subroutine trauthck(nthinerr)
         write(lout,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
         call prror(-1)
       else
-        write(lout,*) ''
-        write(lout,*) 'Calling thck6d subroutine'
-        write(lout,*) ''
+        write(lout,"(a)") ""
+        write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
+        write(lout,"(a)") ""
         call thck6d(nthinerr)
       end if
     end if
@@ -474,10 +470,11 @@ subroutine thck4d(nthinerr)
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
-
+  use mod_particles
   use bdex, only : bdex_enable
-  use dynk, only : ldynk, dynk_apply
+  use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
+  use collimation, only: do_coll, part_abs_turn
   use aperture
 
 #ifdef FLUKA
@@ -488,28 +485,31 @@ subroutine thck4d(nthinerr)
   use mod_fluka
 #endif
 
+  use mod_settings
+  use mod_meta
   use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use elens
+  use utils
   use wire
 #ifdef CR
   use checkpoint_restart
 #endif
   implicit none
 
-  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2
+  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
+    turnrep,kxxa
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve,puxve1,puxve2,puzve1,puzve2,puzve,r0,xlvj,yv1j,   &
     yv2j,zlvj,acdipamp,qd,acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,  &
     dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,         &
-    sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp !solenoid
-    
+    sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp
 
   logical llost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
@@ -539,15 +539,21 @@ subroutine thck4d(nthinerr)
 !     inserted in main code by the 'fluka' compilation flag
   napxto = 0
 #endif
+  ! Determine which turns to print tracking report on
+  if(numl > 1000) then
+    turnrep = nint(numl/1000.0)
+  else
+    turnrep = 1
+  end if
 
 #ifdef CR
-  if (restart) then
+  if(restart) then
     call crstart
-    write(93,*) 'THCK4D ','SIXTRACR restart numlcr',numlcr,'numl',numl
+    write(93,"(2(a,i0))") "SIXTRACR> Thick 4D restart numlcr = ",numlcr,", numl = ",numl
     ! and now reset numl to do only numlmax turns
   end if
   nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
   ! and reset [n]numxv unless particle is lost
   ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
@@ -557,10 +563,16 @@ subroutine thck4d(nthinerr)
     end do
   end if
   do 490 n=numlcr,nnuml
-#endif
-#ifndef CR
+#else
   do 490 n=1,numl
 #endif
+    if(st_quiet < 3) then
+      if(mod(n,turnrep) == 0) then
+        write(lout,"(a,i8,a,i8)") "TRACKING> Thick 4D turn ",n," of ",numl
+        flush(lout)
+      end if
+    end if
+    meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
 !   call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
@@ -579,13 +591,14 @@ subroutine thck4d(nthinerr)
     !  (and note that writebin does nothing if restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
+    if(st_killswitch) call cr_killSwitch(n)
 #endif
 
 !       A.Mereghetti, for the FLUKA Team
 !       last modified: 03-09-2014
 !       apply dynamic kicks
 !       always in main code
-    if ( ldynk ) then
+    if ( dynk_enabled ) then
       call dynk_apply(n)
     end if
 
@@ -597,9 +610,9 @@ subroutine thck4d(nthinerr)
       else
         ix=ic(i)-nblo
 
-        if (ldumpfront) then
-          write (lout,*) "DUMP/FRONT not yet supported on thick elements "// &
-                         "due to lack of test cases. Please contact developers!"
+        if(ldumpfront) then
+          write(lout,"(a)") "TRACKING> DUMP/FRONT not yet supported on thick elements "//&
+            "due to lack of test cases. Please contact developers!"
           call prror(-1)
         end if
 
@@ -644,7 +657,7 @@ subroutine thck4d(nthinerr)
         end if
         if(fluka_inside) then
           if(fluka_debug) then
-            write(lout,*) '[Fluka] Skipping lattice element at ',i
+            write(lout,"(a,i0)") "FLUKA> Skipping lattice element at ",i
             write(fluka_log_unit,*) '# Skipping lattice element at ', i
           end if
           goto 480
@@ -654,7 +667,7 @@ subroutine thck4d(nthinerr)
 
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
-               write(lout,*) "BDEX> BDEX only available for thin6d"
+               write(lout,"(a)") "BDEX> BDEX only available for thin6d"
                call prror(-1)
             endif
 
@@ -671,14 +684,14 @@ subroutine thck4d(nthinerr)
           end do
         else
           do j=1,napx
-            puxve=xv(1,j)
-            puzve=yv(1,j)
-            xv(1,j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(5,1,j,ix))*dpsv(j))*c1e3 !hr01
-            yv(1,j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(6,1,j,ix))*dpsv(j))*c1e3 !hr01
-            puxve=xv(2,j)
-            puzve=yv(2,j)
-            xv(2,j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3 !hr01
-            yv(2,j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3 !hr01
+            puxve=xv1(j)
+            puzve=yv1(j)
+            xv1(j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(5,1,j,ix))*dpsv(j))*c1e3 !hr01
+            yv1(j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(6,1,j,ix))*dpsv(j))*c1e3 !hr01
+            puxve=xv2(j)
+            puzve=yv2(j)
+            xv2(j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3 !hr01
+            yv2(j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3 !hr01
           end do
         end if
         goto 480
@@ -687,21 +700,21 @@ subroutine thck4d(nthinerr)
       case (3)
         irrtr=imtr(ix)
         do j=1,napx
-          temptr(1)=xv(1,j)
-          temptr(2)=yv(1,j)
-          temptr(3)=xv(2,j)
-          temptr(4)=yv(2,j)
+          temptr(1)=xv1(j)
+          temptr(2)=yv1(j)
+          temptr(3)=xv2(j)
+          temptr(4)=yv2(j)
 
-          xv(1,j)  = cotr(irrtr,1)
-          yv(1,j)  = cotr(irrtr,2)
-          xv(2,j)  = cotr(irrtr,3)
-          yv(2,j)  = cotr(irrtr,4)
+          xv1(j)  = cotr(irrtr,1)
+          yv1(j)  = cotr(irrtr,2)
+          xv2(j)  = cotr(irrtr,3)
+          yv2(j)  = cotr(irrtr,4)
 
           do kxxa=1,6
-            xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
-            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
-            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
+            xv1(j)   =  xv1(j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
+            yv1(j)   =  yv1(j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
+            xv2(j)   =  xv2(j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
+            yv2(j)   =  yv2(j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
           enddo
         enddo
         goto 470
@@ -1000,20 +1013,16 @@ subroutine thck4d(nthinerr)
 #include "include/wirekick.f90"
         goto 470
       case (51)
-        xory=1
-#include "include/acdipkick.f90"
+#include "include/acdipkick1.f90"
         goto 470
       case (52)
-        xory=2
-#include "include/acdipkick.f90"
+#include "include/acdipkick2.f90"
         goto 470
       case (53)
-        xory=1
-#include "include/crabkick.f90"
+#include "include/crabkick1.f90"
         goto 470
       case (54)
-        xory=2
-#include "include/crabkick.f90"
+#include "include/crabkick2.f90"
         goto 470
       case (55) ! DIPEDGE ELEMENT
         do j=1,napx
@@ -1056,21 +1065,7 @@ subroutine thck4d(nthinerr)
 
 470   continue
 
-      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-      ! last modified: 17-07-2013
-      ! on-line aperture check
-      ! always in main code
-      call lostpart( n, i, ix, llost, nthinerr )
-      ! stop tracking if no particle survives to this element
-      if(nthinerr.ne.0) return
-      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-      ! last modified: 16-07-2018
-      if ( lbacktracking ) then
-         ! store infos of last aperture marker
-         if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
-         ! store old particle coordinates
-         call aperture_saveLastCoordinates(i,ix,0)
-      end if
+#include "include/lostpart.f90"
 
 #ifdef FLUKA
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -1137,9 +1132,11 @@ subroutine thck6d(nthinerr)
   use physical_constants
   use mathlib_bouncer
   use numerical_constants
+  use mod_particles
   use bdex, only : bdex_enable
-  use dynk, only : ldynk, dynk_apply
+  use dynk, only : dynk_enabled, dynk_apply
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
+  use collimation, only: do_coll, part_abs_turn
   use aperture
 
 #ifdef FLUKA
@@ -1150,17 +1147,20 @@ subroutine thck6d(nthinerr)
   use mod_fluka
 #endif
 
+  use mod_meta
+  use mod_settings
   use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use aperture
   use elens
+  use utils
   use wire
 #ifdef CR
   use checkpoint_restart
@@ -1168,11 +1168,12 @@ subroutine thck6d(nthinerr)
 
   implicit none
 
-  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2
+  integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
+    turnrep,kxxa
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve1,puxve2,puzve1,puzve2,r0,xlvj,yv1j,yv2j,zlvj,     &
     acdipamp,qd,acphase,acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,    &
     embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,   &
-    pyf,r_temp,z_temp,sigf,q_temp !solenoid
+    pyf,r_temp,z_temp,sigf,q_temp,pttemp
   logical llost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
@@ -1214,15 +1215,22 @@ subroutine thck6d(nthinerr)
   napxto = 0
 #endif
 
+  ! Determine which turns to print tracking report on
+  if(numl > 1000) then
+    turnrep = nint(numl/1000.0)
+  else
+    turnrep = 1
+  end if
+
 ! Now the outer loop over turns
 #ifdef CR
   if (restart) then
     call crstart
-    write(93,*) 'THCK6D ','SIXTRACR restart numlcr',numlcr,'numl',numl
+    write(93,"(2(a,i0))") "SIXTRACR> Thick 6D restart numlcr = ",numlcr,", numl = ",numl
 ! and now reset numl to do only numlmax turns
   end if
   nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write (93,*) 'numlmax=',numlmax,' DO ',numlcr,nnuml
+  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
 ! and reset [n]numxv unless particle is lost
 ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
@@ -1236,6 +1244,13 @@ subroutine thck6d(nthinerr)
 #ifndef CR
   do 510 n=1,numl
 #endif
+    if(st_quiet < 3) then
+      if(mod(n,turnrep) == 0) then
+        write(lout,"(a,i8,a,i8)") "TRACKING> Thick 6D turn ",n," of ",numl
+        flush(lout)
+      end if
+    end if
+    meta_nPartTurn = meta_nPartTurn + napx
 ! To do a dump and abend
 #ifdef BOINC
 !   call boinc_sixtrack_progress(n,numl)
@@ -1255,13 +1270,14 @@ subroutine thck6d(nthinerr)
 !  (and note that writebin does nothing if restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
     restart=.false.
+    if(st_killswitch) call cr_killSwitch(n)
 #endif
 
 !       A.Mereghetti, for the FLUKA Team
 !       last modified: 03-09-2014
 !       apply dynamic kicks
 !       always in main code
-    if ( ldynk ) then
+    if ( dynk_enabled ) then
       call dynk_apply(n)
     end if
     call dump_linesFirst(n)
@@ -1287,9 +1303,9 @@ subroutine thck6d(nthinerr)
       end if
 
       if (ldumpfront) then
-        write (lout,*) "DUMP/FRONT not yet supported on thick elements "// &
-                       "due to lack of test cases. Please contact developers!"
-        call prror(-1)
+        write(lout,"(a)") "DUMP> ERROR FRONT not yet supported on thick elements due to lack of test cases. "//&
+          "Please contact developers!"
+        call prror
       end if
 
 #ifdef FLUKA
@@ -1329,7 +1345,7 @@ subroutine thck6d(nthinerr)
         end if
         if(fluka_inside) then
           if(fluka_debug) then
-            write(lout,*) '[Fluka] Skipping lattice element at ',i
+            write(lout,"(a,i0)") "FLUKA> Skipping lattice element at ",i
             write(fluka_log_unit,*) '# Skipping lattice element at ', i
           end if
           goto 500
@@ -1339,15 +1355,15 @@ subroutine thck6d(nthinerr)
 
 #ifdef DEBUG
 !     if (i.ge.673) then
-!     call warr('xv12,i,ktrack ',xv(1,2),i,ktrack(i),0,0)
+!     call warr('xv12,i,ktrack ',xv1(2),i,ktrack(i),0,0)
 !     endif
 !     if (i.eq.676) stop
 #endif
 
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
-               write(lout,*) "BDEX> BDEX only available for thin6d"
-               call prror(-1)
+               write(lout,"(a)") "BDEX> BDEX only available for thin6d"
+               call prror
             endif
 
 !----------count 44
@@ -1378,41 +1394,35 @@ subroutine thck6d(nthinerr)
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
           dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
-          yv(1,j)=(ejf0v(j)/ejfv(j))*yv(1,j)                         !hr01
-          yv(2,j)=(ejf0v(j)/ejfv(j))*yv(2,j)                         !hr01
+          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)                         !hr01
+          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)                         !hr01
         end do
-        if(n.eq.1) write(98,'(1p,6(2x,e25.18))') (xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),dpsv(j),j=1,napx)
-#ifdef CR
-        ! write(93,*) 'ERIC loop at 40 calling synuthck!!!'
-        ! endfile (93,iostat=ierro)
-        ! backspace (93,iostat=ierro)
-#endif
         call synuthck
         goto 490
       case (3)
         irrtr=imtr(ix)
         do j=1,napx
             !The values are stored in the temp vector which are used for the multiplication.
-          temptr(1)=xv(1,j)
-          temptr(2)=yv(1,j)/moidpsv(j)
-          temptr(3)=xv(2,j)
-          temptr(4)=yv(2,j)/moidpsv(j)
+          temptr(1)=xv1(j)
+          temptr(2)=yv1(j)/moidpsv(j)
+          temptr(3)=xv2(j)
+          temptr(4)=yv2(j)/moidpsv(j)
           temptr(5)=sigmv(j)
           temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
           ! Adding the closed orbit. The previous values are stored in the temptr vector.
-          xv(1,j)  = cotr(irrtr,1)
-          yv(1,j)  = cotr(irrtr,2)
-          xv(2,j)  = cotr(irrtr,3)
-          yv(2,j)  = cotr(irrtr,4)
+          xv1(j)  = cotr(irrtr,1)
+          yv1(j)  = cotr(irrtr,2)
+          xv2(j)  = cotr(irrtr,3)
+          yv2(j)  = cotr(irrtr,4)
           sigmv(j) = cotr(irrtr,5)
           pttemp   = cotr(irrtr,6)
 
           ! Multiplying the arbitrary matrix to the coordinates.
           do kxxa=1,6
-            xv(1,j)   =  xv(1,j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv(1,j)   =  yv(1,j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
-            xv(2,j)   =  xv(2,j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
-            yv(2,j)   =  yv(2,j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
+            xv1(j)   =  xv1(j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
+            yv1(j)   =  yv1(j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
+            xv2(j)   =  xv2(j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
+            yv2(j)   =  yv2(j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
             sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)
             pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)
           enddo
@@ -1425,14 +1435,13 @@ subroutine thck6d(nthinerr)
           dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*moidpsv(j)
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 
 
           ! We have to go back to angles after we updated the energy.
-          yv(j,1) = yv(j,1)*mtc(j)/(one+dpsv(j))
-          yv(j,2) = yv(j,2)*mtc(j)/(one+dpsv(j))
-          !yv(j,1) = yv(j,1)*moidpsv(j)
-          !yv(j,2) = yv(j,2)*moidpsv(j)
+          yv1(j) = yv1(j)*moidpsv(j)
+          yv2(j) = yv2(j)*moidpsv(j)
+
         enddo
         goto 490
       case (4,5,6,7,8,9,10)
@@ -1745,20 +1754,16 @@ subroutine thck6d(nthinerr)
       case (46,47,48,49,50,57,58,59,60,61,62)
         goto 500
       case (51)
-        xory=1
-#include "include/acdipkick.f90"
+#include "include/acdipkick1.f90"
         goto 490
       case (52)
-        xory=2
-#include "include/acdipkick.f90"
+#include "include/acdipkick2.f90"
         goto 490
       case (53)
-        xory=1
-#include "include/crabkick.f90"
+#include "include/crabkick1.f90"
         goto 490
       case (54)
-        xory=2
-#include "include/crabkick.f90"
+#include "include/crabkick2.f90"
         goto 490
       case (55) ! DIPEDGE ELEMENT
         do j=1,napx
@@ -1800,21 +1805,7 @@ subroutine thck6d(nthinerr)
 
 490   continue
 
-      ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-      ! last modified: 17-07-2013
-      ! on-line aperture check
-      ! always in main code
-      call lostpart( n, i, ix, llost, nthinerr )
-      ! stop tracking if no particle survives to this element
-      if(nthinerr.ne.0) return
-      ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-      ! last modified: 16-07-2018
-      if ( lbacktracking ) then
-         ! store infos of last aperture marker
-         if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
-         ! store old particle coordinates
-         call aperture_saveLastCoordinates(i,ix,0)
-      end if
+#include "include/lostpart.f90"
 
 #ifdef FLUKA
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -1845,7 +1836,7 @@ subroutine thck6d(nthinerr)
 #ifdef DEBUG
 500 continue
     ! if (n.ge.990) then
-    !   write(99,*) 'after element i, ktrack ',i,ktrack(i), xv(1,1),xv(2,1),yv(1,1),yv(2,1),&
+    !   write(99,*) 'after element i, ktrack ',i,ktrack(i), xv1(1),xv2(1),yv1(1),yv2(1),&
     !     sigmv(1),ejv(1),ejfv(1),rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
     !   endfile (99,iostat=ierro)
     !   backspace (99,iostat=ierro)
@@ -1905,22 +1896,16 @@ subroutine synuthck
   use numerical_constants
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   implicit none
   integer ih1,ih2,j,kz1,l
   real(kind=fPrec) fokm
   save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 #ifdef CR
-#ifdef DEBUG
-!       write(93,*) 'ERIC synuthck called!!!'
-!       write(93,*) 'ERIC il= ',il
-!       endfile (93,iostat=ierro)
-!       backspace (93,iostat=ierro)
-#endif
   sythckcr=.true.
 #endif
   do 10 j=1,napx

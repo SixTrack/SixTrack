@@ -1,8 +1,0 @@
-#!/bin/sh
-# Do all  flush as endfile/backspace
-#
-for j in `ls *.s`
-do
-  sed -f sedflush $j > tmp
-  mv tmp $j 
-done

@@ -53,6 +53,7 @@ module strings
     procedure, private, pass(this)  :: trimStr
     procedure, private, pass(this)  :: adjLStr
     procedure, private, pass(this)  :: adjRStr
+    procedure, private, pass(this)  :: lenTrimStr
 
     procedure, private, pass(this)  :: stripStr
     procedure, private, pass(this)  :: upperStr
@@ -98,6 +99,10 @@ module strings
   interface adjustr
     module procedure adjRStr
   end interface adjustr
+
+  interface len_trim
+    module procedure lenTrimStr
+  end interface len_trim
 
   interface assignment(=)
     module procedure assignStrStr
@@ -185,6 +190,16 @@ contains
       retValue = adjustr(this%chr)
     end if
   end function adjRStr
+
+  elemental function lenTrimStr(this) result(retValue)
+    class(string), intent(in) :: this
+    integer                   :: retValue
+    if(allocated(this%chr)) then
+      retValue = len_trim(this%chr)
+    else
+      retValue = 0
+    end if
+  end function lenTrimStr
 
   ! ================================================================ !
   !  String Manipulation

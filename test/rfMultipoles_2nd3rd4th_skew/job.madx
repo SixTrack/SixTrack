@@ -1,0 +1,29 @@
+circum=20;
+
+beam, particle=proton, energy = 15;
+qf: MULTIPOLE, TILT=0, KNL={0,0.11755705}, KSL={0,0};
+qd: MULTIPOLE, TILT=0, KNL={0,-0.11755705}, KSL={0,0};
+cav: RFCAVITY, VOLT=100, LAG=0.0, L=0.0, HARMON=100;
+skewoc: RFMULTIPOLE, VOLT=0, LAG=0.25, FREQ=200, TILT=0, KNL={0,0,0,0.0}, KSL={0,0,0,0.01}, PNL={0,0,0,0.0}, PSL={0,0,0,0.5};
+skewse: RFMULTIPOLE, VOLT=0, LAG=0.25, FREQ=200, TILT=0, KNL={0,0,0.0}, KSL={0,0,0.005}, PNL={0,0,0.0}, PSL={0,0,0.5};
+skewqu: RFMULTIPOLE, VOLT=0, LAG=0.25, FREQ=200, TILT=0, KNL={0,0.0}, KSL={0,0.001}, PNL={0,0.0}, PSL={0,0.5};
+
+seq: sequence, refer=entry, l=circum;
+skewse: skewse, at = 9.1;
+skewqu: skewqu, at = 9.2;
+qd: qd, at = 10;
+cav: cav, at = 10.001;
+qf: qf, at = 19.9999;
+endsequence;
+
+use, sequence=seq;
+
+twiss;
+TRACK, ONEPASS=true, FILE="mad_output";
+START, X=0.001, PX=0.002, Y=0.003, PY=0.004, PT=0.0, T=0.005;
+OBSERVE, PLACE="cav";
+RUN, TURNS=10;
+
+sixtrack, CAVALL;	
+
+stop;

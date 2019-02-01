@@ -1,3 +1,3 @@
-IP3_DUMP_1         diff -q --strip-trailing-cr
-NORM_IP3_DUMP_1    diff -q --strip-trailing-cr
-fma_sixtrack       diff -q --strip-trailing-cr
+final_state.dat
+fma_sixtrack
+hash.md5

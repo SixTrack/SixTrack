@@ -20,7 +20,7 @@ subroutine sumpos
   real(kind=fPrec) d(60), dlost
   integer nSplit, ioStat, lineNo, i, j
   logical spErr, fErr
-  
+
   save
 
   rewind 10
@@ -31,7 +31,7 @@ subroutine sumpos
       write(lout,"(a,i0)") "SUMPOS> ERROR Failed to read line from 'fort.10'. iostat = ",ioStat
       call prror(-1)
     end if
-  
+
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
       write(lout,"(a)") "SUMPOS> ERROR Failed to parse line from 'fort.10'"
@@ -46,9 +46,13 @@ subroutine sumpos
     do j=1,nSplit
       call chr_cast(lnSplit(j),d(j),spErr)
     end do
-  
+
     if(i == 1) write(lout,10000)
-    if(abs(d(2)) >= pieni) ch = "LOST"
+    if(abs(d(2)) >= pieni) then
+      ch = "LOST"
+    else
+      ch = "    "
+    end if
     if(d(22) >= d(23)) then
       dlost = d(23)
     else
@@ -68,7 +72,7 @@ subroutine sumpos
       write(lout,"(a,i0)") "SUMPOS> ERROR Failed to read line from 'fort.10'. iostat = ",ioStat
       call prror(-1)
     end if
-  
+
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
       write(lout,"(a)") "SUMPOS> ERROR Failed to parse line from 'fort.10'"
@@ -89,7 +93,7 @@ subroutine sumpos
     ! and we always print the maximum DMMAC as NMAC
     ! or zero which should really be OK I think.
     ! N.B. If particle is lost nms is 0, so we set mmac to zero too
-    d(60) = real(nmac,fPrec)
+    d(60) = one ! was real(nmac)
     if(nint(d(59)) == 0) d(60) = zero
     write(lout,10030) i,nint(d(59)),nint(d(60)),nint(d(59))*nint(d(24))
   end do
@@ -211,10 +215,10 @@ subroutine blocksv
 
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   implicit none
 
   integer ia, ikk, j, jm, k, lkk, mkk
@@ -309,15 +313,15 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
 
   use mod_alloc
 
   implicit none
   integer ih1,ih2,j,kz1,l,l1,l2
 
-  !Local version of variables normally found in mod_commonmn
+  !Local version of variables normally found in mod_common_main
   real(kind=fPrec) aek,afok,as3,as4,as6,co,dpd,dpsq,dpsv,fi,    &
         fok,fok1,fokqv,g,gl,hc,hi,hi1,hm,hp,hs,oidpsv,rho,rhoc,rhoi, &
         rvv,si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi
@@ -718,7 +722,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use crcoall
   use parpro
   use mod_common, only : ichromc,ilinc,iqmodc
-  use mod_commond
+  use mod_common_da
   use mod_lie_dab, only : iscrda,mld_allocArrays
   implicit none
   integer idummy,ncase,ndimfo,ndpt,nis,nndim,nnord,nnord1,nnvar,nnvar2,nord1o,nordo,nvar2o,nvaro
@@ -726,7 +730,10 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   dimension am(6,6),idummy(6)
   save
 !-----------------------------------------------------------------------
-  if(nndim.lt.2.or.nndim.gt.3) call prror(95)
+  if(nndim < 2 .or. nndim > 3) then
+    write(lout,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
+    call prror(-1)
+  end if
 !--------------------
   nordo=nord
   nvaro=nvar

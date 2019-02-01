@@ -1,3 +1,4 @@
+! start include/multl12.f90
 #ifndef TILT
   if(iv.eq.2) ekk=(((((bb(4)+four*(bb(5)*cr(2)+aa(5)*ci(2)))+10d0*(bb(6)*cr(3)+aa(6)*ci(3)))+20d0*&
                   (bb(7)*cr(4)+aa(7)*ci(4)))+35d0*(bb(8)*cr(5)+aa(8)*ci(5)))+56d0*(bb(9)*cr(6)+aa(9)*ci(6)))+84d0*&
@@ -75,3 +76,4 @@
   endif
   call detune(iv,ekk,ep,beta,dtu,dtup,dfac)
 #endif
+! end include/multl12.f90

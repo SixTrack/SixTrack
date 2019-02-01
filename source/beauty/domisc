@@ -1,8 +1,0 @@
-#!/bin/sh
-# Do all formatted writes to 6 or * with format statement or quoted format
-#
-for j in `ls *.s`
-do
-  sed -f sedmisc $j > tmp
-  mv tmp $j 
-done

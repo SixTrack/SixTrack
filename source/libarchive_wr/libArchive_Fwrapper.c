@@ -41,8 +41,7 @@ void f_read_archive_(const char* const infile, const char* extractFolder,int inf
   fflush(stdout);
 }
 
-void f_write_archive_(const char* const outname, const char* const filenames, int* nFiles,
-		      int outname_len, int filenames_len ){
+void f_write_archive_(const char* const outname, const char* const filenames, int* nFiles, int outname_len, int filenames_len){
   //printf("nFiles=%i\n", *nFiles);
   //printf("outname_len=%i\n", outname_len);
   //printf("filenames_len=%i\n", filenames_len);
@@ -81,10 +80,10 @@ void f_write_archive_(const char* const outname, const char* const filenames, in
     //Trim trailing whitespace
     for (int j=filenames_len-1;j>=0;j--){
       if (filenames_c[i][j]==' ') {
-	filenames_c[i][j] = '\0';
+        filenames_c[i][j] = '\0';
       }
       else{
-	break;
+        break;
       }
     }
     //printf("filenames_c[%i] = '%s'\n",i,filenames_c[i]);

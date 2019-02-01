@@ -1,3 +1,0 @@
-# DUMP format #4, START=ip1             , number of particles=          64, dump period=           1, first turn=           1, last turn=           1, HIGH=F, FRONT=F
-# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <z>[mm] <dE/E>[1]
-       64        1      0.00000  1.234041492E-01 -5.686134213E-03  1.626130362E-01  2.909206138E-01 -1.709089955E+02  4.030267359E-06

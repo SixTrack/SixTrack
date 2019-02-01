@@ -7,8 +7,64 @@ It is mainly used for the LHC for dynamic aperture studies, tune optimization, a
 
 ## Authors
 
-F.&nbsp;Schmidt (DESY, CERN), E.&nbsp;Mcintosh, H.&nbsp;Ranshall, H.&nbsp;Grote, F.&nbsp;James, K.&nbsp;Koelbig, K.&nbsp;Heinemann, M.&nbsp;Vaenttinen, R.&nbsp;Assman, C.&nbsp;Bracco, R.&nbsp;Bruce, D.&nbsp;Mirarchi, V.&nbsp;Previtali, S.&nbsp;Redaelli, G.&nbsp;Robert-Demolaize, E.&nbsp;Quaranta A.&nbsp;Rossi, C.&nbsp;Tambasco, T.&nbsp;Weiler, J.&nbsp;Barranco, Y.&nbsp;Sun, Y.&nbsp;Levinsen, M.&nbsp;Fjellstrom, A.&nbsp;Santamaria, R.&nbsp;Kwee-Hinzmann, A.&nbsp;Mereghetti, K.&nbsp;Sjobak, M.&nbsp;Fiascaris, J.F.&nbsp;Wagner, J.&nbsp;Wretborn, V.K.&nbsp;Berglyd Olsen (CERN), M.&nbsp;Fitterer (FNAL, CERN), A.&nbsp;Patapenka (NIU, CERN), G.&nbsp;Robert-Demolaize (BNL), V.&nbsp;Gupta (Google Summer of Code), J.&nbsp;Molson (UMAN, LAL, CERN), S.&nbsp;Kostoglou (NTUA, CERN)
+F.&nbsp;Schmidt (DESY, CERN),
+J.D.&nbsp;Andersson,
+R.&nbsp;Assman,
+J.&nbsp;Barranco,
+V.K.&nbsp;Berglyd&nbsp;Olsen,
+C.&nbsp;Bracco,
+R.&nbsp;Bruce,
+R.&nbsp;De&nbsp;Maria,
+M.&nbsp;Fiascaris,
+M.&nbsp;Fjellstrom,
+H.&nbsp;Grote,
+K.&nbsp;Heinemann,
+F.&nbsp;James,
+K.&nbsp;Koelbig,
+R.&nbsp;Kwee-Hinzmann,
+Y.&nbsp;Levinsen,
+E.&nbsp;Mcintosh,
+A.&nbsp;Mereghetti,
+D.&nbsp;Mirarchi,
+K.&nbsp;Paraschou,
+T.&nbsp;Persson,
+V.&nbsp;Previtali,
+E.&nbsp;Quaranta,
+H.&nbsp;Ranshall,
+S.&nbsp;Redaelli,
+A.&nbsp;Rossi,
+A.&nbsp;Santamaria,
+K.&nbsp;Sjobak,
+Y.&nbsp;Sun,
+C.&nbsp;Tambasco,
+M.&nbsp;Vaenttinen,
+J.F.&nbsp;Wagner,
+T.&nbsp;Weiler,
+J.&nbsp;Wretborn (CERN),
+M.&nbsp;Fitterer (FNAL, CERN),
+V.&nbsp;Gupta (Google Summer of Code),
+S.&nbsp;Kostoglou (NTUA, CERN),
+J.&nbsp;Molson (UMAN, LAL, CERN),
+A.&nbsp;Patapenka (NIU, CERN),
+G.&nbsp;Robert-Demolaize (BNL, CERN)
 
+**Core Devs:**
+V.K.&nbsp;Berglyd&nbsp;Olsen,
+R.&nbsp;De&nbsp;Maria,
+A.&nbsp;Mereghetti,
+J.&nbsp;Molson,
+T.&nbsp;Persson,
+K.&nbsp;Sjobak.
+
+## License
+
+Copyright 2018 CERN. This software is distributed under the terms of the GNU Lesser General Public License version 2.1, copied verbatim in the file "[COPYING](source/COPYING)".
+
+In applying this licence, CERN does not waive the privileges and immunities granted to it by virtue of its status as an Intergovernmental Organization or submit itself to any jurisdiction.
+
+## Quick Build
+
+To build the standard release version of SixTrack with default options, run the script `defaultBuild.sh`.
 
 ## Resources
 
@@ -22,4 +78,9 @@ F.&nbsp;Schmidt (DESY, CERN), E.&nbsp;Mcintosh, H.&nbsp;Ranshall, H.&nbsp;Grote,
 
 ## Building SixTrack
 
-  * Please see the [build manual](http://sixtrack.web.cern.ch/SixTrack/docs/build_full/manual.php)
+  * [General Requirements and Build Options](doc/build_sixtrack.md)
+  * Further details covered in the [build manual](http://sixtrack.web.cern.ch/SixTrack/docs/building_sixtrack.pdf)
+
+## Developer Tools
+
+  * [A MAD-X/SixTrack output testing and comparison framework](devtools/physicsBenchmark/README.md)

@@ -38,14 +38,13 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
     \texttt{niu(1),niu(2)} &          & Unknown; default values are 0. \\
     \texttt{numlcp}        & integer  & Checkpoint/restart\index{checkpoint/restart} version: How often to write checkpointing files. \\
     \texttt{numlmax}       & integer  & Checkpoint/restart version: Maximum amount of turns; default is $10^6$. \\
-    \texttt{idy(1),idy(2)} & integers & A tracking where one of the transversal motion planes shall be ignored is only possible when all coupling terms are switched off.  The part of the coupling that is due to closed orbit and other effects can be turned off with these switches. \\
-                           &          & \texttt{idy(1), idy(2) = 1}: coupling on. \\
-                           &          & \texttt{idy(1), idy(2) = 0}: coupling to the horizontal and vertical motion plane respectively switched off. \\
+    \texttt{idz(1),idz(2)} & integers & A tracking where one of the transversal motion planes shall be ignored is only possible when all coupling terms are switched off.  The part of the coupling that is due to closed orbit and other effects can be turned off with these switches. \\
+                           &          & \texttt{idz(1), idz(2) = 1}: coupling on. \\
+                           &          & \texttt{idz(1), idz(2) = 0}: coupling to the horizontal and vertical motion plane respectively switched off. \\
     \texttt{idfor}         & integer  & Usually the closed orbit is added to the initial coordinates. This can be turned off using \texttt{idfor}, for instance when a run is to be prolonged. \\
                            &          & \texttt{idfor = 0}: closed orbit added. \\
                            &          & \texttt{idfor = 1}: initial coordinates\index{initial coordinates} unchanged. \\
                            &          & \texttt{idfor = 2}: prolongation of a run, taken the initial coordinates from \texttt{fort.13}\index{fort.15}. \\
-                           &          & \texttt{idfor = 3}: initial coordinates read via the DIST block\index{DIST}. \\
     \texttt{irew}          & integer  & To reduce the amount of tracking data after each amplitude and relative momentum deviation iteration $\Delta p/p_0$ the binary output units 90 and lower (see Appendix~\ref{Files}) are rewound. This is always done when the post-processing is activated (\ref{PosPro}). For certain applications it may be useful to store all data. The switch \texttt{irew} allows for that. \\
                            &          & \texttt{irew = 0}: unit 90 (and lower) rewound. \\
                            &          & \texttt{irew = 1}: all data on unit 90 (and lower). \\
@@ -61,9 +60,7 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
     \texttt{nwr(3)}        & integer  & Every \texttt{nwr(3)}'th turn at the flat top a write out of the coordinates on unit 90 (and lower) will occur. For constant energy this number controls the amount of data on unit 90 (and lower), as the particles are considered on the flat top. \\
     \texttt{nwr(4)}        & integer  & In cases of very long runs it is sometimes useful to save all coordinates for a prolongation of a run after a possible crash of the computer. Every \texttt{nwr(4)}'th turn the coordinates are written to unit 6. \\
     \texttt{ntwin}         & integer  & For the analysis of the Lyapunov exponent\index{Lyapunov exponent} it is usually sufficient to store the calculated distance of phase space together with the coordinate of the first particle (\texttt{ntwin} set to one). You may want to improve the 6D calculation of the distance in phase space with \texttt{sigcor, dpscor} (see~\ref{IniCoo}) when the 6D closed orbit is not calculated with \texttt{iclo6} $\neq 2$. If storage space is no problem, one can store the coordinates of both particles (\texttt{ntwin} set to two). The distance in phase space is then calculated in the post-processing procedure (see~\ref{PosPro}). This also allows a subsequent refined Lyapunov analysis using differential algebra and Lie algebra\index{Lie algebra} techniques (\cite{Refine}). \\
-    \texttt{ibidu}         & integer  & Switch to create or read binary dump of the full accelerator description on file \texttt{fort.32}. The parameters relevant to tracking, i.e.\ \texttt{numl, amp0, amp(1), amp(2), damp, chi0, chid, rat, $x_1$, $x^\prime_1$, $y_1$, $y^\prime_1$, $\sigma_1$, $\Delta p/p_{0,1}$, $x_2$, $x^\prime_2$, $y_2$, $y^\prime_2$, $\sigma_2$, $\Delta p/p_{0,2}$, time0, time1}, are to be given via the  tracking parameter file \texttt{fort.3}. \\
-                           &          & \texttt{ibidu = 1}: write dump. \\
-                           &          & \texttt{ibidu = 2}: read dump. \\
+    \texttt{ibidu}         & integer  & No longer in use. Value ignored. \\
     \texttt{iexact}        & integer  & Switch to enable exact solution of the equation of motion into tracking and 6D (no 4D) optics calculations. \\
                            &          & \texttt{iexact = 0}: approximated equation
                            \begin{equation*}
@@ -93,7 +90,8 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
             \item take the end coordinates of the previous run as the initial coordinates (including all digits) for the new run.
         \end{itemize}
     \end{enumerate}
-    \item A feature is installed for a prolongation of a run by using \texttt{idfor = 2} and reading the initial data from file \texttt{fort.13}. The end coordinates are now written to \texttt{fort.12} after each run. Intermediate coordinates are also written to \texttt{fort.12} in case the turn number \texttt{nwr(4)} is exceeded in the run. The user takes responsibility to transfer the required data from \texttt{fort.12} to \texttt{fort.13} if a prolongation is requested.
+    \item A feature is installed for a prolongation of a run by using \texttt{idfor = 2} and reading the initial data from file \texttt{fort.13}. The end coordinates are now written to \texttt{fort.12} after each run. Intermediate coordinates are also written to \texttt{fort.12} in case the turn number \texttt{nwr(4)} is exceeded in the run. The user takes responsibility to transfer the required data from \texttt{fort.12} to \texttt{fort.13} if a prolongation is requested. This feature can be used to effectively read in a custom-made beam distribution. The format of the file is one line per pair of particles; the meaning of the columns is exactly that of the \textit{Initial Coordinates}\index{INIT} input block (see Sec.~\ref{IniCoo} and Tab.~\ref{T-IniCoo}).
+    \item As of version 5.0.3 the particle energy read from \texttt{fort.13} is re-calculated from the particle momentum offset to ensure these are consistent. The particle energy in \texttt{fort.13} is therefore ignored.
     \item Some illogical combinations of parameters have been suppressed.
     \item The initial coordinates are calculated using a proper linear 6D transformation: \texttt{amp(1)} is still the maximum horizontal starting amplitude (excluding the dispersion contribution) from which the emittance of mode 1 $e_I$ is derived, \texttt{rat} (see~\ref{IniCoo}) is the ratio of $e_{II}/e_I$ of the emittances of the two modes. The momentum deviation $\frac{\Delta p}{p_{0,1}}$ is used to define a longitudinal amplitude. The 6 normalized coordinates read:
         \begin{enumerate}
@@ -227,3 +225,123 @@ The parameters needed for treating the synchrotron oscillation in a symplectic m
 \end{longtabu}
 
 \textbf{Note:} The value of \texttt{tlen} is also calculated internally by SixTrack (in \texttt{dcum}\index{dcum}), and a warning is issued if the given value is different from the calculated value.
+
+% ================================================================================================================================ %
+\section{Tracking with Ions} \label{hions}
+The default tracking in SixTrack is for protons. In case tracking of ions is wanted the following input block should be used.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{HION}\index{HION} \\
+    \textbf{Data lines} & 1 \\
+    \textbf{Format}     & Line 1: \texttt{A Z u}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+\bigskip
+\begin{longtabu}{@{}llp{0.65\linewidth}}
+    \texttt{A}   & integer & Total number of nucleons (atomic mass number). \\
+    \texttt{Z}   & integer & Electrical charge. \\
+    \texttt{$m_a$}   & float   & Mass of the ion [GeV/$c^2$]. 
+\end{longtabu}
+
+% ================================================================================================================================ %
+\section{Initial Distibution from an ASCII file} \label{distBlock}
+In addition to \texttt{fort.13} (see \emph{Tracking Parameters} input block, Sec.~\ref{TraPar}), it is possible to read a beam distribution from a plain ASCII file via the \texttt{DIST} block.
+With respect to using \texttt{fort.13}, which basically specifies just the six particle coordinates for each pair of particles, the \texttt{DIST} block allows the user to specify further properties of the particles, like charge or mass, necessary in case of species different than the synchronous one.
+There is also the possibility to echo the parsed information into a plain ASCII file.
+The echo of the distribution takes place after all the arrays for longitudinal motion have been updated and after the closed orbit is applied, if requested by the user.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{DIST}\index{DIST} \\
+    \textbf{Data lines} & Variable \\
+    \textbf{Format}     & pairs of \texttt{keyword : value}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+Table~\ref{tab:distKeys} reports the available keywords and meaning of necessary values. The user has to specify the file from which the code should read the distribution; in case the user wants the echo of the read distribution, they need to specify a name as well.
+
+Table~\ref{tab:distReadFileColumns} shows the format of the ASCII file from where the beam distribution is read, along with meaning of columns and units when necessary.
+All particles must be listed, one per line.
+No header is required.
+Similarly, Tab.~\ref{tab:distEchoFileColumns} shows the format of the ASCII file where the read beam distribution is echoed, along with meaning of columns and units when necessary.
+As for the file for reading the distribution, one particle per line is dumped.
+A header is dumped as well.
+
+
+\bigskip
+\begin{center}
+\begin{longtable}{|c|c|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
+    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+    \caption{Keywords and values available in the \texttt{DIST} block. Keywords are listed in alphabetical order.}
+    \label{tab:distKeys} \\*
+    \hline
+    \rowcolor{blue!30}
+    keyword & argument & description \\*
+    \hline
+    \endfirsthead
+    \texttt{ECHO} & \multicolumn{2}{l|}{to echo the read distribution.} \\*
+                  & filename & ASCII file where the echo of the distribution should be saved \\*
+    \hline
+
+    \texttt{LOAD} & \multicolumn{2}{l|}{to read the desired distribution.} \\*
+                  & filename & ASCII file from where the code will read the desired distribution \\*
+    \hline
+\end{longtable}
+\end{center}
+
+\begin{minipage}[t]{0.45\textwidth}
+  \begin{center}
+    \begin{longtable}{|l|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
+      %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+      \caption{Format of the ASCII file containing the distribution to be read by the \texttt{DIST} block.}
+      \label{tab:distReadFileColumns} \\*
+      \hline
+      \rowcolor{blue!30}
+      \# & Description \\*
+      \hline
+      \endfirsthead
+      1  & particle id (not actually used) \\*
+      2  & parent particle id (not actually used) \\*
+      3  & statistical weight (not actually used) \\*
+      4  & $x$ [m] \\*
+      5  & $y$ [m] \\*
+      6  & (unused) \\*
+      7  & $x'$ [] \\*
+      8  & $y'$ [] \\*
+      9  & (unused) \\*
+      10 & mass number \\*
+      11 & atomic number \\*
+      12 & mass [GeV/c$^2$] \\*
+      13 & linear momentum [GeV/c] \\*
+      14 & time lag [s] \\*
+      \hline
+    \end{longtable}
+  \end{center}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+  \begin{center}
+    \begin{longtable}{|l|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
+      %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+      \caption{Format of the ASCII file where the distribution read by the \texttt{DIST} block is echoed.}
+      \label{tab:distEchoFileColumns} \\*
+      \hline
+      \rowcolor{blue!30}
+      \# & Description \\*
+      \hline
+      \endfirsthead
+      1  & \texttt{xv1} [mm]   \\*
+      2  & \texttt{xv1} [mrad] \\*
+      3  & \texttt{xv1} [mm]   \\*
+      4  & \texttt{xv1} [mrad] \\*
+      5  & \texttt{sigmv} [mm] \\*
+      6  & \texttt{ejfv} [MeV/c] \\*
+      \hline
+    \end{longtable}
+  \end{center}
+\end{minipage}
+

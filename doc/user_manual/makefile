@@ -1,12 +1,13 @@
 
-manName=six
+TEXFLAGS  = 
+TEXFILES := $(wildcard *.tex)
 
-all: $(manName).pdf
+all: six.pdf
 
 clean:
-	rm -f $(manName).blg $(manName).bbl $(manName).toc $(manName).out $(manName).aux $(manName).log $(manName).lot $(manName).pdf
+	rm -f six.aux six.fdb_latexmk six.fls six.idx six.ilg six.ind six.log six.lot six.out six.toc six.pdf six.synctex.gz
 
-$(manName).pdf: $(manName).tex
-	pdflatex $(manName).tex
-	pdflatex $(manName).tex
-	pdflatex $(manName).tex
+six.pdf: $(TEXFILES)
+	pdflatex $(TEXFLAGS) six.tex
+	pdflatex $(TEXFLAGS) six.tex
+	pdflatex $(TEXFLAGS) six.tex

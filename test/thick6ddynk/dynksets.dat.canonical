@@ -1,4 +1,4 @@
- # turn element attribute SETidx funname value
+#       turn element              attribute             idx funname                        value
            1 ip.bdh.21437         average_ms              1 kick_h               0.000000000E+00
            1 ip.bdh.21451         average_ms              2 kick_h               0.000000000E+00
            1 ip.bdv.21455         average_ms              3 kick_v               0.000000000E+00

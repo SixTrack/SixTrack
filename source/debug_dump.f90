@@ -16,8 +16,7 @@ subroutine warr(vname,value,i,j,k,l)
 
   myname=vname
   write(100) myname,value,i,j,k,l
-  endfile (100,iostat=ierro)
-  backspace (100,iostat=ierro)
+  flush(100)
 
   return
 
@@ -38,8 +37,7 @@ subroutine dumpbl1(dumpname,n,i)
   write(99,*) dumpname,'   Turn ',n,' Element ',i
   write(99,100) 'bl1 ',bl1
   write(99,100) 'bl2 ',bl2
-  endfile (99,iostat=ierro)
-  backspace (99,iostat=ierro)
+  flush(99)
 
 100  format (a10,(Z20))
 
@@ -66,8 +64,7 @@ subroutine dumpzfz(dumpname,n,i)
   do j=1,nzfz
     write(101) zfz(j)
   end do
-  endfile (101,iostat=ierro)
-  backspace (101,iostat=ierro)
+  flush(101)
 
 end subroutine dumpzfz
 
@@ -76,8 +73,8 @@ subroutine dumpxy(dumpname,n,i,k)
   use floatPrecision
   use parpro
   use mod_common
-  use mod_commont
-  use mod_commonmn
+  use mod_common_track
+  use mod_common_main
 
   implicit none
 
@@ -86,11 +83,10 @@ subroutine dumpxy(dumpname,n,i,k)
   save
 
   write(99,*) dumpname,'   Turn ',n,' Element ',i
-  write(99,*) (xv(1,j),j=1,k),(xv(2,j),j=1,k),(yv(1,j),j=1,k),(yv(2,j),j=1,k),&
+  write(99,*) (xv1(j),j=1,k),(xv2(j),j=1,k),(yv1(j),j=1,k),(yv2(j),j=1,k),&
     (sigmv(j),j=1,k),(ejv(j),j=1,k),(ejfv(j),j=1,k),(rvv(j),j=1,k),           &
     (dpsv(j),j=1,k),(dpsv1(j),j=1,k),(oidpsv(j),j=1,k)
-  endfile (99,iostat=ierro)
-  backspace (99,iostat=ierro)
+  flush(99)
 
 end subroutine dumpxy
 
@@ -99,7 +95,7 @@ subroutine dumpsynu(dumpname,n,i)
   use floatPrecision
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
 
   implicit none
@@ -144,9 +140,7 @@ subroutine dumpsynu(dumpname,n,i)
   write(99,*) (wfhi(j),j=1,napxo)
   write(99,*) ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
   write(99,*) ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-
-  endfile (99,iostat=ierro)
-  backspace (99,iostat=ierro)
+  flush(99)
 
 end subroutine dumpsynu
 
@@ -155,10 +149,10 @@ subroutine dump(dumpname,n,i)
   use floatPrecision
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use checkpoint_restart
 
   implicit none
@@ -198,7 +192,8 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'cre0',cre0
   write(99,*) 'crnumxv(npart)',crnumxv
   write(99,*) 'crnnumxv(npart)',crnnumxv
-  write(99,*) 'crnlostp(npart)',crnlostp
+  write(99,*) 'crpartID(npart)',crpartID
+  write(99,*) 'crparentID(npart)',crparentID
   write(99,*) 'crpstop(npart)',crpstop
   write(99,*) 'crxv',crxv
   write(99,*) 'cryv',cryv
@@ -217,7 +212,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'dpsv1',dpsv1
 
   write(99,*) 'ierro ',ierro
-  write(99,*) 'erbez ',erbez
   write(99,*) 'pi ',pi
   write(99,*) 'pi2 ',pi2
   write(99,*) 'pisqrt ',pisqrt
@@ -242,11 +236,9 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'zrms ',zrms
   write(99,*) 'mel ',mel
   write(99,*) 'mtyp ',mtyp
-  write(99,*) 'mstr ',mstr
   write(99,*) 'a ',a
   write(99,*) 'bl1 ',bl1
   write(99,*) 'bl2 ',bl2
-  write(99,*) 'rvf ',rvf
   write(99,*) 'idfor ',idfor
   write(99,*) 'napx ',napx
   write(99,*) 'napxo ',napxo
@@ -260,13 +252,11 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'iclo6 ',iclo6
   write(99,*) 'iclo6r ',iclo6r
   write(99,*) 'iver ',iver
-  write(99,*) 'ibidu ',ibidu
   write(99,*) 'qs ',qs
   write(99,*) 'e0 ',e0
   write(99,*) 'pma ',pma
   write(99,*) 'ej ',ej
   write(99,*) 'ejf ',ejf
-  write(99,*) 'phas0 ',phas0
   write(99,*) 'phas ',phas
   write(99,*) 'hsy ',hsy
   write(99,*) 'crad ',crad
@@ -300,7 +290,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'mzu ',mzu
   write(99,*) 'bezr ',bezr
   write(99,*) 'izu0 ',izu0
-  write(99,*) 'mmac ',mmac
   write(99,*) 'mcut ',mcut
 ! write(99,*) 'exterr ',exterr
 ! write(99,*) 'extalign ',extalign
@@ -432,7 +421,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'alfz ',alfz
   write(99,*) 'iskew ',iskew
   write(99,*) 'nskew ',nskew
-  write(99,*) 'hmal ',hmal
   write(99,*) 'sixtit ',sixtit
   write(99,*) 'commen ',commen
   write(99,*) 'ithick ',ithick
@@ -486,9 +474,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'xsi ',xsi
   write(99,*) 'zsi ',zsi
   write(99,*) 'smi ',smi
-  write(99,*) 'aai ',aai
-  write(99,*) 'bbi ',bbi
-  write(99,*) 'ampt ',ampt
   write(99,*) 'tlim ',tlim
   write(99,*) 'tasm ',tasm
   write(99,*) 'preda ',preda
@@ -525,8 +510,10 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'ekk ',ekk
   write(99,*) 'cr ',cr
   write(99,*) 'ci ',ci
-  write(99,*) 'xv ',xv
-  write(99,*) 'yv ',yv
+  write(99,*) 'xv1 ',xv1
+  write(99,*) 'yv1 ',yv1
+  write(99,*) 'xv2 ',xv2
+  write(99,*) 'yv2 ',yv2
   write(99,*) 'dam ',dam
   write(99,*) 'ekkv ',ekkv
   write(99,*) 'sigmv ',sigmv
@@ -543,7 +530,8 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'ejf0v ',ejf0v
   write(99,*) 'numxv ',numxv
   write(99,*) 'nms ',nms
-  write(99,*) 'nlostp ',nlostp
+  write(99,*) 'partID ',partID
+  write(99,*) 'parentID ',parentID
   write(99,*) 'dpd ',dpd
   write(99,*) 'dpsq ',dpsq
   write(99,*) 'fok ',fok
@@ -576,19 +564,9 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'hi ',hi
   write(99,*) 'fi ',fi
   write(99,*) 'hi1 ',hi1
-  write(99,*) 'xvl ',xvl
-  write(99,*) 'yvl ',yvl
-  write(99,*) 'ejvl ',ejvl
-  write(99,*) 'dpsvl ',dpsvl
   write(99,*) 'oidpsv ',oidpsv
-  write(99,*) 'sigmvl ',sigmvl
   write(99,*) 'iv ',iv
   write(99,*) 'aperv ',aperv
-  write(99,*) 'ixv ',ixv
-  write(99,*) 'clov ',clov
-  write(99,*) 'clopv ',clopv
-  write(99,*) 'alf0v ',alf0v
-  write(99,*) 'bet0v ',bet0v
   write(99,*) 'ampv ',ampv
   write(99,*) 'clo6v ',clo6v
   write(99,*) 'clop6v ',clop6v
@@ -629,8 +607,7 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'time0 ',time0
   write(99,*) 'time1 ',time1
 
-  endfile (99,iostat=ierro)
-  backspace (99,iostat=ierro)
+  flush(99)
 
 end subroutine dump
 
@@ -639,10 +616,10 @@ subroutine dumpbin(dumpname,n,i)
   use floatPrecision
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use checkpoint_restart
 
   implicit none
@@ -687,7 +664,8 @@ subroutine dumpbin(dumpname,n,i)
   write(99) cre0
   write(99) crnumxv
   write(99) crnnumxv
-  write(99) crnlostp
+  write(99) crpartID
+  write(99) crparentID
   write(99) crpstop
   write(99) crxv
   write(99) cryv
@@ -706,7 +684,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) dpsv1
 
   write(99) ierro
-  write(99) erbez
   write(99) pi
   write(99) pi2
   write(99) pisqrt
@@ -731,11 +708,9 @@ subroutine dumpbin(dumpname,n,i)
   write(99) zrms
   write(99) mel
   write(99) mtyp
-  write(99) mstr
   write(99) a
   write(99) bl1
   write(99) bl2
-  write(99) rvf
   write(99) idfor
   write(99) napx
   write(99) napxo
@@ -749,13 +724,11 @@ subroutine dumpbin(dumpname,n,i)
   write(99) iclo6
   write(99) iclo6r
   write(99) iver
-  write(99) ibidu
   write(99) qs
   write(99) e0
   write(99) pma
   write(99) ej
   write(99) ejf
-  write(99) phas0
   write(99) phas
   write(99) hsy
   write(99) crad
@@ -789,7 +762,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) mzu
   write(99) bezr
   write(99) izu0
-  write(99) mmac
   write(99) mcut
 ! write(99) exterr
 ! write(99) extalign
@@ -921,7 +893,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) alfz
   write(99) iskew
   write(99) nskew
-  write(99) hmal
   write(99) sixtit
   write(99) commen
   write(99) ithick
@@ -975,9 +946,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) xsi
   write(99) zsi
   write(99) smi
-  write(99) aai
-  write(99) bbi
-  write(99) ampt
   write(99) tlim
   write(99) tasm
   write(99) preda
@@ -1014,8 +982,10 @@ subroutine dumpbin(dumpname,n,i)
   write(99) ekk
   write(99) cr
   write(99) ci
-  write(99) xv
-  write(99) yv
+  write(99) xv1
+  write(99) yv1
+  write(99) xv2
+  write(99) yv2
   write(99) dam
   write(99) ekkv
   write(99) sigmv
@@ -1032,7 +1002,8 @@ subroutine dumpbin(dumpname,n,i)
   write(99) ejf0v
   write(99) numxv
   write(99) nms
-  write(99) nlostp
+  write(99) partID
+  write(99) parentID
   write(99) dpd
   write(99) dpsq
   write(99) fok
@@ -1065,19 +1036,9 @@ subroutine dumpbin(dumpname,n,i)
   write(99) hi
   write(99) fi
   write(99) hi1
-  write(99) xvl
-  write(99) yvl
-  write(99) ejvl
-  write(99) dpsvl
   write(99) oidpsv
-  write(99) sigmvl
   write(99) iv
   write(99) aperv
-  write(99) ixv
-  write(99) clov
-  write(99) clopv
-  write(99) alf0v
-  write(99) bet0v
   write(99) ampv
   write(99) clo6v
   write(99) clop6v
@@ -1117,8 +1078,7 @@ subroutine dumpbin(dumpname,n,i)
   write(99) time0
   write(99) time1
 
-  endfile (99,iostat=ierro)
-  backspace (99,iostat=ierro)
+  flush(99)
 
 end subroutine dumpbin
 
@@ -1127,10 +1087,10 @@ subroutine dumphex(dumpname,n,i)
   use floatPrecision
   use parpro
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use mod_commons
-  use mod_commont
-  use mod_commond
+  use mod_common_track
+  use mod_common_da
   use checkpoint_restart
 
   implicit none
@@ -1170,7 +1130,8 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'cre0',cre0
   write(99,100) 'crnumxv(npart)',crnumxv
   write(99,100) 'crnnumxv(npart)',crnnumxv
-  write(99,100) 'crnlostp(npart)',crnlostp
+  write(99,100) 'crpartID(npart)',crpartID
+  write(99,100) 'crparentID(npart)',crparentID
   write(99,100) 'crpstop(npart)',crpstop
   write(99,100) 'crxv',crxv
   write(99,100) 'cryv',cryv
@@ -1189,7 +1150,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'dpsv1',dpsv1
 
   write(99,100) 'ierro ',ierro
-  write(99,100) 'erbez ',erbez
   write(99,100) 'pi ',pi
   write(99,100) 'pi2 ',pi2
   write(99,100) 'pisqrt ',pisqrt
@@ -1214,11 +1174,9 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'zrms ',zrms
   write(99,100) 'mel ',mel
   write(99,100) 'mtyp ',mtyp
-  write(99,100) 'mstr ',mstr
   write(99,100) 'a ',a
   write(99,100) 'bl1 ',bl1
   write(99,100) 'bl2 ',bl2
-  write(99,100) 'rvf ',rvf
   write(99,100) 'idfor ',idfor
   write(99,100) 'napx ',napx
   write(99,100) 'napxo ',napxo
@@ -1232,13 +1190,11 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'iclo6 ',iclo6
   write(99,100) 'iclo6r ',iclo6r
   write(99,100) 'iver ',iver
-  write(99,100) 'ibidu ',ibidu
   write(99,100) 'qs ',qs
   write(99,100) 'e0 ',e0
   write(99,100) 'pma ',pma
   write(99,100) 'ej ',ej
   write(99,100) 'ejf ',ejf
-  write(99,100) 'phas0 ',phas0
   write(99,100) 'phas ',phas
   write(99,100) 'hsy ',hsy
   write(99,100) 'crad ',crad
@@ -1272,7 +1228,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'mzu ',mzu
   write(99,100) 'bezr ',bezr
   write(99,100) 'izu0 ',izu0
-  write(99,100) 'mmac ',mmac
   write(99,100) 'mcut ',mcut
 ! write(99,100) 'exterr ',exterr
 ! write(99,100) 'extalign ',extalign
@@ -1404,7 +1359,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'alfz ',alfz
   write(99,100) 'iskew ',iskew
   write(99,100) 'nskew ',nskew
-  write(99,100) 'hmal ',hmal
   write(99,100) 'sixtit ',sixtit
   write(99,100) 'commen ',commen
   write(99,100) 'ithick ',ithick
@@ -1458,9 +1412,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'xsi ',xsi
   write(99,100) 'zsi ',zsi
   write(99,100) 'smi ',smi
-  write(99,100) 'aai ',aai
-  write(99,100) 'bbi ',bbi
-  write(99,100) 'ampt ',ampt
   write(99,100) 'tlim ',tlim
   write(99,100) 'tasm ',tasm
   write(99,100) 'preda ',preda
@@ -1515,7 +1466,8 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'ejf0v ',ejf0v
   write(99,100) 'numxv ',numxv
   write(99,100) 'nms ',nms
-  write(99,100) 'nlostp ',nlostp
+  write(99,100) 'partID ',partID
+  write(99,100) 'parentID ',parentID
   write(99,100) 'dpd ',dpd
   write(99,100) 'dpsq ',dpsq
   write(99,100) 'fok ',fok
@@ -1548,19 +1500,9 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'hi ',hi
   write(99,100) 'fi ',fi
   write(99,100) 'hi1 ',hi1
-  write(99,100) 'xvl ',xvl
-  write(99,100) 'yvl ',yvl
-  write(99,100) 'ejvl ',ejvl
-  write(99,100) 'dpsvl ',dpsvl
   write(99,100) 'oidpsv ',oidpsv
-  write(99,100) 'sigmvl ',sigmvl
   write(99,100) 'iv ',iv
   write(99,100) 'aperv ',aperv
-  write(99,100) 'ixv ',ixv
-  write(99,100) 'clov ',clov
-  write(99,100) 'clopv ',clopv
-  write(99,100) 'alf0v ',alf0v
-  write(99,100) 'bet0v ',bet0v
   write(99,100) 'ampv ',ampv
   write(99,100) 'clo6v ',clo6v
   write(99,100) 'clop6v ',clop6v
@@ -1600,8 +1542,7 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'time0 ',time0
   write(99,100) 'time1 ',time1
 
-  endfile (99,iostat=ierro)
-  backspace (99,iostat=ierro)
+  flush(99)
 
 100 format (a10,(Z20))
 

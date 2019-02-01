@@ -1,3 +1,4 @@
+! start include/dalin1.f90
 jmel=mel(ix)
 if(idp.eq.0.or.ition.eq.0) then
   if(ithick.eq.1) then
@@ -21,3 +22,4 @@ if(idp.eq.0.or.ition.eq.0) then
           call darea6(alda(2,ip),zfeld1,5)
         endif
       enddo
+! end include/dalin1.f90

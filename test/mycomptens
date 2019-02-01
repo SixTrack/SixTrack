@@ -1,4 +1,0 @@
-#!/bin/sh
-# Read and compare two fort.10s to stdout
-# old in fort.20 and new in fort.21
-$BIN/compf10

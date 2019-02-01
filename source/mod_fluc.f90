@@ -39,8 +39,7 @@ contains
 subroutine fluc_parseInputLine(inLine, iLine, iErr)
 
   use string_tools
-  use parpro,         only : nmac
-  use mod_common,     only : izu0,mmac,mcut
+  use mod_common,     only : izu0,mcut
   use mod_settings,   only : st_debug
   use sixtrack_input, only : sixin_echoVal
 
@@ -51,7 +50,7 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  integer nSplit
+  integer nSplit, iDummy
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -60,6 +59,7 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   if(iLine > 1) then
     write(lout,"(a)") "FLUC> ERROR This block only takes one line."
@@ -70,13 +70,12 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr)
   fluc_mRead = 0
 
   if(nSplit > 0) call chr_cast(lnSplit(1),izu0,      iErr)
-  if(nSplit > 1) call chr_cast(lnSplit(2),mmac,      iErr)
+  if(nSplit > 1) call chr_cast(lnSplit(2),iDummy,    iErr)
   if(nSplit > 2) call chr_cast(lnSplit(3),fluc_mRead,iErr)
   if(nSplit > 3) call chr_cast(lnSplit(4),mcut,      iErr)
 
   if(st_debug) then
     call sixin_echoVal("izu0",izu0,      "FLUC",iLine)
-    call sixin_echoVal("mmac",mmac,      "FLUC",iLine)
     call sixin_echoVal("mout",fluc_mRead,"FLUC",iLine)
     call sixin_echoVal("mcut",mcut,      "FLUC",iLine)
   end if
@@ -86,8 +85,8 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr)
   fluc_iSeed1 = izu0
   fluc_iSeed2 = 0
 
-  if(mmac > nmac) then
-    write(lout,"(a,i0)") "FLUC> ERROR Maximum number of seeds for vectorisation is ",nmac
+  if(iDummy > 1) then
+    write(lout,"(a,i0)") "FLUC> ERROR Multiple seeds for vectorisation (mmac) is no longer supported. You requested ",iDummy
     iErr = .true.
     return
   end if
@@ -108,6 +107,7 @@ end subroutine fluc_parseInputLine
 
 subroutine fluc_readInputs
 
+  use mod_units
   use mod_common, only : mout2
 
   implicit none
@@ -117,7 +117,11 @@ subroutine fluc_readInputs
   fluc_nZFZ   = 0 ! For fort.30
 
   if(iand(fluc_mRead, 1) == 1) call fluc_readFort16
-  if(iand(fluc_mRead, 2) == 2) mout2 = 1
+  if(iand(fluc_mRead, 2) == 2) then
+    mout2 = 1
+    call f_open(unit=9, file="fort.9", formatted=.true., mode="w")
+    call f_open(unit=27,file="fort.27",formatted=.true., mode="w")
+  end if
   if(iand(fluc_mRead, 4) == 4) call fluc_readFort8
   if(iand(fluc_mRead, 8) == 8) call fluc_readFort30
 
@@ -195,7 +199,6 @@ subroutine fluc_readFort8
   use mod_alloc
   use mod_units
   use string_tools
-  use parpro,              only : mNameLen,str_nmSpace
   use numerical_constants, only : zero
   use mod_common,          only : il,bez,icextal,nblz,nblo,ic
 
@@ -205,14 +208,16 @@ subroutine fluc_readFort8
   character(len=:), allocatable :: lnSplit(:)
   real(kind=fPrec) alignx, alignz, tilt
   integer lineNo, ioStat, nSplit, mAlign, nAlign, iStru, iSing
-  logical iErr, isOpen, inSing
+  logical iErr, isFile, inSing
   integer i
 
   lineNo = 0
+  inLine = " "
 
-  inquire(unit=8, opened=isOpen)
-  if(isOpen) close(8)
-  call units_openUnit(unit=8,fileName="fort.8",formatted=.true.,mode="r",err=iErr)
+  inquire(file="fort.8", exist=isFile)
+  if(.not.isFile) return
+
+  call f_open(unit=8,file="fort.8",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
     write(lout,"(a)") "FLUC> ERROR Failed to open fort.8"
     goto 30
@@ -241,9 +246,9 @@ subroutine fluc_readFort8
 
   fluc_nAlign = fluc_nAlign + 1
   if(fluc_nAlign > mAlign) then
-    call alloc(fluc_errAlign,3,       mAlign+50,zero,       "fluc_errAlign")
-    call alloc(fluc_bezAlign,mNameLen,mAlign+50,str_nmSpace,"fluc_bezAlign")
-    call alloc(fluc_ixAlign,          mAlign+50,0,          "fluc_ixAlign")
+    call alloc(fluc_errAlign,3,       mAlign+50,zero, "fluc_errAlign")
+    call alloc(fluc_bezAlign,mNameLen,mAlign+50," ",  "fluc_bezAlign")
+    call alloc(fluc_ixAlign,          mAlign+50,0,    "fluc_ixAlign")
   end if
 
   if(nSplit > 0) fluc_bezAlign(fluc_nAlign) = trim(lnSplit(1))
@@ -254,7 +259,7 @@ subroutine fluc_readFort8
   goto 10
 
 20 continue
-  close(8)
+  call f_close(8)
   if(fluc_nAlign == 0) then
     write(lout,"(a)") "FLUC> Reading of fort.8 requested in FLUC block, but no elements read."
     return
@@ -302,7 +307,6 @@ subroutine fluc_readFort16
   use mod_alloc
   use mod_units
   use string_tools
-  use parpro,              only : mNameLen,str_nmSpace
   use numerical_constants, only : zero
   use mod_common,          only : il,bez,icext,nblz,nblo,ic
 
@@ -312,16 +316,19 @@ subroutine fluc_readFort16
   character(len=:), allocatable :: lnSplit(:)
   character(len=mNameLen) bezExt
   integer mType, lineNo, ioStat, nSplit, lMode, nVals, mVal, mExt, iStru, iSing, nExt
-  logical iErr, isOpen, inSing
+  logical iErr, isFile, inSing
   integer i
 
+  mVal   = 0
   mType  = 0
   lineNo = 0
   lMode  = 0
+  inLine = " "
 
-  inquire(unit=16, opened=isOpen)
-  if(isOpen) close(16)
-  call units_openUnit(unit=16,fileName="fort.16",formatted=.true.,mode="r",err=iErr)
+  inquire(file="fort.16", exist=isFile)
+  if(.not.isFile) return
+
+  call f_open(unit=16,file="fort.16",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
     write(lout,"(a)") "FLUC> ERROR Failed to open fort.16"
     goto 30
@@ -371,9 +378,9 @@ subroutine fluc_readFort16
 
       fluc_nExt = fluc_nExt + 1
       if(fluc_nExt > mExt) then
-        call alloc(fluc_errExt,40,      mExt+50,zero,       "fluc_errExt")
-        call alloc(fluc_bezExt,mNameLen,mExt+50,str_nmSpace,"fluc_bezExt")
-        call alloc(fluc_ixExt,          mExt+50,0,          "fluc_ixExt")
+        call alloc(fluc_errExt,40,      mExt+50,zero, "fluc_errExt")
+        call alloc(fluc_bezExt,mNameLen,mExt+50," ",  "fluc_bezExt")
+        call alloc(fluc_ixExt,          mExt+50,0,    "fluc_ixExt")
       end if
       fluc_bezExt(fluc_nExt) = bezExt
 
@@ -401,7 +408,7 @@ subroutine fluc_readFort16
   goto 10
 
 20 continue
-  close(16)
+  call f_close(16)
   if(fluc_nExt == 0) then
     write(lout,"(a)") "FLUC> Reading of fort.16 requested in FLUC block, but no elements read."
     return
@@ -454,7 +461,7 @@ subroutine fluc_readFort30
   use mod_alloc
   use mod_units
   use string_tools
-  use parpro,              only : mNameLen,str_nmSpace,mmul
+  use parpro,              only : mmul
   use numerical_constants, only : zero
   use mod_common,          only : il,bez,icextal,nblz,nblo,ic,kp,kz
 
@@ -464,14 +471,16 @@ subroutine fluc_readFort30
   character(len=:), allocatable :: lnSplit(:)
   real(kind=fPrec) alignx, alignz, tilt
   integer lineNo, ioStat, nSplit, mZFZ, nZFZ, iStru, iSing, iZ
-  logical iErr, isOpen, inSing
+  logical iErr, isFile, inSing
   integer i
 
   lineNo = 0
+  inLine = " "
 
-  inquire(unit=30, opened=isOpen)
-  if(isOpen) close(30)
-  call units_openUnit(unit=30,fileName="fort.30",formatted=.true.,mode="r",err=iErr)
+  inquire(file="fort.30", exist=isFile)
+  if(.not.isFile) return
+
+  call f_open(unit=30,file="fort.30",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
     write(lout,"(a)") "FLUC> ERROR Failed to open fort.30"
     goto 30
@@ -500,9 +509,9 @@ subroutine fluc_readFort30
 
   fluc_nZFZ = fluc_nZFZ + 1
   if(fluc_nZFZ > mZFZ) then
-    call alloc(fluc_errZFZ,4,       mZFZ+50,zero,       "fluc_errZFZ")
-    call alloc(fluc_bezZFZ,mNameLen,mZFZ+50,str_nmSpace,"fluc_bezZFZ")
-    call alloc(fluc_ixZFZ,          mZFZ+50,0,          "fluc_ixZFZ")
+    call alloc(fluc_errZFZ,4,       mZFZ+50,zero, "fluc_errZFZ")
+    call alloc(fluc_bezZFZ,mNameLen,mZFZ+50," ",  "fluc_bezZFZ")
+    call alloc(fluc_ixZFZ,          mZFZ+50,0,    "fluc_ixZFZ")
   end if
 
   if(nSplit > 0) fluc_bezZFZ(fluc_nZFZ) = trim(lnSplit(1))
@@ -514,7 +523,7 @@ subroutine fluc_readFort30
   goto 10
 
 20 continue
-  close(30)
+  call f_close(30)
   if(fluc_nZFZ == 0) then
     write(lout,"(a)") "FLUC> Reading of fort.30 requested in FLUC block, but no elements read."
     return
@@ -586,7 +595,8 @@ subroutine fluc_writeFort4
   ii      = 0
   lineNo2 = 0
 
-  call units_openUnit(unit=4,fileName="fort.4",formatted=.true.,mode="w",err=iErr)
+  call f_open(unit=2,file="fort.2",formatted=.true.,mode="r",err=iErr)
+  call f_open(unit=4,file="fort.4",formatted=.true.,mode="w",err=iErr)
 
   rewind(2)
 10 continue
@@ -648,7 +658,8 @@ subroutine fluc_writeFort4
   goto 30
 
 90 continue
-  close(4)
+  call f_close(2)
+  call f_close(4)
   return
 end subroutine fluc_writeFort4
 

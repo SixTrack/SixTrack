@@ -1,3 +1,4 @@
+! start include/multl13.f90
 l1=l-1
 izu=izu+1
 aa(l)=ak0(im,l)+zfz(izu)*aka(im,l)
@@ -19,3 +20,4 @@ if(l.gt.1.and.ium.ne.1) then
   qu=qu+real(l1,fPrec)*(bb(l)*cr(l1)+aa(l)*ci(l1))                   !hr03
   qv=qv+real(l1,fPrec)*(bb(l)*ci(l1)-aa(l)*cr(l1))                   !hr03
 endif
+! end include/multl13.f90

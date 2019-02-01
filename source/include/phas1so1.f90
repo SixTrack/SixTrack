@@ -1,3 +1,4 @@
+! start include/phas1so1.f90
 !--solenoid
 elseif(kzz.eq.25) then
   do l=1,2
@@ -8,3 +9,4 @@ elseif(kzz.eq.25) then
       phibf(l)=pi2
     end if
   end do
+! end include/phas1so1.f90

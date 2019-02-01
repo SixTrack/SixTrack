@@ -2,16 +2,25 @@ version: 2
 jobs:
   build:
     docker:
-      - image: debian:unstable
+      - image: debian:testing
     steps:
       - run:
          name: setup
-         command: apt-get update && apt-get install -y unzip git gfortran cmake gcc g++
+         command: apt-get update && apt-get install -y unzip git gfortran cmake gcc g++ texlive
       - checkout
       - run:
           name: build and test
           command: |
+             repo_size=`git count-objects -v | grep size-pack | awk '{print $2}' `
+             echo "Repository size is $repo_size kbytes."
+             if [ "$repo_size" -gt "620000" ]
+                then
+                echo "Repository size has grown too much, please contact admins."
+                exit 1
+             fi
+             git submodule update --init lib/NAFFlib
              ./cmake_six BUILD_TESTING 
              cd build/*BUILD_TESTING*
              make -j4
-             ctest -j4 -L fast -E elens
+             ctest -j4 -L fast
+             echo "Repository size is $repo_size kbytes."

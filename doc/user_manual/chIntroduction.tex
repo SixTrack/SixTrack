@@ -56,8 +56,6 @@ The following subroutines are taken from various packages:
         \rowcolor{blue!30}
         \textbf{Package} & \textbf{Routine} & \textbf{Purpose} \\
         \hline
-        \texttt{NAGLIB} & \texttt{E04UCF, E04UDM, E04UEF, X04ABF} & Using internally Normal Forms \\
-        \hline
         \texttt{HBOOK}  & \texttt{HBOOK2, HDELET, HLIMIT, HTITLE} & Graphic basics \\
         \hline
         \texttt{HPLOT}  & \texttt{HPLAX,  HPLCAP, HPLEND, HPLINT} & Graphic options \\
@@ -103,8 +101,18 @@ Following, is a short historical overview of how the versions of SixTrack have e
     \item \textbf{Version 4}
         \todo[inline]{Add stuff}
     \item \textbf{Version 5}
-        \todo[inline]{Add stuff}
+        Machine size and particle numbers are no longer defined by compiler flags but allocated dynamically based on the input files.
+        Merges the Collimation version of SixTrack into the main code.
+        Code-wide implementation of rounding of input float values from text, as well as output of float values to text in critical parts, provided by the CRLIBM library.
+        This also includes a wrapper for consistent rounding of values from mathematical functions.
+        Adds experimental support for HDF5 and ROOT output files.
+        Extensive rewrite of many sections of the code to increase flexibility and modularity, as well as bug fixes to the physics.
+        Includes a full rewrite of the input parsing and upgrade of the source to Fortran 2008.
+        Support for 32, 64 and 128 bit floating point precision.
+        Replaces the astuce preprocessor with the c preprocessor.
 \end{itemize}
+
+For a more detailed list of changes, see \texttt{CHANGELOG.md} in the repository.
 
 % Formerly in Chapter: Conclusions
 Programs with large input structures like SixTrack tend to be far from perfect, even though a cumbersome chase for program bugs and a lot of polishing on the input structure has been performed.

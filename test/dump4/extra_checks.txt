@@ -1,4 +1,5 @@
-dump.dat             diff -q --strip-trailing-cr
-dumpAll.dat          diff -q --strip-trailing-cr
-StartDUMP.dat        diff -q --strip-trailing-cr
-dynksets.dat         diff -q --strip-trailing-cr
+dump.dat
+dumpAll.dat
+StartDUMP.dat
+dynksets.dat
+final_state.dat

@@ -1,19 +1,7 @@
-fort.999           diff -q --strip-trailing-cr
-coll_summary.dat   diff -q --strip-trailing-cr
-Coll_Scatter.dat   diff -q --strip-trailing-cr
-FLUKA_impacts.dat   diff -q --strip-trailing-cr
-FLUKA_impacts_all.dat   diff -q --strip-trailing-cr
-FirstImpacts.dat   diff -q --strip-trailing-cr
-all_absorptions.dat   diff -q --strip-trailing-cr
-all_impacts.dat   diff -q --strip-trailing-cr
-amplitude.dat   diff -q --strip-trailing-cr
-amplitude2.dat   diff -q --strip-trailing-cr
-coll_summary.dat   diff -q --strip-trailing-cr
-collgaps.dat   diff -q --strip-trailing-cr
-collsettings.dat   diff -q --strip-trailing-cr
-dist0.dat   diff -q --strip-trailing-cr
-distn.dat   diff -q --strip-trailing-cr
-efficiency.dat   diff -q --strip-trailing-cr
-efficiency_2d.dat   diff -q --strip-trailing-cr
-efficiency_dpop.dat   diff -q --strip-trailing-cr
-survival.dat   diff -q --strip-trailing-cr
+aperture_losses.dat
+survival.dat
+coll_summary.dat
+efficiency.dat
+efficiency_2d.dat
+efficiency_dpop.dat
+hash.md5

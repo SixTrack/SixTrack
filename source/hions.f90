@@ -8,16 +8,18 @@ module mod_hions
   use floatPrecision
   use parpro
   use mod_alloc
+  use physical_constants, only : pmap
   use numerical_constants, only : zero, one, c1e3
   use, intrinsic :: iso_fortran_env, only : int16
 
   implicit none
 
   ! Checking for the HION block
-  logical, save :: has_hion
+  logical, save :: has_hion = .false.
 
   ! Rest mass of the reference ion species
-  real(kind=fPrec), save :: nucm0,nucmda
+  real(kind=fPrec), save :: nucm0 = pmap
+  real(kind=fPrec), save :: nucmda
   real(kind=fPrec), save :: brhono
 
   ! ien0,ien1: ion energy entering/leaving the collimator
@@ -34,10 +36,10 @@ module mod_hions
   real(kind=fPrec), allocatable, save :: mtc(:) !(npart)
 
   ! Nucleon number of the reference ion species
-  integer(kind=int16), save :: aa0
+  integer(kind=int16), save :: aa0 = 1
 
   ! Charge multiplicity of the reference ion species
-  integer(kind=int16), save :: zz0
+  integer(kind=int16), save :: zz0 = 1
 
   integer(kind=int16), save :: nnuc0
   integer(kind=int16), save :: nnuc1
@@ -81,13 +83,13 @@ end subroutine hions_allocate_arrays
 
 subroutine hions_expand_arrays(npart_new)
   integer, intent(in) :: npart_new
-  call resize(nucm,npart_new,nucm0,'nucm')
-  call resize(moidpsv,npart_new,one,'moidpsv')
-  call resize(omoidpsv,npart_new,zero,'omoidpsv')
-  call resize(mtc,npart_new,one,'mtc')
-  call resize(naa,npart_new,aa0,'naa')
-  call resize(nzz,npart_new,zz0,'nzz')
-  call resize(pids,npart_new,0,'pids')
+  call alloc(nucm,npart_new,nucm0,'nucm')
+  call alloc(moidpsv,npart_new,one,'moidpsv')
+  call alloc(omoidpsv,npart_new,zero,'omoidpsv')
+  call alloc(mtc,npart_new,one,'mtc')
+  call alloc(naa,npart_new,aa0,'naa')
+  call alloc(nzz,npart_new,zz0,'nzz')
+  call alloc(pids,npart_new,0,'pids')
 end subroutine hions_expand_arrays
 
 subroutine hions_parseInputLine(inLine, iLine, iErr)
@@ -110,6 +112,7 @@ subroutine hions_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   if(iLine > 1) then
     write(lout,"(a)") "HIONS> WARNING Only expected one input line."
@@ -160,7 +163,7 @@ subroutine hions_crpoint(fileUnit, writeErr, iErro)
   implicit none
 
   integer, intent(in)    :: fileUnit
-  logical, intent(out)   :: writeErr
+  logical, intent(inout) :: writeErr
   integer, intent(inout) :: iErro
 
   integer i

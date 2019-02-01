@@ -1,11 +1,214 @@
 # SixTrack Changelog
 
-### Version 5.0 RC4 [xx.xx.xxxx] - Release Candidate
+### Version 5.1.3 [25.01.2019] - BOINC Release
+
+**User Side Changes**
+
+* Misalignment of RF-multipoles is now possible. PR #763 (T. Persson)
+
+**Bug Fixes**
+
+* Aperture checking along a transition takes into account RACETRACK properly. PR #771 (A. Mereghetti)
+* When built with checkpoint/restart, the `mod_units` would try to write to the `file_units.log` file after it was closed. This caused SixTrack to exit with an error code after tracking when building with the NAG compiler. PR #770 (V.K. Berglyd Olsen)
+
+**Documentation**
+
+* Build scripts for HTML version of the manual have been fixed. PR #767 (V.K. Berglyd Olsen)
+* Documentation on aperture limitations have been updated. PR #771 (A. Mereghetti)
+
+**Code Improvements and Changes**
+
+* The old `comnul` subroutine used to zero out old common blocks has been reduced to almost nothing. The default values are now set in their respective modules, mainly in `common_modules.f90`. PRs #765, #768 and #771 (V.K. Berglyd Olsen, A. Mereghetti)
+* Some general code clean-up of the aperture module. PR #771 (A. Mereghetti)
+* Symplecticity deviation is now written to `sim_meta.dat` instead of its own file. PR #770 (V.K. Berglyd Olsen)
+* Files are no generally opened where they're needed rather than at the start of `maincr`. This helps to reduce the number of zero size fort.* files in the simulation folder. PR #770 (V.K. Berglyd Olsen)
+
+### Version 5.1.2 [14.01.2019] - Release
+
+**User Side Changes**
+
+* The memory allocation log is now only written when SixTrack is built with the `DEBUG` flag. This file can grow fairly large, and has caused issues when running on BOINC. PR #750 (V.K. Berglyd Olsen)
+* Added the option to write a file with the initial (pre-tracking) coordinates of all particles. This is the same format as the final state files added earlier. The feature is enabled with the `INITIALSTATE` and `FINALSTATE` keywords in the `SETTINGS` block. PR #760 (V.K. Berglyd Olsen)
+* Generalised RF-Multipoles have been added to SixTrack. See manual. PR #756 (T. Persson)
+
+**Bug Fixes**
+
+* An allocatable array was declared and passed to `mod_alloc` per particle/turn/element in subroutine `sbc` in `beam6d.f90`. This caused the memory log file to grow very large, and likely had a performance cost. The call to `mod_alloc` has been removed. PR #749 (R. De Maria)
+* Fixed an issue where the extraction of `Sixin.zip` would not trigger properly. The decision whether to call the extraction is taken on the existence of a specific file in the run folder. The file exist check didn't trigger properly with the new file open wrapper in `mod_units`. PR #751 (V.K. Berglyd Olsen)
+* When writing `fort.4` (a duplicate of `fort.2`), both files need to be opened in module `mod_fluc`. Previously `fort.2` was opened globally during init, but is now only opened when input parsing is run. An additional open call was missing in `mod_fluc`. This made the nagfor compiler very unhappy. PR #752 (V.K. Berglyd Olsen)
+* Fixed a little bug in aperture which becomes evident if `tlen` starts to deviate from `dcum(iu)`. All the calculations in aperture (especially for the backtracking algorithm) are based on `dcum`, but if the code has to deal with the beginning/end of the ring, it was using `tlen`, whereas, to be consistent, it should use `dcum(iu)`. PR #755 (A. Mereghetti)
+* Fixed a bug where lines after the `LOAD` keyword in the `LIMI` block were ignored. PR #754
+* Fixed a potential bug with fixed file units set in the `elens` module where the unit was within the range of those automatically assigned by `mod_units`. PR #759  (V.K. Berglyd Olsen)
+* In a number of places in tracking, a subroutine looping over all particles was called from within a particle loop. These were moved to the outside of the loop. PR #759 (V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* The two modules handling file units have been merged to a single module. Each previous module was handling dynamic allocation of file unit and wrapping the open statement for compiler options separately. The new module now also writes a log file listing all files opened and closed through the module. PR #747 (V.K. Berglyd Olsen)
+* The parsing of the aperture limitations file in the `LIMI` block has been updated and made more consistent with how other secondary input files are handled elsewhere in SixTrack. This simplifies the code. PR #754 (A. Mereghetti)
+* No-longer used particle array size variables in the collimation code were cleaned up. PR #665 (K. Sjobak)
+* The cavities now call the `part_updatePartEnergy` routine after changing particle energy. The subroutine now also optionally computes the change in particle angle. PR #759 (V.K. Berglyd Olsen)
+
+### Version 5.1.1 [13.12.2018] - BOINC Release
+
+**BOINC Specific Changes**
+
+* Updated to use BOINC lib and API 7.14.2.
+
+**Known Issues**
+
+* BOINC with API does not run properly when built on latest Ubuntu LTS and Debian when both the BOINC API and SixTrack is built with the Gnu compiler. Mixing gcc and ifort or nagfor runs fine. This does not seem to be an issue when building on Fedora and CentOS. The Linux executables provided for this release are built on CentOS 7.
+
+**Test Suite**
+
+* A test can now be configured to automaticall stop on certain turn numbers using the `CRKILLSWITCH` flag in the `SETTINGS` block. This will help ensuring that tests actually restart from checkpoint data.
+* The test suite can now verify that specified tests actually do restart when building with checkpoint/restart support.
+
+### Version 5.1.0 [11.12.2018] - Release
+
+While this release includes regular bug fixes and changes, the primary focus is on making code improvements that allows for a wider range of studies to be run on BOINC.
+
+**BOINC Specific Changes**
+
+* The elens module is now compatible with BOINC, meaning that it is properly checkpointed and the output files are properly wrapped for use with BOINC.
+* The aperture module is now compatible with BOINC, meaning that it is properly checkpointed and the output files are properly wrapped for use with BOINC.
+
+**Input File Format Changes**
+
+* The input parser now enforces the use of a `NEXT` flag after the `PRINT` block. That is, the block must be properly closed like all other input blocks. The fact that such a flag has not been required in the past is due to a loophole in the old input parsing code. Note that usage of the `PRINT` block is deprecated. The same functionality is achieved by specifying a `PRINT` command in the `SETTINGS` block. The `PRINT` block will be removed in a future release.
+* The format of aperture input information (`LIMI` block) has been changed, breaking compatibility with previous versions. In particular, tilt angle is now set as last column, as implemented by MADX-to-SixTrack converter, instead of being last but two. Moreover, the aperture offset is not expressed in terms of local value of the survey but as actual offset; hence, offset values are subtracted from particle coordinates and not summed when the aperture is checked. All users of the Fluka-SixTrack coupling will have to update their aperture model - the change in the pre-processing script to do so will come shortly.
+
+**Other User Side Changes**
+
+* Added a `FINALSTATE` flag in the `SETTINGS` block in `fort.3` that writes a binary or text file (via roundctl) of all particles at the end of tracking (but before post-processing). The flag takes `binary` or `text` as an option, specifying the file format. The `final_state.dat` or `final_state.bin` file produced also contains the particles flagged as lost during tracking.
+* Added a `HASH` module that can be used for computing the md5sum of output files. The primary purpose of this is for checking that the output is consistent in the test suite or when results are returned from BOINC.
+* Increased information in the error message produced when an error is encountered in the parsing of the `fort.3` input file.
+* E-lens module can now handle a radial profile read from text file.
+* E-lens kick are now fully chromatic.
+* E-lens current and kinetic energy can be modified during tracking via `DYNK`.
+
+**Build System**
+
+* The build system now requires CMake 3.2; up from 3.0.
+
+**Bug Fixes**
+
+* Minor bug in parsing of the `ELENS` input block where specifying a non-existent element would trigger the wrong error message to be returned.
+* Fixes a bug in checkpoint/restarting where `DUMP` restart information was not written to the secondary checkpoint file.
+* Fixed a bug in checkpoint/restarting where an infinite loop might occur when both primary and secondary checkpoint files were corrupt.
+* Checkpoint/restarting did not work as expected when building with the nagfor compiler. This compiler is more strict than gfortran and ifort on how files are accessed, which caused a nagfor built executable to try to overwrite `fort.10` with a dummy file even if it existed.
+* Fixed a bug in beam--beam in the case of the `ibeco` flag being set to 0. In this case the beam offset would be computed with uninitialised variables.
+
+**Code Improvements and Changes**
+
+* All open file units registered in the module `mod_units` and `file_units` are now flushed after post-processing, and before the `HASH` and `ZIPF` modules are called.
+
+**Test Suite**
+
+* The `Sixin.zip` files used for testing BOINC builds have been removed from the repository. These are now generated when needed by the test suite CMake.
+
+### Version 5.0.3 [22.11.2018] - Release
+
+**Bug Fixes**
+
+* Due to inconsistent if-statements, FMA would sometimes write to a non-existent file unit without opening the file properly.
+* DYNK would not build with nagfor due to two malformed strings.
+* Fixed building with `ROUND_ZERO` flag. The `matlib_bouncer` was trying to call non-existent round-towards-zero routines for `exp_mb()` functions (which is handled by round down `exp_rd()`), and `log10_mb` which was missing for `ROUND_ZERO` and has been added to `CRLIBM`.
+* A variable for DYNK FIR/IIR functions was written to memory twice, but with an invalid index for one of those writes. This write has been removed.
+* Removed a remaining `COLLIMAT` flag in the beam-gas module that prevented the `BEAMGAS` flag from building.
+* Fixed an infinite loop bug in Checkpoint/Restart where the restart would repeatedly try to open `fort.96` if the reading failed while reading DUMP checkpoint data. This would only occur if both `fort.95` and `fort.96` files were corrupt.
+* Fixed a bug where ifort would not accept `180_fPrec` as a valid floating point number in the `aperture` module.
+* Removed references to intrinsic `ieee_arithmetic` due to significant performance loss when building with gfortran.
+* The particle array `dpsv1` was wrongly updated in various parts of SixTrack. This has now been corrected. The error only affected ion tracking, but not protons.
+* Previous fix to trombone elements in v5.0.1 was only for thin tracking. The same fix has now been applied to thick tracking.
+* Loading beam population with the `DIST` block did not update all energy/momentum arrays correctly on initialisation. This is now fixed. The change is very small.
+
+**User Side Changes**
+
+* Electron lenses have been re-enabled, and the code reverted/rewritten to produce the same results as for SixTrack 4.7.18. Further updates will be made.
+* The FMA output files will no longer contain NaN values. The NaN values were deliberate return values for `atan2(0,0)` call. This behaviour has been changed to return `0d0` instead, following [IEEE Std 1003.1-2017 (Revision of IEEE Std 1003.1-2008)](http://pubs.opengroup.org/onlinepubs/9699919799/). The nagfor compiler does not comply with this standard, and the return value for the nagfor built executables is handled by an additional if statement.
+* Added DYNK support for coupled 4D beam-beam elements.
+* Introduced consistent settings of coupling in the strong beam for 4D.
+* A new output file, `sim_meta.dat`, has been added. The file lists name value pairs of information about the last run simulation.
+* A new output file, `sim_time.dat`, has been added. The file lists time stamps throughout the simulation in key points, as well as compute cpu time averages.
+* Parsing of beam distribution file `fort.13` has been updated. The energy per particle value read from the file is ignored and computed from the delta_p (`dpsv`) value provided.
+* The `DIST` block has been updated to use the `CRLIBM` rounding library.
+* The Collimation module now accepts dist format 0, which bypasses the internal beam distribution generator and instead uses the one defined by the `INIT` or `DIST` block.
+
+**Build System**
+
+* Added a `defaultBuild.sh` script that builds SixTrack with NAFF and libArchive support.
+* The `buildLibraries.sh` script has been split up and rewritten to support more libraries. The script can be called with no arguments to build all libraries, or with `boinc`, `libarchive` or `hdf5` to build the respective libraries only. Dependencies are handled automatically.
+* Building with flags `G4COLLIMAT`, `BEAMGAS` and `MERLINSCATTER` now disables building of the Differential Algebra executable (SixDA).
+* The first 7 characters of the git hash is now added to the executable name as part of the version number.
+* Added symlink name `sixtrack` pointing to the SixTrack executable in the build directory.
+* Changed the way lquadmath is linked on Mac to make it more robust.
+
+**Other Changes**
+
+* A set of developer tools for MAD-X/SixTrack output testing and comparison has been added in the `devtools` folder.
+* The standard output from SixTrack has been cleaned up and tweaked a little.
+
+**Code Improvements and Changes**
+
+* A new subroutine for initialising the random number generator has been added. This routine has proper boundary checks on the seeds. It can also optionally accept one seed. instead of two. The second seed is then calculated by a fixed offset.
+* The internal NAFF library has been replaced by a rewritten external library now included as a submodule.
+* Remaining code for multiple machines (different random seeds) has bean cleaned out. The feature was already disabled.
+* Aperture checks have been inlined to improve performance.
+* Particle vectors for [x,y] and [xp,yp] has been split up into 4 separate vectors.
+
+### Version 5.0.2 [23.08.2018] - Release
+
+**Bug Fixes**
+
+* Fixed bug where the Solenoid element would use the energy of the previous turn for computations.
+
+### Version 5.0.1 [22.08.2018] - Release
 
 **User Side Changes**
 
 * DUMP now uses the roundctl library when writing float values (except for the s coordinate). This fixes the failing test(s) where some values are printed as -0.0E0. This ensures that the output is consitent across compilers and platforms.
-* MULTIPOLES now consider the curvature effect when there is a quadrupolar field in the dipole (element 11). This is mainly useful to model combined function magnets. 
+* Added DUMP format 101 for as a debugging dump format.
+* MULTIPOLES now consider the curvature effect when there is a quadrupolar field in the dipole (element 11). This is mainly useful to model combined function magnets.
+* Added new "debugging" format to DUMP, format 101.
+* Updated DUMP manual and headers for consistency.
+* COLLIMAT compilation flag removed. The collimation code is always compiled, and is controlled by the `COLL` block in `fort.3`.
+* Fixes to phase trombone implementation.
+* FMA is now using `atan2` in stead of `atan` to get the phase.
+* ABS function added to DYNK.
+* Flag `ibidu` and file `fort.32` was removed.
+* Improved error reporting and consistency throughout the code.
+* SixTrack output header updated, adding including GIT hash and key build flags. Timing report at the end of execution also improved.
+
+**Documentation**
+
+* Collimation was added to manual.
+* HDF5 module was documented.
+
+**Code Improvements and Changes**
+
+* The old fixed length getfields_split routine has been removed entirely from the source. It is replaced by `chr_split` from the `string_tools` module.
+* All remaining usage of zero chars have has been removed from the source. Zero-terminated strings should now be handled by interface routines for c. The fixed length `stringzerotrim` routine has been removed, but the variable length chr_trimZero remains in case it is needed in the future.
+* Collimation arrays only allocated when COLL block is present. When present, memory use is significantly increased (as before).
+* Particles and energy update codes centralized in new module `mod_particles`.
+* Some NaNs are now quiet.
+* SixTrack no longer exits on underflow when compiled with build type `debug`.
+* Libraries boinc, libarchive, and zlib were moved from `source` to `lib`.
+* Consolidated `alloc`/`resize` calls and removed redundant interface `resize` from `mod_alloc`.
+* Updated `DYNK`, `FMA`, `ZIPF`, and `ROOT` blocks to use the new string split routines. 
+* New flexible wrapping system `chr_fromReal()` for converting floating point numbers to strings. Added to `DUMP`, making the DUMP outputs consistent between compilers.
+
+**Tests**
+
+* Added tests for nearly all of the DYNK FUN statements. Only PELP, PIPE, and FIR are currently untested.
+* The old SixTest test harness was finally deleted, and the `test` folder was cleaned up.
+* Updated canonicals for `prob1` / `prob3`, `fma*`, `dump*`. All tests except `*elens*` should now work.
+* Added test that the user manual builds correctly.
+* Continuous integration (CI) was added.
+
+**Bug Fixes**
+
+* MULT block with non-existent single element now causes an error instead of writing the coefficients to invalid memory.
+* Fixed write-to-outside-an-array error in `track_thin`.
 
 ### Version 5.0 RC3 [12.07.2018] - Release Candidate
 
@@ -26,28 +229,31 @@
 
 **Code Improvements and Changes**
 
-* The custom astuce pre-processor has been removed and everything is now handled by the c pre-processor. This implies that:
+* The custom astuce pre-processor has been removed and everything is now handled by the C pre-processor. This implies that:
   * Includes are now handled by `#include` statements and the files are located in the include folder. `+cd` blocks are gone.
   * Nearly all common blocks have been removed and the variables moved into modules.
 * Renamed the folders `SixTrack` to `source` and `SixTest` and `SixTest_da` to `test`.
 * Major cleanup of the source and test folders, and the build target directory is now outside the source folder.
-* Major restructuring of the source code. Mainly the splitting up of old sixtrack.s file into sensible files and converted to modules when reasonable.
+* Major restructuring of the source code. Mainly the splitting up of old `sixtrack.s` file into sensible files and converted to modules when reasonable.
 * Started using mod_alloc also for internal subroutine/module arrays. This helps tracking memory usage.
 * Added a completely new string split routine, and started phasing out both the old ones. The new routine uses dynamic array allocation and therefore have no strict limits to size and number of elements.
 * Completely rewritten subroutine daten. All blocks are now parsed line by line in a single fort.2/fort.3 loop. Lines are either parsed in the module corresponding to the given block, or in a separate subroutine in the new module sixtrack_input. Diagnostics and debug routines have been added.
 * Opening of standard SixTrack I/O files are now handled by module mod_units. This is different from the dynamically assigned file units module as these are fixed units with compiler flags for FIO, CRLIBM and BOINC handled internally. This removes the need to specifiy open calls for each set of flags every time a file is opened.
+* Wrapper for converting strings to real(32/64/128), presenting one user interface `chr_cast()` to the programmer, internally using different codes for CRLIBM, non-CRLIBM, and FIO. This cleanes up input reading a lot.
 
 **Disabled or Removed Features**
 
 * Tune-shift corrections have been removed. This also removes the need for NAGLIB.
 * Electron lens is currently disabled, but is planned re-enabled before final release.
+* BNLELENS and RHICELENS flags removed.
 
 ### Version 5.0 RC2 [11.06.2018] - Release Candidate
 
 **Bug Fixes and Updates**
 
-* Fixed checkpoint/restarting
-* Updated BOINC
+* Fixed checkpoint/restarting.
+* Updated BOINC.
+* Time compilation flag was removed.
 
 ### Version 5.0 RC1 [06.04.2018] - Release Candidate
 
@@ -56,20 +262,24 @@
 * DUMP now accepts -1 as file unit input, in which case a unit will be assigned dynamically.
 * Added optional QUIET flag that will stop SixTrack from reporting initial and final values of particle pairs.
 * Fixed the previously broken DA version of the code. Still may have issues with naglib when compiled with gfortran.
-* Added HDF5 block for alternative ouptut for DUMP and Scatter
+* Added HDF5 block for alternative ouptut for DUMP and Scatter.
+* BDEX and FLUKA was merged.
 
 **Code Improvements and Changes**
 
 * SixTrack is now Fortran 2008 Free Form, and depcrecated syntax has been converted or removed.
 * Significant portions of the code has been split out into Fortran modules, including many common blocks.
+* Abstraction of math functions: One single routine to call for each math function (sin(x) etc) which then calls the appropriate crlibm / libm method.
 * SixTrack can now be compiled in single, double or quad precision.
 * Partially completed:
   * Autoscaling of arrays. Will replace BIGNPART, HUGENPART, etc. flags eventually.
   * Dynamic file unit assignment.
+  * ROOT/XROOTD (EOS) support. Not documented.
 * Fixed:
   * Closed orbit search.
 * Removed:
-  * thin/thck6dua. Replacd by DYNK. See documenttaion.
+  * thin/thck6dua. Replacd by DYNK, see documenttaion.
+  * BPM flag. Replaced by DUMP, see documentation.
 * Currently broken:
   * Electron lens.
 * File units can now be dynamically allocated by the file_units module.

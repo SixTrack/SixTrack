@@ -1,4 +1,4 @@
- # turn element attribute SETidx funname value
+#       turn element              attribute             idx funname                        value
            1 ip1_scatter          scaling                 1 zero                 0.000000000E+00
            2 ip1_scatter          scaling                 1 zero                 0.000000000E+00
            3 ip1_scatter          scaling                 1 zero                 0.000000000E+00

@@ -1,43 +1,61 @@
-GEOME-STRENG TITLE:job_sixtest_norm_col_nobb_coup_ip3%1%s%62.31_60.32%2_4%4%15 
-PRINTOUT OF INPUT PARAMETERS--------------------------------------------
+GEOM
+
+SETTINGS----------------------------------------------------------------
+  PRINT
+  FINALSTATE text
 NEXT
+
+HASH--------------------------------------------------------------------
+  MD5SUM START_DUMP_1 binary
+  MD5SUM IP3_DUMP_1   binary
+  MD5SUM IP3_DUMP_2   binary
+  MD5SUM IP3_DUMP_3   binary
+  MD5SUM IP2_DUMP_1   binary
+  MD5SUM IP2_DUMP_2   binary
+  MD5SUM IP2_DUMP_3   binary
+NEXT
+
 TRACKING PARAMETERS-----------------------------------------------------
-5000 0 30 0.489704 0.979408 0 1
-1 1 0 1 2
-0 0 1 1 1 50000 2
+  5000 0 30 0.489704 0.979408 0 1
+  1 1 0 1 2
+  0 0 1 1 1 50000 2
 NEXT
+
 INITIAL COORDINATES-----------------------------------------------------
-        2 0. 0. 0.071797 0
-        0.
-        0.
-        0. 
-        0.
-        0.
-        0.00001
-        .000001 
-        0.
-        0. 
-        0.
-        0.
-        0.00001
-        7000000.
-        7000000.
-        7000000.
+  2 0.0 0.0 0.071797 0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.00001
+  0.000001
+  0.0
+  0.0
+  0.0
+  0.0
+  0.00001
+  7000000.0
+  7000000.0
+  7000000.0
 NEXT
 SYNCHROTRON OSCILLATIONS--------'PLACE AFTER TRACKING PARAMETERS'-------
-      35640 .000347 16. 0. 26658.883200 938.272013 1
-      1.       1.
+  35640 0.000347 16. 0. 26658.883200 938.272013 1
+  1.0   1.0
 NEXT
-BEAM
-2.2000e+11   3.75  3.75  0.7700e-01  1.1000e-04  1  0 1 0
+
+BEAM--------------------------------------------------------------------
+  2.2000e+11  3.75  3.75  0.7700e-01  1.1000e-04  1  0 1 0
 NEXT
+
 ITERATION-ACCURACY------------------------------------------------------
        50 1D-12 1D-15
        10 1D-10 1D-10
        10 1D-6  1D-6
           1D-6  1D-9  1D-9
 NEXT
-MULT
+
+MULT--------------------------------------------------------------------
 q_c6t_1             1.7000000000e+01    1.0000000000e+03
    0.   0.   0.   0.
    0.   0.   0.   0.
@@ -427,107 +445,65 @@ q_c6t_1316          1.7000000000e+01    1.0000000000e+03
    0.   1.   0.   1.
    0.   1.   0.   1.
 NEXT
-FLUCTUATION
-100000 1 7 3
+
+FLUCTUATION-------------------------------------------------------------
+  100000 1 7 3
 NEXT
-/TUNE VARIATION----------------------------------------------------------
-/         mq.7r3.b1  62.31
-/         mq.8r3.b1  60.32
-//          0.
-//          
-/NEXT
-/CHROMATICITY CORRECTION------------------------------------------------
-/         ms.11r3.b1 2.
-/         ms.12r3.b1 2.
-/NEXT
+
 POSTPROCESSING----------------------------------------------------------
 LHC Dynamic Aperture at Injection Version 5 (1998)
 20 0 0 1 .08 .08 1 0 0 1. 1.
 62. 60. 1 1 10 .005 1 .050
 0 1 0 1 1 1 1 1 30
 NEXT
-/DIFFERENTIAL ALGEBRA---------------------------------------------------
-/%NO  %NV 1E-38 %nsix 0
-/NEXT
-DUMP
-StartDUMP 1 1029 3 START_DUMP_1 1 4096 
-ip3 1 1030 3 IP3_DUMP_1 1 4096 
-ip3..1 1 1031 3 IP3_DUMP_2 1 4096
-ip3..2 1 1032 3 IP3_DUMP_3 1 4096
-ip2    1 1033 3 IP2_DUMP_1 1 4096
-ip2..1 1 1034 3 IP2_DUMP_2 1 4096
-ip2..2 1 1035 3 IP2_DUMP_3 1 4096
+
+DUMP--------------------------------------------------------------------
+  StartDUMP 1 -1 3 START_DUMP_1 1 4096
+  ip3       1 -1 3 IP3_DUMP_1   1 4096
+  ip3..1    1 -1 3 IP3_DUMP_2   1 4096
+  ip3..2    1 -1 3 IP3_DUMP_3   1 4096
+  ip2       1 -1 3 IP2_DUMP_1   1 4096
+  ip2..1    1 -1 3 IP2_DUMP_2   1 4096
+  ip2..2    1 -1 3 IP2_DUMP_3   1 4096
 NEXT
-LINE
-ELEMENT  0 2 1 3.75 3.75
+
+LINE--------------------------------------------------------------------
+  ELEMENT  0 2 1 3.75 3.75
 NEXT
-FMA
-NoNormDUMP
-START_DUMP_1 TUNELASK
-IP3_DUMP_1 TUNELASK
-IP3_DUMP_2 TUNELASK
-IP3_DUMP_1 TUNEFIT
-IP3_DUMP_2 TUNEFIT
-IP3_DUMP_1 TUNENEWT1
-IP3_DUMP_2 TUNENEWT1
-IP3_DUMP_1 TUNEAPA
-IP3_DUMP_2 TUNEAPA
-IP3_DUMP_1 TUNEABT
-IP3_DUMP_2 TUNEABT
-IP2_DUMP_1 TUNEFFT
-IP2_DUMP_2 TUNEFFT
-IP2_DUMP_1 TUNEFFTI
-IP2_DUMP_2 TUNEFFTI
-IP2_DUMP_1 TUNEABT2
-IP2_DUMP_2 TUNEABT2
-IP2_DUMP_1 TUNENEWT
-IP2_DUMP_2 TUNENEWT
-IP3_DUMP_3 TUNELASK  0
-IP3_DUMP_3 TUNEFIT   0
-IP3_DUMP_3 TUNENEWT1 0
-IP3_DUMP_3 TUNEAPA   0
-IP3_DUMP_3 TUNEABT   0
-IP2_DUMP_3 TUNEFFT   0
-IP2_DUMP_3 TUNEFFTI  0
-IP2_DUMP_3 TUNEABT2  0
-IP2_DUMP_3 TUNENEWT  0
-START_DUMP_1 TUNELASK 1 512 1024
-IP3_DUMP_1 TUNELASK 1 512 1024
-START_DUMP_1 TUNELASK 0 512 1024
-IP3_DUMP_1 TUNELASK 0 512 1024
+
+FMA --------------------------------------------------------------------
+  NoNormDUMP
+  START_DUMP_1 TUNELASK
+  IP3_DUMP_1 TUNELASK
+  IP3_DUMP_2 TUNELASK
+  IP3_DUMP_1 TUNEFIT
+  IP3_DUMP_2 TUNEFIT
+  IP3_DUMP_1 TUNENEWT1
+  IP3_DUMP_2 TUNENEWT1
+  IP3_DUMP_1 TUNEAPA
+  IP3_DUMP_2 TUNEAPA
+  IP3_DUMP_1 TUNEABT
+  IP3_DUMP_2 TUNEABT
+  IP2_DUMP_1 TUNEFFT
+  IP2_DUMP_2 TUNEFFT
+  IP2_DUMP_1 TUNEFFTI
+  IP2_DUMP_2 TUNEFFTI
+  IP2_DUMP_1 TUNEABT2
+  IP2_DUMP_2 TUNEABT2
+  IP2_DUMP_1 TUNENEWT
+  IP2_DUMP_2 TUNENEWT
+  IP3_DUMP_3 TUNELASK  0
+  IP3_DUMP_3 TUNEFIT   0
+  IP3_DUMP_3 TUNENEWT1 0
+  IP3_DUMP_3 TUNEAPA   0
+  IP3_DUMP_3 TUNEABT   0
+  IP2_DUMP_3 TUNEFFT   0
+  IP2_DUMP_3 TUNEFFTI  0
+  IP2_DUMP_3 TUNEABT2  0
+  IP2_DUMP_3 TUNENEWT  0
+  START_DUMP_1 TUNELASK 1 512 1024
+  IP3_DUMP_1 TUNELASK   1 512 1024
+  START_DUMP_1 TUNELASK 0 512 1024
+  IP3_DUMP_1 TUNELASK   0 512 1024
 NEXT
 ENDE====================================================================
-ORGA--------------------------------------------------------------------
-NEXT
-DIFFERENTIAL ALGEBRA---------------------------------------------------
-4  5 1E-38 1 1
-NEXT
-COMBINATION OF ELEMENTS-------------------------------------------------
-CODSDO 1.  CODSDE
-CODSFO 1.  CODSFE
-NEXT
-SUBRESONANCE CALCULATION------------------------------------------------
-3 3 62.31 60.32 1. 1. 0 26658.883200
-NEXT
-RESONANCE COMPENSATION -------------------------------------------------
-      1         3       0    0    0         0    0    0
-      0                   0 0 0
-     26658.883200 62.31 60.32 1. 1.
-                 MSCBH MSCBV
-      0          MSCBH MSCBV
-      0          QF QD 62.31 60.32
-NEXT
-RIPPLE OF POWER SUPPLIES------------------------------------------------
-         Q413R   -1.54D-4    4340.580
-         Q414R   -3.70D-4    4340.580
-NEXT
-LIMITATION OF APERTURE--------------------------------------------------
-          AP1        EL      10.       10.
-NEXT
-SEARCH FOR THE BEST POSITIONS FOR COMPENSATION-ELEMENTS-----------------
-         62.31 60.32 1. 1. 26658.883200
-         2   3   0   2  -2   0   0   0
-         MSCBH MSCBV 
-NEXT
-ORBIT ADJUSTMENT--------------------------------------------------------
-NEXT

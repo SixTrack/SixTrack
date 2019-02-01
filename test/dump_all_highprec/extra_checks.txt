@@ -1,11 +1,12 @@
-dump0.dat             diff -q --strip-trailing-cr
-dump1.dat             diff -q --strip-trailing-cr
-dump2.dat             diff -q --strip-trailing-cr
-dump3.dat             diff -q --strip-trailing-cr
-dump4.dat             diff -q --strip-trailing-cr
-dump5.dat             diff -q --strip-trailing-cr
-dump6.dat             diff -q --strip-trailing-cr
-dump7.dat             diff -q --strip-trailing-cr
-dump8.dat             diff -q --strip-trailing-cr
-dump9.dat             diff -q --strip-trailing-cr
-dynksets.dat         diff -q --strip-trailing-cr
+dump0.dat
+dump1.dat
+dump2.dat
+dump3.dat
+dump4.dat
+dump5.dat
+dump6.dat
+dump7.dat
+dump8.dat
+dump9.dat
+dynksets.dat
+final_state.dat

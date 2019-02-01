@@ -1,0 +1,101 @@
+GEOM
+
+SETTINGS----------------------------------------------------------------
+    DEBUG
+    QUIET 2
+    INITIALSTATE text
+    FINALSTATE text
+NEXT
+
+HASH--------------------------------------------------------------------
+    MD5SUM initial_state.dat   text
+    MD5SUM final_state.dat     text
+    MD5SUM scatter_log.dat     text
+    MD5SUM scatter_summary.dat text
+    MD5SUM ip1.dat             text
+    MD5SUM ip5.dat             text
+NEXT
+
+TRACKING PARAMETERS-----------------------------------------------------
+    50 0 500 0.0 0.0 0 1 0 0 10
+    1 1 2 1 2
+    0 0 1 1 1 50000 2
+NEXT
+
+INITIAL COORDINATES-----------------------------------------------------
+    2 0.0 0.0 0.0 0
+    0.0
+    0.0
+    0.0
+    0.0
+    0.0
+    0.0
+    0.0
+    0.0
+    0.0
+    0.0
+    0.0
+    0.0
+    7000000.0
+    7000000.0
+    7000000.0
+NEXT
+
+ITERATION-ACCURACY------------------------------------------------------
+    50 1d-12 1d-15
+    10 1d-10 1d-10
+    10 1d-6  1d-6
+       1d-6  1d-9  1d-9
+NEXT
+
+FLUCTUATION-------------------------------------------------------------
+    100000  1  7  3
+NEXT
+
+SYNC--------------------------------------------------------------------
+    35640  0.000344  0.0  0.0  26658.8832  938.272081  1
+    1.0  1.0
+NEXT
+
+BEAM--------------------------------------------------------------------
+    2.2000e+11  2.5  2.5  1.0  1.0e-3  1  0
+NEXT
+
+DYNK--------------------------------------------------------------------
+    FUN zero CONST  0.0
+    FUN ten  CONST 10.0
+    FUN one  CONST  1.0
+    SET ip1_scatter scaling zero  1   2  0
+    SET ip1_scatter scaling one   3  -1  0
+    SET ip5_scatter scaling zero  1   2  0
+    SET ip5_scatter scaling one   3  -1  0
+NEXT
+
+PYTHIA------------------------------------------------------------------
+    SPECIES PROTON PROTON
+    ENERGY 7000000 7000000
+    SEED 41
+    PROCESS ELASTIC
+    PROCESS SINGLEDIFFRACTIVE
+NEXT
+
+SCATTER-----------------------------------------------------------------
+    SEED 42
+    GEN  sc_thin     PPBEAMELASTIC 0.046  18.52  4.601  2.647  0.2  8.0
+    GEN  sc_pythia   PYTHIASIMPLE  27.0
+    PRO  ipFLAT      FLAT   3e25  938.0  7000000
+    PRO  ipGAUSS     GAUSS1 2.2e11 8.66e-3 8.66e-3 0.75e-3 -0.75e-3
+    ELEM ip1_scatter ipFLAT auto 1.0 sc_thin sc_pythia
+    ELEM ip5_scatter ipFLAT auto 1.0 sc_thin sc_pythia
+NEXT
+
+DUMP--------------------------------------------------------------------
+    ip1 1 -1 2 ip1.dat 1 -1
+    ip5 1 -1 2 ip5.dat 1 -1
+NEXT
+
+LINEAR OPTICS-----------------------------------------------------------
+    ELEMENT  0  1  1  2.5  2.5
+NEXT
+
+ENDE

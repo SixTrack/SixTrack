@@ -296,3 +296,4 @@ fi
 echo ""
 echo "Done! If everything went well, you'll find the executable in build/"$NAME
 #echo "If you want to package the results to a tarball / .deb / .rpm etc., run 'make package' in this folder."
+#

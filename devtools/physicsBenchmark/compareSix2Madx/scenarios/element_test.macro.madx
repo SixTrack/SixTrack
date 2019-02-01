@@ -1,0 +1,20 @@
+circum=%(circum)s;
+
+beam, particle=proton, energy = %(E0_GeV)s;
+%(s_defs)s
+
+seq: sequence, refer=entry, l=circum;
+%(s_elems)s
+endsequence;
+
+use, sequence=seq;
+
+twiss;
+TRACK, ONEPASS=true, FILE="mad_output";
+START, X=%(x_m)s, PX=%(PX)s, Y=%(y_m)s, PY=%(PY)s, PT=%(pt_mad)s, T=%(time_mad)s;
+OBSERVE, PLACE="%(mad_track_element)s";
+RUN, TURNS=%(nbr_turns)s;
+
+sixtrack, CAVALL;	
+
+stop;

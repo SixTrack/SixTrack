@@ -37,11 +37,13 @@ subroutine postpr(nfile)
       use crcoall
       use parpro
       use string_tools
-      use mod_common, only : dpscor,sigcor,icode,idam,its6d, &
-           dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad, &
-           ipos,iav,iwg,ivox,ivoz,ires,ifh,toptit, &
-           kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi, &
-           hmal,nnumxv,chromc,tlim,trtime
+      use mod_version
+      use mod_time
+      use mod_common_main, only : nnumxv
+      use mod_common, only : dpscor,sigcor,icode,idam,its6d,dphix,dphiz,qx0,qz0,&
+        dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,iwg,ivox,    &
+        ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi,   &
+        chromc,tlim,trtime
 #ifdef ROOT
       use root_output
 #endif
@@ -115,15 +117,14 @@ subroutine postpr(nfile)
       integer nnuml
 #endif
       integer itot,ttot
-#include "version.f90"
       save
 !----------------------------------------------------------------------
 !--TIME START
       pieni2=c1m8
       tlim=c1e7
-      call timest
+      call time_timerStart
       tim1=zero
-      call timex(tim1)
+      call time_timerCheck(tim1)
 
       do i=1,npos
         do j=1,3
@@ -1676,8 +1677,7 @@ subroutine postpr(nfile)
           write(93,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
           write(93,*) 'Particle No ',posi,' binrec/binrecs/crbinrecs ', binrec,binrecs(posi1),crbinrecs(posi1)
 #endif
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(93)
           goto 551
         endif
       endif
@@ -2214,11 +2214,6 @@ subroutine postpr(nfile)
         write(lout,*) 'ERROR CODE : ',ierro
         write(lout,*)
       endif
-#ifdef DEBUG
-#ifndef NAGFOR
-      write(210,'(60Z21)') (sumda(i),i=1,60)
-#endif
-#endif
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
       do ich=8192,1,-1
@@ -2667,11 +2662,6 @@ subroutine postpr(nfile)
         write(lout,*) 'ERROR CODE : ',ierro
         write(lout,*)
       endif
-#ifdef DEBUG
-#ifndef NAGFOR
-      write(210,'(60Z21)') (sumda(i),i=1,60)
-#endif
-#endif
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
       do ich=8192,1,-1
@@ -2695,11 +2685,13 @@ subroutine postpr(nfile)
       endif
 !--REWIND USED FILES
   560 rewind nfile
-      rewind 14
-      rewind 15
+      if(nprint == 1) then
+        rewind 14
+        rewind 15
+      end if
 !--TIME COUNT
       tim2=0.
-      call timex(tim2)
+      call time_timerCheck(tim2)
       if(nprint.eq.1) write(lout,10280) tim2-tim1
 !----------------------------------------------------------------------
       return
@@ -3396,7 +3388,7 @@ end subroutine join
       use, intrinsic :: iso_fortran_env, only : real64
       use parpro
       use mod_common
-      use mod_commonmn
+      use mod_common_main
       implicit none
 
       integer, intent(in) :: ia_p1, ia_p2, fileunit_in
@@ -3436,7 +3428,7 @@ end subroutine join
          enddo
       enddo
 
-      mmac_tmp   = real(mmac,       real64)
+      mmac_tmp   = 1.0_real64
       nms_tmp    = real(nms(ia_p1), real64)
       izu0_tmp   = real(izu0,       real64)
       numlr_tmp  = real(numlr,      real64)
@@ -3492,10 +3484,10 @@ end subroutine join
       use crcoall
       use parpro
       use mod_common
-      use mod_commonmn
+      use mod_common_main
       use mod_commons
-      use mod_commont
-      use mod_commond
+      use mod_common_track
+      use mod_common_da
 #ifdef CR
       use checkpoint_restart
 #endif
@@ -3551,21 +3543,21 @@ end subroutine join
          do ia=1,napx-1
 !GRD
 !     PSTOP=true -> particle lost,
-!     nlostp(ia)=particle ID that is not changing
+!     partID(ia)=particle ID that is not changing
 !     (the particle arrays are compressed to remove lost particles)
-!     In the case of no lost particles, all nlostp(i)=i for 1..npart
-            if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and. &
-     &           (mod(nlostp(ia),2).ne.0)) then !Skip odd particle IDs
+!     In the case of no lost particles, all partID(i)=i for 1..npart
+            if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and. &
+     &           (mod(partID(ia),2).ne.0)) then !Skip odd particle IDs
 
-               ia2=(nlostp(ia)+1)/2 !File ID for non-STF & binrecs
+               ia2=(partID(ia)+1)/2 !File ID for non-STF & binrecs
                ie=ia+1              !ia = Particle ID 1, ie = Particle ID 2
 
-               if(ntwin.ne.2) then !Write particle nlostp(ia) only
+               if(ntwin.ne.2) then !Write particle partID(ia) only
                   dam_tmp      = real(dam(ia),   real64)
-                  xv_tmp(1,1)  = real(xv(1,ia),  real64)
-                  yv_tmp(1,1)  = real(yv(1,ia),  real64)
-                  xv_tmp(2,1)  = real(xv(2,ia),  real64)
-                  yv_tmp(2,1)  = real(yv(2,ia),  real64)
+                  xv_tmp(1,1)  = real(xv1(ia),  real64)
+                  yv_tmp(1,1)  = real(yv1(ia),  real64)
+                  xv_tmp(2,1)  = real(xv2(ia),  real64)
+                  yv_tmp(2,1)  = real(yv2(ia),  real64)
                   sigmv_tmp(1) = real(sigmv(ia), real64)
                   dpsv_tmp(1)  = real(dpsv(ia),  real64)
                   e0_tmp       = real(e0,        real64)
@@ -3579,7 +3571,7 @@ end subroutine join
 #else
                   write(90,iostat=ierro)                                &
 #endif
-     &               numx,nlostp(ia),dam_tmp,                           &
+     &               numx,partID(ia),dam_tmp,                           &
      &               xv_tmp(1,1),yv_tmp(1,1),                           &
      &               xv_tmp(2,1),yv_tmp(2,1),                           &
      &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp
@@ -3592,22 +3584,22 @@ end subroutine join
                   binrecs(ia2)=binrecs(ia2)+1
 #endif
 
-               else !Write both particles nlostp(ia) and nlostp(ia)+1
+               else !Write both particles partID(ia) and partID(ia)+1
                     ! Note that dam(ia) (distance in angular phase space)
                     ! is written twice.
                   dam_tmp      = real(dam(ia),   real64)
 
-                  xv_tmp(1,1)  = real(xv(1,ia),  real64)
-                  yv_tmp(1,1)  = real(yv(1,ia),  real64)
-                  xv_tmp(2,1)  = real(xv(2,ia),  real64)
-                  yv_tmp(2,1)  = real(yv(2,ia),  real64)
+                  xv_tmp(1,1)  = real(xv1(ia),  real64)
+                  yv_tmp(1,1)  = real(yv1(ia),  real64)
+                  xv_tmp(2,1)  = real(xv2(ia),  real64)
+                  yv_tmp(2,1)  = real(yv2(ia),  real64)
                   sigmv_tmp(1) = real(sigmv(ia), real64)
                   dpsv_tmp(1)  = real(dpsv(ia),  real64)
 
-                  xv_tmp(1,2)  = real(xv(1,ie),  real64)
-                  yv_tmp(1,2)  = real(yv(1,ie),  real64)
-                  xv_tmp(2,2)  = real(xv(2,ie),  real64)
-                  yv_tmp(2,2)  = real(yv(2,ie),  real64)
+                  xv_tmp(1,2)  = real(xv1(ie),  real64)
+                  yv_tmp(1,2)  = real(yv1(ie),  real64)
+                  xv_tmp(2,2)  = real(xv2(ie),  real64)
+                  yv_tmp(2,2)  = real(yv2(ie),  real64)
                   sigmv_tmp(2) = real(sigmv(ie), real64)
                   dpsv_tmp(2)  = real(dpsv(ie),  real64)
 
@@ -3621,11 +3613,11 @@ end subroutine join
 #else
                   write(90,iostat=ierro)                                &
 #endif
-     &               numx,nlostp(ia),dam_tmp,                           &
+     &               numx,partID(ia),dam_tmp,                           &
      &               xv_tmp(1,1),yv_tmp(1,1),                           &
      &               xv_tmp(2,1),yv_tmp(2,1),                           &
      &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp,                   &
-     &               nlostp(ia)+1,dam_tmp,                              &
+     &               partID(ia)+1,dam_tmp,                              &
      &               xv_tmp(1,2),yv_tmp(1,2),                           &
      &               xv_tmp(2,2),yv_tmp(2,2),                           &
      &               sigmv_tmp(2),dpsv_tmp(2),e0_tmp
