@@ -417,18 +417,6 @@ module mod_ffield
       beta0=sqrt(one-gamma0r*gamma0r) ! = sqrt(one-one/(gamma0*gamma0))
 !      p0=beta0*e0*c1e6/clight
       norm=clight/(beta0*e0*c1e6)   ! [c/eV] = 1/p0
-
-#ifdef DEBUG
-      ! Debug
-      ! -------------------------------------------------------------------------------------------- !
-      do i=1,ffNLn
-        write(lout,"(a,i0)") "FFIELD> DEBUG Quadrupole element '"//trim(ffQNames(i))//"' will be studied."
-      end do
-
-      do i=1,ffNLFile
-        write(lout,"(a,i0)") "FFIELD> DEBUG File '"//trim(ffFNames(i))//"' will be loaded."
-      end do
-#endif
       
       ! Generate the array of type(ffTable_n_Track)
       ! -------------------------------------------------------------------------------------------- !
