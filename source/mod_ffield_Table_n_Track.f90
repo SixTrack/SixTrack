@@ -664,6 +664,7 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, half, one, two
+    use mod_alloc,           only : alloc, dealloc
 
     implicit none
 

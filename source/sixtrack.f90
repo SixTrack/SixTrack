@@ -42,8 +42,10 @@ subroutine daten
   use mod_fluka, only : fluka_parsingDone,fluka_parseInputLine,fluka_enable
 #endif
 #ifdef FFIELD
+#ifndef SIXDA
   ! Modification by B.DALENA and T.PUGNAT
   use mod_ffield,only : ffield_parseInputLine,ffield_parsingDone,ffield_mod_link
+#endif
 #endif
 #ifdef HDF5
   use hdf5_output
@@ -593,6 +595,7 @@ subroutine daten
       continue
     end if
 #else
+#ifndef SIXDA
     if(openBlock) then
       continue
     elseif(closeBlock) then
@@ -601,6 +604,14 @@ subroutine daten
       call ffield_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
+#else
+    if(openBlock) then
+      write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the FFIELD flag."
+      goto 9999
+    else
+      continue
+    end if
+#endif
 #endif
 
   case("BDEX") ! Beam Distribution EXchange
@@ -914,9 +925,11 @@ subroutine daten
   end if
 
 #ifdef FFIELD
+#ifndef SIXDA
   ! Modification by B.DALENA and T.PUGNAT
   call ffield_mod_link(inErr)
   if(inErr) goto 9999
+#endif
 #endif
 
 

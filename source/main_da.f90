@@ -34,10 +34,6 @@ program mainda
   use mod_time
   use mod_alloc,  only : alloc_init
   use mod_fluc,   only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-  use mod_ffield, only :ffield_mod_init,ffield_mod_end
-#endif
   use read_write, only : readFort33
   use mod_version
 
@@ -145,12 +141,6 @@ featList = ""
   end do
   qwc(3)=zero
   call comnul
-
-
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-  call ffield_mod_init(npart_initial, nele_initial)
-#endif
 
   call daten
   call time_timeStamp(time_afterDaten)
@@ -500,11 +490,6 @@ featList = ""
     call mydaini(3,nord,nvar,ndim,nvar2,nord1)
   end if
 160 continue
-
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-  call ffield_mod_end()
-#endif
 
 !-----------------------------------------------------------------------
 ! We're done in mainda, no error :)
