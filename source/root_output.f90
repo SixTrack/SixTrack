@@ -292,29 +292,33 @@ subroutine SixTrackRootFortranInit
   root_prefix        = C_NULL_CHAR
 end subroutine SixTrackRootFortranInit
 
-subroutine root_daten(ch)
+subroutine root_daten(inLine,iErr)
 
   use string_tools
 
   implicit none
 
-  character(len=*), intent(in) :: ch
-  character getfields_fields(getfields_n_max_fields)*(getfields_l_max_string) ! Array of fields
-  integer   getfields_nfields                                                 ! Number of identified fields
-  integer   getfields_lfields(getfields_n_max_fields)                         ! Length of each what:
-  logical   getfields_lerr                                                    ! An error flag
+  character(len=*), intent(in)    :: inLine
+  logical,          intent(inout) :: iErr
 
-!ROOT is enabled
+  character(len=:), allocatable :: lnSplit(:)
+  integer nSplit
+  logical spErr, cErr
+
+  call chr_split(inLine,lnSplit,nSplit,spErr)
+  if(spErr) then
+    write(lout,"(a)") "ZIPF> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  !ROOT is enabled
   root_flag = .true.
 
-  !Read filenames
-  call getfields_split( ch, getfields_fields, getfields_lfields, getfields_nfields, getfields_lerr )
-  if( getfields_lerr ) call prror(-1)
-
-  if(getfields_nfields .ne. 2) then
-     write(lout,'(a)')         "ERROR in ROOT input:"
-     write(lout,'(a,1x,i3,a)') "Expected 2 entries per line, got", getfields_nfields, ", line=",ch
-     call prror(-1)
+  if(nSplit /=. 2) then
+    write(lout,"(a,i0)") "ROOT> ERROR Expected 2 entries per line, got ",nSplit
+    iErr = .true.
+    retirn
   end if
 
 !  For input debugging if needed
@@ -322,44 +326,44 @@ subroutine root_daten(ch)
 !  write(lout,*) '2: ', getfields_fields(2)(1:getfields_lfields(2))
 
 !EOS: e.g. eosuser.cern.ch/
-  if(getfields_fields(1)(1:getfields_lfields(1)).eq.'EOS') then
+  if(lnSplit(1) == 'EOS') then
     root_eos_enabled = 1
-    root_eos_server = getfields_fields(2)(1:getfields_lfields(2)) // C_NULL_CHAR
+    root_eos_server = trim(lnSplit(2)) // C_NULL_CHAR
 
 !PATH e.g. /eos/user/u/username/
-  else if(getfields_fields(1)(1:getfields_lfields(1)).eq.'PATH') then
-    root_folder = getfields_fields(2)(1:getfields_lfields(2)) // C_NULL_CHAR
+  else if(lnSplit(1) == 'PATH') then
+    root_folder = trim(lnSplit(2)) // C_NULL_CHAR
 
 !PREFIX sixtrack_
-  else if(getfields_fields(1)(1:getfields_lfields(1)).eq.'PREFIX') then
-    root_prefix = getfields_fields(2)(1:getfields_lfields(2)) // C_NULL_CHAR
+  else if(lnSplit(1) == 'PREFIX') then
+    root_prefix = trim(lnSplit(2)) // C_NULL_CHAR
 
 !RUN number
-  else if(getfields_fields(1)(1:getfields_lfields(1)).eq.'RUN') then
-    read(getfields_fields(2)(1:getfields_lfields(2)),*) root_RunNumber
+  else if(lnSplit(1) == 'RUN') then
+    call chr_cast(lnSplit(2),root_RunNumber,cErr)
 !blocks to enable
 !ENABLE
 !COLL, APER, ALL
-  else if(getfields_fields(1)(1:getfields_lfields(1)).eq.'ENABLE') then
-    write(lout,*) getfields_fields(2)(1:getfields_lfields(2))
-    if(getfields_fields(2)(1:getfields_lfields(2)).eq.'ALL') then
+  else if(lnSplit(1) == 'ENABLE') then
+    write(lout,"(a)") "ROOT> "//trim(lnSplit(2))
+    if(lnSplit(2) == 'ALL') then
       root_ApertureCheck = 1
       root_Accelerator = 1
       root_Collimation = 1
       root_CollimationDB = 1
       root_Optics = 1
       root_FLUKA = 1
-    else if(getfields_fields(2)(1:getfields_lfields(2)).eq.'ACCEL') then
+    else if(lnSplit(2) == 'ACCEL') then
       root_Accelerator = 1
-    else if(getfields_fields(2)(1:getfields_lfields(2)).eq.'COLL') then
+    else if(lnSplit(2) == 'COLL') then
       root_Collimation = 1
-    else if(getfields_fields(2)(1:getfields_lfields(2)).eq.'COLDB') then
+    else if(lnSplit(2) == 'COLDB') then
       root_CollimationDB = 1
-    else if(getfields_fields(2)(1:getfields_lfields(2)).eq.'APER') then
+    else if(lnSplit(2) == 'APER') then
       root_ApertureCheck = 1
-    else if(getfields_fields(2)(1:getfields_lfields(2)).eq.'OPTICS') then
+    else if(lnSplit(2) == 'OPTICS') then
       root_Optics = 1
-    else if(getfields_fields(2)(1:getfields_lfields(2)).eq.'FLUKA') then
+    else if(lnSplit(2) == 'FLUKA') then
       root_FLUKA = 1
     end if
   end if

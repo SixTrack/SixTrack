@@ -1787,6 +1787,7 @@ subroutine damult(ina,inb,inc)
      &inb,inc,inoa,inob,inoc,inva,invb,invc,ioffb,ipno,ipoa,ipob,ipoc,  &
      &ipos,minv,noff,noib,nom
       real(kind=fPrec) ccia,ccipoa,ccipob
+      logical checkMultUnderflow
 !     *****************************
 !
 !     THIS SUBROUTINE PERFORMS A DA MULTIPLICATION OF THE DA VECTORS A AND B.
@@ -1808,14 +1809,14 @@ subroutine damult(ina,inb,inc)
 !     ************************
 
       if(nomax.eq.1) then
-         minv = min(inva,invb,invc)
-         ccipoa = cc(ipoa)
-         ccipob = cc(ipob)
-         cc(ipoc) = ccipoa*ccipob
+        minv = min(inva,invb,invc)
+        ccipoa = cc(ipoa)
+        ccipob = cc(ipob)
+        cc(ipoc) = ccipoa*ccipob
 
-         do i=1,minv
-           cc(ipoc+i) = ccipoa*cc(ipob+i) + ccipob*cc(ipoa+i)
-         end do
+        do i=1,minv
+          cc(ipoc+i) = ccipoa*cc(ipob+i) + ccipob*cc(ipoa+i)
+        end do
 
          do i=ipoc+minv+1,ipoc+invc
            cc(i) = zero
@@ -3216,14 +3217,14 @@ subroutine dafunt(cf,ina,inc)
 
  800  continue
 
- 1000 format('ERROR IN DAFUN, ',a4,' DOES NOT EXIST FOR VECTOR ',i10,'CONST TERM  = ',e12.5)
+ 1000 format('DAFUN> ERROR ',a4,' does not exist for vector ',i0,' const term = ',e12.5)
 
       call dadal(iscr(1),1)
       call dadal(inon(1),1)
       call dadal(ipow(1),1)
 
       return
-      end
+end subroutine dafunt
 
 
 subroutine daabs(ina,anorm)
@@ -4030,6 +4031,7 @@ subroutine ludcmp(a,n,np,indx,d,ier)
       dimension a(np,np), indx(np), vv(nmax)
       ier=0.
       d=one
+      imax = 0 ! -Wmaybe-uninitialized
       do 12 i=1,n
          aamax=zero
          do 11 j=1,n
@@ -5408,13 +5410,13 @@ subroutine dadeb(iunit,c,istop)
       character(len=10) c
 
 !etienne
-      write(lout,*) '  ',c
+      write(lout,"(a)") "DABNEW> ERROR "//c(5:10)
 #ifdef CR
       call abend('                                                  ')
 #else
-      stop
+      call prror(-1)
 #endif
-      end
+end subroutine dadeb
 
 
 subroutine danum(no,nv,numda)

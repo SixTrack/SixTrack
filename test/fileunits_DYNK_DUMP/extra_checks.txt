@@ -1,6 +1,0 @@
-dump_ip1.dat         diff -q --strip-trailing-cr
-dump_ip5.dat         diff -q --strip-trailing-cr
-dump_all.dat         diff -q --strip-trailing-cr
-StartDUMP.dat        diff -q --strip-trailing-cr
-dynksets.dat         diff -q --strip-trailing-cr
-file_units.dat       diff -q --strip-trailing-cr

@@ -1,2 +1,2 @@
-IP3_DUMP_1         diff -q --strip-trailing-cr
-START_DUMP_1       diff -q --strip-trailing-cr
+IP3_DUMP_1
+START_DUMP_1

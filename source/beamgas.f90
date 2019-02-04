@@ -3,6 +3,7 @@
 !!
 !<
 module beamgascommon
+
   use floatPrecision
 !       common to beamGasInit and beamGas
   integer, parameter :: bgmaxx=40000,bamount=1000
@@ -21,6 +22,14 @@ module beamgascommon
 !       at this location
   real(kind=fPrec) bgParameters(3)
   real bgxpdb(bgmaxx),bgypdb(bgmaxx),bgEdb(bgmaxx)
+
+  ! File unit variables
+  integer, public, save :: bg_dpmJetUnit
+  integer, public, save :: bg_scatterLocUnit
+  integer, public, save :: bg_configUnit
+  integer, public, save :: bg_pressProUnit
+  integer, public, save :: bg_locLossesUnit
+
 end module beamgascommon
 
 module lorentzcommon
@@ -68,26 +77,16 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   use crcoall
   use parpro
   use parbeam
+  use mod_hions
   use mod_common
-  use mod_commont
-  use mod_commonmn
-
-#ifdef COLLIMAT
-  use collimation, only : numeff, numeffdpop, max_ncoll, maxn, iturn, mynp, part_abs_pos, part_abs_turn, secondary, mys
-#endif
+  use mod_common_track
+  use mod_common_main
+  use collimation, only : numeff, numeffdpop, max_ncoll, iturn, part_abs_pos, part_abs_turn, secondary, mys
 
   implicit none
 
-!+ca info
-!+ca dbcommon
-
-!YIL need to save, this is input variable
   real(kind=fPrec) myenom
   integer ipart(npart)
-
-!YIL: think this probably should be saved as well...
-!  integer mynp
-!  common /mynp/ mynp
 
 ! KNS (22/08/2017): The variable "secondary" is now visible
 ! from a +cd block as a COMMON variable;
@@ -120,12 +119,12 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   end if
 
   doLorentz=0
-  if((abs(yv(1,1)).gt.3e-3_fPrec).or.(abs(yv(2,1)).gt.3e-3_fPrec)) then ! do a Lorentz boost of DPMJET events
+  if((abs(yv1(1)).gt.3e-3_fPrec).or.(abs(yv2(1)).gt.3e-3_fPrec)) then ! do a Lorentz boost of DPMJET events
  !YIL warning: hardcoded mass of protons:
     protonmass=pmap
     doLorentz=1
-    tmpPX=yv(1,1) !don't think I can send array elements to functions??
-    tmpPY=yv(2,1)
+    tmpPX=yv1(1) !don't think I can send array elements to functions??
+    tmpPY=yv2(1)
     call createLorentzMatrix(myenom,tmpPX,tmpPY,protonmass)
   end if
 
@@ -139,7 +138,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   if ((pressARRAY(2,pressID)*njobs*dpmjetevents).gt.(bgParameters(3)+1)) then
   bgParameters(3)=bgParameters(3)+1
   if (((bgParameters(2)+bgParameters(3)).gt.(dpmjetevents*njobthis)).and.((bgParameters(2)+bgParameters(3)).le.  &
- & (dpmjetevents*(njobthis+1)))) then
+    (dpmjetevents*(njobthis+1)))) then
 !       The scattering id is increased by one for each interaction
   bgid=bgid+1
 
@@ -150,12 +149,12 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 
   if(bgid.lt.bgiddb(ibgloc)) then ! no proton for this scattering event
 !   check that this works correctly!!!!!!
-    write(777,*) ipart(j),iturn,totals,xv(1,j),yv(1,j),xv(2,j),yv(2,j),mys(j),(0-myenom)/myenom, &
- &  bgid+njobthis*dpmjetevents
+    write(bg_locLossesUnit,*) ipart(j),iturn,totals,xv1(j),yv1(j),xv2(j),yv2(j),mys(j),(0-myenom)/myenom, &
+      bgid+njobthis*dpmjetevents
 
 !   writing down the scattering location information
-    write(667,*) ipart(j),iturn,totals,xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j),ejv(j),bgid+njobthis*dpmjetevents,&
- &  bgid,ejv(j),xv(1,j),xv(2,j),yv(1,j),yv(2,j)
+    write(bg_scatterLocUnit,*) ipart(j),iturn,totals,xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j),ejv(j),bgid+njobthis*dpmjetevents,&
+      bgid,ejv(j),xv1(j),xv2(j),yv1(j),yv2(j)
 !    part_abs(j) = 1
     part_abs_pos(j)  = el_idx
     part_abs_turn(j) = turn
@@ -175,11 +174,11 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
     end if
   end do
 
-     oldCoordinates(1)=yv(1,j)
-     oldCoordinates(2)=yv(2,j)
+     oldCoordinates(1)=yv1(j)
+     oldCoordinates(2)=yv2(j)
      oldCoordinates(3)=ejv(j)
-     oldCoordinates(4)=xv(1,j)
-     oldCoordinates(5)=xv(2,j)
+     oldCoordinates(4)=xv1(j)
+     oldCoordinates(5)=xv2(j)
 
      if(doLorentz.eq.one) then ! we need to boost the dpmjet event first:
      totMomentum=sqrt(bgEdb(choice)**2-(protonmass*c1m3)**2)
@@ -190,7 +189,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
      protonmass=protonmass*c1e3
 !    This returns E,px,py,pz, need xp,yp
      totMomentum=sqrt(new4MomCoord(2)**2+new4MomCoord(3)**2+new4MomCoord(4)**2)
-     call rotateMatrix(yv(1,1),yv(2,1),rotm) !we also need to "rotate back" before we're in the "same state"
+     call rotateMatrix(yv1(1),yv2(1),rotm) !we also need to "rotate back" before we're in the "same state"
      z(1) = (new4MomCoord(2)/totMomentum)
      z(2) = (new4MomCoord(3)/totMomentum)
      z(3) = (new4MomCoord(4)/totMomentum)
@@ -214,7 +213,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 ! END DEBUG
       endif
      endif ! doLorentz
-     call rotateMatrix(yv(1,j),yv(2,j),rotm)
+     call rotateMatrix(yv1(j),yv2(j),rotm)
 !    creating resulting vector [x,y,z] from dpmjet:
      z(1) = (bgxpdb(choice)) ! this is correct, since dpmjet gives xp=px/p and so on...
      z(2) = (bgypdb(choice))
@@ -225,31 +224,32 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
       z=matmul(rotm,z)
 ! adding the angles to the yv vector:
   if (z(3).eq.0) then
-    yv(1,j) = acos_mb(zero)*c1e3
-    yv(2,j) = one*yv(1,j)
+    yv1(j) = acos_mb(zero)*c1e3
+    yv2(j) = one*yv1(j)
   else
 !   xp
-    yv(1,j) = atan_mb(z(1)/z(3))*c1e3
+    yv1(j) = atan_mb(z(1)/z(3))*c1e3
 !   yp
-    yv(2,j) = atan_mb(z(2)/z(3))*c1e3
+    yv2(j) = atan_mb(z(2)/z(3))*c1e3
   endif
 !    energy WARNING: I DO NOT KNOW ALL THE PLACES I NEED TO INSERT THE ENERGY????
      ejv(j) = bgEdb(choice)*c1e3
 !YIL Copied this here, think these are all variables in need of an update
 !++  Energy update, as recommended by Frank [comment from collimat part]
 !
-     ejfv(j)=sqrt(ejv(j)*ejv(j)-pma*pma)
-     rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-     dpsv(j)=(ejfv(j)-e0f)/e0f
-     oidpsv(j)=one/(one+dpsv(j))
-     dpsv1(j)=dpsv(j)*c1e3*oidpsv(j)
-
+    ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+    dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+    oidpsv(j)=one/(one+dpsv(j))
+    moidpsv(j)=mtc(j)/(one+dpsv(j))
+    omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+    dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 ! writing down the scattering location information
-  write(667,*) ipart(j),iturn,totals,xv(1,j),      &
- &   yv(1,j),xv(2,j),yv(2,j),sigmv(j),oldCoordinates(3),            &
- &   bgid+njobthis*dpmjetevents,bgid,ejv(j),oldCoordinates(4),      &
- &   oldCoordinates(5),oldCoordinates(1),oldCoordinates(2)
-     mysecondary(j)=1
+  write(bg_scatterLocUnit,*) ipart(j),iturn,totals,xv1(j),        &
+    yv1(j),xv2(j),yv2(j),sigmv(j),oldCoordinates(3),            &
+    bgid+njobthis*dpmjetevents,bgid,ejv(j),oldCoordinates(4),      &
+    oldCoordinates(5),oldCoordinates(1),oldCoordinates(2)
+    mysecondary(j)=1
 
 ! if bgid.eq.bgiddb(ibgloc) end statement
   endif
@@ -293,11 +293,10 @@ subroutine beamGasInit(myenom)
   use numerical_constants
   use beamgascommon
   use crcoall
+  use mod_units
+  use parpro, only : npart
 
-  use collimation, only : mynp
-
-  IMPLICIT NONE
-
+  implicit none
 
   integer check,j,i
   real(kind=fPrec) myenom,minenergy
@@ -308,24 +307,28 @@ subroutine beamGasInit(myenom)
 
   write(lout,"(a)") "BEAMGAS> Initialising"
 
-! DEBUG: open debug file...
-!      open(684,file='debugfile.txt')
-! END DEBUG
-  open(666,file='dpmjet.eve')
-  open(667,file='scatterLOC.txt')
-  write(667,*)'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=z 9=E',      &
- & ' 10=eventID 11=dpmjetID 12=newEnergy 13=oldX 14=oldY 15=oldXP 16=oldYP'
-  write(667,*)'# These are original coordinates of proton after impact, and old xp,yp'
-  write(667,*)
+  ! Get file units
+  call f_requestUnit("dpmjet.eve",          bg_dpmJetUnit)
+  call f_requestUnit("scatterLOC.txt",      bg_scatterLocUnit)
+  call f_requestUnit("beamgas_config.txt",  bg_configUnit)
+  call f_requestUnit("pressure_profile.txt",bg_pressProUnit)
+  call f_requestUnit("localLOSSES.txt",     bg_locLossesUnit)
+
+  open(bg_dpmJetUnit,file='dpmjet.eve')
+  open(bg_scatterLocUnit,file='scatterLOC.txt')
+  write(bg_scatterLocUnit,*)'# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=z 9=E',      &
+    ' 10=eventID 11=dpmjetID 12=newEnergy 13=oldX 14=oldY 15=oldXP 16=oldYP'
+  write(bg_scatterLocUnit,*)'# These are original coordinates of proton after impact, and old xp,yp'
+  write(bg_scatterLocUnit,*)
 
 ! initialize pressure markers array
 ! DO THIS BEFORE OTHER STUFF, AS YOU MIGHT DO STUPID THINGS TO VARIABLES
 ! (LEARNED THE HARD WAY!!!)
-  open(778,file='beamgas_config.txt')
-  open(779,file='pressure_profile.txt')
+  open(bg_configUnit,file='beamgas_config.txt')
+  open(bg_pressProUnit,file='pressure_profile.txt')
   filereaderror=0
   do
-     read(778,*,IOSTAT=filereaderror) bg_var, bg_val
+     read(bg_configUnit,*,IOSTAT=filereaderror) bg_var, bg_val
   if (filereaderror.lt.0) then
 ! end of file
      exit
@@ -341,26 +344,26 @@ subroutine beamGasInit(myenom)
   end do
   j=1
   do
-     read(779,*,IOSTAT=filereaderror) pPOS, pVAL
-  if (filereaderror.eq.0) then
-  pressARRAY(1,j)=pPOS
-  pressARRAY(2,j)=pVAL
-  j=j+1
-   if (j>bgmaxx) then
-     write(lout,"(a)") "BEAMGAS> ERROR Too many pressure markers!"
-     call prror(-1)
-   endif
-  else if (filereaderror.lt.0) then
-! means that end of file is reached
-     exit
-  else if (filereaderror.gt.0) then
-! means that this line did not correspond to normal input
-! do not need to perform anything (probably a comment line)
-  end if
+    read(bg_pressProUnit,*,IOSTAT=filereaderror) pPOS, pVAL
+    if (filereaderror.eq.0) then
+      pressARRAY(1,j)=pPOS
+      pressARRAY(2,j)=pVAL
+      j=j+1
+      if (j>bgmaxx) then
+        write(lout,"(a)") "BEAMGAS> ERROR Too many pressure markers!"
+        call prror(-1)
+      endif
+    else if (filereaderror.lt.0) then
+      ! means that end of file is reached
+      exit
+    else if (filereaderror.gt.0) then
+      ! means that this line did not correspond to normal input
+      ! do not need to perform anything (probably a comment line)
+    end if
   end do
   do 1328 i = j,bgmaxx
-   pressARRAY(1,i)=-one
-   pressARRAY(2,i)=zero
+    pressARRAY(1,i)=-one
+    pressARRAY(2,i)=zero
 1328  continue
 ! count the number of lines in dpmjet
   j=1
@@ -376,7 +379,7 @@ subroutine beamGasInit(myenom)
 !    The other particles will be used to generate a complete file
 !    afterwards.
 !    ONLY LOAD PROTONS WITH ENERGY OFFSET BELOW 5%!!
-     read(666,*,IOSTAT=filereaderror) bgiddb(j), check, bgxpdb(j), bgypdb(j), bgEdb(j)
+     read(bg_dpmJetUnit,*,IOSTAT=filereaderror) bgiddb(j), check, bgxpdb(j), bgypdb(j), bgEdb(j)
      if (check.eq.2212.and.bgEdb(j).gt.minenergy) then
         if (bgiddb(j).ne.previousEvent) then
            previousEvent=bgiddb(j)
@@ -395,11 +398,11 @@ subroutine beamGasInit(myenom)
   enddo
 ! number of lines in dpmjet - 1
   bgmax=j
-  close(666)
+  call f_close(bg_dpmJetUnit)
   write(lout,"(a,i0)") "BREAMGAS> Trackable events in dpmjet.eve: ",bgmax-1
 
-  if (numberOfEvents.gt.mynp) then
-     write(lout,"(2(a,i0))") "BEAMGAS> ERROR There were too many trackable events. Maximum for this run is ",mynp,&
+  if (numberOfEvents.gt.npart) then
+     write(lout,"(2(a,i0))") "BEAMGAS> ERROR There were too many trackable events. Maximum for this run is ",npart,&
       " you generated ",numberOfEvents
      call prror(-1)
   endif
@@ -407,12 +410,12 @@ subroutine beamGasInit(myenom)
   write(lout,"(a,i0)") "BEAMGAS> This is job number: ", njobthis
   write(lout,"(a,i0)") "BEAMGAS> Total number of jobs: ", njobs
   write(lout,"(a,i0)") "BEAMGAS> Total number of particles in simulation: ", njobs*dpmjetevents
-  close(778)
+  call f_close(bg_configUnit)
 
-  open(777,file='localLOSSES.txt')
-  write(777,*) '# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=z 9=DE/E 10=CollisionID'
-  write(777,*) '# Note that name is not unique, but CollisionID is'
-  write(777,*) '# Note that s is particle coordinate, not bunch coordinate'
+  open(bg_locLossesUnit,file='localLOSSES.txt')
+  write(bg_locLossesUnit,*) '# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=z 9=DE/E 10=CollisionID'
+  write(bg_locLossesUnit,*) '# Note that name is not unique, but CollisionID is'
+  write(bg_locLossesUnit,*) '# Note that s is particle coordinate, not bunch coordinate'
 
 ! YOU HAVE TO PUT THESE INITIALIZATIONS AT THE END OF THE ROUTINE
 ! FOR SOME STRANGE FORTRAN-REASON

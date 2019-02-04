@@ -1,0 +1,12 @@
+# Setup for github-linguist
+lib/zlib/*  linguist-vendored
+
+*.canonical linguist-generated
+*.2         linguist-generated
+*.3         linguist-language=text
+*.8         linguist-generated
+*.13        linguist-generated
+*.16        linguist-generated
+
+# Ignore build folders when diffing
+build*/ -diff

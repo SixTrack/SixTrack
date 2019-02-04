@@ -5,7 +5,7 @@
 !   January 1999
 !
 ! ================================================================================================ !
-subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
+subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc,mtc)
 
   use floatPrecision
   use mathlib_bouncer
@@ -20,6 +20,7 @@ subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
   real(kind=fPrec) alpha,calpha,cphi,f,phi,salpha,sigzs,sphi,tphi,phi2,cphi2,sphi2,tphi2
 
   real(kind=fPrec) :: track(6,npart) !(6,npart)
+  real(kind=fPrec) :: mtc(npart)
   real(kind=fPrec) :: param(nele,18) !(nele,18)
   real(kind=fPrec) :: bcu(nbb,12) !(nbb,12)
   real(kind=fPrec) :: star(3,mbea) !(3,mbea)
@@ -58,7 +59,7 @@ subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc)
 !     define slices
   call stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
   call boost(np,sphi,cphi,tphi,salpha,calpha,track)
-  call sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
+  call sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc,mtc)
   call boosti(np,sphi,cphi,tphi,salpha,calpha,track)
   return
 end subroutine beamint
@@ -121,28 +122,26 @@ end subroutine boost
 !  call BBF  (table) disabled
 !****************************************************************
 ! ================================================================================================ !
-subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
+subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc,mtc)
 
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
   use parpro
-  use mod_alloc
 
   implicit none
 
   integer i,ibb,ibbc,ibbc1,ibtyp,jsli,np,nsli
   real(kind=fPrec) bbf0,bbfx,bbfy,bbgx,bbgy,costh,costhp,cphi,f,s,sepx,sepx0,sepy,sepy0,sfac,sinth,sinthp,sp,sx,sy,cphi2
 
-  real(kind=fPrec) :: track(6,npart) !(6,npart)
-  real(kind=fPrec) :: bcu(nbb,12) !(nbb,12)
-  real(kind=fPrec) :: star(3,mbea) !(3,mbea)
-  real(kind=fPrec), allocatable :: dum(:) !(13)
+  real(kind=fPrec) :: track(6,npart)
+  real(kind=fPrec) :: bcu(nbb,12)
+  real(kind=fPrec) :: star(3,mbea)
+  real(kind=fPrec) :: mtc(npart)
+  real(kind=fPrec) :: dum(13)
 
   save
 !-----------------------------------------------------------------------
-
-  call alloc(dum,13,zero,"dum")
 
   do jsli=1,nsli
     do i=1,np
@@ -211,10 +210,10 @@ subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
         call bbf(sepy,sepx,sy,sx,bbfy,bbfx,bbgy,bbgx,ibtyp)
       end if
 
-      bbfx=f*bbfx
-      bbfy=f*bbfy
-      bbgx=f*bbgx
-      bbgy=f*bbgy
+      bbfx=f*bbfx*mtc(i)
+      bbfy=f*bbfy*mtc(i)
+      bbgx=f*bbgx*mtc(i)
+      bbgy=f*bbgy*mtc(i)
 
       if(ibbc1.eq.1) then
         dum(8)=two*((bcu(ibb,4)-bcu(ibb,9))+(bcu(ibb,6)-bcu(ibb,10))*sp)
@@ -252,8 +251,6 @@ subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc)
       track(4,i)=track(4,i)-bbfy
     end do
   end do
-
-  call dealloc(dum, "dum")
 
   return
 
@@ -486,7 +483,7 @@ end subroutine stsld
 !  DP/DX=EXP(-X**2/2)/SQRT(2*PI) IS LESS THAN 0.640E-3 EVERYWHERE
 !  IN THE RANGE  2**(-31) < P0 < 1-2**31.  (MINIMAX APPROXIMATION)
 ! ================================================================================================ !
-function gauinv(p0)
+real(kind=fPrec) function gauinv(p0)
 
   use floatPrecision
   use mathlib_bouncer
@@ -494,7 +491,7 @@ function gauinv(p0)
   use crcoall
   implicit none
   real(kind=fPrec) a0,a1,a2,a3,b0,b1,b2,b3,b4,c0,c1,c2,c3,c4,d0,d1,d2,d3,d4,e0,e1,e2,e3,e4,f0,f1,f2,&
-    gauinv,p,p0,p1,p2,pp1,q,qq2,qq3,qq4,qq5,t
+    p,p0,p1,p2,pp1,q,qq2,qq3,qq4,qq5,t
 !-----------------------------------------------------------------------
   data pp1/0.334624883253_fPrec/, qq2/0.090230446775_fPrec/,            &
        qq3/0.049905685242_fPrec/, qq4/0.027852994157_fPrec/,            &
@@ -519,6 +516,7 @@ function gauinv(p0)
 !-----------------------------------------------------------------------
   p=p0-half
   p1=abs(p)
+  gauinv=zero ! -Wmaybe-uninitialized
   if(p1.ge.pp1) goto 120
   p2=p**2
   gauinv=(((a3*p2+a2)*p2+a1)*p2+a0)*p

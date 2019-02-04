@@ -1,3 +1,4 @@
+! start include/dalin4.f90
 else
   do jb=1,jmel
     jx=mtyp(ix,jb)
@@ -26,3 +27,4 @@ else
           call darea6(asda(2,ip),zfeld2,6)
         endif
       enddo
+! end include/dalin4.f90

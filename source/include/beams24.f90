@@ -1,3 +1,4 @@
+! start include/beams24.f90
     endif
     endif
   endif
@@ -15,7 +16,7 @@ else if(kzz.eq.20.and.parbe(ix,2).gt.zero) then                   !hr03
     track6d(6,1)=zero
     napx0=napx
     napx=1
-    call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc)
+    call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc,mtc)
     beamoff(1,imbb(i))=track6d(1,1)*c1e3
     beamoff(2,imbb(i))=track6d(3,1)*c1e3
     beamoff(3,imbb(i))=track6d(5,1)*c1e3
@@ -26,3 +27,4 @@ else if(kzz.eq.20.and.parbe(ix,2).gt.zero) then                   !hr03
   endif
   goto 290
 endif
+! end include/beams24.f90

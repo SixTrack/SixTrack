@@ -1,8 +1,8 @@
 ! ================================================================================================ !
 !  Fringe Field Tracking Module
 ! ~~~~~~~~~~~~~~~~~~~~~~~~
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2019-01-17
+!  B. Dalena, T. Pugnat and A. Simona from CEA
+!  Last Modified: 2019-02-01
 !
 !  Usage
 ! ~~~~~~~
@@ -17,8 +17,8 @@ module ffTable_n_Tracks
   ! ------------------------------------------------------------------------------------------------ !
   ! Mod from SixTrack
   ! ------------------------------------------------------------------------------------------------ !
-  use mod_alloc,           only : lout, alloc, resize, dealloc
-  use floatPrecision,      only : fPrec
+  use floatPrecision, only : fPrec
+  use, intrinsic :: ISO_FORTRAN_ENV, only : int32
   
   implicit none
 
@@ -34,21 +34,22 @@ module ffTable_n_Tracks
     real(kind=fPrec),              public :: norm          ! normalization
     real(kind=fPrec),              public :: Lgth          ! Total file length
     real(kind=fPrec),              public :: Lin           ! Length in Quad
+    real(kind=fPrec),              public :: r0_2          ! Maximum radius in quad
 
     ! Table for the vector potential Ax
-    integer,                       public :: lx            ! Number of coef per step for Ax
-    integer,          allocatable, public :: ij_TAx(:,:,:) ! (1:2,1:lx,1:s) Table of indices ij
-    real(kind=fPrec), allocatable, public :: TAx(:,:)      ! (    1:lx,1:s) Table of coefficients
+    integer,                          public :: lx            ! Number of coef per step for Ax
+    integer(kind=int32), allocatable, public :: ij_TAx(:,:,:) ! (1:2,1:lx,1:s) Table of indices ij
+    real(kind=fPrec),    allocatable, public :: TAx(:,:)      ! (    1:lx,1:s) Table of coefficients
 
     ! Table for the vector potential Ay
-    integer,                       public :: ly            ! Number of coef per step 
-    integer,          allocatable, public :: ij_TAy(:,:,:) ! (1:2,1:ly,1:s) Table of indices ij
-    real(kind=fPrec), allocatable, public :: TAy(:,:)      ! (    1:ly,1:s) Table of coefficients
+    integer,                          public :: ly            ! Number of coef per step for Ay
+    integer(kind=int32), allocatable, public :: ij_TAy(:,:,:) ! (1:2,1:ly,1:s) Table of indices ij
+    real(kind=fPrec),    allocatable, public :: TAy(:,:)      ! (    1:ly,1:s) Table of coefficients
 
     ! Table for the vector potential Az
-    integer,                       public :: lz            ! Number of coef per step for Az
-    integer,          allocatable, public :: ij_TAz(:,:,:) ! (1:2,1:lz,1:s) Table of indices ij
-    real(kind=fPrec), allocatable, public :: TAz(:,:)      ! (    1:lz,1:s) Table of coefficients
+    integer,                          public :: lz            ! Number of coef per step for Az
+    integer(kind=int32), allocatable, public :: ij_TAz(:,:,:) ! (1:2,1:lz,1:s) Table of indices ij
+    real(kind=fPrec),    allocatable, public :: TAz(:,:)      ! (    1:lz,1:s) Table of coefficients
     
     ! Matrix for the antiquadripole
     integer :: nbDlt
@@ -134,14 +135,14 @@ contains
   type(ffTable_n_Track) function constructT()
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use parpro,              only : mStrLen, str_dSpace
+    use parpro,              only : mFNameLen
     use numerical_constants, only : zero
     
     implicit none
 
     if (allocated(constructT%ffFNames)) deallocate(constructT%ffFNames)
-    allocate(character(len=mStrLen) :: constructT%ffFNames)
-    constructT%ffFNames=str_dSpace
+    allocate(character(len=mFNameLen) :: constructT%ffFNames)
+    constructT%ffFNames=" "
     constructT%chk_Status=0
     constructT%n=0
     constructT%m=0
@@ -151,6 +152,7 @@ contains
     constructT%norm=zero
     constructT%Lgth=zero
     constructT%Lin =zero
+    constructT%r0_2=6.4e-3_fPrec
 
     constructT%lx=0
     constructT%ly=0
@@ -163,19 +165,27 @@ contains
   ! ================================================================ !
   !  Set
   ! ================================================================ !
-  pure subroutine Tset(this, nFile, LQin, Length)
+  pure subroutine Tset(this, nFile, LQin, Length, r0)
+    ! Mod from SixTrack
+    ! ---------------------------------------------------------------------------------------------- !
+    use numerical_constants, only : zero
 
     implicit none
 
+
+    ! interface variables
+    ! ---------------------------------------------------------------------------------------------- !
     class(ffTable_n_Track), intent(inout) :: this
     character(len=*),       intent(in)    :: nFile
     real(kind=fPrec),       intent(in)    :: LQin
     real(kind=fPrec),       intent(in)    :: Length
+    real(kind=fPrec),       intent(in)    :: r0     ! Physical aperture
 
     this%ffFNames   = TRIM(ADJUSTL(nFile))
     this%Lin        = LQin 
     this%Lgth       = Length
     this%chk_Status = 1
+    if(r0>zero) this%r0_2= r0*r0
   end subroutine Tset
 
 
@@ -185,10 +195,14 @@ contains
   subroutine Tfree(this)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
+    use mod_alloc,           only : dealloc
     use numerical_constants, only : zero
 
     implicit none
 
+
+    ! interface variables
+    ! ---------------------------------------------------------------------------------------------- !
     class(ffTable_n_Track), intent(inout) :: this
     
     if (this%chk_Status/=0) then
@@ -206,10 +220,10 @@ contains
       if(allocated(this%TAz))      call dealloc(this%TAz,    'this%TAz')
       this%lz=0
 
-      if(allocated(this%Tdpsv))    call dealloc(this%Tdpsv, 'this%Tdpsv')
+      if(allocated(this%Tdpsv))    call dealloc(this%Tdpsv,  'this%Tdpsv')
 
-      if(allocated(this%TAQx))     call dealloc(this%TAQx, 'this%TAQx')
-      if(allocated(this%TAQy))     call dealloc(this%TAQy, 'this%TAQy')
+      if(allocated(this%TAQx))     call dealloc(this%TAQx,   'this%TAQx')
+      if(allocated(this%TAQy))     call dealloc(this%TAQy,   'this%TAQy')
 
       this%n=0
       this%m=0
@@ -230,7 +244,8 @@ contains
   subroutine Tload(this,norm,iErr)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use file_units,           only : funit_requestUnit
+    use mod_units, only : f_requestUnit
+    use crcoall,   only : lout
 
     implicit none
 
@@ -244,14 +259,14 @@ contains
     
 
     if (this%chk_Status<1) then
-      write(lout,"(a,i5)") "FFIELD> ERROR while loading file '"//trim(this%ffFNames)//"' -> status ",this%chk_Status
+      write(lout,"(a,i1)") "FFIELD> ERROR while loading file '"//trim(this%ffFNames)//"' -> status ",this%chk_Status
       iErr = .true.
       return
 
     else if (this%chk_Status == 1) then
       ! Request to find unit
       ! -------------------------------------------------------------------------------------------- !
-      call funit_requestUnit(this%ffFNames,lun)
+      call f_requestUnit(this%ffFNames,lun)
 
       ! Detect the mamixum exposant for x and y, and the number of point in z
       ! -------------------------------------------------------------------------------------------- !
@@ -275,20 +290,28 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero
+    use crcoall,             only : lout
+    use parpro,              only : mInputLn
+    use mod_units,           only : f_open, f_close
+    use string_tools,        only : chr_split, chr_cast
 
     implicit none
 
     ! interface variables
     ! ---------------------------------------------------------------------------------------------- !
     class(ffTable_n_Track), intent(inout) :: this
-    integer,                intent(inout) :: lun       ! Unit for file to be open
-    logical,                intent(inout) :: iErr      ! Error return
+    integer,                intent(inout) :: lun  ! Unit for file to be open
+    logical,                intent(inout) :: iErr ! Error return
 
-    integer :: istat=0                                 ! Check. accecibility of the file
-    integer :: line =0                                 ! Nb of line in file
-    integer :: n,m,s                                   ! Exposant max for x and y, Nb of point in z
-    integer :: expx,expy,expz                          ! Expo. for x, y and z
-    real(kind=fPrec) :: st, sm1                        ! Parametter for the detection of new step in z
+    character(len=mInputLn) :: inLine             ! Line of the file
+    integer :: nSplit                             ! Nb element in line
+    logical :: ffErr                              ! Error returned
+    integer :: istat                              ! Check. accecibility of the file
+    integer :: line                               ! Nb of line in file
+    integer :: n,m,s                              ! Exposant max for x and y, Nb of point in z
+    integer(kind=int32) :: expx,expy,expz         ! Expo. for x, y and z
+    real(kind=fPrec) :: st, sm1                   ! Parametter for the detection of new step in z
+    character(len=:), allocatable :: lnSplit(:)   ! (1:nSplit) Splited line
 
     ! Check if the file can be open
     ! ---------------------------------------------------------------------------------------------- !
@@ -299,8 +322,9 @@ contains
       return
     end if
     
-    open(unit=lun,file=trim(this%ffFNames),action='read',iostat=istat,status="OLD")
-    if (istat /=0) then
+!    open(unit=lun,file=trim(this%ffFNames),action='read',iostat=istat,status="OLD")
+    call f_open(unit=lun,file=trim(this%ffFNames),formatted=.true.,mode='r',err=ffErr,status="old")
+    if (ffErr) then
       write(lout,"(a)")"FFIELD> ERROR in ReadExpMax(): Error opening file '"//trim(this%ffFNames)//"'"
       iErr=.true.
       return
@@ -319,7 +343,33 @@ contains
     ! Read file
     ! ---------------------------------------------------------------------------------------------- !
     do while(istat==0)
-      read(lun,*,iostat=istat) st, expx, expy, expz ! Read line
+      !     - Read line
+!      read(lun,*,iostat=istat) st, expx, expy, expz ! Read line
+      read(lun,"(a)",iostat=istat) inLine
+
+      !     - Split line
+      call chr_split(inLine, lnSplit, nSplit, ffErr)
+
+      !     - Check error in line
+      if(ffErr) then
+        write(lout,"(a)") "FFIELD> ERROR in ReadExpMax(): Fail to read '"//trim(this%ffFNames)//"'"
+        iErr = .true.
+        return
+      end if
+      if(nSplit < 7)then
+        write(lout,"(a)") "FFIELD> ERROR in ReadExpMax(): Wrong number of element in '"//trim(this%ffFNames)//"'"
+        write(lout,"(a)") "FFIELD> ERROR in ReadExpMax(): Line '"//trim(inLine)//"'"
+        iErr = .true.
+        return
+      end if
+      
+      !     - Save data
+      call chr_cast(lnSplit(1),st,iErr)
+      call chr_cast(lnSplit(2),expx,iErr)
+      call chr_cast(lnSplit(3),expy,iErr)
+!      call chr_cast(lnSplit(4),expz,iErr)
+      if (iErr) return
+
       if (st>sm1+1e-12) then                        ! Detect new step in z
          s = s + 1                                  ! Compte step in z
       endif
@@ -328,7 +378,6 @@ contains
       sm1=st
       line=line+1                                   ! File size
     end do
-!    s=s+1
 
     ! Save data
     ! ---------------------------------------------------------------------------------------------- !
@@ -338,7 +387,7 @@ contains
 
     ! Close file
     ! ---------------------------------------------------------------------------------------------- !
-    close(lun)
+    call f_close(lun)
 
   end subroutine ReadExpMax
 
@@ -347,6 +396,11 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero
+    use crcoall,             only : lout
+    use parpro,              only : mInputLn
+    use mod_alloc,           only : alloc, dealloc
+    use mod_units,           only : f_open, f_close
+    use string_tools,        only : chr_split, chr_cast
 
     implicit none
 
@@ -359,25 +413,29 @@ contains
 
     ! Subroutine variables
     ! ---------------------------------------------------------------------------------------------- !
-    logical :: CoefSave                            ! Check if coef. already exist
-    integer :: istat=0                             ! Check accecibility of the file
-    integer :: ind                                 ! Nb. max of different coefficient
-    integer :: l,k                                 ! Iterator
-    integer :: linex,liney,linez                   ! Nb. max of coeff/step for Ax,Ay and Az
-    integer :: tlinex,tliney,tlinez                ! Temp. nb. max of coeff/step for Ax,Ay and Az
-    integer :: sline =0                            ! Nb of line in file
-    integer :: expx, expy, expz                    ! Expo. for x, y and z
-    real(kind=fPrec) :: ax, ay, az                 ! Coeff. for x, y and z
-    real(kind=fPrec) :: st, sm1                    ! Parametter for the detection of new step in z
-    real(kind=fPrec) :: zin                        ! Position of the first step
-    real(kind=fPrec) :: dz                         ! Step size in z
-    integer, allocatable :: tpij_Ax(:,:,:)         ! (1:2,1:ind,0:s)) Temp. table of indices ij for Ax
-    integer, allocatable :: tpij_Ay(:,:,:)         ! (1:2,1:ind,0:s)) Temp. table of indices ij for Ay
-    integer, allocatable :: tpij_Az(:,:,:)         ! (1:2,1:ind,0:s)) Temp. table of indices ij for Az
+    character(len=mInputLn) :: inLine                  ! Line of the file
+    integer :: nSplit                                  ! Nb element in line
+    logical :: ffErr                                   ! Error returned
+    logical :: CoefSave                                ! Check if coef. already exist
+    integer :: istat                                   ! Check accecibility of the file
+    integer :: ind                                     ! Nb. max of different coefficient
+    integer :: l,k                                     ! Iterator
+    integer :: linex,liney,linez                       ! Nb. max of coeff/step for Ax,Ay and Az
+    integer :: tlinex,tliney,tlinez                    ! Temp. nb. max of coeff/step for Ax,Ay and Az
+    integer :: sline                                   ! Nb of line in file
+    integer(kind=int32) :: expx, expy, expz            ! Expo. for x, y and z
+    real(kind=fPrec) :: ax, ay, az                     ! Coeff. for x, y and z
+    real(kind=fPrec) :: st, sm1                        ! Parametter for the detection of new step in z
+    real(kind=fPrec) :: zin                            ! Position of the first step
+    real(kind=fPrec) :: dz                             ! Step size in z
+    character(len=:)   , allocatable :: lnSplit(:)     ! (1:nSplit)       Splited line
+    integer(kind=int32), allocatable :: tpij_Ax(:,:,:) ! (1:2,1:ind,0:s)) Temp. table of indices ij for Ax
+    integer(kind=int32), allocatable :: tpij_Ay(:,:,:) ! (1:2,1:ind,0:s)) Temp. table of indices ij for Ay
+    integer(kind=int32), allocatable :: tpij_Az(:,:,:) ! (1:2,1:ind,0:s)) Temp. table of indices ij for Az
 
-    real(kind=fPrec), allocatable :: tpTAx(:,:)    ! (    1:ind,1:s)) Temp. table for coeff. of Ax
-    real(kind=fPrec), allocatable :: tpTAy(:,:)    ! (    1:ind,1:s)) Temp. table for coeff. of Ay
-    real(kind=fPrec), allocatable :: tpTAz(:,:)    ! (    1:ind,1:s)) Temp. table for coeff. of Az
+    real(kind=fPrec), allocatable :: tpTAx(:,:)        ! (    1:ind,1:s)) Temp. table for coeff. of Ax
+    real(kind=fPrec), allocatable :: tpTAy(:,:)        ! (    1:ind,1:s)) Temp. table for coeff. of Ay
+    real(kind=fPrec), allocatable :: tpTAz(:,:)        ! (    1:ind,1:s)) Temp. table for coeff. of Az
 
 
     ! Allocation of memory for tables
@@ -410,7 +468,8 @@ contains
       return
     end if
     
-    open(unit=lun,file=trim(this%ffFNames),action='read',iostat=istat,status="OLD")
+!    open(unit=lun,file=trim(this%ffFNames),action='read',iostat=istat,status="OLD")
+    call f_open(unit=lun,file=trim(this%ffFNames),formatted=.true.,mode='r',err=iErr,status="old")
     if (istat /=0) then
       write(lout,"(a)")"FFIELD> ERROR in ReadVectPotCoeff(): Error opening file '"//trim(this%ffFNames)//"'"
       iErr=.true.
@@ -422,10 +481,39 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     do while(istat==0)
       st=zero; expx=0; expy=0; expz=0; ax=zero; ay=zero; az=zero; 
-      read(lun,*,iostat=istat) st, expx, expy, expz, ax, ay, az              ! Read line
+      !     - Read line
+!      read(lun,*,iostat=istat) st, expx, expy, expz, ax, ay, az              ! Read line
+      read(lun,"(a)",iostat=istat) inLine
+
+      !     - Split line
+      call chr_split(inLine, lnSplit, nSplit, ffErr)
+
+      !     - Check error in line
+      if(ffErr) then
+        write(lout,"(a)") "FFIELD> ERROR in ReadVectPotCoeff(): Fail to read '"//trim(this%ffFNames)//"'"
+        iErr = .true.
+        return
+      end if
+      if(nSplit < 7)then
+        write(lout,"(a)") "FFIELD> ERROR in ReadVectPotCoeff(): Wrong number of element in '"//trim(this%ffFNames)//"'"
+        write(lout,"(a)") "FFIELD> ERROR in ReadVectPotCoeff(): Line '"//trim(inLine)//"'"
+        iErr = .true.
+        return
+      end if
+      
+      !     - Save data
+      call chr_cast(lnSplit(1),st,  iErr)
+      call chr_cast(lnSplit(2),expx,iErr)
+      call chr_cast(lnSplit(3),expy,iErr)
+!      call chr_cast(lnSplit(4),expz,iErr)
+      call chr_cast(lnSplit(3),ax,  iErr)
+      call chr_cast(lnSplit(3),ay,  iErr)
+      call chr_cast(lnSplit(3),az,  iErr)
+      if (iErr) return
 
 
-      if (st>sm1+1e-12) then            ! Detect step in z
+      !     - Detect step in z
+      if (st>sm1+1e-12) then
         dz=dz+st-sm1
         sline = sline + 1
         tlinex=1; tliney=1; tlinez=1
@@ -433,7 +521,7 @@ contains
       if (sline == 1) zin = st
       
 
-      ! --------------- Detect coef non trivial for Ax ---------------
+      !     - Detect coef non trivial for Ax
       if (ax/=zero) then
         CoefSave=.False.
 
@@ -455,7 +543,7 @@ contains
         endif
       endif
 
-      ! --------------- Detect coef non trivial for Ay ---------------
+      !     - Detect coef non trivial for Ay
       if (ay/=zero) then
         CoefSave=.False.
 
@@ -477,7 +565,7 @@ contains
         endif
       endif
 
-      ! --------------- Detect coef non trivial for Az ---------------
+      !     - Detect coef non trivial for Az
       if (az/=zero) then
         CoefSave=.False.
 
@@ -499,9 +587,7 @@ contains
         endif
       endif
 
-
-      ! Update tables size
-      ! -------------------------------------------------------------------------------------------- !
+      !     - Update tables size
       if (linex<tlinex-1) then
         linex=tlinex-1
       endif
@@ -566,7 +652,7 @@ contains
 
     ! Close file
     ! ---------------------------------------------------------------------------------------------- !
-    close(lun)
+    call f_close(lun)
 
   end subroutine ReadVectPotCoeff
 
@@ -595,7 +681,7 @@ contains
     real(kind=fPrec) :: a1,b1,c1,d1                    ! Matrix coef. for Qx normal
     real(kind=fPrec) :: a2,b2,c2,d2                    ! Matrix coef. for Qy normal
     real(kind=fPrec) :: atp,btp,ctp,dtp,bcmad          ! Temp. value for matrix coef.
-    real(kind=fPrec) :: tp1,tp2,tp3
+    real(kind=fPrec) :: tp,tp1,tp2,tp3
     real(kind=fPrec) :: C0x,C0y                        ! Vect. Pot. normal coef for Ax and Ay
 
 
@@ -660,15 +746,16 @@ contains
 !          a1=atp; b1=btp; c1=ctp; d1=dtp;
      
           ! Thin KDK
-!          atp= (one+p0sp*C0x*this%dz*this%dz*half)*a1 + (p0sp*this%dz)*c1
-!          btp= (one+p0sp*C0x*this%dz*this%dz*half)*b1 + (p0sp*this%dz)*d1
-!          ctp= (one+p0sp*C0x*this%dz*this%dz*0.25_fPrec)*(C0x*this%dz)*a1 + (one+p0sp*C0x*this%dz*this%dz*half)*c1
-!          dtp= (one+p0sp*C0x*this%dz*this%dz*0.25_fPrec)*(C0x*this%dz)*b1 + (one+p0sp*C0x*this%dz*this%dz*half)*d1
+!          atp= (one+((p0sp*C0x)*(this%dz*this%dz))*half)*a1 + (p0sp*this%dz)*c1
+!          btp= (one+((p0sp*C0x)*(this%dz*this%dz))*half)*b1 + (p0sp*this%dz)*d1
+!          ctp= (one+((p0sp*C0x)*(this%dz*this%dz))*0.25_fPrec)*(C0x*this%dz)*a1 + (one+((p0sp*C0x)*(this%dz*this%dz)))*c1
+!          dtp= (one+((p0sp*C0x)*(this%dz*this%dz))*0.25_fPrec)*(C0x*this%dz)*b1 + (one+((p0sp*C0x)*(this%dz*this%dz)))*d1
 !          a1=atp; b1=btp; c1=ctp; d1=dtp;
 
-          tp1= (one+p0sp*C0x*this%dz*this%dz*half)
-          tp2= (p0sp*this%dz)
-          tp3= (one+p0sp*C0x*this%dz*this%dz*0.25_fPrec)*(C0x*this%dz)
+          tp = (p0sp*C0x)*(this%dz*this%dz)
+          tp1= one+tp*half
+          tp2= p0sp*this%dz
+          tp3=(one+tp*0.25_fPrec)*(C0x*this%dz)
           atp= tp1*a1 + tp2*c1; btp= tp1*b1 + tp2*d1; ctp= tp3*a1 + tp1*c1; dtp= tp3*b1 + tp1*d1
           a1=atp; b1=btp; c1=ctp; d1=dtp;
      
@@ -693,9 +780,11 @@ contains
 !          dtp= (one+p0sp*C0y*this%dz*this%dz*0.25_fPrec)*(C0y*this%dz)*b2 + (one+p0sp*C0y*this%dz*this%dz*half)*d2
 !          a2=atp; b2=btp; c2=ctp; d2=dtp;
 
-          tp1= (one+p0sp*C0y*this%dz*this%dz*half)
-          tp2= (p0sp*this%dz)
-          tp3= (one+p0sp*C0y*this%dz*this%dz*0.25_fPrec)*(C0y*this%dz)
+
+          tp = (p0sp*C0y)*(this%dz*this%dz)
+          tp1= one+tp*half
+          tp2= p0sp*this%dz
+          tp3=(one+tp*0.25_fPrec)*(C0y*this%dz)
           atp= tp1*a2 + tp2*c2; btp= tp1*b2 + tp2*d2;  ctp= tp3*a2 + tp1*c2; dtp= tp3*b2 + tp1*d2
           a2=atp; b2=btp; c2=ctp; d2=dtp;
 
@@ -703,13 +792,17 @@ contains
 
         ! Inversion of the matrix
         ! ---------------------------------------------------------------------------------------- !
-        bcmad=one!/(a1*d1-b1*c1)
-        atp=d1*bcmad;  btp=-b1*bcmad;  ctp=-c1*bcmad;  dtp=a1*bcmad;
-        a1=atp; b1=btp; c1=ctp; d1=dtp
-              
-        bcmad=one!/(a2*d2-b2*c2)
-        atp=d2*bcmad;  btp=-b2*bcmad;  ctp=-c2*bcmad;  dtp=a2*bcmad;
-        a2=atp; b2=btp; c2=ctp; d2=dtp
+!        bcmad=one!/(a1*d1-b1*c1)
+!        atp=d1*bcmad;  btp=-b1*bcmad;  ctp=-c1*bcmad;  dtp=a1*bcmad;
+!        a1=atp; b1=btp; c1=ctp; d1=dtp
+        atp=d1; btp=-b1; ctp=-c1; dtp=a1;
+        a1=atp; b1=btp;  c1=ctp;  d1=dtp;
+        
+!        bcmad=one!/(a2*d2-b2*c2)
+!        atp=d2*bcmad;  btp=-b2*bcmad;  ctp=-c2*bcmad;  dtp=a2*bcmad;
+!        a2=atp; b2=btp; c2=ctp; d2=dtp
+        atp=d2; btp=-b2; ctp=-c2; dtp=a2;
+        a2=atp; b2=btp;  c2=ctp;  d2=dtp;
 
         this%TAQx(1,1,k)= a1; this%TAQx(1,2,k)= b1; this%TAQx(2,1,k)= c1; this%TAQx(2,2,k)= d1
         this%TAQy(1,1,k)= a2; this%TAQy(1,2,k)= b2; this%TAQy(2,1,k)= c2; this%TAQy(2,2,k)= d2
@@ -771,7 +864,7 @@ contains
       call this%HornerDYIntX_Ax(x, y, i, valA)
       py=py-valA
 
-      x=x+dzover2*px*deltap1
+      x=x+dzover2*(px*deltap1)
 !      zb=zb-dzover2*px*px*g2d2inv
 
 
@@ -793,7 +886,7 @@ contains
       call this%Horner2D_Ay(x, y, i, valA)
       py=py-valA
 
-      y=y+this%dz*py*deltap1
+      y=y+this%dz*(py*deltap1)
 !      zb=zb-dz*py*py*g2d2inv
 
 
@@ -815,7 +908,7 @@ contains
       call this%HornerDYIntX_Ax(x, y, i, valA)
       py=py-valA
 
-      x=x+dzover2*px*deltap1
+      x=x+dzover2*(px*deltap1)
 !      zb=zb-dzover2*px*px*g2d2inv
 
 
@@ -846,6 +939,7 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
+    use mathlib_bouncer,     only : log10_mb
     
     implicit none
     
@@ -866,13 +960,13 @@ contains
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10(abs(x)))
+    log_tmp=abs(log10_mb(abs(x)))
     if (log_tmp*(this%n-1)>230) then
       max_i=230/log_tmp
     else
       max_i=this%n-1
     endif
-    log_tmp=abs(log10(abs(y)))
+    log_tmp=abs(log10_mb(abs(y)))
     if (log_tmp*(this%m)>230) then
       max_j=230/log_tmp
     else
@@ -892,9 +986,9 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     r0=zero
     do l=1,this%lz
-      di=dble(this%ij_TAz(1,l,z))
+      di=real(this%ij_TAz(1,l,z), fPrec)
       if ((di>zero).and.(this%ij_TAz(1,l,z)-1<=max_i).and.(this%ij_TAz(2,l,z)<=max_j)) then
-        r0 = r0 + di*xpow(this%ij_TAz(1,l,z)-1)*ypow(this%ij_TAz(2,l,z))*this%TAz(l,z)
+        r0 = r0 + di*(xpow(this%ij_TAz(1,l,z)-1)*(ypow(this%ij_TAz(2,l,z))*this%TAz(l,z)))
       endif
     enddo
     resultat=r0
@@ -905,6 +999,7 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
+    use mathlib_bouncer,     only : log10_mb
     
     implicit none
     
@@ -925,13 +1020,13 @@ contains
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10(abs(x)))
+    log_tmp=abs(log10_mb(abs(x)))
     if (log_tmp*(this%n)>230) then
       max_i=230/log_tmp
     else
       max_i=this%n
     endif
-    log_tmp=abs(log10(abs(y)))
+    log_tmp=abs(log10_mb(abs(y)))
     if (log_tmp*(this%m-1)>230) then
       max_j=230/log_tmp
     else
@@ -951,9 +1046,9 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     r0=zero
     do l=1,this%lz
-      dj=dble(this%ij_TAz(2,l,z))
+      dj=real(this%ij_TAz(2,l,z), fPrec)
       if ((dj>zero).and.(this%ij_TAz(1,l,z)<=max_i).and.(this%ij_TAz(2,l,z)-1<=max_j)) then
-        r0 = r0 + dj*xpow(this%ij_TAz(1,l,z))*ypow(this%ij_TAz(2,l,z)-1)*this%TAz(l,z)
+        r0 = r0 + dj*(xpow(this%ij_TAz(1,l,z))*(ypow(this%ij_TAz(2,l,z)-1)*this%TAz(l,z)))
       endif
     enddo
     resultat=r0
@@ -964,6 +1059,7 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
+    use mathlib_bouncer,     only : log10_mb
     
     implicit none
     
@@ -984,13 +1080,13 @@ contains
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10(abs(x)))
+    log_tmp=abs(log10_mb(abs(x)))
     if (log_tmp*(this%n)>230) then
       max_i=230/log_tmp
     else
       max_i=this%n
     endif
-    log_tmp=abs(log10(abs(y)))
+    log_tmp=abs(log10_mb(abs(y)))
     if (log_tmp*(this%m)>230) then
       max_j=230/log_tmp
     else
@@ -1011,7 +1107,7 @@ contains
     r0=zero
     do l=1,this%lx
       if ((this%ij_TAx(1,l,z)<=max_i).and.(this%ij_TAx(2,l,z)<=max_j)) then
-        r0 = r0 + xpow(this%ij_TAx(1,l,z))*ypow(this%ij_TAx(2,l,z))*this%TAx(l,z)
+        r0 = r0 + xpow(this%ij_TAx(1,l,z))*(ypow(this%ij_TAx(2,l,z))*this%TAx(l,z))
       endif
     enddo
     resultat=r0
@@ -1023,6 +1119,7 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
+    use mathlib_bouncer,     only : log10_mb
     
     implicit none
     
@@ -1043,13 +1140,13 @@ contains
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10(abs(x)))
+    log_tmp=abs(log10_mb(abs(x)))
     if (log_tmp*(this%n)>230) then
       max_i=230/log_tmp
     else
       max_i=this%n
     endif
-    log_tmp=abs(log10(abs(y)))
+    log_tmp=abs(log10_mb(abs(y)))
     if (log_tmp*(this%m)>230) then
       max_j=230/log_tmp
     else
@@ -1070,7 +1167,7 @@ contains
     r0=zero
     do l=1,this%ly
       if ((this%ij_TAy(1,l,z)<=max_i).and.(this%ij_TAy(2,l,z)<=max_j)) then
-        r0 = r0 + xpow(this%ij_TAy(1,l,z))*ypow(this%ij_TAy(2,l,z))*this%TAy(l,z)
+        r0 = r0 + xpow(this%ij_TAy(1,l,z))*(ypow(this%ij_TAy(2,l,z))*this%TAy(l,z))
       endif
     enddo
     resultat=r0
@@ -1082,6 +1179,7 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
+    use mathlib_bouncer,     only : log10_mb
     
     implicit none
     
@@ -1102,13 +1200,13 @@ contains
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10(abs(x)))
+    log_tmp=abs(log10_mb(abs(x)))
     if (log_tmp*(this%n+1)>230) then
       max_i=230/log_tmp
     else
       max_i=this%n+1
     endif
-    log_tmp=abs(log10(abs(y)))
+    log_tmp=abs(log10_mb(abs(y)))
     if (log_tmp*(this%m-1)>230) then
       max_j=230/log_tmp
     else
@@ -1128,10 +1226,10 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     r0=zero
     do l=1,this%lx
-      di=dble(this%ij_TAx(1,l,z) + 1)
-      dj=dble(this%ij_TAx(2,l,z))
+      di=real(this%ij_TAx(1,l,z) + 1, fPrec)
+      dj=real(this%ij_TAx(2,l,z)    , fPrec)
       if ((dj>0).and.(this%ij_TAx(1,l,z)+1<=max_i).and.(this%ij_TAx(2,l,z)-1<=max_j)) then
-        r0 = r0 + dj*xpow(this%ij_TAx(1,l,z) + 1)*ypow(this%ij_TAx(2,l,z) - 1)*this%TAx(l,z)/di
+        r0 = r0 + (dj*(xpow(this%ij_TAx(1,l,z) + 1)*(ypow(this%ij_TAx(2,l,z) - 1)*this%TAx(l,z))))/di
       endif
     enddo
     resultat=r0
@@ -1142,6 +1240,7 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
+    use mathlib_bouncer,     only : log10_mb
     
     implicit none
     
@@ -1162,13 +1261,13 @@ contains
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10(abs(x)))
+    log_tmp=abs(log10_mb(abs(x)))
     if (log_tmp*(this%n-1)>230) then
       max_i=230/log_tmp
     else
       max_i=this%n-1
     endif
-    log_tmp=abs(log10(abs(y)))
+    log_tmp=abs(log10_mb(abs(y)))
     if (log_tmp*(this%m+1)>230) then
       max_j=230/log_tmp
     else
@@ -1188,10 +1287,10 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     r0=zero
     do l=1,this%ly
-      di=dble(this%ij_TAy(1,l,z))
-      dj=dble(this%ij_TAy(2,l,z) + 1)
+      di=real(this%ij_TAy(1,l,z)    , fPrec)
+      dj=real(this%ij_TAy(2,l,z) + 1, fPrec)
       if ((di>0).and.(this%ij_TAy(1,l,z)-1<=max_i).and.(this%ij_TAy(2,l,z)+1<=max_j)) then
-        r0 = r0 + di*xpow(this%ij_TAy(1,l,z) - 1)*ypow(this%ij_TAy(2,l,z) + 1)*this%TAy(l,z)/dj
+        r0 = r0 + (di*(xpow(this%ij_TAy(1,l,z) - 1)*(ypow(this%ij_TAy(2,l,z) + 1)*this%TAy(l,z))))/dj
       endif
     enddo
     resultat=r0

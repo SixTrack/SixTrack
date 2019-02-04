@@ -1,5 +1,5 @@
 # DUMP format #2, bez=op3             , number of particles=          64, dump period=           1, first turn=           1, last turn=          -1, HIGH=F, FRONT=F
-# ID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] dE/E[1] ktrack
+# particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0[1] ktrack
         1        1   6815.26943  1.005235230E+00 -7.746338895E-03  2.461128225E+00 -2.580669054E-03  1.577891351E-02  9.945768831E-06       31
         2        1   6815.26943  1.005229216E+00 -7.746236556E-03  2.461128212E+00 -2.580669013E-03  1.577889581E-02  9.945768831E-06       31
         3        1   6815.26943  7.171987290E-01 -2.236906217E-03  2.508557137E+00 -2.257376323E-03  1.540940218E-02  9.945771160E-06       31

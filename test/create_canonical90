@@ -1,6 +1,0 @@
-#!/bin/sh
-export V=batch_run_pro_SixTrack_4506_crlibm_bnl_gfortran_O4_b6abf53913
-for d in $TESTS
-do
-  cp $d/fort.90.$V $d/fort.90.canonical
-done

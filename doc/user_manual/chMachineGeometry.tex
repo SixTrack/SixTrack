@@ -167,6 +167,22 @@ To consider the curvature of dipoles which are replaced by drifts and dipole kic
 The definition of the multipole strength in a block will be given in (\ref{MulCoe}).
 
 % ================================================================================================================================ %
+
+\subsection{Generalized RF-Multipoles} \label{rfmulbloc}
+
+A set of normal and skew RF-multipoles.
+The actual values for the strengths have to be given in a separate \textit{Generalized RF-multipoles} input block (\ref{generalrf}) which must have the same name.
+
+\paragraph{Format} \texttt{name type }
+
+
+    \begin{tabular}{@{}lp{0.8\linewidth}}
+        \texttt{name} & May contain up to 47 characters. \\
+        \texttt{type} & Must be 11. \\
+    \end{tabular}
+
+
+
 \subsection{Solenoid} \label{Solenoid}
 
 \paragraph{Format} \texttt{name type $k_s$ $ks*l$}
@@ -219,7 +235,7 @@ In this case, only the element name and type and the location within the lattice
 \noindent\textbf{When the \texttt{EXPERT} flag is not set:}
 The ``traditional'' format is used.
 
-\paragraph{Format} \texttt{name type h-sep v-sep strength-ratio ${\sigma\_\rm{hor}}^2$ ${\sigma\_\rm{ver}}^2$ ${\sigma\_\rm{lon}}^2$}
+\paragraph{Format} \texttt{name type h-sep v-sep strength-ratio ${\sigma\_\rm{h}}^2$ ${\sigma\_\rm{v}}^2$ ${\sigma\_\rm{hv}}^2$}
 
 \bigskip
 \begin{longtabu}{@{}lp{0.7\linewidth}}
@@ -228,9 +244,9 @@ The ``traditional'' format is used.
     \texttt{h-sep} & Horizontal beam--beam separation [mm]. \\
     \texttt{v-sep} & Vertical beam--beam separation [mm]. \\
     \texttt{strength-ratio} & Strength ratio with respect to the nominal beam--beam kick strength. This is useful, in particular for 4D, to allow for splitting one beam--beam kick into several (longitudinally close by) kicks. \\
-    \texttt{${\sigma\_\rm{hor}}^2$} & When the flag $lhc=2$ is set in the \texttt{BEAM} block of the \texttt{fort.3} file, this column represent the horizontal $\sigma$ for the strong beam $\rm{[mm^2]}$. \\
-    \texttt{${\sigma\_\rm{ver}}^2$} & When the flag $lhc=2$ is set in the \texttt{BEAM} block of the \texttt{fort.3} file, this column represent the vertical $\sigma$ for the strong beam $\rm{[mm^2]}$. \\
-    \texttt{${\sigma\_\rm{lon}}^2$} & This variable is for future purposes, at the present it is always equal to zero.
+    \texttt{${\sigma\_\rm{h}}^2$} & When the flag \texttt{lhc=2} is set in the \texttt{BEAM} block of the \texttt{fort.3} file, this column represent the horizontal $\sigma$ for the strong beam $\rm{[mm^2]}$. \\
+    \texttt{${\sigma\_\rm{v}}^2$} & When the flag  \texttt{lhc=2} is set in the \texttt{BEAM} block of the \texttt{fort.3} file, this column represent the vertical $\sigma$ for the strong beam $\rm{[mm^2]}$. \\
+    \texttt{${\sigma\_\rm{hv}}^2$} & When the flag  \texttt{lhc=2} and  \texttt{ibbc=1} is set in \texttt{BEAM} block of the \texttt{fort.3} file, this column represent the coupled $\sigma$ for the strong beam $\rm{[mm^2]}$. \\
 \end{longtabu}
 
 \paragraph{Remarks}

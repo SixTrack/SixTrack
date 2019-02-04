@@ -2645,10 +2645,10 @@ subroutine mapflol(sa,sai,cr,cm,st)
       use numerical_constants
       use mod_lie_dab, only : nd,nd2,no,idpr,ndc,ndc2,ndpt,ndt,nplane,epsplane,xplane,ndim,ndim2
       use crcoall
-      use file_units
+      use mod_units
+      use mod_meta
       implicit none
 
-      integer symplecticity_check_unit
       integer i,ier,iunst,j,l,n,n1
       real(kind=fPrec) ap,ax,cm,cr,p,rd,rd1,ri,rr,s1,sa,sai,st,vi,vr,w,x,x2pi,xd,xj,xsu,xx
 !---- FROM TRACKING CODE
@@ -2697,16 +2697,9 @@ subroutine mapflol(sa,sai,cr,cm,st)
             xsu=xsu+abs(w(i,j))
           enddo
         enddo
-        write(lout,*)'deviation for symplecticity ', c1e2*(xsu-nd2)/xsu,' %'
-
-!        Each time this is run we dump out the "deviation for symplecticity". This is re-written each time the check is run
-        call funit_requestUnit('symplecticity_check.txt', symplecticity_check_unit)
-        open(symplecticity_check_unit,file="symplecticity_check.txt", status='replace')
-        write(symplecticity_check_unit,*) c1e2*(xsu-nd2)/xsu
-        close(symplecticity_check_unit)
-#ifdef DEBUG
-!       call warr('symplcdev',100.d0*(xsu-nd2)/xsu,0,0,0,0)
-#endif
+        ! Report
+        meta_sympCheck = (xsu-nd2)/xsu
+        write(lout,"(a,es13.6,a)") "LIELIB> Deviation for symplecticity = ",c1e2*meta_sympCheck," %"
       endif
       call eig6(cr,rr,ri,vr,vi)
       if(idpr.ge.0) then
@@ -3114,6 +3107,7 @@ real(kind=fPrec) function rext(j)
         lie=ista(i)*j(2*i)+lie
       enddo
       mo=mod(lie,4)+1
+      rext = zero ! -Wmaybe-uninitialized
 
       select case (mo)
       case (1)
@@ -3523,12 +3517,16 @@ subroutine ety2(nm,n,low,igh,h,wr,wi,z,ierr)
       use mathlib_bouncer
       use numerical_constants
       implicit none
-      integer i,j,k,l,m,n,en,ii,jj,ll,mm,na,nm,nn,                      &
-     &igh,its,low,mp2,enm2,ierr
+      integer i,j,k,l,m,n,en,ii,jj,ll,mm,na,nm,nn,igh,its,low,mp2,enm2,ierr
       real(kind=fPrec) h(nm,n),wr(n),wi(n),z(nm,n)
       real(kind=fPrec) p,q,r,s,t,w,x,y,ra,sa,vi,vr,zz,norm,machep
       logical notlas
       real(kind=fPrec) z3r,z3i
+
+      m = 0    ! -Wmaybe-uninitialized
+      p = zero ! -Wmaybe-uninitialized
+      r = zero ! -Wmaybe-uninitialized
+      s = zero ! -Wmaybe-uninitialized
 !
 !
 !

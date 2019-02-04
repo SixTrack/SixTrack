@@ -1,4 +1,4 @@
- # turn element attribute SETidx funname value
+#       turn element              attribute             idx funname                        value
            1 GLOBAL-VARS          E0                      1 energy               0.450120000E+06
            2 GLOBAL-VARS          E0                      1 energy               0.450120003E+06
            3 GLOBAL-VARS          E0                      1 energy               0.450120007E+06

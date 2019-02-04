@@ -19,9 +19,9 @@ module bdex
   implicit none
 
   ! Is BDEX in use?
-  logical, save :: bdex_enable
+  logical, save :: bdex_enable = .false.
   ! Debug mode?
-  logical, save :: bdex_debug
+  logical, save :: bdex_debug  = .false.
 
   ! BDEX in use for this element?
   ! 0: No.
@@ -33,7 +33,7 @@ module bdex
   integer, allocatable, save :: bdex_elementChannel(:) !(nele)
 
   integer, parameter :: bdex_maxchannels = 16
-  integer, save :: bdex_nchannels
+  integer, save      :: bdex_nchannels   = 0
 
   ! Basic data for the bdex_channels, one row/channel
   ! Column 1: Type of channel. Values:
@@ -46,14 +46,14 @@ module bdex
   !           If col 1 is PIPE, it points to the first (of two) files in bdex_stringStorage.
   ! Column 4: Meaning varies, based on the value of col. 1:
   !           If col 1 is PIPE, then it is the unit number to use (first of two consecutive).
-  integer, save :: bdex_channels(bdex_maxchannels,4)
+  integer, save :: bdex_channels(bdex_maxchannels,4) = 0
   ! The names of the BDEX channel
-  character(len=getfields_l_max_string ), save :: bdex_channelNames(bdex_maxchannels)
+  character(len=mStrLen), save :: bdex_channelNames(bdex_maxchannels) = " "
 
   !Number of places in the bdex_xxStorage arrays
-  integer, parameter :: bdex_maxStore=20
-  integer, save :: bdex_nstringStorage
-  character(len=getfields_l_max_string ), save :: bdex_stringStorage ( bdex_maxStore )
+  integer, parameter :: bdex_maxStore       = 20
+  integer, save      :: bdex_nstringStorage = 0
+  character(len=mStrLen), save :: bdex_stringStorage(bdex_maxStore) = " "
 
 contains
 
@@ -68,19 +68,9 @@ subroutine bdex_expand_arrays(nele_new)
   use crcoall
   implicit none
   integer, intent(in) :: nele_new
-  call resize(bdex_elementAction,nele_new,0,'bdex_elementAction')
-  call resize(bdex_elementChannel,nele_new,0,'bdex_elementChannel')
+  call alloc(bdex_elementAction,nele_new,0,'bdex_elementAction')
+  call alloc(bdex_elementChannel,nele_new,0,'bdex_elementChannel')
 end subroutine bdex_expand_arrays
-
-subroutine bdex_comnul
-  bdex_enable=.false.
-  bdex_debug =.false.
-  bdex_nchannels=0
-  bdex_channels(:,:) = 0
-  bdex_channelNames(:) = " "
-  bdex_nstringStorage = 0
-  bdex_stringStorage(:) = " "
-end subroutine bdex_comnul
 
 subroutine bdex_closeFiles
   integer i
@@ -123,6 +113,7 @@ subroutine bdex_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   select case(lnSplit(1)(1:4))
 
@@ -454,8 +445,8 @@ subroutine bdex_track(i,ix,n)
   use parpro
   use string_tools
   use mod_common
-  use mod_commont
-  use mod_commonmn
+  use mod_common_track
+  use mod_common_main
 
   implicit none
 
@@ -479,10 +470,10 @@ subroutine bdex_track(i,ix,n)
 
       ! Write out particles
       do j=1,napx
-        call chr_fromReal(xv(1,j),  tmpStr(1), 19,2,rErr)
-        call chr_fromReal(yv(1,j),  tmpStr(2), 19,2,rErr)
-        call chr_fromReal(xv(2,j),  tmpStr(3), 19,2,rErr)
-        call chr_fromReal(yv(2,j),  tmpStr(4), 19,2,rErr)
+        call chr_fromReal(xv1(j),  tmpStr(1), 19,2,rErr)
+        call chr_fromReal(yv1(j),  tmpStr(2), 19,2,rErr)
+        call chr_fromReal(xv2(j),  tmpStr(3), 19,2,rErr)
+        call chr_fromReal(yv2(j),  tmpStr(4), 19,2,rErr)
         call chr_fromReal(sigmv(j), tmpStr(5), 19,2,rErr)
         call chr_fromReal(ejv(j),   tmpStr(6), 19,2,rErr)
         call chr_fromReal(ejfv(j),  tmpStr(7), 19,2,rErr)
@@ -491,7 +482,7 @@ subroutine bdex_track(i,ix,n)
         call chr_fromReal(oidpsv(j),tmpStr(10),19,2,rErr)
         call chr_fromReal(dpsv1(j), tmpStr(11),19,2,rErr)
         write(bdex_channels(bdex_elementChannel(ix),4)+1,"(11(a25,1x),i24)") tmpStr(1),tmpStr(2),tmpStr(3),tmpStr(4),tmpStr(5),&
-          tmpStr(6),tmpStr(7),tmpStr(8),tmpStr(9),tmpStr(10),tmpStr(11),nlostp(j)
+          tmpStr(6),tmpStr(7),tmpStr(8),tmpStr(9),tmpStr(10),tmpStr(11),partID(j)
       end do
       write(bdex_channels(bdex_elementChannel(ix),4)+1,'(a)') "BDEX WAITING..."
 
@@ -515,9 +506,9 @@ subroutine bdex_track(i,ix,n)
         endif
         do j=1,napx
           read(bdex_channels(bdex_elementChannel(ix),4),*) &
-                xv(1,j),yv(1,j),xv(2,j),yv(2,j),sigmv(j), &
+                xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j), &
                 ejv(j),ejfv(j),rvv(j),dpsv(j),oidpsv(j), &
-                dpsv1(j),nlostp(j)
+                dpsv1(j),partID(j)
           ! TODO: Handle secondary particle tracking arrays properly
           ! TODO: CRLIBM
         enddo

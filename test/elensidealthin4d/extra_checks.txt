@@ -1,5 +1,2 @@
-HEL_DUMP_1         diff -q --strip-trailing-cr
-HEL_DUMP_2         diff -q --strip-trailing-cr
-HEL_DUMP_3         diff -q --strip-trailing-cr
-HEL_DUMP_4         diff -q --strip-trailing-cr
-HEL_DUMP_5         diff -q --strip-trailing-cr
+aperture_losses.dat
+IP4_DUMP_last

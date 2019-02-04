@@ -1,3 +1,5 @@
-dump.txt             diff -q --strip-trailing-cr
-scatter_log.dat      diff -q --strip-trailing-cr
-dynksets.dat         diff -q --strip-trailing-cr
+scatter_log.dat
+scatter_summary.dat
+dynksets.dat
+final_state.dat
+hash.md5

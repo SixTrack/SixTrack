@@ -1,13 +1,13 @@
 ! ================================================================================================ !
 ! INTERFACE BETWEEN SIXTRACT AND FRINGE-FIELD ROUTINE
-! B.Dalena, T.Pugnat and A.Simona
-! Last modified: 2019-01-18
+! B.Dalena, T.Pugnat and A.Simona from CEA
+! Last modified: 2019-02-01
 ! ================================================================================================ !
 module mod_ffield
   ! ------------------------------------------------------------------------------------------------ !
   ! Mod from SixTrack
   ! ------------------------------------------------------------------------------------------------ !
-!  use floatPrecision
+  use crcoall, only : lout
 
   use ffTable_n_Tracks
   ! ------------------------------------------------------------------------------------------------ !
@@ -41,19 +41,19 @@ module mod_ffield
   integer, public, save :: ffNLFile, ffNLFile_max ! Nb. and nb. max of files with ffNLFile < ffNLFile_max
 !  real(kind=fPrec), public, save :: ffdelta         ! Max ffdelta posible 
 
-  real(kind=fPrec) :: r0_2 
-  parameter (r0_2=6.4e-3_fPrec)                   ! Maximum radius in quad
+!  real(kind=fPrec) :: r0_2 
+!  parameter (r0_2=6.4e-3_fPrec)                   ! Maximum radius in quad
   ! ------------------------------------------------------------------------------------------------ !
 
 
   ! ------------------------------------------------------------------------------------------------ !
   ! FFIELD table
   ! ------------------------------------------------------------------------------------------------ !
-  logical         , allocatable, private, save :: ffInQuad(:)  ! (1:npart)        Check if particle enter the Quad
+!  logical         , allocatable, private, save :: ffInQuad(:)  ! (1:npart)        Check if particle enter the Quad
   integer         , allocatable, public, save :: ffindex(:)    ! (0:nele)         Table with the index of the Quad in our study (0 = not studied)
   integer         , allocatable, public, save :: ffQ2File(:,:) ! (1:ffNLn, 1:2)   Link Quad/Files
 !  real(kind=fPrec), allocatable, public, save :: ffParam(:,:)  ! (1:ffNLFile,1:6) Kin, Lin, Corin, Kex, Lex, Corex
-  real(kind=fPrec), allocatable, public, save :: ffParam(:,:)  ! (1:ffNLFile,1:2) Lgth. in Quadrupoles and total lgth.
+  real(kind=fPrec), allocatable, public, save :: ffParam(:,:)  ! (1:ffNLFile,1:3) Lgth. in Quadrupoles, total lgth. and Physical aperture
   character(len=:), allocatable, public, save :: ffQNames(:)   ! (1:ffNLn)        Name of Quadrupoles
   character(len=:), allocatable, public, save :: ffMSNames(:)  ! (1:ffMSn)        Name of Multipoles skip
   character(len=:), allocatable, public, save :: ffFNames(:)   ! (1:ffNLFile)     Name of Files
@@ -68,14 +68,14 @@ module mod_ffield
   !  Init the module
   !  B. Dalena, T. Pugnat and A. Simona from CEA
   !  V.K. Berglyd Olsen, BE-ABP-HSS
-  !  Last modified: 2018-10-18
+  !  Last modified: 2019-02-01
   ! ================================================================================================ !
   subroutine ffield_mod_init(npart, nele)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use mod_alloc,           only : alloc
     use numerical_constants, only : zero
-    use parpro,              only : mNameLen, str_nmSpace, mStrLen, str_dSpace
+    use parpro,              only : mNameLen, mFNameLen
 
     implicit none
 
@@ -97,14 +97,14 @@ module mod_ffield
     
     ! allocation of the memory
     ! ---------------------------------------------------------------------------------------------- !
-    call alloc(ffInQuad, npart,           .false., 'ffInQuad')
+!    call alloc(ffInQuad, npart,           .false., 'ffInQuad')
     call alloc(ffindex,  nele,            0,       'ffindex')
     call alloc(ffQ2File, ffNLFile_max, 2, 0,       'ffQ2File')
-    call alloc(ffParam,  ffNLn_max,    2, zero,    'ffParam')
+    call alloc(ffParam,  ffNLn_max,    3, zero,    'ffParam')
 
-    call alloc(ffQNames,  mNameLen, ffNLn_max,    str_nmSpace, 'ffQNames')
-    call alloc(ffMSNames, mNameLen, ffMSn_max,    str_nmSpace, 'ffMSNames')
-    call alloc(ffFNames,  mStrLen,  ffNLFile_max, str_dSpace,  'ffFNames')
+    call alloc(ffQNames,  mNameLen,  ffNLn_max,    " ", 'ffQNames')
+    call alloc(ffMSNames, mNameLen,  ffMSn_max,    " ", 'ffMSNames')
+    call alloc(ffFNames,  mFNameLen, ffNLFile_max, " ", 'ffFNames')
 
   end subroutine ffield_mod_init
 
@@ -119,7 +119,7 @@ module mod_ffield
   subroutine ffield_mod_expand_arrays(npart_new, nele_new)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use mod_alloc,           only : resize
+    use mod_alloc,           only : alloc
 
     implicit none
 
@@ -129,8 +129,8 @@ module mod_ffield
 
     ! resizing of the memory
     ! ---------------------------------------------------------------------------------------------- !
-    call resize(ffInQuad, npart_new, .false., 'ffInQuad')
-    call resize(ffindex,  nele_new,  0,       'ffindex')
+!    call alloc(ffInQuad, npart_new, .false., 'ffInQuad')
+    call alloc(ffindex,  nele_new,  0,       'ffindex')
 
   end subroutine ffield_mod_expand_arrays
 
@@ -140,14 +140,14 @@ module mod_ffield
   !  Expand array in module only for the study
   !  B. Dalena, T. Pugnat and A. Simona from CEA
   !  V.K. Berglyd Olsen, BE-ABP-HSS
-  !  Last modified: 2018-10-18
+  !  Last modified: 2019-02-01
   ! ================================================================================================ !
   subroutine ffield_mod_expand_arrays_study(ffNLn_max_new, ffMSn_max_new, ffNLFile_max_new)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use mod_alloc,           only : resize
+    use mod_alloc,           only : alloc
     use numerical_constants, only : zero
-    use parpro,              only : mNameLen, str_nmSpace, mStrLen, str_dSpace
+    use parpro,              only : mNameLen, mFNameLen
 
     implicit none
 
@@ -158,23 +158,23 @@ module mod_ffield
     ! resizing of the memory
     ! ---------------------------------------------------------------------------------------------- !
     if (ffNLn_max /= ffNLn_max_new) then
-      call resize(ffParam,            ffNLn_max_new, 2, zero,        'ffParam')
-      call resize(ffQNames, mNameLen, ffNLn_max_new,    str_nmSpace, 'ffQNames')
+      call alloc(ffParam,            ffNLn_max_new, 3, zero, 'ffParam')
+      call alloc(ffQNames, mNameLen, ffNLn_max_new,    " ",  'ffQNames')
 
       ffNLn_max = ffNLn_max_new
 
     endif
 
     if (ffMSn_max /= ffMSn_max_new) then
-      call resize(ffMSNames, mNameLen, ffMSn_max_new,    str_nmSpace, 'ffMSNames')
+      call alloc(ffMSNames, mNameLen, ffMSn_max_new, " ", 'ffMSNames')
 
       ffMSn_max = ffMSn_max_new
 
     endif
 
     if (ffNLFile_max /= ffNLFile_max_new) then
-      call resize(ffQ2File,           ffNLFile_max_new, 2, 0,           'ffQ2File')
-      call resize(ffFNames, mStrLen , ffNLFile_max_new,    str_dSpace , 'ffFNames')
+      call alloc(ffQ2File,            ffNLFile_max_new, 2, 0,   'ffQ2File')
+      call alloc(ffFNames, mFNameLen, ffNLFile_max_new,    " ", 'ffFNames')
 
       ffNLFile_max = ffNLFile_max_new
 
@@ -193,7 +193,7 @@ module mod_ffield
   subroutine ffield_mod_end()
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use mod_alloc,           only : dealloc
+    use mod_alloc, only : dealloc
 
     implicit none
 
@@ -204,7 +204,7 @@ module mod_ffield
 
     ! free the memory
     ! ---------------------------------------------------------------------------------------------- !
-    if (allocated(ffInQuad))  call dealloc(ffindex,  'ffInQuad')
+!    if (allocated(ffInQuad))  call dealloc(ffindex,  'ffInQuad')
     if (allocated(ffindex))   call dealloc(ffindex,  'ffindex')
     if (allocated(ffQ2File))  call dealloc(ffQ2File, 'ffQ2File')
     if (allocated(ffParam))   call dealloc(ffParam,  'ffParam')
@@ -228,14 +228,14 @@ module mod_ffield
   !  Parse FField Input Line
   !  B. Dalena, T. Pugnat and A. Simona from CEA
   !  V.K. Berglyd Olsen, BE-ABP-HSS
-  !  Last modified: 2019-01-17
+  !  Last modified: 2019-02-01
   ! ================================================================================================ !
   subroutine ffield_parseInputLine(inLine, iLine, iErr)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use string_tools, only : chr_rpad, chr_split, chr_cast
     use mod_common,   only : bez
-    use parpro,       only : mNameLen, mStrLen
+    use parpro,       only : mNameLen, mFNameLen
 
     implicit none
 
@@ -267,6 +267,8 @@ module mod_ffield
       iErr = .true.
       return
     end if
+    
+    if(nSplit == 0) return
 
     ! select case
     ! ---------------------------------------------------------------------------------------------- !
@@ -286,7 +288,7 @@ module mod_ffield
       ! Check that the name is unique
       do i=1,ffNLn
         if(ffQNames(i) == elemName) then
-          write(lout,"(a,i0)") "FFIELD> ERROR Quadrupole element '"//trim(elemName)//"' is not unique."
+          write(lout,"(a)") "FFIELD> ERROR Quadrupole element '"//trim(elemName)//"' is not unique."
           iErr = .true.
           return
         end if
@@ -319,7 +321,7 @@ module mod_ffield
       ! Check that the name is unique
       do i=1,ffMSn
         if(ffMSNames(i) == elemName) then
-          write(lout,"(a,i0)") "FFIELD> ERROR Multipole to skip element '"//trim(elemName)//"' is not unique."
+          write(lout,"(a)") "FFIELD> ERROR Multipole to skip element '"//trim(elemName)//"' is not unique."
           iErr = .true.
           return
         end if
@@ -343,11 +345,11 @@ module mod_ffield
         return
       end if
       
-      elemName = chr_rpad(lnSplit(2), mStrLen)
+      elemName = chr_rpad(lnSplit(2), mFNameLen)
       ! Check that the name is unique
       do i=1,ffNLFile
         if(ffFNames(i) == elemName) then
-          write(lout,"(a,i0)") "FFIELD> ERROR File '"//trim(elemName)//"' is not unique."
+          write(lout,"(a)") "FFIELD> ERROR File '"//trim(elemName)//"' is not unique."
           iErr = .true.
           return
         end if
@@ -356,6 +358,7 @@ module mod_ffield
       ffFNames(ffNLFile) = elemName
       call chr_cast(lnSplit(3),ffParam(ffNLFile,1),  iErr) ! Lin
       call chr_cast(lnSplit(4),ffParam(ffNLFile,2),  iErr) ! Lgth
+      if(nSplit>4) call chr_cast(lnSplit(5),ffParam(ffNLFile,3),  iErr) ! Physical aperture (r0)
       if(iErr) return
 
       ffNLFile = ffNLFile+1
@@ -377,7 +380,7 @@ module mod_ffield
   !  Last modified: 2019-01-16
   ! ================================================================================================ !
   subroutine ffield_parsingDone()
-    write(lout,"(a,i0)") "FFIELD> All input ready!"
+    write(lout,"(a)") "FFIELD> All input ready!"
   end subroutine ffield_parsingDone
 
 
@@ -388,13 +391,13 @@ module mod_ffield
   !  Init the module
   !  B. Dalena, T. Pugnat and A. Simona from CEA
   !  V.K. Berglyd Olsen, BE-ABP-HSS
-  !  Last modified: 2019-01-18
+  !  Last modified: 2019-02-01
   ! ================================================================================================ !
   subroutine ffield_mod_link(iErr)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use mod_common,          only : e0
-    use physical_constants,  only : clight,pmap
+    use physical_constants,  only : clight, pmap
     use numerical_constants, only : one, c1e6
 
     implicit none
@@ -406,7 +409,7 @@ module mod_ffield
     ! routine variables
     ! ---------------------------------------------------------------------------------------------- !
     integer :: i
-    real(kind=fPrec) :: norm=1
+    real(kind=fPrec) :: norm
     real(kind=fPrec) :: beta0,gamma0r
     
     if (ff_status==1) then
@@ -417,22 +420,22 @@ module mod_ffield
       beta0=sqrt(one-gamma0r*gamma0r) ! = sqrt(one-one/(gamma0*gamma0))
 !      p0=beta0*e0*c1e6/clight
       norm=clight/(beta0*e0*c1e6)   ! [c/eV] = 1/p0
-      
+
       ! Generate the array of type(ffTable_n_Track)
       ! -------------------------------------------------------------------------------------------- !
       allocate(ffTable(1:ffNLFile))
       do i=1,ffNLFile
-        call ffTable(i)%set(trim(ffFNames(i)),ffParam(i,1),ffParam(i,2))
+        call ffTable(i)%set(trim(ffFNames(i)),ffParam(i,1),ffParam(i,2),ffParam(i,3))
       end do
       
       ! Check if the Quadrupole ask for the study is in the lattice
       ! -------------------------------------------------------------------------------------------- !
-      write(lout,"(a,i0)") "FFIELD> +----------------------------------------------------------------+"
-      write(lout,"(a,i0)") "FFIELD> |      Summary of the quadrupole for the Fringe Field study      |"
-      write(lout,"(a,i0)") "FFIELD> +----------------------------------------------------------------+"
+      write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
+      write(lout,"(a)") "FFIELD> |      Summary of the quadrupole for the Fringe Field study      |"
+      write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
       do i=1,ffNLn
         if ((ffQ2File(i,1)>ffNLn).or.(ffQ2File(i,1)<1).or.(ffQ2File(i,2)>ffNLn).or.(ffQ2File(i,2)<1)) then
-          write(lout,"(a,i0)") "FFIELD> ERROR FFQN: Wrong choise of file for the Quadupole's head. Check '"//trim(ffQNames(i))//"'."
+          write(lout,"(a)") "FFIELD> ERROR FFQN Wrong choise of file for the Quadupole's head. Check '"//trim(ffQNames(i))//"'."
           iErr = .true.
           return
         end if
@@ -440,25 +443,25 @@ module mod_ffield
         call ffield_mod_ChckQuad(i,norm,iErr)
         
       end do
-      write(lout,"(a,i0)") "FFIELD> +----------------------------------------------------------------+"
-      write(lout,"(a,i0)") "FFIELD>"
+      write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
+      write(lout,"(a)") "FFIELD>"
       
       ! Check if the multipole skip for the study is in the lattice
       ! -------------------------------------------------------------------------------------------- !
-      write(lout,"(a,i0)") "FFIELD> +----------------------------------------------------------------+"
-      write(lout,"(a,i0)") "FFIELD> |      Summary of the multipole for the Fringe Field skipped     |"
-      write(lout,"(a,i0)") "FFIELD> +----------------------------------------------------------------+"
+      write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
+      write(lout,"(a)") "FFIELD> |      Summary of the multipole for the Fringe Field skipped     |"
+      write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
       do i=1,ffMSn
         call ffield_mod_ChckMulti(i,iErr)
       end do
-      write(lout,"(a,i0)") "FFIELD> +----------------------------------------------------------------+"
-      write(lout,"(a,i0)") "FFIELD>"
+      write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
+      write(lout,"(a)") "FFIELD>"
 
       ! Check if the Quadrupole ask for the study is in the lattice
       ! -------------------------------------------------------------------------------------------- !
-      write(lout,"(a,i0)") "FFIELD> +----------------------------------------------------------------+"
-      write(lout,"(a,i0)") "FFIELD> |         Summary of the file for the Fringe Field study         |"
-      write(lout,"(a,i0)") "FFIELD> +----------------------------------------------------------------+"
+      write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
+      write(lout,"(a)") "FFIELD> |         Summary of the file for the Fringe Field study         |"
+      write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
       do i=1,ffNLFile
         if (ffTable(i)%chk_Status == 2) then 
           write(lout,"(a)") "FFIELD>   * '"//ffTable(i)%ffFNames//"' loaded!"
@@ -466,7 +469,7 @@ module mod_ffield
           write(lout,"(a)") "FFIELD>   * '"//ffTable(i)%ffFNames//"' waiting!"
         end if
       end do
-      write(lout,"(a,i0)") "FFIELD> +----------------------------------------------------------------+"
+      write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
       
       ff_status=2
     end if
@@ -486,8 +489,8 @@ module mod_ffield
   subroutine ffield_mod_ChckQuad(i,norm,iErr)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use parpro    ,   only : nele, npart
-    use mod_common,   only : bez
+    use parpro,     only : nele, npart
+    use mod_common, only : bez
 
     implicit none
 
@@ -508,12 +511,12 @@ module mod_ffield
         ffindex(j)=i
         call ffTable(ffQ2File(i,1))%load(norm,iErr)
         call ffTable(ffQ2File(i,2))%load(norm,iErr)
-        write(lout,"(a,i0)") "FFIELD>   * '"//trim(ffQNames(i))//"' ready!"
+        write(lout,"(a)") "FFIELD>   * '"//trim(ffQNames(i))//"' ready!"
         return
       end if
     end do
 
-    write(lout,"(a,i0)") "FFIELD>   * '"//trim(ffQNames(i))//"' ignored!"
+    write(lout,"(a)") "FFIELD>   * '"//trim(ffQNames(i))//"' ignored!"
   end subroutine ffield_mod_ChckQuad
 
 
@@ -529,8 +532,8 @@ module mod_ffield
   subroutine ffield_mod_ChckMulti(i,iErr)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use parpro    ,   only : nele, npart
-    use mod_common,   only : bez
+    use parpro,     only : nele, npart
+    use mod_common, only : bez
 
     implicit none
 
@@ -547,7 +550,7 @@ module mod_ffield
     ! ---------------------------------------------------------------------------------------------- !
     do j=1,ffNLn
       if (ffQNames(j)==ffMSNames(i)) then
-        write(lout,"(a,i0)") "FFIELD> ERROR: Multipole cannot be in 'FFQN' AND 'FFMS'. Check '"//trim(ffMSNames(i))//"'."
+        write(lout,"(a)") "FFIELD> ERROR Multipole cannot be in 'FFQN' AND 'FFMS'. Check '"//trim(ffMSNames(i))//"'."
         iErr=.true.
         return
       end if
@@ -558,13 +561,12 @@ module mod_ffield
     do j=1,nele
       if (bez(j) == ffMSNames(i)) then
         ffindex(j)=-i
-        write(lout,"(a,i0)") "FFIELD>   * '"//trim(ffMSNames(i))//"' will be skipped!"
+        write(lout,"(a)") "FFIELD>   * '"//trim(ffMSNames(i))//"' will be skipped!"
         return
       end if
     end do
 
-    write(lout,"(a,i0)") "FFIELD>   * '"//trim(ffMSNames(i))//"' not found!"
-!    end if
+    write(lout,"(a)") "FFIELD>   * '"//trim(ffMSNames(i))//"' not found!"
   end subroutine ffield_mod_ChckMulti
 
 
@@ -581,7 +583,7 @@ module mod_ffield
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use mod_common,          only : napx
-    use mod_commonmn,        only : dpsv
+    use mod_common_main,     only : dpsv
     use numerical_constants, only : one, two, c1e7
 
     implicit none
@@ -598,7 +600,7 @@ module mod_ffield
         if (ffdelta<abs(dpsv(j))) ffdelta=abs(dpsv(j))
       enddo
 
-      nbDlt=max(1,ceiling(abs( two*(ffdelta)*c1e7 )))
+      nbDlt=max(1,ceiling(abs( two*((ffdelta)*c1e7) )))
       do iFile=1,ffNLFile
         call ffTable(iFile)%AQgen(ffdelta,nbDlt)
       end do
@@ -616,15 +618,15 @@ module mod_ffield
   !  Lie 2 Tracking if particles enter the Quadupole
   !  B. Dalena, T. Pugnat and A. Simona from CEA
   !  V.K. Berglyd Olsen, BE-ABP-HSS
-  !  Last modified: 2019-01-21
+  !  Last modified: 2019-02-01
   ! ================================================================================================ !
   subroutine ffield_enterQuad(ffi)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use parpro,              only : nblo
     use mod_common,          only : napx, ic, tiltc, tilts
-    use mod_commont,         only : strack
-    use mod_commonmn,        only : xv, yv, oidpsv, dpsv, rvv, ejv, zsiv, xsiv, nlostp
+    use mod_common_track,    only : strack
+    use mod_common_main,     only : xv1, xv2, yv1, yv2, oidpsv, dpsv, zsiv, xsiv, llostp !, rvv, ejv
     use numerical_constants, only : half, one, c1e3, c1m3, c1m6
 
     implicit none
@@ -635,6 +637,7 @@ module mod_ffield
 
     ! Subroutine variables
     ! ---------------------------------------------------------------------------------------------- !
+    logical          :: llost
     integer          :: iFile
     integer          :: ffj,  k                    ! iterator
     integer          :: itDlt                      ! 
@@ -646,19 +649,20 @@ module mod_ffield
     real(kind=fPrec) :: LoutQ!, Ldpsv1, Ldpsv2      ! 
 
 
+    llost=.false.
     iFile=ffQ2File(ffindex(ic(ffi)-nblo),1)
 
     do ffj=1,napx
       ! Save data
       ! -------------------------------------------------------------------------------------------- !
-      x = xv(1,ffj);  y = xv(2,ffj);  px= yv(1,ffj);  py= yv(2,ffj)
+      x = xv1(ffj);  y = xv2(ffj);  px= yv1(ffj);  py= yv2(ffj)
 
 !  <<<<<<< IN
       ! Return to beginning of the Quad
       ! -------------------------------------------------------------------------------------------- !
       !             * HE
-      x_tp = x - strack(ffi+2)*half*px
-      y_tp = y - strack(ffi+2)*half*py
+      x_tp = x - (strack(ffi+2)*half)*px
+      y_tp = y - (strack(ffi+2)*half)*py
       
 
       !             * Riccardo's Quad head
@@ -670,33 +674,35 @@ module mod_ffield
 
       ! Rotation error for the quad
       ! -------------------------------------------------------------------------------------------- !
-      x_tp = ((x-xsiv(1,ffi))*tiltc(ffi) + (y-zsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
-      y_tp = ((y-zsiv(1,ffi))*tiltc(ffi) - (x-xsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
-      px_tp= ((px           )*tiltc(ffi) + (py           )*tilts(ffi))*c1m3*(one+dpsv(ffj))
-      py_tp= ((py           )*tiltc(ffi) - (px           )*tilts(ffi))*c1m3*(one+dpsv(ffj))
-      x=x_tp;   y=y_tp;   px=px_tp;   py=py_tp;   
+!      x_tp = ((x-xsiv(1,ffi))*tiltc(ffi) + (y-zsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
+!      y_tp = ((y-zsiv(1,ffi))*tiltc(ffi) - (x-xsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
+      x_tp = ((x-xsiv(ffi))*tiltc(ffi) + (y-zsiv(ffi))*tilts(ffi))*c1m3! mm -> m
+      y_tp = ((y-zsiv(ffi))*tiltc(ffi) - (x-xsiv(ffi))*tilts(ffi))*c1m3! mm -> m
+      px_tp=(((px           )*tiltc(ffi) + (py           )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
+      py_tp=(((py           )*tiltc(ffi) - (px          
 
       ! Selection of the particle that are only in the radius (r = 0.08m)
       ! -------------------------------------------------------------------------------------------- !
-      if (x*x+y*y<=r0_2) then
-        ! Check particle enter the Quad
-        ffInQuad(nlostp(ffj))=.true.
+      if (x*x+y*y>ffTable(iFile)%r0_2) then
+        llost=.true.
+        llostp(ffj)=.true.
 
+      else
         !   - 
-        ffdelta    = dpsv(ffj);
+        ffdelta  = dpsv(ffj);
 !        gam0     = gamma0;
         zb       = 0;
 !        sigma_s  = 0;
 !        betabeta0= ejfv(ffj)/ejv(ffj);
 !        betabeta0= betabeta0*betabeta0*rvv(ffj);
-        LoutQ    = (ffTable(iFile)%Lgth-ffTable(iFile)%Lin)
+        LoutQ    = ffTable(iFile)%Lgth-ffTable(iFile)%Lin
 !        Ldpsv1   = LoutQ*oidpsv(ffj);
 !        Ldpsv2   = oidpsv(ffj)*oidpsv(ffj);
 
 !  <<<<<<< IN
   	!   - Initial repositionning (AntiDrift)
-        x_tp=x-LoutQ*oidpsv(ffj)*px;
-        y_tp=y-LoutQ*oidpsv(ffj)*py;
+        x_tp=x-(LoutQ*oidpsv(ffj))*px;
+        y_tp=y-(LoutQ*oidpsv(ffj))*py;
         x=x_tp;   y=y_tp;
 !  <<<<<<< IN
 
@@ -725,24 +731,27 @@ module mod_ffield
         py_tp=ffTable(iFile)%TAQy(2,1,itDlt)*y + ffTable(iFile)%TAQy(2,2,itDlt)*py
         x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
 
-        x_tp=x+LoutQ*oidpsv(ffj)*px;
-        y_tp=y+LoutQ*oidpsv(ffj)*py;
+        x_tp=x+(LoutQ*oidpsv(ffj))*px;
+        y_tp=y+(LoutQ*oidpsv(ffj))*py;
         x=x_tp;   y=y_tp;
+!  <<<<<<< IN
 
         ! Change to SixTrack referenciale
         ! ------------------------------------------------------------------------------------------ !
-        px_tp= (tiltc(ffi)*px - tilts(ffi)*py)*c1e3*oidpsv(ffj)
-        py_tp= (tilts(ffi)*px + tiltc(ffi)*py)*c1e3*oidpsv(ffj)
-        x_tp = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(1,ffi)   ! m -> mm
-        y_tp = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(1,ffi)   ! m -> mm
+        px_tp=((tiltc(ffi)*px - tilts(ffi)*py)*c1e3)*oidpsv(ffj)
+        py_tp=((tilts(ffi)*px + tiltc(ffi)*py)*c1e3)*oidpsv(ffj)
+!        x_tp = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(1,ffi)   ! m -> mm
+!        y_tp = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(1,ffi)   ! m -> mm
+        x_tp = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(ffi)   ! m -> mm
+        y_tp = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(ffi)   ! m -> mm
         x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
 
 !  <<<<<<< IN
         ! Return to beginning of the Quad
         ! ------------------------------------------------------------------------------------------ !
         !             * HE
-        x_tp = x + strack(ffi+2)*half*px
-        y_tp = y + strack(ffi+2)*half*py
+        x_tp = x + (strack(ffi+2)*half)*px
+        y_tp = y + (strack(ffi+2)*half)*py
 
         !             * Riccardo's Quad head
 !        x_tp = x + strack(ffi-1)*px
@@ -753,11 +762,15 @@ module mod_ffield
 
         ! Save data
         ! ------------------------------------------------------------------------------------------ !
-        xv(1,ffj) = x;  xv(2,ffj) = y;  yv(1,ffj) = px;  yv(2,ffj) = py;
-      else
-        ffInQuad(nlostp(ffj))=.false.
+        xv1(ffj) = x;  xv2(ffj) = y;  yv1(ffj) = px;  yv2(ffj) = py;
       end if
     end do
+
+    ! Check losses
+    ! ---------------------------------------------------------------------------------------------- !
+    if (llost) then
+      call shuffleLostParticles
+    endif
 
   end subroutine ffield_enterQuad
 
@@ -769,15 +782,15 @@ module mod_ffield
   !  Lie 2 Tracking if particles left the Quadupole
   !  B. Dalena, T. Pugnat and A. Simona from CEA
   !  V.K. Berglyd Olsen, BE-ABP-HSS
-  !  Last modified: 2019-01-21
+  !  Last modified: 2019-02-01
   ! ================================================================================================ !
   subroutine ffield_exitQuad(ffi)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use parpro,              only : nblo
     use mod_common,          only : napx, ic, tiltc, tilts
-    use mod_commont,         only : strack
-    use mod_commonmn,        only : xv, yv, oidpsv, dpsv, rvv, ejv, zsiv, xsiv, nlostp
+    use mod_common_track,    only : strack
+    use mod_common_main,     only : xv1, xv2, yv1, yv2, oidpsv, dpsv, zsiv, xsiv !, rvv, ejv
     use numerical_constants, only : half, one, c1e3, c1m3, c1m6
 
     implicit none
@@ -806,15 +819,14 @@ module mod_ffield
     do ffj=1,napx
       ! Save data
       ! -------------------------------------------------------------------------------------------- !
-      x = xv(1,ffj);  y = xv(2,ffj);  px= yv(1,ffj);  py= yv(2,ffj);
+      x = xv1(ffj);  y = xv2(ffj);  px= yv1(ffj);  py= yv2(ffj)
 
 !  <<<<<<< OUT
       ! Return to beginning of the Quad
       ! -------------------------------------------------------------------------------------------- !
       !             * HE
-      x_tp = x + strack(ffi+2)*half*px
-      y_tp = y + strack(ffi+2)*half*py
-
+      x_tp = x + (strack(ffi+2)*half)*px
+      y_tp = y + (strack(ffi+2)*half)*py
 
       !             * Riccardo's Quad head
 !      x_tp = x + strack(ffi-1)*px
@@ -825,96 +837,91 @@ module mod_ffield
 
       ! Rotation error for the quad
       ! -------------------------------------------------------------------------------------------- !
-      x_tp = ((x-xsiv(1,ffi))*tiltc(ffi) + (y-zsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
-      y_tp = ((y-zsiv(1,ffi))*tiltc(ffi) - (x-xsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
-      px_tp= ((px           )*tiltc(ffi) + (py           )*tilts(ffi))*c1m3*(one+dpsv(ffj))
-      py_tp= ((py           )*tiltc(ffi) - (px           )*tilts(ffi))*c1m3*(one+dpsv(ffj))
+!      x_tp = ((x-xsiv(1,ffi))*tiltc(ffi) + (y-zsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
+!      y_tp = ((y-zsiv(1,ffi))*tiltc(ffi) - (x-xsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
+      x_tp = ((x-xsiv(ffi))*tiltc(ffi) + (y-zsiv(ffi))*tilts(ffi))*c1m3! mm -> m
+      y_tp = ((y-zsiv(ffi))*tiltc(ffi) - (x-xsiv(ffi))*tilts(ffi))*c1m3! mm -> m
+      px_tp=(((px           )*tiltc(ffi) + (py           )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
+      py_tp=(((py           )*tiltc(ffi) - (px           )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
       x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
 
       ! Selection of the particle that are only in the radius (r = 0.08m)
       ! -------------------------------------------------------------------------------------------- !
-      if (ffInQuad(nlostp(ffj))) then
-        ! Check particle enter the Quad
-        ffInQuad(nlostp(ffj))=.false.
-
-        !   - 
-        ffdelta    = dpsv(ffj);
-!        gam0     = gamma0;
-        zb       = 0;
-!        sigma_s  = 0;
-!        betabeta0= ejfv(ffj)/ejv(ffj);
-!        betabeta0= betabeta0*betabeta0*rvv(ffj);
-        LoutQ    = (ffTable(iFile)%Lgth-ffTable(iFile)%Lin)
-!        Ldpsv1   = LoutQ*oidpsv(ffj);
-!        Ldpsv2   = oidpsv(ffj)*oidpsv(ffj);
-
+      !   - 
+      ffdelta  = dpsv(ffj);
+!      gam0     = gamma0;
+      zb       = 0;
+!      sigma_s  = 0;
+!      betabeta0= ejfv(ffj)/ejv(ffj);
+!      betabeta0= betabeta0*betabeta0*rvv(ffj);
+      LoutQ    = ffTable(iFile)%Lgth-ffTable(iFile)%Lin
+!      Ldpsv1   = LoutQ*oidpsv(ffj);
+!      Ldpsv2   = oidpsv(ffj)*oidpsv(ffj);
 
 !  <<<<<<< OUT
-        !   - Check AQ matrix are computed for a ffdelta in [Tdpsv(1),Tdpsv(nbDlt)]
-        if (abs(ffdelta)>ffTable(iFile)%Tdpsv(ffTable(iFile)%nbDlt)+c1m6) then
-          call ffield_genAntiQuad()
-        end if
+      !   - Check AQ matrix are computed for a ffdelta in [Tdpsv(1),Tdpsv(nbDlt)]
+      if (abs(ffdelta)>ffTable(iFile)%Tdpsv(ffTable(iFile)%nbDlt)+c1m6) then
+        call ffield_genAntiQuad()
+      end if
 
+      !   - Find the AQ matrix for the right dpsv
+      itDlt=0
+      do k=1,ffTable(iFile)%nbDlt
+        if (abs(dpsv(ffj)-ffTable(iFile)%Tdpsv(k))<c1m6) then
+          itDlt=k
+        endif
+      enddo
+      if (itDlt==0) itDlt=1
 
-        !   - Find the AQ matrix for the right dpsv
-        itDlt=0
-        do k=1,ffTable(iFile)%nbDlt
-          if (abs(dpsv(ffj)-ffTable(iFile)%Tdpsv(k))<c1m6) then
-            itDlt=k
-          endif
-        enddo
-        if (itDlt==0) itDlt=1
+      !   - Final repositionning (AntiQuad)
+      x_tp=x+(LoutQ*oidpsv(ffj))*px;
+      y_tp=y+(LoutQ*oidpsv(ffj))*py;
+      x=x_tp;   y=y_tp;
 
-
-        !   - Final repositionning (AntiQuad)
-        x_tp=x+LoutQ*oidpsv(ffj)*px;
-        y_tp=y+LoutQ*oidpsv(ffj)*py;
-        x=x_tp;   y=y_tp;
-
-        x_tp =ffTable(iFile)%TAQx(1,1,itDlt)*x + ffTable(iFile)%TAQx(1,2,itDlt)*px
-        px_tp=ffTable(iFile)%TAQx(2,1,itDlt)*x + ffTable(iFile)%TAQx(2,2,itDlt)*px
-        y_tp =ffTable(iFile)%TAQy(1,1,itDlt)*y + ffTable(iFile)%TAQy(1,2,itDlt)*py
-        py_tp=ffTable(iFile)%TAQy(2,1,itDlt)*y + ffTable(iFile)%TAQy(2,2,itDlt)*py
-        x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
+      x_tp =ffTable(iFile)%TAQx(1,1,itDlt)*x + ffTable(iFile)%TAQx(1,2,itDlt)*px
+      px_tp=ffTable(iFile)%TAQx(2,1,itDlt)*x + ffTable(iFile)%TAQx(2,2,itDlt)*px
+      y_tp =ffTable(iFile)%TAQy(1,1,itDlt)*y + ffTable(iFile)%TAQy(1,2,itDlt)*py
+      py_tp=ffTable(iFile)%TAQy(2,1,itDlt)*y + ffTable(iFile)%TAQy(2,2,itDlt)*py
+      x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
 !  <<<<<<< OUT
 
-  	!   - Compute Fringe Field using asymplectic Map (Lie2)
-        call ffTable(iFile)%Lie2(x,px,y,py,zb,oidpsv(ffj))
+      !   - Compute Fringe Field using asymplectic Map (Lie2)
+      call ffTable(iFile)%Lie2(x,px,y,py,zb,oidpsv(ffj))
 
 !  <<<<<<< OUT
-  	!   - Initial repositionning (AntiDrift)
-        x_tp=x-LoutQ*oidpsv(ffj)*px;
-        y_tp=y-LoutQ*oidpsv(ffj)*py;
-        x=x_tp;   y=y_tp;
+      !   - Initial repositionning (AntiDrift)
+      x_tp=x-(LoutQ*oidpsv(ffj))*px;
+      y_tp=y-(LoutQ*oidpsv(ffj))*py;
+      x=x_tp;   y=y_tp;
 !  <<<<<<< OUT
 
-        ! Change to SixTrack referenciale
-        ! ------------------------------------------------------------------------------------------ !
-        px_tp= (tiltc(ffi)*px - tilts(ffi)*py)*c1e3*oidpsv(ffj)
-        py_tp= (tilts(ffi)*px + tiltc(ffi)*py)*c1e3*oidpsv(ffj)
-        x_tp = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(1,ffi)   ! m -> mm
-        y_tp = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(1,ffi)   ! m -> mm
-        x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
+      ! Change to SixTrack referenciale
+      ! -------------------------------------------------------------------------------------------- !
+      px_tp=((tiltc(ffi)*px - tilts(ffi)*py)*c1e3)*oidpsv(ffj)
+      py_tp=((tilts(ffi)*px + tiltc(ffi)*py)*c1e3)*oidpsv(ffj)
+!      x_tp = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(1,ffi)   ! m -> mm
+!      y_tp = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(1,ffi)   ! m -> mm
+      x_tp = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(ffi)   ! m -> mm
+      y_tp = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(ffi)   ! m -> mm
+      x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
 
 !  <<<<<<< OUT
-        ! Return to beginning of the Quad
-        ! ------------------------------------------------------------------------------------------ !
-        !             * HE
-        x_tp = x - strack(ffi+2)*half*px
-        y_tp = y - strack(ffi+2)*half*py
-
+      ! Return to beginning of the Quad
+      ! -------------------------------------------------------------------------------------------- !
+      !             * HE
+      x_tp = x - (strack(ffi+2)*half)*px
+      y_tp = y - (strack(ffi+2)*half)*py
 
       !             * Riccardo's Quad head
-!        x_tp = x - strack(ffi-1)*px
-!        y_tp = y - strack(ffi-1)*py
+!      x_tp = x - strack(ffi-1)*px
+!      y_tp = y - strack(ffi-1)*py
 
-        x=x_tp;   y=y_tp;
-!  <<<<<<< OUT
+      x=x_tp;   y=y_tp;
+! <<<<<<<< OUT
 
-        ! Save data
-        ! ------------------------------------------------------------------------------------------ !
-        xv(1,ffj) = x;  xv(2,ffj) = y;  yv(1,ffj) = px;  yv(2,ffj) = py;
-      end if
+      ! Save data
+      ! -------------------------------------------------------------------------------------------- !
+      xv1(ffj) = x;  xv2(ffj) = y;  yv1(ffj) = px;  yv2(ffj) = py;
     end do
 
   end subroutine ffield_exitQuad

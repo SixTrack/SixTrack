@@ -1,3 +1,2 @@
-dump.dat         diff -q --strip-trailing-cr
-dumpStart.dat    diff -q --strip-trailing-cr
-
+dump.dat
+dumpStart.dat
