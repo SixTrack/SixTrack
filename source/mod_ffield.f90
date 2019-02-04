@@ -679,7 +679,8 @@ module mod_ffield
       x_tp = ((x-xsiv(ffi))*tiltc(ffi) + (y-zsiv(ffi))*tilts(ffi))*c1m3! mm -> m
       y_tp = ((y-zsiv(ffi))*tiltc(ffi) - (x-xsiv(ffi))*tilts(ffi))*c1m3! mm -> m
       px_tp=(((px           )*tiltc(ffi) + (py           )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
-      py_tp=(((py           )*tiltc(ffi) - (px          
+      py_tp=(((py           )*tiltc(ffi) - (px           )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
+      x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
 
       ! Selection of the particle that are only in the radius (r = 0.08m)
       ! -------------------------------------------------------------------------------------------- !
