@@ -1,5 +1,25 @@
 # SixTrack Changelog
 
+### Version 5.2 [XX.02.2019] - Release
+
+**New Features**
+
+* The SCATTER module has been completely rewritten to better allow for adding multiple scattering processes (generators) to scatter elements. It does this by computing branching ratios either from provided cross sections, or by fixed values. PR #670 (V.K. Berglyd Olsen)
+* SixTrack can now integrate with PYTHIA to generate scattering events for the SCATTER module. Currently only head on events at a single centre of mass energy are generated. This will be extended further in the future. It is, however, possible to extract elastic and diffractive events, with and without particle losses. PR #670 (V.K. Berglyd Olsen)
+* The `FINALSTATE` and `INITIALSTATE` flags in the `SETTINGS` block now take `ions` as a second keyword, enabling the dumping of the ion columns in addition to the main particle arrays. PR #777 (V.K. Berglyd Olsen)
+
+**User Side Changes**
+
+* When reading `fort.13` the particle energy is used to set the momentum and delta_p arrays instead of the delta_p overwriting energy and momentum. This means the delta_p values in the file are ignored. The change was made due to the intended usage of `fort.13` being continuation of tracking, not initialisation of particles. During tracking only energy should be changed, and the other dependent variables calculated from the energy arrays. PR #766 (V.K. Berglyd Olsen)
+
+**Bug Fixes**
+
+* The module handling opening and closing of files wrote warnings to stderr. This is now written to stdout instead to avoid cluttering the stderr logs when running on BOINC. PR #774 (V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* Interface routines for adding attributes to HDF5 datasets have been added. PR #670 (V.K. Berglyd Olsen)
+
 ### Version 5.1.3 [25.01.2019] - BOINC Release
 
 **User Side Changes**
