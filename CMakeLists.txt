@@ -126,7 +126,7 @@ OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only wo
 OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
 OPTION(WARN "Enable build flags for additional compiler warnings" OFF)
 OPTION(DEBUG "Debugging output" OFF)
-option(NOSYMLINK "Don't use symlink for test inputs and canonicals" OFF)
+option(NOSYMLINK "Don't use symlinks for test inputs and canonicals" OFF)
 
 SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/lib/boinc CACHE PATH "Path to the boinc build folder")
 SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive_build CACHE PATH "Path to the libarchive build folder")
