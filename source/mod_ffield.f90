@@ -763,27 +763,7 @@ module mod_ffield
     ! ---------------------------------------------------------------------------------------------- !
     if (llost) then
       call shuffleLostParticles
-! <<<<<<<<<< Debug
-write(lout,*) "FFIELD> DEBUG Lost -> iFile=",iFile
-! <<<<<<<<<< Debug
     endif
-
-! <<<<<<<<<< Debug
-if (iFile==1) then
-write(lout,*) "FFIELD> DEBUG File 1 -> FName: "//trim(ffTable(iFile)%ffFNames)//"."
-write(lout,*) "FFIELD> DEBUG File 1 -> n   =",ffTable(iFile)%n
-write(lout,*) "FFIELD> DEBUG File 1 -> m   =",ffTable(iFile)%m
-write(lout,*) "FFIELD> DEBUG File 1 -> s   =",ffTable(iFile)%s
-write(lout,*) "FFIELD> DEBUG File 1 -> dz  =",ffTable(iFile)%dz
-write(lout,*) "FFIELD> DEBUG File 1 -> norm=",ffTable(iFile)%norm
-write(lout,*) "FFIELD> DEBUG File 1 -> Lgth=",ffTable(iFile)%Lgth
-write(lout,*) "FFIELD> DEBUG File 1 -> Lin =",ffTable(iFile)%Lin
-write(lout,*) "FFIELD> DEBUG File 1 -> r0_2=",ffTable(iFile)%r0_2
-write(lout,*) "FFIELD> DEBUG File 1 -> lx  =",ffTable(iFile)%lx
-write(lout,*) "FFIELD> DEBUG File 1 -> ly  =",ffTable(iFile)%ly
-write(lout,*) "FFIELD> DEBUG File 1 -> lz  =",ffTable(iFile)%lz
-endif
-! <<<<<<<<<< Debug
 
   end subroutine ffield_enterQuad
 
