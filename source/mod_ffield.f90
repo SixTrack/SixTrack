@@ -75,7 +75,8 @@ module mod_ffield
     ! ---------------------------------------------------------------------------------------------- !
     use mod_alloc,           only : alloc
     use numerical_constants, only : zero
-    use parpro,              only : mNameLen, mFNameLen
+    use parpro,              only : mNameLen!, mFNameLen
+    use ffTable_n_Tracks,    only : FFFNameLgth
 
     implicit none
 
@@ -104,7 +105,7 @@ module mod_ffield
 
     call alloc(ffQNames,  mNameLen,  ffNLn_max,    " ", 'ffQNames')
     call alloc(ffMSNames, mNameLen,  ffMSn_max,    " ", 'ffMSNames')
-    call alloc(ffFNames,  mFNameLen, ffNLFile_max, " ", 'ffFNames')
+    call alloc(ffFNames,  FFFNameLgth, ffNLFile_max, " ", 'ffFNames')
 
   end subroutine ffield_mod_init
 
@@ -147,7 +148,8 @@ module mod_ffield
     ! ---------------------------------------------------------------------------------------------- !
     use mod_alloc,           only : alloc
     use numerical_constants, only : zero
-    use parpro,              only : mNameLen, mFNameLen
+    use parpro,              only : mNameLen!, mFNameLen
+    use ffTable_n_Tracks,    only : FFFNameLgth
 
     implicit none
 
@@ -174,7 +176,7 @@ module mod_ffield
 
     if (ffNLFile_max /= ffNLFile_max_new) then
       call alloc(ffQ2File,            ffNLFile_max_new, 2, 0,   'ffQ2File')
-      call alloc(ffFNames, mFNameLen, ffNLFile_max_new,    " ", 'ffFNames')
+      call alloc(ffFNames, FFFNameLgth, ffNLFile_max_new,    " ", 'ffFNames')
 
       ffNLFile_max = ffNLFile_max_new
 
@@ -235,7 +237,8 @@ module mod_ffield
     ! ---------------------------------------------------------------------------------------------- !
     use string_tools, only : chr_rpad, chr_split, chr_cast
     use mod_common,   only : bez
-    use parpro,       only : mNameLen, mFNameLen
+    use parpro,       only : mNameLen!, mFNameLen
+    use ffTable_n_Tracks,    only : FFFNameLgth
 
     implicit none
 
@@ -345,7 +348,7 @@ module mod_ffield
         return
       end if
       
-      elemName = chr_rpad(lnSplit(2), mFNameLen)
+      elemName = chr_rpad(lnSplit(2), FFFNameLgth)
       ! Check that the name is unique
       do i=1,ffNLFile
         if(ffFNames(i) == elemName) then
@@ -600,7 +603,7 @@ module mod_ffield
         if (ffdelta<abs(dpsv(j))) ffdelta=abs(dpsv(j))
       enddo
 
-      nbDlt=max(1,ceiling(abs( two*((ffdelta)*c1e7) )))
+      nbDlt=max(1,ceiling(abs( two*(ffdelta*c1e7) )))
       do iFile=1,ffNLFile
         call ffTable(iFile)%AQgen(ffdelta,nbDlt)
       end do
@@ -674,8 +677,6 @@ module mod_ffield
 
       ! Rotation error for the quad
       ! -------------------------------------------------------------------------------------------- !
-!      x_tp = ((x-xsiv(1,ffi))*tiltc(ffi) + (y-zsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
-!      y_tp = ((y-zsiv(1,ffi))*tiltc(ffi) - (x-xsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
       x_tp = ((x-xsiv(ffi))*tiltc(ffi) + (y-zsiv(ffi))*tilts(ffi))*c1m3! mm -> m
       y_tp = ((y-zsiv(ffi))*tiltc(ffi) - (x-xsiv(ffi))*tilts(ffi))*c1m3! mm -> m
       px_tp=(((px           )*tiltc(ffi) + (py           )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
@@ -741,8 +742,6 @@ module mod_ffield
         ! ------------------------------------------------------------------------------------------ !
         px_tp=((tiltc(ffi)*px - tilts(ffi)*py)*c1e3)*oidpsv(ffj)
         py_tp=((tilts(ffi)*px + tiltc(ffi)*py)*c1e3)*oidpsv(ffj)
-!        x_tp = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(1,ffi)   ! m -> mm
-!        y_tp = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(1,ffi)   ! m -> mm
         x_tp = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(ffi)   ! m -> mm
         y_tp = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(ffi)   ! m -> mm
         x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
@@ -838,8 +837,6 @@ module mod_ffield
 
       ! Rotation error for the quad
       ! -------------------------------------------------------------------------------------------- !
-!      x_tp = ((x-xsiv(1,ffi))*tiltc(ffi) + (y-zsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
-!      y_tp = ((y-zsiv(1,ffi))*tiltc(ffi) - (x-xsiv(1,ffi))*tilts(ffi))*c1m3! mm -> m
       x_tp = ((x-xsiv(ffi))*tiltc(ffi) + (y-zsiv(ffi))*tilts(ffi))*c1m3! mm -> m
       y_tp = ((y-zsiv(ffi))*tiltc(ffi) - (x-xsiv(ffi))*tilts(ffi))*c1m3! mm -> m
       px_tp=(((px           )*tiltc(ffi) + (py           )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
@@ -860,6 +857,11 @@ module mod_ffield
 !      Ldpsv2   = oidpsv(ffj)*oidpsv(ffj);
 
 !  <<<<<<< OUT
+      !   - Final repositionning (AntiQuad)
+      x_tp=x+(LoutQ*oidpsv(ffj))*px;
+      y_tp=y+(LoutQ*oidpsv(ffj))*py;
+      x=x_tp;   y=y_tp;
+
       !   - Check AQ matrix are computed for a ffdelta in [Tdpsv(1),Tdpsv(nbDlt)]
       if (abs(ffdelta)>ffTable(iFile)%Tdpsv(ffTable(iFile)%nbDlt)+c1m6) then
         call ffield_genAntiQuad()
@@ -873,11 +875,6 @@ module mod_ffield
         endif
       enddo
       if (itDlt==0) itDlt=1
-
-      !   - Final repositionning (AntiQuad)
-      x_tp=x+(LoutQ*oidpsv(ffj))*px;
-      y_tp=y+(LoutQ*oidpsv(ffj))*py;
-      x=x_tp;   y=y_tp;
 
       x_tp =ffTable(iFile)%TAQx(1,1,itDlt)*x + ffTable(iFile)%TAQx(1,2,itDlt)*px
       px_tp=ffTable(iFile)%TAQx(2,1,itDlt)*x + ffTable(iFile)%TAQx(2,2,itDlt)*px
@@ -900,8 +897,6 @@ module mod_ffield
       ! -------------------------------------------------------------------------------------------- !
       px_tp=((tiltc(ffi)*px - tilts(ffi)*py)*c1e3)*oidpsv(ffj)
       py_tp=((tilts(ffi)*px + tiltc(ffi)*py)*c1e3)*oidpsv(ffj)
-!      x_tp = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(1,ffi)   ! m -> mm
-!      y_tp = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(1,ffi)   ! m -> mm
       x_tp = (tiltc(ffi)*x  - tilts(ffi)*y )*c1e3 + xsiv(ffi)   ! m -> mm
       y_tp = (tilts(ffi)*x  + tiltc(ffi)*y )*c1e3 + zsiv(ffi)   ! m -> mm
       x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;

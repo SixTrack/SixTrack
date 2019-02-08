@@ -22,6 +22,8 @@ module ffTable_n_Tracks
   
   implicit none
 
+  integer, parameter, public :: FFFNameLgth=300         ! Length of name of the file name
+
   type, public :: ffTable_n_Track
     character(len=:), allocatable, public :: ffFNames      ! Filename of the Vec. Pot. coefficient
     integer(kind=2),               public :: chk_Status    ! Check statut of the file (0=empty, 1=ready,2=loaded)
@@ -58,7 +60,6 @@ module ffTable_n_Tracks
 !    real(kind=fPrec), allocatable, public :: AQy(:,:,:)    ! (1:2,1:2,1:npart) AntiQuad matrix
     real(kind=fPrec), allocatable, public :: TAQx(:,:,:)   ! (1:2,1:2,1:nbDlt) Table of AntiQuad matrix
     real(kind=fPrec), allocatable, public :: TAQy(:,:,:)   ! (1:2,1:2,1:nbDlt) Table of AntiQuad matrix
-
   contains
       
     procedure, public, pass(this)  :: set    => Tset
@@ -135,13 +136,13 @@ contains
   type(ffTable_n_Track) function constructT()
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use parpro,              only : mFNameLen
+!    use parpro,              only : mFNameLen
     use numerical_constants, only : zero
     
     implicit none
 
     if (allocated(constructT%ffFNames)) deallocate(constructT%ffFNames)
-    allocate(character(len=mFNameLen) :: constructT%ffFNames)
+    allocate(character(len=FFFNameLgth) :: constructT%ffFNames)
     constructT%ffFNames=" "
     constructT%chk_Status=0
     constructT%n=0
@@ -165,13 +166,12 @@ contains
   ! ================================================================ !
   !  Set
   ! ================================================================ !
-  pure subroutine Tset(this, nFile, LQin, Length, r0)
+  subroutine Tset(this, nFile, LQin, Length, r0)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use numerical_constants, only : zero
+    use numerical_constants, only : zero, c1m12
 
     implicit none
-
 
     ! interface variables
     ! ---------------------------------------------------------------------------------------------- !
@@ -181,11 +181,13 @@ contains
     real(kind=fPrec),       intent(in)    :: Length
     real(kind=fPrec),       intent(in)    :: r0     ! Physical aperture
 
+    this%r0_2=6.4e-3_fPrec    ! Default value
+
     this%ffFNames   = TRIM(ADJUSTL(nFile))
     this%Lin        = LQin 
     this%Lgth       = Length
     this%chk_Status = 1
-    if(r0>zero) this%r0_2= r0*r0
+    if(r0>c1m12) this%r0_2= r0*r0
   end subroutine Tset
 
 
@@ -289,7 +291,7 @@ contains
   subroutine ReadExpMax(this,lun,iErr)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use numerical_constants, only : zero
+    use numerical_constants, only : zero, c1e12, c1m12
     use crcoall,             only : lout
     use parpro,              only : mInputLn
     use mod_units,           only : f_open, f_close
@@ -338,7 +340,7 @@ contains
     s=1
     line=1
     st=zero
-    sm1=1e12
+    sm1=c1e12
     
     ! Read file
     ! ---------------------------------------------------------------------------------------------- !
@@ -370,7 +372,7 @@ contains
 !      call chr_cast(lnSplit(4),expz,iErr)
       if (iErr) return
 
-      if (st>sm1+1e-12) then                        ! Detect new step in z
+      if (st>sm1+c1m12) then                  ! Detect new step in z
          s = s + 1                                  ! Compte step in z
       endif
       if (expx>n) n=expx                            ! Max. expo. in x
@@ -395,7 +397,7 @@ contains
   subroutine ReadVectPotCoeff(this,lun,norm,iErr)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use numerical_constants, only : zero
+    use numerical_constants, only : zero, c1e12, c1m12
     use crcoall,             only : lout
     use parpro,              only : mInputLn
     use mod_alloc,           only : alloc, dealloc
@@ -454,7 +456,7 @@ contains
     ! Initialize parameters
     ! ---------------------------------------------------------------------------------------------- !
     st=zero
-    sm1=1e+12
+    sm1=c1e12
     istat=0
     sline=1
     dz=zero
@@ -506,14 +508,14 @@ contains
       call chr_cast(lnSplit(2),expx,iErr)
       call chr_cast(lnSplit(3),expy,iErr)
 !      call chr_cast(lnSplit(4),expz,iErr)
-      call chr_cast(lnSplit(3),ax,  iErr)
-      call chr_cast(lnSplit(3),ay,  iErr)
-      call chr_cast(lnSplit(3),az,  iErr)
+      call chr_cast(lnSplit(5),ax,  iErr)
+      call chr_cast(lnSplit(6),ay,  iErr)
+      call chr_cast(lnSplit(7),az,  iErr)
       if (iErr) return
 
 
       !     - Detect step in z
-      if (st>sm1+1e-12) then
+      if (st>sm1+c1m12) then
         dz=dz+st-sm1
         sline = sline + 1
         tlinex=1; tliney=1; tlinez=1
