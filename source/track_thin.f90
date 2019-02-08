@@ -1792,14 +1792,6 @@ subroutine thin6d(nthinerr)
         end do
         goto 640
       case (31)
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        if((FFindex(ic(i)-nblo)==0))then
-#endif
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        endif
-#endif
         goto 640
       case (32)
 #ifdef FFIELD
