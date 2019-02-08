@@ -22,8 +22,6 @@ module ffTable_n_Tracks
   
   implicit none
 
-  integer, parameter, public :: FFFNameLgth=300         ! Length of name of the file name
-
   type, public :: ffTable_n_Track
     character(len=:), allocatable, public :: ffFNames      ! Filename of the Vec. Pot. coefficient
     integer(kind=2),               public :: chk_Status    ! Check statut of the file (0=empty, 1=ready,2=loaded)
@@ -39,19 +37,19 @@ module ffTable_n_Tracks
     real(kind=fPrec),              public :: r0_2          ! Maximum radius in quad
 
     ! Table for the vector potential Ax
-    integer,                          public :: lx            ! Number of coef per step for Ax
-    integer(kind=int32), allocatable, public :: ij_TAx(:,:,:) ! (1:2,1:lx,1:s) Table of indices ij
-    real(kind=fPrec),    allocatable, public :: TAx(:,:)      ! (    1:lx,1:s) Table of coefficients
+    integer,                       public :: lx            ! Number of coef per step for Ax
+    integer,          allocatable, public :: ij_TAx(:,:,:) ! (1:2,1:lx,1:s) Table of indices ij
+    real(kind=fPrec), allocatable, public :: TAx(:,:)      ! (    1:lx,1:s) Table of coefficients
 
     ! Table for the vector potential Ay
-    integer,                          public :: ly            ! Number of coef per step for Ay
-    integer(kind=int32), allocatable, public :: ij_TAy(:,:,:) ! (1:2,1:ly,1:s) Table of indices ij
-    real(kind=fPrec),    allocatable, public :: TAy(:,:)      ! (    1:ly,1:s) Table of coefficients
+    integer,                       public :: ly            ! Number of coef per step for Ay
+    integer,          allocatable, public :: ij_TAy(:,:,:) ! (1:2,1:ly,1:s) Table of indices ij
+    real(kind=fPrec), allocatable, public :: TAy(:,:)      ! (    1:ly,1:s) Table of coefficients
 
     ! Table for the vector potential Az
-    integer,                          public :: lz            ! Number of coef per step for Az
-    integer(kind=int32), allocatable, public :: ij_TAz(:,:,:) ! (1:2,1:lz,1:s) Table of indices ij
-    real(kind=fPrec),    allocatable, public :: TAz(:,:)      ! (    1:lz,1:s) Table of coefficients
+    integer,                       public :: lz            ! Number of coef per step for Az
+    integer,          allocatable, public :: ij_TAz(:,:,:) ! (1:2,1:lz,1:s) Table of indices ij
+    real(kind=fPrec), allocatable, public :: TAz(:,:)      ! (    1:lz,1:s) Table of coefficients
     
     ! Matrix for the antiquadripole
     integer :: nbDlt
@@ -136,13 +134,13 @@ contains
   type(ffTable_n_Track) function constructT()
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-!    use parpro,              only : mFNameLen
+    use parpro,              only : mFNameLen
     use numerical_constants, only : zero
     
     implicit none
 
     if (allocated(constructT%ffFNames)) deallocate(constructT%ffFNames)
-    allocate(character(len=FFFNameLgth) :: constructT%ffFNames)
+    allocate(character(len=mFNameLen) :: constructT%ffFNames)
     constructT%ffFNames=" "
     constructT%chk_Status=0
     constructT%n=0
@@ -307,28 +305,18 @@ contains
 
     character(len=mInputLn) :: inLine             ! Line of the file
     integer :: nSplit                             ! Nb element in line
-    logical :: ffErr                              ! Error returned
     integer :: istat                              ! Check. accecibility of the file
     integer :: line                               ! Nb of line in file
     integer :: n,m,s                              ! Exposant max for x and y, Nb of point in z
-    integer(kind=int32) :: expx,expy,expz         ! Expo. for x, y and z
+    integer :: expx,expy,expz                     ! Expo. for x, y and z
     real(kind=fPrec) :: st, sm1                   ! Parametter for the detection of new step in z
     character(len=:), allocatable :: lnSplit(:)   ! (1:nSplit) Splited line
-
-    ! Check if the file can be open
-    ! ---------------------------------------------------------------------------------------------- !
-    inquire(unit=lun,opened=iErr)
-    if (iErr) then
-      write(lout,"(a)")"FFIELD> ERROR in ReadExpMax(): Could not open file '"//trim(this%ffFNames)//"'"
-      iErr=.true.
-      return
-    end if
     
-!    open(unit=lun,file=trim(this%ffFNames),action='read',iostat=istat,status="OLD")
-    call f_open(unit=lun,file=trim(this%ffFNames),formatted=.true.,mode='r',err=ffErr,status="old")
-    if (ffErr) then
-      write(lout,"(a)")"FFIELD> ERROR in ReadExpMax(): Error opening file '"//trim(this%ffFNames)//"'"
-      iErr=.true.
+    ! Open file
+    ! ---------------------------------------------------------------------------------------------- !
+    call f_open(unit=lun,file=trim(this%ffFNames),formatted=.true.,mode='r',err=iErr,status="old")
+    if (iErr) then
+!      write(lout,"(a)")"FFIELD> ERROR in ReadExpMax(): Error opening file '"//trim(this%ffFNames)//"'"
       return
     end if
 
@@ -339,23 +327,22 @@ contains
     m=0
     s=1
     line=1
-    st=zero
     sm1=c1e12
     
     ! Read file
     ! ---------------------------------------------------------------------------------------------- !
     do while(istat==0)
+      st=zero; expx=0; expy=0;! expz=0;
+
       !     - Read line
-!      read(lun,*,iostat=istat) st, expx, expy, expz ! Read line
       read(lun,"(a)",iostat=istat) inLine
 
       !     - Split line
-      call chr_split(inLine, lnSplit, nSplit, ffErr)
+      call chr_split(inLine, lnSplit, nSplit, iErr)
 
       !     - Check error in line
-      if(ffErr) then
-        write(lout,"(a)") "FFIELD> ERROR in ReadExpMax(): Fail to read '"//trim(this%ffFNames)//"'"
-        iErr = .true.
+      if(iErr) then
+        write(lout,"(a)") "FFIELD> ERROR in ReadExpMax(): Failed to read '"//trim(this%ffFNames)//"'"
         return
       end if
       if(nSplit < 7)then
@@ -415,30 +402,28 @@ contains
 
     ! Subroutine variables
     ! ---------------------------------------------------------------------------------------------- !
-    character(len=mInputLn) :: inLine                  ! Line of the file
-    integer :: nSplit                                  ! Nb element in line
-    logical :: ffErr                                   ! Error returned
-    logical :: CoefSave                                ! Check if coef. already exist
-    integer :: istat                                   ! Check accecibility of the file
-    integer :: ind                                     ! Nb. max of different coefficient
-    integer :: l,k                                     ! Iterator
-    integer :: linex,liney,linez                       ! Nb. max of coeff/step for Ax,Ay and Az
-    integer :: tlinex,tliney,tlinez                    ! Temp. nb. max of coeff/step for Ax,Ay and Az
-    integer :: sline                                   ! Nb of line in file
-    integer(kind=int32) :: expx, expy, expz            ! Expo. for x, y and z
-    real(kind=fPrec) :: ax, ay, az                     ! Coeff. for x, y and z
-    real(kind=fPrec) :: st, sm1                        ! Parametter for the detection of new step in z
-    real(kind=fPrec) :: zin                            ! Position of the first step
-    real(kind=fPrec) :: dz                             ! Step size in z
-    character(len=:)   , allocatable :: lnSplit(:)     ! (1:nSplit)       Splited line
-    integer(kind=int32), allocatable :: tpij_Ax(:,:,:) ! (1:2,1:ind,0:s)) Temp. table of indices ij for Ax
-    integer(kind=int32), allocatable :: tpij_Ay(:,:,:) ! (1:2,1:ind,0:s)) Temp. table of indices ij for Ay
-    integer(kind=int32), allocatable :: tpij_Az(:,:,:) ! (1:2,1:ind,0:s)) Temp. table of indices ij for Az
+    character(len=mInputLn) :: inLine              ! Line of the file
+    integer :: nSplit                              ! Nb element in line
+    logical :: CoefSave                            ! Check if coef. already exist
+    integer :: istat                               ! Check accecibility of the file
+    integer :: ind                                 ! Nb. max of different coefficient
+    integer :: l,k                                 ! Iterator
+    integer :: linex,liney,linez                   ! Nb. max of coeff/step for Ax,Ay and Az
+    integer :: tlinex,tliney,tlinez                ! Temp. nb. max of coeff/step for Ax,Ay and Az
+    integer :: sline                               ! Nb of line in file
+    integer :: expx, expy, expz                    ! Expo. for x, y and z
+    real(kind=fPrec) :: ax, ay, az                 ! Coeff. for x, y and z
+    real(kind=fPrec) :: st, sm1                    ! Parametter for the detection of new step in z
+    real(kind=fPrec) :: zin                        ! Position of the first step
+    real(kind=fPrec) :: dz                         ! Step size in z
+    character(len=:)   , allocatable :: lnSplit(:) ! (1:nSplit)       Splited line
+    integer, allocatable :: tpij_Ax(:,:,:)         ! (1:2,1:ind,0:s)) Temp. table of indices ij for Ax
+    integer, allocatable :: tpij_Ay(:,:,:)         ! (1:2,1:ind,0:s)) Temp. table of indices ij for Ay
+    integer, allocatable :: tpij_Az(:,:,:)         ! (1:2,1:ind,0:s)) Temp. table of indices ij for Az
 
-    real(kind=fPrec), allocatable :: tpTAx(:,:)        ! (    1:ind,1:s)) Temp. table for coeff. of Ax
-    real(kind=fPrec), allocatable :: tpTAy(:,:)        ! (    1:ind,1:s)) Temp. table for coeff. of Ay
-    real(kind=fPrec), allocatable :: tpTAz(:,:)        ! (    1:ind,1:s)) Temp. table for coeff. of Az
-
+    real(kind=fPrec), allocatable :: tpTAx(:,:)    ! (    1:ind,1:s)) Temp. table for coeff. of Ax
+    real(kind=fPrec), allocatable :: tpTAy(:,:)    ! (    1:ind,1:s)) Temp. table for coeff. of Ay
+    real(kind=fPrec), allocatable :: tpTAz(:,:)    ! (    1:ind,1:s)) Temp. table for coeff. of Az
 
     ! Allocation of memory for tables
     ! ---------------------------------------------------------------------------------------------- !
@@ -451,55 +436,41 @@ contains
     call alloc(tpij_Ax, 2, ind, this%s, 0,    'tpij_Ax') ! (1:2,1:ind,0:s))
     call alloc(tpij_Ay, 2, ind, this%s, 0,    'tpij_Ay') ! (1:2,1:ind,0:s))
     call alloc(tpij_Az, 2, ind, this%s, 0,    'tpij_Az') ! (1:2,1:ind,0:s))
-
+    
+    ! Open file
+    ! ---------------------------------------------------------------------------------------------- !
+    call f_open(unit=lun,file=trim(this%ffFNames),formatted=.true.,mode='r',err=iErr,status="old")
+    if (iErr) then
+!      write(lout,"(a)")"FFIELD> ERROR in ReadVectPotCoeff(): Error opening file '"//trim(this%ffFNames)//"'"
+      return
+    end if
 
     ! Initialize parameters
     ! ---------------------------------------------------------------------------------------------- !
-    st=zero
     sm1=c1e12
     istat=0
     sline=1
     dz=zero
 
-
-    ! Check if the file can be open
-    ! ---------------------------------------------------------------------------------------------- !
-    inquire(unit=lun,opened=iErr)
-    if (iErr) then
-      write(lout,"(a)")"FFIELD> ERROR in ReadVectPotCoeff(): Could not open file '"//trim(this%ffFNames)//"'"
-      return
-    end if
-    
-!    open(unit=lun,file=trim(this%ffFNames),action='read',iostat=istat,status="OLD")
-    call f_open(unit=lun,file=trim(this%ffFNames),formatted=.true.,mode='r',err=iErr,status="old")
-    if (istat /=0) then
-      write(lout,"(a)")"FFIELD> ERROR in ReadVectPotCoeff(): Error opening file '"//trim(this%ffFNames)//"'"
-      iErr=.true.
-      return
-    end if
-
-
     ! Read coef file
     ! ---------------------------------------------------------------------------------------------- !
     do while(istat==0)
-      st=zero; expx=0; expy=0; expz=0; ax=zero; ay=zero; az=zero; 
+      st=zero; expx=0;  expy=0;! expz=0;
+      ax=zero; ay=zero; az=zero; 
       !     - Read line
-!      read(lun,*,iostat=istat) st, expx, expy, expz, ax, ay, az              ! Read line
       read(lun,"(a)",iostat=istat) inLine
 
       !     - Split line
-      call chr_split(inLine, lnSplit, nSplit, ffErr)
+      call chr_split(inLine, lnSplit, nSplit, iErr)
 
       !     - Check error in line
-      if(ffErr) then
+      if(iErr) then
         write(lout,"(a)") "FFIELD> ERROR in ReadVectPotCoeff(): Fail to read '"//trim(this%ffFNames)//"'"
-        iErr = .true.
         return
       end if
       if(nSplit < 7)then
         write(lout,"(a)") "FFIELD> ERROR in ReadVectPotCoeff(): Wrong number of element in '"//trim(this%ffFNames)//"'"
         write(lout,"(a)") "FFIELD> ERROR in ReadVectPotCoeff(): Line '"//trim(inLine)//"'"
-        iErr = .true.
         return
       end if
       

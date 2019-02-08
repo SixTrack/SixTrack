@@ -67,7 +67,6 @@ module mod_ffield
   ! ================================================================================================ !
   !  Init the module
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  V.K. Berglyd Olsen, BE-ABP-HSS
   !  Last modified: 2019-02-01
   ! ================================================================================================ !
   subroutine ffield_mod_init(npart, nele)
@@ -75,8 +74,7 @@ module mod_ffield
     ! ---------------------------------------------------------------------------------------------- !
     use mod_alloc,           only : alloc
     use numerical_constants, only : zero
-    use parpro,              only : mNameLen!, mFNameLen
-    use ffTable_n_Tracks,    only : FFFNameLgth
+    use parpro,              only : mNameLen, mFNameLen
 
     implicit none
 
@@ -105,7 +103,7 @@ module mod_ffield
 
     call alloc(ffQNames,  mNameLen,  ffNLn_max,    " ", 'ffQNames')
     call alloc(ffMSNames, mNameLen,  ffMSn_max,    " ", 'ffMSNames')
-    call alloc(ffFNames,  FFFNameLgth, ffNLFile_max, " ", 'ffFNames')
+    call alloc(ffFNames,  mFNameLen, ffNLFile_max, " ", 'ffFNames')
 
   end subroutine ffield_mod_init
 
@@ -114,7 +112,6 @@ module mod_ffield
   ! ================================================================================================ !
   !  Expand array in module common between SixTrack and our Study
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  V.K. Berglyd Olsen, BE-ABP-HSS
   !  Last modified: 2018-10-18
   ! ================================================================================================ !
   subroutine ffield_mod_expand_arrays(npart_new, nele_new)
@@ -140,7 +137,6 @@ module mod_ffield
   ! ================================================================================================ !
   !  Expand array in module only for the study
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  V.K. Berglyd Olsen, BE-ABP-HSS
   !  Last modified: 2019-02-01
   ! ================================================================================================ !
   subroutine ffield_mod_expand_arrays_study(ffNLn_max_new, ffMSn_max_new, ffNLFile_max_new)
@@ -148,8 +144,7 @@ module mod_ffield
     ! ---------------------------------------------------------------------------------------------- !
     use mod_alloc,           only : alloc
     use numerical_constants, only : zero
-    use parpro,              only : mNameLen!, mFNameLen
-    use ffTable_n_Tracks,    only : FFFNameLgth
+    use parpro,              only : mNameLen, mFNameLen
 
     implicit none
 
@@ -176,7 +171,7 @@ module mod_ffield
 
     if (ffNLFile_max /= ffNLFile_max_new) then
       call alloc(ffQ2File,            ffNLFile_max_new, 2, 0,   'ffQ2File')
-      call alloc(ffFNames, FFFNameLgth, ffNLFile_max_new,    " ", 'ffFNames')
+      call alloc(ffFNames, mFNameLen, ffNLFile_max_new,    " ", 'ffFNames')
 
       ffNLFile_max = ffNLFile_max_new
 
@@ -189,7 +184,6 @@ module mod_ffield
   ! ================================================================================================ !
   !  Close and clean memory in module
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  V.K. Berglyd Olsen, BE-ABP-HSS
   !  Last modified: 2018-10-18
   ! ================================================================================================ !
   subroutine ffield_mod_end()
@@ -229,7 +223,6 @@ module mod_ffield
   ! ================================================================================================ !
   !  Parse FField Input Line
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  V.K. Berglyd Olsen, BE-ABP-HSS
   !  Last modified: 2019-02-01
   ! ================================================================================================ !
   subroutine ffield_parseInputLine(inLine, iLine, iErr)
@@ -237,8 +230,7 @@ module mod_ffield
     ! ---------------------------------------------------------------------------------------------- !
     use string_tools, only : chr_rpad, chr_split, chr_cast
     use mod_common,   only : bez
-    use parpro,       only : mNameLen!, mFNameLen
-    use ffTable_n_Tracks,    only : FFFNameLgth
+    use parpro,       only : mNameLen, mFNameLen
 
     implicit none
 
@@ -348,7 +340,7 @@ module mod_ffield
         return
       end if
       
-      elemName = chr_rpad(lnSplit(2), FFFNameLgth)
+      elemName = chr_rpad(lnSplit(2), mFNameLen)
       ! Check that the name is unique
       do i=1,ffNLFile
         if(ffFNames(i) == elemName) then
@@ -379,7 +371,6 @@ module mod_ffield
   ! ================================================================================================ !
   !  Parse FField Done
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  V.K. Berglyd Olsen, BE-ABP-HSS
   !  Last modified: 2019-01-16
   ! ================================================================================================ !
   subroutine ffield_parsingDone()
@@ -393,7 +384,6 @@ module mod_ffield
   ! ================================================================================================ !
   !  Init the module
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  V.K. Berglyd Olsen, BE-ABP-HSS
   !  Last modified: 2019-02-01
   ! ================================================================================================ !
   subroutine ffield_mod_link(iErr)
@@ -411,6 +401,7 @@ module mod_ffield
 
     ! routine variables
     ! ---------------------------------------------------------------------------------------------- !
+    logical :: ffErr
     integer :: i
     real(kind=fPrec) :: norm
     real(kind=fPrec) :: beta0,gamma0r
@@ -440,14 +431,17 @@ module mod_ffield
         if ((ffQ2File(i,1)>ffNLn).or.(ffQ2File(i,1)<1).or.(ffQ2File(i,2)>ffNLn).or.(ffQ2File(i,2)<1)) then
           write(lout,"(a)") "FFIELD> ERROR FFQN Wrong choise of file for the Quadupole's head. Check '"//trim(ffQNames(i))//"'."
           iErr = .true.
-          return
+        else
+
+          ffErr=.false.
+          call ffield_mod_ChckQuad(i,norm,ffErr)
+          if (ffErr) iErr = .true.
         end if
-        
-        call ffield_mod_ChckQuad(i,norm,iErr)
         
       end do
       write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
       write(lout,"(a)") "FFIELD>"
+      if (iErr) return
       
       ! Check if the multipole skip for the study is in the lattice
       ! -------------------------------------------------------------------------------------------- !
@@ -455,10 +449,13 @@ module mod_ffield
       write(lout,"(a)") "FFIELD> |      Summary of the multipole for the Fringe Field skipped     |"
       write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
       do i=1,ffMSn
-        call ffield_mod_ChckMulti(i,iErr)
+        ffErr=.false.
+        call ffield_mod_ChckMulti(i,ffErr)
+        if (ffErr) iErr = .true.
       end do
       write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
       write(lout,"(a)") "FFIELD>"
+      if (iErr) return
 
       ! Check if the Quadrupole ask for the study is in the lattice
       ! -------------------------------------------------------------------------------------------- !
@@ -486,7 +483,6 @@ module mod_ffield
   ! ================================================================================================ !
   !  Load file if Quadrupole exist in the lattice
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  V.K. Berglyd Olsen, BE-ABP-HSS
   !  Last modified: 2019-01-18
   ! ================================================================================================ !
   subroutine ffield_mod_ChckQuad(i,norm,iErr)
@@ -529,7 +525,6 @@ module mod_ffield
   ! ================================================================================================ !
   !  Load file if Multipole exist in the lattice
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  V.K. Berglyd Olsen, BE-ABP-HSS
   !  Last modified: 2019-01-18
   ! ================================================================================================ !
   subroutine ffield_mod_ChckMulti(i,iErr)
@@ -579,7 +574,6 @@ module mod_ffield
   ! ================================================================================================ !
   !  Generate the AntiQuadrupole matrix 
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  V.K. Berglyd Olsen, BE-ABP-HSS
   !  Last modified: 2019-01-21
   ! ================================================================================================ !
   subroutine ffield_genAntiQuad()
@@ -587,7 +581,7 @@ module mod_ffield
     ! ---------------------------------------------------------------------------------------------- !
     use mod_common,          only : napx
     use mod_common_main,     only : dpsv
-    use numerical_constants, only : one, two, c1e7
+    use numerical_constants, only : one, two, c1e6
 
     implicit none
 
@@ -603,7 +597,7 @@ module mod_ffield
         if (ffdelta<abs(dpsv(j))) ffdelta=abs(dpsv(j))
       enddo
 
-      nbDlt=max(1,ceiling(abs( two*(ffdelta*c1e7) )))
+      nbDlt=max(1,ceiling(abs( two*(ffdelta*c1e6) )))
       do iFile=1,ffNLFile
         call ffTable(iFile)%AQgen(ffdelta,nbDlt)
       end do
@@ -620,7 +614,6 @@ module mod_ffield
   ! ================================================================================================ !
   !  Lie 2 Tracking if particles enter the Quadupole
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  V.K. Berglyd Olsen, BE-ABP-HSS
   !  Last modified: 2019-02-01
   ! ================================================================================================ !
   subroutine ffield_enterQuad(ffi)
@@ -679,8 +672,8 @@ module mod_ffield
       ! -------------------------------------------------------------------------------------------- !
       x_tp = ((x-xsiv(ffi))*tiltc(ffi) + (y-zsiv(ffi))*tilts(ffi))*c1m3! mm -> m
       y_tp = ((y-zsiv(ffi))*tiltc(ffi) - (x-xsiv(ffi))*tilts(ffi))*c1m3! mm -> m
-      px_tp=(((px           )*tiltc(ffi) + (py           )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
-      py_tp=(((py           )*tiltc(ffi) - (px           )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
+      px_tp=(((px         )*tiltc(ffi) + (py         )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
+      py_tp=(((py         )*tiltc(ffi) - (px         )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
       x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
 
       ! Selection of the particle that are only in the radius (r = 0.08m)
@@ -770,7 +763,27 @@ module mod_ffield
     ! ---------------------------------------------------------------------------------------------- !
     if (llost) then
       call shuffleLostParticles
+! <<<<<<<<<< Debug
+write(lout,*) "FFIELD> DEBUG Lost -> iFile=",iFile
+! <<<<<<<<<< Debug
     endif
+
+! <<<<<<<<<< Debug
+if (iFile==1) then
+write(lout,*) "FFIELD> DEBUG File 1 -> FName: "//trim(ffTable(iFile)%ffFNames)//"."
+write(lout,*) "FFIELD> DEBUG File 1 -> n   =",ffTable(iFile)%n
+write(lout,*) "FFIELD> DEBUG File 1 -> m   =",ffTable(iFile)%m
+write(lout,*) "FFIELD> DEBUG File 1 -> s   =",ffTable(iFile)%s
+write(lout,*) "FFIELD> DEBUG File 1 -> dz  =",ffTable(iFile)%dz
+write(lout,*) "FFIELD> DEBUG File 1 -> norm=",ffTable(iFile)%norm
+write(lout,*) "FFIELD> DEBUG File 1 -> Lgth=",ffTable(iFile)%Lgth
+write(lout,*) "FFIELD> DEBUG File 1 -> Lin =",ffTable(iFile)%Lin
+write(lout,*) "FFIELD> DEBUG File 1 -> r0_2=",ffTable(iFile)%r0_2
+write(lout,*) "FFIELD> DEBUG File 1 -> lx  =",ffTable(iFile)%lx
+write(lout,*) "FFIELD> DEBUG File 1 -> ly  =",ffTable(iFile)%ly
+write(lout,*) "FFIELD> DEBUG File 1 -> lz  =",ffTable(iFile)%lz
+endif
+! <<<<<<<<<< Debug
 
   end subroutine ffield_enterQuad
 
@@ -781,7 +794,6 @@ module mod_ffield
   ! ================================================================================================ !
   !  Lie 2 Tracking if particles left the Quadupole
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  V.K. Berglyd Olsen, BE-ABP-HSS
   !  Last modified: 2019-02-01
   ! ================================================================================================ !
   subroutine ffield_exitQuad(ffi)
@@ -839,8 +851,8 @@ module mod_ffield
       ! -------------------------------------------------------------------------------------------- !
       x_tp = ((x-xsiv(ffi))*tiltc(ffi) + (y-zsiv(ffi))*tilts(ffi))*c1m3! mm -> m
       y_tp = ((y-zsiv(ffi))*tiltc(ffi) - (x-xsiv(ffi))*tilts(ffi))*c1m3! mm -> m
-      px_tp=(((px           )*tiltc(ffi) + (py           )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
-      py_tp=(((py           )*tiltc(ffi) - (px           )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
+      px_tp=(((px         )*tiltc(ffi) + (py         )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
+      py_tp=(((py         )*tiltc(ffi) - (px         )*tilts(ffi))*c1m3)*(one+dpsv(ffj))
       x=x_tp;   px=px_tp;   y=y_tp;   py=py_tp;
 
       ! Selection of the particle that are only in the radius (r = 0.08m)

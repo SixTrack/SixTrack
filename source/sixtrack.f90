@@ -606,7 +606,7 @@ subroutine daten
     end if
 #else
     if(openBlock) then
-      write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the FFIELD flag."
+      write(lout,"(a)") "INPUT> ERROR SixDA cannot use the FFIELD flag."
       goto 9999
     else
       continue

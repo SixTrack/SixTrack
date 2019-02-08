@@ -32,7 +32,12 @@ module parpro
 
   ! Maximum length of element names
   integer, parameter :: mNameLen  = 48    ! Maximum length of element names. Keep in sync with MadX
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+  integer, parameter :: mFNameLen = 255    ! Maximum length of file names
+#else
   integer, parameter :: mFNameLen = 64    ! Maximum length of file names
+#endif
   integer, parameter :: mStrLen   = 161   ! Standard string length
   integer, parameter :: mDivLen   = 132   ! Length of lout output lines
   integer, parameter :: mInputLn  = 1600  ! Buffer size for single lines read from input files
