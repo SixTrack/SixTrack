@@ -26,8 +26,8 @@ module ffTable_n_Tracks
     character(len=:), allocatable, public :: ffFNames      ! Filename of the Vec. Pot. coefficient
     integer(kind=2),               public :: chk_Status    ! Check statut of the file (0=empty, 1=ready,2=loaded)
 
-    integer,                       public :: n             ! Max exposant for x
-    integer,                       public :: m             ! Max exposant for y
+    integer,                       public :: n,max_i       ! Max exposant for x
+    integer,                       public :: m,max_j       ! Max exposant for y
     integer,                       public :: s             ! Number of point in z
 
     real(kind=fPrec),              public :: dz            ! Step size in z
@@ -146,6 +146,8 @@ contains
     constructT%n=0
     constructT%m=0
     constructT%s=0
+    constructT%max_i=0
+    constructT%max_j=0
 
     constructT%dz  =zero
     constructT%norm=zero
@@ -793,12 +795,13 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : half
+    use mathlib_bouncer,     only : log10_mb
 
     implicit none
 
     ! interface variables
     ! ---------------------------------------------------------------------------------------------- !
-    class(ffTable_n_Track), intent(in)    :: this
+    class(ffTable_n_Track), intent(inout) :: this
     real(kind=fPrec),       intent(in)    :: deltap1
     real(kind=fPrec),       intent(inout) :: zb
     real(kind=fPrec),       intent(inout) :: x,px,y,py ! Transverse canonical parameter in new referencial
@@ -809,11 +812,26 @@ contains
     real(kind=fPrec) :: valA    ! Coefficient given by Horner subroutine
     real(kind=fPrec) :: dzover2 ! Dsigma/2
     real(kind=fPrec) :: g2d2inv ! 1/(delta+1)
-
+    real(kind=fPrec) :: log_tmp
    
     ! Initialize the step size in z
     ! ---------------------------------------------------------------------------------------------- !
     dzover2=half*this%dz !loc
+
+    ! Check size vectors xpow and ypow   (Prevent SIGFPE)
+    ! ---------------------------------------------------------------------------------------------- !
+    log_tmp=abs(log10_mb(x))
+    if (log_tmp*(this%n)>230) then
+      this%max_i=230/log_tmp-1
+    else
+      this%max_i=this%n
+    endif
+    log_tmp=abs(log10_mb(y))
+    if (log_tmp*(this%m)>230) then
+      this%max_j=230/log_tmp-1
+    else
+      this%max_j=this%m
+    endif
 
     ! Initialize the step size in z
     ! ---------------------------------------------------------------------------------------------- !
@@ -822,19 +840,15 @@ contains
 !      zb=zb-dzover2                                    ! ???????????
 
       !             * h2
-      !call HornerDX_Az(x, y, i, n, m, s, lz, ij_Az, TAz, valA)
       call this%HornerDX_Az(x, y, i, valA)
       px=px+dzover2*valA
-      !call HornerDY_Az(x, y, i, n, m, s, lz, ij_Az, TAz, valA)
       call this%HornerDY_Az(x, y, i, valA)
       py=py+dzover2*valA
 
       !             * h3
       !                 ** Change of variable
-      !call Horner2D_Ax(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       call this%Horner2D_Ax(x, y, i, valA)
       px=px-valA
-      !call HornerDYIntX_Ax(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       call this%HornerDYIntX_Ax(x, y, i, valA)
       py=py-valA
 
@@ -843,20 +857,16 @@ contains
 
 
       !                 ** Change of variable
-      !call Horner2D_Ax(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       call this%Horner2D_Ax(x, y, i, valA)
       px=px+valA
-      !call HornerDYIntX_Ax(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       call this%HornerDYIntX_Ax(x, y, i, valA)
       py=py+valA
 
 
       !             * h4
       !                 ** Change of variable
-      !call HornerDXIntY_Ay(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
       call this%HornerDXIntY_Ay(x, y, i, valA)
       px=px-valA
-      !call Horner2D_Ay(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
       call this%Horner2D_Ay(x, y, i, valA)
       py=py-valA
 
@@ -865,20 +875,16 @@ contains
 
 
       !                 ** Change of variable
-      !call HornerDXIntY_Ay(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
       call this%HornerDXIntY_Ay(x, y, i, valA)
       px=px+valA
-      !call Horner2D_Ay(x, y, i, n, m, s, ly, ij_Ay, TAy, valA)
       call this%Horner2D_Ay(x, y, i, valA)
       py=py+valA
 
 
       !             * h3
       !                 ** Change of variable
-      !call Horner2D_Ax(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       call this%Horner2D_Ax(x, y, i, valA)
       px=px-valA
-      !call HornerDYIntX_Ax(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       call this%HornerDYIntX_Ax(x, y, i, valA)
       py=py-valA
 
@@ -887,19 +893,15 @@ contains
 
 
       !                 ** Change of variable
-      !call Horner2D_Ax(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       call this%Horner2D_Ax(x, y, i, valA)
       px=px+valA
-      !call HornerDYIntX_Ax(x, y, i, n, m, s, lx, ij_Ax, TAx, valA)
       call this%HornerDYIntX_Ax(x, y, i, valA)
       py=py+valA
 
 
       !             * h2
-      !call HornerDX_Az(x, y, i, n, m, s, lz, ij_Az, TAz, valA)
       call this%HornerDX_Az(x, y, i, valA)
       px=px+dzover2*valA
-      !call HornerDY_Az(x, y, i, n, m, s, lz, ij_Az, TAz, valA)
       call this%HornerDY_Az(x, y, i, valA)
       py=py+dzover2*valA
 
@@ -913,7 +915,6 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
-    use mathlib_bouncer,     only : log10_mb
     
     implicit none
     
@@ -927,32 +928,21 @@ contains
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                        ! Indice for x and y in loop
-    integer :: max_i,max_j                              ! To prevent the SIGFPE
+    integer :: max_i_l,max_j_l                          ! To prevent the SIGFPE
     real(kind=fPrec) :: xpow(0:this%n-1),ypow(0:this%m) ! Power of x and y
     real(kind=fPrec) :: r0                              ! Variable for the vector potential computation
     real(kind=fPrec) :: log_tmp,di
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10_mb(abs(x)))
-    if (log_tmp*(this%n-1)>230) then
-      max_i=230/log_tmp
-    else
-      max_i=this%n-1
-    endif
-    log_tmp=abs(log10_mb(abs(y)))
-    if (log_tmp*(this%m)>230) then
-      max_j=230/log_tmp
-    else
-      max_j=this%m
-    endif
+    max_i_l=this%max_i-1;  max_j_l=this%max_j
 
     xpow(0)=one
-    do l=1,max_i
+    do l=1,max_i_l
       xpow(l)=xpow(l-1)*x 
     enddo
     ypow(0)=one
-    do l=1,max_j
+    do l=1,max_j_l
       ypow(l)=ypow(l-1)*y 
     enddo
 
@@ -961,7 +951,7 @@ contains
     r0=zero
     do l=1,this%lz
       di=real(this%ij_TAz(1,l,z), fPrec)
-      if ((di>zero).and.(this%ij_TAz(1,l,z)-1<=max_i).and.(this%ij_TAz(2,l,z)<=max_j)) then
+      if ((di>zero).and.(this%ij_TAz(1,l,z)-1<=max_i_l).and.(this%ij_TAz(2,l,z)<=max_j_l)) then
         r0 = r0 + di*(xpow(this%ij_TAz(1,l,z)-1)*(ypow(this%ij_TAz(2,l,z))*this%TAz(l,z)))
       endif
     enddo
@@ -973,7 +963,6 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
-    use mathlib_bouncer,     only : log10_mb
     
     implicit none
     
@@ -987,32 +976,21 @@ contains
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                        ! Indice for x and y in loop
-    integer :: max_i,max_j                              ! To prevent the SIGFPE
+    integer :: max_i_l,max_j_l                          ! To prevent the SIGFPE
     real(kind=fPrec) :: xpow(0:this%n),ypow(0:this%m-1) ! Power of x and y
     real(kind=fPrec) :: r0                              ! Variable for the vector potential computation
     real(kind=fPrec) :: log_tmp,dj
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10_mb(abs(x)))
-    if (log_tmp*(this%n)>230) then
-      max_i=230/log_tmp
-    else
-      max_i=this%n
-    endif
-    log_tmp=abs(log10_mb(abs(y)))
-    if (log_tmp*(this%m-1)>230) then
-      max_j=230/log_tmp
-    else
-      max_j=this%m-1
-    endif
+    max_i_l=this%max_i;    max_j_l=this%max_j-1
 
     xpow(0)=one
-    do l=1,max_i
+    do l=1,max_i_l
       xpow(l)=xpow(l-1)*x 
     enddo
     ypow(0)=one
-    do l=1,max_j
+    do l=1,max_j_l
       ypow(l)=ypow(l-1)*y 
     enddo
 
@@ -1021,7 +999,7 @@ contains
     r0=zero
     do l=1,this%lz
       dj=real(this%ij_TAz(2,l,z), fPrec)
-      if ((dj>zero).and.(this%ij_TAz(1,l,z)<=max_i).and.(this%ij_TAz(2,l,z)-1<=max_j)) then
+      if ((dj>zero).and.(this%ij_TAz(1,l,z)<=max_i_l).and.(this%ij_TAz(2,l,z)-1<=max_j_l)) then
         r0 = r0 + dj*(xpow(this%ij_TAz(1,l,z))*(ypow(this%ij_TAz(2,l,z)-1)*this%TAz(l,z)))
       endif
     enddo
@@ -1033,7 +1011,6 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
-    use mathlib_bouncer,     only : log10_mb
     
     implicit none
     
@@ -1047,32 +1024,21 @@ contains
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                      ! Indice for x and y in loop
-    integer :: max_i,max_j                            ! To prevent the SIGFPE
+    integer :: max_i_l,max_j_l                        ! To prevent the SIGFPE
     real(kind=fPrec) :: xpow(0:this%n),ypow(0:this%m) ! Power of x and y
     real(kind=fPrec) :: r0                            ! Variable for the vector potential computation
     real(kind=fPrec) :: log_tmp
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10_mb(abs(x)))
-    if (log_tmp*(this%n)>230) then
-      max_i=230/log_tmp
-    else
-      max_i=this%n
-    endif
-    log_tmp=abs(log10_mb(abs(y)))
-    if (log_tmp*(this%m)>230) then
-      max_j=230/log_tmp
-    else
-      max_j=this%m
-    endif
+    max_i_l=this%max_i;    max_j_l=this%max_j
 
     xpow(0)=one
-    do l=1,max_i
+    do l=1,max_i_l
       xpow(l)=xpow(l-1)*x 
     enddo
     ypow(0)=one
-    do l=1,max_j
+    do l=1,max_j_l
       ypow(l)=ypow(l-1)*y 
     enddo
 
@@ -1080,7 +1046,7 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     r0=zero
     do l=1,this%lx
-      if ((this%ij_TAx(1,l,z)<=max_i).and.(this%ij_TAx(2,l,z)<=max_j)) then
+      if ((this%ij_TAx(1,l,z)<=max_i_l).and.(this%ij_TAx(2,l,z)<=max_j_l)) then
         r0 = r0 + xpow(this%ij_TAx(1,l,z))*(ypow(this%ij_TAx(2,l,z))*this%TAx(l,z))
       endif
     enddo
@@ -1093,7 +1059,6 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
-    use mathlib_bouncer,     only : log10_mb
     
     implicit none
     
@@ -1107,32 +1072,21 @@ contains
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                      ! Indice for x and y in loop
-    integer :: max_i,max_j                            ! To prevent the SIGFPE
+    integer :: max_i_l,max_j_l                        ! To prevent the SIGFPE
     real(kind=fPrec) :: xpow(0:this%n),ypow(0:this%m) ! Power of x and y
     real(kind=fPrec) :: r0                            ! Variable for the vector potential computation
     real(kind=fPrec) :: log_tmp
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10_mb(abs(x)))
-    if (log_tmp*(this%n)>230) then
-      max_i=230/log_tmp
-    else
-      max_i=this%n
-    endif
-    log_tmp=abs(log10_mb(abs(y)))
-    if (log_tmp*(this%m)>230) then
-      max_j=230/log_tmp
-    else
-      max_j=this%m
-    endif
+    max_i_l=this%max_i;    max_j_l=this%max_j
 
     xpow(0)=one
-    do l=1,max_i
+    do l=1,max_i_l
       xpow(l)=xpow(l-1)*x 
     enddo
     ypow(0)=one
-    do l=1,max_j
+    do l=1,max_j_l
       ypow(l)=ypow(l-1)*y 
     enddo
 
@@ -1140,7 +1094,7 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     r0=zero
     do l=1,this%ly
-      if ((this%ij_TAy(1,l,z)<=max_i).and.(this%ij_TAy(2,l,z)<=max_j)) then
+      if ((this%ij_TAy(1,l,z)<=max_i_l).and.(this%ij_TAy(2,l,z)<=max_j_l)) then
         r0 = r0 + xpow(this%ij_TAy(1,l,z))*(ypow(this%ij_TAy(2,l,z))*this%TAy(l,z))
       endif
     enddo
@@ -1153,7 +1107,6 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
-    use mathlib_bouncer,     only : log10_mb
     
     implicit none
     
@@ -1167,32 +1120,21 @@ contains
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                          ! Indice for x and y in loop
-    integer :: max_i,max_j                                ! To prevent the SIGFPE
+    integer :: max_i_l,max_j_l                            ! To prevent the SIGFPE
     real(kind=fPrec) :: xpow(0:this%n+1),ypow(0:this%m-1) ! Power of x and y
     real(kind=fPrec) :: r0                                ! Variable for vector potential computation
     real(kind=fPrec) :: log_tmp,di,dj
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10_mb(abs(x)))
-    if (log_tmp*(this%n+1)>230) then
-      max_i=230/log_tmp
-    else
-      max_i=this%n+1
-    endif
-    log_tmp=abs(log10_mb(abs(y)))
-    if (log_tmp*(this%m-1)>230) then
-      max_j=230/log_tmp
-    else
-      max_j=this%m-1
-    endif
+    max_i_l=this%max_i+1;  max_j_l=this%max_j-1
 
     xpow(0)=one
-    do l=1,max_i
+    do l=1,max_i_l
       xpow(l)=xpow(l-1)*x 
     enddo
     ypow(0)=one
-    do l=1,max_j
+    do l=1,max_j_l
       ypow(l)=ypow(l-1)*y 
     enddo
 
@@ -1202,7 +1144,7 @@ contains
     do l=1,this%lx
       di=real(this%ij_TAx(1,l,z) + 1, fPrec)
       dj=real(this%ij_TAx(2,l,z)    , fPrec)
-      if ((dj>0).and.(this%ij_TAx(1,l,z)+1<=max_i).and.(this%ij_TAx(2,l,z)-1<=max_j)) then
+      if ((dj>0).and.(this%ij_TAx(1,l,z)+1<=max_i_l).and.(this%ij_TAx(2,l,z)-1<=max_j_l)) then
         r0 = r0 + (dj*(xpow(this%ij_TAx(1,l,z) + 1)*(ypow(this%ij_TAx(2,l,z) - 1)*this%TAx(l,z))))/di
       endif
     enddo
@@ -1214,7 +1156,6 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
-    use mathlib_bouncer,     only : log10_mb
     
     implicit none
     
@@ -1228,32 +1169,21 @@ contains
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                          ! Indice for x and y in loop
-    integer :: max_i,max_j                                ! To prevent the SIGFPE
+    integer :: max_i_l,max_j_l                            ! To prevent the SIGFPE
     real(kind=fPrec) :: xpow(0:this%n-1),ypow(0:this%m+1) ! Power of x and y
     real(kind=fPrec) :: r0                                ! Variable for vector potential computation
     real(kind=fPrec) :: log_tmp,di,dj
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10_mb(abs(x)))
-    if (log_tmp*(this%n-1)>230) then
-      max_i=230/log_tmp
-    else
-      max_i=this%n-1
-    endif
-    log_tmp=abs(log10_mb(abs(y)))
-    if (log_tmp*(this%m+1)>230) then
-      max_j=230/log_tmp
-    else
-      max_j=this%m+1
-    endif
+    max_i_l=this%max_i-1;  max_j_l=this%max_j+1
 
     xpow(0)=one
-    do l=1,max_i
+    do l=1,max_i_l
       xpow(l)=xpow(l-1)*x 
     enddo
     ypow(0)=one
-    do l=1,max_j
+    do l=1,max_j_l
       ypow(l)=ypow(l-1)*y 
     enddo
 
@@ -1263,7 +1193,7 @@ contains
     do l=1,this%ly
       di=real(this%ij_TAy(1,l,z)    , fPrec)
       dj=real(this%ij_TAy(2,l,z) + 1, fPrec)
-      if ((di>0).and.(this%ij_TAy(1,l,z)-1<=max_i).and.(this%ij_TAy(2,l,z)+1<=max_j)) then
+      if ((di>0).and.(this%ij_TAy(1,l,z)-1<=max_i_l).and.(this%ij_TAy(2,l,z)+1<=max_j_l)) then
         r0 = r0 + (di*(xpow(this%ij_TAy(1,l,z) - 1)*(ypow(this%ij_TAy(2,l,z) + 1)*this%TAy(l,z))))/dj
       endif
     enddo
