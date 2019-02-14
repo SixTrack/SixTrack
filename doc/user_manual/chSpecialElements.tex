@@ -666,14 +666,11 @@ SET GLOBAL-VARS E0 eramp 1 -1 0
 \end{cverbatim}
 Because of this, SixTrack does not accept a real single element in \texttt{fort.2} named \texttt{GLOBAL-VARS} if \texttt{DYNK} is active.
 
-\begin{table}[ht]
-\begin{center}
+\begin{longtable}{|l | l | l | p{6cm}|}
+
 %\begin{longtable}{|p{2.25cm} | p{4cm} p{9.5cm}|}
 %\begin{longtable}{|l | l l l|}
   %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
-\caption{Element types and attributes available in \texttt{DYNK}  (part 1).}
-\label{tab:DYNK_SET} %\\*
-\begin{tabular}{|l | l | l | p{6cm}|}
 
   \hline
   \rowcolor{blue!30}
@@ -683,16 +680,19 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
   \parbox{4cm}{~\\[-1mm] Standard thin elements\index{thin element}\\ ($\pm$1 -- $\pm$10),\\ Section~\ref{NonEle}\\[-3mm]}
     & \texttt{average\_ms} & radians * m\textsuperscript{-n} & See Table~\ref{T-NonEle} \\
   \hline
+    \multirow{3}{*}{\parbox{4cm}{Multipoles \index{Multipoles}\\ (11),\\ Section~\ref{MulCoe}}}
+    & \texttt{scaleall}  & -       & Multiplies all order by this factor \\
+    & \texttt{a\{ORDER\}rms, e.g a1rms}& radians * m\textsuperscript{-n}  & Corresponds to the 4th column in the multipole block. \\
+    & \texttt{b\{ORDER\}rms, e.g b2rms}& radians * m\textsuperscript{-n}  & Corresponds to the 2nd column in the multipole block. \\
+    & \texttt{a\{ORDER\}str, e.g a3str}& radians * m\textsuperscript{-n}  & Corresponds to the 1th column in the multipole block. \\
+    & \texttt{b\{ORDER\}str, e.g b4str}& radians * m\textsuperscript{-n}  & Corresponds to the 3rd column in the multipole block. \\
+  \hline
   \multirow{3}{*}{\parbox{4cm}{RF cavities \index{RF cavities}($\pm$12),\\ Section~\ref{Cavities}}}
     & \texttt{voltage}     & MV      & One-turn accelerating voltage \\
     & \texttt{harmonic}    & --      & Harmonic number of the cavity \\
     & \texttt{lag\_angle}  & degrees & Lag angle of the cavity \\
   \hline
-  \multirow{3}{*}{\parbox{4cm}{RF multipoles\index{RF multipoles}\\ ($\pm$23, $\pm$26 -- $\pm$28),\\ Section~\ref{CrabCav}}}
-    & \texttt{voltage}     & MV      & Kick voltage \\
-    & \texttt{frequency}   & MHz     & Frequency \\
-    & \texttt{phase}       & radians & Offset between zero-crossing and ideal bunch center \\
-  \hline
+    
    \multirow{3}{*}{\parbox{4cm}{Beam-Beam 6d (expert) \index{Beam-Beam}\\ (20),\\ Section~\ref{BeamBeam}}}
     & \texttt{h-sep}     & mm      & Horizontal offset \\
     & \texttt{v-sep}     & mm      & Vertical offset \\
@@ -716,31 +716,10 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     & \texttt{4dSyy}     & -       & $\Sigma_{y,y}$ \\
     & \texttt{4dSxy}     & -       & $\Sigma_{x,y}$ \\
   \hline
-    \multirow{3}{*}{\parbox{4cm}{Multipoles \index{Multipoles}\\ (11),\\ Section~\ref{MulCoe}}}
-    & \texttt{scaleall}  & -       & Multiplies all order by this factor \\
-    & \texttt{a\{ORDER\}rms, e.g a1rms}& radians * m\textsuperscript{-n}  & Corresponds to the 4th column in the multipole block. \\
-    & \texttt{b\{ORDER\}rms, e.g b2rms}& radians * m\textsuperscript{-n}  & Corresponds to the 2nd column in the multipole block. \\
-    & \texttt{a\{ORDER\}str, e.g a3str}& radians * m\textsuperscript{-n}  & Corresponds to the 1th column in the multipole block. \\
-    & \texttt{b\{ORDER\}str, e.g b4str}& radians * m\textsuperscript{-n}  & Corresponds to the 3rd column in the multipole block. \\
-  \hline
-
-
-
-%\end{longtable}
-\end{tabular}
-\end{center}
-\end{table}
-
-\begin{table}[ht]
-\begin{center}
-
-\caption{Element types and attributes available in \texttt{DYNK}  (part 2).}
-\label{tab:DYNK_SET} %\\*
-\begin{tabular}{|l | l | l | p{6cm}|}
-
-  \hline
-  \rowcolor{blue!30}
-  Element type (idx) & Attribute & Units & Description \\
+  \multirow{3}{*}{\parbox{4cm}{RF multipoles\index{RF multipoles}\\ ($\pm$23, $\pm$26 -- $\pm$28),\\ Section~\ref{CrabCav}}}
+    & \texttt{voltage}     & MV      & Kick voltage \\
+    & \texttt{frequency}   & MHz     & Frequency \\
+    & \texttt{phase}       & radians & Offset between zero-crossing and ideal bunch center \\
   \hline
     \multirow{3}{*}{\parbox{4cm}{Electron lens \\ (29),\\ Section~\ref{sec:elen}}}
     & \texttt{theta\_R2}     & mrad      & Angular kick at R2 \\
@@ -764,9 +743,11 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     % &      &       &  \\
   \hline
 
-\end{tabular}
-\end{center}
-\end{table}
+\caption{Element types and attributes available in \texttt{DYNK} .}
+\label{tab:DYNK_SET} 
+
+\end{longtable}
+
 \subsection{Additional Flags}
 
 \paragraph{Flag:} \texttt{NOFILE}\\
