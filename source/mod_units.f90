@@ -8,7 +8,7 @@
 ! ================================================================================================ !
 module mod_units
 
-  use parpro, only : mFileName
+  use parpro, only : mPathName
 
   implicit none
 
@@ -21,11 +21,11 @@ module mod_units
   character(len=14), parameter :: units_logFile  = "file_units.log"  ! File name for internal log file
 
   type, private :: unitRecord
-    character(len=mFileName), private :: file  = " "     ! The requested file name (not BOINC)
-    character(len=3),         private :: mode  = " "     ! Read/write mode
-    logical,                  private :: taken = .false. ! Whether a unit is known to be taken or not
-    logical,                  private :: open  = .false. ! Whether file is opened by the module or not
-    logical,                  private :: fixed = .true.  ! Whether the unit was requested as a fixed unit or not
+    character(len=:), allocatable, private :: file            ! The requested file name (not BOINC)
+    character(len=3),              private :: mode  = " "     ! Read/write mode
+    logical,                       private :: taken = .false. ! Whether a unit is known to be taken or not
+    logical,                       private :: open  = .false. ! Whether file is opened by the module or not
+    logical,                       private :: fixed = .true.  ! Whether the unit was requested as a fixed unit or not
   end type unitRecord
 
   ! Array to keep track of files
@@ -77,8 +77,8 @@ subroutine f_requestUnit(file,unit)
   integer i
   logical isOpen
 
-  if(len_trim(file) > mFileName) then
-    write(lout,"(2(a,i0))") "UNITS> ERROR Max length of file name in f_requestUnit is ",mFileName,&
+  if(len_trim(file) > mPathName) then
+    write(lout,"(2(a,i0))") "UNITS> ERROR Max length of file path in f_requestUnit is ",mPathName,&
       " characters, got ",len_trim(file)
     call prror
   end if
@@ -178,9 +178,8 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
   character(len=*), optional, intent(in)  :: access
   integer,          optional, intent(in)  :: recl
 
-  ! type(unitSpec),   allocatable :: tmpUnits(:)
   character(len=:), allocatable :: fFileName, fStatus, fAction, fPosition, fMode, fAccess
-  character(len=256) :: tmpBoinc
+  character(len=mPathName+1) :: tmpBoinc
   integer i, fRecl, nUnits, ioStat, chkUnit
   logical fFio, isOpen
 
@@ -202,8 +201,8 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
     fAccess = "sequential"
   end if
 
-  if(len_trim(file) > mFileName) then
-    write(lout,"(2(a,i0))") "UNITS> ERROR Max length of file name in f_open is ",mFileName,&
+  if(len_trim(file) > mPathName) then
+    write(lout,"(2(a,i0))") "UNITS> ERROR Max length of file path in f_open is ",mPathName,&
       " characters, got ",len_trim(file)
     call prror
   end if
@@ -410,6 +409,7 @@ end subroutine f_flush
 subroutine f_writeLog(action,unit,status,file)
 
   use floatPrecision
+  use string_tools
 
   character(len=*), intent(in) :: action
   integer,          intent(in) :: unit
@@ -421,11 +421,11 @@ subroutine f_writeLog(action,unit,status,file)
   character(len=8)         wStatus
   character(len=mFileName) wFile
 
-  if(units_logUnit <= 0) return ! Only write if we have a log file
+  if(units_logUnit <= 0) return ! Only write if we have a log file open
 
   wAction = action
   wStatus = status
-  wFile   = file
+  wFile   = chr_baseName(file)
 
   call cpu_time(cpuTime)
   write(units_logUnit,"(f10.3,2x,a8,2x,i4,2x,a8,2x,a)") cpuTime,adjustl(wAction),unit,adjustl(wStatus),adjustl(wFile)
