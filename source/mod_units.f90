@@ -8,7 +8,7 @@
 ! ================================================================================================ !
 module mod_units
 
-  use parpro, only : mFNameLen
+  use parpro, only : mFileName
 
   implicit none
 
@@ -21,7 +21,7 @@ module mod_units
   character(len=14), parameter :: units_logFile  = "file_units.log"  ! File name for internal log file
 
   type, private :: unitRecord
-    character(len=mFNameLen), private :: file  = " "     ! The requested file name (not BOINC)
+    character(len=mFileName), private :: file  = " "     ! The requested file name (not BOINC)
     character(len=3),         private :: mode  = " "     ! Read/write mode
     logical,                  private :: taken = .false. ! Whether a unit is known to be taken or not
     logical,                  private :: open  = .false. ! Whether file is opened by the module or not
@@ -77,8 +77,8 @@ subroutine f_requestUnit(file,unit)
   integer i
   logical isOpen
 
-  if(len_trim(file) > mFNameLen) then
-    write(lout,"(2(a,i0))") "UNITS> ERROR Max length of file name in f_requestUnit is ",mFNameLen,&
+  if(len_trim(file) > mFileName) then
+    write(lout,"(2(a,i0))") "UNITS> ERROR Max length of file name in f_requestUnit is ",mFileName,&
       " characters, got ",len_trim(file)
     call prror
   end if
@@ -202,8 +202,8 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
     fAccess = "sequential"
   end if
 
-  if(len_trim(file) > mFNameLen) then
-    write(lout,"(2(a,i0))") "UNITS> ERROR Max length of file name in f_open is ",mFNameLen,&
+  if(len_trim(file) > mFileName) then
+    write(lout,"(2(a,i0))") "UNITS> ERROR Max length of file name in f_open is ",mFileName,&
       " characters, got ",len_trim(file)
     call prror
   end if
@@ -419,7 +419,7 @@ subroutine f_writeLog(action,unit,status,file)
   real(kind=fPrec)         cpuTime
   character(len=8)         wAction
   character(len=8)         wStatus
-  character(len=mFNameLen) wFile
+  character(len=mFileName) wFile
 
   if(units_logUnit <= 0) return ! Only write if we have a log file
 

@@ -48,7 +48,7 @@ module dump
   ! Flag the format of the dump
   integer, allocatable, save :: dumpfmt(:) !(-1:nele)
   ! Filename to write the dump to
-  character(len=:), allocatable, save :: dump_fname(:) !(mFNameLen)(-1:nele)
+  character(len=:), allocatable, save :: dump_fname(:) !(mFileName)(-1:nele)
 
   ! tas matrix used for nomalisation of phase space in DUMP and FMA.
   ! First index = -1 -> StartDUMP, filled differently than idx > 0; First index = 0  -> Unused.
@@ -91,7 +91,7 @@ subroutine dump_expand_arrays(nele_new, nblz_new)
   call alloc(dumplast,              nele_new, 0,          "dumplast",   -1)
   call alloc(dumpunit,              nele_new, 0,          "dumpunit",   -1)
   call alloc(dumpfmt,               nele_new, 0,          "dumpfmt",    -1)
-  call alloc(dump_fname, mFNameLen, nele_new, " ",        "dump_fname", -1)
+  call alloc(dump_fname, mFileName, nele_new, " ",        "dump_fname", -1)
 
   call alloc(dumptas,               nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
   call alloc(dumptasinv,            nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
@@ -198,7 +198,7 @@ subroutine dump_parseInputLine(inLine,iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) elemName
-  character(len=mFNameLen) fileName
+  character(len=mFileName) fileName
   integer i1,i2,i3,i4,i5,kk,j
   integer nSplit
   logical spErr

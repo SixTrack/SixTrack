@@ -54,7 +54,7 @@ module elens
   integer, save          :: elens_cheby_unit=-1       ! unit for reading the chebyshev coefficients
   integer, parameter     :: elens_cheby_order=18      ! max order of chebyshev polynomials
   integer, save          :: melens_cheby_tables       ! tables available in memory
-  character(len=mFNameLen), save:: elens_cheby_filename(nelens_cheby_tables) = " "! names
+  character(len=mFileName), save:: elens_cheby_filename(nelens_cheby_tables) = " "! names
   real(kind=fPrec), save :: elens_cheby_coeffs(0:elens_cheby_order,0:elens_cheby_order,nelens_cheby_tables) = zero
   real(kind=fPrec), save :: elens_cheby_refCurr(nelens_cheby_tables)   = zero ! reference current [A]
   real(kind=fPrec), save :: elens_cheby_refRadius(nelens_cheby_tables) = zero ! reference radius [mm]
@@ -64,7 +64,7 @@ module elens
   integer, save          :: elens_radial_unit=-1      ! unit for reading radial profiles
   integer, save          :: melens_radial_profiles    ! radial profiles available in memory
   integer, parameter     :: elens_radial_dim=500      ! max number of points in radial profiles
-  character(len=mFNameLen), save:: elens_radial_filename(nelens_radial_profiles) ! names
+  character(len=mFileName), save:: elens_radial_filename(nelens_radial_profiles) ! names
   real(kind=fPrec), save :: elens_radial_profile_R(0:elens_radial_dim,nelens_radial_profiles)
   real(kind=fPrec), save :: elens_radial_profile_J(0:elens_radial_dim,nelens_radial_profiles)
   integer, save          :: elens_radial_profile_nPoints(nelens_radial_profiles)
