@@ -14,6 +14,7 @@ module cheby
   integer, save               :: mcheby=0             ! last chebyshev lens read
   integer, parameter          :: ncheby_tables=20     ! max number of chebyshev tables in memory (in SINGLE ELEMENT array)
   integer, save               :: mcheby_tables=0      ! last chebyshev table read
+  integer, parameter          :: kzcheby=111          ! kz of chebyshev lenses
 
   ! variables to save parameters for tracking etc.
   integer, save          :: cheby_itable(ncheby)=0         ! index of chebyshev table
@@ -23,10 +24,10 @@ module cheby
   real(kind=fPrec), save :: cheby_scalingFact(ncheby)=zero ! scaling factor []
 
   ! tables with chebyshev coefficients
-  integer, parameter     :: cheby_max_order=30        ! max order of chebyshev polynomials
+  integer, parameter     :: cheby_max_order=30             ! max order of chebyshev polynomials currently supported
   character(len=mFNameLen), save:: cheby_filename(ncheby_tables) = " "! file names
   real(kind=fPrec), save :: cheby_coeffs(0:cheby_max_order,0:cheby_max_order,ncheby_tables) = zero ! coefficients
-  integer, save          :: cheby_maxOrder(ncheby_tables)  ! max order of the current map
+  integer, save          :: cheby_maxOrder(ncheby_tables)  = 0    ! max order of the current map
   real(kind=fPrec), save :: cheby_refCurr(ncheby_tables)   = zero ! reference current [A]
   real(kind=fPrec), save :: cheby_refRadius(ncheby_tables) = zero ! reference radius [mm]
   real(kind=fPrec), save :: cheby_refBeta(ncheby_tables)   = zero ! reference e-beta []
@@ -44,6 +45,46 @@ subroutine cheby_expand_arrays(nele_new)
   integer, intent(in) :: nele_new
   call alloc(icheby,nele_new,0,'icheby')
 end subroutine cheby_expand_arrays
+
+
+! ================================================================================================ !
+!  Parse Line for Chebyshev lens
+!  Last modified: 2019-02-25
+! ================================================================================================ !
+subroutine cheby_parseInputLine(inLine, iLine, iErr)
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+end subroutine cheby_parseInputLine
+
+
+subroutine cheby_parseInputDone(iErr)
+
+  use mod_common, only : kz,bez
+
+  implicit none
+
+  logical, intent(inout) :: iErr
+
+  integer j
+
+  ! Loop over single elements to check that they have been defined in the fort.3 block
+  if(mcheby /= 0) then
+    do j=1,nele
+      if(kz(j) == kzcheby) then
+        if( icheby(j) == 0) then
+          write(lout,"(a)") "CHEBY> ERROR Chebyshev lens element '"//trim(bez(j))//"'not defined in fort.3."
+          write(lout,"(a)") "CHEBY>       You must define every Chebyshev lens in the CHEB block."
+          iErr = .true.
+          return
+        end if
+      end if
+    end do
+  end if
+
+end subroutine cheby_parseInputDone
 
 
 subroutine cheby_postInput

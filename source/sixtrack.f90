@@ -33,6 +33,7 @@ subroutine daten
   use mod_fluc,  only : fluc_parseInputLine,fluc_readInputs
   use wire,      only : wire_parseInputLine,wire_parseInputDone
   use elens,     only : elens_parseInputLine,elens_parseInputDone,elens_postInput
+  use cheby,     only : cheby_parseInputLine,cheby_parseInputDone,cheby_postInput
   use aperture
   use mod_hions
 #ifdef HASHLIB
@@ -611,6 +612,17 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("CHEB") ! map with Chebyshev coefficients
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call cheby_parseInputDone(inErr)
+      if(inErr) goto 9999
+    else
+      call cheby_parseInputLine(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       dist_enable = .true.
@@ -861,6 +873,7 @@ subroutine daten
   end if
 
   call elens_postInput
+  call cheby_postInput
 #ifdef PYTHIA
   call pythia_postInput
 #endif
