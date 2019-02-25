@@ -15,7 +15,8 @@ module cheby
   integer, save               :: mcheby=0             ! last chebyshev lens read
   integer, parameter          :: ncheby_tables=20     ! max number of chebyshev tables in memory (in SINGLE ELEMENT array)
   integer, save               :: mcheby_tables=0      ! last chebyshev table read
-  integer, parameter          :: kzcheby=111          ! kz of chebyshev lenses
+  integer, parameter          :: cheby_kz=41          ! kz of chebyshev lenses
+  integer, parameter          :: cheby_ktrack=67      ! ktrack of chebyshev lenses
 
   ! variables to save parameters for tracking etc.
   integer, save          :: cheby_itable(ncheby)=0         ! index of chebyshev table
@@ -101,8 +102,8 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
     return
   end if
 
-  if(kz(iElem) /= kzcheby) then
-    write(lout,"(2(a,i0),a)") "CHEBY> ERROR Element type is kz(",iElem,") = ",kz(iElem)," != ",kzcheby
+  if(kz(iElem) /= cheby_kz) then
+    write(lout,"(2(a,i0),a)") "CHEBY> ERROR Element type is kz(",iElem,") = ",kz(iElem)," != ",cheby_kz
     iErr = .true.
     return
   end if
@@ -191,7 +192,7 @@ subroutine cheby_parseInputDone(iErr)
   ! Loop over single elements to check that they have been defined in the fort.3 block
   if(mcheby /= 0) then
     do j=1,nele
-      if(kz(j) == kzcheby) then
+      if(kz(j) == cheby_kz) then
         if( icheby(j) == 0) then
           write(lout,"(a)") "CHEBY> ERROR Chebyshev lens element '"//trim(bez(j))//"'not defined in fort.3."
           write(lout,"(a)") "CHEBY>       You must define every Chebyshev lens in the CHEB block."
@@ -243,7 +244,7 @@ subroutine cheby_postInput
       write(lout,"(a)") ''
       write(lout,"(a,i0)") ' status of chebyshev lens #',jj
       do kk=1,nele
-        if(kz(kk) == kzcheby .and. icheby(kk) == mcheby ) then
+        if(kz(kk) == cheby_kz .and. icheby(kk) == mcheby ) then
           write(lout,"(a,i0)") ' name:',trim(bez(kk))
           exit
         end if
@@ -409,7 +410,7 @@ end subroutine parseChebyFile
 subroutine cheby_kick(jcheby)
 
   ! A. Mereghetti (CERN, BE-ABP-HSS)
-  ! last modified: 20-02-2018
+  ! last modified: 25-02-2019
   ! apply kick of electron lens
 
   use mod_common
@@ -418,10 +419,10 @@ subroutine cheby_kick(jcheby)
   use numerical_constants
   use physical_constants
 
-  real(kind=fPrec) :: xx, yy, rr, frr, dxp, dyp
-  real(kind=fPrec) :: theta, radio, angle_rad, brho_b, beta_b
-  integer          :: j, jcheby
-  logical          :: lrotate
+  real(kind=fPrec) xx, yy, rr, frr, dxp, dyp
+  real(kind=fPrec) theta, radio, angle_rad, brho_b, beta_b
+  integer          j, jcheby
+  logical          lrotate
 
   angle_rad = zero ! -Wmaybe-uninitialized
 

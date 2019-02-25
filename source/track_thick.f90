@@ -10,6 +10,7 @@ subroutine trauthck(nthinerr)
   use mathlib_bouncer
   use numerical_constants
   use dynk, only : dynk_enabled, dynk_isused, dynk_pretrack
+  use cheby, only : cheby_kz, cheby_ktrack
 
 #ifdef FLUKA
 ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -130,6 +131,11 @@ subroutine trauthck(nthinerr)
     !electron lens (HEL)
     if(kzz.eq.29) then
       ktrack(i)=63
+      goto 290
+    endif
+    ! Chebyshev lens
+    if(kzz.eq.cheby_kz) then
+      ktrack(i)=cheby_ktrack
       goto 290
     endif
     ! acdip1
@@ -497,6 +503,7 @@ subroutine thck4d(nthinerr)
   use mod_common_track
   use mod_common_da
   use elens
+  use cheby, only : cheby_ktrack, cheby_kick, icheby
   use utils
   use wire
 #ifdef CR
@@ -1040,6 +1047,9 @@ subroutine thck4d(nthinerr)
 #include "include/kickelens.f90"
         end do
         goto 470
+      case (cheby_ktrack) ! Chebyshev lens
+        call cheby_kick(icheby(ix))
+        goto 470
       end select
       goto 480
 
@@ -1160,6 +1170,7 @@ subroutine thck6d(nthinerr)
   use mod_common_da
   use aperture
   use elens
+  use cheby, only : cheby_ktrack, cheby_kick, icheby
   use utils
   use wire
 #ifdef CR
@@ -1781,6 +1792,9 @@ subroutine thck6d(nthinerr)
         do j=1,napx
 #include "include/kickelens.f90"
         end do
+        goto 490
+      case (cheby_ktrack) ! Chebyshev lens
+        call cheby_kick(icheby(ix))
         goto 490
       end select
       goto 500
