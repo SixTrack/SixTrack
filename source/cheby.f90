@@ -1,41 +1,42 @@
 module cheby
   use parpro
   use floatPrecision
+  use crcoall
+  use numerical_constants, only : zero
   implicit none
 
   ! A.Mereghetti (CERN, BE-ABP-HSS)
-  ! last modified: 28-02-2018
-  ! module for handling lenses with kicks expressed by Chebyshev polynomials
+  ! last modified: 25-02-2019
+  ! module for handling maps expressed by Chebyshev polynomials
 
-  integer,allocatable, save  :: icheby(:)              ! index of chebyshev lens
-  integer, parameter     :: ncheby=20                 ! max number of chebyshev lenses treated (in LATTICE structure)
-  integer, save          :: mcheby                    ! last chebyshev lens read
-  integer, parameter     :: ncheby_tables=5           ! max number of chebyshev tables in memory (in SINGLE ELEMENT array)
-  integer, save          :: mcheby_tables             ! last chebyshev table read
+  integer, allocatable, save  :: icheby(:)            ! index of chebyshev lens
+  integer, parameter          :: ncheby=20            ! max number of chebyshev lenses treated (in LATTICE structure)
+  integer, save               :: mcheby=0             ! last chebyshev lens read
+  integer, parameter          :: ncheby_tables=20     ! max number of chebyshev tables in memory (in SINGLE ELEMENT array)
+  integer, save               :: mcheby_tables=0      ! last chebyshev table read
 
   ! variables to save parameters for tracking etc.
-  real(kind=fPrec), save :: cheby_offset_x(ncheby), cheby_offset_y(ncheby)  ! hor./vert. offset [mm]
-  real(kind=fPrec), save :: cheby_angle(ncheby)       ! rotation angle about the longitudinal axis [rad]
-  integer, save          :: cheby_itable(ncheby)      ! index of chebyshev table
-  real(kind=fPrec), save :: cheby_scalingFact(ncheby) ! scaling factor []
+  integer, save          :: cheby_itable(ncheby)=0         ! index of chebyshev table
+  real(kind=fPrec), save :: cheby_offset_x(ncheby)=zero    ! hor. offset [mm]
+  real(kind=fPrec), save :: cheby_offset_y(ncheby)=zero    ! ver. offset [mm]
+  real(kind=fPrec), save :: cheby_angle(ncheby)=zero       ! rotation angle about the longitudinal axis [rad]
+  real(kind=fPrec), save :: cheby_scalingFact(ncheby)=zero ! scaling factor []
 
   ! tables with chebyshev coefficients
-  integer, parameter     :: cheby_unit=-1             ! unit for reading the chebyshev coefficients
-  integer, parameter     :: cheby_max_order=60        ! max order of chebyshev polynomials
-  integer, parameter     :: cheby_lFileName=16        ! length of filenames
-  character(len=cheby_lFileName), save:: cheby_filename(ncheby_tables)  ! file names
-  real(kind=fPrec), save :: cheby_coeffs(0:cheby_max_order,0:cheby_max_order,ncheby_tables) ! coefficients
+  integer, parameter     :: cheby_max_order=30        ! max order of chebyshev polynomials
+  character(len=mFNameLen), save:: cheby_filename(ncheby_tables) = " "! file names
+  real(kind=fPrec), save :: cheby_coeffs(0:cheby_max_order,0:cheby_max_order,ncheby_tables) = zero ! coefficients
   integer, save          :: cheby_maxOrder(ncheby_tables)  ! max order of the current map
-  real(kind=fPrec), save :: cheby_refRadius(ncheby_tables) ! reference radius [mm]
-
+  real(kind=fPrec), save :: cheby_refCurr(ncheby_tables)   = zero ! reference current [A]
+  real(kind=fPrec), save :: cheby_refRadius(ncheby_tables) = zero ! reference radius [mm]
+  real(kind=fPrec), save :: cheby_refBeta(ncheby_tables)   = zero ! reference e-beta []
 
 contains
 
 subroutine cheby_allocate_arrays
-  use crcoall
   implicit none
   integer stat
-    call alloc(icheby,nele,0,'icheby')
+  call alloc(icheby,nele,0,'icheby')
 end subroutine cheby_allocate_arrays
 
 subroutine cheby_expand_arrays(nele_new)
@@ -43,6 +44,27 @@ subroutine cheby_expand_arrays(nele_new)
   integer, intent(in) :: nele_new
   call alloc(icheby,nele_new,0,'icheby')
 end subroutine cheby_expand_arrays
+
+
+subroutine cheby_postInput
+  use mathlib_bouncer
+  use utils
+
+  integer j
+  logical exist
+  
+  ! Parse files with coefficients for Chebyshev polynomials:
+   do j=1,mcheby
+    inquire(file=cheby_filename(j), exist=exist)
+    if(.not. exist) then
+      write(lout,"(a)") "CHEBY> ERROR Problems with file with coefficients for Chebyshev polynominals: ", &
+            trim(cheby_filename(j))
+      call prror(-1)
+    end if
+    call parseChebyFile(j)
+  end do
+
+end subroutine cheby_postInput
 
 
 subroutine cheby_kick(jcheby)
@@ -116,48 +138,6 @@ subroutine cheby_kick(jcheby)
 end subroutine cheby_kick
 
 
-  subroutine cheby_comnul
-
-    ! A. Mereghetti (CERN, BE-ABP-HSS)
-    ! last modified: 28-02-2018
-    ! always in main code
-
-    use mod_common
-    use mod_common_main
-    use numerical_constants
-
-    integer          :: i, j, i1, i2
-
-    do i=1,nele
-       icheby(i) = 0
-    end do
-    mcheby=0
-    do i=1,ncheby
-       cheby_itable(i)      = 0
-       cheby_offset_x(i)    = zero
-       cheby_offset_y(i)    = zero
-       cheby_angle(i)       = zero
-       cheby_scalingFact(i) = one
-    end do
-
-    ! table with coefficients of chebyshev polynominals
-    mcheby_tables=0
-    do i=1,ncheby_tables
-       do j=1,cheby_lFileName
-          cheby_filename(i)(j:j)=' '
-       end do
-       do i1=0,cheby_max_order
-          do i2=0,cheby_max_order
-             cheby_coeffs(i1,i2,i)=zero
-          end do
-       end do
-       cheby_refRadius(i)=zero
-       cheby_maxOrder(i)=0
-    end do
-    return
-  end subroutine cheby_comnul
-
-
   subroutine cheby_getKick( xx, yy, dxp, dyp, iTable, brho_b, beta_b )
 
     ! A. Mereghetti (CERN, BE-ABP-HSS)
@@ -219,6 +199,138 @@ end subroutine cheby_kick
     dyp=dyp/(brho_b*clight*beta_b)
 
    end subroutine cheby_getKick
+
+! ================================================================================================ !
+!  Last modified: 2019-02-25
+!  Rewritten by VKBO, June 2018
+!  Read file with coefficients for chebyshev polynomials
+!  ifile is index of file in table of chebyshev files
+!  file is structured as:
+!    keyword : value
+!  keywords:
+!  - I: reference current intensity of e-beam [A]
+!  - Ek: reference kinetic energy of electrons [keV]
+!  - rad: reference radius [mm]
+!  comment line is headed by '#'
+!  coefficients are give with the following syntax:
+!  i j : value
+!  where i->x and j->y
+! ================================================================================================ !
+subroutine parseChebyFile(ifile)
+
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
+  use physical_constants
+  use crcoall
+  use mod_common
+  use mod_settings
+  use string_tools
+  use mod_units
+
+  implicit none
+
+  integer, intent(in) :: ifile
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mInputLn) inLine
+  integer nSplit
+  logical spErr,err
+
+  integer iErr, ii, jj, fUnit
+  real(kind=fPrec) tmpflt, beta, gamma
+
+  ierr = 0
+  write(lout,"(a)") "CHEBY> Parsing file with coefficients for Chebyshev polynomials "//trim(cheby_filename(ifile))
+  call f_requestUnit(cheby_filename(ifile),fUnit)
+  call f_open(unit=fUnit,file=cheby_filename(ifile),mode='r',err=err,formatted=.true.,status="old")
+
+10 continue
+  read(fUnit,"(a)",end=20,err=30) inLine
+  if(inLine(1:1) == "#") goto 10
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "CHEBY> ERROR Failed to Chebyshev input line."
+    goto 30
+  end if
+
+  if(inLine(1:1) == "I") then
+    ! Read reference current of e-beam in e-lens
+    if(nSplit < 3) then
+      iErr = 2
+      goto 30
+    end if
+    call chr_cast(lnSplit(3),tmpflt,spErr)
+    cheby_refCurr(ifile) = tmpflt
+
+  else if(inLine(1:2) == "Ek") then
+    ! Read reference kinetic energy of e-beam in e-lens
+    if(nSplit < 3) then
+      iErr = 3
+      goto 30
+    end if
+    call chr_cast(lnSplit(3),tmpflt,spErr)
+    gamma = (tmpflt*c1m3)/pmae+one ! from kinetic energy
+    cheby_refBeta(ifile) = sqrt((gamma+one)*(gamma-one))/gamma
+
+  else if(inLine(1:3) == "rad") then
+    ! Read reference radius e-beam in e-lens
+    if(nSplit < 3) then
+      iErr = 4
+      goto 30
+    end if
+    call chr_cast(lnSplit(3),tmpflt,spErr)
+    cheby_refRadius(ifile) = tmpflt
+
+  else
+    ! Read chebyshev coefficients
+    if(nSplit /= 4) then
+      iErr = 5
+      goto 30
+    end if
+    call chr_cast(lnSplit(1),ii,spErr)
+    if(ii > cheby_max_order) then
+      iErr = 6
+      goto 30
+    end if
+    call chr_cast(lnSplit(2),jj,spErr)
+    if(jj > cheby_max_order) then
+      iErr = 7
+      goto 30
+    end if
+    call chr_cast(lnSplit(4),tmpflt,spErr)
+    cheby_coeffs(ii,jj,ifile) = tmpflt
+
+  end if ! close if for keyword identification
+  goto 10
+
+20 continue
+
+  call f_close(fUnit)
+
+  if(st_quiet < 2) then
+    ! Echo parsed data (unless told to be quiet!)
+    write(lout,"(a,i0)") "CHEBY> Coefficients for Chebyshev polynomials as from file "//&
+      trim(cheby_filename(ifile))//" - #",ifile
+    write(lout,"(a,e22.15)") "ELENS> * Reference current [A] : ",cheby_refCurr(ifile)
+    write(lout,"(a,e22.15)") "ELENS> * reference beta     [] : ",cheby_refBeta(ifile)
+    write(lout,"(a,e22.15)") "ELENS> * reference radius [mm] : ",cheby_refRadius(ifile)
+    do ii=0,cheby_max_order
+      do jj=0,cheby_max_order
+        if(cheby_coeffs(ii,jj,ifile)/= zero) then
+          write(lout,"(2(a,i4),a,e22.15)") "CHEBY> Order ",ii,",",jj," : ",cheby_coeffs(ii,jj,ifile)
+        end if
+      end do
+    end do
+  end if
+  return
+
+30 continue
+  write(lout,"(a,i0,a)") "CHEBY> ERROR ",iErr," while parsing file "//trim(cheby_filename(ifile))
+  call prror(-1)
+
+end subroutine parseChebyFile
 
 
 end module cheby
