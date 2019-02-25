@@ -130,7 +130,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
-  if(el(iElem) /= 0 .or. ek(iElem) /= 0 .or. ed(iElem) /= 0) then
+  if(el(iElem) /= zero .or. ek(iElem) /= zero .or. ed(iElem) /= zero) then
     write(lout,"(a)")       "ELENS> ERROR Length el(iElem) (elens is treated as thin element), "//&
       "and first and second field have to be zero:"
     write(lout,"(2(a,i0))") "ELENS>       el(",iElem,") = ",el(iElem)," != 0"
@@ -200,7 +200,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
 
   elseif(elens_type(ielens(iElem)) == 3 )then
     ! Radial profile of electrons given by file: need also
-    !   name of file where coefficients are stored
+    !   name of file where profile is stored
     tmpch = trim(lnSplit(8))
 
     ! Check if profile has already been requested:
@@ -302,7 +302,6 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
 
   if(st_debug) then
     call sixin_echoVal("name",    bez(iElem),                   "ELENS",iLine)
-    call sixin_echoVal("type",    lnSplit(2),                   "ELENS",iLine)
     call sixin_echoVal("type",    elens_type(ielens(iElem)),    "ELENS",iLine)
     call sixin_echoVal("theta_r2",elens_theta_r2(ielens(iElem)),"ELENS",iLine)
     call sixin_echoVal("r1",      elens_r1(ielens(iElem)),      "ELENS",iLine)
