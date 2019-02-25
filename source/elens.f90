@@ -337,7 +337,7 @@ subroutine elens_parseInputDone(iErr)
       if(kz(j) == 29) then
         if(elens_type(ielens(j)) == 0) then
           write(lout,"(a)") "ELENS> ERROR Elens element '"//trim(bez(j))//"'not defined in fort.3."
-          write(lout,"(a)") "ELENS>       You must define every wire in the WIRE block."
+          write(lout,"(a)") "ELENS>       You must define every elens in the ELEN block."
           iErr = .true.
           return
         end if
