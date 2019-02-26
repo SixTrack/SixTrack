@@ -15,7 +15,7 @@ module cheby
   integer, save               :: mcheby=0             ! last chebyshev lens read
   integer, parameter          :: ncheby_tables=20     ! max number of chebyshev tables in memory (in SINGLE ELEMENT array)
   integer, save               :: mcheby_tables=0      ! last chebyshev table read
-  integer, parameter          :: cheby_kz=41          ! kz of chebyshev lenses
+  integer, parameter          :: cheby_kz=42          ! kz of chebyshev lenses
   integer, parameter          :: cheby_ktrack=67      ! ktrack of chebyshev lenses
 
   ! variables to save parameters for tracking etc.
