@@ -123,7 +123,6 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
-
   if(icheby(iElem) /= 0) then
     write(lout,"(a)") "CHEBY> ERROR The element '"//trim(bez(iElem))//"' was defined twice."
     iErr = .true.
@@ -165,15 +164,15 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
   if(nSplit >= 9) call chr_cast(lnSplit(9),cheby_I(icheby(iElem)),iErr)
 
   if(st_debug) then
-    call sixin_echoVal("name",    bez(iElem),                                       "CHEBY",iLine)
-    call sixin_echoVal("filename",trim(cheby_filename(cheby_itable(icheby(iElem)))),"CHEBY",iLine)
-    if(nSplit >= 3) call sixin_echoVal("r2",      cheby_r2(icheby(iElem)),          "CHEBY",iLine)
-    if(nSplit >= 4) call sixin_echoVal("r1",      cheby_r1(icheby(iElem)),          "CHEBY",iLine)
-    if(nSplit >= 5) call sixin_echoVal("tilt",    cheby_angle(icheby(iElem)),       "CHEBY",iLine)
-    if(nSplit >= 6) call sixin_echoVal("offset_x",cheby_offset_x(icheby(iElem)),    "CHEBY",iLine)
-    if(nSplit >= 7) call sixin_echoVal("offset_y",cheby_offset_y(icheby(iElem)),    "CHEBY",iLine)
-    if(nSplit >= 8) call sixin_echoVal("L"       ,cheby_L(icheby(iElem)),           "CHEBY",iLine)
-    if(nSplit >= 9) call sixin_echoVal("I"       ,cheby_I(icheby(iElem)),           "CHEBY",iLine)
+    call sixin_echoVal("name",    bez(iElem),                                         "CHEBY",iLine)
+    call sixin_echoVal("filename",trim(cheby_filename(cheby_itable(icheby(iElem)))),  "CHEBY",iLine)
+    if(nSplit >= 3) call sixin_echoVal("r2 [mm]"      , cheby_r2(icheby(iElem)),      "CHEBY",iLine)
+    if(nSplit >= 4) call sixin_echoVal("r1 [mm]"      , cheby_r1(icheby(iElem)),      "CHEBY",iLine)
+    if(nSplit >= 5) call sixin_echoVal("tilt [rad]"   , cheby_angle(icheby(iElem)),   "CHEBY",iLine)
+    if(nSplit >= 6) call sixin_echoVal("offset_x [mm]", cheby_offset_x(icheby(iElem)),"CHEBY",iLine)
+    if(nSplit >= 7) call sixin_echoVal("offset_y [mm]", cheby_offset_y(icheby(iElem)),"CHEBY",iLine)
+    if(nSplit >= 8) call sixin_echoVal("L [m]"        , cheby_L(icheby(iElem)),       "CHEBY",iLine)
+    if(nSplit >= 9) call sixin_echoVal("I [A]"        , cheby_I(icheby(iElem)),       "CHEBY",iLine)
   end if
 
 end subroutine cheby_parseInputLine
@@ -207,12 +206,13 @@ end subroutine cheby_parseInputDone
 
 
 subroutine cheby_postInput
-  use utils
+!  use utils
   use mod_common, only : kz,bez
   use mod_settings, only : st_quiet
 
   integer jj, kk
   logical exist
+  real(kind=fPrec) tmpFlt
   
   ! Parse files with coefficients for Chebyshev polynomials:
    do jj=1,mcheby_tables
@@ -230,6 +230,18 @@ subroutine cheby_postInput
     ! some checks and further post-processing of declared lines
     if (cheby_r2(jj)<=zero) cheby_r2(jj)=cheby_refR(cheby_itable(jj))
     if (cheby_r1(jj)<=zero) cheby_r1(jj)=zero
+    if (cheby_r2(jj)<cheby_r1(jj)) then
+      ! swap
+      tmpFlt=cheby_r2(jj)
+      cheby_r2(jj)=cheby_r1(jj)
+      cheby_r1(jj)=tmpFlt
+    end if
+    if (cheby_r2(jj)>cheby_refR(cheby_itable(jj))) then
+      write(lout,"(a)") "CHEBY> ERROR R2 cannot be larger than domain of Chebyshev polynomials!"
+      write(lout,"(a,e22.15,a,e22.15)") "CHEBY>       R2 [mm]: ",cheby_r2(jj), &
+           " - reference radius [mm]:",cheby_refR(cheby_itable(jj))
+      call prror(-1)
+    end if
     if (cheby_L (jj)<=zero) then
       cheby_L (jj)=cheby_refL(cheby_itable(jj))
     else
@@ -249,7 +261,7 @@ subroutine cheby_postInput
           exit
         end if
       end do
-      write(lout,"(a)")        " - filename         :",trim(cheby_filename(cheby_itable(jj)))
+      write(lout,"(a,a)")      " - filename         :",trim(cheby_filename(cheby_itable(jj)))
       write(lout,"(a,e22.15)") " - R2           [mm]:",cheby_r2(jj)
       write(lout,"(a,e22.15)") " - R1           [mm]:",cheby_r1(jj)
       write(lout,"(a,e22.15)") " - tilt angle  [rad]:",cheby_angle(jj)
@@ -281,10 +293,6 @@ end subroutine cheby_postInput
 ! ================================================================================================ !
 subroutine parseChebyFile(ifile)
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-  use physical_constants
   use mod_common
   use mod_settings
   use string_tools
@@ -296,10 +304,8 @@ subroutine parseChebyFile(ifile)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mInputLn) inLine
-  integer nSplit
+  integer nSplit, ii, jj, fUnit
   logical spErr, err, lDefI, lDefL
-
-  integer ii, jj, fUnit
 
   lDefI=.true.
   lDefL=.true.
@@ -307,6 +313,10 @@ subroutine parseChebyFile(ifile)
   write(lout,"(a)") "CHEBY> Parsing file with coefficients for Chebyshev polynomials "//trim(cheby_filename(ifile))
   call f_requestUnit(cheby_filename(ifile),fUnit)
   call f_open(unit=fUnit,file=cheby_filename(ifile),mode='r',err=err,formatted=.true.,status="old")
+  if(err) then
+    write(lout,"(a)") "CHEBY> ERROR Failed to open file."
+    goto 30
+  end if
 
 10 continue
   read(fUnit,"(a)",end=20,err=30) inLine
@@ -314,7 +324,8 @@ subroutine parseChebyFile(ifile)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "CHEBY> ERROR Failed to Chebyshev input line."
+    write(lout,"(a)") "CHEBY> ERROR Failed to split Chebyshev input line:"
+    write(lout,"(a)") inLine
     goto 30
   end if
 
@@ -327,6 +338,10 @@ subroutine parseChebyFile(ifile)
       goto 30
     end if
     call chr_cast(lnSplit(3),cheby_refI(ifile),spErr)
+    if(spErr) then
+      write(lout,"(a)") "CHEBY> ERROR in casting ref lens current: "//trim(lnSplit(3))
+      goto 30
+    end if
     lDefI=.false.
 
   else if(inLine(1:1) == "L") then
@@ -338,6 +353,10 @@ subroutine parseChebyFile(ifile)
       goto 30
     end if
     call chr_cast(lnSplit(3),cheby_refL(ifile),spErr)
+    if(spErr) then
+      write(lout,"(a)") "CHEBY> ERROR in casting ref lens length"//trim(lnSplit(3))
+      goto 30
+    end if
     lDefL=.false.
 
   else if(inLine(1:1) == "R") then
@@ -349,21 +368,37 @@ subroutine parseChebyFile(ifile)
       goto 30
     end if
     call chr_cast(lnSplit(3),cheby_refR(ifile),spErr)
+    if(spErr) then
+      write(lout,"(a)") "CHEBY> ERROR in casting ref lens radius: "//trim(lnSplit(3))
+      goto 30
+    end if
 
   else
     ! Read chebyshev coefficients
     if(nSplit /= 4) then
+      write(lout,"(a)") "CHEBY> ERROR Not enough arguments for expressing Chebyshev coefficients [Vm]."
+      write(lout,"(a)") "CHEBY>       Correct format:"
+      write(lout,"(a)") "ii jj : value (ii->x,jj->y)"
       goto 30
     end if
     call chr_cast(lnSplit(1),ii,spErr)
     if(ii > cheby_max_order) then
+      write(lout,"(a,i0,a,i0)") "CHEBY> ERROR Too high order in Chebyshev polynomial - requested (hor):", &
+            ii," - available:",cheby_max_order
       goto 30
     end if
     call chr_cast(lnSplit(2),jj,spErr)
     if(jj > cheby_max_order) then
+      write(lout,"(a,i0,a,i0)") "CHEBY> ERROR Too high order in Chebyshev polynomial - requested (ver):", &
+            jj," - available:",cheby_max_order
       goto 30
     end if
     call chr_cast(lnSplit(4),cheby_coeffs(ii,jj,ifile),spErr)
+    if(spErr) then
+      write(lout,"(a)") "CHEBY> ERROR in casting Chebyshev coefficient: "//trim(lnSplit(4))
+      goto 30
+    end if
+    cheby_maxOrder(ifile)=max(ii,jj,cheby_maxOrder(ifile))
 
   end if ! close if for keyword identification
   goto 10
@@ -377,6 +412,10 @@ subroutine parseChebyFile(ifile)
   end if
   if (cheby_refR(ifile)<=zero) then
     write(lout,"(a)") "CHEBY> ERROR ref lens radius [mm] must be positive."
+    goto 30
+  end if
+  if (cheby_maxOrder(ifile)<2) then
+    write(lout,"(a,i0,a)") "CHEBY> ERROR max order too low:",cheby_maxOrder(ifile)," - it should be at least 2."
     goto 30
   end if
 
@@ -407,88 +446,90 @@ subroutine parseChebyFile(ifile)
 end subroutine parseChebyFile
 
 
-subroutine cheby_kick(jcheby)
+subroutine cheby_kick(i,ix,n)
 
   ! A. Mereghetti (CERN, BE-ABP-HSS)
-  ! last modified: 25-02-2019
-  ! apply kick of electron lens
+  ! last modified: 26-02-2019
+  ! apply kick of Chebyshev lenses
 
-  use mod_common
+  use mod_common, only : e0, betrel, napx
+  use mod_hions, only : zz0
   use mod_common_main
   use mathlib_bouncer
-  use numerical_constants
-  use physical_constants
+  use numerical_constants, only : zero, one, two, pi, c1e3, c1m3, c1m6
+  use physical_constants, only: clight, pmae, eps0
 
+  integer, intent(in) :: i
+  integer, intent(in) :: ix
+  integer, intent(in) :: n
+  
   real(kind=fPrec) xx, yy, rr, frr, dxp, dyp
-  real(kind=fPrec) theta, radio, angle_rad, brho_b, beta_b
-  integer          j, jcheby
+  real(kind=fPrec) theta, radio, angle_rad, brho
+  integer          j
   logical          lrotate
 
   angle_rad = zero ! -Wmaybe-uninitialized
 
   ! rotation angle
-  lrotate=cheby_angle(jcheby).ne.zero
+  lrotate=cheby_angle(icheby(ix)).ne.zero
 
   ! Brho of beam
-  beta_b=e0f*gammar/pma
-  brho_b=e0f/(clight*c1m6)
+  brho = (e0/(clight*c1m6))/zz0
 
   do j=1,napx
 
     ! apply offset
-    xx=xv1(j)-cheby_offset_x(jcheby)
-    yy=xv2(j)-cheby_offset_y(jcheby)
+    xx=xv1(j)-cheby_offset_x(icheby(ix))
+    yy=xv2(j)-cheby_offset_y(icheby(ix))
 
     ! check that particle is within the domain of chebyshev polynomials
     rr=sqrt(xx**2+yy**2)
-    if (rr.gt.cheby_refR(cheby_itable(jcheby))) then
-      write(lout,"(a,3(e12.6,1x),a,e12.6)") "CHEBY> ERROR in cheby_kick: particle at position (x,y,r): ",&
-        xv1(j), xv2(j), rr,' is outside radial domain of Chebyshev polinomials: ',cheby_refR(cheby_itable(jcheby))
-      call prror
+    if (rr.ge.cheby_r1(icheby(ix)).and.rr.lt.cheby_r2(icheby(ix))) then ! rr<r1 || rr>=r2 -> no kick from lens
+      
+      ! in case of non-zero tilt angle, rotate coordinates
+      if (lrotate) then
+        theta = atan2_mb(yy, xx)-angle_rad
+        xx = rr * cos_mb(theta)
+        yy = rr * sin_mb(theta)
+      end if
+      
+      ! apply kick
+      call cheby_getKick( xx, yy, dxp, dyp, cheby_itable(icheby(ix)), brho )
+      ! take into account scaling factor
+      dxp=dxp *cheby_scalingFact(icheby(ix))
+      dyp=dyp *cheby_scalingFact(icheby(ix))
+      
+      ! in case cheby has a non-zero angle, rotate kicks
+      if (lrotate) then
+        ! NB: cheby_angle(icheby(ix)) is the rotation angle of the cheby
+        theta = atan2_mb(dyp, dxp)+angle_rad
+        radio = sqrt(dxp**2 + dyp**2)
+        dxp = radio * cos_mb(theta)
+        dyp = radio * sin_mb(theta)
+      end if
+      
+      ! apply kicks, taking into account magnetic rigidity of particle being tracked;
+      yv1(j)=yv1(j)+dxp *oidpsv(j)
+      yv2(j)=yv2(j)+dyp *oidpsv(j)
     end if
-
-    ! in case of non-zero tilt angle, rotate coordinates
-    if (lrotate) then
-      theta = atan2_mb(yy, xx)-angle_rad
-      xx = rr * cos_mb(theta)
-      yy = rr * sin_mb(theta)
-    end if
-
-    ! apply kick
-    call cheby_getKick( xx, yy, dxp, dyp, cheby_itable(jcheby), brho_b, beta_b )
-    ! take into account scaling factor
-    dxp=dxp *cheby_scalingFact(jcheby)
-    dyp=dyp *cheby_scalingFact(jcheby)
-
-    ! in case cheby has a non-zero angle, rotate kicks
-    if (lrotate) then
-      ! NB: cheby_angle(jcheby) is the rotation angle of the cheby
-      theta = atan2_mb(dyp, dxp)+angle_rad
-      radio = sqrt(dxp**2 + dyp**2)
-      dxp = radio * cos_mb(theta)
-      dyp = radio * sin_mb(theta)
-    end if
-
-    ! apply kicks, taking into account magnetic rigidity of particle being tracked;
-    yv1(j)=yv1(j)+dxp *oidpsv(j)
-    yv2(j)=yv2(j)+dyp *oidpsv(j)
   end do
 
 end subroutine cheby_kick
 
 
-subroutine cheby_getKick( xx, yy, dxp, dyp, iTable, brho_b, beta_b )
+subroutine cheby_getKick( xx, yy, dxp, dyp, iTable, brho )
 
   ! A. Mereghetti (CERN, BE-ABP-HSS)
-  ! last modified: 28-02-2018
+  ! last modified: 26-02-2019
   ! compute kicks from Chebyshev polinomials - see FermiLAB-FN-0972-APC
 
   use mathlib_bouncer
-  use physical_constants
-  use numerical_constants
+  use physical_constants, only : clight
+  use numerical_constants, only : zero, one, two
+  use mod_common, only : betrel
 
   ! interface vars
-  real(kind=fPrec) :: xx, yy, dxp, dyp, brho_b, beta_b
+  real(kind=fPrec) :: xx, yy, dxp, dyp, brho
   integer          :: iTable
 
   ! temp vars
@@ -509,16 +550,16 @@ subroutine cheby_getKick( xx, yy, dxp, dyp, iTable, brho_b, beta_b )
   Ty(0)=one
   Tx(1)=uu
   Ty(1)=vv
-  do ii=2,cheby_max_order
-     Tx(ii)=two*uu*Tx(ii-1)-Tx(ii-2)
-     Ty(ii)=two*vv*Ty(ii-1)-Ty(ii-2)
+  do ii=2,cheby_maxOrder(iTable)
+     Tx(ii)=two*(uu*Tx(ii-1))-Tx(ii-2)
+     Ty(ii)=two*(vv*Ty(ii-1))-Ty(ii-2)
   end do
   ! derivatives:
   Tpx(0)=zero
   Tpy(0)=zero
-  do ii=1,cheby_max_order
-     Tpx(ii)=real(ii,fPrec)*(Tx(ii-1)-uu*Tx(ii))/fu
-     Tpy(ii)=real(ii,fPrec)*(Ty(ii-1)-vv*Ty(ii))/fv
+  do ii=1,cheby_maxOrder(iTable)
+     Tpx(ii)=(real(ii,fPrec)*(Tx(ii-1)-uu*Tx(ii)))/fu
+     Tpy(ii)=(real(ii,fPrec)*(Ty(ii-1)-vv*Ty(ii)))/fv
   end do
 
   ! get kicks
@@ -526,16 +567,16 @@ subroutine cheby_getKick( xx, yy, dxp, dyp, iTable, brho_b, beta_b )
   dyp=zero
   do ii=0,cheby_maxOrder(iTable)
      do jj=0,ii
-        dxp=dxp+cheby_coeffs(jj,ii,iTable)*Tpx(jj)*Ty (ii-jj)
-        dyp=dyp+cheby_coeffs(jj,ii,iTable)*Tx (jj)*Tpy(ii-jj)
+        dxp=dxp+(cheby_coeffs(jj,ii-jj,iTable)*Tpx(jj))*Ty (ii-jj)
+        dyp=dyp+(cheby_coeffs(jj,ii-jj,iTable)*Tx (jj))*Tpy(ii-jj)
      end do
   end do
   dxp=-dxp/cheby_refR(iTable)
   dyp=-dyp/cheby_refR(iTable)
 
   ! take into account Brho and beta
-  dxp=dxp/(brho_b*clight*beta_b)
-  dyp=dyp/(brho_b*clight*beta_b)
+  dxp=dxp/(brho*clight*betrel)
+  dyp=dyp/(brho*clight*betrel)
 
  end subroutine cheby_getKick
 

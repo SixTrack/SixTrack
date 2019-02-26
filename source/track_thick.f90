@@ -503,7 +503,7 @@ subroutine thck4d(nthinerr)
   use mod_common_track
   use mod_common_da
   use elens
-  use cheby, only : cheby_ktrack, cheby_kick, icheby
+  use cheby, only : cheby_ktrack, cheby_kick
   use utils
   use wire
 #ifdef CR
@@ -1048,7 +1048,7 @@ subroutine thck4d(nthinerr)
         end do
         goto 470
       case (cheby_ktrack) ! Chebyshev lens
-        call cheby_kick(icheby(ix))
+        call cheby_kick(i,ix,n)
         goto 470
       end select
       goto 480
@@ -1170,7 +1170,7 @@ subroutine thck6d(nthinerr)
   use mod_common_da
   use aperture
   use elens
-  use cheby, only : cheby_ktrack, cheby_kick, icheby
+  use cheby, only : cheby_ktrack, cheby_kick
   use utils
   use wire
 #ifdef CR
@@ -1794,7 +1794,7 @@ subroutine thck6d(nthinerr)
         end do
         goto 490
       case (cheby_ktrack) ! Chebyshev lens
-        call cheby_kick(icheby(ix))
+        call cheby_kick(i,ix,n)
         goto 490
       end select
       goto 500

@@ -1661,7 +1661,7 @@ subroutine initialize_element(ix,lfirst)
       use mod_common_track
       use mod_common_main
       use mod_hions
-      use elens
+      use cheby, only : cheby_kz
       use wire
       use mathlib_bouncer
       implicit none
@@ -2091,6 +2091,11 @@ subroutine initialize_element(ix,lfirst)
          el(ix)=zero
 !--e-lens
       else if(kz(ix).eq.29) then
+         ed(ix)=zero
+         ek(ix)=zero
+         el(ix)=zero
+!--chebyshev lens
+      else if(kz(ix).eq.cheby_kz) then
          ed(ix)=zero
          ek(ix)=zero
          el(ix)=zero

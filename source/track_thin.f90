@@ -535,7 +535,7 @@ subroutine thin4d(nthinerr)
   use bdex, only : bdex_enable
   use aperture
   use elens
-  use cheby, only : cheby_ktrack, cheby_kick, icheby
+  use cheby, only : cheby_ktrack, cheby_kick
   use utils
   use wire
 #ifdef CR
@@ -1084,7 +1084,7 @@ subroutine thin4d(nthinerr)
 #include "include/rfmulti.f90"
         goto 620
       case (cheby_ktrack) ! Chebyshev lens
-        call cheby_kick(icheby(ix))
+        call cheby_kick(i,ix,n)
         goto 620
 
       end select
@@ -1200,7 +1200,7 @@ subroutine thin6d(nthinerr)
   use mod_common_da
   use aperture
   use elens
-  use cheby, only : cheby_ktrack, cheby_kick, icheby
+  use cheby, only : cheby_ktrack, cheby_kick
   use utils
   use wire
 #ifdef CR
@@ -2025,7 +2025,7 @@ subroutine thin6d(nthinerr)
         !     TODO
         goto 640
       case (cheby_ktrack) ! Chebyshev lens
-        call cheby_kick(icheby(ix))
+        call cheby_kick(i,ix,n)
         goto 640
       case default
         write(lout,"(3(a,i0),a)") "TRACKING> WARNING Non-handled element in thin6d()!",  &
