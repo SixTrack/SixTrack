@@ -44,7 +44,7 @@ endsequence;
 
 use, sequence=seq;
 
-select, flag=twiss, column=name, s, x,px, y,py, betx, bety;
+select, flag=twiss, column=name, s, x,px, y,py, betx, bety, dx, dy;
 
 
 twiss, file="fodo.twiss";

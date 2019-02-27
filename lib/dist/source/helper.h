@@ -8,4 +8,5 @@ void mtrx_vector_mult_(int *mp, int *np,  double mtrx_a[6][6], double mtrx_b[6],
 void mtrx_vector_mult_pointer(int mp, int np,  double **mtrx_a, double mtrx_b[6], double result[6]);
 void transpose(double num[6][6],double fac[6][6],double  r);
 void cofactor(double num[6][6],double f);
-double determinant(double a[6][6],double  k);
+void printmatrix(int m, int n, double **matrix );
+void printvector(const char* name, int dim, double* vector);

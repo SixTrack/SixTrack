@@ -249,9 +249,29 @@ void transpose(double num[6][6],double fac[6][6],double r)
     {
      for (j=0;j<r;j++)
        {
-       //  printf("\t%f",inverse[i][j]);
+        num[i][j] = inverse[i][j];
+         //printf("\t%f",inverse[i][j]);
         }
     //printf("\n");
-
-     }
+    }
 }
+  void printmatrix(int m, int n, double** matrix ){
+        for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            printf("%E \t", matrix[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+void printvector(const char* name, int dim, double* vector){
+          printf("%s \n", name);
+          for (int i = 0; i < dim; i++)
+    {
+            printf("%d %E \n",i, vector[i]);
+
+    }
+}
+

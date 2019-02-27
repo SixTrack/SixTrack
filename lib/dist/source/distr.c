@@ -11,6 +11,17 @@ struct distparam* diststart;
 int dim;
 int distn=0;
 
+void canonical2emittance_(double cancord[6], double emittance[3]){
+	double accord[6];
+	calcualteinverse();
+	mtrx_vector_mult_pointer(dim,dim, dist->invtas, cancord, accord);
+
+	emittance[0] = pow(accord[0],2)+pow(accord[1],2);
+	emittance[1] = pow(accord[2],2)+pow(accord[3],2);
+	emittance[2] = pow(accord[4],2)+pow(accord[5],2);
+
+}
+
 void action2canonical_(double acangl[6], double cancord[6]){
 	double acoord[6];
 	acoord[0]= sqrt((dist->emitt->e1)*acangl[0])*cos(acangl[1]);
@@ -20,9 +31,50 @@ void action2canonical_(double acangl[6], double cancord[6]){
 	acoord[4]= sqrt((dist->emitt->e3)*acangl[4])*cos(acangl[5]);
 	acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/1000)*sin(acangl[5]);
 
+
 	//This is the multiplication with the tas matrix 
+    if(dist->longitunalemittance==2) change_e3_to_dp(cancord,acoord, acangl);
 	mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
+
 }
+void change_e3_to_dp(double cancord[6], double acoord[6], double acangl[6]){
+	double tmp;
+	double value, previous, atemp;
+	for(int i =0; i<4; i++){
+		tmp =tmp + acoord[i]*dist->tas[5][i]; 
+	}
+
+	previous =1 ;
+	atemp = acangl[5];
+	value = dist->emitt->dp+tmp;
+	dist->emitt->e3 = 1000*pow(value/dist->tas[5][5],2);
+	mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
+	for(int i=0; i<10000; i++){
+
+		acangl[5] = atemp+(i*0.00001);
+		acoord[4]= sqrt((dist->emitt->e3)*acangl[4])*cos(acangl[5]); 
+		acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/1000)*sin(acangl[5]);
+		//printmatrix(dim, dim, dist->tas);
+		
+		mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
+		printf("cancord, previous %E %E \n", fabs(cancord[4]) , fabs(previous));
+		if(fabs(cancord[4]) > fabs(previous)) {
+			printf("breaking");
+			break;
+
+		} 
+		previous = cancord[4];
+		printf("canocord, previouss %E %E %E \n", cancord[4], (previous), acangl[5]);
+		value = dist->emitt->dp+tmp;
+	
+		mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
+		for(int i =0; i<3; i++){
+			tmp =tmp + acoord[i]*dist->tas[5][i]; 
+		}
+	}
+		dist->emitt->e3 = 1000*pow(value*sin(acangl[5])/dist->tas[5][5],2);
+}
+
 void setdistribution_(int *ndist){
 		dist = diststart + *ndist;
 }
@@ -73,13 +125,15 @@ void addclosedorbit_(double *clo){
 }
 
 void setdeltap_(double *dp){
-	convertdp2emittance(*dp);
+	dist->emitt->dp = *dp;
+	dist->longitunalemittance=2;
 }
 
 //This emittance is oversimplified but gives a good approximation. 
 void convertdp2emittance(double dp){
 	calcualteinverse();
-	dist->emitt->e3 = pow(1000*dp*dist->invtas[5][5],2);
+	//dist->emitt->e3 = pow(1000*dp*dist->invtas[5][5],2);
+	dist->emitt->e3 = 1000*pow(dp/dist->tas[5][5],2);
 
 }
 
@@ -99,6 +153,7 @@ void initializedistribution_(int *numberOfDist, int *dimension){
 		(dist + i)->invtas   = (double**)malloc(dim*sizeof(double*));
 		(dist + i)->closedorbit   = (double*)malloc(dim*sizeof(double));
 		(dist + i)->isDistrcalculated = 0;
+		(dist + i)->longitunalemittance = 0;
 
 		for(int k=0; k<dim;k++){
 			(dist + i)->tas[k] =(double*)malloc(dim*sizeof(double));
@@ -110,6 +165,8 @@ void initializedistribution_(int *numberOfDist, int *dimension){
 		(dist + i)->emitt->e1 = 0; 
 		(dist + i)->emitt->e2 = 0; 
 		(dist + i)->emitt->e3 = 0;
+		(dist + i)->emitt->dp = 0;
+		(dist + i)->emitt->deltas = 0;
 		(dist + i)->coordtype =-1;
 		
 		for(int j=0; j<dim; j++)
@@ -166,6 +223,7 @@ void getcoordvectors_(double *x, double *xp, double *y, double *yp, double *sigm
 	}
 	
 }
+
 void dist2sixcoord_(){
 	int counter = 0;
 	double tc[6];
@@ -286,7 +344,7 @@ void action2sixinternal_(double tc[6], double *results){
 		canonical2six_(cancord, &dist->momentum, &dist->mass, results);
 	}
 }
-
+/*Checks that the necessary parameters have been set*/
 int checkdist(){
 	double eps =1e-16;
 	if(dist->momentum < eps && dist->momentum < eps ){

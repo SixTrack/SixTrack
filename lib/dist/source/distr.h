@@ -10,6 +10,7 @@ struct distparam
 	int coordtype; // This tells which type of coordinates the input is given.  // 1-Normalized
 	double **distout;
 	int isDistrcalculated;
+	int longitunalemittance; // 0 - no longitudnal, 1 - e3, 2 - dp, 3 - deltas
 };
 
 struct parameters
@@ -23,6 +24,7 @@ struct parameters
 
 struct emittances{
 	double e1, e2, e3;
+	double dp, deltas;
 };
 
 
@@ -43,4 +45,6 @@ void convertdp2emittance(double dp);
 void setemittance3_(double *e3);
 void createTasWithNoCoupling(double betax, double alfax, double betay, double alfay, double tas[6][6]);
 void action2sixinternal_(double tc[6], double results[6]);
+void calcualteinverse();
 int checkdist();
+void change_e3_to_dp(double cancord[6],double acoord[6], double acangl[6]);
