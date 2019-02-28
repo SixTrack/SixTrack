@@ -9,6 +9,7 @@ module checkpoint_restart
   real,                public, save :: crtime3
   real(kind=fPrec),    public, save :: cre0
   real(kind=fPrec),    public, save :: crbetrel
+  real(kind=fPrec),    public, save :: crbrho
 
   character(len=1024), public, save :: arecord
   character(len=20),   public, save :: stxt
@@ -271,7 +272,7 @@ subroutine crcheck
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 2"
     flush(93)
     read(95,err=100,end=100) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec, &
-         crsythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel
+         crsythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel,crbrho
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 3"
     flush(93)
@@ -415,7 +416,7 @@ subroutine crcheck
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 2"
     flush(93)
     read(96,err=101,end=101,iostat=ierro) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec,&
-      crsythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel
+      crsythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel,crbrho
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 3"
     flush(93)
     read(96,err=101,end=101,iostat=ierro) &
@@ -989,7 +990,8 @@ subroutine crpoint
       napxo,                        &
       napx,                         &
       e0,                           &
-      betrel
+      betrel,                       &
+      brho
     write(crUnit,err=100,iostat=ierro) &
       (binrecs(j),j=1,(napxo+1)/2), &
       (numxv(j),j=1,napxo),         &
@@ -1211,6 +1213,7 @@ subroutine crstart
   e0=cre0
   e0f=sqrt(e0**2-nucm0**2)
   betrel=crbetrel
+  brho=crbrho
 
   write(93,"(a)") "SIXTRACR> CRSTART doing binrecs"
   endfile(93,iostat=ierro)

@@ -2305,7 +2305,9 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
       ! Modify the reference particle
       call part_updateRefEnergy(newValue)
       ! Modify energy-dependent element parameters
-      call eLensThetas
+      do ii=1,melens
+        call eLensTheta(ii)
+      end do
     end if
     ldoubleElement = .true.
   end if

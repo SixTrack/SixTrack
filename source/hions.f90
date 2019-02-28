@@ -20,7 +20,6 @@ module mod_hions
   ! Rest mass of the reference ion species
   real(kind=fPrec), save :: nucm0 = pmap
   real(kind=fPrec), save :: nucmda
-  real(kind=fPrec), save :: brhono
 
   ! ien0,ien1: ion energy entering/leaving the collimator
   real(kind=fPrec), save :: ien0, ien1
@@ -55,7 +54,6 @@ module mod_hions
 
 #ifdef CR
   real(kind=fPrec),                 save :: nucmda_cr
-  real(kind=fPrec),                 save :: brhono_cr
   real(kind=fPrec),                 save :: ien0_cr
   real(kind=fPrec),                 save :: ien1_cr
   integer(kind=int16),              save :: nnuc0_cr
@@ -168,7 +166,7 @@ subroutine hions_crpoint(fileUnit, writeErr, iErro)
 
   integer i
 
-  write(fileUnit,err=10,iostat=iErro) nucmda,brhono,ien0,ien1,nnuc0,nnuc1
+  write(fileUnit,err=10,iostat=iErro) nucmda,ien0,ien1,nnuc0,nnuc1
   write(fileUnit,err=10,iostat=iErro) (nucm(i),     i=1, npart)
   write(fileUnit,err=10,iostat=iErro) (moidpsv(i),  i=1, npart)
   write(fileUnit,err=10,iostat=iErro) (omoidpsv(i), i=1, npart)
@@ -205,7 +203,7 @@ subroutine hions_crcheck_readdata(fileUnit, readErr)
   call alloc(nzz_cr,     npart,zz0,  "nzz_cr")
   call alloc(pids_cr,    npart,0,    "pids_cr")
 
-  read(fileunit,err=10,end=10) nucmda_cr,brhono_cr,ien0_cr,ien1_cr,nnuc0_cr,nnuc1_cr
+  read(fileunit,err=10,end=10) nucmda_cr,ien0_cr,ien1_cr,nnuc0_cr,nnuc1_cr
   read(fileunit,err=10,end=10) (nucm_cr(i),     i=1, npart)
   read(fileunit,err=10,end=10) (moidpsv_cr(i),  i=1, npart)
   read(fileunit,err=10,end=10) (omoidpsv_cr(i), i=1, npart)
@@ -229,7 +227,6 @@ subroutine hions_crstart
   implicit none
 
   nucmda = nucmda_cr
-  brhono = brhono_cr
   ien0   = ien0_cr
   ien1   = ien1_cr
   nnuc0  = nnuc0_cr

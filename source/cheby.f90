@@ -452,7 +452,7 @@ subroutine cheby_kick(i,ix,n)
   ! last modified: 26-02-2019
   ! apply kick of Chebyshev lenses
 
-  use mod_common, only : e0, betrel, napx
+  use mod_common, only : e0, betrel, napx, brho
   use mod_hions, only : zz0
   use mod_common_main
   use mathlib_bouncer
@@ -464,7 +464,7 @@ subroutine cheby_kick(i,ix,n)
   integer, intent(in) :: n
   
   real(kind=fPrec) xx, yy, rr, frr, dxp, dyp
-  real(kind=fPrec) theta, radio, angle_rad, brho
+  real(kind=fPrec) theta, radio, angle_rad
   integer          j
   logical          lrotate
 
@@ -472,9 +472,6 @@ subroutine cheby_kick(i,ix,n)
 
   ! rotation angle
   lrotate=cheby_angle(icheby(ix)).ne.zero
-
-  ! Brho of beam
-  brho = (e0/(clight*c1m6))/zz0
 
   do j=1,napx
 
@@ -494,7 +491,7 @@ subroutine cheby_kick(i,ix,n)
       end if
       
       ! apply kick
-      call cheby_getKick( xx, yy, dxp, dyp, cheby_itable(icheby(ix)), brho )
+      call cheby_getKick( xx, yy, dxp, dyp, cheby_itable(icheby(ix)), brho, betrel )
       ! take into account scaling factor
       dxp=dxp *cheby_scalingFact(icheby(ix))
       dyp=dyp *cheby_scalingFact(icheby(ix))
@@ -517,7 +514,7 @@ subroutine cheby_kick(i,ix,n)
 end subroutine cheby_kick
 
 
-subroutine cheby_getKick( xx, yy, dxp, dyp, iTable, brho )
+subroutine cheby_getKick( xx, yy, dxp, dyp, iTable, brho, betrel )
 
   ! A. Mereghetti (CERN, BE-ABP-HSS)
   ! last modified: 26-02-2019
@@ -526,10 +523,9 @@ subroutine cheby_getKick( xx, yy, dxp, dyp, iTable, brho )
   use mathlib_bouncer
   use physical_constants, only : clight
   use numerical_constants, only : zero, one, two
-  use mod_common, only : betrel
 
   ! interface vars
-  real(kind=fPrec) :: xx, yy, dxp, dyp, brho
+  real(kind=fPrec) :: xx, yy, dxp, dyp, brho, betrel
   integer          :: iTable
 
   ! temp vars

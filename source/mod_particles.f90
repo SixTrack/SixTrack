@@ -69,7 +69,8 @@ subroutine part_updateRefEnergy(refEnergy)
   use mod_hions
   use mod_common
   use mod_common_main
-  use numerical_constants
+  use numerical_constants, only : one, c1m6
+  use physical_constants, only: clight
 
   implicit none
 
@@ -88,7 +89,8 @@ subroutine part_updateRefEnergy(refEnergy)
   e0f    = sqrt(e0**2 - nucm0**2)
   gammar = nucm0/e0
   betrel = sqrt((one+gammar)*(one-gammar))
-
+  brho   = (e0f/(clight*c1m6))/zz0
+  
   ! Also update sigmv with the new beta0 = e0f/e0
   sigmv(1:napx) = ((e0f*e0o)/(e0fo*e0))*sigmv(1:napx)
 

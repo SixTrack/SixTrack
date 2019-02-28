@@ -19,7 +19,7 @@ for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,7),(2,3,offsetx,offsety,
     fff=np.sqrt((helin[:,4]-helout[:,4])**2+(helin[:,6]-helout[:,6])**2)
     plt.plot(rrin/sig,fff,'.',label=r'offx=%2.3f sigma,offy=%2.3f sigma'%(offx/sig,offy/sig))
     plt.plot(rrin/sig,np.ones(len(rrin))*theta_max,'k-',label=r'$\theta_{R_2}$')
-    plt.plot([R2f,R2f],[0,theta_max*1.1],'g-',label=r'$n_{\mathrm{max}}$')
+    plt.plot([R2f,R2f],[0,theta_max*1.1],'g-',label=r'$R_2$')
     plt.plot([peakT,peakT],[0,max(fff)*1.05],'r-',label=r'$n_{\mathrm{peak}}$')
     plt.xlabel(r'$n_{\sigma}=\sqrt{(x-x_{\mathrm{off}})^2+(y-y_{\mathrm{off}})^2)}$    [$\sigma$]')
     plt.ylabel(r'$\theta(r)=\sqrt{xp^2+yp^2}$ [mrad]')
@@ -27,6 +27,6 @@ for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,7),(2,3,offsetx,offsety,
     plt.tight_layout()
     plt.grid()
   else:
-    print 'x or y has been changed in %s - elens should only change xp,yp'%f
+    print 'x or y has been changed in %s / %s - elens should only change xp,yp'%('HEL_DUMP_%s'%fnin,'HEL_DUMP_%s'%fnout)
 
 plt.show()
