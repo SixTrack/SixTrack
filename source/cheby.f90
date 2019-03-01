@@ -27,6 +27,15 @@ module cheby
   real(kind=fPrec), save :: cheby_offset_y(ncheby)=zero    ! ver. offset [mm] (optional)
   real(kind=fPrec), save :: cheby_I(ncheby)=-one           ! actual powering of lens [A] (optional)
   real(kind=fPrec), save :: cheby_scalingFact(ncheby)=one  ! scaling factor [] (computed internally)
+  ! show map
+  logical,          save :: cheby_lMap(ncheby)=.false.     ! requested echo of map?
+  character(len=mFNameLen), save:: cheby_mapFileName(ncheby) = " "! file names
+  real(kind=fPrec), save :: cheby_mapXmin(ncheby)=-10.0e+00_fPrec ! [mm]
+  real(kind=fPrec), save :: cheby_mapXmax(ncheby)= 10.0e+00_fPrec ! [mm]
+  integer,          save :: cheby_mapNx(ncheby)=100        ! number of intervals
+  real(kind=fPrec), save :: cheby_mapYmin(ncheby)=-10.0e+00_fPrec ! [mm]
+  real(kind=fPrec), save :: cheby_mapYmax(ncheby)= 10.0e+00_fPrec ! [mm]
+  integer,          save :: cheby_mapNy(ncheby)=100        ! number of intervals
 
   ! tables with chebyshev coefficients
   integer, parameter     :: cheby_max_order=30             ! max order of chebyshev polynomials currently supported
@@ -79,98 +88,167 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
     return
   end if
   if(nSplit == 0) return
-  
-  if(nSplit < 2) then
-    write(lout,"(a,i0)") "CHEBY> ERROR Expected at least 2 input parameters, got ",nSplit
-    iErr = .true.
-    return
-  end if
 
-  iElem = -1
-  tmpch = trim(lnSplit(1))
-  do j=1,nele
-    if(bez(j) == tmpch) then
-      iElem = j
-      exit
-    end if
-  end do
-  if(iElem == -1) then
-    write(lout,"(a)") "CHEBY> ERROR Element '"//trim(lnSplit(1))//"' not found in single element list."
-    iErr = .true.
-    return
-  end if
+  select case(lnSplit(1))
 
-  if(kz(iElem) /= cheby_kz) then
-    write(lout,"(3(a,i0))") "CHEBY> ERROR Element type is kz(",iElem,") = ",kz(iElem)," != ",cheby_kz
-    iErr = .true.
-    return
-  end if
-  if(el(iElem) /= zero .or. ek(iElem) /= zero .or. ed(iElem) /= zero) then
-    write(lout,"(a)")       "CHEBY> ERROR Length el(iElem) (Chebyshev lens is treated as thin element), "//&
-      "and first and second field have to be zero:"
-    write(lout,"(2(a,i0),a)") "CHEBY>       el(",iElem,") = ",el(iElem)," != 0"
-    write(lout,"(2(a,i0),a)") "CHEBY>       ed(",iElem,") = ",ed(iElem)," != 0"
-    write(lout,"(2(a,i0),a)") "CHEBY>       ek(",iElem,") = ",ek(iElem)," != 0"
-    iErr = .true.
-    return
-  end if
-
-  mcheby = mcheby+1
-  if(mcheby > ncheby) then
-    write(lout,"(2(a,i0))") "CHEBY> ERROR Too many Chebyshev lenses: ",mcheby,". Max is ",ncheby
-    iErr = .true.
-    return
-  end if
-  if(icheby(iElem) /= 0) then
-    write(lout,"(a)") "CHEBY> ERROR The element '"//trim(bez(iElem))//"' was defined twice."
-    iErr = .true.
-    return
-  end if
-  icheby(iElem) = mcheby
-
-  ! File with Chebyshev polynomials
-  tmpch = trim(lnSplit(2))
-  ! Check if profile has already been requested:
-  chIdx = -1
-  do tmpi1=1,mcheby_tables
-    if(tmpch == cheby_filename(tmpi1)) then
-      cheby_itable(icheby(iElem)) = tmpi1
-      chIdx = tmpi1
-      exit
-    end if
-  end do
-  if(chIdx == -1) then
-    ! Unsuccessful search
-    mcheby_tables = mcheby_tables+1
-    if(mcheby_tables > ncheby_tables) then
-      write(lout,"(2(a,i0))") "CHEBY> ERROR Too many files with Chebyshev polynomials: ",mcheby_tables,&
-        ". Max is ",ncheby_tables
+  case("SHOW")
+    if(nSplit < 3) then
+      write(lout,"(a,i0)") "CHEBY> ERROR Expected at least 3 input parameters, got ",nSplit
       iErr = .true.
       return
     end if
-    cheby_itable(icheby(iElem)) = mcheby_tables
-    cheby_filename(tmpi1) = tmpch
-  end if
+   
+    iElem = -1
+    tmpch = trim(lnSplit(2))
+    do j=1,nele
+      if(bez(j)==tmpch.and.icheby(j)/=0) then
+        iElem = j
+        exit
+      end if
+    end do
+    if(iElem == -1) then
+      write(lout,"(a)") "CHEBY> ERROR Element '"//trim(lnSplit(1))//"' not a Chebyshev lens."
+      iErr = .true.
+      return
+    end if
+    if (cheby_mapFileName(icheby(iElem))/=" " .or. cheby_lMap(icheby(iElem))) then
+      write(lout,"(a)") "CHEBY> ERROR Map already requested for Chebyshev lens '"//trim(lnSplit(1))//"'."
+      iErr = .true.
+      return
+    end if
+    cheby_mapFileName(icheby(iElem)) = trim(lnSplit(3))
+    do tmpi1=1,mcheby
+      if (tmpi1==icheby(iElem)) continue ! do not compare icheby(iElem) against itself
+      if (cheby_mapFileName(tmpi1)==cheby_mapFileName(icheby(iElem))) then
+        write(lout,"(a)") "CHEBY> ERROR File '"//trim(cheby_mapFileName(icheby(iElem)))//"' already in use."
+        iErr = .true.
+        return
+      end if
+    end do
+    if (nSplit > 3 ) then
+      if (nSplit<9) then
+        write(lout,"(a,i0)") "CHEBY> ERROR Expected 8 input parameters, got ",nSplit
+        write(lout,"(a)")    "CHEBY> format of SHOW line:"
+        write(lout,"(a)")    "SHOW name filename xmin[mm] xmax[mm] nx ymin[mm] ymax[mm] ny"
+        iErr = .true.
+        return
+      endif
+      call chr_cast(lnSplit(4),cheby_mapXmin(icheby(iElem)),iErr)
+      call chr_cast(lnSplit(5),cheby_mapXmax(icheby(iElem)),iErr)
+      call chr_cast(lnSplit(6),cheby_mapNx  (icheby(iElem)),iErr)
+      call chr_cast(lnSplit(7),cheby_mapYmin(icheby(iElem)),iErr)
+      call chr_cast(lnSplit(8),cheby_mapYmax(icheby(iElem)),iErr)
+      call chr_cast(lnSplit(9),cheby_mapNy  (icheby(iElem)),iErr)
+    end if
+    cheby_lMap(icheby(iElem))=.true.
+    
+    if(st_debug) then
+      write(lout,"(a)") "CHEBY> dump of potential map of Chebyshev lens"
+      call sixin_echoVal("name",     bez(iElem),                                          "CHEBY",iLine)
+      call sixin_echoVal("filename", trim(cheby_mapFileName(cheby_itable(icheby(iElem)))),"CHEBY",iLine)
+      call sixin_echoVal("xmin [mm]",cheby_mapXmin(icheby(iElem)),                        "CHEBY",iLine)
+      call sixin_echoVal("xmax [mm]",cheby_mapXmax(icheby(iElem)),                        "CHEBY",iLine)
+      call sixin_echoVal("Nx     []",cheby_mapNx  (icheby(iElem)),                        "CHEBY",iLine)
+      call sixin_echoVal("ymin [mm]",cheby_mapYmin(icheby(iElem)),                        "CHEBY",iLine)
+      call sixin_echoVal("ymin [mm]",cheby_mapYmax(icheby(iElem)),                        "CHEBY",iLine)
+      call sixin_echoVal("Ny     []",cheby_mapNy  (icheby(iElem)),                        "CHEBY",iLine)
+    end if
+     
+  case default
+  
+    if(nSplit < 2) then
+      write(lout,"(a,i0)") "CHEBY> ERROR Expected at least 2 input parameters, got ",nSplit
+      iErr = .true.
+      return
+    end if
+   
+    iElem = -1
+    tmpch = trim(lnSplit(1))
+    do j=1,nele
+      if(bez(j) == tmpch) then
+        iElem = j
+        exit
+      end if
+    end do
+    if(iElem == -1) then
+      write(lout,"(a)") "CHEBY> ERROR Element '"//trim(lnSplit(1))//"' not found in single element list."
+      iErr = .true.
+      return
+    end if
+  
+    if(kz(iElem) /= cheby_kz) then
+      write(lout,"(3(a,i0))") "CHEBY> ERROR Element type is kz(",iElem,") = ",kz(iElem)," != ",cheby_kz
+      iErr = .true.
+      return
+    end if
+    if(el(iElem) /= zero .or. ek(iElem) /= zero .or. ed(iElem) /= zero) then
+      write(lout,"(a)")       "CHEBY> ERROR Length el(iElem) (Chebyshev lens is treated as thin element), "//&
+        "and first and second field have to be zero:"
+      write(lout,"(2(a,i0),a)") "CHEBY>       el(",iElem,") = ",el(iElem)," != 0"
+      write(lout,"(2(a,i0),a)") "CHEBY>       ed(",iElem,") = ",ed(iElem)," != 0"
+      write(lout,"(2(a,i0),a)") "CHEBY>       ek(",iElem,") = ",ek(iElem)," != 0"
+      iErr = .true.
+      return
+    end if
+  
+    mcheby = mcheby+1
+    if(mcheby > ncheby) then
+      write(lout,"(2(a,i0))") "CHEBY> ERROR Too many Chebyshev lenses: ",mcheby,". Max is ",ncheby
+      iErr = .true.
+      return
+    end if
+    if(icheby(iElem) /= 0) then
+      write(lout,"(a)") "CHEBY> ERROR The element '"//trim(bez(iElem))//"' was defined twice."
+      iErr = .true.
+      return
+    end if
+    icheby(iElem) = mcheby
+  
+    ! File with Chebyshev polynomials
+    tmpch = trim(lnSplit(2))
+    ! Check if profile has already been requested:
+    chIdx = -1
+    do tmpi1=1,mcheby_tables
+      if(tmpch == cheby_filename(tmpi1)) then
+        cheby_itable(icheby(iElem)) = tmpi1
+        chIdx = tmpi1
+        exit
+      end if
+    end do
+    if(chIdx == -1) then
+      ! Unsuccessful search
+      mcheby_tables = mcheby_tables+1
+      if(mcheby_tables > ncheby_tables) then
+        write(lout,"(2(a,i0))") "CHEBY> ERROR Too many files with Chebyshev polynomials: ",mcheby_tables,&
+          ". Max is ",ncheby_tables
+        iErr = .true.
+        return
+      end if
+      cheby_itable(icheby(iElem)) = mcheby_tables
+      cheby_filename(tmpi1) = tmpch
+    end if
+  
+    ! Additional geometrical infos:
+    if(nSplit >= 3) call chr_cast(lnSplit(3),cheby_r2(icheby(iElem)),iErr)
+    if(nSplit >= 4) call chr_cast(lnSplit(4),cheby_r1(icheby(iElem)),iErr)
+    if(nSplit >= 5) call chr_cast(lnSplit(5),cheby_angle(icheby(iElem)),iErr)
+    if(nSplit >= 6) call chr_cast(lnSplit(6),cheby_offset_x(icheby(iElem)),iErr)
+    if(nSplit >= 7) call chr_cast(lnSplit(7),cheby_offset_y(icheby(iElem)),iErr)
+    if(nSplit >= 8) call chr_cast(lnSplit(8),cheby_I(icheby(iElem)),iErr)
+  
+    if(st_debug) then
+      call sixin_echoVal("name",    bez(iElem),                                         "CHEBY",iLine)
+      call sixin_echoVal("filename",trim(cheby_filename(cheby_itable(icheby(iElem)))),  "CHEBY",iLine)
+      if(nSplit >= 3) call sixin_echoVal("r2 [mm]"      , cheby_r2(icheby(iElem)),      "CHEBY",iLine)
+      if(nSplit >= 4) call sixin_echoVal("r1 [mm]"      , cheby_r1(icheby(iElem)),      "CHEBY",iLine)
+      if(nSplit >= 5) call sixin_echoVal("tilt [deg]"   , cheby_angle(icheby(iElem)),   "CHEBY",iLine)
+      if(nSplit >= 6) call sixin_echoVal("offset_x [mm]", cheby_offset_x(icheby(iElem)),"CHEBY",iLine)
+      if(nSplit >= 7) call sixin_echoVal("offset_y [mm]", cheby_offset_y(icheby(iElem)),"CHEBY",iLine)
+      if(nSplit >= 8) call sixin_echoVal("I [A]"        , cheby_I(icheby(iElem)),       "CHEBY",iLine)
+    end if
 
-  ! Additional geometrical infos:
-  if(nSplit >= 3) call chr_cast(lnSplit(3),cheby_r2(icheby(iElem)),iErr)
-  if(nSplit >= 4) call chr_cast(lnSplit(4),cheby_r1(icheby(iElem)),iErr)
-  if(nSplit >= 5) call chr_cast(lnSplit(5),cheby_angle(icheby(iElem)),iErr)
-  if(nSplit >= 6) call chr_cast(lnSplit(6),cheby_offset_x(icheby(iElem)),iErr)
-  if(nSplit >= 7) call chr_cast(lnSplit(7),cheby_offset_y(icheby(iElem)),iErr)
-  if(nSplit >= 8) call chr_cast(lnSplit(8),cheby_I(icheby(iElem)),iErr)
-
-  if(st_debug) then
-    call sixin_echoVal("name",    bez(iElem),                                         "CHEBY",iLine)
-    call sixin_echoVal("filename",trim(cheby_filename(cheby_itable(icheby(iElem)))),  "CHEBY",iLine)
-    if(nSplit >= 3) call sixin_echoVal("r2 [mm]"      , cheby_r2(icheby(iElem)),      "CHEBY",iLine)
-    if(nSplit >= 4) call sixin_echoVal("r1 [mm]"      , cheby_r1(icheby(iElem)),      "CHEBY",iLine)
-    if(nSplit >= 5) call sixin_echoVal("tilt [deg]"   , cheby_angle(icheby(iElem)),   "CHEBY",iLine)
-    if(nSplit >= 6) call sixin_echoVal("offset_x [mm]", cheby_offset_x(icheby(iElem)),"CHEBY",iLine)
-    if(nSplit >= 7) call sixin_echoVal("offset_y [mm]", cheby_offset_y(icheby(iElem)),"CHEBY",iLine)
-    if(nSplit >= 8) call sixin_echoVal("I [A]"        , cheby_I(icheby(iElem)),       "CHEBY",iLine)
-  end if
-
+  end select
+    
 end subroutine cheby_parseInputLine
 
 
@@ -223,6 +301,14 @@ subroutine cheby_postInput
 
   ! finalise setting-up of chebyshev lenses
   do jj=1,mcheby
+     
+    ! find name, to get ready for error messages
+    do kk=1,nele
+      if(kz(kk) == cheby_kz .and. icheby(kk) == jj ) then
+        exit
+      end if
+    end do
+   
     ! some checks and further post-processing of declared lines
     if (cheby_r2(jj)<=zero) cheby_r2(jj)=cheby_refR(cheby_itable(jj))
     if (cheby_r1(jj)<=zero) cheby_r1(jj)=zero
@@ -233,36 +319,85 @@ subroutine cheby_postInput
       cheby_r1(jj)=tmpFlt
     end if
     if (cheby_r2(jj)>cheby_refR(cheby_itable(jj))) then
-      write(lout,"(a)") "CHEBY> ERROR R2 cannot be larger than domain of Chebyshev polynomials!"
-      write(lout,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       R2 [mm]: ",cheby_r2(jj), &
-           " - reference radius [mm]:",cheby_refR(cheby_itable(jj))
-      call prror(-1)
+      write(lout,"(a)")      "CHEBY> ERROR R2 cannot be larger than domain of Chebyshev polynomials!"
+      goto 10 
     end if
     if (cheby_I (jj)<=zero) then
       cheby_I (jj)=cheby_refI(cheby_itable(jj))
     else
       cheby_scalingFact(jj)=cheby_scalingFact(jj)*((cheby_I(jj))/(cheby_refI(cheby_itable(jj))))
     end if
+   
+    ! checks on maps
+    if ( cheby_lMap(jj) ) then
+      if (cheby_mapXmax(jj)<cheby_mapXmin(jj)) then
+        ! swap
+        tmpFlt=cheby_mapXmax(jj)
+        cheby_mapXmax(jj)=cheby_mapXmin(jj)
+        cheby_mapXmin(jj)=tmpFlt
+      end if
+      if (cheby_mapXmax(jj)==cheby_mapXmin(jj)) then
+        write(lout,"(a)")                     "CHEBY> ERROR X-extremes for map coincide!"
+        write(lout,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       xmin [mm]: ",cheby_mapXmin(jj), &
+                                                        " - xmax [mm]: ",cheby_mapXmax(jj)
+        goto 10 
+      end if
+      if (cheby_mapNx(jj)<1) then
+        write(lout,"(a)")    "CHEBY> ERROR wrong X-stepping for map!"
+        write(lout,"(a,i0)") "CHEBY>       must be >0 - got: ",cheby_mapNx(jj)
+        goto 10 
+      end if
+      if (cheby_mapYmax(jj)<cheby_mapYmin(jj)) then
+        ! swap
+        tmpFlt=cheby_mapYmax(jj)
+        cheby_mapYmax(jj)=cheby_mapYmin(jj)
+        cheby_mapYmin(jj)=tmpFlt
+      end if
+      if (cheby_mapYmax(jj)==cheby_mapYmin(jj)) then
+        write(lout,"(a)")                     "CHEBY> ERROR Y-extremes for map coincide!"
+        write(lout,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       ymin [mm]: ",cheby_mapYmin(jj), &
+                                                        " - ymax [mm]: ",cheby_mapYmax(jj)
+        goto 10 
+      end if
+      if (cheby_mapNy(jj)<1) then
+        write(lout,"(a)")    "CHEBY> ERROR wrong Y-stepping for map!"
+        write(lout,"(a,i0)") "CHEBY>       must be >0 - got: ",cheby_mapNy(jj)
+        goto 10 
+      end if
+    end if
+   
     if(st_quiet < 2) then
-      ! find name
-      do kk=1,nele
-        if(kz(kk) == cheby_kz .and. icheby(kk) == jj ) then
-          exit
-        end if
-      end do
       write(lout,"(a)") ''
-      write(lout,"(a,i0,a)") ' status of chebyshev lens #',jj," - name: '"//trim(bez(kk))//"'"
-      write(lout,"(a)")          " - filename         : '"//trim(cheby_filename(cheby_itable(jj)))//"'"
-      write(lout,"(a,1pe22.15)") " - R2           [mm]: ",cheby_r2(jj)
-      write(lout,"(a,1pe22.15)") " - R1           [mm]: ",cheby_r1(jj)
-      write(lout,"(a,1pe22.15)") " - tilt angle  [deg]: ",cheby_angle(jj)
-      write(lout,"(a,1pe22.15)") " - hor offset   [mm]: ",cheby_offset_x(jj)
-      write(lout,"(a,1pe22.15)") " - ver offset   [mm]: ",cheby_offset_y(jj)
-      write(lout,"(a,1pe22.15)") " - lens powering [A]: ",cheby_I(jj)
-      write(lout,"(a,1pe22.15)") " - scaling factor []: ",cheby_scalingFact(jj)
+      write(lout,"(a,i0,a)") 'CHEBY> status of chebyshev lens #',jj," - name: '"//trim(bez(kk))//"'"
+      write(lout,"(a)")          "CHEBY> - filename         : '"//trim(cheby_filename(cheby_itable(jj)))//"'"
+      write(lout,"(a,1pe22.15)") "CHEBY> - R2           [mm]: ",cheby_r2(jj)
+      write(lout,"(a,1pe22.15)") "CHEBY> - R1           [mm]: ",cheby_r1(jj)
+      write(lout,"(a,1pe22.15)") "CHEBY> - tilt angle  [deg]: ",cheby_angle(jj)
+      write(lout,"(a,1pe22.15)") "CHEBY> - hor offset   [mm]: ",cheby_offset_x(jj)
+      write(lout,"(a,1pe22.15)") "CHEBY> - ver offset   [mm]: ",cheby_offset_y(jj)
+      write(lout,"(a,1pe22.15)") "CHEBY> - lens powering [A]: ",cheby_I(jj)
+      write(lout,"(a,1pe22.15)") "CHEBY> - scaling factor []: ",cheby_scalingFact(jj)
+      if ( cheby_lMap(jj) ) then
+        write(lout,"(a)") 'CHEBY> requested dump of potential map'
+        write(lout,"(a,a)")        "CHEBY> - map filename : ",cheby_mapFileName(jj)
+        write(lout,"(a,1pe22.15)") "CHEBY> - xmin     [mm]: ",cheby_mapXmin(jj)
+        write(lout,"(a,1pe22.15)") "CHEBY> - xmax     [mm]: ",cheby_mapXmax(jj)
+        write(lout,"(a,1pe22.15)") "CHEBY> - Nx         []: ",cheby_mapNx  (jj)
+        write(lout,"(a,1pe22.15)") "CHEBY> - ymin     [mm]: ",cheby_mapYmin(jj)
+        write(lout,"(a,1pe22.15)") "CHEBY> - ymin     [mm]: ",cheby_mapYmax(jj)
+        write(lout,"(a,1pe22.15)") "CHEBY> - Ny         []: ",cheby_mapNy  (jj)
+        call cheby_potentialMap(jj,kk)
+      end if
     end if
   end do
+  return
 
+10 continue
+   write(lout,"(a,i0,a)") "CHEBY>       concerned lens #", jj," - name: '"//trim(bez(kk))//"'"
+   write(lout,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       R2 [mm]: ",cheby_r2(jj), &
+           " - reference radius [mm]:",cheby_refR(cheby_itable(jj))
+   call prror(-1)
+   
 end subroutine cheby_postInput
 
 
@@ -438,20 +573,20 @@ subroutine cheby_kick(i,ix,n)
   integer, intent(in) :: ix
   integer, intent(in) :: n
   
-  real(kind=fPrec) xx, yy, rr, frr, dxp, dyp
+  real(kind=fPrec) xx, yy, rr, dxp, dyp
   real(kind=fPrec) theta, radio, angle_rad
-  integer          j
+  integer          jj
   logical          lrotate
 
   ! rotation angle
   lrotate = cheby_angle(icheby(ix)).ne.zero
   angle_rad = (cheby_angle(icheby(ix))/c180e0)*pi
 
-  do j=1,napx
+  do jj=1,napx
 
     ! apply offset
-    xx=xv1(j)-cheby_offset_x(icheby(ix))
-    yy=xv2(j)-cheby_offset_y(icheby(ix))
+    xx=xv1(jj)-cheby_offset_x(icheby(ix))
+    yy=xv2(jj)-cheby_offset_y(icheby(ix))
 
     ! check that particle is within the domain of chebyshev polynomials
     rr=sqrt(xx**2+yy**2)
@@ -476,16 +611,102 @@ subroutine cheby_kick(i,ix,n)
      
       ! take into account scaling factor, Brho of beam and its relativistic beta,
       !    and magnetic rigidity and relativistic beta of particle being tracked
-      dxp=((dxp*cheby_scalingFact(icheby(ix)))/(brho*clight*betrel)*moidpsv(j))*rvv(j)
-      dyp=((dyp*cheby_scalingFact(icheby(ix)))/(brho*clight*betrel)*moidpsv(j))*rvv(j)
+      dxp=((dxp*cheby_scalingFact(icheby(ix)))/(brho*clight*betrel)*moidpsv(jj))*rvv(jj)
+      dyp=((dyp*cheby_scalingFact(icheby(ix)))/(brho*clight*betrel)*moidpsv(jj))*rvv(jj)
       
       ! apply kicks
-      yv1(j)=yv1(j)+dxp
-      yv2(j)=yv2(j)+dyp
+      yv1(jj)=yv1(jj)+dxp
+      yv2(jj)=yv2(jj)+dyp
     end if
   end do
 
 end subroutine cheby_kick
+
+
+subroutine cheby_potentialMap(iTable,ix)
+
+  ! A. Mereghetti (CERN, BE-ABP-HSS)
+  ! last modified: 01-03-2019
+  ! dump map of potential
+
+  use mod_common, only : bez
+  use mod_common_main
+  use mathlib_bouncer
+  use numerical_constants, only : zero, c180e0, pi
+  use mod_units
+
+  integer, intent(in) :: iTable
+  integer, intent(in) :: ix
+  
+  real(kind=fPrec) xx, yy, rr, zz, dx, dy
+  real(kind=fPrec) theta, radio, angle_rad
+  integer          ii, jj, inside, fUnit
+  logical          lrotate, err
+
+  write(lout,"(a)") "CHEBY> Dumping potential map...'"
+  call f_requestUnit(cheby_mapFileName(iTable),fUnit)
+  call f_open(unit=fUnit,file=cheby_mapFileName(iTable),mode='w',err=err,formatted=.true.,status="new")
+  if(err) then
+    write(lout,"(a)") "CHEBY> ERROR Failed to open file."
+    call prror(-1)
+  end if
+ 
+  ! rotation angle
+  lrotate = cheby_angle(iTable).ne.zero
+  angle_rad = (cheby_angle(iTable)/c180e0)*pi
+  dx=(cheby_mapXmax(iTable)-cheby_mapXmin(iTable))/real(cheby_mapNx(iTable),fPrec)
+  dy=(cheby_mapYmax(iTable)-cheby_mapYmin(iTable))/real(cheby_mapNy(iTable),fPrec)
+
+  ! write header
+  write(fUnit,'("# ",a,i0)')       'name of chebyshev lens: "'//trim(bez(ix))//'" - id: ',iTable
+  write(fUnit,"('# ',a)")          "filename         : '"//trim(cheby_filename(iTable))//"'"
+  write(fUnit,"('# ',a,1pe22.15)") "R2           [mm]: ",cheby_r2(iTable)
+  write(fUnit,"('# ',a,1pe22.15)") "R1           [mm]: ",cheby_r1(iTable)
+  write(fUnit,"('# ',a,1pe22.15)") "tilt angle  [deg]: ",cheby_angle(iTable)
+  write(fUnit,"('# ',a,1pe22.15)") "hor offset   [mm]: ",cheby_offset_x(iTable)
+  write(fUnit,"('# ',a,1pe22.15)") "ver offset   [mm]: ",cheby_offset_y(iTable)
+  write(fUnit,"('# ',a,1pe22.15)") "lens powering [A]: ",cheby_I(iTable)
+  write(fUnit,"('# ',a,1pe22.15)") "scaling factor []: ",cheby_scalingFact(iTable)
+  write(fUnit,"('# ',a,a)")        "map filename : ",cheby_mapFileName(iTable)
+  write(fUnit,"('# ',a,1pe22.15)") "xmin [mm]: ",cheby_mapXmin(iTable)
+  write(fUnit,"('# ',a,1pe22.15)") "xmax [mm]: ",cheby_mapXmax(iTable)
+  write(fUnit,"('# ',a,1pe22.15)") "Nx     []: ",cheby_mapNx  (iTable)
+  write(fUnit,"('# ',a,1pe22.15)") "ymin [mm]: ",cheby_mapYmin(iTable)
+  write(fUnit,"('# ',a,1pe22.15)") "ymin [mm]: ",cheby_mapYmax(iTable)
+  write(fUnit,"('# ',a,1pe22.15)") "Ny     []: ",cheby_mapNy  (iTable)
+  write(fUnit,"('# ',a)") "x [mm], y [mm], V [V], inside [0:False,1:True]"
+  
+  ! get map
+  do jj=0,cheby_mapNy(iTable)
+    yy=cheby_mapYmin(iTable)+jj*dy-cheby_offset_y(iTable)
+     
+    do ii=0,cheby_mapNx(iTable)
+      xx=cheby_mapXmin(iTable)+ii*dx-cheby_offset_x(iTable)
+
+      ! check that particle is within the domain of chebyshev polynomials
+      rr=sqrt(xx**2+yy**2)
+      if (rr.ge.cheby_r1(iTable).and.rr.lt.cheby_r2(iTable)) then
+        inside=1
+      else
+        ! rr<r1 || rr>=r2 -> no kick from lens
+        inside=0
+      end if
+      ! in case of non-zero tilt angle, rotate coordinates
+      if (lrotate) then
+        theta = atan2_mb(yy, xx)-angle_rad
+        xx = rr * cos_mb(theta)
+        yy = rr * sin_mb(theta)
+      end if
+      ! compute kick from cheby map
+      call cheby_getPotential( xx, yy, zz, iTable )
+      write(fUnit,'(3(1X,1pe22.15),1X,i0)') xx, yy, zz, inside
+        
+    end do
+  end do
+
+  call f_close(fUnit)
+  
+end subroutine cheby_potentialMap
 
 
 subroutine cheby_getKick( xx, yy, dxp, dyp, iTable )
@@ -505,8 +726,7 @@ subroutine cheby_getKick( xx, yy, dxp, dyp, iTable )
 
   ! temp vars
   real(kind=fPrec) :: uu, vv, Tx (0:cheby_maxOrder(iTable)), Ty (0:cheby_maxOrder(iTable)), &
-                      kx, ky, Tpx(0:cheby_maxOrder(iTable)), Tpy(0:cheby_maxOrder(iTable)), &
-                      fu, fv
+                      fu, fv, Tpx(0:cheby_maxOrder(iTable)), Tpy(0:cheby_maxOrder(iTable))
   integer          :: nn, jj
 
   ! normalised variables
@@ -527,24 +747,67 @@ subroutine cheby_getKick( xx, yy, dxp, dyp, iTable )
   Tpx(1)=one
   Tpy(1)=one
   do nn=2,cheby_maxOrder(iTable)
-     Tx(nn)=two*(uu*Tx(nn-1))-Tx(nn-2)
-     Ty(nn)=two*(vv*Ty(nn-1))-Ty(nn-2)
-     Tpx(nn)=(real(nn,fPrec)*(Tx(nn-1)-uu*Tx(nn)))/fu
-     Tpy(nn)=(real(nn,fPrec)*(Ty(nn-1)-vv*Ty(nn)))/fv
+    Tx(nn)=two*(uu*Tx(nn-1))-Tx(nn-2)
+    Ty(nn)=two*(vv*Ty(nn-1))-Ty(nn-2)
+    Tpx(nn)=(real(nn,fPrec)*(Tx(nn-1)-uu*Tx(nn)))/fu
+    Tpy(nn)=(real(nn,fPrec)*(Ty(nn-1)-vv*Ty(nn)))/fv
   end do
 
   ! get kicks
   dxp=zero
   dyp=zero
   do nn=0,cheby_maxOrder(iTable)
-     do jj=0,nn
-        dxp=dxp+(cheby_coeffs(jj,nn-jj,iTable)*Tpx(jj))*Ty (nn-jj)
-        dyp=dyp+(cheby_coeffs(jj,nn-jj,iTable)*Tx (jj))*Tpy(nn-jj)
-     end do
+    do jj=0,nn
+      dxp=dxp+(cheby_coeffs(jj,nn-jj,iTable)*Tpx(jj))*Ty (nn-jj)
+      dyp=dyp+(cheby_coeffs(jj,nn-jj,iTable)*Tx (jj))*Tpy(nn-jj)
+    end do
   end do
   dxp=-(dxp*c1e3)/(cheby_refR(iTable)*c1m3) ! ref radius in [mm], kick in [mrad]
   dyp=-(dyp*c1e3)/(cheby_refR(iTable)*c1m3) ! ref radius in [mm], kick in [mrad]
 
  end subroutine cheby_getKick
+
+
+subroutine cheby_getPotential( xx, yy, zz, iTable )
+
+  ! A. Mereghetti (CERN, BE-ABP-HSS)
+  ! last modified: 01-03-2019
+  ! compute potential from Chebyshev polinomials - see FermiLAB-FN-0972-APC
+
+  use numerical_constants, only : zero, one, two
+
+  ! interface vars
+  real(kind=fPrec), intent(in ) :: xx
+  real(kind=fPrec), intent(in ) :: yy
+  real(kind=fPrec), intent(out) :: zz
+  integer,          intent(in ) :: iTable
+
+  ! temp vars
+  real(kind=fPrec) :: uu, vv, Tx(0:cheby_maxOrder(iTable)), Ty(0:cheby_maxOrder(iTable))
+  integer          :: nn, jj
+
+  ! normalised variables
+  uu=xx/cheby_refR(iTable)
+  vv=yy/cheby_refR(iTable)
+
+  ! - polynomials:
+  Tx(0)=one
+  Ty(0)=one
+  Tx(1)=uu
+  Ty(1)=vv
+  do nn=2,cheby_maxOrder(iTable)
+    Tx(nn)=two*(uu*Tx(nn-1))-Tx(nn-2)
+    Ty(nn)=two*(vv*Ty(nn-1))-Ty(nn-2)
+  end do
+
+  ! get kicks
+  zz=zero
+  do nn=0,cheby_maxOrder(iTable)
+    do jj=0,nn
+      zz=zz+(cheby_coeffs(jj,nn-jj,iTable)*Tx(jj))*Ty(nn-jj)
+    end do
+  end do
+
+ end subroutine cheby_getPotential
 
 end module cheby
