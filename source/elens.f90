@@ -133,9 +133,9 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   if(el(iElem) /= zero .or. ek(iElem) /= zero .or. ed(iElem) /= zero) then
     write(lout,"(a)")       "ELENS> ERROR Length el(iElem) (elens is treated as thin element), "//&
       "and first and second field have to be zero:"
-    write(lout,"(2(a,i0))") "ELENS>       el(",iElem,") = ",el(iElem)," != 0"
-    write(lout,"(2(a,i0))") "ELENS>       ed(",iElem,") = ",ed(iElem)," != 0"
-    write(lout,"(2(a,i0))") "ELENS>       ek(",iElem,") = ",ek(iElem)," != 0"
+    write(lout,"(2(a,i0),a)") "ELENS>       el(",iElem,") = ",el(iElem)," != 0"
+    write(lout,"(2(a,i0),a)") "ELENS>       ed(",iElem,") = ",ed(iElem)," != 0"
+    write(lout,"(2(a,i0),a)") "ELENS>       ek(",iElem,") = ",ek(iElem)," != 0"
     iErr = .true.
     return
   end if
