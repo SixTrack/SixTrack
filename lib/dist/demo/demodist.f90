@@ -28,10 +28,10 @@ program demodist
       
       call readMatrixFromFile(tas)
       dim = 6
-      e1 = 1.0d0
+      e1 = 3.0d0
       e2 = 1.0d0
       e3 = 1.0d0 
-      dp = -0.001d0
+      dp = 0.100d0
       pia2 = 2.00d0*4.D0*DATAN(1.D0)
       zero = 0.0d0
       momentum = 4000.0
@@ -40,13 +40,13 @@ program demodist
       six = 6.000d0
 
       
-      acoord(1) = 5.0;
+      acoord(1) = 7.0;
       acoord(2) = 0;
-      acoord(3) = 2.0;
+      acoord(3) = 5.0;
       acoord(4) = 0;
       acoord(5) = 1.0;
-      acoord(6) = -pia2/4.0d0!-0.0189;
-
+      acoord(6) = 0!1.567718E+00 + 0.005!-pia2/4.0d0+0.0038+100;
+!-1.571020E+00
 
       call initializedistribution(3, 6)
       ! Set the tas matrix 

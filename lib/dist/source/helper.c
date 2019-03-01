@@ -268,10 +268,20 @@ void transpose(double num[6][6],double fac[6][6],double r)
 
 void printvector(const char* name, int dim, double* vector){
           printf("%s \n", name);
+          vector[0] = 2.111;
           for (int i = 0; i < dim; i++)
     {
             printf("%d %E \n",i, vector[i]);
 
     }
 }
-
+void bisection (double *x, double a, double b, int *itr)
+/* this function performs and prints the result of one iteration */
+{
+    *x=(a+b)/2;
+    ++(*itr);
+    printf("Iteration no. %3d X = %7.5f\n", *itr, *x);
+}
+void hello(){
+  printf("heeeelloooo \n");
+}

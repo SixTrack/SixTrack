@@ -48,3 +48,5 @@ void action2sixinternal_(double tc[6], double results[6]);
 void calcualteinverse();
 int checkdist();
 void change_e3_to_dp(double cancord[6],double acoord[6], double acangl[6]);
+void change_e3_to_dp_easy(double cancord[6], double acoord[6], double acangl[6]);
+double fun (double cancord[6], double acoord[6], double acangl[6], double x);

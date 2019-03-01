@@ -10,3 +10,5 @@ void transpose(double num[6][6],double fac[6][6],double  r);
 void cofactor(double num[6][6],double f);
 void printmatrix(int m, int n, double **matrix );
 void printvector(const char* name, int dim, double* vector);
+void bisection(double *x, double a, double b, int *itr);
+void hello();

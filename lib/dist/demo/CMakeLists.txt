@@ -15,4 +15,13 @@ set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${dialect}")
 # Compile.
 #
 file(GLOB_RECURSE sources  ../source/*.c ../source/*.h ../demo/*.f90)
+add_library(${PROJECT_NAME} SHARED ${sources})
+
+# Install library
+install(TARGETS ${PROJECT_NAME} DESTINATION lib/${PROJECT_NAME})
+
+# Install library headers
+#file(GLOB HEADERS include/*.h)
+#install(FILES ${HEADERS} DESTINATION include/${PROJECT_NAME})
+
 add_executable(prog ${sources})

@@ -33,23 +33,166 @@ void action2canonical_(double acangl[6], double cancord[6]){
 
 
 	//This is the multiplication with the tas matrix 
-    if(dist->longitunalemittance==2) change_e3_to_dp(cancord,acoord, acangl);
+    if(dist->longitunalemittance==2) change_e3_to_dp_easy(cancord,acoord, acangl);
 	mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
 
 }
+double fun (double cancord[6], double acoord[6], double acangl[6], double x)
+{
+	 	acangl[5] = x;
+    	acoord[0]= sqrt((dist->emitt->e1)*acangl[0])*cos(acangl[1]);
+		acoord[1]=-sqrt((dist->emitt->e1)*acangl[0])*sin(acangl[1]);
+		acoord[2]= sqrt((dist->emitt->e2)*acangl[2])*cos(acangl[3]);
+		acoord[3]=-sqrt((dist->emitt->e2)*acangl[2])*sin(acangl[3]);
+		acoord[4]= sqrt((dist->emitt->e3)*acangl[4])*cos(acangl[5]);
+		acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/1000)*sin(acangl[5]);
+		mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
+		return cancord[4];
+}
+double opemitt (double cancord[6], double acoord[6], double acangl[6], double x)
+{
+		printf("emittance %E ", dist->emitt->e3);
+	 	dist->emitt->e3 = x;
+    	acoord[0]= sqrt((dist->emitt->e1)*acangl[0])*cos(acangl[1]);
+		acoord[1]=-sqrt((dist->emitt->e1)*acangl[0])*sin(acangl[1]);
+		acoord[2]= sqrt((dist->emitt->e2)*acangl[2])*cos(acangl[3]);
+		acoord[3]=-sqrt((dist->emitt->e2)*acangl[2])*sin(acangl[3]);
+		acoord[4]= sqrt((dist->emitt->e3)*acangl[4])*cos(acangl[5]);
+		acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/1000)*sin(acangl[5]);
+		mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
+
+		return cancord[5]-dist->emitt->dp;
+}
+
+
+void change_e3_to_dp_easy(double cancord[6], double acoord[6], double acangl[6]){
+ 
+	
+    int itr = 0, maxmitr;
+    double x, a, b, allerr, x1;
+    printf("\nEnter the values of a, b, allowed error and maximum iterations:\n");
+    a = -1.6;
+    b=1.6;
+    itr = 0;
+    maxmitr = 100;
+    allerr = 1e-12;
+    bisection (&x, a, b, &itr);
+    do
+    {
+        if (fun(cancord,acoord, acangl, a)*fun(cancord,acoord, acangl, x) < 0)
+            b=x;
+        else
+            a=x;
+        bisection (&x1, a, b, &itr);
+        if (fabs(x1-x) < allerr)
+        {
+            printf("After %d iterations, root = %6.4f\n", itr, x1);
+            break;
+        }
+        x=x1;
+    }
+    while (itr < maxmitr);
+
+
+     double angle, emitt;
+
+		acoord[0]= sqrt((dist->emitt->e1)*acangl[0])*cos(acangl[1]);
+		acoord[1]=-sqrt((dist->emitt->e1)*acangl[0])*sin(acangl[1]);
+		acoord[2]= sqrt((dist->emitt->e2)*acangl[2])*cos(acangl[3]);
+		acoord[3]=-sqrt((dist->emitt->e2)*acangl[2])*sin(acangl[3]);
+		acoord[4]= sqrt((dist->emitt->e3)*acangl[4])*cos(acangl[5]);
+		acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/1000)*sin(acangl[5]);
+		mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
+		//printf("oooutt %E, %E, %E \n", cancord[4], cancord[5], acangl[5] );
+
+	emitt =dist->emitt->e3;
+	a = 0;
+    b= 10002;
+    itr = 0;
+    maxmitr = 100;
+    allerr = 1e-12;
+	
+
+	    bisection (&x, a, b, &itr);
+    do
+    {
+        if (opemitt(cancord,acoord, acangl, a)*opemitt(cancord,acoord, acangl, x) < 0)
+            b=x;
+        else
+            a=x;
+        bisection (&x1, a, b, &itr);
+        if (fabs(x1-x) < allerr)
+        {
+            printf("After %d iterations, root = %6.4f\n", itr, x1);
+            break;
+        }
+        x=x1;
+    }
+    while (itr < maxmitr);
+
+	//acangl[5] = acangl[5]+3.14159265359/2;
+
+	acoord[0]= sqrt((dist->emitt->e1)*acangl[0])*cos(acangl[1]);
+	acoord[1]=-sqrt((dist->emitt->e1)*acangl[0])*sin(acangl[1]);
+	acoord[2]= sqrt((dist->emitt->e2)*acangl[2])*cos(acangl[3]);
+	acoord[3]=-sqrt((dist->emitt->e2)*acangl[2])*sin(acangl[3]);
+	acoord[4]= sqrt((dist->emitt->e3)*acangl[4])*cos(acangl[5]);
+	acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/1000)*sin(acangl[5]);
+}
+
+
+
 void change_e3_to_dp(double cancord[6], double acoord[6], double acangl[6]){
-	double tmp;
-	double value, previous, atemp;
+	double tf = 0;
+	double dpf = 0;
+	double value, previous, atemp, theta, minimize, sqr_eps, record, savetheta, save_sqrt;
+		for(int i =0; i<4; i++){
+		tf = tf + acoord[i]*dist->tas[4][i]; // gives the contribution to the delta s
+	//	printf("thisss tf, %E %E %E %d\n",dist->tas[4][i], tf, acoord[i], i); 
+	}
+	printmatrix(6,6,dist->tas);
 	for(int i =0; i<4; i++){
-		tmp =tmp + acoord[i]*dist->tas[5][i]; 
+		dpf = dpf + acoord[i]*dist->tas[5][i]; // gives the contribution to the delta p 
+		printf("thisss dpf, %E %E %E %d\n",dist->tas[5][i], dpf, acoord[i], i); 
 	}
 
-	previous =1 ;
-	atemp = acangl[5];
-	value = dist->emitt->dp+tmp;
-	dist->emitt->e3 = 1000*pow(value/dist->tas[5][5],2);
+	minimize = 100;
+	record = 100;
+	for(int j =-1573000; j<1573000; j++){
+
+		theta = 0.000001*j;
+		
+		sqr_eps = -tf/(dist->tas[4][4]*cos(theta)+dist->tas[4][5]*sin(theta)/sqrt(1000));
+		minimize = sqr_eps*(dist->tas[5][4]*cos(theta)+dist->tas[5][5]*sin(theta)/sqrt(1000))+dpf+dist->emitt->dp;
+		//printf("minimize...%f %f \n",fabs(record), fabs(minimize) );
+		if(fabs(record) > fabs(minimize) ){
+			savetheta = theta;
+			record = minimize;
+			save_sqrt = -tf/(dist->tas[4][4]*cos(savetheta)+dist->tas[4][5]*sin(savetheta)/sqrt(1000));
+		}
+
+
+	}
+	printf("theta %E %E \n ", savetheta, pow(save_sqrt, 2));
+	acangl[5] = savetheta;
+	dist->emitt->e3 = pow(save_sqrt, 2);
+	acoord[0]= sqrt((dist->emitt->e1)*acangl[0])*cos(acangl[1]);
+	acoord[1]=-sqrt((dist->emitt->e1)*acangl[0])*sin(acangl[1]);
+	acoord[2]= sqrt((dist->emitt->e2)*acangl[2])*cos(acangl[3]);
+	acoord[3]=-sqrt((dist->emitt->e2)*acangl[2])*sin(acangl[3]);
+	acoord[4]= sqrt((dist->emitt->e3)*acangl[4])*cos(acangl[5]);
+	acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/1000)*sin(acangl[5]);
+	printf("actionss %E, %E \n", acoord[4], acoord[5]);
 	mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
-	for(int i=0; i<10000; i++){
+	printf("5666 %E, %E \n", cancord[4], cancord[5]);
+
+	//previous =1 ;
+	//atemp = acangl[5];
+	//value = dist->emitt->dp+tmp;
+	//dist->emitt->e3 = 1000*pow(value/dist->tas[5][5],2);
+	//mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
+	
+	/*for(int i=0; i<10000; i++){
 
 		acangl[5] = atemp+(i*0.00001);
 		acoord[4]= sqrt((dist->emitt->e3)*acangl[4])*cos(acangl[5]); 
@@ -73,6 +216,8 @@ void change_e3_to_dp(double cancord[6], double acoord[6], double acangl[6]){
 		}
 	}
 		dist->emitt->e3 = 1000*pow(value*sin(acangl[5])/dist->tas[5][5],2);
+		*/
+			
 }
 
 void setdistribution_(int *ndist){
@@ -127,6 +272,7 @@ void addclosedorbit_(double *clo){
 void setdeltap_(double *dp){
 	dist->emitt->dp = *dp;
 	dist->longitunalemittance=2;
+	dist->emitt->e3 = 1000*pow(*dp/dist->tas[5][5],2);
 }
 
 //This emittance is oversimplified but gives a good approximation. 
