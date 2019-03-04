@@ -5,8 +5,10 @@ Python script:
 The python script cheby_plot_kick.py plots the kick received from the chebyshev leses. In total 4 lenses are inserted to check 4 different cases:
 1) cheby1: uses the map in cheby.dat as is
 2) cheby2: as cheby1 with offset of (-2, 2) mm (x,y)
-3) cheby3: as cheby1 with offset of ( 2,-2) mm (x,y), rotated by 90 degs
-4) cheby4: as cheby1 rotated by -135 degs
+3) cheby3: as cheby1 with offset of ( 2,-2) mm (x,y), rotated by -90 degs
+4) cheby4: as cheby1 rotated by 135 degs
 The particle coordinates are dumped before and after the 4 lenses in the files CHEBY_DUMP_*. The kick given by the lens is then just the difference between the particle coordinates after and before the elens. Various R1 and R2 are set. For further infos, please see fort.3
 
 The script checks that x,y are unchanged (rrin-rrout=0) and then plots the difference in (x',y'). Offsets and tilt angle should be visible in maps.
+
+The test also dumps the potential map of each lens - a python script is available to plot and check all of them

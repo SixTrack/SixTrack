@@ -107,7 +107,9 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
       end if
     end do
     if(iElem == -1) then
-      write(lout,"(a)") "CHEBY> ERROR Element '"//trim(lnSplit(1))//"' not a Chebyshev lens."
+      write(lout,"(a)") "CHEBY> ERROR Element '"//trim(lnSplit(2))//"' not a Chebyshev lens."
+      write(lout,"(a)") "CHEBY>       Either you mis-typed the element name or"
+      write(lout,"(a)") "CHEBY>       SHOW line comes before the declaration of the lens"
       iErr = .true.
       return
     end if
@@ -118,7 +120,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
     end if
     cheby_mapFileName(icheby(iElem)) = trim(lnSplit(3))
     do tmpi1=1,mcheby
-      if (tmpi1==icheby(iElem)) continue ! do not compare icheby(iElem) against itself
+      if (tmpi1==icheby(iElem)) cycle ! do not compare icheby(iElem) against itself
       if (cheby_mapFileName(tmpi1)==cheby_mapFileName(icheby(iElem))) then
         write(lout,"(a)") "CHEBY> ERROR File '"//trim(cheby_mapFileName(icheby(iElem)))//"' already in use."
         iErr = .true.
@@ -143,15 +145,14 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
     cheby_lMap(icheby(iElem))=.true.
     
     if(st_debug) then
-      write(lout,"(a)") "CHEBY> dump of potential map of Chebyshev lens"
-      call sixin_echoVal("name",     bez(iElem),                                          "CHEBY",iLine)
-      call sixin_echoVal("filename", trim(cheby_mapFileName(cheby_itable(icheby(iElem)))),"CHEBY",iLine)
-      call sixin_echoVal("xmin [mm]",cheby_mapXmin(icheby(iElem)),                        "CHEBY",iLine)
-      call sixin_echoVal("xmax [mm]",cheby_mapXmax(icheby(iElem)),                        "CHEBY",iLine)
-      call sixin_echoVal("Nx     []",cheby_mapNx  (icheby(iElem)),                        "CHEBY",iLine)
-      call sixin_echoVal("ymin [mm]",cheby_mapYmin(icheby(iElem)),                        "CHEBY",iLine)
-      call sixin_echoVal("ymin [mm]",cheby_mapYmax(icheby(iElem)),                        "CHEBY",iLine)
-      call sixin_echoVal("Ny     []",cheby_mapNy  (icheby(iElem)),                        "CHEBY",iLine)
+      call sixin_echoVal("name",trim(bez(iElem)),                           "CHEBY",iLine)
+      call sixin_echoVal("filename", trim(cheby_mapFileName(icheby(iElem))),"CHEBY",iLine)
+      call sixin_echoVal("xmin [mm]",cheby_mapXmin(icheby(iElem)),          "CHEBY",iLine)
+      call sixin_echoVal("xmax [mm]",cheby_mapXmax(icheby(iElem)),          "CHEBY",iLine)
+      call sixin_echoVal("Nx     []",cheby_mapNx  (icheby(iElem)),          "CHEBY",iLine)
+      call sixin_echoVal("ymin [mm]",cheby_mapYmin(icheby(iElem)),          "CHEBY",iLine)
+      call sixin_echoVal("ymin [mm]",cheby_mapYmax(icheby(iElem)),          "CHEBY",iLine)
+      call sixin_echoVal("Ny     []",cheby_mapNy  (icheby(iElem)),          "CHEBY",iLine)
     end if
      
   case default
@@ -237,7 +238,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
     if(nSplit >= 8) call chr_cast(lnSplit(8),cheby_I(icheby(iElem)),iErr)
   
     if(st_debug) then
-      call sixin_echoVal("name",    bez(iElem),                                         "CHEBY",iLine)
+      call sixin_echoVal("name",    trim(bez(iElem)),                                   "CHEBY",iLine)
       call sixin_echoVal("filename",trim(cheby_filename(cheby_itable(icheby(iElem)))),  "CHEBY",iLine)
       if(nSplit >= 3) call sixin_echoVal("r2 [mm]"      , cheby_r2(icheby(iElem)),      "CHEBY",iLine)
       if(nSplit >= 4) call sixin_echoVal("r1 [mm]"      , cheby_r1(icheby(iElem)),      "CHEBY",iLine)
@@ -320,6 +321,8 @@ subroutine cheby_postInput
     end if
     if (cheby_r2(jj)>cheby_refR(cheby_itable(jj))) then
       write(lout,"(a)")      "CHEBY> ERROR R2 cannot be larger than domain of Chebyshev polynomials!"
+      write(lout,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       R2 [mm]: ",cheby_r2(jj), &
+           " - reference radius [mm]:",cheby_refR(cheby_itable(jj))
       goto 10 
     end if
     if (cheby_I (jj)<=zero) then
@@ -368,24 +371,24 @@ subroutine cheby_postInput
    
     if(st_quiet < 2) then
       write(lout,"(a)") ''
-      write(lout,"(a,i0,a)") 'CHEBY> status of chebyshev lens #',jj," - name: '"//trim(bez(kk))//"'"
-      write(lout,"(a)")          "CHEBY> - filename         : '"//trim(cheby_filename(cheby_itable(jj)))//"'"
-      write(lout,"(a,1pe22.15)") "CHEBY> - R2           [mm]: ",cheby_r2(jj)
-      write(lout,"(a,1pe22.15)") "CHEBY> - R1           [mm]: ",cheby_r1(jj)
-      write(lout,"(a,1pe22.15)") "CHEBY> - tilt angle  [deg]: ",cheby_angle(jj)
-      write(lout,"(a,1pe22.15)") "CHEBY> - hor offset   [mm]: ",cheby_offset_x(jj)
-      write(lout,"(a,1pe22.15)") "CHEBY> - ver offset   [mm]: ",cheby_offset_y(jj)
-      write(lout,"(a,1pe22.15)") "CHEBY> - lens powering [A]: ",cheby_I(jj)
-      write(lout,"(a,1pe22.15)") "CHEBY> - scaling factor []: ",cheby_scalingFact(jj)
+      write(lout,"(a,i0,a)")       "CHEBY> status of chebyshev lens #",jj," - name: '"//trim(bez(kk))//"'"
+      write(lout,"(a)")            "CHEBY> - filename         : '"//trim(cheby_filename(cheby_itable(jj)))//"'"
+      write(lout,"(a,1pe22.15)")   "CHEBY> - R2           [mm]: ",cheby_r2(jj)
+      write(lout,"(a,1pe22.15)")   "CHEBY> - R1           [mm]: ",cheby_r1(jj)
+      write(lout,"(a,1pe22.15)")   "CHEBY> - tilt angle  [deg]: ",cheby_angle(jj)
+      write(lout,"(a,1pe22.15)")   "CHEBY> - hor offset   [mm]: ",cheby_offset_x(jj)
+      write(lout,"(a,1pe22.15)")   "CHEBY> - ver offset   [mm]: ",cheby_offset_y(jj)
+      write(lout,"(a,1pe22.15)")   "CHEBY> - lens powering [A]: ",cheby_I(jj)
+      write(lout,"(a,1pe22.15)")   "CHEBY> - scaling factor []: ",cheby_scalingFact(jj)
       if ( cheby_lMap(jj) ) then
-        write(lout,"(a)") 'CHEBY> requested dump of potential map'
-        write(lout,"(a,a)")        "CHEBY> - map filename : ",cheby_mapFileName(jj)
-        write(lout,"(a,1pe22.15)") "CHEBY> - xmin     [mm]: ",cheby_mapXmin(jj)
-        write(lout,"(a,1pe22.15)") "CHEBY> - xmax     [mm]: ",cheby_mapXmax(jj)
-        write(lout,"(a,1pe22.15)") "CHEBY> - Nx         []: ",cheby_mapNx  (jj)
-        write(lout,"(a,1pe22.15)") "CHEBY> - ymin     [mm]: ",cheby_mapYmin(jj)
-        write(lout,"(a,1pe22.15)") "CHEBY> - ymin     [mm]: ",cheby_mapYmax(jj)
-        write(lout,"(a,1pe22.15)") "CHEBY> - Ny         []: ",cheby_mapNy  (jj)
+        write(lout,"(a)")          "CHEBY> requested dump of potential map:"
+        write(lout,"(a)")          "CHEBY> - map     filename : '"//trim(cheby_mapFileName(jj))//"'"
+        write(lout,"(a,1pe22.15)") "CHEBY> - xmin         [mm]: ",cheby_mapXmin(jj)
+        write(lout,"(a,1pe22.15)") "CHEBY> - xmax         [mm]: ",cheby_mapXmax(jj)
+        write(lout,"(a,i0)")       "CHEBY> - Nx             []: ",cheby_mapNx  (jj)
+        write(lout,"(a,1pe22.15)") "CHEBY> - ymin         [mm]: ",cheby_mapYmin(jj)
+        write(lout,"(a,1pe22.15)") "CHEBY> - ymin         [mm]: ",cheby_mapYmax(jj)
+        write(lout,"(a,i0)")       "CHEBY> - Ny             []: ",cheby_mapNy  (jj)
         call cheby_potentialMap(jj,kk)
       end if
     end if
@@ -394,8 +397,6 @@ subroutine cheby_postInput
 
 10 continue
    write(lout,"(a,i0,a)") "CHEBY>       concerned lens #", jj," - name: '"//trim(bez(kk))//"'"
-   write(lout,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       R2 [mm]: ",cheby_r2(jj), &
-           " - reference radius [mm]:",cheby_refR(cheby_itable(jj))
    call prror(-1)
    
 end subroutine cheby_postInput
@@ -623,7 +624,7 @@ subroutine cheby_kick(i,ix,n)
 end subroutine cheby_kick
 
 
-subroutine cheby_potentialMap(iTable,ix)
+subroutine cheby_potentialMap(iLens,ix)
 
   ! A. Mereghetti (CERN, BE-ABP-HSS)
   ! last modified: 01-03-2019
@@ -635,71 +636,75 @@ subroutine cheby_potentialMap(iTable,ix)
   use numerical_constants, only : zero, c180e0, pi
   use mod_units
 
-  integer, intent(in) :: iTable
+  integer, intent(in) :: iLens
   integer, intent(in) :: ix
   
-  real(kind=fPrec) xx, yy, rr, zz, dx, dy
+  real(kind=fPrec) xx, yy, rr, zz, dx, dy, xxr, yyr, xxn, yyn
   real(kind=fPrec) theta, radio, angle_rad
   integer          ii, jj, inside, fUnit
   logical          lrotate, err
 
-  write(lout,"(a)") "CHEBY> Dumping potential map...'"
-  call f_requestUnit(cheby_mapFileName(iTable),fUnit)
-  call f_open(unit=fUnit,file=cheby_mapFileName(iTable),mode='w',err=err,formatted=.true.,status="new")
+  write(lout,"(a)") "CHEBY> Dumping potential map..."
+  call f_requestUnit(cheby_mapFileName(iLens),fUnit)
+  call f_open(unit=fUnit,file=cheby_mapFileName(iLens),mode='w',err=err,formatted=.true.,status="replace")
   if(err) then
     write(lout,"(a)") "CHEBY> ERROR Failed to open file."
     call prror(-1)
   end if
  
   ! rotation angle
-  lrotate = cheby_angle(iTable).ne.zero
-  angle_rad = (cheby_angle(iTable)/c180e0)*pi
-  dx=(cheby_mapXmax(iTable)-cheby_mapXmin(iTable))/real(cheby_mapNx(iTable),fPrec)
-  dy=(cheby_mapYmax(iTable)-cheby_mapYmin(iTable))/real(cheby_mapNy(iTable),fPrec)
+  lrotate = cheby_angle(iLens).ne.zero
+  angle_rad = (cheby_angle(iLens)/c180e0)*pi
+  dx=(cheby_mapXmax(iLens)-cheby_mapXmin(iLens))/real(cheby_mapNx(iLens),fPrec)
+  dy=(cheby_mapYmax(iLens)-cheby_mapYmin(iLens))/real(cheby_mapNy(iLens),fPrec)
 
   ! write header
-  write(fUnit,'("# ",a,i0)')       'name of chebyshev lens: "'//trim(bez(ix))//'" - id: ',iTable
-  write(fUnit,"('# ',a)")          "filename         : '"//trim(cheby_filename(iTable))//"'"
-  write(fUnit,"('# ',a,1pe22.15)") "R2           [mm]: ",cheby_r2(iTable)
-  write(fUnit,"('# ',a,1pe22.15)") "R1           [mm]: ",cheby_r1(iTable)
-  write(fUnit,"('# ',a,1pe22.15)") "tilt angle  [deg]: ",cheby_angle(iTable)
-  write(fUnit,"('# ',a,1pe22.15)") "hor offset   [mm]: ",cheby_offset_x(iTable)
-  write(fUnit,"('# ',a,1pe22.15)") "ver offset   [mm]: ",cheby_offset_y(iTable)
-  write(fUnit,"('# ',a,1pe22.15)") "lens powering [A]: ",cheby_I(iTable)
-  write(fUnit,"('# ',a,1pe22.15)") "scaling factor []: ",cheby_scalingFact(iTable)
-  write(fUnit,"('# ',a,a)")        "map filename : ",cheby_mapFileName(iTable)
-  write(fUnit,"('# ',a,1pe22.15)") "xmin [mm]: ",cheby_mapXmin(iTable)
-  write(fUnit,"('# ',a,1pe22.15)") "xmax [mm]: ",cheby_mapXmax(iTable)
-  write(fUnit,"('# ',a,1pe22.15)") "Nx     []: ",cheby_mapNx  (iTable)
-  write(fUnit,"('# ',a,1pe22.15)") "ymin [mm]: ",cheby_mapYmin(iTable)
-  write(fUnit,"('# ',a,1pe22.15)") "ymin [mm]: ",cheby_mapYmax(iTable)
-  write(fUnit,"('# ',a,1pe22.15)") "Ny     []: ",cheby_mapNy  (iTable)
-  write(fUnit,"('# ',a)") "x [mm], y [mm], V [V], inside [0:False,1:True]"
+  write(fUnit,'("# ",a,i0)')       "name of chebyshev lens: '"//trim(bez(ix))//"' - id: ",iLens
+  write(fUnit,"('# ',a)")          "filename              : '"//trim(cheby_filename(cheby_itable(iLens)))//"'"
+  write(fUnit,"('# ',a,1pe22.15)") "R2                [mm]: ",cheby_r2(iLens)
+  write(fUnit,"('# ',a,1pe22.15)") "R1                [mm]: ",cheby_r1(iLens)
+  write(fUnit,"('# ',a,1pe22.15)") "tilt angle       [deg]: ",cheby_angle(iLens)
+  write(fUnit,"('# ',a,1pe22.15)") "hor offset        [mm]: ",cheby_offset_x(iLens)
+  write(fUnit,"('# ',a,1pe22.15)") "ver offset        [mm]: ",cheby_offset_y(iLens)
+  write(fUnit,"('# ',a,1pe22.15)") "lens powering      [A]: ",cheby_I(iLens)
+  write(fUnit,"('# ',a,1pe22.15)") "scaling factor      []: ",cheby_scalingFact(iLens)
+  write(fUnit,"('# ',a)")          "map filename          : '"//trim(cheby_mapFileName(iLens))//"'"
+  write(fUnit,"('# ',a,1pe22.15)") "xmin              [mm]: ",cheby_mapXmin(iLens)
+  write(fUnit,"('# ',a,1pe22.15)") "xmax              [mm]: ",cheby_mapXmax(iLens)
+  write(fUnit,"('# ',a,i0)")       "Nx                  []: ",cheby_mapNx  (iLens)
+  write(fUnit,"('# ',a,1pe22.15)") "ymin              [mm]: ",cheby_mapYmin(iLens)
+  write(fUnit,"('# ',a,1pe22.15)") "ymax              [mm]: ",cheby_mapYmax(iLens)
+  write(fUnit,"('# ',a,i0)")       "Ny                  []: ",cheby_mapNy  (iLens)
+  write(fUnit,"('# ',a)") "x [mm], y [mm], x_map [mm], y_map [mm], V [V m], inside [0:False,1:True]"
   
   ! get map
-  do jj=0,cheby_mapNy(iTable)
-    yy=cheby_mapYmin(iTable)+jj*dy-cheby_offset_y(iTable)
+  do jj=0,cheby_mapNy(iLens)
+    yy=cheby_mapYmin(iLens)+real(jj,fPrec)*dy ! mesh coordinate
+    if (jj==cheby_mapNy(iLens)) yy=cheby_mapYmax(iLens)
+    yyr=yy-cheby_offset_y(iLens)  ! point in ref sys of Cheby map
      
-    do ii=0,cheby_mapNx(iTable)
-      xx=cheby_mapXmin(iTable)+ii*dx-cheby_offset_x(iTable)
+    do ii=0,cheby_mapNx(iLens)
+      xx=cheby_mapXmin(iLens)+real(ii,fPrec)*dx ! mesh coordinate
+      if (ii==cheby_mapNx(iLens)) xx=cheby_mapXmax(iLens)
+      xxr=xx-cheby_offset_x(iLens)  ! point in ref sys of Cheby map
 
       ! check that particle is within the domain of chebyshev polynomials
-      rr=sqrt(xx**2+yy**2)
-      if (rr.ge.cheby_r1(iTable).and.rr.lt.cheby_r2(iTable)) then
-        inside=1
-      else
-        ! rr<r1 || rr>=r2 -> no kick from lens
-        inside=0
-      end if
+      rr=sqrt(xxr**2+yyr**2)
+      inside=0
+      if (rr.ge.cheby_r1(iLens).and.rr.lt.cheby_r2(iLens)) inside=1 ! kick only if rr>=r1 && rr<r2
       ! in case of non-zero tilt angle, rotate coordinates
       if (lrotate) then
-        theta = atan2_mb(yy, xx)-angle_rad
-        xx = rr * cos_mb(theta)
-        yy = rr * sin_mb(theta)
+        theta = atan2_mb(yyr, xxr)-angle_rad
+        xxn = rr * cos_mb(theta)
+        yyn = rr * sin_mb(theta)
+      else
+        theta=zero
+        xxn=xxr
+        yyn=yyr
       end if
       ! compute kick from cheby map
-      call cheby_getPotential( xx, yy, zz, iTable )
-      write(fUnit,'(3(1X,1pe22.15),1X,i0)') xx, yy, zz, inside
+      call cheby_getPotential( xxn, yyn, zz, cheby_itable(iLens) )
+      write(fUnit,'(5(1X,1pe22.15),1X,i0)') xx, yy, xxn, yyn, zz, inside
         
     end do
   end do
