@@ -256,6 +256,7 @@ void transpose(double num[6][6],double fac[6][6],double r)
     }
 }
   void printmatrix(int m, int n, double** matrix ){
+        printf("heeeree %d, %d \n", m, n);
         for (int i = 0; i < m; i++)
     {
         for (int j = 0; j < n; j++)
@@ -284,4 +285,34 @@ void bisection (double *x, double a, double b, int *itr)
 }
 void hello(){
   printf("heeeelloooo \n");
+}
+
+
+double randn(double mu, double sigma)
+{
+  double U1, U2, W, mult;
+  static double X1, X2;
+  static int call = 0;
+ 
+  if (call == 1)
+    {
+      call = !call;
+      return (mu + sigma * (double) X2);
+    }
+ 
+  do
+    {
+      U1 = -1 + ((double) rand () / RAND_MAX) * 2;
+      U2 = -1 + ((double) rand () / RAND_MAX) * 2;
+      W = pow (U1, 2) + pow (U2, 2);
+    }
+  while (W >= 1 || W == 0);
+ 
+  mult = sqrt ((-2 * log (W)) / W);
+  X1 = U1 * mult;
+  X2 = U2 * mult;
+ 
+  call = !call;
+ 
+  return (mu + sigma * (double) X1);
 }

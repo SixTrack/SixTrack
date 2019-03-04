@@ -12,3 +12,4 @@ void printmatrix(int m, int n, double **matrix );
 void printvector(const char* name, int dim, double* vector);
 void bisection(double *x, double a, double b, int *itr);
 void hello();
+double randn(double mu, double sigma);
