@@ -332,7 +332,7 @@ subroutine cheby_postInput
     if (cheby_I (jj)<=zero) then
       cheby_I (jj)=cheby_refI(cheby_itable(jj))
     else
-      cheby_scalingFact(jj)=cheby_scalingFact(jj)*((cheby_I(jj))/(cheby_refI(cheby_itable(jj))))
+      call cheby_setScaleKick(jj)
     end if
    
     ! checks on maps
@@ -819,4 +819,16 @@ subroutine cheby_getPotential( xx, yy, zz, iTable )
 
  end subroutine cheby_getPotential
 
+subroutine cheby_setScaleKick( iCheby )
+
+  ! A. Mereghetti (CERN, BE-ABP-HSS)
+  ! last modified: 05-03-2019
+  ! compute scaling factor for chebyshev lenses
+  
+  ! interface vars
+  integer, intent(in) :: iCheby
+  cheby_scalingFact(iCheby)=cheby_I(iCheby)/cheby_refI(cheby_itable(iCheby))
+
+end subroutine cheby_setScaleKick
+  
 end module cheby

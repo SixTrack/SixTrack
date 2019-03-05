@@ -2275,6 +2275,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   use mod_particles
 
   use elens
+  use cheby
   use parbeam, only : beam_expflag
   implicit none
 
@@ -2504,6 +2505,14 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
           end if
         end if
 
+      case(cheby_kz)
+        if(att_name == "cheby_I") then ! [keV]
+          cheby_I(icheby(ii)) = newValue
+          call cheby_setScaleKick(icheby(ii))
+        else
+          goto 100 ! ERROR
+        end if
+
       case default
         write(lout,"(a,i0,a)") "DYNK> ERROR setValue Unsupported element type ",el_type," element name = '"//trim(element_name)//"'"
         call prror
@@ -2546,6 +2555,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
   use mod_common_track
   use mod_common_main
   use elens
+  use cheby
   use parbeam, only : beam_expflag
 
   implicit none
@@ -2742,6 +2752,13 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
           else
             goto 100 ! ERROR
           end if
+        end if
+
+      case(cheby_kz)
+        if(att_name == "cheby_I") then ! [keV]
+          dynk_getvalue = cheby_I(icheby(ii))
+        else
+          goto 100 ! ERROR
         end if
 
       end select
