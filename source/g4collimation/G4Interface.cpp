@@ -197,8 +197,12 @@ extern "C" void g4_add_particle_(double* x, double* y, double* xp, double* yp, d
 //We want px and py, not the angle!
 	double e_in = (*e) * CLHEP::GeV;
 	double p_in = sqrt((e_in*e_in) - (*mass * *mass));
-	double px_in = p_in * (*xp) * CLHEP::GeV;
-	double py_in = p_in * (*yp) * CLHEP::GeV;
+
+	double px_in = p_in * (*xp);
+	double py_in = p_in * (*yp);
+
+//	double px_in = p_in * (*xp) * CLHEP::GeV;
+//	double py_in = p_in * (*yp) * CLHEP::GeV;
 
 	G4Stuff in_particle;
 	in_particle.x = x_in;

@@ -3108,17 +3108,22 @@ subroutine collimate_do_collimator(stracki)
 !! Rotate particles in the frame of the collimator
 !! There is more precision if we do it here rather
 !! than in the g4 geometry
+
+            if(g4_debug .eqv. .true.) then
+              write(lout,*) 'g4 sending particle: ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j)
+            end if
+
             x_tmp = rcx(j)
             y_tmp = rcy(j)
             xp_tmp = rcxp(j)
             yp_tmp = rcyp(j)
-            rcx(j) = x_tmp*cos_mb(c_rotation) +sin_mb(c_rotation)*y_tmp
-            rcy(j) = y_tmp*cos_mb(c_rotation) -sin_mb(c_rotation)*x_tmp
-            rcxp(j) = xp_tmp*cos_mb(c_rotation)+sin_mb(c_rotation)*yp_tmp
-            rcyp(j) = yp_tmp*cos_mb(c_rotation)-sin_mb(c_rotation)*xp_tmp
+            rcx(j) =  x_tmp *cos_mb(c_rotation) - sin_mb(c_rotation)*y_tmp
+            rcy(j) =  y_tmp *cos_mb(c_rotation) + sin_mb(c_rotation)*x_tmp
+            rcxp(j) = xp_tmp*cos_mb(c_rotation) - sin_mb(c_rotation)*yp_tmp
+            rcyp(j) = yp_tmp*cos_mb(c_rotation) + sin_mb(c_rotation)*xp_tmp
 
 !! Add all particles
-!            write(lout,*) 'adding particle: ', pdgid(j), nucm(j), rcp(j)
+
             call g4_add_particle(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nzz(j), naa(j), nqq(j), nucm(j))
 !!!!          end if
 
@@ -3154,10 +3159,10 @@ subroutine collimate_do_collimator(stracki)
             y_tmp   = rcy(j)
             xp_tmp  = rcxp(j)
             yp_tmp  = rcyp(j)
-            rcx(j)  = x_tmp *cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*y_tmp
-            rcy(j)  = y_tmp *cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*x_tmp
-            rcxp(j) = xp_tmp*cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*yp_tmp
-            rcyp(j) = yp_tmp*cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*xp_tmp
+            rcx(j)  = x_tmp *cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*y_tmp
+            rcy(j)  = y_tmp *cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*x_tmp
+            rcxp(j) = xp_tmp*cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*yp_tmp
+            rcyp(j) = yp_tmp*cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*xp_tmp
 
 ! This needs fixing - FIXME
             sigmv(j) = zero
@@ -3198,6 +3203,11 @@ subroutine collimate_do_collimator(stracki)
 !              rcy(j) = 99.99e-3_fPrec
 !              g4_lostc = g4_lostc + 1
 !            end if
+
+            if(g4_debug .eqv. .true.) then
+              write(lout,*) 'g4 return particle:  ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j)
+            end if
+
           flush(lout)
 !!!!          end if !part_abs_pos(j) .ne. 0 .and. part_abs_turn(j) .ne. 0
         end do   !do j = 1, napx
