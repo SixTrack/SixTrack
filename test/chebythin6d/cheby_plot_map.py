@@ -1,9 +1,9 @@
 '''
 color code of points:
-- black: outside R (check);
-- colored: inside R (check);
-- magenta: outside R (check) but wronlgy labelled as inside;
-- cyan: inside R (check) but wronlgy labelled as outside;
+- black: outside R2 or inside R1 (check);
+- colored: inside R2 and outside R1 (check);
+- magenta: outside R2 or inside R1 (check) but wronlgy labelled as inside;
+- white: inside R2 and outside R1 (check) but wronlgy labelled as outside;
 '''
 
 import matplotlib.pyplot as plt
@@ -13,7 +13,8 @@ chebyNames=['cheby1','cheby2','cheby3','cheby4']
 coords=['local','map']
 offx=[0,-2, 2,0]
 offy=[0, 2,-2,0]
-R=6.4 # [mm]
+R1=[1.0,0.7,1.5,0.4] # [mm]
+R2=[6.4,6.4,6.0,6.4] #[mm]
 nRows=nCols=round(len(chebyNames)/2.)
 
 pc=450E3 # [MeV]
@@ -28,23 +29,24 @@ for jj in range(len(chebyNames)):
   ids_in=np.where(mapIn[:,5]!=0)[0]   # flagged as in by 6T
   ids_out=np.where(mapIn[:,5]==0)[0]  # flagged as out by 6T
   rr=np.sqrt((mapIn[:,0]-offx[jj])**2+(mapIn[:,1]-offy[jj])**2)
-  idc_in=np.where(rr<R)[0]    # actually in
-  idc_out=np.where(rr>=R)[0]  # actually out
+  idc_in=np.where(np.logical_and(rr>=R1[jj],rr< R2[jj]))[0]
+  idc_out=np.where(np.logical_or(rr< R1[jj],rr>=R2[jj]))[0]
 
   for ii in range(len(coords)):
     plt.subplot(nRows,nCols*len(coords),ii+jj*len(coords)+1)
     plt.scatter(mapIn[:,0+ii*2][idc_out],mapIn[:,1+ii*2][idc_out],c='k',edgecolors='none')#, vmin=-3E-11, vmax=3E11)
     if ( len(idc_out)!=0 ):
-      if ( np.max(mapIn[:,5][idc_out])!=0 ):
-        print ' in map of lens %s there are some points wrongly identified as belonging to domain defined by ref radius %g when they are not... '%(chebyNames[jj],R)
-        idrr=np.where(mapIn[:,5][idc_out]!=0)[0]
+      idrr=np.where(mapIn[:,5][idc_out]!=0)[0]
+      if (len(idrr)>0):
+        print ' in map of lens %s there are some points wrongly identified as belonging to domain defined by radii [%g,%g) when they are not... '%(chebyNames[jj],R1[jj],R2[jj])
         plt.scatter(mapIn[:,0+ii*2][idc_out][idrr],mapIn[:,1+ii*2][idc_out][idrr],c='m',edgecolors='none')#, vmin=-3E-11, vmax=3E11)
     if ( len(idc_in)!=0 ):
-      if ( np.max(mapIn[:,5][idc_in])==0 ):
-        print ' in map of lens %s there are some points wrongly identified as outside domain defined by ref radius %g when they are not... '%(chebyNames[jj],R)
-        idrr=np.where(mapIn[:,5][idc_in]!=0)[0]
-        plt.scatter(mapIn[:,0+ii*2][idc_in][idrr],mapIn[:,1+ii*2][idc_in][idrr],c='c',edgecolors='none')#, vmin=-3E-11, vmax=3E11)
-    plt.scatter(mapIn[:,0+ii*2][idc_in],mapIn[:,1+ii*2][idc_in],c=mapIn[:,4][idc_in],edgecolors='none')#, vmin=-3E-11, vmax=3E11)
+      idrr=np.where(mapIn[:,5][idc_in]==0)[0]
+      if (len(idrr)>0):
+        print ' in map of lens %s there are some points wrongly identified as outside domain defined by ref radii [%g,%g) when they are not... '%(chebyNames[jj],R1[jj],R2[jj])
+        plt.scatter(mapIn[:,0+ii*2][idc_in][idrr],mapIn[:,1+ii*2][idc_in][idrr],c='w',edgecolors='none')#, vmin=-3E-11, vmax=3E11)
+    idrr=np.where(mapIn[:,5][idc_in]!=0)[0]
+    plt.scatter(mapIn[:,0+ii*2][idc_in][idrr],mapIn[:,1+ii*2][idc_in][idrr],c=mapIn[:,4][idc_in][idrr],edgecolors='none')#, vmin=-3E-11, vmax=3E11)
     plt.xlabel('x [mm]')
     plt.ylabel('y [mm]')
     plt.axis('equal')
