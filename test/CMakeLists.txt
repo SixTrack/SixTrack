@@ -79,6 +79,7 @@ list(APPEND SIXTRACK_TESTS
   elensidealthin6d_ions
   elensidealthin6d_ramp_DYNK
   chebythin6d
+  chebythin6d_DYNK
   eric
   exact
   fcc
@@ -468,6 +469,7 @@ set(FAST_TESTS
   elensidealthin6d_ions
   elensidealthin6d_ramp_DYNK
   chebythin6d
+  chebythin6d_DYNK
   exact
   fcc
   frs_da
