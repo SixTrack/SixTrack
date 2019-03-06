@@ -80,6 +80,6 @@ for jj in range(len(chebyNames)):
           plt.clim(-20,20)
       plt.title('%s - %s [%s]'%(chebyNames[jj],kicks[ii],label))
   else:
-    print 'x or y has been changed in %s / %s - elens should only change xp,yp'%('CHEBY_DUMP_%s'%fnin,'CHEBY_DUMP_%s'%fnout)
+    print 'x or y has been changed in %s / %s - Chebyshev lens should only change xp,yp'%('CHEBY_DUMP_%s'%fnin,'CHEBY_DUMP_%s'%fnout)
   
 plt.show()
