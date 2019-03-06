@@ -55,6 +55,8 @@ list(APPEND SIXTRACK_TESTS
   beam-HO_LR-oldstyle
   beambeam4dDYNK
   beambeamDYNK
+  chebythin6d
+  chebythin6d_DYNK
   collimation_k2_fcc_2017_h1_collision
   crabs
   dipedge
@@ -78,8 +80,6 @@ list(APPEND SIXTRACK_TESTS
   elensidealthin6d_DYNK
   elensidealthin6d_ions
   elensidealthin6d_ramp_DYNK
-  chebythin6d
-  chebythin6d_DYNK
   eric
   exact
   fcc
@@ -220,6 +220,8 @@ set(TESTS_NOFORT10
 
 # List of tests that do not produce singletrackfile.dat or fort.90
 set(TESTS_NO_STF_FORT90
+  chebythin6d
+  chebythin6d_DYNK
   collimation_k2_fcc_2017_h1_collision
   crabs
   dipedge
@@ -443,6 +445,8 @@ set(FAST_TESTS
   beam-HO_LR-oldstyle
   beambeam4dDYNK
   beambeamDYNK
+  chebythin6d
+  chebythin6d_DYNK
   crabs
   dump_2_all_ele_highprec
   dump_all_highprec
@@ -468,8 +472,6 @@ set(FAST_TESTS
   elensidealthin6d_DYNK_ZIPF
   elensidealthin6d_ions
   elensidealthin6d_ramp_DYNK
-  chebythin6d
-  chebythin6d_DYNK
   exact
   fcc
   frs_da
