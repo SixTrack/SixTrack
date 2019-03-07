@@ -287,6 +287,16 @@ void settasmatrix_(double tas[6][6]){
 			dist->tas[i][j] = tas[i][j];
 		}
 	}
+	printmatrix(6,6, dist->tas);
+}
+
+void settasmatrixpython(double **tas){
+		for(int i =0; i< dim; i++){
+		for(int j =0; j< dim; j++){
+			dist->tas[i][j] = tas[i][j];
+		}
+	}
+	printmatrix(6,6, dist->tas);
 }
 
 void getcoordvectors_(double *x, double *xp, double *y, double *yp, double *sigma, double *delta){
@@ -399,7 +409,7 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 
 }
 
-void createtas0coupling_(double betax, double alfax, double betay, double alfay){
+void createtas0coupling_(double betax, double alfax, double betay, double alfay, double dx, double dpx, double dy, double dpy){
 
 	    for (int i = 0; i < 6; i++)
     {
@@ -411,9 +421,20 @@ void createtas0coupling_(double betax, double alfax, double betay, double alfay)
     }
 
     dist->tas[0][0] = sqrt(betax);
+    dist->tas[1][0] =-(alfax)/sqrt(betax);
+    dist->tas[1][1] =-1/sqrt(betax);
     dist->tas[2][2] = sqrt(betay);
-    dist->tas[1][2] =-alfax/sqrt(betax);
-    dist->tas[4][3] =-alfay/sqrt(betay);
+    dist->tas[3][2] =-alfay/sqrt(betay);
+    dist->tas[3][3] =-(1)/sqrt(betay);
+
+    dist->tas[0][5] = dx;
+    dist->tas[1][5] = dpx;
+
+	dist->tas[2][5] = dy;
+    dist->tas[3][5] = dpy;
+
+
+    printmatrix(dim,dim, dist->tas);
 
 }
 
@@ -439,3 +460,4 @@ int checkdist(){
 	return 1;
 
 }
+
