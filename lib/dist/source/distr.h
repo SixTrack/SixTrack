@@ -11,6 +11,7 @@ struct distparam
 	double **distout;
 	int isDistrcalculated;
 	int longitunalemittance; // 0 - no longitudnal, 1 - e3, 2 - dp, 3 - deltas
+	struct appliedcut* cuts2apply;
 };
 
 struct parameters
@@ -27,7 +28,18 @@ struct emittances{
 	double dp, deltas;
 };
 
+struct appliedcut{
+	int isset_p;
+	int isset_n;
+	struct cut** physical;
+	struct cut** normalized;
+};
 
+struct cut{
+	int isset;
+	double min;
+	double max;
+};
 
 void setdistribution_(int *ndist);
 int getnumberdist_();
@@ -52,3 +64,5 @@ void change_e3_to_dp(double cancord[6],double acoord[6], double acangl[6]);
 void change_e3_to_dp_easy(double cancord[6], double acoord[6], double acangl[6]);
 double optideltas (double cancord[6], double acoord[6], double acangl[6], double x);
 double toactioncord_(double cancord[6], double acoord[6], double acangl[6]);
+void setphysicalcut(int variable, double min, double max);
+int particle_within_limits_physical(double *physical);

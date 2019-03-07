@@ -230,6 +230,9 @@ void initializedistribution_(int *numberOfDist, int *dimension){
 		struct parameters para_tmp;
 		(dist + i)->coord = (struct parameters**)malloc(dim*sizeof(struct parameters*));
 		(dist + i)->emitt = (struct emittances*)malloc(sizeof(struct emittances));
+		(dist + i)->cuts2apply = (struct appliedcut*)malloc(sizeof(struct appliedcut));
+		(dist + i)->cuts2apply->physical = (struct cut**)malloc(dim*sizeof(struct cut*));
+		(dist + i)->cuts2apply->normalized = (struct cut**)malloc(dim*sizeof(struct cut*));
 		(dist + i)->tas   = (double**)malloc(dim*sizeof(double*));
 		(dist + i)->invtas   = (double**)malloc(dim*sizeof(double*));
 		(dist + i)->closedorbit   = (double*)malloc(dim*sizeof(double));
@@ -252,6 +255,8 @@ void initializedistribution_(int *numberOfDist, int *dimension){
 		
 		for(int j=0; j<dim; j++)
 		{
+			(dist + i)->cuts2apply->physical[j] = (struct cut*)malloc(sizeof(struct cut));
+			(dist + i)->cuts2apply->normalized[j] = (struct cut*)malloc(sizeof(struct cut));
 			(dist +i)->coord[j] = (struct parameters*)malloc(sizeof(struct parameters));
 			(dist +i)->coord[j]->start=0;
 			(dist +i)->coord[j]->stop=0;
@@ -334,11 +339,14 @@ void dist2sixcoord_(){
 							tc[4]=dist->coord[4]->values[m]+dist->closedorbit[4];
 							tc[5]=dist->coord[5]->values[n]+dist->closedorbit[5];
 							action2sixinternal_(tc, tmp);
-							for(int p=0; p<dim; p++){
-								dist->distout[counter][p] = tmp[p];
+							
+							if(particle_within_limits_physical(tmp)==1){
+								for(int p=0; p<dim; p++){
+									dist->distout[counter][p] = tmp[p];
+								}
+								counter++;
 							}
 							
-							counter++;
 							
 						}
 					}
@@ -365,6 +373,33 @@ void getcoord_(double *coordinate, int *initial ){
 	for(int i=0; i<dim; i++){
 		coordinate[i] = dist->distout[*initial][i];
 	}
+}
+
+int particle_within_limits_physical(double *physical){
+	
+	if(dist->cuts2apply->isset_p==0) return 1;
+	for(int i=0; i<dim; i++){
+		if(dist->cuts2apply->physical[i]->isset==1){
+			if(physical[i] > dist->cuts2apply->physical[i]->min && physical[i] < dist->cuts2apply->physical[i]->max) return 0;
+		}	
+	}
+	
+	return 1;
+
+}
+
+void setphysicalcut(int variable, double min, double max){
+	printf("heeereeeaaaaaaaaaaaa1111 \n");
+	dist->cuts2apply->isset_p=1;
+	dist->cuts2apply->physical[variable-1]->min=min;
+	dist->cuts2apply->physical[variable-1]->max=max;
+	dist->cuts2apply->physical[variable-1]->isset=1;
+	printf("heeereeeaaaaaaaaaaaa");
+
+}
+
+void cutnormalized(int variable, double min, double max){
+
 }
 
 void setmassmom_(double *mass, double *momentum){
@@ -433,10 +468,11 @@ void createtas0coupling_(double betax, double alfax, double betay, double alfay,
 	dist->tas[2][5] = dy;
     dist->tas[3][5] = dpy;
 
-
     printmatrix(dim,dim, dist->tas);
 
 }
+
+
 
 void action2sixinternal_(double tc[6], double *results){
 	double cancord[6];

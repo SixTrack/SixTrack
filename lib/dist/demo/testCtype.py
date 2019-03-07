@@ -50,7 +50,7 @@ dist.initializedistribution_(byref(dim), byref(dim))
 print("initial")
 # Set the tas matrix 
 #dist.settasmatrixpython(ptr)
-dist.createtas0coupling_(c_double(betx),c_double(alfx),c_double(bety),c_double(alfy))
+#dist.createtas0coupling_(c_double(betx),c_double(alfx),c_double(bety),c_double(alfy))
 # Set the emittance
 dist.setemittance12_(byref(e1),byref(e2))
 dist.setemittance3_(byref(dp))
@@ -77,6 +77,7 @@ for i in range(0, len(thdeg)):
 
 xa = []
 y = []
+
 for i in range(0,10000):
 	dist.createrandom(acoord, physical)
 	xa.append(physical[0])
@@ -92,8 +93,8 @@ count = 0
 for i in range(0,10000):
 	if(numpy.sqrt(xa[i]**2+y[i]**2) <3):
 		count = count+1
-print(count/10000)
-plt.show()
+dist.setphysicalcut(dim, e1, e2)
+
 #plt.hist(y,bins=50)
 #plt.show()
 
