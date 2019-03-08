@@ -30,13 +30,14 @@ dist = cdll.LoadLibrary("./buildDemo/libhello.so")
 #dist.printmatrix(dim, dim, ptr)
 
 dim = c_int(6)
+zero = c_double(0)
 e1 = c_double(1.0)
 e2 = c_double(1.0)
 e3 = c_double(1.0)
 dp = c_double(0.0000)
 pia2 = c_double(numpy.pi*2)
-betx=1
-alfx= 0
+betx=10
+alfx= -10
 bety=1
 alfy= 0
 momentum = c_double(4000)
@@ -50,7 +51,7 @@ dist.initializedistribution_(byref(dim), byref(dim))
 print("initial")
 # Set the tas matrix 
 #dist.settasmatrixpython(ptr)
-#dist.createtas0coupling_(c_double(betx),c_double(alfx),c_double(bety),c_double(alfy))
+dist.createtas0coupling_(c_double(betx),c_double(alfx),c_double(bety),c_double(alfy), zero, zero, zero, zero)
 # Set the emittance
 dist.setemittance12_(byref(e1),byref(e2))
 dist.setemittance3_(byref(dp))
@@ -66,7 +67,7 @@ x = []
 xp = []
 beta= betx
 alfa =alfx
-eps = 3*1#2*numpy.pi
+eps = 1.0
 for i in range(0, len(thdeg)):
 	teta.append(thdeg[i])
 	x.append(numpy.sqrt(eps*beta)*numpy.cos(teta[i]))
@@ -77,7 +78,6 @@ for i in range(0, len(thdeg)):
 
 xa = []
 y = []
-
 for i in range(0,10000):
 	dist.createrandom(acoord, physical)
 	xa.append(physical[0])
@@ -88,15 +88,9 @@ plt.plot(xa,y, '.')
 plt.plot(x,xp)
 print(numpy.mean(numpy.array(xa)**2))
 print(numpy.mean(numpy.array(xa)*numpy.array(y)))
-print(numpy.std(numpy.array(xa)))
-count = 0 
-for i in range(0,10000):
-	if(numpy.sqrt(xa[i]**2+y[i]**2) <3):
-		count = count+1
-dist.setphysicalcut(dim, e1, e2)
-
-#plt.hist(y,bins=50)
 #plt.show()
+#plt.hist(y,bins=50)
+plt.show()
 
 
 #dim_c = c_int(6)

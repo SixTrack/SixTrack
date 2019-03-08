@@ -13,3 +13,4 @@ void printvector(const char* name, int dim, double* vector);
 void bisection(double *x, double a, double b, int *itr);
 void hello();
 double randn(double mu, double sigma);
+double rand_uni();

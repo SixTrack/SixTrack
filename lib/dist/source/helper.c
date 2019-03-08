@@ -316,3 +316,10 @@ double randn(double mu, double sigma)
  
   return (mu + sigma * (double) X1);
 }
+
+double rand_uni( )
+{
+  double low = 0; 
+  double high = 1;
+  return ( (double)rand() * ( high - low ) ) / (double)RAND_MAX + low;
+}

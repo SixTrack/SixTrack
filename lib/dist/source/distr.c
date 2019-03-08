@@ -332,22 +332,16 @@ void dist2sixcoord_(){
 					for(int m =0; m< dist->coord[4]->length; m++){
 						for(int n =0; n< dist->coord[5]->length; n++){
 							dist->distout[counter] = (double*)malloc(dim*sizeof(double));
-							tc[0]=dist->coord[0]->values[i]+dist->closedorbit[0];
-							tc[1]=dist->coord[1]->values[j]+dist->closedorbit[1];
-							tc[2]=dist->coord[2]->values[k]+dist->closedorbit[2];
-							tc[3]=dist->coord[3]->values[l]+dist->closedorbit[3];
-							tc[4]=dist->coord[4]->values[m]+dist->closedorbit[4];
-							tc[5]=dist->coord[5]->values[n]+dist->closedorbit[5];
+
 							action2sixinternal_(tc, tmp);
 							
 							if(particle_within_limits_physical(tmp)==1){
 								for(int p=0; p<dim; p++){
-									dist->distout[counter][p] = tmp[p];
+									dist->distout[counter][p] = tmp[p]+dist->closedorbit[p];
 								}
 								counter++;
 							}
-							
-							
+														
 						}
 					}
 				}
@@ -389,14 +383,21 @@ int particle_within_limits_physical(double *physical){
 }
 
 void setphysicalcut(int variable, double min, double max){
-	printf("heeereeeaaaaaaaaaaaa1111 \n");
 	dist->cuts2apply->isset_p=1;
 	dist->cuts2apply->physical[variable-1]->min=min;
 	dist->cuts2apply->physical[variable-1]->max=max;
 	dist->cuts2apply->physical[variable-1]->isset=1;
-	printf("heeereeeaaaaaaaaaaaa");
 
 }
+
+void setnormalizedcut(int variable, double min, double max){
+	dist->cuts2apply->isset_p=1;
+	dist->cuts2apply->normalized[variable-1]->min=min;
+	dist->cuts2apply->normalized[variable-1]->max=max;
+	dist->cuts2apply->normalized[variable-1]->isset=1;
+
+}
+
 
 void cutnormalized(int variable, double min, double max){
 
@@ -440,6 +441,11 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 		
 		}
 
+	}
+	if(*type==4){ // uniform random 
+		createLinearSpaced(*length, *start, *stop,dist->coord[*index-1]->values);
+		for(int i=0;i <*length; i++){
+			dist->coord[*index-1]->values[i] = rand_uni(*start, *stop)
 	}
 
 }
