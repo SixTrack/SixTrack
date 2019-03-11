@@ -228,15 +228,15 @@ subroutine dump_parseInputLine(inLine,iErr)
     return
   end if
 
-  if(nSplit < 4 .or. nSplit > 7 .or. nSplit  ==  6) then
+  if(nSplit < 4 .or. nSplit > 7 .or. nSplit == 6) then
     write(lout,"(a,i0)") "DUMP> ERROR Expected 4 to 7 (but not 6) arguments, got ",nSplit
     write(lout,"(a)")   ("DUMP>     * '"//trim(lnSplit(kk))//"' ",kk=1,nSplit)
     iErr = .true.
     return
   end if
 
-  if(len(lnSplit(1)) > mNameLen) then
-    write(lout,"(a,i0,a)") "DUMP> ERROR Element names are max. ",mNameLen," characters"
+  if(len_trim(lnSplit(1)) > mNameLen) then
+    write(lout,"(2(a,i0))") "DUMP> ERROR Element names can be up to ",mNameLen," characters, got ",len_trim(lnSplit(1))
     iErr = .true.
     return
   end if
@@ -247,6 +247,11 @@ subroutine dump_parseInputLine(inLine,iErr)
   call chr_cast(lnSplit(4),i3,spErr)
   if(nSplit >= 5) then
     fileName = trim(lnSplit(5))
+    if(len_trim(lnSplit(5)) > mFileName) then
+      write(lout,"(2(a,i0))") "DUMP> ERROR File names can be up to ",mFileName," characters, got ",len_trim(lnSplit(5))
+      iErr = .true.
+      return
+    end if
   end if
   if(nSplit == 7) then
     call chr_cast(lnSplit(6),i4,spErr)
