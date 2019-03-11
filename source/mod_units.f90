@@ -408,8 +408,8 @@ end subroutine f_flush
 ! ================================================================================================ !
 subroutine f_writeLog(action,unit,status,file)
 
+  use parpro
   use floatPrecision
-  use string_tools
 
   character(len=*), intent(in) :: action
   integer,          intent(in) :: unit
@@ -420,12 +420,19 @@ subroutine f_writeLog(action,unit,status,file)
   character(len=8)         wAction
   character(len=8)         wStatus
   character(len=mFileName) wFile
+  integer                  cFile
 
   if(units_logUnit <= 0) return ! Only write if we have a log file open
 
   wAction = action
   wStatus = status
-  wFile   = chr_baseName(file)
+
+  cFile = len_trim(file)
+  if(cFile > mFileName) then
+    wFile = "[...]"//file(cFile-mFileName+5:cFile)
+  else
+    wFile = file
+  end if
 
   call cpu_time(cpuTime)
   write(units_logUnit,"(f10.3,2x,a8,2x,i4,2x,a8,2x,a)") cpuTime,adjustl(wAction),unit,adjustl(wStatus),adjustl(wFile)

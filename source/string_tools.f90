@@ -14,7 +14,6 @@ module string_tools
 
   implicit none
 
-  public chr_baseName
   public str_strip, chr_strip, chr_trimZero
   public str_stripQuotes, chr_stripQuotes
   public str_sub, chr_expandBrackets
@@ -256,34 +255,6 @@ subroutine chr_scanString(theString, theMask, maxLen, nValues, nIndent, hasErr)
   nValues = nVl
 
 end subroutine chr_scanString
-
-! ================================================================================================ !
-!  Extract file name from path
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Created: 2019-02-19
-! ================================================================================================ !
-function chr_baseName(pathName) result(fileName)
-
-  character(len=*), intent(in)  :: pathName
-  character(len=mFileName) :: fileName
-  integer iC, iS, iE
-
-  iS = 1
-  iE = len_trim(pathName)
-  do iC=iE,1,-1
-    if(pathName(iC:iC) == "/" .or. pathName(iC:iC) == "\") then
-      iS = iC + 1
-      exit
-    end if
-  end do
-
-  if(iE-iS > mFileName) then
-    fileName = pathName(iS:iS+mFileName)
-  else
-    fileName = pathName(iS:iE)
-  end if
-
-end function chr_baseName
 
 ! ================================================================================================ !
 !  Expand Brackets
