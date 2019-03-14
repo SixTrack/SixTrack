@@ -128,12 +128,6 @@ module mod_common
   real(kind=fPrec),  parameter :: ylim       = 4.29_fPrec             ! Used in errf
   real(kind=fPrec),  parameter :: eps_dcum   = c1m6                   ! Tolerance for machine length mismatch [m]
 
-  ! Pi Constants
-  real(kind=fPrec),  save      :: pi2        = half*pi
-  real(kind=fPrec),  save      :: twopi      = two*pi
-  real(kind=fPrec),  save      :: pisqrt     = sqrt(pi)
-  real(kind=fPrec),  save      :: rad        = pi/c180e0
-
   ! Various Flags and Variables
   character(len=80), save      :: toptit(5)  = " "     ! DANGER: If the len changes, CRCHECK will break
   character(len=80), save      :: sixtit     = " "     ! DANGER: If the len changes, CRCHECK will break
@@ -1180,7 +1174,7 @@ module mod_lie_dab
   integer,          save :: nplane(ndim),ista(ndim),idsta(ndim)
   integer,          save :: mx(ndim,nreso),nres
   real(kind=fPrec), save :: epsplane,xplane(ndim)
-  real(kind=fPrec), save :: sta(ndim),dsta(ndim),angle(ndim),rad(ndim)
+  real(kind=fPrec), save :: sta(ndim),dsta(ndim),angle(ndim),radn(ndim)
   real(kind=fPrec), save :: ps(ndim),rads(ndim)
   real(kind=fPrec), save :: xintex(0:20)
 
