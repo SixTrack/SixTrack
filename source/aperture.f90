@@ -66,11 +66,11 @@ module aperture
   ! dump aperture profile:
   logical, save :: ldmpaper=.false.                   ! dump or not
   integer, save :: aperunit=-1                        ! fortran unit
-  character(len=mFNameLen), save :: aper_filename=' ' ! file name
+  character(len=mFileName), save :: aper_filename=' ' ! file name
   logical, save :: ldmpaperMem=.false.                ! dump aperture marker parameters as in memory
   ! File for aperture losses
   integer, save :: losses_unit=-1                                                 ! unit
-  character(len=mFNameLen), parameter :: losses_filename="aperture_losses.dat"    ! name
+  character(len=mFileName), parameter :: losses_filename="aperture_losses.dat"    ! name
 
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
   ! last modified: 02-03-2018
@@ -99,7 +99,7 @@ module aperture
   integer, save :: mxsec=0                         ! current number of requested x-secs
   integer, parameter :: nxsec=10                   ! max number of requested x-secs
   integer, save :: xsecunit(nxsec)=-1              ! fortran units
-  character(len=mFNameLen), save :: xsec_filename(nxsec)=' '! file names
+  character(len=mFileName), save :: xsec_filename(nxsec)=' '! file names
   real(kind=fPrec), save :: sLocMin(nxsec)=zero    ! locations
   real(kind=fPrec), save :: sLocMax(nxsec)=zero    ! locations
   real(kind=fPrec), save :: sLocDel(nxsec)=zero    ! locations

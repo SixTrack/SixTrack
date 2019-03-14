@@ -18,7 +18,7 @@ contains
 subroutine fma_allocate
   use mod_alloc
   use parpro
-  call alloc(fma_fname,  mFNameLen, fma_max, " ", "fma_fname")
+  call alloc(fma_fname,  mFileName, fma_max, " ", "fma_fname")
   call alloc(fma_method, mStrLen,   fma_max, " ", "fma_method")
   call alloc(fma_first,             fma_max, 0,   "fma_first")
   call alloc(fma_last,              fma_max, 0,   "fma_last")

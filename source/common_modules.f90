@@ -30,9 +30,10 @@ module parpro
   integer, parameter :: nbb   = 500       ! Beam-beam lenses
   integer, parameter :: nelb  = 280       ! Maximum elements per BLOC
 
-  ! Maximum length of element names
+  ! Maximum length of strings
   integer, parameter :: mNameLen  = 48    ! Maximum length of element names. Keep in sync with MadX
-  integer, parameter :: mFNameLen = 64    ! Maximum length of file names
+  integer, parameter :: mFileName = 64    ! Maximum length of file names
+  integer, parameter :: mPathName = 255   ! Maximum length of path names
   integer, parameter :: mStrLen   = 161   ! Standard string length
   integer, parameter :: mDivLen   = 132   ! Length of lout output lines
   integer, parameter :: mInputLn  = 1600  ! Buffer size for single lines read from input files
