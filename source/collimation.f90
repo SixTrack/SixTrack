@@ -217,21 +217,27 @@ module collimation
 !  common  /icoll/  icoll
 
   ! Collimator Database
-  integer,                       save :: db_ncoll       ! Number of collimators
+  integer,                       private, save :: db_ncoll = 0   ! Number of collimators
 
-  character(len=:), allocatable, save :: db_name1(:)    ! (mNameLen)(db_ncoll)
-  character(len=:), allocatable, save :: db_name2(:)    ! (mNameLen)(db_ncoll)
-  character(len=:), allocatable, save :: db_material(:) ! (4)(db_ncoll)
+  character(len=:), allocatable, private, save :: db_name1(:)    ! (mNameLen)(db_ncoll)
+  character(len=:), allocatable, private, save :: db_name2(:)    ! (mNameLen)(db_ncoll)
+  character(len=:), allocatable, private, save :: db_material(:) ! (4)(db_ncoll)
 
-  real(kind=fPrec), allocatable, save :: db_nsig(:)     ! (db_ncoll)
-  real(kind=fPrec), allocatable, save :: db_length(:)   ! (db_ncoll)
-  real(kind=fPrec), allocatable, save :: db_offset(:)   ! (db_ncoll)
-  real(kind=fPrec), allocatable, save :: db_rotation(:) ! (db_ncoll)
-  real(kind=fPrec), allocatable, save :: db_bx(:)       ! (db_ncoll)
-  real(kind=fPrec), allocatable, save :: db_by(:)       ! (db_ncoll)
-  real(kind=fPrec), allocatable, save :: db_tilt(:,:)   ! (db_ncoll,2)
+  real(kind=fPrec), allocatable, private, save :: db_nsig(:)     ! (db_ncoll)
+  real(kind=fPrec), allocatable, private, save :: db_length(:)   ! (db_ncoll)
+  real(kind=fPrec), allocatable, private, save :: db_offset(:)   ! (db_ncoll)
+  real(kind=fPrec), allocatable, private, save :: db_rotation(:) ! (db_ncoll)
+  real(kind=fPrec), allocatable, private, save :: db_bx(:)       ! (db_ncoll)
+  real(kind=fPrec), allocatable, private, save :: db_by(:)       ! (db_ncoll)
+  real(kind=fPrec), allocatable, private, save :: db_tilt(:,:)   ! (db_ncoll,2)
 
+  logical,          allocatable, private, save :: coll_found(:)  ! (db_ncoll)
+  integer,          allocatable, private, save :: db_elemMap(:)  ! (nele)
 
+  ! Collimator Families
+  integer,                       private, save :: coll_nfam  = 0     ! Number of collimator families
+  character(len=:), allocatable, private, save :: coll_family(:)     ! (16)(coll_nfam)
+  real(kind=fPrec), allocatable, private, save :: coll_nSigFamily(:) ! (coll_nfam)
 
   integer, allocatable, save :: cn_impact(:)  !(max_ncoll)
   integer, allocatable, save :: cn_absorbed(:) !(max_ncoll)
@@ -303,7 +309,6 @@ module collimation
 ! common  /remit/ remitx_dist, remity_dist,remitx_collgap,remity_collgap
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
-  logical, save :: coll_found(100)
 
 
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -772,7 +777,7 @@ subroutine collimation_allocate_arrays
   implicit none
 
   ! Initial allocation handled by expand arrays routine
-  call collimation_expand_arrays(npart,nblz)
+  call collimation_expand_arrays(npart,nblz,nele)
 
   ! Fixed allocations follow:
   call alloc(gap_rms_error, max_ncoll, zero, "gap_rms_error") !(max_ncoll)
@@ -807,16 +812,6 @@ subroutine collimation_allocate_arrays
 
   call alloc(neffx, numeff, zero, "neffx") !(numeff)
   call alloc(neffy, numeff, zero, "neffy") !(numeff)
-  call alloc(db_name1, mNameLen, max_ncoll, ' ', "db_name1") !(max_ncoll)
-  call alloc(db_name2, mNameLen, max_ncoll, ' ', "db_name2") !(max_ncoll)
-  call alloc(db_material, 4, max_ncoll, '    ', "db_material") !(max_ncoll)
-  call alloc(db_nsig, max_ncoll, zero, "db_nsig") !(max_ncoll)
-  call alloc(db_length, max_ncoll, zero, "db_length") !(max_ncoll)
-  call alloc(db_offset, max_ncoll, zero, "db_offset") !(max_ncoll)
-  call alloc(db_rotation, max_ncoll, zero, "db_rotation") !(max_ncoll)
-  call alloc(db_bx, max_ncoll, zero, "db_bx") !(max_ncoll)
-  call alloc(db_by, max_ncoll, zero, "db_by") !(max_ncoll)
-  call alloc(db_tilt, max_ncoll, 2, zero, "db_tilt") !(max_ncoll,2)
 
   call alloc(cn_impact, max_ncoll, 0, "cn_impact")  !(max_ncoll)
   call alloc(cn_absorbed, max_ncoll, 0, "cn_absorbed") !(max_ncoll)
@@ -825,18 +820,39 @@ subroutine collimation_allocate_arrays
 
 end subroutine collimation_allocate_arrays
 
-subroutine collimation_expand_arrays(npart_new, nblz_new)
+subroutine collimate_allocDB
+
+  use mod_alloc
+
+  call alloc(db_name1,    mNameLen, db_ncoll,    " ",  "db_name1")
+  call alloc(db_name2,    mNameLen, db_ncoll,    " ",  "db_name2")
+  call alloc(db_material, 4,        db_ncoll,    " ",  "db_material")
+  call alloc(db_nsig,               db_ncoll,    zero, "db_nsig")
+  call alloc(db_length,             db_ncoll,    zero, "db_length")
+  call alloc(db_offset,             db_ncoll,    zero, "db_offset")
+  call alloc(db_rotation,           db_ncoll,    zero, "db_rotation")
+  call alloc(db_bx,                 db_ncoll,    zero, "db_bx")
+  call alloc(db_by,                 db_ncoll,    zero, "db_by")
+  call alloc(db_tilt,               db_ncoll, 2, zero, "db_tilt")
+  call alloc(coll_found,            db_ncoll, .false., "coll_found")
+
+end subroutine collimate_allocDB
+
+subroutine collimation_expand_arrays(npart_new, nblz_new, nele_new)
 
   implicit none
 
   integer, intent(in) :: npart_new
   integer, intent(in) :: nblz_new
+  integer, intent(in) :: nele_new
 
   ! Arrays that are always needed
   call alloc(part_abs_turn, npart_new, 0, "part_abs_turn") !(npart_new)
 
   if(.not. do_coll) return
   ! Arrays that are only needed if Collimation is enabled
+
+  call alloc(db_elemMap, nele_new, -1, "db_elemMap")
 
   call alloc(tbetax,  nblz_new, zero, 'tbetax')  !(nblz)
   call alloc(tbetay,  nblz_new, zero, 'tbetay')  !(nblz)
@@ -1576,7 +1592,7 @@ subroutine collimate_postInput(gammar)
 
   real(kind=fPrec), intent(in) :: gammar
 
-  call collimation_expand_arrays(npart,nblz)
+  call collimation_expand_arrays(npart,nblz,nele)
 
   remitx_dist    = emitnx0_dist*gammar
   remity_dist    = emitny0_dist*gammar
@@ -1874,7 +1890,6 @@ subroutine collimate_start_sample(nsample)
   write(lout,"(a,i0)") "COLL> Number of collimators: ",db_ncoll
   do icoll = 1, db_ncoll
     write(lout,"(a,i5,a)") "COLL> Collimator ",icoll,": "//db_name1(icoll)//" "//db_name2(icoll)
-    coll_found(icoll) = .false.
   end do
   write(lout,"(a)") ""
 
@@ -2226,11 +2241,14 @@ subroutine collimate_readCollDB
 
   use parpro
   use mod_units
+  use mod_common
   use string_tools
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mInputLn) inLine
-  integer dbUnit, ioStat, nLines, nSplit
+  character(len=mNameLen) elemName
+  integer dbUnit, ioStat, nLines, nSplit, collID
+  integer i, j, ix
   logical dbErr, spErr, oldDB
 
   call f_requestUnit(coll_db, dbUnit)
@@ -2264,28 +2282,90 @@ subroutine collimate_readCollDB
 20 continue
   call f_close(dbUnit)
 
+  if(oldDB) then
+    goto 30
+  else
+    goto 40
+  end if
+
 ! ============================================================================ !
 !  Parse old type DB
 ! ============================================================================ !
+30 continue
 
-  if(oldDB) then
-    call readcollimator
-    goto 100
-  end if
+  call readcollimator
+  goto 100
 
 ! ============================================================================ !
 !  Parse new type DB
 ! ============================================================================ !
-
-  
+40 continue
 
 ! ============================================================================ !
-!  Post-processing DB
+!  Post-Processing DB
 ! ============================================================================ !
-
 100 continue
 
+  ! Map single elements to collimators
+  do i=1,iu
+    ix = ic(i)-nblo
+    if(ix < 1) cycle
+
+    elemName = chr_toLower(bez(ix))
+    collID = -1
+    do j=1,db_ncoll
+      if(elemName == db_name2(j)) then
+        collID = j
+        exit
+      end if
+    end do
+
+    if(collID == -1) then
+      write(lout,"(a)") "COLL> WARNING Collimator not found in colldb: '"//trim(bez(ix))//"'"
+    else
+      db_elemMap(ix) = collID
+    end if
+  end do
+
 end subroutine collimate_readCollDB
+
+subroutine collimate_getFamilyID(collFamily, famID, addIfNew)
+
+  use mod_alloc
+  use numerical_constants
+
+  character(len=16), intent(in)  :: collFamily
+  integer,           intent(out) :: famID
+  logical, optional, intent(in)  :: addIfNew
+
+  integer i
+  logical addNew
+
+  if(present(addIfNew)) then
+    addNew = addIfNew
+  else
+    addNew = .false.
+  end if
+
+  famID = -1
+  if(coll_nfam > 0) then
+    do i=1,coll_nfam
+      if(coll_family(i) == collFamily) then
+        famID = i
+        exit
+      end if
+    end do
+  end if
+
+  if(famID == -1 .and. addNew) then
+    coll_nfam = coll_nfam + 1
+    call alloc(coll_family,     16, coll_nfam, " ",  "coll_family")
+    call alloc(coll_nSigFamily,     coll_nfam, c1e3, "coll_nSigFamily")
+    coll_family(coll_nfam) = collFamily
+    famID = coll_nfam
+  end if
+
+end subroutine collimate_getFamilyID
 
 !>
 !! collimate_start_collimator()
@@ -2449,27 +2529,39 @@ subroutine collimate_start_collimator(stracki)
     end if !if(rselect.gt.0 .and. rselect.lt.65) then
   end if !if( firstrun ) then
 
-!GRD HERE WE LOOK FOR ADEQUATE DATABASE INFORMATION
   found = .false.
-
-!     SR, 01-09-2005: to set found = .TRUE., add the condition L>0!!
-  do j = 1, db_ncoll
-    if((db_name1(j)(1:mNameLen).eq.bez(myix)(1:mNameLen)) .or. &
-       (db_name2(j)(1:mNameLen).eq.bez(myix)(1:mNameLen))) then
-      if( db_length(j) .gt. zero ) then
-        found = .true.
-        icoll = j
-        if(firstrun) then
-          coll_found(j) = .TRUE.
-          write(CollPositions_unit,*) j, db_name1(j), totals
-        end if
+  if(db_elemMap(myix) > 0) then
+    icoll = db_elemMap(myix)
+    if(db_length(icoll) > zero) then
+      found = .true.
+      if(firstrun) then
+        coll_found(icoll) = .true.
+        write(CollPositions_unit,*) icoll, db_name1(icoll), totals
       end if
     end if
-  end do
-
-  if(.not. found .and. firstrun .and. iturn.eq.1) then
-    write(lout,"(a)") "COLL> WARNING Collimator not found in colldb: '"//trim(bez(myix))//"'"
   end if
+
+!GRD HERE WE LOOK FOR ADEQUATE DATABASE INFORMATION
+!   found = .false.
+
+! !     SR, 01-09-2005: to set found = .TRUE., add the condition L>0!!
+!   do j = 1, db_ncoll
+!     if((db_name1(j)(1:mNameLen).eq.bez(myix)(1:mNameLen)) .or. &
+!        (db_name2(j)(1:mNameLen).eq.bez(myix)(1:mNameLen))) then
+!       if( db_length(j) .gt. zero ) then
+!         found = .true.
+!         icoll = j
+!         if(firstrun) then
+!           coll_found(j) = .TRUE.
+!           write(CollPositions_unit,*) j, db_name1(j), totals
+!         end if
+!       end if
+!     end if
+!   end do
+
+  ! if(.not. found .and. firstrun .and. iturn.eq.1) then
+  !   write(lout,"(a)") "COLL> WARNING Collimator not found in colldb: '"//trim(bez(myix))//"'"
+  ! end if
 
 end subroutine collimate_start_collimator
 
@@ -7959,6 +8051,7 @@ subroutine readcollimator
 
   read(coll_db_unit,*)
   read(coll_db_unit,*,iostat=ios) db_ncoll
+  call collimate_allocDB
   if(ios.ne.0) then
     write(outlun,*) 'ERR>  Problem reading collimator DB ',ios
     call prror(-1)

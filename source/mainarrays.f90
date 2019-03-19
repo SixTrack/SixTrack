@@ -120,7 +120,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 #ifdef FLUKA
   call fluka_mod_expand_arrays(npart_new, nele_new)
 #endif
-  call collimation_expand_arrays(npart_new, nblz_new)
+  call collimation_expand_arrays(npart_new, nblz_new, nele_new)
 
   ! Update array size variables
   nele  = nele_new
