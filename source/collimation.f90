@@ -216,21 +216,22 @@ module collimation
 !  integer  icoll
 !  common  /icoll/  icoll
 
-!UPGRADE January 2005
-  integer, save :: db_ncoll
+  ! Collimator Database
+  integer,                       save :: db_ncoll       ! Number of collimators
 
-  character(len=:), allocatable, save :: db_name1(:) !(mNameLen)(max_ncoll)
-  character(len=:), allocatable, save :: db_name2(:) !(mNameLen)(max_ncoll)
-  character(len=:), allocatable, save :: db_material(:) !(4)(max_ncoll)
-!APRIL2005
-  real(kind=fPrec), allocatable, save :: db_nsig(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: db_length(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: db_offset(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: db_rotation(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: db_bx(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: db_by(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: db_tilt(:,:) !(max_ncoll,2)
-!  common /colldatabase/ db_nsig,db_length,db_rotation,db_offset,db_bx,db_by,db_tilt,db_name1,db_name2,db_material,db_ncoll
+  character(len=:), allocatable, save :: db_name1(:)    ! (mNameLen)(db_ncoll)
+  character(len=:), allocatable, save :: db_name2(:)    ! (mNameLen)(db_ncoll)
+  character(len=:), allocatable, save :: db_material(:) ! (4)(db_ncoll)
+
+  real(kind=fPrec), allocatable, save :: db_nsig(:)     ! (db_ncoll)
+  real(kind=fPrec), allocatable, save :: db_length(:)   ! (db_ncoll)
+  real(kind=fPrec), allocatable, save :: db_offset(:)   ! (db_ncoll)
+  real(kind=fPrec), allocatable, save :: db_rotation(:) ! (db_ncoll)
+  real(kind=fPrec), allocatable, save :: db_bx(:)       ! (db_ncoll)
+  real(kind=fPrec), allocatable, save :: db_by(:)       ! (db_ncoll)
+  real(kind=fPrec), allocatable, save :: db_tilt(:,:)   ! (db_ncoll,2)
+
+
 
   integer, allocatable, save :: cn_impact(:)  !(max_ncoll)
   integer, allocatable, save :: cn_absorbed(:) !(max_ncoll)
@@ -1341,8 +1342,8 @@ subroutine collimate_init()
   call f_requestUnit('CollPositions.dat', CollPositions_unit)
   open(unit=CollPositions_unit, file='CollPositions.dat')
 
-!++  Read collimator database
-  call readcollimator
+  ! Read collimator database
+  call collimate_readCollDB
 
 !Then do any implementation specific initial loading
 #ifdef COLLIMATE_K2
@@ -2215,6 +2216,76 @@ subroutine collimate_start_sample(nsample)
 
 !GRD NOW WE CAN BEGIN THE LOOPS
 end subroutine collimate_start_sample
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, Be-ABP-HSS
+!  Created: 2019-03-19
+!  Updated: 2019-03-19
+! ================================================================================================ !
+subroutine collimate_readCollDB
+
+  use parpro
+  use mod_units
+  use string_tools
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mInputLn) inLine
+  integer dbUnit, ioStat, nLines, nSplit
+  logical dbErr, spErr, oldDB
+
+  call f_requestUnit(coll_db, dbUnit)
+  call f_open(unit=dbUnit,file=coll_db,formatted=.true.,mode="r",err=dbErr,status="old")
+  if(dbErr) then
+    write(lout,"(a)") "COLL> ERROR Could not open the collimator database file '"//trim(coll_db)//"'"
+    call prror
+  end if
+
+! ============================================================================ !
+!  Check DB Format: New or old, and count number of collimators
+! ============================================================================ !
+
+  nLines = 0
+
+10 continue
+  read(dbUnit,"(a)",end=20) inLine
+  if(inLine(1:1) == "#") goto 10
+  nLines = nLines + 1
+  if(nLines == 1) then
+    ! Check first line to count number of values
+    call chr_split(inLine, lnSplit, nSplit, spErr)
+    if(nSplit > 1) then
+      oldDB = .false. ! New style DB (multi-column)
+    else
+      oldDB = .true.  ! Old style DB (single-column)
+    end if
+  end if
+  goto 10
+
+20 continue
+  call f_close(dbUnit)
+
+! ============================================================================ !
+!  Parse old type DB
+! ============================================================================ !
+
+  if(oldDB) then
+    call readcollimator
+    goto 100
+  end if
+
+! ============================================================================ !
+!  Parse new type DB
+! ============================================================================ !
+
+  
+
+! ============================================================================ !
+!  Post-processing DB
+! ============================================================================ !
+
+100 continue
+
+end subroutine collimate_readCollDB
 
 !>
 !! collimate_start_collimator()
@@ -7879,7 +7950,7 @@ subroutine readcollimator
 !++  Read collimator database
 
   call f_requestUnit(coll_db, coll_db_unit)
-  open(unit=coll_db_unit,file=coll_db, iostat=ios, status="OLD",action="read") !was 53
+  open(unit=coll_db_unit,file=coll_db, iostat=ios, status="old",action="read")
   if(ios.ne.0)then
     write(lout,"(a)")    "COLL> ERROR in subroutine readcollimator: Could not open the file '"//coll_db//"'"
     write(lout,"(a,i0)") "COLL>       Got iostat = ",ios
