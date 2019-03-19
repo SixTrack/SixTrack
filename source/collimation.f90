@@ -223,6 +223,8 @@ module collimation
   character(len=:), allocatable, private, save :: db_name2(:)    ! (mNameLen)(db_ncoll)
   character(len=:), allocatable, private, save :: db_material(:) ! (4)(db_ncoll)
 
+  integer,          allocatable, private, save :: db_family(:)   ! (db_ncoll)
+
   real(kind=fPrec), allocatable, private, save :: db_nsig(:)     ! (db_ncoll)
   real(kind=fPrec), allocatable, private, save :: db_length(:)   ! (db_ncoll)
   real(kind=fPrec), allocatable, private, save :: db_offset(:)   ! (db_ncoll)
@@ -827,6 +829,7 @@ subroutine collimate_allocDB
   call alloc(db_name1,    mNameLen, db_ncoll,    " ",  "db_name1")
   call alloc(db_name2,    mNameLen, db_ncoll,    " ",  "db_name2")
   call alloc(db_material, 4,        db_ncoll,    " ",  "db_material")
+  call alloc(db_family,             db_ncoll,    -1,   "db_family")
   call alloc(db_nsig,               db_ncoll,    zero, "db_nsig")
   call alloc(db_length,             db_ncoll,    zero, "db_length")
   call alloc(db_offset,             db_ncoll,    zero, "db_offset")
@@ -2247,7 +2250,9 @@ subroutine collimate_readCollDB
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mInputLn) inLine
   character(len=mNameLen) elemName
-  integer dbUnit, ioStat, nLines, nSplit, collID
+  character(len=16) cFam
+  real(kind=fPrec)  cNSig
+  integer dbUnit, ioStat, nLines, nSplit, collID, famID
   integer i, j, ix
   logical dbErr, spErr, oldDB
 
@@ -2294,6 +2299,110 @@ subroutine collimate_readCollDB
 30 continue
 
   call readcollimator
+
+  ! Generate family names from DB
+  do j=1,db_ncoll
+    cFam     = " "
+    cNSig    = zero
+    elemName = chr_toLower(db_name2(j))
+    if(elemName(1:3) == "tcp") then
+      if(elemName(7:9) == "3.b") then
+        cFam  = "tcp3"
+        cNSig = nsig_tcp3
+      else
+        cFam  = "tcp7"
+        cNSig = nsig_tcp7
+      end if
+    else if(elemName(1:4) == "tcsg") then
+      if(elemName(8:10) == "3.b" .or. elemName(9:11) == "3.b") then
+        cFam  = "tcsg3"
+        cNSig = nsig_tcsg3
+      else
+        cFam  = "tcsg7"
+        cNSig = nsig_tcsg7
+      end if
+      if(elemName(5:6) == ".4" .and. elemName(8:9) == "6.") then
+        cFam  = "tcstcdq"
+        cNSig = nsig_tcstcdq
+      end if
+    else if(elemName(1:4) == "tcsp") then
+      if(elemName(9:11) == "6.b") then
+        cFam  = "tcstcdq"
+        cNSig = nsig_tcstcdq
+      end if
+    else if(elemName(1:4) == "tcsm") then
+      if(elemName(8:10) == "3.b" .or. elemName(9:11) == "3.b") then
+        cFam  = "tcsm3"
+        cNSig = nsig_tcsm3
+      else
+        cFam  = "tcsm7"
+        cNSig = nsig_tcsm7
+      end if
+    else if(elemName(1:4) == "tcla") then
+      if(elemName(9:11) == "7.b") then
+        cFam  = "tcla7"
+        cNSig = nsig_tcla7
+      else
+        cFam  = "tcla3"
+        cNSig = nsig_tcla3
+      endif
+    else if(elemName(1:4) == "tcdq") then
+      cFam  = "tcdq"
+      cNSig = nsig_tcdq
+    else if(elemName(1:4) == "tcth" .or. elemName(1:5) == "tctph") then
+      if(elemName(8:8) == "1" .or. elemName(9:9) == "1" ) then
+        cFam  = "tcth1"
+        cNSig = nsig_tcth1
+      else if(elemName(8:8) == "2" .or. elemName(9:9) == "2") then
+        cFam  = "tcth2"
+        cNSig = nsig_tcth2
+      else if(elemName(8:8) == "5" .or. elemName(9:9) == "5") then
+        cFam  = "tcth5"
+        cNSig = nsig_tcth5
+      else if(elemName(8:8) == "8" .or. elemName(9:9) == "8") then
+        cFam  = "tcth8"
+        cNSig = nsig_tcth8
+      end if
+    else if(elemName(1:4) == "tctv" .or. elemName(1:5) == "tctpv") then
+      if(elemName(8:8) == "1" .or. elemName(9:9) == "1") then
+        cFam  = "tctv1"
+        cNSig = nsig_tctv1
+      else if(elemName(8:8) == "2" .or. elemName(9:9) == "2") then
+        cFam  = "tctv2"
+        cNSig = nsig_tctv2
+      else if(elemName(8:8) == "5" .or. elemName(9:9) == "5") then
+        cFam  = "tctv5"
+        cNSig = nsig_tctv5
+      else if(elemName(8:8) == "8" .or. elemName(9:9) == "8") then
+        cFam  = "tctv8"
+        cNSig = nsig_tctv8
+      end if
+    else if(elemName(1:3) == "tdi") then
+      cFam  = "tdi"
+      cNSig = nsig_tdi
+    else if(elemName(1:4) == "tclp" .or. elemName(1:4) == "tcl." .or. elemName(1:4) == "tclx") then
+      cFam  = "tclp"
+      cNSig = nsig_tclp
+    else if(elemName(1:4) == "tcli") then
+      cFam  = "tcli"
+      cNSig = nsig_tcli
+    else if(elemName(1:4) == "tcxr") then
+      cFam  = "tcxrp"
+      cNSig = nsig_tcxrp
+    else if(elemName(1:5) == "tcryo" .or. elemName(1:5) == "tcld.") then
+      cFam  = "tcryo"
+      cNSig = nsig_tcryo
+    else
+      write(lout,"(a)") "COLL> WARNING When setting opening for collimator '"//trim(elemName)//&
+          "' from fort.3. Name not recognized. Setting nsig = 1000.0"
+      cFam="default"
+      cNSig=c1e3
+    end if
+    call collimate_getFamilyID(cFam,famID,.true.)
+    coll_nSigFamily(famID) = cNSig
+    db_family(j) = famID
+  end do
+
   goto 100
 
 ! ============================================================================ !
@@ -2387,95 +2496,100 @@ subroutine collimate_start_collimator(stracki)
   integer :: j
   real(kind=fPrec), intent(in) :: stracki
 
-  if(bez(myix)(1:3).eq.'TCP' .or. bez(myix)(1:3).eq.'tcp') then
-    if(bez(myix)(7:9).eq.'3.B' .or. bez(myix)(7:9).eq.'3.b') then
-      nsig = nsig_tcp3
-    else
-      nsig = nsig_tcp7
-    end if
+!   if(bez(myix)(1:3).eq.'TCP' .or. bez(myix)(1:3).eq.'tcp') then
+!     if(bez(myix)(7:9).eq.'3.B' .or. bez(myix)(7:9).eq.'3.b') then
+!       nsig = nsig_tcp3
+!     else
+!       nsig = nsig_tcp7
+!     end if
 
-  else if(bez(myix)(1:4).eq.'TCSG' .or.  bez(myix)(1:4).eq.'tcsg') then
-    if(bez(myix)(8:10).eq.'3.B'.or.bez(myix)(8:10).eq.'3.b'.or.bez(myix)(9:11).eq.'3.B'.or.bez(myix)(9:11).eq.'3.b') then
-      nsig = nsig_tcsg3
-    else
-      nsig = nsig_tcsg7
-    end if
-    if((bez(myix)(5:6).eq.'.4'.and.bez(myix)(8:9).eq.'6.')) then
-      nsig = nsig_tcstcdq
-    end if
-  else if(bez(myix)(1:4).eq.'TCSP' .or. bez(myix)(1:4).eq.'tcsp') then
-    if(bez(myix)(9:11).eq.'6.B'.or. bez(myix)(9:11).eq.'6.b') then
-      nsig = nsig_tcstcdq
-    end if
-  else if(bez(myix)(1:4).eq.'TCSM' .or. bez(myix)(1:4).eq.'tcsm') then
-    if(bez(myix)(8:10).eq.'3.B' .or. bez(myix)(8:10).eq.'3.b' .or. bez(myix)(9:11).eq.'3.B' .or. bez(myix)(9:11).eq.'3.b') then
-      nsig = nsig_tcsm3
-    else
-      nsig = nsig_tcsm7
-    end if
-  else if(bez(myix)(1:4).eq.'TCLA' .or. bez(myix)(1:4).eq.'tcla') then
-    if(bez(myix)(9:11).eq.'7.B' .or. bez(myix)(9:11).eq.'7.b') then
-      nsig = nsig_tcla7
-    else
-      nsig = nsig_tcla3
-    endif
-  else if(bez(myix)(1:4).eq.'TCDQ' .or. bez(myix)(1:4).eq.'tcdq') then
-    nsig = nsig_tcdq
-! YIL11: Checking only the IR value for TCT's..
-  else if(bez(myix)(1:4).eq.'TCTH' .or. bez(myix)(1:4).eq.'tcth' .or. bez(myix)(1:5).eq.'TCTPH' .or. bez(myix)(1:5).eq.'tctph') then
-    if(bez(myix)(8:8).eq.'1' .or. bez(myix)(9:9).eq.'1' ) then
-      nsig = nsig_tcth1
-    else if(bez(myix)(8:8).eq.'2' .or. bez(myix)(9:9).eq.'2' ) then
-      nsig = nsig_tcth2
-    else if(bez(myix)(8:8).eq.'5'.or. bez(myix)(9:9).eq.'5' ) then
-      nsig = nsig_tcth5
-    else if(bez(myix)(8:8).eq.'8' .or. bez(myix)(9:9).eq.'8' ) then
-      nsig = nsig_tcth8
-    end if
-  else if(bez(myix)(1:4).eq.'TCTV' .or.bez(myix)(1:4).eq.'tctv'.or.bez(myix)(1:5).eq.'TCTPV' .or.bez(myix)(1:5).eq.'tctpv' ) then
-    if(bez(myix)(8:8).eq.'1' .or. bez(myix)(9:9).eq.'1' ) then
-       nsig = nsig_tctv1
-    else if(bez(myix)(8:8).eq.'2' .or. bez(myix)(9:9).eq.'2' ) then
-       nsig = nsig_tctv2
-    else if(bez(myix)(8:8).eq.'5' .or. bez(myix)(9:9).eq.'5' ) then
-       nsig = nsig_tctv5
-    else if(bez(myix)(8:8).eq.'8' .or. bez(myix)(9:9).eq.'8' ) then
-       nsig = nsig_tctv8
-    end if
-  else if(bez(myix)(1:3).eq.'TDI' .or. bez(myix)(1:3).eq.'tdi') then
-    nsig = nsig_tdi
-  else if(bez(myix)(1:4).eq.'TCLP' .or.bez(myix)(1:4).eq.'tclp'.or.bez(myix)(1:4).eq.'TCL.'.or.bez(myix)(1:4).eq.'tcl.'.or. &
-&         bez(myix)(1:4).eq.'TCLX' .or.bez(myix)(1:4).eq.'tclx') then
-    nsig = nsig_tclp
-  else if(bez(myix)(1:4).eq.'TCLI' .or. bez(myix)(1:4).eq.'tcli') then
-    nsig = nsig_tcli
-  else if(bez(myix)(1:4).eq.'TCXR' .or. bez(myix)(1:4).eq.'tcxr') then
-    nsig = nsig_tcxrp
-  else if(bez(myix)(1:5).eq.'TCRYO'.or.bez(myix)(1:5).eq.'tcryo'.or.bez(myix)(1:5).eq.'TCLD.' .or. bez(myix)(1:5).eq.'tcld.') then
-    nsig = nsig_tcryo
-  else if(bez(myix)(1:3).eq.'COL' .or. bez(myix)(1:3).eq.'col') then
-    if(bez(myix)(1:4).eq.'COLM' .or. bez(myix)(1:4).eq.'colm' .or. bez(myix)(1:5).eq.'COLH0' .or. bez(myix)(1:5).eq.'colh0') then
-      nsig = nsig_tcth1
-    elseif(bez(myix)(1:5).eq.'COLV0' .or. bez(myix)(1:5).eq.'colv0') then
-      nsig = nsig_tcth2
-    else if(bez(myix)(1:5).eq.'COLH1' .or. bez(myix)(1:5).eq.'colh1') then
-!     JUNE2005   HERE WE USE NSIG_TCTH2 AS THE OPENING IN THE VERTICAL
-!     JUNE2005   PLANE FOR THE PRIMARY COLLIMATOR OF RHIC; NSIG_TCTH5 STANDS
-!     JUNE2005   FOR THE OPENING OF THE FIRST SECONDARY COLLIMATOR OF RHIC
-      nsig = nsig_tcth5
-    else if(bez(myix)(1:5).eq.'COLV1' .or. bez(myix)(1:5).eq.'colv1') then
-      nsig = nsig_tcth8
-    else if(bez(myix)(1:5).eq.'COLH2' .or. bez(myix)(1:5).eq.'colh2') then
-      nsig = nsig_tctv1
-    end if
-  else
-    if(firstrun.and.iturn.eq.1) then
-      write(lout,"(a)") "COLL> WARNING When setting opening for collimator '"//trim(adjustl(bez(myix)))//&
-        "' from fort.3. Name not recognized. Setting nsig = 1000.0"
-    end if
-  nsig=c1e3
-!JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
-  end if
+!   else if(bez(myix)(1:4).eq.'TCSG' .or.  bez(myix)(1:4).eq.'tcsg') then
+!     if(bez(myix)(8:10).eq.'3.B'.or.bez(myix)(8:10).eq.'3.b'.or.bez(myix)(9:11).eq.'3.B'.or.bez(myix)(9:11).eq.'3.b') then
+!       nsig = nsig_tcsg3
+!     else
+!       nsig = nsig_tcsg7
+!     end if
+!     if((bez(myix)(5:6).eq.'.4'.and.bez(myix)(8:9).eq.'6.')) then
+!       nsig = nsig_tcstcdq
+!     end if
+!   else if(bez(myix)(1:4).eq.'TCSP' .or. bez(myix)(1:4).eq.'tcsp') then
+!     if(bez(myix)(9:11).eq.'6.B'.or. bez(myix)(9:11).eq.'6.b') then
+!       nsig = nsig_tcstcdq
+!     end if
+!   else if(bez(myix)(1:4).eq.'TCSM' .or. bez(myix)(1:4).eq.'tcsm') then
+!     if(bez(myix)(8:10).eq.'3.B' .or. bez(myix)(8:10).eq.'3.b' .or. bez(myix)(9:11).eq.'3.B' .or. bez(myix)(9:11).eq.'3.b') then
+!       nsig = nsig_tcsm3
+!     else
+!       nsig = nsig_tcsm7
+!     end if
+!   else if(bez(myix)(1:4).eq.'TCLA' .or. bez(myix)(1:4).eq.'tcla') then
+!     if(bez(myix)(9:11).eq.'7.B' .or. bez(myix)(9:11).eq.'7.b') then
+!       nsig = nsig_tcla7
+!     else
+!       nsig = nsig_tcla3
+!     endif
+!   else if(bez(myix)(1:4).eq.'TCDQ' .or. bez(myix)(1:4).eq.'tcdq') then
+!     nsig = nsig_tcdq
+! ! YIL11: Checking only the IR value for TCT's..
+! else if(bez(myix)(1:4).eq.'TCTH' .or. bez(myix)(1:4).eq.'tcth' .or. bez(myix)(1:5).eq.'TCTPH' .or. bez(myix)(1:5).eq.'tctph') then
+!     if(bez(myix)(8:8).eq.'1' .or. bez(myix)(9:9).eq.'1' ) then
+!       nsig = nsig_tcth1
+!     else if(bez(myix)(8:8).eq.'2' .or. bez(myix)(9:9).eq.'2' ) then
+!       nsig = nsig_tcth2
+!     else if(bez(myix)(8:8).eq.'5'.or. bez(myix)(9:9).eq.'5' ) then
+!       nsig = nsig_tcth5
+!     else if(bez(myix)(8:8).eq.'8' .or. bez(myix)(9:9).eq.'8' ) then
+!       nsig = nsig_tcth8
+!     end if
+!   else if(bez(myix)(1:4).eq.'TCTV' .or.bez(myix)(1:4).eq.'tctv'.or.bez(myix)(1:5).eq.'TCTPV' .or.bez(myix)(1:5).eq.'tctpv' ) then
+!     if(bez(myix)(8:8).eq.'1' .or. bez(myix)(9:9).eq.'1' ) then
+!        nsig = nsig_tctv1
+!     else if(bez(myix)(8:8).eq.'2' .or. bez(myix)(9:9).eq.'2' ) then
+!        nsig = nsig_tctv2
+!     else if(bez(myix)(8:8).eq.'5' .or. bez(myix)(9:9).eq.'5' ) then
+!        nsig = nsig_tctv5
+!     else if(bez(myix)(8:8).eq.'8' .or. bez(myix)(9:9).eq.'8' ) then
+!        nsig = nsig_tctv8
+!     end if
+!   else if(bez(myix)(1:3).eq.'TDI' .or. bez(myix)(1:3).eq.'tdi') then
+!     nsig = nsig_tdi
+!   else if(bez(myix)(1:4).eq.'TCLP' .or.bez(myix)(1:4).eq.'tclp'.or.bez(myix)(1:4).eq.'TCL.'.or.bez(myix)(1:4).eq.'tcl.'.or. &
+! &         bez(myix)(1:4).eq.'TCLX' .or.bez(myix)(1:4).eq.'tclx') then
+!     nsig = nsig_tclp
+!   else if(bez(myix)(1:4).eq.'TCLI' .or. bez(myix)(1:4).eq.'tcli') then
+!     nsig = nsig_tcli
+!   else if(bez(myix)(1:4).eq.'TCXR' .or. bez(myix)(1:4).eq.'tcxr') then
+!     nsig = nsig_tcxrp
+!   else if(bez(myix)(1:5).eq.'TCRYO'.or.bez(myix)(1:5).eq.'tcryo'.or.bez(myix)(1:5).eq.'TCLD.' .or. bez(myix)(1:5).eq.'tcld.') then
+!     nsig = nsig_tcryo
+!   else if(bez(myix)(1:3).eq.'COL' .or. bez(myix)(1:3).eq.'col') then
+!     if(bez(myix)(1:4).eq.'COLM' .or. bez(myix)(1:4).eq.'colm' .or. bez(myix)(1:5).eq.'COLH0' .or. bez(myix)(1:5).eq.'colh0') then
+!       nsig = nsig_tcth1
+!     elseif(bez(myix)(1:5).eq.'COLV0' .or. bez(myix)(1:5).eq.'colv0') then
+!       nsig = nsig_tcth2
+!     else if(bez(myix)(1:5).eq.'COLH1' .or. bez(myix)(1:5).eq.'colh1') then
+! !     JUNE2005   HERE WE USE NSIG_TCTH2 AS THE OPENING IN THE VERTICAL
+! !     JUNE2005   PLANE FOR THE PRIMARY COLLIMATOR OF RHIC; NSIG_TCTH5 STANDS
+! !     JUNE2005   FOR THE OPENING OF THE FIRST SECONDARY COLLIMATOR OF RHIC
+!       nsig = nsig_tcth5
+!     else if(bez(myix)(1:5).eq.'COLV1' .or. bez(myix)(1:5).eq.'colv1') then
+!       nsig = nsig_tcth8
+!     else if(bez(myix)(1:5).eq.'COLH2' .or. bez(myix)(1:5).eq.'colh2') then
+!       nsig = nsig_tctv1
+!     end if
+!   else
+!     if(firstrun.and.iturn.eq.1) then
+!       write(lout,"(a)") "COLL> WARNING When setting opening for collimator '"//trim(adjustl(bez(myix)))//&
+!         "' from fort.3. Name not recognized. Setting nsig = 1000.0"
+!     end if
+!   nsig=c1e3
+! !JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
+!   end if
+
+!   if(nsig /= coll_nSigFamily(db_family(db_elemMap(myix)))) then
+!     write(lout,"(a)") "OOPS> '"//trim(bez(myix))//"'"
+!   end if
+  nsig = coll_nSigFamily(db_family(db_elemMap(myix)))
 
 !++  Write trajectory for any selected particle
   c_length = zero
