@@ -149,6 +149,13 @@ subroutine cdb_readCollDB(dbFile)
     call cdb_readDB_newFormat
   end if
 
+#ifdef ROOT
+  call cdb_writeDB_ROOT
+#endif
+#ifdef HDF5
+  call cdb_writeDB_HDF5
+#endif
+
 ! ============================================================================ !
 !  Post-Processing DB
 ! ============================================================================ !
@@ -280,66 +287,80 @@ subroutine cdb_readDB_oldFormat
 
 end subroutine cdb_readDB_oldFormat
 
-subroutine cdb_writeDB
-! #ifdef ROOT
-!   use iso_c_binding
-!   use root_output
-! #endif
-! #ifdef HDF5
-!   type(h5_dataField), allocatable :: fldCollDB(:)
-!   character(len=:),   allocatable :: colNames(:)
-!   character(len=:),   allocatable :: colUnits(:)
-!   integer :: fmtCollDB, setCollDB, nSplit
-!   logical :: spErr
-! #endif
+#ifdef ROOT
+subroutine cdb_writeDB_ROOT
 
-! #ifdef ROOT
-! ! Temp variables to avoid fotran array -> C nightmares
-!   character(len=mNameLen+1) :: this_name = C_NULL_CHAR
-!   character(len=5) :: this_material = C_NULL_CHAR
-! #endif
-! #ifdef ROOT
-!  do j=1,cdb_nColl
-!     if(root_flag .and. root_CollimationDB.eq.1) then
-!       this_name = trim(adjustl(db_name1(j))) // C_NULL_CHAR
-!       this_material = trim(adjustl(db_material(j))) // C_NULL_CHAR
-!       call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), db_nsig(j), &
-!         db_length(j), db_rotation(j), db_offset(j))
-!     end if
-!   end do
-! #endif
-! #ifdef HDF5
-!   if(h5_useForCOLL) then
-!     allocate(fldCollDB(8))
-!     fldCollDB(1) = h5_dataField(name="NAME",     type=h5_typeChar, size=mNameLen)
-!     fldCollDB(2) = h5_dataField(name="OPENING",  type=h5_typeReal)
-!     fldCollDB(3) = h5_dataField(name="MATERIAL", type=h5_typeChar, size=4)
-!     fldCollDB(4) = h5_dataField(name="LENGTH",   type=h5_typeReal)
-!     fldCollDB(5) = h5_dataField(name="ANGLE",    type=h5_typeReal)
-!     fldCollDB(6) = h5_dataField(name="OFFSET",   type=h5_typeReal)
-!     fldCollDB(7) = h5_dataField(name="BETAX",    type=h5_typeReal)
-!     fldCollDB(8) = h5_dataField(name="BETAY",    type=h5_typeReal)
-!     call h5_createFormat("collimation_db", fldCollDB, fmtCollDB)
-!     call h5_createDataSet("collimation_db", h5_collID, fmtCollDB, setCollDB, db_ncoll)
-!     call chr_split("name opening material length angle offset beta_x beta_y",colNames,nSplit,spErr)
-!     call chr_split("text sigma text m rad m m m",colUnits,nSplit,spErr)
-!     call h5_writeDataSetAttr(setCollDB,"nColl",   db_ncoll)
-!     call h5_writeDataSetAttr(setCollDB,"colNames",colNames)
-!     call h5_writeDataSetAttr(setCollDB,"colUnits",colUnits)
-!     call h5_prepareWrite(setCollDB, db_ncoll)
-!     call h5_writeData(setCollDB, 1, db_ncoll, db_name2(1:db_ncoll))
-!     call h5_writeData(setCollDB, 2, db_ncoll, db_nsig(1:db_ncoll))
-!     call h5_writeData(setCollDB, 3, db_ncoll, db_material(1:db_ncoll))
-!     call h5_writeData(setCollDB, 4, db_ncoll, db_length(1:db_ncoll))
-!     call h5_writeData(setCollDB, 5, db_ncoll, db_rotation(1:db_ncoll))
-!     call h5_writeData(setCollDB, 6, db_ncoll, db_offset(1:db_ncoll))
-!     call h5_writeData(setCollDB, 7, db_ncoll, db_bx(1:db_ncoll))
-!     call h5_writeData(setCollDB, 8, db_ncoll, db_by(1:db_ncoll))
-!     call h5_finaliseWrite(setCollDB)
-!     deallocate(fldCollDB)
-!   end if
-! #endif
-end subroutine cdb_writeDB
+  use parpro
+  use iso_c_binding
+  use root_output
+
+  character(len=mNameLen+1) :: this_name     = C_NULL_CHAR
+  character(len=5)          :: this_material = C_NULL_CHAR
+  integer j
+
+  if(root_flag .eqv. .false. .or. root_CollimationDB /= 1) return
+
+  do j=1,cdb_nColl
+    this_name     = trim(adjustl(cdb_cNameUC(j)))//C_NULL_CHAR
+    this_material = trim(adjustl(cdb_cMaterial(j)))//C_NULL_CHAR
+    call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), cdb_cNSig(j), &
+      cdb_cLength(j), cdb_cRotation(j), cdb_cOffset(j))
+  end do
+
+end subroutine cdb_writeDB_ROOT
+#endif
+
+#ifdef HDF5
+subroutine cdb_writeDB_HDF5
+
+  use hdf5_output
+  use string_tools
+
+  type(h5_dataField), allocatable :: fldCollDB(:)
+  character(len=:),   allocatable :: colNames(:)
+  character(len=:),   allocatable :: colUnits(:)
+
+  integer :: fmtCollDB, setCollDB, nSplit
+  logical :: spErr
+
+  if(h5_useForCOLL .eqv. .false.) return
+
+  allocate(fldCollDB(8))
+
+  fldCollDB(1) = h5_dataField(name="NAME",     type=h5_typeChar, size=mNameLen)
+  fldCollDB(2) = h5_dataField(name="OPENING",  type=h5_typeReal)
+  fldCollDB(3) = h5_dataField(name="MATERIAL", type=h5_typeChar, size=4)
+  fldCollDB(4) = h5_dataField(name="LENGTH",   type=h5_typeReal)
+  fldCollDB(5) = h5_dataField(name="ANGLE",    type=h5_typeReal)
+  fldCollDB(6) = h5_dataField(name="OFFSET",   type=h5_typeReal)
+  fldCollDB(7) = h5_dataField(name="BETAX",    type=h5_typeReal)
+  fldCollDB(8) = h5_dataField(name="BETAY",    type=h5_typeReal)
+
+  call h5_createFormat("collimation_db", fldCollDB, fmtCollDB)
+  call h5_createDataSet("collimation_db", h5_collID, fmtCollDB, setCollDB, cdb_nColl)
+
+  call chr_split("name opening material length angle offset beta_x beta_y",colNames,nSplit,spErr)
+  call chr_split("text sigma text m rad m m m",colUnits,nSplit,spErr)
+
+  call h5_writeDataSetAttr(setCollDB,"nColl",   cdb_nColl)
+  call h5_writeDataSetAttr(setCollDB,"colNames",colNames)
+  call h5_writeDataSetAttr(setCollDB,"colUnits",colUnits)
+
+  call h5_prepareWrite(setCollDB, cdb_nColl)
+  call h5_writeData(setCollDB, 1, cdb_nColl, cdb_cName(1:cdb_nColl))
+  call h5_writeData(setCollDB, 2, cdb_nColl, cdb_cNSig(1:cdb_nColl))
+  call h5_writeData(setCollDB, 3, cdb_nColl, cdb_cMaterial(1:cdb_nColl))
+  call h5_writeData(setCollDB, 4, cdb_nColl, cdb_cLength(1:cdb_nColl))
+  call h5_writeData(setCollDB, 5, cdb_nColl, cdb_cRotation(1:cdb_nColl))
+  call h5_writeData(setCollDB, 6, cdb_nColl, cdb_cOffset(1:cdb_nColl))
+  call h5_writeData(setCollDB, 7, cdb_nColl, cdb_cBx(1:cdb_nColl))
+  call h5_writeData(setCollDB, 8, cdb_nColl, cdb_cBy(1:cdb_nColl))
+  call h5_finaliseWrite(setCollDB)
+
+  deallocate(fldCollDB)
+
+end subroutine cdb_writeDB_HDF5
+#endif
 
 ! ================================================================================================ !
 !  Extract Family Name from Old Format DB
