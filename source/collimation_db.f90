@@ -26,7 +26,6 @@ module collimation_db
   real(kind=fPrec), allocatable, public, save :: cdb_cRotation(:) ! Collimator rotation
   real(kind=fPrec), allocatable, public, save :: cdb_cBx(:)       ! Collimator beta x
   real(kind=fPrec), allocatable, public, save :: cdb_cBy(:)       ! Collimator beta y
-  real(kind=fPrec), allocatable, public, save :: cdb_cTilt(:,:)   ! Collimator tilt
   logical,          allocatable, public, save :: cdb_cFound(:)    ! Found in lattice
 
   ! Family Arrays
@@ -75,7 +74,6 @@ subroutine cdb_allocDB
   call alloc(cdb_cRotation,           cdb_nColl, zero,    "cdb_cRotation")
   call alloc(cdb_cBx,                 cdb_nColl, zero,    "cdb_cBx")
   call alloc(cdb_cBy,                 cdb_nColl, zero,    "cdb_cBy")
-  call alloc(cdb_cTilt,               cdb_nColl, 2, zero, "cdb_cTilt")
   call alloc(cdb_cFound,              cdb_nColl, .false., "cdb_cFound")
 
 end subroutine cdb_allocDB
@@ -151,19 +149,9 @@ subroutine cdb_readCollDB(dbFile)
     call cdb_readDB_newFormat
   end if
 
-  ! Generate family names from DB
-
-  goto 100
-
-! ============================================================================ !
-!  Parse new type DB
-! ============================================================================ !
-40 continue
-
 ! ============================================================================ !
 !  Post-Processing DB
 ! ============================================================================ !
-100 continue
 
   ! Map single elements to collimators
   ! do i=1,iu
