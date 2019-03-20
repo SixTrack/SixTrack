@@ -325,6 +325,10 @@ subroutine cheby_postInput
            " - reference radius [mm]:",cheby_refR(cheby_itable(jj))
       goto 10 
     end if
+    if (cheby_r1(jj)==zero) then
+      write(lout,"(a)")      "CHEBY> ERROR R1 cannot be zero for the time being!"
+      goto 10 
+    end if
     if (cheby_I (jj)<=zero) then
       cheby_I (jj)=cheby_refI(cheby_itable(jj))
     else
