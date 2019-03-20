@@ -195,7 +195,7 @@ subroutine cdb_readDB_oldFormat
 
   character(len=mInputLn) inLine
   logical cErr
-  integer j, dbUnit, ioStat, iLine
+  integer j, dbUnit, dbNew, ioStat, iLine
 
   cErr = .false.
 
@@ -278,6 +278,20 @@ subroutine cdb_readDB_oldFormat
   end do
 
   call f_close(dbUnit)
+
+  ! Write a copy of the DB in the multi column format
+  call f_requestUnit(trim(cdb_fileName)//".new", dbNew)
+  call f_open(unit=dbNew,file=trim(cdb_fileName)//".new",formatted=.true.,mode="w",status="replace")
+
+  write(dbNew,"(1a,a47,1x,a16,1x,a10,1x,a4,5(1x,a13))") "#",chr_rPad(" name",47),chr_rPad("family",16),&
+    "opening","mat.","length[m]","angle[rad]","offset[m]","beta_x[m]","beta_y[m]"
+  do j=1,cdb_nColl
+    write(dbNew,"(a48,1x,a16,1x,f10.3,1x,a4,5(1x,f13.6))") cdb_cName(j),"default         ",cdb_cNSig(j),cdb_cMaterial(j),&
+      cdb_cLength(j),cdb_cRotation(j),cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
+  end do
+
+  flush(dbNew)
+  call f_close(dbNew)
 
   return
 
