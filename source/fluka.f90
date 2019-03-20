@@ -50,7 +50,7 @@ subroutine check_coupling_integrity
           if ( fluka_type(ix1).eq.FLUKA_ENTRY ) then
             write(lout,*) ''
             write(lout,*) ''
-            write(lout,10020) 'entry type', 'name', 'ID SING EL ID struct', 'ID geom'
+            write(lout,10020) 'entry type', 'name', 'ID SING EL', 'ID struct', 'ID geom'
             write(lout,10030) fluka_type(ix1), bez(ix1), ix1, i1, fluka_geo_index(ix1)
             istart = i1+1
             istop  = iu
