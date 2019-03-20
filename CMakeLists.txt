@@ -10,7 +10,6 @@
 ###################################################################################################
 
 cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
-enable_language(Fortran)
 find_package(Git)
 
 # Force an out of source build to stop clutter
@@ -38,7 +37,8 @@ string(REGEX MATCH ".*numvers = ([0-9]+)"      VERSION_TMP ${IFILE})
 set(NUM_VERSION    "${CMAKE_MATCH_1}")
 
 # Set the project
-project(SixTrack VERSION ${STRING_VERSION} LANGUAGES Fortran C CXX)
+project(SixTrack VERSION ${STRING_VERSION})
+enable_language(Fortran)
 
 # Get the current git commit hash
 set(GIT_REVISION "Unknown")
@@ -705,12 +705,11 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
 
 #generic catch option
 else()
-  message ("CMAKE_Fortran_COMPILER full path: " ${CMAKE_Fortran_COMPILER})
-  message ("Fortran compiler: " ${Fortran_COMPILER_NAME})
-
-  message ("No optimized Fortran compiler flags are known, we just try -O2 or -O0 -g...")
-  set (CMAKE_Fortran_FLAGS_RELEASE "-O2 ${CMAKE_Fortran_FLAGS_RELEASE}")
-  set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g ${CMAKE_Fortran_FLAGS_DEBUG}")
+  message(STATUS "CMAKE_Fortran_COMPILER full path: " ${CMAKE_Fortran_COMPILER})
+  message(STATUS "Fortran compiler: " ${Fortran_COMPILER_NAME})
+  message(STATUS "No optimized Fortran compiler flags are known, we just try -O2 or -O0 -g...")
+  set(CMAKE_Fortran_FLAGS_RELEASE "-O2 ${CMAKE_Fortran_FLAGS_RELEASE}")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g ${CMAKE_Fortran_FLAGS_DEBUG}")
   set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
   set(PREPRO_FLAGS -cpp -E -P)
 endif ()
