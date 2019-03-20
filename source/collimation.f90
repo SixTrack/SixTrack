@@ -27,7 +27,6 @@ module collimation
   use mod_units
 !  use mod_ranecu
   use mod_ranlux
-  use collimation_db
 
 #ifdef HDF5
   use hdf5_output
@@ -217,30 +216,21 @@ module collimation
 !  integer  icoll
 !  common  /icoll/  icoll
 
-  ! Collimator Database
-  integer,                       private, save :: db_ncoll = 0   ! Number of collimators
+!UPGRADE January 2005
+  integer, save :: db_ncoll
 
-  character(len=:), allocatable, private, save :: db_name1(:)    ! (mNameLen)(db_ncoll)
-  character(len=:), allocatable, private, save :: db_name2(:)    ! (mNameLen)(db_ncoll)
-  character(len=:), allocatable, private, save :: db_material(:) ! (4)(db_ncoll)
-
-  integer,          allocatable, private, save :: db_family(:)   ! (db_ncoll)
-
-  real(kind=fPrec), allocatable, private, save :: db_nsig(:)     ! (db_ncoll)
-  real(kind=fPrec), allocatable, private, save :: db_length(:)   ! (db_ncoll)
-  real(kind=fPrec), allocatable, private, save :: db_offset(:)   ! (db_ncoll)
-  real(kind=fPrec), allocatable, private, save :: db_rotation(:) ! (db_ncoll)
-  real(kind=fPrec), allocatable, private, save :: db_bx(:)       ! (db_ncoll)
-  real(kind=fPrec), allocatable, private, save :: db_by(:)       ! (db_ncoll)
-  real(kind=fPrec), allocatable, private, save :: db_tilt(:,:)   ! (db_ncoll,2)
-
-  logical,          allocatable, private, save :: coll_found(:)  ! (db_ncoll)
-  integer,          allocatable, private, save :: db_elemMap(:)  ! (nele)
-
-  ! Collimator Families
-  integer,                       private, save :: coll_nfam  = 0     ! Number of collimator families
-  character(len=:), allocatable, private, save :: coll_family(:)     ! (16)(coll_nfam)
-  real(kind=fPrec), allocatable, private, save :: coll_nSigFamily(:) ! (coll_nfam)
+  character(len=:), allocatable, save :: db_name1(:) !(mNameLen)(max_ncoll)
+  character(len=:), allocatable, save :: db_name2(:) !(mNameLen)(max_ncoll)
+  character(len=:), allocatable, save :: db_material(:) !(4)(max_ncoll)
+!APRIL2005
+  real(kind=fPrec), allocatable, save :: db_nsig(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_length(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_offset(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_rotation(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_bx(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_by(:) !(max_ncoll)
+  real(kind=fPrec), allocatable, save :: db_tilt(:,:) !(max_ncoll,2)
+!  common /colldatabase/ db_nsig,db_length,db_rotation,db_offset,db_bx,db_by,db_tilt,db_name1,db_name2,db_material,db_ncoll
 
   integer, allocatable, save :: cn_impact(:)  !(max_ncoll)
   integer, allocatable, save :: cn_absorbed(:) !(max_ncoll)
@@ -312,6 +302,7 @@ module collimation
 ! common  /remit/ remitx_dist, remity_dist,remitx_collgap,remity_collgap
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
+  logical, save :: coll_found(100)
 
 
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -815,6 +806,16 @@ subroutine collimation_allocate_arrays
 
   call alloc(neffx, numeff, zero, "neffx") !(numeff)
   call alloc(neffy, numeff, zero, "neffy") !(numeff)
+  call alloc(db_name1, mNameLen, max_ncoll, ' ', "db_name1") !(max_ncoll)
+  call alloc(db_name2, mNameLen, max_ncoll, ' ', "db_name2") !(max_ncoll)
+  call alloc(db_material, 4, max_ncoll, '    ', "db_material") !(max_ncoll)
+  call alloc(db_nsig, max_ncoll, zero, "db_nsig") !(max_ncoll)
+  call alloc(db_length, max_ncoll, zero, "db_length") !(max_ncoll)
+  call alloc(db_offset, max_ncoll, zero, "db_offset") !(max_ncoll)
+  call alloc(db_rotation, max_ncoll, zero, "db_rotation") !(max_ncoll)
+  call alloc(db_bx, max_ncoll, zero, "db_bx") !(max_ncoll)
+  call alloc(db_by, max_ncoll, zero, "db_by") !(max_ncoll)
+  call alloc(db_tilt, max_ncoll, 2, zero, "db_tilt") !(max_ncoll,2)
 
   call alloc(cn_impact, max_ncoll, 0, "cn_impact")  !(max_ncoll)
   call alloc(cn_absorbed, max_ncoll, 0, "cn_absorbed") !(max_ncoll)
@@ -822,25 +823,6 @@ subroutine collimation_allocate_arrays
   call alloc(csigma, max_ncoll, zero, "csigma") !(max_ncoll)
 
 end subroutine collimation_allocate_arrays
-
-subroutine collimate_allocDB
-
-  use mod_alloc
-
-  call alloc(db_name1,    mNameLen, db_ncoll,    " ",  "db_name1")
-  call alloc(db_name2,    mNameLen, db_ncoll,    " ",  "db_name2")
-  call alloc(db_material, 4,        db_ncoll,    " ",  "db_material")
-  call alloc(db_family,             db_ncoll,    -1,   "db_family")
-  call alloc(db_nsig,               db_ncoll,    zero, "db_nsig")
-  call alloc(db_length,             db_ncoll,    zero, "db_length")
-  call alloc(db_offset,             db_ncoll,    zero, "db_offset")
-  call alloc(db_rotation,           db_ncoll,    zero, "db_rotation")
-  call alloc(db_bx,                 db_ncoll,    zero, "db_bx")
-  call alloc(db_by,                 db_ncoll,    zero, "db_by")
-  call alloc(db_tilt,               db_ncoll, 2, zero, "db_tilt")
-  call alloc(coll_found,            db_ncoll, .false., "coll_found")
-
-end subroutine collimate_allocDB
 
 subroutine collimation_expand_arrays(npart_new, nblz_new, nele_new)
 
@@ -855,8 +837,6 @@ subroutine collimation_expand_arrays(npart_new, nblz_new, nele_new)
 
   if(.not. do_coll) return
   ! Arrays that are only needed if Collimation is enabled
-
-  call alloc(db_elemMap, nele_new, -1, "db_elemMap")
 
   call alloc(tbetax,  nblz_new, zero, 'tbetax')  !(nblz)
   call alloc(tbetay,  nblz_new, zero, 'tbetay')  !(nblz)
@@ -1362,12 +1342,8 @@ subroutine collimate_init()
   call f_requestUnit('CollPositions.dat', CollPositions_unit)
   open(unit=CollPositions_unit, file='CollPositions.dat')
 
-  ! Read collimator database
-  call cdb_readCollDB(coll_db)
-
-  db_ncoll = cdb_nColl
-  do i=1,db_ncoll
-  end do
+!++  Read collimator database
+  call readcollimator
 
 !Then do any implementation specific initial loading
 #ifdef COLLIMATE_K2
@@ -1780,13 +1756,10 @@ subroutine collimate_start_sample(nsample)
       if (firstrun) then
         write(all_impacts_unit,'(a)') '# 1=name 2=turn 3=s'
         write(all_absorptions_unit,'(a)') '# 1=name 2=turn 3=s'
-        write(FirstImpacts_unit,*)                                                   &
-        '%1=name,2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], ',&
-        '7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, ',                &
-        '11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out'
-        write(coll_scatter_unit,*) &
-        "#1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic,4:Single-Diffractive,5:Coulomb)", &
-        ", 5=dp, 6=dx', 7=dy'"
+        write(FirstImpacts_unit,"(a)") "# 1=name, 2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], "//&
+          "7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, 11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out"
+        write(coll_scatter_unit,"(a)") "# 1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic, "//&
+          "4:Single-Diffractive,5:Coulomb), 5=dp, 6=dx', 7=dy'"
       end if ! if (firstrun) then
 #ifdef HDF5
     end if
@@ -1898,6 +1871,7 @@ subroutine collimate_start_sample(nsample)
   write(lout,"(a,i0)") "COLL> Number of collimators: ",db_ncoll
   do icoll = 1, db_ncoll
     write(lout,"(a,i5,a)") "COLL> Collimator ",icoll,": "//db_name1(icoll)//" "//db_name2(icoll)
+    coll_found(icoll) = .false.
   end do
   write(lout,"(a)") ""
 
@@ -2240,45 +2214,6 @@ subroutine collimate_start_sample(nsample)
 !GRD NOW WE CAN BEGIN THE LOOPS
 end subroutine collimate_start_sample
 
-
-subroutine collimate_getFamilyID(collFamily, famID, addIfNew)
-
-  use mod_alloc
-  use numerical_constants
-
-  character(len=16), intent(in)  :: collFamily
-  integer,           intent(out) :: famID
-  logical, optional, intent(in)  :: addIfNew
-
-  integer i
-  logical addNew
-
-  if(present(addIfNew)) then
-    addNew = addIfNew
-  else
-    addNew = .false.
-  end if
-
-  famID = -1
-  if(coll_nfam > 0) then
-    do i=1,coll_nfam
-      if(coll_family(i) == collFamily) then
-        famID = i
-        exit
-      end if
-    end do
-  end if
-
-  if(famID == -1 .and. addNew) then
-    coll_nfam = coll_nfam + 1
-    call alloc(coll_family,     16, coll_nfam, " ",  "coll_family")
-    call alloc(coll_nSigFamily,     coll_nfam, c1e3, "coll_nSigFamily")
-    coll_family(coll_nfam) = collFamily
-    famID = coll_nfam
-  end if
-
-end subroutine collimate_getFamilyID
-
 !>
 !! collimate_start_collimator()
 !! This routine is called each time we hit a collimator
@@ -2389,11 +2324,6 @@ subroutine collimate_start_collimator(stracki)
 !JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
   end if
 
-!   if(nsig /= coll_nSigFamily(db_family(db_elemMap(myix)))) then
-!     write(lout,"(a)") "OOPS> '"//trim(bez(myix))//"'"
-!   end if
-  ! nsig = coll_nSigFamily(db_family(db_elemMap(myix)))
-
 !++  Write trajectory for any selected particle
   c_length = zero
 
@@ -2446,39 +2376,27 @@ subroutine collimate_start_collimator(stracki)
     end if !if(rselect.gt.0 .and. rselect.lt.65) then
   end if !if( firstrun ) then
 
+!GRD HERE WE LOOK FOR ADEQUATE DATABASE INFORMATION
   found = .false.
-  if(db_elemMap(myix) > 0) then
-    icoll = db_elemMap(myix)
-    if(db_length(icoll) > zero) then
-      found = .true.
-      if(firstrun) then
-        coll_found(icoll) = .true.
-        write(CollPositions_unit,*) icoll, db_name1(icoll), totals
+
+!     SR, 01-09-2005: to set found = .TRUE., add the condition L>0!!
+  do j = 1, db_ncoll
+    if((db_name1(j)(1:mNameLen).eq.bez(myix)(1:mNameLen)) .or. &
+       (db_name2(j)(1:mNameLen).eq.bez(myix)(1:mNameLen))) then
+      if( db_length(j) .gt. zero ) then
+        found = .true.
+        icoll = j
+        if(firstrun) then
+          coll_found(j) = .TRUE.
+          write(CollPositions_unit,*) j, db_name1(j), totals
+        end if
       end if
     end if
+  end do
+
+  if(.not. found .and. firstrun .and. iturn.eq.1) then
+    write(lout,"(a)") "COLL> WARNING Collimator not found in colldb: '"//trim(bez(myix))//"'"
   end if
-
-!GRD HERE WE LOOK FOR ADEQUATE DATABASE INFORMATION
-!   found = .false.
-
-! !     SR, 01-09-2005: to set found = .TRUE., add the condition L>0!!
-!   do j = 1, db_ncoll
-!     if((db_name1(j)(1:mNameLen).eq.bez(myix)(1:mNameLen)) .or. &
-!        (db_name2(j)(1:mNameLen).eq.bez(myix)(1:mNameLen))) then
-!       if( db_length(j) .gt. zero ) then
-!         found = .true.
-!         icoll = j
-!         if(firstrun) then
-!           coll_found(j) = .TRUE.
-!           write(CollPositions_unit,*) j, db_name1(j), totals
-!         end if
-!       end if
-!     end if
-!   end do
-
-  ! if(.not. found .and. firstrun .and. iturn.eq.1) then
-  !   write(lout,"(a)") "COLL> WARNING Collimator not found in colldb: '"//trim(bez(myix))//"'"
-  ! end if
 
 end subroutine collimate_start_collimator
 
@@ -3911,11 +3829,10 @@ subroutine collimate_exit()
   open(unit=betafunctions_unit, file='betafunctions.dat') !was 57
 
   if(dowrite_amplitude) then
-    write(amplitude_unit,*)                                             &
-     &'# 1=ielem 2=name 3=s 4=AX_AV 5=AX_RMS 6=AY_AV 7=AY_RMS',         &
-     &'8=alphax 9=alphay 10=betax 11=betay 12=orbitx',                  &
-     &'13=orbity 14=tdispx 15=tdispy',                                  &
-     &'16=xbob 17=ybob 18=xpbob 19=ypbob'
+    write(amplitude_unit,"(a)")                                         &
+      "# 1=ielem 2=name 3=s 4=AX_AV 5=AX_RMS 6=AY_AV 7=AY_RMS "//       &
+      "8=alphax 9=alphay 10=betax 11=betay 12=orbitx "//                &
+      "13=orbity 14=tdispx 15=tdispy 16=xbob 17=ybob 18=xpbob 19=ypbob"
 
     do i=1,iu
        write(amplitude_unit,'(i4, (1x,a16), 17(1x,e20.13))')             &!hr08
@@ -3932,21 +3849,21 @@ subroutine collimate_exit()
       &xbob(i),ybob(i),xpbob(i),ypbob(i)                                  !hr08
     end do
 
-    write(amplitude2_unit,*)'# 1=ielem 2=name 3=s 4=ORBITX 5=orbity 6=tdispx 7=tdispy 8=xbob 9=ybob 10=xpbob 11=ypbob'
+    write(amplitude2_unit,"(a)") "# 1=ielem 2=name 3=s 4=ORBITX 5=orbity 6=tdispx 7=tdispy 8=xbob 9=ybob 10=xpbob 11=ypbob"
 
     do i=1,iu
       write(amplitude2_unit,'(i4, (1x,a16), 9(1x,e15.7))') i, ename(i), sampl(i), torbx(i), torby(i), tdispx(i), tdispy(i), &
             xbob(i), ybob(i), xpbob(i), ypbob(i)
     end do
 
-    write(betafunctions_unit,*) '# 1=ielem 2=name       3=s             4=TBETAX(m)     5=TBETAY(m)     6=TORBX(mm)', &
-                '    7=TORBY(mm) 8=TORBXP(mrad)   9=TORBYP(mrad)  10=TDISPX(m)  11=MUX()    12=MUY()'
+    write(betafunctions_unit,"(a)") "# 1=ielem 2=name       3=s             4=TBETAX(m)     5=TBETAY(m)     6=TORBX(mm)"// &
+      "    7=TORBY(mm) 8=TORBXP(mrad)   9=TORBYP(mrad)  10=TDISPX(m)  11=MUX()    12=MUY()"
 
 
     do i=1,iu
 !     RB: added printout of closed orbit and angle
       write(betafunctions_unit,'(i5, (1x,a16), 10(1x,e15.7))') i, ename(i), sampl(i), tbetax(i), tbetay(i), torbx(i), torby(i), &
- &    torbxp(i), torbyp(i), tdispx(i), mux(i), muy(i)
+        torbxp(i), torbyp(i), tdispx(i), mux(i), muy(i)
     end do
   endif
 
@@ -7919,6 +7836,183 @@ real(kind=fPrec) function ran_gauss(cut)
   ran_gauss = x
   return
 end function ran_gauss
+
+!>
+!! readcollimator()
+!! This routine is called once at the start of the simulation and
+!! is used to read the collimator settings input file
+!<
+subroutine readcollimator
+
+  use crcoall
+  use parpro
+  use string_tools
+#ifdef ROOT
+  use iso_c_binding
+  use root_output
+#endif
+
+  implicit none
+
+  integer J,ios
+  character(len=1024) inVal
+  logical cErr
+#ifdef HDF5
+  type(h5_dataField), allocatable :: fldCollDB(:)
+  character(len=:),   allocatable :: colNames(:)
+  character(len=:),   allocatable :: colUnits(:)
+  integer :: fmtCollDB, setCollDB, nSplit
+  logical :: spErr
+#endif
+
+#ifdef ROOT
+! Temp variables to avoid fotran array -> C nightmares
+  character(len=mNameLen+1) :: this_name = C_NULL_CHAR
+  character(len=5) :: this_material = C_NULL_CHAR
+#endif
+
+  save
+!--------------------------------------------------------------------
+!++  Read collimator database
+
+  call f_requestUnit(coll_db, coll_db_unit)
+  open(unit=coll_db_unit,file=coll_db, iostat=ios, status="OLD",action="read") !was 53
+  if(ios.ne.0)then
+    write(lout,"(a)")    "COLL> ERROR in subroutine readcollimator: Could not open the file '"//coll_db//"'"
+    write(lout,"(a,i0)") "COLL>       Got iostat = ",ios
+    call prror(-1)
+  end if
+
+  read(coll_db_unit,*)
+  read(coll_db_unit,*,iostat=ios) db_ncoll
+  if(ios.ne.0) then
+    write(outlun,*) 'ERR>  Problem reading collimator DB ',ios
+    call prror(-1)
+  end if
+
+  if(db_ncoll.gt.max_ncoll) then
+    write(lout,"(a)") "COLL> ERROR db_ncoll > max_ncoll"
+    call prror(-1)
+  end if
+
+  do j=1,db_ncoll
+    read(coll_db_unit,*)
+!GRD ALLOW TO RECOGNIZE BOTH CAPITAL AND NORMAL LETTERS
+    read(coll_db_unit,*,iostat=ios) db_name1(j)
+!        write(*,*) 'ios = ',ios
+    if(ios.ne.0) then
+      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+      call prror(-1)
+    end if
+
+    read(coll_db_unit,*,iostat=ios) db_name2(j)
+!        write(*,*) 'ios = ',ios
+    if(ios.ne.0) then
+      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+      call prror(-1)
+    end if
+
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_nsig(j),cErr)
+!        write(*,*) 'ios = ',ios
+    if(ios.ne.0 .or. cErr) then
+      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+      call prror(-1)
+    end if
+    !GRD
+    read(coll_db_unit,*,iostat=ios) db_material(j)
+!        write(*,*) 'ios = ',ios
+    if(ios.ne.0) then
+      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+      call prror(-1)
+    end if
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_length(j),cErr)
+!        write(*,*) 'ios = ',ios
+    if(ios.ne.0 .or. cErr) then
+      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+      call prror(-1)
+    end if
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_rotation(j),cErr)
+!        write(*,*) 'ios = ',ios
+    if(ios.ne.0 .or. cErr) then
+      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+      call prror(-1)
+    end if
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_offset(j),cErr)
+!        write(*,*) 'ios = ',ios
+    if(ios.ne.0 .or. cErr) then
+      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+      call prror(-1)
+    end if
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_bx(j),cErr)
+!        write(*,*) 'ios = ',ios
+    if(ios.ne.0 .or. cErr) then
+      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+      call prror(-1)
+    end if
+    read(coll_db_unit,*,iostat=ios) inVal
+    call chr_cast(inVal,db_by(j),cErr)
+!        write(*,*) 'ios = ',ios
+    if(ios.ne.0 .or. cErr) then
+      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+      call prror(-1)
+    end if
+
+#ifdef ROOT
+    if(root_flag .and. root_CollimationDB.eq.1) then
+      this_name = trim(adjustl(db_name1(j))) // C_NULL_CHAR
+      this_material = trim(adjustl(db_material(j))) // C_NULL_CHAR
+      call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), db_nsig(j), &
+        db_length(j), db_rotation(j), db_offset(j))
+    end if
+#endif
+
+  end do
+
+#ifdef HDF5
+  if(h5_useForCOLL) then
+    allocate(fldCollDB(8))
+    fldCollDB(1) = h5_dataField(name="NAME",     type=h5_typeChar, size=mNameLen)
+    fldCollDB(2) = h5_dataField(name="OPENING",  type=h5_typeReal)
+    fldCollDB(3) = h5_dataField(name="MATERIAL", type=h5_typeChar, size=4)
+    fldCollDB(4) = h5_dataField(name="LENGTH",   type=h5_typeReal)
+    fldCollDB(5) = h5_dataField(name="ANGLE",    type=h5_typeReal)
+    fldCollDB(6) = h5_dataField(name="OFFSET",   type=h5_typeReal)
+    fldCollDB(7) = h5_dataField(name="BETAX",    type=h5_typeReal)
+    fldCollDB(8) = h5_dataField(name="BETAY",    type=h5_typeReal)
+    call h5_createFormat("collimation_db", fldCollDB, fmtCollDB)
+    call h5_createDataSet("collimation_db", h5_collID, fmtCollDB, setCollDB, db_ncoll)
+    call chr_split("name opening material length angle offset beta_x beta_y",colNames,nSplit,spErr)
+    call chr_split("text sigma text m rad m m m",colUnits,nSplit,spErr)
+    call h5_writeDataSetAttr(setCollDB,"nColl",   db_ncoll)
+    call h5_writeDataSetAttr(setCollDB,"colNames",colNames)
+    call h5_writeDataSetAttr(setCollDB,"colUnits",colUnits)
+    call h5_prepareWrite(setCollDB, db_ncoll)
+    call h5_writeData(setCollDB, 1, db_ncoll, db_name2(1:db_ncoll))
+    call h5_writeData(setCollDB, 2, db_ncoll, db_nsig(1:db_ncoll))
+    call h5_writeData(setCollDB, 3, db_ncoll, db_material(1:db_ncoll))
+    call h5_writeData(setCollDB, 4, db_ncoll, db_length(1:db_ncoll))
+    call h5_writeData(setCollDB, 5, db_ncoll, db_rotation(1:db_ncoll))
+    call h5_writeData(setCollDB, 6, db_ncoll, db_offset(1:db_ncoll))
+    call h5_writeData(setCollDB, 7, db_ncoll, db_bx(1:db_ncoll))
+    call h5_writeData(setCollDB, 8, db_ncoll, db_by(1:db_ncoll))
+    call h5_finaliseWrite(setCollDB)
+    deallocate(fldCollDB)
+  end if
+#endif
+
+  close(coll_db_unit)
+
+#ifdef ROOT
+! flush the root file
+!  call SixTrackRootWrite()
+#endif
+
+end subroutine readcollimator
 
 subroutine collimation_comnul
   use parpro
