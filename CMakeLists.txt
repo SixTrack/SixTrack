@@ -10,7 +10,6 @@
 ###################################################################################################
 
 cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
-find_package(Git)
 
 # Force an out of source build to stop clutter
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -41,15 +40,15 @@ project(SixTrack VERSION ${STRING_VERSION})
 enable_language(Fortran)
 
 # Get the current git commit hash
-set(GIT_REVISION "Unknown")
+find_package(Git)
 if(GIT_FOUND)
   execute_process(COMMAND git log -n1 --pretty=format:%H WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_REVISION)
   string(STRIP ${GIT_REVISION} GIT_REVISION)
   string(SUBSTRING ${GIT_REVISION} 0 7 GIT_BUILD)
   set(GIT_BUILD "-${GIT_BUILD}")
 else()
+  set(GIT_REVISION "Unknown")
   set(GIT_BUILD    "")
-  set(GIT_REVISION "")
 endif()
 
 # Print some build info
