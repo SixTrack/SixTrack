@@ -194,6 +194,7 @@ subroutine cdb_readDB_oldFormat
   use mod_units
 
   character(len=mInputLn) inLine
+  character(len=cdb_fNameLen) famName
   logical cErr
   integer j, dbUnit, dbNew, ioStat, iLine
 
@@ -286,7 +287,8 @@ subroutine cdb_readDB_oldFormat
   write(dbNew,"(1a,a47,1x,a16,1x,a10,1x,a4,5(1x,a13))") "#",chr_rPad(" name",47),chr_rPad("family",16),&
     "opening","mat.","length[m]","angle[rad]","offset[m]","beta_x[m]","beta_y[m]"
   do j=1,cdb_nColl
-    write(dbNew,"(a48,1x,a16,1x,f10.3,1x,a4,5(1x,f13.6))") cdb_cName(j),"default         ",cdb_cNSig(j),cdb_cMaterial(j),&
+    call cdb_generateFamName(cdb_cName(j),famName)
+    write(dbNew,"(a48,1x,a16,1x,f10.3,1x,a4,5(1x,f13.6))") cdb_cName(j),famName,cdb_cNSig(j),cdb_cMaterial(j),&
       cdb_cLength(j),cdb_cRotation(j),cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
   end do
 
@@ -381,151 +383,95 @@ end subroutine cdb_writeDB_HDF5
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Updated: 2019-03-20
 ! ================================================================================================ !
-subroutine cdb_generateFamName(inElem, famName, nSigma)
+subroutine cdb_generateFamName(inElem, famName)
 
   use string_tools
   use numerical_constants
 
   character(len=mNameLen),     intent(in)  :: inElem
   character(len=cdb_fNameLen), intent(out) :: famName
-  real(kind=fPrec),            intent(out) :: nSigma
 
   character(len=mNameLen) elemName
 
-  integer nsig_tcdq
-  integer nsig_tcla3
-  integer nsig_tcla7
-  integer nsig_tcli
-  integer nsig_tclp
-  integer nsig_tcp3
-  integer nsig_tcp7
-  integer nsig_tcryo
-  integer nsig_tcsg3
-  integer nsig_tcsg7
-  integer nsig_tcsm3
-  integer nsig_tcsm7
-  integer nsig_tcstcdq
-  integer nsig_tcth1
-  integer nsig_tcth2
-  integer nsig_tcth5
-  integer nsig_tcth8
-  integer nsig_tctv1
-  integer nsig_tctv2
-  integer nsig_tctv5
-  integer nsig_tctv8
-  integer nsig_tcxrp
-  integer nsig_tdi
-
   famName  = " "
-  nSigma   = zero
   elemName = chr_toLower(inElem)
   if(elemName(1:3) == "tcp") then
     if(elemName(7:9) == "3.b") then
       famName = "tcp3"
-      nSigma  = nsig_tcp3
     else
       famName = "tcp7"
-      nSigma  = nsig_tcp7
     end if
   else if(elemName(1:4) == "tcsg") then
     if(elemName(8:10) == "3.b" .or. elemName(9:11) == "3.b") then
       famName = "tcsg3"
-      nSigma  = nsig_tcsg3
     else
       famName = "tcsg7"
-      nSigma  = nsig_tcsg7
     end if
     if(elemName(5:6) == ".4" .and. elemName(8:9) == "6.") then
       famName = "tcstcdq"
-      nSigma  = nsig_tcstcdq
     end if
   else if(elemName(1:4) == "tcsp") then
     if(elemName(9:11) == "6.b") then
       famName = "tcstcdq"
-      nSigma  = nsig_tcstcdq
     end if
   else if(elemName(1:4) == "tcsm") then
     if(elemName(8:10) == "3.b" .or. elemName(9:11) == "3.b") then
       famName = "tcsm3"
-      nSigma  = nsig_tcsm3
     else
       famName = "tcsm7"
-      nSigma  = nsig_tcsm7
     end if
   else if(elemName(1:4) == "tcla") then
     if(elemName(9:11) == "7.b") then
       famName = "tcla7"
-      nSigma  = nsig_tcla7
     else
       famName = "tcla3"
-      nSigma  = nsig_tcla3
     endif
   else if(elemName(1:4) == "tcdq") then
     famName = "tcdq"
-    nSigma  = nsig_tcdq
   else if(elemName(1:4) == "tcth" .or. elemName(1:5) == "tctph") then
     if(elemName(8:8) == "1" .or. elemName(9:9) == "1" ) then
       famName = "tcth1"
-      nSigma  = nsig_tcth1
     else if(elemName(8:8) == "2" .or. elemName(9:9) == "2") then
       famName = "tcth2"
-      nSigma  = nsig_tcth2
     else if(elemName(8:8) == "5" .or. elemName(9:9) == "5") then
       famName = "tcth5"
-      nSigma  = nsig_tcth5
     else if(elemName(8:8) == "8" .or. elemName(9:9) == "8") then
       famName = "tcth8"
-      nSigma  = nsig_tcth8
     end if
   else if(elemName(1:4) == "tctv" .or. elemName(1:5) == "tctpv") then
     if(elemName(8:8) == "1" .or. elemName(9:9) == "1") then
       famName = "tctv1"
-      nSigma  = nsig_tctv1
     else if(elemName(8:8) == "2" .or. elemName(9:9) == "2") then
       famName = "tctv2"
-      nSigma  = nsig_tctv2
     else if(elemName(8:8) == "5" .or. elemName(9:9) == "5") then
       famName = "tctv5"
-      nSigma  = nsig_tctv5
     else if(elemName(8:8) == "8" .or. elemName(9:9) == "8") then
       famName = "tctv8"
-      nSigma  = nsig_tctv8
     end if
   else if(elemName(1:3) == "tdi") then
     famName = "tdi"
-    nSigma  = nsig_tdi
   else if(elemName(1:4) == "tclp" .or. elemName(1:4) == "tcl." .or. elemName(1:4) == "tclx") then
     famName = "tclp"
-    nSigma  = nsig_tclp
   else if(elemName(1:4) == "tcli") then
     famName = "tcli"
-    nSigma  = nsig_tcli
   else if(elemName(1:4) == "tcxr") then
     famName = "tcxrp"
-    nSigma  = nsig_tcxrp
   else if(elemName(1:5) == "tcryo" .or. elemName(1:5) == "tcld.") then
     famName = "tcryo"
-    nSigma  = nsig_tcryo
   else if(elemName(1:3) == "col") then
     if(elemName == "colm" .or. elemName(1:5) == "colh0") then
       famName = "tcth1"
-      nSigma  = nsig_tcth1
     elseif(elemName(1:5) == "colv0") then
       famName = "tcth2"
-      nSigma  = nsig_tcth2
     else if(elemName(1:5) == "colh1") then
       famName = "tcth5"
-      nSigma  = nsig_tcth5
     else if(elemName(1:5) == "colv1") then
       famName = "tcth8"
-      nSigma  = nsig_tcth8
     else if(elemName(1:5) == "colh2") then
       famName = "tctv1"
-      nSigma  = nsig_tctv1
     end if
   else
     famName = "default"
-    nSigma  = c1e3
   end if
 
 end subroutine cdb_generateFamName
