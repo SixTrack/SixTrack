@@ -387,8 +387,8 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     end if
 
   case("INITIALSTATE")
-    if(nSplit /= 2) then
-      write(lout,"(a,i0)") "INPUT> ERROR INITIALSTATE takes one value, got ",nSplit-1
+    if(nSplit /= 2 .and. nSplit /= 3) then
+      write(lout,"(a,i0)") "INPUT> ERROR INITIALSTATE takes 1 or 2 values, got ",nSplit-1
       iErr = .true.
       return
     end if
@@ -398,19 +398,33 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     case("text")
       st_initialstate = 2
     case default
-      write(lout,"(a)") "INPUT> ERROR INITIALSTATE type must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
+      write(lout,"(a)") "INPUT> ERROR INITIALSTATE first value be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
       iErr = .true.
       return
     end select
-    if(st_initialstate == 1) then
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a binary file"
-    else
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a text file"
+    if(nSplit == 3) then
+      if(lnSplit(3) == "ions") then
+        st_initialstate = st_initialstate + 2
+      else
+        write(lout,"(a)") "INPUT> ERROR INITIALSTATE second value must be 'ions', got '"//trim(lnSplit(3))//"'"
+        iErr = .true.
+        return
+      end if
     end if
+    select case(st_initialstate)
+    case(1)
+      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a binary file"
+    case(2)
+      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a text file"
+    case(3)
+      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a binary file with ion data included"
+    case(4)
+      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a text file with ion data included"
+    end select
 
   case("FINALSTATE")
-    if(nSplit /= 2) then
-      write(lout,"(a,i0)") "INPUT> ERROR FINALSTATE takes one value, got ",nSplit-1
+    if(nSplit /= 2 .and. nSplit /= 3) then
+      write(lout,"(a,i0)") "INPUT> ERROR FINALSTATE takes 1 or 2 values, got ",nSplit-1
       iErr = .true.
       return
     end if
@@ -420,15 +434,29 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     case("text")
       st_finalstate = 2
     case default
-      write(lout,"(a)") "INPUT> ERROR FINALSTATE type must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
+      write(lout,"(a)") "INPUT> ERROR FINALSTATE first value must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
       iErr = .true.
       return
     end select
-    if(st_finalstate == 1) then
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file"
-    else
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file"
+    if(nSplit == 3) then
+      if(lnSplit(3) == "ions") then
+        st_finalstate = st_finalstate + 2
+      else
+        write(lout,"(a)") "INPUT> ERROR FINALSTATE second value must be 'ions', got '"//trim(lnSplit(3))//"'"
+        iErr = .true.
+        return
+      end if
     end if
+    select case(st_finalstate)
+    case(1)
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file"
+    case(2)
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file"
+    case(3)
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file with ion data included"
+    case(4)
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file with ion data included"
+    end select
 
   case("QUIET")
     if(nSplit > 1) then
