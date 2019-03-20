@@ -27,6 +27,7 @@ module collimation
   use mod_units
 !  use mod_ranecu
   use mod_ranlux
+  use collimation_db
 
 #ifdef HDF5
   use hdf5_output
@@ -950,6 +951,7 @@ subroutine collimate_init()
   use mod_common_track
   use mod_common_da
   use mod_settings
+  use string_tools
 
   implicit none
 
@@ -1343,7 +1345,21 @@ subroutine collimate_init()
   open(unit=CollPositions_unit, file='CollPositions.dat')
 
 !++  Read collimator database
-  call readcollimator
+  ! call readcollimator
+  call cdb_readCollDB(coll_db)
+
+  db_ncoll = cdb_nColl
+  do i=1,db_ncoll
+    db_name1(i) = chr_toUpper(cdb_cName(i))
+  end do
+  db_name2(1:db_ncoll)    = cdb_cName(1:db_ncoll)
+  db_material(1:db_ncoll) = cdb_cMaterial(1:db_ncoll)
+  db_nsig(1:db_ncoll)     = cdb_cNSig(1:db_ncoll)
+  db_length(1:db_ncoll)   = cdb_cLength(1:db_ncoll)
+  db_offset(1:db_ncoll)   = cdb_cOffset(1:db_ncoll)
+  db_rotation(1:db_ncoll) = cdb_cRotation(1:db_ncoll)
+  db_bx(1:db_ncoll)       = cdb_cBx(1:db_ncoll)
+  db_by(1:db_ncoll)       = cdb_cBy(1:db_ncoll)
 
 !Then do any implementation specific initial loading
 #ifdef COLLIMATE_K2
@@ -7842,177 +7858,177 @@ end function ran_gauss
 !! This routine is called once at the start of the simulation and
 !! is used to read the collimator settings input file
 !<
-subroutine readcollimator
+! subroutine readcollimator
 
-  use crcoall
-  use parpro
-  use string_tools
-#ifdef ROOT
-  use iso_c_binding
-  use root_output
-#endif
+!   use crcoall
+!   use parpro
+!   use string_tools
+! #ifdef ROOT
+!   use iso_c_binding
+!   use root_output
+! #endif
 
-  implicit none
+!   implicit none
 
-  integer J,ios
-  character(len=1024) inVal
-  logical cErr
-#ifdef HDF5
-  type(h5_dataField), allocatable :: fldCollDB(:)
-  character(len=:),   allocatable :: colNames(:)
-  character(len=:),   allocatable :: colUnits(:)
-  integer :: fmtCollDB, setCollDB, nSplit
-  logical :: spErr
-#endif
+!   integer J,ios
+!   character(len=1024) inVal
+!   logical cErr
+! #ifdef HDF5
+!   type(h5_dataField), allocatable :: fldCollDB(:)
+!   character(len=:),   allocatable :: colNames(:)
+!   character(len=:),   allocatable :: colUnits(:)
+!   integer :: fmtCollDB, setCollDB, nSplit
+!   logical :: spErr
+! #endif
 
-#ifdef ROOT
-! Temp variables to avoid fotran array -> C nightmares
-  character(len=mNameLen+1) :: this_name = C_NULL_CHAR
-  character(len=5) :: this_material = C_NULL_CHAR
-#endif
+! #ifdef ROOT
+! ! Temp variables to avoid fotran array -> C nightmares
+!   character(len=mNameLen+1) :: this_name = C_NULL_CHAR
+!   character(len=5) :: this_material = C_NULL_CHAR
+! #endif
 
-  save
-!--------------------------------------------------------------------
-!++  Read collimator database
+!   save
+! !--------------------------------------------------------------------
+! !++  Read collimator database
 
-  call f_requestUnit(coll_db, coll_db_unit)
-  open(unit=coll_db_unit,file=coll_db, iostat=ios, status="OLD",action="read") !was 53
-  if(ios.ne.0)then
-    write(lout,"(a)")    "COLL> ERROR in subroutine readcollimator: Could not open the file '"//coll_db//"'"
-    write(lout,"(a,i0)") "COLL>       Got iostat = ",ios
-    call prror(-1)
-  end if
+!   call f_requestUnit(coll_db, coll_db_unit)
+!   open(unit=coll_db_unit,file=coll_db, iostat=ios, status="OLD",action="read") !was 53
+!   if(ios.ne.0)then
+!     write(lout,"(a)")    "COLL> ERROR in subroutine readcollimator: Could not open the file '"//coll_db//"'"
+!     write(lout,"(a,i0)") "COLL>       Got iostat = ",ios
+!     call prror(-1)
+!   end if
 
-  read(coll_db_unit,*)
-  read(coll_db_unit,*,iostat=ios) db_ncoll
-  if(ios.ne.0) then
-    write(outlun,*) 'ERR>  Problem reading collimator DB ',ios
-    call prror(-1)
-  end if
+!   read(coll_db_unit,*)
+!   read(coll_db_unit,*,iostat=ios) db_ncoll
+!   if(ios.ne.0) then
+!     write(outlun,*) 'ERR>  Problem reading collimator DB ',ios
+!     call prror(-1)
+!   end if
 
-  if(db_ncoll.gt.max_ncoll) then
-    write(lout,"(a)") "COLL> ERROR db_ncoll > max_ncoll"
-    call prror(-1)
-  end if
+!   if(db_ncoll.gt.max_ncoll) then
+!     write(lout,"(a)") "COLL> ERROR db_ncoll > max_ncoll"
+!     call prror(-1)
+!   end if
 
-  do j=1,db_ncoll
-    read(coll_db_unit,*)
-!GRD ALLOW TO RECOGNIZE BOTH CAPITAL AND NORMAL LETTERS
-    read(coll_db_unit,*,iostat=ios) db_name1(j)
-!        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
-      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-      call prror(-1)
-    end if
+!   do j=1,db_ncoll
+!     read(coll_db_unit,*)
+! !GRD ALLOW TO RECOGNIZE BOTH CAPITAL AND NORMAL LETTERS
+!     read(coll_db_unit,*,iostat=ios) db_name1(j)
+! !        write(*,*) 'ios = ',ios
+!     if(ios.ne.0) then
+!       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+!       call prror(-1)
+!     end if
 
-    read(coll_db_unit,*,iostat=ios) db_name2(j)
-!        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
-      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-      call prror(-1)
-    end if
+!     read(coll_db_unit,*,iostat=ios) db_name2(j)
+! !        write(*,*) 'ios = ',ios
+!     if(ios.ne.0) then
+!       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+!       call prror(-1)
+!     end if
 
-    read(coll_db_unit,*,iostat=ios) inVal
-    call chr_cast(inVal,db_nsig(j),cErr)
-!        write(*,*) 'ios = ',ios
-    if(ios.ne.0 .or. cErr) then
-      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-      call prror(-1)
-    end if
-    !GRD
-    read(coll_db_unit,*,iostat=ios) db_material(j)
-!        write(*,*) 'ios = ',ios
-    if(ios.ne.0) then
-      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-      call prror(-1)
-    end if
-    read(coll_db_unit,*,iostat=ios) inVal
-    call chr_cast(inVal,db_length(j),cErr)
-!        write(*,*) 'ios = ',ios
-    if(ios.ne.0 .or. cErr) then
-      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-      call prror(-1)
-    end if
-    read(coll_db_unit,*,iostat=ios) inVal
-    call chr_cast(inVal,db_rotation(j),cErr)
-!        write(*,*) 'ios = ',ios
-    if(ios.ne.0 .or. cErr) then
-      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-      call prror(-1)
-    end if
-    read(coll_db_unit,*,iostat=ios) inVal
-    call chr_cast(inVal,db_offset(j),cErr)
-!        write(*,*) 'ios = ',ios
-    if(ios.ne.0 .or. cErr) then
-      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-      call prror(-1)
-    end if
-    read(coll_db_unit,*,iostat=ios) inVal
-    call chr_cast(inVal,db_bx(j),cErr)
-!        write(*,*) 'ios = ',ios
-    if(ios.ne.0 .or. cErr) then
-      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-      call prror(-1)
-    end if
-    read(coll_db_unit,*,iostat=ios) inVal
-    call chr_cast(inVal,db_by(j),cErr)
-!        write(*,*) 'ios = ',ios
-    if(ios.ne.0 .or. cErr) then
-      write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
-      call prror(-1)
-    end if
+!     read(coll_db_unit,*,iostat=ios) inVal
+!     call chr_cast(inVal,db_nsig(j),cErr)
+! !        write(*,*) 'ios = ',ios
+!     if(ios.ne.0 .or. cErr) then
+!       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+!       call prror(-1)
+!     end if
+!     !GRD
+!     read(coll_db_unit,*,iostat=ios) db_material(j)
+! !        write(*,*) 'ios = ',ios
+!     if(ios.ne.0) then
+!       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+!       call prror(-1)
+!     end if
+!     read(coll_db_unit,*,iostat=ios) inVal
+!     call chr_cast(inVal,db_length(j),cErr)
+! !        write(*,*) 'ios = ',ios
+!     if(ios.ne.0 .or. cErr) then
+!       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+!       call prror(-1)
+!     end if
+!     read(coll_db_unit,*,iostat=ios) inVal
+!     call chr_cast(inVal,db_rotation(j),cErr)
+! !        write(*,*) 'ios = ',ios
+!     if(ios.ne.0 .or. cErr) then
+!       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+!       call prror(-1)
+!     end if
+!     read(coll_db_unit,*,iostat=ios) inVal
+!     call chr_cast(inVal,db_offset(j),cErr)
+! !        write(*,*) 'ios = ',ios
+!     if(ios.ne.0 .or. cErr) then
+!       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+!       call prror(-1)
+!     end if
+!     read(coll_db_unit,*,iostat=ios) inVal
+!     call chr_cast(inVal,db_bx(j),cErr)
+! !        write(*,*) 'ios = ',ios
+!     if(ios.ne.0 .or. cErr) then
+!       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+!       call prror(-1)
+!     end if
+!     read(coll_db_unit,*,iostat=ios) inVal
+!     call chr_cast(inVal,db_by(j),cErr)
+! !        write(*,*) 'ios = ',ios
+!     if(ios.ne.0 .or. cErr) then
+!       write(outlun,*) 'ERR>  Problem reading collimator DB ', j,ios
+!       call prror(-1)
+!     end if
 
-#ifdef ROOT
-    if(root_flag .and. root_CollimationDB.eq.1) then
-      this_name = trim(adjustl(db_name1(j))) // C_NULL_CHAR
-      this_material = trim(adjustl(db_material(j))) // C_NULL_CHAR
-      call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), db_nsig(j), &
-        db_length(j), db_rotation(j), db_offset(j))
-    end if
-#endif
+! #ifdef ROOT
+!     if(root_flag .and. root_CollimationDB.eq.1) then
+!       this_name = trim(adjustl(db_name1(j))) // C_NULL_CHAR
+!       this_material = trim(adjustl(db_material(j))) // C_NULL_CHAR
+!       call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), db_nsig(j), &
+!         db_length(j), db_rotation(j), db_offset(j))
+!     end if
+! #endif
 
-  end do
+!   end do
 
-#ifdef HDF5
-  if(h5_useForCOLL) then
-    allocate(fldCollDB(8))
-    fldCollDB(1) = h5_dataField(name="NAME",     type=h5_typeChar, size=mNameLen)
-    fldCollDB(2) = h5_dataField(name="OPENING",  type=h5_typeReal)
-    fldCollDB(3) = h5_dataField(name="MATERIAL", type=h5_typeChar, size=4)
-    fldCollDB(4) = h5_dataField(name="LENGTH",   type=h5_typeReal)
-    fldCollDB(5) = h5_dataField(name="ANGLE",    type=h5_typeReal)
-    fldCollDB(6) = h5_dataField(name="OFFSET",   type=h5_typeReal)
-    fldCollDB(7) = h5_dataField(name="BETAX",    type=h5_typeReal)
-    fldCollDB(8) = h5_dataField(name="BETAY",    type=h5_typeReal)
-    call h5_createFormat("collimation_db", fldCollDB, fmtCollDB)
-    call h5_createDataSet("collimation_db", h5_collID, fmtCollDB, setCollDB, db_ncoll)
-    call chr_split("name opening material length angle offset beta_x beta_y",colNames,nSplit,spErr)
-    call chr_split("text sigma text m rad m m m",colUnits,nSplit,spErr)
-    call h5_writeDataSetAttr(setCollDB,"nColl",   db_ncoll)
-    call h5_writeDataSetAttr(setCollDB,"colNames",colNames)
-    call h5_writeDataSetAttr(setCollDB,"colUnits",colUnits)
-    call h5_prepareWrite(setCollDB, db_ncoll)
-    call h5_writeData(setCollDB, 1, db_ncoll, db_name2(1:db_ncoll))
-    call h5_writeData(setCollDB, 2, db_ncoll, db_nsig(1:db_ncoll))
-    call h5_writeData(setCollDB, 3, db_ncoll, db_material(1:db_ncoll))
-    call h5_writeData(setCollDB, 4, db_ncoll, db_length(1:db_ncoll))
-    call h5_writeData(setCollDB, 5, db_ncoll, db_rotation(1:db_ncoll))
-    call h5_writeData(setCollDB, 6, db_ncoll, db_offset(1:db_ncoll))
-    call h5_writeData(setCollDB, 7, db_ncoll, db_bx(1:db_ncoll))
-    call h5_writeData(setCollDB, 8, db_ncoll, db_by(1:db_ncoll))
-    call h5_finaliseWrite(setCollDB)
-    deallocate(fldCollDB)
-  end if
-#endif
+! #ifdef HDF5
+!   if(h5_useForCOLL) then
+!     allocate(fldCollDB(8))
+!     fldCollDB(1) = h5_dataField(name="NAME",     type=h5_typeChar, size=mNameLen)
+!     fldCollDB(2) = h5_dataField(name="OPENING",  type=h5_typeReal)
+!     fldCollDB(3) = h5_dataField(name="MATERIAL", type=h5_typeChar, size=4)
+!     fldCollDB(4) = h5_dataField(name="LENGTH",   type=h5_typeReal)
+!     fldCollDB(5) = h5_dataField(name="ANGLE",    type=h5_typeReal)
+!     fldCollDB(6) = h5_dataField(name="OFFSET",   type=h5_typeReal)
+!     fldCollDB(7) = h5_dataField(name="BETAX",    type=h5_typeReal)
+!     fldCollDB(8) = h5_dataField(name="BETAY",    type=h5_typeReal)
+!     call h5_createFormat("collimation_db", fldCollDB, fmtCollDB)
+!     call h5_createDataSet("collimation_db", h5_collID, fmtCollDB, setCollDB, db_ncoll)
+!     call chr_split("name opening material length angle offset beta_x beta_y",colNames,nSplit,spErr)
+!     call chr_split("text sigma text m rad m m m",colUnits,nSplit,spErr)
+!     call h5_writeDataSetAttr(setCollDB,"nColl",   db_ncoll)
+!     call h5_writeDataSetAttr(setCollDB,"colNames",colNames)
+!     call h5_writeDataSetAttr(setCollDB,"colUnits",colUnits)
+!     call h5_prepareWrite(setCollDB, db_ncoll)
+!     call h5_writeData(setCollDB, 1, db_ncoll, db_name2(1:db_ncoll))
+!     call h5_writeData(setCollDB, 2, db_ncoll, db_nsig(1:db_ncoll))
+!     call h5_writeData(setCollDB, 3, db_ncoll, db_material(1:db_ncoll))
+!     call h5_writeData(setCollDB, 4, db_ncoll, db_length(1:db_ncoll))
+!     call h5_writeData(setCollDB, 5, db_ncoll, db_rotation(1:db_ncoll))
+!     call h5_writeData(setCollDB, 6, db_ncoll, db_offset(1:db_ncoll))
+!     call h5_writeData(setCollDB, 7, db_ncoll, db_bx(1:db_ncoll))
+!     call h5_writeData(setCollDB, 8, db_ncoll, db_by(1:db_ncoll))
+!     call h5_finaliseWrite(setCollDB)
+!     deallocate(fldCollDB)
+!   end if
+! #endif
 
-  close(coll_db_unit)
+!   close(coll_db_unit)
 
-#ifdef ROOT
-! flush the root file
-!  call SixTrackRootWrite()
-#endif
+! #ifdef ROOT
+! ! flush the root file
+! !  call SixTrackRootWrite()
+! #endif
 
-end subroutine readcollimator
+! end subroutine readcollimator
 
 subroutine collimation_comnul
   use parpro
