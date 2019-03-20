@@ -1325,22 +1325,26 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   logical lInsUp
 ! run time variables
   integer iElUp, iElDw, ixApeUp, ixApeDw, jj, iuold
-  logical lExtremes, lsame
+  logical lAccrossLatticeExtremes, lsame
+
+! echo of input parameters
+  write(lout,"(a)") ""
+  write(lout,"(a,i0,a,i0,a,l)") "APER> Call to contour_aperture_markers - iUp=",itElUp," - iDw=",itElDw," - lInsUp=",lInsUp
 
 ! do not overwrite interface variables
   iElUp=itElUp
   iElDw=itElDw
-! handling extremes of lattice structure?
-  lExtremes=iElUp.eq.iu.and.iElDw.eq.1
+! markers accross extremes of lattice structure?
+  lAccrossLatticeExtremes=iElUp.gt.iElDw
 
 ! upstream marker
   iuold=iu
   call contour_aperture_marker( iElUp, lInsUp )
 ! the addition of the upstream aperture marker may have
 !    shifted by one the downstream entries
-! NB: if lExtremes, the upstream marker is the last entry
-!     in the lattice structure! Hence, no other entry is shifted!
-  if( .not.lExtremes ) then
+! NB: if lAccrossLatticeExtremes, the upstream marker is towards the end of
+!     the lattice structure! Hence, the downstream marker is not shifted
+  if( .not.lAccrossLatticeExtremes ) then
     if( iu-iuold.ne.0 ) then
       iElDw=iElDw+(iu-iuold)
       write(lout,"(a,i0)") "APER> ...inserted upstream marker - downstream entries shifted by ",iu-iuold
@@ -1354,11 +1358,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   call contour_aperture_marker( iElDw, .false. )
 ! the addition of the downstream aperture marker may have shifted by one the downstream entries
   if( iu-iuold.ne.0 ) then
-! NB: if lExtremes, the downstream entry is the first entry
-! in the lattice structure! Hence, if a new entry has been inserted,
-! the upstream entry (at the end of the lattice structure) is
-! shifted by 1
-    if( lExtremes ) then
+! NB: if lAccrossLatticeExtremes, the downstream marker is almost at the beginngin of
+!     the lattice structure! Hence, if a new entry has been inserted,
+!     the upstream marker (towards the end of the lattice structure) is
+!     shifted by 1
+    if( lAccrossLatticeExtremes ) then
       iElUp=iElUp+(iu-iuold)
     end if
     write(lout,"(a,i0)") "APER> ...inserted downstream marker - downstream entries shifted by ",iu-iuold
@@ -1366,7 +1370,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
     write(lout,"(a)")    "APER> ...no need to insert a downstream marker - no shift of downstream entries required."
   end if
 
-  if( lExtremes ) then
+  if( lAccrossLatticeExtremes ) then
 ! check that the aperture markers at the extremities of accelerator
 ! lattice structure are the same
     ixApeUp=ic(iElUp)-nblo
@@ -1412,7 +1416,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 
 ! echo of input parameters
   write(lout,"(a)") ""
-  write(lout,"(a)") "APER> Call to contour_aperture_marker"
+  write(lout,"(a,i0,a,l)") "APER> Call to contour_aperture_marker - i=",iEl," - lInsUp=",lInsUp
 
 ! check upstream element
   ixEl=ic(iEl)-nblo
@@ -1459,7 +1463,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 
 ! echo
   write(lout,"(a)")                 "APER> Look for aperture markers closest to:"
-  write(lout,"(a,i0,a,i0,a,e15.7)") "APER> i=",iEl," - ix=",ixEl," - name: '"//bez(ixEl)//"' - s=",dcum(iEl)
+  write(lout,"(a,i0,a,i0,a,f15.6)") "APER> i=",iEl," - ix=",ixEl," - name: '"//bez(ixEl)//"' - s=",dcum(iEl)
 
 ! candidate aperture marker
   if( lInsUp ) then
@@ -2056,7 +2060,7 @@ subroutine dump_aperture( iunit, name, aptype, spos, ape )
      end select
   end if
   return
- 1984 format (1x,a,1x,a6,12(1x,f15.5))
+ 1984 format (1x,a48,1x,a6,12(1x,f15.6))
 end subroutine dump_aperture
 
 subroutine dump_aperture_marker( iunit, ixEl, iEl )
@@ -2089,7 +2093,7 @@ subroutine dump_aperture_header( iunit )
  &                  'aper3[mm][rad]', 'aper4[mm][rad]', 'aper5[mm][rad]', 'aper6[mm][rad]', &
  &                  'aper7[mm][rad]', 'aper8[mm][rad]', 'angle[rad]', 'xoff[mm]', 'yoff[mm]'
   return
- 1984 format (a1,a64,1x,a6,1x,12(1x,a15))
+ 1984 format (a1,a48,1x,a6,12(1x,a15))
 end subroutine dump_aperture_header
 
 subroutine dump_aperture_xsecs
