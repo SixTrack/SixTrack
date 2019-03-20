@@ -13,12 +13,7 @@ cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 enable_language(Fortran)
 find_package(Git)
 
-# set(CMAKE_BINARY_DIR ".")
 # Force an out of source build to stop clutter
-# if(NOT PROJECT_SOURCE_DIR)
-  # set(PROJECT_SOURCE_DIR "${CMAKE_SOURCE_DIR}")
-  # set(PROJECT_BINARY_DIR "${CMAKE_BINARY_DIR}")
-# endif()
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   message(STATUS "SixTrack requires an out-of-source build.")
   message(STATUS "Please remove these files from ${CMAKE_BINARY_DIR} first:")
