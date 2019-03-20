@@ -56,7 +56,7 @@ module elens
   integer, parameter     :: nelens_radial_profiles=20 ! max number of radial profiles
   integer, save          :: melens_radial_profiles    ! radial profiles available in memory
   integer, parameter     :: elens_radial_dim=500      ! max number of points in radial profiles
-  character(len=mFNameLen), save:: elens_radial_filename(nelens_radial_profiles) ! names
+  character(len=mFileName), save:: elens_radial_filename(nelens_radial_profiles) ! names
   real(kind=fPrec), save :: elens_radial_profile_R(0:elens_radial_dim,nelens_radial_profiles)
   real(kind=fPrec), save :: elens_radial_profile_J(0:elens_radial_dim,nelens_radial_profiles)
   integer, save          :: elens_radial_profile_nPoints(nelens_radial_profiles)

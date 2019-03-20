@@ -29,7 +29,7 @@ module cheby
   real(kind=fPrec), save :: cheby_scalingFact(ncheby)=one  ! scaling factor [] (computed internally)
   ! show map
   logical,          save :: cheby_lMap(ncheby)=.false.     ! requested echo of map?
-  character(len=mFNameLen), save:: cheby_mapFileName(ncheby) = " "! file names
+  character(len=mFileName), save:: cheby_mapFileName(ncheby) = " "! file names
   real(kind=fPrec), save :: cheby_mapXmin(ncheby)=-10.0e+00_fPrec ! [mm]
   real(kind=fPrec), save :: cheby_mapXmax(ncheby)= 10.0e+00_fPrec ! [mm]
   integer,          save :: cheby_mapNx(ncheby)=100        ! number of intervals
@@ -39,7 +39,7 @@ module cheby
 
   ! tables with chebyshev coefficients
   integer, parameter     :: cheby_max_order=30             ! max order of chebyshev polynomials currently supported
-  character(len=mFNameLen), save:: cheby_filename(ncheby_tables) = " "! file names
+  character(len=mFileName), save:: cheby_filename(ncheby_tables) = " "! file names
   real(kind=fPrec), save :: cheby_coeffs(0:cheby_max_order,0:cheby_max_order,ncheby_tables) = zero ! coefficients
   integer, save          :: cheby_maxOrder(ncheby_tables)  = 0    ! max order of the current map
   real(kind=fPrec), save :: cheby_refI(ncheby_tables) = one  ! reference current [A] (optional)
