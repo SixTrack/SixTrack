@@ -8,6 +8,8 @@ module collimation_db
 
   implicit none
 
+  integer, parameter :: cdb_fNameLen = 16
+
   character(len=mFileName), public,  save :: cdb_fileName = " "     ! Database file
   logical,                  private, save :: cdb_dbOld    = .false. ! Old or new DB format
   integer,                  public,  save :: cdb_nColl    = 0       ! Number of collimators
@@ -30,6 +32,31 @@ module collimation_db
   character(len=:), allocatable, public, save :: cdb_famName(:)  ! Family name
   real(kind=fPrec), allocatable, public, save :: cdb_famNSig(:)  ! Family sigma
 
+  ! integer, public, save :: nsig_tcdq
+  ! integer, public, save :: nsig_tcla3
+  ! integer, public, save :: nsig_tcla7
+  ! integer, public, save :: nsig_tcli
+  ! integer, public, save :: nsig_tclp
+  ! integer, public, save :: nsig_tcp3
+  ! integer, public, save :: nsig_tcp7
+  ! integer, public, save :: nsig_tcryo
+  ! integer, public, save :: nsig_tcsg3
+  ! integer, public, save :: nsig_tcsg7
+  ! integer, public, save :: nsig_tcsm3
+  ! integer, public, save :: nsig_tcsm7
+  ! integer, public, save :: nsig_tcstcdq
+  ! integer, public, save :: nsig_tcstcdq
+  ! integer, public, save :: nsig_tcth1
+  ! integer, public, save :: nsig_tcth2
+  ! integer, public, save :: nsig_tcth5
+  ! integer, public, save :: nsig_tcth8
+  ! integer, public, save :: nsig_tctv1
+  ! integer, public, save :: nsig_tctv2
+  ! integer, public, save :: nsig_tctv5
+  ! integer, public, save :: nsig_tctv8
+  ! integer, public, save :: nsig_tcxrp
+  ! integer, public, save :: nsig_tdi
+
 contains
 
 subroutine cdb_allocDB
@@ -38,9 +65,9 @@ subroutine cdb_allocDB
   use numerical_constants
 
   call alloc(cdb_cName,     mNameLen, cdb_nColl, " ",     "cdb_cName")
-  call alloc(cdb_cMaterial, mNameLen, cdb_nColl, " ",     "cdb_cMaterial")
-  call alloc(cdb_cFamily,   4,        cdb_nColl, " ",     "cdb_cFamily")
-  call alloc(cdb_cNSig,               cdb_nColl, -1,      "cdb_cNSig")
+  call alloc(cdb_cMaterial, 4,        cdb_nColl, " ",     "cdb_cMaterial")
+  call alloc(cdb_cFamily,             cdb_nColl, -1,      "cdb_cFamily")
+  call alloc(cdb_cNSig,               cdb_nColl, zero,    "cdb_cNSig")
   call alloc(cdb_cLength,             cdb_nColl, zero,    "cdb_cLength")
   call alloc(cdb_cOffset,             cdb_nColl, zero,    "cdb_cOffset")
   call alloc(cdb_cRotation,           cdb_nColl, zero,    "cdb_cRotation")
@@ -56,8 +83,8 @@ subroutine cdb_allocFam
   use mod_alloc
   use numerical_constants
 
-  call alloc(cdb_famName, 16, cdb_nFam, " ",  "cdb_famName")
-  call alloc(cdb_famNSig,     cdb_nFam, zero, "cdb_famNSig")
+  call alloc(cdb_famName, cdb_fNameLen, cdb_nFam, " ",  "cdb_famName")
+  call alloc(cdb_famNSig,               cdb_nFam, zero, "cdb_famNSig")
 
 end subroutine cdb_allocFam
 
@@ -68,7 +95,7 @@ end subroutine cdb_allocFam
 ! ================================================================================================ !
 subroutine cdb_readCollDB(dbFile)
 
-  use parpro
+  use crcoall
   use mod_units
   use mod_common
   use string_tools
@@ -78,7 +105,7 @@ subroutine cdb_readCollDB(dbFile)
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
   character(len=mNameLen) elemName
-  character(len=16) cFam
+  character(len=cdb_fNameLen) cFam
   real(kind=fPrec)  cNSig
   integer dbUnit, ioStat, nLines, nSplit, collID, famID
   integer i, j, ix
@@ -87,7 +114,7 @@ subroutine cdb_readCollDB(dbFile)
   call f_requestUnit(dbFile, dbUnit)
   call f_open(unit=dbUnit,file=dbFile,formatted=.true.,mode="r",err=dbErr,status="old")
   if(dbErr) then
-    write(lout,"(a)") "COLL> ERROR Could not open the collimator database file '"//trim(coll_db)//"'"
+    write(lout,"(a)") "COLL> ERROR Could not open the collimator database file '"//trim(dbFile)//"'"
     call prror
   end if
   cdb_fileName = dbFile
@@ -137,27 +164,30 @@ subroutine cdb_readCollDB(dbFile)
 100 continue
 
   ! Map single elements to collimators
-  do i=1,iu
-    ix = ic(i)-nblo
-    if(ix < 1) cycle
+  ! do i=1,iu
+  !   ix = ic(i)-nblo
+  !   if(ix < 1) cycle
 
-    elemName = chr_toLower(bez(ix))
-    collID = -1
-    do j=1,db_ncoll
-      if(elemName == db_name2(j)) then
-        collID = j
-        exit
-      end if
-    end do
+  !   elemName = chr_toLower(bez(ix))
+  !   collID = -1
+  !   do j=1,cdb_nColl
+  !     if(elemName == db_name2(j)) then
+  !       collID = j
+  !       exit
+  !     end if
+  !   end do
 
-    if(collID == -1) then
-      write(lout,"(a)") "COLL> WARNING Collimator not found in colldb: '"//trim(bez(ix))//"'"
-    else
-      db_elemMap(ix) = collID
-    end if
-  end do
+  !   if(collID == -1) then
+  !     write(lout,"(a)") "COLL> WARNING Collimator not found in colldb: '"//trim(bez(ix))//"'"
+  !   else
+  !     db_elemMap(ix) = collID
+  !   end if
+  ! end do
 
 end subroutine cdb_readCollDB
+
+subroutine cdb_readDB_newFormat
+end subroutine cdb_readDB_newFormat
 
 subroutine cdb_readDB_oldFormat
 
@@ -168,68 +198,82 @@ subroutine cdb_readDB_oldFormat
 
   character(len=mInputLn) inLine
   logical cErr
-  integer j, dbUnit, ioStat
+  integer j, dbUnit, ioStat, iLine
+
+  cErr = .false.
 
   call f_requestUnit(cdb_fileName, dbUnit)
-  call f_open(unit=dbUnit,file=cdb_fileName,formatted=.true.,mode="r",err=dbErr,status="old")
+  call f_open(unit=dbUnit,file=cdb_fileName,formatted=.true.,mode="r",status="old")
 
-  read(coll_db_unit,*,iostat=ioStat) inLine
+  read(dbUnit,*,iostat=ioStat) inLine
+  iLine = 1
   if(ioStat /= 0) goto 100
 
-  read(coll_db_unit,*,iostat=ioStat) cdb_nColl
+  read(dbUnit,*,iostat=ioStat) cdb_nColl
+  iLine = 2
   if(ioStat /= 0) goto 100
   call cdb_allocDB
 
   do j=1,cdb_nColl
 
     ! Line 1: Hash, ignored
-    read(coll_db_unit,*,iostat=ioStat) inLine
+    read(dbUnit,*,iostat=ioStat) inLine
+    iLine = iLine + 1
     if(ioStat /= 0) goto 100
 
     ! Line 2: Upper case name, ignored
-    read(coll_db_unit,*,iostat=ioStat) inLine
+    read(dbUnit,*,iostat=ioStat) inLine
+    iLine = iLine + 1
     if(ioStat /= 0) goto 100
 
     ! Line 3: Lower case name
-    read(coll_db_unit,*,iostat=ioStat) cdb_cName(j)
+    read(dbUnit,*,iostat=ioStat) cdb_cName(j)
+    iLine = iLine + 1
     if(ioStat /= 0) goto 100
 
     ! Line 4: Sigma
-    read(coll_db_unit,*,iostat=ioStat) inLine
+    read(dbUnit,*,iostat=ioStat) inLine
+    iLine = iLine + 1
     if(ioStat /= 0) goto 100
     call chr_cast(inLine, cdb_cNSig(j), cErr)
     if(cErr) goto 100
 
     ! Line 5: Material
-    read(coll_db_unit,*,iostat=ioStat) cdb_cMaterial(j)
+    read(dbUnit,*,iostat=ioStat) cdb_cMaterial(j)
+    iLine = iLine + 1
     if(ioStat /= 0) goto 100
 
     ! Line 6: Length
-    read(coll_db_unit,*,iostat=ioStat) inLine
+    read(dbUnit,*,iostat=ioStat) inLine
+    iLine = iLine + 1
     if(ioStat /= 0) goto 100
     call chr_cast(inLine, cdb_cLength(j), cErr)
     if(cErr) goto 100
 
     ! Line 7: Rotation
-    read(coll_db_unit,*,iostat=ioStat) inLine
+    read(dbUnit,*,iostat=ioStat) inLine
+    iLine = iLine + 1
     if(ioStat /= 0) goto 100
     call chr_cast(inLine, cdb_cRotation(j), cErr)
     if(cErr) goto 100
 
     ! Line 8: Offset
-    read(coll_db_unit,*,iostat=ioStat) inLine
+    read(dbUnit,*,iostat=ioStat) inLine
+    iLine = iLine + 1
     if(ioStat /= 0) goto 100
     call chr_cast(inLine, cdb_cOffset(j), cErr)
     if(cErr) goto 100
 
     ! Line 9: Beta X
-    read(coll_db_unit,*,iostat=ioStat) inLine
+    read(dbUnit,*,iostat=ioStat) inLine
+    iLine = iLine + 1
     if(ioStat /= 0) goto 100
     call chr_cast(inLine, cdb_cBx(j), cErr)
     if(cErr) goto 100
 
     ! Line 10: Beta Y
-    read(coll_db_unit,*,iostat=ioStat) inLine
+    read(dbUnit,*,iostat=ioStat) inLine
+    iLine = iLine + 1
     if(ioStat /= 0) goto 100
     call chr_cast(inLine, cdb_cBy(j), cErr)
     if(cErr) goto 100
@@ -241,7 +285,7 @@ subroutine cdb_readDB_oldFormat
   return
 
 100 continue
-  write(lout,"(a, i0)") "COLLDB> ERROR Cannot read DB file, iostat = ",ioStat
+  write(lout,"(2(a,i0))") "COLLDB> ERROR Cannot read DB file line ",iLine,", iostat = ",ioStat
   call prror
 
 end subroutine cdb_readDB_oldFormat
@@ -312,110 +356,153 @@ end subroutine cdb_writeDB
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Updated: 2019-03-20
 ! ================================================================================================ !
-subroutine cdb_getFamily_oldDB
+subroutine cdb_generateFamName(inElem, famName, nSigma)
 
-  do j=1,db_ncoll
-    cFam     = " "
-    cNSig    = zero
-    elemName = chr_toLower(db_name2(j))
-    if(elemName(1:3) == "tcp") then
-      if(elemName(7:9) == "3.b") then
-        cFam  = "tcp3"
-        cNSig = nsig_tcp3
-      else
-        cFam  = "tcp7"
-        cNSig = nsig_tcp7
-      end if
-    else if(elemName(1:4) == "tcsg") then
-      if(elemName(8:10) == "3.b" .or. elemName(9:11) == "3.b") then
-        cFam  = "tcsg3"
-        cNSig = nsig_tcsg3
-      else
-        cFam  = "tcsg7"
-        cNSig = nsig_tcsg7
-      end if
-      if(elemName(5:6) == ".4" .and. elemName(8:9) == "6.") then
-        cFam  = "tcstcdq"
-        cNSig = nsig_tcstcdq
-      end if
-    else if(elemName(1:4) == "tcsp") then
-      if(elemName(9:11) == "6.b") then
-        cFam  = "tcstcdq"
-        cNSig = nsig_tcstcdq
-      end if
-    else if(elemName(1:4) == "tcsm") then
-      if(elemName(8:10) == "3.b" .or. elemName(9:11) == "3.b") then
-        cFam  = "tcsm3"
-        cNSig = nsig_tcsm3
-      else
-        cFam  = "tcsm7"
-        cNSig = nsig_tcsm7
-      end if
-    else if(elemName(1:4) == "tcla") then
-      if(elemName(9:11) == "7.b") then
-        cFam  = "tcla7"
-        cNSig = nsig_tcla7
-      else
-        cFam  = "tcla3"
-        cNSig = nsig_tcla3
-      endif
-    else if(elemName(1:4) == "tcdq") then
-      cFam  = "tcdq"
-      cNSig = nsig_tcdq
-    else if(elemName(1:4) == "tcth" .or. elemName(1:5) == "tctph") then
-      if(elemName(8:8) == "1" .or. elemName(9:9) == "1" ) then
-        cFam  = "tcth1"
-        cNSig = nsig_tcth1
-      else if(elemName(8:8) == "2" .or. elemName(9:9) == "2") then
-        cFam  = "tcth2"
-        cNSig = nsig_tcth2
-      else if(elemName(8:8) == "5" .or. elemName(9:9) == "5") then
-        cFam  = "tcth5"
-        cNSig = nsig_tcth5
-      else if(elemName(8:8) == "8" .or. elemName(9:9) == "8") then
-        cFam  = "tcth8"
-        cNSig = nsig_tcth8
-      end if
-    else if(elemName(1:4) == "tctv" .or. elemName(1:5) == "tctpv") then
-      if(elemName(8:8) == "1" .or. elemName(9:9) == "1") then
-        cFam  = "tctv1"
-        cNSig = nsig_tctv1
-      else if(elemName(8:8) == "2" .or. elemName(9:9) == "2") then
-        cFam  = "tctv2"
-        cNSig = nsig_tctv2
-      else if(elemName(8:8) == "5" .or. elemName(9:9) == "5") then
-        cFam  = "tctv5"
-        cNSig = nsig_tctv5
-      else if(elemName(8:8) == "8" .or. elemName(9:9) == "8") then
-        cFam  = "tctv8"
-        cNSig = nsig_tctv8
-      end if
-    else if(elemName(1:3) == "tdi") then
-      cFam  = "tdi"
-      cNSig = nsig_tdi
-    else if(elemName(1:4) == "tclp" .or. elemName(1:4) == "tcl." .or. elemName(1:4) == "tclx") then
-      cFam  = "tclp"
-      cNSig = nsig_tclp
-    else if(elemName(1:4) == "tcli") then
-      cFam  = "tcli"
-      cNSig = nsig_tcli
-    else if(elemName(1:4) == "tcxr") then
-      cFam  = "tcxrp"
-      cNSig = nsig_tcxrp
-    else if(elemName(1:5) == "tcryo" .or. elemName(1:5) == "tcld.") then
-      cFam  = "tcryo"
-      cNSig = nsig_tcryo
+  use string_tools
+  use numerical_constants
+
+  character(len=mNameLen),     intent(in)  :: inElem
+  character(len=cdb_fNameLen), intent(out) :: famName
+  real(kind=fPrec),            intent(out) :: nSigma
+
+  character(len=mNameLen) elemName
+
+  integer nsig_tcdq
+  integer nsig_tcla3
+  integer nsig_tcla7
+  integer nsig_tcli
+  integer nsig_tclp
+  integer nsig_tcp3
+  integer nsig_tcp7
+  integer nsig_tcryo
+  integer nsig_tcsg3
+  integer nsig_tcsg7
+  integer nsig_tcsm3
+  integer nsig_tcsm7
+  integer nsig_tcstcdq
+  integer nsig_tcth1
+  integer nsig_tcth2
+  integer nsig_tcth5
+  integer nsig_tcth8
+  integer nsig_tctv1
+  integer nsig_tctv2
+  integer nsig_tctv5
+  integer nsig_tctv8
+  integer nsig_tcxrp
+  integer nsig_tdi
+
+  famName  = " "
+  nSigma   = zero
+  elemName = chr_toLower(inElem)
+  if(elemName(1:3) == "tcp") then
+    if(elemName(7:9) == "3.b") then
+      famName = "tcp3"
+      nSigma  = nsig_tcp3
     else
-      write(lout,"(a)") "COLL> WARNING When setting opening for collimator '"//trim(elemName)//&
-          "' from fort.3. Name not recognized. Setting nsig = 1000.0"
-      cFam="default"
-      cNSig=c1e3
+      famName = "tcp7"
+      nSigma  = nsig_tcp7
     end if
-    call collimate_getFamilyID(cFam,famID,.true.)
-    coll_nSigFamily(famID) = cNSig
-    db_family(j) = famID
-  end do
+  else if(elemName(1:4) == "tcsg") then
+    if(elemName(8:10) == "3.b" .or. elemName(9:11) == "3.b") then
+      famName = "tcsg3"
+      nSigma  = nsig_tcsg3
+    else
+      famName = "tcsg7"
+      nSigma  = nsig_tcsg7
+    end if
+    if(elemName(5:6) == ".4" .and. elemName(8:9) == "6.") then
+      famName = "tcstcdq"
+      nSigma  = nsig_tcstcdq
+    end if
+  else if(elemName(1:4) == "tcsp") then
+    if(elemName(9:11) == "6.b") then
+      famName = "tcstcdq"
+      nSigma  = nsig_tcstcdq
+    end if
+  else if(elemName(1:4) == "tcsm") then
+    if(elemName(8:10) == "3.b" .or. elemName(9:11) == "3.b") then
+      famName = "tcsm3"
+      nSigma  = nsig_tcsm3
+    else
+      famName = "tcsm7"
+      nSigma  = nsig_tcsm7
+    end if
+  else if(elemName(1:4) == "tcla") then
+    if(elemName(9:11) == "7.b") then
+      famName = "tcla7"
+      nSigma  = nsig_tcla7
+    else
+      famName = "tcla3"
+      nSigma  = nsig_tcla3
+    endif
+  else if(elemName(1:4) == "tcdq") then
+    famName = "tcdq"
+    nSigma  = nsig_tcdq
+  else if(elemName(1:4) == "tcth" .or. elemName(1:5) == "tctph") then
+    if(elemName(8:8) == "1" .or. elemName(9:9) == "1" ) then
+      famName = "tcth1"
+      nSigma  = nsig_tcth1
+    else if(elemName(8:8) == "2" .or. elemName(9:9) == "2") then
+      famName = "tcth2"
+      nSigma  = nsig_tcth2
+    else if(elemName(8:8) == "5" .or. elemName(9:9) == "5") then
+      famName = "tcth5"
+      nSigma  = nsig_tcth5
+    else if(elemName(8:8) == "8" .or. elemName(9:9) == "8") then
+      famName = "tcth8"
+      nSigma  = nsig_tcth8
+    end if
+  else if(elemName(1:4) == "tctv" .or. elemName(1:5) == "tctpv") then
+    if(elemName(8:8) == "1" .or. elemName(9:9) == "1") then
+      famName = "tctv1"
+      nSigma  = nsig_tctv1
+    else if(elemName(8:8) == "2" .or. elemName(9:9) == "2") then
+      famName = "tctv2"
+      nSigma  = nsig_tctv2
+    else if(elemName(8:8) == "5" .or. elemName(9:9) == "5") then
+      famName = "tctv5"
+      nSigma  = nsig_tctv5
+    else if(elemName(8:8) == "8" .or. elemName(9:9) == "8") then
+      famName = "tctv8"
+      nSigma  = nsig_tctv8
+    end if
+  else if(elemName(1:3) == "tdi") then
+    famName = "tdi"
+    nSigma  = nsig_tdi
+  else if(elemName(1:4) == "tclp" .or. elemName(1:4) == "tcl." .or. elemName(1:4) == "tclx") then
+    famName = "tclp"
+    nSigma  = nsig_tclp
+  else if(elemName(1:4) == "tcli") then
+    famName = "tcli"
+    nSigma  = nsig_tcli
+  else if(elemName(1:4) == "tcxr") then
+    famName = "tcxrp"
+    nSigma  = nsig_tcxrp
+  else if(elemName(1:5) == "tcryo" .or. elemName(1:5) == "tcld.") then
+    famName = "tcryo"
+    nSigma  = nsig_tcryo
+  else if(elemName(1:3) == "col") then
+    if(elemName == "colm" .or. elemName(1:5) == "colh0") then
+      famName = "tcth1"
+      nSigma  = nsig_tcth1
+    elseif(elemName(1:5) == "colv0") then
+      famName = "tcth2"
+      nSigma  = nsig_tcth2
+    else if(elemName(1:5) == "colh1") then
+      famName = "tcth5"
+      nSigma  = nsig_tcth5
+    else if(elemName(1:5) == "colv1") then
+      famName = "tcth8"
+      nSigma  = nsig_tcth8
+    else if(elemName(1:5) == "colh2") then
+      famName = "tctv1"
+      nSigma  = nsig_tctv1
+    end if
+  else
+    famName = "default"
+    nSigma  = c1e3
+  end if
 
-end subroutine cdb_getFamily_oldDB
+end subroutine cdb_generateFamName
 
 end module collimation_db
