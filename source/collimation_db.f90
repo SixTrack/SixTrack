@@ -17,6 +17,7 @@ module collimation_db
 
   ! Database arrays
   character(len=:), allocatable, public, save :: cdb_cName(:)     ! Collimator name
+  character(len=:), allocatable, public, save :: cdb_cNameUC(:)   ! Collimator name upper case
   character(len=:), allocatable, public, save :: cdb_cMaterial(:) ! Collimator material
   integer,          allocatable, public, save :: cdb_cFamily(:)   ! Collimator family
   real(kind=fPrec), allocatable, public, save :: cdb_cNSig(:)     ! Collimator sigma
@@ -65,6 +66,7 @@ subroutine cdb_allocDB
   use numerical_constants
 
   call alloc(cdb_cName,     mNameLen, cdb_nColl, " ",     "cdb_cName")
+  call alloc(cdb_cNameUC,   mNameLen, cdb_nColl, " ",     "cdb_cNameUC")
   call alloc(cdb_cMaterial, 4,        cdb_nColl, " ",     "cdb_cMaterial")
   call alloc(cdb_cFamily,             cdb_nColl, -1,      "cdb_cFamily")
   call alloc(cdb_cNSig,               cdb_nColl, zero,    "cdb_cNSig")
@@ -222,7 +224,7 @@ subroutine cdb_readDB_oldFormat
     if(ioStat /= 0) goto 100
 
     ! Line 2: Upper case name, ignored
-    read(dbUnit,*,iostat=ioStat) inLine
+    read(dbUnit,*,iostat=ioStat) cdb_cNameUC(j)
     iLine = iLine + 1
     if(ioStat /= 0) goto 100
 

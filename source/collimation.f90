@@ -1349,9 +1349,7 @@ subroutine collimate_init()
   call cdb_readCollDB(coll_db)
 
   db_ncoll = cdb_nColl
-  do i=1,db_ncoll
-    db_name1(i) = chr_toUpper(cdb_cName(i))
-  end do
+  db_name1(1:db_ncoll)    = cdb_cNameUC(1:db_ncoll)
   db_name2(1:db_ncoll)    = cdb_cName(1:db_ncoll)
   db_material(1:db_ncoll) = cdb_cMaterial(1:db_ncoll)
   db_nsig(1:db_ncoll)     = cdb_cNSig(1:db_ncoll)
