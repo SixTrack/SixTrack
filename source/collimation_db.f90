@@ -34,30 +34,8 @@ module collimation_db
   character(len=:), allocatable, public, save :: cdb_famName(:)  ! Family name
   real(kind=fPrec), allocatable, public, save :: cdb_famNSig(:)  ! Family sigma
 
-  ! integer, public, save :: nsig_tcdq
-  ! integer, public, save :: nsig_tcla3
-  ! integer, public, save :: nsig_tcla7
-  ! integer, public, save :: nsig_tcli
-  ! integer, public, save :: nsig_tclp
-  ! integer, public, save :: nsig_tcp3
-  ! integer, public, save :: nsig_tcp7
-  ! integer, public, save :: nsig_tcryo
-  ! integer, public, save :: nsig_tcsg3
-  ! integer, public, save :: nsig_tcsg7
-  ! integer, public, save :: nsig_tcsm3
-  ! integer, public, save :: nsig_tcsm7
-  ! integer, public, save :: nsig_tcstcdq
-  ! integer, public, save :: nsig_tcstcdq
-  ! integer, public, save :: nsig_tcth1
-  ! integer, public, save :: nsig_tcth2
-  ! integer, public, save :: nsig_tcth5
-  ! integer, public, save :: nsig_tcth8
-  ! integer, public, save :: nsig_tctv1
-  ! integer, public, save :: nsig_tctv2
-  ! integer, public, save :: nsig_tctv5
-  ! integer, public, save :: nsig_tctv8
-  ! integer, public, save :: nsig_tcxrp
-  ! integer, public, save :: nsig_tdi
+  ! Element Map
+  integer,          allocatable, public, save :: cdb_elemMap(:)  ! Map from single elements to DB
 
 contains
 
@@ -91,6 +69,16 @@ subroutine cdb_allocFam
 
 end subroutine cdb_allocFam
 
+subroutine cdb_expand_arrays(nele_new)
+
+  use mod_alloc
+
+  integer, intent(in) :: nele_new
+
+  call alloc(cdb_elemMap,nele_new,-1,"cdb_elemMap")
+
+end subroutine cdb_expand_arrays
+
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-03-19
@@ -107,10 +95,9 @@ subroutine cdb_readCollDB(dbFile)
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
-  character(len=mNameLen) elemName
   character(len=cdb_fNameLen) cFam
   real(kind=fPrec)  cNSig
-  integer dbUnit, ioStat, nLines, nSplit, collID, famID
+  integer dbUnit, ioStat, nLines, nSplit, collID, famID, elemEnd
   integer i, j, ix
   logical dbErr, spErr
 
@@ -165,25 +152,29 @@ subroutine cdb_readCollDB(dbFile)
 ! ============================================================================ !
 
   ! Map single elements to collimators
-  ! do i=1,iu
-  !   ix = ic(i)-nblo
-  !   if(ix < 1) cycle
+  do i=1,iu
+    ix = ic(i)-nblo
+    if(ix < 1) cycle
 
-  !   elemName = chr_toLower(bez(ix))
-  !   collID = -1
-  !   do j=1,cdb_nColl
-  !     if(elemName == db_name2(j)) then
-  !       collID = j
-  !       exit
-  !     end if
-  !   end do
+    collID = -1
+    do j=1,cdb_nColl
+      if(bez(ix) == cdb_cName(j)) then
+        collID = j
+        exit
+      end if
+    end do
 
-  !   if(collID == -1) then
-  !     write(lout,"(a)") "COLL> WARNING Collimator not found in colldb: '"//trim(bez(ix))//"'"
-  !   else
-  !     db_elemMap(ix) = collID
-  !   end if
-  ! end do
+    if(collID > -1) then
+      if(bez(ix)(1:2) == "tc" .or. bez(ix)(1:2) == "td" .or. bez(ix)(1:3) == "col") then
+        elemEnd = len_trim(bez(ix))
+        if(bez(ix)(elemEnd-2:elemEnd) /= "_AP") then
+          write(lout,"(a)") "COLLDB> WARNING Collimator not found in database: '"//trim(bez(ix))//"'"
+        end if
+      end if
+    else
+      cdb_elemMap(ix) = collID
+    end if
+  end do
 
 end subroutine cdb_readCollDB
 

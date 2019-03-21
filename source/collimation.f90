@@ -763,7 +763,7 @@ subroutine collimation_allocate_arrays
   implicit none
 
   ! Initial allocation handled by expand arrays routine
-  call collimation_expand_arrays(npart,nblz,nele)
+  call collimation_expand_arrays(npart,nblz)
 
   ! Fixed allocations follow:
   call alloc(gap_rms_error, max_ncoll, zero, "gap_rms_error") !(max_ncoll)
@@ -807,13 +807,12 @@ subroutine collimation_allocate_arrays
 
 end subroutine collimation_allocate_arrays
 
-subroutine collimation_expand_arrays(npart_new, nblz_new, nele_new)
+subroutine collimation_expand_arrays(npart_new, nblz_new)
 
   implicit none
 
   integer, intent(in) :: npart_new
   integer, intent(in) :: nblz_new
-  integer, intent(in) :: nele_new
 
   ! Arrays that are always needed
   call alloc(part_abs_turn, npart_new, 0, "part_abs_turn") !(npart_new)
@@ -1607,7 +1606,7 @@ subroutine collimate_postInput(gammar)
 
   real(kind=fPrec), intent(in) :: gammar
 
-  call collimation_expand_arrays(npart,nblz,nele)
+  call collimation_expand_arrays(npart,nblz)
 
   remitx_dist    = emitnx0_dist*gammar
   remity_dist    = emitny0_dist*gammar

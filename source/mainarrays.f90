@@ -30,6 +30,8 @@ subroutine allocate_arrays
   use mod_fluka,          only : fluka_mod_expand_arrays
 #endif
   use collimation,        only : collimation_allocate_arrays
+  use collimation_db,     only : cdb_expand_arrays
+
   implicit none
 
   nele  = nele_initial
@@ -55,6 +57,7 @@ subroutine allocate_arrays
   call cr_expand_arrays(npart)
 #endif
   call collimation_allocate_arrays
+  call cdb_expand_arrays(nele)
 
 end subroutine allocate_arrays
 
@@ -69,8 +72,8 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   use crcoall
 
   use mod_common,         only : mod_common_expand_arrays
-  use mod_common_track,        only : mod_commont_expand_arrays
-  use mod_common_main,       only : mod_commonmn_expand_arrays
+  use mod_common_track,   only : mod_commont_expand_arrays
+  use mod_common_main,    only : mod_commonmn_expand_arrays
   use mod_commond2,       only : mod_commond2_expand_arrays
   use aperture,           only : aperture_expand_arrays
   use elens,              only : elens_expand_arrays
@@ -87,6 +90,8 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   use mod_fluka,          only : fluka_mod_expand_arrays
 #endif
   use collimation,        only : collimation_expand_arrays
+  use collimation_db,     only : cdb_expand_arrays
+
   implicit none
 
   integer, intent(in) :: nele_new
@@ -120,7 +125,8 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 #ifdef FLUKA
   call fluka_mod_expand_arrays(npart_new, nele_new)
 #endif
-  call collimation_expand_arrays(npart_new, nblz_new, nele_new)
+  call collimation_expand_arrays(npart_new, nblz_new)
+  call cdb_expand_arrays(nele_new)
 
   ! Update array size variables
   nele  = nele_new
