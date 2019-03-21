@@ -1,6 +1,7 @@
 Tests:
 - thin6d is very similar to that of the elens. Test based on LHC lattice with CHEBY inserted at IP4.
 - thin6d_DYNK is like thin6d but the four lenses are assigned time-varying kicks - switch off, pulsing, random on/off, random kick amplitude;
+- thin6d_ions is very similar to thin6d but ions are tracked, and for more turns (i.e. 10k);
 - thin6d_ramp_DYNK is like thin6d_DYNK but three (out of four) lenses are assigned time-varying kicks during a ramp;
 
 Python script:
@@ -13,6 +14,6 @@ The particle coordinates are dumped before and after the 4 lenses in the files C
 
 The script checks that x,y are unchanged (rrin-rrout=0) and then plots the difference in (x',y'). Offsets and tilt angle should be visible in maps. The script also checks that points outside the domain of the lenses are not assigned a kick, and points inside the domain are always assigned a kick.
 
-For the DYNK tests, the script makes also a plot of the kicks along a given theta in the map ref frame. The four sets of plots should be identical, apart from the time dependence.
+For the DYNK and ion tests, the script makes also a plot of the kicks along a given theta in the map ref frame. The four sets of plots should be identical, apart from the time dependence. In addition, for ions, the plot disentangles the different ion species.
 
 The test also dumps the potential map of each lens - a python script is available to plot and check all of them

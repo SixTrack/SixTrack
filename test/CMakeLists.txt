@@ -57,6 +57,7 @@ list(APPEND SIXTRACK_TESTS
   beambeamDYNK
   chebythin6d
   chebythin6d_DYNK
+  chebythin6d_ions
   chebythin6d_ramp_DYNK
   crabs
   dipedge
@@ -237,6 +238,7 @@ set(TESTS_NOFORT10
 set(TESTS_NO_STF_FORT90
   chebythin6d
   chebythin6d_DYNK
+  chebythin6d_ions
   chebythin6d_ramp_DYNK
   collimation_k2_fcc_2017_h1_collision
   crabs
@@ -466,6 +468,7 @@ set(FAST_TESTS
   beambeamDYNK
   chebythin6d
   chebythin6d_DYNK
+  chebythin6d_ions
   chebythin6d_ramp_DYNK
   crabs
   dump_2_all_ele_highprec
