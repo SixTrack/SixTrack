@@ -532,8 +532,8 @@ subroutine cdb_generateFamName(inElem, famName)
     endif
   else if(elemName(1:4) == "tcdq") then
     famName = "tcdq"
-! else if(elemName(1:4) == "tcth" .or. elemName(1:5) == "tctxh" .or. elemName(1:5) == "tctph") then
-  else if(elemName(1:4) == "tcth" .or. elemName(1:5) == "tctph") then
+  else if(elemName(1:4) == "tcth" .or. elemName(1:5) == "tctxh" .or. elemName(1:5) == "tctph") then
+! else if(elemName(1:4) == "tcth" .or. elemName(1:5) == "tctph") then
     if(elemName(8:8) == "1" .or. elemName(9:9) == "1" ) then
       famName = "tcth1"
     else if(elemName(8:8) == "2" .or. elemName(9:9) == "2") then
