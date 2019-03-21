@@ -2583,23 +2583,6 @@ subroutine envars(j,dpp,rv)
 
 end subroutine envars
 
-!-----------------------------------------------------------------------
-!  SUBROUTINE TO SET THE ALL COMMON VARIABLES TO ZERO
-!-----------------------------------------------------------------------
-subroutine comnul
-
-  use parpro
-  use collimation, only : collimation_comnul
-
- ! From the FLUKA version
-  do i=1,nele
-    call selnul(i)
-  end do
-
-  call collimation_comnul
-
-end subroutine comnul
-
 subroutine SELNUL( iel )
 !-----------------------------------------------------------------------
 !     A.Mereghetti, 2016-03-14
