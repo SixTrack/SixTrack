@@ -1402,7 +1402,6 @@ subroutine thin6d(nthinerr)
           ! both namings before and after V6.503 can be used
           !
           elemEnd = len_trim(bez(myix))
-          ! write(lout,"(a)") "COLL> DEBUG Checking if aperture: '"//bez(myix)(elemEnd-2:elemEnd)//"' from '"//bez(myix)//"'"
           if((    bez(myix)(1:2) == 'TC'  .or. bez(myix)(1:2) == 'tc'   &
             .or.  bez(myix)(1:2) == 'TD'  .or. bez(myix)(1:2) == 'td'   &
             .or.  bez(myix)(1:3) == 'COL' .or. bez(myix)(1:3) == 'col') &
