@@ -77,11 +77,6 @@ module collimation
   integer, save :: pencil_distr
 
   real(kind=fPrec), save :: myenom,mynex,mdex,myney,mdey,                    &
-  &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
-  &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,nsig_tcli,   &
-  &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
-  &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
-  &nsig_tcdq,nsig_tcstcdq,nsig_tdi,nsig_tcxrp,nsig_tcryo,            &
 !SEPT2005 add these lines for the slicing procedure
   &smin_slices,smax_slices,recenter1,recenter2,                      &
   &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
@@ -94,11 +89,35 @@ module collimation
   &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
   &sigsecut3,sigsecut2,enerror,bunchlength
 
+  real(kind=fPrec), private, save :: nsig_tcp3    = zero
+  real(kind=fPrec), private, save :: nsig_tcsg3   = zero
+  real(kind=fPrec), private, save :: nsig_tcsm3   = zero
+  real(kind=fPrec), private, save :: nsig_tcla3   = zero
+  real(kind=fPrec), private, save :: nsig_tcp7    = zero
+  real(kind=fPrec), private, save :: nsig_tcsg7   = zero
+  real(kind=fPrec), private, save :: nsig_tcsm7   = zero
+  real(kind=fPrec), private, save :: nsig_tcla7   = zero
+  real(kind=fPrec), private, save :: nsig_tclp    = zero
+  real(kind=fPrec), private, save :: nsig_tcli    = zero
+  real(kind=fPrec), private, save :: nsig_tcth1   = zero
+  real(kind=fPrec), private, save :: nsig_tcth2   = zero
+  real(kind=fPrec), private, save :: nsig_tcth5   = zero
+  real(kind=fPrec), private, save :: nsig_tcth8   = zero
+  real(kind=fPrec), private, save :: nsig_tctv1   = zero
+  real(kind=fPrec), private, save :: nsig_tctv2   = zero
+  real(kind=fPrec), private, save :: nsig_tctv5   = zero
+  real(kind=fPrec), private, save :: nsig_tctv8   = zero
+  real(kind=fPrec), private, save :: nsig_tcdq    = zero
+  real(kind=fPrec), private, save :: nsig_tcstcdq = zero
+  real(kind=fPrec), private, save :: nsig_tdi     = zero
+  real(kind=fPrec), private, save :: nsig_tcxrp   = zero
+  real(kind=fPrec), private, save :: nsig_tcryo   = zero
+
   ! From collimation_comnul
-  real(kind=fPrec), public, save :: emitnx0_dist = zero
-  real(kind=fPrec), public, save :: emitny0_dist = zero
-  real(kind=fPrec), public, save :: emitnx0_collgap = zero
-  real(kind=fPrec), public, save :: emitny0_collgap = zero
+  real(kind=fPrec), public,  save :: emitnx0_dist    = zero
+  real(kind=fPrec), public,  save :: emitny0_dist    = zero
+  real(kind=fPrec), public,  save :: emitnx0_collgap = zero
+  real(kind=fPrec), public,  save :: emitny0_collgap = zero
 
   real(kind=fPrec), private, save :: nr
 
@@ -107,32 +126,7 @@ module collimation
   character(len=16), save :: castordir
   character(len=80), save :: filename_dis
 
-!  common /grd/ myenom,mynex,mdex,myney,mdey,                        &
-!  &nsig_tcp3,nsig_tcsg3,nsig_tcsm3,nsig_tcla3,                       &
-!  &nsig_tcp7,nsig_tcsg7,nsig_tcsm7,nsig_tcla7,nsig_tclp,nsig_tcli,   &
-!  &nsig_tcth1,nsig_tcth2,nsig_tcth5,nsig_tcth8,                      &
-!  &nsig_tctv1,nsig_tctv2,nsig_tctv5,nsig_tctv8,                      &
-!  &nsig_tcdq,nsig_tcstcdq,nsig_tdi,nsig_tcxrp,nsig_tcryo,            &
-!  &smin_slices,smax_slices,recenter1,recenter2,                      &
-!  &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
-!  &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
-!  &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,        &
-!  &xbeat,xbeatphase,ybeat,ybeatphase,                                &
-!  &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
-!  &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
-!  &c_sysoffset_sec,c_rmserror_gap,nr,                                &
-!  &ndr,driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,        &
-!  &sigsecut3,sigsecut2,enerror,                                      &
-!  &bunchlength,coll_db,name_sel,                                     &
-!  &castordir,filename_dis,nloop,rnd_seed,c_offsettilt_seed,          &
-!  &ibeam,jobnumber,do_thisdis,n_slices,pencil_distr,                 &
-!  &do_coll,                                                          &
-!  &do_select,do_nominal,dowrite_dist,do_oneside,dowrite_impact,      &
-!  &dowrite_secondary,dowrite_amplitude,radial,systilt_antisymm,      &
-!  &dowritetracks,cern,cdb_doNSig,do_mingap
-!+cd info
   integer, save :: ie, iturn, nabs_total
-!  common  /info/ ie,iturn,nabs_total
 
  !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !+cd dbcommon
@@ -2011,118 +2005,27 @@ subroutine collimate_start_sample(nsample)
       myix=ic(j)-nblo
     end if
 
-! Using same code-block as below to evalute the collimator opening
-! for each collimator, this is needed to get the smallest collimator gap
-! in principal only looking for primary and secondary should be enough
-! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB
-! both namings before and after V6.503 can be used
-    if ( bez(myix)(1:2).eq.'TC'.or. bez(myix)(1:2).eq.'tc'.or. bez(myix)(1:2).eq.'TD'.or. bez(myix)(1:2).eq.'td'&
- &  .or. bez(myix)(1:3).eq.'COL'.or. bez(myix)(1:3).eq.'col') then
-      if(bez(myix)(1:3).eq.'TCP' .or. bez(myix)(1:3).eq.'tcp') then
-        if(bez(myix)(7:9).eq.'3.B' .or. bez(myix)(7:9).eq.'3.b') then
-          nsig = nsig_tcp3
-        else
-          nsig = nsig_tcp7
-        endif
-      else if(bez(myix)(1:4).eq.'TCSG' .or. bez(myix)(1:4).eq.'tcsg') then
-        if(bez(myix)(8:10).eq.'3.B' .or. bez(myix)(8:10).eq.'3.b' .or. bez(myix)(9:11).eq.'3.B' .or. bez(myix)(9:11).eq.'3.b') then
-          nsig = nsig_tcsg3
-        else
-          nsig = nsig_tcsg7
-        endif
-        if(bez(myix)(5:6).eq.'.4'.and.bez(myix)(8:9).eq.'6.') then
-          nsig = nsig_tcstcdq
-        endif
-      else if(bez(myix)(1:4).eq.'TCSP' .or. bez(myix)(1:4).eq.'tcsp') then
-        if(bez(myix)(9:11).eq.'6.B'.or. bez(myix)(9:11).eq.'6.b') then
-          nsig = nsig_tcstcdq
-        end if
-      else if(bez(myix)(1:4).eq.'TCSM' .or. bez(myix)(1:4).eq.'tcsm') then
-        if(bez(myix)(8:10).eq.'3.B' .or. bez(myix)(8:10).eq.'3.b' .or.bez(myix)(9:11).eq.'3.B' .or. bez(myix)(9:11).eq.'3.b') then
-          nsig = nsig_tcsm3
-        else
-          nsig = nsig_tcsm7
-        end if
-      else if(bez(myix)(1:4).eq.'TCLA' .or. bez(myix)(1:4).eq.'tcla') then
-        if(bez(myix)(9:11).eq.'7.B' .or. bez(myix)(9:11).eq.'7.b') then
-          nsig = nsig_tcla7
-        else
-          nsig = nsig_tcla3
-        end if
-      else if(bez(myix)(1:4).eq.'TCDQ' .or. bez(myix)(1:4).eq.'tcdq') then
-         nsig = nsig_tcdq
-      ! YIL11: Checking only the IR value for TCT's..
-      else if(bez(myix)(1:4).eq.'TCTH'.or.bez(myix)(1:4).eq.'tcth'.or.bez(myix)(1:5).eq.'TCTPH'.or.bez(myix)(1:5).eq.'tctph') then
-        if(bez(myix)(8:8).eq.'1' .or. bez(myix)(9:9).eq.'1' ) then
-          nsig = nsig_tcth1
-        else if(bez(myix)(8:8).eq.'2' .or. bez(myix)(9:9).eq.'2' ) then
-          nsig = nsig_tcth2
-        else if(bez(myix)(8:8).eq.'5'.or. bez(myix)(9:9).eq.'5' ) then
-          nsig = nsig_tcth5
-        else if(bez(myix)(8:8).eq.'8' .or.  bez(myix)(9:9).eq.'8' ) then
-          nsig = nsig_tcth8
-        end if
-      else if(bez(myix)(1:4).eq.'TCTV'.or.bez(myix)(1:4).eq.'tctv'.or.bez(myix)(1:5).eq.'TCTPV'.or.bez(myix)(1:5).eq.'tctpv') then
-        if(bez(myix)(8:8).eq.'1' .or. bez(myix)(9:9).eq.'1' ) then
-           nsig = nsig_tctv1
-        else if(bez(myix)(8:8).eq.'2' .or. bez(myix)(9:9).eq.'2' ) then
-           nsig = nsig_tctv2
-        else if(bez(myix)(8:8).eq.'5' .or. bez(myix)(9:9).eq.'5' ) then
-           nsig = nsig_tctv5
-        else if(bez(myix)(8:8).eq.'8' .or. bez(myix)(9:9).eq.'8' ) then
-           nsig = nsig_tctv8
-        end if
-      else if(bez(myix)(1:3).eq.'TDI' .or. bez(myix)(1:3).eq.'tdi') then
-        nsig = nsig_tdi
-      else if(bez(myix)(1:4).eq.'TCLP' .or. bez(myix)(1:4).eq.'tclp' .or.bez(myix)(1:4).eq.'TCL.' .or.bez(myix)(1:4).eq.'tcl.'.or. &
- &            bez(myix)(1:4).eq.'TCLX' .or. bez(myix)(1:4).eq.'tclx') then
-        nsig = nsig_tclp
-      else if(bez(myix)(1:4).eq.'TCLI' .or. bez(myix)(1:4).eq.'tcli') then
-         nsig = nsig_tcli
-      else if(bez(myix)(1:4).eq.'TCXR' .or. bez(myix)(1:4).eq.'tcxr') then
-        nsig = nsig_tcxrp
-      !     TW 04/2008 ---- start adding TCRYO
-      else if(bez(myix)(1:5).eq.'TCRYO'.or.bez(myix)(1:5).eq.'tcryo'.or.bez(myix)(1:5).eq.'TCLD.'.or.bez(myix)(1:5).eq.'tcld.') then
-        nsig = nsig_tcryo
-      !     TW 04/2008 ---- end adding TCRYO
-      else if(bez(myix)(1:3).eq.'COL' .or. bez(myix)(1:3).eq.'col') then
-        if(bez(myix)(1:4).eq.'COLM'.or.bez(myix)(1:4).eq.'colm'.or.bez(myix)(1:5).eq.'COLH0'.or.bez(myix)(1:5).eq.'colh0') then
-          nsig = nsig_tcth1
-        else if(bez(myix)(1:5).eq.'COLV0' .or. bez(myix)(1:5).eq.'colv0') then
-          nsig = nsig_tcth2
-        else if(bez(myix)(1:5).eq.'COLH1' .or. bez(myix)(1:5).eq.'colh1') then
-      !     JUNE2005   HERE WE USE NSIG_TCTH2 AS THE OPENING IN THE VERTICAL
-      !     JUNE2005   PLANE FOR THE PRIMARY COLLIMATOR OF RHIC; NSIG_TCTH5 STANDS
-      !     JUNE2005   FOR THE OPENING OF THE FIRST SECONDARY COLLIMATOR OF RHIC
-          nsig = nsig_tcth5
-        else if(bez(myix)(1:5).eq.'COLV1' .or. bez(myix)(1:5).eq.'colv1') then
-          nsig = nsig_tcth8
-        else if(bez(myix)(1:5).eq.'COLH2' .or. bez(myix)(1:5).eq.'colh2') then
-          nsig = nsig_tctv1
-        end if
-!     JUNE2005   END OF DEDICATED TREATMENT OF RHIC OPENINGS
-      else
-        write(lout,"(a)") "COLL> WARNING Problem detected while writing twisslike.out' and 'sigmasettings.out':"
-        write(lout,"(a)") "COLL>         Collimator name '"//trim(adjustl(bez(myix)))//"' was not recognized."//&
-          " -> Setting nsig = 1000.0."
-        nsig = c1e3
-      end if
+    if(cdb_elemMap(myix) > 0) then
+      nsig = cdb_cNSig(cdb_elemMap(myix))
+    else
+      nsig = c1e3
+    end if
 
-      do i = 1, cdb_nColl
+    do i = 1, cdb_nColl
 ! start searching minimum gap
-        if((cdb_cNameUC(i)(1:mNameLen).eq.bez(myix)(1:mNameLen)).or. &
-           (cdb_cName(i)(1:mNameLen).eq.bez(myix)(1:mNameLen))) then
-          if( cdb_cLength(i) .gt. zero ) then
-            nsig_err = nsig + gap_rms_error(i)
+      if((cdb_cNameUC(i)(1:mNameLen).eq.bez(myix)(1:mNameLen)).or. &
+          (cdb_cName(i)(1:mNameLen).eq.bez(myix)(1:mNameLen))) then
+        if( cdb_cLength(i) .gt. zero ) then
+          nsig_err = nsig + gap_rms_error(i)
 
 ! jaw 1 on positive side x-axis
-            gap_h1 = nsig_err - sin_mb(db_tilt(i,1))*cdb_cLength(i)/2
-            gap_h2 = nsig_err + sin_mb(db_tilt(i,1))*cdb_cLength(i)/2
+          gap_h1 = nsig_err - sin_mb(db_tilt(i,1))*cdb_cLength(i)/2
+          gap_h2 = nsig_err + sin_mb(db_tilt(i,1))*cdb_cLength(i)/2
 
 ! jaw 2 on negative side of x-axis (see change of sign comapred
 ! to above code lines, alos have a look to setting of tilt angle)
-            gap_h3 = nsig_err + sin_mb(db_tilt(i,2))*cdb_cLength(i)/2
-            gap_h4 = nsig_err - sin_mb(db_tilt(i,2))*cdb_cLength(i)/2
+          gap_h3 = nsig_err + sin_mb(db_tilt(i,2))*cdb_cLength(i)/2
+          gap_h4 = nsig_err - sin_mb(db_tilt(i,2))*cdb_cLength(i)/2
 
 ! find minumum halfgap
 ! --- searching for smallest halfgap
@@ -2134,46 +2037,43 @@ subroutine collimate_start_sample(nsample)
 !                           bx_dist = tbetax(j) * scale_bx / scale_bx0
 !                           by_dist = tbetay(j) * scale_by / scale_by0
 !                        endif
-            if (do_nominal) then
-              bx_dist = cdb_cBx(icoll)
-              by_dist = cdb_cBy(icoll)
-            else
-              bx_dist = tbetax(j)
-              by_dist = tbetay(j)
-            end if
+          if (do_nominal) then
+            bx_dist = cdb_cBx(icoll)
+            by_dist = cdb_cBy(icoll)
+          else
+            bx_dist = tbetax(j)
+            by_dist = tbetay(j)
+          end if
 
-            sig_offset = cdb_cOffset(i)/(sqrt(bx_dist**2 * cos_mb(cdb_cRotation(i))**2 + by_dist**2 * sin_mb(cdb_cRotation(i))**2 ))
-            write(twisslike_unit,*) bez(myix),tbetax(j),tbetay(j), torbx(j),torby(j), nsig, gap_rms_error(i)
-        write(sigmasettings_unit,*) bez(myix), gap_h1, gap_h2, gap_h3, gap_h4, sig_offset, cdb_cOffset(i), nsig, gap_rms_error(i)
+          sig_offset = cdb_cOffset(i)/(sqrt(bx_dist**2 * cos_mb(cdb_cRotation(i))**2 + by_dist**2 * sin_mb(cdb_cRotation(i))**2 ))
+          write(twisslike_unit,*) bez(myix),tbetax(j),tbetay(j), torbx(j),torby(j), nsig, gap_rms_error(i)
+      write(sigmasettings_unit,*) bez(myix), gap_h1, gap_h2, gap_h3, gap_h4, sig_offset, cdb_cOffset(i), nsig, gap_rms_error(i)
 
-            if((gap_h1 + sig_offset) .le. mingap) then
-              mingap = gap_h1 + sig_offset
-              coll_mingap_id = i
-              coll_mingap1 = cdb_cNameUC(i)
-              coll_mingap2 = cdb_cName(i)
-            else if((gap_h2 + sig_offset) .le. mingap) then
-              mingap = gap_h2 + sig_offset
-              coll_mingap_id = i
-              coll_mingap1 = cdb_cNameUC(i)
-              coll_mingap2 = cdb_cName(i)
-            else if((gap_h3 - sig_offset) .le. mingap) then
-              mingap = gap_h3 - sig_offset
-              coll_mingap_id = i
-              coll_mingap1 = cdb_cNameUC(i)
-              coll_mingap2 = cdb_cName(i)
-            else if((gap_h4 - sig_offset) .le. mingap) then
-              mingap = gap_h4 - sig_offset
-              coll_mingap_id = i
-              coll_mingap1 = cdb_cNameUC(i)
-              coll_mingap2 = cdb_cName(i)
-            end if
+          if((gap_h1 + sig_offset) .le. mingap) then
+            mingap = gap_h1 + sig_offset
+            coll_mingap_id = i
+            coll_mingap1 = cdb_cNameUC(i)
+            coll_mingap2 = cdb_cName(i)
+          else if((gap_h2 + sig_offset) .le. mingap) then
+            mingap = gap_h2 + sig_offset
+            coll_mingap_id = i
+            coll_mingap1 = cdb_cNameUC(i)
+            coll_mingap2 = cdb_cName(i)
+          else if((gap_h3 - sig_offset) .le. mingap) then
+            mingap = gap_h3 - sig_offset
+            coll_mingap_id = i
+            coll_mingap1 = cdb_cNameUC(i)
+            coll_mingap2 = cdb_cName(i)
+          else if((gap_h4 - sig_offset) .le. mingap) then
+            mingap = gap_h4 - sig_offset
+            coll_mingap_id = i
+            coll_mingap1 = cdb_cNameUC(i)
+            coll_mingap2 = cdb_cName(i)
           end if
         end if
-      end do !do i = 1, cdb_nColl
+      end if
+    end do !do i = 1, cdb_nColl
 
-! could be done more elegant the above code to search the minimum gap
-! and should also consider the jaw tilt
-    end if
   end do !do j=1,iu
 
   write(twisslike_unit,*) coll_mingap_id, coll_mingap1, coll_mingap2,  mingap
