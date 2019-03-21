@@ -711,51 +711,10 @@ subroutine thin4d(nthinerr)
         ! store old particle coordinates
         if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
         goto 630
-      case (3)
+      case (3)  !Phase Trombone  
         irrtr=imtr(ix)
         do j=1,napx
-            !The values are stored in the temp vector which are used for the multiplication.
-          temptr(1)=xv1(j)
-          temptr(2)=yv1(j)/moidpsv(j)
-          temptr(3)=xv2(j)
-          temptr(4)=yv2(j)/moidpsv(j)
-          temptr(5)=sigmv(j)
-          temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
-          ! Adding the closed orbit. The previous values are stored in the temptr vector.
-          xv1(j)  = cotr(irrtr,1)
-          yv1(j)  = cotr(irrtr,2)
-          xv2(j)  = cotr(irrtr,3)
-          yv2(j)  = cotr(irrtr,4)
-          sigmv(j) = cotr(irrtr,5)
-          pttemp   = cotr(irrtr,6)
-
-          ! Multiplying the arbitrary matrix to the coordinates.
-          do kxxa=1,6
-            xv1(j)   =  xv1(j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv1(j)   =  yv1(j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
-            xv2(j)   =  xv2(j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
-            yv2(j)   =  yv2(j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
-            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)
-            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)
-          enddo
-          ! Transforming back to the tracked coordinates of Sixtrack...
-          ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
-
-
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-
-
-          ! We have to go back to angles after we updated the energy.
-          yv1(j) = yv1(j)*moidpsv(j)
-          yv2(j) = yv2(j)*moidpsv(j)
-
-
+#include "include/trombone.f90" 
         enddo
       goto 620
       case (2,4,5,6,7,8,9,10)
