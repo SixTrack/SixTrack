@@ -81,7 +81,7 @@ subroutine cheby_kick(jcheby)
     ! check that particle is within the domain of chebyshev polynomials
     rr=sqrt(xx**2+yy**2)
     if (rr.gt.cheby_refRadius(cheby_itable(jcheby))) then
-      write(lout,"(a,3(e12.6,1x),a,e12.6)") "CHEBY> ERROR in cheby_kick: particle at position (x,y,r): ",&
+      write(lout,"(a,3(e13.6,1x),a,e13.6)") "CHEBY> ERROR in cheby_kick: particle at position (x,y,r): ",&
         xv1(j), xv2(j), rr,' is outside radial domain of Chebyshev polinomials: ',cheby_refRadius(cheby_itable(jcheby))
       call prror
     end if

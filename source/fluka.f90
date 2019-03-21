@@ -50,7 +50,7 @@ subroutine check_coupling_integrity
           if ( fluka_type(ix1).eq.FLUKA_ENTRY ) then
             write(lout,*) ''
             write(lout,*) ''
-            write(lout,10020) 'entry type', 'name', 'ID SING EL ID struct', 'ID geom'
+            write(lout,10020) 'entry type', 'name', 'ID SING EL', 'ID struct', 'ID geom'
             write(lout,10030) fluka_type(ix1), bez(ix1), ix1, i1, fluka_geo_index(ix1)
             istart = i1+1
             istop  = iu
@@ -123,6 +123,66 @@ subroutine check_coupling_integrity
 10020 format(1X,A10,1X,A4,12X,3(1X,A10))
 10030 format(1X,I10,1X,A16,3(1X,I10))
 end subroutine check_coupling_integrity
+
+subroutine check_coupling_start_point()
+!-----------------------------------------------------------------------
+!     A.Mereghetti, CERN BE-ABP-HSS
+!     last modified: 20-03-2019
+!     check that the lattice structure (after re-shiffle due to GO  
+!        statement) does not start inside a FLUKA insertion region
+!-----------------------------------------------------------------------
+
+  use parpro, only : nblo, nele
+  use mod_common, only : iu, ic, bez
+  use crcoall, only : lout
+  use mod_common_track, only : ktrack
+  use mod_fluka, only : FLUKA_ELEMENT, FLUKA_ENTRY, FLUKA_EXIT, fluka_geo_index, fluka_type
+
+  implicit none
+
+! temporary variables
+  integer ii, ix, iInside, jj
+
+  iInside=-1
+  do ii=1,iu
+    if(ktrack(ii).ne.1.and.ic(ii).gt.nblo) then
+      ! SINGLE ELEMENT
+      ix=ic(ii)-nblo
+      if ( fluka_type(ix).eq.FLUKA_EXIT ) then
+        write(lout,"(a)") ""
+        write(lout,"(a,i0)") "FLUKA> ERROR Lattice structure starts inside FLUKA insertion region # ",fluka_geo_index(ix)
+        do jj=1,nele
+          if ( fluka_geo_index(ix).eq.fluka_geo_index(jj).and.fluka_type(jj).eq.FLUKA_ENTRY ) then
+            write(lout,"(a,i0)") "FLUKA>       entrance marker: "//trim(bez(jj))//" - exit marker: "//trim(bez(ix))
+            exit
+          end if
+        end do
+        write(lout,"(a,i0)") "FLUKA>       The actual lattice starting point should be outside a FLUKA insergion region"
+        write(lout,"(a,i0)") "FLUKA>       Please update your lattice structure or set the GO in a sensible position"
+        write(lout,"(a)") ""
+        iInside=fluka_geo_index(ix)
+        call prror(-1)
+        exit
+      elseif ( fluka_type(ix).eq.FLUKA_ENTRY .or. fluka_type(ix).eq.FLUKA_ELEMENT ) then
+        write(lout,"(a)") ""
+        write(lout,"(a,i0)") "FLUKA> Lattice structure starts upstream of FLUKA insertion region #",fluka_geo_index(ix)
+        write(lout,"(a)") ""
+        iInside=fluka_geo_index(ix)
+        exit
+      end if
+    end if
+  end do
+  if ( iInside==-1 ) then
+    write(lout,"(a)") ""
+    write(lout,"(a,i0)") "FLUKA> No FLUKA insertion region found!"
+    write(lout,"(a)") ""
+  end if
+
+! au revoir:
+  return
+
+end subroutine check_coupling_start_point
+
 
 subroutine kernel_fluka_element( nturn, i, ix )
 !
