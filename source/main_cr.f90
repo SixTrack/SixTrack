@@ -504,7 +504,10 @@ end interface
     end if
 
 #ifdef FLUKA
-    if (fluka_enable) call check_coupling_integrity
+    if (fluka_enable) then
+      call check_coupling_integrity
+      call check_coupling_start_point
+    end if
 #endif
 
     ! dump aperture model

@@ -32,7 +32,7 @@ set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR"
 ##
 
 ##
-# List of Test
+# List of Tests
 ##
 
 list(APPEND SIXTRACK_TESTS
@@ -58,7 +58,6 @@ list(APPEND SIXTRACK_TESTS
   chebythin6d
   chebythin6d_DYNK
   chebythin6d_ramp_DYNK
-  collimation_k2_fcc_2017_h1_collision
   crabs
   dipedge
   distance
@@ -115,7 +114,6 @@ list(APPEND SIXTRACK_TESTS
   rfMultipoles_4thOrder
   s316
   scatter_bbelastic
-  scatter_collimation
   thick4
   thick6dblocks
   thick6ddynk
@@ -142,23 +140,39 @@ if(STF)
     dynk_random
     scatter_aperture
   )
-endif(STF)
+endif()
+
+if(NOT CR)
+  list(APPEND SIXTRACK_TESTS 
+    collimation_k2_fcc_2017_h1_collision
+    scatter_collimation
+  )
+endif()
 
 if(LIBARCHIVE)
-  list(APPEND SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF)
+  list(APPEND SIXTRACK_TESTS
+    elensidealthin6d_DYNK_ZIPF
+  )
 endif()
 
 if(NAFF)
-  list(APPEND SIXTRACK_TESTS fma_naff)
+  list(APPEND SIXTRACK_TESTS
+    fma_naff
+  )
 endif()
 
 if(PYTHIA)
-  list(APPEND SIXTRACK_TESTS scatter_pythia)
+  list(APPEND SIXTRACK_TESTS
+    scatter_pythia
+  )
 endif()
 
 if(SIXDA)
-  list(APPEND SIXTRACK_DA_TESTS frs_da thick4_da)
-endif(SIXDA)
+  list(APPEND SIXTRACK_DA_TESTS
+    frs_da
+    thick4_da
+  )
+endif()
 
 ## UNUSED TESTS
 
