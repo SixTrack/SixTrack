@@ -22,6 +22,7 @@ module collimation_db
   character(len=:), allocatable, public, save :: cdb_cMaterial(:) ! Collimator material
   integer,          allocatable, public, save :: cdb_cFamily(:)   ! Collimator family
   real(kind=fPrec), allocatable, public, save :: cdb_cNSig(:)     ! Collimator sigma
+  real(kind=fPrec), allocatable, public, save :: cdb_cNSigOrig(:) ! Collimator sigma
   real(kind=fPrec), allocatable, public, save :: cdb_cLength(:)   ! Collimator length
   real(kind=fPrec), allocatable, public, save :: cdb_cOffset(:)   ! Collimator offset
   real(kind=fPrec), allocatable, public, save :: cdb_cRotation(:) ! Collimator rotation
@@ -70,6 +71,7 @@ subroutine cdb_allocDB
   call alloc(cdb_cMaterial, 4,        cdb_nColl, " ",     "cdb_cMaterial")
   call alloc(cdb_cFamily,             cdb_nColl, -1,      "cdb_cFamily")
   call alloc(cdb_cNSig,               cdb_nColl, zero,    "cdb_cNSig")
+  call alloc(cdb_cNSigOrig,           cdb_nColl, zero,    "cdb_cNSigOrig")
   call alloc(cdb_cLength,             cdb_nColl, zero,    "cdb_cLength")
   call alloc(cdb_cOffset,             cdb_nColl, zero,    "cdb_cOffset")
   call alloc(cdb_cRotation,           cdb_nColl, zero,    "cdb_cRotation")
@@ -85,7 +87,7 @@ subroutine cdb_allocFam
   use numerical_constants
 
   call alloc(cdb_famName, cdb_fNameLen, cdb_nFam, " ",  "cdb_famName")
-  call alloc(cdb_famNSig,               cdb_nFam, zero, "cdb_famNSig")
+  call alloc(cdb_famNSig,               cdb_nFam, c1e3, "cdb_famNSig")
 
 end subroutine cdb_allocFam
 
@@ -156,6 +158,7 @@ subroutine cdb_readCollDB(dbFile)
 #ifdef HDF5
   call cdb_writeDB_HDF5
 #endif
+  call cdb_writeFam
 
 ! ============================================================================ !
 !  Post-Processing DB
@@ -193,16 +196,22 @@ subroutine cdb_readDB_oldFormat
   use parpro
   use string_tools
   use mod_units
+  use numerical_constants
 
   character(len=mInputLn) inLine
   character(len=cdb_fNameLen) famName
   logical cErr
-  integer j, dbUnit, dbNew, ioStat, iLine
+  integer j, dbUnit, dbNew, ioStat, iLine, famID
 
   cErr = .false.
 
   call f_requestUnit(cdb_fileName, dbUnit)
   call f_open(unit=dbUnit,file=cdb_fileName,formatted=.true.,mode="r",status="old")
+
+  call f_requestUnit(trim(cdb_fileName)//".new", dbNew)
+  call f_open(unit=dbNew,file=trim(cdb_fileName)//".new",formatted=.true.,mode="w",status="replace")
+  write(dbNew,"(1a,a47,1x,a16,1x,a4,5(1x,a13))") "#",chr_rPad(" name",47),&
+    "opening","mat.","length[m]","angle[deg]","offset[m]","beta_x[m]","beta_y[m]"
 
   read(dbUnit,*,iostat=ioStat) inLine
   iLine = 1
@@ -234,7 +243,7 @@ subroutine cdb_readDB_oldFormat
     read(dbUnit,*,iostat=ioStat) inLine
     iLine = iLine + 1
     if(ioStat /= 0) goto 100
-    call chr_cast(inLine, cdb_cNSig(j), cErr)
+    call chr_cast(inLine, cdb_cNSigOrig(j), cErr)
     if(cErr) goto 100
 
     ! Line 5: Material
@@ -277,21 +286,27 @@ subroutine cdb_readDB_oldFormat
     call chr_cast(inLine, cdb_cBy(j), cErr)
     if(cErr) goto 100
 
+    call cdb_generateFamName(cdb_cName(j), famName)
+    call cdb_getFamilyID(famName, famID, .false.)
+    if(famID > 0 .and. cdb_doNSig) then
+      cdb_cNSig(j) = cdb_famNSig(famID)
+    else
+      cdb_cNSig(j) = cdb_cNSigOrig(j)
+    end if
+    cdb_cFamily(j) = famID
+    if(famID > 0) then
+      write(dbNew,"(a48,1x,a16,1x,a4,5(1x,f13.6))") cdb_cName(j),&
+      chr_lPad(trim(famName),16),cdb_cMaterial(j),cdb_cLength(j),cdb_cRotation(j)/rad,&
+      cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
+    else
+      write(dbNew,"(a48,1x,f16.3,1x,a4,5(1x,f13.6))") cdb_cName(j),&
+      cdb_cNSig(j),cdb_cMaterial(j),cdb_cLength(j),cdb_cRotation(j)/rad,&
+      cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
+    end if
+
   end do
 
   call f_close(dbUnit)
-
-  ! Write a copy of the DB in the multi column format
-  call f_requestUnit(trim(cdb_fileName)//".new", dbNew)
-  call f_open(unit=dbNew,file=trim(cdb_fileName)//".new",formatted=.true.,mode="w",status="replace")
-
-  write(dbNew,"(1a,a47,1x,a16,1x,a10,1x,a4,5(1x,a13))") "#",chr_rPad(" name",47),chr_rPad("family",16),&
-    "opening","mat.","length[m]","angle[rad]","offset[m]","beta_x[m]","beta_y[m]"
-  do j=1,cdb_nColl
-    call cdb_generateFamName(cdb_cName(j),famName)
-    write(dbNew,"(a48,1x,a16,1x,f10.3,1x,a4,5(1x,f13.6))") cdb_cName(j),famName,cdb_cNSig(j),cdb_cMaterial(j),&
-      cdb_cLength(j),cdb_cRotation(j),cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
-  end do
 
   flush(dbNew)
   call f_close(dbNew)
@@ -380,9 +395,105 @@ end subroutine cdb_writeDB_HDF5
 #endif
 
 ! ================================================================================================ !
-!  Extract Family Name from Old Format DB
 !  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-21
+!  Updated: 2019-03-21
+!  Find a family in the database and returns its ID.
+!  Optionally, if it doesn't exist, it can be added
+! ================================================================================================ !
+subroutine cdb_getFamilyID(famName, famID, addIfNew)
+
+  character(len=*),  intent(in)  :: famName
+  integer,           intent(out) :: famID
+  logical, optional, intent(in)  :: addIfNew
+
+  integer i
+  logical addNew
+
+  if(present(addIfNew)) then
+    addNew = addIfNew
+  else
+    addNew = .false.
+  end if
+
+  famID = -1
+  if(cdb_nfam > 0) then
+    do i=1,cdb_nfam
+      if(cdb_famName(i) == famName) then
+        famID = i
+        exit
+      end if
+    end do
+  end if
+
+  if(famID == -1 .and. addNew) then
+    cdb_nfam = cdb_nfam + 1
+    call cdb_allocFam
+    cdb_famName(cdb_nfam) = famName
+    famID = cdb_nfam
+  end if
+
+end subroutine cdb_getFamilyID
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-21
+!  Updated: 2019-03-21
+!  Set the nsig for a specific family
+! ================================================================================================ !
+subroutine cdb_setFamilyNSig(famID, nSig)
+
+  use crcoall
+
+  integer,          intent(in) :: famID
+  real(kind=fPrec), intent(in) :: nSig
+
+  if(famID < 1 .or. famID > cdb_nFam) then
+    write(lout,"(a,i0)") "COLLDB> ERROR Setting nsig for non-existing famID = ",famID
+    write(lout,"(a,i0)") "COLLDB>       First ID is 1, last ID is ",cdb_nFam
+    call prror
+  end if
+
+  if(nSig < 0.0_fPrec) then
+    write(lout,"(a,i0)") "COLLDB> ERROR Setting nsig for famID = ",famID
+    write(lout,"(a)")    "COLLDB>       Value must be larger than zero"
+    call prror
+  end if
+
+  cdb_famNSig(famID) = nSig
+
+end subroutine cdb_setFamilyNSig
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-21
+!  Updated: 2019-03-21
+!  Write family database to file
+! ================================================================================================ !
+subroutine cdb_writeFam
+
+  use mod_units
+
+  integer j, famUnit
+
+  call f_requestUnit("coll_families.dat", famUnit)
+  call f_open(unit=famUnit,file="coll_families.dat",formatted=.true.,mode="w",status="replace")
+
+  write(famUnit,"(a16,1x,a13)") "# famName       ","nSig"
+  do j=1,cdb_nFam
+    write(famUnit,"(a16,1x,f13.6)") cdb_famName(j),cdb_famNSig(j)
+  end do
+
+  flush(famUnit)
+  call f_close(famUnit)
+
+end subroutine cdb_writeFam
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-19
 !  Updated: 2019-03-20
+!  Extract Family Name from Old Format DB
 ! ================================================================================================ !
 subroutine cdb_generateFamName(inElem, famName)
 
@@ -429,7 +540,7 @@ subroutine cdb_generateFamName(inElem, famName)
     endif
   else if(elemName(1:4) == "tcdq") then
     famName = "tcdq"
-  else if(elemName(1:4) == "tcth" .or. elemName(1:5) == "tctph") then
+  else if(elemName(1:4) == "tcth" .or. elemName(1:5) == "tctxh" .or. elemName(1:5) == "tctph") then
     if(elemName(8:8) == "1" .or. elemName(9:9) == "1" ) then
       famName = "tcth1"
     else if(elemName(8:8) == "2" .or. elemName(9:9) == "2") then
@@ -472,7 +583,7 @@ subroutine cdb_generateFamName(inElem, famName)
       famName = "tctv1"
     end if
   else
-    famName = "default"
+    famName = "NONE"
   end if
 
 end subroutine cdb_generateFamName
