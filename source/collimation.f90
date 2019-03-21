@@ -64,7 +64,6 @@ module collimation
   logical, save :: systilt_antisymm
   logical, save :: dowritetracks
   logical, save :: cern
-  logical, save :: do_nsig
   logical, save :: do_mingap
 
 !SEPT2005 for slicing process
@@ -130,7 +129,7 @@ module collimation
 !  &do_coll,                                                          &
 !  &do_select,do_nominal,dowrite_dist,do_oneside,dowrite_impact,      &
 !  &dowrite_secondary,dowrite_amplitude,radial,systilt_antisymm,      &
-!  &dowritetracks,cern,do_nsig,do_mingap
+!  &dowritetracks,cern,cdb_doNSig,do_mingap
 !+cd info
   integer, save :: ie, iturn, nabs_total
 !  common  /info/ ie,iturn,nabs_total
@@ -1081,7 +1080,7 @@ subroutine collimate_init()
   write(lout,"(a,e15.8)") 'COLL> Info: BUNCHLENGTH         = ', bunchlength
   write(lout,"(a,i0)")    'COLL> Info: RSELECT             = ', int(rselect)
   write(lout,"(a,l1)")    'COLL> Info: DO_COLL             = ', do_coll
-  write(lout,"(a,l1)")    'COLL> Info: DO_NSIG             = ', do_nsig
+  write(lout,"(a,l1)")    'COLL> Info: DO_NSIG             = ', cdb_doNSig
   write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCP3           = ', nsig_tcp3
   write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCSG3          = ', nsig_tcsg3
   write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCSM3          = ', nsig_tcsm3
@@ -1327,7 +1326,7 @@ subroutine collimate_init()
   call f_requestUnit('CollPositions.dat', CollPositions_unit)
   open(unit=CollPositions_unit, file='CollPositions.dat')
 
-!++  Read collimator database
+  ! Read collimator database
   call cdb_readCollDB(coll_db)
 
 !Then do any implementation specific initial loading
@@ -1373,6 +1372,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
+  real(kind=fPrec) nSigIn
   integer nSplit
   logical spErr
 
@@ -1424,7 +1424,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 7)  call chr_cast(lnSPlit(8), bunchlength, iErr)
 
   case(4)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), do_nsig,     iErr)
+    if(nSplit > 0)  call chr_cast(lnSPlit(1), cdb_doNSig,     iErr)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), nsig_tcp3,   iErr)
     if(nSplit > 2)  call chr_cast(lnSPlit(3), nsig_tcsg3,  iErr)
     if(nSplit > 3)  call chr_cast(lnSPlit(4), nsig_tcsm3,  iErr)
@@ -1617,10 +1617,11 @@ subroutine collimate_start_sample(nsample)
   end if
 #endif
 
-  call f_requestUnit('collgaps.dat', collgaps_unit)
-  open(unit=collgaps_unit, file='collgaps.dat') !was 43
-  if(firstrun) write(collgaps_unit,*) '# ID name  angle[rad]  betax[m]  betay[m] halfgap[m]', &
- & '  Material  Length[m]  sigx[m]  sigy[m] tilt1[rad] tilt2[rad] nsig'
+  call f_requestUnit("collgaps.dat", collgaps_unit)
+  open(unit=collgaps_unit, file="collgaps.dat")
+  if(firstrun) write(collgaps_unit,"(a1,1x,a2,1x,a16,4(1x,a19),1x,a4,5(1x,a13),1x,a13)") &
+    "#","ID","name            ","angle[rad]","betax[m]","betay[m]","halfgap[m]","mat.",  &
+    "length[m]","sigx[m]","sigy[m]","tilt1[rad]","tilt2[rad]","nsig"
 
   call f_requestUnit('collimator-temp.db', collimator_temp_db_unit)
   open(unit=collimator_temp_db_unit, file='collimator-temp.db') !was 40
@@ -2419,7 +2420,7 @@ subroutine collimate_do_collimator(stracki)
 !++  Get the aperture from the beta functions and emittance
 !++  A simple estimate of beta beating can be included that
 !++  has twice the betatron phase advance
-  if(.not. do_nsig) nsig = cdb_cNSig(icoll)
+  if(.not. cdb_doNSig) nsig = cdb_cNSig(icoll)
 
   scale_bx = (one + xbeat*sin_mb(four*pi*mux(ie)+xbeatphase) )
   scale_by = (one + ybeat*sin_mb(four*pi*muy(ie)+ybeatphase) )
@@ -2567,17 +2568,10 @@ subroutine collimate_do_collimator(stracki)
       write(outlun,*) 'RMS error on halfgap [sigma]:  ', gap_rms_error(icoll)
       write(outlun,*) ' '
 
-      write(collgaps_unit,'(i10,1x,a,4(1x,e19.10),1x,a,6(1x,e13.5))')   &
-     &icoll,cdb_cNameUC(icoll)(1:12),                                      &
-     &cdb_cRotation(icoll),                                               &
-     &tbetax(ie), tbetay(ie), calc_aperture,                            &
-     &cdb_cMaterial(icoll),                                               &
-     &cdb_cLength(icoll),                                                 &
-     &sqrt(tbetax(ie)*myemitx0_collgap),                                &
-     &sqrt(tbetay(ie)*myemity0_collgap),                                &
-     &db_tilt(icoll,1),                                                 &
-     &db_tilt(icoll,2),                                                 &
-     &nsig
+      write(collgaps_unit,"(i4,1x,a16,4(1x,e19.10),1x,a4,5(1x,e13.5),1x,f13.6)") &
+        icoll,cdb_cName(icoll)(1:16),cdb_cRotation(icoll),tbetax(ie),tbetay(ie),calc_aperture, &
+        cdb_cMaterial(icoll),cdb_cLength(icoll),sqrt(tbetax(ie)*myemitx0_collgap), &
+        sqrt(tbetay(ie)*myemity0_collgap),db_tilt(icoll,1),db_tilt(icoll,2),nsig
 
 ! coll settings file
       if(n_slices.le.1) then

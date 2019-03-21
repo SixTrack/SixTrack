@@ -12,6 +12,7 @@ module collimation_db
 
   character(len=mFileName), public,  save :: cdb_fileName = " "     ! Database file
   logical,                  private, save :: cdb_dbOld    = .false. ! Old or new DB format
+  logical,                  public,  save :: cdb_doNSig   = .false. ! Use the sigmas from fort.3 isntead of DB
   integer,                  public,  save :: cdb_nColl    = 0       ! Number of collimators
   integer,                  public,  save :: cdb_nfam     = 0       ! Number of collimator families
 
