@@ -38,42 +38,35 @@ module collimation
 
 !  private
 
-!+cd collpara
   integer, parameter :: max_ncoll  = 100
-  !integer, parameter :: maxn       = 20000
+ !integer, parameter :: maxn       = 20000
   integer, parameter :: numeff     = 32
   integer, parameter :: numeffdpop = 29
   integer, parameter :: nc         = 32
 
-!+cd collMatNum
-! EQ 2016 added variables for collimator material numbers
   integer, parameter :: nmat  = 14
   integer, parameter :: nrmat = 12
 
-!+cd database
-!GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
-  logical, save :: do_coll = .false.
-  logical, save :: do_select
-  logical, save :: do_nominal
-  logical, save :: dowrite_dist
-  logical, save :: do_oneside
-  logical, save :: dowrite_impact
-  logical, save :: dowrite_secondary
-  logical, save :: dowrite_amplitude
-  logical, save :: radial
-  logical, save :: systilt_antisymm
-  logical, save :: dowritetracks
-  logical, save :: cern
-  logical, save :: do_mingap
+  ! Logical Flags
+  logical, public,  save :: do_coll           = .false.
+  logical, private, save :: do_select         = .false.
+  logical, private, save :: do_nominal        = .false.
+  logical, private, save :: dowrite_dist      = .false.
+  logical, private, save :: do_oneside        = .false.
+  logical, private, save :: dowrite_impact    = .false.
+  logical, private, save :: dowrite_secondary = .false.
+  logical, private, save :: dowrite_amplitude = .false.
+  logical, private, save :: radial            = .false.
+  logical, private, save :: systilt_antisymm  = .false.
+  logical, private, save :: dowritetracks     = .false.
+  logical, private, save :: cern              = .false.
+  logical, private, save :: do_mingap         = .false.
 
-!SEPT2005 for slicing process
-  integer, save :: nloop    = 1
-  integer, save :: rnd_seed = 0
-  integer, save :: c_offsettilt_seed
-  integer, save :: ibeam
-  integer, save :: jobnumber
-  integer, save :: do_thisdis = 0
-  integer, save :: pencil_distr
+  integer, private, save :: nloop      = 1
+  integer, private, save :: rnd_seed   = 0
+  integer, private, save :: ibeam      = 1
+  integer, private, save :: jobnumber  = 0
+  integer, private, save :: do_thisdis = 0
 
   real(kind=fPrec), private, save :: myenom = zero
   real(kind=fPrec), private, save :: mynex  = zero
@@ -90,16 +83,42 @@ module collimation
   real(kind=fPrec), private, save :: jaw_fit(6,6) = zero
   real(kind=fPrec), private, save :: jaw_ssf(2)   = zero
 
+  ! Beta-beating
+  real(kind=fPrec), private, save :: xbeat        = zero
+  real(kind=fPrec), private, save :: xbeatphase   = zero
+  real(kind=fPrec), private, save :: ybeat        = zero
+  real(kind=fPrec), private, save :: ybeatphase   = zero
 
+  real(kind=fPrec), private, save :: c_rmstilt_prim    = zero
+  real(kind=fPrec), private, save :: c_rmstilt_sec     = zero
+  real(kind=fPrec), private, save :: c_systilt_prim    = zero
+  real(kind=fPrec), private, save :: c_systilt_sec     = zero
+  real(kind=fPrec), private, save :: c_rmsoffset_prim  = zero
+  real(kind=fPrec), private, save :: c_rmsoffset_sec   = zero
+  real(kind=fPrec), private, save :: c_sysoffset_prim  = zero
+  real(kind=fPrec), private, save :: c_sysoffset_sec   = zero
+  real(kind=fPrec), private, save :: c_rmserror_gap    = zero
+  integer,          private, save :: c_offsettilt_seed = 0
 
-  !SEPT2005,OCT2006 added offset
-  real(kind=fPrec), private, save :: &
-  &xbeat,xbeatphase,ybeat,ybeatphase,                                &
-  &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
-  &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
-  &c_sysoffset_sec,c_rmserror_gap,ndr,                            &
-  &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
-  &sigsecut3,sigsecut2,enerror,bunchlength
+  ! Radial Dist
+  real(kind=fPrec), private, save :: nr
+  real(kind=fPrec), private, save :: ndr
+
+  ! Emittance Drift
+  real(kind=fPrec), private, save :: driftsx = zero
+  real(kind=fPrec), private, save :: driftsy = zero
+
+  ! Pencil Beam
+  integer,          private, save :: ipencil       = 0
+  real(kind=fPrec), private, save :: pencil_offset = zero
+  real(kind=fPrec), private, save :: pencil_rmsx   = zero
+  real(kind=fPrec), private, save :: pencil_rmsy   = zero
+  integer,          private, save :: pencil_distr  = 0
+
+  real(kind=fPrec), private, save :: sigsecut3 = one
+  real(kind=fPrec), private, save :: sigsecut2 = one
+  real(kind=fPrec), private, save :: enerror
+  real(kind=fPrec), private, save :: bunchlength
 
   ! From collimation_comnul
   real(kind=fPrec), public,  save :: emitnx0_dist    = zero
@@ -107,12 +126,11 @@ module collimation
   real(kind=fPrec), public,  save :: emitnx0_collgap = zero
   real(kind=fPrec), public,  save :: emitny0_collgap = zero
 
-  real(kind=fPrec), private, save :: nr
 
-  character(len=mNameLen), save :: name_sel
-  character(len=mFileName), save :: coll_db
-  character(len=16), save :: castordir
-  character(len=80), save :: filename_dis
+  character(len=mNameLen),  private, save :: name_sel     = " "
+  character(len=mFileName), private, save :: coll_db      = " "
+  character(len=16),        private, save :: castordir    = " "
+  character(len=80),        private, save :: filename_dis = " "
 
   integer, save :: ie, iturn, nabs_total
 
@@ -322,18 +340,10 @@ module collimation
 ! END BLOCK DBCOLLIM
 
 
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!+cd dbpencil
-!
-! THIS BLOCK IS COMMON TO THIN6D, TRAUTHIN, COLLIMATE32 AND MAINCR
-!
-  integer, save :: ipencil
   real(kind=fPrec), save :: xp_pencil0,yp_pencil0
   real(kind=fPrec), allocatable, save :: x_pencil(:) !(max_ncoll)
   real(kind=fPrec), allocatable, save :: y_pencil(:) !(max_ncoll)
   real(kind=fPrec), allocatable, save :: pencil_dx(:) !(max_ncoll)
-!  common  /pencil/  xp_pencil0,yp_pencil0,pencil_dx,ipencil
-!  common  /pencil2/ x_pencil, y_pencil
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
@@ -1344,8 +1354,14 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   select case(lnSplit(1))
 
-  case("DOCOLL")
-    do_coll = .true.
+  case("DO_COLL")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR DOCOLL expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DOCOLL true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), do_coll, iErr)
 
   case("ENERGY")
     if(nSplit /= 2) then
@@ -1387,7 +1403,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    filename_dis = lnSplit(2)
+    filename_dis = trim(lnSplit(2))
 
   case("NSIG_FAM")
     if(nSplit /= 3) then
@@ -1404,6 +1420,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(3),rTmp,iErr)
     call cdb_addFamily(lnSplit(2),rTmp,famID,fErr)
+    cdb_doNSig = .true. ! This needs to be on for new block + old colldb
     if(fErr) then
       write(lout,"(a,i0)") "COLL> ERROR NSIG_FAM family '"//trim(lnSplit(2))//"' defined more than once"
       iErr = .true.
@@ -1464,6 +1481,236 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(3), emitny0_dist,   iErr)
     call chr_cast(lnSplit(4), emitnx0_collgap,iErr)
     call chr_cast(lnSplit(5), emitny0_collgap,iErr)
+
+  case("DO_SELECT")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR DO_SELECT expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DO_SELECT collimator_name"
+      iErr = .true.
+      return
+    end if
+    do_select = .true.
+    name_sel  = trim(lnSplit(2))
+
+  case("DO_NOMINAL")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR DO_NOMINAL expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DO_NOMINAL true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), do_nominal, iErr)
+
+  case("SEED")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR SEED expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       SEED rnd_seed"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), rnd_seed, iErr)
+
+  case("DO_ONESIDE")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR DO_ONESIDE expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DO_ONESIDE true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), do_oneside, iErr)
+
+  case("WRITE_DIST")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR WRITE_DIST expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       WRITE_DIST true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dowrite_dist, iErr)
+
+  case("WRITE_IMPACT")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR WRITE_IMPACT expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       WRITE_IMPACT true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dowrite_impact, iErr)
+
+  case("WRITE_SECOND","WRITE_SECONDARY")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR WRITE_SECOND expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       WRITE_SECOND true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dowrite_secondary, iErr)
+
+  case("WRITE_AMPL","WRITE_AMPLITUDE")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR WRITE_AMPL expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       WRITE_AMPL true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dowrite_amplitude, iErr)
+
+  case("BETA_BEAT")
+    if(nSplit /= 5) then
+      write(lout,"(a,i0)") "COLL> ERROR BETA_BEAT expects 4 values, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       BETA_BEAT xbeat xbeat_phase ybeat ybeat_phase"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), xbeat,     iErr)
+    call chr_cast(lnSplit(3), xbeatphase,iErr)
+    call chr_cast(lnSplit(4), ybeat,     iErr)
+    call chr_cast(lnSplit(5), ybeatphase,iErr)
+
+  case("ALIGNERR_PRIM")
+    if(nSplit /= 5) then
+      write(lout,"(a,i0)") "COLL> ERROR ALIGNERR_PRIM expects 4 values, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       ALIGNERR_PRIM rms_tilt sys_tilt rms_offset sys_offset"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), c_rmstilt_prim,   iErr)
+    call chr_cast(lnSplit(3), c_systilt_prim,   iErr)
+    call chr_cast(lnSplit(4), c_rmsoffset_prim, iErr)
+    call chr_cast(lnSplit(5), c_sysoffset_prim, iErr)
+
+  case("ALIGNERR_SEC")
+    if(nSplit /= 5) then
+      write(lout,"(a,i0)") "COLL> ERROR ALIGNERR_SEC expects 4 values, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       ALIGNERR_SEC rms_tilt sys_tilt rms_offset sys_offset"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), c_rmstilt_sec,   iErr)
+    call chr_cast(lnSplit(3), c_systilt_sec,   iErr)
+    call chr_cast(lnSplit(4), c_rmsoffset_sec, iErr)
+    call chr_cast(lnSplit(5), c_sysoffset_sec, iErr)
+
+  case("ALIGNERR_GAP")
+    if(nSplit /= 5) then
+      write(lout,"(a,i0)") "COLL> ERROR ALIGNERR_GAP expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       ALIGNERR_GAP rmserror_gap"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),c_rmserror_gap, iErr)
+
+  case("ALIGNERR_SEED")
+    if(nSplit /= 5) then
+      write(lout,"(a,i0)") "COLL> ERROR ALIGNERR_SEED expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       ALIGNERR_SEED seed"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),c_offsettilt_seed, iErr)
+
+  case("DO_MINGAP")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR DO_MINGAP expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DO_MINGAP true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), do_mingap, iErr)
+
+  case("RADIAL_DIST")
+    if(nSplit /= 3) then
+      write(lout,"(a,i0)") "COLL> ERROR RADIAL_DIST expects 2 values, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       RADIAL_DIST size smear"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), nr,  iErr)
+    call chr_cast(lnSplit(3), ndr, iErr)
+    radial = .true.
+
+  case("EMIT_DRIFT")
+    if(nSplit /= 3) then
+      write(lout,"(a,i0)") "COLL> ERROR EMIT_DRIFT expects 2 values, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       EMIT_DRIFT driftx drifty"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), driftsx, iErr)
+    call chr_cast(lnSplit(3), driftsy, iErr)
+
+  case("SYSTILT_ANTI")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR SYSTILT_ANTI expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       SYSTILT_ANTI true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), systilt_antisymm, iErr)
+
+  case("PENCIL")
+    if(nSplit /= 6) then
+      write(lout,"(a,i0)") "COLL> ERROR PENCIL expects 5 values, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       PENCIL ipencil offset rmsx rmsy distr"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), ipencil,      iErr)
+    call chr_cast(lnSplit(3), pencil_offset,iErr)
+    call chr_cast(lnSplit(4), pencil_rmsx,  iErr)
+    call chr_cast(lnSplit(5), pencil_rmsy,  iErr)
+    call chr_cast(lnSplit(6), pencil_distr, iErr)
+
+  case("COLLDB")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR COLLDB expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       COLLDB filename"
+      iErr = .true.
+      return
+    end if
+    coll_db = trim(lnSplit(2))
+
+  case("BEAM_NUM")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR BEAM_NUM expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       BEAM_NUM 1|2"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), ibeam, iErr)
+    if(ibeam /= 1 .and. ibeam /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR BEAM_NUM must be 1 or 2, got ",ibeam
+      iErr = .true.
+      return
+    end if
+
+  case("WRITE_TRACKS")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR WRITE_TRACKS expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       WRITE_TRACKS true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dowritetracks, iErr)
+
+  case("CERN")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR CERN expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       CERN true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), cern, iErr)
+
+  case("SIGSECUT")
+    if(nSplit /= 3) then
+      write(lout,"(a,i0)") "COLL> ERROR SIGSECUT expects 2 values, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       SIGSECUT sigma_xy sigma_r"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), sigsecut2, iErr)
+    call chr_cast(lnSplit(3), sigsecut3, iErr)
 
   case default
     ! If we reached this point, we probably have an old style collimation block
