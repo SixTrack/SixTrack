@@ -1184,12 +1184,7 @@ subroutine thck6d(nthinerr)
 #endif
 
   save
-#ifdef DEBUG
-!-----------------------------------------------------------------------
-!===================================================================
-! Eric beginthck6dstart
-!===================================================================
-#endif
+
   nthinerr=0
   idz1=idz(1)
   idz2=idz(2)
@@ -1282,20 +1277,7 @@ subroutine thck6d(nthinerr)
     end if
     call dump_linesFirst(n)
 
-#ifdef DEBUG
-! Now comes the loop over elements do 500/501
-    do 501 i=1,iu
-#else
     do 500 i=1,iu
-#endif
-#ifdef DEBUG
-!===================================================================
-!===================================================================
-! Eric endthck6dstart
-! Nothing should be changed in the rest of this loop
-!===================================================================
-!===================================================================
-#endif
       if(ktrack(i).eq.1) then
         ix=ic(i)
       else
@@ -1833,19 +1815,7 @@ subroutine thck6d(nthinerr)
         call dump_lines(n,i,ix)
       end if
 
-#ifdef DEBUG
 500 continue
-    ! if (n.ge.990) then
-    !   write(99,*) 'after element i, ktrack ',i,ktrack(i), xv1(1),xv2(1),yv1(1),yv2(1),&
-    !     sigmv(1),ejv(1),ejfv(1),rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
-    !   endfile (99,iostat=ierro)
-    !   backspace (99,iostat=ierro)
-    ! end if
-501 continue
-#endif
-#ifndef DEBUG
-500 continue
-#endif
 ! End of loop over elements
 
 !===================================================================
