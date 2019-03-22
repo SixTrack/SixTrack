@@ -89,30 +89,6 @@ module collimation
   &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
   &sigsecut3,sigsecut2,enerror,bunchlength
 
-  real(kind=fPrec), private, save :: nsig_tcp3    = zero
-  real(kind=fPrec), private, save :: nsig_tcsg3   = zero
-  real(kind=fPrec), private, save :: nsig_tcsm3   = zero
-  real(kind=fPrec), private, save :: nsig_tcla3   = zero
-  real(kind=fPrec), private, save :: nsig_tcp7    = zero
-  real(kind=fPrec), private, save :: nsig_tcsg7   = zero
-  real(kind=fPrec), private, save :: nsig_tcsm7   = zero
-  real(kind=fPrec), private, save :: nsig_tcla7   = zero
-  real(kind=fPrec), private, save :: nsig_tclp    = zero
-  real(kind=fPrec), private, save :: nsig_tcli    = zero
-  real(kind=fPrec), private, save :: nsig_tcth1   = zero
-  real(kind=fPrec), private, save :: nsig_tcth2   = zero
-  real(kind=fPrec), private, save :: nsig_tcth5   = zero
-  real(kind=fPrec), private, save :: nsig_tcth8   = zero
-  real(kind=fPrec), private, save :: nsig_tctv1   = zero
-  real(kind=fPrec), private, save :: nsig_tctv2   = zero
-  real(kind=fPrec), private, save :: nsig_tctv5   = zero
-  real(kind=fPrec), private, save :: nsig_tctv8   = zero
-  real(kind=fPrec), private, save :: nsig_tcdq    = zero
-  real(kind=fPrec), private, save :: nsig_tcstcdq = zero
-  real(kind=fPrec), private, save :: nsig_tdi     = zero
-  real(kind=fPrec), private, save :: nsig_tcxrp   = zero
-  real(kind=fPrec), private, save :: nsig_tcryo   = zero
-
   ! From collimation_comnul
   real(kind=fPrec), public,  save :: emitnx0_dist    = zero
   real(kind=fPrec), public,  save :: emitny0_dist    = zero
@@ -122,7 +98,7 @@ module collimation
   real(kind=fPrec), private, save :: nr
 
   character(len=mNameLen), save :: name_sel
-  character(len=80), save :: coll_db
+  character(len=mFileName), save :: coll_db
   character(len=16), save :: castordir
   character(len=80), save :: filename_dis
 
@@ -1073,31 +1049,9 @@ subroutine collimate_init()
   write(lout,"(a,i0)")    'COLL> Info: RSELECT             = ', int(rselect)
   write(lout,"(a,l1)")    'COLL> Info: DO_COLL             = ', do_coll
   write(lout,"(a,l1)")    'COLL> Info: DO_NSIG             = ', cdb_doNSig
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCP3           = ', nsig_tcp3
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCSG3          = ', nsig_tcsg3
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCSM3          = ', nsig_tcsm3
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCLA3          = ', nsig_tcla3
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCP7           = ', nsig_tcp7
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCSG7          = ', nsig_tcsg7
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCSM7          = ', nsig_tcsm7
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCLA7          = ', nsig_tcla7
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCLP           = ', nsig_tclp
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCLI           = ', nsig_tcli
-! write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTH           = ', nsig_tcth
-! write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTV           = ', nsig_tctv
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTH1          = ', nsig_tcth1
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTV1          = ', nsig_tctv1
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTH2          = ', nsig_tcth2
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTV2          = ', nsig_tctv2
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTH5          = ', nsig_tcth5
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTV5          = ', nsig_tctv5
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTH8          = ', nsig_tcth8
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCTV8          = ', nsig_tctv8
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCDQ           = ', nsig_tcdq
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCSTCDQ        = ', nsig_tcstcdq
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TDI            = ', nsig_tdi
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCXRP          = ', nsig_tcxrp
-  write(lout,"(a,e15.8)") 'COLL> Info: NSIG_TCRYP          = ', nsig_tcryo
+  do i=1,cdb_nFam
+    write(lout,"(a,a19,a3,f13.6)") "COLL> Info: ",chr_rPad("NSIG_"//trim(cdb_famName(i)),19)," = ",cdb_famNSig(i)
+  end do
 
   write(lout,"(a)")
   write(lout,"(a)")       'COLL> INPUT PARAMETERS FOR THE SLICING:'
@@ -1364,7 +1318,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  real(kind=fPrec) nSigIn
+  real(kind=fPrec) nSigIn(23)
   integer nSplit, famID
   logical spErr, fErr
 
@@ -1416,55 +1370,55 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 7)  call chr_cast(lnSPlit(8), bunchlength, iErr)
 
   case(4)
-    if(nSplit > 0)  call chr_cast(lnSplit(1), cdb_doNSig,  iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), nsig_tcp3,   iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), nsig_tcsg3,  iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), nsig_tcsm3,  iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), nsig_tcla3,  iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), nsig_tcp7,   iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), nsig_tcsg7,  iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), nsig_tcsm7,  iErr)
-    if(nSplit > 8)  call chr_cast(lnSplit(9), nsig_tcla7,  iErr)
-    if(nSplit > 9)  call chr_cast(lnSplit(10),nsig_tclp,   iErr)
-    if(nSplit > 10) call chr_cast(lnSplit(11),nsig_tcli,   iErr)
-    if(nSplit > 11) call chr_cast(lnSplit(12),nsig_tcdq,   iErr)
-    if(nSplit > 12) call chr_cast(lnSplit(13),nsig_tcstcdq,iErr)
-    if(nSplit > 13) call chr_cast(lnSplit(14),nsig_tdi,    iErr)
-    call cdb_addFamily("tcp3",   nsig_tcp3,   famID,fErr)
-    call cdb_addFamily("tcsg3",  nsig_tcsg3,  famID,fErr)
-    call cdb_addFamily("tcsm3",  nsig_tcsm3,  famID,fErr)
-    call cdb_addFamily("tcla3",  nsig_tcla3,  famID,fErr)
-    call cdb_addFamily("tcp7",   nsig_tcp7,   famID,fErr)
-    call cdb_addFamily("tcsg7",  nsig_tcsg7,  famID,fErr)
-    call cdb_addFamily("tcsm7",  nsig_tcsm7,  famID,fErr)
-    call cdb_addFamily("tcla7",  nsig_tcla7,  famID,fErr)
-    call cdb_addFamily("tclp",   nsig_tclp,   famID,fErr)
-    call cdb_addFamily("tcli",   nsig_tcli,   famID,fErr)
-    call cdb_addFamily("tcdq",   nsig_tcdq,   famID,fErr)
-    call cdb_addFamily("tcstcdq",nsig_tcstcdq,famID,fErr)
-    call cdb_addFamily("tdi",    nsig_tdi,    famID,fErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), cdb_doNSig,iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), nSigIn(1), iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), nSigIn(2), iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), nSigIn(3), iErr)
+    if(nSplit > 4)  call chr_cast(lnSplit(5), nSigIn(4), iErr)
+    if(nSplit > 5)  call chr_cast(lnSplit(6), nSigIn(5), iErr)
+    if(nSplit > 6)  call chr_cast(lnSplit(7), nSigIn(6), iErr)
+    if(nSplit > 7)  call chr_cast(lnSplit(8), nSigIn(7), iErr)
+    if(nSplit > 8)  call chr_cast(lnSplit(9), nSigIn(8), iErr)
+    if(nSplit > 9)  call chr_cast(lnSplit(10),nSigIn(9), iErr)
+    if(nSplit > 10) call chr_cast(lnSplit(11),nSigIn(10),iErr)
+    if(nSplit > 11) call chr_cast(lnSplit(12),nSigIn(11),iErr)
+    if(nSplit > 12) call chr_cast(lnSplit(13),nSigIn(12),iErr)
+    if(nSplit > 13) call chr_cast(lnSplit(14),nSigIn(13),iErr)
+    call cdb_addFamily("tcp3",   nSigIn(1), famID,fErr)
+    call cdb_addFamily("tcsg3",  nSigIn(2), famID,fErr)
+    call cdb_addFamily("tcsm3",  nSigIn(3), famID,fErr)
+    call cdb_addFamily("tcla3",  nSigIn(4), famID,fErr)
+    call cdb_addFamily("tcp7",   nSigIn(5), famID,fErr)
+    call cdb_addFamily("tcsg7",  nSigIn(6), famID,fErr)
+    call cdb_addFamily("tcsm7",  nSigIn(7), famID,fErr)
+    call cdb_addFamily("tcla7",  nSigIn(8), famID,fErr)
+    call cdb_addFamily("tclp",   nSigIn(9), famID,fErr)
+    call cdb_addFamily("tcli",   nSigIn(10),famID,fErr)
+    call cdb_addFamily("tcdq",   nSigIn(11),famID,fErr)
+    call cdb_addFamily("tcstcdq",nSigIn(12),famID,fErr)
+    call cdb_addFamily("tdi",    nSigIn(13),famID,fErr)
 
   case(5)
-    if(nSplit > 0)  call chr_cast(lnSplit(1), nsig_tcth1,iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), nsig_tcth2,iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), nsig_tcth5,iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), nsig_tcth8,iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), nsig_tctv1,iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), nsig_tctv2,iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), nsig_tctv5,iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), nsig_tctv8,iErr)
-    if(nSplit > 8)  call chr_cast(lnSplit(9), nsig_tcxrp,iErr)
-    if(nSplit > 9)  call chr_cast(lnSplit(10),nsig_tcryo,iErr)
-    call cdb_addFamily("tcth1",nsig_tcth1,famID,fErr)
-    call cdb_addFamily("tcth2",nsig_tcth2,famID,fErr)
-    call cdb_addFamily("tcth5",nsig_tcth5,famID,fErr)
-    call cdb_addFamily("tcth8",nsig_tcth8,famID,fErr)
-    call cdb_addFamily("tctv1",nsig_tctv1,famID,fErr)
-    call cdb_addFamily("tctv2",nsig_tctv2,famID,fErr)
-    call cdb_addFamily("tctv5",nsig_tctv5,famID,fErr)
-    call cdb_addFamily("tctv8",nsig_tctv8,famID,fErr)
-    call cdb_addFamily("tcxrp",nsig_tcxrp,famID,fErr)
-    call cdb_addFamily("tcryo",nsig_tcryo,famID,fErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), nSigIn(14),iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), nSigIn(15),iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), nSigIn(16),iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), nSigIn(17),iErr)
+    if(nSplit > 4)  call chr_cast(lnSplit(5), nSigIn(18),iErr)
+    if(nSplit > 5)  call chr_cast(lnSplit(6), nSigIn(19),iErr)
+    if(nSplit > 6)  call chr_cast(lnSplit(7), nSigIn(20),iErr)
+    if(nSplit > 7)  call chr_cast(lnSplit(8), nSigIn(21),iErr)
+    if(nSplit > 8)  call chr_cast(lnSplit(9), nSigIn(22),iErr)
+    if(nSplit > 9)  call chr_cast(lnSplit(10),nSigIn(23),iErr)
+    call cdb_addFamily("tcth1",nSigIn(14),famID,fErr)
+    call cdb_addFamily("tcth2",nSigIn(15),famID,fErr)
+    call cdb_addFamily("tcth5",nSigIn(16),famID,fErr)
+    call cdb_addFamily("tcth8",nSigIn(17),famID,fErr)
+    call cdb_addFamily("tctv1",nSigIn(18),famID,fErr)
+    call cdb_addFamily("tctv2",nSigIn(19),famID,fErr)
+    call cdb_addFamily("tctv5",nSigIn(20),famID,fErr)
+    call cdb_addFamily("tctv8",nSigIn(21),famID,fErr)
+    call cdb_addFamily("tcxrp",nSigIn(22),famID,fErr)
+    call cdb_addFamily("tcryo",nSigIn(23),famID,fErr)
 
   case(6)
     if(nSplit > 0)  call chr_cast(lnSPlit(1), n_slices,   iErr)
@@ -1553,7 +1507,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 #endif
 
   case(16)
-    if(nSplit > 0)  coll_db =  lnSPlit(1)
+    if(nSplit > 0)  coll_db = lnSPlit(1)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), ibeam, iErr)
 
   case(17)
@@ -2228,9 +2182,9 @@ subroutine collimate_do_collimator(stracki)
 
   implicit none
 
-  integer :: j
-
   real(kind=fPrec), intent(in) :: stracki
+
+  integer j
 
 #ifdef G4COLLIMAT
   integer g4_lostc
@@ -2364,8 +2318,8 @@ subroutine collimate_do_collimator(stracki)
 
 !JUNE2005   HERE IS THE SPECIAL TREATMENT...
   else if(cdb_cNameUC(icoll)(1:4).eq.'COLM') then
-    xmax = nsig_tcth1*sqrt(bx_dist*myemitx0_collgap)
-    ymax = nsig_tcth2*sqrt(by_dist*myemity0_collgap)
+    xmax = cdb_getFamilyNSig("tcth1")*sqrt(bx_dist*myemitx0_collgap)
+    ymax = cdb_getFamilyNSig("tcth2")*sqrt(by_dist*myemity0_collgap)
 
     c_rotation = cdb_cRotation(icoll)
     c_length   = cdb_cLength(icoll)

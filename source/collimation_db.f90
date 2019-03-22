@@ -8,13 +8,16 @@ module collimation_db
 
   implicit none
 
+  public :: cdb_getFamilyID
+  public :: cdb_getFamilyNSig
+
   integer, parameter :: cdb_fNameLen = 16
 
   character(len=mFileName), public,  save :: cdb_fileName = " "     ! Database file
   logical,                  private, save :: cdb_dbOld    = .false. ! Old or new DB format
   logical,                  public,  save :: cdb_doNSig   = .false. ! Use the sigmas from fort.3 isntead of DB
   integer,                  public,  save :: cdb_nColl    = 0       ! Number of collimators
-  integer,                  public,  save :: cdb_nfam     = 0       ! Number of collimator families
+  integer,                  public,  save :: cdb_nFam     = 0       ! Number of collimator families
 
   ! Database arrays
   character(len=:), allocatable, public, save :: cdb_cName(:)     ! Collimator name
@@ -287,7 +290,7 @@ subroutine cdb_readDB_oldFormat
     if(cErr) goto 100
 
     call cdb_generateFamName(cdb_cName(j), famName)
-    call cdb_getFamilyID(famName, famID)
+    famID = cdb_getFamilyID(famName)
     if(famID > 0 .and. cdb_doNSig) then
       cdb_cNSig(j) = cdb_famNSig(famID)
     else
@@ -409,7 +412,7 @@ subroutine cdb_addFamily(famName, nSig, famID, fErr)
   integer,           intent(out) :: famID
   logical,           intent(out) :: fErr
 
-  call cdb_getFamilyID(famName, famID)
+  famID = cdb_getFamilyID(famName)
   if(famID == -1) then
     cdb_nfam = cdb_nFam + 1
     call cdb_allocFam
@@ -430,16 +433,14 @@ end subroutine cdb_addFamily
 !  Updated: 2019-03-22
 !  Find a family in the database and returns its ID
 ! ================================================================================================ !
-subroutine cdb_getFamilyID(famName, famID)
+integer function cdb_getFamilyID(famName) result(famID)
 
-  character(len=*),  intent(in)  :: famName
-  integer,           intent(out) :: famID
-
+  character(len=*), intent(in) :: famName
   integer i
 
   famID = -1
-  if(cdb_nfam > 0) then
-    do i=1,cdb_nfam
+  if(cdb_nFam > 0) then
+    do i=1,cdb_nFam
       if(cdb_famName(i) == famName) then
         famID = i
         exit
@@ -447,7 +448,30 @@ subroutine cdb_getFamilyID(famName, famID)
     end do
   end if
 
-end subroutine cdb_getFamilyID
+end function cdb_getFamilyID
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-21
+!  Updated: 2019-03-22
+!  Find a family in the database and returns its nsig
+! ================================================================================================ !
+real(kind=fPrec) function cdb_getFamilyNSig(famName) result(nSig)
+
+  use crcoall
+
+  character(len=*), intent(in) :: famName
+  integer famID
+
+  famID = cdb_getFamilyID(famName)
+  if(famID > 0) then
+    nSig = cdb_famNSig(famID)
+  else
+    write(lout,"(a)") "COLLDB> Warning No nsig value found for collimator family '"//trim(famName)//"'"
+    nSig = 0.0_fPrec
+  end if
+
+end function cdb_getFamilyNSig
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
