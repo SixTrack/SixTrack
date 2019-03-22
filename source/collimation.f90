@@ -67,21 +67,33 @@ module collimation
   logical, save :: do_mingap
 
 !SEPT2005 for slicing process
-  integer, save :: nloop
-  integer, save :: rnd_seed
+  integer, save :: nloop    = 1
+  integer, save :: rnd_seed = 0
   integer, save :: c_offsettilt_seed
   integer, save :: ibeam
   integer, save :: jobnumber
-  integer, save :: do_thisdis
-  integer, save :: n_slices
+  integer, save :: do_thisdis = 0
   integer, save :: pencil_distr
 
-  real(kind=fPrec), save :: myenom,mynex,mdex,myney,mdey,                    &
-!SEPT2005 add these lines for the slicing procedure
-  &smin_slices,smax_slices,recenter1,recenter2,                      &
-  &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
-  &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
-!SEPT2005,OCT2006 added offset
+  real(kind=fPrec), private, save :: myenom = zero
+  real(kind=fPrec), private, save :: mynex  = zero
+  real(kind=fPrec), private, save :: mdex   = zero
+  real(kind=fPrec), private, save :: myney  = zero
+  real(kind=fPrec), private, save :: mdey   = zero
+
+  ! Jaw Slicing
+  integer,          private, save :: n_slices     = 0
+  real(kind=fPrec), private, save :: smin_slices  = zero
+  real(kind=fPrec), private, save :: smax_slices  = zero
+  real(kind=fPrec), private, save :: recenter1    = zero
+  real(kind=fPrec), private, save :: recenter2    = zero
+  real(kind=fPrec), private, save :: jaw_fit(6,6) = zero
+  real(kind=fPrec), private, save :: jaw_ssf(2)   = zero
+
+
+
+  !SEPT2005,OCT2006 added offset
+  real(kind=fPrec), private, save :: &
   &xbeat,xbeatphase,ybeat,ybeatphase,                                &
   &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
   &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
@@ -1062,21 +1074,21 @@ subroutine collimate_init()
   write(lout,"(a,e15.8)") 'COLL> Info: RECENTER1           = ',recenter1
   write(lout,"(a,e15.8)") 'COLL> Info: RECENTER2           = ',recenter2
   write(lout,"(a)")
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_1              = ',fit1_1
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_2              = ',fit1_2
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_3              = ',fit1_3
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_4              = ',fit1_4
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_5              = ',fit1_5
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_6              = ',fit1_6
-  write(lout,"(a,e15.8)") 'COLL> Info: SCALING1            = ',ssf1
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,1)        = ',jaw_fit(1,1)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,2)        = ',jaw_fit(1,2)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,3)        = ',jaw_fit(1,3)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,4)        = ',jaw_fit(1,4)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,5)        = ',jaw_fit(1,5)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,6)        = ',jaw_fit(1,6)
+  write(lout,"(a,e15.8)") 'COLL> Info: SCALING1            = ',jaw_ssf(1)
   write(lout,"(a)")
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_1              = ',fit2_1
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_2              = ',fit2_2
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_3              = ',fit2_3
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_4              = ',fit2_4
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_5              = ',fit2_5
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_6              = ',fit2_6
-  write(lout,"(a,e15.8)") 'COLL> Info: SCALING2            = ',ssf2
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,1)        = ',jaw_fit(2,1)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,2)        = ',jaw_fit(2,2)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,3)        = ',jaw_fit(2,3)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,4)        = ',jaw_fit(2,4)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,5)        = ',jaw_fit(2,5)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,6)        = ',jaw_fit(2,6)
+  write(lout,"(a,e15.8)") 'COLL> Info: SCALING2            = ',jaw_ssf(2)
   write(lout,"(a)")
 
 !SEPT2005
@@ -1318,7 +1330,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  real(kind=fPrec) nSigIn(23)
+  real(kind=fPrec) nSigIn(23), rTmp
   integer nSplit, famID
   logical spErr, fErr
 
@@ -1330,6 +1342,141 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   end if
   if(nSplit == 0) return
 
+  select case(lnSplit(1))
+
+  case("DOCOLL")
+    do_coll = .true.
+
+  case("ENERGY")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR ENERGY expects 1 value, got ",nSplit-1
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), myenom, iErr)
+
+  case("DIST_TYPE")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR DIST_TYPE expects 1 value, got ",nSplit-1
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), do_thisdis, iErr)
+    if(do_thisdis < 0 .or. do_thisdis > 6) then
+      write(lout,"(a,i0)") "COLL> ERROR DIST_TYPE must be between 0 and 6, got ",do_thisdis
+      iErr = .true.
+      return
+    end if
+
+  case("DIST_PARAM")
+    if(nSplit /= 5 .and. nSplit /= 7) then
+      write(lout,"(a,i0)") "COLL> ERROR DIST_PARAM expects 4 or 6 values, got ",nSplit-1
+      iErr = .true.
+      return
+    end if
+    if(nSplit > 1)  call chr_cast(lnSplit(2), mynex,       iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), mdex,        iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), myney,       iErr)
+    if(nSplit > 4)  call chr_cast(lnSplit(5), mdey,        iErr)
+    if(nSplit > 5)  call chr_cast(lnSplit(6), enerror,     iErr)
+    if(nSplit > 6)  call chr_cast(lnSplit(7), bunchlength, iErr)
+
+  case("DIST_FILE")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR DIST_FILE expects 1 value, got ",nSplit-1
+      iErr = .true.
+      return
+    end if
+    filename_dis = lnSplit(2)
+
+  case("NSIG_FAM")
+    if(nSplit /= 3) then
+      write(lout,"(a,i0)") "COLL> ERROR NSIG_FAM expects 2 values, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       NSIG_FAM name nsig"
+      iErr = .true.
+      return
+    end if
+    if(len_trim(lnSplit(2)) > cdb_fNameLen) then
+      write(lout,"(2(a,i0))") "COLL> ERROR NSIG_FAM family name can be maximum ",cdb_fNameLen,&
+        " characters, got ",len_trim(lnSplit(2))
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(3),rTmp,iErr)
+    call cdb_addFamily(lnSplit(2),rTmp,famID,fErr)
+    if(fErr) then
+      write(lout,"(a,i0)") "COLL> ERROR NSIG_FAM family '"//trim(lnSplit(2))//"' defined more than once"
+      iErr = .true.
+      return
+    end if
+
+  case("JAW_SLICE")
+    if(nSplit /= 6) then
+      write(lout,"(a,i0)") "COLL> ERROR JAW_SLICE expects 5 values, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       JAW_SLICE n_slices smin smax recenter1 recenter2"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), n_slices,   iErr)
+    call chr_cast(lnSplit(3), smin_slices,iErr)
+    call chr_cast(lnSplit(4), smax_slices,iErr)
+    call chr_cast(lnSplit(5), recenter1,  iErr)
+    call chr_cast(lnSplit(6), recenter2,  iErr)
+
+  case("JAW_FIT1")
+    if(nSplit /= 8) then
+      write(lout,"(a,i0)") "COLL> ERROR JAW_FIT1 expects 7 values, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       JAW_FIT1 fit1.1 fit1.2 fit1.3 fit1.4 fit1.5 fit1.6 scale"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), jaw_fit(1,1),iErr)
+    call chr_cast(lnSplit(3), jaw_fit(1,2),iErr)
+    call chr_cast(lnSplit(4), jaw_fit(1,3),iErr)
+    call chr_cast(lnSplit(5), jaw_fit(1,4),iErr)
+    call chr_cast(lnSplit(6), jaw_fit(1,5),iErr)
+    call chr_cast(lnSplit(7), jaw_fit(1,6),iErr)
+    call chr_cast(lnSplit(8), jaw_ssf(1),  iErr)
+
+  case("JAW_FIT2")
+    if(nSplit /= 8) then
+      write(lout,"(a,i0)") "COLL> ERROR JAW_FIT2 expects 7 values, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       JAW_FIT2 fit2.1 fit2.2 fit2.3 fit2.4 fit2.5 fit2.6 scale"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), jaw_fit(2,1),iErr)
+    call chr_cast(lnSplit(3), jaw_fit(2,2),iErr)
+    call chr_cast(lnSplit(4), jaw_fit(2,3),iErr)
+    call chr_cast(lnSplit(5), jaw_fit(2,4),iErr)
+    call chr_cast(lnSplit(6), jaw_fit(2,5),iErr)
+    call chr_cast(lnSplit(7), jaw_fit(2,6),iErr)
+    call chr_cast(lnSplit(8), jaw_ssf(2),  iErr)
+
+  case("EMIT","EMITTANCE")
+    if(nSplit /= 5) then
+      write(lout,"(a,i0)") "COLL> ERROR EMIT expects 4 values, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       EMIT ex_dist ey_dist ex_colgap ey_colgap"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), emitnx0_dist,   iErr)
+    call chr_cast(lnSplit(3), emitny0_dist,   iErr)
+    call chr_cast(lnSplit(4), emitnx0_collgap,iErr)
+    call chr_cast(lnSplit(5), emitny0_collgap,iErr)
+
+  case default
+    ! If we reached this point, we probably have an old style collimation block
+    goto 10
+
+  end select
+
+  return
+
+  !  Parse old style COLL block
+  ! ============================
+10 continue
+
   select case(iLine)
 
   case(1)
@@ -1340,12 +1487,12 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       return
     end if
 
-    if(nSplit > 0) call chr_cast(lnSPlit(1),do_coll,iErr)
+    if(nSplit > 0) call chr_cast(lnSplit(1),do_coll,iErr)
 
   case(2)
 
-    if(nSplit > 0) call chr_cast(lnSPlit(1),nloop,iErr)
-    if(nSplit > 1) call chr_cast(lnSPlit(2),myenom,iErr)
+    if(nSplit > 0) call chr_cast(lnSplit(1),nloop,iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),myenom,iErr)
 
     if(nloop /= 1) then
       write(lout,"(a,i0)") "COLL> ERROR Support for multiple samples is deprecated. nloop must be 1, got ",nloop
@@ -1360,14 +1507,14 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
    endif
 
   case(3)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), do_thisdis,  iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), mynex,       iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), mdex,        iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), myney,       iErr)
-    if(nSplit > 4)  call chr_cast(lnSPlit(5), mdey,        iErr)
-    if(nSplit > 5)  filename_dis = lnSPlit(6)
-    if(nSplit > 6)  call chr_cast(lnSPlit(7), enerror,     iErr)
-    if(nSplit > 7)  call chr_cast(lnSPlit(8), bunchlength, iErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), do_thisdis,  iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), mynex,       iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), mdex,        iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), myney,       iErr)
+    if(nSplit > 4)  call chr_cast(lnSplit(5), mdey,        iErr)
+    if(nSplit > 5)  filename_dis = lnSplit(6)
+    if(nSplit > 6)  call chr_cast(lnSplit(7), enerror,     iErr)
+    if(nSplit > 7)  call chr_cast(lnSplit(8), bunchlength, iErr)
 
   case(4)
     if(nSplit > 0)  call chr_cast(lnSplit(1), cdb_doNSig,iErr)
@@ -1421,83 +1568,83 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call cdb_addFamily("tcryo",nSigIn(23),famID,fErr)
 
   case(6)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), n_slices,   iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), smin_slices,iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), smax_slices,iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), recenter1,  iErr)
-    if(nSplit > 4)  call chr_cast(lnSPlit(5), recenter2,  iErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), n_slices,   iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), smin_slices,iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), smax_slices,iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), recenter1,  iErr)
+    if(nSplit > 4)  call chr_cast(lnSplit(5), recenter2,  iErr)
 
   case(7)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), fit1_1,iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), fit1_2,iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), fit1_3,iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), fit1_4,iErr)
-    if(nSplit > 4)  call chr_cast(lnSPlit(5), fit1_5,iErr)
-    if(nSplit > 5)  call chr_cast(lnSPlit(6), fit1_6,iErr)
-    if(nSplit > 6)  call chr_cast(lnSPlit(7), ssf1,  iErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), jaw_fit(1,1),iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), jaw_fit(1,2),iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), jaw_fit(1,3),iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), jaw_fit(1,4),iErr)
+    if(nSplit > 4)  call chr_cast(lnSplit(5), jaw_fit(1,5),iErr)
+    if(nSplit > 5)  call chr_cast(lnSplit(6), jaw_fit(1,6),iErr)
+    if(nSplit > 6)  call chr_cast(lnSplit(7), jaw_ssf(1),  iErr)
 
   case(8)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), fit2_1,iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), fit2_2,iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), fit2_3,iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), fit2_4,iErr)
-    if(nSplit > 4)  call chr_cast(lnSPlit(5), fit2_5,iErr)
-    if(nSplit > 5)  call chr_cast(lnSPlit(6), fit2_6,iErr)
-    if(nSplit > 6)  call chr_cast(lnSPlit(7), ssf2,  iErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), jaw_fit(2,1),iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), jaw_fit(2,2),iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), jaw_fit(2,3),iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), jaw_fit(2,4),iErr)
+    if(nSplit > 4)  call chr_cast(lnSplit(5), jaw_fit(2,5),iErr)
+    if(nSplit > 5)  call chr_cast(lnSplit(6), jaw_fit(2,6),iErr)
+    if(nSplit > 6)  call chr_cast(lnSplit(7), jaw_ssf(2),  iErr)
 
   case(9)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), emitnx0_dist,   iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), emitny0_dist,   iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), emitnx0_collgap,iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), emitny0_collgap,iErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), emitnx0_dist,   iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), emitny0_dist,   iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), emitnx0_collgap,iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), emitny0_collgap,iErr)
 
   case(10)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), do_select,        iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), do_nominal,       iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), rnd_seed,         iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), dowrite_dist,     iErr)
-    if(nSplit > 4)  name_sel = lnSPlit(5)
-    if(nSplit > 5)  call chr_cast(lnSPlit(6), do_oneside,       iErr)
-    if(nSplit > 6)  call chr_cast(lnSPlit(7), dowrite_impact,   iErr)
-    if(nSplit > 7)  call chr_cast(lnSPlit(8), dowrite_secondary,iErr)
-    if(nSplit > 8)  call chr_cast(lnSPlit(9), dowrite_amplitude,iErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), do_select,        iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), do_nominal,       iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), rnd_seed,         iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), dowrite_dist,     iErr)
+    if(nSplit > 4)  name_sel = lnSplit(5)
+    if(nSplit > 5)  call chr_cast(lnSplit(6), do_oneside,       iErr)
+    if(nSplit > 6)  call chr_cast(lnSplit(7), dowrite_impact,   iErr)
+    if(nSplit > 7)  call chr_cast(lnSplit(8), dowrite_secondary,iErr)
+    if(nSplit > 8)  call chr_cast(lnSplit(9), dowrite_amplitude,iErr)
 
   case(11)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), xbeat,     iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), xbeatphase,iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), ybeat,     iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), ybeatphase,iErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), xbeat,     iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), xbeatphase,iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), ybeat,     iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), ybeatphase,iErr)
 
   case(12)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), c_rmstilt_prim,   iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), c_rmstilt_sec,    iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), c_systilt_prim,   iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), c_systilt_sec,    iErr)
-    if(nSplit > 4)  call chr_cast(lnSPlit(5), c_rmsoffset_prim, iErr)
-    if(nSplit > 5)  call chr_cast(lnSPlit(6), c_rmsoffset_sec,  iErr)
-    if(nSplit > 6)  call chr_cast(lnSPlit(7), c_sysoffset_prim, iErr)
-    if(nSplit > 7)  call chr_cast(lnSPlit(8), c_sysoffset_sec,  iErr)
-    if(nSplit > 8)  call chr_cast(lnSPlit(9), c_offsettilt_seed,iErr)
-    if(nSplit > 9)  call chr_cast(lnSPlit(10),c_rmserror_gap,   iErr)
-    if(nSplit > 10) call chr_cast(lnSPlit(11),do_mingap,        iErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), c_rmstilt_prim,   iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), c_rmstilt_sec,    iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), c_systilt_prim,   iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), c_systilt_sec,    iErr)
+    if(nSplit > 4)  call chr_cast(lnSplit(5), c_rmsoffset_prim, iErr)
+    if(nSplit > 5)  call chr_cast(lnSplit(6), c_rmsoffset_sec,  iErr)
+    if(nSplit > 6)  call chr_cast(lnSplit(7), c_sysoffset_prim, iErr)
+    if(nSplit > 7)  call chr_cast(lnSplit(8), c_sysoffset_sec,  iErr)
+    if(nSplit > 8)  call chr_cast(lnSplit(9), c_offsettilt_seed,iErr)
+    if(nSplit > 9)  call chr_cast(lnSplit(10),c_rmserror_gap,   iErr)
+    if(nSplit > 10) call chr_cast(lnSplit(11),do_mingap,        iErr)
 
   case(13)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), radial,iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), nr,    iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), ndr,   iErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), radial,iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), nr,    iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), ndr,   iErr)
 
   case(14)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), driftsx,         iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), driftsy,         iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), cut_input,       iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), systilt_antisymm,iErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), driftsx,         iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), driftsy,         iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), cut_input,       iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), systilt_antisymm,iErr)
 
   case(15)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), ipencil,      iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), pencil_offset,iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), pencil_rmsx,  iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), pencil_rmsy,  iErr)
-    if(nSplit > 4)  call chr_cast(lnSPlit(5), pencil_distr, iErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), ipencil,      iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), pencil_offset,iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), pencil_rmsx,  iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), pencil_rmsy,  iErr)
+    if(nSplit > 4)  call chr_cast(lnSplit(5), pencil_distr, iErr)
 #ifdef G4COLLIMAT
     if(ipencil > 0) then
       write(lout,"(a)") "COLL> ERROR Pencil distribution not supported with geant4"
@@ -1507,16 +1654,16 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 #endif
 
   case(16)
-    if(nSplit > 0)  coll_db = lnSPlit(1)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), ibeam, iErr)
+    if(nSplit > 0)  coll_db = lnSplit(1)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), ibeam, iErr)
 
   case(17)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), dowritetracks,iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), cern,         iErr)
-    if(nSplit > 2)  castordir = lnSPlit(3)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), jobnumber,    iErr)
-    if(nSplit > 4)  call chr_cast(lnSPlit(5), sigsecut2,    iErr)
-    if(nSplit > 5)  call chr_cast(lnSPlit(6), sigsecut3,    iErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), dowritetracks,iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), cern,         iErr)
+    if(nSplit > 2)  castordir = lnSplit(3)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), jobnumber,    iErr)
+    if(nSplit > 4)  call chr_cast(lnSplit(5), sigsecut2,    iErr)
+    if(nSplit > 5)  call chr_cast(lnSplit(6), sigsecut3,    iErr)
 
   case default
     write(lout,"(a,i0,a)") "COLL> ERROR Unexpected line ",iLine," encountered."
@@ -1536,6 +1683,11 @@ subroutine collimate_postInput(gammar)
   remity_dist    = emitny0_dist*gammar
   remitx_collgap = emitnx0_collgap*gammar
   remity_collgap = emitny0_collgap*gammar
+
+  if(myenom == zero) then
+    write(lout,"(a)") "COLL> ERROR Beam energy cannot be zero"
+    call prror
+  end if
 
 end subroutine collimate_postInput
 
@@ -2611,7 +2763,7 @@ subroutine collimate_do_collimator(stracki)
 !                  endif
 !CB
 
-      if(n_slices.gt.one .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and. &
+      if(n_slices.gt.1 .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and. &
  &      (cdb_cNameUC(icoll)(1:4).eq.'TCSG' .or. cdb_cNameUC(icoll)(1:3).eq.'TCP' .or. cdb_cNameUC(icoll)(1:4).eq.'TCLA'.or. &
  &       cdb_cNameUC(icoll)(1:3).eq.'TCT' .or. cdb_cNameUC(icoll)(1:4).eq.'TCLI'.or. cdb_cNameUC(icoll)(1:4).eq.'TCL.'.or.  &
 !     RB: added slicing of TCRYO as well
@@ -2640,18 +2792,18 @@ subroutine collimate_do_collimator(stracki)
         do jjj=1,n_slices+1
           x_sl(jjj) = (jjj-1) * c_length / real(n_slices,fPrec)
 
-          y1_sl(jjj) = fit1_1 + fit1_2*x_sl(jjj) + fit1_3/c_length*(x_sl(jjj)**2) +           &
- &                           fit1_4*(x_sl(jjj)**3) + fit1_5*(x_sl(jjj)**4) + fit1_6*(x_sl(jjj)**5)
+          y1_sl(jjj) = jaw_fit(1,1) + jaw_fit(1,2)*x_sl(jjj) + jaw_fit(1,3)/c_length*(x_sl(jjj)**2) +           &
+ &                           jaw_fit(1,4)*(x_sl(jjj)**3) + jaw_fit(1,5)*(x_sl(jjj)**4) + jaw_fit(1,6)*(x_sl(jjj)**5)
 
-          y2_sl(jjj) = -one * (fit2_1 + fit2_2*x_sl(jjj) + fit2_3/c_length*(x_sl(jjj)**2) +   &
- &                           fit2_4*(x_sl(jjj)**3) + fit2_5*(x_sl(jjj)**4) + fit2_6*(x_sl(jjj)**5))
+          y2_sl(jjj) = -one * (jaw_fit(2,1) + jaw_fit(2,2)*x_sl(jjj) + jaw_fit(2,3)/c_length*(x_sl(jjj)**2) +   &
+ &                           jaw_fit(2,4)*(x_sl(jjj)**3) + jaw_fit(2,5)*(x_sl(jjj)**4) + jaw_fit(2,6)*(x_sl(jjj)**5))
         end do
 
 !       Apply the slicing scaling factors (ssf's):
 !       CB:10-2007 coordinates rotated of the tilt
         do jjj=1,n_slices+1
-          y1_sl(jjj) = ssf1 * y1_sl(jjj)
-          y2_sl(jjj) = ssf2 * y2_sl(jjj)
+          y1_sl(jjj) = jaw_ssf(1) * y1_sl(jjj)
+          y2_sl(jjj) = jaw_ssf(2) * y2_sl(jjj)
 ! CB code
           x1_sl(jjj) = x_sl(jjj) *cos_mb(db_tilt(icoll,1))-y1_sl(jjj)*sin_mb(db_tilt(icoll,1))
           x2_sl(jjj) = x_sl(jjj) *cos_mb(db_tilt(icoll,2))-y2_sl(jjj)*sin_mb(db_tilt(icoll,2))
