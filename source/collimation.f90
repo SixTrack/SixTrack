@@ -56,7 +56,6 @@ module collimation
   logical, private, save :: dowrite_impact    = .false.
   logical, private, save :: dowrite_secondary = .false.
   logical, private, save :: dowrite_amplitude = .false.
-  logical, private, save :: radial            = .false.
   logical, private, save :: systilt_antisymm  = .false.
   logical, private, save :: dowritetracks     = .false.
   logical, private, save :: cern              = .false.
@@ -66,13 +65,16 @@ module collimation
   integer, private, save :: rnd_seed   = 0
   integer, private, save :: ibeam      = 1
   integer, private, save :: jobnumber  = 0
-  integer, private, save :: do_thisdis = 0
 
-  real(kind=fPrec), private, save :: myenom = zero
-  real(kind=fPrec), private, save :: mynex  = zero
-  real(kind=fPrec), private, save :: mdex   = zero
-  real(kind=fPrec), private, save :: myney  = zero
-  real(kind=fPrec), private, save :: mdey   = zero
+  ! Distribution
+  integer,          private, save :: do_thisdis   = 0
+  real(kind=fPrec), private, save :: myenom       = zero
+  real(kind=fPrec), private, save :: mynex        = zero
+  real(kind=fPrec), private, save :: mdex         = zero
+  real(kind=fPrec), private, save :: myney        = zero
+  real(kind=fPrec), private, save :: mdey         = zero
+  real(kind=fPrec), private, save :: enerror      = zero
+  real(kind=fPrec), private, save :: bunchlength  = zero
 
   ! Jaw Slicing
   integer,          private, save :: n_slices     = 0
@@ -101,8 +103,9 @@ module collimation
   integer,          private, save :: c_offsettilt_seed = 0
 
   ! Radial Dist
-  real(kind=fPrec), private, save :: nr
-  real(kind=fPrec), private, save :: ndr
+  logical,          private, save :: radial  = .false.
+  real(kind=fPrec), private, save :: nr      = zero
+  real(kind=fPrec), private, save :: ndr     = zero
 
   ! Emittance Drift
   real(kind=fPrec), private, save :: driftsx = zero
@@ -117,8 +120,6 @@ module collimation
 
   real(kind=fPrec), private, save :: sigsecut3 = one
   real(kind=fPrec), private, save :: sigsecut2 = one
-  real(kind=fPrec), private, save :: enerror
-  real(kind=fPrec), private, save :: bunchlength
 
   ! From collimation_comnul
   real(kind=fPrec), public,  save :: emitnx0_dist    = zero
@@ -1374,6 +1375,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   case("DIST_TYPE")
     if(nSplit /= 2) then
       write(lout,"(a,i0)") "COLL> ERROR DIST_TYPE expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DIST_TYPE 0-6"
       iErr = .true.
       return
     end if
@@ -1485,11 +1487,19 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   case("DO_SELECT")
     if(nSplit /= 2) then
       write(lout,"(a,i0)") "COLL> ERROR DO_SELECT expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DO_SELECT collimator_name"
+      write(lout,"(a)")    "COLL>       DO_SELECT true|false"
       iErr = .true.
       return
     end if
-    do_select = .true.
+    call chr_cast(lnSplit(2), do_select, iErr)
+
+  case("NAME_SEL")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR NAME_SEL expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       NAME_SEL collimator_name"
+      iErr = .true.
+      return
+    end if
     name_sel  = trim(lnSplit(2))
 
   case("DO_NOMINAL")
@@ -1592,7 +1602,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(5), c_sysoffset_sec, iErr)
 
   case("ALIGNERR_GAP")
-    if(nSplit /= 5) then
+    if(nSplit /= 2) then
       write(lout,"(a,i0)") "COLL> ERROR ALIGNERR_GAP expects 1 value, got ",nSplit-1
       write(lout,"(a)")    "COLL>       ALIGNERR_GAP rmserror_gap"
       iErr = .true.
@@ -1601,7 +1611,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(2),c_rmserror_gap, iErr)
 
   case("ALIGNERR_SEED")
-    if(nSplit /= 5) then
+    if(nSplit /= 2) then
       write(lout,"(a,i0)") "COLL> ERROR ALIGNERR_SEED expects 1 value, got ",nSplit-1
       write(lout,"(a)")    "COLL>       ALIGNERR_SEED seed"
       iErr = .true.
@@ -1618,6 +1628,15 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(2), do_mingap, iErr)
 
+  case("DO_RADIAL")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR DO_RADIAL expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DO_RADIAL true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), radial, iErr)
+
   case("RADIAL_DIST")
     if(nSplit /= 3) then
       write(lout,"(a,i0)") "COLL> ERROR RADIAL_DIST expects 2 values, got ",nSplit-1
@@ -1627,7 +1646,6 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(2), nr,  iErr)
     call chr_cast(lnSplit(3), ndr, iErr)
-    radial = .true.
 
   case("EMIT_DRIFT")
     if(nSplit /= 3) then
