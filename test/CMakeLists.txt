@@ -281,7 +281,6 @@ if(CR)
     dynk_operators
     dynk_polynomial
     dynk_random
-    elensidealthin6d_ions
     elensidealthin6d_ramp_DYNK
     scatter_aperture
     scatter_bbelastic
