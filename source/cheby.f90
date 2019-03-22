@@ -11,39 +11,38 @@ module cheby
   ! module for handling maps expressed by Chebyshev polynomials
 
   integer, allocatable, save  :: icheby(:)            ! index of chebyshev lens
-  integer, parameter          :: ncheby=20            ! max number of chebyshev lenses treated (in LATTICE structure)
-  integer, save               :: mcheby=0             ! last chebyshev lens read
-  integer, parameter          :: ncheby_tables=20     ! max number of chebyshev tables in memory (in SINGLE ELEMENT array)
-  integer, save               :: mcheby_tables=0      ! last chebyshev table read
+  integer, save               :: ncheby=0             ! number of chebyshev lenses actually in memory
+  integer, save               :: ncheby_mapEchoes=0   ! number of requested echoes of maps
+  integer, save               :: ncheby_tables=0      ! number of chebyshev tables in memory
   integer, parameter          :: cheby_kz=42          ! kz of chebyshev lenses
   integer, parameter          :: cheby_ktrack=67      ! ktrack of chebyshev lenses
 
   ! variables to save parameters for tracking etc.
-  integer, save          :: cheby_itable(ncheby)=0         ! index of chebyshev table
-  real(kind=fPrec), save :: cheby_r2(ncheby)     = zero    ! outer radius R2 [mm] (optional)
-  real(kind=fPrec), save :: cheby_r1(ncheby)     = zero    ! inner radius R1 [mm] (optional)
-  real(kind=fPrec), save :: cheby_angle(ncheby)=zero       ! rotation angle about the longitudinal axis [deg] (optional)
-  real(kind=fPrec), save :: cheby_offset_x(ncheby)=zero    ! hor. offset [mm] (optional)
-  real(kind=fPrec), save :: cheby_offset_y(ncheby)=zero    ! ver. offset [mm] (optional)
-  real(kind=fPrec), save :: cheby_I(ncheby)=-one           ! actual powering of lens [A] (optional)
-  real(kind=fPrec), save :: cheby_scalingFact(ncheby)=one  ! scaling factor [] (computed internally)
+  integer,          allocatable, save :: cheby_itable(:)      ! index of chebyshev table
+  real(kind=fPrec), allocatable, save :: cheby_r2(:)          ! outer radius R2 [mm] (optional)
+  real(kind=fPrec), allocatable, save :: cheby_r1(:)          ! inner radius R1 [mm] (optional)
+  real(kind=fPrec), allocatable, save :: cheby_angle(:)       ! rotation angle about the longitudinal axis [deg] (optional)
+  real(kind=fPrec), allocatable, save :: cheby_offset_x(:)    ! hor. offset [mm] (optional)
+  real(kind=fPrec), allocatable, save :: cheby_offset_y(:)    ! ver. offset [mm] (optional)
+  real(kind=fPrec), allocatable, save :: cheby_I(:)           ! actual powering of lens [A] (optional)
+  real(kind=fPrec), allocatable, save :: cheby_scalingFact(:) ! scaling factor [] (computed internally)
+  
   ! show map
-  logical,          save :: cheby_lMap(ncheby)=.false.     ! requested echo of map?
-  character(len=mFileName), save:: cheby_mapFileName(ncheby) = " "! file names
-  real(kind=fPrec), save :: cheby_mapXmin(ncheby)=-10.0e+00_fPrec ! [mm]
-  real(kind=fPrec), save :: cheby_mapXmax(ncheby)= 10.0e+00_fPrec ! [mm]
-  integer,          save :: cheby_mapNx(ncheby)=100        ! number of intervals
-  real(kind=fPrec), save :: cheby_mapYmin(ncheby)=-10.0e+00_fPrec ! [mm]
-  real(kind=fPrec), save :: cheby_mapYmax(ncheby)= 10.0e+00_fPrec ! [mm]
-  integer,          save :: cheby_mapNy(ncheby)=100        ! number of intervals
+  integer,          allocatable, save :: cheby_iLens(:)       ! lens for which a map echo is requested
+  character(len=:), allocatable, save :: cheby_mapFileName(:) ! file name
+  real(kind=fPrec), allocatable, save :: cheby_mapXmin(:)     ! xMin [mm]
+  real(kind=fPrec), allocatable, save :: cheby_mapXmax(:)     ! xMax [mm]
+  integer,          allocatable, save :: cheby_mapNx(:)       ! number of intervals
+  real(kind=fPrec), allocatable, save :: cheby_mapYmin(:)     ! yMin [mm]
+  real(kind=fPrec), allocatable, save :: cheby_mapYmax(:)     ! yMax [mm]
+  integer,          allocatable, save :: cheby_mapNy(:)       ! number of intervals
 
   ! tables with chebyshev coefficients
-  integer, parameter     :: cheby_max_order=30             ! max order of chebyshev polynomials currently supported
-  character(len=mFileName), save:: cheby_filename(ncheby_tables) = " "! file names
-  real(kind=fPrec), save :: cheby_coeffs(0:cheby_max_order,0:cheby_max_order,ncheby_tables) = zero ! coefficients
-  integer, save          :: cheby_maxOrder(ncheby_tables)  = 0    ! max order of the current map
-  real(kind=fPrec), save :: cheby_refI(ncheby_tables) = one  ! reference current [A] (optional)
-  real(kind=fPrec), save :: cheby_refR(ncheby_tables) = zero ! reference radius [mm] (mandatory)
+  character(len=:), allocatable, save :: cheby_filename(:)    ! file names
+  real(kind=fPrec), allocatable, save :: cheby_coeffs(:,:,:)  ! coefficients
+  integer,          allocatable, save :: cheby_maxOrder(:)    ! max order of the current map
+  real(kind=fPrec), allocatable, save :: cheby_refI(:)        ! reference current [A] (optional)
+  real(kind=fPrec), allocatable, save :: cheby_refR(:)        ! reference radius [mm] (mandatory)
 
 contains
 
@@ -59,6 +58,43 @@ subroutine cheby_expand_arrays(nele_new)
   call alloc(icheby,nele_new,0,'icheby')
 end subroutine cheby_expand_arrays
 
+subroutine cheby_expand_arrays_lenses(ncheby_new)
+  implicit none
+  integer, intent(in) :: ncheby_new
+  ! chebyshev lens charachteristics
+  call alloc(cheby_itable     ,            ncheby_new,               0, 'cheby_itable'     )
+  call alloc(cheby_r2         ,            ncheby_new,            zero, 'cheby_r2'         )
+  call alloc(cheby_r1         ,            ncheby_new,            zero, 'cheby_r1'         )
+  call alloc(cheby_angle      ,            ncheby_new,            zero, 'cheby_angle'      )
+  call alloc(cheby_offset_x   ,            ncheby_new,            zero, 'cheby_offset_x'   )
+  call alloc(cheby_offset_y   ,            ncheby_new,            zero, 'cheby_offset_y'   )
+  call alloc(cheby_I          ,            ncheby_new,            -one, 'cheby_I'          )
+  call alloc(cheby_scalingFact,            ncheby_new,             one, 'cheby_scalingFact')
+end subroutine cheby_expand_arrays_lenses
+
+subroutine cheby_expand_arrays_map_echo(ncheby_mapEchoes_new)
+  implicit none
+  integer, intent(in) :: ncheby_mapEchoes_new
+  ! map
+  call alloc(cheby_iLens      ,            ncheby_mapEchoes_new,               0, 'cheby_iLens'      )
+  call alloc(cheby_mapFileName, mFileName, ncheby_mapEchoes_new,             " ", 'cheby_mapFileName')
+  call alloc(cheby_mapXmin    ,            ncheby_mapEchoes_new, -10.0e+00_fPrec, 'cheby_mapXmin'    )
+  call alloc(cheby_mapXmax    ,            ncheby_mapEchoes_new,  10.0e+00_fPrec, 'cheby_mapXmax'    )
+  call alloc(cheby_mapNx      ,            ncheby_mapEchoes_new,             100, 'cheby_mapNx'      )
+  call alloc(cheby_mapYmin    ,            ncheby_mapEchoes_new, -10.0e+00_fPrec, 'cheby_mapYmin'    )
+  call alloc(cheby_mapYmax    ,            ncheby_mapEchoes_new,  10.0e+00_fPrec, 'cheby_mapYmax'    )
+  call alloc(cheby_mapNy      ,            ncheby_mapEchoes_new,             100, 'cheby_mapNy'      )
+end subroutine cheby_expand_arrays_map_echo
+
+subroutine cheby_expand_arrays_tables(ncheby_tables_new)
+  implicit none
+  integer, intent(in) :: ncheby_tables_new
+  call alloc(cheby_filename   , mFileName,       ncheby_tables_new,  " ", 'cheby_filename'                      )
+  call alloc(cheby_coeffs     ,            0, 0, ncheby_tables_new, zero, 'cheby_coeffs'  , 0, 0, ncheby_tables )
+  call alloc(cheby_maxOrder   ,                  ncheby_tables_new,    0, 'cheby_maxOrder'                      )
+  call alloc(cheby_refI       ,                  ncheby_tables_new,  one, 'cheby_refI'                          )
+  call alloc(cheby_refR       ,                  ncheby_tables_new, zero, 'cheby_refR'                          )
+end subroutine cheby_expand_arrays_tables
 
 ! ================================================================================================ !
 !  Parse Line for Chebyshev lens
@@ -113,20 +149,17 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if (cheby_mapFileName(icheby(iElem))/=" " .or. cheby_lMap(icheby(iElem))) then
-      write(lout,"(a)") "CHEBY> ERROR Map already requested for Chebyshev lens '"//trim(lnSplit(1))//"'."
-      iErr = .true.
-      return
-    end if
-    cheby_mapFileName(icheby(iElem)) = trim(lnSplit(3))
-    do tmpi1=1,mcheby
-      if (tmpi1==icheby(iElem)) cycle ! do not compare icheby(iElem) against itself
-      if (cheby_mapFileName(tmpi1)==cheby_mapFileName(icheby(iElem))) then
-        write(lout,"(a)") "CHEBY> ERROR File '"//trim(cheby_mapFileName(icheby(iElem)))//"' already in use."
+    do tmpi1=1,ncheby_mapEchoes
+      if (cheby_mapFileName(tmpi1)==lnSplit(3)) then
+        write(lout,"(a)") "CHEBY> ERROR File '"//trim(lnSplit(3))//"' already in use."
         iErr = .true.
         return
       end if
     end do
+    ncheby_mapEchoes = ncheby_mapEchoes+1
+    call cheby_expand_arrays_map_echo(ncheby_mapEchoes)
+    cheby_mapFileName(ncheby_mapEchoes) = trim(lnSplit(3))
+    cheby_iLens(ncheby_mapEchoes) = icheby(iElem)
     if (nSplit > 3 ) then
       if (nSplit<9) then
         write(lout,"(a,i0)") "CHEBY> ERROR Expected 8 input parameters, got ",nSplit
@@ -135,24 +168,23 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
         iErr = .true.
         return
       endif
-      call chr_cast(lnSplit(4),cheby_mapXmin(icheby(iElem)),iErr)
-      call chr_cast(lnSplit(5),cheby_mapXmax(icheby(iElem)),iErr)
-      call chr_cast(lnSplit(6),cheby_mapNx  (icheby(iElem)),iErr)
-      call chr_cast(lnSplit(7),cheby_mapYmin(icheby(iElem)),iErr)
-      call chr_cast(lnSplit(8),cheby_mapYmax(icheby(iElem)),iErr)
-      call chr_cast(lnSplit(9),cheby_mapNy  (icheby(iElem)),iErr)
+      call chr_cast(lnSplit(4),cheby_mapXmin(ncheby_mapEchoes),iErr)
+      call chr_cast(lnSplit(5),cheby_mapXmax(ncheby_mapEchoes),iErr)
+      call chr_cast(lnSplit(6),cheby_mapNx  (ncheby_mapEchoes),iErr)
+      call chr_cast(lnSplit(7),cheby_mapYmin(ncheby_mapEchoes),iErr)
+      call chr_cast(lnSplit(8),cheby_mapYmax(ncheby_mapEchoes),iErr)
+      call chr_cast(lnSplit(9),cheby_mapNy  (ncheby_mapEchoes),iErr)
     end if
-    cheby_lMap(icheby(iElem))=.true.
     
     if(st_debug) then
-      call sixin_echoVal("name",trim(bez(iElem)),                           "CHEBY",iLine)
-      call sixin_echoVal("filename", trim(cheby_mapFileName(icheby(iElem))),"CHEBY",iLine)
-      call sixin_echoVal("xmin [mm]",cheby_mapXmin(icheby(iElem)),          "CHEBY",iLine)
-      call sixin_echoVal("xmax [mm]",cheby_mapXmax(icheby(iElem)),          "CHEBY",iLine)
-      call sixin_echoVal("Nx     []",cheby_mapNx  (icheby(iElem)),          "CHEBY",iLine)
-      call sixin_echoVal("ymin [mm]",cheby_mapYmin(icheby(iElem)),          "CHEBY",iLine)
-      call sixin_echoVal("ymin [mm]",cheby_mapYmax(icheby(iElem)),          "CHEBY",iLine)
-      call sixin_echoVal("Ny     []",cheby_mapNy  (icheby(iElem)),          "CHEBY",iLine)
+      call sixin_echoVal("name",trim(bez(iElem)),                              "CHEBY",iLine)
+      call sixin_echoVal("filename", trim(cheby_mapFileName(ncheby_mapEchoes)),"CHEBY",iLine)
+      call sixin_echoVal("xmin [mm]",cheby_mapXmin(ncheby_mapEchoes),          "CHEBY",iLine)
+      call sixin_echoVal("xmax [mm]",cheby_mapXmax(ncheby_mapEchoes),          "CHEBY",iLine)
+      call sixin_echoVal("Nx     []",cheby_mapNx  (ncheby_mapEchoes),          "CHEBY",iLine)
+      call sixin_echoVal("ymin [mm]",cheby_mapYmin(ncheby_mapEchoes),          "CHEBY",iLine)
+      call sixin_echoVal("ymin [mm]",cheby_mapYmax(ncheby_mapEchoes),          "CHEBY",iLine)
+      call sixin_echoVal("Ny     []",cheby_mapNy  (ncheby_mapEchoes),          "CHEBY",iLine)
     end if
      
   case default
@@ -192,24 +224,20 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
       return
     end if
   
-    mcheby = mcheby+1
-    if(mcheby > ncheby) then
-      write(lout,"(2(a,i0))") "CHEBY> ERROR Too many Chebyshev lenses: ",mcheby,". Max is ",ncheby
-      iErr = .true.
-      return
-    end if
     if(icheby(iElem) /= 0) then
       write(lout,"(a)") "CHEBY> ERROR The element '"//trim(bez(iElem))//"' was defined twice."
       iErr = .true.
       return
     end if
-    icheby(iElem) = mcheby
+    ncheby = ncheby+1
+    call cheby_expand_arrays_lenses(ncheby)
+    icheby(iElem) = ncheby
   
     ! File with Chebyshev polynomials
     tmpch = trim(lnSplit(2))
     ! Check if profile has already been requested:
     chIdx = -1
-    do tmpi1=1,mcheby_tables
+    do tmpi1=1,ncheby_tables
       if(tmpch == cheby_filename(tmpi1)) then
         cheby_itable(icheby(iElem)) = tmpi1
         chIdx = tmpi1
@@ -218,14 +246,9 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
     end do
     if(chIdx == -1) then
       ! Unsuccessful search
-      mcheby_tables = mcheby_tables+1
-      if(mcheby_tables > ncheby_tables) then
-        write(lout,"(2(a,i0))") "CHEBY> ERROR Too many files with Chebyshev polynomials: ",mcheby_tables,&
-          ". Max is ",ncheby_tables
-        iErr = .true.
-        return
-      end if
-      cheby_itable(icheby(iElem)) = mcheby_tables
+      ncheby_tables = ncheby_tables+1
+      call cheby_expand_arrays_tables(ncheby_tables)
+      cheby_itable(icheby(iElem)) = ncheby_tables
       cheby_filename(tmpi1) = tmpch
     end if
   
@@ -249,7 +272,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
     end if
 
   end select
-    
+
 end subroutine cheby_parseInputLine
 
 
@@ -264,7 +287,7 @@ subroutine cheby_parseInputDone(iErr)
   integer j
 
   ! Loop over single elements to check that they have been defined in the fort.3 block
-  if(mcheby /= 0) then
+  if(ncheby /= 0) then
     do j=1,nele
       if(kz(j) == cheby_kz) then
         if( icheby(j) == 0) then
@@ -285,12 +308,12 @@ subroutine cheby_postInput
   use mod_common, only : kz,bez
   use mod_settings, only : st_quiet
 
-  integer jj, kk
+  integer ii, jj, kk
   logical exist
   real(kind=fPrec) tmpFlt
   
   ! Parse files with coefficients for Chebyshev polynomials:
-   do jj=1,mcheby_tables
+  do jj=1,ncheby_tables
     inquire(file=cheby_filename(jj), exist=exist)
     if(.not. exist) then
       write(lout,"(a)") "CHEBY> ERROR Problems with file with coefficients for Chebyshev polynominals: ", &
@@ -301,7 +324,7 @@ subroutine cheby_postInput
   end do
 
   ! finalise setting-up of chebyshev lenses
-  do jj=1,mcheby
+  do jj=1,ncheby
      
     ! find name, to get ready for error messages
     do kk=1,nele
@@ -336,43 +359,45 @@ subroutine cheby_postInput
     end if
    
     ! checks on maps
-    if ( cheby_lMap(jj) ) then
-      if (cheby_mapXmax(jj)<cheby_mapXmin(jj)) then
-        ! swap
-        tmpFlt=cheby_mapXmax(jj)
-        cheby_mapXmax(jj)=cheby_mapXmin(jj)
-        cheby_mapXmin(jj)=tmpFlt
+    do ii=1,ncheby_mapEchoes
+      if ( cheby_iLens(ii) .eq. jj) then
+        if (cheby_mapXmax(ii)<cheby_mapXmin(ii)) then
+          ! swap
+          tmpFlt=cheby_mapXmax(ii)
+          cheby_mapXmax(ii)=cheby_mapXmin(ii)
+          cheby_mapXmin(ii)=tmpFlt
+        end if
+        if (cheby_mapXmax(ii)==cheby_mapXmin(ii)) then
+          write(lout,"(a)")                     "CHEBY> ERROR X-extremes for map coincide!"
+          write(lout,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       xmin [mm]: ",cheby_mapXmin(ii), &
+                                                          " - xmax [mm]: ",cheby_mapXmax(ii)
+          goto 10 
+        end if
+        if (cheby_mapNx(ii)<1) then
+          write(lout,"(a)")    "CHEBY> ERROR wrong X-stepping for map!"
+          write(lout,"(a,i0)") "CHEBY>       must be >0 - got: ",cheby_mapNx(ii)
+          goto 10 
+        end if
+        if (cheby_mapYmax(ii)<cheby_mapYmin(ii)) then
+          ! swap
+          tmpFlt=cheby_mapYmax(ii)
+          cheby_mapYmax(ii)=cheby_mapYmin(ii)
+          cheby_mapYmin(ii)=tmpFlt
+        end if
+        if (cheby_mapYmax(ii)==cheby_mapYmin(ii)) then
+          write(lout,"(a)")                     "CHEBY> ERROR Y-extremes for map coincide!"
+          write(lout,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       ymin [mm]: ",cheby_mapYmin(ii), &
+                                                          " - ymax [mm]: ",cheby_mapYmax(ii)
+          goto 10 
+        end if
+        if (cheby_mapNy(ii)<1) then
+          write(lout,"(a)")    "CHEBY> ERROR wrong Y-stepping for map!"
+          write(lout,"(a,i0)") "CHEBY>       must be >0 - got: ",cheby_mapNy(ii)
+          goto 10 
+        end if
       end if
-      if (cheby_mapXmax(jj)==cheby_mapXmin(jj)) then
-        write(lout,"(a)")                     "CHEBY> ERROR X-extremes for map coincide!"
-        write(lout,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       xmin [mm]: ",cheby_mapXmin(jj), &
-                                                        " - xmax [mm]: ",cheby_mapXmax(jj)
-        goto 10 
-      end if
-      if (cheby_mapNx(jj)<1) then
-        write(lout,"(a)")    "CHEBY> ERROR wrong X-stepping for map!"
-        write(lout,"(a,i0)") "CHEBY>       must be >0 - got: ",cheby_mapNx(jj)
-        goto 10 
-      end if
-      if (cheby_mapYmax(jj)<cheby_mapYmin(jj)) then
-        ! swap
-        tmpFlt=cheby_mapYmax(jj)
-        cheby_mapYmax(jj)=cheby_mapYmin(jj)
-        cheby_mapYmin(jj)=tmpFlt
-      end if
-      if (cheby_mapYmax(jj)==cheby_mapYmin(jj)) then
-        write(lout,"(a)")                     "CHEBY> ERROR Y-extremes for map coincide!"
-        write(lout,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       ymin [mm]: ",cheby_mapYmin(jj), &
-                                                        " - ymax [mm]: ",cheby_mapYmax(jj)
-        goto 10 
-      end if
-      if (cheby_mapNy(jj)<1) then
-        write(lout,"(a)")    "CHEBY> ERROR wrong Y-stepping for map!"
-        write(lout,"(a,i0)") "CHEBY>       must be >0 - got: ",cheby_mapNy(jj)
-        goto 10 
-      end if
-    end if
-   
+    end do
+      
     if(st_quiet < 2) then
       write(lout,"(a)") ''
       write(lout,"(a,i0,a)")       "CHEBY> status of chebyshev lens #",jj," - name: '"//trim(bez(kk))//"'"
@@ -384,19 +409,22 @@ subroutine cheby_postInput
       write(lout,"(a,1pe22.15)")   "CHEBY> - ver offset   [mm]: ",cheby_offset_y(jj)
       write(lout,"(a,1pe22.15)")   "CHEBY> - lens powering [A]: ",cheby_I(jj)
       write(lout,"(a,1pe22.15)")   "CHEBY> - scaling factor []: ",cheby_scalingFact(jj)
-      if ( cheby_lMap(jj) ) then
-        write(lout,"(a)")          "CHEBY> requested dump of potential map:"
-        write(lout,"(a)")          "CHEBY> - map     filename : '"//trim(cheby_mapFileName(jj))//"'"
-        write(lout,"(a,1pe22.15)") "CHEBY> - xmin         [mm]: ",cheby_mapXmin(jj)
-        write(lout,"(a,1pe22.15)") "CHEBY> - xmax         [mm]: ",cheby_mapXmax(jj)
-        write(lout,"(a,i0)")       "CHEBY> - Nx             []: ",cheby_mapNx  (jj)
-        write(lout,"(a,1pe22.15)") "CHEBY> - ymin         [mm]: ",cheby_mapYmin(jj)
-        write(lout,"(a,1pe22.15)") "CHEBY> - ymin         [mm]: ",cheby_mapYmax(jj)
-        write(lout,"(a,i0)")       "CHEBY> - Ny             []: ",cheby_mapNy  (jj)
-        call cheby_potentialMap(jj,kk)
-      end if
+      do ii=1,ncheby_mapEchoes
+        if ( cheby_iLens(ii) .eq. jj) then
+          write(lout,"(a)")          "CHEBY> requested dump of potential map:"
+          write(lout,"(a)")          "CHEBY> - map     filename : '"//trim(cheby_mapFileName(ii))//"'"
+          write(lout,"(a,1pe22.15)") "CHEBY> - xmin         [mm]: ",cheby_mapXmin(ii)
+          write(lout,"(a,1pe22.15)") "CHEBY> - xmax         [mm]: ",cheby_mapXmax(ii)
+          write(lout,"(a,i0)")       "CHEBY> - Nx             []: ",cheby_mapNx  (ii)
+          write(lout,"(a,1pe22.15)") "CHEBY> - ymin         [mm]: ",cheby_mapYmin(ii)
+          write(lout,"(a,1pe22.15)") "CHEBY> - ymin         [mm]: ",cheby_mapYmax(ii)
+          write(lout,"(a,i0)")       "CHEBY> - Ny             []: ",cheby_mapNy  (ii)
+          call cheby_potentialMap(jj,kk)
+        end if
+      end do
     end if
   end do
+ 
   return
 
 10 continue
@@ -435,7 +463,7 @@ subroutine parseChebyFile(ifile)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mInputLn) inLine
-  integer nSplit, ii, jj, fUnit
+  integer nSplit, ii, jj, fUnit, iDim, jDim
   logical spErr, err, lDefI
 
   lDefI=.true.
@@ -496,17 +524,12 @@ subroutine parseChebyFile(ifile)
       goto 30
     end if
     call chr_cast(lnSplit(1),ii,spErr)
-    if(ii > cheby_max_order) then
-      write(lout,"(2(a,i0))") "CHEBY> ERROR Too high order in Chebyshev polynomial - requested (hor):", &
-            ii," - available:",cheby_max_order
-      goto 30
-    end if
     call chr_cast(lnSplit(2),jj,spErr)
-    if(jj > cheby_max_order) then
-      write(lout,"(2(a,i0))") "CHEBY> ERROR Too high order in Chebyshev polynomial - requested (ver):", &
-            jj," - available:",cheby_max_order
-      goto 30
-    end if
+    iDim = size(cheby_coeffs,1)
+    jDim = size(cheby_coeffs,2)
+    if(ii>=iDim) call alloc(cheby_coeffs,     ii, jDim-1, ifile, zero, 'cheby_coeffs', 0, 0, 1 )
+    iDim = size(cheby_coeffs,1)
+    if(jj>=jDim) call alloc(cheby_coeffs, iDim-1,     jj, ifile, zero, 'cheby_coeffs', 0, 0 ,1 )
     call chr_cast(lnSplit(4),cheby_coeffs(ii,jj,ifile),spErr)
     if(spErr) then
       write(lout,"(a)") "CHEBY> ERROR in casting Chebyshev coefficient: "//trim(lnSplit(4))
@@ -536,8 +559,8 @@ subroutine parseChebyFile(ifile)
     write(lout,"(a,1pe22.15)") "CHEBY> * Reference current [A] : ",cheby_refI(ifile)
     if (lDefI) write(lout,"(a)") "         --> default value!"
     write(lout,"(a,1pe22.15)") "CHEBY> * reference radius [mm] : ",cheby_refR(ifile)
-    do ii=0,cheby_max_order
-      do jj=0,cheby_max_order
+    do ii=0,cheby_maxOrder(ifile)
+      do jj=0,cheby_maxOrder(ifile)
         if(cheby_coeffs(ii,jj,ifile)/= zero) then
           write(lout,"(2(a,i4),a,1pe22.15)") "CHEBY> Order ",ii,",",jj," : ",cheby_coeffs(ii,jj,ifile)
         end if
