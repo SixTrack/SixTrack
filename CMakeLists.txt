@@ -272,8 +272,8 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 ###################################################################################################
 
 list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
-list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT HASHLIB)
-list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32)
+list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB)
+list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG)
 
 ###################################################################################################
 # Select which fortran files to generate and compile
@@ -300,9 +300,9 @@ if(CR)
   list(APPEND FORT90_LIB checkpoint_restart)
 endif(CR)
 
-if(DEBUG)
-  list(APPEND FORT90_LIB debug_dumps)
-endif(DEBUG)
+# if(DEBUG)
+#   list(APPEND FORT90_LIB debug_dump)
+# endif(DEBUG)
 
 if(HDF5)
   list(APPEND FORT90_LIB hdf5_output hdf5_sixtrack)

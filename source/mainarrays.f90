@@ -69,8 +69,8 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   use crcoall
 
   use mod_common,         only : mod_common_expand_arrays
-  use mod_common_track,        only : mod_commont_expand_arrays
-  use mod_common_main,       only : mod_commonmn_expand_arrays
+  use mod_common_track,   only : mod_commont_expand_arrays
+  use mod_common_main,    only : mod_commonmn_expand_arrays
   use mod_commond2,       only : mod_commond2_expand_arrays
   use aperture,           only : aperture_expand_arrays
   use elens,              only : elens_expand_arrays
