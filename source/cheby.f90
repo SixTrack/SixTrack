@@ -482,7 +482,7 @@ subroutine parseChebyFile(ifile)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "CHEBY> ERROR Failed to split Chebyshev input line:"
+    write(lout,"(a)") "CHEBY> ERROR Failed to split Chebyshev input line"
     goto 30
   end if
 
@@ -524,7 +524,15 @@ subroutine parseChebyFile(ifile)
       goto 30
     end if
     call chr_cast(lnSplit(1),ii,spErr)
+    if(spErr) then
+      write(lout,"(a)") "CHEBY> ERROR in casting first index of cheby coeff: "//trim(lnSplit(1))
+      goto 30
+    end if
     call chr_cast(lnSplit(2),jj,spErr)
+    if(spErr) then
+      write(lout,"(a)") "CHEBY> ERROR in casting second index of cheby coeff: "//trim(lnSplit(2))
+      goto 30
+    end if
     iDim = size(cheby_coeffs,1)
     jDim = size(cheby_coeffs,2)
     if(ii>=iDim) call alloc(cheby_coeffs,     ii, jDim-1, ifile, zero, 'cheby_coeffs', 0, 0, 1 )
@@ -639,8 +647,8 @@ subroutine cheby_kick(i,ix,n)
      
       ! take into account scaling factor, Brho of beam and its relativistic beta,
       !    and magnetic rigidity and relativistic beta of particle being tracked
-      dxp=((dxp*cheby_scalingFact(icheby(ix)))/(brho*clight*betrel)*moidpsv(jj))*rvv(jj)
-      dyp=((dyp*cheby_scalingFact(icheby(ix)))/(brho*clight*betrel)*moidpsv(jj))*rvv(jj)
+      dxp=(((dxp*cheby_scalingFact(icheby(ix)))/(brho*(clight*betrel)))*moidpsv(jj))*rvv(jj)
+      dyp=(((dyp*cheby_scalingFact(icheby(ix)))/(brho*(clight*betrel)))*moidpsv(jj))*rvv(jj)
       
       ! apply kicks
       yv1(jj)=yv1(jj)+dxp
@@ -706,12 +714,12 @@ subroutine cheby_potentialMap(iLens,ix)
   
   ! get map
   do jj=0,cheby_mapNy(iLens)
-    yy=cheby_mapYmin(iLens)+real(jj,fPrec)*dy ! mesh coordinate
+    yy=cheby_mapYmin(iLens)+(real(jj,fPrec)*dy) ! mesh coordinate
     if (jj==cheby_mapNy(iLens)) yy=cheby_mapYmax(iLens)
     yyr=yy-cheby_offset_y(iLens)  ! point in ref sys of Cheby map
      
     do ii=0,cheby_mapNx(iLens)
-      xx=cheby_mapXmin(iLens)+real(ii,fPrec)*dx ! mesh coordinate
+      xx=cheby_mapXmin(iLens)+(real(ii,fPrec)*dx) ! mesh coordinate
       if (ii==cheby_mapNx(iLens)) xx=cheby_mapXmax(iLens)
       xxr=xx-cheby_offset_x(iLens)  ! point in ref sys of Cheby map
 
@@ -779,10 +787,10 @@ subroutine cheby_getKick( xx, yy, dxp, dyp, iTable )
   Tpx(1)=one
   Tpy(1)=one
   do nn=2,cheby_maxOrder(iTable)
-    Tx(nn)=two*(uu*Tx(nn-1))-Tx(nn-2)
-    Ty(nn)=two*(vv*Ty(nn-1))-Ty(nn-2)
-    Tpx(nn)=(real(nn,fPrec)*(Tx(nn-1)-uu*Tx(nn)))/fu
-    Tpy(nn)=(real(nn,fPrec)*(Ty(nn-1)-vv*Ty(nn)))/fv
+    Tx(nn)=(two*(uu*Tx(nn-1)))-Tx(nn-2)
+    Ty(nn)=(two*(vv*Ty(nn-1)))-Ty(nn-2)
+    Tpx(nn)=(real(nn,fPrec)*(Tx(nn-1)-(uu*Tx(nn))))/fu
+    Tpy(nn)=(real(nn,fPrec)*(Ty(nn-1)-(vv*Ty(nn))))/fv
   end do
 
   ! get kicks

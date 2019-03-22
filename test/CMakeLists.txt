@@ -272,6 +272,8 @@ if(CR)
   # Should at least be able to reach the standard TIMEOUT.
   set(CR_KILL_TIME "2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,16384,16384,16384,16384,16384,16384,16384,16384,16384")
   list(APPEND CR_MUST_RESTART
+    chebythin6d_ions
+    chebythin6d_ramp_DYNK
     dipedge
     dynk_filelin
     dynk_globalvars
@@ -279,6 +281,8 @@ if(CR)
     dynk_operators
     dynk_polynomial
     dynk_random
+    elensidealthin6d_ions
+    elensidealthin6d_ramp_DYNK
     scatter_aperture
     scatter_bbelastic
   )
