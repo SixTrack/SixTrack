@@ -1315,7 +1315,7 @@ endif()
 #To make packages, run "make package" in the build directory
 #set(CPACK_GENERATOR RPM DEB STGZ TGZ TBZ2 TXZ ZIP 7Z)
 set(CPACK_GENERATOR RPM DEB TGZ ZIP) #Take only the most common targets
-#set(CPACK_PACKAGE_CONTACT "sixtrack.support@cern.ch") # non-existent email address
+set(CPACK_PACKAGE_CONTACT "sixtrack.contact@cern.ch")
 set(CPACK_PACKAGE_VERSION ${SixTrack_VERSION})
 set(CPACK_PACKAGE_VENDOR "CERN")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "SixTrack symplectic particle tracking code for particle accelerators.")
