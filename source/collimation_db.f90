@@ -202,6 +202,14 @@ subroutine cdb_readDB_oldFormat
 
   call f_requestUnit(trim(cdb_fileName)//".new", dbNew)
   call f_open(unit=dbNew,file=trim(cdb_fileName)//".new",formatted=.true.,mode="w",status="replace")
+
+  write(dbNew,"(a)") "# Automatically converted collimator DB from old format file '"//trim(cdb_fileName)//"'"
+  write(dbNew,"(a)") "# Families"
+  do j=1,cdb_nFam
+    write(dbNew,"(a,1x,a16,1x,f13.6)") "NSIG_FAM",cdb_famName(j),cdb_famNSig(j)
+  end do
+  write(dbNew,"(a)") "# Collimators"
+
   write(dbNew,"(1a,a47,1x,a16,1x,a4,5(1x,a13))") "#",chr_rPad(" name",47),&
     "opening","mat.","length[m]","angle[deg]","offset[m]","beta_x[m]","beta_y[m]"
 
@@ -279,7 +287,7 @@ subroutine cdb_readDB_oldFormat
     if(cErr) goto 100
 
     call cdb_generateFamName(cdb_cName(j), famName)
-    call cdb_getFamilyID(famName, famID, .false.)
+    call cdb_getFamilyID(famName, famID)
     if(famID > 0 .and. cdb_doNSig) then
       cdb_cNSig(j) = cdb_famNSig(famID)
     else
@@ -388,25 +396,46 @@ end subroutine cdb_writeDB_HDF5
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Created: 2019-03-21
-!  Updated: 2019-03-21
-!  Find a family in the database and returns its ID.
-!  Optionally, if it doesn't exist, it can be added
+!  Created: 2019-03-22
+!  Updated: 2019-03-22
+!  Add a family to the family database
 ! ================================================================================================ !
-subroutine cdb_getFamilyID(famName, famID, addIfNew)
+subroutine cdb_addFamily(famName, nSig, famID, fErr)
+
+  use crcoall
+
+  character(len=*),  intent(in)  :: famName
+  real(kind=fPrec),  intent(in)  :: nSig
+  integer,           intent(out) :: famID
+  logical,           intent(out) :: fErr
+
+  call cdb_getFamilyID(famName, famID)
+  if(famID == -1) then
+    cdb_nfam = cdb_nFam + 1
+    call cdb_allocFam
+    cdb_famName(cdb_nFam) = famName
+    cdb_famNSig(cdb_nFam) = nSig
+    famID = cdb_nFam
+    fErr = .false.
+  else
+    write(lout,"(a)") "COLLDB> Warning Collimator family '"//trim(famName)//"' already exists."
+    fErr = .true.
+  end if
+
+end subroutine cdb_addFamily
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-21
+!  Updated: 2019-03-22
+!  Find a family in the database and returns its ID
+! ================================================================================================ !
+subroutine cdb_getFamilyID(famName, famID)
 
   character(len=*),  intent(in)  :: famName
   integer,           intent(out) :: famID
-  logical, optional, intent(in)  :: addIfNew
 
   integer i
-  logical addNew
-
-  if(present(addIfNew)) then
-    addNew = addIfNew
-  else
-    addNew = .false.
-  end if
 
   famID = -1
   if(cdb_nfam > 0) then
@@ -418,43 +447,7 @@ subroutine cdb_getFamilyID(famName, famID, addIfNew)
     end do
   end if
 
-  if(famID == -1 .and. addNew) then
-    cdb_nfam = cdb_nfam + 1
-    call cdb_allocFam
-    cdb_famName(cdb_nfam) = famName
-    famID = cdb_nfam
-  end if
-
 end subroutine cdb_getFamilyID
-
-! ================================================================================================ !
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Created: 2019-03-21
-!  Updated: 2019-03-21
-!  Set the nsig for a specific family
-! ================================================================================================ !
-subroutine cdb_setFamilyNSig(famID, nSig)
-
-  use crcoall
-
-  integer,          intent(in) :: famID
-  real(kind=fPrec), intent(in) :: nSig
-
-  if(famID < 1 .or. famID > cdb_nFam) then
-    write(lout,"(a,i0)") "COLLDB> ERROR Setting nsig for non-existing famID = ",famID
-    write(lout,"(a,i0)") "COLLDB>       First ID is 1, last ID is ",cdb_nFam
-    call prror
-  end if
-
-  if(nSig < 0.0_fPrec) then
-    write(lout,"(a,i0)") "COLLDB> ERROR Setting nsig for famID = ",famID
-    write(lout,"(a)")    "COLLDB>       Value must be larger than zero"
-    call prror
-  end if
-
-  cdb_famNSig(famID) = nSig
-
-end subroutine cdb_setFamilyNSig
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
