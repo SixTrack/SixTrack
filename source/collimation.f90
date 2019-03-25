@@ -1,21 +1,15 @@
-!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!-----                                                                   -----
-!-----    NEW BLOCKS PROVIDED FOR THE COLLIMATION STUDIES VIA SIXTRACK   -----
-!-----                                                                   -----
-!-----        G. ROBERT-DEMOLAIZE, October 27th, 2004                    -----
-!-----                                                                   -----
-!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-
-! Useful names for future reference in the code:
-!GRD Guillaume Robert-Demolaize
-!RA  Ralph Assmann
-!TW  Thomas Weiler
-!CB  Chiara Bracco
-!SR  Stefano Redaelli
-!RB  Roderik Bruce
-!DM  Daniele Mirarchi
-!YIL Yngve Inntjore Levinsen
-!CT  Claudia Tambasco
+! ================================================================================================ !
+!
+!  SixTrack Collimation Module
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!
+!  G. Robert-Demolaize, R. Assmann, T. Weiler, C. Bracco, S. Redaelli, R. Bruce, D. Mirarchi,
+!  Y.I. Levinsen, C. Tambasco, J. Molson, K.N. Sjobak, V.K. Berglyd Olsen
+!
+!  Created: 2004-10-27
+!  Updated: 2019-03-25
+!
+! ================================================================================================ !
 
 module collimation
 
@@ -25,14 +19,7 @@ module collimation
   use mod_hions
   use mod_alloc
   use mod_units
-!  use mod_ranecu
   use mod_ranlux
-  use coll_db
-
-#ifdef HDF5
-  use hdf5_output
-  use hdf5_tracks2
-#endif
 
   implicit none
 
@@ -924,6 +911,10 @@ subroutine collimate_init()
   use mod_common_da
   use mod_settings
   use string_tools
+  use coll_db
+#ifdef HDF5
+  use hdf5_output
+#endif
 
   implicit none
 
@@ -1330,6 +1321,7 @@ end subroutine collimate_init
 ! ================================================================================================ !
 subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
+  use coll_db
   use string_tools
   use mod_common, only : napx
 
@@ -1969,6 +1961,11 @@ subroutine collimate_start_sample(nsample)
   use mod_commons
   use mod_common_track
   use mod_common_da
+  use coll_db
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
+#endif
 
   implicit none
 
@@ -2504,6 +2501,7 @@ subroutine collimate_start_collimator(stracki)
   use mod_common_track
   use mod_common_da
   use numerical_constants, only : c5m4
+  use coll_db
 
   implicit none
 
@@ -2595,6 +2593,7 @@ subroutine collimate_do_collimator(stracki)
   use mod_common_track
   use mod_common_da
   use numerical_constants, only : c5m4
+  use coll_db
 
   implicit none
 
@@ -3334,6 +3333,11 @@ subroutine collimate_end_collimator()
   use mod_common_track
   use mod_common_da
   use numerical_constants, only : c5m4
+  use coll_db
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
+#endif
 
   implicit none
 
@@ -3709,8 +3713,13 @@ subroutine collimate_end_sample(j)
   use mod_common_track
   use mod_common_da
   use crcoall
+  use coll_db
 #ifdef ROOT
   use root_output
+#endif
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
 #endif
 
   implicit none
@@ -3966,6 +3975,10 @@ subroutine collimate_exit()
   use mod_commons
   use mod_common_track
   use mod_common_da
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
+#endif
 
   implicit none
 
@@ -4215,6 +4228,10 @@ subroutine collimate_end_element
   use mod_commons
   use mod_common_track
   use mod_common_da
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
+#endif
 
   implicit none
 
@@ -4355,6 +4372,10 @@ subroutine collimate_end_turn
 
 #ifdef ROOT
   use root_output
+#endif
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
 #endif
 
   implicit none
@@ -4834,7 +4855,11 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   use crcoall
   use parpro
   use mod_common, only : iexact
-  implicit none
+#ifdef HDF5
+  use hdf5_output
+#endif
+
+implicit none
 
 ! BLOCK DBCOLLIM
 ! This block is common to collimaterhic and collimate2
@@ -5714,6 +5739,10 @@ end function ruth
 !<
 subroutine scatin(plab)
   use physical_constants
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
+#endif
 
   implicit none
 
@@ -5817,6 +5846,10 @@ end subroutine scatin
 !!
 !<
 subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
+
+#ifdef HDF5
+  use hdf5_output
+#endif
 
   implicit none
 
@@ -6064,6 +6097,8 @@ end subroutine jaw
 
 #ifdef HDF5
 subroutine coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
+
+  use hdf5_output
 
   integer,          intent(in) :: icoll,iturn,ipart,nabs
   real(kind=fPrec), intent(in) :: dp,dx,dy
