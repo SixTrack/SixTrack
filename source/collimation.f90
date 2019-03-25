@@ -114,9 +114,6 @@ module collimation
 
   integer, save :: ie, iturn, nabs_total
 
- !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!+cd dbcommon
-! THIS BLOCK IS COMMON TO BOTH THIN6D, BEAMGAS, AND TRAUTHIN SUBROUTINES
 
   integer ieff,ieffdpop
 
@@ -127,8 +124,6 @@ module collimation
   real(kind=fPrec), save :: myemity0_collgap = zero
 
   real(kind=fPrec), save :: myalphay, mybetay, myalphax, mybetax, rselect, myemitx
-! myemitx was not saved?
-!  common /ralph/ myemitx0_dist,myemity0_dist,myemitx0_collgap,myemity0_collgap,myalphax,myalphay,mybetax,mybetay,rselect
 
 ! M. Fiascaris for the collimation team
 ! variables for global inefficiencies studies
@@ -137,23 +132,19 @@ module collimation
 
   real(kind=fPrec), allocatable, save :: neff(:) !(numeff)
   real(kind=fPrec), allocatable, save :: rsig(:) !(numeff)
-!  common  /eff/ neff,rsig
 
   integer, allocatable, save :: counteddpop(:,:) !(npart,numeffdpop)
   integer, allocatable, save :: npartdpop(:) !(numeffdpop)
   integer, allocatable, save :: counted2d(:,:,:) !(npart,numeff,numeffdpop)
   real(kind=fPrec), allocatable, save :: neffdpop(:) !(numeffdpop)
   real(kind=fPrec), allocatable, save :: dpopbins(:) !(numeffdpop)
-!  common  /effdpop/ neffdpop,dpopbins,npartdpop,counteddpop
 
   real(kind=fPrec) dpopmin,dpopmax,mydpop
   real(kind=fPrec), allocatable, save :: neff2d(:,:) !(numeff,numeffdpop)
-!  common /eff2d/ neff2d
 
   integer, allocatable, save :: nimpact(:) !(50)
   real(kind=fPrec), allocatable, save :: sumimpact(:) !(50)
   real(kind=fPrec), allocatable, save :: sqsumimpact(:) !(50)
-!  common  /rimpact/ sumimpact,sqsumimpact,nimpact
 
   character(len=:), allocatable, save :: ename(:) !(mNameLen)(nblz)
   integer, allocatable, save :: nampl(:) !(nblz)
@@ -162,11 +153,9 @@ module collimation
   real(kind=fPrec), allocatable, save :: sum_ay(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sqsum_ay(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sampl(:) !(nblz)
-!  common  /ampl_rev/ sum_ax,sqsum_ax,sum_ay,sqsum_ay,sampl,ename,nampl
 
   real(kind=fPrec), allocatable, save :: neffx(:) !(numeff)
   real(kind=fPrec), allocatable, save :: neffy(:) !(numeff)
-!  common /efficiency/ neffx,neffy
 
   integer, allocatable, save :: secondary(:) !(npart)
   integer, allocatable, save :: tertiary(:) !(npart)
@@ -188,17 +177,10 @@ module collimation
   integer, save :: n_absorbed
 
   real(kind=fPrec), allocatable, save :: part_impact(:) !(npart)
-!  common /stats/ part_impact, part_hit_pos,part_hit_turn, part_hit_before_pos, part_hit_before_turn, &
-!  & part_abs_pos,part_abs_turn, nabs_type,part_indiv, part_linteract,secondary,tertiary,other,scatterhit
-
-!  common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
-!  common /part_select/ part_select
 
 !  logical firstrun
-!  common /firstrun/ firstrun
 
   integer, save :: nsurvive, nsurvive_end, num_selhit, n_impact
-!  common /outcoll/ nsurvive,num_selhit,n_impact,nsurvive_end
 
   integer, save :: napx00
 
@@ -208,7 +190,6 @@ module collimation
   integer, allocatable, save :: cn_absorbed(:) !(max_ncoll)
   real(kind=fPrec), allocatable, save :: caverage(:) !(max_ncoll)
   real(kind=fPrec), allocatable, save :: csigma(:) !(max_ncoll)
-!  common /collsummary/ caverage,csigma,cn_impact,cn_absorbed
 
 ! Change the following block to npart
 ! This is the array that the generated distribution is placed into
@@ -218,21 +199,13 @@ module collimation
   real(kind=fPrec), allocatable, save :: myyp(:) !(npart)
   real(kind=fPrec), allocatable, save :: myp(:) !(npart)
   real(kind=fPrec), allocatable, save :: mys(:) !(npart)
-!  common /coord/ myx,myxp,myy,myyp,myp,mys
-
   integer, allocatable, save :: counted_r(:,:) !(npart,numeff)
   integer, allocatable, save :: counted_x(:,:) !(npart,numeff)
   integer, allocatable, save :: counted_y(:,:) !(npart,numeff)
-!  common /counting/ counted_r,counted_x,counted_y
 
   character(len=4), save :: smpl
   character(len=80), save :: pfile
-!  common /samplenumber/ pfile,smpl,samplenumber
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-!+cd dblinopt
-!
+
 ! THIS BLOCK IS COMMON TO WRITELIN,LINOPT,TRAUTHIN,THIN6D AND MAINCR
 !
   real(kind=fPrec), allocatable, save :: tbetax(:)  !(nblz)
@@ -246,8 +219,6 @@ module collimation
   real(kind=fPrec), allocatable, save :: tdispx(:)  !(nblz)
   real(kind=fPrec), allocatable, save :: tdispy(:)  !(nblz)
 
-!  common /rtwiss/ tbetax,tbetay,talphax,talphay,torbx,torbxp,torby,torbyp,tdispx,tdispy
-!
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 ! Variables for finding the collimator with the smallest gap
@@ -259,26 +230,12 @@ module collimation
   real(kind=fPrec) :: mingap, gap_h1, gap_h2, gap_h3, gap_h4
   integer :: coll_mingap_id
 
-! common /gap_err/ gap_rms_error
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-!+cd dbdaten
-
 ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
 ! logical cut_input
-! common /cut/ cut_input
 
 ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
   real(kind=fPrec), save :: remitx_dist,remity_dist,remitx_collgap,remity_collgap
-! common  /remit/ remitx_dist, remity_dist,remitx_collgap,remity_collgap
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-!+cd dbcolcom
   logical, save :: firstcoll,found,onesided
   integer rnd_lux,rnd_k1,rnd_k2
 
@@ -290,7 +247,6 @@ module collimation
 
   ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
 !  logical cut_input
-!  common /cut/ cut_input
 
   real(kind=fPrec), allocatable, save :: xbob(:) !(nblz)
   real(kind=fPrec), allocatable, save :: ybob(:) !(nblz)
@@ -302,22 +258,8 @@ module collimation
   real(kind=fPrec), allocatable, save :: xpineff(:) !(npart)
   real(kind=fPrec), allocatable, save :: ypineff(:) !(npart)
 
-!  common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,ypineff
-
   real(kind=fPrec), allocatable, save :: mux(:) !(nblz)
   real(kind=fPrec), allocatable, save :: muy(:) !(nblz)
-!  common /mu/ mux,muy
-
-!  common /collocal/ myix,myktrack,totals,firstcoll,found,onesided
-
-! common /icoll/  icoll
-!
-!
-!  common /materia/mat
-!  common /phase/x,xp,z,zp,dpop
-!  common /nommom/p0
-!  common /cjaw1/zlm
-! END BLOCK DBCOLLIM
 
 
   real(kind=fPrec), save :: xp_pencil0,yp_pencil0
@@ -326,31 +268,10 @@ module collimation
   real(kind=fPrec), allocatable, save :: pencil_dx(:) !(max_ncoll)
 !
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-!+cd dbmkdist
-!++ Vectors of coordinates
-
-!  integer :: i,j,mynp,nloop
-!  real(kind=fPrec) :: myx(maxn) !(maxn)
-!  real(kind=fPrec) :: myxp(maxn) !(maxn)
-!  real(kind=fPrec) :: myy(maxn) !(maxn)
-!  real(kind=fPrec) :: myyp(maxn) !(maxn)
-!  real(kind=fPrec) :: myp(maxn) !(maxn)
-!  real(kind=fPrec) :: mys(maxn) !(maxn)
-!
-!  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-!  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-!  &xsigmax,ysigmay,myenom,nr,ndr
-!
-!
-
-! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
 ! USED IN MULTIPLE COMMON BLOCKS
   logical, save :: cut_input
 !  common /cut/ cut_input
 
-!from +cd interac
-!October 2013
 !Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
 !  data (exenergy(i),i=1,5)/ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9 /
 !  data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
@@ -358,9 +279,6 @@ module collimation
   real(kind=fPrec), parameter :: exenergy(nmat) = &
  & [ 63.7e-9_fPrec, 166e-9_fPrec, 322e-9_fPrec, 727e-9_fPrec, 823e-9_fPrec, 78e-9_fPrec, 78.0e-9_fPrec, 87.1e-9_fPrec, &
  & 152.9e-9_fPrec, 424e-9_fPrec, 320.8e-9_fPrec, 682.2e-9_fPrec, zero, c1e10 ]
-! common/meanexen/exenergy(nmat)
-
-!+cd dbtrthin
 
 ! Note: no saves needed
 
@@ -371,9 +289,6 @@ module collimation
 
   ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
 !  real(kind=fPrec) remitx_dist,remity_dist,
-! &     remitx_collgap,remity_collgap
-!  common  /remit/ remitx_dist, remity_dist,
-! &     remitx_collgap,remity_collgap
 
   integer, private :: k
 !
@@ -383,17 +298,10 @@ module collimation
   logical, public, save :: firstrun
   integer, save :: icoll
 
-!+cd flukavars
 ! RB DM 2014 added variables for FLUKA output
   real(kind=fPrec), private, save :: xInt,xpInt,yInt,ypInt,sInt
-! common/flukaVars/xInt,xpInt,yInt,ypInt,sInt
 
-!+cd funint
   real(kind=fPrec), private, save :: tftot
-!  common/funint/tftot
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!+cd dbthin6d
 
   integer, save :: num_surhit
   integer, save :: numbin
@@ -486,52 +394,10 @@ module collimation
   real(kind=fPrec), save :: beamsize1, beamsize2,betax1,betax2,betay1,betay2, alphax1, alphax2,alphay1,alphay2,minAmpl
 !SEPT2005
 
-
-!  common /dbthinc/ cx,cxp,cy,cyp,                                   &
-!  &cp,cs,rcx,rcxp,rcy,rcyp,                                          &
-!  &rcp,rcs,rcx0,rcxp0,rcy0,                                          &
-!  &rcyp0,rcp0,enom_gev,betax,betay,xmax,ymax,                        &
-!  &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
-!  &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
-!  &rxpjco,rypjco,c_rmstilt,                                          &
-!  &c_systilt,scale_bx,scale_by,scale_bx0,scale_by0,xkick,            &
-!  &ykick,bx_dist,by_dist,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,  &
-!  &nom_aperture,pencil_aperture,xp_pencil,                           &
-!  &yp_pencil,x_pencil0,y_pencil0,sum,sqsum,                          &
-!  &csum,csqsum,average,sigma,sigsecut,nspxd,                         &
-!  &xndisp,xgrd,xpgrd,ygrd,ypgrd,zpj,                                 &
-!  &pgrd,ejfvgrd,sigmvgrd,rvvgrd,                                     &
-!  &dpsvgrd,oidpsvgrd,dpsv1grd,                                       &
-!  &dnormx,dnormy,driftx,drifty,                                      &
-!  &xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,                          &
-!  &grdpiover2,grdpiover4,grd3piover4,                                &
-!  &x_sl,x1_sl,x2_sl,                                                 &
-!  &y1_sl, y2_sl,                                                &
-!  &angle1, angle2,                                              &
-!  &max_tmp,                                                     &
-!  &a_tmp1, a_tmp2, ldrift, mynex2, myney2,                      &
-!  &Nap1pos,Nap2pos,Nap1neg,Nap2neg,                             &
-!  &tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,         &
-!  &beamsize1, beamsize2,betax1,betax2,betay1,betay2,            &
-!  &alphax1, alphax2,alphay1,alphay2,minAmpl,                    &
-!  &ios,num_surhit,numbin,ibin,                                       &
-!  &num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov,      &
-!  &ipart,totalelem,selelem,unitnumber,distnumber,turnnumber,         &
-!  &jb,flukaname,                                                     &
-!  &jjj,ijk,zbv,c_length,c_rotation,                                  &
-!  &c_aperture,c_offset,c_tilt,c_material
-
-! myran_gauss,rndm5,
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-!+cd dbcollim
   integer, private, save :: nev
 !  real(kind=fPrec), private, save :: c_xmin,c_xmax,c_xpmin,c_xpmax,c_zmin,c_zmax,c_zpmin,c_zpmax,length
-!!  common /cmom/xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,nev
 !
 !  real(kind=fPrec), private, save :: c_mybetax,c_mybetaz,mymux,mymuz,atdi
-!!  common /other/mybetax,mybetaz,mymux,mymuz,atdi
 
   real(kind=fPrec), private, save :: length
 
@@ -540,10 +406,7 @@ module collimation
   real(kind=fPrec), private, save :: x,xp,z,zp,dpop
   real(kind=fPrec), private, save :: p0
   real(kind=fPrec), private, save :: zlm
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-!+cd interac
+
   integer, save :: mcurr
   real(kind=fPrec), save :: xintl(nmat)
   real(kind=fPrec), save :: radl(nmat)
@@ -585,26 +448,6 @@ module collimation
 ! parameter(fnavo=6.02214129e23_fPrec)
   real(kind=fPrec), save :: cgen(200,nmat)
   character(4), save :: mname(nmat)
-
-!  common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
-!  common/coul/tlcut,hcut(nmat),cgen(200,nmat),mcurr
-!  common/scat/cs(0:5,nmat),csref(0:5,nmat),bnref(nmat),freep(nmat)
-!  common/scatu/cprob(0:5,nmat),bn(nmat),bpp,xln15s,ecmsq
-!  common/scatu2/xintl(nmat),radl(nmat),mname
-!  common/scatpp/pptot,ppel,ppsd
-!  common/sppref/pptref,pperef,pref,pptco,ppeco,sdcoe,freeco
-!! real(kind=fPrec) exenergy
-!! common/meanexen/exenergy(nmat)
-!  common/cmcs1/zlm1
-!  common/sindif/xpsd,zpsd,psd
-!  common/cdpodx/dpodx
-!  common/cions/edens(nmat),pleng(nmat)
-
-
-!  common/materia/mat
-!  common/phase/x,xp,z,zp,dpop
-!  common/nommom/p0
-!  common/cjaw1/zlm
 
 !>
 !! block data scdata
