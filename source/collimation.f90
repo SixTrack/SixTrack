@@ -27,7 +27,7 @@ module collimation
   use mod_units
 !  use mod_ranecu
   use mod_ranlux
-  use collimation_db
+  use coll_db
 
 #ifdef HDF5
   use hdf5_output
@@ -129,7 +129,6 @@ module collimation
 
 
   character(len=mNameLen),  private, save :: name_sel     = " "
-  character(len=mFileName), private, save :: coll_db      = " "
   character(len=16),        private, save :: castordir    = " "
   character(len=80),        private, save :: filename_dis = " "
 
@@ -1153,7 +1152,7 @@ subroutine collimate_init()
   write(lout,"(a,e15.8)") 'COLL> Info: PENCIL_RMSY         = ', pencil_rmsy
   write(lout,"(a,i0)")    'COLL> Info: PENCIL_DISTR        = ', pencil_distr
   write(lout,"(a)")
-  write(lout,"(a,a)")     'COLL> Info: COLL_DB             = ', coll_db
+  write(lout,"(a,a)")     'COLL> Info: COLL_DB             = ', cdb_fileName
   write(lout,"(a,i0)")    'COLL> Info: IBEAM               = ', ibeam
   write(lout,"(a)")
   write(lout,"(a,l1)")    'COLL> Info: DOWRITETRACKS       = ', dowritetracks
@@ -1296,7 +1295,7 @@ subroutine collimate_init()
   open(unit=CollPositions_unit, file='CollPositions.dat')
 
   ! Read collimator database
-  call cdb_readCollDB(coll_db)
+  call cdb_readCollDB
 
 !Then do any implementation specific initial loading
 #ifdef COLLIMATE_K2
@@ -1686,7 +1685,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    coll_db = trim(lnSplit(2))
+    cdb_fileName = trim(lnSplit(2))
 
   case("BEAM_NUM")
     if(nSplit /= 2) then
@@ -1919,8 +1918,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 #endif
 
   case(16)
-    if(nSplit > 0)  coll_db = lnSplit(1)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), ibeam, iErr)
+    if(nSplit > 0)  cdb_fileName = lnSPlit(1)
+    if(nSplit > 1)  call chr_cast(lnSPlit(2), ibeam, iErr)
 
   case(17)
     if(nSplit > 0)  call chr_cast(lnSplit(1), dowritetracks,iErr)

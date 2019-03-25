@@ -236,9 +236,10 @@ set(TESTS_NOFORT10
 
 # List of tests that do not produce singletrackfile.dat or fort.90
 set(TESTS_NO_STF_FORT90
-  collimation_old-db_old-block
-  collimation_old-db_new-block
+  beam-HO_6D-simple-newstyle-coupling
   collimation_k2_fcc_2017_h1_collision
+  collimation_old-db_new-block
+  collimation_old-db_old-block
   crabs
   dipedge
   dump_all_highprec

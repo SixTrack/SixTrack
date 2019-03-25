@@ -272,8 +272,8 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 ###################################################################################################
 
 list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
-list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT HASHLIB)
-list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32)
+list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB)
+list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG)
 
 ###################################################################################################
 # Select which fortran files to generate and compile
@@ -286,7 +286,7 @@ list(APPEND FORT90_LIB
   bouncy_castle plato_seq bdex fma dabnew end_sixtrack
   ranecu wire hions elens mod_dist scatter dump dynk
   aperture mod_fluc beam6d_fox six_fox postprocessing
-  read_write ranlux collimation collimation_db mod_particles cheby utils
+  read_write ranlux collimation coll_db mod_particles cheby utils
 )
 
 # Files unique to DA or CR version
@@ -300,9 +300,9 @@ if(CR)
   list(APPEND FORT90_LIB checkpoint_restart)
 endif(CR)
 
-if(DEBUG)
-  list(APPEND FORT90_LIB debug_dumps)
-endif(DEBUG)
+# if(DEBUG)
+#   list(APPEND FORT90_LIB debug_dump)
+# endif(DEBUG)
 
 if(HDF5)
   list(APPEND FORT90_LIB hdf5_output hdf5_sixtrack)
@@ -1315,7 +1315,7 @@ endif()
 #To make packages, run "make package" in the build directory
 #set(CPACK_GENERATOR RPM DEB STGZ TGZ TBZ2 TXZ ZIP 7Z)
 set(CPACK_GENERATOR RPM DEB TGZ ZIP) #Take only the most common targets
-#set(CPACK_PACKAGE_CONTACT "sixtrack.support@cern.ch") # non-existent email address
+set(CPACK_PACKAGE_CONTACT "sixtrack.contact@cern.ch")
 set(CPACK_PACKAGE_VERSION ${SixTrack_VERSION})
 set(CPACK_PACKAGE_VENDOR "CERN")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "SixTrack symplectic particle tracking code for particle accelerators.")
