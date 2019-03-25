@@ -1,7 +1,7 @@
 ! ================================================================================================ !
 !  Collimator Database Module
 ! ================================================================================================ !
-module collimation_db
+module coll_db
 
   use parpro
   use floatPrecision
@@ -87,14 +87,12 @@ end subroutine cdb_expand_arrays
 !  Created: 2019-03-19
 !  Updated: 2019-03-20
 ! ================================================================================================ !
-subroutine cdb_readCollDB(dbFile)
+subroutine cdb_readCollDB
 
   use crcoall
   use mod_units
   use mod_common
   use string_tools
-
-  character(len=*), intent(in) :: dbFile
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
@@ -104,13 +102,12 @@ subroutine cdb_readCollDB(dbFile)
   integer i, j, ix
   logical dbErr, spErr
 
-  call f_requestUnit(dbFile, dbUnit)
-  call f_open(unit=dbUnit,file=dbFile,formatted=.true.,mode="r",err=dbErr,status="old")
+  call f_requestUnit(cdb_fileName, dbUnit)
+  call f_open(unit=dbUnit,file=cdb_fileName,formatted=.true.,mode="r",err=dbErr,status="old")
   if(dbErr) then
-    write(lout,"(a)") "COLL> ERROR Could not open the collimator database file '"//trim(dbFile)//"'"
+    write(lout,"(a)") "COLL> ERROR Could not open the collimator database file '"//trim(cdb_fileName)//"'"
     call prror
   end if
-  cdb_fileName = dbFile
 
 ! ============================================================================ !
 !  Check DB Format: New or old, and count number of collimators
@@ -598,4 +595,4 @@ subroutine cdb_generateFamName(inElem, famName)
 
 end subroutine cdb_generateFamName
 
-end module collimation_db
+end module coll_db

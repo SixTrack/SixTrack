@@ -30,7 +30,7 @@ subroutine allocate_arrays
   use mod_fluka,          only : fluka_mod_expand_arrays
 #endif
   use collimation,        only : collimation_allocate_arrays
-  use collimation_db,     only : cdb_expand_arrays
+  use coll_db,            only : cdb_expand_arrays
 
   implicit none
 
@@ -90,7 +90,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   use mod_fluka,          only : fluka_mod_expand_arrays
 #endif
   use collimation,        only : collimation_expand_arrays
-  use collimation_db,     only : cdb_expand_arrays
+  use coll_db,            only : cdb_expand_arrays
 
   implicit none
 
