@@ -265,20 +265,13 @@ module collimation
   real(kind=fPrec), allocatable, save :: y_pencil(:) !(max_ncoll)
   real(kind=fPrec), allocatable, save :: pencil_dx(:) !(max_ncoll)
 !
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 ! USED IN MULTIPLE COMMON BLOCKS
   logical, save :: cut_input
-!  common /cut/ cut_input
 
 !Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
-!  data (exenergy(i),i=1,5)/ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9 /
-!  data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
-!  data (exenergy(i),i=8,nrmat)/ 87.1e-9, 152.9e-9, 424e-9, 320.8e-9, 682.2e-9/
-  real(kind=fPrec), parameter :: exenergy(nmat) = &
- & [ 63.7e-9_fPrec, 166e-9_fPrec, 322e-9_fPrec, 727e-9_fPrec, 823e-9_fPrec, 78e-9_fPrec, 78.0e-9_fPrec, 87.1e-9_fPrec, &
- & 152.9e-9_fPrec, 424e-9_fPrec, 320.8e-9_fPrec, 682.2e-9_fPrec, zero, c1e10 ]
-
-! Note: no saves needed
+  real(kind=fPrec), parameter :: exenergy(nmat) = [ &
+    63.7e-9_fPrec, 166.0e-9_fPrec, 322.0e-9_fPrec, 727.0e-9_fPrec, 823.0e-9_fPrec, 78.0e-9_fPrec, 78.0e-9_fPrec, &
+    87.1e-9_fPrec, 152.9e-9_fPrec, 424.0e-9_fPrec, 320.8e-9_fPrec, 682.2e-9_fPrec, zero, c1e10 ]
 
 !++ Vectors of coordinates
 
@@ -289,9 +282,6 @@ module collimation
 !  real(kind=fPrec) remitx_dist,remity_dist,
 
   integer, private :: k
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 
   logical, public, save :: firstrun
   integer, save :: icoll
