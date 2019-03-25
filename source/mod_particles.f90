@@ -122,10 +122,10 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
 
   logical :: doUpdateAngle = .false.
 
-  if(part_isTracking .and. refArray /= 1) then
-    write(lout,"(a)") "PART> ERROR During tracking, only energy updates are allowed in part_updatePartEnergy."
-    call prror
-  end if
+  !if(part_isTracking .and. refArray /= 1) then
+  !  write(lout,"(a)") "PART> ERROR During tracking, only energy updates are allowed in part_updatePartEnergy."
+  !  call prror
+  !end if
 
   if(present(updateAngle)) then
     doUpdateAngle = updateAngle
