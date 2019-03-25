@@ -182,8 +182,6 @@ module collimation
 
   integer, save :: nsurvive, nsurvive_end, num_selhit, n_impact
 
-  integer, save :: napx00
-
   real(kind=fPrec), allocatable, save :: db_tilt(:,:) !(max_ncoll,2)
 
   integer, allocatable, save :: cn_impact(:)  !(max_ncoll)
@@ -999,8 +997,6 @@ subroutine collimate_init()
   write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT2           = ', sigsecut2
   write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT3           = ', sigsecut3
   write(lout,"(a)")
-
-  napx00 = napx
 
   write(lout,"(a,i0)")    'COLL> Info: NAPX                = ', napx
   write(lout,"(a,e15.8)") 'COLL> Info: Sigma_x0            = ', sqrt(mybetax*myemitx0_dist)
@@ -1999,15 +1995,15 @@ subroutine collimate_start_sample(nsample)
 
   ! Copy new particles to tracking arrays. Also add the orbit offset at start of ring!
   if(do_thisdis /= 0) then
-    xv1(1:napx00)   = c1e3 *  myx(1:napx00) + torbx(1)
-    yv1(1:napx00)   = c1e3 * myxp(1:napx00) + torbxp(1)
-    xv2(1:napx00)   = c1e3 *  myy(1:napx00) + torby(1)
-    yv2(1:napx00)   = c1e3 * myyp(1:napx00) + torbyp(1)
-    sigmv(1:napx00) = mys(1:napx00)
-    ejv(1:napx00)   = myp(1:napx00)
+    xv1(1:napx)   = c1e3 *  myx(1:napx) + torbx(1)
+    yv1(1:napx)   = c1e3 * myxp(1:napx) + torbxp(1)
+    xv2(1:napx)   = c1e3 *  myy(1:napx) + torby(1)
+    yv2(1:napx)   = c1e3 * myyp(1:napx) + torbyp(1)
+    sigmv(1:napx) = mys(1:napx)
+    ejv(1:napx)   = myp(1:napx)
   end if
 
-  do i = 1, napx00
+  do i = 1, napx
     ! FOR NOT FAST TRACKING ONLY
     ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
     rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
@@ -2053,7 +2049,6 @@ subroutine collimate_start_sample(nsample)
   firstcoll = .true.
 
 !GRD HERE WE NEED TO INITIALIZE SOME COLLIMATION PARAMETERS
-  napx = napx00
 
   do j = 1, napx
     part_hit_pos(j)   = 0
