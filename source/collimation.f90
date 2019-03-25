@@ -13,26 +13,19 @@
 
 module collimation
 
+  use parpro
   use floatPrecision
-  use mathlib_bouncer
   use numerical_constants
-  use mod_hions
-  use mod_alloc
-  use mod_units
-  use mod_ranlux
 
   implicit none
 
-!  private
-
   integer, parameter :: max_ncoll  = 100
- !integer, parameter :: maxn       = 20000
   integer, parameter :: numeff     = 32
   integer, parameter :: numeffdpop = 29
   integer, parameter :: nc         = 32
 
-  integer, parameter :: nmat  = 14
-  integer, parameter :: nrmat = 12
+  integer, parameter :: nmat       = 14
+  integer, parameter :: nrmat      = 12
 
   ! Logical Flags
   logical, public,  save :: do_coll           = .false.
@@ -738,6 +731,8 @@ contains
 
 subroutine collimation_allocate_arrays
 
+  use mod_alloc
+
   implicit none
 
   ! Initial allocation handled by expand arrays routine
@@ -786,6 +781,8 @@ subroutine collimation_allocate_arrays
 end subroutine collimation_allocate_arrays
 
 subroutine collimation_expand_arrays(npart_new, nblz_new)
+
+  use mod_alloc
 
   implicit none
 
@@ -912,6 +909,8 @@ subroutine collimate_init()
   use mod_settings
   use string_tools
   use coll_db
+  use mod_units
+  use mod_ranlux
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -1321,6 +1320,7 @@ end subroutine collimate_init
 ! ================================================================================================ !
 subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
+  use crcoall
   use coll_db
   use string_tools
   use mod_common, only : napx
@@ -1931,6 +1931,8 @@ end subroutine collimate_parseInputLine
 
 subroutine collimate_postInput(gammar)
 
+  use crcoall
+
   real(kind=fPrec), intent(in) :: gammar
 
   call collimation_expand_arrays(npart,nblz)
@@ -1962,6 +1964,10 @@ subroutine collimate_start_sample(nsample)
   use mod_common_track
   use mod_common_da
   use coll_db
+  use mod_units
+  use mod_ranlux
+  use mod_hions
+  use mathlib_bouncer
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
@@ -2594,6 +2600,8 @@ subroutine collimate_do_collimator(stracki)
   use mod_common_da
   use numerical_constants, only : c5m4
   use coll_db
+  use mod_units
+  use mathlib_bouncer
 
   implicit none
 
@@ -3334,6 +3342,7 @@ subroutine collimate_end_collimator()
   use mod_common_da
   use numerical_constants, only : c5m4
   use coll_db
+  use mod_hions
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
@@ -3714,6 +3723,7 @@ subroutine collimate_end_sample(j)
   use mod_common_da
   use crcoall
   use coll_db
+  use mod_units
 #ifdef ROOT
   use root_output
 #endif
@@ -3975,6 +3985,7 @@ subroutine collimate_exit()
   use mod_commons
   use mod_common_track
   use mod_common_da
+  use mod_units
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
@@ -4369,6 +4380,8 @@ subroutine collimate_end_turn
   use mod_common_track
   use mod_common_da
   use crcoall
+  use mod_units
+  use mathlib_bouncer
 
 #ifdef ROOT
   use root_output
@@ -4855,6 +4868,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   use crcoall
   use parpro
   use mod_common, only : iexact
+  use mathlib_bouncer
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -5627,6 +5641,8 @@ end function ichoix
 !<
 real(kind=fPrec) function gettran(inter,xmat,p)
 
+  use mathlib_bouncer
+
   implicit none
 
   integer, intent(in) :: inter,xmat
@@ -5722,6 +5738,8 @@ end subroutine tetat
 !<
 function ruth(t)
 
+  use mathlib_bouncer
+
   implicit none
 
   real(kind=fPrec) ruth,t
@@ -5739,6 +5757,7 @@ end function ruth
 !<
 subroutine scatin(plab)
   use physical_constants
+  use mathlib_bouncer
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
@@ -5847,6 +5866,7 @@ end subroutine scatin
 !<
 subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
+  use mathlib_bouncer
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -6175,6 +6195,8 @@ end subroutine mcs
 !<
 subroutine scamcs(xx,xxp,s,radl_mat)
 
+  use mathlib_bouncer
+
   implicit none
 
   real(kind=fPrec) v1,v2,r2,a,z1,z2,ss,s,xx,xxp,x0,xp0
@@ -6277,6 +6299,7 @@ end subroutine iterat
 !<
 function get_dpodx(p, mat_i)          !Claudia
   use physical_constants
+  use mathlib_bouncer
 
   implicit none
 
@@ -6377,6 +6400,7 @@ subroutine calc_ion_loss(IS, PC, DZ, EnLo)
 ! EnLo energy loss in GeV/meter
 
   use physical_constants
+  use mathlib_bouncer
 
   implicit none
 
@@ -6459,6 +6483,7 @@ subroutine makedis(myalphax, myalphay, mybetax, mybetay,    &
 !  Generate distribution
 
   use crcoall
+  use mathlib_bouncer
   use mod_common, only : napx
   implicit none
 
@@ -6568,6 +6593,7 @@ subroutine makedis_st(myalphax, myalphay, mybetax, mybetay, &
 !     centred in the aperture centre are generated. (SR, 08-05-2005)
 
   use crcoall
+  use mathlib_bouncer
   use mod_common, only : napx
   implicit none
 
@@ -6659,6 +6685,7 @@ subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay,  myemitx0, myemity
  &                        myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
 
   use crcoall
+  use mathlib_bouncer
   use mod_common, only : napx
   implicit none
 
@@ -6765,6 +6792,7 @@ subroutine makedis_de( myalphax, myalphay, mybetax, mybetay, &
 !     centred in the aperture centre are generated. (SR, 08-05-2005)
 
   use crcoall
+  use mathlib_bouncer
   use mod_common, only : napx
   implicit none
 
@@ -6905,6 +6933,8 @@ subroutine readdis(filename_dis,myx,myxp,myy,myyp,myp,mys)
   use parpro
   use string_tools
   use mod_common, only : napx
+  use mod_units
+
   implicit none
 
   integer :: j
@@ -6989,6 +7019,8 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
   use mod_common
   use mod_common_main
   use string_tools
+  use mod_units
+
   implicit none
 
   integer :: j
@@ -7161,6 +7193,7 @@ subroutine makedis_radial( myalphax, myalphay, mybetax,      &
 
   use mod_common, only : napx
   use crcoall
+  use mathlib_bouncer
   implicit none
 
   integer :: j
@@ -7422,6 +7455,8 @@ end subroutine makedis_ga
 
 function rndm4()
 
+  use mod_ranlux
+
   implicit none
 
   integer len, in
@@ -7455,6 +7490,9 @@ end function rndm4
 !cccccccccccccccccccccccccccccccccc
 !
 function rndm5(irnd)
+
+  use mod_ranlux
+  use mathlib_bouncer
 
   implicit none
 
@@ -7498,16 +7536,18 @@ real(kind=fPrec) function myran_gauss(cut)
 !
 !*********************************************************************
 
+  use numerical_constants, only : twopi
+  use mathlib_bouncer
+
   implicit none
 
   logical flag
-  real(kind=fPrec) x, u1, u2, twopi, r,cut
+  real(kind=fPrec) x, u1, u2, r,cut
   save
 
   flag = .true. !Does this initialize only once, or is it executed every pass?
                 !See ran_gauss(cut)
 
-  twopi=eight*atan_mb(one)
 1 if (flag) then
     r = real(rndm5(0),fPrec)
     r = max(r, half**32)
@@ -7700,7 +7740,8 @@ subroutine funlux(array,xran,len)
 !         Generation of LEN random numbers in any given distribution,
 !         by 4-point interpolation in the inverse cumulative distr.
 !         which was previously generated by FUNLXP
-      implicit none
+  use mod_ranlux
+  implicit none
       integer len,ibuf,j,j1
       real(kind=fPrec) array,xran,gap,gapinv,tleft,bright,gaps,gapins,x,p,a,b
       dimension array(200)
@@ -8017,6 +8058,7 @@ real(kind=fPrec) function ran_gauss(cut)
 
   use crcoall
   use parpro
+  use mathlib_bouncer
   implicit none
 
   logical flag
