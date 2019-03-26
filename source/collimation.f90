@@ -1016,7 +1016,7 @@ subroutine collimate_init()
     case(3)
       call cdist_makeDist(3)
     case(4)
-      call readdis(filename_dis, myx, myxp, myy, myyp, myp, mys)
+      call cdist_makeDist(4)
     case(5)
       call makedis_ga(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
                       myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength )
@@ -6705,89 +6705,89 @@ end subroutine makedis_coll
 
 
 !========================================================================
-subroutine readdis(filename_dis,myx,myxp,myy,myyp,myp,mys)
-!
-!     SR, 09-08-2005
-!     Format for the input file:
-!               x, y   -> [ m ]
-!               xp, yp -> [ rad ]
-!               s      -> [ mm ]
-!               DE     -> [ MeV ]
+! subroutine readdis(filename_dis,myx,myxp,myy,myyp,myp,mys)
+! !
+! !     SR, 09-08-2005
+! !     Format for the input file:
+! !               x, y   -> [ m ]
+! !               xp, yp -> [ rad ]
+! !               s      -> [ mm ]
+! !               DE     -> [ MeV ]
 
-  use crcoall
-  use parpro
-  use string_tools
-  use mod_common, only : napx
-  use mod_units
+!   use crcoall
+!   use parpro
+!   use string_tools
+!   use mod_common, only : napx
+!   use mod_units
 
-  implicit none
+!   implicit none
 
-  integer :: j
-  real(kind=fPrec), allocatable :: myx(:) !(npart)
-  real(kind=fPrec), allocatable :: myxp(:) !(npart)
-  real(kind=fPrec), allocatable :: myy(:) !(npart)
-  real(kind=fPrec), allocatable :: myyp(:) !(npart)
-  real(kind=fPrec), allocatable :: myp(:) !(npart)
-  real(kind=fPrec), allocatable :: mys(:) !(npart)
+!   integer :: j
+!   real(kind=fPrec), allocatable :: myx(:) !(npart)
+!   real(kind=fPrec), allocatable :: myxp(:) !(npart)
+!   real(kind=fPrec), allocatable :: myy(:) !(npart)
+!   real(kind=fPrec), allocatable :: myyp(:) !(npart)
+!   real(kind=fPrec), allocatable :: myp(:) !(npart)
+!   real(kind=fPrec), allocatable :: mys(:) !(npart)
 
-  character(len=80)   filename_dis
+!   character(len=80)   filename_dis
 
-  integer stat
+!   integer stat
 
-  character(len=mInputLn) inLine
-  character(len=:), allocatable :: lnSplit(:)
-  integer nSplit
-  logical spErr
+!   character(len=mInputLn) inLine
+!   character(len=:), allocatable :: lnSplit(:)
+!   integer nSplit
+!   logical spErr
 
-  save
+!   save
 
-  write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
+!   write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
 
-  call f_requestUnit(filename_dis, filename_dis_unit)
-  open(unit=filename_dis_unit, file=filename_dis, iostat=stat,status="OLD",action="read") !was 53
-  if(stat.ne.0)then
-    write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
-    write(lout,"(a,i0)") "COLL>       Got iostat=",stat
-    goto 20
-  end if
+!   call f_requestUnit(filename_dis, filename_dis_unit)
+!   open(unit=filename_dis_unit, file=filename_dis, iostat=stat,status="OLD",action="read") !was 53
+!   if(stat.ne.0)then
+!     write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
+!     write(lout,"(a,i0)") "COLL>       Got iostat=",stat
+!     goto 20
+!   end if
 
-  do j=1,napx
-    read(filename_dis_unit,"(a)",end=10,err=20) inLine
-    call chr_split(inLine, lnSplit, nSplit, spErr)
-    if(spErr) then
-      write(lout,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
-      goto 20
-    end if
-    if(nSplit /= 6) then
-      write(lout,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
-      goto 20
-    end if
-    call chr_cast(lnSplit(1),myx(j), spErr)
-    call chr_cast(lnSplit(2),myxp(j),spErr)
-    call chr_cast(lnSplit(3),myy(j), spErr)
-    call chr_cast(lnSplit(4),myyp(j),spErr)
-    call chr_cast(lnSplit(5),mys(j), spErr)
-    call chr_cast(lnSplit(6),myp(j), spErr)
-    if(spErr) then
-      write(lout,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
-      goto 20
-    end if
-  end do
+!   do j=1,napx
+!     read(filename_dis_unit,"(a)",end=10,err=20) inLine
+!     call chr_split(inLine, lnSplit, nSplit, spErr)
+!     if(spErr) then
+!       write(lout,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
+!       goto 20
+!     end if
+!     if(nSplit /= 6) then
+!       write(lout,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
+!       goto 20
+!     end if
+!     call chr_cast(lnSplit(1),myx(j), spErr)
+!     call chr_cast(lnSplit(2),myxp(j),spErr)
+!     call chr_cast(lnSplit(3),myy(j), spErr)
+!     call chr_cast(lnSplit(4),myyp(j),spErr)
+!     call chr_cast(lnSplit(5),mys(j), spErr)
+!     call chr_cast(lnSplit(6),myp(j), spErr)
+!     if(spErr) then
+!       write(lout,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
+!       goto 20
+!     end if
+!   end do
 
-  !TODO: Double-check that this is an OK way of dealing with reading less-than-expected particles from the file
- 10   napx = j - 1
-  write(lout,"(a,i0)") "COLL> Number of particles read from the file = ",napx
+!   !TODO: Double-check that this is an OK way of dealing with reading less-than-expected particles from the file
+!  10   napx = j - 1
+!   write(lout,"(a,i0)") "COLL> Number of particles read from the file = ",napx
 
-  close(filename_dis_unit)
+!   close(filename_dis_unit)
 
-  return
+!   return
 
- 20   continue
+!  20   continue
 
-  write(lout,"(a)") "COLL> I/O Error on Unit 53 in subroutine readdis"
-  call prror(-1)
+!   write(lout,"(a)") "COLL> I/O Error on Unit 53 in subroutine readdis"
+!   call prror(-1)
 
-end subroutine readdis
+! end subroutine readdis
 
 !========================================================================
 !

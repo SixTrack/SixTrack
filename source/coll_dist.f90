@@ -54,6 +54,8 @@ subroutine cdist_makeDist(distFormat)
     call cdist_makeDist_fmt2
   case(3)
     call cdist_makeDist_fmt3
+  case(4)
+    call cdist_makeDist_fmt4
   case default
     write(lout,"(a)") "COLLDIST> ERROR Unknown distribution format. Valid is 0 to 6, got ",distFormat
   end select
@@ -202,5 +204,78 @@ subroutine cdist_makeDist_fmt3
   end do
 
 end subroutine cdist_makeDist_fmt3
+
+! ================================================================================================ !
+!  Generation of Distribution Format 4 (Read File)
+!  Written by:   S. Redaelli, 2005-05-09
+!  Rewritten by: V.K. Berglyd Olsen, 2019-03-26
+!  File format: x[m], xp[rad], y[m], yp[rad], s[mm], dE [MeV]
+! ================================================================================================ !
+subroutine cdist_makeDist_fmt4
+
+  use crcoall
+  use parpro
+  use mod_units
+  use string_tools
+  use mod_common, only : napx
+  use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
+
+  implicit none
+
+  integer :: j, inUnit
+
+  character(len=mInputLn) inLine
+  character(len=:), allocatable :: lnSplit(:)
+  integer nSplit
+  logical spErr, fErr
+
+  write(lout,"(a)") "COLLDIST> Reading input bunch from file '"//trim(cdist_fileName)//"'"
+
+  fErr  = .false.
+  spErr = .false.
+  call f_requestUnit(cdist_fileName, inUnit)
+  call f_open(unit=inUnit,file=cdist_fileName,formatted=.true.,mode="r",err=fErr,status="old")
+  if(fErr)then
+    write(lout,"(a)") "COLLDIST> ERROR Could not read file '"//trim(cdist_fileName)//"'"
+    call prror
+  end if
+
+  do j=1,napx
+    read(inUnit,"(a)",end=10,err=20) inLine
+    call chr_split(inLine, lnSplit, nSplit, spErr)
+    if(spErr) then
+      write(lout,"(a)") "COLLDIST> ERROR Failed to parse input line from particle distribution file."
+      call prror
+    end if
+    if(nSplit /= 6) then
+      write(lout,"(a)") "COLLDIST> ERROR Expected 6 values per line in particle distribution file."
+      call prror
+    end if
+    call chr_cast(lnSplit(1),xv1(j),  spErr)
+    call chr_cast(lnSplit(2),yv1(j),  spErr)
+    call chr_cast(lnSplit(3),xv2(j),  spErr)
+    call chr_cast(lnSplit(4),yv2(j),  spErr)
+    call chr_cast(lnSplit(5),sigmv(j),spErr)
+    call chr_cast(lnSplit(6),ejv(j),  spErr)
+    if(spErr) then
+      write(lout,"(a)") "COLLDIST> ERROR Failed to parse value from particle distribution file."
+      call prror
+    end if
+  end do
+  call f_close(inUnit)
+  write(lout,"(a,i0)") "COLLDIST> Number of particles read from the file is ",napx
+
+  return
+
+10 continue
+  write(lout,"(a,i0,a)") "COLLDIST> ERROR Dsitribution file contained less than ",napx," particles"
+  call prror
+  return
+
+20 continue
+  write(lout,"(a)") "COLLDIST> ERROR Could not read file '"//trim(cdist_fileName)//"'"
+  call prror
+
+end subroutine cdist_makeDist_fmt4
 
 end module coll_dist
