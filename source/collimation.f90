@@ -1018,8 +1018,7 @@ subroutine collimate_init()
     case(4)
       call cdist_makeDist(4)
     case(5)
-      call makedis_ga(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-                      myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength )
+      call cdist_makeDist(5)
     case(6)
       call readdis_norm(filename_dis, myalphax, myalphay, mybetax, mybetay, &
                         myemitx0_dist, myemity0_dist, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
@@ -7085,160 +7084,160 @@ subroutine makedis_radial( myalphax, myalphay, mybetax,      &
   return
 end subroutine makedis_radial
 
-!>
-!! \brief The routine makes an initial Gaussian distribution
-!!
-!!     Uses the old routine 'MAKEDIS' for the halo plane and adds the\n
-!!     transverse beam size in the other plane (matched distrubutions\n
-!!     are generated starting from the twiss functions).\n
-!!     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches\n
-!!     centred in the aperture centre are generated. (SR, 08-05-2005)
-!!
-!!     YIL EDIT 2010: particle 0 is always on orbit...
-!!
-!! @author Javier Barranco <jbarranc@cern.ch>
-!! @param myalphax
-!! @param myalphay
-!! @param mybetax
-!! @param mybetay
-!! @param myemitx0
-!! @param myemity0
-!! @param myenom
-!! @param mynex
-!! @param mdex
-!! @param myney
-!! @param mdey
-!! @param myx
-!! @param myxp
-!! @param myy
-!! @param myyp
-!! @param myp
-!! @param mys
-!! @param enerror
-!! @param bunchlength
-!!
-!! @date Last modified: 06. August 2009
-!! @see ran_gauss
-!!
-!<
-subroutine makedis_ga( myalphax, myalphay, mybetax, mybetay, myemitx0, myemity0, myenom, mynex, mdex, myney, mdey, &
- &  myx, myxp, myy, myyp, myp, mys, enerror, bunchlength )
+! !>
+! !! \brief The routine makes an initial Gaussian distribution
+! !!
+! !!     Uses the old routine 'MAKEDIS' for the halo plane and adds the\n
+! !!     transverse beam size in the other plane (matched distrubutions\n
+! !!     are generated starting from the twiss functions).\n
+! !!     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches\n
+! !!     centred in the aperture centre are generated. (SR, 08-05-2005)
+! !!
+! !!     YIL EDIT 2010: particle 0 is always on orbit...
+! !!
+! !! @author Javier Barranco <jbarranc@cern.ch>
+! !! @param myalphax
+! !! @param myalphay
+! !! @param mybetax
+! !! @param mybetay
+! !! @param myemitx0
+! !! @param myemity0
+! !! @param myenom
+! !! @param mynex
+! !! @param mdex
+! !! @param myney
+! !! @param mdey
+! !! @param myx
+! !! @param myxp
+! !! @param myy
+! !! @param myyp
+! !! @param myp
+! !! @param mys
+! !! @param enerror
+! !! @param bunchlength
+! !!
+! !! @date Last modified: 06. August 2009
+! !! @see ran_gauss
+! !!
+! !<
+! subroutine makedis_ga( myalphax, myalphay, mybetax, mybetay, myemitx0, myemity0, myenom, mynex, mdex, myney, mdey, &
+!  &  myx, myxp, myy, myyp, myp, mys, enerror, bunchlength )
 
-  use crcoall
-  use parpro
-  use mod_ranlux
-  use mod_common_track
-  use mod_common, only : napx
-  implicit none
+!   use crcoall
+!   use parpro
+!   use mod_ranlux
+!   use mod_common_track
+!   use mod_common, only : napx
+!   implicit none
 
-  integer :: j
-  real(kind=fPrec), allocatable :: myx(:) !(npart)
-  real(kind=fPrec), allocatable :: myxp(:) !(npart)
-  real(kind=fPrec), allocatable :: myy(:) !(npart)
-  real(kind=fPrec), allocatable :: myyp(:) !(npart)
-  real(kind=fPrec), allocatable :: myp(:) !(npart)
-  real(kind=fPrec), allocatable :: mys(:) !(npart)
+!   integer :: j
+!   real(kind=fPrec), allocatable :: myx(:) !(npart)
+!   real(kind=fPrec), allocatable :: myxp(:) !(npart)
+!   real(kind=fPrec), allocatable :: myy(:) !(npart)
+!   real(kind=fPrec), allocatable :: myyp(:) !(npart)
+!   real(kind=fPrec), allocatable :: myp(:) !(npart)
+!   real(kind=fPrec), allocatable :: mys(:) !(npart)
 
-  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom
+!   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+!   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+!   &xsigmax,ysigmay,myenom
 
-  real(kind=fPrec) enerror, bunchlength
-  real(kind=fPrec) en_error, bunch_length
+!   real(kind=fPrec) enerror, bunchlength
+!   real(kind=fPrec) en_error, bunch_length
 
-  real(kind=fPrec) long_cut
-  real(kind=fPrec) a_st, b_st
-  integer startpar
+!   real(kind=fPrec) long_cut
+!   real(kind=fPrec) a_st, b_st
+!   integer startpar
 
-  save
+!   save
 
-!-----------------------------------------------------------------------
-!++  Generate particle distribution
-!
-!++  Generate random distribution, assuming optical parameters at IP1
-!
-!++  Calculate the gammas
+! !-----------------------------------------------------------------------
+! !++  Generate particle distribution
+! !
+! !++  Generate random distribution, assuming optical parameters at IP1
+! !
+! !++  Calculate the gammas
 
-  mygammax = (one+myalphax**2)/mybetax
-  mygammay = (one+myalphay**2)/mybetay
-  en_error = enerror
-  bunch_length = bunchlength
+!   mygammax = (one+myalphax**2)/mybetax
+!   mygammay = (one+myalphay**2)/mybetay
+!   en_error = enerror
+!   bunch_length = bunchlength
 
-  write (lout,*) "Generation of bunch with dp/p and length:"
-  write (lout,*) "  RMS bunch length  = ", bunch_length
-  write (lout,*) "  RMS energy spread = ", en_error
-! JBG August 2007
-  write (lout,*)
-  write (lout,*) "   ***STEP 1 for Gaussian Beam***"
-  write (lout,*)
-  write (lout,*) "   Beam generated with 5 sigma cut"
-  write (lout,*)
-  write (lout,*) "  Parameters used for Distribution Generation"
-  write (lout,*) "  BetaX =", mybetax
-  write (lout,*) "  BetaY =", mybetay
-  write (lout,*) "  EmittanceX =", myemitx0
-  write (lout,*) "  EmittanceY =", myemity0
-  write (lout,*)
+!   write (lout,*) "Generation of bunch with dp/p and length:"
+!   write (lout,*) "  RMS bunch length  = ", bunch_length
+!   write (lout,*) "  RMS energy spread = ", en_error
+! ! JBG August 2007
+!   write (lout,*)
+!   write (lout,*) "   ***STEP 1 for Gaussian Beam***"
+!   write (lout,*)
+!   write (lout,*) "   Beam generated with 5 sigma cut"
+!   write (lout,*)
+!   write (lout,*) "  Parameters used for Distribution Generation"
+!   write (lout,*) "  BetaX =", mybetax
+!   write (lout,*) "  BetaY =", mybetay
+!   write (lout,*) "  EmittanceX =", myemitx0
+!   write (lout,*) "  EmittanceY =", myemity0
+!   write (lout,*)
 
-  startpar=1
+!   startpar=1
 
-#ifdef BEAMGAS
-! YIL July 2010 first particle on orbit
-!  initial xangle (if any) is not
-!  yet applied at this point...
-!  so we can set all to 0.
-  startpar=2
-  myx(1)  = zero     !hr13
-  myy(1)  = zero     !hr13
-  myxp(1) = zero     !hr13
-  myyp(1) = zero     !hr13
-  myp(1)  = myenom
-  mys(1)  = zero
-!YIL end edit July 2010
-#endif
+! #ifdef BEAMGAS
+! ! YIL July 2010 first particle on orbit
+! !  initial xangle (if any) is not
+! !  yet applied at this point...
+! !  so we can set all to 0.
+!   startpar=2
+!   myx(1)  = zero     !hr13
+!   myy(1)  = zero     !hr13
+!   myxp(1) = zero     !hr13
+!   myyp(1) = zero     !hr13
+!   myp(1)  = myenom
+!   mys(1)  = zero
+! !YIL end edit July 2010
+! #endif
 
-  do j=startpar, napx
-! JBG July 2007
-! Option added for septum studies
+!   do j=startpar, napx
+! ! JBG July 2007
+! ! Option added for septum studies
 
-    myemitx = myemitx0
-    xsigmax = sqrt(mybetax*myemitx)
-    myx(j)  = xsigmax * ran_gauss(mynex)
-    myxp(j) = ran_gauss(mynex)*sqrt(myemitx/mybetax)-((myalphax*myx(j))/mybetax)  !hr13
-    myemity = myemity0
-    ysigmay = sqrt(mybetay*myemity)
-    myy(j)  = ysigmay * ran_gauss(myney)
-    myyp(j) = ran_gauss(myney)*sqrt(myemity/mybetay)-((myalphay*myy(j))/mybetay)  !hr13
-  end do
+!     myemitx = myemitx0
+!     xsigmax = sqrt(mybetax*myemitx)
+!     myx(j)  = xsigmax * ran_gauss(mynex)
+!     myxp(j) = ran_gauss(mynex)*sqrt(myemitx/mybetax)-((myalphax*myx(j))/mybetax)  !hr13
+!     myemity = myemity0
+!     ysigmay = sqrt(mybetay*myemity)
+!     myy(j)  = ysigmay * ran_gauss(myney)
+!     myyp(j) = ran_gauss(myney)*sqrt(myemity/mybetay)-((myalphay*myy(j))/mybetay)  !hr13
+!   end do
 
-! SR, 11-08-2005 For longitudinal phase-space, add a cut at 2 sigma
-!++   1st: generate napxnumbers within the chosen cut
+! ! SR, 11-08-2005 For longitudinal phase-space, add a cut at 2 sigma
+! !++   1st: generate napxnumbers within the chosen cut
 
-  long_cut = 2
-  j = startpar
+!   long_cut = 2
+!   j = startpar
 
-  do while (j.le.napx)
-    a_st = ran_gauss(five)
-    b_st = ran_gauss(five)
+!   do while (j.le.napx)
+!     a_st = ran_gauss(five)
+!     b_st = ran_gauss(five)
 
-    do while ((a_st*a_st+b_st*b_st).gt.long_cut*long_cut)
-      a_st = ran_gauss(five)
-      b_st = ran_gauss(five)
-    end do
+!     do while ((a_st*a_st+b_st*b_st).gt.long_cut*long_cut)
+!       a_st = ran_gauss(five)
+!       b_st = ran_gauss(five)
+!     end do
 
-    mys(j) = a_st
-    myp(j) = b_st
-    j = j + 1
-  end do
+!     mys(j) = a_st
+!     myp(j) = b_st
+!     j = j + 1
+!   end do
 
-!++   2nd: give the correct values
-  do j=startpar,napx
-    myp(j) = myenom * (one + myp(j) * en_error)
-    mys(j) = bunch_length * mys(j)
-  end do
+! !++   2nd: give the correct values
+!   do j=startpar,napx
+!     myp(j) = myenom * (one + myp(j) * en_error)
+!     mys(j) = bunch_length * mys(j)
+!   end do
 
-  return
-end subroutine makedis_ga
+!   return
+! end subroutine makedis_ga
 
 !ccccccccccccccccccccccccccccccccccccccc
 real(kind=fPrec) function myran_gauss(cut)

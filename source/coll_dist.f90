@@ -51,11 +51,17 @@ subroutine cdist_makeDist(distFormat)
   case(1)
     call cdist_makeDist_fmt1
   case(2)
+    call cdist_makeDist_fmt1
     call cdist_makeDist_fmt2
   case(3)
+    call cdist_makeDist_fmt1
+    call cdist_makeDist_fmt2
     call cdist_makeDist_fmt3
   case(4)
     call cdist_makeDist_fmt4
+  case(5)
+    call cdist_makeDist_fmt3
+    call cdist_makeDist_fmt5
   case default
     write(lout,"(a)") "COLLDIST> ERROR Unknown distribution format. Valid is 0 to 6, got ",distFormat
   end select
@@ -142,8 +148,6 @@ subroutine cdist_makeDist_fmt2
     call prror
   end if
 
-  call cdist_makeDist_fmt1
-
   if(cdist_ampX < pieni) then
     do j=1,napx
       phiX   = twopi*real(rndm4(),fPrec)
@@ -182,8 +186,6 @@ subroutine cdist_makeDist_fmt3
 
   real(kind=fPrec) :: long_cut, a_st, b_st
   integer          :: j
-
-  call cdist_makeDist_fmt2
 
   ! For longitudinal phase-space, add a cut at 2 sigma
   long_cut = 2
@@ -277,5 +279,47 @@ subroutine cdist_makeDist_fmt4
   call prror
 
 end subroutine cdist_makeDist_fmt4
+
+! ================================================================================================ !
+!  Generation of Distribution Format 5
+!  Written by:   J. Barranco, 2009-08-06
+!  Rewritten by: V.K. Berglyd Olsen, 2019-03-26
+!  Radial transverse distribution of radius Ar
+! ================================================================================================ !
+subroutine cdist_makeDist_fmt5
+
+  use crcoall
+  use parpro
+  use mod_ranlux
+  use mod_common, only : napx
+  use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
+
+  implicit none
+
+  real(kind=fPrec) :: emitX, emitY, sigmaX, sigmaY
+  integer          :: j
+
+  do j=1, napx
+    emitX  = cdist_emitX
+    sigmaX = sqrt(cdist_betaX*emitX)
+    xv1(j) = sigmaX*ran_gauss(cdist_ampX)
+    yv1(j) = ran_gauss(cdist_ampX)*sqrt(emitX/cdist_betaX)-((cdist_alphaX*xv1(j))/cdist_betaX)
+
+    emitY  = cdist_emitY
+    sigmaY = sqrt(cdist_betaY*emitY)
+    xv2(j) = sigmaY*ran_gauss(cdist_ampY)
+    yv2(j) = ran_gauss(cdist_ampY)*sqrt(emitY/cdist_betaY)-((cdist_alphaY*xv2(j))/cdist_betaY)
+  end do
+
+#ifdef BEAMGAS
+  xv1(1)   = zero
+  xv2(1)   = zero
+  yv1(1)   = zero
+  yv2(1)   = zero
+  ejv(1)   = cdist_energy
+  sigmv(1) = zero
+#endif
+
+end subroutine cdist_makeDist_fmt5
 
 end module coll_dist
