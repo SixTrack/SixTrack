@@ -84,8 +84,8 @@ module collimation
 
   ! Radial Dist
   logical,          private, save :: radial  = .false.
-  real(kind=fPrec), private, save :: nr      = zero
-  real(kind=fPrec), private, save :: ndr     = zero
+! real(kind=fPrec), private, save :: nr      = zero
+! real(kind=fPrec), private, save :: ndr     = zero
 
   ! Emittance Drift
   real(kind=fPrec), private, save :: driftsx = zero
@@ -729,7 +729,7 @@ subroutine collimate_init()
   type(h5_dataField), allocatable :: fldDist0(:)
   integer                         :: fmtDist0, setDist0
 #endif
-  integer :: i,j
+  integer :: i,j,fUnit
 
 #ifdef HDF5
   if(h5_useForCOLL) call h5_initForCollimation
@@ -934,10 +934,10 @@ subroutine collimate_init()
   write(lout,"(a,i0)")    'COLL> Info: C_OFFSETTITLT_SEED  = ', c_offsettilt_seed
   write(lout,"(a,e15.8)") 'COLL> Info: C_RMSERROR_GAP      = ', c_rmserror_gap
   write(lout,"(a,l1)")    'COLL> Info: DO_MINGAP           = ', do_mingap
-  write(lout,"(a)")
-  write(lout,"(a,l1)")    'COLL> Info: RADIAL              = ', radial
-  write(lout,"(a,e15.8)") 'COLL> Info: NR                  = ', nr
-  write(lout,"(a,e15.8)") 'COLL> Info: NDR                 = ', ndr
+! write(lout,"(a)")
+! write(lout,"(a,l1)")    'COLL> Info: RADIAL              = ', radial
+! write(lout,"(a,e15.8)") 'COLL> Info: NR                  = ', nr
+! write(lout,"(a,e15.8)") 'COLL> Info: NDR                 = ', ndr
   write(lout,"(a)")
   write(lout,"(a,e15.8)") 'COLL: Info: DRIFTSX             = ', driftsx
   write(lout,"(a,e15.8)") 'COLL: Info: DRIFTSY             = ', driftsy
@@ -1002,12 +1002,13 @@ subroutine collimate_init()
   cdist_spreadE  = enerror
   cdist_bunchLen = bunchlength
   cdist_fileName = filename_dis
-  if(radial) then
-    call makedis_radial(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-                        myenom, nr, ndr, myx, myxp, myy, myyp, myp, mys)
-  else
-    call cdist_makeDist(do_thisdis)
-  end if
+  call cdist_makeDist(do_thisdis)
+  ! if(radial) then
+  !   call makedis_radial(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
+  !                       myenom, nr, ndr, myx, myxp, myy, myyp, myp, mys)
+  ! else
+  !   call cdist_makeDist(do_thisdis)
+  ! end if
 
 !++  Reset distribution for pencil beam
 !
@@ -1046,13 +1047,12 @@ subroutine collimate_init()
       deallocate(fldDist0)
     else
 #endif
-      call f_requestUnit('dist0.dat', dist0_unit)
-      open(unit=dist0_unit,file='dist0.dat') !was 52
-      do j = 1, napx
-        ! write(dist0_unit,'(6(1X,E23.15))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
-        write(dist0_unit,'(6(1X,E23.15))') xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejv(j)
+      call f_requestUnit("dist0.dat", fUnit)
+      call f_open(unit=fUnit,file="dist0.dat",formatted=.true.,mode="w")
+      do j=1, napx
+        write(fUnit,"(6(1x,e23.15))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejv(j)
       end do
-      close(dist0_unit)
+      call f_close(fUnit)
 #ifdef HDF5
     end if
 #endif
@@ -1418,24 +1418,24 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(2), do_mingap, iErr)
 
-  case("DO_RADIAL")
-    if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR DO_RADIAL expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DO_RADIAL true|false"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), radial, iErr)
+  ! case("DO_RADIAL")
+  !   if(nSplit /= 2) then
+  !     write(lout,"(a,i0)") "COLL> ERROR DO_RADIAL expects 1 value, got ",nSplit-1
+  !     write(lout,"(a)")    "COLL>       DO_RADIAL true|false"
+  !     iErr = .true.
+  !     return
+  !   end if
+  !   call chr_cast(lnSplit(2), radial, iErr)
 
-  case("RADIAL_DIST")
-    if(nSplit /= 3) then
-      write(lout,"(a,i0)") "COLL> ERROR RADIAL_DIST expects 2 values, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       RADIAL_DIST size smear"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), nr,  iErr)
-    call chr_cast(lnSplit(3), ndr, iErr)
+  ! case("RADIAL_DIST")
+  !   if(nSplit /= 3) then
+  !     write(lout,"(a,i0)") "COLL> ERROR RADIAL_DIST expects 2 values, got ",nSplit-1
+  !     write(lout,"(a)")    "COLL>       RADIAL_DIST size smear"
+  !     iErr = .true.
+  !     return
+  !   end if
+  !   call chr_cast(lnSplit(2), nr,  iErr)
+  !   call chr_cast(lnSplit(3), ndr, iErr)
 
   case("EMIT_DRIFT")
     if(nSplit /= 3) then
@@ -1685,8 +1685,13 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(13)
     if(nSplit > 0)  call chr_cast(lnSplit(1), radial,iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), nr,    iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), ndr,   iErr)
+  ! if(nSplit > 1)  call chr_cast(lnSplit(2), nr,    iErr)
+  ! if(nSplit > 2)  call chr_cast(lnSplit(3), ndr,   iErr)
+    if(radial) then
+      write(lout,"(a)") "COLL> ERROR Radial flag no longer supported. Use dist format 1."
+      iErr = .true.
+      return
+    endif
 
   case(14)
     if(nSplit > 0)  call chr_cast(lnSplit(1), driftsx,         iErr)
@@ -1705,7 +1710,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       write(lout,"(a)") "COLL> ERROR Pencil distribution not supported with geant4"
       iErr = .true.
       return
-    endif
+    end if
 #endif
 
   case(16)
@@ -6348,117 +6353,117 @@ end subroutine makedis_coll
 
 !========================================================================
 !
-subroutine makedis_radial( myalphax, myalphay, mybetax,      &
-     &mybetay, myemitx0, myemity0, myenom, nr, ndr, myx, myxp, myy, myyp, myp, mys)
+! subroutine makedis_radial( myalphax, myalphay, mybetax,      &
+!      &mybetay, myemitx0, myemity0, myenom, nr, ndr, myx, myxp, myy, myyp, myp, mys)
 
-  use crcoall
-  use mathlib_bouncer
-  use mod_ranlux
-  use mod_common, only : napx
-  implicit none
+!   use crcoall
+!   use mathlib_bouncer
+!   use mod_ranlux
+!   use mod_common, only : napx
+!   implicit none
 
-  integer :: j
-  real(kind=fPrec), allocatable :: myx(:) !(npart)
-  real(kind=fPrec), allocatable :: myxp(:) !(npart)
-  real(kind=fPrec), allocatable :: myy(:) !(npart)
-  real(kind=fPrec), allocatable :: myyp(:) !(npart)
-  real(kind=fPrec), allocatable :: myp(:) !(npart)
-  real(kind=fPrec), allocatable :: mys(:) !(npart)
+!   integer :: j
+!   real(kind=fPrec), allocatable :: myx(:) !(npart)
+!   real(kind=fPrec), allocatable :: myxp(:) !(npart)
+!   real(kind=fPrec), allocatable :: myy(:) !(npart)
+!   real(kind=fPrec), allocatable :: myyp(:) !(npart)
+!   real(kind=fPrec), allocatable :: myp(:) !(npart)
+!   real(kind=fPrec), allocatable :: mys(:) !(npart)
 
-  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom,nr,ndr
+!   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+!   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+!   &xsigmax,ysigmay,myenom,nr,ndr
 
-  save
-!-----------------------------------------------------------------------
-!++  Generate particle distribution
-!
-!
-!++  Generate random distribution, assuming optical parameters at IP1
-!
-!++  Calculate the gammas
+!   save
+! !-----------------------------------------------------------------------
+! !++  Generate particle distribution
+! !
+! !
+! !++  Generate random distribution, assuming optical parameters at IP1
+! !
+! !++  Calculate the gammas
 
-  mygammax = (one+myalphax**2)/mybetax
-  mygammay = (one+myalphay**2)/mybetay
+!   mygammax = (one+myalphax**2)/mybetax
+!   mygammay = (one+myalphay**2)/mybetay
 
-!++  Number of points and generate distribution
+! !++  Number of points and generate distribution
 
-  mynex = nr/sqrt(two)
-  mdex = ndr/sqrt(two)
-  myney = nr/sqrt(two)
-  mdey = ndr/sqrt(two)
+!   mynex = nr/sqrt(two)
+!   mdex = ndr/sqrt(two)
+!   myney = nr/sqrt(two)
+!   mdey = ndr/sqrt(two)
 
-  write(lout,*)
-  write(lout,*) 'Generation of particle distribution Version 2'
-  write(lout,*)
-  write(lout,*) 'This routine generates particles in that are fully'
-  write(lout,*) 'correlated between X and Y.'
-  write(lout,*)
+!   write(lout,*)
+!   write(lout,*) 'Generation of particle distribution Version 2'
+!   write(lout,*)
+!   write(lout,*) 'This routine generates particles in that are fully'
+!   write(lout,*) 'correlated between X and Y.'
+!   write(lout,*)
 
-  write(outlun,*)
-  write(outlun,*) 'Generation of particle distribution Version 2'
-  write(outlun,*)
-  write(outlun,*) 'This routine generates particles in that are fully'
-  write(outlun,*) 'correlated between X and Y.'
-  write(outlun,*)
-  write(outlun,*)
-  write(outlun,*) 'INFO>  Number of particles   = ', napx
-  write(outlun,*) 'INFO>  Av number of x sigmas = ', mynex
-  write(outlun,*) 'INFO>  +- spread in x sigmas = ', mdex
-  write(outlun,*) 'INFO>  Av number of y sigmas = ', myney
-  write(outlun,*) 'INFO>  +- spread in y sigmas = ', mdey
-  write(outlun,*) 'INFO>  Nominal beam energy   = ', myenom
-  write(outlun,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0)
-  write(outlun,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0)
-  write(outlun,*)
+!   write(outlun,*)
+!   write(outlun,*) 'Generation of particle distribution Version 2'
+!   write(outlun,*)
+!   write(outlun,*) 'This routine generates particles in that are fully'
+!   write(outlun,*) 'correlated between X and Y.'
+!   write(outlun,*)
+!   write(outlun,*)
+!   write(outlun,*) 'INFO>  Number of particles   = ', napx
+!   write(outlun,*) 'INFO>  Av number of x sigmas = ', mynex
+!   write(outlun,*) 'INFO>  +- spread in x sigmas = ', mdex
+!   write(outlun,*) 'INFO>  Av number of y sigmas = ', myney
+!   write(outlun,*) 'INFO>  +- spread in y sigmas = ', mdey
+!   write(outlun,*) 'INFO>  Nominal beam energy   = ', myenom
+!   write(outlun,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0)
+!   write(outlun,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0)
+!   write(outlun,*)
 
-  do while (j.lt.napx)
+!   do while (j.lt.napx)
 
-    j = j + 1
-    myemitx = myemitx0*(mynex + ((two*real(rndm4()-half,fPrec))*mdex) )**2  !hr09
-    xsigmax = sqrt(mybetax*myemitx)
-    myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))              !hr09
+!     j = j + 1
+!     myemitx = myemitx0*(mynex + ((two*real(rndm4()-half,fPrec))*mdex) )**2  !hr09
+!     xsigmax = sqrt(mybetax*myemitx)
+!     myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))              !hr09
 
-    if (rndm4().gt.half) then
-      myxp(j) =      sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax !hr09
-    else
-      myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax !hr09
-    endif
+!     if (rndm4().gt.half) then
+!       myxp(j) =      sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax !hr09
+!     else
+!       myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax !hr09
+!     endif
 
-    myemity = myemity0*(myney + ((two*real(rndm4()-half,fPrec))*mdey) )**2  !hr09
-    ysigmay = sqrt(mybetay*myemity)
-    myy(j)  = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))          !hr09
+!     myemity = myemity0*(myney + ((two*real(rndm4()-half,fPrec))*mdey) )**2  !hr09
+!     ysigmay = sqrt(mybetay*myemity)
+!     myy(j)  = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))          !hr09
 
-    if (rndm4().gt.half) then
-      myyp(j)  = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay      !hr09
-    else
-      myyp(j)  = -one*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay !hr09
-    endif
+!     if (rndm4().gt.half) then
+!       myyp(j)  = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay      !hr09
+!     else
+!       myyp(j)  = -one*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay !hr09
+!     endif
 
-!APRIL2005
-    myp(j)   = myenom
-!        if(j.eq.1) then
-!          myp(j)   = myenom*(1-0.05)
-!!       do j=2,mynp
-!        else
-!          myp(j) = myp(1) + (j-1)*2d0*0.05*myenom/(mynp-1)
-!        endif
-!APRIL2005
-    mys(j)   = zero
+! !APRIL2005
+!     myp(j)   = myenom
+! !        if(j.eq.1) then
+! !          myp(j)   = myenom*(1-0.05)
+! !!       do j=2,mynp
+! !        else
+! !          myp(j) = myp(1) + (j-1)*2d0*0.05*myenom/(mynp-1)
+! !        endif
+! !APRIL2005
+!     mys(j)   = zero
 
-!++  Dangerous stuff, just for the moment
-!
-!        IF ( (.NOT. (Y(j).LT.-.008e-3 .AND. YP(j).LT.0.1e-3 .AND.
-!     1               YP(j).GT.0.0) ) .AND.
-!     2       (.NOT. (Y(j).GT..008e-3 .AND. YP(j).GT.-0.1e-3 .AND.
-!     3               YP(j).LT.0.0) ) ) THEN
-!          J = J - 1
-!        ENDIF
-!
-  end do
+! !++  Dangerous stuff, just for the moment
+! !
+! !        IF ( (.NOT. (Y(j).LT.-.008e-3 .AND. YP(j).LT.0.1e-3 .AND.
+! !     1               YP(j).GT.0.0) ) .AND.
+! !     2       (.NOT. (Y(j).GT..008e-3 .AND. YP(j).GT.-0.1e-3 .AND.
+! !     3               YP(j).LT.0.0) ) ) THEN
+! !          J = J - 1
+! !        ENDIF
+! !
+!   end do
 
-  return
-end subroutine makedis_radial
+!   return
+! end subroutine makedis_radial
 
 !ccccccccccccccccccccccccccccccccccccccc
 real(kind=fPrec) function myran_gauss(cut)

@@ -47,20 +47,17 @@ LINEAR OPTICS-----------------------------------------------------------
   ELEMENT 0 1 1 2.5 2.5
 NEXT
 COLLIMATION-------------------------------------------------------------
-DO_COLL      .true.
-SEED         42
+  DO_COLL      .true.
+  SEED         42
 
-ENERGY       7000000.0
-EMIT         2.5 2.5 2.5 2.5
+  ENERGY       7000000.0
+  EMIT         2.5 2.5 2.5 2.5
 
-COLLDB       "CollDB-HLLHC.dat"
-BEAM_NUM     1
+  COLLDB       "CollDB-HLLHC.dat"
+  BEAM_NUM     1
 
-DIST_TYPE    2
-DIST_PARAM   0.0  0.0  1.0  0.1
-WRITE_DIST   on
-
-DO_RADIAL    off
-RADIAL_DIST  6.003  0.0015
+  DIST_TYPE    2
+  DIST_PARAM   0.0  0.0  1.0  0.1
+  WRITE_DIST   on
 NEXT
 ENDE
