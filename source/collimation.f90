@@ -987,6 +987,7 @@ subroutine collimate_init()
 
 !Call distribution routines only if collimation block is in fort.3, otherwise
 !the standard sixtrack would be prevented by the 'stop' command
+  cdist_logUnit  = outlun
   cdist_energy   = myenom
   cdist_alphaX   = myalphax
   cdist_alphaY   = myalphay
@@ -1010,11 +1011,10 @@ subroutine collimate_init()
       continue
     case(1)
       call cdist_makeDist(1)
-      ! call makedis(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-      !              myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
     case(2)
-      call makedis_st(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-                      myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
+      call cdist_makeDist(2)
+      ! call makedis_st(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
+      !                 myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
     case(3)
       call makedis_de(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
                       myenom, mynex, mdex, myney, mdey,myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
@@ -6367,93 +6367,93 @@ end subroutine calc_ion_loss
 
 !========================================================================
 ! SR, 08-05-2005: Add the finite beam size in the othe dimension
-subroutine makedis_st(myalphax, myalphay, mybetax, mybetay, &
-     &     myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
-     &     myx, myxp, myy, myyp, myp, mys)
+! subroutine makedis_st(myalphax, myalphay, mybetax, mybetay, &
+!      &     myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,  &
+!      &     myx, myxp, myy, myyp, myp, mys)
 
-!     Uses the old routine 'MAKEDIS' for the halo plane and adds the
-!     transverse beam size in the other plane (matched distrubutions
-!     are generated starting from thetwiss functions).
-!     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches
-!     centred in the aperture centre are generated. (SR, 08-05-2005)
+! !     Uses the old routine 'MAKEDIS' for the halo plane and adds the
+! !     transverse beam size in the other plane (matched distrubutions
+! !     are generated starting from thetwiss functions).
+! !     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches
+! !     centred in the aperture centre are generated. (SR, 08-05-2005)
 
-  use crcoall
-  use mathlib_bouncer
-  use mod_ranlux
-  use mod_common, only : napx
-  implicit none
+!   use crcoall
+!   use mathlib_bouncer
+!   use mod_ranlux
+!   use mod_common, only : napx
+!   implicit none
 
-  integer :: j
-  real(kind=fPrec), allocatable :: myx(:) !(npart)
-  real(kind=fPrec), allocatable :: myxp(:) !(npart)
-  real(kind=fPrec), allocatable :: myy(:) !(npart)
-  real(kind=fPrec), allocatable :: myyp(:) !(npart)
-  real(kind=fPrec), allocatable :: myp(:) !(npart)
-  real(kind=fPrec), allocatable :: mys(:) !(npart)
+!   integer :: j
+!   real(kind=fPrec), allocatable :: myx(:) !(npart)
+!   real(kind=fPrec), allocatable :: myxp(:) !(npart)
+!   real(kind=fPrec), allocatable :: myy(:) !(npart)
+!   real(kind=fPrec), allocatable :: myyp(:) !(npart)
+!   real(kind=fPrec), allocatable :: myp(:) !(npart)
+!   real(kind=fPrec), allocatable :: mys(:) !(npart)
 
-  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom
+!   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+!   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+!   &xsigmax,ysigmay,myenom
 
-  real(kind=fPrec) iix, iiy, phix, phiy
-  save
+!   real(kind=fPrec) iix, iiy, phix, phiy
+!   save
 
-!-----------------------------------------------------------------------
-!++  Generate particle distribution
-!++  Generate random distribution, assuming optical parameters at IP1
-!++  Calculate the gammas
-  mygammax = (one+myalphax**2)/mybetax
-  mygammay = (one+myalphay**2)/mybetay
-  do j=1, napx
-    if((mynex.gt.zero).and.(myney.eq.zero)) then
-      myemitx = myemitx0*(mynex+((two*real(rndm4()-half,fPrec))*mdex))**2
-      xsigmax = sqrt(mybetax*myemitx)
-      myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))
+! !-----------------------------------------------------------------------
+! !++  Generate particle distribution
+! !++  Generate random distribution, assuming optical parameters at IP1
+! !++  Calculate the gammas
+!   mygammax = (one+myalphax**2)/mybetax
+!   mygammay = (one+myalphay**2)/mybetay
+!   do j=1, napx
+!     if((mynex.gt.zero).and.(myney.eq.zero)) then
+!       myemitx = myemitx0*(mynex+((two*real(rndm4()-half,fPrec))*mdex))**2
+!       xsigmax = sqrt(mybetax*myemitx)
+!       myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))
 
-      if (rndm4().gt.half) then
-        myxp(j) =     sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
-      else
-       myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
-      end if
+!       if (rndm4().gt.half) then
+!         myxp(j) =     sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
+!       else
+!        myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
+!       end if
 
-      phiy = (two*pi)*real(rndm4(),fPrec)
-      iiy = (-one*myemity0) * log_mb( real(rndm4(),fPrec) )
-      myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
-      myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
+!       phiy = (two*pi)*real(rndm4(),fPrec)
+!       iiy = (-one*myemity0) * log_mb( real(rndm4(),fPrec) )
+!       myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
+!       myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
 
-    else if ( mynex.eq.zero.and.myney.gt.zero ) then
-      myemity = myemity0*(myney+((two*real(rndm4()-half,fPrec))*mdey))**2
-      ysigmay = sqrt(mybetay*myemity)
-      myy(j)  = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))
+!     else if ( mynex.eq.zero.and.myney.gt.zero ) then
+!       myemity = myemity0*(myney+((two*real(rndm4()-half,fPrec))*mdey))**2
+!       ysigmay = sqrt(mybetay*myemity)
+!       myy(j)  = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))
 
-      if (rndm4().gt.half) then
-        myyp(j) =      sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
-      else
-        myyp(j) = -one*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
-      end if
+!       if (rndm4().gt.half) then
+!         myyp(j) =      sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
+!       else
+!         myyp(j) = -one*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
+!       end if
 
-      phix = (two*pi)*real(rndm4(),fPrec)
-      iix = (-one* myemitx0) * log_mb( real(rndm4(),fPrec) )
-      myx(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
-      myxp(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) +myalphax * cos_mb(phix))
+!       phix = (two*pi)*real(rndm4(),fPrec)
+!       iix = (-one* myemitx0) * log_mb( real(rndm4(),fPrec) )
+!       myx(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
+!       myxp(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) +myalphax * cos_mb(phix))
 
-    else if( mynex.eq.zero.and.myney.eq.zero ) then
-      phix = (two*pi)*real(rndm4(),fPrec)
-      iix = (-one*myemitx0) * log_mb( real(rndm4(),fPrec) )
-      myx(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
-      myxp(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) +myalphax * cos_mb(phix))
-      phiy = (two*pi)*real(rndm4(),fPrec)
-      iiy = (-one*myemity0) * log_mb( real(rndm4(),fPrec) )
-      myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
-      myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
-    else
-      write(lout,"(a)") "COLL> ERROR Bbeam parameters not correctly set!"
-    end if
-    myp(j) = myenom
-    mys(j) = zero
-  end do
-  return
-end subroutine makedis_st
+!     else if( mynex.eq.zero.and.myney.eq.zero ) then
+!       phix = (two*pi)*real(rndm4(),fPrec)
+!       iix = (-one*myemitx0) * log_mb( real(rndm4(),fPrec) )
+!       myx(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
+!       myxp(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) +myalphax * cos_mb(phix))
+!       phiy = (two*pi)*real(rndm4(),fPrec)
+!       iiy = (-one*myemity0) * log_mb( real(rndm4(),fPrec) )
+!       myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
+!       myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
+!     else
+!       write(lout,"(a)") "COLL> ERROR Bbeam parameters not correctly set!"
+!     end if
+!     myp(j) = myenom
+!     mys(j) = zero
+!   end do
+!   return
+! end subroutine makedis_st
 
 !========================================================================
 !

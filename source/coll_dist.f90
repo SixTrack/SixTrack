@@ -11,6 +11,7 @@ module coll_dist
   implicit none
 
   ! Other Settings
+  integer,                  public,  save :: cdist_logUnit  = -1
   real(kind=fPrec),         public,  save :: cdist_energy   = zero
 
   ! Twiss
@@ -49,12 +50,19 @@ subroutine cdist_makeDist(distFormat)
     return
   case(1)
     call cdist_makeDist_fmt1
+  case(2)
+    call cdist_makeDist_fmt2
   case default
     write(lout,"(a)") "COLLDIST> ERROR Unknown distribution format. Valid is 0 to 6, got ",distFormat
   end select
 
 end subroutine cdist_makeDist
 
+! ================================================================================================ !
+!  Generation of Distribution Format 1
+!  This routine generates particles in phase space X/XP and Y/YP ellipses, as defined in the input
+!  parameters. Distribution is flat in the band. X and Y are fully uncorrelated.
+! ================================================================================================ !
 subroutine cdist_makeDist_fmt1
 
   use crcoall
@@ -66,70 +74,88 @@ subroutine cdist_makeDist_fmt1
   implicit none
 
   real(kind=fPrec) :: emitX, emitY, sigmaX, sigmaY
-  integer :: j
+  integer          :: j
 
-! real(kind=fPrec) cdist_alphaX,cdist_betaX,cdist_emitX,myemitx,cdist_ampX,cdist_smearX, &
-! &mygammax,cdist_alphaY,cdist_betaY,cdist_emitY,myemity,cdist_ampY,cdist_smearY,mygammay,   &
-! &xsigmax,ysigmay,cdist_energy
+  if(cdist_ampX > zero) then
+    do j=1, napx
+      emitX  = cdist_emitX*(cdist_ampX + ((two*real(rndm4()-half,fPrec))*cdist_smearX))**2
+      sigmaX = sqrt(cdist_betaX*emitX)
+      xv1(j) = sigmaX * sin_mb(twopi*real(rndm4(),fPrec))
+      if(rndm4() > half) then
+        yv1(j) = sqrt(emitX/cdist_betaX-xv1(j)**2/cdist_betaX**2)-(cdist_alphaX*xv1(j))/cdist_betaX
+      else
+        yv1(j) = -one*sqrt(emitX/cdist_betaX-xv1(j)**2/cdist_betaX**2)-(cdist_alphaX*xv1(j))/cdist_betaX
+      end if
+    end do
+  else
+    xv1(:) = zero
+    yv1(:) = zero
+  end if
 
-  ! write(lout,"(a)") 'COLL> Generation of particle distribution Version 1:'
-  ! write(lout,"(a)") 'COLL> This routine generates particles in phase space X/XP and Y/YP ellipses, as defined in the input '
-  ! write(lout,"(a)") 'COLL> parameters. Distribution is flat in the band. X and Y are fully uncorrelated.'
+  if(cdist_ampY > zero) then
+    do j=1, napx
+      emitY  = cdist_emitY*(cdist_ampY + ((two*real(rndm4()-half,fPrec))*cdist_smearY))**2
+      sigmaY = sqrt(cdist_betaY*emitY)
+      xv2(j) = sigmaY * sin_mb(twopi*real(rndm4(),fPrec))
+      if(rndm4() > half) then
+        yv2(j) = sqrt(emitY/cdist_betaY-xv2(j)**2/cdist_betaY**2)-(cdist_alphaY*xv2(j))/cdist_betaY
+      else
+        yv2(j) = -one*sqrt(emitY/cdist_betaY-xv2(j)**2/cdist_betaY**2)-(cdist_alphaY*xv2(j))/cdist_betaY
+      end if
+    end do
+  else
+    xv2(:) = zero
+    yv2(:) = zero
+  end if
 
-  ! write(outlun,*)
-  ! write(outlun,*) 'Generation of particle distribution Version 1'
-  ! write(outlun,*)
-  ! write(outlun,*) 'This routine generates particles in phase space'
-  ! write(outlun,*) 'X/XP and Y/YP ellipses, as defined in the input'
-  ! write(outlun,*) 'parameters. Distribution is flat in the band.'
-  ! write(outlun,*) 'X and Y are fully uncorrelated.'
-  ! write(outlun,*)
-  ! write(outlun,*) 'INFO>  Number of particles   = ', napx
-  ! write(outlun,*) 'INFO>  Av number of x sigmas = ', cdist_ampX
-  ! write(outlun,*) 'INFO>  +- spread in x sigmas = ', cdist_smearX
-  ! write(outlun,*) 'INFO>  Av number of y sigmas = ', cdist_ampY
-  ! write(outlun,*) 'INFO>  +- spread in y sigmas = ', cdist_smearY
-  ! write(outlun,*) 'INFO>  Nominal beam energy   = ', cdist_energy
-  ! write(outlun,*) 'INFO>  Sigma_x0 = ', sqrt(cdist_betaX*cdist_emitX)
-  ! write(outlun,*) 'INFO>  Sigma_y0 = ', sqrt(cdist_betaY*cdist_emitY)
-  ! write(outlun,*) 'INFO>  Beta x   = ', cdist_betaX
-  ! write(outlun,*) 'INFO>  Beta y   = ', cdist_betaY
-  ! write(outlun,*) 'INFO>  Alpha x  = ', cdist_alphaX
-  ! write(outlun,*) 'INFO>  Alpha y  = ', cdist_alphaY
-  ! write(outlun,*)
-
-  do j=1, napx
-    emitX  = cdist_emitX*(cdist_ampX + ((two*real(rndm4()-half,fPrec))*cdist_smearX))**2
-    sigmaX = sqrt(cdist_betaX*emitX)
-    xv1(j) = sigmaX * sin_mb(twopi*real(rndm4(),fPrec))
-    if(rndm4() > half) then
-      yv1(j) = sqrt(emitX/cdist_betaX-xv1(j)**2/cdist_betaX**2)-(cdist_alphaX*xv1(j))/cdist_betaX
-    else
-      yv1(j) = -one*sqrt(emitX/cdist_betaX-xv1(j)**2/cdist_betaX**2)-(cdist_alphaX*xv1(j))/cdist_betaX
-    end if
-
-    emitY  = cdist_emitY*(cdist_ampY + ((two*real(rndm4()-half,fPrec))*cdist_smearY))**2
-    sigmaY = sqrt(cdist_betaY*emitY)
-    xv2(j) = sigmaY * sin_mb(twopi*real(rndm4(),fPrec))
-    if(rndm4() > half) then
-      yv2(j) = sqrt(emitY/cdist_betaY-xv2(j)**2/cdist_betaY**2)-(cdist_alphaY*xv2(j))/cdist_betaY
-    else
-      yv2(j) = -one*sqrt(emitY/cdist_betaY-xv2(j)**2/cdist_betaY**2)-(cdist_alphaY*xv2(j))/cdist_betaY
-    end if
-
-    ejv(j)   = cdist_energy
-    sigmv(j) = zero
-
-  ! !++  Dangerous stuff, just for the moment
-  !  if (cut_input) then
-  !    !0.1d-3 -> c1m4
-  !    if((.not. (myy(j).lt.-0.008e-3_fPrec .and. myyp(j).lt. c1m4 .and.myyp(j).gt.zero) ) .and. &
-  ! &        (.not. (myy(j).gt. 0.008e-3_fPrec .and. myyp(j).gt.-c1m4 .and.myyp(j).lt.zero) ) ) then
-  !      j = j - 1
-  !    end if
-  !  end if
-  end do
+  ejv(:)   = cdist_energy
+  sigmv(:) = zero
 
 end subroutine cdist_makeDist_fmt1
+
+! ================================================================================================ !
+!  Generation of Distribution Format 2
+!  Uses format 1, and generates the transverse beam size in the direction set to zero in fort.3
+! ================================================================================================ !
+subroutine cdist_makeDist_fmt2
+
+  use crcoall
+  use mathlib_bouncer
+  use mod_ranlux
+  use mod_common, only : napx
+  use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
+
+  implicit none
+
+  real(kind=fPrec) :: iiX, iiY, phiX, phiY
+  integer          :: j
+
+  if(cdist_ampX > zero .and. cdist_ampY > zero) then
+    write(lout,"(a)") "COLLDIST> ERROR Distribution parameters for format 2 are incorrectly set."
+    write(lout,"(a)") "COLLDIST>       Both X and Y amplitude is larger than zero. Use format 1 instead."
+    call prror
+  end if
+
+  call cdist_makeDist_fmt1
+
+  if(cdist_ampX < pieni) then
+    do j=1,napx
+      phiX   = twopi*real(rndm4(),fPrec)
+      iiX    = (-one*cdist_emitX) * log_mb(real(rndm4(),fPrec))
+      xv1(j) = sqrt((two*iiX)*cdist_betaX) * cos_mb(phiX)
+      yv1(j) = (-one*sqrt((two*iiX)/cdist_betaX)) * (sin_mb(phiX) + cdist_alphaX * cos_mb(phiX))
+    end do
+  end if
+
+  if(cdist_ampY < pieni) then
+    do j=1,napx
+      phiY   = twopi*real(rndm4(),fPrec)
+      iiY    = (-one*cdist_emitY) * log_mb(real(rndm4(),fPrec))
+      xv2(j) = sqrt((two*iiY)*cdist_betaY) * cos_mb(phiY)
+      yv2(j) = (-one*sqrt((two*iiY)/cdist_betaY)) * (sin_mb(phiY) + cdist_alphaY * cos_mb(phiY))
+    end do
+  end if
+
+end subroutine cdist_makeDist_fmt2
 
 end module coll_dist
