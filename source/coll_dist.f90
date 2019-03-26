@@ -325,13 +325,21 @@ subroutine cdist_makeDist_fmt5
 
 end subroutine cdist_makeDist_fmt5
 
+! ================================================================================================ !
+!  Generation of Distribution Format 6 (Read File)
+!  Written by:   K.N. Sjobak
+!  Rewritten by: V.K. Berglyd Olsen, 2019-03-26
+!  A normalized distribution with x,xp,y,yp,z,zp is read and transformed with the TAS matrix T,
+!  which is the transformation matrix from normalized to physical coordinates. It is scaled with
+!  the geometric emittances in diag matrix S. x = T*S*normx
+!  Units of TAS matrix # m,rad,m,rad,m,1
+!  The collimation coordinates/units are x[m], x'[rad], y[m], y'[rad]$, sig[mm], dE [MeV].
+! ================================================================================================ !
 subroutine cdist_makeDist_fmt6
 
   use crcoall
   use parpro
-  use string_tools
-  use mod_units
-  use mod_common, only : napx
+  use mod_common, only : napx, iclo6
   use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv, tas, clop6v
 
   implicit none
@@ -340,32 +348,16 @@ subroutine cdist_makeDist_fmt6
   real(kind=fPrec) :: emitX, emitY, emitZ
   integer          :: j
 
-  ! if (iclo6.eq.0) then
-  !   write(lout,"(a)") "COLL> ERROR DETECTED: Incompatible flag           "
-  !   write(lout,"(a)") "COLL> in line 2 of the TRACKING block             "
-  !   write(lout,"(a)") "COLL> of fort.3 for calculating the closed orbit  "
-  !   write(lout,"(a)") "COLL> (iclo6 must not be =0). When using an input "
-  !   write(lout,"(a)") "COLL> distribution in normalized coordinates for  "
-  !   write(lout,"(a)") "COLL> collimation the closed orbit is needed for a"
-  !   write(lout,"(a)") "COLL> correct TAS matrix for coordinate transform."
-  !   call prror(-1)
-  ! endif
+  if(iclo6 == 0) then
+    write(lout,"(a)") "COLLDIST> ERROR The 6D closed orbit (iclo6 > 0) is required for format 6."
+    call prror
+  endif
 
   emitX = cdist_emitX
   emitY = cdist_emitY
+  emitZ = cdist_bunchLen*c1m3 * cdist_spreadE
 
-  ! A normalized distribution with x,xp,y,yp,z,zp is read and
-  ! transformed with the TAS matrix T , which is the transformation matrix
-  ! from normalized to physical coordinates it is scaled with the geometric
-  ! emittances in diag matrix S. x = T*S*normx
-  ! units of TAS matrix # m,rad,m,rad,m,1
-  ! The collimation coordinates/units are
-  ! x[m], x'[rad], y[m], y'[rad]$, sig[mm], dE [MeV].
   do j=1,napx
-    emitZ = cdist_bunchLen*c1m3 * cdist_spreadE
-
-    ! Scaling the TAS matrix entries of the longitudinal coordinate. tas(ia,j,k)
-    ! ia=the particle for which the tas was written
 
     tmpX = &
       xv1(j)   * sqrt(emitX)*tas(1,1,1) + &
@@ -373,7 +365,7 @@ subroutine cdist_makeDist_fmt6
       xv2(j)   * sqrt(emitY)*tas(1,1,3) + &
       yv2(j)   * sqrt(emitY)*tas(1,1,4) + &
       sigmv(j) * sqrt(emitZ)*tas(1,1,5) + &
-      ejv(j)   * sqrt(emitZ)*tas(1,1,6)*c1m3
+      ejv(j)   * sqrt(emitZ)*tas(1,1,6) * c1m3
 
     tmpXP = &
       xv1(j)   * sqrt(emitX)*tas(1,2,1) + &
@@ -381,7 +373,7 @@ subroutine cdist_makeDist_fmt6
       xv2(j)   * sqrt(emitY)*tas(1,2,3) + &
       yv2(j)   * sqrt(emitY)*tas(1,2,4) + &
       sigmv(j) * sqrt(emitZ)*tas(1,2,5) + &
-      ejv(j)   * sqrt(emitZ)*tas(1,2,6)*c1m3
+      ejv(j)   * sqrt(emitZ)*tas(1,2,6) * c1m3
 
     tmpY = &
       xv1(j)   * sqrt(emitX)*tas(1,3,1) + &
@@ -389,7 +381,7 @@ subroutine cdist_makeDist_fmt6
       xv2(j)   * sqrt(emitY)*tas(1,3,3) + &
       yv2(j)   * sqrt(emitY)*tas(1,3,4) + &
       sigmv(j) * sqrt(emitZ)*tas(1,3,5) + &
-      ejv(j)   * sqrt(emitZ)*tas(1,3,6)*c1m3
+      ejv(j)   * sqrt(emitZ)*tas(1,3,6) * c1m3
 
     tmpYP = &
       xv1(j)   * sqrt(emitX)*tas(1,4,1) + &
@@ -397,7 +389,7 @@ subroutine cdist_makeDist_fmt6
       xv2(j)   * sqrt(emitY)*tas(1,4,3) + &
       yv2(j)   * sqrt(emitY)*tas(1,4,4) + &
       sigmv(j) * sqrt(emitZ)*tas(1,4,5) + &
-      ejv(j)   * sqrt(emitZ)*tas(1,4,6)*c1m3
+      ejv(j)   * sqrt(emitZ)*tas(1,4,6) * c1m3
 
     tmpS = &
       xv1(j)   * sqrt(emitX)*tas(1,5,1) + &
@@ -405,32 +397,24 @@ subroutine cdist_makeDist_fmt6
       xv2(j)   * sqrt(emitY)*tas(1,5,3) + &
       yv2(j)   * sqrt(emitY)*tas(1,5,4) + &
       sigmv(j) * sqrt(emitZ)*tas(1,5,5) + &
-      ejv(j)   * sqrt(emitZ)*tas(1,5,6)*c1m3
+      ejv(j)   * sqrt(emitZ)*tas(1,5,6) * c1m3
 
     tmpE = &
-      xv1(j)   * sqrt(emitX)*tas(1,6,1) + &
-      yv1(j)   * sqrt(emitX)*tas(1,6,2) + &
-      xv2(j)   * sqrt(emitY)*tas(1,6,3) + &
-      yv2(j)   * sqrt(emitY)*tas(1,6,4) + &
-      sigmv(j) * sqrt(emitZ)*tas(1,6,5) + &
+      xv1(j)   * sqrt(emitX)*tas(1,6,1)*c1e3 + &
+      yv1(j)   * sqrt(emitX)*tas(1,6,2)*c1e3 + &
+      xv2(j)   * sqrt(emitY)*tas(1,6,3)*c1e3 + &
+      yv2(j)   * sqrt(emitY)*tas(1,6,4)*c1e3 + &
+      sigmv(j) * sqrt(emitZ)*tas(1,6,5)*c1e3 + &
       ejv(j)   * sqrt(emitZ)*tas(1,6,6)
 
-    xv1(j)   = tmpX
-    yv1(j)   = tmpXP
-    xv2(j)   = tmpY
-    yv2(j)   = tmpYP
-    sigmv(j) = tmpS
-    ejv(j)   = tmpE
-
-    ! Add the momentum, convert to canonical variables
-    ! dE/E with unit [1] from the closed orbit is added
+    ! Add the momentum, convert to canonical variables dE/E with unit [1] from the closed orbit is added
     ! For the 4D coordinates the closed orbit will be added by SixTrack itself later on.
-    yv1(j)   = yv1(j)*(one+ejv(j)+clop6v(3,1))
-    yv2(j)   = yv2(j)*(one+ejv(j)+clop6v(3,1))
-
-    ! Unit conversion for collimation [m] to [mm]
-    sigmv(j) = sigmv(j)*c1e3
-    ejv(j)   = cdist_energy*(one+ejv(j))
+    xv1(j)   = tmpX
+    xv2(j)   = tmpY
+    yv1(j)   = tmpXP*(one+tmpE+clop6v(3,1))
+    yv2(j)   = tmpYP*(one+tmpE+clop6v(3,1))
+    sigmv(j) = tmpS*c1e3
+    ejv(j)   = cdist_energy*(one+tmpE)
 
   end do
 
