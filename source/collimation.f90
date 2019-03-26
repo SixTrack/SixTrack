@@ -49,12 +49,6 @@ module collimation
   ! Distribution
   integer,          private, save :: do_thisdis   = 0
   real(kind=fPrec), private, save :: myenom       = zero
-  real(kind=fPrec), private, save :: mynex        = zero
-  real(kind=fPrec), private, save :: mdex         = zero
-  real(kind=fPrec), private, save :: myney        = zero
-  real(kind=fPrec), private, save :: mdey         = zero
-  real(kind=fPrec), private, save :: enerror      = zero
-  real(kind=fPrec), private, save :: bunchlength  = zero
 
   ! Jaw Slicing
   integer,          private, save :: n_slices     = 0
@@ -108,9 +102,8 @@ module collimation
   real(kind=fPrec), public,  save :: emitny0_collgap = zero
 
 
-  character(len=mNameLen),  private, save :: name_sel     = " "
-  character(len=16),        private, save :: castordir    = " "
-  character(len=80),        private, save :: filename_dis = " "
+  character(len=mNameLen),  private, save :: name_sel  = " "
+  character(len=16),        private, save :: castordir = " "
 
   integer, save :: ie, iturn, nabs_total
 
@@ -118,12 +111,17 @@ module collimation
   integer ieff,ieffdpop
 
   ! From collimation_comnul
-  real(kind=fPrec), save :: myemitx0_dist = zero
-  real(kind=fPrec), save :: myemity0_dist = zero
-  real(kind=fPrec), save :: myemitx0_collgap = zero
-  real(kind=fPrec), save :: myemity0_collgap = zero
+  real(kind=fPrec), private, save :: myemitx0_dist    = zero
+  real(kind=fPrec), private, save :: myemity0_dist    = zero
+  real(kind=fPrec), public,  save :: myemitx0_collgap = zero
+  real(kind=fPrec), public,  save :: myemity0_collgap = zero
 
-  real(kind=fPrec), save :: myalphay, mybetay, myalphax, mybetax, rselect, myemitx
+  real(kind=fPrec), private, save :: myalphay
+  real(kind=fPrec), private, save :: mybetay
+  real(kind=fPrec), private, save :: myalphax
+  real(kind=fPrec), private, save :: mybetax
+  real(kind=fPrec), private, save :: rselect
+  real(kind=fPrec), private, save :: myemitx
 
 ! M. Fiascaris for the collimation team
 ! variables for global inefficiencies studies
@@ -177,8 +175,6 @@ module collimation
   integer, save :: n_absorbed
 
   real(kind=fPrec), allocatable, save :: part_impact(:) !(npart)
-
-!  logical firstrun
 
   integer, save :: nsurvive, nsurvive_end, num_selhit, n_impact
 
@@ -265,8 +261,6 @@ module collimation
     63.7e-9_fPrec, 166.0e-9_fPrec, 322.0e-9_fPrec, 727.0e-9_fPrec, 823.0e-9_fPrec, 78.0e-9_fPrec, 78.0e-9_fPrec, &
     87.1e-9_fPrec, 152.9e-9_fPrec, 424.0e-9_fPrec, 320.8e-9_fPrec, 682.2e-9_fPrec, zero, c1e10 ]
 
-
-  ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
 !  real(kind=fPrec) remitx_dist,remity_dist,
 
   integer, private :: k
@@ -499,7 +493,7 @@ module collimation
   integer, private, save :: FLUKA_impacts_unit, FLUKA_impacts_all_unit, coll_scatter_unit, FirstImpacts_unit, RHIClosses_unit
   integer, private, save :: twisslike_unit, sigmasettings_unit, distsec_unit, efficiency_unit, efficiency_dpop_unit
   integer, private, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit, distn_unit
-  integer, private, save :: filename_dis_unit, CollPositions_unit, all_absorptions_unit, efficiency_2d_unit
+  integer, private, save :: CollPositions_unit, all_absorptions_unit, efficiency_2d_unit
   integer, private, save :: collsettings_unit, outlun
   ! These are not in use
   !integer, save :: betatron_unit, beta_beat_unit
@@ -820,28 +814,17 @@ subroutine collimate_init()
     call prror(-1)
   end if
 
-!++  Number of points and generate distribution
-!
-!GRD SEMI-AUTOMATIC INPUT
-!      NLOOP=10
-!      MYNEX=6.003
-!      MYDEX=0.0015
-!      MYNEY=6.003
-!      MYDEY=0.0015
-!      DO_COLL=1
-!      NSIG_PRIM=5.
-!      NSIG_SEC=6.
   rselect=64
 
   write(lout,"(a,i0)")    'COLL> Info: NLOOP               = ', nloop
-  write(lout,"(a,i0)")    'COLL> Info: DO_THISDIS          = ', do_thisdis
-  write(lout,"(a,e15.8)") 'COLL> Info: MYNEX               = ', mynex
-  write(lout,"(a,e15.8)") 'COLL> Info: MYDEX               = ', mdex
-  write(lout,"(a,e15.8)") 'COLL> Info: MYNEY               = ', myney
-  write(lout,"(a,e15.8)") 'COLL> Info: MYDEY               = ', mdey
-  write(lout,"(a,a)")     'COLL> Info: FILENAME_DIS        = ', trim(filename_dis)
-  write(lout,"(a,e15.8)") 'COLL> Info: ENERROR             = ', enerror
-  write(lout,"(a,e15.8)") 'COLL> Info: BUNCHLENGTH         = ', bunchlength
+  write(lout,"(a,i0)")    'COLL> Info: DIST_TYPES          = ', do_thisdis
+  write(lout,"(a,e15.8)") 'COLL> Info: DIST_NEX            = ', cdist_ampX
+  write(lout,"(a,e15.8)") 'COLL> Info: DIST_DEX            = ', cdist_smearX
+  write(lout,"(a,e15.8)") 'COLL> Info: DIST_NEY            = ', cdist_ampY
+  write(lout,"(a,e15.8)") 'COLL> Info: DIST_DEY            = ', cdist_smearY
+  write(lout,"(a,a)")     'COLL> Info: DIST_FILES          = ', trim(cdist_fileName)
+  write(lout,"(a,e15.8)") 'COLL> Info: DIST_EN_ERROR       = ', cdist_spreadE
+  write(lout,"(a,e15.8)") 'COLL> Info: DIST_BUNCHLENGTH    = ', cdist_bunchLen
   write(lout,"(a,i0)")    'COLL> Info: RSELECT             = ', int(rselect)
   write(lout,"(a,l1)")    'COLL> Info: DO_COLL             = ', do_coll
   write(lout,"(a,l1)")    'COLL> Info: DO_NSIG             = ', cdb_doNSig
@@ -971,13 +954,6 @@ subroutine collimate_init()
   cdist_betaY    = mybetay
   cdist_emitX    = myemitx0_dist
   cdist_emitY    = myemity0_dist
-  cdist_ampX     = mynex
-  cdist_ampY     = myney
-  cdist_smearX   = mdex
-  cdist_smearY   = mdey
-  cdist_spreadE  = enerror
-  cdist_bunchLen = bunchlength
-  cdist_fileName = filename_dis
   call cdist_makeDist(do_thisdis)
   ! if(radial) then
   !   call makedis_radial(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
@@ -1097,6 +1073,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   use crcoall
   use coll_db
+  use coll_dist
   use string_tools
   use mod_common, only : napx
 
@@ -1158,12 +1135,12 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 1)  call chr_cast(lnSplit(2), mynex,       iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), mdex,        iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), myney,       iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), mdey,        iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), enerror,     iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), bunchlength, iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), cdist_ampX,     iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), cdist_smearX,   iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), cdist_ampY,     iErr)
+    if(nSplit > 4)  call chr_cast(lnSplit(5), cdist_smearY,   iErr)
+    if(nSplit > 5)  call chr_cast(lnSplit(6), cdist_spreadE,  iErr)
+    if(nSplit > 6)  call chr_cast(lnSplit(7), cdist_bunchLen, iErr)
 
   case("DIST_FILE")
     if(nSplit /= 2) then
@@ -1171,7 +1148,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    filename_dis = trim(lnSplit(2))
+    cdist_fileName = trim(lnSplit(2))
 
   case("NSIG_FAM")
     if(nSplit /= 3) then
@@ -1538,14 +1515,14 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
    endif
 
   case(3)
-    if(nSplit > 0)  call chr_cast(lnSplit(1), do_thisdis,  iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), mynex,       iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), mdex,        iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), myney,       iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), mdey,        iErr)
-    if(nSplit > 5)  filename_dis = lnSplit(6)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), enerror,     iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), bunchlength, iErr)
+    if(nSplit > 0)  call chr_cast(lnSplit(1), do_thisdis,     iErr)
+    if(nSplit > 1)  call chr_cast(lnSplit(2), cdist_ampX,     iErr)
+    if(nSplit > 2)  call chr_cast(lnSplit(3), cdist_smearX,   iErr)
+    if(nSplit > 3)  call chr_cast(lnSplit(4), cdist_ampY,     iErr)
+    if(nSplit > 4)  call chr_cast(lnSplit(5), cdist_smearY,   iErr)
+    if(nSplit > 5)  cdist_fileName = lnSplit(6)
+    if(nSplit > 6)  call chr_cast(lnSplit(7), cdist_spreadE,  iErr)
+    if(nSplit > 7)  call chr_cast(lnSplit(8), cdist_bunchLen, iErr)
 
   case(4)
     if(nSplit > 0)  call chr_cast(lnSplit(1), cdb_doNSig,iErr)
@@ -2379,6 +2356,7 @@ subroutine collimate_do_collimator(stracki)
   use mod_common_da
   use numerical_constants, only : c5m4
   use coll_db
+  use coll_dist
   use mod_units
   use mathlib_bouncer
 
@@ -2625,10 +2603,10 @@ subroutine collimate_do_collimator(stracki)
     alphay2 = talphay(ie) - (ldrift*(1+talphay(ie)**2))/tbetay(ie)
 
 !   calculate beam size at start and end of collimator. account for collimation plane
-    if((mynex.gt.0).and.(myney.eq.zero)) then  ! horizontal halo
+    if((cdist_ampX.gt.0).and.(cdist_ampY.eq.zero)) then  ! horizontal halo
       beamsize1 = sqrt(betax1 * myemitx0_collgap)
       beamsize2 = sqrt(betax2 * myemitx0_collgap)
-    else if((mynex.eq.0).and.(myney.gt.zero)) then   ! vertical halo
+    else if((cdist_ampX.eq.0).and.(cdist_ampY.gt.zero)) then   ! vertical halo
       beamsize1 = sqrt(betay1 * myemity0_collgap)
       beamsize2 = sqrt(betay2 * myemity0_collgap)
     else
@@ -2669,9 +2647,9 @@ subroutine collimate_do_collimator(stracki)
     minAmpl = min(Nap1pos,Nap2pos,Nap1neg,Nap2neg)
 
 !   Assign amplitudes in x and y for the halo generation function
-    if((mynex.gt.0).and.(myney.eq.zero)) then ! horizontal halo
+    if((cdist_ampX.gt.0).and.(cdist_ampY.eq.zero)) then ! horizontal halo
       mynex2 = minAmpl
-    else if((mynex.eq.0).and.(myney.gt.zero)) then ! vertical halo
+    else if((cdist_ampX.eq.0).and.(cdist_ampY.gt.zero)) then ! vertical halo
       myney2 = minAmpl
     end if               ! other cases taken care of above - in these cases, program has already stopped
 
@@ -2695,7 +2673,7 @@ subroutine collimate_do_collimator(stracki)
 !   but it might be then that only one jaw is hit on the first turn, thus only by half of the particles
 !   the particle generated on the other side will then hit the same jaw several turns later, possibly smearing the impact parameter
 !   This could possibly be improved in the future.
-    call makedis_coll(myalphax,myalphay,mybetax,mybetay,mynex2,mdex,myney2,mdey)
+    call makedis_coll(myalphax,myalphay,mybetax,mybetay,mynex2,myney2)
 
     do j = 1, napx
       xv1(j)  = c1e3*xv1(j) + torbx(ie)
@@ -6226,20 +6204,21 @@ end subroutine calc_ion_loss
 
 !     Treat as a pencil beam in main routine.
 
-subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay, mynex, mdex, myney, mdey)
+subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay, mynex, myney)
 
   use crcoall
   use mathlib_bouncer
   use mod_ranlux
   use mod_common, only : napx
   use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
+  use coll_dist
 
   implicit none
 
   integer :: j
 
-  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex,myalphay,mybetay,&
-    myemity0,myemity,myney,mdey,xsigmax,ysigmay
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,myalphay,mybetay,&
+    myemity0,myemity,myney,xsigmax,ysigmay
 
   real(kind=fPrec) iix, iiy, phix,phiy,cutoff
 
@@ -6256,7 +6235,7 @@ subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay, mynex, mdex, myney
   do j=1,napx
     if(mynex > zero .and. myney == zero) then ! halo in x
 10    continue
-      myemitx = myemitx0*(mynex+(rndm4()*mdex))**2
+      myemitx = myemitx0*(mynex+(rndm4()*cdist_smearX))**2
       xsigmax = sqrt(mybetax*myemitx)
       xv1(j)  = xsigmax * sin_mb(twopi*rndm4())
       if(abs(xv1(j)).lt.cutoff) goto 10
@@ -6274,7 +6253,7 @@ subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay, mynex, mdex, myney
 
     else if(mynex == zero .and. myney > zero) then ! halo in y
 20    continue
-      myemity = myemity0*(myney+(rndm4()*mdey))**2
+      myemity = myemity0*(myney+(rndm4()*cdist_smearY))**2
       ysigmay = sqrt(mybetay*myemity)
       xv2(j)  = ysigmay * sin_mb(twopi*rndm4())
       if(abs(xv2(j)).lt.cutoff) goto 20
