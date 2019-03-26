@@ -52,6 +52,8 @@ subroutine cdist_makeDist(distFormat)
     call cdist_makeDist_fmt1
   case(2)
     call cdist_makeDist_fmt2
+  case(3)
+    call cdist_makeDist_fmt3
   case default
     write(lout,"(a)") "COLLDIST> ERROR Unknown distribution format. Valid is 0 to 6, got ",distFormat
   end select
@@ -116,6 +118,8 @@ end subroutine cdist_makeDist_fmt1
 ! ================================================================================================ !
 !  Generation of Distribution Format 2
 !  Uses format 1, and generates the transverse beam size in the direction set to zero in fort.3
+!  Written by:   S. Redaelli, 2005-05-08
+!  Rewritten by: V.K. Berglyd Olsen, 2019-03-26
 ! ================================================================================================ !
 subroutine cdist_makeDist_fmt2
 
@@ -157,5 +161,46 @@ subroutine cdist_makeDist_fmt2
   end if
 
 end subroutine cdist_makeDist_fmt2
+
+! ================================================================================================ !
+!  Generation of Distribution Format 3
+!  Uses format 2, and adds the energy spread and the finite bunch length. (Gaussian assumed)
+!  Written by:   S. Redaelli, 2005-05-09
+!  Rewritten by: V.K. Berglyd Olsen, 2019-03-26
+! ================================================================================================ !
+subroutine cdist_makeDist_fmt3
+
+  use crcoall
+  use mathlib_bouncer
+  use mod_ranlux
+  use mod_common, only : napx
+  use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
+
+  implicit none
+
+  real(kind=fPrec) :: long_cut, a_st, b_st
+  integer          :: j
+
+  call cdist_makeDist_fmt2
+
+  ! For longitudinal phase-space, add a cut at 2 sigma
+  long_cut = 2
+
+  do j=1,napx
+    ! 1st: Generate napx numbers within the chosen cut
+    a_st = ran_gauss(five)
+    b_st = ran_gauss(five)
+
+    do while ((a_st**2 + b_st**2) > long_cut**2)
+      a_st = ran_gauss(five)
+      b_st = ran_gauss(five)
+    end do
+
+    ! 2nd: give the correct values
+    ejv(j)   = cdist_energy * (one + b_st*cdist_spreadE)
+    sigmv(j) = cdist_bunchLen*a_st
+  end do
+
+end subroutine cdist_makeDist_fmt3
 
 end module coll_dist

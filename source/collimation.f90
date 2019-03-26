@@ -1013,11 +1013,8 @@ subroutine collimate_init()
       call cdist_makeDist(1)
     case(2)
       call cdist_makeDist(2)
-      ! call makedis_st(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-      !                 myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
     case(3)
-      call makedis_de(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-                      myenom, mynex, mdex, myney, mdey,myx, myxp, myy, myyp, myp, mys,enerror,bunchlength)
+      call cdist_makeDist(3)
     case(4)
       call readdis(filename_dis, myx, myxp, myy, myyp, myp, mys)
     case(5)
@@ -6563,148 +6560,148 @@ subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay,  myemitx0, myemity
       return
 end subroutine makedis_coll
 
-!========================================================================
-!
-! SR, 09-05-2005: Add the energy spread and the finite bunch length.
-!                 Gaussian distributions assumed
-subroutine makedis_de( myalphax, myalphay, mybetax, mybetay, &
-     &     myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,        &
-     &     myx, myxp, myy, myyp, myp, mys,                              &
-     &     enerror,bunchlength)
+! !========================================================================
+! !
+! ! SR, 09-05-2005: Add the energy spread and the finite bunch length.
+! !                 Gaussian distributions assumed
+! subroutine makedis_de( myalphax, myalphay, mybetax, mybetay, &
+!      &     myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,        &
+!      &     myx, myxp, myy, myyp, myp, mys,                              &
+!      &     enerror,bunchlength)
 
-!     Uses the old routine 'MAKEDIS' for the halo plane and adds the
-!     transverse beam size in the other plane (matched distrubutions
-!     are generated starting from thetwiss functions).
-!     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches
-!     centred in the aperture centre are generated. (SR, 08-05-2005)
+! !     Uses the old routine 'MAKEDIS' for the halo plane and adds the
+! !     transverse beam size in the other plane (matched distrubutions
+! !     are generated starting from thetwiss functions).
+! !     If 'mynex' and 'myney' are BOTH set to zero, nominal bunches
+! !     centred in the aperture centre are generated. (SR, 08-05-2005)
 
-  use crcoall
-  use mathlib_bouncer
-  use mod_ranlux
-  use mod_common, only : napx
-  implicit none
+!   use crcoall
+!   use mathlib_bouncer
+!   use mod_ranlux
+!   use mod_common, only : napx
+!   implicit none
 
-  integer :: j
-  real(kind=fPrec), allocatable :: myx(:) !(npart)
-  real(kind=fPrec), allocatable :: myxp(:) !(npart)
-  real(kind=fPrec), allocatable :: myy(:) !(npart)
-  real(kind=fPrec), allocatable :: myyp(:) !(npart)
-  real(kind=fPrec), allocatable :: myp(:) !(npart)
-  real(kind=fPrec), allocatable :: mys(:) !(npart)
+!   integer :: j
+!   real(kind=fPrec), allocatable :: myx(:) !(npart)
+!   real(kind=fPrec), allocatable :: myxp(:) !(npart)
+!   real(kind=fPrec), allocatable :: myy(:) !(npart)
+!   real(kind=fPrec), allocatable :: myyp(:) !(npart)
+!   real(kind=fPrec), allocatable :: myp(:) !(npart)
+!   real(kind=fPrec), allocatable :: mys(:) !(npart)
 
-  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom
+!   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+!   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+!   &xsigmax,ysigmay,myenom
 
-  real(kind=fPrec) iix, iiy, phix, phiy
-  real(kind=fPrec) enerror, bunchlength
-  real(kind=fPrec) en_error, bunch_length
-  real(kind=fPrec) long_cut
-  real(kind=fPrec) a_st, b_st
-  save
-!-----------------------------------------------------------------------
-!++  Generate particle distribution
-!
-!++  Generate random distribution, assuming optical parameters at IP1
-!
-!++  Calculate the gammas
+!   real(kind=fPrec) iix, iiy, phix, phiy
+!   real(kind=fPrec) enerror, bunchlength
+!   real(kind=fPrec) en_error, bunch_length
+!   real(kind=fPrec) long_cut
+!   real(kind=fPrec) a_st, b_st
+!   save
+! !-----------------------------------------------------------------------
+! !++  Generate particle distribution
+! !
+! !++  Generate random distribution, assuming optical parameters at IP1
+! !
+! !++  Calculate the gammas
 
-  mygammax = (one+myalphax**2)/mybetax
-  mygammay = (one+myalphay**2)/mybetay
+!   mygammax = (one+myalphax**2)/mybetax
+!   mygammay = (one+myalphay**2)/mybetay
 
-!     Assign bunch length and dp/p depending on the energy
-!     Check if the units in metres are correct!
-!GRD      if ( myenom.eq.7e6 ) then
-!GRD         en_error     = 1.129e-4
-!GRD         bunch_length = 7.55e-2
-!GRD      elseif ( myenom.eq.4.5e5 ) then
-!GRD         en_error     = 3.06e-4
-!GRD         bunch_length = 11.24e-2
-!GRD      else
-  en_error = enerror
-  bunch_length = bunchlength
+! !     Assign bunch length and dp/p depending on the energy
+! !     Check if the units in metres are correct!
+! !GRD      if ( myenom.eq.7e6 ) then
+! !GRD         en_error     = 1.129e-4
+! !GRD         bunch_length = 7.55e-2
+! !GRD      elseif ( myenom.eq.4.5e5 ) then
+! !GRD         en_error     = 3.06e-4
+! !GRD         bunch_length = 11.24e-2
+! !GRD      else
+!   en_error = enerror
+!   bunch_length = bunchlength
 
-!GRD         write(lout,*)"Warning-Energy different from LHC inj or top!"
-!GRD         write(lout,*)"  => 7TeV values of dp/p and bunch length used!"
-!GRD      endif
+! !GRD         write(lout,*)"Warning-Energy different from LHC inj or top!"
+! !GRD         write(lout,*)"  => 7TeV values of dp/p and bunch length used!"
+! !GRD      endif
 
-  write(lout,*) "Generation of bunch with dp/p and length:"
-  write(lout,*) "  RMS bunch length  = ", bunch_length
-  write(lout,*) "  RMS energy spread = ", en_error
+!   write(lout,*) "Generation of bunch with dp/p and length:"
+!   write(lout,*) "  RMS bunch length  = ", bunch_length
+!   write(lout,*) "  RMS energy spread = ", en_error
 
-  do j=1, napx
-    if((mynex.gt.zero).and.(myney.eq.zero)) then
-      myemitx = myemitx0*(mynex+((two*real(rndm4()-half,fPrec))*mdex))**2
-      xsigmax = sqrt(mybetax*myemitx)
-      myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))
+!   do j=1, napx
+!     if((mynex.gt.zero).and.(myney.eq.zero)) then
+!       myemitx = myemitx0*(mynex+((two*real(rndm4()-half,fPrec))*mdex))**2
+!       xsigmax = sqrt(mybetax*myemitx)
+!       myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))
 
-      if (rndm4().gt.half) then
-        myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
-      else
-        myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
-      end if
+!       if (rndm4().gt.half) then
+!         myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
+!       else
+!         myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
+!       end if
 
-      phiy = (two*pi)*real(rndm4(),fPrec)
-      iiy = (-one*myemity0) * log_mb( real(rndm4(),fPrec) )
-      myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
-      myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
+!       phiy = (two*pi)*real(rndm4(),fPrec)
+!       iiy = (-one*myemity0) * log_mb( real(rndm4(),fPrec) )
+!       myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
+!       myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
 
-    else if( mynex.eq.zero.and.myney.gt.zero ) then
-      myemity = myemity0*(myney+((two*real(rndm4()-half,fPrec))*mdey))**2
-      ysigmay = sqrt(mybetay*myemity)
-      myy(j)   = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))
+!     else if( mynex.eq.zero.and.myney.gt.zero ) then
+!       myemity = myemity0*(myney+((two*real(rndm4()-half,fPrec))*mdey))**2
+!       ysigmay = sqrt(mybetay*myemity)
+!       myy(j)   = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))
 
-      if(rndm4().gt.half) then
-        myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
-      else
-        myyp(j) = -one*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
-      end if
+!       if(rndm4().gt.half) then
+!         myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
+!       else
+!         myyp(j) = -one*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
+!       end if
 
-      phix = (two*pi)*real(rndm4(),fPrec)
-      iix = (-one*myemitx0) * log_mb( real(rndm4(),fPrec) )
-      myx(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
-      myxp(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) + myalphax * cos_mb(phix))
+!       phix = (two*pi)*real(rndm4(),fPrec)
+!       iix = (-one*myemitx0) * log_mb( real(rndm4(),fPrec) )
+!       myx(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
+!       myxp(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) + myalphax * cos_mb(phix))
 
-    else if( mynex.eq.zero.and.myney.eq.zero ) then
-      phix = (two*pi)*real(rndm4(),fPrec)
-      iix = (-one*myemitx0) * log_mb( real(rndm4(),fPrec) )
-      myx(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
-      myxp(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) + myalphax * cos_mb(phix))
-      phiy = (two*pi)*real(rndm4(),fPrec)
-      iiy = (-one*myemity0) * log_mb( real(rndm4(),fPrec) )
-      myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
-      myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
-    else
-      write(lout,*) "Error - beam parameters not correctly set!"
-    end if
-  end do
+!     else if( mynex.eq.zero.and.myney.eq.zero ) then
+!       phix = (two*pi)*real(rndm4(),fPrec)
+!       iix = (-one*myemitx0) * log_mb( real(rndm4(),fPrec) )
+!       myx(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
+!       myxp(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) + myalphax * cos_mb(phix))
+!       phiy = (two*pi)*real(rndm4(),fPrec)
+!       iiy = (-one*myemity0) * log_mb( real(rndm4(),fPrec) )
+!       myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
+!       myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
+!     else
+!       write(lout,*) "Error - beam parameters not correctly set!"
+!     end if
+!   end do
 
-! SR, 11-08-2005 For longitudinal phase-space, add a cut at 2 sigma
-!++   1st: generate napxnumbers within the chose cut
-  long_cut = 2
-  j = 1
-  do while (j.le.napx)
-    a_st = ran_gauss(five)
-    b_st = ran_gauss(five)
+! ! SR, 11-08-2005 For longitudinal phase-space, add a cut at 2 sigma
+! !++   1st: generate napxnumbers within the chose cut
+!   long_cut = 2
+!   j = 1
+!   do while (j.le.napx)
+!     a_st = ran_gauss(five)
+!     b_st = ran_gauss(five)
 
-    do while ((a_st**2+b_st**2).gt.long_cut**2)
-      a_st = ran_gauss(five)
-      b_st = ran_gauss(five)
-    end do
+!     do while ((a_st**2+b_st**2).gt.long_cut**2)
+!       a_st = ran_gauss(five)
+!       b_st = ran_gauss(five)
+!     end do
 
-    mys(j) = a_st
-    myp(j) = b_st
-    j = j + 1
-  end do
+!     mys(j) = a_st
+!     myp(j) = b_st
+!     j = j + 1
+!   end do
 
-!++   2nd: give the correct values
-  do j=1,napx
-    myp(j) = myenom * (one + myp(j) * en_error)
-    mys(j) = bunch_length * mys(j)
-  end do
+! !++   2nd: give the correct values
+!   do j=1,napx
+!     myp(j) = myenom * (one + myp(j) * en_error)
+!     mys(j) = bunch_length * mys(j)
+!   end do
 
-  return
-end subroutine makedis_de
+!   return
+! end subroutine makedis_de
 
 
 !========================================================================
