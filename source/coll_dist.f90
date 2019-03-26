@@ -327,7 +327,6 @@ end subroutine cdist_makeDist_fmt5
 
 ! ================================================================================================ !
 !  Generation of Distribution Format 6 (Read File)
-!  Written by:   K.N. Sjobak
 !  Rewritten by: V.K. Berglyd Olsen, 2019-03-26
 !  A normalized distribution with x,xp,y,yp,z,zp is read and transformed with the TAS matrix T,
 !  which is the transformation matrix from normalized to physical coordinates. It is scaled with
