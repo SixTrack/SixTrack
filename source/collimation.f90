@@ -1006,26 +1006,7 @@ subroutine collimate_init()
     call makedis_radial(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
                         myenom, nr, ndr, myx, myxp, myy, myyp, myp, mys)
   else
-    select case(do_thisdis)
-    case(0)
-      continue
-    case(1)
-      call cdist_makeDist(1)
-    case(2)
-      call cdist_makeDist(2)
-    case(3)
-      call cdist_makeDist(3)
-    case(4)
-      call cdist_makeDist(4)
-    case(5)
-      call cdist_makeDist(5)
-    case(6)
-      call readdis_norm(filename_dis, myalphax, myalphay, mybetax, mybetay, &
-                        myemitx0_dist, myemity0_dist, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
-    case default
-      write(lout,"(a)") "COLL> ERROR Review your distribution parameters!"
-      call prror(-1)
-    end select
+    call cdist_makeDist(do_thisdis)
   end if
 
 !++  Reset distribution for pencil beam
@@ -6790,184 +6771,184 @@ end subroutine makedis_coll
 
 !========================================================================
 !
-subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
- &           myemitx, myemity, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
-!     Format for the input file:
-!               x, y   -> [ sigma ]
-!               xp, yp -> [ sigma ]
-!               s      -> [ sigma ]
-!               DE     -> [ sigma ]
+! subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
+!  &           myemitx, myemity, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
+! !     Format for the input file:
+! !               x, y   -> [ sigma ]
+! !               xp, yp -> [ sigma ]
+! !               s      -> [ sigma ]
+! !               DE     -> [ sigma ]
 
-  use crcoall
-  use parpro
-  use mod_common
-  use mod_common_main
-  use string_tools
-  use mod_units
+!   use crcoall
+!   use parpro
+!   use mod_common
+!   use mod_common_main
+!   use string_tools
+!   use mod_units
 
-  implicit none
+!   implicit none
 
-  integer :: j
-  real(kind=fPrec), allocatable :: myx(:) !(npart)
-  real(kind=fPrec), allocatable :: myxp(:) !(npart)
-  real(kind=fPrec), allocatable :: myy(:) !(npart)
-  real(kind=fPrec), allocatable :: myyp(:) !(npart)
-  real(kind=fPrec), allocatable :: myp(:) !(npart)
-  real(kind=fPrec), allocatable :: mys(:) !(npart)
+!   integer :: j
+!   real(kind=fPrec), allocatable :: myx(:) !(npart)
+!   real(kind=fPrec), allocatable :: myxp(:) !(npart)
+!   real(kind=fPrec), allocatable :: myy(:) !(npart)
+!   real(kind=fPrec), allocatable :: myyp(:) !(npart)
+!   real(kind=fPrec), allocatable :: myp(:) !(npart)
+!   real(kind=fPrec), allocatable :: mys(:) !(npart)
 
-  real(kind=fPrec) myalphax, myalphay
-  real(kind=fPrec) mybetax,myemitx
-  real(kind=fPrec) mybetay,myemity,myenom
+!   real(kind=fPrec) myalphax, myalphay
+!   real(kind=fPrec) mybetax,myemitx
+!   real(kind=fPrec) mybetay,myemity,myenom
 
-  character(len=80)   filename_dis
-  real(kind=fPrec) enerror, bunchlength
+!   character(len=80)   filename_dis
+!   real(kind=fPrec) enerror, bunchlength
 
-  integer stat
+!   integer stat
 
-  real(kind=fPrec) normx, normy, normxp, normyp, normp, norms
-  real(kind=fPrec) myemitz
+!   real(kind=fPrec) normx, normy, normxp, normyp, normp, norms
+!   real(kind=fPrec) myemitz
 
-  character(len=mInputLn) inLine
-  character(len=:), allocatable :: lnSplit(:)
-  integer nSplit
-  logical spErr
+!   character(len=mInputLn) inLine
+!   character(len=:), allocatable :: lnSplit(:)
+!   integer nSplit
+!   logical spErr
 
-  if (iclo6.eq.0) then
-    write(lout,"(a)") "COLL> ERROR DETECTED: Incompatible flag           "
-    write(lout,"(a)") "COLL> in line 2 of the TRACKING block             "
-    write(lout,"(a)") "COLL> of fort.3 for calculating the closed orbit  "
-    write(lout,"(a)") "COLL> (iclo6 must not be =0). When using an input "
-    write(lout,"(a)") "COLL> distribution in normalized coordinates for  "
-    write(lout,"(a)") "COLL> collimation the closed orbit is needed for a"
-    write(lout,"(a)") "COLL> correct TAS matrix for coordinate transform."
-    call prror(-1)
-  endif
+!   if (iclo6.eq.0) then
+!     write(lout,"(a)") "COLL> ERROR DETECTED: Incompatible flag           "
+!     write(lout,"(a)") "COLL> in line 2 of the TRACKING block             "
+!     write(lout,"(a)") "COLL> of fort.3 for calculating the closed orbit  "
+!     write(lout,"(a)") "COLL> (iclo6 must not be =0). When using an input "
+!     write(lout,"(a)") "COLL> distribution in normalized coordinates for  "
+!     write(lout,"(a)") "COLL> collimation the closed orbit is needed for a"
+!     write(lout,"(a)") "COLL> correct TAS matrix for coordinate transform."
+!     call prror(-1)
+!   endif
 
-  write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
+!   write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
 
-  call f_requestUnit(filename_dis, filename_dis_unit)
-  open(unit=filename_dis_unit, file=filename_dis, iostat=stat, status="OLD",action="read") !was 53
-  if(stat.ne.0)then
-    write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
-    write(lout,"(a,i0)") "COLL>       Got iostat=",stat
-    goto 20
-  end if
+!   call f_requestUnit(filename_dis, filename_dis_unit)
+!   open(unit=filename_dis_unit, file=filename_dis, iostat=stat, status="OLD",action="read") !was 53
+!   if(stat.ne.0)then
+!     write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
+!     write(lout,"(a,i0)") "COLL>       Got iostat=",stat
+!     goto 20
+!   end if
 
-  do j=1,napx
-    read(filename_dis_unit,"(a)",end=10,err=20) inLine
-    call chr_split(inLine, lnSplit, nSplit, spErr)
-    if(spErr) then
-      write(lout,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
-      goto 20
-    end if
-    if(nSplit /= 6) then
-      write(lout,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
-      goto 20
-    end if
-    call chr_cast(lnSplit(1),normx, spErr)
-    call chr_cast(lnSplit(2),normxp,spErr)
-    call chr_cast(lnSplit(3),normy, spErr)
-    call chr_cast(lnSplit(4),normyp,spErr)
-    call chr_cast(lnSplit(5),norms, spErr)
-    call chr_cast(lnSplit(6),normp, spErr)
-    if(spErr) then
-      write(lout,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
-      goto 20
-    end if
-! A normalized distribution with x,xp,y,yp,z,zp is read and
-! transformed with the TAS matrix T , which is the transformation matrix
-! from normalized to physical coordinates it is scaled with the geometric
-! emittances in diag matrix S. x = T*S*normx
-! units of TAS matrix # m,rad,m,rad,m,1
-! The collimation coordinates/units are
-! x[m], x'[rad], y[m], y'[rad]$, sig[mm], dE [MeV].
+!   do j=1,napx
+!     read(filename_dis_unit,"(a)",end=10,err=20) inLine
+!     call chr_split(inLine, lnSplit, nSplit, spErr)
+!     if(spErr) then
+!       write(lout,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
+!       goto 20
+!     end if
+!     if(nSplit /= 6) then
+!       write(lout,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
+!       goto 20
+!     end if
+!     call chr_cast(lnSplit(1),normx, spErr)
+!     call chr_cast(lnSplit(2),normxp,spErr)
+!     call chr_cast(lnSplit(3),normy, spErr)
+!     call chr_cast(lnSplit(4),normyp,spErr)
+!     call chr_cast(lnSplit(5),norms, spErr)
+!     call chr_cast(lnSplit(6),normp, spErr)
+!     if(spErr) then
+!       write(lout,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
+!       goto 20
+!     end if
+! ! A normalized distribution with x,xp,y,yp,z,zp is read and
+! ! transformed with the TAS matrix T , which is the transformation matrix
+! ! from normalized to physical coordinates it is scaled with the geometric
+! ! emittances in diag matrix S. x = T*S*normx
+! ! units of TAS matrix # m,rad,m,rad,m,1
+! ! The collimation coordinates/units are
+! ! x[m], x'[rad], y[m], y'[rad]$, sig[mm], dE [MeV].
 
-!         write(lout,*) " myenom [MeV]= ",myenom
-!         write(lout,*) " myemitx [m]= ",myemitx
-!         write(lout,*) " myemity [m]= ",myemity
-!         write(lout,*) " bunchlength [mm]= ",bunchlength
-!         write(lout,*) " enerror = ",enerror
+! !         write(lout,*) " myenom [MeV]= ",myenom
+! !         write(lout,*) " myemitx [m]= ",myemitx
+! !         write(lout,*) " myemity [m]= ",myemity
+! !         write(lout,*) " bunchlength [mm]= ",bunchlength
+! !         write(lout,*) " enerror = ",enerror
 
-         !convert bunchlength from [mm] to [m]
-         ! enerror is the energy spread
-    myemitz  = bunchlength * c1m3 * enerror
+!          !convert bunchlength from [mm] to [m]
+!          ! enerror is the energy spread
+!     myemitz  = bunchlength * c1m3 * enerror
 
 
-! scaling the TAS matrix entries of the longitudinal coordinate. tas(ia,j,k)  ia=the particle for which the tas was written
+! ! scaling the TAS matrix entries of the longitudinal coordinate. tas(ia,j,k)  ia=the particle for which the tas was written
 
-    myx(j)   =                            &
-     &     normx  * sqrt(myemitx)*tas(1,1,1) + &
-     &     normxp * sqrt(myemitx)*tas(1,1,2) + &
-     &     normy  * sqrt(myemity)*tas(1,1,3) + &
-     &     normyp * sqrt(myemity)*tas(1,1,4) + &
-     &     norms  * sqrt(myemitz)*tas(1,1,5) + &
-     &     normp  * sqrt(myemitz)*c1m3*tas(1,1,6)
+!     myx(j)   =                            &
+!      &     normx  * sqrt(myemitx)*tas(1,1,1) + &
+!      &     normxp * sqrt(myemitx)*tas(1,1,2) + &
+!      &     normy  * sqrt(myemity)*tas(1,1,3) + &
+!      &     normyp * sqrt(myemity)*tas(1,1,4) + &
+!      &     norms  * sqrt(myemitz)*tas(1,1,5) + &
+!      &     normp  * sqrt(myemitz)*c1m3*tas(1,1,6)
 
-    myxp(j)  =                            &
-     &     normx  * sqrt(myemitx)*tas(1,2,1) + &
-     &     normxp * sqrt(myemitx)*tas(1,2,2) + &
-     &     normy  * sqrt(myemity)*tas(1,2,3) + &
-     &     normyp * sqrt(myemity)*tas(1,2,4) + &
-     &     norms  * sqrt(myemitz)*tas(1,2,5) + &
-     &     normp  * sqrt(myemitz)*c1m3*tas(1,2,6)
+!     myxp(j)  =                            &
+!      &     normx  * sqrt(myemitx)*tas(1,2,1) + &
+!      &     normxp * sqrt(myemitx)*tas(1,2,2) + &
+!      &     normy  * sqrt(myemity)*tas(1,2,3) + &
+!      &     normyp * sqrt(myemity)*tas(1,2,4) + &
+!      &     norms  * sqrt(myemitz)*tas(1,2,5) + &
+!      &     normp  * sqrt(myemitz)*c1m3*tas(1,2,6)
 
-    myy(j)   =                            &
-     &     normx  * sqrt(myemitx)*tas(1,3,1) + &
-     &     normxp * sqrt(myemitx)*tas(1,3,2) + &
-     &     normy  * sqrt(myemity)*tas(1,3,3) + &
-     &     normyp * sqrt(myemity)*tas(1,3,4) + &
-     &     norms  * sqrt(myemitz)*tas(1,3,5) + &
-     &     normp  * sqrt(myemitz)*c1m3*tas(1,3,6)
+!     myy(j)   =                            &
+!      &     normx  * sqrt(myemitx)*tas(1,3,1) + &
+!      &     normxp * sqrt(myemitx)*tas(1,3,2) + &
+!      &     normy  * sqrt(myemity)*tas(1,3,3) + &
+!      &     normyp * sqrt(myemity)*tas(1,3,4) + &
+!      &     norms  * sqrt(myemitz)*tas(1,3,5) + &
+!      &     normp  * sqrt(myemitz)*c1m3*tas(1,3,6)
 
-    myyp(j)  =                            &
-     &     normx  * sqrt(myemitx)*tas(1,4,1) + &
-     &     normxp * sqrt(myemitx)*tas(1,4,2) + &
-     &     normy  * sqrt(myemity)*tas(1,4,3) + &
-     &     normyp * sqrt(myemity)*tas(1,4,4) + &
-     &     norms  * sqrt(myemitz)*tas(1,4,5) + &
-     &     normp  * sqrt(myemitz)*c1m3*tas(1,4,6)
+!     myyp(j)  =                            &
+!      &     normx  * sqrt(myemitx)*tas(1,4,1) + &
+!      &     normxp * sqrt(myemitx)*tas(1,4,2) + &
+!      &     normy  * sqrt(myemity)*tas(1,4,3) + &
+!      &     normyp * sqrt(myemity)*tas(1,4,4) + &
+!      &     norms  * sqrt(myemitz)*tas(1,4,5) + &
+!      &     normp  * sqrt(myemitz)*c1m3*tas(1,4,6)
 
-    mys(j)   =                            &
-     &     normx  * sqrt(myemitx)*tas(1,5,1) + &
-     &     normxp * sqrt(myemitx)*tas(1,5,2) + &
-     &     normy  * sqrt(myemity)*tas(1,5,3) + &
-     &     normyp * sqrt(myemity)*tas(1,5,4) + &
-     &     norms  * sqrt(myemitz)*tas(1,5,5) + &
-     &     normp  * sqrt(myemitz)*c1m3*tas(1,5,6)
+!     mys(j)   =                            &
+!      &     normx  * sqrt(myemitx)*tas(1,5,1) + &
+!      &     normxp * sqrt(myemitx)*tas(1,5,2) + &
+!      &     normy  * sqrt(myemity)*tas(1,5,3) + &
+!      &     normyp * sqrt(myemity)*tas(1,5,4) + &
+!      &     norms  * sqrt(myemitz)*tas(1,5,5) + &
+!      &     normp  * sqrt(myemitz)*c1m3*tas(1,5,6)
 
-    myp(j)   =                                    &
-     &     normx  * sqrt(myemitx)*c1e3*tas(1,6,1) + &
-     &     normxp * sqrt(myemitx)*c1e3*tas(1,6,2) + &
-     &     normy  * sqrt(myemity)*c1e3*tas(1,6,3) + &
-     &     normyp * sqrt(myemity)*c1e3*tas(1,6,4) + &
-     &     norms  * sqrt(myemitz)*c1e3*tas(1,6,5) + &
-     &     normp  * sqrt(myemitz)*tas(1,6,6)
+!     myp(j)   =                                    &
+!      &     normx  * sqrt(myemitx)*c1e3*tas(1,6,1) + &
+!      &     normxp * sqrt(myemitx)*c1e3*tas(1,6,2) + &
+!      &     normy  * sqrt(myemity)*c1e3*tas(1,6,3) + &
+!      &     normyp * sqrt(myemity)*c1e3*tas(1,6,4) + &
+!      &     norms  * sqrt(myemitz)*c1e3*tas(1,6,5) + &
+!      &     normp  * sqrt(myemitz)*tas(1,6,6)
 
-! add the momentum
-! convert to canonical variables
-! dE/E with unit [1] from the closed orbit is added
-!For the 4D coordinates the closed orbit
-! will be added by SixTrack itself later on.
-     myxp(j)  = myxp(j)*(one+myp(j)+clop6v(3,1))
-     myyp(j)  = myyp(j)*(one+myp(j)+clop6v(3,1))
-! unit conversion for collimation [m] to [mm]
-     mys(j)   = mys(j)*c1e3
-     myp(j)   = myenom*(one+myp(j))
+! ! add the momentum
+! ! convert to canonical variables
+! ! dE/E with unit [1] from the closed orbit is added
+! !For the 4D coordinates the closed orbit
+! ! will be added by SixTrack itself later on.
+!      myxp(j)  = myxp(j)*(one+myp(j)+clop6v(3,1))
+!      myyp(j)  = myyp(j)*(one+myp(j)+clop6v(3,1))
+! ! unit conversion for collimation [m] to [mm]
+!      mys(j)   = mys(j)*c1e3
+!      myp(j)   = myenom*(one+myp(j))
 
-  end do
+!   end do
 
-  !TODO: Double-check that this is an OK way of dealing with reading less-than-expected particles from the file
-10   napx = j - 1
-  write(lout,"(a,i0)") "COLL> Number of particles read from the file = ",napx
+!   !TODO: Double-check that this is an OK way of dealing with reading less-than-expected particles from the file
+! 10   napx = j - 1
+!   write(lout,"(a,i0)") "COLL> Number of particles read from the file = ",napx
 
-  close(filename_dis_unit)
-  return
+!   close(filename_dis_unit)
+!   return
 
-20 continue
-   write(lout,"(a)") "COLL> I/O Error on Unit 53 in subroutine readdis"
-   call prror(-1)
+! 20 continue
+!    write(lout,"(a)") "COLL> I/O Error on Unit 53 in subroutine readdis"
+!    call prror(-1)
 
-end subroutine readdis_norm
+! end subroutine readdis_norm
 
 
 !========================================================================
