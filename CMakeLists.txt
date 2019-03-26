@@ -285,8 +285,8 @@ list(APPEND FORT90_LIB
   mod_time mod_alloc zipf matrix_inv lielib beam6d
   bouncy_castle plato_seq bdex fma dabnew end_sixtrack
   ranecu wire hions elens mod_dist scatter dump dynk
-  aperture mod_fluc beam6d_fox six_fox postprocessing
-  read_write ranlux collimation coll_db mod_particles cheby utils
+  aperture mod_fluc beam6d_fox six_fox postprocessing cheby utils
+  read_write ranlux collimation coll_db coll_dist mod_particles
 )
 
 # Files unique to DA or CR version

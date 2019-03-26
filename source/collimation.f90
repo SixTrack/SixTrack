@@ -716,6 +716,7 @@ subroutine collimate_init()
   use mod_settings
   use string_tools
   use coll_db
+  use coll_dist
   use mod_units
   use mod_ranlux
 #ifdef HDF5
@@ -986,6 +987,20 @@ subroutine collimate_init()
 
 !Call distribution routines only if collimation block is in fort.3, otherwise
 !the standard sixtrack would be prevented by the 'stop' command
+  cdist_energy   = myenom
+  cdist_alphaX   = myalphax
+  cdist_alphaY   = myalphay
+  cdist_betaX    = mybetax
+  cdist_betaY    = mybetay
+  cdist_emitX    = myemitx0_dist
+  cdist_emitY    = myemity0_dist
+  cdist_ampX     = mynex
+  cdist_ampY     = myney
+  cdist_smearX   = mdex
+  cdist_smearY   = mdey
+  cdist_spreadE  = enerror
+  cdist_bunchLen = bunchlength
+  cdist_fileName = filename_dis
   if(radial) then
     call makedis_radial(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
                         myenom, nr, ndr, myx, myxp, myy, myyp, myp, mys)
@@ -994,8 +1009,9 @@ subroutine collimate_init()
     case(0)
       continue
     case(1)
-      call makedis(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
-                   myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
+      call cdist_makeDist(1)
+      ! call makedis(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
+      !              myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
     case(2)
       call makedis_st(myalphax, myalphay, mybetax, mybetay, myemitx0_dist, myemity0_dist, &
                       myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
@@ -1056,7 +1072,8 @@ subroutine collimate_init()
       call f_requestUnit('dist0.dat', dist0_unit)
       open(unit=dist0_unit,file='dist0.dat') !was 52
       do j = 1, napx
-        write(dist0_unit,'(6(1X,E23.15))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
+        ! write(dist0_unit,'(6(1X,E23.15))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
+        write(dist0_unit,'(6(1X,E23.15))') xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejv(j)
       end do
       close(dist0_unit)
 #ifdef HDF5
@@ -1960,13 +1977,13 @@ subroutine collimate_start_sample(nsample)
   end if
 
   ! Copy new particles to tracking arrays. Also add the orbit offset at start of ring!
-  if(do_thisdis /= 0) then
-    xv1(1:napx)   = c1e3 *  myx(1:napx) + torbx(1)
-    yv1(1:napx)   = c1e3 * myxp(1:napx) + torbxp(1)
-    xv2(1:napx)   = c1e3 *  myy(1:napx) + torby(1)
-    yv2(1:napx)   = c1e3 * myyp(1:napx) + torbyp(1)
-    sigmv(1:napx) = mys(1:napx)
-    ejv(1:napx)   = myp(1:napx)
+  if(do_thisdis > 0) then
+    xv1(1:napx)   = c1e3 * xv1(1:napx) + torbx(1)
+    yv1(1:napx)   = c1e3 * yv1(1:napx) + torbxp(1)
+    xv2(1:napx)   = c1e3 * xv2(1:napx) + torby(1)
+    yv2(1:napx)   = c1e3 * yv2(1:napx) + torbyp(1)
+    ! sigmv(1:napx) = mys(1:napx)
+    ! ejv(1:napx)   = myp(1:napx)
   end if
 
   do i = 1, napx
@@ -4286,7 +4303,7 @@ subroutine collimate_end_turn
         ! Allow to apply some dispersive offset. Take arc dispersion (2m) and normalize with arc beta_x function (180m).
         arcdx     = 2.5_fPrec
         arcbetax  = c180e0
-        xdisp     = abs(xv1(j)*c1m3) + abs((ejv(j)-myenom)/myenom)*arcdx * sqrt(tbetax(ie)/arcbetax)
+        xdisp     = abs(xv1(j)*c1m3) + (abs((ejv(j)-myenom)/myenom)*arcdx) * sqrt(tbetax(ie)/arcbetax)
         nspx      = sqrt(                                                       &
                       abs(gammax*xdisp**2 +                                     &
                         ((two*talphax(ie))*xdisp)*(yv1(j)*c1m3) +               &
@@ -4627,6 +4644,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   use parpro
   use mod_common, only : iexact
   use mathlib_bouncer
+  use mod_ranlux
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -5325,6 +5343,8 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
 
   use crcoall
   use parpro
+  use mod_ranlux
+
   implicit none
 
 !
@@ -5377,6 +5397,7 @@ end subroutine collimaterhic
 !! Select a scattering type (elastic, sd, inelastic, ...)
 !<
 function ichoix(ma)
+  use mod_ranlux
   implicit none
   integer ma,i,ichoix
   real(kind=fPrec) aran
@@ -5400,6 +5421,7 @@ end function ichoix
 real(kind=fPrec) function gettran(inter,xmat,p)
 
   use mathlib_bouncer
+  use mod_ranlux
 
   implicit none
 
@@ -5472,6 +5494,8 @@ end function gettran
 !!
 !<
 subroutine tetat(t,p,tx,tz)
+
+  use mod_ranlux
 
   implicit none
 
@@ -5625,6 +5649,7 @@ end subroutine scatin
 subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
   use mathlib_bouncer
+  use mod_ranlux
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -5954,6 +5979,7 @@ end subroutine mcs
 subroutine scamcs(xx,xxp,s,radl_mat)
 
   use mathlib_bouncer
+  use mod_ranlux
 
   implicit none
 
@@ -6159,6 +6185,7 @@ subroutine calc_ion_loss(IS, PC, DZ, EnLo)
 
   use physical_constants
   use mathlib_bouncer
+  use mod_ranlux
 
   implicit none
 
@@ -6234,109 +6261,109 @@ subroutine calc_ion_loss(IS, PC, DZ, EnLo)
 
 end subroutine calc_ion_loss
 
-subroutine makedis(myalphax, myalphay, mybetax, mybetay,    &
-     &myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,             &
-     &myx, myxp, myy, myyp, myp, mys)
+! subroutine makedis(myalphax, myalphay, mybetax, mybetay,    &
+!      &myemitx0, myemity0, myenom, mynex, mdex, myney, mdey,             &
+!      &myx, myxp, myy, myyp, myp, mys)
 
-!  Generate distribution
+! !  Generate distribution
 
-  use crcoall
-  use mathlib_bouncer
-  use mod_common, only : napx
-  implicit none
+!   use crcoall
+!   use mathlib_bouncer
+!   use mod_common, only : napx
+!   implicit none
 
-  integer :: j
-  real(kind=fPrec), allocatable :: myx(:) !(npart)
-  real(kind=fPrec), allocatable :: myxp(:) !(npart)
-  real(kind=fPrec), allocatable :: myy(:) !(npart)
-  real(kind=fPrec), allocatable :: myyp(:) !(npart)
-  real(kind=fPrec), allocatable :: myp(:) !(npart)
-  real(kind=fPrec), allocatable :: mys(:) !(npart)
+!   integer :: j
+!   real(kind=fPrec), allocatable :: myx(:) !(npart)
+!   real(kind=fPrec), allocatable :: myxp(:) !(npart)
+!   real(kind=fPrec), allocatable :: myy(:) !(npart)
+!   real(kind=fPrec), allocatable :: myyp(:) !(npart)
+!   real(kind=fPrec), allocatable :: myp(:) !(npart)
+!   real(kind=fPrec), allocatable :: mys(:) !(npart)
 
-  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom
+!   real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
+!   &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
+!   &xsigmax,ysigmay,myenom
 
-  save
-!-----------------------------------------------------------------------
-!++  Generate particle distribution
-!
-!
-!++  Generate random distribution, assuming optical parameters at IP1
-!
-!
-!++  Calculate the gammas
-!
-  mygammax = (one+myalphax**2)/mybetax
-  mygammay = (one+myalphay**2)/mybetay
-!++TW 11/07 reset j, helps if subroutine is called twice
-! was done during try to reset distribution, still needed
-! will this subroutine ever called twice?
-  j = 0
-!
-!++  Number of points and generate distribution
-  write(lout,"(a)")
-  write(lout,"(a)") 'COLL> Generation of particle distribution Version 1:'
-  write(lout,"(a)") 'COLL> This routine generates particles in phase space X/XP and Y/YP ellipses, as defined in the input '
-  write(lout,"(a)") 'COLL> parameters. Distribution is flat in the band. X and Y are fully uncorrelated.'
-  write(lout,"(a)")
+!   save
+! !-----------------------------------------------------------------------
+! !++  Generate particle distribution
+! !
+! !
+! !++  Generate random distribution, assuming optical parameters at IP1
+! !
+! !
+! !++  Calculate the gammas
+! !
+!   mygammax = (one+myalphax**2)/mybetax
+!   mygammay = (one+myalphay**2)/mybetay
+! !++TW 11/07 reset j, helps if subroutine is called twice
+! ! was done during try to reset distribution, still needed
+! ! will this subroutine ever called twice?
+!   j = 0
+! !
+! !++  Number of points and generate distribution
+!   write(lout,"(a)")
+!   write(lout,"(a)") 'COLL> Generation of particle distribution Version 1:'
+!   write(lout,"(a)") 'COLL> This routine generates particles in phase space X/XP and Y/YP ellipses, as defined in the input '
+!   write(lout,"(a)") 'COLL> parameters. Distribution is flat in the band. X and Y are fully uncorrelated.'
+!   write(lout,"(a)")
 
-  write(outlun,*)
-  write(outlun,*) 'Generation of particle distribution Version 1'
-  write(outlun,*)
-  write(outlun,*) 'This routine generates particles in phase space'
-  write(outlun,*) 'X/XP and Y/YP ellipses, as defined in the input'
-  write(outlun,*) 'parameters. Distribution is flat in the band.'
-  write(outlun,*) 'X and Y are fully uncorrelated.'
-  write(outlun,*)
-  write(outlun,*) 'INFO>  Number of particles   = ', napx
-  write(outlun,*) 'INFO>  Av number of x sigmas = ', mynex
-  write(outlun,*) 'INFO>  +- spread in x sigmas = ', mdex
-  write(outlun,*) 'INFO>  Av number of y sigmas = ', myney
-  write(outlun,*) 'INFO>  +- spread in y sigmas = ', mdey
-  write(outlun,*) 'INFO>  Nominal beam energy   = ', myenom
-  write(outlun,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0)
-  write(outlun,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0)
-  write(outlun,*) 'INFO>  Beta x   = ', mybetax
-  write(outlun,*) 'INFO>  Beta y   = ', mybetay
-  write(outlun,*) 'INFO>  Alpha x  = ', myalphax
-  write(outlun,*) 'INFO>  Alpha y  = ', myalphay
-  write(outlun,*)
+!   write(outlun,*)
+!   write(outlun,*) 'Generation of particle distribution Version 1'
+!   write(outlun,*)
+!   write(outlun,*) 'This routine generates particles in phase space'
+!   write(outlun,*) 'X/XP and Y/YP ellipses, as defined in the input'
+!   write(outlun,*) 'parameters. Distribution is flat in the band.'
+!   write(outlun,*) 'X and Y are fully uncorrelated.'
+!   write(outlun,*)
+!   write(outlun,*) 'INFO>  Number of particles   = ', napx
+!   write(outlun,*) 'INFO>  Av number of x sigmas = ', mynex
+!   write(outlun,*) 'INFO>  +- spread in x sigmas = ', mdex
+!   write(outlun,*) 'INFO>  Av number of y sigmas = ', myney
+!   write(outlun,*) 'INFO>  +- spread in y sigmas = ', mdey
+!   write(outlun,*) 'INFO>  Nominal beam energy   = ', myenom
+!   write(outlun,*) 'INFO>  Sigma_x0 = ', sqrt(mybetax*myemitx0)
+!   write(outlun,*) 'INFO>  Sigma_y0 = ', sqrt(mybetay*myemity0)
+!   write(outlun,*) 'INFO>  Beta x   = ', mybetax
+!   write(outlun,*) 'INFO>  Beta y   = ', mybetay
+!   write(outlun,*) 'INFO>  Alpha x  = ', myalphax
+!   write(outlun,*) 'INFO>  Alpha y  = ', myalphay
+!   write(outlun,*)
 
-  do while (j.lt.napx)
-    j = j + 1
-    myemitx = myemitx0*(mynex + ((two*real(rndm4()-half,fPrec))*mdex) )**2
-    xsigmax = sqrt(mybetax*myemitx)
-    myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))
-    if(rndm4().gt.half) then
-      myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
-    else
-      myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
-    end if
+!   do while (j.lt.napx)
+!     j = j + 1
+!     myemitx = myemitx0*(mynex + ((two*real(rndm4()-half,fPrec))*mdex) )**2
+!     xsigmax = sqrt(mybetax*myemitx)
+!     myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))
+!     if(rndm4().gt.half) then
+!       myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
+!     else
+!       myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
+!     end if
 
-    myemity = myemity0*(myney + ((two*real(rndm4()-half,fPrec))*mdey) )**2
-    ysigmay = sqrt(mybetay*myemity)
-    myy(j)  = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))
-    if(rndm4().gt.half) then
-      myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
-    else
-      myyp(j) = -one*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
-    end if
+!     myemity = myemity0*(myney + ((two*real(rndm4()-half,fPrec))*mdey) )**2
+!     ysigmay = sqrt(mybetay*myemity)
+!     myy(j)  = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))
+!     if(rndm4().gt.half) then
+!       myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
+!     else
+!       myyp(j) = -one*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
+!     end if
 
-    myp(j) = myenom
-    mys(j) = zero
+!     myp(j) = myenom
+!     mys(j) = zero
 
-!++  Dangerous stuff, just for the moment
-    if (cut_input) then
-      !0.1d-3 -> c1m4
-      if((.not. (myy(j).lt.-0.008e-3_fPrec .and. myyp(j).lt. c1m4 .and.myyp(j).gt.zero) ) .and. &
-&        (.not. (myy(j).gt. 0.008e-3_fPrec .and. myyp(j).gt.-c1m4 .and.myyp(j).lt.zero) ) ) then
-        j = j - 1
-      end if
-    end if
-  end do
-  return
-end subroutine makedis
+! !++  Dangerous stuff, just for the moment
+!     if (cut_input) then
+!       !0.1d-3 -> c1m4
+!       if((.not. (myy(j).lt.-0.008e-3_fPrec .and. myyp(j).lt. c1m4 .and.myyp(j).gt.zero) ) .and. &
+! &        (.not. (myy(j).gt. 0.008e-3_fPrec .and. myyp(j).gt.-c1m4 .and.myyp(j).lt.zero) ) ) then
+!         j = j - 1
+!       end if
+!     end if
+!   end do
+!   return
+! end subroutine makedis
 
 !========================================================================
 ! SR, 08-05-2005: Add the finite beam size in the othe dimension
@@ -6352,6 +6379,7 @@ subroutine makedis_st(myalphax, myalphay, mybetax, mybetay, &
 
   use crcoall
   use mathlib_bouncer
+  use mod_ranlux
   use mod_common, only : napx
   implicit none
 
@@ -6444,6 +6472,7 @@ subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay,  myemitx0, myemity
 
   use crcoall
   use mathlib_bouncer
+  use mod_ranlux
   use mod_common, only : napx
   implicit none
 
@@ -6551,6 +6580,7 @@ subroutine makedis_de( myalphax, myalphay, mybetax, mybetay, &
 
   use crcoall
   use mathlib_bouncer
+  use mod_ranlux
   use mod_common, only : napx
   implicit none
 
@@ -6949,9 +6979,10 @@ end subroutine readdis_norm
 subroutine makedis_radial( myalphax, myalphay, mybetax,      &
      &mybetay, myemitx0, myemity0, myenom, nr, ndr, myx, myxp, myy, myyp, myp, mys)
 
-  use mod_common, only : napx
   use crcoall
   use mathlib_bouncer
+  use mod_ranlux
+  use mod_common, only : napx
   implicit none
 
   integer :: j
@@ -7098,6 +7129,7 @@ subroutine makedis_ga( myalphax, myalphay, mybetax, mybetay, myemitx0, myemity0,
 
   use crcoall
   use parpro
+  use mod_ranlux
   use mod_common_track
   use mod_common, only : napx
   implicit none
@@ -7211,74 +7243,6 @@ subroutine makedis_ga( myalphax, myalphay, mybetax, mybetay, myemitx0, myemity0,
   return
 end subroutine makedis_ga
 
-function rndm4()
-
-  use mod_ranlux
-
-  implicit none
-
-  integer len, in
-  real(kind=fPrec) rndm4, a
-  save IN,a
-  parameter ( len =  30000 )
-  dimension a(len)
-  data in/1/
-
-  if( in.eq.1 ) then
-    call ranlux(a,len)
-!    call ranecu(a,len,-1)
-    rndm4=a(1)
-    in=2
-  else
-    rndm4=a(in)
-    in=in+1
-    if(in.eq.len+1)in=1
-  endif
-
-  return
-
-end function rndm4
-
-
-!ccccccccccccccccccccccccccccccccccccccc
-!-TW-01/2007
-! function rndm5(irnd) , irnd = 1 will reset
-! inn counter => enables reproducible set of
-! random unmbers
-!cccccccccccccccccccccccccccccccccc
-!
-function rndm5(irnd)
-
-  use mod_ranlux
-  use mathlib_bouncer
-
-  implicit none
-
-  integer len, inn, irnd
-  real(kind=fPrec) rndm5,a
-  save
-
-  parameter( len =  30000 )
-  dimension a(len)
-  data inn/1/
-!
-! reset inn to 1 enable reproducible random numbers
-  if( irnd .eq. 1) inn = 1
-
-  if( inn.eq.1 ) then
-    call ranlux(a,len)
-!     call ranecu(a,len,-1)
-    rndm5=a(1)
-    inn=2
-  else
-    rndm5=a(inn)
-    inn=inn+1
-    if(inn.eq.len+1)inn=1
-  end if
-
-  return
-end function rndm5
-
 !ccccccccccccccccccccccccccccccccccccccc
 real(kind=fPrec) function myran_gauss(cut)
 !*********************************************************************
@@ -7296,6 +7260,7 @@ real(kind=fPrec) function myran_gauss(cut)
 
   use numerical_constants, only : twopi
   use mathlib_bouncer
+  use mod_ranlux
 
   implicit none
 
@@ -7800,50 +7765,5 @@ integer function mclock_liar( )
 
   return
 end function mclock_liar
-
-
-real(kind=fPrec) function ran_gauss(cut)
-!*********************************************************************
-!
-! RAN_GAUSS - will generate a normal distribution from a uniform
-!   distribution between [0,1].
-!   See "Communications of the ACM", V. 15 (1972), p. 873.
-!
-! cut - real(kind=fPrec) - cut for distribution in units of sigma
-!                the cut must be greater than 0.5
-!
-!*********************************************************************
-
-  use crcoall
-  use parpro
-  use mathlib_bouncer
-  implicit none
-
-  logical flag
-  DATA flag/.TRUE./
-  real(kind=fPrec) x, u1, u2, twopi, r,cut
-
-  save
-
-  twopi=eight*atan_mb(one) !Why not 2*pi, where pi is in block "common"?
-1 if (flag) then
-    r = real(rndm4(),fPrec)
-    r = max(r, half**32)
-    r = min(r, one-half**32)
-    u1 = sqrt(-two*log_mb( r ))
-    u2 = real(rndm4(),fPrec)
-    x = u1 * cos_mb(twopi*u2)
-  else
-    x = u1 * sin_mb(twopi*u2)
-  endif
-
-  flag = .not. flag
-
-!  cut the distribution if cut > 0.5
-  if (cut .gt. half .and. abs(x) .gt. cut) goto 1
-
-  ran_gauss = x
-  return
-end function ran_gauss
 
 end module collimation

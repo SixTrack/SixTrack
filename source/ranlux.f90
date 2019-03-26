@@ -59,6 +59,9 @@ module mod_ranlux
   public rluxut
   public rluxat
   public rluxgo
+  public rndm4
+  public rndm5
+  public ran_gauss
 
 contains
 
@@ -366,5 +369,114 @@ subroutine rluxgo(lux,ins,k1,k2)
     endif
     return
 end subroutine rluxgo
+
+function rndm4()
+
+  implicit none
+
+  integer len, in
+  real(kind=fPrec) rndm4, a
+  save IN,a
+  parameter ( len =  30000 )
+  dimension a(len)
+  data in/1/
+
+  if( in.eq.1 ) then
+    call ranlux(a,len)
+!    call ranecu(a,len,-1)
+    rndm4=a(1)
+    in=2
+  else
+    rndm4=a(in)
+    in=in+1
+    if(in.eq.len+1)in=1
+  endif
+
+  return
+
+end function rndm4
+
+
+!ccccccccccccccccccccccccccccccccccccccc
+!-TW-01/2007
+! function rndm5(irnd) , irnd = 1 will reset
+! inn counter => enables reproducible set of
+! random unmbers
+!cccccccccccccccccccccccccccccccccc
+!
+function rndm5(irnd)
+
+  use mathlib_bouncer
+
+  implicit none
+
+  integer len, inn, irnd
+  real(kind=fPrec) rndm5,a
+  save
+
+  parameter( len =  30000 )
+  dimension a(len)
+  data inn/1/
+!
+! reset inn to 1 enable reproducible random numbers
+  if( irnd .eq. 1) inn = 1
+
+  if( inn.eq.1 ) then
+    call ranlux(a,len)
+!     call ranecu(a,len,-1)
+    rndm5=a(1)
+    inn=2
+  else
+    rndm5=a(inn)
+    inn=inn+1
+    if(inn.eq.len+1)inn=1
+  end if
+
+  return
+end function rndm5
+
+real(kind=fPrec) function ran_gauss(cut)
+!*********************************************************************
+!
+! RAN_GAUSS - will generate a normal distribution from a uniform
+!   distribution between [0,1].
+!   See "Communications of the ACM", V. 15 (1972), p. 873.
+!
+! cut - real(kind=fPrec) - cut for distribution in units of sigma
+!                the cut must be greater than 0.5
+!
+!*********************************************************************
+
+  use crcoall
+  use parpro
+  use mathlib_bouncer
+  implicit none
+
+  logical flag
+  DATA flag/.TRUE./
+  real(kind=fPrec) x, u1, u2, twopi, r,cut
+
+  save
+
+  twopi=eight*atan_mb(one) !Why not 2*pi, where pi is in block "common"?
+1 if (flag) then
+    r = real(rndm4(),fPrec)
+    r = max(r, half**32)
+    r = min(r, one-half**32)
+    u1 = sqrt(-two*log_mb( r ))
+    u2 = real(rndm4(),fPrec)
+    x = u1 * cos_mb(twopi*u2)
+  else
+    x = u1 * sin_mb(twopi*u2)
+  endif
+
+  flag = .not. flag
+
+!  cut the distribution if cut > 0.5
+  if (cut .gt. half .and. abs(x) .gt. cut) goto 1
+
+  ran_gauss = x
+  return
+end function ran_gauss
 
 end module mod_ranlux
