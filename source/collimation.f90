@@ -338,18 +338,6 @@ module collimation
   real(kind=fPrec), allocatable, private, save :: rcyp0(:) !(npart)
   real(kind=fPrec), allocatable, private, save :: rcp0(:) !(npart)
 
-  real(kind=fPrec), allocatable, save :: xgrd(:) !(npart)
-  real(kind=fPrec), allocatable, save :: xpgrd(:) !(npart)
-  real(kind=fPrec), allocatable, save :: ygrd(:) !(npart)
-  real(kind=fPrec), allocatable, save :: ypgrd(:) !(npart)
-  real(kind=fPrec), allocatable, save :: pgrd(:) !(npart)
-  real(kind=fPrec), allocatable, save :: ejfvgrd(:) !(npart)
-  real(kind=fPrec), allocatable, save :: sigmvgrd(:) !(npart)
-  real(kind=fPrec), allocatable, save :: rvvgrd(:) !(npart)
-  real(kind=fPrec), allocatable, save :: dpsvgrd(:) !(npart)
-  real(kind=fPrec), allocatable, save :: oidpsvgrd(:) !(npart)
-  real(kind=fPrec), allocatable, save :: dpsv1grd(:) !(npart)
-
   real(kind=fPrec), save :: enom_gev,betax,betay,xmax,ymax
   real(kind=fPrec), save :: nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1
   real(kind=fPrec), save :: xj,xpj,yj,ypj,pj
@@ -656,18 +644,6 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call alloc(rcy0,  npart_new, zero, "rcy0") !(npart)
   call alloc(rcyp0, npart_new, zero, "rcyp0") !(npart)
   call alloc(rcp0,  npart_new, zero, "rcp0") !(npart)
-
-  call alloc(xgrd,      npart_new, zero, "xgrd") !(npart)
-  call alloc(xpgrd,     npart_new, zero, "xpgrd") !(npart)
-  call alloc(ygrd,      npart_new, zero, "ygrd") !(npart)
-  call alloc(ypgrd,     npart_new, zero, "ypgrd") !(npart)
-  call alloc(pgrd,      npart_new, zero, "pgrd") !(npart)
-  call alloc(ejfvgrd,   npart_new, zero, "ejfvgrd") !(npart)
-  call alloc(sigmvgrd,  npart_new, zero, "sigmvgrd") !(npart)
-  call alloc(rvvgrd,    npart_new, zero, "rvvgrd") !(npart)
-  call alloc(dpsvgrd,   npart_new, zero, "dpsvgrd") !(npart)
-  call alloc(oidpsvgrd, npart_new, zero, "oidpsvgrd") !(npart)
-  call alloc(dpsv1grd,  npart_new, zero, "dpsv1grd") !(npart)
 
   call alloc(xbob,    nblz_new, zero, "xbob") !(nblz)
   call alloc(ybob,    nblz_new, zero, "ybob") !(nblz)
@@ -4244,31 +4220,15 @@ subroutine collimate_end_turn
   by0  = tbetay(ie)
   muy0 = muy(ie)
 
-!GRD GET THE COORDINATES OF THE PARTICLES AT THE IEth ELEMENT:
   do j = 1,napx
-    xgrd(j)  = xv1(j)
-    xpgrd(j) = yv1(j)
-    ygrd(j)  = xv2(j)
-    ypgrd(j) = yv2(j)
-
     xineff(j)  = xv1(j) - torbx (ie)
     xpineff(j) = yv1(j) - torbxp(ie)
     yineff(j)  = xv2(j) - torby (ie)
     ypineff(j) = yv2(j) - torbyp(ie)
-
-    pgrd(j)  = ejv(j)
-    ejfvgrd(j) = ejfv(j)
-    sigmvgrd(j) = sigmv(j)
-    rvvgrd(j) = rvv(j)
-    dpsvgrd(j) = dpsv(j)
-    oidpsvgrd(j) = oidpsv(j)
-    dpsv1grd(j) = dpsv1(j)
-
-!GRD IMPORTANT: ALL PARTICLES ABSORBED ARE CONSIDERED TO BE LOST,
-!GRD SO WE GIVE THEM A LARGE OFFSET
-    if(part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) then
-      xgrd(j) = 99.5_fPrec
-      ygrd(j) = 99.5_fPrec
+    ! All particles absorbed are considered to be lost, so we give them a large offset
+    if(part_abs_pos(j) /= 0 .and. part_abs_turn(j) /= 0) then
+      xv1(j) = 99.5_fPrec
+      xv2(j) = 99.5_fPrec
     end if
   end do
 
@@ -4278,7 +4238,7 @@ subroutine collimate_end_turn
     nsurvive = 0
 
     do j = 1, napx
-      if (xgrd(j).lt.99.0_fPrec .and. ygrd(j).lt.99.0_fPrec) then
+      if (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) then
         nsurvive = nsurvive + 1
       end if
     end do
@@ -4315,42 +4275,30 @@ subroutine collimate_end_turn
 !++  collimator. For the "zero" turn consider the information at element
 !++  20 (before collimation), otherwise take information at last ring
 !++  element.
-  if (do_coll .and. (  (iturn.eq.1 .and. ie.eq.20) .or. (ie.eq.iu) ) ) then
-
-!++  Calculate gammas
-!------------------------------------------------------------------------
+  if(do_coll .and. ((iturn == 1 .and. ie == 20) .or. (ie == iu))) then
     gammax = (1 + talphax(ie)**2)/tbetax(ie)
     gammay = (1 + talphay(ie)**2)/tbetay(ie)
 
-!________________________________________________________________________
-!++  Loop over all particles.
     do j = 1, napx
-!
-!------------------------------------------------------------------------
-!++  Save initial distribution of particles that were scattered on
-!++  the first turn at the selected primary collimator
-!
-!            IF (DOWRITE_DIST .AND. DO_SELECT .AND. ITURN.EQ.1 .AND.
-!     &          PART_SELECT(j).EQ.1) THEN
-!              WRITE(987,'(4(1X,E15.7))') X00(J), XP00(J),
-!     &                                        Y00(J), YP00(J)
-!            ENDIF
-!------------------------------------------------------------------------
-!++  Do the binning in amplitude, only considering particles that were
-!++  not absorbed before.
-
-      if (xgrd(j).lt.99.0_fPrec .and. ygrd(j) .lt.99.0_fPrec .and. (part_select(j).eq.1 .or. ie.eq.20)) then
-
-!++  Normalized amplitudes are calculated
-
-!++  Allow to apply some dispersive offset. Take arc dispersion (2m) and
-!++  normalize with arc beta_x function (180m).
-        arcdx    = 2.5_fPrec
-        arcbetax = c180e0
-        xdisp = abs(xgrd(j)*c1m3) + abs((pgrd(j)-myenom)/myenom)*arcdx * sqrt(tbetax(ie)/arcbetax)
-        nspx = sqrt(abs(gammax*xdisp**2 +two*talphax(ie)*xdisp*(xpgrd(j)*c1m3)+tbetax(ie)*(xpgrd(j)*c1m3)**2 )/myemitx0_collgap)
-        nspy = sqrt(abs(gammay*(ygrd(j)*c1m3)**2 + two*talphay(ie)*(ygrd(j)*c1m3*ypgrd(j)*c1m3)+ tbetay(ie)*(ypgrd(j)*c1m3)**2 )&
-   &           /myemity0_collgap)
+      ! Do the binning in amplitude, only considering particles that were not absorbed before.
+      if(xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec .and. (part_select(j) == 1 .or. ie == 20)) then
+        ! Normalized amplitudes are calculated
+        ! Allow to apply some dispersive offset. Take arc dispersion (2m) and normalize with arc beta_x function (180m).
+        arcdx     = 2.5_fPrec
+        arcbetax  = c180e0
+        xdisp     = abs(xv1(j)*c1m3) + abs((ejv(j)-myenom)/myenom)*arcdx * sqrt(tbetax(ie)/arcbetax)
+        nspx      = sqrt(                                                       &
+                      abs(gammax*xdisp**2 +                                     &
+                        ((two*talphax(ie))*xdisp)*(yv1(j)*c1m3) +               &
+                        tbetax(ie)*(yv1(j)*c1m3)**2                             &
+                      )/myemitx0_collgap                                        &
+                    )
+        nspy      = sqrt(                                                       &
+                      abs(gammay*(xv2(j)*c1m3)**2 +                             &
+                        ((two*talphay(ie))*(xv2(j)*c1m3))*(yv2(j)*c1m3) +       &
+                        tbetay(ie)*(yv2(j)*c1m3)**2                             &
+                      )/myemity0_collgap                                        &
+                    )
 
 !++  Populate the efficiency arrays at the end of each turn...
 ! Modified by M.Fiascaris, July 2016
@@ -4412,21 +4360,21 @@ subroutine collimate_end_turn
         if(ie.eq.iu) then
           dnormx = driftx / sqrt(tbetax(ie)*myemitx0_collgap)
           dnormy = drifty / sqrt(tbetay(ie)*myemity0_collgap)
-          xnorm  = (xgrd(j)*c1m3) / sqrt(tbetax(ie)*myemitx0_collgap)
-          xpnorm = (talphax(ie)*(xgrd(j)*c1m3)+ tbetax(ie)*(xpgrd(j)*c1m3)) / sqrt(tbetax(ie)*myemitx0_collgap)
+          xnorm  = (xv1(j)*c1m3) / sqrt(tbetax(ie)*myemitx0_collgap)
+          xpnorm = (talphax(ie)*(xv1(j)*c1m3)+ tbetax(ie)*(yv1(j)*c1m3)) / sqrt(tbetax(ie)*myemitx0_collgap)
           xangle = atan2_mb(xnorm,xpnorm)
           xnorm  = xnorm  + dnormx*sin_mb(xangle)
           xpnorm = xpnorm + dnormx*cos_mb(xangle)
-          xgrd(j)  = c1e3 * (xnorm * sqrt(tbetax(ie)*myemitx0_collgap))
-          xpgrd(j) = c1e3 * ((xpnorm*sqrt(tbetax(ie)*myemitx0_collgap)-talphax(ie)*xgrd(j)*c1m3)/tbetax(ie))
+          xv1(j) = c1e3 * (xnorm * sqrt(tbetax(ie)*myemitx0_collgap))
+          yv1(j) = c1e3 * ((xpnorm*sqrt(tbetax(ie)*myemitx0_collgap)-talphax(ie)*xv1(j)*c1m3)/tbetax(ie))
 
-          ynorm  = (ygrd(j)*c1m3)/ sqrt(tbetay(ie)*myemity0_collgap)
-          ypnorm = (talphay(ie)*(ygrd(j)*c1m3)+tbetay(ie)*(ypgrd(j)*c1m3)) / sqrt(tbetay(ie)*myemity0_collgap)
+          ynorm  = (xv2(j)*c1m3)/ sqrt(tbetay(ie)*myemity0_collgap)
+          ypnorm = (talphay(ie)*(xv2(j)*c1m3)+tbetay(ie)*(yv2(j)*c1m3)) / sqrt(tbetay(ie)*myemity0_collgap)
           yangle = atan2_mb(ynorm,ypnorm)
           ynorm  = ynorm  + dnormy*sin_mb(yangle)
           ypnorm = ypnorm + dnormy*cos_mb(yangle)
-          ygrd(j)  = c1e3 * (ynorm * sqrt(tbetay(ie)*myemity0_collgap))
-          ypgrd(j) = c1e3 * ((ypnorm*sqrt(tbetay(ie)*myemity0_collgap)-talphay(ie)*ygrd(j)*c1m3)/tbetay(ie))
+          xv2(j) = c1e3 * (ynorm * sqrt(tbetay(ie)*myemity0_collgap))
+          yv2(j) = c1e3 * ((ypnorm*sqrt(tbetay(ie)*myemity0_collgap)-talphay(ie)*xv2(j)*c1m3)/tbetay(ie))
         end if
 
 !------------------------------------------------------------------------
@@ -4445,7 +4393,7 @@ subroutine collimate_end_turn
   if(ie.eq.iu) then
     imov = 0
     do j = 1, napx
-      if(xgrd(j).lt.99.0_fPrec .and. ygrd(j).lt.99.0_fPrec) then
+      if(xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) then
         llostp(j) = .false.
       else
         llostp(j) = .true.
@@ -4476,12 +4424,12 @@ subroutine collimate_end_turn
       call h5_createFormat("collDistN", fldHdf, fmtHdf)
       call h5_createDataSet("distn", h5_collID, fmtHdf, setHdf, napx)
       call h5_prepareWrite(setHdf, napx)
-      call h5_writeData(setHdf, 1, napx, (xgrd(1:napx) -torbx(1)) /c1e3)
-      call h5_writeData(setHdf, 2, napx, (xpgrd(1:napx)-torbxp(1))/c1e3)
-      call h5_writeData(setHdf, 3, napx, (ygrd(1:napx) -torby(1)) /c1e3)
-      call h5_writeData(setHdf, 4, napx, (ypgrd(1:napx)-torbyp(1))/c1e3)
-      call h5_writeData(setHdf, 5, napx, sigmvgrd(1:napx))
-      call h5_writeData(setHdf, 6, napx, ejfvgrd(1:napx))
+      call h5_writeData(setHdf, 1, napx, (xv1(1:napx)-torbx(1)) /c1e3)
+      call h5_writeData(setHdf, 2, napx, (yv1(1:napx)-torbxp(1))/c1e3)
+      call h5_writeData(setHdf, 3, napx, (xv2(1:napx)-torby(1)) /c1e3)
+      call h5_writeData(setHdf, 4, napx, (yv2(1:napx)-torbyp(1))/c1e3)
+      call h5_writeData(setHdf, 5, napx, sigmv(1:napx))
+      call h5_writeData(setHdf, 6, napx, ejfv(1:napx))
       call h5_finaliseWrite(setHdf)
       deallocate(fldHdf)
     else
@@ -4490,31 +4438,13 @@ subroutine collimate_end_turn
       open(unit=distn_unit, file='distn.dat') !was 9998
       write(distn_unit,*) '# 1=x 2=xp 3=y 4=yp 5=z 6 =E'
       do j = 1, napx
-        write(distn_unit,'(6(1X,E23.15))') (xgrd(j)-torbx(1))/c1e3, (xpgrd(j)-torbxp(1))/c1e3, (ygrd(j)-torby(1))/c1e3, &
-          (ypgrd(j)-torbyp(1))/c1e3, sigmvgrd(j), ejfvgrd(j)
+        write(distn_unit,'(6(1X,E23.15))') (xv1(j)-torbx(1))/c1e3, (yv1(j)-torbxp(1))/c1e3, (xv2(j)-torby(1))/c1e3, &
+          (yv2(j)-torbyp(1))/c1e3, sigmv(j), ejfv(j)
       end do
       close(distn_unit)
 #ifdef HDF5
     end if
 #endif
-  end if
-
-!GRD NOW ONE HAS TO COPY BACK THE NEW DISTRIBUTION TO ITS "ORIGINAL NAME"
-!GRD AT THE END OF EACH TURN
-  if(ie.eq.iu) then
-    do j = 1,napx
-      xv1(j) = xgrd(j)
-      yv1(j) = xpgrd(j)
-      xv2(j) = ygrd(j)
-      yv2(j) = ypgrd(j)
-      ejv(j)  = pgrd(j)
-      ejfv(j)   = ejfvgrd(j)
-      sigmv(j)  = sigmvgrd(j)
-      rvv(j)    = rvvgrd(j)
-      dpsv(j)   = dpsvgrd(j)
-      oidpsv(j) = oidpsvgrd(j)
-      dpsv1(j)  = dpsv1grd(j)
-    end do
   end if
 
   if(firstrun) then
