@@ -189,14 +189,6 @@ module collimation
   real(kind=fPrec), allocatable, save :: caverage(:) !(max_ncoll)
   real(kind=fPrec), allocatable, save :: csigma(:) !(max_ncoll)
 
-! Change the following block to npart
-! This is the array that the generated distribution is placed into
-  real(kind=fPrec), allocatable, save :: myx(:) !(npart)
-  real(kind=fPrec), allocatable, save :: myxp(:) !(npart)
-  real(kind=fPrec), allocatable, save :: myy(:) !(npart)
-  real(kind=fPrec), allocatable, save :: myyp(:) !(npart)
-  real(kind=fPrec), allocatable, save :: myp(:) !(npart)
-  real(kind=fPrec), allocatable, save :: mys(:) !(npart)
   integer, allocatable, save :: counted_r(:,:) !(npart,numeff)
   integer, allocatable, save :: counted_x(:,:) !(npart,numeff)
   integer, allocatable, save :: counted_y(:,:) !(npart,numeff)
@@ -272,10 +264,6 @@ module collimation
   real(kind=fPrec), parameter :: exenergy(nmat) = [ &
     63.7e-9_fPrec, 166.0e-9_fPrec, 322.0e-9_fPrec, 727.0e-9_fPrec, 823.0e-9_fPrec, 78.0e-9_fPrec, 78.0e-9_fPrec, &
     87.1e-9_fPrec, 152.9e-9_fPrec, 424.0e-9_fPrec, 320.8e-9_fPrec, 682.2e-9_fPrec, zero, c1e10 ]
-
-!++ Vectors of coordinates
-
-  real(kind=fPrec), private :: mygammax,mygammay
 
 
   ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
@@ -689,14 +677,6 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call alloc(counted_x, npart_new, numeff, 0, "counted_x") !(npart_new,numeff)
   call alloc(counted_y, npart_new, numeff, 0, "counted_y") !(npart_new,numeff)
 
-  ! Change the following block to npart
-  call alloc(myx,  npart_new, zero, "myx")  !(npart_new)
-  call alloc(myxp, npart_new, zero, "myxp") !(npart_new)
-  call alloc(myy,  npart_new, zero, "myy")  !(npart_new)
-  call alloc(myyp, npart_new, zero, "myyp") !(npart_new)
-  call alloc(myp,  npart_new, zero, "myp")  !(npart_new)
-  call alloc(mys,  npart_new, zero, "mys")  !(npart_new)
-
 end subroutine collimation_expand_arrays
 
 !>
@@ -839,10 +819,6 @@ subroutine collimate_init()
     write(lout,"(a)") "COLL> ERROR EXAMPLE: 2.5 2.5 3.5 3.5"
     call prror(-1)
   end if
-
-!++  Calculate the gammas
-  mygammax = (one+myalphax**2)/mybetax
-  mygammay = (one+myalphay**2)/mybetay
 
 !++  Number of points and generate distribution
 !
@@ -1016,33 +992,33 @@ subroutine collimate_init()
     write(lout,"(a)") "COLL> WARNING Distributions reset to pencil beam!"
     write(outlun,*) 'WARN>  Distributions reset to pencil beam!'
     do j = 1, napx
-      myx(j)  = zero
-      myxp(j) = zero
-      myy(j)  = zero
-      myyp(j) = zero
+      xv1(j) = zero
+      yv1(j) = zero
+      xv2(j) = zero
+      yv2(j) = zero
     end do
   endif
 
   ! Optionally write the generated particle distribution
-  if(dowrite_dist .and. do_thisdis /= 0) then
+  if(dowrite_dist) then
 #ifdef HDF5
     if(h5_useForCOLL) then
       allocate(fldDist0(6))
-      fldDist0(1)  = h5_dataField(name="X",  type=h5_typeReal)
-      fldDist0(2)  = h5_dataField(name="XP", type=h5_typeReal)
-      fldDist0(3)  = h5_dataField(name="Y",  type=h5_typeReal)
-      fldDist0(4)  = h5_dataField(name="YP", type=h5_typeReal)
-      fldDist0(5)  = h5_dataField(name="S",  type=h5_typeReal)
-      fldDist0(6)  = h5_dataField(name="P",  type=h5_typeReal)
+      fldDist0(1) = h5_dataField(name="X",     type=h5_typeReal)
+      fldDist0(2) = h5_dataField(name="XP",    type=h5_typeReal)
+      fldDist0(3) = h5_dataField(name="Y",     type=h5_typeReal)
+      fldDist0(4) = h5_dataField(name="YP",    type=h5_typeReal)
+      fldDist0(5) = h5_dataField(name="SIGMA", type=h5_typeReal)
+      fldDist0(6) = h5_dataField(name="E",     type=h5_typeReal)
       call h5_createFormat("collDist0", fldDist0, fmtDist0)
       call h5_createDataSet("dist0", h5_collID, fmtDist0, setDist0, napx)
       call h5_prepareWrite(setDist0, napx)
-      call h5_writeData(setDist0, 1, napx, myx(1:napx))
-      call h5_writeData(setDist0, 2, napx, myxp(1:napx))
-      call h5_writeData(setDist0, 3, napx, myy(1:napx))
-      call h5_writeData(setDist0, 4, napx, myyp(1:napx))
-      call h5_writeData(setDist0, 5, napx, mys(1:napx))
-      call h5_writeData(setDist0, 6, napx, myp(1:napx))
+      call h5_writeData(setDist0, 1, napx, xv1(1:napx))
+      call h5_writeData(setDist0, 2, napx, yv1(1:napx))
+      call h5_writeData(setDist0, 3, napx, xv2(1:napx))
+      call h5_writeData(setDist0, 4, napx, yv2(1:napx))
+      call h5_writeData(setDist0, 5, napx, sigmv(1:napx))
+      call h5_writeData(setDist0, 6, napx, ejv(1:napx))
       call h5_finaliseWrite(setDist0)
       deallocate(fldDist0)
     else
@@ -2449,7 +2425,7 @@ subroutine collimate_do_collimator(stracki)
   if (((cdb_cNameUC(icoll).eq.name_sel(1:mNameLen)) .or. (cdb_cName(icoll).eq.name_sel(1:mNameLen))) .and. do_select) then
     do j = 1, napx
       write(coll_ellipse_unit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv1(j), xv2(j), yv1(j), yv2(j), &
-     &        ejv(j), mys(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
+     &        ejv(j), sigmv(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
     end do
   end if
 
@@ -2656,8 +2632,9 @@ subroutine collimate_do_collimator(stracki)
       beamsize1 = sqrt(betay1 * myemity0_collgap)
       beamsize2 = sqrt(betay2 * myemity0_collgap)
     else
-      write(lout,*) "attempting to use a halo not purely in the horizontal or vertical plane with pencil_dist=3 - abort."
-      call prror(-1)
+      write(lout,"(a)") "COLL> ERROR Attempting to use a halo not purely in the horizontal "//&
+        "or vertical plane with pencil_dist=3 - abort."
+      call prror
     end if
 
 !   calculate offset from tilt of positive and negative jaws, at start and end
@@ -2693,9 +2670,9 @@ subroutine collimate_do_collimator(stracki)
 
 !   Assign amplitudes in x and y for the halo generation function
     if((mynex.gt.0).and.(myney.eq.zero)) then ! horizontal halo
-       mynex2 = minAmpl
+      mynex2 = minAmpl
     else if((mynex.eq.0).and.(myney.gt.zero)) then ! vertical halo
-       myney2 = minAmpl
+      myney2 = minAmpl
     end if               ! other cases taken care of above - in these cases, program has already stopped
 
 !   assign optics parameters to use for the generation of the starting halo - at start or end of collimator
@@ -2718,25 +2695,19 @@ subroutine collimate_do_collimator(stracki)
 !   but it might be then that only one jaw is hit on the first turn, thus only by half of the particles
 !   the particle generated on the other side will then hit the same jaw several turns later, possibly smearing the impact parameter
 !   This could possibly be improved in the future.
-    call makedis_coll(myalphax,myalphay, mybetax, mybetay, myemitx0_collgap, myemity0_collgap, &
- &                    myenom, mynex2, mdex, myney2, mdey, myx, myxp, myy, myyp, myp, mys)
+    call makedis_coll(myalphax,myalphay,mybetax,mybetay,mynex2,mdex,myney2,mdey)
 
     do j = 1, napx
-      xv1(j)  = c1e3*myx(j)  + torbx(ie)
-      yv1(j)  = c1e3*myxp(j) + torbxp(ie)
-      xv2(j)  = c1e3*myy(j)  + torby(ie)
-      yv2(j)  = c1e3*myyp(j) + torbyp(ie)
-      sigmv(j) = mys(j)
-      ejv(j)   = myp(j)
+      xv1(j)  = c1e3*xv1(j) + torbx(ie)
+      yv1(j)  = c1e3*yv1(j) + torbxp(ie)
+      xv2(j)  = c1e3*xv2(j) + torby(ie)
+      yv2(j)  = c1e3*yv2(j) + torbyp(ie)
 
 !      as main routine will track particles back half a collimator length (to start of jaw),
 !      track them now forward (if generated at face) or backward (if generated at end)
 !      1/2 collimator length to center of collimator (ldrift pos or neg)
        xv1(j)  = xv1(j) - ldrift*yv1(j)
        xv2(j)  = xv2(j) - ldrift*yv2(j)
-
-!      write out distribution - generated either at the BEGINNING or END of the collimator
-!       write(4997,'(6(1X,E15.7))') myx(j), myxp(j), myy(j), myyp(j), mys(j), myp(j)
     end do
   end if
 
@@ -3226,7 +3197,7 @@ subroutine collimate_end_collimator()
         yv1(j) = zero
         xv2(j) = zero
         yv2(j) = zero
-        ejv(j)  = myenom
+        ejv(j) = myenom
         sigmv(j)= zero
         part_abs_pos(j)=ie
         part_abs_turn(j)=iturn
@@ -3974,7 +3945,7 @@ subroutine collimate_start_element(i)
       yv1(j) = zero
       xv2(j) = zero
       yv2(j) = zero
-      ejv(j)  = myenom
+      ejv(j) = myenom
       sigmv(j)= zero
       part_abs_pos(j)=ie
       part_abs_turn(j)=iturn
@@ -6255,100 +6226,82 @@ end subroutine calc_ion_loss
 
 !     Treat as a pencil beam in main routine.
 
-subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay,  myemitx0, myemity0, &
- &                        myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
+subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay, mynex, mdex, myney, mdey)
 
   use crcoall
   use mathlib_bouncer
   use mod_ranlux
   use mod_common, only : napx
+  use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
+
   implicit none
 
   integer :: j
-  real(kind=fPrec), allocatable :: myx(:) !(npart)
-  real(kind=fPrec), allocatable :: myxp(:) !(npart)
-  real(kind=fPrec), allocatable :: myy(:) !(npart)
-  real(kind=fPrec), allocatable :: myyp(:) !(npart)
-  real(kind=fPrec), allocatable :: myp(:) !(npart)
-  real(kind=fPrec), allocatable :: mys(:) !(npart)
 
-  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-  &xsigmax,ysigmay,myenom
-
+  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex,myalphay,mybetay,&
+    myemity0,myemity,myney,mdey,xsigmax,ysigmay
 
   real(kind=fPrec) iix, iiy, phix,phiy,cutoff
 
-  save
-!
-!-----------------------------------------------------------------------
-!++  Generate particle distribution
-!
-!++  Calculate the gammas
+  myemitx0 = myemitx0_collgap
+  myemity0 = myemity0_collgap
 
-  mygammax = (one+myalphax**2)/mybetax
-  mygammay = (one+myalphay**2)/mybetay
-
-! calculate cutoff in x or y from the collimator jaws.
+  ! Calculate cutoff in x or y from the collimator jaws.
   if((mynex.gt.zero).and.(myney.eq.zero)) then
     cutoff=mynex*sqrt(mybetax*myemitx0)
   else
     cutoff=myney*sqrt(mybetay*myemity0)
   end if
 
-      do j=1, napx
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-         if((mynex.gt.zero).and.(myney.eq.zero)) then  ! halo in x
- 887        continue
-            myemitx = myemitx0*(mynex+(real(rndm4(),fPrec)*mdex))**2
-            xsigmax = sqrt(mybetax*myemitx)
-            myx(j)  = xsigmax * sin_mb((two*pi)*real(rndm4(),fPrec))
-            if(abs(myx(j)).lt.cutoff) goto 887
+  do j=1,napx
+    if(mynex > zero .and. myney == zero) then ! halo in x
+10    continue
+      myemitx = myemitx0*(mynex+(rndm4()*mdex))**2
+      xsigmax = sqrt(mybetax*myemitx)
+      xv1(j)  = xsigmax * sin_mb(twopi*rndm4())
+      if(abs(xv1(j)).lt.cutoff) goto 10
 
-            if(rndm4().gt.half) then
-              myxp(j) = sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
-            else
-              myxp(j) = -one*sqrt(myemitx/mybetax-myx(j)**2/mybetax**2)-(myalphax*myx(j))/mybetax
-            end if
+      if(rndm4() > half) then
+        yv1(j) = sqrt(myemitx/mybetax-xv1(j)**2/mybetax**2)-(myalphax*xv1(j))/mybetax
+      else
+        yv1(j) = -one*sqrt(myemitx/mybetax-xv1(j)**2/mybetax**2)-(myalphax*xv1(j))/mybetax
+      end if
 
-            phiy = (two*pi)*real(rndm4(),fPrec)
-            iiy = (-one*myemity0) * log_mb( real(rndm4(),fPrec) )
-            myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
-            myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-         else if( mynex.eq.zero.and.myney.gt.zero ) then  ! halo in y
- 886        continue
-            myemity = myemity0*(myney+(real(rndm4(),fPrec)*mdey))**2
-            ysigmay = sqrt(mybetay*myemity)
-            myy(j)   = ysigmay * sin_mb((two*pi)*real(rndm4(),fPrec))
-            if(abs(myy(j)).lt.cutoff) goto 886
+      phiy   = twopi*rndm4()
+      iiy    = (-one*myemity0) * log_mb(rndm4())
+      xv2(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
+      yv2(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
 
-            if(rndm4().gt.half) then
-              myyp(j) = sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
-            else
-              myyp(j) = -one*sqrt(myemity/mybetay-myy(j)**2/mybetay**2)-(myalphay*myy(j))/mybetay
-            end if
+    else if(mynex == zero .and. myney > zero) then ! halo in y
+20    continue
+      myemity = myemity0*(myney+(rndm4()*mdey))**2
+      ysigmay = sqrt(mybetay*myemity)
+      xv2(j)  = ysigmay * sin_mb(twopi*rndm4())
+      if(abs(xv2(j)).lt.cutoff) goto 20
 
-            phix = (two*pi)*real(rndm4(),fPrec)
-            iix = (-one* myemitx0) * log_mb( real(rndm4(),fPrec) )
-            myx(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
-            myxp(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) + myalphax * cos_mb(phix))
+      if(rndm4() > half) then
+        yv2(j) = sqrt(myemity/mybetay-xv2(j)**2/mybetay**2)-(myalphay*xv2(j))/mybetay
+      else
+        yv2(j) = -one*sqrt(myemity/mybetay-xv2(j)**2/mybetay**2)-(myalphay*xv2(j))/mybetay
+      end if
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! nominal bunches centered in the aperture - can't apply rejection sampling. return with error
-         else if( mynex.eq.zero.and.myney.eq.zero ) then
-           write(lout,*) "Stop in makedis_coll. attempting to use halo type 3 with Gaussian dist. "
-           call prror(-1)
-         else
-           write(lout,*) "Error - beam parameters not correctly set!"
-         end if
+      phix   = twopi*rndm4()
+      iix    = (-one* myemitx0) * log_mb(rndm4())
+      xv1(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
+      yv1(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) + myalphax * cos_mb(phix))
 
-         myp(j) = myenom
-         mys(j) = zero
+    ! nominal bunches centered in the aperture - can't apply rejection sampling. return with error
+    else if(mynex == zero .and. myney == zero) then
+      write(lout,"(a)") "COLL> ERROR in makedis_coll. Attempting to use halo type 3 with Gaussian dist."
+      call prror
+    else
+      write(lout,"(a)") "COLL> ERROR Beam parameters not correctly set!"
+    end if
 
-      end do
+    ejv(j)   = myenom
+    sigmv(j) = zero
+  end do
 
-      return
 end subroutine makedis_coll
 
 !========================================================================

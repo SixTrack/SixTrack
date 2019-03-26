@@ -19,8 +19,6 @@ module coll_dist
   real(kind=fPrec),         public,  save :: cdist_alphaY   = zero
   real(kind=fPrec),         public,  save :: cdist_betaX    = zero
   real(kind=fPrec),         public,  save :: cdist_betaY    = zero
-  real(kind=fPrec),         private, save :: cdist_gammaX   = zero
-  real(kind=fPrec),         private, save :: cdist_gammaY   = zero
   real(kind=fPrec),         public,  save :: cdist_emitX    = zero
   real(kind=fPrec),         public,  save :: cdist_emitY    = zero
 
@@ -41,9 +39,6 @@ subroutine cdist_makeDist(distFormat)
   use crcoall
 
   integer, intent(in) :: distFormat
-
-  cdist_gammaX = (one + cdist_alphaX**2)/cdist_betaX
-  cdist_gammaY = (one + cdist_alphaY**2)/cdist_betaY
 
   select case(distFormat)
   case(0)
