@@ -236,6 +236,7 @@ set(TESTS_NOFORT10
 
 # List of tests that do not produce singletrackfile.dat or fort.90
 set(TESTS_NO_STF_FORT90
+  beam-HO_6D-simple-newstyle-coupling
   chebythin6d
   chebythin6d_DYNK
   chebythin6d_ions

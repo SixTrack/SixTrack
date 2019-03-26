@@ -1329,7 +1329,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 
 ! echo of input parameters
   write(lout,"(a)") ""
-  write(lout,"(a,i0,a,i0,a,l)") "APER> Call to contour_aperture_markers - iUp=",itElUp," - iDw=",itElDw," - lInsUp=",lInsUp
+  write(lout,"(a,i0,a,i0,a,l1)") "APER> Call to contour_aperture_markers - iUp=",itElUp," - iDw=",itElDw," - lInsUp=",lInsUp
 
 ! do not overwrite interface variables
   iElUp=itElUp
@@ -1416,7 +1416,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 
 ! echo of input parameters
   write(lout,"(a)") ""
-  write(lout,"(a,i0,a,l)") "APER> Call to contour_aperture_marker - i=",iEl," - lInsUp=",lInsUp
+  write(lout,"(a,i0,a,l1)") "APER> Call to contour_aperture_marker - i=",iEl," - lInsUp=",lInsUp
 
 ! check upstream element
   ixEl=ic(iEl)-nblo
