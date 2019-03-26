@@ -91,9 +91,9 @@ subroutine cdist_makeDist_fmt1
 
   if(cdist_ampX > zero) then
     do j=1, napx
-      emitX  = cdist_emitX*(cdist_ampX + ((two*real(rndm4()-half,fPrec))*cdist_smearX))**2
+      emitX  = cdist_emitX*(cdist_ampX + ((two*(rndm4()-half))*cdist_smearX))**2
       sigmaX = sqrt(cdist_betaX*emitX)
-      xv1(j) = sigmaX * sin_mb(twopi*real(rndm4(),fPrec))
+      xv1(j) = sigmaX * sin_mb(twopi*rndm4())
       if(rndm4() > half) then
         yv1(j) = sqrt(emitX/cdist_betaX-xv1(j)**2/cdist_betaX**2)-(cdist_alphaX*xv1(j))/cdist_betaX
       else
@@ -107,9 +107,9 @@ subroutine cdist_makeDist_fmt1
 
   if(cdist_ampY > zero) then
     do j=1, napx
-      emitY  = cdist_emitY*(cdist_ampY + ((two*real(rndm4()-half,fPrec))*cdist_smearY))**2
+      emitY  = cdist_emitY*(cdist_ampY + ((two*(rndm4()-half))*cdist_smearY))**2
       sigmaY = sqrt(cdist_betaY*emitY)
-      xv2(j) = sigmaY * sin_mb(twopi*real(rndm4(),fPrec))
+      xv2(j) = sigmaY * sin_mb(twopi*rndm4())
       if(rndm4() > half) then
         yv2(j) = sqrt(emitY/cdist_betaY-xv2(j)**2/cdist_betaY**2)-(cdist_alphaY*xv2(j))/cdist_betaY
       else
@@ -153,8 +153,8 @@ subroutine cdist_makeDist_fmt2
 
   if(cdist_ampX < pieni) then
     do j=1,napx
-      phiX   = twopi*real(rndm4(),fPrec)
-      iiX    = (-one*cdist_emitX) * log_mb(real(rndm4(),fPrec))
+      phiX   = twopi*rndm4()
+      iiX    = (-one*cdist_emitX) * log_mb(rndm4())
       xv1(j) = sqrt((two*iiX)*cdist_betaX) * cos_mb(phiX)
       yv1(j) = (-one*sqrt((two*iiX)/cdist_betaX)) * (sin_mb(phiX) + cdist_alphaX * cos_mb(phiX))
     end do
@@ -162,8 +162,8 @@ subroutine cdist_makeDist_fmt2
 
   if(cdist_ampY < pieni) then
     do j=1,napx
-      phiY   = twopi*real(rndm4(),fPrec)
-      iiY    = (-one*cdist_emitY) * log_mb(real(rndm4(),fPrec))
+      phiY   = twopi*rndm4()
+      iiY    = (-one*cdist_emitY) * log_mb(rndm4())
       xv2(j) = sqrt((two*iiY)*cdist_betaY) * cos_mb(phiY)
       yv2(j) = (-one*sqrt((two*iiY)/cdist_betaY)) * (sin_mb(phiY) + cdist_alphaY * cos_mb(phiY))
     end do
