@@ -141,6 +141,14 @@ endif()
 
 if(NOT CR)
   list(APPEND SIXTRACK_TESTS
+    collimation_dist_1h
+    collimation_dist_1v
+    collimation_dist_2h
+    collimation_dist_2v
+    collimation_dist_3h
+    collimation_dist_3v
+    collimation_dist_4
+    collimation_dist_5
     collimation_old-db_old-block
     collimation_old-db_new-block
     collimation_k2_fcc_2017_h1_collision
@@ -193,6 +201,14 @@ set(TESTS_NOFORT10
   beam-HO_6D-simple-oldstyle
   beambeam4dDYNK
   beambeamDYNK
+  collimation_dist_1h
+  collimation_dist_1v
+  collimation_dist_2h
+  collimation_dist_2v
+  collimation_dist_3h
+  collimation_dist_3v
+  collimation_dist_4
+  collimation_dist_5
   collimation_old-db_old-block
   collimation_old-db_new-block
   collimation_k2_fcc_2017_h1_collision
@@ -237,6 +253,14 @@ set(TESTS_NOFORT10
 # List of tests that do not produce singletrackfile.dat or fort.90
 set(TESTS_NO_STF_FORT90
   beam-HO_6D-simple-newstyle-coupling
+  collimation_dist_1h
+  collimation_dist_1v
+  collimation_dist_2h
+  collimation_dist_2v
+  collimation_dist_3h
+  collimation_dist_3v
+  collimation_dist_4
+  collimation_dist_5
   collimation_k2_fcc_2017_h1_collision
   collimation_old-db_new-block
   collimation_old-db_old-block
@@ -465,6 +489,14 @@ set(FAST_TESTS
   beam-HO_LR-oldstyle
   beambeam4dDYNK
   beambeamDYNK
+  collimation_dist_1h
+  collimation_dist_1v
+  collimation_dist_2h
+  collimation_dist_2v
+  collimation_dist_3h
+  collimation_dist_3v
+  collimation_dist_4
+  collimation_dist_5
   collimation_old-db_old-block
   collimation_old-db_new-block
   crabs
