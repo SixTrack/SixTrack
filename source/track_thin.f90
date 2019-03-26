@@ -10,6 +10,7 @@ subroutine trauthin(nthinerr)
   use numerical_constants
   use scatter, only : scatter_elemPointer
   use dynk, only : dynk_enabled, dynk_isused, dynk_pretrack
+  use cheby, only : cheby_kz, cheby_ktrack
 
   use mod_alloc
   use mod_time
@@ -160,6 +161,11 @@ subroutine trauthin(nthinerr)
     !electron lens (HEL)
     if(kzz.eq.29) then
       ktrack(i)=63
+      goto 290
+    endif
+    ! Chebyshev lens
+    if(kzz.eq.cheby_kz) then
+      ktrack(i)=cheby_ktrack
       goto 290
     endif
     ! SCATTER block
@@ -529,6 +535,7 @@ subroutine thin4d(nthinerr)
   use bdex, only : bdex_enable
   use aperture
   use elens
+  use cheby, only : cheby_ktrack, cheby_kick
   use utils
   use wire
 #ifdef CR
@@ -1035,7 +1042,9 @@ subroutine thin4d(nthinerr)
        case (66) ! Rf-multi
 #include "include/rfmulti.f90"
         goto 620
-
+      case (cheby_ktrack) ! Chebyshev lens
+        call cheby_kick(i,ix,n)
+        goto 620
 
       end select
       goto 630
@@ -1150,6 +1159,7 @@ subroutine thin6d(nthinerr)
   use mod_common_da
   use aperture
   use elens
+  use cheby, only : cheby_ktrack, cheby_kick
   use utils
   use wire
 #ifdef CR
@@ -1972,6 +1982,9 @@ subroutine thin6d(nthinerr)
         goto 640
       case (65) ! Scatter (thick)
         !     TODO
+        goto 640
+      case (cheby_ktrack) ! Chebyshev lens
+        call cheby_kick(i,ix,n)
         goto 640
       case default
         write(lout,"(3(a,i0),a)") "TRACKING> WARNING Non-handled element in thin6d()!",  &
