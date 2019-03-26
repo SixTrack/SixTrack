@@ -149,6 +149,7 @@ if(NOT CR)
     collimation_dist_3v
     collimation_dist_4
     collimation_dist_5
+    collimation_dist_6
     collimation_old-db_old-block
     collimation_old-db_new-block
     collimation_k2_fcc_2017_h1_collision
@@ -209,6 +210,7 @@ set(TESTS_NOFORT10
   collimation_dist_3v
   collimation_dist_4
   collimation_dist_5
+  collimation_dist_6
   collimation_old-db_old-block
   collimation_old-db_new-block
   collimation_k2_fcc_2017_h1_collision
@@ -261,6 +263,7 @@ set(TESTS_NO_STF_FORT90
   collimation_dist_3v
   collimation_dist_4
   collimation_dist_5
+  collimation_dist_6
   collimation_k2_fcc_2017_h1_collision
   collimation_old-db_new-block
   collimation_old-db_old-block
@@ -497,6 +500,7 @@ set(FAST_TESTS
   collimation_dist_3v
   collimation_dist_4
   collimation_dist_5
+  collimation_dist_6
   collimation_old-db_old-block
   collimation_old-db_new-block
   crabs
