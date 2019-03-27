@@ -10,6 +10,7 @@ subroutine trauthin(nthinerr)
   use numerical_constants
   use scatter, only : scatter_elemPointer
   use dynk, only : dynk_enabled, dynk_isused, dynk_pretrack
+  use cheby, only : cheby_kz, cheby_ktrack
 
   use mod_alloc
   use mod_time
@@ -160,6 +161,11 @@ subroutine trauthin(nthinerr)
     !electron lens (HEL)
     if(kzz.eq.29) then
       ktrack(i)=63
+      goto 290
+    endif
+    ! Chebyshev lens
+    if(kzz.eq.cheby_kz) then
+      ktrack(i)=cheby_ktrack
       goto 290
     endif
     ! SCATTER block
@@ -529,6 +535,7 @@ subroutine thin4d(nthinerr)
   use bdex, only : bdex_enable
   use aperture
   use elens
+  use cheby, only : cheby_ktrack, cheby_kick
   use utils
   use wire
 #ifdef CR
@@ -711,51 +718,10 @@ subroutine thin4d(nthinerr)
         ! store old particle coordinates
         if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
         goto 630
-      case (3)
+      case (3)  !Phase Trombone  
         irrtr=imtr(ix)
         do j=1,napx
-            !The values are stored in the temp vector which are used for the multiplication.
-          temptr(1)=xv1(j)
-          temptr(2)=yv1(j)/moidpsv(j)
-          temptr(3)=xv2(j)
-          temptr(4)=yv2(j)/moidpsv(j)
-          temptr(5)=sigmv(j)
-          temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
-          ! Adding the closed orbit. The previous values are stored in the temptr vector.
-          xv1(j)  = cotr(irrtr,1)
-          yv1(j)  = cotr(irrtr,2)
-          xv2(j)  = cotr(irrtr,3)
-          yv2(j)  = cotr(irrtr,4)
-          sigmv(j) = cotr(irrtr,5)
-          pttemp   = cotr(irrtr,6)
-
-          ! Multiplying the arbitrary matrix to the coordinates.
-          do kxxa=1,6
-            xv1(j)   =  xv1(j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv1(j)   =  yv1(j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
-            xv2(j)   =  xv2(j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
-            yv2(j)   =  yv2(j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
-            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)
-            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)
-          enddo
-          ! Transforming back to the tracked coordinates of Sixtrack...
-          ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
-
-
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-
-
-          ! We have to go back to angles after we updated the energy.
-          yv1(j) = yv1(j)*moidpsv(j)
-          yv2(j) = yv2(j)*moidpsv(j)
-
-
+#include "include/trombone.f90" 
         enddo
       goto 620
       case (2,4,5,6,7,8,9,10)
@@ -1076,7 +1042,9 @@ subroutine thin4d(nthinerr)
        case (66) ! Rf-multi
 #include "include/rfmulti.f90"
         goto 620
-
+      case (cheby_ktrack) ! Chebyshev lens
+        call cheby_kick(i,ix,n)
+        goto 620
 
       end select
       goto 630
@@ -1191,6 +1159,7 @@ subroutine thin6d(nthinerr)
   use mod_common_da
   use aperture
   use elens
+  use cheby, only : cheby_ktrack, cheby_kick
   use utils
   use wire
 #ifdef CR
@@ -2013,6 +1982,9 @@ subroutine thin6d(nthinerr)
         goto 640
       case (65) ! Scatter (thick)
         !     TODO
+        goto 640
+      case (cheby_ktrack) ! Chebyshev lens
+        call cheby_kick(i,ix,n)
         goto 640
       case default
         write(lout,"(3(a,i0),a)") "TRACKING> WARNING Non-handled element in thin6d()!",  &

@@ -153,8 +153,8 @@ subroutine hash_parseInputLine(inLine, iErr)
       iErr = .true.
       return
     end if
-    if(len_trim(lnSplit(2)) > mFNameLen) then
-      write(lout,"(a,i0)") "HASH> ERROR MD5SUM filename is too long. Max is ",mFNameLen
+    if(len_trim(lnSplit(2)) > mFileName) then
+      write(lout,"(a,i0)") "HASH> ERROR MD5SUM filename is too long. Max is ",mFileName
       iErr = .true.
       return
     end if
@@ -170,7 +170,7 @@ subroutine hash_parseInputLine(inLine, iErr)
     end select
 
     hash_nHashFiles = hash_nHashFiles + 1
-    call alloc(hash_listHashFiles, mFNameLen, hash_nHashFiles,     " ", "hash_listHashFiles")
+    call alloc(hash_listHashFiles, mFileName, hash_nHashFiles,     " ", "hash_listHashFiles")
     call alloc(hash_isAscii,                  hash_nHashFiles, .false., "hash_isAscii")
     hash_listHashFiles(hash_nHashFiles) = trim(lnSplit(2))
     hash_isAscii(hash_nHashFiles)       = tmpIsAscii

@@ -6,7 +6,7 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       use mathlib_bouncer
       use crcoall
       use mod_lie_dab, only : ndim,ndim2,ntt,nreso,nd,nd2,no,nv,ifilt,idpr,iref,itu,lienot,iflow,   &
-        jtune,ndc,ndc2,ndpt,ndt,nplane,ista,idsta,mx,nres,epsplane,xplane,sta,dsta,angle,rad,ps,    &
+        jtune,ndc,ndc2,ndpt,ndt,nplane,ista,idsta,mx,nres,epsplane,xplane,sta,dsta,angle,ps,    &
         rads,xintex,iscrda
 
       implicit none
@@ -99,7 +99,7 @@ end subroutine flowpara
 subroutine pertpeek(st,ang,ra)
       use floatPrecision
       use mathlib_bouncer
-      use mod_lie_dab, only : nd,ndim,angle,rad,sta
+      use mod_lie_dab, only : nd,ndim,angle,radn,sta
       implicit none
       integer i
       real(kind=fPrec) ang,ra,st
@@ -107,7 +107,7 @@ subroutine pertpeek(st,ang,ra)
       do i=1,nd
         st(i)=sta(i)
         ang(i)=angle(i)
-        ra(i)=rad(i)
+        ra(i)=radn(i)
       end do
       return
 end subroutine pertpeek
@@ -139,7 +139,7 @@ end subroutine inputres
 subroutine respoke(mres,nre,ire)
       use floatPrecision
       use mathlib_bouncer
-      use mod_lie_dab, only : nd,iref,ndc,ndc2,ndpt,ndt,ndim,nreso,idsta,ista,angle,dsta,rad,sta,mx,nres
+      use mod_lie_dab, only : nd,iref,ndc,ndc2,ndpt,ndt,ndim,nreso,idsta,ista,angle,dsta,sta,mx,nres
       implicit none
       integer i,ire,j,nre
       real(kind=fPrec) ang,ra,st
@@ -1626,8 +1626,8 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
       use mod_lie_dab, only : nd,nd2,idpr,itu,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,ps,rads
       implicit none
       integer ij,isi,nord
-      real(kind=fPrec) angle,p,rad,st,x2pi,x2pii
-      dimension angle(ndim),st(ndim),p(ndim),rad(ndim)
+      real(kind=fPrec) angle,p,radn,st,x2pi,x2pii
+      dimension angle(ndim),st(ndim),p(ndim),radn(ndim)
       integer x(*),a1(*),a2(*),ft(*),xy(*),h(*)
       integer a1i(ndim2),a2i(ndim2)
 !
@@ -1638,7 +1638,7 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
         angle(itu)=zero
         p(itu)=zero
         st(itu)=zero
-        rad(itu)=zero
+        radn(itu)=zero
         ps(itu)=zero
         rads(itu)=zero
       enddo
@@ -1650,24 +1650,24 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
       call gofix(xy,a1,a1i,nord)
       call simil(a1i,xy,a1,xy)
 ! linear part
-      call midbflo(xy,a2,a2i,angle,rad,st)
+      call midbflo(xy,a2,a2i,angle,radn,st)
       do ij=1,nd-ndc
         p(ij)=angle(ij)*(st(ij)*(x2pii-one)+one)
       enddo
       if(ndc.eq.1) p(nd)=angle(nd)
       if(idpr.ge.0) then
         write(lout,*) 'tune    ',(p(ij),ij=1,nd)
-        write(lout,*) 'damping ', (rad(ij),ij=1,nd)
+        write(lout,*) 'damping ', (radn(ij),ij=1,nd)
       endif
       do ij=1,nd       !  -ndc    frank
         ps(ij)=p(ij)
-        rads(ij)=rad(ij)
+        rads(ij)=radn(ij)
       enddo
-      call initpert(st,angle,rad)
+      call initpert(st,angle,radn)
       call simil(a2i,xy,a2,xy)
       call dacopd(xy,a2i)
 !        write(6,*) 'Entering orderflo'
-      call orderflo(h,ft,xy,angle,rad)
+      call orderflo(h,ft,xy,angle,radn)
       do ij=1,nd-ndc
         p(ij)=angle(ij)
         if(angle(ij).gt.x2pi/two.and.st(ij).gt.zero.and.itu.eq.1)then
@@ -1675,7 +1675,7 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
           write(lout,*) ij,' TH TUNE MODIFIED IN H2 TO ',p(ij)/x2pi
         endif
       enddo
-      call h2pluflo(h,p,rad)
+      call h2pluflo(h,p,radn)
 !      CALL TAKED(A2I,1,XY)
       call taked(a2i,1,a1i)
       call etcct(xy,a1i,xy)
@@ -1931,7 +1931,7 @@ real(kind=fPrec) function xgam(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,idsta,ista,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,idsta,ista,angle,dsta,radn,sta
       implicit none
       integer i,ic,ij,ik
       real(kind=fPrec) ad,ans,as,ex,exh
@@ -1955,8 +1955,7 @@ real(kind=fPrec) function xgam(j)
       enddo
 
       do i=1,nd-ndc
-        ad=((dsta(i)*real(jj(i),fPrec))*angle(i)-real(jp(i),fPrec)      &
-     &*rad(i))+ad        !hr11
+        ad=((dsta(i)*real(jj(i),fPrec))*angle(i)-real(jp(i),fPrec)*radn(i))+ad
         as=(sta(i)*real(jj(i),fPrec))*angle(i)+as                              !hr11
       enddo
 
@@ -1972,7 +1971,7 @@ real(kind=fPrec) function xgbm(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,idsta,ista,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,idsta,ista,angle,dsta,radn,sta
       implicit none
       integer i,ic,ij,ik
       real(kind=fPrec) ad,ans,as,ex,exh
@@ -1995,8 +1994,7 @@ real(kind=fPrec) function xgbm(j)
       enddo
 
       do i=1,nd-ndc
-        ad=((dsta(i)*real(jj(i),fPrec))*angle(i)-real(jp(i),fPrec)      &
-     &*rad(i))+ad        !hr11
+        ad=((dsta(i)*real(jj(i),fPrec))*angle(i)-real(jp(i),fPrec)*radn(i))+ad
         as=(sta(i)*real(jj(i),fPrec))*angle(i)+as                              !hr11
       enddo
 
@@ -2011,7 +2009,7 @@ end function xgbm
 real(kind=fPrec) function filt(j)
       use floatPrecision
       use numerical_constants
-      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,idsta,ista,angle,dsta,rad,sta,mx,nres
+      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,idsta,ista,angle,dsta,sta,mx,nres
       implicit none
       integer i,ic,ic1,ic2,ij,ik,ji
 !  PROJECTION FUNCTIONS ON THE KERNEL ANMD RANGE OF (1-R^-1)
@@ -2164,7 +2162,7 @@ end subroutine dhdj
 subroutine h2pluflo(h,ang,ra)
       use floatPrecision
       use numerical_constants
-      use mod_lie_dab, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt,ndim,ntt,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt,ndim,ntt,angle,dsta,sta
       implicit none
       integer i,j
       real(kind=fPrec) ang,r1,r2,ra,st
@@ -2450,7 +2448,7 @@ end subroutine rtocd
 subroutine resvec(cr,ci,dr,di)
       use floatPrecision
       use mathlib_bouncer
-      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,idsta,ista,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,idsta,ista,angle,dsta,sta
       implicit none
       integer i
 ! DOES THE SPINOR PART IN CTORFLO
@@ -2495,7 +2493,7 @@ subroutine reelflo(c,ci,f,fi)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim2,idsta,ista,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim2,idsta,ista,angle,dsta,sta
       implicit none
       integer i
 ! DOES THE SPINOR PART IN RTOCFLO
@@ -3022,7 +3020,7 @@ subroutine initpert(st,ang,ra)
       use mathlib_bouncer
       use numerical_constants
       use crcoall
-      use mod_lie_dab, only : nd,nd2,iref,ndc,ndc2,ndpt,ndt,ndim,ndim2,nreso,idsta,ista,angle,dsta,rad,sta,mx,nres
+      use mod_lie_dab, only : nd,nd2,iref,ndc,ndc2,ndpt,ndt,ndim,ndim2,nreso,idsta,ista,angle,dsta,radn,sta,mx,nres
       implicit none
       integer i,nn
       real(kind=fPrec) ang,ra,st
@@ -3055,7 +3053,7 @@ subroutine initpert(st,ang,ra)
 !      frank/Etienne
       do i=1,ndim
         angle(i)=zero
-        rad(i)=zero
+        radn(i)=zero
         sta(i)=zero
         dsta(i)=one-sta(i)
         ista(i)=0
@@ -3063,7 +3061,7 @@ subroutine initpert(st,ang,ra)
       enddo
       do i=1,nd        !  frank          -ndc
         angle(i)=ang(i)
-        rad(i)=ra(i)
+        radn(i)=ra(i)
         sta(i)=st(i)
         dsta(i)=one-sta(i)
       enddo

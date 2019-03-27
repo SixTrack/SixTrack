@@ -189,7 +189,7 @@ subroutine abend(cstring)
     stop 1
   else
     ! No error
-    stop 0
+    stop
   end if
 #endif
 
@@ -223,7 +223,7 @@ subroutine abend(cstring)
     write(error_unit,"(a,i0)") "Stopping, errout = ",errout
     stop 1
   else ! No error
-    stop 0
+    stop
   end if
 #endif
 #else
@@ -233,7 +233,7 @@ subroutine abend(cstring)
     write(error_unit,"(a,i5)") "ABEND> Stopping, errout = ",errout
     stop 1
   else ! No error
-    stop 0
+    stop
   end if
 #endif
 

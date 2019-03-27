@@ -32,7 +32,7 @@ set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR"
 ##
 
 ##
-# List of Test
+# List of Tests
 ##
 
 list(APPEND SIXTRACK_TESTS
@@ -55,7 +55,10 @@ list(APPEND SIXTRACK_TESTS
   beam-HO_LR-oldstyle
   beambeam4dDYNK
   beambeamDYNK
-  collimation_k2_fcc_2017_h1_collision
+  chebythin6d
+  chebythin6d_DYNK
+  chebythin6d_ions
+  chebythin6d_ramp_DYNK
   crabs
   dipedge
   distance
@@ -112,7 +115,6 @@ list(APPEND SIXTRACK_TESTS
   rfMultipoles_4thOrder
   s316
   scatter_bbelastic
-  scatter_collimation
   thick4
   thick6dblocks
   thick6ddynk
@@ -139,23 +141,39 @@ if(STF)
     dynk_random
     scatter_aperture
   )
-endif(STF)
+endif()
+
+if(NOT CR)
+  list(APPEND SIXTRACK_TESTS 
+    collimation_k2_fcc_2017_h1_collision
+    scatter_collimation
+  )
+endif()
 
 if(LIBARCHIVE)
-  list(APPEND SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF)
+  list(APPEND SIXTRACK_TESTS
+    elensidealthin6d_DYNK_ZIPF
+  )
 endif()
 
 if(NAFF)
-  list(APPEND SIXTRACK_TESTS fma_naff)
+  list(APPEND SIXTRACK_TESTS
+    fma_naff
+  )
 endif()
 
 if(PYTHIA)
-  list(APPEND SIXTRACK_TESTS scatter_pythia)
+  list(APPEND SIXTRACK_TESTS
+    scatter_pythia
+  )
 endif()
 
 if(SIXDA)
-  list(APPEND SIXTRACK_DA_TESTS frs_da thick4_da)
-endif(SIXDA)
+  list(APPEND SIXTRACK_DA_TESTS
+    frs_da
+    thick4_da
+  )
+endif()
 
 ## UNUSED TESTS
 
@@ -218,6 +236,11 @@ set(TESTS_NOFORT10
 
 # List of tests that do not produce singletrackfile.dat or fort.90
 set(TESTS_NO_STF_FORT90
+  beam-HO_6D-simple-newstyle-coupling
+  chebythin6d
+  chebythin6d_DYNK
+  chebythin6d_ions
+  chebythin6d_ramp_DYNK
   collimation_k2_fcc_2017_h1_collision
   crabs
   dipedge
@@ -229,6 +252,7 @@ set(TESTS_NO_STF_FORT90
   dynk_operators
   dynk_polynomial
   dynk_random
+  elensidealthin6d_ions
   fma
   fma_binary
   fma_naff
@@ -239,6 +263,8 @@ set(TESTS_NO_STF_FORT90
   scatter_collimation
   scatter_pythia
   thick6ddynk
+  thin4d_ions
+  thin6d_ions
 )
 
 # For CR builds, test the CR functions, so kill/resume the test
@@ -247,6 +273,8 @@ if(CR)
   # Should at least be able to reach the standard TIMEOUT.
   set(CR_KILL_TIME "2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,16384,16384,16384,16384,16384,16384,16384,16384,16384")
   list(APPEND CR_MUST_RESTART
+    chebythin6d_ions
+    chebythin6d_ramp_DYNK
     dipedge
     dynk_filelin
     dynk_globalvars
@@ -254,6 +282,7 @@ if(CR)
     dynk_operators
     dynk_polynomial
     dynk_random
+    elensidealthin6d_ramp_DYNK
     scatter_aperture
     scatter_bbelastic
   )
@@ -366,12 +395,10 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
   if(NOT BOINC)
     foreach(TSFILE IN ITEMS ${TEST_INPUTS})
       get_filename_component(TFILE ${TSFILE} NAME)
-
-      if(NOT WIN32)
-        # create_symlink old new
-        add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${TSFILE} ${CMAKE_BINARY_DIR}/test/${TST}/${TFILE})
-      else()
+      if(WIN32 OR NOSYMLINK)
         add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${TSFILE} ${CMAKE_BINARY_DIR}/test/${TST}/${TFILE})
+      else()
+        add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${TSFILE} ${CMAKE_BINARY_DIR}/test/${TST}/${TFILE})
       endif()
     endforeach()
   else()
@@ -400,10 +427,10 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
     file(GLOB TEST_INPUT_CANONICAL LIST_DIRECTORIES FALSE ${CMAKE_SOURCE_DIR}/test/${TST}/*canonical)
     foreach(CANONICAL_FILES IN ITEMS ${TEST_INPUT_CANONICAL})
       get_filename_component(CANONICAL_FILE ${CANONICAL_FILES} NAME)
-      if(NOT WIN32)
-        add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${CANONICAL_FILES} ${CMAKE_BINARY_DIR}/test/${TST}/${CANONICAL_FILE})
-      else()
+      if(WIN32 OR NOSYMLINK)
         add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CANONICAL_FILES} ${CMAKE_BINARY_DIR}/test/${TST}/${CANONICAL_FILE})
+      else()
+        add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${CANONICAL_FILES} ${CMAKE_BINARY_DIR}/test/${TST}/${CANONICAL_FILE})
       endif()
     endforeach()
 
@@ -411,10 +438,10 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
     file(GLOB TEST_INPUT_EXTRAS LIST_DIRECTORIES FALSE ${CMAKE_SOURCE_DIR}/test/${TST}/extra_checks.txt)
     foreach(EXTRA_FILES IN ITEMS ${TEST_INPUT_EXTRAS})
       get_filename_component(EXTRA_FILE ${EXTRA_FILES} NAME)
-      if(NOT WIN32)
-        add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${EXTRA_FILES} ${CMAKE_BINARY_DIR}/test/${TST}/${EXTRA_FILE})
-      else()
+      if(WIN32 OR NOSYMLINK)
         add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${EXTRA_FILES} ${CMAKE_BINARY_DIR}/test/${TST}/${EXTRA_FILE})
+      else()
+        add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${EXTRA_FILES} ${CMAKE_BINARY_DIR}/test/${TST}/${EXTRA_FILE})
       endif()
     endforeach()
 
@@ -443,6 +470,10 @@ set(FAST_TESTS
   beam-HO_LR-oldstyle
   beambeam4dDYNK
   beambeamDYNK
+  chebythin6d
+  chebythin6d_DYNK
+  chebythin6d_ions
+  chebythin6d_ramp_DYNK
   crabs
   dump_2_all_ele_highprec
   dump_all_highprec

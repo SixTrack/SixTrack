@@ -6845,37 +6845,37 @@ subroutine datrash(idif,ina,inc)
 
 #ifdef DEBUG
 !DUMPS
-subroutine dumpda(dumpname,n,i)
-      use floatPrecision
-      use mod_lie_dab, only : cc,lnv
-      implicit none
-      integer i,lnv
+! subroutine dumpda(dumpname,n,i)
+!       use floatPrecision
+!       use mod_lie_dab, only : cc,lnv
+!       implicit none
+!       integer i,lnv
 
-      integer n
-      character(*) dumpname
-      character(10) mydump
-      mydump=dumpname
-      write(99) mydump,n,i
-      write(99) cc
-      endfile 99
-      backspace 99
-      end
-subroutine wda(vname,value,i,j,k,l)
-      use floatPrecision
-      implicit none
-      integer i
+!       integer n
+!       character(*) dumpname
+!       character(10) mydump
+!       mydump=dumpname
+!       write(99) mydump,n,i
+!       write(99) cc
+!       endfile 99
+!       backspace 99
+!       end
+! subroutine wda(vname,value,i,j,k,l)
+!       use floatPrecision
+!       implicit none
+!       integer i
 
-      integer n
-      character(*) vname
-      real(kind=fPrec) value
-      integer j,k,l
-      character(16) myname,ccname
-      myname=vname
-      ccname='cc(50)'
-      write(100) myname,value,i,j,k,l
-      write(100) ccname,cc(50),50,0,0,0
-      ccname='cc(64)'
-      write(100) ccname,cc(64),64,0,0,0
-      end
+!       integer n
+!       character(*) vname
+!       real(kind=fPrec) value
+!       integer j,k,l
+!       character(16) myname,ccname
+!       myname=vname
+!       ccname='cc(50)'
+!       write(100) myname,value,i,j,k,l
+!       write(100) ccname,cc(50),50,0,0,0
+!       ccname='cc(64)'
+!       write(100) ccname,cc(64),64,0,0,0
+!       end
 !DUMPS
 #endif

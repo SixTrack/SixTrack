@@ -33,6 +33,7 @@ subroutine daten
   use mod_fluc,  only : fluc_parseInputLine,fluc_readInputs
   use wire,      only : wire_parseInputLine,wire_parseInputDone
   use elens,     only : elens_parseInputLine,elens_parseInputDone,elens_postInput
+  use cheby,     only : cheby_parseInputLine,cheby_parseInputDone,cheby_postInput
   use aperture
   use mod_hions
 #ifdef HASHLIB
@@ -611,6 +612,17 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("CHEB") ! map with Chebyshev coefficients
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call cheby_parseInputDone(inErr)
+      if(inErr) goto 9999
+    else
+      call cheby_parseInputLine(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       dist_enable = .true.
@@ -827,6 +839,8 @@ subroutine daten
     call hions_postInput
     gammar = nucm0/e0
     betrel = sqrt((one+gammar)*(one-gammar))
+    e0f = sqrt(e0**2-nucm0**2)
+    brho   = (e0f/(clight*c1m6))/zz0
 
     if(nbeam >= 1) then
       parbe14 = (((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6
@@ -861,6 +875,7 @@ subroutine daten
   end if
 
   call elens_postInput
+  call cheby_postInput
 #ifdef PYTHIA
   call pythia_postInput
 #endif
@@ -1648,7 +1663,7 @@ subroutine initialize_element(ix,lfirst)
       use mod_common_track
       use mod_common_main
       use mod_hions
-      use elens
+      use cheby, only : cheby_kz
       use wire
       use mathlib_bouncer
       implicit none
@@ -2078,6 +2093,11 @@ subroutine initialize_element(ix,lfirst)
          el(ix)=zero
 !--e-lens
       else if(kz(ix).eq.29) then
+         ed(ix)=zero
+         ek(ix)=zero
+         el(ix)=zero
+!--chebyshev lens
+      else if(kz(ix).eq.cheby_kz) then
          ed(ix)=zero
          ek(ix)=zero
          el(ix)=zero

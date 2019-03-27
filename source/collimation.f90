@@ -1755,13 +1755,10 @@ subroutine collimate_start_sample(nsample)
       if (firstrun) then
         write(all_impacts_unit,'(a)') '# 1=name 2=turn 3=s'
         write(all_absorptions_unit,'(a)') '# 1=name 2=turn 3=s'
-        write(FirstImpacts_unit,*)                                                   &
-        '%1=name,2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], ',&
-        '7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, ',                &
-        '11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out'
-        write(coll_scatter_unit,*) &
-        "#1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic,4:Single-Diffractive,5:Coulomb)", &
-        ", 5=dp, 6=dx', 7=dy'"
+        write(FirstImpacts_unit,"(a)") "# 1=name, 2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], "//&
+          "7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, 11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out"
+        write(coll_scatter_unit,"(a)") "# 1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic, "//&
+          "4:Single-Diffractive,5:Coulomb), 5=dp, 6=dx', 7=dy'"
       end if ! if (firstrun) then
 #ifdef HDF5
     end if
@@ -3831,11 +3828,10 @@ subroutine collimate_exit()
   open(unit=betafunctions_unit, file='betafunctions.dat') !was 57
 
   if(dowrite_amplitude) then
-    write(amplitude_unit,*)                                             &
-     &'# 1=ielem 2=name 3=s 4=AX_AV 5=AX_RMS 6=AY_AV 7=AY_RMS',         &
-     &'8=alphax 9=alphay 10=betax 11=betay 12=orbitx',                  &
-     &'13=orbity 14=tdispx 15=tdispy',                                  &
-     &'16=xbob 17=ybob 18=xpbob 19=ypbob'
+    write(amplitude_unit,"(a)")                                         &
+      "# 1=ielem 2=name 3=s 4=AX_AV 5=AX_RMS 6=AY_AV 7=AY_RMS "//       &
+      "8=alphax 9=alphay 10=betax 11=betay 12=orbitx "//                &
+      "13=orbity 14=tdispx 15=tdispy 16=xbob 17=ybob 18=xpbob 19=ypbob"
 
     do i=1,iu
        write(amplitude_unit,'(i4, (1x,a16), 17(1x,e20.13))')             &!hr08
@@ -3852,21 +3848,21 @@ subroutine collimate_exit()
       &xbob(i),ybob(i),xpbob(i),ypbob(i)                                  !hr08
     end do
 
-    write(amplitude2_unit,*)'# 1=ielem 2=name 3=s 4=ORBITX 5=orbity 6=tdispx 7=tdispy 8=xbob 9=ybob 10=xpbob 11=ypbob'
+    write(amplitude2_unit,"(a)") "# 1=ielem 2=name 3=s 4=ORBITX 5=orbity 6=tdispx 7=tdispy 8=xbob 9=ybob 10=xpbob 11=ypbob"
 
     do i=1,iu
       write(amplitude2_unit,'(i4, (1x,a16), 9(1x,e15.7))') i, ename(i), sampl(i), torbx(i), torby(i), tdispx(i), tdispy(i), &
             xbob(i), ybob(i), xpbob(i), ypbob(i)
     end do
 
-    write(betafunctions_unit,*) '# 1=ielem 2=name       3=s             4=TBETAX(m)     5=TBETAY(m)     6=TORBX(mm)', &
-                '    7=TORBY(mm) 8=TORBXP(mrad)   9=TORBYP(mrad)  10=TDISPX(m)  11=MUX()    12=MUY()'
+    write(betafunctions_unit,"(a)") "# 1=ielem 2=name       3=s             4=TBETAX(m)     5=TBETAY(m)     6=TORBX(mm)"// &
+      "    7=TORBY(mm) 8=TORBXP(mrad)   9=TORBYP(mrad)  10=TDISPX(m)  11=MUX()    12=MUY()"
 
 
     do i=1,iu
 !     RB: added printout of closed orbit and angle
       write(betafunctions_unit,'(i5, (1x,a16), 10(1x,e15.7))') i, ename(i), sampl(i), tbetax(i), tbetay(i), torbx(i), torby(i), &
- &    torbxp(i), torbyp(i), tdispx(i), mux(i), muy(i)
+        torbxp(i), torbyp(i), tdispx(i), mux(i), muy(i)
     end do
   endif
 
