@@ -748,9 +748,11 @@ end subroutine sixin_parseInputLineBLOC
 ! ================================================================================================ !
 !  Parse Structure Input Line
 !  Rewritten from code from DATEN by VKBO
-!  Last modified: 2018-05-xx
+!  Last modified: 2019-03-27
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
+
+  use mod_common
 
   implicit none
 
@@ -766,9 +768,12 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   integer i, j, t
   character(len=mNameLen) ilm0(40)
 
-  do i=1,40
-    ilm0(i) = " "
-  end do
+  if(icmulticol) then
+    call sixin_parseInputLineSTRU_MULT(inLine, iLine, iErr)
+    return
+  end if
+
+  ilm0(:) = " "
 
   expLine = chr_expandBrackets(inLine)
   call chr_split(expLine, lnSplit, nSplit, spErr)
@@ -782,6 +787,10 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
     write(lout,"(a)") "GEOMETRY> ERROR Structure input line cannot have less than 1 or more then 40 elements."
     iErr = .true.
     return
+  end if
+
+  if(iLine == 1 .and. lnSplit(1) == "MULTICOL") then
+    icmulticol = .true.
   end if
 
   do i=1,nSplit
@@ -823,6 +832,84 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   end if
 
 end subroutine sixin_parseInputLineSTRU
+
+! ================================================================================================ !
+!  Parse Structure Input Line - Multi-Column Version
+!  Last modified: 2019-03-27
+! ================================================================================================ !
+subroutine sixin_parseInputLineSTRU_MULT(inLine, iLine, iErr)
+
+  use mod_common
+
+  implicit none
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(inout) :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=:), allocatable   :: expLine
+  integer nSplit, singID
+  logical spErr, cErr
+
+  integer i, j, t
+
+  call chr_split(expLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  if(nSplit > 0) then
+    if(lnSplit(1) == sixin_go) then
+      kanf = sixin_nStru + 1
+      return
+    end if
+  end if
+
+  if(nSplit < 3) then
+    write(lout,"(a)") "GEOMETRY> ERROR Multi-column structure input line cannot have less than 3 elements."
+    iErr = .true.
+    return
+  end if
+
+  sixin_nStru = sixin_nStru + 1
+  if(sixin_nStru > nblz-3) then
+    call expand_arrays(nele,npart,nblz+1000,nblo)
+  end if
+
+  icname(sixin_nStru) = lnSplit(1)
+  call chr_cast(lnSplit(3), icpos(sixin_nStru), cErr)
+
+  singID = -1
+  do j=1,mblo ! is it a BLOC?
+    if(bezb(j) == lnSplit(2)) then
+      singID = j
+    end if
+  end do
+
+  if(singID == -1) then
+    do j=1,il ! is it a SINGLE ELEMENT?
+      if(sixin_bez0(j) == lnSplit(2)) then
+        singID = j+nblo
+        if(sixin_bez0(j) == sixin_cavity) sixin_icy = sixin_icy+1
+      end if
+    end do
+  end if
+
+  if(singID == -1) then
+    write(lout,"(a)") "GEOMETRY> ERROR Unknown element '"//trim(lnSplit(2))//"' in STRUCTURE block."
+    iErr = .true.
+    return
+  end if
+
+  mbloz = sixin_nStru
+  ! if(mbloz > nblz-3) then
+  !   call expand_arrays(nele,npart,nblz+1000,nblo)
+  ! end if
+
+end subroutine sixin_parseInputLineSTRU_MULT
 
 ! ================================================================================================ !
 !  Parse Displacement Block Line
