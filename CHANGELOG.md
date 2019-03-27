@@ -1,6 +1,6 @@
 # SixTrack Changelog
 
-### Version 5.2 [XX.02.2019] - Release
+### Version 5.2 [27.03.2019] - Release
 
 **New Features**
 
@@ -11,14 +11,30 @@
 **User Side Changes**
 
 * When reading `fort.13` the particle energy is used to set the momentum and delta_p arrays instead of the delta_p overwriting energy and momentum. This means the delta_p values in the file are ignored. The change was made due to the intended usage of `fort.13` being continuation of tracking, not initialisation of particles. During tracking only energy should be changed, and the other dependent variables calculated from the energy arrays. PR #766 (V.K. Berglyd Olsen)
+* The trombone and beam--beam elements now use the updateEnergy routine from `mod_particles` as well to recompute the energy-dependant arrays. The change in beam--beam slightly alters output due to the previous code using a different way of calculating one of the values. PRs #786 and #795 (T. Persson)
 
 **Bug Fixes**
 
 * The module handling opening and closing of files wrote warnings to stderr. This is now written to stdout instead to avoid cluttering the stderr logs when running on BOINC. PR #774 (V.K. Berglyd Olsen)
+* Fixed a bug with some some of the output files under the FLUKA flag. The bug was introduced in 5.1.2. PR #780 (V.K. Berglyd Olsen)
+* Fixed some `write(unit,*)` of header files in the collimation module that produced different results on the `nagfor` compiler thab the others. PR #790 (V.K. Berglyd Olsen)
 
 **Code Improvements and Changes**
 
 * Interface routines for adding attributes to HDF5 datasets have been added. PR #670 (V.K. Berglyd Olsen)
+* Longer filenames are now allowed in the `mod_units` module. The new maximum is 255 characters (Windows limit). PR #783 (V.K. Berglyd Olsen)
+* Moved the parameters derived from pi `twopi`, `pi2`, `rad`, and `pisqrt` to module `numerical_constants`. PR #785 (V.K. Berglyd Olsen)
+* Added echo on STDOUT of calls to `contour_aperture_marker` and `contour_aperture_markers` subroutines and respective header, improved dump of aperture markers and header now fully aligned to dumped table, improved readability of messages on STDOUT from `contour_aperture_marker`, and added a function that checks that the lattice structure does not start inside a `FLUKA` insertion. PR #789 (A. Mereghetti)
+
+**Documentation**
+
+* Fixed an issue in the documentation of `DYNK` where a table was split in two. PR #782 (T. Persson)
+
+**Build System and Test Suite**
+
+* Added a `MOSYMLINK` flag to CMake that makes the test suite copy the input files to the build folder rather than symlink on Unix environments. PR #781 (V.K. Berglyd Olsen)
+* Some minor cleanup CMake, including the way version numbers are handled. PR #788 (V.K. Berglyd Olsen)
+* Disabled collimation tests when checkpoint/restart is active. PR #791 (V.K. Berglyd Olsen)
 
 ### Version 5.1.3 [25.01.2019] - BOINC Release
 
