@@ -203,16 +203,16 @@ subroutine aperture_init
       if (.not.isOpen) then
         write(lout,"(2(a,i0),a)") "LIMI> ERROR The unit ",losses_unit," has apefilepos = ", apefilepos, " >= 0, "//&
           "but the file is NOT open. This is probably a bug."
-        call prror(-1)
+        call prror
       end if
     else
 #endif
 
-    call f_requestUnit(losses_filename,losses_unit)
-    inquire(unit=losses_unit, opened=isOpen) ! Was 999
+      call f_requestUnit(losses_filename,losses_unit)
+      inquire(unit=losses_unit, opened=isOpen) ! Was 999
       if(isOpen) then
         write(lout,"(a,i0,a)") "APER> ERROR Unit ",losses_unit," is already open."
-        call prror(-1)
+        call prror
       end if
 
       call f_open(unit=losses_unit,file=losses_filename,formatted=.true.,mode='w',err=err)
@@ -1027,7 +1027,7 @@ subroutine aperture_reportLoss(turn, i, ix)
         call h5_writeData(aper_setLostPart, 1,  1, turn)
         call h5_writeData(aper_setLostPart, 2,  1, i)
         call h5_writeData(aper_setLostPart, 3,  1, ix)
-        call h5_writeData(aper_setLostPart, 4,  1, bez(ix))
+        call h5_writeData(aper_setLostPart, 4,  1, icname(i))
         call h5_writeData(aper_setLostPart, 5,  1, slos)
         call h5_writeData(aper_setLostPart, 6,  1, xlos(1)*c1m3)
         call h5_writeData(aper_setLostPart, 7,  1, xlos(2)*c1m3)
@@ -1056,14 +1056,13 @@ subroutine aperture_reportLoss(turn, i, ix)
   ! END of #ifdef HDF5
 #endif
 
-        ! Print to unit 999 (fort.999)
 #ifdef FLUKA
         write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')&
 #else
         write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')   &
 #endif
 
-     &       turn, i, ix, bez(ix), slos,                                     &
+     &       turn, i, ix, icname(i), slos,                                   &
 #ifdef FLUKA
      &       fluka_uid(j), fluka_gen(j), fluka_weight(j),                    &
 #else
@@ -1081,11 +1080,11 @@ subroutine aperture_reportLoss(turn, i, ix)
       end if
 #endif
 
-#if defined(ROOT)
+#ifdef ROOT
 ! root output
       if(root_flag .and. root_ApertureCheck.eq.1) then
-        this_name = trim(adjustl(bez(ix))) // C_NULL_CHAR
-#if defined(FLUKA)
+        this_name = trim(adjustl(icname(i))) // C_NULL_CHAR
+#ifdef FLUKA
         call ApertureCheckWriteLossParticleF(turn, i, ix, this_name, len_trim(this_name), slos, &
           fluka_uid(j), fluka_gen(j), fluka_weight(j), &
           xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
