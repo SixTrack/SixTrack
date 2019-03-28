@@ -695,7 +695,7 @@ subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
     end do
   end if
 
-  if(blocName /= " ") then            ! We have a new BLOC
+  if(blocName /= " ") then                    ! We have a new BLOC
     sixin_nBloc = sixin_nBloc + 1             ! Increment the BLOC number
     if(sixin_nBloc > nblo-1) then             ! Expand arrays if needed
       call expand_arrays(nele, npart, nblz, nblo+50)
@@ -768,11 +768,6 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
   integer i, j, t
   character(len=mNameLen) ilm0(40)
 
-  if(icmulticol) then
-    call sixin_parseInputLineSTRU_MULT(inLine, iLine, iErr)
-    return
-  end if
-
   ilm0(:) = " "
 
   expLine = chr_expandBrackets(inLine)
@@ -787,10 +782,6 @@ subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
     write(lout,"(a)") "GEOMETRY> ERROR Structure input line cannot have less than 1 or more then 40 elements."
     iErr = .true.
     return
-  end if
-
-  if(iLine == 1 .and. lnSplit(1) == "MULTICOL") then
-    icmulticol = .true.
   end if
 
   do i=1,nSplit
@@ -848,24 +839,27 @@ subroutine sixin_parseInputLineSTRU_MULT(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=:), allocatable   :: expLine
   integer nSplit, singID
   logical spErr, cErr
 
   integer i, j, t
 
-  call chr_split(expLine, lnSplit, nSplit, spErr)
+  call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
     write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
 
-  if(nSplit > 0) then
-    if(lnSplit(1) == sixin_go) then
-      kanf = sixin_nStru + 1
-      return
-    end if
+  if(nSplit == 0) return
+
+  if(lnSplit(1) == sixin_go) then
+    kanf = sixin_nStru + 1
+    return
+  end if
+
+  if(lnSplit(1) == "MULTICOL") then
+    return
   end if
 
   if(nSplit < 3) then
@@ -902,6 +896,8 @@ subroutine sixin_parseInputLineSTRU_MULT(inLine, iLine, iErr)
     write(lout,"(a)") "GEOMETRY> ERROR Unknown element '"//trim(lnSplit(2))//"' in STRUCTURE block."
     iErr = .true.
     return
+  else
+    ic(sixin_nStru) = singID
   end if
 
   mbloz = sixin_nStru

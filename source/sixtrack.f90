@@ -286,16 +286,18 @@ subroutine daten
       sixin_nSing = 1
     elseif(closeBlock) then
       nGeom = nGeom + 1
+      write(lout,"(a,i0,a)") "INPUT> Parsed ",sixin_nSing," Single Elements"
     else
       call sixin_parseInputLineSING(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
-
+    
   case("BLOC") ! Block Definitions
     if(openBlock) then
       sixin_nBloc = 0
     elseif(closeBlock) then
       nGeom = nGeom + 1
+      write(lout,"(a,i0,a)") "INPUT> Parsed ",sixin_nBloc," Block Elements"
     else
       call sixin_parseInputLineBLOC(inLine,blockLine,inErr)
       if(inErr) goto 9999
@@ -306,8 +308,17 @@ subroutine daten
       sixin_nStru = 0
     elseif(closeBlock) then
       nGeom = nGeom + 1
+      write(lout,"(a,i0,a)") "INPUT> Parsed ",sixin_nStru," Structure Elements"
     else
-      call sixin_parseInputLineSTRU(inLine,blockLine,inErr)
+      if(blockLine == 1 .and. adjustl(inLine) == "MULTICOL") then
+        write(lout,"(a)") "INPUT> Multi-column STRUCTURE INPUT block detected"
+        icmulticol = .true.
+      end if
+      if(icmulticol) then
+        call sixin_parseInputLineSTRU_MULT(inLine,blockLine,inErr)
+      else
+        call sixin_parseInputLineSTRU(inLine,blockLine,inErr)
+      end if
       if(inErr) goto 9999
     end if
 
@@ -634,11 +645,11 @@ subroutine daten
     end if
 
   case("CORR") ! Tuneshift Corrections
-    write(lout,"(a)") "INPUT> ERROR CORR module is deprecated."
+    write(lout,"(a)") "INPUT> ERROR CORR module has been removed."
     goto 9999
 
   case("RIPP") ! Power Supply Ripple Block
-    write(lout,"(a)") "INPUT> ERROR RIPP module is deprecated and replaced by DYNK."
+    write(lout,"(a)") "INPUT> ERROR RIPP module has been removed and replaced by DYNK."
     write(lout,"(a)") "INPUT>       The script rippconvert.py in the pytools folder can be used to convert the fort.3 file."
     goto 9999
 
@@ -688,6 +699,7 @@ subroutine daten
       continue
     elseif(closeBlock) then
       call dump_parseInputDone(inErr)
+      if(inErr) goto 9999
     else
       call dump_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
@@ -1150,6 +1162,8 @@ subroutine daten
 9500 continue
 
   call dealloc(sixin_bez0,mNameLen,"sixin_bez0")
+  call dealloc(sixin_beze,mNameLen,"sixin_beze")
+  call dealloc(sixin_ilm, mNameLen,"sixin_ilm")
 
   return
 
