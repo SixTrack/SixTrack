@@ -10,6 +10,7 @@ subroutine daten
   use crcoall
   use floatPrecision
   use sixtrack_input
+  use mod_geometry
   use parpro
   use parbeam, only : beam_expflag
   use mod_settings
@@ -82,7 +83,7 @@ subroutine daten
   ! SIXTRACK INPUT MODULE
   inErr       = .false.
 
-  call alloc(sixin_bez0,mNameLen,nele," ","sixin_bez0")
+  call alloc(geom_bez0,mNameLen,nele," ","geom_bez0")
 
   ! DATEN INTERNAL
   nGeom       = 0
@@ -283,41 +284,41 @@ subroutine daten
 
   case("SING") ! Single Elements Block
     if(openBlock) then
-      sixin_nSing = 1
+      geom_nSing = 1
     elseif(closeBlock) then
       nGeom = nGeom + 1
-      write(lout,"(a,i0,a)") "INPUT> Parsed ",sixin_nSing," Single Elements"
+      write(lout,"(a,i0,a)") "INPUT> Parsed ",geom_nSing," Single Elements"
     else
-      call sixin_parseInputLineSING(inLine,blockLine,inErr)
+      call geom_parseInputLineSING(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
     
   case("BLOC") ! Block Definitions
     if(openBlock) then
-      sixin_nBloc = 0
+      geom_nBloc = 0
     elseif(closeBlock) then
       nGeom = nGeom + 1
-      write(lout,"(a,i0,a)") "INPUT> Parsed ",sixin_nBloc," Block Elements"
+      write(lout,"(a,i0,a)") "INPUT> Parsed ",geom_nBloc," Block Elements"
     else
-      call sixin_parseInputLineBLOC(inLine,blockLine,inErr)
+      call geom_parseInputLineBLOC(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
   case("STRU") ! Structure Input
     if(openBlock) then
-      sixin_nStru = 0
+      geom_nStru = 0
     elseif(closeBlock) then
       nGeom = nGeom + 1
-      write(lout,"(a,i0,a)") "INPUT> Parsed ",sixin_nStru," Structure Elements"
+      write(lout,"(a,i0,a)") "INPUT> Parsed ",geom_nStru," Structure Elements"
     else
       if(blockLine == 1 .and. adjustl(inLine) == "MULTICOL") then
         write(lout,"(a)") "INPUT> Multi-column STRUCTURE INPUT block detected"
         icmulticol = .true.
       end if
       if(icmulticol) then
-        call sixin_parseInputLineSTRU_MULT(inLine,blockLine,inErr)
+        call geom_parseInputLineSTRU_MULT(inLine,blockLine,inErr)
       else
-        call sixin_parseInputLineSTRU(inLine,blockLine,inErr)
+        call geom_parseInputLineSTRU(inLine,blockLine,inErr)
       end if
       if(inErr) goto 9999
     end if
@@ -974,17 +975,17 @@ subroutine daten
         l2 = (l1-1)*6+1
         l3 = l2+5
         if(l2 == 1) then
-          write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(sixin_beze(l,k),k=1,6)
+          write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(geom_beze(l,k),k=1,6)
         else
-          write(lout,"(30x,6(1x,a20))") (sixin_beze(l,k),k=l2,l3)
+          write(lout,"(30x,6(1x,a20))") (geom_beze(l,k),k=l2,l3)
         end if
       end do
       if(mod(kk,6) /= 0) then
         l4 = ll*6+1
-        write(lout,"(30x,6(1x,a20))") (sixin_beze(l,k),k=l4,kk)
+        write(lout,"(30x,6(1x,a20))") (geom_beze(l,k),k=l4,kk)
       end if
     else
-      write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(sixin_beze(l,k),k=1,kk)
+      write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(geom_beze(l,k),k=1,kk)
     end if
   end do
   write(lout,"(a)") str_divLine
@@ -1006,7 +1007,7 @@ subroutine daten
       if(icc <= nblo) then
         ic0(l) = bezb(icc)
       else
-        ic0(l) = sixin_bez0(icc-nblo)
+        ic0(l) = geom_bez0(icc-nblo)
       end if
     end do
     k11 = k10+1
@@ -1161,9 +1162,9 @@ subroutine daten
 
 9500 continue
 
-  call dealloc(sixin_bez0,mNameLen,"sixin_bez0")
-  call dealloc(sixin_beze,mNameLen,"sixin_beze")
-  call dealloc(sixin_ilm, mNameLen,"sixin_ilm")
+  call dealloc(geom_bez0,mNameLen,"geom_bez0")
+  call dealloc(geom_beze,mNameLen,"geom_beze")
+  call dealloc(geom_ilm, mNameLen,"geom_ilm")
 
   return
 
