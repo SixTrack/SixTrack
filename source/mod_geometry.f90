@@ -564,124 +564,119 @@ integer function geom_insertStruElem(iEl)
 
 end function geom_insertStruElem
 
-integer function geom_checkSingElemUnique( iEl, ixEl )
-!-----------------------------------------------------------------------
-!     by A.Mereghetti
-!     last modified: 01-12-2016
-!     check that a given entry in the sequence is unique
-!     interface variables:
-!     - iEl:  index in lattice structure to be checked
-!     - ixEl: index in array of SINGLE ELEMENTs of the element to be checked
-!     always in main code
-!-----------------------------------------------------------------------
-  use floatPrecision
-  use numerical_constants
+! ================================================================================================ !
+!  A.Mereghetti, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Check that a given entry in the sequence is unique
+!  Updated: 2019-03-28
+!  iEl  : Index in lattice structure to be checked
+!  ixEl : Index in array of SINGLE ELEMENTs of the element to be checked
+! ================================================================================================ !
+integer function geom_checkSingElemUnique(iEl, ixEl)
 
   use parpro
-  use mod_common
-  use mod_common_track
-  use mod_common_main
+  use mod_common, only : iu, ic
+
   implicit none
 
-! interface variables
-  integer iEl, ixEl
+  integer, intent(in) :: iEl
+  integer, intent(in) :: ixEl
 
-! temporary variables
-  integer i,ix
+  integer i, ix
 
-  geom_checkSingElemUnique=-1
+  geom_checkSingElemUnique = -1
 
   do i=1,iu
-    ix=ic(i)-nblo
-    if(ix.gt.0) then
-!     SINGLE ELEMENT
-      if( i.ne.iEl .and. ix.eq.ixEl ) then
-        geom_checkSingElemUnique=i
-        exit
+    ix = ic(i)-nblo
+    if(ix > 0) then ! SINGLE ELEMENT
+      if(i /= iEl .and. ix == ixEl) then
+        geom_checkSingElemUnique = i
+        return
       end if
     end if
   end do
 
-  return
-
 end function geom_checkSingElemUnique
 
-subroutine geom_findElemAtLoc( sLoc, llast, iEl, ixEl, lfound )
-!-----------------------------------------------------------------------
-!     by A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-22
-!     find the element at location sLoc
-!     interface variables:
-!     - sLoc: s-coordinate where element should be
-!     - iEl:  index in lattice structure of found element
-!     - ixEl: index in array of SINGLE ELEMENTs of found element
-!     - llast: if true, return last lens at sLoc
-!     always in main code
-!-----------------------------------------------------------------------
-  use floatPrecision
-  use mod_common     ! for iu, tlen, ic
+! ================================================================================================ !
+!  A.Mereghetti, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Check that a given entry in the sequence is unique
+!  Updated: 2019-03-28
+!  sLoc     : S-coordinate where element should be
+!  isLast   : True if return last lens at sLoc
+!  iEl      : Index in lattice structure of found element
+!  ixEl     : Index in array of SINGLE ELEMENTs of found element
+!  wasFound : True if element was found
+! ================================================================================================ !
+subroutine geom_findElemAtLoc(sLoc, isLast, iEl, ixEl, wasFound)
+
   use parpro
   use crcoall
+  use floatPrecision
+  use mod_common, only : iu, tlen, ic, dcum
   use numerical_constants, only : zero
 
   implicit none
 
 ! interface variables
-  integer iEl, ixEl
-  real(kind=fPrec) sLoc
-  logical llast, lfound
+  real(kind=fPrec), intent(out) :: sLoc
+  logical,          intent(in)  :: isLast
+  integer,          intent(out) :: iEl
+  integer,          intent(out) :: ixEl
+  logical,          intent(out) :: wasFound
 
-! temporary variables
   integer i, iDelta, iCheck, iMax, iStep
   logical lSlide
 
-  iEl=-1
-  ixEl=-1
+  iEl  = -1
+  ixEl = -1
 
-  if (sLoc.gt.tlen.or.sLoc.lt.zero) then
-    write(lout,"(a,2(f11.4,a))") "FINDENTRY> ERROR Requested s-location: ",sLoc," is not inside accelerator range: [0:",tlen,"]"
+  if(sLoc > tlen .or. sLoc < zero) then
+    write(lout,"(a,2(f11.4,a))") "GEOMETRY> ERROR Find Element: "//&
+      "Requested s-location: ",sLoc," is not inside accelerator range [0:",tlen,"]"
     call prror
   endif
 
-  ! fast search
-  iCheck=iu
-  iDelta=iu
-  do while(iDelta.gt.1.or.iCheck.gt.0.or.iCheck.lt.iu)
-    if (dcum(iCheck).eq.sLoc) exit
-    iDelta=nint(real(iDelta/2))
-    if (dcum(iCheck).lt.sLoc) then
-      iCheck=iCheck+iDelta
+  ! Fast search
+  iCheck = iu
+  iDelta = iu
+  do while(iDelta > 1 .or. iCheck > 0 .or. iCheck < iu)
+    if(dcum(iCheck) == sLoc) exit
+    iDelta = nint(real(iDelta/2))
+    if(dcum(iCheck) < sLoc) then
+      iCheck = iCheck + iDelta
     else
-      iCheck=iCheck-iDelta
-    endif
+      iCheck = iCheck - iDelta
+    end if
   end do
 
-  ! finalise search
-  if (dcum(iCheck).lt.sLoc.or.(dcum(iCheck).eq.sLoc.and.llast)) then
-    iMax=iu
-    iStep=1
-    lslide=llast
+  ! Finalise search
+  if(dcum(iCheck) < sLoc .or. dcum(iCheck) == sLoc .and. isLast) then
+    iMax   = iu
+    iStep  = 1
+    lslide = isLast
   else
-    iMax=1
-    iStep=-1
-    lSlide=.not.llast
+    iMax   = 1
+    iStep  = -1
+    lSlide = .not.isLast
   endif
   do i=iCheck,iMax,iStep
-    if (dcum(i).lt.sLoc) continue
-    if (dcum(i).gt.sLoc) then
-      if (iEl.eq.-1) iEl=i
+    if(dcum(i) < sLoc) cycle
+    if(dcum(i) > sLoc) then
+      if(iEl == -1) iEl = i
     else
-      iEl=i
-      if (lSlide) continue
-    endif
+      iEl = i
+      wasFound = .true.
+      if(lSlide) cycle
+    end if
     exit
-  enddo
+  end do
 
-  if (lfound) then
-    ixEl=ic(iEl)-nblo
-    if (ixEl.lt.0) ixEl=ic(iEl) ! drift
+  if(wasFound) then
+    ixEl = ic(iEl)-nblo
+    if(ixEl < 0) ixEl=ic(iEl) ! drift
   else
-    write(lout,"(a,2(f11.4,a))") "FINDENTRY> s-location: ",sLoc," was not found in acclerator range: [0:",tlen,"]"
-  endif
+    write(lout,"(a,2(f11.4,a))") "GEOMETRY> Find Element: s-location: ",sLoc," was not found in acclerator range [0:",tlen,"]"
+  end if
 
 end subroutine geom_findElemAtLoc
 
