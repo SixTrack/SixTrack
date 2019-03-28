@@ -345,7 +345,6 @@ end interface
 
   call time_timerStart
   call time_timerCheck(time0)
-  call comnul
   progrm = "SIXTRACK"
 
 #ifdef ROOT

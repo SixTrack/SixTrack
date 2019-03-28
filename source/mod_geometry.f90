@@ -22,6 +22,10 @@ module mod_geometry
   character(len=:), allocatable, public,  save :: geom_beze(:,:)
   character(len=:), allocatable, public,  save :: geom_ilm(:)
 
+  public :: geom_checkSingElemUnique
+  public :: geom_insertStruElem
+  public :: geom_insertSingElem
+
 contains
 
 ! ================================================================================================ !
@@ -401,6 +405,7 @@ subroutine geom_parseInputLineSTRU(inLine, iLine, iErr)
 end subroutine geom_parseInputLineSTRU
 
 ! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Parse Structure Input Line - Multi-Column Version
 !  Created: 2019-03-27
 !  Updated: 2019-03-28
@@ -490,5 +495,247 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
   end if
 
 end subroutine geom_parseInputLineSTRU_MULT
+
+! ================================================================================================ !
+!  A.Mereghetti, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Insert a New Empty Element (empty) in SINGLE ELEMENTS
+!  Updated: 2019-03-28
+! ================================================================================================ !
+integer function geom_insertSingElem()
+
+  use parpro
+  use mod_common, only : il, ithick
+
+  implicit none
+
+  il = il+1
+  if(il > nele-2) then
+    call expand_arrays(nele+50, npart, nblz, nblo )
+    if(ithick == 1) then
+      call expand_thickarrays(nele, npart, nblz, nblo )
+    end if
+  end if
+  geom_insertSingElem = il
+
+end function geom_insertSingElem
+
+subroutine geom_initStruElem( iel )
+!-----------------------------------------------------------------------
+!     A.Mereghetti, 2016-03-14
+!     initialise an element in lattice structure to empty
+!-----------------------------------------------------------------------
+      use floatPrecision
+      use numerical_constants
+      use parpro
+      use mod_common
+      use mod_common_main
+      implicit none
+
+!     local variables
+      integer iel, i1, i2, i3
+
+      ic(iel)=0
+      mzu(iel)=0
+      icext(iel)=0
+      icextal(iel)=0
+      ! extalign(iel,1)=zero
+      ! extalign(iel,2)=zero
+      ! extalign(iel,3)=zero
+      sigmoff(iel)=zero
+      tiltc(iel)=one
+      tilts(iel)=zero
+
+!--Beam-Beam------------------------------------------------------------
+      imbb(iel)=0
+      ! do j=1,40
+      !    exterr(iel,j)=zero
+      ! enddo
+      xsi(iel)=zero
+      zsi(iel)=zero
+      smi(iel)=zero
+      smizf(iel)=zero
+      do i3=1,mmul
+          aaiv(i3,iel)=zero
+          bbiv(i3,iel)=zero
+      enddo
+      return
+end subroutine geom_initStruElem
+
+! ================================================================================================ !
+!     by A.Mereghetti
+!     last modified: 01-12-2016
+!     Insert a New Empty Element in Lattice Structure
+!     interface variables:
+!     - iEl: index in lattice structure where to insert the element
+!     always in main code
+! ================================================================================================ !
+integer function geom_insertStruElem( iEl )
+
+  use floatPrecision
+  use numerical_constants
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_common_track
+  use mod_common_main
+  implicit none
+
+!     interface variables
+  integer iEl
+
+!     temporary variables
+  integer i,iInsert
+
+  if ( iu.gt.nblz-3) then
+    call expand_arrays(nele, npart, nblz+100, nblo)
+  end if
+  iu=iu+1
+  if ( iEl.eq.0 ) then
+!        append
+    iInsert=iu
+  elseif ( iEl .lt. 0 ) then
+    iInsert=iu+iEl
+  else
+    iInsert=iEl
+  end if
+  if ( iInsert.le.iu ) then
+!     shift by one all lattice elements, to make room for the new
+!        starting marker
+    do i=iu,iInsert+1,-1
+      ic(i)=ic(i-1)
+      icext(i)=icext(i-1)
+      icextal(i)=icextal(i-1)
+      dcum(i)=dcum(i-1)
+    enddo
+  endif
+
+!     initialise element to empty
+  call geom_initStruElem(iInsert)
+!     update dcum of added element
+  dcum(iInsert)=dcum(iInsert-1)
+!     return iu
+  geom_insertStruElem=iu
+end function geom_insertStruElem
+
+integer function geom_checkSingElemUnique( iEl, ixEl )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti
+!     last modified: 01-12-2016
+!     check that a given entry in the sequence is unique
+!     interface variables:
+!     - iEl:  index in lattice structure to be checked
+!     - ixEl: index in array of SINGLE ELEMENTs of the element to be checked
+!     always in main code
+!-----------------------------------------------------------------------
+  use floatPrecision
+  use numerical_constants
+
+  use parpro
+  use mod_common
+  use mod_common_track
+  use mod_common_main
+  implicit none
+
+! interface variables
+  integer iEl, ixEl
+
+! temporary variables
+  integer i,ix
+
+  geom_checkSingElemUnique=-1
+
+  do i=1,iu
+    ix=ic(i)-nblo
+    if(ix.gt.0) then
+!     SINGLE ELEMENT
+      if( i.ne.iEl .and. ix.eq.ixEl ) then
+        geom_checkSingElemUnique=i
+        exit
+      end if
+    end if
+  end do
+
+  return
+
+end function geom_checkSingElemUnique
+
+subroutine geom_findElemAtLoc( sLoc, llast, iEl, ixEl, lfound )
+!-----------------------------------------------------------------------
+!     by A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-22
+!     find the element at location sLoc
+!     interface variables:
+!     - sLoc: s-coordinate where element should be
+!     - iEl:  index in lattice structure of found element
+!     - ixEl: index in array of SINGLE ELEMENTs of found element
+!     - llast: if true, return last lens at sLoc
+!     always in main code
+!-----------------------------------------------------------------------
+  use floatPrecision
+  use mod_common     ! for iu, tlen, ic
+  use parpro
+  use crcoall
+  use numerical_constants, only : zero
+
+  implicit none
+
+! interface variables
+  integer iEl, ixEl
+  real(kind=fPrec) sLoc
+  logical llast, lfound
+
+! temporary variables
+  integer i, iDelta, iCheck, iMax, iStep
+  logical lSlide
+
+  iEl=-1
+  ixEl=-1
+
+  if (sLoc.gt.tlen.or.sLoc.lt.zero) then
+    write(lout,"(a,2(f11.4,a))") "FINDENTRY> ERROR Requested s-location: ",sLoc," is not inside accelerator range: [0:",tlen,"]"
+    call prror
+  endif
+
+  ! fast search
+  iCheck=iu
+  iDelta=iu
+  do while(iDelta.gt.1.or.iCheck.gt.0.or.iCheck.lt.iu)
+    if (dcum(iCheck).eq.sLoc) exit
+    iDelta=nint(real(iDelta/2))
+    if (dcum(iCheck).lt.sLoc) then
+      iCheck=iCheck+iDelta
+    else
+      iCheck=iCheck-iDelta
+    endif
+  end do
+
+  ! finalise search
+  if (dcum(iCheck).lt.sLoc.or.(dcum(iCheck).eq.sLoc.and.llast)) then
+    iMax=iu
+    iStep=1
+    lslide=llast
+  else
+    iMax=1
+    iStep=-1
+    lSlide=.not.llast
+  endif
+  do i=iCheck,iMax,iStep
+    if (dcum(i).lt.sLoc) continue
+    if (dcum(i).gt.sLoc) then
+      if (iEl.eq.-1) iEl=i
+    else
+      iEl=i
+      if (lSlide) continue
+    endif
+    exit
+  enddo
+
+  if (lfound) then
+    ixEl=ic(iEl)-nblo
+    if (ixEl.lt.0) ixEl=ic(iEl) ! drift
+  else
+    write(lout,"(a,2(f11.4,a))") "FINDENTRY> s-location: ",sLoc," was not found in acclerator range: [0:",tlen,"]"
+  endif
+
+end subroutine geom_findElemAtLoc
 
 end module mod_geometry

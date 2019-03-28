@@ -1403,6 +1403,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 ! inserted in main code by the 'fluka' compilation flag
   use mod_fluka
 #endif
+  use mod_geometry, only : geom_insertStruElem, geom_insertSingElem, geom_checkSingElemUnique
 
   implicit none
 
@@ -1410,7 +1411,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   integer iEl
   logical lInsUp
 ! temporary variables
-  integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,itmpape,iNew,ixNew,check_SE_unique,INEESE,INEELS,ixApeNewFrom,ixEl
+  integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,itmpape,iNew,ixNew,ixApeNewFrom,ixEl
   real(kind=fPrec) tmpape(11), ddcum
   logical lconst,lApeUp,lApeDw,lAupDcum,lAdwDcum,lApe,lAss,lfit
 
@@ -1423,8 +1424,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   if( iEl.eq.iu ) then
 ! end of lattice sequence: a marker might be needed
     if( ixEl.le.0 ) then
-      ix=INEESE()
-      iu=INEELS( 0 )
+      ix=geom_insertSingElem()
+      iu=geom_insertStruElem( 0 )
       ic(iu)=ix+nblo
       iEl=iu
       ixEl=ix
@@ -1434,8 +1435,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   else if( iEl.eq.1 ) then
 ! beginning of lattice sequence: a marker might be needed
     if( ixEl.le.0 ) then
-      ix=INEESE()
-      iu=INEELS( 1 )
+      ix=geom_insertSingElem()
+      iu=geom_insertStruElem( 1 )
       ic(1)=ix+nblo
       iEl=1
       ixEl=ix
@@ -1447,8 +1448,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 ! last modified: 18-01-2017
 ! force aperture marker upstream of FLUKA_ENTRY
 ! inserted in main code by the 'fluka' compilation flag
-      ix=INEESE()
-      iu=INEELS( 1 )
+      ix=geom_insertSingElem()
+      iu=geom_insertStruElem( 1 )
       ic(1)=ix+nblo
       iEl=1
       ixEl=ix
@@ -1528,7 +1529,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 ! . can iNew be assigned an aperture marker?
 ! ie is it a single element and is it used anywhere else?
   lApe=lApeUp.or.lApeDw
-  lAss=ixNew.gt.0.and.check_SE_unique(iNew,ixNew).eq.-1
+  lAss=ixNew.gt.0.and.geom_checkSingElemUnique(iNew,ixNew).eq.-1
 
 ! some action is needed
   if( .not.lApe ) then
@@ -1560,11 +1561,11 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 !     ixNew cannot be assigned an aperture marker: we have to insert
 !     a new entry in the lattice sequence
       if( lfit ) then
-        ixNew=INEESE()
+        ixNew=geom_insertSingElem()
         bez(ixNew)=CrtApeName()
       end if
       iNew=iNew+1
-      iu=INEELS( iNew )
+      iu=geom_insertStruElem( iNew )
     end if
 
 !   . assign aperture profile
@@ -2085,6 +2086,7 @@ subroutine dump_aperture_header( iunit )
 !     dump header of aperture marker
 !-----------------------------------------------------------------------
   use mod_settings
+
   implicit none
   integer iunit
   ! Don't print to stdout if quiet flag is enabled.
@@ -2102,6 +2104,8 @@ subroutine dump_aperture_xsecs
   ! dump cross-sections of apertures at specific locations (loop)
   !-----------------------------------------------------------------------
   use mod_units, only: f_open, f_close
+  use mod_geometry, only : geom_findElemAtLoc
+
   implicit none
   ! temporary variables
   logical lfound, lopen, lApeUp, lApeDw, err
@@ -2127,7 +2131,7 @@ subroutine dump_aperture_xsecs
      ! loop over s-locations
      sLoc=sLocMin(ixsec)
      do while(sLoc.le.sLocMax(ixsec))
-        call find_entry_at_s( sLoc, .true., iEl, ixEl, lfound )
+        call geom_findElemAtLoc( sLoc, .true., iEl, ixEl, lfound )
         if(.not.lfound) call prror(-1)
         ! get upstream aperture marker
         call find_closest_aperture(iEl,.true.,iApeUp,ixApeUp,lApeUp)

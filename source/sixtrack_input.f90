@@ -579,7 +579,6 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
     return
   end if
 
-  ! All variables initialised to 0/zero in comnul
   select case(iLine)
   case(1) ! Line One
 
