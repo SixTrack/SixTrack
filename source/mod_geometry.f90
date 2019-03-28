@@ -508,7 +508,7 @@ integer function geom_insertSingElem()
 
   implicit none
 
-  il = il+1
+  il = il + 1
   if(il > nele-2) then
     call expand_arrays(nele+50, npart, nblz, nblo )
     if(ithick == 1) then
@@ -519,102 +519,49 @@ integer function geom_insertSingElem()
 
 end function geom_insertSingElem
 
-subroutine geom_initStruElem( iel )
-!-----------------------------------------------------------------------
-!     A.Mereghetti, 2016-03-14
-!     initialise an element in lattice structure to empty
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use parpro
-      use mod_common
-      use mod_common_main
-      implicit none
-
-!     local variables
-      integer iel, i1, i2, i3
-
-      ic(iel)=0
-      mzu(iel)=0
-      icext(iel)=0
-      icextal(iel)=0
-      ! extalign(iel,1)=zero
-      ! extalign(iel,2)=zero
-      ! extalign(iel,3)=zero
-      sigmoff(iel)=zero
-      tiltc(iel)=one
-      tilts(iel)=zero
-
-!--Beam-Beam------------------------------------------------------------
-      imbb(iel)=0
-      ! do j=1,40
-      !    exterr(iel,j)=zero
-      ! enddo
-      xsi(iel)=zero
-      zsi(iel)=zero
-      smi(iel)=zero
-      smizf(iel)=zero
-      do i3=1,mmul
-          aaiv(i3,iel)=zero
-          bbiv(i3,iel)=zero
-      enddo
-      return
-end subroutine geom_initStruElem
-
 ! ================================================================================================ !
-!     by A.Mereghetti
-!     last modified: 01-12-2016
-!     Insert a New Empty Element in Lattice Structure
-!     interface variables:
-!     - iEl: index in lattice structure where to insert the element
-!     always in main code
+!  A.Mereghetti, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Insert a New Empty Element (empty) in STRUCTURE ELEMENTS
+!  Updated: 2019-03-28
+!  iEl : Index in lattice to insert new element. 0 = append, negative count from last index
 ! ================================================================================================ !
-integer function geom_insertStruElem( iEl )
+integer function geom_insertStruElem(iEl)
 
-  use floatPrecision
-  use numerical_constants
-  use crcoall
   use parpro
   use mod_common
-  use mod_common_track
-  use mod_common_main
+
   implicit none
 
-!     interface variables
-  integer iEl
+  integer, intent(in) :: iEl
 
-!     temporary variables
-  integer i,iInsert
+  integer iIns
 
-  if ( iu.gt.nblz-3) then
+  if(iu > nblz-3) then
     call expand_arrays(nele, npart, nblz+100, nblo)
   end if
-  iu=iu+1
-  if ( iEl.eq.0 ) then
-!        append
-    iInsert=iu
-  elseif ( iEl .lt. 0 ) then
-    iInsert=iu+iEl
-  else
-    iInsert=iEl
-  end if
-  if ( iInsert.le.iu ) then
-!     shift by one all lattice elements, to make room for the new
-!        starting marker
-    do i=iu,iInsert+1,-1
-      ic(i)=ic(i-1)
-      icext(i)=icext(i-1)
-      icextal(i)=icextal(i-1)
-      dcum(i)=dcum(i-1)
-    enddo
-  endif
 
-!     initialise element to empty
-  call geom_initStruElem(iInsert)
-!     update dcum of added element
-  dcum(iInsert)=dcum(iInsert-1)
-!     return iu
-  geom_insertStruElem=iu
+  iu = iu + 1
+  if(iEl == 0) then
+    iIns = iu
+  elseif(iEl < 0) then
+    iIns = iu+iEl
+  else
+    iIns = iEl
+  end if
+
+  ic(iIns:iu)      = cshift(ic(iIns:iu),      1)
+  icpos(iIns:iu)   = cshift(icpos(iIns:iu),   1)
+  icname(iIns:iu)  = cshift(icname(iIns:iu),  1)
+  icext(iIns:iu)   = cshift(icext(iIns:iu),   1)
+  icextal(iIns:iu) = cshift(icextal(iIns:iu), 1)
+  dcum(iIns:iu)    = cshift(dcum(iIns:iu),    1)
+
+  ! Update s coordinate of added element
+  icpos(iIns) = icpos(iIns-1)
+  dcum(iIns)  = dcum(iIns-1)
+
+  geom_insertStruElem = iu
+
 end function geom_insertStruElem
 
 integer function geom_checkSingElemUnique( iEl, ixEl )
