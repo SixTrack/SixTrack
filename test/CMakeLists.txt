@@ -258,6 +258,7 @@ set(TESTS_NO_STF_FORT90
   fma
   fma_binary
   fma_naff
+  geometry_multicol
   rfMultipoles_2ndOrder
   rfMultipoles_4thOrder
   scatter_aperture
