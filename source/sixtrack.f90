@@ -313,9 +313,9 @@ subroutine daten
     else
       if(blockLine == 1 .and. adjustl(inLine) == "MULTICOL") then
         write(lout,"(a)") "INPUT> Multi-column STRUCTURE INPUT block detected"
-        icmulticol = .true.
+        strumcol = .true.
       end if
-      if(icmulticol) then
+      if(strumcol) then
         call geom_parseInputLineSTRU_MULT(inLine,blockLine,inErr)
       else
         call geom_parseInputLineSTRU(inLine,blockLine,inErr)

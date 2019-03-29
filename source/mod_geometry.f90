@@ -459,7 +459,7 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
   end if
 
   bezs(geom_nStru) = lnSplit(1)
-  call chr_cast(lnSplit(3), icpos(geom_nStru), cErr)
+  call chr_cast(lnSplit(3), elpos(geom_nStru), cErr)
 
   singID = -1
   do j=1,mblo ! is it a BLOC?
@@ -534,7 +534,8 @@ integer function geom_insertStruElem(iEl)
 
   integer, intent(in) :: iEl
 
-  integer iIns
+  integer i,iIns
+  character(len=mNameLen) tmpC
 
   if(iu > nblz-3) then
     call expand_arrays(nele, npart, nblz+100, nblo)
@@ -550,14 +551,21 @@ integer function geom_insertStruElem(iEl)
   end if
 
   ic(iIns:iu)      = cshift(ic(iIns:iu),      1)
-  icpos(iIns:iu)   = cshift(icpos(iIns:iu),   1)
-  bezs(iIns:iu)    = cshift(bezs(iIns:iu),    1)
+  elpos(iIns:iu)   = cshift(elpos(iIns:iu),   1)
+! bezs(iIns:iu)    = cshift(bezs(iIns:iu),    1)
   icext(iIns:iu)   = cshift(icext(iIns:iu),   1)
   icextal(iIns:iu) = cshift(icextal(iIns:iu), 1)
   dcum(iIns:iu)    = cshift(dcum(iIns:iu),    1)
 
+  ! Do string arrays with a loop due to a gfrotran bug in at least 8.3
+  tmpC = bezs(iu)
+  do i=iu-1,iIns,-1
+    bezs(i+1) = bezs(i)
+  end do
+  bezs(iIns) = tmpC
+
   ! Update s coordinate of added element
-  icpos(iIns) = icpos(iIns-1)
+  elpos(iIns) = elpos(iIns-1)
   dcum(iIns)  = dcum(iIns-1)
 
   geom_insertStruElem = iu
@@ -695,16 +703,18 @@ subroutine geom_calcDcum
 
   use parpro
   use crcoall
+  use mod_meta
   use mod_units
   use mod_common
+  use string_tools
   use floatPrecision
   use numerical_constants
 
   implicit none
 
-  character(len=mNameLen) tmpS, tmpE
-  character(len=40) fmtH, fmtC
-  real(kind=fPrec) tmpDcum
+  character(len=24) tmpS, tmpE
+  character(len=99) fmtH, fmtC
+  real(kind=fPrec) tmpDcum, delS
   integer i, j, k, ix, outUnit
 
   write(lout,"(a)") "GEOMETRY> Calculating machine length"
@@ -719,6 +729,11 @@ subroutine geom_calcDcum
       if(el(ix) > zero) then
         tmpDcum = tmpDcum + el(ix)
       end if
+      if(strumcol) then
+        elpos(i) = elpos(i) + el(ix)/2 ! Change from centre of element to end of element
+      else
+        elpos(i) = tmpDcum ! Just copy dcum(i)
+      end if
     else ! BLOC
       ! Iterate over elements
       do j=1,mel(ix)
@@ -726,14 +741,47 @@ subroutine geom_calcDcum
         if(el(k) > zero) then
           tmpDcum = tmpDcum + el(k)
         end if
+        if(strumcol) then
+          elpos(i) = elpos(i) + el(k)/2 ! Change from centre of element to end of element
+        else
+          elpos(i) = tmpDcum ! Just copy dcum(i)
+        end if
       end do
     end if
     dcum(i) = tmpDcum
   end do
 
   ! Assign the last value to the closing MARKER:
-  dcum(iu+1) = tmpDcum
+  dcum(iu+1)  = tmpDcum
+  elpos(iu+1) = elpos(iu)
+
   write(lout,"(a,f17.10,a)") "GEOMETRY> Machine length was ",dcum(iu+1)," [m]"
+
+  call meta_write("MultiColStructBlock", strumcol)
+  call meta_write("MachineLengthInput",  tlen)
+  call meta_write("MachineLengthAccum",  dcum(iu+1))
+  call meta_write("MachineLengthStruct", elpos(iu+1))
+
+  if(idp /= 0.and. ition /= 0) then ! 6D tracking
+    if(abs(dcum(iu+1) - tlen) > eps_dcum) then
+      write(lout,"(a)")          ""
+      write(lout,"(a)")          "    WARNING Problem with SYNC block detected"
+      write(lout,"(a,f17.10)")   "            TLEN in SYNC block = ",tlen
+      write(lout,"(a,f17.10)")   "            Length from DCUM   = ",dcum(iu+1)
+      write(lout,"(a,f17.10)")   "            Difference         = ",dcum(iu+1)-tlen
+      write(lout,"(a,e27.16,a)") "            Relative error     = ",2*(dcum(iu+1)-tlen)/(dcum(iu+1)+tlen)," [m]"
+      write(lout,"(a,f17.10,a)") "            Tolerance eps_dcum = ",eps_dcum," [m]"
+      write(lout,"(a)")          "    Please fix the TLEN parameter in your SYNC block"
+      write(lout,"(a)")          "    so that it matches the calculated machine length from DCUM."
+      write(lout,"(a)")          "    If incorrect, the RF frequency may be (slightly) wrong."
+      write(lout,"(a)")          ""
+      write(lout,"(a)")          str_divLine
+      ! It's a warning not an error, and the consequences seem relatively small.
+      ! Ideally, tlen should be calculated automatically based on the sequence.
+    end if
+  else
+    tlen = dcum(iu+1)
+  endif
 
   ! Enabled by the PRINT_DCUM flag in the SETTINGS block
   if(print_dcum) then
@@ -743,22 +791,33 @@ subroutine geom_calcDcum
 
     tmpS = "START"
     tmpE = "END"
-    fmtH = "(a1,1x,a4,1x,a6,1x,a48,1x,a13)"
-    fmtC = "(i6,1x,i6,1x,a48,1x,f13.6)"
+    fmtH = "(a1,1x,a29,1x,a31,2(1x,a17),1x,a10)"
+    fmtC = "(i6,1x,a24,1x,i6,1x,a24,2(1x,f17.9),1x,f10.3)"
 
-    write(outUnit,fmtH) "#","i","ix","name"//repeat(" ",44),"    dcum [m]"
-    write(outUnit,fmtC) 0,-1,tmpS,dcum(0)
+    if(strumcol) then
+      write(outUnit,"(a)") "# Structure Element MULTICOL flag is ON. s_madx column is read from input."
+    else
+      write(outUnit,"(a)") "# Structure Element MULTICOL flag is OFF. s_madx column is a copy of s_dcum."
+    end if
+
+    write(outUnit,fmtH) "#",chr_rPad("idST StructureElement",29),chr_rPad("idSE SingleElement",29),&
+      "s_dcum[m]","s_madx[m]","delta[nm]"
+    delS = (elpos(0) - dcum(0))*1e9
+    write(outUnit,fmtC) 0,tmpS,-1,tmpS,dcum(0),elpos(0),delS
     do i=1,iu
-      ix = ic(i)
+      ix   = ic(i)
+      delS = (elpos(i) - dcum(i))*1e9
       if(ix > nblo) then ! SINGLE ELEMENT
-        ix=ix-nblo
-        write(outUnit,fmtC) i,ix,bez(ix),dcum(i)
+        ix = ix-nblo
+        write(outUnit,fmtC) i,bezs(i)(1:24),ix,bez(ix)(1:24),dcum(i),elpos(i),delS
       else ! BLOC
-        write(outUnit,fmtC) i,ix,bezb(ix),dcum(i)
+        write(outUnit,fmtC) i,bezs(i)(1:24),ix,bezb(ix)(1:24),dcum(i),elpos(i),delS
       end if
     end do
-    write(outUnit,fmtC) iu+1,-1,tmpE,dcum(iu+1)
+    delS = (elpos(iu+1) - dcum(iu+1))*1e9
+    write(outUnit,fmtC) iu+1,tmpE,-1,tmpE,dcum(iu+1),elpos(iu+1),delS
 
+    flush(outUnit)
     call f_close(outUnit)
   end if
 

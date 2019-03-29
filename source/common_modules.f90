@@ -182,7 +182,7 @@ module mod_common
   integer,          save :: mbloz      = 0
 
   ! STRUCTURE Block
-  logical,          save :: icmulticol = .false. ! Whether the structure block is multicolumn or not
+  logical,          save :: strumcol   = .false. ! Whether the structure block is multicolumn or not
 
   ! Synchrotron Motion and Differential Algebra Block
   real(kind=fPrec), save :: qs         = zero ! Synchrotron tune [N/turn]
@@ -488,7 +488,7 @@ module mod_common
   integer,          allocatable, save :: icextal(:)     ! Magnet Misalignment: index (mod_fluc)
 
   character(len=:), allocatable, save :: bezs(:)        ! Name of structure element
-  real(kind=fPrec), allocatable, save :: icpos(:)       ! Position of structure element
+  real(kind=fPrec), allocatable, save :: elpos(:)       ! Position of structure element
   integer,          allocatable, save :: ic(:)          ! Structure to single/block element map0
 
   real(kind=fPrec), allocatable, save :: xsi(:)         ! Tracking: Horisontal displacement
@@ -632,7 +632,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
 
   if(nblz_new /= nblz_prev) then
     call alloc(ic,                   nblz_new,       0,      "ic")
-    call alloc(icpos,                nblz_new,       zero,   "icpos")
+    call alloc(elpos,                nblz_new,       zero,   "elpos")
     call alloc(bezs,      mNameLen,  nblz_new,       " ",    "bezs")
     call alloc(mzu,                  nblz_new,       0,      "mzu")
     call alloc(imbb,                 nblz_new,       0,      "imbb")
