@@ -539,124 +539,107 @@ end interface
   end if
 #endif
 
-#ifdef DEBUG
-!     call dumpbin('aclorb',1,1)
-!     call abend('after  clorb                                      ')
-#endif
-    do l=1,2
-      clo0(l)=clo(l)
-      clop0(l)=clop(l)
-    end do
-    call clorb(zero)
-#ifdef DEBUG
-!     call dumpbin('aclorb',1,1)
-!     call abend('after  clorb                                      ')
-#endif
-    do l=1,2
-      ll=2*l
-      di0(l)=(clo0(l)-clo(l))/ded
-      dip0(l)=(clop0(l)-clop(l))/ded
-    end do
-    call corrorb
+  do l=1,2
+    clo0(l)=clo(l)
+    clop0(l)=clop(l)
+  end do
+  call clorb(zero)
 
-    if(irmod2.eq.1) call rmod(dp1)
-    if(iqmod.ne.0) call qmod0
-    if(ichrom.eq.1.or.ichrom.eq.3) call chroma
-    if(iskew.ne.0) call decoup
-    if(ilin.eq.1.or.ilin.eq.3) then
-      call linopt(dp1)
-    end if
+  do l=1,2
+    ll=2*l
+    di0(l)=(clo0(l)-clo(l))/ded
+    dip0(l)=(clop0(l)-clop(l))/ded
+  end do
+  call corrorb
 
-    ! beam-beam element
-    nlino = nlin
-    nlin  = 0
-    if(nbeam.ge.1) then
-      do i=1,nele
-        if(kz(i).eq.20) then
-          nlin=nlin+1
-          if(nlin.gt.nele) then
-            write(lout,"(a)") "MAINCR> ERROR Too many elements for linear optics write-out"
-            call prror(-1)
-          end if
-          bezl(nlin)=bez(i)
+  if(irmod2.eq.1) call rmod(dp1)
+  if(iqmod.ne.0) call qmod0
+  if(ichrom.eq.1.or.ichrom.eq.3) call chroma
+  if(iskew.ne.0) call decoup
+  if(ilin.eq.1.or.ilin.eq.3) then
+    call linopt(dp1)
+  end if
+
+  ! beam-beam element
+  nlino = nlin
+  nlin  = 0
+  if(nbeam.ge.1) then
+    do i=1,nele
+      if(kz(i).eq.20) then
+        nlin=nlin+1
+        if(nlin.gt.nele) then
+          write(lout,"(a)") "MAINCR> ERROR Too many elements for linear optics write-out"
+          call prror(-1)
         end if
-      end do
-    end if
-    if(isub == 1) call subre(dp1)
-    if(ise  == 1) call search(dp1)
-#ifdef DEBUG
-!     call dumpbin('asearch',95,995)
-!     call abend('asearch                                           ')
-#endif
-    !! Initialize kicks
-    izu=0
-    do i=1,iu
-#ifdef DEBUG
-!       call warr('i/iu',0d0,i,iu,0,0)
-!       write(*,*) 'do 150 i/iu',i,iu
-#endif
-      ix=ic(i)
-      if(ix.le.nblo) cycle
-      ix=ix-nblo
-      kpz=kp(ix)
-      kzz=kz(ix)
-      if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) cycle
-      if(kzz.eq.15) cycle
-      if(iorg.lt.0) mzu(i)=izu
-      izu=mzu(i)+1
-      smizf(i)=zfz(izu)*ek(ix)
-      smiv(i)=sm(ix)+smizf(i) ! Also in initalize_element!
-      smi(i)=smiv(i)          ! Also in initalize_element!
-#ifdef DEBUG
-!         call warr('smizf(i)',smizf(i),i,0,0,0)
-!         call warr('smiv(m,i)',smiv(m,i),m,i,0,0)
-!         call warr('smi(i)',smi(i),i,0,0,0)
-#endif
-      izu=izu+1
-      xsiv(i)=xpl(ix)+zfz(izu)*xrms(ix)
-      xsi(i)=xsiv(i)
-      izu=izu+1
-      zsiv(i)=zpl(ix)+zfz(izu)*zrms(ix)
-      zsi(i)=zsiv(i)
-      if(mout2.eq.1) then
-        if(kzz.eq.11) zfz(izu-2)=zero
-        if(abs(ek(ix)).le.pieni) zfz(izu-2)=zero
-        if(abs(xrms(ix)).le.pieni) zfz(izu-1)=zero
-        if(abs(zrms(ix)).le.pieni) zfz(izu)=zero
-        if(icextal(i) > 0) then
-          write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errAlign(3,icextal(i))
-        else if(icextal(i) < 0) then
-          write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errZFZ(4,-icextal(i))
-        else
-          write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),zero
-        end if
-      endif
-
-!-- MULTIPOLE BLOCK
-      if(kzz.eq.11) then
-        dynk_izuIndex(ix)=izu
-!-- Initialize multipoles, combining settings from fort.2 with
-!-- coefficients from MULT and random values from FLUC.
-!-- Used in program maincr and from initialize_element.
-
-        if(abs(ek(ix)).le.pieni) cycle
-        nmz=nmu(ix)
-        if(nmz.eq.0) then
-          izu=izu+2*mmul
-          cycle
-        end if
-        im=irm(ix)
-        do k=1,nmz
-          izu=izu+1
-          amultip(k,i) = zfz(izu) !To make it easier for Dynk later on
-          aaiv(k,i)=(ak0(im,k)+(amultip(k,i)*aka(im,k)))
-          izu=izu+1
-          bmultip(k,i) = zfz(izu)
-          bbiv(k,i)=(bk0(im,k)+(bmultip(k,i)*bka(im,k)))
-        end do
-        izu=izu+2*mmul-2*nmz
+        bezl(nlin)=bez(i)
       end if
     end do
+  end if
+  if(isub == 1) call subre(dp1)
+  if(ise  == 1) call search(dp1)
+
+  !! Initialize kicks
+  izu=0
+  do i=1,iu
+    ix=ic(i)
+    if(ix.le.nblo) cycle
+    ix=ix-nblo
+    kpz=kp(ix)
+    kzz=kz(ix)
+    if(kpz.eq.6.or.kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) cycle
+    if(kzz.eq.15) cycle
+    if(iorg.lt.0) mzu(i)=izu
+    izu=mzu(i)+1
+    smizf(i)=zfz(izu)*ek(ix)
+    smiv(i)=sm(ix)+smizf(i) ! Also in initalize_element!
+    smi(i)=smiv(i)          ! Also in initalize_element!
+    izu=izu+1
+    xsiv(i)=xpl(ix)+zfz(izu)*xrms(ix)
+    xsi(i)=xsiv(i)
+    izu=izu+1
+    zsiv(i)=zpl(ix)+zfz(izu)*zrms(ix)
+    zsi(i)=zsiv(i)
+    if(mout2.eq.1) then
+      if(kzz.eq.11) zfz(izu-2)=zero
+      if(abs(ek(ix)).le.pieni) zfz(izu-2)=zero
+      if(abs(xrms(ix)).le.pieni) zfz(izu-1)=zero
+      if(abs(zrms(ix)).le.pieni) zfz(izu)=zero
+      if(icextal(i) > 0) then
+        write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errAlign(3,icextal(i))
+      else if(icextal(i) < 0) then
+        write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),fluc_errZFZ(4,-icextal(i))
+      else
+        write(31,"(a48,1p,d19.11,2d14.6,d17.9)") bez(ix),zfz(izu-2),zfz(izu-1),zfz(izu),zero
+      end if
+    end if
+
+    ! MULTIPOLE BLOCK
+    if(kzz.eq.11) then
+      dynk_izuIndex(ix)=izu
+
+      ! Initialize multipoles, combining settings from fort.2 with
+      ! coefficients from MULT and random values from FLUC.
+      ! Used in program maincr and from initialize_element.
+
+      if(abs(ek(ix)).le.pieni) cycle
+      nmz=nmu(ix)
+      if(nmz.eq.0) then
+        izu=izu+2*mmul
+        cycle
+      end if
+      im=irm(ix)
+      do k=1,nmz
+        izu=izu+1
+        amultip(k,i) = zfz(izu) !To make it easier for Dynk later on
+        aaiv(k,i)=(ak0(im,k)+(amultip(k,i)*aka(im,k)))
+        izu=izu+1
+        bmultip(k,i) = zfz(izu)
+        bbiv(k,i)=(bk0(im,k)+(bmultip(k,i)*bka(im,k)))
+      end do
+      izu=izu+2*mmul-2*nmz
+    end if
+  end do
+
 #ifdef DEBUG
 !     call dumpbin('ado 150',150,150)
 !     call abend('ado 150                                           ')
