@@ -1,2 +1,3 @@
 aperture_losses.dat
 final_state.dat
+hash.md5
