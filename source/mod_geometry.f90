@@ -380,15 +380,15 @@ subroutine geom_parseInputLineSTRU(inLine, iLine, iErr)
     do j=1,mblo ! is it a BLOC?
       if(bezb(j) == ilm0(i)) then
         ic(geom_nStru)     = j
-        icname(geom_nStru) = bezb(j)
+        bezs(geom_nStru) = bezb(j)
         cycle
       end if
     end do
 
     do j=1,il ! is it a SINGLE ELEMENT?
       if(geom_bez0(j) == ilm0(i)) then
-        ic(geom_nStru)     = j+nblo
-        icname(geom_nStru) = geom_bez0(j)
+        ic(geom_nStru)   = j+nblo
+        bezs(geom_nStru) = geom_bez0(j)
         if(geom_bez0(j) == geom_cavity) then
           sixin_icy = sixin_icy+1
         end if
@@ -458,7 +458,7 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
     call expand_arrays(nele,npart,nblz+1000,nblo)
   end if
 
-  icname(geom_nStru) = lnSplit(1)
+  bezs(geom_nStru) = lnSplit(1)
   call chr_cast(lnSplit(3), icpos(geom_nStru), cErr)
 
   singID = -1
@@ -551,7 +551,7 @@ integer function geom_insertStruElem(iEl)
 
   ic(iIns:iu)      = cshift(ic(iIns:iu),      1)
   icpos(iIns:iu)   = cshift(icpos(iIns:iu),   1)
-  icname(iIns:iu)  = cshift(icname(iIns:iu),  1)
+  bezs(iIns:iu)    = cshift(bezs(iIns:iu),    1)
   icext(iIns:iu)   = cshift(icext(iIns:iu),   1)
   icextal(iIns:iu) = cshift(icextal(iIns:iu), 1)
   dcum(iIns:iu)    = cshift(dcum(iIns:iu),    1)
@@ -680,82 +680,87 @@ subroutine geom_findElemAtLoc(sLoc, isLast, iEl, ixEl, wasFound)
 
 end subroutine geom_findElemAtLoc
 
-!-----------------------------------------------------------------------
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 13-06-2014
-!     calculate dcum, as done in linopt and when parsing BLOCs (daten):
-!         lengths of thick lens elements are taken on the curvilinear
-!         reference system; thus, no difference between the length
-!         of SBENDs and the one of RBENDs, as they are both the ARC one;
-!     for future needs:
-!                ds=two/ed(ix)*asin(el(ix)*ed(ix)/two)
-!     always in main code
-!-----------------------------------------------------------------------
+! ================================================================================================ !
+!  A. Mereghetti, D. Sinuela Pastor, for the FLUKA Team
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Original: 2014-06-13
+!  Updated:  2019-03-29
+!  Calculate dcum, as done in linopt and when parsing BLOCs (daten):
+!    lengths of thick lens elements are taken on the curvilinear
+!    reference system; thus, no difference between the length
+!    of SBENDs and the one of RBENDs, as they are both the ARC one;
+!  For future needs:  ds=two/ed(ix)*asin(el(ix)*ed(ix)/two)
+! ================================================================================================ !
 subroutine geom_calcDcum
 
+  use parpro
+  use crcoall
+  use mod_units
+  use mod_common
   use floatPrecision
   use numerical_constants
-  use crcoall
-  use parpro
-  use mod_common
+
   implicit none
 
-  save
+  character(len=mNameLen) tmpS, tmpE
+  character(len=40) fmtH, fmtC
+  real(kind=fPrec) tmpDcum
+  integer i, j, k, ix, outUnit
 
-  ! temporary variables
-  real(kind=fPrec) tmpdcum
-  integer ientry, jentry, kentry, ix
+  write(lout,"(a)") "GEOMETRY> Calculating machine length"
 
-  write(lout,"(a)") "CADCUM> Calculating machine length"
+  tmpDcum = zero
 
-  ! initialise cumulative length
-  tmpdcum=zero
+  ! Loop all over the entries in the accelerator structure
+  do i=1,iu
+    ix = ic(i)
+    if(ix > nblo) then ! SINGLE ELEMENT
+      ix = ix-nblo
+      if(el(ix) > zero) then
+        tmpDcum = tmpDcum + el(ix)
+      end if
+    else ! BLOC
+      ! Iterate over elements
+      do j=1,mel(ix)
+        k = mtyp(ix,j)
+        if(el(k) > zero) then
+          tmpDcum = tmpDcum + el(k)
+        end if
+      end do
+    end if
+    dcum(i) = tmpDcum
+  end do
 
-  ! loop all over the entries in the accelerator structure
-  do ientry=1,iu
-    ix=ic(ientry)
-    if(ix.gt.nblo) then
-      ! SINGLE ELEMENT
-      ix=ix-nblo
-      if ( el(ix).gt.zero ) tmpdcum=tmpdcum+el(ix)
-    else
-      ! BLOC: iterate over elements
-      do jentry=1,mel(ix)
-        kentry=mtyp(ix,jentry)
-        if( el(kentry).gt.zero ) tmpdcum=tmpdcum+el(kentry)
-      enddo
-    endif
-!       assign value of dcum
-    dcum(ientry)=tmpdcum
-!     go to next entry in the acclerator structure
-  enddo
+  ! Assign the last value to the closing MARKER:
+  dcum(iu+1) = tmpDcum
+  write(lout,"(a,f17.10,a)") "GEOMETRY> Machine length was ",dcum(iu+1)," [m]"
 
-!     assign the last value to the closing MARKER:
-  dcum(iu+1)=tmpdcum
-
+  ! Enabled by the PRINT_DCUM flag in the SETTINGS block
   if(print_dcum) then
-    ! A useful printout. Enabled by the PRINT_DCUM flag in the SETTINGS block
-    write(lout,10030) "CADCUM> ","ientry","ix","name"//repeat(" ",44),"    dcum [m]"
-    write(lout,10020) "CADCUM> ",0,-1,"START"//repeat(" ",43),dcum(0)
-    do ientry=1,iu
-      ix=ic(ientry)
-      if(ix.gt.nblo) then
-        ! SINGLE ELEMENT
+
+    call f_requestUnit("machine_length.dat",outUnit)
+    call f_open(unit=outUnit,file="machine_length.dat",formatted=.true.,mode="w",status="replace")
+
+    tmpS = "START"
+    tmpE = "END"
+    fmtH = "(a1,1x,a4,1x,a6,1x,a48,1x,a13)"
+    fmtC = "(i6,1x,i6,1x,a48,1x,f13.6)"
+
+    write(outUnit,fmtH) "#","i","ix","name"//repeat(" ",44),"    dcum [m]"
+    write(outUnit,fmtC) 0,-1,tmpS,dcum(0)
+    do i=1,iu
+      ix = ic(i)
+      if(ix > nblo) then ! SINGLE ELEMENT
         ix=ix-nblo
-        write(lout,10020) "CADCUM> ",ientry,ix,bez(ix),dcum(ientry)
-      else
-        ! BLOC
-        write(lout,10020) "CADCUM> ",ientry,ix,bezb(ix),dcum(ientry)
+        write(outUnit,fmtC) i,ix,bez(ix),dcum(i)
+      else ! BLOC
+        write(outUnit,fmtC) i,ix,bezb(ix),dcum(i)
       end if
     end do
-    write(lout,10020) "CADCUM> ",iu+1,-1,"END"//repeat(" ",45),dcum(iu+1)
+    write(outUnit,fmtC) iu+1,-1,tmpE,dcum(iu+1)
+
+    call f_close(outUnit)
   end if
-  write(lout,"(a,f17.10,a)") "CADCUM> Machine length was ",dcum(iu+1)," [m]"
-
-  return
-
-10020 format(a,2(1x,i6),1x,a48,1x,f12.5)
-10030 format(a,2(1x,a6),1x,a48,1x,a12)
 
 end subroutine geom_calcDcum
 

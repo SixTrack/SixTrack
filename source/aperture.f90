@@ -1027,7 +1027,7 @@ subroutine aperture_reportLoss(turn, i, ix)
         call h5_writeData(aper_setLostPart, 1,  1, turn)
         call h5_writeData(aper_setLostPart, 2,  1, i)
         call h5_writeData(aper_setLostPart, 3,  1, ix)
-        call h5_writeData(aper_setLostPart, 4,  1, icname(i))
+        call h5_writeData(aper_setLostPart, 4,  1, bezs(i))
         call h5_writeData(aper_setLostPart, 5,  1, slos)
         call h5_writeData(aper_setLostPart, 6,  1, xlos(1)*c1m3)
         call h5_writeData(aper_setLostPart, 7,  1, xlos(2)*c1m3)
@@ -1062,7 +1062,7 @@ subroutine aperture_reportLoss(turn, i, ix)
         write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')   &
 #endif
 
-     &       turn, i, ix, icname(i), slos,                                   &
+     &       turn, i, ix, bezs(i), slos,                                     &
 #ifdef FLUKA
      &       fluka_uid(j), fluka_gen(j), fluka_weight(j),                    &
 #else
@@ -1083,7 +1083,7 @@ subroutine aperture_reportLoss(turn, i, ix)
 #ifdef ROOT
 ! root output
       if(root_flag .and. root_ApertureCheck.eq.1) then
-        this_name = trim(adjustl(icname(i))) // C_NULL_CHAR
+        this_name = trim(adjustl(bezs(i))) // C_NULL_CHAR
 #ifdef FLUKA
         call ApertureCheckWriteLossParticleF(turn, i, ix, this_name, len_trim(this_name), slos, &
           fluka_uid(j), fluka_gen(j), fluka_weight(j), &
