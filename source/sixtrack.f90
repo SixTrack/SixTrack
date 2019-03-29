@@ -1184,17 +1184,22 @@ subroutine daten
 
 9999 continue
   if(nUnit == 2) then
-    write(lout,"(a)")      "INPUT> ERROR in fort.2"
-    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo2,": '"//trim(inLine)//"'"
-  else
-    write(lout,"(a)")      "INPUT> ERROR in fort.3"
-    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo3,": '"//trim(inLine)//"'"
-    write(lout,"(a)")      "INPUT> Previous Lines:"
     write(lout,"(a)")      ""
+    write(lout,"(a)")      " ERROR in fort.2"
+    write(lout,"(a,i0,a)") " Line ",lineNo2,": '"//trim(adjustl(inLine))//"'"
+  else
+    write(lout,"(a)")      ""
+    write(lout,"(a,i0)")   " ERROR in fort.3 on line ",lineNo3
+    write(lout,"(a)")      "========O"//repeat("=",91)
     do i=1,5
       if(lineNo3-5+i <= 0) cycle
-      write(lout,"(i5,a)") lineNo3-5+i," | "//trim(pLines(i))
+      if(i == 5) then
+        write(lout,"(a,i5,a)") ">>",lineNo3-5+i," | "//trim(pLines(i))
+      else
+        write(lout,"(a,i5,a)") "  ",lineNo3-5+i," | "//trim(pLines(i))
+      end if
     end do
+    write(lout,"(a)")      "========O"//repeat("=",91)
   end if
   call prror
   return
