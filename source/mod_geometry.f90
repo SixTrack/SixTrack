@@ -168,7 +168,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
     geom_bez0(geom_nSing)  = geom_cavity
     kp(geom_nSing)         = 6
   else
-    il          = geom_nSing
+    il         = geom_nSing
     geom_nSing = geom_nSing + 1
   end if
 
@@ -290,7 +290,7 @@ subroutine geom_parseInputLineBLOC(inLine, iLine, iErr)
     end if
     geom_ilm(i) = ilm0(i-k0)                  ! Append to sub-element buffer
     if(geom_ilm(i) == " ") exit               ! No more sub-elements to append
-    mel(geom_nBloc)          = i              ! Update number of single elements in this block
+    mel(geom_nBloc)         = i               ! Update number of single elements in this block
     geom_beze(geom_nBloc,i) = geom_ilm(i)     ! Name of the current single element
 
     eFound = .false.
@@ -679,5 +679,84 @@ subroutine geom_findElemAtLoc(sLoc, isLast, iEl, ixEl, wasFound)
   end if
 
 end subroutine geom_findElemAtLoc
+
+!-----------------------------------------------------------------------
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 13-06-2014
+!     calculate dcum, as done in linopt and when parsing BLOCs (daten):
+!         lengths of thick lens elements are taken on the curvilinear
+!         reference system; thus, no difference between the length
+!         of SBENDs and the one of RBENDs, as they are both the ARC one;
+!     for future needs:
+!                ds=two/ed(ix)*asin(el(ix)*ed(ix)/two)
+!     always in main code
+!-----------------------------------------------------------------------
+subroutine geom_calcDcum
+
+  use floatPrecision
+  use numerical_constants
+  use crcoall
+  use parpro
+  use mod_common
+  implicit none
+
+  save
+
+  ! temporary variables
+  real(kind=fPrec) tmpdcum
+  integer ientry, jentry, kentry, ix
+
+  write(lout,"(a)") "CADCUM> Calculating machine length"
+
+  ! initialise cumulative length
+  tmpdcum=zero
+
+  ! loop all over the entries in the accelerator structure
+  do ientry=1,iu
+    ix=ic(ientry)
+    if(ix.gt.nblo) then
+      ! SINGLE ELEMENT
+      ix=ix-nblo
+      if ( el(ix).gt.zero ) tmpdcum=tmpdcum+el(ix)
+    else
+      ! BLOC: iterate over elements
+      do jentry=1,mel(ix)
+        kentry=mtyp(ix,jentry)
+        if( el(kentry).gt.zero ) tmpdcum=tmpdcum+el(kentry)
+      enddo
+    endif
+!       assign value of dcum
+    dcum(ientry)=tmpdcum
+!     go to next entry in the acclerator structure
+  enddo
+
+!     assign the last value to the closing MARKER:
+  dcum(iu+1)=tmpdcum
+
+  if(print_dcum) then
+    ! A useful printout. Enabled by the PRINT_DCUM flag in the SETTINGS block
+    write(lout,10030) "CADCUM> ","ientry","ix","name"//repeat(" ",44),"    dcum [m]"
+    write(lout,10020) "CADCUM> ",0,-1,"START"//repeat(" ",43),dcum(0)
+    do ientry=1,iu
+      ix=ic(ientry)
+      if(ix.gt.nblo) then
+        ! SINGLE ELEMENT
+        ix=ix-nblo
+        write(lout,10020) "CADCUM> ",ientry,ix,bez(ix),dcum(ientry)
+      else
+        ! BLOC
+        write(lout,10020) "CADCUM> ",ientry,ix,bezb(ix),dcum(ientry)
+      end if
+    end do
+    write(lout,10020) "CADCUM> ",iu+1,-1,"END"//repeat(" ",45),dcum(iu+1)
+  end if
+  write(lout,"(a,f17.10,a)") "CADCUM> Machine length was ",dcum(iu+1)," [m]"
+
+  return
+
+10020 format(a,2(1x,i6),1x,a48,1x,f12.5)
+10030 format(a,2(1x,a6),1x,a48,1x,a12)
+
+end subroutine geom_calcDcum
 
 end module mod_geometry

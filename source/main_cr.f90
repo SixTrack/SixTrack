@@ -30,6 +30,7 @@ program maincr
   use aperture
   use mod_ranecu
   use mod_particles
+  use mod_geometry,   only : geom_calcDcum
   use mod_alloc,      only : alloc_init
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
@@ -473,7 +474,7 @@ end interface
     ! call routine for calculating dcum, necessary for the online
     !    aperture check and in case of dumping particle population
     !    or statistics or beam matrix
-    call cadcum
+    call geom_calcDcum
     if(idp /= 0.and. ition /= 0) then ! 6D tracking
       if(abs(dcum(iu+1) - tlen) > eps_dcum) then
         write(lout,"(a)")          ""
