@@ -89,11 +89,10 @@ module collimation
   &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
   &sigsecut3,sigsecut2,enerror,bunchlength
 
-  ! From collimation_comnul
-  real(kind=fPrec), public,  save :: emitnx0_dist    = zero
-  real(kind=fPrec), public,  save :: emitny0_dist    = zero
-  real(kind=fPrec), public,  save :: emitnx0_collgap = zero
-  real(kind=fPrec), public,  save :: emitny0_collgap = zero
+  real(kind=fPrec), private, save :: emitnx0_dist = zero
+  real(kind=fPrec), private, save :: emitny0_dist = zero
+  real(kind=fPrec), private, save :: emitnx0_collgap = zero
+  real(kind=fPrec), private, save :: emitny0_collgap = zero
 
   real(kind=fPrec), private, save :: nr
 
@@ -109,12 +108,10 @@ module collimation
 
   integer ieff,ieffdpop
 
-  ! From collimation_comnul
-  real(kind=fPrec), save :: myemitx0_dist = zero
-  real(kind=fPrec), save :: myemity0_dist = zero
-  real(kind=fPrec), save :: myemitx0_collgap = zero
-  real(kind=fPrec), save :: myemity0_collgap = zero
-
+  real(kind=fPrec), private, save :: myemitx0_dist    = zero
+  real(kind=fPrec), private, save :: myemity0_dist    = zero
+  real(kind=fPrec), public,  save :: myemitx0_collgap = zero
+  real(kind=fPrec), public,  save :: myemity0_collgap = zero
   real(kind=fPrec), save :: myalphay, mybetay, myalphax, mybetax, rselect, myemitx
 ! myemitx was not saved?
 !  common /ralph/ myemitx0_dist,myemity0_dist,myemitx0_collgap,myemity0_collgap,myalphax,myalphay,mybetax,mybetay,rselect

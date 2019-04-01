@@ -85,6 +85,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   use mod_settings
   use sixtrack_input
   use string_tools
+  use mod_common
 
   implicit none
 
