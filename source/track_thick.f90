@@ -10,6 +10,7 @@ subroutine trauthck(nthinerr)
   use mathlib_bouncer
   use numerical_constants
   use dynk, only : dynk_enabled, dynk_isused, dynk_pretrack
+  use cheby, only : cheby_kz, cheby_ktrack
 
 #ifdef FLUKA
 ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -130,6 +131,11 @@ subroutine trauthck(nthinerr)
     !electron lens (HEL)
     if(kzz.eq.29) then
       ktrack(i)=63
+      goto 290
+    endif
+    ! Chebyshev lens
+    if(kzz.eq.cheby_kz) then
+      ktrack(i)=cheby_ktrack
       goto 290
     endif
     ! acdip1
@@ -497,6 +503,7 @@ subroutine thck4d(nthinerr)
   use mod_common_track
   use mod_common_da
   use elens
+  use cheby, only : cheby_ktrack, cheby_kick
   use utils
   use wire
 #ifdef CR
@@ -1040,6 +1047,9 @@ subroutine thck4d(nthinerr)
 #include "include/kickelens.f90"
         end do
         goto 470
+      case (cheby_ktrack) ! Chebyshev lens
+        call cheby_kick(i,ix,n)
+        goto 470
       end select
       goto 480
 
@@ -1160,6 +1170,7 @@ subroutine thck6d(nthinerr)
   use mod_common_da
   use aperture
   use elens
+  use cheby, only : cheby_ktrack, cheby_kick
   use utils
   use wire
 #ifdef CR
@@ -1184,12 +1195,7 @@ subroutine thck6d(nthinerr)
 #endif
 
   save
-#ifdef DEBUG
-!-----------------------------------------------------------------------
-!===================================================================
-! Eric beginthck6dstart
-!===================================================================
-#endif
+
   nthinerr=0
   idz1=idz(1)
   idz2=idz(2)
@@ -1282,20 +1288,7 @@ subroutine thck6d(nthinerr)
     end if
     call dump_linesFirst(n)
 
-#ifdef DEBUG
-! Now comes the loop over elements do 500/501
-    do 501 i=1,iu
-#else
     do 500 i=1,iu
-#endif
-#ifdef DEBUG
-!===================================================================
-!===================================================================
-! Eric endthck6dstart
-! Nothing should be changed in the rest of this loop
-!===================================================================
-!===================================================================
-#endif
       if(ktrack(i).eq.1) then
         ix=ic(i)
       else
@@ -1782,6 +1775,9 @@ subroutine thck6d(nthinerr)
 #include "include/kickelens.f90"
         end do
         goto 490
+      case (cheby_ktrack) ! Chebyshev lens
+        call cheby_kick(i,ix,n)
+        goto 490
       end select
       goto 500
 
@@ -1833,19 +1829,7 @@ subroutine thck6d(nthinerr)
         call dump_lines(n,i,ix)
       end if
 
-#ifdef DEBUG
 500 continue
-    ! if (n.ge.990) then
-    !   write(99,*) 'after element i, ktrack ',i,ktrack(i), xv1(1),xv2(1),yv1(1),yv2(1),&
-    !     sigmv(1),ejv(1),ejfv(1),rvv(1),dpsv(1),oidpsv(1),dpsv1(1)
-    !   endfile (99,iostat=ierro)
-    !   backspace (99,iostat=ierro)
-    ! end if
-501 continue
-#endif
-#ifndef DEBUG
-500 continue
-#endif
 ! End of loop over elements
 
 !===================================================================

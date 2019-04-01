@@ -13,10 +13,10 @@ subroutine daliesix
 
   integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
   real tlim,time0,time1,time
-  real(kind=fPrec) angle,coe,rad,x2pi
+  real(kind=fPrec) angle,coe,radn,x2pi
   dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
   dimension rot(6),xy(6),df(6)
-  dimension angle(3),rad(3)
+  dimension angle(3),radn(3)
 
   save
 
@@ -81,7 +81,7 @@ subroutine daliesix
   call dainv(a1,nv,a1i,nv)
   call dainv(a2,nv,a2i,nv)
   call ctor(f,fc,fs)
-  call gettura(angle,rad)
+  call gettura(angle,radn)
   call taked(xy,1,rot)
   call take(h,2,haux)
   call dasub(h,haux,h4)

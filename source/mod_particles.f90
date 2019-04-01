@@ -11,6 +11,7 @@ module mod_particles
   implicit none
 
   logical, public, save :: part_isTracking = .false.
+
 contains
 
 ! ================================================================================================ !
@@ -69,7 +70,8 @@ subroutine part_updateRefEnergy(refEnergy)
   use mod_hions
   use mod_common
   use mod_common_main
-  use numerical_constants
+  use numerical_constants, only : one, c1m6
+  use physical_constants, only: clight
 
   implicit none
 
@@ -88,7 +90,8 @@ subroutine part_updateRefEnergy(refEnergy)
   e0f    = sqrt(e0**2 - nucm0**2)
   gammar = nucm0/e0
   betrel = sqrt((one+gammar)*(one-gammar))
-
+  brho   = (e0f/(clight*c1m6))/zz0
+  
   ! Also update sigmv with the new beta0 = e0f/e0
   sigmv(1:napx) = ((e0f*e0o)/(e0fo*e0))*sigmv(1:napx)
 
@@ -121,10 +124,10 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
 
   logical :: doUpdateAngle = .false.
 
-  if(part_isTracking .and. refArray /= 1) then
-    write(lout,"(a)") "PART> ERROR During tracking, only energy updates are allowed in part_updatePartEnergy."
-    call prror
-  end if
+  !if(part_isTracking .and. refArray /= 1) then
+  !  write(lout,"(a)") "PART> ERROR During tracking, only energy updates are allowed in part_updatePartEnergy."
+  !  call prror
+  !end if
 
   if(present(updateAngle)) then
     doUpdateAngle = updateAngle
@@ -170,15 +173,17 @@ end subroutine part_updatePartEnergy
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-28
-!  Dumps the final state of the particle arrays to a binary file.
+!  Created:  2018-11-28
+!  Modified: 2019-01-31
+!  Dumps the state of the particle arrays to a binary or text file.
 ! ================================================================================================ !
 subroutine part_writeState(theState)
 
-  use, intrinsic :: iso_fortran_env, only : int32, real64
+  use, intrinsic :: iso_fortran_env, only : int16, int32, real64
 
   use mod_units
   use parpro
+  use mod_hions
   use mod_common
   use mod_common_main
   use mod_settings
@@ -188,23 +193,21 @@ subroutine part_writeState(theState)
 
   integer, intent(in) :: theState
 
-  character(len=200) :: roundBuf
+  character(len=225) :: roundBuf
   character(len=17)  :: fileName
-  integer            :: fileUnit, j, k
-  logical            :: rErr, isPrim, isBin
+  integer            :: fileUnit, j, k, iDummy
+  logical            :: rErr, isPrim, isBin, noIons
 
-  if(theState == 0 .and. st_initialState == 1) then
-    isBin    = .true.
-    fileName = "initial_state.bin"
-  elseif(theState == 0 .and. st_initialState == 2) then
-    isBin    = .false.
-    fileName = "initial_state.dat"
-  elseif(theState == 1 .and. st_finalState == 1) then
-    isBin    = .true.
-    fileName = "final_state.bin"
-  elseif(theState == 1 .and. st_finalState == 2) then
-    isBin    = .false.
-    fileName = "final_state.dat"
+  if(theState == 0) then
+    if(st_initialState == 0) return ! No dump was requested in fort.3
+    isBin    = st_initialState == 1 .or. st_initialState == 3
+    noIons   = st_initialState == 1 .or. st_initialState == 2
+    fileName = "initial_state"
+  elseif(theState == 1) then
+    if(st_finalState == 0) return ! No dump was requested in fort.3
+    isBin    = st_finalState == 1 .or. st_finalState == 3
+    noIons   = st_finalState == 1 .or. st_finalState == 2
+    fileName = "final_state"
   else
     ! Nothing to do
     return
@@ -212,6 +215,7 @@ subroutine part_writeState(theState)
 
   if(isBin) then
 
+    fileName = trim(fileName)//".bin"
     call f_requestUnit(fileName, fileUnit)
     call f_open(unit=fileUnit,file=fileName,formatted=.false.,mode="w",status="replace",access="stream")
 
@@ -219,6 +223,8 @@ subroutine part_writeState(theState)
     write(fileUnit) int(napx, kind=int32)
     write(fileUnit) int(napxo,kind=int32)
     write(fileUnit) int(npart,kind=int32)
+
+    iDummy = 0
 
     do j=1,npart
       isPrim = partID(j) <= napxo
@@ -234,12 +240,19 @@ subroutine part_writeState(theState)
       write(fileUnit)    real(    dpsv(j), kind=real64)
       write(fileUnit)    real(    ejfv(j), kind=real64)
       write(fileUnit)    real(     ejv(j), kind=real64)
+      if(noIons) cycle ! Skip the ion columns
+      write(fileUnit)    real(    nucm(j), kind=real64)
+      write(fileUnit)     int(     naa(j), kind=int16)
+      write(fileUnit)     int(     nzz(j), kind=int16)
+    ! write(fileUnit)     int(     nqq(j), kind=int16) ! Not implemented yet
+      write(fileUnit)     int(     iDummy, kind=int32) ! Pad to n x 64 bit
     end do
 
     call f_close(fileUnit)
 
   else
 
+    fileName = trim(fileName)//".dat"
     call f_requestUnit(fileName, fileUnit)
     call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="w",status="replace")
 
@@ -247,7 +260,13 @@ subroutine part_writeState(theState)
     write(fileUnit,"(a,i0)") "# napx  = ",napx
     write(fileUnit,"(a,i0)") "# napxo = ",napxo
     write(fileUnit,"(a,i0)") "# npart = ",npart
-    write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),8(1x,a24))") "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e"
+    if(noIons) then
+      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),8(1x,a24))") &
+        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e"
+    else
+      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),9(1x,a24),2(1x,a4))") &
+        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e","mass","A","Z"
+    end if
 
     do j=1,npart
       roundBuf = " "
@@ -260,7 +279,14 @@ subroutine part_writeState(theState)
       call chr_fromReal(dpsv(j), roundBuf(127:150),17,3,rErr)
       call chr_fromReal(ejfv(j), roundBuf(152:175),17,3,rErr)
       call chr_fromReal(ejv(j),  roundBuf(177:200),17,3,rErr)
-      write(fileUnit, "(i8,1x,i8,2(1x,l4),a200)") partID(j),parentID(j),llostp(j),isPrim,roundBuf
+      if(noIons) then
+        write(fileUnit, "(i8,1x,i8,2(1x,l4),a200)") &
+          partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:200)
+      else
+        call chr_fromReal(nucm(j), roundBuf(202:225),17,3,rErr)
+        write(fileUnit, "(i8,1x,i8,2(1x,l4),a225,2(1x,i4))") &
+          partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:225),naa(j),nzz(j)
+      end if
     end do
 
     call f_close(fileUnit)

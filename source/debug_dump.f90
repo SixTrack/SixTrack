@@ -1,5 +1,3 @@
-#ifdef DEBUG
-
 subroutine warr(vname,value,i,j,k,l)
 
   use floatPrecision
@@ -1547,4 +1545,3 @@ subroutine dumphex(dumpname,n,i)
 100 format (a10,(Z20))
 
 end subroutine dumphex
-#endif

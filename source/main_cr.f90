@@ -308,8 +308,8 @@ end interface
   call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr) ! DA file, binary
 
 #ifdef DEBUG
-  call f_open(unit=99 ,file="dump",  formatted=.false.,mode="rw",err=fErr)
-  call f_open(unit=100,file="arrays",formatted=.false.,mode="rw",err=fErr)
+  ! call f_open(unit=99 ,file="dump",  formatted=.false.,mode="rw",err=fErr)
+  ! call f_open(unit=100,file="arrays",formatted=.false.,mode="rw",err=fErr)
 #endif
 
   call time_timeStamp(time_afterFileUnits)
@@ -513,7 +513,10 @@ end interface
     end if
 
 #ifdef FLUKA
-    if (fluka_enable) call check_coupling_integrity
+    if (fluka_enable) then
+      call check_coupling_integrity
+      call check_coupling_start_point
+    end if
 #endif
 
     ! dump aperture model
@@ -1814,7 +1817,6 @@ end interface
   end if
 #endif
 
-  call alloc_exit
   call time_timeStamp(time_beforeExit)
   call time_finalise
   call meta_finalise

@@ -13,7 +13,7 @@ module mod_alloc
   implicit none
 
 #ifdef DEBUG
-  integer, public, save :: alloc_log ! Logfile Unit
+  integer, public, save :: alloc_log = 1000 ! Logfile Unit
 #endif
 
   ! The total quantity of memory allocated (bits)
@@ -128,8 +128,6 @@ contains
 
 subroutine alloc_init
 #ifdef DEBUG
-  use mod_units
-  call f_requestUnit("mem_alloc.log",alloc_log)
   open(alloc_log,file="mem_alloc.log",form="formatted",status="unknown")
 #else
   return
@@ -188,20 +186,6 @@ subroutine print_alloc(ename, type, requested_bits)
   end if
 
 end subroutine print_alloc
-
-subroutine alloc_exit
-#ifdef DEBUG
-  use mod_units
-  integer memunit
-  call f_requestUnit("maximum_memory_allocation_mbytes.txt",memunit)
-  call f_open(unit=memunit,file="maximum_memory_allocation_mbytes.txt",formatted=.true.,mode="w")
-  write(memunit,"(f10.3)") real(maximum_bits,real64)/real(mbyte,real64)
-  flush(memunit)
-  call f_close(memunit)
-#else
-  return
-#endif
-end subroutine alloc_exit
 
 ! ================================================================================================ !
 !  Allocation and Resizing

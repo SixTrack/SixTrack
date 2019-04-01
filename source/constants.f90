@@ -61,6 +61,11 @@ module numerical_constants
   real(kind=fPrec), parameter :: pi         = 3.141592653589793238462643383279502884197169399375105820974_fPrec
   real(kind=fPrec), parameter :: inv_ln2    = 1.442695040888963407359924681001892137426645954152985934135_fPrec
 
+  real(kind=fPrec), parameter :: pi2    = 0.5_fPrec*pi
+  real(kind=fPrec), parameter :: twopi  = 2.0_fPrec*pi
+  real(kind=fPrec), parameter :: pisqrt = sqrt(pi)
+  real(kind=fPrec), parameter :: rad    = pi/180.0_fPrec
+
   real(kind=fPrec), parameter :: pieni  = 1e-38_fPrec
 
   real(kind=fPrec), parameter :: zero   = 0.0_fPrec

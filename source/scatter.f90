@@ -1602,20 +1602,15 @@ end subroutine scatter_crcheck_positionFiles
 ! =================================================================================================
 subroutine scatter_crpoint(fileUnit, writeErr, iError)
 
-  use crcoall
-
-  implicit none
-
   integer, intent(in)    :: fileUnit
   logical, intent(out)   :: writeErr
   integer, intent(inout) :: iError
 
-  integer j
+  writeErr = .false.
 
   write(fileunit,err=10,iostat=iError) scatter_logFilePos, scatter_sumFilePos
   write(fileunit,err=10,iostat=iError) scatter_seed1, scatter_seed2
-  endfile(fileUnit,iostat=iError)
-  backspace(fileUnit,iostat=iError)
+  flush(fileUnit)
 
   return
 
