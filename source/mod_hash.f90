@@ -149,7 +149,8 @@ subroutine hash_parseInputLine(inLine, iErr)
 
   case("MD5SUM")
     if(nSplit /= 3) then
-      write(lout,"(a,i3)") "HASH> ERROR MD5SUM expected 2 arguments, got ",nSplit-1
+      write(lout,"(a,i0)") "HASH> ERROR MD5SUM expected 2 arguments, got ",nSplit-1
+      write(lout,"(a)")    "HASH>       MD5SUM file_name text|binary"
       iErr = .true.
       return
     end if

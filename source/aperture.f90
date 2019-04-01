@@ -203,16 +203,16 @@ subroutine aperture_init
       if (.not.isOpen) then
         write(lout,"(2(a,i0),a)") "LIMI> ERROR The unit ",losses_unit," has apefilepos = ", apefilepos, " >= 0, "//&
           "but the file is NOT open. This is probably a bug."
-        call prror(-1)
+        call prror
       end if
     else
 #endif
 
-    call f_requestUnit(losses_filename,losses_unit)
-    inquire(unit=losses_unit, opened=isOpen) ! Was 999
+      call f_requestUnit(losses_filename,losses_unit)
+      inquire(unit=losses_unit, opened=isOpen) ! Was 999
       if(isOpen) then
         write(lout,"(a,i0,a)") "APER> ERROR Unit ",losses_unit," is already open."
-        call prror(-1)
+        call prror
       end if
 
       call f_open(unit=losses_unit,file=losses_filename,formatted=.true.,mode='w',err=err)
@@ -1027,7 +1027,7 @@ subroutine aperture_reportLoss(turn, i, ix)
         call h5_writeData(aper_setLostPart, 1,  1, turn)
         call h5_writeData(aper_setLostPart, 2,  1, i)
         call h5_writeData(aper_setLostPart, 3,  1, ix)
-        call h5_writeData(aper_setLostPart, 4,  1, bez(ix))
+        call h5_writeData(aper_setLostPart, 4,  1, bezs(i))
         call h5_writeData(aper_setLostPart, 5,  1, slos)
         call h5_writeData(aper_setLostPart, 6,  1, xlos(1)*c1m3)
         call h5_writeData(aper_setLostPart, 7,  1, xlos(2)*c1m3)
@@ -1056,14 +1056,13 @@ subroutine aperture_reportLoss(turn, i, ix)
   ! END of #ifdef HDF5
 #endif
 
-        ! Print to unit 999 (fort.999)
 #ifdef FLUKA
         write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')&
 #else
         write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')   &
 #endif
 
-     &       turn, i, ix, bez(ix), slos,                                     &
+     &       turn, i, ix, bezs(i), slos,                                     &
 #ifdef FLUKA
      &       fluka_uid(j), fluka_gen(j), fluka_weight(j),                    &
 #else
@@ -1081,11 +1080,11 @@ subroutine aperture_reportLoss(turn, i, ix)
       end if
 #endif
 
-#if defined(ROOT)
+#ifdef ROOT
 ! root output
       if(root_flag .and. root_ApertureCheck.eq.1) then
-        this_name = trim(adjustl(bez(ix))) // C_NULL_CHAR
-#if defined(FLUKA)
+        this_name = trim(adjustl(bezs(i))) // C_NULL_CHAR
+#ifdef FLUKA
         call ApertureCheckWriteLossParticleF(turn, i, ix, this_name, len_trim(this_name), slos, &
           fluka_uid(j), fluka_gen(j), fluka_weight(j), &
           xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
@@ -1403,6 +1402,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 ! inserted in main code by the 'fluka' compilation flag
   use mod_fluka
 #endif
+  use mod_geometry, only : geom_insertStruElem, geom_insertSingElem, geom_checkSingElemUnique
 
   implicit none
 
@@ -1410,7 +1410,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   integer iEl
   logical lInsUp
 ! temporary variables
-  integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,itmpape,iNew,ixNew,check_SE_unique,INEESE,INEELS,ixApeNewFrom,ixEl
+  integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,itmpape,iNew,ixNew,ixApeNewFrom,ixEl
   real(kind=fPrec) tmpape(11), ddcum
   logical lconst,lApeUp,lApeDw,lAupDcum,lAdwDcum,lApe,lAss,lfit
 
@@ -1423,8 +1423,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   if( iEl.eq.iu ) then
 ! end of lattice sequence: a marker might be needed
     if( ixEl.le.0 ) then
-      ix=INEESE()
-      iu=INEELS( 0 )
+      ix=geom_insertSingElem()
+      iu=geom_insertStruElem( 0 )
       ic(iu)=ix+nblo
       iEl=iu
       ixEl=ix
@@ -1434,8 +1434,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   else if( iEl.eq.1 ) then
 ! beginning of lattice sequence: a marker might be needed
     if( ixEl.le.0 ) then
-      ix=INEESE()
-      iu=INEELS( 1 )
+      ix=geom_insertSingElem()
+      iu=geom_insertStruElem( 1 )
       ic(1)=ix+nblo
       iEl=1
       ixEl=ix
@@ -1447,8 +1447,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 ! last modified: 18-01-2017
 ! force aperture marker upstream of FLUKA_ENTRY
 ! inserted in main code by the 'fluka' compilation flag
-      ix=INEESE()
-      iu=INEELS( 1 )
+      ix=geom_insertSingElem()
+      iu=geom_insertStruElem( 1 )
       ic(1)=ix+nblo
       iEl=1
       ixEl=ix
@@ -1528,7 +1528,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 ! . can iNew be assigned an aperture marker?
 ! ie is it a single element and is it used anywhere else?
   lApe=lApeUp.or.lApeDw
-  lAss=ixNew.gt.0.and.check_SE_unique(iNew,ixNew).eq.-1
+  lAss=ixNew.gt.0.and.geom_checkSingElemUnique(iNew,ixNew).eq.-1
 
 ! some action is needed
   if( .not.lApe ) then
@@ -1560,11 +1560,11 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 !     ixNew cannot be assigned an aperture marker: we have to insert
 !     a new entry in the lattice sequence
       if( lfit ) then
-        ixNew=INEESE()
+        ixNew=geom_insertSingElem()
         bez(ixNew)=CrtApeName()
       end if
       iNew=iNew+1
-      iu=INEELS( iNew )
+      iu=geom_insertStruElem( iNew )
     end if
 
 !   . assign aperture profile
@@ -2085,6 +2085,7 @@ subroutine dump_aperture_header( iunit )
 !     dump header of aperture marker
 !-----------------------------------------------------------------------
   use mod_settings
+
   implicit none
   integer iunit
   ! Don't print to stdout if quiet flag is enabled.
@@ -2102,6 +2103,8 @@ subroutine dump_aperture_xsecs
   ! dump cross-sections of apertures at specific locations (loop)
   !-----------------------------------------------------------------------
   use mod_units, only: f_open, f_close
+  use mod_geometry, only : geom_findElemAtLoc
+
   implicit none
   ! temporary variables
   logical lfound, lopen, lApeUp, lApeDw, err
@@ -2127,7 +2130,7 @@ subroutine dump_aperture_xsecs
      ! loop over s-locations
      sLoc=sLocMin(ixsec)
      do while(sLoc.le.sLocMax(ixsec))
-        call find_entry_at_s( sLoc, .true., iEl, ixEl, lfound )
+        call geom_findElemAtLoc( sLoc, .true., iEl, ixEl, lfound )
         if(.not.lfound) call prror(-1)
         ! get upstream aperture marker
         call find_closest_aperture(iEl,.true.,iApeUp,ixApeUp,lApeUp)

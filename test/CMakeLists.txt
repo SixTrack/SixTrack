@@ -91,6 +91,7 @@ list(APPEND SIXTRACK_TESTS
   generalized-rf-multipoles
   generalized-rf-multipoles-missalignments
   geometry
+  geometry_multicol
   last_amp
   lost
   lostevery
@@ -217,6 +218,7 @@ set(TESTS_NOFORT10
   generalized-rf-multipoles
   generalized-rf-multipoles-missalignments
   geometry
+  geometry_multicol
   momentum_scan
   multipoles_DYNK
   orbit6d-element-combinedFunction
@@ -262,6 +264,7 @@ set(TESTS_NO_STF_FORT90
   fma
   fma_binary
   fma_naff
+  geometry_multicol
   rfMultipoles_2ndOrder
   rfMultipoles_4thOrder
   scatter_aperture
@@ -513,6 +516,7 @@ set(FAST_TESTS
   generalized-rf-multipoles
   generalized-rf-multipoles-missalignments
   geometry
+  geometry_multicol
   last_amp
   lost
   lostnotilt
