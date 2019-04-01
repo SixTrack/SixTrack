@@ -37,11 +37,10 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
 
   use parpro
   use crcoall
+  use mod_alloc
   use mod_common
   use string_tools
   use sixtrack_input
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -187,8 +186,6 @@ subroutine geom_parseInputLineBLOC(inLine, iLine, iErr)
   use mod_common
   use string_tools
 
-  implicit none
-
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
@@ -330,8 +327,6 @@ subroutine geom_parseInputLineSTRU(inLine, iLine, iErr)
   use string_tools
   use sixtrack_input
 
-  implicit none
-
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
@@ -416,8 +411,6 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
   use mod_common
   use string_tools
   use sixtrack_input
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -506,8 +499,6 @@ integer function geom_insertSingElem()
   use parpro
   use mod_common, only : il, ithick
 
-  implicit none
-
   il = il + 1
   if(il > nele-2) then
     call expand_arrays(nele+50, npart, nblz, nblo )
@@ -529,8 +520,6 @@ integer function geom_insertStruElem(iEl)
 
   use parpro
   use mod_common
-
-  implicit none
 
   integer, intent(in) :: iEl
 
@@ -584,8 +573,6 @@ integer function geom_checkSingElemUnique(iEl, ixEl)
   use parpro
   use mod_common, only : iu, ic
 
-  implicit none
-
   integer, intent(in) :: iEl
   integer, intent(in) :: ixEl
 
@@ -623,9 +610,6 @@ subroutine geom_findElemAtLoc(sLoc, isLast, iEl, ixEl, wasFound)
   use mod_common, only : iu, tlen, ic, dcum
   use numerical_constants, only : zero
 
-  implicit none
-
-! interface variables
   real(kind=fPrec), intent(out) :: sLoc
   logical,          intent(in)  :: isLast
   integer,          intent(out) :: iEl
@@ -709,8 +693,6 @@ subroutine geom_calcDcum
   use string_tools
   use floatPrecision
   use numerical_constants
-
-  implicit none
 
   character(len=24) tmpS, tmpE
   character(len=99) fmtH, fmtC

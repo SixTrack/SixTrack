@@ -3,52 +3,46 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2018-05-18
-!  Updated: 2019-03-28
+!  Updated: 2019-04-01
 ! ================================================================================================ !
 module sixtrack_input
 
-  use string_tools
-  use crcoall
-  use numerical_constants
-  use physical_constants
-  use mod_alloc
-  use mod_settings
-  use mod_common
-  use mod_commons
+  use floatPrecision
+  use numerical_constants, only : zero, one, c1m3
 
   implicit none
 
   ! Record of encountered blocks
-  character(len=:), allocatable, public, save :: sixin_cBlock(:) ! Name of block
-  integer,          allocatable, public, save :: sixin_uBlock(:) ! Unit of block
-  integer,          allocatable, public, save :: sixin_iBlock(:) ! Line of block
-  logical,          allocatable, public, save :: sixin_lBlock(:) ! Block closed
-  integer,                       public, save :: sixin_nBlock    ! Number of blocks
+  character(len=:), allocatable, private, save :: sixin_cBlock(:) ! Name of block
+  integer,          allocatable, private, save :: sixin_uBlock(:) ! Unit of block
+  integer,          allocatable, private, save :: sixin_iBlock(:) ! Line of block
+  logical,          allocatable, private, save :: sixin_lBlock(:) ! Block closed
+  integer,                       private, save :: sixin_nBlock    ! Number of blocks
 
-  integer,                       public, save :: sixin_ncy2  = 0
-  integer,                       public, save :: sixin_icy   = 0
+  integer,                       public,  save :: sixin_ncy2  = 0
+  integer,                       public,  save :: sixin_icy   = 0
 
   ! Linear Optics Variables
-  integer,                       public, save :: sixin_ilin0 = 1
+  integer,                       private, save :: sixin_ilin0 = 1
 
   ! Synchrotron Oscillations
-  real(kind=fPrec),              public, save :: sixin_alc  = c1m3
-  real(kind=fPrec),              public, save :: sixin_harm = one
-  real(kind=fPrec),              public, save :: sixin_phag = zero
-  real(kind=fPrec),              public, save :: sixin_u0   = zero
+  real(kind=fPrec),              public,  save :: sixin_alc  = c1m3
+  real(kind=fPrec),              public,  save :: sixin_harm = one
+  real(kind=fPrec),              public,  save :: sixin_phag = zero
+  real(kind=fPrec),              public,  save :: sixin_u0   = zero
 
   ! Multipole Coefficients
-  integer,                       public, save :: sixin_im = 0
+  integer,                       private, save :: sixin_im = 0
 
   ! RF-multipoles
-  integer,                       public, save :: sixin_rfm = 0
+  integer,                       private, save :: sixin_rfm = 0
 
   ! Beam-Beam Elements
-  real(kind=fPrec),              public, save :: sixin_emitNX = zero
-  real(kind=fPrec),              public, save :: sixin_emitNY = zero
+  real(kind=fPrec),              public,  save :: sixin_emitNX = zero
+  real(kind=fPrec),              public,  save :: sixin_emitNY = zero
 
   ! "Phase Trombone" Element
-  integer,                       public, save :: sixin_imtr0 = 0
+  integer,                       private, save :: sixin_imtr0 = 0
 
   ! Settings
   logical,                       private, save :: sixin_forcePartSummary = .false.
@@ -76,6 +70,10 @@ contains
 !  BLOCK PARSING RECORD
 ! ================================================================================================ !
 subroutine sixin_checkBlock(blockName, blockUnit, blockOpened, blockClosed, blockLine, blockCount)
+
+  use crcoall
+  use mod_alloc
+  use mod_settings
 
   character(len=*), intent(in)  :: blockName
   integer,          intent(in)  :: blockUnit
@@ -145,6 +143,9 @@ end subroutine sixin_checkBlock
 
 subroutine sixin_closeBlock(blockName)
 
+  use crcoall
+  use mod_settings
+
   character(len=*), intent(in) :: blockName
 
   integer i
@@ -165,6 +166,9 @@ end subroutine sixin_closeBlock
 
 subroutine sixin_blockReport
 
+  use parpro
+  use crcoall
+
   integer i
 
   write(lout,"(a)") str_divLine
@@ -181,11 +185,16 @@ subroutine sixin_blockReport
 end subroutine sixin_blockReport
 
 subroutine sixin_echoVal_int(varName, varVal, blockName, lineNo)
+
+  use crcoall
+  use string_tools
+
   character(len=*), intent(in) :: varName
   integer,          intent(in) :: varVal
   character(len=*), intent(in) :: blockName
   integer,          intent(in) :: lineNo
   character(len=2) :: lineNm
+
   if(lineNo == -1) then
     lineNm = "PP"
   else if(lineNo < 10) then
@@ -194,14 +203,20 @@ subroutine sixin_echoVal_int(varName, varVal, blockName, lineNo)
     write(lineNm,"(i2)") lineNo
   end if
   write(lout,"(a,i0)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" =  ",varVal
+
 end subroutine sixin_echoVal_int
 
 subroutine sixin_echoVal_real32(varName, varVal, blockName, lineNo)
+
+  use crcoall
+  use string_tools
+
   character(len=*),  intent(in) :: varName
   real(kind=real32), intent(in) :: varVal
   character(len=*),  intent(in) :: blockName
   integer,           intent(in) :: lineNo
   character(len=2) :: lineNm
+
   if(lineNo == -1) then
     lineNm = "PP"
   else if(lineNo < 10) then
@@ -210,14 +225,20 @@ subroutine sixin_echoVal_real32(varName, varVal, blockName, lineNo)
     write(lineNm,"(i2)") lineNo
   end if
   write(lout,"(a,e13.6)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
+
 end subroutine sixin_echoVal_real32
 
 subroutine sixin_echoVal_real64(varName, varVal, blockName, lineNo)
+
+  use crcoall
+  use string_tools
+
   character(len=*),  intent(in) :: varName
   real(kind=real64), intent(in) :: varVal
   character(len=*),  intent(in) :: blockName
   integer,           intent(in) :: lineNo
   character(len=2) :: lineNm
+
   if(lineNo == -1) then
     lineNm = "PP"
   else if(lineNo < 10) then
@@ -226,14 +247,20 @@ subroutine sixin_echoVal_real64(varName, varVal, blockName, lineNo)
     write(lineNm,"(i2)") lineNo
   end if
   write(lout,"(a,e22.15)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
+
 end subroutine sixin_echoVal_real64
 
 subroutine sixin_echoVal_real128(varName, varVal, blockName, lineNo)
+
+  use crcoall
+  use string_tools
+
   character(len=*),   intent(in) :: varName
   real(kind=real128), intent(in) :: varVal
   character(len=*),   intent(in) :: blockName
   integer,            intent(in) :: lineNo
   character(len=2) :: lineNm
+
   if(lineNo == -1) then
     lineNm = "PP"
   else if(lineNo < 10) then
@@ -242,14 +269,20 @@ subroutine sixin_echoVal_real128(varName, varVal, blockName, lineNo)
     write(lineNm,"(i2)") lineNo
   end if
   write(lout,"(a,e41.34)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
+
 end subroutine sixin_echoVal_real128
 
 subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
+
+  use crcoall
+  use string_tools
+
   character(len=*), intent(in) :: varName
   character(len=*), intent(in) :: varVal
   character(len=*), intent(in) :: blockName
   integer,          intent(in) :: lineNo
   character(len=2) :: lineNm
+
   if(lineNo == -1) then
     lineNm = "PP"
   else if(lineNo < 10) then
@@ -258,14 +291,20 @@ subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
     write(lineNm,"(i2)") lineNo
   end if
   write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = '"//varVal//"'"
+
 end subroutine sixin_echoVal_char
 
 subroutine sixin_echoVal_logical(varName, varVal, blockName, lineNo)
+
+  use crcoall
+  use string_tools
+
   character(len=*), intent(in) :: varName
   logical,          intent(in) :: varVal
   character(len=*), intent(in) :: blockName
   integer,          intent(in) :: lineNo
   character(len=2) :: lineNm
+
   if(lineNo == -1) then
     lineNm = "PP"
   else if(lineNo < 10) then
@@ -278,6 +317,7 @@ subroutine sixin_echoVal_logical(varName, varVal, blockName, lineNo)
   else
     write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = False"
   end if
+
 end subroutine sixin_echoVal_logical
 
 ! ================================================================================================ !
@@ -288,6 +328,11 @@ end subroutine sixin_echoVal_logical
 !  Parse Global Settings Block Line
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
+
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -464,7 +509,10 @@ end subroutine sixin_parseInputLineSETT
 ! ================================================================================================ !
 subroutine sixin_parseInputLineDISP(inLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
@@ -553,7 +601,11 @@ end subroutine sixin_parseInputLineDISP
 ! ================================================================================================ !
 subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
+  use mod_commons
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -700,10 +752,13 @@ end subroutine sixin_parseInputLineINIT
 ! ================================================================================================ !
 subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
-  use mod_common_track
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
+  use mod_commons
   use mod_common_da
-
-  implicit none
+  use mod_common_track
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -887,9 +942,11 @@ end subroutine sixin_parseInputLineTRAC
 ! ================================================================================================ !
 subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
 
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
   use mod_common_da
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -1010,9 +1067,11 @@ end subroutine sixin_parseInputLineDIFF
 ! ================================================================================================ !
 subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
 
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
   use mod_common_track
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -1089,7 +1148,10 @@ end subroutine sixin_parseInputLineCHRO
 ! ================================================================================================ !
 subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -1234,7 +1296,10 @@ end subroutine sixin_parseInputLineTUNE
 ! ================================================================================================ !
 subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -1242,7 +1307,7 @@ subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) mode
-  integer nSplit,i,nlin
+  integer nSplit,i
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -1314,10 +1379,12 @@ end subroutine sixin_parseInputLineLINE
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
 
-  use mod_common_da,     only : nvar
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
+  use mod_common_da,   only : nvar
   use mathlib_bouncer, only : cos_mb
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -1464,7 +1531,10 @@ end subroutine sixin_parseInputLineSYNC
 ! ================================================================================================ !
 subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -1572,7 +1642,10 @@ end subroutine sixin_parseInputLineMULT
 ! ================================================================================================ !
 subroutine sixin_parseInputLineRFMU(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -1671,7 +1744,10 @@ end subroutine sixin_parseInputLineRFMU
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSUBR(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -1735,7 +1811,9 @@ end subroutine sixin_parseInputLineSUBR
 ! ================================================================================================ !
 subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -1834,7 +1912,10 @@ end subroutine sixin_parseInputLineORGA
 ! ================================================================================================ !
 subroutine sixin_parseInputLineITER(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -1925,7 +2006,10 @@ end subroutine sixin_parseInputLineITER
 ! ================================================================================================ !
 subroutine sixin_parseInputLineORBI(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2049,7 +2133,10 @@ end subroutine sixin_parseInputLineORBI
 ! ================================================================================================ !
 subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2146,7 +2233,10 @@ end subroutine sixin_parseInputLineCOMB
 ! ================================================================================================ !
 subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2370,7 +2460,10 @@ end subroutine sixin_parseInputLineRESO
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSEAR(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2481,7 +2574,10 @@ end subroutine sixin_parseInputLineSEAR
 ! ================================================================================================ !
 subroutine sixin_parseInputLinePOST(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2620,7 +2716,10 @@ end subroutine sixin_parseInputLinePOST
 ! ================================================================================================ !
 subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2729,9 +2828,11 @@ end subroutine sixin_parseInputLineDECO
 ! ================================================================================================ !
 subroutine sixin_parseInputLineNORM(inLine, iLine, iErr)
 
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
   use mod_common_da
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2799,9 +2900,11 @@ end subroutine sixin_parseInputLineNORM
 ! ================================================================================================ !
 subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
 
+  use crcoall
+  use string_tools
+  use mod_settings
   use parbeam, only : beam_expflag
-
-  implicit none
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2940,9 +3043,11 @@ end subroutine sixin_parseInputLineBEAM
 ! ================================================================================================ !
 subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
 
+  use crcoall
+  use string_tools
+  use mod_settings
   use parbeam, only : beam_expflag
-
-  implicit none
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -3203,9 +3308,11 @@ end subroutine sixin_parseInputLineBEAM_EXP
 ! ================================================================================================ !
 subroutine sixin_parseInputLineTROM(inLine, iLine, iErr)
 
+  use crcoall
   use mod_alloc
-
-  implicit none
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
