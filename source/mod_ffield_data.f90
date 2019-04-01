@@ -7,10 +7,10 @@
 !  Usage
 ! ~~~~~~~
 !  Declaration:   type(ffTable_n_Track) aFile
-!  Set:           aFile%set("ffFNames",Kin,Lgth) => Set File's name and info         
+!  Set:           aFile%set("ffFNames",Kin,Lgth) => Set File's name and info
 !  Load:          aFile%load()                   => Load File
 !  Free:          aFile%free()                   => Free memory
-!  
+!
 !  Note: None yet
 ! ================================================================================================ !
 module ffTable_n_Tracks
@@ -19,7 +19,7 @@ module ffTable_n_Tracks
   ! ------------------------------------------------------------------------------------------------ !
   use floatPrecision
   use, intrinsic :: iso_fortran_env, only : int32
-  
+
   implicit none
 
   type, public :: ffTable_n_Track
@@ -50,7 +50,7 @@ module ffTable_n_Tracks
     integer,                       public :: lz            ! Number of coef per step for Az
     integer,          allocatable, public :: ij_TAz(:,:,:) ! (1:2,1:lz,1:s) Table of indices ij
     real(kind=fPrec), allocatable, public :: TAz(:,:)      ! (    1:lz,1:s) Table of coefficients
-    
+
     ! Matrix for the antiquadripole
     integer :: nbDlt
     real(kind=fPrec), allocatable, public :: Tdpsv(:)      ! (1:nbDlt) dpsv value for AQ-case
@@ -59,7 +59,7 @@ module ffTable_n_Tracks
     real(kind=fPrec), allocatable, public :: TAQx(:,:,:)   ! (1:2,1:2,1:nbDlt) Table of AntiQuad matrix
     real(kind=fPrec), allocatable, public :: TAQy(:,:,:)   ! (1:2,1:2,1:nbDlt) Table of AntiQuad matrix
   contains
-      
+
     procedure, public, pass(this)  :: set    => Tset
     procedure, public, pass(this)  :: load   => Tload
     procedure, public, pass(this)  :: free   => Tfree
@@ -110,7 +110,7 @@ module ffTable_n_Tracks
 !    module procedure compNStrChr
 !    module procedure compNChrStr
 !  end interface
-  
+
   private :: Tset
   private :: Tload
   private :: Tfree
@@ -136,7 +136,7 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     use parpro,              only : mPathName
     use numerical_constants, only : zero
-    
+
     implicit none
 
     if (allocated(constructT%ffFNames)) deallocate(constructT%ffFNames)
@@ -184,7 +184,7 @@ contains
     this%r0_2=6.4e-3_fPrec    ! Default value
 
     this%ffFNames   = TRIM(ADJUSTL(nFile))
-    this%Lin        = LQin 
+    this%Lin        = LQin
     this%Lgth       = Length
     this%chk_Status = 1
     if(r0>c1m12) this%r0_2= r0*r0
@@ -206,7 +206,7 @@ contains
     ! interface variables
     ! ---------------------------------------------------------------------------------------------- !
     class(ffTable_n_Track), intent(inout) :: this
-    
+
     if (this%chk_Status/=0) then
       if(allocated(this%ffFNames)) deallocate(this%ffFNames)
 
@@ -258,7 +258,7 @@ contains
     real(kind=fPrec),       intent(in)    :: norm      ! Normalization
 
     integer :: lun
-    
+
 
     if (this%chk_Status<1) then
       write(lout,"(a,i1)") "FFIELD> ERROR while loading file '"//trim(this%ffFNames)//"' -> status ",this%chk_Status
@@ -313,7 +313,7 @@ contains
     integer :: expx,expy,expz                     ! Expo. for x, y and z
     real(kind=fPrec) :: st, sm1                   ! Parametter for the detection of new step in z
     character(len=:), allocatable :: lnSplit(:)   ! (1:nSplit) Splited line
-    
+
     ! Open file
     ! ---------------------------------------------------------------------------------------------- !
     call f_open(unit=lun,file=trim(this%ffFNames),formatted=.true.,mode='r',err=iErr,status="old")
@@ -330,7 +330,7 @@ contains
     s=1
     line=1
     sm1=c1e12
-    
+
     ! Read file
     ! ---------------------------------------------------------------------------------------------- !
     do while(istat==0)
@@ -353,7 +353,7 @@ contains
         iErr = .true.
         return
       end if
-      
+
       !     - Save data
       call chr_cast(lnSplit(1),st,iErr)
       call chr_cast(lnSplit(2),expx,iErr)
@@ -438,7 +438,7 @@ contains
     call alloc(tpij_Ax, 2, ind, this%s, 0,    'tpij_Ax') ! (1:2,1:ind,0:s))
     call alloc(tpij_Ay, 2, ind, this%s, 0,    'tpij_Ay') ! (1:2,1:ind,0:s))
     call alloc(tpij_Az, 2, ind, this%s, 0,    'tpij_Az') ! (1:2,1:ind,0:s))
-    
+
     ! Open file
     ! ---------------------------------------------------------------------------------------------- !
     call f_open(unit=lun,file=trim(this%ffFNames),formatted=.true.,mode='r',err=iErr,status="old")
@@ -458,7 +458,7 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     do while(istat==0)
       st=zero; expx=0;  expy=0;! expz=0;
-      ax=zero; ay=zero; az=zero; 
+      ax=zero; ay=zero; az=zero;
       !     - Read line
       read(lun,"(a)",iostat=istat) inLine
 
@@ -475,7 +475,7 @@ contains
         write(lout,"(a)") "FFIELD> ERROR in ReadVectPotCoeff(): Line '"//trim(inLine)//"'"
         return
       end if
-      
+
       !     - Save data
       call chr_cast(lnSplit(1),st,  iErr)
       call chr_cast(lnSplit(2),expx,iErr)
@@ -494,7 +494,7 @@ contains
         tlinex=1; tliney=1; tlinez=1
       endif
       if (sline == 1) zin = st
-      
+
 
       !     - Detect coef non trivial for Ax
       if (ax/=zero) then
@@ -574,7 +574,7 @@ contains
       endif
 
       if (istat==0) then
-        sm1=st 
+        sm1=st
       endif
       if (sline>this%s) then           ! Detect error in z
         write(lout,"(a)")"FFIELD> ERROR in ReadExpMax(): Wrong nb. of step for '"//this%ffFNames//"'"
@@ -610,7 +610,7 @@ contains
     call alloc(this%ij_TAx, 2, linex, this%s, 0,    'this%ij_TAx') ! (1 pour i et 2 pour j,line,z)
     call alloc(this%ij_TAy, 2, liney, this%s, 0,    'this%ij_TAy') ! (1 pour i et 2 pour j,line,z)
     call alloc(this%ij_TAz, 2, linez, this%s, 0,    'this%ij_TAz') ! (1 pour i et 2 pour j,line,z)
-   
+
     this%TAx(1:linex,1:this%s)     =tpTAx(1:linex,1:this%s)
     this%TAy(1:liney,1:this%s)     =tpTAy(1:liney,1:this%s)
     this%TAz(1:linez,1:this%s)     =tpTAz(1:linez,1:this%s)
@@ -662,11 +662,11 @@ contains
 
 
     if (this%chk_Status==2) then
-   
+
       ! Initialisation of size array
       ! -------------------------------------------------------------------------------------------- !
       this%nbDlt=nbDlt !max(1,ceiling(abs( two*(delta)*c1e6 )))
-      
+
       ! Clean memory
       ! -------------------------------------------------------------------------------------------- !
       if (allocated(this%Tdpsv)) call dealloc(this%Tdpsv,'this%Tdpsv')
@@ -693,10 +693,10 @@ contains
         a1=one;   b1=zero;   c1=zero;   d1=one;
         a2=one;   b2=zero;   c2=zero;   d2=one;
         p0sp=one/(one+this%Tdpsv(k))
-        
+
         do i=1,this%s !-1
           C0x=zero; C0y=zero
-          
+
           do l=1,this%lz
             if ((this%ij_TAz(1,l,i)==2).and.(this%ij_TAz(2,l,i)==0)) then
               C0x=two*this%TAz(l,i)
@@ -707,20 +707,20 @@ contains
             endif
           enddo
 
-     
+
           ! Approx
 !          atp= (one+p0sp*C0x*this%dz*this%dz*half)*a1 + ((one+p0sp*C0x*this%dz*this%dz*sixth)*p0sp*this%dz)*c1
 !          btp= (one+p0sp*C0x*this%dz*this%dz*half)*b1 + ((one+p0sp*C0x*this%dz*this%dz*sixth)*p0sp*this%dz)*d1
 !          ctp= (C0x*this%dz*(one+p0sp*C0x*this%dz*this%dz*sixth))*a1 + (one+p0sp*C0x*this%dz*this%dz*half)*c1
 !          dtp= (C0x*this%dz*(one+p0sp*C0x*this%dz*this%dz*sixth))*b1 + (one+p0sp*C0x*this%dz*this%dz*half)*d1
-   
+
           ! Thin DKD
 !          atp= (one+p0sp*C0x*this%dz*this%dz*half)*a1 + ((one+p0sp*C0x*this%dz*this%dz*0.25_fPrec)*p0sp*this%dz)*c1
 !          btp= (one+p0sp*C0x*this%dz*this%dz*half)*b1 + ((one+p0sp*C0x*this%dz*this%dz*0.25_fPrec)*p0sp*this%dz)*d1
 !          ctp= (C0x*this%dz)*a1 + (one+p0sp*C0x*this%dz*this%dz*half)*c1
 !          dtp= (C0x*this%dz)*b1 + (one+p0sp*C0x*this%dz*this%dz*half)*d1
 !          a1=atp; b1=btp; c1=ctp; d1=dtp;
-     
+
           ! Thin KDK
 !          atp= (one+((p0sp*C0x)*(this%dz*this%dz))*half)*a1 + (p0sp*this%dz)*c1
 !          btp= (one+((p0sp*C0x)*(this%dz*this%dz))*half)*b1 + (p0sp*this%dz)*d1
@@ -734,21 +734,21 @@ contains
           tp3=(one+tp*0.25_fPrec)*(C0x*this%dz)
           atp= tp1*a1 + tp2*c1; btp= tp1*b1 + tp2*d1; ctp= tp3*a1 + tp1*c1; dtp= tp3*b1 + tp1*d1
           a1=atp; b1=btp; c1=ctp; d1=dtp;
-     
-     
+
+
           ! Approx
 !          atp= (one+p0sp*C0y*this%dz*this%dz*half)*a2 + ((one+p0sp*C0y*this%dz*this%dz*sixth)*p0sp*this%dz)*c2
 !          btp= (one+p0sp*C0y*this%dz*this%dz*half)*b2 + ((one+p0sp*C0y*this%dz*this%dz*sixth)*p0sp*this%dz)*d2
 !          ctp= (C0y*this%dz*(one+p0sp*C0y*this%dz*this%dz*sixth))*a2 + (one+p0sp*C0y*this%dz*this%dz*half)*c2
 !           dtp= (C0y*this%dz*(one+p0sp*C0y*this%dz*this%dz*sixth))*b2 + (one+p0sp*C0y*this%dz*this%dz*half)*d2
- 
+
           ! Thin DKD
 !          atp= (one+p0sp*C0y*this%dz*this%dz*half)*a2 + ((one+p0sp*C0y*this%dz*this%dz*0.25_fPrec)*p0sp*this%dz)*c2
 !          btp= (one+p0sp*C0y*this%dz*this%dz*half)*b2 + ((one+p0sp*C0y*this%dz*this%dz*0.25_fPrec)*p0sp*this%dz)*d2
 !          ctp= (C0y*this%dz)*a2 + (one+p0sp*C0y*this%dz*this%dz*half)*c2
 !          dtp= (C0y*this%dz)*b2 + (one+p0sp*C0y*this%dz*this%dz*half)*d2
 !          a2=atp; b2=btp; c2=ctp; d2=dtp;
-     
+
           ! Thin KDK
 !          atp= (one+p0sp*C0y*this%dz*this%dz*half)*a2 + (p0sp*this%dz)*c2
 !          btp= (one+p0sp*C0y*this%dz*this%dz*half)*b2 + (p0sp*this%dz)*d2
@@ -773,7 +773,7 @@ contains
 !        a1=atp; b1=btp; c1=ctp; d1=dtp
         atp=d1; btp=-b1; ctp=-c1; dtp=a1;
         a1=atp; b1=btp;  c1=ctp;  d1=dtp;
-        
+
 !        bcmad=one!/(a2*d2-b2*c2)
 !        atp=d2*bcmad;  btp=-b2*bcmad;  ctp=-c2*bcmad;  dtp=a2*bcmad;
 !        a2=atp; b2=btp; c2=ctp; d2=dtp
@@ -813,7 +813,7 @@ contains
     real(kind=fPrec) :: dzover2 ! Dsigma/2
     real(kind=fPrec) :: g2d2inv ! 1/(delta+1)
     real(kind=fPrec) :: log_tmp
-   
+
     ! Initialize the step size in z
     ! ---------------------------------------------------------------------------------------------- !
     dzover2=half*this%dz !loc
@@ -909,15 +909,15 @@ contains
 !      zb=zb-dzover2
     end do
   end subroutine TLie2
-  
+
 
   subroutine HornerDX_Az(this,x,y,z,resultat)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
-    
+
     implicit none
-    
+
     ! Input parameter
     ! ---------------------------------------------------------------------------------------------- !
     class(ffTable_n_Track), intent(in)  :: this
@@ -939,11 +939,11 @@ contains
 
     xpow(0)=one
     do l=1,max_i_l
-      xpow(l)=xpow(l-1)*x 
+      xpow(l)=xpow(l-1)*x
     enddo
     ypow(0)=one
     do l=1,max_j_l
-      ypow(l)=ypow(l-1)*y 
+      ypow(l)=ypow(l-1)*y
     enddo
 
     ! Compute return value
@@ -957,15 +957,15 @@ contains
     enddo
     resultat=r0
   end subroutine HornerDX_Az
-  
+
 
   subroutine HornerDY_Az(this,x,y,z,resultat)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
-    
+
     implicit none
-    
+
     ! Input parameter
     ! ---------------------------------------------------------------------------------------------- !
     class(ffTable_n_Track), intent(in)  :: this
@@ -987,11 +987,11 @@ contains
 
     xpow(0)=one
     do l=1,max_i_l
-      xpow(l)=xpow(l-1)*x 
+      xpow(l)=xpow(l-1)*x
     enddo
     ypow(0)=one
     do l=1,max_j_l
-      ypow(l)=ypow(l-1)*y 
+      ypow(l)=ypow(l-1)*y
     enddo
 
     ! Compute return value
@@ -1005,22 +1005,22 @@ contains
     enddo
     resultat=r0
   end subroutine HornerDY_Az
-  
+
 
   subroutine Horner2D_Ax(this,x,y,z,resultat)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
-    
+
     implicit none
-    
+
     ! Input parameter
     ! ---------------------------------------------------------------------------------------------- !
     class(ffTable_n_Track), intent(in)  :: this
     integer,                intent(in)  :: z        ! Position in z
     real(kind=fPrec),       intent(in)  :: x,y      ! Transverse canonical parameter in new referencial
     real(kind=fPrec),       intent(out) :: resultat ! Return value
-    
+
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                      ! Indice for x and y in loop
@@ -1035,11 +1035,11 @@ contains
 
     xpow(0)=one
     do l=1,max_i_l
-      xpow(l)=xpow(l-1)*x 
+      xpow(l)=xpow(l-1)*x
     enddo
     ypow(0)=one
     do l=1,max_j_l
-      ypow(l)=ypow(l-1)*y 
+      ypow(l)=ypow(l-1)*y
     enddo
 
     ! Compute return value
@@ -1051,24 +1051,24 @@ contains
       endif
     enddo
     resultat=r0
-    
+
   end subroutine Horner2D_Ax
-  
+
 
   subroutine Horner2D_Ay(this,x,y,z,resultat)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
-    
+
     implicit none
-    
+
     ! Input parameter
     ! ---------------------------------------------------------------------------------------------- !
     class(ffTable_n_Track), intent(in)  :: this
     integer,                intent(in)  :: z        ! Position in z
     real(kind=fPrec),       intent(in)  :: x,y      ! Transverse canonical parameter in new referencial
     real(kind=fPrec),       intent(out) :: resultat ! Return value
-    
+
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                      ! Indice for x and y in loop
@@ -1083,11 +1083,11 @@ contains
 
     xpow(0)=one
     do l=1,max_i_l
-      xpow(l)=xpow(l-1)*x 
+      xpow(l)=xpow(l-1)*x
     enddo
     ypow(0)=one
     do l=1,max_j_l
-      ypow(l)=ypow(l-1)*y 
+      ypow(l)=ypow(l-1)*y
     enddo
 
     ! Compute return value
@@ -1099,24 +1099,24 @@ contains
       endif
     enddo
     resultat=r0
-    
+
   end subroutine Horner2D_AY
-  
+
 
   subroutine HornerDYIntX_Ax(this,x,y,z,resultat)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
-    
+
     implicit none
-    
+
     ! Input parameter
     ! ---------------------------------------------------------------------------------------------- !
     class(ffTable_n_Track), intent(in)  :: this
     integer,                intent(in)  :: z        ! Position in z
     real(kind=fPrec),       intent(in)  :: x,y      ! Transverse canonical parameter in new referencial
     real(kind=fPrec),       intent(out) :: resultat ! Return value
-    
+
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                          ! Indice for x and y in loop
@@ -1131,11 +1131,11 @@ contains
 
     xpow(0)=one
     do l=1,max_i_l
-      xpow(l)=xpow(l-1)*x 
+      xpow(l)=xpow(l-1)*x
     enddo
     ypow(0)=one
     do l=1,max_j_l
-      ypow(l)=ypow(l-1)*y 
+      ypow(l)=ypow(l-1)*y
     enddo
 
     ! Compute return value
@@ -1150,22 +1150,22 @@ contains
     enddo
     resultat=r0
   end subroutine HornerDYIntX_Ax
-  
+
 
   subroutine HornerDXIntY_Ay(this,x,y,z,resultat)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, one
-    
+
     implicit none
-    
+
     ! Input parameter
     ! ---------------------------------------------------------------------------------------------- !
     class(ffTable_n_Track), intent(in)  :: this
     integer,                intent(in)  :: z        ! Position in z
     real(kind=fPrec),       intent(in)  :: x,y      ! Transverse canonical parameter in new referencial
     real(kind=fPrec),       intent(out) :: resultat ! Return value
-    
+
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                          ! Indice for x and y in loop
@@ -1180,11 +1180,11 @@ contains
 
     xpow(0)=one
     do l=1,max_i_l
-      xpow(l)=xpow(l-1)*x 
+      xpow(l)=xpow(l-1)*x
     enddo
     ypow(0)=one
     do l=1,max_j_l
-      ypow(l)=ypow(l-1)*y 
+      ypow(l)=ypow(l-1)*y
     enddo
 
     ! Compute return value
@@ -1198,7 +1198,7 @@ contains
       endif
     enddo
     resultat=r0
-    
+
   end subroutine HornerDXIntY_Ay
 
 end module ffTable_n_Tracks

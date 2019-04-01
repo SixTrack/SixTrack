@@ -14,7 +14,7 @@ module mod_ffield
 
   implicit none
 
-  
+
   ! ------------------------------------------------------------------------------------------------ !
   ! FFIELD Function
   ! ------------------------------------------------------------------------------------------------ !
@@ -39,9 +39,9 @@ module mod_ffield
   integer, public, save :: ffNLn, ffNLn_max       ! Nb. and nb. max of Quadrupoles with ffNLn < ffNLn_max
   integer, public, save :: ffMSn, ffMSn_max       ! Nb. and nb. max of Multipole to skip with ffMSn < ffMSn_max
   integer, public, save :: ffNLFile, ffNLFile_max ! Nb. and nb. max of files with ffNLFile < ffNLFile_max
-!  real(kind=fPrec), public, save :: ffdelta         ! Max ffdelta posible 
+!  real(kind=fPrec), public, save :: ffdelta         ! Max ffdelta posible
 
-!  real(kind=fPrec) :: r0_2 
+!  real(kind=fPrec) :: r0_2
 !  parameter (r0_2=6.4e-3_fPrec)                   ! Maximum radius in quad
   ! ------------------------------------------------------------------------------------------------ !
 
@@ -60,7 +60,7 @@ module mod_ffield
 
   type(ffTable_n_Track), allocatable, public, save :: ffTable(:)  ! (1:ffNLFile)
   ! ------------------------------------------------------------------------------------------------ !
-  
+
   contains
 
 
@@ -81,8 +81,8 @@ module mod_ffield
     ! interface variables
     ! ---------------------------------------------------------------------------------------------- !
     integer, intent(in) :: npart, nele
-    
-    
+
+
     ! initialization of the variable
     ! ---------------------------------------------------------------------------------------------- !
     ff_status   =0
@@ -93,7 +93,7 @@ module mod_ffield
     ffNLFile    =1
     ffNLFile_max=20
 
-    
+
     ! allocation of the memory
     ! ---------------------------------------------------------------------------------------------- !
 !    call alloc(ffInQuad, npart,           .false., 'ffInQuad')
@@ -262,13 +262,13 @@ module mod_ffield
       iErr = .true.
       return
     end if
-    
+
     if(nSplit == 0) return
 
     ! select case
     ! ---------------------------------------------------------------------------------------------- !
     select case(lnSplit(1)(1:4))
-  
+
     case("FFQN")   ! FFQN,    Quad name,     no file start,     no file end
       !     * Name a Quadrupole for the study
       ! -------------------------------------------------------------------------------------------- !
@@ -288,7 +288,7 @@ module mod_ffield
           return
         end if
       end do
-      
+
       ffQNames(ffNLn) = elemName
 
       call chr_cast(lnSplit(3),ffQ2File(ffNLn,1),  iErr)
@@ -296,13 +296,13 @@ module mod_ffield
       if(iErr) return
 
       ffNLn = ffNLn+1
-      
+
       if (ffNLn>=ffNLn_max-1) then
         call ffield_mod_expand_arrays_study(ffNLn_max+10, ffMSn_max, ffNLFile_max)
       end if
-      
-            
-    case("FFMS") 
+
+
+    case("FFMS")
       !     * Name a Multipole that will be skip in the study
       ! -------------------------------------------------------------------------------------------- !
       if(nSplit < 2) then
@@ -321,16 +321,16 @@ module mod_ffield
           return
         end if
       end do
-      
+
       ffMSNames(ffMSn) = elemName
 
       ffMSn = ffMSn+1
-      
+
       if (ffMSn>=ffMSn_max-1) then
         call ffield_mod_expand_arrays_study(ffNLn_max, ffMSn_max+10, ffNLFile_max)
       end if
-      
-            
+
+
     case("FFFI")   ! FFFI,    File name,     Length equi.,      Total length file
       !     * Name a File for the study
       ! -------------------------------------------------------------------------------------------- !
@@ -339,7 +339,7 @@ module mod_ffield
         iErr = .true.
         return
       end if
-      
+
       ! Check that the name is unique
       do i=1,ffNLFile
         if(ffFNames(i) == lnSplit(2)) then
@@ -348,7 +348,7 @@ module mod_ffield
           return
         end if
       end do
-      
+
       ffFNames(ffNLFile) = lnSplit(2)
       call chr_cast(lnSplit(3),ffParam(ffNLFile,1),  iErr) ! Lin
       call chr_cast(lnSplit(4),ffParam(ffNLFile,2),  iErr) ! Lgth
@@ -356,13 +356,13 @@ module mod_ffield
       if(iErr) return
 
       ffNLFile = ffNLFile+1
-      
+
       if (ffNLFile>=ffNLFile_max) then
         call ffield_mod_expand_arrays_study(ffNLn_max, ffMSn_max, ffNLFile_max+10)
       end if
-      
+
     end select
-  
+
   end subroutine ffield_parseInputLine
 
 
@@ -404,7 +404,7 @@ module mod_ffield
     integer :: i
     real(kind=fPrec) :: norm
     real(kind=fPrec) :: beta0,gamma0r
-    
+
     if (ff_status==1) then
       ffNLn = ffNLn-1
       ffMSn = ffMSn-1
@@ -420,7 +420,7 @@ module mod_ffield
       do i=1,ffNLFile
         call ffTable(i)%set(trim(ffFNames(i)),ffParam(i,1),ffParam(i,2),ffParam(i,3))
       end do
-      
+
       ! Check if the Quadrupole ask for the study is in the lattice
       ! -------------------------------------------------------------------------------------------- !
       write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
@@ -436,12 +436,12 @@ module mod_ffield
           call ffield_mod_ChckQuad(i,norm,ffErr)
           if (ffErr) iErr = .true.
         end if
-        
+
       end do
       write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
       write(lout,"(a)") "FFIELD>"
       if (iErr) return
-      
+
       ! Check if the multipole skip for the study is in the lattice
       ! -------------------------------------------------------------------------------------------- !
       write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
@@ -462,14 +462,14 @@ module mod_ffield
       write(lout,"(a)") "FFIELD> |         Summary of the file for the Fringe Field study         |"
       write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
       do i=1,ffNLFile
-        if (ffTable(i)%chk_Status == 2) then 
+        if (ffTable(i)%chk_Status == 2) then
           write(lout,"(a)") "FFIELD>   * '"//ffTable(i)%ffFNames//"' loaded!"
         else if (ffTable(i)%chk_Status == 1) then
           write(lout,"(a)") "FFIELD>   * '"//ffTable(i)%ffFNames//"' waiting!"
         end if
       end do
       write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
-      
+
       ff_status=2
     end if
 
@@ -496,12 +496,12 @@ module mod_ffield
     ! ---------------------------------------------------------------------------------------------- !
     logical,          intent(inout) :: iErr
     integer,          intent(in)    :: i
-    real(kind=fPrec), intent(in)    :: norm 
+    real(kind=fPrec), intent(in)    :: norm
 
     ! Subroutine variables
     ! ---------------------------------------------------------------------------------------------- !
     integer :: j           ! Iterator
-    
+
     ! Check quadrupole in the lattice
     ! ---------------------------------------------------------------------------------------------- !
     do j=1,nele
@@ -542,7 +542,7 @@ module mod_ffield
     ! Subroutine variables
     ! ---------------------------------------------------------------------------------------------- !
     integer :: j           ! Iterator
-    
+
     ! Check Multipole not in FFQN
     ! ---------------------------------------------------------------------------------------------- !
     do j=1,ffNLn
@@ -552,7 +552,7 @@ module mod_ffield
         return
       end if
     end do
-    
+
     ! Check multipole in the lattice
     ! ---------------------------------------------------------------------------------------------- !
     do j=1,nele
@@ -571,7 +571,7 @@ module mod_ffield
 
 
   ! ================================================================================================ !
-  !  Generate the AntiQuadrupole matrix 
+  !  Generate the AntiQuadrupole matrix
   !  B. Dalena, T. Pugnat and A. Simona from CEA
   !  Last modified: 2019-01-21
   ! ================================================================================================ !
@@ -586,10 +586,10 @@ module mod_ffield
 
     ! Subroutine variables
     ! ---------------------------------------------------------------------------------------------- !
-    real(kind=fPrec) :: ffdelta 
+    real(kind=fPrec) :: ffdelta
     integer :: iFile, j        ! Iterator
     integer :: nbDlt           ! Nb of point in the interval [-ffdelta,ffdelta]
-    
+
     if (ff_status==2) then
       ffdelta=-one
       do j=1,napx
@@ -603,7 +603,7 @@ module mod_ffield
 
       ff_status=3
     end if
-    
+
   end subroutine ffield_genAntiQuad
 
 
@@ -635,13 +635,13 @@ module mod_ffield
     logical          :: llost
     integer          :: iFile
     integer          :: ffj,  k                    ! iterator
-    integer          :: itDlt                      ! 
+    integer          :: itDlt                      !
     real(kind=fPrec) :: x, px, y, py               ! Transverse canonical parameter in new referencial
     real(kind=fPrec) :: x_tp, px_tp, y_tp, py_tp   ! Temp transverse canonical parameter
 
-    real(kind=fPrec) :: ffdelta!, gam0, betabeta0     ! 
-    real(kind=fPrec) :: zb!, sigma_s                ! 
-    real(kind=fPrec) :: LoutQ!, Ldpsv1, Ldpsv2      ! 
+    real(kind=fPrec) :: ffdelta!, gam0, betabeta0     !
+    real(kind=fPrec) :: zb!, sigma_s                !
+    real(kind=fPrec) :: LoutQ!, Ldpsv1, Ldpsv2      !
 
 
     llost=.false.
@@ -658,7 +658,7 @@ module mod_ffield
       !             * HE
       x_tp = x - (strack(ffi+2)*half)*px
       y_tp = y - (strack(ffi+2)*half)*py
-      
+
 
       !             * Riccardo's Quad head
 !      x_tp = x - strack(ffi-1)*px
@@ -682,7 +682,7 @@ module mod_ffield
         llostp(ffj)=.true.
 
       else
-        !   - 
+        !   -
         ffdelta  = dpsv(ffj);
 !        gam0     = gamma0;
         zb       = 0;
@@ -794,15 +794,15 @@ module mod_ffield
     ! ---------------------------------------------------------------------------------------------- !
     integer          :: iFile
     integer          :: ffj,  k                    ! iterator
-    integer          :: itDlt                      ! 
+    integer          :: itDlt                      !
     real(kind=fPrec) :: x, px, y, py               ! Transverse canonical parameter in new referencial
     real(kind=fPrec) :: x_tp, px_tp, y_tp, py_tp   ! Temp transverse canonical parameter
 
-    real(kind=fPrec) :: ffdelta!, gam0, betabeta0     ! 
-    real(kind=fPrec) :: zb!, sigma_s                ! 
-    real(kind=fPrec) :: LoutQ!, Ldpsv1, Ldpsv2      ! 
+    real(kind=fPrec) :: ffdelta!, gam0, betabeta0     !
+    real(kind=fPrec) :: zb!, sigma_s                !
+    real(kind=fPrec) :: LoutQ!, Ldpsv1, Ldpsv2      !
 
-    
+
 !  <<<<<<< OUT
     iFile=ffQ2File(ffindex(ic(ffi)-nblo),2)
 !  <<<<<<< OUT
@@ -836,7 +836,7 @@ module mod_ffield
 
       ! Selection of the particle that are only in the radius (r = 0.08m)
       ! -------------------------------------------------------------------------------------------- !
-      !   - 
+      !   -
       ffdelta  = dpsv(ffj);
 !      gam0     = gamma0;
       zb       = 0;
