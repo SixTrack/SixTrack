@@ -203,7 +203,7 @@ if(FLUKA)
   set(SIXTRACK_FEAT_CR "FLUKA_${SIXTRACK_FEAT_CR}")
 endif(FLUKA)
 if(FFIELD)
-	SET(SIXTRACK_FEAT_CR "FFIELD_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "FFIELD_${SIXTRACK_FEAT_CR}")
 endif(FFIELD)
 if(PYTHIA)
   set(SIXTRACK_FEAT_CR "pythia_${SIXTRACK_FEAT_CR}")
@@ -325,7 +325,7 @@ if(FLUKA)
 endif(FLUKA)
 
 if(FFIELD)
-	list(APPEND FORT90_LIB  mod_ffield mod_ffield_Table_n_Track)
+  list(APPEND FORT90_LIB  mod_ffield mod_ffield_data)
 endif(FFIELD)
 
 
