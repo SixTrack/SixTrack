@@ -10,7 +10,7 @@ names=['turn','hel3','hel4','GLOBAL-VARS']
 milli2micro=1000
 
 plt.figure('elens kick',figsize=(10,10))
-for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,7),(2,3,offsetx,offsety,1,12,10.8),(3,4,-offsetx,0,1,5,2.91604),(4,5,0,-offsety,1/2.,3,3.48995)]:
+for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,7),(2,3,offsetx,offsety,1,12,9.75),(3,4,-offsetx,0,1,5,2.91604),(4,5,0,-offsety,1/2.,3,3.48995)]:
   theta_max=theta_r2*R
   plt.subplot(2,2,fnin)
   # first turns
@@ -25,7 +25,7 @@ for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,7),(2,3,offsetx,offsety,
     plt.ylabel(r'$\theta(r)=\sqrt{xp^2+yp^2}$ [$\mu$rad]')
     plt.plot(rrin/sig,np.ones(len(rrin))*theta_max*milli2micro,'k-')
   else:
-    print 'x or y has been changed in %s - elens should only change xp,yp'%f
+    print 'x or y has been changed in %s / %s - elens should only change xp,yp'%('HEL_DUMP_0%s'%fnin,'HEL_DUMP_0%s'%fnout)
     
   # middle turns
   helin=np.loadtxt('HEL_DUMP_1%s'%fnin)
@@ -37,7 +37,7 @@ for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,7),(2,3,offsetx,offsety,
     plt.plot(rrin/sig,fff*milli2micro,'c.',label='50001-52000')
     plt.plot(rrin/sig,np.ones(len(rrin))*theta_max*milli2micro*0.95,'k-')
   else:
-    print 'x or y has been changed in %s - elens should only change xp,yp'%f
+    print 'x or y has been changed in %s / %s - elens should only change xp,yp'%('HEL_DUMP_1%s'%fnin,'HEL_DUMP_1%s'%fnout)
     
   # last turns
   helin=np.loadtxt('HEL_DUMP_2%s'%fnin)
@@ -48,14 +48,14 @@ for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,7),(2,3,offsetx,offsety,
     fff=np.sqrt((helin[:,4]-helout[:,4])**2+(helin[:,6]-helout[:,6])**2)
     plt.plot(rrin/sig,fff*milli2micro,'y.',label='95001-97000')
     plt.plot([R2f,R2f],[0,theta_max*milli2micro*1.1],'g-',label=r'$R_2$')
-    plt.plot([peakT,peakT],[0,max(fff*milli2micro)*1.05],'r-',label=r'$n_{\mathrm{peak}}$')
+    plt.plot([peakT,peakT],[0,max(fff*milli2micro)*1.15],'r-',label=r'$n_{\mathrm{peak}}$')
     plt.plot(rrin/sig,np.ones(len(rrin))*theta_max*milli2micro*0.9,'k-',label=r'$\theta_{R_2}$')
     plt.legend(loc='best',fontsize=10)
     plt.tight_layout()
     plt.title(r'offx=%2.3f sigma,offy=%2.3f sigma'%(offx/sig,offy/sig))
     plt.grid()
   else:
-    print 'x or y has been changed in %s - elens should only change xp,yp'%f
+    print 'x or y has been changed in %s / %s - elens should only change xp,yp'%('HEL_DUMP_2%s'%fnin,'HEL_DUMP_2%s'%fnout)
 
 plt.show()
 plt.close()
