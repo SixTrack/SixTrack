@@ -340,17 +340,16 @@ module mod_ffield
         return
       end if
       
-      elemName = lnSplit(2)
       ! Check that the name is unique
       do i=1,ffNLFile
-        if(ffFNames(i) == elemName) then
-          write(lout,"(a)") "FFIELD> ERROR File '"//trim(elemName)//"' is not unique."
+        if(ffFNames(i) == lnSplit(2)) then
+          write(lout,"(a)") "FFIELD> ERROR File '"//trim(lnSplit(2))//"' is not unique."
           iErr = .true.
           return
         end if
       end do
       
-      ffFNames(ffNLFile) = elemName
+      ffFNames(ffNLFile) = lnSplit(2)
       call chr_cast(lnSplit(3),ffParam(ffNLFile,1),  iErr) ! Lin
       call chr_cast(lnSplit(4),ffParam(ffNLFile,2),  iErr) ! Lgth
       if(nSplit>4) call chr_cast(lnSplit(5),ffParam(ffNLFile,3),  iErr) ! Physical aperture (r0)
