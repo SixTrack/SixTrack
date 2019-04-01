@@ -74,7 +74,7 @@ module mod_ffield
     ! ---------------------------------------------------------------------------------------------- !
     use mod_alloc,           only : alloc
     use numerical_constants, only : zero
-    use parpro,              only : mNameLen, mFNameLen
+    use parpro,              only : mNameLen, mPathName
 
     implicit none
 
@@ -103,7 +103,7 @@ module mod_ffield
 
     call alloc(ffQNames,  mNameLen,  ffNLn_max,    " ", 'ffQNames')
     call alloc(ffMSNames, mNameLen,  ffMSn_max,    " ", 'ffMSNames')
-    call alloc(ffFNames,  mFNameLen, ffNLFile_max, " ", 'ffFNames')
+    call alloc(ffFNames,  mPathName, ffNLFile_max, " ", 'ffFNames')
 
   end subroutine ffield_mod_init
 
@@ -144,7 +144,7 @@ module mod_ffield
     ! ---------------------------------------------------------------------------------------------- !
     use mod_alloc,           only : alloc
     use numerical_constants, only : zero
-    use parpro,              only : mNameLen, mFNameLen
+    use parpro,              only : mNameLen, mPathName
 
     implicit none
 
@@ -171,7 +171,7 @@ module mod_ffield
 
     if (ffNLFile_max /= ffNLFile_max_new) then
       call alloc(ffQ2File,            ffNLFile_max_new, 2, 0,   'ffQ2File')
-      call alloc(ffFNames, mFNameLen, ffNLFile_max_new,    " ", 'ffFNames')
+      call alloc(ffFNames, mPathName, ffNLFile_max_new,    " ", 'ffFNames')
 
       ffNLFile_max = ffNLFile_max_new
 
@@ -228,9 +228,9 @@ module mod_ffield
   subroutine ffield_parseInputLine(inLine, iLine, iErr)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use string_tools, only : chr_rpad, chr_split, chr_cast
+    use string_tools, only : chr_split, chr_cast
     use mod_common,   only : bez
-    use parpro,       only : mNameLen, mFNameLen
+    use parpro,       only : mNameLen, mPathName
 
     implicit none
 
@@ -243,7 +243,7 @@ module mod_ffield
     ! routine variables
     ! ---------------------------------------------------------------------------------------------- !
     character(len=:), allocatable   :: lnSplit(:)
-    character(len=:), allocatable   :: elemName
+    character(len=mNameLen) :: elemName
     integer :: nSplit, i
     logical :: spErr
 
@@ -278,7 +278,7 @@ module mod_ffield
         return
       end if
 
-      elemName = chr_rpad(lnSplit(2), mNameLen)
+      elemName = trim(lnSplit(2))
 
       ! Check that the name is unique
       do i=1,ffNLn
@@ -311,7 +311,7 @@ module mod_ffield
         return
       end if
 
-      elemName = chr_rpad(lnSplit(2), mNameLen)
+      elemName = trim(lnSplit(2))
 
       ! Check that the name is unique
       do i=1,ffMSn
@@ -340,7 +340,7 @@ module mod_ffield
         return
       end if
       
-      elemName = chr_rpad(lnSplit(2), mFNameLen)
+      elemName = lnSplit(2)
       ! Check that the name is unique
       do i=1,ffNLFile
         if(ffFNames(i) == elemName) then

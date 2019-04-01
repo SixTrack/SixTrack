@@ -17,8 +17,8 @@ module ffTable_n_Tracks
   ! ------------------------------------------------------------------------------------------------ !
   ! Mod from SixTrack
   ! ------------------------------------------------------------------------------------------------ !
-  use floatPrecision, only : fPrec
-  use, intrinsic :: ISO_FORTRAN_ENV, only : int32
+  use floatPrecision
+  use, intrinsic :: iso_fortran_env, only : int32
   
   implicit none
 
@@ -134,13 +134,13 @@ contains
   type(ffTable_n_Track) function constructT()
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use parpro,              only : mFNameLen
+    use parpro,              only : mPathName
     use numerical_constants, only : zero
     
     implicit none
 
     if (allocated(constructT%ffFNames)) deallocate(constructT%ffFNames)
-    allocate(character(len=mFNameLen) :: constructT%ffFNames)
+    allocate(character(len=mPathName) :: constructT%ffFNames)
     constructT%ffFNames=" "
     constructT%chk_Status=0
     constructT%n=0
