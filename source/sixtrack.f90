@@ -33,6 +33,7 @@ subroutine daten
   use mod_fluc,  only : fluc_parseInputLine,fluc_readInputs
   use wire,      only : wire_parseInputLine,wire_parseInputDone
   use elens,     only : elens_parseInputLine,elens_parseInputDone,elens_postInput
+  use cheby,     only : cheby_parseInputLine,cheby_parseInputDone,cheby_postInput
   use aperture
   use mod_hions
 #ifdef HASHLIB
@@ -611,6 +612,17 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("CHEB") ! map with Chebyshev coefficients
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call cheby_parseInputDone(inErr)
+      if(inErr) goto 9999
+    else
+      call cheby_parseInputLine(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       dist_enable = .true.
@@ -827,6 +839,8 @@ subroutine daten
     call hions_postInput
     gammar = nucm0/e0
     betrel = sqrt((one+gammar)*(one-gammar))
+    e0f = sqrt(e0**2-nucm0**2)
+    brho   = (e0f/(clight*c1m6))/zz0
 
     if(nbeam >= 1) then
       parbe14 = (((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6
@@ -861,6 +875,7 @@ subroutine daten
   end if
 
   call elens_postInput
+  call cheby_postInput
 #ifdef PYTHIA
   call pythia_postInput
 #endif
@@ -1648,7 +1663,7 @@ subroutine initialize_element(ix,lfirst)
       use mod_common_track
       use mod_common_main
       use mod_hions
-      use elens
+      use cheby, only : cheby_kz
       use wire
       use mathlib_bouncer
       implicit none
@@ -2081,6 +2096,11 @@ subroutine initialize_element(ix,lfirst)
          ed(ix)=zero
          ek(ix)=zero
          el(ix)=zero
+!--chebyshev lens
+      else if(kz(ix).eq.cheby_kz) then
+         ed(ix)=zero
+         ek(ix)=zero
+         el(ix)=zero
       endif
 
       return
@@ -2092,29 +2112,7 @@ subroutine initialize_element(ix,lfirst)
 
 end subroutine initialize_element
 
-subroutine rounderr(errno,fields,f,value)
-
-  use floatPrecision
-  use crcoall
-
-  implicit none
-
-  integer errno,f,l
-  character(len=*) fields(*)
-  character(len=999) localstr
-  real(kind=fPrec) value
-
-  l=len(fields(f))
-  localstr=fields(f)(1:l)
-  write (lout,"(a,i0)")     "ROUND> ERROR Data Input Error Overfow/Underflow in round_near. Errno: ",errno
-  write (lout,"(a,i0,a)")   "ROUND>       f:fieldf:",f,":"//localstr
-  write (lout,"(a,e24.16)") "ROUND>       Function fround (rounderr) returning: ",value
-
-  call prror(-1)
-
-end subroutine rounderr
-
-      subroutine wzset
+subroutine wzset
 !  *********************************************************************
 !
 !  This subroutine must be called before subroutine WZSUB can be used to
@@ -2157,9 +2155,9 @@ end subroutine rounderr
             wtimag(k)=wi
  1       continue
  2    continue
-      end subroutine wzset
+end subroutine wzset
 
-      subroutine mywwerf(x,y,wr,wi)
+subroutine mywwerf(x,y,wr,wi)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2237,7 +2235,7 @@ end subroutine rounderr
       wr=vr
       wi=vi
       return
-end
+end subroutine mywwerf
 
 !-----------------------------------------------------------------------
 !  CALCULATION OF : MOMENTUM-DEPENDING ELEMENT-MATRICES AND
@@ -3177,7 +3175,7 @@ subroutine betalf(dpp,qw)
 !-----------------------------------------------------------------------
   160 ierro=1
       return
-end
+end subroutine betalf
 
 subroutine block
 !-----------------------------------------------------------------------
@@ -3239,7 +3237,7 @@ subroutine block
       end do
 
       return
-end
+end subroutine block
 
 subroutine blockdis(aeg,bl1eg,bl2eg)
 !-----------------------------------------------------------------------
@@ -3306,7 +3304,7 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
       end do
 
       return
-end
+end subroutine blockdis
 
 subroutine chroma
 !-----------------------------------------------------------------------
@@ -3445,7 +3443,7 @@ subroutine chroma
 10035 format(/t5,'---- NO Improvement in last Step ----'/)
 end subroutine chroma
 
-      subroutine chromda
+subroutine chromda
 !-----------------------------------------------------------------------
 !  CHROMATICITY CORRECTION VIA DA
 !-----------------------------------------------------------------------
@@ -3573,7 +3571,7 @@ end subroutine chroma
 10060 format(/t10,'DA CHROMATICITY CORRECTION'/ t10,                    &
      &'MAXIMUM NUMBER OF ITERATIONS ACHIEVED--->',2x,i4/ t10,           &
      &'PROCEDURE MAY NOT HAVE CONVERGED')
-end
+end subroutine chromda
 
 subroutine clorb(dpp)
 !-----------------------------------------------------------------------
@@ -3661,7 +3659,7 @@ subroutine clorb(dpp)
      &'PROCEDURE MAY NOT HAVE CONVERGED')
 10010 format(t5,'---- ENTRY CLORB ----/DPP=',f8.5,' /CLOX/', 2f10.5,    &
      &' /CLOY/',2f10.5,' /ITERAT.=',i3,'/ ACCURACY=',d13.6)
-end
+end subroutine clorb
 
 subroutine clorb2(dpp)
 !-----------------------------------------------------------------------
@@ -5902,7 +5900,7 @@ subroutine corrorb
      &' VER.-PTP: ',f6.3)
 end subroutine corrorb
 
-      subroutine putorb(xinc,nx,npflag)
+subroutine putorb(xinc,nx,npflag)
 !-----------------------------------------------------------------------
 !  PUT ORBIT CHANGES FROM MICADO TO THE GIVEN ORBIT CORRECTORS
 !-----------------------------------------------------------------------
@@ -6001,9 +5999,9 @@ end subroutine corrorb
       return
 10000 format(t5,i4,i4,' ',a16,'  OLD: ',d14.7,' MRAD   NEW: ' ,d14.7,   &
      &' MRAD')
-      end
+end subroutine putorb
 
-      subroutine orbinit
+subroutine orbinit
 !-----------------------------------------------------------------------
 !  INITIALIZES THE RANDOM NUMBER OF NOT SET CORRCTORS
 !-----------------------------------------------------------------------
@@ -6061,7 +6059,7 @@ end subroutine corrorb
         endif
    10 continue
       return
-      end
+end subroutine orbinit
 
 subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
 !*********************************************************************
@@ -7505,7 +7503,7 @@ subroutine qmod0
      &a16)
 end subroutine qmod0
 
-      subroutine qmodda(mm,qwc)
+subroutine qmodda(mm,qwc)
 !-----------------------------------------------------------------------
 !  ADJUSTMENT OF THE Q-VALUES VIA DA
 !-----------------------------------------------------------------------
@@ -9397,7 +9395,7 @@ subroutine search(dpp)
      &6x,'COS',13x,'SIN',6x,'|', 6x,'COS',13x,'SIN',6x,'|')
 10050 format(1x,a16,1x,'|',i3,'  |',g15.5,'|',g15.5,'|',g15.5,'|',      &
      &g15.5,'|',g15.5,'|',g15.5,'|')
-end
+end subroutine search
 
 !-----------------------------------------------------------------------
 !  CALCULATION OF RESONANCE- AND SUBRESONANCE-DRIVINGTERMS
@@ -11380,37 +11378,3 @@ subroutine decoup
 10030 format(14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,          &
      &g17.10/14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,g17.10)
 end subroutine decoup
-
-subroutine datime(nd,nt)
-      implicit none
-! Fill common slate for usage by hmachi call as per z007 writeup.        !hr08
-      common /slate/ isl(40)                                             !hr08
-
-      integer isl                                                        !hr08
-!
-!-    call datime (nd,nt)   returns integer date   nd = yymmdd
-!-                                  integer time   nt =   hhmm
-!     integer nd,nt,mm(3),nn(3)
-!     call idate (mm(1),mm(2),mm(3))
-!     call itime (nn)
-      character(len=8) date
-      character(len=10) time
-      character(len=5) zone
-      integer values(8),mm(3),nd,nt
-      save
-      call date_and_time(date,time,zone,values)
-      mm(3)=mod(values(1),100)
-!     mm(3) = mod (mm(3),100)
-      mm(2)=values(3)
-      mm(1)=values(2)
-      isl(1)= mm(3)                                                      !hr08
-      isl(2)= mm(2)                                                      !hr08
-      isl(3)= mm(1)                                                      !hr08
-      isl(4)= values(5)                                                  !hr08
-      isl(5)= values(6)                                                  !hr08
-      isl(6)= 0                                                          !hr08
-      nd = (mm(3)*100+mm(1))*100 + mm(2)
-!     nt =            nn(1) *100 + nn(2)
-      nt=values(5)*100+values(6)
-      return
-end subroutine datime

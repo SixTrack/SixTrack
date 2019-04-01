@@ -17,6 +17,7 @@ subroutine allocate_arrays
   use mod_commond2,       only : mod_commond2_expand_arrays
   use aperture,           only : aperture_expand_arrays
   use elens,              only : elens_allocate_arrays
+  use cheby,              only : cheby_allocate_arrays
   use dump,               only : dump_expand_arrays
   use scatter,            only : scatter_expand_arrays
   use bdex,               only : bdex_allocate_arrays
@@ -50,6 +51,7 @@ subroutine allocate_arrays
   call aperture_expand_arrays(nele,npart)
 
   call elens_allocate_arrays
+  call cheby_allocate_arrays
   call bdex_allocate_arrays
   call dynk_allocate_arrays
   call hions_allocate_arrays
@@ -77,6 +79,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   use mod_commond2,       only : mod_commond2_expand_arrays
   use aperture,           only : aperture_expand_arrays
   use elens,              only : elens_expand_arrays
+  use cheby,              only : cheby_expand_arrays
   use dump,               only : dump_expand_arrays
   use scatter,            only : scatter_expand_arrays
   use bdex,               only : bdex_expand_arrays
@@ -115,6 +118,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   call aperture_expand_arrays(nele_new, npart_new)
 
   call elens_expand_arrays(nele_new)
+  call cheby_expand_arrays(nele_new)
   call bdex_expand_arrays(nele_new)
   call dynk_expand_arrays(nele_new)
 
