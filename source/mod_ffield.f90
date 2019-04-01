@@ -31,15 +31,17 @@ module mod_ffield
 
   private :: ffield_mod_ChckQuad
 
-
   ! ------------------------------------------------------------------------------------------------ !
   ! FFIELD parameters
   ! ------------------------------------------------------------------------------------------------ !
-  integer, public, save :: ff_status              ! Status routine: 0=off, 1=init, 2=loaded, 3=AQ ready
-  integer, public, save :: ffNLn, ffNLn_max       ! Nb. and nb. max of Quadrupoles with ffNLn < ffNLn_max
-  integer, public, save :: ffMSn, ffMSn_max       ! Nb. and nb. max of Multipole to skip with ffMSn < ffMSn_max
-  integer, public, save :: ffNLFile, ffNLFile_max ! Nb. and nb. max of files with ffNLFile < ffNLFile_max
-!  real(kind=fPrec), public, save :: ffdelta         ! Max ffdelta posible
+  integer, private, save :: ff_status    = 0   ! Status routine: 0=off, 1=init, 2=loaded, 3=AQ ready
+  integer, private, save :: ffNLn        = 1   ! Nb. of Quadrupoles with ffNLn < ffNLn_max
+  integer, private, save :: ffNLn_max    = 20  ! Max Quadrupoles with ffNLn < ffNLn_max
+  integer, private, save :: ffMSn        = 1   ! Nb. of Multipole to skip with ffMSn < ffMSn_max
+  integer, private, save :: ffMSn_max    = 20  ! Max Multipole to skip with ffMSn < ffMSn_max
+  integer, private, save :: ffNLFile     = 1   ! Nb. of files with ffNLFile < ffNLFile_max
+  integer, private, save :: ffNLFile_max = 20  ! Max files with ffNLFile < ffNLFile_max
+! real(kind=fPrec), public, save :: ffdelta         ! Max ffdelta posible
 
 !  real(kind=fPrec) :: r0_2
 !  parameter (r0_2=6.4e-3_fPrec)                   ! Maximum radius in quad
@@ -49,19 +51,19 @@ module mod_ffield
   ! ------------------------------------------------------------------------------------------------ !
   ! FFIELD table
   ! ------------------------------------------------------------------------------------------------ !
-!  logical         , allocatable, private, save :: ffInQuad(:)  ! (1:npart)        Check if particle enter the Quad
-  integer         , allocatable, public, save :: ffindex(:)    ! (0:nele)         Table with the index of the Quad in our study (0 = not studied)
-  integer         , allocatable, public, save :: ffQ2File(:,:) ! (1:ffNLn, 1:2)   Link Quad/Files
-!  real(kind=fPrec), allocatable, public, save :: ffParam(:,:)  ! (1:ffNLFile,1:6) Kin, Lin, Corin, Kex, Lex, Corex
-  real(kind=fPrec), allocatable, public, save :: ffParam(:,:)  ! (1:ffNLFile,1:3) Lgth. in Quadrupoles, total lgth. and Physical aperture
-  character(len=:), allocatable, public, save :: ffQNames(:)   ! (1:ffNLn)        Name of Quadrupoles
-  character(len=:), allocatable, public, save :: ffMSNames(:)  ! (1:ffMSn)        Name of Multipoles skip
-  character(len=:), allocatable, public, save :: ffFNames(:)   ! (1:ffNLFile)     Name of Files
+! logical,          allocatable, private, save :: ffInQuad(:)   ! Check if particle enter the Quad
+  integer,          allocatable, public,  save :: ffindex(:)    ! Table with the index of the Quad in our study (0 = not studied)
+  integer,          allocatable, private, save :: ffQ2File(:,:) ! Link Quad/Files
+! real(kind=fPrec), allocatable, public,  save :: ffParam(:,:)  ! Lin, Corin, Kex, Lex, Corex
+  real(kind=fPrec), allocatable, private, save :: ffParam(:,:)  ! Lgth. in Quadrupoles, total lgth. and Physical aperture
+  character(len=:), allocatable, private, save :: ffQNames(:)   ! Name of Quadrupoles
+  character(len=:), allocatable, private, save :: ffMSNames(:)  ! Name of Multipoles skip
+  character(len=:), allocatable, public,  save :: ffFNames(:)   ! Name of Files
 
   type(ffTable_n_Track), allocatable, public, save :: ffTable(:)  ! (1:ffNLFile)
   ! ------------------------------------------------------------------------------------------------ !
 
-  contains
+contains
 
 
   ! ================================================================================================ !
@@ -69,7 +71,7 @@ module mod_ffield
   !  B. Dalena, T. Pugnat and A. Simona from CEA
   !  Last modified: 2019-02-01
   ! ================================================================================================ !
-  subroutine ffield_mod_init(npart, nele)
+  subroutine ffield_mod_init
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use mod_alloc,           only : alloc
@@ -78,26 +80,8 @@ module mod_ffield
 
     implicit none
 
-    ! interface variables
-    ! ---------------------------------------------------------------------------------------------- !
-    integer, intent(in) :: npart, nele
-
-
-    ! initialization of the variable
-    ! ---------------------------------------------------------------------------------------------- !
-    ff_status   =0
-    ffNLn       =1
-    ffNLn_max   =20
-    ffMSn       =1
-    ffMSn_max   =20
-    ffNLFile    =1
-    ffNLFile_max=20
-
-
     ! allocation of the memory
     ! ---------------------------------------------------------------------------------------------- !
-!    call alloc(ffInQuad, npart,           .false., 'ffInQuad')
-    call alloc(ffindex,  nele,            0,       'ffindex')
     call alloc(ffQ2File, ffNLFile_max, 2, 0,       'ffQ2File')
     call alloc(ffParam,  ffNLn_max,    3, zero,    'ffParam')
 
@@ -127,7 +111,7 @@ module mod_ffield
 
     ! resizing of the memory
     ! ---------------------------------------------------------------------------------------------- !
-!    call alloc(ffInQuad, npart_new, .false., 'ffInQuad')
+!   call alloc(ffInQuad, npart_new, .false., 'ffInQuad')
     call alloc(ffindex,  nele_new,  0,       'ffindex')
 
   end subroutine ffield_mod_expand_arrays
@@ -349,7 +333,7 @@ module mod_ffield
         end if
       end do
 
-      ffFNames(ffNLFile) = lnSplit(2)
+      ffFNames(ffNLFile) = trim(lnSplit(2))
       call chr_cast(lnSplit(3),ffParam(ffNLFile,1),  iErr) ! Lin
       call chr_cast(lnSplit(4),ffParam(ffNLFile,2),  iErr) ! Lgth
       if(nSplit>4) call chr_cast(lnSplit(5),ffParam(ffNLFile,3),  iErr) ! Physical aperture (r0)

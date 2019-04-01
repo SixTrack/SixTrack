@@ -362,7 +362,7 @@ end interface
 
 #ifdef FFIELD
   ! Modification by B.DALENA and T.PUGNAT
-  call ffield_mod_init(npart_initial, nele_initial)
+  call ffield_mod_init
 #endif
 
   call daten
