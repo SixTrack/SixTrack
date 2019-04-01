@@ -1,5 +1,5 @@
 ! M. Fitterer, FNAL, A. Mereghtti, CERN
-! last modified: 09-02-2018
+! last modified: 25-02-2019
 ! Common block for electron lens definition
 module elens
 
@@ -36,32 +36,24 @@ module elens
   real(kind=fPrec), save :: elens_I(nelens)            = zero    ! current of e-beam [A]
                                                                  ! <0: e-beam opposite to beam
   real(kind=fPrec), save :: elens_Ek(nelens)           = zero    ! kinetic energy of e-beam [keV]
+  real(kind=fPrec), save :: elens_beta_e(nelens)                 ! relativistic beta of electrons
   logical, save          :: elens_lThetaR2(nelens)     = .false. ! flag for computing theta@R2
   logical, save          :: elens_lAllowUpdate(nelens) = .true.  ! Flag for disabling updating of kick,
-                                                      !          i.e. after DYNK has touched thetaR2
-                                                      !          the energy update is disabled.
+                                                                 !  i.e. after DYNK has touched thetaR2,
+                                                                 !  the energy update is disabled.
 #ifdef CR
   logical, save          :: elens_lAllowUpdate_CR(nelens)
 #endif
-  real(kind=fPrec), save :: elens_beta_e(nelens)      ! relativistic beta of electrons
+  
+  ! mapping to chebyshev polynomials
   integer, save          :: elens_iCheby(nelens)      ! mapping to the table with chebyshev coeffs
-  real(kind=fPrec), save :: elens_cheby_angle(nelens) ! angle for getting the real bends [deg]
+  
+  ! radial profile
   integer, save          :: elens_iRadial(nelens)     ! mapping to the radial profile
   real(kind=fPrec), save :: elens_radial_fr1(nelens)  ! value of f(R1) in case of radial profiles from file [0:1]
   real(kind=fPrec), save :: elens_radial_fr2(nelens)  ! value of f(R2) in case of radial profiles from file [0:1]
-  ! file with chebyshev coefficients
-  integer, parameter     :: nelens_cheby_tables=20    ! max number of tables with chebyshev coefficients
-  integer, save          :: elens_cheby_unit=-1       ! unit for reading the chebyshev coefficients
-  integer, parameter     :: elens_cheby_order=18      ! max order of chebyshev polynomials
-  integer, save          :: melens_cheby_tables       ! tables available in memory
-  character(len=mFileName), save:: elens_cheby_filename(nelens_cheby_tables) = " "! names
-  real(kind=fPrec), save :: elens_cheby_coeffs(0:elens_cheby_order,0:elens_cheby_order,nelens_cheby_tables) = zero
-  real(kind=fPrec), save :: elens_cheby_refCurr(nelens_cheby_tables)   = zero ! reference current [A]
-  real(kind=fPrec), save :: elens_cheby_refRadius(nelens_cheby_tables) = zero ! reference radius [mm]
-  real(kind=fPrec), save :: elens_cheby_refBeta(nelens_cheby_tables)   = zero ! reference e-beta []
-  ! file with radial profile
+  ! - file handling and data storage:
   integer, parameter     :: nelens_radial_profiles=20 ! max number of radial profiles
-  integer, save          :: elens_radial_unit=-1      ! unit for reading radial profiles
   integer, save          :: melens_radial_profiles    ! radial profiles available in memory
   integer, parameter     :: elens_radial_dim=500      ! max number of points in radial profiles
   character(len=mFileName), save:: elens_radial_filename(nelens_radial_profiles) ! names
@@ -72,7 +64,6 @@ module elens
 contains
 
 subroutine elens_allocate_arrays
-  use crcoall
   implicit none
   integer stat
   call alloc(ielens,nele,0,'ielens')
@@ -94,6 +85,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   use mod_settings
   use sixtrack_input
   use string_tools
+  use mod_common
 
   implicit none
 
@@ -139,12 +131,12 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
-  if(el(iElem) /= 0 .or. ek(iElem) /= 0 .or. ed(iElem) /= 0) then
+  if(el(iElem) /= zero .or. ek(iElem) /= zero .or. ed(iElem) /= zero) then
     write(lout,"(a)")       "ELENS> ERROR Length el(iElem) (elens is treated as thin element), "//&
       "and first and second field have to be zero:"
-    write(lout,"(2(a,i0))") "ELENS>       el(",iElem,") = ",el(iElem)," != 0"
-    write(lout,"(2(a,i0))") "ELENS>       ed(",iElem,") = ",ed(iElem)," != 0"
-    write(lout,"(2(a,i0))") "ELENS>       ek(",iElem,") = ",ek(iElem)," != 0"
+    write(lout,"(2(a,i0),a)") "ELENS>       el(",iElem,") = ",el(iElem)," != 0"
+    write(lout,"(2(a,i0),a)") "ELENS>       ed(",iElem,") = ",ed(iElem)," != 0"
+    write(lout,"(2(a,i0),a)") "ELENS>       ek(",iElem,") = ",ek(iElem)," != 0"
     iErr = .true.
     return
   end if
@@ -209,7 +201,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
 
   elseif(elens_type(ielens(iElem)) == 3 )then
     ! Radial profile of electrons given by file: need also
-    !   name of file where coefficients are stored
+    !   name of file where profile is stored
     tmpch = trim(lnSplit(8))
 
     ! Check if profile has already been requested:
@@ -311,7 +303,6 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
 
   if(st_debug) then
     call sixin_echoVal("name",    bez(iElem),                   "ELENS",iLine)
-    call sixin_echoVal("type",    lnSplit(2),                   "ELENS",iLine)
     call sixin_echoVal("type",    elens_type(ielens(iElem)),    "ELENS",iLine)
     call sixin_echoVal("theta_r2",elens_theta_r2(ielens(iElem)),"ELENS",iLine)
     call sixin_echoVal("r1",      elens_r1(ielens(iElem)),      "ELENS",iLine)
@@ -346,7 +337,7 @@ subroutine elens_parseInputDone(iErr)
       if(kz(j) == 29) then
         if(elens_type(ielens(j)) == 0) then
           write(lout,"(a)") "ELENS> ERROR Elens element '"//trim(bez(j))//"'not defined in fort.3."
-          write(lout,"(a)") "ELENS>       You must define every wire in the WIRE block."
+          write(lout,"(a)") "ELENS>       You must define every elens in the ELEN block."
           iErr = .true.
           return
         end if
@@ -360,6 +351,7 @@ subroutine elens_postInput
 
   use mathlib_bouncer
   use utils
+  use mod_common, only : bez,kz
 
   integer j,jj
   logical exist
@@ -374,17 +366,6 @@ subroutine elens_postInput
     call parseRadialProfile(j)
     call integrateRadialProfile(j)
     call normaliseRadialProfile(j)
-  end do
-
-  ! Parse files with coefficients for Chebyshev polynomials:
-   do j=1,melens_cheby_tables
-    inquire(file=elens_cheby_filename(j), exist=exist)
-    if(.not. exist) then
-      write(lout,"(a)") "ELENS> ERROR Problems with file with coefficients for Chebyshev polynominals: ", &
-            trim(elens_cheby_filename(j))
-      call prror(-1)
-    end if
-    call parseChebyFile(j)
   end do
 
   ! Proper normalisation
@@ -408,50 +389,27 @@ subroutine elens_postInput
             elens_radial_profile_nPoints(elens_iRadial(j))+1 )
       elens_geo_norm(j) = elens_radial_fr2(j) -elens_radial_fr1(j)
     end if
+
+    ! printout:
+    ! - find name of elens
+    do jj=1,nele
+      if(kz(jj)==29) then
+        if (ielens(jj).eq.j) then
+          exit
+        end if
+      end if
+    end do
+    ! - report geometrical factor
+    write(lout,"(a,i0,a,e22.15)") "ELENS> Geom. norm. fact. for elens #",j, &
+         " named "//trim(bez(jj))//": ",elens_geo_norm(j)
+    
+    ! Compute elens theta at R2, if requested by user
+    call eLensTheta(j)
+    
   end do
 
-  ! Compute elens theta at R2, if requested by user
-  call eLensThetas
 
 end subroutine elens_postInput
-
-! ================================================================================================ !
-!  Compute eLens theta at r2
-!  input variables:
-!  - length of eLens [m];
-!  - current intensity of e-beam [A]
-!  - kinetic energy of electrons [keV]
-!  - total beam energy [MeV]
-!  - outer radius [mm]
-! ================================================================================================ !
-subroutine eLensThetas()
-
-  use crcoall
-  use mod_common, only : bez,kz
-  use mod_settings, only : st_quiet
-
-  implicit none
-
-  integer j,jj
-  real(kind=fPrec) gamma, brho
-
-  do j=1,melens
-    if(elens_lThetaR2(j) .and. elens_lAllowUpdate(j)) then
-      do jj=1,nele
-        if(kz(jj)==29) then
-          if (ielens(jj).eq.j) then
-            exit
-          end if
-        end if
-      end do
-      call eLensTheta(j)
-      if(st_quiet < 2) then
-        write(lout,"(a,i0,a,e22.15)") "ELENS> New theta at r2 for elens #",j," named "//trim(bez(jj))//": ",elens_theta_r2(j)
-      end if
-    end if
-  end do
-
-end subroutine eLensThetas
 
 ! ================================================================================================ !
 !  Compute eLens theta at r2
@@ -469,30 +427,48 @@ subroutine eLensTheta(j)
   use numerical_constants, only : zero, one, two, pi, c1e3, c1m3, c1m6
   use physical_constants, only: clight, pmae, eps0
   use mod_hions, only : zz0
-  use mod_common, only : e0, betrel
+  use mod_common, only : e0, betrel, brho, bez, kz
+  use mod_settings, only : st_quiet
 
   implicit none
 
-  integer j
-  real(kind=fPrec) gamma, brho
+  integer j,jj
+  real(kind=fPrec) gamma
 
-  ! the update of elens_radial_beta_e is not strictly needed here,
-  !   but it can be useful in future if elens_Ek is DYNK-ed...
-  gamma  = ((elens_Ek(j)*c1m3)/pmae)+one ! from kinetic energy
-  elens_beta_e(j) = sqrt((one+one/gamma)*(one-one/gamma))
-  brho   = (e0/(clight*c1m6))/zz0
-
-  ! r2: from mm to m (c1m3)
-  ! theta: from rad to mrad (c1e3)
-  elens_theta_r2(j) = ((elens_len(j)*abs(elens_I(j)))/((((two*pi)*((eps0*clight)*clight))*brho)*(elens_r2(j)*c1m3)))*c1e3
-  if(elens_I(j) < zero) then
-    elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betrel)+one)
-  else
-    elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betrel)-one)
+  if(elens_lThetaR2(j) .and. elens_lAllowUpdate(j)) then
+    ! the update of elens_radial_beta_e is not strictly needed here,
+    !   apart from the case of elens_Ek is DYNK-ed
+    gamma  = ((elens_Ek(j)*c1m3)/pmae)+one ! from kinetic energy
+    elens_beta_e(j) = sqrt((one+one/gamma)*(one-one/gamma))
+    
+    ! r2: from mm to m (c1m3)
+    ! theta: from rad to mrad (c1e3)
+    elens_theta_r2(j) = ((elens_len(j)*abs(elens_I(j)))/ &
+         ((((two*pi)*((eps0*clight)*clight))*brho)*(elens_r2(j)*c1m3)))*c1e3
+    if(elens_I(j) < zero) then
+      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betrel)+one)
+    else
+      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betrel)-one)
+    end if
+    
+    if ( elens_type(j)>=2 ) elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)
+    
+    if(st_quiet < 2) then
+      ! find name of elens
+      do jj=1,nele
+        if(kz(jj)==29) then
+          if (ielens(jj).eq.j) then
+            exit
+          end if
+        end if
+      end do
+      write(lout,"(a,i0,a,e22.15)") "ELENS> New theta at r2 for elens #",j, &
+           " named "//trim(bez(jj))//": ",elens_theta_r2(j)
+      if ( elens_type(j)>=2 ) write(lout,"(a,e22.15)") "ELENS>   ...considering also geom. norm. fact.: ", &
+           elens_geo_norm(j)
+    end if
   end if
-
-  if ( elens_type(j)>=2 ) elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)
-
+ 
 end subroutine eLensTheta
 
 ! ================================================================================================ !
@@ -524,7 +500,7 @@ subroutine parseRadialProfile(ifile)
   integer nSplit
   logical spErr, err
 
-  integer iErr, ii
+  integer iErr, ii, fUnit
   real(kind=fPrec) tmpR, tmpJ
 
   ierr = 0
@@ -532,11 +508,11 @@ subroutine parseRadialProfile(ifile)
   elens_radial_profile_R(ii,ifile) = zero
   elens_radial_profile_J(ii,ifile) = zero
   write(lout,"(a)") "ELENS> Parsing file with radial profile "//trim(elens_radial_filename(ifile))
-  call f_requestUnit(elens_radial_filename(ifile),elens_radial_unit)
-  call f_open(unit=elens_radial_unit,file=elens_radial_filename(ifile),mode='r',err=err,formatted=.true.,status="old")
+  call f_requestUnit(elens_radial_filename(ifile),fUnit)
+  call f_open(unit=fUnit,file=elens_radial_filename(ifile),mode='r',err=err,formatted=.true.,status="old")
 
 10 continue
-  read(elens_radial_unit,"(a)",end=20,err=30) inLine
+  read(fUnit,"(a)",end=20,err=30) inLine
   if(inLine(1:1) == "#") goto 10
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -574,7 +550,7 @@ subroutine parseRadialProfile(ifile)
 
 20 continue
 
-  call f_close(elens_radial_unit)
+  call f_close(fUnit)
   write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile),"points."
 
   if(st_quiet < 2) then
@@ -657,138 +633,6 @@ subroutine normaliseRadialProfile(ifile)
   end do
 
 end subroutine normaliseRadialProfile
-
-! ================================================================================================ !
-!  Last modified: 2018-06-25
-!  Rewritten by VKBO, June 2018
-!  Read file with coefficients for chebyshev polynomials
-!  ifile is index of file in table of chebyshev files
-!  file is structured as:
-!    keyword : value
-!  keywords:
-!  - I: reference current intensity of e-beam [A]
-!  - Ek: reference kinetic energy of electrons [keV]
-!  - rad: reference radius [mm]
-!  comment line is headed by '#'
-!  coefficients are give with the following syntax:
-!  i j : value
-!  where i->x and j->y
-! ================================================================================================ !
-subroutine parseChebyFile(ifile)
-
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-  use physical_constants
-  use crcoall
-  use mod_common
-  use mod_settings
-  use string_tools
-  use mod_units
-
-  implicit none
-
-  integer, intent(in) :: ifile
-
-  character(len=:), allocatable   :: lnSplit(:)
-  character(len=mInputLn) inLine
-  integer nSplit
-  logical spErr,err
-
-  integer iErr, ii, jj
-  real(kind=fPrec) tmpflt, beta, gamma
-
-  ierr = 0
-  write(lout,"(a)") "ELENS> Parsing file with coefficients for Chebyshev polynomials "//trim(elens_cheby_filename(ifile))
-  call f_requestUnit(elens_cheby_filename(ifile),elens_cheby_unit)
-  call f_open(unit=elens_cheby_unit,file=elens_cheby_filename(ifile),mode='r',err=err,formatted=.true.,status="old")
-
-10 continue
-  read(elens_cheby_unit,"(a)",end=20,err=30) inLine
-  if(inLine(1:1) == "#") goto 10
-
-  call chr_split(inLine, lnSplit, nSplit, spErr)
-  if(spErr) then
-    write(lout,"(a)") "ELENS> ERROR Failed to Chebyshev input line."
-    goto 30
-  end if
-
-  if(inLine(1:1) == "I") then
-    ! Read reference current of e-beam in e-lens
-    if(nSplit < 3) then
-      iErr = 2
-      goto 30
-    end if
-    call chr_cast(lnSplit(3),tmpflt,spErr)
-    elens_cheby_refCurr(ifile) = tmpflt
-
-  else if(inLine(1:2) == "Ek") then
-    ! Read reference kinetic energy of e-beam in e-lens
-    if(nSplit < 3) then
-      iErr = 3
-      goto 30
-    end if
-    call chr_cast(lnSplit(3),tmpflt,spErr)
-    gamma = (tmpflt*c1m3)/pmae+one ! from kinetic energy
-    elens_cheby_refBeta(ifile) = sqrt((gamma+one)*(gamma-one))/gamma
-
-  else if(inLine(1:3) == "rad") then
-    ! Read reference radius e-beam in e-lens
-    if(nSplit < 3) then
-      iErr = 4
-      goto 30
-    end if
-    call chr_cast(lnSplit(3),tmpflt,spErr)
-    elens_cheby_refRadius(ifile) = tmpflt
-
-  else
-    ! Read chebyshev coefficients
-    if(nSplit /= 4) then
-      iErr = 5
-      goto 30
-    end if
-    call chr_cast(lnSplit(1),ii,spErr)
-    if(ii > elens_cheby_order) then
-      iErr = 6
-      goto 30
-    end if
-    call chr_cast(lnSplit(2),jj,spErr)
-    if(jj > elens_cheby_order) then
-      iErr = 7
-      goto 30
-    end if
-    call chr_cast(lnSplit(4),tmpflt,spErr)
-    elens_cheby_coeffs(ii,jj,ifile) = tmpflt
-
-  end if ! close if for keyword identification
-  goto 10
-
-20 continue
-
-  call f_close(elens_cheby_unit)
-
-  if(st_quiet < 2) then
-    ! Echo parsed data (unless told to be quiet!)
-    write(lout,"(a,i0)") "ELENS> Coefficients for Chebyshev polynomials as from file "//&
-      trim(elens_cheby_filename(ifile))//" - #",ifile
-    write(lout,"(a,e22.15)") "ELENS> * Reference current [A] : ",elens_cheby_refCurr(ifile)
-    write(lout,"(a,e22.15)") "ELENS> * reference beta     [] : ",elens_cheby_refBeta(ifile)
-    write(lout,"(a,e22.15)") "ELENS> * reference radius [mm] : ",elens_cheby_refRadius(ifile)
-    do ii=0,elens_cheby_order
-      do jj=0,elens_cheby_order
-        if(elens_cheby_coeffs(ii,jj,ifile)/= zero) then
-          write(lout,"(2(a,i4),a,e22.15)") "ELENS> Order ",ii,",",jj," : ",elens_cheby_coeffs(ii,jj,ifile)
-        end if
-      end do
-    end do
-  end if
-  return
-
-30 continue
-  write(lout,"(a,i0,a)") "ELENS> ERROR ",iErr," while parsing file "//trim(elens_cheby_filename(ifile))
-  call prror(-1)
-
-end subroutine parseChebyFile
 
 #ifdef CR
 subroutine elens_crcheck(fileUnit,readErr)

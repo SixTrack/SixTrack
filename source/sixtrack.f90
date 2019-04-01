@@ -10,6 +10,7 @@ subroutine daten
   use crcoall
   use floatPrecision
   use sixtrack_input
+  use mod_geometry
   use parpro
   use parbeam, only : beam_expflag
   use mod_settings
@@ -33,6 +34,7 @@ subroutine daten
   use mod_fluc,  only : fluc_parseInputLine,fluc_readInputs
   use wire,      only : wire_parseInputLine,wire_parseInputDone
   use elens,     only : elens_parseInputLine,elens_parseInputDone,elens_postInput
+  use cheby,     only : cheby_parseInputLine,cheby_parseInputDone,cheby_postInput
   use aperture
   use mod_hions
 #ifdef HASHLIB
@@ -81,7 +83,7 @@ subroutine daten
   ! SIXTRACK INPUT MODULE
   inErr       = .false.
 
-  call alloc(sixin_bez0,mNameLen,nele," ","sixin_bez0")
+  call alloc(geom_bez0,mNameLen,nele," ","geom_bez0")
 
   ! DATEN INTERNAL
   nGeom       = 0
@@ -282,31 +284,42 @@ subroutine daten
 
   case("SING") ! Single Elements Block
     if(openBlock) then
-      sixin_nSing = 1
+      geom_nSing = 1
     elseif(closeBlock) then
       nGeom = nGeom + 1
+      write(lout,"(a,i0,a)") "INPUT> Parsed ",geom_nSing," Single Elements"
     else
-      call sixin_parseInputLineSING(inLine,blockLine,inErr)
+      call geom_parseInputLineSING(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
-
+    
   case("BLOC") ! Block Definitions
     if(openBlock) then
-      sixin_nBloc = 0
+      geom_nBloc = 0
     elseif(closeBlock) then
       nGeom = nGeom + 1
+      write(lout,"(a,i0,a)") "INPUT> Parsed ",geom_nBloc," Block Elements"
     else
-      call sixin_parseInputLineBLOC(inLine,blockLine,inErr)
+      call geom_parseInputLineBLOC(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
   case("STRU") ! Structure Input
     if(openBlock) then
-      sixin_nStru = 0
+      geom_nStru = 0
     elseif(closeBlock) then
       nGeom = nGeom + 1
+      write(lout,"(a,i0,a)") "INPUT> Parsed ",geom_nStru," Structure Elements"
     else
-      call sixin_parseInputLineSTRU(inLine,blockLine,inErr)
+      if(blockLine == 1 .and. adjustl(inLine) == "MULTICOL") then
+        write(lout,"(a)") "INPUT> Multi-column STRUCTURE INPUT block detected"
+        strumcol = .true.
+      end if
+      if(strumcol) then
+        call geom_parseInputLineSTRU_MULT(inLine,blockLine,inErr)
+      else
+        call geom_parseInputLineSTRU(inLine,blockLine,inErr)
+      end if
       if(inErr) goto 9999
     end if
 
@@ -611,6 +624,17 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("CHEB") ! map with Chebyshev coefficients
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call cheby_parseInputDone(inErr)
+      if(inErr) goto 9999
+    else
+      call cheby_parseInputLine(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       dist_enable = .true.
@@ -622,11 +646,11 @@ subroutine daten
     end if
 
   case("CORR") ! Tuneshift Corrections
-    write(lout,"(a)") "INPUT> ERROR CORR module is deprecated."
+    write(lout,"(a)") "INPUT> ERROR CORR module has been removed."
     goto 9999
 
   case("RIPP") ! Power Supply Ripple Block
-    write(lout,"(a)") "INPUT> ERROR RIPP module is deprecated and replaced by DYNK."
+    write(lout,"(a)") "INPUT> ERROR RIPP module has been removed and replaced by DYNK."
     write(lout,"(a)") "INPUT>       The script rippconvert.py in the pytools folder can be used to convert the fort.3 file."
     goto 9999
 
@@ -676,6 +700,7 @@ subroutine daten
       continue
     elseif(closeBlock) then
       call dump_parseInputDone(inErr)
+      if(inErr) goto 9999
     else
       call dump_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
@@ -827,6 +852,8 @@ subroutine daten
     call hions_postInput
     gammar = nucm0/e0
     betrel = sqrt((one+gammar)*(one-gammar))
+    e0f = sqrt(e0**2-nucm0**2)
+    brho   = (e0f/(clight*c1m6))/zz0
 
     if(nbeam >= 1) then
       parbe14 = (((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6
@@ -861,6 +888,7 @@ subroutine daten
   end if
 
   call elens_postInput
+  call cheby_postInput
 #ifdef PYTHIA
   call pythia_postInput
 #endif
@@ -947,17 +975,17 @@ subroutine daten
         l2 = (l1-1)*6+1
         l3 = l2+5
         if(l2 == 1) then
-          write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(sixin_beze(l,k),k=1,6)
+          write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(geom_beze(l,k),k=1,6)
         else
-          write(lout,"(30x,6(1x,a20))") (sixin_beze(l,k),k=l2,l3)
+          write(lout,"(30x,6(1x,a20))") (geom_beze(l,k),k=l2,l3)
         end if
       end do
       if(mod(kk,6) /= 0) then
         l4 = ll*6+1
-        write(lout,"(30x,6(1x,a20))") (sixin_beze(l,k),k=l4,kk)
+        write(lout,"(30x,6(1x,a20))") (geom_beze(l,k),k=l4,kk)
       end if
     else
-      write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(sixin_beze(l,k),k=1,kk)
+      write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(geom_beze(l,k),k=1,kk)
     end if
   end do
   write(lout,"(a)") str_divLine
@@ -979,7 +1007,7 @@ subroutine daten
       if(icc <= nblo) then
         ic0(l) = bezb(icc)
       else
-        ic0(l) = sixin_bez0(icc-nblo)
+        ic0(l) = geom_bez0(icc-nblo)
       end if
     end do
     k11 = k10+1
@@ -1134,7 +1162,9 @@ subroutine daten
 
 9500 continue
 
-  call dealloc(sixin_bez0,mNameLen,"sixin_bez0")
+  call dealloc(geom_bez0,mNameLen,"geom_bez0")
+  call dealloc(geom_beze,mNameLen,"geom_beze")
+  call dealloc(geom_ilm, mNameLen,"geom_ilm")
 
   return
 
@@ -1154,17 +1184,22 @@ subroutine daten
 
 9999 continue
   if(nUnit == 2) then
-    write(lout,"(a)")      "INPUT> ERROR in fort.2"
-    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo2,": '"//trim(inLine)//"'"
-  else
-    write(lout,"(a)")      "INPUT> ERROR in fort.3"
-    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo3,": '"//trim(inLine)//"'"
-    write(lout,"(a)")      "INPUT> Previous Lines:"
     write(lout,"(a)")      ""
+    write(lout,"(a)")      " ERROR in fort.2"
+    write(lout,"(a,i0,a)") " Line ",lineNo2,": '"//trim(adjustl(inLine))//"'"
+  else
+    write(lout,"(a)")      ""
+    write(lout,"(a,i0)")   " ERROR in fort.3 on line ",lineNo3
+    write(lout,"(a)")      "========O"//repeat("=",91)
     do i=1,5
       if(lineNo3-5+i <= 0) cycle
-      write(lout,"(i5,a)") lineNo3-5+i," | "//trim(pLines(i))
+      if(i == 5) then
+        write(lout,"(a,i5,a)") ">>",lineNo3-5+i," | "//trim(pLines(i))
+      else
+        write(lout,"(a,i5,a)") "  ",lineNo3-5+i," | "//trim(pLines(i))
+      end if
     end do
+    write(lout,"(a)")      "========O"//repeat("=",91)
   end if
   call prror
   return
@@ -1648,7 +1683,7 @@ subroutine initialize_element(ix,lfirst)
       use mod_common_track
       use mod_common_main
       use mod_hions
-      use elens
+      use cheby, only : cheby_kz
       use wire
       use mathlib_bouncer
       implicit none
@@ -2081,6 +2116,11 @@ subroutine initialize_element(ix,lfirst)
          ed(ix)=zero
          ek(ix)=zero
          el(ix)=zero
+!--chebyshev lens
+      else if(kz(ix).eq.cheby_kz) then
+         ed(ix)=zero
+         ek(ix)=zero
+         el(ix)=zero
       endif
 
       return
@@ -2092,29 +2132,7 @@ subroutine initialize_element(ix,lfirst)
 
 end subroutine initialize_element
 
-subroutine rounderr(errno,fields,f,value)
-
-  use floatPrecision
-  use crcoall
-
-  implicit none
-
-  integer errno,f,l
-  character(len=*) fields(*)
-  character(len=999) localstr
-  real(kind=fPrec) value
-
-  l=len(fields(f))
-  localstr=fields(f)(1:l)
-  write (lout,"(a,i0)")     "ROUND> ERROR Data Input Error Overfow/Underflow in round_near. Errno: ",errno
-  write (lout,"(a,i0,a)")   "ROUND>       f:fieldf:",f,":"//localstr
-  write (lout,"(a,e24.16)") "ROUND>       Function fround (rounderr) returning: ",value
-
-  call prror(-1)
-
-end subroutine rounderr
-
-      subroutine wzset
+subroutine wzset
 !  *********************************************************************
 !
 !  This subroutine must be called before subroutine WZSUB can be used to
@@ -2157,9 +2175,9 @@ end subroutine rounderr
             wtimag(k)=wi
  1       continue
  2    continue
-      end subroutine wzset
+end subroutine wzset
 
-      subroutine mywwerf(x,y,wr,wi)
+subroutine mywwerf(x,y,wr,wi)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2237,7 +2255,7 @@ end subroutine rounderr
       wr=vr
       wi=vi
       return
-end
+end subroutine mywwerf
 
 !-----------------------------------------------------------------------
 !  CALCULATION OF : MOMENTUM-DEPENDING ELEMENT-MATRICES AND
@@ -2583,339 +2601,6 @@ subroutine envars(j,dpp,rv)
 
 end subroutine envars
 
-subroutine SELNUL( iel )
-!-----------------------------------------------------------------------
-!     A.Mereghetti, 2016-03-14
-!     initialise a single element to empty
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use parpro
-      use mod_common
-      use mod_commons
-      use aperture
-      implicit none
-
-!     local variables
-      integer iel, i1, i3, i4
-
-      kz(iel)=0
-      kp(iel)=0
-      irm(iel)=0
-      imtr(iel)=0
-      nmu(iel)=0
-      kpa(iel)=0
-      isea(iel)=0
-      ncororb(iel)=0
-      iratioe(iel)=0
-      itionc(iel)=0
-      dki(iel,1)=zero
-      dki(iel,2)=zero
-      dki(iel,3)=zero
-      ed(iel)=zero
-      el(iel)=zero
-      ek(iel)=zero
-      sm(iel)=zero
-      xpl(iel)=zero
-      xrms(iel)=zero
-      zpl(iel)=zero
-      zrms(iel)=zero
-      benkc(iel)=zero
-      r00(iel)=zero
-
-      ratioe(iel)=one
-      hsyc(iel)=zero
-      phasc(iel)=zero
-      ptnfac(iel)=zero
-!      wirel(iel)=zero
-      acdipph(iel)=zero
-      crabph(iel)=zero
-      crabph2(iel)=zero
-      crabph3(iel)=zero
-      crabph4(iel)=zero
-      bez(iel)=' '
-      bezl(iel)=' '
-
-      do i3=1,2
-        do i4=1,6
-          a(iel,i3,i4)=zero
-        end do
-      end do
-
-      do i1=1,mmul
-         bk0(iel,i1)=zero
-         ak0(iel,i1)=zero
-         bka(iel,i1)=zero
-         aka(iel,i1)=zero
-      end do
-
-      do i1=1,3
-         bezr(i1,iel)=' '
-      end do
-
-      ! JBG increasing parbe to dimension 5
-      do i1=1,5
-         parbe(iel,i1)=zero
-      end do
-
-      call aperture_nul(iel)
-
-      return
-end subroutine SELNUL
-
-subroutine STRNUL( iel )
-!-----------------------------------------------------------------------
-!     A.Mereghetti, 2016-03-14
-!     initialise an element in lattice structure to empty
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use parpro
-      use mod_common
-      use mod_common_main
-      implicit none
-
-!     local variables
-      integer iel, i1, i2, i3
-
-      ic(iel)=0
-      mzu(iel)=0
-      icext(iel)=0
-      icextal(iel)=0
-      ! extalign(iel,1)=zero
-      ! extalign(iel,2)=zero
-      ! extalign(iel,3)=zero
-      sigmoff(iel)=zero
-      tiltc(iel)=one
-      tilts(iel)=zero
-
-!--Beam-Beam------------------------------------------------------------
-      imbb(iel)=0
-      ! do j=1,40
-      !    exterr(iel,j)=zero
-      ! enddo
-      xsi(iel)=zero
-      zsi(iel)=zero
-      smi(iel)=zero
-      smizf(iel)=zero
-      do i3=1,mmul
-          aaiv(i3,iel)=zero
-          bbiv(i3,iel)=zero
-      enddo
-      return
-end subroutine STRNUL
-
-! ================================================================================================ !
-!     by A.Mereghetti
-!     last modified: 01-12-2016
-!     Insert a New Empty Element in Lattice Structure
-!     interface variables:
-!     - iEl: index in lattice structure where to insert the element
-!     always in main code
-! ================================================================================================ !
-integer function INEELS( iEl )
-
-  use floatPrecision
-  use numerical_constants
-  use crcoall
-  use parpro
-  use mod_common
-  use mod_common_track
-  use mod_common_main
-  implicit none
-
-!     interface variables
-  integer iEl
-
-!     temporary variables
-  integer i,iInsert
-
-  if ( iu.gt.nblz-3) then
-    call expand_arrays(nele, npart, nblz+100, nblo)
-  end if
-  iu=iu+1
-  if ( iEl.eq.0 ) then
-!        append
-    iInsert=iu
-  elseif ( iEl .lt. 0 ) then
-    iInsert=iu+iEl
-  else
-    iInsert=iEl
-  end if
-  if ( iInsert.le.iu ) then
-!     shift by one all lattice elements, to make room for the new
-!        starting marker
-    do i=iu,iInsert+1,-1
-      ic(i)=ic(i-1)
-      icext(i)=icext(i-1)
-      icextal(i)=icextal(i-1)
-      dcum(i)=dcum(i-1)
-    enddo
-  endif
-
-!     initialise element to empty
-  call STRNUL(iInsert)
-!     update dcum of added element
-  dcum(iInsert)=dcum(iInsert-1)
-!     return iu
-  INEELS=iu
-end function INEELS
-
-integer function INEESE()
-!-----------------------------------------------------------------------
-!     by A.Mereghetti
-!     last modified: 01-12-2016
-!     Insert a New Empty Element (empty) in SINGLE ELEMENTS
-!     for the moment, it only appends the new single element
-!     always in main code
-!-----------------------------------------------------------------------
-  use floatPrecision
-  use numerical_constants
-  use crcoall
-
-  use parpro
-  use mod_common
-  use mod_common_track
-  use mod_common_main
-  implicit none
-
-  il=il+1
-  if( il.gt.nele-2 ) then
-    call expand_arrays(nele+50, npart, nblz, nblo )
-    if (ithick.eq.1) then
-      call expand_thickarrays(nele, npart, nblz, nblo )
-    end if
-  end if
-
-! initialise element to empty
-  call SELNUL(il)
-
-! returned variable
-  INEESE=il
-
-end function INEESE
-
-integer function check_SE_unique( iEl, ixEl )
-!-----------------------------------------------------------------------
-!     by A.Mereghetti
-!     last modified: 01-12-2016
-!     check that a given entry in the sequence is unique
-!     interface variables:
-!     - iEl:  index in lattice structure to be checked
-!     - ixEl: index in array of SINGLE ELEMENTs of the element to be checked
-!     always in main code
-!-----------------------------------------------------------------------
-  use floatPrecision
-  use numerical_constants
-
-  use parpro
-  use mod_common
-  use mod_common_track
-  use mod_common_main
-  implicit none
-
-! interface variables
-  integer iEl, ixEl
-
-! temporary variables
-  integer i,ix
-
-  check_SE_unique=-1
-
-  do i=1,iu
-    ix=ic(i)-nblo
-    if(ix.gt.0) then
-!     SINGLE ELEMENT
-      if( i.ne.iEl .and. ix.eq.ixEl ) then
-        check_SE_unique=i
-        exit
-      end if
-    end if
-  end do
-
-  return
-
-end function check_SE_unique
-
-subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
-!-----------------------------------------------------------------------
-!     by A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-22
-!     find the element at location sLoc
-!     interface variables:
-!     - sLoc: s-coordinate where element should be
-!     - iEl:  index in lattice structure of found element
-!     - ixEl: index in array of SINGLE ELEMENTs of found element
-!     - llast: if true, return last lens at sLoc
-!     always in main code
-!-----------------------------------------------------------------------
-  use floatPrecision
-  use mod_common     ! for iu, tlen, ic
-  use parpro
-  use crcoall
-  use numerical_constants, only : zero
-
-  implicit none
-
-! interface variables
-  integer iEl, ixEl
-  real(kind=fPrec) sLoc
-  logical llast, lfound
-
-! temporary variables
-  integer i, iDelta, iCheck, iMax, iStep
-  logical lSlide
-
-  iEl=-1
-  ixEl=-1
-
-  if (sLoc.gt.tlen.or.sLoc.lt.zero) then
-    write(lout,"(a,2(f11.4,a))") "FINDENTRY> ERROR Requested s-location: ",sLoc," is not inside accelerator range: [0:",tlen,"]"
-    call prror
-  endif
-
-  ! fast search
-  iCheck=iu
-  iDelta=iu
-  do while(iDelta.gt.1.or.iCheck.gt.0.or.iCheck.lt.iu)
-    if (dcum(iCheck).eq.sLoc) exit
-    iDelta=nint(real(iDelta/2))
-    if (dcum(iCheck).lt.sLoc) then
-      iCheck=iCheck+iDelta
-    else
-      iCheck=iCheck-iDelta
-    endif
-  end do
-
-  ! finalise search
-  if (dcum(iCheck).lt.sLoc.or.(dcum(iCheck).eq.sLoc.and.llast)) then
-    iMax=iu
-    iStep=1
-    lslide=llast
-  else
-    iMax=1
-    iStep=-1
-    lSlide=.not.llast
-  endif
-  do i=iCheck,iMax,iStep
-    if (dcum(i).lt.sLoc) continue
-    if (dcum(i).gt.sLoc) then
-      if (iEl.eq.-1) iEl=i
-    else
-      iEl=i
-      if (lSlide) continue
-    endif
-    exit
-  enddo
-
-  if (lfound) then
-    ixEl=ic(iEl)-nblo
-    if (ixEl.lt.0) ixEl=ic(iEl) ! drift
-  else
-    write(lout,"(a,2(f11.4,a))") "FINDENTRY> s-location: ",sLoc," was not found in acclerator range: [0:",tlen,"]"
-  endif
-
-end subroutine find_entry_at_s
-
 subroutine distance(x,clo,di0,t,dam)
 !-----------------------------------------------------------------------
 !  CALCULATION OF DISTANCE IN PHASE SPACE FOR POST-PROCESSING
@@ -3177,7 +2862,7 @@ subroutine betalf(dpp,qw)
 !-----------------------------------------------------------------------
   160 ierro=1
       return
-end
+end subroutine betalf
 
 subroutine block
 !-----------------------------------------------------------------------
@@ -3239,7 +2924,7 @@ subroutine block
       end do
 
       return
-end
+end subroutine block
 
 subroutine blockdis(aeg,bl1eg,bl2eg)
 !-----------------------------------------------------------------------
@@ -3306,7 +2991,7 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
       end do
 
       return
-end
+end subroutine blockdis
 
 subroutine chroma
 !-----------------------------------------------------------------------
@@ -3445,7 +3130,7 @@ subroutine chroma
 10035 format(/t5,'---- NO Improvement in last Step ----'/)
 end subroutine chroma
 
-      subroutine chromda
+subroutine chromda
 !-----------------------------------------------------------------------
 !  CHROMATICITY CORRECTION VIA DA
 !-----------------------------------------------------------------------
@@ -3573,7 +3258,7 @@ end subroutine chroma
 10060 format(/t10,'DA CHROMATICITY CORRECTION'/ t10,                    &
      &'MAXIMUM NUMBER OF ITERATIONS ACHIEVED--->',2x,i4/ t10,           &
      &'PROCEDURE MAY NOT HAVE CONVERGED')
-end
+end subroutine chromda
 
 subroutine clorb(dpp)
 !-----------------------------------------------------------------------
@@ -3661,7 +3346,7 @@ subroutine clorb(dpp)
      &'PROCEDURE MAY NOT HAVE CONVERGED')
 10010 format(t5,'---- ENTRY CLORB ----/DPP=',f8.5,' /CLOX/', 2f10.5,    &
      &' /CLOY/',2f10.5,' /ITERAT.=',i3,'/ ACCURACY=',d13.6)
-end
+end subroutine clorb
 
 subroutine clorb2(dpp)
 !-----------------------------------------------------------------------
@@ -5902,7 +5587,7 @@ subroutine corrorb
      &' VER.-PTP: ',f6.3)
 end subroutine corrorb
 
-      subroutine putorb(xinc,nx,npflag)
+subroutine putorb(xinc,nx,npflag)
 !-----------------------------------------------------------------------
 !  PUT ORBIT CHANGES FROM MICADO TO THE GIVEN ORBIT CORRECTORS
 !-----------------------------------------------------------------------
@@ -6001,9 +5686,9 @@ end subroutine corrorb
       return
 10000 format(t5,i4,i4,' ',a16,'  OLD: ',d14.7,' MRAD   NEW: ' ,d14.7,   &
      &' MRAD')
-      end
+end subroutine putorb
 
-      subroutine orbinit
+subroutine orbinit
 !-----------------------------------------------------------------------
 !  INITIALIZES THE RANDOM NUMBER OF NOT SET CORRCTORS
 !-----------------------------------------------------------------------
@@ -6061,7 +5746,7 @@ end subroutine corrorb
         endif
    10 continue
       return
-      end
+end subroutine orbinit
 
 subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
 !*********************************************************************
@@ -7505,7 +7190,7 @@ subroutine qmod0
      &a16)
 end subroutine qmod0
 
-      subroutine qmodda(mm,qwc)
+subroutine qmodda(mm,qwc)
 !-----------------------------------------------------------------------
 !  ADJUSTMENT OF THE Q-VALUES VIA DA
 !-----------------------------------------------------------------------
@@ -9397,7 +9082,7 @@ subroutine search(dpp)
      &6x,'COS',13x,'SIN',6x,'|', 6x,'COS',13x,'SIN',6x,'|')
 10050 format(1x,a16,1x,'|',i3,'  |',g15.5,'|',g15.5,'|',g15.5,'|',      &
      &g15.5,'|',g15.5,'|',g15.5,'|')
-end
+end subroutine search
 
 !-----------------------------------------------------------------------
 !  CALCULATION OF RESONANCE- AND SUBRESONANCE-DRIVINGTERMS
@@ -11380,37 +11065,3 @@ subroutine decoup
 10030 format(14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,          &
      &g17.10/14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,g17.10)
 end subroutine decoup
-
-subroutine datime(nd,nt)
-      implicit none
-! Fill common slate for usage by hmachi call as per z007 writeup.        !hr08
-      common /slate/ isl(40)                                             !hr08
-
-      integer isl                                                        !hr08
-!
-!-    call datime (nd,nt)   returns integer date   nd = yymmdd
-!-                                  integer time   nt =   hhmm
-!     integer nd,nt,mm(3),nn(3)
-!     call idate (mm(1),mm(2),mm(3))
-!     call itime (nn)
-      character(len=8) date
-      character(len=10) time
-      character(len=5) zone
-      integer values(8),mm(3),nd,nt
-      save
-      call date_and_time(date,time,zone,values)
-      mm(3)=mod(values(1),100)
-!     mm(3) = mod (mm(3),100)
-      mm(2)=values(3)
-      mm(1)=values(2)
-      isl(1)= mm(3)                                                      !hr08
-      isl(2)= mm(2)                                                      !hr08
-      isl(3)= mm(1)                                                      !hr08
-      isl(4)= values(5)                                                  !hr08
-      isl(5)= values(6)                                                  !hr08
-      isl(6)= 0                                                          !hr08
-      nd = (mm(3)*100+mm(1))*100 + mm(2)
-!     nt =            nn(1) *100 + nn(2)
-      nt=values(5)*100+values(6)
-      return
-end subroutine datime

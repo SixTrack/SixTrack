@@ -78,7 +78,9 @@ end subroutine wire_expand_arrays
 subroutine wire_parseInputLine(inLine, iLine, iErr)
 
   use mod_settings
+  use string_tools
   use sixtrack_input
+  use mod_common
 
   implicit none
 

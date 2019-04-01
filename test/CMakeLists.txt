@@ -55,6 +55,10 @@ list(APPEND SIXTRACK_TESTS
   beam-HO_LR-oldstyle
   beambeam4dDYNK
   beambeamDYNK
+  chebythin6d
+  chebythin6d_DYNK
+  chebythin6d_ions
+  chebythin6d_ramp_DYNK
   crabs
   dipedge
   distance
@@ -87,6 +91,7 @@ list(APPEND SIXTRACK_TESTS
   generalized-rf-multipoles
   generalized-rf-multipoles-missalignments
   geometry
+  geometry_multicol
   last_amp
   lost
   lostevery
@@ -150,9 +155,9 @@ if(NOT CR)
     collimation_dist_4
     collimation_dist_5
     collimation_dist_6
-    collimation_old-db_old-block
-    collimation_old-db_new-block
     collimation_k2_fcc_2017_h1_collision
+    collimation_old-db_new-block
+    collimation_old-db_old-block
     scatter_collimation
   )
 endif()
@@ -211,9 +216,9 @@ set(TESTS_NOFORT10
   collimation_dist_4
   collimation_dist_5
   collimation_dist_6
-  collimation_old-db_old-block
-  collimation_old-db_new-block
   collimation_k2_fcc_2017_h1_collision
+  collimation_old-db_new-block
+  collimation_old-db_old-block
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
@@ -231,6 +236,7 @@ set(TESTS_NOFORT10
   generalized-rf-multipoles
   generalized-rf-multipoles-missalignments
   geometry
+  geometry_multicol
   momentum_scan
   multipoles_DYNK
   orbit6d-element-combinedFunction
@@ -255,6 +261,10 @@ set(TESTS_NOFORT10
 # List of tests that do not produce singletrackfile.dat or fort.90
 set(TESTS_NO_STF_FORT90
   beam-HO_6D-simple-newstyle-coupling
+  chebythin6d
+  chebythin6d_DYNK
+  chebythin6d_ions
+  chebythin6d_ramp_DYNK
   collimation_dist_1h
   collimation_dist_1v
   collimation_dist_2h
@@ -281,6 +291,7 @@ set(TESTS_NO_STF_FORT90
   fma
   fma_binary
   fma_naff
+  geometry_multicol
   rfMultipoles_2ndOrder
   rfMultipoles_4thOrder
   scatter_aperture
@@ -298,6 +309,8 @@ if(CR)
   # Should at least be able to reach the standard TIMEOUT.
   set(CR_KILL_TIME "2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,16384,16384,16384,16384,16384,16384,16384,16384,16384")
   list(APPEND CR_MUST_RESTART
+    chebythin6d_ions
+    chebythin6d_ramp_DYNK
     dipedge
     dynk_filelin
     dynk_globalvars
@@ -305,6 +318,7 @@ if(CR)
     dynk_operators
     dynk_polynomial
     dynk_random
+    elensidealthin6d_ramp_DYNK
     scatter_aperture
     scatter_bbelastic
   )
@@ -492,6 +506,10 @@ set(FAST_TESTS
   beam-HO_LR-oldstyle
   beambeam4dDYNK
   beambeamDYNK
+  chebythin6d
+  chebythin6d_DYNK
+  chebythin6d_ions
+  chebythin6d_ramp_DYNK
   collimation_dist_1h
   collimation_dist_1v
   collimation_dist_2h
@@ -501,8 +519,9 @@ set(FAST_TESTS
   collimation_dist_4
   collimation_dist_5
   collimation_dist_6
-  collimation_old-db_old-block
   collimation_old-db_new-block
+  collimation_old-db_old-block
+  collimation_old-db_old-block
   crabs
   dump_2_all_ele_highprec
   dump_all_highprec
@@ -534,6 +553,7 @@ set(FAST_TESTS
   generalized-rf-multipoles
   generalized-rf-multipoles-missalignments
   geometry
+  geometry_multicol
   last_amp
   lost
   lostnotilt

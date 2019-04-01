@@ -95,11 +95,10 @@ module collimation
   real(kind=fPrec), private, save :: sigsecut3 = one
   real(kind=fPrec), private, save :: sigsecut2 = one
 
-  ! From collimation_comnul
-  real(kind=fPrec), public,  save :: emitnx0_dist    = zero
-  real(kind=fPrec), public,  save :: emitny0_dist    = zero
-  real(kind=fPrec), public,  save :: emitnx0_collgap = zero
-  real(kind=fPrec), public,  save :: emitny0_collgap = zero
+  real(kind=fPrec), private, save :: emitnx0_dist = zero
+  real(kind=fPrec), private, save :: emitny0_dist = zero
+  real(kind=fPrec), private, save :: emitnx0_collgap = zero
+  real(kind=fPrec), private, save :: emitny0_collgap = zero
 
 
   character(len=mNameLen),  private, save :: name_sel  = " "
@@ -110,7 +109,6 @@ module collimation
 
   integer ieff,ieffdpop
 
-  ! From collimation_comnul
   real(kind=fPrec), private, save :: myemitx0_dist    = zero
   real(kind=fPrec), private, save :: myemity0_dist    = zero
   real(kind=fPrec), public,  save :: myemitx0_collgap = zero
