@@ -164,6 +164,12 @@ if(NAFF)
   )
 endif()
 
+if(FFIELD)
+  list(APPEND SIXTRACK_TESTS
+    fringe_field
+  )
+endif()
+
 if(PYTHIA)
   list(APPEND SIXTRACK_TESTS
     scatter_pythia
@@ -213,6 +219,7 @@ set(TESTS_NOFORT10
   dynk_random
   elensidealthck6d
   exact
+  fringe_field
   generalized-rf-multipoles
   generalized-rf-multipoles-missalignments
   geometry
@@ -261,6 +268,7 @@ set(TESTS_NO_STF_FORT90
   fma
   fma_binary
   fma_naff
+  fringe_field
   geometry_multicol
   rfMultipoles_2ndOrder
   rfMultipoles_4thOrder
@@ -549,7 +557,7 @@ set(FAST_TESTS
   wire_thin6d_ibeco0
 )
 
-#Medium tests take < 30 mins to run
+# Medium tests take < 30 mins to run
 set(MEDIUM_TESTS
   bbe51
   bbe52
@@ -561,6 +569,7 @@ set(MEDIUM_TESTS
   fma
   fma_binary
   fma_naff
+  fringe_field
   frs
   frs60
   lostevery

@@ -1143,6 +1143,11 @@ subroutine thin6d(nthinerr)
   use mod_fluka
 #endif
 
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+  use mod_ffield, only : ffindex, ffield_genAntiQuad, ffield_enterQuad, ffield_exitQuad
+#endif
+
 #ifdef ROOT
   use root_output
 #endif
@@ -1197,6 +1202,11 @@ subroutine thin6d(nthinerr)
   else
     turnrep = 1
   end if
+
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+  call ffield_genAntiQuad()
+#endif
 
   ! This is the loop over turns: label 660
 #ifdef CR
@@ -1553,10 +1563,22 @@ subroutine thin6d(nthinerr)
         end do
         goto 640
       case (12) ! NORMAL QUADRUPOLE
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+  if (ffindex(ic(i)-nblo) > 0) then
+    if ( (ic(i) /= ic(i-2)).and.(ic(i) /= ic(i-3)) )  call ffield_enterQuad(i)  !A optimizer!!!
+  end if
+#endif
         do j=1,napx
 #include "include/alignva.f90"
 #include "include/kickvxxh.f90"
         end do
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+  if (ffindex(ic(i)-nblo) > 0) then
+    if ( (ic(i) /= ic(i+2)).and.(ic(i) /= ic(i+3)) )  call ffield_exitQuad(i)   !A optimizer!!!
+  end if
+#endif
         goto 640
       case (13) ! NORMAL SEXTUPOLE
         do j=1,napx
@@ -1740,63 +1762,145 @@ subroutine thin6d(nthinerr)
       case (31)
         goto 640
       case (32)
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        if((FFindex(ic(i)-nblo)==0))then
+#endif
         goto 410
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        else
+        goto 640
+        endif
+#endif
       case (33)
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        if((FFindex(ic(i)-nblo)==0))then
+#endif
         do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v01.f90"
 #include "include/mul6v01.f90"
         end do
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        endif
+#endif
         goto 640
       case (34)
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        if((FFindex(ic(i)-nblo)==0))then
+#endif
         do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v01.f90"
 #include "include/mul6v01.f90"
         end do
         goto 410
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        else
+        goto 640
+        endif
+#endif
       case (35)
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        if((FFindex(ic(i)-nblo)==0))then
+#endif
         do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v02.f90"
 #include "include/mul6v01.f90"
         end do
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        endif
+#endif
         goto 640
       case (36)
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        if((FFindex(ic(i)-nblo)==0))then
+#endif
         do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v02.f90"
 #include "include/mul6v01.f90"
         end do
         goto 410
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        else
+        goto 640
+        endif
+#endif
       case (37)
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        if((FFindex(ic(i)-nblo)==0))then
+#endif
         do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v03.f90"
 #include "include/mul6v02.f90"
         end do
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        endif
+#endif
         goto 640
       case (38)
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        if((FFindex(ic(i)-nblo)==0))then
+#endif
         do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v03.f90"
 #include "include/mul6v02.f90"
         end do
         goto 410
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        else
+        goto 640
+        endif
+#endif
       case (39)
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        if((FFindex(ic(i)-nblo)==0))then
+#endif
         do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v04.f90"
 #include "include/mul6v02.f90"
         end do
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        endif
+#endif
         goto 640
       case (40)
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        if((FFindex(ic(i)-nblo)==0))then
+#endif
         do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v04.f90"
 #include "include/mul6v02.f90"
         end do
         goto 410
+#ifdef FFIELD
+  ! Modification by B.DALENA and T.PUGNAT
+        else
+        goto 640
+        endif
+#endif
       case (41) ! 4D BB kick
         do 690 j=1,napx
 #include "include/beamco.f90"
