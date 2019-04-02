@@ -14,6 +14,7 @@ module mod_ffield
 
   implicit none
 
+  logical, public, save :: ffield_enabled = .false.
 
   ! ------------------------------------------------------------------------------------------------ !
   ! FFIELD Function
