@@ -1932,7 +1932,6 @@ The collimation module is controlled by the \texttt{COLL} block in \texttt{firt.
 \bigskip
 \noindent\textbf{Note:} The distribution with \texttt{PENCIL\_DISTR = 2} is used when wanting to simulate the loss of a magnet.
 
-
 \paragraph{The \texttt{DO\_THISDIS} Flag Description:}
 \begin{enumerate}
 \item Distribution in the plane for which the parameters are specified ONLY: flat distribution in the selected plane between $A_x \pm \delta A_x$ (horizontal) or $A_y \pm \delta A_y$ (vertical). The amplitude in the other plane is zero\index{beam distribution}.
@@ -1968,3 +1967,84 @@ COLLIMATION----------------------------------------------------------------
    .TRUE. .FALSE. WAbsVertLowbcoll  101  1  1.
 NEXT-----------------------------------------------------------------------------
 \end{cverbatim}
+
+\section{Fringe Fields} \label{sec:ffield}
+
+This method allows for the usage of a longitudinal description of the quadrupole magnetic field, adapted for each magnet specifically selected for the study, without changing the reference optics of SixTrack.
+This Fringe Field\index{Fringe Field} module is controlled by the \texttt{FFIE} block.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{FFIE}\index{FFIE} \\
+    \textbf{Data lines} & Variable, see below. \\
+    \textbf{Format}     & This module uses a keyword, value format. See below.
+\end{tabular}
+
+\bigskip
+
+\paragraph{Select Quadrupole} \texttt{FFQN quadname in ex}\\
+
+The \texttt{FFQN} flag selects which quadrupole (name) has a longitudinal description in additional files that will be loaded in the study and link it to the type of Fringe Field that will be used (additional file).
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{quadname} & char    & Name of quadrupole. Must be the same as in the list of single elements. \\
+    \texttt{in}       & integer & Index of the fringe field to use at the beginning of the quadrupole. \\
+    \texttt{ex}       & integer & Index of the fringe field to use at the end of the quadrupole.
+\end{tabular}
+
+\paragraph{Select Skipped Multipole} \texttt{FFMS multname}\\
+
+The \texttt{FFMS} flag specify the name of the multipole to skip in the tracking, in order to not increase the integrated non-linearities if multipole kicks are already added for the quadrupole in the lattice.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{multname} & char & Name of multipole that will be skipped in the main lattice. Must be the same as in the list of single elements.
+\end{tabular}
+
+\paragraph{Profile Files} \texttt{FFFI file length\_quad length\_tot [aperture]}\\
+
+The \texttt{FFFI} flag is followed by the files where the different Fringe Field vector potential values are saved.
+The fringe field vector potential profile is saved using the format shown in Table~\ref{tab:ffield_file}.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{file}         & char  & Name of the fringe field profile file. See next table for proper formatting. \\
+    \texttt{length\_quad} & float & Length inside the quadrupole, i.e. integrated length of the equivalent quadrupole for this file. \\
+    \texttt{length\_tot}  & float & Total length of integration inside the file. \\
+    \texttt{aperture}     & float & The physical aperture of the quadrupole, or the maximum apeture at which you trust the representation of the Vector Potential. This parameter is optional. By defualt it is fixed as 0.080m.
+\end{tabular}
+
+\begin{center}
+\begin{longtable}{|c|c|p{11cm}|}
+    \caption{Input parameter in the Fringe Field profile files.}
+    \label{tab:ffield_file} \\*
+    \hline
+    \rowcolor{blue!30}
+    Arg. & Unit & Description \\*
+    \hline
+    \endfirsthead
+
+    \texttt{z} & $m$ & Longitudinal position of the kick. \\*
+    \hline
+
+    \texttt{i} & -- & Exponent of x in the Horner polynomial representation of the vector potential.  \\*
+    \hline
+
+    \texttt{j} & -- & Exponent of y in the Horner polynomial representation of the vector potential. \\*
+    \hline
+
+    \texttt{k} & -- & Exponent of z in the Horner polynomial representation of the vector potential. Always 0 in case of magnetic quadrupole. \\*
+    \hline
+
+    \texttt{Ax} & $m^{-(1+i+j)}$ & Coefficient of the Horner polynomial of the vector potential for the axis x. \\*
+    \hline
+
+    \texttt{Ay} & $m^{-(1+i+j)}$ & Coefficient of the Horner polynomial of the vector potential for the axis y. \\*
+    \hline
+
+    \texttt{Az} & $m^{-(1+i+j)}$ & Coefficient of the Horner polynomial of the vector potential for the axis z. \\*
+    \hline
+
+\end{longtable}
+\end{center}
