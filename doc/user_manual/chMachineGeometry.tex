@@ -74,7 +74,7 @@ Each linear single element has a name, type, inverse bending radius, focusing an
 \end{enumerate}
 
 % ================================================================================================================================ %
-\subsection{Non-linear Elements} \label{NonEle}
+\subsection{Non-Linear Elements} \label{NonEle}
 
 \paragraph{Format} \texttt{name type $K_{n}$-strength rms-strength length}
 
@@ -459,7 +459,7 @@ All parameters except name and type have to be set to zero in the list of single
 The parameters for the e-lens are defined in the \texttt{ELEN} input block.
 
 % ================================================================================================================================ %
-\subsection{Scattering point} \label{SCAT}
+\subsection{Scattering Point} \label{SCAT}
 
 \paragraph{Format} \texttt{name type}
 
@@ -524,8 +524,15 @@ In four-dimensional transverse tracking, the linear elements between non-linear 
 % ================================================================================================================================ %
 \subsection{Structure Input} \label{StrInp}
 
-The model of the accelerator is put together by constructing a sequence of blocks of linear elements, non-linear elements, observation points, and possibly a cavity with the keyword \texttt{CAV} used if this name does not appear in the list of single elements (\ref{SinEle}) with type $\pm 12$.
+The model of the accelerator is put together by constructing a sequence of blocks of linear elements, non-linear elements, observation points, and possibly a cavity with the keyword \texttt{CAV}\index{cavity} used if this name does not appear in the list of single elements (\ref{SinEle}) with type $\pm 12$.
 In that case, its parameters are given in the \textit{Synchrotron Oscillations} input block (\ref{SynOsc}).
+
+The Structure Elements block can either be specified as a list of Single Element names with multiple elements per line, or in a multi-column format with one element per line.
+
+\subsubsection{Format 1: List of Single Elements}
+
+The single column format defines a list of Single Elements in the order they appear in the machine.
+The maximum number of elements per line is 40.
 
 \paragraph{Format} \texttt{\{ structure-element $\vert$ CAV $\vert$ GO \}}
 
@@ -541,6 +548,27 @@ Repetition of parts of the structure is indicated by parentheses with a multiply
 If the left parenthesis ``('' occurs in a line of input, the factor \texttt{N} is expected to be found in the preceding characters.
 If the characters are blank, \texttt{N} is set to 1.
 The right parenthesis ``)'' signals the end of the sequence to be repeated.
+
+\subsubsection{Format 2: Multi-Column List of Elements}
+
+This mode is enabled by the \texttt{MULTICOL} flag, which has to appear on the first line of the block.
+The block then takes a list of elements, one per line, with at least three values.
+The \texttt{GO} keyword is supported as in the list format, and has to appear alone on a single line.
+Note: Generating these imput files requires MadX version 5.05 or higher.
+
+\paragraph{Format} \texttt{ElemName FamName S}
+
+\bigskip
+\begin{longtabu}{@{}llp{0.70\linewidth}}
+    \texttt{ElemName} & string & The unique element name (uniqueness is not enforced). \\
+    \texttt{FamName}  & string & The single element name, or ``family name''. \\
+    \texttt{S}        & float  & The s-coordinate of the centre of the element.
+\end{longtabu}
+
+The multi-column Structure block is generated automatically by the SixTrack converter in MadX when the flag \texttt{multicol} is present.
+The \texttt{ElemName} column is populated with the lower case version of the element name as defined in MadX.
+The \texttt{FamName} column is populated with the Single Element name as defined in the Single Element block.
+The \texttt{S} column is the s-coordinate at the centre of the element as defined in MadX.
 
 % ================================================================================================================================ %
 \subsection{Displacement of Elements} \label{DisEle}

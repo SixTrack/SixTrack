@@ -140,7 +140,6 @@ featList = ""
     qwc(i)=zero
   end do
   qwc(3)=zero
-  call comnul
 
   call daten
   call time_timeStamp(time_afterDaten)
