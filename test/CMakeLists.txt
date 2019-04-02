@@ -86,6 +86,7 @@ list(APPEND SIXTRACK_TESTS
   fcc
   fma
   fma_binary
+  fringe_field
   frs
   frs60
   generalized-rf-multipoles
@@ -160,12 +161,6 @@ endif()
 if(NAFF)
   list(APPEND SIXTRACK_TESTS
     fma_naff
-  )
-endif()
-
-if(FFIELD)
-  list(APPEND SIXTRACK_TESTS
-    fringe_field
   )
 endif()
 
