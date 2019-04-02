@@ -1165,7 +1165,7 @@ subroutine thin6d(nthinerr)
   use checkpoint_restart
 #endif
 
-implicit none
+  implicit none
 
   integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,elemEnd,&
     kxxa
@@ -1564,7 +1564,7 @@ implicit none
         goto 640
       case (12) ! NORMAL QUADRUPOLE
         if(doFField) then
-          if((ic(i) /= ic(i-2)).and.(ic(i) /= ic(i-3)))  then
+          if(ic(i) /= ic(i-2) .and. ic(i) /= ic(i-3)) then
             call ffield_enterQuad(i)  !A optimizer!!!
           end if
         end if
@@ -1573,7 +1573,7 @@ implicit none
 #include "include/kickvxxh.f90"
         end do
         if(doFField) then
-          if((ic(i) /= ic(i+2)).and.(ic(i) /= ic(i+3))) then
+          if(ic(i) /= ic(i+2) .and. ic(i) /= ic(i+3)) then
             call ffield_exitQuad(i)   !A optimizer!!!
           end if
         end if
