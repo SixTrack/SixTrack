@@ -2268,8 +2268,7 @@ subroutine dist1
   save
 !-----------------------------------------------------------------------
   do 20 ia=1,napx,2
-    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.     &
-  &(mod(partID(ia),2).ne.0)) then
+    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.(mod(partID(ia),2).ne.0)) then
       ie=ia+1
       dam(ia)=zero
       dam(ie)=zero
@@ -2291,10 +2290,10 @@ subroutine dist1
       cloau(4)=clop6v(2)
       cloau(5)= clo6v(3)
       cloau(6)=clop6v(3)
-      di0au(1)= di0xs(ia)
-      di0au(2)=dip0xs(ia)
-      di0au(3)= di0zs(ia)
-      di0au(4)=dip0zs(ia)
+      di0au(1)= di0xs
+      di0au(2)=dip0xs
+      di0au(3)= di0zs
+      di0au(4)=dip0zs
 
       do ib2=1,6
         do ib3=1,6

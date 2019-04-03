@@ -722,11 +722,11 @@ end interface
     ! Beam-beam element
     clo6v(1:3)  = clo6(1:3)
     clop6v(1:3) = clop6(1:3)
+    di0xs  = di0(1)
+    di0zs  = di0(2)
+    dip0xs = dip0(1)
+    dip0zs = dip0(2)
     do i=1,napx
-      di0xs(i)  = di0(1)
-      di0zs(i)  = di0(2)
-      dip0xs(i) = dip0(1)
-      dip0zs(i) = dip0(2)
       qwcs(i,1) = qwc(1)
       qwcs(i,2) = qwc(2)
       qwcs(i,3) = qwc(3)
@@ -799,15 +799,15 @@ end interface
       enddo
     endif
 
+    clo6v(1)  = clo(1)
+    clop6v(1) = clop(1)
+    clo6v(2)  = clo(2)
+    clop6v(2) = clop(2)
+    di0xs  = di0(1)
+    di0zs  = di0(2)
+    dip0xs = dip0(1)
+    dip0zs = dip0(2)
     do i=1,napx
-      clo6v(1)  = clo(1)
-      clop6v(1) = clop(1)
-      clo6v(2)  = clo(2)
-      clop6v(2) = clop(2)
-      di0xs(i)  = di0(1)
-      di0zs(i)  = di0(2)
-      dip0xs(i) = dip0(1)
-      dip0zs(i) = dip0(2)
       qwcs(i,1) = qwc(1)
       qwcs(i,2) = qwc(2)
       qwcs(i,3) = zero
@@ -1165,10 +1165,10 @@ end interface
         dpsv(i3)  = x2(6)
         dpsic     = dpsv(i3)+clop6v(3)
         if(idp == 1 .and. abs(ition) == 1 .and. iclo6 == 0) then
-          xv1(i3) = xv1(i3) + di0xs(ia)*dpsic
-          xv2(i3) = xv2(i3) + di0zs(ia)*dpsic
-          yv1(i3) = yv1(i3) + dip0xs(ia)*dpsic
-          yv2(i3) = yv2(i3) + dip0zs(ia)*dpsic
+          xv1(i3) = xv1(i3) + di0xs*dpsic
+          xv2(i3) = xv2(i3) + di0zs*dpsic
+          yv1(i3) = yv1(i3) + dip0xs*dpsic
+          yv2(i3) = yv2(i3) + dip0zs*dpsic
         end if
         chi = chi+dchi
       end do
@@ -1239,10 +1239,10 @@ end interface
         cloau(4) = clop6v(2)
         cloau(5) = clo6v(3)
         cloau(6) = clop6v(3)
-        di0au(1) = di0xs(ia)
-        di0au(2) = dip0xs(ia)
-        di0au(3) = di0zs(ia)
-        di0au(4) = dip0zs(ia)
+        di0au(1) = di0xs
+        di0au(2) = dip0xs
+        di0au(3) = di0zs
+        di0au(4) = dip0zs
 
         do ib2=1,6
           do ib3=1,6

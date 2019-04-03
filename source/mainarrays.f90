@@ -239,10 +239,6 @@ subroutine shuffleLostParticles
     omoidpsv(j:tnapx)  = cshift(omoidpsv(j:tnapx),  1)
 
     ! Beam--Beam
-    di0xs(j:tnapx)     = cshift(di0xs(j:tnapx),     1)
-    dip0xs(j:tnapx)    = cshift(dip0xs(j:tnapx),    1)
-    di0zs(j:tnapx)     = cshift(di0zs(j:tnapx),     1)
-    dip0zs(j:tnapx)    = cshift(dip0zs(j:tnapx),    1)
     tasau(j:tnapx,:,:) = cshift(tasau(j:tnapx,:,:), 1, 1)
 
     ! Backtracking + Aperture

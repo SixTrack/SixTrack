@@ -3417,10 +3417,10 @@ end subroutine join
          clop6v_tmp(i) = real(clop6v(i), real64)
       enddo
 
-      di0xs_tmp  = real(di0xs (ia_p1), real64)
-      dip0xs_tmp = real(dip0xs(ia_p1), real64)
-      di0zs_tmp  = real(di0zs (ia_p1), real64)
-      dip0zs_tmp = real(dip0zs(ia_p1), real64)
+      di0xs_tmp  = real(di0xs, real64)
+      dip0xs_tmp = real(dip0xs, real64)
+      di0zs_tmp  = real(di0zs, real64)
+      dip0zs_tmp = real(dip0zs, real64)
 
       do i=1,6
          do j=1,6
