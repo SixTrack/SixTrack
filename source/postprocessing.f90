@@ -3413,8 +3413,8 @@ end subroutine join
       ! which is what should go in the output file
       do i=1,3
          qwcs_tmp  (i) = real(qwcs  (ia_p1,i), real64)
-         clo6v_tmp (i) = real(clo6v (i,ia_p1), real64)
-         clop6v_tmp(i) = real(clop6v(i,ia_p1), real64)
+         clo6v_tmp (i) = real(clo6v (i,1), real64)
+         clop6v_tmp(i) = real(clop6v(i,1), real64)
       enddo
 
       di0xs_tmp  = real(di0xs (ia_p1), real64)

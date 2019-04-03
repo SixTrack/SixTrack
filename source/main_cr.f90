@@ -1163,8 +1163,8 @@ end interface
           end do
         end do
         if(iclo6 == 1 .or. iclo6 == 2) then
-          x2(2) = x2(2)/((one+x2(6))+clop6v(3,ia))
-          x2(4) = x2(4)/((one+x2(6))+clop6v(3,ia))
+          x2(2) = x2(2)/((one+x2(6))+clop6v(3,1))
+          x2(4) = x2(4)/((one+x2(6))+clop6v(3,1))
         end if
         if(abs(bet0s1) <= pieni) x2(6) = dpsv(ia)
         if(iver == 1) then
@@ -1177,7 +1177,7 @@ end interface
         yv2(i3)   = x2(4)+exz(i2,4)
         sigmv(i3) = x2(5)+exz(i2,5)
         dpsv(i3)  = x2(6)
-        dpsic     = dpsv(i3)+clop6v(3,ia)
+        dpsic     = dpsv(i3)+clop6v(3,1)
         if(idp == 1 .and. abs(ition) == 1 .and. iclo6 == 0) then
           xv1(i3) = xv1(i3) + di0xs(ia)*dpsic
           xv2(i3) = xv2(i3) + di0zs(ia)*dpsic
@@ -1247,12 +1247,12 @@ end interface
         xau(2,4) = yv2(ia+1)
         xau(2,5) = sigmv(ia+1)
         xau(2,6) = dpsv(ia+1)
-        cloau(1) = clo6v(1,ia)
-        cloau(2) = clop6v(1,ia)
-        cloau(3) = clo6v(2,ia)
-        cloau(4) = clop6v(2,ia)
-        cloau(5) = clo6v(3,ia)
-        cloau(6) = clop6v(3,ia)
+        cloau(1) = clo6v(1,1)
+        cloau(2) = clop6v(1,1)
+        cloau(3) = clo6v(2,1)
+        cloau(4) = clop6v(2,1)
+        cloau(5) = clo6v(3,1)
+        cloau(6) = clop6v(3,1)
         di0au(1) = di0xs(ia)
         di0au(2) = dip0xs(ia)
         di0au(3) = di0zs(ia)
