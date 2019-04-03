@@ -266,6 +266,7 @@ set(TESTS_NO_STF_FORT90
   fma_binary
   fma_naff
   fringe_field
+  geometry
   geometry_multicol
   rfMultipoles_2ndOrder
   rfMultipoles_4thOrder
