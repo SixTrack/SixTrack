@@ -651,179 +651,183 @@ end interface
 
 ! ================================================================================================================================ !
 
-        dp1=zero
-        if(ichrom > 1) then
-          itiono=ition
-          ition=0
-          call chromda
-          ition=itiono
-          do ncrr=1,iu
-            ix=ic(ncrr)
-            if(ix.gt.nblo) ix=ix-nblo
-            if(ix.eq.is(1).or.iratioe(ix).eq.is(1)) then
-              smiv(ncrr)=smi(ncrr)
-            else if(ix.eq.is(2).or.iratioe(ix).eq.is(2)) then
-              smiv(ncrr)=smi(ncrr)
-            endif
-          enddo
-        else
-          itiono = 0 ! -Wmaybe-uninitialized
-        endif
-        dp1=dp00
-        dp0=dp00
+  dp1 = zero
+  if(ichrom > 1) then
+    itiono = ition
+    ition  = 0
+    call chromda
+    ition  = itiono
+    do ncrr=1,iu
+      ix = ic(ncrr)
+      if(ix > nblo) ix = ix-nblo
+      if(ix == is(1) .or. iratioe(ix) == is(1)) then
+        smiv(ncrr) = smi(ncrr)
+      else if(ix == is(2) .or. iratioe(ix) == is(2)) then
+        smiv(ncrr) = smi(ncrr)
+      end if
+    end do
+  else
+    itiono = 0
+  endif
+  dp1  = dp00
+  dp0  = dp00
 
-! ================================================================================================================================ !
+  ! ========================================================================== !
+  !  Closed Orbit
+  ! ========================================================================== !
 
-          dp10=dp1
-          if(idp /= 1 .or. iation /= 1) iclo6=0
-          if(iclo6 == 1 .or. iclo6 == 2) then
-            if(iclo6r == 0) then
-              clo6(1)  = clo(1)
-              clop6(1) = clop(1)
-              clo6(2)  = clo(2)
-              clop6(2) = clop(2)
-              clo6(3)  = zero
-              clop6(3) = zero
-            else
-              write(lout,"(a)") "MAINCR> Reading closed orbit guess from fort.33"
-              call readFort33
-            end if
-            call clorb(zero)
-            call betalf(zero,qw)
-            call phasad(zero,qwc)
-            sigm(1) = clo6(3)
-            dps(1)  = clop6(3)
-            call qmodda(3,qwc)
-            if(ilin >= 2) then
-              nlinoo = nlin
-              nlin   = nlino
-              ilinc  = 1
-              call mydaini(2,2,6,3,6,1)
-              nlin   = nlinoo
-            end if
-            dp1 = dp10+clop6(3)
+  dp10 = dp1
+  if(idp /= 1 .or. iation /= 1) then
+    iclo6 = 0
+  end if
+  if(iclo6 == 1 .or. iclo6 == 2) then ! 6D
+    if(iclo6r == 0) then
+      clo6(1)  = clo(1)
+      clop6(1) = clop(1)
+      clo6(2)  = clo(2)
+      clop6(2) = clop(2)
+      clo6(3)  = zero
+      clop6(3) = zero
+    else
+      write(lout,"(a)") "MAINCR> Reading closed orbit guess from fort.33"
+      call readFort33
+    end if
+    call clorb(zero)
+    call betalf(zero,qw)
+    call phasad(zero,qwc)
+    sigm(1) = clo6(3)
+    dps(1)  = clop6(3)
+    call qmodda(3,qwc)
+    if(ilin >= 2) then
+      nlinoo = nlin
+      nlin   = nlino
+      ilinc  = 1
+      call mydaini(2,2,6,3,6,1)
+      nlin   = nlinoo
+    end if
+    dp1 = dp10+clop6(3)
 
-            if(iqmod6 == 1) then
-              do ncrr=1,iu
-                ix=ic(ncrr)
-                if(ix.gt.nblo) ix=ix-nblo
-                if(ix.eq.iq(1).or.iratioe(ix).eq.iq(1)) then
-                  smiv(ncrr)=smi(ncrr)
-                else if(ix.eq.iq(2).or.iratioe(ix).eq.iq(2)) then
-                  smiv(ncrr)=smi(ncrr)
-                endif
-              enddo
-            endif
+    if(iqmod6 == 1) then
+      do ncrr=1,iu
+        ix = ic(ncrr)
+        if(ix > nblo) ix=ix-nblo
+        if(ix == iq(1) .or. iratioe(ix) == iq(1)) then
+          smiv(ncrr) = smi(ncrr)
+        else if(ix == iq(2) .or. iratioe(ix) == iq(2)) then
+          smiv(ncrr) = smi(ncrr)
+        end if
+      end do
+    end if
 
-            do ib1=1,napx
-              !--beam-beam element
-              clo6v(1,ib1)  = clo6(1)
-              clo6v(2,ib1)  = clo6(2)
-              clo6v(3,ib1)  = clo6(3)
-              clop6v(1,ib1) = clop6(1)
-              clop6v(2,ib1) = clop6(2)
-              clop6v(3,ib1) = clop6(3)
-              di0xs(ib1)    = di0(1)
-              di0zs(ib1)    = di0(2)
-              dip0xs(ib1)   = dip0(1)
-              dip0zs(ib1)   = dip0(2)
-              qwcs(ib1,1)   = qwc(1)
-              qwcs(ib1,2)   = qwc(2)
-              qwcs(ib1,3)   = qwc(3)
+    do i=1,napx
+      ! Beam-beam element
+      clo6v(1,i)  = clo6(1)
+      clo6v(2,i)  = clo6(2)
+      clo6v(3,i)  = clo6(3)
+      clop6v(1,i) = clop6(1)
+      clop6v(2,i) = clop6(2)
+      clop6v(3,i) = clop6(3)
+      di0xs(i)    = di0(1)
+      di0zs(i)    = di0(2)
+      dip0xs(i)   = dip0(1)
+      dip0zs(i)   = dip0(2)
+      qwcs(i,1)   = qwc(1)
+      qwcs(i,2)   = qwc(2)
+      qwcs(i,3)   = qwc(3)
 
-              do i2=1,6
-                do j2=1,6
-                  tas(ib1,i2,j2)=tasm(i2,j2)
-                end do
-              end do
-            end do
+      do i2=1,6
+        do j2=1,6
+          tas(i,i2,j2)=tasm(i2,j2)
+        end do
+      end do
+    end do
 
-          else
-            if(idp.eq.1.and.iation.eq.1) then
-              ncorruo=ncorru
-              ncorru=1
-              call clorb(zero)
-              call betalf(zero,qw)
-              call phasad(zero,qwc)
+  else ! 4D
+    if(idp.eq.1.and.iation.eq.1) then
+      ncorruo=ncorru
+      ncorru=1
+      call clorb(zero)
+      call betalf(zero,qw)
+      call phasad(zero,qwc)
 !--beam-beam element
-              if(nbeam.ge.1) then
-                nd=3
-                nd2=6
+      if(nbeam.ge.1) then
+        nd=3
+        nd2=6
 #include "include/beamcou.f90"
-              endif
-              ncorru=ncorruo
-              iqmodc=3
-              call mydaini(2,2,6,3,6,1)
-              do i=1,2
-                qwc(i)=real(int(qwc(i)),fPrec)+wxys(i)
-              enddo
-              if(ilin.ge.2) then
-                nlinoo=nlin
-                nlin=nlino
-                ilinc=1
-                call mydaini(2,2,6,3,6,1)
-                nlin=nlinoo
-              endif
-            else
-              dps(1)=dp1
-              ncorruo=ncorru
-              ncorru=1
-              call clorb(dp1)
-              call betalf(dp1,qw)
-              call phasad(dp1,qwc)
-              dp1=zero
+      endif
+      ncorru=ncorruo
+      iqmodc=3
+      call mydaini(2,2,6,3,6,1)
+      do i=1,2
+        qwc(i)=real(int(qwc(i)),fPrec)+wxys(i)
+      enddo
+      if(ilin.ge.2) then
+        nlinoo=nlin
+        nlin=nlino
+        ilinc=1
+        call mydaini(2,2,6,3,6,1)
+        nlin=nlinoo
+      endif
+    else
+      dps(1)=dp1
+      ncorruo=ncorru
+      ncorru=1
+      call clorb(dp1)
+      call betalf(dp1,qw)
+      call phasad(dp1,qwc)
+      dp1=zero
 !--beam-beam element
-              dp1=dps(1)
-              ncorru=ncorruo
-              if(nvar2.le.5) then
-                itiono=ition
-                ition=0
-              endif
-              call qmodda(2,qwc)
-              if(nvar2.le.5) ition=itiono
-              if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
+      dp1=dps(1)
+      ncorru=ncorruo
+      if(nvar2.le.5) then
+        itiono=ition
+        ition=0
+      endif
+      call qmodda(2,qwc)
+      if(nvar2.le.5) ition=itiono
+      if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
 
-              if(ilin.ge.2) then
-                nlinoo=nlin
-                nlin=nlino
-                iqmodc=2
-                call mydaini(1,2,5,2,5,1)
-                ilinc=1
-                call mydaini(2,2,5,2,5,1)
-                nlin=nlinoo
-              endif
+      if(ilin.ge.2) then
+        nlinoo=nlin
+        nlin=nlino
+        iqmodc=2
+        call mydaini(1,2,5,2,5,1)
+        ilinc=1
+        call mydaini(2,2,5,2,5,1)
+        nlin=nlinoo
+      endif
 
-              do ncrr=1,iu
-                ix=ic(ncrr)
-                if(ix.gt.nblo) ix=ix-nblo
-                if(ix.eq.iq(1).or.iratioe(ix).eq.iq(1)) then
-                  smiv(ncrr)=smi(ncrr)
-                else if(ix.eq.iq(2).or.iratioe(ix).eq.iq(2)) then
-                  smiv(ncrr)=smi(ncrr)
-                endif
-              enddo
-            endif
+      do ncrr=1,iu
+        ix=ic(ncrr)
+        if(ix.gt.nblo) ix=ix-nblo
+        if(ix.eq.iq(1).or.iratioe(ix).eq.iq(1)) then
+          smiv(ncrr)=smi(ncrr)
+        else if(ix.eq.iq(2).or.iratioe(ix).eq.iq(2)) then
+          smiv(ncrr)=smi(ncrr)
+        endif
+      enddo
+    endif
 
-            do i=1,napx
-              clo6v(1,i)  = clo(1)
-              clop6v(1,i) = clop(1)
-              clo6v(2,i)  = clo(2)
-              clop6v(2,i) = clop(2)
-              di0xs(i)    = di0(1)
-              di0zs(i)    = di0(2)
-              dip0xs(i)   = dip0(1)
-              dip0zs(i)   = dip0(2)
-              qwcs(i,1)   = qwc(1)
-              qwcs(i,2)   = qwc(2)
-              qwcs(i,3)   = zero
+    do i=1,napx
+      clo6v(1,i)  = clo(1)
+      clop6v(1,i) = clop(1)
+      clo6v(2,i)  = clo(2)
+      clop6v(2,i) = clop(2)
+      di0xs(i)    = di0(1)
+      di0zs(i)    = di0(2)
+      dip0xs(i)   = dip0(1)
+      dip0zs(i)   = dip0(2)
+      qwcs(i,1)   = qwc(1)
+      qwcs(i,2)   = qwc(2)
+      qwcs(i,3)   = zero
 
-              do i2=1,4
-                do j2=1,4
-                  tas(i,i2,j2)=tasm(i2,j2)
-                end do
-              end do
-            end do
-          endif
+      do i2=1,4
+        do j2=1,4
+          tas(i,i2,j2)=tasm(i2,j2)
+        end do
+      end do
+    end do
+  endif
           iar=1
 
 ! save tas matrix and closed orbit for later dumping of the beam
@@ -1125,7 +1129,7 @@ end interface
     if(dist_echo) call dist_echoDist
   end if
 
-  if(idfor /= 2 .and. .not.dist_enable) then
+  if(idfor /= 2 .and. .not. dist_enable) then
     ! Generated from INIT Distribution Block
     do ia=1,napx,2
       if(st_quiet == 0) write(lout,10050)
