@@ -3424,7 +3424,7 @@ end subroutine join
 
       do i=1,6
          do j=1,6
-            tas_tmp(j,i) = real(tas(ia_p1,j,i), real64)
+            tas_tmp(j,i) = real(tas(j,i), real64)
          enddo
       enddo
 

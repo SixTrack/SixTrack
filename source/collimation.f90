@@ -6877,52 +6877,52 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
 ! scaling the TAS matrix entries of the longitudinal coordinate. tas(ia,j,k)  ia=the particle for which the tas was written
 
     myx(j)   =                            &
-     &     normx  * sqrt(myemitx)*tas(1,1,1) + &
-     &     normxp * sqrt(myemitx)*tas(1,1,2) + &
-     &     normy  * sqrt(myemity)*tas(1,1,3) + &
-     &     normyp * sqrt(myemity)*tas(1,1,4) + &
-     &     norms  * sqrt(myemitz)*tas(1,1,5) + &
-     &     normp  * sqrt(myemitz)*c1m3*tas(1,1,6)
+     &     normx  * sqrt(myemitx)*tas(1,1) + &
+     &     normxp * sqrt(myemitx)*tas(1,2) + &
+     &     normy  * sqrt(myemity)*tas(1,3) + &
+     &     normyp * sqrt(myemity)*tas(1,4) + &
+     &     norms  * sqrt(myemitz)*tas(1,5) + &
+     &     normp  * sqrt(myemitz)*c1m3*tas(1,6)
 
     myxp(j)  =                            &
-     &     normx  * sqrt(myemitx)*tas(1,2,1) + &
-     &     normxp * sqrt(myemitx)*tas(1,2,2) + &
-     &     normy  * sqrt(myemity)*tas(1,2,3) + &
-     &     normyp * sqrt(myemity)*tas(1,2,4) + &
-     &     norms  * sqrt(myemitz)*tas(1,2,5) + &
-     &     normp  * sqrt(myemitz)*c1m3*tas(1,2,6)
+     &     normx  * sqrt(myemitx)*tas(2,1) + &
+     &     normxp * sqrt(myemitx)*tas(2,2) + &
+     &     normy  * sqrt(myemity)*tas(2,3) + &
+     &     normyp * sqrt(myemity)*tas(2,4) + &
+     &     norms  * sqrt(myemitz)*tas(2,5) + &
+     &     normp  * sqrt(myemitz)*c1m3*tas(2,6)
 
     myy(j)   =                            &
-     &     normx  * sqrt(myemitx)*tas(1,3,1) + &
-     &     normxp * sqrt(myemitx)*tas(1,3,2) + &
-     &     normy  * sqrt(myemity)*tas(1,3,3) + &
-     &     normyp * sqrt(myemity)*tas(1,3,4) + &
-     &     norms  * sqrt(myemitz)*tas(1,3,5) + &
-     &     normp  * sqrt(myemitz)*c1m3*tas(1,3,6)
+     &     normx  * sqrt(myemitx)*tas(3,1) + &
+     &     normxp * sqrt(myemitx)*tas(3,2) + &
+     &     normy  * sqrt(myemity)*tas(3,3) + &
+     &     normyp * sqrt(myemity)*tas(3,4) + &
+     &     norms  * sqrt(myemitz)*tas(3,5) + &
+     &     normp  * sqrt(myemitz)*c1m3*tas(3,6)
 
     myyp(j)  =                            &
-     &     normx  * sqrt(myemitx)*tas(1,4,1) + &
-     &     normxp * sqrt(myemitx)*tas(1,4,2) + &
-     &     normy  * sqrt(myemity)*tas(1,4,3) + &
-     &     normyp * sqrt(myemity)*tas(1,4,4) + &
-     &     norms  * sqrt(myemitz)*tas(1,4,5) + &
-     &     normp  * sqrt(myemitz)*c1m3*tas(1,4,6)
+     &     normx  * sqrt(myemitx)*tas(4,1) + &
+     &     normxp * sqrt(myemitx)*tas(4,2) + &
+     &     normy  * sqrt(myemity)*tas(4,3) + &
+     &     normyp * sqrt(myemity)*tas(4,4) + &
+     &     norms  * sqrt(myemitz)*tas(4,5) + &
+     &     normp  * sqrt(myemitz)*c1m3*tas(4,6)
 
     mys(j)   =                            &
-     &     normx  * sqrt(myemitx)*tas(1,5,1) + &
-     &     normxp * sqrt(myemitx)*tas(1,5,2) + &
-     &     normy  * sqrt(myemity)*tas(1,5,3) + &
-     &     normyp * sqrt(myemity)*tas(1,5,4) + &
-     &     norms  * sqrt(myemitz)*tas(1,5,5) + &
-     &     normp  * sqrt(myemitz)*c1m3*tas(1,5,6)
+     &     normx  * sqrt(myemitx)*tas(5,1) + &
+     &     normxp * sqrt(myemitx)*tas(5,2) + &
+     &     normy  * sqrt(myemity)*tas(5,3) + &
+     &     normyp * sqrt(myemity)*tas(5,4) + &
+     &     norms  * sqrt(myemitz)*tas(5,5) + &
+     &     normp  * sqrt(myemitz)*c1m3*tas(5,6)
 
     myp(j)   =                                    &
-     &     normx  * sqrt(myemitx)*c1e3*tas(1,6,1) + &
-     &     normxp * sqrt(myemitx)*c1e3*tas(1,6,2) + &
-     &     normy  * sqrt(myemity)*c1e3*tas(1,6,3) + &
-     &     normyp * sqrt(myemity)*c1e3*tas(1,6,4) + &
-     &     norms  * sqrt(myemitz)*c1e3*tas(1,6,5) + &
-     &     normp  * sqrt(myemitz)*tas(1,6,6)
+     &     normx  * sqrt(myemitx)*c1e3*tas(6,1) + &
+     &     normxp * sqrt(myemitx)*c1e3*tas(6,2) + &
+     &     normy  * sqrt(myemity)*c1e3*tas(6,3) + &
+     &     normyp * sqrt(myemity)*c1e3*tas(6,4) + &
+     &     norms  * sqrt(myemitz)*c1e3*tas(6,5) + &
+     &     normp  * sqrt(myemitz)*tas(6,6)
 
 ! add the momentum
 ! convert to canonical variables

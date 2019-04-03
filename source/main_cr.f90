@@ -730,8 +730,8 @@ end interface
       qwcs(i,1) = qwc(1)
       qwcs(i,2) = qwc(2)
       qwcs(i,3) = qwc(3)
-      tas(i,:,:)=tasm(:,:)
     end do
+    tas(:,:)=tasm(:,:)
 
   else ! 4D
     if(idp.eq.1.and.iation.eq.1) then
@@ -811,13 +811,8 @@ end interface
       qwcs(i,1) = qwc(1)
       qwcs(i,2) = qwc(2)
       qwcs(i,3) = zero
-
-      do i2=1,4
-        do j2=1,4
-          tas(i,i2,j2)=tasm(i2,j2)
-        end do
-      end do
     end do
+    tas(1:4,1:4) = tasm(1:4,1:4)
   endif
           iar=1
 
@@ -836,7 +831,7 @@ end interface
                 dumpclo(-1,i3*2-1) = clo6v(i3)
                 dumpclo(-1,i3*2)   = clop6v(i3)
              enddo
-             dumptas(-1,:,:) = tas(1,:,:)
+             dumptas(-1,:,:) = tas(:,:)
 !     invert the tas matrix
              call invert_tas(dumptasinv(-1,:,:),dumptas(-1,:,:))
 !     dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
@@ -844,43 +839,43 @@ end interface
 !     tas(iar,*,*) [mm,mrad,mm,mrad,1]
 
 ! convert to [mm,mrad,mm,mrad,1.e-3] for optics calculation
-          tasiar16=tas(iar,1,6)*c1m3
-          tasiar26=tas(iar,2,6)*c1m3
-          tasiar36=tas(iar,3,6)*c1m3
-          tasiar46=tas(iar,4,6)*c1m3
-          tasiar56=tas(iar,5,6)*c1m3
-          tasiar61=tas(iar,6,1)*c1e3
-          tasiar62=tas(iar,6,2)*c1e3
-          tasiar63=tas(iar,6,3)*c1e3
-          tasiar64=tas(iar,6,4)*c1e3
-          tasiar65=tas(iar,6,5)*c1e3
-          bet0(1)=tas(iar,1,1)**2+tas(iar,1,2)**2                        !hr05
-          bet0x2 =tas(iar,1,3)**2+tas(iar,1,4)**2                        !hr05
-          bet0x3 =tas(iar,1,5)**2+tasiar16**2                            !hr05
-          gam0x1 =tas(iar,2,1)**2+tas(iar,2,2)**2                        !hr05
-          gam0x2 =tas(iar,2,3)**2+tas(iar,2,4)**2                        !hr05
-          gam0x3 =tas(iar,2,5)**2+tasiar26**2                            !hr05
-      alf0(1)=-one*(tas(iar,1,1)*tas(iar,2,1)+tas(iar,1,2)*tas(iar,2,2)) !hr05
-      alf0x2 =-one*(tas(iar,1,3)*tas(iar,2,3)+tas(iar,1,4)*tas(iar,2,4)) !hr05
-      alf0x3 =-one*(tas(iar,1,5)*tas(iar,2,5)+tasiar16*tasiar26)         !hr05
-          bet0(2)=tas(iar,3,3)**2+tas(iar,3,4)**2                        !hr05
-          bet0z2 =tas(iar,3,1)**2+tas(iar,3,2)**2                        !hr05
-          bet0z3 =tas(iar,3,5)**2+tasiar36**2                            !hr05
-          gam0z1 =tas(iar,4,3)**2+tas(iar,4,4)**2                        !hr05
-          gam0z2 =tas(iar,4,1)**2+tas(iar,4,2)**2                        !hr05
-          gam0z3 =tas(iar,4,5)**2+tasiar46**2                            !hr05
-      alf0(2)=-one*(tas(iar,3,3)*tas(iar,4,3)+tas(iar,3,4)*tas(iar,4,4)) !hr05
-      alf0z2 =-one*(tas(iar,3,1)*tas(iar,4,1)+tas(iar,3,2)*tas(iar,4,2)) !hr05
-      alf0z3 =-one*(tas(iar,3,5)*tas(iar,4,5)+tasiar36*tasiar46)         !hr05
-          bet0s1 =tas(iar,5,5)**2+tasiar56**2                            !hr05
-          bet0s2 =tas(iar,5,1)**2+tas(iar,5,2)**2                        !hr05
-          bet0s3 =tas(iar,5,3)**2+tas(iar,5,4)**2                        !hr05
-          gam0s1 =tasiar65**2+tas(iar,6,6)**2                            !hr05
+          tasiar16=tas(1,6)*c1m3
+          tasiar26=tas(2,6)*c1m3
+          tasiar36=tas(3,6)*c1m3
+          tasiar46=tas(4,6)*c1m3
+          tasiar56=tas(5,6)*c1m3
+          tasiar61=tas(6,1)*c1e3
+          tasiar62=tas(6,2)*c1e3
+          tasiar63=tas(6,3)*c1e3
+          tasiar64=tas(6,4)*c1e3
+          tasiar65=tas(6,5)*c1e3
+          bet0(1)=tas(1,1)**2+tas(1,2)**2                        !hr05
+          bet0x2 =tas(1,3)**2+tas(1,4)**2                        !hr05
+          bet0x3 =tas(1,5)**2+tasiar16**2                            !hr05
+          gam0x1 =tas(2,1)**2+tas(2,2)**2                        !hr05
+          gam0x2 =tas(2,3)**2+tas(2,4)**2                        !hr05
+          gam0x3 =tas(2,5)**2+tasiar26**2                            !hr05
+          alf0(1)=-one*(tas(1,1)*tas(2,1)+tas(1,2)*tas(2,2)) !hr05
+          alf0x2 =-one*(tas(1,3)*tas(2,3)+tas(1,4)*tas(2,4)) !hr05
+          alf0x3 =-one*(tas(1,5)*tas(2,5)+tasiar16*tasiar26)         !hr05
+          bet0(2)=tas(3,3)**2+tas(3,4)**2                        !hr05
+          bet0z2 =tas(3,1)**2+tas(3,2)**2                        !hr05
+          bet0z3 =tas(3,5)**2+tasiar36**2                            !hr05
+          gam0z1 =tas(4,3)**2+tas(4,4)**2                        !hr05
+          gam0z2 =tas(4,1)**2+tas(4,2)**2                        !hr05
+          gam0z3 =tas(4,5)**2+tasiar46**2                            !hr05
+          alf0(2)=-one*(tas(3,3)*tas(4,3)+tas(3,4)*tas(4,4)) !hr05
+          alf0z2 =-one*(tas(3,1)*tas(4,1)+tas(3,2)*tas(4,2)) !hr05
+          alf0z3 =-one*(tas(3,5)*tas(4,5)+tasiar36*tasiar46)         !hr05
+          bet0s1 =tas(5,5)**2+tasiar56**2                            !hr05
+          bet0s2 =tas(5,1)**2+tas(5,2)**2                        !hr05
+          bet0s3 =tas(5,3)**2+tas(5,4)**2                        !hr05
+          gam0s1 =tasiar65**2+tas(6,6)**2                            !hr05
           gam0s2 =tasiar61**2+tasiar62**2                                !hr05
           gam0s3 =tasiar63**2+tasiar64**2                                !hr05
-          alf0s1 =-one*(tas(iar,5,5)*tasiar65+tasiar56*tas(iar,6,6))     !hr05
-          alf0s2 =-one*(tas(iar,5,1)*tasiar61+tas(iar,5,2)*tasiar62)     !hr05
-          alf0s3 =-one*(tas(iar,5,3)*tasiar63+tas(iar,5,4)*tasiar64)     !hr05
+          alf0s1 =-one*(tas(5,5)*tasiar65+tasiar56*tas(6,6))     !hr05
+          alf0s2 =-one*(tas(5,1)*tasiar61+tas(5,2)*tasiar62)     !hr05
+          alf0s3 =-one*(tas(5,3)*tasiar63+tas(5,4)*tasiar64)     !hr05
 #ifdef DEBUG
 !     call dumpbin('abib1',1,1)
 !     call abend('after bib1                                        ')
@@ -890,7 +885,7 @@ end interface
 
             do ib2=1,6
               do ib3=1,6
-                tau(ib2,ib3)=tas(iar,ib3,ib2)
+                tau(ib2,ib3)=tas(ib3,ib2)
               end do
             end do
 
@@ -1124,13 +1119,13 @@ end interface
     ! Generated from INIT Distribution Block
     do ia=1,napx,2
       if(st_quiet == 0) write(lout,10050)
-      tasia56 = tas(ia,5,6)*c1m3
-      bet0x2  = tas(ia,1,3)**2+tas(ia,1,4)**2
-      bet0z2  = tas(ia,3,1)**2+tas(ia,3,2)**2
-      bet0s1  = tas(ia,5,5)**2+tasia56**2
+      tasia56 = tas(5,6)*c1m3
+      bet0x2  = tas(1,3)**2+tas(1,4)**2
+      bet0z2  = tas(3,1)**2+tas(3,2)**2
+      bet0s1  = tas(5,5)**2+tasia56**2
       dsign   = one
       rat     = rat0
-      if(tas(ia,3,3) < (-one*pieni)) rat = -one*rat
+      if(tas(3,3) < (-one*pieni)) rat = -one*rat
       if(rat < (-one*pieni)) dsign = -one*one
       x11    = ampv(ia)/(sqrt(bet0(1))+sqrt(abs(rat)*bet0x2))
       x13    = (x11*dsign)*sqrt(abs(rat))
@@ -1150,7 +1145,7 @@ end interface
         do ii=1,6
           x2(ii) = zero
           do jj=1,6
-            x2(ii) = x2(ii)+tas(ia,ii,jj)*x1(jj)
+            x2(ii) = x2(ii)+tas(ii,jj)*x1(jj)
           end do
         end do
         if(iclo6 == 1 .or. iclo6 == 2) then
