@@ -245,10 +245,6 @@ subroutine shuffleLostParticles
     dip0zs(j:tnapx)    = cshift(dip0zs(j:tnapx),    1)
     tasau(j:tnapx,:,:) = cshift(tasau(j:tnapx,:,:), 1, 1)
 
-    ! Closed Orbit
-    clo6v(:,j:tnapx)   = cshift(clo6v(:,j:tnapx),   1, 2)
-    clop6v(:,j:tnapx)  = cshift(clop6v(:,j:tnapx),  1, 2)
-
     ! Backtracking + Aperture
     plost(j:tnapx)     = cshift(plost(j:tnapx),     1)
     xLast(:,j:tnapx)   = cshift(xLast(:,j:tnapx),   1, 2)
