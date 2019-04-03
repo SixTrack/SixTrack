@@ -621,6 +621,7 @@ subroutine geom_findElemAtLoc(sLoc, isLast, iEl, ixEl, wasFound)
 
   iEl  = -1
   ixEl = -1
+  sLoc = zero
 
   if(sLoc > tlen .or. sLoc < zero) then
     write(lout,"(a,2(f11.4,a))") "GEOMETRY> ERROR Find Element: "//&
@@ -804,5 +805,83 @@ subroutine geom_calcDcum
   end if
 
 end subroutine geom_calcDcum
+
+! ================================================================================================ !
+!  A. Mereghetti, V.K. Berglyd Olsen
+!  Original:  2016-03-14 (orglat)
+!  Rewritten: 2019-04-03
+!  Updated:   2019-04-03
+!  Reshuffle the lattice
+! ================================================================================================ !
+subroutine geom_reshuffleLattice
+
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_commons
+  use mod_common_track
+  implicit none
+  integer i,icext1,icextal1,ihi,ii,ilf,ilfr,j,kanf1
+  real(kind=fPrec) extalig1 !,exterr1
+  dimension ilf(nblz),ilfr(nblz)
+  dimension extalig1(nblz,3),icext1(nblz),icextal1(nblz) !,exterr1(nblz,40)
+  save
+!-----------------------------------------------------------------------
+  if(mper.gt.1) then
+    do i=2,mper
+      do j=1,mbloz
+        ii=(i-1)*mbloz+j
+        ihi=j
+        if(msym(i).lt.0) ihi=mbloz-j+1
+        ic(ii)=msym(i)*ic(ihi)
+        if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
+      end do
+    end do
+  end if
+
+  ! set iu
+  iu=mper*mbloz
+
+  ! "GO" was not the first structure element -> Reshuffle the structure
+  if(kanf.ne.1) then
+    write(lout,"(a)") "GEOMETRY> Reshuffling lattice structure following existence "//&
+      "of GO keyword not in first position of lattice definition!"
+    !        initialise some temporary variables
+    do i=1,nblz
+      ilf(i)=0
+      ilfr(i)=0
+      icext1(i)=0
+      icextal1(i)=0
+      do ii=1,3
+          extalig1(i,ii)=zero
+      enddo
+    enddo
+
+    !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
+    kanf1=kanf-1
+    do i=1,kanf1
+      if(iorg.ge.0) ilfr(i)=mzu(i)
+      ilf(i)=ic(i)
+      icext1(i)=icext(i)
+      icextal1(i)=icextal(i)
+    end do
+    do i=kanf,iu
+      if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
+      ic(i-kanf1)=ic(i)
+      icext(i-kanf1)=icext(i)
+      icextal(i-kanf1)=icextal(i)
+    end do
+    do i=1,kanf1
+      if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
+      ic(iu-kanf1+i)=ilf(i)
+      icext(iu-kanf1+i)=icext1(i)
+      icextal(iu-kanf1+i)=icextal1(i)
+    end do
+  endif
+  return
+end subroutine geom_reshuffleLattice
 
 end module mod_geometry

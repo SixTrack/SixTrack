@@ -30,7 +30,7 @@ program maincr
   use aperture
   use mod_ranecu
   use mod_particles
-  use mod_geometry,   only : geom_calcDcum
+  use mod_geometry,   only : geom_calcDcum, geom_reshuffleLattice
   use mod_alloc,      only : alloc_init
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
@@ -475,7 +475,7 @@ end interface
 
   ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
   ! possible to re-shuffle lattice structure
-  call orglat
+  call geom_reshuffleLattice
   call geom_calcDcum
 
   ! A.Mereghetti (CERN, BE-ABP-HSS), 16-12-2016
