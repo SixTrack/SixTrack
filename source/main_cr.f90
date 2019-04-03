@@ -730,150 +730,145 @@ end interface
     tas(:,:)=tasm(:,:)
 
   else ! 4D
-    if(idp.eq.1.and.iation.eq.1) then
-      ncorruo=ncorru
-      ncorru=1
+
+    if(idp == 1 .and. iation == 1) then
+      ncorruo = ncorru
+      ncorru  = 1
       call clorb(zero)
       call betalf(zero,qw)
       call phasad(zero,qwc)
-!--beam-beam element
-      if(nbeam.ge.1) then
-        nd=3
-        nd2=6
+      ! Beam-beam element
+      if(nbeam >= 1) then
+        nd  = 3
+        nd2 = 6
 #include "include/beamcou.f90"
-      endif
-      ncorru=ncorruo
-      iqmodc=3
+      end if
+      ncorru = ncorruo
+      iqmodc = 3
       call mydaini(2,2,6,3,6,1)
-      do i=1,2
-        qwc(i)=real(int(qwc(i)),fPrec)+wxys(i)
-      enddo
-      if(ilin.ge.2) then
-        nlinoo=nlin
-        nlin=nlino
-        ilinc=1
+      qwc(1:2) = real(int(qwc(1:2)),fPrec)+wxys(1:2)
+      if(ilin >= 2) then
+        nlinoo = nlin
+        nlin   = nlino
+        ilinc  = 1
         call mydaini(2,2,6,3,6,1)
-        nlin=nlinoo
-      endif
+        nlin   = nlinoo
+      end if
     else
-      dps(1)=dp1
-      ncorruo=ncorru
-      ncorru=1
+      dps(1)  = dp1
+      ncorruo = ncorru
+      ncorru  = 1
       call clorb(dp1)
       call betalf(dp1,qw)
       call phasad(dp1,qwc)
-      dp1=zero
-!--beam-beam element
-      dp1=dps(1)
-      ncorru=ncorruo
-      if(nvar2.le.5) then
-        itiono=ition
-        ition=0
-      endif
+      dp1 = zero
+      ! Beam-beam element
+      dp1    = dps(1)
+      ncorru = ncorruo
+      if(nvar2 <= 5) then
+        itiono = ition
+        ition  = 0
+      end if
       call qmodda(2,qwc)
-      if(nvar2.le.5) ition=itiono
-      if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
+      if(nvar2 <= 5) ition = itiono
+      if(nvar2 <= 4 .and. ithick == 1) then
+        call envar(dp1)
+      end if
 
-      if(ilin.ge.2) then
-        nlinoo=nlin
-        nlin=nlino
-        iqmodc=2
+      if(ilin >= 2) then
+        nlinoo = nlin
+        nlin   = nlino
+        iqmodc = 2
         call mydaini(1,2,5,2,5,1)
-        ilinc=1
+        ilinc  = 1
         call mydaini(2,2,5,2,5,1)
-        nlin=nlinoo
-      endif
+        nlin   = nlinoo
+      end if
 
       do ncrr=1,iu
-        ix=ic(ncrr)
-        if(ix.gt.nblo) ix=ix-nblo
-        if(ix.eq.iq(1).or.iratioe(ix).eq.iq(1)) then
-          smiv(ncrr)=smi(ncrr)
-        else if(ix.eq.iq(2).or.iratioe(ix).eq.iq(2)) then
-          smiv(ncrr)=smi(ncrr)
-        endif
-      enddo
-    endif
+        ix = ic(ncrr)
+        if(ix > nblo) ix = ix-nblo
+        if(ix == iq(1) .or. iratioe(ix) == iq(1)) then
+          smiv(ncrr) = smi(ncrr)
+        else if(ix == iq(2) .or. iratioe(ix) == iq(2)) then
+          smiv(ncrr) = smi(ncrr)
+        end if
+      end do
+    end if
 
-    clo6v(1)  = clo(1)
-    clop6v(1) = clop(1)
-    clo6v(2)  = clo(2)
-    clop6v(2) = clop(2)
-    di0xs     = di0(1)
-    di0zs     = di0(2)
-    dip0xs    = dip0(1)
-    dip0zs    = dip0(2)
-    qwcs(1)   = qwc(1)
-    qwcs(2)   = qwc(2)
-    qwcs(3)   = zero
+    clo6v(1)     = clo(1)
+    clop6v(1)    = clop(1)
+    clo6v(2)     = clo(2)
+    clop6v(2)    = clop(2)
+    di0xs        = di0(1)
+    di0zs        = di0(2)
+    dip0xs       = dip0(1)
+    dip0zs       = dip0(2)
+    qwcs(1)      = qwc(1)
+    qwcs(2)      = qwc(2)
+    qwcs(3)      = zero
     tas(1:4,1:4) = tasm(1:4,1:4)
-  endif
-          iar=1
+  end if
 
-! save tas matrix and closed orbit for later dumping of the beam
-! distribution at the first element (i=-1)
-! dumptas(*,*) [mm,mrad,mm,mrad,1] canonical variables
-! tas(iar,*,*) [mm,mrad,mm,mrad,1] canonical variables
-! clo6v,clop6v [mm,mrad,mm,mrad,1] canonical variables (x' or px?)
-! for the initialization of the particles. Only in 5D thick the ta
-! matrix is different for each particle.
-! -> implement a check for this!
-! In 4d,6d thin+thick and 5d thin we have:
-!   tas(ia,*,*) = tas(1,*,*) for all particles ia
-          if (iar .eq. 1) then
-             do i3=1,3
-                dumpclo(-1,i3*2-1) = clo6v(i3)
-                dumpclo(-1,i3*2)   = clop6v(i3)
-             enddo
-             dumptas(-1,:,:) = tas(:,:)
-!     invert the tas matrix
-             call invert_tas(dumptasinv(-1,:,:),dumptas(-1,:,:))
-!     dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
-          endif
-!     tas(iar,*,*) [mm,mrad,mm,mrad,1]
+  ! save tas matrix and closed orbit for later dumping of the beam
+  ! distribution at the first element (i=-1)
+  ! dumptas(*,*) [mm,mrad,mm,mrad,1] canonical variables
+  ! tas(iar,*,*) [mm,mrad,mm,mrad,1] canonical variables
+  ! clo6v,clop6v [mm,mrad,mm,mrad,1] canonical variables (x' or px?)
+  ! for the initialization of the particles. Only in 5D thick the ta
+  ! matrix is different for each particle.
+  ! -> implement a check for this!
+  ! In 4d,6d thin+thick and 5d thin we have:
+  !   tas(ia,*,*) = tas(1,*,*) for all particles ia
+  do i3=1,3
+    dumpclo(-1,i3*2-1) = clo6v(i3)
+    dumpclo(-1,i3*2)   = clop6v(i3)
+  end do
+  dumptas(-1,:,:) = tas(:,:)
+  call invert_tas(dumptasinv(-1,:,:),dumptas(-1,:,:))
 
-! convert to [mm,mrad,mm,mrad,1.e-3] for optics calculation
-          tasiar16=tas(1,6)*c1m3
-          tasiar26=tas(2,6)*c1m3
-          tasiar36=tas(3,6)*c1m3
-          tasiar46=tas(4,6)*c1m3
-          tasiar56=tas(5,6)*c1m3
-          tasiar61=tas(6,1)*c1e3
-          tasiar62=tas(6,2)*c1e3
-          tasiar63=tas(6,3)*c1e3
-          tasiar64=tas(6,4)*c1e3
-          tasiar65=tas(6,5)*c1e3
-          bet0(1)=tas(1,1)**2+tas(1,2)**2                        !hr05
-          bet0x2 =tas(1,3)**2+tas(1,4)**2                        !hr05
-          bet0x3 =tas(1,5)**2+tasiar16**2                            !hr05
-          gam0x1 =tas(2,1)**2+tas(2,2)**2                        !hr05
-          gam0x2 =tas(2,3)**2+tas(2,4)**2                        !hr05
-          gam0x3 =tas(2,5)**2+tasiar26**2                            !hr05
-          alf0(1)=-one*(tas(1,1)*tas(2,1)+tas(1,2)*tas(2,2)) !hr05
-          alf0x2 =-one*(tas(1,3)*tas(2,3)+tas(1,4)*tas(2,4)) !hr05
-          alf0x3 =-one*(tas(1,5)*tas(2,5)+tasiar16*tasiar26)         !hr05
-          bet0(2)=tas(3,3)**2+tas(3,4)**2                        !hr05
-          bet0z2 =tas(3,1)**2+tas(3,2)**2                        !hr05
-          bet0z3 =tas(3,5)**2+tasiar36**2                            !hr05
-          gam0z1 =tas(4,3)**2+tas(4,4)**2                        !hr05
-          gam0z2 =tas(4,1)**2+tas(4,2)**2                        !hr05
-          gam0z3 =tas(4,5)**2+tasiar46**2                            !hr05
-          alf0(2)=-one*(tas(3,3)*tas(4,3)+tas(3,4)*tas(4,4)) !hr05
-          alf0z2 =-one*(tas(3,1)*tas(4,1)+tas(3,2)*tas(4,2)) !hr05
-          alf0z3 =-one*(tas(3,5)*tas(4,5)+tasiar36*tasiar46)         !hr05
-          bet0s1 =tas(5,5)**2+tasiar56**2                            !hr05
-          bet0s2 =tas(5,1)**2+tas(5,2)**2                        !hr05
-          bet0s3 =tas(5,3)**2+tas(5,4)**2                        !hr05
-          gam0s1 =tasiar65**2+tas(6,6)**2                            !hr05
-          gam0s2 =tasiar61**2+tasiar62**2                                !hr05
-          gam0s3 =tasiar63**2+tasiar64**2                                !hr05
-          alf0s1 =-one*(tas(5,5)*tasiar65+tasiar56*tas(6,6))     !hr05
-          alf0s2 =-one*(tas(5,1)*tasiar61+tas(5,2)*tasiar62)     !hr05
-          alf0s3 =-one*(tas(5,3)*tasiar63+tas(5,4)*tasiar64)     !hr05
-#ifdef DEBUG
-!     call dumpbin('abib1',1,1)
-!     call abend('after bib1                                        ')
-#endif
+  ! Convert to [mm,mrad,mm,mrad,1.e-3] for optics calculation
+  tasiar16 = tas(1,6)*c1m3
+  tasiar26 = tas(2,6)*c1m3
+  tasiar36 = tas(3,6)*c1m3
+  tasiar46 = tas(4,6)*c1m3
+  tasiar56 = tas(5,6)*c1m3
+  tasiar61 = tas(6,1)*c1e3
+  tasiar62 = tas(6,2)*c1e3
+  tasiar63 = tas(6,3)*c1e3
+  tasiar64 = tas(6,4)*c1e3
+  tasiar65 = tas(6,5)*c1e3
+
+  bet0(1)  = tas(1,1)**2 + tas(1,2)**2
+  bet0x2   = tas(1,3)**2 + tas(1,4)**2
+  bet0x3   = tas(1,5)**2 + tasiar16**2
+  gam0x1   = tas(2,1)**2 + tas(2,2)**2
+  gam0x2   = tas(2,3)**2 + tas(2,4)**2
+  gam0x3   = tas(2,5)**2 + tasiar26**2
+  alf0(1)  = -one*(tas(1,1)*tas(2,1) + tas(1,2)*tas(2,2))
+  alf0x2   = -one*(tas(1,3)*tas(2,3) + tas(1,4)*tas(2,4))
+  alf0x3   = -one*(tas(1,5)*tas(2,5) + tasiar16*tasiar26)
+
+  bet0(2)  = tas(3,3)**2 + tas(3,4)**2
+  bet0z2   = tas(3,1)**2 + tas(3,2)**2
+  bet0z3   = tas(3,5)**2 + tasiar36**2
+  gam0z1   = tas(4,3)**2 + tas(4,4)**2
+  gam0z2   = tas(4,1)**2 + tas(4,2)**2
+  gam0z3   = tas(4,5)**2 + tasiar46**2
+  alf0(2)  = -one*(tas(3,3)*tas(4,3) + tas(3,4)*tas(4,4))
+  alf0z2   = -one*(tas(3,1)*tas(4,1) + tas(3,2)*tas(4,2))
+  alf0z3   = -one*(tas(3,5)*tas(4,5) + tasiar36*tasiar46)
+
+  bet0s1   = tas(5,5)**2 + tasiar56**2
+  bet0s2   = tas(5,1)**2 + tas(5,2)**2
+  bet0s3   = tas(5,3)**2 + tas(5,4)**2
+  gam0s1   = tasiar65**2 + tas(6,6)**2
+  gam0s2   = tasiar61**2 + tasiar62**2
+  gam0s3   = tasiar63**2 + tasiar64**2
+  alf0s1   = -one*(tas(5,5)*tasiar65 + tasiar56*tas(6,6))
+  alf0s2   = -one*(tas(5,1)*tasiar61 + tas(5,2)*tasiar62)
+  alf0s3   = -one*(tas(5,3)*tasiar63 + tas(5,4)*tasiar64)
+
           do 220 ib1=1,napx
             iar=ib1
 
