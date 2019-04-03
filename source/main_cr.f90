@@ -92,7 +92,7 @@ interface
 end interface
 
   ! "Old" variables
-  integer i,itiono,i2,i3,ia,ia2,iar,iation,ib0,ib1,ib2,ib3,id,ie,ig,ii,im,iposc,ix,izu,j,j2,jj,  &
+  integer i,itiono,i2,i3,ia,ia2,iar,iation,ib1,ib2,ib3,id,ie,ig,ii,im,iposc,ix,izu,j,j2,jj,  &
     k,kpz,kzz,l,ll,ncorruo,ncrr,nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
     bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,&
@@ -469,7 +469,6 @@ end interface
 
   aperture_napxStart=napx
   iation=abs(ition)
-  ib0=0
   dp00=dp1
   if(napx <= 0) goto 490
 
@@ -869,144 +868,110 @@ end interface
   alf0s2   = -one*(tas(5,1)*tasiar61 + tas(5,2)*tasiar62)
   alf0s3   = -one*(tas(5,3)*tasiar63 + tas(5,4)*tasiar64)
 
-          do 220 ib1=1,napx
-            iar=ib1
+  do ib1=1,napx
 
-            do ib2=1,6
-              do ib3=1,6
-                tau(ib2,ib3)=tas(ib3,ib2)
-              end do
-            end do
+    tau(:,:)=tas(:,:)
 
-            if(abs(tau(1,1)).le.pieni.and.abs(tau(2,2)).le.pieni) then
-              tau(1,1)=one
-              tau(2,2)=one
-            endif
-            if(abs(tau(3,3)).le.pieni.and.abs(tau(4,4)).le.pieni) then
-              tau(3,3)=one
-              tau(4,4)=one
-            endif
-            if(abs(tau(5,5)).le.pieni.and.abs(tau(6,6)).le.pieni) then
-              tau(5,5)=one
-              tau(6,6)=one
-              call dinv(6,tau,6,idummy,nerror)
-              its6d=0
-              if(ntwin.ne.2) then
-                taus=(((((((((((((((((((                                &!hr05
-     &abs(tau(5,1))+abs(tau(5,2)))+abs(tau(5,3)))+abs                   &!hr05
-     &(tau(5,4)))+abs(tau(5,5)))+abs(tau(5,6)))+abs(tau(6,1)))          &!hr05
-     &+abs(tau(6,2)))+abs(tau(6,3)))+abs(tau(6,4)))+abs                 &!hr05
-     &(tau(6,5)))+abs(tau(6,6)))+abs(tau(1,5)))+abs(tau(2,5)))          &!hr05
-     &+abs(tau(3,5)))+abs(tau(4,5)))+abs(tau(1,6)))+abs                 &!hr05
-     &(tau(2,6)))+abs(tau(3,6)))+abs(tau(4,6)))-two                      !hr05
-                if(abs(taus).ge.pieni) its6d=1
-              endif
-              tasau(:,:)=tau(:,:)
-            endif
-  220     continue
-          if(ierro.ne.0) then
-            write(lout,10230) dp1
-            goto 520
-          endif
-          write(lout,10070)
-          phag=(phas*c180e0)/pi                                           !hr05
-          if((idp.eq.0).or.(abs(phas).le.pieni.and.ition.eq.0))         &
-     &write(lout,10170)                                                 &
-     &qwc(1),clo(1),clop(1),                                            &
-     &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
-     &qwc(2),clo(2),clop(2),                                            &
-     &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
-          if(idp.eq.1.and.iation.eq.1.and.abs(phas).gt.pieni) then
-            if(iclo6.eq.0) then
-              write(lout,10150) phag,                                   &
-     &qwc(1),clo(1),clop(1),                                            &
-     &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
-     &qwc(2),clo(2),clop(2),                                            &
-     &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
-            else
-              write(lout,10160) phag,                                   &
-     &qwc(1),clo6(1),clop6(1),                                          &
-     &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
-     &bet0x3,alf0x3,gam0x3,                                             &
-     &qwc(2),clo6(2),clop6(2),                                          &
-     &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2,                      &
-     &bet0z3,alf0z3,gam0z3,                                             &
-     &qwc(3),clo6(3),clop6(3),                                          &
-     &bet0s1,alf0s1,gam0s1,bet0s2,alf0s2,gam0s2,                        &
-     &bet0s3,alf0s3,gam0s3
-            endif
-          endif
-          if(idp.eq.1.and.ition.eq.0.and.abs(phas).gt.pieni)            &
-     &write(lout,10190) phag,                                           &
-     &qwc(1),clo(1),clop(1),                                            &
-     &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
-     &qwc(2),clo(2),clop(2),                                            &
-     &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
-          if(idp.eq.1.and.abs(phas).le.pieni.and.iation.eq.1) then
-            if(iclo6.eq.0) then
-              write(lout,10210)                                         &
-     &qwc(1),clo(1),clop(1),                                            &
-     &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
-     &qwc(2),clo(2),clop(2),                                            &
-     &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
-            else
-              write(lout,10220)                                         &
-     &qwc(1),clo6(1),clop6(1),                                          &
-     &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
-     &bet0x3,alf0x3,gam0x3,                                             &
-     &qwc(2),clo6(2),clop6(2),                                          &
-     &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2,                      &
-     &bet0z3,alf0z3,gam0z3,                                             &
-     &qwc(3),clo6(3),clop6(3),                                          &
-     &bet0s1,alf0s1,gam0s1,bet0s2,alf0s2,gam0s2,                        &
-     &bet0s3,alf0s3,gam0s3
-            endif
-          endif
-          write(lout,10080) dp1
-          e0f=sqrt(e0**2-nucm0**2)                                         !hr05
-          if(iclo6.eq.0) then
-            write(lout,10110) clo(1),clop(1),clo(2),clop(2),idz(1),     &
-     &idz(2),                                                           &
-     &iver, idfor,iclo6,ition
-          else
-            write(lout,10120) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),&
-     &clop6(3), idz(1),idz(2),iver,idfor,iclo6,ition
-          endif
+    if(abs(tau(1,1)) <= pieni .and. abs(tau(2,2)) <= pieni) then
+      tau(1,1) = one
+      tau(2,2) = one
+    end if
+    if(abs(tau(3,3)) <= pieni .and. abs(tau(4,4)) <= pieni) then
+      tau(3,3) = one
+      tau(4,4) = one
+    end if
+    if(abs(tau(5,5)) <= pieni .and. abs(tau(6,6)) <= pieni) then
+      tau(5,5) = one
+      tau(6,6) = one
+      call dinv(6,tau,6,idummy,nerror)
+      its6d = 0
+      if(ntwin /= 2) then
+        taus = (((((((((((((((((((                                 &
+          abs(tau(5,1))+abs(tau(5,2)))+abs(tau(5,3)))+abs(tau(5,4)))+abs(tau(5,5)))+abs(tau(5,6)))+ &
+          abs(tau(6,1)))+abs(tau(6,2)))+abs(tau(6,3)))+abs(tau(6,4)))+abs(tau(6,5)))+abs(tau(6,6)))+&
+          abs(tau(1,5)))+abs(tau(2,5)))+abs(tau(3,5)))+abs(tau(4,5)))+abs(tau(1,6)))+abs(tau(2,6)))+&
+          abs(tau(3,6)))+abs(tau(4,6)))-two
+        if(abs(taus) >= pieni) its6d = 1
+      end if
+      tasau(:,:) = tau(:,:)
+    end if
+  end do
 
-          do ib1=1,napx
-            !Loop over all particles (not pairs) with the same
-            ! ib (momentum variation, 1..imc ) and
-            !  m (seed,               1..mmac).
-            !It appears that only the odd (1,3,5,..) indices are actually used?
-            ib2=ib0+ib1        ! ib0 is fixed to 0 => ib2 equals ib1
-            ampv(ib2)=amp(1)-damp*real(ib1-1,fPrec) !hr05
+  if(ierro /= 0) then
+    write(lout,10230) dp1
+    goto 520
+  end if
+  write(lout,10070)
 
-            if(ib1.eq.napx-1 .and. ib1.ne.1) then
-              !Make sure that last amplitude EXACTLY corresponds to the end amplitude amp0
-              ! This is helpfull when doing DA studies and checking the "overlap"
-              ampv(ib2)=amp0
-            end if
+  phag = (phas*c180e0)/pi
+  if((idp == 0) .or. (abs(phas) <= pieni .and. ition == 0)) then
+    write(lout,10170) qwc(1),clo(1),clop(1),bet0(1),alf0(1),gam0x1,     &
+      bet0x2,alf0x2,gam0x2,qwc(2),clo(2),clop(2),bet0(2),alf0(2),gam0z1,&
+      bet0z2,alf0z2,gam0z2
+  end if
+  if(idp == 1 .and. iation .eq. 1 .and. abs(phas) > pieni) then
+    if(iclo6 == 0) then
+      write(lout,10150) phag,qwc(1),clo(1),clop(1),bet0(1),alf0(1),     &
+        gam0x1,bet0x2,alf0x2,gam0x2,qwc(2),clo(2),clop(2),bet0(2),      &
+        alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
+    else
+      write(lout,10160) phag,qwc(1),clo6(1),clop6(1),bet0(1),alf0(1),   &
+        gam0x1,bet0x2,alf0x2,gam0x2,bet0x3,alf0x3,gam0x3,qwc(2),clo6(2),&
+        clop6(2),bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2,bet0z3,    &
+        alf0z3,gam0z3,qwc(3),clo6(3),clop6(3),bet0s1,alf0s1,gam0s1,     &
+        bet0s2,alf0s2,gam0s2,bet0s3,alf0s3,gam0s3
+    end if
+  end if
+  if(idp == 1 .and. ition == 0 .and. abs(phas) > pieni) then
+    write(lout,10190) phag,qwc(1),clo(1),clop(1),bet0(1),alf0(1),gam0x1,&
+      bet0x2,alf0x2,gam0x2,qwc(2),clo(2),clop(2),bet0(2),alf0(2),gam0z1,&
+      bet0z2,alf0z2,gam0z2
+  end if
+  if(idp == 1 .and. abs(phas) <= pieni .and. iation == 1) then
+    if(iclo6 == 0) then
+      write(lout,10210) qwc(1),clo(1),clop(1),bet0(1),alf0(1),gam0x1,   &
+        bet0x2,alf0x2,gam0x2,qwc(2),clo(2),clop(2),bet0(2),alf0(2),     &
+        gam0z1,bet0z2,alf0z2,gam0z2
+    else
+      write(lout,10220) qwc(1),clo6(1),clop6(1),bet0(1),alf0(1),gam0x1, &
+        bet0x2,alf0x2,gam0x2,bet0x3,alf0x3,gam0x3,qwc(2),clo6(2),       &
+        clop6(2),bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2,bet0z3,    &
+        alf0z3,gam0z3,qwc(3),clo6(3),clop6(3),bet0s1,alf0s1,gam0s1,     &
+        bet0s2,alf0s2,gam0s2,bet0s3,alf0s3,gam0s3
+    end if
+  end if
+  write(lout,10080) dp1
 
-            dp0v(ib2)=dp10
-            dpsv(ib2)=dp10
-            oidpsv(ib2)=one/(one+dp1)
-! Heavy ion variable
-            moidpsv(ib2)=mtc(ib2)/(one+dp1)
-            nms(ib2)=1
+  e0f = sqrt(e0**2 - nucm0**2)
+  if(iclo6 == 0) then
+    write(lout,10110) clo(1),clop(1),clo(2),clop(2),idz(1),idz(2),iver, &
+      idfor,iclo6,ition
+  else
+    write(lout,10120) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),        &
+      clop6(3),idz(1),idz(2),iver,idfor,iclo6,ition
+  end if
 
-            if(ithick.eq.1) then
-              do i=1,nele
-                ekv(ib2,i)=ek(i)
-              end do
-            end if
+  do ib1=1,napx
+    ampv(ib1) = amp(1)-damp*real(ib1-1,fPrec)
 
-          end do
+    if(ib1 == napx-1 .and. ib1 /= 1) then
+      ! Make sure that last amplitude EXACTLY corresponds to the end amplitude amp0
+      ! This is helpfull when doing DA studies and checking the "overlap"
+      ampv(ib1) = amp0
+    end if
 
-          ib0=ib0+napx
+    dp0v(ib1)    = dp10
+    dpsv(ib1)    = dp10
+    oidpsv(ib1)  = one/(one+dp1)
+    moidpsv(ib1) = mtc(ib1)/(one+dp1)
+    nms(ib1)     = 1
 
+    if(ithick == 1) then
+      ekv(ib1,1:nele) = ek(1:nele)
+    end if
+  end do
 
-! ================================================================================================================================ !
-
+! ================================================================================================ !
 
 #ifdef FLUKA
   ! A.Mereghetti, P. Garcia Ortega, D.Sinuela Pastor, V. Vlachoudis for the FLUKA Team
