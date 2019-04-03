@@ -457,11 +457,11 @@ end interface
   damp  = zero
   if(napx /= 1) damp=((amp00-amp0)/real(napx-1,fPrec))/two
   napx  = 2*napx
-  call expand_arrays(nele, napx*imc, nblz, nblo)
+  call expand_arrays(nele, napx, nblz, nblo)
 
   ! Log some meta data
-  meta_nPartInit = napx*imc
-  call meta_write("NumParticles",         napx*imc)
+  meta_nPartInit = napx
+  call meta_write("NumParticles",         napx)
   call meta_write("NumTurns",             numl)
   call meta_write("NumSingleElements",    il)
   call meta_write("NumBlockElements",     mblo)
@@ -471,7 +471,7 @@ end interface
   iation=abs(ition)
   ib0=0
   dp00=dp1
-  if(napx <= 0 .or. imc <= 0) goto 490
+  if(napx <= 0) goto 490
 
   ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
   ! possible to re-shuffle lattice structure
@@ -673,15 +673,8 @@ end interface
         endif
         dp1=dp00
         dp0=dp00
-        if(imc > 1) then
-          ddp1 = (two*dp0)/(real(imc,fPrec)-one)
-        else
-          ddp1 = zero ! -Wmaybe-uninitialized
-        endif
-        do 250 ib=1,imc
-          if(imc.gt.1) then
-            dp1=dp0-(real(ib,fPrec)-one)*ddp1                                  !hr05
-          endif
+        ddp1 = zero ! -Wmaybe-uninitialized
+        do 250 ib=1,1
           dp10=dp1
 !-----------------------------------------------------------------------
           if(idp /= 1 .or. iation /= 1) iclo6=0
@@ -1075,11 +1068,6 @@ end interface
 
           ib0=ib0+napx
   250   continue
-#ifdef DEBUG
-!     call dumpbin('ado 260',260,260)
-!     call abend('ado 260                                           ')
-#endif
-  napx = napx*imc
 
 #ifdef FLUKA
   ! A.Mereghetti, P. Garcia Ortega, D.Sinuela Pastor, V. Vlachoudis for the FLUKA Team
@@ -1641,7 +1629,7 @@ end interface
   end if ! END if(ipos.eq.1)
   goto 520 ! Done postprocessing
 
-490 continue ! GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
+490 continue ! GOTO here if(napx <= 0) (skipping tracking)
   if(ipos == 1) then
     ndafi2=ndafi
     do ia=1,ndafi2
@@ -1674,7 +1662,7 @@ end interface
   end if
   goto 520 ! Done postprocessing
 
-490 continue ! GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
+490 continue ! GOTO here if(napx <= 0) (skipping tracking)
   if(ipos == 1) then
     ndafi2=ndafi
     do ia=1,(2*ndafi2),2
