@@ -719,14 +719,10 @@ end interface
       end do
     end if
 
+    ! Beam-beam element
+    clo6v(1:3)  = clo6(1:3)
+    clop6v(1:3) = clop6(1:3)
     do i=1,napx
-      ! Beam-beam element
-      clo6v(1)  = clo6(1)
-      clo6v(2)  = clo6(2)
-      clo6v(3)  = clo6(3)
-      clop6v(1) = clop6(1)
-      clop6v(2) = clop6(2)
-      clop6v(3) = clop6(3)
       di0xs(i)  = di0(1)
       di0zs(i)  = di0(2)
       dip0xs(i) = dip0(1)
@@ -734,12 +730,7 @@ end interface
       qwcs(i,1) = qwc(1)
       qwcs(i,2) = qwc(2)
       qwcs(i,3) = qwc(3)
-
-      do i2=1,6
-        do j2=1,6
-          tas(i,i2,j2)=tasm(i2,j2)
-        end do
-      end do
+      tas(i,:,:)=tasm(:,:)
     end do
 
   else ! 4D
