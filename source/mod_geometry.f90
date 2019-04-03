@@ -713,7 +713,7 @@ subroutine geom_calcDcum
         tmpDcum = tmpDcum  + el(ix)
       end if
       if(strumcol) then
-        elpos(i) = elpos(i) - sGo + el(ix)/2 ! Change from centre of element to end of element
+        elpos(i) = elpos(i) + el(ix)/2 ! Change from centre of element to end of element
       else
         elpos(i) = tmpDcum ! Just copy dcum(i)
       end if
@@ -725,7 +725,7 @@ subroutine geom_calcDcum
           tmpDcum = tmpDcum + el(k)
         end if
         if(strumcol) then
-          elpos(i) = elpos(i) - sGo + el(k)/2 ! Change from centre of element to end of element
+          elpos(i) = elpos(i) + el(k)/2 ! Change from centre of element to end of element
         else
           elpos(i) = tmpDcum ! Just copy dcum(i)
         end if
