@@ -726,11 +726,7 @@ end interface
     di0zs  = di0(2)
     dip0xs = dip0(1)
     dip0zs = dip0(2)
-    do i=1,napx
-      qwcs(i,1) = qwc(1)
-      qwcs(i,2) = qwc(2)
-      qwcs(i,3) = qwc(3)
-    end do
+    qwcs(1:3) = qwc(1:3)
     tas(:,:)=tasm(:,:)
 
   else ! 4D
@@ -803,15 +799,13 @@ end interface
     clop6v(1) = clop(1)
     clo6v(2)  = clo(2)
     clop6v(2) = clop(2)
-    di0xs  = di0(1)
-    di0zs  = di0(2)
-    dip0xs = dip0(1)
-    dip0zs = dip0(2)
-    do i=1,napx
-      qwcs(i,1) = qwc(1)
-      qwcs(i,2) = qwc(2)
-      qwcs(i,3) = zero
-    end do
+    di0xs     = di0(1)
+    di0zs     = di0(2)
+    dip0xs    = dip0(1)
+    dip0zs    = dip0(2)
+    qwcs(1)   = qwc(1)
+    qwcs(2)   = qwc(2)
+    qwcs(3)   = zero
     tas(1:4,1:4) = tasm(1:4,1:4)
   endif
           iar=1

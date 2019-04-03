@@ -915,11 +915,11 @@ module mod_common_main
   real(kind=fPrec), allocatable, save :: hv(:,:,:,:)   ! (6,2,npart,nblo)
   real(kind=fPrec), allocatable, save :: bl1v(:,:,:,:) ! (6,2,npart,nblo)
   real(kind=fPrec), allocatable, save :: tasau(:,:,:)  ! (npart,6,6)
-  real(kind=fPrec), allocatable, save :: qwcs(:,:)     ! (npart,3)
-  real(kind=fPrec),              save :: di0xs  = zero
-  real(kind=fPrec),              save :: di0zs  = zero
-  real(kind=fPrec),              save :: dip0xs = zero
-  real(kind=fPrec),              save :: dip0zs = zero
+  real(kind=fPrec),              save :: qwcs(3) = zero
+  real(kind=fPrec),              save :: di0xs   = zero
+  real(kind=fPrec),              save :: di0zs   = zero
+  real(kind=fPrec),              save :: dip0xs  = zero
+  real(kind=fPrec),              save :: dip0zs  = zero
   real(kind=fPrec),              save :: di0au(4)
   real(kind=fPrec),              save :: tau(6,6)
   real(kind=fPrec),              save :: wx(3)
@@ -1023,7 +1023,6 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
     call alloc(iv,               npart_new,      0,       "iv")
 
     call alloc(tasau,            npart_new, 6,6, zero,    "tasau")
-    call alloc(qwcs,             npart_new, 3,   zero,    "qwcs")
   end if
 
   nblz_prev  = nblz_new

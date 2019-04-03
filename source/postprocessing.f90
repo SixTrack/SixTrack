@@ -3412,7 +3412,7 @@ end subroutine join
       !Convert from whatever precission is used internally to real64,
       ! which is what should go in the output file
       do i=1,3
-         qwcs_tmp  (i) = real(qwcs  (ia_p1,i), real64)
+         qwcs_tmp  (i) = real(qwcs  (i), real64)
          clo6v_tmp (i) = real(clo6v (i), real64)
          clop6v_tmp(i) = real(clop6v(i), real64)
       enddo
