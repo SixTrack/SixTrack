@@ -697,7 +697,7 @@ subroutine geom_calcDcum
 
   character(len=24) tmpS, tmpE
   character(len=99) fmtH, fmtC
-  real(kind=fPrec) tmpDcum, delS
+  real(kind=fPrec) tmpDcum, delS, sGo, sEnd
   integer i, j, k, ix, outUnit
 
   write(lout,"(a)") "GEOMETRY> Calculating machine length"
@@ -710,10 +710,10 @@ subroutine geom_calcDcum
     if(ix > nblo) then ! SINGLE ELEMENT
       ix = ix-nblo
       if(el(ix) > zero) then
-        tmpDcum = tmpDcum + el(ix)
+        tmpDcum = tmpDcum  + el(ix)
       end if
       if(strumcol) then
-        elpos(i) = elpos(i) + el(ix)/2 ! Change from centre of element to end of element
+        elpos(i) = elpos(i) - sGo + el(ix)/2 ! Change from centre of element to end of element
       else
         elpos(i) = tmpDcum ! Just copy dcum(i)
       end if
@@ -725,7 +725,7 @@ subroutine geom_calcDcum
           tmpDcum = tmpDcum + el(k)
         end if
         if(strumcol) then
-          elpos(i) = elpos(i) + el(k)/2 ! Change from centre of element to end of element
+          elpos(i) = elpos(i) - sGo + el(k)/2 ! Change from centre of element to end of element
         else
           elpos(i) = tmpDcum ! Just copy dcum(i)
         end if
@@ -733,6 +733,14 @@ subroutine geom_calcDcum
     end if
     dcum(i) = tmpDcum
   end do
+
+  ! Correct the elpos array after a GO reshuffle
+  if(kanf > 1 .and. strumcol) then
+    sGo  = elpos(1)
+    sEnd = elpos(iu-kanf+1)-sGo
+    elpos(1:iu-kanf+1)  = elpos(1:iu-kanf+1)  - sGo
+    elpos(iu-kanf+2:iu) = elpos(iu-kanf+2:iu) + sEnd
+  end if
 
   ! Assign the last value to the closing MARKER:
   dcum(iu+1)  = tmpDcum
@@ -815,73 +823,57 @@ end subroutine geom_calcDcum
 ! ================================================================================================ !
 subroutine geom_reshuffleLattice
 
-  use floatPrecision
-  use numerical_constants
-  use mathlib_bouncer
-  use crcoall
   use parpro
+  use crcoall
+  use floatPrecision
+  ! use numerical_constants
   use mod_common
   use mod_commons
   use mod_common_track
+
   implicit none
-  integer i,icext1,icextal1,ihi,ii,ilf,ilfr,j,kanf1
-  real(kind=fPrec) extalig1 !,exterr1
-  dimension ilf(nblz),ilfr(nblz)
-  dimension extalig1(nblz,3),icext1(nblz),icextal1(nblz) !,exterr1(nblz,40)
-  save
-!-----------------------------------------------------------------------
-  if(mper.gt.1) then
+
+  integer i,j,ii,jj
+  character(len=mNameLen), allocatable :: tmpC(:)
+
+  if(mper > 1) then
     do i=2,mper
       do j=1,mbloz
-        ii=(i-1)*mbloz+j
-        ihi=j
-        if(msym(i).lt.0) ihi=mbloz-j+1
-        ic(ii)=msym(i)*ic(ihi)
-        if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
+        ii = (i-1)*mbloz+j
+        jj = j
+        if(msym(i) < 0) then
+          jj = mbloz-j+1
+        end if
+        ic(ii) = msym(i)*ic(jj)
+        if(ic(ii) < -nblo) then
+          ic(ii) = -ic(ii)
+        end if
       end do
     end do
   end if
+  iu = mper*mbloz
 
-  ! set iu
-  iu=mper*mbloz
+  ! "GO" is the first structure element, we're done.
+  if(kanf == 1) return
 
-  ! "GO" was not the first structure element -> Reshuffle the structure
-  if(kanf.ne.1) then
-    write(lout,"(a)") "GEOMETRY> Reshuffling lattice structure following existence "//&
-      "of GO keyword not in first position of lattice definition!"
-    !        initialise some temporary variables
-    do i=1,nblz
-      ilf(i)=0
-      ilfr(i)=0
-      icext1(i)=0
-      icextal1(i)=0
-      do ii=1,3
-          extalig1(i,ii)=zero
-      enddo
-    enddo
+  ! Otherwise, reshuffle the structure
+  write(lout,"(a)") "GEOMETRY> GO keyword not the first lattice element: Reshuffling lattice structure."
 
-    !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
-    kanf1=kanf-1
-    do i=1,kanf1
-      if(iorg.ge.0) ilfr(i)=mzu(i)
-      ilf(i)=ic(i)
-      icext1(i)=icext(i)
-      icextal1(i)=icextal(i)
-    end do
-    do i=kanf,iu
-      if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
-      ic(i-kanf1)=ic(i)
-      icext(i-kanf1)=icext(i)
-      icextal(i-kanf1)=icextal(i)
-    end do
-    do i=1,kanf1
-      if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
-      ic(iu-kanf1+i)=ilf(i)
-      icext(iu-kanf1+i)=icext1(i)
-      icextal(iu-kanf1+i)=icextal1(i)
-    end do
-  endif
-  return
+  if(iorg >= 0) then
+    mzu(1:iu)   = cshift(mzu(1:iu),     kanf-1)
+  end if
+  ic(1:iu)      = cshift(ic(1:iu),      kanf-1)
+  icext(1:iu)   = cshift(icext(1:iu),   kanf-1)
+  icextal(1:iu) = cshift(icextal(1:iu), kanf-1)
+! bezs(1:iu)    = cshift(bezs(1:iu),    kanf-1)
+  elpos(1:iu)   = cshift(elpos(1:iu),   kanf-1)
+
+  ! Do string arrays manually due to a gfrotran bug in at least 8.3
+  allocate(tmpC(kanf))
+  tmpC(1:kanf-1)     = bezs(1:kanf-1)
+  bezs(1:iu-kanf+1)  = bezs(kanf:iu)
+  bezs(iu-kanf+2:iu) = tmpC(1:kanf-1)
+
 end subroutine geom_reshuffleLattice
 
 end module mod_geometry
