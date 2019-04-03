@@ -92,10 +92,10 @@ interface
 end interface
 
   ! "Old" variables
-  integer i,itiono,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,ie,ig,ii,im,iposc,ix,izu,j,j2,jj,  &
+  integer i,itiono,i2,i3,ia,ia2,iar,iation,ib0,ib1,ib2,ib3,id,ie,ig,ii,im,iposc,ix,izu,j,j2,jj,  &
     k,kpz,kzz,l,ll,ncorruo,ncrr,nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
-    bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,ddp1,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,&
+    bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,&
     gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
     tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13,damp
   integer idummy(6)
@@ -649,10 +649,8 @@ end interface
     end if
   end do
 
-#ifdef DEBUG
-!     call dumpbin('ado 150',150,150)
-!     call abend('ado 150                                           ')
-#endif
+! ================================================================================================================================ !
+
         dp1=zero
         if(ichrom > 1) then
           itiono=ition
@@ -673,39 +671,38 @@ end interface
         endif
         dp1=dp00
         dp0=dp00
-        ddp1 = zero ! -Wmaybe-uninitialized
-        do 250 ib=1,1
+
+! ================================================================================================================================ !
+
           dp10=dp1
-!-----------------------------------------------------------------------
           if(idp /= 1 .or. iation /= 1) iclo6=0
           if(iclo6 == 1 .or. iclo6 == 2) then
-            if(ib == 1) then
-              if(iclo6r == 0) then
-                clo6(1)  = clo(1)
-                clop6(1) = clop(1)
-                clo6(2)  = clo(2)
-                clop6(2) = clop(2)
-                clo6(3)  = zero
-                clop6(3) = zero
-              else
-                write(lout,"(a)") "MAINCR> Reading closed orbit guess from fort.33"
-                call readFort33
-              end if
-              call clorb(zero)
-              call betalf(zero,qw)
-              call phasad(zero,qwc)
-              sigm(1) = clo6(3)
-              dps(1)  = clop6(3)
-              call qmodda(3,qwc)
-              if(ilin >= 2) then
-                nlinoo = nlin
-                nlin   = nlino
-                ilinc  = 1
-                call mydaini(2,2,6,3,6,1)
-                nlin   = nlinoo
-              end if
-              dp1 = dp10+clop6(3)
+            if(iclo6r == 0) then
+              clo6(1)  = clo(1)
+              clop6(1) = clop(1)
+              clo6(2)  = clo(2)
+              clop6(2) = clop(2)
+              clo6(3)  = zero
+              clop6(3) = zero
+            else
+              write(lout,"(a)") "MAINCR> Reading closed orbit guess from fort.33"
+              call readFort33
             end if
+            call clorb(zero)
+            call betalf(zero,qw)
+            call phasad(zero,qwc)
+            sigm(1) = clo6(3)
+            dps(1)  = clop6(3)
+            call qmodda(3,qwc)
+            if(ilin >= 2) then
+              nlinoo = nlin
+              nlin   = nlino
+              ilinc  = 1
+              call mydaini(2,2,6,3,6,1)
+              nlin   = nlinoo
+            end if
+            dp1 = dp10+clop6(3)
+
             if(iqmod6 == 1) then
               do ncrr=1,iu
                 ix=ic(ncrr)
@@ -718,74 +715,53 @@ end interface
               enddo
             endif
 
-            do 190 ib1=1,napx
-              ib3=ib1+(ib-1)*napx
-!--beam-beam element
-              clo6v(1,ib3)=clo6(1)
-              clo6v(2,ib3)=clo6(2)
-              clo6v(3,ib3)=clo6(3)
-              clop6v(1,ib3)=clop6(1)
-              clop6v(2,ib3)=clop6(2)
-              clop6v(3,ib3)=clop6(3)
-              di0xs(ib3)=di0(1)
-              di0zs(ib3)=di0(2)
-              dip0xs(ib3)=dip0(1)
-              dip0zs(ib3)=dip0(2)
-              qwcs(ib3,1)=qwc(1)
-              qwcs(ib3,2)=qwc(2)
-              qwcs(ib3,3)=qwc(3)
+            do ib1=1,napx
+              !--beam-beam element
+              clo6v(1,ib1)  = clo6(1)
+              clo6v(2,ib1)  = clo6(2)
+              clo6v(3,ib1)  = clo6(3)
+              clop6v(1,ib1) = clop6(1)
+              clop6v(2,ib1) = clop6(2)
+              clop6v(3,ib1) = clop6(3)
+              di0xs(ib1)    = di0(1)
+              di0zs(ib1)    = di0(2)
+              dip0xs(ib1)   = dip0(1)
+              dip0zs(ib1)   = dip0(2)
+              qwcs(ib1,1)   = qwc(1)
+              qwcs(ib1,2)   = qwc(2)
+              qwcs(ib1,3)   = qwc(3)
 
               do i2=1,6
                 do j2=1,6
-                  tas(ib3,i2,j2)=tasm(i2,j2)
+                  tas(ib1,i2,j2)=tasm(i2,j2)
                 end do
               end do
+            end do
 
-  190       continue
           else
             if(idp.eq.1.and.iation.eq.1) then
               ncorruo=ncorru
               ncorru=1
               call clorb(zero)
-#ifdef DEBUG
-!     call dumpbin('aclorb',1,1)
-!     call abend('after  clorb                                      ')
-#endif
               call betalf(zero,qw)
               call phasad(zero,qwc)
-#ifdef DEBUG
-!     call dumpbin('abetphas',1,1)
-!     call abend('after  abetphas                                   ')
-#endif
 !--beam-beam element
               if(nbeam.ge.1) then
-              nd=3
-              nd2=6
+                nd=3
+                nd2=6
 #include "include/beamcou.f90"
               endif
               ncorru=ncorruo
               iqmodc=3
               call mydaini(2,2,6,3,6,1)
-#ifdef DEBUG
-!     call dumpbin('bmydaini',999,9999)
-!     call abend('before mydaini                                    ')
-#endif
               do i=1,2
                 qwc(i)=real(int(qwc(i)),fPrec)+wxys(i)
               enddo
               if(ilin.ge.2) then
-#ifdef DEBUG
-!     call dumpbin('bmydaini',999,9999)
-!     call abend('before mydaini                                    ')
-#endif
                 nlinoo=nlin
                 nlin=nlino
                 ilinc=1
                 call mydaini(2,2,6,3,6,1)
-#ifdef DEBUG
-!     call dumpbin('amydaini',999,9999)
-!     call abend('after  mydaini                                    ')
-#endif
                 nlin=nlinoo
               endif
             else
@@ -795,17 +771,8 @@ end interface
               call clorb(dp1)
               call betalf(dp1,qw)
               call phasad(dp1,qwc)
-#ifdef DEBUG
-!     call dumpbin('abetphas',1,1)
-!     call abend('after  abetphas                                   ')
-#endif
               dp1=zero
 !--beam-beam element
-#ifdef DEBUG
-!     call dumpbin('bbeam',1,1)
-!     call abend('after bbeam                                       ')
-!     write(*,*) 'call qmodda at beam-beam'
-#endif
               dp1=dps(1)
               ncorru=ncorruo
               if(nvar2.le.5) then
@@ -813,10 +780,6 @@ end interface
                 ition=0
               endif
               call qmodda(2,qwc)
-#ifdef DEBUG
-!     call dumpbin('aqmodda',3,2)
-!     call abend('after  qmodda 3 2                                 ')
-#endif
               if(nvar2.le.5) ition=itiono
               if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
 
@@ -841,29 +804,27 @@ end interface
               enddo
             endif
 
-            do 170 i=1,napx
-              iar=(ib-1)*napx+i
-              clo6v(1,iar)=clo(1)
-              clop6v(1,iar)=clop(1)
-              clo6v(2,iar)=clo(2)
-              clop6v(2,iar)=clop(2)
-              di0xs(iar)=di0(1)
-              di0zs(iar)=di0(2)
-              dip0xs(iar)=dip0(1)
-              dip0zs(iar)=dip0(2)
-              qwcs(iar,1)=qwc(1)
-              qwcs(iar,2)=qwc(2)
-              qwcs(iar,3)=zero
+            do i=1,napx
+              clo6v(1,i)  = clo(1)
+              clop6v(1,i) = clop(1)
+              clo6v(2,i)  = clo(2)
+              clop6v(2,i) = clop(2)
+              di0xs(i)    = di0(1)
+              di0zs(i)    = di0(2)
+              dip0xs(i)   = dip0(1)
+              dip0zs(i)   = dip0(2)
+              qwcs(i,1)   = qwc(1)
+              qwcs(i,2)   = qwc(2)
+              qwcs(i,3)   = zero
 
               do i2=1,4
                 do j2=1,4
-                  tas(iar,i2,j2)=tasm(i2,j2)
+                  tas(i,i2,j2)=tasm(i2,j2)
                 end do
               end do
-
-  170       continue
+            end do
           endif
-          iar=(ib-1)*napx+1
+          iar=1
 
 ! save tas matrix and closed orbit for later dumping of the beam
 ! distribution at the first element (i=-1)
@@ -930,7 +891,7 @@ end interface
 !     call abend('after bib1                                        ')
 #endif
           do 220 ib1=1,napx
-            iar=ib1+(ib-1)*napx
+            iar=ib1
 
             do ib2=1,6
               do ib3=1,6
@@ -1067,7 +1028,10 @@ end interface
           end do
 
           ib0=ib0+napx
-  250   continue
+
+
+! ================================================================================================================================ !
+
 
 #ifdef FLUKA
   ! A.Mereghetti, P. Garcia Ortega, D.Sinuela Pastor, V. Vlachoudis for the FLUKA Team
