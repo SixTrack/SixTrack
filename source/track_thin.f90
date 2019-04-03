@@ -2294,12 +2294,7 @@ subroutine dist1
       di0au(2)=dip0xs
       di0au(3)= di0zs
       di0au(4)=dip0zs
-
-      do ib2=1,6
-        do ib3=1,6
-          tau(ib2,ib3)=tasau(ia,ib2,ib3)
-        end do
-      end do
+      tau(:,:)=tasau(:,:)
 
       call distance(xau,cloau,di0au,tau,dam1)
       dam(ia)=dam1

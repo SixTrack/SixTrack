@@ -906,11 +906,7 @@ end interface
      &(tau(2,6)))+abs(tau(3,6)))+abs(tau(4,6)))-two                      !hr05
                 if(abs(taus).ge.pieni) its6d=1
               endif
-              do ib2=1,6
-                do ib3=1,6
-                  tasau(iar,ib2,ib3)=tau(ib2,ib3)
-                end do
-              end do
+              tasau(:,:)=tau(:,:)
             endif
   220     continue
           if(ierro.ne.0) then
@@ -1238,11 +1234,7 @@ end interface
         di0au(3) = di0zs
         di0au(4) = dip0zs
 
-        do ib2=1,6
-          do ib3=1,6
-            tau(ib2,ib3)=tasau(ia,ib2,ib3)
-          end do
-        end do
+        tau(:,:)=tasau(:,:)
 
         call distance(xau,cloau,di0au,tau,dam1)
         dam(ia)   = dam1

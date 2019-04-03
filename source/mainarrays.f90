@@ -238,9 +238,6 @@ subroutine shuffleLostParticles
     moidpsv(j:tnapx)   = cshift(moidpsv(j:tnapx),   1)
     omoidpsv(j:tnapx)  = cshift(omoidpsv(j:tnapx),  1)
 
-    ! Beam--Beam
-    tasau(j:tnapx,:,:) = cshift(tasau(j:tnapx,:,:), 1, 1)
-
     ! Backtracking + Aperture
     plost(j:tnapx)     = cshift(plost(j:tnapx),     1)
     xLast(:,j:tnapx)   = cshift(xLast(:,j:tnapx),   1, 2)
