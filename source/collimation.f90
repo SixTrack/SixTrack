@@ -87,13 +87,17 @@ module collimation
   &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
   &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
 !SEPT2005,OCT2006 added offset
-  &emitnx0_dist,emitny0_dist,emitnx0_collgap,emitny0_collgap,        &
   &xbeat,xbeatphase,ybeat,ybeatphase,                                &
   &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
   &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
   &c_sysoffset_sec,c_rmserror_gap,ndr,                            &
   &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
   &sigsecut3,sigsecut2,enerror,bunchlength
+
+  real(kind=fPrec), private, save :: emitnx0_dist = zero
+  real(kind=fPrec), private, save :: emitny0_dist = zero
+  real(kind=fPrec), private, save :: emitnx0_collgap = zero
+  real(kind=fPrec), private, save :: emitny0_collgap = zero
 
   real(kind=fPrec), private, save :: nr
 
@@ -135,8 +139,11 @@ module collimation
 
   integer ieff,ieffdpop
 
-  real(kind=fPrec), save :: myemitx0_dist, myemity0_dist, myemitx0_collgap, myemity0_collgap, myemitx
-  real(kind=fPrec), save :: myalphay, mybetay, myalphax, mybetax, rselect
+  real(kind=fPrec), private, save :: myemitx0_dist    = zero
+  real(kind=fPrec), private, save :: myemity0_dist    = zero
+  real(kind=fPrec), public,  save :: myemitx0_collgap = zero
+  real(kind=fPrec), public,  save :: myemity0_collgap = zero
+  real(kind=fPrec), save :: myalphay, mybetay, myalphax, mybetax, rselect, myemitx
 ! myemitx was not saved?
 !  common /ralph/ myemitx0_dist,myemity0_dist,myemitx0_collgap,myemity0_collgap,myalphax,myalphay,mybetax,mybetay,rselect
 
@@ -8012,24 +8019,5 @@ subroutine readcollimator
 #endif
 
 end subroutine readcollimator
-
-subroutine collimation_comnul
-  use parpro
-  implicit none
-
-  do_coll = .false.
-
-  ! From common /grd/
-  emitnx0_dist = zero
-  emitny0_dist = zero
-  emitnx0_collgap = zero
-  emitny0_collgap = zero
-
-  ! From common /ralph/
-  myemitx0_dist = zero
-  myemity0_dist = zero
-  myemitx0_collgap = zero
-  myemity0_collgap = zero
-end subroutine collimation_comnul
 
 end module collimation

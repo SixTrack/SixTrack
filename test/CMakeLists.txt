@@ -86,11 +86,13 @@ list(APPEND SIXTRACK_TESTS
   fcc
   fma
   fma_binary
+  fringe_field
   frs
   frs60
   generalized-rf-multipoles
   generalized-rf-multipoles-missalignments
   geometry
+  geometry_multicol
   last_amp
   lost
   lostevery
@@ -210,9 +212,11 @@ set(TESTS_NOFORT10
   dynk_random
   elensidealthck6d
   exact
+  fringe_field
   generalized-rf-multipoles
   generalized-rf-multipoles-missalignments
   geometry
+  geometry_multicol
   momentum_scan
   multipoles_DYNK
   orbit6d-element-combinedFunction
@@ -256,6 +260,8 @@ set(TESTS_NO_STF_FORT90
   fma
   fma_binary
   fma_naff
+  fringe_field
+  geometry_multicol
   rfMultipoles_2ndOrder
   rfMultipoles_4thOrder
   scatter_aperture
@@ -505,6 +511,7 @@ set(FAST_TESTS
   generalized-rf-multipoles
   generalized-rf-multipoles-missalignments
   geometry
+  geometry_multicol
   last_amp
   lost
   lostnotilt
@@ -541,7 +548,7 @@ set(FAST_TESTS
   wire_thin6d_ibeco0
 )
 
-#Medium tests take < 30 mins to run
+# Medium tests take < 30 mins to run
 set(MEDIUM_TESTS
   bbe51
   bbe52
@@ -553,6 +560,7 @@ set(MEDIUM_TESTS
   fma
   fma_binary
   fma_naff
+  fringe_field
   frs
   frs60
   lostevery
