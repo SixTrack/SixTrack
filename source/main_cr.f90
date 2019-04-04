@@ -87,24 +87,23 @@ interface
     real(kind=fPrec) :: oidpsv(npart)
     real(kind=fPrec) :: rvv(npart)
     real(kind=fPrec), allocatable, intent(inout) :: ekv(:,:)
+
   end subroutine envarsv
 
 end interface
 
-  ! "Old" variables
-  integer i,itiono,i2,i3,ia,ia2,iar,iation,ib1,ib2,ib3,id,ie,ig,ii,im,iposc,ix,izu,j,j2,jj,  &
-    k,kpz,kzz,l,ll,ncorruo,ncrr,nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
+  integer i,itiono,i2,i3,ia,ia2,iation,ib1,id,ie,ii,im,iposc,ix,izu,j,jj,k,kpz,kzz,l,ncorruo,ncrr,  &
+    nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
-    bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,&
+    bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,     &
     gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
     tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13,damp
   integer idummy(6)
   character(len=4) cpto
-#ifdef CR
-  logical isOpen
-#endif
-  character(len=8) cdate,ctime,progrm !Note: Keep in sync with writebin_header and more
-                                      !DANGER: If the len changes, CRCHECK will break.
+
+  ! Keep in sync with writebin_header and more. If the len changes, CRCHECK will break.
+  character(len=8) cDate,cTime,progrm
+
 #ifdef BOINC
   character(len=256) filename
 #endif
@@ -322,6 +321,8 @@ end interface
   call date_and_time(tsDate,tsTime)
   timeStamp = tsDate(1:4)//"-"//tsDate(5:6)//"-"//tsDate(7:8)//" "//&
               tsTime(1:2)//":"//tsTime(3:4)//":"//tsTime(5:10)
+  cDate = timeStamp(3:10)
+  cTime = timeStamp(12:19)
 
   write(lout,"(a)") ""
   write(lout,"(a)") "    SixTrack :: Version "//trim(version)//" :: Released "//trim(moddate)
@@ -554,7 +555,6 @@ end interface
   call clorb(zero)
 
   do l=1,2
-    ll=2*l
     di0(l)=(clo0(l)-clo(l))/ded
     dip0(l)=(clop0(l)-clop(l))/ded
   end do
@@ -1206,7 +1206,7 @@ end interface
 #ifdef CR
       if(.not.restart) then
 #endif
-        call writebin_header(ia,ia,91-ia2,ierro,cdate,ctime,progrm)
+        call writebin_header(ia,ia,91-ia2,ierro,cDate,cTime,progrm)
 #ifdef CR
         flush(91-ia2)
         binrecs(ia2)=1
@@ -1216,7 +1216,7 @@ end interface
 #ifdef CR
       if(.not.restart) then
 #endif
-        call writebin_header(ia,ia,90,ierro,cdate,ctime,progrm)
+        call writebin_header(ia,ia,90,ierro,cDate,cTime,progrm)
 #ifdef CR
         flush(90)
         binrecs(ia2)=1
@@ -1229,7 +1229,7 @@ end interface
 #ifdef CR
       if(.not.restart) then
 #endif
-        call writebin_header(ia,ia+1,91-ia2,ierro,cdate,ctime,progrm)
+        call writebin_header(ia,ia+1,91-ia2,ierro,cDate,cTime,progrm)
 #ifdef CR
         flush(91-ia2)
         binrecs(ia2)=1
@@ -1239,7 +1239,7 @@ end interface
 #ifdef CR
       if(.not.restart) then
 #endif
-        call writebin_header(ia,ia+1,90,ierro,cdate,ctime,progrm)
+        call writebin_header(ia,ia+1,90,ierro,cDate,cTime,progrm)
 #ifdef CR
         flush(90)
         binrecs(ia2)=1
