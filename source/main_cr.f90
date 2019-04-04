@@ -30,7 +30,7 @@ program maincr
   use aperture
   use mod_ranecu
   use mod_particles
-  use mod_geometry,   only : geom_calcDcum
+  use mod_geometry,   only : geom_calcDcum, geom_reshuffleLattice
   use mod_alloc,      only : alloc_init
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
@@ -39,10 +39,7 @@ program maincr
 #ifdef FLUKA
   use mod_fluka
 #endif
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
   use mod_ffield,     only :ffield_mod_init,ffield_mod_end
-#endif
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -361,10 +358,7 @@ end interface
   call fluka_mod_init(npart_initial, nele_initial, clight)
 #endif
 
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
   call ffield_mod_init
-#endif
 
   call daten
   call time_timeStamp(time_afterDaten)
@@ -475,7 +469,7 @@ end interface
 
   ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
   ! possible to re-shuffle lattice structure
-  call orglat
+  call geom_reshuffleLattice
   call geom_calcDcum
 
   ! A.Mereghetti (CERN, BE-ABP-HSS), 16-12-2016
@@ -1607,10 +1601,7 @@ end interface
 520 continue
   call fluka_close
 #endif
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
   call ffield_mod_end()
-#endif
 
   time3=0.
   call time_timerCheck(time3)

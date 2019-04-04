@@ -86,6 +86,7 @@ list(APPEND SIXTRACK_TESTS
   fcc
   fma
   fma_binary
+  fringe_field
   frs
   frs60
   generalized-rf-multipoles
@@ -145,7 +146,7 @@ endif()
 
 if(NOT CR)
   list(APPEND SIXTRACK_TESTS 
-    collimation_k2_fcc_2017_h1_collision
+    collimation_k2
     scatter_collimation
   )
 endif()
@@ -159,12 +160,6 @@ endif()
 if(NAFF)
   list(APPEND SIXTRACK_TESTS
     fma_naff
-  )
-endif()
-
-if(FFIELD)
-  list(APPEND SIXTRACK_TESTS
-    fringe_field
   )
 endif()
 
@@ -201,7 +196,7 @@ set(TESTS_NOFORT10
   beam-HO_6D-simple-oldstyle
   beambeam4dDYNK
   beambeamDYNK
-  collimation_k2_fcc_2017_h1_collision
+  collimation_k2
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
@@ -248,7 +243,7 @@ set(TESTS_NO_STF_FORT90
   chebythin6d_DYNK
   chebythin6d_ions
   chebythin6d_ramp_DYNK
-  collimation_k2_fcc_2017_h1_collision
+  collimation_k2
   crabs
   dipedge
   dump_all_highprec
@@ -264,6 +259,7 @@ set(TESTS_NO_STF_FORT90
   fma_binary
   fma_naff
   fringe_field
+  geometry
   geometry_multicol
   rfMultipoles_2ndOrder
   rfMultipoles_4thOrder
@@ -555,7 +551,7 @@ set(MEDIUM_TESTS
   bbe51
   bbe52
   bbe571ib0
-  collimation_k2_fcc_2017_h1_collision
+  collimation_k2
   dipedge
   distance
   eric
