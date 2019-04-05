@@ -34,7 +34,7 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
     \texttt{napx}          & integer  & Number of amplitude variations (i.e.\ particle pairs)\index{particle pairs}. \\
     \texttt{amp(1),amp0}   & floats   & Start and end amplitude (any sign) in the horizontal phase space plane for the amplitude variations. The vertical amplitude is calculated using the ratio between the horizontal and vertical emittance set in the \textit{Initial Coordinates} block (\ref{IniCoo}), where the initial phase in phase space are also set. Additional information can be found in the \textit{Remarks}. \\
     \texttt{ird}           & integer  & Ignored. \\
-    \texttt{imc}           & integer  & Number of variations of the relative momentum deviation\index{momentum deviations} $\Delta p/p_0$. The maximum value of the relative momentum deviation $\Delta p/p_0$ is taken from that of the first particle in the \textit{Initial Coordinates} block (\ref{IniCoo}). The variation will be between \mbox{$\pm \left[\Delta p/p_0\right](\mathrm{max})$} in steps of \mbox{$\left[\Delta p/p_0\right](\mathrm{max})$ / (\texttt{imc-1}).} \\
+    \texttt{imc}           & integer  & Number of variations of the relative momentum deviation\index{momentum deviations} has been removed. This value must be 1.\\
     \texttt{niu(1),niu(2)} &          & Unknown; default values are 0. \\
     \texttt{numlcp}        & integer  & Checkpoint/restart\index{checkpoint/restart} version: How often to write checkpointing files. \\
     \texttt{numlmax}       & integer  & Checkpoint/restart version: Maximum amount of turns; default is $10^6$. \\
