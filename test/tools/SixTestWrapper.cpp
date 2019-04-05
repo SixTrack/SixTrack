@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
 
     // Want our first argument to be the sixtrack binary name, assume this is run in the test folder.
     std::cout << std::endl;
-    std::cout << "Called with " << argc << " arguments:" << std::endl;
+    std::cout << "SixTestWrapper called with " << argc << " arguments:" << std::endl;
     for(int n=0; n < argc; n++) {
         printf("%4d : %s\n",n+1,argv[n]);
     }
@@ -195,8 +195,7 @@ int main(int argc, char* argv[])
         while(true) {
 
             if (KillCount >= KillTimes.size()){
-                std::cout << "  Reached maximum KillCount = " << KillCount
-                          << ", exiting now." << std::endl;
+                std::cout << "  Reached maximum KillCount = " << KillCount << ", exiting now." << std::endl;
                 break;
             }
             KillTime = KillTimes.at(KillCount);
@@ -397,7 +396,7 @@ int main(int argc, char* argv[])
             while(std::getline(MetaFile, metaStr)) {
                 if (metaStr.substr(0,32) == "CR_RestartCount                 ") {
                     if(foundCR_RestartCount) {
-                        std::cout << "ERROR: Found two lines with 'CR_RestartCount' in sim_meta.dat" << std::endl;
+                        std::cout << "  ERROR: Found two lines with 'CR_RestartCount' in 'sim_meta.dat'" << std::endl;
                         crRestartFail = true;
                     }
                     foundCR_RestartCount = true;
@@ -407,7 +406,7 @@ int main(int argc, char* argv[])
                                       metaSubStr.end() );
 
                     if (metaSubStr.length() == 0) {
-                        std::cout << "ERROR: Reading sim_meta.dat; "
+                        std::cout << "  ERROR: Reading 'sim_meta.dat'; "
                                   << "could not find the number of restarts in the line '"
                                   << metaStr << "'" << std::endl;
                         crRestartFail = true;
@@ -426,7 +425,7 @@ int main(int argc, char* argv[])
                 }
             }
             if (not foundCR_RestartCount) {
-                std::cout << "  Did not find 'CR_RestartCount' in sim_meta.dat" << std::endl;
+                std::cout << "  Did not find 'CR_RestartCount' in 'sim_meta.dat'" << std::endl;
                 crRestartFail = true;
             }
             MetaFile.close();
@@ -721,12 +720,12 @@ bool CopyFile(std::string InputFileName, std::string OutputFileName) {
     std::ofstream Output(OutputFileName.c_str(), std::ios::binary);
 
     if(!Input.good()) {
-        std::cerr << "ERROR: Could not open " << InputFileName << std::endl;
+        std::cerr << "  ERROR: Could not open " << InputFileName << std::endl;
         return false;
     }
 
     if(!Input.good()) {
-        std::cerr << "ERROR: Could not open " << OutputFileName << std::endl;
+        std::cerr << "  ERROR: Could not open " << OutputFileName << std::endl;
         return false;
     }
 
@@ -792,7 +791,7 @@ bool CheckFort10(char* argv[]) {
     //Now again we fork() and exec()
     pid_t CheckFort10pid = fork();
     if(CheckFort10pid == -1) {
-        std::cerr << "ERROR: Could not fork to start checkf10" << std::endl;
+        std::cerr << "  ERROR: Could not fork to start checkf10" << std::endl;
         return true;
     }
 
@@ -840,7 +839,7 @@ bool CheckFort90(char* argv[]) {
     //Do this for the first file
     pid_t CheckFort90pid = fork();
     if(CheckFort90pid == -1) {
-        std::cerr << "ERROR: Could not fork to start read90" << std::endl;
+        std::cerr << "  ERROR: Could not fork to start read90" << std::endl;
         return false;
     }
 
@@ -861,7 +860,7 @@ bool CheckFort90(char* argv[]) {
         waitpid(CheckFort90pid, &waitpidStatus, WUNTRACED);
         std::cout << "  read90 finished running on fort.90: " << waitpidStatus << std::endl;
         if(waitpidStatus != 0) {
-            std::cerr << "ERROR: Problem running read90" << std::endl;
+            std::cerr << "  ERROR: Problem running read90" << std::endl;
             return waitpidStatus;
         }
     }
@@ -869,7 +868,7 @@ bool CheckFort90(char* argv[]) {
     //Do this for the second file
     CheckFort90pid = fork();
     if(CheckFort90pid == -1) {
-        std::cerr << "ERROR: Could not fork to start read90" << std::endl;
+        std::cerr << "  ERROR: Could not fork to start read90" << std::endl;
         return false;
     }
 
@@ -890,7 +889,7 @@ bool CheckFort90(char* argv[]) {
         waitpid(CheckFort90pid, &waitpidStatus, WUNTRACED);
         std::cout << "  read90 finished running on fort.90.canonical: " << waitpidStatus << std::endl;
         if(waitpidStatus != 0) {
-            std::cerr << "ERROR: Problem running read90" << std::endl;
+            std::cerr << "  ERROR: Problem running read90" << std::endl;
             return waitpidStatus;
         }
     }
@@ -931,7 +930,7 @@ bool CheckSTF(char* argv[]) {
     //Do this for the first file
     pid_t CheckSTFpid = fork();
     if(CheckSTFpid == -1) {
-        std::cerr << "ERROR: Could not fork to start read90" << std::endl;
+        std::cerr << "  ERROR: Could not fork to start read90" << std::endl;
         return false;
     }
 
@@ -953,7 +952,7 @@ bool CheckSTF(char* argv[]) {
         std::cout << "  read90 finished running on singletrackfile.dat: "
                   << waitpidStatus << std::endl;
         if(waitpidStatus != 0) {
-            std::cerr << "ERROR: Problem running read90" << std::endl;
+            std::cerr << "  ERROR: Problem running read90" << std::endl;
             return waitpidStatus;
         }
     }
@@ -961,7 +960,7 @@ bool CheckSTF(char* argv[]) {
     //Do this for the second file
     CheckSTFpid = fork();
     if(CheckSTFpid == -1) {
-        std::cerr << "ERROR: Could not fork to start read90" << std::endl;
+        std::cerr << "  ERROR: Could not fork to start read90" << std::endl;
         return false;
     }
 
@@ -983,7 +982,7 @@ bool CheckSTF(char* argv[]) {
         std::cout << "  read90 finished running on singletrackfile.dat.canonical: "
                   << waitpidStatus << std::endl;
         if(waitpidStatus != 0) {
-            std::cerr << "ERROR: Problem running read90" << std::endl;
+            std::cerr << "  ERROR: Problem running read90" << std::endl;
             return waitpidStatus;
         }
     }
@@ -1077,7 +1076,7 @@ bool FileComparison(std::string FileName1, std::string FileName2) {
 
 bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bin_files) {
 
-    PrettyDivider("Extra Checks");
+    PrettyDivider("EXTRA CHECKS");
 
     //Split the dump_bin_files
     std::list<std::string> dump_bin_files_list;
@@ -1153,8 +1152,8 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
                     //Do this for the second file
                     ReadDump3pid = fork();
                     if(ReadDump3pid == -1) {
-                            perror("ERROR: Could not fork to start readDump3");
-                            exit(EXIT_FAILURE);
+                        perror("ERROR: Could not fork to start readDump3");
+                        exit(EXIT_FAILURE);
                     }
 
                     //Check fork() status
@@ -1454,11 +1453,11 @@ void UnlinkCRFiles() {
     unlinkFiles.push_back("crkillswitch.tmp");
 
     for (auto fname : unlinkFiles) {
-        std::cout << "Deleting old '" << fname << "'" << std::endl;
+        std::cout << "  Deleting old '" << fname << "'" << std::endl;
 
         int unlink_status= unlink(fname.c_str());
         if(unlink_status != 0) {
-            std::string er = "WARNING: Could not unlink '" + fname + "'";
+            std::string er = "  WARNING: Could not unlink '" + fname + "'";
             perror(er.c_str());
         }
     }
