@@ -632,7 +632,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
 
   if(nblz_new /= nblz_prev) then
     call alloc(ic,                   nblz_new,       0,      "ic")
-    call alloc(elpos,                nblz_new,       zero,   "elpos")
+    call alloc(elpos,                nblz_new+1,     zero,   "elpos", 0)
     call alloc(bezs,      mNameLen,  nblz_new,       " ",    "bezs")
     call alloc(mzu,                  nblz_new,       0,      "mzu")
     call alloc(imbb,                 nblz_new,       0,      "imbb")
