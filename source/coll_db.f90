@@ -180,6 +180,140 @@ subroutine cdb_readCollDB
 end subroutine cdb_readCollDB
 
 subroutine cdb_readDB_newFormat
+
+  use parpro
+  use crcoall
+  use string_tools
+  use mod_units
+  use mod_alloc
+  use mod_settings
+  use numerical_constants
+
+  character(len=:), allocatable :: lnSplit(:)
+  character(len=:), allocatable :: famName(:)
+  real(kind=fPrec), allocatable :: famNSig(:)
+  character(len=mInputLn) inLine
+  integer i, dbUnit, ioStat, nSplit, iLine, nFam, iFam, iColl, fID
+  logical cErr, fErr
+
+  fErr  = .false.
+  cErr  = .false.
+  iLine = 0
+  nFam  = 0
+  iFam  = 0
+  iColl = 0
+
+  call f_requestUnit(cdb_fileName, dbUnit)
+  call f_open(unit=dbUnit,file=cdb_fileName,formatted=.true.,mode="r",status="old",err=fErr)
+  if(fErr) then
+    write(lout,"(a)") "COLLDB> ERROR Cannot read from '"//trim(cdb_fileName)//"'"
+    call prror
+  end if
+
+10 continue
+  iLine = iLine + 1
+  
+  read(dbUnit,"(a)",end=20,iostat=ioStat) inLine
+  if(ioStat /= 0) then
+    write(lout,"(a)") "COLLDB> ERROR Cannot read from '"//trim(cdb_fileName)//"'"
+    call prror
+  end if
+  if(inLine(1:1) == "#") goto 10
+
+  call chr_split(inLine, lnSplit, nSplit, cErr)
+  if(cErr) then
+    write(lout,"(a,i0)") "COLLDB> ERROR Failed to parse database line ",iLine
+    call prror
+  end if
+
+  if(lnSplit(1) == "NSIG_FAM") then
+    ! Collimator Faily
+    iFam = iFam + 1
+    if(iFam > nFam) then
+      nFam = nFam + 10
+      call alloc(famName, mNameLen, nFam, " ",  "famName")
+      call alloc(famNSig,           nFam, zero, "famNSig")
+    end if
+    famName(iFam) = trim(lnSplit(2))
+    call chr_cast(lnSplit(3),famNSig(iFam),cErr)
+    if(cErr) then
+      write(lout,"(a,i0)") "COLLDB> ERROR Failed to parse family name on line ",iLine
+      call prror
+    end if
+    goto 10
+  end if
+
+  ! If not a damily definition, it should be a collimator
+  if(nSplit < 6) then
+    write(lout,"(a,i0,a)") "COLLDB> ERROR Collimator description on line ",iLine," has less than 6 values."
+    call prror
+  end if
+
+  iColl = iColl + 1
+  if(iColl > cdb_nColl) then
+    cdb_nColl = cdb_nColl + 10
+    call cdb_allocDB
+  end if
+
+  cdb_cName(iColl)     = lnSplit(1)
+  cdb_cNameUC(iColl)   = chr_toUpper(lnSplit(1))
+  cdb_cMaterial(iColl) = lnSplit(3)
+
+  call chr_cast(lnSplit(4),cdb_cLength(iColl),  cErr)
+  call chr_cast(lnSplit(5),cdb_cRotation(iColl),cErr)
+  call chr_cast(lnSplit(6),cdb_cOffset(iColl),  cErr)
+
+  cdb_cRotation(iColl) = cdb_cRotation(iColl)*rad
+
+  if(nSplit > 6) call chr_cast(lnSplit(7),cdb_cBx(iColl),cErr)
+  if(nSplit > 7) call chr_cast(lnSplit(8),cdb_cBy(iColl),cErr)
+
+  ! Try to cast the value in second column to a float. If successful, this is the the nsig value.
+  ! If unsuccessful, assume it is a family name instead and look it up in the internal family table and use that nsig value.
+  if(chr_isNumeric(lnSplit(2))) then
+    call chr_cast(lnSplit(2),cdb_cNSigOrig(iColl),cErr)
+  else
+    fID = -1
+    do i=1,iFam
+      if(famName(i) == adjustl(lnSplit(2))) then
+        fID = i
+        exit
+      end if
+    end do
+    if(fID == -1) then
+      write(lout,"(a,i0,a)") "COLLDB> ERROR Collimator opening '"//trim(adjustl(lnSplit(2)))//"' on line ",iLine,&
+        " is not in family database"
+      call prror
+    else
+      cdb_cNSigOrig(iColl) = famNSig(fID)
+    end if
+  end if
+  
+  goto 10
+
+20 continue
+
+  cdb_nColl = iColl
+  call cdb_allocDB
+
+  do i=1,cdb_nColl
+    cdb_cNSig(i) = cdb_cNSigOrig(i)
+  end do
+
+  if(st_debug) then
+    do i=1,iFam
+      write(lout,"(a,a20,a,f13.6)") "COLLDB> DEBUG NSIG_FAM ",famName(i)," = ",famNSig(i)
+    end do
+    do i=1,cdb_nColl
+      write(lout,"(a14,a20,2(1x,f13.6),1x,a4,5(1x,f13.6))") "COLLDB> DEBUG ",cdb_cName(i),cdb_cNSig(i),&
+        cdb_cNSigOrig(i),cdb_cMaterial(i),cdb_cLength(i),cdb_cRotation(i),cdb_cOffset(i),cdb_cBx(i),cdb_cBy(i)
+    end do
+  end if
+
+  call f_close(dbUnit)
+  call dealloc(famName, mNameLen, "famName")
+  call dealloc(famNSig,           "famNSig")
+
 end subroutine cdb_readDB_newFormat
 
 subroutine cdb_readDB_oldFormat
