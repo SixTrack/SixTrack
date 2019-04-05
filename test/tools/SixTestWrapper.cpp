@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
     std::cout << std::endl;
     std::cout << "SixTestWrapper called with " << argc << " arguments:" << std::endl;
     for(int n=0; n < argc; n++) {
-        printf("%4d : %s\n",n+1,argv[n]);
+        printf("%4d : %s\n",n,argv[n]);
     }
     std::cout << std::endl;
 
@@ -187,7 +187,6 @@ int main(int argc, char* argv[])
      *
      */
     if(CRon) {
-        PrettyDivider("Checkpoint/Restart");
         std::cout << "  Starting CR run loop - will clear out any files from a previous run" << std::endl;
         UnlinkCRFiles();
 
@@ -413,15 +412,14 @@ int main(int argc, char* argv[])
                     }
 
                     int numRestarts = atoi(metaSubStr.c_str());
+                    std::stringstream numCRStatus;
                     if (numRestarts < atoi(argv[12])) {
-                        std::cout << "  Found " << numRestarts
-                                  << "restarts, but require at least" << atoi(argv[12])
-                                  << "." << std::endl;
+                        numCRStatus << "CR_RestartCount: " << numRestarts << " < " << atoi(argv[12]);
                         crRestartFail = true;
+                    } else {
+                        numCRStatus << "CR_RestartCount: " << numRestarts << " >= " << atoi(argv[12]);
                     }
-                    else {
-                        std::cout << "  Found " << numRestarts << " -> OK" << std::endl;
-                    }
+                    CheckPrint(numCRStatus.str(),!crRestartFail);
                 }
             }
             if (not foundCR_RestartCount) {
@@ -1249,10 +1247,11 @@ std::vector<int> ParseKillTimes(char* in) {
         KillTimes.push_back(number);
     }
 
+    PrettyDivider("Checkpoint/Restart");
     std::cout << "  Will try and kill CR run " << KillTimes.size() << " times." << std::endl;
     std::cout << "  Killing after ";
     for(int k = 0; k < KillTimes.size(); k++) {
-        std::cout << KillTimes.at(k) << "\t";
+        std::cout << KillTimes.at(k) << ", ";
     }
     std::cout << " seconds." << std::endl;
     return KillTimes;
@@ -1440,8 +1439,9 @@ DWORD winthread_kill_sixtrack(LPVOID InputStruct) {
 * Deletes any checkpoint files that are appended to from previous CR runs.
 */
 void UnlinkCRFiles() {
-    int forts[] = {6, 10, 90, 93, 95, 96};
+
     std::vector<std::string> unlinkFiles;
+
     unlinkFiles.push_back("fort.6");
     unlinkFiles.push_back("fort.10");
     unlinkFiles.push_back("fort.90");
@@ -1452,14 +1452,14 @@ void UnlinkCRFiles() {
     unlinkFiles.push_back("crrestartme.tmp");
     unlinkFiles.push_back("crkillswitch.tmp");
 
-    for (auto fname : unlinkFiles) {
-        std::cout << "  Deleting old '" << fname << "'" << std::endl;
-
-        int unlink_status= unlink(fname.c_str());
-        if(unlink_status != 0) {
-            std::string er = "  WARNING: Could not unlink '" + fname + "'";
-            perror(er.c_str());
+    for(auto fname : unlinkFiles) {
+        std::cout << "  Deleting old '" << fname << "'";
+        if(unlink(fname.c_str()) != 0) {
+            std::cout << " - File not found";
+        } else {
+            std::cout << " - Done";
         }
+        std::cout << std::endl;
     }
 }
 
