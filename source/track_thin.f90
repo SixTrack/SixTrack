@@ -1129,10 +1129,11 @@ subroutine thin6d(nthinerr)
   use mathlib_bouncer
   use mod_particles
 
-  use bdex,    only : bdex_track, bdex_enable, bdex_elementAction
-  use scatter, only : scatter_thin, scatter_debug
-  use dynk,    only : dynk_enabled, dynk_apply
-  use dump,    only : dump_linesFirst, dump_lines, ldumpfront
+  use bdex,       only : bdex_track, bdex_enable, bdex_elementAction
+  use scatter,    only : scatter_thin, scatter_debug
+  use dynk,       only : dynk_enabled, dynk_apply
+  use dump,       only : dump_linesFirst, dump_lines, ldumpfront
+  use mod_ffield, only : ffindex,ffield_genAntiQuad,ffield_enterQuad,ffield_exitQuad,ffield_enabled
   use aperture
   use mod_hions
   use mod_settings
@@ -1142,18 +1143,11 @@ subroutine thin6d(nthinerr)
 #ifdef FLUKA
   use mod_fluka
 #endif
-
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-  use mod_ffield, only : ffindex, ffield_genAntiQuad, ffield_enterQuad, ffield_exitQuad
-#endif
-
 #ifdef ROOT
   use root_output
 #endif
 
   use collimation
-
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -1170,6 +1164,7 @@ subroutine thin6d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+
   implicit none
 
   integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,elemEnd,&
@@ -1178,7 +1173,7 @@ subroutine thin6d(nthinerr)
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
     sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp
-  logical llost
+  logical llost, doFField
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
@@ -1203,10 +1198,7 @@ subroutine thin6d(nthinerr)
     turnrep = 1
   end if
 
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
   call ffield_genAntiQuad()
-#endif
 
   ! This is the loop over turns: label 660
 #ifdef CR
@@ -1285,6 +1277,13 @@ subroutine thin6d(nthinerr)
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
       ix=ic(i)-nblo
+
+      ! Fringe Fields
+      if(ffield_enabled) then
+        doFField = FFindex(ix) > 0
+      else
+        doFField = .false.
+      end if
 
 #ifdef BEAMGAS
       !YIL Call beamGas subroutine whenever a pressure-element is found
@@ -1563,22 +1562,20 @@ subroutine thin6d(nthinerr)
         end do
         goto 640
       case (12) ! NORMAL QUADRUPOLE
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-  if (ffindex(ic(i)-nblo) > 0) then
-    if ( (ic(i) /= ic(i-2)).and.(ic(i) /= ic(i-3)) )  call ffield_enterQuad(i)  !A optimizer!!!
-  end if
-#endif
+        if(doFField) then
+          if(ic(i) /= ic(i-2) .and. ic(i) /= ic(i-3)) then
+            call ffield_enterQuad(i)  !A optimizer!!!
+          end if
+        end if
         do j=1,napx
 #include "include/alignva.f90"
 #include "include/kickvxxh.f90"
         end do
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-  if (ffindex(ic(i)-nblo) > 0) then
-    if ( (ic(i) /= ic(i+2)).and.(ic(i) /= ic(i+3)) )  call ffield_exitQuad(i)   !A optimizer!!!
-  end if
-#endif
+        if(doFField) then
+          if(ic(i) /= ic(i+2) .and. ic(i) /= ic(i+3)) then
+            call ffield_exitQuad(i)   !A optimizer!!!
+          end if
+        end if
         goto 640
       case (13) ! NORMAL SEXTUPOLE
         do j=1,napx
@@ -1762,145 +1759,91 @@ subroutine thin6d(nthinerr)
       case (31)
         goto 640
       case (32)
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        if((FFindex(ic(i)-nblo)==0))then
-#endif
-        goto 410
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
+        if(doFField .eqv. .false.) then
+          goto 410
         else
-        goto 640
-        endif
-#endif
+          goto 640
+        end if
       case (33)
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        if((FFindex(ic(i)-nblo)==0))then
-#endif
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v01.f90"
 #include "include/mul6v01.f90"
-        end do
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        endif
-#endif
+          end do
+        end if
         goto 640
       case (34)
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        if((FFindex(ic(i)-nblo)==0))then
-#endif
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v01.f90"
 #include "include/mul6v01.f90"
-        end do
-        goto 410
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
+          end do
+          goto 410
         else
-        goto 640
-        endif
-#endif
+          goto 640
+        end if
       case (35)
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        if((FFindex(ic(i)-nblo)==0))then
-#endif
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v02.f90"
 #include "include/mul6v01.f90"
-        end do
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        endif
-#endif
+          end do
+        end if
         goto 640
       case (36)
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        if((FFindex(ic(i)-nblo)==0))then
-#endif
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v02.f90"
 #include "include/mul6v01.f90"
-        end do
-        goto 410
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
+          end do
+          goto 410
         else
-        goto 640
-        endif
-#endif
+          goto 640
+        end if
       case (37)
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        if((FFindex(ic(i)-nblo)==0))then
-#endif
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v03.f90"
 #include "include/mul6v02.f90"
-        end do
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        endif
-#endif
+          end do
+        end if
         goto 640
       case (38)
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        if((FFindex(ic(i)-nblo)==0))then
-#endif
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v03.f90"
 #include "include/mul6v02.f90"
-        end do
-        goto 410
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
+          end do
+          goto 410
         else
-        goto 640
-        endif
-#endif
+          goto 640
+        end if
       case (39)
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        if((FFindex(ic(i)-nblo)==0))then
-#endif
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v04.f90"
 #include "include/mul6v02.f90"
-        end do
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        endif
-#endif
+          end do
+        end if
         goto 640
       case (40)
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
-        if((FFindex(ic(i)-nblo)==0))then
-#endif
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v04.f90"
 #include "include/mul6v02.f90"
-        end do
-        goto 410
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
+          end do
+          goto 410
         else
-        goto 640
-        endif
-#endif
+          goto 640
+        end if
       case (41) ! 4D BB kick
         do 690 j=1,napx
 #include "include/beamco.f90"

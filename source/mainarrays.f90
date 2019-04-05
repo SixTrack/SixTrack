@@ -92,10 +92,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 #ifdef FLUKA
   use mod_fluka,          only : fluka_mod_expand_arrays
 #endif
-#ifdef FFIELD
-  ! Modification by B.DALENA and T.PUGNAT
   use mod_ffield,         only : ffield_mod_expand_arrays
-#endif
   use collimation,        only : collimation_expand_arrays
   use coll_db,            only : cdb_expand_arrays
 
@@ -133,9 +130,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 #ifdef FLUKA
   call fluka_mod_expand_arrays(npart_new, nele_new)
 #endif
-#ifdef FFIELD
   call ffield_mod_expand_arrays(npart_new, nele_new)
-#endif
   call collimation_expand_arrays(npart_new, nblz_new)
   call cdb_expand_arrays(nele_new)
 

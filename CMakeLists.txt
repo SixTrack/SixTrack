@@ -93,7 +93,6 @@ option(FLUKA "Couple to FLUKA for beam collimation" OFF)
 option(PYTHIA "Link with Pythia8 for SCATTER module" OFF)
 option(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPF block" OFF)
 option(ROOT "Link to the root libraries" OFF)
-option(FFIELD "Fringe Field for Quadrupole" OFF)
 
 # Build Options
 option(32BIT "Create a 32bit binary" OFF)
@@ -202,9 +201,6 @@ endif()
 if(FLUKA)
   set(SIXTRACK_FEAT_CR "FLUKA_${SIXTRACK_FEAT_CR}")
 endif(FLUKA)
-if(FFIELD)
-  set(SIXTRACK_FEAT_CR "FFIELD_${SIXTRACK_FEAT_CR}")
-endif(FFIELD)
 if(PYTHIA)
   set(SIXTRACK_FEAT_CR "pythia_${SIXTRACK_FEAT_CR}")
 endif()
@@ -275,7 +271,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF FFIELD)
+list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
 list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG)
 
@@ -291,6 +287,7 @@ list(APPEND FORT90_LIB
   ranecu wire hions elens mod_dist scatter dump dynk
   aperture mod_fluc beam6d_fox six_fox postprocessing
   read_write ranlux collimation coll_db mod_particles cheby utils
+  mod_ffield mod_ffield_aux
 )
 
 # Files unique to DA or CR version
@@ -323,11 +320,6 @@ endif(BEAMGAS)
 if(FLUKA)
   list(APPEND FORT90_LIB mod_fluka fluka)
 endif(FLUKA)
-
-if(FFIELD)
-  list(APPEND FORT90_LIB  mod_ffield mod_ffield_data)
-endif(FFIELD)
-
 
 if(ROOT)
   LIST(APPEND FORT90_LIB root_output)
@@ -609,13 +601,13 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
   endif(STATIC)
 
   if(COVERAGE)
-    SET(CMAKE_Fortran_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_Fortran_FLAGS}")
-    SET(CMAKE_Fortran_LINKER_FLAGS "-fprofile-arcs ${CMAKE_Fortran_LINKER_FLAGS}")
+    set(CMAKE_Fortran_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_Fortran_FLAGS}")
+    set(CMAKE_Fortran_LINKER_FLAGS "-fprofile-arcs ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(COVERAGE)
 
   if(GPROF)
-    SET(CMAKE_Fortran_FLAGS "-pg ${CMAKE_Fortran_FLAGS}")
-    SET(CMAKE_Fortran_LINKER_FLAGS "-pg ${CMAKE_Fortran_LINKER_FLAGS}")
+    set(CMAKE_Fortran_FLAGS "-pg ${CMAKE_Fortran_FLAGS}")
+    set(CMAKE_Fortran_LINKER_FLAGS "-pg ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(GPROF)
 
 elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
@@ -711,8 +703,8 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
     SET(CMAKE_Fortran_LINKER_FLAGS "-Bdynamic ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(NOT STATIC)
 
-#generic catch option
 else()
+  # Generic catch option
   message(STATUS "CMAKE_Fortran_COMPILER full path: " ${CMAKE_Fortran_COMPILER})
   message(STATUS "Fortran compiler: " ${Fortran_COMPILER_NAME})
   message(STATUS "No optimized Fortran compiler flags are known, we just try -O2 or -O0 -g...")
@@ -763,14 +755,15 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
   endif(STATIC)
 
   if(COVERAGE)
-    SET(CMAKE_C_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_C_FLAGS}")
-    SET(CMAKE_C_LINKER_FLAGS "-fprofile-arcs ${CMAKE_C_LINKER_FLAGS}")
+    set(CMAKE_C_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_C_FLAGS}")
+    set(CMAKE_C_LINKER_FLAGS "-fprofile-arcs ${CMAKE_C_LINKER_FLAGS}")
   endif(COVERAGE)
 
   if(GPROF)
-    SET(CMAKE_C_FLAGS "-pg ${CMAKE_C_FLAGS}")
-    SET(CMAKE_C_LINKER_FLAGS "-pg ${CMAKE_C_LINKER_FLAGS}")
+    set(CMAKE_C_FLAGS "-pg ${CMAKE_C_FLAGS}")
+    set(CMAKE_C_LINKER_FLAGS "-pg ${CMAKE_C_LINKER_FLAGS}")
   endif(GPROF)
+
 endif()
 
 if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
@@ -799,12 +792,13 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
     set(CMAKE_C_FLAGS "-xHost ${CMAKE_C_FLAGS}")
   endif(NATIVE)
 
-  set (CMAKE_C_FLAGS_RELEASE "-O3")
-  set (CMAKE_C_FLAGS_DEBUG   "-O0 -g")
+  set(CMAKE_C_FLAGS_RELEASE "-O3")
+  set(CMAKE_C_FLAGS_DEBUG   "-O0 -g")
 
   if(STATIC)
-    SET(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
+    set(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
   endif(STATIC)
+
 endif()
 
 #Now for CXX flags (merlinScatter for now)
@@ -844,18 +838,19 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
   endif()
 
   if(STATIC)
-    SET(CMAKE_CXX_LINKER_FLAGS "-static -static-libstdc++ ${CMAKE_CXX_LINKER_FLAGS}")
+    set(CMAKE_CXX_LINKER_FLAGS "-static -static-libstdc++ ${CMAKE_CXX_LINKER_FLAGS}")
   endif(STATIC)
 
-  if(COVERAGE)
-    SET(CMAKE_CXX_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_CXX_FLAGS}")
-    SET(CMAKE_CXX_LINKER_FLAGS "-fprofile-arcs ${CMAKE_CXX_LINKER_FLAGS}")
-  endif(COVERAGE)
+  # Disable COVERAGE for C++ source as it breaks SixTestWrapper on some systems
+  # if(COVERAGE)
+  #   set(CMAKE_CXX_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_CXX_FLAGS}")
+  #   set(CMAKE_CXX_LINKER_FLAGS "-fprofile-arcs ${CMAKE_CXX_LINKER_FLAGS}")
+  # endif(COVERAGE)
 
-  IF(GPROF)
-    SET(CMAKE_CXX_FLAGS "-pg ${CMAKE_CXX_FLAGS}")
-    SET(CMAKE_CXX_LINKER_FLAGS "-pg ${CMAKE_CXX_LINKER_FLAGS}")
-  ENDIF(GPROF)
+  if(GPROF)
+    set(CMAKE_CXX_FLAGS "-pg ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_LINKER_FLAGS "-pg ${CMAKE_CXX_LINKER_FLAGS}")
+  endif(GPROF)
 
 endif()
 
@@ -885,8 +880,8 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
     set(CMAKE_CXX_FLAGS "-march=xHost ${CMAKE_CXX_FLAGS}")
   endif(NATIVE)
 
-  set (CMAKE_CXX_FLAGS_RELEASE "-O3")
-  set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
+  set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+  set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
 
   #When using icc remember to link to libstdc++
   if(STATIC)
@@ -945,8 +940,8 @@ endif()
 add_executable(dafor ${CMAKE_SOURCE_DIR}/source/tools/dafor/dafor.f90)
 #we do not need any fancy flags for dafor but nagfor does not like the following
 if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
-  SET_TARGET_PROPERTIES(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
-  SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
+  set_target_properties(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
+  set_target_properties(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
   #target_compile_definitions(dafor PUBLIC "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
 endif(Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
@@ -958,7 +953,7 @@ if(CRLIBM OR BUILD_TESTING)
 endif()
 
 if(HDF5)
-  find_library(dl STATIC dl) #HDF5 has a capability to dynamically load filters
+  find_library(dl STATIC dl) # HDF5 has a capability to dynamically load filters
   add_library(hdf5_local_f STATIC IMPORTED)
   add_library(hdf5_local_s STATIC IMPORTED)
   add_library(hdf5_local_c STATIC IMPORTED)
@@ -1261,7 +1256,7 @@ set(BUILDNAME "${SIXTRACK_BINARY_NAME}" CACHE STRING "Name of build on the dashb
 mark_as_advanced(BUILDNAME)
 
 # For testing
-IF(BUILD_TESTING)
+if(BUILD_TESTING)
 
   enable_testing()
   include(CTest)
@@ -1270,11 +1265,11 @@ IF(BUILD_TESTING)
   configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
 
   #need to build the testing tools
-  add_executable(verify10 ${CMAKE_SOURCE_DIR}/test/bin/verify10.f90)
-  add_executable(checkf10 ${CMAKE_SOURCE_DIR}/test/bin/checkf10.f90)
-  add_executable(compf10 ${CMAKE_SOURCE_DIR}/test/bin/compf10.f90)
-  add_executable(checkf110 ${CMAKE_SOURCE_DIR}/test/bin/checkf110.f90)
-  add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/test/bin/checkf1014.f90)
+  add_executable(verify10 ${CMAKE_SOURCE_DIR}/test/tools/verify10.f90)
+  add_executable(checkf10 ${CMAKE_SOURCE_DIR}/test/tools/checkf10.f90)
+  add_executable(compf10 ${CMAKE_SOURCE_DIR}/test/tools/compf10.f90)
+  add_executable(checkf110 ${CMAKE_SOURCE_DIR}/test/tools/checkf110.f90)
+  add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/test/tools/checkf1014.f90)
   add_executable(read90 ${CMAKE_SOURCE_DIR}/test/read90/read90.f90)
   add_executable(readDump3 ${CMAKE_SOURCE_DIR}/test/readDump3/readDump3.f90)
 
@@ -1288,19 +1283,14 @@ IF(BUILD_TESTING)
   set_target_properties(read90 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
   set_target_properties(readDump3 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
-  #The testing wrapper
-  add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/test/bin/SixTestWrapper.cpp)
-  if (LIBARCHIVE)
+  # The Test Wrapper
+  add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/test/tools/SixTestWrapper.cpp)
+  if(LIBARCHIVE)
     target_link_libraries(SixTestWrapper libArchive_wrapper libarchive z Threads::Threads)
   endif()
   set_target_properties(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
 
   target_link_libraries(SixTestWrapper Threads::Threads)
-
-  if(COVERAGE)
-    target_compile_options(SixTestWrapper PRIVATE -fprofile-arcs -ftest-coverage)
-    SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "-fprofile-arcs ${CMAKE_CXX_LINKER_FLAGS}")
-  endif(COVERAGE)
 
   if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
     target_link_libraries(SixTestWrapper stdc++)
@@ -1309,7 +1299,6 @@ IF(BUILD_TESTING)
 
   #just a work around to build on MSYS2 for now
   if(MSYS AND STATIC)
-    #set(CMAKE_EXECUTABLE_SUFFIX_Fortran "")
     target_link_libraries(verify10 ${MSYS_QUADMATH})
     target_link_libraries(checkf10 ${MSYS_QUADMATH})
     target_link_libraries(checkf110 ${MSYS_QUADMATH})
@@ -1333,7 +1322,7 @@ set(CPACK_PACKAGE_VERSION_MINOR ${${PROJECT_NAME}_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${${PROJECT_NAME}_VERSION_PATCH})
 include(CPack)
 
-install(TARGETS SixTrackCR RUNTIME DESTINATION bin )
+install(TARGETS SixTrackCR RUNTIME DESTINATION bin)
 
 if(NOT WIN32)
   add_custom_command(TARGET SixTrackCR POST_BUILD

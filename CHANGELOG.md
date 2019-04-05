@@ -1,5 +1,21 @@
 # SixTrack Changelog
 
+### Version 5.2.1 [05.04.2019] - Release
+
+**New Features**
+
+* The Structure Block in `fort.2` is now also available in a multicolumn format. This mode is switched on by specifying `MULTICOL` on the first line. The column format consists of a minimum of 3 columns. The first being the proper element name as used in MadX, the second column is the Single Element name (corresponding to the single column format), and the third one is the element position as described in MadX (the s-coordinate of the centre of the element). A `multicol` flag has also been added to the SixTrack converter in MadX, and will be available in the next release of MadX following version 5.04.02. The new format is currently only implemented in the aperture losses file to list the proper element name for lost particles. PR #799 (V.K. Berglyd Olsen)
+* A module for quadrupole fringe fields has been added to SixTrack, and added as an `FFIE` block in `fort.3`. This method allows for the usage of a longitudinal description of the quadrupole magnetic field, adapted for each magnet specifically selected for the study, without changing the reference optics of SixTrack. PR #776 (T. Pugnat, B. Dalena)
+
+**User Side Changes**
+
+* The `PRINT_DCUM` flag in the `SETTINGS` block that printed the full lattice with s-coordinates to stdout is now instead written to a file named `machine_length.dat`. The file now also prints the information from the multicolumn lattice description in the Structure Block, and compares the computed position `dcum` with the one read from MadX. The delta in nanometres is listed. PR #799 (V.K. Berglyd Olsen)
+
+**Bug Fixes**
+
+* Fixed a bug in `plato_seq.f90` where the comment states in `tuneffti` that it will not accept frequency indices of 0 or 1, but does anyway and returns a value NaN. This causes a segfault on Debug type builds. The routine now returns one instead in these cases. A similar fix was applied to `tunebt2`. PR #803 (V.K. Berglyd Olsen)
+* Removed two `close(6)` calls in `abend` that caused an abort with BOINC when building with nagfor. PR #803 (V.K. Berglyd Olsen)
+
 ### Version 5.2 [27.03.2019] - Release
 
 **New Features**
