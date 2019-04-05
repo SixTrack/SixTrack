@@ -11,6 +11,11 @@
 
 * The `PRINT_DCUM` flag in the `SETTINGS` block that printed the full lattice with s-coordinates to stdout is now instead written to a file named `machine_length.dat`. The file now also prints the information from the multicolumn lattice description in the Structure Block, and compares the computed position `dcum` with the one read from MadX. The delta is nanometres is listed. PR #799 (V.K. Berglyd Olsen)
 
+**Bug Fixes**
+
+* Fixed a bug in `plato_seq.f90` where the comment states in `tuneffti` that it will not accept frequency indices of 0 or 1, but does anyway and returns a value NaN. This causes a segfault on Debug type builds. The routine now returns one instead in these cases. A similar fix was applied to `tunebt2`. PR #803 (V.K. Berglyd Olsen)
+* Removed two `close(6)` calls in `abend` that caused an abort with BOINC when building with nagfor. PR #803 (V.K. Berglyd Olsen)
+
 ### Version 5.2 [27.03.2019] - Release
 
 **New Features**
