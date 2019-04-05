@@ -59,6 +59,8 @@ bool CopyFile(std::string InputFileName, std::string OutputFileName);
 bool FileComparison(std::string f1, std::string f2);
 size_t StripCR(std::string);
 
+void CheckPrint(std::string,bool);
+void PrettyDivider(std::string);
 bool CheckFort10(char**);
 bool CheckFort90(char**);
 bool CheckSTF(char**);
@@ -119,11 +121,13 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    //Want our first argument to be the sixtrack binary name, assume this is run in the test folder.
-    std::cout << "Called with " << argc << " arguments" << std::endl;
+    // Want our first argument to be the sixtrack binary name, assume this is run in the test folder.
+    std::cout << std::endl;
+    std::cout << "SixTestWrapper called with " << argc << " arguments:" << std::endl;
     for(int n=0; n < argc; n++) {
-        std::cout << "Argument: " << n << " is " << argv[n] << std::endl;
+        printf("%4d : %s\n",n,argv[n]);
     }
+    std::cout << std::endl;
 
     //Set defaults:
     //Set to true if we have a CR build
@@ -183,20 +187,19 @@ int main(int argc, char* argv[])
      *
      */
     if(CRon) {
-        std::cout << "Starting CR run loop - will clear out any files from a previous run" << std::endl;
+        std::cout << "  Starting CR run loop - will clear out any files from a previous run" << std::endl;
         UnlinkCRFiles();
 
         size_t KillCount=0;
         while(true) {
 
             if (KillCount >= KillTimes.size()){
-                std::cout << "Reached maximum KillCount = " << KillCount
-                          << ", exiting now." << std::endl;
+                std::cout << "  Reached maximum KillCount = " << KillCount << ", exiting now." << std::endl;
                 break;
             }
             KillTime = KillTimes.at(KillCount);
 
-            std::cout << "Starting Checkpoint/Resume (CR) SixTrack run" << std::endl;
+            std::cout << "  Starting Checkpoint/Restart (CR) SixTrack run" << std::endl;
 
 #ifndef WIN32
             pid_t SixTrackpid = fork();
@@ -210,11 +213,11 @@ int main(int argc, char* argv[])
                 //child, run sixtrack
                 int execStatus = execl(argv[1], argv[1], (char*) 0);
                 if(execStatus == -1) {
-                    perror("ERROR - could not execute SixTrack CR");
+                    perror("ERROR: Could not execute SixTrack CR");
                 }
             }
             else {
-                std::cout << "Will try to kill SixTrack after " << KillTime << " seconds" << std::endl;
+                std::cout << "  Will try to kill SixTrack after " << KillTime << " seconds" << std::endl;
                 //Parent process
                 pthread_t th_wait;  //This will call waitpid()
                 pthread_t th_kill;  //This will do the kill()
@@ -233,24 +236,26 @@ int main(int argc, char* argv[])
 
                 //The wait thread needs the pid + to return the status of the CR run
                 // (killed or finished).
-                int th_wait_ret = pthread_create(&th_wait,
-                                                 NULL,
-                                                 pthread_wait_sixtrack,
-                                                 (void*) &th_wait_struct
-                                                 );
+                int th_wait_ret = pthread_create(
+                    &th_wait,
+                    NULL,
+                    pthread_wait_sixtrack,
+                    (void*) &th_wait_struct
+                );
 
                 //The kill thread needs the pid to kill + the kill time for this cycle
-                int th_kill_ret = pthread_create(&th_kill,
-                                                 NULL,
-                                                 pthread_kill_sixtrack,
-                                                 (void*) &th_kill_struct
-                                                 );
+                int th_kill_ret = pthread_create(
+                    &th_kill,
+                    NULL,
+                    pthread_kill_sixtrack,
+                    (void*) &th_kill_struct
+                );
 
                 pthread_join(th_kill, NULL);
                 pthread_join(th_wait, NULL);
 
                 if (th_wait_struct.RunStatus == true) {
-                    std::cout << "CR run finished! Will terminate the loop." << std::endl;
+                    std::cout << "  CR run finished! Will terminate the loop." << std::endl;
                     break;
                 }
                 if (th_wait_struct.CRKILLSWITCH == false) {
@@ -314,18 +319,17 @@ int main(int argc, char* argv[])
                 _Out_       LPPROCESS_INFORMATION lpProcessInformation
                 );
             */
-            std::cout << "CreateProcess()" << std::endl;
+            std::cout << "  CreateProcess()" << std::endl;
             //Start SixTrack running
             BOOL cp = CreateProcess(NULL, argv[1], NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &SixTrack_si, &SixTrack_pi);
 
             if(!cp) {
-                std::cerr << "Error in starting SixTrack via CreateProcess() - Tried to run: "
-                          << argv[1] << " and error " << GetLastError() << std::endl;
+                std::cerr << "ERROR: When starting SixTrack via CreateProcess()"  << std::endl;
+                std::cerr << "Tried to run: " << argv[1] << " and error " << GetLastError() << std::endl;
             }
             else {
                 //Our process should now be running
-                std::cout << "Will try to kill SixTrack after "
-                          << KillTime << " seconds" << std::endl;
+                std::cout << "  Will try to kill SixTrack after " << KillTime << " seconds" << std::endl;
 
                 //Make 2 threads, one to just wait, one to kill
                 KillInfo th_wait_struct;
@@ -363,7 +367,7 @@ int main(int argc, char* argv[])
                 CloseHandle(SixTrack_pi.hThread);
 
                 if(th_wait_struct.RunStatus == true) {
-                    std::cout << "CR run finished! Will terminate the loop." << std::endl;
+                    std::cout << "  CR run finished! Will terminate the loop." << std::endl;
                     break;
                 }
                 if (th_wait_struct.CRKILLSWITCH == false) {
@@ -377,12 +381,12 @@ int main(int argc, char* argv[])
 
         } // End WHILE(TRUE)
 
-        std::cout << "End CR run loop" << std::endl;
+        std::cout << "  End CR run loop" << std::endl;
+        std::cout << std::endl;
 
         // If a minimum number of restarts have been set, check this.
         if (atoi(argv[12]) > 0) {
-            std::cout << "------------------------ Checking restarts -----------------------------------"
-                      << std::endl;
+            PrettyDivider("CHECKING Restarts");
 
             // Open metadata file
             std::ifstream MetaFile("sim_meta.dat", std::ifstream::in);
@@ -391,8 +395,7 @@ int main(int argc, char* argv[])
             while(std::getline(MetaFile, metaStr)) {
                 if (metaStr.substr(0,32) == "CR_RestartCount                 ") {
                     if(foundCR_RestartCount) {
-                        std::cout << "ERROR in sim_meta.dat: Found two lines with 'CR_RestartCount'"
-                                  << std::endl;
+                        std::cout << "  ERROR: Found two lines with 'CR_RestartCount' in 'sim_meta.dat'" << std::endl;
                         crRestartFail = true;
                     }
                     foundCR_RestartCount = true;
@@ -402,38 +405,37 @@ int main(int argc, char* argv[])
                                       metaSubStr.end() );
 
                     if (metaSubStr.length() == 0) {
-                        std::cout << "ERROR when reading sim_meta.dat; "
+                        std::cout << "  ERROR: Reading 'sim_meta.dat'; "
                                   << "could not find the number of restarts in the line '"
                                   << metaStr << "'" << std::endl;
                         crRestartFail = true;
                     }
 
                     int numRestarts = atoi(metaSubStr.c_str());
+                    std::stringstream numCRStatus;
                     if (numRestarts < atoi(argv[12])) {
-                        std::cout << "Found " << numRestarts
-                                  << "restarts, but require at least" << atoi(argv[12])
-                                  << "." << std::endl;
+                        numCRStatus << "CR_RestartCount: " << numRestarts << " < " << atoi(argv[12]);
                         crRestartFail = true;
+                    } else {
+                        numCRStatus << "CR_RestartCount: " << numRestarts << " >= " << atoi(argv[12]);
                     }
-                    else {
-                        std::cout << "Found " << numRestarts << " -> OK" << std::endl;
-                    }
+                    CheckPrint(numCRStatus.str(),!crRestartFail);
                 }
             }
             if (not foundCR_RestartCount) {
-                std::cout << "Did not find 'CR_RestartCount' in sim_meta.dat" << std::endl;
+                std::cout << "  Did not find 'CR_RestartCount' in 'sim_meta.dat'" << std::endl;
                 crRestartFail = true;
             }
             MetaFile.close();
 
-            std::cout << "---------------------- End checking restarts ---------------------------------"
-                      << std::endl;
+            std::cout << std::endl;
 
         }
     }
 
     //Normal run
     else {
+        PrettyDivider("Normal Run");
 #ifndef WIN32
         pid_t SixTrackpid = fork();
         if(SixTrackpid == -1) {
@@ -457,70 +459,78 @@ int main(int argc, char* argv[])
             //Execute!
             int execStatus = execl(argv[1], argv[1], (char*) 0);
             if(execStatus == -1) {
-                perror("ERROR - could not execute SixTrack");
+                perror("ERROR: Could not execute SixTrack");
             }
         }
         else {
             //In main thread, wait()
-            std::cout << "Waiting for SixTrack to finish running - pid: " << SixTrackpid << std::endl;
+            std::cout << "  Waiting for SixTrack to finish running. PID: " << SixTrackpid << std::endl;
             int waitpidStatus;
             waitpid(SixTrackpid, &waitpidStatus, WUNTRACED);
-            std::cout << "SixTrack finished running: " << waitpidStatus << std::endl;
+            std::cout << "  SixTrack finished running. Exit status: " << waitpidStatus << std::endl;
+            std::cout << std::endl;
 
-            //Print the last NLINES lines
-            size_t NLINES = 20;
-            std::cout << "Last "<<NLINES<<" lines of output:"<<std::endl;
-            // Adapted from http://stackoverflow.com/questions/11876290/c-fastest-way-to-read-only-last-line-of-text-file
-            std::ifstream fort6("fort.6");
-            if (not fort6.is_open()) {
-                perror("ERROR: Could not open file 'fort.6' after SixTrack has finished");
-            }
-            else {
-                // go to one spot before the EOF
-                fort6.seekg(-1,fort6.end);
-                char ch;
-                size_t haslines = 0;
-                bool aborted_reading = false;
-                while (haslines<=NLINES) {
-                    fort6.get(ch);
-                    // In case the file contained only a single line
-                    if((int)fort6.tellg() <= 1) {
-                        fort6.seekg(0);
-                        aborted_reading = true;
-                        break;
-                    }
-                    // If the data was a newline
-                    else if(ch == '\n') {
-                        haslines += 1;
-                        // Move to whatever is before the '\n'
-                        fort6.seekg(-2,fort6.cur);
-                    }
-                    // If the data was neither a newline nor at the 0 byte
-                    else {
-                        // Move to the front of that data,
-                        //  then to the front of the data before it
-                        fort6.seekg(-2,fort6.cur);
-                    }
+            if(waitpidStatus != 0) {
+                //Print the last NLINES lines
+                size_t NLINES = 10;
+                PrettyDivider("Last Lines of Output");
+                std::cout << std::endl;
+                // Adapted from http://stackoverflow.com/questions/11876290/c-fastest-way-to-read-only-last-line-of-text-file
+                std::ifstream fort6("fort.6");
+                if (not fort6.is_open()) {
+                    perror("ERROR: Could not open file 'fort.6' after SixTrack has finished");
                 }
-                if (not aborted_reading) {
-                    // Skip to after the final random character and \n
-                    fort6.seekg(+2,fort6.cur);
-                }
-                //OK, now we have moved NLINES up ahead; time to read and print again
-                std::string fort6_line;
-                while (std::getline(fort6,fort6_line)){
-                    std::cout << fort6_line<<std::endl;
-                }
+                else {
+                    // go to one spot before the EOF
+                    fort6.seekg(-1,fort6.end);
+                    char ch;
+                    size_t haslines = 0;
+                    bool aborted_reading = false;
+                    while (haslines<=NLINES) {
+                        fort6.get(ch);
+                        // In case the file contained only a single line
+                        if((int)fort6.tellg() <= 1) {
+                            fort6.seekg(0);
+                            aborted_reading = true;
+                            break;
+                        }
+                        // If the data was a newline
+                        else if(ch == '\n') {
+                            haslines += 1;
+                            // Move to whatever is before the '\n'
+                            fort6.seekg(-2,fort6.cur);
+                        }
+                        // If the data was neither a newline nor at the 0 byte
+                        else {
+                            // Move to the front of that data,
+                            //  then to the front of the data before it
+                            fort6.seekg(-2,fort6.cur);
+                        }
+                    }
+                    if (not aborted_reading) {
+                        // Skip to after the final random character and \n
+                        fort6.seekg(+2,fort6.cur);
+                    }
+                    //OK, now we have moved NLINES up ahead; time to read and print again
+                    std::string fort6_line;
+                    while (std::getline(fort6,fort6_line)){
+                        std::cout << fort6_line<<std::endl;
+                    }
 
-                fort6.close();
+                    fort6.close();
+
+                    PrettyDivider("End of Output");
+                    std::cout << std::endl;
+                }
             }
         }
 #else
         int execStatus = _spawnl(_P_WAIT, argv[1], argv[1], (char*) 0);
         if(execStatus == -1) {
-            perror("ERROR - could not execute SixTrack");
+            perror("ERROR: Could not execute SixTrack");
         }
-        std::cout << "SixTrack finished running: " << execStatus << std::endl;
+        std::cout << "  SixTrack finished running. Exit status: " << execStatus << std::endl;
+        std::cout << std::endl;
 #endif
     }
 
@@ -530,48 +540,24 @@ int main(int argc, char* argv[])
      * Deal with fort.10 fort.90 and STF
      * Also look for extra checks
      */
-    std::cout << "Will now check output files" << std::endl;
+
     if(fort10) {
-        std::cout << "------------------------------ Checking fort.10 ------------------------------"
-                  << std::endl;
+        PrettyDivider("CHECKING fort.10");
         fort10fail = CheckFort10(argv);
-        std::cout << "---------------------------- End checking fort.10 ----------------------------"
-                  << std::endl;
-        if(fort10fail) {
-            std::cerr << "WARNING: fort.10 files do NOT match" << std::endl;
-        }
-        else {
-            std::cout << "fort.10: PASS" << std::endl;
-        }
+        std::cout << std::endl;
     }
 
     if(fort90) {
-        std::cout << "------------------------------ Checking fort.90 ------------------------------"
-                  << std::endl;
+        PrettyDivider("CHECKING fort.90");
         fort90fail = CheckFort90(argv);
-        std::cout << "---------------------------- End checking fort.90 ----------------------------"
-                  << std::endl;
-        if(fort90fail) {
-            std::cerr << "WARNING: fort.90 files do NOT match" << std::endl;
-        }
-        else {
-            std::cout << "fort.90: PASS" << std::endl;
-        }
+        std::cout << std::endl;
     }
 
     //Look at STF
     if(STF) {
-        std::cout << "------------------------ Checking singletrackfile.dat ------------------------"
-                  << std::endl;
+        PrettyDivider("CHECKING singletrackfile.dat");
         STFfail = CheckSTF(argv);
-        std::cout << "---------------------- End checking singletrackfile.dat ----------------------"
-                  << std::endl;
-        if(STFfail) {
-            std::cerr << "WARNING: singletrackfile.dat files do NOT match" << std::endl;
-        }
-        else {
-            std::cout << "STF: PASS" << std::endl;
-        }
+        std::cout << std::endl;
     }
 
     //Look at extra_checks.txt
@@ -580,18 +566,17 @@ int main(int argc, char* argv[])
     //Look at sixout.zip
 #ifdef LIBARCHIVE
     if (sixoutzip) {
-        std::cout <<  "------------------------ Checking sixout.zip --------------------------------"
-                  << std::endl;
+        PrettyDivider("CHECKING sixout.zip");
 
         //(Re-)create tmpdir folder
         struct stat st;
         int status;
         if (stat(tmpdir, &st) == 0) {
             if ( ! S_ISDIR(st.st_mode) ) {
-                std::cout << tmpdir << " exists, but is not a directory. Strange?!?" << std::endl;
+                std::cerr << "ERROR: " << tmpdir << " exists, but is not a directory. Strange?!?" << std::endl;
                 exit(EXIT_FAILURE);
             }
-            std::cout << "Folder '" << tmpdir << "' exits, deleting contents." << std::endl;
+            std::cout << "  Folder '" << tmpdir << "' exits, deleting contents." << std::endl;
 
             // From http://stackoverflow.com/questions/11007494/how-to-delete-all-files-in-a-folder-but-not-delete-the-folder-using-nix-standar
 
@@ -604,26 +589,26 @@ int main(int argc, char* argv[])
                 // build the path for each file in the folder
                 int snprintf_err = snprintf(filepath, 256, "%s/%s", tmpdir, next_file->d_name);
                 if (snprintf_err >= 256 || snprintf_err < 0) {
-                    std::cout << "Error in snprintf while building the path for deleting a file" << std::endl;
+                    std::cout << "ERROR: in snprintf while building the path for deleting a file" << std::endl;
                     exit(EXIT_FAILURE);
                 }
                 remove(filepath);
             }
             closedir(theFolder);
-            std::cout << "done." << std::endl;
+            std::cout << std::endl;
         }
         else {
-            std::cout << "Creating folder '" << tmpdir << "' ..." << std::endl;
+            std::cout << "  Creating folder '" << tmpdir << "' ..." << std::endl;
 #if defined(_WIN32)
             status = not CreateDirectory(tmpdir,NULL);
 #else
             status = mkdir(tmpdir,S_IRWXU);
 #endif
             if (status) {
-                std::cout << "Something went wrong when creating '" << tmpdir << "'. Sorry!" << std::endl;
+                std::cerr << "ERROR: Something went wrong when creating '" << tmpdir << "'. Sorry!" << std::endl;
                 exit(EXIT_FAILURE);
             }
-            std::cout << "done." << std::endl;
+            std::cout << std::endl;
         }
 
         //List content
@@ -635,26 +620,26 @@ int main(int argc, char* argv[])
         for (int i = 0; i< archive_nfiles_max; i++) {
             archive_buff[i] = new char[archive_buffsize];
         }
-        std::cout << "Calling list_archive_get..." << std::endl;
+        std::cout << "  Calling list_archive_get..." << std::endl;
         list_archive_get(sixoutzip_fname,archive_buff,&archive_nfiles,archive_buffsize);
 
-        std::cout << "Got " << archive_nfiles << " files:" << std::endl;
+        std::cout << "  Got " << archive_nfiles << " files:" << std::endl;
         for (int i = 0; i< archive_nfiles; i++) {
-            std::cout << "File #" << i << ": '" << archive_buff[i] << "'" << std::endl;
+            std::cout << "  File #" << i << ": '" << archive_buff[i] << "'" << std::endl;
         }
         if (archive_nfiles != sixoutzip) {
-            std::cout << "WARNING: Expected " << sixoutzip << " files in '"
+            std::cout << "  WARNING: Expected " << sixoutzip << " files in '"
                       << sixoutzip_fname << "', got " << archive_nfiles << std::endl;
             sixoutzipfail = true;
         }
         else {
-            std::cout << "The number of files in the archive '"
+            std::cout << "  The number of files in the archive '"
                       << sixoutzip_fname << "' MATCHES the expected number "
                       << archive_nfiles << std::endl;
         }
 
         //Unzip!
-        std::cout << "Calling read_archive..." << std::endl;
+        std::cout << "  Calling read_archive..." << std::endl;
         read_archive(sixoutzip_fname,tmpdir);
 
         for (int i = 0; i< archive_nfiles; i++) {
@@ -668,9 +653,9 @@ int main(int argc, char* argv[])
             snprintf_err = snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s/%s",tmpdir,archive_buff[i]);
 #endif
             if (snprintf_err >= (archive_buffsize+1+strlen(tmpdir)) || snprintf_err < 0) {
-                std::cout << "Error in snprintf while building the path for unzipped file."
+                std::cerr << "ERROR: In snprintf, while building the path for unzipped file."
                           << std::endl;
-                std::cout << "snprintf_err = " << snprintf_err
+                std::cerr << "snprintf_err = " << snprintf_err
                           << ", buffsize=" << (archive_buffsize+1+strlen(tmpdir)) << std::endl;
                 exit(EXIT_FAILURE);
             }
@@ -678,17 +663,17 @@ int main(int argc, char* argv[])
 #ifdef WIN32
             //Strip out \r characters from windows new lines
             size_t CRcount = StripCR(FileNameZip);
-            std::cout << "Removed " << CRcount << " windows \\r entries from '"
+            std::cout << "  Removed " << CRcount << " windows \\r entries from '"
                       << FileNameZip << "'." << std::endl;
 #endif
 
             bool ThisTest = !FileComparison(FileNameZip, std::string(archive_buff[i]) + ".canonical");
             if(ThisTest) {
-                std::cerr << "WARNING: Test of zipped file '" << FileNameZip << "' failed!" << std::endl;
+                std::cerr << "  WARNING: Test of zipped file '" << FileNameZip << "' failed!" << std::endl;
                 sixoutzipfail = true;
             }
             else {
-                std::cout << "Test of zipped file '" << FileNameZip << "' MATCHES" << std::endl;
+                std::cout << "  Test of zipped file '" << FileNameZip << "' MATCHES" << std::endl;
             }
         }
 
@@ -697,66 +682,24 @@ int main(int argc, char* argv[])
             delete[] archive_buff[i];
         }
         delete[] archive_buff;
-
-        std::cout <<  "----------------------- End checking sixout.zip -----------------------------"
-                  << std::endl;
+        std::cout << std::endl;
     }
 #endif
-    std::cout << "---------------------------------- SUMMARY -----------------------------------" << std::endl;
-    if(fort10) {
-        if(fort10fail) {
-            std::cout << "fort.10 DOES NOT MATCH" << std::endl;
-        }
-        else {
-            std::cout << "fort.10 MATCHES" << std::endl;
-        }
-    }
-
-    if(fort90) {
-        if(fort90fail) {
-            std::cout << "fort.90 DOES NOT MATCH" << std::endl;
-        }
-        else {
-            std::cout << "fort.90 MATCHES" << std::endl;
-        }
-    }
-
-    if(STF) {
-        if(STFfail) {
-            std::cout << "singletrackfile.dat DOES NOT MATCH" << std::endl;
-        }
-        else {
-            std::cout << "singletrackfile.dat MATCHES" << std::endl;
-        }
-    }
-    if(extrachecks) {
-        if(ExtraChecksfail) {
-            std::cout << "Extra checks DOES NOT MATCH" << std::endl;
-        }
-        else {
-            std::cout << "Extra checks MATCHES" << std::endl;
-        }
-    }
+    PrettyDivider("CHECKS SUMMARY");
+    if(fort10)      CheckPrint("fort.10",!fort10fail);
+    if(fort90)      CheckPrint("fort.90",!fort90fail);
+    if(STF)         CheckPrint("singletrackfile.dat",!STFfail);
+    if(extrachecks) CheckPrint("Extra Checks",!ExtraChecksfail);
 #ifdef LIBARCHIVE
-    if(sixoutzip) {
-        if(sixoutzipfail) {
-            std::cout << sixoutzip_fname << " DOES NOT MATCH" << std::endl;
-        }
-        else {
-            std::cout << sixoutzip_fname << " MATCHES" << std::endl;
-        }
-    }
+    if(sixoutzip)   CheckPrint(sixoutzip_fname,!sixoutzipfail);
 #endif
     if(CRon && atoi(argv[12]) > 0) {
-        if(crRestartFail) {
-            std::cout << "CR check on number of restarts FAILED" << std::endl;
-        }
-        else {
-            std::cout << "CR check on number of restarts PASS" << std::endl;
-        }
+        CheckPrint("CR Number of Restarts",!crRestartFail);
     }
-    std::cout << "------------------------------------ EXIT ----------------------------------------"
-              << std::endl;
+    std::cout << std::endl;
+
+    PrettyDivider("EXIT");
+    std::cout << std::endl;
 
     //or together any fail bits.
     //If all tests pass this will return 0 (good)
@@ -775,17 +718,55 @@ bool CopyFile(std::string InputFileName, std::string OutputFileName) {
     std::ofstream Output(OutputFileName.c_str(), std::ios::binary);
 
     if(!Input.good()) {
-        std::cerr << "ERROR: Could not open " << InputFileName << std::endl;
+        std::cerr << "  ERROR: Could not open " << InputFileName << std::endl;
         return false;
     }
 
     if(!Input.good()) {
-        std::cerr << "ERROR: Could not open " << OutputFileName << std::endl;
+        std::cerr << "  ERROR: Could not open " << OutputFileName << std::endl;
         return false;
     }
 
     Output << Input.rdbuf();
     return true;
+}
+
+void CheckPrint(std::string theText, bool checkResult) {
+    int nMax = 80;
+    int nDot = nMax-theText.length()-14;
+    if(checkResult) {
+        std::cout << "  " << theText << " ";
+        for(int i=0; i<nDot; i++) {
+            std::cout << ".";
+        }
+        std::cout << "   Passed" << std::endl;
+    } else {
+        std::cerr << "  " << theText << " ";
+        for(int i=0; i<nDot; i++) {
+            std::cerr << ".";
+        }
+        std::cerr << "***Failed" << std::endl;
+    }
+}
+
+void PrettyDivider(std::string theText) {
+    int nMax = 80;
+    int nSt  = (nMax-2-theText.length())/2;
+    int nEnd = nMax-nSt-2-theText.length();
+    if(theText.length() == 0) {
+        for(int i=0; i<nMax; i++) {
+            std::cout << "*";
+        }
+    } else {
+        for(int i=0; i<nSt; i++) {
+            std::cout << "*";
+        }
+        std::cout << " " << theText << " ";
+        for(int i=0; i<nEnd; i++) {
+            std::cout << "*";
+        }
+    }
+    std::cout << std::endl;
 }
 
 /**
@@ -800,7 +781,7 @@ bool CheckFort10(char* argv[]) {
     bool input2 = CopyFile("fort.10.canonical", "fort.21");
 
     if(!input1 || !input2) {
-        std::cerr << "WARNING: Could not perform fort.10 comparison" << std::endl;
+        std::cerr << "  WARNING: Could not perform fort.10 comparison" << std::endl;
         return true;
     }
 
@@ -808,7 +789,7 @@ bool CheckFort10(char* argv[]) {
     //Now again we fork() and exec()
     pid_t CheckFort10pid = fork();
     if(CheckFort10pid == -1) {
-        std::cerr << "ERROR: Could not fork to start checkf10" << std::endl;
+        std::cerr << "  ERROR: Could not fork to start checkf10" << std::endl;
         return true;
     }
 
@@ -825,7 +806,7 @@ bool CheckFort10(char* argv[]) {
         //main thread, wait()
         int waitpidStatus;
         waitpid(CheckFort10pid, &waitpidStatus, WUNTRACED);
-        std::cout << "checkf10 finished running and returned: " << waitpidStatus << std::endl;
+        std::cout << "  checkf10 finished running and returned: " << waitpidStatus << std::endl;
         return waitpidStatus;
     }
 
@@ -834,9 +815,9 @@ bool CheckFort10(char* argv[]) {
 #else
     int status = _spawnl(_P_WAIT, argv[2], "checkf10", (char*) 0);
     if(status == -1){
-        perror("ERROR - could not execute checkf10");
+        perror("ERROR: Could not execute checkf10");
     }
-    std::cout << "checkf10 finished running and returned: " << status << std::endl;
+    std::cout << "  checkf10 finished running and returned: " << status << std::endl;
 
     return status;
 #endif
@@ -856,7 +837,7 @@ bool CheckFort90(char* argv[]) {
     //Do this for the first file
     pid_t CheckFort90pid = fork();
     if(CheckFort90pid == -1) {
-        std::cerr << "ERROR: Could not fork to start read90" << std::endl;
+        std::cerr << "  ERROR: Could not fork to start read90" << std::endl;
         return false;
     }
 
@@ -875,9 +856,9 @@ bool CheckFort90(char* argv[]) {
         //main thread, wait()
         int waitpidStatus;
         waitpid(CheckFort90pid, &waitpidStatus, WUNTRACED);
-        std::cout << "read90 finished running on fort.90: " << waitpidStatus << std::endl;
+        std::cout << "  read90 finished running on fort.90: " << waitpidStatus << std::endl;
         if(waitpidStatus != 0) {
-            std::cerr << "ERROR: Problem running read90" << std::endl;
+            std::cerr << "  ERROR: Problem running read90" << std::endl;
             return waitpidStatus;
         }
     }
@@ -885,7 +866,7 @@ bool CheckFort90(char* argv[]) {
     //Do this for the second file
     CheckFort90pid = fork();
     if(CheckFort90pid == -1) {
-        std::cerr << "ERROR: Could not fork to start read90" << std::endl;
+        std::cerr << "  ERROR: Could not fork to start read90" << std::endl;
         return false;
     }
 
@@ -904,9 +885,9 @@ bool CheckFort90(char* argv[]) {
         //main thread, wait()
         int waitpidStatus;
         waitpid(CheckFort90pid, &waitpidStatus, WUNTRACED);
-        std::cout << "read90 finished running on fort.90.canonical: " << waitpidStatus << std::endl;
+        std::cout << "  read90 finished running on fort.90.canonical: " << waitpidStatus << std::endl;
         if(waitpidStatus != 0) {
-            std::cerr << "ERROR: Problem running read90" << std::endl;
+            std::cerr << "  ERROR: Problem running read90" << std::endl;
             return waitpidStatus;
         }
     }
@@ -917,18 +898,18 @@ bool CheckFort90(char* argv[]) {
                           "--fname", "fort.90",
                           "--ofname", "fort.90.out", (char*) 0);
     if(status1 == -1){
-        perror("ERROR - could not execute read90");
+        perror("ERROR: Could not execute read90");
     }
-    std::cout << "read90 finished running on fort.90: " << status1 << std::endl;
+    std::cout << "  read90 finished running on fort.90: " << status1 << std::endl;
 
     //Second file (canonical)
     int status2 = _spawnl(_P_WAIT, argv[3], "read90",
                           "--fname", "fort.90.canonical",
                           "--ofname", "fort.90.canonical.out", (char*) 0);
     if(status2 == -1) {
-        perror("ERROR - could not execute read90");
+        perror("ERROR: Could not execute read90");
     }
-    std::cout << "read90 finished running on fort.90.canonical: " << status2 << std::endl;
+    std::cout << "  read90 finished running on fort.90.canonical: " << status2 << std::endl;
 #endif
     return !FileComparison("fort.90.out", "fort.90.canonical.out");
 
@@ -947,7 +928,7 @@ bool CheckSTF(char* argv[]) {
     //Do this for the first file
     pid_t CheckSTFpid = fork();
     if(CheckSTFpid == -1) {
-        std::cerr << "ERROR: Could not fork to start read90" << std::endl;
+        std::cerr << "  ERROR: Could not fork to start read90" << std::endl;
         return false;
     }
 
@@ -966,10 +947,10 @@ bool CheckSTF(char* argv[]) {
         //main thread, wait()
         int waitpidStatus;
         waitpid(CheckSTFpid, &waitpidStatus, WUNTRACED);
-        std::cout << "read90 finished running on singletrackfile.dat: "
+        std::cout << "  read90 finished running on singletrackfile.dat: "
                   << waitpidStatus << std::endl;
         if(waitpidStatus != 0) {
-            std::cerr << "ERROR: Problem running read90" << std::endl;
+            std::cerr << "  ERROR: Problem running read90" << std::endl;
             return waitpidStatus;
         }
     }
@@ -977,7 +958,7 @@ bool CheckSTF(char* argv[]) {
     //Do this for the second file
     CheckSTFpid = fork();
     if(CheckSTFpid == -1) {
-        std::cerr << "ERROR: Could not fork to start read90" << std::endl;
+        std::cerr << "  ERROR: Could not fork to start read90" << std::endl;
         return false;
     }
 
@@ -996,10 +977,10 @@ bool CheckSTF(char* argv[]) {
         //main thread, wait()
         int waitpidStatus;
         waitpid(CheckSTFpid, &waitpidStatus, WUNTRACED);
-        std::cout << "read90 finished running on singletrackfile.dat.canonical: "
+        std::cout << "  read90 finished running on singletrackfile.dat.canonical: "
                   << waitpidStatus << std::endl;
         if(waitpidStatus != 0) {
-            std::cerr << "ERROR: Problem running read90" << std::endl;
+            std::cerr << "  ERROR: Problem running read90" << std::endl;
             return waitpidStatus;
         }
     }
@@ -1010,9 +991,9 @@ bool CheckSTF(char* argv[]) {
                           "--fname", "singletrackfile.dat",
                           "--ofname", "singletrackfile.dat.out", (char*) 0);
     if(status1 == -1) {
-        perror("ERROR - could not execute read90");
+        perror("ERROR: Could not execute read90");
     }
-    std::cout << "read90 finished running on singletrackfile.dat: "
+    std::cout << "  read90 finished running on singletrackfile.dat: "
               << status1 << std::endl;
 
     //Second file (canonical)
@@ -1020,9 +1001,9 @@ bool CheckSTF(char* argv[]) {
                           "--fname", "singletrackfile.dat.canonical",
                           "--ofname", "singletrackfile.dat.canonical.out", (char*) 0);
     if(status2 == -1) {
-        perror("ERROR - could not execute read90");
+        perror("ERROR: Could not execute read90");
     }
-    std::cout << "read90 finished running on singletrackfile.dat.canonical: "
+    std::cout << "  read90 finished running on singletrackfile.dat.canonical: "
               << status2 << std::endl;
 #endif
     return !FileComparison("singletrackfile.dat.out", "singletrackfile.dat.canonical.out");
@@ -1042,7 +1023,7 @@ bool FileComparison(std::string FileName1, std::string FileName2) {
         length1 = f1.tellg();
     }
     else {
-        std::cout << "Could not open " << FileName2 << std::endl;
+        std::cout << "  Could not open " << FileName2 << std::endl;
         return false;
     }
 
@@ -1051,12 +1032,12 @@ bool FileComparison(std::string FileName1, std::string FileName2) {
         length2 = f2.tellg();
     }
     else {
-        std::cout << "Could not open " << FileName2 << std::endl;
+        std::cout << "  Could not open " << FileName2 << std::endl;
         return false;
     }
 
-    std::cout << "size " << FileName1 << ": " << length1 << std::endl;
-    std::cout << "size " << FileName2 << ": " << length2 << std::endl;
+    std::cout << "  Size " << FileName1 << ": " << length1 << std::endl;
+    std::cout << "  Size " << FileName2 << ": " << length2 << std::endl;
 
     if(length1 != length2) {
         return false;
@@ -1081,7 +1062,7 @@ bool FileComparison(std::string FileName1, std::string FileName2) {
 
         int comparison = memcmp(f1Buffer, f2Buffer, rsize);
         if(comparison != 0) {
-            std::cerr << FileName1 << " is different from " << FileName2
+            std::cerr << "  " << FileName1 << " is different from " << FileName2
                       << " at " << position << " - memcmp() comparison: " << comparison << std::endl;
             return false;
         }
@@ -1092,8 +1073,8 @@ bool FileComparison(std::string FileName1, std::string FileName2) {
 }
 
 bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bin_files) {
-    std::cout << "--------------------------- Performing extra checks ------------------------------"
-              << std::endl;
+
+    PrettyDivider("EXTRA CHECKS");
 
     //Split the dump_bin_files
     std::list<std::string> dump_bin_files_list;
@@ -1107,7 +1088,7 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
                                                                     - dump_bin_files_oldpos)
                                        );
         dump_bin_files_oldpos=dump_bin_files_pos+1;
-        std::cout << "Found binary dump file = '" << dump_bin_files_list.back() << "'" << std::endl;
+        std::cout << "  Found binary dump file = '" << dump_bin_files_list.back() << "'" << std::endl;
     }
     if (dump_bin_files_list.size()==1 and dump_bin_files_list.front()=="NONE") {
         dump_bin_files_list.clear();
@@ -1117,7 +1098,7 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
     std::ifstream extra_checks_in("extra_checks.txt");
     if(extra_checks_in.good()) {
         extrachecks=true;
-        std::cout << "Opened extra_checks.txt" << std::endl;
+        std::cout << "  Opened extra_checks.txt" << std::endl;
         //Format should be some file to check followed by a command
         while(extra_checks_in.good()) {
             std::string StringBuffer;
@@ -1126,13 +1107,13 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
             extra_checks_in >> FileName;
             getline(extra_checks_in, StringBuffer);
             if(FileName != "") {
-                std::cout << "Performing extra checks on '" << FileName << "'" << std::endl;
+                std::cout << "  Performing extra checks on '" << FileName << "'" << std::endl;
                 bool convertThis = false;
                 auto dump_bin_files_iterator = std::find(dump_bin_files_list.begin(),dump_bin_files_list.end(),FileName);
                 if(dump_bin_files_iterator != dump_bin_files_list.end()) {
                     convertThis = true;
-                    std::cout << "This is a binary format 3 DUMP, must convert!" << std::endl;
-                    std::cout << "Calling '"<<convert_dump_bin<<"'"<<std::endl;
+                    std::cout << "  This is a binary format 3 DUMP, must convert!" << std::endl;
+                    std::cout << "  Calling '"<<convert_dump_bin<<"'"<<std::endl;
 #ifndef WIN32
                     //Now again we fork() and exec()
                     //Do this for the first file
@@ -1158,7 +1139,7 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
                         //main thread, wait()
                         int waitpidStatus;
                         waitpid(ReadDump3pid, &waitpidStatus, WUNTRACED);
-                        std::cout << "readDump3 finished running on '"<< FileName << "': "
+                        std::cout << "  readDump3 finished running on '"<< FileName << "': "
                                   << waitpidStatus << std::endl;
                         if(waitpidStatus != 0) {
                             std::cerr << "ERROR: Problem running readDump3" << std::endl;
@@ -1169,8 +1150,8 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
                     //Do this for the second file
                     ReadDump3pid = fork();
                     if(ReadDump3pid == -1) {
-                            perror("ERROR: Could not fork to start readDump3");
-                            exit(EXIT_FAILURE);
+                        perror("ERROR: Could not fork to start readDump3");
+                        exit(EXIT_FAILURE);
                     }
 
                     //Check fork() status
@@ -1190,7 +1171,7 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
                         //main thread, wait()
                         int waitpidStatus;
                         waitpid(ReadDump3pid, &waitpidStatus, WUNTRACED);
-                        std::cout << "readDump3 finished running on '"
+                        std::cout << "  readDump3 finished running on '"
                                   << FileName.c_str()+std::string(".canonical") << "': "
                                   << waitpidStatus << std::endl;
                         if(waitpidStatus != 0) {
@@ -1206,10 +1187,10 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
                                           (FileName+std::string(".converted")).c_str(),
                                           (char*) 0);
                     if(status1 == -1) {
-                        perror("ERROR - could not execute readDump3");
+                        perror("ERROR: Could not execute readDump3");
                         exit(EXIT_FAILURE);
                     }
-                    std::cout << "readDump3 finished running on '"
+                    std::cout << "  readDump3 finished running on '"
                               << FileName << "': "
                               << status1 << std::endl;
 
@@ -1221,9 +1202,9 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
                                           (char*) 0
                                           );
                     if(status2 == -1) {
-                        perror("ERROR - could not execute readDump3");
+                        perror("ERROR: Could not execute readDump3");
                     }
-                    std::cout << "readDump3 finished running on '"
+                    std::cout << "  readDump3 finished running on '"
                               << FileName.c_str() + std::string(".canonical")
                               << "': " << status2 << std::endl;
 #endif
@@ -1233,30 +1214,23 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
 #ifdef WIN32
                 //Strip out \r characters from windows new lines
                 size_t CRcount = StripCR(FileName);
-                std::cout << "Removed " << CRcount << " windows \\r entries." << std::endl;
+                std::cout << "  Removed " << CRcount << " windows \\r entries." << std::endl;
                 if (convertThis) {
                     size_t CRcount = StripCR(FileName + std::string(".canonical"));
-                    std::cout << "Removed " << CRcount << " windows \\r entries." << std::endl;
+                    std::cout << "  Removed " << CRcount << " windows \\r entries." << std::endl;
                 }
 #endif
                 bool ThisTest = !FileComparison(FileName, FileName + ".canonical");
-                if(ThisTest) {
-                    std::cerr << "WARNING: Extra check on " << FileName << " failed!" << std::endl;
-                    AllTests = true;
-                }
-                else {
-                    std::cout << "Extra check on " << FileName << " MATCHES" << std::endl;
-                }
+                CheckPrint(FileName,!ThisTest);
             }
         }
     }
     else {
-        std::cout << "Could not open extra_checks.txt" << std::endl;
+        std::cout << "  Could not open extra_checks.txt" << std::endl;
         extrachecks=false;
     }
 
-    std::cout << "------------------------------- End extra checks ---------------------------------"
-              << std::endl;
+    std::cout << std::endl;
     return AllTests;
 }
 
@@ -1273,10 +1247,11 @@ std::vector<int> ParseKillTimes(char* in) {
         KillTimes.push_back(number);
     }
 
-    std::cout << "Will try and kill CR run " << KillTimes.size() << " times." << std::endl;
-    std::cout << "Killing after ";
+    PrettyDivider("Checkpoint/Restart");
+    std::cout << "  Will try and kill CR run " << KillTimes.size() << " times." << std::endl;
+    std::cout << "  Killing after ";
     for(int k = 0; k < KillTimes.size(); k++) {
-        std::cout << KillTimes.at(k) << "\t";
+        std::cout << KillTimes.at(k) << ", ";
     }
     std::cout << " seconds." << std::endl;
     return KillTimes;
@@ -1299,19 +1274,19 @@ void *pthread_wait_sixtrack(void* InputStruct) {
         //Check if it was stopped by CRKILLSWITCH; if so remove the file
         int unlink_status = unlink("crrestartme.tmp");
         if (unlink_status != 0) {
-            std::cout << "SixTrack CR exited okay: " << waitpidStatus << std::endl;
+            std::cout << "  SixTrack CR exited okay: " << waitpidStatus << std::endl;
             ThreadStruct->RunStatus    = true;
             ThreadStruct->CRKILLSWITCH = false;
         }
         else {
-            std::cout << "SixTrack CR was stopped by CRKILLSWITCH; 'crrestartme.tmp' was deleted."
+            std::cout << "  SixTrack CR was stopped by CRKILLSWITCH; 'crrestartme.tmp' was deleted."
                       << std::endl;
             ThreadStruct->RunStatus    = false;
             ThreadStruct->CRKILLSWITCH = true;
         }
     }
     else {
-        std::cout << "SixTrack CR was killed: " << waitpidStatus << std::endl;
+        std::cout << "  SixTrack CR was killed: " << waitpidStatus << std::endl;
         ThreadStruct->RunStatus    = false;
         ThreadStruct->CRKILLSWITCH = false;
     }
@@ -1339,9 +1314,9 @@ void *pthread_kill_sixtrack(void* InputStruct) {
         //std::cout << "Child exec() kill 0 check result: " <<  res << std::endl;
         if(res != 0) {
 
-            std::cout << "Cannot kill SixTrack process, most likely it has finished." << std::endl;
+            std::cout << "  Cannot kill SixTrack process, most likely it has finished." << std::endl;
 
-            std::cout << "Error message from kill(): '" << strerror(errno) << "'" << std::endl;
+            std::cout << "  Error message from kill(): '" << strerror(errno) << "'" << std::endl;
 
             //No longer running, jump out;
             ArmKill=false;
@@ -1352,9 +1327,9 @@ void *pthread_kill_sixtrack(void* InputStruct) {
     // Do the actual kill
     if(ArmKill == true) {
         //Try and kill
-        std::cout << "Kill thread - killing pid: " << sixpid << std::endl;
+        std::cout << "  Kill thread - killing {IF}: " << sixpid << std::endl;
         int res = kill(sixpid, SIGKILL);
-        std::cout << "Kill thread - kill() result: " << res << std::endl;
+        std::cout << "  Kill thread - kill() result: " << res << std::endl;
     }
 
     pthread_exit(NULL);
@@ -1381,26 +1356,26 @@ DWORD winthread_wait_sixtrack(LPVOID InputStruct) {
     LPDWORD excode_ptr = &excode;
     BOOL ecode = GetExitCodeProcess(sixHANDLE, excode_ptr);
     if(!ecode) {
-        std::cerr << "GetExitCodeProcess() failed on SixTrack CR run!: " << GetLastError() << std::endl;
+        std::cerr << "  GetExitCodeProcess() failed on SixTrack CR run!: " << GetLastError() << std::endl;
     }
     else {
         if(excode == 0) {
             //Check if it was stopped by CRKILLSWITCH; if so remove the file
             int unlink_status = unlink("crrestartme.tmp");
             if (unlink_status != 0) {
-                std::cout << "SixTrack CR exited okay: " << excode << std::endl;
+                std::cout << "  SixTrack CR exited okay: " << excode << std::endl;
                 ThreadStruct->RunStatus    = true;
                 ThreadStruct->CRKILLSWITCH = false;
             }
             else {
-                std::cout << "SixTrack CR was stopped by CRKILLSWITCH; 'crrestartme.tmp' was deleted."
+                std::cout << "  SixTrack CR was stopped by CRKILLSWITCH; 'crrestartme.tmp' was deleted."
                           << std::endl;
                 ThreadStruct->RunStatus    = false;
                 ThreadStruct->CRKILLSWITCH = true;
             }
         }
         else {
-            std::cout << "SixTrack CR was killed: " << excode << std::endl;
+            std::cout << "  SixTrack CR was killed: " << excode << std::endl;
             ThreadStruct->RunStatus    = false;
             ThreadStruct->CRKILLSWITCH = false;
         }
@@ -1427,12 +1402,12 @@ DWORD winthread_kill_sixtrack(LPVOID InputStruct) {
         LPDWORD excode_ptr = &excode;
         BOOL ecode = GetExitCodeProcess(sixHANDLE, excode_ptr);
         if(!ecode) {
-            std::cerr << "GetExitCodeProcess() failed on SixTrack CR run!: "
+            std::cerr << "  GetExitCodeProcess() failed on SixTrack CR run!: "
                       << GetLastError() << std::endl;
         }
         else {
             if(excode == 0) {
-                std::cout << "SixTrack CR exited okay: " << excode << std::endl;
+                std::cout << "  SixTrack CR exited okay: " << excode << std::endl;
                 //No longer running, jump out;
                 ArmKill=false;
                 tt=KillTime;
@@ -1441,7 +1416,7 @@ DWORD winthread_kill_sixtrack(LPVOID InputStruct) {
     }
     if(ArmKill == true) {
         //Try and kill
-        std::cout << "Kill thread - calling TerminateProcess()" << std::endl;
+        std::cout << "  Kill thread - calling TerminateProcess()" << std::endl;
         /*
           BOOL WINAPI TerminateProcess(
             _In_ HANDLE hProcess,
@@ -1450,10 +1425,10 @@ DWORD winthread_kill_sixtrack(LPVOID InputStruct) {
         */
         BOOL term = TerminateProcess(sixHANDLE, 9);
         if(!term) {
-            std::cerr << "Failed to TerminateProcess() on SixTrack CR run!: "
+            std::cerr << "  Failed to TerminateProcess() on SixTrack CR run!: "
                       << GetLastError() << std::endl;
         }
-        std::cout << "Kill thread - TerminateProcess() result: " << term << std::endl;
+        std::cout << "  Kill thread - TerminateProcess() result: " << term << std::endl;
     }
 
     return 0;
@@ -1464,8 +1439,9 @@ DWORD winthread_kill_sixtrack(LPVOID InputStruct) {
 * Deletes any checkpoint files that are appended to from previous CR runs.
 */
 void UnlinkCRFiles() {
-    int forts[] = {6, 10, 90, 93, 95, 96};
+
     std::vector<std::string> unlinkFiles;
+
     unlinkFiles.push_back("fort.6");
     unlinkFiles.push_back("fort.10");
     unlinkFiles.push_back("fort.90");
@@ -1476,14 +1452,14 @@ void UnlinkCRFiles() {
     unlinkFiles.push_back("crrestartme.tmp");
     unlinkFiles.push_back("crkillswitch.tmp");
 
-    for (auto fname : unlinkFiles) {
-        std::cout << "Deleting old '" << fname << "'" << std::endl;
-
-        int unlink_status= unlink(fname.c_str());
-        if(unlink_status != 0) {
-            std::string er = "WARNING: Could not unlink '" + fname + "'";
-            perror(er.c_str());
+    for(auto fname : unlinkFiles) {
+        std::cout << "  Deleting old '" << fname << "'";
+        if(unlink(fname.c_str()) != 0) {
+            std::cout << " - File not found";
+        } else {
+            std::cout << " - Done";
         }
+        std::cout << std::endl;
     }
 }
 

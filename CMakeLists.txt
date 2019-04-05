@@ -1265,11 +1265,11 @@ if(BUILD_TESTING)
   configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
 
   #need to build the testing tools
-  add_executable(verify10 ${CMAKE_SOURCE_DIR}/test/bin/verify10.f90)
-  add_executable(checkf10 ${CMAKE_SOURCE_DIR}/test/bin/checkf10.f90)
-  add_executable(compf10 ${CMAKE_SOURCE_DIR}/test/bin/compf10.f90)
-  add_executable(checkf110 ${CMAKE_SOURCE_DIR}/test/bin/checkf110.f90)
-  add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/test/bin/checkf1014.f90)
+  add_executable(verify10 ${CMAKE_SOURCE_DIR}/test/tools/verify10.f90)
+  add_executable(checkf10 ${CMAKE_SOURCE_DIR}/test/tools/checkf10.f90)
+  add_executable(compf10 ${CMAKE_SOURCE_DIR}/test/tools/compf10.f90)
+  add_executable(checkf110 ${CMAKE_SOURCE_DIR}/test/tools/checkf110.f90)
+  add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/test/tools/checkf1014.f90)
   add_executable(read90 ${CMAKE_SOURCE_DIR}/test/read90/read90.f90)
   add_executable(readDump3 ${CMAKE_SOURCE_DIR}/test/readDump3/readDump3.f90)
 
@@ -1284,7 +1284,7 @@ if(BUILD_TESTING)
   set_target_properties(readDump3 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
   # The Test Wrapper
-  add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/test/bin/SixTestWrapper.cpp)
+  add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/test/tools/SixTestWrapper.cpp)
   if(LIBARCHIVE)
     target_link_libraries(SixTestWrapper libArchive_wrapper libarchive z Threads::Threads)
   endif()
@@ -1322,7 +1322,7 @@ set(CPACK_PACKAGE_VERSION_MINOR ${${PROJECT_NAME}_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${${PROJECT_NAME}_VERSION_PATCH})
 include(CPack)
 
-install(TARGETS SixTrackCR RUNTIME DESTINATION bin )
+install(TARGETS SixTrackCR RUNTIME DESTINATION bin)
 
 if(NOT WIN32)
   add_custom_command(TARGET SixTrackCR POST_BUILD

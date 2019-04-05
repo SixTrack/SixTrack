@@ -154,7 +154,7 @@ module mod_common
   integer,          save :: numlr      = 0    ! Number of turns in the backward direction
   integer,          save :: napx       = 0    ! Number of amplitude variations
   integer,          save :: ird        = 0    ! Ignored
-  integer,          save :: niu(2)     = 0    ! Unknown
+  integer,          save :: niu(2)     = 0    ! Start and stop structure element for optics calculation
   integer,          save :: numlcp     = 1000 ! How often to write checkpointing files
   integer,          save :: numlmax    = 1e9  ! Max number of C/R turns
   integer,          save :: idfor      = 0    ! Add closed orbit to initia coordinates
