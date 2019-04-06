@@ -244,7 +244,6 @@ subroutine dump(dumpname,n,i)
   write(99,*) 'nde ',nde
   write(99,*) 'nwr ',nwr
   write(99,*) 'ird ',ird
-  write(99,*) 'imc ',imc
   write(99,*) 'irew ',irew
   write(99,*) 'ntwin ',ntwin
   write(99,*) 'iclo6 ',iclo6
@@ -716,7 +715,6 @@ subroutine dumpbin(dumpname,n,i)
   write(99) nde
   write(99) nwr
   write(99) ird
-  write(99) imc
   write(99) irew
   write(99) ntwin
   write(99) iclo6
@@ -1182,7 +1180,6 @@ subroutine dumphex(dumpname,n,i)
   write(99,100) 'nde ',nde
   write(99,100) 'nwr ',nwr
   write(99,100) 'ird ',ird
-  write(99,100) 'imc ',imc
   write(99,100) 'irew ',irew
   write(99,100) 'ntwin ',ntwin
   write(99,100) 'iclo6 ',iclo6

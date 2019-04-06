@@ -2211,8 +2211,7 @@ subroutine dist1
   save
 !-----------------------------------------------------------------------
   do 20 ia=1,napx,2
-    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.     &
-  &(mod(partID(ia),2).ne.0)) then
+    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.(mod(partID(ia),2).ne.0)) then
       ie=ia+1
       dam(ia)=zero
       dam(ie)=zero
@@ -2228,22 +2227,17 @@ subroutine dist1
       xau(2,4)= yv2(ie)
       xau(2,5)=sigmv(ie)
       xau(2,6)= dpsv(ie)
-      cloau(1)= clo6v(1,ia)
-      cloau(2)=clop6v(1,ia)
-      cloau(3)= clo6v(2,ia)
-      cloau(4)=clop6v(2,ia)
-      cloau(5)= clo6v(3,ia)
-      cloau(6)=clop6v(3,ia)
-      di0au(1)= di0xs(ia)
-      di0au(2)=dip0xs(ia)
-      di0au(3)= di0zs(ia)
-      di0au(4)=dip0zs(ia)
-
-      do ib2=1,6
-        do ib3=1,6
-          tau(ib2,ib3)=tasau(ia,ib2,ib3)
-        end do
-      end do
+      cloau(1)= clo6v(1)
+      cloau(2)=clop6v(1)
+      cloau(3)= clo6v(2)
+      cloau(4)=clop6v(2)
+      cloau(5)= clo6v(3)
+      cloau(6)=clop6v(3)
+      di0au(1)= di0xs
+      di0au(2)=dip0xs
+      di0au(3)= di0zs
+      di0au(4)=dip0zs
+      tau(:,:)=tasau(:,:)
 
       call distance(xau,cloau,di0au,tau,dam1)
       dam(ia)=dam1

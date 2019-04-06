@@ -98,7 +98,6 @@ list(APPEND SIXTRACK_TESTS
   lostevery
   lostnotilt
   lostnumxv
-  momentum_scan
   multipoles_DYNK
   notilt
   orbit6d-element-combinedFunction
@@ -217,7 +216,6 @@ set(TESTS_NOFORT10
   generalized-rf-multipoles-missalignments
   geometry
   geometry_multicol
-  momentum_scan
   multipoles_DYNK
   orbit6d-element-combinedFunction
   orbit6d-element-quadrupole
@@ -517,7 +515,6 @@ set(FAST_TESTS
   lost
   lostnotilt
   lostnumxv
-  momentum_scan
   multipoles_DYNK
   notilt
   orbit6d-element-combinedFunction
