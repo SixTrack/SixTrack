@@ -64,14 +64,6 @@
   \endflushleft\normalsize
 }
 
-\newenvironment{description_alligned}[1]
-{\begin{list}{}%
-    {\renewcommand\makelabel[1]{##1:\hfill}%
-      \settowidth\labelwidth{\makelabel{#1}}%
-      \setlength\leftmargin{\labelwidth}
-      \addtolength\leftmargin{\labelsep}}}
-  {\end{list}}
-
 \setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{3}
 \pagestyle{headings}
