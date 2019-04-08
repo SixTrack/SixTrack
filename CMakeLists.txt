@@ -122,7 +122,7 @@ option(GPROF "Enable build flags for code profiling with gprof (only works with 
 option(WARN "Enable build flags for additional compiler warnings" OFF)
 option(DEBUG "Debugging output" OFF)
 option(NOSYMLINK "Don't use symlinks for test inputs and canonicals" OFF)
-option(MEMUSAGE "Writes PID and actual memory usage to sim_meta.dat" OFF)
+option(MEMUSAGE "Writes PID and actual memory usage to sim_meta.dat (GNU/UNIX only)" OFF)
 
 set(BOINC_DIR ${CMAKE_SOURCE_DIR}/lib/boinc CACHE PATH "Path to the boinc build folder")
 set(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive_build CACHE PATH "Path to the libarchive build folder")
