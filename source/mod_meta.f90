@@ -354,7 +354,7 @@ integer function meta_extractMemUsage(mFile)
 
   fErr  = .false.
   sErr  = .false.
-  memKB = -1
+  memKB = -1024
 
   call f_requestUnit(mFile,fUnit)
   call f_open(unit=fUnit,file=mFile,formatted=.true.,mode="r",status="old",err=fErr)
