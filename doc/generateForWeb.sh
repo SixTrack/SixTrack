@@ -17,7 +17,8 @@ OPHYS=$CURR/html/physics_full
 OBUILD=$CURR/html/build_full
 
 # LaTeXML Options
-MATHJAX='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML'
+#MATHJAX='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML'
+MATHJAX=$(locate LaTeXML-maybeMathjax.js)
 FORMAT=html5
 
 mkdir -pv $OUSERF
@@ -34,8 +35,8 @@ echo "*****************************************"
 echo ""
 
 # Make temp directory
-rm -rfv $TUSER
-rsync -avPh $MUSER/ $TUSER
+rm -rf $TUSER
+rsync -aPh $MUSER/ $TUSER
 cd $TUSER
 
 # Build PDF
@@ -59,8 +60,8 @@ for FILE in *.tex; do
 done
 
 # Build HTML
-latexml six.tex | latexmlpost --dest=$OUSERF/manual.html --format=$FORMAT --javascript=$MATHJAX - | tee ../htmlUserManual.log
-HTMEX=$?
+latexml six.tex | latexmlpost --dest=$OUSERF/manual.html --format=$FORMAT --javascript=$MATHJAX -
+HTMEX=@?
 $CURR/cleanupHTML.py $OUSERF
 rm -v $OUSERF/*.html
 echo "<?php header('Location: manual.php'); ?>" > $OUSERF/index.php
@@ -94,9 +95,10 @@ echo "**********"
 if [ $HTMEX != 0 ]; then
   echo ""
   echo "ERROR during HTML conversion. It may have failed."
-  echo "If the error is in converting figures to png, make sure the line"
+  echo "If the error is in converting figures to png, make sure the lines"
+  echo "  <policy domain=\"coder\" rights=\"read|write\" pattern=\"PS\" />"
   echo "  <policy domain=\"coder\" rights=\"read|write\" pattern=\"PDF\" />"
-  echo "is set to read|write in /etc/ImageMagick/policy.xml"
+  echo "are set to read|write in /etc/ImageMagick/policy.xml"
 fi
 
 echo ""
