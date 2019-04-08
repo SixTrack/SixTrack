@@ -1,4 +1,4 @@
-\documentclass[twoside,a4paper,11pt]{report}
+\documentclass[twoside,a4paper,11pt]{book}
 \usepackage[twoside,a4paper,top=25mm,bottom=25mm,left=20mm,right=20mm]{geometry}
 
 \usepackage{float}
@@ -116,10 +116,13 @@
 % Main Document
 \begin{document}
 
+\frontmatter
 \pagenumbering{roman}
 
+\pdfbookmark{Title Page}{TitlePage}
 \input{incTitlePage}
 \cleardoublepage
+
 \pdfbookmark{Acknowledgements}{Acknowledgements}
 \input{incAcknowledgement}
 \cleardoublepage
@@ -130,6 +133,7 @@
 \pagenumbering{arabic}
 
 % Chapters
+\mainmatter
 \input{chIntroduction}
 \cleardoublepage
 \input{chGeneralInput}
@@ -150,6 +154,10 @@
 \cleardoublepage
 
 \appendix
+\pdfbookmark{Appendix}{Appendix}
+\phantomsection
+\part*{Appendix}
+
 \renewcommand{\chaptername}{Appendix}
 % \input{apxKeywords}
 % \cleardoublepage
@@ -162,11 +170,14 @@
 % \input{apxExamples}
 % \cleardoublepage
 
+\backmatter
 \input{theBibliography}
 \cleardoublepage
-\pdfbookmark{Index}{Index}
+
+\pdfbookmark{Keyword Index}{Index}
 \printindex
 \cleardoublepage
+
 \pdfbookmark{List of Tables}{List of Tables}
 \listoftables
 \cleardoublepage
