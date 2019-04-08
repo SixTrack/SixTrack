@@ -1,5 +1,15 @@
 # SixTrack Changelog
 
+### Version 5.2.2 [08.04.2019] - Release
+
+**User Side Changes**
+
+* Support for variations of momentum offset in the `INIT` block has been removed. This feature has not been maintained for a long time, and was incompatible with the several modules of SixTrack. It was also wasteful in terms of memory usage. Since SixTrack accepts input distributions from file, the feature is also redundant. We therefore decided to remove it rather than bringing it up to speed with the rest of the code. This change fixes the `imc` flag to a value of 1 (7th value on line 1 of the `INIT` block). Any other value will cause an error. This change frees up `(NPART-1)*680` bytes of memory, where `NPART` is the number of tracked particles. PR #804 (V.K. Berglyd Olsen)
+
+**Test Suite**
+
+* The output of the wrapper executable for the test suite has been made a bit more readable. This is visible when ctest is run with the `-V` flag. PR #807 (V.K. Berglyd Olsen)
+
 ### Version 5.2.1 [05.04.2019] - Release
 
 **New Features**

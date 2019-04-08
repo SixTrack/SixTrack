@@ -3,9 +3,9 @@
 % ================================================================================================================================ %
 \section{Default Tracking Parameters} \label{DTP}
 
-Some of the parameters for tracking are set to non-zero values.
+Some of the parameters for tracking are set to non-zero values\index{default parameters}.
 This is done for instance to avoid as much as possible program errors such as division by zero due to an erroneous input.
-The default values for the \textit{Iteration Errors} (\ref{IteErr}) see table~\ref{T-IteErr}.
+The default values for the \textit{Iteration Errors} are described in Section~\ref{IteErr}, Table~\ref{T-IteErr}.
 
 \newcounter{dtp} \setcounter{dtp}{0}
 
@@ -60,9 +60,9 @@ The default values for the \textit{Iteration Errors} (\ref{IteErr}) see table~\r
 % ================================================================================================================================ %
 \section{Default Size Parameters} \label{DSP}
 
-SixTrack 5 automatically scales the arrays related to the machine description and number of tracked particles.
-However, many other parameters are fixed and are defined as a parameters in the module \texttt{parpro} in the source code.
-If these are found to be too low, they can be adjusted in the source.
+SixTrack 5 automatically scales the arrays related to the machine description and number of tracked particles, while earlier versions used fixed size arrays\index{default parameters}\index{memory allocation}.
+However, many other parameters are still fixed and are defined as parameters in the module \texttt{parpro} in the source code.
+They are generally large enough for their intended purpose, but if these are found to be too small, they can be adjusted in the source at the top of the file \texttt{source/common\_modules.f90}.
 
 \newcounter{dsp} \setcounter{dsp}{0}
 
