@@ -1222,6 +1222,7 @@ bool PerformExtraChecks(bool &extrachecks, char* convert_dump_bin, char* dump_bi
 #endif
                 bool ThisTest = !FileComparison(FileName, FileName + ".canonical");
                 CheckPrint(FileName,!ThisTest);
+                if(ThisTest) AllTests = true;
             }
         }
     }
