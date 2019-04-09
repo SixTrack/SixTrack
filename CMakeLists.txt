@@ -122,6 +122,7 @@ option(GPROF "Enable build flags for code profiling with gprof (only works with 
 option(WARN "Enable build flags for additional compiler warnings" OFF)
 option(DEBUG "Debugging output" OFF)
 option(NOSYMLINK "Don't use symlinks for test inputs and canonicals" OFF)
+option(MEMUSAGE "Writes PID and actual memory usage to sim_meta.dat (GNU/UNIX only)" OFF)
 
 set(BOINC_DIR ${CMAKE_SOURCE_DIR}/lib/boinc CACHE PATH "Path to the boinc build folder")
 set(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive_build CACHE PATH "Path to the libarchive build folder")
@@ -273,7 +274,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 
 list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
 list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB)
-list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG)
+list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
 ###################################################################################################
 # Select which fortran files to generate and compile
@@ -286,7 +287,7 @@ list(APPEND FORT90_LIB
   bouncy_castle plato_seq bdex fma dabnew end_sixtrack
   ranecu wire hions elens mod_dist scatter dump dynk
   aperture mod_fluc beam6d_fox six_fox postprocessing
-  read_write ranlux collimation mod_particles cheby utils
+  read_write ranlux collimation coll_db mod_particles cheby utils
   mod_ffield mod_ffield_aux
 )
 
@@ -555,6 +556,11 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
   if(WARN)
     set(CMAKE_Fortran_FLAGS_RELEASE "-Wuninitialized ${CMAKE_Fortran_FLAGS_RELEASE}")
+  endif()
+
+  if(MEMUSAGE)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-fall-intrinsics ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-fall-intrinsics ${CMAKE_Fortran_FLAGS_DEBUG}")
   endif()
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES ppc64le )
