@@ -1935,7 +1935,7 @@ subroutine collimate_start_sample(nsample)
     if(cdb_elemMap(myix) > 0) then
       nsig = cdb_cNSig(cdb_elemMap(myix))
     else
-      nsig = c1e3
+      nsig = cdb_defColGap
     end if
 
     do i = 1, cdb_nColl
@@ -2093,7 +2093,7 @@ subroutine collimate_start_collimator(stracki)
   if(cdb_elemMap(myix) > 0) then
     nsig = cdb_cNSig(cdb_elemMap(myix))
   else
-    nsig = c1e3
+    nsig = cdb_defColGap
   end if
 
 !++  Write trajectory for any selected particle
