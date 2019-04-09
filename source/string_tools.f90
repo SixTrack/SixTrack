@@ -1144,6 +1144,7 @@ subroutine str_toLog(theString, theValue, rErr)
     theValue = .false.
   case default
     write (lout,"(a)") "TYPECAST> Failed to cast '"//trim(theString)//"' to logical"
+    rErr = .true.
   end select
 
 end subroutine str_toLog
@@ -1167,6 +1168,7 @@ subroutine chr_toLog(theString, theValue, rErr)
     theValue = .false.
   case default
     write (lout,"(a)") "TYPECAST> Failed to cast '"//trim(theString)//"' to logical"
+    rErr = .true.
   end select
 
 end subroutine chr_toLog
