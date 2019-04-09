@@ -1,5 +1,8 @@
 ! ================================================================================================ !
 !  Collimator Database Module
+!  V.K. Berglyd Olsen, BE/ABP/HSS
+!  Created: 2018-03-22
+!  Updated: 2019-04-08
 ! ================================================================================================ !
 module coll_db
 
@@ -17,7 +20,7 @@ module coll_db
 
   character(len=mFileName), public,  save :: cdb_fileName = " "     ! Database file
   logical,                  private, save :: cdb_dbOld    = .false. ! Old or new DB format
-  logical,                  public,  save :: cdb_doNSig   = .false. ! Use the sigmas from fort.3 isntead of DB
+  logical,                  public,  save :: cdb_doNSig   = .false. ! Use the sigmas from fort.3 instead of DB
   integer,                  public,  save :: cdb_nColl    = 0       ! Number of collimators
   integer,                  public,  save :: cdb_nFam     = 0       ! Number of collimator families
 
@@ -53,7 +56,7 @@ subroutine cdb_allocDB
   call alloc(cdb_cName,     mNameLen, cdb_nColl, " ",           "cdb_cName")
   call alloc(cdb_cNameUC,   mNameLen, cdb_nColl, " ",           "cdb_cNameUC")
   call alloc(cdb_cMaterial, 4,        cdb_nColl, " ",           "cdb_cMaterial")
-  call alloc(cdb_cFamily,             cdb_nColl, -1,            "cdb_cFamily")
+  call alloc(cdb_cFamily,             cdb_nColl, 0,             "cdb_cFamily")
   call alloc(cdb_cNSig,               cdb_nColl, cdb_defColGap, "cdb_cNSig")
   call alloc(cdb_cNSigOrig,           cdb_nColl, cdb_defColGap, "cdb_cNSigOrig")
   call alloc(cdb_cLength,             cdb_nColl, zero,          "cdb_cLength")
@@ -186,8 +189,6 @@ subroutine cdb_readDB_newFormat
   use numerical_constants
 
   character(len=:), allocatable :: lnSplit(:)
-  ! character(len=:), allocatable :: famName(:)
-  ! real(kind=fPrec), allocatable :: famNSig(:)
   character(len=mInputLn) inLine
   real(kind=fPrec) nSig
   integer i, dbUnit, ioStat, nSplit, iLine, famID, iColl
@@ -225,9 +226,11 @@ subroutine cdb_readDB_newFormat
     ! Collimator Family
     call chr_cast(lnSplit(3),nSig,cErr)
     call cdb_addFamily(trim(lnSplit(2)), nSig, famID, fExists)
-    ! The original value from the DB should overwrite what was set in fort.3
-    ! This is due to fort.3 being parsed before the DB
-    cdb_famNSigOrig(famID) = nSig
+    if(fExists .and. .not. cdb_doNSig) then
+      ! If setting nsig in fort.3 is disabled, the DB values take precedence, so we overwrite them here
+      cdb_famNSig(famID)     = nSig
+      cdb_famNSigOrig(famID) = nSig
+    end if
     goto 10
   end if
 
@@ -256,18 +259,21 @@ subroutine cdb_readDB_newFormat
   if(nSplit > 6) call chr_cast(lnSplit(7),cdb_cBx(iColl),cErr)
   if(nSplit > 7) call chr_cast(lnSplit(8),cdb_cBy(iColl),cErr)
 
-  ! Try to cast the value in second column to a float. If successful, this is the the nsig value.
-  ! If unsuccessful, assume it is a family name instead and look it up in the internal family table and use that nsig value.
   if(chr_isNumeric(lnSplit(2))) then
-    call chr_cast(lnSplit(2),cdb_cNSigOrig(iColl),cErr)
+    ! If column 3 is a number, we have no family assigned, so just use the value given.
+    call chr_cast(lnSplit(2),cdb_cNSig(iColl),cErr)
+    cdb_cNSigOrig(iColl) = cdb_cNSig(iColl)
   else
-    famID = cdb_getFamilyID(famName)
+    ! Otherwise, we look up the name and require that it exists. We also save the family ID.
+    famID = cdb_getFamilyID(lnSplit(2))
     if(famID == -1) then
       write(lout,"(a,i0,a)") "COLLDB> ERROR Collimator opening '"//trim(adjustl(lnSplit(2)))//"' on line ",iLine,&
         " is not in family database"
       call prror
     else
-      cdb_cNSigOrig(iColl) = famNSig(fID)
+      cdb_cFamily(iColl)   = famID
+      cdb_cNSig(iColl)     = cdb_famNSig(famID)
+      cdb_cNSigOrig(iColl) = cdb_famNSig(famID)
     end if
   end if
 
@@ -275,26 +281,20 @@ subroutine cdb_readDB_newFormat
 
 20 continue
 
-  ! cdb_nColl = iColl
-  ! call cdb_allocDB ! This should remove the unused lines in the DB
+  cdb_nColl = iColl
+  call cdb_allocDB ! This should remove the unused lines in the DB
 
-  ! do i=1,cdb_nColl
-  !   cdb_cNSig(i) = cdb_cNSigOrig(i)
-  ! end do
-
-  ! if(st_debug) then
-  !   do i=1,iFam
-  !     write(lout,"(a,a20,a,f13.6)") "COLLDB> DEBUG NSIG_FAM ",famName(i)," = ",famNSig(i)
-  !   end do
-  !   do i=1,cdb_nColl
-  !     write(lout,"(a14,a20,2(1x,f13.6),1x,a4,5(1x,f13.6))") "COLLDB> DEBUG ",cdb_cName(i),cdb_cNSig(i),&
-  !       cdb_cNSigOrig(i),cdb_cMaterial(i),cdb_cLength(i),cdb_cRotation(i),cdb_cOffset(i),cdb_cBx(i),cdb_cBy(i)
-  !   end do
-  ! end if
+  if(st_debug) then
+    do i=1,cdb_nFam
+      write(lout,"(a,a20,a,f13.6)") "COLLDB> DEBUG NSIG_FAM ",cdb_famName(i)," = ",cdb_famNSig(i)
+    end do
+    do i=1,cdb_nColl
+      write(lout,"(a14,a20,2(1x,f13.6),1x,a4,5(1x,f13.6))") "COLLDB> DEBUG ",cdb_cName(i),cdb_cNSig(i),&
+        cdb_cNSigOrig(i),cdb_cMaterial(i),cdb_cLength(i),cdb_cRotation(i),cdb_cOffset(i),cdb_cBx(i),cdb_cBy(i)
+    end do
+  end if
 
   call f_close(dbUnit)
-  ! call dealloc(famName, mNameLen, "famName")
-  ! call dealloc(famNSig,           "famNSig")
 
 end subroutine cdb_readDB_newFormat
 
