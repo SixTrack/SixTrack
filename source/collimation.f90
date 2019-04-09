@@ -1314,22 +1314,14 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(5), emitny0_collgap,iErr)
 
   case("DO_SELECT")
-    if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR DO_SELECT expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DO_SELECT true|false"
+    if(nSplit /= 3) then
+      write(lout,"(a,i0)") "COLL> ERROR DO_SELECT expects 2 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DO_SELECT true|false name"
       iErr = .true.
       return
     end if
     call chr_cast(lnSplit(2), do_select, iErr)
-
-  case("NAME_SEL")
-    if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR NAME_SEL expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       NAME_SEL collimator_name"
-      iErr = .true.
-      return
-    end if
-    name_sel  = trim(lnSplit(2))
+    name_sel = trim(lnSplit(3))
 
   case("DO_NOMINAL")
     if(nSplit /= 2) then
@@ -1458,23 +1450,15 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(2), do_mingap, iErr)
 
   case("DO_RADIAL")
-    if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR DO_RADIAL expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DO_RADIAL true|false"
+    if(nSplit /= 4) then
+      write(lout,"(a,i0)") "COLL> ERROR DO_RADIAL expects 3 values, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DO_RADIAL true|false size smear"
       iErr = .true.
       return
     end if
     call chr_cast(lnSplit(2), radial, iErr)
-
-  case("RADIAL_DIST")
-    if(nSplit /= 3) then
-      write(lout,"(a,i0)") "COLL> ERROR RADIAL_DIST expects 2 values, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       RADIAL_DIST size smear"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), nr,  iErr)
-    call chr_cast(lnSplit(3), ndr, iErr)
+    call chr_cast(lnSplit(3), nr,     iErr)
+    call chr_cast(lnSplit(4), ndr,    iErr)
 
   case("EMIT_DRIFT")
     if(nSplit /= 3) then
