@@ -1136,12 +1136,15 @@ subroutine str_toLog(theString, theValue, rErr)
   character(len=:), allocatable   :: tmpString
   integer                         :: readErr
 
-  tmpString = trim(theString%chr)
-  read(tmpString,*,iostat=readErr) theValue
-  if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to logical width error ",readErr
-    rErr = .true.
-  end if
+  tmpString = chr_toLower(trim(theString%chr))
+  select case(tmpString)
+  case("true",".true.","on","1")
+    theValue = .true.
+  case("false",".false.","off","0")
+    theValue = .false.
+  case default
+    write (lout,"(a)") "TYPECAST> Failed to cast '"//trim(theString)//"' to logical"
+  end select
 
 end subroutine str_toLog
 
@@ -1156,18 +1159,14 @@ subroutine chr_toLog(theString, theValue, rErr)
   character(len=:), allocatable   :: tmpString
   integer                         :: readErr
 
-  tmpString = chr_toUpper(trim(theString))
+  tmpString = chr_toLower(trim(theString))
   select case(tmpString)
-  case("ON")
+  case("true",".true.","on","1")
     theValue = .true.
-  case("OFF")
+  case("false",".false.","off","0")
     theValue = .false.
   case default
-    read(tmpString,*,iostat=readErr) theValue
-    if(readErr /= 0) then
-      write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to logical width error ",readErr
-      rErr = .true.
-    end if
+    write (lout,"(a)") "TYPECAST> Failed to cast '"//trim(theString)//"' to logical"
   end select
 
 end subroutine chr_toLog
