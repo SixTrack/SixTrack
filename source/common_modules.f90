@@ -154,8 +154,7 @@ module mod_common
   integer,          save :: numlr      = 0    ! Number of turns in the backward direction
   integer,          save :: napx       = 0    ! Number of amplitude variations
   integer,          save :: ird        = 0    ! Ignored
-  integer,          save :: imc        = 0    ! Variations of relative momentum deviation
-  integer,          save :: niu(2)     = 0    ! Unknown
+  integer,          save :: niu(2)     = 0    ! Start and stop structure element for optics calculation
   integer,          save :: numlcp     = 1000 ! How often to write checkpointing files
   integer,          save :: numlmax    = 1e9  ! Max number of C/R turns
   integer,          save :: idfor      = 0    ! Add closed orbit to initia coordinates
@@ -632,7 +631,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
 
   if(nblz_new /= nblz_prev) then
     call alloc(ic,                   nblz_new,       0,      "ic")
-    call alloc(elpos,                nblz_new,       zero,   "elpos")
+    call alloc(elpos,                nblz_new+1,     zero,   "elpos", 0)
     call alloc(bezs,      mNameLen,  nblz_new,       " ",    "bezs")
     call alloc(mzu,                  nblz_new,       0,      "mzu")
     call alloc(imbb,                 nblz_new,       0,      "imbb")
@@ -869,6 +868,9 @@ module mod_common_main
   real(kind=fPrec),              save :: cr(mmul)  = zero
   real(kind=fPrec),              save :: ci(mmul)  = zero
   real(kind=fPrec),              save :: temptr(6) = zero
+  real(kind=fPrec),              save :: clo6v(3)  = zero
+  real(kind=fPrec),              save :: clop6v(3) = zero
+  real(kind=fPrec),              save :: tas(6,6)  = zero
 
   ! Main 2
   real(kind=fPrec), allocatable, save :: dpd(:)       ! (npart)
@@ -912,15 +914,12 @@ module mod_common_main
   ! Main 3
   real(kind=fPrec), allocatable, save :: hv(:,:,:,:)   ! (6,2,npart,nblo)
   real(kind=fPrec), allocatable, save :: bl1v(:,:,:,:) ! (6,2,npart,nblo)
-  real(kind=fPrec), allocatable, save :: tasau(:,:,:)  ! (npart,6,6)
-  real(kind=fPrec), allocatable, save :: tas(:,:,:)    ! (npart,6,6)
-  real(kind=fPrec), allocatable, save :: clo6v(:,:)    ! (3,npart)
-  real(kind=fPrec), allocatable, save :: clop6v(:,:)   ! (3,npart)
-  real(kind=fPrec), allocatable, save :: qwcs(:,:)     ! (npart,3)
-  real(kind=fPrec), allocatable, save :: di0xs(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: di0zs(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: dip0xs(:)     ! (npart)
-  real(kind=fPrec), allocatable, save :: dip0zs(:)     ! (npart)
+  real(kind=fPrec),              save :: tasau(6,6) = zero
+  real(kind=fPrec),              save :: qwcs(3)    = zero
+  real(kind=fPrec),              save :: di0xs      = zero
+  real(kind=fPrec),              save :: di0zs      = zero
+  real(kind=fPrec),              save :: dip0xs     = zero
+  real(kind=fPrec),              save :: dip0zs     = zero
   real(kind=fPrec),              save :: di0au(4)
   real(kind=fPrec),              save :: tau(6,6)
   real(kind=fPrec),              save :: wx(3)
@@ -1022,16 +1021,6 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
     call alloc(ampv,             npart_new,      zero,    "ampv")
     call alloc(aperv,            npart_new, 2,   zero,    "aperv")
     call alloc(iv,               npart_new,      0,       "iv")
-
-    call alloc(tasau,            npart_new, 6,6, zero,    "tasau")
-    call alloc(tas,              npart_new, 6,6, zero,    "tas")
-    call alloc(clo6v,     3,     npart_new,      zero,    "clo6v")
-    call alloc(clop6v,    3,     npart_new,      zero,    "clop6v")
-    call alloc(qwcs,             npart_new, 3,   zero,    "qwcs")
-    call alloc(di0xs,            npart_new,      zero,    "di0xs")
-    call alloc(di0zs,            npart_new,      zero,    "di0zs")
-    call alloc(dip0xs,           npart_new,      zero,    "dip0xs")
-    call alloc(dip0zs,           npart_new,      zero,    "dip0zs")
   end if
 
   nblz_prev  = nblz_new

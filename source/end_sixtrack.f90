@@ -145,12 +145,12 @@ subroutine abend(cstring)
   if(lout == 92) then
     write(93,"(a)") "SIXTRACR> STOP/ABEND copying fort.92 to fort.6"
     flush(93)
-    rewind 92
+    rewind(92)
 3   read(92,'(a1024)',end=1,err=8,iostat=ierro) arecord
     lstring=1024
     do i=1024,2,-1
       lstring=i
-      if (arecord(i:i).ne.' ') goto 2
+      if(arecord(i:i) /= " ") goto 2
       lstring=lstring-1
     end do
 2   write(6,'(a)',iostat=ierro) arecord(1:lstring)
@@ -158,17 +158,16 @@ subroutine abend(cstring)
   end if
 
 1 write(6,"(a)",iostat=ierro) "SIXTRACR> Stop "//cstring
-  call f_close(6)
-  ! and get rid of fort.92
-  rewind 92
+  ! call f_close(6)
+  rewind(92) ! Get rid of fort.92
   endfile(92,iostat=ierro)
   call f_close(92)
   write(93,"(a)") "SIXTRACR> Stop "//cstring
 #ifdef BOINC
-  do i=2,120
-    inquire(i,opened=fOpen)
-    if (fOpen) write(93,"(a,i0,a)") "SIXTRACR> Unit ",i," is open"
-  end do
+  ! do i=2,120
+  !   inquire(i,opened=fOpen)
+  !   if (fOpen) write(93,"(a,i0,a)") "SIXTRACR> Unit ",i," is open"
+  ! end do
   ! call boinc_zipitall()
   ! call boinc_finish_graphics()
   if(errout /= 0) then
@@ -178,13 +177,12 @@ subroutine abend(cstring)
     call boincrf('fort.6',filename)
     call print_lastlines_to_stderr(6,filename)
   end if
-  call boinc_finish(errout) !This call does not return
+  call boinc_finish(errout) ! This call does not return
 #else
   if(errout /= 0) then
     call f_close(93)
     call print_lastlines_to_stderr(93,"fort.93")
     call print_lastlines_to_stderr(6,"fort.6")
-
     write(error_unit,"(a,i0)") "ABEND> Stopping, errout = ",errout
     stop 1
   else
@@ -199,11 +197,11 @@ subroutine abend(cstring)
   call f_close(93)
   write(6,"(a,i0)") "ABEND> ERROR Reading fort.92, iostat = ",ierro
 #ifdef BOINC
-  do i=2,120
-    inquire(i,opened=fOpen)
-    if (fOpen) write(6,"(a,i0,a)") "ABEND> Unit ",i," is open"
-  end do
-  call f_close(6)
+  ! do i=2,120
+  !   inquire(i,opened=fOpen)
+  !   if(fOpen) write(6,"(a,i0,a)") "ABEND> Unit ",i," is open"
+  ! end do
+  ! call f_close(6)
   ! call boinc_zipitall()
   ! call boinc_finish_graphics()
   if(errout /= 0) then
@@ -219,7 +217,6 @@ subroutine abend(cstring)
     call f_close(93)
     call print_lastlines_to_stderr(93,"fort.93")
     call print_lastlines_to_stderr(6,"fort.6")
-
     write(error_unit,"(a,i0)") "Stopping, errout = ",errout
     stop 1
   else ! No error

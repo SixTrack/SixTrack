@@ -362,10 +362,6 @@ end interface
               call prror(-1)
             end if
             if(idp == 0 .or. ition == 0) then ! We're in the 4D case
-              if(imc /= 1) then ! Energy scan
-                write(lout,"(a)") "FMA> ERROR normalised coordinates: Energy scan (imc != 1) not supported."
-                call prror(-1)
-              end if
               if(j /= -1) then ! Not at StartDUMP
                 write(lout,"(a)") "FMA> ERROR normalised coordinates: 4D only supported for StartDUMP."
                 call prror(-1)

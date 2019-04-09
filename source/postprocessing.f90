@@ -3412,19 +3412,19 @@ end subroutine join
       !Convert from whatever precission is used internally to real64,
       ! which is what should go in the output file
       do i=1,3
-         qwcs_tmp  (i) = real(qwcs  (ia_p1,i), real64)
-         clo6v_tmp (i) = real(clo6v (i,ia_p1), real64)
-         clop6v_tmp(i) = real(clop6v(i,ia_p1), real64)
+         qwcs_tmp  (i) = real(qwcs  (i), real64)
+         clo6v_tmp (i) = real(clo6v (i), real64)
+         clop6v_tmp(i) = real(clop6v(i), real64)
       enddo
 
-      di0xs_tmp  = real(di0xs (ia_p1), real64)
-      dip0xs_tmp = real(dip0xs(ia_p1), real64)
-      di0zs_tmp  = real(di0zs (ia_p1), real64)
-      dip0zs_tmp = real(dip0zs(ia_p1), real64)
+      di0xs_tmp  = real(di0xs, real64)
+      dip0xs_tmp = real(dip0xs, real64)
+      di0zs_tmp  = real(di0zs, real64)
+      dip0zs_tmp = real(dip0zs, real64)
 
       do i=1,6
          do j=1,6
-            tas_tmp(j,i) = real(tas(ia_p1,j,i), real64)
+            tas_tmp(j,i) = real(tas(j,i), real64)
          enddo
       enddo
 

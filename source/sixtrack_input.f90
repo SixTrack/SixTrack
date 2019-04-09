@@ -791,11 +791,16 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(nSplit > 3)  call chr_cast(lnSplit(4), amp(1), iErr) ! End amplitude
     if(nSplit > 4)  call chr_cast(lnSplit(5), amp0,   iErr) ! Start amplitude
     if(nSplit > 5)  call chr_cast(lnSplit(6), ird,    iErr) ! Ignored
-    if(nSplit > 6)  call chr_cast(lnSplit(7), imc,    iErr) ! Number of variations of the relative momentum deviation dp/p
+    if(nSplit > 6)  call chr_cast(lnSplit(7), iDummy, iErr) ! Number of variations of the relative momentum deviation dp/p
     if(nSplit > 7)  call chr_cast(lnSplit(8), niu(1), iErr) ! Unknown
     if(nSplit > 8)  call chr_cast(lnSplit(9), niu(2), iErr) ! Unknown
     if(nSplit > 9)  call chr_cast(lnSplit(10),numlcp, iErr) ! CR: How often to write checkpointing files
     if(nSplit > 10) call chr_cast(lnSplit(11),numlmax,iErr) ! CR: Maximum amount of turns; default is 1e6
+
+    if(iDummy > 1) then
+      write(lout,"(a)") "TRAC> ERROR Variations of the relative momentum deviation is no longer supporter. "//&
+        "The value imc must be set to 1."
+    end if
 
     ! Default nnuml to numl
     nnuml = numl
@@ -807,7 +812,6 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call sixin_echoVal("amp(1)", amp(1), "TRAC",iLine)
       call sixin_echoVal("amp0",   amp0,   "TRAC",iLine)
       call sixin_echoVal("ird",    ird,    "TRAC",iLine)
-      call sixin_echoVal("imc",    imc,    "TRAC",iLine)
       call sixin_echoVal("niu(1)", niu(1), "TRAC",iLine)
       call sixin_echoVal("niu(2)", niu(2), "TRAC",iLine)
       call sixin_echoVal("numlcp", numlcp, "TRAC",iLine)
@@ -973,7 +977,6 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
     idial = 1
     numlr = 0
     napx  = 1
-    imc   = 1
 
     if(nSplit > 0) call chr_cast(lnSplit(1),nord, iErr)
     if(nSplit > 1) call chr_cast(lnSplit(2),nvar, iErr)
