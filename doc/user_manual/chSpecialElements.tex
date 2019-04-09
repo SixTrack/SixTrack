@@ -1806,6 +1806,18 @@ Switches on or off the collimator being one-sided.
 That is, only positive jaw.
 If the negative jaw is to be used, it is necessary to turn collimator by 180 degrees in the collimator database file.
 
+\paragraph{Beta-Beating} \texttt{BETA\_BEAT xbeat xbeat\_phase ybeat ybeat\_phase}\\
+
+In case of beta-beating\index{beta-beating}:
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{xbeat}        & float & Offset in $x$ for the computation of collimator. \\
+    \texttt{xbeat\_phase} & float & Phase offset in $x$ for the computation of collimator. \\
+    \texttt{ybeat}        & float & Offset in $y$ for the computation of collimator. \\
+    \texttt{ybeat\_phase} & float & Phase offset in $y$ for the computation of collimator.
+\end{tabular}
+
 \paragraph{Pencil Beam} \texttt{PENCIL ipencil offset rmsx rmsy distr}\\
 
 Resets original distribution to pencil beam distribution on the collimator database ID specified by \texttt{ipencil}\index{pencil beam}.
@@ -1844,6 +1856,26 @@ Switches on or off the use of design $\beta$ values of collimators.
 \paragraph{Emittance Drift} \texttt{EMIT\_DRIFT driftx drifty}\\
 
 Apply an emittance drift in the $x$ and $y$ direction, respectively.
+
+\paragraph{Alignment Errors} \texttt{ALIGNERR\_[PRIM|SEC] rms\_tilt sys\_tilt rms\_offset sys\_offset}\\
+
+Apply erros to primary or secondary collimator tilt and offset.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{rms\_tilt}   & float & RMS value of tilt to apply. \\
+    \texttt{sys\_tilt}   & float & Systematic value of tilt to apply. \\
+    \texttt{rms\_offset} & float & RMS value of offset to apply. \\
+    \texttt{sys\_offset} & float & Systematic value of offset to apply.
+\end{tabular}
+
+\paragraph{Alignment Errors to Gaps} \texttt{ALIGNERR\_GAP rmserror\_gap}\\
+
+The RMS error of collimator gap.
+
+\paragraph{Alignment Errors Random Seed} \texttt{ALIGNERR\_SEED seed}\\
+
+The random number seed to use for alignemnt errors.
 
 \paragraph{Systilt} \texttt{SYSTILT\_ANTI true|false}\\
 
