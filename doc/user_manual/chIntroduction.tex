@@ -160,3 +160,13 @@ When this flag is set, most values read from the file will be printed back with 
 
 In the following chapters, the input structure of SixTrack is discussed in detail.
 To facilitate the use of the program, a list of default values in Appendix~\ref{Default}, the input and output files are described in Appendix~\ref{Files}, and a description of the data structure of the binary data files in Appendix~\ref{Header}.
+
+% ================================================================================================================================ %
+\subsection{Input Values} \label{sec:invals}
+
+\paragraph{Integers} must be entered as plain integers.\\
+Examples \texttt{1, 1e3, 1d3}.
+\paragraph{Floats} can be entered as integers (converted during parsing) and standard Fortran floats.\\
+Examples \texttt{1, 1.0, 1.0e3, 1e3, 1.0d3, 1d3}.
+\paragraph{Strings} can be entered with both single and double quotes, and without quotes if the string contains no spaces or comment characters.
+\paragraph{Flags} accept the following entries: \texttt{.true./.false.}, \texttt{true/false}, \texttt{yes/no}, \texttt{on/off}, and \texttt{1/0}.
