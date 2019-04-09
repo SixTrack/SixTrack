@@ -30,7 +30,7 @@ program maincr
   use aperture
   use mod_ranecu
   use mod_particles
-  use mod_geometry,   only : geom_calcDcum
+  use mod_geometry,   only : geom_calcDcum, geom_reshuffleLattice
   use mod_alloc,      only : alloc_init
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
@@ -39,6 +39,7 @@ program maincr
 #ifdef FLUKA
   use mod_fluka
 #endif
+  use mod_ffield,     only :ffield_mod_init,ffield_mod_end
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -83,24 +84,23 @@ interface
     real(kind=fPrec) :: oidpsv(npart)
     real(kind=fPrec) :: rvv(npart)
     real(kind=fPrec), allocatable, intent(inout) :: ekv(:,:)
+
   end subroutine envarsv
 
 end interface
 
-  ! "Old" variables
-  integer i,itiono,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,ie,ig,ii,im,iposc,ix,izu,j,j2,jj,  &
-    k,kpz,kzz,l,ll,ncorruo,ncrr,nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
+  integer i,itiono,i2,i3,ia,ia2,iation,ib1,id,ie,ii,im,iposc,ix,izu,j,jj,k,kpz,kzz,l,ncorruo,ncrr,  &
+    nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
-    bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,ddp1,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,&
+    bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,     &
     gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
     tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13,damp
   integer idummy(6)
   character(len=4) cpto
-#ifdef CR
-  logical isOpen
-#endif
-  character(len=8) cdate,ctime,progrm !Note: Keep in sync with writebin_header and more
-                                      !DANGER: If the len changes, CRCHECK will break.
+
+  ! Keep in sync with writebin_header and more. If the len changes, CRCHECK will break.
+  character(len=8) cDate,cTime,progrm
+
 #ifdef BOINC
   character(len=256) filename
 #endif
@@ -318,6 +318,8 @@ end interface
   call date_and_time(tsDate,tsTime)
   timeStamp = tsDate(1:4)//"-"//tsDate(5:6)//"-"//tsDate(7:8)//" "//&
               tsTime(1:2)//":"//tsTime(3:4)//":"//tsTime(5:10)
+  cDate = timeStamp(3:10)
+  cTime = timeStamp(12:19)
 
   write(lout,"(a)") ""
   write(lout,"(a)") "    SixTrack :: Version "//trim(version)//" :: Released "//trim(moddate)
@@ -355,6 +357,8 @@ end interface
 #ifdef FLUKA
   call fluka_mod_init(npart_initial, nele_initial, clight)
 #endif
+
+  call ffield_mod_init
 
   call daten
   call time_timeStamp(time_afterDaten)
@@ -448,11 +452,11 @@ end interface
   damp  = zero
   if(napx /= 1) damp=((amp00-amp0)/real(napx-1,fPrec))/two
   napx  = 2*napx
-  call expand_arrays(nele, napx*imc, nblz, nblo)
+  call expand_arrays(nele, napx, nblz, nblo)
 
   ! Log some meta data
-  meta_nPartInit = napx*imc
-  call meta_write("NumParticles",         napx*imc)
+  meta_nPartInit = napx
+  call meta_write("NumParticles",         napx)
   call meta_write("NumTurns",             numl)
   call meta_write("NumSingleElements",    il)
   call meta_write("NumBlockElements",     mblo)
@@ -460,13 +464,12 @@ end interface
 
   aperture_napxStart=napx
   iation=abs(ition)
-  ib0=0
   dp00=dp1
-  if(napx <= 0 .or. imc <= 0) goto 490
+  if(napx <= 0) goto 490
 
   ! A.Mereghetti (CERN, BE-ABP-HSS), 06-03-2018
   ! possible to re-shuffle lattice structure
-  call orglat
+  call geom_reshuffleLattice
   call geom_calcDcum
 
   ! A.Mereghetti (CERN, BE-ABP-HSS), 16-12-2016
@@ -546,7 +549,6 @@ end interface
   call clorb(zero)
 
   do l=1,2
-    ll=2*l
     di0(l)=(clo0(l)-clo(l))/ded
     dip0(l)=(clop0(l)-clop(l))/ded
   end do
@@ -640,437 +642,330 @@ end interface
     end if
   end do
 
-#ifdef DEBUG
-!     call dumpbin('ado 150',150,150)
-!     call abend('ado 150                                           ')
-#endif
-        dp1=zero
-        if(ichrom > 1) then
-          itiono=ition
-          ition=0
-          call chromda
-          ition=itiono
-          do ncrr=1,iu
-            ix=ic(ncrr)
-            if(ix.gt.nblo) ix=ix-nblo
-            if(ix.eq.is(1).or.iratioe(ix).eq.is(1)) then
-              smiv(ncrr)=smi(ncrr)
-            else if(ix.eq.is(2).or.iratioe(ix).eq.is(2)) then
-              smiv(ncrr)=smi(ncrr)
-            endif
-          enddo
-        else
-          itiono = 0 ! -Wmaybe-uninitialized
-        endif
-        dp1=dp00
-        dp0=dp00
-        if(imc > 1) then
-          ddp1 = (two*dp0)/(real(imc,fPrec)-one)
-        else
-          ddp1 = zero ! -Wmaybe-uninitialized
-        endif
-        do 250 ib=1,imc
-          if(imc.gt.1) then
-            dp1=dp0-(real(ib,fPrec)-one)*ddp1                                  !hr05
-          endif
-          dp10=dp1
-!-----------------------------------------------------------------------
-          if(idp /= 1 .or. iation /= 1) iclo6=0
-          if(iclo6 == 1 .or. iclo6 == 2) then
-            if(ib == 1) then
-              if(iclo6r == 0) then
-                clo6(1)  = clo(1)
-                clop6(1) = clop(1)
-                clo6(2)  = clo(2)
-                clop6(2) = clop(2)
-                clo6(3)  = zero
-                clop6(3) = zero
-              else
-                write(lout,"(a)") "MAINCR> Reading closed orbit guess from fort.33"
-                call readFort33
-              end if
-              call clorb(zero)
-              call betalf(zero,qw)
-              call phasad(zero,qwc)
-              sigm(1) = clo6(3)
-              dps(1)  = clop6(3)
-              call qmodda(3,qwc)
-              if(ilin >= 2) then
-                nlinoo = nlin
-                nlin   = nlino
-                ilinc  = 1
-                call mydaini(2,2,6,3,6,1)
-                nlin   = nlinoo
-              end if
-              dp1 = dp10+clop6(3)
-            end if
-            if(iqmod6 == 1) then
-              do ncrr=1,iu
-                ix=ic(ncrr)
-                if(ix.gt.nblo) ix=ix-nblo
-                if(ix.eq.iq(1).or.iratioe(ix).eq.iq(1)) then
-                  smiv(ncrr)=smi(ncrr)
-                else if(ix.eq.iq(2).or.iratioe(ix).eq.iq(2)) then
-                  smiv(ncrr)=smi(ncrr)
-                endif
-              enddo
-            endif
+! ================================================================================================================================ !
 
-            do 190 ib1=1,napx
-              ib3=ib1+(ib-1)*napx
-!--beam-beam element
-              clo6v(1,ib3)=clo6(1)
-              clo6v(2,ib3)=clo6(2)
-              clo6v(3,ib3)=clo6(3)
-              clop6v(1,ib3)=clop6(1)
-              clop6v(2,ib3)=clop6(2)
-              clop6v(3,ib3)=clop6(3)
-              di0xs(ib3)=di0(1)
-              di0zs(ib3)=di0(2)
-              dip0xs(ib3)=dip0(1)
-              dip0zs(ib3)=dip0(2)
-              qwcs(ib3,1)=qwc(1)
-              qwcs(ib3,2)=qwc(2)
-              qwcs(ib3,3)=qwc(3)
+  dp1 = zero
+  if(ichrom > 1) then
+    itiono = ition
+    ition  = 0
+    call chromda
+    ition  = itiono
+    do ncrr=1,iu
+      ix = ic(ncrr)
+      if(ix > nblo) ix = ix-nblo
+      if(ix == is(1) .or. iratioe(ix) == is(1)) then
+        smiv(ncrr) = smi(ncrr)
+      else if(ix == is(2) .or. iratioe(ix) == is(2)) then
+        smiv(ncrr) = smi(ncrr)
+      end if
+    end do
+  else
+    itiono = 0
+  endif
+  dp1  = dp00
+  dp0  = dp00
 
-              do i2=1,6
-                do j2=1,6
-                  tas(ib3,i2,j2)=tasm(i2,j2)
-                end do
-              end do
+  ! ========================================================================== !
+  !  Closed Orbit
+  ! ========================================================================== !
 
-  190       continue
-          else
-            if(idp.eq.1.and.iation.eq.1) then
-              ncorruo=ncorru
-              ncorru=1
-              call clorb(zero)
-#ifdef DEBUG
-!     call dumpbin('aclorb',1,1)
-!     call abend('after  clorb                                      ')
-#endif
-              call betalf(zero,qw)
-              call phasad(zero,qwc)
-#ifdef DEBUG
-!     call dumpbin('abetphas',1,1)
-!     call abend('after  abetphas                                   ')
-#endif
-!--beam-beam element
-              if(nbeam.ge.1) then
-              nd=3
-              nd2=6
+  dp10 = dp1
+  if(idp /= 1 .or. iation /= 1) then
+    iclo6 = 0
+  end if
+  if(iclo6 == 1 .or. iclo6 == 2) then ! 6D
+    if(iclo6r == 0) then
+      clo6(1)  = clo(1)
+      clop6(1) = clop(1)
+      clo6(2)  = clo(2)
+      clop6(2) = clop(2)
+      clo6(3)  = zero
+      clop6(3) = zero
+    else
+      write(lout,"(a)") "MAINCR> Reading closed orbit guess from fort.33"
+      call readFort33
+    end if
+    call clorb(zero)
+    call betalf(zero,qw)
+    call phasad(zero,qwc)
+    sigm(1) = clo6(3)
+    dps(1)  = clop6(3)
+    call qmodda(3,qwc)
+    if(ilin >= 2) then
+      nlinoo = nlin
+      nlin   = nlino
+      ilinc  = 1
+      call mydaini(2,2,6,3,6,1)
+      nlin   = nlinoo
+    end if
+    dp1 = dp10+clop6(3)
+
+    if(iqmod6 == 1) then
+      do ncrr=1,iu
+        ix = ic(ncrr)
+        if(ix > nblo) ix=ix-nblo
+        if(ix == iq(1) .or. iratioe(ix) == iq(1)) then
+          smiv(ncrr) = smi(ncrr)
+        else if(ix == iq(2) .or. iratioe(ix) == iq(2)) then
+          smiv(ncrr) = smi(ncrr)
+        end if
+      end do
+    end if
+
+    ! Beam-beam element
+    clo6v(1:3)  = clo6(1:3)
+    clop6v(1:3) = clop6(1:3)
+    di0xs  = di0(1)
+    di0zs  = di0(2)
+    dip0xs = dip0(1)
+    dip0zs = dip0(2)
+    qwcs(1:3) = qwc(1:3)
+    tas(:,:)=tasm(:,:)
+
+  else ! 4D
+
+    if(idp == 1 .and. iation == 1) then
+      ncorruo = ncorru
+      ncorru  = 1
+      call clorb(zero)
+      call betalf(zero,qw)
+      call phasad(zero,qwc)
+      ! Beam-beam element
+      if(nbeam >= 1) then
+        nd  = 3
+        nd2 = 6
 #include "include/beamcou.f90"
-              endif
-              ncorru=ncorruo
-              iqmodc=3
-              call mydaini(2,2,6,3,6,1)
-#ifdef DEBUG
-!     call dumpbin('bmydaini',999,9999)
-!     call abend('before mydaini                                    ')
-#endif
-              do i=1,2
-                qwc(i)=real(int(qwc(i)),fPrec)+wxys(i)
-              enddo
-              if(ilin.ge.2) then
-#ifdef DEBUG
-!     call dumpbin('bmydaini',999,9999)
-!     call abend('before mydaini                                    ')
-#endif
-                nlinoo=nlin
-                nlin=nlino
-                ilinc=1
-                call mydaini(2,2,6,3,6,1)
-#ifdef DEBUG
-!     call dumpbin('amydaini',999,9999)
-!     call abend('after  mydaini                                    ')
-#endif
-                nlin=nlinoo
-              endif
-            else
-              dps(1)=dp1
-              ncorruo=ncorru
-              ncorru=1
-              call clorb(dp1)
-              call betalf(dp1,qw)
-              call phasad(dp1,qwc)
-#ifdef DEBUG
-!     call dumpbin('abetphas',1,1)
-!     call abend('after  abetphas                                   ')
-#endif
-              dp1=zero
-!--beam-beam element
-#ifdef DEBUG
-!     call dumpbin('bbeam',1,1)
-!     call abend('after bbeam                                       ')
-!     write(*,*) 'call qmodda at beam-beam'
-#endif
-              dp1=dps(1)
-              ncorru=ncorruo
-              if(nvar2.le.5) then
-                itiono=ition
-                ition=0
-              endif
-              call qmodda(2,qwc)
-#ifdef DEBUG
-!     call dumpbin('aqmodda',3,2)
-!     call abend('after  qmodda 3 2                                 ')
-#endif
-              if(nvar2.le.5) ition=itiono
-              if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
+      end if
+      ncorru = ncorruo
+      iqmodc = 3
+      call mydaini(2,2,6,3,6,1)
+      qwc(1:2) = real(int(qwc(1:2)),fPrec)+wxys(1:2)
+      if(ilin >= 2) then
+        nlinoo = nlin
+        nlin   = nlino
+        ilinc  = 1
+        call mydaini(2,2,6,3,6,1)
+        nlin   = nlinoo
+      end if
+    else
+      dps(1)  = dp1
+      ncorruo = ncorru
+      ncorru  = 1
+      call clorb(dp1)
+      call betalf(dp1,qw)
+      call phasad(dp1,qwc)
+      dp1 = zero
+      ! Beam-beam element
+      dp1    = dps(1)
+      ncorru = ncorruo
+      if(nvar2 <= 5) then
+        itiono = ition
+        ition  = 0
+      end if
+      call qmodda(2,qwc)
+      if(nvar2 <= 5) ition = itiono
+      if(nvar2 <= 4 .and. ithick == 1) then
+        call envar(dp1)
+      end if
 
-              if(ilin.ge.2) then
-                nlinoo=nlin
-                nlin=nlino
-                iqmodc=2
-                call mydaini(1,2,5,2,5,1)
-                ilinc=1
-                call mydaini(2,2,5,2,5,1)
-                nlin=nlinoo
-              endif
+      if(ilin >= 2) then
+        nlinoo = nlin
+        nlin   = nlino
+        iqmodc = 2
+        call mydaini(1,2,5,2,5,1)
+        ilinc  = 1
+        call mydaini(2,2,5,2,5,1)
+        nlin   = nlinoo
+      end if
 
-              do ncrr=1,iu
-                ix=ic(ncrr)
-                if(ix.gt.nblo) ix=ix-nblo
-                if(ix.eq.iq(1).or.iratioe(ix).eq.iq(1)) then
-                  smiv(ncrr)=smi(ncrr)
-                else if(ix.eq.iq(2).or.iratioe(ix).eq.iq(2)) then
-                  smiv(ncrr)=smi(ncrr)
-                endif
-              enddo
-            endif
+      do ncrr=1,iu
+        ix = ic(ncrr)
+        if(ix > nblo) ix = ix-nblo
+        if(ix == iq(1) .or. iratioe(ix) == iq(1)) then
+          smiv(ncrr) = smi(ncrr)
+        else if(ix == iq(2) .or. iratioe(ix) == iq(2)) then
+          smiv(ncrr) = smi(ncrr)
+        end if
+      end do
+    end if
 
-            do 170 i=1,napx
-              iar=(ib-1)*napx+i
-              clo6v(1,iar)=clo(1)
-              clop6v(1,iar)=clop(1)
-              clo6v(2,iar)=clo(2)
-              clop6v(2,iar)=clop(2)
-              di0xs(iar)=di0(1)
-              di0zs(iar)=di0(2)
-              dip0xs(iar)=dip0(1)
-              dip0zs(iar)=dip0(2)
-              qwcs(iar,1)=qwc(1)
-              qwcs(iar,2)=qwc(2)
-              qwcs(iar,3)=zero
+    clo6v(1)     = clo(1)
+    clop6v(1)    = clop(1)
+    clo6v(2)     = clo(2)
+    clop6v(2)    = clop(2)
+    di0xs        = di0(1)
+    di0zs        = di0(2)
+    dip0xs       = dip0(1)
+    dip0zs       = dip0(2)
+    qwcs(1)      = qwc(1)
+    qwcs(2)      = qwc(2)
+    qwcs(3)      = zero
+    tas(1:4,1:4) = tasm(1:4,1:4)
+  end if
 
-              do i2=1,4
-                do j2=1,4
-                  tas(iar,i2,j2)=tasm(i2,j2)
-                end do
-              end do
+  ! save tas matrix and closed orbit for later dumping of the beam
+  ! distribution at the first element (i=-1)
+  ! dumptas(*,*) [mm,mrad,mm,mrad,1] canonical variables
+  ! tas(iar,*,*) [mm,mrad,mm,mrad,1] canonical variables
+  ! clo6v,clop6v [mm,mrad,mm,mrad,1] canonical variables (x' or px?)
+  ! for the initialization of the particles. Only in 5D thick the ta
+  ! matrix is different for each particle.
+  ! -> implement a check for this!
+  ! In 4d,6d thin+thick and 5d thin we have:
+  !   tas(ia,*,*) = tas(1,*,*) for all particles ia
+  do i3=1,3
+    dumpclo(-1,i3*2-1) = clo6v(i3)
+    dumpclo(-1,i3*2)   = clop6v(i3)
+  end do
+  dumptas(-1,:,:) = tas(:,:)
+  call invert_tas(dumptasinv(-1,:,:),dumptas(-1,:,:))
 
-  170       continue
-          endif
-          iar=(ib-1)*napx+1
+  ! Convert to [mm,mrad,mm,mrad,1.e-3] for optics calculation
+  tasiar16 = tas(1,6)*c1m3
+  tasiar26 = tas(2,6)*c1m3
+  tasiar36 = tas(3,6)*c1m3
+  tasiar46 = tas(4,6)*c1m3
+  tasiar56 = tas(5,6)*c1m3
+  tasiar61 = tas(6,1)*c1e3
+  tasiar62 = tas(6,2)*c1e3
+  tasiar63 = tas(6,3)*c1e3
+  tasiar64 = tas(6,4)*c1e3
+  tasiar65 = tas(6,5)*c1e3
 
-! save tas matrix and closed orbit for later dumping of the beam
-! distribution at the first element (i=-1)
-! dumptas(*,*) [mm,mrad,mm,mrad,1] canonical variables
-! tas(iar,*,*) [mm,mrad,mm,mrad,1] canonical variables
-! clo6v,clop6v [mm,mrad,mm,mrad,1] canonical variables (x' or px?)
-! for the initialization of the particles. Only in 5D thick the ta
-! matrix is different for each particle.
-! -> implement a check for this!
-! In 4d,6d thin+thick and 5d thin we have:
-!   tas(ia,*,*) = tas(1,*,*) for all particles ia
-          if (iar .eq. 1) then
-             do i3=1,3
-                dumpclo(-1,i3*2-1) = clo6v(i3,1)
-                dumpclo(-1,i3*2)   = clop6v(i3,1)
-             enddo
-             dumptas(-1,:,:) = tas(1,:,:)
-!     invert the tas matrix
-             call invert_tas(dumptasinv(-1,:,:),dumptas(-1,:,:))
-!     dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
-          endif
-!     tas(iar,*,*) [mm,mrad,mm,mrad,1]
+  bet0(1)  = tas(1,1)**2 + tas(1,2)**2
+  bet0x2   = tas(1,3)**2 + tas(1,4)**2
+  bet0x3   = tas(1,5)**2 + tasiar16**2
+  gam0x1   = tas(2,1)**2 + tas(2,2)**2
+  gam0x2   = tas(2,3)**2 + tas(2,4)**2
+  gam0x3   = tas(2,5)**2 + tasiar26**2
+  alf0(1)  = -one*(tas(1,1)*tas(2,1) + tas(1,2)*tas(2,2))
+  alf0x2   = -one*(tas(1,3)*tas(2,3) + tas(1,4)*tas(2,4))
+  alf0x3   = -one*(tas(1,5)*tas(2,5) + tasiar16*tasiar26)
 
-! convert to [mm,mrad,mm,mrad,1.e-3] for optics calculation
-          tasiar16=tas(iar,1,6)*c1m3
-          tasiar26=tas(iar,2,6)*c1m3
-          tasiar36=tas(iar,3,6)*c1m3
-          tasiar46=tas(iar,4,6)*c1m3
-          tasiar56=tas(iar,5,6)*c1m3
-          tasiar61=tas(iar,6,1)*c1e3
-          tasiar62=tas(iar,6,2)*c1e3
-          tasiar63=tas(iar,6,3)*c1e3
-          tasiar64=tas(iar,6,4)*c1e3
-          tasiar65=tas(iar,6,5)*c1e3
-          bet0(1)=tas(iar,1,1)**2+tas(iar,1,2)**2                        !hr05
-          bet0x2 =tas(iar,1,3)**2+tas(iar,1,4)**2                        !hr05
-          bet0x3 =tas(iar,1,5)**2+tasiar16**2                            !hr05
-          gam0x1 =tas(iar,2,1)**2+tas(iar,2,2)**2                        !hr05
-          gam0x2 =tas(iar,2,3)**2+tas(iar,2,4)**2                        !hr05
-          gam0x3 =tas(iar,2,5)**2+tasiar26**2                            !hr05
-      alf0(1)=-one*(tas(iar,1,1)*tas(iar,2,1)+tas(iar,1,2)*tas(iar,2,2)) !hr05
-      alf0x2 =-one*(tas(iar,1,3)*tas(iar,2,3)+tas(iar,1,4)*tas(iar,2,4)) !hr05
-      alf0x3 =-one*(tas(iar,1,5)*tas(iar,2,5)+tasiar16*tasiar26)         !hr05
-          bet0(2)=tas(iar,3,3)**2+tas(iar,3,4)**2                        !hr05
-          bet0z2 =tas(iar,3,1)**2+tas(iar,3,2)**2                        !hr05
-          bet0z3 =tas(iar,3,5)**2+tasiar36**2                            !hr05
-          gam0z1 =tas(iar,4,3)**2+tas(iar,4,4)**2                        !hr05
-          gam0z2 =tas(iar,4,1)**2+tas(iar,4,2)**2                        !hr05
-          gam0z3 =tas(iar,4,5)**2+tasiar46**2                            !hr05
-      alf0(2)=-one*(tas(iar,3,3)*tas(iar,4,3)+tas(iar,3,4)*tas(iar,4,4)) !hr05
-      alf0z2 =-one*(tas(iar,3,1)*tas(iar,4,1)+tas(iar,3,2)*tas(iar,4,2)) !hr05
-      alf0z3 =-one*(tas(iar,3,5)*tas(iar,4,5)+tasiar36*tasiar46)         !hr05
-          bet0s1 =tas(iar,5,5)**2+tasiar56**2                            !hr05
-          bet0s2 =tas(iar,5,1)**2+tas(iar,5,2)**2                        !hr05
-          bet0s3 =tas(iar,5,3)**2+tas(iar,5,4)**2                        !hr05
-          gam0s1 =tasiar65**2+tas(iar,6,6)**2                            !hr05
-          gam0s2 =tasiar61**2+tasiar62**2                                !hr05
-          gam0s3 =tasiar63**2+tasiar64**2                                !hr05
-          alf0s1 =-one*(tas(iar,5,5)*tasiar65+tasiar56*tas(iar,6,6))     !hr05
-          alf0s2 =-one*(tas(iar,5,1)*tasiar61+tas(iar,5,2)*tasiar62)     !hr05
-          alf0s3 =-one*(tas(iar,5,3)*tasiar63+tas(iar,5,4)*tasiar64)     !hr05
-#ifdef DEBUG
-!     call dumpbin('abib1',1,1)
-!     call abend('after bib1                                        ')
-#endif
-          do 220 ib1=1,napx
-            iar=ib1+(ib-1)*napx
+  bet0(2)  = tas(3,3)**2 + tas(3,4)**2
+  bet0z2   = tas(3,1)**2 + tas(3,2)**2
+  bet0z3   = tas(3,5)**2 + tasiar36**2
+  gam0z1   = tas(4,3)**2 + tas(4,4)**2
+  gam0z2   = tas(4,1)**2 + tas(4,2)**2
+  gam0z3   = tas(4,5)**2 + tasiar46**2
+  alf0(2)  = -one*(tas(3,3)*tas(4,3) + tas(3,4)*tas(4,4))
+  alf0z2   = -one*(tas(3,1)*tas(4,1) + tas(3,2)*tas(4,2))
+  alf0z3   = -one*(tas(3,5)*tas(4,5) + tasiar36*tasiar46)
 
-            do ib2=1,6
-              do ib3=1,6
-                tau(ib2,ib3)=tas(iar,ib3,ib2)
-              end do
-            end do
+  bet0s1   = tas(5,5)**2 + tasiar56**2
+  bet0s2   = tas(5,1)**2 + tas(5,2)**2
+  bet0s3   = tas(5,3)**2 + tas(5,4)**2
+  gam0s1   = tasiar65**2 + tas(6,6)**2
+  gam0s2   = tasiar61**2 + tasiar62**2
+  gam0s3   = tasiar63**2 + tasiar64**2
+  alf0s1   = -one*(tas(5,5)*tasiar65 + tasiar56*tas(6,6))
+  alf0s2   = -one*(tas(5,1)*tasiar61 + tas(5,2)*tasiar62)
+  alf0s3   = -one*(tas(5,3)*tasiar63 + tas(5,4)*tasiar64)
 
-            if(abs(tau(1,1)).le.pieni.and.abs(tau(2,2)).le.pieni) then
-              tau(1,1)=one
-              tau(2,2)=one
-            endif
-            if(abs(tau(3,3)).le.pieni.and.abs(tau(4,4)).le.pieni) then
-              tau(3,3)=one
-              tau(4,4)=one
-            endif
-            if(abs(tau(5,5)).le.pieni.and.abs(tau(6,6)).le.pieni) then
-              tau(5,5)=one
-              tau(6,6)=one
-              call dinv(6,tau,6,idummy,nerror)
-              its6d=0
-              if(ntwin.ne.2) then
-                taus=(((((((((((((((((((                                &!hr05
-     &abs(tau(5,1))+abs(tau(5,2)))+abs(tau(5,3)))+abs                   &!hr05
-     &(tau(5,4)))+abs(tau(5,5)))+abs(tau(5,6)))+abs(tau(6,1)))          &!hr05
-     &+abs(tau(6,2)))+abs(tau(6,3)))+abs(tau(6,4)))+abs                 &!hr05
-     &(tau(6,5)))+abs(tau(6,6)))+abs(tau(1,5)))+abs(tau(2,5)))          &!hr05
-     &+abs(tau(3,5)))+abs(tau(4,5)))+abs(tau(1,6)))+abs                 &!hr05
-     &(tau(2,6)))+abs(tau(3,6)))+abs(tau(4,6)))-two                      !hr05
-                if(abs(taus).ge.pieni) its6d=1
-              endif
-              do ib2=1,6
-                do ib3=1,6
-                  tasau(iar,ib2,ib3)=tau(ib2,ib3)
-                end do
-              end do
-            endif
-  220     continue
-          if(ierro.ne.0) then
-            write(lout,10230) dp1
-            goto 520
-          endif
-          write(lout,10070)
-          phag=(phas*c180e0)/pi                                           !hr05
-          if((idp.eq.0).or.(abs(phas).le.pieni.and.ition.eq.0))         &
-     &write(lout,10170)                                                 &
-     &qwc(1),clo(1),clop(1),                                            &
-     &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
-     &qwc(2),clo(2),clop(2),                                            &
-     &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
-          if(idp.eq.1.and.iation.eq.1.and.abs(phas).gt.pieni) then
-            if(iclo6.eq.0) then
-              write(lout,10150) phag,                                   &
-     &qwc(1),clo(1),clop(1),                                            &
-     &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
-     &qwc(2),clo(2),clop(2),                                            &
-     &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
-            else
-              write(lout,10160) phag,                                   &
-     &qwc(1),clo6(1),clop6(1),                                          &
-     &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
-     &bet0x3,alf0x3,gam0x3,                                             &
-     &qwc(2),clo6(2),clop6(2),                                          &
-     &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2,                      &
-     &bet0z3,alf0z3,gam0z3,                                             &
-     &qwc(3),clo6(3),clop6(3),                                          &
-     &bet0s1,alf0s1,gam0s1,bet0s2,alf0s2,gam0s2,                        &
-     &bet0s3,alf0s3,gam0s3
-            endif
-          endif
-          if(idp.eq.1.and.ition.eq.0.and.abs(phas).gt.pieni)            &
-     &write(lout,10190) phag,                                           &
-     &qwc(1),clo(1),clop(1),                                            &
-     &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
-     &qwc(2),clo(2),clop(2),                                            &
-     &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
-          if(idp.eq.1.and.abs(phas).le.pieni.and.iation.eq.1) then
-            if(iclo6.eq.0) then
-              write(lout,10210)                                         &
-     &qwc(1),clo(1),clop(1),                                            &
-     &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
-     &qwc(2),clo(2),clop(2),                                            &
-     &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
-            else
-              write(lout,10220)                                         &
-     &qwc(1),clo6(1),clop6(1),                                          &
-     &bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,                      &
-     &bet0x3,alf0x3,gam0x3,                                             &
-     &qwc(2),clo6(2),clop6(2),                                          &
-     &bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2,                      &
-     &bet0z3,alf0z3,gam0z3,                                             &
-     &qwc(3),clo6(3),clop6(3),                                          &
-     &bet0s1,alf0s1,gam0s1,bet0s2,alf0s2,gam0s2,                        &
-     &bet0s3,alf0s3,gam0s3
-            endif
-          endif
-          write(lout,10080) dp1
-          e0f=sqrt(e0**2-nucm0**2)                                         !hr05
-          if(iclo6.eq.0) then
-            write(lout,10110) clo(1),clop(1),clo(2),clop(2),idz(1),     &
-     &idz(2),                                                           &
-     &iver, idfor,iclo6,ition
-          else
-            write(lout,10120) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),&
-     &clop6(3), idz(1),idz(2),iver,idfor,iclo6,ition
-          endif
+  do ib1=1,napx
 
-          do ib1=1,napx
-            !Loop over all particles (not pairs) with the same
-            ! ib (momentum variation, 1..imc ) and
-            !  m (seed,               1..mmac).
-            !It appears that only the odd (1,3,5,..) indices are actually used?
-            ib2=ib0+ib1        ! ib0 is fixed to 0 => ib2 equals ib1
-            ampv(ib2)=amp(1)-damp*real(ib1-1,fPrec) !hr05
+    tau(:,:)=tas(:,:)
 
-            if(ib1.eq.napx-1 .and. ib1.ne.1) then
-              !Make sure that last amplitude EXACTLY corresponds to the end amplitude amp0
-              ! This is helpfull when doing DA studies and checking the "overlap"
-              ampv(ib2)=amp0
-            end if
+    if(abs(tau(1,1)) <= pieni .and. abs(tau(2,2)) <= pieni) then
+      tau(1,1) = one
+      tau(2,2) = one
+    end if
+    if(abs(tau(3,3)) <= pieni .and. abs(tau(4,4)) <= pieni) then
+      tau(3,3) = one
+      tau(4,4) = one
+    end if
+    if(abs(tau(5,5)) <= pieni .and. abs(tau(6,6)) <= pieni) then
+      tau(5,5) = one
+      tau(6,6) = one
+      call dinv(6,tau,6,idummy,nerror)
+      its6d = 0
+      if(ntwin /= 2) then
+        taus = (((((((((((((((((((                                 &
+          abs(tau(5,1))+abs(tau(5,2)))+abs(tau(5,3)))+abs(tau(5,4)))+abs(tau(5,5)))+abs(tau(5,6)))+ &
+          abs(tau(6,1)))+abs(tau(6,2)))+abs(tau(6,3)))+abs(tau(6,4)))+abs(tau(6,5)))+abs(tau(6,6)))+&
+          abs(tau(1,5)))+abs(tau(2,5)))+abs(tau(3,5)))+abs(tau(4,5)))+abs(tau(1,6)))+abs(tau(2,6)))+&
+          abs(tau(3,6)))+abs(tau(4,6)))-two
+        if(abs(taus) >= pieni) its6d = 1
+      end if
+      tasau(:,:) = tau(:,:)
+    end if
+  end do
 
-            dp0v(ib2)=dp10
-            dpsv(ib2)=dp10
-            oidpsv(ib2)=one/(one+dp1)
-! Heavy ion variable
-            moidpsv(ib2)=mtc(ib2)/(one+dp1)
-            nms(ib2)=1
+  if(ierro /= 0) then
+    write(lout,10230) dp1
+    goto 520
+  end if
+  write(lout,10070)
 
-            if(ithick.eq.1) then
-              do i=1,nele
-                ekv(ib2,i)=ek(i)
-              end do
-            end if
+  phag = (phas*c180e0)/pi
+  if((idp == 0) .or. (abs(phas) <= pieni .and. ition == 0)) then
+    write(lout,10170) qwc(1),clo(1),clop(1),bet0(1),alf0(1),gam0x1,     &
+      bet0x2,alf0x2,gam0x2,qwc(2),clo(2),clop(2),bet0(2),alf0(2),gam0z1,&
+      bet0z2,alf0z2,gam0z2
+  end if
+  if(idp == 1 .and. iation .eq. 1 .and. abs(phas) > pieni) then
+    if(iclo6 == 0) then
+      write(lout,10150) phag,qwc(1),clo(1),clop(1),bet0(1),alf0(1),     &
+        gam0x1,bet0x2,alf0x2,gam0x2,qwc(2),clo(2),clop(2),bet0(2),      &
+        alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
+    else
+      write(lout,10160) phag,qwc(1),clo6(1),clop6(1),bet0(1),alf0(1),   &
+        gam0x1,bet0x2,alf0x2,gam0x2,bet0x3,alf0x3,gam0x3,qwc(2),clo6(2),&
+        clop6(2),bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2,bet0z3,    &
+        alf0z3,gam0z3,qwc(3),clo6(3),clop6(3),bet0s1,alf0s1,gam0s1,     &
+        bet0s2,alf0s2,gam0s2,bet0s3,alf0s3,gam0s3
+    end if
+  end if
+  if(idp == 1 .and. ition == 0 .and. abs(phas) > pieni) then
+    write(lout,10190) phag,qwc(1),clo(1),clop(1),bet0(1),alf0(1),gam0x1,&
+      bet0x2,alf0x2,gam0x2,qwc(2),clo(2),clop(2),bet0(2),alf0(2),gam0z1,&
+      bet0z2,alf0z2,gam0z2
+  end if
+  if(idp == 1 .and. abs(phas) <= pieni .and. iation == 1) then
+    if(iclo6 == 0) then
+      write(lout,10210) qwc(1),clo(1),clop(1),bet0(1),alf0(1),gam0x1,   &
+        bet0x2,alf0x2,gam0x2,qwc(2),clo(2),clop(2),bet0(2),alf0(2),     &
+        gam0z1,bet0z2,alf0z2,gam0z2
+    else
+      write(lout,10220) qwc(1),clo6(1),clop6(1),bet0(1),alf0(1),gam0x1, &
+        bet0x2,alf0x2,gam0x2,bet0x3,alf0x3,gam0x3,qwc(2),clo6(2),       &
+        clop6(2),bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2,bet0z3,    &
+        alf0z3,gam0z3,qwc(3),clo6(3),clop6(3),bet0s1,alf0s1,gam0s1,     &
+        bet0s2,alf0s2,gam0s2,bet0s3,alf0s3,gam0s3
+    end if
+  end if
+  write(lout,10080) dp1
 
-          end do
+  e0f = sqrt(e0**2 - nucm0**2)
+  if(iclo6 == 0) then
+    write(lout,10110) clo(1),clop(1),clo(2),clop(2),idz(1),idz(2),iver, &
+      idfor,iclo6,ition
+  else
+    write(lout,10120) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),        &
+      clop6(3),idz(1),idz(2),iver,idfor,iclo6,ition
+  end if
 
-          ib0=ib0+napx
-  250   continue
-#ifdef DEBUG
-!     call dumpbin('ado 260',260,260)
-!     call abend('ado 260                                           ')
-#endif
-  napx = napx*imc
+  do ib1=1,napx
+    ampv(ib1) = amp(1)-damp*real(ib1-1,fPrec)
+
+    if(ib1 == napx-1 .and. ib1 /= 1) then
+      ! Make sure that last amplitude EXACTLY corresponds to the end amplitude amp0
+      ! This is helpfull when doing DA studies and checking the "overlap"
+      ampv(ib1) = amp0
+    end if
+
+    dp0v(ib1)    = dp10
+    dpsv(ib1)    = dp10
+    oidpsv(ib1)  = one/(one+dp1)
+    moidpsv(ib1) = mtc(ib1)/(one+dp1)
+    nms(ib1)     = 1
+
+    if(ithick == 1) then
+      ekv(ib1,1:nele) = ek(1:nele)
+    end if
+  end do
+
+! ================================================================================================ !
 
 #ifdef FLUKA
   ! A.Mereghetti, P. Garcia Ortega, D.Sinuela Pastor, V. Vlachoudis for the FLUKA Team
@@ -1164,17 +1059,17 @@ end interface
     if(dist_echo) call dist_echoDist
   end if
 
-  if(idfor /= 2 .and. .not.dist_enable) then
+  if(idfor /= 2 .and. .not. dist_enable) then
     ! Generated from INIT Distribution Block
     do ia=1,napx,2
       if(st_quiet == 0) write(lout,10050)
-      tasia56 = tas(ia,5,6)*c1m3
-      bet0x2  = tas(ia,1,3)**2+tas(ia,1,4)**2
-      bet0z2  = tas(ia,3,1)**2+tas(ia,3,2)**2
-      bet0s1  = tas(ia,5,5)**2+tasia56**2
+      tasia56 = tas(5,6)*c1m3
+      bet0x2  = tas(1,3)**2+tas(1,4)**2
+      bet0z2  = tas(3,1)**2+tas(3,2)**2
+      bet0s1  = tas(5,5)**2+tasia56**2
       dsign   = one
       rat     = rat0
-      if(tas(ia,3,3) < (-one*pieni)) rat = -one*rat
+      if(tas(3,3) < (-one*pieni)) rat = -one*rat
       if(rat < (-one*pieni)) dsign = -one*one
       x11    = ampv(ia)/(sqrt(bet0(1))+sqrt(abs(rat)*bet0x2))
       x13    = (x11*dsign)*sqrt(abs(rat))
@@ -1194,12 +1089,12 @@ end interface
         do ii=1,6
           x2(ii) = zero
           do jj=1,6
-            x2(ii) = x2(ii)+tas(ia,ii,jj)*x1(jj)
+            x2(ii) = x2(ii)+tas(ii,jj)*x1(jj)
           end do
         end do
         if(iclo6 == 1 .or. iclo6 == 2) then
-          x2(2) = x2(2)/((one+x2(6))+clop6v(3,ia))
-          x2(4) = x2(4)/((one+x2(6))+clop6v(3,ia))
+          x2(2) = x2(2)/((one+x2(6))+clop6v(3))
+          x2(4) = x2(4)/((one+x2(6))+clop6v(3))
         end if
         if(abs(bet0s1) <= pieni) x2(6) = dpsv(ia)
         if(iver == 1) then
@@ -1212,12 +1107,12 @@ end interface
         yv2(i3)   = x2(4)+exz(i2,4)
         sigmv(i3) = x2(5)+exz(i2,5)
         dpsv(i3)  = x2(6)
-        dpsic     = dpsv(i3)+clop6v(3,ia)
+        dpsic     = dpsv(i3)+clop6v(3)
         if(idp == 1 .and. abs(ition) == 1 .and. iclo6 == 0) then
-          xv1(i3) = xv1(i3) + di0xs(ia)*dpsic
-          xv2(i3) = xv2(i3) + di0zs(ia)*dpsic
-          yv1(i3) = yv1(i3) + dip0xs(ia)*dpsic
-          yv2(i3) = yv2(i3) + dip0zs(ia)*dpsic
+          xv1(i3) = xv1(i3) + di0xs*dpsic
+          xv2(i3) = xv2(i3) + di0zs*dpsic
+          yv1(i3) = yv1(i3) + dip0xs*dpsic
+          yv2(i3) = yv2(i3) + dip0zs*dpsic
         end if
         chi = chi+dchi
       end do
@@ -1282,22 +1177,18 @@ end interface
         xau(2,4) = yv2(ia+1)
         xau(2,5) = sigmv(ia+1)
         xau(2,6) = dpsv(ia+1)
-        cloau(1) = clo6v(1,ia)
-        cloau(2) = clop6v(1,ia)
-        cloau(3) = clo6v(2,ia)
-        cloau(4) = clop6v(2,ia)
-        cloau(5) = clo6v(3,ia)
-        cloau(6) = clop6v(3,ia)
-        di0au(1) = di0xs(ia)
-        di0au(2) = dip0xs(ia)
-        di0au(3) = di0zs(ia)
-        di0au(4) = dip0zs(ia)
+        cloau(1) = clo6v(1)
+        cloau(2) = clop6v(1)
+        cloau(3) = clo6v(2)
+        cloau(4) = clop6v(2)
+        cloau(5) = clo6v(3)
+        cloau(6) = clop6v(3)
+        di0au(1) = di0xs
+        di0au(2) = dip0xs
+        di0au(3) = di0zs
+        di0au(4) = dip0zs
 
-        do ib2=1,6
-          do ib3=1,6
-            tau(ib2,ib3)=tasau(ia,ib2,ib3)
-          end do
-        end do
+        tau(:,:)=tasau(:,:)
 
         call distance(xau,cloau,di0au,tau,dam1)
         dam(ia)   = dam1
@@ -1309,7 +1200,7 @@ end interface
 #ifdef CR
       if(.not.restart) then
 #endif
-        call writebin_header(ia,ia,91-ia2,ierro,cdate,ctime,progrm)
+        call writebin_header(ia,ia,91-ia2,ierro,cDate,cTime,progrm)
 #ifdef CR
         flush(91-ia2)
         binrecs(ia2)=1
@@ -1319,7 +1210,7 @@ end interface
 #ifdef CR
       if(.not.restart) then
 #endif
-        call writebin_header(ia,ia,90,ierro,cdate,ctime,progrm)
+        call writebin_header(ia,ia,90,ierro,cDate,cTime,progrm)
 #ifdef CR
         flush(90)
         binrecs(ia2)=1
@@ -1332,7 +1223,7 @@ end interface
 #ifdef CR
       if(.not.restart) then
 #endif
-        call writebin_header(ia,ia+1,91-ia2,ierro,cdate,ctime,progrm)
+        call writebin_header(ia,ia+1,91-ia2,ierro,cDate,cTime,progrm)
 #ifdef CR
         flush(91-ia2)
         binrecs(ia2)=1
@@ -1342,7 +1233,7 @@ end interface
 #ifdef CR
       if(.not.restart) then
 #endif
-        call writebin_header(ia,ia+1,90,ierro,cdate,ctime,progrm)
+        call writebin_header(ia,ia+1,90,ierro,cDate,cTime,progrm)
 #ifdef CR
         flush(90)
         binrecs(ia2)=1
@@ -1632,7 +1523,7 @@ end interface
   end if ! END if(ipos.eq.1)
   goto 520 ! Done postprocessing
 
-490 continue ! GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
+490 continue ! GOTO here if(napx <= 0) (skipping tracking)
   if(ipos == 1) then
     ndafi2=ndafi
     do ia=1,ndafi2
@@ -1665,7 +1556,7 @@ end interface
   end if
   goto 520 ! Done postprocessing
 
-490 continue ! GOTO here if(napx.le.0.or.imc.le.0) (skipping tracking)
+490 continue ! GOTO here if(napx <= 0) (skipping tracking)
   if(ipos == 1) then
     ndafi2=ndafi
     do ia=1,(2*ndafi2),2
@@ -1710,6 +1601,7 @@ end interface
 520 continue
   call fluka_close
 #endif
+  call ffield_mod_end()
 
   time3=0.
   call time_timerCheck(time3)

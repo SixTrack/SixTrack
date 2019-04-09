@@ -92,6 +92,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 #ifdef FLUKA
   use mod_fluka,          only : fluka_mod_expand_arrays
 #endif
+  use mod_ffield,         only : ffield_mod_expand_arrays
   use collimation,        only : collimation_expand_arrays
   use coll_db,            only : cdb_expand_arrays
 
@@ -129,6 +130,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 #ifdef FLUKA
   call fluka_mod_expand_arrays(npart_new, nele_new)
 #endif
+  call ffield_mod_expand_arrays(npart_new, nele_new)
   call collimation_expand_arrays(npart_new, nblz_new)
   call cdb_expand_arrays(nele_new)
 
@@ -236,17 +238,6 @@ subroutine shuffleLostParticles
     oidpsv(j:tnapx)    = cshift(oidpsv(j:tnapx),    1)
     moidpsv(j:tnapx)   = cshift(moidpsv(j:tnapx),   1)
     omoidpsv(j:tnapx)  = cshift(omoidpsv(j:tnapx),  1)
-
-    ! Beam--Beam
-    di0xs(j:tnapx)     = cshift(di0xs(j:tnapx),     1)
-    dip0xs(j:tnapx)    = cshift(dip0xs(j:tnapx),    1)
-    di0zs(j:tnapx)     = cshift(di0zs(j:tnapx),     1)
-    dip0zs(j:tnapx)    = cshift(dip0zs(j:tnapx),    1)
-    tasau(j:tnapx,:,:) = cshift(tasau(j:tnapx,:,:), 1, 1)
-
-    ! Closed Orbit
-    clo6v(:,j:tnapx)   = cshift(clo6v(:,j:tnapx),   1, 2)
-    clop6v(:,j:tnapx)  = cshift(clop6v(:,j:tnapx),  1, 2)
 
     ! Backtracking + Aperture
     plost(j:tnapx)     = cshift(plost(j:tnapx),     1)

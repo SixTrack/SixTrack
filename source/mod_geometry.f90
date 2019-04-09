@@ -106,7 +106,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
   ! CAVITIES
   if(abs(kz(geom_nSing)) == 12) then
     if(abs(ed(geom_nSing)) > pieni .and. abs(ek(geom_nSing)) > pieni) then
-      sixin_ncy2          = sixin_ncy2 + 1
+      sixin_ncy2         = sixin_ncy2 + 1
       itionc(geom_nSing) = kz(geom_nSing)/abs(kz(geom_nSing))
       kp(geom_nSing)     = 6
     end if
@@ -161,11 +161,11 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
   ! used in the structure to enable 6D tracking using the parameters
   ! from the SYNC block.
   if(sixin_ncy2 == 0) then
-    geom_nSing             = geom_nSing + 1
-    il                     = geom_nSing
-    bez(geom_nSing)        = geom_cavity
-    geom_bez0(geom_nSing)  = geom_cavity
-    kp(geom_nSing)         = 6
+    geom_nSing            = geom_nSing + 1
+    il                    = geom_nSing
+    bez(geom_nSing)       = geom_cavity
+    geom_bez0(geom_nSing) = geom_cavity
+    kp(geom_nSing)        = 6
   else
     il         = geom_nSing
     geom_nSing = geom_nSing + 1
@@ -248,20 +248,14 @@ subroutine geom_parseInputLineBLOC(inLine, iLine, iErr)
   end if
 
   ! Parse normal line, iLine > 1
-  do i=1,40
-    ilm0(i) = " "
-  end do
+  ilm0(:) = " "
 
   if(isCont) then                             ! This line continues the previous BLOC
     blocName = " "                            ! No name returned, set an empty BLOC name
-    do i=1,nSplit                             ! All elements are sub-elements. Save to buffer.
-      ilm0(i) = lnSplit(i)
-    end do
+    ilm0(1:nSplit) = lnSplit(1:nSplit)        ! All elements are sub-elements. Save to buffer.
   else                                        ! This is a new BLOC
     blocName = lnSplit(1)
-    do i=1,nSplit-1                           ! Save the rest to buffer
-      ilm0(i) = lnSplit(i+1)
-    end do
+    ilm0(1:nSplit-1) = lnSplit(2:nSplit)      ! Shift the buffer
   end if
 
   if(blocName /= " ") then                    ! We have a new BLOC
@@ -337,9 +331,6 @@ subroutine geom_parseInputLineSTRU(inLine, iLine, iErr)
   logical spErr
 
   integer i, j
-  character(len=mNameLen) ilm0(40)
-
-  ilm0(:) = " "
 
   expLine = chr_expandBrackets(inLine)
   call chr_split(expLine, lnSplit, nSplit, spErr)
@@ -356,13 +347,15 @@ subroutine geom_parseInputLineSTRU(inLine, iLine, iErr)
   end if
 
   do i=1,nSplit
-    ilm0(i) = lnSplit(i)
-  end do
 
-  do i=1,40
+    if(len_trim(lnSplit(1)) > mNameLen) then
+      write(lout,"(a)") "GEOMETRY> ERROR Structure element name cannot have more than ",mNameLen," characters."
+      iErr = .true.
+      return
+    end if
 
-    if(ilm0(i) == " ") cycle
-    if(ilm0(i) == geom_go) then
+    if(lnSplit(i) == " ") cycle
+    if(lnSplit(i) == geom_go) then
       kanf = geom_nStru + 1
       cycle
     end if
@@ -373,21 +366,21 @@ subroutine geom_parseInputLineSTRU(inLine, iLine, iErr)
     end if
 
     do j=1,mblo ! is it a BLOC?
-      if(bezb(j) == ilm0(i)) then
-        ic(geom_nStru)     = j
+      if(bezb(j) == lnSplit(i)) then
+        ic(geom_nStru)   = j
         bezs(geom_nStru) = bezb(j)
-        cycle
+        exit
       end if
     end do
 
     do j=1,il ! is it a SINGLE ELEMENT?
-      if(geom_bez0(j) == ilm0(i)) then
+      if(geom_bez0(j) == lnSplit(i)) then
         ic(geom_nStru)   = j+nblo
         bezs(geom_nStru) = geom_bez0(j)
         if(geom_bez0(j) == geom_cavity) then
           sixin_icy = sixin_icy+1
         end if
-        cycle
+        exit
       end if
     end do
   end do
@@ -407,6 +400,7 @@ end subroutine geom_parseInputLineSTRU
 ! ================================================================================================ !
 subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
 
+  use parpro
   use crcoall
   use mod_common
   use string_tools
@@ -446,12 +440,18 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
     return
   end if
 
+  if(len_trim(lnSplit(1)) > mNameLen .or. len_trim(lnSplit(2)) > mNameLen) then
+    write(lout,"(a)") "GEOMETRY> ERROR Structure element names in columns 1 and 2 cannot have more than ",mNameLen," characters."
+    iErr = .true.
+    return
+  end if
+
   geom_nStru = geom_nStru + 1
   if(geom_nStru > nblz-3) then
     call expand_arrays(nele,npart,nblz+1000,nblo)
   end if
 
-  bezs(geom_nStru) = lnSplit(1)
+  bezs(geom_nStru) = trim(lnSplit(1))
   call chr_cast(lnSplit(3), elpos(geom_nStru), cErr)
 
   singID = -1
@@ -621,6 +621,7 @@ subroutine geom_findElemAtLoc(sLoc, isLast, iEl, ixEl, wasFound)
 
   iEl  = -1
   ixEl = -1
+  sLoc = zero
 
   if(sLoc > tlen .or. sLoc < zero) then
     write(lout,"(a,2(f11.4,a))") "GEOMETRY> ERROR Find Element: "//&
@@ -696,7 +697,7 @@ subroutine geom_calcDcum
 
   character(len=24) tmpS, tmpE
   character(len=99) fmtH, fmtC
-  real(kind=fPrec) tmpDcum, delS
+  real(kind=fPrec) tmpDcum, delS, sGo, sEnd
   integer i, j, k, ix, outUnit
 
   write(lout,"(a)") "GEOMETRY> Calculating machine length"
@@ -709,7 +710,7 @@ subroutine geom_calcDcum
     if(ix > nblo) then ! SINGLE ELEMENT
       ix = ix-nblo
       if(el(ix) > zero) then
-        tmpDcum = tmpDcum + el(ix)
+        tmpDcum = tmpDcum  + el(ix)
       end if
       if(strumcol) then
         elpos(i) = elpos(i) + el(ix)/2 ! Change from centre of element to end of element
@@ -732,6 +733,14 @@ subroutine geom_calcDcum
     end if
     dcum(i) = tmpDcum
   end do
+
+  ! Correct the elpos array after a GO reshuffle
+  if(kanf > 1 .and. strumcol) then
+    sGo  = elpos(1)
+    sEnd = elpos(iu-kanf+1)-sGo
+    elpos(1:iu-kanf+1)  = elpos(1:iu-kanf+1)  - sGo
+    elpos(iu-kanf+2:iu) = elpos(iu-kanf+2:iu) + sEnd
+  end if
 
   ! Assign the last value to the closing MARKER:
   dcum(iu+1)  = tmpDcum
@@ -804,5 +813,67 @@ subroutine geom_calcDcum
   end if
 
 end subroutine geom_calcDcum
+
+! ================================================================================================ !
+!  A. Mereghetti, V.K. Berglyd Olsen
+!  Original:  2016-03-14 (orglat)
+!  Rewritten: 2019-04-03
+!  Updated:   2019-04-03
+!  Reshuffle the lattice
+! ================================================================================================ !
+subroutine geom_reshuffleLattice
+
+  use parpro
+  use crcoall
+  use floatPrecision
+  ! use numerical_constants
+  use mod_common
+  use mod_commons
+  use mod_common_track
+
+  implicit none
+
+  integer i,j,ii,jj
+  character(len=mNameLen), allocatable :: tmpC(:)
+
+  if(mper > 1) then
+    do i=2,mper
+      do j=1,mbloz
+        ii = (i-1)*mbloz+j
+        jj = j
+        if(msym(i) < 0) then
+          jj = mbloz-j+1
+        end if
+        ic(ii) = msym(i)*ic(jj)
+        if(ic(ii) < -nblo) then
+          ic(ii) = -ic(ii)
+        end if
+      end do
+    end do
+  end if
+  iu = mper*mbloz
+
+  ! "GO" is the first structure element, we're done.
+  if(kanf == 1) return
+
+  ! Otherwise, reshuffle the structure
+  write(lout,"(a)") "GEOMETRY> GO keyword not the first lattice element: Reshuffling lattice structure."
+
+  if(iorg >= 0) then
+    mzu(1:iu)   = cshift(mzu(1:iu),     kanf-1)
+  end if
+  ic(1:iu)      = cshift(ic(1:iu),      kanf-1)
+  icext(1:iu)   = cshift(icext(1:iu),   kanf-1)
+  icextal(1:iu) = cshift(icextal(1:iu), kanf-1)
+! bezs(1:iu)    = cshift(bezs(1:iu),    kanf-1)
+  elpos(1:iu)   = cshift(elpos(1:iu),   kanf-1)
+
+  ! Do string arrays manually due to a gfrotran bug in at least 8.3
+  allocate(tmpC(kanf))
+  tmpC(1:kanf-1)     = bezs(1:kanf-1)
+  bezs(1:iu-kanf+1)  = bezs(kanf:iu)
+  bezs(iu-kanf+2:iu) = tmpC(1:kanf-1)
+
+end subroutine geom_reshuffleLattice
 
 end module mod_geometry

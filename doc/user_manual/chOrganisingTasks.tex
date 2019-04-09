@@ -20,8 +20,7 @@ If besides mean values for the multipole errors (Gaussian) random errors should 
 \bigskip
 \begin{longtabu}{@{}lp{0.8\linewidth}}
     \texttt{izu0} & Start value for the random number generator \\
-    \texttt{mmac} & \textcolor{notered}{Disabled for the time being, i.e. \texttt{mmac} is fixed to be 1} \\
-                  & In the vectorised version the number of different starting seeds can be varied. Each seed is calculated as \mbox{$ k \times izu0 $} where $k$ runs from 1 to \texttt{mmac} which can not exceed 5 to save storage space (see    list of parameters in Appendix~\ref{DSP}).) \\
+    \texttt{mmac} & Support for multiple starting seeds has been removed. This value must be 1. \\
     \texttt{mout} & A binary switch for various purposes, so all options, as described below, can be combined. \\
                   & \texttt{mout} = 0 : multipole errors internally created \\
                   & \texttt{mout} = 1 : multipole errors read-in from external file \\

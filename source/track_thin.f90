@@ -1129,10 +1129,11 @@ subroutine thin6d(nthinerr)
   use mathlib_bouncer
   use mod_particles
 
-  use bdex,    only : bdex_track, bdex_enable, bdex_elementAction
-  use scatter, only : scatter_thin, scatter_debug
-  use dynk,    only : dynk_enabled, dynk_apply
-  use dump,    only : dump_linesFirst, dump_lines, ldumpfront
+  use bdex,       only : bdex_track, bdex_enable, bdex_elementAction
+  use scatter,    only : scatter_thin, scatter_debug
+  use dynk,       only : dynk_enabled, dynk_apply
+  use dump,       only : dump_linesFirst, dump_lines, ldumpfront
+  use mod_ffield, only : ffindex,ffield_genAntiQuad,ffield_enterQuad,ffield_exitQuad,ffield_enabled
   use aperture
   use mod_hions
   use mod_settings
@@ -1142,13 +1143,11 @@ subroutine thin6d(nthinerr)
 #ifdef FLUKA
   use mod_fluka
 #endif
-
 #ifdef ROOT
   use root_output
 #endif
 
   use collimation
-
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -1165,6 +1164,7 @@ subroutine thin6d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+
   implicit none
 
   integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,elemEnd,&
@@ -1173,7 +1173,7 @@ subroutine thin6d(nthinerr)
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
     sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp
-  logical llost
+  logical llost, doFField
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
@@ -1197,6 +1197,8 @@ subroutine thin6d(nthinerr)
   else
     turnrep = 1
   end if
+
+  call ffield_genAntiQuad()
 
   ! This is the loop over turns: label 660
 #ifdef CR
@@ -1275,6 +1277,13 @@ subroutine thin6d(nthinerr)
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
       ix=ic(i)-nblo
+
+      ! Fringe Fields
+      if(ffield_enabled) then
+        doFField = FFindex(ix) > 0
+      else
+        doFField = .false.
+      end if
 
 #ifdef BEAMGAS
       !YIL Call beamGas subroutine whenever a pressure-element is found
@@ -1553,10 +1562,20 @@ subroutine thin6d(nthinerr)
         end do
         goto 640
       case (12) ! NORMAL QUADRUPOLE
+        if(doFField) then
+          if(ic(i) /= ic(i-2) .and. ic(i) /= ic(i-3)) then
+            call ffield_enterQuad(i)  !A optimizer!!!
+          end if
+        end if
         do j=1,napx
 #include "include/alignva.f90"
 #include "include/kickvxxh.f90"
         end do
+        if(doFField) then
+          if(ic(i) /= ic(i+2) .and. ic(i) /= ic(i+3)) then
+            call ffield_exitQuad(i)   !A optimizer!!!
+          end if
+        end if
         goto 640
       case (13) ! NORMAL SEXTUPOLE
         do j=1,napx
@@ -1740,63 +1759,91 @@ subroutine thin6d(nthinerr)
       case (31)
         goto 640
       case (32)
-        goto 410
+        if(doFField .eqv. .false.) then
+          goto 410
+        else
+          goto 640
+        end if
       case (33)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v01.f90"
 #include "include/mul6v01.f90"
-        end do
+          end do
+        end if
         goto 640
       case (34)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v01.f90"
 #include "include/mul6v01.f90"
-        end do
-        goto 410
+          end do
+          goto 410
+        else
+          goto 640
+        end if
       case (35)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v02.f90"
 #include "include/mul6v01.f90"
-        end do
+          end do
+        end if
         goto 640
       case (36)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v02.f90"
 #include "include/mul6v01.f90"
-        end do
-        goto 410
+          end do
+          goto 410
+        else
+          goto 640
+        end if
       case (37)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v03.f90"
 #include "include/mul6v02.f90"
-        end do
+          end do
+        end if
         goto 640
       case (38)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v03.f90"
 #include "include/mul6v02.f90"
-        end do
-        goto 410
+          end do
+          goto 410
+        else
+          goto 640
+        end if
       case (39)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v04.f90"
 #include "include/mul6v02.f90"
-        end do
+          end do
+        end if
         goto 640
       case (40)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v04.f90"
 #include "include/mul6v02.f90"
-        end do
-        goto 410
+          end do
+          goto 410
+        else
+          goto 640
+        end if
       case (41) ! 4D BB kick
         do 690 j=1,napx
 #include "include/beamco.f90"
@@ -2163,8 +2210,7 @@ subroutine dist1
   save
 !-----------------------------------------------------------------------
   do 20 ia=1,napx,2
-    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.     &
-  &(mod(partID(ia),2).ne.0)) then
+    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.(mod(partID(ia),2).ne.0)) then
       ie=ia+1
       dam(ia)=zero
       dam(ie)=zero
@@ -2180,22 +2226,17 @@ subroutine dist1
       xau(2,4)= yv2(ie)
       xau(2,5)=sigmv(ie)
       xau(2,6)= dpsv(ie)
-      cloau(1)= clo6v(1,ia)
-      cloau(2)=clop6v(1,ia)
-      cloau(3)= clo6v(2,ia)
-      cloau(4)=clop6v(2,ia)
-      cloau(5)= clo6v(3,ia)
-      cloau(6)=clop6v(3,ia)
-      di0au(1)= di0xs(ia)
-      di0au(2)=dip0xs(ia)
-      di0au(3)= di0zs(ia)
-      di0au(4)=dip0zs(ia)
-
-      do ib2=1,6
-        do ib3=1,6
-          tau(ib2,ib3)=tasau(ia,ib2,ib3)
-        end do
-      end do
+      cloau(1)= clo6v(1)
+      cloau(2)=clop6v(1)
+      cloau(3)= clo6v(2)
+      cloau(4)=clop6v(2)
+      cloau(5)= clo6v(3)
+      cloau(6)=clop6v(3)
+      di0au(1)= di0xs
+      di0au(2)=dip0xs
+      di0au(3)= di0zs
+      di0au(4)=dip0zs
+      tau(:,:)=tasau(:,:)
 
       call distance(xau,cloau,di0au,tau,dam1)
       dam(ia)=dam1

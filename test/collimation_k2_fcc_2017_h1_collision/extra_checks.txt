@@ -1,7 +1,0 @@
-aperture_losses.dat
-survival.dat
-coll_summary.dat
-efficiency.dat
-efficiency_2d.dat
-efficiency_dpop.dat
-hash.md5

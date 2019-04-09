@@ -32,9 +32,10 @@ program mainda
   use mod_units
   use mod_meta
   use mod_time
-  use mod_alloc,  only : alloc_init
-  use mod_fluc,   only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
-  use read_write, only : readFort33
+  use mod_alloc,    only : alloc_init
+  use mod_fluc,     only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
+  use read_write,   only : readFort33
+  use mod_geometry, only : geom_reshuffleLattice
   use mod_version
 
   implicit none
@@ -150,7 +151,7 @@ featList = ""
   end if
   if(ithick.eq.1) write(lout,10020)
   if(ithick.eq.0) write(lout,10030)
-  call orglat
+  call geom_reshuffleLattice
   call ord
   if(allocated(zfz)) call fluc_randomReport
   call clorb(ded)
