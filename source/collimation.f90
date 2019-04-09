@@ -1174,8 +1174,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("DO_COLL")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR DOCOLL expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DOCOLL true|false"
+      write(lout,"(a,i0)") "COLL> ERROR DO_COLL expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DO_COLL true|false"
       iErr = .true.
       return
     end if
@@ -1184,6 +1184,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   case("ENERGY")
     if(nSplit /= 2) then
       write(lout,"(a,i0)") "COLL> ERROR ENERGY expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       ENERGY energy[MeV]"
       iErr = .true.
       return
     end if
@@ -1209,16 +1210,17 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 1)  call chr_cast(lnSplit(2), mynex,       iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), mdex,        iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), myney,       iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), mdey,        iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), enerror,     iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), bunchlength, iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2), mynex,       iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3), mdex,        iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4), myney,       iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5), mdey,        iErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6), enerror,     iErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7), bunchlength, iErr)
 
   case("DIST_FILE")
     if(nSplit /= 2) then
       write(lout,"(a,i0)") "COLL> ERROR DIST_FILE expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DIST_FILE filename"
       iErr = .true.
       return
     end if
@@ -1239,12 +1241,20 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(3),rTmp,iErr)
     call cdb_addFamily(lnSplit(2),rTmp,famID,fErr)
-    cdb_doNSig = .true. ! This needs to be on for new block + old colldb
     if(fErr) then
       write(lout,"(a,i0)") "COLL> ERROR NSIG_FAM family '"//trim(lnSplit(2))//"' defined more than once"
       iErr = .true.
       return
     end if
+
+  case("DO_NSIG")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR DO_NSIG expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DO_NSIG true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), cdb_doNSig, iErr)
 
   case("JAW_SLICE")
     if(nSplit /= 6) then
