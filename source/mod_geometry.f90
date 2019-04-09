@@ -621,6 +621,7 @@ subroutine geom_findElemAtLoc(sLoc, isLast, iEl, ixEl, wasFound)
 
   iEl  = -1
   ixEl = -1
+  sLoc = zero
 
   if(sLoc > tlen .or. sLoc < zero) then
     write(lout,"(a,2(f11.4,a))") "GEOMETRY> ERROR Find Element: "//&
@@ -696,7 +697,7 @@ subroutine geom_calcDcum
 
   character(len=24) tmpS, tmpE
   character(len=99) fmtH, fmtC
-  real(kind=fPrec) tmpDcum, delS
+  real(kind=fPrec) tmpDcum, delS, sGo, sEnd
   integer i, j, k, ix, outUnit
 
   write(lout,"(a)") "GEOMETRY> Calculating machine length"
@@ -709,7 +710,7 @@ subroutine geom_calcDcum
     if(ix > nblo) then ! SINGLE ELEMENT
       ix = ix-nblo
       if(el(ix) > zero) then
-        tmpDcum = tmpDcum + el(ix)
+        tmpDcum = tmpDcum  + el(ix)
       end if
       if(strumcol) then
         elpos(i) = elpos(i) + el(ix)/2 ! Change from centre of element to end of element
@@ -732,6 +733,14 @@ subroutine geom_calcDcum
     end if
     dcum(i) = tmpDcum
   end do
+
+  ! Correct the elpos array after a GO reshuffle
+  if(kanf > 1 .and. strumcol) then
+    sGo  = elpos(1)
+    sEnd = elpos(iu-kanf+1)-sGo
+    elpos(1:iu-kanf+1)  = elpos(1:iu-kanf+1)  - sGo
+    elpos(iu-kanf+2:iu) = elpos(iu-kanf+2:iu) + sEnd
+  end if
 
   ! Assign the last value to the closing MARKER:
   dcum(iu+1)  = tmpDcum
@@ -804,5 +813,67 @@ subroutine geom_calcDcum
   end if
 
 end subroutine geom_calcDcum
+
+! ================================================================================================ !
+!  A. Mereghetti, V.K. Berglyd Olsen
+!  Original:  2016-03-14 (orglat)
+!  Rewritten: 2019-04-03
+!  Updated:   2019-04-03
+!  Reshuffle the lattice
+! ================================================================================================ !
+subroutine geom_reshuffleLattice
+
+  use parpro
+  use crcoall
+  use floatPrecision
+  ! use numerical_constants
+  use mod_common
+  use mod_commons
+  use mod_common_track
+
+  implicit none
+
+  integer i,j,ii,jj
+  character(len=mNameLen), allocatable :: tmpC(:)
+
+  if(mper > 1) then
+    do i=2,mper
+      do j=1,mbloz
+        ii = (i-1)*mbloz+j
+        jj = j
+        if(msym(i) < 0) then
+          jj = mbloz-j+1
+        end if
+        ic(ii) = msym(i)*ic(jj)
+        if(ic(ii) < -nblo) then
+          ic(ii) = -ic(ii)
+        end if
+      end do
+    end do
+  end if
+  iu = mper*mbloz
+
+  ! "GO" is the first structure element, we're done.
+  if(kanf == 1) return
+
+  ! Otherwise, reshuffle the structure
+  write(lout,"(a)") "GEOMETRY> GO keyword not the first lattice element: Reshuffling lattice structure."
+
+  if(iorg >= 0) then
+    mzu(1:iu)   = cshift(mzu(1:iu),     kanf-1)
+  end if
+  ic(1:iu)      = cshift(ic(1:iu),      kanf-1)
+  icext(1:iu)   = cshift(icext(1:iu),   kanf-1)
+  icextal(1:iu) = cshift(icextal(1:iu), kanf-1)
+! bezs(1:iu)    = cshift(bezs(1:iu),    kanf-1)
+  elpos(1:iu)   = cshift(elpos(1:iu),   kanf-1)
+
+  ! Do string arrays manually due to a gfrotran bug in at least 8.3
+  allocate(tmpC(kanf))
+  tmpC(1:kanf-1)     = bezs(1:kanf-1)
+  bezs(1:iu-kanf+1)  = bezs(kanf:iu)
+  bezs(iu-kanf+2:iu) = tmpC(1:kanf-1)
+
+end subroutine geom_reshuffleLattice
 
 end module mod_geometry

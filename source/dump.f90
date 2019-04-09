@@ -639,10 +639,6 @@ subroutine dump_initialise
           call prror(-1)
         end if
         if(idp == 0 .or. ition == 0) then ! We're in the 4D case
-          if(imc /= 1) then ! Energy scan
-            write(lout,"(a)") "DUMP> ERROR in normalized DUMP: Energy scan (imc != 1) not supported!"
-            call prror(-1)
-          end if
           if(i /= -1) then ! Not at StartDUMP
             write(lout,"(a)") "DUMP> ERROR in normalized DUMP: 4D only supported for StartDUMP!"
             call prror(-1)

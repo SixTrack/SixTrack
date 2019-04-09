@@ -219,10 +219,10 @@ subroutine part_writeState(theState)
     call f_requestUnit(fileName, fileUnit)
     call f_open(unit=fileUnit,file=fileName,formatted=.false.,mode="w",status="replace",access="stream")
 
-    write(fileUnit) int(imc,  kind=int32)
-    write(fileUnit) int(napx, kind=int32)
-    write(fileUnit) int(napxo,kind=int32)
-    write(fileUnit) int(npart,kind=int32)
+    write(fileUnit) int(napx,  kind=int32)
+    write(fileUnit) int(napxo, kind=int32)
+    write(fileUnit) int(npart, kind=int32)
+    write(fileUnit) int(iDummy,kind=int32) ! Pad to n x 64 bit
 
     iDummy = 0
 
@@ -256,7 +256,6 @@ subroutine part_writeState(theState)
     call f_requestUnit(fileName, fileUnit)
     call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="w",status="replace")
 
-    write(fileUnit,"(a,i0)") "# imc   = ",imc
     write(fileUnit,"(a,i0)") "# napx  = ",napx
     write(fileUnit,"(a,i0)") "# napxo = ",napxo
     write(fileUnit,"(a,i0)") "# npart = ",npart

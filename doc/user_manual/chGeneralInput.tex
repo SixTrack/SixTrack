@@ -51,7 +51,7 @@ However, for backwards compatibility, the \texttt{PRIN} flag is still accepted.
     \texttt{PRINT} & This causes the printing of the input data to the output file \texttt{fort.6}. \\
     \texttt{DEBUG} & A global debug flag that causes the majority of the blocks to echo back the value read from the input file after parsing. It may also print out secondary values set based on input values read, or modification made to input values based on other dependencies and criteria.\index{DEBUG}\\
     \texttt{QUIET} & Followed by an integer specifying how ``quiet'' the output should be. A higher value causes less information to be printed back out. If the keyword is not present, the default value is 0, which means it is disabled. If it is present, but the integer value is omitted, it is set to be 1. This flag does not interfere with the \texttt{PRINT} flag.\index{QUIET}\\
-    \texttt{PRINT\_DCUM} & This will cause the calculated s-coordinate of each structure element to be printed to \texttt{fort.6}. \\
+    \texttt{PRINT\_DCUM} & This will cause the calculated s-coordinate of each structure element to be printed to the file \texttt{machine\_length.dat}. \\
     \texttt{PARTSUMMARY} & Enable or disable the printing of a particle summary after tracking. The flag takes an optional parameter to explicitly state whether it is ON or OFF. If omitted, it is assumed the user requests it to be ON. If the flag is omitted entirely, the default behaviour is determined by the particle count. If SixTrack is running with 64 particles or less, it is ON by default, otherwise OFF.\index{particle summary}\\
     \texttt{WRITEFORT12} & Enable or disable the writing of \texttt{fort.12} after tracking. The flag takes an optional parameter to explicitly state whether it is ON or OFF. If omitted, it is assumed the user requests it to be ON. If the flag is omitted entirely, the default behaviour is determined by the particle count. If SixTrack is running with 64 particles or less, it is ON by default, otherwise OFF.\index{fort.12}\\
     \texttt{INITIALSTATE} & Followed by either ``binary'' or ``text''. This will write a file before tracking containing the initial state of all particles to either a binary or a text file.\index{initial state} Adding ``ions'' as a second keyword will also dump the additional ion columns (see Section~\ref{hions}).\\
@@ -145,6 +145,9 @@ If the input block is left out, default values will be used.
 A converter has been developed~\cite{CONVERTOR}, which is directly linked to MAD-X\@.\index{MAD-X}
 It produces the geometry file \texttt{fort.2}; an appendix to the parameter file \texttt{fort.3}, which defines which of the multipole errors are switched on; the error file \texttt{fort.16}, and the file \texttt{fort.8} which holds the transverse misalignments and the tilt of the non-linear kick elements.\index{fort.8}\index{fort.16}\index{multipole errors}
 It also produce a file \texttt{fort.34} with linear lattice functions, phase advances and multipole strengths needed for resonance calculations for the program \textit{SODD}~\cite{SODD}.\index{fort.34}\index{resonance calculations}
+
+In addition, the flag \texttt{aperture} will produce an aperture limitations file.
+The flag \texttt{multicol} will produce an alternative \texttt{fort.2} file with more information on the machine structure (see Section~\ref{stru:multicol}).
 
 % A description of %how to use the converter can be found in Appendix\ref{MADSIXC}.
 % Pasted here for reference:
