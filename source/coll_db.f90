@@ -229,7 +229,7 @@ subroutine cdb_readDB_oldFormat
     iLine = iLine + 1
     if(ioStat /= 0) goto 100
 
-    ! Line 2: Upper case name, ignored
+    ! Line 2: Upper case name
     read(dbUnit,*,iostat=ioStat) cdb_cNameUC(j)
     iLine = iLine + 1
     if(ioStat /= 0) goto 100
@@ -239,7 +239,7 @@ subroutine cdb_readDB_oldFormat
     iLine = iLine + 1
     if(ioStat /= 0) goto 100
 
-    ! Line 4: Sigma
+    ! Line 4: Collimator setting
     read(dbUnit,*,iostat=ioStat) inLine
     iLine = iLine + 1
     if(ioStat /= 0) goto 100
@@ -573,7 +573,8 @@ subroutine cdb_generateFamName(inElem, famName)
     famName = "tclp"
   else if(elemName(1:4) == "tcli") then
     famName = "tcli"
-  else if(elemName(1:4) == "tcxr") then
+  else if(elemName(1:4) == "tcxr" .or. elemName(1:3) == "xrp") then
+! else if(elemName(1:4) == "tcxr") then
     famName = "tcxrp"
   else if(elemName(1:5) == "tcryo" .or. elemName(1:5) == "tcld.") then
     famName = "tcryo"
