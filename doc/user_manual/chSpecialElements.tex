@@ -1573,11 +1573,11 @@ The \texttt{SEED} block is mandatory for the \texttt{SCATTER} block to work.
 Note that when running several simulations, the seed setting must be varied between each run in order to get uncorrelated results.
 
 % ================================================================================================================================ %
-\section{Tracking Code for Collimation Studies} \label{sec:collimat}
+\section{Collimation} \label{sec:collimat}
 
 Collimation\index{collimation} and beam cleaning studies are carried out with the well established SixTrack code, extended for tracking large numbers of halo particles, and to take into account halo interaction with arbitrarily placed collimators.
 Particles are transported through the lattice element by element and their phase space coordinates are transformed according to the type of element. When a particle hits a collimator jaw, it is randomly scattered through matter.
-The effect of collimator scattering is modeled using COLLTRACK/K2 \cite{collimat:trenkler,collimat:robert_demolaize} routines.
+The effect of collimator scattering is modeled using COLLTRACK/K2~\cite{collimat:trenkler,collimat:robert_demolaize} routines.
 
 \bigskip
 \noindent The main characteristics of the SixTrack used for collimations studies are:
@@ -1654,7 +1654,7 @@ This structure is then repeated within the file for each of the collimators to b
 
 \subsection{Collimation Input Block} \label{sec:coll:input}
 
-The collimation module is controlled by the \texttt{COLL} block in \texttt{firt.3}.
+The collimation module is controlled by the \texttt{COLL} block in \texttt{fort.3}.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
@@ -1776,39 +1776,43 @@ The collimation module is controlled by the \texttt{COLL} block in \texttt{firt.
         & \texttt{RECENTER2}     & float   & Surface model of the jaw: moving the 2nd jaw to the new smallest opening. \\
     \hline
 
-    7   & \texttt{FIT1\_1}       & float   & Surface model of the jaw: order 0 of the polynomial fit for the 1st jaw. \\
+    7   & \texttt{FIT1\_1}       & float   & Surface model of the jaw: Polynomial fit 0th order for the 1st jaw. \\
         \cline{2-4}
-        & \texttt{FIT1\_2}       & float   & Surface model of the jaw: order 1 of the polynomial fit for the 1st jaw. \\
+        & \texttt{FIT1\_2}       & float   & Surface model of the jaw: Polynomial fit 1st order for the 1st jaw. \\
         \cline{2-4}
-        & \texttt{FIT1\_3}       & float   & Surface model of the jaw: order 2 of the polynomial fit for the 1st jaw. \\
+        & \texttt{FIT1\_3}       & float   & Surface model of the jaw: Polynomial fit 2nd order for the 1st jaw. \\
         \cline{2-4}
-        & \texttt{FIT1\_4}       & float   & Surface model of the jaw: order 3 of the polynomial fit for the 1st jaw. \\
+        & \texttt{FIT1\_4}       & float   & Surface model of the jaw: Polynomial fit 3rd order for the 1st jaw. \\
         \cline{2-4}
-        & \texttt{FIT1\_5}       & float   & Surface model of the jaw: order 4 of the polynomial fit for the 1st jaw. \\
+        & \texttt{FIT1\_5}       & float   & Surface model of the jaw: Polynomial fit 4th order for the 1st jaw. \\
         \cline{2-4}
-        & \texttt{FIT1\_6}       & float   & Surface model of the jaw: order 5 of the polynomial fit for the 1st jaw. \\
+        & \texttt{FIT1\_6}       & float   & Surface model of the jaw: Polynomial fit 5th order for the 1st jaw. \\
         \cline{2-4}
-        & \texttt{SSF1}          & float   & Surface model of the jaw: scaling factor of the polynomial fit for the 1st jaw. \\
+        & \texttt{SSF1}          & float   & Surface model of the jaw: Polynomial fit scaling for the 1st jaw. \\
     \hline
 
-    8   & \texttt{FIT2\_1}       & float   & Surface model of the jaw: order 0 of the polynomial fit for the 2nd jaw. \\
+    8   & \texttt{FIT2\_1}       & float   & Surface model of the jaw: Polynomial fit 0th order for the 2nd jaw. \\
         \cline{2-4}
-        & \texttt{FIT2\_2}       & float   & Surface model of the jaw: order 1 of the polynomial fit for the 2nd jaw. \\
+        & \texttt{FIT2\_2}       & float   & Surface model of the jaw: Polynomial fit 1st order for the 2nd jaw. \\
         \cline{2-4}
-        & \texttt{FIT2\_3}       & float   & Surface model of the jaw: order 2 of the polynomial fit for the 2nd jaw. \\
+        & \texttt{FIT2\_3}       & float   & Surface model of the jaw: Polynomial fit 2nd order for the 2nd jaw. \\
         \cline{2-4}
-        & \texttt{FIT2\_4}       & float   & Surface model of the jaw: order 3 of the polynomial fit for the 2nd jaw. \\
+        & \texttt{FIT2\_4}       & float   & Surface model of the jaw: Polynomial fit 3rd order for the 2nd jaw. \\
         \cline{2-4}
-        & \texttt{FIT2\_5}       & float   & Surface model of the jaw: order 4 of the polynomial fit for the 2nd jaw. \\
+        & \texttt{FIT2\_5}       & float   & Surface model of the jaw: Polynomial fit 4th order for the 2nd jaw. \\
         \cline{2-4}
-        & \texttt{FIT2\_6}       & float   & Surface model of the jaw: order 5 of the polynomial fit for the 2nd jaw. \\
+        & \texttt{FIT2\_6}       & float   & Surface model of the jaw: Polynomial fit 5th order for the 2nd jaw. \\
         \cline{2-4}
-        & \texttt{SSF2}          & float   & Surface model of the jaw: scaling factor of the polynomial fit for the 2nd jaw. \\
+        & \texttt{SSF2}          & float   & Surface model of the jaw: Polynomial fit scaling for the 2nd jaw. \\
     \hline
 
-    9   & \texttt{EMITX0}        & float   & Geometric emittance in the horizontal plane. \\
+    9   & \texttt{DIsTEMITX0}    & float   & Normalised emittance in the horizontal plane for distribution. \\
         \cline{2-4}
-        & \texttt{EMITY0}        & float   & Geometric emittance in the vertical plane. \\
+        & \texttt{DISTEMITY0}    & float   & Normalised emittance in the vertical plane for distribution. \\
+        \cline{2-4}
+        & \texttt{COLGAPEMITX0}  & float   & Normalised emittance in the horizontal plane for collimator gaps. \\
+        \cline{2-4}
+        & \texttt{COLGAPEMITY0}  & float   & Normalised emittance in the vertical plane for collimator gaps. \\
     \hline
 
     10  & \texttt{DO\_SELECT}    & logical & Does dedicated study of selected collimator, see \texttt{NAME\_SEL}. \\
