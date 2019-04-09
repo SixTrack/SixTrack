@@ -1162,6 +1162,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   integer nSplit, famID
   logical spErr, fErr
 
+  nSigIn(:) = cdb_defColGap
+
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
     write(lout,"(a)") "COLL> ERROR Failed to parse input line."
