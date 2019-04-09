@@ -98,6 +98,7 @@ subroutine cdb_readCollDB
   use crcoall
   use mod_units
   use mod_common
+  use mod_settings
   use string_tools
 
   character(len=:), allocatable :: lnSplit(:)
@@ -144,7 +145,10 @@ subroutine cdb_readCollDB
 #ifdef HDF5
   call cdb_writeDB_HDF5
 #endif
-  call cdb_writeFam
+  if(st_debug) then
+    call cdb_writeFam
+    call cdb_writeDB
+  end if
 
 ! ============================================================================ !
 !  Post-Processing DB
@@ -185,7 +189,6 @@ subroutine cdb_readDB_newFormat
   use string_tools
   use mod_units
   use mod_alloc
-  use mod_settings
   use numerical_constants
 
   character(len=:), allocatable :: lnSplit(:)
@@ -283,16 +286,6 @@ subroutine cdb_readDB_newFormat
 
   cdb_nColl = iColl
   call cdb_allocDB ! This should remove the unused lines in the DB
-
-  if(st_debug) then
-    do i=1,cdb_nFam
-      write(lout,"(a,a20,a,f13.6)") "COLLDB> DEBUG NSIG_FAM ",cdb_famName(i)," = ",cdb_famNSig(i)
-    end do
-    do i=1,cdb_nColl
-      write(lout,"(a14,a20,2(1x,f13.6),1x,a4,5(1x,f13.6))") "COLLDB> DEBUG ",cdb_cName(i),cdb_cNSig(i),&
-        cdb_cNSigOrig(i),cdb_cMaterial(i),cdb_cLength(i),cdb_cRotation(i),cdb_cOffset(i),cdb_cBx(i),cdb_cBy(i)
-    end do
-  end if
 
   call f_close(dbUnit)
 
@@ -598,8 +591,8 @@ subroutine cdb_writeFam
 
   integer j, famUnit
 
-  call f_requestUnit("coll_families.dat", famUnit)
-  call f_open(unit=famUnit,file="coll_families.dat",formatted=.true.,mode="w",status="replace")
+  call f_requestUnit("coll_families_dump.dat", famUnit)
+  call f_open(unit=famUnit,file="coll_families_dump.dat",formatted=.true.,mode="w",status="replace")
 
   write(famUnit,"(a16,2(1x,a13))") "# famName       ","nSig","nSigOrig"
   do j=1,cdb_nFam
@@ -610,6 +603,39 @@ subroutine cdb_writeFam
   call f_close(famUnit)
 
 end subroutine cdb_writeFam
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-04-09
+!  Updated: 2019-04-09
+!  Write collimator database to file
+! ================================================================================================ !
+subroutine cdb_writeDB
+
+  use mod_units
+
+  character(len=cdb_fNameLen) famName
+  integer j, dbUnit
+
+  call f_requestUnit("coll_db_dump.dat", dbUnit)
+  call f_open(unit=dbUnit,file="coll_db_dump.dat",formatted=.true.,mode="w",status="replace")
+
+  write(dbUnit,"(a20,1x,a16,2(1x,a13),1x,a4,5(1x,a13))") "# collName          ","famName         ","nSig",&
+    "nSigOrig","mat.","length","angle","offset","betax","betay"
+  do j=1,cdb_nColl
+    if(cdb_cFamily(j) > 0) then
+      famName = cdb_famName(cdb_cFamily(j))
+    else
+      famName = " "
+    end if
+    write(dbUnit,"(a20,1x,a16,2(1x,f13.6),1x,a4,5(1x,f13.6))") cdb_cName(j),famName,cdb_cNSig(j),&
+      cdb_cNSigOrig(j),cdb_cMaterial(j),cdb_cLength(j),cdb_cRotation(j),cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
+  end do
+
+  flush(dbUnit)
+  call f_close(dbUnit)
+
+end subroutine cdb_writeDB
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
