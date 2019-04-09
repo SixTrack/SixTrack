@@ -1,1 +1,2 @@
-dump.txt
+hash.md5
+final_state.dat

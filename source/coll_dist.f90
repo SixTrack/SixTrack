@@ -354,59 +354,59 @@ subroutine cdist_makeDist_fmt6
   do j=1,napx
 
     tmpX = &
-      xv1(j)   * sqrt(emitX)*tas(1,1,1) + &
-      yv1(j)   * sqrt(emitX)*tas(1,1,2) + &
-      xv2(j)   * sqrt(emitY)*tas(1,1,3) + &
-      yv2(j)   * sqrt(emitY)*tas(1,1,4) + &
-      sigmv(j) * sqrt(emitZ)*tas(1,1,5) + &
-      ejv(j)   * sqrt(emitZ)*tas(1,1,6) * c1m3
+      xv1(j)   * sqrt(emitX)*tas(1,1) + &
+      yv1(j)   * sqrt(emitX)*tas(1,2) + &
+      xv2(j)   * sqrt(emitY)*tas(1,3) + &
+      yv2(j)   * sqrt(emitY)*tas(1,4) + &
+      sigmv(j) * sqrt(emitZ)*tas(1,5) + &
+      ejv(j)   * sqrt(emitZ)*tas(1,6) * c1m3
 
     tmpXP = &
-      xv1(j)   * sqrt(emitX)*tas(1,2,1) + &
-      yv1(j)   * sqrt(emitX)*tas(1,2,2) + &
-      xv2(j)   * sqrt(emitY)*tas(1,2,3) + &
-      yv2(j)   * sqrt(emitY)*tas(1,2,4) + &
-      sigmv(j) * sqrt(emitZ)*tas(1,2,5) + &
-      ejv(j)   * sqrt(emitZ)*tas(1,2,6) * c1m3
+      xv1(j)   * sqrt(emitX)*tas(2,1) + &
+      yv1(j)   * sqrt(emitX)*tas(2,2) + &
+      xv2(j)   * sqrt(emitY)*tas(2,3) + &
+      yv2(j)   * sqrt(emitY)*tas(2,4) + &
+      sigmv(j) * sqrt(emitZ)*tas(2,5) + &
+      ejv(j)   * sqrt(emitZ)*tas(2,6) * c1m3
 
     tmpY = &
-      xv1(j)   * sqrt(emitX)*tas(1,3,1) + &
-      yv1(j)   * sqrt(emitX)*tas(1,3,2) + &
-      xv2(j)   * sqrt(emitY)*tas(1,3,3) + &
-      yv2(j)   * sqrt(emitY)*tas(1,3,4) + &
-      sigmv(j) * sqrt(emitZ)*tas(1,3,5) + &
-      ejv(j)   * sqrt(emitZ)*tas(1,3,6) * c1m3
+      xv1(j)   * sqrt(emitX)*tas(3,1) + &
+      yv1(j)   * sqrt(emitX)*tas(3,2) + &
+      xv2(j)   * sqrt(emitY)*tas(3,3) + &
+      yv2(j)   * sqrt(emitY)*tas(3,4) + &
+      sigmv(j) * sqrt(emitZ)*tas(3,5) + &
+      ejv(j)   * sqrt(emitZ)*tas(3,6) * c1m3
 
     tmpYP = &
-      xv1(j)   * sqrt(emitX)*tas(1,4,1) + &
-      yv1(j)   * sqrt(emitX)*tas(1,4,2) + &
-      xv2(j)   * sqrt(emitY)*tas(1,4,3) + &
-      yv2(j)   * sqrt(emitY)*tas(1,4,4) + &
-      sigmv(j) * sqrt(emitZ)*tas(1,4,5) + &
-      ejv(j)   * sqrt(emitZ)*tas(1,4,6) * c1m3
+      xv1(j)   * sqrt(emitX)*tas(4,1) + &
+      yv1(j)   * sqrt(emitX)*tas(4,2) + &
+      xv2(j)   * sqrt(emitY)*tas(4,3) + &
+      yv2(j)   * sqrt(emitY)*tas(4,4) + &
+      sigmv(j) * sqrt(emitZ)*tas(4,5) + &
+      ejv(j)   * sqrt(emitZ)*tas(4,6) * c1m3
 
     tmpS = &
-      xv1(j)   * sqrt(emitX)*tas(1,5,1) + &
-      yv1(j)   * sqrt(emitX)*tas(1,5,2) + &
-      xv2(j)   * sqrt(emitY)*tas(1,5,3) + &
-      yv2(j)   * sqrt(emitY)*tas(1,5,4) + &
-      sigmv(j) * sqrt(emitZ)*tas(1,5,5) + &
-      ejv(j)   * sqrt(emitZ)*tas(1,5,6) * c1m3
+      xv1(j)   * sqrt(emitX)*tas(5,1) + &
+      yv1(j)   * sqrt(emitX)*tas(5,2) + &
+      xv2(j)   * sqrt(emitY)*tas(5,3) + &
+      yv2(j)   * sqrt(emitY)*tas(5,4) + &
+      sigmv(j) * sqrt(emitZ)*tas(5,5) + &
+      ejv(j)   * sqrt(emitZ)*tas(5,6) * c1m3
 
     tmpE = &
-      xv1(j)   * sqrt(emitX)*tas(1,6,1)*c1e3 + &
-      yv1(j)   * sqrt(emitX)*tas(1,6,2)*c1e3 + &
-      xv2(j)   * sqrt(emitY)*tas(1,6,3)*c1e3 + &
-      yv2(j)   * sqrt(emitY)*tas(1,6,4)*c1e3 + &
-      sigmv(j) * sqrt(emitZ)*tas(1,6,5)*c1e3 + &
-      ejv(j)   * sqrt(emitZ)*tas(1,6,6)
+      xv1(j)   * sqrt(emitX)*tas(6,1)*c1e3 + &
+      yv1(j)   * sqrt(emitX)*tas(6,2)*c1e3 + &
+      xv2(j)   * sqrt(emitY)*tas(6,3)*c1e3 + &
+      yv2(j)   * sqrt(emitY)*tas(6,4)*c1e3 + &
+      sigmv(j) * sqrt(emitZ)*tas(6,5)*c1e3 + &
+      ejv(j)   * sqrt(emitZ)*tas(6,6)
 
     ! Add the momentum, convert to canonical variables dE/E with unit [1] from the closed orbit is added
     ! For the 4D coordinates the closed orbit will be added by SixTrack itself later on.
     xv1(j)   = tmpX
     xv2(j)   = tmpY
-    yv1(j)   = tmpXP*(one+tmpE+clop6v(3,1))
-    yv2(j)   = tmpYP*(one+tmpE+clop6v(3,1))
+    yv1(j)   = tmpXP*(one+tmpE+clop6v(3))
+    yv2(j)   = tmpYP*(one+tmpE+clop6v(3))
     sigmv(j) = tmpS*c1e3
     ejv(j)   = cdist_energy*(one+tmpE)
 

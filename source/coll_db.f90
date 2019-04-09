@@ -5,13 +5,15 @@ module coll_db
 
   use parpro
   use floatPrecision
+  use numerical_constants, only : c1e3
 
   implicit none
 
   public :: cdb_getFamilyID
   public :: cdb_getFamilyNSig
 
-  integer, parameter :: cdb_fNameLen = 16
+  integer,                  parameter     :: cdb_fNameLen  = 16     ! Length of collimator family name
+  real(kind=fPrec),         parameter     :: cdb_defColGap = c1e3   ! Default collimator gap in sigma
 
   character(len=mFileName), public,  save :: cdb_fileName = " "     ! Database file
   logical,                  private, save :: cdb_dbOld    = .false. ! Old or new DB format
@@ -20,25 +22,25 @@ module coll_db
   integer,                  public,  save :: cdb_nFam     = 0       ! Number of collimator families
 
   ! Database arrays
-  character(len=:), allocatable, public, save :: cdb_cName(:)     ! Collimator name
-  character(len=:), allocatable, public, save :: cdb_cNameUC(:)   ! Collimator name upper case
-  character(len=:), allocatable, public, save :: cdb_cMaterial(:) ! Collimator material
-  integer,          allocatable, public, save :: cdb_cFamily(:)   ! Collimator family
-  real(kind=fPrec), allocatable, public, save :: cdb_cNSig(:)     ! Collimator sigma
-  real(kind=fPrec), allocatable, public, save :: cdb_cNSigOrig(:) ! Collimator sigma
-  real(kind=fPrec), allocatable, public, save :: cdb_cLength(:)   ! Collimator length
-  real(kind=fPrec), allocatable, public, save :: cdb_cOffset(:)   ! Collimator offset
-  real(kind=fPrec), allocatable, public, save :: cdb_cRotation(:) ! Collimator rotation
-  real(kind=fPrec), allocatable, public, save :: cdb_cBx(:)       ! Collimator beta x
-  real(kind=fPrec), allocatable, public, save :: cdb_cBy(:)       ! Collimator beta y
-  logical,          allocatable, public, save :: cdb_cFound(:)    ! Found in lattice
+  character(len=:), allocatable, public, save :: cdb_cName(:)       ! Collimator name
+  character(len=:), allocatable, public, save :: cdb_cNameUC(:)     ! Collimator name upper case
+  character(len=:), allocatable, public, save :: cdb_cMaterial(:)   ! Collimator material
+  integer,          allocatable, public, save :: cdb_cFamily(:)     ! Collimator family
+  real(kind=fPrec), allocatable, public, save :: cdb_cNSig(:)       ! Collimator sigma
+  real(kind=fPrec), allocatable, public, save :: cdb_cNSigOrig(:)   ! Collimator sigma
+  real(kind=fPrec), allocatable, public, save :: cdb_cLength(:)     ! Collimator length
+  real(kind=fPrec), allocatable, public, save :: cdb_cOffset(:)     ! Collimator offset
+  real(kind=fPrec), allocatable, public, save :: cdb_cRotation(:)   ! Collimator rotation
+  real(kind=fPrec), allocatable, public, save :: cdb_cBx(:)         ! Collimator beta x
+  real(kind=fPrec), allocatable, public, save :: cdb_cBy(:)         ! Collimator beta y
+  logical,          allocatable, public, save :: cdb_cFound(:)      ! Found in lattice
 
   ! Family Arrays
-  character(len=:), allocatable, public, save :: cdb_famName(:)  ! Family name
-  real(kind=fPrec), allocatable, public, save :: cdb_famNSig(:)  ! Family sigma
+  character(len=:), allocatable, public, save :: cdb_famName(:)     ! Family name
+  real(kind=fPrec), allocatable, public, save :: cdb_famNSig(:)     ! Family sigma
 
   ! Element Map
-  integer,          allocatable, public, save :: cdb_elemMap(:)  ! Map from single elements to DB
+  integer,          allocatable, public, save :: cdb_elemMap(:)     ! Map from single elements to DB
 
 contains
 
@@ -67,8 +69,8 @@ subroutine cdb_allocFam
   use mod_alloc
   use numerical_constants
 
-  call alloc(cdb_famName, cdb_fNameLen, cdb_nFam, " ",  "cdb_famName")
-  call alloc(cdb_famNSig,               cdb_nFam, c1e3, "cdb_famNSig")
+  call alloc(cdb_famName, cdb_fNameLen, cdb_nFam, " ",           "cdb_famName")
+  call alloc(cdb_famNSig,               cdb_nFam, cdb_defColGap, "cdb_famNSig")
 
 end subroutine cdb_allocFam
 
@@ -363,7 +365,7 @@ subroutine cdb_readDB_oldFormat
     iLine = iLine + 1
     if(ioStat /= 0) goto 100
 
-    ! Line 2: Upper case name, ignored
+    ! Line 2: Upper case name
     read(dbUnit,*,iostat=ioStat) cdb_cNameUC(j)
     iLine = iLine + 1
     if(ioStat /= 0) goto 100
@@ -373,7 +375,7 @@ subroutine cdb_readDB_oldFormat
     iLine = iLine + 1
     if(ioStat /= 0) goto 100
 
-    ! Line 4: Sigma
+    ! Line 4: Collimator setting
     read(dbUnit,*,iostat=ioStat) inLine
     iLine = iLine + 1
     if(ioStat /= 0) goto 100
@@ -707,7 +709,7 @@ subroutine cdb_generateFamName(inElem, famName)
     famName = "tclp"
   else if(elemName(1:4) == "tcli") then
     famName = "tcli"
-  else if(elemName(1:4) == "tcxr") then
+  else if(elemName(1:4) == "tcxr" .or. elemName(1:3) == "xrp") then
     famName = "tcxrp"
   else if(elemName(1:5) == "tcryo" .or. elemName(1:5) == "tcld.") then
     famName = "tcryo"

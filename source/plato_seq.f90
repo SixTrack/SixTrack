@@ -373,6 +373,14 @@ module platoFMA
           NFTMAX=NFT
         END IF
       ENDDO
+
+      ! VKBO Bugfix for Debug build type
+      ! Make sure nftmax is greater than 1, or we may get a segfault in the next lines
+      if(nftmax <= 1) then
+        tuneabt2 = one
+        return
+      end if
+
       CF1=ABS(ZSING(NFTMAX-1))
       CF2=ABS(ZSING(NFTMAX))
       CF3=ABS(ZSING(NFTMAX+1))
@@ -933,6 +941,13 @@ module platoFMA
           AMAX=ABS(Z(I))
         ENDIF
       ENDDO
+
+      ! VKBO Bugfix for Debug build type
+      ! Make sure itune is greater than 1, or we may get a segfault in the next lines
+      if(itune <= 1) then
+        tuneffti = one
+        return
+      end if
 !C..............................EVALUATION OF THE NEARBY PEAKS
       X1=ITUNE-1
       X2=ITUNE
@@ -1090,4 +1105,4 @@ module platoFMA
 !C............................................................
       END FUNCTION
 
-end module platofma
+end module platoFMA

@@ -41,6 +41,9 @@ doc/*/*.bbl
 doc/*/*.blg
 doc/*/*.ilg
 doc/*/*.idx
+doc/*/*.fls
+doc/*/*.ind
+doc/*/*.fdb_latexmk
 doc/*/*.synctex.gz
 
 # Python

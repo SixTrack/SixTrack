@@ -1074,6 +1074,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   integer nSplit, famID
   logical spErr, fErr
 
+  nSigIn(:) = cdb_defColGap
+
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
     write(lout,"(a)") "COLL> ERROR Failed to parse input line."
@@ -1086,8 +1088,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("DO_COLL")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR DOCOLL expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DOCOLL true|false"
+      write(lout,"(a,i0)") "COLL> ERROR DO_COLL expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DO_COLL true|false"
       iErr = .true.
       return
     end if
@@ -1096,6 +1098,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   case("ENERGY")
     if(nSplit /= 2) then
       write(lout,"(a,i0)") "COLL> ERROR ENERGY expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       ENERGY energy[MeV]"
       iErr = .true.
       return
     end if
@@ -1121,16 +1124,17 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 1)  call chr_cast(lnSplit(2), cdist_ampX,     iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), cdist_smearX,   iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), cdist_ampY,     iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), cdist_smearY,   iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), cdist_spreadE,  iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), cdist_bunchLen, iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2), cdist_ampX,     iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3), cdist_smearX,   iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4), cdist_ampY,     iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5), cdist_smearY,   iErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6), cdist_spreadE,  iErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7), cdist_bunchLen, iErr)
 
   case("DIST_FILE")
     if(nSplit /= 2) then
       write(lout,"(a,i0)") "COLL> ERROR DIST_FILE expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DIST_FILE filename"
       iErr = .true.
       return
     end if
@@ -1151,12 +1155,20 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(3),rTmp,iErr)
     call cdb_addFamily(lnSplit(2),rTmp,famID,fErr)
-    cdb_doNSig = .true. ! This needs to be on for new block + old colldb
     if(fErr) then
       write(lout,"(a,i0)") "COLL> ERROR NSIG_FAM family '"//trim(lnSplit(2))//"' defined more than once"
       iErr = .true.
       return
     end if
+
+  case("DO_NSIG")
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR DO_NSIG expects 1 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DO_NSIG true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), cdb_doNSig, iErr)
 
   case("JAW_SLICE")
     if(nSplit /= 6) then
@@ -1214,22 +1226,14 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(5), emitny0_collgap,iErr)
 
   case("DO_SELECT")
-    if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR DO_SELECT expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DO_SELECT true|false"
+    if(nSplit /= 3) then
+      write(lout,"(a,i0)") "COLL> ERROR DO_SELECT expects 2 value, got ",nSplit-1
+      write(lout,"(a)")    "COLL>       DO_SELECT true|false name"
       iErr = .true.
       return
     end if
     call chr_cast(lnSplit(2), do_select, iErr)
-
-  case("NAME_SEL")
-    if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR NAME_SEL expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       NAME_SEL collimator_name"
-      iErr = .true.
-      return
-    end if
-    name_sel  = trim(lnSplit(2))
+    name_sel = trim(lnSplit(3))
 
   case("DO_NOMINAL")
     if(nSplit /= 2) then
@@ -1358,23 +1362,15 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(2), do_mingap, iErr)
 
   ! case("DO_RADIAL")
-  !   if(nSplit /= 2) then
-  !     write(lout,"(a,i0)") "COLL> ERROR DO_RADIAL expects 1 value, got ",nSplit-1
-  !     write(lout,"(a)")    "COLL>       DO_RADIAL true|false"
+  !   if(nSplit /= 4) then
+  !     write(lout,"(a,i0)") "COLL> ERROR DO_RADIAL expects 3 values, got ",nSplit-1
+  !     write(lout,"(a)")    "COLL>       DO_RADIAL true|false size smear"
   !     iErr = .true.
   !     return
   !   end if
   !   call chr_cast(lnSplit(2), radial, iErr)
-
-  ! case("RADIAL_DIST")
-  !   if(nSplit /= 3) then
-  !     write(lout,"(a,i0)") "COLL> ERROR RADIAL_DIST expects 2 values, got ",nSplit-1
-  !     write(lout,"(a)")    "COLL>       RADIAL_DIST size smear"
-  !     iErr = .true.
-  !     return
-  !   end if
-  !   call chr_cast(lnSplit(2), nr,  iErr)
-  !   call chr_cast(lnSplit(3), ndr, iErr)
+  !   call chr_cast(lnSplit(3), nr,     iErr)
+  !   call chr_cast(lnSplit(4), ndr,    iErr)
 
   case("EMIT_DRIFT")
     if(nSplit /= 3) then
@@ -2100,7 +2096,7 @@ subroutine collimate_start_sample(nsample)
     if(cdb_elemMap(myix) > 0) then
       nsig = cdb_cNSig(cdb_elemMap(myix))
     else
-      nsig = c1e3
+      nsig = cdb_defColGap
     end if
 
     do i = 1, cdb_nColl
@@ -2259,7 +2255,7 @@ subroutine collimate_start_collimator(stracki)
   if(cdb_elemMap(myix) > 0) then
     nsig = cdb_cNSig(cdb_elemMap(myix))
   else
-    nsig = c1e3
+    nsig = cdb_defColGap
   end if
 
 !++  Write trajectory for any selected particle

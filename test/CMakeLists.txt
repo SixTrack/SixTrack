@@ -86,6 +86,7 @@ list(APPEND SIXTRACK_TESTS
   fcc
   fma
   fma_binary
+  fringe_field
   frs
   frs60
   generalized-rf-multipoles
@@ -97,7 +98,6 @@ list(APPEND SIXTRACK_TESTS
   lostevery
   lostnotilt
   lostnumxv
-  momentum_scan
   multipoles_DYNK
   notilt
   orbit6d-element-combinedFunction
@@ -155,7 +155,7 @@ if(NOT CR)
     collimation_dist_4
     collimation_dist_5
     collimation_dist_6
-    collimation_k2_fcc_2017_h1_collision
+    collimation_k2
     collimation_new-db_new-block
     collimation_old-db_new-block
     collimation_old-db_old-block
@@ -217,7 +217,7 @@ set(TESTS_NOFORT10
   collimation_dist_4
   collimation_dist_5
   collimation_dist_6
-  collimation_k2_fcc_2017_h1_collision
+  collimation_k2
   collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
@@ -235,11 +235,11 @@ set(TESTS_NOFORT10
   dynk_random
   elensidealthck6d
   exact
+  fringe_field
   generalized-rf-multipoles
   generalized-rf-multipoles-missalignments
   geometry
   geometry_multicol
-  momentum_scan
   multipoles_DYNK
   orbit6d-element-combinedFunction
   orbit6d-element-quadrupole
@@ -276,7 +276,7 @@ set(TESTS_NO_STF_FORT90
   collimation_dist_4
   collimation_dist_5
   collimation_dist_6
-  collimation_k2_fcc_2017_h1_collision
+  collimation_k2
   collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
@@ -294,6 +294,8 @@ set(TESTS_NO_STF_FORT90
   fma
   fma_binary
   fma_naff
+  fringe_field
+  geometry
   geometry_multicol
   rfMultipoles_2ndOrder
   rfMultipoles_4thOrder
@@ -561,7 +563,6 @@ set(FAST_TESTS
   lost
   lostnotilt
   lostnumxv
-  momentum_scan
   multipoles_DYNK
   notilt
   orbit6d-element-combinedFunction
@@ -593,18 +594,19 @@ set(FAST_TESTS
   wire_thin6d_ibeco0
 )
 
-#Medium tests take < 30 mins to run
+# Medium tests take < 30 mins to run
 set(MEDIUM_TESTS
   bbe51
   bbe52
   bbe571ib0
-  collimation_k2_fcc_2017_h1_collision
+  collimation_k2
   dipedge
   distance
   eric
   fma
   fma_binary
   fma_naff
+  fringe_field
   frs
   frs60
   lostevery
