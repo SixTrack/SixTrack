@@ -223,7 +223,6 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   dimension fokqv(npart),dpsv(npart)
   dimension rvv(npart),oidpsv(npart)
   dimension dpd(npart),dpsq(npart)
-  dimension rhoi(npart)
 
   real(kind=fPrec) fokm
 
@@ -582,8 +581,8 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
 !  EDGE FOCUSSING
 !-----------------------------------------------------------------------
 140   do 150 j=1,napx
-      rhoi(j)=ed(l)/dpsq(j)
-      fok=rhoi(j)*tan_mb((el(l)*rhoi(j))*half)                    !hr06
+      rhoi=ed(l)/dpsq(j)
+      fok=rhoi*tan_mb((el(l)*rhoi)*half)                    !hr06
       al(1,1,j,l)=one
       al(2,1,j,l)=zero
       al(3,1,j,l)=fok

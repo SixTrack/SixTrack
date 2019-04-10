@@ -1887,16 +1887,18 @@ subroutine synuthck
   implicit none
   integer ih1,ih2,j,kz1,l
   real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23,as3,as4,as6,g,gl,rhoc,siq,aek,hi,  &
-    fi,hi1,hp,hm,hc,hs,wf,afok,wfa,wfhi
+    fi,hi1,hp,hm,hc,hs,wf,afok,wfa,wfhi,rhoi
+
   save
-!---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
+
 #ifdef CR
   sythckcr=.true.
 #endif
-  do 10 j=1,napx
-    dpd(j)=one+dpsv(j)
-    dpsq(j)=sqrt(dpd(j))
-10 continue
+  do j=1,napx
+    dpd(j)  = one+dpsv(j)
+    dpsq(j) = sqrt(dpd(j))
+  end do
+
   do 160 l=1,il
     if(abs(el(l)).le.pieni) goto 160
     kz1=kz(l)+1
@@ -2183,25 +2185,25 @@ subroutine synuthck
 !  EDGE FOCUSSING
 !-----------------------------------------------------------------------
 140   do j=1,napx
-        rhoi(j)=ed(l)/dpsq(j)
-        fok=rhoi(j)*tan_mb((el(l)*rhoi(j))*half)                  !hr01
-        al(3,1,j,l)=fok
-        al(3,2,j,l)=-fok
+        rhoi = ed(l)/dpsq(j)
+        fok  = rhoi*tan_mb((el(l)*rhoi)*half)                  !hr01
+        al(3,1,j,l) = fok
+        al(3,2,j,l) = -fok
       end do
       goto 160
     else
 !Eric
 ! Is really an error but old code went to 160
       goto 160
-    endif
+    end if
 !-----------------------------------------------------------------------
 !  DRIFTLENGTH
 !-----------------------------------------------------------------------
-20   do 30 j=1,napx
-      as(6,1,j,l)=((-one*rvv(j))*el(l))/c2e3                         !hr01
-      as(6,2,j,l)=as(6,1,j,l)
-      as(1,1,j,l)=(el(l)*(one-rvv(j)))*c1e3                          !hr01
-30   continue
+20  do j=1,napx
+      as(6,1,j,l) = ((-one*rvv(j))*el(l))/c2e3                         !hr01
+      as(6,2,j,l) = as(6,1,j,l)
+      as(1,1,j,l) = (el(l)*(one-rvv(j)))*c1e3                          !hr01
+    end do
 160 continue
 !---------------------------------------  END OF 'ENVARS' (2)
   return

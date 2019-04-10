@@ -360,7 +360,7 @@ subroutine crcheck
 !       (fi(j),j=1,crnapxo),                                &
 !       (fok(j),j=1,crnapxo),                               &
 !       (fok1(j),j=1,crnapxo),                              &
-        (fokqv(j),j=1,crnapxo),                             &
+        (fokqv(j),j=1,crnapxo)!,                             &
 !       (g(j),j=1,crnapxo),                                 &
 !       (gl(j),j=1,crnapxo),                                &
 !       (hc(j),j=1,crnapxo),                                &
@@ -371,7 +371,7 @@ subroutine crcheck
 !       (hs(j),j=1,crnapxo),                                &
 !       (rho(j),j=1,crnapxo),                               &
 !       (rhoc(j),j=1,crnapxo),                              &
-        (rhoi(j),j=1,crnapxo)!,                              &
+!       (rhoi(j),j=1,crnapxo),                              &
 !       (si(j),j=1,crnapxo),                                &
 !       (siq(j),j=1,crnapxo),                               &
 !       (sm1(j),j=1,crnapxo),                               &
@@ -500,7 +500,7 @@ subroutine crcheck
 !       (fi(j),j=1,crnapxo),                                &
 !       (fok(j),j=1,crnapxo),                               &
 !       (fok1(j),j=1,crnapxo),                              &
-        (fokqv(j),j=1,crnapxo),                             &
+        (fokqv(j),j=1,crnapxo)!,                             &
 !       (g(j),j=1,crnapxo),                                 &
 !       (gl(j),j=1,crnapxo),                                &
 !       (hc(j),j=1,crnapxo),                                &
@@ -511,7 +511,7 @@ subroutine crcheck
 !       (hs(j),j=1,crnapxo),                                &
 !       (rho(j),j=1,crnapxo),                               &
 !       (rhoc(j),j=1,crnapxo),                              &
-        (rhoi(j),j=1,crnapxo)!,                              &
+!       (rhoi(j),j=1,crnapxo),                              &
 !       (si(j),j=1,crnapxo),                                &
 !       (siq(j),j=1,crnapxo),                               &
 !       (sm1(j),j=1,crnapxo),                               &
@@ -1096,7 +1096,7 @@ subroutine crpoint
 !       (fi(j),j=1,napxo),           &
 !       (fok(j),j=1,napxo),          &
 !       (fok1(j),j=1,napxo),         &
-        (fokqv(j),j=1,napxo),        &
+        (fokqv(j),j=1,napxo)!,        &
 !       (g(j),j=1,napxo),            &
 !       (gl(j),j=1,napxo),           &
 !       (hc(j),j=1,napxo),           &
@@ -1107,7 +1107,7 @@ subroutine crpoint
 !       (hs(j),j=1,napxo),           &
 !       (rho(j),j=1,napxo),          &
 !       (rhoc(j),j=1,napxo),         &
-        (rhoi(j),j=1,napxo)!,         &
+!       (rhoi(j),j=1,napxo),         &
 !       (si(j),j=1,napxo),           &
 !       (siq(j),j=1,napxo),          &
 !       (sm1(j),j=1,napxo),          &
@@ -1324,7 +1324,7 @@ subroutine crstart
 !       (fi(j),j=1,napxo),    &
 !       (fok(j),j=1,napxo),   &
 !       (fok1(j),j=1,napxo),  &
-        (fokqv(j),j=1,napxo), &
+        (fokqv(j),j=1,napxo)!, &
 !       (g(j),j=1,napxo),     &
 !       (gl(j),j=1,napxo),    &
 !       (hc(j),j=1,napxo),    &
@@ -1335,7 +1335,7 @@ subroutine crstart
 !       (hs(j),j=1,napxo),    &
 !       (rho(j),j=1,napxo),   &
 !       (rhoc(j),j=1,napxo),  &
-        (rhoi(j),j=1,napxo)!,  &
+!       (rhoi(j),j=1,napxo),  &
 !       (si(j),j=1,napxo),    &
 !       (siq(j),j=1,napxo),   &
 !       (sm1(j),j=1,napxo),   &
@@ -1368,7 +1368,7 @@ subroutine crstart
 !       (fi(j),j=1,napxo),    &
 !       (fok(j),j=1,napxo),   &
 !       (fok1(j),j=1,napxo),  &
-        (fokqv(j),j=1,napxo), &
+        (fokqv(j),j=1,napxo)!, &
 !       (g(j),j=1,napxo),     &
 !       (gl(j),j=1,napxo),    &
 !       (hc(j),j=1,napxo),    &
@@ -1379,7 +1379,7 @@ subroutine crstart
 !       (hs(j),j=1,napxo),    &
 !       (rho(j),j=1,napxo),   &
 !       (rhoc(j),j=1,napxo),  &
-        (rhoi(j),j=1,napxo)!,  &
+!       (rhoi(j),j=1,napxo),  &
 !       (si(j),j=1,napxo),    &
 !       (siq(j),j=1,napxo),   &
 !       (sm1(j),j=1,napxo),   &
