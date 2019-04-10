@@ -148,8 +148,8 @@ subroutine blocksv
 
 #ifdef FLUKA
   ! Entirely re-initialise to 0.0 hv(...) and bl1v(...) arrays
-  hv(:,:,:)   = zero
-  bl1v(:,:,:) = zero
+  hv(:,:,:)     = zero
+  bl1v(:,:,:,:) = zero
 #endif
   do ia=1,napx
     do k=1,mblo
