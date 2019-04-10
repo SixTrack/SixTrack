@@ -223,7 +223,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   dimension fokqv(npart),dpsv(npart)
   dimension rvv(npart),oidpsv(npart)
   dimension dpd(npart),dpsq(npart)
-  dimension aek(npart),afok(npart)
+  dimension afok(npart)
   dimension hp(npart),hm(npart),hc(npart),hs(npart),wf(npart)
   dimension wfa(npart),wfhi(npart),rhoi(npart)
   dimension hi(npart),fi(npart),hi1(npart)
@@ -388,8 +388,8 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
 !-----------------------------------------------------------------------
 80   do 90 j=1,napx
       fok=ekv(j,l)*oidpsv(j)
-      aek(j)=abs(fok)
-      hi(j)=sqrt(aek(j))
+      aek=abs(fok)
+      hi(j)=sqrt(aek)
       fi(j)=el(l)*hi(j)
       if(fok.le.zero) then
         al(1,1,j,l)=cos_mb(fi(j))
@@ -404,7 +404,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
         as(1,1,j,l)=(el(l)*(one-rvv(j)))*c1e3                        !hr06
         as(4,1,j,l)=(((-one*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3   !hr06
       as(5,1,j,l)=(((-one*rvv(j))*(el(l)-al(1,1,j,l)*al(2,1,j,l)))* &!hr06
-  &aek(j))/c4e3                                                       !hr06
+  &aek)/c4e3                                                       !hr06
   as(6,1,j,l)=((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3   !hr06
 !--DEFOCUSSING
         hp(j)=exp_mb(fi(j))
@@ -420,7 +420,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
         al(3,2,j,l)=hs(j)*hi(j)
         al(4,2,j,l)=hc(j)
         as(4,2,j,l)=((-one*rvv(j))*al(2,2,j,l)*al(3,2,j,l))/c2e3     !hr06
-      as(5,2,j,l)=((rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek(j)) &!hr06
+      as(5,2,j,l)=((rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek) &!hr06
   &/c4e3                                                              !hr06
   as(6,2,j,l)=((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3   !hr06
       else
@@ -436,7 +436,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
         as(1,2,j,l)=(el(l)*(one-rvv(j)))*c1e3                        !hr06
         as(4,2,j,l)=(((-one*rvv(j))*al(2,2,j,l))*al(3,2,j,l))/c2e3   !hr06
       as(5,2,j,l)=(((-one*rvv(j))*(el(l)-al(1,2,j,l)*al(2,2,j,l)))* &!hr06
-  &aek(j))/c4e3                                                       !hr06
+  &aek)/c4e3                                                       !hr06
   as(6,2,j,l)=((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3   !hr06
 !--DEFOCUSSING
         hp(j)=exp_mb(fi(j))
@@ -452,7 +452,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
         al(3,1,j,l)=hs(j)*hi(j)
         al(4,1,j,l)=hc(j)
         as(4,1,j,l)=(((-one*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3   !hr06
-      as(5,1,j,l)=((rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*aek(j)) &!hr06
+      as(5,1,j,l)=((rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*aek) &!hr06
   &/c4e3                                                              !hr06
   as(6,1,j,l)=((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3   !hr06
       endif
@@ -519,8 +519,8 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
         as(5,ih1,j,l)=(((-one*rvv(j))*sm12)*afok(j))/c4e3         !hr06
   as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))) &!hr06
   &/c4e3                                                              !hr06
-        aek(j)=abs(ekv(j,l)/dpd(j))
-        hi(j)=sqrt(aek(j))
+        aek=abs(ekv(j,l)/dpd(j))
+        hi(j)=sqrt(aek)
         fi(j)=hi(j)*el(l)
         hp(j)=exp_mb(fi(j))
         hm(j)=one/hp(j)
@@ -533,7 +533,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
         al(4,ih2,j,l)=hc(j)
   as(4,ih2,j,l)=(((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3   !hr06
       as(5,ih2,j,l)=((rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*  &!hr06
-  &aek(j))/c4e3                                                       !hr06
+  &aek)/c4e3                                                       !hr06
   as(6,ih2,j,l)=((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l))) &!hr06
   &/c4e3                                                              !hr06
       endif
@@ -564,8 +564,8 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
         as(5,ih1,j,l)=((rvv(j)*sm12)*afok(j))/c4e3                !hr06
   as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))) &!hr06
   &/c4e3                                                              !hr06
-        aek(j)=abs(ekv(j,l)/dpd(j))
-        hi(j)=sqrt(aek(j))
+        aek=abs(ekv(j,l)/dpd(j))
+        hi(j)=sqrt(aek)
         fi(j)=hi(j)*el(l)
         si=sin_mb(fi(j))
         co=cos_mb(fi(j))
@@ -575,7 +575,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
         al(4,ih2,j,l)=co
   as(4,ih2,j,l)=(((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3   !hr06
   as(5,ih2,j,l)=(((-one*rvv(j))*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))&!hr06
-  &*aek(j))/c4e3                                                      !hr06
+  &*aek)/c4e3                                                      !hr06
   as(6,ih2,j,l)=((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l))) &!hr06
   &/c4e3                                                              !hr06
       endif
