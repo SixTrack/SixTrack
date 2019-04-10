@@ -1886,7 +1886,7 @@ subroutine synuthck
   use mod_common_da
   implicit none
   integer ih1,ih2,j,kz1,l
-  real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23,as3,as4,as6,g,gl,rhoc
+  real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23,as3,as4,as6,g,gl,rhoc,siq
   save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 #ifdef CR
@@ -1974,22 +1974,22 @@ subroutine synuthck
         ih2=1
       endif
       do 70 j=1,napx
-        fok = fokm/dpsq(j)
-        rho = (one/ed(l))*dpsq(j)
-        si  = sin_mb(fok)
-        co  = cos_mb(fok)
-        rhoc=(rho*(one-co))/dpsq(j)                         !hr01
-        siq(j)=si/dpsq(j)
+        fok  = fokm/dpsq(j)
+        rho  = (one/ed(l))*dpsq(j)
+        si   = sin_mb(fok)
+        co   = cos_mb(fok)
+        rhoc = (rho*(one-co))/dpsq(j)
+        siq=si/dpsq(j)
         al(1,ih1,j,l)=co
         al(2,ih1,j,l)=rho*si
         al(3,ih1,j,l)=(-one*si)/rho                            !hr01
         al(4,ih1,j,l)=co
         al(5,ih1,j,l)=((-one*dpsv(j))*rhoc)*c1e3                  !hr01
-        al(6,ih1,j,l)=((-one*dpsv(j))*siq(j))*c1e3                   !hr01
+        al(6,ih1,j,l)=((-one*dpsv(j))*siq)*c1e3                   !hr01
         sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
         sm23=al(2,ih1,j,l)*al(3,ih1,j,l)
         as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12+dpsv(j)*(el(l)-al(2,ih1,j,l))))*c1e3
-        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/(two*rho*dpsq(j)))*sm12-dpd(j)*siq(j))
+        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/(two*rho*dpsq(j)))*sm12-dpd(j)*siq)
         as(3,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23-dpd(j)*rhoc)
         as(4,ih1,j,l)=((-one*rvv(j))*sm23)/c2e3                   !hr01
         as(5,ih1,j,l)=((-one*rvv(j))*sm12)/((c4e3*rho)*rho) !hr01

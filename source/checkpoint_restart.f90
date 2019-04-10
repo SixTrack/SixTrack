@@ -373,7 +373,7 @@ subroutine crcheck
 !       (rhoc(j),j=1,crnapxo),                              &
         (rhoi(j),j=1,crnapxo),                              &
 !       (si(j),j=1,crnapxo),                                &
-        (siq(j),j=1,crnapxo),                               &
+!       (siq(j),j=1,crnapxo),                               &
 !       (sm1(j),j=1,crnapxo),                               &
 !       (sm12(j),j=1,crnapxo),                              &
 !       (sm2(j),j=1,crnapxo),                               &
@@ -513,7 +513,7 @@ subroutine crcheck
 !       (rhoc(j),j=1,crnapxo),                              &
         (rhoi(j),j=1,crnapxo),                              &
 !       (si(j),j=1,crnapxo),                                &
-        (siq(j),j=1,crnapxo),                               &
+!       (siq(j),j=1,crnapxo),                               &
 !       (sm1(j),j=1,crnapxo),                               &
 !       (sm12(j),j=1,crnapxo),                              &
 !       (sm2(j),j=1,crnapxo),                               &
@@ -1109,7 +1109,7 @@ subroutine crpoint
 !       (rhoc(j),j=1,napxo),         &
         (rhoi(j),j=1,napxo),         &
 !       (si(j),j=1,napxo),           &
-        (siq(j),j=1,napxo),          &
+!       (siq(j),j=1,napxo),          &
 !       (sm1(j),j=1,napxo),          &
 !       (sm12(j),j=1,napxo),         &
 !       (sm2(j),j=1,napxo),          &
@@ -1337,7 +1337,7 @@ subroutine crstart
 !       (rhoc(j),j=1,napxo),  &
         (rhoi(j),j=1,napxo),  &
 !       (si(j),j=1,napxo),    &
-        (siq(j),j=1,napxo),   &
+!       (siq(j),j=1,napxo),   &
 !       (sm1(j),j=1,napxo),   &
 !       (sm12(j),j=1,napxo),  &
 !       (sm2(j),j=1,napxo),   &
@@ -1381,7 +1381,7 @@ subroutine crstart
 !       (rhoc(j),j=1,napxo),  &
         (rhoi(j),j=1,napxo),  &
 !       (si(j),j=1,napxo),    &
-        (siq(j),j=1,napxo),   &
+!       (siq(j),j=1,napxo),   &
 !       (sm1(j),j=1,napxo),   &
 !       (sm12(j),j=1,napxo),  &
 !       (sm2(j),j=1,napxo),   &
