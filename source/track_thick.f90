@@ -1887,7 +1887,7 @@ subroutine synuthck
   implicit none
   integer ih1,ih2,j,kz1,l
   real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23,as3,as4,as6,g,gl,rhoc,siq,aek,hi,  &
-    fi,hi1,hp,hm,hc,hs,wf
+    fi,hi1,hp,hm,hc,hs,wf,afok
   save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 #ifdef CR
@@ -2092,10 +2092,10 @@ subroutine synuthck
       do j=1,napx
         wf=ed(l)/dpsq(j)
         fok=fokqv(j)/dpd(j)-wf**2                              !hr01
-        afok(j)=abs(fok)
-        hi=sqrt(afok(j))
+        afok=abs(fok)
+        hi=sqrt(afok)
         fi=hi*el(l)
-        if(afok(j).le.pieni) then
+        if(afok.le.pieni) then
           as(6,1,j,l)=((-one*rvv(j))*el(l))/c2e3                     !hr01
           as(6,2,j,l)=as(6,1,j,l)
           as(1,1,j,l)=(el(l)*(one-rvv(j)))*c1e3                      !hr01
@@ -2103,7 +2103,7 @@ subroutine synuthck
         if(fok.lt.(-one*pieni)) then                              !hr06
           si=sin_mb(fi)
           co=cos_mb(fi)
-          wfa(j)=((wf/afok(j))*(one-co))/dpsq(j)               !hr01
+          wfa(j)=((wf/afok)*(one-co))/dpsq(j)               !hr01
           wfhi(j)=((wf/hi)*si)/dpsq(j)                      !hr01
           al(1,ih1,j,l)=co
           al(2,ih1,j,l)=si/hi
@@ -2114,11 +2114,11 @@ subroutine synuthck
           sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
           sm23=al(2,ih1,j,l)*al(3,ih1,j,l)
           as(1,ih1,j,l)=(el(l)*(one-rvv(j))-((rvv(j)*((dpsv(j)**2/(four*dpd(j)))&
-            *sm12+dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf**2)*c1e3
+            *sm12+dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok)*wf**2)*c1e3
           as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf)/(two*dpsq(j)))*sm12-dpd(j)*wfhi(j))
-          as(3,ih1,j,l)=(-one*rvv(j))*(((((dpsv(j)*half)/afok(j))/dpd(j))*ed(l))*sm23-dpd(j)*wfa(j))
+          as(3,ih1,j,l)=(-one*rvv(j))*(((((dpsv(j)*half)/afok)/dpd(j))*ed(l))*sm23-dpd(j)*wfa(j))
           as(4,ih1,j,l)=((-one*rvv(j))*sm23)/c2e3
-          as(5,ih1,j,l)=(((-one*rvv(j))*sm12)*afok(j))/c4e3
+          as(5,ih1,j,l)=(((-one*rvv(j))*sm12)*afok)/c4e3
           as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
           aek=abs(ekv(j,l)/dpd(j))
           hi=sqrt(aek)
@@ -2145,18 +2145,18 @@ subroutine synuthck
           al(2,ih1,j,l)=hs/hi
           al(3,ih1,j,l)=hs*hi
           al(4,ih1,j,l)=hc
-          wfa(j)=((wf/afok(j))*(one-hc))/dpsq(j)               !hr01
+          wfa(j)=((wf/afok)*(one-hc))/dpsq(j)               !hr01
           wfhi(j)=((wf/hi)*hs)/dpsq(j)                      !hr01
           al(5,ih1,j,l)= (wfa(j)*dpsv(j))*c1e3                       !hr01
           al(6,ih1,j,l)=((-one*wfhi(j))*dpsv(j))*c1e3                !hr01
           sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
           sm23=al(2,ih1,j,l)*al(3,ih1,j,l)
           as(1,ih1,j,l)=(((rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12&
-            +dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf**2+el(l)*(one-rvv(j)))*c1e3
+            +dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok)*wf**2+el(l)*(one-rvv(j)))*c1e3
           as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf)/(two*dpsq(j)))*sm12-dpd(j)*wfhi(j))
-          as(3,ih1,j,l)=rvv(j)*(((((dpsv(j)*half)/afok(j))/dpd(j))* ed(l))*sm23-dpd(j)*wfa(j))
+          as(3,ih1,j,l)=rvv(j)*(((((dpsv(j)*half)/afok)/dpd(j))* ed(l))*sm23-dpd(j)*wfa(j))
           as(4,ih1,j,l)=((-one*rvv(j))*sm23)/c2e3                 !hr01
-          as(5,ih1,j,l)=((rvv(j)*sm12)*afok(j))/c4e3              !hr01
+          as(5,ih1,j,l)=((rvv(j)*sm12)*afok)/c4e3              !hr01
           as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
           aek=abs(ekv(j,l)/dpd(j))
           hi=sqrt(aek)

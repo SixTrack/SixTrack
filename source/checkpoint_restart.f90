@@ -350,7 +350,7 @@ subroutine crcheck
         ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
         ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
 !       (aek(j),j=1,crnapxo),                               &
-        (afok(j),j=1,crnapxo),                              &
+!       (afok(j),j=1,crnapxo),                              &
 !       (as3(j),j=1,crnapxo),                               &
 !       (as4(j),j=1,crnapxo),                               &
 !       (as6(j),j=1,crnapxo),                               &
@@ -490,7 +490,7 @@ subroutine crcheck
         ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
         ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
 !       (aek(j),j=1,crnapxo),                               &
-        (afok(j),j=1,crnapxo),                              &
+!       (afok(j),j=1,crnapxo),                              &
 !       (as3(j),j=1,crnapxo),                               &
 !       (as4(j),j=1,crnapxo),                               &
 !       (as6(j),j=1,crnapxo),                               &
@@ -1086,7 +1086,7 @@ subroutine crpoint
 
       write(crUnit,err=100,iostat=ierro) &
 !       (aek(j),j=1,napxo),          &
-        (afok(j),j=1,napxo),         &
+!       (afok(j),j=1,napxo),         &
 !       (as3(j),j=1,napxo),          &
 !       (as4(j),j=1,napxo),          &
 !       (as6(j),j=1,napxo),          &
@@ -1314,7 +1314,7 @@ subroutine crstart
 
       read(95,end=100,err=100,iostat=ierro) &
 !       (aek(j),j=1,napxo),   &
-        (afok(j),j=1,napxo),  &
+!       (afok(j),j=1,napxo),  &
 !       (as3(j),j=1,napxo),   &
 !       (as4(j),j=1,napxo),   &
 !       (as6(j),j=1,napxo),   &
@@ -1358,7 +1358,7 @@ subroutine crstart
       end if
       read(96,end=101,err=101,iostat=ierro) &
 !       (aek(j),j=1,napxo),   &
-        (afok(j),j=1,napxo),  &
+!       (afok(j),j=1,napxo),  &
 !       (as3(j),j=1,napxo),   &
 !       (as4(j),j=1,napxo),   &
 !       (as6(j),j=1,napxo),   &
