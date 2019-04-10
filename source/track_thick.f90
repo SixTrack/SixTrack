@@ -2100,89 +2100,94 @@ subroutine synuthck
           as(6,2,j,l) = as(6,1,j,l)
           as(1,1,j,l) = (el(l)*(one-rvv(j)))*c1e3
         end if
-        if(fok < (-one*pieni)) then                              !hr06
-          si=sin_mb(fi)
-          co=cos_mb(fi)
-          wfa=((wf/afok)*(one-co))/dpsq(j)               !hr01
-          wfhi=((wf/hi)*si)/dpsq(j)                      !hr01
-          al(1,ih1,j,l)=co
-          al(2,ih1,j,l)=si/hi
-          al(3,ih1,j,l)=(-one*si)*hi                           !hr01
-          al(4,ih1,j,l)=co
-          al(5,ih1,j,l)=((-one*wfa)*dpsv(j))*c1e3                 !hr01
-          al(6,ih1,j,l)=((-one*wfhi)*dpsv(j))*c1e3                !hr01
-          sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
-          sm23=al(2,ih1,j,l)*al(3,ih1,j,l)
-          as(1,ih1,j,l)=(el(l)*(one-rvv(j))-((rvv(j)*((dpsv(j)**2/(four*dpd(j)))&
+        if(fok < (-one*pieni)) then
+          si   = sin_mb(fi)
+          co   = cos_mb(fi)
+          wfa  = ((wf/afok)*(one-co))/dpsq(j)
+          wfhi = ((wf/hi)*si)/dpsq(j)
+          al(1,ih1,j,l) = co
+          al(2,ih1,j,l) = si/hi
+          al(3,ih1,j,l) = (-one*si)*hi
+          al(4,ih1,j,l) = co
+          al(5,ih1,j,l) = ((-one*wfa)*dpsv(j))*c1e3
+          al(6,ih1,j,l) = ((-one*wfhi)*dpsv(j))*c1e3
+
+          sm12 = el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
+          sm23 = al(2,ih1,j,l)*al(3,ih1,j,l)
+          as(1,ih1,j,l) = (el(l)*(one-rvv(j))-((rvv(j)*((dpsv(j)**2/(four*dpd(j)))&
             *sm12+dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok)*wf**2)*c1e3
-          as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf)/(two*dpsq(j)))*sm12-dpd(j)*wfhi)
-          as(3,ih1,j,l)=(-one*rvv(j))*(((((dpsv(j)*half)/afok)/dpd(j))*ed(l))*sm23-dpd(j)*wfa)
-          as(4,ih1,j,l)=((-one*rvv(j))*sm23)/c2e3
-          as(5,ih1,j,l)=(((-one*rvv(j))*sm12)*afok)/c4e3
-          as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
-          aek=abs(ekv(j,l)/dpd(j))
-          hi=sqrt(aek)
-          fi=hi*el(l)
-          hp=exp_mb(fi)
-          hm=one/hp
-          hc=(hp+hm)*half
-          hs=(hp-hm)*half
-          al(1,ih2,j,l)=hc
-          if(abs(hi).gt.pieni) al(2,ih2,j,l)=hs/hi
-          al(3,ih2,j,l)=hs*hi
-          al(4,ih2,j,l)=hc
-          as(4,ih2,j,l)=(((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3
-          as(5,ih2,j,l)=((rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*aek)/c4e3
-          as(6,ih2,j,l)=((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
-        endif
+          as(2,ih1,j,l) = (-one*rvv(j))*(((dpsv(j)*wf)/(two*dpsq(j)))*sm12-dpd(j)*wfhi)
+          as(3,ih1,j,l) = (-one*rvv(j))*(((((dpsv(j)*half)/afok)/dpd(j))*ed(l))*sm23-dpd(j)*wfa)
+          as(4,ih1,j,l) = ((-one*rvv(j))*sm23)/c2e3
+          as(5,ih1,j,l) = (((-one*rvv(j))*sm12)*afok)/c4e3
+          as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
+
+          aek = abs(ekv(j,l)/dpd(j))
+          hi  = sqrt(aek)
+          fi  = hi*el(l)
+          hp  = exp_mb(fi)
+          hm  = one/hp
+          hc  = (hp+hm)*half
+          hs  = (hp-hm)*half
+          al(1,ih2,j,l) = hc
+          if(abs(hi) > pieni) al(2,ih2,j,l) = hs/hi
+          al(3,ih2,j,l) = hs*hi
+          al(4,ih2,j,l) = hc
+          as(4,ih2,j,l) = (((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3
+          as(5,ih2,j,l) = ((rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*aek)/c4e3
+          as(6,ih2,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
+        end if
 !--DEFOCUSSING
-        if(fok.gt.pieni) then
-          hp=exp_mb(fi)
-          hm=one/hp
-          hc=(hp+hm)*half
-          hs=(hp-hm)*half
-          al(1,ih1,j,l)=hc
-          al(2,ih1,j,l)=hs/hi
-          al(3,ih1,j,l)=hs*hi
-          al(4,ih1,j,l)=hc
-          wfa=((wf/afok)*(one-hc))/dpsq(j)               !hr01
-          wfhi=((wf/hi)*hs)/dpsq(j)                      !hr01
-          al(5,ih1,j,l)= (wfa*dpsv(j))*c1e3                       !hr01
-          al(6,ih1,j,l)=((-one*wfhi)*dpsv(j))*c1e3                !hr01
-          sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
-          sm23=al(2,ih1,j,l)*al(3,ih1,j,l)
-          as(1,ih1,j,l)=(((rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12&
+        if(fok > pieni) then
+          hp = exp_mb(fi)
+          hm = one/hp
+          hc = (hp+hm)*half
+          hs = (hp-hm)*half
+          al(1,ih1,j,l) = hc
+          al(2,ih1,j,l) = hs/hi
+          al(3,ih1,j,l) = hs*hi
+          al(4,ih1,j,l) = hc
+
+          wfa  = ((wf/afok)*(one-hc))/dpsq(j)
+          wfhi = ((wf/hi)*hs)/dpsq(j)
+          al(5,ih1,j,l) = (wfa*dpsv(j))*c1e3
+          al(6,ih1,j,l) = ((-one*wfhi)*dpsv(j))*c1e3
+
+          sm12 = el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
+          sm23 = al(2,ih1,j,l)*al(3,ih1,j,l)
+          as(1,ih1,j,l) = (((rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12&
             +dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok)*wf**2+el(l)*(one-rvv(j)))*c1e3
-          as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf)/(two*dpsq(j)))*sm12-dpd(j)*wfhi)
-          as(3,ih1,j,l)=rvv(j)*(((((dpsv(j)*half)/afok)/dpd(j))* ed(l))*sm23-dpd(j)*wfa)
-          as(4,ih1,j,l)=((-one*rvv(j))*sm23)/c2e3                 !hr01
-          as(5,ih1,j,l)=((rvv(j)*sm12)*afok)/c4e3              !hr01
-          as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
-          aek=abs(ekv(j,l)/dpd(j))
-          hi=sqrt(aek)
-          fi=hi*el(l)
-          si=sin_mb(fi)
-          co=cos_mb(fi)
-          al(1,ih2,j,l)=co
-          al(2,ih2,j,l)=si/hi
-          al(3,ih2,j,l)=(-one*si)*hi                           !hr01
-          al(4,ih2,j,l)=co
-          as(4,ih2,j,l)=(((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3 !hr01
-          as(5,ih2,j,l)=(((-one*rvv(j))*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*aek)/c4e3
-          as(6,ih2,j,l)=((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
-        endif
+          as(2,ih1,j,l) = (-one*rvv(j))*(((dpsv(j)*wf)/(two*dpsq(j)))*sm12-dpd(j)*wfhi)
+          as(3,ih1,j,l) = rvv(j)*(((((dpsv(j)*half)/afok)/dpd(j))* ed(l))*sm23-dpd(j)*wfa)
+          as(4,ih1,j,l) = ((-one*rvv(j))*sm23)/c2e3
+          as(5,ih1,j,l) = ((rvv(j)*sm12)*afok)/c4e3
+          as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
+
+          aek = abs(ekv(j,l)/dpd(j))
+          hi  = sqrt(aek)
+          fi  = hi*el(l)
+          si  = sin_mb(fi)
+          co  = cos_mb(fi)
+          al(1,ih2,j,l) = co
+          al(2,ih2,j,l) = si/hi
+          al(3,ih2,j,l) = (-one*si)*hi
+          al(4,ih2,j,l) = co
+          as(4,ih2,j,l) = (((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3 !hr01
+          as(5,ih2,j,l) = (((-one*rvv(j))*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*aek)/c4e3
+          as(6,ih2,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
+        end if
       end do
       goto 160
-    elseif (kz1.eq.9) then
+    elseif(kz1 == 9) then
 !-----------------------------------------------------------------------
 !  EDGE FOCUSSING
 !-----------------------------------------------------------------------
-140     do 150 j=1,napx
+140   do j=1,napx
         rhoi(j)=ed(l)/dpsq(j)
         fok=rhoi(j)*tan_mb((el(l)*rhoi(j))*half)                  !hr01
         al(3,1,j,l)=fok
         al(3,2,j,l)=-fok
-150     continue
+      end do
       goto 160
     else
 !Eric
