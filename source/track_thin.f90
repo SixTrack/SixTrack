@@ -460,10 +460,6 @@ subroutine trauthin(nthinerr)
     endif !end if(abs(phas).ge.pieni) then
   endif !end if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then ... else
 
-  if (do_coll) then
-    call collimate_exit()
-  endif
-
   call dealloc(crkveb, "crkveb")
   call dealloc(cikveb, "cikveb")
   call dealloc(rho2b, "rho2b")

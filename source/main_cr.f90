@@ -1349,6 +1349,11 @@ end interface
   time2=0.
   call time_timerCheck(time2)
 
+  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
+    ! Only if thin 6D and collimation enabled
+    call collimate_exit
+  endif
+
   ! trtime is now the tracking time, BUT we must add other time for C/R
   trtime=time2-time1
 #ifdef CR
