@@ -131,81 +131,63 @@ subroutine sumpos
 end subroutine sumpos
 
 subroutine blocksv
+
   use floatPrecision
   use numerical_constants
-
   use parpro
   use mod_common
   use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
+
   implicit none
 
   integer ia, ikk, j, jm, k, lkk, mkk
-  real(kind=fPrec) dpoff, hv(6,2,npart,nblo)
-
-  save
+  real(kind=fPrec) dpoff, hv(6,2,nblo)
 
 #ifdef FLUKA
-!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!     last modified: 11-06-2014
-!     entirely re-initialise to 0.0 hv(...) and bl1v(...) arrays
-!     inserted in main code by the 'fluka' compilation flag
-  do ia=1,npart
-    do k=1,nblo
+  ! Entirely re-initialise to 0.0 hv(...) and bl1v(...) arrays
+  hv(:,:,:)   = zero
+  bl1v(:,:,:) = zero
+#endif
+  do ia=1,napx
+    do k=1,mblo
+      jm  = mel(k)
+      ikk = mtyp(k,1)
       do lkk=1,2
         do mkk=1,6
-          hv(mkk,lkk,ia,k)=zero
-          bl1v(mkk,lkk,ia,k)=zero
+          dpoff = dpsv(ia)*c1e3
+          if(abs(dpoff) <= pieni) dpoff = one
+          hv(mkk,lkk,1) = al(mkk,lkk,ia,ikk)
+          if(mkk == 5 .or. mkk == 6) then
+            hv(mkk,lkk,1) = hv(mkk,lkk,1)/dpoff
+          end if
+        end do
+      end do
+      if(jm > 1) then
+        do j=2,jm
+          ikk = mtyp(k,j)
+          do lkk=1,2
+            dpoff = dpsv(ia)*c1e3
+            if(abs(dpoff) <= pieni) dpoff = one
+            hv(1,lkk,j) =  hv(1,lkk,j-1)*al(1,lkk,ia,ikk) + hv(3,lkk,j-1)*al(2,lkk,ia,ikk)
+            hv(2,lkk,j) =  hv(2,lkk,j-1)*al(1,lkk,ia,ikk) + hv(4,lkk,j-1)*al(2,lkk,ia,ikk)
+            hv(3,lkk,j) =  hv(1,lkk,j-1)*al(3,lkk,ia,ikk) + hv(3,lkk,j-1)*al(4,lkk,ia,ikk)
+            hv(4,lkk,j) =  hv(2,lkk,j-1)*al(3,lkk,ia,ikk) + hv(4,lkk,j-1)*al(4,lkk,ia,ikk)
+            hv(5,lkk,j) = (hv(5,lkk,j-1)*al(1,lkk,ia,ikk) + hv(6,lkk,j-1)*al(2,lkk,ia,ikk)) + al(5,lkk,ia,ikk)/dpoff
+            hv(6,lkk,j) = (hv(5,lkk,j-1)*al(3,lkk,ia,ikk) + hv(6,lkk,j-1)*al(4,lkk,ia,ikk)) + al(6,lkk,ia,ikk)/dpoff
+          end do
+        end do
+      end if
+      do lkk=1,2
+        do mkk=1,6
+          bl1v(mkk,lkk,ia,k) = hv(mkk,lkk,jm)
         end do
       end do
     end do
   end do
-#endif
-  do 440 k=1,mblo
-    jm=mel(k)
-    ikk=mtyp(k,1)
-    do lkk=1,2
-      do mkk=1,6
-        do ia=1,napx
-          dpoff=dpsv(ia)*c1e3
-          if(abs(dpoff).le.pieni) dpoff=one
-          hv(mkk,lkk,ia,1)=al(mkk,lkk,ia,ikk)
-          if(mkk.eq.5.or.mkk.eq.6) then
-            hv(mkk,lkk,ia,1)=hv(mkk,lkk,ia,1)/dpoff
-          end if
-        end do
-      end do
-    end do
-    if(jm.eq.1) goto 410
-    do j=2,jm
-      ikk=mtyp(k,j)
-      do lkk=1,2
-        do ia=1,napx
-          dpoff=dpsv(ia)*c1e3
-          if(abs(dpoff).le.pieni) dpoff=one
-          hv(1,lkk,ia,j)=hv(1,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(3,lkk,ia,j-1)*al(2,lkk,ia,ikk)
-          hv(2,lkk,ia,j)=hv(2,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(4,lkk,ia,j-1)*al(2,lkk,ia,ikk)
-          hv(3,lkk,ia,j)=hv(1,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(3,lkk,ia,j-1)*al(4,lkk,ia,ikk)
-          hv(4,lkk,ia,j)=hv(2,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(4,lkk,ia,j-1)*al(4,lkk,ia,ikk)
-!hr05         hv(5,lkk,ia,j)=hv(5,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(6,   &
-!hr05&lkk,ia,j-1)*al(2,lkk,ia,ikk)+al(5,lkk,ia,ikk)/dpoff
-          hv(5,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(1,lkk,ia,ikk)+ hv(6,lkk,ia,j-1)*al(2,lkk,ia,ikk))+al(5,lkk,ia,ikk)/dpoff
-!hr05         hv(6,lkk,ia,j)=hv(5,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(6,   &
-!hr05&lkk,ia,j-1)*al(4,lkk,ia,ikk)+al(6,lkk,ia,ikk)/dpoff
-          hv(6,lkk,ia,j)=(hv(5,lkk,ia,j-1)*al(3,lkk,ia,ikk)+ hv(6,lkk,ia,j-1)*al(4,lkk,ia,ikk))+al(6,lkk,ia,ikk)/dpoff
-        end do
-      end do
-    end do
-410   do lkk=1,2
-      do mkk=1,6
-        do ia=1,napx
-          bl1v(mkk,lkk,ia,k)=hv(mkk,lkk,ia,jm)
-        end do
-      end do
-    end do
-440 continue
+
 end subroutine blocksv
 
 !-----------------------------------------------------------------------
