@@ -1,5 +1,19 @@
 # SixTrack Changelog
 
+### Version 5.2.3 [XX.04.2019] - Release
+
+**User Side Changes**
+
+* The collimation block now accepts keyword/value as an alternative to the old format of 17 lines of values. The new forma is described in the manual. PR #796 (V.K. Berglyd Olsen, A. Mereghetti)
+
+**Code Improvements and Changes**
+
+* The collimator database has been moved to a new module `coll_db`. This is in peparation for moving to a new and more flexible collimator database format. PR #792 (V.K. Berglyd Olsen, A. Mereghetti)
+
+**Bug Fixes**
+
+* Fixed a bug in the SixTestWrapper in release 5.2.2 where extra checks would always be marked as passed. PR #818 (V.K. Berglyd Olsen)
+
 ### Version 5.2.2 [08.04.2019] - Release
 
 **User Side Changes**
