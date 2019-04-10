@@ -1899,22 +1899,19 @@ subroutine synuthck
   do 160 l=1,il
     if(abs(el(l)).le.pieni) goto 160
     kz1=kz(l)+1
-!       goto(20,40,80,60,40,60,100,100,140),kz1
-!       goto 160
-!Eric
 !-----------------------------------------------------------------------
 !  DRIFTLENGTH
 !-----------------------------------------------------------------------
-    if (kz1.eq.1) then
+    if(kz1 == 1) then
       goto 20
 !-----------------------------------------------------------------------
 !  RECTANGULAR MAGNET
 !  HORIZONTAL
 !-----------------------------------------------------------------------
-    elseif (kz1.eq.2.or.kz1.eq.5) then
-40     fokm=el(l)*ed(l)
-      if(abs(fokm).le.pieni) goto 20
-      if(kz1.eq.2) then
+    elseif(kz1 == 2 .or. kz1 == 5) then
+40    fokm=el(l)*ed(l)
+      if(abs(fokm) <= pieni) goto 20
+      if(kz1 == 2) then
         ih1=1
         ih2=2
       else
@@ -1922,7 +1919,7 @@ subroutine synuthck
         ih1=2
         ih2=1
       endif
-      do 50 j=1,napx
+      do j=1,napx
         fok  = fokm/dpsq(j)
         rho  = (one/ed(l))*dpsq(j)
         fok1 = (tan_mb(fok*half))/rho
@@ -1938,8 +1935,8 @@ subroutine synuthck
         sm12 = el(l)-sm1*sm2
         sm23 = sm2*sm3
         as3  = (-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23-(rho*dpsq(j))*(one-sm1))
-        as4  = ((-one*rvv(j))*sm23)/c2e3                          !hr01
-        as6  = ((-one*rvv(j))*(el(l)+sm1*sm2))/c4e3            !hr01
+        as4  = ((-one*rvv(j))*sm23)/c2e3
+        as6  = ((-one*rvv(j))*(el(l)+sm1*sm2))/c4e3
         as(1,ih1,j,l) = (el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12+dpsv(j)*(el(l)-sm2)))*c1e3
         as(2,ih1,j,l) = (-one*rvv(j))*((dpsv(j)/((two*rho)*dpsq(j)))* sm12-(sm2*dpsq(j))/rho)+fok1*as3
         as(3,ih1,j,l) = as3
@@ -1956,55 +1953,56 @@ subroutine synuthck
         as(4,ih2,j,l) = ((-one*two)*as6)*fok1
         as(5,ih2,j,l) = (as6*fok1)*fok1
         as(6,ih2,j,l) = as6
-50     continue
+      end do
       goto 160
-    elseif (kz1.eq.4.or.kz1.eq.6) then
+    elseif(kz1 == 4 .or. kz1 == 6) then
 !-----------------------------------------------------------------------
 !  SEKTORMAGNET
 !  HORIZONTAL
 !-----------------------------------------------------------------------
-60     fokm=el(l)*ed(l)
-      if(abs(fokm).le.pieni) goto 20
-      if(kz1.eq.4) then
-        ih1=1
-        ih2=2
+60    fokm=el(l)*ed(l)
+      if(abs(fokm) <= pieni) goto 20
+      if(kz1 == 4) then
+        ih1 = 1
+        ih2 = 2
       else
 !  SECTOR MAGNET VERTICAL
-        ih1=2
-        ih2=1
-      endif
-      do 70 j=1,napx
+        ih1 = 2
+        ih2 = 1
+      end if
+      do j=1,napx
         fok  = fokm/dpsq(j)
         rho  = (one/ed(l))*dpsq(j)
         si   = sin_mb(fok)
         co   = cos_mb(fok)
         rhoc = (rho*(one-co))/dpsq(j)
-        siq=si/dpsq(j)
-        al(1,ih1,j,l)=co
-        al(2,ih1,j,l)=rho*si
-        al(3,ih1,j,l)=(-one*si)/rho                            !hr01
-        al(4,ih1,j,l)=co
-        al(5,ih1,j,l)=((-one*dpsv(j))*rhoc)*c1e3                  !hr01
-        al(6,ih1,j,l)=((-one*dpsv(j))*siq)*c1e3                   !hr01
-        sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
-        sm23=al(2,ih1,j,l)*al(3,ih1,j,l)
-        as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12+dpsv(j)*(el(l)-al(2,ih1,j,l))))*c1e3
-        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/(two*rho*dpsq(j)))*sm12-dpd(j)*siq)
-        as(3,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23-dpd(j)*rhoc)
-        as(4,ih1,j,l)=((-one*rvv(j))*sm23)/c2e3                   !hr01
-        as(5,ih1,j,l)=((-one*rvv(j))*sm12)/((c4e3*rho)*rho) !hr01
-        as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
+        siq  = si/dpsq(j)
+        al(1,ih1,j,l) = co
+        al(2,ih1,j,l) = rho*si
+        al(3,ih1,j,l) = (-one*si)/rho
+        al(4,ih1,j,l) = co
+        al(5,ih1,j,l) = ((-one*dpsv(j))*rhoc)*c1e3
+        al(6,ih1,j,l) = ((-one*dpsv(j))*siq)*c1e3
+
+        sm12 = el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
+        sm23 = al(2,ih1,j,l)*al(3,ih1,j,l)
+        as(1,ih1,j,l) = (el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12+dpsv(j)*(el(l)-al(2,ih1,j,l))))*c1e3
+        as(2,ih1,j,l) = (-one*rvv(j))*((dpsv(j)/(two*rho*dpsq(j)))*sm12-dpd(j)*siq)
+        as(3,ih1,j,l) = (-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23-dpd(j)*rhoc)
+        as(4,ih1,j,l) = ((-one*rvv(j))*sm23)/c2e3
+        as(5,ih1,j,l) = ((-one*rvv(j))*sm12)/((c4e3*rho)*rho)
+        as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
 !--VERTIKAL
-        as(6,ih2,j,l)=((-one*rvv(j))*al(2,ih2,j,l))/c2e3             !hr01
-70     continue
+        as(6,ih2,j,l) = ((-one*rvv(j))*al(2,ih2,j,l))/c2e3
+      end do
       goto 160
-    elseif (kz1.eq.3) then
+    elseif(kz1 == 3) then
 !-----------------------------------------------------------------------
 !  QUADRUPOLE
 !  FOCUSSING
 !-----------------------------------------------------------------------
 80   do 90 j=1,napx
-        fok=ekv(j,l)*oidpsv(j)
+        fok = ekv(j,l)*oidpsv(j)
         aek(j)=abs(fok)
         hi(j)=sqrt(aek(j))
         fi(j)=el(l)*hi(j)
