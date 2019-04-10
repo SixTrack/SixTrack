@@ -1025,18 +1025,6 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
 end subroutine mod_commonmn_expand_arrays
 
-subroutine mod_commonmn_allocate_thickarrays
-
-  use mod_alloc
-  use numerical_constants, only : zero
-
-  implicit none
-
-  call alloc(ekv,npart,nele,zero,'ekv')
-  call alloc(bl1v,6,2,npart,nblo,zero,'bl1v')
-
-end subroutine mod_commonmn_allocate_thickarrays
-
 subroutine mod_commonmn_expand_thickarrays(nele_new, npart_new, nblo_new)
 
   use mod_alloc
@@ -1046,8 +1034,8 @@ subroutine mod_commonmn_expand_thickarrays(nele_new, npart_new, nblo_new)
 
   integer,intent(in) :: nele_new, npart_new, nblo_new
 
-  call alloc(ekv,npart_new,nele_new,zero,'ekv')
-  call alloc(bl1v,6,2,npart_new,nblo_new,zero,'bl1v')
+  call alloc(ekv,     npart_new,nele_new,zero,"ekv")
+  call alloc(bl1v,6,2,npart_new,nblo_new,zero,"bl1v")
 
 end subroutine mod_commonmn_expand_thickarrays
 
@@ -1081,20 +1069,6 @@ module mod_commons
 
 contains
 
-subroutine mod_commons_allocate_thickarrays
-
-  use mod_alloc
-  use numerical_constants, only : zero
-
-  implicit none
-
-  call alloc(al,6,2,npart,nele,zero,'al')
-  call alloc(as,6,2,npart,nele,zero,'as')
-  call alloc(at,6,2,2,nele,zero,'at')
-  call alloc(a2,6,2,2,nele,zero,'a2')
-
-end subroutine mod_commons_allocate_thickarrays
-
 subroutine mod_commons_expand_thickarrays(nele_new, npart_new)
 
   use mod_alloc
@@ -1104,8 +1078,10 @@ subroutine mod_commons_expand_thickarrays(nele_new, npart_new)
 
   integer,intent(in) :: nele_new, npart_new
 
-    call alloc(al,6,2,npart_new,nele_new,zero,'al')
-    call alloc(as,6,2,npart_new,nele_new,zero,'as')
+  call alloc(al,6,2,npart_new,nele_new,zero,"al")
+  call alloc(as,6,2,npart_new,nele_new,zero,"as")
+  call alloc(at,6,2,2,        nele_new,zero,"at")
+  call alloc(a2,6,2,2,        nele_new,zero,"a2")
 
 end subroutine mod_commons_expand_thickarrays
 
