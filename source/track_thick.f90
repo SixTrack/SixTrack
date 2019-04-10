@@ -1886,7 +1886,7 @@ subroutine synuthck
   use mod_common_da
   implicit none
   integer ih1,ih2,j,kz1,l
-  real(kind=fPrec) fokm, fok, rho, si, co
+  real(kind=fPrec) fokm, fok, fok1, rho, si, co
   save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 #ifdef CR
@@ -1925,7 +1925,7 @@ subroutine synuthck
       do 50 j=1,napx
         fok=fokm/dpsq(j)
         rho=(one/ed(l))*dpsq(j)
-        fok1(j)=(tan_mb(fok*half))/rho
+        fok1=(tan_mb(fok*half))/rho
         si=sin_mb(fok)
         co=cos_mb(fok)
         al(2,ih1,j,l)=rho*si
@@ -1940,10 +1940,10 @@ subroutine synuthck
         as4(j)=((-one*rvv(j))*sm23(j))/c2e3                          !hr01
         as6(j)=((-one*rvv(j))*(el(l)+sm1(j)*sm2(j)))/c4e3            !hr01
         as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-sm2(j))))*c1e3
-        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/((two*rho)*dpsq(j)))* sm12(j)-(sm2(j)*dpsq(j))/rho)+fok1(j)*as3(j)
+        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/((two*rho)*dpsq(j)))* sm12(j)-(sm2(j)*dpsq(j))/rho)+fok1*as3(j)
         as(3,ih1,j,l)=as3(j)
-        as(4,ih1,j,l)=as4(j)+(two*as6(j))*fok1(j)                    !hr01
-        as(5,ih1,j,l)=((-one*rvv(j))*sm12(j))/(c4e3*rho**2)+as6(j)*fok1(j)**2+fok1(j)*as4(j)
+        as(4,ih1,j,l)=as4(j)+(two*as6(j))*fok1                    !hr01
+        as(5,ih1,j,l)=((-one*rvv(j))*sm12(j))/(c4e3*rho**2)+as6(j)*fok1**2+fok1*as4(j)
         as(6,ih1,j,l)=as6(j)
 !--VERTIKAL
         g(j)=tan_mb(fok*half)/rho
@@ -1952,8 +1952,8 @@ subroutine synuthck
         al(3,ih2,j,l)=(-one*g(j))*(two-gl(j))                        !hr01
         al(4,ih2,j,l)=al(1,ih2,j,l)
         as6(j)=((-one*rvv(j))*al(2,ih2,j,l))/c2e3                    !hr01
-        as(4,ih2,j,l)=((-one*two)*as6(j))*fok1(j)                    !hr01
-        as(5,ih2,j,l)=(as6(j)*fok1(j))*fok1(j)                       !hr01
+        as(4,ih2,j,l)=((-one*two)*as6(j))*fok1                    !hr01
+        as(5,ih2,j,l)=(as6(j)*fok1)*fok1                       !hr01
         as(6,ih2,j,l)=as6(j)
 50     continue
       goto 160

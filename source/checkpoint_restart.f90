@@ -358,8 +358,8 @@ subroutine crcheck
         (dpd(j),j=1,crnapxo),                               &
         (dpsq(j),j=1,crnapxo),                              &
         (fi(j),j=1,crnapxo),                                &
-        (fok(j),j=1,crnapxo),                               &
-        (fok1(j),j=1,crnapxo),                              &
+!       (fok(j),j=1,crnapxo),                               &
+!       (fok1(j),j=1,crnapxo),                              &
         (fokqv(j),j=1,crnapxo),                             &
         (g(j),j=1,crnapxo),                                 &
         (gl(j),j=1,crnapxo),                                &
@@ -498,8 +498,8 @@ subroutine crcheck
         (dpd(j),j=1,crnapxo),                               &
         (dpsq(j),j=1,crnapxo),                              &
         (fi(j),j=1,crnapxo),                                &
-        (fok(j),j=1,crnapxo),                               &
-        (fok1(j),j=1,crnapxo),                              &
+!       (fok(j),j=1,crnapxo),                               &
+!       (fok1(j),j=1,crnapxo),                              &
         (fokqv(j),j=1,crnapxo),                             &
         (g(j),j=1,crnapxo),                                 &
         (gl(j),j=1,crnapxo),                                &
@@ -1094,8 +1094,8 @@ subroutine crpoint
         (dpd(j),j=1,napxo),          &
         (dpsq(j),j=1,napxo),         &
         (fi(j),j=1,napxo),           &
-        (fok(j),j=1,napxo),          &
-        (fok1(j),j=1,napxo),         &
+!       (fok(j),j=1,napxo),          &
+!       (fok1(j),j=1,napxo),         &
         (fokqv(j),j=1,napxo),        &
         (g(j),j=1,napxo),            &
         (gl(j),j=1,napxo),           &
@@ -1322,8 +1322,8 @@ subroutine crstart
         (dpd(j),j=1,napxo),   &
         (dpsq(j),j=1,napxo),  &
         (fi(j),j=1,napxo),    &
-        (fok(j),j=1,napxo),   &
-        (fok1(j),j=1,napxo),  &
+!       (fok(j),j=1,napxo),   &
+!       (fok1(j),j=1,napxo),  &
         (fokqv(j),j=1,napxo), &
         (g(j),j=1,napxo),     &
         (gl(j),j=1,napxo),    &
@@ -1366,8 +1366,8 @@ subroutine crstart
         (dpd(j),j=1,napxo),   &
         (dpsq(j),j=1,napxo),  &
         (fi(j),j=1,napxo),    &
-        (fok(j),j=1,napxo),   &
-        (fok1(j),j=1,napxo),  &
+!       (fok(j),j=1,napxo),   &
+!       (fok1(j),j=1,napxo),  &
         (fokqv(j),j=1,napxo), &
         (g(j),j=1,napxo),     &
         (gl(j),j=1,napxo),    &

@@ -223,7 +223,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   dimension fokqv(npart),dpsv(npart)
   dimension rvv(npart),oidpsv(npart)
   dimension dpd(npart),dpsq(npart)
-  dimension fok1(npart),g(npart),gl(npart)
+  dimension g(npart),gl(npart)
   dimension sm1(npart),sm2(npart),sm3(npart),sm12(npart)
   dimension as3(npart),as4(npart),as6(npart),sm23(npart)
   dimension rhoc(npart),siq(npart),aek(npart),afok(npart)
@@ -297,7 +297,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
     do 50 j=1,napx
       fok=fokm/dpsq(j)
       rho=(one/ed(l))*dpsq(j)
-      fok1(j)=(tan_mb(fok*half))/rho
+      fok1=(tan_mb(fok*half))/rho
       si=sin_mb(fok)
       co=cos_mb(fok)
       al(1,ih1,j,l)=one
@@ -319,11 +319,11 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/            &!hr06
   &(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-sm2(j))))*c1e3               !hr06
   as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/((two*rho)*dpsq(j)))*    &!hr06
-  &sm12(j)-(sm2(j)*dpsq(j))/rho)+fok1(j)*as3(j)                    !hr06
+  &sm12(j)-(sm2(j)*dpsq(j))/rho)+fok1*as3(j)                    !hr06
       as(3,ih1,j,l)=as3(j)
-      as(4,ih1,j,l)=as4(j)+(two*as6(j))*fok1(j)                      !hr06
-      as(5,ih1,j,l)=(as6(j)*fok1(j)**2                              &!hr06
-  &-(rvv(j)*sm12(j))/(c4e3*rho**2))+fok1(j)*as4(j)                 !hr06
+      as(4,ih1,j,l)=as4(j)+(two*as6(j))*fok1                      !hr06
+      as(5,ih1,j,l)=(as6(j)*fok1**2                              &!hr06
+  &-(rvv(j)*sm12(j))/(c4e3*rho**2))+fok1*as4(j)                 !hr06
       as(6,ih1,j,l)=as6(j)
 !--VERTIKAL
       g(j)=tan_mb(fok*half)/rho
@@ -333,8 +333,8 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
       al(3,ih2,j,l)=(-one*g(j))*(two-gl(j))                          !hr06
       al(4,ih2,j,l)=al(1,ih2,j,l)
       as6(j)=((-one*rvv(j))*al(2,ih2,j,l))/c2e3                      !hr06
-      as(4,ih2,j,l)=((-one*two)*as6(j))*fok1(j)                      !hr06
-      as(5,ih2,j,l)=as6(j)*fok1(j)**2                                !hr06
+      as(4,ih2,j,l)=((-one*two)*as6(j))*fok1                      !hr06
+      as(5,ih2,j,l)=as6(j)*fok1**2                                !hr06
       as(6,ih2,j,l)=as6(j)
 50   continue
     goto 160
