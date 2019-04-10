@@ -223,7 +223,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   dimension fokqv(npart),dpsv(npart)
   dimension rvv(npart),oidpsv(npart)
   dimension dpd(npart),dpsq(npart)
-  dimension wfa(npart),wfhi(npart),rhoi(npart)
+  dimension wfhi(npart),rhoi(npart)
 
   real(kind=fPrec) fokm
 
@@ -495,13 +495,13 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
       if(fok.lt.(-one*pieni)) then                                !hr06
         si=sin_mb(fi)
         co=cos_mb(fi)
-        wfa(j)=((wf/afok)*(one-co))/dpsq(j)                 !hr06
+        wfa=((wf/afok)*(one-co))/dpsq(j)                 !hr06
         wfhi(j)=((wf/hi)*si)/dpsq(j)                        !hr06
         al(1,ih1,j,l)=co
         al(2,ih1,j,l)=si/hi
         al(3,ih1,j,l)=(-one*si)*hi                             !hr06
         al(4,ih1,j,l)=co
-        al(5,ih1,j,l)=((-one*wfa(j))*dpsv(j))*c1e3                   !hr06
+        al(5,ih1,j,l)=((-one*wfa)*dpsv(j))*c1e3                   !hr06
         al(6,ih1,j,l)=((-one*wfhi(j))*dpsv(j))*c1e3                  !hr06
         sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
         sm23=al(2,ih1,j,l)*al(3,ih1,j,l)
@@ -511,7 +511,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf)/(two*dpsq(j)))*     &!hr06
   &sm12-dpd(j)*wfhi(j))                                            !hr06
   as(3,ih1,j,l)=(-one*rvv(j))*(((((dpsv(j)*half)/afok)/dpd(j))*  &!hr06
-  &ed(l))*sm23-dpd(j)*wfa(j))                                      !hr06
+  &ed(l))*sm23-dpd(j)*wfa)                                      !hr06
         as(4,ih1,j,l)=((-one*rvv(j))*sm23)/c2e3                   !hr06
         as(5,ih1,j,l)=(((-one*rvv(j))*sm12)*afok)/c4e3         !hr06
   as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))) &!hr06
@@ -544,9 +544,9 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
         al(2,ih1,j,l)=hs/hi
         al(3,ih1,j,l)=hs*hi
         al(4,ih1,j,l)=hc
-        wfa(j)=((wf/afok)*(one-hc))/dpsq(j)                 !hr06
+        wfa=((wf/afok)*(one-hc))/dpsq(j)                 !hr06
         wfhi(j)=((wf/hi)*hs)/dpsq(j)                        !hr06
-        al(5,ih1,j,l)= (wfa(j)*dpsv(j))*c1e3                         !hr06
+        al(5,ih1,j,l)= (wfa*dpsv(j))*c1e3                         !hr06
         al(6,ih1,j,l)=((-one*wfhi(j))*dpsv(j))*c1e3                  !hr06
         sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
         sm23=al(2,ih1,j,l)*al(3,ih1,j,l)
@@ -556,7 +556,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
       as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf)/(two*dpsq(j)))* &!hr06
   &sm12-dpd(j)*wfhi(j))                                            !hr06
     as(3,ih1,j,l)=rvv(j)*(((((dpsv(j)*half)/afok)/dpd(j))*ed(l)) &!hr06
-  &*sm23-dpd(j)*wfa(j))                                            !hr06
+  &*sm23-dpd(j)*wfa)                                            !hr06
         as(4,ih1,j,l)=((-one*rvv(j))*sm23)/c2e3                   !hr06
         as(5,ih1,j,l)=((rvv(j)*sm12)*afok)/c4e3                !hr06
   as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l))) &!hr06
