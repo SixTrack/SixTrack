@@ -779,8 +779,8 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
   select case(iLine)
   case(1)
 
-    if(nSplit < 7) then
-      write(lout,"(a,i0,a)") "TRAC> ERROR Line 1 should be at least 7 values, but ",nSplit," given."
+    if(nSplit < 5) then
+      write(lout,"(a,i0,a)") "TRAC> ERROR Line 1 should be at least 5 values, but ",nSplit," given."
       iErr = .true.
       return
     end if
