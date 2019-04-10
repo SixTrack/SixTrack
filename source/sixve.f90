@@ -143,20 +143,9 @@ subroutine blocksv
   implicit none
 
   integer ia, ikk, j, jm, k, lkk, mkk
-  real(kind=fPrec) dpoff
-!     integer i,itiono,i1,i2,i3,ia,ia2,iar,iation,ib,ib0,ib1,ib2,ib3,id,&
-!    &idate,ie,ig,ii,ikk,im,imonth,iposc,irecuin,itime,ix,izu,j,j2,jj,  &
-!    &jm,k,kpz,kzz,l,lkk,ll,m,mkk,napxto,ncorruo,ncrr,nd,nd2,ndafi2,    &
-!    &nerror,nlino,nlinoo,nmz,nthinerr
-!     double precision alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,&
-!    &amp00,bet0s1,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,   &
-!    &dam1,dchi,ddp1,dp0,dp00,dp10,dpoff,dpsic,dps0,dsign,gam0s1,gam0s2,&
-!    &gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,&
-!    &rdev,rmean,rsqsum,rsum,sic,tasia56,tasiar16,tasiar26,tasiar36,    &
-!    &tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,   &
-!    &taus,x11,x13
+  real(kind=fPrec) dpoff, hv(6,2,npart,nblo)
 
-save
+  save
 
 #ifdef FLUKA
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team

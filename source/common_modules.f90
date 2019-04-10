@@ -910,7 +910,6 @@ module mod_common_main
   integer,          allocatable, save :: iv(:)        ! (npart)
 
   ! Main 3
-  real(kind=fPrec), allocatable, save :: hv(:,:,:,:)   ! (6,2,npart,nblo)
   real(kind=fPrec), allocatable, save :: bl1v(:,:,:,:) ! (6,2,npart,nblo)
   real(kind=fPrec),              save :: tasau(6,6) = zero
   real(kind=fPrec),              save :: qwcs(3)    = zero
@@ -1034,7 +1033,6 @@ subroutine mod_commonmn_allocate_thickarrays
   implicit none
 
   call alloc(ekv,npart,nele,zero,'ekv')
-  call alloc(hv,6,2,npart,nblo,zero,'hv')
   call alloc(bl1v,6,2,npart,nblo,zero,'bl1v')
 
 end subroutine mod_commonmn_allocate_thickarrays
@@ -1049,7 +1047,6 @@ subroutine mod_commonmn_expand_thickarrays(nele_new, npart_new, nblo_new)
   integer,intent(in) :: nele_new, npart_new, nblo_new
 
   call alloc(ekv,npart_new,nele_new,zero,'ekv')
-  call alloc(hv,6,2,npart_new,nblo_new,zero,'hv')
   call alloc(bl1v,6,2,npart_new,nblo_new,zero,'bl1v')
 
 end subroutine mod_commonmn_expand_thickarrays
