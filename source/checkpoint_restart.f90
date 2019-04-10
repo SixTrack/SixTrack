@@ -379,7 +379,7 @@ subroutine crcheck
 !       (sm2(j),j=1,crnapxo),                               &
 !       (sm23(j),j=1,crnapxo),                              &
 !       (sm3(j),j=1,crnapxo),                               &
-        (wf(j),j=1,crnapxo),                                &
+!       (wf(j),j=1,crnapxo),                                &
         (wfa(j),j=1,crnapxo),                               &
         (wfhi(j),j=1,crnapxo)
       backspace (95,iostat=ierro)
@@ -519,7 +519,7 @@ subroutine crcheck
 !       (sm2(j),j=1,crnapxo),                               &
 !       (sm23(j),j=1,crnapxo),                              &
 !       (sm3(j),j=1,crnapxo),                               &
-        (wf(j),j=1,crnapxo),                                &
+!       (wf(j),j=1,crnapxo),                                &
         (wfa(j),j=1,crnapxo),                               &
         (wfhi(j),j=1,crnapxo)
       backspace (96,iostat=ierro)
@@ -1115,7 +1115,7 @@ subroutine crpoint
 !       (sm2(j),j=1,napxo),          &
 !       (sm23(j),j=1,napxo),         &
 !       (sm3(j),j=1,napxo),          &
-        (wf(j),j=1,napxo),           &
+!       (wf(j),j=1,napxo),           &
         (wfa(j),j=1,napxo),          &
         (wfhi(j),j=1,napxo)
 
@@ -1343,7 +1343,7 @@ subroutine crstart
 !       (sm2(j),j=1,napxo),   &
 !       (sm23(j),j=1,napxo),  &
 !       (sm3(j),j=1,napxo),   &
-        (wf(j),j=1,napxo),    &
+!       (wf(j),j=1,napxo),    &
         (wfa(j),j=1,napxo),   &
         (wfhi(j),j=1,napxo)
       write(93,"(a)") "SIXTRACR> CRSTART read fort.95 EXTENDED OK"
@@ -1387,7 +1387,7 @@ subroutine crstart
 !       (sm2(j),j=1,napxo),   &
 !       (sm23(j),j=1,napxo),  &
 !       (sm3(j),j=1,napxo),   &
-        (wf(j),j=1,napxo),    &
+!       (wf(j),j=1,napxo),    &
         (wfa(j),j=1,napxo),   &
         (wfhi(j),j=1,napxo)
 

@@ -1887,7 +1887,7 @@ subroutine synuthck
   implicit none
   integer ih1,ih2,j,kz1,l
   real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23,as3,as4,as6,g,gl,rhoc,siq,aek,hi,  &
-    fi,hi1,hp,hm,hc,hs
+    fi,hi1,hp,hm,hc,hs,wf
   save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 #ifdef CR
@@ -2026,72 +2026,72 @@ subroutine synuthck
           hm = one/hp
           hc = (hp+hm)*half
           hs = (hp-hm)*half
-          al(1,2,j,l)=hc
-          if(abs(hi).le.pieni) then
-            al(2,2,j,l)=el(l)
+          al(1,2,j,l) = hc
+          if(abs(hi) <= pieni) then
+            al(2,2,j,l) = el(l)
           else
-            al(2,2,j,l)=hs/hi
+            al(2,2,j,l) = hs/hi
           endif
-          al(3,2,j,l)=hs*hi
-          al(4,2,j,l)=hc
-          as(4,2,j,l)=(((-one*rvv(j))*al(2,2,j,l))*al(3,2,j,l))/c2e3
-          as(5,2,j,l)=((rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek)/c4e3
-          as(6,2,j,l)=((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3
+          al(3,2,j,l) = hs*hi
+          al(4,2,j,l) = hc
+          as(4,2,j,l) = (((-one*rvv(j))*al(2,2,j,l))*al(3,2,j,l))/c2e3
+          as(5,2,j,l) = ((rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek)/c4e3
+          as(6,2,j,l) = ((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3
         else
-          al(1,2,j,l)=cos_mb(fi)
-          hi1=sin_mb(fi)
-          if(abs(hi).le.pieni) then
-            al(2,2,j,l)=el(l)
+          al(1,2,j,l) = cos_mb(fi)
+          hi1 = sin_mb(fi)
+          if(abs(hi) <= pieni) then
+            al(2,2,j,l) = el(l)
           else
-            al(2,2,j,l)=hi1/hi
+            al(2,2,j,l) = hi1/hi
           endif
-          al(3,2,j,l)=(-one*hi1)*hi                            !hr01
-          al(4,2,j,l)=al(1,2,j,l)
-          as(1,2,j,l)=(el(l)*(one-rvv(j)))*c1e3                      !hr01
-          as(4,2,j,l)=(((-one*rvv(j))*al(2,2,j,l))*al(3,2,j,l))/c2e3 !hr01
-          as(5,2,j,l)=(((-one*rvv(j))*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek)/c4e3
-          as(6,2,j,l)=((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3 !hr01
+          al(3,2,j,l) = (-one*hi1)*hi
+          al(4,2,j,l) = al(1,2,j,l)
+          as(1,2,j,l) = (el(l)*(one-rvv(j)))*c1e3
+          as(4,2,j,l) = (((-one*rvv(j))*al(2,2,j,l))*al(3,2,j,l))/c2e3
+          as(5,2,j,l) = (((-one*rvv(j))*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek)/c4e3
+          as(6,2,j,l) = ((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3
 !--DEFOCUSSING
-          hp=exp_mb(fi)
-          hm=one/hp
-          hc=(hp+hm)*half
-          hs=(hp-hm)*half
-          al(1,1,j,l)=hc
-          if(abs(hi).le.pieni) then
-            al(2,1,j,l)=el(l)
+          hp = exp_mb(fi)
+          hm = one/hp
+          hc = (hp+hm)*half
+          hs = (hp-hm)*half
+          al(1,1,j,l) = hc
+          if(abs(hi) <= pieni) then
+            al(2,1,j,l) = el(l)
           else
-            al(2,1,j,l)=hs/hi
+            al(2,1,j,l) = hs/hi
           endif
-          al(3,1,j,l)=hs*hi
-          al(4,1,j,l)=hc
-          as(4,1,j,l)=(((-one*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3 !hr01
-          as(5,1,j,l)=((rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*aek)/c4e3
-          as(6,1,j,l)=((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3 !hr01
+          al(3,1,j,l) = hs*hi
+          al(4,1,j,l) = hc
+          as(4,1,j,l) = (((-one*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3
+          as(5,1,j,l) = ((rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*aek)/c4e3
+          as(6,1,j,l) = ((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3
         endif
       end do
       goto 160
-    elseif (kz1.eq.7.or.kz1.eq.8) then
+    elseif(kz1 == 7 .or. kz1 == 8) then
 !-----------------------------------------------------------------------
 !  COMBINED FUNCTION MAGNET HORIZONTAL
 !  FOCUSSING
 !-----------------------------------------------------------------------
-100     if(kz1.eq.7) then
-        do 110 j=1,napx
-          fokqv(j)=ekv(j,l)
-110       continue
-        ih1=1
-        ih2=2
+100   if(kz1 == 7) then
+        do j=1,napx
+          fokqv(j) = ekv(j,l)
+        end do
+        ih1 = 1
+        ih2 = 2
       else
 !  COMBINED FUNCTION MAGNET VERTICAL
-        do 120 j=1,napx
-          fokqv(j)=-ekv(j,l)
-120       continue
-        ih1=2
-        ih2=1
-      endif
-      do 130 j=1,napx
-        wf(j)=ed(l)/dpsq(j)
-        fok=fokqv(j)/dpd(j)-wf(j)**2                              !hr01
+        do j=1,napx
+          fokqv(j) = -ekv(j,l)
+        end do
+        ih1 = 2
+        ih2 = 1
+      end if
+      do j=1,napx
+        wf=ed(l)/dpsq(j)
+        fok=fokqv(j)/dpd(j)-wf**2                              !hr01
         afok(j)=abs(fok)
         hi=sqrt(afok(j))
         fi=hi*el(l)
@@ -2103,8 +2103,8 @@ subroutine synuthck
         if(fok.lt.(-one*pieni)) then                              !hr06
           si=sin_mb(fi)
           co=cos_mb(fi)
-          wfa(j)=((wf(j)/afok(j))*(one-co))/dpsq(j)               !hr01
-          wfhi(j)=((wf(j)/hi)*si)/dpsq(j)                      !hr01
+          wfa(j)=((wf/afok(j))*(one-co))/dpsq(j)               !hr01
+          wfhi(j)=((wf/hi)*si)/dpsq(j)                      !hr01
           al(1,ih1,j,l)=co
           al(2,ih1,j,l)=si/hi
           al(3,ih1,j,l)=(-one*si)*hi                           !hr01
@@ -2114,8 +2114,8 @@ subroutine synuthck
           sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
           sm23=al(2,ih1,j,l)*al(3,ih1,j,l)
           as(1,ih1,j,l)=(el(l)*(one-rvv(j))-((rvv(j)*((dpsv(j)**2/(four*dpd(j)))&
-            *sm12+dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf(j)**2)*c1e3
-          as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf(j))/(two*dpsq(j)))*sm12-dpd(j)*wfhi(j))
+            *sm12+dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf**2)*c1e3
+          as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf)/(two*dpsq(j)))*sm12-dpd(j)*wfhi(j))
           as(3,ih1,j,l)=(-one*rvv(j))*(((((dpsv(j)*half)/afok(j))/dpd(j))*ed(l))*sm23-dpd(j)*wfa(j))
           as(4,ih1,j,l)=((-one*rvv(j))*sm23)/c2e3
           as(5,ih1,j,l)=(((-one*rvv(j))*sm12)*afok(j))/c4e3
@@ -2145,15 +2145,15 @@ subroutine synuthck
           al(2,ih1,j,l)=hs/hi
           al(3,ih1,j,l)=hs*hi
           al(4,ih1,j,l)=hc
-          wfa(j)=((wf(j)/afok(j))*(one-hc))/dpsq(j)               !hr01
-          wfhi(j)=((wf(j)/hi)*hs)/dpsq(j)                      !hr01
+          wfa(j)=((wf/afok(j))*(one-hc))/dpsq(j)               !hr01
+          wfhi(j)=((wf/hi)*hs)/dpsq(j)                      !hr01
           al(5,ih1,j,l)= (wfa(j)*dpsv(j))*c1e3                       !hr01
           al(6,ih1,j,l)=((-one*wfhi(j))*dpsv(j))*c1e3                !hr01
           sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
           sm23=al(2,ih1,j,l)*al(3,ih1,j,l)
           as(1,ih1,j,l)=(((rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12&
-            +dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf(j)**2+el(l)*(one-rvv(j)))*c1e3
-          as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf(j))/(two*dpsq(j)))*sm12-dpd(j)*wfhi(j))
+            +dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf**2+el(l)*(one-rvv(j)))*c1e3
+          as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf)/(two*dpsq(j)))*sm12-dpd(j)*wfhi(j))
           as(3,ih1,j,l)=rvv(j)*(((((dpsv(j)*half)/afok(j))/dpd(j))* ed(l))*sm23-dpd(j)*wfa(j))
           as(4,ih1,j,l)=((-one*rvv(j))*sm23)/c2e3                 !hr01
           as(5,ih1,j,l)=((rvv(j)*sm12)*afok(j))/c4e3              !hr01
@@ -2171,7 +2171,7 @@ subroutine synuthck
           as(5,ih2,j,l)=(((-one*rvv(j))*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*aek)/c4e3
           as(6,ih2,j,l)=((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
         endif
-130     continue
+      end do
       goto 160
     elseif (kz1.eq.9) then
 !-----------------------------------------------------------------------
