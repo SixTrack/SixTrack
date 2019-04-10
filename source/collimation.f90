@@ -1297,6 +1297,9 @@ subroutine collimate_init()
   write (lout,"(a)") "COLL> Finished collimate initialisation"
   write (lout,"(a)") ""
 
+  ! Always one sample, so call it here
+  call collimate_start_sample(1)
+
 end subroutine collimate_init
 
 ! ================================================================================================ !
@@ -3552,6 +3555,9 @@ subroutine collimate_exit()
   implicit none
 
   integer :: i,j
+
+  ! Just call it here since samples are no longer supported
+  call collimate_end_sample(1)
 
   close(outlun)
   close(collgaps_unit)

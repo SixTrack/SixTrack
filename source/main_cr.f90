@@ -35,6 +35,7 @@ program maincr
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
   use read_write,     only : writeFort12, readFort13, readFort33
+  use collimation,    only : do_coll, collimate_init
 
 #ifdef FLUKA
   use mod_fluka
@@ -1321,6 +1322,9 @@ end interface
 
   ! Initialise Modules
   call dump_initialise
+  if(iclo6 > 0 .and. do_coll) then
+    call collimate_init
+  end if
 
   call time_timeStamp(time_afterInitialisation)
 

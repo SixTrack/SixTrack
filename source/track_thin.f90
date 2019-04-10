@@ -456,14 +456,7 @@ subroutine trauthin(nthinerr)
       write(lout,"(a)") ""
       write(lout,"(a)") "TRACKING> Calling thin6d subroutine"
       write(lout,"(a)") ""
-      if (do_coll) then
-        call collimate_init()
-        call collimate_start_sample(1) ! Changed to only do 1 sample
-      endif
       call thin6d(nthinerr)
-      if (do_coll) then
-        call collimate_end_sample(1) ! Changed to only do 1 sample
-      endif
     endif !end if(abs(phas).ge.pieni) then
   endif !end if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then ... else
 
