@@ -222,7 +222,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
 
   dimension fokqv(npart),dpsv(npart)
   dimension rvv(npart),oidpsv(npart)
-  dimension dpd(npart),dpsq(npart),fok(npart),rho(npart)
+  dimension dpd(npart),dpsq(npart),rho(npart)
   dimension fok1(npart),si(npart),co(npart),g(npart),gl(npart)
   dimension sm1(npart),sm2(npart),sm3(npart),sm12(npart)
   dimension as3(npart),as4(npart),as6(npart),sm23(npart)
@@ -295,21 +295,21 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
       ih2=1
     endif
     do 50 j=1,napx
-      fok(j)=fokm/dpsq(j)
+      fok=fokm/dpsq(j)
       rho(j)=(one/ed(l))*dpsq(j)
-      fok1(j)=(tan_mb(fok(j)*half))/rho(j)
-      si(j)=sin_mb(fok(j))
-      co(j)=cos_mb(fok(j))
+      fok1(j)=(tan_mb(fok*half))/rho(j)
+      si(j)=sin_mb(fok)
+      co(j)=cos_mb(fok)
       al(1,ih1,j,l)=one
       al(2,ih1,j,l)=rho(j)*si(j)
       al(3,ih1,j,l)=zero
       al(4,ih1,j,l)=one
   al(5,ih1,j,l)=((-one*dpsv(j))*((rho(j)*(one-co(j)))/dpsq(j)))*c1e3 !hr06
-  al(6,ih1,j,l)=((-one*dpsv(j))*((two*tan_mb(fok(j)*half))/dpsq(j)))&!hr06
+  al(6,ih1,j,l)=((-one*dpsv(j))*((two*tan_mb(fok*half))/dpsq(j)))&!hr06
   &*c1e3                                                              !hr06
-      sm1(j)=cos_mb(fok(j))
-      sm2(j)=sin_mb(fok(j))*rho(j)
-      sm3(j)=(-one*sin_mb(fok(j)))/rho(j)                            !hr06
+      sm1(j)=cos_mb(fok)
+      sm2(j)=sin_mb(fok)*rho(j)
+      sm3(j)=(-one*sin_mb(fok))/rho(j)                            !hr06
       sm12(j)=el(l)-sm1(j)*sm2(j)
       sm23(j)=sm2(j)*sm3(j)
       as3(j)=(-one*rvv(j))*(((dpsv(j)*rho(j))/(two*dpsq(j)))*sm23(j)-&!hr06
@@ -326,7 +326,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   &-(rvv(j)*sm12(j))/(c4e3*rho(j)**2))+fok1(j)*as4(j)                 !hr06
       as(6,ih1,j,l)=as6(j)
 !--VERTIKAL
-      g(j)=tan_mb(fok(j)*half)/rho(j)
+      g(j)=tan_mb(fok*half)/rho(j)
       gl(j)=el(l)*g(j)
       al(1,ih2,j,l)=one-gl(j)
       al(2,ih2,j,l)=el(l)
@@ -353,10 +353,10 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
       ih2=1
     endif
     do 70 j=1,napx
-      fok(j)=fokm/dpsq(j)
+      fok=fokm/dpsq(j)
       rho(j)=(one/ed(l))*dpsq(j)
-      si(j)=sin_mb(fok(j))
-      co(j)=cos_mb(fok(j))
+      si(j)=sin_mb(fok)
+      co(j)=cos_mb(fok)
       rhoc(j)=(rho(j)*(one-co(j)))/dpsq(j)                           !hr06
       siq(j)=si(j)/dpsq(j)
       al(1,ih1,j,l)=co(j)
@@ -390,11 +390,11 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
 !  FOCUSSING
 !-----------------------------------------------------------------------
 80   do 90 j=1,napx
-      fok(j)=ekv(j,l)*oidpsv(j)
-      aek(j)=abs(fok(j))
+      fok=ekv(j,l)*oidpsv(j)
+      aek(j)=abs(fok)
       hi(j)=sqrt(aek(j))
       fi(j)=el(l)*hi(j)
-      if(fok(j).le.zero) then
+      if(fok.le.zero) then
         al(1,1,j,l)=cos_mb(fi(j))
         hi1(j)=sin_mb(fi(j))
         if(abs(hi(j)).le.pieni) then
@@ -481,8 +481,8 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
     endif
     do 130 j=1,napx
       wf(j)=ed(l)/dpsq(j)
-      fok(j)=fokqv(j)/dpd(j)-wf(j)**2                                !hr06
-      afok(j)=abs(fok(j))
+      fok=fokqv(j)/dpd(j)-wf(j)**2                                !hr06
+      afok(j)=abs(fok)
       hi(j)=sqrt(afok(j))
       fi(j)=hi(j)*el(l)
       if(afok(j).le.pieni) then
@@ -498,7 +498,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
         as(6,2,j,l)=as(6,1,j,l)
         as(1,1,j,l)=(el(l)*(one-rvv(j)))*c1e3                        !hr06
       endif
-      if(fok(j).lt.(-one*pieni)) then                                !hr06
+      if(fok.lt.(-one*pieni)) then                                !hr06
         si(j)=sin_mb(fi(j))
         co(j)=cos_mb(fi(j))
         wfa(j)=((wf(j)/afok(j))*(one-co(j)))/dpsq(j)                 !hr06
@@ -541,7 +541,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   &/c4e3                                                              !hr06
       endif
 !--DEFOCUSSING
-      if(fok(j).gt.pieni) then
+      if(fok.gt.pieni) then
         hp(j)=exp_mb(fi(j))
         hm(j)=one/hp(j)
         hc(j)=(hp(j)+hm(j))*half
@@ -589,14 +589,14 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
 !-----------------------------------------------------------------------
 140   do 150 j=1,napx
       rhoi(j)=ed(l)/dpsq(j)
-      fok(j)=rhoi(j)*tan_mb((el(l)*rhoi(j))*half)                    !hr06
+      fok=rhoi(j)*tan_mb((el(l)*rhoi(j))*half)                    !hr06
       al(1,1,j,l)=one
       al(2,1,j,l)=zero
-      al(3,1,j,l)=fok(j)
+      al(3,1,j,l)=fok
       al(4,1,j,l)=one
       al(1,2,j,l)=one
       al(2,2,j,l)=zero
-      al(3,2,j,l)=-fok(j)
+      al(3,2,j,l)=-fok
       al(4,2,j,l)=one
 150   continue
 160 continue

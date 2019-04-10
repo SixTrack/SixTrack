@@ -873,7 +873,7 @@ module mod_common_main
   ! Main 2
   real(kind=fPrec), allocatable, save :: dpd(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: dpsq(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: fok(:)       ! (npart)
+! real(kind=fPrec), allocatable, save :: fok(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: rho(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: fok1(:)      ! (npart)
   real(kind=fPrec), allocatable, save :: si(:)        ! (npart)
@@ -984,7 +984,7 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
     call alloc(dpd,              npart_new,      zero,    "dpd")
     call alloc(dpsq,             npart_new,      zero,    "dpsq")
-    call alloc(fok,              npart_new,      zero,    "fok")
+!   call alloc(fok,              npart_new,      zero,    "fok")
     call alloc(rho,              npart_new,      zero,    "rho")
     call alloc(fok1,             npart_new,      zero,    "fok1")
     call alloc(si,               npart_new,      zero,    "si")
