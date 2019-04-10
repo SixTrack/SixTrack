@@ -371,7 +371,7 @@ subroutine crcheck
 !       (hs(j),j=1,crnapxo),                                &
 !       (rho(j),j=1,crnapxo),                               &
 !       (rhoc(j),j=1,crnapxo),                              &
-        (rhoi(j),j=1,crnapxo),                              &
+        (rhoi(j),j=1,crnapxo)!,                              &
 !       (si(j),j=1,crnapxo),                                &
 !       (siq(j),j=1,crnapxo),                               &
 !       (sm1(j),j=1,crnapxo),                               &
@@ -381,7 +381,7 @@ subroutine crcheck
 !       (sm3(j),j=1,crnapxo),                               &
 !       (wf(j),j=1,crnapxo),                                &
 !       (wfa(j),j=1,crnapxo),                               &
-        (wfhi(j),j=1,crnapxo)
+!       (wfhi(j),j=1,crnapxo)
       backspace (95,iostat=ierro)
       write(93,"(a)") "SIXTRACR> CRCHECK read fort.95 EXTENDED OK"
       flush(93)
@@ -511,7 +511,7 @@ subroutine crcheck
 !       (hs(j),j=1,crnapxo),                                &
 !       (rho(j),j=1,crnapxo),                               &
 !       (rhoc(j),j=1,crnapxo),                              &
-        (rhoi(j),j=1,crnapxo),                              &
+        (rhoi(j),j=1,crnapxo)!,                              &
 !       (si(j),j=1,crnapxo),                                &
 !       (siq(j),j=1,crnapxo),                               &
 !       (sm1(j),j=1,crnapxo),                               &
@@ -520,8 +520,8 @@ subroutine crcheck
 !       (sm23(j),j=1,crnapxo),                              &
 !       (sm3(j),j=1,crnapxo),                               &
 !       (wf(j),j=1,crnapxo),                                &
-!      (wfa(j),j=1,crnapxo),                               &
-        (wfhi(j),j=1,crnapxo)
+!       (wfa(j),j=1,crnapxo),                               &
+!       (wfhi(j),j=1,crnapxo)
       backspace (96,iostat=ierro)
       write(93,"(a)") "SIXTRACR> CRCHECK read fort.96 EXTENDED OK"
       flush(93)
@@ -1107,7 +1107,7 @@ subroutine crpoint
 !       (hs(j),j=1,napxo),           &
 !       (rho(j),j=1,napxo),          &
 !       (rhoc(j),j=1,napxo),         &
-        (rhoi(j),j=1,napxo),         &
+        (rhoi(j),j=1,napxo)!,         &
 !       (si(j),j=1,napxo),           &
 !       (siq(j),j=1,napxo),          &
 !       (sm1(j),j=1,napxo),          &
@@ -1117,7 +1117,7 @@ subroutine crpoint
 !       (sm3(j),j=1,napxo),          &
 !       (wf(j),j=1,napxo),           &
 !       (wfa(j),j=1,napxo),          &
-        (wfhi(j),j=1,napxo)
+!       (wfhi(j),j=1,napxo)
 
       endfile(crUnit,iostat=ierro)
       backspace(crUnit,iostat=ierro)
@@ -1335,7 +1335,7 @@ subroutine crstart
 !       (hs(j),j=1,napxo),    &
 !       (rho(j),j=1,napxo),   &
 !       (rhoc(j),j=1,napxo),  &
-        (rhoi(j),j=1,napxo),  &
+        (rhoi(j),j=1,napxo)!,  &
 !       (si(j),j=1,napxo),    &
 !       (siq(j),j=1,napxo),   &
 !       (sm1(j),j=1,napxo),   &
@@ -1345,7 +1345,7 @@ subroutine crstart
 !       (sm3(j),j=1,napxo),   &
 !       (wf(j),j=1,napxo),    &
 !       (wfa(j),j=1,napxo),   &
-        (wfhi(j),j=1,napxo)
+!       (wfhi(j),j=1,napxo)
       write(93,"(a)") "SIXTRACR> CRSTART read fort.95 EXTENDED OK"
       flush(93)
       goto 102
@@ -1379,7 +1379,7 @@ subroutine crstart
 !       (hs(j),j=1,napxo),    &
 !       (rho(j),j=1,napxo),   &
 !       (rhoc(j),j=1,napxo),  &
-        (rhoi(j),j=1,napxo),  &
+        (rhoi(j),j=1,napxo)!,  &
 !       (si(j),j=1,napxo),    &
 !       (siq(j),j=1,napxo),   &
 !       (sm1(j),j=1,napxo),   &
@@ -1389,7 +1389,7 @@ subroutine crstart
 !       (sm3(j),j=1,napxo),   &
 !       (wf(j),j=1,napxo),    &
 !       (wfa(j),j=1,napxo),   &
-        (wfhi(j),j=1,napxo)
+!       (wfhi(j),j=1,napxo)
 
       write(93,"(a)") "SIXTRACR> CRSTART read fort.96 EXTENDED OK"
       flush(93)
