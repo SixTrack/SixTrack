@@ -1886,7 +1886,7 @@ subroutine synuthck
   use mod_common_da
   implicit none
   integer ih1,ih2,j,kz1,l
-  real(kind=fPrec) fokm, fok, fok1, rho, si, co
+  real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23
   save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 #ifdef CR
@@ -1923,27 +1923,27 @@ subroutine synuthck
         ih2=1
       endif
       do 50 j=1,napx
-        fok=fokm/dpsq(j)
-        rho=(one/ed(l))*dpsq(j)
-        fok1=(tan_mb(fok*half))/rho
-        si=sin_mb(fok)
-        co=cos_mb(fok)
+        fok  = fokm/dpsq(j)
+        rho  = (one/ed(l))*dpsq(j)
+        fok1 = (tan_mb(fok*half))/rho
+        si   = sin_mb(fok)
+        co   = cos_mb(fok)
         al(2,ih1,j,l)=rho*si
         al(5,ih1,j,l)=((-one*dpsv(j))*((rho*(one-co))/dpsq(j)))*c1e3
         al(6,ih1,j,l)=((-one*dpsv(j))*((two*tan_mb(fok*half))/dpsq(j)))*c1e3         !hr01
-        sm1(j)=cos_mb(fok)
-        sm2(j)=sin_mb(fok)*rho
-        sm3(j)=-sin_mb(fok)/rho
-        sm12(j)=el(l)-sm1(j)*sm2(j)
-        sm23(j)=sm2(j)*sm3(j)
-        as3(j)=(-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23(j)-(rho*dpsq(j))*(one-sm1(j)))
-        as4(j)=((-one*rvv(j))*sm23(j))/c2e3                          !hr01
-        as6(j)=((-one*rvv(j))*(el(l)+sm1(j)*sm2(j)))/c4e3            !hr01
-        as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-sm2(j))))*c1e3
-        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/((two*rho)*dpsq(j)))* sm12(j)-(sm2(j)*dpsq(j))/rho)+fok1*as3(j)
+        sm1=cos_mb(fok)
+        sm2=sin_mb(fok)*rho
+        sm3=-sin_mb(fok)/rho
+        sm12=el(l)-sm1*sm2
+        sm23=sm2*sm3
+        as3(j)=(-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23-(rho*dpsq(j))*(one-sm1))
+        as4(j)=((-one*rvv(j))*sm23)/c2e3                          !hr01
+        as6(j)=((-one*rvv(j))*(el(l)+sm1*sm2))/c4e3            !hr01
+        as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12+dpsv(j)*(el(l)-sm2)))*c1e3
+        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/((two*rho)*dpsq(j)))* sm12-(sm2*dpsq(j))/rho)+fok1*as3(j)
         as(3,ih1,j,l)=as3(j)
         as(4,ih1,j,l)=as4(j)+(two*as6(j))*fok1                    !hr01
-        as(5,ih1,j,l)=((-one*rvv(j))*sm12(j))/(c4e3*rho**2)+as6(j)*fok1**2+fok1*as4(j)
+        as(5,ih1,j,l)=((-one*rvv(j))*sm12)/(c4e3*rho**2)+as6(j)*fok1**2+fok1*as4(j)
         as(6,ih1,j,l)=as6(j)
 !--VERTIKAL
         g(j)=tan_mb(fok*half)/rho
@@ -1985,13 +1985,13 @@ subroutine synuthck
         al(4,ih1,j,l)=co
         al(5,ih1,j,l)=((-one*dpsv(j))*rhoc(j))*c1e3                  !hr01
         al(6,ih1,j,l)=((-one*dpsv(j))*siq(j))*c1e3                   !hr01
-        sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
-        sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
-        as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l))))*c1e3
-        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/(two*rho*dpsq(j)))*sm12(j)-dpd(j)*siq(j))
-        as(3,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23(j)-dpd(j)*rhoc(j))
-        as(4,ih1,j,l)=((-one*rvv(j))*sm23(j))/c2e3                   !hr01
-        as(5,ih1,j,l)=((-one*rvv(j))*sm12(j))/((c4e3*rho)*rho) !hr01
+        sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
+        sm23=al(2,ih1,j,l)*al(3,ih1,j,l)
+        as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12+dpsv(j)*(el(l)-al(2,ih1,j,l))))*c1e3
+        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/(two*rho*dpsq(j)))*sm12-dpd(j)*siq(j))
+        as(3,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23-dpd(j)*rhoc(j))
+        as(4,ih1,j,l)=((-one*rvv(j))*sm23)/c2e3                   !hr01
+        as(5,ih1,j,l)=((-one*rvv(j))*sm12)/((c4e3*rho)*rho) !hr01
         as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
 !--VERTIKAL
         as(6,ih2,j,l)=((-one*rvv(j))*al(2,ih2,j,l))/c2e3             !hr01
@@ -2111,14 +2111,14 @@ subroutine synuthck
           al(4,ih1,j,l)=co
           al(5,ih1,j,l)=((-one*wfa(j))*dpsv(j))*c1e3                 !hr01
           al(6,ih1,j,l)=((-one*wfhi(j))*dpsv(j))*c1e3                !hr01
-          sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
-          sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
+          sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
+          sm23=al(2,ih1,j,l)*al(3,ih1,j,l)
           as(1,ih1,j,l)=(el(l)*(one-rvv(j))-((rvv(j)*((dpsv(j)**2/(four*dpd(j)))&
-            *sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf(j)**2)*c1e3
-          as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf(j))/(two*dpsq(j)))*sm12(j)-dpd(j)*wfhi(j))
-          as(3,ih1,j,l)=(-one*rvv(j))*(((((dpsv(j)*half)/afok(j))/dpd(j))*ed(l))*sm23(j)-dpd(j)*wfa(j))
-          as(4,ih1,j,l)=((-one*rvv(j))*sm23(j))/c2e3
-          as(5,ih1,j,l)=(((-one*rvv(j))*sm12(j))*afok(j))/c4e3
+            *sm12+dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf(j)**2)*c1e3
+          as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf(j))/(two*dpsq(j)))*sm12-dpd(j)*wfhi(j))
+          as(3,ih1,j,l)=(-one*rvv(j))*(((((dpsv(j)*half)/afok(j))/dpd(j))*ed(l))*sm23-dpd(j)*wfa(j))
+          as(4,ih1,j,l)=((-one*rvv(j))*sm23)/c2e3
+          as(5,ih1,j,l)=(((-one*rvv(j))*sm12)*afok(j))/c4e3
           as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
           aek(j)=abs(ekv(j,l)/dpd(j))
           hi(j)=sqrt(aek(j))
@@ -2149,14 +2149,14 @@ subroutine synuthck
           wfhi(j)=((wf(j)/hi(j))*hs(j))/dpsq(j)                      !hr01
           al(5,ih1,j,l)= (wfa(j)*dpsv(j))*c1e3                       !hr01
           al(6,ih1,j,l)=((-one*wfhi(j))*dpsv(j))*c1e3                !hr01
-          sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
-          sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
-          as(1,ih1,j,l)=(((rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12(j)&
+          sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
+          sm23=al(2,ih1,j,l)*al(3,ih1,j,l)
+          as(1,ih1,j,l)=(((rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12&
             +dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf(j)**2+el(l)*(one-rvv(j)))*c1e3
-          as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf(j))/(two*dpsq(j)))*sm12(j)-dpd(j)*wfhi(j))
-          as(3,ih1,j,l)=rvv(j)*(((((dpsv(j)*half)/afok(j))/dpd(j))* ed(l))*sm23(j)-dpd(j)*wfa(j))
-          as(4,ih1,j,l)=((-one*rvv(j))*sm23(j))/c2e3                 !hr01
-          as(5,ih1,j,l)=((rvv(j)*sm12(j))*afok(j))/c4e3              !hr01
+          as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf(j))/(two*dpsq(j)))*sm12-dpd(j)*wfhi(j))
+          as(3,ih1,j,l)=rvv(j)*(((((dpsv(j)*half)/afok(j))/dpd(j))* ed(l))*sm23-dpd(j)*wfa(j))
+          as(4,ih1,j,l)=((-one*rvv(j))*sm23)/c2e3                 !hr01
+          as(5,ih1,j,l)=((rvv(j)*sm12)*afok(j))/c4e3              !hr01
           as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
           aek(j)=abs(ekv(j,l)/dpd(j))
           hi(j)=sqrt(aek(j))
