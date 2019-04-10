@@ -354,7 +354,7 @@ subroutine crcheck
         (as3(j),j=1,crnapxo),                               &
         (as4(j),j=1,crnapxo),                               &
         (as6(j),j=1,crnapxo),                               &
-        (co(j),j=1,crnapxo),                                &
+!       (co(j),j=1,crnapxo),                                &
         (dpd(j),j=1,crnapxo),                               &
         (dpsq(j),j=1,crnapxo),                              &
         (fi(j),j=1,crnapxo),                                &
@@ -372,7 +372,7 @@ subroutine crcheck
 !       (rho(j),j=1,crnapxo),                               &
         (rhoc(j),j=1,crnapxo),                              &
         (rhoi(j),j=1,crnapxo),                              &
-        (si(j),j=1,crnapxo),                                &
+!       (si(j),j=1,crnapxo),                                &
         (siq(j),j=1,crnapxo),                               &
         (sm1(j),j=1,crnapxo),                               &
         (sm12(j),j=1,crnapxo),                              &
@@ -494,7 +494,7 @@ subroutine crcheck
         (as3(j),j=1,crnapxo),                               &
         (as4(j),j=1,crnapxo),                               &
         (as6(j),j=1,crnapxo),                               &
-        (co(j),j=1,crnapxo),                                &
+!       (co(j),j=1,crnapxo),                                &
         (dpd(j),j=1,crnapxo),                               &
         (dpsq(j),j=1,crnapxo),                              &
         (fi(j),j=1,crnapxo),                                &
@@ -512,7 +512,7 @@ subroutine crcheck
 !       (rho(j),j=1,crnapxo),                               &
         (rhoc(j),j=1,crnapxo),                              &
         (rhoi(j),j=1,crnapxo),                              &
-        (si(j),j=1,crnapxo),                                &
+!       (si(j),j=1,crnapxo),                                &
         (siq(j),j=1,crnapxo),                               &
         (sm1(j),j=1,crnapxo),                               &
         (sm12(j),j=1,crnapxo),                              &
@@ -1090,7 +1090,7 @@ subroutine crpoint
         (as3(j),j=1,napxo),          &
         (as4(j),j=1,napxo),          &
         (as6(j),j=1,napxo),          &
-        (co(j),j=1,napxo),           &
+!       (co(j),j=1,napxo),           &
         (dpd(j),j=1,napxo),          &
         (dpsq(j),j=1,napxo),         &
         (fi(j),j=1,napxo),           &
@@ -1108,7 +1108,7 @@ subroutine crpoint
 !       (rho(j),j=1,napxo),          &
         (rhoc(j),j=1,napxo),         &
         (rhoi(j),j=1,napxo),         &
-        (si(j),j=1,napxo),           &
+!       (si(j),j=1,napxo),           &
         (siq(j),j=1,napxo),          &
         (sm1(j),j=1,napxo),          &
         (sm12(j),j=1,napxo),         &
@@ -1318,7 +1318,7 @@ subroutine crstart
         (as3(j),j=1,napxo),   &
         (as4(j),j=1,napxo),   &
         (as6(j),j=1,napxo),   &
-        (co(j),j=1,napxo),    &
+!       (co(j),j=1,napxo),    &
         (dpd(j),j=1,napxo),   &
         (dpsq(j),j=1,napxo),  &
         (fi(j),j=1,napxo),    &
@@ -1336,7 +1336,7 @@ subroutine crstart
 !       (rho(j),j=1,napxo),   &
         (rhoc(j),j=1,napxo),  &
         (rhoi(j),j=1,napxo),  &
-        (si(j),j=1,napxo),    &
+!       (si(j),j=1,napxo),    &
         (siq(j),j=1,napxo),   &
         (sm1(j),j=1,napxo),   &
         (sm12(j),j=1,napxo),  &
@@ -1362,7 +1362,7 @@ subroutine crstart
         (as3(j),j=1,napxo),   &
         (as4(j),j=1,napxo),   &
         (as6(j),j=1,napxo),   &
-        (co(j),j=1,napxo),    &
+!       (co(j),j=1,napxo),    &
         (dpd(j),j=1,napxo),   &
         (dpsq(j),j=1,napxo),  &
         (fi(j),j=1,napxo),    &
@@ -1380,7 +1380,7 @@ subroutine crstart
 !       (rho(j),j=1,napxo),   &
         (rhoc(j),j=1,napxo),  &
         (rhoi(j),j=1,napxo),  &
-        (si(j),j=1,napxo),    &
+!       (si(j),j=1,napxo),    &
         (siq(j),j=1,napxo),   &
         (sm1(j),j=1,napxo),   &
         (sm12(j),j=1,napxo),  &
