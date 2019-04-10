@@ -1886,7 +1886,7 @@ subroutine synuthck
   use mod_common_da
   implicit none
   integer ih1,ih2,j,kz1,l
-  real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23
+  real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23,as3,as4,as6
   save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 #ifdef CR
@@ -1936,25 +1936,25 @@ subroutine synuthck
         sm3=-sin_mb(fok)/rho
         sm12=el(l)-sm1*sm2
         sm23=sm2*sm3
-        as3(j)=(-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23-(rho*dpsq(j))*(one-sm1))
-        as4(j)=((-one*rvv(j))*sm23)/c2e3                          !hr01
-        as6(j)=((-one*rvv(j))*(el(l)+sm1*sm2))/c4e3            !hr01
+        as3=(-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23-(rho*dpsq(j))*(one-sm1))
+        as4=((-one*rvv(j))*sm23)/c2e3                          !hr01
+        as6=((-one*rvv(j))*(el(l)+sm1*sm2))/c4e3            !hr01
         as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12+dpsv(j)*(el(l)-sm2)))*c1e3
-        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/((two*rho)*dpsq(j)))* sm12-(sm2*dpsq(j))/rho)+fok1*as3(j)
-        as(3,ih1,j,l)=as3(j)
-        as(4,ih1,j,l)=as4(j)+(two*as6(j))*fok1                    !hr01
-        as(5,ih1,j,l)=((-one*rvv(j))*sm12)/(c4e3*rho**2)+as6(j)*fok1**2+fok1*as4(j)
-        as(6,ih1,j,l)=as6(j)
+        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/((two*rho)*dpsq(j)))* sm12-(sm2*dpsq(j))/rho)+fok1*as3
+        as(3,ih1,j,l)=as3
+        as(4,ih1,j,l)=as4+(two*as6)*fok1                    !hr01
+        as(5,ih1,j,l)=((-one*rvv(j))*sm12)/(c4e3*rho**2)+as6*fok1**2+fok1*as4
+        as(6,ih1,j,l)=as6
 !--VERTIKAL
         g(j)=tan_mb(fok*half)/rho
         gl(j)=el(l)*g(j)
         al(1,ih2,j,l)=one-gl(j)
         al(3,ih2,j,l)=(-one*g(j))*(two-gl(j))                        !hr01
         al(4,ih2,j,l)=al(1,ih2,j,l)
-        as6(j)=((-one*rvv(j))*al(2,ih2,j,l))/c2e3                    !hr01
-        as(4,ih2,j,l)=((-one*two)*as6(j))*fok1                    !hr01
-        as(5,ih2,j,l)=(as6(j)*fok1)*fok1                       !hr01
-        as(6,ih2,j,l)=as6(j)
+        as6=((-one*rvv(j))*al(2,ih2,j,l))/c2e3                    !hr01
+        as(4,ih2,j,l)=((-one*two)*as6)*fok1                    !hr01
+        as(5,ih2,j,l)=(as6*fok1)*fok1                       !hr01
+        as(6,ih2,j,l)=as6
 50     continue
       goto 160
     elseif (kz1.eq.4.or.kz1.eq.6) then

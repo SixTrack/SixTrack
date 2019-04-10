@@ -224,7 +224,6 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   dimension rvv(npart),oidpsv(npart)
   dimension dpd(npart),dpsq(npart)
   dimension g(npart),gl(npart)
-  dimension as3(npart),as4(npart),as6(npart)
   dimension rhoc(npart),siq(npart),aek(npart),afok(npart)
   dimension hp(npart),hm(npart),hc(npart),hs(npart),wf(npart)
   dimension wfa(npart),wfhi(npart),rhoi(npart)
@@ -311,19 +310,19 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
       sm3=(-one*sin_mb(fok))/rho                            !hr06
       sm12=el(l)-sm1*sm2
       sm23=sm2*sm3
-      as3(j)=(-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23-&!hr06
+      as3=(-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23-&!hr06
   &(rho*dpsq(j))*(one-sm1))                                     !hr06
-      as4(j)=((-one*rvv(j))*sm23)/c2e3                            !hr06
-      as6(j)=((-one*rvv(j))*(el(l)+sm1*sm2))/c4e3              !hr06
+      as4=((-one*rvv(j))*sm23)/c2e3                            !hr06
+      as6=((-one*rvv(j))*(el(l)+sm1*sm2))/c4e3              !hr06
   as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/            &!hr06
   &(four*dpd(j)))*sm12+dpsv(j)*(el(l)-sm2)))*c1e3               !hr06
   as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/((two*rho)*dpsq(j)))*    &!hr06
-  &sm12-(sm2*dpsq(j))/rho)+fok1*as3(j)                    !hr06
-      as(3,ih1,j,l)=as3(j)
-      as(4,ih1,j,l)=as4(j)+(two*as6(j))*fok1                      !hr06
-      as(5,ih1,j,l)=(as6(j)*fok1**2                              &!hr06
-  &-(rvv(j)*sm12)/(c4e3*rho**2))+fok1*as4(j)                 !hr06
-      as(6,ih1,j,l)=as6(j)
+  &sm12-(sm2*dpsq(j))/rho)+fok1*as3                    !hr06
+      as(3,ih1,j,l)=as3
+      as(4,ih1,j,l)=as4+(two*as6)*fok1                      !hr06
+      as(5,ih1,j,l)=(as6*fok1**2                              &!hr06
+  &-(rvv(j)*sm12)/(c4e3*rho**2))+fok1*as4                 !hr06
+      as(6,ih1,j,l)=as6
 !--VERTIKAL
       g(j)=tan_mb(fok*half)/rho
       gl(j)=el(l)*g(j)
@@ -331,10 +330,10 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
       al(2,ih2,j,l)=el(l)
       al(3,ih2,j,l)=(-one*g(j))*(two-gl(j))                          !hr06
       al(4,ih2,j,l)=al(1,ih2,j,l)
-      as6(j)=((-one*rvv(j))*al(2,ih2,j,l))/c2e3                      !hr06
-      as(4,ih2,j,l)=((-one*two)*as6(j))*fok1                      !hr06
-      as(5,ih2,j,l)=as6(j)*fok1**2                                !hr06
-      as(6,ih2,j,l)=as6(j)
+      as6=((-one*rvv(j))*al(2,ih2,j,l))/c2e3                      !hr06
+      as(4,ih2,j,l)=((-one*two)*as6)*fok1                      !hr06
+      as(5,ih2,j,l)=as6*fok1**2                                !hr06
+      as(6,ih2,j,l)=as6
 50   continue
     goto 160
 !-----------------------------------------------------------------------
