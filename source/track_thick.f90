@@ -1886,7 +1886,7 @@ subroutine synuthck
   use mod_common_da
   implicit none
   integer ih1,ih2,j,kz1,l
-  real(kind=fPrec) fokm, foks
+  real(kind=fPrec) fokm, fok, rho
   save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 #ifdef CR
@@ -1923,30 +1923,30 @@ subroutine synuthck
         ih2=1
       endif
       do 50 j=1,napx
-        foks=fokm/dpsq(j)
-        rho(j)=(one/ed(l))*dpsq(j)
-        fok1(j)=(tan_mb(foks*half))/rho(j)
-        si(j)=sin_mb(foks)
-        co(j)=cos_mb(foks)
-        al(2,ih1,j,l)=rho(j)*si(j)
-        al(5,ih1,j,l)=((-one*dpsv(j))*((rho(j)*(one-co(j)))/dpsq(j)))*c1e3
-        al(6,ih1,j,l)=((-one*dpsv(j))*((two*tan_mb(foks*half))/dpsq(j)))*c1e3         !hr01
-        sm1(j)=cos_mb(foks)
-        sm2(j)=sin_mb(foks)*rho(j)
-        sm3(j)=-sin_mb(foks)/rho(j)
+        fok=fokm/dpsq(j)
+        rho=(one/ed(l))*dpsq(j)
+        fok1(j)=(tan_mb(fok*half))/rho
+        si(j)=sin_mb(fok)
+        co(j)=cos_mb(fok)
+        al(2,ih1,j,l)=rho*si(j)
+        al(5,ih1,j,l)=((-one*dpsv(j))*((rho*(one-co(j)))/dpsq(j)))*c1e3
+        al(6,ih1,j,l)=((-one*dpsv(j))*((two*tan_mb(fok*half))/dpsq(j)))*c1e3         !hr01
+        sm1(j)=cos_mb(fok)
+        sm2(j)=sin_mb(fok)*rho
+        sm3(j)=-sin_mb(fok)/rho
         sm12(j)=el(l)-sm1(j)*sm2(j)
         sm23(j)=sm2(j)*sm3(j)
-        as3(j)=(-one*rvv(j))*(((dpsv(j)*rho(j))/(two*dpsq(j)))*sm23(j)-(rho(j)*dpsq(j))*(one-sm1(j)))
+        as3(j)=(-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23(j)-(rho*dpsq(j))*(one-sm1(j)))
         as4(j)=((-one*rvv(j))*sm23(j))/c2e3                          !hr01
         as6(j)=((-one*rvv(j))*(el(l)+sm1(j)*sm2(j)))/c4e3            !hr01
         as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-sm2(j))))*c1e3
-        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/((two*rho(j))*dpsq(j)))* sm12(j)-(sm2(j)*dpsq(j))/rho(j))+fok1(j)*as3(j)
+        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/((two*rho)*dpsq(j)))* sm12(j)-(sm2(j)*dpsq(j))/rho)+fok1(j)*as3(j)
         as(3,ih1,j,l)=as3(j)
         as(4,ih1,j,l)=as4(j)+(two*as6(j))*fok1(j)                    !hr01
-        as(5,ih1,j,l)=((-one*rvv(j))*sm12(j))/(c4e3*rho(j)**2)+as6(j)*fok1(j)**2+fok1(j)*as4(j)
+        as(5,ih1,j,l)=((-one*rvv(j))*sm12(j))/(c4e3*rho**2)+as6(j)*fok1(j)**2+fok1(j)*as4(j)
         as(6,ih1,j,l)=as6(j)
 !--VERTIKAL
-        g(j)=tan_mb(foks*half)/rho(j)
+        g(j)=tan_mb(fok*half)/rho
         gl(j)=el(l)*g(j)
         al(1,ih2,j,l)=one-gl(j)
         al(3,ih2,j,l)=(-one*g(j))*(two-gl(j))                        !hr01
@@ -1973,25 +1973,25 @@ subroutine synuthck
         ih2=1
       endif
       do 70 j=1,napx
-        foks=fokm/dpsq(j)
-        rho(j)=(one/ed(l))*dpsq(j)
-        si(j)=sin_mb(foks)
-        co(j)=cos_mb(foks)
-        rhoc(j)=(rho(j)*(one-co(j)))/dpsq(j)                         !hr01
+        fok=fokm/dpsq(j)
+        rho=(one/ed(l))*dpsq(j)
+        si(j)=sin_mb(fok)
+        co(j)=cos_mb(fok)
+        rhoc(j)=(rho*(one-co(j)))/dpsq(j)                         !hr01
         siq(j)=si(j)/dpsq(j)
         al(1,ih1,j,l)=co(j)
-        al(2,ih1,j,l)=rho(j)*si(j)
-        al(3,ih1,j,l)=(-one*si(j))/rho(j)                            !hr01
+        al(2,ih1,j,l)=rho*si(j)
+        al(3,ih1,j,l)=(-one*si(j))/rho                            !hr01
         al(4,ih1,j,l)=co(j)
         al(5,ih1,j,l)=((-one*dpsv(j))*rhoc(j))*c1e3                  !hr01
         al(6,ih1,j,l)=((-one*dpsv(j))*siq(j))*c1e3                   !hr01
         sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
         sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
         as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l))))*c1e3
-        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/(two*rho(j)*dpsq(j)))*sm12(j)-dpd(j)*siq(j))
-        as(3,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*rho(j))/(two*dpsq(j)))*sm23(j)-dpd(j)*rhoc(j))
+        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/(two*rho*dpsq(j)))*sm12(j)-dpd(j)*siq(j))
+        as(3,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23(j)-dpd(j)*rhoc(j))
         as(4,ih1,j,l)=((-one*rvv(j))*sm23(j))/c2e3                   !hr01
-        as(5,ih1,j,l)=((-one*rvv(j))*sm12(j))/((c4e3*rho(j))*rho(j)) !hr01
+        as(5,ih1,j,l)=((-one*rvv(j))*sm12(j))/((c4e3*rho)*rho) !hr01
         as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
 !--VERTIKAL
         as(6,ih2,j,l)=((-one*rvv(j))*al(2,ih2,j,l))/c2e3             !hr01
@@ -2003,11 +2003,11 @@ subroutine synuthck
 !  FOCUSSING
 !-----------------------------------------------------------------------
 80   do 90 j=1,napx
-        foks=ekv(j,l)*oidpsv(j)
-        aek(j)=abs(foks)
+        fok=ekv(j,l)*oidpsv(j)
+        aek(j)=abs(fok)
         hi(j)=sqrt(aek(j))
         fi(j)=el(l)*hi(j)
-        if(foks.le.zero) then
+        if(fok.le.zero) then
           al(1,1,j,l)=cos_mb(fi(j))
           hi1(j)=sin_mb(fi(j))
           if(abs(hi(j)).le.pieni) then
@@ -2091,8 +2091,8 @@ subroutine synuthck
       endif
       do 130 j=1,napx
         wf(j)=ed(l)/dpsq(j)
-        foks=fokqv(j)/dpd(j)-wf(j)**2                              !hr01
-        afok(j)=abs(foks)
+        fok=fokqv(j)/dpd(j)-wf(j)**2                              !hr01
+        afok(j)=abs(fok)
         hi(j)=sqrt(afok(j))
         fi(j)=hi(j)*el(l)
         if(afok(j).le.pieni) then
@@ -2100,7 +2100,7 @@ subroutine synuthck
           as(6,2,j,l)=as(6,1,j,l)
           as(1,1,j,l)=(el(l)*(one-rvv(j)))*c1e3                      !hr01
         endif
-        if(foks.lt.(-one*pieni)) then                              !hr06
+        if(fok.lt.(-one*pieni)) then                              !hr06
           si(j)=sin_mb(fi(j))
           co(j)=cos_mb(fi(j))
           wfa(j)=((wf(j)/afok(j))*(one-co(j)))/dpsq(j)               !hr01
@@ -2136,7 +2136,7 @@ subroutine synuthck
           as(6,ih2,j,l)=((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
         endif
 !--DEFOCUSSING
-        if(foks.gt.pieni) then
+        if(fok.gt.pieni) then
           hp(j)=exp_mb(fi(j))
           hm(j)=one/hp(j)
           hc(j)=(hp(j)+hm(j))*half
@@ -2179,9 +2179,9 @@ subroutine synuthck
 !-----------------------------------------------------------------------
 140     do 150 j=1,napx
         rhoi(j)=ed(l)/dpsq(j)
-        foks=rhoi(j)*tan_mb((el(l)*rhoi(j))*half)                  !hr01
-        al(3,1,j,l)=foks
-        al(3,2,j,l)=-foks
+        fok=rhoi(j)*tan_mb((el(l)*rhoi(j))*half)                  !hr01
+        al(3,1,j,l)=fok
+        al(3,2,j,l)=-fok
 150     continue
       goto 160
     else

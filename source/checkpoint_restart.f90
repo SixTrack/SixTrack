@@ -369,7 +369,7 @@ subroutine crcheck
         (hm(j),j=1,crnapxo),                                &
         (hp(j),j=1,crnapxo),                                &
         (hs(j),j=1,crnapxo),                                &
-        (rho(j),j=1,crnapxo),                               &
+!       (rho(j),j=1,crnapxo),                               &
         (rhoc(j),j=1,crnapxo),                              &
         (rhoi(j),j=1,crnapxo),                              &
         (si(j),j=1,crnapxo),                                &
@@ -509,7 +509,7 @@ subroutine crcheck
         (hm(j),j=1,crnapxo),                                &
         (hp(j),j=1,crnapxo),                                &
         (hs(j),j=1,crnapxo),                                &
-        (rho(j),j=1,crnapxo),                               &
+!       (rho(j),j=1,crnapxo),                               &
         (rhoc(j),j=1,crnapxo),                              &
         (rhoi(j),j=1,crnapxo),                              &
         (si(j),j=1,crnapxo),                                &
@@ -1105,7 +1105,7 @@ subroutine crpoint
         (hm(j),j=1,napxo),           &
         (hp(j),j=1,napxo),           &
         (hs(j),j=1,napxo),           &
-        (rho(j),j=1,napxo),          &
+!       (rho(j),j=1,napxo),          &
         (rhoc(j),j=1,napxo),         &
         (rhoi(j),j=1,napxo),         &
         (si(j),j=1,napxo),           &
@@ -1333,7 +1333,7 @@ subroutine crstart
         (hm(j),j=1,napxo),    &
         (hp(j),j=1,napxo),    &
         (hs(j),j=1,napxo),    &
-        (rho(j),j=1,napxo),   &
+!       (rho(j),j=1,napxo),   &
         (rhoc(j),j=1,napxo),  &
         (rhoi(j),j=1,napxo),  &
         (si(j),j=1,napxo),    &
@@ -1377,7 +1377,7 @@ subroutine crstart
         (hm(j),j=1,napxo),    &
         (hp(j),j=1,napxo),    &
         (hs(j),j=1,napxo),    &
-        (rho(j),j=1,napxo),   &
+!       (rho(j),j=1,napxo),   &
         (rhoc(j),j=1,napxo),  &
         (rhoi(j),j=1,napxo),  &
         (si(j),j=1,napxo),    &
