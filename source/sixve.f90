@@ -223,7 +223,6 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   dimension fokqv(npart),dpsv(npart)
   dimension rvv(npart),oidpsv(npart)
   dimension dpd(npart),dpsq(npart)
-  dimension g(npart),gl(npart)
   dimension rhoc(npart),siq(npart),aek(npart),afok(npart)
   dimension hp(npart),hm(npart),hc(npart),hs(npart),wf(npart)
   dimension wfa(npart),wfhi(npart),rhoi(npart)
@@ -324,11 +323,11 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   &-(rvv(j)*sm12)/(c4e3*rho**2))+fok1*as4                 !hr06
       as(6,ih1,j,l)=as6
 !--VERTIKAL
-      g(j)=tan_mb(fok*half)/rho
-      gl(j)=el(l)*g(j)
-      al(1,ih2,j,l)=one-gl(j)
+      g=tan_mb(fok*half)/rho
+      gl=el(l)*g
+      al(1,ih2,j,l)=one-gl
       al(2,ih2,j,l)=el(l)
-      al(3,ih2,j,l)=(-one*g(j))*(two-gl(j))                          !hr06
+      al(3,ih2,j,l)=(-one*g)*(two-gl)                          !hr06
       al(4,ih2,j,l)=al(1,ih2,j,l)
       as6=((-one*rvv(j))*al(2,ih2,j,l))/c2e3                      !hr06
       as(4,ih2,j,l)=((-one*two)*as6)*fok1                      !hr06

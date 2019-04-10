@@ -361,8 +361,8 @@ subroutine crcheck
 !       (fok(j),j=1,crnapxo),                               &
 !       (fok1(j),j=1,crnapxo),                              &
         (fokqv(j),j=1,crnapxo),                             &
-        (g(j),j=1,crnapxo),                                 &
-        (gl(j),j=1,crnapxo),                                &
+!       (g(j),j=1,crnapxo),                                 &
+!       (gl(j),j=1,crnapxo),                                &
         (hc(j),j=1,crnapxo),                                &
         (hi(j),j=1,crnapxo),                                &
         (hi1(j),j=1,crnapxo),                               &
@@ -501,8 +501,8 @@ subroutine crcheck
 !       (fok(j),j=1,crnapxo),                               &
 !       (fok1(j),j=1,crnapxo),                              &
         (fokqv(j),j=1,crnapxo),                             &
-        (g(j),j=1,crnapxo),                                 &
-        (gl(j),j=1,crnapxo),                                &
+!       (g(j),j=1,crnapxo),                                 &
+!       (gl(j),j=1,crnapxo),                                &
         (hc(j),j=1,crnapxo),                                &
         (hi(j),j=1,crnapxo),                                &
         (hi1(j),j=1,crnapxo),                               &
@@ -1097,8 +1097,8 @@ subroutine crpoint
 !       (fok(j),j=1,napxo),          &
 !       (fok1(j),j=1,napxo),         &
         (fokqv(j),j=1,napxo),        &
-        (g(j),j=1,napxo),            &
-        (gl(j),j=1,napxo),           &
+!       (g(j),j=1,napxo),            &
+!       (gl(j),j=1,napxo),           &
         (hc(j),j=1,napxo),           &
         (hi(j),j=1,napxo),           &
         (hi1(j),j=1,napxo),          &
@@ -1325,8 +1325,8 @@ subroutine crstart
 !       (fok(j),j=1,napxo),   &
 !       (fok1(j),j=1,napxo),  &
         (fokqv(j),j=1,napxo), &
-        (g(j),j=1,napxo),     &
-        (gl(j),j=1,napxo),    &
+!       (g(j),j=1,napxo),     &
+!       (gl(j),j=1,napxo),    &
         (hc(j),j=1,napxo),    &
         (hi(j),j=1,napxo),    &
         (hi1(j),j=1,napxo),   &
@@ -1369,8 +1369,8 @@ subroutine crstart
 !       (fok(j),j=1,napxo),   &
 !       (fok1(j),j=1,napxo),  &
         (fokqv(j),j=1,napxo), &
-        (g(j),j=1,napxo),     &
-        (gl(j),j=1,napxo),    &
+!       (g(j),j=1,napxo),     &
+!       (gl(j),j=1,napxo),    &
         (hc(j),j=1,napxo),    &
         (hi(j),j=1,napxo),    &
         (hi1(j),j=1,napxo),   &

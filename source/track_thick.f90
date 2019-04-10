@@ -1886,7 +1886,7 @@ subroutine synuthck
   use mod_common_da
   implicit none
   integer ih1,ih2,j,kz1,l
-  real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23,as3,as4,as6
+  real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23,as3,as4,as6,g,gl
   save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 #ifdef CR
@@ -1946,10 +1946,10 @@ subroutine synuthck
         as(5,ih1,j,l)=((-one*rvv(j))*sm12)/(c4e3*rho**2)+as6*fok1**2+fok1*as4
         as(6,ih1,j,l)=as6
 !--VERTIKAL
-        g(j)=tan_mb(fok*half)/rho
-        gl(j)=el(l)*g(j)
-        al(1,ih2,j,l)=one-gl(j)
-        al(3,ih2,j,l)=(-one*g(j))*(two-gl(j))                        !hr01
+        g=tan_mb(fok*half)/rho
+        gl=el(l)*g
+        al(1,ih2,j,l)=one-gl
+        al(3,ih2,j,l)=(-one*g)*(two-gl)                        !hr01
         al(4,ih2,j,l)=al(1,ih2,j,l)
         as6=((-one*rvv(j))*al(2,ih2,j,l))/c2e3                    !hr01
         as(4,ih2,j,l)=((-one*two)*as6)*fok1                    !hr01
