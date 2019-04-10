@@ -35,7 +35,7 @@ program maincr
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
   use read_write,     only : writeFort12, readFort13, readFort33
-  use collimation,    only : do_coll, collimate_init
+  use collimation,    only : do_coll, collimate_init, collimate_exit
 
 #ifdef FLUKA
   use mod_fluka
