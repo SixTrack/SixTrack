@@ -224,7 +224,7 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   dimension rvv(npart),oidpsv(npart)
   dimension dpd(npart),dpsq(npart)
   dimension afok(npart)
-  dimension hp(npart),hm(npart),hc(npart),hs(npart),wf(npart)
+  dimension wf(npart)
   dimension wfa(npart),wfhi(npart),rhoi(npart)
 
   real(kind=fPrec) fokm
@@ -406,18 +406,18 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   &aek)/c4e3                                                       !hr06
   as(6,1,j,l)=((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3   !hr06
 !--DEFOCUSSING
-        hp(j)=exp_mb(fi)
-        hm(j)=one/hp(j)
-        hc(j)=(hp(j)+hm(j))*half
-        hs(j)=(hp(j)-hm(j))*half
-        al(1,2,j,l)=hc(j)
+        hp=exp_mb(fi)
+        hm=one/hp
+        hc=(hp+hm)*half
+        hs=(hp-hm)*half
+        al(1,2,j,l)=hc
         if(abs(hi).le.pieni) then
           al(2,2,j,l)=el(l)
         else
-          al(2,2,j,l)=hs(j)/hi
+          al(2,2,j,l)=hs/hi
         endif
-        al(3,2,j,l)=hs(j)*hi
-        al(4,2,j,l)=hc(j)
+        al(3,2,j,l)=hs*hi
+        al(4,2,j,l)=hc
         as(4,2,j,l)=((-one*rvv(j))*al(2,2,j,l)*al(3,2,j,l))/c2e3     !hr06
       as(5,2,j,l)=((rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek) &!hr06
   &/c4e3                                                              !hr06
@@ -438,18 +438,18 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   &aek)/c4e3                                                       !hr06
   as(6,2,j,l)=((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3   !hr06
 !--DEFOCUSSING
-        hp(j)=exp_mb(fi)
-        hm(j)=one/hp(j)
-        hc(j)=(hp(j)+hm(j))*half
-        hs(j)=(hp(j)-hm(j))*half
-        al(1,1,j,l)=hc(j)
+        hp=exp_mb(fi)
+        hm=one/hp
+        hc=(hp+hm)*half
+        hs=(hp-hm)*half
+        al(1,1,j,l)=hc
         if(abs(hi).le.pieni) then
           al(2,1,j,l)=el(l)
         else
-          al(2,1,j,l)=hs(j)/hi
+          al(2,1,j,l)=hs/hi
         endif
-        al(3,1,j,l)=hs(j)*hi
-        al(4,1,j,l)=hc(j)
+        al(3,1,j,l)=hs*hi
+        al(4,1,j,l)=hc
         as(4,1,j,l)=(((-one*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3   !hr06
       as(5,1,j,l)=((rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*aek) &!hr06
   &/c4e3                                                              !hr06
@@ -521,15 +521,15 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
         aek=abs(ekv(j,l)/dpd(j))
         hi=sqrt(aek)
         fi=hi*el(l)
-        hp(j)=exp_mb(fi)
-        hm(j)=one/hp(j)
-        hc(j)=(hp(j)+hm(j))*half
-        hs(j)=(hp(j)-hm(j))*half
-        al(1,ih2,j,l)=hc(j)
+        hp=exp_mb(fi)
+        hm=one/hp
+        hc=(hp+hm)*half
+        hs=(hp-hm)*half
+        al(1,ih2,j,l)=hc
         al(2,ih2,j,l)=el(l)
-        if(abs(hi).gt.pieni) al(2,ih2,j,l)=hs(j)/hi
-        al(3,ih2,j,l)=hs(j)*hi
-        al(4,ih2,j,l)=hc(j)
+        if(abs(hi).gt.pieni) al(2,ih2,j,l)=hs/hi
+        al(3,ih2,j,l)=hs*hi
+        al(4,ih2,j,l)=hc
   as(4,ih2,j,l)=(((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3   !hr06
       as(5,ih2,j,l)=((rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*  &!hr06
   &aek)/c4e3                                                       !hr06
@@ -538,16 +538,16 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
       endif
 !--DEFOCUSSING
       if(fok.gt.pieni) then
-        hp(j)=exp_mb(fi)
-        hm(j)=one/hp(j)
-        hc(j)=(hp(j)+hm(j))*half
-        hs(j)=(hp(j)-hm(j))*half
-        al(1,ih1,j,l)=hc(j)
-        al(2,ih1,j,l)=hs(j)/hi
-        al(3,ih1,j,l)=hs(j)*hi
-        al(4,ih1,j,l)=hc(j)
-        wfa(j)=((wf(j)/afok(j))*(one-hc(j)))/dpsq(j)                 !hr06
-        wfhi(j)=((wf(j)/hi)*hs(j))/dpsq(j)                        !hr06
+        hp=exp_mb(fi)
+        hm=one/hp
+        hc=(hp+hm)*half
+        hs=(hp-hm)*half
+        al(1,ih1,j,l)=hc
+        al(2,ih1,j,l)=hs/hi
+        al(3,ih1,j,l)=hs*hi
+        al(4,ih1,j,l)=hc
+        wfa(j)=((wf(j)/afok(j))*(one-hc))/dpsq(j)                 !hr06
+        wfhi(j)=((wf(j)/hi)*hs)/dpsq(j)                        !hr06
         al(5,ih1,j,l)= (wfa(j)*dpsv(j))*c1e3                         !hr06
         al(6,ih1,j,l)=((-one*wfhi(j))*dpsv(j))*c1e3                  !hr06
         sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)

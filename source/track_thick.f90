@@ -1887,7 +1887,7 @@ subroutine synuthck
   implicit none
   integer ih1,ih2,j,kz1,l
   real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23,as3,as4,as6,g,gl,rhoc,siq,aek,hi,  &
-    fi,hi1
+    fi,hi1,hp,hm,hc,hs
   save
 !---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
 #ifdef CR
@@ -2002,38 +2002,38 @@ subroutine synuthck
 !  QUADRUPOLE
 !  FOCUSSING
 !-----------------------------------------------------------------------
-80   do 90 j=1,napx
+80   do j=1,napx
         fok = ekv(j,l)*oidpsv(j)
         aek = abs(fok)
-        hi=sqrt(aek)
-        fi=el(l)*hi
-        if(fok.le.zero) then
-          al(1,1,j,l)=cos_mb(fi)
-          hi1=sin_mb(fi)
-          if(abs(hi).le.pieni) then
-            al(2,1,j,l)=el(l)
+        hi  = sqrt(aek)
+        fi  = el(l)*hi
+        if(fok <= zero) then
+          al(1,1,j,l) = cos_mb(fi)
+          hi1 = sin_mb(fi)
+          if(abs(hi) <= pieni) then
+            al(2,1,j,l) = el(l)
           else
-            al(2,1,j,l)=hi1/hi
+            al(2,1,j,l) = hi1/hi
           endif
-          al(3,1,j,l)=-hi1*hi
-          al(4,1,j,l)=al(1,1,j,l)
-          as(1,1,j,l)=el(l)*(one-rvv(j))*c1e3
-          as(4,1,j,l)=(((-one*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3
-          as(5,1,j,l)=(((-one*rvv(j))*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*aek)/c4e3
-          as(6,1,j,l)=((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3
+          al(3,1,j,l) = -hi1*hi
+          al(4,1,j,l) = al(1,1,j,l)
+          as(1,1,j,l) = el(l)*(one-rvv(j))*c1e3
+          as(4,1,j,l) = (((-one*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3
+          as(5,1,j,l) = (((-one*rvv(j))*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*aek)/c4e3
+          as(6,1,j,l) = ((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3
 !--DEFOCUSSING
-          hp(j)=exp_mb(fi)
-          hm(j)=one/hp(j)
-          hc(j)=(hp(j)+hm(j))*half
-          hs(j)=(hp(j)-hm(j))*half
-          al(1,2,j,l)=hc(j)
+          hp = exp_mb(fi)
+          hm = one/hp
+          hc = (hp+hm)*half
+          hs = (hp-hm)*half
+          al(1,2,j,l)=hc
           if(abs(hi).le.pieni) then
             al(2,2,j,l)=el(l)
           else
-            al(2,2,j,l)=hs(j)/hi
+            al(2,2,j,l)=hs/hi
           endif
-          al(3,2,j,l)=hs(j)*hi
-          al(4,2,j,l)=hc(j)
+          al(3,2,j,l)=hs*hi
+          al(4,2,j,l)=hc
           as(4,2,j,l)=(((-one*rvv(j))*al(2,2,j,l))*al(3,2,j,l))/c2e3
           as(5,2,j,l)=((rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek)/c4e3
           as(6,2,j,l)=((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3
@@ -2052,23 +2052,23 @@ subroutine synuthck
           as(5,2,j,l)=(((-one*rvv(j))*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek)/c4e3
           as(6,2,j,l)=((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3 !hr01
 !--DEFOCUSSING
-          hp(j)=exp_mb(fi)
-          hm(j)=one/hp(j)
-          hc(j)=(hp(j)+hm(j))*half
-          hs(j)=(hp(j)-hm(j))*half
-          al(1,1,j,l)=hc(j)
+          hp=exp_mb(fi)
+          hm=one/hp
+          hc=(hp+hm)*half
+          hs=(hp-hm)*half
+          al(1,1,j,l)=hc
           if(abs(hi).le.pieni) then
             al(2,1,j,l)=el(l)
           else
-            al(2,1,j,l)=hs(j)/hi
+            al(2,1,j,l)=hs/hi
           endif
-          al(3,1,j,l)=hs(j)*hi
-          al(4,1,j,l)=hc(j)
+          al(3,1,j,l)=hs*hi
+          al(4,1,j,l)=hc
           as(4,1,j,l)=(((-one*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3 !hr01
           as(5,1,j,l)=((rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*aek)/c4e3
           as(6,1,j,l)=((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3 !hr01
         endif
-90     continue
+      end do
       goto 160
     elseif (kz1.eq.7.or.kz1.eq.8) then
 !-----------------------------------------------------------------------
@@ -2123,30 +2123,30 @@ subroutine synuthck
           aek=abs(ekv(j,l)/dpd(j))
           hi=sqrt(aek)
           fi=hi*el(l)
-          hp(j)=exp_mb(fi)
-          hm(j)=one/hp(j)
-          hc(j)=(hp(j)+hm(j))*half
-          hs(j)=(hp(j)-hm(j))*half
-          al(1,ih2,j,l)=hc(j)
-          if(abs(hi).gt.pieni) al(2,ih2,j,l)=hs(j)/hi
-          al(3,ih2,j,l)=hs(j)*hi
-          al(4,ih2,j,l)=hc(j)
+          hp=exp_mb(fi)
+          hm=one/hp
+          hc=(hp+hm)*half
+          hs=(hp-hm)*half
+          al(1,ih2,j,l)=hc
+          if(abs(hi).gt.pieni) al(2,ih2,j,l)=hs/hi
+          al(3,ih2,j,l)=hs*hi
+          al(4,ih2,j,l)=hc
           as(4,ih2,j,l)=(((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3
           as(5,ih2,j,l)=((rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*aek)/c4e3
           as(6,ih2,j,l)=((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
         endif
 !--DEFOCUSSING
         if(fok.gt.pieni) then
-          hp(j)=exp_mb(fi)
-          hm(j)=one/hp(j)
-          hc(j)=(hp(j)+hm(j))*half
-          hs(j)=(hp(j)-hm(j))*half
-          al(1,ih1,j,l)=hc(j)
-          al(2,ih1,j,l)=hs(j)/hi
-          al(3,ih1,j,l)=hs(j)*hi
-          al(4,ih1,j,l)=hc(j)
-          wfa(j)=((wf(j)/afok(j))*(one-hc(j)))/dpsq(j)               !hr01
-          wfhi(j)=((wf(j)/hi)*hs(j))/dpsq(j)                      !hr01
+          hp=exp_mb(fi)
+          hm=one/hp
+          hc=(hp+hm)*half
+          hs=(hp-hm)*half
+          al(1,ih1,j,l)=hc
+          al(2,ih1,j,l)=hs/hi
+          al(3,ih1,j,l)=hs*hi
+          al(4,ih1,j,l)=hc
+          wfa(j)=((wf(j)/afok(j))*(one-hc))/dpsq(j)               !hr01
+          wfhi(j)=((wf(j)/hi)*hs)/dpsq(j)                      !hr01
           al(5,ih1,j,l)= (wfa(j)*dpsv(j))*c1e3                       !hr01
           al(6,ih1,j,l)=((-one*wfhi(j))*dpsv(j))*c1e3                !hr01
           sm12=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
