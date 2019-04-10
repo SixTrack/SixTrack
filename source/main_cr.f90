@@ -1322,7 +1322,8 @@ end interface
 
   ! Initialise Modules
   call dump_initialise
-  if(iclo6 > 0 .and. do_coll) then
+  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
+    ! Only if thin 6D and collimation enabled
     call collimate_init
   end if
 
