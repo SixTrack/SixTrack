@@ -35,6 +35,7 @@ program maincr
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
   use read_write,     only : writeFort12, readFort13, readFort33
+  use collimation,    only : do_coll, collimate_init, collimate_exit
 
 #ifdef FLUKA
   use mod_fluka
@@ -1321,6 +1322,10 @@ end interface
 
   ! Initialise Modules
   call dump_initialise
+  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
+    ! Only if thin 6D and collimation enabled
+    call collimate_init
+  end if
 
   call time_timeStamp(time_afterInitialisation)
 
@@ -1343,6 +1348,11 @@ end interface
 
   time2=0.
   call time_timerCheck(time2)
+
+  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
+    ! Only if thin 6D and collimation enabled
+    call collimate_exit
+  endif
 
   ! trtime is now the tracking time, BUT we must add other time for C/R
   trtime=time2-time1
