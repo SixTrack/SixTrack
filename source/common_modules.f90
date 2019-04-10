@@ -862,8 +862,6 @@ module mod_common_main
   real(kind=fPrec),              save :: qwc(3)    = zero
   real(kind=fPrec),              save :: clo0(2)   = zero
   real(kind=fPrec),              save :: clop0(2)  = zero
-  real(kind=fPrec),              save :: eps(2)    = zero
-  real(kind=fPrec),              save :: epsa(2)   = zero
   real(kind=fPrec),              save :: ekk(2)    = zero
   real(kind=fPrec),              save :: cr(mmul)  = zero
   real(kind=fPrec),              save :: ci(mmul)  = zero
