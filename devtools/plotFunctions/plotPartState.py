@@ -93,7 +93,6 @@ print("Read %d particles from file." % nPart)
 iFig  = 0
 nBins = 40
 for aCol in theCols:
-  print(theData[aCol])
   iFig  += 1
   theFig = plt.figure(iFig,figsize=(6, 4),dpi=100)
   theFig.clf()
