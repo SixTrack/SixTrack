@@ -218,8 +218,6 @@ subroutine envarsv
   real(kind=fPrec) aek,afok,as3,as4,as6,co,fi,fok,fok1,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoc,rhoi,&
     si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi,fokm
 
-  save
-
   ! The dpd and dpsq arrays used to be local and zeroed here.
   ! Currently using the global ones instead.
   ! do j=1,napx
