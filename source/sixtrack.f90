@@ -963,7 +963,7 @@ subroutine daten
   if(sixin_ncy2 == 0) il1 = il-1
   do k=1,il1
     if(abs(kz(k)) == 12) then
-      write(lout,"(i5,1x,a20,1x,i2,7(1x,e13.6))") k,bez(k)(1:20),kz(k),ed(k),ek(k),phasc(k),xpl(k),xrms(k),zpl(k),zrms(k)
+      write(lout,"(i5,1x,a20,1x,i2,7(1x,e13.6))") k,bez(k)(1:20),kz(k),ed(k),ek(k),phasc(k)/rad,xpl(k),xrms(k),zpl(k),zrms(k)
     else
       write(lout,"(i5,1x,a20,1x,i2,7(1x,e13.6))") k,bez(k)(1:20),kz(k),ed(k),ek(k),el(k),xpl(k),xrms(k),zpl(k),zrms(k)
     end if
