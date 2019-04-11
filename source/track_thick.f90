@@ -1084,7 +1084,7 @@ subroutine thck4d(nthinerr)
       ! inserted in main code by the 'fluka' compilation flag
       if ( recompute_linear_matrices ) then
         ! after a FLUKA element: additional particles may have been generated
-        call envarsv(dpsv,moidpsv,rvv,ekv)
+        call envarsv
         recompute_linear_matrices = .false.
       else if ( llost ) then
         ! after any other element: no additional particles, thus update only momentum-dependent matrix elements
@@ -1810,7 +1810,7 @@ subroutine thck6d(nthinerr)
       ! inserted in main code by the 'fluka' compilation flag
       if ( recompute_linear_matrices ) then
         ! after a FLUKA element: additional particles may have been generated
-        call envarsv(dpsv,moidpsv,rvv,ekv)
+        call envarsv
         recompute_linear_matrices = .false.
       else if ( llost ) then
         ! after any other element: no additional particles, thus update only momentum-dependent matrix elements

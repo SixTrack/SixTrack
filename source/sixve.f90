@@ -196,7 +196,7 @@ end subroutine blocksv
 !  CAUTION:
 !          A SPECIAL VERSION FOR VECTORIZATION - AUGUST   1994
 !-----------------------------------------------------------------------
-subroutine envarsv(dpsv,oidpsv,rvv,ekv)
+subroutine envarsv
 
   use floatPrecision
   use numerical_constants
@@ -207,17 +207,16 @@ subroutine envarsv(dpsv,oidpsv,rvv,ekv)
   use mod_commons
   use mod_common_track
   use mod_common_da
+  use mod_common_main, only : dpsv,oidpsv,rvv,ekv
 
   use mod_alloc
 
   implicit none
 
-  real(kind=fPrec), allocatable, intent(inout) :: ekv(:,:) !(npart,nele)
-
   integer ih1,ih2,j,kz1,l,l1,l2
 
   ! Local version of variables normally found in mod_common_main
-  real(kind=fPrec) dpd(npart),dpsq(npart),dpsv(npart),fokqv(npart),oidpsv(npart),rvv(npart)
+  real(kind=fPrec) dpd(npart),dpsq(npart),fokqv(npart)
   real(kind=fPrec) aek,afok,as3,as4,as6,co,fi,fok,fok1,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoc,rhoi,&
     si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi,fokm
 
