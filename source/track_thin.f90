@@ -1926,7 +1926,6 @@ subroutine thin6d(nthinerr)
           ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv
         goto 640
       case (58) ! JBG RF CC Multipoles
         xory=1
@@ -1940,7 +1939,6 @@ subroutine thin6d(nthinerr)
           ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv
         goto 640
       case (59) ! JBG RF CC Multipoles
         xory=1
@@ -1955,7 +1953,6 @@ subroutine thin6d(nthinerr)
                 *(((crabfreq*two)*pi)/clight)*c1m6)*sin_mb(kcrab))*e0f
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv
         goto 640
       case (60) ! JBG RF CC Multipoles
         xory=1
@@ -1970,7 +1967,6 @@ subroutine thin6d(nthinerr)
                 ((three*crkve**2)*cikve)))*(((crabfreq*two)*pi)/clight))*c1m6)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv
         goto 640
       case (61) ! JBG RF CC Multipoles
         xory=1
@@ -1985,7 +1981,6 @@ subroutine thin6d(nthinerr)
                 *(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv
         goto 640
       case (62) ! JBG RF CC Multipoles
         xory=1
@@ -1999,7 +1994,6 @@ subroutine thin6d(nthinerr)
           ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3*cikve)-(cikve**3*crkve)))*(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv
         goto 640
       case (63) ! Elens
         do j=1,napx
