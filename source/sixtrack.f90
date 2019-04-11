@@ -1113,10 +1113,9 @@ subroutine daten
     write(lout,"(a)") repeat("-",200)
     do j=1,il
       if(kz(j) == 20 .and. parbe(j,17) == 1) then
-        write(lout,"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3&
-        &,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")&
-        &bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),parbe(j,7),parbe(j,8),  &
-        &parbe(j,9),parbe(j,10),parbe(j,11),parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
+        write(lout,"(t10,a16,5x,i4,7x,13(1pe10.3,2x),1pe10.3)") &
+          bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),parbe(j,7),parbe(j,8),  &
+          parbe(j,9),parbe(j,10),parbe(j,11),parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
       end if
     end do
     write(lout,"(a)") repeat("-",200)
@@ -1127,7 +1126,7 @@ subroutine daten
     write(lout,"(a)") str_divLine
     do j=1,il
       if (kz(j) == 20 .and. parbe(j,17) == 0) then
-        write(lout,"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)") &
+        write(lout,"(t10,a16,5x,i4,7x,3(1pe10.3,2x),1pe10.3)") &
           bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6)
       end if
     end do
