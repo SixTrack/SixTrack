@@ -207,7 +207,7 @@ subroutine envarsv
   use mod_commons
   use mod_common_track
   use mod_common_da
-  use mod_common_main, only : dpsv,oidpsv,rvv,ekv
+  use mod_common_main, only : dpsv,oidpsv,rvv,ekv,dpd,dpsq
 
   use mod_alloc
 
@@ -216,26 +216,28 @@ subroutine envarsv
   integer ih1,ih2,j,kz1,l,l1,l2
 
   ! Local version of variables normally found in mod_common_main
-  real(kind=fPrec) dpd(npart),dpsq(npart),fokqv(npart)
+  real(kind=fPrec) fokqv(npart)
   real(kind=fPrec) aek,afok,as3,as4,as6,co,fi,fok,fok1,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoc,rhoi,&
     si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi,fokm
 
   save
 
-  do j=1,napx
-    dpd(j)  = one+dpsv(j)
-    dpsq(j) = sqrt(dpd(j))
-  end do
+  ! The dpd and dpsq arrays used to be local and zeroed here.
+  ! Currently using the global ones instead.
+  ! do j=1,napx
+  !   dpd(j)  = one+dpsv(j)
+  !   dpsq(j) = sqrt(dpd(j))
+  ! end do
 
   do 160 l=1,il
-    do l1=1,6
-      do j=1,napx
-        do l2=1,2
+    do j=1,napx
+      do l2=1,2
+        do l1=1,6
           al(l1,l2,j,l) = zero
           as(l1,l2,j,l) = zero
-        enddo
-      enddo
-    enddo
+        end do
+      end do
+    end do
     if(abs(el(l)) <= pieni) goto 160
 
     kz1 = kz(l)+1
