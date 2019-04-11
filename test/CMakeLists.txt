@@ -107,6 +107,8 @@ list(APPEND SIXTRACK_TESTS
   orbit6d-element-trombone-kick
   orbit6d-ions
   orbit6d-ions-long
+  part_state_binary_ions
+  part_state_text_ions
   perf1
   prob1
   prob3
@@ -226,6 +228,8 @@ set(TESTS_NOFORT10
   orbit6d-element-trombone-kick
   orbit6d-ions
   orbit6d-ions-long
+  part_state_binary_ions
+  part_state_text_ions
   rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
@@ -264,6 +268,8 @@ set(TESTS_NO_STF_FORT90
   fringe_field
   geometry
   geometry_multicol
+  part_state_binary_ions
+  part_state_text_ions
   rfMultipoles_2ndOrder
   rfMultipoles_4thOrder
   scatter_aperture
@@ -528,6 +534,8 @@ set(FAST_TESTS
   orbit6d-element-trombone-kick
   orbit6d-ions
   orbit6d-ions-long
+  part_state_binary_ions
+  part_state_text_ions
   rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
