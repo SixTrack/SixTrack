@@ -503,7 +503,7 @@ subroutine thck4d(nthinerr)
   use mod_commons
   use mod_common_track
   use mod_common_da
-  use elens
+  use elens, only : elens_ktrack, elens_kick
   use cheby, only : cheby_ktrack, cheby_kick
   use utils
   use wire
@@ -1043,10 +1043,8 @@ subroutine thck4d(nthinerr)
 #include "include/kickvso1.f90"
         end do
         goto 470
-      case (63) ! Elens
-        do j=1,napx
-#include "include/kickelens.f90"
-        end do
+      case (elens_ktrack) ! Elens
+        call elens_kick(i,ix,n)
         goto 470
       case (cheby_ktrack) ! Chebyshev lens
         call cheby_kick(i,ix,n)
@@ -1170,7 +1168,7 @@ subroutine thck6d(nthinerr)
   use mod_common_track
   use mod_common_da
   use aperture
-  use elens
+  use elens, only : elens_ktrack, elens_kick
   use cheby, only : cheby_ktrack, cheby_kick
   use utils
   use wire
@@ -1771,10 +1769,8 @@ subroutine thck6d(nthinerr)
 #include "include/kickvso2.f90"
         end do
         goto 490
-      case (63) ! Elens
-        do j=1,napx
-#include "include/kickelens.f90"
-        end do
+      case (elens_ktrack) ! Elens
+        call elens_kick(i,ix,n)
         goto 490
       case (cheby_ktrack) ! Chebyshev lens
         call cheby_kick(i,ix,n)

@@ -1,5 +1,5 @@
 ! M. Fitterer, FNAL, A. Mereghtti, CERN
-! last modified: 25-02-2019
+! last modified: 11-04-2019
 ! Common block for electron lens definition
 module elens
 
@@ -636,6 +636,83 @@ subroutine normaliseRadialProfile(ifile)
   end do
 
 end subroutine normaliseRadialProfile
+
+! ================================================================================================ !
+!  Last modified: 2019-04-11
+!  compute kick from electron lens
+! ================================================================================================ !
+subroutine elens_kick(i,ix,n)
+
+  use mod_common, only : betrel, napx
+  use mod_hions, only : moidpsv
+  use mod_common_main
+  use mathlib_bouncer
+  use numerical_constants, only : zero, one
+
+  integer, intent(in) :: i
+  integer, intent(in) :: ix
+  integer, intent(in) :: n
+  
+  real(kind=fPrec) xx, yy, rr
+  integer          jj
+  
+  do jj=1,napx
+    ! 1) apply offset of e-lens
+    !    xx = x(proton) - elens_offset_x
+    !    yy = y(proton) - elens_offset_y
+    xx=xv1(jj)-elens_offset_x(ielens(ix))
+    yy=xv2(jj)-elens_offset_y(ielens(ix))
+    ! 2) calculate radius
+    !    radial position of main beam relative to center of elens beam
+    !    rr = sqrt(xx**2+yy**2)
+    rr=sqrt(xx**2+yy**2)
+    ! 3) calculate kick
+    !    shape function: spatial charge density depends on type:
+    !    0    if r < R1
+    !    frr  if R1 < r < R2
+    !    1    if r > R2
+    if (rr.gt.elens_r1(ielens(ix))) then ! rr <= r1 -> no kick from elens
+      if (rr.lt.elens_r2(ielens(ix))) then ! r1 < rr < r2
+        select case (elens_type(ielens(ix)))
+        case (1)
+          ! UNIFORM: eLens with uniform profile
+          ! formula: (r^2-r1^2)/(r2^2-r1^2)
+          frr=( (rr+elens_r1(ielens(ix)))*(rr-elens_r1(ielens(ix))) )/elens_geo_norm(ielens(ix))
+        case (2)
+          ! GAUSSIAN: eLens with Gaussian profile
+          ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
+          frr=( exp_mb(-0.5*(elens_r1(ielens(ix))/elens_sig(ielens(ix)))**2)    &
+               -exp_mb(-0.5*(rr                  /elens_sig(ielens(ix)))**2) )/ &
+                                  elens_geo_norm(ielens(ix))
+        case (3)
+          ! RADIAL PROFILE: eLens with radial profile as from file
+          ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))
+          frr=(lininterp( rr, &
+                elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
+                elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
+                elens_radial_profile_nPoints(elens_iRadial(ielens(ix)))+1)-elens_radial_fr1(ielens(ix)) )/elens_geo_norm(ielens(ix))
+        case default
+          write(lout,"(a,i0,a)") "ELENS> ERROR in kickelens: elens_type=",elens_type(ielens(ix))," not recognized. "
+          write(lout,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
+          call prror
+        end select
+      else ! r1 < r2 <= rr
+        frr = one
+      endif
+      ! 'radial kick'
+      frr = (((elens_theta_r2(ielens(ix))*elens_r2(ielens(ix)))/rr)*frr)*moidpsv(jj)
+      if(elens_lThetaR2(ielens(ix))) then
+        if(elens_I(ielens(ix)) < zero) then
+          frr = frr*((rvv(jj)+elens_beta_e(ielens(ix))*betrel)/(one+elens_beta_e(ielens(ix))*betrel))
+        else
+          frr = frr*((rvv(jj)-elens_beta_e(ielens(ix))*betrel)/(one-elens_beta_e(ielens(ix))*betrel))
+        end if
+      endif
+      yv1(jj)=yv1(jj)-(frr*xx)/rr
+      yv2(jj)=yv2(jj)-(frr*yy)/rr
+    endif
+  end do
+end subroutine elens_kick
 
 #ifdef CR
 subroutine elens_crcheck(fileUnit,readErr)
