@@ -82,6 +82,7 @@ list(APPEND SIXTRACK_TESTS
   elensidealthin6d_ions
   elensidealthin6d_ramp_DYNK
   eric
+  error_init
   exact
   fcc
   fma
@@ -361,12 +362,20 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
     set(CR_NUMRESTARTS 1)
   endif()
 
-  add_test(
-    NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
-    COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
-      ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME}
-      $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} ${CR_NUMRESTARTS}
-  )
+  if(TST MATCHES "^error")
+    add_test(
+      NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
+      COMMAND SixTestWrapper "wrapper.py" $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
+        0 0 0 0 0 0 $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} 0
+    )
+  else()
+    add_test(
+      NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
+      COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
+        ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME}
+        $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} ${CR_NUMRESTARTS}
+    )
+  endif()
 
   #some tests take a very long time (set a 2 day timeout)
   set_tests_properties(${TST} PROPERTIES TIMEOUT "172800")
@@ -588,12 +597,18 @@ set(PERF_TESTS
   perf1
 )
 
+# Error tetst
+set(ERR_TESTS
+  error_init
+)
+
 foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
 
-  list(FIND FAST_TESTS ${TST} LABEL_FAST)
+  list(FIND FAST_TESTS   ${TST} LABEL_FAST)
   list(FIND MEDIUM_TESTS ${TST} LABEL_MEDIUM)
-  list(FIND SLOW_TESTS ${TST} LABEL_SLOW)
-  list(FIND PERF_TESTS ${TST} LABEL_PERF)
+  list(FIND SLOW_TESTS   ${TST} LABEL_SLOW)
+  list(FIND PERF_TESTS   ${TST} LABEL_PERF)
+  list(FIND ERR_TESTS    ${TST} LABEL_ERR)
 
   if(${LABEL_FAST} GREATER -1)
     set_property(TEST ${TST} PROPERTY LABELS fast)
@@ -603,6 +618,8 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
     set_property(TEST ${TST} PROPERTY LABELS slow)
   elseif(${LABEL_PERF} GREATER -1)
     set_property(TEST ${TST} PROPERTY LABELS perf)
+  elseif(${LABEL_ERR} GREATER -1)
+    set_property(TEST ${TST} PROPERTY LABELS error)
   else()
     message(STATUS "TEST ${TST} needs a label setting!")
     set_property(TEST ${TST} PROPERTY LABELS NeedsLabel)

@@ -1,0 +1,8 @@
+Test Name                        Exit=0
+========================================
+Ln1 Empty                        False
+Working INIT                     True
+Ln1 Wrong Type                   False
+Ln1 Invalid 'iver'               False
+Too Many Lines                   False
+Ln1 Invalid 'itra'               False
