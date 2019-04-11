@@ -207,7 +207,7 @@ subroutine envarsv
   use mod_commons
   use mod_common_track
   use mod_common_da
-  use mod_common_main, only : dpsv,oidpsv,rvv,ekv,dpd,dpsq
+  use mod_common_main, only : dpsv,oidpsv,rvv,ekv,dpd,dpsq,fokqv
 
   use mod_alloc
 
@@ -215,8 +215,6 @@ subroutine envarsv
 
   integer ih1,ih2,j,kz1,l,l1,l2
 
-  ! Local version of variables normally found in mod_common_main
-  real(kind=fPrec) fokqv(npart)
   real(kind=fPrec) aek,afok,as3,as4,as6,co,fi,fok,fok1,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoc,rhoi,&
     si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi,fokm
 
@@ -452,7 +450,7 @@ subroutine envarsv
     else
 !  COMBINED FUNCTION MAGNET VERTICAL
       do j=1,napx
-        fokqv(j) = -one*ekv(j,l)
+        fokqv(j) = -ekv(j,l)
       end do
       ih1 = 2
       ih2 = 1
