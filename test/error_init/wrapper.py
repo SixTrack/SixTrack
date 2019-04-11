@@ -20,7 +20,7 @@ with open("fort.3.template","r") as inFile:
 outBuf  = "%-32s %s\n" % ("Test Name","Exit=0")
 outBuf += ("="*40)+"\n"
 for aTest in sorted(theTests.keys()):
-  theBlock = "\n".join(theTests[aTest][0])
+  theBlock = "\n".join(theTests[aTest])
   with open("fort.3","w") as outFile:
     outFile.write(tmpF3.replace("%INIT%",theBlock))
   exCode  = os.system(os.path.join("..","..","sixtrack"))
