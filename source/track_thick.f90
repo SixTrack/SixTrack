@@ -505,7 +505,6 @@ subroutine thck4d(nthinerr)
   use mod_common_da
   use elens, only : elens_ktrack, elens_kick
   use cheby, only : cheby_ktrack, cheby_kick
-  use utils
   use wire
 #ifdef CR
   use checkpoint_restart
@@ -1170,7 +1169,6 @@ subroutine thck6d(nthinerr)
   use aperture
   use elens, only : elens_ktrack, elens_kick
   use cheby, only : cheby_ktrack, cheby_kick
-  use utils
   use wire
 #ifdef CR
   use checkpoint_restart

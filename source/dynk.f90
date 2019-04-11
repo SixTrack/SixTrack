@@ -2274,7 +2274,8 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   use mod_common_main
   use mod_particles
 
-  use elens, only: elens_theta_r2, elens_lAllowUpdate, elens_I, elens_Ek, eLensTheta, elens_kz
+  use elens, only: elens_theta_r2, elens_lAllowUpdate, elens_I, elens_Ek, eLensTheta, elens_kz, &
+                   melens, ielens
   use cheby
   use parbeam, only : beam_expflag
   implicit none
@@ -2554,7 +2555,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
   use mod_common
   use mod_common_track
   use mod_common_main
-  use elens, only: elens_theta_r2, elens_I, elens_Ek, elens_kz
+  use elens, only: elens_theta_r2, elens_I, elens_Ek, elens_kz, ielens
   use cheby
   use parbeam, only : beam_expflag
 

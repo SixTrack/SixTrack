@@ -526,7 +526,6 @@ subroutine thin4d(nthinerr)
   use aperture
   use elens, only : elens_ktrack, elens_kick
   use cheby, only : cheby_ktrack, cheby_kick
-  use utils
   use wire
 #ifdef CR
   use checkpoint_restart
@@ -1147,7 +1146,6 @@ subroutine thin6d(nthinerr)
   use aperture
   use elens, only : elens_ktrack, elens_kick
   use cheby, only : cheby_ktrack, cheby_kick
-  use utils
   use wire
 #ifdef CR
   use checkpoint_restart

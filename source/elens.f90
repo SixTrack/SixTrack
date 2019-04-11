@@ -648,12 +648,13 @@ subroutine elens_kick(i,ix,n)
   use mod_common_main
   use mathlib_bouncer
   use numerical_constants, only : zero, one
+  use utils, only : lininterp
 
   integer, intent(in) :: i
   integer, intent(in) :: ix
   integer, intent(in) :: n
   
-  real(kind=fPrec) xx, yy, rr
+  real(kind=fPrec) xx, yy, rr, frr
   integer          jj
   
   do jj=1,napx
