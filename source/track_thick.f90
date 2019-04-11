@@ -11,6 +11,7 @@ subroutine trauthck(nthinerr)
   use numerical_constants
   use dynk, only : dynk_enabled, dynk_isused, dynk_pretrack
   use cheby, only : cheby_kz, cheby_ktrack
+  use elens, only : elens_kz, elens_ktrack
 
 #ifdef FLUKA
 ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -129,8 +130,8 @@ subroutine trauthck(nthinerr)
       goto 290
     endif
     !electron lens (HEL)
-    if(kzz.eq.29) then
-      ktrack(i)=63
+    if(kzz.eq.elens_kz) then
+      ktrack(i)=elens_ktrack
       goto 290
     endif
     ! Chebyshev lens

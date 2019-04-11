@@ -16,6 +16,9 @@ module elens
   ! last elens read
   integer, save      :: melens = 0
 
+  integer, parameter          :: elens_kz=29          ! kz of electron lenses
+  integer, parameter          :: elens_ktrack=63      ! ktrack of electron lenses
+  
   ! index of elens:
   integer,allocatable, save :: ielens(:) !(nele)
 
@@ -126,8 +129,8 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     return
   end if
 
-  if(kz(iElem) /= 29) then
-    write(lout,"(2(a,i0),a)") "ELENS> ERROR Element type is kz(",iElem,") = ",kz(iElem)," != 29"
+  if(kz(iElem) /= elens_kz) then
+    write(lout,"(3(a,i0))") "ELENS> ERROR Element type is kz(",iElem,") = ",kz(iElem)," != ",elens_kz
     iErr = .true.
     return
   end if
@@ -334,7 +337,7 @@ subroutine elens_parseInputDone(iErr)
   ! Loop over single elements to check that they have been defined in the fort.3 block
   if(melens /= 0) then
     do j=1,nele
-      if(kz(j) == 29) then
+      if(kz(j) == elens_kz) then
         if(elens_type(ielens(j)) == 0) then
           write(lout,"(a)") "ELENS> ERROR Elens element '"//trim(bez(j))//"'not defined in fort.3."
           write(lout,"(a)") "ELENS>       You must define every elens in the ELEN block."
@@ -393,7 +396,7 @@ subroutine elens_postInput
     ! printout:
     ! - find name of elens
     do jj=1,nele
-      if(kz(jj)==29) then
+      if(kz(jj)==elens_kz) then
         if (ielens(jj).eq.j) then
           exit
         end if
@@ -456,7 +459,7 @@ subroutine eLensTheta(j)
     if(st_quiet < 2) then
       ! find name of elens
       do jj=1,nele
-        if(kz(jj)==29) then
+        if(kz(jj)==elens_kz) then
           if (ielens(jj).eq.j) then
             exit
           end if
