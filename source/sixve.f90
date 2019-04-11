@@ -306,7 +306,7 @@ subroutine envarsv
       as(4,ih1,j,l) = as4+(two*as6)*fok1
       as(5,ih1,j,l) = (as6*fok1**2-(rvv(j)*sm12)/(c4e3*rho**2))+fok1*as4
       as(6,ih1,j,l) = as6
-!--VERTIKAL
+!--VERTICAL
       g  = tan_mb(fok*half)/rho
       gl = el(l)*g
       al(1,ih2,j,l) = one-gl
@@ -355,7 +355,7 @@ subroutine envarsv
       as(4,ih1,j,l) = ((-one*rvv(j))*sm23)/c2e3
       as(5,ih1,j,l) = ((-one*rvv(j))*sm12)/(c4e3*rho**2)
       as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
-!--VERTIKAL
+!--VERTICAL
       al(1,ih2,j,l) = one
       al(2,ih2,j,l) = el(l)
       al(3,ih2,j,l) = zero
@@ -365,7 +365,7 @@ subroutine envarsv
     goto 160
 !-----------------------------------------------------------------------
 !  QUADRUPOLE
-!  FOCUSSING
+!  FOCUSING
 !-----------------------------------------------------------------------
 80  do j=1,napx
       fok = ekv(j,l)*oidpsv(j)
@@ -386,7 +386,7 @@ subroutine envarsv
         as(4,1,j,l) = (((-one*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3
         as(5,1,j,l) = (((-one*rvv(j))*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*aek)/c4e3
         as(6,1,j,l) = ((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3
-!--DEFOCUSSING
+!--DEFOCUSING
         hp = exp_mb(fi)
         hm = one/hp
         hc = (hp+hm)*half
@@ -416,7 +416,7 @@ subroutine envarsv
         as(4,2,j,l) = (((-one*rvv(j))*al(2,2,j,l))*al(3,2,j,l))/c2e3
         as(5,2,j,l) = (((-one*rvv(j))*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek)/c4e3
         as(6,2,j,l) = ((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3
-!--DEFOCUSSING
+!--DEFOCUSING
         hp = exp_mb(fi)
         hm = one/hp
         hc = (hp+hm)*half
@@ -437,9 +437,9 @@ subroutine envarsv
     goto 160
 !-----------------------------------------------------------------------
 !  COMBINED FUNCTION MAGNET HORIZONTAL
-!  FOCUSSING
+!  FOCUSING
 !-----------------------------------------------------------------------
-100   if(kz1.eq.7) then
+100 if(kz1.eq.7) then
       do j=1,napx
         fokqv(j) = ekv(j,l)
       end do
@@ -510,7 +510,7 @@ subroutine envarsv
         as(5,ih2,j,l) = ((rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*aek)/c4e3
         as(6,ih2,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
       end if
-!--DEFOCUSSING
+!--DEFOCUSING
       if(fok > pieni) then
         hp = exp_mb(fi)
         hm = one/hp
@@ -551,7 +551,7 @@ subroutine envarsv
     end do
     goto 160
 !-----------------------------------------------------------------------
-!  EDGE FOCUSSING
+!  EDGE FOCUSING
 !-----------------------------------------------------------------------
 140 do j=1,napx
       rhoi = ed(l)/dpsq(j)
