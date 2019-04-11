@@ -46,19 +46,6 @@ set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR"
 list(APPEND SIXTRACK_ERROR
   error_init
 )
-foreach(TST IN ITEMS ${SIXTRACK_ERROR})
-  add_custom_target(error_test_${TST})
-  add_test(
-    NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
-    COMMAND "wrapper.py" $<TARGET_FILE:SixTrackCR>
-  )
-  set_tests_properties(${TST} PROPERTIES LABELS error)
-  add_custom_command(
-    TARGET error_test_${TST} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/test/tools/errorTestTools.py ${CMAKE_BINARY_DIR}/test/${TST}/errorTestTools.py
-  )
-  add_dependencies(SixTrackCore error_test_${TST})
-endforeach()
 
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
@@ -432,7 +419,7 @@ if(SIXDA)
   endforeach()
 endif()
 
-#test files
+# Set up tests
 foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS} ${SIXTRACK_ERROR})
   add_custom_target(test_copy_${TST})
   add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/test/${TST}/)
@@ -496,6 +483,26 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS} ${SIXTRACK_ERROR})
   endif(NOT BOINC)
 
   add_dependencies(SixTrackCore test_copy_${TST})
+endforeach()
+
+# Set up error tests
+foreach(TST IN ITEMS ${SIXTRACK_ERROR})
+  add_test(
+    NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
+    COMMAND "wrapper.py" $<TARGET_FILE:SixTrackCR>
+  )
+  set_tests_properties(${TST} PROPERTIES LABELS error)
+  if(WIN32 OR NOSYMLINK)
+    add_custom_command(
+      TARGET test_copy_${TST} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/test/tools/errorTestTools.py ${CMAKE_BINARY_DIR}/test/${TST}/errorTestTools.py
+    )
+  else()
+    add_custom_command(
+      TARGET test_copy_${TST} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/test/tools/errorTestTools.py ${CMAKE_BINARY_DIR}/test/${TST}/errorTestTools.py
+    )
+  endif()
 endforeach()
 
 #add labels to tests

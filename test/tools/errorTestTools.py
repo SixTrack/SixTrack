@@ -44,7 +44,7 @@ def runTests(theTests, theArgs, nLines, nSkip):
 
     theBlock = "\n".join(theTests[aTest])
     with open("fort.3","w") as outFile:
-      outFile.write(tmpF3.replace("%INIT%",theBlock))
+      outFile.write(tmpF3.replace("%ERRORTESTS%",theBlock))
     exCode  = os.system("%s > fort.6" % theArgs[1])
     outBuf += "%-32s %s\n" % (aTest,str(exCode != 0))
     os.system("tail -n%d fort.6 | head -n%d >> error_results.log" % (nLines+nSkip, nLines))
