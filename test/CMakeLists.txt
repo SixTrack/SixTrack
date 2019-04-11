@@ -1,4 +1,13 @@
-#Test that the testing tools run!
+
+##
+##  SixTrack Test Suite
+## =====================
+##
+
+##
+## SelfTests
+##
+
 add_test(NAME SelfTest_verify10 COMMAND verify10)
 set_tests_properties(SelfTest_verify10 PROPERTIES PASS_REGULAR_EXPRESSION "Error in verify10 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
@@ -20,11 +29,36 @@ set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error i
 add_test(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
 
+##
+## Checks
+##
+
 add_test(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/ COMMAND ${CMAKE_SOURCE_DIR}/test/CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
 set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
 add_test(NAME CheckBuildManual COMMAND ${CMAKE_SOURCE_DIR}/test/CheckBuildManual.sh "${CMAKE_SOURCE_DIR}")
 set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+
+##
+## ERROR Tests
+##
+
+list(APPEND SIXTRACK_ERROR
+  error_init
+)
+foreach(TST IN ITEMS ${SIXTRACK_ERROR})
+  add_custom_target(error_test_${TST})
+  add_test(
+    NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
+    COMMAND "wrapper.py" $<TARGET_FILE:SixTrackCR>
+  )
+  set_tests_properties(${TST} PROPERTIES LABELS error)
+  add_custom_command(
+    TARGET error_test_${TST} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/test/tools/errorTestTools.py ${CMAKE_BINARY_DIR}/test/${TST}/errorTestTools.py
+  )
+  add_dependencies(SixTrackCore error_test_${TST})
+endforeach()
 
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
@@ -82,7 +116,6 @@ list(APPEND SIXTRACK_TESTS
   elensidealthin6d_ions
   elensidealthin6d_ramp_DYNK
   eric
-  error_init
   exact
   fcc
   fma
@@ -362,20 +395,12 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
     set(CR_NUMRESTARTS 1)
   endif()
 
-  if(TST MATCHES "^error")
-    add_test(
-      NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
-      COMMAND SixTestWrapper "wrapper.py" $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
-        0 0 0 0 0 0 $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} 0
-    )
-  else()
-    add_test(
-      NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
-      COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
-        ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME}
-        $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} ${CR_NUMRESTARTS}
-    )
-  endif()
+  add_test(
+    NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
+    COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
+      ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME}
+      $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} ${CR_NUMRESTARTS}
+  )
 
   #some tests take a very long time (set a 2 day timeout)
   set_tests_properties(${TST} PROPERTIES TIMEOUT "172800")
@@ -408,7 +433,7 @@ if(SIXDA)
 endif()
 
 #test files
-foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
+foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS} ${SIXTRACK_ERROR})
   add_custom_target(test_copy_${TST})
   add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/test/${TST}/)
 
@@ -597,18 +622,12 @@ set(PERF_TESTS
   perf1
 )
 
-# Error tetst
-set(ERR_TESTS
-  error_init
-)
-
 foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
 
   list(FIND FAST_TESTS   ${TST} LABEL_FAST)
   list(FIND MEDIUM_TESTS ${TST} LABEL_MEDIUM)
   list(FIND SLOW_TESTS   ${TST} LABEL_SLOW)
   list(FIND PERF_TESTS   ${TST} LABEL_PERF)
-  list(FIND ERR_TESTS    ${TST} LABEL_ERR)
 
   if(${LABEL_FAST} GREATER -1)
     set_property(TEST ${TST} PROPERTY LABELS fast)
@@ -618,8 +637,6 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
     set_property(TEST ${TST} PROPERTY LABELS slow)
   elseif(${LABEL_PERF} GREATER -1)
     set_property(TEST ${TST} PROPERTY LABELS perf)
-  elseif(${LABEL_ERR} GREATER -1)
-    set_property(TEST ${TST} PROPERTY LABELS error)
   else()
     message(STATUS "TEST ${TST} needs a label setting!")
     set_property(TEST ${TST} PROPERTY LABELS NeedsLabel)
