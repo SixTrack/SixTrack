@@ -225,7 +225,8 @@ subroutine envarsv
   !   dpsq(j) = sqrt(dpd(j))
   ! end do
 
-  do 160 l=1,il
+  do l=1,il
+
     do j=1,napx
       do l2=1,2
         do l1=1,6
@@ -234,7 +235,7 @@ subroutine envarsv
         end do
       end do
     end do
-    if(abs(el(l)) <= pieni) goto 160
+    if(abs(el(l)) <= pieni) cycle
 
     kz1 = kz(l)+1
     if(kz1 == 1) goto 20
@@ -246,7 +247,7 @@ subroutine envarsv
     if(kz1 == 7) goto 100
     if(kz1 == 8) goto 100
     if(kz1 == 9) goto 140
-    goto 160
+    cycle
 
 !-----------------------------------------------------------------------
 !  DRIFTLENGTH
@@ -264,7 +265,7 @@ subroutine envarsv
       as(6,2,j,l) = as(6,1,j,l)
       as(1,1,j,l) = (el(l)*(one-rvv(j)))*c1e3
     end do
-    goto 160
+    cycle
 !-----------------------------------------------------------------------
 !  RECTANGULAR MAGNET
 !  HORIZONTAL
@@ -318,7 +319,7 @@ subroutine envarsv
       as(5,ih2,j,l) = as6*fok1**2
       as(6,ih2,j,l) = as6
     end do
-    goto 160
+    cycle
 !-----------------------------------------------------------------------
 !  SEKTORMAGNET
 !  HORIZONTAL
@@ -362,7 +363,7 @@ subroutine envarsv
       al(4,ih2,j,l) = one
       as(6,ih2,j,l) = ((-one*rvv(j))*al(2,ih2,j,l))/c2e3
     end do
-    goto 160
+    cycle
 !-----------------------------------------------------------------------
 !  QUADRUPOLE
 !  FOCUSING
@@ -434,7 +435,7 @@ subroutine envarsv
         as(6,1,j,l) = ((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3
       endif
     end do
-    goto 160
+    cycle
 !-----------------------------------------------------------------------
 !  COMBINED FUNCTION MAGNET HORIZONTAL
 !  FOCUSING
@@ -549,7 +550,7 @@ subroutine envarsv
         as(6,ih2,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
       end if
     end do
-    goto 160
+    cycle
 !-----------------------------------------------------------------------
 !  EDGE FOCUSING
 !-----------------------------------------------------------------------
@@ -564,8 +565,8 @@ subroutine envarsv
       al(2,2,j,l) = zero
       al(3,2,j,l) = -fok
       al(4,2,j,l) = one
+    end do
   end do
-160 continue
 
 end subroutine envarsv
 
