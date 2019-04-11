@@ -947,7 +947,7 @@ subroutine daten
 ! ================================================================================================ !
 
   ! This is where the PRINT spam happens
-  if(st_print) goto 9500 ! Skip it
+  if(.not.st_print) goto 9500 ! Skip it
 
   write(lout,"(a)") ""
   write(lout,"(a)") "  *** RING PARAMETERS ***"
