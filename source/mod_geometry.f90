@@ -110,7 +110,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
       itionc(geom_nSing) = kz(geom_nSing)/abs(kz(geom_nSing))
       kp(geom_nSing)     = 6
     end if
-    kz(k) = abs(kz(k))
+    kz(geom_nSing) = abs(kz(geom_nSing))
   end if
 
   !--------------------------------------------
