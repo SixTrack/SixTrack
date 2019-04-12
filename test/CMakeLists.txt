@@ -123,6 +123,7 @@ list(APPEND SIXTRACK_TESTS
   thick6dblocks
   thick6ddynk
   thin4d_ions
+  thin6d_below_transit
   thin6d_ions
   tilt
   wire_thck4d
@@ -242,6 +243,7 @@ set(TESTS_NOFORT10
   thick6d_below_transit
   thick6dblocks
   thick6ddynk
+  thin6d_below_transit
 )
 
 # List of tests that do not produce singletrackfile.dat or fort.90
@@ -281,6 +283,7 @@ set(TESTS_NO_STF_FORT90
   thick6d_below_transit
   thick6ddynk
   thin4d_ions
+  thin6d_below_transit
   thin6d_ions
 )
 
@@ -554,6 +557,7 @@ set(FAST_TESTS
   thick6dblocks
   thick6ddynk
   thin4d_ions
+  thin6d_below_transit
   thin6d_ions
   wire_thck4d
   wire_thck6d
