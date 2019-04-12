@@ -91,7 +91,7 @@ subroutine part_updateRefEnergy(refEnergy)
   gammar = nucm0/e0
   betrel = sqrt((one+gammar)*(one-gammar))
   brho   = (e0f/(clight*c1m6))/zz0
-  
+
   ! Also update sigmv with the new beta0 = e0f/e0
   sigmv(1:napx) = ((e0f*e0o)/(e0fo*e0))*sigmv(1:napx)
 
@@ -198,6 +198,8 @@ subroutine part_writeState(theState)
   integer            :: fileUnit, j, k, iDummy
   logical            :: rErr, isPrim, isBin, noIons
 
+  iDummy = 0
+
   if(theState == 0) then
     if(st_initialState == 0) return ! No dump was requested in fort.3
     isBin    = st_initialState == 1 .or. st_initialState == 3
@@ -223,8 +225,6 @@ subroutine part_writeState(theState)
     write(fileUnit) int(napxo, kind=int32)
     write(fileUnit) int(npart, kind=int32)
     write(fileUnit) int(iDummy,kind=int32) ! Pad to n x 64 bit
-
-    iDummy = 0
 
     do j=1,npart
       isPrim = partID(j) <= napxo
