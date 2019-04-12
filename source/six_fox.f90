@@ -2291,7 +2291,7 @@ subroutine synoda
 !-----------------------------------------------------------------------
   ix=ixcav
 
-  if(kz(ix).eq.12) then
+  if(abs(kz(ix)) == 12) then
 !FOX  EJ1=EJ1+ED(IX)*ZZ0*SIN(HSYC(IX)*SIGMDA/C1E3*
 !FOX  ITIONC(IX)+PHASC(IX)) ;
   else

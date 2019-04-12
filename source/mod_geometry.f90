@@ -110,7 +110,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
       itionc(geom_nSing) = kz(geom_nSing)/abs(kz(geom_nSing))
       kp(geom_nSing)     = 6
     end if
-    kz(geom_nSing) = abs(kz(geom_nSing))
+  ! kz(geom_nSing) = abs(kz(geom_nSing))
   end if
 
   !--------------------------------------------
@@ -152,7 +152,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
     kp(geom_nSing) = 0
   end if
 
-  bez(geom_nSing)        = elemName
+  bez(geom_nSing)       = elemName
   geom_bez0(geom_nSing) = elemName
 
   !If no active RF cavities are seen so far in the single element list,

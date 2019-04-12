@@ -76,9 +76,8 @@ subroutine trauthck(nthinerr)
     if(kzz.eq.0) then
       ktrack(i)=31
       goto 290
-    else if(kzz.eq.12) then
+    else if(abs(kzz) == 12) then
       ! Disabled cavity; enabled cavities have kp=6 and are handled above
-      ! Note: kz=-12 is transformed into +12 in daten after reading ENDE.
       ktrack(i)=31
       goto 290
     end if
@@ -446,7 +445,9 @@ subroutine trauthck(nthinerr)
       hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)                                 !hr01
 
       do jj=1,nele
-        if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*real(itionc(jj),fPrec)     !hr01
+        if(abs(kz(jj)) == 12) then
+          hsyc(jj)=(c1m3*hsyc(jj))*real(itionc(jj),fPrec)
+        end if
       end do
 
       if(abs(phas).ge.pieni) then
@@ -1375,7 +1376,7 @@ subroutine thck6d(nthinerr)
         do j=1,napx
           ejf0v(j)=ejfv(j)
           if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
-          if(kz(ix).eq.12) then
+          if(abs(kz(ix)) == 12) then
             ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
           else
             ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
