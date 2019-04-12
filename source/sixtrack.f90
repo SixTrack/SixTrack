@@ -929,15 +929,6 @@ subroutine daten
     end do
   end if
 
-  il1 = il
-  if(sixin_ncy2 == 0) il1 = il-1
-  do k=1,il1
-    if(abs(kz(k)) == 12) then
-      kz(k)    = abs(kz(k))
-      phasc(k) = phasc(k)*rad
-    end if
-  end do
-
   call ffield_mod_link(inErr)
   if(inErr) goto 9999
 
@@ -960,7 +951,7 @@ subroutine daten
     "         X-RMS         Y-POS         Y-RMS"
   write(lout,"(a)") str_divLine
   il1 = il
-  if(sixin_ncy2 == 0) il1 = il-1
+  if(ncy2 == 0) il1 = il-1
   do k=1,il1
     if(abs(kz(k)) == 12) then
       write(lout,"(i5,1x,a20,1x,i2,7(1x,e13.6))") k,bez(k)(1:20),kz(k),ed(k),ek(k),phasc(k)/rad,xpl(k),xrms(k),zpl(k),zrms(k)
@@ -1083,7 +1074,7 @@ subroutine daten
     write(lout,"(a,f30.9)")   "  Normalized vertical emmittance (um):   ",sixin_emitNY
   end if
   write(lout,"(a,f30.9)")     "  Energy in (MeV):                       ",e0
-  if(sixin_ncy2.eq.0) then
+  if(ncy2 == 0) then
     write(lout,"(a,f30.9)")   "  Harmonic number:                       ",sixin_harm
     write(lout,"(a,f30.9)")   "  Circumf. voltage (MV):                 ",sixin_u0
     write(lout,"(a,f30.9)")   "  Equilibrium phase (deg):               ",sixin_phag
@@ -1886,15 +1877,15 @@ subroutine initialize_element(ix,lfirst)
 !--Cavities (ktrack = 2 for thin)
       elseif(abs(kz(ix)).eq.12) then
          !Moved from daten
-         phasc(ix) = el(ix)
+         dynk_elemData(ix,3) = el(ix)
+         phasc(ix) = el(ix)*rad
          el(ix) = zero
-         dynk_elemData(ix,3) = phasc(ix)
          if (.not.lfirst) then
 
             ! Doesn't work, as i is not initialized here.
             !if (.not.ktrack(i).eq.2) goto 100 !ERROR
 
-            phasc(ix) = phasc(ix)*rad
+            ! phasc(ix) = phasc(ix)*rad
 
             hsyc(ix) = ((two*pi)*ek(ix))/tlen         ! daten SYNC block
             hsyc(ix)=(c1m3*hsyc(ix))*real(itionc(ix),fPrec) ! trauthin/trauthck

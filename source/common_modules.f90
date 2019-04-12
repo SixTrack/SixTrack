@@ -197,11 +197,15 @@ module mod_common
   integer,          save :: iicav      = 0    ! Used between runcav and runda
   integer,          save :: ition      = 0    ! Transition energy switch:
   integer,          save :: idp        = 0    ! Synchrotron motion
-  integer,          save :: ncy        = 0    ! Number of cavity locations
   integer,          save :: ixcav      = 0    ! Stores ix, presumably for cavity
   integer,          save :: icode      = 0
   integer,          save :: idam       = 0
   integer,          save :: its6d      = 0
+
+  ! RF Cavities
+  integer,          save :: icy        = 0    ! Accelerating cavity: Number of "CAV" locations in STRUCT
+  integer,          save :: ncy        = 0    ! Accelerating cavity: Number of cavity locations in SING
+  integer,          save :: ncy2       = 0    ! Accelerating cavity: Number of cavities (kz = +/- 12) in SING
 
   ! Organisation of Random Numbers
   integer,          save :: iorg       = 0    ! Organisation of random numbers flag

@@ -106,10 +106,11 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
   ! CAVITIES
   if(abs(kz(geom_nSing)) == 12) then
     if(abs(ed(geom_nSing)) > pieni .and. abs(ek(geom_nSing)) > pieni) then
-      sixin_ncy2         = sixin_ncy2 + 1
+      ncy2               = ncy2 + 1
       itionc(geom_nSing) = kz(geom_nSing)/abs(kz(geom_nSing))
       kp(geom_nSing)     = 6
     end if
+    kz(k) = abs(kz(k))
   end if
 
   !--------------------------------------------
@@ -147,7 +148,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
     call alloc(geom_bez0, mNameLen, nele, " ", "geom_bez0")
   end if
 
-  if(abs(kz(geom_nSing)) /= 12 .or. (abs(kz(geom_nSing)) == 12 .and. sixin_ncy2 == 0)) then
+  if(abs(kz(geom_nSing)) /= 12 .or. (abs(kz(geom_nSing)) == 12 .and. ncy2 == 0)) then
     kp(geom_nSing) = 0
   end if
 
@@ -160,7 +161,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
   ! and only if no active RF cavities are found, a CAV element can be
   ! used in the structure to enable 6D tracking using the parameters
   ! from the SYNC block.
-  if(sixin_ncy2 == 0) then
+  if(ncy2 == 0) then
     geom_nSing            = geom_nSing + 1
     il                    = geom_nSing
     bez(geom_nSing)       = geom_cavity
@@ -378,7 +379,7 @@ subroutine geom_parseInputLineSTRU(inLine, iLine, iErr)
         ic(geom_nStru)   = j+nblo
         bezs(geom_nStru) = geom_bez0(j)
         if(geom_bez0(j) == geom_cavity) then
-          sixin_icy = sixin_icy+1
+          icy = icy+1
         end if
         exit
       end if
@@ -467,7 +468,7 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
       if(geom_bez0(j) == lnSplit(2)) then
         singID = j+nblo
         if(geom_bez0(j) == geom_cavity) then
-          sixin_icy = sixin_icy+1
+          icy = icy+1
         end if
         exit
       end if
