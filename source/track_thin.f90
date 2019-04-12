@@ -448,7 +448,7 @@ subroutine trauthin(nthinerr)
     hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
     do jj=1,nele
       if(abs(kz(jj)) == 12) then
-        hsyc(jj)=(c1m3*hsyc(jj))*real(itionc(jj),fPrec)
+        hsyc(jj) = (c1m3*hsyc(jj)) * real(sign(1,kz(jj)),kind=fPrec)
       end if
     end do
     if(abs(phas).ge.pieni) then

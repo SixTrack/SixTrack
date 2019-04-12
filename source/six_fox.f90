@@ -2274,7 +2274,7 @@ subroutine synoda
   use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   implicit none
-  integer ix,idaa
+  integer ix,idaa,ikz
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   save
 !-----------------------------------------------------------------------
@@ -2284,16 +2284,17 @@ subroutine synoda
 !FOX  D V RE INT HSY 3 ; D V RE INT PHAS ;
 !FOX  D V RE EXT ED NELE ; D V RE EXT HSYC NELE ;
 !FOX  D V RE EXT PHASC NELE ;  D V RE INT NUCMDA ;
-!FOX  D V RE INT C1E3 ; D V RE INT ONE ;
-!FOX  D V IN EXT ITIONC NELE ; D V IN INT ITION ; D V IN INT IX ;
+!FOX  D V RE INT C1E3 ; D V RE INT ONE ; D V IN INT IKZ ;
+!FOX  D V IN EXT NELE ; D V IN INT ITION ; D V IN INT IX ;
 !FOX  E D ; D V RE INT NUCM0 ; D V RE INT MTCDA ; D V RE INT ZZ0 ;
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
   ix=ixcav
 
   if(abs(kz(ix)) == 12) then
+    ikz = sign(1,kz(ix))
 !FOX  EJ1=EJ1+ED(IX)*ZZ0*SIN(HSYC(IX)*SIGMDA/C1E3*
-!FOX  ITIONC(IX)+PHASC(IX)) ;
+!FOX  IKZ+PHASC(IX)) ;
   else
 !FOX  EJ1=EJ1+HSY(1)*ZZ0*SIN(HSY(3)*SIGMDA/C1E3*ITION+PHAS) ;
   endif

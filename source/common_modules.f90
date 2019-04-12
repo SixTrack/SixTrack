@@ -428,7 +428,6 @@ module mod_common
 
   real(kind=fPrec), allocatable, save :: hsyc(:)        ! Accelerating cavity: 'Frequency'
   real(kind=fPrec), allocatable, save :: phasc(:)       ! Accelerating cavity: Lag phase
-  integer,          allocatable, save :: itionc(:)      ! Accelerating cavity: Regime
 
   real(kind=fPrec), allocatable, save :: benkc(:)       ! Multipoles: Bending strength of the dipole [mrad]
   real(kind=fPrec), allocatable, save :: r00(:)         ! Multipoles: Reference radius [mm]
@@ -584,7 +583,6 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
     call alloc(a,                    nele_new,2,6,   zero,   "a")
     call alloc(hsyc,                 nele_new,       zero,   "hsyc")
     call alloc(phasc,                nele_new,       zero,   "phasc")
-    call alloc(itionc,               nele_new,       0,      "itionc")
     call alloc(bk0,                  nele_new, mmul, zero,   "bk0")
     call alloc(ak0,                  nele_new, mmul, zero,   "ak0")
     call alloc(bka,                  nele_new, mmul, zero,   "bka")

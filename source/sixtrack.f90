@@ -1888,8 +1888,8 @@ subroutine initialize_element(ix,lfirst)
             ! phasc(ix) = phasc(ix)*rad
 
             hsyc(ix) = ((two*pi)*ek(ix))/tlen         ! daten SYNC block
-            hsyc(ix)=(c1m3*hsyc(ix))*real(itionc(ix),fPrec) ! trauthin/trauthck
-         endif
+            hsyc(ix) = (c1m3*hsyc(ix)) * real(sign(1,kz(ix)),kind=fPrec) ! trauthin/trauthck
+          endif
 !--BEAM-BEAM
       elseif(kz(ix).eq.20) then
 
