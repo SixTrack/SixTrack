@@ -1873,23 +1873,21 @@ subroutine initialize_element(ix,lfirst)
           enddo
         endif
 
-
 !--Cavities (ktrack = 2 for thin)
-      elseif(abs(kz(ix)).eq.12) then
-         !Moved from daten
-         dynk_elemData(ix,3) = el(ix)
-         phasc(ix) = el(ix)*rad
-         el(ix) = zero
-         if (.not.lfirst) then
+      elseif(abs(kz(ix)) == 12) then
+        dynk_elemData(ix,3) = el(ix)
+        phasc(ix) = el(ix)*rad
+        el(ix) = zero
+        if(lfirst) then
+          if(abs(ed(ix)) > pieni .and. abs(ek(ix)) > pieni) then
+            ncy2   = ncy2 + 1
+            kp(ix) = 6
+          end if
+        else
+          hsyc(ix) = ((two*pi)*ek(ix))/tlen         ! daten SYNC block
+          hsyc(ix) = (c1m3*hsyc(ix)) * real(sign(1,kz(ix)),kind=fPrec) ! trauthin/trauthck
+        end if
 
-            ! Doesn't work, as i is not initialized here.
-            !if (.not.ktrack(i).eq.2) goto 100 !ERROR
-
-            ! phasc(ix) = phasc(ix)*rad
-
-            hsyc(ix) = ((two*pi)*ek(ix))/tlen         ! daten SYNC block
-            hsyc(ix) = (c1m3*hsyc(ix)) * real(sign(1,kz(ix)),kind=fPrec) ! trauthin/trauthck
-          endif
 !--BEAM-BEAM
       elseif(kz(ix).eq.20) then
 

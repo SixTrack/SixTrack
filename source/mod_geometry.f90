@@ -103,14 +103,6 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
     ed(geom_nSing) = -one*ed(geom_nSing)
   end if
 
-  ! CAVITIES
-  if(abs(kz(geom_nSing)) == 12) then
-    if(abs(ed(geom_nSing)) > pieni .and. abs(ek(geom_nSing)) > pieni) then
-      ncy2           = ncy2 + 1
-      kp(geom_nSing) = 6
-    end if
-  end if
-
   !--------------------------------------------
   ! Handled by initialize_element subroutine:
   !--------------------------------------------
