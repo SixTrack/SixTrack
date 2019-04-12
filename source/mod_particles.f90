@@ -219,12 +219,12 @@ subroutine part_writeState(theState)
     call f_requestUnit(fileName, fileUnit)
     call f_open(unit=fileUnit,file=fileName,formatted=.false.,mode="w",status="replace",access="stream")
 
+    iDummy = 0
+
     write(fileUnit) int(napx,  kind=int32)
     write(fileUnit) int(napxo, kind=int32)
     write(fileUnit) int(npart, kind=int32)
     write(fileUnit) int(iDummy,kind=int32) ! Pad to n x 64 bit
-
-    iDummy = 0
 
     do j=1,npart
       isPrim = partID(j) <= napxo
