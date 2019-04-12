@@ -862,8 +862,6 @@ module mod_common_main
   real(kind=fPrec),              save :: qwc(3)    = zero
   real(kind=fPrec),              save :: clo0(2)   = zero
   real(kind=fPrec),              save :: clop0(2)  = zero
-  real(kind=fPrec),              save :: eps(2)    = zero
-  real(kind=fPrec),              save :: epsa(2)   = zero
   real(kind=fPrec),              save :: ekk(2)    = zero
   real(kind=fPrec),              save :: cr(mmul)  = zero
   real(kind=fPrec),              save :: ci(mmul)  = zero
@@ -912,7 +910,6 @@ module mod_common_main
   integer,          allocatable, save :: iv(:)        ! (npart)
 
   ! Main 3
-  real(kind=fPrec), allocatable, save :: hv(:,:,:,:)   ! (6,2,npart,nblo)
   real(kind=fPrec), allocatable, save :: bl1v(:,:,:,:) ! (6,2,npart,nblo)
   real(kind=fPrec),              save :: tasau(6,6) = zero
   real(kind=fPrec),              save :: qwcs(3)    = zero
@@ -1028,19 +1025,6 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
 end subroutine mod_commonmn_expand_arrays
 
-subroutine mod_commonmn_allocate_thickarrays
-
-  use mod_alloc
-  use numerical_constants, only : zero
-
-  implicit none
-
-  call alloc(ekv,npart,nele,zero,'ekv')
-  call alloc(hv,6,2,npart,nblo,zero,'hv')
-  call alloc(bl1v,6,2,npart,nblo,zero,'bl1v')
-
-end subroutine mod_commonmn_allocate_thickarrays
-
 subroutine mod_commonmn_expand_thickarrays(nele_new, npart_new, nblo_new)
 
   use mod_alloc
@@ -1050,9 +1034,8 @@ subroutine mod_commonmn_expand_thickarrays(nele_new, npart_new, nblo_new)
 
   integer,intent(in) :: nele_new, npart_new, nblo_new
 
-  call alloc(ekv,npart_new,nele_new,zero,'ekv')
-  call alloc(hv,6,2,npart_new,nblo_new,zero,'hv')
-  call alloc(bl1v,6,2,npart_new,nblo_new,zero,'bl1v')
+  call alloc(ekv,     npart_new,nele_new,zero,"ekv")
+  call alloc(bl1v,6,2,npart_new,nblo_new,zero,"bl1v")
 
 end subroutine mod_commonmn_expand_thickarrays
 
@@ -1086,20 +1069,6 @@ module mod_commons
 
 contains
 
-subroutine mod_commons_allocate_thickarrays
-
-  use mod_alloc
-  use numerical_constants, only : zero
-
-  implicit none
-
-  call alloc(al,6,2,npart,nele,zero,'al')
-  call alloc(as,6,2,npart,nele,zero,'as')
-  call alloc(at,6,2,2,nele,zero,'at')
-  call alloc(a2,6,2,2,nele,zero,'a2')
-
-end subroutine mod_commons_allocate_thickarrays
-
 subroutine mod_commons_expand_thickarrays(nele_new, npart_new)
 
   use mod_alloc
@@ -1109,8 +1078,10 @@ subroutine mod_commons_expand_thickarrays(nele_new, npart_new)
 
   integer,intent(in) :: nele_new, npart_new
 
-    call alloc(al,6,2,npart_new,nele_new,zero,'al')
-    call alloc(as,6,2,npart_new,nele_new,zero,'as')
+  call alloc(al,6,2,npart_new,nele_new,zero,"al")
+  call alloc(as,6,2,npart_new,nele_new,zero,"as")
+  call alloc(at,6,2,2,        nele_new,zero,"at")
+  call alloc(a2,6,2,2,        nele_new,zero,"a2")
 
 end subroutine mod_commons_expand_thickarrays
 

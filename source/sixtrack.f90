@@ -929,6 +929,15 @@ subroutine daten
     end do
   end if
 
+  il1 = il
+  if(sixin_ncy2 == 0) il1 = il-1
+  do k=1,il1
+    if(abs(kz(k)) == 12) then
+      kz(k)    = abs(kz(k))
+      phasc(k) = phasc(k)*rad
+    end if
+  end do
+
   call ffield_mod_link(inErr)
   if(inErr) goto 9999
 
@@ -950,13 +959,11 @@ subroutine daten
   write(lout,"(a)") "   NO NAME                TYP  1/RHO         STRENGTH      LENGTH        X-POS"//&
     "         X-RMS         Y-POS         Y-RMS"
   write(lout,"(a)") str_divLine
-  il1=il
+  il1 = il
   if(sixin_ncy2 == 0) il1 = il-1
   do k=1,il1
     if(abs(kz(k)) == 12) then
-      write(lout,"(i5,1x,a20,1x,i2,7(1x,e13.6))") k,bez(k)(1:20),kz(k),ed(k),ek(k),phasc(k),xpl(k),xrms(k),zpl(k),zrms(k)
-      kz(k)=abs(kz(k))
-      phasc(k)=phasc(k)*rad
+      write(lout,"(i5,1x,a20,1x,i2,7(1x,e13.6))") k,bez(k)(1:20),kz(k),ed(k),ek(k),phasc(k)/rad,xpl(k),xrms(k),zpl(k),zrms(k)
     else
       write(lout,"(i5,1x,a20,1x,i2,7(1x,e13.6))") k,bez(k)(1:20),kz(k),ed(k),ek(k),el(k),xpl(k),xrms(k),zpl(k),zrms(k)
     end if
@@ -1106,10 +1113,9 @@ subroutine daten
     write(lout,"(a)") repeat("-",200)
     do j=1,il
       if(kz(j) == 20 .and. parbe(j,17) == 1) then
-        write(lout,"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3&
-        &,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")&
-        &bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),parbe(j,7),parbe(j,8),  &
-        &parbe(j,9),parbe(j,10),parbe(j,11),parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
+        write(lout,"(t10,a16,5x,i4,7x,13(1pe10.3,2x),1pe10.3)") &
+          bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),parbe(j,7),parbe(j,8),  &
+          parbe(j,9),parbe(j,10),parbe(j,11),parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
       end if
     end do
     write(lout,"(a)") repeat("-",200)
@@ -1120,7 +1126,7 @@ subroutine daten
     write(lout,"(a)") str_divLine
     do j=1,il
       if (kz(j) == 20 .and. parbe(j,17) == 0) then
-        write(lout,"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)") &
+        write(lout,"(t10,a16,5x,i4,7x,3(1pe10.3,2x),1pe10.3)") &
           bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6)
       end if
     end do
