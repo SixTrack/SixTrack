@@ -37,4 +37,4 @@ do j=1,napx
 end do
 
 call part_updatePartEnergy(1,.true.)
-if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
+if(ithick == 1) call envarsv
