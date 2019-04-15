@@ -119,9 +119,11 @@ list(APPEND SIXTRACK_TESTS
   s316
   scatter_bbelastic
   thick4
+  thick6d_below_transit
   thick6dblocks
   thick6ddynk
   thin4d_ions
+  thin6d_below_transit
   thin6d_ions
   tilt
   wire_thck4d
@@ -238,8 +240,10 @@ set(TESTS_NOFORT10
   scatter_bbelastic
   scatter_collimation
   scatter_pythia
+  thick6d_below_transit
   thick6dblocks
   thick6ddynk
+  thin6d_below_transit
 )
 
 # List of tests that do not produce singletrackfile.dat or fort.90
@@ -276,8 +280,10 @@ set(TESTS_NO_STF_FORT90
   scatter_bbelastic
   scatter_collimation
   scatter_pythia
+  thick6d_below_transit
   thick6ddynk
   thin4d_ions
+  thin6d_below_transit
   thin6d_ions
 )
 
@@ -547,9 +553,11 @@ set(FAST_TESTS
   scatter_pythia
   thick4
   thick4_da
+  thick6d_below_transit
   thick6dblocks
   thick6ddynk
   thin4d_ions
+  thin6d_below_transit
   thin6d_ions
   wire_thck4d
   wire_thck6d
