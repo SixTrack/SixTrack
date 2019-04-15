@@ -73,15 +73,13 @@ subroutine check_coupling_integrity
                       goto 1983
                     endif
                   else
-                    write(lout,10030) fluka_type(ix2), bez(ix2), ix2, i2, fluka_geo_index(ix2)
-                    write(lout,*) 'ERROR! un-matched geo index'
-                    write(lout,*) ''
+                    write(lerr,"(a)") "FLUKA> ERROR Un-matched geo index"
+                    write(lerr,10030) fluka_type(ix2), bez(ix2), ix2, i2, fluka_geo_index(ix2)
                     lerror = .true.
                   endif
                 elseif ( fluka_type(ix2).ne.FLUKA_NONE ) then
-                  write(lout,*) 'ERROR! non-exit point when entrance is on'
-                  write(lout,*) ''
-                  write(lout,10030) fluka_type(ix2), bez(ix2), ix2, i2, fluka_geo_index(ix2)
+                  write(lerr,"(a)") "FLUKA> ERROR Non-exit point when entrance is on"
+                  write(lerr,10030) fluka_type(ix2), bez(ix2), ix2, i2, fluka_geo_index(ix2)
                   lerror = .true.
                 endif
               endif
@@ -98,8 +96,7 @@ subroutine check_coupling_integrity
               else
 !               failing research:
 !               NB: in principle, this should never happen, but let's be picky
-                write(lout,*)'ERROR! entrance point does not have the exit'
-                write(lout,*)''
+                write(lerr,"(a)") "FLUKA> ERROR Entrance point does not have the exit"
                 lerror = .true.
               endif
             endif
@@ -134,7 +131,7 @@ subroutine check_coupling_start_point()
 
   use parpro, only : nblo, nele
   use mod_common, only : iu, ic, bez
-  use crcoall, only : lout
+  use crcoall, only : lout, lerr
   use mod_common_track, only : ktrack
   use mod_fluka, only : FLUKA_ELEMENT, FLUKA_ENTRY, FLUKA_EXIT, fluka_geo_index, fluka_type
 
@@ -149,17 +146,15 @@ subroutine check_coupling_start_point()
       ! SINGLE ELEMENT
       ix=ic(ii)-nblo
       if ( fluka_type(ix).eq.FLUKA_EXIT ) then
-        write(lout,"(a)") ""
-        write(lout,"(a,i0)") "FLUKA> ERROR Lattice structure starts inside FLUKA insertion region # ",fluka_geo_index(ix)
+        write(lerr,"(a,i0)") "FLUKA> ERROR Lattice structure starts inside FLUKA insertion region # ",fluka_geo_index(ix)
         do jj=1,nele
           if ( fluka_geo_index(ix).eq.fluka_geo_index(jj).and.fluka_type(jj).eq.FLUKA_ENTRY ) then
-            write(lout,"(a,i0)") "FLUKA>       entrance marker: "//trim(bez(jj))//" - exit marker: "//trim(bez(ix))
+            write(lerr,"(a,i0)") "FLUKA>       entrance marker: "//trim(bez(jj))//" - exit marker: "//trim(bez(ix))
             exit
           end if
         end do
-        write(lout,"(a,i0)") "FLUKA>       The actual lattice starting point should be outside a FLUKA insergion region"
-        write(lout,"(a,i0)") "FLUKA>       Please update your lattice structure or set the GO in a sensible position"
-        write(lout,"(a)") ""
+        write(lerr,"(a,i0)") "FLUKA>       The actual lattice starting point should be outside a FLUKA insergion region"
+        write(lerr,"(a,i0)") "FLUKA>       Please update your lattice structure or set the GO in a sensible position"
         iInside=fluka_geo_index(ix)
         call prror(-1)
         exit

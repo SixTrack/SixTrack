@@ -248,7 +248,7 @@ subroutine crcheck
   ! NOT TRUE anymore??? We might be NOT rerun but using a Sixin.zip
 #ifndef BOINC
   if (.not.rerun) then
-    write(lout,"(a)") "SIXTRACR> ERROR CRCHECK Found fort.95/fort.96 but NO fort.6"
+    write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK Found fort.95/fort.96 but NO fort.6"
     call prror(-1)
   endif
 #endif
@@ -567,7 +567,7 @@ subroutine crcheck
     ! Eric fix this later by reading numl for fort.90
     if (numl /= crnuml) then
       if (numl < crnumlcr) then
-        write(lout,"(2(a,i0))") "SIXTRACR> ERROR New numl < crnumlcr : ",numl," < ",crnumlcr
+        write(lerr,"(2(a,i0))") "SIXTRACR> ERROR New numl < crnumlcr : ",numl," < ",crnumlcr
         write(93,"(2(a,i0))")   "SIXTRACR> ERROR New numl < crnumlcr : ",numl," < ",crnumlcr
         flush(93)
         call prror(-1)
@@ -771,30 +771,26 @@ subroutine crcheck
   !--   Just abort if we cannot re-position/copy the binary files,
 #ifndef STF
 102 continue
-  write(lout,"(a)") ""
-  write(lout,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS RE-READING fort.",myia," IOSTAT=",ierro
-  write(lout,"(3(a,i0))") "          Unit ",myia," mybinrecs=",mybinrecs," Expected crbinrecs=",crbinrecs(ia)
-  write(lout,"(a)")       "SIXTRACR> CRCHECK failure positioning binary files"
+  write(lerr,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS RE-READING fort.",myia," IOSTAT=",ierro
+  write(lerr,"(3(a,i0))") "          Unit ",myia," mybinrecs=",mybinrecs," Expected crbinrecs=",crbinrecs(ia)
+  write(lerr,"(a)")       "SIXTRACR> CRCHECK failure positioning binary files"
   call prror(-1)
 105 continue
-  write(lout,"(a)") ""
-  write(lout,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS COPYING fort.",myia," IOSTAT=",ierro
-  write(lout,"(4(a,i0))") "          Unit ",myia," mybinrecs=",mybinrecs,&
+  write(lerr,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS COPYING fort.",myia," IOSTAT=",ierro
+  write(lerr,"(4(a,i0))") "          Unit ",myia," mybinrecs=",mybinrecs,&
     " Expected crbinrecs=",crbinrecs(ia)," binrecs94=",binrecs94
-  write(lout,"(a)")       "SIXTRACR> CRCHECK failure copying binary files"
+  write(lerr,"(a)")       "SIXTRACR> CRCHECK failure copying binary files"
   call prror(-1)
 #else
 102 continue
-  write(lout,"(a)") ""
-  write(lout,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS RE-READING singletrackfile.dat for ia=",ia," IOSTAT=",ierro
-  write(lout,"(2(a,i0))") "          mybinrecs=",mybinrecs," Expected crbinrecs=",crbinrecs(ia)
-  write(lout,"(a)")       "SIXTRACR> CRCHECK failure positioning binary files"
+  write(lerr,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS RE-READING singletrackfile.dat for ia=",ia," IOSTAT=",ierro
+  write(lerr,"(2(a,i0))") "          mybinrecs=",mybinrecs," Expected crbinrecs=",crbinrecs(ia)
+  write(lerr,"(a)")       "SIXTRACR> CRCHECK failure positioning binary files"
   call prror(-1)
 105 continue
-  write(lout,"(a)") ""
-  write(lout,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS COPYING particle pair ",ia," IOSTAT=",ierro," from/to singletrackfile.dat"
-  write(lout,"(3(a,i0))") "          mybinrecs=",mybinrecs," Expected crbinrecs=",crbinrecs(ia)," binrecs94=",binrecs94
-  write(lout,"(a)")       "SIXTRACR> CRCHECK failure copying binary files"
+  write(lerr,"(2(a,i0))") "SIXTRACR> ERROR PROBLEMS COPYING particle pair ",ia," IOSTAT=",ierro," from/to singletrackfile.dat"
+  write(lerr,"(3(a,i0))") "          mybinrecs=",mybinrecs," Expected crbinrecs=",crbinrecs(ia)," binrecs94=",binrecs94
+  write(lerr,"(a)")       "SIXTRACR> CRCHECK failure copying binary files"
   call prror(-1)
 #endif
   ! We are not checkpointing or we have no checkpoints

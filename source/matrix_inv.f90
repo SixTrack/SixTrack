@@ -333,7 +333,7 @@ subroutine f010pr(name,n,idim,k,kprnt)
     end if
   end if
   if(.not. rflag) then
-    write(lout,"(a)") "KERNLIB> ERROR F010PR: "//name
+    write(lerr,"(a)") "KERNLIB> ERROR F010PR: "//name
     call prror(-1)
   end if
   return
@@ -833,7 +833,7 @@ subroutine tmprnt(name,n,idim,k)
     endif
   endif
   if(.not. rflag) then
-    write(lout,"(a)") "KERNLIB> ERROR TMPRNT: "//name
+    write(lerr,"(a)") "KERNLIB> ERROR TMPRNT: "//name
     call prror(-1)
   endif
   return

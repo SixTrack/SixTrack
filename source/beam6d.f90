@@ -42,9 +42,7 @@ subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc,mtc)
     f=param(ne,4)/real(nsli,fPrec)
     phi2=phi               !Note - phi2 is not a free parameter anymore
   else
-    write(lout,'(a)') "ERROR in subroutine beamint"
-    write(lout,'(a)') "beam_expflag was", beam_expflag
-    write(lout,'(a)') " expected 0 or 1. This is a BUG!"
+    write(lerr,"(a,i0,a)") "ERROR beamint: beam_expflag was ",beam_expflag," expected 0 or 1. This is a BUG!"
     call prror(-1)
   end if
 

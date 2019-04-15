@@ -131,7 +131,7 @@ subroutine abend(cstring)
     end do
     write(10,"(a)",iostat=ierro) ch(1:l1-1)
     if(ierro /= 0) then
-      write(lout,"(a,i0)") "ABEND> ERROR Problems writing to fort.10. ierro = ",ierro
+      write(lerr,"(a,i0)") "ABEND> ERROR Problems writing to fort.10. ierro = ",ierro
     end if
   end do
 

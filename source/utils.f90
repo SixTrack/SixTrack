@@ -34,11 +34,11 @@ contains
 
     ! Sanity checks
     if(datalen <= 0) then
-      write(lout,"(a)") "UTILS> ERROR lininterp: datalen was 0!"
+      write(lerr,"(a)") "UTILS> ERROR lininterp: datalen was 0!"
       call prror(-1)
     end if
     if(x < xvals(1) .or. x > xvals(datalen)) then
-      write(lout,"(3(a,e16.9))") "UTILS> ERROR lininterp: x = ",x," outside range",xvals(1)," - ",xvals(datalen)
+      write(lerr,"(3(a,e16.9))") "UTILS> ERROR lininterp: x = ",x," outside range",xvals(1)," - ",xvals(datalen)
       call prror(-1)
     end if
 
@@ -51,7 +51,7 @@ contains
 
     do ii=1, datalen-1
       if(xvals(ii) >= xvals(ii+1)) then
-        write(lout,"(a)") "UTILS> ERROR lininterp: xvals should be in increasing order"
+        write(lerr,"(a)") "UTILS> ERROR lininterp: xvals should be in increasing order"
         call prror(-1)
       end if
 
@@ -65,7 +65,7 @@ contains
     end do
 
     ! We didn't return yet: Something wrong
-    write(lout,"(a)") "UTILS> ERROR lininterp: Reached the end of the function. This should not happen, please contact developers"
+    write(lerr,"(a)") "UTILS> ERROR lininterp: Reached the end of the function. This should not happen, please contact developers"
     call prror(-1)
 
   end function lininterp

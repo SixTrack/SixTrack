@@ -290,7 +290,7 @@ subroutine scatter_parseInputLine(inLine, iErr)
   ! Split the input line
   call str_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
-    write(lout,"(a)") "SCATTER> ERROR Failed to parse input line."
+    write(lerr,"(a)") "SCATTER> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -320,8 +320,8 @@ subroutine scatter_parseInputLine(inLine, iErr)
 
   case("SEED")
     if(nSplit /= 2) then
-      write(lout,"(a)") "SCATTER> ERROR SEED expected 2 arguments:"
-      write(lout,"(a)") "SCATTER>       SEED seed"
+      write(lerr,"(a)") "SCATTER> ERROR SEED expected 2 arguments:"
+      write(lerr,"(a)") "SCATTER>       SEED seed"
       iErr = .true.
       return
     end if
@@ -339,7 +339,7 @@ subroutine scatter_parseInputLine(inLine, iErr)
     call scatter_parseGenerator(lnSplit, nSplit, iErr)
 
   case default
-    write(lout,"(a)") "SCATTER> ERROR Keyword not recognised: '"//keyWord//"'"
+    write(lerr,"(a)") "SCATTER> ERROR Keyword not recognised: '"//keyWord//"'"
     iErr = .true.
     return
 
@@ -378,8 +378,8 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
   ! Check number of arguments
   if(nSplit < 5) then
-    write(lout,"(a)") "SCATTER> ERROR ELEM expected at least 5 arguments:"
-    write(lout,"(a)") "SCATTER>       ELEM elemname profile scaling gen1 (... genN)"
+    write(lerr,"(a)") "SCATTER> ERROR ELEM expected at least 5 arguments:"
+    write(lerr,"(a)") "SCATTER>       ELEM elemname profile scaling gen1 (... genN)"
     iErr = .true.
     return
   end if
@@ -411,20 +411,20 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   do i=1,il
     if(bez(i) == lnSplit(2)) then
       if(scatter_elemPointer(i) /= 0) then
-        write(lout,"(a)") "SCATTER> ERROR Tried to define element '"//trim(lnSplit(2))//"' twice."
+        write(lerr,"(a)") "SCATTER> ERROR Tried to define element '"//trim(lnSplit(2))//"' twice."
         iErr = .true.
         return
       end if
 
       if(kz(i) /= 40) then
-        write(lout,"(a)")    "SCATTER> ERROR SCATTER can only work on SINGLE ELEMENTs of type 40."
-        write(lout,"(a,i0)") "SCATTER>       The referenced element '"//trim(lnSplit(2))//"'is of type ", kz(i)
+        write(lerr,"(a)")    "SCATTER> ERROR SCATTER can only work on SINGLE ELEMENTs of type 40."
+        write(lerr,"(a,i0)") "SCATTER>       The referenced element '"//trim(lnSplit(2))//"'is of type ", kz(i)
         iErr = .true.
         return
       end if
 
       if(el(i) /= 0 .or. ek(i) /= 0 .or. ed(i) /= 0) then
-        write(lout,"(a)") "SCATTER> ERROR Please check your input in the single element "//&
+        write(lerr,"(a)") "SCATTER> ERROR Please check your input in the single element "//&
           "definition of your SCATTER. All values except for the type must be zero."
         iErr = .true.
         return
@@ -435,7 +435,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
     end if
   end do
   if(bezID == -1) then
-    write(lout,"(a)") "SCATTER> ERROR Could not find element '"//trim(lnSplit(2))//"'"
+    write(lerr,"(a)") "SCATTER> ERROR Could not find element '"//trim(lnSplit(2))//"'"
     iErr = .true.
     return
   end if
@@ -448,7 +448,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
     end if
   end do
   if(profileID == -1) then
-    write(lout,"(a)") "SCATTER> ERROR Could not find profile '"//trim(lnSplit(3))//"'"
+    write(lerr,"(a)") "SCATTER> ERROR Could not find profile '"//trim(lnSplit(3))//"'"
     iErr = .true.
     return
   end if
@@ -477,7 +477,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
     ! If it is still -1, it wasn't found
     if(generatorID(i-5) == -1) then
-      write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(i))//"' not found."
+      write(lerr,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(i))//"' not found."
       iErr = .true.
       return
     end if
@@ -487,7 +487,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
     ! to check for duplicates
     do j=1,i-6
       if(generatorID(i-5) == generatorID(j)) then
-        write(lout,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(i))//"' used twice."
+        write(lerr,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(i))//"' used twice."
         iErr = .true.
         return
       end if
@@ -553,8 +553,8 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
 
   ! Check number of arguments
   if(nSplit < 3) then
-    write(lout,"(a)") "SCATTER> ERROR PRO expected at least 3 arguments:"
-    write(lout,"(a)") "SCATTER>       PRO name type (arguments...)"
+    write(lerr,"(a)") "SCATTER> ERROR PRO expected at least 3 arguments:"
+    write(lerr,"(a)") "SCATTER>       PRO name type (arguments...)"
     iErr = .true.
     return
   end if
@@ -577,7 +577,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
   ! Check that the profile name is unique
   do i=1,scatter_nPro-1
     if(scatter_proList(i)%proName == lnSplit(2)) then
-      write(lout,"(a)") "SCATTER> ERROR Profile name '"//trim(lnSplit(2))//"' is not unique."
+      write(lerr,"(a)") "SCATTER> ERROR Profile name '"//trim(lnSplit(2))//"' is not unique."
       iErr = .true.
       return
     end if
@@ -588,8 +588,8 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
   case("FLAT")
     proType = 1 ! Integer code for FLAT
     if(nSplit /= 6) then
-      write(lout,"(a)") "SCATTER> ERROR PROfile type FLAT expected 6 arguments:"
-      write(lout,"(a)") "SCATTER>       PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
+      write(lerr,"(a)") "SCATTER> ERROR PROfile type FLAT expected 6 arguments:"
+      write(lerr,"(a)") "SCATTER>       PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
       iErr = .true.
       return
     end if
@@ -601,8 +601,8 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
   case("FIXED")
     proType = 2 ! Integer code for FIXED
     if(nSplit /= 4) then
-      write(lout,"(a)") "SCATTER> ERROR PROfile type FIXED expected 4 arguments:"
-      write(lout,"(a)") "SCATTER>       PRO name FIXED density[targets/m^2]"
+      write(lerr,"(a)") "SCATTER> ERROR PROfile type FIXED expected 4 arguments:"
+      write(lerr,"(a)") "SCATTER>       PRO name FIXED density[targets/m^2]"
       iErr = .true.
       return
     end if
@@ -612,8 +612,8 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
   case("GAUSS1")
     proType = 10  ! Integer code for BEAM_GAUSS1
     if(nSplit /= 8) then
-      write(lout,"(a)") "SCATTER> ERROR PROfile type GAUSS1 expected 8 arguments:"
-      write(lout,"(a)") "SCATTER        PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] offset_x[mm] offset_y[mm]"
+      write(lerr,"(a)") "SCATTER> ERROR PROfile type GAUSS1 expected 8 arguments:"
+      write(lerr,"(a)") "SCATTER        PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] offset_x[mm] offset_y[mm]"
       iErr = .true.
       return
     end if
@@ -625,7 +625,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
     call str_cast(lnSplit(8),fParams(5),iErr) ! Offset Y
 
   case default
-    write(lout,"(a)") "SCATTER> ERROR PRO name '"//trim(lnSplit(3))//"' not recognized."
+    write(lerr,"(a)") "SCATTER> ERROR PRO name '"//trim(lnSplit(3))//"' not recognized."
     iErr = .true.
     return
 
@@ -675,8 +675,8 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
   ! Check number of arguments
   if(nSplit < 3) then
-    write(lout,"(a)") "SCATTER> ERROR GEN expected at least 3 arguments:"
-    write(lout,"(a)") "SCATTER>       GEN name type (arguments...)"
+    write(lerr,"(a)") "SCATTER> ERROR GEN expected at least 3 arguments:"
+    write(lerr,"(a)") "SCATTER>       GEN name type (arguments...)"
     iErr = .true.
     return
   end if
@@ -700,7 +700,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
   ! Check that the generator name is unique
   do i=1,scatter_nGen-1
     if(scatter_genList(i)%genName == genName) then
-      write(lout,"(a)") "SCATTER> ERROR Generator name '"//trim(genName)//"' is not unique."
+      write(lerr,"(a)") "SCATTER> ERROR Generator name '"//trim(genName)//"' is not unique."
       iErr = .true.
       return
     end if
@@ -716,8 +716,8 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
     genType = 10
     if(nSplit /= 9) then
-      write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC expected 9 arguments:"
-      write(lout,"(a)") "SCATTER>       GEN name PPBEAMELASTIC a b1 b2 phi tmin crossSection"
+      write(lerr,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC expected 9 arguments:"
+      write(lerr,"(a)") "SCATTER>       GEN name PPBEAMELASTIC a b1 b2 phi tmin crossSection"
       call prror
       iErr = .true.
       return
@@ -733,12 +733,12 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
     ! Check sanity of input values
     if(fParams(2) <= zero) then
-      write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC 5th input (b1) must be larger than zero"
+      write(lerr,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC 5th input (b1) must be larger than zero"
       iErr = .true.
       return
     end if
     if(fParams(3) <= zero) then
-      write(lout,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC 6th input (b2) must be larger than zero"
+      write(lerr,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC 6th input (b2) must be larger than zero"
       iErr = .true.
       return
     end if
@@ -746,13 +746,13 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
   case("PYTHIASIMPLE")
 
 #ifndef PYTHIA
-    write(lout,"(a)") "SCATTER> ERROR GEN PYTHIA requested, but PYTHIA not compiled into SixTrack"
+    write(lerr,"(a)") "SCATTER> ERROR GEN PYTHIA requested, but PYTHIA not compiled into SixTrack"
     iErr = .true.
     return
 #endif
     if(nSplit /= 4) then
-      write(lout,"(a)") "SCATTER> ERROR GEN PYTHIASIMPLE expected 4 arguments:"
-      write(lout,"(a)") "SCATTER>       GEN name PYTHIASIMPLE crossSection"
+      write(lerr,"(a)") "SCATTER> ERROR GEN PYTHIASIMPLE expected 4 arguments:"
+      write(lerr,"(a)") "SCATTER>       GEN name PYTHIASIMPLE crossSection"
       call prror
       iErr = .true.
       return
@@ -765,7 +765,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
   case default
 
-    write(lout,"(a)") "SCATTER> ERROR GEN name '"//trim(lnSplit(3))//"' not recognised."
+    write(lerr,"(a)") "SCATTER> ERROR GEN name '"//trim(lnSplit(3))//"' not recognised."
     iErr = .true.
     return
 
@@ -1143,7 +1143,7 @@ function scatter_profile_getDensity(idPro, x, y) result(retval)
       * exp_mb(-half*((y-offsetY)/sigmaY)**2)
 
   case default
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_proList(idPro)%proType," for profile '"//&
+    write(lerr,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_proList(idPro)%proType," for profile '"//&
       trim(scatter_proList(idPro)%proName)//"' not understood."
     call prror
   end select
@@ -1207,7 +1207,7 @@ function scatter_generator_getCrossSection(idPro, idGen, x, y, xp, yp, E) result
     retVal = scatter_genList(idGen)%crossSection
 
   case default
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_genList(idGen)%genType," for generator '"//&
+    write(lerr,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_genList(idGen)%genType," for generator '"//&
       trim(scatter_genList(idGen)%genName)//"' not understood."
     call prror
 
@@ -1291,7 +1291,7 @@ subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iL
           iLost  = 1
           isDiff = .false.
         else
-          write(lout,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in fort.3"
+          write(lerr,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in fort.3"
           call prror
         end if
       case(pythia_idElastic)
@@ -1316,7 +1316,7 @@ subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iL
           iLost  = 1
           isDiff = .true.
         else
-          write(lout,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in fort.3"
+          write(lerr,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in fort.3"
           call prror
         end if
       case(pythia_idCentralDiff)
@@ -1333,12 +1333,12 @@ subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iL
       goto 10
     end if
 #else
-    write(lout,"(a,i0,a)") "SCATTER> ERROR This version of SixTrack was built without PYTHIA support,"
+    write(lerr,"(a,i0,a)") "SCATTER> ERROR This version of SixTrack was built without PYTHIA support,"
     call prror
 #endif
 
   case default
-    write(lout,"(a,i0,a)") "SCATTER> ERROR Generator type ",scatter_genList(genID)%genType," not understood"
+    write(lerr,"(a,i0,a)") "SCATTER> ERROR Generator type ",scatter_genList(genID)%genType," not understood"
     call prror
 
   end select
@@ -1399,8 +1399,8 @@ function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
   end do
 
   if(nItt > maxItt) then
-    write(lout,"(a)")      "SCATTER> ERROR in generator PPBEAMELASTIC"
-    write(lout,"(a,i0,a)") "SCATTER>       Limit of ",maxItt," misses in generator loop reached."
+    write(lerr,"(a)")      "SCATTER> ERROR in generator PPBEAMELASTIC"
+    write(lerr,"(a,i0,a)") "SCATTER>       Limit of ",maxItt," misses in generator loop reached."
     call prror
   end if
 
@@ -1590,7 +1590,7 @@ subroutine scatter_crcheck_positionFiles
   write(93,"(2(a,i0))") "SIXTRACR> scatter_logFilePos = ",scatter_logFilePos,", scatter_logFilePos_CR = ",scatter_logFilePos_CR
   write(93,"(2(a,i0))") "SIXTRACR> scatter_sumFilePos = ",scatter_sumFilePos,", scatter_sumFilePos_CR = ",scatter_sumFilePos_CR
   flush(93)
-  write(lout,"(a)")"SIXTRACR> ERROR CRCHECK failure positioning 'scatter_log.dat' or 'scatter_summary.dat'."
+  write(lerr,"(a)")"SIXTRACR> ERROR CRCHECK failure positioning 'scatter_log.dat' or 'scatter_summary.dat'."
   call prror
 
 end subroutine scatter_crcheck_positionFiles

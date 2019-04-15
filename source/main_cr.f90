@@ -571,7 +571,7 @@ end interface
       if(kz(i).eq.20) then
         nlin=nlin+1
         if(nlin.gt.nele) then
-          write(lout,"(a)") "MAINCR> ERROR Too many elements for linear optics write-out"
+          write(lerr,"(a)") "MAINCR> ERROR Too many elements for linear optics write-out"
           call prror(-1)
         end if
         bezl(nlin)=bez(i)
@@ -976,7 +976,7 @@ end interface
   if(fluka_enable) then
     fluka_con = fluka_is_running()
     if(fluka_con == -1) then
-      write(lout,"(a)") "FLUKA> ERROR Fluka is expected to run but it is NOT actually the case"
+      write(lerr,"(a)") "FLUKA> ERROR Fluka is expected to run but it is NOT actually the case"
       write(fluka_log_unit,*) "# Fluka is expected to run but it is NOT actually the case"
       call prror(-1)
     end if
@@ -984,7 +984,7 @@ end interface
     write(fluka_log_unit,*) "# Initializing FlukaIO interface ..."
     fluka_con = fluka_connect()
     if(fluka_con == -1) then
-      write(lout,"(a)") "FLUKA> ERROR Cannot connect to Fluka server"
+      write(lerr,"(a)") "FLUKA> ERROR Cannot connect to Fluka server"
       write(fluka_log_unit,*) "# Error connecting to Fluka server"
       call prror(-1)
     endif
@@ -1008,8 +1008,8 @@ end interface
       call meta_write("TrackingMethod", "Thin 4D")
     end if
     if(iclo6 /= 0) then
-      write(lout,"(a,i0)") "MAINCR> ERROR Doing 4D tracking but iclo6 = ",iclo6
-      write(lout,"(a)")    "MAINCR>       Expected iclo6 = 0 for 4D tracking."
+      write(lerr,"(a,i0)") "MAINCR> ERROR Doing 4D tracking but iclo6 = ",iclo6
+      write(lerr,"(a)")    "MAINCR>       Expected iclo6 = 0 for 4D tracking."
       call prror(-1)
     end if
   else
@@ -1020,8 +1020,8 @@ end interface
       call meta_write("TrackingMethod", "Thin 6D")
     end if
     if(iclo6 == 0) then
-      write(lout,"(a,i0)") "MAINCR> ERROR Doing 6D tracking but iclo6 = ",iclo6
-      write(lout,"(a)")    "MAINCR>       Expected iclo6 <> 0 for 6D tracking."
+      write(lerr,"(a,i0)") "MAINCR> ERROR Doing 6D tracking but iclo6 = ",iclo6
+      write(lerr,"(a)")    "MAINCR>       Expected iclo6 <> 0 for 6D tracking."
       call prror(-1)
     end if
   end if
@@ -1243,8 +1243,8 @@ end interface
 #endif
     endif !ENDIF (ntwin.ne.2)
     if(ierro /= 0) then
-      write(lout,"(a,i0)") "MAINCR> ERROR Problems writing to file #",91-ia2
-      write(lout,"(a,i0)") "MAINCR> ERROR Code: ",ierro
+      write(lerr,"(a,i0)") "MAINCR> ERROR Problems writing to file #",91-ia2
+      write(lerr,"(a,i0)") "MAINCR> ERROR Code: ",ierro
       goto 520
     endif
   end do ! napx
@@ -1282,7 +1282,7 @@ end interface
     fluka_con = fluka_init_max_uid( napx )
 
     if(fluka_con < 0) then
-      write(lout,"(a,i0,a)") "FLUKA> ERROR Failed to send napx ",napx," to fluka "
+      write(lerr,"(a,i0,a)") "FLUKA> ERROR Failed to send napx ",napx," to fluka "
       write(fluka_log_unit, *) "# failed to send napx to fluka ",napx
       call prror(-1)
     end if
@@ -1307,7 +1307,7 @@ end interface
     fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0)
 
     if(fluka_con < 0) then
-      write(lout,"(a)") "FLUKA> ERROR Failed to update the reference particle"
+      write(lerr,"(a)") "FLUKA> ERROR Failed to update the reference particle"
       write(fluka_log_unit,*) "# failed to update ref particle"
       call prror(-1)
     end if

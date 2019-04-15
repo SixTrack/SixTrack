@@ -41,7 +41,7 @@ subroutine trauthck(nthinerr)
   save
 
   if (do_coll) then
-    write(lout,"(a)") "TRACKING> ERROR Collimation is not supported for thick tracking"
+    write(lerr,"(a)") "TRACKING> ERROR Collimation is not supported for thick tracking"
     call prror
   endif
 
@@ -261,7 +261,7 @@ subroutine trauthck(nthinerr)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           if ( dynk_isused(i) ) then
-            write(lout,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
+            write(lerr,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
               "') is off in fort.2, but on in DYNK. Not implemented."
             call prror
           end if
@@ -451,7 +451,7 @@ subroutine trauthck(nthinerr)
       end do
 
       if(abs(phas).ge.pieni) then
-        write(lout,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
+        write(lerr,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
         call prror(-1)
       else
         write(lout,"(a)") ""
@@ -1297,7 +1297,7 @@ subroutine thck6d(nthinerr)
       end if
 
       if (ldumpfront) then
-        write(lout,"(a)") "DUMP> ERROR FRONT not yet supported on thick elements due to lack of test cases. "//&
+        write(lerr,"(a)") "DUMP> ERROR FRONT not yet supported on thick elements due to lack of test cases. "//&
           "Please contact developers!"
         call prror
       end if

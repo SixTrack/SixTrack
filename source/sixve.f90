@@ -28,17 +28,17 @@ subroutine sumpos
   do i=1,1000
     read(10,"(a)",end=20,iostat=ioStat) inLine
     if(ioStat /= 0) then
-      write(lout,"(a,i0)") "SUMPOS> ERROR Failed to read line from 'fort.10'. iostat = ",ioStat
+      write(lerr,"(a,i0)") "SUMPOS> ERROR Failed to read line from 'fort.10'. iostat = ",ioStat
       call prror(-1)
     end if
 
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
-      write(lout,"(a)") "SUMPOS> ERROR Failed to parse line from 'fort.10'"
+      write(lerr,"(a)") "SUMPOS> ERROR Failed to parse line from 'fort.10'"
       call prror(-1)
     end if
     if(nSplit > 60) then
-      write(lout,"(a,i0)") "SUMPOS> ERROR Too many elements on a single line of 'fort.10'. Max is 60, got ",nSplit
+      write(lerr,"(a,i0)") "SUMPOS> ERROR Too many elements on a single line of 'fort.10'. Max is 60, got ",nSplit
       call prror(-1)
     end if
     lineNo = lineNo+1
@@ -69,17 +69,17 @@ subroutine sumpos
   do i=1,1000
     read(10,"(a)",end=40,iostat=ioStat) inLine
     if(ioStat /= 0) then
-      write(lout,"(a,i0)") "SUMPOS> ERROR Failed to read line from 'fort.10'. iostat = ",ioStat
+      write(lerr,"(a,i0)") "SUMPOS> ERROR Failed to read line from 'fort.10'. iostat = ",ioStat
       call prror(-1)
     end if
 
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
-      write(lout,"(a)") "SUMPOS> ERROR Failed to parse line from 'fort.10'"
+      write(lerr,"(a)") "SUMPOS> ERROR Failed to parse line from 'fort.10'"
       call prror(-1)
     end if
     if(nSplit > 60) then
-      write(lout,"(a,i0)") "SUMPOS> ERROR Too many elements on a single line of 'fort.10'. Max is 60, got ",nSplit
+      write(lerr,"(a,i0)") "SUMPOS> ERROR Too many elements on a single line of 'fort.10'. Max is 60, got ",nSplit
       call prror(-1)
     end if
     lineNo = lineNo+1
@@ -623,7 +623,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   save
 !-----------------------------------------------------------------------
   if(nndim < 2 .or. nndim > 3) then
-    write(lout,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
+    write(lerr,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
     call prror(-1)
   end if
 !--------------------

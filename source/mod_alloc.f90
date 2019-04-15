@@ -142,11 +142,11 @@ subroutine alloc_error(ename, error, requested_bits)
   integer(kind=int64), intent(in) :: requested_bits ! The requested allocation size
   integer,             intent(in) :: error          ! The error code
 
-  write(lout,"(a)")      "ALLOC> ERROR Memory allocation error for array "//ename
-  write(lout,"(a,i0,a)") "ALLOC>       Current allocation is:    ",allocated_bits," bits"
-  write(lout,"(a,i0,a)") "ALLOC>       Requested allocation is:  ",requested_bits," bits"
-  write(lout,"(a,i0)")   "ALLOC        Allocation error code is: ",error
-  write(lout,"(a)")      "ALLOC>       Exiting!"
+  write(lerr,"(a)")      "ALLOC> ERROR Memory allocation error for array "//ename
+  write(lerr,"(a,i0,a)") "ALLOC>       Current allocation is:    ",allocated_bits," bits"
+  write(lerr,"(a,i0,a)") "ALLOC>       Requested allocation is:  ",requested_bits," bits"
+  write(lerr,"(a,i0)")   "ALLOC        Allocation error code is: ",error
+  write(lerr,"(a)")      "ALLOC>       Exiting!"
   stop 1
 
 end subroutine alloc_error
@@ -2490,7 +2490,7 @@ subroutine dealloc1di16(input, ename)
   integer(kind=int16), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*storage_size(int16))
@@ -2504,7 +2504,7 @@ subroutine dealloc2di16(input, ename)
   integer(kind=int16), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(int16))
@@ -2518,7 +2518,7 @@ subroutine dealloc3di16(input, ename)
   integer(kind=int16), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(int16))
@@ -2532,7 +2532,7 @@ subroutine dealloc1di32(input, ename)
   integer(kind=int32), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*storage_size(int32))
@@ -2546,7 +2546,7 @@ subroutine dealloc2di32(input, ename)
   integer(kind=int32), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(int32))
@@ -2560,7 +2560,7 @@ subroutine dealloc3di32(input, ename)
   integer(kind=int32), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(int32))
@@ -2574,7 +2574,7 @@ subroutine dealloc1di64(input, ename)
   integer(kind=int64), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*storage_size(int64))
@@ -2588,7 +2588,7 @@ subroutine dealloc2di64(input, ename)
   integer(kind=int64), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(int64))
@@ -2602,7 +2602,7 @@ subroutine dealloc3di64(input, ename)
   integer(kind=int64), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(int64))
@@ -2616,7 +2616,7 @@ subroutine dealloc1dr32(input, ename)
   real(kind=real32), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*storage_size(real32))
@@ -2630,7 +2630,7 @@ subroutine dealloc2dr32(input, ename)
   real(kind=real32), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(real32))
@@ -2644,7 +2644,7 @@ subroutine dealloc3dr32(input, ename)
   real(kind=real32), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(real32))
@@ -2658,7 +2658,7 @@ subroutine dealloc4dr32(input, ename)
   real(kind=real32), allocatable, intent(inout) :: input(:,:,:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*size(input,4)*storage_size(real32))
@@ -2672,7 +2672,7 @@ subroutine dealloc1dr64(input, ename)
   real(kind=real64), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*storage_size(real64))
@@ -2686,7 +2686,7 @@ subroutine dealloc2dr64(input, ename)
   real(kind=real64), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(real64))
@@ -2700,7 +2700,7 @@ subroutine dealloc3dr64(input, ename)
   real(kind=real64), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(real64))
@@ -2714,7 +2714,7 @@ subroutine dealloc4dr64(input, ename)
   real(kind=real64), allocatable, intent(inout) :: input(:,:,:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*size(input,4)*storage_size(real64))
@@ -2728,7 +2728,7 @@ subroutine dealloc1dr128(input, ename)
   real(kind=real128), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*storage_size(real128))
@@ -2742,7 +2742,7 @@ subroutine dealloc2dr128(input, ename)
   real(kind=real128), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*storage_size(real128))
@@ -2756,7 +2756,7 @@ subroutine dealloc3dr128(input, ename)
   real(kind=real128), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*storage_size(real128))
@@ -2770,7 +2770,7 @@ subroutine dealloc4dr128(input, ename)
   real(kind=real128), allocatable, intent(inout) :: input(:,:,:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - (size(input,1)*size(input,2)*size(input,3)*size(input,4)*storage_size(real128))
@@ -2786,7 +2786,7 @@ subroutine dealloc1dc(input, strlen, ename)
 
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   !TODO: Check what size(input) actually does
@@ -2803,7 +2803,7 @@ subroutine dealloc2dc(input, strlen, ename)
 
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   !TODO: Check what size(input) actually does
@@ -2818,7 +2818,7 @@ subroutine dealloc1dl(input, ename)
   logical, allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - size(input,1)*size_of_logical
@@ -2832,7 +2832,7 @@ subroutine dealloc2dl(input, ename)
   logical, allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
   if(allocated(input) .eqv. .FALSE.) then
-    write(lout,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
+    write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
   allocated_bits = allocated_bits - size(input,1)*size(input,2)*size_of_logical

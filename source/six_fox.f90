@@ -404,7 +404,7 @@ subroutine umlauda
     ix=ic(i)
     if(ix.gt.nblo) goto 50
     if(ix <= 0) then
-      write(lout,"(a)") "UMLAUDA> ERROR Inverted linear blocks not allowed."
+      write(lerr,"(a)") "UMLAUDA> ERROR Inverted linear blocks not allowed."
       call prror(-1)
     endif
 #include "include/dalin1.f90"
@@ -534,7 +534,7 @@ subroutine umlauda
 #endif
     if(abs(dare(x(1))) > aint(aper(1)) .or. abs(dare(x(2))) > aint(aper(2))) then
       write(lout,10120)j,i,dare(x(1)),aper(1),dare(x(2)),aper(2),ix,kz(ix),bez(ix)
-      write(lout,"(a)") "UMLAUDA> ERROR Unstable closed orbit in DA calculation."
+      write(lerr,"(a)") "UMLAUDA> ERROR Unstable closed orbit in DA calculation."
       call prror(-1)
     end if
     kpz=abs(kp(ix))
@@ -570,7 +570,7 @@ subroutine umlauda
 ! the same as in umlalid1
       wire_num_aux = wire_num_aux+1
       if(wire_num_aux.gt.wire_max) then
-        write(lout,"(2(a,i0))") "UMLAUDA> ERROR Maximum number of wires exceeded. Max is ",wire_max,", got ",wire_num_aux
+        write(lerr,"(2(a,i0))") "UMLAUDA> ERROR Maximum number of wires exceeded. Max is ",wire_max,", got ",wire_num_aux
         call prror(-1)
       endif
       wire_num(i) = wire_num_aux
@@ -632,7 +632,7 @@ subroutine umlauda
       if(nbeam.ge.1) then
         ibb=ibb+1
         if(ibb > nbb) then
-          write(lout,"(a,i0)") "UMLAUDA> ERROR Maximum element number for beam-beam with coupling exceeded: nbb = ",nbb
+          write(lerr,"(a,i0)") "UMLAUDA> ERROR Maximum element number for beam-beam with coupling exceeded: nbb = ",nbb
           call prror(-1)
         end if
         imbb(i)=ibb
@@ -743,7 +743,7 @@ subroutine umlauda
              bbcu(ibb,3)=parbe(ix,13)
           endif
         else
-           write(lout,"(a,i0,a)") "UMLAUDA> ERROR beam_expflag was ",beam_expflag,", expected 0 or 1. This is a BUG!"
+           write(lerr,"(a,i0,a)") "UMLAUDA> ERROR beam_expflag was ",beam_expflag,", expected 0 or 1. This is a BUG!"
            call prror(-1)
         end if
 
@@ -803,7 +803,7 @@ subroutine umlauda
           if(sfac2.lt.zero) sfac2s=-one                            !hr08
           sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          !hr03
           if(sfac3 > sfac1) then
-            write(lout,"(a)") "UMLAUDA> ERROR 6D beam-beam with tilt not possible."
+            write(lerr,"(a)") "UMLAUDA> ERROR 6D beam-beam with tilt not possible."
             call prror(-1)
           end if
           sfac4=(sfac2s*sfac2)/sfac3                                   !hr03
@@ -1671,7 +1671,7 @@ subroutine umlauda
     jj(nd2+2)=0
     det1=coefh1*coefv2-coefv1*coefh2
     if(abs(det1) <= pieni) then
-      write(lout,"(a)") "UMLAUDA> ERROR Quadrupoles are not suited to adjust the tunes."
+      write(lerr,"(a)") "UMLAUDA> ERROR Quadrupoles are not suited to adjust the tunes."
       call prror(-1)
     end if
     corr(2,1)=coefv2/det1
@@ -1695,7 +1695,7 @@ subroutine umlauda
     jj(nd2+1)=0
     det1=coefh1*coefv2-coefv1*coefh2
     if(abs(det1) <= pieni) then
-      write(lout,"(a)") "UMLAUDA> ERROR Sextupoles are not suited to adjust the chromaticity."
+      write(lerr,"(a)") "UMLAUDA> ERROR Sextupoles are not suited to adjust the chromaticity."
       call prror(-1)
     end if
     corr(2,1)=coefv2/det1
@@ -1729,7 +1729,7 @@ subroutine umlauda
   return
 
 9088 continue
-  write(lout,"(a)") "UMLAUDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
+  write(lerr,"(a)") "UMLAUDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
   call prror(-1)
   return
 !-----------------------------------------------------------------------
