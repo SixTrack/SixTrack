@@ -329,22 +329,6 @@ subroutine elens_parseInputDone(iErr)
 
   logical, intent(inout) :: iErr
 
-  integer j
-
-  ! Loop over single elements to check that they have been defined in the fort.3 block
-  if(melens /= 0) then
-    do j=1,nele
-      if(kz(j) == 29) then
-        if(elens_type(ielens(j)) == 0) then
-          write(lout,"(a)") "ELENS> ERROR Elens element '"//trim(bez(j))//"'not defined in fort.3."
-          write(lout,"(a)") "ELENS>       You must define every elens in the ELEN block."
-          iErr = .true.
-          return
-        end if
-      end if
-    end do
-  end if
-
 end subroutine elens_parseInputDone
 
 subroutine elens_postInput
@@ -354,16 +338,20 @@ subroutine elens_postInput
   use mod_common, only : bez,kz
 
   integer j, jj, nlens
-  logical exist, lerr
+  logical exist
 
   ! Check that all elenses in fort.2 have a corresponding declaration in fort.3
-  lerr=.false.
+  nlens=0
   do jj=1,nele
     if(kz(jj)==29) then
       if (ielens(jj).eq.0) then
-        write(lout,"(a,i0,a)") "ELENS> ERROR single element",jj,"named "//trim(bez(jj))
-        write(lout,"(a)") "ELENS>       does not have a corresponding line in ELEN block in fort.3"
-        lerr=.true.
+        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lout,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in fort.3"
+        call prror
+      elseif ( elens_type(ielens(jj))==0 ) then
+        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lout,"(a)")      "ELENS>       had not been assigned a type"
+        call prror
       else
         nlens=nlens+1
       end if
@@ -372,7 +360,7 @@ subroutine elens_postInput
   if ( nlens.ne.melens ) then
     write(lout,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in fort.3 ",melens
     write(lout,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
-    lerr=.true.
+    call prror
   end if
 
   ! Parse files with radial profiles
@@ -380,7 +368,7 @@ subroutine elens_postInput
     inquire(file=elens_radial_filename(j), exist=exist)
     if(.not. exist) then
       write(lout,"(a)") "ELENS> ERROR Problems with file with radial profile: "//trim(elens_radial_filename(j))
-      lerr=.true.
+      call prror
     end if
     call parseRadialProfile(j)
     call integrateRadialProfile(j)
@@ -426,8 +414,6 @@ subroutine elens_postInput
     call eLensTheta(j)
     
   end do
-
-  if (lerr) call prror
 
 end subroutine elens_postInput
 
