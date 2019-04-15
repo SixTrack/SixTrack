@@ -145,11 +145,11 @@ end subroutine expand_arrays
 ! Kicks off the allocation of the thick tracking arrays
 subroutine allocate_thickarrays
   use parpro
-  use mod_common_main, only : mod_commonmn_allocate_thickarrays
-  use mod_commons,  only : mod_commons_allocate_thickarrays
+  use mod_common_main, only : mod_commonmn_expand_thickarrays
+  use mod_commons,     only : mod_commons_expand_thickarrays
   implicit none
-  call mod_commonmn_allocate_thickarrays
-  call mod_commons_allocate_thickarrays
+  call mod_commonmn_expand_thickarrays(nele, npart, nblo)
+  call mod_commons_expand_thickarrays(nele, npart)
 end subroutine allocate_thickarrays
 
 ! Kicks off the allocation of the thick tracking arrays

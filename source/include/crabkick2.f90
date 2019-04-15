@@ -13,5 +13,5 @@ do j=1,napx ! loop over particles
   ejv(j)=ejv(j) - (((((crabamp*crabfreq)*two)*pi)/clight)*xv2(j))*cos_mb(kcrab)
 end do
 call part_updatePartEnergy(1,.true.)
-if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
+if(ithick == 1) call envarsv
 ! end include/crabkick.f90

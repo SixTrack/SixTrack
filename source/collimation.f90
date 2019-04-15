@@ -1050,6 +1050,9 @@ subroutine collimate_init()
   write (lout,"(a)") "COLL> Finished collimate initialisation"
   write (lout,"(a)") ""
 
+  ! Always one sample, so call it here
+  call collimate_start_sample(1)
+
 end subroutine collimate_init
 
 ! ================================================================================================ !
@@ -1470,17 +1473,19 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   select case(iLine)
 
   case(1)
-
     if(nSplit /= 1) then
       write(lout,"(a,i0)") "COLL> ERROR Expected 1 value on line 1, got ",nSplit
       iErr = .true.
       return
     end if
-
     if(nSplit > 0) call chr_cast(lnSplit(1),do_coll,iErr)
 
   case(2)
-
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 2 values on line 2, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0) call chr_cast(lnSplit(1),nloop,iErr)
     if(nSplit > 1) call chr_cast(lnSplit(2),myenom,iErr)
 
@@ -1494,9 +1499,14 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       write(lout,"(2(a,i0))") "COLL> ERROR Maximum number of particles is ", npart, ", got ",(napx*2)
       iErr = .true.
       return
-   endif
+    end if
 
   case(3)
+    if(nSplit /= 8) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 8 values on line 3, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  call chr_cast(lnSplit(1), do_thisdis,     iErr)
     if(nSplit > 1)  call chr_cast(lnSplit(2), cdist_ampX,     iErr)
     if(nSplit > 2)  call chr_cast(lnSplit(3), cdist_smearX,   iErr)
@@ -1507,6 +1517,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 7)  call chr_cast(lnSplit(8), cdist_bunchLen, iErr)
 
   case(4)
+    if(nSplit /= 13) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 13 values on line 4, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  call chr_cast(lnSplit(1), cdb_doNSig,iErr)
     if(nSplit > 1)  call chr_cast(lnSplit(2), nSigIn(1), iErr)
     if(nSplit > 2)  call chr_cast(lnSplit(3), nSigIn(2), iErr)
@@ -1536,6 +1551,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call cdb_addFamily("tdi",    nSigIn(13),famID,fErr)
 
   case(5)
+    if(nSplit /= 10) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 10 values on line 5, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  call chr_cast(lnSplit(1), nSigIn(14),iErr)
     if(nSplit > 1)  call chr_cast(lnSplit(2), nSigIn(15),iErr)
     if(nSplit > 2)  call chr_cast(lnSplit(3), nSigIn(16),iErr)
@@ -1558,6 +1578,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call cdb_addFamily("tcryo",nSigIn(23),famID,fErr)
 
   case(6)
+    if(nSplit /= 5) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 5 values on line 6, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  call chr_cast(lnSplit(1), n_slices,   iErr)
     if(nSplit > 1)  call chr_cast(lnSplit(2), smin_slices,iErr)
     if(nSplit > 2)  call chr_cast(lnSplit(3), smax_slices,iErr)
@@ -1565,6 +1590,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 4)  call chr_cast(lnSplit(5), recenter2,  iErr)
 
   case(7)
+    if(nSplit /= 7) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 7 values on line 7, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  call chr_cast(lnSplit(1), jaw_fit(1,1),iErr)
     if(nSplit > 1)  call chr_cast(lnSplit(2), jaw_fit(1,2),iErr)
     if(nSplit > 2)  call chr_cast(lnSplit(3), jaw_fit(1,3),iErr)
@@ -1574,6 +1604,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 6)  call chr_cast(lnSplit(7), jaw_ssf(1),  iErr)
 
   case(8)
+    if(nSplit /= 7) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 7 values on line 8, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  call chr_cast(lnSplit(1), jaw_fit(2,1),iErr)
     if(nSplit > 1)  call chr_cast(lnSplit(2), jaw_fit(2,2),iErr)
     if(nSplit > 2)  call chr_cast(lnSplit(3), jaw_fit(2,3),iErr)
@@ -1583,12 +1618,22 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 6)  call chr_cast(lnSplit(7), jaw_ssf(2),  iErr)
 
   case(9)
+    if(nSplit /= 4) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 4 values on line 9, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  call chr_cast(lnSplit(1), emitnx0_dist,   iErr)
     if(nSplit > 1)  call chr_cast(lnSplit(2), emitny0_dist,   iErr)
     if(nSplit > 2)  call chr_cast(lnSplit(3), emitnx0_collgap,iErr)
     if(nSplit > 3)  call chr_cast(lnSplit(4), emitny0_collgap,iErr)
 
   case(10)
+    if(nSplit /= 9) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 9 values on line 10, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  call chr_cast(lnSplit(1), do_select,        iErr)
     if(nSplit > 1)  call chr_cast(lnSplit(2), do_nominal,       iErr)
     if(nSplit > 2)  call chr_cast(lnSplit(3), rnd_seed,         iErr)
@@ -1600,12 +1645,22 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 8)  call chr_cast(lnSplit(9), dowrite_amplitude,iErr)
 
   case(11)
+    if(nSplit /= 4) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 4 values on line 11, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  call chr_cast(lnSplit(1), xbeat,     iErr)
     if(nSplit > 1)  call chr_cast(lnSplit(2), xbeatphase,iErr)
     if(nSplit > 2)  call chr_cast(lnSplit(3), ybeat,     iErr)
     if(nSplit > 3)  call chr_cast(lnSplit(4), ybeatphase,iErr)
 
   case(12)
+    if(nSplit /= 11) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 11 values on line 12, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  call chr_cast(lnSplit(1), c_rmstilt_prim,   iErr)
     if(nSplit > 1)  call chr_cast(lnSplit(2), c_rmstilt_sec,    iErr)
     if(nSplit > 2)  call chr_cast(lnSplit(3), c_systilt_prim,   iErr)
@@ -1619,6 +1674,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 10) call chr_cast(lnSplit(11),do_mingap,        iErr)
 
   case(13)
+    if(nSplit /= 3) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 3 values on line 13, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  call chr_cast(lnSplit(1), radial,iErr)
   ! if(nSplit > 1)  call chr_cast(lnSplit(2), nr,    iErr)
   ! if(nSplit > 2)  call chr_cast(lnSplit(3), ndr,   iErr)
@@ -1629,12 +1689,22 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     endif
 
   case(14)
+    if(nSplit /= 4) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 4 values on line 14, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  call chr_cast(lnSplit(1), driftsx,         iErr)
     if(nSplit > 1)  call chr_cast(lnSplit(2), driftsy,         iErr)
     if(nSplit > 2)  call chr_cast(lnSplit(3), cut_input,       iErr)
     if(nSplit > 3)  call chr_cast(lnSplit(4), systilt_antisymm,iErr)
 
   case(15)
+    if(nSplit /= 5) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 5 values on line 15, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  call chr_cast(lnSplit(1), ipencil,      iErr)
     if(nSplit > 1)  call chr_cast(lnSplit(2), pencil_offset,iErr)
     if(nSplit > 2)  call chr_cast(lnSplit(3), pencil_rmsx,  iErr)
@@ -1649,10 +1719,20 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 #endif
 
   case(16)
+    if(nSplit /= 2) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 2 values on line 16, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  cdb_fileName = lnSPlit(1)
     if(nSplit > 1)  call chr_cast(lnSPlit(2), ibeam, iErr)
 
   case(17)
+    if(nSplit /= 6) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 6 values on line 17, got ",nSplit
+      iErr = .true.
+      return
+    end if
     if(nSplit > 0)  call chr_cast(lnSplit(1), dowritetracks,iErr)
     if(nSplit > 1)  call chr_cast(lnSplit(2), cern,         iErr)
     if(nSplit > 2)  castordir = lnSplit(3)
@@ -1702,6 +1782,7 @@ subroutine collimate_start_sample(nsample)
   use mod_commons
   use mod_common_track
   use mod_common_da
+  use mod_particles
   use coll_db
   use mod_units
   use mod_ranlux
@@ -1894,43 +1975,28 @@ subroutine collimate_start_sample(nsample)
   end if
 
   ! Copy new particles to tracking arrays. Also add the orbit offset at start of ring!
-  if(do_thisdis > 0) then
-    xv1(1:napx)   = c1e3 * xv1(1:napx) + torbx(1)
-    yv1(1:napx)   = c1e3 * yv1(1:napx) + torbxp(1)
-    xv2(1:napx)   = c1e3 * xv2(1:napx) + torby(1)
-    yv2(1:napx)   = c1e3 * yv2(1:napx) + torbyp(1)
-    ! sigmv(1:napx) = mys(1:napx)
-    ! ejv(1:napx)   = myp(1:napx)
+  if(do_thisdis /= 0 .or. radial) then
+    xv1(1:napx) = c1e3 * xv1(1:napx) + torbx(1)
+    yv1(1:napx) = c1e3 * yv1(1:napx) + torbxp(1)
+    xv2(1:napx) = c1e3 * xv2(1:napx) + torby(1)
+    yv2(1:napx) = c1e3 * yv2(1:napx) + torbyp(1)
   end if
 
-  do i = 1, napx
-    ! FOR NOT FAST TRACKING ONLY
-    ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-    dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-    oidpsv(j)=one/(one+dpsv(j))
-    moidpsv(j)=mtc(j)/(one+dpsv(j))
-    omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-    dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+  call part_updatePartEnergy(1)
 
-    partID(i)=i
-    parentID(i)=i
-
-    do ieff =1, numeff
+  do i=1,napx
+    do ieff=1,numeff
       counted_r(i,ieff) = 0
       counted_x(i,ieff) = 0
       counted_y(i,ieff) = 0
-
       do ieffdpop =1, numeffdpop
         counted2d(i,ieff,ieffdpop) = 0
       end do
-
     end do
 
     do ieffdpop =1, numeffdpop
       counteddpop(i,ieffdpop) = 0
     end do
-
   end do
 
 !!!!!!!!!!!!!!!!!!!!!!START THIN6D CUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3728,6 +3794,9 @@ subroutine collimate_exit()
   implicit none
 
   integer :: i,j
+
+  ! Just call it here since samples are no longer supported
+  call collimate_end_sample(1)
 
   close(outlun)
   close(collgaps_unit)
