@@ -23,9 +23,9 @@ subroutine check_coupling_integrity
       integer i1 , i2
       integer ix1, ix2
       integer istart, istop
-      logical lerr, lfound, lcurturn
+      logical lerror, lfound, lcurturn
 
-      lerr = .false.
+      lerror = .false.
 
       write(lout,*) ''
       write(lout,10010)
@@ -76,13 +76,13 @@ subroutine check_coupling_integrity
                     write(lout,10030) fluka_type(ix2), bez(ix2), ix2, i2, fluka_geo_index(ix2)
                     write(lout,*) 'ERROR! un-matched geo index'
                     write(lout,*) ''
-                    lerr = .true.
+                    lerror = .true.
                   endif
                 elseif ( fluka_type(ix2).ne.FLUKA_NONE ) then
                   write(lout,*) 'ERROR! non-exit point when entrance is on'
                   write(lout,*) ''
                   write(lout,10030) fluka_type(ix2), bez(ix2), ix2, i2, fluka_geo_index(ix2)
-                  lerr = .true.
+                  lerror = .true.
                 endif
               endif
             enddo
@@ -100,7 +100,7 @@ subroutine check_coupling_integrity
 !               NB: in principle, this should never happen, but let's be picky
                 write(lout,*)'ERROR! entrance point does not have the exit'
                 write(lout,*)''
-                lerr = .true.
+                lerror = .true.
               endif
             endif
           endif
@@ -111,7 +111,7 @@ subroutine check_coupling_integrity
       enddo
 
  1983 continue
-      if ( lerr ) then
+      if ( lerror ) then
         write(lout,*) ' at least one inconsistency in flagging elements'
         write(lout,*) '    for coupling: please check carefully...'
         call prror(-1)
