@@ -70,4 +70,221 @@ contains
 
   end function lininterp
 
+  ! ================================================================================================ !
+  !  A.Mereghetti, CERN, BE-ABP-HSS
+  !  Last modified: 15-04-2019
+  !  Make some sanity checks on arrays to be interpolated
+  ! ================================================================================================ !
+  logical function checkArray(xvals,datalen,lprint)
+
+    use crcoall
+    implicit none
+
+    integer,           intent(in) :: datalen
+    real(kind=fPrec),  intent(in) :: xvals(1:datalen)
+    logical, optional, intent(in) :: lprint
+
+    integer ii
+    logical llprint
+
+    llprint = .true.
+    if(present(lprint)) llprint = lprint
+    checkArray=.true.
+
+    if(datalen <= 0) then
+      checkArray=.false.
+      if (llprint) write(lout,"(a)") "UTILS> ERROR checkArray: datalen was 0!"
+    end if
+    do ii=1, datalen-1
+      if(xvals(ii) >= xvals(ii+1)) then
+        checkArray=.false.
+        if (llprint) write(lout,"(a)") "UTILS> ERROR checkArray: xvals should be in increasing order"
+      end if
+    end do
+  end function checkArray
+
+  ! ================================================================================================ !
+  !  A.Mereghetti, CERN, BE-ABP-HSS
+  !  Last modified: 15-04-2019
+  !  Given an array xvals(1:datalen), and given a value x, it returns a value such that x is
+  !      between xvals(huntBin) and xvals(huntBin+1). xvals(1:datalen) must be monotonic in
+  !      increasing/decreasing order - not checked!
+  !  -1 is returned to indicate that x is out of range. jlo in input is taken as initial guess
+  !  from Numerical Recipes in Fortran 77
+  ! ================================================================================================ !
+  integer function huntBin(x,xvals,datalen,jlo)
+    
+    implicit none
+    
+    integer,           intent(in) :: datalen
+    real(kind=fPrec),  intent(in) :: x, xvals(1:datalen)
+    integer, optional, intent(in) :: jlo
+
+    integer inc, jhi, jm, klo
+    logical ascnd
+
+    huntBin=-1
+    klo = -1
+    if(present(jlo)) klo = jlo
+    ascnd=xvals(datalen).ge.xvals(1) ! True if ascending order of table, false otherwise.
+    
+    if(klo.le.0.or.klo.gt.datalen)then
+       ! Input guess not useful. Go immediately to bisection.
+       klo=0
+       jhi=datalen+1
+       goto 3
+    endif
+    
+    ! set the hunting increment.
+    inc=1
+    if(x.ge.xvals(klo).eqv.ascnd)then
+       ! hunt up
+1      jhi=klo+inc
+       if(jhi.gt.datalen)then
+          ! Done hunting, since off end of table.
+          jhi=datalen+1
+       else if(x.ge.xvals(jhi).eqv.ascnd) then
+          ! Not done hunting, so double the increment and try again.
+          klo=jhi
+          inc=inc+inc
+          goto 1
+       endif
+    else
+       ! hunt down
+       jhi=klo
+2      klo=jhi-inc
+       if(klo.lt.1)then
+          ! Done hunting, since off end of table.
+          klo=0
+       else if(x.lt.xvals(klo).eqv.ascnd)then
+          ! Not done hunting, so double the increment and try again.
+          jhi=klo
+          inc=inc+inc
+          goto 2
+       endif
+    endif
+
+    ! begin the final bisection phase:
+3   if(jhi-klo.eq.1)then
+       if(x.eq.xvals(datalen)) klo=datalen-1
+       if(x.eq.xvals(1)) klo=1
+       huntBin=klo
+       return
+    endif
+    jm=(jhi+klo)/2
+    if(x.ge.xvals(jm).eqv.ascnd)then
+       klo=jm
+    else
+       jhi=jm
+    endif
+    goto 3
+  end function huntBin
+
+  ! ================================================================================================ !
+  !  A.Mereghetti, CERN, BE-ABP-HSS
+  !  Last modified: 15-04-2019
+  !  Given arrays xa and ya, each of length n, and given a value x, this function returns a
+  !        value y, and an error estimate dy. If P(x) is the polynomial of degree N−1 such that
+  !        P(xa_i)=ya_i, i=1,...,n , then the returned value y = P ( x ).
+  !  This function implements Neville's method
+  !  from Numerical Recipes in Fortran 77
+  ! ================================================================================================ !
+  real(kind=fPrec) function nevilleMethod(xa,ya,nn,x,dy)
+    
+    use crcoall
+    use numerical_constants, only : zero
+    implicit none
+    
+    integer,           intent(in)  :: nn
+    real(kind=fPrec),  intent(in)  :: x, xa(1:nn), ya(1:nn)
+    real(kind=fPrec),  intent(out) :: dy
+
+    real(kind=fPrec) den, dif, dift, ho, hp, ww, Cs(1:nn), Ds(1:nn)
+    integer ii, mm, ns
+
+    ! find the index ns of the closest table entry,
+    !    and initialize the tableau of Cs and Ds.
+    ns=1
+    dif=abs(x-xa(1))
+    do ii=1,nn
+      dift=abs(x-xa(ii))
+      if (dift.lt.dif) then
+        ns=ii
+        dif=dift
+      endif
+      Cs(ii)=ya(ii)
+      Ds(ii)=ya(ii)
+    enddo
+    
+    nevilleMethod=ya(ns) ! This is the initial approximation to y.
+    ns=ns-1
+    do mm=1,nn-1      ! For each column of the tableau,
+      do ii=1,nn-mm   ! we loop over the current c’s and d’s and update them.
+        ho=xa(ii)-x
+        hp=xa(ii+mm)-x
+        ww=Cs(ii+1)-Ds(ii)
+        den=ho-hp
+        if (den.eq.zero) then
+          ! This error can occur only if two input xa’s are (to within roundoff) identical.
+          write(lout,"(A)") "UTILS> ERROR nevilleMethod den.eq.zero"
+          call prror
+        end if
+        den=ww/den
+        ! update Cs and Ds
+        Ds(ii)=hp*den
+        Cs(ii)=ho*den
+      enddo
+      ! After each column in the tableau is completed, we decide
+      !   which correction, C or D, we want to add to our accu-
+      !   mulating value of y, i.e., which path to take through
+      !   the tableau—forking up or down. We do this in such a
+      !   way as to take the most “straight line” route through the
+      !   tableau to its apex, updating ns accordingly to keep track
+      !   of where we are. This route keeps the partial approxima-
+      !   tions centered (insofar as possible) on the target x. The
+      !   last dy added is thus the error indication.
+      if (2*ns.lt.nn-mm)then
+        dy=Cs(ns+1)
+      else
+        dy=Ds(ns)
+        ns=ns-1
+      endif
+      nevilleMethod=nevilleMethod+dy
+    enddo
+
+  end function nevilleMethod
+
+  ! ================================================================================================ !
+  !  A.Mereghetti, CERN, BE-ABP-HSS
+  !  Last modified: 15-04-2019
+  !  Interpolate (xvals,yvals) with a polynom through mpoints data, and find the value y at x
+  ! ================================================================================================ !
+  real(kind=fPrec) function polinterp(x,xvals,yvals,datalen,mpoints,jguess)
+
+    use numerical_constants, only : zero
+    implicit none
+
+    integer,          intent(in)    :: datalen, mpoints
+    integer,          intent(inout) :: jguess
+    real(kind=fPrec), intent(in)    :: x, xvals(1:datalen), yvals(1:datalen)
+
+    integer jj, jMin, jMax
+    real(kind=fPrec) dy
+
+    polinterp = zero ! -Wmaybe-uninitialized
+    
+    ! get bin
+    jj=huntBin(x,xvals,datalen,jguess)
+    ! get bin extremes
+    jMin=min(max(jj-(mpoints-1)/2,1),datalen+1-mpoints)
+    jMax=min(jMin+mpoints-1,datalen)
+
+    ! actually interpolate
+    polinterp = nevilleMethod(xvals(jMin:jMax),yvals(jMin:jMax),mpoints,x,dy)
+
+    ! update guess for next call
+    jguess=jj
+    
+  end function polinterp
+  
 end module utils

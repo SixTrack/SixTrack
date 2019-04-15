@@ -44,19 +44,18 @@ module elens
   logical, save          :: elens_lAllowUpdate(nelens) = .true.  ! Flag for disabling updating of kick,
                                                                  !  i.e. after DYNK has touched thetaR2,
                                                                  !  the energy update is disabled.
-  logical, save          :: elens_lFox(nelens)         = .true.  ! the kick from the elens should be taken into account
+  logical, save          :: elens_lFox(nelens)         = .false. ! the kick from the elens should be taken into account
                                                                  !  when searching for the closed orbit with DA algebra
 #ifdef CR
   logical, save          :: elens_lAllowUpdate_CR(nelens)
 #endif
   
-  ! mapping to chebyshev polynomials
-  integer, save          :: elens_iCheby(nelens)      ! mapping to the table with chebyshev coeffs
-  
   ! radial profile
-  integer, save          :: elens_iRadial(nelens)     ! mapping to the radial profile
-  real(kind=fPrec), save :: elens_radial_fr1(nelens)  ! value of f(R1) in case of radial profiles from file [0:1]
-  real(kind=fPrec), save :: elens_radial_fr2(nelens)  ! value of f(R2) in case of radial profiles from file [0:1]
+  integer, save          :: elens_iRadial(nelens)                ! mapping to the radial profile
+  real(kind=fPrec), save :: elens_radial_fr1(nelens)             ! value of f(R1) in case of radial profiles from file [0:1]
+  real(kind=fPrec), save :: elens_radial_fr2(nelens)             ! value of f(R2) in case of radial profiles from file [0:1]
+  integer, save          :: elens_radial_mpoints(nelens)=2       ! how many points for polynomial interpolation
+  integer, save          :: elens_radial_jguess(nelens)=-1       ! bin for guessed search
   ! - file handling and data storage:
   integer, parameter     :: nelens_radial_profiles=20 ! max number of radial profiles
   integer, save          :: melens_radial_profiles    ! radial profiles available in memory
@@ -355,10 +354,10 @@ end subroutine elens_parseInputDone
 subroutine elens_postInput
 
   use mathlib_bouncer
-  use utils
+  use utils, only : polinterp
   use mod_common, only : bez,kz
 
-  integer j,jj
+  integer j,jj,jguess
   logical exist
 
   ! Parse files with radial profiles
@@ -384,14 +383,16 @@ subroutine elens_postInput
                          -exp_mb(-0.5*(elens_r2(j)/elens_sig(j))**2)
     else if(elens_type(j) == 3) then
       ! Radial profile
-      elens_radial_fr1(j) = lininterp( elens_r1(j), &
+      elens_radial_fr1(j) = polinterp( elens_r1(j), &
             elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
             elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-            elens_radial_profile_nPoints(elens_iRadial(j))+1 )
-      elens_radial_fr2(j) = lininterp( elens_r2(j), &
+            elens_radial_profile_nPoints(elens_iRadial(j))+1, &
+            elens_radial_mpoints(elens_iRadial(j)), jguess )
+      elens_radial_fr2(j) = polinterp( elens_r2(j), &
             elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
             elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-            elens_radial_profile_nPoints(elens_iRadial(j))+1 )
+            elens_radial_profile_nPoints(elens_iRadial(j))+1, &
+            elens_radial_mpoints(elens_iRadial(j)), jguess  )
       elens_geo_norm(j) = elens_radial_fr2(j) -elens_radial_fr1(j)
     end if
 
@@ -650,7 +651,7 @@ subroutine elens_kick(i,ix,n)
   use mod_common_main
   use mathlib_bouncer
   use numerical_constants, only : zero, one
-  use utils, only : lininterp
+  use utils, only : polinterp
 
   implicit none
   
@@ -692,10 +693,12 @@ subroutine elens_kick(i,ix,n)
         case (3)
           ! RADIAL PROFILE: eLens with radial profile as from file
           ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))
-          frr=(lininterp( rr, &
+          frr=(polinterp( rr, &
                 elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
                 elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
-                elens_radial_profile_nPoints(elens_iRadial(ielens(ix)))+1)-elens_radial_fr1(ielens(ix)) )/elens_geo_norm(ielens(ix))
+                elens_radial_profile_nPoints(elens_iRadial(ielens(ix)))+1, &
+                elens_radial_mpoints(ielens(ix)), elens_radial_jguess(ielens(ix)) )-elens_radial_fr1(ielens(ix))) &
+                /elens_geo_norm(ielens(ix))
         case default
           write(lout,"(a,i0,a)") "ELENS> ERROR in kickelens: elens_type=",elens_type(ielens(ix))," not recognized. "
           write(lout,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
