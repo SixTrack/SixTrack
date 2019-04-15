@@ -285,22 +285,6 @@ subroutine cheby_parseInputDone(iErr)
 
   logical, intent(inout) :: iErr
 
-  integer j
-
-  ! Loop over single elements to check that they have been defined in the fort.3 block
-  if(ncheby /= 0) then
-    do j=1,nele
-      if(kz(j) == cheby_kz) then
-        if( icheby(j) == 0) then
-          write(lout,"(a)") "CHEBY> ERROR Chebyshev lens element '"//trim(bez(j))//"'not defined in fort.3."
-          write(lout,"(a)") "CHEBY>       You must define every Chebyshev lens in the CHEB block."
-          iErr = .true.
-          return
-        end if
-      end if
-    end do
-  end if
-
 end subroutine cheby_parseInputDone
 
 
@@ -309,10 +293,29 @@ subroutine cheby_postInput
   use mod_common, only : kz,bez
   use mod_settings, only : st_quiet
 
-  integer ii, jj, kk
+  integer ii, jj, kk, ncheb
   logical exist
   real(kind=fPrec) tmpFlt
   
+  ! Check that all chebyshev lenses in fort.2 have a corresponding declaration in fort.3
+  ncheb=0
+  do jj=1,nele
+    if(kz(jj)==cheby_kz) then
+      if (icheby(jj).eq.0) then
+        write(lout,"(a,i0,a)") "CHEBY> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lout,"(a)")      "CHEBY>       does not have a corresponding line in CHEB block in fort.3"
+        call prror
+      else
+        ncheb=ncheb+1
+      end if
+    end if
+  end do
+  if ( ncheb.ne.ncheby ) then
+    write(lout,"(a,i0)") "CHEBY> ERROR number of chebyshev lenses declared in CHEB block in fort.3 ",ncheby
+    write(lout,"(a,i0)") "CHEBY>       is not the same as the total number of chebyshev lenses in lattice ",ncheb
+    call prror
+  end if
+
   ! Parse files with coefficients for Chebyshev polynomials:
   do jj=1,ncheby_tables
     inquire(file=cheby_filename(jj), exist=exist)

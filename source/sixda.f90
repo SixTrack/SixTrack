@@ -788,7 +788,7 @@ subroutine runda
           write(7,*) '5'
           if(kz(ix).eq.12) then
             write(7,*) bez(ix)
-            write(ch,*) ed(ix),hsyc(ix),itionc(ix),phasc(ix)
+            write(ch,*) ed(ix),hsyc(ix),sign(1,kz(ix)),phasc(ix)
             do ich=300,1,-1
               if(ch(ich:ich).ne.' ') goto 703
             enddo
