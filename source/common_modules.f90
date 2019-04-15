@@ -204,7 +204,7 @@ module mod_common
 
   ! RF Cavities
   integer,          save :: icy        = 0    ! Accelerating cavity: Number of "CAV" locations in STRUCT
-  integer,          save :: ncy        = 0    ! Accelerating cavity: Number of cavity locations in SING
+  integer,          save :: ncy        = 0    ! Accelerating cavity: Number of "CAV" locations times super periods mper
   integer,          save :: ncy2       = 0    ! Accelerating cavity: Number of cavities (kz = +/- 12) in SING
 
   ! Organisation of Random Numbers

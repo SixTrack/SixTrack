@@ -1786,11 +1786,11 @@ subroutine initialize_element(ix,lfirst)
         kp(ix) = 6
       end if
     else
-      hsyc(ix) = ((two*pi)*ek(ix))/tlen         ! daten SYNC block
+      hsyc(ix) = ((twopi)*ek(ix))/tlen                             ! SYNC block
       hsyc(ix) = (c1m3*hsyc(ix)) * real(sign(1,kz(ix)),kind=fPrec) ! trauthin/trauthck
     end if
 
-    ! Wire
+  ! Wire
   else if(kz(ix) == 15) then
     ed(ix) = zero
     ek(ix) = zero
