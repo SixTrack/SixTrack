@@ -37,7 +37,7 @@
 !--elliptic beam z>x
               if(sigman(1,imbb(i)).lt.sigman(2,imbb(i))) then
                 if(nbeaux(imbb(i)).eq.1.or.nbeaux(imbb(i)).eq.2) then
-                  write(lerrs,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
+                  write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
                     "round or elliptical for all particles"
                   call prror(-1)
                 else
