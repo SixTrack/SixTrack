@@ -195,7 +195,7 @@ subroutine part_writeState(theState)
 
   character(len=225) :: roundBuf
   character(len=17)  :: fileName
-  integer            :: fileUnit, j, k, iDummy
+  integer            :: fileUnit, j, k, iDummy, iPrim, iLost
   logical            :: rErr, isPrim, isBin, noIons
 
   if(theState == 0) then
@@ -227,25 +227,35 @@ subroutine part_writeState(theState)
     write(fileUnit) int(iDummy,kind=int32) ! Pad to n x 64 bit
 
     do j=1,npart
-      isPrim = partID(j) <= napxo
-      write(fileUnit)     int(  partID(j), kind=int32)
-      write(fileUnit)     int(parentID(j), kind=int32)
-      write(fileUnit) logical(  llostp(j), kind=int32)
-      write(fileUnit) logical(  isPrim,    kind=int32)
-      write(fileUnit)    real(     xv1(j), kind=real64)
-      write(fileUnit)    real(     xv2(j), kind=real64)
-      write(fileUnit)    real(     yv1(j), kind=real64)
-      write(fileUnit)    real(     yv2(j), kind=real64)
-      write(fileUnit)    real(   sigmv(j), kind=real64)
-      write(fileUnit)    real(    dpsv(j), kind=real64)
-      write(fileUnit)    real(    ejfv(j), kind=real64)
-      write(fileUnit)    real(     ejv(j), kind=real64)
+      ! These have to be set explicitly as ifort converts logical to integer differently than gfortran and nagfor
+      if(partID(j) <= napxo) then
+        iPrim = 1
+      else
+        iPrim = 0
+      end if
+      if(llostp(j)) then
+        iLost = 1
+      else
+        iLost = 0
+      end if
+      write(fileUnit)  int(  partID(j), kind=int32)
+      write(fileUnit)  int(parentID(j), kind=int32)
+      write(fileUnit)  int(      iLost, kind=int32)
+      write(fileUnit)  int(      iPrim, kind=int32)
+      write(fileUnit) real(     xv1(j), kind=real64)
+      write(fileUnit) real(     xv2(j), kind=real64)
+      write(fileUnit) real(     yv1(j), kind=real64)
+      write(fileUnit) real(     yv2(j), kind=real64)
+      write(fileUnit) real(   sigmv(j), kind=real64)
+      write(fileUnit) real(    dpsv(j), kind=real64)
+      write(fileUnit) real(    ejfv(j), kind=real64)
+      write(fileUnit) real(     ejv(j), kind=real64)
       if(noIons) cycle ! Skip the ion columns
-      write(fileUnit)    real(    nucm(j), kind=real64)
-      write(fileUnit)     int(     naa(j), kind=int16)
-      write(fileUnit)     int(     nzz(j), kind=int16)
-    ! write(fileUnit)     int(     nqq(j), kind=int16) ! Not implemented yet
-      write(fileUnit)     int(     iDummy, kind=int32) ! Pad to n x 64 bit
+      write(fileUnit) real(    nucm(j), kind=real64)
+      write(fileUnit)  int(     naa(j), kind=int16)
+      write(fileUnit)  int(     nzz(j), kind=int16)
+    ! write(fileUnit)  int(     nqq(j), kind=int16) ! Not implemented yet
+      write(fileUnit)  int(     iDummy, kind=int32) ! Pad to n x 64 bit
     end do
 
     call f_close(fileUnit)
