@@ -353,15 +353,34 @@ subroutine elens_postInput
   use utils
   use mod_common, only : bez,kz
 
-  integer j,jj
-  logical exist
+  integer j, jj, nlens
+  logical exist, lerr
+
+  ! Check that all elenses in fort.2 have a corresponding declaration in fort.3
+  lerr=.false.
+  do jj=1,nele
+    if(kz(jj)==29) then
+      if (ielens(jj).eq.0) then
+        write(lout,"(a,i0,a)") "ELENS> ERROR single element",jj,"named "//trim(bez(jj))
+        write(lout,"(a)") "ELENS>       does not have a corresponding line in ELEN block in fort.3"
+        lerr=.true.
+      else
+        nlens=nlens+1
+      end if
+    end if
+  end do
+  if ( nlens.ne.melens ) then
+    write(lout,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in fort.3 ",melens
+    write(lout,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
+    lerr=.true.
+  end if
 
   ! Parse files with radial profiles
    do j=1,melens_radial_profiles
     inquire(file=elens_radial_filename(j), exist=exist)
     if(.not. exist) then
       write(lout,"(a)") "ELENS> ERROR Problems with file with radial profile: "//trim(elens_radial_filename(j))
-      call prror(-1)
+      lerr=.true.
     end if
     call parseRadialProfile(j)
     call integrateRadialProfile(j)
@@ -408,6 +427,7 @@ subroutine elens_postInput
     
   end do
 
+  if (lerr) call prror
 
 end subroutine elens_postInput
 
