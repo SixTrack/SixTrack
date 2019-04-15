@@ -198,10 +198,6 @@ subroutine umlauda
     rewind 111
 !ERIC HERE
     call daread(damap,nvar,mfile,one)
-#ifdef DEBUG
-!     call warr('emitz',emitz,0,0,0,0)
-!     call wda('uml6',0d0,6,0,0,0)
-#endif
     call mapnorm(damap,f,aa2,a1,xy,h,nord1)
     do j=1,nvar
       call dacop(damap(j),damap1(j))
@@ -213,15 +209,7 @@ subroutine umlauda
       call averaged(angno,damap1,.true.,angno, rv)
       jj(5)=1
       jj(6)=1
-#ifdef DEBUG
-!     call warr('emitz',emitz,0,0,0,0)
-!     call wda('uml7',0d0,7,0,0,0)
-#endif
       call dapek(angno,jj,emitz)
-#ifdef DEBUG
-!     call warr('emitz',emitz,1,0,0,0)
-!     call wda('uml8',0d0,8,0,0,0)
-#endif
       jj(5)=0
       jj(6)=0
       if(abs(emitz).le.pieni) then
@@ -230,15 +218,6 @@ subroutine umlauda
         emitz=((sigz**2/emitz)*half)*c1e6                            !hr05
       endif
     endif
-#ifdef DEBUG
-!     call warr('emitz',emitz,2,0,0,0)
-!     call wda('uml9',0d0,9,0,0,0)
-#endif
-#ifdef DEBUG
-!     call dumpbin('emitz',1,1)
-!     call dumpda('emitz',1,0)
-!     call abend('          emitz                                   ')
-#endif
     jj(5)=1
     do j=1,nd2
       call dapek(a1(j),jj,dicu(j))
@@ -2720,29 +2699,14 @@ subroutine clorda(nn,idummy,am)
     enddo
     sigm(1)=cloc(5)
     dps(1)=cloc(6)
-#ifdef DEBUG
-!       write(*,*) 'Calling UMLAUDA from clorda'
-!       call warr('cloc5',cloc(5),0,0,0,0)
-!       call warr('cloc6',cloc(6),0,0,0,0)
-#endif
     call umlauda
     do i4=1,nd2
       do j4=1,nd2
         am(i4,j4)=aml6(i4,j4)
-#ifdef DEBUG
-!       call warr('ambef',am(i4,j4),i4,j4,0,0)
-#endif
       enddo
     enddo
     call dinv(nd2,am,nd2,idummy,nerror)
     if(nerror.ne.0) write(lout,*) ' ATTENTION, MATRIX SINGULAR '
-#ifdef DEBUG
-!       do i4=1,nd2
-!         do j4=1,nd2
-!     call warr('amaft',am(i4,j4),i4,j4,0,0)
-!         enddo
-!       enddo
-#endif
     if(ndimf.eq.3) then
       do l=1,2
         ll=2*l
@@ -2767,10 +2731,6 @@ subroutine clorda(nn,idummy,am)
       dd(l)=cloc(l)-xx(l)
       dc(l)=abs(dd(l))
       if(l.eq.5) dc(5)=dc(5)*c1m2
-#ifdef DEBUG
-!       call warr('ddl',dd(l),l,1,0,0)
-!       call warr('dcl',dc(l),l,1,0,0)
-#endif
     enddo
     icheck=0
     do l=1,ndimf
@@ -2791,26 +2751,10 @@ subroutine clorda(nn,idummy,am)
     do l=1,ndimf
       ll=2*l
       write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-#ifdef DEBUG
-!     call warr('corl ll',cor,l,ll,1,0)
-!     call warr('dcll*2',dc(ll-1)**2,l,ll,1,0)
-#endif
       cor=cor+dc(ll-1)**2                                            !hr06
-#ifdef DEBUG
-!         call warr('acor',cor,l,ll,1,0)
-#endif
     enddo
     cor=sqrt(cor)
-#ifdef DEBUG
-!       call warr('vital',0d0,ii,0,0,0)
-!       call warr('corlll',cor,l,ll,1,0)
-!       call warr('coro',coro,l,ll,1,0)
-#endif
     if(ii.eq.1.or.cor.lt.coro) then
-#ifdef DEBUG
-!       call warr('cor',cor,2,0,0,0)
-!       call warr('coro',coro,2,0,0,0)
-#endif
       coro=cor
       do l=1,nd2
         cloc(l)=cloc(l)+dlo(l)
@@ -2844,20 +2788,9 @@ subroutine clorda(nn,idummy,am)
     do l=1,ndimf
       ll=2*l
       write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-#ifdef DEBUG
-!     call warr('corl ll',cor,l,ll,2,0)
-!     call warr('dcll*2',dc(ll-1)**2,l,ll,2,0)
-#endif
       cor=cor+dc(ll-1)**2                                            !hr06
-#ifdef DEBUG
-!         call warr('acor',cor,l,ll,2,0)
-#endif
     enddo
     cor=sqrt(cor)
-#ifdef DEBUG
-!       call warr('cor',cor,3,0,0,0)
-!       call warr('coro',coro,3,0,0,0)
-#endif
     if(cor.lt.coro) then
       coro=cor
       do l=1,nd2
@@ -2938,24 +2871,6 @@ subroutine clorda(nn,idummy,am)
       clop(l)=cloc(ll)
     enddo
   endif
-#ifdef DEBUG
-!     call warr('end clorda',cloc(1),1,0,0,0)
-!     call warr('end cloc(2)',cloc(2),2,0,0,0)
-!     call warr('end cloc(3)',cloc(3),3,0,0,0)
-!     call warr('end cloc(4)',cloc(4),4,0,0,0)
-!     call warr('end cloc(5)',cloc(5),5,0,0,0)
-!     call warr('end cloc(6)',cloc(6),6,0,0,0)
-!     call warr('clo(1)',clo(1),1,0,0,0)
-!     call warr('clo(2)',clo(2),2,0,0,0)
-!     call warr('clop(1)',clop(1),1,0,0,0)
-!     call warr('clop(2)',clop(2),2,0,0,0)
-!     call warr('clo6(1)',clo6(1),1,0,0,0)
-!     call warr('clo6(2)',clo6(2),2,0,0,0)
-!     call warr('clo6(3)',clo6(3),3,0,0,0)
-!     call warr('clop6(1)',clop6(1),1,0,0,0)
-!     call warr('clop6(2)',clop6(2),2,0,0,0)
-!     call warr('clop6(3)',clop6(3),3,0,0,0)
-#endif
 !-----------------------------------------------------------------------
   return
 10000 format(t10,'DA CLOSED ORBIT CALCULATION'/ t10,                    &

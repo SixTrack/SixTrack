@@ -891,9 +891,6 @@ subroutine danot(not)
       endif
 
       nocut = not
-#ifdef DEBUG
-!     call warr('nocut',zero,0,0,0,0)
-#endif
 
       return
 end subroutine danot
@@ -964,29 +961,8 @@ subroutine dapek(ina,jj,cjj)
 
 
       dimension jj(lnv)
-#ifdef DEBUG
-!Eric
-!     integer umcalls,dapcalls,dokcalls,dumpl
-!     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
-#endif
-#ifdef DEBUG
-!     dapcalls=dapcalls+1
-!     if (dapcalls.ge.606380)                                           &
-!    &call warr('dapek1',zero,dapcalls,ina,jj(1),1)
-#endif
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
-
-#ifdef DEBUG
-!     if (dapcalls.ge.606380) then
-!     call warr('ina',zero,ina,0,0,0)
-!     call warr('inoa',zero,inoa,0,0,0)
-!     call warr('inva',zero,inva,0,0,0)
-!     call warr('ipoa',zero,ipoa,0,0,0)
-!     call warr('ilma',zero,ilma,0,0,0)
-!     call warr('illa',zero,illa,0,0,0)
-!     endif
-#endif
 
       if(illa.eq.0) then   ! etienne shit
         cjj = zero                                                        !hr10
@@ -1012,14 +988,6 @@ subroutine dapek(ina,jj,cjj)
          endif
          ipek = ipoa + jj1 - 1
          cjj = cc(ipek)
-#ifdef DEBUG
-!     if (dapcalls.ge.606380)                                           &
-!    &call warr('dapek2',cjj,2,ipek,0,0)
-!     if (dapcalls.ge.606381) then
-!       call dumpda('in dapek',606381,2)
-!     call abend('in dapek 606381                                   ')
-!     endif
-#endif
          return
       endif
 
@@ -1061,25 +1029,9 @@ subroutine dapek(ina,jj,cjj)
          return
       elseif(ic.eq.icu) then
          cjj = cc(iu)
-#ifdef DEBUG
-!     if (dapcalls.ge.606380)                                           &
-!    &call warr('dapek3',cjj,3,iu,0,0)
-!     if (dapcalls.ge.606400) then
-!       call dumpda('in dapek',606400,3)
-!     call abend('                                                  ')
-!     endif
-#endif
          return
       elseif(ic.eq.icz) then
          cjj = cc(iz)
-#ifdef DEBUG
-!     if (dapcalls.ge.606380)                                           &
-!    &call warr('dapek4',cjj,4,iz,0,0)
-!     if (dapcalls.ge.606400) then
-!       call dumpda('in dapek',606400,4)
-!     call abend('                                                  ')
-!     endif
-#endif
          return
       elseif(ic.lt.icu.or.ic.gt.icz) then
          cjj = zero                                                       !hr10
@@ -1105,14 +1057,6 @@ subroutine dapek(ina,jj,cjj)
       goto 10
  30   cjj = cc(i)
 
-#ifdef DEBUG
-!     if (dapcalls.ge.606380)                                           &
-!    &call warr('dapek5',cjj,5,i,0,0)
-!     if (dapcalls.ge.606400) then
-!       call dumpda('in dapek',606400,5)
-!     call abend('                                                  ')
-!     endif
-#endif
       return
  40   iz = i
       goto 10
@@ -2100,37 +2044,12 @@ subroutine dacsu(ina,ckon,inb)
 !     THIS SUBROUTINE SUBTRACTS THE CONSTANT CKON FROM THE VECTOR A
 !
 !-----------------------------------------------------------------------------1
-#ifdef DEBUG
-!     integer umcalls,dapcalls,dokcalls,dumpl
-!     common /mycalls/ umcalls,dapcalls,dokcalls,dumpl
-#endif
 
       integer jj(lnv)
       data jj / lnv*0 /
 
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
       call dainf(inb,inob,invb,ipob,ilmb,illb)
-#ifdef DEBUG
-!     if (umcalls.eq.8) then
-!       if (dumpl.ne.0) then
-! write the i's
-!     call warr('ina',zero,ina,0,0,0)
-!     call warr('inoa',zero,inoa,0,0,0)
-!     call warr('inva',zero,inva,0,0,0)
-!     call warr('ipoa',zero,ipoa,0,0,0)
-!     call warr('ilma',zero,ilma,0,0,0)
-!     call warr('illa',zero,illa,0,0,0)
-!     call warr('inb',zero,inb,0,0,0)
-!     call warr('inob',zero,inob,0,0,0)
-!     call warr('invb',zero,invb,0,0,0)
-!     call warr('ipob',zero,ipob,0,0,0)
-!     call warr('ilmb',zero,ilmb,0,0,0)
-!     call warr('illb',zero,illb,0,0,0)
-!     call wda('bdacsu',zero,0,0,0,0)
-!       endif
-!     endif
-#endif
-
       call dacop(ina,inb)
 
 #ifdef DEBUG

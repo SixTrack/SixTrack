@@ -1596,25 +1596,11 @@ subroutine postpr(nfile)
           tle1=log_mb(real(ia,fPrec))                                          !hr06
           if(i2.gt.1) then
             biav(i2-1)=bold/real(iav,fPrec)                                    !hr06
-#ifdef DEBUG
-!           call warr('biav',biav(i2-1),i2,0,0,0)
-#endif
             if(i2.eq.2) biav(1)=biav(1)*half
-#ifdef DEBUG
-!           call warr('biavhalf',biav(1),1,0,0,1)
-#endif
             bold=zero
             tle(i2)=(tle1+tlo)*half
-#ifdef DEBUG
-!           call warr('tle1)',tle1,0,0,0,0)
-!           call warr('tlo',tlo,0,0,0,0)
-!           call warr('tle(i2)',tle(i2),i2,0,0,0)
-#endif
             if(abs(tle1-tlo).gt.pieni) then
               wgh(i2)=one/(tle1-tlo)
-#ifdef DEBUG
-!           call warr('wgh(i2)',wgh(i2),i2,0,0,0)
-#endif
             else
               write(lout,10310) nfile
               wgh(i2)=zero
@@ -1622,25 +1608,13 @@ subroutine postpr(nfile)
           else
             tle(i2)=tle1*half
             wgh(i2)=one/(tle1)
-#ifdef DEBUG
-!           call warr('tle(i2)',tle(i2),i2,0,0,1)
-!           call warr('wgh(i2)',wgh(i2),i2,0,0,1)
-#endif
           endif
         else
           tle(i2)=zero
           wgh(i2)=zero
-#ifdef DEBUG
-!           call warr('tle(i2)',tle(i2),i2,0,0,2)
-!           call warr('wgh(i2)',wgh(i2),i2,0,0,2)
-#endif
         endif
         tlo=tle1
         dle1=zero
-#ifdef DEBUG
-!           call warr('tlo',tlo,0,0,0,0)
-!           call warr('dle1',dle1,0,0,0,0)
-#endif
       endif
 !--COORDINATE-ANGLE CONVERSION
       call caconv(dpx,d,c)
@@ -1687,31 +1661,9 @@ subroutine postpr(nfile)
 !--ANALYSING DATA
 !----------------------------------------------------------------------
 !--FIT OF DISTANCE IN PHASESPACE + MEAN PHASEADVANCE
-#ifdef DEBUG
-!     call warr('lfitw1',tle,0,0,0,1)
-!     call warr('lfitw2',dle,0,0,0,2)
-!     call warr('lfitw3',wgh,0,0,0,3)
-#endif
       do 280 i=2,i2
         if(iwg.eq.1) call lfitwd(tle,dle,wgh,i,1,slope(i-1),const,varlea(i-1))
         if(iwg.eq.0) call lfitd(tle,dle,i,1,slope(i-1),const,varlea(i-1))
-#ifdef DEBUG
-!     if(iwg.eq.1) then
-!     call warr('lfitwtle',tle(i),i,0,0,1)
-!     call warr('lfitwdle',dle(i),i,0,0,2)
-!     call warr('lfitwwgh',wgh(i),i,0,0,3)
-!     call warr('lfitwslo',slope(i-1),i,0,0,4)
-!     call warr('lfitwcon',const,i,0,0,5)
-!     call warr('lfitwvar',varlea(i-1),i,0,0,6)
-!     endif
-!     if (iwg.eq.0) then
-!     call warr('lfit',tle(i),i,0,0,1)
-!     call warr('lfit',dle(i),i,0,0,2)
-!     call warr('lfit',slope(i-1),i,0,0,4)
-!     call warr('lfit',const,i,0,0,5)
-!     call warr('lfit',varlea(i-1),i,0,0,6)
-!     endif
-#endif
   280 continue
       if(iapx.eq.0) then
         write(lout,*) 'WARNING: IAPX IS ZERO'
@@ -2201,11 +2153,6 @@ subroutine postpr(nfile)
       sumda(51)=chromc(2)*c1e3
 
 !--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
-#ifdef DEBUG
-!     do i=1,60
-!       call warr('sumda(i)',sumda(i),i,0,0,0)
-!     enddo
-#endif
 ! We should really write fort.10 in BINARY!
       write(110,iostat=ierro) (sumda(i),i=1,60)
       if(ierro.ne.0) then
@@ -2649,11 +2596,6 @@ subroutine postpr(nfile)
  550  continue
 !--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
 !-- Will almost all be zeros but we now have napxto and ttime
-#ifdef DEBUG
-!     do i=1,60
-!       call warr('sumda(i)',sumda(i),i,0,0,0)
-!     enddo
-#endif
 ! We should really write fort.10 in BINARY!
       write(110,iostat=ierro) (sumda(i),i=1,60)
       if(ierro.ne.0) then
