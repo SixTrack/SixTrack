@@ -157,33 +157,6 @@ subroutine dump_linesFirst(n)
 end subroutine dump_linesFirst
 
 ! ================================================================================================================================ !
-!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!  Last modified: 01-09-2014
-!  Close units for dumping particle population
-! ================================================================================================================================ !
-subroutine dump_closeUnits
-
-  use mod_common
-  use mod_units
-  implicit none
-  integer i
-
-#ifdef HDF5
-  if(.not. h5_useForDUMP) then
-#endif
-    do i=0,il
-      if (ldump(i)) then
-        ! The same file could be used by more than one SINGLE ELEMENT
-        call f_close(dumpunit(i))
-      end if
-    end do
-#ifdef HDF5
-  end if
-#endif
-
-end subroutine dump_closeUnits
-
-! ================================================================================================================================ !
 subroutine dump_parseInputLine(inLine,iErr)
 
   use crcoall

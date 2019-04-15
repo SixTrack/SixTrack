@@ -24,7 +24,7 @@ program maincr
   use zipf,    only : zipf_numfiles, zipf_dozip
   use scatter, only : scatter_init
 
-  use, intrinsic :: iso_fortran_env, only : output_unit
+  use, intrinsic :: iso_fortran_env, only : output_unit, error_unit
   use mod_meta
   use mod_time
   use aperture
@@ -123,9 +123,8 @@ end interface
   ! ---------------------------------------------------------------------------------------------- !
   errout = 0 ! Set to nonzero before calling abend in case of error.
 #ifdef CR
+  lerr = 91
   lout = 92
-#else
-  lout = output_unit
 #endif
 
 #ifdef BOINC
@@ -216,7 +215,9 @@ end interface
   ! Goes here after unzip for BOINC
 #endif
   ! Very first get rid of any previous partial output
+  call f_close(lerr)
   call f_close(lout)
+  call f_open(unit=lerr,file="fort.91",formatted=.true.,mode="rw",err=fErr,status="replace")
   call f_open(unit=lout,file="fort.92",formatted=.true.,mode="rw",err=fErr,status="replace")
 
   ! Now position the checkpoint/restart logfile=93
@@ -280,14 +281,14 @@ end interface
   else
     fort96 = .true.
   end if
-  call f_open(unit=91,file="fort.91",formatted=.true.,mode="rw",err=fErr)
 #else
+  lerr = error_unit
   lout = output_unit
 #endif
 
   ! Open Regular File Units
   call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA file
-  call f_open(unit=19,file="fort.19",formatted=.true., mode="r", err=fErr) ! DA file
+  call f_open(unit=19,file="fort.19",formatted=.true., mode="rw",err=fErr) ! DA file
   call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr) ! DA file
   call f_open(unit=21,file="fort.21",formatted=.true., mode="w", err=fErr) ! DA file
   call f_open(unit=31,file="fort.31",formatted=.true., mode="w", err=fErr)
@@ -405,7 +406,7 @@ end interface
   end if
 
   ! Postprocessing is on, but there are no particles
-  if(ipos.eq.1.and.napx.eq.0) then
+  if(ipos == 1 .and. napx == 0) then
     ! Now we open fort.10 unless already opened for BOINC
     call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
     call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
@@ -1507,17 +1508,17 @@ end interface
 ! ---------------------------------------------------------------------------- !
 
 470 continue
-  ! and we need to open fort.10 unless already opened for BOINC
-  call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
-  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
 
-  ! Also dump the final state of the particle arrays
+  ! Dump the final state of the particle arrays
   call part_writeState(1)
 
 #ifndef FLUKA
 #ifndef STF
   iposc = 0
   if(ipos == 1) then ! Variable IPOS=1 -> postprocessing block present in fort.3
+    ! Open fort.10 unless already opened for BOINC
+    call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
+    call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
     do ia=1,napxo,2
       ia2=(ia+1)/2
       iposc=iposc+1

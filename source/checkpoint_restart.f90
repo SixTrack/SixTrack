@@ -13,7 +13,6 @@ module checkpoint_restart
 
   character(len=1024), public, save :: arecord
   character(len=20),   public, save :: stxt
-  character(len=80),   public, save :: runtim
 
   integer,             public, save :: crsixrecs
   integer,             public, save :: crbinrec
@@ -756,7 +755,9 @@ subroutine crcheck
 
     ! Set up flag for tracking routines to call CRSTART
     restart=.true.
-    write(lout,"(a80)") runtim
+    write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
+    write(lout,"(a)") "SIXTRACR>  Restarted"
+    write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
     !Flush or truncate?
     endfile (lout,iostat=ierro)
     backspace (lout,iostat=ierro)
@@ -926,7 +927,7 @@ subroutine crpoint
     backspace(6,iostat=ierro)
     rewind(lout)
     endfile(lout,iostat=ierro)
-    close(lout)
+    call f_close(lout)
     call f_open(unit=92,file="fort.92",formatted=.true.,mode="rw",err=fErr)
 #ifndef DEBUG
     if(ncalls <= 5 .or. numx >= numl) then
@@ -1413,9 +1414,9 @@ subroutine crstart
 
   call f_open(unit=lout,file="fort.92",formatted=.true.,mode="rw",err=fErr)
   ! but also add the rerun message
-  write(lout,"(a80)") runtim
-  runtim(1:20)="SIXTRACR restarted: "
-  write(lout,"(a80)") runtim
+  write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
+  write(lout,"(a)") "SIXTRACR>  Restarted"
+  write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
   endfile(lout,iostat=ierro)
   backspace(lout,iostat=ierro)
 

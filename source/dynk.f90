@@ -2838,6 +2838,8 @@ end function dynk_isused
 ! =================================================================================================
 subroutine dynk_closeFiles
 
+  use mod_units
+
   implicit none
 
   integer i
@@ -2849,13 +2851,13 @@ subroutine dynk_closeFiles
     if (dynk_funcs(i,2) == 3) then ! PIPE FUN
       ! InPipe
       inquire(unit=dynk_iData(dynk_funcs(i,3)), opened=isOpen)
-      if(isOpen) close(dynk_iData(dynk_funcs(i,3)))
+      if(isOpen) call f_close(dynk_iData(dynk_funcs(i,3)))
 
       ! OutPipe
       inquire(unit=dynk_iData(dynk_funcs(i,3)+1), opened=isOpen)
       if(isOpen) then
         write(dynk_iData(dynk_funcs(i,3))+1,"(a)") "CLOSEUNITS"
-        close(dynk_iData(dynk_funcs(i,3))+1)
+        call f_close(dynk_iData(dynk_funcs(i,3))+1)
       end if
     end if
   end do

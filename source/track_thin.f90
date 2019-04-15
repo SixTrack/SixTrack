@@ -2139,8 +2139,6 @@ subroutine callcrp
 !-----------------------------------------------------------------------
 #ifdef CR
   ncalls=ncalls+1
-  write(91,*,iostat=ierro,err=11) numx,numl
-  rewind 91
   if (restart) then
     write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
       " numx = ",numx,", numlcr = ",numlcr
