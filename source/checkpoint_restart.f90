@@ -1257,54 +1257,6 @@ subroutine crstart
     end if
 
     !ERICVARS now read the extended vars from fort.95/96.
-#ifdef DEBUG
-  ! Commented out code for multiple records
-  ! write(93,"(a)") "SIXTRACR> CRSTART DEBUG DUMP"
-  ! call dump('Before xcrstart',0,0)
-  ! endfile (93,iostat=ierro)
-  ! backspace (93,iostat=ierro)
-  ! write(93,"(a)") "SIXTRACR> CRSTART reading EXTENDED vars"
-  ! endfile (93,iostat=ierro)
-  ! backspace (93,iostat=ierro)
-  ! if(read95) then
-  !   read(95,end=100,err=100,iostat=ierro) ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-  !   read(95,end=100,err=100,iostat=ierro) ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-  !   read(95,end=100,err=100,iostat=ierro) (aek(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (afok(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (as3(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (as4(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (as6(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (co(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (dpd(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (dpsq(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (fi(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (fok(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (fok1(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (fokqv(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (g(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (gl(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (hc(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (hi(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (hi1(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (hm(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (hp(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (hs(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (rho(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (rhoc(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (rhoi(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (si(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (siq(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (sm1(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (sm12(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (sm2(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (sm23(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (sm3(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (wf(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (wfa(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (wfhi(j),j=1,napxo)
-  !   go to 102
-  ! endif
-#endif
     if(read95) then
       if(ithick == 1) then
         read(95,end=100,err=100,iostat=ierro) &

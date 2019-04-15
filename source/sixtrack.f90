@@ -1249,21 +1249,9 @@ subroutine errf(xx,yy,wx,wy)
     nc=7+int(23.0_fPrec*q)                                               !hr05
 !       xl=h**(1-nc)
     xl=exp_mb((1-nc)*log_mb(h))                                      !yil11
-#ifdef DEBUG
-!       call wda('errfq',q,nc,0,0,0)
-!       call wda('errfh',h,nc,0,0,0)
-!       call wda('errfxl',xl,nc,0,0,0)
-#endif
-#ifdef DEBUG
-!       call wda('errfxlrn',xl,nc,0,0,0)
-#endif
     xh=y+half/h
     yh=x
     nu=10+int(21.0_fPrec*q)
-#ifdef DEBUG
-!       call wda('errfxh',xh,nu,0,0,0)
-!       call wda('errfyh',yh,nu,0,0,0)
-#endif
     rx(nu+1)=zero
     ry(nu+1)=zero
     do 10 n=nu,1,-1
@@ -3074,10 +3062,6 @@ subroutine chromda
       call phasad(dp1,qwc)
       if(nbeam.ge.1) then
 #include "include/beamcou.f90"
-#ifdef DEBUG
-!     call dumpbin('abeamcou2',3,33)
-!     call abend('after beam coupling                               ')
-#endif
       endif
       ncorru=ncorruo
       iq1=is(1)
@@ -7170,10 +7154,6 @@ subroutine qmodda(mm,qwc)
         endif
       endif
       ncorru=ncorruo
-#ifdef DEBUG
-!     call dumpbin('end qmodda',7,999)
-!     call abend('end qmodda 7 999                                  ')
-#endif
 !-----------------------------------------------------------------------
 10000 format(/131('-')/t10,'ENTERING ',i1,'D DA TUNE-VARIATION')
 10010 format(1x,f47.33/1x,f47.33)
