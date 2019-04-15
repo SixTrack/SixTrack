@@ -19,9 +19,6 @@ module sixtrack_input
   logical,          allocatable, private, save :: sixin_lBlock(:) ! Block closed
   integer,                       private, save :: sixin_nBlock    ! Number of blocks
 
-  integer,                       public,  save :: sixin_ncy2  = 0
-  integer,                       public,  save :: sixin_icy   = 0
-
   ! Linear Optics Variables
   integer,                       private, save :: sixin_ilin0 = 1
 
@@ -779,8 +776,8 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
   select case(iLine)
   case(1)
 
-    if(nSplit < 7) then
-      write(lout,"(a,i0,a)") "TRAC> ERROR Line 1 should be at least 7 values, but ",nSplit," given."
+    if(nSplit < 5) then
+      write(lout,"(a,i0,a)") "TRAC> ERROR Line 1 should be at least 5 values, but ",nSplit," given."
       iErr = .true.
       return
     end if
@@ -1457,8 +1454,8 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(sixin_ncy2 == 0) then
-      ncy = sixin_icy*mper
+    if(ncy2 == 0) then
+      ncy = icy*mper
       idp = 1
       if(ncy == 0) then
         idp = 0

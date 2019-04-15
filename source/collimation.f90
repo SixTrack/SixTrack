@@ -1139,6 +1139,9 @@ subroutine collimate_init()
   write (lout,"(a)") "COLL> Finished collimate initialisation"
   write (lout,"(a)") ""
 
+  ! Always one sample, so call it here
+  call collimate_start_sample(1)
+
 end subroutine collimate_init
 
 ! ================================================================================================ !
@@ -1785,6 +1788,7 @@ subroutine collimate_start_sample(nsample)
   use mod_commons
   use mod_common_track
   use mod_common_da
+  use mod_particles
   use coll_db
   use mod_units
   use mod_ranlux
@@ -1977,7 +1981,7 @@ subroutine collimate_start_sample(nsample)
   end if
 
   ! Copy new particles to tracking arrays. Also add the orbit offset at start of ring!
-  if(do_thisdis /= 0) then
+  if(do_thisdis /= 0 .or. radial) then
     xv1(1:napx)   = c1e3 *  myx(1:napx) + torbx(1)
     yv1(1:napx)   = c1e3 * myxp(1:napx) + torbxp(1)
     xv2(1:napx)   = c1e3 *  myy(1:napx) + torby(1)
@@ -1986,34 +1990,21 @@ subroutine collimate_start_sample(nsample)
     ejv(1:napx)   = myp(1:napx)
   end if
 
-  do i = 1, napx
-    ! FOR NOT FAST TRACKING ONLY
-    ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-    dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-    oidpsv(j)=one/(one+dpsv(j))
-    moidpsv(j)=mtc(j)/(one+dpsv(j))
-    omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-    dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+  call part_updatePartEnergy(1)
 
-    partID(i)=i
-    parentID(i)=i
-
-    do ieff =1, numeff
+  do i=1,napx
+    do ieff=1,numeff
       counted_r(i,ieff) = 0
       counted_x(i,ieff) = 0
       counted_y(i,ieff) = 0
-
       do ieffdpop =1, numeffdpop
         counted2d(i,ieff,ieffdpop) = 0
       end do
-
     end do
 
     do ieffdpop =1, numeffdpop
       counteddpop(i,ieffdpop) = 0
     end do
-
   end do
 
 !!!!!!!!!!!!!!!!!!!!!!START THIN6D CUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3815,6 +3806,9 @@ subroutine collimate_exit()
   implicit none
 
   integer :: i,j
+
+  ! Just call it here since samples are no longer supported
+  call collimate_end_sample(1)
 
   close(outlun)
   close(collgaps_unit)

@@ -35,6 +35,7 @@ program maincr
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
   use read_write,     only : writeFort12, readFort13, readFort33
+  use collimation,    only : do_coll, collimate_init, collimate_exit
 
 #ifdef FLUKA
   use mod_fluka
@@ -70,31 +71,12 @@ program maincr
 
   implicit none
 
-interface
-
-  subroutine envarsv(dpsv,oidpsv,rvv,ekv)
-
-    use floatPrecision
-    use parpro
-    use mod_common_da
-
-    implicit none
-
-    real(kind=fPrec) :: dpsv(npart)
-    real(kind=fPrec) :: oidpsv(npart)
-    real(kind=fPrec) :: rvv(npart)
-    real(kind=fPrec), allocatable, intent(inout) :: ekv(:,:)
-
-  end subroutine envarsv
-
-end interface
-
   integer i,itiono,i2,i3,ia,ia2,iation,ib1,id,ie,ii,im,iposc,ix,izu,j,jj,k,kpz,kzz,l,ncorruo,ncrr,  &
     nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
     bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,     &
     gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
-    tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13,damp
+    tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13,damp,eps(2),epsa(2)
   integer idummy(6)
   character(len=4) cpto
 
@@ -1265,7 +1247,7 @@ end interface
 
   if(ithick == 1) then
     ! Compute matrices for linear tracking
-    call envarsv(dpsv,moidpsv,rvv,ekv)
+    call envarsv
     if(idp == 0 .or. ition == 0) then ! Only in case of thck4d
       call blocksv
     end if
@@ -1321,6 +1303,10 @@ end interface
 
   ! Initialise Modules
   call dump_initialise
+  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
+    ! Only if thin 6D and collimation enabled
+    call collimate_init
+  end if
 
   call time_timeStamp(time_afterInitialisation)
 
@@ -1343,6 +1329,11 @@ end interface
 
   time2=0.
   call time_timerCheck(time2)
+
+  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
+    ! Only if thin 6D and collimation enabled
+    call collimate_exit
+  endif
 
   ! trtime is now the tracking time, BUT we must add other time for C/R
   trtime=time2-time1

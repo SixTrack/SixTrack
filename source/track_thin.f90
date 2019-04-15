@@ -447,7 +447,9 @@ subroutine trauthin(nthinerr)
 
     hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
     do jj=1,nele
-      if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*real(itionc(jj),fPrec)
+      if(abs(kz(jj)) == 12) then
+        hsyc(jj) = (c1m3*hsyc(jj)) * real(sign(1,kz(jj)),kind=fPrec)
+      end if
     end do
     if(abs(phas).ge.pieni) then
       write(lout,"(a)") "TRACKING> ERROR thin6dua no longer supported. Please use DYNK instead."
@@ -456,20 +458,9 @@ subroutine trauthin(nthinerr)
       write(lout,"(a)") ""
       write(lout,"(a)") "TRACKING> Calling thin6d subroutine"
       write(lout,"(a)") ""
-      if (do_coll) then
-        call collimate_init()
-        call collimate_start_sample(1) ! Changed to only do 1 sample
-      endif
       call thin6d(nthinerr)
-      if (do_coll) then
-        call collimate_end_sample(1) ! Changed to only do 1 sample
-      endif
     endif !end if(abs(phas).ge.pieni) then
   endif !end if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then ... else
-
-  if (do_coll) then
-    call collimate_exit()
-  endif
 
   call dealloc(crkveb, "crkveb")
   call dealloc(cikveb, "cikveb")
@@ -1489,7 +1480,7 @@ subroutine thin6d(nthinerr)
           if(abs(dppoff).gt.pieni) then
             sigmv(j)=sigmv(j)-sigmoff(i)
           endif
-          if(kz(ix).eq.12) then
+          if(abs(kz(ix)) == 12) then
             ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
           else
             ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
@@ -1937,7 +1928,6 @@ subroutine thin6d(nthinerr)
           ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (58) ! JBG RF CC Multipoles
         xory=1
@@ -1951,7 +1941,6 @@ subroutine thin6d(nthinerr)
           ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (59) ! JBG RF CC Multipoles
         xory=1
@@ -1966,7 +1955,6 @@ subroutine thin6d(nthinerr)
                 *(((crabfreq*two)*pi)/clight)*c1m6)*sin_mb(kcrab))*e0f
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (60) ! JBG RF CC Multipoles
         xory=1
@@ -1981,7 +1969,6 @@ subroutine thin6d(nthinerr)
                 ((three*crkve**2)*cikve)))*(((crabfreq*two)*pi)/clight))*c1m6)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (61) ! JBG RF CC Multipoles
         xory=1
@@ -1996,7 +1983,6 @@ subroutine thin6d(nthinerr)
                 *(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (62) ! JBG RF CC Multipoles
         xory=1
@@ -2010,7 +1996,6 @@ subroutine thin6d(nthinerr)
           ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3*cikve)-(cikve**3*crkve)))*(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (63) ! Elens
         do j=1,napx
