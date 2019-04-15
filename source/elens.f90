@@ -44,6 +44,8 @@ module elens
   logical, save          :: elens_lAllowUpdate(nelens) = .true.  ! Flag for disabling updating of kick,
                                                                  !  i.e. after DYNK has touched thetaR2,
                                                                  !  the energy update is disabled.
+  logical, save          :: elens_lFox(nelens)         = .true.  ! the kick from the elens should be taken into account
+                                                                 !  when searching for the closed orbit with DA algebra
 #ifdef CR
   logical, save          :: elens_lAllowUpdate_CR(nelens)
 #endif
@@ -650,6 +652,8 @@ subroutine elens_kick(i,ix,n)
   use numerical_constants, only : zero, one
   use utils, only : lininterp
 
+  implicit none
+  
   integer, intent(in) :: i
   integer, intent(in) :: ix
   integer, intent(in) :: n
@@ -666,7 +670,7 @@ subroutine elens_kick(i,ix,n)
     ! 2) calculate radius
     !    radial position of main beam relative to center of elens beam
     !    rr = sqrt(xx**2+yy**2)
-    rr=sqrt(xx**2+yy**2)
+    rr=sqrt(xx*xx+yy*yy)
     ! 3) calculate kick
     !    shape function: spatial charge density depends on type:
     !    0    if r < R1
@@ -714,6 +718,125 @@ subroutine elens_kick(i,ix,n)
     endif
   end do
 end subroutine elens_kick
+
+! ================================================================================================ !
+!  Last modified: 2019-04-11
+!  compute kick from electron lens
+! ================================================================================================ !
+subroutine elens_kick_fox(i,ix)
+
+  use mod_common, only : betrel, napx, mtcda
+  use mod_hions, only : moidpsv
+  use mod_common_main
+  use mathlib_bouncer
+  use numerical_constants, only : zero, one
+  use utils, only : lininterp
+  use mod_lie_dab, only : lnv, idao, rscrri, iscrda
+  use mod_common_track, only : xxtr, yytr, issss, comt_daStart, comt_daEnd
+  use mod_common_da
+
+  implicit none
+  
+  integer, intent(in) :: i
+  integer, intent(in) :: ix
+  
+  integer          :: jj, idaa
+  integer          :: hh(lnv)=0
+  real(kind=fPrec) linlin, rra, xclo, yclo, ele_r1, ele_r2, elenor, elesig, elefr1, elebet
+
+  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
+  save
+!-----------------------------------------------------------------------
+!FOX  B D ;
+#include "include/dainicom.f90"
+!FOX  D V DA INT XI NORD NVAR ; D V DA INT YI  NORD NVAR ;
+!FOX  D V DA INT RR NORD NVAR ; D V DA INT FRR NORD NVAR ;
+!FOX  D V RE INT XCLO ; D V RE INT YCLO ;
+!FOX  D V RE INT BETREL ;
+!FOX  D V RE INT ELE_R1 ; D V RE INT ELE_R2 ;
+!FOX  D V RE INT ELEFR1 ;
+!FOX  D V RE INT ELENOR ;
+!FOX  D V RE INT ELESIG ;
+!FOX  D V RE INT ELEBET ;
+!FOX  D V RE INT LINLIN ;
+!FOX  D V RE INT ONE ; D V RE INT TWO ; D V RE INT HALF ;
+!FOX  D V RE INT RRA ;
+!FOX  E D ;
+!FOX  1 if(1.eq.1) then
+  call comt_daStart
+!-----------------------------------------------------------------------
+
+  XCLO=elens_offset_x(ielens(ix))
+  YCLO=elens_offset_y(ielens(ix))
+  ELE_R1=elens_r1(ielens(ix))
+  ELE_R2=elens_r2(ielens(ix))
+  ELENOR=elens_geo_norm(ielens(ix))
+  ELESIG=elens_sig(ielens(ix))
+  ELEFR1=elens_radial_fr1(ielens(ix))
+  ELEBET=elens_beta_e(ielens(ix))
+  
+  ! 1) apply offset of e-lens
+  !    xx = x(proton) - elens_offset_x
+  !    yy = y(proton) - elens_offset_y
+!FOX    XI=(XX(1)-XCLO) ;
+!FOX    YI=(XX(2)-YCLO) ;
+  
+  ! 2) calculate radius
+  !    radial position of main beam relative to center of elens beam
+  !    rr = sqrt(xx**2+yy**2)
+!FOX    RR=SQRT(XI*XI+YI*YI) ;
+  
+  ! 3) calculate kick
+  !    shape function: spatial charge density depends on type:
+  !    0    if r < R1
+  !    frr  if R1 < r < R2
+  !    1    if r > R2
+  call dapek(RR,hh,RRA)
+  if (RRA.gt.elens_r1(ielens(ix))) then ! rr <= r1 -> no kick from elens
+    if (RRA.lt.elens_r2(ielens(ix))) then ! r1 < rr < r2
+      select case (elens_type(ielens(ix)))
+      case (1)
+        ! UNIFORM: eLens with uniform profile
+        ! formula: (r^2-r1^2)/(r2^2-r1^2)
+!FOX    FRR=((RR+ELE_R1)*(RR-ELE_R1))/ELENOR ;
+         
+      case (2)
+        ! GAUSSIAN: eLens with Gaussian profile
+        ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
+!FOX    FRR=(EXP(-HALF*((ELE_R1/ELESIG)*(ELE_R1/ELESIG)))-EXP(-HALF*((RR/ELESIG)*(RR/ELESIG))))/ELENOR ;
+
+      case (3)
+        ! RADIAL PROFILE: eLens with radial profile as from file
+        ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))
+        linlin=lininterp( RRA, &
+              elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
+              elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
+              elens_radial_profile_nPoints(elens_iRadial(ielens(ix)))+1)
+!FOX    FRR=(LINLIN-ELEFR1)/ELENOR ;
+
+      case default
+        write(lout,"(a,i0,a)") "ELENS> ERROR in kickelens: elens_type=",elens_type(ielens(ix))," not recognized. "
+        write(lout,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
+        call prror
+      end select
+    else ! r1 < r2 <= rr
+!FOX    FRR=ONE ;
+    endif
+    ! 'radial kick'
+!FOX    FRR=(((ELE_R2*ELE_R2)/RR)*FRR)*(MTCDA/(ONE+DPDA)) ;
+    if(elens_lThetaR2(ielens(ix))) then
+      if(elens_I(ielens(ix)) < zero) then
+!FOX    FRR=FRR*((RV+ELEBET*BETREL)/(ONE+ELEBET*BETREL)) ;
+      else
+!FOX    FRR=FRR*((RV-ELEBET*BETREL)/(ONE-ELEBET*BETREL)) ;
+      end if
+    endif
+!FOX  YY(1)=YY(1)-(FRR*XI)/RR ;
+!FOX  YY(2)=YY(2)-(FRR*YI)/RR ;
+  endif
+
+  call comt_daEnd
+end subroutine elens_kick_fox
 
 #ifdef CR
 subroutine elens_crcheck(fileUnit,readErr)
