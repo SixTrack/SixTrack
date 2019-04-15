@@ -323,11 +323,31 @@ end subroutine elens_parseInputLine
 
 subroutine elens_parseInputDone(iErr)
 
-  use mod_common, only : kz,bez
+  use mod_common, only : bez, kz
 
   implicit none
 
   logical, intent(inout) :: iErr
+
+  integer jj, kk
+
+  ! check Loop over single elements to check that they have been defined in the fort.3 block
+  do jj=1,melens
+    if(elens_type(jj)==0) then
+      ! find name of elens (for printout purposes)
+      do kk=1,nele
+        if(kz(kk)==29) then
+          if (ielens(kk).eq.jj) then
+            exit
+          end if
+        end if
+      end do
+      ! report error
+      write(lout,"(a)") "ELENS> ERROR Type of elens not declared in fort.3 for element '"//trim(bez(kk))//"'"
+      iErr = .true.
+      return
+    end if
+  end do
 
 end subroutine elens_parseInputDone
 
