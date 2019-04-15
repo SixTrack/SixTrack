@@ -447,7 +447,9 @@ subroutine trauthin(nthinerr)
 
     hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
     do jj=1,nele
-      if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*real(itionc(jj),fPrec)
+      if(abs(kz(jj)) == 12) then
+        hsyc(jj) = (c1m3*hsyc(jj)) * real(sign(1,kz(jj)),kind=fPrec)
+      end if
     end do
     if(abs(phas).ge.pieni) then
       write(lout,"(a)") "TRACKING> ERROR thin6dua no longer supported. Please use DYNK instead."
@@ -1478,7 +1480,7 @@ subroutine thin6d(nthinerr)
           if(abs(dppoff).gt.pieni) then
             sigmv(j)=sigmv(j)-sigmoff(i)
           endif
-          if(kz(ix).eq.12) then
+          if(abs(kz(ix)) == 12) then
             ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
           else
             ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
