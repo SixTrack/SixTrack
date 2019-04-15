@@ -1605,8 +1605,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 7)  call chr_cast(lnSplit(8), bunchlength, iErr)
 
   case(4)
-    if(nSplit /= 13) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 13 values on line 4, got ",nSplit
+    if(nSplit /= 14) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 14 values on line 4, got ",nSplit
       iErr = .true.
       return
     end if
