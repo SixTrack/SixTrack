@@ -29,5 +29,5 @@ do j=1,napx
   sigmv(j)=(track6d(5,j)*c1e3+clobeam(3,imbb(i)))- beamoff(3,imbb(i))
 end do
 
-if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
+if(ithick == 1) call envarsv
 ! end include/beam6d.f90

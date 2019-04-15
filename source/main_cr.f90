@@ -71,25 +71,6 @@ program maincr
 
   implicit none
 
-interface
-
-  subroutine envarsv(dpsv,oidpsv,rvv,ekv)
-
-    use floatPrecision
-    use parpro
-    use mod_common_da
-
-    implicit none
-
-    real(kind=fPrec) :: dpsv(npart)
-    real(kind=fPrec) :: oidpsv(npart)
-    real(kind=fPrec) :: rvv(npart)
-    real(kind=fPrec), allocatable, intent(inout) :: ekv(:,:)
-
-  end subroutine envarsv
-
-end interface
-
   integer i,itiono,i2,i3,ia,ia2,iation,ib1,id,ie,ii,im,iposc,ix,izu,j,jj,k,kpz,kzz,l,ncorruo,ncrr,  &
     nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
@@ -1261,7 +1242,7 @@ end interface
 
   if(ithick == 1) then
     ! Compute matrices for linear tracking
-    call envarsv(dpsv,moidpsv,rvv,ekv)
+    call envarsv
     if(idp == 0 .or. ition == 0) then ! Only in case of thck4d
       call blocksv
     end if
