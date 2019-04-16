@@ -25,8 +25,10 @@ module coll_dist
   ! Distribution Settings
   real(kind=fPrec),         public,  save :: cdist_ampX     = zero
   real(kind=fPrec),         public,  save :: cdist_ampY     = zero
+  real(kind=fPrec),         public,  save :: cdist_ampR     = zero
   real(kind=fPrec),         public,  save :: cdist_smearX   = zero
   real(kind=fPrec),         public,  save :: cdist_smearY   = zero
+  real(kind=fPrec),         public,  save :: cdist_smearR   = zero
   real(kind=fPrec),         public,  save :: cdist_spreadE  = zero
   real(kind=fPrec),         public,  save :: cdist_bunchLen = zero
 
@@ -34,6 +36,12 @@ module coll_dist
 
 contains
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-26
+!  Updated: 2019-04-16
+!  Generate the distribution in the correct order, based on the distFormat flag
+! ================================================================================================ !
 subroutine cdist_makeDist(distFormat)
 
   use crcoall
@@ -65,6 +73,35 @@ subroutine cdist_makeDist(distFormat)
   end select
 
 end subroutine cdist_makeDist
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-04-16
+!  Updated: 2019-04-16
+!  The radial format is just format 1 with a different set of parameters
+! ================================================================================================ !
+subroutine cdist_makeRadial
+
+  real(kind=fPrec) tmpVal(4)
+
+  tmpVal(1)    = cdist_ampX
+  tmpVal(2)    = cdist_ampY
+  tmpVal(3)    = cdist_smearX
+  tmpVal(4)    = cdist_smearY
+
+  cdist_ampX   = cdist_ampR/sqrt(two)
+  cdist_ampY   = cdist_ampR/sqrt(two)
+  cdist_smearX = cdist_smearR/sqrt(two)
+  cdist_smearY = cdist_smearR/sqrt(two)
+
+  call cdist_makeDist_fmt1
+
+  cdist_ampX   = tmpVal(1)
+  cdist_ampY   = tmpVal(2)
+  cdist_smearX = tmpVal(3)
+  cdist_smearY = tmpVal(4)
+
+end subroutine cdist_makeRadial
 
 ! ================================================================================================ !
 !  Generation of Distribution Format 1
