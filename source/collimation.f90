@@ -120,7 +120,7 @@ module collimation
   real(kind=fPrec), private, save :: mybetay
   real(kind=fPrec), private, save :: myalphax
   real(kind=fPrec), private, save :: mybetax
-  real(kind=fPrec), private, save :: rselect
+  real(kind=fPrec), private, save :: rselect = 64.0 ! Not set anywhere, but used in if statements
   real(kind=fPrec), private, save :: myemitx
 
 ! M. Fiascaris for the collimation team
@@ -258,7 +258,6 @@ module collimation
   integer, save :: iturn_last_hit
   integer, save :: iturn_absorbed
   integer, save :: iturn_survive
-  integer, save :: imov
   integer, save :: totalelem
   integer, save :: selelem
   integer, save :: unitnumber
@@ -384,8 +383,8 @@ module collimation
     [ 0.22_fPrec,   0.302_fPrec,  0.366_fPrec,  0.520_fPrec,   0.542_fPrec,   0.25_fPrec,   0.25_fPrec,  &
       0.25_fPrec,   0.308_fPrec,  0.481_fPrec,  0.418_fPrec,   0.578_fPrec,   zero,         zero         ]
   real(kind=fPrec), private, save :: hcut(nmat)  = &
-    [ 0.02_fPrec,   0.02_fPrec,   0.03_fPrec,   0.02_fPrec,    0.02_fPrec,    0.02_fPrec,   0.02_fPrec,  &
-      0.02_fPrec,   0.02_fPrec,   0.02_fPrec,   zero,          zero,          zero,         zero         ]
+    [ 0.02_fPrec,   0.02_fPrec,   0.01_fPrec,   0.01_fPrec,    0.01_fPrec,    0.02_fPrec,    0.02_fPrec, &
+      0.02_fPrec,   0.02_fPrec,   0.02_fPrec,   0.02_fPrec,    0.02_fPrec,    zero,          zero        ]
   real(kind=fPrec), private, save :: dpodx(nmat) = &
     [ 0.55_fPrec,   0.81_fPrec,   2.69_fPrec,   5.79_fPrec,    3.40_fPrec,    0.75_fPrec,   1.50_fPrec,  &
       zero,         zero,         zero,         zero,          zero,          zero,         zero         ]
@@ -427,7 +426,7 @@ module collimation
   integer, private, save :: impact_unit, tracks2_unit, pencilbeam_distr_unit, coll_ellipse_unit, all_impacts_unit
   integer, private, save :: FLUKA_impacts_unit, FLUKA_impacts_all_unit, coll_scatter_unit, FirstImpacts_unit, RHIClosses_unit
   integer, private, save :: twisslike_unit, sigmasettings_unit, distsec_unit, efficiency_unit, efficiency_dpop_unit
-  integer, private, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit, distn_unit
+  integer, private, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit
   integer, private, save :: CollPositions_unit, all_absorptions_unit, efficiency_2d_unit
   integer, private, save :: collsettings_unit, outlun
 
@@ -579,11 +578,11 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
 
 end subroutine collimation_expand_arrays
 
-!>
-!! collimate_init()
-!! This routine is called once at the start of the simulation and
-!! can be used to do any initial configuration and/or file loading.
-!<
+! ================================================================================================ !
+!  Collimation Init
+!  This routine is called once at the start of the simulation and can be used to do any initial
+!  configuration and/or file loading.
+! ================================================================================================ !
 subroutine collimate_init()
 
   use crcoall
@@ -616,34 +615,13 @@ subroutine collimate_init()
 #endif
 
 #ifdef G4COLLIMAT
-! These should be configured in the scatter block when possible/enabled
+  ! These should be configured in the scatter block when possible/enabled
   real(kind=fPrec) g4_ecut
   integer g4_physics
 #endif
 
-  call f_requestUnit('colltrack.out', outlun)
-  open(unit=outlun, file='colltrack.out')
-
-  if(st_quiet == 0) then
-    write(lout,"(a)") '         -------------------------------'
-    write(lout,"(a)")
-    write(lout,"(a)") '          Program      C O L L T R A C K '
-    write(lout,"(a)")
-    write(lout,"(a)") '            R. Assmann           -    AB/ABP'
-    write(lout,"(a)") '            C. Bracco            -    AB/ABP'
-    write(lout,"(a)") '            V. Previtali         -    AB/ABP'
-    write(lout,"(a)") '            S. Redaelli          -    AB/OP'
-    write(lout,"(a)") '            G. Robert-Demolaize  -    BNL'
-    write(lout,"(a)") '            A. Rossi             -    AB/ABP'
-    write(lout,"(a)") '            T. Weiler            -    IEKP'
-    write(lout,"(a)") '                 CERN 2001 - 2009'
-    write(lout,"(a)")
-    write(lout,"(a)") '         -------------------------------'
-  else
-    write(lout,"(a)") ""
-    write(lout,"(a)") " INITIALISING COLLIMATION"
-    write(lout,"(a)") ""
-  end if
+  call f_requestUnit("colltrack.out", outlun)
+  call f_open(unit=outlun,file="colltrack.out",formatted=.true.,mode="w")
 
   write(outlun,*)
   write(outlun,*)
@@ -665,23 +643,11 @@ subroutine collimate_init()
   write(outlun,*)
   write(outlun,*)
 
-  if(st_quiet == 0) then
-    write(lout,"(a)") '                     R. Assmann, F. Schmidt, CERN'
-    write(lout,"(a)") '                           C. Bracco,        CERN'
-    write(lout,"(a)") '                           V. Previtali,     CERN'
-    write(lout,"(a)") '                           S. Redaelli,      CERN'
-    write(lout,"(a)") '                       G. Robert-Demolaize,  BNL'
-    write(lout,"(a)") '                           A. Rossi,         CERN'
-    write(lout,"(a)") '                           T. Weiler         IEKP'
-
-    write(lout,"(a)")
-    write(lout,"(a)") 'Generating particle distribution at FIRST element!'
-    write(lout,"(a)") 'Optical functions obtained from Sixtrack internal!'
-    write(lout,"(a)") 'Emittance and energy obtained from Sixtrack input!'
-    write(lout,"(a)")
-    write(lout,"(a)")
-  end if
-
+  write(lout,"(a)")       ""
+  write(lout,"(a)")       str_divLine
+  write(lout,"(a)")       " INITIALISING COLLIMATION"
+  write(lout,"(a)")       str_divLine
+  write(lout,"(a)")       ""
   write(lout,"(a,e15.8)") 'COLL> Info: Betax0 [m]          = ', tbetax(1)
   write(lout,"(a,e15.8)") 'COLL> Info: Betay0 [m]          = ', tbetay(1)
   write(lout,"(a,e15.8)") 'COLL> Info: Alphax0             = ', talphax(1)
@@ -697,8 +663,8 @@ subroutine collimate_init()
   write(lout,"(a,e15.8)") 'COLL> Info: E0 [MeV]            = ', e0
   write(lout,"(a)")
 
-  myemitx0_dist = remitx_dist*c1m6
-  myemity0_dist = remity_dist*c1m6
+  myemitx0_dist    = remitx_dist*c1m6
+  myemity0_dist    = remity_dist*c1m6
   myemitx0_collgap = remitx_collgap*c1m6
   myemity0_collgap = remity_collgap*c1m6
 
@@ -707,10 +673,7 @@ subroutine collimate_init()
   mybetax  = tbetax(1)
   mybetay  = tbetay(1)
 
-!07-2006      myenom   = e0
-!      MYENOM   = 1.001*E0
-!
-  if (myemitx0_dist.le.zero .or. myemity0_dist.le.zero .or. myemitx0_collgap.le.zero .or. myemity0_collgap.le.zero) then
+  if(myemitx0_dist <= zero .or. myemity0_dist <= zero .or. myemitx0_collgap <= zero .or. myemity0_collgap <= zero) then
     write(lout,"(a)") "COLL> ERROR Emittances not defined! check collimat block!"
     write(lout,"(a)") "COLL> ERROR Expected format of line 9 in collimat block:"
     write(lout,"(a)") "COLL> ERROR emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
@@ -719,8 +682,6 @@ subroutine collimate_init()
     write(lout,"(a)") "COLL> ERROR EXAMPLE: 2.5 2.5 3.5 3.5"
     call prror(-1)
   end if
-
-  rselect=64
 
   write(lout,"(a,i0)")    'COLL> Info: NLOOP               = ', nloop
   write(lout,"(a,i0)")    'COLL> Info: DIST_TYPES          = ', do_thisdis
@@ -735,39 +696,33 @@ subroutine collimate_init()
   write(lout,"(a,l1)")    'COLL> Info: DO_COLL             = ', do_coll
   write(lout,"(a,l1)")    'COLL> Info: DO_NSIG             = ', cdb_doNSig
   do i=1,cdb_nFam
-    write(lout,"(a,a19,a3,f13.6)") "COLL> Info: ",chr_rPad("NSIG_"//trim(cdb_famName(i)),19)," = ",cdb_famNSig(i)
+    write(lout,"(a,a19,a3,f13.6)") "COLL> Info: ",chr_rPad("NSIG_"//trim(chr_toUpper(cdb_famName(i))),19)," = ",cdb_famNSig(i)
   end do
-
   write(lout,"(a)")
   write(lout,"(a)")       'COLL> INPUT PARAMETERS FOR THE SLICING:'
   write(lout,"(a)")
-  write(lout,"(a,i0)")    'COLL> Info: N_SLICES            = ',n_slices
-  write(lout,"(a,e15.8)") 'COLL> Info: SMIN_SLICES         = ',smin_slices
-  write(lout,"(a,e15.8)") 'COLL> Info: SMAX_SLICES         = ',smax_slices
-  write(lout,"(a,e15.8)") 'COLL> Info: RECENTER1           = ',recenter1
-  write(lout,"(a,e15.8)") 'COLL> Info: RECENTER2           = ',recenter2
+  write(lout,"(a,i0)")    'COLL> Info: N_SLICES            = ', n_slices
+  write(lout,"(a,e15.8)") 'COLL> Info: SMIN_SLICES         = ', smin_slices
+  write(lout,"(a,e15.8)") 'COLL> Info: SMAX_SLICES         = ', smax_slices
+  write(lout,"(a,e15.8)") 'COLL> Info: RECENTER1           = ', recenter1
+  write(lout,"(a,e15.8)") 'COLL> Info: RECENTER2           = ', recenter2
   write(lout,"(a)")
-  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,1)        = ',jaw_fit(1,1)
-  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,2)        = ',jaw_fit(1,2)
-  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,3)        = ',jaw_fit(1,3)
-  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,4)        = ',jaw_fit(1,4)
-  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,5)        = ',jaw_fit(1,5)
-  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,6)        = ',jaw_fit(1,6)
-  write(lout,"(a,e15.8)") 'COLL> Info: SCALING1            = ',jaw_ssf(1)
+  write(lout,"(a,e15.8)") 'COLL> Info: JAW_FIT(1,1)        = ', jaw_fit(1,1)
+  write(lout,"(a,e15.8)") 'COLL> Info: JAW_FIT(1,2)        = ', jaw_fit(1,2)
+  write(lout,"(a,e15.8)") 'COLL> Info: JAW_FIT(1,3)        = ', jaw_fit(1,3)
+  write(lout,"(a,e15.8)") 'COLL> Info: JAW_FIT(1,4)        = ', jaw_fit(1,4)
+  write(lout,"(a,e15.8)") 'COLL> Info: JAW_FIT(1,5)        = ', jaw_fit(1,5)
+  write(lout,"(a,e15.8)") 'COLL> Info: JAW_FIT(1,6)        = ', jaw_fit(1,6)
+  write(lout,"(a,e15.8)") 'COLL> Info: SCALING1            = ', jaw_ssf(1)
   write(lout,"(a)")
-  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,1)        = ',jaw_fit(2,1)
-  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,2)        = ',jaw_fit(2,2)
-  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,3)        = ',jaw_fit(2,3)
-  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,4)        = ',jaw_fit(2,4)
-  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,5)        = ',jaw_fit(2,5)
-  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,6)        = ',jaw_fit(2,6)
-  write(lout,"(a,e15.8)") 'COLL> Info: SCALING2            = ',jaw_ssf(2)
+  write(lout,"(a,e15.8)") 'COLL> Info: JAW_FIT(2,1)        = ', jaw_fit(2,1)
+  write(lout,"(a,e15.8)") 'COLL> Info: JAW_FIT(2,2)        = ', jaw_fit(2,2)
+  write(lout,"(a,e15.8)") 'COLL> Info: JAW_FIT(2,3)        = ', jaw_fit(2,3)
+  write(lout,"(a,e15.8)") 'COLL> Info: JAW_FIT(2,4)        = ', jaw_fit(2,4)
+  write(lout,"(a,e15.8)") 'COLL> Info: JAW_FIT(2,5)        = ', jaw_fit(2,5)
+  write(lout,"(a,e15.8)") 'COLL> Info: JAW_FIT(2,6)        = ', jaw_fit(2,6)
+  write(lout,"(a,e15.8)") 'COLL> Info: SCALING2            = ', jaw_ssf(2)
   write(lout,"(a)")
-
-!SEPT2005
-!
-! HERE WE CHECK IF THE NEW INPUT IS READ CORRECTLY
-!
   write(lout,"(a,e15.8)") 'COLL> Info: EMITXN0_DIST        = ', emitnx0_dist
   write(lout,"(a,e15.8)") 'COLL> Info: EMITYN0_DIST        = ', emitny0_dist
   write(lout,"(a,e15.8)") 'COLL> Info: EMITXN0_COLLGAP     = ', emitnx0_collgap
@@ -829,24 +784,21 @@ subroutine collimate_init()
   write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT2           = ', sigsecut2
   write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT3           = ', sigsecut3
   write(lout,"(a)")
-
   write(lout,"(a,i0)")    'COLL> Info: NAPX                = ', napx
   write(lout,"(a,e15.8)") 'COLL> Info: Sigma_x0            = ', sqrt(mybetax*myemitx0_dist)
   write(lout,"(a,e15.8)") 'COLL> Info: Sigma_y0            = ', sqrt(mybetay*myemity0_dist)
   write(lout,"(a)")
 
-!++  Initialize random number generator
-  if (rnd_seed.eq.0) rnd_seed = mclock_liar()
-  if (rnd_seed.lt.0) rnd_seed = abs(rnd_seed)
+  ! Initialize random number generator
+  if(rnd_seed == 0) rnd_seed = mclock_liar()
+  if(rnd_seed <  0) rnd_seed = abs(rnd_seed)
   rnd_lux = 3
   rnd_k1  = 0
   rnd_k2  = 0
   call rluxgo(rnd_lux, rnd_seed, rnd_k1, rnd_k2)
-!  call recuin(rnd_seed, 0)
   write(outlun,*) 'INFO>  rnd_seed: ', rnd_seed
 
-!Call distribution routines only if collimation block is in fort.3, otherwise
-!the standard sixtrack would be prevented by the 'stop' command
+  ! Call distribution routines only if collimation block is in fort.3
   cdist_logUnit = outlun
   cdist_energy  = myenom
   cdist_alphaX  = myalphax
@@ -906,7 +858,7 @@ subroutine collimate_init()
 #endif
   end if
 
-!++  Initialize efficiency array
+  ! Initialize efficiency array
   do i=1,iu
     sum_ax(i)   = zero
     sqsum_ax(i) = zero
@@ -934,28 +886,27 @@ subroutine collimate_init()
   ! Read collimator database
   call cdb_readCollDB
 
-!Then do any implementation specific initial loading
+  ! Then do any implementation specific initial loading
 #ifdef COLLIMATE_K2
   call collimate_init_k2
 #endif
-
 #ifdef MERLINSCATTER
   call collimate_init_merlin
 #endif
-
 #ifdef G4COLLIMAT
-!! This function lives in the G4Interface.cpp file in the g4collimat folder
-!! Accessed by linking libg4collimat.a
-!! Set the energy cut at 70% - i.e. 30% energy loss
+  ! This function lives in the G4Interface.cpp file in the g4collimat folder
+  ! Accessed by linking libg4collimat.a
+  ! Set the energy cut at 70% - i.e. 30% energy loss
   g4_ecut = 0.7_fPrec
 
-!! Select the physics engine to use
-!! 0 = FTFP_BERT
-!! 1 = QGSP_BERT
+  ! Select the physics engine to use
+  ! 0 = FTFP_BERT
+  ! 1 = QGSP_BERT
   g4_physics = 0
 
   call g4_collimation_init(e0, rnd_seed, g4_ecut, g4_physics)
 #endif
+
   write (lout,"(a)") ""
   write (lout,"(a)") "COLL> Finished collimate initialisation"
   write (lout,"(a)") ""
@@ -967,6 +918,8 @@ end subroutine collimate_init
 
 ! ================================================================================================ !
 !  Parse Input Line
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Updated: 2019-04-16
 ! ================================================================================================ !
 subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
@@ -3706,7 +3659,7 @@ subroutine collimate_exit()
   ! Just call it here since samples are no longer supported
   call collimate_end_sample(1)
 
-  close(outlun)
+  call f_close(outlun)
   close(collgaps_unit)
 
   if(dowritetracks) then
@@ -4104,8 +4057,7 @@ subroutine collimate_end_turn
 
   implicit none
 
-  integer j
-  integer napx_pre
+  integer j, fUnit
 
 #ifdef HDF5
   ! For tracks2
@@ -4127,7 +4079,7 @@ subroutine collimate_end_turn
   by0  = tbetay(ie)
   muy0 = muy(ie)
 
-  do j = 1,napx
+  do j=1,napx
     xineff(j)  = xv1(j) - torbx (ie)
     xpineff(j) = yv1(j) - torbxp(ie)
     yineff(j)  = xv2(j) - torby (ie)
@@ -4139,13 +4091,13 @@ subroutine collimate_end_turn
     end if
   end do
 
-!++  For LAST ELEMENT in the ring calculate the number of surviving
-!++  particles and save into file versus turn number
-  if(ie.eq.iu) then
+  ! For LAST ELEMENT in the ring calculate the number of surviving
+  ! particles and save into file versus turn number
+  if(ie == iu) then
     nsurvive = 0
 
-    do j = 1, napx
-      if (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) then
+    do j=1,napx
+      if(xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec) then
         nsurvive = nsurvive + 1
       end if
     end do
@@ -4158,18 +4110,18 @@ subroutine collimate_end_turn
       call h5_finaliseWrite(coll_hdf5_survival)
     else
 #endif
-      write(survival_unit,'(2i7)') iturn, nsurvive
+      write(survival_unit,"(2i7)") iturn, nsurvive
 #ifdef HDF5
     end if
 #endif
 
 #ifdef ROOT
-    if(root_flag .and. root_Collimation.eq.1) then
+    if(root_flag .and. root_Collimation == 1) then
       call SurvivalRootWrite(iturn, nsurvive)
     end if
 #endif
 
-    if (iturn.eq.numl) then
+    if(iturn == numl) then
       nsurvive_end = nsurvive_end + nsurvive
     end if
   end if
@@ -4296,11 +4248,9 @@ subroutine collimate_end_turn
 !------------------------------------------------------------------
 !++  For LAST ELEMENT in the ring compact the arrays by moving all
 !++  lost particles to the end of the array.
-  napx_pre = napx
-  if(ie.eq.iu) then
-    imov = 0
+  if(ie == iu) then
     do j = 1, napx
-      if(xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) then
+      if(xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec) then
         llostp(j) = .false.
       else
         llostp(j) = .true.
@@ -4309,13 +4259,7 @@ subroutine collimate_end_turn
 
     ! Move the lost particles to the end of the arrays
     call shuffleLostParticles
-
-    write(lout,"(3(a,i0))") "COLL> Compacted the particle distributions: ",napx_pre," --> ",napx,", turn = ",iturn
-    flush(lout)
-
-! napx gets updated by shuffleLostParticles
-!    napx = imov
-  endif
+  end if
 
   ! Write final distribution
   if(dowrite_dist .and. ie == iu .and. iturn == numl) then
@@ -4341,34 +4285,34 @@ subroutine collimate_end_turn
       deallocate(fldHdf)
     else
 #endif
-      call f_requestUnit('distn.dat', distn_unit)
-      open(unit=distn_unit, file='distn.dat') !was 9998
-      write(distn_unit,*) '# 1=x 2=xp 3=y 4=yp 5=z 6 =E'
-      do j = 1, napx
-        write(distn_unit,'(6(1X,E23.15))') (xv1(j)-torbx(1))/c1e3, (yv1(j)-torbxp(1))/c1e3, (xv2(j)-torby(1))/c1e3, &
+      call f_requestUnit("distn.dat",fUnit)
+      call f_open(unit=fUnit,file="distn.dat",formatted=.true.,mode="w",status="replace")
+      write(fUnit,"(a)") "# 1=x 2=xp 3=y 4=yp 5=z 6=E"
+      do j=1,napx
+        write(fUnit,"(6(1x,e23.15))") (xv1(j)-torbx(1))/c1e3, (yv1(j)-torbxp(1))/c1e3, (xv2(j)-torby(1))/c1e3, &
           (yv2(j)-torbyp(1))/c1e3, sigmv(j), ejfv(j)
       end do
-      close(distn_unit)
+      call f_close(fUnit)
 #ifdef HDF5
     end if
 #endif
   end if
 
   if(firstrun) then
-    if(rselect.gt.0 .and. rselect.lt.65) then
-      do j = 1, napx
+    if(rselect > 0 .and. rselect < 65) then ! The value rselect is fixed to 64, this if is probably redundant.
+      do j=1,napx
         xj  = (xv1(j)-torbx(ie)) /c1e3
         xpj = (yv1(j)-torbxp(ie))/c1e3
         yj  = (xv2(j)-torby(ie)) /c1e3
         ypj = (yv2(j)-torbyp(ie))/c1e3
         pj  = ejv(j)/c1e3
 
-        if(iturn.eq.1.and.j.eq.1) then
-          sum_ax(ie)=zero
-          sum_ay(ie)=zero
+        if(iturn == 1 .and. j == 1) then
+          sum_ax(ie) = zero
+          sum_ay(ie) = zero
         end if
 
-        if(tbetax(ie).gt.0.) then
+        if(tbetax(ie) > 0.) then
           gammax = (one + talphax(ie)**2)/tbetax(ie)
           gammay = (one + talphay(ie)**2)/tbetay(ie)
         else
@@ -4376,8 +4320,8 @@ subroutine collimate_end_turn
           gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
         end if
 
-        if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-          if(tbetax(ie).gt.0.) then
+        if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
+          if(tbetax(ie) > 0.) then
             nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap)
             nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap)
           else
@@ -4402,7 +4346,7 @@ subroutine collimate_end_turn
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
   if(dowritetracks) then
-    do j = 1, napx
+    do j=1, napx
       xj    = (xv1(j)-torbx(ie))/c1e3
       xpj   = (yv1(j)-torbxp(ie))/c1e3
       yj    = (xv2(j)-torby(ie))/c1e3
@@ -4410,7 +4354,7 @@ subroutine collimate_end_turn
       arcdx = 2.5_fPrec
       arcbetax = c180e0
 
-      if(xj.le.0.) then
+      if(xj <= 0.) then
         xdisp = xj + (pj-myenom)/myenom * arcdx * sqrt(tbetax(ie)/arcbetax)
       else
         xdisp = xj - (pj-myenom)/myenom * arcdx * sqrt(tbetax(ie)/arcbetax)
@@ -4431,8 +4375,7 @@ subroutine collimate_end_turn
             ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
             (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
             (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
-            ((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
-            then
+            ((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) then
 
           xj     = (xv1(j)-torbx(ie))/c1e3
           xpj    = (yv1(j)-torbxp(ie))/c1e3
