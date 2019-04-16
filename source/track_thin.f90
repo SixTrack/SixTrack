@@ -2099,7 +2099,7 @@ end subroutine thin6d
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Write a turn report.
-!  The isFirst if statement is only computed the forst time the routine is called.
+!  The isFirst if statement is only computed the first time the routine is called.
 ! ================================================================================================ !
 subroutine trackReport(n)
 
