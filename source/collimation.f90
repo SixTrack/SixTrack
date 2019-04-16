@@ -29,6 +29,7 @@ module collimation
 
   ! Logical Flags
   logical, public,  save :: do_coll           = .false.
+  logical, public,  save :: coll_oldBlock     = .false.
   logical, private, save :: do_select         = .false.
   logical, private, save :: do_nominal        = .false.
   logical, private, save :: dowrite_dist      = .false.
@@ -1087,6 +1088,14 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   end if
   if(nSplit == 0) return
 
+  if(nSplit == 1 .and. iLine == 1) then
+    ! This is the old block format
+    coll_oldBlock = .true.
+  end if
+  if(coll_oldBlock) goto 10
+
+  !  Parse new style COLL block
+  ! ============================
   select case(lnSplit(1))
 
   case("DO_COLL")
@@ -1459,8 +1468,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(3), sigsecut3, iErr)
 
   case default
-    ! If we reached this point, we probably have an old style collimation block
-    goto 10
+    write(lout,"(a)") "COLL> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
+    write(lout,"(a)") "COLL>       The parser is assuming you want keyword/value block parsing as the first line had one value."
+    write(lout,"(a)") "COLL>       The two formats cannot be mixed."
+    iErr = .true.
+    return
 
   end select
 
@@ -1490,13 +1502,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 1) call chr_cast(lnSplit(2),myenom,iErr)
 
     if(nloop /= 1) then
-      write(lout,"(a,i0)") "COLL> ERROR Support for multiple samples is deprecated. nloop must be 1, got ",nloop
-      iErr = .true.
-      return
-    end if
-
-    if(napx*2 > npart) then
-      write(lout,"(2(a,i0))") "COLL> ERROR Maximum number of particles is ", npart, ", got ",(napx*2)
+      write(lout,"(a,i0)") "COLL> ERROR Multiple samples is no longer supported. nloop must be 1, got ",nloop
       iErr = .true.
       return
     end if
@@ -1517,8 +1523,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 7)  call chr_cast(lnSplit(8), cdist_bunchLen, iErr)
 
   case(4)
-    if(nSplit /= 13) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 13 values on line 4, got ",nSplit
+    if(nSplit /= 14) then
+      write(lout,"(a,i0)") "COLL> ERROR Expected 14 values on line 4, got ",nSplit
       iErr = .true.
       return
     end if
