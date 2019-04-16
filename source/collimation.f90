@@ -41,7 +41,10 @@ module collimation
   logical, private, save :: dowritetracks     = .false.
   logical, private, save :: cern              = .false.
   logical, private, save :: do_mingap         = .false.
+  logical, public,  save :: firstrun          = .true.
+  logical, private, save :: cut_input         = .false. ! Not in use?
 
+  integer, private, save :: icoll      = 0
   integer, private, save :: nloop      = 1
   integer, private, save :: rnd_seed   = 0
   integer, private, save :: ibeam      = 1
@@ -189,8 +192,7 @@ module collimation
   character(len=4), save :: smpl
   character(len=80), save :: pfile
 
-! THIS BLOCK IS COMMON TO WRITELIN,LINOPT,TRAUTHIN,THIN6D AND MAINCR
-!
+  ! These vatiables are common to writelin,linopt,trauthin,thin6d and maincr
   real(kind=fPrec), allocatable, save :: tbetax(:)  !(nblz)
   real(kind=fPrec), allocatable, save :: tbetay(:)  !(nblz)
   real(kind=fPrec), allocatable, save :: talphax(:) !(nblz)
@@ -202,21 +204,15 @@ module collimation
   real(kind=fPrec), allocatable, save :: tdispx(:)  !(nblz)
   real(kind=fPrec), allocatable, save :: tdispy(:)  !(nblz)
 
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-! Variables for finding the collimator with the smallest gap
-! and defining, stroring the gap rms error
-!
+  ! Variables for finding the collimator with the smallest gap
+  ! and defining, stroring the gap rms error
+
   character(len=mNameLen) :: coll_mingap1, coll_mingap2
   real(kind=fPrec), allocatable, save :: gap_rms_error(:) !(max_ncoll)
   real(kind=fPrec) :: nsig_err, sig_offset
   real(kind=fPrec) :: mingap, gap_h1, gap_h2, gap_h3, gap_h4
   integer :: coll_mingap_id
 
-! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
-! logical cut_input
-
-! IN "+CD DBTRTHIN" and "+CD DBDATEN"
   real(kind=fPrec), save :: remitx_dist,remity_dist,remitx_collgap,remity_collgap
 
   logical, save :: firstcoll,found,onesided
@@ -224,12 +220,9 @@ module collimation
 
   integer, save :: myix,myktrack
 
-  real(kind=fPrec) nspx,nspy,mux0,muy0
-  real(kind=fPrec) ax0,ay0,bx0,by0
-  real(kind=fPrec), save :: totals
-
-  ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
-!  logical cut_input
+  real(kind=fPrec), public  :: nspx,nspy,mux0,muy0
+  real(kind=fPrec), private :: ax0,ay0,bx0,by0     ! These are set, but never used
+  real(kind=fPrec), public, save :: totals
 
   real(kind=fPrec), allocatable, save :: xbob(:) !(nblz)
   real(kind=fPrec), allocatable, save :: ybob(:) !(nblz)
@@ -244,30 +237,18 @@ module collimation
   real(kind=fPrec), allocatable, save :: mux(:) !(nblz)
   real(kind=fPrec), allocatable, save :: muy(:) !(nblz)
 
-
   real(kind=fPrec), save :: xp_pencil0,yp_pencil0
   real(kind=fPrec), allocatable, save :: x_pencil(:) !(max_ncoll)
   real(kind=fPrec), allocatable, save :: y_pencil(:) !(max_ncoll)
   real(kind=fPrec), allocatable, save :: pencil_dx(:) !(max_ncoll)
-!
-! USED IN MULTIPLE COMMON BLOCKS
-  logical, save :: cut_input
 
-!Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
+  ! Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
   real(kind=fPrec), parameter :: exenergy(nmat) = [ &
     63.7e-9_fPrec, 166.0e-9_fPrec, 322.0e-9_fPrec, 727.0e-9_fPrec, 823.0e-9_fPrec, 78.0e-9_fPrec, 78.0e-9_fPrec, &
     87.1e-9_fPrec, 152.9e-9_fPrec, 424.0e-9_fPrec, 320.8e-9_fPrec, 682.2e-9_fPrec, zero, c1e10 ]
 
-!  real(kind=fPrec) remitx_dist,remity_dist,
-
-  integer, private :: k
-
-  logical, public, save :: firstrun
-  integer, save :: icoll
-
-! RB DM 2014 added variables for FLUKA output
+  ! RB DM 2014 added variables for FLUKA output
   real(kind=fPrec), private, save :: xInt,xpInt,yInt,ypInt,sInt
-
   real(kind=fPrec), private, save :: tftot
 
   integer, save :: num_surhit
@@ -283,12 +264,6 @@ module collimation
   integer, save :: unitnumber
   integer, save :: distnumber
   integer, save :: turnnumber
-  integer, private, save :: jb
-
-! SR, 29-08-2005: add the required variable for slicing collimators
-  integer, private, save :: jjj
-
-  real(kind=fPrec), save :: zbv
 
   real(kind=fPrec), save :: c_length    !length in m
   real(kind=fPrec), save :: c_rotation  !rotation angle vs vertical in radian
@@ -329,7 +304,7 @@ module collimation
 
   real(kind=fPrec), save :: dnormx,dnormy,driftx,drifty,xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,grdpiover2,grdpiover4,grd3piover4
 
-!SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
+  ! SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
   real(kind=fPrec), allocatable, save :: x_sl(:) !(100)
   real(kind=fPrec), allocatable, save :: x1_sl(:) !(100)
   real(kind=fPrec), allocatable, save :: x2_sl(:) !(100)
@@ -341,153 +316,120 @@ module collimation
   real(kind=fPrec), save :: max_tmp, a_tmp1, a_tmp2, ldrift, mynex2, myney2, Nap1pos,Nap2pos,Nap1neg,Nap2neg
   real(kind=fPrec), save :: tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
   real(kind=fPrec), save :: beamsize1, beamsize2,betax1,betax2,betay1,betay2, alphax1, alphax2,alphay1,alphay2,minAmpl
-!SEPT2005
-
-  integer, private, save :: nev
-!  real(kind=fPrec), private, save :: c_xmin,c_xmax,c_xpmin,c_xpmax,c_zmin,c_zmax,c_zpmin,c_zpmax,length
-!
-!  real(kind=fPrec), private, save :: c_mybetax,c_mybetaz,mymux,mymuz,atdi
-
+  
+  integer,          private, save :: nev
+  integer,          private, save :: mat
   real(kind=fPrec), private, save :: length
-
-! Common to interac and dbcollim
-  integer, private, save :: mat
   real(kind=fPrec), private, save :: x,xp,z,zp,dpop
   real(kind=fPrec), private, save :: p0
   real(kind=fPrec), private, save :: zlm
 
-  integer, save :: mcurr
-  real(kind=fPrec), save :: xintl(nmat)
-  real(kind=fPrec), save :: radl(nmat)
-  real(kind=fPrec), save :: zlm1
-  real(kind=fPrec), save :: xpsd
-  real(kind=fPrec), save :: zpsd
-  real(kind=fPrec), save :: psd
-  real(kind=fPrec), save :: anuc(nmat)
-  real(kind=fPrec), save :: rho(nmat)
-  real(kind=fPrec), save :: emr(nmat)
   real(kind=fPrec), parameter :: tlcut = 0.0009982_fPrec
-  real(kind=fPrec), save :: hcut(nmat)
-  real(kind=fPrec), save :: csect(0:5,nmat)
-  real(kind=fPrec), save :: csref(0:5,nmat)
-  real(kind=fPrec), save :: bnref(nmat)
-  real(kind=fPrec), save :: freep(nmat)
-  real(kind=fPrec), save :: cprob(0:5,nmat)
-  real(kind=fPrec), save :: bn(nmat)
-  real(kind=fPrec), save :: bpp
-  real(kind=fPrec), save :: xln15s
-  real(kind=fPrec), save :: ecmsq
-  real(kind=fPrec), save :: pptot
-  real(kind=fPrec), save :: ppel
-  real(kind=fPrec), save :: ppsd
-  real(kind=fPrec), save :: pptref
-  real(kind=fPrec), save :: pperef
-  real(kind=fPrec), save :: pref
-  real(kind=fPrec), save :: pptco
-  real(kind=fPrec), save :: ppeco
-  real(kind=fPrec), save :: sdcoe
-  real(kind=fPrec), save :: freeco
-  real(kind=fPrec), save :: zatom(nmat)
-  real(kind=fPrec), save :: dpodx(nmat)
 
-!electron density and plasma energy
-  real(kind=fPrec), save :: edens(nmat)
-  real(kind=fPrec), save :: pleng(nmat)
+  integer,          private, save :: mcurr
+  real(kind=fPrec), private, save :: xintl(nmat)
+  real(kind=fPrec), private, save :: zlm1
+  real(kind=fPrec), private, save :: xpsd
+  real(kind=fPrec), private, save :: zpsd
+  real(kind=fPrec), private, save :: psd
+  real(kind=fPrec), private, save :: csect(0:5,nmat)
+  real(kind=fPrec), private, save :: freep(nmat)
+  real(kind=fPrec), private, save :: cprob(0:5,nmat)
+  real(kind=fPrec), private, save :: bn(nmat)
+  real(kind=fPrec), private, save :: bpp
+  real(kind=fPrec), private, save :: xln15s
+  real(kind=fPrec), private, save :: ecmsq
+  real(kind=fPrec), private, save :: pptot
+  real(kind=fPrec), private, save :: ppel
+  real(kind=fPrec), private, save :: ppsd
+  real(kind=fPrec), private, save :: cgen(200,nmat)
 
-! parameter(fnavo=6.02214129e23_fPrec)
-  real(kind=fPrec), save :: cgen(200,nmat)
-  character(4), save :: mname(nmat)
+  ! Electron density and plasma energy
+  real(kind=fPrec), private, save :: edens(nmat)
+  real(kind=fPrec), private, save :: pleng(nmat)
 
-!>
-!! block data scdata
-!! Cross section inputs and material property database
-!! GRD CHANGED ON 2/2003 TO INCLUDE CODE FOR C, C2 from JBJ (rwa)
-!<
-  integer, private :: i
-! Total number of materials are defined in nmat
-! Number of real materials are defined in nrmat
-! The last materials in nmat are 'vacuum' and 'black',see in sub. SCATIN
+  ! Cross section inputs and material property database
+  ! GRD CHANGED ON 2/2003 TO INCLUDE CODE FOR C, C2 from JBJ (rwa)
+  ! Total number of materials are defined in nmat
+  ! Number of real materials are defined in nrmat
+  ! The last materials in nmat are 'vacuum' and 'black',see in sub. SCATIN
+  ! Reference data at pRef=450Gev
 
-! Reference data at pRef=450Gev
-  data (mname(i),i=1,nrmat)/ 'Be','Al','Cu','W','Pb','C','C2','MoGR','CuCD', 'Mo', 'Glid', 'Iner'/
+  ! pp cross-sections and parameters for energy dependence
+  real(kind=fPrec), private, save :: pptref = 0.04_fPrec
+  real(kind=fPrec), private, save :: pperef = 0.007_fPrec
+  real(kind=fPrec), private, save :: sdcoe  = 0.00068_fPrec
+  real(kind=fPrec), private, save :: pref   = 450.0_fPrec
+  real(kind=fPrec), private, save :: pptco  = 0.05788_fPrec
+  real(kind=fPrec), private, save :: ppeco  = 0.04792_fPrec
+  real(kind=fPrec), private, save :: freeco = 1.618_fPrec
 
-  data mname(nmat-1), mname(nmat)/'vacu','blac'/
+  character(4), private, save :: mname(nmat) = &
+    ["Be  ","Al  ","Cu  ","W   ","Pb  ","C   ","C2  ","MoGR","CuCD","Mo  ","Glid","Iner","vacu","blac"]
 
-!GRD IMPLEMENT CHANGES FROM JBJ, 2/2003 RWA
-  data (anuc(i),i=1,5)/ 9.01d0,26.98d0,63.55d0,183.85d0,207.19d0/
-  data (anuc(i),i=6,7)/12.01d0,12.01d0/
-  data (anuc(i),i=8,nrmat)/13.53d0,25.24d0,95.96d0,63.15d0,166.7d0/
+  ! GRD IMPLEMENT CHANGES FROM JBJ, 2/2003 RWA
+  real(kind=fPrec), private, save :: anuc(nmat)  = &
+    [ 9.01_fPrec,  26.98_fPrec,  63.55_fPrec, 183.85_fPrec, 207.19_fPrec,    12.01_fPrec,  12.01_fPrec,  &
+     13.53_fPrec,  25.24_fPrec,  95.96_fPrec,  63.15_fPrec, 166.70_fPrec,     zero,         zero         ]
+  real(kind=fPrec), private, save :: zatom(nmat) = &
+    [ 4.00_fPrec,  13.00_fPrec,  29.00_fPrec,  74.00_fPrec,  82.00_fPrec,     6.00_fPrec,   6.00_fPrec,  &
+      6.65_fPrec,  11.90_fPrec,  42.00_fPrec,  28.80_fPrec,  67.70_fPrec,     zero,         zero         ]
+  real(kind=fPrec), private, save :: rho(nmat)   = &
+    [ 1.848_fPrec,  2.70_fPrec,   8.96_fPrec,  19.30_fPrec,   11.35_fPrec,    1.67_fPrec,   4.52_fPrec,  &
+      2.500_fPrec,  5.40_fPrec,  10.22_fPrec,   8.93_fPrec,   18.00_fPrec,    zero,         zero         ]
+  real(kind=fPrec), private, save :: radl(nmat)  = &
+    [ 0.353_fPrec,  0.089_fPrec,  0.0143_fPrec, 0.0035_fPrec,  0.0056_fPrec,  0.2557_fPrec, 0.094_fPrec, &
+      0.1193_fPrec, 0.0316_fPrec, 0.0096_fPrec, 0.0144_fPrec,  0.00385_fPrec, 1.0e12_fPrec, 1.0e12_fPrec ]
+  real(kind=fPrec), private, save :: emr(nmat)   = &
+    [ 0.22_fPrec,   0.302_fPrec,  0.366_fPrec,  0.520_fPrec,   0.542_fPrec,   0.25_fPrec,   0.25_fPrec,  &
+      0.25_fPrec,   0.308_fPrec,  0.481_fPrec,  0.418_fPrec,   0.578_fPrec,   zero,         zero         ]
+  real(kind=fPrec), private, save :: hcut(nmat)  = &
+    [ 0.02_fPrec,   0.02_fPrec,   0.03_fPrec,   0.02_fPrec,    0.02_fPrec,    0.02_fPrec,   0.02_fPrec,  &
+      0.02_fPrec,   0.02_fPrec,   0.02_fPrec,   zero,          zero,          zero,         zero         ]
+  real(kind=fPrec), private, save :: dpodx(nmat) = &
+    [ 0.55_fPrec,   0.81_fPrec,   2.69_fPrec,   5.79_fPrec,    3.40_fPrec,    0.75_fPrec,   1.50_fPrec,  &
+      zero,         zero,         zero,         zero,          zero,          zero,         zero         ]
 
-  data (zatom(i),i=1,5)/ 4d0, 13d0, 29d0, 74d0, 82d0/
-  data (zatom(i),i=6,7)/ 6d0, 6d0/
-  data (zatom(i),i=8,nrmat)/ 6.65d0, 11.9d0, 42d0, 28.8d0, 67.7d0/
+  ! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
+  ! MAY06-GRD value for Tungsten (W) not stated. Last 2 ones interpolated
+  real(kind=fPrec), private, save :: bnref(nmat) = &
+    [74.7_fPrec, 120.3_fPrec, 217.8_fPrec, 440.3_fPrec, 455.3_fPrec, 70.0_fPrec, 70.0_fPrec, &
+     76.7_fPrec, 115.0_fPrec, 273.9_fPrec, 208.7_fPrec, 392.1_fPrec, zero,       zero        ]
 
-  data (rho(i),i=1,5)/ 1.848d0, 2.70d0, 8.96d0, 19.3d0, 11.35d0/
-  data (rho(i),i=6,7)/ 1.67d0, 4.52d0/
-  data (rho(i),i=8,nrmat)/ 2.5d0, 5.4d0, 10.22d0, 8.93d0, 18d0/
+  ! All cross-sections are in barns,nuclear values from RPP at 20geV
+  ! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
 
-  data (radl(i),i=1,5)/ 0.353d0,0.089d0,0.0143d0,0.0035d0,0.0056d0/
-  data (radl(i),i=6,7)/ 0.2557d0, 0.094d0/
-  data (radl(i),i=8,nrmat)/ 0.1193d0, 0.0316d0, 0.0096d0, 0.0144d0, 0.00385d0/
-  data radl(nmat-1),radl(nmat)/ 1.d12, 1.d12 /
+  ! in Cs and CsRef,1st index: Cross-sections for processes
+  ! 0:Total, 1:absorption, 2:nuclear elastic, 3:pp or pn elastic
+  ! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
 
-!MAY06-GRD value for Tungsten (W) not stated
-  data (emr(i),i=1,5)/  0.22d0, 0.302d0, 0.366d0, 0.520d0, 0.542d0/
-  data (emr(i),i=6,7)/  0.25d0, 0.25d0/
-  data (emr(i),i=8,nrmat)/ 0.25d0, 0.308d0, 0.481d0, 0.418d0, 0.578d0/
+  ! Claudia 2013: updated cross section values. Unit: Barn. New 2013:
+  real(kind=fPrec), private, save :: csref(0:5,nmat)
+  data csref(0,1), csref(1,1), csref(5,1) /0.271_fPrec, 0.192_fPrec, 0.0035e-2_fPrec/
+  data csref(0,2), csref(1,2), csref(5,2) /0.643_fPrec, 0.418_fPrec, 0.0340e-2_fPrec/
+  data csref(0,3), csref(1,3), csref(5,3) /1.253_fPrec, 0.769_fPrec, 0.1530e-2_fPrec/
+  data csref(0,4), csref(1,4), csref(5,4) /2.765_fPrec, 1.591_fPrec, 0.7680e-2_fPrec/
+  data csref(0,5), csref(1,5), csref(5,5) /3.016_fPrec, 1.724_fPrec, 0.9070e-2_fPrec/
+  data csref(0,6), csref(1,6), csref(5,6) /0.337_fPrec, 0.232_fPrec, 0.0076e-2_fPrec/
+  data csref(0,7), csref(1,7), csref(5,7) /0.337_fPrec, 0.232_fPrec, 0.0076e-2_fPrec/
+  data csref(0,8), csref(1,8), csref(5,8) /0.362_fPrec, 0.247_fPrec, 0.0094e-2_fPrec/
+  data csref(0,9), csref(1,9), csref(5,9) /0.572_fPrec, 0.370_fPrec, 0.0279e-2_fPrec/
+  data csref(0,10),csref(1,10),csref(5,10)/1.713_fPrec, 1.023_fPrec, 0.2650e-2_fPrec/
+  data csref(0,11),csref(1,11),csref(5,11)/1.246_fPrec, 0.765_fPrec, 0.1390e-2_fPrec/
+  data csref(0,12),csref(1,12),csref(5,12)/2.548_fPrec, 1.473_fPrec, 0.5740e-2_fPrec/
 
-  data (hcut(i),i=1,5)/0.02d0, 0.02d0, 3*0.01d0/
-  data (hcut(i),i=6,7)/0.02d0, 0.02d0/
-  data (hcut(i),i=8,nrmat)/0.02d0, 0.02d0, 0.02d0, 0.02d0, 0.02d0/
+  ! Cprob to choose an interaction in iChoix
+  data cprob(0,1:nmat)/nmat*zero/
+  data cprob(5,1:nmat)/nmat*one/
 
-  data (dpodx(i),i=1,5)/ .55d0, .81d0, 2.69d0, 5.79d0, 3.4d0 /
-  data (dpodx(i),i=6,7)/ .75d0, 1.5d0 /
-
-! All cross-sections are in barns,nuclear values from RPP at 20geV
-! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
-
-! in Cs and CsRef,1st index: Cross-sections for processes
-! 0:Total, 1:absorption, 2:nuclear elastic, 3:pp or pn elastic
-! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
-
-! Claudia 2013: updated cross section values. Unit: Barn. New 2013:
-  data csref(0,1),csref(1,1),csref(5,1)/0.271d0, 0.192d0, 0.0035d-2/
-  data csref(0,2),csref(1,2),csref(5,2)/0.643d0, 0.418d0, 0.034d-2/
-  data csref(0,3),csref(1,3),csref(5,3)/1.253d0, 0.769d0, 0.153d-2/
-  data csref(0,4),csref(1,4),csref(5,4)/2.765d0, 1.591d0, 0.768d-2/
-  data csref(0,5),csref(1,5),csref(5,5)/3.016d0, 1.724d0, 0.907d-2/
-  data csref(0,6),csref(1,6),csref(5,6)/0.337d0, 0.232d0, 0.0076d-2/
-  data csref(0,7),csref(1,7),csref(5,7)/0.337d0, 0.232d0, 0.0076d-2/
-  data csref(0,8),csref(1,8),csref(5,8)/0.362d0, 0.247d0, 0.0094d-2/
-  data csref(0,9),csref(1,9),csref(5,9)/0.572d0, 0.370d0, 0.0279d-2/
-  data csref(0,10),csref(1,10),csref(5,10)/1.713d0,1.023d0,0.265d-2/
-  data csref(0,11),csref(1,11),csref(5,11)/1.246d0,0.765d0,0.139d-2/
-  data csref(0,12),csref(1,12),csref(5,12)/2.548d0,1.473d0,0.574d-2/
-
-! pp cross-sections and parameters for energy dependence
-  data pptref,pperef,sdcoe,pref/0.04d0,0.007d0,0.00068d0,450.0d0/
-  data pptco,ppeco,freeco/0.05788d0,0.04792d0,1.618d0/
-
-! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
-!MAY06-GRD value for Tungsten (W) not stated
-  data (bnref(i),i=1,5)/74.7d0,120.3d0,217.8d0,440.3d0,455.3d0/
-  data (bnref(i),i=6,7)/70.d0, 70.d0/
-  data (bnref(i),i=8,nrmat)/ 76.7d0, 115.0d0, 273.9d0, 208.7d0, 392.1d0/
-!GRD LAST 2 ONES INTERPOLATED
-
-! Cprob to choose an interaction in iChoix
-  data (cprob(0,i),i=1,nmat)/nmat*zero/
-  data (cprob(5,i),i=1,nmat)/nmat*one/
   ! file units
-  integer, private, save :: dist0_unit, survival_unit, collgaps_unit, collimator_temp_db_unit
+  integer, private, save :: survival_unit, collgaps_unit, collimator_temp_db_unit
   integer, private, save :: impact_unit, tracks2_unit, pencilbeam_distr_unit, coll_ellipse_unit, all_impacts_unit
   integer, private, save :: FLUKA_impacts_unit, FLUKA_impacts_all_unit, coll_scatter_unit, FirstImpacts_unit, RHIClosses_unit
   integer, private, save :: twisslike_unit, sigmasettings_unit, distsec_unit, efficiency_unit, efficiency_dpop_unit
   integer, private, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit, distn_unit
   integer, private, save :: CollPositions_unit, all_absorptions_unit, efficiency_2d_unit
   integer, private, save :: collsettings_unit, outlun
-  ! These are not in use
-  !integer, save :: betatron_unit, beta_beat_unit
 
 #ifdef HDF5
   ! Variables to save hdf5 dataset indices
@@ -499,27 +441,6 @@ module collimation
 #endif
 
 contains
-
-! General routines:
-! collimate_init()
-! collimate_start_sample()
-! collimate_start_turn()
-! collimate_start_element()
-! collimate_start_collimator()
-! collimate_do_collimator()
-! collimate_end_collimator()
-! collimate_end_element()
-! collimate_end_turn()
-! collimate_end_sample()
-! collimate_exit()
-!
-! To stop a messy future, each of these should contain calls to
-! implementation specific functions: e.g. collimate_init_k2(), etc.
-! These should contain the "real" code.
-
-! In addition, these files contain:
-! 1: The RNG used in collimation.
-! 2: A bunch distribution generator
 
 subroutine collimation_allocate_arrays
 
@@ -914,11 +835,6 @@ subroutine collimate_init()
   write(lout,"(a,e15.8)") 'COLL> Info: Sigma_y0            = ', sqrt(mybetay*myemity0_dist)
   write(lout,"(a)")
 
-! HERE WE SET THE MARKER FOR INITIALIZATION:
-  firstrun = .true.
-
-! ...and here is implemented colltrack's beam distribution:
-
 !++  Initialize random number generator
   if (rnd_seed.eq.0) rnd_seed = mclock_liar()
   if (rnd_seed.lt.0) rnd_seed = abs(rnd_seed)
@@ -945,8 +861,7 @@ subroutine collimate_init()
     call cdist_makeDist(do_thisdis)
   end if
 
-!++  Reset distribution for pencil beam
-!
+  ! Reset distribution for pencil beam
   if(ipencil > 0) then
     write(lout,"(a)") "COLL> WARNING Distributions reset to pencil beam!"
     write(outlun,*)   "WARN> Distributions reset to pencil beam!"
@@ -1046,7 +961,7 @@ subroutine collimate_init()
   write (lout,"(a)") ""
 
   ! Always one sample, so call it here
-  call collimate_start_sample(1)
+  call collimate_start
 
 end subroutine collimate_init
 
@@ -1773,7 +1688,7 @@ end subroutine collimate_postInput
 !! This routine is called from trauthin before each sample
 !! is injected into thin 6d
 !<
-subroutine collimate_start_sample(nsample)
+subroutine collimate_start
 
   use crcoall
   use parpro
@@ -1795,15 +1710,11 @@ subroutine collimate_start_sample(nsample)
 
   implicit none
 
-  integer j
-  integer, intent(in) :: nsample
-
 #ifdef HDF5
   type(h5_dataField), allocatable :: setFields(:)
   integer fmtHdf
 #endif
-
-  j = nsample
+  integer i,j,k,jb
 
 ! HERE WE OPEN ALL THE NEEDED OUTPUT FILES
 
@@ -2079,10 +1990,6 @@ subroutine collimate_start_sample(nsample)
   call rluxgo(rnd_lux, c_offsettilt_seed, rnd_k1, rnd_k2)
 !      write(outlun,*) 'INFO>  c_offsettilt seed: ', c_offsettilt_seed
 
-! reset counter to assure starting at the same position in case of
-! using rndm5 somewhere else in the code before
-  zbv = rndm5(1)
-
 !++  Generate random tilts (Gaussian distribution plus systematic)
 !++  Do this only for the first call of this routine (first sample)
 !++  Keep all collimator database info and errors in memeory (COMMON
@@ -2295,7 +2202,7 @@ subroutine collimate_start_sample(nsample)
   end if
 
 !GRD NOW WE CAN BEGIN THE LOOPS
-end subroutine collimate_start_sample
+end subroutine collimate_start
 
 !>
 !! collimate_start_collimator()
@@ -2412,7 +2319,7 @@ subroutine collimate_do_collimator(stracki)
 
   real(kind=fPrec), intent(in) :: stracki
 
-  integer j
+  integer j,jjj
 
 #ifdef G4COLLIMAT
   integer g4_lostc
@@ -3540,6 +3447,7 @@ subroutine collimate_end_sample(j)
   type(h5_dataField), allocatable :: fldHdf(:)
   integer fmtHdf, setHdf
 #endif
+  integer i,k
 
 !++  Save particle offsets to a file
   ! close(beta_beat_unit)
@@ -3961,7 +3869,7 @@ subroutine collimate_start_element(i)
   implicit none
 
   integer, intent(in) :: i
-  integer j
+  integer j,jb
 
   ie=i
 !++  For absorbed particles set all coordinates to zero. Also

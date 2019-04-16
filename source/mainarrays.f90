@@ -261,18 +261,6 @@ subroutine shuffleLostParticles
     do j=napx,1,-1
       if(llostp(j) .eqv. .false.) cycle
 
-      ! xgrd(j:tnapx)                 = cshift(xgrd(j:tnapx),                 1)
-      ! ygrd(j:tnapx)                 = cshift(ygrd(j:tnapx),                 1)
-      ! xpgrd(j:tnapx)                = cshift(xpgrd(j:tnapx),                1)
-      ! ypgrd(j:tnapx)                = cshift(ypgrd(j:tnapx),                1)
-      ! pgrd(j:tnapx)                 = cshift(pgrd(j:tnapx),                 1)
-      ! ejfvgrd(j:tnapx)              = cshift(ejfvgrd(j:tnapx),              1)
-      ! sigmvgrd(j:tnapx)             = cshift(sigmvgrd(j:tnapx),             1)
-      ! rvvgrd(j:tnapx)               = cshift(rvvgrd(j:tnapx),               1)
-      ! dpsvgrd(j:tnapx)              = cshift(dpsvgrd(j:tnapx),              1)
-      ! oidpsvgrd(j:tnapx)            = cshift(oidpsvgrd(j:tnapx),            1)
-      ! dpsv1grd(j:tnapx)             = cshift(dpsv1grd(j:tnapx),             1)
-
       part_hit_pos(j:tnapx)         = cshift(part_hit_pos(j:tnapx),         1)
       part_hit_turn(j:tnapx)        = cshift(part_hit_turn(j:tnapx),        1)
       part_abs_pos(j:tnapx)         = cshift(part_abs_pos(j:tnapx),         1)
