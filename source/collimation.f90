@@ -1595,12 +1595,6 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       return
     end if
 
-    if(napx*2 > npart) then
-      write(lout,"(2(a,i0))") "COLL> ERROR Maximum number of particles is ", npart, ", got ",(napx*2)
-      iErr = .true.
-      return
-    end if
-
   case(3)
     if(nSplit /= 8) then
       write(lout,"(a,i0)") "COLL> ERROR Expected 8 values on line 3, got ",nSplit
