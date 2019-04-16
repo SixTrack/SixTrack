@@ -61,8 +61,8 @@ module elens
   integer, save          :: melens_radial_profiles    ! radial profiles available in memory
   integer, parameter     :: elens_radial_dim=500      ! max number of points in radial profiles
   character(len=mFileName), save:: elens_radial_filename(nelens_radial_profiles) ! names
-  real(kind=fPrec), save :: elens_radial_profile_R(0:elens_radial_dim,nelens_radial_profiles)
-  real(kind=fPrec), save :: elens_radial_profile_J(0:elens_radial_dim,nelens_radial_profiles)
+  real(kind=fPrec), save :: elens_radial_profile_R(0:elens_radial_dim,nelens_radial_profiles) ! [mm]
+  real(kind=fPrec), save :: elens_radial_profile_J(0:elens_radial_dim,nelens_radial_profiles) ! [A]
   integer, save          :: elens_radial_profile_nPoints(nelens_radial_profiles)
 
 contains
@@ -489,7 +489,7 @@ subroutine parseRadialProfile(ifile)
 
   use floatPrecision
   use mathlib_bouncer
-  use numerical_constants
+  use numerical_constants, only: zero, c1e2
   use physical_constants
   use crcoall
   use mod_common
@@ -549,7 +549,7 @@ subroutine parseRadialProfile(ifile)
     end if
     elens_radial_profile_nPoints(ifile) = ii
     elens_radial_profile_R(ii,ifile) = tmpR
-    elens_radial_profile_J(ii,ifile) = tmpJ
+    elens_radial_profile_J(ii,ifile) = tmpJ/c1e2
   end if
 
   goto 10
@@ -557,7 +557,7 @@ subroutine parseRadialProfile(ifile)
 20 continue
 
   call f_close(fUnit)
-  write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile),"points."
+  write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile)," points."
 
   if(st_quiet < 2) then
     ! Echo parsed data (unless told to be quiet!)
@@ -565,7 +565,7 @@ subroutine parseRadialProfile(ifile)
       trim(elens_radial_filename(ifile))//" - #",ifile
     do ii=0,elens_radial_profile_nPoints(ifile)
       if(elens_radial_profile_J(ii,ifile)/= zero) then
-        write(lout,"((a,i4),2(a,e22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
+        write(lout,"((a,i4),2(a,1pe22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
       end if
     end do
   end if
@@ -593,23 +593,36 @@ subroutine integrateRadialProfile(ifile)
   use numerical_constants
   use physical_constants
   use crcoall
+  use utils, only: polintegrate
+  use mod_alloc, only: alloc, dealloc
+  use mod_settings, only: st_quiet
 
   implicit none
 
   integer, intent(in) :: ifile
 
-  integer ii
+  integer ii, nn
   real(kind=fPrec) tmpTot
+  real(kind=fPrec), allocatable :: cumul(:)
 
   write(lout,"(a)") "ELENS> Normalising radial profile described in "//trim(elens_radial_filename(ifile))
-  tmpTot=zero
-  do ii=1,elens_radial_profile_nPoints(ifile)
-    tmpTot=tmpTot+((elens_radial_profile_J(ii,ifile)*pi)* &
-         ( elens_radial_profile_R(ii,ifile)-elens_radial_profile_R(ii-1,ifile) ))* &
-         ( elens_radial_profile_R(ii,ifile)+elens_radial_profile_R(ii-1,ifile) )
-    elens_radial_profile_J(ii,ifile)=tmpTot
-  end do
-  write(lout,"(a,e22.15)") "ELENS> Total current in radial profile [A]: ", &
+  nn=elens_radial_profile_nPoints(ifile)
+  call alloc(cumul,nn,zero,'cumul')
+  tmpTot=polintegrate(elens_radial_profile_R(0:nn,ifile), elens_radial_profile_J(0:nn,ifile), &
+                      nn+1, elens_radial_mpoints(ifile), 2, cumul)
+  elens_radial_profile_J(0:nn,ifile)=cumul(1:nn+1)
+  call dealloc(cumul,'cumul')
+  
+  if(st_quiet < 2) then
+    write(lout,"(a,i0)") "ELENS> Integrated radial profile read from file "//&
+      trim(elens_radial_filename(ifile))//" - #",ifile
+    do ii=0,elens_radial_profile_nPoints(ifile)
+      if(elens_radial_profile_J(ii,ifile)/= zero) then
+        write(lout,"((a,i4),2(a,1pe22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
+      end if
+    end do
+  end if
+  write(lout,"(a,1pe22.15)") "ELENS> Total current in radial profile [A]: ", &
          elens_radial_profile_J(elens_radial_profile_nPoints(ifile),ifile)
 
 end subroutine integrateRadialProfile

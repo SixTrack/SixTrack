@@ -4,6 +4,8 @@ module utils
   ! a general module, collecting some utility functions
   use floatPrecision
 
+  logical :: ldebug=.true.
+
 contains
 
   ! ================================================================================================ !
@@ -275,7 +277,7 @@ contains
     
     ! get bin
     jj=huntBin(x,xvals,datalen,jguess)
-    ! get bin extremes
+    ! get bin extremes (stay within range)
     jMin=min(max(jj-(mpoints-1)/2,1),datalen+1-mpoints)
     jMax=min(jMin+mpoints-1,datalen)
 
@@ -286,5 +288,130 @@ contains
     jguess=jj
     
   end function polinterp
+  
+  ! ================================================================================================ !
+  !  A.Mereghetti, CERN, BE-ABP-HSS
+  !  Last modified: 15-04-2019
+  !  Given arrays xa(1:nn) and ya(1:nn) of length nn containing a tabulated function ya_i=f(xa_i), 
+  !        this routine returns an array of coefficients cof(1:nn), also of length nn, such that
+  !    ya_i = sum_j cof_j xa^{j−1}_i
+  !  from Numerical Recipes in Fortran 77
+  ! ================================================================================================ !
+  subroutine polcof(xa,ya,nn,cof)
+    
+    use numerical_constants, only : zero, c1e38
+    implicit none
+
+    integer,          intent(in)    :: nn
+    real(kind=fPrec), intent(in)    :: xa(1:nn), ya(1:nn)
+    real(kind=fPrec), intent(out)   :: cof(1:nn)
+
+    integer ii, jj, kk
+    real(kind=fPrec) dy, xmin, x(1:nn), y(1:nn)
+    
+    x(1:nn)=xa(1:nn)
+    y(1:nn)=ya(1:nn)
+    do jj=1,nn
+      cof(jj)=nevilleMethod(x,y,nn+1-jj,zero,dy)
+      xmin=c1e38
+      kk=0
+      do ii=1,nn+1-jj
+        ! Find the remaining x_i of smallest absolute value,
+        if (abs(x(ii)).lt.xmin)then
+          xmin=abs(x(ii))
+          kk=ii
+        endif
+        if(x(ii).ne.0.) y(ii)=(y(ii)-cof(jj))/x(ii) ! (meanwhile reducing all the terms)
+      enddo
+      ! and eliminate it.
+      y(kk:nn-jj)=y(kk+1:nn+1-jj)
+      x(kk:nn-jj)=x(kk+1:nn+1-jj)
+    enddo
+
+  end subroutine polcof
+
+  ! ================================================================================================ !
+  !  A.Mereghetti, CERN, BE-ABP-HSS
+  !  Last modified: 16-04-2019
+  !  Integrate (xvals,yvals) with polynoms through mpoints data, and find the value y at x
+  ! ================================================================================================ !
+  real(kind=fPrec) function polintegrate(xvals,yvals,datalen,mpoints,order,cumul,rmin,rmax)
+
+    use crcoall
+    use numerical_constants, only : zero, one, two, four, pi
+    implicit none
+
+    integer,                    intent(in)    :: datalen, mpoints, order
+    real(kind=fPrec),           intent(in)    :: xvals(1:datalen), yvals(1:datalen)
+    real(kind=fPrec),           intent(out)   :: cumul(1:datalen)
+    real(kind=fPrec), optional, intent(in)    :: rmin, rmax
+
+    integer jj, jMin, jMax, kk, kMin, kMax
+    real(kind=fPrec) xmin, xmax, fmax, fmin, tmin, tmax, tmpInt
+    real(kind=fPrec) cof(1:mpoints)
+
+    polintegrate = zero ! -Wmaybe-uninitialized
+    cumul(1:datalen)=zero
+    
+    ! get bins
+    jMin=1
+    if(present(rmin)) jMin=huntBin(rmin,xvals,datalen,-1)
+    jMax=datalen
+    if(present(rmax)) jMax=huntBin(rmax,xvals,datalen,-1)
+
+    if (ldebug) write(lout,"(/a,5(1X,i0))") "UTILS> DEBUG polintegrate start: ",datalen,mpoints,order,jMin,jMax
+
+    do jj=jMin+1,jMax ! loop over data points
+       kMin=min(max(jj-1-(mpoints-1)/2,1),datalen+1-mpoints)
+       kMax=min(kMin+mpoints-1,datalen)
+       call polcof(xvals(kMin:kMax),yvals(kMin:kMax),mpoints,cof)
+       xmin=xvals(jj-1)
+       if (present(rmin).and.jj==jMin+1) xmin=rmin
+       xmax=xvals(jj)
+       if (present(rmax).and.jj==jMax) xmax=rmax
+       fmax=zero
+       fmin=zero
+       tmin=one
+       tmax=one
+       do kk=1,order-1
+          tmin=tmin*xmin
+          tmax=tmax*xmax
+       end do
+       tmpInt=zero
+       if (ldebug) write(lout,"(/a,i4,6(1X,1pe16.9))") "UTILS> DEBUG polintegrate jj-step: ", &
+            jj, tmax, tmin, fmax, fmin, xmax, xmin
+       do kk=1,kMax-kMin+1
+          tmin=tmin*xmin
+          tmax=tmax*xmax
+          fmin=fmin+(tmin*cof(kk))/real(kk+order-1,fPrec)
+          fmax=fmax+(tmax*cof(kk))/real(kk+order-1,fPrec)
+          if (ldebug) write(lout,"(a,i4,5(1X,1pe16.9))") "UTILS> DEBUG polintegrate kk-step: ", &
+               kk, tmax, tmin, fmax, fmin, cof(kk)
+       end do
+       select case(order)
+       case(1)
+          tmpInt=fmax-fmin
+       case(2)
+          tmpInt=two*(pi*(fmax-fmin))
+       case(3)
+          tmpInt=four*(pi*(fmax-fmin))
+       case default
+          write(lout,"(a,i0)") "UTILS> ERROR polintegrate: order not recognised:",order
+          write(lout,"(a)")    "UTILS>       recognised values: 1D (1), 2D (2), 3D (3)"
+          call prror
+          return
+       end select
+       polintegrate=polintegrate+tmpInt
+       cumul(jj)=polintegrate
+       if (ldebug) write(lout,"(a,i4,6(1X,1pe16.9))") "UTILS> DEBUG polintegrate jj-step: ", &
+            jj, tmax, tmin, fmax, fmin, tmpInt, cumul(jj)
+    end do
+
+    ! fill outer range
+    cumul(jMax+1:datalen)=cumul(jMax)
+
+    if (ldebug) write(lout,"(a,1pe16.9)") "UTILS> DEBUG polintegrate end: ",polintegrate
+    
+  end function polintegrate
   
 end module utils
