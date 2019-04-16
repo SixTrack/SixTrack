@@ -2131,7 +2131,7 @@ subroutine trackReport(n)
     oPart   = int(log10(real(npart)))+1
     oTurn   = int(log10(real(numl)))+1
     isFirst = .false.
-    write(trackFmt,"(3(a,i0),a)") "(2(a,i",oTurn,"),2(a,i",oPart,"))"
+    write(trackFmt,"(2(a,i0),a)") "(2(a,i",oTurn,"),2(a,i",oPart,"))"
   end if
 
   write(lout,trackFmt) "TRACKING> "//trim(trackMode)//": Turn ",n," / ",numl,", Particles: ",napx," / ",napxo
