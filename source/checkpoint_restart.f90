@@ -348,39 +348,7 @@ subroutine crcheck
       read(95,end=100,err=100,iostat=ierro) &
         ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
         ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
-        (aek(j),j=1,crnapxo),                               &
-        (afok(j),j=1,crnapxo),                              &
-        (as3(j),j=1,crnapxo),                               &
-        (as4(j),j=1,crnapxo),                               &
-        (as6(j),j=1,crnapxo),                               &
-        (co(j),j=1,crnapxo),                                &
-        (dpd(j),j=1,crnapxo),                               &
-        (dpsq(j),j=1,crnapxo),                              &
-        (fi(j),j=1,crnapxo),                                &
-        (fok(j),j=1,crnapxo),                               &
-        (fok1(j),j=1,crnapxo),                              &
-        (fokqv(j),j=1,crnapxo),                             &
-        (g(j),j=1,crnapxo),                                 &
-        (gl(j),j=1,crnapxo),                                &
-        (hc(j),j=1,crnapxo),                                &
-        (hi(j),j=1,crnapxo),                                &
-        (hi1(j),j=1,crnapxo),                               &
-        (hm(j),j=1,crnapxo),                                &
-        (hp(j),j=1,crnapxo),                                &
-        (hs(j),j=1,crnapxo),                                &
-        (rho(j),j=1,crnapxo),                               &
-        (rhoc(j),j=1,crnapxo),                              &
-        (rhoi(j),j=1,crnapxo),                              &
-        (si(j),j=1,crnapxo),                                &
-        (siq(j),j=1,crnapxo),                               &
-        (sm1(j),j=1,crnapxo),                               &
-        (sm12(j),j=1,crnapxo),                              &
-        (sm2(j),j=1,crnapxo),                               &
-        (sm23(j),j=1,crnapxo),                              &
-        (sm3(j),j=1,crnapxo),                               &
-        (wf(j),j=1,crnapxo),                                &
-        (wfa(j),j=1,crnapxo),                               &
-        (wfhi(j),j=1,crnapxo)
+        (dpd(j),j=1,crnapxo),(dpsq(j),j=1,crnapxo),(fokqv(j),j=1,crnapxo)
       backspace (95,iostat=ierro)
       write(93,"(a)") "SIXTRACR> CRCHECK read fort.95 EXTENDED OK"
       flush(93)
@@ -485,42 +453,10 @@ subroutine crcheck
       flush(93)
       write(93,"(a)") "SIXTRACR> CRCHECK verifying extended vars fort.96"
       flush(93)
-      read(96,end=101,err=101,iostat=ierro)                  &
+      read(96,end=101,err=101,iostat=ierro)                 &
         ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
         ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
-        (aek(j),j=1,crnapxo),                               &
-        (afok(j),j=1,crnapxo),                              &
-        (as3(j),j=1,crnapxo),                               &
-        (as4(j),j=1,crnapxo),                               &
-        (as6(j),j=1,crnapxo),                               &
-        (co(j),j=1,crnapxo),                                &
-        (dpd(j),j=1,crnapxo),                               &
-        (dpsq(j),j=1,crnapxo),                              &
-        (fi(j),j=1,crnapxo),                                &
-        (fok(j),j=1,crnapxo),                               &
-        (fok1(j),j=1,crnapxo),                              &
-        (fokqv(j),j=1,crnapxo),                             &
-        (g(j),j=1,crnapxo),                                 &
-        (gl(j),j=1,crnapxo),                                &
-        (hc(j),j=1,crnapxo),                                &
-        (hi(j),j=1,crnapxo),                                &
-        (hi1(j),j=1,crnapxo),                               &
-        (hm(j),j=1,crnapxo),                                &
-        (hp(j),j=1,crnapxo),                                &
-        (hs(j),j=1,crnapxo),                                &
-        (rho(j),j=1,crnapxo),                               &
-        (rhoc(j),j=1,crnapxo),                              &
-        (rhoi(j),j=1,crnapxo),                              &
-        (si(j),j=1,crnapxo),                                &
-        (siq(j),j=1,crnapxo),                               &
-        (sm1(j),j=1,crnapxo),                               &
-        (sm12(j),j=1,crnapxo),                              &
-        (sm2(j),j=1,crnapxo),                               &
-        (sm23(j),j=1,crnapxo),                              &
-        (sm3(j),j=1,crnapxo),                               &
-        (wf(j),j=1,crnapxo),                                &
-        (wfa(j),j=1,crnapxo),                               &
-        (wfhi(j),j=1,crnapxo)
+        (dpd(j),j=1,crnapxo),(dpsq(j),j=1,crnapxo),(fokqv(j),j=1,crnapxo)
       backspace (96,iostat=ierro)
       write(93,"(a)") "SIXTRACR> CRCHECK read fort.96 EXTENDED OK"
       flush(93)
@@ -1082,39 +1018,7 @@ subroutine crpoint
       end if
 
       write(crUnit,err=100,iostat=ierro) &
-        (aek(j),j=1,napxo),          &
-        (afok(j),j=1,napxo),         &
-        (as3(j),j=1,napxo),          &
-        (as4(j),j=1,napxo),          &
-        (as6(j),j=1,napxo),          &
-        (co(j),j=1,napxo),           &
-        (dpd(j),j=1,napxo),          &
-        (dpsq(j),j=1,napxo),         &
-        (fi(j),j=1,napxo),           &
-        (fok(j),j=1,napxo),          &
-        (fok1(j),j=1,napxo),         &
-        (fokqv(j),j=1,napxo),        &
-        (g(j),j=1,napxo),            &
-        (gl(j),j=1,napxo),           &
-        (hc(j),j=1,napxo),           &
-        (hi(j),j=1,napxo),           &
-        (hi1(j),j=1,napxo),          &
-        (hm(j),j=1,napxo),           &
-        (hp(j),j=1,napxo),           &
-        (hs(j),j=1,napxo),           &
-        (rho(j),j=1,napxo),          &
-        (rhoc(j),j=1,napxo),         &
-        (rhoi(j),j=1,napxo),         &
-        (si(j),j=1,napxo),           &
-        (siq(j),j=1,napxo),          &
-        (sm1(j),j=1,napxo),          &
-        (sm12(j),j=1,napxo),         &
-        (sm2(j),j=1,napxo),          &
-        (sm23(j),j=1,napxo),         &
-        (sm3(j),j=1,napxo),          &
-        (wf(j),j=1,napxo),           &
-        (wfa(j),j=1,napxo),          &
-        (wfhi(j),j=1,napxo)
+        (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
 
       endfile(crUnit,iostat=ierro)
       backspace(crUnit,iostat=ierro)
@@ -1252,56 +1156,6 @@ subroutine crstart
       write(lout,"(a)") "SIXTRACR> CRSTART Problem wih cril/il extended C/R"
       call prror
     end if
-
-    !ERICVARS now read the extended vars from fort.95/96.
-#ifdef DEBUG
-  ! Commented out code for multiple records
-  ! write(93,"(a)") "SIXTRACR> CRSTART DEBUG DUMP"
-  ! call dump('Before xcrstart',0,0)
-  ! endfile (93,iostat=ierro)
-  ! backspace (93,iostat=ierro)
-  ! write(93,"(a)") "SIXTRACR> CRSTART reading EXTENDED vars"
-  ! endfile (93,iostat=ierro)
-  ! backspace (93,iostat=ierro)
-  ! if(read95) then
-  !   read(95,end=100,err=100,iostat=ierro) ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-  !   read(95,end=100,err=100,iostat=ierro) ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-  !   read(95,end=100,err=100,iostat=ierro) (aek(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (afok(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (as3(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (as4(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (as6(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (co(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (dpd(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (dpsq(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (fi(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (fok(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (fok1(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (fokqv(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (g(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (gl(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (hc(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (hi(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (hi1(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (hm(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (hp(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (hs(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (rho(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (rhoc(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (rhoi(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (si(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (siq(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (sm1(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (sm12(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (sm2(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (sm23(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (sm3(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (wf(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (wfa(j),j=1,napxo)
-  !   read(95,end=100,err=100,iostat=ierro) (wfhi(j),j=1,napxo)
-  !   go to 102
-  ! endif
-#endif
     if(read95) then
       if(ithick == 1) then
         read(95,end=100,err=100,iostat=ierro) &
@@ -1310,39 +1164,7 @@ subroutine crstart
       end if
 
       read(95,end=100,err=100,iostat=ierro) &
-        (aek(j),j=1,napxo),   &
-        (afok(j),j=1,napxo),  &
-        (as3(j),j=1,napxo),   &
-        (as4(j),j=1,napxo),   &
-        (as6(j),j=1,napxo),   &
-        (co(j),j=1,napxo),    &
-        (dpd(j),j=1,napxo),   &
-        (dpsq(j),j=1,napxo),  &
-        (fi(j),j=1,napxo),    &
-        (fok(j),j=1,napxo),   &
-        (fok1(j),j=1,napxo),  &
-        (fokqv(j),j=1,napxo), &
-        (g(j),j=1,napxo),     &
-        (gl(j),j=1,napxo),    &
-        (hc(j),j=1,napxo),    &
-        (hi(j),j=1,napxo),    &
-        (hi1(j),j=1,napxo),   &
-        (hm(j),j=1,napxo),    &
-        (hp(j),j=1,napxo),    &
-        (hs(j),j=1,napxo),    &
-        (rho(j),j=1,napxo),   &
-        (rhoc(j),j=1,napxo),  &
-        (rhoi(j),j=1,napxo),  &
-        (si(j),j=1,napxo),    &
-        (siq(j),j=1,napxo),   &
-        (sm1(j),j=1,napxo),   &
-        (sm12(j),j=1,napxo),  &
-        (sm2(j),j=1,napxo),   &
-        (sm23(j),j=1,napxo),  &
-        (sm3(j),j=1,napxo),   &
-        (wf(j),j=1,napxo),    &
-        (wfa(j),j=1,napxo),   &
-        (wfhi(j),j=1,napxo)
+        (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
       write(93,"(a)") "SIXTRACR> CRSTART read fort.95 EXTENDED OK"
       flush(93)
       goto 102
@@ -1354,39 +1176,7 @@ subroutine crstart
           ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
       end if
       read(96,end=101,err=101,iostat=ierro) &
-        (aek(j),j=1,napxo),   &
-        (afok(j),j=1,napxo),  &
-        (as3(j),j=1,napxo),   &
-        (as4(j),j=1,napxo),   &
-        (as6(j),j=1,napxo),   &
-        (co(j),j=1,napxo),    &
-        (dpd(j),j=1,napxo),   &
-        (dpsq(j),j=1,napxo),  &
-        (fi(j),j=1,napxo),    &
-        (fok(j),j=1,napxo),   &
-        (fok1(j),j=1,napxo),  &
-        (fokqv(j),j=1,napxo), &
-        (g(j),j=1,napxo),     &
-        (gl(j),j=1,napxo),    &
-        (hc(j),j=1,napxo),    &
-        (hi(j),j=1,napxo),    &
-        (hi1(j),j=1,napxo),   &
-        (hm(j),j=1,napxo),    &
-        (hp(j),j=1,napxo),    &
-        (hs(j),j=1,napxo),    &
-        (rho(j),j=1,napxo),   &
-        (rhoc(j),j=1,napxo),  &
-        (rhoi(j),j=1,napxo),  &
-        (si(j),j=1,napxo),    &
-        (siq(j),j=1,napxo),   &
-        (sm1(j),j=1,napxo),   &
-        (sm12(j),j=1,napxo),  &
-        (sm2(j),j=1,napxo),   &
-        (sm23(j),j=1,napxo),  &
-        (sm3(j),j=1,napxo),   &
-        (wf(j),j=1,napxo),    &
-        (wfa(j),j=1,napxo),   &
-        (wfhi(j),j=1,napxo)
+        (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
 
       write(93,"(a)") "SIXTRACR> CRSTART read fort.96 EXTENDED OK"
       flush(93)

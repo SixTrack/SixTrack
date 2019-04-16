@@ -323,27 +323,31 @@ end subroutine elens_parseInputLine
 
 subroutine elens_parseInputDone(iErr)
 
-  use mod_common, only : kz,bez
+  use mod_common, only : bez, kz
 
   implicit none
 
   logical, intent(inout) :: iErr
 
-  integer j
+  integer jj, kk
 
-  ! Loop over single elements to check that they have been defined in the fort.3 block
-  if(melens /= 0) then
-    do j=1,nele
-      if(kz(j) == 29) then
-        if(elens_type(ielens(j)) == 0) then
-          write(lerr,"(a)") "ELENS> ERROR Elens element '"//trim(bez(j))//"'not defined in fort.3."
-          write(lerr,"(a)") "ELENS>       You must define every elens in the ELEN block."
-          iErr = .true.
-          return
+  ! check Loop over single elements to check that they have been defined in the fort.3 block
+  do jj=1,melens
+    if(elens_type(jj)==0) then
+      ! find name of elens (for printout purposes)
+      do kk=1,nele
+        if(kz(kk)==29) then
+          if (ielens(kk).eq.jj) then
+            exit
+          end if
         end if
-      end if
-    end do
-  end if
+      end do
+      ! report error
+      write(lout,"(a)") "ELENS> ERROR Type of elens not declared in fort.3 for element '"//trim(bez(kk))//"'"
+      iErr = .true.
+      return
+    end if
+  end do
 
 end subroutine elens_parseInputDone
 
@@ -353,15 +357,38 @@ subroutine elens_postInput
   use utils
   use mod_common, only : bez,kz
 
-  integer j,jj
+  integer j, jj, nlens
   logical exist
+
+  ! Check that all elenses in fort.2 have a corresponding declaration in fort.3
+  nlens=0
+  do jj=1,nele
+    if(kz(jj)==29) then
+      if (ielens(jj).eq.0) then
+        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lout,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in fort.3"
+        call prror
+      elseif ( elens_type(ielens(jj))==0 ) then
+        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lout,"(a)")      "ELENS>       had not been assigned a type"
+        call prror
+      else
+        nlens=nlens+1
+      end if
+    end if
+  end do
+  if ( nlens.ne.melens ) then
+    write(lout,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in fort.3 ",melens
+    write(lout,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
+    call prror
+  end if
 
   ! Parse files with radial profiles
    do j=1,melens_radial_profiles
     inquire(file=elens_radial_filename(j), exist=exist)
     if(.not. exist) then
       write(lerr,"(a)") "ELENS> ERROR Problems with file with radial profile: "//trim(elens_radial_filename(j))
-      call prror(-1)
+      call prror
     end if
     call parseRadialProfile(j)
     call integrateRadialProfile(j)
@@ -407,7 +434,6 @@ subroutine elens_postInput
     call eLensTheta(j)
     
   end do
-
 
 end subroutine elens_postInput
 
