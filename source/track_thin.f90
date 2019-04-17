@@ -588,8 +588,7 @@ subroutine thin4d(nthinerr)
 #endif
   if(st_quiet < 3) then
     if(mod(n,turnrep) == 0) then
-      write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
-      flush(lout)
+      call trackReport(n)
     end if
   end if
   meta_nPartTurn = meta_nPartTurn + napx
@@ -1215,8 +1214,7 @@ subroutine thin6d(nthinerr)
 #endif
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
-        write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
-        flush(lout)
+        call trackReport(n)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
@@ -2097,6 +2095,49 @@ subroutine thin6d(nthinerr)
 660 continue !END loop over turns
 
 end subroutine thin6d
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Write a turn report.
+!  The isFirst if statement is only computed the first time the routine is called.
+! ================================================================================================ !
+subroutine trackReport(n)
+
+  use crcoall
+  use parpro,     only : npart
+  use mod_common, only : ithick, iclo6, numl, napx, napxo
+
+  implicit none
+
+  integer, intent(in) :: n
+
+  character(len=8)  :: trackMode = " "
+  character(len=32) :: trackFmt  = " "
+  integer           :: oPart     = 0
+  integer           :: oTurn     = 0
+  logical           :: isFirst   = .true.
+
+  if(isFirst) then
+    if(ithick == 0) then
+      trackMode = "Thick"
+    else
+      trackMode = "Thin"
+    end if
+    if(iclo6 > 0) then
+      trackMode = trim(trackMode)//" 6D"
+    else
+      trackMode = trim(trackMode)//" 4D"
+    end if
+    oPart   = int(log10(real(npart)))+1
+    oTurn   = int(log10(real(numl)))+1
+    isFirst = .false.
+    write(trackFmt,"(2(a,i0),a)") "(2(a,i",oTurn,"),2(a,i",oPart,"))"
+  end if
+
+  write(lout,trackFmt) "TRACKING> "//trim(trackMode)//": Turn ",n," / ",numl,", Particles: ",napx," / ",napxo
+  flush(lout)
+
+end subroutine trackReport
 
 !-----------------------------------------------------------------------
 !

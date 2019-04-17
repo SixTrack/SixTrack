@@ -576,8 +576,7 @@ subroutine thck4d(nthinerr)
 #endif
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
-        write(lout,"(a,i8,a,i8)") "TRACKING> Thick 4D turn ",n," of ",numl
-        flush(lout)
+        call trackReport(n)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
@@ -1253,8 +1252,7 @@ subroutine thck6d(nthinerr)
 #endif
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
-        write(lout,"(a,i8,a,i8)") "TRACKING> Thick 6D turn ",n," of ",numl
-        flush(lout)
+        call trackReport(n)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
@@ -1345,13 +1343,6 @@ subroutine thck6d(nthinerr)
           goto 500
         end if
       end if
-#endif
-
-#ifdef DEBUG
-!     if (i.ge.673) then
-!     call warr('xv12,i,ktrack ',xv1(2),i,ktrack(i),0,0)
-!     endif
-!     if (i.eq.676) stop
 #endif
 
             if (bdex_enable) then

@@ -296,10 +296,6 @@ featList = ""
       nlin   = nlinoo
     end if
     dp1 = dp10+clop6(3)
-#ifdef DEBUG
-!     call dumpbin('ecdclor6',1,3)
-!     call abend('end cd clor6                                      ')
-#endif
     do i=1,6
       do j=1,6
         tas(i,j)=tasm(i,j)
@@ -320,14 +316,7 @@ featList = ""
       itiono=ition
       ition=0
     end if
-#ifdef DEBUG
-!       write(*,*) '3rd call qmodda multipole???'
-#endif
     call qmodda(2,qwc)
-#ifdef DEBUG
-!     call dumpbin('aqmodda',2,3)
-!     call abend('after  qmodda 2 3                                 ')
-#endif
     if(nvar2.le.5) ition=itiono
     if(nvar2.le.4.and.ithick.eq.1) call envar(dp1)
     if(ilin.ge.2) then

@@ -633,32 +633,12 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   call idprset(-102)
   call mld_allocArrays(.false.)
   call lieinit(nord,nvar,ndimf,ndpt,0,nis)
-#ifdef DEBUG
-!     call dumpbin('alieinit',1,11)
-!     call abend('alieinit in mydaini                               ')
-#endif
   write(lout,10000) nord,nvar,ndimf
   call daall(iscrda,100,'$$IS      ',nord,nvar)
 !--closed orbit
-#ifdef DEBUG
-!     write(*,*) 'ncase=',ncase,' if 1 call clorda'
-#endif
   if(ncase.eq.1) call clorda(2*ndimf,idummy,am)
-#ifdef DEBUG
-!     call dumpbin('aclorda',1,11)
-!     call abend('aclorda                                           ')
-#endif
 !--tune variation
-#ifdef DEBUG
-!     write(*,*) 'ncase=',ncase,' if 2 call umlauda'
-#endif
   if(ncase.eq.2) call umlauda
-#ifdef DEBUG
-!     if(ncase.eq.2) then
-!     call dumpbin('aumlauda',7,77)
-!     call abend('aumlauda                                          ')
-!     endif
-#endif
   iqmodc=0
   ichromc=0
   ilinc=0
