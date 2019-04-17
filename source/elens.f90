@@ -713,7 +713,7 @@ subroutine elens_kick(i,ix,n)
                 elens_radial_mpoints(ielens(ix)), elens_radial_jguess(ielens(ix)) )-elens_radial_fr1(ielens(ix))) &
                 /elens_geo_norm(ielens(ix))
         case default
-          write(lout,"(a,i0,a)") "ELENS> ERROR in kickelens: elens_type=",elens_type(ielens(ix))," not recognized. "
+          write(lout,"(a,i0,a)") "ELENS> ERROR elens_kick: elens_type=",elens_type(ielens(ix))," not recognized. "
           write(lout,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
           call prror
         end select
@@ -746,7 +746,7 @@ subroutine elens_kick_fox(i,ix)
   use mod_common_main
   use mathlib_bouncer
   use numerical_constants, only : zero, one
-  use utils, only : lininterp
+  use utils, only : huntBin, polcof
   use mod_lie_dab, only : lnv, idao, rscrri, iscrda
   use mod_common_track, only : xxtr, yytr, issss, comt_daStart, comt_daEnd
   use mod_common_da
@@ -756,9 +756,10 @@ subroutine elens_kick_fox(i,ix)
   integer, intent(in) :: i
   integer, intent(in) :: ix
   
-  integer          :: jj, idaa
+  integer          :: jj, idaa, iLens, iRadial, nBin, nPoints, mPoints, kMin, kMax, kk
   integer          :: hh(lnv)=0
-  real(kind=fPrec) linlin, rra, xclo, yclo, ele_r1, ele_r2, elenor, elesig, elefr1, elebet
+  real(kind=fPrec) :: rra, xclo, yclo, ele_r1, ele_r2, elenor, elesig, elefr1, elebet, rkk, tmpcof
+  real(kind=fPrec), allocatable :: cof(:)
 
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   save
@@ -774,7 +775,10 @@ subroutine elens_kick_fox(i,ix)
 !FOX  D V RE INT ELENOR ;
 !FOX  D V RE INT ELESIG ;
 !FOX  D V RE INT ELEBET ;
-!FOX  D V RE INT LINLIN ;
+!FOX  D V DA INT LINLIN NORD NVAR ;
+!FOX  D V DA INT TMPTMP NORD NVAR ;
+!FOX  D V RE INT TMPCOF ;
+!FOX  D V RE INT RKK ;
 !FOX  D V RE INT ONE ; D V RE INT TWO ; D V RE INT HALF ;
 !FOX  D V RE INT RRA ;
 !FOX  E D ;
@@ -782,14 +786,15 @@ subroutine elens_kick_fox(i,ix)
   call comt_daStart
 !-----------------------------------------------------------------------
 
-  XCLO=elens_offset_x(ielens(ix))
-  YCLO=elens_offset_y(ielens(ix))
-  ELE_R1=elens_r1(ielens(ix))
-  ELE_R2=elens_r2(ielens(ix))
-  ELENOR=elens_geo_norm(ielens(ix))
-  ELESIG=elens_sig(ielens(ix))
-  ELEFR1=elens_radial_fr1(ielens(ix))
-  ELEBET=elens_beta_e(ielens(ix))
+  iLens=ielens(ix)
+  XCLO=elens_offset_x(iLens)
+  YCLO=elens_offset_y(iLens)
+  ELE_R1=elens_r1(iLens)
+  ELE_R2=elens_r2(iLens)
+  ELENOR=elens_geo_norm(iLens)
+  ELESIG=elens_sig(iLens)
+  ELEFR1=elens_radial_fr1(iLens)
+  ELEBET=elens_beta_e(iLens)
   
   ! 1) apply offset of e-lens
   !    xx = x(proton) - elens_offset_x
@@ -808,9 +813,9 @@ subroutine elens_kick_fox(i,ix)
   !    frr  if R1 < r < R2
   !    1    if r > R2
   call dapek(RR,hh,RRA)
-  if (RRA.gt.elens_r1(ielens(ix))) then ! rr <= r1 -> no kick from elens
-    if (RRA.lt.elens_r2(ielens(ix))) then ! r1 < rr < r2
-      select case (elens_type(ielens(ix)))
+  if (RRA.gt.elens_r1(iLens)) then ! rr <= r1 -> no kick from elens
+    if (RRA.lt.elens_r2(iLens)) then ! r1 < rr < r2
+      select case (elens_type(iLens))
       case (1)
         ! UNIFORM: eLens with uniform profile
         ! formula: (r^2-r1^2)/(r2^2-r1^2)
@@ -824,14 +829,28 @@ subroutine elens_kick_fox(i,ix)
       case (3)
         ! RADIAL PROFILE: eLens with radial profile as from file
         ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))
-        linlin=lininterp( RRA, &
-              elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
-              elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
-              elens_radial_profile_nPoints(elens_iRadial(ielens(ix)))+1)
+        iRadial=elens_iRadial(iLens)
+        nPoints=elens_radial_profile_nPoints(iRadial)
+        mPoints=elens_radial_mpoints(iLens)
+        nBin=huntBin(RRA,elens_radial_profile_R(0:nPoints,iRadial),nPoints+1,-1)
+        kMin=min(max(nBin-(mPoints-1)/2,1),nPoints+2-mPoints)
+        kMax=min(kMin+mPoints-1,nPoints+1)
+        call alloc(cof,mPoints,zero,'cof')
+        call polcof(elens_radial_profile_R(kMin:kMax,iRadial),elens_radial_profile_J(kMin:kMax,iRadial),mPoints,cof)
+        TMPCOF=COF(1)
+!FOX    LINLIN=TMPCOF ;
+!FOX    TMPTMP=RR;
+        do kk=2,mPoints
+           TMPCOF=COF(kk)
+           RKK=real(kk-1,fPrec)
+!FOX       LINLIN=LINLIN+(TMPTMP*TMPCOF)/RKK ;
+!FOX       TMPTMP=TMPTMP*RR ;
+        end do
 !FOX    FRR=(LINLIN-ELEFR1)/ELENOR ;
+        call dealloc(cof,'cof')
 
       case default
-        write(lout,"(a,i0,a)") "ELENS> ERROR in kickelens: elens_type=",elens_type(ielens(ix))," not recognized. "
+        write(lout,"(a,i0,a)") "ELENS> ERROR in elens_kick_fox: elens_type=",elens_type(ielens(ix))," not recognized. "
         write(lout,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
         call prror
       end select
