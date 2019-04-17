@@ -61,7 +61,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "DIST> ERROR Failed to parse input line."
+    write(lerr,"(a)") "DIST> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -71,7 +71,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
 
   case("READ")
     if(nSplit < 2) then
-      write(lout,"(a)") "DIST> ERROR READ must be followed by one file name only."
+      write(lerr,"(a)") "DIST> ERROR READ must be followed by one file name only."
       iErr = .true.
       return
     end if
@@ -89,7 +89,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     call f_requestUnit(dist_echoFile, dist_echoUnit)
 
   case default
-    write(lout,"(a)") "DIST> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
+    write(lerr,"(a)") "DIST> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
     iErr = .true.
     return
 
@@ -192,18 +192,18 @@ subroutine dist_readDist
   goto 10
 
 19 continue
-  write(lout,"(a)") "DIST> ERROR Opening file '"//trim(dist_readFile)//"'"
+  write(lerr,"(a)") "DIST> ERROR Opening file '"//trim(dist_readFile)//"'"
   call prror(-1)
   return
 
 20 continue
-  write(lout,"(a,i0)") "DIST> ERROR Reading particles from line ",ln
+  write(lerr,"(a,i0)") "DIST> ERROR Reading particles from line ",ln
   call prror(-1)
   return
 
 30 continue
   if(j == 0) then
-    write(lout,"(a)") "DIST> ERROR Reading particles. No particles read from file."
+    write(lerr,"(a)") "DIST> ERROR Reading particles. No particles read from file."
     call prror(-1)
     return
   end if
@@ -264,7 +264,7 @@ subroutine dist_finaliseDist
           nzz(j) = zz0
           mtc(j) = one
         else
-          write(lout,"(a)") "DIST> ERROR Mass and/or charge mismatch with relation to sync particle"
+          write(lerr,"(a)") "DIST> ERROR Mass and/or charge mismatch with relation to sync particle"
           call prror(-1)
         end if
       end if
@@ -323,7 +323,7 @@ subroutine dist_echoDist
   return
 
 19 continue
-  write(lout,"(a)") "DIST> ERROR Opening file '"//trim(dist_echoFile)//"'"
+  write(lerr,"(a)") "DIST> ERROR Opening file '"//trim(dist_echoFile)//"'"
   call prror(-1)
   return
 

@@ -35,14 +35,14 @@ subroutine zipf_parseInputLine(inLine,iErr)
 
   call chr_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
-    write(lout,"(a)") "ZIPF> ERROR Failed to parse input line."
+    write(lerr,"(a)") "ZIPF> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
   if(nSplit == 0) return
 
   if(nSplit /= 1) then
-    write(lout,"(a,i3,3a)") "ZIPF> ERROR Expected 1 filename per line, got ",nSplit
+    write(lerr,"(a,i3,3a)") "ZIPF> ERROR Expected 1 filename per line, got ",nSplit
     iErr = .true.
     return
   end if
@@ -71,7 +71,7 @@ subroutine zipf_parseInputDone
   end do
 
   if(.not.(zipf_numFiles > 0)) then
-    write(lout,"(a)") "ZIPF> ERROR Block was empty; no files specified!"
+    write(lerr,"(a)") "ZIPF> ERROR Block was empty; no files specified!"
     call prror(-1)
   endif
 

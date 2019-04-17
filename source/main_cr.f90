@@ -24,7 +24,7 @@ program maincr
   use zipf,    only : zipf_numfiles, zipf_dozip
   use scatter, only : scatter_init
 
-  use, intrinsic :: iso_fortran_env, only : output_unit
+  use, intrinsic :: iso_fortran_env, only : output_unit, error_unit
   use mod_meta
   use mod_time
   use aperture
@@ -104,9 +104,8 @@ program maincr
   ! ---------------------------------------------------------------------------------------------- !
   errout = 0 ! Set to nonzero before calling abend in case of error.
 #ifdef CR
+  lerr = 91
   lout = 92
-#else
-  lout = output_unit
 #endif
 
 #ifdef BOINC
@@ -197,7 +196,9 @@ program maincr
   ! Goes here after unzip for BOINC
 #endif
   ! Very first get rid of any previous partial output
+  call f_close(lerr)
   call f_close(lout)
+  call f_open(unit=lerr,file="fort.91",formatted=.true.,mode="rw",err=fErr,status="replace")
   call f_open(unit=lout,file="fort.92",formatted=.true.,mode="rw",err=fErr,status="replace")
 
   ! Now position the checkpoint/restart logfile=93
@@ -261,14 +262,14 @@ program maincr
   else
     fort96 = .true.
   end if
-  call f_open(unit=91,file="fort.91",formatted=.true.,mode="rw",err=fErr)
 #else
+  lerr = error_unit
   lout = output_unit
 #endif
 
   ! Open Regular File Units
   call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA file
-  call f_open(unit=19,file="fort.19",formatted=.true., mode="r", err=fErr) ! DA file
+  call f_open(unit=19,file="fort.19",formatted=.true., mode="rw",err=fErr) ! DA file
   call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr) ! DA file
   call f_open(unit=21,file="fort.21",formatted=.true., mode="w", err=fErr) ! DA file
   call f_open(unit=31,file="fort.31",formatted=.true., mode="w", err=fErr)
@@ -285,11 +286,6 @@ program maincr
 #endif
 
   call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr) ! DA file, binary
-
-#ifdef DEBUG
-  ! call f_open(unit=99 ,file="dump",  formatted=.false.,mode="rw",err=fErr)
-  ! call f_open(unit=100,file="arrays",formatted=.false.,mode="rw",err=fErr)
-#endif
 
   call time_timeStamp(time_afterFileUnits)
 
@@ -386,7 +382,7 @@ program maincr
   end if
 
   ! Postprocessing is on, but there are no particles
-  if(ipos.eq.1.and.napx.eq.0) then
+  if(ipos == 1 .and. napx == 0) then
     ! Now we open fort.10 unless already opened for BOINC
     call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
     call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
@@ -552,7 +548,7 @@ program maincr
       if(kz(i).eq.20) then
         nlin=nlin+1
         if(nlin.gt.nele) then
-          write(lout,"(a)") "MAINCR> ERROR Too many elements for linear optics write-out"
+          write(lerr,"(a)") "MAINCR> ERROR Too many elements for linear optics write-out"
           call prror(-1)
         end if
         bezl(nlin)=bez(i)
@@ -957,7 +953,7 @@ program maincr
   if(fluka_enable) then
     fluka_con = fluka_is_running()
     if(fluka_con == -1) then
-      write(lout,"(a)") "FLUKA> ERROR Fluka is expected to run but it is NOT actually the case"
+      write(lerr,"(a)") "FLUKA> ERROR Fluka is expected to run but it is NOT actually the case"
       write(fluka_log_unit,*) "# Fluka is expected to run but it is NOT actually the case"
       call prror(-1)
     end if
@@ -965,7 +961,7 @@ program maincr
     write(fluka_log_unit,*) "# Initializing FlukaIO interface ..."
     fluka_con = fluka_connect()
     if(fluka_con == -1) then
-      write(lout,"(a)") "FLUKA> ERROR Cannot connect to Fluka server"
+      write(lerr,"(a)") "FLUKA> ERROR Cannot connect to Fluka server"
       write(fluka_log_unit,*) "# Error connecting to Fluka server"
       call prror(-1)
     endif
@@ -989,8 +985,8 @@ program maincr
       call meta_write("TrackingMethod", "Thin 4D")
     end if
     if(iclo6 /= 0) then
-      write(lout,"(a,i0)") "MAINCR> ERROR Doing 4D tracking but iclo6 = ",iclo6
-      write(lout,"(a)")    "MAINCR>       Expected iclo6 = 0 for 4D tracking."
+      write(lerr,"(a,i0)") "MAINCR> ERROR Doing 4D tracking but iclo6 = ",iclo6
+      write(lerr,"(a)")    "MAINCR>       Expected iclo6 = 0 for 4D tracking."
       call prror(-1)
     end if
   else
@@ -1001,8 +997,8 @@ program maincr
       call meta_write("TrackingMethod", "Thin 6D")
     end if
     if(iclo6 == 0) then
-      write(lout,"(a,i0)") "MAINCR> ERROR Doing 6D tracking but iclo6 = ",iclo6
-      write(lout,"(a)")    "MAINCR>       Expected iclo6 <> 0 for 6D tracking."
+      write(lerr,"(a,i0)") "MAINCR> ERROR Doing 6D tracking but iclo6 = ",iclo6
+      write(lerr,"(a)")    "MAINCR>       Expected iclo6 <> 0 for 6D tracking."
       call prror(-1)
     end if
   end if
@@ -1224,8 +1220,8 @@ program maincr
 #endif
     endif !ENDIF (ntwin.ne.2)
     if(ierro /= 0) then
-      write(lout,"(a,i0)") "MAINCR> ERROR Problems writing to file #",91-ia2
-      write(lout,"(a,i0)") "MAINCR> ERROR Code: ",ierro
+      write(lerr,"(a,i0)") "MAINCR> ERROR Problems writing to file #",91-ia2
+      write(lerr,"(a,i0)") "MAINCR> ERROR Code: ",ierro
       goto 520
     endif
   end do ! napx
@@ -1263,7 +1259,7 @@ program maincr
     fluka_con = fluka_init_max_uid( napx )
 
     if(fluka_con < 0) then
-      write(lout,"(a,i0,a)") "FLUKA> ERROR Failed to send napx ",napx," to fluka "
+      write(lerr,"(a,i0,a)") "FLUKA> ERROR Failed to send napx ",napx," to fluka "
       write(fluka_log_unit, *) "# failed to send napx to fluka ",napx
       call prror(-1)
     end if
@@ -1288,7 +1284,7 @@ program maincr
     fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0)
 
     if(fluka_con < 0) then
-      write(lout,"(a)") "FLUKA> ERROR Failed to update the reference particle"
+      write(lerr,"(a)") "FLUKA> ERROR Failed to update the reference particle"
       write(fluka_log_unit,*) "# failed to update ref particle"
       call prror(-1)
     end if
@@ -1488,17 +1484,17 @@ program maincr
 ! ---------------------------------------------------------------------------- !
 
 470 continue
-  ! and we need to open fort.10 unless already opened for BOINC
-  call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
-  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
 
-  ! Also dump the final state of the particle arrays
+  ! Dump the final state of the particle arrays
   call part_writeState(1)
 
 #ifndef FLUKA
 #ifndef STF
   iposc = 0
   if(ipos == 1) then ! Variable IPOS=1 -> postprocessing block present in fort.3
+    ! Open fort.10 unless already opened for BOINC
+    call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
+    call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
     do ia=1,napxo,2
       ia2=(ia+1)/2
       iposc=iposc+1

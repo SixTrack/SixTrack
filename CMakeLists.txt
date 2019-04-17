@@ -302,10 +302,6 @@ if(CR)
   list(APPEND FORT90_LIB checkpoint_restart)
 endif(CR)
 
-# if(DEBUG)
-#   list(APPEND FORT90_LIB debug_dump)
-# endif(DEBUG)
-
 if(HDF5)
   list(APPEND FORT90_LIB hdf5_output hdf5_sixtrack)
 endif(HDF5)

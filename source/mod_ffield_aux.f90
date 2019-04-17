@@ -247,7 +247,7 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use mod_units, only : f_requestUnit
-    use crcoall,   only : lout
+    use crcoall,   only : lout, lerr
 
     implicit none
 
@@ -261,7 +261,7 @@ contains
 
 
     if (this%chk_Status<1) then
-      write(lout,"(a,i1)") "FFIELD> ERROR while loading file '"//trim(this%ffFNames)//"' -> status ",this%chk_Status
+      write(lerr,"(a,i1)") "FFIELD> ERROR while loading file '"//trim(this%ffFNames)//"' -> status ",this%chk_Status
       iErr = .true.
       return
 
@@ -292,7 +292,7 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, c1e12, c1m12
-    use crcoall,             only : lout
+    use crcoall,             only : lout, lerr
     use parpro,              only : mInputLn
     use mod_units,           only : f_open, f_close
     use string_tools,        only : chr_split, chr_cast
@@ -318,7 +318,7 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     call f_open(unit=lun,file=trim(this%ffFNames),formatted=.true.,mode='r',err=iErr,status="old")
     if (iErr) then
-!      write(lout,"(a)")"FFIELD> ERROR in ReadExpMax(): Error opening file '"//trim(this%ffFNames)//"'"
+!      write(lerr,"(a)")"FFIELD> ERROR in ReadExpMax(): Error opening file '"//trim(this%ffFNames)//"'"
       return
     end if
 
@@ -344,12 +344,12 @@ contains
 
       !     - Check error in line
       if(iErr) then
-        write(lout,"(a)") "FFIELD> ERROR in ReadExpMax(): Failed to read '"//trim(this%ffFNames)//"'"
+        write(lerr,"(a)") "FFIELD> ERROR in ReadExpMax(): Failed to read '"//trim(this%ffFNames)//"'"
         return
       end if
       if(nSplit < 7)then
-        write(lout,"(a)") "FFIELD> ERROR in ReadExpMax(): Wrong number of element in '"//trim(this%ffFNames)//"'"
-        write(lout,"(a)") "FFIELD> ERROR in ReadExpMax(): Line '"//trim(inLine)//"'"
+        write(lerr,"(a)") "FFIELD> ERROR in ReadExpMax(): Wrong number of element in '"//trim(this%ffFNames)//"'"
+        write(lerr,"(a)") "FFIELD> ERROR in ReadExpMax(): Line '"//trim(inLine)//"'"
         iErr = .true.
         return
       end if
@@ -387,7 +387,7 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero, c1e12, c1m12
-    use crcoall,             only : lout
+    use crcoall,             only : lout, lerr
     use parpro,              only : mInputLn
     use mod_alloc,           only : alloc, dealloc
     use mod_units,           only : f_open, f_close
@@ -443,7 +443,7 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     call f_open(unit=lun,file=trim(this%ffFNames),formatted=.true.,mode='r',err=iErr,status="old")
     if (iErr) then
-!      write(lout,"(a)")"FFIELD> ERROR in ReadVectPotCoeff(): Error opening file '"//trim(this%ffFNames)//"'"
+!      write(lerr,"(a)")"FFIELD> ERROR in ReadVectPotCoeff(): Error opening file '"//trim(this%ffFNames)//"'"
       return
     end if
 
@@ -467,12 +467,12 @@ contains
 
       !     - Check error in line
       if(iErr) then
-        write(lout,"(a)") "FFIELD> ERROR in ReadVectPotCoeff(): Fail to read '"//trim(this%ffFNames)//"'"
+        write(lerr,"(a)") "FFIELD> ERROR in ReadVectPotCoeff(): Fail to read '"//trim(this%ffFNames)//"'"
         return
       end if
       if(nSplit < 7)then
-        write(lout,"(a)") "FFIELD> ERROR in ReadVectPotCoeff(): Wrong number of element in '"//trim(this%ffFNames)//"'"
-        write(lout,"(a)") "FFIELD> ERROR in ReadVectPotCoeff(): Line '"//trim(inLine)//"'"
+        write(lerr,"(a)") "FFIELD> ERROR in ReadVectPotCoeff(): Wrong number of element in '"//trim(this%ffFNames)//"'"
+        write(lerr,"(a)") "FFIELD> ERROR in ReadVectPotCoeff(): Line '"//trim(inLine)//"'"
         return
       end if
 
@@ -577,7 +577,7 @@ contains
         sm1=st
       endif
       if (sline>this%s) then           ! Detect error in z
-        write(lout,"(a)")"FFIELD> ERROR in ReadExpMax(): Wrong nb. of step for '"//this%ffFNames//"'"
+        write(lerr,"(a)")"FFIELD> ERROR in ReadExpMax(): Wrong nb. of step for '"//this%ffFNames//"'"
         iErr=.False.
         return
       endif

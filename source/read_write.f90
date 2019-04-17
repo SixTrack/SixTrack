@@ -84,7 +84,7 @@ subroutine readFort13
 
   call f_open(unit=13,file="fort.13",formatted=.true.,mode="r",err=fErr)
   if(fErr) then
-    write(lout,"(a)") "FORT13> ERROR Could not open fort.13."
+    write(lerr,"(a)") "FORT13> ERROR Could not open fort.13."
     call prror(-1)
   end if
 
@@ -159,11 +159,11 @@ subroutine readFort13
 
     ! Report Errors
     if(rErr) then
-      write(lout,"(a,i0,a)") "FORT13> ERROR While reading particle pair ",nPair," from file."
+      write(lerr,"(a,i0,a)") "FORT13> ERROR While reading particle pair ",nPair," from file."
       call prror(-1)
     end if
     if(cErr) then
-      write(lout,"(a,i0,a)") "FORT13> ERROR While converting particle pair ",nPair," to float."
+      write(lerr,"(a,i0,a)") "FORT13> ERROR While converting particle pair ",nPair," to float."
       call prror(-1)
     end if
 
@@ -203,13 +203,13 @@ subroutine readFort33
 
   read(33,"(a)",iostat=ioStat) inLine
   if(ioStat /= 0) then
-    write(lout,"(a,i0)") "READ33> ERROR Failed to read line from 'fort.33'. iostat = ",ioStat
+    write(lerr,"(a,i0)") "READ33> ERROR Failed to read line from 'fort.33'. iostat = ",ioStat
     call prror(-1)
   end if
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "READ33> ERROR Failed to parse line from 'fort.33'"
+    write(lerr,"(a)") "READ33> ERROR Failed to parse line from 'fort.33'"
     call prror(-1)
   end if
 

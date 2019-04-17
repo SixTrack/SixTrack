@@ -852,12 +852,12 @@ subroutine collimate_init()
 !      MYENOM   = 1.001*E0
 !
   if (myemitx0_dist.le.zero .or. myemity0_dist.le.zero .or. myemitx0_collgap.le.zero .or. myemity0_collgap.le.zero) then
-    write(lout,"(a)") "COLL> ERROR Emittances not defined! check collimat block!"
-    write(lout,"(a)") "COLL> ERROR Expected format of line 9 in collimat block:"
-    write(lout,"(a)") "COLL> ERROR emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
-    write(lout,"(a)") "COLL> ERROR All emittances should be normalized. "//&
+    write(lerr,"(a)") "COLL> ERROR Emittances not defined! check collimat block!"
+    write(lerr,"(a)") "COLL> ERROR Expected format of line 9 in collimat block:"
+    write(lerr,"(a)") "COLL> ERROR emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
+    write(lerr,"(a)") "COLL> ERROR All emittances should be normalized. "//&
       "first put emittance for distribtion generation, then for collimator position etc. units in [mm*mrad]."
-    write(lout,"(a)") "COLL> ERROR EXAMPLE: 2.5 2.5 3.5 3.5"
+    write(lerr,"(a)") "COLL> ERROR EXAMPLE: 2.5 2.5 3.5 3.5"
     call prror(-1)
   end if
 
@@ -1033,7 +1033,7 @@ subroutine collimate_init()
       call readdis_norm(filename_dis, myalphax, myalphay, mybetax, mybetay, &
                         myemitx0_dist, myemity0_dist, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
     case default
-      write(lout,"(a)") "COLL> ERROR Review your distribution parameters!"
+      write(lerr,"(a)") "COLL> ERROR Review your distribution parameters!"
       call prror(-1)
     end select
   end if
@@ -1170,7 +1170,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "COLL> ERROR Failed to parse input line."
+    write(lerr,"(a)") "COLL> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -1188,8 +1188,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("DO_COLL")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR DO_COLL expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DO_COLL true|false"
+      write(lerr,"(a,i0)") "COLL> ERROR DO_COLL expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DO_COLL true|false"
       iErr = .true.
       return
     end if
@@ -1197,8 +1197,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("ENERGY")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR ENERGY expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       ENERGY energy[MeV]"
+      write(lerr,"(a,i0)") "COLL> ERROR ENERGY expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       ENERGY energy[MeV]"
       iErr = .true.
       return
     end if
@@ -1206,21 +1206,21 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("DIST_TYPE")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR DIST_TYPE expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DIST_TYPE 0-6"
+      write(lerr,"(a,i0)") "COLL> ERROR DIST_TYPE expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DIST_TYPE 0-6"
       iErr = .true.
       return
     end if
     call chr_cast(lnSplit(2), do_thisdis, iErr)
     if(do_thisdis < 0 .or. do_thisdis > 6) then
-      write(lout,"(a,i0)") "COLL> ERROR DIST_TYPE must be between 0 and 6, got ",do_thisdis
+      write(lerr,"(a,i0)") "COLL> ERROR DIST_TYPE must be between 0 and 6, got ",do_thisdis
       iErr = .true.
       return
     end if
 
   case("DIST_PARAM")
     if(nSplit /= 5 .and. nSplit /= 7) then
-      write(lout,"(a,i0)") "COLL> ERROR DIST_PARAM expects 4 or 6 values, got ",nSplit-1
+      write(lerr,"(a,i0)") "COLL> ERROR DIST_PARAM expects 4 or 6 values, got ",nSplit-1
       iErr = .true.
       return
     end if
@@ -1233,8 +1233,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("DIST_FILE")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR DIST_FILE expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DIST_FILE filename"
+      write(lerr,"(a,i0)") "COLL> ERROR DIST_FILE expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DIST_FILE filename"
       iErr = .true.
       return
     end if
@@ -1242,13 +1242,13 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("NSIG_FAM")
     if(nSplit /= 3) then
-      write(lout,"(a,i0)") "COLL> ERROR NSIG_FAM expects 2 values, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       NSIG_FAM name nsig"
+      write(lerr,"(a,i0)") "COLL> ERROR NSIG_FAM expects 2 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       NSIG_FAM name nsig"
       iErr = .true.
       return
     end if
     if(len_trim(lnSplit(2)) > cdb_fNameLen) then
-      write(lout,"(2(a,i0))") "COLL> ERROR NSIG_FAM family name can be maximum ",cdb_fNameLen,&
+      write(lerr,"(2(a,i0))") "COLL> ERROR NSIG_FAM family name can be maximum ",cdb_fNameLen,&
         " characters, got ",len_trim(lnSplit(2))
       iErr = .true.
       return
@@ -1256,15 +1256,15 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(3),rTmp,iErr)
     call cdb_addFamily(lnSplit(2),rTmp,famID,fErr)
     if(fErr) then
-      write(lout,"(a,i0)") "COLL> ERROR NSIG_FAM family '"//trim(lnSplit(2))//"' defined more than once"
+      write(lerr,"(a,i0)") "COLL> ERROR NSIG_FAM family '"//trim(lnSplit(2))//"' defined more than once"
       iErr = .true.
       return
     end if
 
   case("DO_NSIG")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR DO_NSIG expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DO_NSIG true|false"
+      write(lerr,"(a,i0)") "COLL> ERROR DO_NSIG expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DO_NSIG true|false"
       iErr = .true.
       return
     end if
@@ -1272,8 +1272,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("JAW_SLICE")
     if(nSplit /= 6) then
-      write(lout,"(a,i0)") "COLL> ERROR JAW_SLICE expects 5 values, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       JAW_SLICE n_slices smin smax recenter1 recenter2"
+      write(lerr,"(a,i0)") "COLL> ERROR JAW_SLICE expects 5 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       JAW_SLICE n_slices smin smax recenter1 recenter2"
       iErr = .true.
       return
     end if
@@ -1285,8 +1285,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("JAW_FIT1")
     if(nSplit /= 8) then
-      write(lout,"(a,i0)") "COLL> ERROR JAW_FIT1 expects 7 values, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       JAW_FIT1 fit1.1 fit1.2 fit1.3 fit1.4 fit1.5 fit1.6 scale"
+      write(lerr,"(a,i0)") "COLL> ERROR JAW_FIT1 expects 7 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       JAW_FIT1 fit1.1 fit1.2 fit1.3 fit1.4 fit1.5 fit1.6 scale"
       iErr = .true.
       return
     end if
@@ -1300,8 +1300,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("JAW_FIT2")
     if(nSplit /= 8) then
-      write(lout,"(a,i0)") "COLL> ERROR JAW_FIT2 expects 7 values, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       JAW_FIT2 fit2.1 fit2.2 fit2.3 fit2.4 fit2.5 fit2.6 scale"
+      write(lerr,"(a,i0)") "COLL> ERROR JAW_FIT2 expects 7 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       JAW_FIT2 fit2.1 fit2.2 fit2.3 fit2.4 fit2.5 fit2.6 scale"
       iErr = .true.
       return
     end if
@@ -1315,8 +1315,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("EMIT","EMITTANCE")
     if(nSplit /= 5) then
-      write(lout,"(a,i0)") "COLL> ERROR EMIT expects 4 values, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       EMIT ex_dist ey_dist ex_colgap ey_colgap"
+      write(lerr,"(a,i0)") "COLL> ERROR EMIT expects 4 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       EMIT ex_dist ey_dist ex_colgap ey_colgap"
       iErr = .true.
       return
     end if
@@ -1327,8 +1327,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("DO_SELECT")
     if(nSplit /= 3) then
-      write(lout,"(a,i0)") "COLL> ERROR DO_SELECT expects 2 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DO_SELECT true|false name"
+      write(lerr,"(a,i0)") "COLL> ERROR DO_SELECT expects 2 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DO_SELECT true|false name"
       iErr = .true.
       return
     end if
@@ -1337,8 +1337,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("DO_NOMINAL")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR DO_NOMINAL expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DO_NOMINAL true|false"
+      write(lerr,"(a,i0)") "COLL> ERROR DO_NOMINAL expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DO_NOMINAL true|false"
       iErr = .true.
       return
     end if
@@ -1346,8 +1346,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("SEED")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR SEED expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       SEED rnd_seed"
+      write(lerr,"(a,i0)") "COLL> ERROR SEED expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       SEED rnd_seed"
       iErr = .true.
       return
     end if
@@ -1355,8 +1355,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("DO_ONESIDE")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR DO_ONESIDE expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DO_ONESIDE true|false"
+      write(lerr,"(a,i0)") "COLL> ERROR DO_ONESIDE expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DO_ONESIDE true|false"
       iErr = .true.
       return
     end if
@@ -1364,8 +1364,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("WRITE_DIST")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR WRITE_DIST expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       WRITE_DIST true|false"
+      write(lerr,"(a,i0)") "COLL> ERROR WRITE_DIST expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       WRITE_DIST true|false"
       iErr = .true.
       return
     end if
@@ -1373,8 +1373,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("WRITE_IMPACT")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR WRITE_IMPACT expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       WRITE_IMPACT true|false"
+      write(lerr,"(a,i0)") "COLL> ERROR WRITE_IMPACT expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       WRITE_IMPACT true|false"
       iErr = .true.
       return
     end if
@@ -1382,8 +1382,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("WRITE_SECOND","WRITE_SECONDARY")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR WRITE_SECOND expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       WRITE_SECOND true|false"
+      write(lerr,"(a,i0)") "COLL> ERROR WRITE_SECOND expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       WRITE_SECOND true|false"
       iErr = .true.
       return
     end if
@@ -1391,8 +1391,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("WRITE_AMPL","WRITE_AMPLITUDE")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR WRITE_AMPL expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       WRITE_AMPL true|false"
+      write(lerr,"(a,i0)") "COLL> ERROR WRITE_AMPL expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       WRITE_AMPL true|false"
       iErr = .true.
       return
     end if
@@ -1400,8 +1400,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("BETA_BEAT")
     if(nSplit /= 5) then
-      write(lout,"(a,i0)") "COLL> ERROR BETA_BEAT expects 4 values, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       BETA_BEAT xbeat xbeat_phase ybeat ybeat_phase"
+      write(lerr,"(a,i0)") "COLL> ERROR BETA_BEAT expects 4 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       BETA_BEAT xbeat xbeat_phase ybeat ybeat_phase"
       iErr = .true.
       return
     end if
@@ -1412,8 +1412,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("ALIGNERR_PRIM")
     if(nSplit /= 5) then
-      write(lout,"(a,i0)") "COLL> ERROR ALIGNERR_PRIM expects 4 values, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       ALIGNERR_PRIM rms_tilt sys_tilt rms_offset sys_offset"
+      write(lerr,"(a,i0)") "COLL> ERROR ALIGNERR_PRIM expects 4 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       ALIGNERR_PRIM rms_tilt sys_tilt rms_offset sys_offset"
       iErr = .true.
       return
     end if
@@ -1424,8 +1424,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("ALIGNERR_SEC")
     if(nSplit /= 5) then
-      write(lout,"(a,i0)") "COLL> ERROR ALIGNERR_SEC expects 4 values, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       ALIGNERR_SEC rms_tilt sys_tilt rms_offset sys_offset"
+      write(lerr,"(a,i0)") "COLL> ERROR ALIGNERR_SEC expects 4 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       ALIGNERR_SEC rms_tilt sys_tilt rms_offset sys_offset"
       iErr = .true.
       return
     end if
@@ -1436,8 +1436,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("ALIGNERR_GAP")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR ALIGNERR_GAP expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       ALIGNERR_GAP rmserror_gap"
+      write(lerr,"(a,i0)") "COLL> ERROR ALIGNERR_GAP expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       ALIGNERR_GAP rmserror_gap"
       iErr = .true.
       return
     end if
@@ -1445,8 +1445,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("ALIGNERR_SEED")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR ALIGNERR_SEED expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       ALIGNERR_SEED seed"
+      write(lerr,"(a,i0)") "COLL> ERROR ALIGNERR_SEED expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       ALIGNERR_SEED seed"
       iErr = .true.
       return
     end if
@@ -1454,8 +1454,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("DO_MINGAP")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR DO_MINGAP expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DO_MINGAP true|false"
+      write(lerr,"(a,i0)") "COLL> ERROR DO_MINGAP expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DO_MINGAP true|false"
       iErr = .true.
       return
     end if
@@ -1463,8 +1463,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("DO_RADIAL")
     if(nSplit /= 4) then
-      write(lout,"(a,i0)") "COLL> ERROR DO_RADIAL expects 3 values, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       DO_RADIAL true|false size smear"
+      write(lerr,"(a,i0)") "COLL> ERROR DO_RADIAL expects 3 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DO_RADIAL true|false size smear"
       iErr = .true.
       return
     end if
@@ -1474,8 +1474,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("EMIT_DRIFT")
     if(nSplit /= 3) then
-      write(lout,"(a,i0)") "COLL> ERROR EMIT_DRIFT expects 2 values, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       EMIT_DRIFT driftx drifty"
+      write(lerr,"(a,i0)") "COLL> ERROR EMIT_DRIFT expects 2 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       EMIT_DRIFT driftx drifty"
       iErr = .true.
       return
     end if
@@ -1484,8 +1484,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("SYSTILT_ANTI")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR SYSTILT_ANTI expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       SYSTILT_ANTI true|false"
+      write(lerr,"(a,i0)") "COLL> ERROR SYSTILT_ANTI expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       SYSTILT_ANTI true|false"
       iErr = .true.
       return
     end if
@@ -1493,8 +1493,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("PENCIL")
     if(nSplit /= 6) then
-      write(lout,"(a,i0)") "COLL> ERROR PENCIL expects 5 values, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       PENCIL ipencil offset rmsx rmsy distr"
+      write(lerr,"(a,i0)") "COLL> ERROR PENCIL expects 5 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       PENCIL ipencil offset rmsx rmsy distr"
       iErr = .true.
       return
     end if
@@ -1506,8 +1506,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("COLLDB")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR COLLDB expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       COLLDB filename"
+      write(lerr,"(a,i0)") "COLL> ERROR COLLDB expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       COLLDB filename"
       iErr = .true.
       return
     end if
@@ -1515,22 +1515,22 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("BEAM_NUM")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR BEAM_NUM expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       BEAM_NUM 1|2"
+      write(lerr,"(a,i0)") "COLL> ERROR BEAM_NUM expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       BEAM_NUM 1|2"
       iErr = .true.
       return
     end if
     call chr_cast(lnSplit(2), ibeam, iErr)
     if(ibeam /= 1 .and. ibeam /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR BEAM_NUM must be 1 or 2, got ",ibeam
+      write(lerr,"(a,i0)") "COLL> ERROR BEAM_NUM must be 1 or 2, got ",ibeam
       iErr = .true.
       return
     end if
 
   case("WRITE_TRACKS")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR WRITE_TRACKS expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       WRITE_TRACKS true|false"
+      write(lerr,"(a,i0)") "COLL> ERROR WRITE_TRACKS expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       WRITE_TRACKS true|false"
       iErr = .true.
       return
     end if
@@ -1538,8 +1538,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("CERN")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR CERN expects 1 value, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       CERN true|false"
+      write(lerr,"(a,i0)") "COLL> ERROR CERN expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       CERN true|false"
       iErr = .true.
       return
     end if
@@ -1547,8 +1547,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case("SIGSECUT")
     if(nSplit /= 3) then
-      write(lout,"(a,i0)") "COLL> ERROR SIGSECUT expects 2 values, got ",nSplit-1
-      write(lout,"(a)")    "COLL>       SIGSECUT sigma_xy sigma_r"
+      write(lerr,"(a,i0)") "COLL> ERROR SIGSECUT expects 2 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       SIGSECUT sigma_xy sigma_r"
       iErr = .true.
       return
     end if
@@ -1556,9 +1556,9 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(3), sigsecut3, iErr)
 
   case default
-    write(lout,"(a)") "COLL> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
-    write(lout,"(a)") "COLL>       The parser is assuming you want keyword/value block parsing as the first line had one value."
-    write(lout,"(a)") "COLL>       The two formats cannot be mixed."
+    write(lerr,"(a)") "COLL> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
+    write(lerr,"(a)") "COLL>       The parser is assuming you want keyword/value block parsing as the first line had one value."
+    write(lerr,"(a)") "COLL>       The two formats cannot be mixed."
     iErr = .true.
     return
 
@@ -1574,7 +1574,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(1)
     if(nSplit /= 1) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 1 value on line 1, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 1 value on line 1, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1582,7 +1582,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(2)
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 2 values on line 2, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 2 values on line 2, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1590,14 +1590,14 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 1) call chr_cast(lnSplit(2),myenom,iErr)
 
     if(nloop /= 1) then
-      write(lout,"(a,i0)") "COLL> ERROR Multiple samples is no longer supported. nloop must be 1, got ",nloop
+      write(lerr,"(a,i0)") "COLL> ERROR Multiple samples is no longer supported. nloop must be 1, got ",nloop
       iErr = .true.
       return
     end if
 
   case(3)
     if(nSplit /= 8) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 8 values on line 3, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 8 values on line 3, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1612,7 +1612,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(4)
     if(nSplit /= 14) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 14 values on line 4, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 14 values on line 4, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1646,7 +1646,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(5)
     if(nSplit /= 10) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 10 values on line 5, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 10 values on line 5, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1673,7 +1673,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(6)
     if(nSplit /= 5) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 5 values on line 6, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 5 values on line 6, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1685,7 +1685,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(7)
     if(nSplit /= 7) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 7 values on line 7, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 7 values on line 7, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1699,7 +1699,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(8)
     if(nSplit /= 7) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 7 values on line 8, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 7 values on line 8, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1713,7 +1713,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(9)
     if(nSplit /= 4) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 4 values on line 9, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 4 values on line 9, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1724,7 +1724,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(10)
     if(nSplit /= 9) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 9 values on line 10, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 9 values on line 10, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1740,7 +1740,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(11)
     if(nSplit /= 4) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 4 values on line 11, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 4 values on line 11, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1751,7 +1751,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(12)
     if(nSplit /= 11) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 11 values on line 12, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 11 values on line 12, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1769,7 +1769,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(13)
     if(nSplit /= 3) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 3 values on line 13, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 3 values on line 13, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1779,7 +1779,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(14)
     if(nSplit /= 4) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 4 values on line 14, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 4 values on line 14, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1790,7 +1790,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(15)
     if(nSplit /= 5) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 5 values on line 15, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 5 values on line 15, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1801,7 +1801,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 4)  call chr_cast(lnSplit(5), pencil_distr, iErr)
 #ifdef G4COLLIMAT
     if(ipencil > 0) then
-      write(lout,"(a)") "COLL> ERROR Pencil distribution not supported with geant4"
+      write(lerr,"(a)") "COLL> ERROR Pencil distribution not supported with geant4"
       iErr = .true.
       return
     endif
@@ -1809,7 +1809,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(16)
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 2 values on line 16, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 2 values on line 16, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1818,7 +1818,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   case(17)
     if(nSplit /= 6) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 6 values on line 17, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 6 values on line 17, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1830,7 +1830,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 5)  call chr_cast(lnSplit(6), sigsecut3,    iErr)
 
   case default
-    write(lout,"(a,i0,a)") "COLL> ERROR Unexpected line ",iLine," encountered."
+    write(lerr,"(a,i0,a)") "COLL> ERROR Unexpected line ",iLine," encountered."
     iErr = .true.
 
   end select
@@ -1851,7 +1851,7 @@ subroutine collimate_postInput(gammar)
   remity_collgap = emitny0_collgap*gammar
 
   if(myenom == zero) then
-    write(lout,"(a)") "COLL> ERROR Beam energy cannot be zero"
+    write(lerr,"(a)") "COLL> ERROR Beam energy cannot be zero"
     call prror
   end if
 
@@ -2864,7 +2864,7 @@ subroutine collimate_do_collimator(stracki)
         rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
       end if
     else
-      write(lout,"(a,f13.6)") "COLL> ERROR Non-zero length collimator: '"//trim(cdb_cNameUC(icoll))//"' length = ",stracki
+      write(lerr,"(a,f13.6)") "COLL> ERROR Non-zero length collimator: '"//trim(cdb_cNameUC(icoll))//"' length = ",stracki
       call prror
     end if
 
@@ -5505,7 +5505,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
   real(kind=fPrec) n_aperture  !aperture in m for the vertical plane
   save
 !=======================================================================
-  write(lout,"(a)") "COLL> ERROR collimateRHIC is no longer supported!"
+  write(lerr,"(a)") "COLL> ERROR collimateRHIC is no longer supported!"
   call prror(-1)
 end subroutine collimaterhic
 !
@@ -6559,7 +6559,7 @@ subroutine makedis_st(myalphax, myalphay, mybetax, mybetay, &
       myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
       myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
     else
-      write(lout,"(a)") "COLL> ERROR Bbeam parameters not correctly set!"
+      write(lerr,"(a)") "COLL> ERROR Bbeam parameters not correctly set!"
     end if
     myp(j) = myenom
     mys(j) = zero
@@ -6859,8 +6859,8 @@ subroutine readdis(filename_dis,myx,myxp,myy,myyp,myp,mys)
   call f_requestUnit(filename_dis, filename_dis_unit)
   open(unit=filename_dis_unit, file=filename_dis, iostat=stat,status="OLD",action="read") !was 53
   if(stat.ne.0)then
-    write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
-    write(lout,"(a,i0)") "COLL>       Got iostat=",stat
+    write(lerr,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
+    write(lerr,"(a,i0)") "COLL>       Got iostat=",stat
     goto 20
   end if
 
@@ -6868,11 +6868,11 @@ subroutine readdis(filename_dis,myx,myxp,myy,myyp,myp,mys)
     read(filename_dis_unit,"(a)",end=10,err=20) inLine
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
-      write(lout,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
+      write(lerr,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
       goto 20
     end if
     if(nSplit /= 6) then
-      write(lout,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
+      write(lerr,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
       goto 20
     end if
     call chr_cast(lnSplit(1),myx(j), spErr)
@@ -6882,7 +6882,7 @@ subroutine readdis(filename_dis,myx,myxp,myy,myyp,myp,mys)
     call chr_cast(lnSplit(5),mys(j), spErr)
     call chr_cast(lnSplit(6),myp(j), spErr)
     if(spErr) then
-      write(lout,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
+      write(lerr,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
       goto 20
     end if
   end do
@@ -6947,13 +6947,13 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
   logical spErr
 
   if (iclo6.eq.0) then
-    write(lout,"(a)") "COLL> ERROR DETECTED: Incompatible flag           "
-    write(lout,"(a)") "COLL> in line 2 of the TRACKING block             "
-    write(lout,"(a)") "COLL> of fort.3 for calculating the closed orbit  "
-    write(lout,"(a)") "COLL> (iclo6 must not be =0). When using an input "
-    write(lout,"(a)") "COLL> distribution in normalized coordinates for  "
-    write(lout,"(a)") "COLL> collimation the closed orbit is needed for a"
-    write(lout,"(a)") "COLL> correct TAS matrix for coordinate transform."
+    write(lerr,"(a)") "COLL> ERROR DETECTED: Incompatible flag           "
+    write(lerr,"(a)") "COLL> in line 2 of the TRACKING block             "
+    write(lerr,"(a)") "COLL> of fort.3 for calculating the closed orbit  "
+    write(lerr,"(a)") "COLL> (iclo6 must not be =0). When using an input "
+    write(lerr,"(a)") "COLL> distribution in normalized coordinates for  "
+    write(lerr,"(a)") "COLL> collimation the closed orbit is needed for a"
+    write(lerr,"(a)") "COLL> correct TAS matrix for coordinate transform."
     call prror(-1)
   endif
 
@@ -6962,8 +6962,8 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
   call f_requestUnit(filename_dis, filename_dis_unit)
   open(unit=filename_dis_unit, file=filename_dis, iostat=stat, status="OLD",action="read") !was 53
   if(stat.ne.0)then
-    write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
-    write(lout,"(a,i0)") "COLL>       Got iostat=",stat
+    write(lerr,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
+    write(lerr,"(a,i0)") "COLL>       Got iostat=",stat
     goto 20
   end if
 
@@ -6971,11 +6971,11 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
     read(filename_dis_unit,"(a)",end=10,err=20) inLine
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
-      write(lout,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
+      write(lerr,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
       goto 20
     end if
     if(nSplit /= 6) then
-      write(lout,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
+      write(lerr,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
       goto 20
     end if
     call chr_cast(lnSplit(1),normx, spErr)
@@ -6985,7 +6985,7 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
     call chr_cast(lnSplit(5),norms, spErr)
     call chr_cast(lnSplit(6),normp, spErr)
     if(spErr) then
-      write(lout,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
+      write(lerr,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
       goto 20
     end if
 ! A normalized distribution with x,xp,y,yp,z,zp is read and

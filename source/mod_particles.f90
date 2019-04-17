@@ -96,7 +96,7 @@ subroutine part_updateRefEnergy(refEnergy)
   sigmv(1:napx) = ((e0f*e0o)/(e0fo*e0))*sigmv(1:napx)
 
   if(e0 <= pieni) then
-    write(lout,"(a)") "PART> ERROR Reference energy ~= 0"
+    write(lerr,"(a)") "PART> ERROR Reference energy ~= 0"
     call prror
   end if
 
@@ -125,7 +125,7 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
   logical :: doUpdateAngle = .false.
 
   !if(part_isTracking .and. refArray /= 1) then
-  !  write(lout,"(a)") "PART> ERROR During tracking, only energy updates are allowed in part_updatePartEnergy."
+  !  write(lerr,"(a)") "PART> ERROR During tracking, only energy updates are allowed in part_updatePartEnergy."
   !  call prror
   !end if
 
@@ -149,7 +149,7 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
     ejfv(1:napx) = ((nucm(1:napx)/nucm0)*(dpsv(1:napx)+one))*e0f ! Momentum [MeV/c]
     ejv(1:napx)  = sqrt(ejfv(1:napx)**2 + nucm(1:napx)**2)       ! Energy [MeV]
   case default
-    write(lout,"(a)") "PART> ERROR Internal error in part_updatePartEnergy"
+    write(lerr,"(a)") "PART> ERROR Internal error in part_updatePartEnergy"
     call prror
   end select
 
