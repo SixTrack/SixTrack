@@ -3453,8 +3453,6 @@ end subroutine join
 !-----------------------------------------------------------------------
 #ifdef CR
       ncalls=ncalls+1
-      write(91,*,iostat=ierro,err=11) numx,numl
-      rewind 91
       if (restart) then
          write(93,*) 'WRITEBIN bailing out on restart'
          write(93,*) 'numl, nnuml, numx, numlcr '

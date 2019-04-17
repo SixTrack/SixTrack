@@ -120,7 +120,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "CHEBY> ERROR Failed to parse input line."
+    write(lerr,"(a)") "CHEBY> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -130,7 +130,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
 
   case("SHOW")
     if(nSplit < 3) then
-      write(lout,"(a,i0)") "CHEBY> ERROR Expected at least 3 input parameters, got ",nSplit
+      write(lerr,"(a,i0)") "CHEBY> ERROR Expected at least 3 input parameters, got ",nSplit
       iErr = .true.
       return
     end if
@@ -144,15 +144,15 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
       end if
     end do
     if(iElem == -1) then
-      write(lout,"(a)") "CHEBY> ERROR Element '"//trim(lnSplit(2))//"' not a Chebyshev lens."
-      write(lout,"(a)") "CHEBY>       Either you mis-typed the element name or"
-      write(lout,"(a)") "CHEBY>       SHOW line comes before the declaration of the lens"
+      write(lerr,"(a)") "CHEBY> ERROR Element '"//trim(lnSplit(2))//"' not a Chebyshev lens."
+      write(lerr,"(a)") "CHEBY>       Either you mis-typed the element name or"
+      write(lerr,"(a)") "CHEBY>       SHOW line comes before the declaration of the lens"
       iErr = .true.
       return
     end if
     do tmpi1=1,ncheby_mapEchoes
       if (cheby_mapFileName(tmpi1)==lnSplit(3)) then
-        write(lout,"(a)") "CHEBY> ERROR File '"//trim(lnSplit(3))//"' already in use."
+        write(lerr,"(a)") "CHEBY> ERROR File '"//trim(lnSplit(3))//"' already in use."
         iErr = .true.
         return
       end if
@@ -163,9 +163,9 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
     cheby_iLens(ncheby_mapEchoes) = icheby(iElem)
     if (nSplit > 3 ) then
       if (nSplit<9) then
-        write(lout,"(a,i0)") "CHEBY> ERROR Expected 8 input parameters, got ",nSplit
-        write(lout,"(a)")    "CHEBY> format of SHOW line:"
-        write(lout,"(a)")    "SHOW name filename xmin[mm] xmax[mm] nx ymin[mm] ymax[mm] ny"
+        write(lerr,"(a,i0)") "CHEBY> ERROR Expected 8 input parameters, got ",nSplit
+        write(lerr,"(a)")    "CHEBY> format of SHOW line:"
+        write(lerr,"(a)")    "SHOW name filename xmin[mm] xmax[mm] nx ymin[mm] ymax[mm] ny"
         iErr = .true.
         return
       endif
@@ -191,7 +191,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
   case default
   
     if(nSplit < 2) then
-      write(lout,"(a,i0)") "CHEBY> ERROR Expected at least 2 input parameters, got ",nSplit
+      write(lerr,"(a,i0)") "CHEBY> ERROR Expected at least 2 input parameters, got ",nSplit
       iErr = .true.
       return
     end if
@@ -205,28 +205,28 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
       end if
     end do
     if(iElem == -1) then
-      write(lout,"(a)") "CHEBY> ERROR Element '"//trim(lnSplit(1))//"' not found in single element list."
+      write(lerr,"(a)") "CHEBY> ERROR Element '"//trim(lnSplit(1))//"' not found in single element list."
       iErr = .true.
       return
     end if
   
     if(kz(iElem) /= cheby_kz) then
-      write(lout,"(3(a,i0))") "CHEBY> ERROR Element type is kz(",iElem,") = ",kz(iElem)," != ",cheby_kz
+      write(lerr,"(3(a,i0))") "CHEBY> ERROR Element type is kz(",iElem,") = ",kz(iElem)," != ",cheby_kz
       iErr = .true.
       return
     end if
     if(el(iElem) /= zero .or. ek(iElem) /= zero .or. ed(iElem) /= zero) then
-      write(lout,"(a)")       "CHEBY> ERROR Length el(iElem) (Chebyshev lens is treated as thin element), "//&
+      write(lerr,"(a)")       "CHEBY> ERROR Length el(iElem) (Chebyshev lens is treated as thin element), "//&
         "and first and second field have to be zero:"
-      write(lout,"(2(a,i0),a)") "CHEBY>       el(",iElem,") = ",el(iElem)," != 0"
-      write(lout,"(2(a,i0),a)") "CHEBY>       ed(",iElem,") = ",ed(iElem)," != 0"
-      write(lout,"(2(a,i0),a)") "CHEBY>       ek(",iElem,") = ",ek(iElem)," != 0"
+      write(lerr,"(2(a,i0),a)") "CHEBY>       el(",iElem,") = ",el(iElem)," != 0"
+      write(lerr,"(2(a,i0),a)") "CHEBY>       ed(",iElem,") = ",ed(iElem)," != 0"
+      write(lerr,"(2(a,i0),a)") "CHEBY>       ek(",iElem,") = ",ek(iElem)," != 0"
       iErr = .true.
       return
     end if
   
     if(icheby(iElem) /= 0) then
-      write(lout,"(a)") "CHEBY> ERROR The element '"//trim(bez(iElem))//"' was defined twice."
+      write(lerr,"(a)") "CHEBY> ERROR The element '"//trim(bez(iElem))//"' was defined twice."
       iErr = .true.
       return
     end if
@@ -302,8 +302,8 @@ subroutine cheby_postInput
   do jj=1,nele
     if(kz(jj)==cheby_kz) then
       if (icheby(jj).eq.0) then
-        write(lout,"(a,i0,a)") "CHEBY> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lout,"(a)")      "CHEBY>       does not have a corresponding line in CHEB block in fort.3"
+        write(lerr,"(a,i0,a)") "CHEBY> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lerr,"(a)")      "CHEBY>       does not have a corresponding line in CHEB block in fort.3"
         call prror
       else
         ncheb=ncheb+1
@@ -311,8 +311,8 @@ subroutine cheby_postInput
     end if
   end do
   if ( ncheb.ne.ncheby ) then
-    write(lout,"(a,i0)") "CHEBY> ERROR number of chebyshev lenses declared in CHEB block in fort.3 ",ncheby
-    write(lout,"(a,i0)") "CHEBY>       is not the same as the total number of chebyshev lenses in lattice ",ncheb
+    write(lerr,"(a,i0)") "CHEBY> ERROR number of chebyshev lenses declared in CHEB block in fort.3 ",ncheby
+    write(lerr,"(a,i0)") "CHEBY>       is not the same as the total number of chebyshev lenses in lattice ",ncheb
     call prror
   end if
 
@@ -320,7 +320,7 @@ subroutine cheby_postInput
   do jj=1,ncheby_tables
     inquire(file=cheby_filename(jj), exist=exist)
     if(.not. exist) then
-      write(lout,"(a)") "CHEBY> ERROR Problems with file with coefficients for Chebyshev polynominals: ", &
+      write(lerr,"(a)") "CHEBY> ERROR Problems with file with coefficients for Chebyshev polynominals: ", &
             trim(cheby_filename(jj))
       call prror(-1)
     end if
@@ -347,13 +347,13 @@ subroutine cheby_postInput
       cheby_r1(jj)=tmpFlt
     end if
     if (cheby_r2(jj)>cheby_refR(cheby_itable(jj))) then
-      write(lout,"(a)")      "CHEBY> ERROR R2 cannot be larger than domain of Chebyshev polynomials!"
-      write(lout,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       R2 [mm]: ",cheby_r2(jj), &
+      write(lerr,"(a)")      "CHEBY> ERROR R2 cannot be larger than domain of Chebyshev polynomials!"
+      write(lerr,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       R2 [mm]: ",cheby_r2(jj), &
            " - reference radius [mm]:",cheby_refR(cheby_itable(jj))
       goto 10 
     end if
     if (cheby_r1(jj)==zero) then
-      write(lout,"(a)")      "CHEBY> ERROR R1 cannot be zero for the time being!"
+      write(lerr,"(a)")      "CHEBY> ERROR R1 cannot be zero for the time being!"
       goto 10 
     end if
     if (cheby_I (jj)<=zero) then
@@ -372,14 +372,14 @@ subroutine cheby_postInput
           cheby_mapXmin(ii)=tmpFlt
         end if
         if (cheby_mapXmax(ii)==cheby_mapXmin(ii)) then
-          write(lout,"(a)")                     "CHEBY> ERROR X-extremes for map coincide!"
-          write(lout,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       xmin [mm]: ",cheby_mapXmin(ii), &
+          write(lerr,"(a)")                     "CHEBY> ERROR X-extremes for map coincide!"
+          write(lerr,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       xmin [mm]: ",cheby_mapXmin(ii), &
                                                           " - xmax [mm]: ",cheby_mapXmax(ii)
           goto 10 
         end if
         if (cheby_mapNx(ii)<1) then
-          write(lout,"(a)")    "CHEBY> ERROR wrong X-stepping for map!"
-          write(lout,"(a,i0)") "CHEBY>       must be >0 - got: ",cheby_mapNx(ii)
+          write(lerr,"(a)")    "CHEBY> ERROR wrong X-stepping for map!"
+          write(lerr,"(a,i0)") "CHEBY>       must be >0 - got: ",cheby_mapNx(ii)
           goto 10 
         end if
         if (cheby_mapYmax(ii)<cheby_mapYmin(ii)) then
@@ -389,14 +389,14 @@ subroutine cheby_postInput
           cheby_mapYmin(ii)=tmpFlt
         end if
         if (cheby_mapYmax(ii)==cheby_mapYmin(ii)) then
-          write(lout,"(a)")                     "CHEBY> ERROR Y-extremes for map coincide!"
-          write(lout,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       ymin [mm]: ",cheby_mapYmin(ii), &
+          write(lerr,"(a)")                     "CHEBY> ERROR Y-extremes for map coincide!"
+          write(lerr,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       ymin [mm]: ",cheby_mapYmin(ii), &
                                                           " - ymax [mm]: ",cheby_mapYmax(ii)
           goto 10 
         end if
         if (cheby_mapNy(ii)<1) then
-          write(lout,"(a)")    "CHEBY> ERROR wrong Y-stepping for map!"
-          write(lout,"(a,i0)") "CHEBY>       must be >0 - got: ",cheby_mapNy(ii)
+          write(lerr,"(a)")    "CHEBY> ERROR wrong Y-stepping for map!"
+          write(lerr,"(a,i0)") "CHEBY>       must be >0 - got: ",cheby_mapNy(ii)
           goto 10 
         end if
       end if
@@ -476,7 +476,7 @@ subroutine parseChebyFile(ifile)
   call f_requestUnit(cheby_filename(ifile),fUnit)
   call f_open(unit=fUnit,file=cheby_filename(ifile),mode='r',err=err,formatted=.true.,status="old")
   if(err) then
-    write(lout,"(a)") "CHEBY> ERROR Failed to open file."
+    write(lerr,"(a)") "CHEBY> ERROR Failed to open file."
     goto 40
   end if
 
@@ -486,21 +486,21 @@ subroutine parseChebyFile(ifile)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "CHEBY> ERROR Failed to split Chebyshev input line"
+    write(lerr,"(a)") "CHEBY> ERROR Failed to split Chebyshev input line"
     goto 30
   end if
 
   if(inLine(1:1) == "I") then
     ! Read reference current of lens
     if(nSplit < 3) then
-      write(lout,"(a)") "CHEBY> ERROR Not enough arguments for expressing ref lens current [A]."
-      write(lout,"(a)") "CHEBY>       Correct format:"
-      write(lout,"(a)") "I : value"
+      write(lerr,"(a)") "CHEBY> ERROR Not enough arguments for expressing ref lens current [A]."
+      write(lerr,"(a)") "CHEBY>       Correct format:"
+      write(lerr,"(a)") "CHEBY>       I : value"
       goto 30
     end if
     call chr_cast(lnSplit(3),cheby_refI(ifile),spErr)
     if(spErr) then
-      write(lout,"(a)") "CHEBY> ERROR in casting ref lens current: "//trim(lnSplit(3))
+      write(lerr,"(a)") "CHEBY> ERROR in casting ref lens current: "//trim(lnSplit(3))
       goto 30
     end if
     lDefI=.false.
@@ -508,33 +508,33 @@ subroutine parseChebyFile(ifile)
   else if(inLine(1:1) == "R") then
     ! Read reference radius e-beam in e-lens
     if(nSplit < 3) then
-      write(lout,"(a)") "CHEBY> ERROR Not enough arguments for expressing ref lens radius [mm]."
-      write(lout,"(a)") "CHEBY>       Correct format:"
-      write(lout,"(a)") "R : value"
+      write(lerr,"(a)") "CHEBY> ERROR Not enough arguments for expressing ref lens radius [mm]."
+      write(lerr,"(a)") "CHEBY>       Correct format:"
+      write(lerr,"(a)") "CHEBY>       R : value"
       goto 30
     end if
     call chr_cast(lnSplit(3),cheby_refR(ifile),spErr)
     if(spErr) then
-      write(lout,"(a)") "CHEBY> ERROR in casting ref lens radius: "//trim(lnSplit(3))
+      write(lerr,"(a)") "CHEBY> ERROR in casting ref lens radius: "//trim(lnSplit(3))
       goto 30
     end if
 
   else
     ! Read chebyshev coefficients
     if(nSplit /= 4) then
-      write(lout,"(a)") "CHEBY> ERROR Not enough arguments for expressing Chebyshev coefficients [Vm]."
-      write(lout,"(a)") "CHEBY>       Correct format:"
-      write(lout,"(a)") "ii jj : value (ii->x,jj->y)"
+      write(lerr,"(a)") "CHEBY> ERROR Not enough arguments for expressing Chebyshev coefficients [Vm]."
+      write(lerr,"(a)") "CHEBY>       Correct format:"
+      write(lerr,"(a)") "CHEBY>       ii jj : value (ii->x,jj->y)"
       goto 30
     end if
     call chr_cast(lnSplit(1),ii,spErr)
     if(spErr) then
-      write(lout,"(a)") "CHEBY> ERROR in casting first index of cheby coeff: "//trim(lnSplit(1))
+      write(lerr,"(a)") "CHEBY> ERROR in casting first index of cheby coeff: "//trim(lnSplit(1))
       goto 30
     end if
     call chr_cast(lnSplit(2),jj,spErr)
     if(spErr) then
-      write(lout,"(a)") "CHEBY> ERROR in casting second index of cheby coeff: "//trim(lnSplit(2))
+      write(lerr,"(a)") "CHEBY> ERROR in casting second index of cheby coeff: "//trim(lnSplit(2))
       goto 30
     end if
     iDim = size(cheby_coeffs,1)
@@ -544,7 +544,7 @@ subroutine parseChebyFile(ifile)
     if(jj>=jDim) call alloc(cheby_coeffs, iDim-1,     jj, ifile, zero, 'cheby_coeffs', 0, 0 ,1 )
     call chr_cast(lnSplit(4),cheby_coeffs(ii,jj,ifile),spErr)
     if(spErr) then
-      write(lout,"(a)") "CHEBY> ERROR in casting Chebyshev coefficient: "//trim(lnSplit(4))
+      write(lerr,"(a)") "CHEBY> ERROR in casting Chebyshev coefficient: "//trim(lnSplit(4))
       goto 30
     end if
     cheby_maxOrder(ifile)=max(ii,jj,cheby_maxOrder(ifile))
@@ -556,11 +556,11 @@ subroutine parseChebyFile(ifile)
 
   call f_close(fUnit)
   if (cheby_refR(ifile)<=zero) then
-    write(lout,"(a)") "CHEBY> ERROR ref lens radius [mm] must be positive."
+    write(lerr,"(a)") "CHEBY> ERROR ref lens radius [mm] must be positive."
     goto 30
   end if
   if (cheby_maxOrder(ifile)<2) then
-    write(lout,"(a,i0,a)") "CHEBY> ERROR max order too low:",cheby_maxOrder(ifile)," - it should be at least 2."
+    write(lerr,"(a,i0,a)") "CHEBY> ERROR max order too low:",cheby_maxOrder(ifile)," - it should be at least 2."
     goto 30
   end if
 
@@ -590,7 +590,7 @@ subroutine parseChebyFile(ifile)
     write(lout,"('CHEBY>       - ',i2,': ',a)") ii,trim(lnSplit(ii))
   end do
 40 continue
-  write(lout,"(a)") "CHEBY> ERROR while parsing file "//trim(cheby_filename(ifile))
+  write(lerr,"(a)") "CHEBY> ERROR while parsing file "//trim(cheby_filename(ifile))
   call prror(-1)
 
 end subroutine parseChebyFile
@@ -687,7 +687,7 @@ subroutine cheby_potentialMap(iLens,ix)
   call f_requestUnit(cheby_mapFileName(iLens),fUnit)
   call f_open(unit=fUnit,file=cheby_mapFileName(iLens),mode='w',err=err,formatted=.true.,status="replace")
   if(err) then
-    write(lout,"(a)") "CHEBY> ERROR Failed to open file."
+    write(lerr,"(a)") "CHEBY> ERROR Failed to open file."
     call prror(-1)
   end if
  

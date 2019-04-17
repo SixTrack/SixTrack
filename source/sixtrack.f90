@@ -98,14 +98,14 @@ subroutine daten
 
   call f_open(unit=3,file="fort.3",formatted=.true.,mode="r",err=fErr)
   if(fErr) then
-    write(lout,"(a)") "INPUT> ERROR Could not open fort.3"
+    write(lerr,"(a)") "INPUT> ERROR Could not open fort.3"
     call prror
   end if
 
 90 continue
   read(3,"(a4,a8,a60)",end=9997,iostat=ierro) cCheck,cPad,iHead
   if(ierro > 0) then
-    write(lout,"(a)") "INPUT> ERROR Could not read from fort.3"
+    write(lerr,"(a)") "INPUT> ERROR Could not read from fort.3"
     call prror
   end if
   pLines(5) = cCheck//cPad//iHead
@@ -122,11 +122,11 @@ subroutine daten
     parseFort2 = .true.
     call f_open(unit=2,file="fort.2",formatted=.true.,mode="r",err=fErr)
     if(fErr) then
-      write(lout,"(a)") "INPUT> ERROR Could not open fort.2"
+      write(lerr,"(a)") "INPUT> ERROR Could not open fort.2"
       call prror
     end if
   case default
-    write(lout,"(a)") "INPUT> ERROR Unknown mode '"//cCheck//"'"
+    write(lerr,"(a)") "INPUT> ERROR Unknown mode '"//cCheck//"'"
     goto 9999
   end select
 
@@ -173,7 +173,7 @@ subroutine daten
 
   read(nUnit,"(a)",end=9998,iostat=iErro) inLine
   if(iErro > 0) then
-    write(lout,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
+    write(lerr,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
     call prror
   end if
 
@@ -194,7 +194,7 @@ subroutine daten
   if(cCheck == "NEXT") then
     if(currBlock == "NONE") then
       ! Catch orphaned NEXT blocks here.
-      write(lout,"(a)") "INPUT> ERROR Unexpected NEXT block encountered. There is no open block to close."
+      write(lerr,"(a)") "INPUT> ERROR Unexpected NEXT block encountered. There is no open block to close."
       goto 9999
     else
       ! Actual close check is done after a last pass so
@@ -229,7 +229,7 @@ subroutine daten
   ! Check if the current block has already been seen and closed.
   ! If so, the block exists more than once in the input files. It shouldn't unless intended to.
   if(blockCount > 1 .and. .not. blockReopen) then
-    write(lout,"(a)") "INPUT> ERROR Block '"//currBlock//"' encountered more than once."
+    write(lerr,"(a)") "INPUT> ERROR Block '"//currBlock//"' encountered more than once."
     goto 9999
   end if
 
@@ -256,7 +256,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      write(lout,"(a)") "INPUT> ERROR PRINT block does not take any parameters. Did you forget to close it with a NEXT?"
+      write(lerr,"(a)") "INPUT> ERROR PRINT block does not take any parameters. Did you forget to close it with a NEXT?"
       goto 9999
     end if
 
@@ -577,7 +577,7 @@ subroutine daten
   case("FLUK") ! Fluka Coupling
 #ifndef FLUKA
     if(openBlock) then
-      write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the FLUKA flag."
+      write(lerr,"(a)") "INPUT> ERROR SixTrack was not compiled with the FLUKA flag."
       goto 9999
     else
       continue
@@ -658,12 +658,12 @@ subroutine daten
     end if
 
   case("CORR") ! Tuneshift Corrections
-    write(lout,"(a)") "INPUT> ERROR CORR module has been removed."
+    write(lerr,"(a)") "INPUT> ERROR CORR module has been removed."
     goto 9999
 
   case("RIPP") ! Power Supply Ripple Block
-    write(lout,"(a)") "INPUT> ERROR RIPP module has been removed and replaced by DYNK."
-    write(lout,"(a)") "INPUT>       The script rippconvert.py in the pytools folder can be used to convert the fort.3 file."
+    write(lerr,"(a)") "INPUT> ERROR RIPP module has been removed and replaced by DYNK."
+    write(lerr,"(a)") "INPUT>       The script rippconvert.py in the pytools folder can be used to convert the fort.3 file."
     goto 9999
 
   case("LIMI") ! Aperture Limitations
@@ -678,16 +678,16 @@ subroutine daten
 
   case("COLL") ! Collimation Block
 #ifdef CR
-    write(lout,"(a)") "INPUT> ERROR Collimation incompatible with checkpoint/restart (CR)"
+    write(lerr,"(a)") "INPUT> ERROR Collimation incompatible with checkpoint/restart (CR)"
     goto 9999
 #endif
     if(openBlock) then
       ! If a collimation block is present, even disabled, allocate the storage.
       ! This mimmics the old compiler flag.
       if(ilin /= 1) then
-        write(lout,"(a)") "INPUT> ERROR Incompatible flag with collimation version detected in the LINEAR OPTICS block."
-        write(lout,"(a)") "INPUT>       You have not chosen ilin=1 (4D mode), which is required for the collimation version."
-        write(lout,"(a)") "INPUT>       Note that the ilin=2 (6D mode) is not compatible with the collimation version."
+        write(lerr,"(a)") "INPUT> ERROR Incompatible flag with collimation version detected in the LINEAR OPTICS block."
+        write(lerr,"(a)") "INPUT>       You have not chosen ilin=1 (4D mode), which is required for the collimation version."
+        write(lerr,"(a)") "INPUT>       Note that the ilin=2 (6D mode) is not compatible with the collimation version."
         goto 9999
       end if
     elseif(closeBlock) then
@@ -762,7 +762,7 @@ subroutine daten
 
   case("PYTH") ! PYTHIA Input Block
 #ifndef PYTHIA
-    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the PYTHIA flag."
+    write(lerr,"(a)") "INPUT> ERROR SixTrack was not compiled with the PYTHIA flag."
     goto 9999
 #else
     if(openBlock) then
@@ -777,7 +777,7 @@ subroutine daten
 
   case("HDF5") ! HDF5 Input Block
 #ifndef HDF5
-    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the HDF5 flag."
+    write(lerr,"(a)") "INPUT> ERROR SixTrack was not compiled with the HDF5 flag."
     goto 9999
 #else
     if(openBlock) then
@@ -792,7 +792,7 @@ subroutine daten
 
   case("HASH") ! HASH Library
 #ifndef HASHLIB
-    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the HASHLIB flag."
+    write(lerr,"(a)") "INPUT> ERROR SixTrack was not compiled with the HASHLIB flag."
     goto 9999
 #else
     if(openBlock) then
@@ -807,7 +807,7 @@ subroutine daten
 
   case("ROOT") ! ROOT Input Block
 #ifndef ROOT
-    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the ROOT flag."
+    write(lerr,"(a)") "INPUT> ERROR SixTrack was not compiled with the ROOT flag."
     goto 9999
 #else
   if(openBlock) then
@@ -821,7 +821,7 @@ subroutine daten
 #endif
 
   case default ! Unknown Block, Time to Panic
-    write(lout,"(a)") "INPUT> ERROR Unknown block '"//currBlock//"' encountered. Check your input file."
+    write(lerr,"(a)") "INPUT> ERROR Unknown block '"//currBlock//"' encountered. Check your input file."
     goto 9999
 
   end select
@@ -857,7 +857,7 @@ subroutine daten
 
   if(napx >= 1) then
     if(e0 < pieni .or. e0 < pma) then
-      write(lout,"(a)") "ENDE> ERROR Kinetic energy of the particle is less or equal to zero."
+      write(lerr,"(a)") "ENDE> ERROR Kinetic energy of the particle is less or equal to zero."
       call prror
     end if
 
@@ -881,17 +881,17 @@ subroutine daten
     !Check for incompatible flags
     if (ipos == 1) then
       if (do_coll) then
-        write(lout,'(a)') "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
+        write(lerr,'(a)') "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
         call prror(-1)
       endif
 
       if (scatter_active) then
-        write(lout,'(a)') "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
+        write(lerr,'(a)') "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
         call prror(-1)
       endif
 #ifdef FLUKA
       if (fluka_enable) then
-        write(lout,'(a)') "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
+        write(lerr,'(a)') "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
         call prror(-1)
       endif
 #endif
@@ -921,7 +921,7 @@ subroutine daten
   else
     do j=1,il
       if(parbe(j,2) > real(mbea,fPrec)) then
-        write(lout,"(3(a,i5))") "ENDE> ERROR Requested ",int(parbe(j,2))," slices for 6D beam-beam element"//&
+        write(lerr,"(3(a,i5))") "ENDE> ERROR Requested ",int(parbe(j,2))," slices for 6D beam-beam element"//&
           " #",j," named '"//trim(bez(j))//"', maximum is mbea = ",mbea
         parbe(j,2) = real(mbea,fPrec)
         call prror(-1) ! Treat this warning as an error
@@ -1185,33 +1185,33 @@ subroutine daten
 ! ================================================================================================ !
 
 9997 continue
-  write(lout,"(a)") "INPUT> ERROR Header could not be read from fort.3"
+  write(lerr,"(a)") "INPUT> ERROR Header could not be read from fort.3"
   call prror
   return
 
 9998 continue
-  write(lout,"(a,i0,a)") "INPUT> ERROR fort.",nUnit," is missing or empty, or end was reached without an ENDE flag."
+  write(lerr,"(a,i0,a)") "INPUT> ERROR fort.",nUnit," is missing or empty, or end was reached without an ENDE flag."
   call prror
   return
 
 9999 continue
   if(nUnit == 2) then
-    write(lout,"(a)")      ""
-    write(lout,"(a)")      " ERROR in fort.2"
-    write(lout,"(a,i0,a)") " Line ",lineNo2,": '"//trim(adjustl(inLine))//"'"
+    write(lerr,"(a)")      ""
+    write(lerr,"(a)")      " ERROR in fort.2"
+    write(lerr,"(a,i0,a)") " Line ",lineNo2,": '"//trim(adjustl(inLine))//"'"
   else
-    write(lout,"(a)")      ""
-    write(lout,"(a,i0)")   " ERROR in fort.3 on line ",lineNo3
-    write(lout,"(a)")      "========O"//repeat("=",91)
+    write(lerr,"(a)")      ""
+    write(lerr,"(a,i0)")   " ERROR in fort.3 on line ",lineNo3
+    write(lerr,"(a)")      "========O"//repeat("=",91)
     do i=1,5
       if(lineNo3-5+i <= 0) cycle
       if(i == 5) then
-        write(lout,"(a,i5,a)") ">>",lineNo3-5+i," | "//trim(pLines(i))
+        write(lerr,"(a,i5,a)") ">>",lineNo3-5+i," | "//trim(pLines(i))
       else
-        write(lout,"(a,i5,a)") "  ",lineNo3-5+i," | "//trim(pLines(i))
+        write(lerr,"(a,i5,a)") "  ",lineNo3-5+i," | "//trim(pLines(i))
       end if
     end do
-    write(lout,"(a)")      "========O"//repeat("=",91)
+    write(lerr,"(a)")      "========O"//repeat("=",91)
   end if
   call prror
   return
@@ -1850,7 +1850,7 @@ subroutine initialize_element(ix,lfirst)
               if(sfac2 < zero) sfac2s = -one
               sfac3 = sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))
               if(sfac3 > sfac1) then
-                write(lout,"(a)") "BEAMBEAM> ERROR 6D beam-beam with tilt not possible."
+                write(lerr,"(a)") "BEAMBEAM> ERROR 6D beam-beam with tilt not possible."
                 call prror
               end if
               sfac4 = (sfac2s*sfac2)/sfac3
@@ -1870,7 +1870,7 @@ subroutine initialize_element(ix,lfirst)
             nbeaux(imbb(i)) = 0
             if(sigman(1,imbb(i)) == sigman(2,imbb(i))) then
               if(nbeaux(imbb(i)) == 2 .or. nbeaux(imbb(i)) == 3) then
-                write(lout,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
+                write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
                   "round or elliptical for all particles"
                 call prror
               else
@@ -1882,7 +1882,7 @@ subroutine initialize_element(ix,lfirst)
             ! Elliptic beam x>z
             if(sigman(1,imbb(i)) > sigman(2,imbb(i))) then
               if(nbeaux(imbb(i)) == 1 .or. nbeaux(imbb(i)) == 3) then
-                write(lout,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
+                write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
                   "round or elliptical for all particles"
                 call prror
               else
@@ -1898,7 +1898,7 @@ subroutine initialize_element(ix,lfirst)
             ! Elliptic beam z>x
             if(sigman(1,imbb(i)) < sigman(2,imbb(i))) then
               if(nbeaux(imbb(i)) == 1 .or. nbeaux(imbb(i)) == 2) then
-                write(lout,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
+                write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
                   "round or elliptical for all particles"
                 call prror
               else
@@ -2029,7 +2029,7 @@ subroutine initialize_element(ix,lfirst)
 
   ! Error handlers
 100 continue
-  write(lout,"(a,i0)") "INITELEM> ERROR Tried to set the strength of an element which is disabled. bez = ", bez(ix)
+  write(lerr,"(a,i0)") "INITELEM> ERROR Tried to set the strength of an element which is disabled. bez = ", bez(ix)
   call prror
 
 end subroutine initialize_element
@@ -2946,7 +2946,7 @@ subroutine chroma
           do 30 l=1,2
             isl=is(l)
             if(kz(isl).ne.3) then
-              write(lout,"(a)") "CHROMA> ERROR Element specified for chromaticity correction is not a sextupole."
+              write(lerr,"(a)") "CHROMA> ERROR Element specified for chromaticity correction is not a sextupole."
               call prror(-1)
             end if
             ed(isl)=ed(isl)+dsm(l,ii)
@@ -2956,12 +2956,12 @@ subroutine chroma
             dpp=de2*real(3-n,fPrec)                                            !hr06
             call clorb(dpp)
             if(ierro.gt.0) then
-              write(lout,"(a)") "CHROMA> ERROR Unstable closed orbit during chromaticity correction."
+              write(lerr,"(a)") "CHROMA> ERROR Unstable closed orbit during chromaticity correction."
               call prror(-1)
             end if
             call phasad(dpp,qwc)
             if(ierro.gt.0) then
-              write(lout,"(a)") "CHROMA> ERROR No optical solution during chromaticity correction."
+              write(lerr,"(a)") "CHROMA> ERROR No optical solution during chromaticity correction."
               call prror(-1)
             end if
             ox=qwc(1)
@@ -3268,7 +3268,7 @@ subroutine clorb2(dpp)
       call umlauf(dpp,1,ierr)
       ierro=ierr
       if(ierro /= 0) then
-        write(lout,"(a)") "CLORB> ERROR No convergence in rmod."
+        write(lerr,"(a)") "CLORB> ERROR No convergence in rmod."
         call prror(-1)
       end if
 
@@ -3290,7 +3290,7 @@ subroutine clorb2(dpp)
         call matrix(dpp,am)
 
         if(ierro /= 0) then
-          write(lout,"(a)") "CLORB> ERROR No convergence in rmod."
+          write(lerr,"(a)") "CLORB> ERROR No convergence in rmod."
           call prror(-1)
         end if
 
@@ -3335,7 +3335,7 @@ subroutine combel(iql)
           ico=icomb(j,m)
           if(ico.eq.0) goto 10
           if(kz(ico0).ne.kz(ico)) then
-            write(lout,"(a)") "COMBEL> ERROR Elements of different types are combined in data block combination of elements."
+            write(lerr,"(a)") "COMBEL> ERROR Elements of different types are combined in data block combination of elements."
             call prror(-1)
           end if
           if(abs(el(ico0)).gt.pieni) then
@@ -3963,7 +3963,7 @@ subroutine linopt(dpp)
       call phasad(dpp,qwc)
 
       if(ierro /= 0) then
-        write(lout,"(a)") "LINOPT> ERROR No optical solution."
+        write(lerr,"(a)") "LINOPT> ERROR No optical solution."
         call prror(-1)
       end if
       if(ncorru.eq.0) write(lout,10040) dpp,qwc(1),qwc(2)
@@ -4042,7 +4042,7 @@ subroutine linopt(dpp)
 !c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
 !c$$$            endif
 
-            write(lout,"(a)") "LINOPT> ERROR In block '"//trim(bezb(ix))//"': found a thick non-drift element '"//&
+            write(lerr,"(a)") "LINOPT> ERROR In block '"//trim(bezb(ix))//"': found a thick non-drift element '"//&
               trim(bez(jk))//"' while ithick=1. This should not be possible!"
             call prror(-1)
             cycle STRUCTLOOP
@@ -5167,8 +5167,8 @@ subroutine corrorb
 
       call clorb(ded)
       if(ierro.gt.0) then
-        write(lout,"(a)") "CLORB> ERROR Unstable closed orbit during initial dispersion calculation."
-        write(lout,"(a)") "CLORB>       Instability occurred for small relative energy deviation."
+        write(lerr,"(a)") "CLORB> ERROR Unstable closed orbit during initial dispersion calculation."
+        write(lerr,"(a)") "CLORB>       Instability occurred for small relative energy deviation."
         call prror(-1)
       end if
 
@@ -5179,7 +5179,7 @@ subroutine corrorb
 
       call clorb(zero)
       if(ierro.gt.0) then
-        write(lout,"(a)") "CLORB> ERROR Unstable closed orbit for zero energy deviation."
+        write(lerr,"(a)") "CLORB> ERROR Unstable closed orbit for zero energy deviation."
         call prror(-1)
       end if
 
@@ -5204,7 +5204,7 @@ subroutine corrorb
       write(lout,10000)
 
       if(ncorru == 0) then
-        write(lout,"(a)") "CLORB> ERROR Number of orbit correctors is zero."
+        write(lerr,"(a)") "CLORB> ERROR Number of orbit correctors is zero."
         call prror(-1)
       else
         if(ncorrep.le.0) then
@@ -5754,9 +5754,8 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
           h=rho(j)-(a(k,j))*(a(k,j))
 
           if(h.lt.c1m7) then
-            write(lout,"(a)")    ""
-            write(lout,"(a)")    "HTLS> ERROR Correction process aborted. Division by zero expected."
-            write(lout,"(a,i0)") "HTLS>       Probably two correctors too close. Suspected corrector: ",j
+            write(lerr,"(a)")    "HTLS> ERROR Correction process aborted. Division by zero expected."
+            write(lerr,"(a,i0)") "HTLS>       Probably two correctors too close. Suspected corrector: ",j
             call prror
           endif
 
@@ -6052,7 +6051,7 @@ subroutine ord
         izu=izu+3
         if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
         if(izu > nran) then
-          write(lout,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
+          write(lerr,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
           call prror(-1)
         end if
         if(izu > nzfz) then
@@ -6065,7 +6064,7 @@ subroutine ord
           if(bez(j).eq.bezr(1,i)) then
             jra(i,1)=j
             if(kz(j) == 0 .or. kz(j) == 20 .or. kz(j) == 22) then
-              write(lout,"(a)") "ORD> ERROR Elements that need random numbers have a kz not equal to 0, 20 or 22."
+              write(lerr,"(a)") "ORD> ERROR Elements that need random numbers have a kz not equal to 0, 20 or 22."
               call prror(-1)
             end if
             jra(i,2)=kz(j)
@@ -6073,7 +6072,7 @@ subroutine ord
           if(bez(j).eq.bezr(2,i)) then
             jra(i,3)=j
             if(kz(j) == 0 .or. kz(j) == 20 .or. kz(j) == 22) then
-              write(lout,"(a)") "ORD> ERROR Elements that need random numbers have a kz not equal to 0, 20 or 22."
+              write(lerr,"(a)") "ORD> ERROR Elements that need random numbers have a kz not equal to 0, 20 or 22."
               call prror(-1)
             end if
             jra(i,4)=kz(j)
@@ -6090,7 +6089,7 @@ subroutine ord
           end if
         endif
         if(kzz1 == 11 .and. (kzz2 /= 11 .and. kzz2 /= 0)) then
-          write(lout,"(a)") "ORD> ERROR To use the same random numbers for 2 elements, the inserted element "//&
+          write(lerr,"(a)") "ORD> ERROR To use the same random numbers for 2 elements, the inserted element "//&
             "must not need more of such numbers than the reference element."
           call prror(-1)
         end if
@@ -6116,7 +6115,7 @@ subroutine ord
         else
           inz(j)=inz(j)+1
           if(inz(j) > mran) then
-            write(lout,"(a,i0,a)") "ORD> ERROR Not more than ",mran," of each type of inserted elements can be used."
+            write(lerr,"(a,i0,a)") "ORD> ERROR Not more than ",mran," of each type of inserted elements can be used."
             call prror(-1)
           end if
           ! map position of errors for present element in lattice structure
@@ -6132,7 +6131,7 @@ subroutine ord
         izu=izu+3
         if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
         if(izu > nran) then
-          write(lout,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
+          write(lerr,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
           call prror(-1)
         end if
       end do
@@ -6151,7 +6150,7 @@ subroutine ord
       if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
       ! why just checking? shouldn't we map on mzu(i)?
       if(izu > nran) then
-        write(lout,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
+        write(lerr,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
         call prror(-1)
       end if
       if(izu > nzfz) then
@@ -6272,7 +6271,7 @@ subroutine phasad(dpp,qwc)
       call clorb(dpp)
       call betalf(dpp,qw)
       if(ierro /= 0) then
-        write(lout,"(a)") "PHASAD> ERROR No optical solution."
+        write(lerr,"(a)") "PHASAD> ERROR No optical solution."
         call prror(-1)
       end if
       call envar(dpp)
@@ -6753,7 +6752,7 @@ subroutine qmod0
       iq1=iq(1)
       iq2=iq(2)
       if(kz(iq1).ne.2.or.kz(iq2).ne.2) then
-        write(lout,"(a)") "QMOD> ERROR Element is not a quadrupole."
+        write(lerr,"(a)") "QMOD> ERROR Element is not a quadrupole."
         call prror(-1)
       end if
 
@@ -6773,7 +6772,7 @@ subroutine qmod0
       if(abs(qw0(3)).gt.pieni) then
         iq3=iq(3)
         if(kz(iq3).ne.2) then
-          write(lout,"(a)") "QMOD> ERROR Element is not a quadrupole."
+          write(lerr,"(a)") "QMOD> ERROR Element is not a quadrupole."
           call prror(-1)
         end if
         if (abs(el(iq3)).le.pieni) then
@@ -6789,7 +6788,7 @@ subroutine qmod0
 
       call clorb(dpp)
       if(ierro.gt.0) then
-        write(lout,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
+        write(lerr,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
         call prror(-1)
       end if
       call phasad(dpp,qwc)
@@ -6815,7 +6814,7 @@ subroutine qmod0
           if(kp(iql).eq.5) call combel(iql)
           call clorb(dpp)
           if(ierro.gt.0) then
-            write(lout,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
+            write(lerr,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
             call prror(-1)
           end if
           call phasad(dpp,qwc)
@@ -6869,7 +6868,7 @@ subroutine qmod0
           call loesd(aa1,bb,nite,nite,ierr)
         endif
         if(ierr == 1) then
-          write(lout,"(a)") "QMOD> ERROR Problems during matrix-inversion."
+          write(lerr,"(a)") "QMOD> ERROR Problems during matrix-inversion."
           call prror(-1)
         end if
         do 50 l=1,nite
@@ -6883,7 +6882,7 @@ subroutine qmod0
    50   continue
         call clorb(dpp)
         if(ierro.gt.0) then
-          write(lout,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
+          write(lerr,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
           call prror(-1)
         end if
         call phasad(dpp,qwc)
@@ -7713,7 +7712,7 @@ subroutine resex(dpp)
       call betalf(dpp,qw)
 
       if(ierro /= 0) then
-        write(lout,"(a)") "RESEX> ERROR No optical solution."
+        write(lerr,"(a)") "RESEX> ERROR No optical solution."
         call prror(-1)
       end if
       call envar(dpp)
@@ -8567,7 +8566,7 @@ subroutine rmod(dppr)
   160   continue
         call loesd(aa,bb,j2,10,ierr)
         if(ierr == 1) then
-          write(lout,"(a)") "RMOD> ERROR Problems during matrix-inversion."
+          write(lerr,"(a)") "RMOD> ERROR Problems during matrix-inversion."
           call prror(-1)
         end if
         do 170 i=1,j2
@@ -8953,7 +8952,7 @@ subroutine subre(dpp)
         call betalf(dpp,qw)
         call phasad(dpp,qwc)
         if(ierro /= 0) then
-          write(lout,"(a)") "SUBRE> ERROR No optical solution."
+          write(lerr,"(a)") "SUBRE> ERROR No optical solution."
           call prror(-1)
         end if
         write(lout,10070) dpp,qwc(1),qwc(2)
@@ -9926,7 +9925,7 @@ subroutine subsea(dpp)
       call clorb2(dpp)
       call betalf(dpp,qw)
       if(ierro /= 0) then
-        write(lout,"(a)") "SUBSEA> ERROR No optical solution."
+        write(lerr,"(a)") "SUBSEA> ERROR No optical solution."
         call prror(-1)
       end if
       call envar(dpp)
@@ -10681,7 +10680,7 @@ subroutine decoup
           call loesd(aa,bb,4,4,ierr)
         endif
         if(ierr == 1) then
-          write(lout,"(a)") "DECOUP> ERROR Problems during matrix-inversion."
+          write(lerr,"(a)") "DECOUP> ERROR Problems during matrix-inversion."
           call prror(-1)
         end if
         do 50 i=1,6

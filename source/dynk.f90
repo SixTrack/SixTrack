@@ -159,7 +159,7 @@ subroutine dynk_parseInputLine(inLine,iErr)
 
   call chr_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
-    write(lout,"(a)") "DYNK> ERROR Failed to parse input line."
+    write(lerr,"(a)") "DYNK> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -195,7 +195,7 @@ subroutine dynk_parseInputLine(inLine,iErr)
     call dynk_parseSET(inLine,iErr)
 
   case default
-    write(lout,"(a)") "DYNK> ERROR Unrecognised statement '"//trim(lnSplit(1))//"'."
+    write(lerr,"(a)") "DYNK> ERROR Unrecognised statement '"//trim(lnSplit(1))//"'."
     iErr = .true.
     return
 
@@ -240,13 +240,13 @@ subroutine dynk_parseFUN(inLine, iErr)
 
   call chr_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
-    write(lout,"(a)") "DYNK> ERROR Failed to parse input line."
+    write(lerr,"(a)") "DYNK> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
 
   if(len_trim(lnSplit(2)) > 20) then
-    write(lout,"(a,i0)") "DYNK> ERROR Max length of a FUN name is 20, got ",len_trim(lnSplit(2))
+    write(lerr,"(a,i0)") "DYNK> ERROR Max length of a FUN name is 20, got ",len_trim(lnSplit(2))
     iErr = .true.
     return
   end if
@@ -276,12 +276,12 @@ subroutine dynk_parseFUN(inLine, iErr)
 
     ! Sanity checks, length of BEZ elements
     if(len_trim(lnSplit(4)) > mNameLen) then
-      write (lout,"(2(a,i0))") "DYNK> ERROR FUN:GET got an element name with length ",len_trim(lnSplit(4)),&
+      write (lerr,"(2(a,i0))") "DYNK> ERROR FUN:GET got an element name with length ",len_trim(lnSplit(4)),&
         ", but max is ", mNameLen
       call prror
     end if
     if(len_trim(lnSplit(5)) > mStrLen-1) then
-      write (lout,"(2(a,i0))") "DYNK> ERROR FUN:GET got an attribute name with length ",len_trim(lnSplit(5)),&
+      write (lerr,"(2(a,i0))") "DYNK> ERROR FUN:GET got an attribute name with length ",len_trim(lnSplit(5)),&
         ", but max is ",mStrLen-1
       call prror
     end if
@@ -322,14 +322,14 @@ subroutine dynk_parseFUN(inLine, iErr)
     ! Open the file
     inquire(unit=dynk_fileUnitFUN,opened=isOpen)
     if(isOpen) then
-      write(lout,"(a)") "DYNK> ERROR FUN:FILE ould not open file '"//trim(dynk_cData(dynk_ncData))//"'"
+      write(lerr,"(a)") "DYNK> ERROR FUN:FILE ould not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
     end if
 
     call f_open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
     if(fErr) then
-      write(lout,"(a)") "DYNK> ERROR FUN:FILE ould not open file '"//trim(dynk_cData(dynk_ncData))//"'"
+      write(lerr,"(a)") "DYNK> ERROR FUN:FILE ould not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
     end if
@@ -351,12 +351,12 @@ subroutine dynk_parseFUN(inLine, iErr)
 
       call chr_split(fLine,lnFile,nFile,spErr)
       if(spErr) then
-        write(lout,"(a)") "DYNK> ERROR FUN:FILE Failed to parse input line."
+        write(lerr,"(a)") "DYNK> ERROR FUN:FILE Failed to parse input line."
         iErr = .true.
         return
       end if
       if(nFile /= 2) then
-        write(lout,"(a,i0)") "DYNK> ERROR FUN:FILE Expected two values per line, got ",nFile
+        write(lerr,"(a,i0)") "DYNK> ERROR FUN:FILE Expected two values per line, got ",nFile
         iErr = .true.
         return
       end if
@@ -366,8 +366,8 @@ subroutine dynk_parseFUN(inLine, iErr)
 
       ii = ii+1
       if(t /= ii) then
-        write(lout,"(a)")       "DYNK> ERROR FUN:FILE Reading file '"//trim(dynk_cData(dynk_ncData))//"'"
-        write(lout,"(2(a,i0))") "DYNK>       Missing turn number ",ii,", got turn ",t
+        write(lerr,"(a)")       "DYNK> ERROR FUN:FILE Reading file '"//trim(dynk_cData(dynk_ncData))//"'"
+        write(lerr,"(2(a,i0))") "DYNK>       Missing turn number ",ii,", got turn ",t
         iErr = .true.
         return
       end if
@@ -407,14 +407,14 @@ subroutine dynk_parseFUN(inLine, iErr)
     ! Open the file
     inquire(unit=dynk_fileUnitFUN, opened=isOpen)
     if(isOpen) then
-      write(lout,"(a)") "DYNK> ERROR FUN:FILELIN Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
+      write(lerr,"(a)") "DYNK> ERROR FUN:FILELIN Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
     end if
 
     call f_open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
     if(fErr) then
-      write(lout,"(a)") "DYNK> ERROR FUN:FILELIN Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
+      write(lerr,"(a)") "DYNK> ERROR FUN:FILELIN Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
     end if
@@ -427,12 +427,12 @@ subroutine dynk_parseFUN(inLine, iErr)
 
       call chr_split(fLine,lnFile,nFile,spErr)
       if(spErr) then
-        write(lout,"(a)") "DYNK> ERROR FUN:FILELIN Failed to parse input line."
+        write(lerr,"(a)") "DYNK> ERROR FUN:FILELIN Failed to parse input line."
         iErr = .true.
         return
       end if
       if(nFile /= 2) then
-        write(lout,"(a,i0)") "DYNK> ERROR FUN:FILELIN Expected two values per line, got ",nFIle
+        write(lerr,"(a,i0)") "DYNK> ERROR FUN:FILELIN Expected two values per line, got ",nFIle
         iErr = .true.
         return
       end if
@@ -441,8 +441,8 @@ subroutine dynk_parseFUN(inLine, iErr)
       call chr_cast(lnFile(2),y,cErr)
 
       if(ii > 0 .and. x <= x2) then ! Insane: Decreasing x
-        write(lout,"(a)") "DYNK> ERROR FUN:FILELIN Reading file '"//trim(dynk_cData(dynk_ncData))//"'"
-        write(lout,"(a)") "DYNK>       x values must be in increasing order"
+        write(lerr,"(a)") "DYNK> ERROR FUN:FILELIN Reading file '"//trim(dynk_cData(dynk_ncData))//"'"
+        write(lerr,"(a)") "DYNK>       x values must be in increasing order"
         iErr = .true.
         return
       end if
@@ -459,8 +459,8 @@ subroutine dynk_parseFUN(inLine, iErr)
       read(dynk_fileUnitFUN,"(a)",iostat=ioStat) fLine
       if(ioStat /= 0) then ! EOF
         if(ii /= t) then
-          write(lout,"(a)")       "DYNK> ERROR FUN:FILELIN Unexpected when reading file '"//trim(dynk_cData(dynk_ncData))//"'"
-          write(lout,"(2(a,i0))") "DYNK>       ii = ",ii,", t = ",t
+          write(lerr,"(a)")       "DYNK> ERROR FUN:FILELIN Unexpected when reading file '"//trim(dynk_cData(dynk_ncData))//"'"
+          write(lerr,"(2(a,i0))") "DYNK>       ii = ",ii,", t = ",t
           iErr = .true.
           return
         end if
@@ -469,12 +469,12 @@ subroutine dynk_parseFUN(inLine, iErr)
 
       call chr_split(fLine,lnFile,nFile,spErr)
       if(spErr) then
-        write(lout,"(a)") "DYNK> ERROR FUN:FILELIN Failed to parse input line."
+        write(lerr,"(a)") "DYNK> ERROR FUN:FILELIN Failed to parse input line."
         iErr = .true.
         return
       end if
       if(nFile /= 2) then
-        write(lout,"(a,i0)") "DYNK> ERROR FUN:FILELIN Expected two values per line, got ",nFIle
+        write(lerr,"(a,i0)") "DYNK> ERROR FUN:FILELIN Expected two values per line, got ",nFIle
         iErr = .true.
         return
       end if
@@ -504,7 +504,7 @@ subroutine dynk_parseFUN(inLine, iErr)
     call dynk_checkspace(1,0,4)
 
 #ifdef CR
-    write(lout,"(a)") "DYNK> ERROR FUN PIPE not supported in CR version."
+    write(lerr,"(a)") "DYNK> ERROR FUN PIPE not supported in CR version."
     iErr = .true.
     return
 #endif
@@ -522,7 +522,7 @@ subroutine dynk_parseFUN(inLine, iErr)
 
     ! Sanity checks
     if(len(lnSplit(4)) > mStrLen-1 .or. len(lnSplit(5)) > mStrLen-1 .or. len(lnSplit(6)) > mStrLen-1 ) then
-      write(lout,"(a,i0)") "DYNK> ERROR FUN:PIPE got one or more strings which is too long. Max length is ",mStrLen-1
+      write(lerr,"(a,i0)") "DYNK> ERROR FUN:PIPE got one or more strings which is too long. Max length is ",mStrLen-1
       iErr = .true.
       return
     end if
@@ -553,13 +553,13 @@ subroutine dynk_parseFUN(inLine, iErr)
               "' using same settings as previously defined FUN '"//trim(dynk_cData(dynk_funcs(ii,1)))// &
               "' -> reusing files"
             if(dynk_cData(dynk_funcs(ii,1)+3) == dynk_cData(dynk_ncData)) then ! ID
-              write(lout,"(a)") "DYNK> ERROR FUN:PIPE IDs must be different when sharing PIPEs."
+              write(lerr,"(a)") "DYNK> ERROR FUN:PIPE IDs must be different when sharing PIPEs."
               iErr = .true.
               return
             end if
             exit ! Break loop
           else ! Partial match
-            write(lout,"(a)") "DYNK> ERROR FUN:PIPE Partial match of inPipe/outPipe between '"// &
+            write(lerr,"(a)") "DYNK> ERROR FUN:PIPE Partial match of inPipe/outPipe between '"// &
               trim(dynk_cData(dynk_funcs(dynk_nFuncs,1)))//"' and '"//trim(dynk_cData(dynk_funcs(ii,1)))//"'"
               iErr = .true.
               return
@@ -577,7 +577,7 @@ subroutine dynk_parseFUN(inLine, iErr)
 
       inquire(unit=dynk_iData(dynk_niData), opened=isOpen)
       if(isOpen) then
-        write(lout,"(a)")"DYNK> ERROR FUN:PIPE File '"//trim(dynk_cData(dynk_ncData-2))//"' is already open"
+        write(lerr,"(a)")"DYNK> ERROR FUN:PIPE File '"//trim(dynk_cData(dynk_ncData-2))//"' is already open"
         iErr = .true.
         return
       end if
@@ -585,7 +585,7 @@ subroutine dynk_parseFUN(inLine, iErr)
       ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
       open(unit=dynk_iData(dynk_niData),file=dynk_cData(dynk_ncData-2),action="read",iostat=ioStat,status="old")
       if(ioStat /= 0) then
-        write(lout,"(a,i0)") "DYNK> ERROR FUN:PIPE Could not open file '"//trim(dynk_cData(dynk_ncData-2))//"' stat = ",ioStat
+        write(lerr,"(a,i0)") "DYNK> ERROR FUN:PIPE Could not open file '"//trim(dynk_cData(dynk_ncData-2))//"' stat = ",ioStat
         iErr = .true.
         return
       end if
@@ -598,7 +598,7 @@ subroutine dynk_parseFUN(inLine, iErr)
 
       inquire(unit=dynk_iData(dynk_niData+1), opened=isOpen)
       if(isOpen) then
-        write(lout,"(a)")"DYNK> ERROR FUN:PIPE File '"//trim(dynk_cData(dynk_ncData-1))//"' is already open"
+        write(lerr,"(a)")"DYNK> ERROR FUN:PIPE File '"//trim(dynk_cData(dynk_ncData-1))//"' is already open"
         iErr = .true.
         return
       end if
@@ -606,7 +606,7 @@ subroutine dynk_parseFUN(inLine, iErr)
       ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
       open(unit=dynk_iData(dynk_niData+1),file=dynk_cData(dynk_ncData-1),action="write",iostat=ioStat,status="old")
       if(ioStat /= 0) then
-        write(lout,"(a)") "DYNK> ERROR FUN:PIPE Could not open file '"//trim(dynk_cData(dynk_ncData-1))//"' stat = ",ioStat
+        write(lerr,"(a)") "DYNK> ERROR FUN:PIPE Could not open file '"//trim(dynk_cData(dynk_ncData-1))//"' stat = ",ioStat
         iErr = .true.
         return
       end if
@@ -653,7 +653,7 @@ subroutine dynk_parseFUN(inLine, iErr)
 
     if(dynk_iData(dynk_funcs(dynk_nFuncs,3)+2) < 0) then
       ! mcut < 0
-      write (lout,"(a)") "DYNK> ERROR FUN:RANDG mcut must be >= 0"
+      write (lerr,"(a)") "DYNK> ERROR FUN:RANDG mcut must be >= 0"
       iErr = .true.
       return
     end if
@@ -802,17 +802,17 @@ subroutine dynk_parseFUN(inLine, iErr)
     ! Sanity check
     if(dynk_funcs(dynk_nFuncs,5) == -1) then
       call dynk_dumpdata
-      write(lout,"(a)") "DYNK> ERROR FUN:FIR/IIR Requesting function '"//trim(lnSplit(6))//"'. This FUN is unknown."
+      write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Requesting function '"//trim(lnSplit(6))//"'. This FUN is unknown."
       iErr = .true.
       return
     end if
     if(len(lnSplit(5)) > mStrLen-1) then
-      write(lout,"(2(a,i0))") "DYNK> ERROR FUN:FIR/IIR Got a filename name with length = ",len(lnSplit(5))," > ",mStrLen-1
+      write(lerr,"(2(a,i0))") "DYNK> ERROR FUN:FIR/IIR Got a filename name with length = ",len(lnSplit(5))," > ",mStrLen-1
       iErr = .true.
       return
     end if
     if(dynk_funcs(dynk_nFuncs,4) <= 0) then
-      write(lout,"(a)") "DYNK> ERROR FUN:FIR/IIR Got N <= 0, this is not valid."
+      write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Got N <= 0, this is not valid."
       iErr = .true.
       return
     end if
@@ -824,13 +824,13 @@ subroutine dynk_parseFUN(inLine, iErr)
     ! Read the file
     inquire(unit=dynk_fileUnitFUN, opened=isOpen)
     if(isOpen) then
-      write(lout,"(a)") "DYNK> ERROR FUN:FIR/IIR Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
+      write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
     end if
     call f_open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
     if(fErr) then
-      write(lout,"(a,i0)") "DYNK> ERROR FUN:FIR/IIR Could not open file '"//trim(dynk_cData(dynk_ncData))//"', stat = ",ioStat
+      write(lerr,"(a,i0)") "DYNK> ERROR FUN:FIR/IIR Could not open file '"//trim(dynk_cData(dynk_ncData))//"', stat = ",ioStat
       iErr = .true.
       return
     end if
@@ -839,20 +839,20 @@ subroutine dynk_parseFUN(inLine, iErr)
       ! Reading the FIR/IIR file without CRLIBM
       read(dynk_fileUnitFUN,"(a)",iostat=ioStat) fLine
       if(ioStat /= 0) then ! EOF
-        write(lout,"(a)") "DYNK> ERROR FUN:FIR/IIR Unexpected when reading file '"//trim(dynk_cData(dynk_ncData))//"'"
+        write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Unexpected when reading file '"//trim(dynk_cData(dynk_ncData))//"'"
         iErr = .true.
         return
       end if
 
       call chr_split(fLine,lnFile,nFile,spErr)
       if(spErr) then
-        write(lout,"(a)") "DYNK> ERROR FUN:FIR/IIR Failed to parse input line."
+        write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Failed to parse input line."
         iErr = .true.
         return
       end if
       if(isFIR) then
         if(nFile /= 3) then
-          write(lout,"(a,i0)") "DYNK> ERROR FUN:FIR/IIR Expected 3 values per line, got ",nFIle
+          write(lerr,"(a,i0)") "DYNK> ERROR FUN:FIR/IIR Expected 3 values per line, got ",nFIle
           iErr = .true.
           return
         end if
@@ -861,7 +861,7 @@ subroutine dynk_parseFUN(inLine, iErr)
         call chr_cast(lnFile(3),y,cErr)
       else
         if(nFile /= 5) then
-          write(lout,"(a,i0)") "DYNK> ERROR FUN:FIR/IIR Expected 5 values per line, got ",nFIle
+          write(lerr,"(a,i0)") "DYNK> ERROR FUN:FIR/IIR Expected 5 values per line, got ",nFIle
           iErr = .true.
           return
         end if
@@ -874,8 +874,8 @@ subroutine dynk_parseFUN(inLine, iErr)
 
       ! More sanity checks
       if(t /= ii) then
-        write(lout,"(a)")       "DYNK> ERROR FUN:FIR/IIR Reading file '"//trim(dynk_cData(dynk_ncData))//"'"
-        write(lout,"(2(a,i0))") "DYNK> Got line t = ",t,", expected ",ii
+        write(lerr,"(a)")       "DYNK> ERROR FUN:FIR/IIR Reading file '"//trim(dynk_cData(dynk_ncData))//"'"
+        write(lerr,"(2(a,i0))") "DYNK> Got line t = ",t,", expected ",ii
         iErr = .true.
         return
       end if
@@ -934,9 +934,9 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_cData(dynk_ncData) = trim(lnSplit(2)) ! NAME
     ! Sanity check (string lengths are done inside dynk_findFUNindex)
     if(dynk_funcs(dynk_nFuncs,3) == -1 .or. dynk_funcs(dynk_nFuncs,4) == -1) then
-      write(lout,"(a)") "DYNK> ERROR TWO ARG OPERATOR wanting functions '"//trim(lnSplit(4))//"' and '"//trim(lnSplit(5))//"', "
-      write(lout,"(2(a,i0))") "DYNK>       Calculated indices: ",dynk_funcs(dynk_nFuncs,3)," and ",dynk_funcs(dynk_nFuncs,4)
-      write(lout,"(a)") "DYNK>       One or both of these are unknown."
+      write(lerr,"(a)") "DYNK> ERROR TWO ARG OPERATOR wanting functions '"//trim(lnSplit(4))//"' and '"//trim(lnSplit(5))//"', "
+      write(lerr,"(2(a,i0))") "DYNK>       Calculated indices: ",dynk_funcs(dynk_nFuncs,3)," and ",dynk_funcs(dynk_nFuncs,4)
+      write(lerr,"(a)") "DYNK>       One or both of these are unknown."
       call dynk_dumpdata
       iErr = .true.
       return
@@ -983,9 +983,9 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_cData(dynk_ncData) = trim(lnSplit(2)) ! NAME
     ! Sanity check (string lengths are done inside dynk_findFUNindex)
     if(dynk_funcs(dynk_nFuncs,3) == -1) then
-      write(lout,"(a)")    "DYNK> ERROR SINGLE OPERATOR FUNC wanting function '"//trim(lnSplit(4))//"'"
-      write(lout,"(a,i0)") "DYNK>       Calculated index: ",dynk_funcs(dynk_nFuncs,3)
-      write(lout,"(a)")    "DYNK>       This function is unknown."
+      write(lerr,"(a)")    "DYNK> ERROR SINGLE OPERATOR FUNC wanting function '"//trim(lnSplit(4))//"'"
+      write(lerr,"(a,i0)") "DYNK>       Calculated index: ",dynk_funcs(dynk_nFuncs,3)
+      write(lerr,"(a)")    "DYNK>       This function is unknown."
       call dynk_dumpdata
       iErr = .true.
       return
@@ -1097,7 +1097,7 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_nfData = dynk_nfData + 3
 
     if(dynk_fData(dynk_nfData-3) == dynk_fData(dynk_nfData-2)) then
-      write(lout,"(a)") "DYNK> ERROR FUN:LINSEG x1 and x2 must be different."
+      write(lerr,"(a)") "DYNK> ERROR FUN:LINSEG x1 and x2 must be different."
       iErr = .true.
       return
     end if
@@ -1161,7 +1161,7 @@ subroutine dynk_parseFUN(inLine, iErr)
     call chr_cast(lnSplit(8),deriv,cErr)
 
     if(x1 == x2) then
-      write(lout,"(a)") "DYNK> ERROR FUN:QUADSEG x1 and x2 must be different."
+      write(lerr,"(a)") "DYNK> ERROR FUN:QUADSEG x1 and x2 must be different."
       iErr = .true.
       return
     end if
@@ -1286,7 +1286,7 @@ subroutine dynk_parseFUN(inLine, iErr)
     end if
 
     if(.not. (tinj < te .and. te < t1 .and. t1 < td .and. td < tnom)) then
-      write(lout,"(a)") "DYNK> ERROR FUN:PELP Order of times not correct."
+      write(lerr,"(a)") "DYNK> ERROR FUN:PELP Order of times not correct."
       iErr = .true.
       return
     end if
@@ -1340,7 +1340,7 @@ subroutine dynk_parseFUN(inLine, iErr)
     ! Check for bad input
     if(dynk_funcs(dynk_nFuncs,3) < 0 .or. dynk_funcs(dynk_nFuncs,4) <= 1 .or. &
        dynk_funcs(dynk_nFuncs,4) < dynk_funcs(dynk_nFuncs,3)) then
-      write(lout,"(a)") "DYNK> ERROR FUN:ONOFF Expected p1 >= 0, p2 > 1, p1 <= p2"
+      write(lerr,"(a)") "DYNK> ERROR FUN:ONOFF Expected p1 >= 0, p2 > 1, p1 <= p2"
       iErr = .true.
       return
     end if
@@ -1349,7 +1349,7 @@ subroutine dynk_parseFUN(inLine, iErr)
 
   case default
     ! UNKNOWN function
-    write(lout,"(a)") "DYNK> ERROR Unknown function in FUN"
+    write(lerr,"(a)") "DYNK> ERROR Unknown function in FUN"
     iErr = .true.
     return
   end select
@@ -1371,8 +1371,8 @@ subroutine dynk_checkargs(nActual, nExpected, correctSyntax)
   character(len=*), intent(in) :: correctSyntax
 
   if(nActual /= nExpected) then
-    write(lout,"(2(a,i0))") "DYNK> ERROR Function expected ",nExpected," arguments, got ",nActual
-    write(lout,"(a)")       "CYNK>       Correct Syntax: "//correctSyntax
+    write(lerr,"(2(a,i0))") "DYNK> ERROR Function expected ",nExpected," arguments, got ",nActual
+    write(lerr,"(a)")       "DYNK>       Correct Syntax: "//correctSyntax
     call prror
   end if
 
@@ -1450,7 +1450,7 @@ subroutine dynk_parseSET(inLine, iErr)
 
   call chr_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
-    write(lout,"(a)") "DYNK> ERROR Failed to parse input line."
+    write(lerr,"(a)") "DYNK> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -1466,7 +1466,7 @@ subroutine dynk_parseSET(inLine, iErr)
   end if
 
   if(nSplit /= 7) then
-    write(lout,"(a,i0)") "DYNK> ERROR Expected 7 fields on line while parsing SET, got ",nSplit
+    write(lerr,"(a,i0)") "DYNK> ERROR Expected 7 fields on line while parsing SET, got ",nSplit
     iErr = .true.
     return
   end if
@@ -1481,13 +1481,13 @@ subroutine dynk_parseSET(inLine, iErr)
 
   ! Sanity check on string lengths
   if(len_trim(lnSplit(2)) > mNameLen) then
-    write(lout,"(a,i0)") "DYNK> ERROR SET got an element name with length ",len_trim(lnSplit(2)),&
+    write(lerr,"(a,i0)") "DYNK> ERROR SET got an element name with length ",len_trim(lnSplit(2)),&
       ", but max is ",mNameLen
     iErr = .true.
     return
   end if
   if(len_trim(lnSplit(3)) > mStrLen-1) then
-    write(lout,"(a,i0)") "DYNK> ERROR The attribute name '"//trim(lnSplit(3))//"' is too long. Max length is ",mStrLen-1
+    write(lerr,"(a,i0)") "DYNK> ERROR The attribute name '"//trim(lnSplit(3))//"' is too long. Max length is ",mStrLen-1
     iErr = .true.
     return
   end if
@@ -1498,27 +1498,27 @@ subroutine dynk_parseSET(inLine, iErr)
 
   ! Sanity check
   if(dynk_sets(dynk_nSets,1) == -1) then
-    write(lout,"(a)")    "DYNK> ERROR SET wanting function '"//lnSplit(4)//"'"
-    write(lout,"(a,i0)") "DYNK>       Calculated index ",dynk_sets(dynk_nSets,1)
-    write(lout,"(a)")    "DYNK>       This function is not known"
+    write(lerr,"(a)")    "DYNK> ERROR SET wanting function '"//lnSplit(4)//"'"
+    write(lerr,"(a,i0)") "DYNK>       Calculated index ",dynk_sets(dynk_nSets,1)
+    write(lerr,"(a)")    "DYNK>       This function is not known"
     iErr = .true.
     return
   end if
 
   if(dynk_sets(dynk_nSets,3) /= -1 .and. dynk_sets(dynk_nSets,2) > dynk_sets(dynk_nSets,3)) then
-    write(lout,"(a)")    "DYNK> ERROR SET got first turn number > last turn number."
-    write(lout,"(a,i0)") "DYNK>       first = ",dynk_sets(dynk_nSets,2)
-    write(lout,"(a,i0)") "DYNK>       last  = ",dynk_sets(dynk_nSets,3)
-    write(lout,"(a,i0)") "DYNK>       SET #   ",dynk_nSets
+    write(lerr,"(a)")    "DYNK> ERROR SET got first turn number > last turn number."
+    write(lerr,"(a,i0)") "DYNK>       first = ",dynk_sets(dynk_nSets,2)
+    write(lerr,"(a,i0)") "DYNK>       last  = ",dynk_sets(dynk_nSets,3)
+    write(lerr,"(a,i0)") "DYNK>       SET #   ",dynk_nSets
     iErr = .true.
     return
   end if
 
   if(dynk_sets(dynk_nSets,2) <= 0 .or. dynk_sets(dynk_nSets,3) < -1 .or. dynk_sets(dynk_nSets,3) == 0) then
-    write(lout,"(a)") "DYNK> ERROR SET got turn number <= 0 (not last = -1 meaning infinity)"
-    write(lout,"(a,i0)") "DYNK>       first = ",dynk_sets(dynk_nSets,2)
-    write(lout,"(a,i0)") "DYNK>       last  = ",dynk_sets(dynk_nSets,3)
-    write(lout,"(a,i0)") "DYNK>       SET #   ",dynk_nSets
+    write(lerr,"(a)")    "DYNK> ERROR SET got turn number <= 0 (not last = -1 meaning infinity)"
+    write(lerr,"(a,i0)") "DYNK>       first = ",dynk_sets(dynk_nSets,2)
+    write(lerr,"(a,i0)") "DYNK>       last  = ",dynk_sets(dynk_nSets,3)
+    write(lerr,"(a,i0)") "DYNK>       SET #   ",dynk_nSets
     iErr = .true.
     return
   end if
@@ -1621,7 +1621,7 @@ subroutine dynk_inputSanityCheck
   biggestTurn = biggestTurn+1 ! Make sure it is unique
   if(biggestTurn <= 0) then
     ! In case of integer overflow
-    write(lout,"(a)") "DYNK> ERROR Integer overflow in sanity check"
+    write(lerr,"(a)") "DYNK> ERROR Integer overflow in sanity check"
     call prror
   end if
 
@@ -1663,7 +1663,7 @@ subroutine dynk_inputSanityCheck
   end do
 
   if(.not. sane) then
-    write(lout,"(a)") "DYNK> ERROR Input was insane"
+    write(lerr,"(a)") "DYNK> ERROR Input was insane"
     ! call dynk_dumpdata
     call prror
   else if(sane .and. dynk_debug) then
@@ -1761,7 +1761,7 @@ subroutine dynk_pretrack
 
         if(att_name_s == "E0") then
           if(idp == 0 .or. ition == 0) then ! 4d tracking..
-            write(lout,"(a)") "DYNK> ERROR Attribute '"//att_name_s//"' is not valid for 'GLOBAL-VARS' when doing 4d tracking"
+            write(lerr,"(a)") "DYNK> ERROR Attribute '"//att_name_s//"' is not valid for 'GLOBAL-VARS' when doing 4d tracking"
             call prror
           end if
         else
@@ -1769,7 +1769,7 @@ subroutine dynk_pretrack
         end if
 
         if(badelem) then
-          write(lout,"(a)") "DYNK> ERROR Attribute '"//att_name_s//"' is not valid for 'GLOBAL-VARS'"
+          write(lerr,"(a)") "DYNK> ERROR Attribute '"//att_name_s//"' is not valid for 'GLOBAL-VARS'"
           call prror
         end if
       end if
@@ -1790,13 +1790,13 @@ subroutine dynk_pretrack
               badelem = .true.
             end if
             if(kp(jj) /= 6) then
-              write(lout,"(a)") "DYNK> ERROR Want to modify DISABLED RF cavity named '"//element_name_s//"'"
-              write(lout,"(a)") "DYNK>       Please make sure that the voltage and harmonic number in the "//&
+              write(lerr,"(a)") "DYNK> ERROR Want to modify DISABLED RF cavity named '"//element_name_s//"'"
+              write(lerr,"(a)") "DYNK>       Please make sure that the voltage and harmonic number in the "//&
                 "SINGLE ELEMENTS block is not 0!"
               call prror
             end if
             if(nvar == 5) then
-              write(lout,"(a)") "DYNK> ERROR Want to modify RF cavity named '"//element_name_s//"', but nvars=5 (from DIFF block)."
+              write(lerr,"(a)") "DYNK> ERROR Want to modify RF cavity named '"//element_name_s//"', but nvars=5 (from DIFF block)."
             end if
           else if(abs(kz(jj)) == 23 .or. abs(kz(jj)) == 26 .or. abs(kz(jj)) == 27 .or. abs(kz(jj)) == 28) then
             if(.not.(att_name_s == "voltage" .or. att_name_s == "frequency" .or. att_name_s == "phase")) then
@@ -1807,12 +1807,12 @@ subroutine dynk_pretrack
           ! Special case:
           ! Should the error only occur if we actually have a GLOBAL-VARS element?
           if(bez(jj) == "GLOBAL-VARS") then
-            write(lout,"(a)") "DYNK> ERROR Element found 'GLOBAL-VARS' is not a valid element name, it is reserved"
+            write(lerr,"(a)") "DYNK> ERROR Element found 'GLOBAL-VARS' is not a valid element name, it is reserved"
             call prror
           end if
 
           if(badelem) then
-            write(lout,"(a,i0)") "DYNK> ERROR Attribute '"//att_name_s//"' is not valid for element '"//element_name_s//"'"//&
+            write(lerr,"(a,i0)") "DYNK> ERROR Attribute '"//att_name_s//"' is not valid for element '"//element_name_s//"'"//&
               " which is of type ",kz(jj)
             call prror
           end if
@@ -1820,7 +1820,7 @@ subroutine dynk_pretrack
       end do
 
       if(.not. found) then
-        write(lout,"(a)") "DYNK> ERROR Element '",element_name_s,"' was not found"
+        write(lerr,"(a)") "DYNK> ERROR Element '",element_name_s,"' was not found"
         call prror
       end if
     end if
@@ -1895,7 +1895,7 @@ subroutine dynk_apply(turn)
 #endif
       inquire(unit=dynk_fileUnit, opened=isOpen)
       if(isOpen) then
-        write(lout,"(a)") "DYNK> ERROR Could not open file '"//dynk_fileName//"'"
+        write(lerr,"(a)") "DYNK> ERROR Could not open file '"//dynk_fileName//"'"
         call prror
       end if
       call f_open(unit=dynk_fileUnit,file=dynk_fileName,formatted=.true.,mode="w",status="replace")
@@ -2008,8 +2008,8 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
   integer ii,jj ! Loop variable
 
   if(funNum < 1 .or. funNum > dynk_nFuncs) then
-    write(lout,"(a,i0)") "DYNK> ERROR computeFUN: funNum = ",funNum
-    write(lout,"(a,i0)") "DYNK>       Invalid funNum, dynk_nFuncs = ", dynk_nFuncs
+    write(lerr,"(a,i0)") "DYNK> ERROR computeFUN: funNum = ",funNum
+    write(lerr,"(a,i0)") "DYNK>       Invalid funNum, dynk_nFuncs = ", dynk_nFuncs
     if(dynk_debug) call dynk_dumpdata
     call prror
   end if
@@ -2021,13 +2021,13 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
   case(1) ! FILE
     if(turn > dynk_funcs(funNum,5)) then
-      write(lout,"(2(a,i0))")"DYNK> ERROR computeFUN:FILE funNum = ",funNum,"turn = ",turn
-      write(lout,"(a,i0)")   "DYNK>       Turn > length of file = ",dynk_funcs(funNum,5)
+      write(lerr,"(2(a,i0))")"DYNK> ERROR computeFUN:FILE funNum = ",funNum,"turn = ",turn
+      write(lerr,"(a,i0)")   "DYNK>       Turn > length of file = ",dynk_funcs(funNum,5)
       if(dynk_debug) call dynk_dumpdata
       call prror
     else if(turn < 1) then
-      write(lout,"(2(a,i0))")"DYNK> ERROR computeFUN:FILE funNum = ",funNum,"turn = ",turn
-      write(lout,"(a)")      "DYNK>       Turn < 1, check your turn-shift!"
+      write(lerr,"(2(a,i0))")"DYNK> ERROR computeFUN:FILE funNum = ",funNum,"turn = ",turn
+      write(lerr,"(a)")      "DYNK>       Turn < 1, check your turn-shift!"
       if(dynk_debug) call dynk_dumpdata
       call prror
     end if
@@ -2049,17 +2049,17 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
     read(dynk_iData(dynk_funcs(funNum,3)),"(a)",iostat=ioStat) fLine
     if(ioStat /= 0) then
-      write(lout,"(a)") "DYNK> ERROR computeFUN:PIPE Failed to open file."
+      write(lerr,"(a)") "DYNK> ERROR computeFUN:PIPE Failed to open file."
       call prror
     end if
 
     call chr_split(fLine,lnFile,nFile,spErr)
     if(spErr) then
-      write(lout,"(a)") "DYNK> ERROR computeFUN:PIPE Failed to parse input line."
+      write(lerr,"(a)") "DYNK> ERROR computeFUN:PIPE Failed to parse input line."
       call prror
     end if
     if(nFile /= 1) then
-      write(lout,"(a,i0)") "DYNK> ERROR computeFUN:PIPE Expected one values per line, got ",nFIle
+      write(lerr,"(a,i0)") "DYNK> ERROR computeFUN:PIPE Expected one values per line, got ",nFIle
       call prror
     end if
 
@@ -2251,8 +2251,8 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
       end if
 
   case default
-    write(lout,"(2(a,i0))") "DYNK> ERROR computeFUN() funNum = ",funNum," turn = ",turn
-    write(lout,"(a,i0)")    "DYNK>       Unknown function type ",dynk_funcs(funNum,2)
+    write(lerr,"(2(a,i0))") "DYNK> ERROR computeFUN() funNum = ",funNum," turn = ",turn
+    write(lerr,"(a,i0)")    "DYNK>       Unknown function type ",dynk_funcs(funNum,2)
     if(dynk_debug) call dynk_dumpdata
     call prror
 
@@ -2321,7 +2321,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
       el_type=kz(ii)      ! type found
 
       if(ldoubleElement) then ! Sanity check
-        write(lout,"(a)") "DYNK> ERROR Two elements with the same BEZ"
+        write(lerr,"(a)") "DYNK> ERROR Two elements with the same BEZ"
         call prror
       end if
       ldoubleElement = .true.
@@ -2514,7 +2514,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         end if
 
       case default
-        write(lout,"(a,i0,a)") "DYNK> ERROR setValue Unsupported element type ",el_type," element name = '"//trim(element_name)//"'"
+        write(lerr,"(a,i0,a)") "DYNK> ERROR setValue Unsupported element type ",el_type," element name = '"//trim(element_name)//"'"
         call prror
       end select
     end if
@@ -2529,15 +2529,15 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
   ! Error handlers
 100 continue
-  write(lout,"(a,i0)")"DYNK> ERROR setValue Attribute '"//trim(att_name)//"' does not exist for type = ",el_type
+  write(lerr,"(a,i0)")"DYNK> ERROR setValue Attribute '"//trim(att_name)//"' does not exist for type = ",el_type
   call prror
 
 101 continue
-  write(lout,"(a)") "DYNK> ERROR setValue The element named '"//trim(element_name)//"' was not found."
+  write(lerr,"(a)") "DYNK> ERROR setValue The element named '"//trim(element_name)//"' was not found."
   call prror
 
 102 continue
-  write(lout,"(a)") "DYNK> ERROR setValue Only Beam-beam expert mode is supported for DYNK"
+  write(lerr,"(a)") "DYNK> ERROR setValue Only Beam-beam expert mode is supported for DYNK"
   call prror
 
 end subroutine dynk_setvalue
@@ -2588,7 +2588,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
     if(element_name == bez(ii)) then ! name found
       el_type=kz(ii)
       if(ldoubleElement) then
-        write (lout,"(a)") "DYNK> ERROR Two elements with the same BEZ"
+        write(lerr,"(a)") "DYNK> ERROR Two elements with the same BEZ"
         call prror
       end if
       ldoubleElement = .true.
@@ -2774,12 +2774,12 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
 
   ! Error handlers
 100 continue
-  write(lout,"(a,i0,a)") "DYNK> ERROR getValueUnknown attribute '"//trim(att_name)//"'"//&
+  write(lerr,"(a,i0,a)") "DYNK> ERROR getValueUnknown attribute '"//trim(att_name)//"'"//&
     " for type ",el_type," name '"//trim(bez(ii))//"'"
   call prror
 
 102 continue
-  write(lout,"(a)") "DYNK> ERROR  --- Only Beam-beam expert mode is supported for DYNK"
+  write(lerr,"(a)") "DYNK> ERROR Only Beam-beam expert mode is supported for DYNK"
   call prror
 
 end function dynk_getvalue
@@ -2802,12 +2802,12 @@ logical function dynk_isused(i)
 
   ! Sanity check
   if(i > iu .or. i <= 0) then
-    write(lout,"(a,i0,a)") "DYNK> ERROR isused: i=",i," out of range"
+    write(lerr,"(a,i0,a)") "DYNK> ERROR isused: i=",i," out of range"
     call prror
   end if
   ix = ic(i)-nblo
   if(i <= 0) then
-    write(lout,"(a,i0,a)") "DYNK> ERROR isused: ix-nblo = ",ix," is a block?"
+    write(lerr,"(a,i0,a)") "DYNK> ERROR isused: ix-nblo = ",ix," is a block?"
     call prror
   end if
 
@@ -2838,6 +2838,8 @@ end function dynk_isused
 ! =================================================================================================
 subroutine dynk_closeFiles
 
+  use mod_units
+
   implicit none
 
   integer i
@@ -2849,13 +2851,13 @@ subroutine dynk_closeFiles
     if (dynk_funcs(i,2) == 3) then ! PIPE FUN
       ! InPipe
       inquire(unit=dynk_iData(dynk_funcs(i,3)), opened=isOpen)
-      if(isOpen) close(dynk_iData(dynk_funcs(i,3)))
+      if(isOpen) call f_close(dynk_iData(dynk_funcs(i,3)))
 
       ! OutPipe
       inquire(unit=dynk_iData(dynk_funcs(i,3)+1), opened=isOpen)
       if(isOpen) then
         write(dynk_iData(dynk_funcs(i,3))+1,"(a)") "CLOSEUNITS"
-        close(dynk_iData(dynk_funcs(i,3))+1)
+        call f_close(dynk_iData(dynk_funcs(i,3))+1)
       end if
     end if
   end do

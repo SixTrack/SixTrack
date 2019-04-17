@@ -260,7 +260,7 @@ subroutine trauthin(nthinerr)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           if ( dynk_isused(i) ) then
-            write(lout,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
+            write(lerr,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
               "') is off in fort.2, but on in DYNK. Not implemented."
             call prror
           end if
@@ -452,7 +452,7 @@ subroutine trauthin(nthinerr)
       end if
     end do
     if(abs(phas).ge.pieni) then
-      write(lout,"(a)") "TRACKING> ERROR thin6dua no longer supported. Please use DYNK instead."
+      write(lerr,"(a)") "TRACKING> ERROR thin6dua no longer supported. Please use DYNK instead."
       call prror(-1)
     else
       write(lout,"(a)") ""
@@ -676,7 +676,7 @@ subroutine thin4d(nthinerr)
 #endif
 
           if (bdex_enable) then
-              write(lout,"(a)") "BDEX> ERROR BDEX only available for thin6d"
+              write(lerr,"(a)") "BDEX> ERROR BDEX only available for thin6d"
               call prror
           endif
 
@@ -2174,8 +2174,6 @@ subroutine callcrp
 !-----------------------------------------------------------------------
 #ifdef CR
   ncalls=ncalls+1
-  write(91,*,iostat=ierro,err=11) numx,numl
-  rewind 91
   if (restart) then
     write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
       " numx = ",numx,", numlcr = ",numlcr
@@ -2207,8 +2205,8 @@ subroutine callcrp
   if (checkp) call crpoint
 #endif
   return
-11 write(lout,"(a,i0)") "CALLCRP> ERROR Problems writing to file #91, ierro= ",ierro
-  ! write(lout,"(a)")'SIXTRACR WRITEBIN IO ERROR on Unit 91'
+11 write(lerr,"(a,i0)") "CALLCRP> ERROR Problems writing to file #91, ierro= ",ierro
+  ! write(lerr,"(a)")'SIXTRACR WRITEBIN IO ERROR on Unit 91'
   call prror(-1)
 #endif
   return
