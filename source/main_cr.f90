@@ -286,11 +286,6 @@ program maincr
 
   call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr) ! DA file, binary
 
-#ifdef DEBUG
-  ! call f_open(unit=99 ,file="dump",  formatted=.false.,mode="rw",err=fErr)
-  ! call f_open(unit=100,file="arrays",formatted=.false.,mode="rw",err=fErr)
-#endif
-
   call time_timeStamp(time_afterFileUnits)
 
   ! ---------------------------------------------------------------------------------------------- !

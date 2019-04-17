@@ -1345,13 +1345,6 @@ subroutine thck6d(nthinerr)
       end if
 #endif
 
-#ifdef DEBUG
-!     if (i.ge.673) then
-!     call warr('xv12,i,ktrack ',xv1(2),i,ktrack(i),0,0)
-!     endif
-!     if (i.eq.676) stop
-#endif
-
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
                write(lout,"(a)") "BDEX> BDEX only available for thin6d"

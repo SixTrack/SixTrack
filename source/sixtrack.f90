@@ -1249,21 +1249,9 @@ subroutine errf(xx,yy,wx,wy)
     nc=7+int(23.0_fPrec*q)                                               !hr05
 !       xl=h**(1-nc)
     xl=exp_mb((1-nc)*log_mb(h))                                      !yil11
-#ifdef DEBUG
-!       call wda('errfq',q,nc,0,0,0)
-!       call wda('errfh',h,nc,0,0,0)
-!       call wda('errfxl',xl,nc,0,0,0)
-#endif
-#ifdef DEBUG
-!       call wda('errfxlrn',xl,nc,0,0,0)
-#endif
     xh=y+half/h
     yh=x
     nu=10+int(21.0_fPrec*q)
-#ifdef DEBUG
-!       call wda('errfxh',xh,nu,0,0,0)
-!       call wda('errfyh',yh,nu,0,0,0)
-#endif
     rx(nu+1)=zero
     ry(nu+1)=zero
     do 10 n=nu,1,-1
@@ -3074,10 +3062,6 @@ subroutine chromda
       call phasad(dp1,qwc)
       if(nbeam.ge.1) then
 #include "include/beamcou.f90"
-#ifdef DEBUG
-!     call dumpbin('abeamcou2',3,33)
-!     call abend('after beam coupling                               ')
-#endif
       endif
       ncorru=ncorruo
       iq1=is(1)
@@ -3242,16 +3226,6 @@ subroutine clorb(dpp)
    50 cor=c1e3*sqrt(dcx**2+dcz**2)                                       !hr06
       if(st_print .and. ncorru /= 1) then
         write(lout,10010) dpp,clo(1),clop(1),clo(2),clop(2),ii,cor
-#ifdef DEBUG
-!     call warr('dpp',dpp,0,0,0,0)
-!     call warr('dpp',dpp,0,0,0,0)
-!     call warr('clo(1)',clo(1),0,0,0,0)
-!     call warr('clop(1)',clop(1),0,0,0,0)
-!     call warr('clo(2)',clo(2),0,0,0,0)
-!     call warr('clop(2)',clop(2),0,0,0,0)
-!     call warr('ii',0d0,ii,0,0,0)
-!     call warr('cor',cor,0,0,0,0)
-#endif
       endif
 !-----------------------------------------------------------------------
       return
@@ -6302,15 +6276,6 @@ subroutine phasad(dpp,qwc)
         call prror(-1)
       end if
       call envar(dpp)
-#ifdef DEBUG
-!     call warr('qw',qw(1),1,0,0,0)
-!     call warr('qw',qw(2),2,0,0,0)
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-!     call dumpbin('aenvarqmod',88,R88
-!     call abend('aenvarqmod                                        ')
-#endif
 
 !--STARTVALUES OF THE TRAJECTORIES
       do l=1,2
@@ -6465,16 +6430,6 @@ subroutine phasad(dpp,qwc)
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 #include "include/alignl.f90"
-#ifdef DEBUG
-!     call warr('qw',qw(1),1,0,0,0)
-!     call warr('qw',qw(2),2,0,0,0)
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-!     call warr('kzz',0d0,kzz,0,0,0)
-!     call dumpbin('bkzz      ',77 777)
-!     call abend('bkzz                                              ')
-#endif
       select case (kzz)
       case (1) ! HORIZONTAL DIPOLE
         ekk=ekk*c1e3
@@ -6742,15 +6697,6 @@ subroutine phasad(dpp,qwc)
       else
         qwc(3)=(phi(1)+qxse)-qxsa                                        !hr06
       endif
-#ifdef DEBUG
-!     call warr('qw',qw(1),1,0,0,0)
-!     call warr('qw',qw(2),2,0,0,0)
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-!     call dumpbin('aphasad',97,997)
-!     call abend('aphasad                                           ')
-#endif
 !-----------------------------------------------------------------------
   return
 end subroutine phasad
@@ -7047,11 +6993,6 @@ subroutine qmodda(mm,qwc)
       dimension intwq(3),qwc(3)
       save
 !-----------------------------------------------------------------------
-#ifdef DEBUG
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-#endif
       ncorruo=ncorru
       ncorru=1
       nd2=2*mm
@@ -7059,22 +7000,6 @@ subroutine qmodda(mm,qwc)
       intwq(1)=int(qwc(1))
       intwq(2)=int(qwc(2))
       intwq(3)=0
-#ifdef DEBUG
-!     call warr('intwq',0d0,intwq(1),1,0,0)
-!     call warr('intwq',0d0,intwq(2),2,0,0)
-!     call warr('intwq',0d0,intwq(3),3,0,0)
-!     call warr('clo6(1)',clo6(1),1,0,0,0)
-!     call warr('clo6(2)',clo6(2),2,0,0,0)
-!     call warr('clo6(3)',clo6(3),3,0,0,0)
-!     call warr('clop6(1)',clop6(1),1,0,0,0)
-!     call warr('clop6(2)',clop6(2),2,0,0,0)
-!     call warr('clop6(3)',clop6(3),3,0,0,0)
-!sqmodda
-!     write(*,*) 'qmodda called!'
-!     call dumpbin('sqmodda',80,800)
-!     call abend('sqmodda                                           ')
-!     write(*,*) 'mm=',mm
-#endif
       dq1=zero
       dq2=zero
       if(iqmod6.eq.1) then
@@ -7090,10 +7015,6 @@ subroutine qmodda(mm,qwc)
         endif
         edcor1=edcor(1)
         edcor2=edcor(2)
-#ifdef DEBUG
-!       call warr('edcor1',edcor1,1,0,0,0)
-!       call warr('edcor2',edcor2,2,0,0,0)
-#endif
         cor=zero
         coro=1.0e38_fPrec
       endif
@@ -7113,53 +7034,11 @@ subroutine qmodda(mm,qwc)
           write(lout,10010) clo6(3),clop6(3)
         endif
         iqmodc=2
-#ifdef DEBUG
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-!     call warr('intwq',0d0,intwq(1),1,0,0)
-!     call warr('intwq',0d0,intwq(2),2,0,0)
-!     call warr('intwq',0d0,intwq(3),3,0,0)
-!     call warr('clo6(1)',clo6(1),1,0,0,0)
-!     call warr('clo6(2)',clo6(2),2,0,0,0)
-!     call warr('clo6(3)',clo6(3),3,0,0,0)
-!     call warr('clop6(1)',clop6(1),1,0,0,0)
-!     call warr('clop6(2)',clop6(2),2,0,0,0)
-!     call warr('clop6(3)',clop6(3),3,0,0,0)
-!     call dumpbin('bdaini',96,996)
-!     call abend('before daini                                      ')
-#endif
         call mydaini(1,1,nd2,mm,nd2,1)
-#ifdef DEBUG
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-!     call warr('intwq',0d0,intwq(1),1,0,0)
-!     call warr('intwq',0d0,intwq(2),2,0,0)
-!     call warr('intwq',0d0,intwq(3),3,0,0)
-!     call warr('clo6(1)',clo6(1),1,0,0,0)
-!     call warr('clo6(2)',clo6(2),2,0,0,0)
-!     call warr('clo6(3)',clo6(3),3,0,0,0)
-!     call warr('clop6(1)',clop6(1),1,0,0,0)
-!     call warr('clop6(2)',clop6(2),2,0,0,0)
-!     call warr('clop6(3)',clop6(3),3,0,0,0)
-!     call dumpbin('adaini',96,996)
-!     call abend('after  daini                                      ')
-#endif
         if(iqmod6.eq.1) then
           write(lout,10000) nd2
           iqmodc=1
           call mydaini(2,3,ndh,mm,nd2,1)
-#ifdef DEBUG
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-!     call warr('intwq',0d0,intwq(1),1,0,0)
-!     call warr('intwq',0d0,intwq(2),2,0,0)
-!     call warr('intwq',0d0,intwq(3),3,0,0)
-!     call dumpbin('adaini',99,999)
-!     call abend('after  daini                                      ')
-#endif
           do i=1,mm
             qwc(i)=real(intwq(i),fPrec)+corr(1,i)                              !hr06
           enddo
@@ -7237,16 +7116,6 @@ subroutine qmodda(mm,qwc)
           do i=1,mm
             qwc(i)=real(intwq(i),fPrec)+wxys(i)                                !hr06
           enddo
-#ifdef DEBUG
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-!     call warr('intwq',0d0,intwq(1),1,0,0)
-!     call warr('intwq',0d0,intwq(2),2,0,0)
-!     call warr('intwq',0d0,intwq(3),3,0,0)
-!     call dumpbin('adaini',98,998)
-!     call abend('after  daini 98                                   ')
-#endif
           goto 1
         endif
       enddo
@@ -7285,10 +7154,6 @@ subroutine qmodda(mm,qwc)
         endif
       endif
       ncorru=ncorruo
-#ifdef DEBUG
-!     call dumpbin('end qmodda',7,999)
-!     call abend('end qmodda 7 999                                  ')
-#endif
 !-----------------------------------------------------------------------
 10000 format(/131('-')/t10,'ENTERING ',i1,'D DA TUNE-VARIATION')
 10010 format(1x,f47.33/1x,f47.33)
