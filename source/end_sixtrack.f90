@@ -176,7 +176,7 @@ end subroutine abend
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created:   2017-06
-!  Rewrittem: 2019-04-15 (VKBO)
+!  Rewritten: 2019-04-15 (VKBO)
 !  Updated:   2019-04-15
 !  Subroutine to copy the last lines from a file to stderr
 !  It is mainly used just before exiting SixTrack in case there was an error.

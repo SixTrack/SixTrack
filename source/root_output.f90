@@ -307,7 +307,7 @@ subroutine root_daten(inLine,iErr)
 
   call chr_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
-    write(lerr,"(a)") "ZIPF> ERROR Failed to parse input line."
+    write(lerr,"(a)") "ROOT> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
