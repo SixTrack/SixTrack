@@ -68,12 +68,12 @@ module numerical_constants
 
 #ifdef SINGLE_MATH
   real(kind=fPrec), parameter :: pi         = transfer(z'40490fda',1.0_fPrec)
-  real(kind=fPrec), parameter :: pi2        = transfer(z'3fc90fda',1.0_fPrec)
-  real(kind=fPrec), parameter :: twopi      = transfer(z'40c90fda',1.0_fPrec)
-  real(kind=fPrec), parameter :: pisqrt     = transfer(z'3fe2dfc4',1.0_fPrec)
-  real(kind=fPrec), parameter :: inv_ln2    = transfer(z'3fb8aa3b',1.0_fPrec)
+  real(kind=fPrec), parameter :: pi2        = transfer(z'3fc90fda',1.0_fPrec) ! 0.5_fPrec*pi
+  real(kind=fPrec), parameter :: twopi      = transfer(z'40c90fda',1.0_fPrec) ! 2.0_fPrec*pi
+  real(kind=fPrec), parameter :: pisqrt     = transfer(z'3fe2dfc4',1.0_fPrec) ! sqrt(pi)
+  real(kind=fPrec), parameter :: inv_ln2    = transfer(z'3fb8aa3b',1.0_fPrec) ! 1/log(2)
   real(kind=fPrec), parameter :: eulergamma = transfer(z'3f13c467',1.0_fPrec)
-  real(kind=fPrec), parameter :: rad        = transfer(z'3c8efa35',1.0_fPrec)
+  real(kind=fPrec), parameter :: rad        = transfer(z'3c8efa35',1.0_fPrec) ! pi/180.0_fPrec
 #endif
 #ifdef DOUBLE_MATH
   real(kind=fPrec), parameter :: pi         = transfer(z'400921fb54442d18',1.0_fPrec)
