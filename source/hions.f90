@@ -106,7 +106,7 @@ subroutine hions_parseInputLine(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "HIONS> ERROR Failed to parse input line."
+    write(lerr,"(a)") "HIONS> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -117,7 +117,7 @@ subroutine hions_parseInputLine(inLine, iLine, iErr)
   end if
 
   if(nSplit /= 3) then
-    write(lout,"(a,i0)") "HIONS> ERROR Line must have 3 values, got ",nSplit
+    write(lerr,"(a,i0)") "HIONS> ERROR Line must have 3 values, got ",nSplit
     iErr = .true.
     return
   end if

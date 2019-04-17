@@ -5,9 +5,10 @@
 !  Otherwise write directly to "*" aka iso_fortran_env : output_unit (usually unit 6)
 ! =================================================================================================
 module crcoall
-  use, intrinsic :: iso_fortran_env, only : output_unit
+  use, intrinsic :: iso_fortran_env, only : output_unit, error_unit
   implicit none
   integer, public, save :: lout = output_unit
+  integer, public, save :: lerr = error_unit
 end module crcoall
 
 ! =================================================================================================

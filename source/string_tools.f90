@@ -102,7 +102,7 @@ subroutine str_split(toSplit, sArray, nArray, hasErr, fixLen, nIndent)
     if(mskSplit(i:i) == "X") then
       iSt = iSt + 1
       if(iSt > mLen) then
-        write(lout,"(2(a,i0))") "SPLIT> ERROR Split element ",iVal," is longer than the buffer of ",mLen,"."
+        write(lerr,"(2(a,i0))") "SPLIT> ERROR Split element ",iVal," is longer than the buffer of ",mLen,"."
         hasErr = .true.
         exit
       end if
@@ -156,7 +156,7 @@ subroutine chr_split(toSplit, sArray, nArray, hasErr, fixLen, nIndent)
     if(mskSplit(i:i) == "X") then
       iSt = iSt + 1
       if(iSt > mLen) then
-        write(lout,"(2(a,i0))") "SPLIT> ERROR Split element ",iVal," is longer than the buffer of ",mLen,"."
+        write(lerr,"(2(a,i0))") "SPLIT> ERROR Split element ",iVal," is longer than the buffer of ",mLen,"."
         hasErr = .true.
         exit
       end if
@@ -223,7 +223,7 @@ subroutine chr_scanString(theString, theMask, maxLen, nValues, nIndent, hasErr)
     if(vSt == 1) theMask(i:i) = "X"       ! Mark character as a value
     if(vSt == 2) exit                     ! We've reached a comment character, exit
     if(ichar(ch) < 32) then               ! This is a control character, we don't want those
-      write(lout,"(2(a,i0))") "SPLIT> ERROR Control character char(",ichar(ch),") encountered at position ",i
+      write(lerr,"(2(a,i0))") "SPLIT> ERROR Control character char(",ichar(ch),") encountered at position ",i
       hasErr = .true.
       return
     end if
@@ -232,7 +232,7 @@ subroutine chr_scanString(theString, theMask, maxLen, nValues, nIndent, hasErr)
 
   ! Report un-closed quotes
   if(qSt > 0) then
-    write(lout,"(a,i0,a)") "SPLIT> ERROR Reached end of line with quotes still open."
+    write(lerr,"(a,i0,a)") "SPLIT> ERROR Reached end of line with quotes still open."
     hasErr = .true.
     return
   end if
@@ -1223,7 +1223,7 @@ subroutine chr_fromReal(theValue, theString, nPrec, ePrec, rErr)
     case(3)
       write(theString(nPrec+5:nPrec+7),"(i3.3)") abs(dPoint-1)
     case default
-      write(lout,"(a)") "DTOAF> ERROR Exponent must be either 2 or 3. This is a bug."
+      write(lerr,"(a)") "DTOAF> ERROR Exponent must be either 2 or 3. This is a bug."
       rErr = .true.
       return
     end select

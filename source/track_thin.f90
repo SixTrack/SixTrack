@@ -260,7 +260,7 @@ subroutine trauthin(nthinerr)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           if ( dynk_isused(i) ) then
-            write(lout,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
+            write(lerr,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
               "') is off in fort.2, but on in DYNK. Not implemented."
             call prror
           end if
@@ -452,7 +452,7 @@ subroutine trauthin(nthinerr)
       end if
     end do
     if(abs(phas).ge.pieni) then
-      write(lout,"(a)") "TRACKING> ERROR thin6dua no longer supported. Please use DYNK instead."
+      write(lerr,"(a)") "TRACKING> ERROR thin6dua no longer supported. Please use DYNK instead."
       call prror(-1)
     else
       write(lout,"(a)") ""
@@ -588,8 +588,7 @@ subroutine thin4d(nthinerr)
 #endif
   if(st_quiet < 3) then
     if(mod(n,turnrep) == 0) then
-      write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
-      flush(lout)
+      call trackReport(n)
     end if
   end if
   meta_nPartTurn = meta_nPartTurn + napx
@@ -677,7 +676,7 @@ subroutine thin4d(nthinerr)
 #endif
 
           if (bdex_enable) then
-              write(lout,"(a)") "BDEX> ERROR BDEX only available for thin6d"
+              write(lerr,"(a)") "BDEX> ERROR BDEX only available for thin6d"
               call prror
           endif
 
@@ -1215,8 +1214,7 @@ subroutine thin6d(nthinerr)
 #endif
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
-        write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
-        flush(lout)
+        call trackReport(n)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
@@ -2098,6 +2096,49 @@ subroutine thin6d(nthinerr)
 
 end subroutine thin6d
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Write a turn report.
+!  The isFirst if statement is only computed the first time the routine is called.
+! ================================================================================================ !
+subroutine trackReport(n)
+
+  use crcoall
+  use parpro,     only : npart
+  use mod_common, only : ithick, iclo6, numl, napx, napxo
+
+  implicit none
+
+  integer, intent(in) :: n
+
+  character(len=8)  :: trackMode = " "
+  character(len=32) :: trackFmt  = " "
+  integer           :: oPart     = 0
+  integer           :: oTurn     = 0
+  logical           :: isFirst   = .true.
+
+  if(isFirst) then
+    if(ithick == 0) then
+      trackMode = "Thick"
+    else
+      trackMode = "Thin"
+    end if
+    if(iclo6 > 0) then
+      trackMode = trim(trackMode)//" 6D"
+    else
+      trackMode = trim(trackMode)//" 4D"
+    end if
+    oPart   = int(log10(real(npart)))+1
+    oTurn   = int(log10(real(numl)))+1
+    isFirst = .false.
+    write(trackFmt,"(2(a,i0),a)") "(2(a,i",oTurn,"),2(a,i",oPart,"))"
+  end if
+
+  write(lout,trackFmt) "TRACKING> "//trim(trackMode)//": Turn ",n," / ",numl,", Particles: ",napx," / ",napxo
+  flush(lout)
+
+end subroutine trackReport
+
 !-----------------------------------------------------------------------
 !
 !  F. SCHMIDT
@@ -2133,8 +2174,6 @@ subroutine callcrp
 !-----------------------------------------------------------------------
 #ifdef CR
   ncalls=ncalls+1
-  write(91,*,iostat=ierro,err=11) numx,numl
-  rewind 91
   if (restart) then
     write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
       " numx = ",numx,", numlcr = ",numlcr
@@ -2166,8 +2205,8 @@ subroutine callcrp
   if (checkp) call crpoint
 #endif
   return
-11 write(lout,"(a,i0)") "CALLCRP> ERROR Problems writing to file #91, ierro= ",ierro
-  ! write(lout,"(a)")'SIXTRACR WRITEBIN IO ERROR on Unit 91'
+11 write(lerr,"(a,i0)") "CALLCRP> ERROR Problems writing to file #91, ierro= ",ierro
+  ! write(lerr,"(a)")'SIXTRACR WRITEBIN IO ERROR on Unit 91'
   call prror(-1)
 #endif
   return
