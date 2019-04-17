@@ -7,7 +7,7 @@ module mod_ffield
   ! ------------------------------------------------------------------------------------------------ !
   ! Mod from SixTrack
   ! ------------------------------------------------------------------------------------------------ !
-  use crcoall, only : lout
+  use crcoall, only : lout, lerr
 
   use ffTable_n_Tracks
   ! ------------------------------------------------------------------------------------------------ !
@@ -243,7 +243,7 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
-      write(lout,"(a)") "FFIELD> ERROR Failed to parse input line."
+      write(lerr,"(a)") "FFIELD> ERROR Failed to parse input line."
       iErr = .true.
       return
     end if
@@ -258,7 +258,7 @@ contains
       !     * Name a Quadrupole for the study
       ! -------------------------------------------------------------------------------------------- !
       if(nSplit < 4) then
-        write(lout,"(a,i0)") "FFIELD> ERROR FFQN line must have at less 4 values, got ",nSplit
+        write(lerr,"(a,i0)") "FFIELD> ERROR FFQN line must have at less 4 values, got ",nSplit
         iErr = .true.
         return
       end if
@@ -268,7 +268,7 @@ contains
       ! Check that the name is unique
       do i=1,ffNLn
         if(ffQNames(i) == elemName) then
-          write(lout,"(a)") "FFIELD> ERROR Quadrupole element '"//trim(elemName)//"' is not unique."
+          write(lerr,"(a)") "FFIELD> ERROR Quadrupole element '"//trim(elemName)//"' is not unique."
           iErr = .true.
           return
         end if
@@ -291,7 +291,7 @@ contains
       !     * Name a Multipole that will be skip in the study
       ! -------------------------------------------------------------------------------------------- !
       if(nSplit < 2) then
-        write(lout,"(a,i0)") "FFIELD> ERROR FFMS line must have at less 2 values, got ",nSplit
+        write(lerr,"(a,i0)") "FFIELD> ERROR FFMS line must have at less 2 values, got ",nSplit
         iErr = .true.
         return
       end if
@@ -301,7 +301,7 @@ contains
       ! Check that the name is unique
       do i=1,ffMSn
         if(ffMSNames(i) == elemName) then
-          write(lout,"(a)") "FFIELD> ERROR Multipole to skip element '"//trim(elemName)//"' is not unique."
+          write(lerr,"(a)") "FFIELD> ERROR Multipole to skip element '"//trim(elemName)//"' is not unique."
           iErr = .true.
           return
         end if
@@ -320,7 +320,7 @@ contains
       !     * Name a File for the study
       ! -------------------------------------------------------------------------------------------- !
       if(nSplit < 4) then
-        write(lout,"(a,i0)") "FFIELD> ERROR FFFI line must have at less 4 values, got ",nSplit
+        write(lerr,"(a,i0)") "FFIELD> ERROR FFFI line must have at less 4 values, got ",nSplit
         iErr = .true.
         return
       end if
@@ -328,7 +328,7 @@ contains
       ! Check that the name is unique
       do i=1,ffNLFile
         if(ffFNames(i) == lnSplit(2)) then
-          write(lout,"(a)") "FFIELD> ERROR File '"//trim(lnSplit(2))//"' is not unique."
+          write(lerr,"(a)") "FFIELD> ERROR File '"//trim(lnSplit(2))//"' is not unique."
           iErr = .true.
           return
         end if
@@ -413,7 +413,7 @@ contains
       write(lout,"(a)") "FFIELD> +----------------------------------------------------------------+"
       do i=1,ffNLn
         if ((ffQ2File(i,1)>ffNLn).or.(ffQ2File(i,1)<1).or.(ffQ2File(i,2)>ffNLn).or.(ffQ2File(i,2)<1)) then
-          write(lout,"(a)") "FFIELD> ERROR FFQN Wrong choise of file for the Quadupole's head. Check '"//trim(ffQNames(i))//"'."
+          write(lerr,"(a)") "FFIELD> ERROR FFQN Wrong choise of file for the Quadupole's head. Check '"//trim(ffQNames(i))//"'."
           iErr = .true.
         else
 
@@ -532,7 +532,7 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     do j=1,ffNLn
       if (ffQNames(j)==ffMSNames(i)) then
-        write(lout,"(a)") "FFIELD> ERROR Multipole cannot be in 'FFQN' AND 'FFMS'. Check '"//trim(ffMSNames(i))//"'."
+        write(lerr,"(a)") "FFIELD> ERROR Multipole cannot be in 'FFQN' AND 'FFMS'. Check '"//trim(ffMSNames(i))//"'."
         iErr=.true.
         return
       end if

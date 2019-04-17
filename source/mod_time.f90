@@ -62,7 +62,7 @@ subroutine time_initialise
   call f_requestUnit(time_fileName, time_fileUnit)
   call f_open(unit=time_fileUnit,file=time_fileName,formatted=.true.,mode="w",err=fErr,status="replace")
   if(fErr) then
-    write(lout,"(a,i0)") "TIME> ERROR Opening of '"//time_fileName//"' on unit #",time_fileUnit
+    write(lerr,"(a,i0)") "TIME> ERROR Opening of '"//time_fileName//"' on unit #",time_fileUnit
     call prror
   end if
 

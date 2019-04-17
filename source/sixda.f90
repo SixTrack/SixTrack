@@ -33,7 +33,7 @@ subroutine daliesix
   ndim=nvar2/2
   if(nvarf/2.lt.ndim) ndim=nvarf/2
   if(ndim == 0) then
-    write(lout,"(a)") "DALIESIX> ERROR Number of normal form variables have to be: 2, 4, 5, 6 + parameters."
+    write(lerr,"(a)") "DALIESIX> ERROR Number of normal form variables have to be: 2, 4, 5, 6 + parameters."
     call prror(-1)
   end if
   nv=nvarf
@@ -181,7 +181,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   save
 
   if(nndim < 2 .or. nndim > 3) then
-    write(lout,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
+    write(lerr,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
     call prror(-1)
   end if
 
@@ -393,7 +393,7 @@ subroutine umschr(iu1,iu2)
       read(iu1,'(6X,2X,G21.14,I5)') c,ii
       write(iu2,'(6X,2X,G21.14,I5)') c,ii+1
       read(iu1,'(6X,2X,G21.14,I5)') c,ii
-      if(ii.ne.0) write(lout,*) ' ERROR IN UMSCHR'
+      if(ii.ne.0) write(lerr,*) ' ERROR IN UMSCHR'
     else
 20     read(iu1,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,c,io,(jj(i),i=1,5)
       if(ii.eq.0) then
@@ -733,7 +733,7 @@ subroutine runda
         enddo
       endif
       if(ix <= 0) then
-        write(lout,"(a)") "RUNDA> ERROR Inverted linear blocks not allowed."
+        write(lerr,"(a)") "RUNDA> ERROR Inverted linear blocks not allowed."
         call prror(-1)
       endif
 #include "include/dalin1.f90"
@@ -788,7 +788,7 @@ subroutine runda
           write(7,*) '5'
           if(kz(ix).eq.12) then
             write(7,*) bez(ix)
-            write(ch,*) ed(ix),hsyc(ix),itionc(ix),phasc(ix)
+            write(ch,*) ed(ix),hsyc(ix),sign(1,kz(ix)),phasc(ix)
             do ich=300,1,-1
               if(ch(ich:ich).ne.' ') goto 703
             enddo
@@ -1685,7 +1685,7 @@ call comt_daEnd
   return
 
 9088 continue
-  write(lout,"(a)") "RUNDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
+  write(lerr,"(a)") "RUNDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
   call prror(-1)
   return
 

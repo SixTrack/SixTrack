@@ -197,11 +197,15 @@ module mod_common
   integer,          save :: iicav      = 0    ! Used between runcav and runda
   integer,          save :: ition      = 0    ! Transition energy switch:
   integer,          save :: idp        = 0    ! Synchrotron motion
-  integer,          save :: ncy        = 0    ! Number of cavity locations
   integer,          save :: ixcav      = 0    ! Stores ix, presumably for cavity
   integer,          save :: icode      = 0
   integer,          save :: idam       = 0
   integer,          save :: its6d      = 0
+
+  ! RF Cavities
+  integer,          save :: icy        = 0    ! Accelerating cavity: Number of "CAV" locations in STRUCT
+  integer,          save :: ncy        = 0    ! Accelerating cavity: Number of "CAV" locations times super periods mper
+  integer,          save :: ncy2       = 0    ! Accelerating cavity: Number of cavities (kz = +/- 12) in SING
 
   ! Organisation of Random Numbers
   integer,          save :: iorg       = 0    ! Organisation of random numbers flag
@@ -424,7 +428,6 @@ module mod_common
 
   real(kind=fPrec), allocatable, save :: hsyc(:)        ! Accelerating cavity: 'Frequency'
   real(kind=fPrec), allocatable, save :: phasc(:)       ! Accelerating cavity: Lag phase
-  integer,          allocatable, save :: itionc(:)      ! Accelerating cavity: Regime
 
   real(kind=fPrec), allocatable, save :: benkc(:)       ! Multipoles: Bending strength of the dipole [mrad]
   real(kind=fPrec), allocatable, save :: r00(:)         ! Multipoles: Reference radius [mm]
@@ -580,7 +583,6 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
     call alloc(a,                    nele_new,2,6,   zero,   "a")
     call alloc(hsyc,                 nele_new,       zero,   "hsyc")
     call alloc(phasc,                nele_new,       zero,   "phasc")
-    call alloc(itionc,               nele_new,       0,      "itionc")
     call alloc(bk0,                  nele_new, mmul, zero,   "bk0")
     call alloc(ak0,                  nele_new, mmul, zero,   "ak0")
     call alloc(bka,                  nele_new, mmul, zero,   "bka")
@@ -873,36 +875,6 @@ module mod_common_main
   ! Main 2
   real(kind=fPrec), allocatable, save :: dpd(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: dpsq(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: fok(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: rho(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: fok1(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: si(:)        ! (npart)
-  real(kind=fPrec), allocatable, save :: co(:)        ! (npart)
-  real(kind=fPrec), allocatable, save :: g(:)         ! (npart)
-  real(kind=fPrec), allocatable, save :: gl(:)        ! (npart)
-  real(kind=fPrec), allocatable, save :: sm1(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: sm2(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: sm3(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: sm12(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: as3(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: as4(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: as6(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: sm23(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: rhoc(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: siq(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: aek(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: afok(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: hp(:)        ! (npart)
-  real(kind=fPrec), allocatable, save :: hm(:)        ! (npart)
-  real(kind=fPrec), allocatable, save :: hc(:)        ! (npart)
-  real(kind=fPrec), allocatable, save :: hs(:)        ! (npart)
-  real(kind=fPrec), allocatable, save :: wf(:)        ! (npart)
-  real(kind=fPrec), allocatable, save :: wfa(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: wfhi(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: rhoi(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: hi(:)        ! (npart)
-  real(kind=fPrec), allocatable, save :: fi(:)        ! (npart)
-  real(kind=fPrec), allocatable, save :: hi1(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: oidpsv(:)    ! (npart)
   real(kind=fPrec), allocatable, save :: ampv(:)      ! (npart)
   real(kind=fPrec), allocatable, save :: aperv(:,:)   ! (npart,2)
@@ -984,36 +956,6 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
     call alloc(dpd,              npart_new,      zero,    "dpd")
     call alloc(dpsq,             npart_new,      zero,    "dpsq")
-    call alloc(fok,              npart_new,      zero,    "fok")
-    call alloc(rho,              npart_new,      zero,    "rho")
-    call alloc(fok1,             npart_new,      zero,    "fok1")
-    call alloc(si,               npart_new,      zero,    "si")
-    call alloc(co,               npart_new,      zero,    "co")
-    call alloc(g,                npart_new,      zero,    "g")
-    call alloc(gl,               npart_new,      zero,    "gl")
-    call alloc(sm1,              npart_new,      zero,    "sm1")
-    call alloc(sm2,              npart_new,      zero,    "sm2")
-    call alloc(sm3,              npart_new,      zero,    "sm3")
-    call alloc(sm12,             npart_new,      zero,    "sm12")
-    call alloc(as3,              npart_new,      zero,    "as3")
-    call alloc(as4,              npart_new,      zero,    "as4")
-    call alloc(as6,              npart_new,      zero,    "as6")
-    call alloc(sm23,             npart_new,      zero,    "sm23")
-    call alloc(rhoc,             npart_new,      zero,    "rhoc")
-    call alloc(siq,              npart_new,      zero,    "siq")
-    call alloc(aek,              npart_new,      zero,    "aek")
-    call alloc(afok,             npart_new,      zero,    "afok")
-    call alloc(hp,               npart_new,      zero,    "hp")
-    call alloc(hm,               npart_new,      zero,    "hm")
-    call alloc(hc,               npart_new,      zero,    "hc")
-    call alloc(hs,               npart_new,      zero,    "hs")
-    call alloc(wf,               npart_new,      zero,    "wf")
-    call alloc(wfa,              npart_new,      zero,    "wfa")
-    call alloc(wfhi,             npart_new,      zero,    "wfhi")
-    call alloc(rhoi,             npart_new,      zero,    "rhoi")
-    call alloc(hi,               npart_new,      zero,    "hi")
-    call alloc(fi,               npart_new,      zero,    "fi")
-    call alloc(hi1,              npart_new,      zero,    "hi1")
     call alloc(oidpsv,           npart_new,      one,     "oidpsv")
     call alloc(ampv,             npart_new,      zero,    "ampv")
     call alloc(aperv,            npart_new, 2,   zero,    "aperv")

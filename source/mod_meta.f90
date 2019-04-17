@@ -59,7 +59,7 @@ subroutine meta_initialise
   call f_requestUnit(meta_fileName, meta_fileUnit)
   call f_open(unit=meta_fileUnit,file=meta_fileName,formatted=.true.,mode="w",err=fErr,status="replace")
   if(fErr) then
-    write(lout,"(a,i0)") "META> ERROR Opening of '"//meta_fileName//"' on unit #",meta_fileUnit
+    write(lerr,"(a,i0)") "META> ERROR Opening of '"//meta_fileName//"' on unit #",meta_fileUnit
     call prror
   end if
 
@@ -257,7 +257,7 @@ end function meta_padName
 subroutine meta_checkActive
   use crcoall
   if(meta_isActive .eqv. .false.) then
-    write(lout,"(a)") "META> ERROR Trying to write meta data before initialisation or after finalisation."
+    write(lerr,"(a)") "META> ERROR Trying to write meta data before initialisation or after finalisation."
     call prror
   end if
 end subroutine meta_checkActive
@@ -281,7 +281,7 @@ subroutine meta_crcheck(fileUnit, readErr)
   return
 
 10 continue
-  write(lout,"(a,i0)") "META> ERROR Reading in meta_crcheck from fileUnit #",fileUnit
+  write(lerr,"(a,i0)") "META> ERROR Reading in meta_crcheck from fileUnit #",fileUnit
   write(93,  "(a,i0)") "META> ERROR Reading in meta_crcheck from fileUnit #",fileUnit
   readErr = .true.
 
@@ -302,7 +302,7 @@ subroutine meta_crpoint(fileUnit, writeErr, iErro)
   return
 
 10 continue
-  write(lout,"(a,i0)") "META> ERROR Writing in meta_crpoint to fileUnit #",fileUnit
+  write(lerr,"(a,i0)") "META> ERROR Writing in meta_crpoint to fileUnit #",fileUnit
   write(93,  "(a,i0)") "META> ERROR Writing in meta_crpoint to fileUnit #",fileUnit
   writeErr = .true.
 

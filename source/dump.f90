@@ -157,33 +157,6 @@ subroutine dump_linesFirst(n)
 end subroutine dump_linesFirst
 
 ! ================================================================================================================================ !
-!  A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-!  Last modified: 01-09-2014
-!  Close units for dumping particle population
-! ================================================================================================================================ !
-subroutine dump_closeUnits
-
-  use mod_common
-  use mod_units
-  implicit none
-  integer i
-
-#ifdef HDF5
-  if(.not. h5_useForDUMP) then
-#endif
-    do i=0,il
-      if (ldump(i)) then
-        ! The same file could be used by more than one SINGLE ELEMENT
-        call f_close(dumpunit(i))
-      end if
-    end do
-#ifdef HDF5
-  end if
-#endif
-
-end subroutine dump_closeUnits
-
-! ================================================================================================================================ !
 subroutine dump_parseInputLine(inLine,iErr)
 
   use crcoall
@@ -214,7 +187,7 @@ subroutine dump_parseInputLine(inLine,iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "DUMP> ERROR Failed to parse input line."
+    write(lerr,"(a)") "DUMP> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -229,14 +202,14 @@ subroutine dump_parseInputLine(inLine,iErr)
   end if
 
   if(nSplit < 4 .or. nSplit > 7 .or. nSplit == 6) then
-    write(lout,"(a,i0)") "DUMP> ERROR Expected 4 to 7 (but not 6) arguments, got ",nSplit
-    write(lout,"(a)")   ("DUMP>     * '"//trim(lnSplit(kk))//"' ",kk=1,nSplit)
+    write(lerr,"(a,i0)") "DUMP> ERROR Expected 4 to 7 (but not 6) arguments, got ",nSplit
+    write(lerr,"(a)")   ("DUMP>     * '"//trim(lnSplit(kk))//"' ",kk=1,nSplit)
     iErr = .true.
     return
   end if
 
   if(len_trim(lnSplit(1)) > mNameLen) then
-    write(lout,"(2(a,i0))") "DUMP> ERROR Element names can be up to ",mNameLen," characters, got ",len_trim(lnSplit(1))
+    write(lerr,"(2(a,i0))") "DUMP> ERROR Element names can be up to ",mNameLen," characters, got ",len_trim(lnSplit(1))
     iErr = .true.
     return
   end if
@@ -248,7 +221,7 @@ subroutine dump_parseInputLine(inLine,iErr)
   if(nSplit >= 5) then
     fileName = trim(lnSplit(5))
     if(len_trim(lnSplit(5)) > mFileName) then
-      write(lout,"(2(a,i0))") "DUMP> ERROR File names can be up to ",mFileName," characters, got ",len_trim(lnSplit(5))
+      write(lerr,"(2(a,i0))") "DUMP> ERROR File names can be up to ",mFileName," characters, got ",len_trim(lnSplit(5))
       iErr = .true.
       return
     end if
@@ -261,13 +234,13 @@ subroutine dump_parseInputLine(inLine,iErr)
   ! Check that first/last turn is sane
   if(i5 /= -1) then
     if(i5 < i4) then
-      write(lout,"(2(a,i0))") "DUMP> ERROR Expect last turn >= first turn, unless last turn = -1 (infinity), got ", i4,", ",i5
+      write(lerr,"(2(a,i0))") "DUMP> ERROR Expect last turn >= first turn, unless last turn = -1 (infinity), got ", i4,", ",i5
       iErr = .true.
       return
     end if
   end if
   if(i4 < 1) then
-    write(lout,"(a,i0)") "DUMP> ERROR Expect first turn >= 1, got", i4
+    write(lerr,"(a,i0)") "DUMP> ERROR Expect first turn >= 1, got", i4
     iErr = .true.
     return
   end if
@@ -276,19 +249,19 @@ subroutine dump_parseInputLine(inLine,iErr)
   do j=1,il
     if(bez(j) == elemName) then
       if(ldump(j)) then ! Only enable once/element!
-        write(lout,"(a)") "DUMP> ERROR Element '"//trim(elemName)//"' was specified more than once"
+        write(lerr,"(a)") "DUMP> ERROR Element '"//trim(elemName)//"' was specified more than once"
         iErr = .true.
         return
       end if
 
       ! Element was found in SINGLE ELEMENTS list, now do some sanity checks
       if(trim(bez(j)) == "ALL") then
-        write(lout,"(a)") "DUMP> ERROR The element name 'ALL' cannot be used in the SINGLE ELEMENTS list "//&
+        write(lerr,"(a)") "DUMP> ERROR The element name 'ALL' cannot be used in the SINGLE ELEMENTS list "//&
           "when an 'ALL' special DUMP is active."
         iErr = .true.
         return
       else if(trim(bez(j)) == "StartDUMP") then
-        write(lout,"(a)") "DUMP> ERROR The element name 'StartDUMP' cannot be used in the SINGLE ELEMENTS "// &
+        write(lerr,"(a)") "DUMP> ERROR The element name 'StartDUMP' cannot be used in the SINGLE ELEMENTS "// &
           "list when an 'StartDUMP' special DUMP is active."
         iErr = .true.
         return
@@ -300,7 +273,7 @@ subroutine dump_parseInputLine(inLine,iErr)
   if(elemName == "ALL") then
     j=0
     if(ldump(j)) then
-      write(lout,"(a)") "DUMP> ERROR Element 'ALL' was specified (at least) twice"
+      write(lerr,"(a)") "DUMP> ERROR Element 'ALL' was specified (at least) twice"
       iErr = .true.
       return
       end if
@@ -309,7 +282,7 @@ subroutine dump_parseInputLine(inLine,iErr)
   if(elemName == "StartDUMP") then
     j=-1
     if(ldump(j)) then
-      write(lout,"(a)") "DUMP> ERROR Element 'StartDUMP' was specified (at least) twice"
+      write(lerr,"(a)") "DUMP> ERROR Element 'StartDUMP' was specified (at least) twice"
       iErr = .true.
       return
     end if
@@ -317,7 +290,7 @@ subroutine dump_parseInputLine(inLine,iErr)
   end if
 
   ! Search failed, fall-through to here:
-  write(lout,"(a)") "DUMP> ERROR Unidentified SINGLE ELEMENT '"//trim(elemName)//"'"
+  write(lerr,"(a)") "DUMP> ERROR Unidentified SINGLE ELEMENT '"//trim(elemName)//"'"
   iErr = .true.
   return
 
@@ -393,8 +366,8 @@ subroutine dump_parseInputDone(iErr)
         end if
       end do
       if(kk == 0) then
-        write (lout,"(a)") "DUMP> ERROR No structure elements found for '"//trim(bez(ii))//"'"
-        write (lout,"(a)") "DUMP>       This element is probably only found in a BLOC, or it is not used at all."
+        write (lerr,"(a)") "DUMP> ERROR No structure elements found for '"//trim(bez(ii))//"'"
+        write (lerr,"(a)") "DUMP>       This element is probably only found in a BLOC, or it is not used at all."
         iErr = .true.
         return
       end if
@@ -444,7 +417,7 @@ subroutine dump_initialise
       ! Expect the file to be opened already, in crcheck
       inquire( unit=dumpunit(i), opened=lopen )
       if (.not.lopen) then
-        write(lout,"(2(a,i0),a)") "DUMP> ERROR The unit ",dumpunit(i)," has dumpfilepos = ", dumpfilepos(i), " >= 0, "//&
+        write(lerr,"(2(a,i0),a)") "DUMP> ERROR The unit ",dumpunit(i)," has dumpfilepos = ", dumpfilepos(i), " >= 0, "//&
           "but the file is NOT open. This is probably a bug."
         call prror(-1)
       end if
@@ -458,7 +431,7 @@ subroutine dump_initialise
         ! Check that the filename is not already taken
         do j=-1,i-1
           if (ldump(j) .and. (dump_fname(j) == dump_fname(i))) then
-            write(lout,"(2(a,i0))") "DUMP> ERROR Output filename '"//trim(dump_fname(i))//&
+            write(lerr,"(2(a,i0))") "DUMP> ERROR Output filename '"//trim(dump_fname(i))//&
               "' is used by two DUMPS, but output units differ: ",dumpunit(i)," vs ",dumpunit(j)
             call prror(-1)
           end if
@@ -485,16 +458,16 @@ subroutine dump_initialise
           if (ldump(j)) then
             if (dumpunit(j) == dumpunit(i)) then
               if (dumpfmt(j) /= dumpfmt(i)) then
-                write(lout,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, formats are not the same."
+                write(lerr,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, formats are not the same."
                 call prror(-1)
               else if (j == 0) then
-                write(lout,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, one of which is ALL"
+                write(lerr,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, one of which is ALL"
                 call prror(-1)
               else if (j == -1) then
-                write(lout,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, one of which is StartDUMP"
+                write(lerr,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, one of which is StartDUMP"
                 call prror(-1)
               else if (dump_fname(j) /= dump_fname(i)) then
-                write(lout,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, but filenames differ: '"//&
+                write(lerr,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, but filenames differ: '"//&
                   trim(dump_fname(i)),"' vs '",trim(dump_fname(j)),"'"
                 call prror(-1)
               else
@@ -512,9 +485,9 @@ subroutine dump_initialise
         ! LOPEN not set to true by sanity check in loop above
         ! => File was already open, but not by DUMP.
         if (.not.lopen) then
-          write(lout,"(a,i0,a)") "DUMP> ERROR Unit ",dumpunit(i)," is already open, but not by DUMP. Please pick another unit!"
-          write(lout,"(a)")      "DUMP> Note: This check is not watertight as other parts of the program may later open the "
-          write(lout,"(a)")      "DUMP>       same unit. Althernatively, the unit can be specified as -1 and a unit is assigned."
+          write(lerr,"(a,i0,a)") "DUMP> ERROR Unit ",dumpunit(i)," is already open, but not by DUMP. Please pick another unit!"
+          write(lerr,"(a)")      "DUMP> Note: This check is not watertight as other parts of the program may later open the "
+          write(lerr,"(a)")      "DUMP>       same unit. Althernatively, the unit can be specified as -1 and a unit is assigned."
           call prror(-1)
         end if
       end if
@@ -635,12 +608,12 @@ subroutine dump_initialise
         ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
         if (dumptas(i,1,1) == zero .and. dumptas(i,1,2) == zero .and. &
             dumptas(i,1,3) == zero .and. dumptas(i,1,4) == zero) then
-          write(lout,"(a)") "DUMP> ERROR The normalization matrix appears to not be set. Did you forget to put a 6D LINE block?"
+          write(lerr,"(a)") "DUMP> ERROR The normalization matrix appears to not be set. Did you forget to put a 6D LINE block?"
           call prror(-1)
         end if
         if(idp == 0 .or. ition == 0) then ! We're in the 4D case
           if(i /= -1) then ! Not at StartDUMP
-            write(lout,"(a)") "DUMP> ERROR in normalized DUMP: 4D only supported for StartDUMP!"
+            write(lerr,"(a)") "DUMP> ERROR in normalized DUMP: 4D only supported for StartDUMP!"
             call prror(-1)
           end if
         end if
@@ -1776,7 +1749,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
   ! Unrecognized format fmt
   ! ------------------------------------------------------------------ !
   else
-    write(lout,"(a,i0,a)") "DUMP> ERROR Format ",fmt," not understood for file '"//trim(dump_fname(i))//"'"
+    write(lerr,"(a,i0,a)") "DUMP> ERROR Format ",fmt," not understood for file '"//trim(dump_fname(i))//"'"
     call prror(-1)
   end if
 
@@ -1907,7 +1880,7 @@ subroutine dump_crcheck_positionFiles
   write(93,"(2(a,i0))") "SIXTRACR> ERROR Repositioning file #",dumpunit(i),", iostat = ",ierro
   write(93,"(2(a,i0))") "          dumpfilepos = ",dumpfilepos(i),", dumpfilepos_cr = ",dumpfilepos_cr(i)
   flush(93)
-  write(lout,"(a)") "SIXTRACR> ERROR DUMP_CRCHECK_POSITIONFILES failure positioning DUMP file"
+  write(lerr,"(a)") "SIXTRACR> ERROR DUMP_CRCHECK_POSITIONFILES failure positioning DUMP file"
   call prror(-1)
 
 end subroutine dump_crcheck_positionFiles

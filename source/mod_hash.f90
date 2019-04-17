@@ -139,7 +139,7 @@ subroutine hash_parseInputLine(inLine, iErr)
 
   call chr_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
-    write(lout,"(a)") "HASH> ERROR Failed to parse input line."
+    write(lerr,"(a)") "HASH> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -149,13 +149,13 @@ subroutine hash_parseInputLine(inLine, iErr)
 
   case("MD5SUM")
     if(nSplit /= 3) then
-      write(lout,"(a,i0)") "HASH> ERROR MD5SUM expected 2 arguments, got ",nSplit-1
-      write(lout,"(a)")    "HASH>       MD5SUM file_name text|binary"
+      write(lerr,"(a,i0)") "HASH> ERROR MD5SUM expected 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "HASH>       MD5SUM file_name text|binary"
       iErr = .true.
       return
     end if
     if(len_trim(lnSplit(2)) > mFileName) then
-      write(lout,"(a,i0)") "HASH> ERROR MD5SUM filename is too long. Max is ",mFileName
+      write(lerr,"(a,i0)") "HASH> ERROR MD5SUM filename is too long. Max is ",mFileName
       iErr = .true.
       return
     end if
@@ -165,7 +165,7 @@ subroutine hash_parseInputLine(inLine, iErr)
     case("binary")
       tmpIsAscii = .false.
     case default
-      write(lout,"(a)") "HASH> ERROR MD5SUM expected second value to be 'text' or 'binary', got '"//trim(lnSplit(3))//"'"
+      write(lerr,"(a)") "HASH> ERROR MD5SUM expected second value to be 'text' or 'binary', got '"//trim(lnSplit(3))//"'"
       iErr = .true.
       return
     end select
@@ -176,7 +176,7 @@ subroutine hash_parseInputLine(inLine, iErr)
     hash_listHashFiles(hash_nHashFiles) = trim(lnSplit(2))
     hash_isAscii(hash_nHashFiles)       = tmpIsAscii
   case default
-    write(lout,"(a)") "HASH> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
+    write(lerr,"(a)") "HASH> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
     iErr = .true.
     return
 

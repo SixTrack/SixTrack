@@ -105,14 +105,14 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "ELENS> ERROR Failed to parse input line."
+    write(lerr,"(a)") "ELENS> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
   if(nSplit == 0) return
 
   if(nSplit < 7) then
-    write(lout,"(a,i0)") "ELENS> ERROR Expected at least 7 input parameters, got ",nSplit
+    write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 7 input parameters, got ",nSplit
     iErr = .true.
     return
   end if
@@ -125,36 +125,36 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     end if
   end do
   if(iElem == -1) then
-    write(lout,"(a)") "ELENS> ERROR Element '"//trim(lnSplit(1))//"' not found in single element list."
+    write(lerr,"(a)") "ELENS> ERROR Element '"//trim(lnSplit(1))//"' not found in single element list."
     iErr = .true.
     return
   end if
 
   if(kz(iElem) /= elens_kz) then
-    write(lout,"(3(a,i0))") "ELENS> ERROR Element type is kz(",iElem,") = ",kz(iElem)," != ",elens_kz
+    write(lerr,"(3(a,i0))") "ELENS> ERROR Element type is kz(",iElem,") = ",kz(iElem)," != ",elens_kz
     iErr = .true.
     return
   end if
   if(el(iElem) /= zero .or. ek(iElem) /= zero .or. ed(iElem) /= zero) then
-    write(lout,"(a)")       "ELENS> ERROR Length el(iElem) (elens is treated as thin element), "//&
+    write(lerr,"(a)")       "ELENS> ERROR Length el(iElem) (elens is treated as thin element), "//&
       "and first and second field have to be zero:"
-    write(lout,"(2(a,i0),a)") "ELENS>       el(",iElem,") = ",el(iElem)," != 0"
-    write(lout,"(2(a,i0),a)") "ELENS>       ed(",iElem,") = ",ed(iElem)," != 0"
-    write(lout,"(2(a,i0),a)") "ELENS>       ek(",iElem,") = ",ek(iElem)," != 0"
+    write(lerr,"(2(a,i0),a)") "ELENS>       el(",iElem,") = ",el(iElem)," != 0"
+    write(lerr,"(2(a,i0),a)") "ELENS>       ed(",iElem,") = ",ed(iElem)," != 0"
+    write(lerr,"(2(a,i0),a)") "ELENS>       ek(",iElem,") = ",ek(iElem)," != 0"
     iErr = .true.
     return
   end if
 
   melens = melens+1
   if(melens > nelens) then
-    write(lout,"(2(a,i0))") "ELENS> ERROR Too many elenses: ",melens,". Max is ",nelens
+    write(lerr,"(2(a,i0))") "ELENS> ERROR Too many elenses: ",melens,". Max is ",nelens
     iErr = .true.
     return
   end if
 
   ielens(iElem) = melens
   if(elens_type(ielens(iElem)) /= 0) then
-    write(lout,"(a)") "ELENS> ERROR The element '"//trim(bez(iElem))//"' was defined twice."
+    write(lerr,"(a)") "ELENS> ERROR The element '"//trim(bez(iElem))//"' was defined twice."
     iErr = .true.
     return
   end if
@@ -166,29 +166,29 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   case("GAUSSIAN")
     elens_type(ielens(iElem)) = 2
     if(nSplit < 8) then
-      write(lout,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for GAUSSIAN, got ",nSplit
+      write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for GAUSSIAN, got ",nSplit
       iErr = .true.
       return
     end if
   case("RADIAL")
     elens_type(ielens(iElem)) = 3
     if(nSplit < 8) then
-      write(lout,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for RADIAL, got ",nSplit
+      write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for RADIAL, got ",nSplit
       iErr = .true.
       return
     end if
   case("CHEBYSHEV")
-    write(lout,"(a)") "ELENS> ERROR CHEBYSHEV type not fully supported yet - elens name: '"//trim(bez(iElem))
+    write(lerr,"(a)") "ELENS> ERROR CHEBYSHEV type not fully supported yet - elens name: '"//trim(bez(iElem))
     iErr = .true.
     return
 !     elens_type(ielens(iElem)) = 4
 !     if(nSplit < 8) then
-!       write(lout,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for CHEBYSHEV, got ",nSplit
+!       write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for CHEBYSHEV, got ",nSplit
 !       iErr = .true.
 !       return
 !     end if
   case default
-    write(lout,"(a)") "ELENS> ERROR Elens type '"//trim(lnSplit(2))//"' not recognized. Remember to use all UPPER CASE."
+    write(lerr,"(a)") "ELENS> ERROR Elens type '"//trim(lnSplit(2))//"' not recognized. Remember to use all UPPER CASE."
     iErr = .true.
     return
   end select
@@ -221,7 +221,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       ! Unsuccessful search
       melens_radial_profiles = melens_radial_profiles+1
       if(melens_radial_profiles > nelens_radial_profiles) then
-        write(lout,"(2(a,i0))") "ELENS> ERROR Too many radial profiles: ",melens_radial_profiles,&
+        write(lerr,"(2(a,i0))") "ELENS> ERROR Too many radial profiles: ",melens_radial_profiles,&
           ". Max is ",nelens_radial_profiles
         iErr = .true.
         return
@@ -266,40 +266,40 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     elens_r2(ielens(iElem)) = elens_r1(ielens(iElem))
     elens_r1(ielens(iElem)) = tmpflt
   else if(elens_r2(ielens(iElem)) == elens_r1(ielens(iElem))) then
-    write(lout,"(a)") "ELENS> ERROR ELEN R2=R1. Elens does not exist."
+    write(lerr,"(a)") "ELENS> ERROR ELEN R2=R1. Elens does not exist."
     iErr = .true.
     return
   end if
   if(elens_r2(ielens(iElem)) <= zero) then
-    write(lout,"(a)") "ELENS> ERROR R2<=0!"
+    write(lerr,"(a)") "ELENS> ERROR R2<=0!"
     iErr = .true.
     return
   end if
   if(elens_r1(ielens(iElem)) <= zero) then
-    write(lout,"(a)") "ELENS> ERROR R1<=0!"
+    write(lerr,"(a)") "ELENS> ERROR R1<=0!"
     iErr = .true.
     return
   end if
   if(elens_lThetaR2(ielens(iElem))) then
     if(elens_len(ielens(iElem)) <= zero) then
-      write(lout,"(a)") "ELENS> ERROR L<0!"
+      write(lerr,"(a)") "ELENS> ERROR L<0!"
       iErr = .true.
       return
     end if
     if(elens_I(ielens(iElem)) == zero) then
-      write(lout,"(a)") "ELENS> ERROR I=0!"
+      write(lerr,"(a)") "ELENS> ERROR I=0!"
       iErr = .true.
       return
     end if
     if(elens_Ek(ielens(iElem)) <= zero) then
-      write(lout,"(a)") "ELENS> ERROR Ek<0! (e-beam)"
+      write(lerr,"(a)") "ELENS> ERROR Ek<0! (e-beam)"
       iErr = .true.
       return
     end if
   end if
   if( elens_type(ielens(iElem)) == 2 ) then
     if ( elens_sig(ielens(iElem)).le.zero ) then
-       write(lout,"(a)") "ELENS> ERROR sigma of electron beam <=0 in Elens '"//trim(bez(iElem))//"'."
+       write(lerr,"(a)") "ELENS> ERROR sigma of electron beam <=0 in Elens '"//trim(bez(iElem))//"'."
        iErr = .true.
        return
     end if
@@ -327,27 +327,31 @@ end subroutine elens_parseInputLine
 
 subroutine elens_parseInputDone(iErr)
 
-  use mod_common, only : kz,bez
+  use mod_common, only : bez, kz
 
   implicit none
 
   logical, intent(inout) :: iErr
 
-  integer j
+  integer jj, kk
 
-  ! Loop over single elements to check that they have been defined in the fort.3 block
-  if(melens /= 0) then
-    do j=1,nele
-      if(kz(j) == elens_kz) then
-        if(elens_type(ielens(j)) == 0) then
-          write(lout,"(a)") "ELENS> ERROR Elens element '"//trim(bez(j))//"'not defined in fort.3."
-          write(lout,"(a)") "ELENS>       You must define every elens in the ELEN block."
-          iErr = .true.
-          return
+  ! check Loop over single elements to check that they have been defined in the fort.3 block
+  do jj=1,melens
+    if(elens_type(jj)==0) then
+      ! find name of elens (for printout purposes)
+      do kk=1,nele
+        if(kz(kk)==elens_kz) then
+          if (ielens(kk).eq.jj) then
+            exit
+          end if
         end if
-      end if
-    end do
-  end if
+      end do
+      ! report error
+      write(lout,"(a)") "ELENS> ERROR Type of elens not declared in fort.3 for element '"//trim(bez(kk))//"'"
+      iErr = .true.
+      return
+    end if
+  end do
 
 end subroutine elens_parseInputDone
 
@@ -357,15 +361,38 @@ subroutine elens_postInput
   use utils, only : polinterp
   use mod_common, only : bez,kz
 
-  integer j,jj,jguess
+  integer j, jj, nlens, jguess
   logical exist
+
+  ! Check that all elenses in fort.2 have a corresponding declaration in fort.3
+  nlens=0
+  do jj=1,nele
+    if(kz(jj)==elens_kz) then
+      if (ielens(jj).eq.0) then
+        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lout,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in fort.3"
+        call prror
+      elseif ( elens_type(ielens(jj))==0 ) then
+        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lout,"(a)")      "ELENS>       had not been assigned a type"
+        call prror
+      else
+        nlens=nlens+1
+      end if
+    end if
+  end do
+  if ( nlens.ne.melens ) then
+    write(lout,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in fort.3 ",melens
+    write(lout,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
+    call prror
+  end if
 
   ! Parse files with radial profiles
    do j=1,melens_radial_profiles
     inquire(file=elens_radial_filename(j), exist=exist)
     if(.not. exist) then
-      write(lout,"(a)") "ELENS> ERROR Problems with file with radial profile: "//trim(elens_radial_filename(j))
-      call prror(-1)
+      write(lerr,"(a)") "ELENS> ERROR Problems with file with radial profile: "//trim(elens_radial_filename(j))
+      call prror
     end if
     call parseRadialProfile(j)
     call integrateRadialProfile(j)
@@ -413,7 +440,6 @@ subroutine elens_postInput
     call eLensTheta(j)
     
   end do
-
 
 end subroutine elens_postInput
 
@@ -523,7 +549,7 @@ subroutine parseRadialProfile(ifile)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "ELENS> ERROR Failed to parse input line from radial profile."
+    write(lerr,"(a)") "ELENS> ERROR Failed to parse input line from radial profile."
     goto 30
   end if
 
@@ -536,14 +562,14 @@ subroutine parseRadialProfile(ifile)
   call chr_cast(lnSplit(2),tmpJ,spErr)
   if(tmpR<=elens_radial_profile_R(ii,ifile)) then
     iErr = 1
-    write(lout,"(a,i0)") "ELENS> ERROR radius not in increasing order at ii=",ii
+    write(lerr,"(a,i0)") "ELENS> ERROR radius not in increasing order at ii=",ii
     goto 30
   end if
   if(tmpJ>=0.0) then
     ii=ii+1
     if(ii>elens_radial_dim) then
       iErr = 2
-      write(lout,"(a,i0,a,i0)") "ELENS> ERROR too many points in radial profile: ",ii, &
+      write(lerr,"(a,i0,a,i0)") "ELENS> ERROR too many points in radial profile: ",ii, &
            ". Max is ",elens_radial_dim
       goto 30
     end if
@@ -572,7 +598,7 @@ subroutine parseRadialProfile(ifile)
   return
 
 30 continue
-  write(lout,"(a,i0,a)") "ELENS> ERROR ",iErr," while parsing file "//trim(elens_radial_filename(ifile))
+  write(lerr,"(a,i0,a)") "ELENS> ERROR ",iErr," while parsing file "//trim(elens_radial_filename(ifile))
   call prror(-1)
 
 end subroutine parseRadialProfile
