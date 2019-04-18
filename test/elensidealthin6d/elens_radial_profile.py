@@ -28,7 +28,7 @@ for ii in range(len(profIN[:,1])):
         rMin=0.0
     else:
         rMin=profIN[ii-1,0]
-    tot+=profIN[ii,1]*np.pi*(profIN[ii,0]-rMin)*(profIN[ii,0]+rMin)*mm2cm
+    tot+=profIN[ii,1]*np.pi*(profIN[ii,0]-rMin)*(profIN[ii,0]+rMin)*mm2cm**2
     cumulIN.append(tot)
 cumulIN=np.array(cumulIN)
 axarr[1,0].grid()
