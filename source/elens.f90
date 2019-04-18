@@ -455,17 +455,17 @@ subroutine eLensTheta(j)
   implicit none
 
   integer j,jj
-  real(kind=fPrec) gamma
+  real(kind=fPrec) gamma_e
 
   if(elens_lThetaR2(j) .and. elens_lAllowUpdate(j)) then
     ! the update of elens_radial_beta_e is not strictly needed here,
     !   apart from the case of elens_Ek is DYNK-ed
-    gamma  = ((elens_Ek(j)*c1m3)/pmae)+one ! from kinetic energy
-    elens_beta_e(j) = sqrt((one+one/gamma)*(one-one/gamma))
+    gamma_e  = ((elens_Ek(j)*c1m3)/pmae)+one ! from kinetic energy
+    elens_beta_e(j) = sqrt((one+one/gamma_e)*(one-one/gamma_e))
     
     ! r2: from mm to m (c1m3)
     ! theta: from rad to mrad (c1e3)
-    elens_theta_r2(j) = ((elens_len(j)*abs(elens_I(j)))/ &
+    elens_theta_r2(j) = gamma_e*((elens_len(j)*abs(elens_I(j)))/ &
          ((((two*pi)*((eps0*clight)*clight))*brho)*(elens_r2(j)*c1m3)))*c1e3
     if(elens_I(j) < zero) then
       elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betrel)+one)
