@@ -433,7 +433,7 @@ subroutine elens_postInput
       end if
     end do
     ! - report geometrical factor
-    write(lout,"(a,i0,a,e22.15)") "ELENS> Geom. norm. fact. for elens #",j, &
+    write(lout,"(a,i0,a,1pe22.15)") "ELENS> Geom. norm. fact. for elens #",j, &
          " named "//trim(bez(jj))//": ",elens_geo_norm(j)
     
     ! Compute elens theta at R2, if requested by user
@@ -494,9 +494,9 @@ subroutine eLensTheta(j)
           end if
         end if
       end do
-      write(lout,"(a,i0,a,e22.15)") "ELENS> New theta at r2 for elens #",j, &
+      write(lout,"(a,i0,a,1pe22.15)") "ELENS> New theta at r2 for elens #",j, &
            " named "//trim(bez(jj))//": ",elens_theta_r2(j)
-      if ( elens_type(j)>=2 ) write(lout,"(a,e22.15)") "ELENS>   ...considering also geom. norm. fact.: ", &
+      if ( elens_type(j)>=2 ) write(lout,"(a,1pe22.15)") "ELENS>   ...considering also geom. norm. fact.: ", &
            elens_geo_norm(j)
     end if
   end if
@@ -569,7 +569,7 @@ subroutine parseRadialProfile(ifile)
     ii=ii+1
     if(ii>elens_radial_dim) then
       iErr = 2
-      write(lerr,"(a,i0,a,i0)") "ELENS> ERROR too many points in radial profile: ",ii, &
+      write(lerr,"(2(a,i0))") "ELENS> ERROR too many points in radial profile: ",ii, &
            ". Max is ",elens_radial_dim
       goto 30
     end if
