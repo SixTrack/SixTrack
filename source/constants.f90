@@ -62,6 +62,7 @@ module numerical_constants
 
   ! We set the parameters of irrational numbers explicitly to their nearest binary representation
   ! without depending on rounding from decimal representation. These use decimal round near.
+  ! Small program for checking binary and hex here: https://gist.github.com/vkbo/0e5d0c4b7b1ecb533a0486c79a30f741
 
 #ifdef SINGLE_MATH
   real(kind=fPrec), parameter :: pi      = transfer(z'40490fdb',1.0_fPrec)
