@@ -200,7 +200,7 @@ subroutine daini(no,nv,iunit)
       character(len=256) filename
 #endif
 
-      if(eps.le.zero) eps=1.e-38_fPrec
+      if(eps.le.zero) eps=1.e-38_fPrec ! Why is this not pieni?
 !      if(EPS.le.0.d0) eps=1.d-90
       epsmac=c1m7
       if(nv.eq.0) return

@@ -81,7 +81,7 @@ module numerical_constants
   real(kind=fPrec), parameter :: pisqrt  = transfer(z'3ffc5bf891b4ef6a',1.0_fPrec)
   real(kind=fPrec), parameter :: inv_ln2 = transfer(z'3ff71547652b82fe',1.0_fPrec)
   real(kind=fPrec), parameter :: rad     = transfer(z'3f91df46a2529d39',1.0_fPrec)
-! real(kind=fPrec), parameter :: pieni   = transfer(z'3810000000000000',1.0_fPrec) ! Smalles normal real32
+! real(kind=fPrec), parameter :: pieni   = transfer(z'3810000000000000',1.0_fPrec) ! Smallest normal real32
 ! real(kind=fPrec), parameter :: pieni   = transfer(z'380B38FB9DAA78E4',1.0_fPrec) ! 1d-38
 #endif
 #ifdef QUAD_MATH
@@ -91,12 +91,13 @@ module numerical_constants
   real(kind=fPrec), parameter :: pisqrt  = transfer(z'3fffc5bf891b4ef6aa79c3b0520d5db9',1.0_fPrec)
   real(kind=fPrec), parameter :: inv_ln2 = transfer(z'3fff71547652b82fe1777d0ffda0d23a',1.0_fPrec)
   real(kind=fPrec), parameter :: rad     = transfer(z'3ff91df46a2529d3915c1d8becdd290b',1.0_fPrec)
-! real(kind=fPrec), parameter :: pieni   = transfer(z'3F810000000000000000000000000000',1.0_fPrec) ! Smalles normal real32
+! real(kind=fPrec), parameter :: pieni   = transfer(z'3F810000000000000000000000000000',1.0_fPrec) ! Smallest normal real32
 ! real(kind=fPrec), parameter :: pieni   = transfer(z'3F80B38FB9DAA78E44AB2DCF7A6B1921',1.0_fPrec) ! 1q-38
 #endif
 
-  ! The variable pieni is roughly the smalles normal single precision float vlaue, 
+  ! The variable pieni is roughly the smallest normal single precision float value.
   ! However, 1e-38 is actually subnormal in 32 bit (0x006ce3ee). Smallest normal is 1.17549435e-38 (0x00800000)
+  ! This is probably not a good idea for performance in single prec, but changing it makes a difference in postprocessing it seems.
   real(kind=fPrec), parameter :: pieni  = 1e-38_fPrec
 
   real(kind=fPrec), parameter :: zero   = 0.0_fPrec
