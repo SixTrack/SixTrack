@@ -63,6 +63,7 @@ module numerical_constants
   ! We set the parameters of irrational numbers explicitly to their nearest binary representation
   ! without depending on rounding from decimal representation. These use decimal round near.
   ! Small program for checking binary and hex here: https://gist.github.com/vkbo/0e5d0c4b7b1ecb533a0486c79a30f741
+  ! Note: Transfer to real128 only works for GNU
 
 #ifdef SINGLE_MATH
   real(kind=fPrec), parameter :: pi      = transfer(z'40490fdb',1.0_fPrec)
@@ -71,8 +72,6 @@ module numerical_constants
   real(kind=fPrec), parameter :: pisqrt  = transfer(z'3fe2dfc5',1.0_fPrec) ! sqrt(pi)
   real(kind=fPrec), parameter :: inv_ln2 = transfer(z'3fb8aa3b',1.0_fPrec) ! 1/log(2)
   real(kind=fPrec), parameter :: rad     = transfer(z'3c8efa35',1.0_fPrec) ! pi/180.0_fPrec
-! real(kind=fPrec), parameter :: pieni   = transfer(z'00800000',1.0_fPrec) ! Smallest normal number
-! real(kind=fPrec), parameter :: pieni   = transfer(z'006CE3EE',1.0_fPrec) ! 1e-38 is subnormal
 #endif
 #ifdef DOUBLE_MATH
   real(kind=fPrec), parameter :: pi      = transfer(z'400921fb54442d18',1.0_fPrec)
@@ -81,18 +80,23 @@ module numerical_constants
   real(kind=fPrec), parameter :: pisqrt  = transfer(z'3ffc5bf891b4ef6a',1.0_fPrec)
   real(kind=fPrec), parameter :: inv_ln2 = transfer(z'3ff71547652b82fe',1.0_fPrec)
   real(kind=fPrec), parameter :: rad     = transfer(z'3f91df46a2529d39',1.0_fPrec)
-! real(kind=fPrec), parameter :: pieni   = transfer(z'3810000000000000',1.0_fPrec) ! Smallest normal real32
-! real(kind=fPrec), parameter :: pieni   = transfer(z'380B38FB9DAA78E4',1.0_fPrec) ! 1d-38
 #endif
 #ifdef QUAD_MATH
+#ifdef GFORTRAN
   real(kind=fPrec), parameter :: pi      = transfer(z'4000921fb54442d18469898cc51701b8',1.0_fPrec)
   real(kind=fPrec), parameter :: pi2     = transfer(z'3fff921fb54442d18469898cc51701b8',1.0_fPrec)
   real(kind=fPrec), parameter :: twopi   = transfer(z'4001921fb54442d18469898cc51701b8',1.0_fPrec)
   real(kind=fPrec), parameter :: pisqrt  = transfer(z'3fffc5bf891b4ef6aa79c3b0520d5db9',1.0_fPrec)
   real(kind=fPrec), parameter :: inv_ln2 = transfer(z'3fff71547652b82fe1777d0ffda0d23a',1.0_fPrec)
   real(kind=fPrec), parameter :: rad     = transfer(z'3ff91df46a2529d3915c1d8becdd290b',1.0_fPrec)
-! real(kind=fPrec), parameter :: pieni   = transfer(z'3F810000000000000000000000000000',1.0_fPrec) ! Smallest normal real32
-! real(kind=fPrec), parameter :: pieni   = transfer(z'3F80B38FB9DAA78E44AB2DCF7A6B1921',1.0_fPrec) ! 1q-38
+#else
+  real(kind=fPrec), parameter :: pi      = 3.141592653589793238462643383279502884197169399375105820974_fPrec
+  real(kind=fPrec), parameter :: pi2     = 0.5_fPrec*pi
+  real(kind=fPrec), parameter :: twopi   = 2.0_fPrec*pi
+  real(kind=fPrec), parameter :: pisqrt  = sqrt(pi)
+  real(kind=fPrec), parameter :: inv_ln2 = 1.442695040888963407359924681001892137426645954152985934135_fPrec
+  real(kind=fPrec), parameter :: rad     = pi/180.0_fPrec
+#endif
 #endif
 
   ! The variable pieni is roughly the smallest normal single precision float value.
