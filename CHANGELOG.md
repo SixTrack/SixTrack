@@ -14,10 +14,10 @@
 
 **Code Improvements and Changes**
 
-* Removed 30 arrays used as temporary arrays for thick tracking (but was always allocated). These arrays were allocated to the number of particles, but could be replaced by scalars. This change frees up `(NPART-1)*240` bytes of memory, where `NPART` is the number of tracked particles. PR #822 (V.K. Berglyd Olsen, K.Sjobak)
-* Some minor reordering of the logic in handling RF cavities when below transition energy. The initialisation of the cavity elements are now in one place. An integer array with the length of the single element list (`nele`) was also removed. Tests have been added for below transition energy tracking. PR #828 (V.K. Berglyd Olsen, K.Sjobak)
-* Commented out and no longer maintained code under the `DEBUG` flag has been deleted in coordination with Eric McIntosh. PR #835 (V.K. Berglyd Olsen, K.Sjobak)
-* The constants `pi`, `pi/2`, `2*pi`, `sqrt(pi)`, `pi/180` and `1/ln(2)` are now set with hex values to bypass conversion from decimal to binary. This is enabled for single and double precision, and for quad precision for the GNU compiler only. Intel and NAG does not support this for quad precision. PRs #840 and #842 (V.K. Berglyd Olsen)
+* Removed 30 arrays used as temporary arrays for thick tracking (but was always allocated). These arrays were allocated to the number of particles, but could be replaced by scalars. This change frees up `(NPART-1)*240` bytes of memory, where `NPART` is the number of tracked particles. PR #822 (V.K. Berglyd Olsen, K. Sjobak)
+* Some minor reordering of the logic in handling RF cavities when below transition energy. The initialisation of the cavity elements is now in one place only. An integer array with the length of the single element list (`NELE`) was also removed. Tests have been added for below transition energy tracking. PR #828 (V.K. Berglyd Olsen, K. Sjobak)
+* Commented out and no longer maintained code under the `DEBUG` flag has been deleted in coordination with Eric McIntosh. PR #835 (V.K. Berglyd Olsen, K. Sjobak)
+* The constants `pi`, `pi/2`, `2*pi`, `sqrt(pi)`, `pi/180`, and `1/ln(2)` are now set with hex values to bypass conversion from decimal to binary. This is enabled for single and double precision, and for quad precision for the GNU compiler only. Intel and NAG does not support this for quad precision. PRs #840 and #842 (V.K. Berglyd Olsen)
 
 ### Version 5.2.3 [13.04.2019] - Release
 
