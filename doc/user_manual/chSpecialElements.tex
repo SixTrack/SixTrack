@@ -1667,11 +1667,11 @@ The collimation module is controlled by the \texttt{COLL} block in \texttt{fort.
 
 \paragraph{Format Description:}~\\
 
-From SixTrack version 5.2.3 and on, the format of the \texttt(COLL) block is a set of keyword/value lines.
+From SixTrack version 5.2.5 and on, the format of the \texttt(COLL) block is a set of keyword/value lines.
 This format is described in Section~\ref(sec:coll:newfmt).
 
-For backwards compatibility, the old format is still supported, and it is described in Section~\ref{sec:coll:oldfmt}..
-When encountering the \texttt{COLL} block, the parser will check if the first item of the line is a valid keywords, and if it is not, it will fall back to parsing the block in the old format.
+For backwards compatibility, the old format is still supported, and it is described in Section~\ref{sec:coll:oldfmt}.
+When encountering the \texttt{COLL} block, the parser will check if the first item of the block is a single value, and if it is, it will fall back to parsing the block in the old format.
 The old block format consists of 17 lines of varying number of values, and the full description is laid out in Table~\ref{tab:COLL_INP}.
 
 Note that the old and new format cannot be inter-mixed, as the old format is parsed based on the line number.
@@ -1684,7 +1684,7 @@ The keywords mostly correspond to the keywords listed in Table~\ref{tab:COLL_INP
 
 \paragraph{Do Collimation} \texttt{DO\_COLL true|false}\\
 
-The collimation modul can be switched on and off in its entirety with this flag without having to comment in and out the entire block.
+The collimation module can be switched on and off in its entirety with this flag without having to comment in and out the entire block.
 When the flag is off, the collimation routines are skipped in tracking, and the memory needed for collimation is not allocated.
 
 \paragraph{Collimator Database} \texttt{COLLDB filename}\\
@@ -1720,7 +1720,7 @@ The different options are listed below.
     \item The internal collimation distribution generator is disabled and the general SixTrack distribution is used instead (default).
     \item Distribution in the plane for which the parameters are specified ONLY: flat distribution in the selected plane between $A_x \pm \delta A_x$ (horizontal) or $A_y \pm \delta A_y$ (vertical). The amplitude in the other plane is zero\index{beam distribution}. The parameters must be provided with the \texttt{DIST\_PARAM} keyword. Values 1 to 4 are used.
     \item Distribution in the plane for which the parameters are specified + a Gaussian distribution cut at $3\sigma$ in the other plane. The parameters must be provided with the \texttt{DIST\_PARAM} keyword. Values 1 to 4 are used.
-    \item Distribution in the plane for which the parameters are specified + a Gaussian distribution cut at $3\sigma$ in the other plane. The parameters must be provided with the \texttt{DIST\_PARAM} keyword. Values 1 to 4 are used. In addition and energy spread is given value 5, and a longitudinal component given by value 6.
+    \item Distribution in the plane for which the parameters are specified + a Gaussian distribution cut at $3\sigma$ in the other plane. The parameters must be provided with the \texttt{DIST\_PARAM} keyword. Values 1 to 4 are used. In addition an energy spread is given as value 5, and a longitudinal component given by value 6.
     \item Reads an external file that contains the beam distribution to be tracked. The file is specified by \texttt{DIST\_FILE}.
     \item Radial transverse distribution of radius $A_r$. This corresponds to a flat distribution both in the horizontal and vertical planes between $A_x \pm \delta A_x$ and $A_y \pm \delta A_y$, with $A_x = A_y = A_r/\ddot{O}2$.
     \item Reads a normalised distribution from an external file. The file is specified by \texttt{DIST\_FILE}.
@@ -1732,16 +1732,20 @@ The parameters for the distribution generator \texttt{DIST\_TYPE}.
 The required values are determined by the type selected.
 All values default to 0.
 
-Nominal values are $3.06 \times 10^{-4}$ at 450 GeV and $1.129 \times 10^{-4}$ at 7 TeV for \texttt{enerror}, and 11.24 cm at 450 GeV and 7.55 cm at 7TeV for \texttt{bunchlen}.
+Recomended values are $3.06 \times 10^{-4}$ at 450 GeV and $1.129 \times 10^{-4}$ at 7 TeV for energy error (\texttt{enerror}), and 11.24 cm at 450 GeV and 7.55 cm at 7TeV for bunch length (\texttt{bunchlen}).
 
 \paragraph{Distribution Generator Input File} \texttt{DIST\_FILE filename}\\
 
-Name of the distribution file to be read if for distribution type 4 or 6. 
+Name of the distribution file to be read in for distribution type 4 or 6. 
 
 \paragraph{Special Radial Distribution} \texttt{DO\_RADIAL true|false size smear}\\
 
-Alternative radial beam distribution where \texttt{size} is the size of the beam in numbers of radial sigmas, and \texttt{smear} is the smear of the beam in radial sigma.
-Setting this to true will oveeride \texttt{DIST\_TYPE}.
+Alternative radial beam distribution where \texttt{size} is the amplitude of the beam in numbers of radial sigmas, and \texttt{smear} is the smear of the beam in radial sigma.
+Setting this to true will override \texttt{DIST\_TYPE}.
+
+\paragraph{Special Radial Distribution} \texttt{DO\_MINGAP true|false}\\
+
+If true. the particle distribution is generated at the collimator with the smallest gap (to be used with sheet/pencil beam).
 
 \paragraph{Do Change Collimator Gaps} \texttt{DO\_NSIG true|false}\\
 
@@ -1859,7 +1863,7 @@ Apply an emittance drift in the $x$ and $y$ direction, respectively.
 
 \paragraph{Alignment Errors} \texttt{ALIGNERR\_[PRIM|SEC] rms\_tilt sys\_tilt rms\_offset sys\_offset}\\
 
-Apply erros to primary or secondary collimator tilt and offset.
+Apply errors to primary or secondary collimator tilt and offset.
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
