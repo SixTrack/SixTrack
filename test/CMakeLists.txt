@@ -523,7 +523,6 @@ set(FAST_TESTS
   elensidealthin6d_DYNK
   elensidealthin6d_DYNK_ZIPF
   elensidealthin6d_ions
-  elensidealthin6d_ramp_DYNK
   exact
   fcc
   frs_da
@@ -575,9 +574,11 @@ set(MEDIUM_TESTS
   bbe51
   bbe52
   bbe571ib0
+  chebythin6d_ramp_DYNK
   collimation_k2
   dipedge
   distance
+  elensidealthin6d_ramp_DYNK
   eric
   fma
   fma_binary
