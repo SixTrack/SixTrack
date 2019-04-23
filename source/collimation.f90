@@ -24,6 +24,7 @@ module collimation
   integer, parameter :: numeffdpop = 29
   integer, parameter :: nc         = 32
 
+  ! Variables for collimator material numbers
   integer, parameter :: nmat       = 14
   integer, parameter :: nrmat      = 12
 
@@ -63,7 +64,7 @@ module collimation
   real(kind=fPrec), private, save :: smax_slices  = zero
   real(kind=fPrec), private, save :: recenter1    = zero
   real(kind=fPrec), private, save :: recenter2    = zero
-  real(kind=fPrec), private, save :: jaw_fit(6,6) = zero
+  real(kind=fPrec), private, save :: jaw_fit(2,6) = zero
   real(kind=fPrec), private, save :: jaw_ssf(2)   = zero
 
   ! Beta-beating
@@ -1224,12 +1225,14 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 1) call chr_cast(lnSplit(2), mynex,       iErr)
-    if(nSplit > 2) call chr_cast(lnSplit(3), mdex,        iErr)
-    if(nSplit > 3) call chr_cast(lnSplit(4), myney,       iErr)
-    if(nSplit > 4) call chr_cast(lnSplit(5), mdey,        iErr)
-    if(nSplit > 5) call chr_cast(lnSplit(6), enerror,     iErr)
-    if(nSplit > 6) call chr_cast(lnSplit(7), bunchlength, iErr)
+    call chr_cast(lnSplit(2), mynex, iErr)
+    call chr_cast(lnSplit(3), mdex,  iErr)
+    call chr_cast(lnSplit(4), myney, iErr)
+    call chr_cast(lnSplit(5), mdey,  iErr)
+    if(nSplit == 7) then
+      call chr_cast(lnSplit(6), enerror,     iErr)
+      call chr_cast(lnSplit(7), bunchlength, iErr)
+    end if
 
   case("DIST_FILE")
     if(nSplit /= 2) then
@@ -1578,7 +1581,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0) call chr_cast(lnSplit(1),do_coll,iErr)
+    call chr_cast(lnSplit(1),do_coll,iErr)
 
   case(2)
     if(nSplit /= 2) then
@@ -1586,8 +1589,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0) call chr_cast(lnSplit(1),nloop,iErr)
-    if(nSplit > 1) call chr_cast(lnSplit(2),myenom,iErr)
+    call chr_cast(lnSplit(1),nloop,iErr)
+    call chr_cast(lnSplit(2),myenom,iErr)
 
     if(nloop /= 1) then
       write(lerr,"(a,i0)") "COLL> ERROR Multiple samples is no longer supported. nloop must be 1, got ",nloop
@@ -1601,14 +1604,14 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), do_thisdis,  iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), mynex,       iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), mdex,        iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), myney,       iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), mdey,        iErr)
-    if(nSplit > 5)  filename_dis = lnSplit(6)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), enerror,     iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), bunchlength, iErr)
+    call chr_cast(lnSplit(1), do_thisdis,  iErr)
+    call chr_cast(lnSplit(2), mynex,       iErr)
+    call chr_cast(lnSplit(3), mdex,        iErr)
+    call chr_cast(lnSplit(4), myney,       iErr)
+    call chr_cast(lnSplit(5), mdey,        iErr)
+    filename_dis = lnSplit(6)
+    call chr_cast(lnSplit(7), enerror,     iErr)
+    call chr_cast(lnSplit(8), bunchlength, iErr)
 
   case(4)
     if(nSplit /= 14) then
@@ -1616,20 +1619,20 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), cdb_doNSig,iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), nSigIn(1), iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), nSigIn(2), iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), nSigIn(3), iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), nSigIn(4), iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), nSigIn(5), iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), nSigIn(6), iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), nSigIn(7), iErr)
-    if(nSplit > 8)  call chr_cast(lnSplit(9), nSigIn(8), iErr)
-    if(nSplit > 9)  call chr_cast(lnSplit(10),nSigIn(9), iErr)
-    if(nSplit > 10) call chr_cast(lnSplit(11),nSigIn(10),iErr)
-    if(nSplit > 11) call chr_cast(lnSplit(12),nSigIn(11),iErr)
-    if(nSplit > 12) call chr_cast(lnSplit(13),nSigIn(12),iErr)
-    if(nSplit > 13) call chr_cast(lnSplit(14),nSigIn(13),iErr)
+    call chr_cast(lnSplit(1), cdb_doNSig,iErr)
+    call chr_cast(lnSplit(2), nSigIn(1), iErr)
+    call chr_cast(lnSplit(3), nSigIn(2), iErr)
+    call chr_cast(lnSplit(4), nSigIn(3), iErr)
+    call chr_cast(lnSplit(5), nSigIn(4), iErr)
+    call chr_cast(lnSplit(6), nSigIn(5), iErr)
+    call chr_cast(lnSplit(7), nSigIn(6), iErr)
+    call chr_cast(lnSplit(8), nSigIn(7), iErr)
+    call chr_cast(lnSplit(9), nSigIn(8), iErr)
+    call chr_cast(lnSplit(10),nSigIn(9), iErr)
+    call chr_cast(lnSplit(11),nSigIn(10),iErr)
+    call chr_cast(lnSplit(12),nSigIn(11),iErr)
+    call chr_cast(lnSplit(13),nSigIn(12),iErr)
+    call chr_cast(lnSplit(14),nSigIn(13),iErr)
     call cdb_addFamily("tcp3",   nSigIn(1), famID,fErr)
     call cdb_addFamily("tcsg3",  nSigIn(2), famID,fErr)
     call cdb_addFamily("tcsm3",  nSigIn(3), famID,fErr)
@@ -1645,21 +1648,25 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call cdb_addFamily("tdi",    nSigIn(13),famID,fErr)
 
   case(5)
-    if(nSplit /= 10) then
-      write(lerr,"(a,i0)") "COLL> ERROR Expected 10 values on line 5, got ",nSplit
+    if(nSplit < 8 .or. nSplit > 10) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 8-10 values on line 5, got ",nSplit
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), nSigIn(14),iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), nSigIn(15),iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), nSigIn(16),iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), nSigIn(17),iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), nSigIn(18),iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), nSigIn(19),iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), nSigIn(20),iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), nSigIn(21),iErr)
-    if(nSplit > 8)  call chr_cast(lnSplit(9), nSigIn(22),iErr)
-    if(nSplit > 9)  call chr_cast(lnSplit(10),nSigIn(23),iErr)
+    call chr_cast(lnSplit(1), nSigIn(14),iErr)
+    call chr_cast(lnSplit(2), nSigIn(15),iErr)
+    call chr_cast(lnSplit(3), nSigIn(16),iErr)
+    call chr_cast(lnSplit(4), nSigIn(17),iErr)
+    call chr_cast(lnSplit(5), nSigIn(18),iErr)
+    call chr_cast(lnSplit(6), nSigIn(19),iErr)
+    call chr_cast(lnSplit(7), nSigIn(20),iErr)
+    call chr_cast(lnSplit(8), nSigIn(21),iErr)
+    if(nSplit > 8) then
+      call chr_cast(lnSplit(9), nSigIn(22),iErr)
+    end if
+    if(nSplit > 9) then
+      call chr_cast(lnSplit(10),nSigIn(23),iErr)
+    end if
     call cdb_addFamily("tcth1",nSigIn(14),famID,fErr)
     call cdb_addFamily("tcth2",nSigIn(15),famID,fErr)
     call cdb_addFamily("tcth5",nSigIn(16),famID,fErr)
@@ -1677,11 +1684,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), n_slices,   iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), smin_slices,iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), smax_slices,iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), recenter1,  iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), recenter2,  iErr)
+    call chr_cast(lnSplit(1), n_slices,   iErr)
+    call chr_cast(lnSplit(2), smin_slices,iErr)
+    call chr_cast(lnSplit(3), smax_slices,iErr)
+    call chr_cast(lnSplit(4), recenter1,  iErr)
+    call chr_cast(lnSplit(5), recenter2,  iErr)
 
   case(7)
     if(nSplit /= 7) then
@@ -1689,13 +1696,13 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), jaw_fit(1,1),iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), jaw_fit(1,2),iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), jaw_fit(1,3),iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), jaw_fit(1,4),iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), jaw_fit(1,5),iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), jaw_fit(1,6),iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), jaw_ssf(1),  iErr)
+    call chr_cast(lnSplit(1), jaw_fit(1,1),iErr)
+    call chr_cast(lnSplit(2), jaw_fit(1,2),iErr)
+    call chr_cast(lnSplit(3), jaw_fit(1,3),iErr)
+    call chr_cast(lnSplit(4), jaw_fit(1,4),iErr)
+    call chr_cast(lnSplit(5), jaw_fit(1,5),iErr)
+    call chr_cast(lnSplit(6), jaw_fit(1,6),iErr)
+    call chr_cast(lnSplit(7), jaw_ssf(1),  iErr)
 
   case(8)
     if(nSplit /= 7) then
@@ -1703,13 +1710,13 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), jaw_fit(2,1),iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), jaw_fit(2,2),iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), jaw_fit(2,3),iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), jaw_fit(2,4),iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), jaw_fit(2,5),iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), jaw_fit(2,6),iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), jaw_ssf(2),  iErr)
+    call chr_cast(lnSplit(1), jaw_fit(2,1),iErr)
+    call chr_cast(lnSplit(2), jaw_fit(2,2),iErr)
+    call chr_cast(lnSplit(3), jaw_fit(2,3),iErr)
+    call chr_cast(lnSplit(4), jaw_fit(2,4),iErr)
+    call chr_cast(lnSplit(5), jaw_fit(2,5),iErr)
+    call chr_cast(lnSplit(6), jaw_fit(2,6),iErr)
+    call chr_cast(lnSplit(7), jaw_ssf(2),  iErr)
 
   case(9)
     if(nSplit /= 4) then
@@ -1717,10 +1724,10 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), emitnx0_dist,   iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), emitny0_dist,   iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), emitnx0_collgap,iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), emitny0_collgap,iErr)
+    call chr_cast(lnSplit(1), emitnx0_dist,   iErr)
+    call chr_cast(lnSplit(2), emitny0_dist,   iErr)
+    call chr_cast(lnSplit(3), emitnx0_collgap,iErr)
+    call chr_cast(lnSplit(4), emitny0_collgap,iErr)
 
   case(10)
     if(nSplit /= 9) then
@@ -1728,15 +1735,15 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), do_select,        iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), do_nominal,       iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), rnd_seed,         iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), dowrite_dist,     iErr)
-    if(nSplit > 4)  name_sel = lnSplit(5)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), do_oneside,       iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), dowrite_impact,   iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), dowrite_secondary,iErr)
-    if(nSplit > 8)  call chr_cast(lnSplit(9), dowrite_amplitude,iErr)
+    call chr_cast(lnSplit(1), do_select,        iErr)
+    call chr_cast(lnSplit(2), do_nominal,       iErr)
+    call chr_cast(lnSplit(3), rnd_seed,         iErr)
+    call chr_cast(lnSplit(4), dowrite_dist,     iErr)
+    name_sel = lnSplit(5)
+    call chr_cast(lnSplit(6), do_oneside,       iErr)
+    call chr_cast(lnSplit(7), dowrite_impact,   iErr)
+    call chr_cast(lnSplit(8), dowrite_secondary,iErr)
+    call chr_cast(lnSplit(9), dowrite_amplitude,iErr)
 
   case(11)
     if(nSplit /= 4) then
@@ -1744,10 +1751,10 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), xbeat,     iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), xbeatphase,iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), ybeat,     iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), ybeatphase,iErr)
+    call chr_cast(lnSplit(1), xbeat,     iErr)
+    call chr_cast(lnSplit(2), xbeatphase,iErr)
+    call chr_cast(lnSplit(3), ybeat,     iErr)
+    call chr_cast(lnSplit(4), ybeatphase,iErr)
 
   case(12)
     if(nSplit /= 11) then
@@ -1755,17 +1762,17 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), c_rmstilt_prim,   iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), c_rmstilt_sec,    iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), c_systilt_prim,   iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), c_systilt_sec,    iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), c_rmsoffset_prim, iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), c_rmsoffset_sec,  iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), c_sysoffset_prim, iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), c_sysoffset_sec,  iErr)
-    if(nSplit > 8)  call chr_cast(lnSplit(9), c_offsettilt_seed,iErr)
-    if(nSplit > 9)  call chr_cast(lnSplit(10),c_rmserror_gap,   iErr)
-    if(nSplit > 10) call chr_cast(lnSplit(11),do_mingap,        iErr)
+    call chr_cast(lnSplit(1), c_rmstilt_prim,   iErr)
+    call chr_cast(lnSplit(2), c_rmstilt_sec,    iErr)
+    call chr_cast(lnSplit(3), c_systilt_prim,   iErr)
+    call chr_cast(lnSplit(4), c_systilt_sec,    iErr)
+    call chr_cast(lnSplit(5), c_rmsoffset_prim, iErr)
+    call chr_cast(lnSplit(6), c_rmsoffset_sec,  iErr)
+    call chr_cast(lnSplit(7), c_sysoffset_prim, iErr)
+    call chr_cast(lnSplit(8), c_sysoffset_sec,  iErr)
+    call chr_cast(lnSplit(9), c_offsettilt_seed,iErr)
+    call chr_cast(lnSplit(10),c_rmserror_gap,   iErr)
+    call chr_cast(lnSplit(11),do_mingap,        iErr)
 
   case(13)
     if(nSplit /= 3) then
@@ -1773,9 +1780,9 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), radial,iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), nr,    iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), ndr,   iErr)
+    call chr_cast(lnSplit(1), radial,iErr)
+    call chr_cast(lnSplit(2), nr,    iErr)
+    call chr_cast(lnSplit(3), ndr,   iErr)
 
   case(14)
     if(nSplit /= 4) then
@@ -1783,10 +1790,10 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), driftsx,         iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), driftsy,         iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), cut_input,       iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), systilt_antisymm,iErr)
+    call chr_cast(lnSplit(1), driftsx,         iErr)
+    call chr_cast(lnSplit(2), driftsy,         iErr)
+    call chr_cast(lnSplit(3), cut_input,       iErr)
+    call chr_cast(lnSplit(4), systilt_antisymm,iErr)
 
   case(15)
     if(nSplit /= 5) then
@@ -1794,11 +1801,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), ipencil,      iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), pencil_offset,iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), pencil_rmsx,  iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), pencil_rmsy,  iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), pencil_distr, iErr)
+    call chr_cast(lnSplit(1), ipencil,      iErr)
+    call chr_cast(lnSplit(2), pencil_offset,iErr)
+    call chr_cast(lnSplit(3), pencil_rmsx,  iErr)
+    call chr_cast(lnSplit(4), pencil_rmsy,  iErr)
+    call chr_cast(lnSplit(5), pencil_distr, iErr)
 #ifdef G4COLLIMAT
     if(ipencil > 0) then
       write(lerr,"(a)") "COLL> ERROR Pencil distribution not supported with geant4"
@@ -1813,8 +1820,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  cdb_fileName = lnSPlit(1)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), ibeam, iErr)
+    cdb_fileName = lnSPlit(1)
+    call chr_cast(lnSPlit(2), ibeam, iErr)
 
   case(17)
     if(nSplit /= 6) then
@@ -1822,12 +1829,12 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), dowritetracks,iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), cern,         iErr)
-    if(nSplit > 2)  castordir = lnSplit(3)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), jobnumber,    iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), sigsecut2,    iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), sigsecut3,    iErr)
+    call chr_cast(lnSplit(1), dowritetracks,iErr)
+    call chr_cast(lnSplit(2), cern,         iErr)
+    castordir = lnSplit(3)
+    call chr_cast(lnSplit(4), jobnumber,    iErr)
+    call chr_cast(lnSplit(5), sigsecut2,    iErr)
+    call chr_cast(lnSplit(6), sigsecut3,    iErr)
 
   case default
     write(lerr,"(a,i0,a)") "COLL> ERROR Unexpected line ",iLine," encountered."
