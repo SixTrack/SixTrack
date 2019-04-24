@@ -1,4 +1,13 @@
-#Test that the testing tools run!
+
+##
+##  SixTrack Test Suite
+## =====================
+##
+
+##
+## SelfTests
+##
+
 add_test(NAME SelfTest_verify10 COMMAND verify10)
 set_tests_properties(SelfTest_verify10 PROPERTIES PASS_REGULAR_EXPRESSION "Error in verify10 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
@@ -20,11 +29,23 @@ set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error i
 add_test(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
 
+##
+## Checks
+##
+
 add_test(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/ COMMAND ${CMAKE_SOURCE_DIR}/test/CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
 set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
 add_test(NAME CheckBuildManual COMMAND ${CMAKE_SOURCE_DIR}/test/CheckBuildManual.sh "${CMAKE_SOURCE_DIR}")
 set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+
+##
+## ERROR Tests
+##
+
+list(APPEND SIXTRACK_ERROR
+  error_init
+)
 
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
@@ -404,8 +425,8 @@ if(SIXDA)
   endforeach()
 endif()
 
-#test files
-foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
+# Set up tests
+foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS} ${SIXTRACK_ERROR})
   add_custom_target(test_copy_${TST})
   add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/test/${TST}/)
 
@@ -468,6 +489,26 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
   endif(NOT BOINC)
 
   add_dependencies(SixTrackCore test_copy_${TST})
+endforeach()
+
+# Set up error tests
+foreach(TST IN ITEMS ${SIXTRACK_ERROR})
+  add_test(
+    NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
+    COMMAND "errorTests.py" $<TARGET_FILE:SixTrackCR>
+  )
+  set_tests_properties(${TST} PROPERTIES LABELS error)
+  if(WIN32 OR NOSYMLINK)
+    add_custom_command(
+      TARGET test_copy_${TST} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/test/tools/errorTestTools.py ${CMAKE_BINARY_DIR}/test/${TST}/errorTestTools.py
+    )
+  else()
+    add_custom_command(
+      TARGET test_copy_${TST} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/test/tools/errorTestTools.py ${CMAKE_BINARY_DIR}/test/${TST}/errorTestTools.py
+    )
+  endif()
 endforeach()
 
 #add labels to tests
@@ -598,10 +639,10 @@ set(PERF_TESTS
 
 foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
 
-  list(FIND FAST_TESTS ${TST} LABEL_FAST)
+  list(FIND FAST_TESTS   ${TST} LABEL_FAST)
   list(FIND MEDIUM_TESTS ${TST} LABEL_MEDIUM)
-  list(FIND SLOW_TESTS ${TST} LABEL_SLOW)
-  list(FIND PERF_TESTS ${TST} LABEL_PERF)
+  list(FIND SLOW_TESTS   ${TST} LABEL_SLOW)
+  list(FIND PERF_TESTS   ${TST} LABEL_PERF)
 
   if(${LABEL_FAST} GREATER -1)
     set_property(TEST ${TST} PROPERTY LABELS fast)
