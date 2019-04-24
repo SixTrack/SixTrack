@@ -4,8 +4,6 @@ module utils
   ! a general module, collecting some utility functions
   use floatPrecision
 
-  logical :: ldebug=.true.
-
 contains
 
   ! ================================================================================================ !
@@ -100,7 +98,10 @@ contains
     do ii=1, datalen-1
       if(xvals(ii) >= xvals(ii+1)) then
         checkArray=.false.
-        if (llprint) write(lerr,"(a)") "UTILS> ERROR checkArray: xvals should be in increasing order"
+        if (llprint) then
+          write(lerr,"(a)") "UTILS> ERROR checkArray: xvals should be in increasing order"
+          write(lerr,"(a,i0)") "UTILS>       it is not the case at ii=",ii
+        end if
       end if
     end do
   end function checkArray
@@ -287,20 +288,20 @@ contains
     ! actually interpolate
     polinterp = nevilleMethod(xvals(jMin:jMax),yvals(jMin:jMax),mpoints,x,dy)
 
-    if ( ldebug ) then
-      write(lout,'(/a,1pe16.9)')   'UTILS> interpolating arrays for x= ',x
-      write(lout,'(a,i0)')         'UTILS>    arrays of length: ',datalen
-      write(lout,'(a,i0)')         'UTILS>    initial guess: jguess=',jguess
-      write(lout,'(a,i0)')         'UTILS>    index found at:  jj=',jj
-      write(lout,'(2(a,1pe16.9))') 'UTILS>    i.e. between x= ',xvals(jj),' and x= ',xvals(jj+1)
-      write(lout,'(3(a,i0))')      'UTILS>    using ',mpoints,' points: jMin= ',jMin,' and jMax= ',jMax
-      write(lout,'(2(a,1pe16.9))') 'UTILS>    i.e. between x= ',xvals(jMin),'and x= ',xvals(jMax)
-      write(lout,'(a,1pe16.9)')    'UTILS> calculated value: ',polinterp
-      write(lout,'(a)')            'UTILS> arrays:'
-      do ii=1,datalen
-        write(lout,'(i0,2(1X,1pe16.9))') ii, xvals(ii), yvals(ii)
-      enddo
-    end if
+#ifdef DEBUG
+    write(lout,'(/a,1pe16.9)')   'UTILS> interpolating arrays for x= ',x
+    write(lout,'(a,i0)')         'UTILS>    arrays of length: ',datalen
+    write(lout,'(a,i0)')         'UTILS>    initial guess: jguess=',jguess
+    write(lout,'(a,i0)')         'UTILS>    index found at:  jj=',jj
+    write(lout,'(2(a,1pe16.9))') 'UTILS>    i.e. between x= ',xvals(jj),' and x= ',xvals(jj+1)
+    write(lout,'(3(a,i0))')      'UTILS>    using ',mpoints,' points: jMin= ',jMin,' and jMax= ',jMax
+    write(lout,'(2(a,1pe16.9))') 'UTILS>    i.e. between x= ',xvals(jMin),'and x= ',xvals(jMax)
+    write(lout,'(a,1pe16.9)')    'UTILS> calculated value: ',polinterp
+    write(lout,'(a)')            'UTILS> arrays:'
+    do ii=1,datalen
+      write(lout,'(i0,2(1X,1pe16.9))') ii, xvals(ii), yvals(ii)
+    enddo
+#endif
     
     ! update guess for next call
     jguess=jj
@@ -377,7 +378,9 @@ contains
     jMax=datalen
     if(present(rmax)) jMax=huntBin(rmax,xvals,datalen,-1)
 
-    if (ldebug) write(lout,"(/a,5(1X,i0))") "UTILS> DEBUG polintegrate start: ",datalen,mpoints,order,jMin,jMax
+#ifdef DEBUG
+    write(lout,"(/a,5(1X,i0))") "UTILS> DEBUG polintegrate start: ",datalen,mpoints,order,jMin,jMax
+#endif
 
     do jj=jMin+1,jMax ! loop over data points
        kMin=min(max(jj-1-(mpoints-1)/2,1),datalen+1-mpoints)
@@ -396,15 +399,19 @@ contains
           tmax=tmax*xmax
        end do
        tmpInt=zero
-       if (ldebug) write(lout,"(/a,i4,6(1X,1pe16.9))") "UTILS> DEBUG polintegrate jj-step: ", &
+#ifdef DEBUG
+       write(lout,"(/a,i4,6(1X,1pe16.9))") "UTILS> DEBUG polintegrate jj-step: ", &
             jj, tmax, tmin, fmax, fmin, xmax, xmin
+#endif
        do kk=1,kMax-kMin+1
           tmin=tmin*xmin
           tmax=tmax*xmax
           fmin=fmin+(tmin*cof(kk))/real(kk+order-1,fPrec)
           fmax=fmax+(tmax*cof(kk))/real(kk+order-1,fPrec)
-          if (ldebug) write(lout,"(a,i4,5(1X,1pe16.9))") "UTILS> DEBUG polintegrate kk-step: ", &
+#ifdef DEBUG
+          write(lout,"(a,i4,5(1X,1pe16.9))") "UTILS> DEBUG polintegrate kk-step: ", &
                kk, tmax, tmin, fmax, fmin, cof(kk)
+#endif
        end do
        select case(order)
        case(1)
@@ -421,14 +428,18 @@ contains
        end select
        polintegrate=polintegrate+tmpInt
        cumul(jj)=polintegrate
-       if (ldebug) write(lout,"(a,i4,6(1X,1pe16.9))") "UTILS> DEBUG polintegrate jj-step: ", &
+#ifdef DEBUG
+       write(lout,"(a,i4,6(1X,1pe16.9))") "UTILS> DEBUG polintegrate jj-step: ", &
             jj, tmax, tmin, fmax, fmin, tmpInt, cumul(jj)
+#endif
     end do
 
     ! fill outer range
     cumul(jMax+1:datalen)=cumul(jMax)
 
-    if (ldebug) write(lout,"(a,1pe16.9)") "UTILS> DEBUG polintegrate end: ",polintegrate
+#ifdef DEBUG
+    write(lout,"(a,1pe16.9)") "UTILS> DEBUG polintegrate end: ",polintegrate
+#endif
     
   end function polintegrate
   
