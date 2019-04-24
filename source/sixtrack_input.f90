@@ -797,6 +797,8 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(iDummy > 1) then
       write(lerr,"(a)") "TRAC> ERROR Variations of the relative momentum deviation is no longer supporter. "//&
         "The value imc must be set to 1."
+      iErr = .true.
+      return
     end if
 
     ! Default nnuml to numl
