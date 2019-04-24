@@ -11,6 +11,7 @@
 """
 
 import os
+import subprocess
 
 def runTests(theTests, theArgs, nLines, nSkip):
 
@@ -35,19 +36,17 @@ def runTests(theTests, theArgs, nLines, nSkip):
   outBuf += ("="*40)+"\n"
 
   for aTest in sorted(theTests.keys()):
-
+    theBlock = "\n".join(theTests[aTest])
+    with open("fort.3","w") as outFile:
+      outFile.write(tmpF3.replace("%ERRORTESTS%",theBlock))
+    stdOut, stdErr, exCode = sysCall(theArgs[1])
+    outBuf += "%-32s %s\n" % (aTest,str(exCode != 0))
     with open("error_results.log","a") as outFile:
       outFile.write("\n"*4)
       outFile.write(" Test: %s\n" % aTest)
       outFile.write(("#"*132)+"\n")
       outFile.write("\n")
-
-    theBlock = "\n".join(theTests[aTest])
-    with open("fort.3","w") as outFile:
-      outFile.write(tmpF3.replace("%ERRORTESTS%",theBlock))
-    exCode  = os.system("%s > fort.6" % theArgs[1])
-    outBuf += "%-32s %s\n" % (aTest,str(exCode != 0))
-    os.system("tail -n%d fort.6 | head -n%d >> error_results.log" % (nLines+nSkip, nLines))
+      outFile.write(stdErr)
 
   with open("error_summary.log","w") as outFile:
     outFile.write(outBuf)
@@ -56,3 +55,9 @@ def runTests(theTests, theArgs, nLines, nSkip):
   exCode += os.system("diff -q error_results.log error_results.log.canonical")
 
   return int(exCode != 0)
+
+# Wrapper function for system calls
+def sysCall(callStr):
+  sysP = subprocess.Popen([callStr], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+  stdOut, stdErr = sysP.communicate()
+  return stdOut.decode("utf-8"), stdErr.decode("utf-8"), sysP.returncode

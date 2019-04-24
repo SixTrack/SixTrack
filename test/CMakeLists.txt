@@ -495,7 +495,7 @@ endforeach()
 foreach(TST IN ITEMS ${SIXTRACK_ERROR})
   add_test(
     NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
-    COMMAND "wrapper.py" $<TARGET_FILE:SixTrackCR>
+    COMMAND "errorTests.py" $<TARGET_FILE:SixTrackCR>
   )
   set_tests_properties(${TST} PROPERTIES LABELS error)
   if(WIN32 OR NOSYMLINK)
