@@ -107,12 +107,12 @@ contains
 
   ! ================================================================================================ !
   !  A.Mereghetti, CERN, BE-ABP-HSS
-  !  Last modified: 15-04-2019
-  !  Given an array xvals(1:datalen), and given a value x, it returns a value such that x is
-  !      between xvals(huntBin) and xvals(huntBin+1). xvals(1:datalen) must be monotonic in
-  !      increasing/decreasing order - not checked!
+  !  Last modified: 24-04-2019
+  !  Given an array xvals(1:datalen), and given a value x, it returns the index in the xvals array
+  !      such that x is between xvals(huntBin) and xvals(huntBin+1). xvals(1:datalen) must be
+  !      monotonic in increasing/decreasing order - not checked!
   !  -1 is returned to indicate that x is out of range. jlo in input is taken as initial guess
-  !  from Numerical Recipes in Fortran 77
+  !  subroutine from Numerical Recipes in Fortran 77
   ! ================================================================================================ !
   integer function huntBin(x,xvals,datalen,jlo)
     
@@ -130,12 +130,14 @@ contains
     if(present(jlo)) klo = jlo
     ascnd=xvals(datalen).ge.xvals(1) ! True if ascending order of table, false otherwise.
     
-    if(klo.le.0.or.klo.gt.datalen)then
+    if(klo <= 0 .or. datalen<klo)then
        ! Input guess not useful. Go immediately to bisection.
        klo=0
        jhi=datalen+1
        goto 3
     endif
+    
+    ! use guessed position
     
     ! set the hunting increment.
     inc=1
@@ -184,12 +186,12 @@ contains
 
   ! ================================================================================================ !
   !  A.Mereghetti, CERN, BE-ABP-HSS
-  !  Last modified: 15-04-2019
+  !  Last modified: 24-04-2019
   !  Given arrays xa and ya, each of length n, and given a value x, this function returns a
   !        value y, and an error estimate dy. If P(x) is the polynomial of degree N−1 such that
   !        P(xa_i)=ya_i, i=1,...,n , then the returned value y = P ( x ).
   !  This function implements Neville's method
-  !  from Numerical Recipes in Fortran 77
+  !  function from Numerical Recipes in Fortran 77
   ! ================================================================================================ !
   real(kind=fPrec) function nevilleMethod(xa,ya,nn,x,dy)
     
@@ -263,6 +265,7 @@ contains
   ! ================================================================================================ !
   real(kind=fPrec) function polinterp(x,xvals,yvals,datalen,mpoints,jguess)
 
+    use crcoall, only : lout
     use numerical_constants, only : zero
     implicit none
 
@@ -270,7 +273,7 @@ contains
     integer,          intent(inout) :: jguess
     real(kind=fPrec), intent(in)    :: x, xvals(1:datalen), yvals(1:datalen)
 
-    integer jj, jMin, jMax
+    integer ii, jj, jMin, jMax
     real(kind=fPrec) dy
 
     polinterp = zero ! -Wmaybe-uninitialized
@@ -284,9 +287,24 @@ contains
     ! actually interpolate
     polinterp = nevilleMethod(xvals(jMin:jMax),yvals(jMin:jMax),mpoints,x,dy)
 
+    if ( ldebug ) then
+      write(lout,'(/a,1pe16.9)')   'UTILS> interpolating arrays for x= ',x
+      write(lout,'(a,i0)')         'UTILS>    arrays of length: ',datalen
+      write(lout,'(a,i0)')         'UTILS>    initial guess: jguess=',jguess
+      write(lout,'(a,i0)')         'UTILS>    index found at:  jj=',jj
+      write(lout,'(2(a,1pe16.9))') 'UTILS>    i.e. between x= ',xvals(jj),' and x= ',xvals(jj+1)
+      write(lout,'(3(a,i0))')      'UTILS>    using ',mpoints,' points: jMin= ',jMin,' and jMax= ',jMax
+      write(lout,'(2(a,1pe16.9))') 'UTILS>    i.e. between x= ',xvals(jMin),'and x= ',xvals(jMax)
+      write(lout,'(a,1pe16.9)')    'UTILS> calculated value: ',polinterp
+      write(lout,'(a)')            'UTILS> arrays:'
+      do ii=1,datalen
+        write(lout,'(i0,2(1X,1pe16.9))') ii, xvals(ii), yvals(ii)
+      enddo
+    end if
+    
     ! update guess for next call
     jguess=jj
-    
+
   end function polinterp
   
   ! ================================================================================================ !
@@ -337,7 +355,7 @@ contains
   ! ================================================================================================ !
   real(kind=fPrec) function polintegrate(xvals,yvals,datalen,mpoints,order,cumul,rmin,rmax)
 
-    use crcoall
+    use crcoall, only : lout, lerr
     use numerical_constants, only : zero, one, two, four, pi
     implicit none
 
