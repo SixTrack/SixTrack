@@ -13,7 +13,7 @@
 import os
 import subprocess
 
-def runTests(theTests, theArgs, nLines, nSkip):
+def runTests(theTests, theArgs):
 
   if len(theArgs) != 2:
     print("ERROR: Wrong number of arguments.")
