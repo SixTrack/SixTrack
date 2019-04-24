@@ -65,7 +65,7 @@ program mainda
   call sixin_commandLine("SixDA")
 
   ! Features
-featList = ""
+  featList = ""
 #ifdef TILT
   featList = featList//" TILT"
 #endif

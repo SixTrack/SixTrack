@@ -107,7 +107,7 @@ program maincr
   ! Parse command line arguments
   call sixin_commandLine("SixTrack")
 
-errout = 0 ! Set to nonzero before calling abend in case of error.
+  errout = 0 ! Set to nonzero before calling abend in case of error.
 #ifdef CR
   lerr = 91
   lout = 92
