@@ -140,9 +140,11 @@ list(APPEND SIXTRACK_TESTS
   s316
   scatter_bbelastic
   thick4
+  thick6d_below_transit
   thick6dblocks
   thick6ddynk
   thin4d_ions
+  thin6d_below_transit
   thin6d_ions
   tilt
   wire_thck4d
@@ -259,8 +261,10 @@ set(TESTS_NOFORT10
   scatter_bbelastic
   scatter_collimation
   scatter_pythia
+  thick6d_below_transit
   thick6dblocks
   thick6ddynk
+  thin6d_below_transit
 )
 
 # List of tests that do not produce singletrackfile.dat or fort.90
@@ -297,8 +301,10 @@ set(TESTS_NO_STF_FORT90
   scatter_bbelastic
   scatter_collimation
   scatter_pythia
+  thick6d_below_transit
   thick6ddynk
   thin4d_ions
+  thin6d_below_transit
   thin6d_ions
 )
 
@@ -528,7 +534,6 @@ set(FAST_TESTS
   chebythin6d
   chebythin6d_DYNK
   chebythin6d_ions
-  chebythin6d_ramp_DYNK
   collimation_db_old
   crabs
   dump_2_all_ele_highprec
@@ -554,7 +559,6 @@ set(FAST_TESTS
   elensidealthin6d_DYNK
   elensidealthin6d_DYNK_ZIPF
   elensidealthin6d_ions
-  elensidealthin6d_ramp_DYNK
   exact
   fcc
   frs_da
@@ -588,9 +592,11 @@ set(FAST_TESTS
   scatter_pythia
   thick4
   thick4_da
+  thick6d_below_transit
   thick6dblocks
   thick6ddynk
   thin4d_ions
+  thin6d_below_transit
   thin6d_ions
   wire_thck4d
   wire_thck6d
@@ -604,9 +610,11 @@ set(MEDIUM_TESTS
   bbe51
   bbe52
   bbe571ib0
+  chebythin6d_ramp_DYNK
   collimation_k2
   dipedge
   distance
+  elensidealthin6d_ramp_DYNK
   eric
   fma
   fma_binary

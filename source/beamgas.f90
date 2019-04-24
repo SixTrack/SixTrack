@@ -114,7 +114,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   end do
 
   if(pressID.eq.0) then
-    write(lout,"(a,e15.7)") "BEAMGAS> ERROR Couldn't find pressure marker at ",totals
+    write(lerr,"(a,e15.7)") "BEAMGAS> ERROR Couldn't find pressure marker at ",totals
     call prror(-1)
   end if
 
@@ -196,10 +196,10 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 !    rotating the vector into the orbit reference system:
      z = matmul(rotm,z)
       if (z(3).eq.0) then
-       write(lout,"(a)")       "BEAMGAS> ERROR There is something wrong with your dpmjet event "
-       write(lout,"(a,e15.7)") "BEAMGAS>  * bgiddb(choice) = ",bgiddb(choice)
-       write(lout,"(a,e15.7)") "BEAMGAS>  * totMomentum    = ",totMomentum
-       write(lout,"(a,e15.7)") "BEAMGAS>  * new4MomCoord   = ",new4MomCoord
+       write(lerr,"(a)")       "BEAMGAS> ERROR There is something wrong with your dpmjet event "
+       write(lerr,"(a,e15.7)") "BEAMGAS>  * bgiddb(choice) = ",bgiddb(choice)
+       write(lerr,"(a,e15.7)") "BEAMGAS>  * totMomentum    = ",totMomentum
+       write(lerr,"(a,e15.7)") "BEAMGAS>  * new4MomCoord   = ",new4MomCoord
         call prror(-1)
       else
 !      boosted xp event
@@ -350,7 +350,7 @@ subroutine beamGasInit(myenom)
       pressARRAY(2,j)=pVAL
       j=j+1
       if (j>bgmaxx) then
-        write(lout,"(a)") "BEAMGAS> ERROR Too many pressure markers!"
+        write(lerr,"(a)") "BEAMGAS> ERROR Too many pressure markers!"
         call prror(-1)
       endif
     else if (filereaderror.lt.0) then
@@ -392,7 +392,7 @@ subroutine beamGasInit(myenom)
 !    what we are supposed to simulate, we stop here...
      if (previousEvent.gt.dpmjetevents) exit
      if (numberOfEvents.gt.(bgmaxx-1)) then
-     write(lout,"(a)") "BEAMGAS> ERROR Too many dpmjet events!"
+     write(lerr,"(a)") "BEAMGAS> ERROR Too many dpmjet events!"
      call prror(-1)
   endif
   enddo
@@ -402,7 +402,7 @@ subroutine beamGasInit(myenom)
   write(lout,"(a,i0)") "BREAMGAS> Trackable events in dpmjet.eve: ",bgmax-1
 
   if (numberOfEvents.gt.npart) then
-     write(lout,"(2(a,i0))") "BEAMGAS> ERROR There were too many trackable events. Maximum for this run is ",npart,&
+     write(lerr,"(2(a,i0))") "BEAMGAS> ERROR There were too many trackable events. Maximum for this run is ",npart,&
       " you generated ",numberOfEvents
      call prror(-1)
   endif

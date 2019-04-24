@@ -254,7 +254,7 @@ subroutine h5_parseInputLine(inLine,iErr)
   ! Split the input line
   call str_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
-    write(lout,"(a)") "HDF5> ERROR Failed to parse input line."
+    write(lerr,"(a)") "HDF5> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -281,7 +281,7 @@ subroutine h5_parseInputLine(inLine,iErr)
 
   case("SIMNO")
     if(nSplit /= 2) then
-      write(lout,"(a,i0,a)") "HDF5> ERROR SIMNO level takes 1 input parameter, ",(nSplit-1)," given."
+      write(lerr,"(a,i0,a)") "HDF5> ERROR SIMNO level takes 1 input parameter, ",(nSplit-1)," given."
       iErr = .true.
       return
     end if
@@ -297,36 +297,36 @@ subroutine h5_parseInputLine(inLine,iErr)
 
   case("GZIP")
     if(nSplit /= 2) then
-      write(lout,"(a,i0,a)") "HDF5> ERROR GZIP level takes 1 input parameter, ",(nSplit-1)," given."
+      write(lerr,"(a,i0,a)") "HDF5> ERROR GZIP level takes 1 input parameter, ",(nSplit-1)," given."
       iErr = .true.
       return
     end if
     call str_cast(lnSplit(2),h5_gzipLevel,spErr)
     if(h5_gzipLevel < -1 .or. h5_gzipLevel > 9) then
-      write(lout,"(a,i0)") "HDF5> ERROR Illegal value for GZIP: ",h5_gzipLevel
-      write(lout,"(a)")    "HDF5> ERROR   Allowed values are -1 for disabled, and 0-9 for none to max compression."
+      write(lerr,"(a,i0)") "HDF5> ERROR Illegal value for GZIP: ",h5_gzipLevel
+      write(lerr,"(a)")    "HDF5> ERROR   Allowed values are -1 for disabled, and 0-9 for none to max compression."
       iErr = .true.
       return
     end if
 
   case("CHUNK")
     if(nSplit /= 2) then
-      write(lout,"(a,i0,a)") "HDF5> ERROR CHUNK takes 1 input parameter, ",(nSplit-1)," given."
+      write(lerr,"(a,i0,a)") "HDF5> ERROR CHUNK takes 1 input parameter, ",(nSplit-1)," given."
       iErr = .true.
       return
     end if
     call str_cast(lnSplit(2),h5_defChunk,spErr)
     if(h5_defChunk < 1) then
-      write(lout,"(a,i0)") "HDF5> ERROR Illegal value for CHUNK: ",h5_defChunk
-      write(lout,"(a)")    "HDF5> ERROR   Value must be larger than 0."
+      write(lerr,"(a,i0)") "HDF5> ERROR Illegal value for CHUNK: ",h5_defChunk
+      write(lerr,"(a)")    "HDF5> ERROR   Value must be larger than 0."
       iErr = .true.
       return
     end if
 
   case("FILE")
     if(nSplit < 2 .or. nSplit > 3) then
-      write(lout,"(a,i0,a)") "HDF5> ERROR FILE statement takes 1 or 2 input parameters, ",(nSplit-1)," given."
-      write(lout,"(a)")      "HDF5> ERROR   Valid input is FILE filename [truncate]"
+      write(lerr,"(a,i0,a)") "HDF5> ERROR FILE statement takes 1 or 2 input parameters, ",(nSplit-1)," given."
+      write(lerr,"(a)")      "HDF5> ERROR   Valid input is FILE filename [truncate]"
       iErr = .true.
       return
     end if
@@ -340,17 +340,17 @@ subroutine h5_parseInputLine(inLine,iErr)
 
   case("ROOT")
     if(nSplit /= 2) then
-      write(lout,"(a,i0,a)") "HDF5> ERROR ROOT statement takes 1 input parameter, ",(nSplit-1)," given."
+      write(lerr,"(a,i0,a)") "HDF5> ERROR ROOT statement takes 1 input parameter, ",(nSplit-1)," given."
       iErr = .true.
       return
     end if
     if(str_inStr(lnSplit(2)," ") /= 0) then
-      write(lout,"(a)") "HDF5> ERROR ROOT group name cannot contain a space."
+      write(lerr,"(a)") "HDF5> ERROR ROOT group name cannot contain a space."
       iErr = .true.
       return
     end if
     if(str_inStr(lnSplit(2),"/") /= 0) then
-      write(lout,"(a)") "HDF5> ERROR ROOT group name cannot contain a slash."
+      write(lerr,"(a)") "HDF5> ERROR ROOT group name cannot contain a slash."
       iErr = .true.
       return
     end if
@@ -360,12 +360,12 @@ subroutine h5_parseInputLine(inLine,iErr)
   case("ENABLE")
 
     if(nSplit /= 2) then
-      write(lout,"(a,i0,a)") "HDF5> ERROR ENABLE statement takes 1 input parameter, ",(nSplit-1)," given."
+      write(lerr,"(a,i0,a)") "HDF5> ERROR ENABLE statement takes 1 input parameter, ",(nSplit-1)," given."
       iErr = .true.
       return
     end if
     if(len(lnSplit(2)%chr) < 4) then
-      write(lout,"(a)") "HDF5> ERROR ENABLE argument must be at least 4 characters."
+      write(lerr,"(a)") "HDF5> ERROR ENABLE argument must be at least 4 characters."
       iErr = .true.
       return
     end if
@@ -384,7 +384,7 @@ subroutine h5_parseInputLine(inLine,iErr)
       h5_useForSCAT = .true.
       write(lout,"(a)") "HDF5> HDF5 is enabled for SCATTER."
     case default
-      write(lout,"(a)") "HDF5> ERROR HDF5 output is not available for "//lnSplit(2)%chr(1:4)//" blocks."
+      write(lerr,"(a)") "HDF5> ERROR HDF5 output is not available for "//lnSplit(2)%chr(1:4)//" blocks."
       iErr = .true.
       return
     end select
@@ -392,7 +392,7 @@ subroutine h5_parseInputLine(inLine,iErr)
   case("WRITE")
 
     if(nSplit /= 2) then
-      write(lout,"(a,i0,a)") "HDF5> ERROR WRITE statement takes 1 input parameter, ",(nSplit-1)," given."
+      write(lerr,"(a,i0,a)") "HDF5> ERROR WRITE statement takes 1 input parameter, ",(nSplit-1)," given."
       iErr = .true.
       return
     end if
@@ -405,13 +405,13 @@ subroutine h5_parseInputLine(inLine,iErr)
       h5_writeTracks2 = .true.
       write(lout,"(a)") "HDF5> Will write tracks2."
     case default
-      write(lout,"(a)") "HDF5> ERROR Unrecognised WRITE option '"//lnSplit(2)//"'"
+      write(lerr,"(a)") "HDF5> ERROR Unrecognised WRITE option '"//lnSplit(2)//"'"
       iErr = .true.
       return
     end select
 
   case default
-    write(lout,"(a)") "HDF5> ERROR Unrecognised statement '"//lnSplit(1)//"'."
+    write(lerr,"(a)") "HDF5> ERROR Unrecognised statement '"//lnSplit(1)//"'."
     iErr = .true.
     return
 
@@ -430,7 +430,7 @@ subroutine h5_initHDF5
   call h5pcreate_f(H5P_DATASET_XFER_F, h5_plistID, h5_fileError)
   call h5pset_preserve_f(h5_plistID, .true., h5_fileError)
   if(h5_fileError < 0) then
-    write(lout,"(a)") "HDF5> ERROR Failed to initialise Fortran HDF5."
+    write(lerr,"(a)") "HDF5> ERROR Failed to initialise Fortran HDF5."
     call prror(-1)
   end if
   write(lout,"(a)") "HDF5> Fortran HDF5 initialised."
@@ -448,7 +448,7 @@ subroutine h5_openFile
   logical doesExist
 
   if(.not. h5_isActive) then
-    write(lout,"(a)") "HDF5> ERROR HDF5 file open called, but HDF5 is not active. This is a bug."
+    write(lerr,"(a)") "HDF5> ERROR HDF5 file open called, but HDF5 is not active. This is a bug."
     call prror(-1)
   end if
 
@@ -458,14 +458,14 @@ subroutine h5_openFile
     if(h5_doTruncate) then
       call h5fcreate_f(h5_fileName%chr, H5F_ACC_TRUNC_F, h5_fileID, h5_fileError)
       if(h5_fileError < 0) then
-        write(lout,"(a)") "HDF5> ERROR Failed to open HDF5 file '"//h5_fileName//"'."
+        write(lerr,"(a)") "HDF5> ERROR Failed to open HDF5 file '"//h5_fileName//"'."
         call prror(-1)
       end if
       write(lout,"(a)") "HDF5> Truncated HDF5 file '"//h5_fileName//"'."
     else
       call h5fopen_f(h5_fileName%chr, H5F_ACC_RDWR_F, h5_fileID, h5_fileError)
       if(h5_fileError < 0) then
-        write(lout,"(3a)") "HDF5> ERROR Failed to open HDF5 file '",h5_fileName%chr,"'."
+        write(lerr,"(3a)") "HDF5> ERROR Failed to open HDF5 file '",h5_fileName%chr,"'."
         call prror(-1)
       end if
       write(lout,"(a)") "HDF5> Opened HDF5 file '"//h5_fileName//"'."
@@ -473,7 +473,7 @@ subroutine h5_openFile
   else
     call h5fcreate_f(h5_fileName%chr, H5F_ACC_EXCL_F, h5_fileID, h5_fileError)
     if(h5_fileError < 0) then
-      write(lout,"(a)") "HDF5> ERROR Failed to create HDF5 file '"//h5_fileName//"'."
+      write(lerr,"(a)") "HDF5> ERROR Failed to create HDF5 file '"//h5_fileName//"'."
       call prror(-1)
     end if
     write(lout,"(a)") "HDF5> Created HDF5 file '"//h5_fileName//"'."
@@ -484,8 +484,8 @@ subroutine h5_openFile
   if(h5_rootPath%chr /= "") then
     call h5gcreate_f(h5_fileID, h5_rootPath%chr, h5_rootID, h5_fileError)
     if(h5_fileError < 0) then
-      write(lout,"(a)") "HDF5> ERROR Failed to create root group '"//h5_rootPath//"'."
-      write(lout,"(a)") "HDF5> ERROR   If you are writing to an existing file, the root group must be unique."
+      write(lerr,"(a)") "HDF5> ERROR Failed to create root group '"//h5_rootPath//"'."
+      write(lerr,"(a)") "HDF5> ERROR   If you are writing to an existing file, the root group must be unique."
       call prror(-1)
     end if
     write(lout,"(a)") "HDF5> Created root group '"//h5_rootPath//"'."
@@ -579,14 +579,14 @@ subroutine h5_closeHDF5
   ! This closes the file
   call h5fclose_f(h5_fileID, h5_fileError)
   if(h5_fileError < 0) then
-    write(lout,"(a)") "HDF5> ERROR Failed to close HDF5 file."
+    write(lerr,"(a)") "HDF5> ERROR Failed to close HDF5 file."
     call prror(-1)
   end if
 
   ! This cleans up everything left over
   call h5close_f(h5_fileError)
   if(h5_fileError < 0) then
-    write(lout,"(a)") "HDF5> ERROR Failed to close Fortran HDF5."
+    write(lerr,"(a)") "HDF5> ERROR Failed to close Fortran HDF5."
     call prror(-1)
   end if
 
@@ -602,13 +602,13 @@ end subroutine h5_closeHDF5
 subroutine h5_initForAperture
 
   if(.not. h5_isReady) then
-    write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
+    write(lerr,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
 
   call h5gcreate_f(h5_rootID, h5_aperGroup, h5_aperID, h5_fileError)
   if(h5_fileError < 0) then
-    write(lout,"(a)") "HDF5> ERROR Failed to create aperture group '"//h5_aperGroup//"'."
+    write(lerr,"(a)") "HDF5> ERROR Failed to create aperture group '"//h5_aperGroup//"'."
     call prror(-1)
   end if
   if(h5_debugOn) then
@@ -620,13 +620,13 @@ end subroutine h5_initForAperture
 subroutine h5_initForCollimation
 
   if(.not. h5_isReady) then
-    write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
+    write(lerr,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
 
   call h5gcreate_f(h5_rootID, h5_collGroup, h5_collID, h5_fileError)
   if(h5_fileError < 0) then
-    write(lout,"(a)") "HDF5> ERROR Failed to create collimation group '"//h5_collGroup//"'."
+    write(lerr,"(a)") "HDF5> ERROR Failed to create collimation group '"//h5_collGroup//"'."
     call prror(-1)
   end if
   if(h5_debugOn) then
@@ -638,13 +638,13 @@ end subroutine h5_initForCollimation
 subroutine h5_initForDump
 
   if(.not. h5_isReady) then
-    write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
+    write(lerr,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
 
   call h5gcreate_f(h5_rootID, h5_dumpGroup, h5_dumpID, h5_fileError)
   if(h5_fileError < 0) then
-    write(lout,"(a)") "HDF5> ERROR Failed to create dump group '"//h5_dumpGroup//"'."
+    write(lerr,"(a)") "HDF5> ERROR Failed to create dump group '"//h5_dumpGroup//"'."
     call prror(-1)
   end if
   if(h5_debugOn) then
@@ -656,13 +656,13 @@ end subroutine h5_initForDump
 subroutine h5_initForScatter
 
   if(.not. h5_isReady) then
-    write(lout,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
+    write(lerr,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
 
   call h5gcreate_f(h5_rootID, h5_scatGroup, h5_scatID, h5_fileError)
   if(h5_fileError < 0) then
-    write(lout,"(a)") "HDF5> ERROR Failed to create scatter group '"//h5_scatGroup//"'."
+    write(lerr,"(a)") "HDF5> ERROR Failed to create scatter group '"//h5_scatGroup//"'."
     call prror(-1)
   end if
   if(h5_debugOn) then
@@ -691,21 +691,21 @@ subroutine h5_createFormat(formatName, setFields, fmtID)
   integer          :: i, nFields
 
   if(.not. h5_isActive) then
-    write(lout,"(a)") "HDF5> ERROR HDF5 routine called, but HDF5 is not active. This is a bug."
+    write(lerr,"(a)") "HDF5> ERROR HDF5 routine called, but HDF5 is not active. This is a bug."
     call prror(-1)
   end if
 
   ! Check inputs
   if(len(formatName) == 0) then
-    write(lout,"(a)") "HDF5> ERROR Empty format name given. This is a bug."
+    write(lerr,"(a)") "HDF5> ERROR Empty format name given. This is a bug."
     call prror(-1)
   end if
   if(allocated(setFields) .eqv. .false.) then
-    write(lout,"(a)") "HDF5> ERROR Fields array not allocated. This is a bug."
+    write(lerr,"(a)") "HDF5> ERROR Fields array not allocated. This is a bug."
     call prror(-1)
   end if
   if(size(setFields) == 0) then
-    write(lout,"(a)") "HDF5> ERROR Fields array empty. This is a bug."
+    write(lerr,"(a)") "HDF5> ERROR Fields array empty. This is a bug."
     call prror(-1)
   end if
 
@@ -777,7 +777,7 @@ subroutine h5_createFormat(formatName, setFields, fmtID)
   end do
 
   if(h5_dataError /= 0) then
-    write(lout,"(a)") "HDF5> ERROR Failed to create compund data record '"//formatName//"'"
+    write(lerr,"(a)") "HDF5> ERROR Failed to create compund data record '"//formatName//"'"
     call prror(-1)
   end if
 
@@ -820,7 +820,7 @@ subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
   integer(HID_T)   :: spaceID, dtypeID, dataID, propID
 
   if(.not. h5_isReady) then
-    write(lout,"(a)") "HDF5> ERROR Dataset creation requested, but no HDF5 file is open. This is a bug."
+    write(lerr,"(a)") "HDF5> ERROR Dataset creation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
 
@@ -855,7 +855,7 @@ subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
   call h5pcreate_f(H5P_DATASET_CREATE_F, propID, h5_dataError)
   call h5pset_chunk_f(propID, 1, spaceSize, h5_dataError)
   if(h5_dataError /= 0) then
-    write(lout,"(a)") "HDF5> ERROR Failed to set chunck size for '"//cleanName//"'"
+    write(lerr,"(a)") "HDF5> ERROR Failed to set chunck size for '"//cleanName//"'"
     call prror(-1)
   end if
   if(h5_gzipLevel > -1) then
@@ -866,7 +866,7 @@ subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
   dtypeID = h5_fmtList(fmtID-h5_fmtOff)%dtypeID
   call h5dcreate_f(groupID, cleanName, dtypeID, spaceID, dataID, h5_dataError, propID)
   if(h5_dataError /= 0) then
-    write(lout,"(a)") "HDF5> ERROR Failed to create dataset '"//cleanName//"'"
+    write(lerr,"(a)") "HDF5> ERROR Failed to create dataset '"//cleanName//"'"
     call prror(-1)
   end if
 
@@ -913,7 +913,7 @@ subroutine h5_createBuffer(bufName, fmtID, setID, bufSize)
   character(len=:), allocatable :: cDataBuffer(:,:)
 
   if(.not. h5_isReady) then
-    write(lout,"(a)") "HDF5> ERROR Buffer creation requested, but no HDF5 file is open. This is a bug."
+    write(lerr,"(a)") "HDF5> ERROR Buffer creation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
 
@@ -1165,7 +1165,7 @@ subroutine h5_prepareWrite(setID, appendSize)
   integer(HSIZE_T) :: newSize(1)
 
   if(.not. h5_isReady) then
-    write(lout,"(a)") "HDF5> ERROR Dataset operation requested, but no HDF5 file is open. This is a bug."
+    write(lerr,"(a)") "HDF5> ERROR Dataset operation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
 
@@ -1183,7 +1183,7 @@ subroutine h5_prepareWrite(setID, appendSize)
   call h5screate_simple_f(1, addSize, memID, h5_dataError)
 
   if(h5_dataError /= 0) then
-    write(lout,"(a)") "HDF5> ERROR Failed to extend dataset '"//h5_setList(setID-h5_setOff)%name//"'"
+    write(lerr,"(a)") "HDF5> ERROR Failed to extend dataset '"//h5_setList(setID-h5_setOff)%name//"'"
     call prror(-1)
   end if
 
@@ -1207,7 +1207,7 @@ subroutine h5_finaliseWrite(setID)
   integer, intent(in) :: setID
 
   if(.not. h5_isReady) then
-    write(lout,"(a)") "HDF5> ERROR Dataset operation requested, but no HDF5 file is open. This is a bug."
+    write(lerr,"(a)") "HDF5> ERROR Dataset operation requested, but no HDF5 file is open. This is a bug."
     call prror(-1)
   end if
 

@@ -78,7 +78,7 @@ subroutine f_requestUnit(file,unit)
   logical isOpen
 
   if(len_trim(file) > mPathName) then
-    write(lout,"(2(a,i0))") "UNITS> ERROR Max length of file path in f_requestUnit is ",mPathName,&
+    write(lerr,"(2(a,i0))") "UNITS> ERROR Max length of file path in f_requestUnit is ",mPathName,&
       " characters, got ",len_trim(file)
     call prror
   end if
@@ -117,7 +117,7 @@ subroutine f_requestUnit(file,unit)
     units_uList(unit)%fixed = .false.
     units_nextUnit = unit + 1
   else
-    write(lout,"(a,i0)") "UNITS> ERROR Could not find an available file unit within the allowed range."
+    write(lerr,"(a,i0)") "UNITS> ERROR Could not find an available file unit within the allowed range."
     call prror
   end if
 
@@ -202,13 +202,13 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
   end if
 
   if(len_trim(file) > mPathName) then
-    write(lout,"(2(a,i0))") "UNITS> ERROR Max length of file path in f_open is ",mPathName,&
+    write(lerr,"(2(a,i0))") "UNITS> ERROR Max length of file path in f_open is ",mPathName,&
       " characters, got ",len_trim(file)
     call prror
   end if
 
   if(unit < units_minUnit .or. unit > units_maxUnit) then
-    write(lout,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_open"
+    write(lerr,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_open"
     call prror
   end if
 
@@ -265,7 +265,7 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
   if(chkUnit > 0) then
     ! We already have that file name in the record
     if(chkUnit /= unit) then
-      write(lout,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' has already been assigned to unit ",chkUnit
+      write(lerr,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' has already been assigned to unit ",chkUnit
       call prror
     end if
     units_uList(unit)%open  = .true.
@@ -307,7 +307,7 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
       err = .true.
       write(lout,"(a,i0)") "UNITS> File '"//trim(file)//"' reported iostat = ",ioStat
     else
-      write(lout,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' reported iostat = ",ioStat
+      write(lerr,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' reported iostat = ",ioStat
       call prror
     end if
   end if
@@ -328,7 +328,7 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
     err = .true.
     write(lout,"(a)") "UNITS> Could not open '"//trim(file)//"'"
   else
-    write(lout,"(a)") "UNITS> ERROR Could not open '"//trim(file)//"'"
+    write(lerr,"(a)") "UNITS> ERROR Could not open '"//trim(file)//"'"
     call prror
   end if
 
@@ -350,7 +350,7 @@ subroutine f_close(unit)
   logical isOpen
 
   if(unit < units_minUnit .or. unit > units_maxUnit) then
-    write(lout,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_close"
+    write(lerr,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_close"
     call prror
   end if
 

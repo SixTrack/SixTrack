@@ -107,7 +107,7 @@ subroutine cdb_readCollDB
   call f_requestUnit(cdb_fileName, dbUnit)
   call f_open(unit=dbUnit,file=cdb_fileName,formatted=.true.,mode="r",err=dbErr,status="old")
   if(dbErr) then
-    write(lout,"(a)") "COLL> ERROR Could not open the collimator database file '"//trim(cdb_fileName)//"'"
+    write(lerr,"(a)") "COLLDB> ERROR Could not open the collimator database file '"//trim(cdb_fileName)//"'"
     call prror
   end if
 
@@ -316,7 +316,7 @@ subroutine cdb_readDB_oldFormat
   return
 
 100 continue
-  write(lout,"(2(a,i0))") "COLLDB> ERROR Cannot read DB file line ",iLine,", iostat = ",ioStat
+  write(lerr,"(2(a,i0))") "COLLDB> ERROR Cannot read DB file line ",iLine,", iostat = ",ioStat
   call prror
 
 end subroutine cdb_readDB_oldFormat

@@ -54,7 +54,7 @@ subroutine ranecu(rvec,len,mcut)
   i=1
   rvec0 = zero
   if(mcut < -1) then
-    write(lout,"(a,i0)") "RANECU> ERROR mcut must be greater or equal to -1, got ", mcut
+    write(lerr,"(a,i0)") "RANECU> ERROR mcut must be greater or equal to -1, got ", mcut
     call prror
   end if
 
@@ -96,7 +96,7 @@ subroutine recuinit(is1,is2)
   integer, optional, intent(in) :: is2
 
   if(is1 < 1 .or. is1 > 2147483562) then
-    write(lout,"(a,i0)") "RANECU> ERROR Seed 1 must be an integer in the range 1 to 2147483562, got ", is1
+    write(lerr,"(a,i0)") "RANECU> ERROR Seed 1 must be an integer in the range 1 to 2147483562, got ", is1
     call prror(-1)
   else
     iseed1 = is1
@@ -104,7 +104,7 @@ subroutine recuinit(is1,is2)
 
   if(present(is2)) then
     if(is2 < 1 .or. is2 > 2147483398) then
-      write(lout,"(a,i0)") "RANECU> ERROR Seed 2 must be an integer in the range 1 to 2147483398, got ", is2
+      write(lerr,"(a,i0)") "RANECU> ERROR Seed 2 must be an integer in the range 1 to 2147483398, got ", is2
       call prror(-1)
     else
       iseed2 = is2

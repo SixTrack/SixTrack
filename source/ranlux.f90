@@ -359,8 +359,8 @@ subroutine rluxgo(lux,ins,k1,k2)
       endif
 !       Now IN24 had better be between zero and 23 inclusive
       if (in24 .gt. 23) then
-         write(lout,"(a)")           "RANLUX> ERROR RESTARTING with RLUXGO:"
-         write(lout,"(a,3i11,a,i5)") "RANLUX>       The values",ins,k1,k2," cannot occur at luxury level ",luxlev
+         write(lerr,"(a)")           "RANLUX> ERROR RESTARTING with RLUXGO:"
+         write(lerr,"(a,3i11,a,i5)") "RANLUX>       The values",ins,k1,k2," cannot occur at luxury level ",luxlev
          in24 = 0
       endif
     endif

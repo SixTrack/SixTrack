@@ -55,20 +55,20 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    write(lerr,"(a)") "GEOMETRY> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
 
   if(nSplit <= 2) then
-    write(lout,"(a,i0)") "GEOMETRY> ERROR Single element line must have more than 2 values, got ",nSplit
+    write(lerr,"(a,i0)") "GEOMETRY> ERROR Single element line must have more than 2 values, got ",nSplit
     iErr = .true.
     return
   end if
 
   elemName = lnSplit(1)
   if(len(elemName) > mNameLen) then
-    write(lout,"(a,i0)") "GEOMETRY> ERROR Single element name too long. Max length is ",mNameLen
+    write(lerr,"(a,i0)") "GEOMETRY> ERROR Single element name too long. Max length is ",mNameLen
     iErr = .true.
     return
   end if
@@ -76,7 +76,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
   ! Check that the name is unique
   do i=1,geom_nSing-1
     if(bez(i) == elemName) then
-      write(lout,"(a,i0)") "GEOMETRY> ERROR Single element '"//trim(elemName)//"' is not unique."
+      write(lerr,"(a,i0)") "GEOMETRY> ERROR Single element '"//trim(elemName)//"' is not unique."
       iErr = .true.
       return
     end if
@@ -101,15 +101,6 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
   ! CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
   if((kz(geom_nSing) == 4 .or. kz(geom_nSing) == 5) .and. abs(el(geom_nSing)) > pieni) then
     ed(geom_nSing) = -one*ed(geom_nSing)
-  end if
-
-  ! CAVITIES
-  if(abs(kz(geom_nSing)) == 12) then
-    if(abs(ed(geom_nSing)) > pieni .and. abs(ek(geom_nSing)) > pieni) then
-      sixin_ncy2         = sixin_ncy2 + 1
-      itionc(geom_nSing) = kz(geom_nSing)/abs(kz(geom_nSing))
-      kp(geom_nSing)     = 6
-    end if
   end if
 
   !--------------------------------------------
@@ -147,11 +138,11 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
     call alloc(geom_bez0, mNameLen, nele, " ", "geom_bez0")
   end if
 
-  if(abs(kz(geom_nSing)) /= 12 .or. (abs(kz(geom_nSing)) == 12 .and. sixin_ncy2 == 0)) then
+  if(abs(kz(geom_nSing)) /= 12 .or. (abs(kz(geom_nSing)) == 12 .and. ncy2 == 0)) then
     kp(geom_nSing) = 0
   end if
 
-  bez(geom_nSing)        = elemName
+  bez(geom_nSing)       = elemName
   geom_bez0(geom_nSing) = elemName
 
   !If no active RF cavities are seen so far in the single element list,
@@ -160,7 +151,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
   ! and only if no active RF cavities are found, a CAV element can be
   ! used in the structure to enable 6D tracking using the parameters
   ! from the SYNC block.
-  if(sixin_ncy2 == 0) then
+  if(ncy2 == 0) then
     geom_nSing            = geom_nSing + 1
     il                    = geom_nSing
     bez(geom_nSing)       = geom_cavity
@@ -203,20 +194,20 @@ subroutine geom_parseInputLineBLOC(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr, nIndent=nInd)
   if(spErr) then
-    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    write(lerr,"(a)") "GEOMETRY> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
   isCont = (nInd >= 5)
 
   if(nSplit < 2 .and. .not. isCont) then
-    write(lout,"(a,i0)") "GEOMETRY> ERROR Block definition line must be at least 2 values, got ",nSplit
+    write(lerr,"(a,i0)") "GEOMETRY> ERROR Block definition line must be at least 2 values, got ",nSplit
     iErr = .true.
     return
   end if
 
   if(nSplit > 40) then
-    write(lout,"(a)") "GEOMETRY> ERROR Block definition cannot have more then 40 elements."
+    write(lerr,"(a)") "GEOMETRY> ERROR Block definition cannot have more then 40 elements."
     iErr = .true.
     return
   end if
@@ -225,12 +216,12 @@ subroutine geom_parseInputLineBLOC(inLine, iLine, iErr)
   if(iLine == 1) then
     call chr_cast(lnSplit(1),mper,iErr)
     if(mper > nper) then
-      write(lout,"(a,i0)") "GEOMETRY> ERROR Block definition number of super periods is too large. Max value is ",nper
+      write(lerr,"(a,i0)") "GEOMETRY> ERROR Block definition number of super periods is too large. Max value is ",nper
       iErr = .true.
       return
     end if
     if(mper > nSplit+1) then
-      write(lout,"(a)") "GEOMETRY> ERROR Block definition number of super periods does not match the number of values."
+      write(lerr,"(a)") "GEOMETRY> ERROR Block definition number of super periods does not match the number of values."
       iErr = .true.
       return
     end if
@@ -274,7 +265,7 @@ subroutine geom_parseInputLineBLOC(inLine, iLine, iErr)
 
   do i=ka, ke
     if(i > nelb) then
-      write(lout,"(a,2(i0,a))") "GEOMETRY> ERROR Block definitions can only have ",&
+      write(lerr,"(a,2(i0,a))") "GEOMETRY> ERROR Block definitions can only have ",&
         nelb," elements. ",i," given."
       iErr = .true.
       return
@@ -297,7 +288,7 @@ subroutine geom_parseInputLineBLOC(inLine, iLine, iErr)
         elbe(geom_nBloc) = elbe(geom_nBloc) + el(j)
       end if
     else                                      ! If not, the input is invalid
-      write(lout,"(a)") "GEOMETRY> ERROR Unknown single element '"//&
+      write(lerr,"(a)") "GEOMETRY> ERROR Unknown single element '"//&
         chr_strip(geom_ilm(i))//"' in block definitions."
       iErr = .true.
       return
@@ -335,13 +326,13 @@ subroutine geom_parseInputLineSTRU(inLine, iLine, iErr)
   expLine = chr_expandBrackets(inLine)
   call chr_split(expLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    write(lerr,"(a)") "GEOMETRY> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
 
   if(nSplit < 1 .or. nSplit > 40) then
-    write(lout,"(a)") "GEOMETRY> ERROR Structure input line cannot have less than 1 or more then 40 elements."
+    write(lerr,"(a)") "GEOMETRY> ERROR Structure input line cannot have less than 1 or more then 40 elements."
     iErr = .true.
     return
   end if
@@ -349,7 +340,7 @@ subroutine geom_parseInputLineSTRU(inLine, iLine, iErr)
   do i=1,nSplit
 
     if(len_trim(lnSplit(1)) > mNameLen) then
-      write(lout,"(a)") "GEOMETRY> ERROR Structure element name cannot have more than ",mNameLen," characters."
+      write(lerr,"(a)") "GEOMETRY> ERROR Structure element name cannot have more than ",mNameLen," characters."
       iErr = .true.
       return
     end if
@@ -378,7 +369,7 @@ subroutine geom_parseInputLineSTRU(inLine, iLine, iErr)
         ic(geom_nStru)   = j+nblo
         bezs(geom_nStru) = geom_bez0(j)
         if(geom_bez0(j) == geom_cavity) then
-          sixin_icy = sixin_icy+1
+          icy = icy+1
         end if
         exit
       end if
@@ -418,7 +409,7 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    write(lerr,"(a)") "GEOMETRY> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -435,13 +426,13 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
   end if
 
   if(nSplit < 3) then
-    write(lout,"(a)") "GEOMETRY> ERROR Multi-column structure input line cannot have less than 3 elements."
+    write(lerr,"(a)") "GEOMETRY> ERROR Multi-column structure input line cannot have less than 3 elements."
     iErr = .true.
     return
   end if
 
   if(len_trim(lnSplit(1)) > mNameLen .or. len_trim(lnSplit(2)) > mNameLen) then
-    write(lout,"(a)") "GEOMETRY> ERROR Structure element names in columns 1 and 2 cannot have more than ",mNameLen," characters."
+    write(lerr,"(a)") "GEOMETRY> ERROR Structure element names in columns 1 and 2 cannot have more than ",mNameLen," characters."
     iErr = .true.
     return
   end if
@@ -467,7 +458,7 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
       if(geom_bez0(j) == lnSplit(2)) then
         singID = j+nblo
         if(geom_bez0(j) == geom_cavity) then
-          sixin_icy = sixin_icy+1
+          icy = icy+1
         end if
         exit
       end if
@@ -475,7 +466,7 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
   end if
 
   if(singID == -1) then
-    write(lout,"(a)") "GEOMETRY> ERROR Unknown element '"//trim(lnSplit(2))//"' in STRUCTURE INPUT."
+    write(lerr,"(a)") "GEOMETRY> ERROR Unknown element '"//trim(lnSplit(2))//"' in STRUCTURE INPUT."
     iErr = .true.
     return
   else
@@ -624,7 +615,7 @@ subroutine geom_findElemAtLoc(sLoc, isLast, iEl, ixEl, wasFound)
   sLoc = zero
 
   if(sLoc > tlen .or. sLoc < zero) then
-    write(lout,"(a,2(f11.4,a))") "GEOMETRY> ERROR Find Element: "//&
+    write(lerr,"(a,2(f11.4,a))") "GEOMETRY> ERROR Find Element: "//&
       "Requested s-location: ",sLoc," is not inside accelerator range [0:",tlen,"]"
     call prror
   endif

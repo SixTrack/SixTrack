@@ -1007,12 +1007,12 @@ subroutine collimate_init()
 !      MYENOM   = 1.001*E0
 !
   if (myemitx0_dist.le.zero .or. myemity0_dist.le.zero .or. myemitx0_collgap.le.zero .or. myemity0_collgap.le.zero) then
-    write(lout,"(a)") "COLL> ERROR Emittances not defined! check collimat block!"
-    write(lout,"(a)") "COLL> ERROR Expected format of line 9 in collimat block:"
-    write(lout,"(a)") "COLL> ERROR emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
-    write(lout,"(a)") "COLL> ERROR All emittances should be normalized. "//&
+    write(lerr,"(a)") "COLL> ERROR Emittances not defined! check collimat block!"
+    write(lerr,"(a)") "COLL> ERROR Expected format of line 9 in collimat block:"
+    write(lerr,"(a)") "COLL> ERROR emitnx0_dist  emitny0_dist  emitnx0_collgap  emitny0_collgap"
+    write(lerr,"(a)") "COLL> ERROR All emittances should be normalized. "//&
       "first put emittance for distribtion generation, then for collimator position etc. units in [mm*mrad]."
-    write(lout,"(a)") "COLL> ERROR EXAMPLE: 2.5 2.5 3.5 3.5"
+    write(lerr,"(a)") "COLL> ERROR EXAMPLE: 2.5 2.5 3.5 3.5"
     call prror(-1)
   end if
 
@@ -1190,7 +1190,7 @@ subroutine collimate_init()
       call readdis_norm(filename_dis, myalphax, myalphay, mybetax, mybetay, &
                         myemitx0_dist, myemity0_dist, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
     case default
-      write(lout,"(a)") "COLL> ERROR Review your distribution parameters!"
+      write(lerr,"(a)") "COLL> ERROR Review your distribution parameters!"
       call prror(-1)
     end select
   end if
@@ -1325,7 +1325,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "COLL> ERROR Failed to parse input line."
+    write(lerr,"(a)") "COLL> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -1336,7 +1336,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   case(1)
 
     if(nSplit /= 1) then
-      write(lout,"(a,i0)") "COLL> ERROR Expected 1 value on line 1, got ",nSplit
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 1 value on line 1, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1349,13 +1349,13 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 1) call chr_cast(lnSPlit(2),myenom,iErr)
 
     if(nloop /= 1) then
-      write(lout,"(a,i0)") "COLL> ERROR Support for multiple samples is deprecated. nloop must be 1, got ",nloop
+      write(lerr,"(a,i0)") "COLL> ERROR Support for multiple samples is deprecated. nloop must be 1, got ",nloop
       iErr = .true.
       return
     end if
 
     if(napx*2 > npart) then
-      write(lout,"(2(a,i0))") "COLL> ERROR Maximum number of particles is ", npart, ", got ",(napx*2)
+      write(lerr,"(2(a,i0))") "COLL> ERROR Maximum number of particles is ", npart, ", got ",(napx*2)
       iErr = .true.
       return
    endif
@@ -1501,7 +1501,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 4)  call chr_cast(lnSPlit(5), pencil_distr, iErr)
 #ifdef G4COLLIMAT
     if(ipencil > 0) then
-      write(lout,"(a)") "COLL> ERROR Pencil distribution not supported with geant4"
+      write(lerr,"(a)") "COLL> ERROR Pencil distribution not supported with geant4"
       iErr = .true.
       return
     endif
@@ -1520,7 +1520,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 5)  call chr_cast(lnSPlit(6), sigsecut3,    iErr)
 
   case default
-    write(lout,"(a,i0,a)") "COLL> ERROR Unexpected line ",iLine," encountered."
+    write(lerr,"(a,i0,a)") "COLL> ERROR Unexpected line ",iLine," encountered."
     iErr = .true.
 
   end select
@@ -2535,7 +2535,7 @@ subroutine collimate_do_collimator(stracki)
         rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
       end if
     else
-      write(lout,"(a,f13.6)") "COLL> ERROR Non-zero length collimator: '"//trim(cdb_cNameUC(icoll))//"' length = ",stracki
+      write(lerr,"(a,f13.6)") "COLL> ERROR Non-zero length collimator: '"//trim(cdb_cNameUC(icoll))//"' length = ",stracki
       call prror
     end if
 
@@ -5144,7 +5144,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
   real(kind=fPrec) n_aperture  !aperture in m for the vertical plane
   save
 !=======================================================================
-  write(lout,"(a)") "COLL> ERROR collimateRHIC is no longer supported!"
+  write(lerr,"(a)") "COLL> ERROR collimateRHIC is no longer supported!"
   call prror(-1)
 end subroutine collimaterhic
 !
@@ -6176,7 +6176,7 @@ subroutine makedis_st(myalphax, myalphay, mybetax, mybetay, &
       myy(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
       myyp(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
     else
-      write(lout,"(a)") "COLL> ERROR Bbeam parameters not correctly set!"
+      write(lerr,"(a)") "COLL> ERROR Bbeam parameters not correctly set!"
     end if
     myp(j) = myenom
     mys(j) = zero
@@ -6472,8 +6472,8 @@ subroutine readdis(filename_dis,myx,myxp,myy,myyp,myp,mys)
   call f_requestUnit(filename_dis, filename_dis_unit)
   open(unit=filename_dis_unit, file=filename_dis, iostat=stat,status="OLD",action="read") !was 53
   if(stat.ne.0)then
-    write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
-    write(lout,"(a,i0)") "COLL>       Got iostat=",stat
+    write(lerr,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
+    write(lerr,"(a,i0)") "COLL>       Got iostat=",stat
     goto 20
   end if
 
@@ -6481,11 +6481,11 @@ subroutine readdis(filename_dis,myx,myxp,myy,myyp,myp,mys)
     read(filename_dis_unit,"(a)",end=10,err=20) inLine
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
-      write(lout,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
+      write(lerr,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
       goto 20
     end if
     if(nSplit /= 6) then
-      write(lout,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
+      write(lerr,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
       goto 20
     end if
     call chr_cast(lnSplit(1),myx(j), spErr)
@@ -6495,7 +6495,7 @@ subroutine readdis(filename_dis,myx,myxp,myy,myyp,myp,mys)
     call chr_cast(lnSplit(5),mys(j), spErr)
     call chr_cast(lnSplit(6),myp(j), spErr)
     if(spErr) then
-      write(lout,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
+      write(lerr,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
       goto 20
     end if
   end do
@@ -6558,13 +6558,13 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
   logical spErr
 
   if (iclo6.eq.0) then
-    write(lout,"(a)") "COLL> ERROR DETECTED: Incompatible flag           "
-    write(lout,"(a)") "COLL> in line 2 of the TRACKING block             "
-    write(lout,"(a)") "COLL> of fort.3 for calculating the closed orbit  "
-    write(lout,"(a)") "COLL> (iclo6 must not be =0). When using an input "
-    write(lout,"(a)") "COLL> distribution in normalized coordinates for  "
-    write(lout,"(a)") "COLL> collimation the closed orbit is needed for a"
-    write(lout,"(a)") "COLL> correct TAS matrix for coordinate transform."
+    write(lerr,"(a)") "COLL> ERROR DETECTED: Incompatible flag           "
+    write(lerr,"(a)") "COLL> in line 2 of the TRACKING block             "
+    write(lerr,"(a)") "COLL> of fort.3 for calculating the closed orbit  "
+    write(lerr,"(a)") "COLL> (iclo6 must not be =0). When using an input "
+    write(lerr,"(a)") "COLL> distribution in normalized coordinates for  "
+    write(lerr,"(a)") "COLL> collimation the closed orbit is needed for a"
+    write(lerr,"(a)") "COLL> correct TAS matrix for coordinate transform."
     call prror(-1)
   endif
 
@@ -6573,8 +6573,8 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
   call f_requestUnit(filename_dis, filename_dis_unit)
   open(unit=filename_dis_unit, file=filename_dis, iostat=stat, status="OLD",action="read") !was 53
   if(stat.ne.0)then
-    write(lout,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
-    write(lout,"(a,i0)") "COLL>       Got iostat=",stat
+    write(lerr,"(a)")    "COLL> ERROR Subroutine readdis: Could not open the file."
+    write(lerr,"(a,i0)") "COLL>       Got iostat=",stat
     goto 20
   end if
 
@@ -6582,11 +6582,11 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
     read(filename_dis_unit,"(a)",end=10,err=20) inLine
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
-      write(lout,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
+      write(lerr,"(a)") "COLL> ERROR Failed to parse input line from particle distribution file."
       goto 20
     end if
     if(nSplit /= 6) then
-      write(lout,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
+      write(lerr,"(a)") "COLL> ERROR Expected 6 values per line in particle distribution file."
       goto 20
     end if
     call chr_cast(lnSplit(1),normx, spErr)
@@ -6596,7 +6596,7 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
     call chr_cast(lnSplit(5),norms, spErr)
     call chr_cast(lnSplit(6),normp, spErr)
     if(spErr) then
-      write(lout,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
+      write(lerr,"(a)") "COLL> ERROR Failed to parse value from particle distribution file."
       goto 20
     end if
 ! A normalized distribution with x,xp,y,yp,z,zp is read and
