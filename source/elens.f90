@@ -914,8 +914,8 @@ subroutine elens_crcheck(fileUnit,readErr)
 
 10 continue
 
-  write(lerr,"(a,i0)") "SIXTRACKCR> ERROR in elens_crcheck; fileUnit = ",fileUnit
-  write(93,  "(a,i0)") "READERR in elens_crcheck; fileUnit = ",fileUnit
+  write(lerr,"(a,i0)") "SIXTRACR> ERROR in elens_crcheck; fileUnit = ",fileUnit
+  write(93,  "(a,i0)") "SIXTRACR> ERROR in elens_crcheck; fileUnit = ",fileUnit
   readErr = .true.
 
 end subroutine elens_crcheck
