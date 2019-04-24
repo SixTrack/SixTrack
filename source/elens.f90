@@ -347,7 +347,7 @@ subroutine elens_parseInputDone(iErr)
         end if
       end do
       ! report error
-      write(lout,"(a)") "ELENS> ERROR Type of elens not declared in fort.3 for element '"//trim(bez(kk))//"'"
+      write(lerr,"(a)") "ELENS> ERROR Type of elens not declared in fort.3 for element '"//trim(bez(kk))//"'"
       iErr = .true.
       return
     end if
@@ -369,12 +369,12 @@ subroutine elens_postInput
   do jj=1,nele
     if(kz(jj)==elens_kz) then
       if (ielens(jj).eq.0) then
-        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lout,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in fort.3"
+        write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lerr,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in fort.3"
         call prror
       elseif ( elens_type(ielens(jj))==0 ) then
-        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lout,"(a)")      "ELENS>       had not been assigned a type"
+        write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lerr,"(a)")      "ELENS>       had not been assigned a type"
         call prror
       else
         nlens=nlens+1
@@ -382,8 +382,8 @@ subroutine elens_postInput
     end if
   end do
   if ( nlens.ne.melens ) then
-    write(lout,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in fort.3 ",melens
-    write(lout,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
+    write(lerr,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in fort.3 ",melens
+    write(lerr,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
     call prror
   end if
 
@@ -739,8 +739,8 @@ subroutine elens_kick(i,ix,n)
                 elens_radial_mpoints(ielens(ix)), elens_radial_jguess(ielens(ix)) )-elens_radial_fr1(ielens(ix))) &
                 /elens_geo_norm(ielens(ix))
         case default
-          write(lout,"(a,i0,a)") "ELENS> ERROR elens_kick: elens_type=",elens_type(ielens(ix))," not recognized. "
-          write(lout,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
+          write(lerr,"(a,i0,a)") "ELENS> ERROR elens_kick: elens_type=",elens_type(ielens(ix))," not recognized. "
+          write(lerr,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
           call prror
         end select
       else ! r1 < r2 <= rr
@@ -876,8 +876,8 @@ subroutine elens_kick_fox(i,ix)
         call dealloc(cof,'cof')
 
       case default
-        write(lout,"(a,i0,a)") "ELENS> ERROR in elens_kick_fox: elens_type=",elens_type(ielens(ix))," not recognized. "
-        write(lout,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
+        write(lerr,"(a,i0,a)") "ELENS> ERROR in elens_kick_fox: elens_type=",elens_type(ielens(ix))," not recognized. "
+        write(lerr,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
         call prror
       end select
     else ! r1 < r2 <= rr

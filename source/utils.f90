@@ -95,12 +95,12 @@ contains
 
     if(datalen <= 0) then
       checkArray=.false.
-      if (llprint) write(lout,"(a)") "UTILS> ERROR checkArray: datalen was 0!"
+      if (llprint) write(lerr,"(a)") "UTILS> ERROR checkArray: datalen was 0!"
     end if
     do ii=1, datalen-1
       if(xvals(ii) >= xvals(ii+1)) then
         checkArray=.false.
-        if (llprint) write(lout,"(a)") "UTILS> ERROR checkArray: xvals should be in increasing order"
+        if (llprint) write(lerr,"(a)") "UTILS> ERROR checkArray: xvals should be in increasing order"
       end if
     end do
   end function checkArray
@@ -228,7 +228,7 @@ contains
         den=ho-hp
         if (den.eq.zero) then
           ! This error can occur only if two input xa’s are (to within roundoff) identical.
-          write(lout,"(A)") "UTILS> ERROR nevilleMethod den.eq.zero"
+          write(lerr,"(A)") "UTILS> ERROR nevilleMethod den.eq.zero"
           call prror
         end if
         den=ww/den
@@ -396,8 +396,8 @@ contains
        case(3)
           tmpInt=four*(pi*(fmax-fmin))
        case default
-          write(lout,"(a,i0)") "UTILS> ERROR polintegrate: order not recognised:",order
-          write(lout,"(a)")    "UTILS>       recognised values: 1D (1), 2D (2), 3D (3)"
+          write(lerr,"(a,i0)") "UTILS> ERROR polintegrate: order not recognised:",order
+          write(lerr,"(a)")    "UTILS>       recognised values: 1D (1), 2D (2), 3D (3)"
           call prror
           return
        end select
