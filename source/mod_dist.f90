@@ -153,7 +153,7 @@ subroutine dist_readDist
   j = j+1
 
   if(j > napx) then
-    write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been read, as requested in fort.3"
+    write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been read, as requested in "//trim(fort3)
     j = napx
     goto 30
   end if

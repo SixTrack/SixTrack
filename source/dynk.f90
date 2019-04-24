@@ -1901,7 +1901,7 @@ subroutine dynk_apply(turn)
       call f_open(unit=dynk_fileUnit,file=dynk_fileName,formatted=.true.,mode="w",status="replace")
 
       if(dynk_noDynkSets) then
-        write(dynk_fileUnit,"(a)") "### DYNK file output was disabled with flag NOFILE in fort.3 ###"
+        write(dynk_fileUnit,"(a)") "### DYNK file output was disabled with flag NOFILE in "//trim(fort3)//" ###"
       else
         write(dynk_fileUnit,"(a1,1x,a10,2(1x,a20),1x,a4,1x,a20,a16)") "#",&
           "turn", chr_rPad("element",20),chr_rPad("attribute",20),"idx",chr_rPad("funname",20),"value"
