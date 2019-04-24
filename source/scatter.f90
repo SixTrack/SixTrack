@@ -1217,12 +1217,14 @@ end function scatter_generator_getCrossSection
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 02-11-2017
+!  Created: 2017-11-02
+!  Updated: 2019-04-24
 ! =================================================================================================
 subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iLost, isDiff)
 
   use crcoall
   use mod_common_main
+  use mod_common, only : fort3
   use, intrinsic :: iso_c_binding
 
   implicit none
@@ -1291,7 +1293,7 @@ subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iL
           iLost  = 1
           isDiff = .false.
         else
-          write(lerr,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in fort.3"
+          write(lerr,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in "//trim(fort3)
           call prror
         end if
       case(pythia_idElastic)
@@ -1316,7 +1318,7 @@ subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iL
           iLost  = 1
           isDiff = .true.
         else
-          write(lerr,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in fort.3"
+          write(lerr,"(a)") "SCATTER> ERROR Particle lost, but losses not explicitly allowed in "//trim(fort3)
           call prror
         end if
       case(pythia_idCentralDiff)
