@@ -17,6 +17,7 @@ program maincr
   use mathlib_bouncer
   use physical_constants
   use numerical_constants
+  use sixtrack_input, only : sixin_commandLine
 
   use dynk,    only : dynk_izuIndex
   use fma,     only : fma_postpr, fma_flag
@@ -101,8 +102,12 @@ program maincr
 
   logical fErr ! For file units
 
-  ! ---------------------------------------------------------------------------------------------- !
-  errout = 0 ! Set to nonzero before calling abend in case of error.
+! ================================================================================================ !
+
+  ! Parse command line arguments
+  call sixin_commandLine("SixTrack")
+
+errout = 0 ! Set to nonzero before calling abend in case of error.
 #ifdef CR
   lerr = 91
   lout = 92

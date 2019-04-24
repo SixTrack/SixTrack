@@ -96,7 +96,7 @@ subroutine daten
 !  READ FORT.3 HEADER
 ! ================================================================================================ !
 
-  call f_open(unit=3,file="fort.3",formatted=.true.,mode="r",err=fErr)
+  call f_open(unit=3,file=fort3,formatted=.true.,mode="r",err=fErr)
   if(fErr) then
     write(lerr,"(a)") "INPUT> ERROR Could not open fort.3"
     call prror
@@ -120,7 +120,7 @@ subroutine daten
   case("GEOM") ! Mode GEOM. Elements in fort.2
     iMod       = 2
     parseFort2 = .true.
-    call f_open(unit=2,file="fort.2",formatted=.true.,mode="r",err=fErr)
+    call f_open(unit=2,file=fort2,formatted=.true.,mode="r",err=fErr)
     if(fErr) then
       write(lerr,"(a)") "INPUT> ERROR Could not open fort.2"
       call prror
@@ -293,7 +293,7 @@ subroutine daten
       call geom_parseInputLineSING(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
-    
+
   case("BLOC") ! Block Definitions
     if(openBlock) then
       geom_nBloc = 0
@@ -1676,14 +1676,14 @@ subroutine initialize_element(ix,lfirst)
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  
+
   use parpro
   use parbeam
   use mod_hions
   use mod_common
   use mod_common_main
   use mod_common_track
-  
+
   use cheby, only : cheby_kz
   use dynk,  only : dynk_elemData, dynk_izuIndex
 
@@ -1878,7 +1878,7 @@ subroutine initialize_element(ix,lfirst)
                 sigman2(1,imbb(i)) = sigman(1,imbb(i))**2
               end if
             end if
-          
+
             ! Elliptic beam x>z
             if(sigman(1,imbb(i)) > sigman(2,imbb(i))) then
               if(nbeaux(imbb(i)) == 1 .or. nbeaux(imbb(i)) == 3) then

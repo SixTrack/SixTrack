@@ -136,6 +136,10 @@ module mod_common
   logical,           save      :: print_dcum = .false. ! Print dcum. Set in the SETTINGS block
   integer,           save      :: ithick     = 0       ! Thick tracking flag
 
+  ! File Names
+  character(len=mFileName), public, save :: fort2 = "fort.2" ! Name of machine geometry file
+  character(len=mFileName), public, save :: fort3 = "fort.3" ! Name of main imput file
+
   !  GENERAL VARIABLES
   ! ===================
 
