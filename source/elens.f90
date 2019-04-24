@@ -632,12 +632,21 @@ subroutine integrateRadialProfile(ifile)
   real(kind=fPrec), allocatable :: cumul(:)
 
   write(lout,"(a)") "ELENS> Normalising radial profile described in "//trim(elens_radial_filename(ifile))
+  if(st_quiet < 2) flush(lout)
   nn=elens_radial_profile_nPoints(ifile)
-  call alloc(cumul,nn,zero,'cumul')
+  call alloc(cumul,nn+1,zero,'cumul')
+  if(st_quiet < 2) then
+    write(lout,"(a,i0,a)") "ELENS> Allocating cumul array to ",nn+1," elements"
+    flush(lout)
+  end if
   tmpTot=polintegrate(elens_radial_profile_R(0:nn,ifile), elens_radial_profile_J(0:nn,ifile), &
                       nn+1, elens_radial_mpoints(ifile), 2, cumul)
   elens_radial_profile_J(0:nn,ifile)=cumul(1:nn+1)
   call dealloc(cumul,'cumul')
+  if(st_quiet < 2) then
+    write(lout,"(a)") "ELENS> De-allocating cumul array"
+    flush(lout)
+  end if
   
   if(st_quiet < 2) then
     write(lout,"(a,i0)") "ELENS> Integrated radial profile read from file "//&
