@@ -98,14 +98,14 @@ subroutine daten
 
   call f_open(unit=3,file=fort3,formatted=.true.,mode="r",err=fErr)
   if(fErr) then
-    write(lerr,"(a)") "INPUT> ERROR Could not open fort.3"
+    write(lerr,"(a)") "INPUT> ERROR Could not open "//trim(fort3)
     call prror
   end if
 
 90 continue
   read(3,"(a4,a8,a60)",end=9997,iostat=ierro) cCheck,cPad,iHead
   if(ierro > 0) then
-    write(lerr,"(a)") "INPUT> ERROR Could not read from fort.3"
+    write(lerr,"(a)") "INPUT> ERROR Could not read from "//trim(fort3)
     call prror
   end if
   pLines(5) = cCheck//cPad//iHead
@@ -122,7 +122,7 @@ subroutine daten
     parseFort2 = .true.
     call f_open(unit=2,file=fort2,formatted=.true.,mode="r",err=fErr)
     if(fErr) then
-      write(lerr,"(a)") "INPUT> ERROR Could not open fort.2"
+      write(lerr,"(a)") "INPUT> ERROR Could not open "//trim(fort2)
       call prror
     end if
   case default
@@ -138,8 +138,8 @@ subroutine daten
   write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOO"
   write(lout,"(a)") ""
   if(ihead /= " ") write(lout,"(a)") "    TITLE: "//trim(iHead)
-  if(imod  == 1)   write(lout,"(a)") "    MODE:  Free Format Input (fort.3)"
-  if(imod  == 2)   write(lout,"(a)") "    MODE:  Geometry Strength File (fort.2)"
+  if(imod  == 1)   write(lout,"(a)") "    MODE:  Free Format Input ("//trim(fort3)//")"
+  if(imod  == 2)   write(lout,"(a)") "    MODE:  Geometry Strength File ("//trim(fort2)//")"
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
 
@@ -663,7 +663,7 @@ subroutine daten
 
   case("RIPP") ! Power Supply Ripple Block
     write(lerr,"(a)") "INPUT> ERROR RIPP module has been removed and replaced by DYNK."
-    write(lerr,"(a)") "INPUT>       The script rippconvert.py in the pytools folder can be used to convert the fort.3 file."
+    write(lerr,"(a)") "INPUT>       The script rippconvert.py in the pytools folder can be used to convert the input file."
     goto 9999
 
   case("LIMI") ! Aperture Limitations
@@ -1185,7 +1185,7 @@ subroutine daten
 ! ================================================================================================ !
 
 9997 continue
-  write(lerr,"(a)") "INPUT> ERROR Header could not be read from fort.3"
+  write(lerr,"(a)") "INPUT> ERROR Header could not be read from "//trim(fort3)
   call prror
   return
 
@@ -1197,11 +1197,11 @@ subroutine daten
 9999 continue
   if(nUnit == 2) then
     write(lerr,"(a)")      ""
-    write(lerr,"(a)")      " ERROR in fort.2"
+    write(lerr,"(a)")      " ERROR in "//trim(fort2)
     write(lerr,"(a,i0,a)") " Line ",lineNo2,": '"//trim(adjustl(inLine))//"'"
   else
     write(lerr,"(a)")      ""
-    write(lerr,"(a,i0)")   " ERROR in fort.3 on line ",lineNo3
+    write(lerr,"(a,i0)")   " ERROR in "//trim(fort3)//" on line ",lineNo3
     write(lerr,"(a)")      "========O"//repeat("=",91)
     do i=1,5
       if(lineNo3-5+i <= 0) cycle

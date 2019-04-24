@@ -2980,9 +2980,9 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
     end if
 
     write(lout,"(a)") "BEAM> Reading old style beam block."
-    write(lout,"(a)") "BEAM>    To convert to the new format, copy-paste these lines into the BEAM block in fort.3,"
+    write(lout,"(a)") "BEAM>    To convert to the new format, copy-paste these lines into the BEAM block in "//trim(fort3)//","
     write(lout,"(a)") "BEAM> replacing line 2 onwards. Then write EXPERT on the first line of the BEAM block, above"
-    write(lout,"(a)") "BEAM> the current first line. Finally, in the SINGLE ELEMENTS list (normally in fort.2) set "
+    write(lout,"(a)") "BEAM> the current first line. Finally, in the SINGLE ELEMENTS list (normally in "//trim(fort2)//") set "
     write(lout,"(a)") "BEAM> the parameters of all beam-beam lenses (type 20) to 0.0."
     write(lout,"(a)") "BEAM>    This procedure produces a new set of input files that should have bit-for-bit iden-"
     write(lout,"(a)") "BEAM> tical results to this one."
