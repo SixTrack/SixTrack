@@ -519,7 +519,21 @@ endif(128BITM)
 
 if(NOT SIXDA)
   message(STATUS "Not building SixDA version.")
-endif()
+endif(NOT SIXDA)
+
+# Since each AVX option includes the others, just turn the lower ones off
+if(AVX512_SKYLAKE)
+  set(AVX OFF)
+  set(AVX2 OFF)
+  set(AVX512 OFF)
+endif(AVX512_SKYLAKE)
+if(AVX512)
+  set(AVX OFF)
+  set(AVX2 OFF)
+endif(AVX512)
+if(AVX2)
+  set(AVX OFF)
+endif(AVX2)
 
 ###################################################################################################
 # Settings for compiler build flags
