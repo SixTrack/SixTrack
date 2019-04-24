@@ -1,5 +1,11 @@
 # SixTrack Changelog
 
+### Version 5.2.5 [26.04.2019] - Release
+
+**Test Suite**
+
+* Added a new test category that checks error messages when SixTrack is made to fail. PR #825 (V.K. Berglyd Olsen, K. Sjobak)
+
 ### Version 5.2.4 [23.04.2019] - Release
 
 **User Side Changes**
