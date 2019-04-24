@@ -45,6 +45,7 @@ set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR"
 
 list(APPEND SIXTRACK_ERROR
   error_init
+  error_trac
 )
 
 ##
