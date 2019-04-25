@@ -52,7 +52,7 @@ end subroutine prror
 ! ================================================================================================ !
 subroutine abend(cstring)
 
-  use, intrinsic :: iso_fortran_env, only : error_unit
+  use, intrinsic :: iso_fortran_env, only : error_unit, output_unit
 
   use crcoall
   use parpro
@@ -142,7 +142,7 @@ subroutine abend(cstring)
     rewind(92)
 13  continue
     read(92,"(a)",err=14,end=15,iostat=ierro) inLine
-    write(6,'(a)',iostat=ierro) trim(inLine)
+    write(output_unit,'(a)',iostat=ierro) trim(inLine)
     goto 13
   end if
 
@@ -151,7 +151,7 @@ subroutine abend(cstring)
   write(lerr,"(a,i0)") "ABEND> ERROR Reading fort.92, iostat = ",ierro
 
 15 continue
-  write(6,"(a)",iostat=ierro) "SIXTRACR> Stop "//cstring
+  write(output_unit,"(a)",iostat=ierro) "SIXTRACR> Stop "//cstring
   rewind(92) ! Get rid of fort.92
   endfile(92,iostat=ierro)
   call f_close(92)
@@ -159,11 +159,13 @@ subroutine abend(cstring)
   call f_close(93)
 
 #ifdef BOINC
-  call copyToStdErr(91,"fort.91")
+  call copyToStdErr(91,"fort.91",10)
   call boinc_finish(errout) ! This call does not return
 #else
+  call copyToStdErr(91,"fort.91",50)
   if(errout /= 0) then
-    write(error_unit,"(a,i0)") "ABEND> ERROR Stopping with error ",errout
+    ! Don't write to stderr, it breaks the error tests.
+    write(output_unit,"(a,i0)") "ABEND> ERROR Stopping with error ",errout
     stop 1
   else
     stop
@@ -182,7 +184,7 @@ end subroutine abend
 !  It is mainly used just before exiting SixTrack in case there was an error.
 !  This is useful since STDERR is often returned from batch systems and BOINC.
 ! =================================================================================================
-subroutine copyToStdErr(fUnit,fName)
+subroutine copyToStdErr(fUnit,fName,maxLines)
 
   use parpro
   use mod_units
@@ -192,12 +194,11 @@ subroutine copyToStdErr(fUnit,fName)
 
   integer,          intent(in) :: fUnit
   character(len=*), intent(in) :: fName
+  integer,          intent(in) :: maxLines
 
-  integer, parameter :: maxLines = 10
-
-  integer i, bufIdx, bufMax
+  integer i, bufIdx, bufMax, lnSize, ioStat, szBuf(maxLines)
   logical isOpen, fErr
-  character(len=mInputLn) inLine, inBuf(maxLines)
+  character(len=256) inLine, inBuf(maxLines)
 
   inquire(unit=fUnit,opened=isOpen)
   if(isOpen) then
@@ -211,21 +212,23 @@ subroutine copyToStdErr(fUnit,fName)
   bufIdx = 0
   bufMax = 0
 10 continue
-  read(fUnit,"(a)",end=20,err=20) inLine
+  read(fUnit,"(a256)",end=20,err=20,iostat=ioStat,size=lnSize,advance="no") inLine
+  if(ioStat > 0) goto 20 ! End of file (do not use /= 0)
   bufIdx = bufIdx + 1
   if(bufIdx > maxLines) bufIdx = 1
   if(bufIdx > bufMax)   bufMax = bufIdx
   inBuf(bufIdx) = inLine
+  szBuf(bufIdx) = lnSize
   goto 10
 
 20 continue
   if(bufIdx > 0) then
     do i=bufIdx+1,bufMax
-      write(error_unit,"(a)") trim(inBuf(i))
+      write(error_unit,"(a)") inBuf(i)(:szBuf(i))
     end do
     if(bufIdx > 1) then
       do i=1,bufIdx
-        write(error_unit,"(a)") trim(inBuf(i))
+        write(error_unit,"(a)") inBuf(i)(:szBuf(i))
       end do
     end if
   end if
