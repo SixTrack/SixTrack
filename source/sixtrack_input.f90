@@ -811,7 +811,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
-  integer nSplit, iDummy
+  integer nSplit, imc, ibidu
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -830,19 +830,21 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       return
     end if
 
+    imc = 1
+
     if(nSplit > 0)  call chr_cast(lnSplit(1), numl,   iErr) ! Number of turns in the forward direction
     if(nSplit > 1)  call chr_cast(lnSplit(2), numlr,  iErr) ! Number of turns in the backward direction
     if(nSplit > 2)  call chr_cast(lnSplit(3), napx,   iErr) ! Number of amplitude variations (i.e. particle pairs)
     if(nSplit > 3)  call chr_cast(lnSplit(4), amp(1), iErr) ! End amplitude
     if(nSplit > 4)  call chr_cast(lnSplit(5), amp0,   iErr) ! Start amplitude
     if(nSplit > 5)  call chr_cast(lnSplit(6), ird,    iErr) ! Ignored
-    if(nSplit > 6)  call chr_cast(lnSplit(7), iDummy, iErr) ! Number of variations of the relative momentum deviation dp/p
+    if(nSplit > 6)  call chr_cast(lnSplit(7), imc,    iErr) ! Number of variations of the relative momentum deviation dp/p
     if(nSplit > 7)  call chr_cast(lnSplit(8), niu(1), iErr) ! Unknown
     if(nSplit > 8)  call chr_cast(lnSplit(9), niu(2), iErr) ! Unknown
     if(nSplit > 9)  call chr_cast(lnSplit(10),numlcp, iErr) ! CR: How often to write checkpointing files
     if(nSplit > 10) call chr_cast(lnSplit(11),numlmax,iErr) ! CR: Maximum amount of turns; default is 1e6
 
-    if(iDummy > 1) then
+    if(imc /= 1) then
       write(lerr,"(a)") "TRAC> ERROR Variations of the relative momentum deviation is no longer supporter. "//&
         "The value imc must be set to 1."
       iErr = .true.
@@ -961,19 +963,19 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(nSplit > 4) call chr_cast(lnSplit(5),nwr(3),  iErr) ! Every nth turn at the flat top a write out of the coordinates
     if(nSplit > 5) call chr_cast(lnSplit(6),nwr(4),  iErr) ! Every nth turn coordinates are written to unit 6.
     if(nSplit > 6) call chr_cast(lnSplit(7),ntwin,   iErr) ! Flag for calculated distance of phase space
-    if(nSplit > 7) call chr_cast(lnSplit(8),iDummy,  iErr) ! No longer in use. Formerly ibidu
+    if(nSplit > 7) call chr_cast(lnSplit(8),ibidu,   iErr) ! No longer in use.
     if(nSplit > 8) call chr_cast(lnSplit(9),iexact,  iErr) ! Switch to enable exact solution of the equation of motion
     if(nSplit > 9) call chr_cast(lnSplit(10),curveff,iErr) ! Switch to include curvatures effect on multipoles..
 
     if(st_debug) then
-      call sixin_echoVal("nde(1)",nde(1),  "TRAC",iLine)
-      call sixin_echoVal("nde(2)",nde(2),  "TRAC",iLine)
-      call sixin_echoVal("nwr(1)",nwr(1),  "TRAC",iLine)
-      call sixin_echoVal("nwr(2)",nwr(2),  "TRAC",iLine)
-      call sixin_echoVal("nwr(3)",nwr(3),  "TRAC",iLine)
-      call sixin_echoVal("nwr(4)",nwr(4),  "TRAC",iLine)
-      call sixin_echoVal("ntwin", ntwin,   "TRAC",iLine)
-      call sixin_echoVal("iexact",iexact,  "TRAC",iLine)
+      call sixin_echoVal("nde(1)", nde(1), "TRAC",iLine)
+      call sixin_echoVal("nde(2)", nde(2), "TRAC",iLine)
+      call sixin_echoVal("nwr(1)", nwr(1), "TRAC",iLine)
+      call sixin_echoVal("nwr(2)", nwr(2), "TRAC",iLine)
+      call sixin_echoVal("nwr(3)", nwr(3), "TRAC",iLine)
+      call sixin_echoVal("nwr(4)", nwr(4), "TRAC",iLine)
+      call sixin_echoVal("ntwin",  ntwin,  "TRAC",iLine)
+      call sixin_echoVal("iexact", iexact, "TRAC",iLine)
       call sixin_echoVal("curveff",curveff,"TRAC",iLine)
     end if
     if(iErr) return
