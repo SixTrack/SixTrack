@@ -36,6 +36,7 @@ program mainda
   use mod_fluc,     only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use read_write,   only : readFort33
   use mod_geometry, only : geom_reshuffleLattice
+  use sixtrack_input, only : sixin_commandLine
   use mod_version
 
   implicit none
@@ -58,8 +59,13 @@ program mainda
   character(len=10) tsTime
   logical fErr
 
+! ================================================================================================ !
+
+  ! Parse command line arguments
+  call sixin_commandLine("SixDA")
+
   ! Features
-featList = ""
+  featList = ""
 #ifdef TILT
   featList = featList//" TILT"
 #endif

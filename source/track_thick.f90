@@ -263,7 +263,7 @@ subroutine trauthck(nthinerr)
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           if ( dynk_isused(i) ) then
             write(lerr,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
-              "') is off in fort.2, but on in DYNK. Not implemented."
+              "') is off in "//trim(fort2)//", but on in DYNK. Not implemented."
             call prror
           end if
           ktrack(i)=31

@@ -3,7 +3,7 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2018-05-18
-!  Updated: 2019-04-01
+!  Updated: 2019-04-24
 ! ================================================================================================ !
 module sixtrack_input
 
@@ -62,6 +62,54 @@ module sixtrack_input
   private :: sixin_echoVal_logical
 
 contains
+
+! ================================================================================================ !
+!  Parse Command Line Arguments
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-04-24
+!  Updated: 2019-04-24
+! ================================================================================================ !
+subroutine sixin_commandLine(stName)
+
+  use parpro
+  use crcoall
+  use mod_version
+  use mod_common, only : fort2, fort3
+
+  character(len=*), intent(in) :: stName
+
+  character(len=mStrLen) cmdArg
+  integer nCmd
+
+  nCmd = command_argument_count()
+  if(nCmd < 1) return
+
+  ! First argument is either a command or the file name for the main input file
+  call get_command_argument(1, cmdArg)
+  select case(cmdArg)
+  case("-nv","--numver")
+    write(lout,"(i0)") numvers
+    stop
+  case("-v","--version")
+    write(lout,"(a)") trim(stName)//" "//trim(version)//"-"//trim(git_revision(1:7))
+    stop
+  case("-V","--VERSION")
+    write(lout,"(a)") trim(stName)
+    write(lout,"(a)") "Version:  "//trim(version)
+    write(lout,"(a)") "Released: "//trim(moddate)
+    write(lout,"(a)") "Git Hash: "//trim(git_revision)
+    stop
+  case default
+    fort3 = trim(cmdArg)
+  end select
+
+  if(nCmd < 2) return
+
+  ! Second argument is the file name for the main geometry file
+  call get_command_argument(2, cmdArg)
+  fort2 = trim(cmdArg)
+
+end subroutine sixin_commandLine
 
 ! ================================================================================================ !
 !  BLOCK PARSING RECORD
@@ -797,6 +845,8 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(iDummy > 1) then
       write(lerr,"(a)") "TRAC> ERROR Variations of the relative momentum deviation is no longer supporter. "//&
         "The value imc must be set to 1."
+      iErr = .true.
+      return
     end if
 
     ! Default nnuml to numl
@@ -2932,9 +2982,9 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
     end if
 
     write(lout,"(a)") "BEAM> Reading old style beam block."
-    write(lout,"(a)") "BEAM>    To convert to the new format, copy-paste these lines into the BEAM block in fort.3,"
+    write(lout,"(a)") "BEAM>    To convert to the new format, copy-paste these lines into the BEAM block in "//trim(fort3)//","
     write(lout,"(a)") "BEAM> replacing line 2 onwards. Then write EXPERT on the first line of the BEAM block, above"
-    write(lout,"(a)") "BEAM> the current first line. Finally, in the SINGLE ELEMENTS list (normally in fort.2) set "
+    write(lout,"(a)") "BEAM> the current first line. Finally, in the SINGLE ELEMENTS list (normally in "//trim(fort2)//") set "
     write(lout,"(a)") "BEAM> the parameters of all beam-beam lenses (type 20) to 0.0."
     write(lout,"(a)") "BEAM>    This procedure produces a new set of input files that should have bit-for-bit iden-"
     write(lout,"(a)") "BEAM> tical results to this one."

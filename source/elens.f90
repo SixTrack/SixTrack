@@ -357,7 +357,7 @@ end subroutine elens_parseInputLine
 
 subroutine elens_parseInputDone(iErr)
 
-  use mod_common, only : bez, kz
+  use mod_common, only : bez, kz, fort3
 
   implicit none
 
@@ -377,7 +377,7 @@ subroutine elens_parseInputDone(iErr)
         end if
       end do
       ! report error
-      write(lerr,"(a)") "ELENS> ERROR Type of elens not declared in fort.3 for element '"//trim(bez(kk))//"'"
+      write(lerr,"(a)") "ELENS> ERROR Type of elens not declared in "//trim(fort3)//" for element '"//trim(bez(kk))//"'"
       iErr = .true.
       return
     end if
@@ -389,7 +389,7 @@ subroutine elens_postInput
 
   use mathlib_bouncer
   use utils, only : polinterp
-  use mod_common, only : bez,kz
+  use mod_common, only : bez,kz,fort3
 
   integer j, jj, nlens, jguess
   logical exist
@@ -400,7 +400,7 @@ subroutine elens_postInput
     if(kz(jj)==elens_kz) then
       if (ielens(jj).eq.0) then
         write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lerr,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in fort.3"
+        write(lerr,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in "//trim(fort3)
         call prror
       elseif ( elens_type(ielens(jj))==0 ) then
         write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
@@ -412,7 +412,7 @@ subroutine elens_postInput
     end if
   end do
   if ( nlens.ne.melens ) then
-    write(lerr,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in fort.3 ",melens
+    write(lerr,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in "//trim(fort3)//" ",melens
     write(lerr,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
     call prror
   end if
