@@ -19,6 +19,7 @@ subroutine umlauda
   use mod_common_track, only : xxtr,yytr,issss,tasm,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_commond2
+  use cheby, only : cheby_lFox, icheby, cheby_kz, cheby_kick_fox
   use wire
   use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
@@ -1205,6 +1206,9 @@ subroutine umlauda
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
       endif
+    if(kzz.eq.cheby_kz) then ! Elens
+      if (cheby_lFox(icheby(ix))) call cheby_kick_fox(i,ix)
+    end if
     if(kzz.eq.22) then ! Phase Trombone
 #include "include/trombone_fox.f90"
     end if

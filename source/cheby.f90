@@ -16,6 +16,7 @@ module cheby
   integer, save               :: ncheby_tables=0      ! number of chebyshev tables in memory
   integer, parameter          :: cheby_kz=42          ! kz of chebyshev lenses
   integer, parameter          :: cheby_ktrack=67      ! ktrack of chebyshev lenses
+  integer, parameter          :: cheby_maxOrderFox=21 ! max order (required by FOX)
 
   ! variables to save parameters for tracking etc.
   integer,          allocatable, save :: cheby_itable(:)      ! index of chebyshev table
@@ -26,7 +27,8 @@ module cheby
   real(kind=fPrec), allocatable, save :: cheby_offset_y(:)    ! ver. offset [mm] (optional)
   real(kind=fPrec), allocatable, save :: cheby_I(:)           ! actual powering of lens [A] (optional)
   real(kind=fPrec), allocatable, save :: cheby_scalingFact(:) ! scaling factor [] (computed internally)
-  
+  logical,          allocatable, save :: cheby_lFox(:)        ! the kick from the chebyshev map should be taken into account
+                                                              !   when searching for the closed orbit with DA algebra  
   ! show map
   integer,          allocatable, save :: cheby_iLens(:)       ! lens for which a map echo is requested
   character(len=:), allocatable, save :: cheby_mapFileName(:) ! file name
@@ -70,6 +72,7 @@ subroutine cheby_expand_arrays_lenses(ncheby_new)
   call alloc(cheby_offset_y   ,            ncheby_new,            zero, 'cheby_offset_y'   )
   call alloc(cheby_I          ,            ncheby_new,            -one, 'cheby_I'          )
   call alloc(cheby_scalingFact,            ncheby_new,             one, 'cheby_scalingFact')
+  call alloc(cheby_lFox       ,            ncheby_new,         .false., 'cheby_lFox'       )
 end subroutine cheby_expand_arrays_lenses
 
 subroutine cheby_expand_arrays_map_echo(ncheby_mapEchoes_new)
@@ -548,6 +551,12 @@ subroutine parseChebyFile(ifile)
       goto 30
     end if
     cheby_maxOrder(ifile)=max(ii,jj,cheby_maxOrder(ifile))
+    if ( cheby_maxOrder(ifile).gt.cheby_maxOrderFox-1 ) then
+      write(lerr,"(2(a,i0))") "CHEBY> ERROR order of map too high: ",cheby_maxOrder(ifile), &
+                                            " >",cheby_maxOrderFox-1
+      write(lerr,"(a)")       "CHEBY>       please increase cheby_maxOrderFox parameter"
+      goto 30
+    end if
 
   end if ! close if for keyword identification
   goto 10
@@ -609,6 +618,8 @@ subroutine cheby_kick(i,ix,n)
   use numerical_constants, only : zero, c180e0, pi
   use physical_constants, only: clight
 
+  implicit none
+
   integer, intent(in) :: i
   integer, intent(in) :: ix
   integer, intent(in) :: n
@@ -661,6 +672,162 @@ subroutine cheby_kick(i,ix,n)
   end do
 
 end subroutine cheby_kick
+
+
+subroutine cheby_kick_fox(i,ix)
+
+  ! A. Mereghetti (CERN, BE-ABP-HSS)
+  ! last modified: 25-04-2019
+  ! apply kick of Chebyshev lenses (FOX)
+
+  use mod_common, only : betrel, mtcda, brho
+  use crcoall, only : lout
+  use numerical_constants, only : zero, c180e0, pi
+  use physical_constants, only: clight
+  use mod_lie_dab, only : lnv, idao, rscrri, iscrda
+  use mod_common_track, only : comt_daStart, comt_daEnd
+  use mod_common_da
+  
+  implicit none
+
+  integer, intent(in) :: i
+  integer, intent(in) :: ix
+
+  integer          :: idaa, jj, morder, nn, mm, ll, oo
+  integer          :: hh(lnv)=0
+  real(kind=fPrec) :: rra, xa, ya, xclo, yclo, angrad, cscal, dxpa, dypa, refr, rnn, coeff
+  logical          lrotate
+
+  common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
+
+!-----------------------------------------------------------------------
+!FOX  B D ;
+#include "include/dainicom.f90"
+!FOX  D V DA INT XI  NORD NVAR ; D V DA INT YI    NORD NVAR ;
+!FOX  D V DA INT DXP NORD NVAR ; D V DA INT DYP   NORD NVAR ;
+!FOX  D V DA INT RR  NORD NVAR ; D V DA INT RADIO NORD NVAR ;
+!FOX  D V DA INT UU  NORD NVAR ; D V DA INT VV    NORD NVAR ;
+!FOX  D V DA INT FU  NORD NVAR ; D V DA INT FV    NORD NVAR ;
+!FOX  D V DA INT THETA NORD NVAR ;
+!FOX  D V DA INT TX  NORD NVAR 20 ; D V DA INT TY  NORD NVAR 20 ;
+!FOX  D V DA INT TPX NORD NVAR 20 ; D V DA INT TPY NORD NVAR 20 ;
+!FOX  D V RE INT XCLO ; D V RE INT YCLO ; D V RE INT CSCAL ;
+!FOX  D V RE INT BETREL ; D V RE INT BRHO ; D V RE INT CLIGHT ; 
+!FOX  D V RE INT XA   ; D V RE INT YA   ; D V RE INT REFR ;
+!FOX  D V RE INT DXPA ; D V RE INT DYPA ;
+!FOX  D V RE INT RNN ; D V RE INT COEFF ; D V RE INT ANGRAD ;
+!FOX  D V RE INT ONE ; D V RE INT ZERO ;  D V RE INT C1E3 ; D V RE INT C1M3 ; D V RE INT TWO ;
+!FOX  D V RE INT NN ; D V RE INT JJ ; D V RE INT MM ; D V RE INT LL ; D V RE INT OO ;
+!FOX  E D ;
+!FOX  1 if(1.eq.1) then
+  call comt_daStart
+!-----------------------------------------------------------------------
+
+  write(lout,'(2(a,i0))')'CHEBY> CHEBY_KICK_FOX for i=',i,' - ix=',ix
+  
+  XCLO=cheby_offset_x(icheby(ix))
+  YCLO=cheby_offset_y(icheby(ix))
+  CSCAL=cheby_scalingFact(icheby(ix))
+  REFR=cheby_refR(icheby(ix))
+  MORDER=cheby_maxOrder(icheby(ix))
+
+  ! rotation angle
+  lrotate = cheby_angle(icheby(ix)).ne.zero
+  angrad = (cheby_angle(icheby(ix))/c180e0)*pi
+
+  ! apply offset
+!FOX  XI=XX(1)-XCLO ;
+!FOX  YI=XX(2)-YCLO ;
+  call dapek(XI,hh,XA)
+  call dapek(YI,hh,YA)
+  write(lout,'(2(a,1pe22.15))')'CHEBY> CHEBY_KICK_FOX computing at XA=',XA,' - YA=',YA
+  
+  ! check that particle is within the domain of chebyshev polynomials
+!FOX  RR=SQRT(XI*XI+YI*YI) ;
+  call dapek(RR,hh,RRA)
+  write(lout,'(a,1pe22.15)')   'CHEBY> CHEBY_KICK_FOX computing at RRA=',RRA
+  write(lout,'(2(a,1pe22.15))')'CHEBY>                when R1=',cheby_r1(icheby(ix)),&
+                                                      'and R2=',cheby_r2(icheby(ix))
+
+  if (RRA.ge.cheby_r1(icheby(ix)).and.RRA.lt.cheby_r2(icheby(ix))) then ! rr<r1 || rr>=r2 -> no kick from lens
+     
+    ! in case of non-zero tilt angle, rotate coordinates
+    if (lrotate) then
+!FOX  THETA=ATAN(YI/XI)-ANGRAD ;
+!FOX  XI=RR*COS(THETA) ;
+!FOX  YI=RR*SIN(THETA) ;
+    end if
+    
+    ! compute kick
+    
+    ! normalised variables
+!FOX  UU=XI/REFR ;
+!FOX  VV=YI/REFR ;
+    ! normalisation factors of derivatives
+!FOX  FU=(ONE-UU)*(ONE+UU) ;
+!FOX  FV=(ONE-VV)*(ONE+VV) ;
+    
+    ! - polynomials and derivatives:
+!FOX  TX(1)=ONE ;
+!FOX  TY(2)=ONE ;
+!FOX  TX(2)=UU ;
+!FOX  TY(2)=VV ;
+!FOX  TPX(1)=ZERO ;
+!FOX  TPY(1)=ZERO ;
+!FOX  TPX(2)=ONE ;
+!FOX  TPY(2)=ONE ;
+    do NN=2,morder
+      RNN=real(NN,fPrec)
+      MM=NN-1
+      OO=NN+1
+!FOX  TX(OO)=(TWO*(UU*TX(NN)))-TX(MM) ;
+!FOX  TY(OO)=(TWO*(VV*TY(NN)))-TY(MM) ;
+!FOX  TPX(OO)=(RNN*(TX(NN)-(UU*TX(OO))))/FU ;
+!FOX  TPY(OO)=(RNN*(TY(NN)-(VV*TY(OO))))/FV ;
+    end do
+    
+    ! get kicks
+!FOX  DXP=ZERO ;
+!FOX  DYP=ZERO ;
+    do NN=0,morder
+      do JJ=0,NN
+        COEFF=cheby_coeffs(JJ,NN-JJ,icheby(ix))
+        MM=JJ+1
+        LL=NN-JJ+1
+!FOX    DXP=DXP+(COEFF*TPX(MM))*TY (LL) ;
+!FOX    DYP=DYP+(COEFF*TX (MM))*TPY(LL) ;
+      end do
+    end do
+!   ref radius in [mm], kick in [mrad]   
+!FOX  DXP=-(DXP*C1E3)/(REFR*C1M3) ;
+!FOX  DYP=-(DYP*C1E3)/(REFR*C1M3) ;
+  
+    if (lrotate) then
+      ! NB: cheby_angle(icheby(ix)) is the rotation angle of the cheby
+!FOX  THETA=ATAN(DYP/DXP)+ANGRAD ;
+!FOX  RR=SQRT(DXP*DXP+DYP*DYP) ;
+!FOX  DXP=RR*COS(THETA) ;
+!FOX  DYP=RR*SIN(THETA) ;
+    end if
+  
+    ! take into account scaling factor, Brho of beam and its relativistic beta,
+    !    and magnetic rigidity and relativistic beta of particle being tracked
+!FOX  DXP=(((DXP*CSCAL)/(BRHO*(CLIGHT*BETREL)))*(MTCDA/(ONE+DPDA)))*RV ;
+!FOX  DYP=(((DYP*CSCAL)/(BRHO*(CLIGHT*BETREL)))*(MTCDA/(ONE+DPDA)))*RV ;
+      
+    ! apply kicks
+!FOX  YY(1)=YY(1)+DXP ;
+!FOX  YY(2)=YY(2)+DYP ;
+      
+  end if
+   
+  call comt_daEnd
+  
+  call dapek(DXP,hh,DXPA)
+  call dapek(DYP,hh,DYPA)
+  write(lout,'(2(a,1pe22.15))')'CHEBY> CHEBY_KICK_FOX computed at RRA=',RRA,' - DXPA=',DXPA,' - DYPA=',DYPA
+
+end subroutine cheby_kick_fox
 
 
 subroutine cheby_potentialMap(iLens,ix)

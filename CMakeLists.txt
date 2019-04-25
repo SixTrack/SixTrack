@@ -297,7 +297,7 @@ list(APPEND FORT90_DA main_da sixda)
 list(APPEND FORT90_CR main_cr sixve track_thin track_thick)
 
 # List of files that must be treated by DAFOR
-list(APPEND DAFOR_F90 beam6d_fox six_fox sixda)
+list(APPEND DAFOR_F90 beam6d_fox cheby six_fox sixda)
 
 if(CR)
   list(APPEND FORT90_LIB checkpoint_restart)
