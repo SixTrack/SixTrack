@@ -271,8 +271,8 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
-  if(elens_r1(ielens(iElem)) <= zero) then
-    write(lerr,"(a)") "ELENS> ERROR R1<=0!"
+  if(elens_r1(ielens(iElem)) < zero) then
+    write(lerr,"(a)") "ELENS> ERROR R1<0!"
     iErr = .true.
     return
   end if
