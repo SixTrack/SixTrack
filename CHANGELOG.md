@@ -2,9 +2,18 @@
 
 ### Version 5.2.5 [26.04.2019] - Release
 
+**User Side Changes**
+
+ * It is now allowed to set `R1=0.0` for both elenses and chebyshev maps, even though the fox implementation is still on-going. This will allow for running full elens studies, even though the closed orbit does not take into account these elements yet. PR #850 (A. Mereghetti)
+
+**Bug Fixes**
+
+* Setting the `TRAC` block variable `imc` to anything other than 1 now properly triggers an error. This is now consistent with the manual, which states "Number of variations of the relative momentum deviation has been removed. This value must be 1." PRs #847 and #848 (V.K. Berglyd Olsen)
+* The wrapper for CRLIBM had its own set of parameters `pi` and `pi2`. The wrapper now uses the new hex constants defined in `numerical_constants`. PR #845 (V.K. Berglyd Olsen, Eric Mcintosh)
+
 **Test Suite**
 
-* Added a new test category that checks error messages when SixTrack is made to fail. PR #825 (V.K. Berglyd Olsen, K. Sjobak)
+* Added a new test category that checks error messages when SixTrack is made to fail by providing invalid input files. This bot increases code coverage, and ensures that faulty simulation input is caught and reported correctly. PRs #825, #847, #848 and #851 (V.K. Berglyd Olsen, K. Sjobak)
 
 ### Version 5.2.4 [23.04.2019] - Release
 
