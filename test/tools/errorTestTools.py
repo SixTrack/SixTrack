@@ -40,6 +40,9 @@ def runTests(theTests, theArgs):
     with open("fort.3","w") as outFile:
       outFile.write(tmpF3.replace("%ERRORTESTS%",theBlock))
     stdOut, stdErr, exCode = sysCall(theArgs[1])
+    stdErr = stdErr.replace("\n1\n","\n")       # Removes the final line in stderr for ifort
+    stdErr = stdErr.replace("\nSTOP 1\n","\n")  # Removes the final line in stderr for gfortran
+    stdErr = stdErr.replace("\nSTOP: 1\n","\n") # Removes the final line in stderr for nagfor
     outBuf += "%-32s %s\n" % (aTest,str(exCode != 0))
     with open("error_results.log","a") as outFile:
       outFile.write("\n"*4)
