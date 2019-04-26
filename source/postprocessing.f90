@@ -3412,15 +3412,15 @@ end subroutine join
 
       end subroutine writebin_header
 
-      subroutine writebin(nthinerr)
+subroutine writebin(nthinerr)
 !-------------------------------------------------------------------------
 !     Subroutine for writing the the binary files (fort.90 etc.)
 !     Always converting to real64 before writing to disk
 !-------------------------------------------------------------------------
 !     F. SCHMIDT, 3 February 1999
 !     K. SJOBAK,    October  2017
+!     V.K. Berglyd Olsen, April 2019
 !-------------------------------------------------------------------------
-      use mathlib_bouncer
       use numerical_constants
       use, intrinsic :: iso_fortran_env, only : real64
       use crcoall
@@ -3452,32 +3452,30 @@ end subroutine join
       save
 !-----------------------------------------------------------------------
 #ifdef CR
-      ncalls=ncalls+1
-      if (restart) then
-         write(93,*) 'WRITEBIN bailing out on restart'
-         write(93,*) 'numl, nnuml, numx, numlcr '
-         write(93,*)  numl,nnuml,numx,numlcr
-         flush(93)
-         return
+      ncalls = ncalls + 1
+      if(restart) then
+        write(93,"(4(a,i0))") "WRITEBIN> Bailing out on restart numl = ",numl,", nnuml = ",nnuml,  &
+          ", numx = ",numx,", numlcr = ",numlcr
+        flush(93)
+        return
       else
 #ifndef DEBUG
-         if (ncalls.le.20.or.numx.ge.nnuml-20) then
+        if(ncalls <= 20 .or. numx >= nnuml-20) then
 #endif
-            write(93,*)                                                 &
-     &'WRITEBIN numl, nnuml, numlcr, numx, nwri, numlcp '
-            write(93,*) ' ',numl,nnuml,numlcr,numx,nwri,numlcp
-            flush(93)
+          write(93,"(4(a,i0))") "WRITEBIN> numl = ",numl,", nnuml = ",nnuml,  &
+            ", numx = ",numx,", numlcr = ",numlcr
+          flush(93)
 #ifndef DEBUG
-         endif
+        end if
 #endif
-      endif
+      end if
 #ifndef DEBUG
-      if (ncalls.le.20.or.numx.ge.nnuml-20) then
+      if(ncalls <= 20 .or. numx >= nnuml-20) then
 #endif
-      write(93,*) 'WRITEBIN writing binrec ',binrec+1
-      flush(93)
+        write(93,"(a,i0)") "WRITEBIN> Writing binrec ",binrec+1
+        flush(93)
 #ifndef DEBUG
-      endif
+      end if
 #endif
 #endif
          do ia=1,napx-1
@@ -3572,12 +3570,7 @@ end subroutine join
 #endif
                endif
                if(ierro.ne.0) then
-                  write(lout,*)
-                  write(lout,*)                                         &
-     &                 '*** ERROR ***,PROBLEM WRITING TO FILE# : ',     &
-     &                 91-ia2
-                  write(lout,*) 'ERROR CODE : ',ierro
-                  write(lout,*)
+                  write(lout,"(2(a,i0))") "WRITEBIN> ERROR Problem writing to file #: ",91-ia2,", error code: ",ierro
 #ifdef CR
                   flush(lout)
 #else
@@ -3591,25 +3584,12 @@ end subroutine join
 #ifdef CR
       if (lhc.ne.9) then
          binrec=binrec+1
-#ifndef DEBUG
-         if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-            write(93,*) 'WRITEBIN written binrec ',binrec
-            flush(93)
-#ifndef DEBUG
-         endif
-#endif
       endif
-      return
-   11 write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : 91',ierro
-      write(lout,*) 'SIXTRACR WRITEBIN IO ERROR on Unit 91'
-      call prror(-1)
 #endif
-      return
-      end subroutine writebin
 
-! These routines have been moved from sixtrack.s90 because they are only
-! use here. VKBO 2018-05-25
+end subroutine writebin
+
+! These routines have been moved from sixtrack.s90 because they are only used here. VKBO 2018-05-25
 subroutine lfitwd(x,y,w,l,key,a,b,e)
 !-----------------------------------------------------------------------
 !
@@ -3623,7 +3603,6 @@ subroutine lfitwd(x,y,w,l,key,a,b,e)
 !
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
-  use mathlib_bouncer
   implicit none
   integer icnt,j,key,l
   real(kind=fPrec) a,b,e,x,y,w
@@ -3683,7 +3662,6 @@ subroutine lfitd(x,y,l,key,a,b,e)
 !
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
-  use mathlib_bouncer
   implicit none
   integer j,key,l
   real(kind=fPrec) a,b,count,e,scartx,scarty
@@ -3739,7 +3717,6 @@ end subroutine lfitd
 end module postprocessing
 
 subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
-  use floatPrecision
   implicit none
   integer i1,i2,i3
   real r1,r2,r3,r4,r5
@@ -3806,7 +3783,6 @@ subroutine hplot(i1,c1,c2,i2)
 end subroutine hplot
 
 subroutine hplset(c1,r1)
-  use floatPrecision
   implicit none
   real r1
   character c1
@@ -3815,7 +3791,6 @@ subroutine hplset(c1,r1)
 end subroutine hplset
 
 subroutine hplsiz(r1,r2,c1)
-  use floatPrecision
   implicit none
   real r1,r2
   character c1
@@ -3824,7 +3799,6 @@ subroutine hplsiz(r1,r2,c1)
 end subroutine hplsiz
 
 subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
-  use floatPrecision
   implicit none
   integer i1
   real r1,r2,r3,r4,r5
@@ -3834,7 +3808,6 @@ subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
 end subroutine hplsof
 
 subroutine htitle(c1)
-  use floatPrecision
   implicit none
   character c1
   save
@@ -3842,7 +3815,6 @@ subroutine htitle(c1)
 end subroutine htitle
 
 subroutine ipl(i1,r1,r2)
-  use floatPrecision
   implicit none
   integer i1
   real r1(*),r2(*)
@@ -3851,7 +3823,6 @@ subroutine ipl(i1,r1,r2)
 end subroutine ipl
 
 subroutine ipm(i1,r1,r2)
-  use floatPrecision
   implicit none
   integer i1
   real r1,r2
