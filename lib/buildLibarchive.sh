@@ -2,7 +2,7 @@
 # This script can be used to automatically build the "one time build"
 # libraries boinc and libarchive.
 
-set -e #Exit on error
+set -e # Exit on error
 
 echo ""
 echo " Building libArchive"
@@ -20,12 +20,13 @@ cd libarchive_build
 cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_BZip2=OFF -DENABLE_ZLIB=ON -DENABLE_CAT=OFF -DENABLE_CPIO=OFF \
     -DENABLE_EXPAT=OFF -DENABLE_INSTALL=OFF -DENABLE_LIBXML2=OFF -DENABLE_LZMA=OFF -DENABLE_NETTLE=OFF \
     -DENABLE_OPENSSL=OFF -DENABLE_TAR=OFF -DENABLE_CNG=OFF -DENABLE_ICONV=OFF -DENABLE_TEST=OFF \
-    -DZLIB_LIBRARY=$ZLIB_PATH -DZLIB_INCLUDE_DIR=$ZLIB_BASE/install/include -G "Unix Makefiles" ../libarchive -LH
+    -DZLIB_LIBRARY=$ZLIB_BASE/lib/libz.a -DZLIB_INCLUDE_DIR=$ZLIB_BASE/install/include \
+    -G "Unix Makefiles" ../libarchive -LH
 
 if [[ $(pwd) == /afs/* ]]; then
     # AFS doesn't like parallel make
     make
 else
     # Machines with low memory doesn't like an automatic -j
-    make -j 4
+    make -j6
 fi
