@@ -32,6 +32,8 @@ for ARG in "$@"; do
         PYTHIA=true
     elif [[ $ARG == "naff" ]]; then
         NAFF=true
+    elif [[ $ARG == "zlib" ]]; then
+        ZLIB=true
     else
         echo "Unknown library $ARG requested."
         exit 1
