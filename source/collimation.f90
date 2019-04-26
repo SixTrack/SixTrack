@@ -6560,7 +6560,7 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
   if (iclo6.eq.0) then
     write(lerr,"(a)") "COLL> ERROR DETECTED: Incompatible flag           "
     write(lerr,"(a)") "COLL> in line 2 of the TRACKING block             "
-    write(lerr,"(a)") "COLL> of fort.3 for calculating the closed orbit  "
+    write(lerr,"(a)") "COLL> of "//trim(fort3)//" for calculating the closed orbit  "
     write(lerr,"(a)") "COLL> (iclo6 must not be =0). When using an input "
     write(lerr,"(a)") "COLL> distribution in normalized coordinates for  "
     write(lerr,"(a)") "COLL> collimation the closed orbit is needed for a"

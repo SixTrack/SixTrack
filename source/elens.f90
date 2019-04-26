@@ -271,8 +271,8 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
-  if(elens_r1(ielens(iElem)) <= zero) then
-    write(lerr,"(a)") "ELENS> ERROR R1<=0!"
+  if(elens_r1(ielens(iElem)) < zero) then
+    write(lerr,"(a)") "ELENS> ERROR R1<0!"
     iErr = .true.
     return
   end if
@@ -323,7 +323,7 @@ end subroutine elens_parseInputLine
 
 subroutine elens_parseInputDone(iErr)
 
-  use mod_common, only : bez, kz
+  use mod_common, only : bez, kz, fort3
 
   implicit none
 
@@ -343,7 +343,7 @@ subroutine elens_parseInputDone(iErr)
         end if
       end do
       ! report error
-      write(lout,"(a)") "ELENS> ERROR Type of elens not declared in fort.3 for element '"//trim(bez(kk))//"'"
+      write(lout,"(a)") "ELENS> ERROR Type of elens not declared in "//trim(fort3)//" for element '"//trim(bez(kk))//"'"
       iErr = .true.
       return
     end if
@@ -355,7 +355,7 @@ subroutine elens_postInput
 
   use mathlib_bouncer
   use utils
-  use mod_common, only : bez,kz
+  use mod_common, only : bez,kz,fort3
 
   integer j, jj, nlens
   logical exist
@@ -366,7 +366,7 @@ subroutine elens_postInput
     if(kz(jj)==29) then
       if (ielens(jj).eq.0) then
         write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lout,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in fort.3"
+        write(lout,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in "//trim(fort3)
         call prror
       elseif ( elens_type(ielens(jj))==0 ) then
         write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
@@ -378,7 +378,7 @@ subroutine elens_postInput
     end if
   end do
   if ( nlens.ne.melens ) then
-    write(lout,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in fort.3 ",melens
+    write(lout,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in "//trim(fort3)//" ",melens
     write(lout,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
     call prror
   end if

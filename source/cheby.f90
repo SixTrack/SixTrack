@@ -290,7 +290,7 @@ end subroutine cheby_parseInputDone
 
 subroutine cheby_postInput
 !  use utils
-  use mod_common, only : kz,bez
+  use mod_common, only : kz,bez,fort3
   use mod_settings, only : st_quiet
 
   integer ii, jj, kk, ncheb
@@ -303,7 +303,7 @@ subroutine cheby_postInput
     if(kz(jj)==cheby_kz) then
       if (icheby(jj).eq.0) then
         write(lerr,"(a,i0,a)") "CHEBY> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lerr,"(a)")      "CHEBY>       does not have a corresponding line in CHEB block in fort.3"
+        write(lerr,"(a)")      "CHEBY>       does not have a corresponding line in CHEB block in "//trim(fort3)
         call prror
       else
         ncheb=ncheb+1
@@ -311,7 +311,7 @@ subroutine cheby_postInput
     end if
   end do
   if ( ncheb.ne.ncheby ) then
-    write(lerr,"(a,i0)") "CHEBY> ERROR number of chebyshev lenses declared in CHEB block in fort.3 ",ncheby
+    write(lerr,"(a,i0)") "CHEBY> ERROR number of chebyshev lenses declared in CHEB block in "//trim(fort3)//" ",ncheby
     write(lerr,"(a,i0)") "CHEBY>       is not the same as the total number of chebyshev lenses in lattice ",ncheb
     call prror
   end if
@@ -352,8 +352,8 @@ subroutine cheby_postInput
            " - reference radius [mm]:",cheby_refR(cheby_itable(jj))
       goto 10 
     end if
-    if (cheby_r1(jj)==zero) then
-      write(lerr,"(a)")      "CHEBY> ERROR R1 cannot be zero for the time being!"
+    if (cheby_r1(jj)<zero) then
+      write(lerr,"(a)")      "CHEBY> ERROR R1 cannot be lower than zero!"
       goto 10 
     end if
     if (cheby_I (jj)<=zero) then
@@ -630,7 +630,7 @@ subroutine cheby_kick(i,ix,n)
 
     ! check that particle is within the domain of chebyshev polynomials
     rr=sqrt(xx**2+yy**2)
-    if (rr.ge.cheby_r1(icheby(ix)).and.rr.lt.cheby_r2(icheby(ix))) then ! rr<r1 || rr>=r2 -> no kick from lens
+    if (rr.gt.cheby_r1(icheby(ix)).and.rr.lt.cheby_r2(icheby(ix))) then ! rr<r1 || rr>=r2 -> no kick from lens
       
       ! in case of non-zero tilt angle, rotate coordinates
       if (lrotate) then
@@ -730,7 +730,7 @@ subroutine cheby_potentialMap(iLens,ix)
       ! check that particle is within the domain of chebyshev polynomials
       rr=sqrt(xxr**2+yyr**2)
       inside=0
-      if (rr.ge.cheby_r1(iLens).and.rr.lt.cheby_r2(iLens)) inside=1 ! kick only if rr>=r1 && rr<r2
+      if (rr.gt.cheby_r1(iLens).and.rr.lt.cheby_r2(iLens)) inside=1 ! kick only if rr>=r1 && rr<r2
       ! in case of non-zero tilt angle, rotate coordinates
       if (lrotate) then
         theta = atan2_mb(yyr, xxr)-angle_rad

@@ -578,7 +578,7 @@ end subroutine fluc_readFort30
 subroutine fluc_writeFort4
 
   use floatPrecision
-  use mod_common,          only : ncororb,sm,ek
+  use mod_common,          only : ncororb,sm,ek,fort2
   use numerical_constants, only : zero,pieni
   use string_tools
   use mod_units
@@ -595,7 +595,7 @@ subroutine fluc_writeFort4
   ii      = 0
   lineNo2 = 0
 
-  call f_open(unit=2,file="fort.2",formatted=.true.,mode="r",err=iErr)
+  call f_open(unit=2,file=fort2,   formatted=.true.,mode="r",err=iErr)
   call f_open(unit=4,file="fort.4",formatted=.true.,mode="w",err=iErr)
 
   rewind(2)

@@ -17,6 +17,7 @@ program maincr
   use mathlib_bouncer
   use physical_constants
   use numerical_constants
+  use sixtrack_input, only : sixin_commandLine
 
   use dynk,    only : dynk_izuIndex
   use fma,     only : fma_postpr, fma_flag
@@ -101,7 +102,11 @@ program maincr
 
   logical fErr ! For file units
 
-  ! ---------------------------------------------------------------------------------------------- !
+! ================================================================================================ !
+
+  ! Parse command line arguments
+  call sixin_commandLine("SixTrack")
+
   errout = 0 ! Set to nonzero before calling abend in case of error.
 #ifdef CR
   lerr = 91
@@ -1407,7 +1412,7 @@ program maincr
 
   if(st_partsum .eqv. .false.) then
     write(lout,"(a)") "MAINCR> NOTE Particle summary report is disabled; either manually, or because npart > 64."
-    write(lout,"(a)") "MAINCR>      This is controlled by the PARTICLESUMMARY flag in the SETTINGS block in fort.3."
+    write(lout,"(a)") "MAINCR>      This is controlled by the PARTICLESUMMARY flag in the SETTINGS block in "//trim(fort3)//"."
     write(lout,"(a)") ""
     goto 470
   end if
