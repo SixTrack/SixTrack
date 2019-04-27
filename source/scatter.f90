@@ -234,7 +234,7 @@ subroutine scatter_init
     scatter_logFilePos = 2
     flush(scatter_logFile)
   else
-    write(93,"(a)") "SCATTER> INIT kept already opened file 'scatter_log.dat'"
+    write(93,"(a)") "SICTRACR> SCATTER kept already opened file 'scatter_log.dat'"
   end if
 #endif
 #ifdef HDF5
@@ -259,7 +259,7 @@ subroutine scatter_init
     scatter_sumFilePos = scatter_sumFilePos + 3
     flush(scatter_sumFile)
   else
-    write(93,"(a)") "SCATTER> INIT kept already opened file 'scatter_summary.dat'"
+    write(93,"(a)") "SICTRACR> SCATTER kept already opened file 'scatter_summary.dat'"
   end if
 #endif
 
