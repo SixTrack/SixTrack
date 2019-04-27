@@ -695,9 +695,9 @@ subroutine crcheck
     write(lout,"(a)") "SIXTRACR>  Restarted"
     write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
     !Flush or truncate?
-    endfile (lout,iostat=ierro)
-    backspace (lout,iostat=ierro)
-    write(93,"(a,i0)") "SIXTRACR> CRCHECK restart=TRUE',' crnumlcr=",crnumlcr
+    endfile(lout,iostat=ierro)
+    backspace(lout,iostat=ierro)
+    write(93,"(a,i0)") "SIXTRACR> CRCHECK restart=TRUE, crnumlcr=",crnumlcr
     flush(93)
     return
   end if
@@ -868,7 +868,7 @@ subroutine crpoint
 #ifndef DEBUG
     if(ncalls <= 5 .or. numx >= numl) then
 #endif
-      write(93,"(2(a,i0))") "SIXTRACR> CRPOINT copied lout = ",lout,", sixrecs = ",sixrecs
+      write(93,"(2(a,i0))") "SIXTRACR> CRPOINT Copied lout = ",lout,", sixrecs = ",sixrecs
       flush(93)
 #ifndef DEBUG
     end if
@@ -884,7 +884,7 @@ subroutine crpoint
 
   if(dynk_enabled) then ! Store current settings of elements affected by DYNK
     if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
-      write(93,"(a)") "SIXTRACR> CRPOINT filling dynk_fSets_cr"
+      write(93,"(a)") "SIXTRACR> CRPOINT Filling dynk_fSets_cr"
       flush(93)
     end if
     do j=1,dynk_nSets_unique
@@ -900,7 +900,7 @@ subroutine crpoint
 
     lerror = .false.
     if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
-      write(93,"(a,i0)") "SIXTRACR> CRPOINT writing fort.",crUnit
+      write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing fort.",crUnit
       flush(93)
     end if
     rewind(crUnit)
@@ -1030,15 +1030,15 @@ subroutine crpoint
   return
 
 100 continue
-  write(93,"(a,i0)") "SIXTRACR> CRPOINT ERROR writing checkpt file, iostat = ",ierro
+  write(93,"(a,i0)") "SIXTRACR> CRPOINT ERROR Writing checkpt file, iostat = ",ierro
   goto 103
 
 101 continue
-  write(93,"(a,i0)") "SIXTRACR> CRPOINT ERROR reading lout fort.92, iostat = ",ierro
+  write(93,"(a,i0)") "SIXTRACR> CRPOINT ERROR Reading lout fort.92, iostat = ",ierro
   goto 103
 
 102 continue
-  write(93,"(a,i0)") "SIXTRACR> CRPOINT ERROR writing fort.6, iostat = ",ierro
+  write(93,"(a,i0)") "SIXTRACR> CRPOINT ERROR Writing fort.6, iostat = ",ierro
 
 103 continue
   flush(93)

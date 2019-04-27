@@ -216,9 +216,9 @@ program maincr
 #ifdef BOINC
   ! and if BOINC issue an informatory message
   if(start) then
-    write(93,"(a)") "SIXTRACR> starts for the very first time"
+    write(93,"(a)") "SIXTRACR> Starts for the very first time"
   else
-    write(93,"(a)") "SIXTRACR> retry after unzip of Sixin.zip"
+    write(93,"(a)") "SIXTRACR> Retry after unzip of Sixin.zip"
   end if
 #endif
   ! Now we see if we have a fort.6 which implies that we can perhaps just restart using all exisiting files
@@ -249,10 +249,10 @@ program maincr
     call f_open(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr,status="new")
 #endif
     ! Set up start message depending on fort.6 or not
-    stxt = "SIXTRACR> starts on: "
+    stxt = "SIXTRACR> Starts on: "
   else
     ! Set up start message depending on fort.6 or not
-    stxt = "SIXTRACR> reruns on: "
+    stxt = "SIXTRACR> Reruns on: "
     rerun=.true.
   end if
   call f_open(unit=95,file="fort.95",formatted=.false.,mode="rw",err=fErr,status="old")
@@ -977,7 +977,7 @@ program maincr
 #endif
 
 #ifdef CR
-  write(93,"(a,i0)") "MAINCR> Setting napxo = ",napx
+  write(93,"(a,i0)") "SIXTRACR> Setting napxo = ",napx
   flush(93)
 #endif
   napxo = napx

@@ -2161,7 +2161,7 @@ subroutine callcrp
 
   if(restart) then
     write(lout,"(a,i0)") "SIXTRACR> Bailing out on turn ",numx+1
-    write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
+    write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT Bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
       " numx = ",numx,", numlcr = ",numlcr
     flush(93)
     return

@@ -1525,7 +1525,7 @@ subroutine scatter_crcheck_positionFiles
     write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning 'scatter_log.dat'"
     write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_logFile," already in use!"
     flush(93)
-    write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning 'scatter_log.dat'"
+    write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK failure positioning 'scatter_log.dat'"
     call prror
   end if
 

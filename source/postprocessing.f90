@@ -1640,16 +1640,20 @@ subroutine postpr(nfile)
       if (binrec.ne.0) then
 #ifndef STF
         if (binrecs(91-nfile).ne.crbinrecs(91-nfile)) then
-          write(lout,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(lout,*) 'Unit No ',nfile,' binrec/binrecs/crbinrecs ', binrec,binrecs(91-nfile),crbinrecs(91-nfile)
-          write(93,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(93,*) 'Unit No ',nfile,' binrec/binrecs/crbinrecs ', binrec,binrecs(91-nfile),crbinrecs(91-nfile)
+          write(lout,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(lout,"(a,i0,a,3(1x,i0))") "SIXTRACR> Unit ",nfile,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(91-nfile),crbinrecs(91-nfile)
+          write(93,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(93,"(a,i0,a,3(1x,i0))") "SIXTRACR> Unit ",nfile,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(91-nfile),crbinrecs(91-nfile)
 #else
         if (binrecs(posi1).ne.crbinrecs(posi1)) then
-          write(lout,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(lout,*) 'Particle No ',posi1,' binrec/binrecs/crbinrecs ', binrec,binrecs(posi1),crbinrecs(posi1)
-          write(93,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(93,*) 'Particle No ',posi,' binrec/binrecs/crbinrecs ', binrec,binrecs(posi1),crbinrecs(posi1)
+          write(lout,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(lout,"(a,i0,a,3(1x,i0))") "SIXTRACR> Particle ",posi1,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(posi1),crbinrecs(posi1)
+          write(93,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(93,"(a,i0,a,3(1x,i0))") "SIXTRACR> Particle ",posi1,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(posi1),crbinrecs(posi1)
 #endif
           flush(93)
           goto 551
@@ -2580,17 +2584,16 @@ subroutine postpr(nfile)
       write(lout,10300) nfile,'WRONG RANGE OF DATA FOR PROCESSING'
       goto 550
 #ifdef CR
-  551 write(93,*)'SIXTRACR POSTPR  *** ERROR *** (see fort.6)'
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+  551 write(93,"(a)") "SIXTRACR> ERROR POSTPR (see fort.6)"
+      flush(93)
 ! Now we let abend handle the fort.10......
 ! It will write 0d0 plus CPU time and turn number
 ! But we empty it as before (if we crash in abend???)
-      rewind 10
-      endfile (10,iostat=ierro)
+      rewind(10)
+      endfile(10,iostat=ierro)
       close(10)
-      write(lout,*) 'SIXTRACR POSTPR  *** ERROR ***'
-      call prror(-1)
+      write(lerr,"(a)") "SIXTRACR> ERROR POSTPR"
+      call prror
 #endif
 
  550  continue
@@ -2599,10 +2602,7 @@ subroutine postpr(nfile)
 ! We should really write fort.10 in BINARY!
       write(110,iostat=ierro) (sumda(i),i=1,60)
       if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE 110'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to file 110. Error code ",ierro
       endif
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
@@ -2620,10 +2620,7 @@ subroutine postpr(nfile)
       write(10,'(a)',iostat=ierro) ch(1:l1-1)
 #endif
       if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE 10'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to file 10. Error code ",ierro
       endif
 !--REWIND USED FILES
   560 rewind nfile
