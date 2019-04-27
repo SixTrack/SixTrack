@@ -476,14 +476,15 @@ subroutine crcheck
   ! If we have successfully read either fort.95 or fort.96
   ! we need to handle lost particles and ntwin .ne. 2
   ! Otherwise we just continue with checkpointing as requested
-  if (read95.or.read96) then
-    write(93,"(2(a,l1),7(a,i0))") "SIXTRACR> CRCHECK read95=",read95," read96=",read96,&
-      " crnapxo=",crnapxo," crbinrec=",crbinrec," napx=",napx," sixrecs=",sixrecs,     &
-      " crsixrecs=",crsixrecs," crbnlrec=",crbnlrec," crbllrec=",crbllrec
-    write(93,"(a)") "SIXTRACR> CRCHECK crbinrecs:"
-    do j=1,(crnapxo+1)/2
-      write(93,"(2(a,i0))") "SIXTRACR> ",j,": ",crbinrecs(j)
-    end do
+  if(read95 .or. read96) then
+    write(93,"(2(a,l1),7(a,i0))") "SIXTRACR> CRCHECK read95=",read95,", read96=",read96,&
+      ", crnapxo=",crnapxo,", crbinrec=",crbinrec,", napx=",napx,", sixrecs=",sixrecs,  &
+      ", crsixrecs=",crsixrecs,", crbnlrec=",crbnlrec,", crbllrec=",crbllrec
+    ! Very spammy on large simulations. Enable if needed for debugging.
+    ! write(93,"(a)") "SIXTRACR> CRCHECK crbinrecs:"
+    ! do j=1,(crnapxo+1)/2
+    !   write(93,"(2(a,i0))") "SIXTRACR> ",j,": ",crbinrecs(j)
+    ! end do
     flush(93)
 
     ! First we position fort.6 to last checkpoint
@@ -774,17 +775,16 @@ subroutine crcheck
   return
 
 106 continue
-  write(93,"(a,i0)")    "SIXTRACR> ERROR reading fort.6, iostat=",ierro
-  write(93,"(2(a,i0))") "          sixrecs=",sixrecs," crsixrecs=",crsixrecs
+  write(93,"(3(a,i0))") "SIXTRACR> ERROR reading fort.6, iostat = ",ierro,", sixrecs = ",sixrecs,", crsixrecs = ",crsixrecs
   flush(93)
-  write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning fort.6"
-  call prror(-1)
+  write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK Failure positioning fort.6"
+  call prror
 
 107 continue
   write(93,"(a,i0)") "SIXTRACR> ERROR reading fort.92, iostat=",ierro
   flush(93)
-  write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning fort.92"
-  call prror(-1)
+  write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK Failure positioning fort.92"
+  call prror
 
 end subroutine crcheck
 
@@ -1153,7 +1153,7 @@ subroutine crstart
       write(lout,"(2(a,i0))") "SIXTRACR> CRSTART Problem as cril/il are different cril = ",cril,", il = ",il
       write(93,  "(2(a,i0))") "SIXTRACR> CRSTART Problem as cril/il are different cril = ",cril,", il = ",il
       flush(93)
-      write(lout,"(a)") "SIXTRACR> CRSTART Problem wih cril/il extended C/R"
+      write(lerr,"(a)") "SIXTRACR> ERROR CRSTART Problem wih cril/il extended C/R"
       call prror
     end if
     if(read95) then
@@ -1189,7 +1189,7 @@ subroutine crstart
     write(93,"(a,i0)") "SIXTRACR> CRSTART Could not read checkpoint file 96 (extended), iostat = ",ierro
 103 continue
     flush(93)
-    write(lout,"(a)") "SIXTRACR> CRSTART Problem with extended checkpoint"
+    write(lerr,"(a)") "SIXTRACR> ERROR CRSTART Problem with extended checkpoint"
     call prror
   end if
 

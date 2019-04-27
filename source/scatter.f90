@@ -1497,8 +1497,8 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
   return
 
 10 continue
-  write(lout,"(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
-  write(93,  "(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
+  write(lout,"(a,i0)") "SIXTRACR> ERROR Reading in scatter_crcheck; fileUnit = ",fileUnit
+  write(93,  "(a,i0)") "SIXTRACR> ERROR Reading in scatter_crcheck; fileUnit = ",fileUnit
   readErr = .true.
 
 end subroutine scatter_crcheck_readdata

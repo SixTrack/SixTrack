@@ -2901,8 +2901,8 @@ subroutine dynk_crcheck_readdata(fileunit,readerr)
 
 100 continue
 
-  write(lout,"(a,i0)") "READERR in scatter_crcheck; fileunit=",fileunit
-  write(93,*)          "READERR in scatter_crcheck; fileunit=",fileunit
+  write(lout,"(a,i0)") "SIXTRACR> ERROR Reading in dynk_crcheck; fileunit = ",fileunit
+  write(93,"(a,i0)")   "SIXTRACR> ERROR Reading in dynk_crcheck; fileunit = ",fileunit
   readerr=.true.
 
 end subroutine dynk_crcheck_readdata
