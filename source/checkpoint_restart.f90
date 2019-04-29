@@ -114,29 +114,27 @@ subroutine cr_expand_arrays(npart_new)
   use mod_alloc
   use numerical_constants, only : zero
 
-  implicit none
-
   integer, intent(in) :: npart_new
 
   integer :: npair_new
   npair_new = npart_new/2 + 1
 
-  call alloc(crxv,      2, npart_new,      zero,    "crxv")
-  call alloc(cryv,      2, npart_new,      zero,    "cryv")
-  call alloc(crsigmv,      npart_new,      zero,    "crsigmv")
-  call alloc(crdpsv,       npart_new,      zero,    "crdpsv")
-  call alloc(crdpsv1,      npart_new,      zero,    "crdpsv1")
-  call alloc(crejv,        npart_new,      zero,    "crejv")
-  call alloc(crejfv,       npart_new,      zero,    "crejfv")
-  call alloc(craperv,      npart_new, 2,   zero,    "craperv")
-  call alloc(binrecs,      npair_new,      0,       "binrecs")
-  call alloc(crbinrecs,    npair_new,      0,       "crbinrecs")
-  call alloc(crnumxv,      npart_new,      0,       "crnumxv")
-  call alloc(crnnumxv,     npart_new,      0,       "crnnumxv")
-  call alloc(crpartID,     npart_new,      0,       "crpartID")
-  call alloc(crparentID,   npart_new,      0,       "crparentID")
-  call alloc(crpstop,      npart_new,      .false., "crpstop")
-  call alloc(crllostp,     npart_new,      .false., "crllostp")
+  call alloc(crxv,      2, npart_new,    zero,    "crxv")
+  call alloc(cryv,      2, npart_new,    zero,    "cryv")
+  call alloc(crsigmv,      npart_new,    zero,    "crsigmv")
+  call alloc(crdpsv,       npart_new,    zero,    "crdpsv")
+  call alloc(crdpsv1,      npart_new,    zero,    "crdpsv1")
+  call alloc(crejv,        npart_new,    zero,    "crejv")
+  call alloc(crejfv,       npart_new,    zero,    "crejfv")
+  call alloc(craperv,      npart_new, 2, zero,    "craperv")
+  call alloc(binrecs,      npair_new,    0,       "binrecs")
+  call alloc(crbinrecs,    npair_new,    0,       "crbinrecs")
+  call alloc(crnumxv,      npart_new,    0,       "crnumxv")
+  call alloc(crnnumxv,     npart_new,    0,       "crnnumxv")
+  call alloc(crpartID,     npart_new,    0,       "crpartID")
+  call alloc(crparentID,   npart_new,    0,       "crparentID")
+  call alloc(crpstop,      npart_new,    .false., "crpstop")
+  call alloc(crllostp,     npart_new,    .false., "crllostp")
 
   crnpart_old = npart_new
 
@@ -824,17 +822,16 @@ subroutine crcheck
 end subroutine crcheck
 
 ! ================================================================================================ !
-!  This subroutine writes the checkpoint data to fort.95/96, and copies the new output from the
-!  temporary (lout/fort.92) output file into fort.6.
-!  The file fort.93 is used as a log file for the checkpoint/restarting.
+!  This subroutine writes the checkpoint data to the binary checpoint files
+!  Last modified: 2019-04-29
 ! ================================================================================================ !
 subroutine crpoint
 
   use floatPrecision
   use numerical_constants
 
-  use dynk, only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_filePos,dynk_crpoint
-  use dump, only : dump_crpoint
+  use dynk,    only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_filePos,dynk_crpoint
+  use dump,    only : dump_crpoint
   use aperture,only : aper_crpoint,limifound
   use scatter, only : scatter_active, scatter_crpoint
   use elens,   only : melens, elens_crpoint
@@ -851,8 +848,6 @@ subroutine crpoint
   use mod_time
   use mod_meta
   use mod_units
-
-  implicit none
 
   integer i,j,l,k,m,lstring,osixrecs,ncalls,maxncalls,crUnit
   logical lerror, fErr
