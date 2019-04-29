@@ -513,7 +513,7 @@ subroutine thck4d(nthinerr)
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
-    turnrep,kxxa
+    turnrep,kxxa,nfirst
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve,puxve1,puxve2,puzve1,puzve2,puzve,r0,xlvj,yv1j,   &
     yv2j,zlvj,acdipamp,qd,acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,  &
     dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,         &
@@ -559,20 +559,12 @@ subroutine thck4d(nthinerr)
     call crstart
     write(93,"(2(a,i0))") "TRACKING> Thick 4D restarting on turn ",cr_numl," / ",numl
   end if
-  nnuml=numl !min((cr_numl/numlmax+1)*numlmax,numl)
-  ! write(93,"(3(a,i0))") "SIXTRACR> DO ",cr_numl,", ",nnuml
-  ! and reset [n]numxv unless particle is lost
-  ! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-  do 490 n=cr_numl,nnuml
+  nnuml  = numl
+  nfirst = cr_numl
 #else
-  do 490 n=1,numl
+  nfirst = 1
 #endif
+  do 490 n=nfirst,numl
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
         call trackReport(n)
@@ -1179,7 +1171,7 @@ subroutine thck6d(nthinerr)
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
-    turnrep,kxxa
+    turnrep,kxxa,nfirst
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve1,puxve2,puzve1,puzve2,r0,xlvj,yv1j,yv2j,zlvj,     &
     acdipamp,qd,acphase,acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,    &
     embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,   &
@@ -1234,21 +1226,12 @@ subroutine thck6d(nthinerr)
     write(93,"(2(a,i0))") "TRACKING> Thick 6D restarting on turn ",cr_numl," / ",numl
 ! and now reset numl to do only numlmax turns
   end if
-  nnuml=numl !min((cr_numl/numlmax+1)*numlmax,numl)
-  ! write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",cr_numl,", ",nnuml
-  ! and reset [n]numxv unless particle is lost
-  ! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-  do 510 n=cr_numl,nnuml
+  nnuml  = numl
+  nfirst = cr_numl
+#else
+  nfirst = 1
 #endif
-#ifndef CR
-  do 510 n=1,numl
-#endif
+  do 510 n=nfirst,numl
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
         call trackReport(n)

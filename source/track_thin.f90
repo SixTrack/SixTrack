@@ -535,7 +535,7 @@ subroutine thin4d(nthinerr)
 
   implicit none
 
-  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,kxxa
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,kxxa,nfirst
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,acphase,  &
     acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi, &
     rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,pyf,r_temp,z_temp,sigf,   &
@@ -571,27 +571,18 @@ subroutine thin4d(nthinerr)
     call crstart
     write(93,"(2(a,i0))") "TRACKING> Thin 4D restarting on turn ",cr_numl," / ",numl
   end if
-  ! and now reset numl to do only numlmax turns
-  nnuml=numl !min((cr_numl/numlmax+1)*numlmax,numl)
-  ! write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",cr_numl,", ",nnuml
-  ! and reset [n]numxv unless particle is lost
-  ! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-  do 640, n=cr_numl,nnuml
+  nnuml  = numl
+  nfirst = cr_numl
 #else
-  do 640 n=1,numl !loop over turns
+  nfirst = 1
 #endif
-  if(st_quiet < 3) then
-    if(mod(n,turnrep) == 0) then
-      call trackReport(n)
+  do 640 n=nfirst,numl
+    if(st_quiet < 3) then
+      if(mod(n,turnrep) == 0) then
+        call trackReport(n)
+      end if
     end if
-  end if
-  meta_nPartTurn = meta_nPartTurn + napx
+    meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
     ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
@@ -1158,7 +1149,7 @@ subroutine thin6d(nthinerr)
   implicit none
 
   integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,elemEnd,&
-    kxxa
+    kxxa,nfirst
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
@@ -1196,22 +1187,12 @@ subroutine thin6d(nthinerr)
     call crstart
     write(93,"(2(a,i0))") "TRACKING> Thin 6D restarting on turn ",cr_numl," / ",numl
   end if
-  ! and now reset numl to do only numlmax turns
-  nnuml=numl !min((cr_numl/numlmax+1)*numlmax,numl)
-  ! write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",cr_numl,", ",nnuml
-  ! and reset [n]numxv unless particle is lost
-  ! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-
-  do 660 n=cr_numl,nnuml ! Loop over turns, CR version
+  nnuml  = numl
+  nfirst = cr_numl
 #else
-  do 660 n=1,numl       ! Loop over turns
+  nfirst = 1
 #endif
+  do 660 n=nfirst,numl
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
         call trackReport(n)
