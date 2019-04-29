@@ -905,7 +905,7 @@ module mod_common_main
   ! Main 4
   integer,          save :: numx
   real(kind=fPrec), save :: e0f
-  logical,          save :: sythckcr ! Only used for CR
+  logical,          save :: sythckcr = .false. ! Only used for CR
 
 contains
 

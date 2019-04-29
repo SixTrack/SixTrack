@@ -111,7 +111,7 @@ subroutine abend(cstring)
   sumda(:) = zero
   call time_timerCheck(time1)
   trtime = time1 - time0
-  trtime = trtime + crtime3
+  trtime = trtime + cr_time
   sumda(60) = real(trtime,fPrec)  ! Track time
   sumda(52) = real(numvers,fPrec) ! SixTrack version
   outLine = " "

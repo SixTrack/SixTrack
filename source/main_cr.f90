@@ -80,6 +80,7 @@ program maincr
     tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13,damp,eps(2),epsa(2)
   integer idummy(6)
   character(len=4) cpto
+  character(len=1024) arecord
 
   ! Keep in sync with writebin_header and more. If the len changes, CRCHECK will break.
   character(len=8) cDate,cTime,progrm
@@ -147,7 +148,6 @@ program maincr
 #endif
 #ifdef CR
   featList = featList//" CR"
-  stxt = ""
 #endif
 #ifdef ROOT
   featList = featList//" ROOT"
@@ -179,21 +179,6 @@ program maincr
 
 #ifdef CR
   ! Main start for Checkpoint/Restart
-  sythckcr = .false.
-  numlcr   = 1
-  cr_rerun    = .false.
-  cr_start    = .true.
-  cr_restart  = .false.
-  cr_checkp   = .false.
-  cr_pntExist(1)   = .false.
-  cr_pntExist(2)   = .false.
-  sixrecs  = 0
-  binrec   = 0
-  crtime3  = 0.0
-  ! do i=1,(npart+1)/2
-  !   binrecs(i) = 0
-  ! end do
-
 #ifdef BOINC
 611 continue
   ! Goes here after unzip for BOINC
@@ -223,7 +208,6 @@ program maincr
   ! including the last checkpoints. If not, we just do a start (with an unzip for BOINC)
   ! call f_open(unit=6,file="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
   ! if(fErr) goto 602
-  ! stxt = "SIXTRACR reruns on: "
   call f_open(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr,status="old")
   if(fErr) then
 #ifdef BOINC
@@ -247,10 +231,10 @@ program maincr
     call f_open(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr,status="new")
 #endif
     ! Set up start message depending on fort.6 or not
-    stxt = "SIXTRACR> Starts on: "
+    cr_startMsg = "SIXTRACR> Starts on: "
   else
     ! Set up start message depending on fort.6 or not
-    stxt = "SIXTRACR> Reruns on: "
+    cr_startMsg = "SIXTRACR> Reruns on: "
     cr_rerun = .true.
   end if
   call cr_fileInit
@@ -312,7 +296,7 @@ program maincr
   ! Log start messages
   write(93,"(a)") "SIXTRACR> "//repeat("=",80)
   write(93,"(a)") "SIXTRACR> MAINCR Starting"
-  write(93,"(a)") stxt//timeStamp
+  write(93,"(a)") cr_startMsg//timeStamp
   flush(93)
 #endif
 
@@ -1325,8 +1309,8 @@ program maincr
   ! trtime is now the tracking time, BUT we must add other time for C/R
   trtime=time2-time1
 #ifdef CR
-  ! because now crpoint will write tracking time using time3 as a temp and crcheck/crstart will reset crtime3
-  trtime=trtime+crtime3
+  ! because now crpoint will write tracking time using time3 as a temp and crcheck/crstart will reset cr_time
+  trtime=trtime+cr_time
 #endif
   if(nthinerr == 3000) goto 520
   if(nthinerr == 3001) goto 460

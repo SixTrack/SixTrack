@@ -557,11 +557,11 @@ subroutine thck4d(nthinerr)
 #ifdef CR
   if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thick 4D restart numlcr = ",numlcr,", numl = ",numl
+    write(93,"(2(a,i0))") "SIXTRACR> Thick 4D restart cr_numl = ",cr_numl,", numl = ",numl
     ! and now reset numl to do only numlmax turns
   end if
-  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
+  nnuml=min((cr_numl/numlmax+1)*numlmax,numl)
+  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",cr_numl,", ",nnuml
   ! and reset [n]numxv unless particle is lost
   ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
@@ -570,7 +570,7 @@ subroutine thck4d(nthinerr)
       if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
     end do
   end if
-  do 490 n=numlcr,nnuml
+  do 490 n=cr_numl,nnuml
 #else
   do 490 n=1,numl
 #endif
@@ -1232,11 +1232,11 @@ subroutine thck6d(nthinerr)
 #ifdef CR
   if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thick 6D restart numlcr = ",numlcr,", numl = ",numl
+    write(93,"(2(a,i0))") "SIXTRACR> Thick 6D restart cr_numl = ",cr_numl,", numl = ",numl
 ! and now reset numl to do only numlmax turns
   end if
-  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
+  nnuml=min((cr_numl/numlmax+1)*numlmax,numl)
+  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",cr_numl,", ",nnuml
 ! and reset [n]numxv unless particle is lost
 ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
@@ -1245,7 +1245,7 @@ subroutine thck6d(nthinerr)
       if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
     end do
   end if
-  do 510 n=numlcr,nnuml
+  do 510 n=cr_numl,nnuml
 #endif
 #ifndef CR
   do 510 n=1,numl
@@ -1884,7 +1884,7 @@ subroutine synuthck
   save
 
 #ifdef CR
-  sythckcr=.true.
+  sythckcr = .true.
 #endif
   do j=1,napx
     dpd(j)  = one+dpsv(j)

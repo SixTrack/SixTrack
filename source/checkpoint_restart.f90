@@ -13,69 +13,68 @@ module checkpoint_restart
   implicit none
 
   ! Checkpoint Files
-  character(len=15),   public,  save :: cr_pntFile(2)  = ["crpoint_pri.bin","crponit_sec.bin"]
-  integer,             public,  save :: cr_pntUnit(2)  = -1
-  logical,             public,  save :: cr_pntExist(2) = .false.
-  logical,             public,  save :: cr_pntRead(2)  = .false.
+  character(len=15), public,  save :: cr_pntFile(2)  = ["crpoint_pri.bin","crponit_sec.bin"]
+  integer,           public,  save :: cr_pntUnit(2)  = -1
+  logical,           public,  save :: cr_pntExist(2) = .false.
+  logical,           public,  save :: cr_pntRead(2)  = .false.
 
   ! Logging Files
-  character(len=13),   public,  save :: cr_errFile = "cr_stderr.tmp"
-  character(len=13),   public,  save :: cr_outFile = "cr_stdout.tmp"
-  character(len=13),   public,  save :: cr_logFile = "cr_status.log"
-  integer,             parameter     :: cr_errUnit = 91
-  integer,             parameter     :: cr_outUnit = 92
-  integer,             parameter     :: cr_logUnit = 93
+  character(len=13), public,  save :: cr_errFile  = "cr_stderr.tmp"
+  character(len=13), public,  save :: cr_outFile  = "cr_stdout.tmp"
+  character(len=13), public,  save :: cr_logFile  = "cr_status.log"
+  integer,           parameter     :: cr_errUnit  = 91
+  integer,           parameter     :: cr_outUnit  = 92
+  integer,           parameter     :: cr_logUnit  = 93
 
-  ! Checkpoint/Restart Flags
-  logical,             public,  save :: cr_rerun   = .false.
-  logical,             public,  save :: cr_start   = .false.
-  logical,             public,  save :: cr_restart = .false.
-  logical,             public,  save :: cr_checkp  = .false.
-  logical,             private, save :: cr_sythck  = .false.
+  ! Checkpoint/Restart Flags and Variables
+  logical,           public,  save :: cr_rerun    = .false.
+  logical,           public,  save :: cr_start    = .true.
+  logical,           public,  save :: cr_restart  = .false.
+  logical,           public,  save :: cr_checkp   = .false.
+  logical,           private, save :: cr_sythck   = .false.
 
-  real,                public, save :: crtime3
-  real(kind=fPrec),    public, save :: cre0
-  real(kind=fPrec),    public, save :: crbetrel
-  real(kind=fPrec),    public, save :: crbrho
+  character(len=21), public,  save :: cr_startMsg = " "
+  real,              public,  save :: cr_time     = 0.0
+  integer,           public,  save :: cr_numl     = 1
+  integer,           public,  save :: binrec      = 0
+  integer,           public,  save :: sixrecs     = 0
 
-  character(len=1024), public, save :: arecord
-  character(len=20),   public, save :: stxt
+  ! Keep length in sync with version.f90
+  character(len=8),  private, save :: cr_version  = " "
+  character(len=10), private, save :: cr_moddate  = " "
 
-  integer,             public, save :: crsixrecs
-  integer,             public, save :: crbinrec
-  integer,             public, save :: cril
-  integer,             public, save :: crnumlcr
-  integer,             public, save :: crnuml
-  integer,             public, save :: crnapxo
-  integer,             public, save :: crnapx
-  integer,             public, save :: binrec
-  integer,             public, save :: numlcr
-  integer,             public, save :: sixrecs
+  ! C/R Temp Variables and Arrays
+  real(kind=fPrec),  private, save :: cre0
+  real(kind=fPrec),  private, save :: crbetrel
+  real(kind=fPrec),  private, save :: crbrho
 
-  real(kind=fPrec),    allocatable, public, save :: crxv(:,:)    ! (2,npart)
-  real(kind=fPrec),    allocatable, public, save :: cryv(:,:)    ! (2,npart)
-  real(kind=fPrec),    allocatable, public, save :: crsigmv(:)   ! (npart)
-  real(kind=fPrec),    allocatable, public, save :: crdpsv(:)    ! (npart)
-  real(kind=fPrec),    allocatable, public, save :: crdpsv1(:)   ! (npart)
-  real(kind=fPrec),    allocatable, public, save :: crejv(:)     ! (npart)
-  real(kind=fPrec),    allocatable, public, save :: crejfv(:)    ! (npart)
-  real(kind=fPrec),    allocatable, public, save :: craperv(:,:) ! (npart,2)
+  integer,           private, save :: crnpart_old = -1
+  integer,           private, save :: crsixrecs
+  integer,           public,  save :: crbinrec
+  integer,           private, save :: cril
+  integer,           private, save :: crnumlcr
+  integer,           private, save :: crnuml
+  integer,           private, save :: crnapxo
+  integer,           private, save :: crnapx
 
-  integer,             allocatable, public, save :: binrecs(:)   ! ((npart+1)/2)
-  integer,             allocatable, public, save :: crbinrecs(:) ! (npart+1)/2)
-  integer,             allocatable, public, save :: crnumxv(:)   ! (npart)
-  integer,             allocatable, public, save :: crnnumxv(:)  ! (npart)
-  integer,             allocatable, public, save :: crpartID(:)  ! (npart)
-  integer,             allocatable, public, save :: crparentID(:) ! (npart)
+  real(kind=fPrec), allocatable, private, save :: crxv(:,:)     ! (2,npart)
+  real(kind=fPrec), allocatable, private, save :: cryv(:,:)     ! (2,npart)
+  real(kind=fPrec), allocatable, private, save :: crsigmv(:)    ! (npart)
+  real(kind=fPrec), allocatable, private, save :: crdpsv(:)     ! (npart)
+  real(kind=fPrec), allocatable, private, save :: crdpsv1(:)    ! (npart)
+  real(kind=fPrec), allocatable, private, save :: crejv(:)      ! (npart)
+  real(kind=fPrec), allocatable, private, save :: crejfv(:)     ! (npart)
+  real(kind=fPrec), allocatable, private, save :: craperv(:,:)  ! (npart,2)
 
-  logical,             allocatable, public, save :: crpstop(:)   ! (npart)
-  logical,             allocatable, public, save :: crllostp(:)  ! (npart)
+  integer,          allocatable, public,  save :: binrecs(:)    ! ((npart+1)/2)
+  integer,          allocatable, public,  save :: crbinrecs(:)  ! (npart+1)/2)
+  integer,          allocatable, private, save :: crnumxv(:)    ! (npart)
+  integer,          allocatable, private, save :: crnnumxv(:)   ! (npart)
+  integer,          allocatable, private, save :: crpartID(:)   ! (npart)
+  integer,          allocatable, private, save :: crparentID(:) ! (npart)
 
-  integer,                          public, save :: crnpart_old = -1
-
-  ! Others. Keep length in sync with includes/version.f90
-  character(len=8),    public, save :: cr_version
-  character(len=10),   public, save :: cr_moddate
+  logical,          allocatable, private, save :: crpstop(:)    ! (npart)
+  logical,          allocatable, private, save :: crllostp(:)   ! (npart)
 
 contains
 
@@ -260,6 +259,7 @@ subroutine crcheck
   integer(int32) hbuff(253),tbuff(35)
 
   logical lopen,lerror
+  character(len=1024) arecord
 
 #ifdef BOINC
   character(len=256) filename
@@ -305,7 +305,7 @@ subroutine crcheck
     write(93,"(a)") "SIXTRACR> CRCHECK reading "//cr_pntFile(1)//" Record 2"
     flush(93)
     read(cr_pntUnit(1),err=100,end=100) crnumlcr,crnuml,crsixrecs,crbinrec, &
-      cr_sythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel,crbrho
+      cr_sythck,cril,cr_time,crnapxo,crnapx,cre0,crbetrel,crbrho
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading "//cr_pntFile(1)//" Record 3"
     flush(93)
@@ -418,7 +418,7 @@ subroutine crcheck
     write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record 2"
     flush(93)
     read(cr_pntUnit(2),err=101,end=101,iostat=ierro) crnumlcr,crnuml,crsixrecs,crbinrec,&
-      cr_sythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel,crbrho
+      cr_sythck,cril,cr_time,crnapxo,crnapx,cre0,crbetrel,crbrho
     write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record 3"
     flush(93)
     read(cr_pntUnit(2),err=101,end=101,iostat=ierro) &
@@ -859,6 +859,7 @@ subroutine crpoint
 #ifdef BOINC
   character(len=256) filename
 #endif
+  character(len=1024) arecord
   save
 
   ncalls = 0
@@ -914,7 +915,7 @@ subroutine crpoint
   call time_timerCheck(time3)
   ! Hope this is correct
   ! Maybe not!!!! this should be accumulative over multiple C/Rs
-  time3=(time3-time1)+crtime3
+  time3=(time3-time1)+cr_time
   crnumlcr=numx+1
 
   if(dynk_enabled) then ! Store current settings of elements affected by DYNK
@@ -1116,7 +1117,7 @@ subroutine crstart
 
   write(93,"(a,i0)") "SIXTRACR> CRSTART called crnumlcr = ",crnumlcr
   flush(93)
-  numlcr=crnumlcr
+  cr_numl = crnumlcr
 
   ! We do NOT reset numl so that a run can be extended for
   ! for more turns from the last checkpoint
@@ -1124,7 +1125,7 @@ subroutine crstart
   binrec   = crbinrec
   sythckcr = cr_sythck
 
-  ! the crtime3 is required (crtime0/1 removed)
+  ! the cr_time is required (crtime0/1 removed)
   napxo=crnapxo
   napx=crnapx
   e0=cre0
