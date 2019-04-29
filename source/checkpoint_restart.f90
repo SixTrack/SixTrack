@@ -13,18 +13,25 @@ module checkpoint_restart
   implicit none
 
   ! Checkpoint Files
-  character(len=15),   public, save :: cr_pntFile(2)  = ["crpoint_pri.bin","crponit_sec.bin"]
-  integer,             public, save :: cr_pntUnit(2)  = -1
-  logical,             public, save :: cr_pntExist(2) = .false.
-  logical,             public, save :: cr_pntRead(2)  = .false.
+  character(len=15),   public,  save :: cr_pntFile(2)  = ["crpoint_pri.bin","crponit_sec.bin"]
+  integer,             public,  save :: cr_pntUnit(2)  = -1
+  logical,             public,  save :: cr_pntExist(2) = .false.
+  logical,             public,  save :: cr_pntRead(2)  = .false.
 
   ! Logging Files
-  character(len=13),   public, save :: cr_errFile = "cr_stderr.tmp"
-  character(len=13),   public, save :: cr_outFile = "cr_stdout.tmp"
-  character(len=13),   public, save :: cr_logFile = "cr_status.log"
-  integer,             parameter    :: cr_errUnit = 91
-  integer,             parameter    :: cr_outUnit = 92
-  integer,             parameter    :: cr_logUnit = 93
+  character(len=13),   public,  save :: cr_errFile = "cr_stderr.tmp"
+  character(len=13),   public,  save :: cr_outFile = "cr_stdout.tmp"
+  character(len=13),   public,  save :: cr_logFile = "cr_status.log"
+  integer,             parameter     :: cr_errUnit = 91
+  integer,             parameter     :: cr_outUnit = 92
+  integer,             parameter     :: cr_logUnit = 93
+
+  ! Checkpoint/Restart Flags
+  logical,             public,  save :: cr_rerun   = .false.
+  logical,             public,  save :: cr_start   = .false.
+  logical,             public,  save :: cr_restart = .false.
+  logical,             public,  save :: cr_checkp  = .false.
+  logical,             private, save :: cr_sythck  = .false.
 
   real,                public, save :: crtime3
   real(kind=fPrec),    public, save :: cre0
@@ -49,12 +56,6 @@ module checkpoint_restart
   integer,             public, save :: numlcr
   integer,             public, save :: sixrecs
   integer,             public, save :: crksunit = -1             ! File unit for the kill switch file
-
-  logical,             public, save :: rerun
-  logical,             public, save :: start
-  logical,             public, save :: restart
-  logical,             public, save :: checkp
-  logical,             public, save :: crsythck
 
   real(kind=fPrec),    allocatable, public, save :: crxv(:,:)    ! (2,npart)
   real(kind=fPrec),    allocatable, public, save :: cryv(:,:)    ! (2,npart)
@@ -275,18 +276,18 @@ subroutine crcheck
   ! Check the size of CR arrays
   if(npart /= crnpart_old) call cr_expand_arrays(npart)
 
-  restart = .false.
+  cr_restart = .false.
   cr_pntRead(:) = .false.
   ! Some log entries to fort.93
-  write(93,"(a,i0,3(a,l1))") "SIXTRACR> CRCHECK CALLED lout=",lout," restart=",restart," rerun=",rerun," checkp=",checkp
+  write(93,"(a,i0,3(a,l1))") "SIXTRACR> CRCHECK CALLED lout=",lout," restart=",cr_restart," rerun=",cr_rerun," checkp=",cr_checkp
   flush(93)
   ! We are not checkpoint/restart or we have no restart files
-  if (.not.checkp) goto 605
-  if (.not.cr_pntExist(1).and..not.cr_pntExist(2)) goto 605
+  if(.not.cr_checkp) goto 605
+  if(.not.cr_pntExist(1).and..not.cr_pntExist(2)) goto 605
   ! If we do we must have a fort.6 as they were created by CRPOINT
   ! NOT TRUE anymore??? We might be NOT rerun but using a Sixin.zip
 #ifndef BOINC
-  if (.not.rerun) then
+  if(.not.cr_rerun) then
     write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK Found "//cr_pntFile(1)//"/"//cr_pntFile(2)//" but NO fort.6"
     call prror(-1)
   endif
@@ -311,7 +312,7 @@ subroutine crcheck
     write(93,"(a)") "SIXTRACR> CRCHECK reading "//cr_pntFile(1)//" Record 2"
     flush(93)
     read(cr_pntUnit(1),err=100,end=100) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec, &
-         crsythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel,crbrho
+      cr_sythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel,crbrho
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading "//cr_pntFile(1)//" Record 3"
     flush(93)
@@ -379,7 +380,7 @@ subroutine crcheck
     endif
 
     !ERIC new extended checkpoint for synuthck
-    if (crsythck) then
+    if(cr_sythck) then
       !ERICVARS
       ! and make sure we can read the extended vars before leaving fort.95
       ! We will re-read them in crstart to be sure they are restored correctly
@@ -424,7 +425,7 @@ subroutine crcheck
     write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record 2"
     flush(93)
     read(cr_pntUnit(2),err=101,end=101,iostat=ierro) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec,&
-      crsythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel,crbrho
+      cr_sythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel,crbrho
     write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record 3"
     flush(93)
     read(cr_pntUnit(2),err=101,end=101,iostat=ierro) &
@@ -486,7 +487,7 @@ subroutine crcheck
     endif
 
     !ERIC new extended checkpoint for synuthck
-    if (crsythck) then
+    if(cr_sythck) then
       !ERICVARS
       ! and make sure we can read the extended vars before leaving fort.96
       ! We will re-read them in crstart to be sure they are correct
@@ -733,7 +734,7 @@ subroutine crcheck
     endif
 
     ! Set up flag for tracking routines to call CRSTART
-    restart=.true.
+    cr_restart = .true.
     write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
     write(lout,"(a)") "SIXTRACR>  Restarted"
     write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
@@ -778,10 +779,10 @@ subroutine crcheck
   ! If not checkpointing we can just give up on lout and use
   ! fort.6. We don't need to count records at all
 605 continue
-  write(93,"(a,l1)") "SIXTRACR> CRCHECK no restart possible checkp=",checkp
+  write(93,"(a,l1)") "SIXTRACR> CRCHECK no restart possible checkp=",cr_checkp
   flush(93)
-  if (.not.checkp) then
-    if (rerun) then
+  if(.not.cr_checkp) then
+    if(cr_rerun) then
       ! we nevertheless have an existing fort.6
       ! we will just overwrite it for now and delete
       ! 92 to avoid abend copying it again
@@ -882,8 +883,8 @@ subroutine crpoint
     flush(93)
   end if
   ncalls=ncalls+1
-  if(restart) then
-    restart=.false.
+  if(cr_restart) then
+    cr_restart = .false.
     return
   end if
 
@@ -1090,7 +1091,7 @@ subroutine crpoint
 end subroutine crpoint
 
 ! ================================================================================================ !
-!  If we are restarting (restart is TRUE), this routine is called in the beginning of the tracking
+!  If we are restarting (cr_restart is TRUE), this routine is called in the beginning of the tracking
 !  loops. It is used to copy the cr* variables to the normal variables, e.g. crnapx -> napx etc.
 !  The file fort.93 is used as a log file for the checkpoint/restarting.
 ! ================================================================================================ !
@@ -1130,10 +1131,10 @@ subroutine crstart
   ! We do NOT reset numl so that a run can be extended for
   ! for more turns from the last checkpoint
   ! but we need to worry about numxv, nnumxv
-  binrec=crbinrec
-  bnlrec=crbnlrec
-  bllrec=crbllrec
-  sythckcr=crsythck
+  binrec   = crbinrec
+  bnlrec   = crbnlrec
+  bllrec   = crbllrec
+  sythckcr = cr_sythck
 
   ! the crtime3 is required (crtime0/1 removed)
   napxo=crnapxo
@@ -1189,7 +1190,7 @@ subroutine crstart
   call hions_crstart
   if(melens .gt. 0) call elens_crstart
 
-  if (crsythck) then
+  if(cr_sythck) then
     !ERICVARS now read the extended vars from fort.95/96.
     if(cril /= il) then
       write(lout,"(2(a,i0))") "SIXTRACR> CRSTART Problem as cril/il are different cril = ",cril,", il = ",il

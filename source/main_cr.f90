@@ -181,10 +181,10 @@ program maincr
   ! Main start for Checkpoint/Restart
   sythckcr = .false.
   numlcr   = 1
-  rerun    = .false.
-  start    = .true.
-  restart  = .false.
-  checkp   = .false.
+  cr_rerun    = .false.
+  cr_start    = .true.
+  cr_restart  = .false.
+  cr_checkp   = .false.
   cr_pntExist(1)   = .false.
   cr_pntExist(2)   = .false.
   sixrecs  = 0
@@ -215,7 +215,7 @@ program maincr
   backspace(93,iostat=ierro)
 #ifdef BOINC
   ! and if BOINC issue an informatory message
-  if(start) then
+  if(cr_start) then
     write(93,"(a)") "SIXTRACR> Starts for the very first time"
   else
     write(93,"(a)") "SIXTRACR> Retry after unzip of Sixin.zip"
@@ -232,8 +232,8 @@ program maincr
     ! No fort.6 so we do an unzip of Sixin.zip
     ! BUT ONLY IF WE HAVE NOT DONE IT ALREADY
     ! and CLOSE 92 and 93
-    if(start) then
-      start=.false.
+    if(cr_start) then
+      cr_start = .false.
       call f_close(cr_outUnit)
       call f_close(93)
       ! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
@@ -253,7 +253,7 @@ program maincr
   else
     ! Set up start message depending on fort.6 or not
     stxt = "SIXTRACR> Reruns on: "
-    rerun=.true.
+    cr_rerun = .true.
   end if
   call cr_fileInit
 #else
@@ -345,7 +345,7 @@ program maincr
   if (ithick == 1) call allocate_thickarrays
 
 #ifdef CR
-  checkp=.true.
+  cr_checkp = .true.
   call crcheck
   call time_timeStamp(time_afterCRCheck)
 #endif
@@ -1169,7 +1169,7 @@ program maincr
       ! Write header of track output file(s) used by postprocessing for case ntwin /= 2
 #ifndef STF
 #ifdef CR
-      if(.not.restart) then
+      if(.not.cr_restart) then
 #endif
         call writebin_header(ia,ia,91-ia2,ierro,cDate,cTime,progrm)
 #ifdef CR
@@ -1179,7 +1179,7 @@ program maincr
 #endif
 #else
 #ifdef CR
-      if(.not.restart) then
+      if(.not.cr_restart) then
 #endif
         call writebin_header(ia,ia,90,ierro,cDate,cTime,progrm)
 #ifdef CR
@@ -1192,7 +1192,7 @@ program maincr
       ! Write header of track output file(s) used by postprocessing for case ntwin == 2
 #ifndef STF
 #ifdef CR
-      if(.not.restart) then
+      if(.not.cr_restart) then
 #endif
         call writebin_header(ia,ia+1,91-ia2,ierro,cDate,cTime,progrm)
 #ifdef CR
@@ -1202,7 +1202,7 @@ program maincr
 #endif
 #else
 #ifdef CR
-      if(.not.restart) then
+      if(.not.cr_restart) then
 #endif
         call writebin_header(ia,ia+1,90,ierro,cDate,cTime,progrm)
 #ifdef CR
@@ -1344,8 +1344,8 @@ program maincr
   napxto = 0
 
 #ifdef CR
-  if(.not.restart) then
-    ! If restart is true , we haven't done any tracking and must be running from very last checkpoint
+  if(.not.cr_restart) then
+    ! If cr_restart is true , we haven't done any tracking and must be running from very last checkpoint
     write(93,"(a)")          "SIXTRACR> Very last call to WRITEBIN?"
     write(93,"(a,3(1x,i0))") "SIXTRACR> numlmax, nnuml, numl = ",numlmax,nnuml,numl
     flush(93)

@@ -567,7 +567,7 @@ subroutine thin4d(nthinerr)
   end if
 
 #ifdef CR
-  if (restart) then
+  if(cr_restart) then
     call crstart
     write(93,"(2(a,i0))") "SIXTRACR> Thin 4D restart numlcr = ",numlcr,", numl = ",numl
   end if
@@ -606,10 +606,10 @@ subroutine thin4d(nthinerr)
 #endif
 
 #ifdef CR
-    ! does not call CRPOINT if restart=.true.
-    ! (and note that writebin does nothing if restart=.true.
+    ! does not call CRPOINT if cr_restart=.true.
+    ! (and note that writebin does nothing if cr_restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -1192,7 +1192,7 @@ subroutine thin6d(nthinerr)
 
   ! This is the loop over turns: label 660
 #ifdef CR
-  if (restart) then
+  if(cr_restart) then
     call crstart
     write(93,"(2(a,i0))") "SIXTRACR> Thin 6D restart numlcr = ",numlcr,", numl = ",numl
   end if
@@ -1238,10 +1238,10 @@ subroutine thin6d(nthinerr)
 #endif
 
 #ifdef CR
-    ! does not call CRPOINT if restart=.true.
-    ! (and note that writebin does nothing if restart=.true.
+    ! does not call CRPOINT if cr_restart=.true.
+    ! (and note that writebin does nothing if cr_restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -2159,7 +2159,7 @@ subroutine callcrp
   integer timech
 #endif
 
-  if(restart) then
+  if(cr_restart) then
     write(lout,"(a,i0)") "SIXTRACR> Bailing out on turn ",numx+1
     write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT Bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
       " numx = ",numx,", numlcr = ",numlcr
@@ -2172,7 +2172,7 @@ subroutine callcrp
     flush(93)
   end if
 #ifdef BOINC
-  if(checkp) then
+  if(cr_checkp) then
     ! If BOINC and turn > 1, ask BOINC API whether to crpoint or not
     call boinc_time_to_checkpoint(timech)
     if(timech /= 0 .or. numx == 0) then
@@ -2181,7 +2181,7 @@ subroutine callcrp
     endif
   endif
 #else
-  if(checkp) call crpoint
+  if(cr_checkp) call crpoint
 #endif
 
 end subroutine callcrp

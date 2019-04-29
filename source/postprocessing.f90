@@ -3450,7 +3450,7 @@ subroutine writebin(nthinerr)
 !-----------------------------------------------------------------------
 #ifdef CR
       ncalls = ncalls + 1
-      if(restart) then
+      if(cr_restart) then
         write(93,"(4(a,i0))") "WRITEBIN> Bailing out on restart numl = ",numl,", nnuml = ",nnuml,  &
           ", numx = ",numx,", numlcr = ",numlcr
         flush(93)

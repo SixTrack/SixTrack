@@ -555,7 +555,7 @@ subroutine thck4d(nthinerr)
   end if
 
 #ifdef CR
-  if(restart) then
+  if(cr_restart) then
     call crstart
     write(93,"(2(a,i0))") "SIXTRACR> Thick 4D restart numlcr = ",numlcr,", numl = ",numl
     ! and now reset numl to do only numlmax turns
@@ -594,10 +594,10 @@ subroutine thck4d(nthinerr)
 #endif
 
 #ifdef CR
-    !  does not call CRPOINT if restart=.true.
-    !  (and note that writebin does nothing if restart=.true.
+    !  does not call CRPOINT if cr_restart=.true.
+    !  (and note that writebin does nothing if cr_restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -1230,7 +1230,7 @@ subroutine thck6d(nthinerr)
 
 ! Now the outer loop over turns
 #ifdef CR
-  if (restart) then
+  if(cr_restart) then
     call crstart
     write(93,"(2(a,i0))") "SIXTRACR> Thick 6D restart numlcr = ",numlcr,", numl = ",numl
 ! and now reset numl to do only numlmax turns
@@ -1271,10 +1271,10 @@ subroutine thck6d(nthinerr)
 #endif
 
 #ifdef CR
-!  does not call CRPOINT if restart=.true.
-!  (and note that writebin does nothing if restart=.true.
+!  does not call CRPOINT if cr_restart=.true.
+!  (and note that writebin does nothing if cr_restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
