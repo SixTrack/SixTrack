@@ -902,8 +902,8 @@ module mod_common_main
   real(kind=fPrec),              save :: cloau(6)
 
   ! Main 4
-  integer,          save :: numx
   real(kind=fPrec), save :: e0f
+  integer,          save :: numx     = 0       ! Checkpoint turn (turn-1)
   logical,          save :: sythckcr = .false. ! Only used for CR
 
 contains
