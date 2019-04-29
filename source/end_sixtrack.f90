@@ -136,33 +136,33 @@ subroutine abend(cstring)
 #endif
 
 12 continue
-  if(lout == 92) then
-    write(93,"(a)") "SIXTRACR> STOP/ABEND copying fort.92 to fort.6"
+  if(lout == cr_outUnit) then
+    write(93,"(a)") "SIXTRACR> STOP/ABEND copying "//cr_outFile//" to fort.6"
     flush(93)
-    rewind(92)
+    rewind(cr_outUnit)
 13  continue
-    read(92,"(a)",err=14,end=15,iostat=ierro) inLine
+    read(cr_outUnit,"(a)",err=14,end=15,iostat=ierro) inLine
     write(output_unit,'(a)',iostat=ierro) trim(inLine)
     goto 13
   end if
 
 14 continue
-  write(93,"(a,i0)")   "SIXTRACR> ERROR Reading fort.92 in abend, iostat = ",ierro
-  write(lerr,"(a,i0)") "ABEND> ERROR Reading fort.92, iostat = ",ierro
+  write(93,"(a,i0)")   "SIXTRACR> ERROR Reading "//cr_outFile//" in abend, iostat = ",ierro
+  write(lerr,"(a,i0)") "ABEND> ERROR Reading "//cr_outFile//", iostat = ",ierro
 
 15 continue
   write(output_unit,"(a)",iostat=ierro) "SIXTRACR> Stop "//cstring
-  rewind(92) ! Get rid of fort.92
-  endfile(92,iostat=ierro)
-  call f_close(92)
+  rewind(cr_outUnit)
+  endfile(cr_outUnit,iostat=ierro)
+  call f_close(cr_outUnit)
   write(93,"(a)") "SIXTRACR> Stop "//cstring
   call f_close(93)
 
 #ifdef BOINC
-  call copyToStdErr(91,"fort.91",10)
+  call copyToStdErr(cr_errUnit,cr_errFile,10)
   call boinc_finish(errout) ! This call does not return
 #else
-  call copyToStdErr(91,"fort.91",50)
+  call copyToStdErr(cr_errUnit,cr_errFile,50)
   if(errout /= 0) then
     ! Don't write to stderr, it breaks the error tests.
     write(output_unit,"(a,i0)") "ABEND> ERROR Stopping with error ",errout

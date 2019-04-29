@@ -109,8 +109,8 @@ program maincr
 
   errout = 0 ! Set to nonzero before calling abend in case of error.
 #ifdef CR
-  lerr = 91
-  lout = 92
+  lerr = cr_errUnit
+  lout = cr_outUnit
 #endif
 
 #ifdef BOINC
@@ -203,11 +203,11 @@ program maincr
   ! Very first get rid of any previous partial output
   call f_close(lerr)
   call f_close(lout)
-  call f_open(unit=lerr,file="fort.91",formatted=.true.,mode="rw",err=fErr,status="replace")
-  call f_open(unit=lout,file="fort.92",formatted=.true.,mode="rw",err=fErr,status="replace")
+  call f_open(unit=lerr,file=cr_errFile,formatted=.true.,mode="rw",err=fErr,status="replace")
+  call f_open(unit=lout,file=cr_outFile,formatted=.true.,mode="rw",err=fErr,status="replace")
 
   ! Now position the checkpoint/restart logfile=93
-  call f_open(unit=93,file="fort.93",formatted=.true.,mode="rw",err=fErr)
+  call f_open(unit=93,file=cr_logFile,formatted=.true.,mode="rw",err=fErr)
 606 continue
   read(93,"(a1024)",end=607) arecord
   goto 606
@@ -234,7 +234,7 @@ program maincr
     ! and CLOSE 92 and 93
     if(start) then
       start=.false.
-      call f_close(92)
+      call f_close(cr_outUnit)
       call f_close(93)
       ! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
       ! Name hard-wired in our boinc_unzip_.

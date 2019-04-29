@@ -12,11 +12,19 @@ module checkpoint_restart
 
   implicit none
 
-  ! CR Files
+  ! Checkpoint Files
   character(len=15),   public, save :: cr_pntFile(2)  = ["crpoint_pri.bin","crponit_sec.bin"]
   integer,             public, save :: cr_pntUnit(2)  = -1
   logical,             public, save :: cr_pntExist(2) = .false.
   logical,             public, save :: cr_pntRead(2)  = .false.
+
+  ! Logging Files
+  character(len=13),   public, save :: cr_errFile = "cr_stderr.tmp"
+  character(len=13),   public, save :: cr_outFile = "cr_stdout.tmp"
+  character(len=13),   public, save :: cr_logFile = "cr_status.log"
+  integer,             parameter    :: cr_errUnit = 91
+  integer,             parameter    :: cr_outUnit = 92
+  integer,             parameter    :: cr_logUnit = 93
 
   real,                public, save :: crtime3
   real(kind=fPrec),    public, save :: cre0
@@ -220,8 +228,7 @@ end subroutine cr_killSwitch
 !  CRCHECK
 !  Last modified: 2018-12-05
 !
-!  This subroutine checks if the C/R files fort.95 and fort.96 exists, and if so tries to load
-!  them into the cr* variables.
+!  This subroutine checks if the C/R files exist, and if so tries to load them into the cr* variables.
 !  This routine also repositions the output files for fort.90..91-napx/2 or STF, DUMP, DYNK and
 !     aperture losses
 !
@@ -280,33 +287,33 @@ subroutine crcheck
   ! NOT TRUE anymore??? We might be NOT rerun but using a Sixin.zip
 #ifndef BOINC
   if (.not.rerun) then
-    write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK Found fort.95/fort.96 but NO fort.6"
+    write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK Found "//cr_pntFile(1)//"/"//cr_pntFile(2)//" but NO fort.6"
     call prror(-1)
   endif
 #endif
   ! Check at least one restart file is readable
-  write(93,"(a)") "SIXTRACR> CRCHECK checking fort.95/96"
+  write(93,"(a)") "SIXTRACR> CRCHECK checking "//cr_pntFile(1)//"/96"
   flush(93)
   if(cr_pntExist(1)) then
-    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 1 VERSION"
+    write(93,"(a)") "SIXTRACR> CRCHECK reading "//cr_pntFile(1)//" Record 1 VERSION"
     flush(93)
 
     rewind(cr_pntUnit(1))
     read(cr_pntUnit(1),err=100,end=100) cr_version,cr_moddate
     if ((cr_version /= version) .or. (cr_moddate /= moddate)) then
-      write(93,"(a)") "SIXTRACR> CRCHECK: fort.95 was written by SixTrack version="//cr_version//" moddate="//cr_moddate
+      write(93,"(a)") "SIXTRACR> CRCHECK "//cr_pntFile(1)//" was written by SixTrack version="//cr_version//" moddate="//cr_moddate
       write(93,"(a)") "          This is SixTrack version="//version//" moddate="//moddate
       write(93,"(a)") "          Version mismatch; giving up on this file."
       flush(93)
       goto 100
     end if
 
-    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 2"
+    write(93,"(a)") "SIXTRACR> CRCHECK reading "//cr_pntFile(1)//" Record 2"
     flush(93)
     read(cr_pntUnit(1),err=100,end=100) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec, &
          crsythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel,crbrho
 
-    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 3"
+    write(93,"(a)") "SIXTRACR> CRCHECK reading "//cr_pntFile(1)//" Record 3"
     flush(93)
     read(cr_pntUnit(1),err=100,end=100) &
       (crbinrecs(j),j=1,(crnapxo+1)/2), &
@@ -328,44 +335,44 @@ subroutine crcheck
       (craperv(j,2),j=1,crnapxo),       &
       (crllostp(j),j=1,crnapxo)
 
-    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record META"
+    write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(1)//" Record META"
     flush(93)
     call meta_crcheck(cr_pntUnit(1),lerror)
     if(lerror) goto 100
 
-    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 5 DUMP"
+    write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(1)//" Record 5 DUMP"
     flush(93)
     call dump_crcheck_readdata(cr_pntUnit(1),lerror)
     if (lerror) goto 100
 
-    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 5.5 HION"
+    write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(1)//" Record 5.5 HION"
     flush(93)
     call hions_crcheck_readdata(cr_pntUnit(1),lerror)
     if (lerror) goto 100
 
     if (dynk_enabled) then
-      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 6 DYNK"
+      write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(1)//" Record 6 DYNK"
       flush(93)
       call dynk_crcheck_readdata(cr_pntUnit(1),lerror)
       if (lerror) goto 100
     end if
 
     if(scatter_active) then
-      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 7 SCATTER"
+      write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(1)//" Record 7 SCATTER"
       flush(93)
       call scatter_crcheck_readdata(cr_pntUnit(1),lerror)
       if (lerror) goto 100
     end if
 
     if(limifound) then
-      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 8 APERTURE LOSSES FILE"
+      write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(1)//" Record 8 APERTURE LOSSES FILE"
       flush(93)
       call aper_crcheck_readdata(cr_pntUnit(1),lerror)
       if (lerror) goto 100
     end if
 
     if(melens .gt. 0) then
-      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 9 ELENS"
+      write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(1)//" Record 9 ELENS"
       flush(93)
       call elens_crcheck(cr_pntUnit(1),lerror)
       if (lerror) goto 100
@@ -376,16 +383,16 @@ subroutine crcheck
       !ERICVARS
       ! and make sure we can read the extended vars before leaving fort.95
       ! We will re-read them in crstart to be sure they are restored correctly
-      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 10 extended vars fort.95 crnapxo=",crnapxo
+      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 10 extended vars "//cr_pntFile(1)//" crnapxo=",crnapxo
       flush(93)
       read(cr_pntUnit(1),end=100,err=100,iostat=ierro) &
         ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
         ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
         (dpd(j),j=1,crnapxo),(dpsq(j),j=1,crnapxo),(fokqv(j),j=1,crnapxo)
       backspace(cr_pntUnit(1),iostat=ierro)
-      write(93,"(a)") "SIXTRACR> CRCHECK read fort.95 EXTENDED OK"
+      write(93,"(a)") "SIXTRACR> CRCHECK read "//cr_pntFile(1)//" EXTENDED OK"
       flush(93)
-      write(93,"(a)") "SIXTRACR> CRCHECK leaving fort.95 for CRSTART EXTENDED"
+      write(93,"(a)") "SIXTRACR> CRCHECK leaving "//cr_pntFile(1)//" for CRSTART EXTENDED"
       flush(93)
     end if
     cr_pntRead(1) = .true.
@@ -397,27 +404,28 @@ subroutine crcheck
     flush(93)
   end if
   if (cr_pntExist(2)) then
-    write(93,"(a)") "SIXTRACR> CRCHECK Trying fort.96 instead"
+    write(93,"(a)") "SIXTRACR> CRCHECK Trying "//cr_pntFile(2)//" instead"
     flush(93)
     rewind(cr_pntUnit(2))
 
-    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 1 VERSION"
+    write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record 1 VERSION"
     flush(93)
 
     read(cr_pntUnit(2),err=101,end=101) cr_version,cr_moddate
     if ((cr_version /= version) .or. (cr_moddate /= moddate)) then
-      write(93,"(a)") "SIXTRACR> CRCHECK: fort.96 was written by SixTrack version='"//cr_version//"' moddate='"//cr_moddate//"'"
+      write(93,"(a)") "SIXTRACR> CRCHECK "//cr_pntFile(2)//" was written by SixTrack version='"//cr_version//&
+        "' moddate='"//cr_moddate//"'"
       write(93,"(a)") "          This is SixTrack version='"//version//"' moddate='"//moddate//"'"
       write(93,"(a)") "          Version mismatch; giving up on this file."
       flush(93)
       goto 101
     end if
 
-    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 2"
+    write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record 2"
     flush(93)
     read(cr_pntUnit(2),err=101,end=101,iostat=ierro) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec,&
       crsythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel,crbrho
-    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 3"
+    write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record 3"
     flush(93)
     read(cr_pntUnit(2),err=101,end=101,iostat=ierro) &
       (crbinrecs(j),j=1,(crnapxo+1)/2),  &
@@ -439,39 +447,39 @@ subroutine crcheck
       (craperv(j,2),j=1,crnapxo),        &
       (crllostp(j),j=1,crnapxo)
 
-    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record META"
+    write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record META"
     flush(93)
     call meta_crcheck(cr_pntUnit(2),lerror)
     if(lerror) goto 101
 
-    write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 5 DUMP"
+    write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record 5 DUMP"
     flush(93)
     call dump_crcheck_readdata(cr_pntUnit(2),lerror)
     if (lerror) goto 101
 
     if (dynk_enabled) then
-      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 6 DYNK"
+      write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record 6 DYNK"
       flush(93)
       call dynk_crcheck_readdata(cr_pntUnit(2),lerror)
       if (lerror) goto 101
     end if
 
     if(scatter_active) then
-      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 7 SCATTER"
+      write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record 7 SCATTER"
       flush(93)
       call scatter_crcheck_readdata(cr_pntUnit(2),lerror)
       if (lerror) goto 101
     end if
 
     if(limifound) then
-      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 8 APERTURE LOSSES FILE"
+      write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record 8 APERTURE LOSSES FILE"
       flush(93)
       call aper_crcheck_readdata(cr_pntUnit(2),lerror)
       if (lerror) goto 101
     end if
 
     if(melens .gt. 0) then
-      write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 9 ELENS"
+      write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record 9 ELENS"
       flush(93)
       call elens_crcheck(cr_pntUnit(2),lerror)
       if (lerror) goto 101
@@ -482,18 +490,18 @@ subroutine crcheck
       !ERICVARS
       ! and make sure we can read the extended vars before leaving fort.96
       ! We will re-read them in crstart to be sure they are correct
-      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 10 extended vars fort.96, crnapxo=",crnapxo
+      write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 10 extended vars "//cr_pntFile(2)//", crnapxo=",crnapxo
       flush(93)
-      write(93,"(a)") "SIXTRACR> CRCHECK verifying extended vars fort.96"
+      write(93,"(a)") "SIXTRACR> CRCHECK verifying extended vars "//cr_pntFile(2)
       flush(93)
       read(cr_pntUnit(2),end=101,err=101,iostat=ierro)                 &
         ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
         ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
         (dpd(j),j=1,crnapxo),(dpsq(j),j=1,crnapxo),(fokqv(j),j=1,crnapxo)
       backspace(cr_pntUnit(2),iostat=ierro)
-      write(93,"(a)") "SIXTRACR> CRCHECK read fort.96 EXTENDED OK"
+      write(93,"(a)") "SIXTRACR> CRCHECK Read "//cr_pntFile(2)//" EXTENDED OK"
       flush(93)
-      write(93,"(a)") "SIXTRACR> CRCHECK Leaving fort.96 for CRSTART EXTENDED"
+      write(93,"(a)") "SIXTRACR> CRCHECK Leaving "//cr_pntFile(2)//" for CRSTART EXTENDED"
       flush(93)
     end if
     cr_pntRead(2) = .true.
@@ -815,9 +823,9 @@ subroutine crcheck
   call prror
 
 107 continue
-  write(93,"(a,i0)") "SIXTRACR> ERROR reading fort.92, iostat=",ierro
+  write(93,"(a,i0)") "SIXTRACR> ERROR reading "//cr_outFile//", iostat=",ierro
   flush(93)
-  write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK Failure positioning fort.92"
+  write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK Failure positioning "//cr_outFile
   call prror
 
 end subroutine crcheck
@@ -898,7 +906,7 @@ subroutine crpoint
     rewind(lout)
     endfile(lout,iostat=ierro)
     call f_close(lout)
-    call f_open(unit=92,file="fort.92",formatted=.true.,mode="rw",err=fErr)
+    call f_open(unit=cr_outUnit,file=cr_outFile,formatted=.true.,mode="rw",err=fErr)
 #ifndef DEBUG
     if(ncalls <= 5 .or. numx >= numl) then
 #endif
@@ -1068,7 +1076,7 @@ subroutine crpoint
   goto 103
 
 101 continue
-  write(93,"(a,i0)") "SIXTRACR> CRPOINT ERROR Reading lout fort.92, iostat = ",ierro
+  write(93,"(a,i0)") "SIXTRACR> CRPOINT ERROR Reading lout "//cr_outFile//", iostat = ",ierro
   goto 103
 
 102 continue
@@ -1199,7 +1207,7 @@ subroutine crstart
 
       read(cr_pntUnit(1),end=100,err=100,iostat=ierro) &
         (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
-      write(93,"(a)") "SIXTRACR> CRSTART read fort.95 EXTENDED OK"
+      write(93,"(a)") "SIXTRACR> CRSTART Read "//cr_pntFile(1)//" EXTENDED OK"
       flush(93)
       goto 102
     end if
@@ -1212,15 +1220,15 @@ subroutine crstart
       read(cr_pntUnit(2),end=101,err=101,iostat=ierro) &
         (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
 
-      write(93,"(a)") "SIXTRACR> CRSTART read fort.96 EXTENDED OK"
+      write(93,"(a)") "SIXTRACR> CRSTART Read "//cr_pntFile(2)//" EXTENDED OK"
       flush(93)
       goto 102
     end if
 100 continue
-    write(93,"(a,i0)") "SIXTRACR> CRSTART Could not read checkpoint file 95 (extended), iostat = ",ierro
+    write(93,"(a,i0)") "SIXTRACR> CRSTART Could not read checkpoint file "//cr_pntFile(1)//" (extended), iostat = ",ierro
     goto 103
 101 continue
-    write(93,"(a,i0)") "SIXTRACR> CRSTART Could not read checkpoint file 96 (extended), iostat = ",ierro
+    write(93,"(a,i0)") "SIXTRACR> CRSTART Could not read checkpoint file "//cr_pntFile(2)//" (extended), iostat = ",ierro
 103 continue
     flush(93)
     write(lerr,"(a)") "SIXTRACR> ERROR CRSTART Problem with extended checkpoint"
@@ -1236,7 +1244,7 @@ subroutine crstart
   endfile(lout,iostat=ierro)
   close(lout)
 
-  call f_open(unit=lout,file="fort.92",formatted=.true.,mode="rw",err=fErr)
+  call f_open(unit=lout,file=cr_outFile,formatted=.true.,mode="rw",err=fErr)
   ! but also add the rerun message
   write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
   write(lout,"(a)") "SIXTRACR>  Restarted"
