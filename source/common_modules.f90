@@ -160,7 +160,6 @@ module mod_common
   integer,          save :: ird        = 0    ! Ignored
   integer,          save :: niu(2)     = 0    ! Start and stop structure element for optics calculation
   integer,          save :: numlcp     = 1000 ! How often to write checkpointing files
-  integer,          save :: numlmax    = 1e9  ! Max number of C/R turns
   integer,          save :: idfor      = 0    ! Add closed orbit to initia coordinates
   integer,          save :: irew       = 0    ! Rewind fort.59-90
   integer,          save :: iclo6      = 0    ! 6D closed orbit flags

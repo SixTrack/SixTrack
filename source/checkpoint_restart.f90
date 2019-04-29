@@ -865,7 +865,7 @@ subroutine crpoint
 #endif
 
   if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
-    write(93,"(2(a,i0))") "SIXTRACR> CRPOINT CALLED numlmax = ",numlmax,", numlcp = ",numlcp
+    write(93,"(1(a,i0))") "SIXTRACR> CRPOINT CALLED numlcp = ",numlcp
     write(93,"(3(a,i0))") "SIXTRACR> CRPOINT CALLED lout = ",lout,", numx = ",numx,", numl = ",numl
     write(93,"(2(a,i0))") "SIXTRACR> CRPOINT CALLED binrec = ",binrec,", sixrec = ",sixrecs
     flush(93)

@@ -557,11 +557,10 @@ subroutine thck4d(nthinerr)
 #ifdef CR
   if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thick 4D restart cr_numl = ",cr_numl,", numl = ",numl
-    ! and now reset numl to do only numlmax turns
+    write(93,"(2(a,i0))") "TRACKING> Thick 4D restarting on turn ",cr_numl," / ",numl
   end if
-  nnuml=min((cr_numl/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",cr_numl,", ",nnuml
+  nnuml=numl !min((cr_numl/numlmax+1)*numlmax,numl)
+  ! write(93,"(3(a,i0))") "SIXTRACR> DO ",cr_numl,", ",nnuml
   ! and reset [n]numxv unless particle is lost
   ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
@@ -1232,13 +1231,13 @@ subroutine thck6d(nthinerr)
 #ifdef CR
   if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thick 6D restart cr_numl = ",cr_numl,", numl = ",numl
+    write(93,"(2(a,i0))") "TRACKING> Thick 6D restarting on turn ",cr_numl," / ",numl
 ! and now reset numl to do only numlmax turns
   end if
-  nnuml=min((cr_numl/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",cr_numl,", ",nnuml
-! and reset [n]numxv unless particle is lost
-! TRYing Eric (and removing postpr fixes).
+  nnuml=numl !min((cr_numl/numlmax+1)*numlmax,numl)
+  ! write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",cr_numl,", ",nnuml
+  ! and reset [n]numxv unless particle is lost
+  ! TRYing Eric (and removing postpr fixes).
   if (nnuml.ne.numl) then
     do j=1,napx
       if (numxv(j).eq.numl) numxv(j)=nnuml

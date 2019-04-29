@@ -1329,7 +1329,7 @@ program maincr
   if(.not.cr_restart) then
     ! If cr_restart is true , we haven't done any tracking and must be running from very last checkpoint
     write(93,"(a)")          "SIXTRACR> Very last call to WRITEBIN?"
-    write(93,"(a,3(1x,i0))") "SIXTRACR> numlmax, nnuml, numl = ",numlmax,nnuml,numl
+    write(93,"(a,2(1x,i0))") "SIXTRACR> nnuml, numl = ",nnuml,numl
     flush(93)
     if(nnuml == numl) then
       ! We REALLY have finished (or all particles lost)
@@ -1340,9 +1340,8 @@ program maincr
       call writebin(nthinerr)
       if(nthinerr == 3000) goto 520
     else
-      ! I assume we are stopping because we have done nnuml turns which should be numlmax and do a writebin only if time
       write(93,"(a)")          "SIXTRACR> Very last call to WRITEBIN?"
-      write(93,"(a,3(1x,i0))") "SIXTRACR> numlmax, nnuml, numl = ",numlmax,nnuml,numl
+      write(93,"(a,2(1x,i0))") "SIXTRACR> nnuml, numl = ",nnuml,numl
       flush(93)
       if(mod(nnuml,nwri) == 0) then
         write(93,"(a)") "SIXTRACR> Very last call to WRITEBIN"
