@@ -57,8 +57,10 @@ module checkpoint_restart
   integer,           private, save :: crnapxo
   integer,           private, save :: crnapx
 
-  real(kind=fPrec), allocatable, private, save :: crxv(:,:)     ! (2,npart)
-  real(kind=fPrec), allocatable, private, save :: cryv(:,:)     ! (2,npart)
+  real(kind=fPrec), allocatable, private, save :: crxv1(:)      ! (npart)
+  real(kind=fPrec), allocatable, private, save :: crxv2(:)      ! (npart)
+  real(kind=fPrec), allocatable, private, save :: cryv1(:)      ! (npart)
+  real(kind=fPrec), allocatable, private, save :: cryv2(:)      ! (npart)
   real(kind=fPrec), allocatable, private, save :: crsigmv(:)    ! (npart)
   real(kind=fPrec), allocatable, private, save :: crdpsv(:)     ! (npart)
   real(kind=fPrec), allocatable, private, save :: crdpsv1(:)    ! (npart)
@@ -119,22 +121,24 @@ subroutine cr_expand_arrays(npart_new)
   integer :: npair_new
   npair_new = npart_new/2 + 1
 
-  call alloc(crxv,      2, npart_new,    zero,    "crxv")
-  call alloc(cryv,      2, npart_new,    zero,    "cryv")
-  call alloc(crsigmv,      npart_new,    zero,    "crsigmv")
-  call alloc(crdpsv,       npart_new,    zero,    "crdpsv")
-  call alloc(crdpsv1,      npart_new,    zero,    "crdpsv1")
-  call alloc(crejv,        npart_new,    zero,    "crejv")
-  call alloc(crejfv,       npart_new,    zero,    "crejfv")
-  call alloc(craperv,      npart_new, 2, zero,    "craperv")
-  call alloc(binrecs,      npair_new,    0,       "binrecs")
-  call alloc(crbinrecs,    npair_new,    0,       "crbinrecs")
-  call alloc(crnumxv,      npart_new,    0,       "crnumxv")
-  call alloc(crnnumxv,     npart_new,    0,       "crnnumxv")
-  call alloc(crpartID,     npart_new,    0,       "crpartID")
-  call alloc(crparentID,   npart_new,    0,       "crparentID")
-  call alloc(crpstop,      npart_new,    .false., "crpstop")
-  call alloc(crllostp,     npart_new,    .false., "crllostp")
+  call alloc(crxv1,      npart_new,    zero,    "crxv1")
+  call alloc(crxv2,      npart_new,    zero,    "crxv2")
+  call alloc(cryv1,      npart_new,    zero,    "cryv1")
+  call alloc(cryv2,      npart_new,    zero,    "cryv2")
+  call alloc(crsigmv,    npart_new,    zero,    "crsigmv")
+  call alloc(crdpsv,     npart_new,    zero,    "crdpsv")
+  call alloc(crdpsv1,    npart_new,    zero,    "crdpsv1")
+  call alloc(crejv,      npart_new,    zero,    "crejv")
+  call alloc(crejfv,     npart_new,    zero,    "crejfv")
+  call alloc(craperv,    npart_new, 2, zero,    "craperv")
+  call alloc(binrecs,    npair_new,    0,       "binrecs")
+  call alloc(crbinrecs,  npair_new,    0,       "crbinrecs")
+  call alloc(crnumxv,    npart_new,    0,       "crnumxv")
+  call alloc(crnnumxv,   npart_new,    0,       "crnnumxv")
+  call alloc(crpartID,   npart_new,    0,       "crpartID")
+  call alloc(crparentID, npart_new,    0,       "crparentID")
+  call alloc(crpstop,    npart_new,    .false., "crpstop")
+  call alloc(crllostp,   npart_new,    .false., "crllostp")
 
   crnpart_old = npart_new
 
@@ -314,10 +318,10 @@ subroutine crcheck
       (crpartID(j),j=1,crnapxo),        &
       (crparentID(j),j=1,crnapxo),      &
       (crpstop(j),j=1,crnapxo),         &
-      (crxv(1,j),j=1,crnapxo),          &
-      (cryv(1,j),j=1,crnapxo),          &
-      (crxv(2,j),j=1,crnapxo),          &
-      (cryv(2,j),j=1,crnapxo),          &
+      (crxv1(j),j=1,crnapxo),           &
+      (cryv1(j),j=1,crnapxo),           &
+      (crxv2(j),j=1,crnapxo),           &
+      (cryv2(j),j=1,crnapxo),           &
       (crsigmv(j),j=1,crnapxo),         &
       (crdpsv(j),j=1,crnapxo),          &
       (crdpsv1(j),j=1,crnapxo),         &
@@ -426,10 +430,10 @@ subroutine crcheck
       (crpartID(j),j=1,crnapxo),         &
       (crparentID(j),j=1,crnapxo),       &
       (crpstop(j),j=1,crnapxo),          &
-      (crxv(1,j),j=1,crnapxo),           &
-      (cryv(1,j),j=1,crnapxo),           &
-      (crxv(2,j),j=1,crnapxo),           &
-      (cryv(2,j),j=1,crnapxo),           &
+      (crxv1(j),j=1,crnapxo),            &
+      (cryv1(j),j=1,crnapxo),            &
+      (crxv2(j),j=1,crnapxo),            &
+      (cryv2(j),j=1,crnapxo),            &
       (crsigmv(j),j=1,crnapxo),          &
       (crdpsv(j),j=1,crnapxo),           &
       (crdpsv1(j),j=1,crnapxo),          &
@@ -822,8 +826,10 @@ subroutine crcheck
 end subroutine crcheck
 
 ! ================================================================================================ !
-!  This subroutine writes the checkpoint data to the binary checpoint files
+!  Write Checkpoint
+! ==================
 !  Last modified: 2019-04-29
+!  This subroutine writes the checkpoint data to the binary checpoint files
 ! ================================================================================================ !
 subroutine crpoint
 
@@ -985,16 +991,18 @@ subroutine crpoint
 end subroutine crpoint
 
 ! ================================================================================================ !
+!  Checkpoint Start
+! ==================
+!  Last modified: 2019-04-29
 !  If we are restarting (cr_restart is TRUE), this routine is called in the beginning of the tracking
 !  loops. It is used to copy the cr* variables to the normal variables, e.g. crnapx -> napx etc.
-!  The file fort.93 is used as a log file for the checkpoint/restarting.
 ! ================================================================================================ !
 subroutine crstart
 
   use floatPrecision
   use numerical_constants
-  use dynk, only : dynk_enabled, dynk_crstart
-  use scatter, only: scatter_active, scatter_crstart
+  use dynk,    only : dynk_enabled, dynk_crstart
+  use scatter, only : scatter_active, scatter_crstart
   use elens,   only : melens, elens_crstart
 
   use crcoall
@@ -1005,11 +1013,8 @@ subroutine crstart
   use mod_common_track
   use mod_common_da
   use mod_meta
-  use mod_alloc
   use mod_hions
   use mod_units
-
-  implicit none
 
   real(kind=fPrec) dynk_newValue
   logical fErr
@@ -1018,77 +1023,79 @@ subroutine crstart
 
   save
 
-  write(93,"(a,i0)") "SIXTRACR> CRSTART called crnumlcr = ",crnumlcr
+  write(93,"(a,i0)") "CR_START> Starting from turn ",crnumlcr
   flush(93)
   cr_numl = crnumlcr
 
   ! We do NOT reset numl so that a run can be extended for
   ! for more turns from the last checkpoint
-  ! but we need to worry about numxv, nnumxv
   binrec   = crbinrec
   sythckcr = cr_sythck
 
   ! the cr_time is required (crtime0/1 removed)
-  napxo=crnapxo
-  napx=crnapx
-  e0=cre0
-  e0f=sqrt(e0**2-nucm0**2)
-  betrel=crbetrel
-  brho=crbrho
+  napxo  = crnapxo
+  napx   = crnapx
+  e0     = cre0
+  e0f    = sqrt(e0**2-nucm0**2)
+  betrel = crbetrel
+  brho   = crbrho
 
-  write(93,"(a)") "SIXTRACR> CRSTART doing binrecs"
-  flush(93)
-
+  write(93,"(a)") "CR_START>  * Loading binrecs"
   do j=1,(napxo+1)/2
-    binrecs(j)=crbinrecs(j)
+    binrecs(j) = crbinrecs(j)
   end do
 
-  write(93,"(a)") "SIXTRACR> CRSTART doing normal NPART vars"
+  write(93,"(a)") "CR_START>  * Loading particle arrays"
   flush(93)
+  numxv(1:napxo)     = crnumxv(1:napxo)
+  nnumxv(1:napxo)    = crnnumxv(1:napxo)
+  partID(1:napxo)    = crpartID(1:napxo)
+  parentID(1:napxo)  = crparentID(1:napxo)
+  pstop(1:napxo)     = crpstop(1:napxo)
+  llostp(1:napxo)    = crllostp(1:napxo)
+
+  xv1(1:napxo)       = crxv1(1:napxo)
+  yv1(1:napxo)       = cryv1(1:napxo)
+  xv2(1:napxo)       = crxv2(1:napxo)
+  yv2(1:napxo)       = cryv2(1:napxo)
+  sigmv(1:napxo)     = crsigmv(1:napxo)
+
+  dpsv(1:napxo)      = crdpsv(1:napxo)
+  dpsv1(1:napxo)     = crdpsv1(1:napxo)
+  oidpsv(1:napxo)    = one/(one + dpsv(1:napxo))
+  moidpsv(1:napxo)   = mtc(1:napxo)/(one + dpsv(1:napxo))
+  omoidpsv(1:napxo)  = ((one-mtc(1:napxo))*oidpsv(1:napxo))*c1e3
+  ejv(1:napxo)       = crejv(1:napxo)
+  ejfv(1:napxo)      = crejfv(1:napxo)
+  rvv(1:napx)        = (ejv(1:napxo)*e0f)/(e0*ejfv(1:napxo))
+
+  aperv(1:napxo,1:2) = craperv(1:napxo,1:2)
   do j=1,napxo
-    numxv(j)=crnumxv(j)
-    nnumxv(j)=crnnumxv(j)
-    partID(j)=crpartID(j)
-    parentID(j)=crparentID(j)
-    pstop(j)=crpstop(j)
-    llostp(j)=crllostp(j)
-    xv1(j)=crxv(1,j)
-    yv1(j)=cryv(1,j)
-    xv2(j)=crxv(2,j)
-    yv2(j)=cryv(2,j)
-    sigmv(j)=crsigmv(j)
-    dpsv(j)=crdpsv(j)
-    dpsv1(j)=crdpsv1(j)
-    ! TEMPORARY? fix for crabamp/multipole problem
-    !       oidpsv(j)=croidpsv(j)
-    oidpsv(j)=one/(one+dpsv(j))
-    moidpsv(j)=mtc(j)/(one+dpsv(j))
-    omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-    ejv(j)=crejv(j)
-    ejfv(j)=crejfv(j)
-    rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-    aperv(j,1)=craperv(j,1)
-    aperv(j,2)=craperv(j,2)
     if(pstop(j) .eqv. .false.) then
-      numxv(j)=numl
-      nnumxv(j)=numl
-    endif
+      numxv(j)  = numl
+      nnumxv(j) = numl
+    end if
   end do
 
-  !ERIC new extended checkpoint for synuthck
   call meta_crstart
-  if(dynk_enabled) call dynk_crstart
-  if(scatter_active) call scatter_crstart
+  if(dynk_enabled) then
+    call dynk_crstart
+  end if
+  if(scatter_active) then
+    call scatter_crstart
+  end if
   call hions_crstart
-  if(melens .gt. 0) call elens_crstart
+  if(melens > 0) then
+    call elens_crstart
+  end if
 
+  ! New extended checkpoint for synuthck (ERIC)
   if(cr_sythck) then
-    !ERICVARS now read the extended vars from fort.95/96.
+    ! Now read the extended vars from fort.95/96.
     if(cril /= il) then
-      write(lout,"(2(a,i0))") "SIXTRACR> CRSTART Problem as cril/il are different cril = ",cril,", il = ",il
-      write(93,  "(2(a,i0))") "SIXTRACR> CRSTART Problem as cril/il are different cril = ",cril,", il = ",il
+      write(lout,"(2(a,i0))") "CR_START> ERROR Problem as cril/il are different cril = ",cril,", il = ",il
+      write(93,  "(2(a,i0))") "CR_START> ERROR Problem as cril/il are different cril = ",cril,", il = ",il
       flush(93)
-      write(lerr,"(a)") "SIXTRACR> ERROR CRSTART Problem wih cril/il extended C/R"
       call prror
     end if
     if(cr_pntRead(1)) then
@@ -1100,7 +1107,7 @@ subroutine crstart
 
       read(cr_pntUnit(1),end=100,err=100,iostat=ierro) &
         (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
-      write(93,"(a)") "SIXTRACR> CRSTART Read "//cr_pntFile(1)//" EXTENDED OK"
+      write(93,"(a)") "CR_START> Read "//cr_pntFile(1)//" EXTENDED OK"
       flush(93)
       goto 102
     end if
@@ -1113,44 +1120,29 @@ subroutine crstart
       read(cr_pntUnit(2),end=101,err=101,iostat=ierro) &
         (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
 
-      write(93,"(a)") "SIXTRACR> CRSTART Read "//cr_pntFile(2)//" EXTENDED OK"
+      write(93,"(a)") "CR_START> Read "//cr_pntFile(2)//" EXTENDED OK"
       flush(93)
       goto 102
     end if
 100 continue
-    write(93,"(a,i0)") "SIXTRACR> CRSTART Could not read checkpoint file "//cr_pntFile(1)//" (extended), iostat = ",ierro
-    goto 103
+    write(93,"(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(1)//" (extended), iostat = ",ierro
+    call prror
 101 continue
-    write(93,"(a,i0)") "SIXTRACR> CRSTART Could not read checkpoint file "//cr_pntFile(2)//" (extended), iostat = ",ierro
-103 continue
-    flush(93)
-    write(lerr,"(a)") "SIXTRACR> ERROR CRSTART Problem with extended checkpoint"
+    write(93,"(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(2)//" (extended), iostat = ",ierro
     call prror
   end if
 
 102 continue
-  write(93,"(3(a,i0))") "SIXTRACR> CRSTART sixrecs = ",sixrecs,", crsixrecs = ",crsixrecs,", binrec = ",binrec
+  write(93,"(3(a,i0))") "CR_START> Sixrecs = ",sixrecs,", crsixrecs = ",crsixrecs,", binrec = ",binrec
   flush(93)
 
   ! Just throw away our fort.92 stuff.
-  rewind(lout)
-  endfile(lout,iostat=ierro)
-  close(lout)
-
-  call f_open(unit=lout,file=cr_outFile,formatted=.true.,mode="rw",err=fErr)
-  ! but also add the rerun message
+  call f_close(lout)
+  call f_open(unit=lout,file=cr_outFile,formatted=.true.,mode="rw",err=fErr,status="replace")
   write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
   write(lout,"(a)") "SIXTRACR>  Restarted"
   write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
-  endfile(lout,iostat=ierro)
-  backspace(lout,iostat=ierro)
-
-  return
-
-606 continue
-  backspace(6,iostat=ierro)
-  write(lout,"(2(a,i0))") "SIXTRACR> CRSTART Problem re-positioning fort.6: sixrecs = ",sixrecs,", crsixrecs = ",crsixrecs
-  call prror
+  flush(lout)
 
 end subroutine crstart
 
