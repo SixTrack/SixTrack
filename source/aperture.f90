@@ -1707,7 +1707,7 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
   integer jj
 
   oApe(:)=zero
- 
+
   if( sameAperture(ixUp,ixDw ) ) then
     ! constant aperture - no need to interpolate
     oKApe=kape(ixUp)
@@ -1717,7 +1717,7 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
     ! type: we may interpolate the same aperture type
     oKApe=-1 ! transition
     if( kape(ixUp).eq.kape(ixDw) ) oKApe=kape(ixUp)
-     
+
     ! actual interpolation
     ddcum = spos-dcum(iUp)
     if( ddcum.lt.zero ) ddcum=dcum(iu)+ddcum
@@ -1730,7 +1730,7 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
         oApe(jj)=((ape(jj,ixDw)-ape(jj,ixUp))/mdcum)*ddcum+ape(jj,ixUp)
       end if
     end do
-    
+
   end if
   return
 end subroutine interp_aperture
@@ -3060,6 +3060,9 @@ subroutine aper_crcheck_readdata(fileunit, readerr)
 
 100 continue
   readerr = .true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in APERTURE"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in APERTURE"
+  flush(93)
 
 end subroutine aper_crcheck_readdata
 
@@ -3125,7 +3128,9 @@ subroutine aper_crpoint(fileunit,lerror,ierro)
 
 100 continue
   lerror = .true.
-  return
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in APERTURE"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in APERTURE"
+  flush(93)
 
 end subroutine aper_crpoint
 ! ================================================================================================================================ !

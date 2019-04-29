@@ -2900,10 +2900,10 @@ subroutine dynk_crcheck_readdata(fileunit,readerr)
   return
 
 100 continue
-
-  write(lout,"(a,i0)") "SIXTRACR> ERROR Reading in dynk_crcheck; fileunit = ",fileunit
-  write(93,"(a,i0)")   "SIXTRACR> ERROR Reading in dynk_crcheck; fileunit = ",fileunit
   readerr=.true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in DYNK"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in DYNK"
+  flush(93)
 
 end subroutine dynk_crcheck_readdata
 
@@ -2994,7 +2994,11 @@ subroutine dynk_crpoint(fileunit,fileerror,ierro)
   return
 
 100 continue
-    fileerror=.true.
+  fileerror = .true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in DYNK"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in DYNK"
+  flush(93)
+
 end subroutine dynk_crpoint
 
 ! ================================================================================================ !

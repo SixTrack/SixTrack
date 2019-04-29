@@ -480,11 +480,12 @@ subroutine crcheck
     write(93,"(2(a,l1),7(a,i0))") "SIXTRACR> CRCHECK read95=",read95,", read96=",read96,&
       ", crnapxo=",crnapxo,", crbinrec=",crbinrec,", napx=",napx,", sixrecs=",sixrecs,  &
       ", crsixrecs=",crsixrecs,", crbnlrec=",crbnlrec,", crbllrec=",crbllrec
-    ! Very spammy on large simulations. Enable if needed for debugging.
-    ! write(93,"(a)") "SIXTRACR> CRCHECK crbinrecs:"
-    ! do j=1,(crnapxo+1)/2
-    !   write(93,"(2(a,i0))") "SIXTRACR> ",j,": ",crbinrecs(j)
-    ! end do
+#ifndef STF
+    write(93,"(a)") "SIXTRACR> CRCHECK crbinrecs:"
+    do j=1,(crnapxo+1)/2
+      write(93,"(2(a,i0))") "SIXTRACR> ",j,": ",crbinrecs(j)
+    end do
+#endif
     flush(93)
 
     ! First we position fort.6 to last checkpoint

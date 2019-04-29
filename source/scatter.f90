@@ -1497,9 +1497,10 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
   return
 
 10 continue
-  write(lout,"(a,i0)") "SIXTRACR> ERROR Reading in scatter_crcheck; fileUnit = ",fileUnit
-  write(93,  "(a,i0)") "SIXTRACR> ERROR Reading in scatter_crcheck; fileUnit = ",fileUnit
   readErr = .true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in SCATTER"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in SCATTER"
+  flush(93)
 
 end subroutine scatter_crcheck_readdata
 
@@ -1604,6 +1605,8 @@ end subroutine scatter_crcheck_positionFiles
 ! =================================================================================================
 subroutine scatter_crpoint(fileUnit, writeErr, iError)
 
+  use crcoall
+
   integer, intent(in)    :: fileUnit
   logical, intent(out)   :: writeErr
   integer, intent(inout) :: iError
@@ -1618,6 +1621,9 @@ subroutine scatter_crpoint(fileUnit, writeErr, iError)
 
 10 continue
   writeErr = .true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in SCATTER"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in SCATTER"
+  flush(93)
 
 end subroutine scatter_crpoint
 

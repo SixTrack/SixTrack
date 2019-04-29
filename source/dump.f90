@@ -1781,6 +1781,9 @@ subroutine dump_crcheck_readdata(fileunit, readerr)
 
 100 continue
   readerr = .true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in DUMP"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in DUMP"
+  flush(93)
 
 end subroutine dump_crcheck_readdata
 
@@ -1902,7 +1905,9 @@ subroutine dump_crpoint(fileunit,lerror,ierro)
 
 100 continue
   lerror = .true.
-  return
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in DUMP"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in DUMP"
+  flush(93)
 
 end subroutine dump_crpoint
 ! ================================================================================================================================ !
