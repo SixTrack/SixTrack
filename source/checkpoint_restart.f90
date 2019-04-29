@@ -1,10 +1,22 @@
-
+! ================================================================================================ !
+!  SixTrack Checkpoint/Restart Module
+! ====================================
+!  E. McIntosh
+!  K.N. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2019-04-29
+! ================================================================================================ !
 module checkpoint_restart
 
-  use floatPrecision
   use parpro
+  use floatPrecision
 
   implicit none
+
+  ! CR Files
+  character(len=15),   public, save :: cr_pntFile(2)  = ["crpoint_pri.bin","crponit_sec.bin"]
+  integer,             public, save :: cr_pntUnit(2)  = -1
+  logical,             public, save :: cr_pntExist(2) = .false.
+  logical,             public, save :: cr_pntRead(2)  = .false.
 
   real,                public, save :: crtime3
   real(kind=fPrec),    public, save :: cre0
@@ -34,10 +46,6 @@ module checkpoint_restart
   logical,             public, save :: start
   logical,             public, save :: restart
   logical,             public, save :: checkp
-  logical,             public, save :: fort95
-  logical,             public, save :: fort96
-  logical,             public, save :: read95
-  logical,             public, save :: read96
   logical,             public, save :: crsythck
 
   real(kind=fPrec),    allocatable, public, save :: crxv(:,:)    ! (2,npart)
@@ -66,6 +74,32 @@ module checkpoint_restart
   character(len=10),   public, save :: cr_moddate
 
 contains
+
+! ================================================================================================ !
+!  INIT CRPOINT FILES
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-04-29
+!  Updated: 2019-04-29
+! ================================================================================================ !
+subroutine cr_fileInit
+
+  use mod_units
+
+  integer i
+  logical fErr
+
+  do i=1,2
+    fErr = .false.
+    call f_requestUnit(cr_pntFile(i),cr_pntUnit(i))
+    call f_open(unit=cr_pntUnit(i),file=cr_pntFile(i),formatted=.false.,mode="rw",err=fErr,status="old")
+    if(fErr) then
+      call f_open(unit=cr_pntUnit(i),file=cr_pntFile(i),formatted=.false.,mode="rw",err=fErr,status="new")
+    else
+      cr_pntExist(i) = .true.
+    end if
+  end do
+
+end subroutine cr_fileInit
 
 ! ================================================================================================ !
 !  CR ALLOCATE ARRAYS
@@ -235,14 +269,13 @@ subroutine crcheck
   if(npart /= crnpart_old) call cr_expand_arrays(npart)
 
   restart = .false.
-  read95  = .false.
-  read96  = .false.
+  cr_pntRead(:) = .false.
   ! Some log entries to fort.93
   write(93,"(a,i0,3(a,l1))") "SIXTRACR> CRCHECK CALLED lout=",lout," restart=",restart," rerun=",rerun," checkp=",checkp
   flush(93)
   ! We are not checkpoint/restart or we have no restart files
   if (.not.checkp) goto 605
-  if (.not.fort95.and..not.fort96) goto 605
+  if (.not.cr_pntExist(1).and..not.cr_pntExist(2)) goto 605
   ! If we do we must have a fort.6 as they were created by CRPOINT
   ! NOT TRUE anymore??? We might be NOT rerun but using a Sixin.zip
 #ifndef BOINC
@@ -254,12 +287,12 @@ subroutine crcheck
   ! Check at least one restart file is readable
   write(93,"(a)") "SIXTRACR> CRCHECK checking fort.95/96"
   flush(93)
-  if (fort95) then
+  if(cr_pntExist(1)) then
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 1 VERSION"
     flush(93)
 
-    rewind(95)
-    read(95,err=100,end=100) cr_version,cr_moddate
+    rewind(cr_pntUnit(1))
+    read(cr_pntUnit(1),err=100,end=100) cr_version,cr_moddate
     if ((cr_version /= version) .or. (cr_moddate /= moddate)) then
       write(93,"(a)") "SIXTRACR> CRCHECK: fort.95 was written by SixTrack version="//cr_version//" moddate="//cr_moddate
       write(93,"(a)") "          This is SixTrack version="//version//" moddate="//moddate
@@ -270,12 +303,12 @@ subroutine crcheck
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 2"
     flush(93)
-    read(95,err=100,end=100) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec, &
+    read(cr_pntUnit(1),err=100,end=100) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec, &
          crsythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel,crbrho
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 3"
     flush(93)
-    read(95,err=100,end=100) &
+    read(cr_pntUnit(1),err=100,end=100) &
       (crbinrecs(j),j=1,(crnapxo+1)/2), &
       (crnumxv(j),j=1,crnapxo),         &
       (crnnumxv(j),j=1,crnapxo),        &
@@ -297,44 +330,44 @@ subroutine crcheck
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record META"
     flush(93)
-    call meta_crcheck(95,lerror)
+    call meta_crcheck(cr_pntUnit(1),lerror)
     if(lerror) goto 100
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 5 DUMP"
     flush(93)
-    call dump_crcheck_readdata(95,lerror)
+    call dump_crcheck_readdata(cr_pntUnit(1),lerror)
     if (lerror) goto 100
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 5.5 HION"
     flush(93)
-    call hions_crcheck_readdata(95,lerror)
+    call hions_crcheck_readdata(cr_pntUnit(1),lerror)
     if (lerror) goto 100
 
     if (dynk_enabled) then
       write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 6 DYNK"
       flush(93)
-      call dynk_crcheck_readdata(95,lerror)
+      call dynk_crcheck_readdata(cr_pntUnit(1),lerror)
       if (lerror) goto 100
     end if
 
     if(scatter_active) then
       write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 7 SCATTER"
       flush(93)
-      call scatter_crcheck_readdata(95,lerror)
+      call scatter_crcheck_readdata(cr_pntUnit(1),lerror)
       if (lerror) goto 100
     end if
 
     if(limifound) then
       write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 8 APERTURE LOSSES FILE"
       flush(93)
-      call aper_crcheck_readdata(95,lerror)
+      call aper_crcheck_readdata(cr_pntUnit(1),lerror)
       if (lerror) goto 100
     end if
 
     if(melens .gt. 0) then
       write(93,"(a)") "SIXTRACR> CRCHECK reading fort.95 Record 9 ELENS"
       flush(93)
-      call elens_crcheck(95,lerror)
+      call elens_crcheck(cr_pntUnit(1),lerror)
       if (lerror) goto 100
     endif
 
@@ -345,33 +378,33 @@ subroutine crcheck
       ! We will re-read them in crstart to be sure they are restored correctly
       write(93,"(a,i0)") "SIXTRACR> CRCHECK verifying Record 10 extended vars fort.95 crnapxo=",crnapxo
       flush(93)
-      read(95,end=100,err=100,iostat=ierro) &
+      read(cr_pntUnit(1),end=100,err=100,iostat=ierro) &
         ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
         ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
         (dpd(j),j=1,crnapxo),(dpsq(j),j=1,crnapxo),(fokqv(j),j=1,crnapxo)
-      backspace (95,iostat=ierro)
+      backspace(cr_pntUnit(1),iostat=ierro)
       write(93,"(a)") "SIXTRACR> CRCHECK read fort.95 EXTENDED OK"
       flush(93)
       write(93,"(a)") "SIXTRACR> CRCHECK leaving fort.95 for CRSTART EXTENDED"
       flush(93)
     end if
-    read95=.true.
+    cr_pntRead(1) = .true.
     goto 103
   end if
 100 continue
-  if (.not.read95) then
+  if (.not.cr_pntRead(1)) then
     write(93,"(a)") "SIXTRACR> CRCHECK ERROR Could not read checkpoint file.95"
     flush(93)
   end if
-  if (fort96) then
+  if (cr_pntExist(2)) then
     write(93,"(a)") "SIXTRACR> CRCHECK Trying fort.96 instead"
     flush(93)
-    rewind(96)
+    rewind(cr_pntUnit(2))
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 1 VERSION"
     flush(93)
 
-    read(96,err=101,end=101) cr_version,cr_moddate
+    read(cr_pntUnit(2),err=101,end=101) cr_version,cr_moddate
     if ((cr_version /= version) .or. (cr_moddate /= moddate)) then
       write(93,"(a)") "SIXTRACR> CRCHECK: fort.96 was written by SixTrack version='"//cr_version//"' moddate='"//cr_moddate//"'"
       write(93,"(a)") "          This is SixTrack version='"//version//"' moddate='"//moddate//"'"
@@ -382,11 +415,11 @@ subroutine crcheck
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 2"
     flush(93)
-    read(96,err=101,end=101,iostat=ierro) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec,&
+    read(cr_pntUnit(2),err=101,end=101,iostat=ierro) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec,&
       crsythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel,crbrho
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 3"
     flush(93)
-    read(96,err=101,end=101,iostat=ierro) &
+    read(cr_pntUnit(2),err=101,end=101,iostat=ierro) &
       (crbinrecs(j),j=1,(crnapxo+1)/2),  &
       (crnumxv(j),j=1,crnapxo),          &
       (crnnumxv(j),j=1,crnapxo),         &
@@ -408,39 +441,39 @@ subroutine crcheck
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record META"
     flush(93)
-    call meta_crcheck(96,lerror)
+    call meta_crcheck(cr_pntUnit(2),lerror)
     if(lerror) goto 101
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 5 DUMP"
     flush(93)
-    call dump_crcheck_readdata(96,lerror)
+    call dump_crcheck_readdata(cr_pntUnit(2),lerror)
     if (lerror) goto 101
 
     if (dynk_enabled) then
       write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 6 DYNK"
       flush(93)
-      call dynk_crcheck_readdata(96,lerror)
+      call dynk_crcheck_readdata(cr_pntUnit(2),lerror)
       if (lerror) goto 101
     end if
 
     if(scatter_active) then
       write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 7 SCATTER"
       flush(93)
-      call scatter_crcheck_readdata(96,lerror)
+      call scatter_crcheck_readdata(cr_pntUnit(2),lerror)
       if (lerror) goto 101
     end if
 
     if(limifound) then
       write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 8 APERTURE LOSSES FILE"
       flush(93)
-      call aper_crcheck_readdata(96,lerror)
+      call aper_crcheck_readdata(cr_pntUnit(2),lerror)
       if (lerror) goto 101
     end if
 
     if(melens .gt. 0) then
       write(93,"(a)") "SIXTRACR> CRCHECK reading fort.96 Record 9 ELENS"
       flush(93)
-      call elens_crcheck(96,lerror)
+      call elens_crcheck(cr_pntUnit(2),lerror)
       if (lerror) goto 101
     endif
 
@@ -453,21 +486,21 @@ subroutine crcheck
       flush(93)
       write(93,"(a)") "SIXTRACR> CRCHECK verifying extended vars fort.96"
       flush(93)
-      read(96,end=101,err=101,iostat=ierro)                 &
+      read(cr_pntUnit(2),end=101,err=101,iostat=ierro)                 &
         ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
         ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
         (dpd(j),j=1,crnapxo),(dpsq(j),j=1,crnapxo),(fokqv(j),j=1,crnapxo)
-      backspace (96,iostat=ierro)
+      backspace(cr_pntUnit(2),iostat=ierro)
       write(93,"(a)") "SIXTRACR> CRCHECK read fort.96 EXTENDED OK"
       flush(93)
       write(93,"(a)") "SIXTRACR> CRCHECK Leaving fort.96 for CRSTART EXTENDED"
       flush(93)
     end if
-    read96=.true.
+    cr_pntRead(2) = .true.
     goto 103
   end if
 101 continue
-  if (.not.read96) then
+  if (.not.cr_pntRead(2)) then
     write(93,"(a)") "SIXTRACR> CRCHECK ERROR Could not read checkpoint file.96"
     flush(93)
   end if
@@ -476,8 +509,8 @@ subroutine crcheck
   ! If we have successfully read either fort.95 or fort.96
   ! we need to handle lost particles and ntwin .ne. 2
   ! Otherwise we just continue with checkpointing as requested
-  if(read95 .or. read96) then
-    write(93,"(2(a,l1),7(a,i0))") "SIXTRACR> CRCHECK read95=",read95,", read96=",read96,&
+  if(cr_pntRead(1) .or. cr_pntRead(2)) then
+    write(93,"(2(a,l1),7(a,i0))") "SIXTRACR> CRCHECK read95=",cr_pntRead(1),", read96=",cr_pntRead(2),&
       ", crnapxo=",crnapxo,", crbinrec=",crbinrec,", napx=",napx,", sixrecs=",sixrecs,  &
       ", crsixrecs=",crsixrecs,", crbnlrec=",crbnlrec,", crbllrec=",crbllrec
 #ifndef STF
@@ -897,17 +930,17 @@ subroutine crpoint
   !  Write the CR files
   ! ********************
 
-  do crUnit=95,96
+  do crUnit=1,2
 
     lerror = .false.
     if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
-      write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing fort.",crUnit
+      write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing fort.",cr_pntUnit(crUnit)
       flush(93)
     end if
-    rewind(crUnit)
+    rewind(cr_pntUnit(crUnit))
 
-    write(crUnit,err=100,iostat=ierro) version, moddate
-    write(crUnit,err=100,iostat=ierro) &
+    write(cr_pntUnit(crUnit),err=100,iostat=ierro) version, moddate
+    write(cr_pntUnit(crUnit),err=100,iostat=ierro) &
       crnumlcr,                     &
       numl,                         &
       sixrecs,                      &
@@ -922,7 +955,7 @@ subroutine crpoint
       e0,                           &
       betrel,                       &
       brho
-    write(crUnit,err=100,iostat=ierro) &
+    write(cr_pntUnit(crUnit),err=100,iostat=ierro) &
       (binrecs(j),j=1,(napxo+1)/2), &
       (numxv(j),j=1,napxo),         &
       (nnumxv(j),j=1,napxo),        &
@@ -941,88 +974,88 @@ subroutine crpoint
       (aperv(j,1),j=1,napxo),       &
       (aperv(j,2),j=1,napxo),       &
       (llostp(j),j=1,napxo)
-    endfile(crUnit,iostat=ierro)
-    backspace(crUnit,iostat=ierro)
+    endfile(cr_pntUnit(crUnit),iostat=ierro)
+    backspace(cr_pntUnit(crUnit),iostat=ierro)
 
     if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
-      write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing META variables to fort.",crUnit
+      write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing META variables to fort.",cr_pntUnit(crUnit)
       flush(93)
     end if
-    call meta_crpoint(crUnit,lerror,ierro)
+    call meta_crpoint(cr_pntUnit(crUnit),lerror,ierro)
     if(lerror) goto 100
 
     if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
-      write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing DUMP variables to fort.",crUnit
+      write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing DUMP variables to fort.",cr_pntUnit(crUnit)
       flush(93)
     end if
-    call dump_crpoint(crUnit, lerror,ierro)
+    call dump_crpoint(cr_pntUnit(crUnit), lerror,ierro)
     if(lerror) goto 100
 
     if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
-      write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing HION variables to fort.",crUnit
+      write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing HION variables to fort.",cr_pntUnit(crUnit)
       flush(93)
     end if
-    call hions_crpoint(crUnit,lerror,ierro)
+    call hions_crpoint(cr_pntUnit(crUnit),lerror,ierro)
     if(lerror) goto 100
 
     if(dynk_enabled) then
       if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
-        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing DYNK variables to fort.",crUnit
+        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing DYNK variables to fort.",cr_pntUnit(crUnit)
         flush(93)
       end if
-      call dynk_crpoint(crUnit,lerror,ierro)
+      call dynk_crpoint(cr_pntUnit(crUnit),lerror,ierro)
       if(lerror) goto 100
     end if
 
     if(scatter_active) then
       if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
-        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing SCATTER variabless to fort.",crUnit
+        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing SCATTER variabless to fort.",cr_pntUnit(crUnit)
         flush(93)
       end if
-      call scatter_crpoint(crUnit,lerror,ierro)
+      call scatter_crpoint(cr_pntUnit(crUnit),lerror,ierro)
       if(lerror) goto 100
     end if
 
     if(limifound) then
       if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
-        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing APERTURE LOSSES variables to fort.",crUnit
+        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing APERTURE LOSSES variables to fort.",cr_pntUnit(crUnit)
         flush(93)
       end if
-      call aper_crpoint(crUnit,lerror,ierro)
+      call aper_crpoint(cr_pntUnit(crUnit),lerror,ierro)
       if(lerror) goto 100
     end if
 
     if(melens .gt. 0) then
       if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
-        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing ELENS variables to fort.",crUnit
+        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing ELENS variables to fort.",cr_pntUnit(crUnit)
         flush(93)
       end if
-      call elens_crpoint(crUnit,lerror,ierro)
+      call elens_crpoint(cr_pntUnit(crUnit),lerror,ierro)
       if(lerror) goto 100
     end if
 
     if(sythckcr) then
       if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
-        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing EXTENDED varibless to fort.",crUnit
+        write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing EXTENDED varibless to fort.",cr_pntUnit(crUnit)
         flush(93)
       end if
       if(ithick == 1) then
         if(ncalls <= maxncalls .or. numx >= nnuml-maxncalls) then
-          write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing EXTENDED variabless for THICK to fort.",crUnit
+          write(93,"(a,i0)") "SIXTRACR> CRPOINT Writing EXTENDED variabless for THICK to fort.",cr_pntUnit(crUnit)
           flush(93)
         end if
-        write(crUnit,err=100,iostat=ierro) &
+        write(cr_pntUnit(crUnit),err=100,iostat=ierro) &
           ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6), &
           ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-        endfile(crUnit,iostat=ierro)
-        backspace(crUnit,iostat=ierro)
+        endfile(cr_pntUnit(crUnit),iostat=ierro)
+        backspace(cr_pntUnit(crUnit),iostat=ierro)
       end if
 
-      write(crUnit,err=100,iostat=ierro) &
+      write(cr_pntUnit(crUnit),err=100,iostat=ierro) &
         (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
 
-      endfile(crUnit,iostat=ierro)
-      backspace(crUnit,iostat=ierro)
+      endfile(cr_pntUnit(crUnit),iostat=ierro)
+      backspace(cr_pntUnit(crUnit),iostat=ierro)
     end if
 
   end do ! Loop over crUnit
@@ -1157,26 +1190,26 @@ subroutine crstart
       write(lerr,"(a)") "SIXTRACR> ERROR CRSTART Problem wih cril/il extended C/R"
       call prror
     end if
-    if(read95) then
+    if(cr_pntRead(1)) then
       if(ithick == 1) then
-        read(95,end=100,err=100,iostat=ierro) &
+        read(cr_pntUnit(1),end=100,err=100,iostat=ierro) &
           ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),&
           ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
       end if
 
-      read(95,end=100,err=100,iostat=ierro) &
+      read(cr_pntUnit(1),end=100,err=100,iostat=ierro) &
         (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
       write(93,"(a)") "SIXTRACR> CRSTART read fort.95 EXTENDED OK"
       flush(93)
       goto 102
     end if
-    if(read96) then
+    if(cr_pntRead(2)) then
       if(ithick == 1) then
-        read(96,end=101,err=101,iostat=ierro) &
+        read(cr_pntUnit(2),end=101,err=101,iostat=ierro) &
           ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6), &
           ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
       end if
-      read(96,end=101,err=101,iostat=ierro) &
+      read(cr_pntUnit(2),end=101,err=101,iostat=ierro) &
         (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
 
       write(93,"(a)") "SIXTRACR> CRSTART read fort.96 EXTENDED OK"

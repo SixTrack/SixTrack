@@ -185,8 +185,8 @@ program maincr
   start    = .true.
   restart  = .false.
   checkp   = .false.
-  fort95   = .false.
-  fort96   = .false.
+  cr_pntExist(1)   = .false.
+  cr_pntExist(2)   = .false.
   sixrecs  = 0
   binrec   = 0
   bnlrec   = 0
@@ -255,18 +255,7 @@ program maincr
     stxt = "SIXTRACR> Reruns on: "
     rerun=.true.
   end if
-  call f_open(unit=95,file="fort.95",formatted=.false.,mode="rw",err=fErr,status="old")
-  if(fErr) then
-    call f_open(unit=95,file="fort.95",formatted=.false.,mode="rw",err=fErr,status="new")
-  else
-    fort95 = .true.
-  end if
-  call f_open(unit=96,file="fort.96",formatted=.false.,mode="rw",err=fErr,status="old")
-  if(fErr) then
-    call f_open(unit=96,file="fort.96",formatted=.false.,mode="rw",err=fErr,status="new")
-  else
-    fort96 = .true.
-  end if
+  call cr_fileInit
 #else
   lerr = error_unit
   lout = output_unit
