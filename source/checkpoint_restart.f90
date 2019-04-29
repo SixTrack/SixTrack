@@ -220,14 +220,12 @@ subroutine cr_killSwitch(iTurn)
 end subroutine cr_killSwitch
 
 ! ================================================================================================ !
-!  CRCHECK
+!  Check CR Files
+! ================
 !  Last modified: 2018-12-05
 !
 !  This subroutine checks if the C/R files exist, and if so tries to load them into the cr* variables.
-!  This routine also repositions the output files for fort.90..91-napx/2 or STF, DUMP, DYNK and
-!     aperture losses
-!
-!  The file fort.93 is used as a log file for the checkpoint/restarting.
+!  This routine also repositions the output files for fort.90..91-napx/2 and various other modules
 ! ================================================================================================ !
 subroutine crcheck
 
@@ -1146,6 +1144,11 @@ subroutine crstart
 
 end subroutine crstart
 
+! ================================================================================================ !
+!  Copy lout to output_unit
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2019-04-29
+! ================================================================================================ !
 subroutine cr_copyOut
 
   use crcoall
