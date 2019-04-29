@@ -1446,10 +1446,9 @@ void UnlinkCRFiles() {
     unlinkFiles.push_back("fort.6");
     unlinkFiles.push_back("fort.10");
     unlinkFiles.push_back("fort.90");
-    unlinkFiles.push_back("fort.93");
-    unlinkFiles.push_back("fort.95");
-    unlinkFiles.push_back("fort.96");
-
+    unlinkFiles.push_back("cr_status.log");
+    unlinkFiles.push_back("crpoint_pri.bin");
+    unlinkFiles.push_back("crpoint_sec.bin");
     unlinkFiles.push_back("crrestartme.tmp");
     unlinkFiles.push_back("crkillswitch.tmp");
 
