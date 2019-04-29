@@ -43,19 +43,14 @@ module checkpoint_restart
 
   integer,             public, save :: crsixrecs
   integer,             public, save :: crbinrec
-  integer,             public, save :: crbnlrec
-  integer,             public, save :: crbllrec
   integer,             public, save :: cril
   integer,             public, save :: crnumlcr
   integer,             public, save :: crnuml
   integer,             public, save :: crnapxo
   integer,             public, save :: crnapx
   integer,             public, save :: binrec
-  integer,             public, save :: bnlrec
-  integer,             public, save :: bllrec
   integer,             public, save :: numlcr
   integer,             public, save :: sixrecs
-  integer,             public, save :: crksunit = -1             ! File unit for the kill switch file
 
   real(kind=fPrec),    allocatable, public, save :: crxv(:,:)    ! (2,npart)
   real(kind=fPrec),    allocatable, public, save :: cryv(:,:)    ! (2,npart)
@@ -163,7 +158,7 @@ subroutine cr_killSwitch(iTurn)
   integer, intent(in) :: iTurn
 
   logical killIt, fExist, onKillTurn
-  integer pTurn, nKills, i
+  integer pTurn, nKills, i, iUnit
 
   killIt = .false.
   onKillTurn = .false.
@@ -173,26 +168,24 @@ subroutine cr_killSwitch(iTurn)
       onKillTurn = .true.
     end if
   end do
-  if (onKillTurn .eqv. .false.) then
+  if(onKillTurn .eqv. .false.) then
     return
   end if
 
-  if(crksunit == -1) then
-    call f_requestUnit("crkillswitch.tmp",crksunit)
-  end if
+  call f_requestUnit("crkillswitch.tmp",iUnit)
 
   inquire(file="crkillswitch.tmp",exist=fExist)
   if(fExist .eqv. .false.) then
-    open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace",action="write")
-    write(crksunit) 0,0
-    flush(crksunit)
-    close(crksunit)
+    open(iUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace",action="write")
+    write(iUnit) 0,0
+    flush(iUnit)
+    close(iUnit)
   end if
 
-  open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")
-  read(crksunit) pTurn,nKills
-  flush(crksunit)
-  close(crksunit)
+  open(iUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")
+  read(iUnit) pTurn,nKills
+  flush(iUnit)
+  close(iUnit)
   if(st_debug .and. pTurn > 0) then
     write(lout,"(a,i0)") "CRKILL> Kill switch previously triggered on turn ",pTurn
     write(93,  "(a,i0)") "SIXTRACR> Kill switch previously triggered on turn ",pTurn
@@ -211,15 +204,15 @@ subroutine cr_killSwitch(iTurn)
     write(lout,"(a,i0)") "CRKILL> Triggering kill switch on turn ",iTurn
     write(93,  "(a,i0)") "SIXTRACR> Triggering kill switch on turn ",iTurn
 
-    open(crksunit,file="crrestartme.tmp",form="unformatted",access="stream",status="replace",action="write")
-    write(crksunit) 1
-    flush(crksunit)
-    close(crksunit)
+    open(iUnit,file="crrestartme.tmp",form="unformatted",access="stream",status="replace",action="write")
+    write(iUnit) 1
+    flush(iUnit)
+    close(iUnit)
 
-    open(crksunit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace",action="write")
-    write(crksunit) iTurn,nKills
-    flush(crksunit)
-    close(crksunit)
+    open(iUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace",action="write")
+    write(iUnit) iTurn,nKills
+    flush(iUnit)
+    close(iUnit)
     stop
   end if
 
@@ -311,7 +304,7 @@ subroutine crcheck
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading "//cr_pntFile(1)//" Record 2"
     flush(93)
-    read(cr_pntUnit(1),err=100,end=100) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec, &
+    read(cr_pntUnit(1),err=100,end=100) crnumlcr,crnuml,crsixrecs,crbinrec, &
       cr_sythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel,crbrho
 
     write(93,"(a)") "SIXTRACR> CRCHECK reading "//cr_pntFile(1)//" Record 3"
@@ -424,7 +417,7 @@ subroutine crcheck
 
     write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record 2"
     flush(93)
-    read(cr_pntUnit(2),err=101,end=101,iostat=ierro) crnumlcr,crnuml,crsixrecs,crbinrec,crbnlrec,crbllrec,&
+    read(cr_pntUnit(2),err=101,end=101,iostat=ierro) crnumlcr,crnuml,crsixrecs,crbinrec,&
       cr_sythck,cril,crtime3,crnapxo,crnapx,cre0,crbetrel,crbrho
     write(93,"(a)") "SIXTRACR> CRCHECK Reading "//cr_pntFile(2)//" Record 3"
     flush(93)
@@ -520,8 +513,7 @@ subroutine crcheck
   ! Otherwise we just continue with checkpointing as requested
   if(cr_pntRead(1) .or. cr_pntRead(2)) then
     write(93,"(2(a,l1),7(a,i0))") "SIXTRACR> CRCHECK read95=",cr_pntRead(1),", read96=",cr_pntRead(2),&
-      ", crnapxo=",crnapxo,", crbinrec=",crbinrec,", napx=",napx,", sixrecs=",sixrecs,  &
-      ", crsixrecs=",crsixrecs,", crbnlrec=",crbnlrec,", crbllrec=",crbllrec
+      ", crnapxo=",crnapxo,", crbinrec=",crbinrec,", napx=",napx,", sixrecs=",sixrecs,", crsixrecs=",crsixrecs
 #ifndef STF
     write(93,"(a)") "SIXTRACR> CRCHECK crbinrecs:"
     do j=1,(crnapxo+1)/2
@@ -954,8 +946,6 @@ subroutine crpoint
       numl,                         &
       sixrecs,                      &
       binrec,                       &
-      bnlrec,                       &
-      bllrec,                       &
       sythckcr,                     &
       il,                           &
       time3,                        &
@@ -1132,8 +1122,6 @@ subroutine crstart
   ! for more turns from the last checkpoint
   ! but we need to worry about numxv, nnumxv
   binrec   = crbinrec
-  bnlrec   = crbnlrec
-  bllrec   = crbllrec
   sythckcr = cr_sythck
 
   ! the crtime3 is required (crtime0/1 removed)

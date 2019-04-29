@@ -189,8 +189,6 @@ program maincr
   cr_pntExist(2)   = .false.
   sixrecs  = 0
   binrec   = 0
-  bnlrec   = 0
-  bllrec   = 0
   crtime3  = 0.0
   ! do i=1,(npart+1)/2
   !   binrecs(i) = 0
