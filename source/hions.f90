@@ -6,10 +6,9 @@
 module mod_hions
 
   use floatPrecision
-  use parpro
-  use mod_alloc
-  use physical_constants, only : pmap
+  use physical_constants,  only : pmap
   use numerical_constants, only : zero, one, c1e3
+
   use, intrinsic :: iso_fortran_env, only : int16
 
   implicit none
@@ -53,48 +52,42 @@ module mod_hions
   integer, allocatable, save :: pids(:) !(npart)
 
 #ifdef CR
-  real(kind=fPrec),                 save :: nucmda_cr
-  real(kind=fPrec),                 save :: ien0_cr
-  real(kind=fPrec),                 save :: ien1_cr
-  integer(kind=int16),              save :: nnuc0_cr
-  integer(kind=int16),              save :: nnuc1_cr
-  real(kind=fPrec),    allocatable, save :: nucm_cr(:)
-  real(kind=fPrec),    allocatable, save :: moidpsv_cr(:)
-  real(kind=fPrec),    allocatable, save :: omoidpsv_cr(:)
-  real(kind=fPrec),    allocatable, save :: mtc_cr(:)
-  integer(kind=int16), allocatable, save :: naa_cr(:)
-  integer(kind=int16), allocatable, save :: nzz_cr(:)
-  integer,             allocatable, save :: pids_cr(:)
+  real(kind=fPrec),                 private, save :: nucmda_cr
+  real(kind=fPrec),                 private, save :: ien0_cr
+  real(kind=fPrec),                 private, save :: ien1_cr
+  integer(kind=int16),              private, save :: nnuc0_cr
+  integer(kind=int16),              private, save :: nnuc1_cr
+  real(kind=fPrec),    allocatable, private, save :: nucm_cr(:)
+  real(kind=fPrec),    allocatable, private, save :: moidpsv_cr(:)
+  real(kind=fPrec),    allocatable, private, save :: omoidpsv_cr(:)
+  real(kind=fPrec),    allocatable, private, save :: mtc_cr(:)
+  integer(kind=int16), allocatable, private, save :: naa_cr(:)
+  integer(kind=int16), allocatable, private, save :: nzz_cr(:)
+  integer,             allocatable, private, save :: pids_cr(:)
 #endif
 
 contains
 
-subroutine hions_allocate_arrays
-  call alloc(nucm,npart,nucm0,'nucm')
-  call alloc(moidpsv,npart,one,'moidpsv')
-  call alloc(omoidpsv,npart,zero,'omoidpsv')
-  call alloc(mtc,npart,one,'mtc')
-  call alloc(naa,npart,aa0,'naa')
-  call alloc(nzz,npart,zz0,'nzz')
-  call alloc(pids,npart,0,'pids')
-end subroutine hions_allocate_arrays
-
 subroutine hions_expand_arrays(npart_new)
+
+  use mod_alloc
+
   integer, intent(in) :: npart_new
-  call alloc(nucm,npart_new,nucm0,'nucm')
-  call alloc(moidpsv,npart_new,one,'moidpsv')
-  call alloc(omoidpsv,npart_new,zero,'omoidpsv')
-  call alloc(mtc,npart_new,one,'mtc')
-  call alloc(naa,npart_new,aa0,'naa')
-  call alloc(nzz,npart_new,zz0,'nzz')
-  call alloc(pids,npart_new,0,'pids')
+
+  call alloc(nucm,    npart_new,nucm0,"nucm")
+  call alloc(moidpsv, npart_new,one,  "moidpsv")
+  call alloc(omoidpsv,npart_new,zero, "omoidpsv")
+  call alloc(mtc,     npart_new,one,  "mtc")
+  call alloc(naa,     npart_new,aa0,  "naa")
+  call alloc(nzz,     npart_new,zz0,  "nzz")
+  call alloc(pids,    npart_new,0,    "pids")
+
 end subroutine hions_expand_arrays
 
 subroutine hions_parseInputLine(inLine, iLine, iErr)
 
+  use crcoall
   use string_tools
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -132,6 +125,7 @@ end subroutine hions_parseInputLine
 
 subroutine hions_postInput
 
+  use crcoall
   use mod_common, only : pma
 
   if(.not. has_hion) then
@@ -158,7 +152,8 @@ end subroutine hions_postInput
 #ifdef CR
 subroutine hions_crpoint(fileUnit, writeErr, iErro)
 
-  implicit none
+  use crcoall
+  use mod_common, only : napxo
 
   integer, intent(in)    :: fileUnit
   logical, intent(inout) :: writeErr
@@ -167,13 +162,13 @@ subroutine hions_crpoint(fileUnit, writeErr, iErro)
   integer i
 
   write(fileUnit,err=10,iostat=iErro) nucmda,ien0,ien1,nnuc0,nnuc1
-  write(fileUnit,err=10,iostat=iErro) (nucm(i),     i=1, npart)
-  write(fileUnit,err=10,iostat=iErro) (moidpsv(i),  i=1, npart)
-  write(fileUnit,err=10,iostat=iErro) (omoidpsv(i), i=1, npart)
-  write(fileUnit,err=10,iostat=iErro) (mtc(i),      i=1, npart)
-  write(fileUnit,err=10,iostat=iErro) (naa(i),      i=1, npart)
-  write(fileUnit,err=10,iostat=iErro) (nzz(i),      i=1, npart)
-  write(fileUnit,err=10,iostat=iErro) (pids(i),     i=1, npart)
+  write(fileUnit,err=10,iostat=iErro) (nucm(i),     i=1, napxo)
+  write(fileUnit,err=10,iostat=iErro) (moidpsv(i),  i=1, napxo)
+  write(fileUnit,err=10,iostat=iErro) (omoidpsv(i), i=1, napxo)
+  write(fileUnit,err=10,iostat=iErro) (mtc(i),      i=1, napxo)
+  write(fileUnit,err=10,iostat=iErro) (naa(i),      i=1, napxo)
+  write(fileUnit,err=10,iostat=iErro) (nzz(i),      i=1, napxo)
+  write(fileUnit,err=10,iostat=iErro) (pids(i),     i=1, napxo)
   endfile(fileUnit,iostat=iErro)
   backspace(fileUnit,iostat=iErro)
 
@@ -190,30 +185,30 @@ end subroutine hions_crpoint
 subroutine hions_crcheck_readdata(fileUnit, readErr)
 
   use crcoall
-
-  implicit none
+  use mod_alloc
+  use mod_common, only : napxo
 
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: readErr
 
   integer i
 
-  call alloc(nucm_cr,    npart,nucm0,"nucm_cr")
-  call alloc(moidpsv_cr, npart,one,  "moidpsv_cr")
-  call alloc(omoidpsv_cr,npart,zero, "omoidpsv_cr")
-  call alloc(mtc_cr,     npart,one,  "mtc_cr")
-  call alloc(naa_cr,     npart,aa0,  "naa_cr")
-  call alloc(nzz_cr,     npart,zz0,  "nzz_cr")
-  call alloc(pids_cr,    npart,0,    "pids_cr")
+  call alloc(nucm_cr,    napxo,nucm0,"nucm_cr")
+  call alloc(moidpsv_cr, napxo,one,  "moidpsv_cr")
+  call alloc(omoidpsv_cr,napxo,zero, "omoidpsv_cr")
+  call alloc(mtc_cr,     napxo,one,  "mtc_cr")
+  call alloc(naa_cr,     napxo,aa0,  "naa_cr")
+  call alloc(nzz_cr,     napxo,zz0,  "nzz_cr")
+  call alloc(pids_cr,    napxo,0,    "pids_cr")
 
   read(fileunit,err=10,end=10) nucmda_cr,ien0_cr,ien1_cr,nnuc0_cr,nnuc1_cr
-  read(fileunit,err=10,end=10) (nucm_cr(i),     i=1, npart)
-  read(fileunit,err=10,end=10) (moidpsv_cr(i),  i=1, npart)
-  read(fileunit,err=10,end=10) (omoidpsv_cr(i), i=1, npart)
-  read(fileunit,err=10,end=10) (mtc_cr(i),      i=1, npart)
-  read(fileunit,err=10,end=10) (naa_cr(i),      i=1, npart)
-  read(fileunit,err=10,end=10) (nzz_cr(i),      i=1, npart)
-  read(fileunit,err=10,end=10) (pids_cr(i),     i=1, npart)
+  read(fileunit,err=10,end=10) (nucm_cr(i),     i=1, napxo)
+  read(fileunit,err=10,end=10) (moidpsv_cr(i),  i=1, napxo)
+  read(fileunit,err=10,end=10) (omoidpsv_cr(i), i=1, napxo)
+  read(fileunit,err=10,end=10) (mtc_cr(i),      i=1, napxo)
+  read(fileunit,err=10,end=10) (naa_cr(i),      i=1, napxo)
+  read(fileunit,err=10,end=10) (nzz_cr(i),      i=1, napxo)
+  read(fileunit,err=10,end=10) (pids_cr(i),     i=1, napxo)
 
   readErr = .false.
   return
@@ -228,7 +223,8 @@ end subroutine hions_crcheck_readdata
 
 subroutine hions_crstart
 
-  implicit none
+  use mod_alloc
+  use mod_common, only : napxo
 
   nucmda = nucmda_cr
   ien0   = ien0_cr
@@ -236,13 +232,13 @@ subroutine hions_crstart
   nnuc0  = nnuc0_cr
   nnuc1  = nnuc1_cr
 
-  nucm(1:npart)     = nucm_cr(1:npart)
-  moidpsv(1:npart)  = moidpsv_cr(1:npart)
-  omoidpsv(1:npart) = omoidpsv_cr(1:npart)
-  mtc(1:npart)      = mtc_cr(1:npart)
-  naa(1:npart)      = naa_cr(1:npart)
-  nzz(1:npart)      = nzz_cr(1:npart)
-  pids(1:npart)     = pids_cr(1:npart)
+  nucm(1:napxo)     = nucm_cr(1:napxo)
+  moidpsv(1:napxo)  = moidpsv_cr(1:napxo)
+  omoidpsv(1:napxo) = omoidpsv_cr(1:napxo)
+  mtc(1:napxo)      = mtc_cr(1:napxo)
+  naa(1:napxo)      = naa_cr(1:napxo)
+  nzz(1:napxo)      = nzz_cr(1:napxo)
+  pids(1:napxo)     = pids_cr(1:napxo)
 
   call dealloc(nucm_cr,    "nucm_cr")
   call dealloc(moidpsv_cr, "moidpsv_cr")
