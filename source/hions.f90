@@ -150,28 +150,28 @@ subroutine hions_postInput
 end subroutine hions_postInput
 
 #ifdef CR
-subroutine hions_crpoint(fileUnit, writeErr, iErro)
+subroutine hions_crpoint(fileUnit, writeErr, iErr)
 
+  use parpro
   use crcoall
-  use mod_common, only : napxo
 
-  integer, intent(in)    :: fileUnit
-  logical, intent(inout) :: writeErr
-  integer, intent(inout) :: iErro
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: writeErr
+  integer, intent(out) :: iErr
 
   integer i
 
-  write(fileUnit,err=10,iostat=iErro) nucmda,ien0,ien1,nnuc0,nnuc1
-  write(fileUnit,err=10,iostat=iErro) (nucm(i),     i=1, napxo)
-  write(fileUnit,err=10,iostat=iErro) (moidpsv(i),  i=1, napxo)
-  write(fileUnit,err=10,iostat=iErro) (omoidpsv(i), i=1, napxo)
-  write(fileUnit,err=10,iostat=iErro) (mtc(i),      i=1, napxo)
-  write(fileUnit,err=10,iostat=iErro) (naa(i),      i=1, napxo)
-  write(fileUnit,err=10,iostat=iErro) (nzz(i),      i=1, napxo)
-  write(fileUnit,err=10,iostat=iErro) (pids(i),     i=1, napxo)
-  endfile(fileUnit,iostat=iErro)
-  backspace(fileUnit,iostat=iErro)
+  write(fileUnit,err=10,iostat=iErr) nucmda,ien0,ien1,nnuc0,nnuc1
+  write(fileUnit,err=10,iostat=iErr) (nucm(i),     i=1, npart)
+  write(fileUnit,err=10,iostat=iErr) (moidpsv(i),  i=1, npart)
+  write(fileUnit,err=10,iostat=iErr) (omoidpsv(i), i=1, npart)
+  write(fileUnit,err=10,iostat=iErr) (mtc(i),      i=1, npart)
+  write(fileUnit,err=10,iostat=iErr) (naa(i),      i=1, npart)
+  write(fileUnit,err=10,iostat=iErr) (nzz(i),      i=1, npart)
+  write(fileUnit,err=10,iostat=iErr) (pids(i),     i=1, npart)
+  flush(fileUnit)
 
+  writeErr = .false.
   return
 
 10 continue
@@ -184,31 +184,31 @@ end subroutine hions_crpoint
 
 subroutine hions_crcheck_readdata(fileUnit, readErr)
 
+  use parpro
   use crcoall
   use mod_alloc
-  use mod_common, only : napxo
 
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: readErr
 
   integer i
 
-  call alloc(nucm_cr,    napxo,nucm0,"nucm_cr")
-  call alloc(moidpsv_cr, napxo,one,  "moidpsv_cr")
-  call alloc(omoidpsv_cr,napxo,zero, "omoidpsv_cr")
-  call alloc(mtc_cr,     napxo,one,  "mtc_cr")
-  call alloc(naa_cr,     napxo,aa0,  "naa_cr")
-  call alloc(nzz_cr,     napxo,zz0,  "nzz_cr")
-  call alloc(pids_cr,    napxo,0,    "pids_cr")
+  call alloc(nucm_cr,    npart,nucm0,"nucm_cr")
+  call alloc(moidpsv_cr, npart,one,  "moidpsv_cr")
+  call alloc(omoidpsv_cr,npart,zero, "omoidpsv_cr")
+  call alloc(mtc_cr,     npart,one,  "mtc_cr")
+  call alloc(naa_cr,     npart,aa0,  "naa_cr")
+  call alloc(nzz_cr,     npart,zz0,  "nzz_cr")
+  call alloc(pids_cr,    npart,0,    "pids_cr")
 
   read(fileunit,err=10,end=10) nucmda_cr,ien0_cr,ien1_cr,nnuc0_cr,nnuc1_cr
-  read(fileunit,err=10,end=10) (nucm_cr(i),     i=1, napxo)
-  read(fileunit,err=10,end=10) (moidpsv_cr(i),  i=1, napxo)
-  read(fileunit,err=10,end=10) (omoidpsv_cr(i), i=1, napxo)
-  read(fileunit,err=10,end=10) (mtc_cr(i),      i=1, napxo)
-  read(fileunit,err=10,end=10) (naa_cr(i),      i=1, napxo)
-  read(fileunit,err=10,end=10) (nzz_cr(i),      i=1, napxo)
-  read(fileunit,err=10,end=10) (pids_cr(i),     i=1, napxo)
+  read(fileunit,err=10,end=10) (nucm_cr(i),     i=1, npart)
+  read(fileunit,err=10,end=10) (moidpsv_cr(i),  i=1, npart)
+  read(fileunit,err=10,end=10) (omoidpsv_cr(i), i=1, npart)
+  read(fileunit,err=10,end=10) (mtc_cr(i),      i=1, npart)
+  read(fileunit,err=10,end=10) (naa_cr(i),      i=1, npart)
+  read(fileunit,err=10,end=10) (nzz_cr(i),      i=1, npart)
+  read(fileunit,err=10,end=10) (pids_cr(i),     i=1, npart)
 
   readErr = .false.
   return
@@ -223,8 +223,8 @@ end subroutine hions_crcheck_readdata
 
 subroutine hions_crstart
 
+  use parpro
   use mod_alloc
-  use mod_common, only : napxo
 
   nucmda = nucmda_cr
   ien0   = ien0_cr
@@ -232,13 +232,13 @@ subroutine hions_crstart
   nnuc0  = nnuc0_cr
   nnuc1  = nnuc1_cr
 
-  nucm(1:napxo)     = nucm_cr(1:napxo)
-  moidpsv(1:napxo)  = moidpsv_cr(1:napxo)
-  omoidpsv(1:napxo) = omoidpsv_cr(1:napxo)
-  mtc(1:napxo)      = mtc_cr(1:napxo)
-  naa(1:napxo)      = naa_cr(1:napxo)
-  nzz(1:napxo)      = nzz_cr(1:napxo)
-  pids(1:napxo)     = pids_cr(1:napxo)
+  nucm(1:npart)     = nucm_cr(1:npart)
+  moidpsv(1:npart)  = moidpsv_cr(1:npart)
+  omoidpsv(1:npart) = omoidpsv_cr(1:npart)
+  mtc(1:npart)      = mtc_cr(1:npart)
+  naa(1:npart)      = naa_cr(1:npart)
+  nzz(1:npart)      = nzz_cr(1:npart)
+  pids(1:npart)     = pids_cr(1:npart)
 
   call dealloc(nucm_cr,    "nucm_cr")
   call dealloc(moidpsv_cr, "moidpsv_cr")
