@@ -1614,7 +1614,7 @@ program maincr
 ! ---------------------------------------------------------------------------- !
 
 #ifdef CR
-  call abend('                                                  ')
+  call abend("Done")
 #else
   call closeUnits
   stop

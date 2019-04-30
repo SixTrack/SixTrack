@@ -494,7 +494,7 @@ program mainda
   call meta_finalise
   call closeUnits
 #ifdef CR
-  call abend('                                                  ')
+  call abend("Done")
 #else
   stop
 #endif
