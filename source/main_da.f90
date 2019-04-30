@@ -131,6 +131,7 @@ program mainda
   write(lout,"(a)") "    Start Time:   "//timeStamp
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
+  units_beQuiet = .false. ! Allow mod_units to write to lout now
 
   call meta_write("SixTrackDAVersion", trim(version))
   call meta_write("ReleaseDate",       trim(moddate))
