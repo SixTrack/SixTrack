@@ -855,7 +855,7 @@ subroutine cr_positionTrackFiles
   use mod_common
   use, intrinsic :: iso_fortran_env, only : int32
 
-  integer j, k, ia
+  integer j, k, ia, iau
   integer binrecs9x, binrecs94
 
   ! DANGER: If the length of the records in writebin(_header)changes, these arrays must be updated
@@ -881,7 +881,7 @@ subroutine cr_positionTrackFiles
       ! First, copy crbinrecs(ia) records of data from fort.91-ia to fort.94
       binrecs9x = 0
       binrecs94 = 0
-      myia      = 91-ia
+      iau       = 91-ia
 
       ! Copy header into integer array hbuff
       read(91-ia,err=105,end=105,iostat=ierro) hbuff
@@ -980,7 +980,7 @@ subroutine cr_positionTrackFiles
     end do
 
     ! This is not a FLUSH!
-    endfile   (90,iostat=ierro)
+    endfile(90,iostat=ierro)
     backspace (90,iostat=ierro)
 #endif
     call f_close(94)
@@ -992,7 +992,7 @@ subroutine cr_positionTrackFiles
     ! Binary files have been rewritten; now re-position
     write(93,"(a)") "CR_CHECK>  * Repositioning binary files"
     do ia=1,crnapxo/2,1
-      myia=91-ia
+      iau = 91-ia
       if(crbinrecs(ia) >= crbinrec) then
         binrecs9x = 0
         read(91-ia,err=102,end=102,iostat=ierro) hbuff
@@ -1010,7 +1010,7 @@ subroutine cr_positionTrackFiles
         backspace (91-ia,iostat=ierro)
       else ! Number of ecords written to this file < general number of records written
           ! => Particle has been lost before last checkpoint, no need to reposition.
-        write(93,"(2(a,i0))") "CR_CHECK> Ignoring IA ",ia," on unit ",myia
+        write(93,"(2(a,i0))") "CR_CHECK> Ignoring IA ",ia," on unit ",iau
       end if
     end do ! END "do ia=1,crnapxo/2,1"
 #else
@@ -1038,12 +1038,12 @@ subroutine cr_positionTrackFiles
 
 #ifndef STF
 102 continue
-  write(lerr,"(2(a,i0))") "CR_CHECK> ERROR Re-reading fort.",myia," IOSTAT = ",ierro
-  write(lerr,"(3(a,i0))") "CR_CHECK>       Unit ",myia," binrecs9x=",binrecs9x," Expected crbinrecs=",crbinrecs(ia)
+  write(lerr,"(2(a,i0))") "CR_CHECK> ERROR Re-reading fort.",iau," IOSTAT = ",ierro
+  write(lerr,"(3(a,i0))") "CR_CHECK>       Unit ",iau," binrecs9x=",binrecs9x," Expected crbinrecs=",crbinrecs(ia)
   call prror
 105 continue
-  write(lerr,"(2(a,i0))") "CR_CHECK> ERROR Copying fort.",myia," IOSTAT = ",ierro
-  write(lerr,"(4(a,i0))") "CR_CHECK>       Unit ",myia," binrecs9x=",binrecs9x,&
+  write(lerr,"(2(a,i0))") "CR_CHECK> ERROR Copying fort.",iau," IOSTAT = ",ierro
+  write(lerr,"(4(a,i0))") "CR_CHECK>       Unit ",iau," binrecs9x=",binrecs9x,&
     " Expected crbinrecs=",crbinrecs(ia)," binrecs94=",binrecs94
   call prror
 #else
