@@ -190,6 +190,8 @@ subroutine cr_killSwitch(iTurn)
   if(st_debug .and. pTurn > 0) then
     write(lout,"(a,i0)") "CRKILLSW> Kill switch previously triggered on turn ",pTurn
     write(93,  "(a,i0)") "CRKILLSW> Kill switch previously triggered on turn ",pTurn
+    flush(lout)
+    flush(93)
   end if
 
   do i=1,size(st_killturns,1)
@@ -204,6 +206,8 @@ subroutine cr_killSwitch(iTurn)
 
     write(lout,"(a,i0)") "CRKILLSW> Triggering kill switch on turn ",iTurn
     write(93,  "(a,i0)") "CRKILLSW> Triggering kill switch on turn ",iTurn
+    flush(lout)
+    flush(93)
 
     open(iUnit,file="crrestartme.tmp",form="unformatted",access="stream",status="replace",action="write")
     write(iUnit) 1
@@ -1074,6 +1078,7 @@ subroutine cr_copyOut
 
   if(lout == output_unit) return
 
+  flush(lout)
   rewind(lout)
   nLines = 0
 10 continue
