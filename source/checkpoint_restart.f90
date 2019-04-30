@@ -474,10 +474,6 @@ subroutine crcheck
   write(lout,"(a)") "SIXTRACK> "//repeat("=",80)
   flush(lout)
 
-  ! Flush or truncate?
-  ! endfile(lout,iostat=ierro)
-  ! backspace(lout,iostat=ierro)
-
   return
 
   ! We are not checkpointing or we have no checkpoints, or we have no readable checkpoint
@@ -547,7 +543,7 @@ subroutine crpoint
 
   if(dynk_enabled) then ! Store current settings of elements affected by DYNK
     if(st_debug) then
-      write(93,"(a)") "CR_POINT> Filling dynk_fSets_cr"
+      write(93,"(a)") "CR_POINT> Filling DYNK sets"
       flush(93)
     end if
     do j=1,dynk_nSets_unique
@@ -583,24 +579,24 @@ subroutine crpoint
       flush(93)
     end if
     write(cr_pntUnit(nPoint),err=100,iostat=ierro) &
-      (binrecs(j),j=1,(napxo+1)/2), &
-      (numxv(j),j=1,napxo),         &
-      (nnumxv(j),j=1,napxo),        &
-      (partID(j),j=1,napxo),        &
-      (parentID(j),j=1,napxo),      &
-      (pstop(j),j=1,napxo),         &
-      (xv1(j),j=1,napxo),           &
-      (yv1(j),j=1,napxo),           &
-      (xv2(j),j=1,napxo),           &
-      (yv2(j),j=1,napxo),           &
-      (sigmv(j),j=1,napxo),         &
-      (dpsv(j),j=1,napxo),          &
-      (dpsv1(j),j=1,napxo),         &
-      (ejv(j),j=1,napxo),           &
-      (ejfv(j),j=1,napxo),          &
-      (aperv(j,1),j=1,napxo),       &
-      (aperv(j,2),j=1,napxo),       &
-      (llostp(j),j=1,napxo)
+      (binrecs(j), j=1,(napxo+1)/2), &
+      (numxv(j),   j=1,napxo),       &
+      (nnumxv(j),  j=1,napxo),       &
+      (partID(j),  j=1,napxo),       &
+      (parentID(j),j=1,napxo),       &
+      (pstop(j),   j=1,napxo),       &
+      (xv1(j),     j=1,napxo),       &
+      (yv1(j),     j=1,napxo),       &
+      (xv2(j),     j=1,napxo),       &
+      (yv2(j),     j=1,napxo),       &
+      (sigmv(j),   j=1,napxo),       &
+      (dpsv(j),    j=1,napxo),       &
+      (dpsv1(j),   j=1,napxo),       &
+      (ejv(j),     j=1,napxo),       &
+      (ejfv(j),    j=1,napxo),       &
+      (aperv(j,1), j=1,napxo),       &
+      (aperv(j,2), j=1,napxo),       &
+      (llostp(j),  j=1,napxo)
     flush(cr_pntUnit(nPoint))
 
     if(st_debug) then
@@ -719,7 +715,7 @@ subroutine crstart
   use mod_meta, only : meta_crstart
 
   logical fErr
-  integer j,l,k,m
+  integer j,k,l,m
 
   write(93,"(a,i0)") "CR_START> Starting from turn ",crnumlcr
   flush(93)
@@ -738,15 +734,14 @@ subroutine crstart
   betrel = crbetrel
   brho   = crbrho
 
-  write(93,"(a)") "CR_START>  * Loading binrecs"
+  write(93,"(a)") "CR_START> Loading BinRecords"
   do j=1,(napxo+1)/2
     binrecs(j) = crbinrecs(j)
   end do
 
-  write(93,"(a)") "CR_START>  * Loading particle arrays"
+  write(93,"(a)") "CR_START> Loading tracking data"
   flush(93)
-  numxv(1:napxo)     = crnumxv(1:napxo)
-  nnumxv(1:napxo)    = crnnumxv(1:napxo)
+
   partID(1:napxo)    = crpartID(1:napxo)
   parentID(1:napxo)  = crparentID(1:napxo)
   pstop(1:napxo)     = crpstop(1:napxo)
@@ -760,14 +755,11 @@ subroutine crstart
 
   dpsv(1:napxo)      = crdpsv(1:napxo)
   dpsv1(1:napxo)     = crdpsv1(1:napxo)
-  oidpsv(1:napxo)    = one/(one + dpsv(1:napxo))
-  moidpsv(1:napxo)   = mtc(1:napxo)/(one + dpsv(1:napxo))
-  omoidpsv(1:napxo)  = ((one-mtc(1:napxo))*oidpsv(1:napxo))*c1e3
   ejv(1:napxo)       = crejv(1:napxo)
   ejfv(1:napxo)      = crejfv(1:napxo)
-  rvv(1:napxo)       = (ejv(1:napxo)*e0f)/(e0*ejfv(1:napxo))
 
-  aperv(1:napxo,1:2) = craperv(1:napxo,1:2)
+  numxv(1:napxo)     = crnumxv(1:napxo)
+  nnumxv(1:napxo)    = crnnumxv(1:napxo)
   do j=1,napxo
     if(pstop(j) .eqv. .false.) then
       numxv(j)  = numl
@@ -775,6 +767,15 @@ subroutine crstart
     end if
   end do
 
+  ! Recompute from loaded arrays
+  oidpsv(1:napxo) = one/(one + dpsv(1:napxo))
+  rvv(1:napxo)    = (ejv(1:napxo)*e0f)/(e0*ejfv(1:napxo))
+
+  ! Aperture data
+  aperv(1:napxo,1:2) = craperv(1:napxo,1:2)
+
+  ! Module data
+  call hions_crstart
   call meta_crstart
   if(dynk_enabled) then
     call dynk_crstart
@@ -782,7 +783,6 @@ subroutine crstart
   if(scatter_active) then
     call scatter_crstart
   end if
-  call hions_crstart
   if(melens > 0) then
     call elens_crstart
   end if
