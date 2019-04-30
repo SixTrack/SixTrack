@@ -1328,24 +1328,16 @@ program maincr
 #ifdef CR
   if(.not.cr_restart) then
     ! If cr_restart is true , we haven't done any tracking and must be running from very last checkpoint
-    write(93,"(a)")          "SIXTRACR> Very last call to WRITEBIN?"
-    write(93,"(a,2(1x,i0))") "SIXTRACR> nnuml, numl = ",nnuml,numl
+    write(93,"(a,i0)") "SIXTRACR> Very last call to WRITEBIN on turn ",numl
     flush(93)
     if(nnuml == numl) then
       ! We REALLY have finished (or all particles lost)
       ! When all lost, nthinerr=3001, we set nnuml=numl
       ! and make sure we do the last WRITEBIN
-      write(93,"(a)") "SIXTRACR> Very last call to WRITEBIN"
-      flush(93)
       call writebin(nthinerr)
       if(nthinerr == 3000) goto 520
     else
-      write(93,"(a)")          "SIXTRACR> Very last call to WRITEBIN?"
-      write(93,"(a,2(1x,i0))") "SIXTRACR> nnuml, numl = ",nnuml,numl
-      flush(93)
       if(mod(nnuml,nwri) == 0) then
-        write(93,"(a)") "SIXTRACR> Very last call to WRITEBIN"
-        flush(93)
         call writebin(nthinerr)
         if(nthinerr == 3000) goto 520
       end if
@@ -1486,7 +1478,7 @@ program maincr
 
 490 continue ! GOTO here if(napx <= 0) (skipping tracking)
   if(ipos == 1) then
-    ndafi2=ndafi
+    ndafi2 = ndafi
     do ia=1,ndafi2
       if(ia > ndafi) exit
 #ifndef CR

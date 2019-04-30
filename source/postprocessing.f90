@@ -3427,53 +3427,27 @@ subroutine writebin(nthinerr)
       use mod_commons
       use mod_common_track
       use mod_common_da
+      use mod_settings
 #ifdef CR
       use checkpoint_restart
 #endif
       implicit none
 
       integer ia,ia2,ie,nthinerr
-#ifdef CR
-      integer ncalls
-#endif
 #ifdef BOINC
       integer timech
 #endif
-#ifdef CR
-      data ncalls /0/
-#endif
 
-      real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),               &
-     &sigmv_tmp(2),dpsv_tmp(2),e0_tmp
+      real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
 
       save
 !-----------------------------------------------------------------------
 #ifdef CR
-      ncalls = ncalls + 1
       if(cr_restart) then
-        write(93,"(4(a,i0))") "WRITEBIN> Bailing out on restart numl = ",numl,", nnuml = ",nnuml,  &
-          ", numx = ",numx,", cr_numl = ",cr_numl
+        write(93,"(2(a,i0))") "WRITEBIN> Bailing out on restart on turn ",(numx+1)," / ",numl
         flush(93)
         return
-      else
-#ifndef DEBUG
-        if(ncalls <= 20 .or. numx >= nnuml-20) then
-#endif
-          write(93,"(4(a,i0))") "WRITEBIN> numl = ",numl,", nnuml = ",nnuml,  &
-            ", numx = ",numx,", cr_numl = ",cr_numl
-          flush(93)
-#ifndef DEBUG
-        end if
-#endif
       end if
-#ifndef DEBUG
-      if(ncalls <= 20 .or. numx >= nnuml-20) then
-#endif
-        write(93,"(a,i0)") "WRITEBIN> Writing binrec ",binrec+1
-        flush(93)
-#ifndef DEBUG
-      end if
-#endif
 #endif
          do ia=1,napx-1
 !GRD

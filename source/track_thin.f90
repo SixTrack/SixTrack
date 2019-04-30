@@ -2141,16 +2141,10 @@ subroutine callcrp
 #endif
 
   if(cr_restart) then
-    write(lout,"(a,i0)") "SIXTRACR> Bailing out on turn ",numx+1
-    write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT Bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
-      " numx = ",numx,", cr_numl = ",cr_numl
-    flush(93)
+    write(lout,"(a,i0)")  "CALL_CRP> Bailing out on turn ",numx+1
     return
   else
-    write(lout,"(a,i0)") "SIXTRACR> Checkpointing on turn ",numx+1
-    write(93,"(6(a,i0))") "SIXTRACR> CALLCRP numl = ",numl,", nnuml = ",nnuml,", cr_numl = ",cr_numl,", "//&
-     "numx = ",numx,", nwri = ",nwri,", numlcp = ",numlcp
-    flush(93)
+    write(lout,"(a,i0)")  "CALL_CRP> Checkpointing on turn ",numx+1
   end if
 #ifdef BOINC
   if(cr_checkp) then
