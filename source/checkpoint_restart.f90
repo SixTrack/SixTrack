@@ -7,7 +7,6 @@
 ! ================================================================================================ !
 module checkpoint_restart
 
-  use parpro
   use floatPrecision
 
   implicit none
@@ -235,6 +234,7 @@ subroutine crcheck
 
   use, intrinsic :: iso_fortran_env, only : output_unit
 
+  use parpro
   use crcoall
   use mod_common
   use mod_commons
@@ -507,30 +507,24 @@ end subroutine crcheck
 ! ================================================================================================ !
 subroutine crpoint
 
-  use floatPrecision
+  use mod_time
+  use mod_common
+  use mod_commons
+  use mod_common_main
+  use mod_common_track
+  use mod_version
+  use mod_settings
   use numerical_constants
 
-  use dynk,    only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_filePos,dynk_crpoint
-  use dump,    only : dump_crpoint
-  use aperture,only : aper_crpoint,limifound
-  use scatter, only : scatter_active, scatter_crpoint
-  use elens,   only : melens, elens_crpoint
+  use dynk,      only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_filePos,dynk_crpoint
+  use dump,      only : dump_crpoint
+  use aperture,  only : aper_crpoint,limifound
+  use scatter,   only : scatter_active, scatter_crpoint
+  use elens,     only : melens, elens_crpoint
+  use mod_meta,  only : meta_crpoint
+  use mod_hions, only : hions_crpoint
 
-  use crcoall
-  use parpro
-  use mod_common
-  use mod_common_main
-  use mod_commons
-  use mod_common_track
-  use mod_common_da
-  use mod_hions
-  use mod_version
-  use mod_time
-  use mod_meta
-  use mod_units
-  use mod_settings
-
-  integer j,l,k,m,nPoint
+  integer j, k, l, m, nPoint
   logical wErr, fErr
 
   write(93,"(3(a,i0))") "CR_POINT> Called on turn ",numx," / ",numl," : frequency is ",numlcp
@@ -709,29 +703,23 @@ end subroutine crpoint
 ! ================================================================================================ !
 subroutine crstart
 
-  use floatPrecision
-  use numerical_constants
-  use dynk,    only : dynk_enabled, dynk_crstart
-  use scatter, only : scatter_active, scatter_crstart
-  use elens,   only : melens, elens_crstart
-
-  use crcoall
   use parpro
-  use mod_common
-  use mod_common_main
-  use mod_commons
-  use mod_common_track
-  use mod_common_da
-  use mod_meta
-  use mod_hions
+  use crcoall
   use mod_units
+  use mod_common
+  use mod_commons
+  use mod_common_main
+  use mod_common_track
+  use numerical_constants
 
-  real(kind=fPrec) dynk_newValue
+  use mod_hions
+  use dynk,     only : dynk_enabled, dynk_crstart
+  use scatter,  only : scatter_active, scatter_crstart
+  use elens,    only : melens, elens_crstart
+  use mod_meta, only : meta_crstart
+
   logical fErr
-  integer j,l,k,m,i
-  character(len=256) filename
-
-  save
+  integer j,l,k,m
 
   write(93,"(a,i0)") "CR_START> Starting from turn ",crnumlcr
   flush(93)
