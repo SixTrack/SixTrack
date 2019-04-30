@@ -777,7 +777,7 @@ subroutine crstart
   omoidpsv(1:napxo)  = ((one-mtc(1:napxo))*oidpsv(1:napxo))*c1e3
   ejv(1:napxo)       = crejv(1:napxo)
   ejfv(1:napxo)      = crejfv(1:napxo)
-  rvv(1:napx)        = (ejv(1:napxo)*e0f)/(e0*ejfv(1:napxo))
+  rvv(1:napxo)       = (ejv(1:napxo)*e0f)/(e0*ejfv(1:napxo))
 
   aperv(1:napxo,1:2) = craperv(1:napxo,1:2)
   do j=1,napxo
