@@ -568,17 +568,26 @@ subroutine crpoint
   do nPoint=1,2
 
     wErr = .false.
+    rewind(cr_pntUnit(nPoint))
+
     if(st_debug) then
       write(93,"(a)") "CR_POINT> Writing to checkpoint file "//cr_pntFile(nPoint)
+      write(93,"(a)") "CR_POINT>  * SixTrack version"
+      flush(93)
+    end if
+    write(cr_pntUnit(nPoint),err=100,iostat=ierro) version, moddate
+
+    if(st_debug) then
       write(93,"(a)") "CR_POINT>  * Tracking variables"
+      flush(93)
+    end if
+    write(cr_pntUnit(nPoint),err=100,iostat=ierro) crnumlcr, numl, sixrecs, binrec, sythckcr, il,   &
+      time3, napxo, napx, e0, betrel, brho
+
+    if(st_debug) then
       write(93,"(a)") "CR_POINT>  * Particle arrays"
       flush(93)
     end if
-    rewind(cr_pntUnit(nPoint))
-
-    write(cr_pntUnit(nPoint),err=100,iostat=ierro) version, moddate
-    write(cr_pntUnit(nPoint),err=100,iostat=ierro) crnumlcr, numl, sixrecs, binrec, sythckcr, il,   &
-      time3, napxo, napx, e0, betrel, brho
     write(cr_pntUnit(nPoint),err=100,iostat=ierro) &
       (binrecs(j),j=1,(napxo+1)/2), &
       (numxv(j),j=1,napxo),         &
