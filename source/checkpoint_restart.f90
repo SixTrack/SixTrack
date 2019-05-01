@@ -761,8 +761,8 @@ subroutine crstart
   use elens,    only : melens, elens_crstart
   use mod_meta, only : meta_crstart
 
-  logical fErr
-  integer j,k,l,m
+  logical fErr, extOK
+  integer j, k, l, m, nPoint, ioStat, nExt
 
   write(crlog,"(a,i0)") "CR_START> Starting from checkpoint data from turn ",crnumlcr
   flush(crlog)
@@ -834,7 +834,7 @@ subroutine crstart
     call elens_crstart
   end if
 
-  ! New extended checkpoint for synuthck (ERIC)
+  ! Extended checkpoint for synuthck (ERIC)
   if(cr_sythck) then
     ! Now read the extended vars from fort.95/96.
     if(cril /= il) then
@@ -843,53 +843,46 @@ subroutine crstart
       flush(crlog)
       call prror
     end if
-    if(cr_pntRead(1)) then
+    extOK = .false.
+    do nPoint=1,cr_nPoint
+      nExt = nPoint
+      if(cr_pntRead(nPoint) .eqv. .false.) cycle
       if(ithick == 1) then
-        read(cr_pntUnit(1),end=100,err=100,iostat=ierro) &
+        read(cr_pntUnit(nPoint),iostat=ioStat) &
           ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),&
           ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
       end if
+      if(ioStat /= 0) cycle
 
-      read(cr_pntUnit(1),end=100,err=100,iostat=ierro) &
+      read(cr_pntUnit(nPoint),iostat=ioStat) &
         (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
-      write(crlog,"(a)") "CR_START> Read "//cr_pntFile(1)//" EXTENDED OK"
-      flush(crlog)
-      goto 102
-    end if
-    if(cr_pntRead(2)) then
-      if(ithick == 1) then
-        read(cr_pntUnit(2),end=101,err=101,iostat=ierro) &
-          ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6), &
-          ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-      end if
-      read(cr_pntUnit(2),end=101,err=101,iostat=ierro) &
-        (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
+      if(ioStat /= 0) cycle
 
-      write(crlog,"(a)") "CR_START> Read "//cr_pntFile(2)//" EXTENDED OK"
+      write(crlog,"(a)") "CR_START> Read "//cr_pntFile(nPoint)//" EXTENDED OK"
       flush(crlog)
-      goto 102
+      extOK = .true.
+      exit
+    end do
+    if(extOK .eqv. .false.) then
+      write(lerr, "(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(nExt)//" (extended), iostat = ",ioStat
+      write(crlog,"(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(nExt)//" (extended), iostat = ",ioStat
+      call prror
     end if
-100 continue
-    write(lerr, "(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(1)//" (extended), iostat = ",ierro
-    write(crlog,"(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(1)//" (extended), iostat = ",ierro
-    call prror
-101 continue
-    write(lerr, "(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(2)//" (extended), iostat = ",ierro
-    write(crlog,"(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(2)//" (extended), iostat = ",ierro
-    call prror
   end if
 
-102 continue
-  write(crlog,"(3(a,i0))") "CR_START> Sixrecs = ",sixrecs,", crsixrecs = ",crsixrecs,", binrec = ",binrec
+  ! Done
+  write(crlog,"(3(a,i0))") "CR_START> SixRecords: ",sixrecs,", SixRecords C/R: ",crsixrecs,", BinRecords: ",binrec
   flush(crlog)
 
   ! Just throw away our fort.92 stuff.
   call f_close(lout)
   call f_open(unit=lout,file=cr_outFile,formatted=.true.,mode="rw",err=fErr,status="replace")
+
   write(crlog,"(a)") "CR_START> "//repeat("=",80)
   write(crlog,"(a)") "CR_START> SixTrack Restarted"
   write(crlog,"(a)") "CR_START> "//repeat("=",80)
   flush(crlog)
+
   write(lout, "(a)") "CR_START> "//repeat("=",80)
   write(lout, "(a)") "CR_START> SixTrack Restarted"
   write(lout, "(a)") "CR_START> "//repeat("=",80)

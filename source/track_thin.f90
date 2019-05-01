@@ -2141,10 +2141,10 @@ subroutine callcrp
 #endif
 
   if(cr_restart) then
-    write(lout,"(a,i0)")  "CALL_CRP> Bailing out on turn ",numx+1
+    write(lout,"(a)") "CALL_CRP> Restarted on this turn, so not checkpointing"
     return
   else
-    write(lout,"(a,i0)")  "CALL_CRP> Checkpointing on turn ",numx+1
+    write(lout,"(a,i0)") "CALL_CRP> Checkpointing on turn ",numx+1
   end if
 #ifdef BOINC
   if(cr_checkp) then
