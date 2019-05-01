@@ -1643,19 +1643,19 @@ subroutine postpr(nfile)
           write(lout,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
           write(lout,"(a,i0,a,3(1x,i0))") "SIXTRACR> Unit ",nfile,", binrec/binrecs/crbinrecs ",&
             binrec,binrecs(91-nfile),crbinrecs(91-nfile)
-          write(93,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
-          write(93,"(a,i0,a,3(1x,i0))") "SIXTRACR> Unit ",nfile,", binrec/binrecs/crbinrecs ",&
+          write(crlog,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(crlog,"(a,i0,a,3(1x,i0))") "SIXTRACR> Unit ",nfile,", binrec/binrecs/crbinrecs ",&
             binrec,binrecs(91-nfile),crbinrecs(91-nfile)
 #else
         if (binrecs(posi1).ne.crbinrecs(posi1)) then
           write(lout,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
           write(lout,"(a,i0,a,3(1x,i0))") "SIXTRACR> Particle ",posi1,", binrec/binrecs/crbinrecs ",&
             binrec,binrecs(posi1),crbinrecs(posi1)
-          write(93,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
-          write(93,"(a,i0,a,3(1x,i0))") "SIXTRACR> Particle ",posi1,", binrec/binrecs/crbinrecs ",&
+          write(crlog,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(crlog,"(a,i0,a,3(1x,i0))") "SIXTRACR> Particle ",posi1,", binrec/binrecs/crbinrecs ",&
             binrec,binrecs(posi1),crbinrecs(posi1)
 #endif
-          flush(93)
+          flush(crlog)
           goto 551
         endif
       endif
@@ -2584,8 +2584,8 @@ subroutine postpr(nfile)
       write(lout,10300) nfile,'WRONG RANGE OF DATA FOR PROCESSING'
       goto 550
 #ifdef CR
-  551 write(93,"(a)") "SIXTRACR> ERROR POSTPR (see fort.6)"
-      flush(93)
+  551 write(crlog,"(a)") "SIXTRACR> ERROR POSTPR (see fort.6)"
+      flush(crlog)
 ! Now we let abend handle the fort.10......
 ! It will write 0d0 plus CPU time and turn number
 ! But we empty it as before (if we crash in abend???)
@@ -3444,8 +3444,8 @@ subroutine writebin(nthinerr)
 !-----------------------------------------------------------------------
 #ifdef CR
       if(cr_restart) then
-        write(93,"(2(a,i0))") "WRITEBIN> Bailing out on restart on turn ",(numx+1)," / ",numl
-        flush(93)
+        write(crlog,"(2(a,i0))") "WRITEBIN> Bailing out on restart on turn ",(numx+1)," / ",numl
+        flush(crlog)
         return
       end if
 #endif

@@ -569,7 +569,7 @@ subroutine thin4d(nthinerr)
 #ifdef CR
   if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "TRACKING> Thin 4D restarting on turn ",cr_numl," / ",numl
+    write(crlog,"(2(a,i0))") "TRACKING> Thin 4D restarting on turn ",cr_numl," / ",numl
   end if
   nnuml  = numl
   nfirst = cr_numl
@@ -1185,7 +1185,7 @@ subroutine thin6d(nthinerr)
 #ifdef CR
   if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "TRACKING> Thin 6D restarting on turn ",cr_numl," / ",numl
+    write(crlog,"(2(a,i0))") "TRACKING> Thin 6D restarting on turn ",cr_numl," / ",numl
   end if
   nnuml  = numl
   nfirst = cr_numl

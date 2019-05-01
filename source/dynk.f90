@@ -2904,9 +2904,9 @@ subroutine dynk_crcheck_readdata(fileunit,readerr)
 
 100 continue
   readerr=.true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in DYNK"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in DYNK"
-  flush(93)
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in DYNK"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in DYNK"
+  flush(crlog)
 
 end subroutine dynk_crcheck_readdata
 
@@ -2927,11 +2927,11 @@ subroutine dynk_crcheck_positionFiles
   character(len=mInputLn) aRecord
 
   inquire(unit=dynk_fileUnit, opened=isOpen)
-  if (isOpen) then
-    write(93,"(a)")      "SIXTRACR> CRCHECK FAILED while repositioning '"//dynk_fileName//"'"
-    write(93,"(a,i0,a)") "SIXTRACR>         UNIT ",dynk_fileUnit," already in use!"
-    flush(93)
-    write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK failure positioning '"//dynk_fileName//"'"
+  if(isOpen) then
+    write(crlog,"(a)")      "CR_CHECK> ERROR Failed while repositioning '"//dynk_fileName//"'"
+    write(crlog,"(a,i0,a)") "CR_CHECK>       Unit ",dynk_fileUnit," already in use!"
+    flush(crlog)
+    write(lerr,"(a)") "CR_CHECK> ERROR Failed positioning '"//dynk_fileName//"'"
     call prror
   end if
 
@@ -2948,24 +2948,22 @@ subroutine dynk_crcheck_positionFiles
     call f_close(dynk_fileUnit)
     call f_open(unit=dynk_fileUnit,file=dynk_fileName,formatted=.true.,mode="w+",status="old")
 
-    write(93,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned '"//dynk_fileName//"', "// &
+    write(crlog,"(2(a,i0))") "CR_CHECK> Sucessfully repositioned '"//dynk_fileName//"', "// &
       "dynk_filePos = ",dynk_filePos,", dynk_filePosCR = ",dynk_filePosCR
-    flush(93)
+    flush(crlog)
   else
-    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning "// &
-      "of '"//dynk_fileName//"', dynk_filePosCR = ",dynk_filePosCR
-    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, "// &
-      "it will be correctly truncated in dynk_apply on the first turn."
-    flush(93)
+    write(crlog,"(a,i0)") "CR_CHECK> Did not attempt repositioning of '"//dynk_fileName//"', dynk_filePosCR = ",dynk_filePosCR
+    write(crlog,"(a)")    "CR_CHECK> If anything was written to the file, it will be truncated in dynk_apply on the first turn."
+    flush(crlog)
   end if
 
   return
 
 110 continue
-  write(93,"(2(a,i0))") "SIXTRACR> ERROR in CRCHECK while reading '"//dynk_fileName//"', "//&
+  write(crlog,"(2(a,i0))") "CR_CHECK> ERROR While reading '"//dynk_fileName//"', "//&
     "dynk_filePos = ",dynk_filePos,", dynk_filePosCR = ",dynk_filePosCR
-  flush(93)
-  write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK failure positioning '"//dynk_fileName//"'"
+  flush(crlog)
+  write(lerr,"(a)") "CR_CHECK> ERROR CRCHECK failure positioning '"//dynk_fileName//"'"
   call prror
 
 end subroutine dynk_crcheck_positionFiles
@@ -2998,9 +2996,9 @@ subroutine dynk_crpoint(fileunit,fileerror,ierro)
 
 100 continue
   fileerror = .true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in DYNK"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in DYNK"
-  flush(93)
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in DYNK"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in DYNK"
+  flush(crlog)
 
 end subroutine dynk_crpoint
 

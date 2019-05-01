@@ -187,10 +187,10 @@ subroutine cr_killSwitch(iTurn)
   flush(iUnit)
   close(iUnit)
   if(st_debug .and. pTurn > 0) then
-    write(lout,"(a,i0)") "CRKILLSW> Kill switch previously triggered on turn ",pTurn
-    write(93,  "(a,i0)") "CRKILLSW> Kill switch previously triggered on turn ",pTurn
+    write(lout, "(a,i0)") "CRKILLSW> Kill switch previously triggered on turn ",pTurn
+    write(crlog,"(a,i0)") "CRKILLSW> Kill switch previously triggered on turn ",pTurn
     flush(lout)
-    flush(93)
+    flush(crlog)
   end if
 
   do i=1,size(st_killturns,1)
@@ -203,10 +203,10 @@ subroutine cr_killSwitch(iTurn)
   if(killIt) then
     nKills = nKills + 1
 
-    write(lout,"(a,i0)") "CRKILLSW> Triggering kill switch on turn ",iTurn
-    write(93,  "(a,i0)") "CRKILLSW> Triggering kill switch on turn ",iTurn
+    write(lout, "(a,i0)") "CRKILLSW> Triggering kill switch on turn ",iTurn
+    write(crlog,"(a,i0)") "CRKILLSW> Triggering kill switch on turn ",iTurn
     flush(lout)
-    flush(93)
+    flush(crlog)
 
     open(iUnit,file="crrestartme.tmp",form="unformatted",access="stream",status="replace",action="write")
     write(iUnit) 1
@@ -262,8 +262,8 @@ subroutine crcheck
   cr_pntRead(:) = .false.
 
   ! Some log entries to fort.93
-  write(93,"(3(a,l1))") "CR_CHECK> Called with restart = ",cr_restart,", rerun = ",cr_rerun,", and checkpoint = ",cr_checkp
-  flush(93)
+  write(crlog,"(3(a,l1))") "CR_CHECK> Called with restart = ",cr_restart,", rerun = ",cr_rerun,", and checkpoint = ",cr_checkp
+  flush(crlog)
 
   ! We are not checkpoint/restart or we have no restart files
   if(cr_checkp .eqv. .false.) goto 200
@@ -284,43 +284,43 @@ subroutine crcheck
 
   ! Check at least one restart file is readable
   do nPoint=1,2
-    write(93,"(a)") "CR_CHECK> Checking file "//cr_pntFile(nPoint)
-    flush(93)
+    write(crlog,"(a)") "CR_CHECK> Checking file "//cr_pntFile(nPoint)
+    flush(crlog)
 
     if(cr_pntExist(nPoint) .eqv. .false.) then
-      write(93,"(a)") "CR_CHECK> File "//cr_pntFile(nPoint)//" does not exist"
+      write(crlog,"(a)") "CR_CHECK> File "//cr_pntFile(nPoint)//" does not exist"
       cycle
     end if
 
     rewind(cr_pntUnit(nPoint))
 
-    write(93,"(a)") "CR_CHECK>  * SixTrack version"
-    flush(93)
+    write(crlog,"(a)") "CR_CHECK>  * SixTrack version"
+    flush(crlog)
 
     read(cr_pntUnit(nPoint),iostat=ioStat) cr_version,cr_moddate
     if(cr_version == " " .or. cr_moddate == " ") then
-      write(93,"(a)") "CR_CHECK> Unknown SixTrack version. Skipping this file."
-      flush(93)
+      write(crlog,"(a)") "CR_CHECK> Unknown SixTrack version. Skipping this file."
+      flush(crlog)
       cycle
     end if
     if(cr_version /= version .or. cr_moddate /= moddate) then
-      write(93,"(a)") "CR_CHECK> Checkpoint files "//cr_pntFile(nPoint)//" was written by SixTrack version "//&
+      write(crlog,"(a)") "CR_CHECK> Checkpoint files "//cr_pntFile(nPoint)//" was written by SixTrack version "//&
         trim(cr_version)//" with release date "//trim(cr_moddate)
-      write(93,"(a)") "CR_CHECK> This is SixTrack version "//trim(version)//" with release date "//trim(moddate)
-      write(93,"(a)") "CR_CHECK> Version mismatch. Skipping this file."
-      flush(93)
+      write(crlog,"(a)") "CR_CHECK> This is SixTrack version "//trim(version)//" with release date "//trim(moddate)
+      write(crlog,"(a)") "CR_CHECK> Version mismatch. Skipping this file."
+      flush(crlog)
       cycle
     end if
     if(ioStat /= 0) cycle
 
-    write(93,"(a)") "CR_CHECK>  * Tracking variables"
-    flush(93)
+    write(crlog,"(a)") "CR_CHECK>  * Tracking variables"
+    flush(crlog)
     read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cr_sythck,cril, &
       cr_time,crnapxo,crnapx,cre0,crbetrel,crbrho
     if(ioStat /= 0) cycle
 
-    write(93,"(a)") "CR_CHECK>  * Particle arrays"
-    flush(93)
+    write(crlog,"(a)") "CR_CHECK>  * Particle arrays"
+    flush(crlog)
     read(cr_pntUnit(nPoint),iostat=ioStat) &
       (crbinrecs(j), j=1,(crnapxo+1)/2), &
       (crnumxv(j),   j=1,crnapxo),       &
@@ -342,45 +342,45 @@ subroutine crcheck
       (crllostp(j),  j=1,crnapxo)
     if(ioStat /= 0) cycle
 
-    write(93,"(a)") "CR_CHECK>  * META variables"
-    flush(93)
+    write(crlog,"(a)") "CR_CHECK>  * META variables"
+    flush(crlog)
     call meta_crcheck(cr_pntUnit(nPoint),rErr)
     if(rErr) cycle
 
-    write(93,"(a)") "CR_CHECK>  * DUMP variables"
-    flush(93)
+    write(crlog,"(a)") "CR_CHECK>  * DUMP variables"
+    flush(crlog)
     call dump_crcheck_readdata(cr_pntUnit(nPoint),rErr)
     if(rErr) cycle
 
-    write(93,"(a)") "CR_CHECK>  * HION variables"
-    flush(93)
+    write(crlog,"(a)") "CR_CHECK>  * HION variables"
+    flush(crlog)
     call hions_crcheck_readdata(cr_pntUnit(nPoint),rErr)
     if(rErr) cycle
 
     if(dynk_enabled) then
-      write(93,"(a)") "CR_CHECK>  * DYNK variables"
-      flush(93)
+      write(crlog,"(a)") "CR_CHECK>  * DYNK variables"
+      flush(crlog)
       call dynk_crcheck_readdata(cr_pntUnit(nPoint),rErr)
       if(rErr) cycle
     end if
 
     if(scatter_active) then
-      write(93,"(a)") "CR_CHECK>  * SCATTER variables"
-      flush(93)
+      write(crlog,"(a)") "CR_CHECK>  * SCATTER variables"
+      flush(crlog)
       call scatter_crcheck_readdata(cr_pntUnit(nPoint),rErr)
       if(rErr) cycle
     end if
 
     if(limifound) then
-      write(93,"(a)") "CR_CHECK>  * APERTURE variables"
-      flush(93)
+      write(crlog,"(a)") "CR_CHECK>  * APERTURE variables"
+      flush(crlog)
       call aper_crcheck_readdata(cr_pntUnit(nPoint),rErr)
       if(rErr) cycle
     end if
 
     if(melens > 0) then
-      write(93,"(a)") "CR_CHECK>  * ELENS variables"
-      flush(93)
+      write(crlog,"(a)") "CR_CHECK>  * ELENS variables"
+      flush(crlog)
       call elens_crcheck(cr_pntUnit(nPoint),rErr)
       if(rErr) cycle
     end if
@@ -389,44 +389,44 @@ subroutine crcheck
     if(cr_sythck) then
       ! and make sure we can read the extended vars before leaving fort.95
       ! We will re-read them in crstart to be sure they are restored correctly
-      write(93,"(a)") "CR_CHECK>  * THICK EXTENDED arrays"
-      flush(93)
+      write(crlog,"(a)") "CR_CHECK>  * THICK EXTENDED arrays"
+      flush(crlog)
       read(cr_pntUnit(nPoint),iostat=ioStat) &
         ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
         ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
         (dpd(j),j=1,crnapxo),(dpsq(j),j=1,crnapxo),(fokqv(j),j=1,crnapxo)
       backspace(cr_pntUnit(nPoint),iostat=ioStat)
       if(ioStat /= 0) cycle
-      write(93,"(a)") "CR_CHECK> Read "//cr_pntFile(nPoint)//" EXTENDED OK"
-      write(93,"(a)") "CR_CHECK> Leaving "//cr_pntFile(1)//" for CRSTART EXTENDED"
-      flush(93)
+      write(crlog,"(a)") "CR_CHECK> Read "//cr_pntFile(nPoint)//" EXTENDED OK"
+      write(crlog,"(a)") "CR_CHECK> Leaving "//cr_pntFile(1)//" for CRSTART EXTENDED"
+      flush(crlog)
     end if
 
-    write(93,"(a)") "CR_CHECK> File "//cr_pntFile(nPoint)//" successfully read"
-    flush(93)
+    write(crlog,"(a)") "CR_CHECK> File "//cr_pntFile(nPoint)//" successfully read"
+    flush(crlog)
     cr_pntRead(nPoint) = .true.
     goto 100
 
   end do
 
   ! If we're here, we failed to read a checkpoint file
-  write(93,"(a)") "CR_CHECK> ERROR Could not read checkpoint files"
-  flush(93)
+  write(crlog,"(a)") "CR_CHECK> ERROR Could not read checkpoint files"
+  flush(crlog)
   goto 200
 
 100 continue
 
   ! If we have successfully read one of the checkpoint files, we need to handle lost particles and ntwin /= 2
   ! Otherwise we just continue with checkpointing as requested
-  write(93,"(2(a,i8))") "CR_CHECK> Particles  C/R: ",crnapxo,  ", Input:  ",napx*2
-  write(93,"(2(a,i8))") "CR_CHECK> SixRecords C/R: ",crsixrecs,", Buffer: ",sixrecs
-  write(93,"(1(a,i8))") "CR_CHECK> BinRecords C/R: ",crbinrec
+  write(crlog,"(2(a,i8))") "CR_CHECK> Particles  C/R: ",crnapxo,  ", Input:  ",napx*2
+  write(crlog,"(2(a,i8))") "CR_CHECK> SixRecords C/R: ",crsixrecs,", Buffer: ",sixrecs
+  write(crlog,"(1(a,i8))") "CR_CHECK> BinRecords C/R: ",crbinrec
 #ifndef STF
   do j=1,(crnapxo+1)/2
-    write(93,"(2(a,i0))") "CR_CHECK>  * Record ",j,": ",crbinrecs(j)
+    write(crlog,"(2(a,i0))") "CR_CHECK>  * Record ",j,": ",crbinrecs(j)
   end do
 #endif
-  flush(93)
+  flush(crlog)
 
   ! First we position fort.6 to last checkpoint
   do j=1,crsixrecs
@@ -437,8 +437,8 @@ subroutine crcheck
   endfile(output_unit,iostat=ierro)
 110 continue
   backspace(output_unit,iostat=ierro)
-  write(93,"(a,i0,a)") "CR_CHECK> Found ",sixrecs," records in fort.6"
-  flush(93)
+  write(crlog,"(a,i0,a)") "CR_CHECK> Found ",sixrecs," records in fort.6"
+  flush(crlog)
 
   !  Position Files
   ! ================
@@ -446,24 +446,24 @@ subroutine crcheck
   call cr_positionTrackFiles
 
   if(dynk_enabled .and. .not.dynk_noDynkSets) then
-    write(93,"(a)") "CR_CHECK> Repositioning dynksets.dat"
-    flush(93)
+    write(crlog,"(a)") "CR_CHECK> Repositioning dynksets.dat"
+    flush(crlog)
     call dynk_crcheck_positionFiles
   end if
 
-  write(93,"(a)") "CR_CHECK> Repositioning DUMP files"
-  flush(93)
+  write(crlog,"(a)") "CR_CHECK> Repositioning DUMP files"
+  flush(crlog)
   call dump_crcheck_positionFiles
 
   if(scatter_active) then
-    write(93,"(a)") "CR_CHECK> Repositioning SCATTER files"
-    flush(93)
+    write(crlog,"(a)") "CR_CHECK> Repositioning SCATTER files"
+    flush(crlog)
     call scatter_crcheck_positionFiles
   end if
 
   if(limifound) then
-    write(93,"(a)") "CR_CHECK> Repositioning APERTURE files"
-    flush(93)
+    write(crlog,"(a)") "CR_CHECK> Repositioning APERTURE files"
+    flush(crlog)
     call aper_crcheck_positionFiles
   end if
 
@@ -479,8 +479,8 @@ subroutine crcheck
   ! We are not checkpointing or we have no checkpoints, or we have no readable checkpoint
   ! If not checkpointing we can just give up on lout and use fort.6. We don't need to count records at all
 200 continue
-  write(93,"(a,l1)") "SIXTRACK> No restart possible. Checkpoint = ",cr_checkp
-  flush(93)
+  write(crlog,"(a,l1)") "SIXTRACK> No restart possible. Checkpoint = ",cr_checkp
+  flush(crlog)
   if(.not.cr_checkp) then
     call cr_copyOut
   end if
@@ -488,9 +488,9 @@ subroutine crcheck
   return
 
 120 continue
-  write(lerr,"(a)") "CR_CHECK> ERROR Cannot read fort.6"
-  write(93,"(a)")   "CR_CHECK> ERROR Cannot read fort.6"
-  flush(93)
+  write(lerr, "(a)") "CR_CHECK> ERROR Cannot read fort.6"
+  write(crlog,"(a)") "CR_CHECK> ERROR Cannot read fort.6"
+  flush(crlog)
   call prror
 
 end subroutine crcheck
@@ -503,6 +503,7 @@ end subroutine crcheck
 ! ================================================================================================ !
 subroutine crpoint
 
+  use crcoall
   use mod_time
   use mod_common
   use mod_commons
@@ -523,8 +524,8 @@ subroutine crpoint
   integer j, k, l, m, nPoint
   logical wErr, fErr
 
-  write(93,"(3(a,i0))") "CR_POINT> Called on turn ",numx," / ",numl," : frequency is ",numlcp
-  flush(93)
+  write(crlog,"(3(a,i0))") "CR_POINT> Called on turn ",numx," / ",numl," : frequency is ",numlcp
+  flush(crlog)
 
   if(cr_restart) then
     cr_restart = .false.
@@ -543,8 +544,8 @@ subroutine crpoint
 
   if(dynk_enabled) then ! Store current settings of elements affected by DYNK
     if(st_debug) then
-      write(93,"(a)") "CR_POINT> Filling DYNK sets"
-      flush(93)
+      write(crlog,"(a)") "CR_POINT> Filling DYNK sets"
+      flush(crlog)
     end if
     do j=1,dynk_nSets_unique
       dynk_fSets_cr(j) = dynk_getvalue(dynk_cSets_unique(j,1),dynk_cSets_unique(j,2))
@@ -561,22 +562,22 @@ subroutine crpoint
     rewind(cr_pntUnit(nPoint))
 
     if(st_debug) then
-      write(93,"(a)") "CR_POINT> Writing to checkpoint file "//cr_pntFile(nPoint)
-      write(93,"(a)") "CR_POINT>  * SixTrack version"
-      flush(93)
+      write(crlog,"(a)") "CR_POINT> Writing to checkpoint file "//cr_pntFile(nPoint)
+      write(crlog,"(a)") "CR_POINT>  * SixTrack version"
+      flush(crlog)
     end if
     write(cr_pntUnit(nPoint),err=100,iostat=ierro) version, moddate
 
     if(st_debug) then
-      write(93,"(a)") "CR_POINT>  * Tracking variables"
-      flush(93)
+      write(crlog,"(a)") "CR_POINT>  * Tracking variables"
+      flush(crlog)
     end if
     write(cr_pntUnit(nPoint),err=100,iostat=ierro) crnumlcr, numl, sixrecs, binrec, sythckcr, il,   &
       time3, napxo, napx, e0, betrel, brho
 
     if(st_debug) then
-      write(93,"(a)") "CR_POINT>  * Particle arrays"
-      flush(93)
+      write(crlog,"(a)") "CR_POINT>  * Particle arrays"
+      flush(crlog)
     end if
     write(cr_pntUnit(nPoint),err=100,iostat=ierro) &
       (binrecs(j), j=1,(napxo+1)/2), &
@@ -600,30 +601,30 @@ subroutine crpoint
     flush(cr_pntUnit(nPoint))
 
     if(st_debug) then
-      write(93,"(a)") "CR_POINT>  * META variables"
-      flush(93)
+      write(crlog,"(a)") "CR_POINT>  * META variables"
+      flush(crlog)
     end if
     call meta_crpoint(cr_pntUnit(nPoint),wErr,ierro)
     if(wErr) goto 100
 
     if(st_debug) then
-      write(93,"(a)") "CR_POINT>  * DUMP variables"
-      flush(93)
+      write(crlog,"(a)") "CR_POINT>  * DUMP variables"
+      flush(crlog)
     end if
     call dump_crpoint(cr_pntUnit(nPoint), wErr,ierro)
     if(wErr) goto 100
 
     if(st_debug) then
-      write(93,"(a)") "CR_POINT>  * HION variables"
-      flush(93)
+      write(crlog,"(a)") "CR_POINT>  * HION variables"
+      flush(crlog)
     end if
     call hions_crpoint(cr_pntUnit(nPoint),wErr,ierro)
     if(wErr) goto 100
 
     if(dynk_enabled) then
       if(st_debug) then
-        write(93,"(a)") "CR_POINT>  * DYNK variables"
-        flush(93)
+        write(crlog,"(a)") "CR_POINT>  * DYNK variables"
+        flush(crlog)
       end if
       call dynk_crpoint(cr_pntUnit(nPoint),wErr,ierro)
       if(wErr) goto 100
@@ -631,8 +632,8 @@ subroutine crpoint
 
     if(scatter_active) then
       if(st_debug) then
-        write(93,"(a)") "CR_POINT>  * SCATTER variables"
-        flush(93)
+        write(crlog,"(a)") "CR_POINT>  * SCATTER variables"
+        flush(crlog)
       end if
       call scatter_crpoint(cr_pntUnit(nPoint),wErr,ierro)
       if(wErr) goto 100
@@ -640,8 +641,8 @@ subroutine crpoint
 
     if(limifound) then
       if(st_debug) then
-        write(93,"(a)") "CR_POINT>  * APERTURE variables"
-        flush(93)
+        write(crlog,"(a)") "CR_POINT>  * APERTURE variables"
+        flush(crlog)
       end if
       call aper_crpoint(cr_pntUnit(nPoint),wErr,ierro)
       if(wErr) goto 100
@@ -649,8 +650,8 @@ subroutine crpoint
 
     if(melens > 0) then
       if(st_debug) then
-        write(93,"(a)") "CR_POINT>  * ELENS variables"
-        flush(93)
+        write(crlog,"(a)") "CR_POINT>  * ELENS variables"
+        flush(crlog)
       end if
       call elens_crpoint(cr_pntUnit(nPoint),wErr,ierro)
       if(wErr) goto 100
@@ -659,8 +660,8 @@ subroutine crpoint
     if(sythckcr) then
       if(ithick == 1) then
         if(st_debug) then
-          write(93,"(a)") "CR_POINT>  * THICK EXTENDED arrays"
-          flush(93)
+          write(crlog,"(a)") "CR_POINT>  * THICK EXTENDED arrays"
+          flush(crlog)
         end if
         write(cr_pntUnit(nPoint),err=100,iostat=ierro) &
           ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6), &
@@ -669,14 +670,14 @@ subroutine crpoint
       end if
 
       if(st_debug) then
-        write(93,"(a)") "CR_POINT>  * THICK arrays"
-        flush(93)
+        write(crlog,"(a)") "CR_POINT>  * THICK arrays"
+        flush(crlog)
       end if
       write(cr_pntUnit(nPoint),err=100,iostat=ierro) &
         (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
     end if
 
-    flush(93)
+    flush(crlog)
     flush(cr_pntUnit(nPoint))
 
   end do ! Loop over nPoint
@@ -684,8 +685,9 @@ subroutine crpoint
   return
 
 100 continue
-  write(93,"(a,i0)") "CR_POINT> ERROR Writing checkpoint file. iostat = ",ierro
-  flush(93)
+  write(lerr ,"(a,i0)") "CR_POINT> ERROR Writing checkpoint file. iostat = ",ierro
+  write(crlog,"(a,i0)") "CR_POINT> ERROR Writing checkpoint file. iostat = ",ierro
+  flush(crlog)
   call prror
 
 end subroutine crpoint
@@ -717,8 +719,8 @@ subroutine crstart
   logical fErr
   integer j,k,l,m
 
-  write(93,"(a,i0)") "CR_START> Starting from turn ",crnumlcr
-  flush(93)
+  write(crlog,"(a,i0)") "CR_START> Starting from turn ",crnumlcr
+  flush(crlog)
   cr_numl = crnumlcr
 
   ! We do NOT reset numl so that a run can be extended for
@@ -734,13 +736,13 @@ subroutine crstart
   betrel = crbetrel
   brho   = crbrho
 
-  write(93,"(a)") "CR_START> Loading BinRecords"
+  write(crlog,"(a)") "CR_START> Loading BinRecords"
   do j=1,(napxo+1)/2
     binrecs(j) = crbinrecs(j)
   end do
 
-  write(93,"(a)") "CR_START> Loading tracking data"
-  flush(93)
+  write(crlog,"(a)") "CR_START> Loading tracking data"
+  flush(crlog)
 
   partID(1:napxo)    = crpartID(1:napxo)
   parentID(1:napxo)  = crparentID(1:napxo)
@@ -791,9 +793,9 @@ subroutine crstart
   if(cr_sythck) then
     ! Now read the extended vars from fort.95/96.
     if(cril /= il) then
-      write(lout,"(2(a,i0))") "CR_START> ERROR Problem as cril/il are different cril = ",cril,", il = ",il
-      write(93,  "(2(a,i0))") "CR_START> ERROR Problem as cril/il are different cril = ",cril,", il = ",il
-      flush(93)
+      write(lerr, "(2(a,i0))") "CR_START> ERROR Problem as cril/il are different cril = ",cril,", il = ",il
+      write(crlog,"(2(a,i0))") "CR_START> ERROR Problem as cril/il are different cril = ",cril,", il = ",il
+      flush(crlog)
       call prror
     end if
     if(cr_pntRead(1)) then
@@ -805,8 +807,8 @@ subroutine crstart
 
       read(cr_pntUnit(1),end=100,err=100,iostat=ierro) &
         (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
-      write(93,"(a)") "CR_START> Read "//cr_pntFile(1)//" EXTENDED OK"
-      flush(93)
+      write(crlog,"(a)") "CR_START> Read "//cr_pntFile(1)//" EXTENDED OK"
+      flush(crlog)
       goto 102
     end if
     if(cr_pntRead(2)) then
@@ -818,21 +820,23 @@ subroutine crstart
       read(cr_pntUnit(2),end=101,err=101,iostat=ierro) &
         (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
 
-      write(93,"(a)") "CR_START> Read "//cr_pntFile(2)//" EXTENDED OK"
-      flush(93)
+      write(crlog,"(a)") "CR_START> Read "//cr_pntFile(2)//" EXTENDED OK"
+      flush(crlog)
       goto 102
     end if
 100 continue
-    write(93,"(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(1)//" (extended), iostat = ",ierro
+    write(lerr, "(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(1)//" (extended), iostat = ",ierro
+    write(crlog,"(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(1)//" (extended), iostat = ",ierro
     call prror
 101 continue
-    write(93,"(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(2)//" (extended), iostat = ",ierro
+    write(lerr, "(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(2)//" (extended), iostat = ",ierro
+    write(crlog,"(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(2)//" (extended), iostat = ",ierro
     call prror
   end if
 
 102 continue
-  write(93,"(3(a,i0))") "CR_START> Sixrecs = ",sixrecs,", crsixrecs = ",crsixrecs,", binrec = ",binrec
-  flush(93)
+  write(crlog,"(3(a,i0))") "CR_START> Sixrecs = ",sixrecs,", crsixrecs = ",crsixrecs,", binrec = ",binrec
+  flush(crlog)
 
   ! Just throw away our fort.92 stuff.
   call f_close(lout)
@@ -866,13 +870,13 @@ subroutine cr_positionTrackFiles
   ! Eric fix this later by reading numl for fort.90
   if(numl /= crnuml) then
     if(numl < crnumlcr) then
-      write(lerr,"(2(a,i0))") "CR_CHECK> ERROR New numl < crnumlcr : ",numl," < ",crnumlcr
-      write(93,"(2(a,i0))")   "CR_CHECK> ERROR New numl < crnumlcr : ",numl," < ",crnumlcr
-      flush(93)
+      write(lerr, "(2(a,i0))") "CR_CHECK> ERROR New numl < crnumlcr : ",numl," < ",crnumlcr
+      write(crlog,"(2(a,i0))") "CR_CHECK> ERROR New numl < crnumlcr : ",numl," < ",crnumlcr
+      flush(crlog)
       call prror
     end if
-    write(93,"(2(a,i0))") "CR_CHECK> Resetting numl in binary file headers from ",crnuml," to ",numl
-    flush(93)
+    write(crlog,"(2(a,i0))") "CR_CHECK> Resetting numl in binary file headers from ",crnuml," to ",numl
+    flush(crlog)
 
     ! Reposition binary files fort.90 etc. / singletrackfile.dat
     ! fort.94 = temp file where the data from fort.90 etc. is copied to and then back
@@ -991,7 +995,7 @@ subroutine cr_positionTrackFiles
     ! Just check crbinrecs against crbinrec
 #ifndef STF
     ! Binary files have been rewritten; now re-position
-    write(93,"(a)") "CR_CHECK>  * Repositioning binary files"
+    write(crlog,"(a)") "CR_CHECK>  * Repositioning binary files"
     do ia=1,crnapxo/2,1
       iau = 91-ia
       if(crbinrecs(ia) >= crbinrec) then
@@ -1011,7 +1015,7 @@ subroutine cr_positionTrackFiles
         backspace (91-ia,iostat=ierro)
       else ! Number of ecords written to this file < general number of records written
           ! => Particle has been lost before last checkpoint, no need to reposition.
-        write(93,"(2(a,i0))") "CR_CHECK> Ignoring IA ",ia," on unit ",iau
+        write(crlog,"(2(a,i0))") "CR_CHECK> Ignoring IA ",ia," on unit ",iau
       end if
     end do ! END "do ia=1,crnapxo/2,1"
 #else
@@ -1094,16 +1098,16 @@ subroutine cr_copyOut
   call f_close(lout)
   call f_open(unit=lout,file=cr_outFile,formatted=.true.,mode="rw",status="replace")
 
-  write(93,"(2(a,i0))") "COPY_OUT> Copied ",nLines," from "//cr_outFile//" to fort.6"
-  flush(93)
+  write(crlog,"(2(a,i0))") "COPY_OUT> Copied ",nLines," lines from "//cr_outFile//" to fort.6"
+  flush(crlog)
 
   sixrecs = sixrecs + nLines
 
   return
 
 30 continue ! Write error on fort.6
-  write(93,"(2(a,i0))") "COPY_OUT> Failed to copy "//cr_outFile//" to fort.6"
-  flush(93)
+  write(crlog,"(2(a,i0))") "COPY_OUT> Failed to copy "//cr_outFile//" to fort.6"
+  flush(crlog)
 
 end subroutine cr_copyOut
 

@@ -176,9 +176,9 @@ subroutine hions_crpoint(fileUnit, writeErr, iErr)
 
 10 continue
   writeErr = .true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in HIONS"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in HIONS"
-  flush(93)
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Reading C/R file fort.",fileUnit," in HIONS"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Reading C/R file fort.",fileUnit," in HIONS"
+  flush(crlog)
 
 end subroutine hions_crpoint
 
@@ -215,9 +215,9 @@ subroutine hions_crcheck_readdata(fileUnit, readErr)
 
 10 continue
   readErr = .true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in HIONS"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in HIONS"
-  flush(93)
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in HIONS"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in HIONS"
+  flush(crlog)
 
 end subroutine hions_crcheck_readdata
 

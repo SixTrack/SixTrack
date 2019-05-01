@@ -557,7 +557,7 @@ subroutine thck4d(nthinerr)
 #ifdef CR
   if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "TRACKING> Thick 4D restarting on turn ",cr_numl," / ",numl
+    write(crlog,"(2(a,i0))") "TRACKING> Thick 4D restarting on turn ",cr_numl," / ",numl
   end if
   nnuml  = numl
   nfirst = cr_numl
@@ -1223,7 +1223,7 @@ subroutine thck6d(nthinerr)
 #ifdef CR
   if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "TRACKING> Thick 6D restarting on turn ",cr_numl," / ",numl
+    write(crlog,"(2(a,i0))") "TRACKING> Thick 6D restarting on turn ",cr_numl," / ",numl
 ! and now reset numl to do only numlmax turns
   end if
   nnuml  = numl

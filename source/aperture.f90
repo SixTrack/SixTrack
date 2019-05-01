@@ -3060,9 +3060,9 @@ subroutine aper_crcheck_readdata(fileunit, readerr)
 
 100 continue
   readerr = .true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in APERTURE"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in APERTURE"
-  flush(93)
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in APERTURE"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in APERTURE"
+  flush(crlog)
 
 end subroutine aper_crcheck_readdata
 
@@ -3081,8 +3081,8 @@ subroutine aper_crcheck_positionFiles
   character(len=1024) arecord
 
   call f_requestUnit(losses_filename,losses_unit)
-  write(93,"(a,i0)") "SIXTRACR> CRCHECK Repositioning file of APERTURE LOSSES to apefilepos_cr = ",apefilepos_cr
-  flush(93)
+  write(crlog,"(a,i0)") "CR_CHECK> Repositioning file of APERTURE LOSSES to position: ",apefilepos_cr
+  flush(crlog)
 
   inquire(unit=losses_unit, opened=lopen)
   if (.not. lopen) call f_open(unit=losses_unit,file=losses_filename,status='old',formatted=.true.,mode='rw',err=err)
@@ -3104,10 +3104,10 @@ subroutine aper_crcheck_positionFiles
   return
 
 111 continue
-  write(93,"(a,i0)")    "SIXTRACR> ERROR Reading file of APERTURE LOSSES, iostat = ",ierro
-  write(93,"(3(a,i0))") "SIXTRACR>       apefilepos = ",apefilepos," apefilepos_cr = ",apefilepos_cr," losses_unit = ",losses_unit
-  flush(93)
-  write(lerr,"(a)") "SIXTRACR> ERROR Failure positioning file of APERTURE LOSSES"
+  write(crlog,"(1(a,i0))") "CR_CHECK> ERROR Failed positioning APERTURE LOSSES file, iostat: ",ierro
+  write(crlog,"(2(a,i0))") "CR_CHECK>       File position: ",apefilepos,", C/R position: ",apefilepos_cr
+  flush(crlog)
+  write(lerr,"(a)") "CR_CHECK> ERROR Failure positioning file of APERTURE LOSSES"
   call prror
 
 end subroutine aper_crcheck_positionFiles
@@ -3117,9 +3117,9 @@ subroutine aper_crpoint(fileunit,lerror,ierro)
 
   implicit none
 
-  integer, intent(in)    :: fileunit
-  logical, intent(inout) :: lerror
-  integer, intent(inout) :: ierro
+  integer, intent(in)  :: fileunit
+  logical, intent(out) :: lerror
+  integer, intent(out) :: ierro
 
   write(fileUnit,err=100,iostat=ierro) apefilepos
   endfile (fileunit,iostat=ierro)
@@ -3128,9 +3128,9 @@ subroutine aper_crpoint(fileunit,lerror,ierro)
 
 100 continue
   lerror = .true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in APERTURE"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in APERTURE"
-  flush(93)
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in APERTURE"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in APERTURE"
+  flush(crlog)
 
 end subroutine aper_crpoint
 ! ================================================================================================================================ !

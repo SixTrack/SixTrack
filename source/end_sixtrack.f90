@@ -75,9 +75,9 @@ subroutine abend(endMsg)
   character(len=25) chBuf
   character(len=mInputLn) inLine, outLine
 
-  write(93,"(a)") "ABEND_CR> Called"
-  write(93,"(a)") "ABEND_CR> Closing files"
-  flush(93)
+  write(crlog,"(a)") "ABEND_CR> Called"
+  write(crlog,"(a)") "ABEND_CR> Closing files"
+  flush(crlog)
 
   ! Calling close to be very safe.......96 calls to abend
   ! Easier than adding the call on every abend
@@ -86,8 +86,8 @@ subroutine abend(endMsg)
 #ifdef BOINC
   ! If fort.10 is non-existent (physics error or some other problem)
   ! we try and write a 0d0 file with a turn number and CPU time
-  write(93,"(a)") "ABEND_CR> Checking fort.10"
-  flush(93)
+  write(crlog,"(a)") "ABEND_CR> Checking fort.10"
+  flush(crlog)
 
   call f_open(unit=10,file="fort.10",formatted=.true.,mode="r",err=fErr,status="old",recl=8195)
   if(fErr) goto 11
@@ -101,8 +101,8 @@ subroutine abend(endMsg)
   ! Now we try and write a fort.10
   ! We put some CPU for Igor, a version, and turn number 0
   ! call f_open(unit=10,file="fort.10",formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
-  write(93,"(a)") "ABEND_CR> Writing dummy fort.10"
-  flush(93)
+  write(crlog,"(a)") "ABEND_CR> Writing dummy fort.10"
+  flush(crlog)
 
   ! Make sure it is closed properly before we re-open for dummy write
   ! inquire(10,opened=fOpen)
@@ -127,8 +127,8 @@ subroutine abend(endMsg)
   ! Note it COULD happen that napxo is 0 for a very very early error and even napx!!!
   if(napxo == 0 .and. napx == 0) napxo = 1
   if(napxo == 0) napxo = napx
-  write(93,"(2(a,i0))") "ABEND_CR> Writing fort.10, lines ",napxo,"/",napx
-  flush(93)
+  write(crlog,"(2(a,i0))") "ABEND_CR> Writing fort.10, lines ",napxo,"/",napx
+  flush(crlog)
   do j=1,napxo ! Must the dummy file really be napxo times the same dummy line?
     write(10,"(a)",iostat=ierro) outLine(1:60*26)
   end do
@@ -139,8 +139,8 @@ subroutine abend(endMsg)
 
 12 continue
   if(lout == cr_outUnit) then
-    write(93,"(a)") "ABEND_CR> STOP/ABEND copying "//cr_outFile//" to fort.6"
-    flush(93)
+    write(crlog,"(a)") "ABEND_CR> STOP/ABEND copying "//cr_outFile//" to fort.6"
+    flush(crlog)
     rewind(cr_outUnit)
 13  continue
     read(cr_outUnit,"(a)",err=14,end=15,iostat=ierro) inLine
@@ -149,16 +149,16 @@ subroutine abend(endMsg)
   end if
 
 14 continue
-  write(93,"(a,i0)")   "ABEND_CR> ERROR Reading "//cr_outFile//" in abend, iostat = ",ierro
-  write(lerr,"(a,i0)") "ABEND> ERROR Reading "//cr_outFile//", iostat = ",ierro
+  write(crlog,"(a,i0)") "ABEND_CR> ERROR Reading "//cr_outFile//" in abend, iostat = ",ierro
+  write(lerr, "(a,i0)") "ABEND> ERROR Reading "//cr_outFile//", iostat = ",ierro
 
 15 continue
   write(output_unit,"(a)",iostat=ierro) "SIXTRACR> Stop: "//trim(endMsg)
   rewind(cr_outUnit)
   endfile(cr_outUnit,iostat=ierro)
   call f_close(cr_outUnit)
-  write(93,"(a)") "ABEND_CR> Stop: "//trim(endMsg)
-  call f_close(93)
+  write(crlog,"(a)") "ABEND_CR> Stop: "//trim(endMsg)
+  call f_close(crlog)
 
 #ifdef BOINC
   call copyToStdErr(cr_errUnit,cr_errFile,10)

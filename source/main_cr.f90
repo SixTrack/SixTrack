@@ -110,8 +110,9 @@ program maincr
 
   errout = 0 ! Set to nonzero before calling abend in case of error.
 #ifdef CR
-  lerr = cr_errUnit
-  lout = cr_outUnit
+  lerr  = cr_errUnit
+  lout  = cr_outUnit
+  crlog = cr_logUnit
 #endif
 
 #ifdef BOINC
@@ -186,11 +187,9 @@ program maincr
   ! Very first get rid of any previous partial output
   call f_close(lerr)
   call f_close(lout)
-  call f_open(unit=lerr,file=cr_errFile,formatted=.true.,mode="rw",err=fErr,status="replace")
-  call f_open(unit=lout,file=cr_outFile,formatted=.true.,mode="rw",err=fErr,status="replace")
-
-  ! Now position the checkpoint/restart logfile=93
-  call f_open(unit=93,file=cr_logFile,formatted=.true.,mode="rw",err=fErr)
+  call f_open(unit=lerr, file=cr_errFile,formatted=.true.,mode="rw",err=fErr,status="replace")
+  call f_open(unit=lout, file=cr_outFile,formatted=.true.,mode="rw",err=fErr,status="replace")
+  call f_open(unit=crlog,file=cr_logFile,formatted=.true.,mode="rw",err=fErr)
 606 continue
   read(93,"(a1024)",end=607) arecord
   goto 606
@@ -199,9 +198,9 @@ program maincr
 #ifdef BOINC
   ! and if BOINC issue an informatory message
   if(cr_start) then
-    write(93,"(a)") "SIXTRACR> Starts for the very first time"
+    write(crlog,"(a)") "SIXTRACR> Starts for the very first time"
   else
-    write(93,"(a)") "SIXTRACR> Retry after unzip of Sixin.zip"
+    write(crlog,"(a)") "SIXTRACR> Retry after unzip of Sixin.zip"
   end if
 #endif
   ! Now we see if we have a fort.6 which implies that we can perhaps just restart using all exisiting files
@@ -217,7 +216,7 @@ program maincr
     if(cr_start) then
       cr_start = .false.
       call f_close(cr_outUnit)
-      call f_close(93)
+      call f_close(cr_logUnit)
       ! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
       ! Name hard-wired in our boinc_unzip_.
       ! Either it is only the fort.* input data or it is a restart.
@@ -295,10 +294,10 @@ program maincr
 
 #ifdef CR
   ! Log start messages
-  write(93,"(a)") "SIXTRACR> "//repeat("=",80)
-  write(93,"(a)") "SIXTRACR> MAINCR Starting"
-  write(93,"(a)") cr_startMsg//timeStamp
-  flush(93)
+  write(crlog,"(a)") "SIXTRACR> "//repeat("=",80)
+  write(crlog,"(a)") "SIXTRACR> MAINCR Starting"
+  write(crlog,"(a)") cr_startMsg//timeStamp
+  flush(crlog)
 #endif
 
   call time_timerStart
@@ -369,8 +368,8 @@ program maincr
 #ifndef CR
       call postpr(91-i)
 #else
-      write(93,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit = ",(91-i),", nnuml = ",nnuml
-      flush(93)
+      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit = ",(91-i),", nnuml = ",nnuml
+      flush(crlog)
       call postpr(91-i,nnuml)
 #endif
     end do
@@ -383,8 +382,8 @@ program maincr
 #ifndef CR
       call postpr(i)
 #else
-      write(93,"(2(a,i0))") "SIXTRACR> Calling POSTPR Particle = ",i,", nnuml = ",nnuml
-      flush(93)
+      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Particle = ",i,", nnuml = ",nnuml
+      flush(crlog)
       call postpr(i,nnuml)
 #endif
     end do
@@ -948,8 +947,8 @@ program maincr
 #endif
 
 #ifdef CR
-  write(93,"(a,i0)") "SIXTRACR> Setting napxo = ",napx
-  flush(93)
+  write(crlog,"(a,i0)") "SIXTRACR> Setting napxo = ",napx
+  flush(crlog)
 #endif
   napxo = napx
 
@@ -1329,8 +1328,8 @@ program maincr
 #ifdef CR
   if(.not.cr_restart) then
     ! If cr_restart is true , we haven't done any tracking and must be running from very last checkpoint
-    write(93,"(a,i0)") "SIXTRACR> Very last call to WRITEBIN on turn ",numl
-    flush(93)
+    write(crlog,"(a,i0)") "SIXTRACR> Very last call to WRITEBIN on turn ",numl
+    flush(crlog)
     if(nnuml == numl) then
       ! We REALLY have finished (or all particles lost)
       ! When all lost, nthinerr=3001, we set nnuml=numl
@@ -1468,8 +1467,8 @@ program maincr
 #ifndef CR
       call postpr(91-ia2) ! Postprocess file "fort.(91-ia2)"
 #else
-      write(93,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit = ",(91-ia2),", nnuml = ",nnuml
-      flush(93)
+      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit = ",(91-ia2),", nnuml = ",nnuml
+      flush(crlog)
       call postpr(91-ia2,nnuml)
 #endif
     end do
@@ -1485,8 +1484,8 @@ program maincr
 #ifndef CR
       call postpr(91-ia)
 #else
-      write(93,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit = ",(91-i),", nnuml = ",nnuml
-      flush(93)
+      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit = ",(91-i),", nnuml = ",nnuml
+      flush(crlog)
       call postpr(91-ia,nnuml)
 #endif
     end do
@@ -1501,8 +1500,8 @@ program maincr
 #ifndef CR
       call postpr(ia) ! Postprocess particle ia (and ia+1 if ntwin=2)
 #else
-      write(93,"(2(a,i0))") "SIXTRACR> Calling POSTPR Particle = ",ia,", nnuml = ",nnuml
-      flush(93)
+      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Particle = ",ia,", nnuml = ",nnuml
+      flush(crlog)
       call postpr(ia,nnuml)
 #endif
     end do
@@ -1518,8 +1517,8 @@ program maincr
 #ifndef CR
       call postpr(ia)
 #else
-      write(93,"(2(a,i0))") "SIXTRACR> Calling POSTPR Particle = ",ia,", nnuml = ",nnuml
-      flush(93)
+      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Particle = ",ia,", nnuml = ",nnuml
+      flush(crlog)
       call postpr(ia,nnuml)
 #endif
     end do

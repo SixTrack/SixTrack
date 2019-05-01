@@ -283,8 +283,8 @@ subroutine meta_crcheck(fileUnit, readErr)
 10 continue
   readErr = .true.
   write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in META"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in META"
-  flush(93)
+  write(crlog,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in META"
+  flush(crlog)
 
 end subroutine meta_crcheck
 
@@ -305,8 +305,8 @@ subroutine meta_crpoint(fileUnit, writeErr, iErro)
 10 continue
   writeErr = .true.
   write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in META"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in META"
-  flush(93)
+  write(crlog,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in META"
+  flush(crlog)
 
 end subroutine meta_crpoint
 
