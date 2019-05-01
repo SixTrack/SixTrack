@@ -234,7 +234,7 @@ subroutine scatter_init
     scatter_logFilePos = 2
     flush(scatter_logFile)
   else
-    write(93,"(a)") "SCATTER> INIT kept already opened file 'scatter_log.dat'"
+    write(93,"(a)") "SICTRACR> SCATTER kept already opened file 'scatter_log.dat'"
   end if
 #endif
 #ifdef HDF5
@@ -259,7 +259,7 @@ subroutine scatter_init
     scatter_sumFilePos = scatter_sumFilePos + 3
     flush(scatter_sumFile)
   else
-    write(93,"(a)") "SCATTER> INIT kept already opened file 'scatter_summary.dat'"
+    write(93,"(a)") "SICTRACR> SCATTER kept already opened file 'scatter_summary.dat'"
   end if
 #endif
 
@@ -1497,9 +1497,10 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
   return
 
 10 continue
-  write(lout,"(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
-  write(93,  "(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
   readErr = .true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in SCATTER"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in SCATTER"
+  flush(93)
 
 end subroutine scatter_crcheck_readdata
 
@@ -1525,7 +1526,7 @@ subroutine scatter_crcheck_positionFiles
     write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning 'scatter_log.dat'"
     write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_logFile," already in use!"
     flush(93)
-    write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning 'scatter_log.dat'"
+    write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK failure positioning 'scatter_log.dat'"
     call prror
   end if
 
@@ -1604,6 +1605,8 @@ end subroutine scatter_crcheck_positionFiles
 ! =================================================================================================
 subroutine scatter_crpoint(fileUnit, writeErr, iError)
 
+  use crcoall
+
   integer, intent(in)    :: fileUnit
   logical, intent(out)   :: writeErr
   integer, intent(inout) :: iError
@@ -1618,6 +1621,9 @@ subroutine scatter_crpoint(fileUnit, writeErr, iError)
 
 10 continue
   writeErr = .true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in SCATTER"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in SCATTER"
+  flush(93)
 
 end subroutine scatter_crpoint
 

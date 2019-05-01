@@ -1781,6 +1781,9 @@ subroutine dump_crcheck_readdata(fileunit, readerr)
 
 100 continue
   readerr = .true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in DUMP"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in DUMP"
+  flush(93)
 
 end subroutine dump_crcheck_readdata
 
@@ -1805,15 +1808,16 @@ subroutine dump_crcheck_positionFiles
 
   do i=-1, il
     if (ldump(i)) then
-      write(93,*) "SIXTRACR CRCHECK REPOSITIONING DUMP file"
+      write(93,"(a)") "SIXTRACR> CRCHECK Repositioning DUMP file"
       if (i > 0) then
-        write(93,*) "element=",bez(i), "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))//"' format=",dumpfmt(i)
+        write(93,"(a,i0)") "SIXTRACR> CRCHECK Element = '"//trim(bez(i))//"', filename = '"//trim(dump_fname(i))//&
+          "', format = ",dumpfmt(i)
       else if (i == 0) then
-        write(93,*) "element=","ALL" , "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))//"' format=",dumpfmt(i)
+        write(93,"(a,i0)") "SIXTRACR> CRCHECK Element = 'ALL', filename = '"//trim(dump_fname(i))//"', format = ",dumpfmt(i)
       else if(i  ==  -1) then
-        write(93,*) "element=","StartDump" , "unit=",dumpunit(i)," filename='"//trim(dump_fname(i))//"' format=",dumpfmt(i)
+        write(93,"(a,i0)") "SIXTRACR> CRCHECK Element = 'StartDump', filename = '"//trim(dump_fname(i))//"', format = ",dumpfmt(i)
       else
-        write(93,*) "Error - index=",i,"is unknown"
+        write(93,"(a,i0,a)") "SIXTRACR> ERROR CRCHECK Element index ",i," is unknown"
         goto 111
       end if
       flush(93)
@@ -1844,12 +1848,10 @@ subroutine dump_crcheck_positionFiles
               tmp_ID,tmp_nturn,tmp_dcum,tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,tmp_ktrack, &
               tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x
           else
-            write(93,'(a,i0)') &
-              "SIXTRACR> ERROR DUMP_CRCHECK_POSITIONFILES failure positioning DUMP file: unknown format ",dumpfmt(i)
-            write(lout,'(a,i0)') &
-              "SIXTRACR> ERROR DUMP_CRCHECK_POSITIONFILES failure positioning DUMP file: unknown format ",dumpfmt(i)
+            write(93,'(a,i0)') "SIXTRACR> ERROR Positionfiles: failure positioning DUMP file: unknown format ",dumpfmt(i)
+            write(lout,'(a,i0)') "SIXTRACR> ERROR Positionfiles: failure positioning DUMP file: unknown format ",dumpfmt(i)
             flush(93)
-            call prror(-1)
+            call prror
           end if
           dumpfilepos(i) = dumpfilepos(i) + 1
         end do
@@ -1903,7 +1905,9 @@ subroutine dump_crpoint(fileunit,lerror,ierro)
 
 100 continue
   lerror = .true.
-  return
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in DUMP"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in DUMP"
+  flush(93)
 
 end subroutine dump_crpoint
 ! ================================================================================================================================ !

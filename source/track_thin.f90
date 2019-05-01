@@ -2139,78 +2139,53 @@ subroutine trackReport(n)
 
 end subroutine trackReport
 
-!-----------------------------------------------------------------------
-!
-!  F. SCHMIDT
-!-----------------------------------------------------------------------
-!  3 February 1999
-!-----------------------------------------------------------------------
+! ================================================================================================ !
+!  F. Schmidt
+!  Original:  1999-02-03
+!  Rewritten: 2019-04-26 (VKBO)
+! ================================================================================================ !
+#ifdef CR
 subroutine callcrp
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
   use crcoall
-  use parpro
   use mod_common
   use mod_common_main
-  use mod_commons
   use mod_common_track
-  use mod_common_da
-#ifdef CR
   use checkpoint_restart
-#endif
+
   implicit none
-#ifdef CR
-  integer ncalls
-#endif
+
 #ifdef BOINC
   integer timech
 #endif
-#ifdef CR
-  data ncalls /0/
-#endif
-  save
-!-----------------------------------------------------------------------
-#ifdef CR
-  ncalls=ncalls+1
-  if (restart) then
-    write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
+
+  if(restart) then
+    write(lout,"(a,i0)") "SIXTRACR> Bailing out on turn ",numx+1
+    write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT Bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
       " numx = ",numx,", numlcr = ",numlcr
     flush(93)
     return
   else
-#ifndef DEBUG
-    if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
+    write(lout,"(a,i0)") "SIXTRACR> Checkpointing on turn ",numx+1
     write(93,"(6(a,i0))") "SIXTRACR> CALLCRP numl = ",numl,", nnuml = ",nnuml,", numlcr = ",numlcr,", "//&
      "numx = ",numx,", nwri = ",nwri,", numlcp = ",numlcp
     flush(93)
-#ifndef DEBUG
-    endif
-#endif
-  endif
+  end if
 #ifdef BOINC
-  if (checkp) then
-    ! Now ALWAYS checkpoint
-    ! NO, re-instated at user request
-    ! What was the user request?
+  if(checkp) then
+    ! If BOINC and turn > 1, ask BOINC API whether to crpoint or not
     call boinc_time_to_checkpoint(timech)
-    if (timech /= 0) then
+    if(timech /= 0 .or. numx == 0) then
       call crpoint
       call boinc_checkpoint_completed()
     endif
   endif
 #else
-  if (checkp) call crpoint
+  if(checkp) call crpoint
 #endif
-  return
-11 write(lerr,"(a,i0)") "CALLCRP> ERROR Problems writing to file #91, ierro= ",ierro
-  ! write(lerr,"(a)")'SIXTRACR WRITEBIN IO ERROR on Unit 91'
-  call prror(-1)
-#endif
-  return
+
 end subroutine callcrp
+#endif
 
 !-----------------------------------------------------------------------
 !

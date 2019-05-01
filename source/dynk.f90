@@ -2900,10 +2900,10 @@ subroutine dynk_crcheck_readdata(fileunit,readerr)
   return
 
 100 continue
-
-  write(lout,"(a,i0)") "READERR in scatter_crcheck; fileunit=",fileunit
-  write(93,*)          "READERR in scatter_crcheck; fileunit=",fileunit
   readerr=.true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in DYNK"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in DYNK"
+  flush(93)
 
 end subroutine dynk_crcheck_readdata
 
@@ -2926,9 +2926,9 @@ subroutine dynk_crcheck_positionFiles
   inquire(unit=dynk_fileUnit, opened=isOpen)
   if (isOpen) then
     write(93,"(a)")      "SIXTRACR> CRCHECK FAILED while repositioning '"//dynk_fileName//"'"
-    write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",dynk_fileUnit," already in use!"
+    write(93,"(a,i0,a)") "SIXTRACR>         UNIT ",dynk_fileUnit," already in use!"
     flush(93)
-    write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning '"//dynk_fileName//"'"
+    write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK failure positioning '"//dynk_fileName//"'"
     call prror
   end if
 
@@ -2962,7 +2962,7 @@ subroutine dynk_crcheck_positionFiles
   write(93,"(2(a,i0))") "SIXTRACR> ERROR in CRCHECK while reading '"//dynk_fileName//"', "//&
     "dynk_filePos = ",dynk_filePos,", dynk_filePosCR = ",dynk_filePosCR
   flush(93)
-  write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning '"//dynk_fileName//"'"
+  write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK failure positioning '"//dynk_fileName//"'"
   call prror
 
 end subroutine dynk_crcheck_positionFiles
@@ -2994,7 +2994,11 @@ subroutine dynk_crpoint(fileunit,fileerror,ierro)
   return
 
 100 continue
-    fileerror=.true.
+  fileerror = .true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in DYNK"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in DYNK"
+  flush(93)
+
 end subroutine dynk_crpoint
 
 ! ================================================================================================ !

@@ -1707,7 +1707,7 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
   integer jj
 
   oApe(:)=zero
- 
+
   if( sameAperture(ixUp,ixDw ) ) then
     ! constant aperture - no need to interpolate
     oKApe=kape(ixUp)
@@ -1717,7 +1717,7 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
     ! type: we may interpolate the same aperture type
     oKApe=-1 ! transition
     if( kape(ixUp).eq.kape(ixDw) ) oKApe=kape(ixUp)
-     
+
     ! actual interpolation
     ddcum = spos-dcum(iUp)
     if( ddcum.lt.zero ) ddcum=dcum(iu)+ddcum
@@ -1730,7 +1730,7 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
         oApe(jj)=((ape(jj,ixDw)-ape(jj,ixUp))/mdcum)*ddcum+ape(jj,ixUp)
       end if
     end do
-    
+
   end if
   return
 end subroutine interp_aperture
@@ -3060,6 +3060,9 @@ subroutine aper_crcheck_readdata(fileunit, readerr)
 
 100 continue
   readerr = .true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in APERTURE"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in APERTURE"
+  flush(93)
 
 end subroutine aper_crcheck_readdata
 
@@ -3078,7 +3081,7 @@ subroutine aper_crcheck_positionFiles
   character(len=1024) arecord
 
   call f_requestUnit(losses_filename,losses_unit)
-  write(93,"(a,i0)") "SIXTRACR> CRCHECK REPOSITIONING file of APERTURE LOSSES to apefilepos_cr = ",apefilepos_cr
+  write(93,"(a,i0)") "SIXTRACR> CRCHECK Repositioning file of APERTURE LOSSES to apefilepos_cr = ",apefilepos_cr
   flush(93)
 
   inquire(unit=losses_unit, opened=lopen)
@@ -3101,11 +3104,11 @@ subroutine aper_crcheck_positionFiles
   return
 
 111 continue
-  write(93,*) 'SIXTRACR> APER_CRCHECK_POSITIONFILE *** ERROR *** reading file of APERTURE LOSSES, iostat=',ierro
-  write(93,*) 'apefilepos=',apefilepos,' apefilepos_cr=',apefilepos_cr,' losses_unit=',losses_unit
+  write(93,"(a,i0)")    "SIXTRACR> ERROR Reading file of APERTURE LOSSES, iostat = ",ierro
+  write(93,"(3(a,i0))") "SIXTRACR>       apefilepos = ",apefilepos," apefilepos_cr = ",apefilepos_cr," losses_unit = ",losses_unit
   flush(93)
-  write(lerr,"(a)") "SIXTRACR> ERROR APER_CRCHECK_POSITIONFILES failure positioning file of APERTURE LOSSES"
-  call prror(-1)
+  write(lerr,"(a)") "SIXTRACR> ERROR Failure positioning file of APERTURE LOSSES"
+  call prror
 
 end subroutine aper_crcheck_positionFiles
 
@@ -3125,7 +3128,9 @@ subroutine aper_crpoint(fileunit,lerror,ierro)
 
 100 continue
   lerror = .true.
-  return
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in APERTURE"
+  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in APERTURE"
+  flush(93)
 
 end subroutine aper_crpoint
 ! ================================================================================================================================ !
