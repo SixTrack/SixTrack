@@ -85,9 +85,6 @@ program maincr
   ! Keep in sync with writebin_header and more. If the len changes, CRCHECK will break.
   character(len=8) cDate,cTime,progrm
 
-#ifdef BOINC
-  character(len=256) filename
-#endif
 #ifdef FLUKA
   integer fluka_con
 #endif
@@ -108,11 +105,13 @@ program maincr
   ! Parse command line arguments
   call sixin_commandLine("SixTrack")
 
-  errout = 0 ! Set to nonzero before calling abend in case of error.
 #ifdef CR
   lerr  = cr_errUnit
   lout  = cr_outUnit
   crlog = cr_logUnit
+#else
+  lerr  = error_unit
+  lout  = output_unit
 #endif
 
 #ifdef BOINC
@@ -128,7 +127,6 @@ program maincr
   call hash_initialise
 #endif
 
-  !----------------------------------------------------------------------------------------------- !
   ! Features
   featList = ""
 #ifdef TILT
@@ -179,67 +177,8 @@ program maincr
 #endif
 
 #ifdef CR
-  ! Main start for Checkpoint/Restart
-#ifdef BOINC
-611 continue
-  ! Goes here after unzip for BOINC
-#endif
-  ! Very first get rid of any previous partial output
-  call f_close(lerr)
-  call f_close(lout)
-  call f_open(unit=lerr, file=cr_errFile,formatted=.true.,mode="rw",err=fErr,status="replace")
-  call f_open(unit=lout, file=cr_outFile,formatted=.true.,mode="rw",err=fErr,status="replace")
-  call f_open(unit=crlog,file=cr_logFile,formatted=.true.,mode="rw",err=fErr)
-606 continue
-  read(93,"(a1024)",end=607) arecord
-  goto 606
-607 continue
-  backspace(93,iostat=ierro)
-#ifdef BOINC
-  ! and if BOINC issue an informatory message
-  if(cr_start) then
-    write(crlog,"(a)") "SIXTRACR> Starts for the very first time"
-  else
-    write(crlog,"(a)") "SIXTRACR> Retry after unzip of Sixin.zip"
-  end if
-#endif
-  ! Now we see if we have a fort.6 which implies that we can perhaps just restart using all exisiting files
-  ! including the last checkpoints. If not, we just do a start (with an unzip for BOINC)
-  ! call f_open(unit=6,file="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
-  ! if(fErr) goto 602
-  call f_open(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr,status="old")
-  if(fErr) then
-#ifdef BOINC
-    ! No fort.6 so we do an unzip of Sixin.zip
-    ! BUT ONLY IF WE HAVE NOT DONE IT ALREADY
-    ! and CLOSE 92 and 93
-    if(cr_start) then
-      cr_start = .false.
-      call f_close(cr_outUnit)
-      call f_close(cr_logUnit)
-      ! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
-      ! Name hard-wired in our boinc_unzip_.
-      ! Either it is only the fort.* input data or it is a restart.
-      call boincrf("Sixin.zip",filename)
-      ! This function expects a normal, trimmed fortran string; it will do the zero-padding internally.
-      call f_read_archive(trim(filename),".")
-      goto 611
-    end if
-    call f_open(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr)
-#else
-    call f_open(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr,status="new")
-#endif
-    ! Set up start message depending on fort.6 or not
-    cr_startMsg = "SIXTRACR> Starts on: "
-  else
-    ! Set up start message depending on fort.6 or not
-    cr_startMsg = "SIXTRACR> Reruns on: "
-    cr_rerun = .true.
-  end if
+  ! Initialise Checkpoint/Restart
   call cr_fileInit
-#else
-  lerr = error_unit
-  lout = output_unit
 #endif
 
   ! Open Regular File Units
@@ -324,7 +263,7 @@ program maincr
   end if
 #endif
 
-  if (ithick == 1) call allocate_thickarrays
+  if(ithick == 1) call allocate_thickarrays
 
 #ifdef CR
   cr_checkp = .true.
@@ -339,7 +278,7 @@ program maincr
 
 #ifndef FLUKA
   ! SETTING UP THE PLOTTING
-  if(ipos.eq.1.and.(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
+  if(ipos == 1 .and. (idis /= 0 .or. icow /= 0 .or. istw /= 0 .or. iffw /= 0)) then
     call hlimit(nplo)
     call hplint(kwtype)
     call igmeta(-20,-111)

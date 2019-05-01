@@ -12,10 +12,11 @@ module checkpoint_restart
   implicit none
 
   ! Checkpoint Files
-  character(len=15), public,  save :: cr_pntFile(2)  = ["crpoint_pri.bin","crpoint_sec.bin"]
-  integer,           public,  save :: cr_pntUnit(2)  = -1
-  logical,           public,  save :: cr_pntExist(2) = .false.
-  logical,           public,  save :: cr_pntRead(2)  = .false.
+  integer,           parameter     :: cr_nPoint = 2
+  character(len=15), public,  save :: cr_pntFile(cr_nPoint)  = ["crpoint_pri.bin","crpoint_sec.bin"]
+  integer,           public,  save :: cr_pntUnit(cr_nPoint)  = -1
+  logical,           public,  save :: cr_pntExist(cr_nPoint) = .false.
+  logical,           public,  save :: cr_pntRead(cr_nPoint)  = .false.
 
   ! Logging Files
   character(len=13), public,  save :: cr_errFile  = "cr_stderr.tmp"
@@ -87,12 +88,56 @@ contains
 ! ================================================================================================ !
 subroutine cr_fileInit
 
+  use, intrinsic :: iso_fortran_env, only : output_unit, error_unit
+
   use mod_units
+  use mod_common, only : fort6
 
   integer i
   logical fErr
+  character(len=256) fileName
 
-  do i=1,2
+10 continue
+
+  ! First get rid of any previous partial output, and open log file for append (rw+)
+  call f_close(cr_errUnit)
+  call f_close(cr_outUnit)
+  call f_open(unit=cr_errUnit,file=cr_errFile,formatted=.true.,mode="rw", err=fErr,status="replace")
+  call f_open(unit=cr_outUnit,file=cr_outFile,formatted=.true.,mode="rw", err=fErr,status="replace")
+  call f_open(unit=cr_logUnit,file=cr_logFile,formatted=.true.,mode="rw+",err=fErr,status="unknown")
+  
+  ! Now we see if we have a fort.6, which implies that we can perhaps just restart using all exisiting files
+  ! including the last checkpoints. If not, we just do a start (with an unzip for BOINC)
+  call f_open(unit=output_unit,file=fort6,formatted=.true.,mode="rw",err=fErr,status="old")
+  if(fErr) then
+#ifdef BOINC
+    ! No fort.6 so we do an unzip of Sixin.zip
+    ! BUT ONLY IF WE HAVE NOT DONE IT ALREADY
+    ! and CLOSE 92 and 93
+    if(cr_start) then
+      cr_start = .false.
+      call f_close(cr_outUnit)
+      call f_close(cr_logUnit)
+      ! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
+      ! Name hard-wired in our boinc_unzip_.
+      ! Either it is only the fort.* input data or it is a restart.
+      call boincrf("Sixin.zip",fileName)
+      ! This function expects a normal, trimmed fortran string; it will do the zero-padding internally.
+      call f_read_archive(trim(fileName),".")
+      goto 10 ! Go to top and check everything again after unzip
+    end if
+    call f_open(unit=output_unit,file=fort6,formatted=.true.,mode="rw",err=fErr)
+#else
+    call f_open(unit=output_unit,file=fort6,formatted=.true.,mode="rw",err=fErr,status="new")
+#endif
+    cr_startMsg = "SIXTRACR> Starts on: "
+  else
+    cr_startMsg = "SIXTRACR> Reruns on: "
+    cr_rerun = .true.
+  end if
+
+  ! Open checkpoint files
+  do i=1,cr_nPoint
     fErr = .false.
     call f_requestUnit(cr_pntFile(i),cr_pntUnit(i))
     call f_open(unit=cr_pntUnit(i),file=cr_pntFile(i),formatted=.false.,mode="rw",err=fErr,status="old")
@@ -268,7 +313,7 @@ subroutine crcheck
   ! We are not checkpoint/restart or we have no restart files
   if(cr_checkp .eqv. .false.) goto 200
   noRestart = .false.
-  do nPoint=1,2
+  do nPoint=1,cr_nPoint
     noRestart = noRestart .and. .not. cr_pntExist(nPoint)
   end do
   if(noRestart) goto 200
@@ -277,13 +322,13 @@ subroutine crcheck
   ! NOT TRUE anymore??? We might be NOT rerun but using a Sixin.zip
 #ifndef BOINC
   if(cr_rerun .eqv. .false.) then
-    write(lerr,"(a)") "CR_CHECK> ERROR Found "//cr_pntFile(1)//"/"//cr_pntFile(2)//" but no fort.6"
+    write(lerr,"(a)") "CR_CHECK> ERROR Found "//cr_pntFile(1)//"/"//cr_pntFile(2)//" but no "//trim(fort6)
     call prror
   end if
 #endif
 
   ! Check at least one restart file is readable
-  do nPoint=1,2
+  do nPoint=1,cr_nPoint
     write(crlog,"(a)") "CR_CHECK> Checking file "//cr_pntFile(nPoint)
     flush(crlog)
 
@@ -437,7 +482,7 @@ subroutine crcheck
   endfile(output_unit,iostat=ierro)
 110 continue
   backspace(output_unit,iostat=ierro)
-  write(crlog,"(a,i0,a)") "CR_CHECK> Found ",sixrecs," records in fort.6"
+  write(crlog,"(a,i0,a)") "CR_CHECK> Found ",sixrecs," lines in "//trim(fort6)
   flush(crlog)
 
   !  Position Files
@@ -469,9 +514,9 @@ subroutine crcheck
 
   ! Set up flag for tracking routines to call CRSTART
   cr_restart = .true.
-  write(lout,"(a)") "SIXTRACK> "//repeat("=",80)
-  write(lout,"(a)") "SIXTRACK>  Restarted"
-  write(lout,"(a)") "SIXTRACK> "//repeat("=",80)
+  write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
+  write(lout,"(a)") "SIXTRACR>  Restarted"
+  write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
   flush(lout)
 
   return
@@ -479,7 +524,7 @@ subroutine crcheck
   ! We are not checkpointing or we have no checkpoints, or we have no readable checkpoint
   ! If not checkpointing we can just give up on lout and use fort.6. We don't need to count records at all
 200 continue
-  write(crlog,"(a,l1)") "SIXTRACK> No restart possible. Checkpoint = ",cr_checkp
+  write(crlog,"(a,l1)") "SIXTRACR> No restart possible. Checkpoint = ",cr_checkp
   flush(crlog)
   if(.not.cr_checkp) then
     call cr_copyOut
@@ -488,8 +533,8 @@ subroutine crcheck
   return
 
 120 continue
-  write(lerr, "(a)") "CR_CHECK> ERROR Cannot read fort.6"
-  write(crlog,"(a)") "CR_CHECK> ERROR Cannot read fort.6"
+  write(lerr, "(a)") "CR_CHECK> ERROR Cannot read "//trim(fort6)
+  write(crlog,"(a)") "CR_CHECK> ERROR Cannot read "//trim(fort6)
   flush(crlog)
   call prror
 
@@ -524,7 +569,7 @@ subroutine crpoint
   integer j, k, l, m, nPoint
   logical wErr, fErr
 
-  write(crlog,"(3(a,i0))") "CR_POINT> Called on turn ",numx," / ",numl," : frequency is ",numlcp
+  write(crlog,"(3(a,i0))") "CR_POINT> Called on turn ",(numx+1)," / ",numl," : frequency is ",numlcp
   flush(crlog)
 
   if(cr_restart) then
@@ -556,7 +601,7 @@ subroutine crpoint
   !  Write the CR files
   ! ********************
 
-  do nPoint=1,2
+  do nPoint=1,cr_nPoint
 
     wErr = .false.
     rewind(cr_pntUnit(nPoint))
@@ -719,7 +764,7 @@ subroutine crstart
   logical fErr
   integer j,k,l,m
 
-  write(crlog,"(a,i0)") "CR_START> Starting from turn ",crnumlcr
+  write(crlog,"(a,i0)") "CR_START> Starting from checkpoint data from turn ",crnumlcr
   flush(crlog)
   cr_numl = crnumlcr
 
@@ -841,9 +886,13 @@ subroutine crstart
   ! Just throw away our fort.92 stuff.
   call f_close(lout)
   call f_open(unit=lout,file=cr_outFile,formatted=.true.,mode="rw",err=fErr,status="replace")
-  write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
-  write(lout,"(a)") "SIXTRACR>  Restarted"
-  write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
+  write(crlog,"(a)") "CR_START> "//repeat("=",80)
+  write(crlog,"(a)") "CR_START> SixTrack Restarted"
+  write(crlog,"(a)") "CR_START> "//repeat("=",80)
+  flush(crlog)
+  write(lout, "(a)") "CR_START> "//repeat("=",80)
+  write(lout, "(a)") "CR_START> SixTrack Restarted"
+  write(lout, "(a)") "CR_START> "//repeat("=",80)
   flush(lout)
 
 end subroutine crstart
@@ -1070,9 +1119,11 @@ end subroutine cr_positionTrackFiles
 ! ================================================================================================ !
 subroutine cr_copyOut
 
+  use, intrinsic :: iso_fortran_env, only : output_unit
+
   use crcoall
   use mod_units
-  use, intrinsic :: iso_fortran_env, only : output_unit
+  use mod_common, only : fort6
 
   character(len=1024) inLine
   integer ioStat, lnSize, nLines
@@ -1096,9 +1147,9 @@ subroutine cr_copyOut
   flush(output_unit)
 
   call f_close(lout)
-  call f_open(unit=lout,file=cr_outFile,formatted=.true.,mode="rw",status="replace")
+  call f_open(unit=lout,file=cr_outFile,formatted=.true.,mode="rw-",status="replace")
 
-  write(crlog,"(2(a,i0))") "COPY_OUT> Copied ",nLines," lines from "//cr_outFile//" to fort.6"
+  write(crlog,"(2(a,i0))") "COPY_OUT> Copied ",nLines," lines from "//cr_outFile//" to "//trim(fort6)
   flush(crlog)
 
   sixrecs = sixrecs + nLines
@@ -1106,7 +1157,7 @@ subroutine cr_copyOut
   return
 
 30 continue ! Write error on fort.6
-  write(crlog,"(2(a,i0))") "COPY_OUT> Failed to copy "//cr_outFile//" to fort.6"
+  write(crlog,"(2(a,i0))") "COPY_OUT> Failed to copy "//cr_outFile//" to "//trim(fort6)
   flush(crlog)
 
 end subroutine cr_copyOut

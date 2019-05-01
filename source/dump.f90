@@ -1808,15 +1808,14 @@ subroutine dump_crcheck_positionFiles
 
   do i=-1, il
     if(ldump(i)) then
-      write(crlog,"(a)") "CR_CHECK> Repositioning DUMP files"
       if(i > 0) then
-        write(crlog,"(a,i0)") "CR_CHECK> Element '"//trim(bez(i))//"', file '"//trim(dump_fname(i))//"', format ",dumpfmt(i)
+        write(crlog,"(a,i0)") "CR_CHECK> DUMP Element '"//trim(bez(i))//"', file '"//trim(dump_fname(i))//"', format ",dumpfmt(i)
       elseif(i == 0) then
-        write(crlog,"(a,i0)") "CR_CHECK> Element 'ALL', file '"//trim(dump_fname(i))//"', format ",dumpfmt(i)
+        write(crlog,"(a,i0)") "CR_CHECK> DUMP Element 'ALL', file '"//trim(dump_fname(i))//"', format ",dumpfmt(i)
       elseif(i  ==  -1) then
-        write(crlog,"(a,i0)") "CR_CHECK> Element 'StartDump', file '"//trim(dump_fname(i))//"', format ",dumpfmt(i)
+        write(crlog,"(a,i0)") "CR_CHECK> DUMP Element 'StartDump', file '"//trim(dump_fname(i))//"', format ",dumpfmt(i)
       else
-        write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Element index ",i," is unknown"
+        write(crlog,"(a,i0,a)") "CR_CHECK> ERROR DUMP Element index ",i," is unknown"
         goto 111
       end if
       flush(crlog)

@@ -138,7 +138,8 @@ module mod_common
 
   ! File Names
   character(len=mFileName), public, save :: fort2 = "fort.2" ! Name of machine geometry file
-  character(len=mFileName), public, save :: fort3 = "fort.3" ! Name of main imput file
+  character(len=mFileName), public, save :: fort3 = "fort.3" ! Name of main input file
+  character(len=mFileName), public, save :: fort6 = "fort.6" ! Name of main output file (stdout)
 
   !  GENERAL VARIABLES
   ! ===================

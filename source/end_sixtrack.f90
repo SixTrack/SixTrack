@@ -138,19 +138,7 @@ subroutine abend(endMsg)
 #endif
 
 12 continue
-  if(lout == cr_outUnit) then
-    write(crlog,"(a)") "ABEND_CR> STOP/ABEND copying "//cr_outFile//" to fort.6"
-    flush(crlog)
-    rewind(cr_outUnit)
-13  continue
-    read(cr_outUnit,"(a)",err=14,end=15,iostat=ierro) inLine
-    write(output_unit,'(a)',iostat=ierro) trim(inLine)
-    goto 13
-  end if
-
-14 continue
-  write(crlog,"(a,i0)") "ABEND_CR> ERROR Reading "//cr_outFile//" in abend, iostat = ",ierro
-  write(lerr, "(a,i0)") "ABEND> ERROR Reading "//cr_outFile//", iostat = ",ierro
+  call cr_copyOut
 
 15 continue
   write(output_unit,"(a)",iostat=ierro) "SIXTRACR> Stop: "//trim(endMsg)

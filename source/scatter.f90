@@ -222,7 +222,7 @@ subroutine scatter_init
   call f_requestUnit("scatter_log.dat", scatter_logFile)
 #ifdef CR
   if(scatter_logFilePos == -1) then
-    write(crlog,"(a)") "SCATTER> INIT opening new file 'scatter_log.dat'"
+    write(crlog,"(a)") "CR_CHECK> SCATTER INIT opening new file 'scatter_log.dat'"
 #endif
     call f_open(unit=scatter_logFile,file="scatter_log.dat",formatted=.true.,mode="w",err=fErr,status="replace")
     write(scatter_logFile,"(a)") "# scatter_log"
@@ -234,7 +234,7 @@ subroutine scatter_init
     scatter_logFilePos = 2
     flush(scatter_logFile)
   else
-    write(crlog,"(a)") "SICTRACR> SCATTER kept already opened file 'scatter_log.dat'"
+    write(crlog,"(a)") "CR_CHECK> SCATTER kept already opened file 'scatter_log.dat'"
   end if
 #endif
 #ifdef HDF5
@@ -245,7 +245,7 @@ subroutine scatter_init
   call f_requestUnit("scatter_summary.dat",scatter_sumFile)
 #ifdef CR
   if(scatter_sumFilePos == -1) then
-    write(crlog,"(a)") "SCATTER> INIT opening new file 'scatter_summary.dat'"
+    write(crlog,"(a)") "CR_CHECK> SCATTER INIT opening new file 'scatter_summary.dat'"
 #endif
     call f_open(unit=scatter_sumFile,file="scatter_summary.dat",formatted=.true.,mode="w",err=fErr,status="replace")
     call scatter_writeReport
@@ -259,7 +259,7 @@ subroutine scatter_init
     scatter_sumFilePos = scatter_sumFilePos + 3
     flush(scatter_sumFile)
   else
-    write(crlog,"(a)") "SICTRACR> SCATTER kept already opened file 'scatter_summary.dat'"
+    write(crlog,"(a)") "CR_CHECK> SCATTER kept already opened file 'scatter_summary.dat'"
   end if
 #endif
 

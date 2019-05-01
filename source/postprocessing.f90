@@ -2584,7 +2584,7 @@ subroutine postpr(nfile)
       write(lout,10300) nfile,'WRONG RANGE OF DATA FOR PROCESSING'
       goto 550
 #ifdef CR
-  551 write(crlog,"(a)") "SIXTRACR> ERROR POSTPR (see fort.6)"
+  551 write(crlog,"(a)") "SIXTRACR> ERROR POSTPR"
       flush(crlog)
 ! Now we let abend handle the fort.10......
 ! It will write 0d0 plus CPU time and turn number
@@ -3444,7 +3444,7 @@ subroutine writebin(nthinerr)
 !-----------------------------------------------------------------------
 #ifdef CR
       if(cr_restart) then
-        write(crlog,"(2(a,i0))") "WRITEBIN> Bailing out on restart on turn ",(numx+1)," / ",numl
+        write(crlog,"(a)") "WRITEBIN> Restarting, so not writing records"
         flush(crlog)
         return
       end if
