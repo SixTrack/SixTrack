@@ -682,15 +682,14 @@ subroutine elens_crcheck(fileUnit,readErr)
 
 end subroutine elens_crcheck
 
-subroutine elens_crpoint(fileUnit, writeErr,iErro)
+subroutine elens_crpoint(fileUnit, writeErr)
 
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: writeErr
-  integer, intent(out) :: iErro
 
   integer j
 
-  write(fileunit,err=10,iostat=iErro) (elens_lAllowUpdate(j), j=1, nelens)
+  write(fileunit,err=10) (elens_lAllowUpdate(j), j=1, nelens)
   flush(fileunit)
 
   writeErr = .false.

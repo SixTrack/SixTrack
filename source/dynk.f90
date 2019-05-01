@@ -2973,25 +2973,24 @@ end subroutine dynk_crcheck_positionFiles
 !  Last modified: 2018-05-28
 !  - Called from CRPOINT; write checkpoint data to fort.95/96
 ! ================================================================================================ !
-subroutine dynk_crpoint(fileunit,fileerror,ierro)
+subroutine dynk_crpoint(fileunit,fileerror)
 
   use crcoall
 
-  integer, intent(in)    :: fileunit
-  logical, intent(inout) :: fileerror
-  integer, intent(inout) :: ierro
+  integer, intent(in)  :: fileunit
+  logical, intent(out) :: fileerror
 
   integer j
 
   !Note: dynk_fSets_cr is set in global `crpoint` routine, in order to avoid
   ! that it is filled twice (requiring loop over all dynk_fsets_unique and call to dynk_getvalue)
-  write(fileunit,err=100,iostat=ierro) dynk_filePos, dynk_niData, dynk_nfData, dynk_ncData
-  write(fileunit,err=100,iostat=ierro) &
+  write(fileunit,err=100) dynk_filePos, dynk_niData, dynk_nfData, dynk_ncData
+  write(fileunit,err=100) &
       (dynk_iData(j),j=1,dynk_niData), (dynk_fData(j),j=1,dynk_nfData), &
       (dynk_cData(j),j=1,dynk_ncData), (dynk_fSets_cr(j),j=1,dynk_maxSets)
-  endfile (fileunit,iostat=ierro)
-  backspace (fileunit,iostat=ierro)
+  flush(fileunit)
 
+  fileerror = .false.
   return
 
 100 continue

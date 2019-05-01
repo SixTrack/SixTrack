@@ -1603,18 +1603,17 @@ end subroutine scatter_crcheck_positionFiles
 !  Last modified: 2018-11-10
 !  Called from CRPOINT; write checkpoint data to fort.95/96
 ! =================================================================================================
-subroutine scatter_crpoint(fileUnit, writeErr, iError)
+subroutine scatter_crpoint(fileUnit, writeErr)
 
   use crcoall
 
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: writeErr
-  integer, intent(out) :: iError
 
   writeErr = .false.
 
-  write(fileunit,err=10,iostat=iError) scatter_logFilePos, scatter_sumFilePos
-  write(fileunit,err=10,iostat=iError) scatter_seed1, scatter_seed2
+  write(fileunit,err=10) scatter_logFilePos, scatter_sumFilePos
+  write(fileunit,err=10) scatter_seed1, scatter_seed2
   flush(fileUnit)
 
   return

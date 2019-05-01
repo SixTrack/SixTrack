@@ -328,6 +328,7 @@ subroutine crcheck
 #endif
 
   ! Check at least one restart file is readable
+  noRestart = .true.
   do nPoint=1,cr_nPoint
     write(crlog,"(a)") "CR_CHECK> Checking file "//cr_pntFile(nPoint)
     flush(crlog)
@@ -449,17 +450,17 @@ subroutine crcheck
 
     write(crlog,"(a)") "CR_CHECK> File "//cr_pntFile(nPoint)//" successfully read"
     flush(crlog)
-    cr_pntRead(nPoint) = .true.
-    goto 100
 
+    cr_pntRead(nPoint) = .true.
+    noRestart = .false.
+    exit
   end do
 
-  ! If we're here, we failed to read a checkpoint file
-  write(crlog,"(a)") "CR_CHECK> ERROR Could not read checkpoint files"
-  flush(crlog)
-  goto 200
-
-100 continue
+  if(noRestart) then
+    write(crlog,"(a)") "CR_CHECK> ERROR Could not read checkpoint files"
+    flush(crlog)
+    goto 200
+  end if
 
   ! If we have successfully read one of the checkpoint files, we need to handle lost particles and ntwin /= 2
   ! Otherwise we just continue with checkpointing as requested
@@ -473,7 +474,10 @@ subroutine crcheck
 #endif
   flush(crlog)
 
-  ! First we position fort.6 to last checkpoint
+  !  Position Files
+  ! ================
+
+  ! Position fort.6 to last checkpoint
   do j=1,crsixrecs
     read(output_unit,"(a1024)",end=110,err=120,iostat=ioStat) inLine
     sixrecs = sixrecs + 1
@@ -484,9 +488,6 @@ subroutine crcheck
   backspace(output_unit,iostat=ierro)
   write(crlog,"(a,i0,a)") "CR_CHECK> Found ",sixrecs," lines in "//trim(fort6)
   flush(crlog)
-
-  !  Position Files
-  ! ================
 
   call cr_positionTrackFiles
 
@@ -514,10 +515,6 @@ subroutine crcheck
 
   ! Set up flag for tracking routines to call CRSTART
   cr_restart = .true.
-  write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
-  write(lout,"(a)") "SIXTRACR>  Restarted"
-  write(lout,"(a)") "SIXTRACR> "//repeat("=",80)
-  flush(lout)
 
   return
 
@@ -569,7 +566,11 @@ subroutine crpoint
   integer j, k, l, m, nPoint
   logical wErr, fErr
 
-  write(crlog,"(3(a,i0))") "CR_POINT> Called on turn ",(numx+1)," / ",numl," : frequency is ",numlcp
+  if(numx >= numl) then
+    write(crlog,"(a)") "CR_POINT> Called after last turn"
+  else
+    write(crlog,"(3(a,i0))") "CR_POINT> Called on turn ",(numx+1)," / ",numl," : frequency is ",numlcp
+  end if
   flush(crlog)
 
   if(cr_restart) then
@@ -577,7 +578,7 @@ subroutine crpoint
     return
   end if
 
-  ! We need to copy fort.92 (lout) to fort.6 (sixrecs) (if it exists and we are not already using fort.6)
+  ! Copy lout to output_unit
   call cr_copyOut
 
   ! Hope this is correct
@@ -597,9 +598,8 @@ subroutine crpoint
     end do
   end if
 
-  ! ********************
   !  Write the CR files
-  ! ********************
+  ! ====================
 
   do nPoint=1,cr_nPoint
 
@@ -611,20 +611,20 @@ subroutine crpoint
       write(crlog,"(a)") "CR_POINT>  * SixTrack version"
       flush(crlog)
     end if
-    write(cr_pntUnit(nPoint),err=100,iostat=ierro) version, moddate
+    write(cr_pntUnit(nPoint),err=100) version, moddate
 
     if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * Tracking variables"
       flush(crlog)
     end if
-    write(cr_pntUnit(nPoint),err=100,iostat=ierro) crnumlcr, numl, sixrecs, binrec, sythckcr, il,   &
+    write(cr_pntUnit(nPoint),err=100) crnumlcr, numl, sixrecs, binrec, sythckcr, il,   &
       time3, napxo, napx, e0, betrel, brho
 
     if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * Particle arrays"
       flush(crlog)
     end if
-    write(cr_pntUnit(nPoint),err=100,iostat=ierro) &
+    write(cr_pntUnit(nPoint),err=100) &
       (binrecs(j), j=1,(napxo+1)/2), &
       (numxv(j),   j=1,napxo),       &
       (nnumxv(j),  j=1,napxo),       &
@@ -649,21 +649,21 @@ subroutine crpoint
       write(crlog,"(a)") "CR_POINT>  * META variables"
       flush(crlog)
     end if
-    call meta_crpoint(cr_pntUnit(nPoint),wErr,ierro)
+    call meta_crpoint(cr_pntUnit(nPoint),wErr)
     if(wErr) goto 100
 
     if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * DUMP variables"
       flush(crlog)
     end if
-    call dump_crpoint(cr_pntUnit(nPoint), wErr,ierro)
+    call dump_crpoint(cr_pntUnit(nPoint),wErr)
     if(wErr) goto 100
 
     if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * HION variables"
       flush(crlog)
     end if
-    call hions_crpoint(cr_pntUnit(nPoint),wErr,ierro)
+    call hions_crpoint(cr_pntUnit(nPoint),wErr)
     if(wErr) goto 100
 
     if(dynk_enabled) then
@@ -671,7 +671,7 @@ subroutine crpoint
         write(crlog,"(a)") "CR_POINT>  * DYNK variables"
         flush(crlog)
       end if
-      call dynk_crpoint(cr_pntUnit(nPoint),wErr,ierro)
+      call dynk_crpoint(cr_pntUnit(nPoint),wErr)
       if(wErr) goto 100
     end if
 
@@ -680,7 +680,7 @@ subroutine crpoint
         write(crlog,"(a)") "CR_POINT>  * SCATTER variables"
         flush(crlog)
       end if
-      call scatter_crpoint(cr_pntUnit(nPoint),wErr,ierro)
+      call scatter_crpoint(cr_pntUnit(nPoint),wErr)
       if(wErr) goto 100
     end if
 
@@ -689,7 +689,7 @@ subroutine crpoint
         write(crlog,"(a)") "CR_POINT>  * APERTURE variables"
         flush(crlog)
       end if
-      call aper_crpoint(cr_pntUnit(nPoint),wErr,ierro)
+      call aper_crpoint(cr_pntUnit(nPoint),wErr)
       if(wErr) goto 100
     end if
 
@@ -698,7 +698,7 @@ subroutine crpoint
         write(crlog,"(a)") "CR_POINT>  * ELENS variables"
         flush(crlog)
       end if
-      call elens_crpoint(cr_pntUnit(nPoint),wErr,ierro)
+      call elens_crpoint(cr_pntUnit(nPoint),wErr)
       if(wErr) goto 100
     end if
 
@@ -708,7 +708,7 @@ subroutine crpoint
           write(crlog,"(a)") "CR_POINT>  * THICK EXTENDED arrays"
           flush(crlog)
         end if
-        write(cr_pntUnit(nPoint),err=100,iostat=ierro) &
+        write(cr_pntUnit(nPoint),err=100) &
           ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6), &
           ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
         flush(cr_pntUnit(nPoint))
@@ -718,7 +718,7 @@ subroutine crpoint
         write(crlog,"(a)") "CR_POINT>  * THICK arrays"
         flush(crlog)
       end if
-      write(cr_pntUnit(nPoint),err=100,iostat=ierro) &
+      write(cr_pntUnit(nPoint),err=100) &
         (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
     end if
 

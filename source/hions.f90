@@ -150,25 +150,24 @@ subroutine hions_postInput
 end subroutine hions_postInput
 
 #ifdef CR
-subroutine hions_crpoint(fileUnit, writeErr, iErr)
+subroutine hions_crpoint(fileUnit, writeErr)
 
   use parpro
   use crcoall
 
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: writeErr
-  integer, intent(out) :: iErr
 
   integer i
 
-  write(fileUnit,err=10,iostat=iErr) nucmda,ien0,ien1,nnuc0,nnuc1
-  write(fileUnit,err=10,iostat=iErr) (nucm(i),     i=1, npart)
-  write(fileUnit,err=10,iostat=iErr) (moidpsv(i),  i=1, npart)
-  write(fileUnit,err=10,iostat=iErr) (omoidpsv(i), i=1, npart)
-  write(fileUnit,err=10,iostat=iErr) (mtc(i),      i=1, npart)
-  write(fileUnit,err=10,iostat=iErr) (naa(i),      i=1, npart)
-  write(fileUnit,err=10,iostat=iErr) (nzz(i),      i=1, npart)
-  write(fileUnit,err=10,iostat=iErr) (pids(i),     i=1, npart)
+  write(fileUnit,err=10) nucmda,ien0,ien1,nnuc0,nnuc1
+  write(fileUnit,err=10) (nucm(i),     i=1, npart)
+  write(fileUnit,err=10) (moidpsv(i),  i=1, npart)
+  write(fileUnit,err=10) (omoidpsv(i), i=1, npart)
+  write(fileUnit,err=10) (mtc(i),      i=1, npart)
+  write(fileUnit,err=10) (naa(i),      i=1, npart)
+  write(fileUnit,err=10) (nzz(i),      i=1, npart)
+  write(fileUnit,err=10) (pids(i),     i=1, npart)
   flush(fileUnit)
 
   writeErr = .false.

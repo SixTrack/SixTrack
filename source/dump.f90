@@ -1886,19 +1886,20 @@ subroutine dump_crcheck_positionFiles
 end subroutine dump_crcheck_positionFiles
 
 ! ================================================================================================================================ !
-subroutine dump_crpoint(fileunit,lerror,ierro)
+subroutine dump_crpoint(fileunit,lerror)
 
-  use parpro !nele
-  implicit none
+  use parpro
 
-  integer, intent(in)    :: fileunit
-  logical, intent(inout) :: lerror
-  integer, intent(inout) :: ierro
+  integer, intent(in)  :: fileunit
+  logical, intent(out) :: lerror
+
   integer j
 
-  write(fileunit,err=100,iostat=ierro) (dumpfilepos(j),j=-1,nele)
-  endfile (fileunit,iostat=ierro)
-  backspace (fileunit,iostat=ierro)
+  write(fileunit,err=100) (dumpfilepos(j),j=-1,nele)
+  flush(fileunit)
+
+  lerror = .false.
+
   return
 
 100 continue

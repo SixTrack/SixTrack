@@ -3113,17 +3113,15 @@ subroutine aper_crcheck_positionFiles
 end subroutine aper_crcheck_positionFiles
 
 ! ================================================================================================================================ !
-subroutine aper_crpoint(fileunit,lerror,ierro)
+subroutine aper_crpoint(fileunit,lerror)
 
   implicit none
 
   integer, intent(in)  :: fileunit
   logical, intent(out) :: lerror
-  integer, intent(out) :: ierro
 
-  write(fileUnit,err=100,iostat=ierro) apefilepos
-  endfile (fileunit,iostat=ierro)
-  backspace (fileunit,iostat=ierro)
+  write(fileUnit,err=100) apefilepos
+  flush(fileunit)
   return
 
 100 continue
