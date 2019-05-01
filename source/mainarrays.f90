@@ -23,7 +23,7 @@ subroutine allocate_arrays
   use bdex,               only : bdex_allocate_arrays
   use dynk,               only : dynk_allocate_arrays
   use wire,               only : wire_expand_arrays
-  use mod_hions,          only : hions_allocate_arrays
+  use mod_hions,          only : hions_expand_arrays
 #ifdef CR
   use checkpoint_restart, only : cr_expand_arrays
 #endif
@@ -49,12 +49,12 @@ subroutine allocate_arrays
   call wire_expand_arrays(nele,nblz)
   call scatter_expand_arrays(nele,npart)
   call aperture_expand_arrays(nele,npart)
+  call hions_expand_arrays(npart)
 
   call elens_allocate_arrays
   call cheby_allocate_arrays
   call bdex_allocate_arrays
   call dynk_allocate_arrays
-  call hions_allocate_arrays
 #ifdef CR
   call cr_expand_arrays(npart)
 #endif

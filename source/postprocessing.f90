@@ -1643,19 +1643,19 @@ subroutine postpr(nfile)
           write(lout,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
           write(lout,"(a,i0,a,3(1x,i0))") "SIXTRACR> Unit ",nfile,", binrec/binrecs/crbinrecs ",&
             binrec,binrecs(91-nfile),crbinrecs(91-nfile)
-          write(93,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
-          write(93,"(a,i0,a,3(1x,i0))") "SIXTRACR> Unit ",nfile,", binrec/binrecs/crbinrecs ",&
+          write(crlog,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(crlog,"(a,i0,a,3(1x,i0))") "SIXTRACR> Unit ",nfile,", binrec/binrecs/crbinrecs ",&
             binrec,binrecs(91-nfile),crbinrecs(91-nfile)
 #else
         if (binrecs(posi1).ne.crbinrecs(posi1)) then
           write(lout,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
           write(lout,"(a,i0,a,3(1x,i0))") "SIXTRACR> Particle ",posi1,", binrec/binrecs/crbinrecs ",&
             binrec,binrecs(posi1),crbinrecs(posi1)
-          write(93,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
-          write(93,"(a,i0,a,3(1x,i0))") "SIXTRACR> Particle ",posi1,", binrec/binrecs/crbinrecs ",&
+          write(crlog,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(crlog,"(a,i0,a,3(1x,i0))") "SIXTRACR> Particle ",posi1,", binrec/binrecs/crbinrecs ",&
             binrec,binrecs(posi1),crbinrecs(posi1)
 #endif
-          flush(93)
+          flush(crlog)
           goto 551
         endif
       endif
@@ -2584,8 +2584,8 @@ subroutine postpr(nfile)
       write(lout,10300) nfile,'WRONG RANGE OF DATA FOR PROCESSING'
       goto 550
 #ifdef CR
-  551 write(93,"(a)") "SIXTRACR> ERROR POSTPR (see fort.6)"
-      flush(93)
+  551 write(crlog,"(a)") "SIXTRACR> ERROR POSTPR"
+      flush(crlog)
 ! Now we let abend handle the fort.10......
 ! It will write 0d0 plus CPU time and turn number
 ! But we empty it as before (if we crash in abend???)
@@ -3427,53 +3427,27 @@ subroutine writebin(nthinerr)
       use mod_commons
       use mod_common_track
       use mod_common_da
+      use mod_settings
 #ifdef CR
       use checkpoint_restart
 #endif
       implicit none
 
       integer ia,ia2,ie,nthinerr
-#ifdef CR
-      integer ncalls
-#endif
 #ifdef BOINC
       integer timech
 #endif
-#ifdef CR
-      data ncalls /0/
-#endif
 
-      real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),               &
-     &sigmv_tmp(2),dpsv_tmp(2),e0_tmp
+      real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
 
       save
 !-----------------------------------------------------------------------
 #ifdef CR
-      ncalls = ncalls + 1
-      if(restart) then
-        write(93,"(4(a,i0))") "WRITEBIN> Bailing out on restart numl = ",numl,", nnuml = ",nnuml,  &
-          ", numx = ",numx,", numlcr = ",numlcr
-        flush(93)
+      if(cr_restart) then
+        write(crlog,"(a)") "WRITEBIN> Restarting, so not writing records"
+        flush(crlog)
         return
-      else
-#ifndef DEBUG
-        if(ncalls <= 20 .or. numx >= nnuml-20) then
-#endif
-          write(93,"(4(a,i0))") "WRITEBIN> numl = ",numl,", nnuml = ",nnuml,  &
-            ", numx = ",numx,", numlcr = ",numlcr
-          flush(93)
-#ifndef DEBUG
-        end if
-#endif
       end if
-#ifndef DEBUG
-      if(ncalls <= 20 .or. numx >= nnuml-20) then
-#endif
-        write(93,"(a,i0)") "WRITEBIN> Writing binrec ",binrec+1
-        flush(93)
-#ifndef DEBUG
-      end if
-#endif
 #endif
          do ia=1,napx-1
 !GRD

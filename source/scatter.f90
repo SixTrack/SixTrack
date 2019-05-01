@@ -222,7 +222,7 @@ subroutine scatter_init
   call f_requestUnit("scatter_log.dat", scatter_logFile)
 #ifdef CR
   if(scatter_logFilePos == -1) then
-    write(93,"(a)") "SCATTER> INIT opening new file 'scatter_log.dat'"
+    write(crlog,"(a)") "CR_CHECK> SCATTER INIT opening new file 'scatter_log.dat'"
 #endif
     call f_open(unit=scatter_logFile,file="scatter_log.dat",formatted=.true.,mode="w",err=fErr,status="replace")
     write(scatter_logFile,"(a)") "# scatter_log"
@@ -234,7 +234,7 @@ subroutine scatter_init
     scatter_logFilePos = 2
     flush(scatter_logFile)
   else
-    write(93,"(a)") "SICTRACR> SCATTER kept already opened file 'scatter_log.dat'"
+    write(crlog,"(a)") "CR_CHECK> SCATTER kept already opened file 'scatter_log.dat'"
   end if
 #endif
 #ifdef HDF5
@@ -245,7 +245,7 @@ subroutine scatter_init
   call f_requestUnit("scatter_summary.dat",scatter_sumFile)
 #ifdef CR
   if(scatter_sumFilePos == -1) then
-    write(93,"(a)") "SCATTER> INIT opening new file 'scatter_summary.dat'"
+    write(crlog,"(a)") "CR_CHECK> SCATTER INIT opening new file 'scatter_summary.dat'"
 #endif
     call f_open(unit=scatter_sumFile,file="scatter_summary.dat",formatted=.true.,mode="w",err=fErr,status="replace")
     call scatter_writeReport
@@ -259,7 +259,7 @@ subroutine scatter_init
     scatter_sumFilePos = scatter_sumFilePos + 3
     flush(scatter_sumFile)
   else
-    write(93,"(a)") "SICTRACR> SCATTER kept already opened file 'scatter_summary.dat'"
+    write(crlog,"(a)") "CR_CHECK> SCATTER kept already opened file 'scatter_summary.dat'"
   end if
 #endif
 
@@ -1499,8 +1499,8 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
 10 continue
   readErr = .true.
   write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in SCATTER"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in SCATTER"
-  flush(93)
+  write(crlog,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in SCATTER"
+  flush(crlog)
 
 end subroutine scatter_crcheck_readdata
 
@@ -1523,10 +1523,10 @@ subroutine scatter_crcheck_positionFiles
   call f_requestUnit("scatter_log.dat",scatter_logFile)
   inquire(unit=scatter_logFile, opened=isOpen)
   if(isOpen) then
-    write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning 'scatter_log.dat'"
-    write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_logFile," already in use!"
-    flush(93)
-    write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK failure positioning 'scatter_log.dat'"
+    write(crlog,"(a)")      "CR_CHECK> ERROR Failed while repsositioning 'scatter_log.dat'"
+    write(crlog,"(a,i0,a)") "CR_CHECK>       unit ",scatter_logFile," already in use!"
+    flush(crlog)
+    write(lerr,"(a)") "CR_CHECK> ERROR Failed positioning 'scatter_log.dat'"
     call prror
   end if
 
@@ -1543,23 +1543,23 @@ subroutine scatter_crcheck_positionFiles
 
     call f_open(unit=scatter_logFile,file="scatter_log.dat",formatted=.true.,mode="w+",err=fErr,status="old")
     if(fErr) goto 10
-    write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned 'scatter_log.dat': "//&
-      "scatter_logFilePos = ",scatter_logFilePos,", scatter_logFilePos_CR = ",scatter_logFilePos_CR
-    flush(93)
+    write(97,"(2(a,i0))") "CR_CHECK> Sucessfully repositioned 'scatter_log.dat': "//&
+      "Position: ",scatter_logFilePos,", Position C/R: ",scatter_logFilePos_CR
+    flush(crlog)
 
   else
-    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning 'scatter_log.dat' at line ",scatter_logFilePos_CR
-    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
-    flush(93)
+    write(crlog,"(a,i0)") "CR_CHECK> Did not attempt repositioning 'scatter_log.dat' at line ",scatter_logFilePos_CR
+    write(crlog,"(a)")    "CR_CHECK> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
+    flush(crlog)
   end if
 
   call f_requestUnit("scatter_summary.dat",scatter_sumFile)
   inquire(unit=scatter_sumFile, opened=isOpen)
   if(isOpen) then
-    write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning 'scatter_summary.dat'"
-    write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_sumFile," already in use!"
-    flush(93)
-    write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning 'scatter_summary.dat'"
+    write(crlog,"(a)")      "CR_CHECK> ERROR Failed while repsositioning 'scatter_summary.dat'"
+    write(crlog,"(a,i0,a)") "CR_CHECK>       Unit ",scatter_sumFile," already in use!"
+    flush(crlog)
+    write(lout,"(a)") "CR_CHECK> Failed positioning 'scatter_summary.dat'"
     call prror
   end if
 
@@ -1576,24 +1576,24 @@ subroutine scatter_crcheck_positionFiles
 
     call f_open(unit=scatter_sumFile,file="scatter_summary.dat",formatted=.true.,mode="w+",err=fErr,status="old")
     if(fErr) goto 10
-    write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned 'scatter_summary.dat': "//&
-      "scatter_sumFilePos = ",scatter_sumFilePos,", scatter_sumFilePos_CR = ",scatter_sumFilePos_CR
-    flush(93)
+    write(97,"(2(a,i0))") "CR_CHECK> Sucessfully repositioned 'scatter_summary.dat': "//&
+      "Position: ",scatter_sumFilePos,", Position C/R: ",scatter_sumFilePos_CR
+    flush(crlog)
 
   else
-    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning 'scatter_summary.dat' at line ",scatter_sumFilePos_CR
-    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
-    flush(93)
+    write(crlog,"(a,i0)") "CR_CHECK> Did not attempt repositioning 'scatter_summary.dat' at line ",scatter_sumFilePos_CR
+    write(crlog,"(a)")    "CR_CHECK> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
+    flush(crlog)
   end if
 
   return
 
 10 continue
-  write(93,"(a,i0)")    "SIXTRACR> ERROR While reading 'scatter_log.dat' or 'scatter_summary.dat', iostat = ",iError
-  write(93,"(2(a,i0))") "SIXTRACR> scatter_logFilePos = ",scatter_logFilePos,", scatter_logFilePos_CR = ",scatter_logFilePos_CR
-  write(93,"(2(a,i0))") "SIXTRACR> scatter_sumFilePos = ",scatter_sumFilePos,", scatter_sumFilePos_CR = ",scatter_sumFilePos_CR
-  flush(93)
-  write(lerr,"(a)")"SIXTRACR> ERROR CRCHECK failure positioning 'scatter_log.dat' or 'scatter_summary.dat'."
+  write(crlog,"(a,i0)")    "CR_CHECK> ERROR While reading 'scatter_log.dat' or 'scatter_summary.dat', iostat = ",iError
+  write(crlog,"(2(a,i0))") "CR_CHECK>       Position: ",scatter_logFilePos,", Position C/R: ",scatter_logFilePos_CR
+  write(crlog,"(2(a,i0))") "CR_CHECK>       Position: ",scatter_sumFilePos,", Position C/R: ",scatter_sumFilePos_CR
+  flush(crlog)
+  write(lerr,"(a)")"CR_CHECK> ERROR CRCHECK failure positioning 'scatter_log.dat' or 'scatter_summary.dat'."
   call prror
 
 end subroutine scatter_crcheck_positionFiles
@@ -1603,27 +1603,26 @@ end subroutine scatter_crcheck_positionFiles
 !  Last modified: 2018-11-10
 !  Called from CRPOINT; write checkpoint data to fort.95/96
 ! =================================================================================================
-subroutine scatter_crpoint(fileUnit, writeErr, iError)
+subroutine scatter_crpoint(fileUnit, writeErr)
 
   use crcoall
 
-  integer, intent(in)    :: fileUnit
-  logical, intent(out)   :: writeErr
-  integer, intent(inout) :: iError
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: writeErr
 
   writeErr = .false.
 
-  write(fileunit,err=10,iostat=iError) scatter_logFilePos, scatter_sumFilePos
-  write(fileunit,err=10,iostat=iError) scatter_seed1, scatter_seed2
+  write(fileunit,err=10) scatter_logFilePos, scatter_sumFilePos
+  write(fileunit,err=10) scatter_seed1, scatter_seed2
   flush(fileUnit)
 
   return
 
 10 continue
   writeErr = .true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in SCATTER"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in SCATTER"
-  flush(93)
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in SCATTER"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in SCATTER"
+  flush(crlog)
 
 end subroutine scatter_crpoint
 

@@ -154,6 +154,7 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
   end select
 
   ! Modify the Energy Dependent Arrays
+  ! Keep in sync with checpoint/restart crstart
   dpsv1(1:napx)    = (dpsv(1:napx)*c1e3)/(one + dpsv(1:napx))
   dpd(1:napx)      = one + dpsv(1:napx)                      ! For thick tracking
   dpsq(1:napx)     = sqrt(dpd(1:napx))                       ! For thick tracking

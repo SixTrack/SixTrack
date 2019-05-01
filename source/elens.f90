@@ -662,7 +662,7 @@ end subroutine normaliseRadialProfile
 
 #ifdef CR
 subroutine elens_crcheck(fileUnit,readErr)
-  implicit none
+
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: readErr
 
@@ -675,37 +675,36 @@ subroutine elens_crcheck(fileUnit,readErr)
 
 10 continue
 
-  write(lout,"(a,i0)") "READERR in elens_crcheck; fileUnit = ",fileUnit
-  write(93,  "(a,i0)") "READERR in elens_crcheck; fileUnit = ",fileUnit
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in ELENS"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in ELENS"
+  flush(crlog)
   readErr = .true.
 
 end subroutine elens_crcheck
 
-subroutine elens_crpoint(fileUnit, writeErr,iErro)
-  implicit none
+subroutine elens_crpoint(fileUnit, writeErr)
 
-  integer, intent(in)    :: fileUnit
-  logical, intent(inout) :: writeErr
-  integer, intent(inout) :: iErro
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: writeErr
 
   integer j
 
-  write(fileunit,err=10,iostat=iErro) (elens_lAllowUpdate(j), j=1, nelens)
-  endfile(fileunit,iostat=iErro)
-  backspace(fileunit,iostat=iErro)
+  write(fileunit,err=10) (elens_lAllowUpdate(j), j=1, nelens)
+  flush(fileunit)
 
   writeErr = .false.
   return
 
 10 continue
 
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in ELENS"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in ELENS"
+  flush(crlog)
   writeErr = .true.
-  return
 
 end subroutine elens_crpoint
 
 subroutine elens_crstart
-  implicit none
   elens_lAllowUpdate(1:nelens) = elens_lAllowUpdate_CR(1:nelens)
 end subroutine elens_crstart
 

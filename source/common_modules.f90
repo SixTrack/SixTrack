@@ -138,7 +138,8 @@ module mod_common
 
   ! File Names
   character(len=mFileName), public, save :: fort2 = "fort.2" ! Name of machine geometry file
-  character(len=mFileName), public, save :: fort3 = "fort.3" ! Name of main imput file
+  character(len=mFileName), public, save :: fort3 = "fort.3" ! Name of main input file
+  character(len=mFileName), public, save :: fort6 = "fort.6" ! Name of main output file (stdout)
 
   !  GENERAL VARIABLES
   ! ===================
@@ -160,7 +161,6 @@ module mod_common
   integer,          save :: ird        = 0    ! Ignored
   integer,          save :: niu(2)     = 0    ! Start and stop structure element for optics calculation
   integer,          save :: numlcp     = 1000 ! How often to write checkpointing files
-  integer,          save :: numlmax    = 1e9  ! Max number of C/R turns
   integer,          save :: idfor      = 0    ! Add closed orbit to initia coordinates
   integer,          save :: irew       = 0    ! Rewind fort.59-90
   integer,          save :: iclo6      = 0    ! 6D closed orbit flags
@@ -903,9 +903,9 @@ module mod_common_main
   real(kind=fPrec),              save :: cloau(6)
 
   ! Main 4
-  integer,          save :: numx
   real(kind=fPrec), save :: e0f
-  logical,          save :: sythckcr ! Only used for CR
+  integer,          save :: numx     = 0       ! Checkpoint turn (turn-1)
+  logical,          save :: sythckcr = .false. ! Only used for CR
 
 contains
 

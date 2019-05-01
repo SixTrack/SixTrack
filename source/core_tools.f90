@@ -7,8 +7,9 @@
 module crcoall
   use, intrinsic :: iso_fortran_env, only : output_unit, error_unit
   implicit none
-  integer, public, save :: lout = output_unit
-  integer, public, save :: lerr = error_unit
+  integer, public, save :: lout  = output_unit
+  integer, public, save :: lerr  = error_unit
+  integer, public, save :: crlog = -1
 end module crcoall
 
 ! =================================================================================================

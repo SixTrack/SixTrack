@@ -1781,9 +1781,9 @@ subroutine dump_crcheck_readdata(fileunit, readerr)
 
 100 continue
   readerr = .true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in DUMP"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in DUMP"
-  flush(93)
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in DUMP"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in DUMP"
+  flush(crlog)
 
 end subroutine dump_crcheck_readdata
 
@@ -1807,20 +1807,18 @@ subroutine dump_crcheck_positionFiles
   character(len=1024) arecord
 
   do i=-1, il
-    if (ldump(i)) then
-      write(93,"(a)") "SIXTRACR> CRCHECK Repositioning DUMP file"
-      if (i > 0) then
-        write(93,"(a,i0)") "SIXTRACR> CRCHECK Element = '"//trim(bez(i))//"', filename = '"//trim(dump_fname(i))//&
-          "', format = ",dumpfmt(i)
-      else if (i == 0) then
-        write(93,"(a,i0)") "SIXTRACR> CRCHECK Element = 'ALL', filename = '"//trim(dump_fname(i))//"', format = ",dumpfmt(i)
-      else if(i  ==  -1) then
-        write(93,"(a,i0)") "SIXTRACR> CRCHECK Element = 'StartDump', filename = '"//trim(dump_fname(i))//"', format = ",dumpfmt(i)
+    if(ldump(i)) then
+      if(i > 0) then
+        write(crlog,"(a,i0)") "CR_CHECK> DUMP Element '"//trim(bez(i))//"', file '"//trim(dump_fname(i))//"', format ",dumpfmt(i)
+      elseif(i == 0) then
+        write(crlog,"(a,i0)") "CR_CHECK> DUMP Element 'ALL', file '"//trim(dump_fname(i))//"', format ",dumpfmt(i)
+      elseif(i  ==  -1) then
+        write(crlog,"(a,i0)") "CR_CHECK> DUMP Element 'StartDump', file '"//trim(dump_fname(i))//"', format ",dumpfmt(i)
       else
-        write(93,"(a,i0,a)") "SIXTRACR> ERROR CRCHECK Element index ",i," is unknown"
+        write(crlog,"(a,i0,a)") "CR_CHECK> ERROR DUMP Element index ",i," is unknown"
         goto 111
       end if
-      flush(93)
+      flush(crlog)
 
       inquire( unit=dumpunit(i), opened=lopen )
       if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8 .and. dumpfmt(i) /= 101) then ! ASCII
@@ -1848,9 +1846,9 @@ subroutine dump_crcheck_positionFiles
               tmp_ID,tmp_nturn,tmp_dcum,tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,tmp_ktrack, &
               tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x
           else
-            write(93,'(a,i0)') "SIXTRACR> ERROR Positionfiles: failure positioning DUMP file: unknown format ",dumpfmt(i)
-            write(lout,'(a,i0)') "SIXTRACR> ERROR Positionfiles: failure positioning DUMP file: unknown format ",dumpfmt(i)
-            flush(93)
+            write(crlog,"(a,i0)") "CR_CHECK> ERROR Failed positioning DUMP file: unknown format ",dumpfmt(i)
+            write(lout, "(a,i0)") "CR_CHECK> ERROR Failed positioning DUMP file: unknown format ",dumpfmt(i)
+            flush(crlog)
             call prror
           end if
           dumpfilepos(i) = dumpfilepos(i) + 1
@@ -1879,35 +1877,36 @@ subroutine dump_crcheck_positionFiles
   return
 
 111 continue
-  write(93,"(2(a,i0))") "SIXTRACR> ERROR Repositioning file #",dumpunit(i),", iostat = ",ierro
-  write(93,"(2(a,i0))") "          dumpfilepos = ",dumpfilepos(i),", dumpfilepos_cr = ",dumpfilepos_cr(i)
-  flush(93)
-  write(lerr,"(a)") "SIXTRACR> ERROR DUMP_CRCHECK_POSITIONFILES failure positioning DUMP file"
-  call prror(-1)
+  write(crlog,"(2(a,i0))") "CR_CHECK> ERROR Failed positioning DUMP file on unit ",dumpunit(i),", iostat: ",ierro
+  write(crlog,"(2(a,i0))") "CR_CHECK>       File position: ",dumpfilepos(i),", C/R position: ",dumpfilepos_cr(i)
+  flush(crlog)
+  write(lerr,"(a,i0)") "CR_CHECK> ERROR Failed positioning DUMP file on unit ",dumpunit(i)
+  call prror
 
 end subroutine dump_crcheck_positionFiles
 
 ! ================================================================================================================================ !
-subroutine dump_crpoint(fileunit,lerror,ierro)
+subroutine dump_crpoint(fileunit,lerror)
 
-  use parpro !nele
-  implicit none
+  use parpro
 
-  integer, intent(in)    :: fileunit
-  logical, intent(inout) :: lerror
-  integer, intent(inout) :: ierro
+  integer, intent(in)  :: fileunit
+  logical, intent(out) :: lerror
+
   integer j
 
-  write(fileunit,err=100,iostat=ierro) (dumpfilepos(j),j=-1,nele)
-  endfile (fileunit,iostat=ierro)
-  backspace (fileunit,iostat=ierro)
+  write(fileunit,err=100) (dumpfilepos(j),j=-1,nele)
+  flush(fileunit)
+
+  lerror = .false.
+
   return
 
 100 continue
   lerror = .true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in DUMP"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in DUMP"
-  flush(93)
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in DUMP"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in DUMP"
+  flush(crlog)
 
 end subroutine dump_crpoint
 ! ================================================================================================================================ !

@@ -283,30 +283,30 @@ subroutine meta_crcheck(fileUnit, readErr)
 10 continue
   readErr = .true.
   write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in META"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in META"
-  flush(93)
+  write(crlog,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in META"
+  flush(crlog)
 
 end subroutine meta_crcheck
 
-subroutine meta_crpoint(fileUnit, writeErr, iErro)
+subroutine meta_crpoint(fileUnit, writeErr)
 
   use crcoall
 
-  integer, intent(in)    :: fileUnit
-  logical, intent(inout) :: writeErr
-  integer, intent(inout) :: iErro
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: writeErr
 
-  write(fileunit,err=10,iostat=iErro) meta_nRestarts, meta_nPartTurn
-  endfile(fileUnit,iostat=iErro)
-  backspace(fileUnit,iostat=iErro)
+  write(fileunit,err=10) meta_nRestarts, meta_nPartTurn
+  flush(fileUnit)
+
+  writeErr = .false.
 
   return
 
 10 continue
   writeErr = .true.
   write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in META"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in META"
-  flush(93)
+  write(crlog,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in META"
+  flush(crlog)
 
 end subroutine meta_crpoint
 

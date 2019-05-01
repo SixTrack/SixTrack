@@ -8,11 +8,8 @@ module dynk
 
   use floatPrecision
   use mathlib_bouncer
-  use mod_hions
   use numerical_constants, only : zero, one, two, c1e3
   use parpro, only : nele
-  use mod_alloc
-  use string_tools
 
   implicit none
 
@@ -94,11 +91,13 @@ module dynk
 contains
 
 subroutine dynk_allocate_arrays
+  use mod_alloc
   call alloc(dynk_izuIndex,nele,0,     "dynk_izuIndex")
   call alloc(dynk_elemData,nele,3,zero,"dynk_elemData")
 end subroutine dynk_allocate_arrays
 
 subroutine dynk_expand_arrays(nele_new)
+  use mod_alloc
   integer, intent(in) :: nele_new
   call alloc(dynk_izuIndex,nele_new,0,     "dynk_izuIndex")
   call alloc(dynk_elemData,nele_new,3,zero,"dynk_elemData")
@@ -110,8 +109,10 @@ end subroutine dynk_expand_arrays
 ! =================================================================================================
 subroutine dynk_allocate
 
+  use parpro
   use crcoall
   use mod_units
+  use mod_alloc
 
   ! Setting inital allocations
   ! These values are increased if needed when dynk_checkspace is called
@@ -146,9 +147,8 @@ end subroutine dynk_allocate
 ! =================================================================================================
 subroutine dynk_parseInputLine(inLine,iErr)
 
+  use crcoall
   use string_tools
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
@@ -210,10 +210,11 @@ end subroutine dynk_parseInputLine
 ! =================================================================================================
 subroutine dynk_parseFUN(inLine, iErr)
 
+  use parpro
   use crcoall
   use mod_units
-
-  implicit none
+  use mod_alloc
+  use string_tools
 
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
@@ -1364,7 +1365,6 @@ end subroutine dynk_parseFUN
 subroutine dynk_checkargs(nActual, nExpected, correctSyntax)
 
   use crcoall
-  implicit none
 
   integer,          intent(in) :: nActual
   integer,          intent(in) :: nExpected
@@ -1387,10 +1387,10 @@ end subroutine dynk_checkargs
 ! ================================================================================================ !
 subroutine dynk_checkspace(iReq,fReq,cReq)
 
+  use parpro
   use crcoall
+  use mod_alloc
   use numerical_constants
-
-  implicit none
 
   integer, intent(in) :: iReq
   integer, intent(in) :: fReq
@@ -1436,10 +1436,10 @@ end subroutine dynk_checkspace
 ! ================================================================================================ !
 subroutine dynk_parseSET(inLine, iErr)
 
+  use parpro
   use crcoall
   use mod_alloc
-
-  implicit none
+  use string_tools
 
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
@@ -1567,7 +1567,7 @@ end function dynk_findFUNindex
 ! ================================================================================================ !
 integer function dynk_findSETindex(elementName, attName, startFrom)
 
-  implicit none
+  use parpro
 
   character(mStrLen), intent(in) :: elementName
   character(mStrLen), intent(in) :: attName
@@ -1593,8 +1593,8 @@ end function dynk_findSETindex
 ! ================================================================================================ !
 subroutine dynk_inputSanityCheck
 
+  use parpro
   use crcoall
-  implicit none
 
   integer ii, jj
   integer biggestTurn ! Used as a replacement for ending turn -1 (infinity)
@@ -1985,6 +1985,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
   use mod_common
   use mod_ranecu
   use numerical_constants, only : pi
+  use string_tools
   use utils
 
   implicit none
@@ -2273,6 +2274,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   use mod_common_track
   use mod_common_main
   use mod_particles
+  use string_tools
 
   use elens
   use cheby
@@ -2557,8 +2559,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
   use elens
   use cheby
   use parbeam, only : beam_expflag
-
-  implicit none
+  use string_tools
 
   character(mStrLen), intent(in) :: element_name, att_name
 
@@ -2877,7 +2878,9 @@ end subroutine dynk_closeFiles
 ! ================================================================================================ !
 subroutine dynk_crcheck_readdata(fileunit,readerr)
 
+  use parpro
   use crcoall
+  use mod_alloc
 
   implicit none
 
@@ -2901,9 +2904,9 @@ subroutine dynk_crcheck_readdata(fileunit,readerr)
 
 100 continue
   readerr=.true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in DYNK"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in DYNK"
-  flush(93)
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in DYNK"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in DYNK"
+  flush(crlog)
 
 end subroutine dynk_crcheck_readdata
 
@@ -2924,11 +2927,11 @@ subroutine dynk_crcheck_positionFiles
   character(len=mInputLn) aRecord
 
   inquire(unit=dynk_fileUnit, opened=isOpen)
-  if (isOpen) then
-    write(93,"(a)")      "SIXTRACR> CRCHECK FAILED while repositioning '"//dynk_fileName//"'"
-    write(93,"(a,i0,a)") "SIXTRACR>         UNIT ",dynk_fileUnit," already in use!"
-    flush(93)
-    write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK failure positioning '"//dynk_fileName//"'"
+  if(isOpen) then
+    write(crlog,"(a)")      "CR_CHECK> ERROR Failed while repositioning '"//dynk_fileName//"'"
+    write(crlog,"(a,i0,a)") "CR_CHECK>       Unit ",dynk_fileUnit," already in use!"
+    flush(crlog)
+    write(lerr,"(a)") "CR_CHECK> ERROR Failed positioning '"//dynk_fileName//"'"
     call prror
   end if
 
@@ -2945,24 +2948,22 @@ subroutine dynk_crcheck_positionFiles
     call f_close(dynk_fileUnit)
     call f_open(unit=dynk_fileUnit,file=dynk_fileName,formatted=.true.,mode="w+",status="old")
 
-    write(93,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned '"//dynk_fileName//"', "// &
+    write(crlog,"(2(a,i0))") "CR_CHECK> Sucessfully repositioned '"//dynk_fileName//"', "// &
       "dynk_filePos = ",dynk_filePos,", dynk_filePosCR = ",dynk_filePosCR
-    flush(93)
+    flush(crlog)
   else
-    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning "// &
-      "of '"//dynk_fileName//"', dynk_filePosCR = ",dynk_filePosCR
-    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, "// &
-      "it will be correctly truncated in dynk_apply on the first turn."
-    flush(93)
+    write(crlog,"(a,i0)") "CR_CHECK> Did not attempt repositioning of '"//dynk_fileName//"', dynk_filePosCR = ",dynk_filePosCR
+    write(crlog,"(a)")    "CR_CHECK> If anything was written to the file, it will be truncated in dynk_apply on the first turn."
+    flush(crlog)
   end if
 
   return
 
 110 continue
-  write(93,"(2(a,i0))") "SIXTRACR> ERROR in CRCHECK while reading '"//dynk_fileName//"', "//&
+  write(crlog,"(2(a,i0))") "CR_CHECK> ERROR While reading '"//dynk_fileName//"', "//&
     "dynk_filePos = ",dynk_filePos,", dynk_filePosCR = ",dynk_filePosCR
-  flush(93)
-  write(lerr,"(a)") "SIXTRACR> ERROR CRCHECK failure positioning '"//dynk_fileName//"'"
+  flush(crlog)
+  write(lerr,"(a)") "CR_CHECK> ERROR CRCHECK failure positioning '"//dynk_fileName//"'"
   call prror
 
 end subroutine dynk_crcheck_positionFiles
@@ -2972,32 +2973,31 @@ end subroutine dynk_crcheck_positionFiles
 !  Last modified: 2018-05-28
 !  - Called from CRPOINT; write checkpoint data to fort.95/96
 ! ================================================================================================ !
-subroutine dynk_crpoint(fileunit,fileerror,ierro)
+subroutine dynk_crpoint(fileunit,fileerror)
 
-  implicit none
+  use crcoall
 
-  integer, intent(in)    :: fileunit
-  logical, intent(inout) :: fileerror
-  integer, intent(inout) :: ierro
+  integer, intent(in)  :: fileunit
+  logical, intent(out) :: fileerror
 
   integer j
 
   !Note: dynk_fSets_cr is set in global `crpoint` routine, in order to avoid
   ! that it is filled twice (requiring loop over all dynk_fsets_unique and call to dynk_getvalue)
-  write(fileunit,err=100,iostat=ierro) dynk_filePos, dynk_niData, dynk_nfData, dynk_ncData
-  write(fileunit,err=100,iostat=ierro) &
+  write(fileunit,err=100) dynk_filePos, dynk_niData, dynk_nfData, dynk_ncData
+  write(fileunit,err=100) &
       (dynk_iData(j),j=1,dynk_niData), (dynk_fData(j),j=1,dynk_nfData), &
       (dynk_cData(j),j=1,dynk_ncData), (dynk_fSets_cr(j),j=1,dynk_maxSets)
-  endfile (fileunit,iostat=ierro)
-  backspace (fileunit,iostat=ierro)
+  flush(fileunit)
 
+  fileerror = .false.
   return
 
 100 continue
   fileerror = .true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in DYNK"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in DYNK"
-  flush(93)
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in DYNK"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in DYNK"
+  flush(crlog)
 
 end subroutine dynk_crpoint
 
@@ -3009,7 +3009,8 @@ end subroutine dynk_crpoint
 ! ================================================================================================ !
 subroutine dynk_crstart
 
-  implicit none
+  use parpro
+  use mod_alloc
 
   integer j
 

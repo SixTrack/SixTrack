@@ -6,10 +6,9 @@
 module mod_hions
 
   use floatPrecision
-  use parpro
-  use mod_alloc
-  use physical_constants, only : pmap
+  use physical_constants,  only : pmap
   use numerical_constants, only : zero, one, c1e3
+
   use, intrinsic :: iso_fortran_env, only : int16
 
   implicit none
@@ -53,48 +52,42 @@ module mod_hions
   integer, allocatable, save :: pids(:) !(npart)
 
 #ifdef CR
-  real(kind=fPrec),                 save :: nucmda_cr
-  real(kind=fPrec),                 save :: ien0_cr
-  real(kind=fPrec),                 save :: ien1_cr
-  integer(kind=int16),              save :: nnuc0_cr
-  integer(kind=int16),              save :: nnuc1_cr
-  real(kind=fPrec),    allocatable, save :: nucm_cr(:)
-  real(kind=fPrec),    allocatable, save :: moidpsv_cr(:)
-  real(kind=fPrec),    allocatable, save :: omoidpsv_cr(:)
-  real(kind=fPrec),    allocatable, save :: mtc_cr(:)
-  integer(kind=int16), allocatable, save :: naa_cr(:)
-  integer(kind=int16), allocatable, save :: nzz_cr(:)
-  integer,             allocatable, save :: pids_cr(:)
+  real(kind=fPrec),                 private, save :: nucmda_cr
+  real(kind=fPrec),                 private, save :: ien0_cr
+  real(kind=fPrec),                 private, save :: ien1_cr
+  integer(kind=int16),              private, save :: nnuc0_cr
+  integer(kind=int16),              private, save :: nnuc1_cr
+  real(kind=fPrec),    allocatable, private, save :: nucm_cr(:)
+  real(kind=fPrec),    allocatable, private, save :: moidpsv_cr(:)
+  real(kind=fPrec),    allocatable, private, save :: omoidpsv_cr(:)
+  real(kind=fPrec),    allocatable, private, save :: mtc_cr(:)
+  integer(kind=int16), allocatable, private, save :: naa_cr(:)
+  integer(kind=int16), allocatable, private, save :: nzz_cr(:)
+  integer,             allocatable, private, save :: pids_cr(:)
 #endif
 
 contains
 
-subroutine hions_allocate_arrays
-  call alloc(nucm,npart,nucm0,'nucm')
-  call alloc(moidpsv,npart,one,'moidpsv')
-  call alloc(omoidpsv,npart,zero,'omoidpsv')
-  call alloc(mtc,npart,one,'mtc')
-  call alloc(naa,npart,aa0,'naa')
-  call alloc(nzz,npart,zz0,'nzz')
-  call alloc(pids,npart,0,'pids')
-end subroutine hions_allocate_arrays
-
 subroutine hions_expand_arrays(npart_new)
+
+  use mod_alloc
+
   integer, intent(in) :: npart_new
-  call alloc(nucm,npart_new,nucm0,'nucm')
-  call alloc(moidpsv,npart_new,one,'moidpsv')
-  call alloc(omoidpsv,npart_new,zero,'omoidpsv')
-  call alloc(mtc,npart_new,one,'mtc')
-  call alloc(naa,npart_new,aa0,'naa')
-  call alloc(nzz,npart_new,zz0,'nzz')
-  call alloc(pids,npart_new,0,'pids')
+
+  call alloc(nucm,    npart_new,nucm0,"nucm")
+  call alloc(moidpsv, npart_new,one,  "moidpsv")
+  call alloc(omoidpsv,npart_new,zero, "omoidpsv")
+  call alloc(mtc,     npart_new,one,  "mtc")
+  call alloc(naa,     npart_new,aa0,  "naa")
+  call alloc(nzz,     npart_new,zz0,  "nzz")
+  call alloc(pids,    npart_new,0,    "pids")
+
 end subroutine hions_expand_arrays
 
 subroutine hions_parseInputLine(inLine, iLine, iErr)
 
+  use crcoall
   use string_tools
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -132,6 +125,7 @@ end subroutine hions_parseInputLine
 
 subroutine hions_postInput
 
+  use crcoall
   use mod_common, only : pma
 
   if(.not. has_hion) then
@@ -156,42 +150,42 @@ subroutine hions_postInput
 end subroutine hions_postInput
 
 #ifdef CR
-subroutine hions_crpoint(fileUnit, writeErr, iErro)
+subroutine hions_crpoint(fileUnit, writeErr)
 
-  implicit none
+  use parpro
+  use crcoall
 
-  integer, intent(in)    :: fileUnit
-  logical, intent(inout) :: writeErr
-  integer, intent(inout) :: iErro
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: writeErr
 
   integer i
 
-  write(fileUnit,err=10,iostat=iErro) nucmda,ien0,ien1,nnuc0,nnuc1
-  write(fileUnit,err=10,iostat=iErro) (nucm(i),     i=1, npart)
-  write(fileUnit,err=10,iostat=iErro) (moidpsv(i),  i=1, npart)
-  write(fileUnit,err=10,iostat=iErro) (omoidpsv(i), i=1, npart)
-  write(fileUnit,err=10,iostat=iErro) (mtc(i),      i=1, npart)
-  write(fileUnit,err=10,iostat=iErro) (naa(i),      i=1, npart)
-  write(fileUnit,err=10,iostat=iErro) (nzz(i),      i=1, npart)
-  write(fileUnit,err=10,iostat=iErro) (pids(i),     i=1, npart)
-  endfile(fileUnit,iostat=iErro)
-  backspace(fileUnit,iostat=iErro)
+  write(fileUnit,err=10) nucmda,ien0,ien1,nnuc0,nnuc1
+  write(fileUnit,err=10) (nucm(i),     i=1, npart)
+  write(fileUnit,err=10) (moidpsv(i),  i=1, npart)
+  write(fileUnit,err=10) (omoidpsv(i), i=1, npart)
+  write(fileUnit,err=10) (mtc(i),      i=1, npart)
+  write(fileUnit,err=10) (naa(i),      i=1, npart)
+  write(fileUnit,err=10) (nzz(i),      i=1, npart)
+  write(fileUnit,err=10) (pids(i),     i=1, npart)
+  flush(fileUnit)
 
+  writeErr = .false.
   return
 
 10 continue
   writeErr = .true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in HIONS"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in HIONS"
-  flush(93)
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Reading C/R file fort.",fileUnit," in HIONS"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Reading C/R file fort.",fileUnit," in HIONS"
+  flush(crlog)
 
 end subroutine hions_crpoint
 
 subroutine hions_crcheck_readdata(fileUnit, readErr)
 
+  use parpro
   use crcoall
-
-  implicit none
+  use mod_alloc
 
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: readErr
@@ -220,15 +214,16 @@ subroutine hions_crcheck_readdata(fileUnit, readErr)
 
 10 continue
   readErr = .true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in HIONS"
-  write(93,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in HIONS"
-  flush(93)
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in HIONS"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in HIONS"
+  flush(crlog)
 
 end subroutine hions_crcheck_readdata
 
 subroutine hions_crstart
 
-  implicit none
+  use parpro
+  use mod_alloc
 
   nucmda = nucmda_cr
   ien0   = ien0_cr

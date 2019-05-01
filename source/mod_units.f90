@@ -12,6 +12,8 @@ module mod_units
 
   implicit none
 
+  logical, public,  save       :: units_beQuiet  = .true.            ! No writing to lout when this flag is .true.
+
   ! Keep track of units
   integer, parameter           :: units_minUnit  = 1                 ! First unit to keep track of
   integer, parameter           :: units_maxUnit  = 250               ! Last unit to keep track of
@@ -305,7 +307,9 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
     call f_writeLog("OPEN",unit,"ERROR",file)
     if(present(err)) then
       err = .true.
-      write(lout,"(a,i0)") "UNITS> File '"//trim(file)//"' reported iostat = ",ioStat
+      if(units_beQuiet .eqv. .false.) then
+        write(lout,"(a,i0)") "UNITS> File '"//trim(file)//"' reported iostat = ",ioStat
+      end if
     else
       write(lerr,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' reported iostat = ",ioStat
       call prror
@@ -326,7 +330,9 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
   call f_writeLog("OPEN",unit,"ERROR",file)
   if(present(err)) then
     err = .true.
-    write(lout,"(a)") "UNITS> Could not open '"//trim(file)//"'"
+    if(units_beQuiet .eqv. .false.) then
+      write(lout,"(a)") "UNITS> Could not open '"//trim(file)//"'"
+    end if
   else
     write(lerr,"(a)") "UNITS> ERROR Could not open '"//trim(file)//"'"
     call prror

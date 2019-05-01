@@ -2687,10 +2687,10 @@ subroutine mapflol(sa,sai,cr,cm,st)
       call mulnd2(xj,w)
       call mulnd2(cr,w)
       if(idpr.ge.0.or.idpr.eq.-102) then
-        write(lout,*) 'Check of the symplectic condition on the linear part'
+        write(lout,"(a)") "LIELIB> Check of the symplectic condition on the linear part:"
         xsu=zero
         do i=1,nd2
-          write(lout,'(6(2x,g23.16))') ( w(i,j), j = 1, nd2 )
+          write(lout,"(3x,6(1x,1pe17.10))") (w(i,j), j=1, nd2)
           do j=1,nd2
             xsu=xsu+abs(w(i,j))
           enddo

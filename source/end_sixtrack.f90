@@ -25,6 +25,7 @@ subroutine prror(ier)
     errout = -1
   end if
 
+  ! These should not go to lerr
   write(lout,"(a)") ""
   write(lout,"(a)") "    +++++++++++++++++++++++++++++"
   write(lout,"(a)") "    +      ERROR DETECTED!      +"
@@ -37,7 +38,7 @@ subroutine prror(ier)
 #endif
 
 #ifdef CR
-  call abend('                                                  ')
+  call abend("ERROR")
 #else
   call closeUnits
   stop 1
@@ -50,7 +51,7 @@ end subroutine prror
 !  End Routine for Checkpoint/Restart Version
 !  Changed: 2019-04-15
 ! ================================================================================================ !
-subroutine abend(cstring)
+subroutine abend(endMsg)
 
   use, intrinsic :: iso_fortran_env, only : error_unit, output_unit
 
@@ -66,7 +67,7 @@ subroutine abend(cstring)
 
   implicit none
 
-  character(len=*), intent(in) :: cstring
+  character(len=*), intent(in) :: endMsg
 
   real(kind=fPrec) sumda(60)
   integer i, j, k
@@ -74,8 +75,9 @@ subroutine abend(cstring)
   character(len=25) chBuf
   character(len=mInputLn) inLine, outLine
 
-  write(93,"(a)") "SIXTRACR> STOP/ABEND called and closing files"
-  flush(93)
+  write(crlog,"(a)") "ABEND_CR> Called"
+  write(crlog,"(a)") "ABEND_CR> Closing files"
+  flush(crlog)
 
   ! Calling close to be very safe.......96 calls to abend
   ! Easier than adding the call on every abend
@@ -84,8 +86,8 @@ subroutine abend(cstring)
 #ifdef BOINC
   ! If fort.10 is non-existent (physics error or some other problem)
   ! we try and write a 0d0 file with a turn number and CPU time
-  write(93,"(a)") "SIXTRACR> STOP/ABEND checking fort.10"
-  flush(93)
+  write(crlog,"(a)") "ABEND_CR> Checking fort.10"
+  flush(crlog)
 
   call f_open(unit=10,file="fort.10",formatted=.true.,mode="r",err=fErr,status="old",recl=8195)
   if(fErr) goto 11
@@ -99,8 +101,8 @@ subroutine abend(cstring)
   ! Now we try and write a fort.10
   ! We put some CPU for Igor, a version, and turn number 0
   ! call f_open(unit=10,file="fort.10",formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
-  write(93,"(a)") "SIXTRACR> STOP/ABEND writing dummy fort.10"
-  flush(93)
+  write(crlog,"(a)") "ABEND_CR> Writing dummy fort.10"
+  flush(crlog)
 
   ! Make sure it is closed properly before we re-open for dummy write
   ! inquire(10,opened=fOpen)
@@ -111,7 +113,7 @@ subroutine abend(cstring)
   sumda(:) = zero
   call time_timerCheck(time1)
   trtime = time1 - time0
-  trtime = trtime + crtime3
+  trtime = trtime + cr_time
   sumda(60) = real(trtime,fPrec)  ! Track time
   sumda(52) = real(numvers,fPrec) ! SixTrack version
   outLine = " "
@@ -125,8 +127,8 @@ subroutine abend(cstring)
   ! Note it COULD happen that napxo is 0 for a very very early error and even napx!!!
   if(napxo == 0 .and. napx == 0) napxo = 1
   if(napxo == 0) napxo = napx
-  write(93,"(2(a,i0))") "SIXTRACR> STOP/ABEND writing fort.10, lines ",napxo,"/",napx
-  flush(93)
+  write(crlog,"(2(a,i0))") "ABEND_CR> Writing fort.10, lines ",napxo,"/",napx
+  flush(crlog)
   do j=1,napxo ! Must the dummy file really be napxo times the same dummy line?
     write(10,"(a)",iostat=ierro) outLine(1:60*26)
   end do
@@ -136,33 +138,21 @@ subroutine abend(cstring)
 #endif
 
 12 continue
-  if(lout == 92) then
-    write(93,"(a)") "SIXTRACR> STOP/ABEND copying fort.92 to fort.6"
-    flush(93)
-    rewind(92)
-13  continue
-    read(92,"(a)",err=14,end=15,iostat=ierro) inLine
-    write(output_unit,'(a)',iostat=ierro) trim(inLine)
-    goto 13
-  end if
-
-14 continue
-  write(93,"(a,i0)")   "SIXTRACR> ERROR Reading fort.92 in abend, iostat = ",ierro
-  write(lerr,"(a,i0)") "ABEND> ERROR Reading fort.92, iostat = ",ierro
+  call cr_copyOut
 
 15 continue
-  write(output_unit,"(a)",iostat=ierro) "SIXTRACR> Stop "//cstring
-  rewind(92) ! Get rid of fort.92
-  endfile(92,iostat=ierro)
-  call f_close(92)
-  write(93,"(a)") "SIXTRACR> Stop "//cstring
-  call f_close(93)
+  write(output_unit,"(a)",iostat=ierro) "SIXTRACR> Stop: "//trim(endMsg)
+  rewind(cr_outUnit)
+  endfile(cr_outUnit,iostat=ierro)
+  call f_close(cr_outUnit)
+  write(crlog,"(a)") "ABEND_CR> Stop: "//trim(endMsg)
+  call f_close(crlog)
 
 #ifdef BOINC
-  call copyToStdErr(91,"fort.91",10)
+  call copyToStdErr(cr_errUnit,cr_errFile,10)
   call boinc_finish(errout) ! This call does not return
 #else
-  call copyToStdErr(91,"fort.91",50)
+  call copyToStdErr(cr_errUnit,cr_errFile,50)
   if(errout /= 0) then
     ! Don't write to stderr, it breaks the error tests.
     write(output_unit,"(a,i0)") "ABEND> ERROR Stopping with error ",errout
