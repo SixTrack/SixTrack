@@ -328,7 +328,7 @@ subroutine crcheck
   ! NOT TRUE anymore??? We might be NOT rerun but using a Sixin.zip
 #ifndef BOINC
   if(cr_rerun .eqv. .false.) then
-    write(lerr,"(a)") "CR_CHECK> ERROR Found "//cr_pntFile(1)//"/"//cr_pntFile(2)//" but no "//trim(fort6)
+    write(lerr,"(a)") "CR_CHECK> ERROR Found checkpoint file(s) but no "//trim(fort6)
     call prror
   end if
 #endif
@@ -453,8 +453,7 @@ subroutine crcheck
         ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6)
       backspace(cr_pntUnit(nPoint),iostat=ioStat)
       if(ioStat /= 0) cycle
-      write(crlog,"(a)") "CR_CHECK> Read "//cr_pntFile(nPoint)//" EXTENDED OK"
-      write(crlog,"(a)") "CR_CHECK> Leaving "//cr_pntFile(1)//" for CRSTART EXTENDED"
+      write(crlog,"(a)") "CR_CHECK>    "//cr_pntFile(nPoint)//" EXTENDED OK"
       flush(crlog)
     end if
 
@@ -467,7 +466,7 @@ subroutine crcheck
   end do
 
   if(noRestart) then
-    write(crlog,"(a)") "CR_CHECK> ERROR Could not read checkpoint files"
+    write(crlog,"(a)") "CR_CHECK> ERROR No complete checkpoint file found"
     flush(crlog)
     goto 200
   end if
