@@ -79,8 +79,7 @@ subroutine abend(endMsg)
   write(crlog,"(a)") "ABEND_CR> Closing files"
   flush(crlog)
 
-  ! Calling close to be very safe.......96 calls to abend
-  ! Easier than adding the call on every abend
+  ! Calling close to be very safe
   call closeUnits
 
 #ifdef BOINC
@@ -89,11 +88,11 @@ subroutine abend(endMsg)
   write(crlog,"(a)") "ABEND_CR> Checking fort.10"
   flush(crlog)
 
-  call f_open(unit=10,file="fort.10",formatted=.true.,mode="r",err=fErr,status="old",recl=8195)
+  call f_open(unit=unit10,file=fort10,formatted=.true.,mode="r",err=fErr,status="old",recl=8195)
   if(fErr) goto 11
 
   ! Now we try and read fort.10 i.e. is it empty?
-  read(10,"(a1024)",end=11,err=11,iostat=ierro) inLine
+  read(unit10,"(a1024)",end=11,err=11,iostat=ierro) inLine
   ! Seems to be OK
   goto 12
 
@@ -107,8 +106,8 @@ subroutine abend(endMsg)
   ! Make sure it is closed properly before we re-open for dummy write
   ! inquire(10,opened=fOpen)
   ! if(fOpen) close(10)
-  call f_close(10)
-  call f_open(unit=10,file="fort.10",formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
+  call f_close(unit10)
+  call f_open(unit=unit10,file=fort10,formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
 
   sumda(:) = zero
   call time_timerCheck(time1)
@@ -130,7 +129,7 @@ subroutine abend(endMsg)
   write(crlog,"(2(a,i0))") "ABEND_CR> Writing fort.10, lines ",napxo,"/",napx
   flush(crlog)
   do j=1,napxo ! Must the dummy file really be napxo times the same dummy line?
-    write(10,"(a)",iostat=ierro) outLine(1:60*26)
+    write(unit10,"(a)",iostat=ierro) outLine(1:60*26)
   end do
   if(ierro /= 0) then
     write(lerr,"(a,i0)") "ABEND> ERROR Problems writing to fort.10. ierro = ",ierro

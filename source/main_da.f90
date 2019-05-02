@@ -109,7 +109,6 @@ program mainda
   call f_open(unit=24,file="fort.24",formatted=.true.,mode="rw",err=fErr) ! DA Files
   call f_open(unit=25,file="fort.25",formatted=.true.,mode="rw",err=fErr) ! DA Files
 
-  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
   call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr)
 
   call time_timeStamp(time_afterFileUnits)

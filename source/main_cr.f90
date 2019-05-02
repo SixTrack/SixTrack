@@ -298,10 +298,10 @@ program maincr
 
   ! Postprocessing is on, but there are no particles
   if(ipos == 1 .and. napx == 0) then
-    ! Now we open fort.10 unless already opened for BOINC
-    call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
-    call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
-
+    call f_requestUnit(fort10, unit10)
+    call f_requestUnit(fort110,unit110)
+    call f_open(unit=unit10, file=fort10, formatted=.true., mode="rw",err=fErr,status="replace",recl=8195)
+    call f_open(unit=unit110,file=fort110,formatted=.false.,mode="rw",err=fErr,status="replace")
 #ifndef STF
     do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
 #ifndef CR
@@ -329,10 +329,11 @@ program maincr
 #endif
 
     call sumpos
+    call f_close(unit10)
+    call f_close(unit110)
     goto 520 ! Jump to after particle&optics initialization, and also after tracking.
-  end if !if(ipos.eq.1.and.napx.eq.0)
+  end if
 #endif
-! END ifndef FLUKA
 
   do i=1,20
     fake(1,i)=zero
@@ -1393,77 +1394,83 @@ program maincr
   ! Dump the final state of the particle arrays
   call part_writeState(1)
 
-#ifndef FLUKA
-#ifndef STF
+#ifdef FLUKA
+
+  ! A.Mereghetti, for the FLUKA Team
+  ! last modified: 28-05-2014
+  ! collect a couple of goto statements, sending code flow
+  !   to different plotting points, which are not actually
+  !   inserted
+  490 continue
+  520 continue
+    call fluka_close
+
+#else
+
   iposc = 0
   if(ipos == 1) then ! Variable IPOS=1 -> postprocessing block present in fort.3
-    ! Open fort.10 unless already opened for BOINC
-    call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
-    call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
+    call f_requestUnit(fort10, unit10)
+    call f_requestUnit(fort110,unit110)
+    call f_open(unit=unit10, file=fort10, formatted=.true., mode="rw",err=fErr,status="replace",recl=8195)
+    call f_open(unit=unit110,file=fort110,formatted=.false.,mode="rw",err=fErr,status="replace")
     do ia=1,napxo,2
-      ia2=(ia+1)/2
-      iposc=iposc+1
-#ifndef CR
-      call postpr(91-ia2) ! Postprocess file "fort.(91-ia2)"
-#else
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-ia2),", turns: ",nnuml
+      iposc = iposc+1
+#ifdef STF
+#ifdef CR
+      call postpr(ia,nnuml)
+      write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
       flush(crlog)
-      call postpr(91-ia2,nnuml)
+#else
+      call postpr(ia)
+#endif
+#else
+      ia2 = 91-(ia+1)/2
+#ifdef CR
+      call postpr(ia2,nnuml)
+      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",ia2,", turns: ",nnuml
+      flush(crlog)
+#else
+      call postpr(ia2)
+#endif
 #endif
     end do
     if(iposc >= 1) call sumpos
-  end if ! END if(ipos.eq.1)
+    call f_close(unit10)
+    call f_close(unit110)
+  end if
   goto 520 ! Done postprocessing
 
-490 continue ! GOTO here if(napx <= 0) (skipping tracking)
+  490 continue ! GOTO here if(napx <= 0) (skipping tracking)
   if(ipos == 1) then
+    call f_requestUnit(fort10, unit10)
+    call f_requestUnit(fort110,unit110)
+    call f_open(unit=unit10, file=fort10, formatted=.true., mode="rw",err=fErr,status="replace",recl=8195)
+    call f_open(unit=unit110,file=fort110,formatted=.false.,mode="rw",err=fErr,status="replace")
     ndafi2 = ndafi
     do ia=1,ndafi2
       if(ia > ndafi) exit
-#ifndef CR
-      call postpr(91-ia)
+#ifdef STF
+#ifdef CR
+      call postpr(ia,nnuml)
+      write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
+      flush(crlog)
 #else
+      call postpr(ia)
+#endif
+#else
+#ifdef CR
+      call postpr(91-ia,nnuml)
       write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-i),", turns: ",nnuml
       flush(crlog)
-      call postpr(91-ia,nnuml)
+#else
+      call postpr(91-ia)
+#endif
 #endif
     end do
     if(ndafi >= 1) call sumpos
+    call f_close(unit10)
+    call f_close(unit110)
   end if
-#else
-  ! IFDEF STF
-  iposc=0
-  if(ipos == 1) then ! Variable IPOS=1 -> postprocessing block present in fort.3
-    do ia=1,napxo,2
-      iposc=iposc+1
-#ifndef CR
-      call postpr(ia) ! Postprocess particle ia (and ia+1 if ntwin=2)
-#else
-      write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
-      flush(crlog)
-      call postpr(ia,nnuml)
-#endif
-    end do
-    if(iposc >= 1) call sumpos
-  end if
-  goto 520 ! Done postprocessing
-
-490 continue ! GOTO here if(napx <= 0) (skipping tracking)
-  if(ipos == 1) then
-    ndafi2=ndafi
-    do ia=1,(2*ndafi2),2
-      if(ia > ndafi) exit
-#ifndef CR
-      call postpr(ia)
-#else
-      write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
-      flush(crlog)
-      call postpr(ia,nnuml)
-#endif
-    end do
-    if(ndafi >= 1) call sumpos
-  end if
-#endif
 
 ! ---------------------------------------------------------------------------- !
 !  DONE POSTPROCESSING (POSTPR)
@@ -1483,17 +1490,7 @@ program maincr
   endif
 #endif
 
-#ifdef FLUKA
-  ! A.Mereghetti, for the FLUKA Team
-  ! last modified: 28-05-2014
-  ! collect a couple of goto statements, sending code flow
-  !   to different plotting points, which are not actually
-  !   inserted
-490 continue
-520 continue
-  call fluka_close
-#endif
-  call ffield_mod_end()
+call ffield_mod_end()
 
   time3=0.
   call time_timerCheck(time3)
