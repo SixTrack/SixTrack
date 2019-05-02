@@ -307,7 +307,7 @@ program maincr
 #ifndef CR
       call postpr(91-i)
 #else
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit = ",(91-i),", nnuml = ",nnuml
+      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-i),", turns: ",nnuml
       flush(crlog)
       call postpr(91-i,nnuml)
 #endif
@@ -321,7 +321,7 @@ program maincr
 #ifndef CR
       call postpr(i)
 #else
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Particle = ",i,", nnuml = ",nnuml
+      write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",i,",",(i+1),", turns: ",nnuml
       flush(crlog)
       call postpr(i,nnuml)
 #endif
@@ -1406,7 +1406,7 @@ program maincr
 #ifndef CR
       call postpr(91-ia2) ! Postprocess file "fort.(91-ia2)"
 #else
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit = ",(91-ia2),", nnuml = ",nnuml
+      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-ia2),", turns: ",nnuml
       flush(crlog)
       call postpr(91-ia2,nnuml)
 #endif
@@ -1423,7 +1423,7 @@ program maincr
 #ifndef CR
       call postpr(91-ia)
 #else
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit = ",(91-i),", nnuml = ",nnuml
+      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-i),", turns: ",nnuml
       flush(crlog)
       call postpr(91-ia,nnuml)
 #endif
@@ -1439,7 +1439,7 @@ program maincr
 #ifndef CR
       call postpr(ia) ! Postprocess particle ia (and ia+1 if ntwin=2)
 #else
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Particle = ",ia,", nnuml = ",nnuml
+      write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
       flush(crlog)
       call postpr(ia,nnuml)
 #endif
@@ -1456,7 +1456,7 @@ program maincr
 #ifndef CR
       call postpr(ia)
 #else
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Particle = ",ia,", nnuml = ",nnuml
+      write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
       flush(crlog)
       call postpr(ia,nnuml)
 #endif
