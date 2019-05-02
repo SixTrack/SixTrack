@@ -144,15 +144,15 @@ subroutine abend(endMsg)
   write(output_unit,"(a)",iostat=ierro) "SIXTRACR> Stop: "//trim(endMsg)
   rewind(cr_outUnit)
   endfile(cr_outUnit,iostat=ierro)
+
+  call copyToStdErr(cr_errUnit,cr_errFile,20)
   call f_close(cr_outUnit)
   write(crlog,"(a)") "ABEND_CR> Stop: "//trim(endMsg)
   call f_close(crlog)
 
 #ifdef BOINC
-  call copyToStdErr(cr_errUnit,cr_errFile,10)
   call boinc_finish(errout) ! This call does not return
 #else
-  call copyToStdErr(cr_errUnit,cr_errFile,50)
   if(errout /= 0) then
     ! Don't write to stderr, it breaks the error tests.
     write(output_unit,"(a,i0)") "ABEND> ERROR Stopping with error ",errout
@@ -163,19 +163,19 @@ subroutine abend(endMsg)
 #endif
 
 end subroutine abend
-#endif
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created:   2017-06
 !  Rewritten: 2019-04-15 (VKBO)
-!  Updated:   2019-04-15
+!  Updated:   2019-05-02
 !  Subroutine to copy the last lines from a file to stderr
 !  It is mainly used just before exiting SixTrack in case there was an error.
 !  This is useful since STDERR is often returned from batch systems and BOINC.
 ! =================================================================================================
 subroutine copyToStdErr(fUnit,fName,maxLines)
 
+  use crcoall
   use parpro
   use mod_units
   use, intrinsic :: iso_fortran_env, only : error_unit
@@ -196,7 +196,7 @@ subroutine copyToStdErr(fUnit,fName,maxLines)
   end if
 
   fErr = .false.
-  call f_open(unit=fUnit,file=fName,formatted=.true.,mode="r",err=fErr,status="old")
+  call f_open(unit=fUnit,file=fName,formatted=.true.,mode="r-",err=fErr,status="old")
   if(fErr) return
 
   bufIdx = 0
@@ -209,9 +209,11 @@ subroutine copyToStdErr(fUnit,fName,maxLines)
   if(bufIdx > bufMax)   bufMax = bufIdx
   inBuf(bufIdx) = inLine
   szBuf(bufIdx) = lnSize
+  write(crlog,"(a)") inLine(1:lnSize)
   goto 10
 
 20 continue
+  flush(crlog)
   if(bufIdx > 0) then
     do i=bufIdx+1,bufMax
       write(error_unit,"(a)") inBuf(i)(:szBuf(i))
@@ -225,3 +227,4 @@ subroutine copyToStdErr(fUnit,fName,maxLines)
   call f_close(fUnit)
 
 end subroutine copyToStdErr
+#endif
