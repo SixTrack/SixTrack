@@ -895,7 +895,7 @@ subroutine cr_positionTrackFiles
   use, intrinsic :: iso_fortran_env, only : int32
 
   integer j, k, ia, iau
-  integer binrecs9x, binrecs94
+  integer binrecs9x, binrecs94, tUnit
 
   ! DANGER: If the length of the records in writebin(_header)changes, these arrays must be updated
   integer(kind=int32) hbuff(253),tbuff(35)
@@ -913,11 +913,11 @@ subroutine cr_positionTrackFiles
     flush(crlog)
 
     ! Reposition binary files fort.90 etc. / singletrackfile.dat
-    ! fort.94 = temp file where the data from fort.90 etc. is copied to and then back
-    call f_open(unit=94,file="fort.94",formatted=.false.,mode="rw")
+    call f_requestUnit("cr_trackfile.tmp",tUnit)
+    call f_open(unit=tUnit,file="cr_trackfile.tmp",formatted=.false.,mode="rw")
 #ifndef STF
     do ia=1,crnapxo/2,1
-      ! First, copy crbinrecs(ia) records of data from fort.91-ia to fort.94
+      ! First, copy crbinrecs(ia) records of data from fort.91-ia to temp file
       binrecs9x = 0
       binrecs94 = 0
       iau       = 91-ia
@@ -926,36 +926,36 @@ subroutine cr_positionTrackFiles
       read(91-ia,err=105,end=105,iostat=ierro) hbuff
       binrecs9x = binrecs9x + 1
       hbuff(51) = numl ! Reset the number of turns (not very elegant)
-      write(94,err=105,iostat=ierro) hbuff
+      write(tUnit,err=105,iostat=ierro) hbuff
 
       ! Copy particle tracking data
       do j=2,crbinrecs(ia)
         if(ntwin /= 2) then
           read(91-ia,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
-          write(94,err=105,iostat=ierro) (tbuff(k),k=1,17)
+          write(tUnit,err=105,iostat=ierro) (tbuff(k),k=1,17)
         else
           read(91-ia,err=105,end=105,iostat=ierro) tbuff
-          write(94,err=105,iostat=ierro) tbuff
+          write(tUnit,err=105,iostat=ierro) tbuff
         end if
         binrecs9x = binrecs9x + 1
       end do
 
-      ! Second, copy crbinrecs(ia) records of data from fort.94 to fort.91-ia
-      rewind(94)
+      ! Second, copy crbinrecs(ia) records of data from temp file to fort.91-ia
+      rewind(tUnit)
       rewind(91-ia)
 
       ! Copy header
-      read(94,err=105,end=105,iostat=ierro) hbuff
+      read(tUnit,err=105,end=105,iostat=ierro) hbuff
       binrecs94 = binrecs94 + 1
       write(91-ia,err=105,iostat=ierro) hbuff
 
       ! Copy particle tracking data into integer array tbuff
       do j=2,crbinrecs(ia)
         if(ntwin /= 2) then
-          read(94,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
+          read(tUnit,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
           write(91-ia,err=105,iostat=ierro) (tbuff(k),k=1,17)
         else
-          read(94,err=105,end=105,iostat=ierro) tbuff
+          read(tUnit,err=105,end=105,iostat=ierro) tbuff
           write(91-ia,err=105,iostat=ierro) tbuff
         end if
         binrecs94 = binrecs94 + 1
@@ -964,10 +964,10 @@ subroutine cr_positionTrackFiles
       ! This is not a FLUSH!
       endfile(91-ia,iostat=ierro)
       backspace(91-ia,iostat=ierro)
-      rewind(94)
+      rewind(tUnit)
     end do
 #else
-    ! First, copy crbinrecs(ia)*(crnapx/2) records of data from singletrackfile.dat to fort.94
+    ! First, copy crbinrecs(ia)*(crnapx/2) records of data from singletrackfile.dat to temp file
     binrecs9x = 0
 
     ! Copy headers
@@ -975,7 +975,7 @@ subroutine cr_positionTrackFiles
       read(90,err=105,end=105,iostat=ierro) hbuff
       binrecs9x = binrecs9x + 1
       hbuff(51) = numl ! Reset the number of turns (not very elegant)
-      write(94,err=105,iostat=ierro) hbuff
+      write(tUnit,err=105,iostat=ierro) hbuff
     end do
 
     ! Copy particle tracking data
@@ -983,23 +983,23 @@ subroutine cr_positionTrackFiles
       do j=2,crbinrecs(ia)
         if(ntwin /= 2) then
           read(90,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
-          write(94,err=105,iostat=ierro) (tbuff(k),k=1,17)
+          write(tUnit,err=105,iostat=ierro) (tbuff(k),k=1,17)
         else
           read(90,err=105,end=105,iostat=ierro) tbuff
-          write(94,err=105,iostat=ierro) tbuff
+          write(tUnit,err=105,iostat=ierro) tbuff
         end if
         binrecs9x = binrecs9x + 1
       end do
     end do
 
-    ! Second, copy crbinrecs(ia)*(crnapx/2) records of data from fort.94 to singletrackfile.dat
-    rewind(94)
+    ! Second, copy crbinrecs(ia)*(crnapx/2) records of data from temp file to singletrackfile.dat
+    rewind(tUnit)
     rewind(90)
     binrecs94=0
 
     ! Copy header
     do ia=1,crnapxo/2,1
-      read(94,err=105,end=105,iostat=ierro) hbuff
+      read(tUnit,err=105,end=105,iostat=ierro) hbuff
       binrecs94 = binrecs94 + 1
       write(90,err=105,iostat=ierro) hbuff
     end do
@@ -1008,10 +1008,10 @@ subroutine cr_positionTrackFiles
     do ia=1,crnapxo/2,1
       do j=2,crbinrecs(ia)
         if(ntwin /= 2) then
-          read(94,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
+          read(tUnit,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
           write(90,err=105,iostat=ierro) (tbuff(k),k=1,17)
         else
-          read(94,err=105,end=105,iostat=ierro) tbuff
+          read(tUnit,err=105,end=105,iostat=ierro) tbuff
           write(90,err=105,iostat=ierro) tbuff
         end if
         binrecs94 = binrecs94 + 1
@@ -1022,7 +1022,7 @@ subroutine cr_positionTrackFiles
     endfile(90,iostat=ierro)
     backspace (90,iostat=ierro)
 #endif
-    call f_close(94)
+    call f_freeUnit(tUnit)
   else !ELSE for "if(nnuml.ne.crnuml) then" -> here we treat nnuml.eq.crnuml, i.e. the number of turns have not been changed
     ! Now with the new array crbinrecs we can ignore files which are
     ! basically finished because a particle has been lost.......
