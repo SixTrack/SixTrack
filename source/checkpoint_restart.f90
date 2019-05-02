@@ -346,10 +346,14 @@ subroutine crcheck
 
     rewind(cr_pntUnit(nPoint))
 
-    write(crlog,"(a)") "CR_CHECK>  * SixTrack version"
+    write(crlog,"(a)") "CR_CHECK>  * Checking header"
     flush(crlog)
-
     read(cr_pntUnit(nPoint),iostat=ioStat) cr_version,cr_moddate
+    if(ioStat /= 0) then
+      write(crlog,"(a)") "CR_CHECK> Corrupt or truncated checkpoint file."
+      flush(crlog)
+      cycle
+    end if
     if(cr_version == " " .or. cr_moddate == " ") then
       write(crlog,"(a)") "CR_CHECK> Unknown SixTrack version. Skipping this file."
       flush(crlog)
@@ -363,7 +367,6 @@ subroutine crcheck
       flush(crlog)
       cycle
     end if
-    if(ioStat /= 0) cycle
 
     write(crlog,"(a)") "CR_CHECK>  * Tracking variables"
     flush(crlog)
@@ -995,7 +998,7 @@ subroutine cr_positionTrackFiles
     ! Second, copy crbinrecs(ia)*(crnapx/2) records of data from temp file to singletrackfile.dat
     rewind(tUnit)
     rewind(90)
-    binrecs94=0
+    binrecs94 = 0
 
     ! Copy header
     do ia=1,crnapxo/2,1
@@ -1020,7 +1023,7 @@ subroutine cr_positionTrackFiles
 
     ! This is not a FLUSH!
     endfile(90,iostat=ierro)
-    backspace (90,iostat=ierro)
+    backspace(90,iostat=ierro)
 #endif
     call f_freeUnit(tUnit)
   else !ELSE for "if(nnuml.ne.crnuml) then" -> here we treat nnuml.eq.crnuml, i.e. the number of turns have not been changed
@@ -1045,8 +1048,8 @@ subroutine cr_positionTrackFiles
         end do
 
         ! This is not a FLUSH!
-        endfile (91-ia,iostat=ierro)
-        backspace (91-ia,iostat=ierro)
+        endfile(91-ia,iostat=ierro)
+        backspace(91-ia,iostat=ierro)
       else ! Number of ecords written to this file < general number of records written
           ! => Particle has been lost before last checkpoint, no need to reposition.
         write(crlog,"(2(a,i0))") "CR_CHECK> Ignoring IA ",ia," on unit ",iau
