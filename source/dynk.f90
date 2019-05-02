@@ -584,8 +584,8 @@ subroutine dynk_parseFUN(inLine, iErr)
       end if
 
       ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
-      open(unit=dynk_iData(dynk_niData),file=dynk_cData(dynk_ncData-2),action="read",iostat=ioStat,status="old")
-      if(ioStat /= 0) then
+      call f_open(unit=dynk_iData(dynk_niData),file=dynk_cData(dynk_ncData-2),formatted=.true.,mode="r",err=fErr,status="old")
+      if(fErr) then
         write(lerr,"(a,i0)") "DYNK> ERROR FUN:PIPE Could not open file '"//trim(dynk_cData(dynk_ncData-2))//"' stat = ",ioStat
         iErr = .true.
         return
@@ -605,8 +605,8 @@ subroutine dynk_parseFUN(inLine, iErr)
       end if
 
       ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
-      open(unit=dynk_iData(dynk_niData+1),file=dynk_cData(dynk_ncData-1),action="write",iostat=ioStat,status="old")
-      if(ioStat /= 0) then
+      call f_open(unit=dynk_iData(dynk_niData+1),file=dynk_cData(dynk_ncData-1),formatted=.true.,mode="w",err=fErr,status="old")
+      if(fErr) then
         write(lerr,"(a)") "DYNK> ERROR FUN:PIPE Could not open file '"//trim(dynk_cData(dynk_ncData-1))//"' stat = ",ioStat
         iErr = .true.
         return

@@ -177,6 +177,7 @@ subroutine daini(no,nv,iunit)
       use mod_lie_dab, only : idao,iscrda,iscrri,rscrri,allvec,eps,epsmac,nda,ndamaxi,nst,nomax,nvmax,  &
         nmmax,nocut,lfi,idall,i1,i2,ie1,ie2,ieo,ia1,ia2,lda,lst,lea,lia,lno,lnv
       use crcoall
+      use mod_units
       implicit none
       integer i,ibase,ic1,ic2,icmax,io1,io2,iout,iunit,j,jd,jj,jjj,jjjj,jl,js,k,n,nn,no,nv
       integer iall(1)
@@ -389,23 +390,7 @@ subroutine daini(no,nv,iunit)
       write(lout,*)'ARRAY SETUP DONE, BEGIN PRINTING'
 
       iout = 32
-#ifdef BOINC
-      call boincrf('DAINI.DAT',filename)
-#ifdef FIO
-      open(iout,file=filename,status='new',round='nearest')
-#else
-      open(iout,file=filename,status='new')
-#endif
-#else
-#ifdef FIO
-      open(iout,file='DAINI.DAT',status='NEW',round='nearest')
-#else
-      open(iout,file='DAINI.DAT',status='NEW')
-#endif
-#endif
-!CRAY OPEN(IOUT,FILE='DAINI',STATUS='UNKNOWN',FORM='FORMATTED')          *CRAY
-!CRAY REWIND IOUT                                                        *CRAY
-
+      call f_open(unit=iout,file="daini.dat",formatted=.true.,mode="rw",status="new")
       write(iout,'(/A/A/)') ' ARRAYS I1 THROUGH I20, IE1,IE2,IEO',' **********************************'
       do i=1,nmmax
         call dancd(ie1(i),ie2(i),jj)

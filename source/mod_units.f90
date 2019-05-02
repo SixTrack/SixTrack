@@ -176,7 +176,7 @@ end subroutine f_getUnit
 !   - status    :: Optional: File status. Defaults to unknown
 !   - recl      :: Optional: Record length. Is only used for nagfor
 ! ================================================================================================ !
-subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
+subroutine f_open(unit,file,formatted,mode,err,iostat,status,access,recl)
 
   use crcoall
 
@@ -185,13 +185,14 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
   logical,                    intent(in)  :: formatted
   character(len=*),           intent(in)  :: mode
   logical,          optional, intent(out) :: err
+  integer,          optional, intent(out) :: iostat
   character(len=*), optional, intent(in)  :: status
   character(len=*), optional, intent(in)  :: access
   integer,          optional, intent(in)  :: recl
 
   character(len=:), allocatable :: fFileName, fStatus, fAction, fPosition, fMode, fAccess
   character(len=mPathName+1) :: tmpBoinc
-  integer i, fRecl, nUnits, ioStat, chkUnit
+  integer i, fRecl, nUnits, fStat, chkUnit
   logical fFio, isOpen
 
   if(present(recl)) then
@@ -298,35 +299,38 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
   if(formatted) then
     if(fRecl > 0) then
       if(fFio) then
-        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
+        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=fStat,&
           action=fAction,access=fAccess,position=fPosition,round="nearest",recl=fRecl,err=10)
       else
-        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
+        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=fStat,&
           action=fAction,access=fAccess,position=fPosition,recl=fRecl,err=10)
       end if
     else
       if(fFio) then
-        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
+        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=fStat,&
           action=fAction,access=fAccess,position=fPosition,round="nearest",err=10)
       else
-        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
+        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=fStat,&
           action=fAction,access=fAccess,position=fPosition,err=10)
       end if
     end if
   else
-    open(unit,file=fFileName,form="unformatted",status=fStatus,iostat=ioStat,&
+    open(unit,file=fFileName,form="unformatted",status=fStatus,iostat=fStat,&
       action=fAction,access=fAccess,position=fPosition,err=10)
   endif
 
-  if(ioStat /= 0) then
+  if(fStat /= 0) then
     call f_writeLog("OPEN",unit,"ERROR",file)
+    if(present(iostat)) then
+      iostat = fStat
+    end if
     if(present(err)) then
       err = .true.
       if(units_beQuiet .eqv. .false.) then
-        write(lout,"(a,i0)") "UNITS> File '"//trim(file)//"' reported iostat = ",ioStat
+        write(lout,"(a,i0)") "UNITS> File '"//trim(file)//"' reported iostat = ",fStat
       end if
     else
-      write(lerr,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' reported iostat = ",ioStat
+      write(lerr,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' reported iostat = ",fStat
       call prror
     end if
   end if

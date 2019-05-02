@@ -648,12 +648,7 @@ subroutine umlauda
 
         if (.not.beam_expfile_open) then
           call f_requestUnit("beam_expert.txt",expertUnit)
-#ifdef BOINC
-          call boincrf("beam_expert.txt",filename)
-          open(expertUnit,file=filename,status="replace",action="write")
-#else
-          open(expertUnit,file="beam_expert.txt",status="replace",action="write")
-#endif
+          call f_open(unit=expertUnit,file="beam_expert.txt",formatted=.true.,mode="w",status="replace")
           beam_expfile_open = .true.
           !This line will be a comment if copy-pasted into fort.3
           write(expertUnit,"(a,g13.6,a,g13.6,a,g13.6,a)") "/ ******* USING emitx=",emitx,", emity=",emity,", emitz=",emitz," ******"

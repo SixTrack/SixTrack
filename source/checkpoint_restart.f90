@@ -208,7 +208,7 @@ subroutine cr_killSwitch(iTurn)
   integer, intent(in) :: iTurn
 
   logical killIt, fExist, onKillTurn
-  integer pTurn, nKills, i, iUnit
+  integer pTurn, nKills, i, cUnit, tUnit
 
   killIt = .false.
   onKillTurn = .false.
@@ -222,21 +222,22 @@ subroutine cr_killSwitch(iTurn)
     return
   end if
 
-  call f_requestUnit("crkillswitch.tmp",iUnit)
+  call f_requestUnit("crkillswitch.tmp",cUnit)
+  call f_requestUnit("crrestartme.tmp", tUnit)
 
   inquire(file="crkillswitch.tmp",exist=fExist)
   if(fExist .eqv. .false.) then
-    open(iUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace",action="write")
-    write(iUnit) 0,0
-    flush(iUnit)
-    close(iUnit)
+    call f_open(unit=cUnit,file="crkillswitch.tmp",formatted=.false.,mode="w",access="stream",status="replace")
+    write(cUnit) 0,0
+    flush(cUnit)
+    call f_close(cUnit)
   end if
 
-  open(iUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")
-  read(iUnit) pTurn,nKills
-  flush(iUnit)
-  close(iUnit)
-  if(st_debug .and. pTurn > 0) then
+  call f_open(unit=cUnit,file="crkillswitch.tmp",formatted=.false.,mode="r",access="stream",status="old")
+  read(cUnit) pTurn,nKills
+  flush(cUnit)
+  call f_close(cUnit)
+  if(pTurn > 0) then
     write(lout, "(a,i0)") "CRKILLSW> Kill switch previously triggered on turn ",pTurn
     write(crlog,"(a,i0)") "CRKILLSW> Kill switch previously triggered on turn ",pTurn
     flush(lout)
@@ -258,15 +259,15 @@ subroutine cr_killSwitch(iTurn)
     flush(lout)
     flush(crlog)
 
-    open(iUnit,file="crrestartme.tmp",form="unformatted",access="stream",status="replace",action="write")
-    write(iUnit) 1
-    flush(iUnit)
-    close(iUnit)
+    call f_open(unit=tUnit,file="crrestartme.tmp",formatted=.false.,mode="w",access="stream",status="replace")
+    write(tUnit) 1
+    flush(tUnit)
+    call f_close(tUnit)
 
-    open(iUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace",action="write")
-    write(iUnit) iTurn,nKills
-    flush(iUnit)
-    close(iUnit)
+    call f_open(unit=cUnit,file="crkillswitch.tmp",formatted=.false.,mode="w",access="stream",status="replace")
+    write(cUnit) iTurn,nKills
+    flush(cUnit)
+    call f_close(cUnit)
     stop
   end if
 
