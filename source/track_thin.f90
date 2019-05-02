@@ -1331,7 +1331,6 @@ subroutine thin6d(nthinerr)
           !Ralph drift length is stracki
           !bez(ix) is name of drift
           totals=totals+stracki
-          !          write(*,*) 'ralph> Drift, total length: ', stracki,totals
 
           !________________________________________________________________________
           !++  If we have a collimator then...

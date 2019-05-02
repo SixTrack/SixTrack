@@ -144,7 +144,6 @@ subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc,mtc)
   do jsli=1,nsli
     do i=1,np
       s=(track(5,i)-star(3,jsli))*half
-      !write(*,*)'JBG - cphi2',cphi2
       sp=s/cphi2
       dum(1)=(bcu(ibb,1)+(two*bcu(ibb,4))*sp)+bcu(ibb,6)*sp**2
       dum(2)=(bcu(ibb,2)+(two*bcu(ibb,9))*sp)+bcu(ibb,10)*sp**2

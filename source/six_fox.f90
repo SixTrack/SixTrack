@@ -987,7 +987,6 @@ subroutine umlauda
     if(kzz.eq.26) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i) ! JBG change of variables for misal calculations
@@ -995,7 +994,6 @@ subroutine umlauda
 #include "include/alignf.f90"
 !FOX  CRABAMP2=ED(IX)*ZZ0 ;
 
-!       write(*,*) crabamp, EJF1, EJF0,clight, "HELLO"
     crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
     crabpht2=crabph2(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1024,7 +1022,6 @@ subroutine umlauda
       if(kzz.eq.-26) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i) ! JBG change of variables for misal calculations
@@ -1058,7 +1055,6 @@ subroutine umlauda
       if(kzz.eq.27) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1093,7 +1089,6 @@ subroutine umlauda
       if(kzz.eq.-27) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1127,7 +1122,6 @@ subroutine umlauda
       if(kzz.eq.28) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1166,7 +1160,6 @@ subroutine umlauda
       if(kzz.eq.-28) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)

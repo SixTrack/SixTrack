@@ -737,13 +737,8 @@ subroutine dadal(idal,l)
           call dadeb(31,'ERR DADAL ',1)
         endif
         if(idal(i).eq.nda) then
-!       deallocate
           nst = idapo(nda) - 1
           nda = nda - 1
-!        else
-!        write(6,'(a10)')daname(i)
-!        write(6,*)' etienne',idal(i),nda
-!        write(6,*) sqrt(-1.d0)
         endif
 
         allvec(idal(i)) = .false.
@@ -1101,12 +1096,6 @@ subroutine dapok(ina,jj,cjj)
 !     DETERMINE IF MONOMIAL TO BE POKED CONFORMS WITH INOA, INVA,NOCUT
 !     ****************************************************************
 !
-!      IF(ICO.GT.INOA.OR.ICV.GT.INVA) THEN
-!         write(6,*)'ERROR IN DAPOK, MONOMIAL NOT ALLOWED FOR ',A
-!         CALL DADEB(31,'ERR DAPOK ',1)
-!      ENDIF
-!      IF(ICO.GT.NOCUT) RETURN
-
       if(illa.ne.0) then ! etienne shit
       iu = ipoa
       iz = ipoa + illa - 1
@@ -1540,7 +1529,6 @@ subroutine daexc(ina,ckon,inb)
 !     THIS SUBROUTINE EXPONENTIATES INE WITH THE CONSTANT CKON
 !
 !-----------------------------------------------------------------------------1
-!        write(6,*) "daexc"
 
       if(ina.eq.inb) then
         call dainf(inc,inoc,invc,ipoc,ilmc,illc)
@@ -3341,7 +3329,6 @@ subroutine mtree(mb,ib,mc,ic)
 
       call dapok(ichk(1),jj,-one)
 
-!     write(6,*)'JL,JV = ',JL,JV(JL)
       do 210 i=1,ib
       call dapek(mb(i),jj,bbijj)
       i1(idapo(mc(i))+nterm-1) = jl
@@ -4567,8 +4554,6 @@ subroutine dapri(ina,iunit)
            endif
          write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') iout,cc(ipoa+i-1),ioa,(j(iii),iii=1,nvmax)
          write(111) cc(ipoa+i-1)
-!Eric
-!        write(iunit,*) cc(ipoa+i-1)
          write(iunit,'(G21.14)') cc(ipoa+i-1)
          write(111) cc(ipoa+i-1)
  90     continue
@@ -4595,10 +4580,8 @@ subroutine dapri(ina,iunit)
 #endif
           write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') iout,cc(ii),ioa,(j(iii),iii=1,nvmax)
 !Eric
-         write(111) cc(ii)
+          write(111) cc(ii)
 !ETIENNE
-!Eric
-!         write(iunit,* ) cc(ii)
           write(iunit,'(G21.14)') cc(ii)
           write(111) cc(ii)
           endif
