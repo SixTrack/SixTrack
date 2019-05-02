@@ -179,7 +179,7 @@ subroutine umlauda
     mfile=18
 !Eric
     rewind mfile
-    rewind 111
+    rewind 26
 !ERIC HERE
     call daread(damap,nvar,mfile,one)
     call mapnorm(damap,f,aa2,a1,xy,h,nord1)
@@ -1474,7 +1474,7 @@ subroutine umlauda
   if(iqmodc.eq.2.or.iqmodc.eq.4.or.ilin.ge.2) then
     rewind 18
 !Eric
-    rewind 111
+    rewind 26
     call daprid(damap,1,nvar,18)
   endif
 !--now do the output

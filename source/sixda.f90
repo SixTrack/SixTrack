@@ -68,7 +68,7 @@ subroutine daliesix
   call etallnom(hs,1,'HS        ')
   call etallnom(df,nd2,'DF        ')
   rewind mfile
-  rewind 111
+  rewind 26
   rewind mf1
   rewind mf2
   rewind mf3
@@ -213,7 +213,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   ! tune variation
   if(ncase.eq.2) call umlauda
   rewind 18
-  rewind 111
+  rewind 26
 
   ! main map calculation
   if(ncase.eq.3) call runda
@@ -282,7 +282,7 @@ subroutine runcav
   call darea(dpda1,18)
   rewind 18
 !Eric
-    rewind 111
+  rewind 26
   if(ition.ne.0) then
   e0f=sqrt(e0**2-nucm0**2)                                             !hr08
 !FOX  DPDA=DPDA1*C1M3 ;

@@ -186,6 +186,7 @@ program maincr
   call f_open(unit=19,file="fort.19",formatted=.true., mode="rw",err=fErr) ! DA file
   call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr) ! DA file
   call f_open(unit=21,file="fort.21",formatted=.true., mode="w", err=fErr) ! DA file
+  call f_open(unit=26,file="fort.26",formatted=.false.,mode="rw",err=fErr) ! DA file
   call f_open(unit=31,file="fort.31",formatted=.true., mode="w", err=fErr)
 
 #ifdef STF
@@ -198,8 +199,6 @@ program maincr
     call f_open(unit=i,file=tmpFile,formatted=.false.,mode="rw",err=fErr)
   end do
 #endif
-
-  call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr) ! DA file, binary
 
   call time_timeStamp(time_afterFileUnits)
 
