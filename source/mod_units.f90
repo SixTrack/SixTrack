@@ -1,10 +1,16 @@
 ! ================================================================================================ !
 !  FILE UNITS MODULE
+! ===================
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-12-13
+!  Created: 2018-12-13
+!  Updated: 2019-05-02
 !
 !  Module for keeping track of opened file units, their file names, and open the files correctly
 !  depending on build flags like BOINC or FIO.
+!
+!  Note: The maximum number of allowed open units is 256. To ensure we cannot run out of units, the
+!  module sets the last assigned unit number to 250. The log file is at 251. this leaves 4 units for
+!  debug use in the code, if absolutely necessary.
 ! ================================================================================================ !
 module mod_units
 
@@ -140,9 +146,11 @@ subroutine f_getUnit(file,unit)
 
   unit = -1
   do i=units_minUnit,units_maxUnit
-    if(units_uList(i)%file == file) then
-      unit = i
-      exit
+    if(allocated(units_uList(i)%file)) then
+      if(units_uList(i)%file == file) then
+        unit = i
+        exit
+      end if
     end if
   end do
 
@@ -168,8 +176,6 @@ end subroutine f_getUnit
 subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
 
   use crcoall
-
-  implicit none
 
   integer,                    intent(in)  :: unit
   character(len=*),           intent(in)  :: file
@@ -204,8 +210,7 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
   end if
 
   if(len_trim(file) > mPathName) then
-    write(lerr,"(2(a,i0))") "UNITS> ERROR Max length of file path in f_open is ",mPathName,&
-      " characters, got ",len_trim(file)
+    write(lerr,"(2(a,i0))") "UNITS> ERROR Max length of file path in f_open is ",mPathName," characters, got ",len_trim(file)
     call prror
   end if
 
@@ -263,6 +268,14 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
     fPosition = "asis"
   end select
 
+  ! Check that we don't have a fixed vs. assigned unit crash
+  if(allocated(units_uList(unit)%file)) then
+    if(units_uList(unit)%file /= file) then
+      write(lerr,"(a,i0,a)") "UNITS> ERROR Unit ",unit," has already been assigned to file '"//trim(units_uList(unit)%file)//"'"
+      call prror
+    end if
+  end if
+
   call f_getUnit(trim(file),chkUnit)
   if(chkUnit > 0) then
     ! We already have that file name in the record
@@ -270,7 +283,6 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
       write(lerr,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' has already been assigned to unit ",chkUnit
       call prror
     end if
-    units_uList(unit)%open  = .true.
   else
     ! The file is opened with a fixed unit, so save the info
     units_uList(unit)%file  = trim(file)
