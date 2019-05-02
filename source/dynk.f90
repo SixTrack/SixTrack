@@ -18,7 +18,6 @@ module dynk
   logical, public,  save :: dynk_debug        = .false. ! Print debug messages in main output
   logical, public,  save :: dynk_noDynkSets   = .false. ! Disable writing dynksets.dat?
   integer, private, save :: dynk_fileUnit     = -1      ! The file unit for dynksets.dat
-  integer, private, save :: dynk_fileUnitFUN  = -1      ! File unit for parseFUN files
 
   character(len=12), parameter :: dynk_fileName = "dynksets.dat"
 
@@ -135,8 +134,7 @@ subroutine dynk_allocate
   call alloc(dynk_sets,                dynk_maxSets,4, 0,    "dynk_sets")
 
   ! Set file units for I/O files
-  call f_requestUnit(dynk_fileName,     dynk_fileUnit)
-  call f_requestUnit("dynk_parseFUN_IO",dynk_fileUnitFUN)
+  call f_requestUnit(dynk_fileName,dynk_fileUnit)
 
 end subroutine dynk_allocate
 
@@ -221,7 +219,7 @@ subroutine dynk_parseFUN(inLine, iErr)
 
   character(len=:), allocatable :: lnSplit(:), lnFile(:)
   character(len=mInputLn)       :: fLine
-  integer nSplit, nFile
+  integer nSplit, nFile, tmpUnit
   logical spErr, cErr, fErr
 
   ! Temp variables
@@ -321,14 +319,15 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_ncData = dynk_ncData+1
 
     ! Open the file
-    inquire(unit=dynk_fileUnitFUN,opened=isOpen)
+    call f_requestUnit(dynk_cData(dynk_ncData),tmpUnit)
+    inquire(unit=tmpUnit,opened=isOpen)
     if(isOpen) then
       write(lerr,"(a)") "DYNK> ERROR FUN:FILE ould not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
     end if
 
-    call f_open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
+    call f_open(unit=tmpUnit,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
     if(fErr) then
       write(lerr,"(a)") "DYNK> ERROR FUN:FILE ould not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
@@ -338,16 +337,16 @@ subroutine dynk_parseFUN(inLine, iErr)
     ! Count number of lines and allocate space
     nLines = 0
     do
-      read(dynk_fileUnitFUN,"(a)",iostat=ioStat)
+      read(tmpUnit,"(a)",iostat=ioStat)
       if(ioStat /= 0) exit
       nLines = nLines + 1
     end do
-    rewind(dynk_fileUnitFUN)
+    rewind(tmpUnit)
     call dynk_checkspace(0,nLines,0)
 
     ii = 0 ! Number of data lines read
     do
-      read(dynk_fileUnitFUN,"(a)",iostat=ioStat) fLine
+      read(tmpUnit,"(a)",iostat=ioStat) fLine
       if(ioStat /= 0) exit
 
       call chr_split(fLine,lnFile,nFile,spErr)
@@ -377,7 +376,7 @@ subroutine dynk_parseFUN(inLine, iErr)
       dynk_fData(dynk_nfData) = y
     end do
     dynk_funcs(dynk_nFuncs,5) = ii
-    call f_close(dynk_fileUnitFUN)
+    call f_freeUnit(tmpUnit)
 
   ! END CASE FILE
 
@@ -406,14 +405,15 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_ncData = dynk_ncData+1
 
     ! Open the file
-    inquire(unit=dynk_fileUnitFUN, opened=isOpen)
+    call f_requestUnit(dynk_cData(dynk_ncData),tmpUnit)
+    inquire(unit=tmpUnit, opened=isOpen)
     if(isOpen) then
       write(lerr,"(a)") "DYNK> ERROR FUN:FILELIN Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
     end if
 
-    call f_open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
+    call f_open(unit=tmpUnit,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
     if(fErr) then
       write(lerr,"(a)") "DYNK> ERROR FUN:FILELIN Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
@@ -423,7 +423,7 @@ subroutine dynk_parseFUN(inLine, iErr)
     ! Find the size of the file
     ii = 0 ! Number of data lines read
     do
-      read(dynk_fileUnitFUN,"(a)",iostat=ioStat) fLine
+      read(tmpUnit,"(a)",iostat=ioStat) fLine
       if(ioStat /= 0) exit
 
       call chr_split(fLine,lnFile,nFile,spErr)
@@ -451,13 +451,13 @@ subroutine dynk_parseFUN(inLine, iErr)
       ii = ii+1
     end do
     t = ii
-    rewind(dynk_fileUnitFUN)
+    rewind(tmpUnit)
 
     call dynk_checkspace(0,2*t,0)
     ! Read the file
     ii = 0
     do
-      read(dynk_fileUnitFUN,"(a)",iostat=ioStat) fLine
+      read(tmpUnit,"(a)",iostat=ioStat) fLine
       if(ioStat /= 0) then ! EOF
         if(ii /= t) then
           write(lerr,"(a)")       "DYNK> ERROR FUN:FILELIN Unexpected when reading file '"//trim(dynk_cData(dynk_ncData))//"'"
@@ -491,7 +491,7 @@ subroutine dynk_parseFUN(inLine, iErr)
 
     dynk_nfData = dynk_nfData + 2*t
     dynk_funcs(dynk_nFuncs,5) = t
-    call f_close(dynk_fileUnitFUN)
+    call f_freeUnit(tmpUnit)
 
   ! END CASE FILELIN
 
@@ -823,13 +823,14 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_cData(dynk_ncData) = trim(lnSplit(5)) ! FILE NAME
 
     ! Read the file
-    inquire(unit=dynk_fileUnitFUN, opened=isOpen)
+    call f_requestUnit(dynk_cData(dynk_ncData),tmpUnit)
+    inquire(unit=tmpUnit, opened=isOpen)
     if(isOpen) then
       write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
     end if
-    call f_open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
+    call f_open(unit=tmpUnit,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
     if(fErr) then
       write(lerr,"(a,i0)") "DYNK> ERROR FUN:FIR/IIR Could not open file '"//trim(dynk_cData(dynk_ncData))//"', stat = ",ioStat
       iErr = .true.
@@ -838,7 +839,7 @@ subroutine dynk_parseFUN(inLine, iErr)
 
     do ii=0, dynk_funcs(dynk_nFuncs,4)
       ! Reading the FIR/IIR file without CRLIBM
-      read(dynk_fileUnitFUN,"(a)",iostat=ioStat) fLine
+      read(tmpUnit,"(a)",iostat=ioStat) fLine
       if(ioStat /= 0) then ! EOF
         write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Unexpected when reading file '"//trim(dynk_cData(dynk_ncData))//"'"
         iErr = .true.
@@ -898,7 +899,7 @@ subroutine dynk_parseFUN(inLine, iErr)
         dynk_fData(dynk_nfData) = u ! y_init[n-i]  (Not really needed anymore, but fixing allignment is painfull)
       end if
     end do
-    call f_close(dynk_fileUnitFUN)
+    call f_freeUnit(tmpUnit)
 
   ! END CASES FIR & IIR
 

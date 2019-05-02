@@ -693,6 +693,7 @@ subroutine fma_postpr
         if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j)) then
           ! filename NORM_* (normalised particle amplitudes)
           call f_close(tmpUnit)
+          call f_freeUnit(tmpUnit)
           hasNormDumped(j) = .true.
         end if
 

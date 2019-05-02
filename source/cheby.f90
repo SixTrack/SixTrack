@@ -554,7 +554,7 @@ subroutine parseChebyFile(ifile)
 
 20 continue
 
-  call f_close(fUnit)
+  call f_freeUnit(fUnit)
   if (cheby_refR(ifile)<=zero) then
     write(lerr,"(a)") "CHEBY> ERROR ref lens radius [mm] must be positive."
     goto 30
@@ -748,7 +748,7 @@ subroutine cheby_potentialMap(iLens,ix)
     end do
   end do
 
-  call f_close(fUnit)
+  call f_freeUnit(fUnit)
   
 end subroutine cheby_potentialMap
 

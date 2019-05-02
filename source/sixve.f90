@@ -20,7 +20,7 @@ subroutine sumpos
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn)       :: inLine
   real(kind=fPrec) d(60), dlost
-  integer nSplit, ioStat, lineNo, i, j, unit10
+  integer nSplit, ioStat, lineNo, i, j
   logical spErr, fErr
 
   rewind(unit10)

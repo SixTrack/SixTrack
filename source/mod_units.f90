@@ -71,7 +71,8 @@ end subroutine f_initUnits
 ! ================================================================================================ !
 !  Request New File Units
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-12-13
+!  Created: 2018-12-13
+!  Updated: 2018-12-13
 !  Send in a file name, and get a unit back. If the has already been assigned a unit, this is
 !  returned. Otherwise, a new unit is selected.
 ! ================================================================================================ !
@@ -134,7 +135,8 @@ end subroutine f_requestUnit
 ! ================================================================================================ !
 !  Get Existing File Units
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-12-13
+!  Created: 2018-12-13
+!  Updated: 2019-05-02
 !  Will search through the record for a filename, and return its unit. -1 if it is not assigned.
 ! ================================================================================================ !
 subroutine f_getUnit(file,unit)
@@ -159,7 +161,8 @@ end subroutine f_getUnit
 ! ================================================================================================ !
 !  Open a File
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-12-13
+!  Created: 2018-12-13
+!  Updated: 2019-05-02
 !  This is a wrapper for Fortran open that also handles all the various build options.
 !  The parameters are:
 !   - unit      :: The unit number. Either a previously assigned one, or a fixed unit
@@ -355,7 +358,8 @@ end subroutine f_open
 ! ================================================================================================ !
 !  Close File Units
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-12-13
+!  Created: 2018-12-13
+!  Updated: 2018-12-13
 !  Preferred method for closing file as it keeps the record up to date
 ! ================================================================================================ !
 subroutine f_close(unit)
@@ -391,6 +395,42 @@ subroutine f_close(unit)
   end if
 
 end subroutine f_close
+
+! ================================================================================================ !
+!  Free File Units
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-05-02
+!  Updated: 2019-05-02
+!  Free a file unit so that it can be assigned again. This implies close.
+! ================================================================================================ !
+subroutine f_freeUnit(unit)
+
+  use crcoall
+
+  integer, intent(in) :: unit
+
+  integer i
+  logical isOpen
+
+  if(unit < units_minUnit .or. unit > units_maxUnit) then
+    write(lerr,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_close"
+    call prror
+  end if
+
+  inquire(unit=unit, opened=isOpen)
+  if(isOpen) then
+    call f_close(unit)
+  end if
+
+  call f_writeLog("FREE",unit,"FREED",units_uList(unit)%file)
+
+  units_uList(unit)%file  = " "
+  units_uList(unit)%mode  = " "
+  units_uList(unit)%taken = .false.
+  units_uList(unit)%open  = .false.
+  units_uList(unit)%fixed = .true.
+
+end subroutine f_freeUnit
 
 ! ================================================================================================ !
 !  Flush Single or All File Units

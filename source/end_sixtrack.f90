@@ -128,7 +128,7 @@ subroutine abend(endMsg)
   if(napxo == 0) napxo = napx
   write(crlog,"(2(a,i0))") "ABEND_CR> Writing fort.10, lines ",napxo,"/",napx
   flush(crlog)
-  do j=1,napxo ! Must the dummy file really be napxo times the same dummy line?
+  do j=1,napxo,2 ! Must the dummy file really be napxo times the same dummy line?
     write(unit10,"(a)",iostat=ierro) outLine(1:60*26)
   end do
   if(ierro /= 0) then
