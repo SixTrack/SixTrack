@@ -841,7 +841,7 @@ subroutine dynk_parseFUN(inLine, iErr)
       ! Reading the FIR/IIR file without CRLIBM
       read(tmpUnit,"(a)",iostat=ioStat) fLine
       if(ioStat /= 0) then ! EOF
-        write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Unexpected when reading file '"//trim(dynk_cData(dynk_ncData))//"'"
+        write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Unexpected EOF when reading file '"//trim(dynk_cData(dynk_ncData))//"'"
         iErr = .true.
         return
       end if
