@@ -11,6 +11,8 @@ subroutine sumpos
   use crcoall
   use parpro
   use string_tools
+  use mod_units
+  use mod_common, only : fort10, unit10
 
   implicit none
 
@@ -21,25 +23,23 @@ subroutine sumpos
   integer nSplit, ioStat, lineNo, i, j
   logical spErr, fErr
 
-  save
-
-  rewind 10
+  rewind(unit10)
   lineNo = 0
   do i=1,1000
-    read(10,"(a)",end=20,iostat=ioStat) inLine
+    read(unit10,"(a)",end=20,iostat=ioStat) inLine
     if(ioStat /= 0) then
-      write(lerr,"(a,i0)") "SUMPOS> ERROR Failed to read line from 'fort.10'. iostat = ",ioStat
-      call prror(-1)
+      write(lerr,"(a,i0)") "SUMPOS> ERROR Failed to read line from '"//trim(fort10)//"'. iostat = ",ioStat
+      call prror
     end if
 
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
-      write(lerr,"(a)") "SUMPOS> ERROR Failed to parse line from 'fort.10'"
-      call prror(-1)
+      write(lerr,"(a)") "SUMPOS> ERROR Failed to parse line from '"//trim(fort10)//"'"
+      call prror
     end if
     if(nSplit > 60) then
-      write(lerr,"(a,i0)") "SUMPOS> ERROR Too many elements on a single line of 'fort.10'. Max is 60, got ",nSplit
-      call prror(-1)
+      write(lerr,"(a,i0)") "SUMPOS> ERROR Too many elements on a single line of '"//trim(fort10)//"'. Max is 60, got ",nSplit
+      call prror
     end if
     lineNo = lineNo+1
 
@@ -61,26 +61,26 @@ subroutine sumpos
     write(lout,10010) nint(dlost),d(3),d(5),d(7),d(9),d(10),d(11),d(12),nint(d(16)),nint(d(18)),    &
       d(19),d(21),ch,d(4),d(6),d(8),d(13),nint(d(17)),d(20),d(25),d(14),d(15)
   end do
-  20 continue
-  rewind 10
 
+  20 continue
+  rewind(unit10)
   lineNo = 0
   write(lout,10020)
   do i=1,1000
-    read(10,"(a)",end=40,iostat=ioStat) inLine
+    read(unit10,"(a)",end=40,iostat=ioStat) inLine
     if(ioStat /= 0) then
-      write(lerr,"(a,i0)") "SUMPOS> ERROR Failed to read line from 'fort.10'. iostat = ",ioStat
-      call prror(-1)
+      write(lerr,"(a,i0)") "SUMPOS> ERROR Failed to read line from '"//trim(fort10)//"'. iostat = ",ioStat
+      call prror
     end if
 
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
-      write(lerr,"(a)") "SUMPOS> ERROR Failed to parse line from 'fort.10'"
-      call prror(-1)
+      write(lerr,"(a)") "SUMPOS> ERROR Failed to parse line from '"//trim(fort10)//"'"
+      call prror
     end if
     if(nSplit > 60) then
-      write(lerr,"(a,i0)") "SUMPOS> ERROR Too many elements on a single line of 'fort.10'. Max is 60, got ",nSplit
-      call prror(-1)
+      write(lerr,"(a,i0)") "SUMPOS> ERROR Too many elements on a single line of '"//trim(fort10)//"'. Max is 60, got ",nSplit
+      call prror
     end if
     lineNo = lineNo+1
 

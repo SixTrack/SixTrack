@@ -171,15 +171,15 @@ subroutine fma_postpr
   real(kind=fPrec), allocatable :: epsnxyzv(:,:,:)
 
 #ifdef NAFF
-interface
-  real(c_double) function tunenaff(x,xp,maxn,plane_idx,norm_flag, fft_naff) bind(c)
-    use, intrinsic :: iso_c_binding
-    implicit none
-    real(c_double), intent(in), dimension(1) :: x,xp
-    integer(c_int), intent(in), value :: maxn, plane_idx, norm_flag
-    real(c_double), intent(in), value :: fft_naff
-  end function tunenaff
-end interface
+  interface
+    real(c_double) function tunenaff(x,xp,maxn,plane_idx,norm_flag, fft_naff) bind(c)
+      use, intrinsic :: iso_c_binding
+      implicit none
+      real(c_double), intent(in), dimension(1) :: x,xp
+      integer(c_int), intent(in), value :: maxn, plane_idx, norm_flag
+      real(c_double), intent(in), value :: fft_naff
+    end function tunenaff
+  end interface
 #endif
 
   ! need to pass a single dimension array to naff,
@@ -628,20 +628,7 @@ end interface
 
 #ifdef NAFF
             case("NAFF")
-              ! write(lout,*) "DBG", fma_nturn(i),l
-              ! write(lout,*) "DBG", nxyzv(l,1,2*(m-1)+1), nxyzv(l,1,2*m)
-              !
-              ! write(lout,*) size(xyzv(l,fma_first(i):fma_last(i),2*(m-1)+1))
-              ! write(lout,*) size(xyzv(l,fma_first(i):fma_last(i),2*m))
-
-              flush(lout)  ! F2003 does specify a FLUSH statement.
-              ! However NAFF should NOT be chatty...
-
-              ! do n=1,fma_nturn(i)
-              !    write(*,*) n, nxyzv(l,n,2*(m-1)+1), nxyzv(l,n,2*m)
-              ! enddo
-              ! write(*,*) ""
-
+              flush(lout)
               ! Copy the relevant contents of the arrays
               ! into a new temporary array with stride=1
               ! for passing to C++.
@@ -706,6 +693,7 @@ end interface
         if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j)) then
           ! filename NORM_* (normalised particle amplitudes)
           call f_close(tmpUnit)
+          call f_freeUnit(tmpUnit)
           hasNormDumped(j) = .true.
         end if
 

@@ -6416,9 +6416,6 @@ subroutine phasad(dpp,qwc)
         end if
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 450
         if(kzz.eq.15) goto 450
-! JBG RF CC Multipoles to 450
-!        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
-!        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 450
         dyy1=zero
         dyy2=zero
         if(iorg.lt.0) mzu(k)=izu
@@ -7278,9 +7275,6 @@ subroutine umlauf(dpp,ium,ierr)
     end if
     if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 350
     if(kzz.eq.15) goto 350
-! JBG RF CC Multipoles to 350
-!        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
-!        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 350
     if(iorg.lt.0) mzu(k)=izu
     izu=mzu(k)+1
     ekk=(sm(ix)+zfz(izu)*ek(ix))/(one+dpp)

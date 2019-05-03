@@ -261,7 +261,7 @@ subroutine part_writeState(theState)
       write(fileUnit)  int(     iDummy, kind=int32) ! Pad to n x 64 bit
     end do
 
-    call f_close(fileUnit)
+    call f_freeUnit(fileUnit)
 
   else
 
@@ -301,7 +301,7 @@ subroutine part_writeState(theState)
       end if
     end do
 
-    call f_close(fileUnit)
+    call f_freeUnit(fileUnit)
 
   end if
 

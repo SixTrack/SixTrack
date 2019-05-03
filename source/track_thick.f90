@@ -1865,9 +1865,6 @@ subroutine synuthck
 
   save
 
-#ifdef CR
-  sythckcr = .true.
-#endif
   do j=1,napx
     dpd(j)  = one+dpsv(j)
     dpsq(j) = sqrt(dpd(j))

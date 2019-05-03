@@ -179,7 +179,7 @@ subroutine umlauda
     mfile=18
 !Eric
     rewind mfile
-    rewind 111
+    rewind 26
 !ERIC HERE
     call daread(damap,nvar,mfile,one)
     call mapnorm(damap,f,aa2,a1,xy,h,nord1)
@@ -648,12 +648,7 @@ subroutine umlauda
 
         if (.not.beam_expfile_open) then
           call f_requestUnit("beam_expert.txt",expertUnit)
-#ifdef BOINC
-          call boincrf("beam_expert.txt",filename)
-          open(expertUnit,file=filename,status="replace",action="write")
-#else
-          open(expertUnit,file="beam_expert.txt",status="replace",action="write")
-#endif
+          call f_open(unit=expertUnit,file="beam_expert.txt",formatted=.true.,mode="w",status="replace")
           beam_expfile_open = .true.
           !This line will be a comment if copy-pasted into fort.3
           write(expertUnit,"(a,g13.6,a,g13.6,a,g13.6,a)") "/ ******* USING emitx=",emitx,", emity=",emity,", emitz=",emitz," ******"
@@ -992,7 +987,6 @@ subroutine umlauda
     if(kzz.eq.26) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i) ! JBG change of variables for misal calculations
@@ -1000,7 +994,6 @@ subroutine umlauda
 #include "include/alignf.f90"
 !FOX  CRABAMP2=ED(IX)*ZZ0 ;
 
-!       write(*,*) crabamp, EJF1, EJF0,clight, "HELLO"
     crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
     crabpht2=crabph2(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1029,7 +1022,6 @@ subroutine umlauda
       if(kzz.eq.-26) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i) ! JBG change of variables for misal calculations
@@ -1063,7 +1055,6 @@ subroutine umlauda
       if(kzz.eq.27) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1098,7 +1089,6 @@ subroutine umlauda
       if(kzz.eq.-27) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1132,7 +1122,6 @@ subroutine umlauda
       if(kzz.eq.28) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1171,7 +1160,6 @@ subroutine umlauda
       if(kzz.eq.-28) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1486,7 +1474,7 @@ subroutine umlauda
   if(iqmodc.eq.2.or.iqmodc.eq.4.or.ilin.ge.2) then
     rewind 18
 !Eric
-    rewind 111
+    rewind 26
     call daprid(damap,1,nvar,18)
   endif
 !--now do the output

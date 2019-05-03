@@ -207,10 +207,6 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 !      boosted yp event
        bgypdb(choice) = z(2)
        bgEdb(choice) = new4MomCoord(1) ! boosted energy
-! DEBUG:
-!         write(684,*) bgxpdb(choice),bgypdb(choice),bgEdb(choice),      &
-!     &     new4MomCoord
-! END DEBUG
       endif
      endif ! doLorentz
      call rotateMatrix(yv1(j),yv2(j),rotm)
@@ -522,12 +518,6 @@ subroutine lorentzBoost(px,py,ptot,mass)
       new4MomCoord(i)=new4MomCoord(i)+lorentzmatrix(i,j)*oldcoord(j)
     end do
   end do
-!        write(*,*)
-!        write(*,*) "DEBUG, n4M: ", new4MomCoord
-!        write(*,*)
-!        do i=1,4
-!         write(*,*) "DEBUG, lM: ", lorentzmatrix(i,1:4)
-!        enddo
 end subroutine lorentzBoost
 
 !>
@@ -586,7 +576,6 @@ subroutine createLorentzMatrix(E,xp,yp,mass)
   endif
 
   g=one/sqrt(one-b2) ! relativistic gamma for the boost
-  !         write(*,*) "DEBUG, g: ",g, v0, xp,yp,E,mass
 
   lorentzmatrix(1,1)=g /g
 
@@ -607,8 +596,5 @@ subroutine createLorentzMatrix(E,xp,yp,mass)
   lorentzmatrix(3,4) = ((g-1)* b(2)*b(3)*b2inv) /g
   lorentzmatrix(4,3) = (lorentzmatrix(3,4)) /g
 
-!        do i=1,4
-!         write(*,*) "DEBUG,lMAT: ", lorentzmatrix(i,1:4)
-!        enddo
 end subroutine createLorentzMatrix
 

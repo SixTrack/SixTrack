@@ -294,7 +294,7 @@ contains
     use numerical_constants, only : zero, c1e12, c1m12
     use crcoall,             only : lout, lerr
     use parpro,              only : mInputLn
-    use mod_units,           only : f_open, f_close
+    use mod_units,           only : f_open, f_freeUnit
     use string_tools,        only : chr_split, chr_cast
 
     implicit none
@@ -378,7 +378,7 @@ contains
 
     ! Close file
     ! ---------------------------------------------------------------------------------------------- !
-    call f_close(lun)
+    call f_freeUnit(lun)
 
   end subroutine ReadExpMax
 
