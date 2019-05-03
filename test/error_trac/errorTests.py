@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-import sys
+import sys, os
+#Otherwise it will look in the symlinked path for imports
+sys.path.append(os.getcwd())
 from errorTestTools import *
 
 exCode = runTests({
