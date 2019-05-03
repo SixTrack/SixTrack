@@ -41,6 +41,7 @@ set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR"
 
 ##
 ## ERROR Tests
+## Only run for non-CR version as CR version doesn't write directly to stderr
 ##
 
 if(NOT CR)
