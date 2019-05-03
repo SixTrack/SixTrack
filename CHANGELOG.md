@@ -5,12 +5,12 @@
 **Bug Fixes**
 
 * Fixed a bug with linking zlib and libarchive when building on Windows. PR #853 (V.K. Berglyd Olsen)
-* Fixed a bug in postprocessing where the binary postprocessing summary file would append its data to another file in some cases. This was caused by the fact that this file had a fixed file unit in the range which is otherwise reserved for dynamically allocated file units. This file now also gets a unit assigned to it, avoiding this issue. Some checks have been added to the file units module to try and prevent similar bugs in the future. PR #855 (V.K. Berglyd Olsen)
-* The recently added error tests failed on some operating systems due to the python wrapper code not finding a symlinked include file. PR #862 (K.N Sjobak)
+* Fixed a bug in postprocessing where the binary postprocessing summary file would append its data to another file in some cases. This was caused by the file having a fixed file unit in the range which is otherwise reserved for dynamically allocated file units. This file now also gets a unit assigned to it, avoiding this issue. Some checks have been added to the file units module to try and prevent similar bugs in the future. PR #855 (V.K. Berglyd Olsen)
+* The recently added error tests failed on some operating systems due to the python wrapper not finding a symlinked include file. PR #862 (K.N Sjobak)
 
 **User Side Changes**
 
-* All the checkpoint/restart files have now been given more descriptive names, and the log file, formerly `fort.93`, has been renamed `cr_status.log`. The output to the log file has also been cleaned up significantly so that it is now more readable. PR #854 (V.K. Berglyd Olsen)
+* All the checkpoint/restart files have now been given more descriptive names with a `cr` prefix. The log file, formerly `fort.93`, has been renamed `cr_status.log`. The output to the log file has also been cleaned up significantly so that it is now more readable. PR #854 (V.K. Berglyd Olsen)
 * The `numlmax` parameter in the `TRAC` block of `fort.3` has been removed. The feature was either not fully implemented as described, or has been broken at some point. The option to use checkpoint/restart files to extend earlier simulations will be reimplemented at a later point. PR #854 (V.K. Berglyd Olsen)
 
 **Code Improvements and Changes**
