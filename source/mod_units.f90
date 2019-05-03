@@ -274,8 +274,9 @@ subroutine f_open(unit,file,formatted,mode,err,iostat,status,access,recl)
 
   ! Check that we don't have a fixed vs. assigned unit crash
   if(allocated(units_uList(unit)%file)) then
-    if(units_uList(unit)%file /= file) then
-      write(lerr,"(a,i0,a)") "UNITS> ERROR Unit ",unit," has already been assigned to file '"//trim(units_uList(unit)%file)//"'"
+    if(units_uList(unit)%file /= file .and. units_uList(unit)%file /= " ") then
+      write(lerr,"(a,i0,a)") "UNITS> ERROR Unit ",unit," has already been assigned to file '"//&
+        trim(units_uList(unit)%file)//"' /= '"//trim(file)//"'"
       call prror
     end if
   end if
