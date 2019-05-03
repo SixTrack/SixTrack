@@ -89,6 +89,7 @@ subroutine abend(endMsg)
   flush(crlog)
 
   ! The safest way to check if a file exists is to try to open it and catch the fail
+  call f_requestUnit(fort10,unit10) ! Make sure this is actually set
   call f_open(unit=unit10,file=fort10,formatted=.true.,mode="r",err=fErr,status="old",recl=8195)
   if(fErr) goto 11
 
@@ -164,7 +165,7 @@ end subroutine abend
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created:   2017-06
 !  Rewritten: 2019-04-15 (VKBO)
-!  Updated:   2019-05-02
+!  Updated:   2019-05-03
 !  Subroutine to copy the last lines from a file to stderr
 !  It is mainly used just before exiting SixTrack in case there was an error.
 !  This is useful since STDERR is often returned from batch systems and BOINC.
@@ -184,7 +185,7 @@ subroutine copyToStdErr(fUnit,fName,maxLines)
 
   integer i, bufIdx, bufMax, lnSize, ioStat, szBuf(maxLines)
   logical isOpen, fErr
-  character(len=256) inLine, inBuf(maxLines)
+  character(len=1024) inLine, inBuf(maxLines)
 
   inquire(unit=fUnit,opened=isOpen)
   if(isOpen) then
@@ -198,8 +199,8 @@ subroutine copyToStdErr(fUnit,fName,maxLines)
   bufIdx = 0
   bufMax = 0
 10 continue
-  read(fUnit,"(a256)",end=20,err=20,iostat=ioStat,size=lnSize,advance="no") inLine
-  if(ioStat > 0) goto 20 ! End of file (do not use /= 0)
+  read(fUnit,"(a1024)",end=20,err=20,iostat=ioStat,size=lnSize,advance="no") inLine
+  if(ioStat > 0) goto 20 ! Do not use /= 0
   bufIdx = bufIdx + 1
   if(bufIdx > maxLines) bufIdx = 1
   if(bufIdx > bufMax)   bufMax = bufIdx

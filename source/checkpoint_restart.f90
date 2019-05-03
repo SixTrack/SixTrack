@@ -1122,7 +1122,7 @@ subroutine cr_copyOut
   nLines = 0
 10 continue
   read(lout,"(a1024)",end=20,err=20,iostat=ioStat,size=lnSize,advance="no") inLine
-  if(ioStat > 0) goto 20 ! End of file (do not use /= 0)
+  if(ioStat > 0) goto 20 ! Do not use /= 0
 
   write(output_unit,"(a)",err=30,iostat=ioStat) inLine(1:lnSize)
   if(ioStat /= 0) goto 30
