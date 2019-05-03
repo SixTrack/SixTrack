@@ -79,8 +79,7 @@ subroutine abend(endMsg)
   write(crlog,"(a)") "ABEND_CR> Closing files"
   flush(crlog)
 
-  ! Calling close to be very safe.......96 calls to abend
-  ! Easier than adding the call on every abend
+  ! Calling close to be very safe
   call closeUnits
 
 #ifdef BOINC
@@ -89,26 +88,24 @@ subroutine abend(endMsg)
   write(crlog,"(a)") "ABEND_CR> Checking fort.10"
   flush(crlog)
 
-  call f_open(unit=10,file="fort.10",formatted=.true.,mode="r",err=fErr,status="old",recl=8195)
+  ! The safest way to check if a file exists is to try to open it and catch the fail
+  call f_requestUnit(fort10,unit10) ! Make sure this is actually set
+  call f_open(unit=unit10,file=fort10,formatted=.true.,mode="r",err=fErr,status="old",recl=8195)
   if(fErr) goto 11
 
   ! Now we try and read fort.10 i.e. is it empty?
-  read(10,"(a1024)",end=11,err=11,iostat=ierro) inLine
+  read(unit10,"(a1024)",end=11,err=11,iostat=ierro) inLine
   ! Seems to be OK
   goto 12
 
 11 continue
   ! Now we try and write a fort.10
-  ! We put some CPU for Igor, a version, and turn number 0
-  ! call f_open(unit=10,file="fort.10",formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
   write(crlog,"(a)") "ABEND_CR> Writing dummy fort.10"
   flush(crlog)
 
   ! Make sure it is closed properly before we re-open for dummy write
-  ! inquire(10,opened=fOpen)
-  ! if(fOpen) close(10)
-  call f_close(10)
-  call f_open(unit=10,file="fort.10",formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
+  call f_close(unit10)
+  call f_open(unit=unit10,file=fort10,formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
 
   sumda(:) = zero
   call time_timerCheck(time1)
@@ -129,8 +126,8 @@ subroutine abend(endMsg)
   if(napxo == 0) napxo = napx
   write(crlog,"(2(a,i0))") "ABEND_CR> Writing fort.10, lines ",napxo,"/",napx
   flush(crlog)
-  do j=1,napxo ! Must the dummy file really be napxo times the same dummy line?
-    write(10,"(a)",iostat=ierro) outLine(1:60*26)
+  do j=1,napxo,2 ! Must the dummy file really be napxo times the same dummy line?
+    write(unit10,"(a)",iostat=ierro) outLine(1:60*26)
   end do
   if(ierro /= 0) then
     write(lerr,"(a,i0)") "ABEND> ERROR Problems writing to fort.10. ierro = ",ierro
@@ -144,15 +141,15 @@ subroutine abend(endMsg)
   write(output_unit,"(a)",iostat=ierro) "SIXTRACR> Stop: "//trim(endMsg)
   rewind(cr_outUnit)
   endfile(cr_outUnit,iostat=ierro)
+
+  call copyToStdErr(cr_errUnit,cr_errFile,20)
   call f_close(cr_outUnit)
   write(crlog,"(a)") "ABEND_CR> Stop: "//trim(endMsg)
   call f_close(crlog)
 
 #ifdef BOINC
-  call copyToStdErr(cr_errUnit,cr_errFile,10)
   call boinc_finish(errout) ! This call does not return
-#else
-  call copyToStdErr(cr_errUnit,cr_errFile,50)
+#endif
   if(errout /= 0) then
     ! Don't write to stderr, it breaks the error tests.
     write(output_unit,"(a,i0)") "ABEND> ERROR Stopping with error ",errout
@@ -160,22 +157,21 @@ subroutine abend(endMsg)
   else
     stop
   end if
-#endif
 
 end subroutine abend
-#endif
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created:   2017-06
 !  Rewritten: 2019-04-15 (VKBO)
-!  Updated:   2019-04-15
+!  Updated:   2019-05-03
 !  Subroutine to copy the last lines from a file to stderr
 !  It is mainly used just before exiting SixTrack in case there was an error.
 !  This is useful since STDERR is often returned from batch systems and BOINC.
 ! =================================================================================================
 subroutine copyToStdErr(fUnit,fName,maxLines)
 
+  use crcoall
   use parpro
   use mod_units
   use, intrinsic :: iso_fortran_env, only : error_unit
@@ -188,7 +184,7 @@ subroutine copyToStdErr(fUnit,fName,maxLines)
 
   integer i, bufIdx, bufMax, lnSize, ioStat, szBuf(maxLines)
   logical isOpen, fErr
-  character(len=256) inLine, inBuf(maxLines)
+  character(len=1024) inLine, inBuf(maxLines)
 
   inquire(unit=fUnit,opened=isOpen)
   if(isOpen) then
@@ -196,22 +192,24 @@ subroutine copyToStdErr(fUnit,fName,maxLines)
   end if
 
   fErr = .false.
-  call f_open(unit=fUnit,file=fName,formatted=.true.,mode="r",err=fErr,status="old")
+  call f_open(unit=fUnit,file=fName,formatted=.true.,mode="r-",err=fErr,status="old")
   if(fErr) return
 
   bufIdx = 0
   bufMax = 0
 10 continue
-  read(fUnit,"(a256)",end=20,err=20,iostat=ioStat,size=lnSize,advance="no") inLine
-  if(ioStat > 0) goto 20 ! End of file (do not use /= 0)
+  read(fUnit,"(a1024)",end=20,err=20,iostat=ioStat,size=lnSize,advance="no") inLine
+  if(ioStat > 0) goto 20 ! Do not use /= 0
   bufIdx = bufIdx + 1
   if(bufIdx > maxLines) bufIdx = 1
   if(bufIdx > bufMax)   bufMax = bufIdx
   inBuf(bufIdx) = inLine
   szBuf(bufIdx) = lnSize
+  write(crlog,"(a)") inLine(1:lnSize)
   goto 10
 
 20 continue
+  flush(crlog)
   if(bufIdx > 0) then
     do i=bufIdx+1,bufMax
       write(error_unit,"(a)") inBuf(i)(:szBuf(i))
@@ -225,3 +223,4 @@ subroutine copyToStdErr(fUnit,fName,maxLines)
   call f_close(fUnit)
 
 end subroutine copyToStdErr
+#endif

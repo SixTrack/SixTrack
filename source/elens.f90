@@ -576,7 +576,7 @@ subroutine parseRadialProfile(ifile)
 
 20 continue
 
-  call f_close(fUnit)
+  call f_freeUnit(fUnit)
   write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile),"points."
 
   if(st_quiet < 2) then

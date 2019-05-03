@@ -86,9 +86,9 @@ subroutine meta_finalise
   call f_requestUnit("crkillswitch.tmp",tmpUnit)
   inquire(file="crkillswitch.tmp",exist=fExist)
   if(fExist) then
-    open(tmpUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")
+    call f_open(unit=tmpUnit,file="crkillswitch.tmp",formatted=.false.,mode="r",access="stream",status="old")
     read(tmpUnit) nCRKills1,nCRKills2
-    close(tmpUnit)
+    call f_close(tmpUnit)
   end if
 
   call meta_write("SymplecticityDeviation",   meta_sympCheck)

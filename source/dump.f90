@@ -1799,31 +1799,39 @@ subroutine dump_crcheck_positionFiles
 
   ! For skipping through binary DUMP files (format 3&8)
   integer tmp_ID, tmp_nturn, tmp_ktrack
-  real(kind=fPrec) tmp_dcum, tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE
+  real(kind=fPrec) tmp_dcum, tmp_x, tmp_xp, tmp_y, tmp_yp, tmp_sigma, tmp_dEE
 
   integer i,j
   logical lerror,lopen
-  character(len=256) filename
   character(len=1024) arecord
 
   do i=-1, il
     if(ldump(i)) then
-      if(i > 0) then
-        write(crlog,"(a,i0)") "CR_CHECK> DUMP Element '"//trim(bez(i))//"', file '"//trim(dump_fname(i))//"', format ",dumpfmt(i)
-      elseif(i == 0) then
-        write(crlog,"(a,i0)") "CR_CHECK> DUMP Element 'ALL', file '"//trim(dump_fname(i))//"', format ",dumpfmt(i)
-      elseif(i  ==  -1) then
-        write(crlog,"(a,i0)") "CR_CHECK> DUMP Element 'StartDump', file '"//trim(dump_fname(i))//"', format ",dumpfmt(i)
-      else
-        write(crlog,"(a,i0,a)") "CR_CHECK> ERROR DUMP Element index ",i," is unknown"
-        goto 111
-      end if
-      flush(crlog)
-
-      inquire( unit=dumpunit(i), opened=lopen )
-      if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8 .and. dumpfmt(i) /= 101) then ! ASCII
-        if (.not. lopen) then
-          call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.true.,mode="rw",status="old")
+      inquire(unit=dumpunit(i), opened=lopen)
+      if(dumpfmt(i) == 3 .or. dumpfmt(i) == 8 .or. dumpfmt(i) == 101) then ! Binary
+        if(lopen .eqv. .false.) then
+          call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.false.,mode="rw-",status="old")
+        end if
+        dumpfilepos(i) = 0
+        do j=1,dumpfilepos_cr(i)
+          if(dumpfmt(i) == 3 .or. dumpfmt(i) == 8) then
+            read(dumpunit(i),end=111,err=111,iostat=ierro) &
+              tmp_ID,tmp_nturn,tmp_dcum,tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,tmp_ktrack
+          elseif(dumpfmt(i) == 101) then
+            read(dumpunit(i),end=111,err=111,iostat=ierro) &
+              tmp_ID,tmp_nturn,tmp_dcum,tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,tmp_ktrack, &
+              tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x
+          else
+            write(lout, "(a,i0)") "CR_CHECK> ERROR Failed positioning DUMP file: unknown format ",dumpfmt(i)
+            write(crlog,"(a,i0)") "CR_CHECK> ERROR Failed positioning DUMP file: unknown format ",dumpfmt(i)
+            flush(crlog)
+            call prror
+          end if
+          dumpfilepos(i) = dumpfilepos(i) + 1
+        end do
+      else ! Text
+        if(lopen .eqv. .false.) then
+          call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.true.,mode="rw-",status="old")
         end if
 
         dumpfilepos(i) = 0
@@ -1831,45 +1839,26 @@ subroutine dump_crcheck_positionFiles
           read(dumpunit(i),'(a1024)',end=111,err=111,iostat=ierro) arecord
           dumpfilepos(i) = dumpfilepos(i) + 1
         end do
-
-      else                         ! BINARY (format = 3 & 8 & 101)
-        if (.not. lopen) then
-          call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.false.,mode="rw",status="old")
-        end if
-        dumpfilepos(i) = 0
-        do j=1,dumpfilepos_cr(i)
-          if  (dumpfmt(i) == 3 .or. dumpfmt(i) == 8) then
-            read(dumpunit(i),end=111,err=111,iostat=ierro) &
-              tmp_ID,tmp_nturn,tmp_dcum,tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,tmp_ktrack
-          else if ( dumpfmt(i) == 101) then
-            read(dumpunit(i),end=111,err=111,iostat=ierro) &
-              tmp_ID,tmp_nturn,tmp_dcum,tmp_x,tmp_xp,tmp_y,tmp_yp,tmp_sigma,tmp_dEE,tmp_ktrack, &
-              tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x, tmp_x
-          else
-            write(crlog,"(a,i0)") "CR_CHECK> ERROR Failed positioning DUMP file: unknown format ",dumpfmt(i)
-            write(lout, "(a,i0)") "CR_CHECK> ERROR Failed positioning DUMP file: unknown format ",dumpfmt(i)
-            flush(crlog)
-            call prror
-          end if
-          dumpfilepos(i) = dumpfilepos(i) + 1
-        end do
       end if
+      write(crlog,"(3(a,i0))") "CR_CHECK> Repositioned DUMP file '"//trim(dump_fname(i))//&
+        "' Position: ",dumpfilepos(i),", C/R: ",dumpfilepos_cr(i)
+      flush(crlog)
     end if
   end do
 
   ! Crop DUMP files (if used by multiple DUMPs,
   ! the actual position is the sum of the dumpfileposes
   do i=0,il
-    if (ldump(i)) then
+    if(ldump(i)) then
       ! This is not a FLUSH!
-      endfile (dumpunit(i),iostat=ierro)
+      endfile(dumpunit(i),iostat=ierro)
 
       ! Change from 'readwrite' to 'write'
       call f_close(dumpunit(i))
-      if (dumpfmt(i) /= 3 .and. dumpfmt(i) /= 8 .and. dumpfmt(i) /= 101) then ! ASCII
-        call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.true.,mode="w+",status="old")
-      else ! Binary (format = 3)
+      if(dumpfmt(i) == 3 .or. dumpfmt(i) == 8 .or. dumpfmt(i) == 101) then ! Binary
         call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.false.,mode="w+",status="old")
+      else ! Text
+        call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.true.,mode="w+",status="old")
       end if
     end if
   end do

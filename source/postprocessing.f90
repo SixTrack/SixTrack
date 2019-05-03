@@ -10,21 +10,12 @@ module postprocessing
 
 contains
 
-#ifdef STF
-#ifdef CR
-subroutine postpr(posi,nnuml)
-#else
-subroutine postpr(posi)
-#endif
-#else
-#ifdef CR
-subroutine postpr(nfile,nnuml)
-#else
-subroutine postpr(nfile)
-#endif
-#endif
+subroutine postpr(arg1,arg2)
 !-----------------------------------------------------------------------
 !  POST PROCESSING
+!
+!  The variabe arg1 sets posi for STF builds and nfile otherwise.
+!  The variable arg2 sets nnuml for CR builds, and is 0 otherwise
 !
 !  NFILE   :  FILE UNIT (non-STF) -- always fixed to 90 for STF version.
 !  POSI    :  PARTICLE NUMBER
@@ -39,11 +30,12 @@ subroutine postpr(nfile)
       use string_tools
       use mod_version
       use mod_time
+      use mod_units
       use mod_common_main, only : nnumxv
       use mod_common, only : dpscor,sigcor,icode,idam,its6d,dphix,dphiz,qx0,qz0,&
         dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,iwg,ivox,    &
         ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi,   &
-        chromc,tlim,trtime
+        chromc,tlim,trtime,fort10,fort110,unit10,unit110
 #ifdef ROOT
       use root_output
 #endif
@@ -51,6 +43,9 @@ subroutine postpr(nfile)
       use checkpoint_restart
 #endif
       implicit none
+
+      integer,           intent(in) :: arg1
+      integer, optional, intent(in) :: arg2
 
       integer i,i1,i11,i2,i3,ia,ia0,iaa,iab,iap6,iapx,iapz,ich,idnt,    &
      &ierro,idummy,if1,if2,ife,ife2,ifipa,ifp,ii,ilapa,ilyap,im1,im1s,  &
@@ -99,7 +94,7 @@ subroutine postpr(nfile)
       character(len=11) hvs
       character(len=8192) ch
       character(len=25) ch1
-      integer errno,l1,l2
+      integer errno,l1,l2,nnuml
       logical rErr
       dimension tle(nlya),dle(nlya)
       dimension wgh(nlya),biav(nlya),slope(nlya),varlea(nlya)
@@ -113,11 +108,20 @@ subroutine postpr(nfile)
       dimension x(2,6),cloau(6),di0au(4)
       dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
       dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
-#ifdef CR
-      integer nnuml
-#endif
       integer itot,ttot
       save
+
+      if(present(arg2)) then
+        nnuml = arg2
+      else
+        nnuml = 0
+      end if
+#ifdef STF
+      posi = arg1
+#else
+      nfile = arg1
+#endif
+
 !----------------------------------------------------------------------
 !--TIME START
       pieni2=c1m8
@@ -2158,34 +2162,25 @@ subroutine postpr(nfile)
 
 !--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
 ! We should really write fort.10 in BINARY!
-      write(110,iostat=ierro) (sumda(i),i=1,60)
-      if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE 110'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
-      endif
+      write(unit110,iostat=ierro) (sumda(i),i=1,60)
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort110)//". iostat = ",ierro
+      end if
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
-      do ich=8192,1,-1
-        if(ch(ich:ich).ne.' ') goto 700
-      enddo
- 700  write(10,'(a)',iostat=ierro) ch(:ich)
+      write(unit10,"(a)",iostat=ierro) trim(ch)
 #else
       l1=1
       do i=1,60
         call chr_fromReal(sumda(i),ch1,19,2,rErr)
-        ch(l1:l1+25)=' '//ch1(1:25)
+        ch(l1:l1+25) = " "//ch1(1:25)
         l1=l1+26
-      enddo
-      write(10,'(a)',iostat=ierro) ch(1:l1-1)
+      end do
+      write(unit10,"(a)",iostat=ierro) ch(1:l1-1)
 #endif
-      if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
-      endif
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort10)//". iostat = ",ierro
+      end if
 !--CALCULATION THE INVARIANCES OF THE 4D TRANSVERSAL MOTION
       do 420 i=1,ninv
         if(invx(i).gt.0) then
@@ -2589,9 +2584,9 @@ subroutine postpr(nfile)
 ! Now we let abend handle the fort.10......
 ! It will write 0d0 plus CPU time and turn number
 ! But we empty it as before (if we crash in abend???)
-      rewind(10)
-      endfile(10,iostat=ierro)
-      close(10)
+      rewind(unit10)
+      endfile(unit10,iostat=ierro)
+      call f_close(unit10)
       write(lerr,"(a)") "SIXTRACR> ERROR POSTPR"
       call prror
 #endif
@@ -2600,28 +2595,25 @@ subroutine postpr(nfile)
 !--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
 !-- Will almost all be zeros but we now have napxto and ttime
 ! We should really write fort.10 in BINARY!
-      write(110,iostat=ierro) (sumda(i),i=1,60)
-      if(ierro.ne.0) then
+      write(unit110,iostat=ierro) (sumda(i),i=1,60)
+      if(ierro /= 0) then
         write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to file 110. Error code ",ierro
       endif
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
-      do ich=8192,1,-1
-        if(ch(ich:ich).ne.' ') goto 707
-      enddo
- 707  write(10,'(a)',iostat=ierro) ch(:ich)
+      write(unit10,"(a)",iostat=ierro) trim(ch)
 #else
       l1=1
       do i=1,60
         call chr_fromReal(sumda(i),ch1,19,2,rErr)
-        ch(l1:l1+25)=' '//ch1(1:25)
+        ch(l1:l1+25) = " "//ch1(1:25)
         l1=l1+26
       enddo
-      write(10,'(a)',iostat=ierro) ch(1:l1-1)
+      write(unit10,"(a)",iostat=ierro) ch(1:l1-1)
 #endif
-      if(ierro.ne.0) then
-        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to file 10. Error code ",ierro
-      endif
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort10)//". iostat = ",ierro
+      end if
 !--REWIND USED FILES
   560 rewind nfile
       if(nprint == 1) then

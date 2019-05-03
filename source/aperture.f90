@@ -2655,7 +2655,7 @@ subroutine aper_parseLoadFile(load_file, iLine, iErr)
 
 90 continue
   write(lout,"(a,i0,a)") "LIMI> Read ",lineNo," lines from external file."
-  call f_close(loadunit)
+  call f_freeUnit(loadunit)
   return
 
 end subroutine aper_parseLoadFile

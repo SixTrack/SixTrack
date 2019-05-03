@@ -41,14 +41,15 @@ set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR"
 
 ##
 ## ERROR Tests
+## Only run for non-CR version as CR version doesn't write directly to stderr
 ##
 
-if(NOT BOINC)
+if(NOT CR)
   list(APPEND SIXTRACK_ERROR
     error_init
     error_trac
   )
-endif(NOT BOINC)
+endif(NOT CR)
 
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)

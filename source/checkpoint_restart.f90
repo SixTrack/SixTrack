@@ -31,7 +31,6 @@ module checkpoint_restart
   logical,           public,  save :: cr_start    = .true.
   logical,           public,  save :: cr_restart  = .false.
   logical,           public,  save :: cr_checkp   = .false.
-  logical,           private, save :: cr_sythck   = .false.
 
   character(len=21), public,  save :: cr_startMsg = " "
   real,              public,  save :: cr_time     = 0.0
@@ -66,6 +65,9 @@ module checkpoint_restart
   real(kind=fPrec), allocatable, private, save :: crdpsv1(:)    ! (npart)
   real(kind=fPrec), allocatable, private, save :: crejv(:)      ! (npart)
   real(kind=fPrec), allocatable, private, save :: crejfv(:)     ! (npart)
+  real(kind=fPrec), allocatable, private, save :: crdpd(:)      ! (npart)
+  real(kind=fPrec), allocatable, private, save :: crdpsq(:)     ! (npart)
+  real(kind=fPrec), allocatable, private, save :: crfokqv(:)    ! (npart)
   real(kind=fPrec), allocatable, private, save :: craperv(:,:)  ! (npart,2)
 
   integer,          allocatable, public,  save :: binrecs(:)    ! ((npart+1)/2)
@@ -102,6 +104,7 @@ subroutine cr_fileInit
   ! First get rid of any previous partial output, and open log file for append (rw+)
   call f_close(cr_errUnit)
   call f_close(cr_outUnit)
+  call f_close(cr_logUnit)
   call f_open(unit=cr_errUnit,file=cr_errFile,formatted=.true.,mode="rw", err=fErr,status="replace")
   call f_open(unit=cr_outUnit,file=cr_outFile,formatted=.true.,mode="rw", err=fErr,status="replace")
   call f_open(unit=cr_logUnit,file=cr_logFile,formatted=.true.,mode="rw+",err=fErr,status="unknown")
@@ -113,16 +116,15 @@ subroutine cr_fileInit
 #ifdef BOINC
     ! No fort.6 so we do an unzip of Sixin.zip
     ! BUT ONLY IF WE HAVE NOT DONE IT ALREADY
-    ! and CLOSE 92 and 93
     if(cr_start) then
       cr_start = .false.
+      call f_close(cr_errUnit)
       call f_close(cr_outUnit)
       call f_close(cr_logUnit)
       ! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
-      ! Name hard-wired in our boinc_unzip_.
+      ! Name hardcoded in our boinc_unzip_.
       ! Either it is only the fort.* input data or it is a restart.
       call boincrf("Sixin.zip",fileName)
-      ! This function expects a normal, trimmed fortran string; it will do the zero-padding internally.
       call f_read_archive(trim(fileName),".")
       goto 10 ! Go to top and check everything again after unzip
     end if
@@ -174,6 +176,9 @@ subroutine cr_expand_arrays(npart_new)
   call alloc(crdpsv1,    npart_new,    zero,    "crdpsv1")
   call alloc(crejv,      npart_new,    zero,    "crejv")
   call alloc(crejfv,     npart_new,    zero,    "crejfv")
+  call alloc(crdpd,      npart_new,    zero,    "crdpd")
+  call alloc(crdpsq,     npart_new,    zero,    "crdpsq")
+  call alloc(crfokqv,    npart_new,    zero,    "crfokqv")
   call alloc(craperv,    npart_new, 2, zero,    "craperv")
   call alloc(binrecs,    npair_new,    0,       "binrecs")
   call alloc(crbinrecs,  npair_new,    0,       "crbinrecs")
@@ -203,7 +208,7 @@ subroutine cr_killSwitch(iTurn)
   integer, intent(in) :: iTurn
 
   logical killIt, fExist, onKillTurn
-  integer pTurn, nKills, i, iUnit
+  integer pTurn, nKills, i, cUnit, tUnit
 
   killIt = .false.
   onKillTurn = .false.
@@ -217,21 +222,22 @@ subroutine cr_killSwitch(iTurn)
     return
   end if
 
-  call f_requestUnit("crkillswitch.tmp",iUnit)
+  call f_requestUnit("crkillswitch.tmp",cUnit)
+  call f_requestUnit("crrestartme.tmp", tUnit)
 
   inquire(file="crkillswitch.tmp",exist=fExist)
   if(fExist .eqv. .false.) then
-    open(iUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace",action="write")
-    write(iUnit) 0,0
-    flush(iUnit)
-    close(iUnit)
+    call f_open(unit=cUnit,file="crkillswitch.tmp",formatted=.false.,mode="w",access="stream",status="replace")
+    write(cUnit) 0,0
+    flush(cUnit)
+    call f_close(cUnit)
   end if
 
-  open(iUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")
-  read(iUnit) pTurn,nKills
-  flush(iUnit)
-  close(iUnit)
-  if(st_debug .and. pTurn > 0) then
+  call f_open(unit=cUnit,file="crkillswitch.tmp",formatted=.false.,mode="r",access="stream",status="old")
+  read(cUnit) pTurn,nKills
+  flush(cUnit)
+  call f_close(cUnit)
+  if(pTurn > 0) then
     write(lout, "(a,i0)") "CRKILLSW> Kill switch previously triggered on turn ",pTurn
     write(crlog,"(a,i0)") "CRKILLSW> Kill switch previously triggered on turn ",pTurn
     flush(lout)
@@ -253,15 +259,15 @@ subroutine cr_killSwitch(iTurn)
     flush(lout)
     flush(crlog)
 
-    open(iUnit,file="crrestartme.tmp",form="unformatted",access="stream",status="replace",action="write")
-    write(iUnit) 1
-    flush(iUnit)
-    close(iUnit)
+    call f_open(unit=tUnit,file="crrestartme.tmp",formatted=.false.,mode="w",access="stream",status="replace")
+    write(tUnit) 1
+    flush(tUnit)
+    call f_close(tUnit)
 
-    open(iUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="replace",action="write")
-    write(iUnit) iTurn,nKills
-    flush(iUnit)
-    close(iUnit)
+    call f_open(unit=cUnit,file="crkillswitch.tmp",formatted=.false.,mode="w",access="stream",status="replace")
+    write(cUnit) iTurn,nKills
+    flush(cUnit)
+    call f_close(cUnit)
     stop
   end if
 
@@ -322,7 +328,7 @@ subroutine crcheck
   ! NOT TRUE anymore??? We might be NOT rerun but using a Sixin.zip
 #ifndef BOINC
   if(cr_rerun .eqv. .false.) then
-    write(lerr,"(a)") "CR_CHECK> ERROR Found "//cr_pntFile(1)//"/"//cr_pntFile(2)//" but no "//trim(fort6)
+    write(lerr,"(a)") "CR_CHECK> ERROR Found checkpoint file(s) but no "//trim(fort6)
     call prror
   end if
 #endif
@@ -340,10 +346,14 @@ subroutine crcheck
 
     rewind(cr_pntUnit(nPoint))
 
-    write(crlog,"(a)") "CR_CHECK>  * SixTrack version"
+    write(crlog,"(a)") "CR_CHECK>  * Checking header"
     flush(crlog)
-
     read(cr_pntUnit(nPoint),iostat=ioStat) cr_version,cr_moddate
+    if(ioStat /= 0) then
+      write(crlog,"(a)") "CR_CHECK> Corrupt or truncated checkpoint file."
+      flush(crlog)
+      cycle
+    end if
     if(cr_version == " " .or. cr_moddate == " ") then
       write(crlog,"(a)") "CR_CHECK> Unknown SixTrack version. Skipping this file."
       flush(crlog)
@@ -357,12 +367,10 @@ subroutine crcheck
       flush(crlog)
       cycle
     end if
-    if(ioStat /= 0) cycle
 
     write(crlog,"(a)") "CR_CHECK>  * Tracking variables"
     flush(crlog)
-    read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cr_sythck,cril, &
-      cr_time,crnapxo,crnapx,cre0,crbetrel,crbrho
+    read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,cr_time,crnapxo,crnapx,cre0,crbetrel,crbrho
     if(ioStat /= 0) cycle
 
     write(crlog,"(a)") "CR_CHECK>  * Particle arrays"
@@ -383,11 +391,14 @@ subroutine crcheck
       (crdpsv1(j),   j=1,crnapxo),       &
       (crejv(j),     j=1,crnapxo),       &
       (crejfv(j),    j=1,crnapxo),       &
+      (crdpd(j),     j=1,crnapxo),       &
+      (crdpsq(j),    j=1,crnapxo),       &
+      (crfokqv(j),   j=1,crnapxo),       &
       (craperv(j,1), j=1,crnapxo),       &
       (craperv(j,2), j=1,crnapxo),       &
       (crllostp(j),  j=1,crnapxo)
     if(ioStat /= 0) cycle
-
+  
     write(crlog,"(a)") "CR_CHECK>  * META variables"
     flush(crlog)
     call meta_crcheck(cr_pntUnit(nPoint),rErr)
@@ -432,19 +443,17 @@ subroutine crcheck
     end if
 
     ! New extended checkpoint for synuthck (ERIC)
-    if(cr_sythck) then
+    if(ithick == 1) then
       ! and make sure we can read the extended vars before leaving fort.95
       ! We will re-read them in crstart to be sure they are restored correctly
       write(crlog,"(a)") "CR_CHECK>  * THICK EXTENDED arrays"
       flush(crlog)
       read(cr_pntUnit(nPoint),iostat=ioStat) &
         ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
-        ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
-        (dpd(j),j=1,crnapxo),(dpsq(j),j=1,crnapxo),(fokqv(j),j=1,crnapxo)
+        ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6)
       backspace(cr_pntUnit(nPoint),iostat=ioStat)
       if(ioStat /= 0) cycle
-      write(crlog,"(a)") "CR_CHECK> Read "//cr_pntFile(nPoint)//" EXTENDED OK"
-      write(crlog,"(a)") "CR_CHECK> Leaving "//cr_pntFile(1)//" for CRSTART EXTENDED"
+      write(crlog,"(a)") "CR_CHECK>    "//cr_pntFile(nPoint)//" EXTENDED OK"
       flush(crlog)
     end if
 
@@ -457,7 +466,7 @@ subroutine crcheck
   end do
 
   if(noRestart) then
-    write(crlog,"(a)") "CR_CHECK> ERROR Could not read checkpoint files"
+    write(crlog,"(a)") "CR_CHECK> ERROR No complete checkpoint file found"
     flush(crlog)
     goto 200
   end if
@@ -617,8 +626,7 @@ subroutine crpoint
       write(crlog,"(a)") "CR_POINT>  * Tracking variables"
       flush(crlog)
     end if
-    write(cr_pntUnit(nPoint),err=100) crnumlcr, numl, sixrecs, binrec, sythckcr, il,   &
-      time3, napxo, napx, e0, betrel, brho
+    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,time3,napxo,napx,e0,betrel,brho
 
     if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * Particle arrays"
@@ -640,6 +648,9 @@ subroutine crpoint
       (dpsv1(j),   j=1,napxo),       &
       (ejv(j),     j=1,napxo),       &
       (ejfv(j),    j=1,napxo),       &
+      (dpd(j),     j=1,napxo),       &
+      (dpsq(j),    j=1,napxo),       &
+      (fokqv(j),   j=1,napxo),       &
       (aperv(j,1), j=1,napxo),       &
       (aperv(j,2), j=1,napxo),       &
       (llostp(j),  j=1,napxo)
@@ -702,24 +713,15 @@ subroutine crpoint
       if(wErr) goto 100
     end if
 
-    if(sythckcr) then
-      if(ithick == 1) then
-        if(st_debug) then
-          write(crlog,"(a)") "CR_POINT>  * THICK EXTENDED arrays"
-          flush(crlog)
-        end if
-        write(cr_pntUnit(nPoint),err=100) &
-          ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6), &
-          ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-        flush(cr_pntUnit(nPoint))
-      end if
-
+    if(ithick == 1) then
       if(st_debug) then
-        write(crlog,"(a)") "CR_POINT>  * THICK arrays"
+        write(crlog,"(a)") "CR_POINT>  * THICK EXTENDED arrays"
         flush(crlog)
       end if
       write(cr_pntUnit(nPoint),err=100) &
-        (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
+        ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6), &
+        ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+      flush(cr_pntUnit(nPoint))
     end if
 
     flush(crlog)
@@ -761,8 +763,8 @@ subroutine crstart
   use elens,    only : melens, elens_crstart
   use mod_meta, only : meta_crstart
 
-  logical fErr, extOK
-  integer j, k, l, m, nPoint, ioStat, nExt
+  logical fErr
+  integer j, k, l, m, nPoint, ioStat
 
   write(crlog,"(a,i0)") "CR_START> Starting from checkpoint data from turn ",crnumlcr
   flush(crlog)
@@ -771,7 +773,6 @@ subroutine crstart
   ! We do NOT reset numl so that a run can be extended for
   ! for more turns from the last checkpoint
   binrec   = crbinrec
-  sythckcr = cr_sythck
 
   ! the cr_time is required (crtime0/1 removed)
   napxo  = crnapxo
@@ -805,6 +806,10 @@ subroutine crstart
   ejv(1:napxo)       = crejv(1:napxo)
   ejfv(1:napxo)      = crejfv(1:napxo)
 
+  dpd(1:napxo)       = crdpd(1:napxo)
+  dpsq(1:napxo)      = crdpsq(1:napxo)
+  fokqv(1:napxo)     = crfokqv(1:napxo)
+
   numxv(1:napxo)     = crnumxv(1:napxo)
   nnumxv(1:napxo)    = crnnumxv(1:napxo)
   do j=1,napxo
@@ -835,7 +840,7 @@ subroutine crstart
   end if
 
   ! Extended checkpoint for synuthck (ERIC)
-  if(cr_sythck) then
+  if(ithick == 1) then
     ! Now read the extended vars from fort.95/96.
     if(cril /= il) then
       write(lerr, "(2(a,i0))") "CR_START> ERROR Problem as cril/il are different cril = ",cril,", il = ",il
@@ -843,31 +848,20 @@ subroutine crstart
       flush(crlog)
       call prror
     end if
-    extOK = .false.
     do nPoint=1,cr_nPoint
-      nExt = nPoint
       if(cr_pntRead(nPoint) .eqv. .false.) cycle
-      if(ithick == 1) then
-        read(cr_pntUnit(nPoint),iostat=ioStat) &
-          ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),&
-          ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-      end if
-      if(ioStat /= 0) cycle
-
       read(cr_pntUnit(nPoint),iostat=ioStat) &
-        (dpd(j),j=1,napxo),(dpsq(j),j=1,napxo),(fokqv(j),j=1,napxo)
-      if(ioStat /= 0) cycle
-
+        ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),&
+        ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
+      if(ioStat /= 0) then
+        write(lerr, "(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(nPoint)//" EXTENDED, iostat = ",ioStat
+        write(crlog,"(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(nPoint)//" EXTENDED, iostat = ",ioStat
+        call prror
+      end if
       write(crlog,"(a)") "CR_START> Read "//cr_pntFile(nPoint)//" EXTENDED OK"
       flush(crlog)
-      extOK = .true.
       exit
     end do
-    if(extOK .eqv. .false.) then
-      write(lerr, "(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(nExt)//" (extended), iostat = ",ioStat
-      write(crlog,"(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(nExt)//" (extended), iostat = ",ioStat
-      call prror
-    end if
   end if
 
   ! Done
@@ -903,7 +897,7 @@ subroutine cr_positionTrackFiles
   use, intrinsic :: iso_fortran_env, only : int32
 
   integer j, k, ia, iau
-  integer binrecs9x, binrecs94
+  integer binrecs9x, binrecs94, tUnit
 
   ! DANGER: If the length of the records in writebin(_header)changes, these arrays must be updated
   integer(kind=int32) hbuff(253),tbuff(35)
@@ -921,11 +915,11 @@ subroutine cr_positionTrackFiles
     flush(crlog)
 
     ! Reposition binary files fort.90 etc. / singletrackfile.dat
-    ! fort.94 = temp file where the data from fort.90 etc. is copied to and then back
-    call f_open(unit=94,file="fort.94",formatted=.false.,mode="rw")
+    call f_requestUnit("cr_trackfile.tmp",tUnit)
+    call f_open(unit=tUnit,file="cr_trackfile.tmp",formatted=.false.,mode="rw")
 #ifndef STF
     do ia=1,crnapxo/2,1
-      ! First, copy crbinrecs(ia) records of data from fort.91-ia to fort.94
+      ! First, copy crbinrecs(ia) records of data from fort.91-ia to temp file
       binrecs9x = 0
       binrecs94 = 0
       iau       = 91-ia
@@ -934,36 +928,36 @@ subroutine cr_positionTrackFiles
       read(91-ia,err=105,end=105,iostat=ierro) hbuff
       binrecs9x = binrecs9x + 1
       hbuff(51) = numl ! Reset the number of turns (not very elegant)
-      write(94,err=105,iostat=ierro) hbuff
+      write(tUnit,err=105,iostat=ierro) hbuff
 
       ! Copy particle tracking data
       do j=2,crbinrecs(ia)
         if(ntwin /= 2) then
           read(91-ia,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
-          write(94,err=105,iostat=ierro) (tbuff(k),k=1,17)
+          write(tUnit,err=105,iostat=ierro) (tbuff(k),k=1,17)
         else
           read(91-ia,err=105,end=105,iostat=ierro) tbuff
-          write(94,err=105,iostat=ierro) tbuff
+          write(tUnit,err=105,iostat=ierro) tbuff
         end if
         binrecs9x = binrecs9x + 1
       end do
 
-      ! Second, copy crbinrecs(ia) records of data from fort.94 to fort.91-ia
-      rewind(94)
+      ! Second, copy crbinrecs(ia) records of data from temp file to fort.91-ia
+      rewind(tUnit)
       rewind(91-ia)
 
       ! Copy header
-      read(94,err=105,end=105,iostat=ierro) hbuff
+      read(tUnit,err=105,end=105,iostat=ierro) hbuff
       binrecs94 = binrecs94 + 1
       write(91-ia,err=105,iostat=ierro) hbuff
 
       ! Copy particle tracking data into integer array tbuff
       do j=2,crbinrecs(ia)
         if(ntwin /= 2) then
-          read(94,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
+          read(tUnit,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
           write(91-ia,err=105,iostat=ierro) (tbuff(k),k=1,17)
         else
-          read(94,err=105,end=105,iostat=ierro) tbuff
+          read(tUnit,err=105,end=105,iostat=ierro) tbuff
           write(91-ia,err=105,iostat=ierro) tbuff
         end if
         binrecs94 = binrecs94 + 1
@@ -972,10 +966,10 @@ subroutine cr_positionTrackFiles
       ! This is not a FLUSH!
       endfile(91-ia,iostat=ierro)
       backspace(91-ia,iostat=ierro)
-      rewind(94)
+      rewind(tUnit)
     end do
 #else
-    ! First, copy crbinrecs(ia)*(crnapx/2) records of data from singletrackfile.dat to fort.94
+    ! First, copy crbinrecs(ia)*(crnapx/2) records of data from singletrackfile.dat to temp file
     binrecs9x = 0
 
     ! Copy headers
@@ -983,7 +977,7 @@ subroutine cr_positionTrackFiles
       read(90,err=105,end=105,iostat=ierro) hbuff
       binrecs9x = binrecs9x + 1
       hbuff(51) = numl ! Reset the number of turns (not very elegant)
-      write(94,err=105,iostat=ierro) hbuff
+      write(tUnit,err=105,iostat=ierro) hbuff
     end do
 
     ! Copy particle tracking data
@@ -991,23 +985,23 @@ subroutine cr_positionTrackFiles
       do j=2,crbinrecs(ia)
         if(ntwin /= 2) then
           read(90,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
-          write(94,err=105,iostat=ierro) (tbuff(k),k=1,17)
+          write(tUnit,err=105,iostat=ierro) (tbuff(k),k=1,17)
         else
           read(90,err=105,end=105,iostat=ierro) tbuff
-          write(94,err=105,iostat=ierro) tbuff
+          write(tUnit,err=105,iostat=ierro) tbuff
         end if
         binrecs9x = binrecs9x + 1
       end do
     end do
 
-    ! Second, copy crbinrecs(ia)*(crnapx/2) records of data from fort.94 to singletrackfile.dat
-    rewind(94)
+    ! Second, copy crbinrecs(ia)*(crnapx/2) records of data from temp file to singletrackfile.dat
+    rewind(tUnit)
     rewind(90)
-    binrecs94=0
+    binrecs94 = 0
 
     ! Copy header
     do ia=1,crnapxo/2,1
-      read(94,err=105,end=105,iostat=ierro) hbuff
+      read(tUnit,err=105,end=105,iostat=ierro) hbuff
       binrecs94 = binrecs94 + 1
       write(90,err=105,iostat=ierro) hbuff
     end do
@@ -1016,10 +1010,10 @@ subroutine cr_positionTrackFiles
     do ia=1,crnapxo/2,1
       do j=2,crbinrecs(ia)
         if(ntwin /= 2) then
-          read(94,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
+          read(tUnit,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
           write(90,err=105,iostat=ierro) (tbuff(k),k=1,17)
         else
-          read(94,err=105,end=105,iostat=ierro) tbuff
+          read(tUnit,err=105,end=105,iostat=ierro) tbuff
           write(90,err=105,iostat=ierro) tbuff
         end if
         binrecs94 = binrecs94 + 1
@@ -1028,9 +1022,9 @@ subroutine cr_positionTrackFiles
 
     ! This is not a FLUSH!
     endfile(90,iostat=ierro)
-    backspace (90,iostat=ierro)
+    backspace(90,iostat=ierro)
 #endif
-    call f_close(94)
+    call f_freeUnit(tUnit)
   else !ELSE for "if(nnuml.ne.crnuml) then" -> here we treat nnuml.eq.crnuml, i.e. the number of turns have not been changed
     ! Now with the new array crbinrecs we can ignore files which are
     ! basically finished because a particle has been lost.......
@@ -1053,8 +1047,8 @@ subroutine cr_positionTrackFiles
         end do
 
         ! This is not a FLUSH!
-        endfile (91-ia,iostat=ierro)
-        backspace (91-ia,iostat=ierro)
+        endfile(91-ia,iostat=ierro)
+        backspace(91-ia,iostat=ierro)
       else ! Number of ecords written to this file < general number of records written
           ! => Particle has been lost before last checkpoint, no need to reposition.
         write(crlog,"(2(a,i0))") "CR_CHECK> Ignoring IA ",ia," on unit ",iau
@@ -1128,7 +1122,7 @@ subroutine cr_copyOut
   nLines = 0
 10 continue
   read(lout,"(a1024)",end=20,err=20,iostat=ioStat,size=lnSize,advance="no") inLine
-  if(ioStat > 0) goto 20 ! End of file (do not use /= 0)
+  if(ioStat > 0) goto 20 ! Do not use /= 0
 
   write(output_unit,"(a)",err=30,iostat=ioStat) inLine(1:lnSize)
   if(ioStat /= 0) goto 30
