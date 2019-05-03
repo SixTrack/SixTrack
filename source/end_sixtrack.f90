@@ -88,6 +88,7 @@ subroutine abend(endMsg)
   write(crlog,"(a)") "ABEND_CR> Checking fort.10"
   flush(crlog)
 
+  ! The safest way to check if a file exists is to try to open it and catch the fail
   call f_open(unit=unit10,file=fort10,formatted=.true.,mode="r",err=fErr,status="old",recl=8195)
   if(fErr) goto 11
 
@@ -98,14 +99,10 @@ subroutine abend(endMsg)
 
 11 continue
   ! Now we try and write a fort.10
-  ! We put some CPU for Igor, a version, and turn number 0
-  ! call f_open(unit=10,file="fort.10",formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
   write(crlog,"(a)") "ABEND_CR> Writing dummy fort.10"
   flush(crlog)
 
   ! Make sure it is closed properly before we re-open for dummy write
-  ! inquire(10,opened=fOpen)
-  ! if(fOpen) close(10)
   call f_close(unit10)
   call f_open(unit=unit10,file=fort10,formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
 

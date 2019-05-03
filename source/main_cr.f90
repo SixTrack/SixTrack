@@ -1416,18 +1416,18 @@ program maincr
       iposc = iposc+1
 #ifdef STF
 #ifdef CR
-      call postpr(ia,nnuml)
       write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
       flush(crlog)
+      call postpr(ia,nnuml)
 #else
       call postpr(ia)
 #endif
 #else
-      ia2 = 91-(ia+1)/2
+      ia2 = 91-(ia+1)/2 ! Track file unit number if not STF
 #ifdef CR
-      call postpr(ia2,nnuml)
       write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",ia2,", turns: ",nnuml
       flush(crlog)
+      call postpr(ia2,nnuml)
 #else
       call postpr(ia2)
 #endif
@@ -1450,17 +1450,17 @@ program maincr
       if(ia > ndafi) exit
 #ifdef STF
 #ifdef CR
-      call postpr(ia,nnuml)
       write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
       flush(crlog)
+      call postpr(ia,nnuml)
 #else
       call postpr(ia)
 #endif
 #else
 #ifdef CR
-      call postpr(91-ia,nnuml)
       write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-i),", turns: ",nnuml
       flush(crlog)
+      call postpr(91-ia,nnuml)
 #else
       call postpr(91-ia)
 #endif

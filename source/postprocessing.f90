@@ -14,6 +14,9 @@ subroutine postpr(arg1,arg2)
 !-----------------------------------------------------------------------
 !  POST PROCESSING
 !
+!  The variabe arg1 sets posi for STF builds and nfile otherwise.
+!  The variable arg2 sets nnuml for CR builds, and is 0 otherwise
+!
 !  NFILE   :  FILE UNIT (non-STF) -- always fixed to 90 for STF version.
 !  POSI    :  PARTICLE NUMBER
 !             (the first particle in pair if ntwin=2, i.e. it is a  pair).
