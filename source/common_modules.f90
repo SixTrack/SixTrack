@@ -137,14 +137,14 @@ module mod_common
   integer,           save      :: ithick     = 0       ! Thick tracking flag
 
   ! File Names and Units
-  character(len=mFileName), public, save :: fort2   = "fort.2"      ! Name of machine geometry file
-  character(len=mFileName), public, save :: fort3   = "fort.3"      ! Name of main input file
-  character(len=mFileName), public, save :: fort6   = "fort.6"      ! Name of main output file (stdout)
-  character(len=mFileName), public, save :: fort10  = "fort.10"     ! Name of main postprocessing file (text)
-  character(len=mFileName), public, save :: fort110 = "fort.10.bin" ! Name of main postprocessing file (binary)
+  character(len=mFileName), public, save :: fort2   = "fort.2"   ! Name of machine geometry file
+  character(len=mFileName), public, save :: fort3   = "fort.3"   ! Name of main input file
+  character(len=mFileName), public, save :: fort6   = "fort.6"   ! Name of main output file (stdout)
+  character(len=mFileName), public, save :: fort10  = "fort.10"  ! Name of main postprocessing file (text)
+  character(len=mFileName), public, save :: fort110 = "fort.110" ! Name of main postprocessing file (binary)
 
-  integer,                  public, save :: unit10  = -1            ! Unit of main postprocessing file (text)
-  integer,                  public, save :: unit110 = -1            ! Unit of main postprocessing file (binary)
+  integer,                  public, save :: unit10  = -1         ! Unit of main postprocessing file (text)
+  integer,                  public, save :: unit110 = -1         ! Unit of main postprocessing file (binary)
 
   !  GENERAL VARIABLES
   ! ===================
