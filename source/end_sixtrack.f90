@@ -149,7 +149,7 @@ subroutine abend(endMsg)
 
 #ifdef BOINC
   call boinc_finish(errout) ! This call does not return
-#else
+#endif
   if(errout /= 0) then
     ! Don't write to stderr, it breaks the error tests.
     write(output_unit,"(a,i0)") "ABEND> ERROR Stopping with error ",errout
@@ -157,7 +157,6 @@ subroutine abend(endMsg)
   else
     stop
   end if
-#endif
 
 end subroutine abend
 
