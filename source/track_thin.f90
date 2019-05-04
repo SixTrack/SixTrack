@@ -1249,7 +1249,7 @@ subroutine thin6d(nthinerr)
       ix=ic(i)-nblo
 
       ! Fringe Fields
-      if(ffield_enabled) then
+      if(ffield_enabled .and. ix > 0) then
         doFField = FFindex(ix) > 0
       else
         doFField = .false.
