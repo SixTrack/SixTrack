@@ -134,14 +134,17 @@ subroutine abend(endMsg)
   write(crlog,"(a)") "ABEND_CR> Stop: "//trim(endMsg)
   call f_close(crlog)
 
-#ifdef BOINC
-  call boinc_finish(errout) ! This call does not return
-#endif
   if(endMsg == "ERROR") then
+#ifdef BOINC
+    call boinc_finish(1)
+#endif
     ! Don't write to stderr, it breaks the error tests.
-    write(output_unit,"(a,i0)") "ABEND> ERROR Stopping with error ",errout
+    write(output_unit,"(a)") "ABEND> Stop: "//trim(endMsg)
     stop 1
   else
+#ifdef BOINC
+    call boinc_finish(0)
+#endif
     stop
   end if
 
