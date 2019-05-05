@@ -83,10 +83,6 @@ program mainda
   featList = featList//" FIO"
 #endif
 
-  ! Set to nonzero before calling abend in case of error.
-  ! If prror is called, it will be set internally.
-  errout = 0
-
 #ifndef CR
   lout=output_unit
 #endif
