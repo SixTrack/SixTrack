@@ -148,7 +148,7 @@ program mainda
   if (ithick.eq.1) call allocate_thickarrays
   if(nord <= 0 .or. nvar <= 0) then
     write(lerr,"(a)") "MAINDA> ERROR Order and number of variables have to be larger than 0 to calculate a differential algebra map"
-    call prror(-1)
+    call prror
   end if
   if(ithick.eq.1) write(lout,10020)
   if(ithick.eq.0) write(lout,10030)
@@ -198,7 +198,7 @@ program mainda
         nlin=nlin+1
         if(nlin.gt.nele) then
           write(lerr,"(a)") "MAINDA> ERROR Too many elements for linear optics write-out"
-          call prror(-1)
+          call prror
         end if
         bezl(nlin)=bez(i)
       end if
@@ -455,7 +455,7 @@ program mainda
     if(ithick == 1) call envars(1,dps(1),rv)
   else
     write(lerr,"(a)") "MAINDA> ERROR Zero or negative energy does not make much sense."
-    call prror(-1)
+    call prror
   end if
   if(numl.eq.0.or.numlr.ne.0) then
     write(lout,10070)

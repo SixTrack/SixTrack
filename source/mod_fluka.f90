@@ -236,7 +236,7 @@ contains
       write(lout,*)
       write(lout,*) 'FLUKA> Could not read the host name from network.nfo'
       write(lout,*)
-      call prror(-1)
+      call prror
     end if
 
     read(unit=net_nfo_unit, fmt=*, iostat=ios) port
@@ -245,7 +245,7 @@ contains
       write(lout,*) 'FLUKA> Could not read the port number from network.nfo'
       write(lout,*) 'FLUKA> Is the FLUKA server running and has it had time to write the port number?'
       write(lout,*)
-      call prror(-1)
+      call prror
     end if
 
     call f_close(net_nfo_unit)

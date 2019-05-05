@@ -503,12 +503,12 @@ subroutine aperture_backTrackingInit
   if( ix.lt.0 ) then
     write(lerr,"(a)") "APER> ERROR Impossible to properly initialise backtracking:"
     write(lerr,"(a)") "APER>       first element of lattice structure is not a single element"
-    call prror(-1)
+    call prror
   end if
   if( kape(ix).eq.0 ) then
     write(lerr,"(a)") "APER> ERROR Impossible to properly initialise backtracking:"
     write(lerr,"(a)") "APER>       first element of lattice structure is not assigned an aperture profile"
-    call prror(-1)
+    call prror
   end if
 
   call aperture_saveLastCoordinates( i, ix, -1 )
@@ -1380,7 +1380,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       call dump_aperture_header( lout )
       call dump_aperture_marker( lout, ixApeUp, iElUp )
       call dump_aperture_marker( lout, ixApeDw, iElDw )
-      call prror(-1)
+      call prror
     end if
   end if
 
@@ -1458,7 +1458,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
     end if
   else if( ixEl.le.0 ) then
     write(lerr,"(a,i0,a)") "APER> ERROR Lattice element at: i=",iEl," is NOT a SINGLE ELEMENT."
-    call prror(-1)
+    call prror
   end if
 
 ! echo
@@ -1493,7 +1493,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   call find_closest_aperture(iSrcUp,.true.,iApeUp,ixApeUp,lApeUp)
   if( iApeUp.eq.-1 .and. ixApeUp.eq.-1 ) then
     write(lerr,"(a)") "APER> ERROR Could not find upstream marker"
-    call prror(-1)
+    call prror
   end if
 ! - get closest downstream aperture marker
 ! NB: no risk of overflow, as first/last element in lattice
@@ -1502,7 +1502,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   call find_closest_aperture(iSrcDw,.false.,iApeDw,ixApeDw,lApeDw)
   if( iApeDw.eq.-1 .and. ixApeDw.eq.-1 ) then
     write(lerr,"(a)") "APER> ERROR Could not find downstream marker"
-    call prror(-1)
+    call prror
   end if
 ! - echo found apertures
   call dump_aperture_header( lout )
@@ -1578,7 +1578,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
     else
 !     this should never happen
       write(lerr,"(a)") "APER> ERROR in aperture auto assignment."
-      call prror(-1)
+      call prror
     end if
   end if
 
@@ -1799,7 +1799,7 @@ subroutine dump_aperture_model
   ix=ic(i)-nblo
   if( kape(ix).eq.0 ) then
     write(lerr,"(a)") "APER> ERROR First element of lattice structure is not assigned any aperture type"
-    call prror(-1)
+    call prror
   end if
   call dump_aperture_marker( aperunit, ix, i )
   iOld=i
@@ -1886,7 +1886,7 @@ subroutine dump_aperture_model_hdf5
   ix = ic(i)-nblo
   if(kape(ix) == 0) then
     write(lerr,"(a)") "APER> ERROR First element of lattice structure is not assigned any aperture type"
-    call prror(-1)
+    call prror
   end if
   call dump_aperture_hdf5(bez(ix), kape(ix), dcum(i), ape(1:9,ix), modelSet, .false.)
   iOld  = i
@@ -2118,31 +2118,31 @@ subroutine dump_aperture_xsecs
      if(lopen) then
         write(lerr,"(a,i0)")"APER> ERROR Dump_aperture_xsecs. Could not open file unit '"//trim(xsec_filename(ixsec))//&
           "' with unit ",xsecunit(ixsec)
-        call prror(-1)
+        call prror
      end if
      call f_open(unit=xsecunit(ixsec),file=xsec_filename(ixsec),formatted=.true.,mode='w',err=err)
      if(ierro .ne. 0) then
         write(lerr,"(2(a,i0))") "APER> ERROR Opening file '"//trim(xsec_filename(ixsec))//&
           "' on unit # ",xsecunit(ixsec),", iostat = ",ierro
-        call prror(-1)
+        call prror
      end if
 
      ! loop over s-locations
      sLoc=sLocMin(ixsec)
      do while(sLoc.le.sLocMax(ixsec))
         call geom_findElemAtLoc( sLoc, .true., iEl, ixEl, lfound )
-        if(.not.lfound) call prror(-1)
+        if(.not.lfound) call prror
         ! get upstream aperture marker
         call find_closest_aperture(iEl,.true.,iApeUp,ixApeUp,lApeUp)
         if( iApeUp.eq.-1 .and. ixApeUp.eq.-1 ) then
            write(lerr,"(a)") "APER> ERROR Could not find upstream aperture marker"
-           call prror(-1)
+           call prror
         end if
         ! get downstream aperture marker
         call find_closest_aperture(iEl,.false.,iApeDw,ixApeDw,lApeDw)
         if( iApeDw.eq.-1 .and. ixApeDw.eq.-1 ) then
            write(lerr,"(a)") "APER> ERROR Could not find downstream aperture marker"
-           call prror(-1)
+           call prror
         end if
         ! interpolate and get aperture at desired location
         call interp_aperture( iApeUp, ixApeUp, iApeDw, ixApeDw, itmpape, tmpape, sLoc )
@@ -2635,7 +2635,7 @@ subroutine aper_parseLoadFile(load_file, iLine, iErr)
   read(loadunit,"(a)",end=90,iostat=iErro) unitLine
   if(iErro > 0) then
     write(lerr,"(a,i0)") "LIMI> ERROR Could not read from unit ",loadunit
-    call prror(-1)
+    call prror
   end if
   lineNo = lineNo + 1
 

@@ -49,7 +49,7 @@
      &'be either 1 or -1! Did you define all wires in the WIRE block?', &
      &'bez(',ix,') = ',bez(ix),                                         &
      &'wire_flagco(',ix,') = ',wire_flagco(ix)
-        call prror(-1)
+        call prror
       endif
 
 

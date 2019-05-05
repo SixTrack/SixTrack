@@ -351,20 +351,20 @@ subroutine pythia_postInput
   pythStat = pythia_defaults()
   if(pythStat .eqv. .false.) then
     write(lerr,"(a)") "PYTHIA> ERROR Failed to set default values in libpythia8"
-    call prror(-1)
+    call prror
   end if
 
   if(.not. pythia_useElastic .and. pythia_useCoulomb) then
     write(lerr,"(a)") "PYTHIA> ERROR Coulumb corrections to elastic scattering requires elastic scattering to be enabled."
-    call prror(-1)
+    call prror
   end if
   if(.not. pythia_allowLosses .and. pythia_useDDiffractive) then
     write(lerr,"(a)") "PYTHIA> ERROR Double diffractive scattering requires allowing losses to be enabled."
-    call prror(-1)
+    call prror
   end if
   if(.not. pythia_allowLosses .and. pythia_useNDiffractive) then
     write(lerr,"(a)") "PYTHIA> ERROR Non-diffractive scattering requires allowing losses to be enabled."
-    call prror(-1)
+    call prror
   end if
 
   if(pythia_useSettingsFile) then
@@ -379,7 +379,7 @@ subroutine pythia_postInput
   pythStat = pythia_init()
   if(pythStat .eqv. .false.) then
     write(lerr,"(a)") "PYTHIA> ERROR Failed to initialise libpythia8"
-    call prror(-1)
+    call prror
   end if
 
   call pythia_getCrossSection(sigmaTot, sigmaEl)

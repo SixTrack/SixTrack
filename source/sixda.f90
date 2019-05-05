@@ -34,7 +34,7 @@ subroutine daliesix
   if(nvarf/2.lt.ndim) ndim=nvarf/2
   if(ndim == 0) then
     write(lerr,"(a)") "DALIESIX> ERROR Number of normal form variables have to be: 2, 4, 5, 6 + parameters."
-    call prror(-1)
+    call prror
   end if
   nv=nvarf
   nd2=2*ndim
@@ -182,7 +182,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 
   if(nndim < 2 .or. nndim > 3) then
     write(lerr,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
-    call prror(-1)
+    call prror
   end if
 
   nordo=nord
@@ -734,7 +734,7 @@ subroutine runda
       endif
       if(ix <= 0) then
         write(lerr,"(a)") "RUNDA> ERROR Inverted linear blocks not allowed."
-        call prror(-1)
+        call prror
       endif
 #include "include/dalin1.f90"
 #include "include/dalin2.f90"
@@ -1682,7 +1682,7 @@ call comt_daEnd
 
 9088 continue
   write(lerr,"(a)") "RUNDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
-  call prror(-1)
+  call prror
   return
 
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &

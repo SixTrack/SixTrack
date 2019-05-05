@@ -882,17 +882,17 @@ subroutine daten
     if (ipos == 1) then
       if (do_coll) then
         write(lerr,'(a)') "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
-        call prror(-1)
+        call prror
       endif
 
       if (scatter_active) then
         write(lerr,'(a)') "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
-        call prror(-1)
+        call prror
       endif
 #ifdef FLUKA
       if (fluka_enable) then
         write(lerr,'(a)') "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
-        call prror(-1)
+        call prror
       endif
 #endif
     endif
@@ -924,7 +924,7 @@ subroutine daten
         write(lerr,"(3(a,i5))") "ENDE> ERROR Requested ",int(parbe(j,2))," slices for 6D beam-beam element"//&
           " #",j," named '"//trim(bez(j))//"', maximum is mbea = ",mbea
         parbe(j,2) = real(mbea,fPrec)
-        call prror(-1) ! Treat this warning as an error
+        call prror ! Treat this warning as an error
       end if
     end do
   end if
@@ -2947,7 +2947,7 @@ subroutine chroma
             isl=is(l)
             if(kz(isl).ne.3) then
               write(lerr,"(a)") "CHROMA> ERROR Element specified for chromaticity correction is not a sextupole."
-              call prror(-1)
+              call prror
             end if
             ed(isl)=ed(isl)+dsm(l,ii)
             if(kp(isl).eq.5) call combel(isl)
@@ -2957,12 +2957,12 @@ subroutine chroma
             call clorb(dpp)
             if(ierro.gt.0) then
               write(lerr,"(a)") "CHROMA> ERROR Unstable closed orbit during chromaticity correction."
-              call prror(-1)
+              call prror
             end if
             call phasad(dpp,qwc)
             if(ierro.gt.0) then
               write(lerr,"(a)") "CHROMA> ERROR No optical solution during chromaticity correction."
-              call prror(-1)
+              call prror
             end if
             ox=qwc(1)
             oz=qwc(2)
@@ -3269,7 +3269,7 @@ subroutine clorb2(dpp)
       ierro=ierr
       if(ierro /= 0) then
         write(lerr,"(a)") "CLORB> ERROR No convergence in rmod."
-        call prror(-1)
+        call prror
       end if
 
       do 40 ii=1,itco
@@ -3291,7 +3291,7 @@ subroutine clorb2(dpp)
 
         if(ierro /= 0) then
           write(lerr,"(a)") "CLORB> ERROR No convergence in rmod."
-          call prror(-1)
+          call prror
         end if
 
         do 30 l=1,2
@@ -3336,7 +3336,7 @@ subroutine combel(iql)
           if(ico.eq.0) goto 10
           if(kz(ico0).ne.kz(ico)) then
             write(lerr,"(a)") "COMBEL> ERROR Elements of different types are combined in data block combination of elements."
-            call prror(-1)
+            call prror
           end if
           if(abs(el(ico0)).gt.pieni) then
             if(abs(el(ico)).gt.pieni) then
@@ -3964,7 +3964,7 @@ subroutine linopt(dpp)
 
       if(ierro /= 0) then
         write(lerr,"(a)") "LINOPT> ERROR No optical solution."
-        call prror(-1)
+        call prror
       end if
       if(ncorru.eq.0) write(lout,10040) dpp,qwc(1),qwc(2)
 
@@ -4044,7 +4044,7 @@ subroutine linopt(dpp)
 
             write(lerr,"(a)") "LINOPT> ERROR In block '"//trim(bezb(ix))//"': found a thick non-drift element '"//&
               trim(bez(jk))//"' while ithick=1. This should not be possible!"
-            call prror(-1)
+            call prror
             cycle STRUCTLOOP
           endif
 
@@ -5169,7 +5169,7 @@ subroutine corrorb
       if(ierro.gt.0) then
         write(lerr,"(a)") "CLORB> ERROR Unstable closed orbit during initial dispersion calculation."
         write(lerr,"(a)") "CLORB>       Instability occurred for small relative energy deviation."
-        call prror(-1)
+        call prror
       end if
 
       do l=1,2
@@ -5180,7 +5180,7 @@ subroutine corrorb
       call clorb(zero)
       if(ierro.gt.0) then
         write(lerr,"(a)") "CLORB> ERROR Unstable closed orbit for zero energy deviation."
-        call prror(-1)
+        call prror
       end if
 
       do l=1,2
@@ -5205,7 +5205,7 @@ subroutine corrorb
 
       if(ncorru == 0) then
         write(lerr,"(a)") "CLORB> ERROR Number of orbit correctors is zero."
-        call prror(-1)
+        call prror
       else
         if(ncorrep.le.0) then
           write(lout,10010) ncorru,sigma0(1),sigma0(2)
@@ -6052,7 +6052,7 @@ subroutine ord
         if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
         if(izu > nran) then
           write(lerr,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
-          call prror(-1)
+          call prror
         end if
         if(izu > nzfz) then
           call fluc_moreRandomness
@@ -6065,7 +6065,7 @@ subroutine ord
             jra(i,1)=j
             if(kz(j) == 0 .or. kz(j) == 20 .or. kz(j) == 22) then
               write(lerr,"(a)") "ORD> ERROR Elements that need random numbers have a kz not equal to 0, 20 or 22."
-              call prror(-1)
+              call prror
             end if
             jra(i,2)=kz(j)
           endif
@@ -6073,7 +6073,7 @@ subroutine ord
             jra(i,3)=j
             if(kz(j) == 0 .or. kz(j) == 20 .or. kz(j) == 22) then
               write(lerr,"(a)") "ORD> ERROR Elements that need random numbers have a kz not equal to 0, 20 or 22."
-              call prror(-1)
+              call prror
             end if
             jra(i,4)=kz(j)
           endif
@@ -6091,7 +6091,7 @@ subroutine ord
         if(kzz1 == 11 .and. (kzz2 /= 11 .and. kzz2 /= 0)) then
           write(lerr,"(a)") "ORD> ERROR To use the same random numbers for 2 elements, the inserted element "//&
             "must not need more of such numbers than the reference element."
-          call prror(-1)
+          call prror
         end if
       end do
       do i=1,iu
@@ -6116,7 +6116,7 @@ subroutine ord
           inz(j)=inz(j)+1
           if(inz(j) > mran) then
             write(lerr,"(a,i0,a)") "ORD> ERROR Not more than ",mran," of each type of inserted elements can be used."
-            call prror(-1)
+            call prror
           end if
           ! map position of errors for present element in lattice structure
           mzu(i)=jra(j,5)
@@ -6132,7 +6132,7 @@ subroutine ord
         if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
         if(izu > nran) then
           write(lerr,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
-          call prror(-1)
+          call prror
         end if
       end do
     endif
@@ -6151,7 +6151,7 @@ subroutine ord
       ! why just checking? shouldn't we map on mzu(i)?
       if(izu > nran) then
         write(lerr,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
-        call prror(-1)
+        call prror
       end if
       if(izu > nzfz) then
         call fluc_moreRandomness
@@ -6272,7 +6272,7 @@ subroutine phasad(dpp,qwc)
       call betalf(dpp,qw)
       if(ierro /= 0) then
         write(lerr,"(a)") "PHASAD> ERROR No optical solution."
-        call prror(-1)
+        call prror
       end if
       call envar(dpp)
 
@@ -6750,7 +6750,7 @@ subroutine qmod0
       iq2=iq(2)
       if(kz(iq1).ne.2.or.kz(iq2).ne.2) then
         write(lerr,"(a)") "QMOD> ERROR Element is not a quadrupole."
-        call prror(-1)
+        call prror
       end if
 
       if (abs(el(iq1)).le.pieni.or.abs(el(iq2)).le.pieni) then
@@ -6770,7 +6770,7 @@ subroutine qmod0
         iq3=iq(3)
         if(kz(iq3).ne.2) then
           write(lerr,"(a)") "QMOD> ERROR Element is not a quadrupole."
-          call prror(-1)
+          call prror
         end if
         if (abs(el(iq3)).le.pieni) then
           sm0(3)=ed(iq3)
@@ -6786,7 +6786,7 @@ subroutine qmod0
       call clorb(dpp)
       if(ierro.gt.0) then
         write(lerr,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
-        call prror(-1)
+        call prror
       end if
       call phasad(dpp,qwc)
       sens(1,5)=qwc(1)
@@ -6812,7 +6812,7 @@ subroutine qmod0
           call clorb(dpp)
           if(ierro.gt.0) then
             write(lerr,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
-            call prror(-1)
+            call prror
           end if
           call phasad(dpp,qwc)
           sens(1,n+1)=qwc(1)
@@ -6866,7 +6866,7 @@ subroutine qmod0
         endif
         if(ierr == 1) then
           write(lerr,"(a)") "QMOD> ERROR Problems during matrix-inversion."
-          call prror(-1)
+          call prror
         end if
         do 50 l=1,nite
           iql=iq(l)
@@ -6880,7 +6880,7 @@ subroutine qmod0
         call clorb(dpp)
         if(ierro.gt.0) then
           write(lerr,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
-          call prror(-1)
+          call prror
         end if
         call phasad(dpp,qwc)
         sens(1,5)=qwc(1)
@@ -7259,7 +7259,7 @@ subroutine umlauf(dpp,ium,ierr)
     if(abs(x(1,1)).lt.aper(1).and.abs(x(1,2)).lt.aper(2)) goto 70
     ierr=1
     write(lout,"(a)") "UMLAUF> Error amplitudes exceed the maximum values."
-    call prror(-1)
+    call prror
     return
 
 70  continue
@@ -7707,7 +7707,7 @@ subroutine resex(dpp)
 
       if(ierro /= 0) then
         write(lerr,"(a)") "RESEX> ERROR No optical solution."
-        call prror(-1)
+        call prror
       end if
       call envar(dpp)
 
@@ -8561,7 +8561,7 @@ subroutine rmod(dppr)
         call loesd(aa,bb,j2,10,ierr)
         if(ierr == 1) then
           write(lerr,"(a)") "RMOD> ERROR Problems during matrix-inversion."
-          call prror(-1)
+          call prror
         end if
         do 170 i=1,j2
           if(i.eq.jj1.or.i.eq.jj2) then
@@ -8947,7 +8947,7 @@ subroutine subre(dpp)
         call phasad(dpp,qwc)
         if(ierro /= 0) then
           write(lerr,"(a)") "SUBRE> ERROR No optical solution."
-          call prror(-1)
+          call prror
         end if
         write(lout,10070) dpp,qwc(1),qwc(2)
         call envar(dpp)
@@ -9920,7 +9920,7 @@ subroutine subsea(dpp)
       call betalf(dpp,qw)
       if(ierro /= 0) then
         write(lerr,"(a)") "SUBSEA> ERROR No optical solution."
-        call prror(-1)
+        call prror
       end if
       call envar(dpp)
 
@@ -10675,7 +10675,7 @@ subroutine decoup
         endif
         if(ierr == 1) then
           write(lerr,"(a)") "DECOUP> ERROR Problems during matrix-inversion."
-          call prror(-1)
+          call prror
         end if
         do 50 i=1,6
           if(iskew.eq.2.and.i.gt.4) goto 50

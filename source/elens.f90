@@ -593,7 +593,7 @@ subroutine parseRadialProfile(ifile)
 
 30 continue
   write(lerr,"(a,i0,a)") "ELENS> ERROR ",iErr," while parsing file "//trim(elens_radial_filename(ifile))
-  call prror(-1)
+  call prror
 
 end subroutine parseRadialProfile
 

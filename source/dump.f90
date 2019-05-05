@@ -419,7 +419,7 @@ subroutine dump_initialise
       if (.not.lopen) then
         write(lerr,"(2(a,i0),a)") "DUMP> ERROR The unit ",dumpunit(i)," has dumpfilepos = ", dumpfilepos(i), " >= 0, "//&
           "but the file is NOT open. This is probably a bug."
-        call prror(-1)
+        call prror
       end if
       cycle ! Everything OK, don't try to open the files again.
     end if
@@ -433,7 +433,7 @@ subroutine dump_initialise
           if (ldump(j) .and. (dump_fname(j) == dump_fname(i))) then
             write(lerr,"(2(a,i0))") "DUMP> ERROR Output filename '"//trim(dump_fname(i))//&
               "' is used by two DUMPS, but output units differ: ",dumpunit(i)," vs ",dumpunit(j)
-            call prror(-1)
+            call prror
           end if
         end do
         if (dumpfmt(i) == 3 .or. dumpfmt(i) == 8 .or. dumpfmt(i) == 101) then ! Binary dump
@@ -459,17 +459,17 @@ subroutine dump_initialise
             if (dumpunit(j) == dumpunit(i)) then
               if (dumpfmt(j) /= dumpfmt(i)) then
                 write(lerr,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, formats are not the same."
-                call prror(-1)
+                call prror
               else if (j == 0) then
                 write(lerr,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, one of which is ALL"
-                call prror(-1)
+                call prror
               else if (j == -1) then
                 write(lerr,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, one of which is StartDUMP"
-                call prror(-1)
+                call prror
               else if (dump_fname(j) /= dump_fname(i)) then
                 write(lerr,"(a,i0,a)") "DUMP> ERROR Output unit ",dumpunit(i)," used by two DUMPS, but filenames differ: '"//&
                   trim(dump_fname(i)),"' vs '",trim(dump_fname(j)),"'"
-                call prror(-1)
+                call prror
               else
                 ! Everything is fine
                 lopen = .true.
@@ -488,7 +488,7 @@ subroutine dump_initialise
           write(lerr,"(a,i0,a)") "DUMP> ERROR Unit ",dumpunit(i)," is already open, but not by DUMP. Please pick another unit!"
           write(lerr,"(a)")      "DUMP> Note: This check is not watertight as other parts of the program may later open the "
           write(lerr,"(a)")      "DUMP>       same unit. Althernatively, the unit can be specified as -1 and a unit is assigned."
-          call prror(-1)
+          call prror
         end if
       end if
 
@@ -609,12 +609,12 @@ subroutine dump_initialise
         if (dumptas(i,1,1) == zero .and. dumptas(i,1,2) == zero .and. &
             dumptas(i,1,3) == zero .and. dumptas(i,1,4) == zero) then
           write(lerr,"(a)") "DUMP> ERROR The normalization matrix appears to not be set. Did you forget to put a 6D LINE block?"
-          call prror(-1)
+          call prror
         end if
         if(idp == 0 .or. ition == 0) then ! We're in the 4D case
           if(i /= -1) then ! Not at StartDUMP
             write(lerr,"(a)") "DUMP> ERROR in normalized DUMP: 4D only supported for StartDUMP!"
-            call prror(-1)
+            call prror
           end if
         end if
       end if ! END if normalized dump
@@ -1750,7 +1750,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
   ! ------------------------------------------------------------------ !
   else
     write(lerr,"(a,i0,a)") "DUMP> ERROR Format ",fmt," not understood for file '"//trim(dump_fname(i))//"'"
-    call prror(-1)
+    call prror
   end if
 
   call time_stopClock(time_clockDUMP)
