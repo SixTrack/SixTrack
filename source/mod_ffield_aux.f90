@@ -820,13 +820,13 @@ contains
 
     ! Check size vectors xpow and ypow   (Prevent SIGFPE)
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10_mb(x))
+    log_tmp=abs(log10_mb(abs(x)))
     if (log_tmp*(this%n)>230) then
       this%max_i=230/log_tmp-1
     else
       this%max_i=this%n
     endif
-    log_tmp=abs(log10_mb(y))
+    log_tmp=abs(log10_mb(abs(y)))
     if (log_tmp*(this%m)>230) then
       this%max_j=230/log_tmp-1
     else

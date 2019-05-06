@@ -452,7 +452,7 @@ subroutine trauthck(nthinerr)
 
       if(abs(phas).ge.pieni) then
         write(lerr,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
-        call prror(-1)
+        call prror
       else
         write(lout,"(a)") ""
         write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
@@ -611,7 +611,7 @@ subroutine thck4d(nthinerr)
         if(ldumpfront) then
           write(lout,"(a)") "TRACKING> DUMP/FRONT not yet supported on thick elements "//&
             "due to lack of test cases. Please contact developers!"
-          call prror(-1)
+          call prror
         end if
 
       end if
@@ -666,7 +666,7 @@ subroutine thck4d(nthinerr)
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
                write(lout,"(a)") "BDEX> BDEX only available for thin6d"
-               call prror(-1)
+               call prror
             endif
 
 !----------count=43

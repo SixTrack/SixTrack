@@ -115,7 +115,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 
   if(pressID.eq.0) then
     write(lerr,"(a,e15.7)") "BEAMGAS> ERROR Couldn't find pressure marker at ",totals
-    call prror(-1)
+    call prror
   end if
 
   doLorentz=0
@@ -200,7 +200,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
        write(lerr,"(a,e15.7)") "BEAMGAS>  * bgiddb(choice) = ",bgiddb(choice)
        write(lerr,"(a,e15.7)") "BEAMGAS>  * totMomentum    = ",totMomentum
        write(lerr,"(a,e15.7)") "BEAMGAS>  * new4MomCoord   = ",new4MomCoord
-        call prror(-1)
+        call prror
       else
 !      boosted xp event
        bgxpdb(choice) = z(1)
@@ -347,7 +347,7 @@ subroutine beamGasInit(myenom)
       j=j+1
       if (j>bgmaxx) then
         write(lerr,"(a)") "BEAMGAS> ERROR Too many pressure markers!"
-        call prror(-1)
+        call prror
       endif
     else if (filereaderror.lt.0) then
       ! means that end of file is reached
@@ -389,7 +389,7 @@ subroutine beamGasInit(myenom)
      if (previousEvent.gt.dpmjetevents) exit
      if (numberOfEvents.gt.(bgmaxx-1)) then
      write(lerr,"(a)") "BEAMGAS> ERROR Too many dpmjet events!"
-     call prror(-1)
+     call prror
   endif
   enddo
 ! number of lines in dpmjet - 1
@@ -400,7 +400,7 @@ subroutine beamGasInit(myenom)
   if (numberOfEvents.gt.npart) then
      write(lerr,"(2(a,i0))") "BEAMGAS> ERROR There were too many trackable events. Maximum for this run is ",npart,&
       " you generated ",numberOfEvents
-     call prror(-1)
+     call prror
   endif
 
   write(lout,"(a,i0)") "BEAMGAS> This is job number: ", njobthis

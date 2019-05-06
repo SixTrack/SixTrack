@@ -3,27 +3,14 @@
 !  Last modified: 2018-06-25
 ! =================================================================================================
 
-subroutine prror(ier)
+subroutine prror
 
   use crcoall
-  use mod_common, only : errout
 #ifdef FLUKA
   use mod_fluka
 #endif
 
   implicit none
-
-  integer, optional, intent(in) :: ier
-
-#ifdef FLUKA
-  integer fluka_con
-#endif
-
-  if(present(ier)) then
-    errout = ier
-  else
-    errout = -1
-  end if
 
   ! These should not go to lerr
   write(lout,"(a)") ""
@@ -147,14 +134,17 @@ subroutine abend(endMsg)
   write(crlog,"(a)") "ABEND_CR> Stop: "//trim(endMsg)
   call f_close(crlog)
 
+  if(endMsg == "ERROR") then
 #ifdef BOINC
-  call boinc_finish(errout) ! This call does not return
+    call boinc_finish(1)
 #endif
-  if(errout /= 0) then
     ! Don't write to stderr, it breaks the error tests.
-    write(output_unit,"(a,i0)") "ABEND> ERROR Stopping with error ",errout
+    write(output_unit,"(a)") "ABEND> Stop: "//trim(endMsg)
     stop 1
   else
+#ifdef BOINC
+    call boinc_finish(0)
+#endif
     stop
   end if
 

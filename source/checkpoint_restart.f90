@@ -90,7 +90,7 @@ contains
 ! ================================================================================================ !
 subroutine cr_fileInit
 
-  use, intrinsic :: iso_fortran_env, only : output_unit, error_unit
+  use, intrinsic :: iso_fortran_env, only : output_unit
 
   use mod_units
   use mod_common, only : fort6
@@ -564,7 +564,7 @@ subroutine crpoint
   use mod_settings
   use numerical_constants
 
-  use dynk,      only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_filePos,dynk_crpoint
+  use dynk,      only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_crpoint
   use dump,      only : dump_crpoint
   use aperture,  only : aper_crpoint,limifound
   use scatter,   only : scatter_active, scatter_crpoint

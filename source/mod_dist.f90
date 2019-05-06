@@ -193,18 +193,18 @@ subroutine dist_readDist
 
 19 continue
   write(lerr,"(a)") "DIST> ERROR Opening file '"//trim(dist_readFile)//"'"
-  call prror(-1)
+  call prror
   return
 
 20 continue
   write(lerr,"(a,i0)") "DIST> ERROR Reading particles from line ",ln
-  call prror(-1)
+  call prror
   return
 
 30 continue
   if(j == 0) then
     write(lerr,"(a)") "DIST> ERROR Reading particles. No particles read from file."
-    call prror(-1)
+    call prror
     return
   end if
 
@@ -265,7 +265,7 @@ subroutine dist_finaliseDist
           mtc(j) = one
         else
           write(lerr,"(a)") "DIST> ERROR Mass and/or charge mismatch with relation to sync particle"
-          call prror(-1)
+          call prror
         end if
       end if
 
@@ -324,7 +324,7 @@ subroutine dist_echoDist
 
 19 continue
   write(lerr,"(a)") "DIST> ERROR Opening file '"//trim(dist_echoFile)//"'"
-  call prror(-1)
+  call prror
   return
 
 end subroutine dist_echoDist

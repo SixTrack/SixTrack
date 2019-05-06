@@ -106,7 +106,7 @@ module platoFMA
 !C.............................................................
       IF (MAXN.GT.MAXITER) THEN
          WRITE(lout,'(a)') '***ERROR(TUNENEWT1): TOO MANY ITERATIONS'
-         call prror(-1)
+         call prror
       ENDIF
 !C.............................................................
 !C    ESTIMATION OF TUNE WITH FFT
@@ -172,7 +172,7 @@ module platoFMA
 !C............................................................
       IF (MAX.LE.0) THEN
          WRITE(lout,'(a)') '***ERROR(TUNEFIT): THIRD PARAMETER OUT OF BOUNDS'
-        call prror(-1)
+        call prror
       ENDIF
 !C............................................................
       DUEPI=eight*ATAN_MB(one)
@@ -231,7 +231,7 @@ module platoFMA
 !C............................................................
       IF (N.LE.0) THEN
         WRITE(lout,'(a)') '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
-        call prror(-1)
+        call prror
       ENDIF
 !C.............................................................
       X2M=zero
@@ -579,7 +579,7 @@ module platoFMA
 !C.............................................................
       IF (MAXN.GT.MAXITER) THEN
         WRITE(lout,'(a)') '***ERROR(TUNENEWT): TOO MANY ITERATIONS'
-        call prror(-1)
+        call prror
       ENDIF
 !C.............................................................
 !C    ESTIMATION OF TUNE WITH FFT
@@ -757,7 +757,7 @@ module platoFMA
 !C............................................................
       IF (N.LE.0) THEN
         WRITE(lout,'(a)') '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
-        call prror(-1)
+        call prror
       ENDIF
 !C............................................................
       ADV=ZERO
@@ -828,12 +828,12 @@ module platoFMA
 !C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
         write(lerr,'(a)') '***ERROR(TUNEFFT): TOO MANY ITERATES'
-        call prror(-1)
+        call prror
       ENDIF
 !C............................................................
       IF (N.LE.0) THEN
         write(lerr,'(a)') '***ERROR(TUNEFFT): THIRD PARAMETER OUT OF BOUNDS'
-        call prror(-1)
+        call prror
       ENDIF
 !C............................................COMPUTATION OF M
       DO M=1,50
@@ -904,12 +904,12 @@ module platoFMA
 !C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
         write(lerr,'(a)') '***ERROR(TUNEFFTI): TOO MANY ITERATES'
-        call prror(-1)
+        call prror
       ENDIF
 !C............................................................
       IF (N.LE.0) THEN
         write(lerr,'(a)') '***ERROR(TUNEFFTI): THIRD PARAMETER OUT OF BOUNDS'
-        call prror(-1)
+        call prror
       ENDIF
 !C............................................COMPUTATION OF M
       DO M=1,50
@@ -1011,12 +1011,12 @@ module platoFMA
 !C...............................CHECK OF THE ITERATION NUMBER
       IF(MAX.GT.MAXITER) THEN
         write(lerr,'(a)') '***ERROR(TUNELASK): TOO MANY ITERATIONS'
-        call prror(-1)
+        call prror
       ENDIF
 !C............................................................
       IF (MAX.LE.0) THEN
         write(lerr,'(a)') '***ERROR(TUNELASK): THIRD PARAMETER OUT OF BOUNDS'
-        call prror(-1)
+        call prror
       ENDIF
 !C.................................ESTIMATION OF TUNE WITH FFT
       SUM=ZERO

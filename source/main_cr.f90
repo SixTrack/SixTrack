@@ -463,7 +463,7 @@ program maincr
         nlin=nlin+1
         if(nlin.gt.nele) then
           write(lerr,"(a)") "MAINCR> ERROR Too many elements for linear optics write-out"
-          call prror(-1)
+          call prror
         end if
         bezl(nlin)=bez(i)
       end if
@@ -869,7 +869,7 @@ program maincr
     if(fluka_con == -1) then
       write(lerr,"(a)") "FLUKA> ERROR Fluka is expected to run but it is NOT actually the case"
       write(fluka_log_unit,*) "# Fluka is expected to run but it is NOT actually the case"
-      call prror(-1)
+      call prror
     end if
     write(lout,"(a)") "FLUKA> Initializing FlukaIO interface ..."
     write(fluka_log_unit,*) "# Initializing FlukaIO interface ..."
@@ -877,7 +877,7 @@ program maincr
     if(fluka_con == -1) then
       write(lerr,"(a)") "FLUKA> ERROR Cannot connect to Fluka server"
       write(fluka_log_unit,*) "# Error connecting to Fluka server"
-      call prror(-1)
+      call prror
     endif
     write(lout,"(a)") "FLUKA> Successfully connected to Fluka server"
     write(fluka_log_unit,*) "# Successfully connected to Fluka server"
@@ -901,7 +901,7 @@ program maincr
     if(iclo6 /= 0) then
       write(lerr,"(a,i0)") "MAINCR> ERROR Doing 4D tracking but iclo6 = ",iclo6
       write(lerr,"(a)")    "MAINCR>       Expected iclo6 = 0 for 4D tracking."
-      call prror(-1)
+      call prror
     end if
   else
     ! 6D tracking
@@ -913,7 +913,7 @@ program maincr
     if(iclo6 == 0) then
       write(lerr,"(a,i0)") "MAINCR> ERROR Doing 6D tracking but iclo6 = ",iclo6
       write(lerr,"(a)")    "MAINCR>       Expected iclo6 <> 0 for 6D tracking."
-      call prror(-1)
+      call prror
     end if
   end if
 
@@ -1175,7 +1175,7 @@ program maincr
     if(fluka_con < 0) then
       write(lerr,"(a,i0,a)") "FLUKA> ERROR Failed to send napx ",napx," to fluka "
       write(fluka_log_unit, *) "# failed to send napx to fluka ",napx
-      call prror(-1)
+      call prror
     end if
 
     write(lout,"(a)") "FLUKA> Sending napx successful"
@@ -1200,7 +1200,7 @@ program maincr
     if(fluka_con < 0) then
       write(lerr,"(a)") "FLUKA> ERROR Failed to update the reference particle"
       write(fluka_log_unit,*) "# failed to update ref particle"
-      call prror(-1)
+      call prror
     end if
 
     write(lout,"(a)") "FLUKA> Updating the reference particle successful"
