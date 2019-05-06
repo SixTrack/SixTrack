@@ -180,8 +180,6 @@ end subroutine part_updatePartEnergy
 ! ================================================================================================ !
 subroutine part_writeState(theState)
 
-  use, intrinsic :: iso_fortran_env, only : int16, int32, real64
-
   use mod_units
   use parpro
   use mod_hions

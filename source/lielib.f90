@@ -48,7 +48,7 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
               ndt=nd2
               if(ndpt.ne.nd2-1) then
                 write(lout,*) ' LETHAL ERROR IN LIEINIT'
-                call prror(-1)
+                call prror
               endif
             endif
        endif
@@ -3026,7 +3026,7 @@ subroutine initpert(st,ang,ra)
       if(nres.ge.nreso) then
        write(lout,*) ' NRESO IN LIELIB TOO SMALL '
        write(lout,'(a)') "ERROR 999 in initpert"
-       call prror(-1)
+       call prror
       endif
       elseif(iref.eq.0) then
       nres=0

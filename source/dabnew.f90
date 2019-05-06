@@ -4997,7 +4997,7 @@ subroutine dadeb(iunit,c,istop)
 #ifdef CR
       call abend('                                                  ')
 #else
-      call prror(-1)
+      call prror
 #endif
 end subroutine dadeb
 

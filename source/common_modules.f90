@@ -151,7 +151,6 @@ module mod_common
 
   ! Error Variables
   integer,          save :: ierro      = 0
-  integer,          save :: errout     = 0    ! Used in prror and abend
 
   ! Loop Variables
   integer,          save :: iu         = 0    ! Number of entries in the accelerator

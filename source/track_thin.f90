@@ -453,7 +453,7 @@ subroutine trauthin(nthinerr)
     end do
     if(abs(phas).ge.pieni) then
       write(lerr,"(a)") "TRACKING> ERROR thin6dua no longer supported. Please use DYNK instead."
-      call prror(-1)
+      call prror
     else
       write(lout,"(a)") ""
       write(lout,"(a)") "TRACKING> Calling thin6d subroutine"
@@ -1249,7 +1249,7 @@ subroutine thin6d(nthinerr)
       ix=ic(i)-nblo
 
       ! Fringe Fields
-      if(ffield_enabled) then
+      if(ffield_enabled .and. ix > 0) then
         doFField = FFindex(ix) > 0
       else
         doFField = .false.

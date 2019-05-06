@@ -332,7 +332,7 @@ subroutine umlauda
     if(ix.gt.nblo) goto 50
     if(ix <= 0) then
       write(lerr,"(a)") "UMLAUDA> ERROR Inverted linear blocks not allowed."
-      call prror(-1)
+      call prror
     endif
 #include "include/dalin1.f90"
           ipch=0
@@ -434,7 +434,7 @@ subroutine umlauda
     if(abs(dare(x(1))) > aint(aper(1)) .or. abs(dare(x(2))) > aint(aper(2))) then
       write(lout,10120)j,i,dare(x(1)),aper(1),dare(x(2)),aper(2),ix,kz(ix),bez(ix)
       write(lerr,"(a)") "UMLAUDA> ERROR Unstable closed orbit in DA calculation."
-      call prror(-1)
+      call prror
     end if
     kpz=abs(kp(ix))
     if(kpz.ge.0 .and. kpz.lt.6) goto 80
@@ -470,7 +470,7 @@ subroutine umlauda
       wire_num_aux = wire_num_aux+1
       if(wire_num_aux.gt.wire_max) then
         write(lerr,"(2(a,i0))") "UMLAUDA> ERROR Maximum number of wires exceeded. Max is ",wire_max,", got ",wire_num_aux
-        call prror(-1)
+        call prror
       endif
       wire_num(i) = wire_num_aux
 !FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
@@ -532,7 +532,7 @@ subroutine umlauda
         ibb=ibb+1
         if(ibb > nbb) then
           write(lerr,"(a,i0)") "UMLAUDA> ERROR Maximum element number for beam-beam with coupling exceeded: nbb = ",nbb
-          call prror(-1)
+          call prror
         end if
         imbb(i)=ibb
 !FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
@@ -643,7 +643,7 @@ subroutine umlauda
           endif
         else
            write(lerr,"(a,i0,a)") "UMLAUDA> ERROR beam_expflag was ",beam_expflag,", expected 0 or 1. This is a BUG!"
-           call prror(-1)
+           call prror
         end if
 
         if (.not.beam_expfile_open) then
@@ -698,7 +698,7 @@ subroutine umlauda
           sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          !hr03
           if(sfac3 > sfac1) then
             write(lerr,"(a)") "UMLAUDA> ERROR 6D beam-beam with tilt not possible."
-            call prror(-1)
+            call prror
           end if
           sfac4=(sfac2s*sfac2)/sfac3                                   !hr03
           sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3                !hr03
@@ -1517,7 +1517,7 @@ subroutine umlauda
     det1=coefh1*coefv2-coefv1*coefh2
     if(abs(det1) <= pieni) then
       write(lerr,"(a)") "UMLAUDA> ERROR Quadrupoles are not suited to adjust the tunes."
-      call prror(-1)
+      call prror
     end if
     corr(2,1)=coefv2/det1
     corr(2,2)=(-one*coefh2)/det1                                     !hr05
@@ -1541,7 +1541,7 @@ subroutine umlauda
     det1=coefh1*coefv2-coefv1*coefh2
     if(abs(det1) <= pieni) then
       write(lerr,"(a)") "UMLAUDA> ERROR Sextupoles are not suited to adjust the chromaticity."
-      call prror(-1)
+      call prror
     end if
     corr(2,1)=coefv2/det1
     corr(2,2)=(-one*coefh2)/det1                                     !hr05
@@ -1568,7 +1568,7 @@ subroutine umlauda
 
 9088 continue
   write(lerr,"(a)") "UMLAUDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
-  call prror(-1)
+  call prror
   return
 !-----------------------------------------------------------------------
 10000 format(/t5 ,'---- ENTRY ',i1,'D LINOPT ----')
@@ -2358,7 +2358,7 @@ call comt_daStart
   &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',  &
   &'be either 1 or -1!','bez(',ix,') = ',bez(ix),                    &
   &'wire_flagco(',ix,') = ',wire_flagco(ix)
-    call prror(-1)
+    call prror
   endif
 
 !FOX  YY(1)=YY(1)*C1M3;
@@ -2799,7 +2799,7 @@ subroutine invert_tas(fma_tas_inv,fma_tas)
   if (ierro.ne.0) then
       write(lout,*) "Error in INVERT_TAS - Matrix inversion failed!"
       write(lout,*) "Subroutine DINV returned ierro=",ierro
-      call prror(-1)
+      call prror
   endif
 
 !     - transpose fma_tas_inv

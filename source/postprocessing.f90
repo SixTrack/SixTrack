@@ -950,7 +950,7 @@ subroutine postpr(arg1,arg2)
         endif
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
       endif ! END if(program.eq.'MAD')
 
@@ -1110,7 +1110,7 @@ subroutine postpr(arg1,arg2)
         endif
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
       endif
 
@@ -1431,7 +1431,7 @@ subroutine postpr(arg1,arg2)
         endif
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
       endif
 !--LYAPUNOV
@@ -1779,7 +1779,7 @@ subroutine postpr(arg1,arg2)
            p=p*c1e3
 #else
            write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-           call prror(-1)
+           call prror
 #endif
         endif !END if(program.eq.'MAD')
 
@@ -2401,7 +2401,7 @@ subroutine postpr(arg1,arg2)
               end if
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
 
             end if

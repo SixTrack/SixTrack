@@ -43,7 +43,7 @@ subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc,mtc)
     phi2=phi               !Note - phi2 is not a free parameter anymore
   else
     write(lerr,"(a,i0,a)") "ERROR beamint: beam_expflag was ",beam_expflag," expected 0 or 1. This is a BUG!"
-    call prror(-1)
+    call prror
   end if
 
   sphi=sin_mb(phi)
@@ -545,5 +545,5 @@ real(kind=fPrec) function gauinv(p0)
 
 900  write(lout,910) p0
 910  format(' (FUNC.GAUINV) INVALID INPUT ARGUMENT ',1pd20.13)
-  call prror(-1)
+  call prror
 end function gauinv

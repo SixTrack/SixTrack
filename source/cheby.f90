@@ -322,7 +322,7 @@ subroutine cheby_postInput
     if(.not. exist) then
       write(lerr,"(a)") "CHEBY> ERROR Problems with file with coefficients for Chebyshev polynominals: ", &
             trim(cheby_filename(jj))
-      call prror(-1)
+      call prror
     end if
     call parseChebyFile(jj)
   end do
@@ -433,7 +433,7 @@ subroutine cheby_postInput
 
 10 continue
    write(lout,"(a,i0,a)") "CHEBY>       concerned lens #", jj," - name: '"//trim(bez(kk))//"'"
-   call prror(-1)
+   call prror
    
 end subroutine cheby_postInput
 
@@ -591,7 +591,7 @@ subroutine parseChebyFile(ifile)
   end do
 40 continue
   write(lerr,"(a)") "CHEBY> ERROR while parsing file "//trim(cheby_filename(ifile))
-  call prror(-1)
+  call prror
 
 end subroutine parseChebyFile
 
@@ -688,7 +688,7 @@ subroutine cheby_potentialMap(iLens,ix)
   call f_open(unit=fUnit,file=cheby_mapFileName(iLens),mode='w',err=err,formatted=.true.,status="replace")
   if(err) then
     write(lerr,"(a)") "CHEBY> ERROR Failed to open file."
-    call prror(-1)
+    call prror
   end if
  
   ! rotation angle

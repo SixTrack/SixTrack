@@ -519,7 +519,7 @@ subroutine bdex_track(i,ix,n)
 
   else
     write(lerr,"(a,i0,a)") "BDEX> ERROR elementAction = ",bdex_elementAction(i)," not understood."
-    call prror(-1)
+    call prror
   endif
 
 end subroutine bdex_track

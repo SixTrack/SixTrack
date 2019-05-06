@@ -97,7 +97,7 @@ subroutine recuinit(is1,is2)
 
   if(is1 < 1 .or. is1 > 2147483562) then
     write(lerr,"(a,i0)") "RANECU> ERROR Seed 1 must be an integer in the range 1 to 2147483562, got ", is1
-    call prror(-1)
+    call prror
   else
     iseed1 = is1
   end if
@@ -105,7 +105,7 @@ subroutine recuinit(is1,is2)
   if(present(is2)) then
     if(is2 < 1 .or. is2 > 2147483398) then
       write(lerr,"(a,i0)") "RANECU> ERROR Seed 2 must be an integer in the range 1 to 2147483398, got ", is2
-      call prror(-1)
+      call prror
     else
       iseed2 = is2
     end if
