@@ -1,12 +1,14 @@
 # SixTrack Changelog
 
-### Version 5.2.6 [06.05.2019] - Release
+### Version 5.2.6 [07.05.2019] - Release
 
 **Bug Fixes**
 
 * Fixed a bug with linking zlib and libarchive when building on Windows. PR #853 (V.K. Berglyd Olsen)
 * Fixed a bug in postprocessing where the binary postprocessing summary file would append its data to another file in some cases. This was caused by the file having a fixed file unit in the range which is otherwise reserved for dynamically allocated file units. This file now also gets a unit assigned to it, avoiding this issue. Some checks have been added to the file units module to try and prevent similar bugs in the future. PR #855 (V.K. Berglyd Olsen)
 * The recently added error tests failed on some operating systems due to the python wrapper not finding a symlinked include file. PR #862 (K.N Sjobak)
+* Fixed a floating point exception and array bounds violation in the fringe field module. PR #866 (V.K. Berglyd Olsen)
+* Fixed a bug where sometimes a segfault would be triggered when SixTrack exited with an error due to the error routine itself missing an explicit interface. PR #866 (V.K. Berglyd Olsen, K. Sjobak)
 
 **User Side Changes**
 
