@@ -327,6 +327,8 @@ if(CR)
     dynk_operators
     dynk_polynomial
     dynk_random
+    elensidealthck4d
+    elensidealthck6d
     elensidealthin6d_ramp_DYNK
     scatter_aperture
     scatter_bbelastic
