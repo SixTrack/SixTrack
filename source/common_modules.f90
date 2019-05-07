@@ -837,7 +837,6 @@ module mod_common_main
   real(kind=fPrec), allocatable, save :: zsiv(:)      ! (nblz)
   real(kind=fPrec), allocatable, save :: xsiv(:)      ! (nblz)
 
-  real(kind=fPrec), allocatable, save :: fokqv(:)     ! (npart)
   real(kind=fPrec), allocatable, save :: xsv(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: zsv(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: xv1(:)       ! (npart)
@@ -932,7 +931,6 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   end if
 
   if(npart_new /= npart_prev) then
-    call alloc(fokqv,            npart_new,      zero,    "fokqv")
     call alloc(xsv,              npart_new,      zero,    "xsv")
     call alloc(zsv,              npart_new,      zero,    "zsv")
     call alloc(xv1,              npart_new,      zero,    "xv1")
