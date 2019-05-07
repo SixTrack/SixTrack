@@ -65,8 +65,6 @@ module checkpoint_restart
   real(kind=fPrec), allocatable, private, save :: crdpsv1(:)    ! (npart)
   real(kind=fPrec), allocatable, private, save :: crejv(:)      ! (npart)
   real(kind=fPrec), allocatable, private, save :: crejfv(:)     ! (npart)
-  real(kind=fPrec), allocatable, private, save :: crdpd(:)      ! (npart)
-  real(kind=fPrec), allocatable, private, save :: crdpsq(:)     ! (npart)
   real(kind=fPrec), allocatable, private, save :: craperv(:,:)  ! (npart,2)
 
   integer,          allocatable, public,  save :: binrecs(:)    ! ((npart+1)/2)
@@ -175,8 +173,6 @@ subroutine cr_expand_arrays(npart_new)
   call alloc(crdpsv1,    npart_new,    zero,    "crdpsv1")
   call alloc(crejv,      npart_new,    zero,    "crejv")
   call alloc(crejfv,     npart_new,    zero,    "crejfv")
-  call alloc(crdpd,      npart_new,    zero,    "crdpd")
-  call alloc(crdpsq,     npart_new,    zero,    "crdpsq")
   call alloc(craperv,    npart_new, 2, zero,    "craperv")
   call alloc(binrecs,    npair_new,    0,       "binrecs")
   call alloc(crbinrecs,  npair_new,    0,       "crbinrecs")
@@ -389,8 +385,6 @@ subroutine crcheck
       (crdpsv1(j),   j=1,crnapxo),       &
       (crejv(j),     j=1,crnapxo),       &
       (crejfv(j),    j=1,crnapxo),       &
-      (crdpd(j),     j=1,crnapxo),       &
-      (crdpsq(j),    j=1,crnapxo),       &
       (craperv(j,1), j=1,crnapxo),       &
       (craperv(j,2), j=1,crnapxo),       &
       (crllostp(j),  j=1,crnapxo)
@@ -437,21 +431,6 @@ subroutine crcheck
       flush(crlog)
       call elens_crcheck(cr_pntUnit(nPoint),rErr)
       if(rErr) cycle
-    end if
-
-    ! New extended checkpoint for synuthck (ERIC)
-    if(ithick == 1) then
-      ! and make sure we can read the extended vars before leaving fort.95
-      ! We will re-read them in crstart to be sure they are restored correctly
-      write(crlog,"(a)") "CR_CHECK>  * THICK EXTENDED arrays"
-      flush(crlog)
-      read(cr_pntUnit(nPoint),iostat=ioStat) &
-        ((((al(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6), &
-        ((((as(k,m,j,l),l=1,il),j=1,crnapxo),m=1,2),k=1,6)
-      backspace(cr_pntUnit(nPoint),iostat=ioStat)
-      if(ioStat /= 0) cycle
-      write(crlog,"(a)") "CR_CHECK>    "//cr_pntFile(nPoint)//" EXTENDED OK"
-      flush(crlog)
     end if
 
     write(crlog,"(a)") "CR_CHECK> File "//cr_pntFile(nPoint)//" successfully read"
@@ -645,8 +624,6 @@ subroutine crpoint
       (dpsv1(j),   j=1,napxo),       &
       (ejv(j),     j=1,napxo),       &
       (ejfv(j),    j=1,napxo),       &
-      (dpd(j),     j=1,napxo),       &
-      (dpsq(j),    j=1,napxo),       &
       (aperv(j,1), j=1,napxo),       &
       (aperv(j,2), j=1,napxo),       &
       (llostp(j),  j=1,napxo)
@@ -707,17 +684,6 @@ subroutine crpoint
       end if
       call elens_crpoint(cr_pntUnit(nPoint),wErr)
       if(wErr) goto 100
-    end if
-
-    if(ithick == 1) then
-      if(st_debug) then
-        write(crlog,"(a)") "CR_POINT>  * THICK EXTENDED arrays"
-        flush(crlog)
-      end if
-      write(cr_pntUnit(nPoint),err=100) &
-        ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6), &
-        ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-      flush(cr_pntUnit(nPoint))
     end if
 
     flush(crlog)
@@ -802,9 +768,6 @@ subroutine crstart
   ejv(1:napxo)       = crejv(1:napxo)
   ejfv(1:napxo)      = crejfv(1:napxo)
 
-  dpd(1:napxo)       = crdpd(1:napxo)
-  dpsq(1:napxo)      = crdpsq(1:napxo)
-
   numxv(1:napxo)     = crnumxv(1:napxo)
   nnumxv(1:napxo)    = crnnumxv(1:napxo)
   do j=1,napxo
@@ -817,6 +780,9 @@ subroutine crstart
   ! Recompute from loaded arrays
   oidpsv(1:napxo) = one/(one + dpsv(1:napxo))
   rvv(1:napxo)    = (ejv(1:napxo)*e0f)/(e0*ejfv(1:napxo))
+
+  ! Recompute the thick arrays
+  if(ithick == 1) call synuthck
 
   ! Aperture data
   aperv(1:napxo,1:2) = craperv(1:napxo,1:2)
@@ -832,31 +798,6 @@ subroutine crstart
   end if
   if(melens > 0) then
     call elens_crstart
-  end if
-
-  ! Extended checkpoint for synuthck (ERIC)
-  if(ithick == 1) then
-    ! Now read the extended vars from fort.95/96.
-    if(cril /= il) then
-      write(lerr, "(2(a,i0))") "CR_START> ERROR Problem as cril/il are different cril = ",cril,", il = ",il
-      write(crlog,"(2(a,i0))") "CR_START> ERROR Problem as cril/il are different cril = ",cril,", il = ",il
-      flush(crlog)
-      call prror
-    end if
-    do nPoint=1,cr_nPoint
-      if(cr_pntRead(nPoint) .eqv. .false.) cycle
-      read(cr_pntUnit(nPoint),iostat=ioStat) &
-        ((((al(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6),&
-        ((((as(k,m,j,l),l=1,il),j=1,napxo),m=1,2),k=1,6)
-      if(ioStat /= 0) then
-        write(lerr, "(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(nPoint)//" EXTENDED, iostat = ",ioStat
-        write(crlog,"(a,i0)") "CR_START> ERROR Could not read checkpoint file "//cr_pntFile(nPoint)//" EXTENDED, iostat = ",ioStat
-        call prror
-      end if
-      write(crlog,"(a)") "CR_START> Read "//cr_pntFile(nPoint)//" EXTENDED OK"
-      flush(crlog)
-      exit
-    end do
   end if
 
   ! Done
