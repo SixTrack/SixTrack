@@ -207,7 +207,7 @@ subroutine envarsv
   use mod_commons
   use mod_common_track
   use mod_common_da
-  use mod_common_main, only : dpsv,oidpsv,rvv,ekv,dpd,dpsq,fokqv
+  use mod_common_main, only : dpsv,oidpsv,rvv,dpd,dpsq
 
   use mod_alloc
 
@@ -216,7 +216,7 @@ subroutine envarsv
   integer ih1,ih2,j,kz1,l,l1,l2
 
   real(kind=fPrec) aek,afok,as3,as4,as6,co,fi,fok,fok1,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoc,rhoi,&
-    si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi,fokm
+    si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi,fokm,fokq
 
   ! The dpd and dpsq arrays used to be local and zeroed here.
   ! Currently using the global ones instead.
@@ -363,7 +363,7 @@ subroutine envarsv
     case(3)
 
       do j=1,napx
-        fok = ekv(j,l)*oidpsv(j)
+        fok = ek(l)*oidpsv(j)
         aek = abs(fok)
         hi  = sqrt(aek)
         fi  = el(l)*hi
@@ -431,28 +431,24 @@ subroutine envarsv
       end do
       cycle
 !-----------------------------------------------------------------------
-!  COMBINED FUNCTION MAGNET HORIZONTAL
+!  COMBINED FUNCTION MAGNET HORIZONTAL (7)
+!  COMBINED FUNCTION MAGNET VERTICAL   (8)
 !  FOCUSING
 !-----------------------------------------------------------------------
     case(7,8)
 
       if(kz1.eq.7) then
-        do j=1,napx
-          fokqv(j) = ekv(j,l)
-        end do
-        ih1 = 1
-        ih2 = 2
+        fokq = ek(l)
+        ih1  = 1
+        ih2  = 2
       else
-!  COMBINED FUNCTION MAGNET VERTICAL
-        do j=1,napx
-          fokqv(j) = -ekv(j,l)
-        end do
-        ih1 = 2
-        ih2 = 1
+        fokq = -ek(l)
+        ih1  = 2
+        ih2  = 1
       end if
       do j=1,napx
         wf   = ed(l)/dpsq(j)
-        fok  = fokqv(j)/dpd(j)-wf**2
+        fok  = fokq/dpd(j)-wf**2
         afok = abs(fok)
         hi   = sqrt(afok)
         fi   = hi*el(l)
@@ -491,7 +487,7 @@ subroutine envarsv
           as(5,ih1,j,l) = (((-one*rvv(j))*sm12)*afok)/c4e3
           as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
 
-          aek = abs(ekv(j,l)/dpd(j))
+          aek = abs(ek(l)/dpd(j))
           hi  = sqrt(aek)
           fi  = hi*el(l)
           hp  = exp_mb(fi)
@@ -532,7 +528,7 @@ subroutine envarsv
           as(5,ih1,j,l) = ((rvv(j)*sm12)*afok)/c4e3
           as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
 
-          aek = abs(ekv(j,l)/dpd(j))
+          aek = abs(ek(l)/dpd(j))
           hi  = sqrt(aek)
           fi  = hi*el(l)
           si  = sin_mb(fi)

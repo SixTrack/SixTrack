@@ -851,10 +851,6 @@ program maincr
     oidpsv(ib1)  = one/(one+dp1)
     moidpsv(ib1) = mtc(ib1)/(one+dp1)
     nms(ib1)     = 1
-
-    if(ithick == 1) then
-      ekv(ib1,1:nele) = ek(1:nele)
-    end if
   end do
 
 ! ================================================================================================ !
