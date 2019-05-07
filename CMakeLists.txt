@@ -638,7 +638,7 @@ elseif(Fortran_COMPILER_NAME MATCHES "ifort.*")
 
   set(IFORT ON)
   set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
-  set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -traceback -check bounds -no-fma -std15 -assume realloc-lhs")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -traceback -no-fma -std15 -assume realloc-lhs")
   set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
   set(PREPRO_FLAGS -I${CMAKE_SOURCE_DIR}/source/include -fpp -E -P)
 
@@ -647,7 +647,7 @@ elseif(Fortran_COMPILER_NAME MATCHES "ifort.*")
   endif()
 
   if(WARN)
-    set(CMAKE_Fortran_FLAGS "-warn unused ${CMAKE_Fortran_FLAGS}")
+    set(CMAKE_Fortran_FLAGS "-warn unused -check bounds ${CMAKE_Fortran_FLAGS}")
   endif(WARN)
 
   if(32BIT)
