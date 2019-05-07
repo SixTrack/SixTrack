@@ -24,8 +24,8 @@
 
 **User Side Changes**
 
- * It is now allowed to set `R1=0.0` for both elenses and chebyshev maps, even though the fox implementation is still on-going. This will allow for running full elens studies, even though the closed orbit does not take into account these elements yet. PR #850 (A. Mereghetti)
-* The main SixTrack executable will now print version information and exit if provided with one of the arguments `-v`, `-V` or `-nv`. Representing two levels of detail, and te numerical version number, respectively. PR #846 (V.K. Berglyd Olsen)
+* It is now allowed to set `R1=0.0` for both elenses and chebyshev maps, even though the fox implementation is still on-going. This will allow for running full elens studies, even though the closed orbit does not take into account these elements yet. PR #850 (A. Mereghetti)
+* The main SixTrack executable will now print version information and exit if provided with one of the arguments `-v`, `-V` or `-nv`. Representing two levels of detail, and the numerical version number, respectively. PR #846 (V.K. Berglyd Olsen)
 * Alternative file names for the `fort.3` and `fort.2` input files can be given as first and second argument, respectively. PR #846 (V.K. Berglyd Olsen)
 
 **Bug Fixes**
