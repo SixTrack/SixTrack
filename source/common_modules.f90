@@ -833,7 +833,6 @@ module mod_common_main
   implicit none
 
   ! Main 1
-  real(kind=fPrec), allocatable, save :: ekv(:,:)     ! (npart,nele)
   real(kind=fPrec), allocatable, save :: smiv(:)      ! (nblz)
   real(kind=fPrec), allocatable, save :: zsiv(:)      ! (nblz)
   real(kind=fPrec), allocatable, save :: xsiv(:)      ! (nblz)
@@ -983,7 +982,6 @@ subroutine mod_commonmn_expand_thickarrays(nele_new, npart_new, nblo_new)
 
   integer,intent(in) :: nele_new, npart_new, nblo_new
 
-  call alloc(ekv,     npart_new,nele_new,zero,"ekv")
   call alloc(bl1v,6,2,npart_new,nblo_new,zero,"bl1v")
 
 end subroutine mod_commonmn_expand_thickarrays

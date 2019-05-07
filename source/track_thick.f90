@@ -1976,7 +1976,7 @@ subroutine synuthck
 !  FOCUSSING
 !-----------------------------------------------------------------------
 80   do j=1,napx
-        fok = ekv(j,l)*oidpsv(j)
+        fok = ek(l)*oidpsv(j)
         aek = abs(fok)
         hi  = sqrt(aek)
         fi  = el(l)*hi
@@ -2050,14 +2050,14 @@ subroutine synuthck
 !-----------------------------------------------------------------------
 100   if(kz1 == 7) then
         do j=1,napx
-          fokqv(j) = ekv(j,l)
+          fokqv(j) = ek(l)
         end do
         ih1 = 1
         ih2 = 2
       else
 !  COMBINED FUNCTION MAGNET VERTICAL
         do j=1,napx
-          fokqv(j) = -ekv(j,l)
+          fokqv(j) = -ek(l)
         end do
         ih1 = 2
         ih2 = 1
@@ -2095,7 +2095,7 @@ subroutine synuthck
           as(5,ih1,j,l) = (((-one*rvv(j))*sm12)*afok)/c4e3
           as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
 
-          aek = abs(ekv(j,l)/dpd(j))
+          aek = abs(ek(l)/dpd(j))
           hi  = sqrt(aek)
           fi  = hi*el(l)
           hp  = exp_mb(fi)
@@ -2136,7 +2136,7 @@ subroutine synuthck
           as(5,ih1,j,l) = ((rvv(j)*sm12)*afok)/c4e3
           as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
 
-          aek = abs(ekv(j,l)/dpd(j))
+          aek = abs(ek(l)/dpd(j))
           hi  = sqrt(aek)
           fi  = hi*el(l)
           si  = sin_mb(fi)
