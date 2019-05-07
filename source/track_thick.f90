@@ -2049,18 +2049,18 @@ subroutine synuthck
 !  FOCUSSING
 !-----------------------------------------------------------------------
 100   if(kz1 == 7) then
-        fokq = one
+        fokq = ek(l)
         ih1  = 1
         ih2  = 2
       else
 !  COMBINED FUNCTION MAGNET VERTICAL
-        fokq = -one
+        fokq = -ek(l)
         ih1  = 2
         ih2  = 1
       end if
       do j=1,napx
         wf   = ed(l)/dpsq(j)
-        fok  = (fokq*ek(l))/dpd(j)-wf**2
+        fok  = fokq/dpd(j)-wf**2
         afok = abs(fok)
         hi   = sqrt(afok)
         fi   = hi*el(l)
