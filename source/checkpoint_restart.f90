@@ -67,7 +67,6 @@ module checkpoint_restart
   real(kind=fPrec), allocatable, private, save :: crejfv(:)     ! (npart)
   real(kind=fPrec), allocatable, private, save :: crdpd(:)      ! (npart)
   real(kind=fPrec), allocatable, private, save :: crdpsq(:)     ! (npart)
-  real(kind=fPrec), allocatable, private, save :: crfokqv(:)    ! (npart)
   real(kind=fPrec), allocatable, private, save :: craperv(:,:)  ! (npart,2)
 
   integer,          allocatable, public,  save :: binrecs(:)    ! ((npart+1)/2)
@@ -178,7 +177,6 @@ subroutine cr_expand_arrays(npart_new)
   call alloc(crejfv,     npart_new,    zero,    "crejfv")
   call alloc(crdpd,      npart_new,    zero,    "crdpd")
   call alloc(crdpsq,     npart_new,    zero,    "crdpsq")
-  call alloc(crfokqv,    npart_new,    zero,    "crfokqv")
   call alloc(craperv,    npart_new, 2, zero,    "craperv")
   call alloc(binrecs,    npair_new,    0,       "binrecs")
   call alloc(crbinrecs,  npair_new,    0,       "crbinrecs")
@@ -393,7 +391,6 @@ subroutine crcheck
       (crejfv(j),    j=1,crnapxo),       &
       (crdpd(j),     j=1,crnapxo),       &
       (crdpsq(j),    j=1,crnapxo),       &
-      (crfokqv(j),   j=1,crnapxo),       &
       (craperv(j,1), j=1,crnapxo),       &
       (craperv(j,2), j=1,crnapxo),       &
       (crllostp(j),  j=1,crnapxo)
@@ -650,7 +647,6 @@ subroutine crpoint
       (ejfv(j),    j=1,napxo),       &
       (dpd(j),     j=1,napxo),       &
       (dpsq(j),    j=1,napxo),       &
-      (fokqv(j),   j=1,napxo),       &
       (aperv(j,1), j=1,napxo),       &
       (aperv(j,2), j=1,napxo),       &
       (llostp(j),  j=1,napxo)
@@ -808,7 +804,6 @@ subroutine crstart
 
   dpd(1:napxo)       = crdpd(1:napxo)
   dpsq(1:napxo)      = crdpsq(1:napxo)
-  fokqv(1:napxo)     = crfokqv(1:napxo)
 
   numxv(1:napxo)     = crnumxv(1:napxo)
   nnumxv(1:napxo)    = crnnumxv(1:napxo)

@@ -1861,7 +1861,7 @@ subroutine synuthck
   implicit none
   integer ih1,ih2,j,kz1,l
   real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23,as3,as4,as6,g,gl,rhoc,siq,aek,hi,  &
-    fi,hi1,hp,hm,hc,hs,wf,afok,wfa,wfhi,rhoi
+    fi,hi1,hp,hm,hc,hs,wf,afok,wfa,wfhi,rhoi,fokq
 
   save
 
@@ -2049,22 +2049,18 @@ subroutine synuthck
 !  FOCUSSING
 !-----------------------------------------------------------------------
 100   if(kz1 == 7) then
-        do j=1,napx
-          fokqv(j) = ek(l)
-        end do
-        ih1 = 1
-        ih2 = 2
+        fokq = one
+        ih1  = 1
+        ih2  = 2
       else
 !  COMBINED FUNCTION MAGNET VERTICAL
-        do j=1,napx
-          fokqv(j) = -ek(l)
-        end do
-        ih1 = 2
-        ih2 = 1
+        fokq = -one
+        ih1  = 2
+        ih2  = 1
       end if
       do j=1,napx
         wf   = ed(l)/dpsq(j)
-        fok  = fokqv(j)/dpd(j)-wf**2
+        fok  = (fokq*ek(l))/dpd(j)-wf**2
         afok = abs(fok)
         hi   = sqrt(afok)
         fi   = hi*el(l)
