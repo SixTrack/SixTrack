@@ -611,20 +611,20 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-  case("AMPLITUDE")
-    if(nSplit /= 3) then
-      write(lerr,"(a,i0)") "SIMU> ERROR AMPLITUDE takes 2 arguments, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       AMPLITUDE start end"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), amp(1), iErr) ! End amplitude
-    call chr_cast(lnSplit(3), amp0,   iErr) ! Start amplitude
-    if(st_debug) then
-      call sixin_echoVal("amp(1)",amp(1),"SIMU",iLine)
-      call sixin_echoVal("amp0",  amp0,  "SIMU",iLine)
-    end if
-    if(iErr) return
+  ! case("AMPLITUDE")
+  !   if(nSplit /= 3) then
+  !     write(lerr,"(a,i0)") "SIMU> ERROR AMPLITUDE takes 2 arguments, got ",nSplit-1
+  !     write(lerr,"(a)")    "SIMU>       AMPLITUDE start end"
+  !     iErr = .true.
+  !     return
+  !   end if
+  !   call chr_cast(lnSplit(2), amp(1), iErr) ! End amplitude
+  !   call chr_cast(lnSplit(3), amp0,   iErr) ! Start amplitude
+  !   if(st_debug) then
+  !     call sixin_echoVal("amp(1)",amp(1),"SIMU",iLine)
+  !     call sixin_echoVal("amp0",  amp0,  "SIMU",iLine)
+  !   end if
+  !   if(iErr) return
 
   case("OPTICS")
     if(nSplit /= 3) then
