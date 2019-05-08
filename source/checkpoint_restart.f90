@@ -742,7 +742,6 @@ subroutine crstart
   use mod_common_track
   use numerical_constants
 
-  use mod_hions
   use dynk,     only : dynk_enabled, dynk_crstart
   use scatter,  only : scatter_active, scatter_crstart
   use elens,    only : melens, elens_crstart

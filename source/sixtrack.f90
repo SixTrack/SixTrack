@@ -36,7 +36,6 @@ subroutine daten
   use elens,     only : elens_parseInputLine,elens_parseInputDone,elens_postInput
   use cheby,     only : cheby_parseInputLine,cheby_parseInputDone,cheby_postInput
   use aperture
-  use mod_hions
 #ifdef HASHLIB
   use mod_hash
 #endif
@@ -744,9 +743,9 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      has_hion = .true.
+      sixin_hasHION = .true.
     else
-      call hions_parseInputLine(inLine,blockLine,inErr)
+      call sixin_parseInputLineHION(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -871,7 +870,7 @@ subroutine daten
       call prror
     end if
 
-    if(.not. has_hion .and. .not. sixin_hasHION) then
+    if(sixin_hionSet .eqv. .false.) then
       ! If we don't have the HION block, we need to set some variables - default to the proton values
       zz0   = 1
       aa0   = 1
@@ -948,7 +947,7 @@ subroutine daten
     write(lerr,"(a)") "ENDE> ERROR Cannot have both a INIT block and a SIMU block at the same time"
     call prror
   end if
-  if(sixin_hasSIMU .and. has_hion) then
+  if(sixin_hasSIMU .and. sixin_hasHION) then
     write(lerr,"(a)") "ENDE> ERROR Cannot have both a HION block and a SIMU block at the same time"
     call prror
   end if
@@ -1733,7 +1732,6 @@ subroutine initialize_element(ix,lfirst)
 
   use parpro
   use parbeam
-  use mod_hions
   use mod_common
   use mod_common_main
   use mod_common_track

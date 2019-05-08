@@ -67,7 +67,6 @@ end subroutine part_applyClosedOrbit
 ! ================================================================================================ !
 subroutine part_updateRefEnergy(refEnergy)
 
-  use mod_hions
   use mod_common
   use mod_common_main
   use numerical_constants, only : one, c1m6
@@ -111,7 +110,6 @@ end subroutine part_updateRefEnergy
 ! ================================================================================================ !
 subroutine part_updatePartEnergy(refArray,updateAngle)
 
-  use mod_hions
   use mod_common
   use mod_common_track
   use mod_common_main
@@ -159,7 +157,7 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
   dpd(1:napx)      = one + dpsv(1:napx)                      ! For thick tracking
   dpsq(1:napx)     = sqrt(dpd(1:napx))                       ! For thick tracking
   oidpsv(1:napx)   = one/(one + dpsv(1:napx))
-  moidpsv(1:napx)  = mtc(1:napx)/(one + dpsv(1:napx))        ! Relative rigidity offset (mod_hions) [MV/c^2]
+  moidpsv(1:napx)  = mtc(1:napx)/(one + dpsv(1:napx))        ! Relative rigidity offset [MV/c^2]
   omoidpsv(1:napx) = ((one-mtc(1:napx))*oidpsv(1:napx))*c1e3
   rvv(1:napx)      = (ejv(1:napx)*e0f)/(e0*ejfv(1:napx))     ! Beta_0 / beta(j)
 
@@ -182,7 +180,6 @@ subroutine part_writeState(theState)
 
   use mod_units
   use parpro
-  use mod_hions
   use mod_common
   use mod_common_main
   use mod_settings

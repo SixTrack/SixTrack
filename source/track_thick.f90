@@ -488,7 +488,6 @@ subroutine thck4d(nthinerr)
 
   use mod_settings
   use mod_meta
-  use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -1144,7 +1143,6 @@ subroutine thck6d(nthinerr)
 
   use mod_meta
   use mod_settings
-  use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro

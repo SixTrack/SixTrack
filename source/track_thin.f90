@@ -511,7 +511,6 @@ subroutine thin4d(nthinerr)
 #endif
 
   use mod_meta
-  use mod_hions
   use mod_settings
   use postprocessing, only : writebin
   use crcoall
@@ -1114,7 +1113,6 @@ subroutine thin6d(nthinerr)
   use dump,       only : dump_linesFirst, dump_lines, ldumpfront
   use mod_ffield, only : ffindex,ffield_genAntiQuad,ffield_enterQuad,ffield_exitQuad,ffield_enabled
   use aperture
-  use mod_hions
   use mod_settings
   use mod_meta
   use mod_time

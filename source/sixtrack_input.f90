@@ -18,6 +18,8 @@ module sixtrack_input
   logical, public,  save :: sixin_hasINIT = .false.
   logical, public,  save :: sixin_hasHION = .false.
 
+  logical, public,  save :: sixin_hionSet = .false.
+
   ! Record of encountered blocks
   character(len=:), allocatable, private, save :: sixin_cBlock(:) ! Name of block
   integer,          allocatable, private, save :: sixin_uBlock(:) ! Unit of block
@@ -533,7 +535,6 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   use crcoall
   use string_tools
   use mod_settings
-  use mod_hions
   use mod_common
   use mod_commons
   use mod_common_track
@@ -639,7 +640,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       call sixin_echoVal("ref_mass",nucm0,"SIMU",iLine)
     end if
     if(iErr) return
-    sixin_hasHION = .true.
+    sixin_hionSet = .true.
 
   case("REF_AZQ")
     if(nSplit < 4) then
@@ -657,7 +658,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       call sixin_echoVal("charge",int(qq0),"SIMU",iLine)
     end if
     if(iErr) return
-    sixin_hasHION = .true.
+    sixin_hionSet = .true.
 
   ! case("AMPLITUDE")
   !   if(nSplit /= 3) then
@@ -1211,6 +1212,46 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
   end select
 
 end subroutine sixin_parseInputLineINIT
+
+subroutine sixin_parseInputLineHION(inLine, iLine, iErr)
+
+  use crcoall
+  use string_tools
+  use mod_common
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(inout) :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit
+  logical spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lerr,"(a)") "HIONS> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  if(nSplit == 0) return
+
+  if(iLine > 1) then
+    write(lout,"(a)") "HIONS> WARNING Only expected one input line."
+  end if
+
+  if(nSplit /= 3) then
+    write(lerr,"(a,i0)") "HIONS> ERROR Line must have 3 values, got ",nSplit
+    iErr = .true.
+    return
+  end if
+
+  call chr_cast(lnSplit(1),aa0,  iErr)
+  call chr_cast(lnSplit(2),zz0,  iErr)
+  call chr_cast(lnSplit(3),nucm0,iErr)
+
+  nucm0 = nucm0*c1e3 ! [GeV/c^2] -> [MeV/c^2]
+
+end subroutine sixin_parseInputLineHION
 
 ! ================================================================================================ !
 !  Parse Tracking Parameters Line

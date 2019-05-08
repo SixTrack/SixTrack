@@ -821,7 +821,6 @@ subroutine scatter_thin(iElem, ix, turn)
   use string_tools
   use crcoall
   use mod_time
-  use mod_hions
   use mod_alloc
   use mod_common
   use mod_particles

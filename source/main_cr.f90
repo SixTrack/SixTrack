@@ -61,7 +61,6 @@ program maincr
   use mod_commons
   use mod_common_track
 
-  use mod_hions
   use mod_dist
   use matrix_inv
   use aperture

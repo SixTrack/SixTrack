@@ -22,7 +22,6 @@ module collimation
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  use mod_hions
   use mod_alloc
   use mod_units
 !  use mod_ranecu

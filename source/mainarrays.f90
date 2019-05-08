@@ -185,7 +185,6 @@ end subroutine expand_thickarrays
 subroutine shuffleLostParticles
 
   use floatPrecision
-  use mod_hions
   use mod_common
   use mod_common_track
   use mod_common_main
