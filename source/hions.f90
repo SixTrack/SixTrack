@@ -17,7 +17,6 @@ module mod_hions
   logical, save :: has_hion = .false.
 
   ! Rest mass of the reference ion species
-  real(kind=fPrec), save :: nucm0 = pmap
   real(kind=fPrec), save :: nucmda
 
   ! ien0,ien1: ion energy entering/leaving the collimator
@@ -32,12 +31,6 @@ module mod_hions
 
   ! Relative mass to charge ratio
   real(kind=fPrec), allocatable, save :: mtc(:) !(npart)
-
-  ! Nucleon number of the reference ion species
-  integer(kind=int16), save :: aa0 = 1
-
-  ! Charge multiplicity of the reference ion species
-  integer(kind=int16), save :: zz0 = 1
 
   integer(kind=int16), save :: nnuc0
   integer(kind=int16), save :: nnuc1
@@ -71,6 +64,7 @@ contains
 subroutine hions_expand_arrays(npart_new)
 
   use mod_alloc
+  use mod_common
 
   integer, intent(in) :: npart_new
 
@@ -88,6 +82,7 @@ subroutine hions_parseInputLine(inLine, iLine, iErr)
 
   use crcoall
   use string_tools
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -126,7 +121,7 @@ end subroutine hions_parseInputLine
 subroutine hions_postInput
 
   use crcoall
-  use mod_common, only : pma
+  use mod_common
 
   if(.not. has_hion) then
     ! If we don't have the HION block, we need to set some variables - default to the proton values
@@ -186,6 +181,7 @@ subroutine hions_crcheck_readdata(fileUnit, readErr)
   use parpro
   use crcoall
   use mod_alloc
+  use mod_common
 
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: readErr

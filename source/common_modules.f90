@@ -120,6 +120,8 @@ module mod_common
   use floatPrecision
   use physical_constants
   use numerical_constants
+  use physical_constants, only : pmap
+  use, intrinsic :: iso_fortran_env, only : int16
 
   implicit none
 
@@ -342,7 +344,11 @@ module mod_common
   integer,          save :: nordm      = 0
 
   ! Reference Particle
-  real(kind=fPrec), save :: e0         = zero ! Reference energy
+  real(kind=fPrec),    save :: e0      = zero ! Reference energy
+  real(kind=fPrec),    save :: nucm0   = pmap ! Reference mass
+  integer(kind=int16), save :: aa0     = 1    ! Reference nucleon number
+  integer(kind=int16), save :: zz0     = 1    ! Reference charge multiplicity
+  integer(kind=int16), save :: qq0     = 1    ! Reference charge
 
   ! Tracking Particles
   real(kind=fPrec), save :: ej(mpa)    = zero ! Particle energy
