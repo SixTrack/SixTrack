@@ -346,6 +346,7 @@ module mod_common
   ! Reference Particle
   real(kind=fPrec),    save :: e0      = zero ! Reference energy [MeV]
   real(kind=fPrec),    save :: nucm0   = pmap ! Reference mass [MeV/c^2]
+  real(kind=fPrec),    save :: nucmda  = pmap ! Reference mass [MeV/c^2] (DA)
   integer(kind=int16), save :: aa0     = 1    ! Reference nucleon number
   integer(kind=int16), save :: zz0     = 1    ! Reference charge multiplicity
   integer(kind=int16), save :: qq0     = 1    ! Reference charge
@@ -834,6 +835,7 @@ module mod_common_main
   use parpro
   use floatPrecision
   use numerical_constants
+  use, intrinsic :: iso_fortran_env, only : int16
 
   implicit none
 
@@ -887,9 +889,18 @@ module mod_common_main
   real(kind=fPrec), allocatable, save :: dpd(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: dpsq(:)      ! (npart)
   real(kind=fPrec), allocatable, save :: oidpsv(:)    ! (npart)
+  real(kind=fPrec), allocatable, save :: moidpsv(:)   ! (npart) Relative rigidity offset
+  real(kind=fPrec), allocatable, save :: omoidpsv(:)  ! (npart) Relative rigidity offset
   real(kind=fPrec), allocatable, save :: ampv(:)      ! (npart)
   real(kind=fPrec), allocatable, save :: aperv(:,:)   ! (npart,2)
+  real(kind=fPrec), allocatable, save :: nucm(:)      ! (npart)
+  real(kind=fPrec), allocatable, save :: mtc(:)       ! (npart)
 
+  integer(kind=int16), allocatable, save :: naa(:)    ! (npart)
+  integer(kind=int16), allocatable, save :: nzz(:)    ! (npart)
+  integer(kind=int16), allocatable, save :: nqq(:)    ! (npart)
+
+  integer,          allocatable, save :: pids(:)      ! (npart)
   integer,          allocatable, save :: iv(:)        ! (npart)
 
   ! Main 3
@@ -918,6 +929,7 @@ contains
 subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
   use mod_alloc
+  use mod_common, only : nucm0, aa0, zz0, qq0
   use numerical_constants, only : zero, one
 
   implicit none
@@ -927,7 +939,6 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
   integer :: nblz_prev  = -2
   integer :: npart_prev = -2
-
 
   if(nblz_new /= nblz_prev) then
     call alloc(smiv,             nblz_new,       zero,    "smiv")
@@ -966,6 +977,14 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
     call alloc(dpd,              npart_new,      zero,    "dpd")
     call alloc(dpsq,             npart_new,      zero,    "dpsq")
     call alloc(oidpsv,           npart_new,      one,     "oidpsv")
+    call alloc(moidpsv,          npart_new,      one,     "moidpsv")
+    call alloc(omoidpsv,         npart_new,      zero,    "omoidpsv")
+    call alloc(nucm,             npart_new,      zero,    "nucm")
+    call alloc(mtc,              npart_new,      nucm0,   "mtc")
+    call alloc(naa,              npart_new,      aa0,     "naa")
+    call alloc(nzz,              npart_new,      zz0,     "nzz")
+    call alloc(nqq,              npart_new,      qq0,     "nqq")
+    call alloc(pids,             npart_new,      0,       "pids")
     call alloc(ampv,             npart_new,      zero,    "ampv")
     call alloc(aperv,            npart_new, 2,   zero,    "aperv")
     call alloc(iv,               npart_new,      0,       "iv")
