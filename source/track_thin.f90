@@ -2096,7 +2096,7 @@ subroutine trackReport(n)
   logical           :: isFirst   = .true.
 
   if(isFirst) then
-    if(ithick == 0) then
+    if(ithick == 1) then
       trackMode = "Thick"
     else
       trackMode = "Thin"
