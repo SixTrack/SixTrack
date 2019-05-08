@@ -15,6 +15,8 @@ module sixtrack_input
   ! Block Presence
   logical, public,  save :: sixin_hasSIMU = .false.
   logical, public,  save :: sixin_hasTRAC = .false.
+  logical, public,  save :: sixin_hasINIT = .false.
+  logical, public,  save :: sixin_hasHION = .false.
 
   ! Record of encountered blocks
   character(len=:), allocatable, private, save :: sixin_cBlock(:) ! Name of block
@@ -531,6 +533,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   use crcoall
   use string_tools
   use mod_settings
+  use mod_hions
   use mod_common
   use mod_commons
   use mod_common_track
@@ -610,6 +613,51 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       call sixin_echoVal("nturnr",numlr,"SIMU",iLine)
     end if
     if(iErr) return
+
+  case("REF_ENERGY")
+    if(nSplit < 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR REF_ENERGY takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       REF_ENERGY energy[MeV]"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),e0,iErr)
+    if(st_debug) then
+      call sixin_echoVal("ref_energy",e0,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("REF_MASS")
+    if(nSplit < 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR REF_MASS takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       REF_MASS mass[MeV]"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),nucm0,iErr)
+    if(st_debug) then
+      call sixin_echoVal("ref_mass",nucm0,"SIMU",iLine)
+    end if
+    if(iErr) return
+    sixin_hasHION = .true.
+
+  case("REF_AZQ")
+    if(nSplit < 4) then
+      write(lerr,"(a,i0)") "SIMU> ERROR REF_AZQ takes 3 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       REF_AZQ A Z charge"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),aa0,iErr)
+    call chr_cast(lnSplit(3),zz0,iErr)
+    call chr_cast(lnSplit(4),qq0,iErr)
+    if(st_debug) then
+      call sixin_echoVal("A",     int(aa0),"SIMU",iLine)
+      call sixin_echoVal("Z",     int(zz0),"SIMU",iLine)
+      call sixin_echoVal("charge",int(qq0),"SIMU",iLine)
+    end if
+    if(iErr) return
+    sixin_hasHION = .true.
 
   ! case("AMPLITUDE")
   !   if(nSplit /= 3) then

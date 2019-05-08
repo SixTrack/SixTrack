@@ -344,8 +344,8 @@ module mod_common
   integer,          save :: nordm      = 0
 
   ! Reference Particle
-  real(kind=fPrec),    save :: e0      = zero ! Reference energy
-  real(kind=fPrec),    save :: nucm0   = pmap ! Reference mass
+  real(kind=fPrec),    save :: e0      = zero ! Reference energy [MeV]
+  real(kind=fPrec),    save :: nucm0   = pmap ! Reference mass [MeV/c^2]
   integer(kind=int16), save :: aa0     = 1    ! Reference nucleon number
   integer(kind=int16), save :: zz0     = 1    ! Reference charge multiplicity
   integer(kind=int16), save :: qq0     = 1    ! Reference charge

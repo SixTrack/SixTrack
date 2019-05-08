@@ -118,32 +118,6 @@ subroutine hions_parseInputLine(inLine, iLine, iErr)
 
 end subroutine hions_parseInputLine
 
-subroutine hions_postInput
-
-  use crcoall
-  use mod_common
-
-  if(.not. has_hion) then
-    ! If we don't have the HION block, we need to set some variables - default to the proton values
-    zz0   = 1
-    aa0   = 1
-    nucm0 = pma
-    write(lout,"(a)")        "HION> No HION block found. Defaulting to the proton values: "
-    write(lout,"(a,i0)")     "HION>  * Z = ",zz0
-    write(lout,"(a,i0)")     "HION>  * A = ",aa0
-    write(lout,"(a,e22.15)") "HION>  * M = ",nucm0
-  end if
-
-  ! Init arrays
-  mtc(:)      = one
-  naa(:)      = aa0
-  nzz(:)      = zz0
-  nucm(:)     = nucm0
-  moidpsv(:)  = one
-  omoidpsv(:) = zero
-
-end subroutine hions_postInput
-
 #ifdef CR
 subroutine hions_crpoint(fileUnit, writeErr)
 

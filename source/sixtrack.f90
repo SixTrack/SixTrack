@@ -346,7 +346,7 @@ subroutine daten
 
   case("INIT") ! Initial Coordinates
     if(openBlock) then
-      continue
+      sixin_hasINIT = .true.
     elseif(closeBlock) then
       dp1 = exz(1,6)
     else
@@ -871,7 +871,25 @@ subroutine daten
       call prror
     end if
 
-    call hions_postInput
+    if(.not. has_hion .and. .not. sixin_hasHION) then
+      ! If we don't have the HION block, we need to set some variables - default to the proton values
+      zz0   = 1
+      aa0   = 1
+      nucm0 = pma
+      write(lout,"(a)")        "ENDE> No HION block found. Defaulting to the proton values: "
+      write(lout,"(a,i0)")     "ENDE>  * Z = ",zz0
+      write(lout,"(a,i0)")     "ENDE>  * A = ",aa0
+      write(lout,"(a,e22.15)") "ENDE>  * M = ",nucm0
+    end if
+  
+    ! Init arrays
+    mtc(:)      = one
+    naa(:)      = aa0
+    nzz(:)      = zz0
+    nucm(:)     = nucm0
+    moidpsv(:)  = one
+    omoidpsv(:) = zero
+
     gammar = nucm0/e0
     betrel = sqrt((one+gammar)*(one-gammar))
     e0f    = sqrt(e0**2-nucm0**2)
@@ -924,6 +942,14 @@ subroutine daten
 
   if(sixin_hasSIMU .and. sixin_hasTRAC) then
     write(lerr,"(a)") "ENDE> ERROR Cannot have both a TRAC block and a SIMU block at the same time"
+    call prror
+  end if
+  if(sixin_hasSIMU .and. sixin_hasINIT) then
+    write(lerr,"(a)") "ENDE> ERROR Cannot have both a INIT block and a SIMU block at the same time"
+    call prror
+  end if
+  if(sixin_hasSIMU .and. has_hion) then
+    write(lerr,"(a)") "ENDE> ERROR Cannot have both a HION block and a SIMU block at the same time"
     call prror
   end if
 
