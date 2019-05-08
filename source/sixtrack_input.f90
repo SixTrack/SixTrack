@@ -3,7 +3,7 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2018-05-18
-!  Updated: 2019-04-24
+!  Updated: 2019-05-08
 ! ================================================================================================ !
 module sixtrack_input
 
@@ -1213,6 +1213,11 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
 
 end subroutine sixin_parseInputLineINIT
 
+! ================================================================================================ !
+!  Parse Heavy Ions Parameters Line
+!  Moved from hions module
+!  Last modified: 2018-06-xx
+! ================================================================================================ !
 subroutine sixin_parseInputLineHION(inLine, iLine, iErr)
 
   use crcoall
@@ -1250,6 +1255,7 @@ subroutine sixin_parseInputLineHION(inLine, iLine, iErr)
   call chr_cast(lnSplit(3),nucm0,iErr)
 
   nucm0 = nucm0*c1e3 ! [GeV/c^2] -> [MeV/c^2]
+  sixin_hionSet = .true.
 
 end subroutine sixin_parseInputLineHION
 
