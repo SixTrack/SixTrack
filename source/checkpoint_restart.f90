@@ -67,8 +67,6 @@ module checkpoint_restart
   real(kind=fPrec), allocatable, private, save :: crdpsv1(:)    ! (npart)
   real(kind=fPrec), allocatable, private, save :: crejv(:)      ! (npart)
   real(kind=fPrec), allocatable, private, save :: crejfv(:)     ! (npart)
-  real(kind=fPrec), allocatable, private, save :: crmoidpsv(:)  ! (npart)
-  real(kind=fPrec), allocatable, private, save :: cromoidpsv(:) ! (npart)
   real(kind=fPrec), allocatable, private, save :: craperv(:,:)  ! (npart,2)
   real(kind=fPrec), allocatable, private, save :: crnucm(:)     ! (npart)
   real(kind=fPrec), allocatable, private, save :: crmtc(:)      ! (npart)
@@ -185,8 +183,6 @@ subroutine cr_expand_arrays(npart_new)
   call alloc(crdpsv1,    npart_new,    zero,    "crdpsv1")
   call alloc(crejv,      npart_new,    zero,    "crejv")
   call alloc(crejfv,     npart_new,    zero,    "crejfv")
-  call alloc(crmoidpsv,  npart_new,    one,     "crmoidpsv")
-  call alloc(cromoidpsv, npart_new,    zero,    "cromoidpsv")
   call alloc(crnucm,     npart_new,    nucm0,   "crnucm")
   call alloc(crmtc,      npart_new,    one,     "crmtc")
   call alloc(crnaa,      npart_new,    aa0,     "crnaa")
@@ -405,8 +401,6 @@ subroutine crcheck
       (crdpsv1(j),   j=1,crnapxo),       &
       (crejv(j),     j=1,crnapxo),       &
       (crejfv(j),    j=1,crnapxo),       &
-      (crmoidpsv(j), j=1,crnapxo),       &
-      (cromoidpsv(j),j=1,crnapxo),       &
       (crnucm(j),    j=1,crnapxo),       &
       (crmtc(j),     j=1,crnapxo),       &
       (crnaa(j),     j=1,crnapxo),       &
@@ -646,8 +640,6 @@ subroutine crpoint
       (dpsv1(j),   j=1,napxo),       &
       (ejv(j),     j=1,napxo),       &
       (ejfv(j),    j=1,napxo),       &
-      (moidpsv(j), j=1,napxo),       &
-      (omoidpsv(j),j=1,napxo),       &
       (nucm(j),    j=1,napxo),       &
       (mtc(j),     j=1,napxo),       &
       (naa(j),     j=1,napxo),       &
@@ -775,33 +767,31 @@ subroutine crstart
   write(crlog,"(a)") "CR_START> Loading tracking data"
   flush(crlog)
 
-  partID(1:napxo)    = crpartID(1:napxo)
-  parentID(1:napxo)  = crparentID(1:napxo)
-  pstop(1:napxo)     = crpstop(1:napxo)
-  llostp(1:napxo)    = crllostp(1:napxo)
+  partID(1:napxo)   = crpartID(1:napxo)
+  parentID(1:napxo) = crparentID(1:napxo)
+  pstop(1:napxo)    = crpstop(1:napxo)
+  llostp(1:napxo)   = crllostp(1:napxo)
 
-  xv1(1:napxo)       = crxv1(1:napxo)
-  yv1(1:napxo)       = cryv1(1:napxo)
-  xv2(1:napxo)       = crxv2(1:napxo)
-  yv2(1:napxo)       = cryv2(1:napxo)
-  sigmv(1:napxo)     = crsigmv(1:napxo)
+  xv1(1:napxo)      = crxv1(1:napxo)
+  yv1(1:napxo)      = cryv1(1:napxo)
+  xv2(1:napxo)      = crxv2(1:napxo)
+  yv2(1:napxo)      = cryv2(1:napxo)
+  sigmv(1:napxo)    = crsigmv(1:napxo)
 
-  dpsv(1:napxo)      = crdpsv(1:napxo)
-  dpsv1(1:napxo)     = crdpsv1(1:napxo)
-  ejv(1:napxo)       = crejv(1:napxo)
-  ejfv(1:napxo)      = crejfv(1:napxo)
+  dpsv(1:napxo)     = crdpsv(1:napxo)
+  dpsv1(1:napxo)    = crdpsv1(1:napxo)
+  ejv(1:napxo)      = crejv(1:napxo)
+  ejfv(1:napxo)     = crejfv(1:napxo)
 
-  moidpsv(1:napxo)   = crmoidpsv(1:napxo)
-  omoidpsv(1:napxo)  = cromoidpsv(1:napxo)
-  nucm(1:napxo)      = crnucm(1:napxo)
-  mtc(1:napxo)       = crmtc(1:napxo)
-  naa(1:napxo)       = crnaa(1:napxo)
-  nzz(1:napxo)       = crnzz(1:napxo)
-  nqq(1:napxo)       = crnqq(1:napxo)
-  pids(1:napxo)      = crpids(1:napxo)
+  nucm(1:napxo)     = crnucm(1:napxo)
+  mtc(1:napxo)      = crmtc(1:napxo)
+  naa(1:napxo)      = crnaa(1:napxo)
+  nzz(1:napxo)      = crnzz(1:napxo)
+  nqq(1:napxo)      = crnqq(1:napxo)
+  pids(1:napxo)     = crpids(1:napxo)
 
-  numxv(1:napxo)     = crnumxv(1:napxo)
-  nnumxv(1:napxo)    = crnnumxv(1:napxo)
+  numxv(1:napxo)    = crnumxv(1:napxo)
+  nnumxv(1:napxo)   = crnnumxv(1:napxo)
   do j=1,napxo
     if(pstop(j) .eqv. .false.) then
       numxv(j)  = numl
@@ -809,9 +799,11 @@ subroutine crstart
     end if
   end do
 
-  ! Recompute from loaded arrays
-  oidpsv(1:napxo) = one/(one + dpsv(1:napxo))
-  rvv(1:napxo)    = (ejv(1:napxo)*e0f)/(e0*ejfv(1:napxo))
+  ! Recompute from loaded arrays (keep in sync with mod_particles)
+  oidpsv(1:napxo)   = one/(one + dpsv(1:napxo))
+  moidpsv(1:napxo)  = mtc(1:napxo)/(one + dpsv(1:napxo))
+  omoidpsv(1:napxo) = ((one-mtc(1:napxo))*oidpsv(1:napxo))*c1e3
+  rvv(1:napxo)      = (ejv(1:napxo)*e0f)/(e0*ejfv(1:napxo))
 
   ! Recompute the thick arrays
   if(ithick == 1) call synuthck
