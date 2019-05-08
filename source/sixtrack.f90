@@ -326,7 +326,7 @@ subroutine daten
 
   case("SIMU") ! Simulation Block
     if(openBlock) then
-      continue
+      sixin_hasSIMU = .true.
     elseif(closeBlock) then
       continue
     else

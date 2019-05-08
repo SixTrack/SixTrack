@@ -20,30 +20,35 @@ module sixtrack_input
   integer,                       private, save :: sixin_nBlock    ! Number of blocks
 
   ! Linear Optics Variables
-  integer,                       private, save :: sixin_ilin0 = 1
+  integer,          private, save :: sixin_ilin0 = 1
 
   ! Synchrotron Oscillations
-  real(kind=fPrec),              public,  save :: sixin_alc  = c1m3
-  real(kind=fPrec),              public,  save :: sixin_harm = one
-  real(kind=fPrec),              public,  save :: sixin_phag = zero
-  real(kind=fPrec),              public,  save :: sixin_u0   = zero
+  real(kind=fPrec), public,  save :: sixin_alc  = c1m3
+  real(kind=fPrec), public,  save :: sixin_harm = one
+  real(kind=fPrec), public,  save :: sixin_phag = zero
+  real(kind=fPrec), public,  save :: sixin_u0   = zero
 
   ! Multipole Coefficients
-  integer,                       private, save :: sixin_im = 0
+  integer,          private, save :: sixin_im = 0
 
   ! RF-multipoles
-  integer,                       private, save :: sixin_rfm = 0
+  integer,          private, save :: sixin_rfm = 0
 
   ! Beam-Beam Elements
-  real(kind=fPrec),              public,  save :: sixin_emitNX = zero
-  real(kind=fPrec),              public,  save :: sixin_emitNY = zero
+  real(kind=fPrec), public,  save :: sixin_emitNX = zero
+  real(kind=fPrec), public,  save :: sixin_emitNY = zero
 
   ! "Phase Trombone" Element
-  integer,                       private, save :: sixin_imtr0 = 0
+  integer,          private, save :: sixin_imtr0 = 0
 
   ! Settings
-  logical,                       private, save :: sixin_forcePartSummary = .false.
-  logical,                       private, save :: sixin_forceWriteFort12 = .false.
+  logical,          private, save :: sixin_forcePartSummary = .false.
+  logical,          private, save :: sixin_forceWriteFort12 = .false.
+
+  ! Simulation Block
+  logical,          public,  save :: sixin_hasSIMU   = .false.
+  integer,          public,  save :: sixin_simuThick = -1
+  integer,          public,  save :: sixin_simuDim   = -1
 
   interface sixin_echoVal
     module procedure sixin_echoVal_int
@@ -519,6 +524,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   use string_tools
   use mod_settings
   use mod_common
+  use mod_common_track
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -620,6 +626,44 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       call sixin_echoVal("optics_end",  niu(2),"SIMU",iLine)
     end if
     if(iErr) return
+
+  case("LATTICE")
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "SIMU> ERROR LATTICE takes 2 arguments, got",nSplit-1
+      write(lerr,"(a)")    "SIMU>       LATTICE thin|thick 4D|6D"
+      iErr = .true.
+      return
+    end if
+    select case(chr_toLower(lnSplit(2)))
+    case("thin")
+      if(ithick == 1) then
+        write(lerr,"(a)") "SIMU> ERROR Geometry mismatch. Asked for thin tracking on a thick geometry input file."
+        iErr = .true.
+        return
+      end if
+      sixin_simuThick = 0
+    case("thick")
+      if(ithick /= 1) then
+        write(lerr,"(a)") "SIMU> ERROR Geometry mismatch. Asked for thick tracking on a thin geometry input file."
+        iErr = .true.
+        return
+      end if
+      sixin_simuThick = 1
+    case default
+      write(lerr,"(a)") "SIMU> ERROR Unknown lattice structure '"//trim(lnSplit(2))//"'"
+      iErr = .true.
+      return
+    end select
+    select case(chr_toUpper(lnSplit(3)))
+    case("4D")
+      sixin_simuDim = 4
+    case("6D")
+      sixin_simuDim = 6
+    case default
+      write(lerr,"(a)") "SIMU> ERROR Unknown dimension '"//trim(lnSplit(3))//"'"
+      iErr = .true.
+      return
+    end select
 
   case("CRPOINT")
     if(nSplit /= 2) then

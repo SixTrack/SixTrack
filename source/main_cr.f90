@@ -11,13 +11,15 @@
 ! ============================================================================ !
 program maincr
 
+  use, intrinsic :: iso_fortran_env, only : output_unit, error_unit
+
   use floatPrecision
   use mod_units
   use string_tools
+  use sixtrack_input
   use mathlib_bouncer
   use physical_constants
   use numerical_constants
-  use sixtrack_input, only : sixin_commandLine
 
   use dynk,    only : dynk_izuIndex
   use fma,     only : fma_postpr, fma_flag
@@ -25,7 +27,6 @@ program maincr
   use zipf,    only : zipf_numfiles, zipf_dozip
   use scatter, only : scatter_init
 
-  use, intrinsic :: iso_fortran_env, only : output_unit, error_unit
   use mod_meta
   use mod_time
   use aperture
@@ -37,11 +38,11 @@ program maincr
   use postprocessing, only : postpr, writebin_header, writebin
   use read_write,     only : writeFort12, readFort13, readFort33
   use collimation,    only : do_coll, collimate_init, collimate_exit
+  use mod_ffield,     only :ffield_mod_init,ffield_mod_end
 
 #ifdef FLUKA
   use mod_fluka
 #endif
-  use mod_ffield,     only :ffield_mod_init,ffield_mod_end
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -262,15 +263,25 @@ program maincr
   end if
 #endif
 
-  if(ithick == 1) call allocate_thickarrays
+  if(sixin_hasSIMU .and. sixin_simuThick /= ithick) then
+    write(lout,"(a)") "MAINCR> ERROR Lattice format either not defined in SIMU block, or does not match the strcuture file."
+    call prror
+  end if
+  if(ithick == 1) then
+    write(lout,"(a)") "MAINCR> Structure input file has thick linear elements"
+    call allocate_thickarrays
+  elseif(ithick == 0) then
+    write(lout,"(a)") "MAINCR> Structure input file has thin linear elements"
+  else
+    write(lout,"(a)") "MAINCR> ERROR Unkown structure format. This is a bug."
+    call prror
+  end if
 
 #ifdef CR
   cr_checkp = .true.
   call crcheck
   call time_timeStamp(time_afterCRCheck)
 #endif
-  if(ithick == 1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
-  if(ithick == 0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
 
   call scatter_init
   call aperture_init
