@@ -26,14 +26,14 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
 \begin{tabular}{@{}llp{0.7\linewidth}}
     \textbf{Keyword}    & \texttt{SIMU}\index{SIMU} &\\
     \textbf{Data lines} & Variable &\\
-    \textbf{Format}     & Name/value format. See Table~\ref{Table:SIMU}.
+    \textbf{Format}     & Keyword/value format. See Table~\ref{Table:SIMU}.
 \end{tabular}
 
 \begin{center}
 \setlength\LTleft{0pt}
 \setlength\LTright{0pt}
 \begin{longtable}{@{\extracolsep{\fill}}|l|p{10cm}|l|}
-    \caption{Available function types in the SIMU block.}
+    \caption{Available arguents in the SIMU block.}
     \label{Table:SIMU} \\*
     \hline
     \rowcolor{blue!30}
@@ -155,10 +155,10 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         Initialise closed orbit.
-        This can be called either with a flag, in which case it turns on or off the reading of a closed orbit suggestion from file \texttt{fort.33}, or it can provide 4 or 6 values for the closed orbit suggestion.
+        This keyword can be called either with a flag, in which case it turns on or off the reading of a closed orbit suggestion from file \texttt{fort.33}, or it can provide 4 or 6 values for the closed orbit suggestion.
         If omitted, the values are initialised to zero, and the 4D closed orbit is used to seed the first four values of the 6D closed orbit.
         These settings are ignored when running in 4D.
-        \index{closed orbit}\texttt{6D}
+        \index{closed orbit}\index{6D}
     } \\*
     \hline
 
@@ -172,6 +172,8 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         Read the particle distribution from file \texttt{fort.13}.
         This file is not intended for reading an initial distribution, but for continuing tracking from a previous simulation from a \texttt{fort.12} file.
+
+        Note that if the file is used as an input file for the initial distribution, the closed orbit is not added, even if requested with the \texttt{ADD\_CLORB} flag.
         \index{fort.13}\index{fort.12}
     } \\*
     \hline
@@ -191,7 +193,7 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         How often, in terms of turns, to write to the tracking files on unit 90 and lower (see Appendix~\ref{Files}).
-        The \texttt{rewind} flag specifies whether or not to rewind the tracking files on each write.
+        The optional \texttt{rewind} flag specifies whether or not to rewind the tracking files on each write.
         \index{singletrackfile}\index{trackfiles}
     } \\*
     \hline
