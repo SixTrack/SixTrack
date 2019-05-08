@@ -732,6 +732,10 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       idfor = 1 ! Leave unchanged
       sixin_simuAddClorb = .false.
     end if
+    if(st_debug) then
+      call sixin_echoVal("add_clorb",sixin_simuAddClorb,"SIMU",iLine)
+    end if
+    if(iErr) return
 
   case("INIT_CLORB")
     if(nSplit /= 2 .and. nSplit /= 5 .and. nSplit /= 7) then
@@ -744,6 +748,9 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     if(nSplit == 2) then
       sixin_simuInitClorb = .false.
       call chr_cast(lnSplit(2),sixin_simuFort33,iErr)
+      if(st_debug) then
+        call sixin_echoVal("read_fort33",sixin_simuFort33,"SIMU",iLine)
+      end if
     else
       sixin_simuInitClorb = .true.
       call chr_cast(lnSplit(2),sixin_simuSetClorb(1),iErr)
@@ -754,7 +761,16 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
         call chr_cast(lnSplit(6),sixin_simuSetClorb(5),iErr)
         call chr_cast(lnSplit(7),sixin_simuSetClorb(6),iErr)
       end if
+      if(st_debug) then
+        call sixin_echoVal("init_clorb_x",    sixin_simuSetClorb(1),"SIMU",iLine)
+        call sixin_echoVal("init_clorb_xp",   sixin_simuSetClorb(2),"SIMU",iLine)
+        call sixin_echoVal("init_clorb_y",    sixin_simuSetClorb(3),"SIMU",iLine)
+        call sixin_echoVal("init_clorb_yp",   sixin_simuSetClorb(4),"SIMU",iLine)
+        call sixin_echoVal("init_clorb_sigma",sixin_simuSetClorb(5),"SIMU",iLine)
+        call sixin_echoVal("init_clorb_dpsv", sixin_simuSetClorb(6),"SIMU",iLine)
+      end if
     end if
+    if(iErr) return
 
   case("READ_FORT13")
     if(nSplit /= 2) then
@@ -768,6 +784,10 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       idfor = 2
       sixin_simuFort13 = .true.
     end if
+    if(st_debug) then
+      call sixin_echoVal("read_fort13",sixin_simuFort13,"SIMU",iLine)
+    end if
+    if(iErr) return
 
   case("WRITE_FORT12")
     if(nSplit /= 2) then
@@ -777,6 +797,10 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       return
     end if
     call chr_cast(lnSplit(2),nwr(4),iErr)
+    if(st_debug) then
+      call sixin_echoVal("write_fort12",nwr(4),"SIMU",iLine)
+    end if
+    if(iErr) return
 
   case("WRITE_TRACKS")
     if(nSplit /= 2 .and. nSplit /= 3) then
@@ -787,13 +811,67 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(2),nwri,iErr)
     if(nSplit > 2) then
-      call chr_cast(lnSplit(2),tmpLog,iErr)
+      call chr_cast(lnSplit(3),tmpLog,iErr)
       if(tmpLog) then
         irew = 0
       else
         irew = 1
       end if
     end if
+    if(st_debug) then
+      call sixin_echoVal("write_tracks", nwri,"SIMU",iLine)
+      call sixin_echoVal("rewind_tracks",irew,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("NTWIN")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR NTWIN takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       NTWIN 1|2"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),ntwin,iErr)
+    if(st_debug) then
+      call sixin_echoVal("ntwin",ntwin,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("DO_EXACT")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR DO_EXACT takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       DO_EXACT on|off"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),tmpLog,iErr)
+    if(tmpLog) then
+      iexact = 0
+    else
+      iexact = 1
+    end if
+    if(st_debug) then
+      call sixin_echoVal("do_exact",iexact,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("DO_CURVEFF")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR DO_CURVEFF takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       DO_CURVEFF on|off"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),tmpLog,iErr)
+    if(tmpLog) then
+      curveff = 0
+    else
+      curveff = 1
+    end if
+    if(st_debug) then
+      call sixin_echoVal("do_curveff",curveff,"SIMU",iLine)
+    end if
+    if(iErr) return
 
   case default
     write(lerr,"(a)") "SIMU> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
