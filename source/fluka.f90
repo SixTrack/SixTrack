@@ -198,8 +198,6 @@ subroutine kernel_fluka_element( nturn, i, ix )
       use mod_common_track
       use mod_common_main
 
-      use mod_hions
-
 #ifdef ROOT
       use root_output
 #endif
@@ -345,8 +343,6 @@ subroutine kernel_fluka_entrance( nturn, i, ix )
       use mod_common
       use mod_common_main
 
-      use mod_hions
-
       implicit none
 
 
@@ -420,8 +416,6 @@ subroutine kernel_fluka_exit( nturn, i, ix )
       use mod_common
       use mod_common_track
       use mod_common_main
-
-      use mod_hions
 
 #ifdef ROOT
       use root_output

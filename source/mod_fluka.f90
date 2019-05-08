@@ -41,6 +41,11 @@ module mod_fluka
   public :: root_FLUKA_DumpInsertions
 #endif
 
+  ! HION variables that are only used for FLUKA
+  ! ien0,ien1: ion energy entering/leaving the collimator
+  real(kind=fPrec),    public :: ien0, ien1
+  integer(kind=int16), public :: nnuc0,nnuc1
+
   ! FlukaIO Connection parameters
   character(len = 255), public  :: fluka_host
   integer, public :: fluka_port

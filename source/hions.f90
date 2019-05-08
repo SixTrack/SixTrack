@@ -13,12 +13,6 @@ module mod_hions
   ! Checking for the HION block
   logical, save :: has_hion = .false.
 
-  ! ien0,ien1: ion energy entering/leaving the collimator
-  real(kind=fPrec), save :: ien0, ien1
-
-  integer(kind=int16), save :: nnuc0
-  integer(kind=int16), save :: nnuc1
-
 contains
 
 subroutine hions_parseInputLine(inLine, iLine, iErr)
