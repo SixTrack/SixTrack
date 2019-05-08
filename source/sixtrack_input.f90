@@ -308,7 +308,7 @@ subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
   else
     write(lineNm,"(i2)") lineNo
   end if
-  write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" = '"//varVal//"'"
+  write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" = '"//trim(varVal)//"'"
 
 end subroutine sixin_echoVal_char
 
@@ -604,6 +604,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     end if
     if(nSplit > 1) call chr_cast(lnSplit(2), numl,  iErr) ! Number of turns in the forward direction
     if(nSplit > 2) call chr_cast(lnSplit(3), numlr, iErr) ! Number of turns in the backward direction
+    nnuml = numl ! Default nnuml to numl
     if(st_debug) then
       call sixin_echoVal("nturn", numl, "SIMU",iLine)
       call sixin_echoVal("nturnr",numlr,"SIMU",iLine)
@@ -887,6 +888,7 @@ subroutine sixin_postInputSIMU(iErr)
   use crcoall
   use mod_common
   use mod_common_da
+  use mod_settings
 
   logical, intent(inout) :: iErr
 
@@ -910,6 +912,11 @@ subroutine sixin_postInputSIMU(iErr)
     nsix = 0
   else
     iclo6 = 0
+  end if
+  if(st_debug) then
+    call sixin_echoVal("idfor",idfor,"SIMU",-1)
+    call sixin_echoVal("iclo6",iclo6,"SIMU",-1)
+    call sixin_echoVal("nsix", nsix, "SIMU",-1)
   end if
 
 end subroutine sixin_postInputSIMU
