@@ -263,10 +263,6 @@ program maincr
   end if
 #endif
 
-  if(sixin_hasSIMU .and. sixin_simuThick /= ithick) then
-    write(lout,"(a)") "MAINCR> ERROR Lattice format either not defined in SIMU block, or does not match the strcuture file."
-    call prror
-  end if
   if(ithick == 1) then
     write(lout,"(a)") "MAINCR> Structure input file has thick linear elements"
     call allocate_thickarrays

@@ -874,7 +874,7 @@ subroutine daten
     call hions_postInput
     gammar = nucm0/e0
     betrel = sqrt((one+gammar)*(one-gammar))
-    e0f = sqrt(e0**2-nucm0**2)
+    e0f    = sqrt(e0**2-nucm0**2)
     brho   = (e0f/(clight*c1m6))/zz0
 
     if(nbeam >= 1) then
@@ -886,16 +886,20 @@ subroutine daten
 
     if(do_coll) then
       call collimate_postInput(gammar)
-    endif
+    end if
+    if(sixin_hasSIMU) then
+      call sixin_postInputSIMU(inErr)
+      if(inErr) call prror
+    end if
 
-    !Check for incompatible flags
-    if (ipos == 1) then
+    ! Check for incompatible flags
+    if(ipos == 1) then
       if (do_coll) then
         write(lerr,'(a)') "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
         call prror
       endif
 
-      if (scatter_active) then
+      if(scatter_active) then
         write(lerr,'(a)') "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
         call prror
       endif
@@ -940,7 +944,7 @@ subroutine daten
   end if
 
   call ffield_mod_link(inErr)
-  if(inErr) goto 9999
+  if(inErr) call prror
 
   ! Done with checks. Write the report
   call sixin_blockReport

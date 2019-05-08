@@ -46,9 +46,11 @@ module sixtrack_input
   logical,          private, save :: sixin_forceWriteFort12 = .false.
 
   ! Simulation Block
-  logical,          public,  save :: sixin_hasSIMU   = .false.
-  integer,          public,  save :: sixin_simuThick = -1
-  integer,          public,  save :: sixin_simuDim   = -1
+  logical,          public,  save :: sixin_hasSIMU    = .false.
+  integer,          public,  save :: sixin_simuThick  = -1
+  integer,          public,  save :: sixin_simuDim    = -1
+  logical,          public,  save :: sixin_simuClorb  = .false.
+  logical,          public,  save :: sixin_simuFort13 = .false.
 
   interface sixin_echoVal
     module procedure sixin_echoVal_int
@@ -524,6 +526,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   use string_tools
   use mod_settings
   use mod_common
+  use mod_commons
   use mod_common_track
 
   character(len=*), intent(in)    :: inLine
@@ -531,8 +534,8 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  integer nSplit, numPart
-  logical spErr
+  integer i, nSplit, numPart
+  logical spErr, tmpLog
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -542,11 +545,14 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   end if
   if(nSplit == 0) return
 
+  ! Set a few defaults
+  idz(:) = 1  ! Set coupling to on for both planes when using this block, otherwise it's [1,0]
+
   select case(lnSplit(1))
 
   case("NPART")
     if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "SIMU> ERROR NPART takes 1 argument, got",nSplit-1
+      write(lerr,"(a,i0)") "SIMU> ERROR NPART takes 1 argument, got ",nSplit-1
       write(lerr,"(a)")    "SIMU>       NPART n_particles"
       iErr = .true.
       return
@@ -584,7 +590,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
   case("NTURN")
     if(nSplit < 2 .or. nSplit > 3) then
-      write(lerr,"(a,i0)") "SIMU> ERROR NTURN takes 1 or 2 arguments, got",nSplit-1
+      write(lerr,"(a,i0)") "SIMU> ERROR NTURN takes 1 or 2 arguments, got ",nSplit-1
       write(lerr,"(a)")    "SIMU>       NTURN forward_turns [backward_turns]"
       iErr = .true.
       return
@@ -599,7 +605,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
   case("AMPLITUDE")
     if(nSplit /= 3) then
-      write(lerr,"(a,i0)") "SIMU> ERROR AMPLITUDE takes 2 arguments, got",nSplit-1
+      write(lerr,"(a,i0)") "SIMU> ERROR AMPLITUDE takes 2 arguments, got ",nSplit-1
       write(lerr,"(a)")    "SIMU>       AMPLITUDE start end"
       iErr = .true.
       return
@@ -614,7 +620,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
   case("OPTICS")
     if(nSplit /= 3) then
-      write(lerr,"(a,i0)") "SIMU> ERROR OPTICS takes 2 arguments, got",nSplit-1
+      write(lerr,"(a,i0)") "SIMU> ERROR OPTICS takes 2 arguments, got ",nSplit-1
       write(lerr,"(a)")    "SIMU>       OPTICS first_idx last_idx"
       iErr = .true.
       return
@@ -629,7 +635,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
   case("LATTICE")
     if(nSplit /= 3) then
-      write(lerr,"(a,i0)") "SIMU> ERROR LATTICE takes 2 arguments, got",nSplit-1
+      write(lerr,"(a,i0)") "SIMU> ERROR LATTICE takes 2 arguments, got ",nSplit-1
       write(lerr,"(a)")    "SIMU>       LATTICE thin|thick 4D|6D"
       iErr = .true.
       return
@@ -667,7 +673,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
   case("CRPOINT")
     if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "SIMU> ERROR CRPOINT takes 1 argument, got",nSplit-1
+      write(lerr,"(a,i0)") "SIMU> ERROR CRPOINT takes 1 argument, got ",nSplit-1
       write(lerr,"(a)")    "SIMU>       CRPOINT frequency"
       iErr = .true.
       return
@@ -683,14 +689,83 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     end if
     if(iErr) return
 
+  case("COUPLING")
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "SIMU> ERROR COUPLING takes 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       COUPLING hor(on|off) vert(on|off)"
+      iErr = .true.
+      return
+    end if
+    do i=1,2
+      call chr_cast(lnSplit(i+1),tmpLog,iErr)
+      if(tmpLog) then
+        idz(i) = 1
+      else
+        idz(i) = 0
+      end if
+    end do
+    if(st_debug) then
+      call sixin_echoVal("idz(1)",idz(1),"SIMU",iLine)
+      call sixin_echoVal("idz(2)",idz(2),"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("ADD_CLORB")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR ADD_CLORB takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       ADD_CLORB on|off"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),tmpLog,iErr)
+    if(tmpLog) then
+      idfor = 0 ! Add closed orbit
+      sixin_simuClorb = .true.
+    else
+      idfor = 1 ! Leave unchanged
+      sixin_simuClorb = .false.
+    end if
+
+  case("READ_FORT13")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR READ_FORT13 takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       READ_FORT13 on|off"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),tmpLog,iErr)
+    if(tmpLog) then
+      idfor = 2
+      sixin_simuFort13 = .true.
+    end if
+
   case default
-    write(lerr,"(a)") "INIT> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
+    write(lerr,"(a)") "SIMU> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
     iErr = .true.
     return
 
   end select
 
 end subroutine sixin_parseInputLineSIMU
+
+subroutine sixin_postInputSIMU(iErr)
+
+  use crcoall
+  use mod_common
+
+  logical, intent(inout) :: iErr
+
+  if(sixin_hasSIMU .and. sixin_simuThick /= ithick) then
+    write(lout,"(a)") "SIMU> ERROR Lattice format either not defined in SIMU block, or does not match the strcuture file."
+    iErr = .true.
+  end if
+
+  if(sixin_simuClorb .and. sixin_simuFort13) then
+    write(lout,"(a)") "SIMU> ERROR Cannot add closed orbit when restarting from fort.13"
+    iErr = .true.
+  end if
+
+end subroutine sixin_postInputSIMU
 
 ! ================================================================================================ !
 !  Parse Displacement Block Line
