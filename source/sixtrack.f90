@@ -887,40 +887,44 @@ subroutine daten
     if(do_coll) then
       call collimate_postInput(gammar)
     end if
-    if(sixin_hasSIMU) then
-      call sixin_postInputSIMU(inErr)
-      if(inErr) call prror
-    end if
-
-    ! Check for inconsistencies for some other blocks
-
-    ! This check used to be in DIFF block parsing, but is safer to have here
-    if(iclo6 == 1 .or. iclo6 == 2) nsix = 0
-
-    ! If no write frequency set on track files, default to the number of turns + 1
-    if(nwri == 0) then
-      nwri = numl + numlr + 1
-    end if
   
     ! Check for incompatible flags
     if(ipos == 1) then
       if (do_coll) then
-        write(lerr,'(a)') "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
+        write(lerr,"(a)") "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
         call prror
       endif
 
       if(scatter_active) then
-        write(lerr,'(a)') "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
+        write(lerr,"(a)") "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
         call prror
       endif
 #ifdef FLUKA
       if (fluka_enable) then
-        write(lerr,'(a)') "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
+        write(lerr,"(a)") "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
         call prror
       endif
 #endif
     endif
 
+  end if
+
+  if(sixin_hasSIMU) then
+    call sixin_postInputSIMU(inErr)
+    if(inErr) call prror
+  end if
+
+  ! This check used to be in DIFF block parsing, but is safer to have here
+  if(iclo6 == 1 .or. iclo6 == 2) nsix = 0
+
+  ! If no write frequency set on track files, default to the number of turns + 1
+  if(nwri == 0) then
+    nwri = numl + numlr + 1
+  end if
+
+  if(sixin_hasSIMU .and. sixin_hasTRAC) then
+    write(lerr,"(a)") "ENDE> ERROR Cannot have both a TRAC block and a SIMU block at the same time"
+    call prror
   end if
 
   call elens_postInput
@@ -948,7 +952,7 @@ subroutine daten
         write(lerr,"(3(a,i5))") "ENDE> ERROR Requested ",int(parbe(j,2))," slices for 6D beam-beam element"//&
           " #",j," named '"//trim(bez(j))//"', maximum is mbea = ",mbea
         parbe(j,2) = real(mbea,fPrec)
-        call prror ! Treat this warning as an error
+        call prror
       end if
     end do
   end if
