@@ -47,17 +47,13 @@ module sixtrack_input
 
   interface sixin_echoVal
     module procedure sixin_echoVal_int
-    module procedure sixin_echoVal_real32
-    module procedure sixin_echoVal_real64
-    module procedure sixin_echoVal_real128
+    module procedure sixin_echoVal_real
     module procedure sixin_echoVal_char
     module procedure sixin_echoVal_logical
   end interface sixin_echoVal
 
   private :: sixin_echoVal_int
-  private :: sixin_echoVal_real32
-  private :: sixin_echoVal_real64
-  private :: sixin_echoVal_real128
+  private :: sixin_echoVal_real
   private :: sixin_echoVal_char
   private :: sixin_echoVal_logical
 
@@ -251,15 +247,15 @@ subroutine sixin_echoVal_int(varName, varVal, blockName, lineNo)
 
 end subroutine sixin_echoVal_int
 
-subroutine sixin_echoVal_real32(varName, varVal, blockName, lineNo)
+subroutine sixin_echoVal_real(varName, varVal, blockName, lineNo)
 
   use crcoall
   use string_tools
 
-  character(len=*),  intent(in) :: varName
-  real(kind=real32), intent(in) :: varVal
-  character(len=*),  intent(in) :: blockName
-  integer,           intent(in) :: lineNo
+  character(len=*), intent(in) :: varName
+  real(kind=fPrec), intent(in) :: varVal
+  character(len=*), intent(in) :: blockName
+  integer,          intent(in) :: lineNo
   character(len=2) :: lineNm
 
   if(lineNo == -1) then
@@ -269,53 +265,17 @@ subroutine sixin_echoVal_real32(varName, varVal, blockName, lineNo)
   else
     write(lineNm,"(i2)") lineNo
   end if
-  write(lout,"(a,e13.6)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
+#ifdef SINGLE_MATH
+  write(lout,"(a,1pe13.6)")  "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
+#endif
+#ifdef DOUBLE_MATH
+  write(lout,"(a,1pe22.15)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
+#endif
+#ifdef QUAD_MATH
+  write(lout,"(a,1pe41.34)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
+#endif
 
-end subroutine sixin_echoVal_real32
-
-subroutine sixin_echoVal_real64(varName, varVal, blockName, lineNo)
-
-  use crcoall
-  use string_tools
-
-  character(len=*),  intent(in) :: varName
-  real(kind=real64), intent(in) :: varVal
-  character(len=*),  intent(in) :: blockName
-  integer,           intent(in) :: lineNo
-  character(len=2) :: lineNm
-
-  if(lineNo == -1) then
-    lineNm = "PP"
-  else if(lineNo < 10) then
-    write(lineNm,"(i1,1x)") lineNo
-  else
-    write(lineNm,"(i2)") lineNo
-  end if
-  write(lout,"(a,e22.15)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
-
-end subroutine sixin_echoVal_real64
-
-subroutine sixin_echoVal_real128(varName, varVal, blockName, lineNo)
-
-  use crcoall
-  use string_tools
-
-  character(len=*),   intent(in) :: varName
-  real(kind=real128), intent(in) :: varVal
-  character(len=*),   intent(in) :: blockName
-  integer,            intent(in) :: lineNo
-  character(len=2) :: lineNm
-
-  if(lineNo == -1) then
-    lineNm = "PP"
-  else if(lineNo < 10) then
-    write(lineNm,"(i1,1x)") lineNo
-  else
-    write(lineNm,"(i2)") lineNo
-  end if
-  write(lout,"(a,e41.34)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
-
-end subroutine sixin_echoVal_real128
+end subroutine sixin_echoVal_real
 
 subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
 
