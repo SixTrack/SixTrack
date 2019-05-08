@@ -1,28 +1,22 @@
 ! ================================================================================================ !
 !
 !  SIXTRACK
-! =========
+! ==========
 !  SIXDIMENSIONAL PARTICLE-TRACKING
 !
 !  DIFFERENTIAL ALGEBRA INCLUDED
 !  ONE TURN MAP
 !  NO POSTPROCESSING FORSEEN
+!  NO CHECKPOINT/RESTART
 !
 !  DEVELOPPED FROM <RACETRACK> A. WRULICH (DESY 84-026)
-! ================================================================================================ !
-!  USED DISKS:
 !
-!  GEOMETRY AND STRENGTH OF THE ACCELERATOR : UNIT  2
-!  TRACKING PARAMETER                       : UNIT  3
-!  NORMAL PRINTOUT                          : UNIT  6
-!  TRACKING DATA                            : UNIT  8
 ! ================================================================================================ !
 program mainda
 
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
-  use, intrinsic :: iso_fortran_env, only : output_unit
   use crcoall
   use parpro
   use mod_common
@@ -32,10 +26,10 @@ program mainda
   use mod_units
   use mod_meta
   use mod_time
-  use mod_alloc,    only : alloc_init
-  use mod_fluc,     only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
-  use read_write,   only : readFort33
-  use mod_geometry, only : geom_reshuffleLattice
+  use mod_alloc,      only : alloc_init
+  use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
+  use read_write,     only : readFort33
+  use mod_geometry,   only : geom_reshuffleLattice
   use sixtrack_input, only : sixin_commandLine
   use mod_version
 
@@ -83,9 +77,6 @@ program mainda
   featList = featList//" FIO"
 #endif
 
-#ifndef CR
-  lout=output_unit
-#endif
   call f_initUnits
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
@@ -488,11 +479,7 @@ program mainda
   call time_finalise
   call meta_finalise
   call closeUnits
-#ifdef CR
-  call abend("Done")
-#else
   stop
-#endif
 
 10010 format(/t10,'UNCOUPLED AMPLITUDES AND EMITTANCES:',&
              /t10,'AMPLITUDE-X = ',f15.3,10x,'AMPLITUDE-Y = ',f15.3, '  MM',&
