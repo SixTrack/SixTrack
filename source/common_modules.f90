@@ -756,7 +756,7 @@ module mod_common_track
   real(kind=fPrec), save :: alf0(2)  = zero
   real(kind=fPrec), save :: clo(2)   = zero
   real(kind=fPrec), save :: clop(2)  = zero
-  integer,          save :: nwri     = 0
+  integer,          save :: nwri     = 0     ! Flag for frequency of calls to writebin. Set by nwr(3) in TRAC
 
   ! Chromaticity
   real(kind=fPrec), save :: cro(2)   = zero

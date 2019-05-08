@@ -429,8 +429,6 @@ subroutine trauthin(nthinerr)
   do j=1,napx
     dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))
   end do
-  nwri=nwr(3)
-  if(nwri.eq.0) nwri=(numl+numlr)+1
 
   if (dynk_enabled) call dynk_pretrack
   call time_timeStamp(time_afterPreTrack)
@@ -592,8 +590,8 @@ subroutine thin4d(nthinerr)
     numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR
@@ -1214,8 +1212,8 @@ subroutine thin6d(nthinerr)
     numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR

@@ -356,7 +356,7 @@ subroutine daten
 
   case("TRAC") ! Tracking Parameters
     if(openBlock) then
-      continue
+      sixin_hasTRAC = .true.
     elseif(closeBlock) then
       continue
     else
@@ -897,6 +897,11 @@ subroutine daten
     ! This check used to be in DIFF block parsing, but is safer to have here
     if(iclo6 == 1 .or. iclo6 == 2) nsix = 0
 
+    ! If no write frequency set on track files, default to the number of turns + 1
+    if(nwri == 0) then
+      nwri = numl + numlr + 1
+    end if
+  
     ! Check for incompatible flags
     if(ipos == 1) then
       if (do_coll) then

@@ -12,6 +12,10 @@ module sixtrack_input
 
   implicit none
 
+  ! Block Presence
+  logical, public,  save :: sixin_hasSIMU = .false.
+  logical, public,  save :: sixin_hasTRAC = .false.
+
   ! Record of encountered blocks
   character(len=:), allocatable, private, save :: sixin_cBlock(:) ! Name of block
   integer,          allocatable, private, save :: sixin_uBlock(:) ! Unit of block
@@ -46,7 +50,6 @@ module sixtrack_input
   logical,          private, save :: sixin_forceWriteFort12 = .false.
 
   ! Simulation Block
-  logical,          public,  save :: sixin_hasSIMU         = .false.    ! If the SIMU block exists
   logical,          public,  save :: sixin_simuThick       = .false.    ! Lattice is thick
   logical,          public,  save :: sixin_simu6D          = .false.    ! Tracking 6D
   logical,          public,  save :: sixin_simuAddClorb    = .false.    ! Add closed orbit
@@ -549,7 +552,8 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   if(nSplit == 0) return
 
   ! Set a few defaults
-  idz(:) = 1  ! Set coupling to on for both planes when using this block, otherwise it's [1,0]
+  idz(:) = 1     ! Set coupling to on for both planes when using this block, otherwise it's [1,0]
+  nwr(4) = 10000 ! How often to dump a fort.12 by default
 
   select case(lnSplit(1))
 
@@ -763,6 +767,32 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     if(tmpLog) then
       idfor = 2
       sixin_simuFort13 = .true.
+    end if
+
+  case("WRITE_FORT12")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR WRITE_FORT12 takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       WRITE_FORT12 frequency"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),nwr(4),iErr)
+
+  case("WRITE_TRACKS")
+    if(nSplit /= 2 .and. nSplit /= 3) then
+      write(lerr,"(a,i0)") "SIMU> ERROR WRITE_TRACKS takes 1 or 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       WRITE_TRACKS frequency [rewind(on|off)]"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),nwri,iErr)
+    if(nSplit > 2) then
+      call chr_cast(lnSplit(2),tmpLog,iErr)
+      if(tmpLog) then
+        irew = 0
+      else
+        irew = 1
+      end if
     end if
 
   case default
@@ -1236,6 +1266,9 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call sixin_echoVal("curveff",curveff,"TRAC",iLine)
     end if
     if(iErr) return
+
+    ! nwr(1) and nwr(2) are nor used any more, but nwr(3) goes into nwri
+    nwri = nwr(3)
 
   case default
     write(lerr,"(a,i0)") "TRAC> ERROR Unexpected line number ",iLine
