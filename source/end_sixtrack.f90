@@ -183,7 +183,13 @@ subroutine copyToStdErr(fUnit,fName,maxLines)
 
   fErr = .false.
   call f_open(unit=fUnit,file=fName,formatted=.true.,mode="r-",err=fErr,status="old")
-  if(fErr) return
+  if(fErr) then
+    ! It is crucial that we don't let f_open handle thia error and instead exit SixTrack here
+    ! since f_open will call prror on unhandled errors, which calls abend, which calls this
+    ! routine again, and sends us into an eternal loop.
+    write(error_unit,"(a)") "COPYTOERR> ERROR Critical failure while copying to stderr. Exiting."
+    stop 1
+  end if
 
   bufIdx = 0
   bufMax = 0

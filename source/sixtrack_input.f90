@@ -682,7 +682,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   case("CRPOINT")
     if(nSplit /= 2) then
       write(lerr,"(a,i0)") "SIMU> ERROR CRPOINT takes 1 argument, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       CRPOINT frequency"
+      write(lerr,"(a)")    "SIMU>       CRPOINT interval"
       iErr = .true.
       return
     end if
@@ -793,7 +793,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   case("WRITE_FORT12")
     if(nSplit /= 2) then
       write(lerr,"(a,i0)") "SIMU> ERROR WRITE_FORT12 takes 1 argument, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       WRITE_FORT12 frequency"
+      write(lerr,"(a)")    "SIMU>       WRITE_FORT12 interval"
       iErr = .true.
       return
     end if
@@ -806,7 +806,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   case("WRITE_TRACKS")
     if(nSplit /= 2 .and. nSplit /= 3) then
       write(lerr,"(a,i0)") "SIMU> ERROR WRITE_TRACKS takes 1 or 2 arguments, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       WRITE_TRACKS frequency [rewind(on|off)]"
+      write(lerr,"(a)")    "SIMU>       WRITE_TRACKS interval [rewind(on|off)]"
       iErr = .true.
       return
     end if
