@@ -243,7 +243,7 @@ subroutine sixin_echoVal_int(varName, varVal, blockName, lineNo)
   else
     write(lineNm,"(i2)") lineNo
   end if
-  write(lout,"(a,i0)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" =  ",varVal
+  write(lout,"(a,i0)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" =  ",varVal
 
 end subroutine sixin_echoVal_int
 
@@ -266,13 +266,13 @@ subroutine sixin_echoVal_real(varName, varVal, blockName, lineNo)
     write(lineNm,"(i2)") lineNo
   end if
 #ifdef SINGLE_MATH
-  write(lout,"(a,1pe13.6)")  "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
+  write(lout,"(a,1pe13.6)")  "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" = ",varVal
 #endif
 #ifdef DOUBLE_MATH
-  write(lout,"(a,1pe22.15)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
+  write(lout,"(a,1pe22.15)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" = ",varVal
 #endif
 #ifdef QUAD_MATH
-  write(lout,"(a,1pe41.34)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
+  write(lout,"(a,1pe41.34)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" = ",varVal
 #endif
 
 end subroutine sixin_echoVal_real
@@ -295,7 +295,7 @@ subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
   else
     write(lineNm,"(i2)") lineNo
   end if
-  write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = '"//varVal//"'"
+  write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" = '"//varVal//"'"
 
 end subroutine sixin_echoVal_char
 
@@ -318,9 +318,9 @@ subroutine sixin_echoVal_logical(varName, varVal, blockName, lineNo)
     write(lineNm,"(i2)") lineNo
   end if
   if(varVal) then
-    write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = True"
+    write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" = True"
   else
-    write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = False"
+    write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" = False"
   end if
 
 end subroutine sixin_echoVal_logical
@@ -539,7 +539,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   select case(lnSplit(1))
 
   case("NPART")
-    if(nSplit < 2) then
+    if(nSplit /= 2) then
       write(lerr,"(a,i0)") "SIMU> ERROR NPART takes 1 argument, got",nSplit-1
       write(lerr,"(a)")    "SIMU>       NPART n_particles"
       iErr = .true.
@@ -588,6 +588,54 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     if(st_debug) then
       call sixin_echoVal("nturn", numl, "SIMU",iLine)
       call sixin_echoVal("nturnr",numlr,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("AMPLITUDE")
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "SIMU> ERROR AMPLITUDE takes 2 arguments, got",nSplit-1
+      write(lerr,"(a)")    "SIMU>       AMPLITUDE start end"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), amp(1), iErr) ! End amplitude
+    call chr_cast(lnSplit(3), amp0,   iErr) ! Start amplitude
+    if(st_debug) then
+      call sixin_echoVal("amp(1)",amp(1),"SIMU",iLine)
+      call sixin_echoVal("amp0",  amp0,  "SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("OPTICS")
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "SIMU> ERROR OPTICS takes 2 arguments, got",nSplit-1
+      write(lerr,"(a)")    "SIMU>       OPTICS first_idx last_idx"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), niu(1), iErr) ! Optics calculation, first index
+    call chr_cast(lnSplit(3), niu(2), iErr) ! Optics calculation. last index
+    if(st_debug) then
+      call sixin_echoVal("optics_start",niu(1),"SIMU",iLine)
+      call sixin_echoVal("optics_end",  niu(2),"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("CRPOINT")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR CRPOINT takes 1 argument, got",nSplit-1
+      write(lerr,"(a)")    "SIMU>       CRPOINT frequency"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),numlcp,iErr)
+    if(numlcp < 1) then
+      write(lerr,"(a)") "SIMU> ERROR CRPOINT must be larger than 0"
+      iErr = .true.
+      return
+    end if
+    if(st_debug) then
+      call sixin_echoVal("crpoint",numlcp,"SIMU",iLine)
     end if
     if(iErr) return
 
