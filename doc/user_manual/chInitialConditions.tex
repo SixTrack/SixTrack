@@ -7,6 +7,244 @@ SixTrack is optimised to reach the largest possible number of turns.
 In order to derive the Lyapunov exponent\index{Lyapunov exponent}, and thereby to distinguish between regular and chaotic motion, the particle has a close by companion particle.
 Moreover, experience has shown that varying only the amplitude while keeping the phases constant is sufficient to understand the non-linear dynamics, as a subsequent detailed post-processing allows to find the dependence of the parameter of interest on these phases.
 
+A number of features have over time been deprecated or replaced by other modules in SixTrack.
+Therefore there are a number of parameters that are no longer in use, but nevertheless have to be set to dummy values.
+The Simulation (\texttt{SIMU}) and Distribution (\texttt{DIST}) blocks are intended to replace all of the blocks in this chapter.
+These blocks take keyword/value sets instead of blocks of numbers, and are therefore easier to maintain.
+The \texttt{SIMU} block (Section~\ref{Input:SIMU}) can currently be used to replace the \texttt{TRAC} block (Section~\ref{TraPar}), but note that the implementation may still have bugs, and is therefore considered experimental\index{SIMU}.
+
+% ================================================================================================================================ %
+\section{Simulation Parameters} \label{Input:SIMU}
+
+\textcolor{notered}{\textbf{Note:} This module is experimental}
+
+\bigskip
+The Simulation block (\texttt{SIMU}) is intended to take the main simulation parameters, but currently only replaces the \texttt{TRAC} block described in Section~\ref{TraPar}\index{SIMU}\index{Simualtion Block}.
+If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} block cannot be present.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{SIMU}\index{SIMU} &\\
+    \textbf{Data lines} & Variable &\\
+    \textbf{Format}     & Name/value format. See Table~\ref{Table:SIMU}.
+\end{tabular}
+
+\begin{center}
+\setlength\LTleft{0pt}
+\setlength\LTright{0pt}
+\begin{longtable}{@{\extracolsep{\fill}}|l|p{10cm}|l|}
+    \caption{Available function types in the SIMU block.}
+    \label{Table:SIMU} \\*
+    \hline
+    \rowcolor{blue!30}
+    \textbf{Keyword} & \textbf{Argument(s)} & \textbf{Default} \\*
+    \hline
+    \endfirsthead
+
+    \hline
+    \rowcolor{blue!30}
+    \textbf{Keyword} & \textbf{Argument(s)} & \textbf{Default} \\*
+    \endhead
+
+    \rowcolor{gray!15}
+    \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
+    \hline
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Particles and Turns}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{NPART} & \texttt{n\_particles[int]} & \texttt{0}\\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        The number of particles to be tracked.
+        The value must be an even number.
+        \index{particles}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{NTURN} & \texttt{forward[int] [backward[int]]} & \texttt{0 0} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        The number of turns in the forwards, and optionally, backwards direction.
+        \index{turns}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{AMPLITUDE} & \texttt{start[float] end[float]} & \texttt{0.0 0.0} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Start and end amplitude (any sign) in the horizontal phase space plane for the amplitude variations.
+        The vertical amplitude is calculated using the ratio between the horizontal and vertical emittance set in the \textit{Initial Coordinates} block (\ref{IniCoo}), where the initial phase in phase space are also set.
+        \index{amplitude}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{CRPOINT} & \texttt{interval[int]} & \texttt{1000} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        How often to write checkpoint files.
+        This parameter is ignored if SixTrack was not built with checkpoint/restart functionality.
+        Checkpoint files are always written on turn 1, then with the interval specified here, and then a last time at the end of tracking.
+        \index{checkpoint/restart}\index{CR}
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Lattice and Optics}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{LATTICE} & \texttt{thin|thick 4D|6D} & \texttt{thin 4D} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        The first argument must be either \texttt{thick} or \texttt{thin}, and this must match the content of the geometry file.
+        The second argument must be either \texttt{4D} or \texttt{6D}.
+        These arguments are not case sensitive.
+        When 6D tracking is requested, closed orbit and optical functions at the starting point are calculated using the differential algebra package.
+        \index{thick tracking}\index{thin tracking}\index{4D}\index{6D}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{OPTICS} & \texttt{first[int] last[int]} & \texttt{1 nblz} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Start and stop structure element index for optics calculation.
+        If set to 0 or omitted, the optics calculation defaults to the full machine.
+        \index{optics calculation}
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Closed Orbit}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{COUPLING} & \texttt{horizonatl[flag] vertical[flag]} & \texttt{on on} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Tracking where one of the transversal motion planes shall be ignored is only possible when all coupling terms are switched off.
+        The part of the coupling that is due to closed orbit and other effects can be turned off with these switches.
+        \index{closed orbit}\index{coupling}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{ADD\_CLORB} & \texttt{on|off} & \texttt{off} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Adds the closed orbit to the particles.
+        \index{closed orbit}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{INIT\_CLORB} & \texttt{on|off} & \texttt{off} \\*
+    \hline
+    \rowcolor{gray!15}
+    \texttt{INIT\_CLORB} & \texttt{x xp y yp [sigma dpsv]} & \texttt{6 * 0.0} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Initialise closed orbit.
+        This can be called either with a flag, in which case it turns on or off the reading of a closed orbit suggestion from file \texttt{fort.33}, or it can provide 4 or 6 values for the closed orbit suggestion.
+        If omitted, the values are initialised to zero, and the 4D closed orbit is used to seed the first four values of the 6D closed orbit.
+        These settings are ignored when running in 4D.
+        \index{closed orbit}\texttt{6D}
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Particle and Track Files}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{READ\_FORT13} & \texttt{on|off} & \texttt{off} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Read the particle distribution from file \texttt{fort.13}.
+        This file is not intended for reading an initial distribution, but for continuing tracking from a previous simulation from a \texttt{fort.12} file.
+        \index{fort.13}\index{fort.12}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{WRITE\_FORT12} & \texttt{interval[int]} & \texttt{10000} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        How often, in terms of turns, to write the particle distribution to file \texttt{fort.12}.
+        This file can be renamed to \texttt{fort.13} and used as an input file for continued tracking.
+        \index{fort.13}\index{fort.12}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{WRITE\_TRACKS} & \texttt{interval[int] [rewind[flag]]} & \texttt{nturn+1 on} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        How often, in terms of turns, to write to the tracking files on unit 90 and lower (see Appendix~\ref{Files}).
+        The \texttt{rewind} flag specifies whether or not to rewind the tracking files on each write.
+        \index{singletrackfile}\index{trackfiles}
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Various Flags and Options}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{NTWIN} & \texttt{1|2} & \texttt{1} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        For the analysis of the Lyapunov exponent\index{Lyapunov exponent} it is usually sufficient to store the calculated distance of phase space together with the coordinate of the first particle (\texttt{ntwin} set to 1).
+        You may want to improve the 6D calculation of the distance in phase space with \texttt{sigcor, dpscor} (see~\ref{IniCoo}) when the 6D closed orbit is not calculated.
+        If storage space is no problem, one can store the coordinates of both particles (\texttt{ntwin} set to two).
+        The distance in phase space is then calculated in the post-processing procedure (see~\ref{PosPro}).
+        This also allows a subsequent refined Lyapunov analysis using differential algebra and Lie algebra\index{Lie algebra} techniques (\cite{Refine}).
+        \index{ntwin}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{DO\_EXACT} & \texttt{on|off} & \texttt{off} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Switch to enable exact solution of the equation of motion into tracking and 6D (no 4D) optics calculations.
+        \begin{equation*}
+            \mbox{\texttt{off:}}
+            \quad x^\prime \simeq \frac{P_x}{P_0(1+\delta)},
+            \quad y^\prime \simeq \frac{P_y}{P_0(1+\delta)};
+        \end{equation*}
+        \begin{equation*}
+            \mbox{\texttt{on:}}
+            \quad x^\prime \simeq \frac{P_x}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}},
+            \quad y^\prime \simeq \frac{P_y}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}}.
+        \end{equation*}
+        \index{equation of motion}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{DO\_CURVEFF} & \texttt{on|off} & \texttt{off} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Enable or disable the effect of the curvature in a combined function magnet (bending + quadrupole).
+        Note that the weak focusing effect is always included.
+        \index{curve effect}\index{combined function magnet}
+    } \\*
+    \hline
+
+\end{longtable}
+\end{center}
+
 % ================================================================================================================================ %
 \section{Tracking Parameters} \label{TraPar}
 
@@ -37,7 +275,7 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
     \texttt{niu(1),niu(2)} & integer  & Start and stop structure element index for optics calculation. If 0, defaults to the full machine. \\
     \texttt{numlcp}        & integer  & Checkpoint/restart\index{checkpoint/restart} version: How often to write checkpointing files. \\
     \texttt{numlmax}       & integer  & No longer in use. \\
-    \texttt{idz(1),idz(2)} & integers & A tracking where one of the transversal motion planes shall be ignored is only possible when all coupling terms are switched off.  The part of the coupling that is due to closed orbit and other effects can be turned off with these switches. \\
+    \texttt{idz(1),idz(2)} & integers & A tracking where one of the transversal motion planes shall be ignored is only possible when all coupling terms are switched off. The part of the coupling that is due to closed orbit and other effects can be turned off with these switches. \\
                            &          & \texttt{idz(1), idz(2) = 1}: coupling on. \\
                            &          & \texttt{idz(1), idz(2) = 0}: coupling to the horizontal and vertical motion plane respectively switched off. \\
     \texttt{idfor}         & integer  & Usually the closed orbit is added to the initial coordinates. This can be turned off using \texttt{idfor}, for instance when a run is to be prolonged. \\
