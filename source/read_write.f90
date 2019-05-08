@@ -199,6 +199,8 @@ subroutine readFort33
   integer nSplit, ioStat
   logical spErr, fErr
 
+  write(lout,"(a)") "READ33> Reading closed orbit guess from fort.33"
+
   call f_open(unit=33,file="fort.33",formatted=.true.,mode="r",err=fErr)
 
   read(33,"(a)",iostat=ioStat) inLine

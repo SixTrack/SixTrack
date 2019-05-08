@@ -46,11 +46,14 @@ module sixtrack_input
   logical,          private, save :: sixin_forceWriteFort12 = .false.
 
   ! Simulation Block
-  logical,          public,  save :: sixin_hasSIMU    = .false.
-  integer,          public,  save :: sixin_simuThick  = -1
-  integer,          public,  save :: sixin_simuDim    = -1
-  logical,          public,  save :: sixin_simuClorb  = .false.
-  logical,          public,  save :: sixin_simuFort13 = .false.
+  logical,          public,  save :: sixin_hasSIMU         = .false.    ! If the SIMU block exists
+  logical,          public,  save :: sixin_simuThick       = .false.    ! Lattice is thick
+  logical,          public,  save :: sixin_simu6D          = .false.    ! Tracking 6D
+  logical,          public,  save :: sixin_simuAddClorb    = .false.    ! Add closed orbit
+  logical,          public,  save :: sixin_simuFort13      = .false.    ! Read fort.13
+  logical,          public,  save :: sixin_simuFort33      = .false.    ! Read fort.33
+  logical,          public,  save :: sixin_simuInitClorb   = .false.    ! Init closed orbit from fort.3
+  real(kind=fPrec), public,  save :: sixin_simuSetClorb(6) = zero       ! The init values for closed orbit
 
   interface sixin_echoVal
     module procedure sixin_echoVal_int
@@ -647,14 +650,14 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
         iErr = .true.
         return
       end if
-      sixin_simuThick = 0
+      sixin_simuThick = .false.
     case("thick")
       if(ithick /= 1) then
         write(lerr,"(a)") "SIMU> ERROR Geometry mismatch. Asked for thick tracking on a thin geometry input file."
         iErr = .true.
         return
       end if
-      sixin_simuThick = 1
+      sixin_simuThick = .true.
     case default
       write(lerr,"(a)") "SIMU> ERROR Unknown lattice structure '"//trim(lnSplit(2))//"'"
       iErr = .true.
@@ -662,9 +665,9 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     end select
     select case(chr_toUpper(lnSplit(3)))
     case("4D")
-      sixin_simuDim = 4
+      sixin_simu6D = .false.
     case("6D")
-      sixin_simuDim = 6
+      sixin_simu6D = .true.
     case default
       write(lerr,"(a)") "SIMU> ERROR Unknown dimension '"//trim(lnSplit(3))//"'"
       iErr = .true.
@@ -720,10 +723,33 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     call chr_cast(lnSplit(2),tmpLog,iErr)
     if(tmpLog) then
       idfor = 0 ! Add closed orbit
-      sixin_simuClorb = .true.
+      sixin_simuAddClorb = .true.
     else
       idfor = 1 ! Leave unchanged
-      sixin_simuClorb = .false.
+      sixin_simuAddClorb = .false.
+    end if
+
+  case("INIT_CLORB")
+    if(nSplit /= 2 .and. nSplit /= 5 .and. nSplit /= 7) then
+      write(lerr,"(a,i0)") "SIMU> ERROR INIT_CLORB takes 1, 4 or 6 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       INIT_CLORB read_fort33(on|off)"
+      write(lerr,"(a)")    "SIMU>    or INIT_CLORB x xp y yp sigma dp/p"
+      iErr = .true.
+      return
+    end if
+    if(nSplit == 2) then
+      sixin_simuInitClorb = .false.
+      call chr_cast(lnSplit(2),sixin_simuFort33,iErr)
+    else
+      sixin_simuInitClorb = .true.
+      call chr_cast(lnSplit(2),sixin_simuSetClorb(1),iErr)
+      call chr_cast(lnSplit(3),sixin_simuSetClorb(2),iErr)
+      call chr_cast(lnSplit(4),sixin_simuSetClorb(3),iErr)
+      call chr_cast(lnSplit(5),sixin_simuSetClorb(4),iErr)
+      if(nSplit == 7) then
+        call chr_cast(lnSplit(6),sixin_simuSetClorb(5),iErr)
+        call chr_cast(lnSplit(7),sixin_simuSetClorb(6),iErr)
+      end if
     end if
 
   case("READ_FORT13")
@@ -752,17 +778,30 @@ subroutine sixin_postInputSIMU(iErr)
 
   use crcoall
   use mod_common
+  use mod_common_da
 
   logical, intent(inout) :: iErr
 
-  if(sixin_hasSIMU .and. sixin_simuThick /= ithick) then
+  if(sixin_hasSIMU .and. sixin_simuThick .neqv. (ithick == 1)) then
     write(lout,"(a)") "SIMU> ERROR Lattice format either not defined in SIMU block, or does not match the strcuture file."
     iErr = .true.
   end if
 
-  if(sixin_simuClorb .and. sixin_simuFort13) then
+  if(sixin_simuAddClorb .and. sixin_simuFort13) then
     write(lout,"(a)") "SIMU> ERROR Cannot add closed orbit when restarting from fort.13"
     iErr = .true.
+  end if
+
+  ! Handle the remaining of closed orbit flag chaos
+  if(sixin_simu6D) then
+    if(sixin_simuAddClorb) then
+      iclo6 = 2
+    else
+      iclo6 = 1
+    end if
+    nsix = 0
+  else
+    iclo6 = 0
   end if
 
 end subroutine sixin_postInputSIMU
@@ -1158,8 +1197,8 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(iErr) return
 
     if(iclo6 == 5 .or. iclo6 == 6) then
-      iclo6  = iclo6-4
-      iclo6r = 1
+      iclo6            = iclo6-4
+      sixin_simuFort33 = .true.
     end if
     if(iclo6 == 2 .and. idfor == 0) idfor = 1
     if(iclo6 == 1 .or.  iclo6 == 2) nsix  = 0
@@ -1281,7 +1320,6 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
 
   end if
 
-  if(iclo6 == 1 .or. iclo6 == 2) nsix = 0
   if(nvar /= 6) then
     nsix  = 0
     iclo6 = 0

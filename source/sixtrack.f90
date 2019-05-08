@@ -892,6 +892,11 @@ subroutine daten
       if(inErr) call prror
     end if
 
+    ! Check for inconsistencies for some other blocks
+
+    ! This check used to be in DIFF block parsing, but is safer to have here
+    if(iclo6 == 1 .or. iclo6 == 2) nsix = 0
+
     ! Check for incompatible flags
     if(ipos == 1) then
       if (do_coll) then

@@ -573,16 +573,26 @@ program maincr
     iclo6 = 0
   end if
   if(iclo6 == 1 .or. iclo6 == 2) then ! 6D
-    if(iclo6r == 0) then
+    if(sixin_simuInitClorb) then
+      if(sixin_simuFort33) then
+        call readFort33
+      else
+        clo6(1:3)  = sixin_simuSetClorb([1,3,5])
+        clop6(1:3) = sixin_simuSetClorb([2,4,6])
+      end if
+      call meta_write("6D_ClosedOrbitInit_x",     clo6(1))
+      call meta_write("6D_ClosedOrbitInit_xp",    clop6(1))
+      call meta_write("6D_ClosedOrbitInit_y",     clo6(2))
+      call meta_write("6D_ClosedOrbitInit_yp",    clop6(2))
+      call meta_write("6D_ClosedOrbitInit_sigma", clo6(3))
+      call meta_write("6D_ClosedOrbitInit_dp",    clop6(3))
+    else
       clo6(1)  = clo(1)
       clop6(1) = clop(1)
       clo6(2)  = clo(2)
       clop6(2) = clop(2)
       clo6(3)  = zero
       clop6(3) = zero
-    else
-      write(lout,"(a)") "MAINCR> Reading closed orbit guess from fort.33"
-      call readFort33
     end if
     call clorb(zero)
     call betalf(zero,qw)
