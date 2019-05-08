@@ -324,6 +324,16 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("SIMU") ! Simulation Block
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call sixin_parseInputLineSIMU(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DISP") ! Displacement of Elements Block
     if(openBlock) then
       continue

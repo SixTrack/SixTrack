@@ -508,6 +508,99 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
 end subroutine sixin_parseInputLineSETT
 
 ! ================================================================================================ !
+!  Parse Simulation Block Line
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-05-08
+!  Updated: 2019-05-08
+! ================================================================================================ !
+subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
+
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit, numPart
+  logical spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lerr,"(a)") "SIMU> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  if(nSplit == 0) return
+
+  select case(lnSplit(1))
+
+  case("NPART")
+    if(nSplit < 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR NPART takes 1 argument, got",nSplit-1
+      write(lerr,"(a)")    "SIMU>       NPART n_particles"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),numPart,iErr)
+    if(mod(numPart,2) /= 0) then
+      write(lerr,"(a)") "SIMU> ERROR NPART must be an even number"
+      iErr = .true.
+      return
+    end if
+    napx = numPart/2
+#ifndef STF
+    if(napx > 32) then
+      write(lerr,"(a)") "SIMU> ERROR To run SixTrack with more than 64 particles, it has to be compiled with the STF flag."
+      iErr = .true.
+      return
+    end if
+#endif
+    if(numPart > npart) then
+      call expand_arrays(nele, numPart, nblz, nblo)
+    end if
+    if(napx > 32 .and. sixin_forcePartSummary .eqv. .false.) then
+      write(lout,"(a)") "SIMU> NOTE More than 64 particles requested, switching off printing of particle summary."
+      st_partsum = .false.
+    end if
+    if(napx > 32 .and. sixin_forceWriteFort12 .eqv. .false.) then
+      write(lout,"(a)") "SIMU> NOTE More than 64 particles requested, switching off wriritng of fort.12."
+      st_writefort12 = .false.
+    end if
+
+    if(st_debug) then
+      call sixin_echoVal("npart",numPart,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("NTURN")
+    if(nSplit < 2 .or. nSplit > 3) then
+      write(lerr,"(a,i0)") "SIMU> ERROR NTURN takes 1 or 2 arguments, got",nSplit-1
+      write(lerr,"(a)")    "SIMU>       NTURN forward_turns [backward_turns]"
+      iErr = .true.
+      return
+    end if
+    if(nSplit > 1) call chr_cast(lnSplit(2), numl,  iErr) ! Number of turns in the forward direction
+    if(nSplit > 2) call chr_cast(lnSplit(3), numlr, iErr) ! Number of turns in the backward direction
+    if(st_debug) then
+      call sixin_echoVal("nturn", numl, "SIMU",iLine)
+      call sixin_echoVal("nturnr",numlr,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case default
+    write(lerr,"(a)") "INIT> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
+    iErr = .true.
+    return
+
+  end select
+
+end subroutine sixin_parseInputLineSIMU
+
+! ================================================================================================ !
 !  Parse Displacement Block Line
 !  Rewritten from code from DATEN by VKBO
 !  Last modified: 2018-05-xx
