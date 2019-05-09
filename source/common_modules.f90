@@ -161,6 +161,7 @@ module mod_common
   real(kind=fPrec), save :: amp0       = zero ! End amplitude
   integer,          save :: numl       = 1    ! Number of turns in the forward direction
   integer,          save :: numlr      = 0    ! Number of turns in the backward direction
+  integer,          save :: numx       = 0    ! Checkpoint turn (turn-1)
   integer,          save :: napx       = 0    ! Number of amplitude variations
   integer,          save :: ird        = 0    ! Ignored
   integer,          save :: niu(2)     = 0    ! Start and stop structure element for optics calculation
@@ -343,7 +344,8 @@ module mod_common
   integer,          save :: nordm      = 0
 
   ! Reference Particle
-  real(kind=fPrec), save :: e0         = zero ! Reference energy
+  real(kind=fPrec), save :: e0         = zero ! Reference energy [MeV]
+  real(kind=fPrec), save :: e0f        = zero ! Reference momentum [MeV/c]
 
   ! Tracking Particles
   real(kind=fPrec), save :: ej(mpa)    = zero ! Particle energy
@@ -903,10 +905,6 @@ module mod_common_main
   real(kind=fPrec),              save :: fake(2,20)
   real(kind=fPrec),              save :: xau(2,6)
   real(kind=fPrec),              save :: cloau(6)
-
-  ! Main 4
-  real(kind=fPrec), save :: e0f
-  integer,          save :: numx     = 0       ! Checkpoint turn (turn-1)
 
 contains
 
