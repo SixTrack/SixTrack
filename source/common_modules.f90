@@ -849,10 +849,11 @@ module mod_common_main
   real(kind=fPrec), allocatable, save :: ejfv(:)      ! Particle momentum
   real(kind=fPrec), allocatable, save :: ejv(:)       ! Particle energy
 
+  real(kind=fPrec), allocatable, save :: rvv(:)       ! Beta_0 / Beta(j)
+  real(kind=fPrec), allocatable, save :: ejf0v(:)     ! Temporary array for momentum updates
+
   real(kind=fPrec), allocatable, save :: dam(:)       ! Distance in phase space3
 
-  real(kind=fPrec), allocatable, save :: rvv(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: ejf0v(:)     ! (npart)
 
   integer,          allocatable, save :: numxv(:)     ! (npart)
   integer,          allocatable, save :: nnumxv(:)    ! (npart)
