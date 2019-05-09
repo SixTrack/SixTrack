@@ -2971,6 +2971,7 @@ end subroutine sinpro
 
 
 subroutine join
+      use, intrinsic :: iso_fortran_env, only : real64
       use mathlib_bouncer
       use numerical_constants
       use crcoall
