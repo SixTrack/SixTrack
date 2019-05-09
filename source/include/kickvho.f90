@@ -1,5 +1,6 @@
 ! start include/kickvho.f90
-crkveuk=crkve*xlv(j)-cikve*zlv(j)
-cikve=crkve*zlv(j)+cikve*xlv(j)
-crkve=crkveuk
+! xlv and zlv is set in include/alignva.f90
+crkveuk = crkve*xlv - cikve*zlv
+cikve   = crkve*zlv + cikve*xlv
+crkve   = crkveuk
 ! end include/kickvho.f90
