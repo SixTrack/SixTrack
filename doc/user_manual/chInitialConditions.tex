@@ -16,7 +16,7 @@ The \texttt{SIMU} block (Section~\ref{Input:SIMU}) can currently be used to repl
 % ================================================================================================================================ %
 \section{Simulation Parameters} \label{Input:SIMU}
 
-\textcolor{notered}{\textbf{Note:} This module is experimental}
+\textcolor{notered}{\textbf{Note:} This input block is experimental. It provides an alternative interface to the most used parameters of the \texttt{TRAC}, \texttt{INIT}, and \texttt{HION} blocks, and is intended to be used in combination with the \texttt{DIST} block.}
 
 \bigskip
 The Simulation block (\texttt{SIMU}) is intended to take the main simulation parameters, and replaces the \texttt{TRAC}, \texttt{INTI}, and \texttt{HION} blocks\index{SIMU}\index{Simualtion Block}.
@@ -25,10 +25,24 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, these blocks cannot be
 If the reference particle mass is set in the \texttt{SIMU} block, the value provided in the \texttt{SYNC} block is ignored.
 
 \bigskip
-\begin{tabular}{@{}llp{0.7\linewidth}}
-    \textbf{Keyword}    & \texttt{SIMU}\index{SIMU} &\\
-    \textbf{Data lines} & Variable &\\
+\begin{tabular}{@{}lp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{SIMU}\index{SIMU} \\
+    \textbf{Data lines} & Variable \\
     \textbf{Format}     & Keyword/value format. See Table~\ref{Table:SIMU}.
+\end{tabular}
+
+\bigskip
+Some settings provided by the \texttt{TRAC} and \texttt{INIT} blocks are not supported by the \texttt{SIMU} block.
+These are listed below.
+The option to add closed orbit to generated particles is only supported for the amplitude scan, which is not supported by the \texttt{SIMU} block.
+If you need this feature, please use the old input format.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{TRAC} & \texttt{ntwin} & Fixed to a value of 2.\\
+    \texttt{TRAC} & \texttt{idy(1), idy(2)} & Fixed to a value of 1.\\
+    \texttt{TRAC} & \texttt{idfor} & Fixed to a value of 1.\\
+    \texttt{TRAC} & \texttt{amp(1), amp0} & Fixed to a value of 0.\\
 \end{tabular}
 
 \begin{center}
@@ -66,6 +80,7 @@ If the reference particle mass is set in the \texttt{SIMU} block, the value prov
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         The number of particles to be tracked.
         The value must be an even number.
+        This is due to several parts of SixTrack dealing with particles as pairs.
         \index{particles}
     } \\*
     \hline
@@ -74,20 +89,10 @@ If the reference particle mass is set in the \texttt{SIMU} block, the value prov
     \texttt{TURNS} & \texttt{forward(int) [backward(int)]} & \texttt{0 0} \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
-        The number of turns in the forwards, and optionally, backwards direction.
+        The number of turns in the forward, and optionally, backward direction.
         \index{turns}
     } \\*
     \hline
-
-    % \rowcolor{gray!15}
-    % \texttt{AMPLITUDE} & \texttt{start(float) end(float)} & \texttt{0.0 0.0} \\*
-    % \hline
-    % \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
-    %     Start and end amplitude (any sign) in the horizontal phase space plane for the amplitude variations.
-    %     The vertical amplitude is calculated using the ratio between the horizontal and vertical emittance set in the \textit{Initial Coordinates} block (\ref{IniCoo}), where the initial phase in phase space are also set.
-    %     \index{amplitude}
-    % } \\*
-    % \hline
 
     \rowcolor{gray!15}
     \texttt{CRPOINT} & \texttt{interval(int)} & \texttt{1000} \\*
@@ -174,20 +179,11 @@ If the reference particle mass is set in the \texttt{SIMU} block, the value prov
     \hline
 
     \rowcolor{gray!15}
-    \texttt{COUPLING} & \texttt{horizonatl(flag) vertical(flag)} & \texttt{on on} \\*
+    \texttt{6D\_CLORB} & \texttt{on|off} & \texttt{off} \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
-        Tracking where one of the transversal motion planes shall be ignored is only possible when all coupling terms are switched off.
-        The part of the coupling that is due to closed orbit and other effects can be turned off with these switches.
-        \index{closed orbit}\index{coupling}
-    } \\*
-    \hline
-
-    \rowcolor{gray!15}
-    \texttt{ADD\_CLORB} & \texttt{on|off} & \texttt{off} \\*
-    \hline
-    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
-        Adds the closed orbit to the particles.
+        Compute the 6D closed orbit.
+        If the simulation is running 4D, this option is ignored.
         \index{closed orbit}
     } \\*
     \hline
@@ -248,20 +244,7 @@ If the reference particle mass is set in the \texttt{SIMU} block, the value prov
     \hline
 
     \rowcolor{gray!15}
-    \texttt{NTWIN} & \texttt{1|2} & \texttt{1} \\*
-    \hline
-    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
-        For the analysis of the Lyapunov exponent\index{Lyapunov exponent} it is usually sufficient to store the calculated distance of phase space together with the coordinate of the first particle (\texttt{ntwin} set to 1).
-        You may want to improve the 6D calculation of the distance in phase space with \texttt{sigcor, dpscor} (see~\ref{IniCoo}) when the 6D closed orbit is not calculated.
-        If storage space is no problem, one can store the coordinates of both particles (\texttt{ntwin} set to two).
-        The distance in phase space is then calculated in the post-processing procedure (see~\ref{PosPro}).
-        This also allows a subsequent refined Lyapunov analysis using differential algebra and Lie algebra\index{Lie algebra} techniques (\cite{Refine}).
-        \index{ntwin}
-    } \\*
-    \hline
-
-    \rowcolor{gray!15}
-    \texttt{DO\_EXACT} & \texttt{on|off} & \texttt{off} \\*
+    \texttt{EXACT} & \texttt{on|off} & \texttt{off} \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         Switch to enable exact solution of the equation of motion into tracking and 6D (no 4D) optics calculations.
@@ -280,7 +263,7 @@ If the reference particle mass is set in the \texttt{SIMU} block, the value prov
     \hline
 
     \rowcolor{gray!15}
-    \texttt{DO\_CURVEFF} & \texttt{on|off} & \texttt{off} \\*
+    \texttt{CURVEFF} & \texttt{on|off} & \texttt{off} \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         Enable or disable the effect of the curvature in a combined function magnet (bending + quadrupole).
