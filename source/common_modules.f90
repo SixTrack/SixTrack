@@ -851,12 +851,11 @@ module mod_common_main
 
   real(kind=fPrec), allocatable, save :: rvv(:)       ! Beta_0 / Beta(j)
   real(kind=fPrec), allocatable, save :: ejf0v(:)     ! Temporary array for momentum updates
-
   real(kind=fPrec), allocatable, save :: dam(:)       ! Distance in phase space3
 
+  integer,          allocatable, save :: nnumxv(:)    ! Turn in which a particle was lost
+  integer,          allocatable, save :: numxv(:)     ! Turn in which a particle was lost
 
-  integer,          allocatable, save :: numxv(:)     ! (npart)
-  integer,          allocatable, save :: nnumxv(:)    ! (npart)
   integer,          allocatable, save :: nms(:)       ! (npart)
   integer,          allocatable, save :: partID(:)    ! (npart)
   integer,          allocatable, save :: parentID(:)  ! (npart)
