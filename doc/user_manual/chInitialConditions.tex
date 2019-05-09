@@ -11,7 +11,7 @@ A number of features have over time been deprecated or replaced by other modules
 Therefore there are a number of parameters that are no longer in use, but nevertheless have to be set to dummy values.
 The Simulation (\texttt{SIMU}) and Distribution (\texttt{DIST}) blocks are intended to replace all of the blocks in this chapter.
 These blocks take keyword/value sets instead of blocks of numbers, and are therefore easier to maintain.
-The \texttt{SIMU} block (Section~\ref{Input:SIMU}) can currently be used to replace the \texttt{TRAC} block (Section~\ref{TraPar}), but note that the implementation may still have bugs, and is therefore considered experimental\index{SIMU}.
+The \texttt{SIMU} block (Section~\ref{Input:SIMU}) can currently be used to replace the \texttt{TRAC}, \texttt{INIT}, and \texttt{HION} blocks (Section~\ref{TraPar}), but note that the implementation may still have bugs, and is therefore considered experimental\index{SIMU}.
 
 % ================================================================================================================================ %
 \section{Simulation Parameters} \label{Input:SIMU}
@@ -19,8 +19,10 @@ The \texttt{SIMU} block (Section~\ref{Input:SIMU}) can currently be used to repl
 \textcolor{notered}{\textbf{Note:} This module is experimental}
 
 \bigskip
-The Simulation block (\texttt{SIMU}) is intended to take the main simulation parameters, but currently only replaces the \texttt{TRAC} block described in Section~\ref{TraPar}\index{SIMU}\index{Simualtion Block}.
-If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} block cannot be present.
+The Simulation block (\texttt{SIMU}) is intended to take the main simulation parameters, and replaces the \texttt{TRAC}, \texttt{INTI}, and \texttt{HION} blocks\index{SIMU}\index{Simualtion Block}.
+If the \texttt{SIMU} block is present in \texttt{fort.3}, these blocks cannot be present.
+
+If the reference particle mass is set in the \texttt{SIMU} block, the value provided in the \texttt{SYNC} block is ignored.
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
@@ -59,7 +61,7 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     \hline
 
     \rowcolor{gray!15}
-    \texttt{NPART} & \texttt{n\_particles(int)} & \texttt{0}\\*
+    \texttt{PARTICLES} & \texttt{n\_particles(int)} & \texttt{0}\\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         The number of particles to be tracked.
@@ -69,7 +71,7 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     \hline
 
     \rowcolor{gray!15}
-    \texttt{NTURN} & \texttt{forward(int) [backward(int)]} & \texttt{0 0} \\*
+    \texttt{TURNS} & \texttt{forward(int) [backward(int)]} & \texttt{0 0} \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         The number of turns in the forwards, and optionally, backwards direction.
@@ -77,15 +79,15 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     } \\*
     \hline
 
-    \rowcolor{gray!15}
-    \texttt{AMPLITUDE} & \texttt{start(float) end(float)} & \texttt{0.0 0.0} \\*
-    \hline
-    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
-        Start and end amplitude (any sign) in the horizontal phase space plane for the amplitude variations.
-        The vertical amplitude is calculated using the ratio between the horizontal and vertical emittance set in the \textit{Initial Coordinates} block (\ref{IniCoo}), where the initial phase in phase space are also set.
-        \index{amplitude}
-    } \\*
-    \hline
+    % \rowcolor{gray!15}
+    % \texttt{AMPLITUDE} & \texttt{start(float) end(float)} & \texttt{0.0 0.0} \\*
+    % \hline
+    % \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+    %     Start and end amplitude (any sign) in the horizontal phase space plane for the amplitude variations.
+    %     The vertical amplitude is calculated using the ratio between the horizontal and vertical emittance set in the \textit{Initial Coordinates} block (\ref{IniCoo}), where the initial phase in phase space are also set.
+    %     \index{amplitude}
+    % } \\*
+    % \hline
 
     \rowcolor{gray!15}
     \texttt{CRPOINT} & \texttt{interval(int)} & \texttt{1000} \\*

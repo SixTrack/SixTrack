@@ -567,10 +567,10 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
   select case(lnSplit(1))
 
-  case("NPART")
+  case("PARTICLES")
     if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "SIMU> ERROR NPART takes 1 argument, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       NPART n_particles"
+      write(lerr,"(a,i0)") "SIMU> ERROR PARTICLES takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       PARTICLES n_particles"
       iErr = .true.
       return
     end if
@@ -605,10 +605,10 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-  case("NTURN")
+  case("TURNS")
     if(nSplit < 2 .or. nSplit > 3) then
-      write(lerr,"(a,i0)") "SIMU> ERROR NTURN takes 1 or 2 arguments, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       NTURN forward_turns [backward_turns]"
+      write(lerr,"(a,i0)") "SIMU> ERROR TURNS takes 1 or 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       TURNS forward_turns [backward_turns]"
       iErr = .true.
       return
     end if
