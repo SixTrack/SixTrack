@@ -93,6 +93,7 @@ subroutine sumpos
     ! and we always print the maximum DMMAC as NMAC
     ! or zero which should really be OK I think.
     ! N.B. If particle is lost nms is 0, so we set mmac to zero too
+    ! (nms is always 1)
     d(60) = one ! was real(nmac)
     if(nint(d(59)) == 0) d(60) = zero
     write(lout,10030) i,nint(d(59)),nint(d(60)),nint(d(59))*nint(d(24))

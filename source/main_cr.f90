@@ -849,7 +849,6 @@ program maincr
     dpsv(ib1)    = dp10
     oidpsv(ib1)  = one/(one+dp1)
     moidpsv(ib1) = mtc(ib1)/(one+dp1)
-    nms(ib1)     = 1
   end do
 
 ! ================================================================================================ !
@@ -1010,7 +1009,7 @@ program maincr
       nucm(ia+1) = nucm0
 
       if(st_quiet == 0) then
-        write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
+        write(lout,10260) ia,izu0,dpsv(ia)
         write(lout,10060) xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
           xv1(ia+1),yv1(ia+1),xv2(ia+1),yv2(ia+1),sigmv(ia+1),dpsv(ia+1)
         write(lout,10020) ampv(ia),amp(2),epsa
@@ -1320,33 +1319,33 @@ program maincr
     napxto = napxto+numxv(ia)+numxv(ie)
 
     if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
-      write(lout,10000) ia,nms(ia)*izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
-      write(lout,10000) ie,nms(ia)*izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
+      write(lout,10000) ia,izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
+      write(lout,10000) ie,izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
     end if
 
     if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
       if(st_quiet == 0) then
-        write(lout,10240) ia,nms(ia)*izu0,dpsv(ia),numxv(ia)
+        write(lout,10240) ia,izu0,dpsv(ia),numxv(ia)
       else if(st_quiet == 1) then
-        write(lout,10241) ia,nms(ia)*izu0,dpsv(ia),numxv(ia)
+        write(lout,10241) ia,izu0,dpsv(ia),numxv(ia)
       end if
-      write(lout,10000) ie,nms(ia)*izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
+      write(lout,10000) ie,izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
     end if
 
     if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
-      write(lout,10000) ia,nms(ia)*izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
+      write(lout,10000) ia,izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
       if(st_quiet == 0) then
-        write(lout,10240) ie,nms(ia)*izu0,dpsv(ia),numxv(ie)
+        write(lout,10240) ie,izu0,dpsv(ia),numxv(ie)
       else if(st_quiet == 1) then
-        write(lout,10241) ie,nms(ia)*izu0,dpsv(ia),numxv(ie)
+        write(lout,10241) ie,izu0,dpsv(ia),numxv(ie)
       end if
     end if
 
     if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
       if(st_quiet == 0) then
-        write(lout,10270) ia,ie,nms(ia)*izu0,dpsv(ia),numxv(ia)
+        write(lout,10270) ia,ie,izu0,dpsv(ia),numxv(ia)
       else if(st_quiet == 1) then
-        write(lout,10271) ia,ie,nms(ia)*izu0,dpsv(ia),numxv(ia)
+        write(lout,10271) ia,ie,izu0,dpsv(ia),numxv(ia)
       end if
     end if
 

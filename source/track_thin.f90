@@ -2252,7 +2252,7 @@ subroutine write6(n)
 #endif
     !-- PARTICLES STABLE (Only if QUIET < 2)
     if(.not.pstop(ia).and..not.pstop(ig)) then
-      if(st_quiet < 2) write(lout,10000) ia,nms(ia)*izu0,dpsv(ia),n
+      if(st_quiet < 2) write(lout,10000) ia,izu0,dpsv(ia),n
       if(st_quiet < 1) write(lout,10010)                    &
         xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
         xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig), &
