@@ -111,7 +111,7 @@ subroutine check_coupling_integrity
       if ( lerror ) then
         write(lout,*) ' at least one inconsistency in flagging elements'
         write(lout,*) '    for coupling: please check carefully...'
-        call prror(-1)
+        call prror
       endif
 
 !     au revoir:
@@ -156,7 +156,7 @@ subroutine check_coupling_start_point()
         write(lerr,"(a,i0)") "FLUKA>       The actual lattice starting point should be outside a FLUKA insergion region"
         write(lerr,"(a,i0)") "FLUKA>       Please update your lattice structure or set the GO in a sensible position"
         iInside=fluka_geo_index(ix)
-        call prror(-1)
+        call prror
         exit
       elseif ( fluka_type(ix).eq.FLUKA_ENTRY .or. fluka_type(ix).eq.FLUKA_ELEMENT ) then
         write(lout,"(a)") ""
@@ -243,7 +243,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
       if (ret.eq.-1) then
          write(lout,*)'[Fluka] Error in Fluka communication in kernel_fluka_element...'
          write(fluka_log_unit,*)'# Error in Fluka communication in kernel_fluka_element...'
-         call prror(-1)
+         call prror
       end if
 
       nnuc1 = 0                 ! hisix: number of nucleons leaving the collimato
@@ -396,7 +396,7 @@ subroutine kernel_fluka_entrance( nturn, i, ix )
       if (ret.eq.-1) then
          write(lout,*)'[Fluka] Error in Fluka communication in kernel_fluka_entrance...'
          write(fluka_log_unit,*)'# Error in Fluka communication in kernel_fluka_entrance...'
-         call prror(-1)
+         call prror
       end if
 
 !     au revoir:
@@ -455,7 +455,7 @@ subroutine kernel_fluka_exit( nturn, i, ix )
       if (ret.eq.-1) then
          write(lout,*)'[Fluka] Error in Fluka communication in kernel_fluka_exit...'
          write(fluka_log_unit,*)'# Error in Fluka communication in kernel_fluka_exit...'
-         call prror(-1)
+         call prror
       end if
 
       nnuc1 = 0                 ! hisix: number of nucleons leaving the collimator

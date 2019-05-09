@@ -193,7 +193,7 @@ end subroutine wire_parseInputLine
 
 subroutine wire_parseInputDone(iErr)
 
-  use mod_common, only : kz,bez
+  use mod_common, only : kz,bez,fort3
 
   implicit none
 
@@ -205,7 +205,7 @@ subroutine wire_parseInputDone(iErr)
   do j=1,nele
     if(kz(j) == 15) then
       if(wire_flagco(j) == 0) then
-        write(lerr,"(a)") "WIRE> ERROR Wire element '"//trim(bez(j))//"'not defined in fort.3."
+        write(lerr,"(a)") "WIRE> ERROR Wire element '"//trim(bez(j))//"'not defined in "//trim(fort3)//"."
         write(lerr,"(a)") "WIRE>       You must define every wire in the WIRE block."
         iErr = .true.
         return

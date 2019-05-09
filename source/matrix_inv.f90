@@ -164,7 +164,7 @@ subroutine kermtr(ercode,log,mflag,rflag)
   end do
   write(lout,1000)  ercode
   write(lout,"(a)") "KERNLIB> Library Error"
-  call prror(-1)
+  call prror
   return
 
 21 continue
@@ -334,7 +334,7 @@ subroutine f010pr(name,n,idim,k,kprnt)
   end if
   if(.not. rflag) then
     write(lerr,"(a)") "KERNLIB> ERROR F010PR: "//name
-    call prror(-1)
+    call prror
   end if
   return
 
@@ -834,7 +834,7 @@ subroutine tmprnt(name,n,idim,k)
   endif
   if(.not. rflag) then
     write(lerr,"(a)") "KERNLIB> ERROR TMPRNT: "//name
-    call prror(-1)
+    call prror
   endif
   return
 1001 format(7x,' parameter error in subroutine ',a6,' (n.lt.1 or idim.lt.n).',5x,'n =',i4,5x,'idim =',i4,'.')

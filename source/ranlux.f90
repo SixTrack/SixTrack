@@ -125,9 +125,7 @@ subroutine ranlux(rvec,lenv)
          in24 = 0
          kount = 0
          mkount = 0
-!         WRITE(6,'(A,I2,A,I4)')  ' RANLUX DEFAULT LUXURY LEVEL =  ',
-!     &        LUXLEV,'      p =',LP
-            twom24 = 1.
+         twom24 = 1.
          do 25 i= 1, 24
             twom24 = twom24 * 0.5
          k = jseed/53668

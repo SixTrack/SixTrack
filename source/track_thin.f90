@@ -261,7 +261,7 @@ subroutine trauthin(nthinerr)
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           if ( dynk_isused(i) ) then
             write(lerr,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
-              "') is off in fort.2, but on in DYNK. Not implemented."
+              "') is off in "//trim(fort2)//", but on in DYNK. Not implemented."
             call prror
           end if
           ktrack(i) = 31
@@ -453,7 +453,7 @@ subroutine trauthin(nthinerr)
     end do
     if(abs(phas).ge.pieni) then
       write(lerr,"(a)") "TRACKING> ERROR thin6dua no longer supported. Please use DYNK instead."
-      call prror(-1)
+      call prror
     else
       write(lout,"(a)") ""
       write(lout,"(a)") "TRACKING> Calling thin6d subroutine"
@@ -535,7 +535,7 @@ subroutine thin4d(nthinerr)
 
   implicit none
 
-  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,kxxa
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,kxxa,nfirst
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,acphase,  &
     acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi, &
     rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,pyf,r_temp,z_temp,sigf,   &
@@ -567,31 +567,22 @@ subroutine thin4d(nthinerr)
   end if
 
 #ifdef CR
-  if (restart) then
+  if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thin 4D restart numlcr = ",numlcr,", numl = ",numl
+    write(crlog,"(2(a,i0))") "TRACKING> Thin 4D restarting on turn ",cr_numl," / ",numl
   end if
-! and now reset numl to do only numlmax turns
-  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
-! and reset [n]numxv unless particle is lost
-! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-  do 640, n=numlcr,nnuml
+  nnuml  = numl
+  nfirst = cr_numl
 #else
-  do 640 n=1,numl !loop over turns
+  nfirst = 1
 #endif
-  if(st_quiet < 3) then
-    if(mod(n,turnrep) == 0) then
-      call trackReport(n)
+  do 640 n=nfirst,numl
+    if(st_quiet < 3) then
+      if(mod(n,turnrep) == 0) then
+        call trackReport(n)
+      end if
     end if
-  end if
-  meta_nPartTurn = meta_nPartTurn + napx
+    meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
     ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
@@ -606,10 +597,10 @@ subroutine thin4d(nthinerr)
 #endif
 
 #ifdef CR
-    ! does not call CRPOINT if restart=.true.
-    ! (and note that writebin does nothing if restart=.true.
+    ! does not call CRPOINT if cr_restart=.true.
+    ! (and note that writebin does nothing if cr_restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -1158,7 +1149,7 @@ subroutine thin6d(nthinerr)
   implicit none
 
   integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,elemEnd,&
-    kxxa
+    kxxa,nfirst
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
@@ -1192,26 +1183,16 @@ subroutine thin6d(nthinerr)
 
   ! This is the loop over turns: label 660
 #ifdef CR
-  if (restart) then
+  if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thin 6D restart numlcr = ",numlcr,", numl = ",numl
+    write(crlog,"(2(a,i0))") "TRACKING> Thin 6D restarting on turn ",cr_numl," / ",numl
   end if
-  ! and now reset numl to do only numlmax turns
-  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
-  ! and reset [n]numxv unless particle is lost
-  ! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-
-  do 660 n=numlcr,nnuml ! Loop over turns, CR version
+  nnuml  = numl
+  nfirst = cr_numl
 #else
-  do 660 n=1,numl       ! Loop over turns
+  nfirst = 1
 #endif
+  do 660 n=nfirst,numl
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
         call trackReport(n)
@@ -1238,10 +1219,10 @@ subroutine thin6d(nthinerr)
 #endif
 
 #ifdef CR
-    ! does not call CRPOINT if restart=.true.
-    ! (and note that writebin does nothing if restart=.true.
+    ! does not call CRPOINT if cr_restart=.true.
+    ! (and note that writebin does nothing if cr_restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -1268,7 +1249,7 @@ subroutine thin6d(nthinerr)
       ix=ic(i)-nblo
 
       ! Fringe Fields
-      if(ffield_enabled) then
+      if(ffield_enabled .and. ix > 0) then
         doFField = FFindex(ix) > 0
       else
         doFField = .false.
@@ -1350,7 +1331,6 @@ subroutine thin6d(nthinerr)
           !Ralph drift length is stracki
           !bez(ix) is name of drift
           totals=totals+stracki
-          !          write(*,*) 'ralph> Drift, total length: ', stracki,totals
 
           !________________________________________________________________________
           !++  If we have a collimator then...
@@ -2139,78 +2119,47 @@ subroutine trackReport(n)
 
 end subroutine trackReport
 
-!-----------------------------------------------------------------------
-!
-!  F. SCHMIDT
-!-----------------------------------------------------------------------
-!  3 February 1999
-!-----------------------------------------------------------------------
+! ================================================================================================ !
+!  F. Schmidt
+!  Original:  1999-02-03
+!  Rewritten: 2019-04-26 (VKBO)
+! ================================================================================================ !
+#ifdef CR
 subroutine callcrp
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
   use crcoall
-  use parpro
   use mod_common
   use mod_common_main
-  use mod_commons
   use mod_common_track
-  use mod_common_da
-#ifdef CR
   use checkpoint_restart
-#endif
+
   implicit none
-#ifdef CR
-  integer ncalls
-#endif
+
 #ifdef BOINC
   integer timech
 #endif
-#ifdef CR
-  data ncalls /0/
-#endif
-  save
-!-----------------------------------------------------------------------
-#ifdef CR
-  ncalls=ncalls+1
-  if (restart) then
-    write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
-      " numx = ",numx,", numlcr = ",numlcr
-    flush(93)
+
+  if(cr_restart) then
+    write(lout,"(a)") "CALL_CRP> Restarted on this turn, so not checkpointing"
     return
   else
-#ifndef DEBUG
-    if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-    write(93,"(6(a,i0))") "SIXTRACR> CALLCRP numl = ",numl,", nnuml = ",nnuml,", numlcr = ",numlcr,", "//&
-     "numx = ",numx,", nwri = ",nwri,", numlcp = ",numlcp
-    flush(93)
-#ifndef DEBUG
-    endif
-#endif
-  endif
+    write(lout,"(a,i0)") "CALL_CRP> Checkpointing on turn ",numx+1
+  end if
 #ifdef BOINC
-  if (checkp) then
-    ! Now ALWAYS checkpoint
-    ! NO, re-instated at user request
-    ! What was the user request?
+  if(cr_checkp) then
+    ! If BOINC and turn > 1, ask BOINC API whether to crpoint or not
     call boinc_time_to_checkpoint(timech)
-    if (timech /= 0) then
+    if(timech /= 0 .or. numx == 0) then
       call crpoint
       call boinc_checkpoint_completed()
     endif
   endif
 #else
-  if (checkp) call crpoint
+  if(cr_checkp) call crpoint
 #endif
-  return
-11 write(lerr,"(a,i0)") "CALLCRP> ERROR Problems writing to file #91, ierro= ",ierro
-  ! write(lerr,"(a)")'SIXTRACR WRITEBIN IO ERROR on Unit 91'
-  call prror(-1)
-#endif
-  return
+
 end subroutine callcrp
+#endif
 
 !-----------------------------------------------------------------------
 !

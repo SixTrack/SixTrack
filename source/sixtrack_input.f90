@@ -3,7 +3,7 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2018-05-18
-!  Updated: 2019-04-01
+!  Updated: 2019-04-24
 ! ================================================================================================ !
 module sixtrack_input
 
@@ -62,6 +62,54 @@ module sixtrack_input
   private :: sixin_echoVal_logical
 
 contains
+
+! ================================================================================================ !
+!  Parse Command Line Arguments
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-04-24
+!  Updated: 2019-04-24
+! ================================================================================================ !
+subroutine sixin_commandLine(stName)
+
+  use parpro
+  use crcoall
+  use mod_version
+  use mod_common, only : fort2, fort3
+
+  character(len=*), intent(in) :: stName
+
+  character(len=mStrLen) cmdArg
+  integer nCmd
+
+  nCmd = command_argument_count()
+  if(nCmd < 1) return
+
+  ! First argument is either a command or the file name for the main input file
+  call get_command_argument(1, cmdArg)
+  select case(cmdArg)
+  case("-nv","--numver")
+    write(lout,"(i0)") numvers
+    stop
+  case("-v","--version")
+    write(lout,"(a)") trim(stName)//" "//trim(version)//"-"//trim(git_revision(1:7))
+    stop
+  case("-V","--VERSION")
+    write(lout,"(a)") trim(stName)
+    write(lout,"(a)") "Version:  "//trim(version)
+    write(lout,"(a)") "Released: "//trim(moddate)
+    write(lout,"(a)") "Git Hash: "//trim(git_revision)
+    stop
+  case default
+    fort3 = trim(cmdArg)
+  end select
+
+  if(nCmd < 2) return
+
+  ! Second argument is the file name for the main geometry file
+  call get_command_argument(2, cmdArg)
+  fort2 = trim(cmdArg)
+
+end subroutine sixin_commandLine
 
 ! ================================================================================================ !
 !  BLOCK PARSING RECORD
@@ -763,7 +811,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
-  integer nSplit, iDummy
+  integer nSplit, imc, ibidu
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -782,21 +830,24 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       return
     end if
 
-    if(nSplit > 0)  call chr_cast(lnSplit(1), numl,   iErr) ! Number of turns in the forward direction
-    if(nSplit > 1)  call chr_cast(lnSplit(2), numlr,  iErr) ! Number of turns in the backward direction
-    if(nSplit > 2)  call chr_cast(lnSplit(3), napx,   iErr) ! Number of amplitude variations (i.e. particle pairs)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), amp(1), iErr) ! End amplitude
-    if(nSplit > 4)  call chr_cast(lnSplit(5), amp0,   iErr) ! Start amplitude
-    if(nSplit > 5)  call chr_cast(lnSplit(6), ird,    iErr) ! Ignored
-    if(nSplit > 6)  call chr_cast(lnSplit(7), iDummy, iErr) ! Number of variations of the relative momentum deviation dp/p
-    if(nSplit > 7)  call chr_cast(lnSplit(8), niu(1), iErr) ! Unknown
-    if(nSplit > 8)  call chr_cast(lnSplit(9), niu(2), iErr) ! Unknown
-    if(nSplit > 9)  call chr_cast(lnSplit(10),numlcp, iErr) ! CR: How often to write checkpointing files
-    if(nSplit > 10) call chr_cast(lnSplit(11),numlmax,iErr) ! CR: Maximum amount of turns; default is 1e6
+    imc = 1
 
-    if(iDummy > 1) then
+    if(nSplit > 0) call chr_cast(lnSplit(1), numl,   iErr) ! Number of turns in the forward direction
+    if(nSplit > 1) call chr_cast(lnSplit(2), numlr,  iErr) ! Number of turns in the backward direction
+    if(nSplit > 2) call chr_cast(lnSplit(3), napx,   iErr) ! Number of amplitude variations (i.e. particle pairs)
+    if(nSplit > 3) call chr_cast(lnSplit(4), amp(1), iErr) ! End amplitude
+    if(nSplit > 4) call chr_cast(lnSplit(5), amp0,   iErr) ! Start amplitude
+    if(nSplit > 5) call chr_cast(lnSplit(6), ird,    iErr) ! Ignored
+    if(nSplit > 6) call chr_cast(lnSplit(7), imc,    iErr) ! Number of variations of the relative momentum deviation dp/p
+    if(nSplit > 7) call chr_cast(lnSplit(8), niu(1), iErr) ! Unknown
+    if(nSplit > 8) call chr_cast(lnSplit(9), niu(2), iErr) ! Unknown
+    if(nSplit > 9) call chr_cast(lnSplit(10),numlcp, iErr) ! CR: How often to write checkpointing files
+
+    if(imc /= 1) then
       write(lerr,"(a)") "TRAC> ERROR Variations of the relative momentum deviation is no longer supporter. "//&
         "The value imc must be set to 1."
+      iErr = .true.
+      return
     end if
 
     ! Default nnuml to numl
@@ -812,7 +863,6 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call sixin_echoVal("niu(1)", niu(1), "TRAC",iLine)
       call sixin_echoVal("niu(2)", niu(2), "TRAC",iLine)
       call sixin_echoVal("numlcp", numlcp, "TRAC",iLine)
-      call sixin_echoVal("numlmax",numlmax,"TRAC",iLine)
     end if
     if(iErr) return
 
@@ -911,19 +961,19 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(nSplit > 4) call chr_cast(lnSplit(5),nwr(3),  iErr) ! Every nth turn at the flat top a write out of the coordinates
     if(nSplit > 5) call chr_cast(lnSplit(6),nwr(4),  iErr) ! Every nth turn coordinates are written to unit 6.
     if(nSplit > 6) call chr_cast(lnSplit(7),ntwin,   iErr) ! Flag for calculated distance of phase space
-    if(nSplit > 7) call chr_cast(lnSplit(8),iDummy,  iErr) ! No longer in use. Formerly ibidu
+    if(nSplit > 7) call chr_cast(lnSplit(8),ibidu,   iErr) ! No longer in use.
     if(nSplit > 8) call chr_cast(lnSplit(9),iexact,  iErr) ! Switch to enable exact solution of the equation of motion
     if(nSplit > 9) call chr_cast(lnSplit(10),curveff,iErr) ! Switch to include curvatures effect on multipoles..
 
     if(st_debug) then
-      call sixin_echoVal("nde(1)",nde(1),  "TRAC",iLine)
-      call sixin_echoVal("nde(2)",nde(2),  "TRAC",iLine)
-      call sixin_echoVal("nwr(1)",nwr(1),  "TRAC",iLine)
-      call sixin_echoVal("nwr(2)",nwr(2),  "TRAC",iLine)
-      call sixin_echoVal("nwr(3)",nwr(3),  "TRAC",iLine)
-      call sixin_echoVal("nwr(4)",nwr(4),  "TRAC",iLine)
-      call sixin_echoVal("ntwin", ntwin,   "TRAC",iLine)
-      call sixin_echoVal("iexact",iexact,  "TRAC",iLine)
+      call sixin_echoVal("nde(1)", nde(1), "TRAC",iLine)
+      call sixin_echoVal("nde(2)", nde(2), "TRAC",iLine)
+      call sixin_echoVal("nwr(1)", nwr(1), "TRAC",iLine)
+      call sixin_echoVal("nwr(2)", nwr(2), "TRAC",iLine)
+      call sixin_echoVal("nwr(3)", nwr(3), "TRAC",iLine)
+      call sixin_echoVal("nwr(4)", nwr(4), "TRAC",iLine)
+      call sixin_echoVal("ntwin",  ntwin,  "TRAC",iLine)
+      call sixin_echoVal("iexact", iexact, "TRAC",iLine)
       call sixin_echoVal("curveff",curveff,"TRAC",iLine)
     end if
     if(iErr) return
@@ -2932,9 +2982,9 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
     end if
 
     write(lout,"(a)") "BEAM> Reading old style beam block."
-    write(lout,"(a)") "BEAM>    To convert to the new format, copy-paste these lines into the BEAM block in fort.3,"
+    write(lout,"(a)") "BEAM>    To convert to the new format, copy-paste these lines into the BEAM block in "//trim(fort3)//","
     write(lout,"(a)") "BEAM> replacing line 2 onwards. Then write EXPERT on the first line of the BEAM block, above"
-    write(lout,"(a)") "BEAM> the current first line. Finally, in the SINGLE ELEMENTS list (normally in fort.2) set "
+    write(lout,"(a)") "BEAM> the current first line. Finally, in the SINGLE ELEMENTS list (normally in "//trim(fort2)//") set "
     write(lout,"(a)") "BEAM> the parameters of all beam-beam lenses (type 20) to 0.0."
     write(lout,"(a)") "BEAM>    This procedure produces a new set of input files that should have bit-for-bit iden-"
     write(lout,"(a)") "BEAM> tical results to this one."

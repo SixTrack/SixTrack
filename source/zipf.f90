@@ -72,7 +72,7 @@ subroutine zipf_parseInputDone
 
   if(.not.(zipf_numFiles > 0)) then
     write(lerr,"(a)") "ZIPF> ERROR Block was empty; no files specified!"
-    call prror(-1)
+    call prror
   endif
 
 end subroutine zipf_parseInputDone

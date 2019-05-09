@@ -859,7 +859,7 @@ subroutine collimate_init()
     write(lerr,"(a)") "COLL> ERROR All emittances should be normalized. "//&
       "first put emittance for distribtion generation, then for collimator position etc. units in [mm*mrad]."
     write(lerr,"(a)") "COLL> ERROR EXAMPLE: 2.5 2.5 3.5 3.5"
-    call prror(-1)
+    call prror
   end if
 
 !++  Calculate the gammas
@@ -1035,7 +1035,7 @@ subroutine collimate_init()
                         myemitx0_dist, myemity0_dist, myenom, myx, myxp, myy, myyp, myp, mys, enerror, bunchlength)
     case default
       write(lerr,"(a)") "COLL> ERROR Review your distribution parameters!"
-      call prror(-1)
+      call prror
     end select
   end if
 
@@ -2762,7 +2762,7 @@ subroutine collimate_do_collimator(stracki)
       beamsize2 = sqrt(betay2 * myemity0_collgap)
     else
       write(lout,*) "attempting to use a halo not purely in the horizontal or vertical plane with pencil_dist=3 - abort."
-      call prror(-1)
+      call prror
     end if
 
 !   calculate offset from tilt of positive and negative jaws, at start and end
@@ -3416,7 +3416,7 @@ subroutine collimate_end_collimator()
         write(lout,*) "Error in collimate_end_collimator"
         write(lout,*) "Particle cannot be both absorbed and not absorbed."
         write(lout,*) part_abs_pos (j),  part_abs_turn(j)
-        call prror(-1)
+        call prror
       end if
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!!
@@ -3578,7 +3578,7 @@ subroutine collimate_end_collimator()
         if(part_impact(j).lt.-half) then
           write(lout,*) 'ERR>  Found invalid impact parameter!', part_impact(j)
           write(outlun,*) 'ERR>  Invalid impact parameter!', part_impact(j)
-          call prror(-1)
+          call prror
         end if
 
         n_impact = n_impact + 1
@@ -4881,7 +4881,7 @@ implicit none
     write(lout,*) 'ERR>  In subroutine collimate2:'
     write(lout,*) 'ERR>  Material "', c_material, '" not found.'
     write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
-    call prror(-1)
+    call prror
   end if
 
   length  = c_length
@@ -5136,7 +5136,7 @@ implicit none
       s = (-one*x) / xp
       if(s.le.0) then
         write(lout,*) 'S.LE.0 -> This should not happen'
-        call prror(-1)
+        call prror
       end if
 
       if(s .lt. length) then
@@ -5516,7 +5516,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
   save
 !=======================================================================
   write(lerr,"(a)") "COLL> ERROR collimateRHIC is no longer supported!"
-  call prror(-1)
+  call prror
 end subroutine collimaterhic
 !
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
@@ -6671,7 +6671,7 @@ subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay,  myemitx0, myemity
 ! nominal bunches centered in the aperture - can't apply rejection sampling. return with error
          else if( mynex.eq.zero.and.myney.eq.zero ) then
            write(lout,*) "Stop in makedis_coll. attempting to use halo type 3 with Gaussian dist. "
-           call prror(-1)
+           call prror
          else
            write(lout,*) "Error - beam parameters not correctly set!"
          end if
@@ -6908,7 +6908,7 @@ subroutine readdis(filename_dis,myx,myxp,myy,myyp,myp,mys)
  20   continue
 
   write(lout,"(a)") "COLL> I/O Error on Unit 53 in subroutine readdis"
-  call prror(-1)
+  call prror
 
 end subroutine readdis
 
@@ -6959,12 +6959,12 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
   if (iclo6.eq.0) then
     write(lerr,"(a)") "COLL> ERROR DETECTED: Incompatible flag           "
     write(lerr,"(a)") "COLL> in line 2 of the TRACKING block             "
-    write(lerr,"(a)") "COLL> of fort.3 for calculating the closed orbit  "
+    write(lerr,"(a)") "COLL> of "//trim(fort3)//" for calculating the closed orbit  "
     write(lerr,"(a)") "COLL> (iclo6 must not be =0). When using an input "
     write(lerr,"(a)") "COLL> distribution in normalized coordinates for  "
     write(lerr,"(a)") "COLL> collimation the closed orbit is needed for a"
     write(lerr,"(a)") "COLL> correct TAS matrix for coordinate transform."
-    call prror(-1)
+    call prror
   endif
 
   write(lout,"(a)") "COLL> Reading input bunch from file '"//filename_dis//"'"
@@ -7089,7 +7089,7 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
 
 20 continue
    write(lout,"(a)") "COLL> I/O Error on Unit 53 in subroutine readdis"
-   call prror(-1)
+   call prror
 
 end subroutine readdis_norm
 

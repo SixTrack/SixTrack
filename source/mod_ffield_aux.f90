@@ -294,7 +294,7 @@ contains
     use numerical_constants, only : zero, c1e12, c1m12
     use crcoall,             only : lout, lerr
     use parpro,              only : mInputLn
-    use mod_units,           only : f_open, f_close
+    use mod_units,           only : f_open, f_freeUnit
     use string_tools,        only : chr_split, chr_cast
 
     implicit none
@@ -378,7 +378,7 @@ contains
 
     ! Close file
     ! ---------------------------------------------------------------------------------------------- !
-    call f_close(lun)
+    call f_freeUnit(lun)
 
   end subroutine ReadExpMax
 
@@ -820,13 +820,13 @@ contains
 
     ! Check size vectors xpow and ypow   (Prevent SIGFPE)
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10_mb(x))
+    log_tmp=abs(log10_mb(abs(x)))
     if (log_tmp*(this%n)>230) then
       this%max_i=230/log_tmp-1
     else
       this%max_i=this%n
     endif
-    log_tmp=abs(log10_mb(y))
+    log_tmp=abs(log10_mb(abs(y)))
     if (log_tmp*(this%m)>230) then
       this%max_j=230/log_tmp-1
     else

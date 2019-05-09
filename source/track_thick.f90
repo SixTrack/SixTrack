@@ -263,7 +263,7 @@ subroutine trauthck(nthinerr)
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           if ( dynk_isused(i) ) then
             write(lerr,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
-              "') is off in fort.2, but on in DYNK. Not implemented."
+              "') is off in "//trim(fort2)//", but on in DYNK. Not implemented."
             call prror
           end if
           ktrack(i)=31
@@ -453,7 +453,7 @@ subroutine trauthck(nthinerr)
 
       if(abs(phas).ge.pieni) then
         write(lerr,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
-        call prror(-1)
+        call prror
       else
         write(lout,"(a)") ""
         write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
@@ -514,7 +514,7 @@ subroutine thck4d(nthinerr)
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
-    turnrep,kxxa
+    turnrep,kxxa,nfirst
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve,puxve1,puxve2,puzve1,puzve2,puzve,r0,xlvj,yv1j,   &
     yv2j,zlvj,acdipamp,qd,acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,  &
     dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,         &
@@ -556,25 +556,16 @@ subroutine thck4d(nthinerr)
   end if
 
 #ifdef CR
-  if(restart) then
+  if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thick 4D restart numlcr = ",numlcr,", numl = ",numl
-    ! and now reset numl to do only numlmax turns
+    write(crlog,"(2(a,i0))") "TRACKING> Thick 4D restarting on turn ",cr_numl," / ",numl
   end if
-  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
-  ! and reset [n]numxv unless particle is lost
-  ! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-  do 490 n=numlcr,nnuml
+  nnuml  = numl
+  nfirst = cr_numl
 #else
-  do 490 n=1,numl
+  nfirst = 1
 #endif
+  do 490 n=nfirst,numl
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
         call trackReport(n)
@@ -595,10 +586,10 @@ subroutine thck4d(nthinerr)
 #endif
 
 #ifdef CR
-    !  does not call CRPOINT if restart=.true.
-    !  (and note that writebin does nothing if restart=.true.
+    !  does not call CRPOINT if cr_restart=.true.
+    !  (and note that writebin does nothing if cr_restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -621,7 +612,7 @@ subroutine thck4d(nthinerr)
         if(ldumpfront) then
           write(lout,"(a)") "TRACKING> DUMP/FRONT not yet supported on thick elements "//&
             "due to lack of test cases. Please contact developers!"
-          call prror(-1)
+          call prror
         end if
 
       end if
@@ -676,7 +667,7 @@ subroutine thck4d(nthinerr)
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
                write(lout,"(a)") "BDEX> BDEX only available for thin6d"
-               call prror(-1)
+               call prror
             endif
 
 !----------count=43
@@ -1181,7 +1172,7 @@ subroutine thck6d(nthinerr)
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
-    turnrep,kxxa
+    turnrep,kxxa,nfirst
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve1,puxve2,puzve1,puzve2,r0,xlvj,yv1j,yv2j,zlvj,     &
     acdipamp,qd,acphase,acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,    &
     embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,   &
@@ -1231,26 +1222,17 @@ subroutine thck6d(nthinerr)
 
 ! Now the outer loop over turns
 #ifdef CR
-  if (restart) then
+  if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thick 6D restart numlcr = ",numlcr,", numl = ",numl
+    write(crlog,"(2(a,i0))") "TRACKING> Thick 6D restarting on turn ",cr_numl," / ",numl
 ! and now reset numl to do only numlmax turns
   end if
-  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
-! and reset [n]numxv unless particle is lost
-! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-  do 510 n=numlcr,nnuml
+  nnuml  = numl
+  nfirst = cr_numl
+#else
+  nfirst = 1
 #endif
-#ifndef CR
-  do 510 n=1,numl
-#endif
+  do 510 n=nfirst,numl
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
         call trackReport(n)
@@ -1272,10 +1254,10 @@ subroutine thck6d(nthinerr)
 #endif
 
 #ifdef CR
-!  does not call CRPOINT if restart=.true.
-!  (and note that writebin does nothing if restart=.true.
+!  does not call CRPOINT if cr_restart=.true.
+!  (and note that writebin does nothing if cr_restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -1880,13 +1862,10 @@ subroutine synuthck
   implicit none
   integer ih1,ih2,j,kz1,l
   real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23,as3,as4,as6,g,gl,rhoc,siq,aek,hi,  &
-    fi,hi1,hp,hm,hc,hs,wf,afok,wfa,wfhi,rhoi
+    fi,hi1,hp,hm,hc,hs,wf,afok,wfa,wfhi,rhoi,fokq
 
   save
 
-#ifdef CR
-  sythckcr=.true.
-#endif
   do j=1,napx
     dpd(j)  = one+dpsv(j)
     dpsq(j) = sqrt(dpd(j))
@@ -1998,7 +1977,7 @@ subroutine synuthck
 !  FOCUSSING
 !-----------------------------------------------------------------------
 80   do j=1,napx
-        fok = ekv(j,l)*oidpsv(j)
+        fok = ek(l)*oidpsv(j)
         aek = abs(fok)
         hi  = sqrt(aek)
         fi  = el(l)*hi
@@ -2071,22 +2050,18 @@ subroutine synuthck
 !  FOCUSSING
 !-----------------------------------------------------------------------
 100   if(kz1 == 7) then
-        do j=1,napx
-          fokqv(j) = ekv(j,l)
-        end do
-        ih1 = 1
-        ih2 = 2
+        fokq = ek(l)
+        ih1  = 1
+        ih2  = 2
       else
 !  COMBINED FUNCTION MAGNET VERTICAL
-        do j=1,napx
-          fokqv(j) = -ekv(j,l)
-        end do
-        ih1 = 2
-        ih2 = 1
+        fokq = -ek(l)
+        ih1  = 2
+        ih2  = 1
       end if
       do j=1,napx
         wf   = ed(l)/dpsq(j)
-        fok  = fokqv(j)/dpd(j)-wf**2
+        fok  = fokq/dpd(j)-wf**2
         afok = abs(fok)
         hi   = sqrt(afok)
         fi   = hi*el(l)
@@ -2117,7 +2092,7 @@ subroutine synuthck
           as(5,ih1,j,l) = (((-one*rvv(j))*sm12)*afok)/c4e3
           as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
 
-          aek = abs(ekv(j,l)/dpd(j))
+          aek = abs(ek(l)/dpd(j))
           hi  = sqrt(aek)
           fi  = hi*el(l)
           hp  = exp_mb(fi)
@@ -2158,7 +2133,7 @@ subroutine synuthck
           as(5,ih1,j,l) = ((rvv(j)*sm12)*afok)/c4e3
           as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
 
-          aek = abs(ekv(j,l)/dpd(j))
+          aek = abs(ek(l)/dpd(j))
           hi  = sqrt(aek)
           fi  = hi*el(l)
           si  = sin_mb(fi)

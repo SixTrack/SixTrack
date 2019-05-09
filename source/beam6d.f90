@@ -43,7 +43,7 @@ subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc,mtc)
     phi2=phi               !Note - phi2 is not a free parameter anymore
   else
     write(lerr,"(a,i0,a)") "ERROR beamint: beam_expflag was ",beam_expflag," expected 0 or 1. This is a BUG!"
-    call prror(-1)
+    call prror
   end if
 
   sphi=sin_mb(phi)
@@ -144,7 +144,6 @@ subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc,mtc)
   do jsli=1,nsli
     do i=1,np
       s=(track(5,i)-star(3,jsli))*half
-      !write(*,*)'JBG - cphi2',cphi2
       sp=s/cphi2
       dum(1)=(bcu(ibb,1)+(two*bcu(ibb,4))*sp)+bcu(ibb,6)*sp**2
       dum(2)=(bcu(ibb,2)+(two*bcu(ibb,9))*sp)+bcu(ibb,10)*sp**2
@@ -546,5 +545,5 @@ real(kind=fPrec) function gauinv(p0)
 
 900  write(lout,910) p0
 910  format(' (FUNC.GAUINV) INVALID INPUT ARGUMENT ',1pd20.13)
-  call prror(-1)
+  call prror
 end function gauinv

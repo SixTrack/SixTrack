@@ -800,7 +800,7 @@ subroutine geom_calcDcum
     write(outUnit,fmtC) iu+1,tmpE,-1,tmpE,dcum(iu+1),elpos(iu+1),delS
 
     flush(outUnit)
-    call f_close(outUnit)
+    call f_freeUnit(outUnit)
   end if
 
 end subroutine geom_calcDcum

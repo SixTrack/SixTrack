@@ -136,12 +136,21 @@ module mod_common
   logical,           save      :: print_dcum = .false. ! Print dcum. Set in the SETTINGS block
   integer,           save      :: ithick     = 0       ! Thick tracking flag
 
+  ! File Names and Units
+  character(len=mFileName), public, save :: fort2   = "fort.2"   ! Name of machine geometry file
+  character(len=mFileName), public, save :: fort3   = "fort.3"   ! Name of main input file
+  character(len=mFileName), public, save :: fort6   = "fort.6"   ! Name of main output file (stdout)
+  character(len=mFileName), public, save :: fort10  = "fort.10"  ! Name of main postprocessing file (text)
+  character(len=mFileName), public, save :: fort110 = "fort.110" ! Name of main postprocessing file (binary)
+
+  integer,                  public, save :: unit10  = -1         ! Unit of main postprocessing file (text)
+  integer,                  public, save :: unit110 = -1         ! Unit of main postprocessing file (binary)
+
   !  GENERAL VARIABLES
   ! ===================
 
   ! Error Variables
   integer,          save :: ierro      = 0
-  integer,          save :: errout     = 0    ! Used in prror and abend
 
   ! Loop Variables
   integer,          save :: iu         = 0    ! Number of entries in the accelerator
@@ -156,7 +165,6 @@ module mod_common
   integer,          save :: ird        = 0    ! Ignored
   integer,          save :: niu(2)     = 0    ! Start and stop structure element for optics calculation
   integer,          save :: numlcp     = 1000 ! How often to write checkpointing files
-  integer,          save :: numlmax    = 1e9  ! Max number of C/R turns
   integer,          save :: idfor      = 0    ! Add closed orbit to initia coordinates
   integer,          save :: irew       = 0    ! Rewind fort.59-90
   integer,          save :: iclo6      = 0    ! 6D closed orbit flags
@@ -825,12 +833,10 @@ module mod_common_main
   implicit none
 
   ! Main 1
-  real(kind=fPrec), allocatable, save :: ekv(:,:)     ! (npart,nele)
   real(kind=fPrec), allocatable, save :: smiv(:)      ! (nblz)
   real(kind=fPrec), allocatable, save :: zsiv(:)      ! (nblz)
   real(kind=fPrec), allocatable, save :: xsiv(:)      ! (nblz)
 
-  real(kind=fPrec), allocatable, save :: fokqv(:)     ! (npart)
   real(kind=fPrec), allocatable, save :: xsv(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: zsv(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: xv1(:)       ! (npart)
@@ -899,9 +905,8 @@ module mod_common_main
   real(kind=fPrec),              save :: cloau(6)
 
   ! Main 4
-  integer,          save :: numx
   real(kind=fPrec), save :: e0f
-  logical,          save :: sythckcr ! Only used for CR
+  integer,          save :: numx     = 0       ! Checkpoint turn (turn-1)
 
 contains
 
@@ -926,7 +931,6 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   end if
 
   if(npart_new /= npart_prev) then
-    call alloc(fokqv,            npart_new,      zero,    "fokqv")
     call alloc(xsv,              npart_new,      zero,    "xsv")
     call alloc(zsv,              npart_new,      zero,    "zsv")
     call alloc(xv1,              npart_new,      zero,    "xv1")
@@ -976,7 +980,6 @@ subroutine mod_commonmn_expand_thickarrays(nele_new, npart_new, nblo_new)
 
   integer,intent(in) :: nele_new, npart_new, nblo_new
 
-  call alloc(ekv,     npart_new,nele_new,zero,"ekv")
   call alloc(bl1v,6,2,npart_new,nblo_new,zero,"bl1v")
 
 end subroutine mod_commonmn_expand_thickarrays

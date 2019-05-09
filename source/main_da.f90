@@ -1,28 +1,22 @@
 ! ================================================================================================ !
 !
 !  SIXTRACK
-! =========
+! ==========
 !  SIXDIMENSIONAL PARTICLE-TRACKING
 !
 !  DIFFERENTIAL ALGEBRA INCLUDED
 !  ONE TURN MAP
 !  NO POSTPROCESSING FORSEEN
+!  NO CHECKPOINT/RESTART
 !
 !  DEVELOPPED FROM <RACETRACK> A. WRULICH (DESY 84-026)
-! ================================================================================================ !
-!  USED DISKS:
 !
-!  GEOMETRY AND STRENGTH OF THE ACCELERATOR : UNIT  2
-!  TRACKING PARAMETER                       : UNIT  3
-!  NORMAL PRINTOUT                          : UNIT  6
-!  TRACKING DATA                            : UNIT  8
 ! ================================================================================================ !
 program mainda
 
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
-  use, intrinsic :: iso_fortran_env, only : output_unit
   use crcoall
   use parpro
   use mod_common
@@ -32,10 +26,11 @@ program mainda
   use mod_units
   use mod_meta
   use mod_time
-  use mod_alloc,    only : alloc_init
-  use mod_fluc,     only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
-  use read_write,   only : readFort33
-  use mod_geometry, only : geom_reshuffleLattice
+  use mod_alloc,      only : alloc_init
+  use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
+  use read_write,     only : readFort33
+  use mod_geometry,   only : geom_reshuffleLattice
+  use sixtrack_input, only : sixin_commandLine
   use mod_version
 
   implicit none
@@ -58,8 +53,13 @@ program mainda
   character(len=10) tsTime
   logical fErr
 
+! ================================================================================================ !
+
+  ! Parse command line arguments
+  call sixin_commandLine("SixDA")
+
   ! Features
-featList = ""
+  featList = ""
 #ifdef TILT
   featList = featList//" TILT"
 #endif
@@ -77,13 +77,6 @@ featList = ""
   featList = featList//" FIO"
 #endif
 
-  ! Set to nonzero before calling abend in case of error.
-  ! If prror is called, it will be set internally.
-  errout = 0
-
-#ifndef CR
-  lout=output_unit
-#endif
   call f_initUnits
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
@@ -92,19 +85,17 @@ featList = ""
 
   ! Open files
   fErr = .false.
-  call f_open(unit=12,file="fort.12",formatted=.true.,mode="w", err=fErr)
-  call f_open(unit=17,file="fort.17",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=18,file="fort.18",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=19,file="fort.19",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=20,file="fort.20",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=21,file="fort.21",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=22,file="fort.22",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=23,file="fort.23",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=24,file="fort.24",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=25,file="fort.25",formatted=.true.,mode="rw",err=fErr) ! DA Files
-
-  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
-  call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr)
+  call f_open(unit=12,file="fort.12",formatted=.true., mode="w", err=fErr)
+  call f_open(unit=17,file="fort.17",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=19,file="fort.19",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=20,file="fort.20",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=21,file="fort.21",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=22,file="fort.22",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=23,file="fort.23",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=24,file="fort.24",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=25,file="fort.25",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=26,file="fort.26",formatted=.false.,mode="rw",err=fErr) ! DA Files
 
   call time_timeStamp(time_afterFileUnits)
 
@@ -125,6 +116,7 @@ featList = ""
   write(lout,"(a)") "    Start Time:   "//timeStamp
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
+  units_beQuiet = .false. ! Allow mod_units to write to lout now
 
   call meta_write("SixTrackDAVersion", trim(version))
   call meta_write("ReleaseDate",       trim(moddate))
@@ -147,7 +139,7 @@ featList = ""
   if (ithick.eq.1) call allocate_thickarrays
   if(nord <= 0 .or. nvar <= 0) then
     write(lerr,"(a)") "MAINDA> ERROR Order and number of variables have to be larger than 0 to calculate a differential algebra map"
-    call prror(-1)
+    call prror
   end if
   if(ithick.eq.1) write(lout,10020)
   if(ithick.eq.0) write(lout,10030)
@@ -197,7 +189,7 @@ featList = ""
         nlin=nlin+1
         if(nlin.gt.nele) then
           write(lerr,"(a)") "MAINDA> ERROR Too many elements for linear optics write-out"
-          call prror(-1)
+          call prror
         end if
         bezl(nlin)=bez(i)
       end if
@@ -454,7 +446,7 @@ featList = ""
     if(ithick == 1) call envars(1,dps(1),rv)
   else
     write(lerr,"(a)") "MAINDA> ERROR Zero or negative energy does not make much sense."
-    call prror(-1)
+    call prror
   end if
   if(numl.eq.0.or.numlr.ne.0) then
     write(lout,10070)
@@ -487,11 +479,7 @@ featList = ""
   call time_finalise
   call meta_finalise
   call closeUnits
-#ifdef CR
-  call abend('                                                  ')
-#else
   stop
-#endif
 
 10010 format(/t10,'UNCOUPLED AMPLITUDES AND EMITTANCES:',&
              /t10,'AMPLITUDE-X = ',f15.3,10x,'AMPLITUDE-Y = ',f15.3, '  MM',&
