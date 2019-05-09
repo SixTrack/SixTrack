@@ -834,26 +834,26 @@ module mod_common_main
 
   implicit none
 
-  ! Main 1
-  real(kind=fPrec), allocatable, save :: smiv(:)      ! (nblz)
-  real(kind=fPrec), allocatable, save :: zsiv(:)      ! (nblz)
-  real(kind=fPrec), allocatable, save :: xsiv(:)      ! (nblz)
+  ! Number of Structure Elements (nblz)
+  real(kind=fPrec), allocatable, save :: zsiv(:)      ! Displacement of elements, including error
+  real(kind=fPrec), allocatable, save :: xsiv(:)      ! Displacement of elements, including error
+  real(kind=fPrec), allocatable, save :: smiv(:)      ! Magnetic kick, including error
 
-  real(kind=fPrec), allocatable, save :: xsv(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: zsv(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: xv1(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: yv1(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: xv2(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: yv2(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: dam(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: ekkv(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: sigmv(:)     ! (npart)
-  real(kind=fPrec), allocatable, save :: dpsv(:)      ! (npart)
+  ! Number of Particles (npart)
+  real(kind=fPrec), allocatable, save :: xv1(:)       ! Transverse coordinates: Horisontal position
+  real(kind=fPrec), allocatable, save :: yv1(:)       ! Transverse coordinates: Horisontal angle
+  real(kind=fPrec), allocatable, save :: xv2(:)       ! Transverse coordinates: Vertical position
+  real(kind=fPrec), allocatable, save :: yv2(:)       ! Transverse coordinates: Vertical angle
+  real(kind=fPrec), allocatable, save :: sigmv(:)     ! Longitudinal coordinate: Position offset
+  real(kind=fPrec), allocatable, save :: dpsv(:)      ! Longitudinal coordinate: Momentum offset from reference momentum e0f
+  real(kind=fPrec), allocatable, save :: ejfv(:)      ! Particle momentum
+  real(kind=fPrec), allocatable, save :: ejv(:)       ! Particle energy
+
+  real(kind=fPrec), allocatable, save :: dam(:)       ! Distance in phase space3
+
   real(kind=fPrec), allocatable, save :: dp0v(:)      ! (npart)
   real(kind=fPrec), allocatable, save :: sigmv6(:)    ! (npart)
   real(kind=fPrec), allocatable, save :: dpsv6(:)     ! (npart)
-  real(kind=fPrec), allocatable, save :: ejv(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: ejfv(:)      ! (npart)
   real(kind=fPrec), allocatable, save :: xlv(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: zlv(:)       ! (npart)
   real(kind=fPrec), allocatable, save :: rvv(:)       ! (npart)
@@ -929,21 +929,19 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   end if
 
   if(npart_new /= npart_prev) then
-    call alloc(xsv,              npart_new,      zero,    "xsv")
-    call alloc(zsv,              npart_new,      zero,    "zsv")
     call alloc(xv1,              npart_new,      zero,    "xv1")
     call alloc(yv1,              npart_new,      zero,    "yv1")
     call alloc(xv2,              npart_new,      zero,    "xv2")
     call alloc(yv2,              npart_new,      zero,    "yv2")
-    call alloc(dam,              npart_new,      zero,    "dam")
-    call alloc(ekkv,             npart_new,      zero,    "ekkv")
     call alloc(sigmv,            npart_new,      zero,    "sigmv")
     call alloc(dpsv,             npart_new,      zero,    "dpsv")
-    call alloc(dp0v,             npart_new,      zero,    "dp0v")
-    call alloc(sigmv6,           npart_new,      zero,    "sigmv6")
-    call alloc(dpsv6,            npart_new,      zero,    "dpsv6")
     call alloc(ejv,              npart_new,      zero,    "ejv")
     call alloc(ejfv,             npart_new,      zero,    "ejfv")
+    call alloc(dam,              npart_new,      zero,    "dam")
+    call alloc(dp0v,             npart_new,      zero,    "dp0v")
+
+    call alloc(sigmv6,           npart_new,      zero,    "sigmv6")
+    call alloc(dpsv6,            npart_new,      zero,    "dpsv6")
     call alloc(xlv,              npart_new,      zero,    "xlv")
     call alloc(zlv,              npart_new,      zero,    "zlv")
     call alloc(rvv,              npart_new,      one,     "rvv")
