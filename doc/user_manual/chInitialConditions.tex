@@ -59,7 +59,7 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     \hline
 
     \rowcolor{gray!15}
-    \texttt{NPART} & \texttt{n\_particles[int]} & \texttt{0}\\*
+    \texttt{NPART} & \texttt{n\_particles(int)} & \texttt{0}\\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         The number of particles to be tracked.
@@ -69,7 +69,7 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     \hline
 
     \rowcolor{gray!15}
-    \texttt{NTURN} & \texttt{forward[int] [backward[int]]} & \texttt{0 0} \\*
+    \texttt{NTURN} & \texttt{forward(int) [backward(int)]} & \texttt{0 0} \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         The number of turns in the forwards, and optionally, backwards direction.
@@ -78,7 +78,7 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     \hline
 
     \rowcolor{gray!15}
-    \texttt{AMPLITUDE} & \texttt{start[float] end[float]} & \texttt{0.0 0.0} \\*
+    \texttt{AMPLITUDE} & \texttt{start(float) end(float)} & \texttt{0.0 0.0} \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         Start and end amplitude (any sign) in the horizontal phase space plane for the amplitude variations.
@@ -88,13 +88,56 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     \hline
 
     \rowcolor{gray!15}
-    \texttt{CRPOINT} & \texttt{interval[int]} & \texttt{1000} \\*
+    \texttt{CRPOINT} & \texttt{interval(int)} & \texttt{1000} \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         How often to write checkpoint files.
         This parameter is ignored if SixTrack was not built with checkpoint/restart functionality.
         Checkpoint files are always written on turn 1, then with the interval specified here, and then a last time at the end of tracking.
         \index{checkpoint/restart}\index{CR}
+    } \\*
+
+    \hline
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Reference Particle}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{REF\_ENERGY} & \texttt{energy(float,MeV)} & \texttt{0.0}\\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        The reference particle energy in MeV.
+        \index{reference particle}\index{reference energy}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{REF\_MASS} & \texttt{mass(float,MeV) [year]} & \texttt{938.271998 2002}\\*
+    \hline
+    \rowcolor{gray!15}
+    \texttt{REF\_MASS} & \texttt{name [year]} & \texttt{proton 2002}\\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        The reference mass can either be provided as a value in MeV, or as a named particle.
+        Currently this can only be set to ``proton''.
+        This value defaults to the proton mass set in the SixTrack physical constants module in \texttt{source/constants.f90}.
+        The second, optional, argument can be used to set the PDG year to use for the mass.
+        The default value is the 2002 proton mass, and it can optionally be set to the 2018 value.
+        Note that this value affects how the proton radius is calculated, as it uses the PDG year to select the relevant constant for computing this.
+        Even when setting a mass in MeV, the PDG year is used for this.
+        The values set and computed can be echoed back to the user by setting the \texttt{DEBUG} flag in the \texttt{SETTIGS} block, see Section~\ref{STSett}.
+        \index{reference particle}\index{reference mass}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{REF\_ION} & \texttt{A(int) Z(int)} & \texttt{1 1}\\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Used for specifying additional parameters for ion tracking.
+        Currently takes that atomic mass number A, and the charge Z.
+        The values default to proton values.
+        \index{reference particle}\index{reference ion}
     } \\*
     \hline
 
@@ -115,7 +158,7 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     \hline
 
     \rowcolor{gray!15}
-    \texttt{OPTICS} & \texttt{first[int] last[int]} & \texttt{1 nblz} \\*
+    \texttt{OPTICS} & \texttt{first(int) last(int)} & \texttt{1 nblz} \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         Start and stop structure element index for optics calculation.
@@ -129,7 +172,7 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     \hline
 
     \rowcolor{gray!15}
-    \texttt{COUPLING} & \texttt{horizonatl[flag] vertical[flag]} & \texttt{on on} \\*
+    \texttt{COUPLING} & \texttt{horizonatl(flag) vertical(flag)} & \texttt{on on} \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         Tracking where one of the transversal motion planes shall be ignored is only possible when all coupling terms are switched off.
@@ -151,7 +194,7 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     \texttt{INIT\_CLORB} & \texttt{on|off} & \texttt{off} \\*
     \hline
     \rowcolor{gray!15}
-    \texttt{INIT\_CLORB} & \texttt{x xp y yp [sigma dpsv]} & \texttt{6 * 0.0} \\*
+    \texttt{INIT\_CLORB} & \texttt{x xp y yp [sigma dpsv] (float)} & \texttt{6 * 0.0} \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         Initialise closed orbit.
@@ -179,7 +222,7 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     \hline
 
     \rowcolor{gray!15}
-    \texttt{WRITE\_FORT12} & \texttt{interval[int]} & \texttt{10000} \\*
+    \texttt{WRITE\_FORT12} & \texttt{interval(int)} & \texttt{10000} \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         How often, in terms of turns, to write the particle distribution to file \texttt{fort.12}.
@@ -189,7 +232,7 @@ If the \texttt{SIMU} block is present in \texttt{fort.3}, the \texttt{TRAC} bloc
     \hline
 
     \rowcolor{gray!15}
-    \texttt{WRITE\_TRACKS} & \texttt{interval[int] [rewind[flag]]} & \texttt{nturn+1 on} \\*
+    \texttt{WRITE\_TRACKS} & \texttt{interval(int) [rewind(flag)]} & \texttt{nturn+1 on} \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         How often, in terms of turns, to write to the tracking files on unit 90 and lower (see Appendix~\ref{Files}).
