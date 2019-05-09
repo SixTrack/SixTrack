@@ -38,7 +38,7 @@ program maincr
   use postprocessing, only : postpr, writebin_header, writebin
   use read_write,     only : writeFort12, readFort13, readFort33
   use collimation,    only : do_coll, collimate_init, collimate_exit
-  use mod_ffield,     only :ffield_mod_init,ffield_mod_end
+  use mod_ffield,     only : ffield_mod_init,ffield_mod_end
 
 #ifdef FLUKA
   use mod_fluka
@@ -922,11 +922,11 @@ program maincr
     else
       call meta_write("TrackingMethod", "Thin 6D")
     end if
-    if(iclo6 == 0) then
-      write(lerr,"(a,i0)") "MAINCR> ERROR Doing 6D tracking but iclo6 = ",iclo6
-      write(lerr,"(a)")    "MAINCR>       Expected iclo6 <> 0 for 6D tracking."
-      call prror
-    end if
+    ! if(iclo6 == 0) then
+    !   write(lerr,"(a,i0)") "MAINCR> ERROR Doing 6D tracking but iclo6 = ",iclo6
+    !   write(lerr,"(a)")    "MAINCR>       Expected iclo6 <> 0 for 6D tracking."
+    !   call prror
+    ! end if
   end if
 
   call time_timeStamp(time_afterClosedOrbit)
@@ -954,16 +954,19 @@ program maincr
   end do
   rat0 = rat
 
-  ! DIST Block
   if(dist_enable) then
-    e0f=sqrt(e0**2-nucm0**2)
+    ! DIST Block
     call dist_readDist
     call dist_finaliseDist
     call part_applyClosedOrbit
-    if(dist_echo) call dist_echoDist
-  end if
-
-  if(idfor /= 2 .and. .not. dist_enable) then
+    if(dist_echo) then
+      call dist_echoDist
+    end if
+  elseif(rdfort13) then
+    ! Restart from fort.13
+    call readFort13
+    call part_updatePartEnergy(1)
+  else
     ! Generated from INIT Distribution Block
     do ia=1,napx,2
       if(st_quiet == 0) write(lout,10050)
@@ -1034,13 +1037,7 @@ program maincr
       end if
     end do
     call part_applyClosedOrbit
-
-  else if(idfor == 2) then
-    ! Read from fort.13
-    call readFort13
-    call part_updatePartEnergy(1)
-    ! Note that this effectively overrides the particle delta set in fort.13
-  endif
+  end if
 
   do ia=1,napx,2
     if(.not.dist_enable .and. st_quiet == 0) then

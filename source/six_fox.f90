@@ -394,7 +394,7 @@ subroutine umlauda
 #include "include/dalin5.f90"
           endif
         else
-          if(iexact.eq.1) then
+          if(iexact) then
 !-----------------------------------------------------------------------
 !  EXACT DRIFT
 !-----------------------------------------------------------------------

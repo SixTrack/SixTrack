@@ -671,12 +671,7 @@ subroutine thin4d(nthinerr)
       select case (ktrack(i))
       case (1)
         stracki=strack(i)
-        if(iexact.eq.0) then ! exact drift?
-          do j=1,napx
-            xv1(j)=xv1(j)+stracki*yv1(j)
-            xv2(j)=xv2(j)+stracki*yv2(j)
-          end do
-        else
+        if(iexact) then ! exact drift?
           do j=1,napx
             xv1(j)=xv1(j)*c1m3
             xv2(j)=xv2(j)*c1m3
@@ -690,6 +685,11 @@ subroutine thin4d(nthinerr)
             yv1(j)=yv1(j)*c1e3
             yv2(j)=yv2(j)*c1e3
           enddo
+        else
+          do j=1,napx
+            xv1(j)=xv1(j)+stracki*yv1(j)
+            xv2(j)=xv2(j)+stracki*yv2(j)
+          end do
         end if
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
         ! last modified: 07-03-2018
@@ -1408,17 +1408,7 @@ subroutine thin6d(nthinerr)
           !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
 
         else ! Normal SixTrack drifts
-          if(iexact.eq.0) then
-            do j=1,napx
-              xv1(j)  = xv1(j) + stracki*yv1(j)
-              xv2(j)  = xv2(j) + stracki*yv2(j)
-#ifdef FAST
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)**2+yv2(j)**2)*c5m4))
-#else
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt((c1e6+yv1(j)**2)+yv2(j)**2))
-#endif
-            end do
-          else
+          if(iexact) then
             ! EXACT DRIFT
             do j=1,napx
               xv1(j)=xv1(j)*c1m3
@@ -1436,6 +1426,16 @@ subroutine thin6d(nthinerr)
               yv2(j)=yv2(j)*c1e3
               sigmv(j)=sigmv(j)*c1e3
             enddo
+          else
+            do j=1,napx
+              xv1(j)  = xv1(j) + stracki*yv1(j)
+              xv2(j)  = xv2(j) + stracki*yv2(j)
+#ifdef FAST
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)**2+yv2(j)**2)*c5m4))
+#else
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt((c1e6+yv1(j)**2)+yv2(j)**2))
+#endif
+            end do
           end if
         end if
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team

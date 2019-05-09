@@ -58,8 +58,6 @@ module sixtrack_input
   ! Simulation Block
   logical,          public,  save :: sixin_simuThick       = .false.    ! Lattice is thick
   logical,          public,  save :: sixin_simu6D          = .false.    ! Tracking 6D
-  logical,          public,  save :: sixin_simuAddClorb    = .false.    ! Add closed orbit
-  logical,          public,  save :: sixin_simuFort13      = .false.    ! Read fort.13
   logical,          public,  save :: sixin_simuFort33      = .false.    ! Read fort.33
   logical,          public,  save :: sixin_simuInitClorb   = .false.    ! Init closed orbit from fort.3
   real(kind=fPrec), public,  save :: sixin_simuSetClorb(6) = zero       ! The init values for closed orbit
@@ -557,8 +555,10 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   end if
   if(nSplit == 0) return
 
-  ! Set a few defaults
+  ! Set a few defaults that the SIMU block does not provide an interface for
   idz(:) = 1     ! Set coupling to on for both planes when using this block, otherwise it's [1,0]
+  ntwin  = 2     ! Improved Lyapunov analysis
+  idfor  = 1     ! Don't add closed orbit, 4D version of the flag
   nwr(4) = 10000 ! How often to dump a fort.12 by default
 
   ! Set clssical radius from default proton and electron masses.
@@ -616,8 +616,8 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     if(nSplit > 2) call chr_cast(lnSplit(3), numlr, iErr) ! Number of turns in the backward direction
     nnuml = numl ! Default nnuml to numl
     if(st_debug) then
-      call sixin_echoVal("nturn", numl, "SIMU",iLine)
-      call sixin_echoVal("nturnr",numlr,"SIMU",iLine)
+      call sixin_echoVal("turn_forward", numl, "SIMU",iLine)
+      call sixin_echoVal("turn_backward",numlr,"SIMU",iLine)
     end if
     if(iErr) return
 
@@ -658,13 +658,6 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
         case default
           nucm0 = pmap
         end select
-      ! case("electron")
-      !   select case(tmpInt)
-      !   case(2017,2018)
-      !     nucm0 = pmae_18
-      !   case default
-      !     nucm0 = pmae
-      !   end select
       case default
         write(lerr,"(a)") "SIMU> ERROR Unknown or unsupported named particle mass '"//trim(lnSplit(2))//"' in REF_MASS"
         iErr = .true.
@@ -704,21 +697,6 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     end if
     if(iErr) return
     sixin_hionSet = .true.
-
-  ! case("AMPLITUDE")
-  !   if(nSplit /= 3) then
-  !     write(lerr,"(a,i0)") "SIMU> ERROR AMPLITUDE takes 2 arguments, got ",nSplit-1
-  !     write(lerr,"(a)")    "SIMU>       AMPLITUDE start end"
-  !     iErr = .true.
-  !     return
-  !   end if
-  !   call chr_cast(lnSplit(2), amp(1), iErr) ! End amplitude
-  !   call chr_cast(lnSplit(3), amp0,   iErr) ! Start amplitude
-  !   if(st_debug) then
-  !     call sixin_echoVal("amp(1)",amp(1),"SIMU",iLine)
-  !     call sixin_echoVal("amp0",  amp0,  "SIMU",iLine)
-  !   end if
-  !   if(iErr) return
 
   case("OPTICS")
     if(nSplit /= 3) then
@@ -791,44 +769,21 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-  case("COUPLING")
-    if(nSplit /= 3) then
-      write(lerr,"(a,i0)") "SIMU> ERROR COUPLING takes 2 arguments, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       COUPLING hor(on|off) vert(on|off)"
-      iErr = .true.
-      return
-    end if
-    do i=1,2
-      call chr_cast(lnSplit(i+1),tmpLog,iErr)
-      if(tmpLog) then
-        idz(i) = 1
-      else
-        idz(i) = 0
-      end if
-    end do
-    if(st_debug) then
-      call sixin_echoVal("idz(1)",idz(1),"SIMU",iLine)
-      call sixin_echoVal("idz(2)",idz(2),"SIMU",iLine)
-    end if
-    if(iErr) return
-
-  case("ADD_CLORB")
+  case("6D_CLORB")
     if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "SIMU> ERROR ADD_CLORB takes 1 argument, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       ADD_CLORB on|off"
+      write(lerr,"(a,i0)") "SIMU> ERROR 6D_CLORB takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       6D_CLORB on|off"
       iErr = .true.
       return
     end if
     call chr_cast(lnSplit(2),tmpLog,iErr)
     if(tmpLog) then
-      idfor = 0 ! Add closed orbit
-      sixin_simuAddClorb = .true.
+      iclo6 = 1
     else
-      idfor = 1 ! Leave unchanged
-      sixin_simuAddClorb = .false.
+      iclo6 = 0
     end if
     if(st_debug) then
-      call sixin_echoVal("add_clorb",sixin_simuAddClorb,"SIMU",iLine)
+      call sixin_echoVal("calc_clorb",iclo6,"SIMU",iLine)
     end if
     if(iErr) return
 
@@ -874,13 +829,9 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    call chr_cast(lnSplit(2),tmpLog,iErr)
-    if(tmpLog) then
-      idfor = 2
-      sixin_simuFort13 = .true.
-    end if
+    call chr_cast(lnSplit(2),rdfort13,iErr)
     if(st_debug) then
-      call sixin_echoVal("read_fort13",sixin_simuFort13,"SIMU",iLine)
+      call sixin_echoVal("read_fort13",rdfort13,"SIMU",iLine)
     end if
     if(iErr) return
 
@@ -919,50 +870,27 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-  case("NTWIN")
+  case("EXACT")
     if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "SIMU> ERROR NTWIN takes 1 argument, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       NTWIN 1|2"
+      write(lerr,"(a,i0)") "SIMU> ERROR EXACT takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       EXACT on|off"
       iErr = .true.
       return
     end if
-    call chr_cast(lnSplit(2),ntwin,iErr)
-    if(st_debug) then
-      call sixin_echoVal("ntwin",ntwin,"SIMU",iLine)
-    end if
-    if(iErr) return
-
-  case("DO_EXACT")
-    if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "SIMU> ERROR DO_EXACT takes 1 argument, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       DO_EXACT on|off"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2),tmpLog,iErr)
-    if(tmpLog) then
-      iexact = 0
-    else
-      iexact = 1
-    end if
+    call chr_cast(lnSplit(2),iexact,iErr)
     if(st_debug) then
       call sixin_echoVal("do_exact",iexact,"SIMU",iLine)
     end if
     if(iErr) return
 
-  case("DO_CURVEFF")
+  case("CURVEFF")
     if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "SIMU> ERROR DO_CURVEFF takes 1 argument, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       DO_CURVEFF on|off"
+      write(lerr,"(a,i0)") "SIMU> ERROR CURVEFF takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       CURVEFF on|off"
       iErr = .true.
       return
     end if
-    call chr_cast(lnSplit(2),tmpLog,iErr)
-    if(tmpLog) then
-      curveff = 0
-    else
-      curveff = 1
-    end if
+    call chr_cast(lnSplit(2),curveff,iErr)
     if(st_debug) then
       call sixin_echoVal("do_curveff",curveff,"SIMU",iLine)
     end if
@@ -986,29 +914,19 @@ subroutine sixin_postInputSIMU(iErr)
 
   logical, intent(inout) :: iErr
 
-  if(sixin_hasSIMU .and. sixin_simuThick .neqv. (ithick == 1)) then
+  if(sixin_hasSIMU .and. (sixin_simuThick .neqv. (ithick == 1))) then
     write(lout,"(a)") "SIMU> ERROR Lattice format either not defined in SIMU block, or does not match the strcuture file."
     iErr = .true.
   end if
 
-  if(sixin_simuAddClorb .and. sixin_simuFort13) then
-    write(lout,"(a)") "SIMU> ERROR Cannot add closed orbit when restarting from fort.13"
+  if((sixin_simu6D .eqv. .false.) .and. iclo6 > 0) then
+    write(lout,"(a)") "SIMU> ERROR Can only calculated 6D closed orbit for 6D simulations."
     iErr = .true.
   end if
 
-  ! Handle the remaining of closed orbit flag chaos
-  if(sixin_simu6D) then
-    if(sixin_simuAddClorb) then
-      iclo6 = 2
-    else
-      iclo6 = 1
-    end if
-    nsix = 0
-  else
-    iclo6 = 0
-  end if
+  if(sixin_simu6D) nsix  = 0
+
   if(st_debug) then
-    call sixin_echoVal("idfor",idfor,"SIMU",-1)
     call sixin_echoVal("iclo6",iclo6,"SIMU",-1)
     call sixin_echoVal("nsix", nsix, "SIMU",-1)
   end if
@@ -1457,6 +1375,10 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     end if
     if(iclo6 == 2 .and. idfor == 0) idfor = 1
     if(iclo6 == 1 .or.  iclo6 == 2) nsix  = 0
+    if(idfor == 2) then
+      rdfort13 = .true.
+      idfor = 0
+    end if
 
   case(3)
 
@@ -1468,15 +1390,15 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
     nwr(4) = 10000
 
-    if(nSplit > 0) call chr_cast(lnSplit(1),nde(1),  iErr) ! Number of turns at flat bottom
-    if(nSplit > 1) call chr_cast(lnSplit(2),nde(2),  iErr) ! Number of turns for the energy ramping
-    if(nSplit > 2) call chr_cast(lnSplit(3),nwr(1),  iErr) ! Every nth turn coordinates will be written
-    if(nSplit > 3) call chr_cast(lnSplit(4),nwr(2),  iErr) ! Every nth turn coordinates in the ramping region will be written
-    if(nSplit > 4) call chr_cast(lnSplit(5),nwr(3),  iErr) ! Every nth turn at the flat top a write out of the coordinates
-    if(nSplit > 5) call chr_cast(lnSplit(6),nwr(4),  iErr) ! Every nth turn coordinates are written to unit 6.
-    if(nSplit > 6) call chr_cast(lnSplit(7),ntwin,   iErr) ! Flag for calculated distance of phase space
-    if(nSplit > 7) call chr_cast(lnSplit(8),ibidu,   iErr) ! No longer in use.
-    if(nSplit > 8) call chr_cast(lnSplit(9),iexact,  iErr) ! Switch to enable exact solution of the equation of motion
+    if(nSplit > 0) call chr_cast(lnSplit(1), nde(1), iErr) ! Number of turns at flat bottom
+    if(nSplit > 1) call chr_cast(lnSplit(2), nde(2), iErr) ! Number of turns for the energy ramping
+    if(nSplit > 2) call chr_cast(lnSplit(3), nwr(1), iErr) ! Every nth turn coordinates will be written
+    if(nSplit > 3) call chr_cast(lnSplit(4), nwr(2), iErr) ! Every nth turn coordinates in the ramping region will be written
+    if(nSplit > 4) call chr_cast(lnSplit(5), nwr(3), iErr) ! Every nth turn at the flat top a write out of the coordinates
+    if(nSplit > 5) call chr_cast(lnSplit(6), nwr(4), iErr) ! Every nth turn coordinates are written to unit 6.
+    if(nSplit > 6) call chr_cast(lnSplit(7), ntwin,  iErr) ! Flag for calculated distance of phase space
+    if(nSplit > 7) call chr_cast(lnSplit(8), ibidu,  iErr) ! No longer in use.
+    if(nSplit > 8) call chr_cast(lnSplit(9), iexact, iErr) ! Switch to enable exact solution of the equation of motion
     if(nSplit > 9) call chr_cast(lnSplit(10),curveff,iErr) ! Switch to include curvatures effect on multipoles..
 
     if(st_debug) then

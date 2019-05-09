@@ -160,24 +160,25 @@ module mod_common
   integer,          save :: kanf       = 0    ! Structure index where the GO keyword is issued
 
   ! TRACK Block Variables
-  real(kind=fPrec), save :: amp0       = zero ! End amplitude
-  integer,          save :: numl       = 1    ! Number of turns in the forward direction
-  integer,          save :: numlr      = 0    ! Number of turns in the backward direction
-  integer,          save :: napx       = 0    ! Number of amplitude variations
-  integer,          save :: ird        = 0    ! Ignored
-  integer,          save :: niu(2)     = 0    ! Start and stop structure element for optics calculation
-  integer,          save :: numlcp     = 1000 ! How often to write checkpointing files
-  integer,          save :: idfor      = 0    ! Add closed orbit to initial coordinates
-  integer,          save :: irew       = 0    ! Rewind fort.59-90
-  integer,          save :: iclo6      = 0    ! 6D closed orbit flags
-  integer,          save :: nde(2)     = 0    ! Number of turns at flat bottom / energy ramping
-  integer,          save :: nwr(4)     = 1    ! Writings to fort.90
-  integer,          save :: ntwin      = 1    ! How to calculate the distance in phase space
-  integer,          save :: iexact     = 0    ! Exact solution of the equation of motion
-  integer,          save :: curveff    = 0    ! Enable the curvature effect in a combined function magnet
-  integer,          save :: napxo      = 0    ! Original value of napx
-  integer,          save :: napxto     = 0    ! Particles times turns
-  integer,          save :: nnuml      = 0
+  real(kind=fPrec), save :: amp0       = zero    ! End amplitude
+  integer,          save :: numl       = 1       ! Number of turns in the forward direction
+  integer,          save :: numlr      = 0       ! Number of turns in the backward direction
+  integer,          save :: napx       = 0       ! Number of amplitude variations
+  integer,          save :: ird        = 0       ! Ignored
+  integer,          save :: niu(2)     = 0       ! Start and stop structure element for optics calculation
+  integer,          save :: numlcp     = 1000    ! How often to write checkpointing files
+  integer,          save :: idfor      = 0       ! Add closed orbit to initial coordinates
+  integer,          save :: irew       = 0       ! Rewind fort.59-90
+  integer,          save :: iclo6      = 0       ! 6D closed orbit flags
+  integer,          save :: nde(2)     = 0       ! Number of turns at flat bottom / energy ramping
+  integer,          save :: nwr(4)     = 1       ! Writings to fort.90
+  integer,          save :: ntwin      = 1       ! How to calculate the distance in phase space
+  integer,          save :: napxo      = 0       ! Original value of napx
+  integer,          save :: napxto     = 0       ! Particles times turns
+  integer,          save :: nnuml      = 0       ! Turn number for POSTPR
+  logical,          save :: curveff    = .false. ! Enable the curvature effect in a combined function magnet
+  logical,          save :: iexact     = .false. ! Exact solution of the equation of motion
+  logical,          save :: rdfort13   = .false. ! Wheteher to read distribution from fort.13 or not
 
   ! INITIAL COORDINATES Block Variables
   real(kind=fPrec), save :: rat        = zero
