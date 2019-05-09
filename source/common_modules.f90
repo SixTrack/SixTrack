@@ -823,8 +823,8 @@ end subroutine comt_daEnd
 end module mod_common_track
 
 ! ================================================================================================ !
-!  MAIN COMMON VARIABLES
-!  Last modified: 2018-06-13
+!  Main Variables Used for Particle Tracking
+!  Last modified: 2019-05-09
 ! ================================================================================================ !
 module mod_common_main
 
@@ -834,71 +834,69 @@ module mod_common_main
 
   implicit none
 
+  real(kind=fPrec), save :: qw(2)      = zero
+  real(kind=fPrec), save :: qwc(3)     = zero
+  real(kind=fPrec), save :: clo0(2)    = zero
+  real(kind=fPrec), save :: clop0(2)   = zero
+  real(kind=fPrec), save :: ekk(2)     = zero
+  real(kind=fPrec), save :: cr(mmul)   = zero
+  real(kind=fPrec), save :: ci(mmul)   = zero
+  real(kind=fPrec), save :: temptr(6)  = zero
+  real(kind=fPrec), save :: clo6v(3)   = zero
+  real(kind=fPrec), save :: clop6v(3)  = zero
+  real(kind=fPrec), save :: tas(6,6)   = zero
+  real(kind=fPrec), save :: tasau(6,6) = zero
+  real(kind=fPrec), save :: qwcs(3)    = zero
+  real(kind=fPrec), save :: di0xs      = zero
+  real(kind=fPrec), save :: di0zs      = zero
+  real(kind=fPrec), save :: dip0xs     = zero
+  real(kind=fPrec), save :: dip0zs     = zero
+  real(kind=fPrec), save :: di0au(4)
+  real(kind=fPrec), save :: tau(6,6)
+  real(kind=fPrec), save :: wx(3)
+  real(kind=fPrec), save :: x1(6)
+  real(kind=fPrec), save :: x2(6)
+  real(kind=fPrec), save :: fake(2,20)
+  real(kind=fPrec), save :: xau(2,6)
+  real(kind=fPrec), save :: cloau(6)
+
+  !  Arrays
+  ! ========
+
   ! Number of Structure Elements (nblz)
-  real(kind=fPrec), allocatable, save :: zsiv(:)      ! Displacement of elements, including error
-  real(kind=fPrec), allocatable, save :: xsiv(:)      ! Displacement of elements, including error
-  real(kind=fPrec), allocatable, save :: smiv(:)      ! Magnetic kick, including error
+  real(kind=fPrec), allocatable, save :: zsiv(:)       ! Displacement of elements, including error
+  real(kind=fPrec), allocatable, save :: xsiv(:)       ! Displacement of elements, including error
+  real(kind=fPrec), allocatable, save :: smiv(:)       ! Magnetic kick, including error
 
   ! Number of Particles (npart)
-  real(kind=fPrec), allocatable, save :: xv1(:)       ! Transverse coordinates: Horisontal position
-  real(kind=fPrec), allocatable, save :: yv1(:)       ! Transverse coordinates: Horisontal angle
-  real(kind=fPrec), allocatable, save :: xv2(:)       ! Transverse coordinates: Vertical position
-  real(kind=fPrec), allocatable, save :: yv2(:)       ! Transverse coordinates: Vertical angle
-  real(kind=fPrec), allocatable, save :: sigmv(:)     ! Longitudinal coordinate: Position offset
-  real(kind=fPrec), allocatable, save :: dpsv(:)      ! Longitudinal coordinate: Momentum offset from reference momentum e0f
-  real(kind=fPrec), allocatable, save :: ejfv(:)      ! Particle momentum
-  real(kind=fPrec), allocatable, save :: ejv(:)       ! Particle energy
+  real(kind=fPrec), allocatable, save :: xv1(:)        ! Transverse coordinates: Horisontal position
+  real(kind=fPrec), allocatable, save :: yv1(:)        ! Transverse coordinates: Horisontal angle
+  real(kind=fPrec), allocatable, save :: xv2(:)        ! Transverse coordinates: Vertical position
+  real(kind=fPrec), allocatable, save :: yv2(:)        ! Transverse coordinates: Vertical angle
+  real(kind=fPrec), allocatable, save :: sigmv(:)      ! Longitudinal coordinate: Position offset
+  real(kind=fPrec), allocatable, save :: dpsv(:)       ! Longitudinal coordinate: Momentum offset from reference momentum e0f
+  real(kind=fPrec), allocatable, save :: ejfv(:)       ! Particle momentum
+  real(kind=fPrec), allocatable, save :: ejv(:)        ! Particle energy
 
-  real(kind=fPrec), allocatable, save :: rvv(:)       ! Beta_0 / Beta(j)
-  real(kind=fPrec), allocatable, save :: ejf0v(:)     ! Temporary array for momentum updates
-  real(kind=fPrec), allocatable, save :: dam(:)       ! Distance in phase space3
+  real(kind=fPrec), allocatable, save :: oidpsv(:)     ! 1/(1+dpsv)
+  real(kind=fPrec), allocatable, save :: rvv(:)        ! Beta_0 / Beta(j)
+  real(kind=fPrec), allocatable, save :: ejf0v(:)      ! Temporary array for momentum updates
+  real(kind=fPrec), allocatable, save :: dam(:)        ! Distance in phase space3
+  real(kind=fPrec), allocatable, save :: dpd(:)        ! Tick tracking only: 1+dpsv
+  real(kind=fPrec), allocatable, save :: dpsq(:)       ! Tick tracking only: sqrt(1+dpsv)
+  real(kind=fPrec), allocatable, save :: ampv(:)       ! Amplitude variations
 
-  integer,          allocatable, save :: nnumxv(:)    ! Turn in which a particle was lost
-  integer,          allocatable, save :: numxv(:)     ! Turn in which a particle was lost
+  integer,          allocatable, save :: nnumxv(:)     ! Turn in which a particle was lost
+  integer,          allocatable, save :: numxv(:)      ! Turn in which a particle was lost
 
-  integer,          allocatable, save :: partID(:)    ! (npart)
-  integer,          allocatable, save :: parentID(:)  ! (npart)
+  integer,          allocatable, save :: partID(:)     ! Particle ID
+  integer,          allocatable, save :: parentID(:)   ! Particle parent ID in case of secondary particles
+  logical,          allocatable, save :: pstop(:)      ! Particle lost flag
+  logical,          allocatable, save :: llostp(:)     ! Particle lost flag
+  real(kind=fPrec), allocatable, save :: aperv(:,:)    ! Aperture at loss
+  integer,          allocatable, save :: iv(:)         ! Entry in the seque3nce where loss occured
 
-  logical,          allocatable, save :: pstop(:)     ! (npart)
-  logical,          allocatable, save :: llostp(:)    ! (npart)
-
-  real(kind=fPrec),              save :: qw(2)     = zero
-  real(kind=fPrec),              save :: qwc(3)    = zero
-  real(kind=fPrec),              save :: clo0(2)   = zero
-  real(kind=fPrec),              save :: clop0(2)  = zero
-  real(kind=fPrec),              save :: ekk(2)    = zero
-  real(kind=fPrec),              save :: cr(mmul)  = zero
-  real(kind=fPrec),              save :: ci(mmul)  = zero
-  real(kind=fPrec),              save :: temptr(6) = zero
-  real(kind=fPrec),              save :: clo6v(3)  = zero
-  real(kind=fPrec),              save :: clop6v(3) = zero
-  real(kind=fPrec),              save :: tas(6,6)  = zero
-
-  ! Main 2
-  real(kind=fPrec), allocatable, save :: dpd(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: dpsq(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: oidpsv(:)    ! (npart)
-  real(kind=fPrec), allocatable, save :: ampv(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: aperv(:,:)   ! (npart,2)
-
-  integer,          allocatable, save :: iv(:)        ! (npart)
-
-  ! Main 3
-  real(kind=fPrec), allocatable, save :: bl1v(:,:,:,:) ! (6,2,npart,nblo)
-  real(kind=fPrec),              save :: tasau(6,6) = zero
-  real(kind=fPrec),              save :: qwcs(3)    = zero
-  real(kind=fPrec),              save :: di0xs      = zero
-  real(kind=fPrec),              save :: di0zs      = zero
-  real(kind=fPrec),              save :: dip0xs     = zero
-  real(kind=fPrec),              save :: dip0zs     = zero
-  real(kind=fPrec),              save :: di0au(4)
-  real(kind=fPrec),              save :: tau(6,6)
-  real(kind=fPrec),              save :: wx(3)
-  real(kind=fPrec),              save :: x1(6)
-  real(kind=fPrec),              save :: x2(6)
-  real(kind=fPrec),              save :: fake(2,20)
-  real(kind=fPrec),              save :: xau(2,6)
-  real(kind=fPrec),              save :: cloau(6)
+  real(kind=fPrec), allocatable, save :: bl1v(:,:,:,:) ! Tick tracking only: Transfer matrix for linear tracking (6,2,npart,nblo)
 
 contains
 
@@ -915,41 +913,36 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   integer :: nblz_prev  = -2
   integer :: npart_prev = -2
 
-
   if(nblz_new /= nblz_prev) then
-    call alloc(smiv,             nblz_new,       zero,    "smiv")
-    call alloc(zsiv,             nblz_new,       zero,    "zsiv")
-    call alloc(xsiv,             nblz_new,       zero,    "xsiv")
+    call alloc(smiv,     nblz_new,     zero,    "smiv")
+    call alloc(zsiv,     nblz_new,     zero,    "zsiv")
+    call alloc(xsiv,     nblz_new,     zero,    "xsiv")
   end if
 
   if(npart_new /= npart_prev) then
-    call alloc(xv1,              npart_new,      zero,    "xv1")
-    call alloc(yv1,              npart_new,      zero,    "yv1")
-    call alloc(xv2,              npart_new,      zero,    "xv2")
-    call alloc(yv2,              npart_new,      zero,    "yv2")
-    call alloc(sigmv,            npart_new,      zero,    "sigmv")
-    call alloc(dpsv,             npart_new,      zero,    "dpsv")
-    call alloc(ejv,              npart_new,      zero,    "ejv")
-    call alloc(ejfv,             npart_new,      zero,    "ejfv")
-
-    call alloc(dam,              npart_new,      zero,    "dam")
-
-    call alloc(rvv,              npart_new,      one,     "rvv")
-    call alloc(ejf0v,            npart_new,      zero,    "ejf0v")
-    call alloc(numxv,            npart_new,      0,       "numxv")
-    call alloc(nnumxv,           npart_new,      0,       "nnumxv")
-
-    call alloc(partID,           npart_new,      0,       "partID")
-    call alloc(parentID,         npart_new,      0,       "parentID")
-    call alloc(pstop,            npart_new,      .false., "pstop")
-    call alloc(llostp,           npart_new,      .false., "llostp")
-
-    call alloc(dpd,              npart_new,      zero,    "dpd")
-    call alloc(dpsq,             npart_new,      zero,    "dpsq")
-    call alloc(oidpsv,           npart_new,      one,     "oidpsv")
-    call alloc(ampv,             npart_new,      zero,    "ampv")
-    call alloc(aperv,            npart_new, 2,   zero,    "aperv")
-    call alloc(iv,               npart_new,      0,       "iv")
+    call alloc(xv1,      npart_new,    zero,    "xv1")
+    call alloc(yv1,      npart_new,    zero,    "yv1")
+    call alloc(xv2,      npart_new,    zero,    "xv2")
+    call alloc(yv2,      npart_new,    zero,    "yv2")
+    call alloc(sigmv,    npart_new,    zero,    "sigmv")
+    call alloc(dpsv,     npart_new,    zero,    "dpsv")
+    call alloc(ejv,      npart_new,    zero,    "ejv")
+    call alloc(ejfv,     npart_new,    zero,    "ejfv")
+    call alloc(dam,      npart_new,    zero,    "dam")
+    call alloc(rvv,      npart_new,    one,     "rvv")
+    call alloc(ejf0v,    npart_new,    zero,    "ejf0v")
+    call alloc(numxv,    npart_new,    0,       "numxv")
+    call alloc(nnumxv,   npart_new,    0,       "nnumxv")
+    call alloc(partID,   npart_new,    0,       "partID")
+    call alloc(parentID, npart_new,    0,       "parentID")
+    call alloc(pstop,    npart_new,    .false., "pstop")
+    call alloc(llostp,   npart_new,    .false., "llostp")
+    call alloc(dpd,      npart_new,    zero,    "dpd")
+    call alloc(dpsq,     npart_new,    zero,    "dpsq")
+    call alloc(oidpsv,   npart_new,    one,     "oidpsv")
+    call alloc(ampv,     npart_new,    zero,    "ampv")
+    call alloc(aperv,    npart_new, 2, zero,    "aperv")
+    call alloc(iv,       npart_new,    0,       "iv")
   end if
 
   nblz_prev  = nblz_new
