@@ -683,17 +683,35 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   case("REF_ION")
     if(nSplit < 3) then
       write(lerr,"(a,i0)") "SIMU> ERROR REF_ION takes at least 2 arguments, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       REF_ION A Z"
+      write(lerr,"(a)")    "SIMU>       REF_ION A Z [charge]"
       iErr = .true.
       return
     end if
-    if(nSplit > 1) call chr_cast(lnSplit(2),aa0,iErr)
-    if(nSplit > 2) call chr_cast(lnSplit(3),zz0,iErr)
-    if(nSplit > 3) call chr_cast(lnSplit(4),qq0,iErr)
+    call chr_cast(lnSplit(2),aa0,iErr)
+    call chr_cast(lnSplit(3),zz0,iErr)
+    if(nSplit > 3) then
+      call chr_cast(lnSplit(4),qq0,iErr)
+    else
+      qq0 = zz0
+    end if
     if(st_debug) then
       call sixin_echoVal("A",     int(aa0),"SIMU",iLine)
       call sixin_echoVal("Z",     int(zz0),"SIMU",iLine)
       call sixin_echoVal("charge",int(qq0),"SIMU",iLine)
+    end if
+    if(iErr) return
+    sixin_hionSet = .true.
+
+  case("REF_PDGID")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR REF_PDGID takes at 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       REF_PDGID id"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),pdgid0,iErr)
+    if(st_debug) then
+      call sixin_echoVal("pdgid0",pdgid0,"SIMU",iLine)
     end if
     if(iErr) return
     sixin_hionSet = .true.
