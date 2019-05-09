@@ -882,8 +882,8 @@ module mod_common_main
   real(kind=fPrec), allocatable, save :: rvv(:)        ! Beta_0 / Beta(j)
   real(kind=fPrec), allocatable, save :: ejf0v(:)      ! Temporary array for momentum updates
   real(kind=fPrec), allocatable, save :: dam(:)        ! Distance in phase space3
-  real(kind=fPrec), allocatable, save :: dpd(:)        ! Tick tracking only: 1+dpsv
-  real(kind=fPrec), allocatable, save :: dpsq(:)       ! Tick tracking only: sqrt(1+dpsv)
+  real(kind=fPrec), allocatable, save :: dpd(:)        ! Thick tracking only: 1+dpsv
+  real(kind=fPrec), allocatable, save :: dpsq(:)       ! Thick tracking only: sqrt(1+dpsv)
   real(kind=fPrec), allocatable, save :: ampv(:)       ! Amplitude variations
 
   integer,          allocatable, save :: nnumxv(:)     ! Turn in which a particle was lost
@@ -896,7 +896,7 @@ module mod_common_main
   real(kind=fPrec), allocatable, save :: aperv(:,:)    ! Aperture at loss
   integer,          allocatable, save :: iv(:)         ! Entry in the seque3nce where loss occured
 
-  real(kind=fPrec), allocatable, save :: bl1v(:,:,:,:) ! Tick tracking only: Transfer matrix for linear tracking (6,2,npart,nblo)
+  real(kind=fPrec), allocatable, save :: bl1v(:,:,:,:) ! Thick tracking only: Transfer matrix for linear tracking (6,2,npart,nblo)
 
 contains
 
