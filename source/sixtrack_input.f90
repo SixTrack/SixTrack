@@ -13,12 +13,14 @@ module sixtrack_input
   implicit none
 
   ! Block Presence
-  logical, public,  save :: sixin_hasSIMU = .false.
-  logical, public,  save :: sixin_hasTRAC = .false.
-  logical, public,  save :: sixin_hasINIT = .false.
-  logical, public,  save :: sixin_hasHION = .false.
+  logical, public,  save :: sixin_hasSIMU    = .false.
+  logical, public,  save :: sixin_hasTRAC    = .false.
+  logical, public,  save :: sixin_hasINIT    = .false.
+  logical, public,  save :: sixin_hasHION    = .false.
 
-  logical, public,  save :: sixin_hionSet = .false.
+  ! Various Flags for Consistency Between Blocks
+  logical, public,  save :: sixin_hionSet    = .false.
+  logical, public,  save :: sixin_refMassSet = .false.
 
   ! Record of encountered blocks
   character(len=:), allocatable, private, save :: sixin_cBlock(:) ! Name of block
@@ -544,7 +546,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  integer i, nSplit, numPart
+  integer i, nSplit, numPart, tmpInt
   logical spErr, tmpLog
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -558,6 +560,10 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   ! Set a few defaults
   idz(:) = 1     ! Set coupling to on for both planes when using this block, otherwise it's [1,0]
   nwr(4) = 10000 ! How often to dump a fort.12 by default
+
+  ! Set clssical radius from default proton and electron masses.
+  ! This is changed if the user requests latest values
+  crad = (crade*pmae)/pmap
 
   select case(lnSplit(1))
 
@@ -629,29 +635,68 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     if(iErr) return
 
   case("REF_MASS")
-    if(nSplit < 2) then
+    if(nSplit /= 2 .and. nSplit /= 3) then
       write(lerr,"(a,i0)") "SIMU> ERROR REF_MASS takes 1 argument, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       REF_MASS mass[MeV]"
+      write(lerr,"(a)")    "SIMU>       REF_MASS mass[MeV] [PDG_year]"
+      write(lerr,"(a)")    "SIMU>    or REF_MASS name [PDG_year]"
       iErr = .true.
       return
     end if
-    call chr_cast(lnSplit(2),nucm0,iErr)
+    if(nSplit == 3) then
+      call chr_cast(lnSplit(3),tmpInt,iErr)
+    else
+      tmpInt = 2002
+    end if
+    if(chr_isNumeric(lnSplit(2))) then
+      call chr_cast(lnSplit(2),nucm0,iErr)
+    else
+      select case(chr_toLower(lnSplit(2)))
+      case("proton")
+        select case(tmpInt)
+        case(2017,2018)
+          nucm0 = pmap_18
+        case default
+          nucm0 = pmap
+        end select
+      ! case("electron")
+      !   select case(tmpInt)
+      !   case(2017,2018)
+      !     nucm0 = pmae_18
+      !   case default
+      !     nucm0 = pmae
+      !   end select
+      case default
+        write(lerr,"(a)") "SIMU> ERROR Unknown or unsupported named particle mass '"//trim(lnSplit(2))//"' in REF_MASS"
+        iErr = .true.
+        return
+      end select
+    end if
+    ! Compute the proton radius from the selected PDG year
+    select case(tmpInt)
+    case(2017,2018)
+      crad = (crade_18*pmae_18)/pmap_18
+    case default
+      crad = (crade*pmae)/pmap
+    end select
     if(st_debug) then
-      call sixin_echoVal("ref_mass",nucm0,"SIMU",iLine)
+      call sixin_echoVal("ref_mass",     nucm0, "SIMU",iLine)
+      call sixin_echoVal("ref_mass_year",tmpInt,"SIMU",iLine)
+      call sixin_echoVal("proton_radius",crad,  "SIMU",iLine)
     end if
     if(iErr) return
-    sixin_hionSet = .true.
+    sixin_hionSet    = .true.
+    sixin_refMassSet = .true. ! Prevents the SYNC block from overriding nucm0 and crad
 
-  case("REF_AZQ")
-    if(nSplit < 4) then
-      write(lerr,"(a,i0)") "SIMU> ERROR REF_AZQ takes 3 arguments, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       REF_AZQ A Z charge"
+  case("REF_ION")
+    if(nSplit < 3) then
+      write(lerr,"(a,i0)") "SIMU> ERROR REF_ION takes at least 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       REF_ION A Z"
       iErr = .true.
       return
     end if
-    call chr_cast(lnSplit(2),aa0,iErr)
-    call chr_cast(lnSplit(3),zz0,iErr)
-    call chr_cast(lnSplit(4),qq0,iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),aa0,iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),zz0,iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),qq0,iErr)
     if(st_debug) then
       call sixin_echoVal("A",     int(aa0),"SIMU",iLine)
       call sixin_echoVal("Z",     int(zz0),"SIMU",iLine)
@@ -1936,6 +1981,12 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
     if(nSplit > 6) call chr_cast(lnSplit(7),ition,     iErr)
     if(nSplit > 7) call chr_cast(lnSplit(8),dppoff,    iErr)
 
+    if(sixin_refMassSet) then
+      ! Reference mass already set in SIMU block, so override pma
+      pma = nucm0
+      write(lout,"(a)") "SYNC> WARNING Reference mass already set in SIMU block. Value set here is ignored."
+    end if
+
     if(st_debug) then
       call sixin_echoVal("harm",  sixin_harm,"SYNC",iLine)
       call sixin_echoVal("alc",   sixin_alc, "SYNC",iLine)
@@ -1969,7 +2020,9 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    crad = (crade*pmae)/pma
+    if(sixin_refMassSet .eqv. .false.) then
+      crad = (crade*pmae)/pma
+    end if
     if(abs(tlen) <= pieni) then
       write(lerr,"(a)") "SYNC> ERROR Please include length of the machine."
       iErr = .true.
