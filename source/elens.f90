@@ -365,13 +365,8 @@ subroutine elens_postInput
   do jj=1,nele
     if(kz(jj)==29) then
       if (ielens(jj).eq.0) then
-<<<<<<< HEAD
         write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lerr,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in fort.3"
-=======
-        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lout,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in "//trim(fort3)
->>>>>>> master
+        write(lerr,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in "//trim(fort3)
         call prror
       elseif ( elens_type(ielens(jj))==0 ) then
         write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
@@ -383,13 +378,8 @@ subroutine elens_postInput
     end if
   end do
   if ( nlens.ne.melens ) then
-<<<<<<< HEAD
-    write(lerr,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in fort.3 ",melens
+    write(lerr,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in "//trim(fort3)//" ",melens
     write(lerr,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
-=======
-    write(lout,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in "//trim(fort3)//" ",melens
-    write(lout,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
->>>>>>> master
     call prror
   end if
 
