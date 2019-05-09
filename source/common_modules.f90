@@ -851,7 +851,6 @@ module mod_common_main
 
   real(kind=fPrec), allocatable, save :: dam(:)       ! Distance in phase space3
 
-  real(kind=fPrec), allocatable, save :: dp0v(:)      ! (npart)
   real(kind=fPrec), allocatable, save :: sigmv6(:)    ! (npart)
   real(kind=fPrec), allocatable, save :: dpsv6(:)     ! (npart)
   real(kind=fPrec), allocatable, save :: xlv(:)       ! (npart)
@@ -937,8 +936,8 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
     call alloc(dpsv,             npart_new,      zero,    "dpsv")
     call alloc(ejv,              npart_new,      zero,    "ejv")
     call alloc(ejfv,             npart_new,      zero,    "ejfv")
+
     call alloc(dam,              npart_new,      zero,    "dam")
-    call alloc(dp0v,             npart_new,      zero,    "dp0v")
 
     call alloc(sigmv6,           npart_new,      zero,    "sigmv6")
     call alloc(dpsv6,            npart_new,      zero,    "dpsv6")
