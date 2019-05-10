@@ -58,6 +58,7 @@ module sixtrack_input
   ! Simulation Block
   logical,          public,  save :: sixin_simuThick       = .false.    ! Lattice is thick
   logical,          public,  save :: sixin_simu6D          = .false.    ! Tracking 6D
+  logical,          public,  save :: sixin_simuMassFromPDG = .false.    ! Set the referenc mass from PG ID
   logical,          public,  save :: sixin_simuFort33      = .false.    ! Read fort.33
   logical,          public,  save :: sixin_simuInitClorb   = .false.    ! Init closed orbit from fort.3
   real(kind=fPrec), public,  save :: sixin_simuSetClorb(6) = zero       ! The init values for closed orbit
@@ -634,83 +635,65 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-  case("REF_MASS")
-    if(nSplit /= 2 .and. nSplit /= 3) then
-      write(lerr,"(a,i0)") "SIMU> ERROR REF_MASS takes 1 argument, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       REF_MASS mass[MeV] [PDG_year]"
-      write(lerr,"(a)")    "SIMU>    or REF_MASS name [PDG_year]"
+  case("PDG_YEAR")
+    if(nSplit < 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR PDG_YEAR takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       PDG_YEAR year"
       iErr = .true.
       return
     end if
-    if(nSplit == 3) then
-      call chr_cast(lnSplit(3),tmpInt,iErr)
-    else
-      tmpInt = 2002
-    end if
-    if(chr_isNumeric(lnSplit(2))) then
-      call chr_cast(lnSplit(2),nucm0,iErr)
-    else
-      select case(chr_toLower(lnSplit(2)))
-      case("proton")
-        select case(tmpInt)
-        case(2017,2018)
-          nucm0 = pmap_18
-        case default
-          nucm0 = pmap
-        end select
-      case default
-        write(lerr,"(a)") "SIMU> ERROR Unknown or unsupported named particle mass '"//trim(lnSplit(2))//"' in REF_MASS"
-        iErr = .true.
-        return
-      end select
-    end if
-    ! Compute the proton radius from the selected PDG year
-    select case(tmpInt)
+    call chr_cast(lnSplit(2),pdgyear,iErr)
+    ! Compute the proton radius from PDG year
+    select case(pdgyear)
     case(2017,2018)
       crad = (crade_18*pmae_18)/pmap_18
     case default
       crad = (crade*pmae)/pmap
     end select
     if(st_debug) then
-      call sixin_echoVal("ref_mass",     nucm0, "SIMU",iLine)
-      call sixin_echoVal("ref_mass_year",tmpInt,"SIMU",iLine)
-      call sixin_echoVal("proton_radius",crad,  "SIMU",iLine)
+      call sixin_echoVal("pdgyear",pdgyear,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("REF_PARTICLE")
+    if(nSplit /= 2 .and. nSplit /= 3 .and. nSplit /= 5) then
+      write(lerr,"(a,i0)") "SIMU> ERROR REF_PARTICLE takes 1, 2 or 4 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       REF_PARTICLE mass[MeV] [charge A Z]"
+      write(lerr,"(a)")    "SIMU>    or REF_PARTICLE name/PDGID [charge A Z]"
+      iErr = .true.
+      return
+    end if
+    if(chr_isNumeric(lnSplit(2))) then
+      call chr_cast(lnSplit(2),nucm0,iErr)
+    else
+      select case(chr_toLower(lnSplit(2)))
+      case("proton","pdg2212")
+        pdgid0 = 2212
+      case default
+        write(lerr,"(a)") "SIMU> ERROR Unknown or unsupported named particle mass or PDG ID '"//trim(lnSplit(2))//"'"
+        iErr = .true.
+        return
+      end select
+      sixin_simuMassFromPDG = .true.
+    end if
+    if(nSplit > 2) then
+      call chr_cast(lnSplit(3),qq0,iErr)
+    end if
+    if(nSplit > 3) then
+      call chr_cast(lnSplit(4),aa0,iErr)
+      call chr_cast(lnSplit(5),zz0,iErr)
+    else
+      zz0 = qq0
+    end if
+    if(st_debug) then
+      call sixin_echoVal("charge",       int(qq0), "SIMU",iLine)
+      call sixin_echoVal("A",            int(aa0), "SIMU",iLine)
+      call sixin_echoVal("Z",            int(zz0), "SIMU",iLine)
+      call sixin_echoVal("proton_radius",crad,     "SIMU",iLine)
     end if
     if(iErr) return
     sixin_hionSet    = .true.
     sixin_refMassSet = .true. ! Prevents the SYNC block from overriding nucm0 and crad
-
-  case("REF_QAZ")
-    if(nSplit < 2 .or. nSPlit > 4) then
-      write(lerr,"(a,i0)") "SIMU> ERROR REF_QAZ takes at least 2, 3 or 4 arguments, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       REF_QAZ Q [A Z]"
-      iErr = .true.
-      return
-    end if
-    if(nSplit > 1) call chr_cast(lnSplit(2),qq0,iErr)
-    if(nSplit > 2) call chr_cast(lnSplit(3),aa0,iErr)
-    if(nSplit > 3) call chr_cast(lnSplit(4),zz0,iErr)
-    if(st_debug) then
-      call sixin_echoVal("Q",int(qq0),"SIMU",iLine)
-      call sixin_echoVal("A",int(aa0),"SIMU",iLine)
-      call sixin_echoVal("Z",int(zz0),"SIMU",iLine)
-    end if
-    if(iErr) return
-    sixin_hionSet = .true.
-
-  case("REF_PDGID")
-    if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "SIMU> ERROR REF_PDGID takes at 1 argument, got ",nSplit-1
-      write(lerr,"(a)")    "SIMU>       REF_PDGID id"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2),pdgid0,iErr)
-    if(st_debug) then
-      call sixin_echoVal("pdgid0",pdgid0,"SIMU",iLine)
-    end if
-    if(iErr) return
-    sixin_hionSet = .true.
 
   case("OPTICS")
     if(nSplit /= 3) then
@@ -919,6 +902,40 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
 
 end subroutine sixin_parseInputLineSIMU
 
+! Called when the SIMU block is closed
+subroutine sixin_parseInputDoneSIMU(iErr)
+
+  use crcoall
+  use mod_common
+  use mod_settings
+
+  logical, intent(inout) :: iErr
+
+  ! Set the mass from the PDG ID in the case it was not explicitly give as a number
+  if(sixin_simuMassFromPDG) then
+    select case(pdgid0)
+    case(2212)
+      select case(pdgyear)
+      case(2017,2018)
+        nucm0 = pmap_18
+      case default
+        nucm0 = pmap
+      end select
+    case default
+      write(lout,"(a,i0)") "SIMU> ERROR Unknown or unsupported PDG ID ",pdgid0
+      iErr = .true.
+    end select
+  end if
+
+  if(st_debug) then
+    call sixin_echoVal("nucm0",  nucm0,  "SIMU",-1)
+    call sixin_echoVal("pdgid0", pdgid0, "SIMU",-1)
+    call sixin_echoVal("pdgyear",pdgyear,"SIMU",-1)
+  end if
+
+end subroutine sixin_parseInputDoneSIMU
+
+! Called after ENDE
 subroutine sixin_postInputSIMU(iErr)
 
   use crcoall
@@ -929,7 +946,7 @@ subroutine sixin_postInputSIMU(iErr)
   logical, intent(inout) :: iErr
 
   if(sixin_hasSIMU .and. (sixin_simuThick .neqv. (ithick == 1))) then
-    write(lout,"(a)") "SIMU> ERROR Lattice format either not defined in SIMU block, or does not match the strcuture file."
+    write(lout,"(a)") "SIMU> ERROR Lattice format either not defined in SIMU block, or does not match the structure file."
     iErr = .true.
   end if
 
@@ -941,6 +958,7 @@ subroutine sixin_postInputSIMU(iErr)
   if(sixin_simu6D) nsix  = 0
 
   if(st_debug) then
+    call sixin_echoVal("idfor",idfor,"SIMU",-1)
     call sixin_echoVal("iclo6",iclo6,"SIMU",-1)
     call sixin_echoVal("nsix", nsix, "SIMU",-1)
   end if

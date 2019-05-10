@@ -327,7 +327,8 @@ subroutine daten
     if(openBlock) then
       sixin_hasSIMU = .true.
     elseif(closeBlock) then
-      continue
+      call sixin_parseInputDoneSIMU(inErr)
+      if(inErr) goto 9999
     else
       call sixin_parseInputLineSIMU(inLine,blockLine,inErr)
       if(inErr) goto 9999

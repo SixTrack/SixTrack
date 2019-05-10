@@ -227,6 +227,7 @@ subroutine shuffleLostParticles
     ! Ion Arrays
     nzz(j:tnapx)       = cshift(nzz(j:tnapx),       1)
     naa(j:tnapx)       = cshift(naa(j:tnapx),       1)
+    nqq(j:tnapx)       = cshift(nqq(j:tnapx),       1)
     nucm(j:tnapx)      = cshift(nucm(j:tnapx),      1)
     mtc(j:tnapx)       = cshift(mtc(j:tnapx),       1)
     dpsv1(j:tnapx)     = cshift(dpsv1(j:tnapx),     1)
