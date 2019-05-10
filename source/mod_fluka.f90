@@ -113,6 +113,7 @@ module mod_fluka
   integer(kind=int32), public, allocatable :: fluka_uid(:)    ! particle ID
   integer(kind=int32), public, allocatable :: fluka_gen(:)    ! ID of parent particle
   real(kind=fPrec), public, allocatable    :: fluka_weight(:) ! statistical weight (>0.0)
+  integer,          public, allocatable    :: pids(:)         ! Particle ID moved from hisixtrack, to be harmonised
 
   ! Useful values
   integer :: fluka_nsent     ! Temporary count of sent particles
@@ -150,6 +151,7 @@ contains
     fluka_max_npart = npart
     fluka_clight    = clight
 
+    call alloc(pids,               npart, 0, "pids")
     call alloc(fluka_uid,          npart, 0, 'fluka_uid')
     call alloc(fluka_gen,          npart, 0, 'fluka_gen')
     call alloc(fluka_weight,       npart, one, 'fluka_weight')
@@ -188,6 +190,7 @@ contains
 
     integer :: npart_new, nele_new, j
 
+    call alloc(pids,               npart_new, 0, "pids")
     call alloc(fluka_uid,          npart_new, 0, 'fluka_uid')
     call alloc(fluka_gen,          npart_new, 0, 'fluka_gen')
     call alloc(fluka_weight,       npart_new, one, 'fluka_weight')
@@ -208,6 +211,7 @@ contains
   ! un-set the module
   subroutine fluka_mod_end()
     implicit none
+    call dealloc(pids,"pids")
     call dealloc(fluka_uid,'fluka_uid')
     call dealloc(fluka_gen,'fluka_gen')
     call dealloc(fluka_weight,'fluka_weight')

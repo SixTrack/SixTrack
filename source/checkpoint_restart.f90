@@ -75,7 +75,6 @@ module checkpoint_restart
   integer(kind=int16), allocatable, private, save :: crnzz(:)   ! (npart)
   integer(kind=int16), allocatable, private, save :: crnqq(:)   ! (npart)
 
-  integer,          allocatable, private, save :: crpids(:)     ! (npart)
   integer,          allocatable, public,  save :: binrecs(:)    ! ((npart+1)/2)
   integer,          allocatable, public,  save :: crbinrecs(:)  ! (npart+1)/2)
   integer,          allocatable, private, save :: crnumxv(:)    ! (npart)
@@ -188,7 +187,6 @@ subroutine cr_expand_arrays(npart_new)
   call alloc(crnaa,      npart_new,    aa0,     "crnaa")
   call alloc(crnzz,      npart_new,    zz0,     "crnzz")
   call alloc(crnqq,      npart_new,    qq0,     "crnqq")
-  call alloc(crpids,     npart_new,    0,       "crpids")
   call alloc(craperv,    npart_new, 2, zero,    "craperv")
   call alloc(binrecs,    npair_new,    0,       "binrecs")
   call alloc(crbinrecs,  npair_new,    0,       "crbinrecs")
@@ -406,7 +404,6 @@ subroutine crcheck
       (crnaa(j),     j=1,crnapxo),       &
       (crnzz(j),     j=1,crnapxo),       &
       (crnqq(j),     j=1,crnapxo),       &
-      (crpids(j),    j=1,crnapxo),       &
       (craperv(j,1), j=1,crnapxo),       &
       (craperv(j,2), j=1,crnapxo),       &
       (crllostp(j),  j=1,crnapxo)
@@ -645,7 +642,6 @@ subroutine crpoint
       (naa(j),     j=1,napxo),       &
       (nzz(j),     j=1,napxo),       &
       (nqq(j),     j=1,napxo),       &
-      (pids(j),    j=1,napxo),       &
       (aperv(j,1), j=1,napxo),       &
       (aperv(j,2), j=1,napxo),       &
       (llostp(j),  j=1,napxo)
@@ -788,7 +784,6 @@ subroutine crstart
   naa(1:napxo)      = crnaa(1:napxo)
   nzz(1:napxo)      = crnzz(1:napxo)
   nqq(1:napxo)      = crnqq(1:napxo)
-  pids(1:napxo)     = crpids(1:napxo)
 
   numxv(1:napxo)    = crnumxv(1:napxo)
   nnumxv(1:napxo)   = crnnumxv(1:napxo)

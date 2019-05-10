@@ -906,7 +906,6 @@ module mod_common_main
   integer,          allocatable, save :: nnumxv(:)     ! Turn in which a particle was lost
   integer,          allocatable, save :: numxv(:)      ! Turn in which a particle was lost
 
-  integer,          allocatable, save :: pids(:)       ! Particle ID (FLUKA)
   integer,          allocatable, save :: partID(:)     ! Particle ID
   integer,          allocatable, save :: parentID(:)   ! Particle parent ID in case of secondary particles
   logical,          allocatable, save :: pstop(:)      ! Particle lost flag
@@ -966,7 +965,6 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
     call alloc(naa,      npart_new,    aa0,     "naa")
     call alloc(nzz,      npart_new,    zz0,     "nzz")
     call alloc(nqq,      npart_new,    qq0,     "nqq")
-    call alloc(pids,     npart_new,    0,       "pids")
     call alloc(ampv,     npart_new,    zero,    "ampv")
     call alloc(aperv,    npart_new, 2, zero,    "aperv")
     call alloc(iv,       npart_new,    0,       "iv")
