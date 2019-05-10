@@ -3361,7 +3361,7 @@ end subroutine join
       enddo
 
       mmac_tmp   = 1.0_real64
-      nms_tmp    = real(nms(ia_p1), real64)
+      nms_tmp    = 1.0_real64
       izu0_tmp   = real(izu0,       real64)
       numlr_tmp  = real(numlr,      real64)
       sigcor_tmp = real(sigcor,     real64)
