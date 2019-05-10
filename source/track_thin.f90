@@ -536,7 +536,7 @@ subroutine thin4d(nthinerr)
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,acphase,  &
     acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi, &
     rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,pyf,r_temp,z_temp,sigf,   &
-    q_temp,pttemp
+    q_temp,pttemp,xlv,zlv
   logical llost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
@@ -1149,7 +1149,7 @@ subroutine thin6d(nthinerr)
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
-    sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp
+    sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv
   logical llost, doFField
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
@@ -2248,7 +2248,7 @@ subroutine write6(n)
 #endif
     !-- PARTICLES STABLE (Only if QUIET < 2)
     if(.not.pstop(ia).and..not.pstop(ig)) then
-      if(st_quiet < 2) write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),n
+      if(st_quiet < 2) write(lout,10000) ia,izu0,dpsv(ia),n
       if(st_quiet < 1) write(lout,10010)                    &
         xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
         xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig), &

@@ -2616,7 +2616,7 @@ subroutine distance(x,clo,di0,t,dam)
           phi(i)=zero
         endif
    80 continue
-      dam=sqrt((phi(1)**2+phi(2)**2+phi(3)**2)/real(idam,fPrec))/pi            !hr06
+      dam=sqrt((phi(1)**2+phi(2)**2+phi(3)**2)/real(idam,fPrec))/pi
 !-----------------------------------------------------------------------
       return
 end subroutine distance
