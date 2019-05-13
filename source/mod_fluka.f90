@@ -236,7 +236,7 @@ contains
       write(lout,*)
       write(lout,*) 'FLUKA> Could not read the host name from network.nfo'
       write(lout,*)
-      call prror(-1)
+      call prror
     end if
 
     read(unit=net_nfo_unit, fmt=*, iostat=ios) port
@@ -245,7 +245,7 @@ contains
       write(lout,*) 'FLUKA> Could not read the port number from network.nfo'
       write(lout,*) 'FLUKA> Is the FLUKA server running and has it had time to write the port number?'
       write(lout,*)
-      call prror(-1)
+      call prror
     end if
 
     call f_close(net_nfo_unit)
@@ -795,7 +795,7 @@ subroutine fluka_parseInputLine(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "FLUKA> ERROR Failed to parse input line."
+    write(lerr,"(a)") "FLUKA> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -813,7 +813,7 @@ subroutine fluka_parseInputLine(inLine, iLine, iErr)
   case default
 
     if(nSplit /= 4) then
-      write(lout,"(a,i0)") "FLUKA> ERROR Exected 4 values in input line,got ",nSplit
+      write(lerr,"(a,i0)") "FLUKA> ERROR Exected 4 values in input line,got ",nSplit
       iErr = .true.
       return
     end if
@@ -835,7 +835,7 @@ subroutine fluka_parseInputLine(inLine, iLine, iErr)
       end if
     end do
     if(entrIdx == -1) then
-      write(lout,"(a)") "FLUKA> ERROR Un-identified SINGLE ELEMENT '"//trim(entrElem)//"'"
+      write(lerr,"(a)") "FLUKA> ERROR Un-identified SINGLE ELEMENT '"//trim(entrElem)//"'"
       iErr = .true.
       return
     end if
@@ -849,21 +849,21 @@ subroutine fluka_parseInputLine(inLine, iLine, iErr)
       end if
     end do
     if(exitIdx == -1) then
-      write(lout,"(a)") "FLUKA> ERROR Un-identified SINGLE ELEMENT '"//trim(exitElem)//"'"
+      write(lerr,"(a)") "FLUKA> ERROR Un-identified SINGLE ELEMENT '"//trim(exitElem)//"'"
       iErr = .true.
       return
     end if
 
     ! 3. check that the current markers have not been already flagged
     if(fluka_type(entrIdx) /= FLUKA_NONE ) then
-      write(lout,"(a)")       "FLUKA> ERROR Single element '"//trim(bez(entrIdx))//"' was alredy labelled as fluka marker."
-      write(lout,"(2(a,i0))") "FLUKA> ERROR fluka_type(entrance) = ",fluka_type(entrIdx)," at position = ",entrIdx
+      write(lerr,"(a)")       "FLUKA> ERROR Single element '"//trim(bez(entrIdx))//"' was alredy labelled as fluka marker."
+      write(lerr,"(2(a,i0))") "FLUKA> ERROR fluka_type(entrance) = ",fluka_type(entrIdx)," at position = ",entrIdx
       iErr = .true.
       return
     end if
     if(fluka_type(exitIdx) /= FLUKA_NONE ) then
-      write(lout,"(a)")       "FLUKA> ERROR Single element '"//trim(bez(exitIdx))//"' was alredy labelled as fluka marker."
-      write(lout,"(2(a,i0))") "FLUKA> ERROR fluka_type(exit) = ",fluka_type(exitIdx)," at position = ",exitIdx
+      write(lerr,"(a)")       "FLUKA> ERROR Single element '"//trim(bez(exitIdx))//"' was alredy labelled as fluka marker."
+      write(lerr,"(2(a,i0))") "FLUKA> ERROR fluka_type(exit) = ",fluka_type(exitIdx)," at position = ",exitIdx
       iErr = .true.
       return
     end if

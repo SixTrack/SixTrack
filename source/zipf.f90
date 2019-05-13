@@ -14,7 +14,7 @@ module zipf
   integer, save :: zipf_numFiles = 0
 
   character(len=:), allocatable, save :: zipf_fileNames(:)  ! Name of files to pack into the zip file.
-  character(len=mFNameLen),      save :: zipf_outFile = " " ! Name of output file (Default: Sixout.zip)
+  character(len=mFileName),      save :: zipf_outFile = " " ! Name of output file (Default: Sixout.zip)
 
 contains
 
@@ -35,20 +35,20 @@ subroutine zipf_parseInputLine(inLine,iErr)
 
   call chr_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
-    write(lout,"(a)") "ZIPF> ERROR Failed to parse input line."
+    write(lerr,"(a)") "ZIPF> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
   if(nSplit == 0) return
 
   if(nSplit /= 1) then
-    write(lout,"(a,i3,3a)") "ZIPF> ERROR Expected 1 filename per line, got ",nSplit
+    write(lerr,"(a,i3,3a)") "ZIPF> ERROR Expected 1 filename per line, got ",nSplit
     iErr = .true.
     return
   end if
 
   zipf_numFiles = zipf_numFiles + 1
-  call alloc(zipf_fileNames, mFNameLen, zipf_numFiles, " ", "zipf_fileNames")
+  call alloc(zipf_fileNames, mFileName, zipf_numFiles, " ", "zipf_fileNames")
   zipf_fileNames(zipf_numFiles) = trim(lnSplit(1))
 
 end subroutine zipf_parseInputLine
@@ -71,8 +71,8 @@ subroutine zipf_parseInputDone
   end do
 
   if(.not.(zipf_numFiles > 0)) then
-    write(lout,"(a)") "ZIPF> ERROR Block was empty; no files specified!"
-    call prror(-1)
+    write(lerr,"(a)") "ZIPF> ERROR Block was empty; no files specified!"
+    call prror
   endif
 
 end subroutine zipf_parseInputDone

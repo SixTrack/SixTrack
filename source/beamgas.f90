@@ -114,8 +114,8 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   end do
 
   if(pressID.eq.0) then
-    write(lout,"(a,e15.7)") "BEAMGAS> ERROR Couldn't find pressure marker at ",totals
-    call prror(-1)
+    write(lerr,"(a,e15.7)") "BEAMGAS> ERROR Couldn't find pressure marker at ",totals
+    call prror
   end if
 
   doLorentz=0
@@ -196,21 +196,17 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 !    rotating the vector into the orbit reference system:
      z = matmul(rotm,z)
       if (z(3).eq.0) then
-       write(lout,"(a)")       "BEAMGAS> ERROR There is something wrong with your dpmjet event "
-       write(lout,"(a,e15.7)") "BEAMGAS>  * bgiddb(choice) = ",bgiddb(choice)
-       write(lout,"(a,e15.7)") "BEAMGAS>  * totMomentum    = ",totMomentum
-       write(lout,"(a,e15.7)") "BEAMGAS>  * new4MomCoord   = ",new4MomCoord
-        call prror(-1)
+       write(lerr,"(a)")       "BEAMGAS> ERROR There is something wrong with your dpmjet event "
+       write(lerr,"(a,e15.7)") "BEAMGAS>  * bgiddb(choice) = ",bgiddb(choice)
+       write(lerr,"(a,e15.7)") "BEAMGAS>  * totMomentum    = ",totMomentum
+       write(lerr,"(a,e15.7)") "BEAMGAS>  * new4MomCoord   = ",new4MomCoord
+        call prror
       else
 !      boosted xp event
        bgxpdb(choice) = z(1)
 !      boosted yp event
        bgypdb(choice) = z(2)
        bgEdb(choice) = new4MomCoord(1) ! boosted energy
-! DEBUG:
-!         write(684,*) bgxpdb(choice),bgypdb(choice),bgEdb(choice),      &
-!     &     new4MomCoord
-! END DEBUG
       endif
      endif ! doLorentz
      call rotateMatrix(yv1(j),yv2(j),rotm)
@@ -350,8 +346,8 @@ subroutine beamGasInit(myenom)
       pressARRAY(2,j)=pVAL
       j=j+1
       if (j>bgmaxx) then
-        write(lout,"(a)") "BEAMGAS> ERROR Too many pressure markers!"
-        call prror(-1)
+        write(lerr,"(a)") "BEAMGAS> ERROR Too many pressure markers!"
+        call prror
       endif
     else if (filereaderror.lt.0) then
       ! means that end of file is reached
@@ -392,8 +388,8 @@ subroutine beamGasInit(myenom)
 !    what we are supposed to simulate, we stop here...
      if (previousEvent.gt.dpmjetevents) exit
      if (numberOfEvents.gt.(bgmaxx-1)) then
-     write(lout,"(a)") "BEAMGAS> ERROR Too many dpmjet events!"
-     call prror(-1)
+     write(lerr,"(a)") "BEAMGAS> ERROR Too many dpmjet events!"
+     call prror
   endif
   enddo
 ! number of lines in dpmjet - 1
@@ -402,9 +398,9 @@ subroutine beamGasInit(myenom)
   write(lout,"(a,i0)") "BREAMGAS> Trackable events in dpmjet.eve: ",bgmax-1
 
   if (numberOfEvents.gt.npart) then
-     write(lout,"(2(a,i0))") "BEAMGAS> ERROR There were too many trackable events. Maximum for this run is ",npart,&
+     write(lerr,"(2(a,i0))") "BEAMGAS> ERROR There were too many trackable events. Maximum for this run is ",npart,&
       " you generated ",numberOfEvents
-     call prror(-1)
+     call prror
   endif
 
   write(lout,"(a,i0)") "BEAMGAS> This is job number: ", njobthis
@@ -522,12 +518,6 @@ subroutine lorentzBoost(px,py,ptot,mass)
       new4MomCoord(i)=new4MomCoord(i)+lorentzmatrix(i,j)*oldcoord(j)
     end do
   end do
-!        write(*,*)
-!        write(*,*) "DEBUG, n4M: ", new4MomCoord
-!        write(*,*)
-!        do i=1,4
-!         write(*,*) "DEBUG, lM: ", lorentzmatrix(i,1:4)
-!        enddo
 end subroutine lorentzBoost
 
 !>
@@ -586,7 +576,6 @@ subroutine createLorentzMatrix(E,xp,yp,mass)
   endif
 
   g=one/sqrt(one-b2) ! relativistic gamma for the boost
-  !         write(*,*) "DEBUG, g: ",g, v0, xp,yp,E,mass
 
   lorentzmatrix(1,1)=g /g
 
@@ -607,8 +596,5 @@ subroutine createLorentzMatrix(E,xp,yp,mass)
   lorentzmatrix(3,4) = ((g-1)* b(2)*b(3)*b2inv) /g
   lorentzmatrix(4,3) = (lorentzmatrix(3,4)) /g
 
-!        do i=1,4
-!         write(*,*) "DEBUG,lMAT: ", lorentzmatrix(i,1:4)
-!        enddo
 end subroutine createLorentzMatrix
 

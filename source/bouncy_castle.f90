@@ -12,9 +12,6 @@ module mathlib_bouncer
   public :: sin_mb, asin_mb, sinh_mb, cos_mb, acos_mb, cosh_mb
   public :: tan_mb, atan_mb, atan2_mb, exp_mb, log_mb, log10_mb, isnan_mb
 
-  real(kind=fPrec), parameter :: mb_pi   = 3.141592653589793238462643383279502884197169399375105820974_fPrec
-  real(kind=fPrec), parameter :: mb_pi2  = 1.570796326794896619231321691639751442098584699687552910487_fPrec
-
   ! For linking with CRLIBM
 #ifdef CRLIBM
 #ifdef ROUND_NEAR
@@ -492,29 +489,31 @@ contains
 #ifdef ROUND_NEAR
   real(kind=real64) pure function acos_rn(x)
     use, intrinsic :: iso_fortran_env, only : real64
+    use numerical_constants, only : pi, pi2
     real(kind=real64), intent(in) :: x
     if(x /= x) then ! Check if NaN
       acos_rn=x
     elseif(abs(x) == 0.0d0) then
-      acos_rn=mb_pi2
+      acos_rn=pi2
     else
       ! Try using (1-x)*(1+x) in case x is very small or close to 1. Write a test program?
       acos_rn=atan_rn(sqrt((1.0d0-x)*(1.0d0+x))/x)
       if(x < 0d0) then
-        acos_rn=mb_pi+acos_rn
+        acos_rn=pi+acos_rn
       end if
     end if
   end function acos_rn
 
   real(kind=real64) pure function asin_rn(x)
     use, intrinsic :: iso_fortran_env, only : real64
+    use numerical_constants, only : pi, pi2
     real(kind=real64), intent(in) :: x
     if(x /= x) then ! Check if NaN
       asin_rn=x
       return
     end if
     if(abs(x) == 1.0d0) then
-      asin_rn=sign(mb_pi2,x)
+      asin_rn=sign(pi2,x)
     else
       ! Try using (1-x)*(1+x) in case x is very small or close to 1. Write a test program?
       asin_rn=atan_rn(x/sqrt((1.0d0-x)*(1.0d0+x)))
@@ -523,6 +522,7 @@ contains
 
   real(kind=real64) pure function atan2_rn(y,x)
     use, intrinsic :: iso_fortran_env, only : real64
+    use numerical_constants, only : pi, pi2
     real(kind=real64), intent(in) :: x,y
     if(x == 0d0) then
       if(y == 0d0) then
@@ -533,7 +533,7 @@ contains
         atan2_rn=atan2(y,x)
 #endif
       else
-        atan2_rn=sign(mb_pi2,y)
+        atan2_rn=sign(pi2,y)
       end if
     else
       if(y == 0d0) then
@@ -541,12 +541,12 @@ contains
           ! Let the internal atan2 handle this case according to ieee
           atan2_rn=atan2(y,x)
         else
-          atan2_rn=mb_pi
+          atan2_rn=pi
         end if
       else
         atan2_rn=atan_rn(y/x)
         if(x < 0d0) then
-          atan2_rn=sign(mb_pi,y)+atan2_rn
+          atan2_rn=sign(pi,y)+atan2_rn
         end if
       end if
     end if
@@ -560,28 +560,30 @@ contains
 #ifdef ROUND_UP
   real(kind=real64) pure function acos_ru(x)
     use, intrinsic :: iso_fortran_env, only : real64
+    use numerical_constants, only : pi, pi2
     real(kind=real64), intent(in) :: x
     if(x /= x) then ! Check if NaN
       acos_ru=x
     elseif(abs(x) == 0.0d0) then
-      acos_ru=mb_pi2
+      acos_ru=pi2
     else
       acos_ru=atan_ru(sqrt((1.0d0-x)*(1.0d0+x))/x)
       if(x < 0d0) then
-        acos_ru=mb_pi+acos_ru
+        acos_ru=pi+acos_ru
       end if
     end if
   end function acos_ru
 
   real(kind=real64) pure function asin_ru(x)
     use, intrinsic :: iso_fortran_env, only : real64
+    use numerical_constants, only : pi, pi2
     real(kind=real64), intent(in) :: x
     if(x /= x) then ! Check if NaN
       asin_ru=x
       return
     end if
     if(abs(x) == 1.0d0) then
-      asin_ru=sign(mb_pi2,x)
+      asin_ru=sign(pi2,x)
     else
       asin_ru=atan_ru(x/sqrt((1.0d0-x)*(1.0d0+x)))
     end if
@@ -589,6 +591,7 @@ contains
 
   real(kind=real64) pure function atan2_ru(y,x)
     use, intrinsic :: iso_fortran_env, only : real64
+    use numerical_constants, only : pi, pi2
     real(kind=real64), intent(in) :: x,y
     if(x == 0d0) then
       if(y == 0d0) then
@@ -599,7 +602,7 @@ contains
         atan2_ru=atan2(y,x)
 #endif
       else
-        atan2_ru=sign(mb_pi2,y)
+        atan2_ru=sign(pi2,y)
       end if
     else
       if(y == 0d0) then
@@ -607,12 +610,12 @@ contains
           ! Let the internal atan2 handle this case according to ieee
           atan2_ru=atan2(y,x)
         else
-          atan2_ru=mb_pi
+          atan2_ru=pi
         end if
       else
         atan2_ru=atan_ru(y/x)
         if(x < 0d0) then
-          atan2_ru=sign(mb_pi,y)+atan2_ru
+          atan2_ru=sign(pi,y)+atan2_ru
         end if
       end if
     end if
@@ -626,34 +629,38 @@ contains
 #ifdef ROUND_DOWN
   real(kind=real64) pure function acos_rd(x)
     use, intrinsic :: iso_fortran_env, only : real64
+    use numerical_constants, only : pi, pi2
     real(kind=real64), intent(in) :: x
     if(x /= x) then ! Check if NaN
       acos_rd=x
     elseif(abs(x) == 0.0d0) then
-      acos_rd=mb_pi2
+      acos_rd=pi2
     else
       acos_rd=atan_rd(sqrt((1.0d0-x)*(1.0d0+x))/x)
       if(x < 0d0) then
-        acos_rd=mb_pi+acos_rd
+        acos_rd=pi+acos_rd
       end if
     end if
   end function acos_rd
 
   real(kind=real64) pure function asin_rd(x)
     use, intrinsic :: iso_fortran_env, only : real64
+    use numerical_constants, only : pi, pi2
     real(kind=real64), intent(in) :: x
     if(x /= x) then ! Check if NaN
       asin_rd=x
       return
     end if
     if(abs(x) == 1.0d0) then
-      asin_rd=sign(mb_pi2,x)
+      asin_rd=sign(pi2,x)
     else
       asin_rd=atan_rd(x/sqrt((1.0d0-x)*(1.0d0+x)))
     end if
   end function asin_rd
 
   real(kind=real64) pure function atan2_rd(y,x)
+    use, intrinsic :: iso_fortran_env, only : real64
+    use numerical_constants, only : pi, pi2
     real(kind=real64), intent(in) :: x,y
     if(x == 0d0) then
       if(y == 0d0) then
@@ -664,7 +671,7 @@ contains
         atan2_rd=atan2(y,x)
 #endif
       else
-        atan2_rd=sign(mb_pi2,y)
+        atan2_rd=sign(pi2,y)
       end if
     else
       if(y == 0d0) then
@@ -672,12 +679,12 @@ contains
           ! Let the internal atan2 handle this case according to ieee
           atan2_rd=atan2(y,x)
         else
-          atan2_rd=mb_pi
+          atan2_rd=pi
         end if
       else
         atan2_rd=atan_rd(y/x)
         if(x < 0d0) then
-          atan2_rd=sign(mb_pi,y)+atan2_rd
+          atan2_rd=sign(pi,y)+atan2_rd
         end if
       end if
     end if
@@ -691,28 +698,30 @@ contains
 #ifdef ROUND_ZERO
   real(kind=real64) pure function acos_rz(x)
     use, intrinsic :: iso_fortran_env, only : real64
+    use numerical_constants, only : pi, pi2
     real(kind=real64), intent(in) :: x
     if(x /= x) then ! Check if NaN
       acos_rz=x
     elseif(abs(x) == 0.0d0) then
-      acos_rz=mb_pi2
+      acos_rz=pi2
     else
       acos_rz=atan_rz(sqrt((1.0d0-x)*(1.0d0+x))/x)
       if(x < 0d0) then
-        acos_rz=mb_pi+acos_rz
+        acos_rz=pi+acos_rz
       end if
     end if
   end function acos_rz
 
   real(kind=real64) pure function asin_rz(x)
     use, intrinsic :: iso_fortran_env, only : real64
+    use numerical_constants, only : pi, pi2
     real(kind=real64), intent(in) :: x
     if(x /= x) then ! Check if NaN
       asin_rz=x
       return
     end if
     if(abs(x) == 1.0d0) then
-      asin_rz=sign(mb_pi2,x)
+      asin_rz=sign(pi2,x)
     else
       asin_rz=atan_rz(x/sqrt((1.0d0-x)*(1.0d0+x)))
     end if
@@ -720,6 +729,7 @@ contains
 
   real(kind=real64) pure function atan2_rz(y,x)
     use, intrinsic :: iso_fortran_env, only : real64
+    use numerical_constants, only : pi, pi2
     real(kind=real64), intent(in) :: x,y
     if(x == 0d0) then
       if(y == 0d0) then
@@ -730,7 +740,7 @@ contains
         atan2_rz=atan2(y,x)
 #endif
       else
-        atan2_rz=sign(mb_pi2,y)
+        atan2_rz=sign(pi2,y)
       end if
     else
       if(y == 0d0) then
@@ -738,12 +748,12 @@ contains
           ! Let the internal atan2 handle this case according to ieee
           atan2_rz=atan2(y,x)
         else
-          atan2_rz=mb_pi
+          atan2_rz=pi
         end if
       else
         atan2_rz=atan_rz(y/x)
         if(x < 0d0) then
-          atan2_rz=sign(mb_pi,y)+atan2_rz
+          atan2_rz=sign(pi,y)+atan2_rz
         end if
       end if
     end if

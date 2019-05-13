@@ -1,0 +1,127 @@
+GEOME-STRENG TITLE:eltck4_9mrad2016injnocollc15o+19_6noerru%1%s%62.28_60.31%0_10%2%30 
+SETT--------------------------------------------------------------------
+  DEBUG
+  PRINT
+  INITIALSTATE text ions
+  FINALSTATE   text ions
+  CRKILLSWITCH 2345 6789
+NEXT
+TRACKING PARAMETERS-----------------------------------------------------
+10000 0 14 0 6.89493 0 1 0 0 200
+1 1 1 1 1
+0 0 1 1 1 50000 2
+NEXT
+INITIAL COORDINATES-----------------------------------------------------
+        2 0. 0. 0.666664 0
+        0.
+        0.
+        0. 
+        0.
+        0.
+        0.0
+        .000001 
+        0.
+        0. 
+        0.
+        0.
+        0.0
+        24300296.525022062
+        24300296.525022062
+        24300296.525022062
+NEXT
+SYNCHROTRON OSCILLATIONS--------'PLACE AFTER TRACKING PARAMETERS'-------
+      35640 .000347 8. 0. 26658.883200 120046.6742540 1
+      1.       1.
+NEXT
+BEAM
+1.1000e+11   3.75  3.75  0.11  4.5e-04  1  0 1 0
+NEXT
+ITERATION-ACCURACY------------------------------------------------------
+       50 1D-12 1D-15
+       10 1D-10 1D-10
+       10 1D-6  1D-6
+          1D-6  1D-9  1D-9
+NEXT
+FLUCTUATION
+100000 1 7 3
+NEXT
+/TUNE VARIATION----------------------------------------------------------
+/         mq.7r3.b1  62.28
+/         mq.8r3.b1  60.31
+//          0.
+//          
+/NEXT
+/CHROMATICITY CORRECTION------------------------------------------------
+/         ms.11r3.b1 15.
+/         ms.12r3.b1 15.
+/NEXT
+POSTPROCESSING----------------------------------------------------------
+LHC Dynamic Aperture at Injection Version 5 (1998)
+20 0 0 1 .08 .08 1 0 0 1. 1.
+62. 60. 1 1 10 .005 1 .050
+0 1 0 1 1 1 1 1 30
+NEXT
+/DIFFERENTIAL ALGEBRA---------------------------------------------------
+/%NO  %NV 1E-38 %nsix 0
+/NEXT
+CHEB
+cheby1  cheby.dat  -1  1.0
+cheby2  cheby.dat  6.4 0.7    0.0 -2.0  2.0
+cheby3  cheby.dat  6.0 1.5  -90.0  2.0 -2.0
+cheby4  cheby.dat  -1. 0.4  135.0  0.0  0.0 2
+SHOW    cheby1 cheby1_pot.dat
+SHOW    cheby2 cheby2_pot.dat -5  1 100 5 -1 100
+SHOW    cheby3 cheby3_pot.dat
+SHOW    cheby4 cheby4_pot.dat -10 10 100 -7 7 100
+NEXT
+DUMP
+ip4..2 1 1030 2 CHEBY_DUMP_1 1 400
+ip4..3 1 1031 2 CHEBY_DUMP_2 1 400
+ip4..4 1 1032 2 CHEBY_DUMP_3 1 400
+ip4..5 1 1033 2 CHEBY_DUMP_4 1 400
+ip4..6 1 1034 2 CHEBY_DUMP_5 1 400
+ip4    1 -1   2 IP4_DUMP_last 400 400
+NEXT
+LINEAR OPTICS
+ELEMENT  0 2 1 2.5 2.5
+NEXT
+HION
+129   54 120.0466742540
+NEXT
+DIST
+READ initial.dat
+ENDE====================================================================
+ORGA--------------------------------------------------------------------
+NEXT
+DIFFERENTIAL ALGEBRA---------------------------------------------------
+4  5 1E-38 1 1
+NEXT
+COMBINATION OF ELEMENTS-------------------------------------------------
+CODSDO 1.  CODSDE
+CODSFO 1.  CODSFE
+NEXT
+SUBRESONANCE CALCULATION------------------------------------------------
+3 3 62.28 60.31 1. 1. 0 26658.883200
+NEXT
+RESONANCE COMPENSATION -------------------------------------------------
+      1         3       0    0    0         0    0    0
+      0                   0 0 0
+      26658.883200 62.28 60.31 1. 1.
+                 MSCBH MSCBV
+      0          MSCBH MSCBV
+      0          QF QD 62.28 60.31
+NEXT
+RIPPLE OF POWER SUPPLIES------------------------------------------------
+         Q413R   -1.54D-4    4340.580
+         Q414R   -3.70D-4    4340.580
+NEXT
+LIMITATION OF APERTURE--------------------------------------------------
+          AP1        EL      10.       10.
+NEXT
+SEARCH FOR THE BEST POSITIONS FOR COMPENSATION-ELEMENTS-----------------
+         62.28 60.31 1. 1. 26658.883200
+         2   3   0   2  -2   0   0   0
+         MSCBH MSCBV 
+NEXT
+ORBIT ADJUSTMENT--------------------------------------------------------
+NEXT

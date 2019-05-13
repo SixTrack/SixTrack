@@ -1,16 +1,24 @@
 ! ================================================================================================ !
 !  FILE UNITS MODULE
+! ===================
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-12-13
+!  Created: 2018-12-13
+!  Updated: 2019-05-02
 !
 !  Module for keeping track of opened file units, their file names, and open the files correctly
 !  depending on build flags like BOINC or FIO.
+!
+!  Note: The maximum number of allowed open units is 256. To ensure we cannot run out of units, the
+!  module sets the last assigned unit number to 250. The log file is at 251. this leaves 4 units for
+!  debug use in the code, if absolutely necessary.
 ! ================================================================================================ !
 module mod_units
 
-  use parpro, only : mFNameLen
+  use parpro, only : mPathName
 
   implicit none
+
+  logical, public,  save       :: units_beQuiet  = .true.            ! No writing to lout when this flag is .true.
 
   ! Keep track of units
   integer, parameter           :: units_minUnit  = 1                 ! First unit to keep track of
@@ -21,11 +29,11 @@ module mod_units
   character(len=14), parameter :: units_logFile  = "file_units.log"  ! File name for internal log file
 
   type, private :: unitRecord
-    character(len=mFNameLen), private :: file  = " "     ! The requested file name (not BOINC)
-    character(len=3),         private :: mode  = " "     ! Read/write mode
-    logical,                  private :: taken = .false. ! Whether a unit is known to be taken or not
-    logical,                  private :: open  = .false. ! Whether file is opened by the module or not
-    logical,                  private :: fixed = .true.  ! Whether the unit was requested as a fixed unit or not
+    character(len=:), allocatable, private :: file            ! The requested file name (not BOINC)
+    character(len=3),              private :: mode  = " "     ! Read/write mode
+    logical,                       private :: taken = .false. ! Whether a unit is known to be taken or not
+    logical,                       private :: open  = .false. ! Whether file is opened by the module or not
+    logical,                       private :: fixed = .true.  ! Whether the unit was requested as a fixed unit or not
   end type unitRecord
 
   ! Array to keep track of files
@@ -63,7 +71,8 @@ end subroutine f_initUnits
 ! ================================================================================================ !
 !  Request New File Units
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-12-13
+!  Created: 2018-12-13
+!  Updated: 2018-12-13
 !  Send in a file name, and get a unit back. If the has already been assigned a unit, this is
 !  returned. Otherwise, a new unit is selected.
 ! ================================================================================================ !
@@ -77,8 +86,8 @@ subroutine f_requestUnit(file,unit)
   integer i
   logical isOpen
 
-  if(len_trim(file) > mFNameLen) then
-    write(lout,"(2(a,i0))") "UNITS> ERROR Max length of file name in f_requestUnit is ",mFNameLen,&
+  if(len_trim(file) > mPathName) then
+    write(lerr,"(2(a,i0))") "UNITS> ERROR Max length of file path in f_requestUnit is ",mPathName,&
       " characters, got ",len_trim(file)
     call prror
   end if
@@ -117,7 +126,7 @@ subroutine f_requestUnit(file,unit)
     units_uList(unit)%fixed = .false.
     units_nextUnit = unit + 1
   else
-    write(lout,"(a,i0)") "UNITS> ERROR Could not find an available file unit within the allowed range."
+    write(lerr,"(a,i0)") "UNITS> ERROR Could not find an available file unit within the allowed range."
     call prror
   end if
 
@@ -126,7 +135,8 @@ end subroutine f_requestUnit
 ! ================================================================================================ !
 !  Get Existing File Units
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-12-13
+!  Created: 2018-12-13
+!  Updated: 2019-05-02
 !  Will search through the record for a filename, and return its unit. -1 if it is not assigned.
 ! ================================================================================================ !
 subroutine f_getUnit(file,unit)
@@ -138,9 +148,11 @@ subroutine f_getUnit(file,unit)
 
   unit = -1
   do i=units_minUnit,units_maxUnit
-    if(units_uList(i)%file == file) then
-      unit = i
-      exit
+    if(allocated(units_uList(i)%file)) then
+      if(units_uList(i)%file == file) then
+        unit = i
+        exit
+      end if
     end if
   end do
 
@@ -149,7 +161,8 @@ end subroutine f_getUnit
 ! ================================================================================================ !
 !  Open a File
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-12-13
+!  Created: 2018-12-13
+!  Updated: 2019-05-02
 !  This is a wrapper for Fortran open that also handles all the various build options.
 !  The parameters are:
 !   - unit      :: The unit number. Either a previously assigned one, or a fixed unit
@@ -163,25 +176,23 @@ end subroutine f_getUnit
 !   - status    :: Optional: File status. Defaults to unknown
 !   - recl      :: Optional: Record length. Is only used for nagfor
 ! ================================================================================================ !
-subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
+subroutine f_open(unit,file,formatted,mode,err,iostat,status,access,recl)
 
   use crcoall
-
-  implicit none
 
   integer,                    intent(in)  :: unit
   character(len=*),           intent(in)  :: file
   logical,                    intent(in)  :: formatted
   character(len=*),           intent(in)  :: mode
   logical,          optional, intent(out) :: err
+  integer,          optional, intent(out) :: iostat
   character(len=*), optional, intent(in)  :: status
   character(len=*), optional, intent(in)  :: access
   integer,          optional, intent(in)  :: recl
 
-  ! type(unitSpec),   allocatable :: tmpUnits(:)
   character(len=:), allocatable :: fFileName, fStatus, fAction, fPosition, fMode, fAccess
-  character(len=256) :: tmpBoinc
-  integer i, fRecl, nUnits, ioStat, chkUnit
+  character(len=mPathName+1) :: tmpBoinc
+  integer i, fRecl, nUnits, fStat, chkUnit
   logical fFio, isOpen
 
   if(present(recl)) then
@@ -202,14 +213,13 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
     fAccess = "sequential"
   end if
 
-  if(len_trim(file) > mFNameLen) then
-    write(lout,"(2(a,i0))") "UNITS> ERROR Max length of file name in f_open is ",mFNameLen,&
-      " characters, got ",len_trim(file)
+  if(len_trim(file) > mPathName) then
+    write(lerr,"(2(a,i0))") "UNITS> ERROR Max length of file path in f_open is ",mPathName," characters, got ",len_trim(file)
     call prror
   end if
 
   if(unit < units_minUnit .or. unit > units_maxUnit) then
-    write(lout,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_open"
+    write(lerr,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_open"
     call prror
   end if
 
@@ -262,14 +272,22 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
     fPosition = "asis"
   end select
 
+  ! Check that we don't have a fixed vs. assigned unit crash
+  if(allocated(units_uList(unit)%file)) then
+    if(units_uList(unit)%file /= file .and. units_uList(unit)%file /= " ") then
+      write(lerr,"(a,i0,a)") "UNITS> ERROR Unit ",unit," has already been assigned to file '"//&
+        trim(units_uList(unit)%file)//"' /= '"//trim(file)//"'"
+      call prror
+    end if
+  end if
+
   call f_getUnit(trim(file),chkUnit)
   if(chkUnit > 0) then
     ! We already have that file name in the record
     if(chkUnit /= unit) then
-      write(lout,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' has already been assigned to unit ",chkUnit
+      write(lerr,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' has already been assigned to unit ",chkUnit
       call prror
     end if
-    units_uList(unit)%open  = .true.
   else
     ! The file is opened with a fixed unit, so save the info
     units_uList(unit)%file  = trim(file)
@@ -282,33 +300,38 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
   if(formatted) then
     if(fRecl > 0) then
       if(fFio) then
-        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
+        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=fStat,&
           action=fAction,access=fAccess,position=fPosition,round="nearest",recl=fRecl,err=10)
       else
-        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
+        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=fStat,&
           action=fAction,access=fAccess,position=fPosition,recl=fRecl,err=10)
       end if
     else
       if(fFio) then
-        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
+        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=fStat,&
           action=fAction,access=fAccess,position=fPosition,round="nearest",err=10)
       else
-        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=ioStat,&
+        open(unit,file=fFileName,form="formatted",status=fStatus,iostat=fStat,&
           action=fAction,access=fAccess,position=fPosition,err=10)
       end if
     end if
   else
-    open(unit,file=fFileName,form="unformatted",status=fStatus,iostat=ioStat,&
+    open(unit,file=fFileName,form="unformatted",status=fStatus,iostat=fStat,&
       action=fAction,access=fAccess,position=fPosition,err=10)
   endif
 
-  if(ioStat /= 0) then
+  if(fStat /= 0) then
     call f_writeLog("OPEN",unit,"ERROR",file)
+    if(present(iostat)) then
+      iostat = fStat
+    end if
     if(present(err)) then
       err = .true.
-      write(lout,"(a,i0)") "UNITS> File '"//trim(file)//"' reported iostat = ",ioStat
+      if(units_beQuiet .eqv. .false.) then
+        write(lout,"(a,i0)") "UNITS> File '"//trim(file)//"' reported iostat = ",fStat
+      end if
     else
-      write(lout,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' reported iostat = ",ioStat
+      write(lerr,"(a,i0)") "UNITS> ERROR File '"//trim(file)//"' reported iostat = ",fStat
       call prror
     end if
   end if
@@ -327,9 +350,11 @@ subroutine f_open(unit,file,formatted,mode,err,status,access,recl)
   call f_writeLog("OPEN",unit,"ERROR",file)
   if(present(err)) then
     err = .true.
-    write(lout,"(a)") "UNITS> Could not open '"//trim(file)//"'"
+    if(units_beQuiet .eqv. .false.) then
+      write(lout,"(a)") "UNITS> Could not open '"//trim(file)//"'"
+    end if
   else
-    write(lout,"(a)") "UNITS> ERROR Could not open '"//trim(file)//"'"
+    write(lerr,"(a)") "UNITS> ERROR Could not open '"//trim(file)//"'"
     call prror
   end if
 
@@ -338,7 +363,8 @@ end subroutine f_open
 ! ================================================================================================ !
 !  Close File Units
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-12-13
+!  Created: 2018-12-13
+!  Updated: 2018-12-13
 !  Preferred method for closing file as it keeps the record up to date
 ! ================================================================================================ !
 subroutine f_close(unit)
@@ -351,7 +377,7 @@ subroutine f_close(unit)
   logical isOpen
 
   if(unit < units_minUnit .or. unit > units_maxUnit) then
-    write(lout,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_close"
+    write(lerr,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_close"
     call prror
   end if
 
@@ -374,6 +400,42 @@ subroutine f_close(unit)
   end if
 
 end subroutine f_close
+
+! ================================================================================================ !
+!  Free File Units
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-05-02
+!  Updated: 2019-05-02
+!  Free a file unit so that it can be assigned again. This implies close.
+! ================================================================================================ !
+subroutine f_freeUnit(unit)
+
+  use crcoall
+
+  integer, intent(in) :: unit
+
+  integer i
+  logical isOpen
+
+  if(unit < units_minUnit .or. unit > units_maxUnit) then
+    write(lerr,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_close"
+    call prror
+  end if
+
+  inquire(unit=unit, opened=isOpen)
+  if(isOpen) then
+    call f_close(unit)
+  end if
+
+  call f_writeLog("FREE",unit,"FREED",units_uList(unit)%file)
+
+  units_uList(unit)%file  = " "
+  units_uList(unit)%mode  = " "
+  units_uList(unit)%taken = .false.
+  units_uList(unit)%open  = .false.
+  units_uList(unit)%fixed = .true.
+
+end subroutine f_freeUnit
 
 ! ================================================================================================ !
 !  Flush Single or All File Units
@@ -409,6 +471,7 @@ end subroutine f_flush
 ! ================================================================================================ !
 subroutine f_writeLog(action,unit,status,file)
 
+  use parpro
   use floatPrecision
 
   character(len=*), intent(in) :: action
@@ -419,13 +482,20 @@ subroutine f_writeLog(action,unit,status,file)
   real(kind=fPrec)         cpuTime
   character(len=8)         wAction
   character(len=8)         wStatus
-  character(len=mFNameLen) wFile
+  character(len=mFileName) wFile
+  integer                  cFile
 
-  if(units_logUnit <= 0) return ! Only write if we have a log file
+  if(units_logUnit <= 0) return ! Only write if we have a log file open
 
   wAction = action
   wStatus = status
-  wFile   = file
+
+  cFile = len_trim(file)
+  if(cFile > mFileName) then
+    wFile = "[...]"//file(cFile-mFileName+5:cFile)
+  else
+    wFile = file
+  end if
 
   call cpu_time(cpuTime)
   write(units_logUnit,"(f10.3,2x,a8,2x,i4,2x,a8,2x,a)") cpuTime,adjustl(wAction),unit,adjustl(wStatus),adjustl(wFile)

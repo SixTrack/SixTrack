@@ -10,6 +10,7 @@ subroutine daten
   use crcoall
   use floatPrecision
   use sixtrack_input
+  use mod_geometry
   use parpro
   use parbeam, only : beam_expflag
   use mod_settings
@@ -33,6 +34,7 @@ subroutine daten
   use mod_fluc,  only : fluc_parseInputLine,fluc_readInputs
   use wire,      only : wire_parseInputLine,wire_parseInputDone
   use elens,     only : elens_parseInputLine,elens_parseInputDone,elens_postInput
+  use cheby,     only : cheby_parseInputLine,cheby_parseInputDone,cheby_postInput
   use aperture
   use mod_hions
 #ifdef HASHLIB
@@ -41,6 +43,7 @@ subroutine daten
 #ifdef FLUKA
   use mod_fluka, only : fluka_parsingDone,fluka_parseInputLine,fluka_enable
 #endif
+  use mod_ffield,only : ffield_parseInputLine,ffield_parsingDone,ffield_mod_link,ffield_enabled
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -81,7 +84,7 @@ subroutine daten
   ! SIXTRACK INPUT MODULE
   inErr       = .false.
 
-  call alloc(sixin_bez0,mNameLen,nele," ","sixin_bez0")
+  call alloc(geom_bez0,mNameLen,nele," ","geom_bez0")
 
   ! DATEN INTERNAL
   nGeom       = 0
@@ -93,16 +96,16 @@ subroutine daten
 !  READ FORT.3 HEADER
 ! ================================================================================================ !
 
-  call f_open(unit=3,file="fort.3",formatted=.true.,mode="r",err=fErr)
+  call f_open(unit=3,file=fort3,formatted=.true.,mode="r",err=fErr)
   if(fErr) then
-    write(lout,"(a)") "INPUT> ERROR Could not open fort.3"
+    write(lerr,"(a)") "INPUT> ERROR Could not open "//trim(fort3)
     call prror
   end if
 
 90 continue
   read(3,"(a4,a8,a60)",end=9997,iostat=ierro) cCheck,cPad,iHead
   if(ierro > 0) then
-    write(lout,"(a)") "INPUT> ERROR Could not read from fort.3"
+    write(lerr,"(a)") "INPUT> ERROR Could not read from "//trim(fort3)
     call prror
   end if
   pLines(5) = cCheck//cPad//iHead
@@ -117,13 +120,13 @@ subroutine daten
   case("GEOM") ! Mode GEOM. Elements in fort.2
     iMod       = 2
     parseFort2 = .true.
-    call f_open(unit=2,file="fort.2",formatted=.true.,mode="r",err=fErr)
+    call f_open(unit=2,file=fort2,formatted=.true.,mode="r",err=fErr)
     if(fErr) then
-      write(lout,"(a)") "INPUT> ERROR Could not open fort.2"
+      write(lerr,"(a)") "INPUT> ERROR Could not open "//trim(fort2)
       call prror
     end if
   case default
-    write(lout,"(a)") "INPUT> ERROR Unknown mode '"//cCheck//"'"
+    write(lerr,"(a)") "INPUT> ERROR Unknown mode '"//cCheck//"'"
     goto 9999
   end select
 
@@ -135,8 +138,8 @@ subroutine daten
   write(lout,"(a)") "    OOOOOOOOOOOOOOOOOOOOOO"
   write(lout,"(a)") ""
   if(ihead /= " ") write(lout,"(a)") "    TITLE: "//trim(iHead)
-  if(imod  == 1)   write(lout,"(a)") "    MODE:  Free Format Input (fort.3)"
-  if(imod  == 2)   write(lout,"(a)") "    MODE:  Geometry Strength File (fort.2)"
+  if(imod  == 1)   write(lout,"(a)") "    MODE:  Free Format Input ("//trim(fort3)//")"
+  if(imod  == 2)   write(lout,"(a)") "    MODE:  Geometry Strength File ("//trim(fort2)//")"
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
 
@@ -170,7 +173,7 @@ subroutine daten
 
   read(nUnit,"(a)",end=9998,iostat=iErro) inLine
   if(iErro > 0) then
-    write(lout,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
+    write(lerr,"(a,i0)") "INPUT> ERROR Could not read from fort.",nUnit
     call prror
   end if
 
@@ -191,7 +194,7 @@ subroutine daten
   if(cCheck == "NEXT") then
     if(currBlock == "NONE") then
       ! Catch orphaned NEXT blocks here.
-      write(lout,"(a)") "INPUT> ERROR Unexpected NEXT block encountered. There is no open block to close."
+      write(lerr,"(a)") "INPUT> ERROR Unexpected NEXT block encountered. There is no open block to close."
       goto 9999
     else
       ! Actual close check is done after a last pass so
@@ -226,7 +229,7 @@ subroutine daten
   ! Check if the current block has already been seen and closed.
   ! If so, the block exists more than once in the input files. It shouldn't unless intended to.
   if(blockCount > 1 .and. .not. blockReopen) then
-    write(lout,"(a)") "INPUT> ERROR Block '"//currBlock//"' encountered more than once."
+    write(lerr,"(a)") "INPUT> ERROR Block '"//currBlock//"' encountered more than once."
     goto 9999
   end if
 
@@ -253,7 +256,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      write(lout,"(a)") "INPUT> ERROR PRINT block does not take any parameters. Did you forget to close it with a NEXT?"
+      write(lerr,"(a)") "INPUT> ERROR PRINT block does not take any parameters. Did you forget to close it with a NEXT?"
       goto 9999
     end if
 
@@ -282,31 +285,42 @@ subroutine daten
 
   case("SING") ! Single Elements Block
     if(openBlock) then
-      sixin_nSing = 1
+      geom_nSing = 1
     elseif(closeBlock) then
       nGeom = nGeom + 1
+      write(lout,"(a,i0,a)") "INPUT> Parsed ",geom_nSing," Single Elements"
     else
-      call sixin_parseInputLineSING(inLine,blockLine,inErr)
+      call geom_parseInputLineSING(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
   case("BLOC") ! Block Definitions
     if(openBlock) then
-      sixin_nBloc = 0
+      geom_nBloc = 0
     elseif(closeBlock) then
       nGeom = nGeom + 1
+      write(lout,"(a,i0,a)") "INPUT> Parsed ",geom_nBloc," Block Elements"
     else
-      call sixin_parseInputLineBLOC(inLine,blockLine,inErr)
+      call geom_parseInputLineBLOC(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
   case("STRU") ! Structure Input
     if(openBlock) then
-      sixin_nStru = 0
+      geom_nStru = 0
     elseif(closeBlock) then
       nGeom = nGeom + 1
+      write(lout,"(a,i0,a)") "INPUT> Parsed ",geom_nStru," Structure Elements"
     else
-      call sixin_parseInputLineSTRU(inLine,blockLine,inErr)
+      if(blockLine == 1 .and. adjustl(inLine) == "MULTICOL") then
+        write(lout,"(a)") "INPUT> Multi-column STRUCTURE INPUT block detected"
+        strumcol = .true.
+      end if
+      if(strumcol) then
+        call geom_parseInputLineSTRU_MULT(inLine,blockLine,inErr)
+      else
+        call geom_parseInputLineSTRU(inLine,blockLine,inErr)
+      end if
       if(inErr) goto 9999
     end if
 
@@ -563,7 +577,7 @@ subroutine daten
   case("FLUK") ! Fluka Coupling
 #ifndef FLUKA
     if(openBlock) then
-      write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the FLUKA flag."
+      write(lerr,"(a)") "INPUT> ERROR SixTrack was not compiled with the FLUKA flag."
       goto 9999
     else
       continue
@@ -578,6 +592,17 @@ subroutine daten
       if(inErr) goto 9999
     end if
 #endif
+
+  ! Modification by B.DALENA and T.PUGNAT
+  case("FFIE") ! Fringe field for Quadrupole
+    if(openBlock) then
+      ffield_enabled = .true.
+    elseif(closeBlock) then
+      call ffield_parsingDone
+    else
+      call ffield_parseInputLine(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
 
   case("BDEX") ! Beam Distribution EXchange
     if(openBlock) then
@@ -611,6 +636,17 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("CHEB") ! map with Chebyshev coefficients
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      call cheby_parseInputDone(inErr)
+      if(inErr) goto 9999
+    else
+      call cheby_parseInputLine(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DIST") ! Beam Distribution
     if(openBlock) then
       dist_enable = .true.
@@ -622,12 +658,12 @@ subroutine daten
     end if
 
   case("CORR") ! Tuneshift Corrections
-    write(lout,"(a)") "INPUT> ERROR CORR module is deprecated."
+    write(lerr,"(a)") "INPUT> ERROR CORR module has been removed."
     goto 9999
 
   case("RIPP") ! Power Supply Ripple Block
-    write(lout,"(a)") "INPUT> ERROR RIPP module is deprecated and replaced by DYNK."
-    write(lout,"(a)") "INPUT>       The script rippconvert.py in the pytools folder can be used to convert the fort.3 file."
+    write(lerr,"(a)") "INPUT> ERROR RIPP module has been removed and replaced by DYNK."
+    write(lerr,"(a)") "INPUT>       The script rippconvert.py in the pytools folder can be used to convert the input file."
     goto 9999
 
   case("LIMI") ! Aperture Limitations
@@ -642,16 +678,16 @@ subroutine daten
 
   case("COLL") ! Collimation Block
 #ifdef CR
-    write(lout,"(a)") "INPUT> ERROR Collimation incompatible with checkpoint/restart (CR)"
+    write(lerr,"(a)") "INPUT> ERROR Collimation incompatible with checkpoint/restart (CR)"
     goto 9999
 #endif
     if(openBlock) then
       ! If a collimation block is present, even disabled, allocate the storage.
       ! This mimmics the old compiler flag.
       if(ilin /= 1) then
-        write(lout,"(a)") "INPUT> ERROR Incompatible flag with collimation version detected in the LINEAR OPTICS block."
-        write(lout,"(a)") "INPUT>       You have not chosen ilin=1 (4D mode), which is required for the collimation version."
-        write(lout,"(a)") "INPUT>       Note that the ilin=2 (6D mode) is not compatible with the collimation version."
+        write(lerr,"(a)") "INPUT> ERROR Incompatible flag with collimation version detected in the LINEAR OPTICS block."
+        write(lerr,"(a)") "INPUT>       You have not chosen ilin=1 (4D mode), which is required for the collimation version."
+        write(lerr,"(a)") "INPUT>       Note that the ilin=2 (6D mode) is not compatible with the collimation version."
         goto 9999
       end if
     elseif(closeBlock) then
@@ -676,6 +712,7 @@ subroutine daten
       continue
     elseif(closeBlock) then
       call dump_parseInputDone(inErr)
+      if(inErr) goto 9999
     else
       call dump_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
@@ -725,7 +762,7 @@ subroutine daten
 
   case("PYTH") ! PYTHIA Input Block
 #ifndef PYTHIA
-    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the PYTHIA flag."
+    write(lerr,"(a)") "INPUT> ERROR SixTrack was not compiled with the PYTHIA flag."
     goto 9999
 #else
     if(openBlock) then
@@ -740,7 +777,7 @@ subroutine daten
 
   case("HDF5") ! HDF5 Input Block
 #ifndef HDF5
-    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the HDF5 flag."
+    write(lerr,"(a)") "INPUT> ERROR SixTrack was not compiled with the HDF5 flag."
     goto 9999
 #else
     if(openBlock) then
@@ -755,7 +792,7 @@ subroutine daten
 
   case("HASH") ! HASH Library
 #ifndef HASHLIB
-    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the HASHLIB flag."
+    write(lerr,"(a)") "INPUT> ERROR SixTrack was not compiled with the HASHLIB flag."
     goto 9999
 #else
     if(openBlock) then
@@ -770,7 +807,7 @@ subroutine daten
 
   case("ROOT") ! ROOT Input Block
 #ifndef ROOT
-    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the ROOT flag."
+    write(lerr,"(a)") "INPUT> ERROR SixTrack was not compiled with the ROOT flag."
     goto 9999
 #else
   if(openBlock) then
@@ -784,7 +821,7 @@ subroutine daten
 #endif
 
   case default ! Unknown Block, Time to Panic
-    write(lout,"(a)") "INPUT> ERROR Unknown block '"//currBlock//"' encountered. Check your input file."
+    write(lerr,"(a)") "INPUT> ERROR Unknown block '"//currBlock//"' encountered. Check your input file."
     goto 9999
 
   end select
@@ -820,13 +857,15 @@ subroutine daten
 
   if(napx >= 1) then
     if(e0 < pieni .or. e0 < pma) then
-      write(lout,"(a)") "ENDE> ERROR Kinetic energy of the particle is less or equal to zero."
+      write(lerr,"(a)") "ENDE> ERROR Kinetic energy of the particle is less or equal to zero."
       call prror
     end if
 
     call hions_postInput
     gammar = nucm0/e0
     betrel = sqrt((one+gammar)*(one-gammar))
+    e0f = sqrt(e0**2-nucm0**2)
+    brho   = (e0f/(clight*c1m6))/zz0
 
     if(nbeam >= 1) then
       parbe14 = (((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6
@@ -842,18 +881,18 @@ subroutine daten
     !Check for incompatible flags
     if (ipos == 1) then
       if (do_coll) then
-        write(lout,'(a)') "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
-        call prror(-1)
+        write(lerr,'(a)') "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
+        call prror
       endif
 
       if (scatter_active) then
-        write(lout,'(a)') "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
-        call prror(-1)
+        write(lerr,'(a)') "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
+        call prror
       endif
 #ifdef FLUKA
       if (fluka_enable) then
-        write(lout,'(a)') "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
-        call prror(-1)
+        write(lerr,'(a)') "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
+        call prror
       endif
 #endif
     endif
@@ -861,6 +900,7 @@ subroutine daten
   end if
 
   call elens_postInput
+  call cheby_postInput
 #ifdef PYTHIA
   call pythia_postInput
 #endif
@@ -881,13 +921,16 @@ subroutine daten
   else
     do j=1,il
       if(parbe(j,2) > real(mbea,fPrec)) then
-        write(lout,"(3(a,i5))") "ENDE> ERROR Requested ",int(parbe(j,2))," slices for 6D beam-beam element"//&
+        write(lerr,"(3(a,i5))") "ENDE> ERROR Requested ",int(parbe(j,2))," slices for 6D beam-beam element"//&
           " #",j," named '"//trim(bez(j))//"', maximum is mbea = ",mbea
         parbe(j,2) = real(mbea,fPrec)
-        call prror(-1) ! Treat this warning as an error
+        call prror ! Treat this warning as an error
       end if
     end do
   end if
+
+  call ffield_mod_link(inErr)
+  if(inErr) goto 9999
 
   ! Done with checks. Write the report
   call sixin_blockReport
@@ -907,13 +950,11 @@ subroutine daten
   write(lout,"(a)") "   NO NAME                TYP  1/RHO         STRENGTH      LENGTH        X-POS"//&
     "         X-RMS         Y-POS         Y-RMS"
   write(lout,"(a)") str_divLine
-  il1=il
-  if(sixin_ncy2 == 0) il1 = il-1
+  il1 = il
+  if(ncy2 == 0) il1 = il-1
   do k=1,il1
     if(abs(kz(k)) == 12) then
-      write(lout,"(i5,1x,a20,1x,i2,7(1x,e13.6))") k,bez(k)(1:20),kz(k),ed(k),ek(k),phasc(k),xpl(k),xrms(k),zpl(k),zrms(k)
-      kz(k)=abs(kz(k))
-      phasc(k)=phasc(k)*rad
+      write(lout,"(i5,1x,a20,1x,i2,7(1x,e13.6))") k,bez(k)(1:20),kz(k),ed(k),ek(k),phasc(k)/rad,xpl(k),xrms(k),zpl(k),zrms(k)
     else
       write(lout,"(i5,1x,a20,1x,i2,7(1x,e13.6))") k,bez(k)(1:20),kz(k),ed(k),ek(k),el(k),xpl(k),xrms(k),zpl(k),zrms(k)
     end if
@@ -947,17 +988,17 @@ subroutine daten
         l2 = (l1-1)*6+1
         l3 = l2+5
         if(l2 == 1) then
-          write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(sixin_beze(l,k),k=1,6)
+          write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(geom_beze(l,k),k=1,6)
         else
-          write(lout,"(30x,6(1x,a20))") (sixin_beze(l,k),k=l2,l3)
+          write(lout,"(30x,6(1x,a20))") (geom_beze(l,k),k=l2,l3)
         end if
       end do
       if(mod(kk,6) /= 0) then
         l4 = ll*6+1
-        write(lout,"(30x,6(1x,a20))") (sixin_beze(l,k),k=l4,kk)
+        write(lout,"(30x,6(1x,a20))") (geom_beze(l,k),k=l4,kk)
       end if
     else
-      write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(sixin_beze(l,k),k=1,kk)
+      write(lout,"(i5,1x,a20,1x,i3,6(1x,a20))") l,bezb(l),kk,(geom_beze(l,k),k=1,kk)
     end if
   end do
   write(lout,"(a)") str_divLine
@@ -979,7 +1020,7 @@ subroutine daten
       if(icc <= nblo) then
         ic0(l) = bezb(icc)
       else
-        ic0(l) = sixin_bez0(icc-nblo)
+        ic0(l) = geom_bez0(icc-nblo)
       end if
     end do
     k11 = k10+1
@@ -1033,7 +1074,7 @@ subroutine daten
     write(lout,"(a,f30.9)")   "  Normalized vertical emmittance (um):   ",sixin_emitNY
   end if
   write(lout,"(a,f30.9)")     "  Energy in (MeV):                       ",e0
-  if(sixin_ncy2.eq.0) then
+  if(ncy2 == 0) then
     write(lout,"(a,f30.9)")   "  Harmonic number:                       ",sixin_harm
     write(lout,"(a,f30.9)")   "  Circumf. voltage (MV):                 ",sixin_u0
     write(lout,"(a,f30.9)")   "  Equilibrium phase (deg):               ",sixin_phag
@@ -1063,10 +1104,9 @@ subroutine daten
     write(lout,"(a)") repeat("-",200)
     do j=1,il
       if(kz(j) == 20 .and. parbe(j,17) == 1) then
-        write(lout,"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3&
-        &,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)")&
-        &bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),parbe(j,7),parbe(j,8),  &
-        &parbe(j,9),parbe(j,10),parbe(j,11),parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
+        write(lout,"(t10,a16,5x,i4,7x,13(1pe10.3,2x),1pe10.3)") &
+          bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6),parbe(j,7),parbe(j,8),  &
+          parbe(j,9),parbe(j,10),parbe(j,11),parbe(j,12),parbe(j,13),parbe(j,14),parbe(j,15),parbe(j,16)
       end if
     end do
     write(lout,"(a)") repeat("-",200)
@@ -1077,7 +1117,7 @@ subroutine daten
     write(lout,"(a)") str_divLine
     do j=1,il
       if (kz(j) == 20 .and. parbe(j,17) == 0) then
-        write(lout,"(t10,a16,5x,i4,7x,1pe10.3,2x,1pe10.3,2x,1pe10.3,2x,1pe10.3)") &
+        write(lout,"(t10,a16,5x,i4,7x,3(1pe10.3,2x),1pe10.3)") &
           bez(j),int(parbe(j,2)),parbe(j,1),parbe(j,3),parbe(j,5),parbe(j,6)
       end if
     end do
@@ -1134,7 +1174,9 @@ subroutine daten
 
 9500 continue
 
-  call dealloc(sixin_bez0,mNameLen,"sixin_bez0")
+  call dealloc(geom_bez0,mNameLen,"geom_bez0")
+  call dealloc(geom_beze,mNameLen,"geom_beze")
+  call dealloc(geom_ilm, mNameLen,"geom_ilm")
 
   return
 
@@ -1143,28 +1185,33 @@ subroutine daten
 ! ================================================================================================ !
 
 9997 continue
-  write(lout,"(a)") "INPUT> ERROR Header could not be read from fort.3"
+  write(lerr,"(a)") "INPUT> ERROR Header could not be read from "//trim(fort3)
   call prror
   return
 
 9998 continue
-  write(lout,"(a,i0,a)") "INPUT> ERROR fort.",nUnit," is missing or empty, or end was reached without an ENDE flag."
+  write(lerr,"(a,i0,a)") "INPUT> ERROR fort.",nUnit," is missing or empty, or end was reached without an ENDE flag."
   call prror
   return
 
 9999 continue
   if(nUnit == 2) then
-    write(lout,"(a)")      "INPUT> ERROR in fort.2"
-    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo2,": '"//trim(inLine)//"'"
+    write(lerr,"(a)")      ""
+    write(lerr,"(a)")      " ERROR in "//trim(fort2)
+    write(lerr,"(a,i0,a)") " Line ",lineNo2,": '"//trim(adjustl(inLine))//"'"
   else
-    write(lout,"(a)")      "INPUT> ERROR in fort.3"
-    write(lout,"(a,i0,a)") "INPUT> Line ",lineNo3,": '"//trim(inLine)//"'"
-    write(lout,"(a)")      "INPUT> Previous Lines:"
-    write(lout,"(a)")      ""
+    write(lerr,"(a)")      ""
+    write(lerr,"(a,i0)")   " ERROR in "//trim(fort3)//" on line ",lineNo3
+    write(lerr,"(a)")      "========O"//repeat("=",91)
     do i=1,5
       if(lineNo3-5+i <= 0) cycle
-      write(lout,"(i5,a)") lineNo3-5+i," | "//trim(pLines(i))
+      if(i == 5) then
+        write(lerr,"(a,i5,a)") ">>",lineNo3-5+i," | "//trim(pLines(i))
+      else
+        write(lerr,"(a,i5,a)") "  ",lineNo3-5+i," | "//trim(pLines(i))
+      end if
     end do
+    write(lerr,"(a)")      "========O"//repeat("=",91)
   end if
   call prror
   return
@@ -1202,21 +1249,9 @@ subroutine errf(xx,yy,wx,wy)
     nc=7+int(23.0_fPrec*q)                                               !hr05
 !       xl=h**(1-nc)
     xl=exp_mb((1-nc)*log_mb(h))                                      !yil11
-#ifdef DEBUG
-!       call wda('errfq',q,nc,0,0,0)
-!       call wda('errfh',h,nc,0,0,0)
-!       call wda('errfxl',xl,nc,0,0,0)
-#endif
-#ifdef DEBUG
-!       call wda('errfxlrn',xl,nc,0,0,0)
-#endif
     xh=y+half/h
     yh=x
     nu=10+int(21.0_fPrec*q)
-#ifdef DEBUG
-!       call wda('errfxh',xh,nu,0,0,0)
-!       call wda('errfyh',yh,nu,0,0,0)
-#endif
     rx(nu+1)=zero
     ry(nu+1)=zero
     do 10 n=nu,1,-1
@@ -1624,497 +1659,382 @@ subroutine wzsub(x,y,u,v)
 !
 end subroutine wzsub
 
-subroutine initialize_element(ix,lfirst)
-!-----------------------------------------------------------------------
-!     K.Sjobak & A.Santamaria, BE-ABP/HSS
-!     last modified: 23-12-2016
-!     Initialize a lattice element with index elIdx,
-!     such as done when reading fort.2 (GEOM) and in DYNK.
+! ================================================================================================ !
+! K. Sjobak, A. Santamaria, BE-ABP-HSS
+! Created: 2016-12-23
+! Updated: 2019-04-12
+! Initialize a lattice element with index elIdx,
+! such as done when reading fort.2 (GEOM) and in DYNK.
 !
-!     Never delete an element from the lattice, even if it is not making a kick.
-!     If the element is not recognized, do nothing (for now).
-!     If trying to initialize an element (not lfirst) which is disabled,
-!     print an error and exit.
-!-----------------------------------------------------------------------
+! Never delete an element from the lattice, even if it is not making a kick.
+! If the element is not recognized, do nothing (for now).
+! If trying to initialize an element (not lfirst) which is disabled, print an error and exit.
+! ================================================================================================ !
+subroutine initialize_element(ix,lfirst)
 
-      use floatPrecision
-      use dynk, only : dynk_elemData, dynk_izuIndex
-      use numerical_constants
-      use crcoall
-      use string_tools
-      use parpro
-      use parbeam, only : beam_expflag,beam_expfile_open
-      use mod_common
-      use mod_common_track
-      use mod_common_main
-      use mod_hions
-      use elens
-      use wire
-      use mathlib_bouncer
-      implicit none
+  use crcoall
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
 
-      integer, intent(in) :: ix
-      logical, intent(in) :: lfirst
+  use parpro
+  use parbeam
+  use mod_hions
+  use mod_common
+  use mod_common_main
+  use mod_common_track
 
-      !Temp variables
-      integer i, m, k, im, nmz, izu, ibb, ii,j
-      real(kind=fPrec) r0, r0a, bkitemp,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5,  crkveb_d, cikveb_d, &
-      rho2b_d,tkb_d,r2b_d,rb_d,rkb_d,xrb_d,zrb_d,cbxb_d,cbzb_d,crxb_d,crzb_d,xbb_d,zbb_d, napx0
-      real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
-      rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
-      cbzb(npart)
+  use cheby, only : cheby_kz
+  use dynk,  only : dynk_elemData, dynk_izuIndex
 
-      integer :: nbeaux(nbb)
+  implicit none
 
-!--Nonlinear Elements
-! TODO: Merge these cases into 1 + subcases?
-      if(abs(kz(ix)).eq.1) then
-         if(.not.lfirst) then
-            do i=1,iu
-               if ( ic(i)-nblo.eq.ix ) then
-                 if(ktrack(i).eq.31) goto 100 !ERROR
-                 sm(ix)=ed(ix)             ! Also done in envar() which is called from clorb()
-                 smiv(i)=sm(ix)+smizf(i) ! Also done in program maincr
-                 smi(i)=smiv(i)          ! Also done in program maincr
+  integer, intent(in) :: ix
+  logical, intent(in) :: lfirst
+
+  integer i,m,k,im,nmz,izu,ibb,ii,j,nbeaux(nbb)
+  real(kind=fPrec) r0,r0a,bkitemp,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5,crkveb_d,cikveb_d,rho2b_d,   &
+    tkb_d,r2b_d,rb_d,rkb_d,xrb_d,zrb_d,cbxb_d,cbzb_d,crxb_d,crzb_d,xbb_d,zbb_d,napx0
+  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
+    rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
+    cbzb(npart)
+
+  ! Nonlinear Elements
+  if(abs(kz(ix)) >= 1 .and. abs(kz(ix)) <= 10) then
+    if(.not.lfirst) then
+      do i=1,iu
+        if(ic(i)-nblo == ix) then
+          if(ktrack(i) == 31) goto 100 !ERROR
+          sm(ix)  = ed(ix)          ! Also done in envar() which is called from clorb()
+          smiv(i) = sm(ix)+smizf(i) ! Also done in program maincr
+          smi(i)  = smiv(i)         ! Also done in program maincr
+          select case(abs(kz(ix)))
+          case(1)
 #include "include/stra01.f90"
-               endif
-            enddo
-         endif
-
-      elseif(abs(kz(ix)).eq.2) then
-         if(.not.lfirst) then
-            do i=1,iu
-               if ( ic(i)-nblo.eq.ix ) then
-                 if(ktrack(i).eq.31) goto 100 !ERROR
-                 sm(ix)=ed(ix)
-                 smiv(i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(i)
+          case(2)
 #include "include/stra02.f90"
-               endif
-            enddo
-         endif
-      elseif(abs(kz(ix)).eq.3) then
-         if(.not.lfirst) then
-            do i=1,iu
-               if ( ic(i)-nblo.eq.ix ) then
-                 if(ktrack(i).eq.31) goto 100 !ERROR
-                 sm(ix)=ed(ix)
-                 smiv(i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(i)
+          case(3)
 #include "include/stra03.f90"
-               endif
-            enddo
-         endif
-
-      elseif(abs(kz(ix)).eq.4) then
-         if(.not.lfirst) then
-            do i=1,iu
-               if ( ic(i)-nblo.eq.ix ) then
-                 if(ktrack(i).eq.31) goto 100 !ERROR
-                 sm(ix)=ed(ix)
-                 smiv(i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(i)
+          case(4)
 #include "include/stra04.f90"
-               endif
-            enddo
-         endif
-
-      elseif(abs(kz(ix)).eq.5) then
-         if(.not.lfirst) then
-            do i=1,iu
-               if ( ic(i)-nblo.eq.ix ) then
-                 if(ktrack(i).eq.31) goto 100 !ERROR
-                 sm(ix)=ed(ix)
-                 smiv(i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(i)
+          case(5)
 #include "include/stra05.f90"
-               endif
-            enddo
-         endif
-
-      elseif(abs(kz(ix)).eq.6) then
-         if(.not.lfirst) then
-            do i=1,iu
-               if ( ic(i)-nblo.eq.ix ) then
-                 if(ktrack(i).eq.31) goto 100 !ERROR
-                 sm(ix)=ed(ix)
-                 smiv(i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(i)
+          case(6)
 #include "include/stra06.f90"
-               endif
-            enddo
-         endif
-
-      elseif(abs(kz(ix)).eq.7) then
-         if(.not.lfirst) then
-            do i=1,iu
-               if ( ic(i)-nblo.eq.ix ) then
-                 if(ktrack(i).eq.31) goto 100 !ERROR
-                 sm(ix)=ed(ix)
-                 smiv(i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(i)
+          case(7)
 #include "include/stra07.f90"
-               endif
-            enddo
-         endif
-
-      elseif(abs(kz(ix)).eq.8) then
-         if(.not.lfirst) then
-            do i=1,iu
-               if ( ic(i)-nblo.eq.ix ) then
-                 if(ktrack(i).eq.31) goto 100 !ERROR
-                 sm(ix)=ed(ix)
-                 smiv(i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(i)
+          case(8)
 #include "include/stra08.f90"
-               endif
-            enddo
-         endif
-
-      elseif(abs(kz(ix)).eq.9) then
-         if(.not.lfirst) then
-            do i=1,iu
-               if ( ic(i)-nblo.eq.ix ) then
-                 if(ktrack(i).eq.31) goto 100 !ERROR
-                 sm(ix)=ed(ix)
-                 smiv(i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(i)
+          case(9)
 #include "include/stra09.f90"
-               endif
-            enddo
-         endif
-
-      elseif(abs(kz(ix)).eq.10) then
-         if(.not.lfirst) then
-            do i=1,iu
-               if ( ic(i)-nblo.eq.ix ) then
-                 if(ktrack(i).eq.31) goto 100 !ERROR
-                 sm(ix)=ed(ix)
-                 smiv(i)=sm(ix)+smizf(i)
-                 smi(i)=smiv(i)
+          case(10)
 #include "include/stra10.f90"
-               endif
-            enddo
-         endif
+          end select
+        end if
+      end do
+    end if
 
-!--Multipoles
-      elseif(kz(ix).eq.11) then
-        if (lfirst) then
-           if (abs(el(ix)+one).le.pieni) then
-              dki(ix,1) = ed(ix)
-              dki(ix,3) = ek(ix)
-              ed(ix) = one
-              ek(ix) = one
-              el(ix) = zero
-           else if(abs(el(ix)+two).le.pieni) then
-              dki(ix,2) = ed(ix)
-              dki(ix,3) = ek(ix)
-              ed(ix) = one
-              ek(ix) = one
-              el(ix) = zero
-           endif
-        else
-          do i=1,iu
-            if ( ic(i)-nblo.eq.ix ) then
-              nmz=nmu(ix)
-              im=irm(ix)
-              do k=1,nmz
-                aaiv(k,i)=scalemu(im)*(ak0(im,k)+amultip(k,i)*aka(im,k))
-                bbiv(k,i)=scalemu(im)*(bk0(im,k)+bmultip(k,i)*bka(im,k))
+  ! Multipoles
+  elseif(kz(ix) == 11) then
+    if(lfirst) then
+      if(abs(el(ix)+one) <= pieni) then
+        dki(ix,1) = ed(ix)
+        dki(ix,3) = ek(ix)
+        ed(ix) = one
+        ek(ix) = one
+        el(ix) = zero
+      else if(abs(el(ix)+two) <= pieni) then
+        dki(ix,2) = ed(ix)
+        dki(ix,3) = ek(ix)
+        ed(ix) = one
+        ek(ix) = one
+        el(ix) = zero
+      end if
+    else
+      do i=1,iu
+        if(ic(i)-nblo == ix) then
+          nmz = nmu(ix)
+          im  = irm(ix)
+          do k=1,nmz
+            aaiv(k,i) = scalemu(im)*(ak0(im,k)+amultip(k,i)*aka(im,k))
+            bbiv(k,i) = scalemu(im)*(bk0(im,k)+bmultip(k,i)*bka(im,k))
+          end do
+        end if
+      end do
+    end if
+
+  ! Cavities (ktrack = 2 for thin)
+  elseif(abs(kz(ix)) == 12) then
+    dynk_elemData(ix,3) = el(ix)
+    phasc(ix) = el(ix)*rad
+    el(ix) = zero
+    if(lfirst) then
+      if(abs(ed(ix)) > pieni .and. abs(ek(ix)) > pieni) then
+        ncy2   = ncy2 + 1
+        kp(ix) = 6
+      end if
+    else
+      hsyc(ix) = ((twopi)*ek(ix))/tlen                             ! SYNC block
+      hsyc(ix) = (c1m3*hsyc(ix)) * real(sign(1,kz(ix)),kind=fPrec) ! trauthin/trauthck
+    end if
+
+  ! Wire
+  else if(kz(ix) == 15) then
+    ed(ix) = zero
+    ek(ix) = zero
+    el(ix) = zero
+
+  ! BEAM-BEAM
+  elseif(kz(ix) == 20) then
+
+    if(lfirst) then
+      ptnfac(ix)  = el(ix)
+      el(ix)      = zero
+      parbe(ix,5) = ed(ix)
+      ed(ix)      = zero
+      parbe(ix,6) = ek(ix)
+      ek(ix)      = zero
+    end if
+    ! This is to inialize all the beam-beam element before the tracking (or to update it for DYNK).
+    if(.not.lfirst) then
+      do i=1,iu
+        if(ic(i)-nblo == ix) then
+          ibb = imbb(i)
+          if(parbe(ix,2) > zero) then
+            if(beam_expflag == 1) then
+              bbcu(ibb,1)  = parbe(ix,7)
+              bbcu(ibb,4)  = parbe(ix,8)
+              bbcu(ibb,6)  = parbe(ix,9)
+              bbcu(ibb,2)  = parbe(ix,10)
+              bbcu(ibb,9)  = parbe(ix,11)
+              bbcu(ibb,10) = parbe(ix,12)
+              bbcu(ibb,3)  = parbe(ix,13)
+              bbcu(ibb,5)  = parbe(ix,14)
+              bbcu(ibb,7)  = parbe(ix,15)
+              bbcu(ibb,8)  = parbe(ix,16)
+              do ii=1,10
+                bbcu(ibb,ii) = bbcu(ibb,ii)*c1m6
               end do
-            endif
-          enddo
-        endif
+            end if
+            ktrack(i)   = 44
+            parbe(ix,4) = (((-one*crad)*ptnfac(ix))*half)*c1m6
+            if(ibeco == 1) then
+              track6d(1,1) = parbe(ix,5)*c1m3
+              track6d(2,1) = zero
+              track6d(3,1) = parbe(ix,6)*c1m3
+              track6d(4,1) = zero
+              track6d(5,1) = zero
+              track6d(6,1) = zero
+              napx0 = napx
+              napx  = 1
+              call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc, mtc)
+              beamoff(1,imbb(i)) = track6d(1,1)*c1e3
+              beamoff(2,imbb(i)) = track6d(3,1)*c1e3
+              beamoff(3,imbb(i)) = track6d(5,1)*c1e3
+              beamoff(4,imbb(i)) = track6d(2,1)*c1e3
+              beamoff(5,imbb(i)) = track6d(4,1)*c1e3
+              beamoff(6,imbb(i)) = track6d(6,1)
+              napx = napx0
+            end if
 
+          else if(parbe(ix,2) == zero) then
+            if(beam_expflag == 1) then
+              bbcu(ibb,1) = parbe(ix,1)
+              bbcu(ibb,2) = parbe(ix,3)
+              bbcu(ibb,3) = parbe(ix,13)
+            end if
+            if(ibbc == 1) then
+              sfac1  = bbcu(ibb,1)+bbcu(ibb,2)
+              sfac2  = bbcu(ibb,1)-bbcu(ibb,2)
+              sfac2s = one
+              if(sfac2 < zero) sfac2s = -one
+              sfac3 = sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))
+              if(sfac3 > sfac1) then
+                write(lerr,"(a)") "BEAMBEAM> ERROR 6D beam-beam with tilt not possible."
+                call prror
+              end if
+              sfac4 = (sfac2s*sfac2)/sfac3
+              sfac5 = (((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3
+              sigman(1,ibb) = sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)
+              sigman(2,ibb) = sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)
+              bbcu(ibb,11)  = sqrt(half*(one+sfac4))
+              bbcu(ibb,12)  = (-one*sfac2s)*sqrt(half*(one-sfac4))
+              if(bbcu(ibb,3) < zero) bbcu(ibb,12) = -one*bbcu(ibb,12)
+            else
+              bbcu(ibb,11)  = one
+              sigman(1,ibb) = sqrt(bbcu(ibb,1))
+              sigman(2,ibb) = sqrt(bbcu(ibb,2))
+            end if
 
-!--Cavities (ktrack = 2 for thin)
-      elseif(abs(kz(ix)).eq.12) then
-         !Moved from daten
-         phasc(ix) = el(ix)
-         el(ix) = zero
-         dynk_elemData(ix,3) = phasc(ix)
-         if (.not.lfirst) then
+            ! Round beam
+            nbeaux(imbb(i)) = 0
+            if(sigman(1,imbb(i)) == sigman(2,imbb(i))) then
+              if(nbeaux(imbb(i)) == 2 .or. nbeaux(imbb(i)) == 3) then
+                write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
+                  "round or elliptical for all particles"
+                call prror
+              else
+                nbeaux(imbb(i)) = 1
+                sigman2(1,imbb(i)) = sigman(1,imbb(i))**2
+              end if
+            end if
 
-            ! Doesn't work, as i is not initialized here.
-            !if (.not.ktrack(i).eq.2) goto 100 !ERROR
+            ! Elliptic beam x>z
+            if(sigman(1,imbb(i)) > sigman(2,imbb(i))) then
+              if(nbeaux(imbb(i)) == 1 .or. nbeaux(imbb(i)) == 3) then
+                write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
+                  "round or elliptical for all particles"
+                call prror
+              else
+                nbeaux(imbb(i)) = 2
+                ktrack(i)       = 42
+                sigman2(1,imbb(i)) = sigman(1,imbb(i))**2
+                sigman2(2,imbb(i)) = sigman(2,imbb(i))**2
+                sigmanq(1,imbb(i)) = sigman(1,imbb(i))/sigman(2,imbb(i))
+                sigmanq(2,imbb(i)) = sigman(2,imbb(i))/sigman(1,imbb(i))
+              end if
+            end if
 
-            phasc(ix) = phasc(ix)*rad
+            ! Elliptic beam z>x
+            if(sigman(1,imbb(i)) < sigman(2,imbb(i))) then
+              if(nbeaux(imbb(i)) == 1 .or. nbeaux(imbb(i)) == 2) then
+                write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
+                  "round or elliptical for all particles"
+                call prror
+              else
+                nbeaux(imbb(i)) = 3
+                ktrack(i)       = 43
+                sigman2(1,imbb(i)) = sigman(1,imbb(i))**2
+                sigman2(2,imbb(i)) = sigman(2,imbb(i))**2
+                sigmanq(1,imbb(i)) = sigman(1,imbb(i))/sigman(2,imbb(i))
+                sigmanq(2,imbb(i)) = sigman(2,imbb(i))/sigman(1,imbb(i))
+              end if
+            end if
 
-            hsyc(ix) = ((two*pi)*ek(ix))/tlen         ! daten SYNC block
-            hsyc(ix)=(c1m3*hsyc(ix))*real(itionc(ix),fPrec) ! trauthin/trauthck
-         endif
-!--BEAM-BEAM
-      elseif(kz(ix).eq.20) then
+            strack(i) = crad*ptnfac(ix)
+            if(ibbc.eq.0) then
+              crkveb_d = parbe(ix,5)
+              cikveb_d = parbe(ix,6)
+            else
+              crkveb_d = parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
+              cikveb_d = parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
+            end if
 
-        if (lfirst) then
-          ptnfac(ix)=el(ix)
-          el(ix)=zero
-          parbe(ix,5) = ed(ix)
-          ed(ix)=zero
-          parbe(ix,6) = ek(ix)
-          ek(ix)=zero
-          endif
-! This is to inialize all the beam-beam element before the tracking (or to update it for DYNK).
-        if (.not.lfirst) then
-          do i=1,iu
-            if ( ic(i)-nblo.eq.ix ) then
-              ibb=imbb(i)
-              if(parbe(ix,2).gt.zero) then
-                if(beam_expflag.eq.1) then
-                 bbcu(ibb,1)=parbe(ix,7)
-                 bbcu(ibb,4)=parbe(ix,8)
-                 bbcu(ibb,6)=parbe(ix,9)
-                 bbcu(ibb,2)=parbe(ix,10)
-                 bbcu(ibb,9)=parbe(ix,11)
-                 bbcu(ibb,10)=parbe(ix,12)
-                 bbcu(ibb,3)=parbe(ix,13)
-                 bbcu(ibb,5)=parbe(ix,14)
-                 bbcu(ibb,7)=parbe(ix,15)
-                 bbcu(ibb,8)=parbe(ix,16)
-                  do ii=1,10
-                    bbcu(ibb,ii)=bbcu(ibb,ii)*c1m6
-                  enddo
-                endif
-                ktrack(i)=44
-                parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6
-                if(ibeco.eq.1) then
-                  track6d(1,1)=parbe(ix,5)*c1m3
-                  track6d(2,1)=zero
-                  track6d(3,1)=parbe(ix,6)*c1m3
-                  track6d(4,1)=zero
-                  track6d(5,1)=zero
-                  track6d(6,1)=zero
-                  napx0=napx
-                  napx=1
-                  call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc, mtc)
-                  beamoff(1,imbb(i))=track6d(1,1)*c1e3
-                  beamoff(2,imbb(i))=track6d(3,1)*c1e3
-                  beamoff(3,imbb(i))=track6d(5,1)*c1e3
-                  beamoff(4,imbb(i))=track6d(2,1)*c1e3
-                  beamoff(5,imbb(i))=track6d(4,1)*c1e3
-                  beamoff(6,imbb(i))=track6d(6,1)
-                  napx=napx0
+            if(nbeaux(imbb(i)) == 1) then
+              ktrack(i) = 41
+              if(ibeco == 1) then
+                rho2b_d = crkveb_d**2+cikveb_d**2
+                tkb_d   = rho2b_d/(two*sigman2(1,imbb(i)))
+                beamoff(4,imbb(i)) = ((strack(i)*crkveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
+                beamoff(5,imbb(i)) = ((strack(i)*cikveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
+              end if
+            end if
 
-                endif
-
-              else if(parbe(ix,2).eq.zero) then
-                if(beam_expflag.eq.1) then
-                   bbcu(ibb,1)=parbe(ix,1)
-                   bbcu(ibb,2)=parbe(ix,3)
-                   bbcu(ibb,3)=parbe(ix,13)
-                endif
-                if(ibbc.eq.1) then
-                  sfac1=bbcu(ibb,1)+bbcu(ibb,2)
-                  sfac2=bbcu(ibb,1)-bbcu(ibb,2)
-                  sfac2s=one
-                  if(sfac2.lt.zero) sfac2s=-one
-                  sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))
-                  if(sfac3 > sfac1) then
-                    write(lout,"(a)") "BEAMBEAM> ERROR 6D beam-beam with tilt not possible."
-                    call prror(-1)
-                  end if
-                  sfac4=(sfac2s*sfac2)/sfac3
-                  sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3
-                  sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)
-                  sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)
-                  bbcu(ibb,11)=sqrt(half*(one+sfac4))
-                  bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))
-                  if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)
+            if(ktrack(i) == 42) then
+              if(ibeco == 1) then
+                r2b_d = two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
+                rb_d  = sqrt(r2b_d)
+                rkb_d = (strack(i)*pisqrt)/rb_d
+                xrb_d = abs(crkveb_d)/rb_d
+                zrb_d = abs(cikveb_d)/rb_d
+                if(ibtyp == 0) then
+                  call errf(xrb_d,zrb_d,crxb_d,crzb_d)
+                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
+                  xbb_d = sigmanq(2,imbb(i))*xrb_d
+                  zbb_d = sigmanq(1,imbb(i))*zrb_d
+                  call errf(xbb_d,zbb_d,cbxb_d,cbzb_d)
+                else if(ibtyp == 1) then
+                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
+                  xbb_d = sigmanq(2,imbb(i))*xrb_d
+                  zbb_d = sigmanq(1,imbb(i))*zrb_d
                 else
-                  bbcu(ibb,11)=one
-                  sigman(1,ibb)=sqrt(bbcu(ibb,1))
-                  sigman(2,ibb)=sqrt(bbcu(ibb,2))
-                endif
+                  tkb_d = zero ! -Wmaybe-uninitialized
+                end if
+              else
+                rkb_d = zero ! -Wmaybe-uninitialized
+                tkb_d = zero ! -Wmaybe-uninitialized
+              end if
+              beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
+              beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
+            end if
 
-!--round beam
-                nbeaux(imbb(i))=0
-                if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
-                  if(nbeaux(imbb(i)).eq.2.or.nbeaux(imbb(i)).eq.3) then
-                    write(lout,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
-                    "round or elliptical for all particles"
-                    call prror(-1)
-                  else
-                    nbeaux(imbb(i))=1
-                    sigman2(1,imbb(i))=sigman(1,imbb(i))**2
-                  endif
-                endif
-  !--elliptic beam x>z
-                if(sigman(1,imbb(i)).gt.sigman(2,imbb(i))) then
-                  if(nbeaux(imbb(i)).eq.1.or.nbeaux(imbb(i)).eq.3) then
-                    write(lout,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
-                    "round or elliptical for all particles"
-                    call prror(-1)
-                  else
-                    nbeaux(imbb(i))=2
-                    ktrack(i)=42
-                    sigman2(1,imbb(i))=sigman(1,imbb(i))**2
-                    sigman2(2,imbb(i))=sigman(2,imbb(i))**2
-                    sigmanq(1,imbb(i))=sigman(1,imbb(i))/sigman(2,imbb(i))
-                    sigmanq(2,imbb(i))=sigman(2,imbb(i))/sigman(1,imbb(i))
-                  endif
-                endif
-  !--elliptic beam z>x
-                if(sigman(1,imbb(i)).lt.sigman(2,imbb(i))) then
-                  if(nbeaux(imbb(i)).eq.1.or.nbeaux(imbb(i)).eq.2) then
-                    write(lout,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
-                    "round or elliptical for all particles"
-                    call prror(-1)
-                  else
-                    nbeaux(imbb(i))=3
-                    ktrack(i)=43
-                    sigman2(1,imbb(i))=sigman(1,imbb(i))**2
-                    sigman2(2,imbb(i))=sigman(2,imbb(i))**2
-                    sigmanq(1,imbb(i))=sigman(1,imbb(i))/sigman(2,imbb(i))
-                    sigmanq(2,imbb(i))=sigman(2,imbb(i))/sigman(1,imbb(i))
-                  endif
-                endif
-
-
-                strack(i)=crad*ptnfac(ix)
-                if(ibbc.eq.0) then
-                  crkveb_d=parbe(ix,5)
-                  cikveb_d=parbe(ix,6)
+            if(ktrack(i) == 43) then
+              if(ibeco == 1) then
+                r2b_d = two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
+                rb_d  = sqrt(r2b_d)
+                rkb_d = (strack(i)*pisqrt)/rb_d
+                xrb_d = abs(crkveb_d)/rb_d
+                zrb_d = abs(cikveb_d)/rb_d
+                if(ibtyp == 0) then
+                  call errf(zrb_d,xrb_d,crzb_d,crxb_d)
+                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
+                  xbb_d = sigmanq(2,imbb(i))*xrb_d
+                  zbb_d = sigmanq(1,imbb(i))*zrb_d
+                  call errf(zbb_d,xbb_d,cbzb_d,cbxb_d)
+                else if(ibtyp == 1) then
+                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
+                  xbb_d = sigmanq(2,imbb(i))*xrb_d
+                  zbb_d = sigmanq(1,imbb(i))*zrb_d
                 else
-                  crkveb_d=parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
-                  cikveb_d=parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
-                endif
+                  tkb_d = zero ! -Wmaybe-uninitialized
+                end if
+              else
+                rkb_d = zero ! -Wmaybe-uninitialized
+                tkb_d = zero ! -Wmaybe-uninitialized
+              end if
+              beamoff(4,imbb(i)) = (rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
+              beamoff(5,imbb(i)) = (rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
+            end if
+          end if
+        end if
+      end do
+    end if
 
-                if(nbeaux(imbb(i)).eq.1) then
-                  ktrack(i)=41
-                  if(ibeco.eq.1) then
-                  rho2b_d=crkveb_d**2+cikveb_d**2
-                  tkb_d=rho2b_d/(two*sigman2(1,imbb(i)))
-                  beamoff(4,imbb(i))=((strack(i)*crkveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
-                  beamoff(5,imbb(i))=((strack(i)*cikveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
-                  endif
-                endif
+  ! Crab Cavities
+  ! Note: If setting something else than el(),
+  ! DON'T call initialize_element on a crab, it will reset the phase to 0.
+  elseif(abs(kz(ix)) == 23) then
+    crabph(ix) = el(ix)
+    el(ix)     = zero
 
-                if(ktrack(i) == 42) then
-                  if(ibeco == 1) then
-                    r2b_d=two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
-                    rb_d=sqrt(r2b_d)
-                    rkb_d=(strack(i)*pisqrt)/rb_d
-                    xrb_d=abs(crkveb_d)/rb_d
-                    zrb_d=abs(cikveb_d)/rb_d
-                    if(ibtyp == 0) then
-                      call errf(xrb_d,zrb_d,crxb_d,crzb_d)
-                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                      xbb_d=sigmanq(2,imbb(i))*xrb_d
-                      zbb_d=sigmanq(1,imbb(i))*zrb_d
-                      call errf(xbb_d,zbb_d,cbxb_d,cbzb_d)
-                    else if(ibtyp == 1) then
-                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                      xbb_d=sigmanq(2,imbb(i))*xrb_d
-                      zbb_d=sigmanq(1,imbb(i))*zrb_d
-                    else
-                      tkb_d = zero ! -Wmaybe-uninitialized
-                    endif
-                  else
-                    rkb_d = zero ! -Wmaybe-uninitialized
-                    tkb_d = zero ! -Wmaybe-uninitialized
-                  end if
-                  beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
-                  beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
-                endif
+  ! CC Mult kick order 2
+  elseif(abs(kz(ix)) == 26) then
+    crabph2(ix) = el(ix)
+    el(ix)      = zero
 
-                if(ktrack(i) == 43) then
-                  if(ibeco == 1) then
-                    r2b_d=two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
-                    rb_d=sqrt(r2b_d)
-                    rkb_d=(strack(i)*pisqrt)/rb_d
-                    xrb_d=abs(crkveb_d)/rb_d
-                    zrb_d=abs(cikveb_d)/rb_d
-                    if(ibtyp == 0) then
-                      call errf(zrb_d,xrb_d,crzb_d,crxb_d)
-                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                      xbb_d=sigmanq(2,imbb(i))*xrb_d
-                      zbb_d=sigmanq(1,imbb(i))*zrb_d
-                      call errf(zbb_d,xbb_d,cbzb_d,cbxb_d)
-                    else if(ibtyp == 1) then
-                      tkb_d=(crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                      xbb_d=sigmanq(2,imbb(i))*xrb_d
-                      zbb_d=sigmanq(1,imbb(i))*zrb_d
-                    else
-                      tkb_d = zero ! -Wmaybe-uninitialized
-                    endif
-                  else
-                    rkb_d = zero ! -Wmaybe-uninitialized
-                    tkb_d = zero ! -Wmaybe-uninitialized
-                  end if
-                  beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
-                  beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
-                endif
-              endif
-            endif
-          enddo
-        endif
+  ! CC Mult kick order 3
+  elseif(abs(kz(ix)) == 27) then
+    crabph3(ix) = el(ix)
+    el(ix)      = zero
 
-!--Crab Cavities
-!   Note: If setting something else than el(),
-!   DON'T call initialize_element on a crab, it will reset the phase to 0.
-      elseif(abs(kz(ix)).eq.23) then
-         !Moved from daten()
-         crabph(ix)=el(ix)
-         el(ix)=zero
-!--CC Mult kick order 2
-      elseif(abs(kz(ix)).eq.26) then
-         !Moved from daten()
-         crabph2(ix)=el(ix)
-         el(ix)=zero
-!--CC Mult kick order 3
-      elseif(abs(kz(ix)).eq.27) then
-         !Moved from daten()
-         crabph3(ix)=el(ix)
-         el(ix)=zero
-!--CC Mult kick order 4
-      else if(abs(kz(ix)).eq.28) then
-         !Moved from daten()
-         crabph4(ix)=el(ix)
-         el(ix)=zero
-!--Wire
-      else if(kz(ix).eq.15) then
-         ed(ix)=zero
-         ek(ix)=zero
-         el(ix)=zero
-!--e-lens
-      else if(kz(ix).eq.29) then
-         ed(ix)=zero
-         ek(ix)=zero
-         el(ix)=zero
-      endif
+  ! CC Mult kick order 4
+  else if(abs(kz(ix)) == 28) then
+    crabph4(ix) = el(ix)
+    el(ix)      = zero
 
-      return
+  ! e-lens
+  else if(kz(ix) == 29) then
+    ed(ix) = zero
+    ek(ix) = zero
+    el(ix) = zero
 
-      !Error handlers
+  ! Chebyshev lens
+  else if(kz(ix) == cheby_kz) then
+    ed(ix) = zero
+    ek(ix) = zero
+    el(ix) = zero
+  end if
+
+  return
+
+  ! Error handlers
 100 continue
-  write(lout,"(a,i0)") "INITELEM> ERROR Tried to set the strength of an element which is disabled. bez = ", bez(ix)
+  write(lerr,"(a,i0)") "INITELEM> ERROR Tried to set the strength of an element which is disabled. bez = ", bez(ix)
   call prror
 
 end subroutine initialize_element
 
-subroutine rounderr(errno,fields,f,value)
-
-  use floatPrecision
-  use crcoall
-
-  implicit none
-
-  integer errno,f,l
-  character(len=*) fields(*)
-  character(len=999) localstr
-  real(kind=fPrec) value
-
-  l=len(fields(f))
-  localstr=fields(f)(1:l)
-  write (lout,"(a,i0)")     "ROUND> ERROR Data Input Error Overfow/Underflow in round_near. Errno: ",errno
-  write (lout,"(a,i0,a)")   "ROUND>       f:fieldf:",f,":"//localstr
-  write (lout,"(a,e24.16)") "ROUND>       Function fround (rounderr) returning: ",value
-
-  call prror(-1)
-
-end subroutine rounderr
-
-      subroutine wzset
+subroutine wzset
 !  *********************************************************************
 !
 !  This subroutine must be called before subroutine WZSUB can be used to
@@ -2157,9 +2077,9 @@ end subroutine rounderr
             wtimag(k)=wi
  1       continue
  2    continue
-      end subroutine wzset
+end subroutine wzset
 
-      subroutine mywwerf(x,y,wr,wi)
+subroutine mywwerf(x,y,wr,wi)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
@@ -2237,7 +2157,7 @@ end subroutine rounderr
       wr=vr
       wi=vi
       return
-end
+end subroutine mywwerf
 
 !-----------------------------------------------------------------------
 !  CALCULATION OF : MOMENTUM-DEPENDING ELEMENT-MATRICES AND
@@ -2583,356 +2503,6 @@ subroutine envars(j,dpp,rv)
 
 end subroutine envars
 
-!-----------------------------------------------------------------------
-!  SUBROUTINE TO SET THE ALL COMMON VARIABLES TO ZERO
-!-----------------------------------------------------------------------
-subroutine comnul
-
-  use parpro
-  use collimation, only : collimation_comnul
-
- ! From the FLUKA version
-  do i=1,nele
-    call selnul(i)
-  end do
-
-  call collimation_comnul
-
-end subroutine comnul
-
-subroutine SELNUL( iel )
-!-----------------------------------------------------------------------
-!     A.Mereghetti, 2016-03-14
-!     initialise a single element to empty
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use parpro
-      use mod_common
-      use mod_commons
-      use aperture
-      implicit none
-
-!     local variables
-      integer iel, i1, i3, i4
-
-      kz(iel)=0
-      kp(iel)=0
-      irm(iel)=0
-      imtr(iel)=0
-      nmu(iel)=0
-      kpa(iel)=0
-      isea(iel)=0
-      ncororb(iel)=0
-      iratioe(iel)=0
-      itionc(iel)=0
-      dki(iel,1)=zero
-      dki(iel,2)=zero
-      dki(iel,3)=zero
-      ed(iel)=zero
-      el(iel)=zero
-      ek(iel)=zero
-      sm(iel)=zero
-      xpl(iel)=zero
-      xrms(iel)=zero
-      zpl(iel)=zero
-      zrms(iel)=zero
-      benkc(iel)=zero
-      r00(iel)=zero
-
-      ratioe(iel)=one
-      hsyc(iel)=zero
-      phasc(iel)=zero
-      ptnfac(iel)=zero
-!      wirel(iel)=zero
-      acdipph(iel)=zero
-      crabph(iel)=zero
-      crabph2(iel)=zero
-      crabph3(iel)=zero
-      crabph4(iel)=zero
-      bez(iel)=' '
-      bezl(iel)=' '
-
-      do i3=1,2
-        do i4=1,6
-          a(iel,i3,i4)=zero
-        end do
-      end do
-
-      do i1=1,mmul
-         bk0(iel,i1)=zero
-         ak0(iel,i1)=zero
-         bka(iel,i1)=zero
-         aka(iel,i1)=zero
-      end do
-
-      do i1=1,3
-         bezr(i1,iel)=' '
-      end do
-
-      ! JBG increasing parbe to dimension 5
-      do i1=1,5
-         parbe(iel,i1)=zero
-      end do
-
-      call aperture_nul(iel)
-
-      return
-end subroutine SELNUL
-
-subroutine STRNUL( iel )
-!-----------------------------------------------------------------------
-!     A.Mereghetti, 2016-03-14
-!     initialise an element in lattice structure to empty
-!-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use parpro
-      use mod_common
-      use mod_common_main
-      implicit none
-
-!     local variables
-      integer iel, i1, i2, i3
-
-      ic(iel)=0
-      mzu(iel)=0
-      icext(iel)=0
-      icextal(iel)=0
-      ! extalign(iel,1)=zero
-      ! extalign(iel,2)=zero
-      ! extalign(iel,3)=zero
-      sigmoff(iel)=zero
-      tiltc(iel)=one
-      tilts(iel)=zero
-
-!--Beam-Beam------------------------------------------------------------
-      imbb(iel)=0
-      ! do j=1,40
-      !    exterr(iel,j)=zero
-      ! enddo
-      xsi(iel)=zero
-      zsi(iel)=zero
-      smi(iel)=zero
-      smizf(iel)=zero
-      do i3=1,mmul
-          aaiv(i3,iel)=zero
-          bbiv(i3,iel)=zero
-      enddo
-      return
-end subroutine STRNUL
-
-! ================================================================================================ !
-!     by A.Mereghetti
-!     last modified: 01-12-2016
-!     Insert a New Empty Element in Lattice Structure
-!     interface variables:
-!     - iEl: index in lattice structure where to insert the element
-!     always in main code
-! ================================================================================================ !
-integer function INEELS( iEl )
-
-  use floatPrecision
-  use numerical_constants
-  use crcoall
-  use parpro
-  use mod_common
-  use mod_common_track
-  use mod_common_main
-  implicit none
-
-!     interface variables
-  integer iEl
-
-!     temporary variables
-  integer i,iInsert
-
-  if ( iu.gt.nblz-3) then
-    call expand_arrays(nele, npart, nblz+100, nblo)
-  end if
-  iu=iu+1
-  if ( iEl.eq.0 ) then
-!        append
-    iInsert=iu
-  elseif ( iEl .lt. 0 ) then
-    iInsert=iu+iEl
-  else
-    iInsert=iEl
-  end if
-  if ( iInsert.le.iu ) then
-!     shift by one all lattice elements, to make room for the new
-!        starting marker
-    do i=iu,iInsert+1,-1
-      ic(i)=ic(i-1)
-      icext(i)=icext(i-1)
-      icextal(i)=icextal(i-1)
-      dcum(i)=dcum(i-1)
-    enddo
-  endif
-
-!     initialise element to empty
-  call STRNUL(iInsert)
-!     update dcum of added element
-  dcum(iInsert)=dcum(iInsert-1)
-!     return iu
-  INEELS=iu
-end function INEELS
-
-integer function INEESE()
-!-----------------------------------------------------------------------
-!     by A.Mereghetti
-!     last modified: 01-12-2016
-!     Insert a New Empty Element (empty) in SINGLE ELEMENTS
-!     for the moment, it only appends the new single element
-!     always in main code
-!-----------------------------------------------------------------------
-  use floatPrecision
-  use numerical_constants
-  use crcoall
-
-  use parpro
-  use mod_common
-  use mod_common_track
-  use mod_common_main
-  implicit none
-
-  il=il+1
-  if( il.gt.nele-2 ) then
-    call expand_arrays(nele+50, npart, nblz, nblo )
-    if (ithick.eq.1) then
-      call expand_thickarrays(nele, npart, nblz, nblo )
-    end if
-  end if
-
-! initialise element to empty
-  call SELNUL(il)
-
-! returned variable
-  INEESE=il
-
-end function INEESE
-
-integer function check_SE_unique( iEl, ixEl )
-!-----------------------------------------------------------------------
-!     by A.Mereghetti
-!     last modified: 01-12-2016
-!     check that a given entry in the sequence is unique
-!     interface variables:
-!     - iEl:  index in lattice structure to be checked
-!     - ixEl: index in array of SINGLE ELEMENTs of the element to be checked
-!     always in main code
-!-----------------------------------------------------------------------
-  use floatPrecision
-  use numerical_constants
-
-  use parpro
-  use mod_common
-  use mod_common_track
-  use mod_common_main
-  implicit none
-
-! interface variables
-  integer iEl, ixEl
-
-! temporary variables
-  integer i,ix
-
-  check_SE_unique=-1
-
-  do i=1,iu
-    ix=ic(i)-nblo
-    if(ix.gt.0) then
-!     SINGLE ELEMENT
-      if( i.ne.iEl .and. ix.eq.ixEl ) then
-        check_SE_unique=i
-        exit
-      end if
-    end if
-  end do
-
-  return
-
-end function check_SE_unique
-
-subroutine find_entry_at_s( sLoc, llast, iEl, ixEl, lfound )
-!-----------------------------------------------------------------------
-!     by A.Mereghetti (CERN, BE/ABP-HSS), 2018-03-22
-!     find the element at location sLoc
-!     interface variables:
-!     - sLoc: s-coordinate where element should be
-!     - iEl:  index in lattice structure of found element
-!     - ixEl: index in array of SINGLE ELEMENTs of found element
-!     - llast: if true, return last lens at sLoc
-!     always in main code
-!-----------------------------------------------------------------------
-  use floatPrecision
-  use mod_common     ! for iu, tlen, ic
-  use parpro
-  use crcoall
-  use numerical_constants, only : zero
-
-  implicit none
-
-! interface variables
-  integer iEl, ixEl
-  real(kind=fPrec) sLoc
-  logical llast, lfound
-
-! temporary variables
-  integer i, iDelta, iCheck, iMax, iStep
-  logical lSlide
-
-  iEl=-1
-  ixEl=-1
-
-  if (sLoc.gt.tlen.or.sLoc.lt.zero) then
-    write(lout,"(a,2(f11.4,a))") "FINDENTRY> ERROR Requested s-location: ",sLoc," is not inside accelerator range: [0:",tlen,"]"
-    call prror
-  endif
-
-  ! fast search
-  iCheck=iu
-  iDelta=iu
-  do while(iDelta.gt.1.or.iCheck.gt.0.or.iCheck.lt.iu)
-    if (dcum(iCheck).eq.sLoc) exit
-    iDelta=nint(real(iDelta/2))
-    if (dcum(iCheck).lt.sLoc) then
-      iCheck=iCheck+iDelta
-    else
-      iCheck=iCheck-iDelta
-    endif
-  end do
-
-  ! finalise search
-  if (dcum(iCheck).lt.sLoc.or.(dcum(iCheck).eq.sLoc.and.llast)) then
-    iMax=iu
-    iStep=1
-    lslide=llast
-  else
-    iMax=1
-    iStep=-1
-    lSlide=.not.llast
-  endif
-  do i=iCheck,iMax,iStep
-    if (dcum(i).lt.sLoc) continue
-    if (dcum(i).gt.sLoc) then
-      if (iEl.eq.-1) iEl=i
-    else
-      iEl=i
-      if (lSlide) continue
-    endif
-    exit
-  enddo
-
-  if (lfound) then
-    ixEl=ic(iEl)-nblo
-    if (ixEl.lt.0) ixEl=ic(iEl) ! drift
-  else
-    write(lout,"(a,2(f11.4,a))") "FINDENTRY> s-location: ",sLoc," was not found in acclerator range: [0:",tlen,"]"
-  endif
-
-end subroutine find_entry_at_s
-
 subroutine distance(x,clo,di0,t,dam)
 !-----------------------------------------------------------------------
 !  CALCULATION OF DISTANCE IN PHASE SPACE FOR POST-PROCESSING
@@ -2994,7 +2564,7 @@ subroutine distance(x,clo,di0,t,dam)
           phi(i)=zero
         endif
    80 continue
-      dam=sqrt((phi(1)**2+phi(2)**2+phi(3)**2)/real(idam,fPrec))/pi            !hr06
+      dam=sqrt((phi(1)**2+phi(2)**2+phi(3)**2)/real(idam,fPrec))/pi
 !-----------------------------------------------------------------------
       return
 end subroutine distance
@@ -3194,7 +2764,7 @@ subroutine betalf(dpp,qw)
 !-----------------------------------------------------------------------
   160 ierro=1
       return
-end
+end subroutine betalf
 
 subroutine block
 !-----------------------------------------------------------------------
@@ -3256,7 +2826,7 @@ subroutine block
       end do
 
       return
-end
+end subroutine block
 
 subroutine blockdis(aeg,bl1eg,bl2eg)
 !-----------------------------------------------------------------------
@@ -3323,7 +2893,7 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
       end do
 
       return
-end
+end subroutine blockdis
 
 subroutine chroma
 !-----------------------------------------------------------------------
@@ -3376,8 +2946,8 @@ subroutine chroma
           do 30 l=1,2
             isl=is(l)
             if(kz(isl).ne.3) then
-              write(lout,"(a)") "CHROMA> ERROR Element specified for chromaticity correction is not a sextupole."
-              call prror(-1)
+              write(lerr,"(a)") "CHROMA> ERROR Element specified for chromaticity correction is not a sextupole."
+              call prror
             end if
             ed(isl)=ed(isl)+dsm(l,ii)
             if(kp(isl).eq.5) call combel(isl)
@@ -3386,13 +2956,13 @@ subroutine chroma
             dpp=de2*real(3-n,fPrec)                                            !hr06
             call clorb(dpp)
             if(ierro.gt.0) then
-              write(lout,"(a)") "CHROMA> ERROR Unstable closed orbit during chromaticity correction."
-              call prror(-1)
+              write(lerr,"(a)") "CHROMA> ERROR Unstable closed orbit during chromaticity correction."
+              call prror
             end if
             call phasad(dpp,qwc)
             if(ierro.gt.0) then
-              write(lout,"(a)") "CHROMA> ERROR No optical solution during chromaticity correction."
-              call prror(-1)
+              write(lerr,"(a)") "CHROMA> ERROR No optical solution during chromaticity correction."
+              call prror
             end if
             ox=qwc(1)
             oz=qwc(2)
@@ -3462,7 +3032,7 @@ subroutine chroma
 10035 format(/t5,'---- NO Improvement in last Step ----'/)
 end subroutine chroma
 
-      subroutine chromda
+subroutine chromda
 !-----------------------------------------------------------------------
 !  CHROMATICITY CORRECTION VIA DA
 !-----------------------------------------------------------------------
@@ -3492,10 +3062,6 @@ end subroutine chroma
       call phasad(dp1,qwc)
       if(nbeam.ge.1) then
 #include "include/beamcou.f90"
-#ifdef DEBUG
-!     call dumpbin('abeamcou2',3,33)
-!     call abend('after beam coupling                               ')
-#endif
       endif
       ncorru=ncorruo
       iq1=is(1)
@@ -3590,7 +3156,7 @@ end subroutine chroma
 10060 format(/t10,'DA CHROMATICITY CORRECTION'/ t10,                    &
      &'MAXIMUM NUMBER OF ITERATIONS ACHIEVED--->',2x,i4/ t10,           &
      &'PROCEDURE MAY NOT HAVE CONVERGED')
-end
+end subroutine chromda
 
 subroutine clorb(dpp)
 !-----------------------------------------------------------------------
@@ -3660,16 +3226,6 @@ subroutine clorb(dpp)
    50 cor=c1e3*sqrt(dcx**2+dcz**2)                                       !hr06
       if(st_print .and. ncorru /= 1) then
         write(lout,10010) dpp,clo(1),clop(1),clo(2),clop(2),ii,cor
-#ifdef DEBUG
-!     call warr('dpp',dpp,0,0,0,0)
-!     call warr('dpp',dpp,0,0,0,0)
-!     call warr('clo(1)',clo(1),0,0,0,0)
-!     call warr('clop(1)',clop(1),0,0,0,0)
-!     call warr('clo(2)',clo(2),0,0,0,0)
-!     call warr('clop(2)',clop(2),0,0,0,0)
-!     call warr('ii',0d0,ii,0,0,0)
-!     call warr('cor',cor,0,0,0,0)
-#endif
       endif
 !-----------------------------------------------------------------------
       return
@@ -3678,7 +3234,7 @@ subroutine clorb(dpp)
      &'PROCEDURE MAY NOT HAVE CONVERGED')
 10010 format(t5,'---- ENTRY CLORB ----/DPP=',f8.5,' /CLOX/', 2f10.5,    &
      &' /CLOY/',2f10.5,' /ITERAT.=',i3,'/ ACCURACY=',d13.6)
-end
+end subroutine clorb
 
 subroutine clorb2(dpp)
 !-----------------------------------------------------------------------
@@ -3712,8 +3268,8 @@ subroutine clorb2(dpp)
       call umlauf(dpp,1,ierr)
       ierro=ierr
       if(ierro /= 0) then
-        write(lout,"(a)") "CLORB> ERROR No convergence in rmod."
-        call prror(-1)
+        write(lerr,"(a)") "CLORB> ERROR No convergence in rmod."
+        call prror
       end if
 
       do 40 ii=1,itco
@@ -3734,8 +3290,8 @@ subroutine clorb2(dpp)
         call matrix(dpp,am)
 
         if(ierro /= 0) then
-          write(lout,"(a)") "CLORB> ERROR No convergence in rmod."
-          call prror(-1)
+          write(lerr,"(a)") "CLORB> ERROR No convergence in rmod."
+          call prror
         end if
 
         do 30 l=1,2
@@ -3779,8 +3335,8 @@ subroutine combel(iql)
           ico=icomb(j,m)
           if(ico.eq.0) goto 10
           if(kz(ico0).ne.kz(ico)) then
-            write(lout,"(a)") "COMBEL> ERROR Elements of different types are combined in data block combination of elements."
-            call prror(-1)
+            write(lerr,"(a)") "COMBEL> ERROR Elements of different types are combined in data block combination of elements."
+            call prror
           end if
           if(abs(el(ico0)).gt.pieni) then
             if(abs(el(ico)).gt.pieni) then
@@ -4407,8 +3963,8 @@ subroutine linopt(dpp)
       call phasad(dpp,qwc)
 
       if(ierro /= 0) then
-        write(lout,"(a)") "LINOPT> ERROR No optical solution."
-        call prror(-1)
+        write(lerr,"(a)") "LINOPT> ERROR No optical solution."
+        call prror
       end if
       if(ncorru.eq.0) write(lout,10040) dpp,qwc(1),qwc(2)
 
@@ -4486,9 +4042,9 @@ subroutine linopt(dpp)
 !c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
 !c$$$            endif
 
-            write(lout,"(a)") "LINOPT> ERROR In block '"//trim(bezb(ix))//"': found a thick non-drift element '"//&
+            write(lerr,"(a)") "LINOPT> ERROR In block '"//trim(bezb(ix))//"': found a thick non-drift element '"//&
               trim(bez(jk))//"' while ithick=1. This should not be possible!"
-            call prror(-1)
+            call prror
             cycle STRUCTLOOP
           endif
 
@@ -5611,9 +5167,9 @@ subroutine corrorb
 
       call clorb(ded)
       if(ierro.gt.0) then
-        write(lout,"(a)") "CLORB> ERROR Unstable closed orbit during initial dispersion calculation."
-        write(lout,"(a)") "CLORB>       Instability occurred for small relative energy deviation."
-        call prror(-1)
+        write(lerr,"(a)") "CLORB> ERROR Unstable closed orbit during initial dispersion calculation."
+        write(lerr,"(a)") "CLORB>       Instability occurred for small relative energy deviation."
+        call prror
       end if
 
       do l=1,2
@@ -5623,8 +5179,8 @@ subroutine corrorb
 
       call clorb(zero)
       if(ierro.gt.0) then
-        write(lout,"(a)") "CLORB> ERROR Unstable closed orbit for zero energy deviation."
-        call prror(-1)
+        write(lerr,"(a)") "CLORB> ERROR Unstable closed orbit for zero energy deviation."
+        call prror
       end if
 
       do l=1,2
@@ -5648,8 +5204,8 @@ subroutine corrorb
       write(lout,10000)
 
       if(ncorru == 0) then
-        write(lout,"(a)") "CLORB> ERROR Number of orbit correctors is zero."
-        call prror(-1)
+        write(lerr,"(a)") "CLORB> ERROR Number of orbit correctors is zero."
+        call prror
       else
         if(ncorrep.le.0) then
           write(lout,10010) ncorru,sigma0(1),sigma0(2)
@@ -5919,7 +5475,7 @@ subroutine corrorb
      &' VER.-PTP: ',f6.3)
 end subroutine corrorb
 
-      subroutine putorb(xinc,nx,npflag)
+subroutine putorb(xinc,nx,npflag)
 !-----------------------------------------------------------------------
 !  PUT ORBIT CHANGES FROM MICADO TO THE GIVEN ORBIT CORRECTORS
 !-----------------------------------------------------------------------
@@ -6018,9 +5574,9 @@ end subroutine corrorb
       return
 10000 format(t5,i4,i4,' ',a16,'  OLD: ',d14.7,' MRAD   NEW: ' ,d14.7,   &
      &' MRAD')
-      end
+end subroutine putorb
 
-      subroutine orbinit
+subroutine orbinit
 !-----------------------------------------------------------------------
 !  INITIALIZES THE RANDOM NUMBER OF NOT SET CORRCTORS
 !-----------------------------------------------------------------------
@@ -6078,7 +5634,7 @@ end subroutine corrorb
         endif
    10 continue
       return
-      end
+end subroutine orbinit
 
 subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
 !*********************************************************************
@@ -6198,9 +5754,8 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
           h=rho(j)-(a(k,j))*(a(k,j))
 
           if(h.lt.c1m7) then
-            write(lout,"(a)")    ""
-            write(lout,"(a)")    "HTLS> ERROR Correction process aborted. Division by zero expected."
-            write(lout,"(a,i0)") "HTLS>       Probably two correctors too close. Suspected corrector: ",j
+            write(lerr,"(a)")    "HTLS> ERROR Correction process aborted. Division by zero expected."
+            write(lerr,"(a,i0)") "HTLS>       Probably two correctors too close. Suspected corrector: ",j
             call prror
           endif
 
@@ -6496,8 +6051,8 @@ subroutine ord
         izu=izu+3
         if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
         if(izu > nran) then
-          write(lout,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
-          call prror(-1)
+          write(lerr,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
+          call prror
         end if
         if(izu > nzfz) then
           call fluc_moreRandomness
@@ -6509,16 +6064,16 @@ subroutine ord
           if(bez(j).eq.bezr(1,i)) then
             jra(i,1)=j
             if(kz(j) == 0 .or. kz(j) == 20 .or. kz(j) == 22) then
-              write(lout,"(a)") "ORD> ERROR Elements that need random numbers have a kz not equal to 0, 20 or 22."
-              call prror(-1)
+              write(lerr,"(a)") "ORD> ERROR Elements that need random numbers have a kz not equal to 0, 20 or 22."
+              call prror
             end if
             jra(i,2)=kz(j)
           endif
           if(bez(j).eq.bezr(2,i)) then
             jra(i,3)=j
             if(kz(j) == 0 .or. kz(j) == 20 .or. kz(j) == 22) then
-              write(lout,"(a)") "ORD> ERROR Elements that need random numbers have a kz not equal to 0, 20 or 22."
-              call prror(-1)
+              write(lerr,"(a)") "ORD> ERROR Elements that need random numbers have a kz not equal to 0, 20 or 22."
+              call prror
             end if
             jra(i,4)=kz(j)
           endif
@@ -6534,9 +6089,9 @@ subroutine ord
           end if
         endif
         if(kzz1 == 11 .and. (kzz2 /= 11 .and. kzz2 /= 0)) then
-          write(lout,"(a)") "ORD> ERROR To use the same random numbers for 2 elements, the inserted element "//&
+          write(lerr,"(a)") "ORD> ERROR To use the same random numbers for 2 elements, the inserted element "//&
             "must not need more of such numbers than the reference element."
-          call prror(-1)
+          call prror
         end if
       end do
       do i=1,iu
@@ -6560,8 +6115,8 @@ subroutine ord
         else
           inz(j)=inz(j)+1
           if(inz(j) > mran) then
-            write(lout,"(a,i0,a)") "ORD> ERROR Not more than ",mran," of each type of inserted elements can be used."
-            call prror(-1)
+            write(lerr,"(a,i0,a)") "ORD> ERROR Not more than ",mran," of each type of inserted elements can be used."
+            call prror
           end if
           ! map position of errors for present element in lattice structure
           mzu(i)=jra(j,5)
@@ -6576,8 +6131,8 @@ subroutine ord
         izu=izu+3
         if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
         if(izu > nran) then
-          write(lout,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
-          call prror(-1)
+          write(lerr,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
+          call prror
         end if
       end do
     endif
@@ -6595,8 +6150,8 @@ subroutine ord
       if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
       ! why just checking? shouldn't we map on mzu(i)?
       if(izu > nran) then
-        write(lout,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
-        call prror(-1)
+        write(lerr,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
+        call prror
       end if
       if(izu > nzfz) then
         call fluc_moreRandomness
@@ -6649,82 +6204,6 @@ subroutine ord
   end do
 
 end subroutine ord
-
-! ================================================================================================ !
-!  ORGANISATION OF LATTICE SEQUENCE
-!  A.Mereghetti, last modified 2016-03-14
-!  extract pieces of code about lattice structure from original ord subroutine
-! ================================================================================================ !
-subroutine orglat
-
-  use floatPrecision
-  use numerical_constants
-  use mathlib_bouncer
-  use crcoall
-  use parpro
-  use mod_common
-  use mod_commons
-  use mod_common_track
-  implicit none
-  integer i,icext1,icextal1,ihi,ii,ilf,ilfr,j,kanf1
-  real(kind=fPrec) extalig1 !,exterr1
-  dimension ilf(nblz),ilfr(nblz)
-  dimension extalig1(nblz,3),icext1(nblz),icextal1(nblz) !,exterr1(nblz,40)
-  save
-!-----------------------------------------------------------------------
-  if(mper.gt.1) then
-    do i=2,mper
-      do j=1,mbloz
-        ii=(i-1)*mbloz+j
-        ihi=j
-        if(msym(i).lt.0) ihi=mbloz-j+1
-        ic(ii)=msym(i)*ic(ihi)
-        if(ic(ii).lt.-nblo) ic(ii)=-ic(ii)
-      end do
-    end do
-  end if
-
-  ! set iu
-  iu=mper*mbloz
-
-  ! "GO" was not the first structure element -> Reshuffle the structure
-  if(kanf.ne.1) then
-    write(lout,"(a)") "ORGLAT> Reshuffling lattice structure following existence "//&
-      "of GO keyword not in first position of lattice definition!"
-    !        initialise some temporary variables
-    do i=1,nblz
-      ilf(i)=0
-      ilfr(i)=0
-      icext1(i)=0
-      icextal1(i)=0
-      do ii=1,3
-          extalig1(i,ii)=zero
-      enddo
-    enddo
-
-    !--Re-saving of the starting point (UMSPEICHERUNG AUF DEN STARTPUNKT)
-    kanf1=kanf-1
-    do i=1,kanf1
-      if(iorg.ge.0) ilfr(i)=mzu(i)
-      ilf(i)=ic(i)
-      icext1(i)=icext(i)
-      icextal1(i)=icextal(i)
-    end do
-    do i=kanf,iu
-      if(iorg.ge.0) mzu(i-kanf1)=mzu(i)
-      ic(i-kanf1)=ic(i)
-      icext(i-kanf1)=icext(i)
-      icextal(i-kanf1)=icextal(i)
-    end do
-    do i=1,kanf1
-      if(iorg.ge.0) mzu(iu-kanf1+i)=ilfr(i)
-      ic(iu-kanf1+i)=ilf(i)
-      icext(iu-kanf1+i)=icext1(i)
-      icextal(iu-kanf1+i)=icextal1(i)
-    end do
-  endif
-  return
-end subroutine orglat
 
 !-----------------------------------------------------------------------
 !  ADDITIONAL ADJUSTMENT OF THE X-PHASEADVANCE BETWEEN 2 POSITIONS
@@ -6792,19 +6271,10 @@ subroutine phasad(dpp,qwc)
       call clorb(dpp)
       call betalf(dpp,qw)
       if(ierro /= 0) then
-        write(lout,"(a)") "PHASAD> ERROR No optical solution."
-        call prror(-1)
+        write(lerr,"(a)") "PHASAD> ERROR No optical solution."
+        call prror
       end if
       call envar(dpp)
-#ifdef DEBUG
-!     call warr('qw',qw(1),1,0,0,0)
-!     call warr('qw',qw(2),2,0,0,0)
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-!     call dumpbin('aenvarqmod',88,R88
-!     call abend('aenvarqmod                                        ')
-#endif
 
 !--STARTVALUES OF THE TRAJECTORIES
       do l=1,2
@@ -6946,9 +6416,6 @@ subroutine phasad(dpp,qwc)
         end if
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 450
         if(kzz.eq.15) goto 450
-! JBG RF CC Multipoles to 450
-!        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
-!        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 450
         dyy1=zero
         dyy2=zero
         if(iorg.lt.0) mzu(k)=izu
@@ -6959,16 +6426,6 @@ subroutine phasad(dpp,qwc)
         izu=izu+1
         zs=zpl(ix)+zfz(izu)*zrms(ix)
 #include "include/alignl.f90"
-#ifdef DEBUG
-!     call warr('qw',qw(1),1,0,0,0)
-!     call warr('qw',qw(2),2,0,0,0)
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-!     call warr('kzz',0d0,kzz,0,0,0)
-!     call dumpbin('bkzz      ',77 777)
-!     call abend('bkzz                                              ')
-#endif
       select case (kzz)
       case (1) ! HORIZONTAL DIPOLE
         ekk=ekk*c1e3
@@ -7236,15 +6693,6 @@ subroutine phasad(dpp,qwc)
       else
         qwc(3)=(phi(1)+qxse)-qxsa                                        !hr06
       endif
-#ifdef DEBUG
-!     call warr('qw',qw(1),1,0,0,0)
-!     call warr('qw',qw(2),2,0,0,0)
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-!     call dumpbin('aphasad',97,997)
-!     call abend('aphasad                                           ')
-#endif
 !-----------------------------------------------------------------------
   return
 end subroutine phasad
@@ -7301,8 +6749,8 @@ subroutine qmod0
       iq1=iq(1)
       iq2=iq(2)
       if(kz(iq1).ne.2.or.kz(iq2).ne.2) then
-        write(lout,"(a)") "QMOD> ERROR Element is not a quadrupole."
-        call prror(-1)
+        write(lerr,"(a)") "QMOD> ERROR Element is not a quadrupole."
+        call prror
       end if
 
       if (abs(el(iq1)).le.pieni.or.abs(el(iq2)).le.pieni) then
@@ -7321,8 +6769,8 @@ subroutine qmod0
       if(abs(qw0(3)).gt.pieni) then
         iq3=iq(3)
         if(kz(iq3).ne.2) then
-          write(lout,"(a)") "QMOD> ERROR Element is not a quadrupole."
-          call prror(-1)
+          write(lerr,"(a)") "QMOD> ERROR Element is not a quadrupole."
+          call prror
         end if
         if (abs(el(iq3)).le.pieni) then
           sm0(3)=ed(iq3)
@@ -7337,8 +6785,8 @@ subroutine qmod0
 
       call clorb(dpp)
       if(ierro.gt.0) then
-        write(lout,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
-        call prror(-1)
+        write(lerr,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
+        call prror
       end if
       call phasad(dpp,qwc)
       sens(1,5)=qwc(1)
@@ -7363,8 +6811,8 @@ subroutine qmod0
           if(kp(iql).eq.5) call combel(iql)
           call clorb(dpp)
           if(ierro.gt.0) then
-            write(lout,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
-            call prror(-1)
+            write(lerr,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
+            call prror
           end if
           call phasad(dpp,qwc)
           sens(1,n+1)=qwc(1)
@@ -7417,8 +6865,8 @@ subroutine qmod0
           call loesd(aa1,bb,nite,nite,ierr)
         endif
         if(ierr == 1) then
-          write(lout,"(a)") "QMOD> ERROR Problems during matrix-inversion."
-          call prror(-1)
+          write(lerr,"(a)") "QMOD> ERROR Problems during matrix-inversion."
+          call prror
         end if
         do 50 l=1,nite
           iql=iq(l)
@@ -7431,8 +6879,8 @@ subroutine qmod0
    50   continue
         call clorb(dpp)
         if(ierro.gt.0) then
-          write(lout,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
-          call prror(-1)
+          write(lerr,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
+          call prror
         end if
         call phasad(dpp,qwc)
         sens(1,5)=qwc(1)
@@ -7522,7 +6970,7 @@ subroutine qmod0
      &a16)
 end subroutine qmod0
 
-      subroutine qmodda(mm,qwc)
+subroutine qmodda(mm,qwc)
 !-----------------------------------------------------------------------
 !  ADJUSTMENT OF THE Q-VALUES VIA DA
 !-----------------------------------------------------------------------
@@ -7541,11 +6989,6 @@ end subroutine qmod0
       dimension intwq(3),qwc(3)
       save
 !-----------------------------------------------------------------------
-#ifdef DEBUG
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-#endif
       ncorruo=ncorru
       ncorru=1
       nd2=2*mm
@@ -7553,22 +6996,6 @@ end subroutine qmod0
       intwq(1)=int(qwc(1))
       intwq(2)=int(qwc(2))
       intwq(3)=0
-#ifdef DEBUG
-!     call warr('intwq',0d0,intwq(1),1,0,0)
-!     call warr('intwq',0d0,intwq(2),2,0,0)
-!     call warr('intwq',0d0,intwq(3),3,0,0)
-!     call warr('clo6(1)',clo6(1),1,0,0,0)
-!     call warr('clo6(2)',clo6(2),2,0,0,0)
-!     call warr('clo6(3)',clo6(3),3,0,0,0)
-!     call warr('clop6(1)',clop6(1),1,0,0,0)
-!     call warr('clop6(2)',clop6(2),2,0,0,0)
-!     call warr('clop6(3)',clop6(3),3,0,0,0)
-!sqmodda
-!     write(*,*) 'qmodda called!'
-!     call dumpbin('sqmodda',80,800)
-!     call abend('sqmodda                                           ')
-!     write(*,*) 'mm=',mm
-#endif
       dq1=zero
       dq2=zero
       if(iqmod6.eq.1) then
@@ -7584,10 +7011,6 @@ end subroutine qmod0
         endif
         edcor1=edcor(1)
         edcor2=edcor(2)
-#ifdef DEBUG
-!       call warr('edcor1',edcor1,1,0,0,0)
-!       call warr('edcor2',edcor2,2,0,0,0)
-#endif
         cor=zero
         coro=1.0e38_fPrec
       endif
@@ -7607,53 +7030,11 @@ end subroutine qmod0
           write(lout,10010) clo6(3),clop6(3)
         endif
         iqmodc=2
-#ifdef DEBUG
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-!     call warr('intwq',0d0,intwq(1),1,0,0)
-!     call warr('intwq',0d0,intwq(2),2,0,0)
-!     call warr('intwq',0d0,intwq(3),3,0,0)
-!     call warr('clo6(1)',clo6(1),1,0,0,0)
-!     call warr('clo6(2)',clo6(2),2,0,0,0)
-!     call warr('clo6(3)',clo6(3),3,0,0,0)
-!     call warr('clop6(1)',clop6(1),1,0,0,0)
-!     call warr('clop6(2)',clop6(2),2,0,0,0)
-!     call warr('clop6(3)',clop6(3),3,0,0,0)
-!     call dumpbin('bdaini',96,996)
-!     call abend('before daini                                      ')
-#endif
         call mydaini(1,1,nd2,mm,nd2,1)
-#ifdef DEBUG
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-!     call warr('intwq',0d0,intwq(1),1,0,0)
-!     call warr('intwq',0d0,intwq(2),2,0,0)
-!     call warr('intwq',0d0,intwq(3),3,0,0)
-!     call warr('clo6(1)',clo6(1),1,0,0,0)
-!     call warr('clo6(2)',clo6(2),2,0,0,0)
-!     call warr('clo6(3)',clo6(3),3,0,0,0)
-!     call warr('clop6(1)',clop6(1),1,0,0,0)
-!     call warr('clop6(2)',clop6(2),2,0,0,0)
-!     call warr('clop6(3)',clop6(3),3,0,0,0)
-!     call dumpbin('adaini',96,996)
-!     call abend('after  daini                                      ')
-#endif
         if(iqmod6.eq.1) then
           write(lout,10000) nd2
           iqmodc=1
           call mydaini(2,3,ndh,mm,nd2,1)
-#ifdef DEBUG
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-!     call warr('intwq',0d0,intwq(1),1,0,0)
-!     call warr('intwq',0d0,intwq(2),2,0,0)
-!     call warr('intwq',0d0,intwq(3),3,0,0)
-!     call dumpbin('adaini',99,999)
-!     call abend('after  daini                                      ')
-#endif
           do i=1,mm
             qwc(i)=real(intwq(i),fPrec)+corr(1,i)                              !hr06
           enddo
@@ -7731,16 +7112,6 @@ end subroutine qmod0
           do i=1,mm
             qwc(i)=real(intwq(i),fPrec)+wxys(i)                                !hr06
           enddo
-#ifdef DEBUG
-!     call warr('qwc',qwc(1),1,0,0,0)
-!     call warr('qwc',qwc(2),2,0,0,0)
-!     call warr('qwc',qwc(3),3,0,0,0)
-!     call warr('intwq',0d0,intwq(1),1,0,0)
-!     call warr('intwq',0d0,intwq(2),2,0,0)
-!     call warr('intwq',0d0,intwq(3),3,0,0)
-!     call dumpbin('adaini',98,998)
-!     call abend('after  daini 98                                   ')
-#endif
           goto 1
         endif
       enddo
@@ -7779,10 +7150,6 @@ end subroutine qmod0
         endif
       endif
       ncorru=ncorruo
-#ifdef DEBUG
-!     call dumpbin('end qmodda',7,999)
-!     call abend('end qmodda 7 999                                  ')
-#endif
 !-----------------------------------------------------------------------
 10000 format(/131('-')/t10,'ENTERING ',i1,'D DA TUNE-VARIATION')
 10010 format(1x,f47.33/1x,f47.33)
@@ -7892,7 +7259,7 @@ subroutine umlauf(dpp,ium,ierr)
     if(abs(x(1,1)).lt.aper(1).and.abs(x(1,2)).lt.aper(2)) goto 70
     ierr=1
     write(lout,"(a)") "UMLAUF> Error amplitudes exceed the maximum values."
-    call prror(-1)
+    call prror
     return
 
 70  continue
@@ -7908,9 +7275,6 @@ subroutine umlauf(dpp,ium,ierr)
     end if
     if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 350
     if(kzz.eq.15) goto 350
-! JBG RF CC Multipoles to 350
-!        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
-!        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 350
     if(iorg.lt.0) mzu(k)=izu
     izu=mzu(k)+1
     ekk=(sm(ix)+zfz(izu)*ek(ix))/(one+dpp)
@@ -8342,8 +7706,8 @@ subroutine resex(dpp)
       call betalf(dpp,qw)
 
       if(ierro /= 0) then
-        write(lout,"(a)") "RESEX> ERROR No optical solution."
-        call prror(-1)
+        write(lerr,"(a)") "RESEX> ERROR No optical solution."
+        call prror
       end if
       call envar(dpp)
 
@@ -9196,8 +8560,8 @@ subroutine rmod(dppr)
   160   continue
         call loesd(aa,bb,j2,10,ierr)
         if(ierr == 1) then
-          write(lout,"(a)") "RMOD> ERROR Problems during matrix-inversion."
-          call prror(-1)
+          write(lerr,"(a)") "RMOD> ERROR Problems during matrix-inversion."
+          call prror
         end if
         do 170 i=1,j2
           if(i.eq.jj1.or.i.eq.jj2) then
@@ -9414,7 +8778,7 @@ subroutine search(dpp)
      &6x,'COS',13x,'SIN',6x,'|', 6x,'COS',13x,'SIN',6x,'|')
 10050 format(1x,a16,1x,'|',i3,'  |',g15.5,'|',g15.5,'|',g15.5,'|',      &
      &g15.5,'|',g15.5,'|',g15.5,'|')
-end
+end subroutine search
 
 !-----------------------------------------------------------------------
 !  CALCULATION OF RESONANCE- AND SUBRESONANCE-DRIVINGTERMS
@@ -9582,8 +8946,8 @@ subroutine subre(dpp)
         call betalf(dpp,qw)
         call phasad(dpp,qwc)
         if(ierro /= 0) then
-          write(lout,"(a)") "SUBRE> ERROR No optical solution."
-          call prror(-1)
+          write(lerr,"(a)") "SUBRE> ERROR No optical solution."
+          call prror
         end if
         write(lout,10070) dpp,qwc(1),qwc(2)
         call envar(dpp)
@@ -10555,8 +9919,8 @@ subroutine subsea(dpp)
       call clorb2(dpp)
       call betalf(dpp,qw)
       if(ierro /= 0) then
-        write(lout,"(a)") "SUBSEA> ERROR No optical solution."
-        call prror(-1)
+        write(lerr,"(a)") "SUBSEA> ERROR No optical solution."
+        call prror
       end if
       call envar(dpp)
 
@@ -11310,8 +10674,8 @@ subroutine decoup
           call loesd(aa,bb,4,4,ierr)
         endif
         if(ierr == 1) then
-          write(lout,"(a)") "DECOUP> ERROR Problems during matrix-inversion."
-          call prror(-1)
+          write(lerr,"(a)") "DECOUP> ERROR Problems during matrix-inversion."
+          call prror
         end if
         do 50 i=1,6
           if(iskew.eq.2.and.i.gt.4) goto 50
@@ -11397,37 +10761,3 @@ subroutine decoup
 10030 format(14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,          &
      &g17.10/14x,a16,2x,g17.10,1x,g17.10/14x,a16,2x,g17.10,1x,g17.10)
 end subroutine decoup
-
-subroutine datime(nd,nt)
-      implicit none
-! Fill common slate for usage by hmachi call as per z007 writeup.        !hr08
-      common /slate/ isl(40)                                             !hr08
-
-      integer isl                                                        !hr08
-!
-!-    call datime (nd,nt)   returns integer date   nd = yymmdd
-!-                                  integer time   nt =   hhmm
-!     integer nd,nt,mm(3),nn(3)
-!     call idate (mm(1),mm(2),mm(3))
-!     call itime (nn)
-      character(len=8) date
-      character(len=10) time
-      character(len=5) zone
-      integer values(8),mm(3),nd,nt
-      save
-      call date_and_time(date,time,zone,values)
-      mm(3)=mod(values(1),100)
-!     mm(3) = mod (mm(3),100)
-      mm(2)=values(3)
-      mm(1)=values(2)
-      isl(1)= mm(3)                                                      !hr08
-      isl(2)= mm(2)                                                      !hr08
-      isl(3)= mm(1)                                                      !hr08
-      isl(4)= values(5)                                                  !hr08
-      isl(5)= values(6)                                                  !hr08
-      isl(6)= 0                                                          !hr08
-      nd = (mm(3)*100+mm(1))*100 + mm(2)
-!     nt =            nn(1) *100 + nn(2)
-      nt=values(5)*100+values(6)
-      return
-end subroutine datime

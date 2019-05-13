@@ -10,6 +10,7 @@ subroutine trauthin(nthinerr)
   use numerical_constants
   use scatter, only : scatter_elemPointer
   use dynk, only : dynk_enabled, dynk_isused, dynk_pretrack
+  use cheby, only : cheby_kz, cheby_ktrack
 
   use mod_alloc
   use mod_time
@@ -162,6 +163,11 @@ subroutine trauthin(nthinerr)
       ktrack(i)=63
       goto 290
     endif
+    ! Chebyshev lens
+    if(kzz.eq.cheby_kz) then
+      ktrack(i)=cheby_ktrack
+      goto 290
+    endif
     ! SCATTER block
     if (kzz.eq.40 .and. scatter_elemPointer(ix).ne.0) then
       ! FOR NOW, ASSUME THIN SCATTER; ktrack(i)=65 RESERVED FOR THICK SCATTER
@@ -254,8 +260,8 @@ subroutine trauthin(nthinerr)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           if ( dynk_isused(i) ) then
-            write(lout,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
-              "') is off in fort.2, but on in DYNK. Not implemented."
+            write(lerr,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
+              "') is off in "//trim(fort2)//", but on in DYNK. Not implemented."
             call prror
           end if
           ktrack(i) = 31
@@ -441,29 +447,20 @@ subroutine trauthin(nthinerr)
 
     hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
     do jj=1,nele
-      if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*real(itionc(jj),fPrec)
+      if(abs(kz(jj)) == 12) then
+        hsyc(jj) = (c1m3*hsyc(jj)) * real(sign(1,kz(jj)),kind=fPrec)
+      end if
     end do
     if(abs(phas).ge.pieni) then
-      write(lout,"(a)") "TRACKING> ERROR thin6dua no longer supported. Please use DYNK instead."
-      call prror(-1)
+      write(lerr,"(a)") "TRACKING> ERROR thin6dua no longer supported. Please use DYNK instead."
+      call prror
     else
       write(lout,"(a)") ""
       write(lout,"(a)") "TRACKING> Calling thin6d subroutine"
       write(lout,"(a)") ""
-      if (do_coll) then
-        call collimate_init()
-        call collimate_start_sample(1) ! Changed to only do 1 sample
-      endif
       call thin6d(nthinerr)
-      if (do_coll) then
-        call collimate_end_sample(1) ! Changed to only do 1 sample
-      endif
     endif !end if(abs(phas).ge.pieni) then
   endif !end if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then ... else
-
-  if (do_coll) then
-    call collimate_exit()
-  endif
 
   call dealloc(crkveb, "crkveb")
   call dealloc(cikveb, "cikveb")
@@ -529,6 +526,7 @@ subroutine thin4d(nthinerr)
   use bdex, only : bdex_enable
   use aperture
   use elens
+  use cheby, only : cheby_ktrack, cheby_kick
   use utils
   use wire
 #ifdef CR
@@ -537,11 +535,11 @@ subroutine thin4d(nthinerr)
 
   implicit none
 
-  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,kxxa
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,kxxa,nfirst
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,acphase,  &
     acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi, &
     rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,pyf,r_temp,z_temp,sigf,   &
-    q_temp,pttemp
+    q_temp,pttemp,xlv,zlv
   logical llost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
@@ -569,32 +567,22 @@ subroutine thin4d(nthinerr)
   end if
 
 #ifdef CR
-  if (restart) then
+  if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thin 4D restart numlcr = ",numlcr,", numl = ",numl
+    write(crlog,"(2(a,i0))") "TRACKING> Thin 4D restarting on turn ",cr_numl," / ",numl
   end if
-! and now reset numl to do only numlmax turns
-  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
-! and reset [n]numxv unless particle is lost
-! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-  do 640, n=numlcr,nnuml
+  nnuml  = numl
+  nfirst = cr_numl
 #else
-  do 640 n=1,numl !loop over turns
+  nfirst = 1
 #endif
-  if(st_quiet < 3) then
-    if(mod(n,turnrep) == 0) then
-      write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
-      flush(lout)
+  do 640 n=nfirst,numl
+    if(st_quiet < 3) then
+      if(mod(n,turnrep) == 0) then
+        call trackReport(n)
+      end if
     end if
-  end if
-  meta_nPartTurn = meta_nPartTurn + napx
+    meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
     ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
@@ -609,10 +597,10 @@ subroutine thin4d(nthinerr)
 #endif
 
 #ifdef CR
-    ! does not call CRPOINT if restart=.true.
-    ! (and note that writebin does nothing if restart=.true.
+    ! does not call CRPOINT if cr_restart=.true.
+    ! (and note that writebin does nothing if cr_restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -679,7 +667,7 @@ subroutine thin4d(nthinerr)
 #endif
 
           if (bdex_enable) then
-              write(lout,"(a)") "BDEX> ERROR BDEX only available for thin6d"
+              write(lerr,"(a)") "BDEX> ERROR BDEX only available for thin6d"
               call prror
           endif
 
@@ -711,51 +699,10 @@ subroutine thin4d(nthinerr)
         ! store old particle coordinates
         if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
         goto 630
-      case (3)
+      case (3)  !Phase Trombone  
         irrtr=imtr(ix)
         do j=1,napx
-            !The values are stored in the temp vector which are used for the multiplication.
-          temptr(1)=xv1(j)
-          temptr(2)=yv1(j)/moidpsv(j)
-          temptr(3)=xv2(j)
-          temptr(4)=yv2(j)/moidpsv(j)
-          temptr(5)=sigmv(j)
-          temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
-          ! Adding the closed orbit. The previous values are stored in the temptr vector.
-          xv1(j)  = cotr(irrtr,1)
-          yv1(j)  = cotr(irrtr,2)
-          xv2(j)  = cotr(irrtr,3)
-          yv2(j)  = cotr(irrtr,4)
-          sigmv(j) = cotr(irrtr,5)
-          pttemp   = cotr(irrtr,6)
-
-          ! Multiplying the arbitrary matrix to the coordinates.
-          do kxxa=1,6
-            xv1(j)   =  xv1(j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv1(j)   =  yv1(j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
-            xv2(j)   =  xv2(j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
-            yv2(j)   =  yv2(j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
-            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)
-            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)
-          enddo
-          ! Transforming back to the tracked coordinates of Sixtrack...
-          ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
-
-
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-
-
-          ! We have to go back to angles after we updated the energy.
-          yv1(j) = yv1(j)*moidpsv(j)
-          yv2(j) = yv2(j)*moidpsv(j)
-
-
+#include "include/trombone.f90" 
         enddo
       goto 620
       case (2,4,5,6,7,8,9,10)
@@ -1076,7 +1023,9 @@ subroutine thin4d(nthinerr)
        case (66) ! Rf-multi
 #include "include/rfmulti.f90"
         goto 620
-
+      case (cheby_ktrack) ! Chebyshev lens
+        call cheby_kick(i,ix,n)
+        goto 620
 
       end select
       goto 630
@@ -1161,10 +1110,11 @@ subroutine thin6d(nthinerr)
   use mathlib_bouncer
   use mod_particles
 
-  use bdex,    only : bdex_track, bdex_enable, bdex_elementAction
-  use scatter, only : scatter_thin, scatter_debug
-  use dynk,    only : dynk_enabled, dynk_apply
-  use dump,    only : dump_linesFirst, dump_lines, ldumpfront
+  use bdex,       only : bdex_track, bdex_enable, bdex_elementAction
+  use scatter,    only : scatter_thin, scatter_debug
+  use dynk,       only : dynk_enabled, dynk_apply
+  use dump,       only : dump_linesFirst, dump_lines, ldumpfront
+  use mod_ffield, only : ffindex,ffield_genAntiQuad,ffield_enterQuad,ffield_exitQuad,ffield_enabled
   use aperture
   use mod_hions
   use mod_settings
@@ -1174,13 +1124,11 @@ subroutine thin6d(nthinerr)
 #ifdef FLUKA
   use mod_fluka
 #endif
-
 #ifdef ROOT
   use root_output
 #endif
 
   use collimation
-
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -1191,20 +1139,22 @@ subroutine thin6d(nthinerr)
   use mod_common_da
   use aperture
   use elens
+  use cheby, only : cheby_ktrack, cheby_kick
   use utils
   use wire
 #ifdef CR
   use checkpoint_restart
 #endif
+
   implicit none
 
   integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,elemEnd,&
-    kxxa
+    kxxa,nfirst
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
-    sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp
-  logical llost
+    sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv
+  logical llost, doFField
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
@@ -1229,32 +1179,23 @@ subroutine thin6d(nthinerr)
     turnrep = 1
   end if
 
+  call ffield_genAntiQuad()
+
   ! This is the loop over turns: label 660
 #ifdef CR
-  if (restart) then
+  if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thin 6D restart numlcr = ",numlcr,", numl = ",numl
+    write(crlog,"(2(a,i0))") "TRACKING> Thin 6D restarting on turn ",cr_numl," / ",numl
   end if
-  ! and now reset numl to do only numlmax turns
-  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
-  ! and reset [n]numxv unless particle is lost
-  ! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-
-  do 660 n=numlcr,nnuml ! Loop over turns, CR version
+  nnuml  = numl
+  nfirst = cr_numl
 #else
-  do 660 n=1,numl       ! Loop over turns
+  nfirst = 1
 #endif
+  do 660 n=nfirst,numl
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
-        write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
-        flush(lout)
+        call trackReport(n)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
@@ -1278,10 +1219,10 @@ subroutine thin6d(nthinerr)
 #endif
 
 #ifdef CR
-    ! does not call CRPOINT if restart=.true.
-    ! (and note that writebin does nothing if restart=.true.
+    ! does not call CRPOINT if cr_restart=.true.
+    ! (and note that writebin does nothing if cr_restart=.true.
     if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -1306,6 +1247,13 @@ subroutine thin6d(nthinerr)
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
       ix=ic(i)-nblo
+
+      ! Fringe Fields
+      if(ffield_enabled .and. ix > 0) then
+        doFField = FFindex(ix) > 0
+      else
+        doFField = .false.
+      end if
 
 #ifdef BEAMGAS
       !YIL Call beamGas subroutine whenever a pressure-element is found
@@ -1383,7 +1331,6 @@ subroutine thin6d(nthinerr)
           !Ralph drift length is stracki
           !bez(ix) is name of drift
           totals=totals+stracki
-          !          write(*,*) 'ralph> Drift, total length: ', stracki,totals
 
           !________________________________________________________________________
           !++  If we have a collimator then...
@@ -1402,7 +1349,6 @@ subroutine thin6d(nthinerr)
           ! both namings before and after V6.503 can be used
           !
           elemEnd = len_trim(bez(myix))
-          ! write(lout,"(a)") "COLL> DEBUG Checking if aperture: '"//bez(myix)(elemEnd-2:elemEnd)//"' from '"//bez(myix)//"'"
           if((    bez(myix)(1:2) == 'TC'  .or. bez(myix)(1:2) == 'tc'   &
             .or.  bez(myix)(1:2) == 'TD'  .or. bez(myix)(1:2) == 'td'   &
             .or.  bez(myix)(1:3) == 'COL' .or. bez(myix)(1:3) == 'col') &
@@ -1512,7 +1458,7 @@ subroutine thin6d(nthinerr)
           if(abs(dppoff).gt.pieni) then
             sigmv(j)=sigmv(j)-sigmoff(i)
           endif
-          if(kz(ix).eq.12) then
+          if(abs(kz(ix)) == 12) then
             ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
           else
             ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
@@ -1585,10 +1531,20 @@ subroutine thin6d(nthinerr)
         end do
         goto 640
       case (12) ! NORMAL QUADRUPOLE
+        if(doFField) then
+          if(ic(i) /= ic(i-2) .and. ic(i) /= ic(i-3)) then
+            call ffield_enterQuad(i)  !A optimizer!!!
+          end if
+        end if
         do j=1,napx
 #include "include/alignva.f90"
 #include "include/kickvxxh.f90"
         end do
+        if(doFField) then
+          if(ic(i) /= ic(i+2) .and. ic(i) /= ic(i+3)) then
+            call ffield_exitQuad(i)   !A optimizer!!!
+          end if
+        end if
         goto 640
       case (13) ! NORMAL SEXTUPOLE
         do j=1,napx
@@ -1772,63 +1728,91 @@ subroutine thin6d(nthinerr)
       case (31)
         goto 640
       case (32)
-        goto 410
+        if(doFField .eqv. .false.) then
+          goto 410
+        else
+          goto 640
+        end if
       case (33)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v01.f90"
 #include "include/mul6v01.f90"
-        end do
+          end do
+        end if
         goto 640
       case (34)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v01.f90"
 #include "include/mul6v01.f90"
-        end do
-        goto 410
+          end do
+          goto 410
+        else
+          goto 640
+        end if
       case (35)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v02.f90"
 #include "include/mul6v01.f90"
-        end do
+          end do
+        end if
         goto 640
       case (36)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v02.f90"
 #include "include/mul6v01.f90"
-        end do
-        goto 410
+          end do
+          goto 410
+        else
+          goto 640
+        end if
       case (37)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v03.f90"
 #include "include/mul6v02.f90"
-        end do
+          end do
+        end if
         goto 640
       case (38)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v03.f90"
 #include "include/mul6v02.f90"
-        end do
-        goto 410
+          end do
+          goto 410
+        else
+          goto 640
+        end if
       case (39)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v04.f90"
 #include "include/mul6v02.f90"
-        end do
+          end do
+        end if
         goto 640
       case (40)
-        do j=1,napx
+        if(doFField .eqv. .false.) then
+          do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v04.f90"
 #include "include/mul6v02.f90"
-        end do
-        goto 410
+          end do
+          goto 410
+        else
+          goto 640
+        end if
       case (41) ! 4D BB kick
         do 690 j=1,napx
 #include "include/beamco.f90"
@@ -1922,7 +1906,6 @@ subroutine thin6d(nthinerr)
           ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (58) ! JBG RF CC Multipoles
         xory=1
@@ -1936,7 +1919,6 @@ subroutine thin6d(nthinerr)
           ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (59) ! JBG RF CC Multipoles
         xory=1
@@ -1951,7 +1933,6 @@ subroutine thin6d(nthinerr)
                 *(((crabfreq*two)*pi)/clight)*c1m6)*sin_mb(kcrab))*e0f
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (60) ! JBG RF CC Multipoles
         xory=1
@@ -1966,7 +1947,6 @@ subroutine thin6d(nthinerr)
                 ((three*crkve**2)*cikve)))*(((crabfreq*two)*pi)/clight))*c1m6)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (61) ! JBG RF CC Multipoles
         xory=1
@@ -1981,7 +1961,6 @@ subroutine thin6d(nthinerr)
                 *(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (62) ! JBG RF CC Multipoles
         xory=1
@@ -1995,7 +1974,6 @@ subroutine thin6d(nthinerr)
           ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3*cikve)-(cikve**3*crkve)))*(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (63) ! Elens
         do j=1,napx
@@ -2013,6 +1991,9 @@ subroutine thin6d(nthinerr)
         goto 640
       case (65) ! Scatter (thick)
         !     TODO
+        goto 640
+      case (cheby_ktrack) ! Chebyshev lens
+        call cheby_kick(i,ix,n)
         goto 640
       case default
         write(lout,"(3(a,i0),a)") "TRACKING> WARNING Non-handled element in thin6d()!",  &
@@ -2095,80 +2076,90 @@ subroutine thin6d(nthinerr)
 
 end subroutine thin6d
 
-!-----------------------------------------------------------------------
-!
-!  F. SCHMIDT
-!-----------------------------------------------------------------------
-!  3 February 1999
-!-----------------------------------------------------------------------
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Write a turn report.
+!  The isFirst if statement is only computed the first time the routine is called.
+! ================================================================================================ !
+subroutine trackReport(n)
+
+  use crcoall
+  use parpro,     only : npart
+  use mod_common, only : ithick, iclo6, numl, napx, napxo
+
+  implicit none
+
+  integer, intent(in) :: n
+
+  character(len=8)  :: trackMode = " "
+  character(len=32) :: trackFmt  = " "
+  integer           :: oPart     = 0
+  integer           :: oTurn     = 0
+  logical           :: isFirst   = .true.
+
+  if(isFirst) then
+    if(ithick == 0) then
+      trackMode = "Thick"
+    else
+      trackMode = "Thin"
+    end if
+    if(iclo6 > 0) then
+      trackMode = trim(trackMode)//" 6D"
+    else
+      trackMode = trim(trackMode)//" 4D"
+    end if
+    oPart   = int(log10(real(npart)))+1
+    oTurn   = int(log10(real(numl)))+1
+    isFirst = .false.
+    write(trackFmt,"(2(a,i0),a)") "(2(a,i",oTurn,"),2(a,i",oPart,"))"
+  end if
+
+  write(lout,trackFmt) "TRACKING> "//trim(trackMode)//": Turn ",n," / ",numl,", Particles: ",napx," / ",napxo
+  flush(lout)
+
+end subroutine trackReport
+
+! ================================================================================================ !
+!  F. Schmidt
+!  Original:  1999-02-03
+!  Rewritten: 2019-04-26 (VKBO)
+! ================================================================================================ !
+#ifdef CR
 subroutine callcrp
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
   use crcoall
-  use parpro
   use mod_common
   use mod_common_main
-  use mod_commons
   use mod_common_track
-  use mod_common_da
-#ifdef CR
   use checkpoint_restart
-#endif
+
   implicit none
-#ifdef CR
-  integer ncalls
-#endif
+
 #ifdef BOINC
   integer timech
 #endif
-#ifdef CR
-  data ncalls /0/
-#endif
-  save
-!-----------------------------------------------------------------------
-#ifdef CR
-  ncalls=ncalls+1
-  write(91,*,iostat=ierro,err=11) numx,numl
-  rewind 91
-  if (restart) then
-    write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
-      " numx = ",numx,", numlcr = ",numlcr
-    flush(93)
+
+  if(cr_restart) then
+    write(lout,"(a)") "CALL_CRP> Restarted on this turn, so not checkpointing"
     return
   else
-#ifndef DEBUG
-    if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-    write(93,"(6(a,i0))") "SIXTRACR> CALLCRP numl = ",numl,", nnuml = ",nnuml,", numlcr = ",numlcr,", "//&
-     "numx = ",numx,", nwri = ",nwri,", numlcp = ",numlcp
-    flush(93)
-#ifndef DEBUG
-    endif
-#endif
-  endif
+    write(lout,"(a,i0)") "CALL_CRP> Checkpointing on turn ",numx+1
+  end if
 #ifdef BOINC
-  if (checkp) then
-    ! Now ALWAYS checkpoint
-    ! NO, re-instated at user request
-    ! What was the user request?
+  if(cr_checkp) then
+    ! If BOINC and turn > 1, ask BOINC API whether to crpoint or not
     call boinc_time_to_checkpoint(timech)
-    if (timech /= 0) then
+    if(timech /= 0 .or. numx == 0) then
       call crpoint
       call boinc_checkpoint_completed()
     endif
   endif
 #else
-  if (checkp) call crpoint
+  if(cr_checkp) call crpoint
 #endif
-  return
-11 write(lout,"(a,i0)") "CALLCRP> ERROR Problems writing to file #91, ierro= ",ierro
-  ! write(lout,"(a)")'SIXTRACR WRITEBIN IO ERROR on Unit 91'
-  call prror(-1)
-#endif
-  return
+
 end subroutine callcrp
+#endif
 
 !-----------------------------------------------------------------------
 !
@@ -2192,8 +2183,7 @@ subroutine dist1
   save
 !-----------------------------------------------------------------------
   do 20 ia=1,napx,2
-    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.     &
-  &(mod(partID(ia),2).ne.0)) then
+    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.(mod(partID(ia),2).ne.0)) then
       ie=ia+1
       dam(ia)=zero
       dam(ie)=zero
@@ -2209,22 +2199,17 @@ subroutine dist1
       xau(2,4)= yv2(ie)
       xau(2,5)=sigmv(ie)
       xau(2,6)= dpsv(ie)
-      cloau(1)= clo6v(1,ia)
-      cloau(2)=clop6v(1,ia)
-      cloau(3)= clo6v(2,ia)
-      cloau(4)=clop6v(2,ia)
-      cloau(5)= clo6v(3,ia)
-      cloau(6)=clop6v(3,ia)
-      di0au(1)= di0xs(ia)
-      di0au(2)=dip0xs(ia)
-      di0au(3)= di0zs(ia)
-      di0au(4)=dip0zs(ia)
-
-      do ib2=1,6
-        do ib3=1,6
-          tau(ib2,ib3)=tasau(ia,ib2,ib3)
-        end do
-      end do
+      cloau(1)= clo6v(1)
+      cloau(2)=clop6v(1)
+      cloau(3)= clo6v(2)
+      cloau(4)=clop6v(2)
+      cloau(5)= clo6v(3)
+      cloau(6)=clop6v(3)
+      di0au(1)= di0xs
+      di0au(2)=dip0xs
+      di0au(3)= di0zs
+      di0au(4)=dip0zs
+      tau(:,:)=tasau(:,:)
 
       call distance(xau,cloau,di0au,tau,dam1)
       dam(ia)=dam1
@@ -2267,7 +2252,7 @@ subroutine write6(n)
 #endif
     !-- PARTICLES STABLE (Only if QUIET < 2)
     if(.not.pstop(ia).and..not.pstop(ig)) then
-      if(st_quiet < 2) write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),n
+      if(st_quiet < 2) write(lout,10000) ia,izu0,dpsv(ia),n
       if(st_quiet < 1) write(lout,10010)                    &
         xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
         xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig), &

@@ -17,12 +17,13 @@ subroutine allocate_arrays
   use mod_commond2,       only : mod_commond2_expand_arrays
   use aperture,           only : aperture_expand_arrays
   use elens,              only : elens_allocate_arrays
+  use cheby,              only : cheby_allocate_arrays
   use dump,               only : dump_expand_arrays
   use scatter,            only : scatter_expand_arrays
   use bdex,               only : bdex_allocate_arrays
   use dynk,               only : dynk_allocate_arrays
   use wire,               only : wire_expand_arrays
-  use mod_hions,          only : hions_allocate_arrays
+  use mod_hions,          only : hions_expand_arrays
 #ifdef CR
   use checkpoint_restart, only : cr_expand_arrays
 #endif
@@ -30,6 +31,8 @@ subroutine allocate_arrays
   use mod_fluka,          only : fluka_mod_expand_arrays
 #endif
   use collimation,        only : collimation_allocate_arrays
+  use coll_db,            only : cdb_expand_arrays
+
   implicit none
 
   nele  = nele_initial
@@ -46,15 +49,17 @@ subroutine allocate_arrays
   call wire_expand_arrays(nele,nblz)
   call scatter_expand_arrays(nele,npart)
   call aperture_expand_arrays(nele,npart)
+  call hions_expand_arrays(npart)
 
   call elens_allocate_arrays
+  call cheby_allocate_arrays
   call bdex_allocate_arrays
   call dynk_allocate_arrays
-  call hions_allocate_arrays
 #ifdef CR
   call cr_expand_arrays(npart)
 #endif
   call collimation_allocate_arrays
+  call cdb_expand_arrays(nele)
 
 end subroutine allocate_arrays
 
@@ -69,11 +74,12 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   use crcoall
 
   use mod_common,         only : mod_common_expand_arrays
-  use mod_common_track,        only : mod_commont_expand_arrays
-  use mod_common_main,       only : mod_commonmn_expand_arrays
+  use mod_common_track,   only : mod_commont_expand_arrays
+  use mod_common_main,    only : mod_commonmn_expand_arrays
   use mod_commond2,       only : mod_commond2_expand_arrays
   use aperture,           only : aperture_expand_arrays
   use elens,              only : elens_expand_arrays
+  use cheby,              only : cheby_expand_arrays
   use dump,               only : dump_expand_arrays
   use scatter,            only : scatter_expand_arrays
   use bdex,               only : bdex_expand_arrays
@@ -86,7 +92,10 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 #ifdef FLUKA
   use mod_fluka,          only : fluka_mod_expand_arrays
 #endif
+  use mod_ffield,         only : ffield_mod_expand_arrays
   use collimation,        only : collimation_expand_arrays
+  use coll_db,            only : cdb_expand_arrays
+
   implicit none
 
   integer, intent(in) :: nele_new
@@ -110,6 +119,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   call aperture_expand_arrays(nele_new, npart_new)
 
   call elens_expand_arrays(nele_new)
+  call cheby_expand_arrays(nele_new)
   call bdex_expand_arrays(nele_new)
   call dynk_expand_arrays(nele_new)
 
@@ -120,7 +130,9 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
 #ifdef FLUKA
   call fluka_mod_expand_arrays(npart_new, nele_new)
 #endif
+  call ffield_mod_expand_arrays(npart_new, nele_new)
   call collimation_expand_arrays(npart_new, nblz_new)
+  call cdb_expand_arrays(nele_new)
 
   ! Update array size variables
   nele  = nele_new
@@ -133,11 +145,11 @@ end subroutine expand_arrays
 ! Kicks off the allocation of the thick tracking arrays
 subroutine allocate_thickarrays
   use parpro
-  use mod_common_main, only : mod_commonmn_allocate_thickarrays
-  use mod_commons,  only : mod_commons_allocate_thickarrays
+  use mod_common_main, only : mod_commonmn_expand_thickarrays
+  use mod_commons,     only : mod_commons_expand_thickarrays
   implicit none
-  call mod_commonmn_allocate_thickarrays
-  call mod_commons_allocate_thickarrays
+  call mod_commonmn_expand_thickarrays(nele, npart, nblo)
+  call mod_commons_expand_thickarrays(nele, npart)
 end subroutine allocate_thickarrays
 
 ! Kicks off the allocation of the thick tracking arrays
@@ -226,17 +238,6 @@ subroutine shuffleLostParticles
     oidpsv(j:tnapx)    = cshift(oidpsv(j:tnapx),    1)
     moidpsv(j:tnapx)   = cshift(moidpsv(j:tnapx),   1)
     omoidpsv(j:tnapx)  = cshift(omoidpsv(j:tnapx),  1)
-
-    ! Beam--Beam
-    di0xs(j:tnapx)     = cshift(di0xs(j:tnapx),     1)
-    dip0xs(j:tnapx)    = cshift(dip0xs(j:tnapx),    1)
-    di0zs(j:tnapx)     = cshift(di0zs(j:tnapx),     1)
-    dip0zs(j:tnapx)    = cshift(dip0zs(j:tnapx),    1)
-    tasau(j:tnapx,:,:) = cshift(tasau(j:tnapx,:,:), 1, 1)
-
-    ! Closed Orbit
-    clo6v(:,j:tnapx)   = cshift(clo6v(:,j:tnapx),   1, 2)
-    clop6v(:,j:tnapx)  = cshift(clop6v(:,j:tnapx),  1, 2)
 
     ! Backtracking + Aperture
     plost(j:tnapx)     = cshift(plost(j:tnapx),     1)

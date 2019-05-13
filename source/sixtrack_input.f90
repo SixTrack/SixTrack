@@ -1,67 +1,45 @@
 ! ================================================================================================ !
-!  SixTrack Input
-! ~~~~~~~~~~~~~~~~
+!  SixTrack Input Module
+! ~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-05-18
+!  Created: 2018-05-18
+!  Updated: 2019-04-24
 ! ================================================================================================ !
 module sixtrack_input
 
-  use string_tools
-  use crcoall
-  use numerical_constants
-  use physical_constants
-  use mod_alloc
-  use mod_settings
-  use mod_common
-  use mod_commons
+  use floatPrecision
+  use numerical_constants, only : zero, one, c1m3
 
   implicit none
 
   ! Record of encountered blocks
-  character(len=:), allocatable, public, save :: sixin_cBlock(:) ! Name of block
-  integer,          allocatable, public, save :: sixin_uBlock(:) ! Unit of block
-  integer,          allocatable, public, save :: sixin_iBlock(:) ! Line of block
-  logical,          allocatable, public, save :: sixin_lBlock(:) ! Block closed
-  integer,                       public, save :: sixin_nBlock    ! Number of blocks
-
-  ! Single Element Variables
-  integer,                       public, save :: sixin_nSing  = 0
-  integer,                       public, save :: sixin_ncy2   = 0
-  character(len=:), allocatable, public, save :: sixin_bez0(:) ! (mNameLen)(nele)
-  character(len=3), parameter,   public       :: sixin_cavity = "CAV"
-
-  ! Block Definition Variables
-  integer,                       public, save :: sixin_nBloc
-  character(len=:), allocatable, public, save :: sixin_beze(:,:)
-  character(len=:), allocatable, public, save :: sixin_ilm(:)
-  integer,                       public, save :: sixin_k0
-
-  ! Structure Input Variables
-  integer,                       public, save :: sixin_nStru = 0
-  integer,                       public, save :: sixin_icy   = 0
-  character(len=2), parameter,   public       :: sixin_go    = "GO"
+  character(len=:), allocatable, private, save :: sixin_cBlock(:) ! Name of block
+  integer,          allocatable, private, save :: sixin_uBlock(:) ! Unit of block
+  integer,          allocatable, private, save :: sixin_iBlock(:) ! Line of block
+  logical,          allocatable, private, save :: sixin_lBlock(:) ! Block closed
+  integer,                       private, save :: sixin_nBlock    ! Number of blocks
 
   ! Linear Optics Variables
-  integer,                       public, save :: sixin_ilin0 = 1
+  integer,                       private, save :: sixin_ilin0 = 1
 
   ! Synchrotron Oscillations
-  real(kind=fPrec),              public, save :: sixin_alc  = c1m3
-  real(kind=fPrec),              public, save :: sixin_harm = one
-  real(kind=fPrec),              public, save :: sixin_phag = zero
-  real(kind=fPrec),              public, save :: sixin_u0   = zero
+  real(kind=fPrec),              public,  save :: sixin_alc  = c1m3
+  real(kind=fPrec),              public,  save :: sixin_harm = one
+  real(kind=fPrec),              public,  save :: sixin_phag = zero
+  real(kind=fPrec),              public,  save :: sixin_u0   = zero
 
   ! Multipole Coefficients
-  integer,                       public, save :: sixin_im = 0
+  integer,                       private, save :: sixin_im = 0
 
   ! RF-multipoles
-  integer,                       public, save :: sixin_rfm = 0
+  integer,                       private, save :: sixin_rfm = 0
 
   ! Beam-Beam Elements
-  real(kind=fPrec),              public, save :: sixin_emitNX = zero
-  real(kind=fPrec),              public, save :: sixin_emitNY = zero
+  real(kind=fPrec),              public,  save :: sixin_emitNX = zero
+  real(kind=fPrec),              public,  save :: sixin_emitNY = zero
 
   ! "Phase Trombone" Element
-  integer,                       public, save :: sixin_imtr0 = 0
+  integer,                       private, save :: sixin_imtr0 = 0
 
   ! Settings
   logical,                       private, save :: sixin_forcePartSummary = .false.
@@ -86,9 +64,61 @@ module sixtrack_input
 contains
 
 ! ================================================================================================ !
+!  Parse Command Line Arguments
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-04-24
+!  Updated: 2019-04-24
+! ================================================================================================ !
+subroutine sixin_commandLine(stName)
+
+  use parpro
+  use crcoall
+  use mod_version
+  use mod_common, only : fort2, fort3
+
+  character(len=*), intent(in) :: stName
+
+  character(len=mStrLen) cmdArg
+  integer nCmd
+
+  nCmd = command_argument_count()
+  if(nCmd < 1) return
+
+  ! First argument is either a command or the file name for the main input file
+  call get_command_argument(1, cmdArg)
+  select case(cmdArg)
+  case("-nv","--numver")
+    write(lout,"(i0)") numvers
+    stop
+  case("-v","--version")
+    write(lout,"(a)") trim(stName)//" "//trim(version)//"-"//trim(git_revision(1:7))
+    stop
+  case("-V","--VERSION")
+    write(lout,"(a)") trim(stName)
+    write(lout,"(a)") "Version:  "//trim(version)
+    write(lout,"(a)") "Released: "//trim(moddate)
+    write(lout,"(a)") "Git Hash: "//trim(git_revision)
+    stop
+  case default
+    fort3 = trim(cmdArg)
+  end select
+
+  if(nCmd < 2) return
+
+  ! Second argument is the file name for the main geometry file
+  call get_command_argument(2, cmdArg)
+  fort2 = trim(cmdArg)
+
+end subroutine sixin_commandLine
+
+! ================================================================================================ !
 !  BLOCK PARSING RECORD
 ! ================================================================================================ !
 subroutine sixin_checkBlock(blockName, blockUnit, blockOpened, blockClosed, blockLine, blockCount)
+
+  use crcoall
+  use mod_alloc
+  use mod_settings
 
   character(len=*), intent(in)  :: blockName
   integer,          intent(in)  :: blockUnit
@@ -158,6 +188,9 @@ end subroutine sixin_checkBlock
 
 subroutine sixin_closeBlock(blockName)
 
+  use crcoall
+  use mod_settings
+
   character(len=*), intent(in) :: blockName
 
   integer i
@@ -178,6 +211,9 @@ end subroutine sixin_closeBlock
 
 subroutine sixin_blockReport
 
+  use parpro
+  use crcoall
+
   integer i
 
   write(lout,"(a)") str_divLine
@@ -194,11 +230,16 @@ subroutine sixin_blockReport
 end subroutine sixin_blockReport
 
 subroutine sixin_echoVal_int(varName, varVal, blockName, lineNo)
+
+  use crcoall
+  use string_tools
+
   character(len=*), intent(in) :: varName
   integer,          intent(in) :: varVal
   character(len=*), intent(in) :: blockName
   integer,          intent(in) :: lineNo
   character(len=2) :: lineNm
+
   if(lineNo == -1) then
     lineNm = "PP"
   else if(lineNo < 10) then
@@ -207,14 +248,20 @@ subroutine sixin_echoVal_int(varName, varVal, blockName, lineNo)
     write(lineNm,"(i2)") lineNo
   end if
   write(lout,"(a,i0)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" =  ",varVal
+
 end subroutine sixin_echoVal_int
 
 subroutine sixin_echoVal_real32(varName, varVal, blockName, lineNo)
+
+  use crcoall
+  use string_tools
+
   character(len=*),  intent(in) :: varName
   real(kind=real32), intent(in) :: varVal
   character(len=*),  intent(in) :: blockName
   integer,           intent(in) :: lineNo
   character(len=2) :: lineNm
+
   if(lineNo == -1) then
     lineNm = "PP"
   else if(lineNo < 10) then
@@ -223,14 +270,20 @@ subroutine sixin_echoVal_real32(varName, varVal, blockName, lineNo)
     write(lineNm,"(i2)") lineNo
   end if
   write(lout,"(a,e13.6)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
+
 end subroutine sixin_echoVal_real32
 
 subroutine sixin_echoVal_real64(varName, varVal, blockName, lineNo)
+
+  use crcoall
+  use string_tools
+
   character(len=*),  intent(in) :: varName
   real(kind=real64), intent(in) :: varVal
   character(len=*),  intent(in) :: blockName
   integer,           intent(in) :: lineNo
   character(len=2) :: lineNm
+
   if(lineNo == -1) then
     lineNm = "PP"
   else if(lineNo < 10) then
@@ -239,14 +292,20 @@ subroutine sixin_echoVal_real64(varName, varVal, blockName, lineNo)
     write(lineNm,"(i2)") lineNo
   end if
   write(lout,"(a,e22.15)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
+
 end subroutine sixin_echoVal_real64
 
 subroutine sixin_echoVal_real128(varName, varVal, blockName, lineNo)
+
+  use crcoall
+  use string_tools
+
   character(len=*),   intent(in) :: varName
   real(kind=real128), intent(in) :: varVal
   character(len=*),   intent(in) :: blockName
   integer,            intent(in) :: lineNo
   character(len=2) :: lineNm
+
   if(lineNo == -1) then
     lineNm = "PP"
   else if(lineNo < 10) then
@@ -255,14 +314,20 @@ subroutine sixin_echoVal_real128(varName, varVal, blockName, lineNo)
     write(lineNm,"(i2)") lineNo
   end if
   write(lout,"(a,e41.34)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
+
 end subroutine sixin_echoVal_real128
 
 subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
+
+  use crcoall
+  use string_tools
+
   character(len=*), intent(in) :: varName
   character(len=*), intent(in) :: varVal
   character(len=*), intent(in) :: blockName
   integer,          intent(in) :: lineNo
   character(len=2) :: lineNm
+
   if(lineNo == -1) then
     lineNm = "PP"
   else if(lineNo < 10) then
@@ -271,14 +336,20 @@ subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
     write(lineNm,"(i2)") lineNo
   end if
   write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = '"//varVal//"'"
+
 end subroutine sixin_echoVal_char
 
 subroutine sixin_echoVal_logical(varName, varVal, blockName, lineNo)
+
+  use crcoall
+  use string_tools
+
   character(len=*), intent(in) :: varName
   logical,          intent(in) :: varVal
   character(len=*), intent(in) :: blockName
   integer,          intent(in) :: lineNo
   character(len=2) :: lineNm
+
   if(lineNo == -1) then
     lineNm = "PP"
   else if(lineNo < 10) then
@@ -291,6 +362,7 @@ subroutine sixin_echoVal_logical(varName, varVal, blockName, lineNo)
   else
     write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = False"
   end if
+
 end subroutine sixin_echoVal_logical
 
 ! ================================================================================================ !
@@ -302,6 +374,11 @@ end subroutine sixin_echoVal_logical
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
 
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
+
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
@@ -312,7 +389,7 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    write(lerr,"(a)") "GEOMETRY> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -337,7 +414,7 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
   case("CRKILLSWITCH")
 #ifdef CR
     if(nSplit < 2) then
-      write(lout,"(a)") "INPUT> ERROR CRKILLSWITCH requires at least one turn number."
+      write(lerr,"(a)") "INPUT> ERROR CRKILLSWITCH requires at least one turn number."
     end if
     st_killswitch = .true.
     write(lout,"(a)") "INPUT> C/R kill switch ENABLED"
@@ -387,8 +464,8 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     end if
 
   case("INITIALSTATE")
-    if(nSplit /= 2) then
-      write(lout,"(a,i0)") "INPUT> ERROR INITIALSTATE takes one value, got ",nSplit-1
+    if(nSplit /= 2 .and. nSplit /= 3) then
+      write(lerr,"(a,i0)") "INPUT> ERROR INITIALSTATE takes 1 or 2 values, got ",nSplit-1
       iErr = .true.
       return
     end if
@@ -398,19 +475,33 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     case("text")
       st_initialstate = 2
     case default
-      write(lout,"(a)") "INPUT> ERROR INITIALSTATE type must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
+      write(lerr,"(a)") "INPUT> ERROR INITIALSTATE first value be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
       iErr = .true.
       return
     end select
-    if(st_initialstate == 1) then
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a binary file"
-    else
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a text file"
+    if(nSplit == 3) then
+      if(lnSplit(3) == "ions") then
+        st_initialstate = st_initialstate + 2
+      else
+        write(lerr,"(a)") "INPUT> ERROR INITIALSTATE second value must be 'ions', got '"//trim(lnSplit(3))//"'"
+        iErr = .true.
+        return
+      end if
     end if
+    select case(st_initialstate)
+    case(1)
+      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a binary file"
+    case(2)
+      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a text file"
+    case(3)
+      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a binary file with ion data included"
+    case(4)
+      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a text file with ion data included"
+    end select
 
   case("FINALSTATE")
-    if(nSplit /= 2) then
-      write(lout,"(a,i0)") "INPUT> ERROR FINALSTATE takes one value, got ",nSplit-1
+    if(nSplit /= 2 .and. nSplit /= 3) then
+      write(lerr,"(a,i0)") "INPUT> ERROR FINALSTATE takes 1 or 2 values, got ",nSplit-1
       iErr = .true.
       return
     end if
@@ -420,15 +511,29 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     case("text")
       st_finalstate = 2
     case default
-      write(lout,"(a)") "INPUT> ERROR FINALSTATE type must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
+      write(lerr,"(a)") "INPUT> ERROR FINALSTATE first value must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
       iErr = .true.
       return
     end select
-    if(st_finalstate == 1) then
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file"
-    else
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file"
+    if(nSplit == 3) then
+      if(lnSplit(3) == "ions") then
+        st_finalstate = st_finalstate + 2
+      else
+        write(lerr,"(a)") "INPUT> ERROR FINALSTATE second value must be 'ions', got '"//trim(lnSplit(3))//"'"
+        iErr = .true.
+        return
+      end if
     end if
+    select case(st_finalstate)
+    case(1)
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file"
+    case(2)
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file"
+    case(3)
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file with ion data included"
+    case(4)
+      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file with ion data included"
+    end select
 
   case("QUIET")
     if(nSplit > 1) then
@@ -443,367 +548,16 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
 end subroutine sixin_parseInputLineSETT
 
 ! ================================================================================================ !
-!  Parse Single Element Line
-!  Rewritten from code from DATEN by VKBO
-!  Last modified: 2018-05-xx
-! ================================================================================================ !
-subroutine sixin_parseInputLineSING(inLine, iLine, iErr)
-
-  implicit none
-
-  character(len=*), intent(in)    :: inLine
-  integer,          intent(inout) :: iLine
-  logical,          intent(inout) :: iErr
-
-  character(len=:), allocatable   :: lnSplit(:)
-  character(len=:), allocatable   :: elemName
-  integer nSplit
-  logical spErr
-
-  integer i
-
-  call chr_split(inLine, lnSplit, nSplit, spErr)
-  if(spErr) then
-    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
-    iErr = .true.
-    return
-  end if
-
-  if(nSplit <= 2) then
-    write(lout,"(a,i0)") "GEOMETRY> ERROR Single element line must have more than 2 values, got ",nSplit
-    iErr = .true.
-    return
-  end if
-
-  elemName = chr_rpad(lnSplit(1),mNameLen)
-  if(len(elemName) > mNameLen) then
-    write(lout,"(a,i0)") "GEOMETRY> ERROR Single element name too long. Max length is ",mNameLen
-    iErr = .true.
-    return
-  end if
-
-  ! Check that the name is unique
-  do i=1,sixin_nSing-1
-    if(bez(i) == elemName) then
-      write(lout,"(a,i0)") "GEOMETRY> ERROR Single element '"//trim(elemName)//"' is not unique."
-      iErr = .true.
-      return
-    end if
-  end do
-
-  ! Save Values
-  if(nSplit > 1) call chr_cast(lnSplit(2),kz(sixin_nSing),  iErr)
-  if(nSplit > 2) call chr_cast(lnSplit(3),ed(sixin_nSing),  iErr)
-  if(nSplit > 3) call chr_cast(lnSplit(4),ek(sixin_nSing),  iErr)
-  if(nSplit > 4) call chr_cast(lnSplit(5),el(sixin_nSing),  iErr)
-  if(nSplit > 5) call chr_cast(lnSplit(6),bbbx(sixin_nSing),iErr)
-  if(nSplit > 6) call chr_cast(lnSplit(7),bbby(sixin_nSing),iErr)
-  if(nSplit > 7) call chr_cast(lnSplit(8),bbbs(sixin_nSing),iErr)
-
-  if(iErr) return
-
-  if(kz(sixin_nSing) == 25) then
-    ed(sixin_nSing) = ed(sixin_nSing)/two
-    ek(sixin_nSing) = ek(sixin_nSing)/two
-  endif
-
-  ! CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
-  if((kz(sixin_nSing) == 4 .or. kz(sixin_nSing) == 5) .and. abs(el(sixin_nSing)) > pieni) then
-    ed(sixin_nSing) = -one*ed(sixin_nSing)
-  end if
-
-  ! CAVITIES
-  if(abs(kz(sixin_nSing)) == 12) then
-    if(abs(ed(sixin_nSing)) > pieni .and. abs(ek(sixin_nSing)) > pieni) then
-      sixin_ncy2          = sixin_ncy2 + 1
-      itionc(sixin_nSing) = kz(sixin_nSing)/abs(kz(sixin_nSing))
-      kp(sixin_nSing)     = 6
-    end if
-  end if
-
-  !--------------------------------------------
-  ! Handled by initialize_element subroutine:
-  !--------------------------------------------
-  ! CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
-  ! THIN LENS (+/- 1-10)
-  ! MULTIPOLES (11)
-  ! CAVITY (+/- 12)
-  ! CRABCAVITY (23/-23) / CC multipoles order 2/3/4 (+/- 23/26/27/28)
-  ! ELECTRON LENSE (29)
-  call initialize_element(sixin_nSing,.true.)
-
-  ! ACDIPOLE
-  if(abs(kz(sixin_nSing)) == 16) then
-    if(abs(ed(sixin_nSing)) <= pieni) then
-      kz(sixin_nSing) = 0
-      ed(sixin_nSing) = zero
-      ek(sixin_nSing) = zero
-      el(sixin_nSing) = zero
-    else
-      acdipph(sixin_nSing) = el(sixin_nSing)
-      el(sixin_nSing)      = zero
-    end if
-  end if
-
-  ! General
-  if(abs(el(sixin_nSing)) > pieni .and. kz(sixin_nSing) /= 0) then
-    ithick = 1
-  end if
-
-  ! Expand Arrays
-  if(sixin_nSing > nele-2) then
-    call expand_arrays(nele+100, npart, nblz, nblo)
-    call alloc(sixin_bez0, mNameLen, nele, " ", "sixin_bez0")
-  end if
-
-  if(abs(kz(sixin_nSing)) /= 12 .or. (abs(kz(sixin_nSing)) == 12 .and. sixin_ncy2 == 0)) then
-    kp(sixin_nSing) = 0
-  end if
-
-  bez(sixin_nSing)        = elemName
-  sixin_bez0(sixin_nSing) = elemName
-
-  !If no active RF cavities are seen so far in the single element list,
-  ! add a CAV element to the end of the list.
-  ! This is then overwritten when reading the next element, so that if
-  ! and only if no active RF cavities are found, a CAV element can be
-  ! used in the structure to enable 6D tracking using the parameters
-  ! from the SYNC block.
-  if(sixin_ncy2 == 0) then
-    sixin_nSing             = sixin_nSing + 1
-    il                      = sixin_nSing
-    bez(sixin_nSing)        = sixin_cavity
-    sixin_bez0(sixin_nSing) = sixin_cavity
-    kp(sixin_nSing)         = 6
-  else
-    il          = sixin_nSing
-    sixin_nSing = sixin_nSing + 1
-  end if
-
-end subroutine sixin_parseInputLineSING
-
-! ================================================================================================ !
-!  Parse Block Definitions Line
-!  Rewritten from code from DATEN by VKBO
-!  Last modified: 2018-05-xx
-! ================================================================================================ !
-subroutine sixin_parseInputLineBLOC(inLine, iLine, iErr)
-
-  implicit none
-
-  character(len=*), intent(in)    :: inLine
-  integer,          intent(inout) :: iLine
-  logical,          intent(inout) :: iErr
-
-  character(len=:), allocatable   :: lnSplit(:)
-  character(len=:), allocatable   :: blocName
-  integer nSplit
-  logical spErr
-
-  integer i, j, ka, ke, nInd
-  logical eFound, isCont
-  character(len=mNameLen) ilm0(40)
-
-  call chr_split(inLine, lnSplit, nSplit, spErr, nIndent=nInd)
-  if(spErr) then
-    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
-    iErr = .true.
-    return
-  end if
-  isCont = (nInd >= 5)
-
-  if(nSplit < 2 .and. .not. isCont) then
-    write(lout,"(a,i0)") "GEOMETRY> ERROR Block definition line must be at least 2 values, got ",nSplit
-    iErr = .true.
-    return
-  end if
-
-  if(nSplit > 40) then
-    write(lout,"(a)") "GEOMETRY> ERROR Block definition cannot have more then 40 elements."
-    iErr = .true.
-    return
-  end if
-
-  ! If first line, read super period information
-  if(iLine == 1) then
-    call chr_cast(lnSplit(1),mper,iErr)
-    if(mper > nper) then
-      write(lout,"(a,i0)") "GEOMETRY> ERROR Block definition number of super periods is too large. Max value is ",nper
-      iErr = .true.
-      return
-    end if
-    if(mper > nSplit+1) then
-      write(lout,"(a)") "GEOMETRY> ERROR Block definition number of super periods does not match the number of values."
-      iErr = .true.
-      return
-    end if
-    do i=1,mper
-      call chr_cast(lnSplit(i+1),msym(i),iErr)
-    end do
-    if(iErr) return
-
-    ! Init variables
-    call alloc(sixin_ilm,  mNameLen,       nelb, " ", "sixin_ilm")
-    call alloc(sixin_beze, mNameLen, nblo, nelb, " ", "sixin_beze")
-
-    ! No need to parse anything more for this line
-    return
-  end if
-
-  ! Parse normal line, iLine > 1
-  do i=1,40
-    ilm0(i) = " "
-  end do
-
-  if(isCont) then                             ! This line continues the previous BLOC
-    blocName = " "                            ! No name returned, set an empty BLOC name
-    do i=1,nSplit                             ! All elements are sub-elements. Save to buffer.
-      ilm0(i) = chr_rpad(lnSplit(i),mNameLen)
-    end do
-  else                                        ! This is a new BLOC
-    blocName = chr_rpad(lnSplit(1),mNameLen)
-    do i=1,nSplit-1                           ! Save the rest to buffer
-      ilm0(i) = chr_rpad(lnSplit(i+1),mNameLen)
-    end do
-  end if
-
-  if(blocName /= " ") then            ! We have a new BLOC
-    sixin_nBloc = sixin_nBloc + 1             ! Increment the BLOC number
-    if(sixin_nBloc > nblo-1) then             ! Expand arrays if needed
-      call expand_arrays(nele, npart, nblz, nblo+50)
-      call alloc(sixin_beze, mNameLen, nblo, nelb, " ", "sixin_beze")
-    end if
-    bezb(sixin_nBloc) = blocName              ! Set the BLOC name in bezb
-    sixin_k0          = 0                     ! Reset the single element counter
-    mblo              = sixin_nBloc           ! Update total number of BLOCs
-  end if
-
-  ka = sixin_k0 + 1
-  ke = sixin_k0 + 40
-
-  do i=ka, ke
-    if(i > nelb) then
-      write(lout,"(a,2(i0,a))") "GEOMETRY> ERROR Block definitions can only have ",&
-        nelb," elements. ",i," given."
-      iErr = .true.
-      return
-    end if
-    sixin_ilm(i) = ilm0(i-sixin_k0)           ! Append to sub-element buffer
-    if(sixin_ilm(i) == " ") exit              ! No more sub-elements to append
-    mel(sixin_nBloc)          = i             ! Update number of single elements in this block
-    sixin_beze(sixin_nBloc,i) = sixin_ilm(i)  ! Name of the current single element
-
-    eFound = .false.
-    do j=1,il                                 ! Search for the single element index
-      if(sixin_bez0(j) == sixin_ilm(i)) then
-        eFound = .true.
-        exit
-      end if
-    end do
-    if(eFound) then                           ! Handle element found
-      mtyp(sixin_nBloc,i) = j                 ! Save single element index
-      if(kz(j) /= 8) then                     ! Count block length (kz=8 - edge focusing: skip)
-        elbe(sixin_nBloc) = elbe(sixin_nBloc) + el(j)
-      end if
-    else                                      ! If not, the input is invalid
-      write(lout,"(a)") "GEOMETRY> ERROR Unknown single element '"//&
-        chr_strip(sixin_ilm(i))//"' in block definitions."
-      iErr = .true.
-      return
-    end if
-  end do
-
-  sixin_k0 = i-1
-
-end subroutine sixin_parseInputLineBLOC
-
-! ================================================================================================ !
-!  Parse Structure Input Line
-!  Rewritten from code from DATEN by VKBO
-!  Last modified: 2018-05-xx
-! ================================================================================================ !
-subroutine sixin_parseInputLineSTRU(inLine, iLine, iErr)
-
-  implicit none
-
-  character(len=*), intent(in)    :: inLine
-  integer,          intent(inout) :: iLine
-  logical,          intent(inout) :: iErr
-
-  character(len=:), allocatable   :: lnSplit(:)
-  character(len=:), allocatable   :: expLine
-  integer nSplit
-  logical spErr
-
-  integer i, j, t
-  character(len=mNameLen) ilm0(40)
-
-  do i=1,40
-    ilm0(i) = " "
-  end do
-
-  expLine = chr_expandBrackets(inLine)
-  call chr_split(expLine, lnSplit, nSplit, spErr)
-  if(spErr) then
-    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
-    iErr = .true.
-    return
-  end if
-
-  if(nSplit < 1 .or. nSplit > 40) then
-    write(lout,"(a)") "GEOMETRY> ERROR Structure input line cannot have less than 1 or more then 40 elements."
-    iErr = .true.
-    return
-  end if
-
-  do i=1,nSplit
-    ilm0(i) = chr_rpad(lnSplit(i),mNameLen)
-  end do
-
-  do i=1,40
-
-    if(ilm0(i) == " ") cycle
-    if(ilm0(i) == sixin_go) then
-      kanf = sixin_nStru + 1
-      cycle
-    end if
-
-    sixin_nStru = sixin_nStru + 1
-    if(sixin_nStru > nblz-3) then
-      call expand_arrays(nele,npart,nblz+1000,nblo)
-    end if
-
-    do j=1,mblo ! is it a BLOC?
-      if(bezb(j) == ilm0(i)) then
-        ic(sixin_nStru) = j
-        cycle
-      end if
-    end do
-
-    do j=1,il ! is it a SINGLE ELEMENT?
-      if(sixin_bez0(j) == ilm0(i)) then
-        ic(sixin_nStru) = j+nblo
-        if(sixin_bez0(j) == sixin_cavity) sixin_icy = sixin_icy+1
-        cycle
-      end if
-    end do
-  end do
-
-  mbloz = sixin_nStru
-  if(mbloz > nblz-3) then
-    call expand_arrays(nele,npart,nblz+1000,nblo)
-  end if
-
-end subroutine sixin_parseInputLineSTRU
-
-! ================================================================================================ !
 !  Parse Displacement Block Line
 !  Rewritten from code from DATEN by VKBO
 !  Last modified: 2018-05-xx
 ! ================================================================================================ !
 subroutine sixin_parseInputLineDISP(inLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
@@ -818,7 +572,7 @@ subroutine sixin_parseInputLineDISP(inLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "DISP> ERROR Failed to parse input line."
+    write(lerr,"(a)") "DISP> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -829,14 +583,14 @@ subroutine sixin_parseInputLineDISP(inLine, iErr)
   zrms0 = zero
 
   if(nSplit < 2) then
-    write(lout,"(a,i0)") "DISP> ERROR Displacement of element line must have more than 1 values, got ",nSplit
+    write(lerr,"(a,i0)") "DISP> ERROR Displacement of element line must have more than 1 values, got ",nSplit
     iErr = .true.
     return
   end if
 
   elemName = trim(lnSplit(1))
   if(len(elemName) > mNameLen) then
-    write(lout,"(a,i0)") "DISP> ERROR Displacement of element name too long. Max length is ",mNameLen
+    write(lerr,"(a,i0)") "DISP> ERROR Displacement of element name too long. Max length is ",mNameLen
     iErr = .true.
     return
   end if
@@ -892,7 +646,11 @@ end subroutine sixin_parseInputLineDISP
 ! ================================================================================================ !
 subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
+  use mod_commons
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -907,18 +665,17 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "INIT> ERROR Failed to parse input line."
+    write(lerr,"(a)") "INIT> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
 
   if(nSplit < 1) then
-    write(lout,"(a,i0,a)") "INIT> ERROR Block line ",iLine," did not receive any values."
+    write(lerr,"(a,i0,a)") "INIT> ERROR Block line ",iLine," did not receive any values."
     iErr = .true.
     return
   end if
 
-  ! All variables initialised to 0/zero in comnul
   select case(iLine)
   case(1) ! Line One
 
@@ -938,13 +695,13 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
 
     if(iErr) return
     if(itra < 0 .or. itra > 2) then
-      write(lout,"(a,i0,a)") "INIT> ERROR First value (itra) can only be 0, 1 or 2, but ",itra," given."
+      write(lerr,"(a,i0,a)") "INIT> ERROR First value (itra) can only be 0, 1 or 2, but ",itra," given."
       iErr = .true.
       return
     end if
 
     if(iver < 0 .or. iver > 1) then
-      write(lout,"(a,i0,a)") "INIT> ERROR Fifth value (iver) can only be 0 or 1, but ",iver," given."
+      write(lerr,"(a,i0,a)") "INIT> ERROR Fifth value (iver) can only be 0 or 1, but ",iver," given."
       iErr = .true.
       return
     end if
@@ -1025,7 +782,7 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
     if(iErr) return
 
   case default
-    write(lout,"(a,i0)") "INIT> ERROR Unexpected line number ",iLine
+    write(lerr,"(a,i0)") "INIT> ERROR Unexpected line number ",iLine
     iErr = .true.
     return
 
@@ -1040,10 +797,13 @@ end subroutine sixin_parseInputLineINIT
 ! ================================================================================================ !
 subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
-  use mod_common_track
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
+  use mod_commons
   use mod_common_da
-
-  implicit none
+  use mod_common_track
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -1051,12 +811,12 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
-  integer nSplit, iDummy
+  integer nSplit, imc, ibidu
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "GEOMETRY> ERROR Failed to parse input line."
+    write(lerr,"(a)") "GEOMETRY> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -1064,23 +824,31 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
   select case(iLine)
   case(1)
 
-    if(nSplit < 7) then
-      write(lout,"(a,i0,a)") "TRAC> ERROR Line 1 should be at least 7 values, but ",nSplit," given."
+    if(nSplit < 5) then
+      write(lerr,"(a,i0,a)") "TRAC> ERROR Line 1 should be at least 5 values, but ",nSplit," given."
       iErr = .true.
       return
     end if
 
-    if(nSplit > 0)  call chr_cast(lnSplit(1), numl,   iErr) ! Number of turns in the forward direction
-    if(nSplit > 1)  call chr_cast(lnSplit(2), numlr,  iErr) ! Number of turns in the backward direction
-    if(nSplit > 2)  call chr_cast(lnSplit(3), napx,   iErr) ! Number of amplitude variations (i.e. particle pairs)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), amp(1), iErr) ! End amplitude
-    if(nSplit > 4)  call chr_cast(lnSplit(5), amp0,   iErr) ! Start amplitude
-    if(nSplit > 5)  call chr_cast(lnSplit(6), ird,    iErr) ! Ignored
-    if(nSplit > 6)  call chr_cast(lnSplit(7), imc,    iErr) ! Number of variations of the relative momentum deviation dp/p
-    if(nSplit > 7)  call chr_cast(lnSplit(8), niu(1), iErr) ! Unknown
-    if(nSplit > 8)  call chr_cast(lnSplit(9), niu(2), iErr) ! Unknown
-    if(nSplit > 9)  call chr_cast(lnSplit(10),numlcp, iErr) ! CR: How often to write checkpointing files
-    if(nSplit > 10) call chr_cast(lnSplit(11),numlmax,iErr) ! CR: Maximum amount of turns; default is 1e6
+    imc = 1
+
+    if(nSplit > 0) call chr_cast(lnSplit(1), numl,   iErr) ! Number of turns in the forward direction
+    if(nSplit > 1) call chr_cast(lnSplit(2), numlr,  iErr) ! Number of turns in the backward direction
+    if(nSplit > 2) call chr_cast(lnSplit(3), napx,   iErr) ! Number of amplitude variations (i.e. particle pairs)
+    if(nSplit > 3) call chr_cast(lnSplit(4), amp(1), iErr) ! End amplitude
+    if(nSplit > 4) call chr_cast(lnSplit(5), amp0,   iErr) ! Start amplitude
+    if(nSplit > 5) call chr_cast(lnSplit(6), ird,    iErr) ! Ignored
+    if(nSplit > 6) call chr_cast(lnSplit(7), imc,    iErr) ! Number of variations of the relative momentum deviation dp/p
+    if(nSplit > 7) call chr_cast(lnSplit(8), niu(1), iErr) ! Unknown
+    if(nSplit > 8) call chr_cast(lnSplit(9), niu(2), iErr) ! Unknown
+    if(nSplit > 9) call chr_cast(lnSplit(10),numlcp, iErr) ! CR: How often to write checkpointing files
+
+    if(imc /= 1) then
+      write(lerr,"(a)") "TRAC> ERROR Variations of the relative momentum deviation is no longer supporter. "//&
+        "The value imc must be set to 1."
+      iErr = .true.
+      return
+    end if
 
     ! Default nnuml to numl
     nnuml = numl
@@ -1092,17 +860,15 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call sixin_echoVal("amp(1)", amp(1), "TRAC",iLine)
       call sixin_echoVal("amp0",   amp0,   "TRAC",iLine)
       call sixin_echoVal("ird",    ird,    "TRAC",iLine)
-      call sixin_echoVal("imc",    imc,    "TRAC",iLine)
       call sixin_echoVal("niu(1)", niu(1), "TRAC",iLine)
       call sixin_echoVal("niu(2)", niu(2), "TRAC",iLine)
       call sixin_echoVal("numlcp", numlcp, "TRAC",iLine)
-      call sixin_echoVal("numlmax",numlmax,"TRAC",iLine)
     end if
     if(iErr) return
 
 #ifndef STF
     if(napx > 32) then
-      write(lout,"(a)") "TRAC> ERROR To run SixTrack with more than 32 particle pairs, it has to be compiled with the STF flag."
+      write(lerr,"(a)") "TRAC> ERROR To run SixTrack with more than 32 particle pairs, it has to be compiled with the STF flag."
       iErr = .true.
       return
     end if
@@ -1125,7 +891,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
   case(2)
 
     if(nSplit < 4) then
-      write(lout,"(a,i0,a)") "TRAC> ERROR Line 2 should be at least 4 values, but ",nSplit," given."
+      write(lerr,"(a,i0,a)") "TRAC> ERROR Line 2 should be at least 4 values, but ",nSplit," given."
       iErr = .true.
       return
     end if
@@ -1137,27 +903,27 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(nSplit > 4) call chr_cast(lnSplit(5),iclo6, iErr) ! Calculate the 6D closed orbit
 
     if(idz(1) < 0 .or. idz(1) > 1) then
-      write(lout,"(a,i0,a)") "TRAC> ERROR First value (idz(1)) can only be 0 or 1, but ",idz(1)," given."
+      write(lerr,"(a,i0,a)") "TRAC> ERROR First value (idz(1)) can only be 0 or 1, but ",idz(1)," given."
       iErr = .true.
       return
     end if
     if(idz(2) < 0 .or. idz(2) > 1) then
-      write(lout,"(a,i0,a)") "TRAC> ERROR Second value (idz(2)) can only be 0 or 1, but ",idz(2)," given."
+      write(lerr,"(a,i0,a)") "TRAC> ERROR Second value (idz(2)) can only be 0 or 1, but ",idz(2)," given."
       iErr = .true.
       return
     end if
     if(idfor < 0 .or. idfor > 2) then
-      write(lout,"(a,i0,a)") "TRAC> ERROR Third value (idfor) can only be 0, 1, or 2, but ",idfor," given."
+      write(lerr,"(a,i0,a)") "TRAC> ERROR Third value (idfor) can only be 0, 1, or 2, but ",idfor," given."
       iErr = .true.
       return
     end if
     if(irew < 0 .or. irew > 1) then
-      write(lout,"(a,i0,a)") "TRAC> ERROR Fourth value (irew) can only be 0 or 1, but ",irew," given."
+      write(lerr,"(a,i0,a)") "TRAC> ERROR Fourth value (irew) can only be 0 or 1, but ",irew," given."
       iErr = .true.
       return
     end if
     if(iclo6 /= 0 .and. iclo6 /= 1 .and. iclo6 /= 2 .and. iclo6 /= 5 .and. iclo6 /= 6) then
-      write(lout,"(a,i0,a)") "TRAC> ERROR Fifth value (iclo6) can only be 0, 1, 2, 5 or 6, but ",iclo6," given."
+      write(lerr,"(a,i0,a)") "TRAC> ERROR Fifth value (iclo6) can only be 0, 1, 2, 5 or 6, but ",iclo6," given."
       iErr = .true.
       return
     end if
@@ -1181,7 +947,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
   case(3)
 
     if(nSplit < 7) then
-      write(lout,"(a,i0,a)") "TRAC> ERROR Line 3 should be at least 7 values, but ",nSplit," given."
+      write(lerr,"(a,i0,a)") "TRAC> ERROR Line 3 should be at least 7 values, but ",nSplit," given."
       iErr = .true.
       return
     end if
@@ -1195,25 +961,25 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(nSplit > 4) call chr_cast(lnSplit(5),nwr(3),  iErr) ! Every nth turn at the flat top a write out of the coordinates
     if(nSplit > 5) call chr_cast(lnSplit(6),nwr(4),  iErr) ! Every nth turn coordinates are written to unit 6.
     if(nSplit > 6) call chr_cast(lnSplit(7),ntwin,   iErr) ! Flag for calculated distance of phase space
-    if(nSplit > 7) call chr_cast(lnSplit(8),iDummy,  iErr) ! No longer in use. Formerly ibidu
+    if(nSplit > 7) call chr_cast(lnSplit(8),ibidu,   iErr) ! No longer in use.
     if(nSplit > 8) call chr_cast(lnSplit(9),iexact,  iErr) ! Switch to enable exact solution of the equation of motion
     if(nSplit > 9) call chr_cast(lnSplit(10),curveff,iErr) ! Switch to include curvatures effect on multipoles..
 
     if(st_debug) then
-      call sixin_echoVal("nde(1)",nde(1),  "TRAC",iLine)
-      call sixin_echoVal("nde(2)",nde(2),  "TRAC",iLine)
-      call sixin_echoVal("nwr(1)",nwr(1),  "TRAC",iLine)
-      call sixin_echoVal("nwr(2)",nwr(2),  "TRAC",iLine)
-      call sixin_echoVal("nwr(3)",nwr(3),  "TRAC",iLine)
-      call sixin_echoVal("nwr(4)",nwr(4),  "TRAC",iLine)
-      call sixin_echoVal("ntwin", ntwin,   "TRAC",iLine)
-      call sixin_echoVal("iexact",iexact,  "TRAC",iLine)
+      call sixin_echoVal("nde(1)", nde(1), "TRAC",iLine)
+      call sixin_echoVal("nde(2)", nde(2), "TRAC",iLine)
+      call sixin_echoVal("nwr(1)", nwr(1), "TRAC",iLine)
+      call sixin_echoVal("nwr(2)", nwr(2), "TRAC",iLine)
+      call sixin_echoVal("nwr(3)", nwr(3), "TRAC",iLine)
+      call sixin_echoVal("nwr(4)", nwr(4), "TRAC",iLine)
+      call sixin_echoVal("ntwin",  ntwin,  "TRAC",iLine)
+      call sixin_echoVal("iexact", iexact, "TRAC",iLine)
       call sixin_echoVal("curveff",curveff,"TRAC",iLine)
     end if
     if(iErr) return
 
   case default
-    write(lout,"(a,i0)") "TRAC> ERROR Unexpected line number ",iLine
+    write(lerr,"(a,i0)") "TRAC> ERROR Unexpected line number ",iLine
     iErr = .true.
     return
   end select
@@ -1227,9 +993,11 @@ end subroutine sixin_parseInputLineTRAC
 ! ================================================================================================ !
 subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
 
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
   use mod_common_da
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -1246,7 +1014,7 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "DIFF> ERROR Failed to parse input line."
+    write(lerr,"(a)") "DIFF> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -1256,7 +1024,6 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
     idial = 1
     numlr = 0
     napx  = 1
-    imc   = 1
 
     if(nSplit > 0) call chr_cast(lnSplit(1),nord, iErr)
     if(nSplit > 1) call chr_cast(lnSplit(2),nvar, iErr)
@@ -1275,7 +1042,7 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
 
     if(nvar <= 4) ition = 0
     if(nord <= 0 .or. nvar <= 0) then
-      write(lout,"(a)") "DIFF> ERROR Order and number of variables have to be larger than zero to "//&
+      write(lerr,"(a)") "DIFF> ERROR Order and number of variables have to be larger than zero to "//&
         "calculate a differential algebra map."
       iErr = .true.
       return
@@ -1284,7 +1051,7 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
   else
 
     if(nSplit /= ncor) then
-      write(lout,"(2(a,i0))") "DIFF> ERROR Expected line > 1 to have ",ncor," elements, got ",nSplit
+      write(lerr,"(2(a,i0))") "DIFF> ERROR Expected line > 1 to have ",ncor," elements, got ",nSplit
       iErr = .true.
       return
     end if
@@ -1308,7 +1075,7 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
   if(iLine == 1) then
     if(nsix /= 1) nsix = 0
     if(nord > nema) then
-      write(lout,"(2(a,i0))") "DIFF> ERROR Maximum order of the one turn map is  ",nema,", got ",nord
+      write(lerr,"(2(a,i0))") "DIFF> ERROR Maximum order of the one turn map is  ",nema,", got ",nord
       iErr = .true.
       return
     end if
@@ -1316,7 +1083,7 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
     return
   else
     if(ncor > mcor) then
-      write(lout,"(2(a,i0))") "DIFF> ERROR Maximum number of extra parameters is  ",mcor,", got ",ncor
+      write(lerr,"(2(a,i0))") "DIFF> ERROR Maximum number of extra parameters is  ",mcor,", got ",ncor
       iErr = .true.
       return
     end if
@@ -1325,7 +1092,7 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
         INNER: do j2=1,il
           if(ilm0(j1) == bez(j2)) then
             if(el(j2) /= zero .or. kz(j2) > 10) then
-              write(lout,"(a)") "DIFF> ERROR Only single kick elements allowed for map calculation"
+              write(lerr,"(a)") "DIFF> ERROR Only single kick elements allowed for map calculation"
               iErr = .true.
               return
             end if
@@ -1350,9 +1117,11 @@ end subroutine sixin_parseInputLineDIFF
 ! ================================================================================================ !
 subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
 
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
   use mod_common_track
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -1367,7 +1136,7 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "CHRO> ERROR Failed to parse input line."
+    write(lerr,"(a)") "CHRO> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -1414,7 +1183,7 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
     end if
 
   case default
-    write(lout,"(a,i0)") "CHRO> ERROR Unexpected line number ",iLine
+    write(lerr,"(a,i0)") "CHRO> ERROR Unexpected line number ",iLine
     iErr = .true.
     return
 
@@ -1429,7 +1198,10 @@ end subroutine sixin_parseInputLineCHRO
 ! ================================================================================================ !
 subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -1444,7 +1216,7 @@ subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "TUNE> ERROR Failed to parse input line."
+    write(lerr,"(a)") "TUNE> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -1558,7 +1330,7 @@ subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
         iqmod6 = 0
       endif
     else
-      write(lout,"(a,i0)") "TUNE> ERROR Expected 2, 3 or 4 lines. Got ",nLines
+      write(lerr,"(a,i0)") "TUNE> ERROR Expected 2, 3 or 4 lines. Got ",nLines
       iErr = .true.
       return
     end if
@@ -1574,7 +1346,10 @@ end subroutine sixin_parseInputLineTUNE
 ! ================================================================================================ !
 subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -1582,12 +1357,12 @@ subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mNameLen) mode
-  integer nSplit,i,nlin
+  integer nSplit,i
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "LINE> ERROR Failed to parse input line."
+    write(lerr,"(a)") "LINE> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -1610,14 +1385,14 @@ subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
     case("BLOCK")
       iprint = 1
     case default
-      write(lout,"(a)") "LINE> ERROR Valid modes are 'BLOCK' or 'ELEMENT'"
+      write(lerr,"(a)") "LINE> ERROR Valid modes are 'BLOCK' or 'ELEMENT'"
       iErr = .true.
     end select
 
     if(sixin_ilin0 == 1 .or. sixin_ilin0 == 2) then
       ilin = sixin_ilin0
     else
-      write(lout,"(a)") "LINE> ERROR Only 1 (4D) and 2 (6D) are valid options for ilin."
+      write(lerr,"(a)") "LINE> ERROR Only 1 (4D) and 2 (6D) are valid options for ilin."
       iErr = .true.
     end if
 
@@ -1636,7 +1411,7 @@ subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
     do i=1,nSplit
       nlin = nlin + 1
       if(nlin > nele) then
-        write(lout,"(2(a,i0))") "LINE> ERROR Too many elements for linear optics write out. Max is ",nele," got ",nlin
+        write(lerr,"(2(a,i0))") "LINE> ERROR Too many elements for linear optics write out. Max is ",nele," got ",nlin
         iErr = .true.
         return
       end if
@@ -1654,10 +1429,12 @@ end subroutine sixin_parseInputLineLINE
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
 
-  use mod_common_da,     only : nvar
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
+  use mod_common_da,   only : nvar
   use mathlib_bouncer, only : cos_mb
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -1670,7 +1447,7 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "SYNC> ERROR Failed to parse input line."
+    write(lerr,"(a)") "SYNC> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -1717,18 +1494,18 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
       write(lout,"(a)") "SYNC> WARNING Particle is neither proton nor electron"
     endif
     if(pma < pieni) then
-      write(lout,"(a)") "SYNC> ERROR Kinetic energy of the particle is less than or equal to zero"
+      write(lerr,"(a)") "SYNC> ERROR Kinetic energy of the particle is less than or equal to zero"
       iErr = .true.
       return
     end if
     crad = (crade*pmae)/pma
     if(abs(tlen) <= pieni) then
-      write(lout,"(a)") "SYNC> ERROR Please include length of the machine."
+      write(lerr,"(a)") "SYNC> ERROR Please include length of the machine."
       iErr = .true.
       return
     end if
-    if(sixin_ncy2 == 0) then
-      ncy = sixin_icy*mper
+    if(ncy2 == 0) then
+      ncy = icy*mper
       idp = 1
       if(ncy == 0) then
         idp = 0
@@ -1754,9 +1531,9 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
       halc3  = ((((((-one*(qigam-sixin_alc))*real(ition,fPrec))*sixin_harm)*sixin_u0)/e0)*cosy)/((two*pi)*qbet)
       qs     = sqrt(halc3)
       if(halc3 < zero) then
-        write(lout,"(a)") "SYNC> ERROR Either your frequency is shifted by 180 degrees,"
-        write(lout,"(a)") "SYNC>       then change the sign of ition in this block,"
-        write(lout,"(a)") "SYNC>       or your alpha-p is wrongly introducd."
+        write(lerr,"(a)") "SYNC> ERROR Either your frequency is shifted by 180 degrees,"
+        write(lerr,"(a)") "SYNC>       then change the sign of ition in this block,"
+        write(lerr,"(a)") "SYNC>       or your alpha-p is wrongly introducd."
         iErr = .true.
         return
       end if
@@ -1789,7 +1566,7 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
     if(iErr) return
 
   case default
-    write(lout,"(a,i0)") "SYNC> ERROR Unexpected line number ",iLine
+    write(lerr,"(a,i0)") "SYNC> ERROR Unexpected line number ",iLine
     iErr = .true.
     return
 
@@ -1804,7 +1581,10 @@ end subroutine sixin_parseInputLineSYNC
 ! ================================================================================================ !
 subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -1822,7 +1602,7 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "MULT> ERROR Failed to parse input line."
+    write(lerr,"(a)") "MULT> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -1850,7 +1630,7 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
     end do
 
     if(iil == -1) then
-      write(lout,"(a)") "MULT> ERROR Single element '"//trim(imn)//"' not found in single element list."
+      write(lerr,"(a)") "MULT> ERROR Single element '"//trim(imn)//"' not found in single element list."
       iErr = .true.
       return
     end if
@@ -1897,7 +1677,7 @@ subroutine sixin_parseInputLineMULT(inLine, iLine, iErr)
     nmul = nmul + 1
     r0a  = r0a*r0
     if(nmul > mmul+1) then
-      write(lout,"(a,i0)") "MULT> ERROR The order of multipoles is too large. Maximum is ",mmul
+      write(lerr,"(a,i0)") "MULT> ERROR The order of multipoles is too large. Maximum is ",mmul
       iErr = .true.
       return
     end if
@@ -1912,7 +1692,10 @@ end subroutine sixin_parseInputLineMULT
 ! ================================================================================================ !
 subroutine sixin_parseInputLineRFMU(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -1928,7 +1711,7 @@ subroutine sixin_parseInputLineRFMU(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "RFMU> ERROR Failed to parse input line."
+    write(lerr,"(a)") "RFMU> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -1953,7 +1736,7 @@ subroutine sixin_parseInputLineRFMU(inLine, iLine, iErr)
     end do
 
     if(iil == -1) then
-      write(lout,"(a)") "RFMU> ERROR Single element '"//trim(imn)//"' not found in single element list."
+      write(lerr,"(a)") "RFMU> ERROR Single element '"//trim(imn)//"' not found in single element list."
       iErr = .true.
       return
     end if
@@ -1994,7 +1777,7 @@ subroutine sixin_parseInputLineRFMU(inLine, iLine, iErr)
     nmul = nmul + 1
 
     if(nmul > mmul+1) then
-      write(lout,"(a,i0)") "RFMU> ERROR The order of multipoles is too large. Maximum is ",mmul
+      write(lerr,"(a,i0)") "RFMU> ERROR The order of multipoles is too large. Maximum is ",mmul
       iErr = .true.
       return
     end if
@@ -2011,7 +1794,10 @@ end subroutine sixin_parseInputLineRFMU
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSUBR(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2023,7 +1809,7 @@ subroutine sixin_parseInputLineSUBR(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "SUBR> ERROR Failed to parse input line."
+    write(lerr,"(a)") "SUBR> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -2052,14 +1838,14 @@ subroutine sixin_parseInputLineSUBR(inLine, iLine, iErr)
     if(iErr) return
 
     if(nta < 2 .or. nte < nta .or. nte > 9) then
-      write(lout,"(a)") "SUBR> ERROR Chosen orders of resonances can not be calculated."
+      write(lerr,"(a)") "SUBR> ERROR Chosen orders of resonances can not be calculated."
       iErr = .true.
       return
     end if
 
   else
 
-    write(lout,"(a,i0)") "SUBR> ERROR Unexpected line number ",iLine
+    write(lerr,"(a,i0)") "SUBR> ERROR Unexpected line number ",iLine
     iErr = .true.
     return
 
@@ -2075,7 +1861,9 @@ end subroutine sixin_parseInputLineSUBR
 ! ================================================================================================ !
 subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2088,7 +1876,7 @@ subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "ORGA> ERROR Failed to parse input line."
+    write(lerr,"(a)") "ORGA> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -2145,7 +1933,7 @@ subroutine sixin_parseInputLineORGA(inLine, iLine, iErr)
       if(bez(i) == bezr(3,iorg)) j0 = i
     end do
     if(j0 == 0 .or. j1 == 0 .or. kz(j0) == 11 .or. kz(j1) == 11) then
-      write(lout,"(a)") "ORGA> ERROR Multipole coefficients cannot be set equal."
+      write(lerr,"(a)") "ORGA> ERROR Multipole coefficients cannot be set equal."
       iErr = .true.
       return
     end if
@@ -2174,7 +1962,10 @@ end subroutine sixin_parseInputLineORGA
 ! ================================================================================================ !
 subroutine sixin_parseInputLineITER(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2186,7 +1977,7 @@ subroutine sixin_parseInputLineITER(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "ITER> ERROR Failed to parse input line."
+    write(lerr,"(a)") "ITER> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -2250,7 +2041,7 @@ subroutine sixin_parseInputLineITER(inLine, iLine, iErr)
     if(iErr) return
 
   case default
-    write(lout,"(a,i0)") "ITER> ERROR Unexpected line number ",iLine
+    write(lerr,"(a,i0)") "ITER> ERROR Unexpected line number ",iLine
     iErr = .true.
     return
 
@@ -2265,7 +2056,10 @@ end subroutine sixin_parseInputLineITER
 ! ================================================================================================ !
 subroutine sixin_parseInputLineORBI(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2277,7 +2071,7 @@ subroutine sixin_parseInputLineORBI(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "ORBI> ERROR Failed to parse input line."
+    write(lerr,"(a)") "ORBI> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -2300,9 +2094,9 @@ subroutine sixin_parseInputLineORBI(inLine, iLine, iErr)
   else
 
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "ORBI> ERROR Expected 2 parameters for line > 2, got ",nSplit
-      write(lout,"(a)")    "ORBI>       If your file has for instance HCOR=name, replace the = with a space."
-      write(lout,"(a)")    "ORBI>       Name/value pairs with = is no longer supported in SixTrack for consistency between blocks."
+      write(lerr,"(a,i0)") "ORBI> ERROR Expected 2 parameters for line > 2, got ",nSplit
+      write(lerr,"(a)")    "ORBI>       If your file has for instance HCOR=name, replace the = with a space."
+      write(lerr,"(a)")    "ORBI>       Name/value pairs with = is no longer supported in SixTrack for consistency between blocks."
       iErr = .true.
       return
     end if
@@ -2317,7 +2111,7 @@ subroutine sixin_parseInputLineORBI(inLine, iLine, iErr)
     end do
 
     if(iElem == -1) then
-      write(lout,"(a)") "ORBI> ERROR Unknown element name '"//lnSplit(2)//"'"
+      write(lerr,"(a)") "ORBI> ERROR Unknown element name '"//lnSplit(2)//"'"
       iErr = .true.
       return
     end if
@@ -2326,13 +2120,13 @@ subroutine sixin_parseInputLineORBI(inLine, iLine, iErr)
 
     case("HCOR")
       if(kp(iElem) == -4 .or. kp(iElem) == 3 .or. kp(iElem) == -3) then
-        write(lout,"(a)") "ORBI> ERROR An element for closed orbit correction can be only either a horizontal monitor "
-        write(lout,"(a)") "ORBI>       or a vertical monitor or a horizontal corrector or a vertical corrector."
+        write(lerr,"(a)") "ORBI> ERROR An element for closed orbit correction can be only either a horizontal monitor "
+        write(lerr,"(a)") "ORBI>       or a vertical monitor or a horizontal corrector or a vertical corrector."
         iErr = .true.
         return
       end if
       if(kz(iElem) /= 1 .and. kz(iElem) /= 11) then
-        write(lout,"(a)") "ORBI> ERROR For closed orbit correctors only dipoles of legth zero or multipole lenses are allowed."
+        write(lerr,"(a)") "ORBI> ERROR For closed orbit correctors only dipoles of legth zero or multipole lenses are allowed."
         iErr = .true.
         return
       end if
@@ -2340,13 +2134,13 @@ subroutine sixin_parseInputLineORBI(inLine, iLine, iErr)
 
     case("VCOR")
       if(kp(iElem) == 4 .or. kp(iElem) == 3 .or. kp(iElem) == -3) then
-        write(lout,"(a)") "ORBI> ERROR An element for closed orbit correction can be only either a horizontal monitor "
-        write(lout,"(a)") "ORBI>       or a vertical monitor or a horizontal corrector or a vertical corrector."
+        write(lerr,"(a)") "ORBI> ERROR An element for closed orbit correction can be only either a horizontal monitor "
+        write(lerr,"(a)") "ORBI>       or a vertical monitor or a horizontal corrector or a vertical corrector."
         iErr = .true.
         return
       end if
       if(kz(iElem) /= -1 .and. kz(iElem) /= 11) then
-        write(lout,"(a)") "ORBI> ERROR For closed orbit correctors only dipoles of legth zero or multipole lenses are allowed."
+        write(lerr,"(a)") "ORBI> ERROR For closed orbit correctors only dipoles of legth zero or multipole lenses are allowed."
         iErr = .true.
         return
       end if
@@ -2354,8 +2148,8 @@ subroutine sixin_parseInputLineORBI(inLine, iLine, iErr)
 
     case("HMON")
       if(kp(iElem) == 4 .or. kp(iElem) == -4 .or. kp(iElem) == -3) then
-        write(lout,"(a)") "ORBI> ERROR An element for closed orbit correction can be only either a horizontal monitor "
-        write(lout,"(a)") "ORBI>       or a vertical monitor or a horizontal corrector or a vertical corrector."
+        write(lerr,"(a)") "ORBI> ERROR An element for closed orbit correction can be only either a horizontal monitor "
+        write(lerr,"(a)") "ORBI>       or a vertical monitor or a horizontal corrector or a vertical corrector."
         iErr = .true.
         return
       end if
@@ -2363,16 +2157,16 @@ subroutine sixin_parseInputLineORBI(inLine, iLine, iErr)
 
     case("VMON")
       if(kp(iElem) == 4 .or. kp(iElem) == -4 .or. kp(iElem) == 3) then
-        write(lout,"(a)") "ORBI> ERROR An element for closed orbit correction can be only either a horizontal monitor "
-        write(lout,"(a)") "ORBI>       or a vertical monitor or a horizontal corrector or a vertical corrector."
+        write(lerr,"(a)") "ORBI> ERROR An element for closed orbit correction can be only either a horizontal monitor "
+        write(lerr,"(a)") "ORBI>       or a vertical monitor or a horizontal corrector or a vertical corrector."
         iErr = .true.
         return
       end if
       kp(iElem) = -3
 
     case default
-      write(lout,"(a)") "ORBI> ERROR Only correctors with the keywords HCOR/VCOR"
-      write(lout,"(a)") "ORBI>       or monitors with the keywords HMON/VMON are allowed."
+      write(lerr,"(a)") "ORBI> ERROR Only correctors with the keywords HCOR/VCOR"
+      write(lerr,"(a)") "ORBI>       or monitors with the keywords HMON/VMON are allowed."
       iErr = .true.
       return
 
@@ -2389,7 +2183,10 @@ end subroutine sixin_parseInputLineORBI
 ! ================================================================================================ !
 subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2402,19 +2199,19 @@ subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "COMB> ERROR Failed to parse input line."
+    write(lerr,"(a)") "COMB> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
 
   if(iLine > ncom) then
-    write(lout,"(a,i0)") "COMB> ERROR Maximum number of combinations is ",ncom
+    write(lerr,"(a,i0)") "COMB> ERROR Maximum number of combinations is ",ncom
     iErr = .true.
     return
   end if
 
   if(nSplit < 3 .or. nSplit > 41 .or. modulo(nSplit,2) /= 1) then
-    write(lout,"(a,i0)") "COMB> ERROR Expected one element name + 1 to 20 pairs, got ",nSplit
+    write(lerr,"(a,i0)") "COMB> ERROR Expected one element name + 1 to 20 pairs, got ",nSplit
     iErr = .true.
     return
   end if
@@ -2447,7 +2244,7 @@ subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
 
   ii = icomb0(icoe)
   if(ii == 0) then
-    write(lout,"(a)") "COMB> ERROR Element '"//trim(elemName)//"' not found."
+    write(lerr,"(a)") "COMB> ERROR Element '"//trim(elemName)//"' not found."
     iErr = .true.
     return
   end if
@@ -2455,7 +2252,7 @@ subroutine sixin_parseInputLineCOMB(inLine, iLine, iErr)
   do i=1,nComb
     ico = icomb(icoe,i)
     if(ico == ii) then
-      write(lout,"(a)") "COMB> ERROR You cannot combine an element with itself."
+      write(lerr,"(a)") "COMB> ERROR You cannot combine an element with itself."
       iErr = .true.
       return
     end if
@@ -2486,7 +2283,10 @@ end subroutine sixin_parseInputLineCOMB
 ! ================================================================================================ !
 subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2501,7 +2301,7 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "RESO> ERROR Failed to parse input line."
+    write(lerr,"(a)") "RESO> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -2534,17 +2334,17 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
     if(iErr) return
 
     if(nre /= 0 .and. (npp < 2 .or. npp > nrco)) then
-      write(lout,"(a,i0)") "RESO> ERROR Order of compensation can not be larger than ",nrco
+      write(lerr,"(a,i0)") "RESO> ERROR Order of compensation can not be larger than ",nrco
       iErr = .true.
       return
     end if
     if(nre < 0 .or. nre > 3) then
-      write(lout,"(a)") "RESO> ERROR Only up to 3 resonances can be compensated."
+      write(lerr,"(a)") "RESO> ERROR Only up to 3 resonances can be compensated."
       iErr = .true.
       return
     end if
     if(abs(nrr(1)) > npp .or. abs(nrr(2)) > npp .or. abs(nrr(3)) > npp) then
-      write(lout,"(a)") "RESO> ERROR Resonance type is out of the range of the resonance order."
+      write(lerr,"(a)") "RESO> ERROR Resonance type is out of the range of the resonance order."
       iErr = .true.
       return
     end if
@@ -2565,12 +2365,12 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
     if(iErr) return
 
     if(nur < 0 .or. nur > 3) then
-      write(lout,"(a)") "RESO> ERROR Only up to 3 sub-resonances can be compensated."
+      write(lerr,"(a)") "RESO> ERROR Only up to 3 sub-resonances can be compensated."
       iErr = .true.
       return
     end if
     if(nu(1) > 9 .or. nu(2) > 9 .or. nu(3) > 9 .or. nu(1) < 0 .or. nu(2) < 0 .or. nu(3) < 0) then
-      write(lout,"(a)") "RESO> ERROR The multipole order for the sub-resonance compensation should not exceed 9."
+      write(lerr,"(a)") "RESO> ERROR The multipole order for the sub-resonance compensation should not exceed 9."
       iErr = .true.
       return
     end if
@@ -2652,30 +2452,30 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
         if(name(k) /= bez(j)) cycle inner
         ire(k) = j
         if(nre == 1 .and. k < 3 .and. abs(kz(j)) /= npp) then
-          write(lout,"(a)") "RESO> ERROR With the specified elements the resonance cannot be compensated."
-          write(lout,"(a)") "RESO> ERROR Resonance order and element type # must be the same."
+          write(lerr,"(a)") "RESO> ERROR With the specified elements the resonance cannot be compensated."
+          write(lerr,"(a)") "RESO> ERROR Resonance order and element type # must be the same."
           iErr = .true.
           return
         end if
         if(nre == 2 .and. k < 5 .and. abs(kz(j)) /= npp) then
-          write(lout,"(a)") "RESO> ERROR With the specified elements the resonance cannot be compensated."
-          write(lout,"(a)") "RESO> ERROR Resonance order and element type # must be the same."
+          write(lerr,"(a)") "RESO> ERROR With the specified elements the resonance cannot be compensated."
+          write(lerr,"(a)") "RESO> ERROR Resonance order and element type # must be the same."
           iErr = .true.
           return
         end if
         if(nre == 3 .and. k < 7 .and. abs(kz(j)) /= npp) then
-          write(lout,"(a)") "RESO> ERROR With the specified elements the resonance cannot be compensated."
-          write(lout,"(a)") "RESO> ERROR Resonance order and element type # must be the same."
+          write(lerr,"(a)") "RESO> ERROR With the specified elements the resonance cannot be compensated."
+          write(lerr,"(a)") "RESO> ERROR Resonance order and element type # must be the same."
           iErr = .true.
           return
         end if
         if(nch == 1 .and. (k == 7 .or. k == 8)  .and. kz(j) /= 3) then
-          write(lout,"(a)") "RESO> ERROR Elements specified for resonance compensation are not sextupoles."
+          write(lerr,"(a)") "RESO> ERROR Elements specified for resonance compensation are not sextupoles."
           iErr = .true.
           return
         end if
         if(nqc == 1 .and. (k == 9 .or. k == 10) .and. kz(j) /= 2) then
-          write(lout,"(a)") "RESO> ERROR Elements specified for resonance compensation are not quadrupoles."
+          write(lerr,"(a)") "RESO> ERROR Elements specified for resonance compensation are not quadrupoles."
           iErr = .true.
           return
         end if
@@ -2686,7 +2486,7 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
          (nre == 3 .and.  k < 7) .or. &
          (nch == 1 .and. (k == 7 .or. k == 8)) .or. &
          (nqc == 1 .and. (k == 9 .or. k == 10))) then
-        write(lout,"(a)") "RESO> ERROR Element is not in the element list."
+        write(lerr,"(a)") "RESO> ERROR Element is not in the element list."
         iErr = .true.
         return
       end if
@@ -2695,7 +2495,7 @@ subroutine sixin_parseInputLineRESO(inLine, iLine, iErr)
     irmod2 = 1
 
   case default
-    write(lout,"(a,i0)") "RESO> ERROR Unexpected line number ",iLine
+    write(lerr,"(a,i0)") "RESO> ERROR Unexpected line number ",iLine
     iErr = .true.
     return
 
@@ -2710,7 +2510,10 @@ end subroutine sixin_parseInputLineRESO
 ! ================================================================================================ !
 subroutine sixin_parseInputLineSEAR(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2725,7 +2528,7 @@ subroutine sixin_parseInputLineSEAR(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "SEAR> ERROR Failed to parse input line."
+    write(lerr,"(a)") "SEAR> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -2782,7 +2585,7 @@ subroutine sixin_parseInputLineSEAR(inLine, iLine, iErr)
     ke = k0 + nSplit
     do k=ka,ke
       if(k > nele) then
-        write(lout,"(a)") "SEAR> ERROR Cannot have more elements than in the single elements block."
+        write(lerr,"(a)") "SEAR> ERROR Cannot have more elements than in the single elements block."
         iErr = .true.
         return
       end if
@@ -2792,8 +2595,8 @@ subroutine sixin_parseInputLineSEAR(inLine, iLine, iErr)
         if(bez(j) == lnSplit(ki)) then
           isea(k) = j
           if(abs(kz(j)) /= mp) then
-            write(lout,"(a)") "SEAR> ERROR With the specified elements the resonance cannot be compensated."
-            write(lout,"(a)") "SEAR> ERROR Resonance order and element type # must be the same."
+            write(lerr,"(a)") "SEAR> ERROR With the specified elements the resonance cannot be compensated."
+            write(lerr,"(a)") "SEAR> ERROR Resonance order and element type # must be the same."
             iErr = .true.
             return
           else
@@ -2803,7 +2606,7 @@ subroutine sixin_parseInputLineSEAR(inLine, iLine, iErr)
         end if
       end do
       if(isea(k) == 0) then
-        write(lout,"(a)") "SEAR> ERROR Element is not in the element list."
+        write(lerr,"(a)") "SEAR> ERROR Element is not in the element list."
         iErr = .true.
         return
       end if
@@ -2821,7 +2624,10 @@ end subroutine sixin_parseInputLineSEAR
 ! ================================================================================================ !
 subroutine sixin_parseInputLinePOST(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2833,7 +2639,7 @@ subroutine sixin_parseInputLinePOST(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "POST> ERROR Failed to parse input line."
+    write(lerr,"(a)") "POST> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -2874,7 +2680,7 @@ subroutine sixin_parseInputLinePOST(inLine, iLine, iErr)
 
 #ifdef STF
     if(imad == 1) then
-      write(lout,"(a)") "POST> ERROR imad not supported when SixTrack is built with STF enabled."
+      write(lerr,"(a)") "POST> ERROR imad not supported when SixTrack is built with STF enabled."
       iErr = .true.
       return
     end if
@@ -2945,7 +2751,7 @@ subroutine sixin_parseInputLinePOST(inLine, iLine, iErr)
     ipos = 1 ! Turn postprocessing ON.
 
   case default
-    write(lout,"(a,i0)") "POST> ERROR Unexpected line number ",iLine
+    write(lerr,"(a,i0)") "POST> ERROR Unexpected line number ",iLine
     iErr = .true.
     return
 
@@ -2960,7 +2766,10 @@ end subroutine sixin_parseInputLinePOST
 ! ================================================================================================ !
 subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
 
-  implicit none
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -2975,7 +2784,7 @@ subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "DECO> ERROR Failed to parse input line."
+    write(lerr,"(a)") "DECO> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -3030,13 +2839,13 @@ subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
         if(bez(j) == name(i)) then
           if(i <= 4) then
             if(kz(j) /= -2) then
-              write(lout,"(a)") "DECO> ERROR Elements specified is not a skew quadrupole."
+              write(lerr,"(a)") "DECO> ERROR Elements specified is not a skew quadrupole."
               iErr = .true.
               return
             end if
           else
             if(kz(j) /= 2) then
-              write(lout,"(a)") "DECO> ERROR Elements specified is not a quadrupole."
+              write(lerr,"(a)") "DECO> ERROR Elements specified is not a quadrupole."
               iErr = .true.
               return
             end if
@@ -3044,7 +2853,7 @@ subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
           nskew(i) = j
           do k=1,6
             if(nskew(k) /= 0 .and. (nskew(k) == nskew(i)) .and. (k /= i)) then
-              write(lout,"(a)") "DECO> ERROR Same element specified twice."
+              write(lerr,"(a)") "DECO> ERROR Same element specified twice."
               iErr = .true.
               return
             end if
@@ -3054,7 +2863,7 @@ subroutine sixin_parseInputLineDECO(inLine, iLine, iErr)
     end do
 
   case default
-    write(lout,"(a,i0)") "DECO> ERROR Unexpected line number ",iLine
+    write(lerr,"(a,i0)") "DECO> ERROR Unexpected line number ",iLine
     iErr = .true.
     return
 
@@ -3069,9 +2878,11 @@ end subroutine sixin_parseInputLineDECO
 ! ================================================================================================ !
 subroutine sixin_parseInputLineNORM(inLine, iLine, iErr)
 
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
   use mod_common_da
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -3083,7 +2894,7 @@ subroutine sixin_parseInputLineNORM(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "NORM> ERROR Failed to parse input line."
+    write(lerr,"(a)") "NORM> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -3094,7 +2905,7 @@ subroutine sixin_parseInputLineNORM(inLine, iLine, iErr)
 
     ! FIXME: This should be moved to post ENDE checks
     if(idial == 0 .and. numl == 0) then
-      write(lout,"(a)") "NORM> ERROR Normal forms analysis impossible. The transfer map does not exist!"
+      write(lerr,"(a)") "NORM> ERROR Normal forms analysis impossible. The transfer map does not exist!"
       iErr = .true.
       return
     end if
@@ -3124,7 +2935,7 @@ subroutine sixin_parseInputLineNORM(inLine, iLine, iErr)
     end if
 
   case default
-    write(lout,"(a,i0)") "NORM> ERROR Unexpected line number ",iLine
+    write(lerr,"(a,i0)") "NORM> ERROR Unexpected line number ",iLine
     iErr = .true.
     return
 
@@ -3139,9 +2950,11 @@ end subroutine sixin_parseInputLineNORM
 ! ================================================================================================ !
 subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
 
+  use crcoall
+  use string_tools
+  use mod_settings
   use parbeam, only : beam_expflag
-
-  implicit none
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -3155,7 +2968,7 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "BEAM> ERROR Failed to parse input line."
+    write(lerr,"(a)") "BEAM> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -3169,9 +2982,9 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
     end if
 
     write(lout,"(a)") "BEAM> Reading old style beam block."
-    write(lout,"(a)") "BEAM>    To convert to the new format, copy-paste these lines into the BEAM block in fort.3,"
+    write(lout,"(a)") "BEAM>    To convert to the new format, copy-paste these lines into the BEAM block in "//trim(fort3)//","
     write(lout,"(a)") "BEAM> replacing line 2 onwards. Then write EXPERT on the first line of the BEAM block, above"
-    write(lout,"(a)") "BEAM> the current first line. Finally, in the SINGLE ELEMENTS list (normally in fort.2) set "
+    write(lout,"(a)") "BEAM> the current first line. Finally, in the SINGLE ELEMENTS list (normally in "//trim(fort2)//") set "
     write(lout,"(a)") "BEAM> the parameters of all beam-beam lenses (type 20) to 0.0."
     write(lout,"(a)") "BEAM>    This procedure produces a new set of input files that should have bit-for-bit iden-"
     write(lout,"(a)") "BEAM> tical results to this one."
@@ -3210,7 +3023,7 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
     end if
 
     if(sixin_emitNX <= pieni .or. sixin_emitNY <= pieni) then
-      write(lout,"(a)") "BEAM> ERROR Either normalised emittances or the resulting sigma values equal to zero."
+      write(lerr,"(a)") "BEAM> ERROR Either normalised emittances or the resulting sigma values equal to zero."
       iErr = .true.
       return
     end if
@@ -3232,7 +3045,7 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
     elseif(nSplit == 4) then
       beamXStr = .false.
     else
-      write(lout,"(a,i0)") "BEAM> ERROR Number of arguments in line 2 is expected to be 4 or 5, got ",nSplit
+      write(lerr,"(a,i0)") "BEAM> ERROR Number of arguments in line 2 is expected to be 4 or 5, got ",nSplit
       iErr = .true.
       return
     end if
@@ -3280,9 +3093,11 @@ end subroutine sixin_parseInputLineBEAM
 ! ================================================================================================ !
 subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
 
+  use crcoall
+  use string_tools
+  use mod_settings
   use parbeam, only : beam_expflag
-
-  implicit none
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -3298,7 +3113,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "BEAM> ERROR Failed to parse input line."
+    write(lerr,"(a)") "BEAM> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -3333,7 +3148,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
     end if
 
     if(sixin_emitNX <= pieni .or. sixin_emitNY <= pieni) then
-      write(lout,"(a)") "BEAM> ERROR Either normalised emittances or the resulting sigma values equal to zero."
+      write(lerr,"(a)") "BEAM> ERROR Either normalised emittances or the resulting sigma values equal to zero."
       iErr = .true.
       return
     end if
@@ -3371,7 +3186,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
 
       if(ibsix == 0) then
         if( nSplit < 7 .or. nSplit > 8 ) then
-          write(lout,"(a,i0)") "BEAM> ERROR First line of a 4D element definition should have 7  or 8 fields, got ",nSplit
+          write(lerr,"(a,i0)") "BEAM> ERROR First line of a 4D element definition should have 7  or 8 fields, got ",nSplit
           iErr = .true.
           return
         end if
@@ -3382,7 +3197,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
       else if(ibsix > 0) then
         n6D = 1
         if(nSplit /= 6) then
-          write(lout,"(a,i0)") "BEAM> ERROR First line of a 6D element definition should have 6 fields, got ",nSplit
+          write(lerr,"(a,i0)") "BEAM> ERROR First line of a 6D element definition should have 6 fields, got ",nSplit
           iErr = .true.
           return
         end if
@@ -3390,7 +3205,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
           write(lout,"(a)") "BEAM> DEBUG New 6D element encountered."
         end if
       else
-        write(lout,"(a,i0)") "BEAM> ERROR Expected number of slices >= 0, but got ",ibsix
+        write(lerr,"(a,i0)") "BEAM> ERROR Expected number of slices >= 0, but got ",ibsix
         iErr = .true.
         return
       end if
@@ -3412,13 +3227,13 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
         do j=1,il
           if(bez(j) == elemName) then
             if(kz(j) /= 20) then
-              write(lout,"(a,i0,a)") "BEAM> ERROR Found element '"//bez(j)//"' type ",kz(j), ", but expected type 20."
+              write(lerr,"(a,i0,a)") "BEAM> ERROR Found element '"//bez(j)//"' type ",kz(j), ", but expected type 20."
               iErr = .true.
               return
             else
               if(parbe(j,5) /= zero .or. parbe(j,6) /= zero .or. ptnfac(j)  /= zero .or. &
                  bbbx(j)    /= zero .or. bbby(j)    /= zero .or. bbbs(j)    /= zero) then
-                write(lout,"(a)") "BEAM> ERROR Using EXPERT mode, but element '"//bez(j)//&
+                write(lerr,"(a)") "BEAM> ERROR Using EXPERT mode, but element '"//bez(j)//&
                   " does not have ed=ek=el=bbbx=bbby=bbbs=0.0 in the SINGLE ELEMENTS list."
                 iErr = .true.
                 return
@@ -3442,7 +3257,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
         write(lout,"(a)") "BEAM> DEBUG Second 6D line encountered."
       end if
       if(nSplit /= 5) then
-        write(lout,"(a,i0)") "BEAM> ERROR Second line of a 6D element definition should have 5 fields, got ",nSplit
+        write(lerr,"(a,i0)") "BEAM> ERROR Second line of a 6D element definition should have 5 fields, got ",nSplit
         iErr = .true.
         return
       end if
@@ -3470,7 +3285,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
         write(lout,"(a)") "BEAM> DEBUG Third 6D line encountered."
       end if
       if(nSplit /= 6) then
-        write(lout,"(a,i0)") "BEAM> ERROR Tird line of a 6D element definition should have 6 fields, got ",nSplit
+        write(lerr,"(a,i0)") "BEAM> ERROR Tird line of a 6D element definition should have 6 fields, got ",nSplit
         iErr = .true.
         return
       end if
@@ -3496,13 +3311,13 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
       do j=1,il
         if(bez(j) == elemName) then
           if(kz(j) /= 20) then
-            write(lout,"(a,i0,a)") "BEAM> ERROR Found element '"//bez(j)//"' type ",kz(j), ", but expected type 20."
+            write(lerr,"(a,i0,a)") "BEAM> ERROR Found element '"//bez(j)//"' type ",kz(j), ", but expected type 20."
             iErr = .true.
             return
           else
             if(parbe(j,5) /= zero .or. parbe(j,6) /= zero .or. ptnfac(j)  /= zero .or. &
                bbbx(j)    /= zero .or. bbby(j)    /= zero .or. bbbs(j)    /= zero) then
-              write(lout,"(a)") "BEAM> ERROR Using EXPERT mode, but element '"//bez(j)//&
+              write(lerr,"(a)") "BEAM> ERROR Using EXPERT mode, but element '"//bez(j)//&
                 "' does not have ed=ek=el=bbbx=bbby=bbbs=0.0 in the SINGLE ELEMENTS list."
               iErr = .true.
               return
@@ -3543,9 +3358,11 @@ end subroutine sixin_parseInputLineBEAM_EXP
 ! ================================================================================================ !
 subroutine sixin_parseInputLineTROM(inLine, iLine, iErr)
 
+  use crcoall
   use mod_alloc
-
-  implicit none
+  use string_tools
+  use mod_settings
+  use mod_common
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -3561,7 +3378,7 @@ subroutine sixin_parseInputLineTROM(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "TROM> ERROR Failed to parse input line."
+    write(lerr,"(a)") "TROM> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -3571,7 +3388,7 @@ subroutine sixin_parseInputLineTROM(inLine, iLine, iErr)
   case(1)
 
     if(nSplit /= 1) then
-      write(lout,"(a,i0)") "TROM> ERROR Expected 1 element name for line 1, got ",nSplit
+      write(lerr,"(a,i0)") "TROM> ERROR Expected 1 element name for line 1, got ",nSplit
       iErr = .true.
       return
     end if
@@ -3586,7 +3403,7 @@ subroutine sixin_parseInputLineTROM(inLine, iLine, iErr)
       end if
     end do
     if(iElem == -1) then
-      write(lout,"(a)") "TROM> ERROR Could not find element '"//elemName//"' in single element list."
+      write(lerr,"(a)") "TROM> ERROR Could not find element '"//elemName//"' in single element list."
       iErr = .true.
       return
     end if
@@ -3608,7 +3425,7 @@ subroutine sixin_parseInputLineTROM(inLine, iLine, iErr)
   case(2,3)
 
     if(nSplit /= 3) then
-      write(lout,"(2(a,i0))") "TROM> ERROR Expected 3 values for line ",iLine,", got ",nSplit
+      write(lerr,"(2(a,i0))") "TROM> ERROR Expected 3 values for line ",iLine,", got ",nSplit
       iErr = .true.
       return
     end if
@@ -3625,7 +3442,7 @@ subroutine sixin_parseInputLineTROM(inLine, iLine, iErr)
   case(4,5,6,7,8,9,10,11,12,13,14,15)
 
     if(nSplit /= 3) then
-      write(lout,"(2(a,i0))") "TROM> ERROR Expected 3 values for line ",iLine,", got ",nSplit
+      write(lerr,"(2(a,i0))") "TROM> ERROR Expected 3 values for line ",iLine,", got ",nSplit
       iErr = .true.
       return
     end if
@@ -3646,8 +3463,8 @@ subroutine sixin_parseInputLineTROM(inLine, iLine, iErr)
   case(-1)
 
     if(nLines /= 15) then
-      write(lout,"(a,i0)") "TROM> ERROR Each trombone block takes exactly 15 lines, got ",nLines
-      write(lout,"(a)")    "TROM>       If you neeed multiple TROM elements, add multiple TROM blocks."
+      write(lerr,"(a,i0)") "TROM> ERROR Each trombone block takes exactly 15 lines, got ",nLines
+      write(lerr,"(a)")    "TROM>       If you neeed multiple TROM elements, add multiple TROM blocks."
       iErr = .true.
       return
     end if

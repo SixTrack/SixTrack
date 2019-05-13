@@ -41,10 +41,8 @@ subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
       !sepay=param(ne,6)     !Not actually used anywhere?
       phi2=phi               !Note - phi2 is not a free parameter anymore
   else
-      write(lout,'(a)') "ERROR in subroutine beaminf"
-      write(lout,'(a)') "beam_expflag was", beam_expflag
-      write(lout,'(a)') " expected 0 or 1. This is a BUG!"
-      call prror(-1)
+      write(lerr,"(a,i0,a)") "ERROR beaminf: beam_expflag was ",beam_expflag," expected 0 or 1. This is a BUG!"
+      call prror
   endif
   sphi=sin_mb(phi)
   sphi2=sin_mb(phi2)

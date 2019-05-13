@@ -6,7 +6,7 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
       use mathlib_bouncer
       use crcoall
       use mod_lie_dab, only : ndim,ndim2,ntt,nreso,nd,nd2,no,nv,ifilt,idpr,iref,itu,lienot,iflow,   &
-        jtune,ndc,ndc2,ndpt,ndt,nplane,ista,idsta,mx,nres,epsplane,xplane,sta,dsta,angle,rad,ps,    &
+        jtune,ndc,ndc2,ndpt,ndt,nplane,ista,idsta,mx,nres,epsplane,xplane,sta,dsta,angle,ps,    &
         rads,xintex,iscrda
 
       implicit none
@@ -48,7 +48,7 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
               ndt=nd2
               if(ndpt.ne.nd2-1) then
                 write(lout,*) ' LETHAL ERROR IN LIEINIT'
-                call prror(-1)
+                call prror
               endif
             endif
        endif
@@ -99,7 +99,7 @@ end subroutine flowpara
 subroutine pertpeek(st,ang,ra)
       use floatPrecision
       use mathlib_bouncer
-      use mod_lie_dab, only : nd,ndim,angle,rad,sta
+      use mod_lie_dab, only : nd,ndim,angle,radn,sta
       implicit none
       integer i
       real(kind=fPrec) ang,ra,st
@@ -107,7 +107,7 @@ subroutine pertpeek(st,ang,ra)
       do i=1,nd
         st(i)=sta(i)
         ang(i)=angle(i)
-        ra(i)=rad(i)
+        ra(i)=radn(i)
       end do
       return
 end subroutine pertpeek
@@ -139,7 +139,7 @@ end subroutine inputres
 subroutine respoke(mres,nre,ire)
       use floatPrecision
       use mathlib_bouncer
-      use mod_lie_dab, only : nd,iref,ndc,ndc2,ndpt,ndt,ndim,nreso,idsta,ista,angle,dsta,rad,sta,mx,nres
+      use mod_lie_dab, only : nd,iref,ndc,ndc2,ndpt,ndt,ndim,nreso,idsta,ista,angle,dsta,sta,mx,nres
       implicit none
       integer i,ire,j,nre
       real(kind=fPrec) ang,ra,st
@@ -1456,7 +1456,6 @@ subroutine flofacg(xy,h,epsone)
       call dacmud(h,-one,t)
       call expflod(t,xy,x,eps,nrmax)
       call dalind(x,one,v,-one,t)
-! write(20,*) "$$$$$$$$$$$$$$",k,"$$$$$$$$$$$$$$$$$$$$"
 ! call daprid(t,1,1,20)
        if(xn.lt.epsone) then
             if(idpr.ge.0) write(lout,*) "xn quadratic",xn
@@ -1626,8 +1625,8 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
       use mod_lie_dab, only : nd,nd2,idpr,itu,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,ps,rads
       implicit none
       integer ij,isi,nord
-      real(kind=fPrec) angle,p,rad,st,x2pi,x2pii
-      dimension angle(ndim),st(ndim),p(ndim),rad(ndim)
+      real(kind=fPrec) angle,p,radn,st,x2pi,x2pii
+      dimension angle(ndim),st(ndim),p(ndim),radn(ndim)
       integer x(*),a1(*),a2(*),ft(*),xy(*),h(*)
       integer a1i(ndim2),a2i(ndim2)
 !
@@ -1638,7 +1637,7 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
         angle(itu)=zero
         p(itu)=zero
         st(itu)=zero
-        rad(itu)=zero
+        radn(itu)=zero
         ps(itu)=zero
         rads(itu)=zero
       enddo
@@ -1650,24 +1649,23 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
       call gofix(xy,a1,a1i,nord)
       call simil(a1i,xy,a1,xy)
 ! linear part
-      call midbflo(xy,a2,a2i,angle,rad,st)
+      call midbflo(xy,a2,a2i,angle,radn,st)
       do ij=1,nd-ndc
         p(ij)=angle(ij)*(st(ij)*(x2pii-one)+one)
       enddo
       if(ndc.eq.1) p(nd)=angle(nd)
       if(idpr.ge.0) then
         write(lout,*) 'tune    ',(p(ij),ij=1,nd)
-        write(lout,*) 'damping ', (rad(ij),ij=1,nd)
+        write(lout,*) 'damping ', (radn(ij),ij=1,nd)
       endif
       do ij=1,nd       !  -ndc    frank
         ps(ij)=p(ij)
-        rads(ij)=rad(ij)
+        rads(ij)=radn(ij)
       enddo
-      call initpert(st,angle,rad)
+      call initpert(st,angle,radn)
       call simil(a2i,xy,a2,xy)
       call dacopd(xy,a2i)
-!        write(6,*) 'Entering orderflo'
-      call orderflo(h,ft,xy,angle,rad)
+      call orderflo(h,ft,xy,angle,radn)
       do ij=1,nd-ndc
         p(ij)=angle(ij)
         if(angle(ij).gt.x2pi/two.and.st(ij).gt.zero.and.itu.eq.1)then
@@ -1675,7 +1673,7 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
           write(lout,*) ij,' TH TUNE MODIFIED IN H2 TO ',p(ij)/x2pi
         endif
       enddo
-      call h2pluflo(h,p,rad)
+      call h2pluflo(h,p,radn)
 !      CALL TAKED(A2I,1,XY)
       call taked(a2i,1,a1i)
       call etcct(xy,a1i,xy)
@@ -1835,7 +1833,6 @@ subroutine orderflo(h,ft,x,ang,ra)
       call facflod(h,x,v,2,k-1,-one,-1)
 ! EXTRACTING K TH DEGREE OF V ----> W
       call taked(v,k,w)
-!  write(16,*) "$$$$$$$$  K  $$$$$$$$$$", k
 ! W = EXP(B5) + ...
        call dacopd(w,b5)
 !      CALL INTD(W,B5,-1.D0)
@@ -1931,7 +1928,7 @@ real(kind=fPrec) function xgam(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,idsta,ista,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,idsta,ista,angle,dsta,radn,sta
       implicit none
       integer i,ic,ij,ik
       real(kind=fPrec) ad,ans,as,ex,exh
@@ -1955,8 +1952,7 @@ real(kind=fPrec) function xgam(j)
       enddo
 
       do i=1,nd-ndc
-        ad=((dsta(i)*real(jj(i),fPrec))*angle(i)-real(jp(i),fPrec)      &
-     &*rad(i))+ad        !hr11
+        ad=((dsta(i)*real(jj(i),fPrec))*angle(i)-real(jp(i),fPrec)*radn(i))+ad
         as=(sta(i)*real(jj(i),fPrec))*angle(i)+as                              !hr11
       enddo
 
@@ -1972,7 +1968,7 @@ real(kind=fPrec) function xgbm(j)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,idsta,ista,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,ndim2,idsta,ista,angle,dsta,radn,sta
       implicit none
       integer i,ic,ij,ik
       real(kind=fPrec) ad,ans,as,ex,exh
@@ -1995,8 +1991,7 @@ real(kind=fPrec) function xgbm(j)
       enddo
 
       do i=1,nd-ndc
-        ad=((dsta(i)*real(jj(i),fPrec))*angle(i)-real(jp(i),fPrec)      &
-     &*rad(i))+ad        !hr11
+        ad=((dsta(i)*real(jj(i),fPrec))*angle(i)-real(jp(i),fPrec)*radn(i))+ad
         as=(sta(i)*real(jj(i),fPrec))*angle(i)+as                              !hr11
       enddo
 
@@ -2011,7 +2006,7 @@ end function xgbm
 real(kind=fPrec) function filt(j)
       use floatPrecision
       use numerical_constants
-      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,idsta,ista,angle,dsta,rad,sta,mx,nres
+      use mod_lie_dab, only : nd,nd2,iflow,jtune,ndc,ndc2,ndpt,ndt,ndim,idsta,ista,angle,dsta,sta,mx,nres
       implicit none
       integer i,ic,ic1,ic2,ij,ik,ji
 !  PROJECTION FUNCTIONS ON THE KERNEL ANMD RANGE OF (1-R^-1)
@@ -2164,7 +2159,7 @@ end subroutine dhdj
 subroutine h2pluflo(h,ang,ra)
       use floatPrecision
       use numerical_constants
-      use mod_lie_dab, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt,ndim,ntt,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,no,nv,ndc,ndc2,ndpt,ndt,ndim,ntt,angle,dsta,sta
       implicit none
       integer i,j
       real(kind=fPrec) ang,r1,r2,ra,st
@@ -2450,7 +2445,7 @@ end subroutine rtocd
 subroutine resvec(cr,ci,dr,di)
       use floatPrecision
       use mathlib_bouncer
-      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,idsta,ista,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,idsta,ista,angle,dsta,sta
       implicit none
       integer i
 ! DOES THE SPINOR PART IN CTORFLO
@@ -2495,7 +2490,7 @@ subroutine reelflo(c,ci,f,fi)
       use floatPrecision
       use mathlib_bouncer
       use numerical_constants
-      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim2,idsta,ista,angle,dsta,rad,sta
+      use mod_lie_dab, only : nd,nd2,ndc,ndc2,ndpt,ndt,ndim2,idsta,ista,angle,dsta,sta
       implicit none
       integer i
 ! DOES THE SPINOR PART IN RTOCFLO
@@ -2689,10 +2684,10 @@ subroutine mapflol(sa,sai,cr,cm,st)
       call mulnd2(xj,w)
       call mulnd2(cr,w)
       if(idpr.ge.0.or.idpr.eq.-102) then
-        write(lout,*) 'Check of the symplectic condition on the linear part'
+        write(lout,"(a)") "LIELIB> Check of the symplectic condition on the linear part:"
         xsu=zero
         do i=1,nd2
-          write(lout,'(6(2x,g23.16))') ( w(i,j), j = 1, nd2 )
+          write(lout,"(3x,6(1x,1pe17.10))") (w(i,j), j=1, nd2)
           do j=1,nd2
             xsu=xsu+abs(w(i,j))
           enddo
@@ -2906,11 +2901,6 @@ subroutine movearou(rt)
       ic=0
       xrold=1000000000.0_fPrec
       call movemul(rt,s,rto,xr)
-! write(6,*) xr,xrold
-!  do i=1,6
-!       write(6,'(6(1x,1pe12.5))') (RTO(i,j),j=1,6)
-!  enddo
-!  PAUSE
       if(xr.lt.xrold) then
         xrold=xr
       endif
@@ -3022,7 +3012,7 @@ subroutine initpert(st,ang,ra)
       use mathlib_bouncer
       use numerical_constants
       use crcoall
-      use mod_lie_dab, only : nd,nd2,iref,ndc,ndc2,ndpt,ndt,ndim,ndim2,nreso,idsta,ista,angle,dsta,rad,sta,mx,nres
+      use mod_lie_dab, only : nd,nd2,iref,ndc,ndc2,ndpt,ndt,ndim,ndim2,nreso,idsta,ista,angle,dsta,radn,sta,mx,nres
       implicit none
       integer i,nn
       real(kind=fPrec) ang,ra,st
@@ -3036,7 +3026,7 @@ subroutine initpert(st,ang,ra)
       if(nres.ge.nreso) then
        write(lout,*) ' NRESO IN LIELIB TOO SMALL '
        write(lout,'(a)') "ERROR 999 in initpert"
-       call prror(-1)
+       call prror
       endif
       elseif(iref.eq.0) then
       nres=0
@@ -3055,7 +3045,7 @@ subroutine initpert(st,ang,ra)
 !      frank/Etienne
       do i=1,ndim
         angle(i)=zero
-        rad(i)=zero
+        radn(i)=zero
         sta(i)=zero
         dsta(i)=one-sta(i)
         ista(i)=0
@@ -3063,7 +3053,7 @@ subroutine initpert(st,ang,ra)
       enddo
       do i=1,nd        !  frank          -ndc
         angle(i)=ang(i)
-        rad(i)=ra(i)
+        radn(i)=ra(i)
         sta(i)=st(i)
         dsta(i)=one-sta(i)
       enddo
@@ -4044,7 +4034,6 @@ subroutine sympl3(m)
             qp = qp + m(lq,jq)*m(kp,jp) - m(lq,jp)*m(kp,jq)
             pp = pp + m(lp,jq)*m(kp,jp) - m(lp,jp)*m(kp,jq)
   300     continue
-!         write(6,*) qq,pq,qp,pp
           do 400 i=1,2*n
             m(kq,i) = m(kq,i) - qq*m(lp,i) + pq*m(lq,i)
             m(kp,i) = m(kp,i) - qp*m(lp,i) + pp*m(lq,i)
@@ -4055,7 +4044,6 @@ subroutine sympl3(m)
           jq = jp-1
           qp = qp + m(kq,jq)*m(kp,jp) - m(kq,jp)*m(kp,jq)
   500   continue
-!       write(6,*) qp
         do 600 i=1,2*n
           m(kp,i) = m(kp,i)/qp
   600   continue

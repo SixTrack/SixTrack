@@ -109,7 +109,7 @@ subroutine bdex_parseInputLine(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "BDEX> ERROR Failed to parse input line."
+    write(lerr,"(a)") "BDEX> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -130,7 +130,7 @@ subroutine bdex_parseInputLine(inLine, iLine, iErr)
     if(iErr) return
 
   case default
-    write (lout,"(a)") "BDEX> ERROR Expected keywords DEBU, NEXT, ELEM, or CHAN"
+    write (lerr,"(a)") "BDEX> ERROR Expected keywords DEBU, NEXT, ELEM, or CHAN"
     iErr = .true.
     return
 
@@ -154,7 +154,7 @@ subroutine bdex_parseElem(inLine,iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "BDEX> ERROR Failed to parse input line."
+    write(lerr,"(a)") "BDEX> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -168,8 +168,8 @@ subroutine bdex_parseElem(inLine,iErr)
 
   ! Parse ELEM
   if(nSplit /= 4) then
-    write(lout,"(a)") "BDEX> ERROR ELEM expects the following arguments:"
-    write(lout,"(a)") "BDEX>       ELEM chanName elemName action"
+    write(lerr,"(a)") "BDEX> ERROR ELEM expects the following arguments:"
+    write(lerr,"(a)") "BDEX>       ELEM chanName elemName action"
     iErr = .true.
     return
   end if
@@ -182,13 +182,13 @@ subroutine bdex_parseElem(inLine,iErr)
     end if
   end do
   if(jj == -1) then
-    write(lout,"(a)") "BDEX> ERROR The element '"//trim(lnSplit(3))//"' was not found in the single element list."
+    write(lerr,"(a)") "BDEX> ERROR The element '"//trim(lnSplit(3))//"' was not found in the single element list."
     iErr = .true.
     return
   end if
 
   if(kz(jj) /= 0 .or. el(jj) > pieni) then
-    write(lout,"(2(a,i0))") "BDEX> ERROR The element '"//trim(bez(jj))//"' is not a marker. kz=",kz(jj),", el=",el(jj)
+    write(lerr,"(2(a,i0))") "BDEX> ERROR The element '"//trim(bez(jj))//"' is not a marker. kz=",kz(jj),", el=",el(jj)
     iErr = .true.
     return
   end if
@@ -196,7 +196,7 @@ subroutine bdex_parseElem(inLine,iErr)
   ! Action
   call chr_cast(lnSplit(4),bdex_elementAction(jj),iErr)
   if(bdex_elementAction(jj) /= 1) then
-    write(lout,"(a,i0)") "BDEX> ERROR Only action 1 (exchange) is currently supported, got",bdex_elementAction(jj)
+    write(lerr,"(a,i0)") "BDEX> ERROR Only action 1 (exchange) is currently supported, got",bdex_elementAction(jj)
     iErr = .true.
     return
   end if
@@ -209,7 +209,7 @@ subroutine bdex_parseElem(inLine,iErr)
     end if
   end do
   if(bdex_elementChannel(jj) == -1) then
-    write(lout,"(a)") "BDEX> ERROR The channel '"//trim(lnSplit(2))//"' was not found."
+    write(lerr,"(a)") "BDEX> ERROR The channel '"//trim(lnSplit(2))//"' was not found."
     iErr = .true.
     return
   end if
@@ -232,7 +232,7 @@ subroutine bdex_parseChan(inLine,iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "BDEX> ERROR Failed to parse input line."
+    write(lerr,"(a)") "BDEX> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -245,7 +245,7 @@ subroutine bdex_parseChan(inLine,iErr)
   end if
 
   if(nSplit < 3) then
-    write(lout,"(a,i0)") "BDEX> ERROR CHAN expects at least 3 arguments, got ",nSplit
+    write(lerr,"(a,i0)") "BDEX> ERROR CHAN expects at least 3 arguments, got ",nSplit
     iErr = .true.
     return
   end if
@@ -259,7 +259,7 @@ subroutine bdex_parseChan(inLine,iErr)
     call bdex_initialiseTCPIP(inLine,iErr)
     if(iErr) return
   case default
-    write(lout,"(a)") "BDEX> ERROR Unknown keyword in CHAN: '"//trim(lnSplit(3))//"'. Expected PIPE or TCPIP"
+    write(lerr,"(a)") "BDEX> ERROR Unknown keyword in CHAN: '"//trim(lnSplit(3))//"'. Expected PIPE or TCPIP"
     iErr = .true.
     return
   end select
@@ -326,7 +326,7 @@ subroutine bdex_initialisePIPE(inLine,iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "BDEX> ERROR Failed to parse input line."
+    write(lerr,"(a)") "BDEX> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -334,21 +334,21 @@ subroutine bdex_initialisePIPE(inLine,iErr)
   ! PIPE: Use a pair of pipes to communicate the particle distributions
   ! Arguments: InFileName OutFileName format fileUnit
   if(nSplit /= 7) then
-    write(lout,"(a)") "BDEX> ERROR CHAN PIPE expects the following arguments:"
-    write(lout,"(a)") "BDEX>       CHAN chanName PIPE InFileName OutFileName format fileUnit"
+    write(lerr,"(a)") "BDEX> ERROR CHAN PIPE expects the following arguments:"
+    write(lerr,"(a)") "BDEX>       CHAN chanName PIPE InFileName OutFileName format fileUnit"
     iErr = .true.
     return
   end if
 
   bdex_nchannels = bdex_nchannels+1
   if(bdex_nchannels > bdex_maxchannels) then
-    write(lout,"(a)") "BDEX> ERROR Max channels exceeded!"
+    write(lerr,"(a)") "BDEX> ERROR Max channels exceeded!"
     iErr = .true.
     return
   end if
 
   if(bdex_nStringStorage+2 > bdex_maxStore) then
-    write(lout,"(a)") "BDEX> ERROR maxStore exceeded for strings!"
+    write(lerr,"(a)") "BDEX> ERROR maxStore exceeded for strings!"
     iErr = .true.
     return
   end if
@@ -370,7 +370,7 @@ subroutine bdex_initialisePIPE(inLine,iErr)
   ! Open the inPipe
   inquire(unit=bdex_channels(bdex_nchannels,4),opened=lopen)
   if(lopen) then
-    write(lout,"(a,i0,a)")"BDEX> ERROR CHAN:PIPE unit=",bdex_channels(bdex_nchannels,4),&
+    write(lerr,"(a,i0,a)")"BDEX> ERROR CHAN:PIPE unit=",bdex_channels(bdex_nchannels,4),&
       " for file '"//bdex_stringStorage(bdex_channels(bdex_nchannels,3))//"' was already taken"
     iErr = .true.
     return
@@ -380,7 +380,7 @@ subroutine bdex_initialisePIPE(inLine,iErr)
   open(unit=bdex_channels(bdex_nchannels,4), file=bdex_stringStorage(bdex_channels(bdex_nchannels,3) ),&
     action='read',iostat=stat,status="OLD")
   if(stat /= 0) then
-    write(lout,"(a,i0)") "BDEX> ERROR opening file '",bdex_stringStorage( bdex_channels(bdex_nchannels,3)),"', stat=",stat
+    write(lerr,"(a,i0)") "BDEX> ERROR opening file '",bdex_stringStorage( bdex_channels(bdex_nchannels,3)),"', stat=",stat
     iErr = .true.
     return
   end if
@@ -388,7 +388,7 @@ subroutine bdex_initialisePIPE(inLine,iErr)
   ! Open the outPipe
   inquire(unit=bdex_channels(bdex_nchannels,4)+1,opened=lopen)
   if(lopen) then
-    write(lout,"(a,i0,a)")"BDEX> ERROR CHAN:PIPE unit=",bdex_channels(bdex_nchannels,4)+1,&
+    write(lerr,"(a,i0,a)")"BDEX> ERROR CHAN:PIPE unit=",bdex_channels(bdex_nchannels,4)+1,&
       " for file '"//bdex_stringStorage(bdex_channels(bdex_nchannels,3)+1 )//"' was already taken"
     iErr = .true.
     return
@@ -398,7 +398,7 @@ subroutine bdex_initialisePIPE(inLine,iErr)
   open(unit=bdex_channels(bdex_nchannels,4)+1,file=bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1),&
     action='write',iostat=stat,status="OLD")
   if(stat /= 0) then
-    write(lout,"(a,i0)") "BDEX> ERROR opening file '",bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1 ),"' stat=",stat
+    write(lerr,"(a,i0)") "BDEX> ERROR opening file '",bdex_stringStorage( bdex_channels(bdex_nchannels,3)+1 ),"' stat=",stat
     iErr = .true.
     return
   end if
@@ -422,14 +422,14 @@ subroutine bdex_initialiseTCPIP(inLine,iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "BDEX> ERROR Failed to parse input line."
+    write(lerr,"(a)") "BDEX> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
 
   ! TCPIP: Communicate over a TCP/IP port, like the old FLUKA coupling version did.
   ! Currently not implemented.
-  write(lout,"(a)") "BDEX> ERROR CHAN:TCPIP currently not supported in BDEX."
+  write(lerr,"(a)") "BDEX> ERROR CHAN:TCPIP currently not supported in BDEX."
   iErr = .true.
   return
 
@@ -518,8 +518,8 @@ subroutine bdex_track(i,ix,n)
     endif
 
   else
-    write(lout,"(a,i0,a)") "BDEX> ERROR elementAction = ",bdex_elementAction(i)," not understood."
-    call prror(-1)
+    write(lerr,"(a,i0,a)") "BDEX> ERROR elementAction = ",bdex_elementAction(i)," not understood."
+    call prror
   endif
 
 end subroutine bdex_track

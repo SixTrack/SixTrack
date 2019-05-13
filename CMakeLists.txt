@@ -1,253 +1,250 @@
-#Sixtrack CMAKE build file
-#Making use of https://cmake.org/Wiki/CMakeForFortranExample
-#and the file created for building Merlin.
+#
+#  SixTrack CMake Build File
+# ===========================
+#  Making use of https://cmake.org/Wiki/CMakeForFortranExample
+#  and the file created for building Merlin.
+#
 
 ###################################################################################################
 # General configuration
 ###################################################################################################
 
-# Set the cmake version required
 cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 
-# Set the project name and options
-PROJECT(SixTrack)
-ENABLE_LANGUAGE(Fortran)
-
-# force an out of source build to stop clutter
+# Force an out of source build to stop clutter
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-  message(STATUS "Sixtrack requires an out-of-source build.")
+  message(STATUS "SixTrack requires an out-of-source build.")
   message(STATUS "Please remove these files from ${CMAKE_BINARY_DIR} first:")
-  message(STATUS "CMakeCache.txt")
-  message(STATUS "CMakeFiles")
-  message(STATUS "Once these files are removed, create a separate directory")
-  message(STATUS "and run CMake from there")
-  message(FATAL_ERROR "in-source build detected")
-endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+  message(STATUS "  CMakeCache.txt")
+  message(STATUS "  CMakeFiles")
+  message(STATUS "Once these files are removed, create a separate directory and run CMake from there")
+  message(FATAL_ERROR "In-source build detected")
+endif()
 
 if(NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE Release CACHE STRING
-    "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel"# MPI MPIDEBUG."
-    FORCE)
-endif(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel" FORCE)
+endif()
+if(NOT CMAKE_GENERATOR)
+  set(CMAKE_GENERATOR "Unix Makefiles")
+endif()
 
-# Set Sixtrack version info
+# Extract SixTrack version info
 file(READ ${CMAKE_SOURCE_DIR}/source/version.f90 IFILE)
-STRING(REGEX MATCH ".*version = \"([0-9]+)[.]([0-9]+)[.]?([0-9]+)?[-]?(rc[0-9])?\"" VERSION_STRING ${IFILE})
-SET(VERSION_STRING "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}")
-SET(${PROJECT_NAME}_VERSION_MAJOR "${CMAKE_MATCH_1}")
-SET(${PROJECT_NAME}_VERSION_MINOR "${CMAKE_MATCH_2}")
-if ("${CMAKE_MATCH_3}" STREQUAL "")
-  SET(${PROJECT_NAME}_VERSION_PATCH "0")
-else()
-  SET(VERSION_STRING "${VERSION_STRING}.${CMAKE_MATCH_3}")
-  SET(${PROJECT_NAME}_VERSION_PATCH "${CMAKE_MATCH_3}")
-endif()
-string(REGEX MATCH "..$" NUM_MINOR "00${${PROJECT_NAME}_VERSION_MINOR}")
-string(REGEX MATCH "..$" NUM_PATCH "00${${PROJECT_NAME}_VERSION_PATCH}")
-set(NUM_VERSION "${${PROJECT_NAME}_VERSION_MAJOR}${NUM_MINOR}${NUM_PATCH}")
+string(REGEX MATCH ".*version = \"([0-9.]+)\"" VERSION_TMP ${IFILE})
+set(STRING_VERSION "${CMAKE_MATCH_1}")
+string(REGEX MATCH ".*numvers = ([0-9]+)"      VERSION_TMP ${IFILE})
+set(NUM_VERSION    "${CMAKE_MATCH_1}")
 
-if ("${CMAKE_MATCH_4}" STREQUAL "")
-  SET(${PROJECT_NAME}_VERSION_RC "")
-else()
-  SET(VERSION_STRING "${VERSION_STRING}-${CMAKE_MATCH_4}")
-  SET(${PROJECT_NAME}_VERSION_RC ${CMAKE_MATCH_4})
-endif()
-message(STATUS "SixTrack Version: ${VERSION_STRING}")
-message(STATUS "Numeric Version:  ${NUM_VERSION}")
-SET(${PROJECT_NAME}_VERSION "${VERSION_STRING}")
-MESSAGE(STATUS "Running on: ${CMAKE_SYSTEM_NAME} with ${CMAKE_SYSTEM_PROCESSOR} and generating for ${CMAKE_GENERATOR}")
+# Set the project
+project(SixTrack VERSION ${STRING_VERSION})
+enable_language(Fortran)
 
 # Get the current git commit hash
-set(GIT_REVISION "Unknown")
 find_package(Git)
 if(GIT_FOUND)
   execute_process(COMMAND git log -n1 --pretty=format:%H WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_REVISION)
   string(STRIP ${GIT_REVISION} GIT_REVISION)
-  message(STATUS "Git Revision: ${GIT_REVISION}")
   string(SUBSTRING ${GIT_REVISION} 0 7 GIT_BUILD)
   set(GIT_BUILD "-${GIT_BUILD}")
 else()
-  message(STATUS "Git Revision: git not installed.")
-  set(GIT_BUILD "")
+  set(GIT_REVISION "Unknown")
+  set(GIT_BUILD    "")
 endif()
+
+# Print some build info
+message(STATUS "SixTrack Version: ${${PROJECT_NAME}_VERSION}")
+message(STATUS "Version Major:    ${${PROJECT_NAME}_VERSION_MAJOR}")
+message(STATUS "Version Minor:    ${${PROJECT_NAME}_VERSION_MINOR}")
+message(STATUS "Version Patch:    ${${PROJECT_NAME}_VERSION_PATCH}")
+message(STATUS "Numeric Version:  ${NUM_VERSION}")
+message(STATUS "Git Revision:     ${GIT_REVISION}")
+message(STATUS "System Name:      ${CMAKE_SYSTEM_NAME}")
+message(STATUS "System Processor: ${CMAKE_SYSTEM_PROCESSOR}")
+message(STATUS "CMake Generator:  ${CMAKE_GENERATOR}")
+message(STATUS "CMake Source:     ${CMAKE_SOURCE_DIR}")
+message(STATUS "CMake Binary:     ${CMAKE_BINARY_DIR}")
+message(STATUS "Project Source:   ${PROJECT_SOURCE_DIR}")
+message(STATUS "Project Binary:   ${PROJECT_BINARY_DIR}")
 
 ###################################################################################################
 # SixTrack configuration options
 ###################################################################################################
 
 # Default ON
-OPTION(TILT "Allow elements to be tilted (by error)" ON)
-OPTION(FAST "Which implementation of drifts to use in thin6d" ON)
-OPTION(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
-OPTION(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
-OPTION(STF "Single Track File: Write all tracks for postprocessing to fort.90 instead of 32 separate files fort.59 to fort.90. Required for >64 particles" ON)
-OPTION(NAFF "Link to external NAFFlib for FMA." ON)
-OPTION(HASHLIB "Build the md5 hash library" ON)
+option(TILT "Allow elements to be tilted (by error)" ON)
+option(FAST "Which implementation of drifts to use in thin6d" ON)
+option(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
+option(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
+option(STF "Single Track File: Write all tracks for postprocessing to fort.90 instead of 32 separate files fort.59 to fort.90. Required for >64 particles" ON)
+option(NAFF "Link to external NAFFlib for FMA." ON)
+option(HASHLIB "Build the md5 hash library" ON)
 
 # Default OFF
-OPTION(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
-OPTION(API "Link to external BOINC API (if BOINC but not API, just use internal dummy library)" OFF)
-OPTION(BOINC "BOINC distributed computing support" OFF)
-OPTION(CR "Checkpoint / restarting" OFF)
-OPTION(BEAMGAS "Beam-gas scattering" OFF)
-OPTION(HDF5 "Adds support for the HDF5 block which enables writing output to a single HDF5 file." OFF)
-OPTION(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output" OFF)
-OPTION(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
-OPTION(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
-OPTION(FLUKA "Couple to FLUKA for beam collimation" OFF)
-OPTION(PYTHIA "Link with Pythia8 for SCATTER module" OFF)
-OPTION(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPF block" OFF)
-OPTION(ROOT "Link to the root libraries" OFF)
+option(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
+option(API "Link to external BOINC API (if BOINC but not API, just use internal dummy library)" OFF)
+option(BOINC "BOINC distributed computing support" OFF)
+option(CR "Checkpoint/restarting" OFF)
+option(BEAMGAS "Beam-gas scattering" OFF)
+option(HDF5 "Adds support for the HDF5 block which enables writing output to a single HDF5 file." OFF)
+option(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output" OFF)
+option(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
+option(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
+option(FLUKA "Couple to FLUKA for beam collimation" OFF)
+option(PYTHIA "Link with Pythia8 for SCATTER module" OFF)
+option(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPF block" OFF)
+option(ROOT "Link to the root libraries" OFF)
 
 # Build Options
-OPTION(32BIT "Create a 32bit binary" OFF)
-OPTION(64BIT "Create a 64bit binary" ON)
-OPTION(STATIC "Create a statically linked binary" ON)
-OPTION(NATIVE "Enable optimisations for the current machine" OFF)
-OPTION(AVX "Enable use of the Advanced Vector Extensions (AVX) instruction set - Sandy Bridge and later" OFF)
-OPTION(AVX2 "Enable use of the Advanced Vector Extensions 2 (AVX2) instruction set - Haswell and later" OFF)
-OPTION(AVX-512 "Enable use of the Advanced Vector Extensions 512 (AVX-512) instruction set - (Currently targeting Skylake-X)" OFF)
-OPTION(LTO "Enable link time optimisations" OFF)
+option(32BIT "Create a 32bit binary" OFF)
+option(64BIT "Create a 64bit binary" ON)
+option(STATIC "Create a statically linked binary" ON)
+option(NATIVE "Enable optimisations for the current machine" OFF)
+option(AVX "Enable use of the Advanced Vector Extensions (AVX) instruction set - Sandy Bridge and later" OFF)
+option(AVX2 "Enable use of the Advanced Vector Extensions 2 (AVX2) instruction set - Haswell and later" OFF)
+option(AVX512 "Enable use of the Advanced Vector Extensions 512 (AVX512) instruction set" OFF)
+option(AVX512_SKYLAKE "Enable use of the Advanced Vector Extensions 512 (AVX512) instruction set targeting Skylake" OFF)
+option(LTO "Enable link time optimisations" OFF)
 
 # Float Precision (Default: 64BITM)
-OPTION(32BITM "Floats are 32bit (single precision)" OFF)
-OPTION(64BITM "Floats are 64bit (double precision)" ON)
-OPTION(128BITM "Floats are 128bit (quad precision)" OFF)
+option(32BITM "Floats are 32bit (single precision)" OFF)
+option(64BITM "Floats are 64bit (double precision)" ON)
+option(128BITM "Floats are 128bit (quad precision)" OFF)
 
 # Rounding (Default: ROUND_NEAR)
-OPTION(ROUND_NEAR "Always round to the nearest number after floating point operations" ON)
-OPTION(ROUND_UP "Always round up after floating point operations" OFF)
-OPTION(ROUND_DOWN "Always round down after floating point operations" OFF)
-OPTION(ROUND_ZERO "Always round towards zero after floating point operations" OFF)
+option(ROUND_NEAR "Always round to the nearest number after floating point operations" ON)
+option(ROUND_UP "Always round up after floating point operations" OFF)
+option(ROUND_DOWN "Always round down after floating point operations" OFF)
+option(ROUND_ZERO "Always round towards zero after floating point operations" OFF)
 
 # Testing and Debug Options
-OPTION(BUILD_TESTING "Enable the test suite" OFF)
-OPTION(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
-OPTION(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
-OPTION(WARN "Enable build flags for additional compiler warnings" OFF)
-OPTION(DEBUG "Debugging output" OFF)
+option(BUILD_TESTING "Enable the test suite" OFF)
+option(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
+option(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
+option(WARN "Enable build flags for additional compiler warnings" OFF)
+option(DEBUG "Debugging output" OFF)
 option(NOSYMLINK "Don't use symlinks for test inputs and canonicals" OFF)
+option(MEMUSAGE "Writes PID and actual memory usage to sim_meta.dat (GNU/UNIX only)" OFF)
 
-SET(BOINC_DIR ${CMAKE_SOURCE_DIR}/lib/boinc CACHE PATH "Path to the boinc build folder")
-SET(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive_build CACHE PATH "Path to the libarchive build folder")
-SET(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive CACHE PATH "Path to the libarchive source folder")
-SET(PYTHIA_DIR ${CMAKE_SOURCE_DIR}/lib/pythia CACHE PATH "Path to the Pythia build folder")
+set(BOINC_DIR ${CMAKE_SOURCE_DIR}/lib/boinc CACHE PATH "Path to the boinc build folder")
+set(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive_build CACHE PATH "Path to the libarchive build folder")
+set(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive CACHE PATH "Path to the libarchive source folder")
+set(PYTHIA_DIR ${CMAKE_SOURCE_DIR}/lib/pythia CACHE PATH "Path to the Pythia build folder")
 
 ###################################################################################################
 # Sixtrack binary name construction
 ###################################################################################################
 
 # FFLAGS depend on the compiler
-get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
+get_filename_component(Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
-SET(SIXTRACK_FEAT_CR "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
-SET(SIXTRACK_FEAT_DA "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
+set(SIXTRACK_FEAT_CR "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
+set(SIXTRACK_FEAT_DA "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
 
 if(NOT TILT)
-  SET(SIXTRACK_FEAT_CR "notilt_${SIXTRACK_FEAT_CR}")
-  SET(SIXTRACK_FEAT_DA "notilt_${SIXTRACK_FEAT_DA}")
+  set(SIXTRACK_FEAT_CR "notilt_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_DA "notilt_${SIXTRACK_FEAT_DA}")
 endif()
 if(NOT FAST)
-  SET(SIXTRACK_FEAT_CR "nofast_${SIXTRACK_FEAT_CR}")
-  SET(SIXTRACK_FEAT_DA "nofast_${SIXTRACK_FEAT_DA}")
+  set(SIXTRACK_FEAT_CR "nofast_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_DA "nofast_${SIXTRACK_FEAT_DA}")
 endif()
 if(NOT STF)
-  SET(SIXTRACK_FEAT_CR "nostf_${SIXTRACK_FEAT_CR}")
-  SET(SIXTRACK_FEAT_DA "nostf_${SIXTRACK_FEAT_DA}")
+  set(SIXTRACK_FEAT_CR "nostf_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_DA "nostf_${SIXTRACK_FEAT_DA}")
 endif()
 if(CRLIBM AND ROUND_NEAR)
-  SET(SIXTRACK_FEAT_CR "crlibm_rn_${SIXTRACK_FEAT_CR}")
-  SET(SIXTRACK_FEAT_DA "crlibm_rn_${SIXTRACK_FEAT_DA}")
+  set(SIXTRACK_FEAT_CR "crlibm_rn_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_DA "crlibm_rn_${SIXTRACK_FEAT_DA}")
 endif(CRLIBM AND ROUND_NEAR)
 if(CRLIBM AND ROUND_UP)
-  SET(SIXTRACK_FEAT_CR "crlibm_ru_${SIXTRACK_FEAT_CR}")
-  SET(SIXTRACK_FEAT_DA "crlibm_ru_${SIXTRACK_FEAT_DA}")
+  set(SIXTRACK_FEAT_CR "crlibm_ru_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_DA "crlibm_ru_${SIXTRACK_FEAT_DA}")
 endif(CRLIBM AND ROUND_UP)
 if(CRLIBM AND ROUND_DOWN)
-  SET(SIXTRACK_FEAT_CR "crlibm_rd_${SIXTRACK_FEAT_CR}")
-  SET(SIXTRACK_FEAT_DA "crlibm_rd_${SIXTRACK_FEAT_DA}")
+  set(SIXTRACK_FEAT_CR "crlibm_rd_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_DA "crlibm_rd_${SIXTRACK_FEAT_DA}")
 endif(CRLIBM AND ROUND_DOWN)
 if(CRLIBM AND ROUND_ZERO)
-  SET(SIXTRACK_FEAT_CR "crlibm_rz_${SIXTRACK_FEAT_CR}")
-  SET(SIXTRACK_FEAT_DA "crlibm_rz_${SIXTRACK_FEAT_DA}")
+  set(SIXTRACK_FEAT_CR "crlibm_rz_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_DA "crlibm_rz_${SIXTRACK_FEAT_DA}")
 endif(CRLIBM AND ROUND_ZERO)
 if(CERNLIB)
-  SET(SIXTRACK_FEAT_CR "cernlib_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "cernlib_${SIXTRACK_FEAT_CR}")
 endif()
 if(API)
-  SET(SIXTRACK_FEAT_CR "api_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "api_${SIXTRACK_FEAT_CR}")
 endif()
 if(BOINC)
   SET(SIXTRACK_FEAT_CR "boinc_${SIXTRACK_FEAT_CR}")
 endif()
 if(CR)
-  SET(SIXTRACK_FEAT_CR "cr_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "cr_${SIXTRACK_FEAT_CR}")
 endif()
 if(BEAMGAS)
-  SET(SIXTRACK_FEAT_CR "beamgas_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "beamgas_${SIXTRACK_FEAT_CR}")
 endif()
 if(DEBUG)
-  SET(SIXTRACK_FEAT_CR "debug_${SIXTRACK_FEAT_CR}")
-  SET(SIXTRACK_FEAT_DA "debug_${SIXTRACK_FEAT_DA}")
+  set(SIXTRACK_FEAT_CR "debug_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_DA "debug_${SIXTRACK_FEAT_DA}")
 endif()
 if(HDF5)
-  SET(SIXTRACK_FEAT_CR "hdf5_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "hdf5_${SIXTRACK_FEAT_CR}")
 endif()
 if(FIO)
-  SET(SIXTRACK_FEAT_CR "fio_${SIXTRACK_FEAT_CR}")
-  SET(SIXTRACK_FEAT_DA "fio_${SIXTRACK_FEAT_DA}")
+  set(SIXTRACK_FEAT_CR "fio_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_DA "fio_${SIXTRACK_FEAT_DA}")
 endif()
 if(MERLINSCATTER)
-  SET(SIXTRACK_FEAT_CR "merlinscatter_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "merlinscatter_${SIXTRACK_FEAT_CR}")
 endif()
 if(G4COLLIMAT)
-  SET(SIXTRACK_FEAT_CR "g4collimat_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "g4collimat_${SIXTRACK_FEAT_CR}")
 endif()
 if(FLUKA)
-  SET(SIXTRACK_FEAT_CR "FLUKA_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "FLUKA_${SIXTRACK_FEAT_CR}")
 endif(FLUKA)
 if(PYTHIA)
-  SET(SIXTRACK_FEAT_CR "pythia_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "pythia_${SIXTRACK_FEAT_CR}")
 endif()
 if(LIBARCHIVE)
-  SET(SIXTRACK_FEAT_CR "libarchive_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "libarchive_${SIXTRACK_FEAT_CR}")
 endif()
 
 if(ROOT)
-  SET(SIXTRACK_FEAT_CR "root_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "root_${SIXTRACK_FEAT_CR}")
 endif(ROOT)
 
 if(STATIC)
-  SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_static")
-  SET(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_static")
+  set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_static")
+  set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_static")
 endif()
 if(AVX)
-  SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_avx")
-  SET(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_avx")
+  set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_avx")
+  set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_avx")
 endif(AVX)
 if(AVX2)
-  SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_avx2")
-  SET(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_avx2")
+  set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_avx2")
+  set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_avx2")
 endif(AVX2)
-if(AVX-512)
-  SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_avx512")
-  SET(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_avx512")
-endif(AVX-512)
+if(AVX512 OR AVX512_SKYLAKE)
+  set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_avx512")
+  set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_avx512")
+endif(AVX512 OR AVX512_SKYLAKE)
 if(NATIVE)
-  SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_native")
-  SET(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_native")
+  set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_native")
+  set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_native")
 endif()
 
-SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_${CMAKE_SYSTEM_PROCESSOR}")
-SET(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_${CMAKE_SYSTEM_PROCESSOR}")
+set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_${CMAKE_SYSTEM_PROCESSOR}")
+set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_${CMAKE_SYSTEM_PROCESSOR}")
 
 if(32BIT)
-  SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_32bit")
-  SET(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_32bit")
+  set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_32bit")
+  set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_32bit")
 endif()
 if(64BIT)
-  SET(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_64bit")
-  SET(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_64bit")
+  set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_64bit")
+  set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_64bit")
 endif()
 
 if(32BITM)
@@ -266,7 +263,7 @@ endif()
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
   set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_DEBUG")
   set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_DEBUG")
-endif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+endif()
 
 # Create the sixtrack binary name string
 set(SIXTRACK_BINARY_NAME    "${PROJECT_NAME}_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_CR}")
@@ -277,8 +274,8 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 ###################################################################################################
 
 list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
-list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB DEBUG HDF5 FIO LIBARCHIVE ROOT HASHLIB)
-list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32)
+list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB)
+list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
 ###################################################################################################
 # Select which fortran files to generate and compile
@@ -287,11 +284,12 @@ list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32)
 list(APPEND FORT90_LIB
   sixtrack version core_tools constants sixtrack_input mod_units
   common_modules close strings string_tools mainarrays mod_meta
-  mod_time mod_alloc zipf matrix_inv lielib beam6d
+  mod_time mod_alloc zipf matrix_inv lielib beam6d mod_geometry
   bouncy_castle plato_seq bdex fma dabnew end_sixtrack
   ranecu wire hions elens mod_dist scatter dump dynk
   aperture mod_fluc beam6d_fox six_fox postprocessing
-  read_write ranlux collimation mod_particles cheby utils
+  read_write ranlux collimation coll_db mod_particles cheby utils
+  mod_ffield mod_ffield_aux
 )
 
 # Files unique to DA or CR version
@@ -305,10 +303,6 @@ if(CR)
   list(APPEND FORT90_LIB checkpoint_restart)
 endif(CR)
 
-if(DEBUG)
-  list(APPEND FORT90_LIB debug_dumps)
-endif(DEBUG)
-
 if(HDF5)
   list(APPEND FORT90_LIB hdf5_output hdf5_sixtrack)
 endif(HDF5)
@@ -318,7 +312,7 @@ if(HASHLIB)
 endif(HASHLIB)
 
 if(BEAMGAS)
-  LIST(APPEND FORT90_CR beamgas)
+  list(APPEND FORT90_CR beamgas)
 endif(BEAMGAS)
 
 if(FLUKA)
@@ -326,7 +320,7 @@ if(FLUKA)
 endif(FLUKA)
 
 if(ROOT)
-  LIST(APPEND FORT90_LIB root_output)
+  list(APPEND FORT90_LIB root_output)
 endif(ROOT)
 
 if(BOINC AND NOT API)
@@ -382,7 +376,7 @@ if(G4COLLIMAT)
   message(STATUS "Geant4 use file: ${Geant4_USE_FILE}")
   message(STATUS "Geant4 libraries: ${Geant4_LIBRARIES}")
   message(STATUS "Geant4 definitions: ${Geant4_DEFINITIONS}")
-#	include(${Geant4_USE_FILE})
+# include(${Geant4_USE_FILE})
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/g4collimat)
 endif(G4COLLIMAT)
 
@@ -433,6 +427,12 @@ if(HDF5)
     message(FATAL_ERROR "Cannot build HDF5 with CR enabled")
   endif()
 endif()
+if(SIXDA)
+  if(CR)
+    message(STATUS "Will not build SixDA when checkpoint/restart is enabled.")
+    set(SIXDA OFF)
+  endif()
+endif()
 if(BOINC)
   if(NOT CRLIBM)
     message(FATAL_ERROR "Building with BOINC requires CRLIBM enabled")
@@ -442,10 +442,6 @@ if(BOINC)
   endif()
   if(NOT LIBARCHIVE)
     message(FATAL_ERROR "Building with BOINC requires LIBARCHIVE enabled")
-  endif()
-  if(SIXDA)
-    message(STATUS "Will not build SixDA when BOINC is enabled.")
-    set(SIXDA OFF)
   endif()
 endif(BOINC)
 if(API)
@@ -525,22 +521,36 @@ endif(128BITM)
 
 if(NOT SIXDA)
   message(STATUS "Not building SixDA version.")
-endif()
+endif(NOT SIXDA)
+
+# Since each AVX option includes the others, just turn the lower ones off
+if(AVX512_SKYLAKE)
+  set(AVX OFF)
+  set(AVX2 OFF)
+  set(AVX512 OFF)
+endif(AVX512_SKYLAKE)
+if(AVX512)
+  set(AVX OFF)
+  set(AVX2 OFF)
+endif(AVX512)
+if(AVX2)
+  set(AVX OFF)
+endif(AVX2)
 
 ###################################################################################################
 # Settings for compiler build flags
 ###################################################################################################
 
 if(STATIC)
-  #This just sets the default build setting for shared libraries.
-  SET(BUILD_SHARED_LIBS OFF)
+  # This just sets the default build setting for shared libraries.
+  set(BUILD_SHARED_LIBS OFF)
 endif()
 
 #FLAGS depend on the compiler
 get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
 #lots of games to play here.... start with fortran flags
-if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
+if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
   ##############
   #  gfortran  #
   ##############
@@ -561,6 +571,11 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
     set(CMAKE_Fortran_FLAGS_RELEASE "-Wuninitialized ${CMAKE_Fortran_FLAGS_RELEASE}")
   endif()
 
+  if(MEMUSAGE)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-fall-intrinsics ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-fall-intrinsics ${CMAKE_Fortran_FLAGS_DEBUG}")
+  endif()
+
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES ppc64le )
     set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fno-expensive-optimizations -fno-inline-functions")
   endif()
@@ -569,7 +584,7 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
   endif()
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
-    SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mfpmath=sse -msse2")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mfpmath=sse -msse2")
 
     if(32BIT)
       set(CMAKE_Fortran_FLAGS "-m32 ${CMAKE_Fortran_FLAGS}")
@@ -587,9 +602,13 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
       set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
     endif(AVX2)
 
-    if(AVX-512)
-      set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512vl -mavx512bw -mavx512dq -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
-    endif(AVX-512)
+    if(AVX512)
+      set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -mavx512f -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+    endif(AVX512)
+
+    if(AVX512_SKYLAKE)
+      set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+    endif(AVX512_SKYLAKE)
 
     if(NATIVE)
       set(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
@@ -598,30 +617,30 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
   if(STATIC)
     if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-      SET(CMAKE_Fortran_LINKER_FLAGS "-Bstatic -static-libgcc -static-libgfortran ${CMAKE_Fortran_LINKER_FLAGS}")
+      set(CMAKE_Fortran_LINKER_FLAGS "-Bstatic -static-libgcc -static-libgfortran ${CMAKE_Fortran_LINKER_FLAGS}")
     else()
-      SET(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
+      set(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
     endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   endif(STATIC)
 
   if(COVERAGE)
-    SET(CMAKE_Fortran_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_Fortran_FLAGS}")
-    SET(CMAKE_Fortran_LINKER_FLAGS "-fprofile-arcs ${CMAKE_Fortran_LINKER_FLAGS}")
+    set(CMAKE_Fortran_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_Fortran_FLAGS}")
+    set(CMAKE_Fortran_LINKER_FLAGS "-fprofile-arcs ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(COVERAGE)
 
   if(GPROF)
-    SET(CMAKE_Fortran_FLAGS "-pg ${CMAKE_Fortran_FLAGS}")
-    SET(CMAKE_Fortran_LINKER_FLAGS "-pg ${CMAKE_Fortran_LINKER_FLAGS}")
+    set(CMAKE_Fortran_FLAGS "-pg ${CMAKE_Fortran_FLAGS}")
+    set(CMAKE_Fortran_LINKER_FLAGS "-pg ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(GPROF)
 
-elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
+elseif(Fortran_COMPILER_NAME MATCHES "ifort.*")
   ###########
   #  ifort  #
   ###########
 
   set(IFORT ON)
   set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
-  set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -traceback -no-fma -std15 -assume realloc-lhs")
   set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
   set(PREPRO_FLAGS -I${CMAKE_SOURCE_DIR}/source/include -fpp -E -P)
 
@@ -630,7 +649,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
   endif()
 
   if(WARN)
-    set(CMAKE_Fortran_FLAGS "-warn unused ${CMAKE_Fortran_FLAGS}")
+    set(CMAKE_Fortran_FLAGS "-warn unused -check bounds ${CMAKE_Fortran_FLAGS}")
   endif(WARN)
 
   if(32BIT)
@@ -653,9 +672,13 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
     set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -no-fma ${CMAKE_Fortran_FLAGS}")
   endif(AVX2)
 
-  if(AVX-512)
+  if(AVX512)
     set(CMAKE_Fortran_FLAGS "-axcommon-avx512 -no-fma ${CMAKE_Fortran_FLAGS}")
-  endif(AVX-512)
+  endif(AVX512)
+
+  if(AVX512_SKYLAKE)
+    set(CMAKE_Fortran_FLAGS "-axskylake-avx512 -no-fma ${CMAKE_Fortran_FLAGS}")
+  endif(AVX512_SKYLAKE)
 
   if(NATIVE)
     set(CMAKE_Fortran_FLAGS_RELEASE "-xHost ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -665,7 +688,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
     set(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(STATIC)
 
-elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
+elseif(Fortran_COMPILER_NAME MATCHES "nagfor.*")
   ############
   #  nagfor  #
   ############
@@ -675,8 +698,6 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
   set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -gline")
   set(PREPRO_EXEC  ${CMAKE_CXX_COMPILER})
   set(PREPRO_FLAGS -cpp -E -P)
-  # set(PREPRO_EXEC  ${CMAKE_Fotran_COMPILER})
-  # set(PREPRO_FLAGS -F)
 
   if(WARN)
     set(CMAKE_Fortran_FLAGS "-w=ulv -w=uparam ${CMAKE_Fortran_FLAGS}")
@@ -700,27 +721,25 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
   endif(NATIVE)
 
   if(STATIC)
-    SET(CMAKE_Fortran_LINKER_FLAGS "-Bstatic ${CMAKE_Fortran_LINKER_FLAGS}")
+    set(CMAKE_Fortran_LINKER_FLAGS "-Bstatic ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(STATIC)
 
   if(NOT STATIC)
-    SET(CMAKE_Fortran_LINKER_FLAGS "-Bdynamic ${CMAKE_Fortran_LINKER_FLAGS}")
+    set(CMAKE_Fortran_LINKER_FLAGS "-Bdynamic ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(NOT STATIC)
 
-#generic catch option
 else()
-  message ("CMAKE_Fortran_COMPILER full path: " ${CMAKE_Fortran_COMPILER})
-  message ("Fortran compiler: " ${Fortran_COMPILER_NAME})
-
-  message ("No optimized Fortran compiler flags are known, we just try -O2 or -O0 -g...")
-  set (CMAKE_Fortran_FLAGS_RELEASE "-O2 ${CMAKE_Fortran_FLAGS_RELEASE}")
-  set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g ${CMAKE_Fortran_FLAGS_DEBUG}")
+  # Generic catch option
+  message(STATUS "CMAKE_Fortran_COMPILER full path: " ${CMAKE_Fortran_COMPILER})
+  message(STATUS "Fortran compiler: " ${Fortran_COMPILER_NAME})
+  message(STATUS "No optimized Fortran compiler flags are known, we just try -O2 or -O0 -g...")
+  set(CMAKE_Fortran_FLAGS_RELEASE "-O2 ${CMAKE_Fortran_FLAGS_RELEASE}")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g ${CMAKE_Fortran_FLAGS_DEBUG}")
   set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
   set(PREPRO_FLAGS -cpp -E -P)
-endif ()
+endif()
 
-#Now for C flags (crlibm for now)
-#${CMAKE_C_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
+# C Flags
 if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
@@ -746,9 +765,13 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
       set(CMAKE_C_FLAGS "-mavx -mavx2 -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
     endif(AVX2)
 
-    if(AVX-512)
-      set(CMAKE_C_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512vl -mavx512bw -mavx512dq -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
-    endif(AVX-512)
+    if(AVX512)
+      set(CMAKE_C_FLAGS "-mavx -mavx2 -mavx512f -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+    endif(AVX512)
+
+    if(AVX512_SKYLAKE)
+      set(CMAKE_C_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+    endif(AVX512_SKYLAKE)
 
     if(NATIVE)
       set(CMAKE_C_FLAGS "-march=native ${CMAKE_C_FLAGS}")
@@ -756,18 +779,19 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
   endif()
 
   if(STATIC)
-    SET(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
+    set(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
   endif(STATIC)
 
   if(COVERAGE)
-    SET(CMAKE_C_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_C_FLAGS}")
-    SET(CMAKE_C_LINKER_FLAGS "-fprofile-arcs ${CMAKE_C_LINKER_FLAGS}")
+    set(CMAKE_C_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_C_FLAGS}")
+    set(CMAKE_C_LINKER_FLAGS "-fprofile-arcs ${CMAKE_C_LINKER_FLAGS}")
   endif(COVERAGE)
 
   if(GPROF)
-    SET(CMAKE_C_FLAGS "-pg ${CMAKE_C_FLAGS}")
-    SET(CMAKE_C_LINKER_FLAGS "-pg ${CMAKE_C_LINKER_FLAGS}")
+    set(CMAKE_C_FLAGS "-pg ${CMAKE_C_FLAGS}")
+    set(CMAKE_C_LINKER_FLAGS "-pg ${CMAKE_C_LINKER_FLAGS}")
   endif(GPROF)
+
 endif()
 
 if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
@@ -788,24 +812,28 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
     set(CMAKE_C_FLAGS "-mavx -mavx2 -no-fma ${CMAKE_C_FLAGS}")
   endif(AVX2)
 
-  if(AVX-512)
+  if(AVX512)
     set(CMAKE_C_FLAGS "-axcommon-avx512 -no-fma ${CMAKE_C_FLAGS}")
-  endif(AVX-512)
+  endif(AVX512)
+
+  if(AVX512_SKYLAKE)
+    set(CMAKE_C_FLAGS "-axskylake-avx512 -no-fma ${CMAKE_C_FLAGS}")
+  endif(AVX512_SKYLAKE)
 
   if(NATIVE)
     set(CMAKE_C_FLAGS "-xHost ${CMAKE_C_FLAGS}")
   endif(NATIVE)
 
-  set (CMAKE_C_FLAGS_RELEASE "-O3")
-  set (CMAKE_C_FLAGS_DEBUG   "-O0 -g")
+  set(CMAKE_C_FLAGS_RELEASE "-O3")
+  set(CMAKE_C_FLAGS_DEBUG   "-O0 -g")
 
   if(STATIC)
-    SET(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
+    set(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
   endif(STATIC)
+
 endif()
 
-#Now for CXX flags (merlinScatter for now)
-#${CMAKE_CXX_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
+# CXX Flags
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
@@ -831,9 +859,13 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
       set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
     endif(AVX2)
 
-    if(AVX-512)
-      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512vl -mavx512bw -mavx512dq -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
-    endif(AVX-512)
+    if(AVX512)
+      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mavx512f -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+    endif(AVX512)
+
+    if(AVX512_SKYLAKE)
+      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+    endif(AVX512_SKYLAKE)
 
     if(NATIVE)
       set(CMAKE_CXX_FLAGS "-march=native ${CMAKE_CXX_FLAGS}")
@@ -841,18 +873,19 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
   endif()
 
   if(STATIC)
-    SET(CMAKE_CXX_LINKER_FLAGS "-static -static-libstdc++ ${CMAKE_CXX_LINKER_FLAGS}")
+    set(CMAKE_CXX_LINKER_FLAGS "-static -static-libstdc++ ${CMAKE_CXX_LINKER_FLAGS}")
   endif(STATIC)
 
-  if(COVERAGE)
-    SET(CMAKE_CXX_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_CXX_FLAGS}")
-    SET(CMAKE_CXX_LINKER_FLAGS "-fprofile-arcs ${CMAKE_CXX_LINKER_FLAGS}")
-  endif(COVERAGE)
+  # Disable COVERAGE for C++ source as it breaks SixTestWrapper on some systems
+  # if(COVERAGE)
+  #   set(CMAKE_CXX_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_CXX_FLAGS}")
+  #   set(CMAKE_CXX_LINKER_FLAGS "-fprofile-arcs ${CMAKE_CXX_LINKER_FLAGS}")
+  # endif(COVERAGE)
 
-  IF(GPROF)
-    SET(CMAKE_CXX_FLAGS "-pg ${CMAKE_CXX_FLAGS}")
-    SET(CMAKE_CXX_LINKER_FLAGS "-pg ${CMAKE_CXX_LINKER_FLAGS}")
-  ENDIF(GPROF)
+  if(GPROF)
+    set(CMAKE_CXX_FLAGS "-pg ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_LINKER_FLAGS "-pg ${CMAKE_CXX_LINKER_FLAGS}")
+  endif(GPROF)
 
 endif()
 
@@ -874,21 +907,25 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
     set(CMAKE_CXX_FLAGS "-mavx -mavx2 -no-fma ${CMAKE_CXX_FLAGS}")
   endif(AVX2)
 
-  if(AVX-512)
+  if(AVX512)
     set(CMAKE_CXX_FLAGS "-axcommon-avx512 -no-fma ${CMAKE_CXX_FLAGS}")
-  endif(AVX-512)
+  endif()
+
+  if(AVX512_SKYLAKE)
+    set(CMAKE_CXX_FLAGS "-axskylake-avx512 -no-fma ${CMAKE_CXX_FLAGS}")
+  endif()
 
   if(NATIVE)
     set(CMAKE_CXX_FLAGS "-march=xHost ${CMAKE_CXX_FLAGS}")
   endif(NATIVE)
 
-  set (CMAKE_CXX_FLAGS_RELEASE "-O3")
-  set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
+  set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+  set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
 
-  #When using icc remember to link to libstdc++
+  # When using icc remember to link to libstdc++
   if(STATIC)
     find_library(stdc++ STATIC stdc++)
-    SET(CMAKE_CXX_LINKER_FLAGS "-static ${CMAKE_CXX_LINKER_FLAGS}")
+    set(CMAKE_CXX_LINKER_FLAGS "-static ${CMAKE_CXX_LINKER_FLAGS}")
   else()
     find_library(stdc++ stdc++)
   endif(STATIC)
@@ -925,15 +962,15 @@ foreach(loop IN LISTS PREPRO_FLAGS_TOOLS PREPRO_FLAGS_LIB PREPRO_FLAGS_COMPILE)
 endforeach()
 if(32BITM)
   message(STATUS "Adding preprocessor macro -DSIXTRACK_REAL=real32 to target SixTrack")
-  list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real32 -DSINGLE_MATH)
+  list(APPEND PREPRO_FLAGS -DSINGLE_MATH)
 endif()
 if(64BITM)
   message(STATUS "Adding preprocessor macro -DSIXTRACK_REAL=real64 to target SixTrack")
-  list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real64 -DDOUBLE_MATH)
+  list(APPEND PREPRO_FLAGS -DDOUBLE_MATH)
 endif()
 if(128BITM)
   message(STATUS "Adding preprocessor macro -DSIXTRACK_REAL=real128 to target SixTrack")
-  list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real128 -DQUAD_MATH)
+  list(APPEND PREPRO_FLAGS -DQUAD_MATH)
 endif()
 
   list(APPEND PREPRO_FLAGS -DSIXTRACK_GIT_REVISION="'${GIT_REVISION}'")
@@ -942,9 +979,8 @@ endif()
 add_executable(dafor ${CMAKE_SOURCE_DIR}/source/tools/dafor/dafor.f90)
 #we do not need any fancy flags for dafor but nagfor does not like the following
 if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
-  SET_TARGET_PROPERTIES(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
-  SET_TARGET_PROPERTIES(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
-  #target_compile_definitions(dafor PUBLIC "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
+  set_target_properties(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2")
+  set_target_properties(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2")
 endif(Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
 if(CRLIBM)
@@ -955,7 +991,7 @@ if(CRLIBM OR BUILD_TESTING)
 endif()
 
 if(HDF5)
-  find_library(dl STATIC dl) #HDF5 has a capability to dynamically load filters
+  find_library(dl STATIC dl) # HDF5 has a capability to dynamically load filters
   add_library(hdf5_local_f STATIC IMPORTED)
   add_library(hdf5_local_s STATIC IMPORTED)
   add_library(hdf5_local_c STATIC IMPORTED)
@@ -992,10 +1028,10 @@ if(MERLINSCATTER)
   set_property(TARGET merlinscatter PROPERTY CXX_STANDARD 11)
 
   if(32BIT)
-    SET_TARGET_PROPERTIES(merlinscatter PROPERTIES LINK_FLAGS "-m32")
+    set_target_properties(merlinscatter PROPERTIES LINK_FLAGS "-m32")
   endif(32BIT)
   if(64BIT)
-    SET_TARGET_PROPERTIES(merlinscatter PROPERTIES LINK_FLAGS "-m64")
+    set_target_properties(merlinscatter PROPERTIES LINK_FLAGS "-m64")
   endif(64BIT)
 endif()
 
@@ -1020,10 +1056,10 @@ if(NAFF)
   set_property(TARGET naff PROPERTY C_STANDARD 99)
 
   if(32BIT)
-    SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m32")
+    set_target_properties(naff PROPERTIES LINK_FLAGS "-m32")
   endif(32BIT)
   if(64BIT)
-    SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m64")
+    set_target_properties(naff PROPERTIES LINK_FLAGS "-m64")
   endif(64BIT)
 endif(NAFF)
 
@@ -1243,61 +1279,56 @@ if(G4COLLIMAT)
   target_link_libraries(SixTrackCR g4collimat ${Geant4_LIBRARIES} Threads::Threads)
 endif(G4COLLIMAT)
 
-IF(COVERAGE)
+if(COVERAGE)
   target_compile_options(SixTrackCore PRIVATE -fprofile-arcs -ftest-coverage)
   target_compile_options(SixTrackCR   PRIVATE -fprofile-arcs -ftest-coverage)
-  SET_TARGET_PROPERTIES(SixTrackCore  PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
-  SET_TARGET_PROPERTIES(SixTrackCR    PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+  set_target_properties(SixTrackCore  PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+  set_target_properties(SixTrackCR    PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
   if(SIXDA)
     target_compile_options(SixTrackDA PRIVATE -fprofile-arcs -ftest-coverage)
-    SET_TARGET_PROPERTIES(SixTrackDA  PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+    set_target_properties(SixTrackDA  PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
   endif()
-ENDIF(COVERAGE)
+endif(COVERAGE)
 
-SET(BUILDNAME "${SIXTRACK_BINARY_NAME}" CACHE STRING "Name of build on the dashboard")
-MARK_AS_ADVANCED(BUILDNAME)
+set(BUILDNAME "${SIXTRACK_BINARY_NAME}" CACHE STRING "Name of build on the dashboard")
+mark_as_advanced(BUILDNAME)
 
-#For testing
-IF(BUILD_TESTING)
+# For testing
+if(BUILD_TESTING)
 
-  ENABLE_TESTING()
-  INCLUDE(CTest)
+  enable_testing()
+  include(CTest)
 
   add_subdirectory(${CMAKE_SOURCE_DIR}/test)
   configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake  ${CMAKE_BINARY_DIR})
 
   #need to build the testing tools
-  add_executable(verify10 ${CMAKE_SOURCE_DIR}/test/bin/verify10.f90)
-  add_executable(checkf10 ${CMAKE_SOURCE_DIR}/test/bin/checkf10.f90)
-  add_executable(compf10 ${CMAKE_SOURCE_DIR}/test/bin/compf10.f90)
-  add_executable(checkf110 ${CMAKE_SOURCE_DIR}/test/bin/checkf110.f90)
-  add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/test/bin/checkf1014.f90)
+  add_executable(verify10 ${CMAKE_SOURCE_DIR}/test/tools/verify10.f90)
+  add_executable(checkf10 ${CMAKE_SOURCE_DIR}/test/tools/checkf10.f90)
+  add_executable(compf10 ${CMAKE_SOURCE_DIR}/test/tools/compf10.f90)
+  add_executable(checkf110 ${CMAKE_SOURCE_DIR}/test/tools/checkf110.f90)
+  add_executable(checkf1014 ${CMAKE_SOURCE_DIR}/test/tools/checkf1014.f90)
   add_executable(read90 ${CMAKE_SOURCE_DIR}/test/read90/read90.f90)
   add_executable(readDump3 ${CMAKE_SOURCE_DIR}/test/readDump3/readDump3.f90)
 
   target_link_libraries(read90 roundctl)
 
-  SET_TARGET_PROPERTIES(verify10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
-  SET_TARGET_PROPERTIES(checkf10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
-  SET_TARGET_PROPERTIES(compf10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
-  SET_TARGET_PROPERTIES(checkf110 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
-  SET_TARGET_PROPERTIES(checkf1014 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
-  SET_TARGET_PROPERTIES(read90 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
-  SET_TARGET_PROPERTIES(readDump3 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+  set_target_properties(verify10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+  set_target_properties(checkf10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+  set_target_properties(compf10 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+  set_target_properties(checkf110 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+  set_target_properties(checkf1014 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+  set_target_properties(read90 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+  set_target_properties(readDump3 PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
-  #The testing wrapper
-  add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/test/bin/SixTestWrapper.cpp)
-  if (LIBARCHIVE)
+  # The Test Wrapper
+  add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/test/tools/SixTestWrapper.cpp)
+  if(LIBARCHIVE)
     target_link_libraries(SixTestWrapper libArchive_wrapper libarchive z Threads::Threads)
   endif()
-  SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
+  set_target_properties(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
 
   target_link_libraries(SixTestWrapper Threads::Threads)
-
-  IF(COVERAGE)
-    target_compile_options(SixTestWrapper PRIVATE -fprofile-arcs -ftest-coverage)
-    SET_TARGET_PROPERTIES(SixTestWrapper PROPERTIES LINK_FLAGS "-fprofile-arcs ${CMAKE_CXX_LINKER_FLAGS}")
-  ENDIF(COVERAGE)
 
   if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
     target_link_libraries(SixTestWrapper stdc++)
@@ -1306,7 +1337,6 @@ IF(BUILD_TESTING)
 
   #just a work around to build on MSYS2 for now
   if(MSYS AND STATIC)
-    #set(CMAKE_EXECUTABLE_SUFFIX_Fortran "")
     target_link_libraries(verify10 ${MSYS_QUADMATH})
     target_link_libraries(checkf10 ${MSYS_QUADMATH})
     target_link_libraries(checkf110 ${MSYS_QUADMATH})
@@ -1316,21 +1346,21 @@ IF(BUILD_TESTING)
     target_link_libraries(SixTestWrapper ${MSYS_QUADMATH})
     target_link_libraries(readDump3 ${MSYS_QUADMATH})
   endif()
-ENDIF()
+endif()
 
 #To make packages, run "make package" in the build directory
-#SET(CPACK_GENERATOR RPM DEB STGZ TGZ TBZ2 TXZ ZIP 7Z)
-SET(CPACK_GENERATOR RPM DEB TGZ ZIP) #Take only the most common targets
-#SET(CPACK_PACKAGE_CONTACT "sixtrack.support@cern.ch") # non-existent email address
-SET(CPACK_PACKAGE_VERSION ${SixTrack_VERSION})
-SET(CPACK_PACKAGE_VENDOR "CERN")
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "SixTrack symplectic particle tracking code for particle accelerators.")
-SET(CPACK_PACKAGE_VERSION_MAJOR ${SixTrack_VERSION_MAJOR})
-SET(CPACK_PACKAGE_VERSION_MINOR ${SixTrack_VERSION_MINOR})
-SET(CPACK_PACKAGE_VERSION_PATCH ${SixTrack_VERSION_PATCH})
-INCLUDE(CPack)
+#set(CPACK_GENERATOR RPM DEB STGZ TGZ TBZ2 TXZ ZIP 7Z)
+set(CPACK_GENERATOR RPM DEB TGZ ZIP) #Take only the most common targets
+set(CPACK_PACKAGE_CONTACT "sixtrack.contact@cern.ch")
+set(CPACK_PACKAGE_VERSION ${SixTrack_VERSION})
+set(CPACK_PACKAGE_VENDOR "CERN")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "SixTrack symplectic particle tracking code for particle accelerators.")
+set(CPACK_PACKAGE_VERSION_MAJOR ${${PROJECT_NAME}_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${${PROJECT_NAME}_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${${PROJECT_NAME}_VERSION_PATCH})
+include(CPack)
 
-install(TARGETS SixTrackCR RUNTIME DESTINATION bin )
+install(TARGETS SixTrackCR RUNTIME DESTINATION bin)
 
 if(NOT WIN32)
   add_custom_command(TARGET SixTrackCR POST_BUILD
