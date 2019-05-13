@@ -141,6 +141,7 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 	if(*type ==0){ //Constant value 
 		dist->coord[*index-1]->values = (double*)malloc(sizeof(double));
 		dist->coord[*index-1]->values = start;
+		printf("cooonstant %f", start);
 	}
 
 	if(*type > 0){ //Allocate space for the array
@@ -184,6 +185,7 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 		createLinearSpaced(*length, *start, *stop,dist->coord[*index-1]->values);
 		for(int i=0;i <*length; i++){
 			dist->coord[*index-1]->values[i] = randray(*start, *stop);
+			printf("myvalues %f \n ", dist->coord[*index-1]->values[i] );
 		}
 	}
 }
@@ -246,14 +248,6 @@ int particle_within_limits_physical(double *physical){
 	return 1;
 
 }
-
-
-
-
-
-
-
-
 
 
 

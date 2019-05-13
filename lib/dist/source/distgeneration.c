@@ -24,7 +24,7 @@ void dist2sixcoord_(){
                     for(int m =0; m< dist->coord[4]->length; m++){
                         for(int n =0; n< dist->coord[5]->length; n++){
                             dist->distout[counter] = (double*)malloc(dim*sizeof(double));
-
+                            
                             action2sixinternal_(tc, tmp);
                             
                             if(particle_within_limits_physical(tmp)==1){
@@ -47,8 +47,10 @@ void action2sixinternal_(double tc[6], double *results){
     double cancord[6];
     if(checkdist)
     {
+
         action2canonical_(tc, cancord);
         canonical2six_(cancord, &dist->momentum, &dist->mass, results);
+        
     }
 }
 
@@ -82,6 +84,7 @@ void canonical2emittance_(double cancord[6], double emittance[3]){
 void action2canonical_(double acangl[6], double cancord[6]){
     double acoord[6];
     double dp_setting;
+
     acoord[0]= sqrt((dist->emitt->e1)*acangl[0])*cos(acangl[1]);
     acoord[1]=-sqrt((dist->emitt->e1)*acangl[0])*sin(acangl[1]);
     acoord[2]= sqrt((dist->emitt->e2)*acangl[2])*cos(acangl[3]);

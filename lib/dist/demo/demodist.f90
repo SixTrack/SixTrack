@@ -1,4 +1,3 @@
-
 subroutine readMatrixFromFile(matrix)
    ! opening the file for reading
     use, intrinsic :: iso_fortran_env
@@ -18,21 +17,20 @@ program demodist
       implicit none
 
       integer i ;
-      real(kind=real64), dimension(6) :: acoord, physical 
+      real(kind=real64), dimension(6) :: coordinates 
       real(kind=real64), dimension(2500,6) :: distribution1
       real(kind=real64), dimension(10002) :: x,xp,y, yp, sigma, delta
       real(kind=real64) momentum, mass, one, e1,e2, e3, dp, betx1, zero, pia2, six
       real(kind=real64), dimension(6, 6) :: identity, results, testm, tas
       real(kind=real64) dim
-      real(kind=real64) emitt(3)
       
       call readMatrixFromFile(tas)
       dim = 6
-      e1 = 3.0d0
-      e2 = 1.0d0
-      e3 = 1.0d0 
-      dp = 0.0100d0
-      pia2 = 2.00d0*4.D0*DATAN(1.D0)
+      e1 = 1.0d0
+      e2 = 2.0d0
+      e3 = 0.03d0 
+      dp = 0.0001d0
+      pia2 = 2.00d0*3.1415
       zero = 0.0d0
       momentum = 4000.0
       mass = 938.0
@@ -40,35 +38,64 @@ program demodist
       six = 6.000d0
 
       
-      acoord(1) = 1.0;
-      acoord(2) = 0;
-      acoord(3) = 5.0;
-      acoord(4) = 0;
-      acoord(5) = 5.0;
-      acoord(6) = 0!1.567718E+00 + 0.005!-pia2/4.0d0+0.0038+100;
-!-1.571020E+00
-      print *, "physical", physical
+
+
+      ! Initialize 3 distributions with dimenstion 6
+
       call initializedistribution(3, 6)
-      print *, "physical", physical
       ! Set the tas matrix 
-      call settasmatrix(tas) 
-      print *, "physical", physical 
+      call settasmatrix(tas)  
       ! Set the emittance
       call setemittance12(e1,e2)
-      call setdeltap(dp)
-      !call setemittance3(e3)
+
+      call setemittance3(e3)
+      ! Set mass and momentum 
       call setmassmom(mass, momentum)
-      call action2canonical(acoord,physical)
-      print *, "physical", physical
-     ! call canonical2emittance(physical, emitt)
-     ! print *, "emittance", emitt
+    
       ! Set the parameters to generate the distribution
       !1. (1=x, 2=x', 3=y 4=y', 5=ds 6=dp)
       !2. Start value of scan
       !3. End value of scan
       !4. Number of points
       !5. type of spacing 0 - constant, 3 - linear spacing  
-     
+      call setparameter(1,zero,six,100,3);
+      call setparameter(2,zero,zero,1,0);
+      call setparameter(3,zero,six,100,3);
+      call setparameter(4,zero,zero,1,0);
+      call setparameter(5,zero,zero,1,0);
+      call setparameter(6,zero,zero,1,0);
+
+      !Print the settings mainly for debugging
+      call printdistsettings()
+      !Get the filled vectors 
+      call getcoordvectors(x,xp,y, yp, sigma, delta)
+  
+
+
+    !Distribution 2: a matched distribution
+
+    ! Change the distribution to 1
+   ! call setdistribution(1)
+   ! call settasmatrix(tas)
+   ! call setemittance12(e1,e2)
+   ! call setemittance3(e3)
+   ! call setmassmom(mass, momentum)
+
+    !call setparameter(1,zero,one,50,6);
+    !call setparameter(2,zero,pia2,50,4);
+    !call setparameter(3,one,one,1,0);
+    !call setparameter(4,zero,pia2,50,4);
+    !call setparameter(5,zero,zero,1,0);
+    !call setparameter(6,zero,zero,1,0);
+
+
+    do i = 0, 1000!000 
+        call getcoord(coordinates,i)
+        
+        print *, i,coordinates
+    enddo
+    
+!e1 from fort.10 1.999999999648927940E+00
+!e2 from fort.10 9.999999998426114534E-01
  
       end program demodist
- 

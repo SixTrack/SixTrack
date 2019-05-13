@@ -16,3 +16,4 @@ void hello();
 double randn(double mu, double sigma);
 double rand_uni();
 void calcualteinverse();
+double randray(double mu, double sigma);
