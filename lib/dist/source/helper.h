@@ -1,3 +1,4 @@
+void canonical2emittance_(double cancord[6], double emittance[3]);
 void six2canonical_(double * coord, double *ref_momentum, double *mass, double *canonical);
 void canonical2six_(double *canonical, double *ref_momentum, double *mass, double *coord);
 double rationalApproximation(double t);
@@ -14,3 +15,4 @@ void bisection(double *x, double a, double b, int *itr);
 void hello();
 double randn(double mu, double sigma);
 double rand_uni();
+void calcualteinverse();

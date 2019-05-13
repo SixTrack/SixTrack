@@ -3,6 +3,27 @@
 #include <math.h>
 #include <string.h>
 #include "helper.h"
+#include "distinput.h"
+
+
+void calcualteinverse(){
+  double invtas[6][6];
+  double result[dim][dim];
+  for(int i =0; i< dim; i++){
+    for(int j =0; j< dim; j++){
+      invtas[i][j] = dist->tas[i][j];
+    }
+  }
+
+  cofactor(invtas, 6);
+  for(int i =0; i< dim; i++){
+    for(int j =0; j< dim; j++){
+      dist->invtas[i][j]= invtas[i][j];
+    }
+  }
+
+}
+
 void six2canonical_(double * coord, double *ref_momentum, double *mass, double *canonical){
     
     double deltap = *(coord+5); 
