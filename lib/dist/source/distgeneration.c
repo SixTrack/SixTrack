@@ -3,64 +3,14 @@
 #include <math.h>
 #include <string.h>
 #include "helper.h"
-#include "distinput.h"
 #include "distgeneration.h"
+#include "distinput.h"
 
 
 
 
 
 
-
-/*
-Initalizes the distributinos 
-*/
-void initializedistribution_(int *numberOfDist, int *dimension){
-    dist = (struct distparam*)malloc((*numberOfDist)*sizeof(struct distparam));
-    dim  = *dimension;
-    
-        for(int i = 0; i <*numberOfDist; i++)
-        {
-        struct parameters para_tmp;
-        (dist + i)->coord = (struct parameters**)malloc(dim*sizeof(struct parameters*));
-        (dist + i)->emitt = (struct emittances*)malloc(sizeof(struct emittances));
-        (dist + i)->cuts2apply = (struct appliedcut*)malloc(sizeof(struct appliedcut));
-        (dist + i)->cuts2apply->physical = (struct cut**)malloc(dim*sizeof(struct cut*));
-        (dist + i)->cuts2apply->normalized = (struct cut**)malloc(dim*sizeof(struct cut*));
-        (dist + i)->tas   = (double**)malloc(dim*sizeof(double*));
-        (dist + i)->invtas   = (double**)malloc(dim*sizeof(double*));
-        (dist + i)->closedorbit   = (double*)malloc(dim*sizeof(double));
-        (dist + i)->isDistrcalculated = 0;
-        (dist + i)->longitunalemittance = 0;
-
-        for(int k=0; k<dim;k++){
-            (dist + i)->tas[k] =(double*)malloc(dim*sizeof(double));
-            (dist + i)->invtas[k] =(double*)malloc(dim*sizeof(double));
-        }
-        
-        (dist + i)->mass      = 0;
-        (dist + i)->momentum  = 0;
-        (dist + i)->emitt->e1 = 0; 
-        (dist + i)->emitt->e2 = 0; 
-        (dist + i)->emitt->e3 = 0;
-        (dist + i)->emitt->dp = 0;
-        (dist + i)->emitt->deltas = 0;
-        (dist + i)->coordtype =-1;
-        
-        for(int j=0; j<dim; j++)
-        {
-            (dist + i)->cuts2apply->physical[j] = (struct cut*)malloc(sizeof(struct cut));
-            (dist + i)->cuts2apply->normalized[j] = (struct cut*)malloc(sizeof(struct cut));
-            (dist +i)->coord[j] = (struct parameters*)malloc(sizeof(struct parameters));
-            (dist +i)->coord[j]->start=0;
-            (dist +i)->coord[j]->stop=0;
-            (dist +i)->coord[j]->length=1;
-            (dist +i)->coord[j]->type=0;
-            (dist +i)->closedorbit[j]=0;
-        }
-    }
-    diststart=dist;
-}
 /*Not fully sure what this is usefull for */
 void dist2sixcoord_(){
     int counter = 0;
@@ -128,5 +78,120 @@ void canonical2emittance_(double cancord[6], double emittance[3]){
 
 }
 
+/*If emittance is defined it converts to canonical coordinates */
+void action2canonical_(double acangl[6], double cancord[6]){
+    double acoord[6];
+    double dp_setting;
+    acoord[0]= sqrt((dist->emitt->e1)*acangl[0])*cos(acangl[1]);
+    acoord[1]=-sqrt((dist->emitt->e1)*acangl[0])*sin(acangl[1]);
+    acoord[2]= sqrt((dist->emitt->e2)*acangl[2])*cos(acangl[3]);
+    acoord[3]=-sqrt((dist->emitt->e2)*acangl[2])*sin(acangl[3]);
+    acoord[4]= sqrt((dist->emitt->e3)*acangl[4])*cos(acangl[5]);
+    acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/1000)*sin(acangl[5]);
 
 
+
+    if(dist->longitunalemittance==2) {
+        dp_setting = acangl[4];
+        change_e3_to_dp_easy(cancord,acoord, acangl);
+        change_e3_to_dp_easy(cancord,acoord, acangl);
+        change_e3_to_dp_easy(cancord,acoord, acangl);
+    }
+
+    //This is the multiplication with the tas matrix 
+    mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
+}
+
+void change_e3_to_dp_easy(double cancord[6], double acoord[6], double acangl[6]){
+ 
+    
+    int itr = 0, maxmitr;
+    double x, a, b, allerr, x1;
+    double angle, emitt;
+    a = -1.6;
+    b=1.6;
+    itr = 0;
+    maxmitr = 100;
+    allerr = 1e-12;
+    bisection (&x, a, b, &itr);
+    do
+    {
+        if (optideltas(cancord,acoord, acangl, a)*optideltas(cancord,acoord, acangl, x) < 0)
+            b=x;
+        else
+            a=x;
+        bisection (&x1, a, b, &itr);
+        if (fabs(x1-x) < allerr)
+        {
+            printf("After %d iterations, root = %6.4f\n", itr, x1);
+            break;
+        }
+        x=x1;
+    }
+    while (itr < maxmitr);
+
+
+    toactioncord_(cancord,acoord,acangl);
+        //printf("oooutt %E, %E, %E \n", cancord[4], cancord[5], acangl[5] );
+
+    emitt =dist->emitt->e3;
+    a = 0;
+    b= 10000;
+    itr = 0;
+    
+
+        bisection (&x, a, b, &itr);
+    do
+    {
+        if (opemitt(cancord,acoord, acangl, a)*opemitt(cancord,acoord, acangl, x) < 0)
+            b=x;
+        else
+            a=x;
+        bisection (&x1, a, b, &itr);
+        if (fabs(x1-x) < allerr)
+        {
+            printf("After %d iterations, root = %6.4f\n", itr, x1);
+            break;
+        }
+        x=x1;
+    }
+    while (itr < maxmitr);
+
+    toactioncord_(cancord,acoord,acangl);
+}
+
+double opemitt(double cancord[6], double acoord[6], double acangl[6], double x)
+{
+        dist->emitt->e3 = x;
+        toactioncord_(cancord,acoord,acangl);
+        return cancord[5]-dist->emitt->dp*acangl[4];
+}
+
+double createrandom(double insigma[6], double cancord[6]){
+    double acangl[6];
+    for(int i=0; i<6; i++){
+        acangl[i] = randn(0, insigma[i]);
+    }
+    action2canonical_(acangl, cancord);
+}
+
+
+double optideltas(double cancord[6], double acoord[6], double acangl[6], double x)
+{
+        acangl[5] = x;
+        toactioncord_(cancord,acoord,acangl);
+        return cancord[4];
+}
+
+double toactioncord_(double cancord[6], double acoord[6], double acangl[6])
+{
+
+        acoord[0]= sqrt((dist->emitt->e1)*acangl[0])*cos(acangl[1]);
+        acoord[1]=-sqrt((dist->emitt->e1)*acangl[0])*sin(acangl[1]);
+        acoord[2]= sqrt((dist->emitt->e2)*acangl[2])*cos(acangl[3]);
+        acoord[3]=-sqrt((dist->emitt->e2)*acangl[2])*sin(acangl[3]);
+        acoord[4]= sqrt((dist->emitt->e3)*acangl[4])*cos(acangl[5]);
+        acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/1000)*sin(acangl[5]);
+        mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
+
+}

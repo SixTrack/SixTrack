@@ -344,3 +344,7 @@ double rand_uni( )
   double high = 1;
   return ( (double)rand() * ( high - low ) ) / (double)RAND_MAX + low;
 }
+
+double randray(double mu, double sigma){
+  return (mu+sigma*sqrt(-2*log(rand_uni())));
+}

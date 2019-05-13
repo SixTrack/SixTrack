@@ -49,24 +49,25 @@ int distn;
 
 
 void setdistribution_(int *ndist);
+void initializedistribution_(int *numberOfDist, int *dimension);
 int getnumberdist_();
 void setemittance12_(double *e1, double *e2);
 void setemittance3_(double *e3);
 void printdistsettings_(int *ndist);
 void addclosedorbit_(double *clo);
+
 void settasmatrix_(double tas[6][6]);
 void settasmatrixpython(double **tas);
 
 void setmassmom_(double *mass, double *momentum);
 void setparameter_(int *index,  double *start, double *stop, int *length, int *type);
 void setdeltap_(double *dp);
-void setemittance3_(double *e3);
 //void convertdp2emittance(double dp);
 
 void createTasWithNoCoupling(double betax, double alfax, double betay, double alfay, double tas[6][6]);
 
 //void change_e3_to_dp(double cancord[6],double acoord[6], double acangl[6]);
-void change_e3_to_dp_easy(double cancord[6], double acoord[6], double acangl[6]);
+
 double optideltas (double cancord[6], double acoord[6], double acangl[6], double x);
 double toactioncord_(double cancord[6], double acoord[6], double acangl[6]);
 void setphysicalcut(int variable, double min, double max);
