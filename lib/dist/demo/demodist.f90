@@ -49,10 +49,10 @@ program demodist
 !-1.571020E+00
       print *, "physical", physical
       call initializedistribution(3, 6)
-            print *, "physical", physical
+      print *, "physical", physical
       ! Set the tas matrix 
       call settasmatrix(tas) 
-                  print *, "physical", physical 
+      print *, "physical", physical 
       ! Set the emittance
       call setemittance12(e1,e2)
       call setdeltap(dp)

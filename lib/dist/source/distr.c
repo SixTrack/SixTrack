@@ -11,17 +11,19 @@ struct distparam* diststart;
 int dim;
 int distn=0;
 
+
+
+
 void canonical2emittance_(double cancord[6], double emittance[3]){
 	double accord[6];
 	calcualteinverse();
 	mtrx_vector_mult_pointer(dim,dim, dist->invtas, cancord, accord);
-
 	emittance[0] = pow(accord[0],2)+pow(accord[1],2);
 	emittance[1] = pow(accord[2],2)+pow(accord[3],2);
 	emittance[2] = pow(accord[4],2)+pow(accord[5],2);
 
 }
-
+/*If emittance is defined it converts to canonical coordinates */
 void action2canonical_(double acangl[6], double cancord[6]){
 	double acoord[6];
 	double dp_setting;
@@ -45,24 +47,14 @@ void action2canonical_(double acangl[6], double cancord[6]){
 	mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
 }
 
-void multi_w_emittance(double acangl[6], double cancord[6]){
-	double acoord[6];
-	acoord[0]= sqrt((dist->emitt->e1))*(acangl[0]);
-	acoord[1]= sqrt((dist->emitt->e1))*(acangl[1]);
-	acoord[2]= sqrt((dist->emitt->e2))*(acangl[2]);
-	acoord[3]= sqrt((dist->emitt->e2))*(acangl[3]);
-	acoord[4]= sqrt((dist->emitt->e3))*(acangl[4]);
-	acoord[5]= sqrt((dist->emitt->e3)/1000)*(acangl[5]);
-	mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
 
-}
 
 double createrandom(double insigma[6], double cancord[6]){
 	double acangl[6];
 	for(int i=0; i<6; i++){
 		acangl[i] = randn(0, insigma[i]);
 	}
-	multi_w_emittance(acangl, cancord);
+	action2canonical_(acangl, cancord);
 }
 
 
@@ -155,9 +147,8 @@ void change_e3_to_dp_easy(double cancord[6], double acoord[6], double acangl[6])
 
 
 
-void setdistribution_(int *ndist){
-		dist = diststart + *ndist;
-}
+
+
 /*
 Returns the total number of particles that will be created for the distribution.  
 */
@@ -169,11 +160,23 @@ int getnumberdist_(){
 	return length;
 }
 
+void setdistribution_(int *ndist){
+		dist = diststart + *ndist;
+}
+
 void setemittance12_(double *e1, double *e2){
 	dist->emitt->e1=*e1; 
 	dist->emitt->e2=*e2; 
 
 }
+
+void addclosedorbit_(double *clo){
+	for(int i=0; i<dim;i++){
+		dist->closedorbit[i] = clo[i];
+	}
+
+}
+
 
 void setemittance3_(double *e3){
 	dist->emitt->e3=*e3;  	
@@ -197,12 +200,7 @@ void calcualteinverse(){
 
 }
 
-void addclosedorbit_(double *clo){
-	for(int i=0; i<dim;i++){
-		dist->closedorbit[i] = clo[i];
-	}
 
-}
 
 void setdeltap_(double *dp){
 	dist->emitt->dp = *dp;
@@ -211,12 +209,12 @@ void setdeltap_(double *dp){
 }
 
 //This emittance is oversimplified but gives a good approximation. 
-void convertdp2emittance(double dp){
-	calcualteinverse();
+//void convertdp2emittance(double dp){
+//	calcualteinverse();
 	//dist->emitt->e3 = pow(1000*dp*dist->invtas[5][5],2);
-	dist->emitt->e3 = 1000*pow(dp/dist->tas[5][5],2);
-
-}
+//	dist->emitt->e3 = 1000*pow(dp/dist->tas[5][5],2);
+//
+//}
 
 /*
 Initalizes the distributinos 
@@ -317,7 +315,6 @@ void getcoordvectors_(double *x, double *xp, double *y, double *yp, double *sigm
 		sigma[i] = dist->distout[i][4];
 		delta[i] = dist->distout[i][5];
 	}
-	
 }
 
 void dist2sixcoord_(){
@@ -407,7 +404,12 @@ void setmassmom_(double *mass, double *momentum){
 	(dist)-> mass = *mass;
 	(dist)-> momentum = *momentum;
 }
-
+/*This function sets the parameter that is used to generate the distribution later
+0 -  Constant value 
+1 - Linearly spaced intervalls
+2 - Exponentially spaced
+3 - Spaced with  ^2
+4 - Uniform random */ 
 void setparameter_(int *index,  double *start, double *stop, int *length, int *type){
 
 	dist->coord[*index-1]->start = *start;
@@ -451,6 +453,7 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 
 }
 
+/*Create a TAS matrix using E-T, assuming uncoupled system */
 void createtas0coupling_(double betax, double alfax, double betay, double alfay, double dx, double dpx, double dy, double dpy){
 
 	    for (int i = 0; i < 6; i++)
@@ -461,7 +464,6 @@ void createtas0coupling_(double betax, double alfax, double betay, double alfay,
                 
             }
     }
-
     dist->tas[0][0] = sqrt(betax);
     dist->tas[1][0] =-(alfax)/sqrt(betax);
     dist->tas[1][1] =-1/sqrt(betax);
