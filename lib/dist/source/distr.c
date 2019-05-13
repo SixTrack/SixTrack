@@ -445,7 +445,8 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 	if(*type==4){ // uniform random 
 		createLinearSpaced(*length, *start, *stop,dist->coord[*index-1]->values);
 		for(int i=0;i <*length; i++){
-			dist->coord[*index-1]->values[i] = rand_uni(*start, *stop)
+			dist->coord[*index-1]->values[i] = rand_uni(*start, *stop);
+		}
 	}
 
 }
