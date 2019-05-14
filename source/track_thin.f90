@@ -584,10 +584,8 @@ subroutine thin4d(nthinerr)
     end if
     meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
-    ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
     continue
-    ! call graphic_progress(n,numl)
 #endif
     numx=n-1
 
@@ -1200,10 +1198,8 @@ subroutine thin6d(nthinerr)
     end if
     meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
-    ! call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
     continue
-    ! call graphic_progress(n,numl)
 #endif
 
     if (do_coll) then
@@ -2120,9 +2116,10 @@ subroutine trackReport(n)
 end subroutine trackReport
 
 ! ================================================================================================ !
-!  F. Schmidt
+!  Wrapper for the checkpointing call that handles BOINC API if needed
 !  Original:  1999-02-03
 !  Rewritten: 2019-04-26 (VKBO)
+!  Updated:   2019-05-14
 ! ================================================================================================ !
 #ifdef CR
 subroutine callcrp
@@ -2136,7 +2133,7 @@ subroutine callcrp
   implicit none
 
 #ifdef BOINC
-  integer timech
+  integer doCheckpoint, isStandalone
 #endif
 
   if(cr_restart) then
@@ -2147,13 +2144,20 @@ subroutine callcrp
   end if
 #ifdef BOINC
   if(cr_checkp) then
-    ! If BOINC and turn > 1, ask BOINC API whether to crpoint or not
-    call boinc_time_to_checkpoint(timech)
-    if(timech /= 0 .or. numx == 0) then
+    call boinc_is_standalone(isStandalone) ! 0 = connected to BOINC client, non-0 = not connected
+    if(isStandalone /= 0) then
+      write(crlog,"(a)") "CALL_CRP> BOINC API is in standalone mode, checkpoint as normal"
       call crpoint
-      call boinc_checkpoint_completed()
-    endif
-  endif
+    else
+      write(crlog,"(a)") "CALL_CRP> BOINC API is not in standalone mode, asking to checkpoint"
+      call boinc_time_to_checkpoint(doCheckpoint) ! 0 = not allowed, non-0 = allowed
+      if(doCheckpoint /= 0) then
+        write(crlog,"(a)") "CALL_CRP> BOINC API allows checkpointing"
+        call crpoint
+        call boinc_checkpoint_completed
+      end if
+    end if
+  end if
 #else
   if(cr_checkp) call crpoint
 #endif

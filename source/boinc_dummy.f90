@@ -1,25 +1,45 @@
-subroutine boinc_time_to_checkpoint(timech)
+! ================================================================================================ !
+!  BOINC DUMMY API
+! ~~~~~~~~~~~~~~~~~
+!  Updated: 2019-05-14 (V.K. Berglyd Olsen)
+!  Should match lib/boinc/api/boinc_api_fortran.cpp
+!
+!  Logicals are returned from BOINC as integer, where non-zero is true and zero is false.
+! ================================================================================================ !
+
+subroutine boinc_time_to_checkpoint(doChpoint)
   implicit none
-  integer timech
-  timech=1
+  integer, intent(out) :: doChpoint
+  doChpoint = 1 ! Always allow checkpointing when using the dummy API
 end subroutine boinc_time_to_checkpoint
 
-subroutine boincrf(myname,filename)
+subroutine boinc_is_standalone(isStandalone)
   implicit none
-  character(*) myname
-  character(256) filename
-  filename=myname
+  integer, intent(out) :; isStandalone
+  isStandalone = 1 ! Always treat dummy API as in standalone mode
+end subroutine boinc_is_standalone
+
+subroutine boincrf(fileName, boincName)
+  implicit none
+  character(*),   intent(in)  :: fileName
+  character(256), intent(out) :: boincName
+  boincName = fileName
 end subroutine boincrf
 
-subroutine boinc_finish(flag)
+subroutine boinc_finish(exitStatus)
   implicit none
-  integer flag
+  integer, intent(in) :: exitStatus
 end subroutine boinc_finish
 
-subroutine boinc_fraction_done(f)
+subroutine boinc_fraction_done(fracDone)
   implicit none
-  double precision f
+  double precision, intent(in) :: fracDone
 end subroutine boinc_fraction_done
+
+subroutine boinc_get_fraction_done(fracDone)
+  implicit none
+  double precision, intent(out) :: fracDone
+end subroutine boinc_get_fraction_done
 
 subroutine boinc_init
   implicit none
@@ -28,6 +48,14 @@ end subroutine boinc_init
 subroutine boinc_checkpoint_completed
   implicit none
 end subroutine boinc_checkpoint_completed
+
+subroutine boinc_begin_critical_section
+  implicit none
+end subroutine boinc_begin_critical_section
+
+subroutine boinc_end_critical_section
+  implicit none
+end subroutine boinc_end_critical_section
 
 subroutine boinc_zip(mode,zipfile,path,strl1,strl2)
   implicit none
