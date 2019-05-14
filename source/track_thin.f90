@@ -585,7 +585,6 @@ subroutine thin4d(nthinerr)
     meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
     call boinc_fraction_done(dble(n)/dble(numl))
-    continue
 #endif
     numx=n-1
 
@@ -1199,7 +1198,6 @@ subroutine thin6d(nthinerr)
     meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
     call boinc_fraction_done(dble(n)/dble(numl))
-    continue
 #endif
 
     if (do_coll) then
@@ -2134,6 +2132,7 @@ subroutine callcrp
 
 #ifdef BOINC
   integer doCheckpoint, isStandalone
+  double precision fracDone
 #endif
 
   if(cr_restart) then
@@ -2144,19 +2143,23 @@ subroutine callcrp
   end if
 #ifdef BOINC
   if(cr_checkp) then
+    ! call boinc_begin_critical_section
     call boinc_is_standalone(isStandalone) ! 0 = connected to BOINC client, non-0 = not connected
+    call boinc_get_fraction_done(fracDone)
+    write(crlog,"(a,f7.3,a)") "BOINCAPI> Client progress: ",100*fracDone," %"
     if(isStandalone /= 0) then
-      write(crlog,"(a)") "CALL_CRP> BOINC API is in standalone mode, checkpoint as normal"
+      write(crlog,"(a)") "BOINCAPI> Running in standalone mode, checkpointing as normal"
       call crpoint
     else
-      write(crlog,"(a)") "CALL_CRP> BOINC API is not in standalone mode, asking to checkpoint"
+      write(crlog,"(a)") "BOINCAPI> Not running in standalone mode, asking to checkpoint"
       call boinc_time_to_checkpoint(doCheckpoint) ! 0 = not allowed, non-0 = allowed
       if(doCheckpoint /= 0) then
-        write(crlog,"(a)") "CALL_CRP> BOINC API allows checkpointing"
+        write(crlog,"(a)") "BOINCAPI> Checkpointing allowed"
         call crpoint
         call boinc_checkpoint_completed
       end if
     end if
+    ! call boinc_end_critical_section
   end if
 #else
   if(cr_checkp) call crpoint

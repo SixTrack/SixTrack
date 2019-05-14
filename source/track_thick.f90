@@ -573,9 +573,8 @@ subroutine thck4d(nthinerr)
     meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
     call boinc_fraction_done(dble(n)/dble(numl))
-    continue
 #endif
-  numx=n-1
+    numx=n-1
 
 #ifndef FLUKA
     if(mod(numx,nwri).eq.0) call writebin(nthinerr)
@@ -1236,10 +1235,8 @@ subroutine thck6d(nthinerr)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-! To do a dump and abend
 #ifdef BOINC
     call boinc_fraction_done(dble(n)/dble(numl))
-    continue
 #endif
     numx=n-1
 

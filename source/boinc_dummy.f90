@@ -39,6 +39,7 @@ end subroutine boinc_fraction_done
 subroutine boinc_get_fraction_done(fracDone)
   implicit none
   double precision, intent(out) :: fracDone
+  fracDone = 0.0
 end subroutine boinc_get_fraction_done
 
 subroutine boinc_init
