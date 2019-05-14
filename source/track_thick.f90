@@ -572,10 +572,8 @@ subroutine thck4d(nthinerr)
     end if
     meta_nPartTurn = meta_nPartTurn + napx
 #ifdef BOINC
-!   call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
     continue
-!   call graphic_progress(n,numl)
 #endif
   numx=n-1
 
@@ -1240,10 +1238,8 @@ subroutine thck6d(nthinerr)
     meta_nPartTurn = meta_nPartTurn + napx
 ! To do a dump and abend
 #ifdef BOINC
-!   call boinc_sixtrack_progress(n,numl)
     call boinc_fraction_done(dble(n)/dble(numl))
     continue
-!   call graphic_progress(n,numl)
 #endif
     numx=n-1
 

@@ -116,7 +116,6 @@ program maincr
 
 #ifdef BOINC
   call boinc_init
-! call boinc_init_graphics
 #endif
   call f_initUnits
   call meta_initialise ! The meta data file.
