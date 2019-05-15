@@ -117,6 +117,8 @@ subroutine boinc_turn(nTurn)
       end if
     end if
 #else
+    write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100*dble(nTurn)/dble(numl)," %"
+    call boinc_writeLog
     write(boinc_logBuffer,"(a)") "Dummy Mode: Checkpointing permitted"
     call boinc_writeLog
     call crpoint
