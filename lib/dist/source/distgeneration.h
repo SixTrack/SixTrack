@@ -9,3 +9,4 @@ double opemitt(double cancord[6], double acoord[6], double acangl[6], double x);
 double optideltas(double cancord[6], double acoord[6], double acangl[6], double x);
 double createrandom(double insigma[6], double cancord[6]);
 double toactioncord_(double cancord[6], double acoord[6], double acangl[6]);
+void createrandomdist_();

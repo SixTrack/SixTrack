@@ -60,6 +60,6 @@ START, X=0.001, Y=0.002, PY=0.00, PT=0.00, T=0.0;
 OBSERVE, PLACE="rfmultiskew";
 RUN, TURNS=1;
 
-sixtrack, CAVALL;	
+sixtrack, CAVALL, SIX_VERSION=50399;	
 
 stop;

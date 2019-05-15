@@ -11,7 +11,7 @@
 
 
 
-/*Not fully sure what this is usefull for */
+/*This is to create a grid*/
 void dist2sixcoord_(){
     int counter = 0;
     double tc[6];
@@ -24,7 +24,14 @@ void dist2sixcoord_(){
                     for(int m =0; m< dist->coord[4]->length; m++){
                         for(int n =0; n< dist->coord[5]->length; n++){
                             dist->distout[counter] = (double*)malloc(dim*sizeof(double));
-                            
+                            tc[0]=dist->coord[0]->values[i];
+                            tc[1]=dist->coord[1]->values[j];
+                            tc[2]=dist->coord[2]->values[k];
+                            tc[3]=dist->coord[3]->values[l];
+                            tc[4]=dist->coord[4]->values[m];
+                            tc[5]=dist->coord[5]->values[n];
+                            //printvector("tcaa", 6, tc);
+                         
                             action2sixinternal_(tc, tmp);
                             
                             if(particle_within_limits_physical(tmp)==1){
@@ -39,6 +46,33 @@ void dist2sixcoord_(){
                 }
             }
         }   
+    }
+    dist->isDistrcalculated=1;
+}
+/*This is to create a random distribution*/
+
+void createrandomdist_(){
+    int counter = 0;
+    double tc[6];
+    double tmp[6];
+    int tempAlloc = 10000;
+    dist->distout = (double**)malloc(tempAlloc*sizeof(double*));
+    for(int i =0; i< tempAlloc; i++){
+        for(int j =0; j< 6; j++){
+            if(dist->coord[j]->type == 0){
+                tc[j] = dist->coord[j]->values[0];
+            }
+            else if(dist->coord[j]->type==4 || dist->coord[j]->type==6){
+                tc[j] = dist->coord[j]->values[i];
+            }
+            
+        }
+         dist->distout[i] = (double*)malloc(dim*sizeof(double));
+         action2sixinternal_(tc, tmp);
+
+         for(int p=0; p<dim; p++)
+                dist->distout[i][p] = tmp[p]+dist->closedorbit[p];
+                    
     }
     dist->isDistrcalculated=1;
 }
@@ -85,12 +119,12 @@ void action2canonical_(double acangl[6], double cancord[6]){
     double acoord[6];
     double dp_setting;
 
-    acoord[0]= sqrt((dist->emitt->e1)*acangl[0])*cos(acangl[1]);
-    acoord[1]=-sqrt((dist->emitt->e1)*acangl[0])*sin(acangl[1]);
-    acoord[2]= sqrt((dist->emitt->e2)*acangl[2])*cos(acangl[3]);
-    acoord[3]=-sqrt((dist->emitt->e2)*acangl[2])*sin(acangl[3]);
-    acoord[4]= sqrt((dist->emitt->e3)*acangl[4])*cos(acangl[5]);
-    acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/1000)*sin(acangl[5]);
+    acoord[0]= sqrt((dist->emitt->e1))*acangl[0]*cos(acangl[1]);
+    acoord[1]=-sqrt((dist->emitt->e1))*acangl[0]*sin(acangl[1]);
+    acoord[2]= sqrt((dist->emitt->e2))*acangl[2]*cos(acangl[3]);
+    acoord[3]=-sqrt((dist->emitt->e2))*acangl[2]*sin(acangl[3]);
+    acoord[4]= sqrt((dist->emitt->e3))*acangl[4]*cos(acangl[5]);
+    acoord[5]=-sqrt((dist->emitt->e3))*acangl[4]/1000*sin(acangl[5]);
 
 
 

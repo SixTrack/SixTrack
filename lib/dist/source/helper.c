@@ -277,14 +277,13 @@ void transpose(double num[6][6],double fac[6][6],double r)
     }
 }
   void printmatrix(int m, int n, double** matrix ){
-        printf("heeeree %d, %d \n", m, n);
         for (int i = 0; i < m; i++)
     {
         for (int j = 0; j < n; j++)
         {
-            printf("%E \t", matrix[i][j]);
+            //printf("%E \t", matrix[i][j]);
         }
-        printf("\n");
+       // printf("\n");
     }
 }
 
@@ -338,13 +337,14 @@ double randn(double mu, double sigma)
   return (mu + sigma * (double) X1);
 }
 
-double rand_uni( )
+double rand_uni(double low, double high)
 {
-  double low = 0; 
-  double high = 1;
+
   return ( (double)rand() * ( high - low ) ) / (double)RAND_MAX + low;
 }
 
 double randray(double mu, double sigma){
-  return (mu+sigma*sqrt(-2*log(rand_uni())));
+  double low = 0;
+  double high =1;
+  return (mu+sigma*sqrt((-2*log(rand_uni(low, high)))));
 }

@@ -66,30 +66,30 @@ program demodist
       call setparameter(6,zero,zero,1,0);
 
       !Print the settings mainly for debugging
-      call printdistsettings()
+      !call printdistsettings()
       !Get the filled vectors 
-      call getcoordvectors(x,xp,y, yp, sigma, delta)
+      !call getcoordvectors(x,xp,y, yp, sigma, delta)
   
 
 
     !Distribution 2: a matched distribution
 
     ! Change the distribution to 1
-   ! call setdistribution(1)
-   ! call settasmatrix(tas)
-   ! call setemittance12(e1,e2)
-   ! call setemittance3(e3)
-   ! call setmassmom(mass, momentum)
+    call setdistribution(1)
+    call settasmatrix(tas)
+    call setemittance12(e1,e2)
+    call setemittance3(e3)
+    call setmassmom(mass, momentum)
 
-    !call setparameter(1,zero,one,50,6);
-    !call setparameter(2,zero,pia2,50,4);
-    !call setparameter(3,one,one,1,0);
-    !call setparameter(4,zero,pia2,50,4);
-    !call setparameter(5,zero,zero,1,0);
-    !call setparameter(6,zero,zero,1,0);
+    call setparameter(1,zero,one,10000,6);
+    call setparameter(2,zero,pia2,10000,4);
+    call setparameter(3,zero,one,10000,6);
+    call setparameter(4,zero,pia2,10000,4);
+    call setparameter(5,zero,zero,1,0);
+    call setparameter(6,zero,zero,1,0);
 
 
-    do i = 0, 1000!000 
+    do i = 0, 9999!00 
         call getcoord(coordinates,i)
         
         print *, i,coordinates

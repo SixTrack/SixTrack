@@ -14,7 +14,7 @@ for i in range(0,10000):
 	x.append(ray[i]*np.cos(tmp2*2*np.pi))
 	y.append(ray[i]*np.sin(tmp2*2*np.pi))
 
-#plt.hist(x, bins=50)
-plt.plot(x,y, '*')
+plt.hist(ray, bins=50)
+#plt.plot(x,y, '*')
 
 plt.show()

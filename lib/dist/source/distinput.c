@@ -141,7 +141,8 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 	if(*type ==0){ //Constant value 
 		dist->coord[*index-1]->values = (double*)malloc(sizeof(double));
 		dist->coord[*index-1]->values = start;
-		printf("cooonstant %f", start);
+
+
 	}
 
 	if(*type > 0){ //Allocate space for the array
@@ -171,6 +172,7 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 		createLinearSpaced(*length, *start, *stop,dist->coord[*index-1]->values);
 		for(int i=0;i <*length; i++){
 			dist->coord[*index-1]->values[i] = rand_uni(*start, *stop);
+			//printf("%f \n", dist->coord[*index-1]->values[i] );
 		}
 	}
 
@@ -185,7 +187,7 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 		createLinearSpaced(*length, *start, *stop,dist->coord[*index-1]->values);
 		for(int i=0;i <*length; i++){
 			dist->coord[*index-1]->values[i] = randray(*start, *stop);
-			printf("myvalues %f \n ", dist->coord[*index-1]->values[i] );
+
 		}
 	}
 }
@@ -254,7 +256,8 @@ int particle_within_limits_physical(double *physical){
 void getcoordvectors_(double *x, double *xp, double *y, double *yp, double *sigma, double *delta){
 	int distlen = getnumberdist_();
 	if(dist->isDistrcalculated==0){
-		dist2sixcoord_();
+		//dist2sixcoord_();
+		createrandomdist_();
 	}
 	for(int i=0; i<distlen;i++){
 		x[i] = dist->distout[i][0];
@@ -266,21 +269,24 @@ void getcoordvectors_(double *x, double *xp, double *y, double *yp, double *sigm
 	}
 }
 
-void getcoord_(double *coordinate, int *initial ){
+void getcoord_(double coordinate[6], int initial ){
 
 	if(dist->isDistrcalculated==0){
-		dist2sixcoord_();
+		//dist2sixcoord_();
+
+		createrandomdist_();
 
 	}
-	if(*initial >= getnumberdist_()){
+	if(initial >= 10000){
 		printf("Not generated, total inital coordinates generated is %f:",getnumberdist_() );
 	for(int i=0; i<dim; i++){
 		coordinate[i] = NAN;
 	}
 		return;
 	}
+
 	for(int i=0; i<dim; i++){
-		coordinate[i] = dist->distout[*initial][i];
+		coordinate[i] = dist->distout[initial][i];
 	}
 }
 

@@ -14,6 +14,6 @@ void printvector(const char* name, int dim, double* vector);
 void bisection(double *x, double a, double b, int *itr);
 void hello();
 double randn(double mu, double sigma);
-double rand_uni();
+double rand_uni(double low, double high);
 void calcualteinverse();
 double randray(double mu, double sigma);
