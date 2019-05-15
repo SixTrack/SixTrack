@@ -171,7 +171,11 @@ subroutine boinc_finalise(exitCode)
   ! The API does not return
   call boinc_finish(exitCode)
 #else
-  stop exitCode
+  if(exitCode == 0) then
+    stop
+  else
+    stop exitCode
+  end if
 #endif
 
 end subroutine boinc_finalise
