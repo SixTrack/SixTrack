@@ -51,6 +51,9 @@ program maincr
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
 
   use crcoall
   use parpro
@@ -115,7 +118,7 @@ program maincr
 #endif
 
 #ifdef BOINC
-  call boinc_init
+  call boinc_initialise
 #endif
   call f_initUnits
   call meta_initialise ! The meta data file.
@@ -1275,7 +1278,11 @@ program maincr
       end if
     end if
     ! do the very last checkpoint
-    call callcrp()
+#ifdef BOINC
+    call boinc_post
+#else
+    call callcrp
+#endif
   end if
 #else
   call writebin(nthinerr)

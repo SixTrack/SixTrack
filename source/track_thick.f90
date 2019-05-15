@@ -510,6 +510,10 @@ subroutine thck4d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
+
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
@@ -571,9 +575,6 @@ subroutine thck4d(nthinerr)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-#ifdef BOINC
-    call boinc_fraction_done(dble(n)/dble(numl))
-#endif
     numx=n-1
 
 #ifndef FLUKA
@@ -582,9 +583,11 @@ subroutine thck4d(nthinerr)
 #endif
 
 #ifdef CR
-    !  does not call CRPOINT if cr_restart=.true.
-    !  (and note that writebin does nothing if cr_restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call callcrp
+#endif
     cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
@@ -1164,6 +1167,9 @@ subroutine thck6d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
 
   implicit none
 
@@ -1235,9 +1241,6 @@ subroutine thck6d(nthinerr)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-#ifdef BOINC
-    call boinc_fraction_done(dble(n)/dble(numl))
-#endif
     numx=n-1
 
 #ifndef FLUKA
@@ -1246,9 +1249,11 @@ subroutine thck6d(nthinerr)
 #endif
 
 #ifdef CR
-!  does not call CRPOINT if cr_restart=.true.
-!  (and note that writebin does nothing if cr_restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call callcrp
+#endif
     cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif

@@ -32,3 +32,16 @@ module floatPrecision
   integer, parameter :: fPrec = real128
 #endif
 end module floatPrecision
+
+#if defined(BOINC) && !defined(API)
+! =================================================================================================
+!  BOINC DUMMY FILENAME SUBROUTINE
+!  If we don't have a BOINC API, this routine will handle the file name translation
+! =================================================================================================
+subroutine boincrf(fileName, boincName)
+  implicit none
+  character(*),   intent(in)  :: fileName
+  character(256), intent(out) :: boincName
+  boincName = fileName
+end subroutine boincrf
+#endif

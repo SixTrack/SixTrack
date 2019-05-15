@@ -532,6 +532,9 @@ subroutine thin4d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
 
   implicit none
 
@@ -583,9 +586,6 @@ subroutine thin4d(nthinerr)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-#ifdef BOINC
-    call boinc_fraction_done(dble(n)/dble(numl))
-#endif
     numx=n-1
 
 #ifndef FLUKA
@@ -594,9 +594,11 @@ subroutine thin4d(nthinerr)
 #endif
 
 #ifdef CR
-    ! does not call CRPOINT if cr_restart=.true.
-    ! (and note that writebin does nothing if cr_restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call callcrp
+#endif
     cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
@@ -1142,6 +1144,9 @@ subroutine thin6d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
 
   implicit none
 
@@ -1196,9 +1201,6 @@ subroutine thin6d(nthinerr)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-#ifdef BOINC
-    call boinc_fraction_done(dble(n)/dble(numl))
-#endif
 
     if (do_coll) then
       ! This subroutine sets variables iturn and totals
@@ -1213,9 +1215,11 @@ subroutine thin6d(nthinerr)
 #endif
 
 #ifdef CR
-    ! does not call CRPOINT if cr_restart=.true.
-    ! (and note that writebin does nothing if cr_restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call callcrp
+#endif
     cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
@@ -2142,25 +2146,7 @@ subroutine callcrp
     write(lout,"(a,i0)") "CALL_CRP> Checkpointing on turn ",numx+1
   end if
 #ifdef BOINC
-  if(cr_checkp) then
-    ! call boinc_begin_critical_section
-    call boinc_is_standalone(isStandalone) ! 0 = connected to BOINC client, non-0 = not connected
-    call boinc_get_fraction_done(fracDone)
-    write(crlog,"(a,f7.3,a)") "BOINCAPI> Client progress: ",100*fracDone," %"
-    if(isStandalone /= 0) then
-      write(crlog,"(a)") "BOINCAPI> Running in standalone mode, checkpointing as normal"
-      call crpoint
-    else
-      write(crlog,"(a)") "BOINCAPI> Not running in standalone mode, asking to checkpoint"
-      call boinc_time_to_checkpoint(doCheckpoint) ! 0 = not allowed, non-0 = allowed
-      if(doCheckpoint /= 0) then
-        write(crlog,"(a)") "BOINCAPI> Checkpointing allowed"
-        call crpoint
-        call boinc_checkpoint_completed
-      end if
-    end if
-    ! call boinc_end_critical_section
-  end if
+  return
 #else
   if(cr_checkp) call crpoint
 #endif

@@ -273,7 +273,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
+list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC API BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
 list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
@@ -323,10 +323,9 @@ if(ROOT)
   list(APPEND FORT90_LIB root_output)
 endif(ROOT)
 
-if(BOINC AND NOT API)
-  # We have a BOINC build but no API, load the fake API substitute for debugging.
-  list(APPEND FORT90_LIB boinc_dummy)
-endif(BOINC AND NOT API)
+if(BOINC)
+  list(APPEND FORT90_LIB mod_boinc)
+endif(BOINC)
 
 if(PYTHIA)
   add_library(pythia_wrapper STATIC pythia_wrapper.h pythia_wrapper.cpp)
