@@ -19,7 +19,6 @@ subroutine umlauda
   use mod_common_da
   use mod_commond2
   use wire
-  use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
 
   implicit none
@@ -391,7 +390,7 @@ subroutine umlauda
 #include "include/dalin5.f90"
           endif
         else
-          if(iexact.eq.1) then
+          if(iexact) then
 !-----------------------------------------------------------------------
 !  EXACT DRIFT
 !-----------------------------------------------------------------------
@@ -2104,7 +2103,6 @@ subroutine synoda
   use mod_commons
   use mod_common_track
   use mod_common_da
-  use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   implicit none
   integer ix,idaa,ikz
@@ -2301,7 +2299,6 @@ subroutine wireda(ix,i)
   use mod_common_track, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
   use mod_common_da
   use wire
-  use mod_hions
   use mod_lie_dab, only : idao,rscrri,iscrda
   implicit none
   integer ix,idaa,i

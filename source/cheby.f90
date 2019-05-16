@@ -603,7 +603,6 @@ subroutine cheby_kick(i,ix,n)
   ! apply kick of Chebyshev lenses
 
   use mod_common, only : betrel, napx, brho
-  use mod_hions, only : moidpsv
   use mod_common_main
   use mathlib_bouncer
   use numerical_constants, only : zero, c180e0, pi

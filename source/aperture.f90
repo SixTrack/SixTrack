@@ -18,7 +18,6 @@ module aperture
   use mod_common_track
   use mod_common_da
 
-  use mod_hions
   use mod_alloc
 #ifdef HDF5
   use hdf5_output
