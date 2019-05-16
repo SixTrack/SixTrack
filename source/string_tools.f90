@@ -482,6 +482,23 @@ function chr_toLower(theString) result(retString)
 end function chr_toLower
 
 ! ================================================================================================ !
+!  Check if String is a Number
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Last modified: 2019-04-05
+! ================================================================================================ !
+logical function chr_isNumeric(theString)
+  character(len=*), intent(in) :: theString
+  integer ioStat
+  real dumDum
+  read(theString,"(e15.6)",iostat=ioStat) dumDum
+  if(ioStat == 0) then
+    chr_isNumeric = .true.
+  else
+    chr_isNumeric = .false.
+  end if
+end function chr_isNumeric
+
+! ================================================================================================ !
 !  Trim Zero String Routine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-04-14

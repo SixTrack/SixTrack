@@ -65,7 +65,6 @@ end subroutine writeFort12
 subroutine readFort13
 
   use parpro
-  use mod_hions
   use mod_common
   use mod_common_main
   use string_tools
@@ -198,6 +197,8 @@ subroutine readFort33
   character(len=mInputLn)       :: inLine
   integer nSplit, ioStat
   logical spErr, fErr
+
+  write(lout,"(a)") "READ33> Reading closed orbit guess from fort.33"
 
   call f_open(unit=33,file="fort.33",formatted=.true.,mode="r",err=fErr)
 

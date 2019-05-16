@@ -427,41 +427,35 @@ subroutine trauthck(nthinerr)
   do j=1,napx
     dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))                            !hr01
   end do
-  nwri=nwr(3)
-  if(nwri.eq.0) nwri=numl+numlr+1
-    ! A.Mereghetti, for the FLUKA Team
-    ! last modified: 17-07-2013
-    ! save original kicks
-    ! always in main code
-    if (dynk_enabled) call dynk_pretrack
-    call time_timeStamp(time_afterPreTrack)
 
-    if(idp.eq.0.or.ition.eq.0) then
-      write(lout,"(a)") ""
-      write(lout,"(a)") "TRACKING> Calling thck4d subroutine"
-      write(lout,"(a)") ""
-      call thck4d(nthinerr)
-    else
-      hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)                                 !hr01
+  if (dynk_enabled) call dynk_pretrack
+  call time_timeStamp(time_afterPreTrack)
 
-      do jj=1,nele
-        if(abs(kz(jj)) == 12) then
-          hsyc(jj) = (c1m3*hsyc(jj)) * real(sign(1,kz(jj)),kind=fPrec)
-        end if
-      end do
+  if(idp == 0 .or. ition == 0) then
+    write(lout,"(a)") ""
+    write(lout,"(a)") "TRACKING> Calling thck4d subroutine"
+    write(lout,"(a)") ""
+    call thck4d(nthinerr)
+  else
+    hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)                                 !hr01
 
-      if(abs(phas).ge.pieni) then
-        write(lerr,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
-        call prror
-      else
-        write(lout,"(a)") ""
-        write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
-        write(lout,"(a)") ""
-        call thck6d(nthinerr)
+    do jj=1,nele
+      if(abs(kz(jj)) == 12) then
+        hsyc(jj) = (c1m3*hsyc(jj)) * real(sign(1,kz(jj)),kind=fPrec)
       end if
-    end if
+    end do
 
-  return
+    if(abs(phas) >= pieni) then
+      write(lerr,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
+      call prror
+    else
+      write(lout,"(a)") ""
+      write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
+      write(lout,"(a)") ""
+      call thck6d(nthinerr)
+    end if
+  end if
+
 end subroutine trauthck
 
 !-----------------------------------------------------------------------
@@ -494,7 +488,6 @@ subroutine thck4d(nthinerr)
 
   use mod_settings
   use mod_meta
-  use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -580,8 +573,8 @@ subroutine thck4d(nthinerr)
   numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR
@@ -1150,7 +1143,6 @@ subroutine thck6d(nthinerr)
 
   use mod_meta
   use mod_settings
-  use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -1224,7 +1216,6 @@ subroutine thck6d(nthinerr)
   if(cr_restart) then
     call crstart
     write(crlog,"(2(a,i0))") "TRACKING> Thick 6D restarting on turn ",cr_numl," / ",numl
-! and now reset numl to do only numlmax turns
   end if
   nnuml  = numl
   nfirst = cr_numl
@@ -1248,8 +1239,8 @@ subroutine thck6d(nthinerr)
     numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR

@@ -10,6 +10,13 @@ If a geometry file is requested in the main input file (see Section~\ref{ProVer}
 If none is provided, SixTrack will look for a file named \texttt{fort.2}.
 These files will be referred to as \texttt{fort.3} and \texttt{fort.2} in the rest of this document.
 
+\bigskip
+Note that you can always add the global \texttt{DEBUG} flag to the \texttt{SETTINGS} block to enable echoing back most of the input parameters set in the \texttt{fort.3} file.
+The flag is described in Section~\ref{STSett}.
+This can not only verify that SixTrack understood and received the values correctly, but it also often echoes back other parameters computed from the input values.
+The echoed back lines will start with ``\texttt{INPUT> DEBUG}'', so it is sometimes easier to grep for these lines in the output.
+They contain the nme of the block where they were parsed, and the line number within the block if available.
+
 % ================================================================================================================================ %
 \section{Program Version} \label{ProVer}
 
