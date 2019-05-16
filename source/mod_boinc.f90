@@ -18,7 +18,7 @@ module mod_boinc
   character(len=12),  private, save :: boinc_logFile      = "cr_boinc.log"
   character(len=256), private, save :: boinc_logBuffer    = " "
   logical,            private, save :: boinc_isStandalone = .false.
-  real(kind=fPrec),   private, save :: boinc_lastCPoint   = 0.0
+  real(kind=fPrec),   private, save :: boinc_lastCPReq    = 0.0
   real(kind=fPrec),   private, save :: boinc_lastProgress = 0.0
 
 contains
@@ -88,11 +88,11 @@ subroutine boinc_turn(nTurn)
   end if
 #endif
 
-  if(cpuTime-boinc_lastCPoint < boinc_cpInterval .and. nTurn > 1) then
+  if(cpuTime-boinc_lastCPReq < boinc_cpInterval .and. nTurn > 1) then
     return ! Not checkpointing yet, just return
   end if
 
-  write(boinc_logBuffer,"(a,f0.2,a)") "Last checkpoint ",cpuTime-boinc_lastCPoint," seconds ago"
+  write(boinc_logBuffer,"(a,f0.2,a)") "Last checkpoint ",cpuTime-boinc_lastCPReq," seconds ago"
   call boinc_writeLog
 
   if(cr_checkp) then
@@ -126,7 +126,7 @@ subroutine boinc_turn(nTurn)
   end if
 
   ! Set the timer for last checkpoint
-  boinc_lastCPoint = cpuTime
+  boinc_lastCPReq = cpuTime
 
 end subroutine boinc_turn
 
