@@ -65,7 +65,7 @@ end subroutine boinc_initialise
 ! ================================================================================================ !
 !  Called on every turn in tracking
 !  Report progress to BOINC maximum every boinc_progInterval second
-!  Checkpoint every boinc_cpInterval seconds, but only if the API allows
+!  Checkpoint every boinc_cpInterval seconds, but only if the API allows it
 ! ================================================================================================ !
 subroutine boinc_turn(nTurn)
 
@@ -153,7 +153,7 @@ subroutine boinc_post
 end subroutine boinc_post
 
 ! ================================================================================================ !
-!  Report exit status, close the log file, and tel BOINC to finish
+!  Report exit status, close the log file, and tell BOINC to finish
 ! ================================================================================================ !
 subroutine boinc_finalise(exitCode)
 

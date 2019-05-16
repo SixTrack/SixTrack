@@ -597,7 +597,7 @@ subroutine thin4d(nthinerr)
 #ifdef BOINC
     call boinc_turn(n)
 #else
-    if(mod(numx,numlcp) == 0) call callcrp
+    if(mod(numx,numlcp) == 0 .and. cr_checkp) call crpoint
 #endif
     cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
@@ -1218,7 +1218,7 @@ subroutine thin6d(nthinerr)
 #ifdef BOINC
     call boinc_turn(n)
 #else
-    if(mod(numx,numlcp) == 0) call callcrp
+    if(mod(numx,numlcp) == 0 .and. cr_checkp) call crpoint
 #endif
     cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
@@ -2116,43 +2116,6 @@ subroutine trackReport(n)
   flush(lout)
 
 end subroutine trackReport
-
-! ================================================================================================ !
-!  Wrapper for the checkpointing call that handles BOINC API if needed
-!  Original:  1999-02-03
-!  Rewritten: 2019-04-26 (VKBO)
-!  Updated:   2019-05-14
-! ================================================================================================ !
-#ifdef CR
-subroutine callcrp
-
-  use crcoall
-  use mod_common
-  use mod_common_main
-  use mod_common_track
-  use checkpoint_restart
-
-  implicit none
-
-#ifdef BOINC
-  integer doCheckpoint, isStandalone
-  double precision fracDone
-#endif
-
-  if(cr_restart) then
-    write(lout,"(a)") "CALL_CRP> Restarted on this turn, so not checkpointing"
-    return
-  else
-    write(lout,"(a,i0)") "CALL_CRP> Checkpointing on turn ",numx+1
-  end if
-#ifdef BOINC
-  return
-#else
-  if(cr_checkp) call crpoint
-#endif
-
-end subroutine callcrp
-#endif
 
 !-----------------------------------------------------------------------
 !

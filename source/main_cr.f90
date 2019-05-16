@@ -1281,7 +1281,7 @@ program maincr
 #ifdef BOINC
     call boinc_post
 #else
-    call callcrp
+    if(cr_checkp) call crpoint
 #endif
   end if
 #else
