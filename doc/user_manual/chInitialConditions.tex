@@ -119,32 +119,33 @@ If you need this feature, please use the old input format.
     \hline
 
     \rowcolor{gray!15}
-    \texttt{REF\_MASS} & \texttt{mass(float,MeV) [year]} & \texttt{938.271998 2002}\\*
+    \texttt{REF\_PARTICLE} & \texttt{mass(float,MeV) [charge A Z]} & \texttt{938.271998 1 1 1}\\*
     \hline
     \rowcolor{gray!15}
-    \texttt{REF\_MASS} & \texttt{name [year]} & \texttt{proton 2002}\\*
+    \texttt{REF\_PARTICLE} & \texttt{name [charge A Z]} & \texttt{proton 1 1 1}\\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
         The reference mass can either be provided as a value in MeV, or as a named particle.
         Currently this can only be set to ``proton''.
         This value defaults to the proton mass set in the SixTrack physical constants module in \texttt{source/constants.f90}.
-        The second, optional, argument can be used to set the PDG year to use for the mass.
-        The default value is the 2002 proton mass, and it can optionally be set to the 2018 value.
-        Note that this value affects how the proton radius is calculated, as it uses the PDG year to select the relevant constant for computing this.
-        Even when setting a mass in MeV, the PDG year is used for this.
-        The values set and computed can be echoed back to the user by setting the \texttt{DEBUG} flag in the \texttt{SETTIGS} block, see Section~\ref{STSett}.
+        Optionally, the reference particle charge and atomic mass (A), and atomic number (Z) can be set.
+        If A is set, Z must also be set.
+        If only charge is set, Z is set to the same value.
+        The default values are all 1 (proton).
         \index{reference particle}\index{reference mass}
     } \\*
     \hline
 
     \rowcolor{gray!15}
-    \texttt{REF\_ION} & \texttt{A(int) Z(int)} & \texttt{1 1}\\*
+    \texttt{PDG\_YEAR} & \texttt{year(int)} & \texttt{2002}\\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
-        Used for specifying additional parameters for ion tracking.
-        Currently takes that atomic mass number A, and the charge Z.
-        The values default to proton values.
-        \index{reference particle}\index{reference ion}
+        This can be used to set the PDG year to use for the mass if a name is provided in \texttt{REF\_PARTICLE}.
+        The default value is the 2002 proton mass, the other value currently supported is 2018.
+        More will be added in the future.
+        Note that this value affects how the proton radius is calculated as it uses the PDG year to select the relevant constant for calculating this.
+        Even when setting a reference particle mass in MeV, the PDG year is used for this.
+        \index{reference particle}\index{PDG}\index{proton radius}
     } \\*
     \hline
 
