@@ -36,9 +36,6 @@ subroutine umlauda
     au(6,6),aui(2)
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   character(len=mNameLen) typ
-#ifdef BOINC
-  character(len=256) filename
-#endif
   integer expertUnit
 
 ! For treatment and/or conversion of BEAM parameters in/to the new format

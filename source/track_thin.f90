@@ -529,6 +529,9 @@ subroutine thin4d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
 
   implicit none
 
@@ -580,12 +583,6 @@ subroutine thin4d(nthinerr)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-#ifdef BOINC
-    ! call boinc_sixtrack_progress(n,numl)
-    call boinc_fraction_done(dble(n)/dble(numl))
-    continue
-    ! call graphic_progress(n,numl)
-#endif
     numx=n-1
 
 #ifndef FLUKA
@@ -594,9 +591,11 @@ subroutine thin4d(nthinerr)
 #endif
 
 #ifdef CR
-    ! does not call CRPOINT if cr_restart=.true.
-    ! (and note that writebin does nothing if cr_restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call crpoint
+#endif
     cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
@@ -1141,6 +1140,9 @@ subroutine thin6d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
 
   implicit none
 
@@ -1195,12 +1197,6 @@ subroutine thin6d(nthinerr)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-#ifdef BOINC
-    ! call boinc_sixtrack_progress(n,numl)
-    call boinc_fraction_done(dble(n)/dble(numl))
-    continue
-    ! call graphic_progress(n,numl)
-#endif
 
     if (do_coll) then
       ! This subroutine sets variables iturn and totals
@@ -1215,9 +1211,11 @@ subroutine thin6d(nthinerr)
 #endif
 
 #ifdef CR
-    ! does not call CRPOINT if cr_restart=.true.
-    ! (and note that writebin does nothing if cr_restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call crpoint
+#endif
     cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
@@ -2114,48 +2112,6 @@ subroutine trackReport(n)
   flush(lout)
 
 end subroutine trackReport
-
-! ================================================================================================ !
-!  F. Schmidt
-!  Original:  1999-02-03
-!  Rewritten: 2019-04-26 (VKBO)
-! ================================================================================================ !
-#ifdef CR
-subroutine callcrp
-
-  use crcoall
-  use mod_common
-  use mod_common_main
-  use mod_common_track
-  use checkpoint_restart
-
-  implicit none
-
-#ifdef BOINC
-  integer timech
-#endif
-
-  if(cr_restart) then
-    write(lout,"(a)") "CALL_CRP> Restarted on this turn, so not checkpointing"
-    return
-  else
-    write(lout,"(a,i0)") "CALL_CRP> Checkpointing on turn ",numx+1
-  end if
-#ifdef BOINC
-  if(cr_checkp) then
-    ! If BOINC and turn > 1, ask BOINC API whether to crpoint or not
-    call boinc_time_to_checkpoint(timech)
-    if(timech /= 0 .or. numx == 0) then
-      call crpoint
-      call boinc_checkpoint_completed()
-    endif
-  endif
-#else
-  if(cr_checkp) call crpoint
-#endif
-
-end subroutine callcrp
-#endif
 
 !-----------------------------------------------------------------------
 !
