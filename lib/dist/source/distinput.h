@@ -2,7 +2,12 @@ struct distparam
 {
 	struct parameters** coord;
 	struct emittances* emitt;
-	double mass;	
+	double mass;
+	int charge;
+    int atomnum;
+    int atommas;
+    int totallength;
+    int disttype;	
 	double momentum;
 	double **tas;
 	double **invtas;
@@ -49,7 +54,7 @@ int distn;
 
 
 void setdistribution_(int *ndist);
-void initializedistribution_(int *numberOfDist, int *dimension);
+void initializedistribution_(int *numberOfDist);
 int getnumberdist_();
 void setemittance12_(double *e1, double *e2);
 void setemittance3_(double *e3);

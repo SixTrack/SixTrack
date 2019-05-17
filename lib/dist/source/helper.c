@@ -89,8 +89,9 @@ void createLinearSpaced(int length, double start, double stop, double *eqspaced 
 
     double distance = (stop-start)/length;
     for(int i; i<length; i++){
-        eqspaced[i] = distance*i;
+        eqspaced[i] = start+distance*i;
     }
+
     
 }
 

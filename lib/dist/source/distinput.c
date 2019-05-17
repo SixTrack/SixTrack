@@ -12,9 +12,9 @@
 This allocates the the memory for the distributions
 */
 
-void initializedistribution_(int *numberOfDist, int *dimension){
+void initializedistribution_(int *numberOfDist){
     dist = (struct distparam*)malloc((*numberOfDist)*sizeof(struct distparam));
-    dim  = *dimension;
+    dim  = 6;
     
         for(int i = 0; i <*numberOfDist; i++)
         {
@@ -37,13 +37,17 @@ void initializedistribution_(int *numberOfDist, int *dimension){
         
         (dist + i)->mass      = 0;
         (dist + i)->momentum  = 0;
+        (dist + i)->charge    = 1;
+        (dist + i)->atomnum   = 1;
+        (dist + i)->atommas   = 1;
         (dist + i)->emitt->e1 = 0; 
         (dist + i)->emitt->e2 = 0; 
         (dist + i)->emitt->e3 = 0;
         (dist + i)->emitt->dp = 0;
         (dist + i)->emitt->deltas = 0;
-        (dist + i)->coordtype =-1;
-        
+        (dist + i)->coordtype   =-1;
+        (dist + i)->totallength = -1;
+        (dist + i)->disttype = 0;
         for(int j=0; j<dim; j++)
         {
             (dist + i)->cuts2apply->physical[j] = (struct cut*)malloc(sizeof(struct cut));
@@ -59,6 +63,15 @@ void initializedistribution_(int *numberOfDist, int *dimension){
     diststart=dist;
 }
 
+void settotallength(int totallength){
+	dist->totallength=totallength;
+}
+
+void setdisttype(int disttype){
+	dist->disttype=disttype;
+}
+
+
 /*
 Returns the total number of particles that will be created for the distribution.  
 */
@@ -67,6 +80,7 @@ int getnumberdist_(){
 	for(int j =0; j<dim; j++){
 		length = length*dist->coord[j]->length;
 	}
+	dist->totallength = length;
 	return length;
 }
 
@@ -138,14 +152,19 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 	dist->coord[*index-1]->stop = *stop;
 	dist->coord[*index-1]->length = *length;
 	dist->coord[*index-1]->type = *type;
+
 	if(*type ==0){ //Constant value 
 		dist->coord[*index-1]->values = (double*)malloc(sizeof(double));
 		dist->coord[*index-1]->values = start;
-
-
 	}
 
 	if(*type > 0){ //Allocate space for the array
+		if(dist->disttype==1){
+			if(dist->totallength>0)
+				length=&dist->totallength;
+			else
+				printf("You need to set a totallength for disttype 1!");
+		}
 		dist->coord[*index-1]->values = (double*)malloc((*length)*sizeof(double));
 		memcpy(dist->coord[*index-1]->values , start, sizeof(double));  
 
@@ -215,6 +234,9 @@ void createtas0coupling_(double betax, double alfax, double betay, double alfay,
 
 	dist->tas[2][5] = dy;
     dist->tas[3][5] = dpy;
+    //This is not really physical so it should be changed.. 
+    dist->tas[5][5] =1;
+    dist->tas[4][4] =1;
 
     printmatrix(dim,dim, dist->tas);
 
@@ -256,9 +278,14 @@ int particle_within_limits_physical(double *physical){
 void getcoordvectors_(double *x, double *xp, double *y, double *yp, double *sigma, double *delta){
 	int distlen = getnumberdist_();
 	if(dist->isDistrcalculated==0){
-		//dist2sixcoord_();
-		createrandomdist_();
+		if(dist->disttype==0)
+			dist2sixcoord_();
+		else if(dist->disttype==1)
+			createrandomdist_();
+		else
+			printf("Not a valid distribution type");
 	}
+
 	for(int i=0; i<distlen;i++){
 		x[i] = dist->distout[i][0];
 		xp[i] = dist->distout[i][1];
@@ -272,12 +299,15 @@ void getcoordvectors_(double *x, double *xp, double *y, double *yp, double *sigm
 void getcoord_(double coordinate[6], int initial ){
 
 	if(dist->isDistrcalculated==0){
-		//dist2sixcoord_();
-
-		createrandomdist_();
-
+		if(dist->disttype==0)
+			dist2sixcoord_();
+		else if(dist->disttype==1)
+			createrandomdist_();
+		else
+			printf("Not a valid distribution type");
 	}
-	if(initial >= 10000){
+
+	if(initial >= dist->totallength){
 		printf("Not generated, total inital coordinates generated is %f:",getnumberdist_() );
 	for(int i=0; i<dim; i++){
 		coordinate[i] = NAN;
@@ -286,13 +316,15 @@ void getcoord_(double coordinate[6], int initial ){
 	}
 
 	for(int i=0; i<dim; i++){
+
 		coordinate[i] = dist->distout[initial][i];
 	}
 }
 
 void printdistsettings_(int *ndist){
 	printf("Printing info about distribution: \n");
-	printf("Distribution type (input), 1=normalized coordinates %d \n", dist->coordtype );
+	printf("Coordianate type (input), 1=normalized coordinates %d \n", dist->coordtype );
+	printf("Distribution generation type 0-Square like generation, 1-loop over every step once,  %d \n", dist->disttype );
 	printf("Mass: %f \n", dist ->mass);
 	printf("Momentum: %f \n", dist ->momentum);
 	printf("Emttiance, e1, e2, e3: %f, %f, %f \n", dist->emitt->e1, dist->emitt->e2, dist->emitt->e3);

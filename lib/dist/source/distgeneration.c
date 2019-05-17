@@ -17,6 +17,7 @@ void dist2sixcoord_(){
     double tc[6];
     double tmp[6];
     dist->distout = (double**)malloc(getnumberdist_()*sizeof(double*));
+    printf("allocating %d \n", dist->coord[0]->length);
     for(int i =0; i< dist->coord[0]->length; i++){
         for(int j =0; j< dist->coord[1]->length; j++){
             for(int k =0; k< dist->coord[2]->length; k++){
@@ -34,12 +35,12 @@ void dist2sixcoord_(){
                          
                             action2sixinternal_(tc, tmp);
                             
-                            if(particle_within_limits_physical(tmp)==1){
+                           // if(particle_within_limits_physical(tmp)==1){
                                 for(int p=0; p<dim; p++){
                                     dist->distout[counter][p] = tmp[p]+dist->closedorbit[p];
                                 }
                                 counter++;
-                            }
+                            //}
                                                         
                         }
                     }
@@ -47,6 +48,7 @@ void dist2sixcoord_(){
             }
         }   
     }
+      printf("end \n");
     dist->isDistrcalculated=1;
 }
 /*This is to create a random distribution*/
@@ -55,7 +57,7 @@ void createrandomdist_(){
     int counter = 0;
     double tc[6];
     double tmp[6];
-    int tempAlloc = 10000;
+    int tempAlloc = dist->totallength;
     dist->distout = (double**)malloc(tempAlloc*sizeof(double*));
     for(int i =0; i< tempAlloc; i++){
         for(int j =0; j< 6; j++){
@@ -129,14 +131,21 @@ void action2canonical_(double acangl[6], double cancord[6]){
 
 
     if(dist->longitunalemittance==2) {
-        dp_setting = acangl[4];
-        change_e3_to_dp_easy(cancord,acoord, acangl);
-        change_e3_to_dp_easy(cancord,acoord, acangl);
-        change_e3_to_dp_easy(cancord,acoord, acangl);
+        printf("dist22a %f \n", acangl[5]);
+        acoord[5] = acangl[5];
+
+        mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
+        printf("dist22b %f \n", cancord[5]);
+        if(fabs(cancord[5]-acoord[5])> 1e-10){
+        //change_e3_to_dp_easy(cancord,acoord, acangl);
+        //change_e3_to_dp_easy(cancord,acoord, acangl);
+        //change_e3_to_dp_easy(cancord,acoord, acangl);
+        }
     }
 
     //This is the multiplication with the tas matrix 
     mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
+     printf("dist22c %f \n", cancord[5]);
 }
 
 void change_e3_to_dp_easy(double cancord[6], double acoord[6], double acangl[6]){
