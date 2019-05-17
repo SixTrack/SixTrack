@@ -452,8 +452,7 @@ subroutine eLensTheta(j)
   use mathlib_bouncer
   use numerical_constants, only : zero, one, two, pi, c1e3, c1m3, c1m6
   use physical_constants, only: clight, pmae, eps0
-  use mod_hions, only : zz0
-  use mod_common, only : e0, betrel, brho, bez, kz
+  use mod_common, only : e0, betrel, brho, bez, kz, zz0
   use mod_settings, only : st_quiet
 
   implicit none

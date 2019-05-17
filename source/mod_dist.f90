@@ -105,7 +105,6 @@ end subroutine dist_parseInputLine
 subroutine dist_readDist
 
   use parpro
-  use mod_hions
   use mod_common
   use mod_common_main
   use string_tools
@@ -229,7 +228,6 @@ end subroutine dist_readDist
 subroutine dist_finaliseDist
 
   use parpro
-  use mod_hions
   use mod_common
   use mod_common_track
   use mod_common_main

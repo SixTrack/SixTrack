@@ -77,7 +77,6 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   use crcoall
   use parpro
   use parbeam
-  use mod_hions
   use mod_common
   use mod_common_track
   use mod_common_main

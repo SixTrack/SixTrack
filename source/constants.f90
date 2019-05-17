@@ -10,33 +10,33 @@ module physical_constants
 
   implicit none
 
-#ifndef FLUKA
-  ! Proton mass (MeV)
-  real(kind=fPrec), parameter :: pmap   = 938.271998_fPrec              ! old
-! real(kind=fPrec), parameter :: pmap   = 938.2720813_fPrec             ! 2017
-
-  ! Electron mass (MeV) from PDG, 2002
-  real(kind=fPrec), parameter :: pmae   = 0.510998902_fPrec             ! old
-! real(kind=fPrec), parameter :: pmae   = 0.5109989461_fPrec            ! 2017
-#else
+#ifdef FLUKA
   ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
   ! Last modified: 08-12-2014
   ! Synch masses of proton and electron to values used by FLUKA
 ! real(kind=fPrec), parameter :: pmap  = 0.938272046e3_fPrec            ! PDG 2014, Fluka-2011-dev
   real(kind=fPrec), parameter :: pmap  = 0.938272310e3_fPrec            ! PDG 20xx, Fluka-2011-pro
   real(kind=fPrec), parameter :: pmae  = 0.510998928_fPrec              ! PDG 2014, Fluka-2011-dev
+#else
+  ! Proton and Electron Mass (MeV)
+  real(kind=fPrec), parameter :: pmap  = 938.271998_fPrec               ! Old
+  real(kind=fPrec), parameter :: pmae  = 0.510998902_fPrec              ! PDG 2002
 #endif
 
+  ! Proton and Electron Mass (MeV) Latest Values
+  real(kind=fPrec), parameter :: pmap_18 = 938.272081_fPrec             ! PDG 2018
+  real(kind=fPrec), parameter :: pmae_18 = 0.5109989461_fPrec           ! PDG 2018
+
   ! Classical electron radius
-  real(kind=fPrec), parameter :: crade  = 2.817940285e-15_fPrec         ! old
-! real(kind=fPrec), parameter :: crade  = 2.8179403227e-15_fPrec        ! 2017
+  real(kind=fPrec), parameter :: crade    = 2.817940285e-15_fPrec       ! Old
+  real(kind=fPrec), parameter :: crade_18 = 2.8179403227e-15_fPrec      ! PDG 2018
 
   ! Speed of light
-  real(kind=fPrec), parameter :: clight = 2.99792458e8_fPrec            ! Exact
+  real(kind=fPrec), parameter :: clight = 2.99792458e8_fPrec            ! Exact by definition
 
   ! Avogadro constant
-  real(kind=fPrec), parameter :: fnavo  = 6.022140857e23_fPrec          ! 2017
-! real(kind=fPrec), parameter :: fnavo  = 6.02214129e23_fPrec           ! old
+! real(kind=fPrec), parameter :: fnavo  = 6.02214129e23_fPrec           ! Old
+  real(kind=fPrec), parameter :: fnavo  = 6.022140857e23_fPrec          ! PDG 2018
 
   ! Planck constant
   real(kind=fPrec), parameter :: planck = 6.626070040e-34_fPrec

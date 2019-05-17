@@ -429,8 +429,6 @@ subroutine trauthin(nthinerr)
   do j=1,napx
     dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))
   end do
-  nwri=nwr(3)
-  if(nwri.eq.0) nwri=(numl+numlr)+1
 
   if (dynk_enabled) call dynk_pretrack
   call time_timeStamp(time_afterPreTrack)
@@ -513,7 +511,6 @@ subroutine thin4d(nthinerr)
 #endif
 
   use mod_meta
-  use mod_hions
   use mod_settings
   use postprocessing, only : writebin
   use crcoall
@@ -589,8 +586,8 @@ subroutine thin4d(nthinerr)
     numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR
@@ -673,12 +670,7 @@ subroutine thin4d(nthinerr)
       select case (ktrack(i))
       case (1)
         stracki=strack(i)
-        if(iexact.eq.0) then ! exact drift?
-          do j=1,napx
-            xv1(j)=xv1(j)+stracki*yv1(j)
-            xv2(j)=xv2(j)+stracki*yv2(j)
-          end do
-        else
+        if(iexact) then ! exact drift?
           do j=1,napx
             xv1(j)=xv1(j)*c1m3
             xv2(j)=xv2(j)*c1m3
@@ -692,6 +684,11 @@ subroutine thin4d(nthinerr)
             yv1(j)=yv1(j)*c1e3
             yv2(j)=yv2(j)*c1e3
           enddo
+        else
+          do j=1,napx
+            xv1(j)=xv1(j)+stracki*yv1(j)
+            xv2(j)=xv2(j)+stracki*yv2(j)
+          end do
         end if
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
         ! last modified: 07-03-2018
@@ -1115,7 +1112,6 @@ subroutine thin6d(nthinerr)
   use dump,       only : dump_linesFirst, dump_lines, ldumpfront
   use mod_ffield, only : ffindex,ffield_genAntiQuad,ffield_enterQuad,ffield_exitQuad,ffield_enabled
   use aperture
-  use mod_hions
   use mod_settings
   use mod_meta
   use mod_time
@@ -1210,8 +1206,8 @@ subroutine thin6d(nthinerr)
     numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR
@@ -1410,17 +1406,7 @@ subroutine thin6d(nthinerr)
           !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
 
         else ! Normal SixTrack drifts
-          if(iexact.eq.0) then
-            do j=1,napx
-              xv1(j)  = xv1(j) + stracki*yv1(j)
-              xv2(j)  = xv2(j) + stracki*yv2(j)
-#ifdef FAST
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)**2+yv2(j)**2)*c5m4))
-#else
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt((c1e6+yv1(j)**2)+yv2(j)**2))
-#endif
-            end do
-          else
+          if(iexact) then
             ! EXACT DRIFT
             do j=1,napx
               xv1(j)=xv1(j)*c1m3
@@ -1438,6 +1424,16 @@ subroutine thin6d(nthinerr)
               yv2(j)=yv2(j)*c1e3
               sigmv(j)=sigmv(j)*c1e3
             enddo
+          else
+            do j=1,napx
+              xv1(j)  = xv1(j) + stracki*yv1(j)
+              xv2(j)  = xv2(j) + stracki*yv2(j)
+#ifdef FAST
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)**2+yv2(j)**2)*c5m4))
+#else
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt((c1e6+yv1(j)**2)+yv2(j)**2))
+#endif
+            end do
           end if
         end if
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -2096,7 +2092,7 @@ subroutine trackReport(n)
   logical           :: isFirst   = .true.
 
   if(isFirst) then
-    if(ithick == 0) then
+    if(ithick == 1) then
       trackMode = "Thick"
     else
       trackMode = "Thin"

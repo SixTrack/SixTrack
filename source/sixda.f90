@@ -251,7 +251,6 @@ subroutine runcav
   use mod_commons
   use mod_common_track, only : comt_daStart,comt_daEnd
   use mod_common_da
-  use mod_hions
   use mod_lie_dab, only : idao,rscrri,iscrda
 
   implicit none
@@ -283,7 +282,7 @@ subroutine runcav
 !Eric
   rewind 26
   if(ition.ne.0) then
-  e0f=sqrt(e0**2-nucm0**2)                                             !hr08
+    e0f=sqrt(e0**2-nucm0**2)
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
@@ -440,7 +439,6 @@ subroutine runda
   use mod_common_track, only : xxtr,yytr,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_commond2
-  use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   use mod_units
   use mod_time
