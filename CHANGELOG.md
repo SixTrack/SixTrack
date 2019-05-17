@@ -19,9 +19,6 @@
 * Removed the thick arrays: `ekv`, `fokqv` and removed the checkpointing of all remaining thick arrays. These are recomputed by the subroutine `synuthck` anyway. PR #870 (V.K. Berglyd Olsen, K. Sjobak)
 * Some cleanup in the main common module for particle arrays. Mostly added comments on what variables do, and removed a few unused or redundant arrays. The deleted arrays are: `xsv`, `zsv`, `dp0v`, `sigmv6`, `dpsv6`, `xlv`, `zlv`, `nms`, and `ekkv`. PR #874 (V.K. Berglyd Olsen)
 
-`dp0v` was always the same as `dpsv`, `nms` was always `one`, and `xlv` and `zlv` could be replaced by scalars. The rest weren't used at all.
-
-
 ### Version 5.2.6 [07.05.2019] - Release
 
 **Bug Fixes**
