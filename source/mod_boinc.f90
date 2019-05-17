@@ -12,12 +12,12 @@ module mod_boinc
   implicit none
 
   integer,            private, save :: boinc_nTurn        = 0              ! The current turn in tracking
-  integer,            private, save :: boinc_cpInterval   = -1             ! Number of seconds between checkpoints
-  integer,            private, save :: boinc_progInterval = -1             ! Number of seconds between progress updates
   integer,            private, save :: boinc_logUnit      = -1             ! BOIND C/R debug log unit
   character(len=12),  private, save :: boinc_logFile      = "cr_boinc.log" ! BOIND C/R debug log file
   character(len=256), private, save :: boinc_logBuffer    = " "            ! Log buffer
   logical,            private, save :: boinc_isStandalone = .false.        ! True when the BOINC API is not talking to the manager
+  real(kind=fPrec),   private, save :: boinc_cpInterval   = 0.0            ! Number of seconds between checkpoints
+  real(kind=fPrec),   private, save :: boinc_progInterval = 0.0            ! Number of seconds between progress updates
   real(kind=fPrec),   private, save :: boinc_lastCPReq    = 0.0            ! CPU time of last checkpointing request
   real(kind=fPrec),   private, save :: boinc_lastProgress = 0.0            ! CPU time of last progress report to the API
 
@@ -54,11 +54,11 @@ subroutine boinc_initialise
   call boinc_writeLog
 
   if(boinc_isStandalone) then
-    boinc_cpInterval   = 10
-    boinc_progInterval = 1
+    boinc_cpInterval   = 10.0
+    boinc_progInterval =  1.0
   else
-    boinc_cpInterval   = 120
-    boinc_progInterval = 1
+    boinc_cpInterval   = 61.0 ! BOINC manager defaults to 60 seconds. Setting it slightly higher.
+    boinc_progInterval =  1.0
   end if
 
 end subroutine boinc_initialise
