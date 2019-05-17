@@ -11,15 +11,15 @@ module mod_boinc
 
   implicit none
 
-  integer,            private, save :: boinc_nTurn        = 0
-  integer,            private, save :: boinc_cpInterval   = -1
-  integer,            private, save :: boinc_progInterval = -1
-  integer,            private, save :: boinc_logUnit      = -1
-  character(len=12),  private, save :: boinc_logFile      = "cr_boinc.log"
-  character(len=256), private, save :: boinc_logBuffer    = " "
-  logical,            private, save :: boinc_isStandalone = .false.
-  real(kind=fPrec),   private, save :: boinc_lastCPReq    = 0.0
-  real(kind=fPrec),   private, save :: boinc_lastProgress = 0.0
+  integer,            private, save :: boinc_nTurn        = 0              ! The current turn in tracking
+  integer,            private, save :: boinc_cpInterval   = -1             ! Number of seconds between checkpoints
+  integer,            private, save :: boinc_progInterval = -1             ! Number of seconds between progress updates
+  integer,            private, save :: boinc_logUnit      = -1             ! BOIND C/R debug log unit
+  character(len=12),  private, save :: boinc_logFile      = "cr_boinc.log" ! BOIND C/R debug log file
+  character(len=256), private, save :: boinc_logBuffer    = " "            ! Log buffer
+  logical,            private, save :: boinc_isStandalone = .false.        ! True when the BOINC API is not talking to the manager
+  real(kind=fPrec),   private, save :: boinc_lastCPReq    = 0.0            ! CPU time of last checkpointing request
+  real(kind=fPrec),   private, save :: boinc_lastProgress = 0.0            ! CPU time of last progress report to the API
 
 contains
 
@@ -35,6 +35,7 @@ subroutine boinc_initialise
 
   integer tmpInt
 
+  ! The logfile is for debugging the checkpoining decisions, and should not be used for other logging
   call f_requestUnit(boinc_logFile, boinc_logUnit)
   call f_open(unit=boinc_logUnit,file=boinc_logFile,formatted=.true.,mode="w+")
   write(boinc_logBuffer,"(a)") "Initialising BOINC"
@@ -83,6 +84,7 @@ subroutine boinc_turn(nTurn)
 #ifdef API
   if(cpuTime-boinc_lastProgress >= boinc_progInterval) then
     ! Tell BOINC how we're doing
+    ! We need to re-add BOINC graphics as well here at some point
     call boinc_fraction_done(dble(nTurn)/dble(numl))
     boinc_lastProgress = cpuTime
   end if
