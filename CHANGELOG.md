@@ -1,5 +1,24 @@
 # SixTrack Changelog
 
+### Version 5.2.7 [17.05.2019] - Release
+
+**Bug Fixes**
+
+* Fixed an infinite loop corner case from previous release. It was only triggered if one tried to rum the Differential Algebra (DA) version of SixTrack with checkpoint/restarting, which isn't something that makes sense doing anyway. The loop was only triggered with ifort builds, and used all available memory when triggered, so it was a bit nasty. In addition, the DA executable is no longer built when building with checkpoint/restart. PR #871 (V.K. Berglyd Olsen)
+
+**User Side Changes**
+
+* A new block has been added to `fort.3`. It's named `SIMU`, and holds the main tracking variables for setting up a simulations. When used, it replaces the `TRAC`, `INIT`, and `HION` block. It is intended to work with the `DIST` block, and therefore does not support any of the settings for generating distributions. If those are needed, please use the old blocks. For further details, see the user manual. The block is considered experimental until it's thoroughly tested. PR #872 (V.K. Berglyd Olsen, R. De Maria, A. Mereghetti)
+
+**Documentation**
+
+* Fixed the RF-multipole definitions. PR #869 (R. De Maria)
+
+**Code Improvements and Changes**
+
+* Removed the thick arrays: `ekv`, `fokqv` and removed the checkpointing of all remaining thick arrays. These are recomputed by the subroutine `synuthck` anyway. PR #870 (V.K. Berglyd Olsen, K. Sjobak)
+* Some cleanup in the main common module for particle arrays. Mostly added comments on what variables do, and removed a few unused or redundant arrays. The deleted arrays are: `xsv`, `zsv`, `dp0v`, `sigmv6`, `dpsv6`, `xlv`, `zlv`, `nms`, and `ekkv`. PR #874 (V.K. Berglyd Olsen)
+
 ### Version 5.2.6 [07.05.2019] - Release
 
 **Bug Fixes**
