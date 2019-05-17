@@ -95,35 +95,33 @@ subroutine boinc_turn(nTurn)
   write(boinc_logBuffer,"(a,f0.2,a)") "Last checkpoint ",cpuTime-boinc_lastCPReq," seconds ago"
   call boinc_writeLog
 
-  if(cr_checkp) then
 #ifdef API
-    call boinc_get_fraction_done(boincProg)
-    write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100*boincProg," %"
-    call boinc_writeLog
-    if(boinc_isStandalone) then
-      write(boinc_logBuffer,"(a)") "Standalone Mode: Checkpointing permitted"
-      call boinc_writeLog
-      call crpoint
-    else
-      call boinc_time_to_checkpoint(doCheckpoint) ! 0 = not allowed, non-0 = allowed
-      if(doCheckpoint /= 0) then
-        write(boinc_logBuffer,"(a)") "Client Mode: Checkpointing permitted"
-        call boinc_writeLog
-        call crpoint
-        call boinc_checkpoint_completed
-      else
-        write(boinc_logBuffer,"(a)") "Client Mode: Checkpointing not permitted"
-        call boinc_writeLog
-      end if
-    end if
-#else
-    write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100*dble(nTurn)/dble(numl)," %"
-    call boinc_writeLog
-    write(boinc_logBuffer,"(a)") "Dummy Mode: Checkpointing permitted"
+  call boinc_get_fraction_done(boincProg)
+  write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100*boincProg," %"
+  call boinc_writeLog
+  if(boinc_isStandalone) then
+    write(boinc_logBuffer,"(a)") "Standalone Mode: Checkpointing permitted"
     call boinc_writeLog
     call crpoint
-#endif
+  else
+    call boinc_time_to_checkpoint(doCheckpoint) ! 0 = not allowed, non-0 = allowed
+    if(doCheckpoint /= 0) then
+      write(boinc_logBuffer,"(a)") "Client Mode: Checkpointing permitted"
+      call boinc_writeLog
+      call crpoint
+      call boinc_checkpoint_completed
+    else
+      write(boinc_logBuffer,"(a)") "Client Mode: Checkpointing not permitted"
+      call boinc_writeLog
+    end if
   end if
+#else
+  write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100*dble(nTurn)/dble(numl)," %"
+  call boinc_writeLog
+  write(boinc_logBuffer,"(a)") "Dummy Mode: Checkpointing permitted"
+  call boinc_writeLog
+  call crpoint
+#endif
 
   ! Set the timer for last checkpoint
   boinc_lastCPReq = cpuTime
@@ -136,8 +134,6 @@ end subroutine boinc_turn
 subroutine boinc_post
 
   use checkpoint_restart
-
-  if(.not. cr_checkp) return
 
   write(boinc_logBuffer,"(a)") "Final checkpoint after tracking"
   call boinc_writeLog

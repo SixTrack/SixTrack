@@ -586,7 +586,7 @@ subroutine thck4d(nthinerr)
 #ifdef BOINC
     call boinc_turn(n)
 #else
-    if(mod(numx,numlcp) == 0 .and. cr_checkp) call crpoint
+    if(mod(numx,numlcp) == 0) call crpoint
 #endif
     cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
@@ -1252,7 +1252,7 @@ subroutine thck6d(nthinerr)
 #ifdef BOINC
     call boinc_turn(n)
 #else
-    if(mod(numx,numlcp) == 0 .and. cr_checkp) call crpoint
+    if(mod(numx,numlcp) == 0) call crpoint
 #endif
     cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)

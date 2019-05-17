@@ -30,7 +30,6 @@ module checkpoint_restart
   logical,           public,  save :: cr_rerun    = .false.
   logical,           public,  save :: cr_start    = .true.
   logical,           public,  save :: cr_restart  = .false.
-  logical,           public,  save :: cr_checkp   = .false.
 
   character(len=21), public,  save :: cr_startMsg = " "
   real,              public,  save :: cr_time     = 0.0
@@ -307,11 +306,9 @@ subroutine crcheck
   cr_pntRead(:) = .false.
 
   ! Some log entries to fort.93
-  write(crlog,"(3(a,l1))") "CR_CHECK> Called with restart = ",cr_restart,", rerun = ",cr_rerun,", and checkpoint = ",cr_checkp
+  write(crlog,"(2(a,l1))") "CR_CHECK> Called with restart = ",cr_restart,", rerun = ",cr_rerun
   flush(crlog)
 
-  ! We are not checkpoint/restart or we have no restart files
-  if(cr_checkp .eqv. .false.) goto 200
   noRestart = .false.
   do nPoint=1,cr_nPoint
     noRestart = noRestart .and. .not. cr_pntExist(nPoint)
@@ -506,11 +503,8 @@ subroutine crcheck
   ! We are not checkpointing or we have no checkpoints, or we have no readable checkpoint
   ! If not checkpointing we can just give up on lout and use fort.6. We don't need to count records at all
 200 continue
-  write(crlog,"(a,l1)") "SIXTRACR> No restart possible. Checkpoint = ",cr_checkp
+  write(crlog,"(a)") "SIXTRACR> No restart possible"
   flush(crlog)
-  if(.not.cr_checkp) then
-    call cr_copyOut
-  end if
 
   return
 

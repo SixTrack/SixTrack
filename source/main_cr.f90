@@ -267,7 +267,6 @@ program maincr
   if(ithick == 1) call allocate_thickarrays
 
 #ifdef CR
-  cr_checkp = .true.
   call crcheck
   call time_timeStamp(time_afterCRCheck)
 #endif
@@ -1281,7 +1280,7 @@ program maincr
 #ifdef BOINC
     call boinc_post
 #else
-    if(cr_checkp) call crpoint
+    call crpoint
 #endif
   end if
 #else
