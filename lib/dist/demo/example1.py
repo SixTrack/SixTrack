@@ -11,7 +11,7 @@ double6 = c_double * 6
 DOUBLE = c_double
 PDOUBLE = POINTER(DOUBLE)
 
-eps = 2.0
+eps = 1.0
 dim = c_int(6)
 zero = c_double(0)
 e1 = c_double(eps)

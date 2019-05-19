@@ -86,10 +86,11 @@ double normalcdfinv_(double p)
 }
 
 void createLinearSpaced(int length, double start, double stop, double *eqspaced ){
-
+printf("llll %d \n,",length );
     double distance = (stop-start)/length;
-    for(int i; i<length; i++){
+    for(int i=0; i<length; i++){
         eqspaced[i] = start+distance*i;
+          printf("llll %f \n,",eqspaced[i] );
     }
 
     
@@ -290,7 +291,6 @@ void transpose(double num[6][6],double fac[6][6],double r)
 
 void printvector(const char* name, int dim, double* vector){
           printf("%s \n", name);
-          vector[0] = 2.111;
           for (int i = 0; i < dim; i++)
     {
             printf("%d %E \n",i, vector[i]);

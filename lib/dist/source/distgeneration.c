@@ -17,7 +17,6 @@ void dist2sixcoord_(){
     double tc[6];
     double tmp[6];
     dist->distout = (double**)malloc(getnumberdist_()*sizeof(double*));
-    printf("allocating %d \n", dist->coord[0]->length);
     for(int i =0; i< dist->coord[0]->length; i++){
         for(int j =0; j< dist->coord[1]->length; j++){
             for(int k =0; k< dist->coord[2]->length; k++){
@@ -25,13 +24,15 @@ void dist2sixcoord_(){
                     for(int m =0; m< dist->coord[4]->length; m++){
                         for(int n =0; n< dist->coord[5]->length; n++){
                             dist->distout[counter] = (double*)malloc(dim*sizeof(double));
+
                             tc[0]=dist->coord[0]->values[i];
                             tc[1]=dist->coord[1]->values[j];
                             tc[2]=dist->coord[2]->values[k];
                             tc[3]=dist->coord[3]->values[l];
                             tc[4]=dist->coord[4]->values[m];
                             tc[5]=dist->coord[5]->values[n];
-                            //printvector("tcaa", 6, tc);
+                           //  printf("aaaa %f \n", tc[0]);
+                           // printvector("tcaa", 6, tc);
                          
                             action2sixinternal_(tc, tmp);
                             
@@ -145,7 +146,7 @@ void action2canonical_(double acangl[6], double cancord[6]){
 
     //This is the multiplication with the tas matrix 
     mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
-     printf("dist22c %f \n", cancord[5]);
+     
 }
 
 void change_e3_to_dp_easy(double cancord[6], double acoord[6], double acangl[6]){

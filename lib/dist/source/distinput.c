@@ -170,6 +170,7 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 
 	}
 	if(*type==1){ //Linearly spaced intervalls
+	
 		createLinearSpaced(*length, *start, *stop,dist->coord[*index-1]->values);
 	}
 	if(*type==2){ //Exponentially spaced
@@ -308,7 +309,7 @@ void getcoord_(double coordinate[6], int initial ){
 	}
 
 	if(initial >= dist->totallength){
-		printf("Not generated, total inital coordinates generated is %f:",getnumberdist_() );
+		printf("Not generated, total inital coordinates generated is %d :",getnumberdist_() );
 	for(int i=0; i<dim; i++){
 		coordinate[i] = NAN;
 	}
