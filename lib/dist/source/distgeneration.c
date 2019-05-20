@@ -5,11 +5,7 @@
 #include "helper.h"
 #include "distgeneration.h"
 #include "distinput.h"
-
-
-
-
-
+#include "outputdist.h"
 
 /*This is to create a grid*/
 void dist2sixcoord_(){
@@ -240,5 +236,18 @@ double toactioncord_(double cancord[6], double acoord[6], double acangl[6])
         acoord[4]= sqrt((dist->emitt->e3)*acangl[4])*cos(acangl[5]);
         acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/1000)*sin(acangl[5]);
         mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
+
+}
+
+int particle_within_limits_physical(double *physical){
+    
+    if(dist->cuts2apply->isset_p==0) return 1;
+    for(int i=0; i<dim; i++){
+        if(dist->cuts2apply->physical[i]->isset==1){
+            if(physical[i] > dist->cuts2apply->physical[i]->min && physical[i] < dist->cuts2apply->physical[i]->max) return 0;
+        }   
+    }
+    
+    return 1;
 
 }

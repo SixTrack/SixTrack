@@ -85,7 +85,7 @@ setParameters(dist,1,1,4,4,1)
 setParameters(dist,2,0,pia2,200,1)
 setParameters(dist,3,1,4,1,1)
 setParameters(dist,4,0,0,1,0)
-setParameters(dist,5,0.001,0,1,0)
+setParameters(dist,5,0.000,0,1,0)
 setParameters(dist,6,0.001,0,1,0)
 
 dist.printdistsettings_()

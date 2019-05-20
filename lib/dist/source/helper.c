@@ -4,7 +4,7 @@
 #include <string.h>
 #include "helper.h"
 #include "distinput.h"
-
+#include "outputdist.h"
 
 void calcualteinverse(){
   double invtas[6][6];
@@ -86,11 +86,10 @@ double normalcdfinv_(double p)
 }
 
 void createLinearSpaced(int length, double start, double stop, double *eqspaced ){
-printf("llll %d \n,",length );
+    
     double distance = (stop-start)/length;
     for(int i=0; i<length; i++){
         eqspaced[i] = start+distance*i;
-          printf("llll %f \n,",eqspaced[i] );
     }
 
     
@@ -283,9 +282,9 @@ void transpose(double num[6][6],double fac[6][6],double r)
     {
         for (int j = 0; j < n; j++)
         {
-            //printf("%E \t", matrix[i][j]);
+            printf("%E \t", matrix[i][j]);
         }
-       // printf("\n");
+        printf("\n");
     }
 }
 
