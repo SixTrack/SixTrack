@@ -1444,6 +1444,9 @@ program maincr
       call postpr(ia2)
 #endif
 #endif
+#ifdef BOINC
+      call boinc_postpr(ia)
+#endif
     end do
     if(iposc >= 1) call sumpos
     call f_close(unit10)
@@ -1476,6 +1479,9 @@ program maincr
 #else
       call postpr(91-ia)
 #endif
+#endif
+#ifdef BOINC
+      call boinc_postpr(ia)
 #endif
     end do
     if(ndafi >= 1) call sumpos

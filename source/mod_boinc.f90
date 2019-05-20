@@ -20,6 +20,7 @@ module mod_boinc
   real(kind=fPrec),   private, save :: boinc_progInterval = 0.0            ! Number of seconds between progress updates
   real(kind=fPrec),   private, save :: boinc_lastCPReq    = 0.0            ! CPU time of last checkpointing request
   real(kind=fPrec),   private, save :: boinc_lastProgress = 0.0            ! CPU time of last progress report to the API
+  real(kind=fPrec),   private, save :: boinc_trackTotal   = 1.0            ! Max progress count in tracking
 
 contains
 
@@ -61,6 +62,12 @@ subroutine boinc_initialise
     boinc_progInterval =  1.0
   end if
 
+  if(ipos == 1) then
+    boinc_trackTotal = 0.99 ! If posprocesing, tracking progress ends at 99%
+  else
+    boinc_trackTotal = 1.00
+  end if
+
 end subroutine boinc_initialise
 
 ! ================================================================================================ !
@@ -85,7 +92,7 @@ subroutine boinc_turn(nTurn)
   if(cpuTime-boinc_lastProgress >= boinc_progInterval) then
     ! Tell BOINC how we're doing
     ! We need to re-add BOINC graphics as well here at some point
-    call boinc_fraction_done(dble(nTurn)/dble(numl))
+    call boinc_fraction_done(boinc_trackTotal*dble(nTurn)/dble(numl))
     boinc_lastProgress = cpuTime
   end if
 #endif
@@ -151,6 +158,28 @@ subroutine boinc_post
 end subroutine boinc_post
 
 ! ================================================================================================ !
+!  PostProcessing Progress
+! ================================================================================================ !
+subroutine boinc_postpr(nPair)
+
+  use mod_common, only : napxo
+
+  integer, intent(in) :: nPair
+
+  real(kind=fPrec) boincProg
+
+#ifdef API
+  call boinc_fraction_done(boinc_trackTotal + dble(nPair)/dble(napxo)/100)
+  call boinc_get_fraction_done(boincProg)
+  write(boinc_logBuffer,"(a,f8.3,a)") "PostPR Progress: ",100*boincProg," %"
+#else
+  write(boinc_logBuffer,"(a,f8.3,a)") "PostPR Progress: ",100*boinc_trackTotal + dble(nPair)/dble(napxo)," %"
+#endif
+  call boinc_writeLog
+
+end subroutine boinc_postpr
+
+! ================================================================================================ !
 !  Report exit status, close the log file, and tell BOINC to finish
 ! ================================================================================================ !
 subroutine boinc_finalise(exitCode)
@@ -169,6 +198,7 @@ subroutine boinc_finalise(exitCode)
 
 #ifdef API
   ! The API does not return
+  call boinc_fraction_done(1.0)
   call boinc_finish(exitCode)
 #else
   if(exitCode == 0) then
