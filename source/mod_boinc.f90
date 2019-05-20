@@ -174,7 +174,7 @@ subroutine boinc_finalise(exitCode)
   if(exitCode == 0) then
     stop
   else
-    stop exitCode
+    stop 1
   end if
 #endif
 
