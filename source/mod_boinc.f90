@@ -20,7 +20,6 @@ module mod_boinc
   real(kind=fPrec),   private, save :: boinc_progInterval = 0.0            ! Number of seconds between progress updates
   real(kind=fPrec),   private, save :: boinc_lastCPReq    = 0.0            ! CPU time of last checkpointing request
   real(kind=fPrec),   private, save :: boinc_lastProgress = 0.0            ! CPU time of last progress report to the API
-  real(kind=fPrec),   private, save :: boinc_trackTotal   = 1.0            ! Max progress count in tracking
 
 contains
 
@@ -62,12 +61,6 @@ subroutine boinc_initialise
     boinc_progInterval =  1.0
   end if
 
-  if(ipos == 1) then
-    boinc_trackTotal = 0.99 ! If posprocesing, tracking progress ends at 99%
-  else
-    boinc_trackTotal = 1.00
-  end if
-
 end subroutine boinc_initialise
 
 ! ================================================================================================ !
@@ -83,17 +76,26 @@ subroutine boinc_turn(nTurn)
   integer, intent(in) :: nTurn
 
   integer          doCheckpoint
-  real(kind=fPrec) cpuTime, boincProg
+  double precision cpuTime, boincProg
 
   boinc_nTurn = nTurn
   call cpu_time(cpuTime)
 
+  ! If we have postprocessing, reserve the last 1% of progress for that, otherwise use all in tracking
+  if(ipos == 1) then
+    boincProg = 0.99*dble(nTurn)/dble(numl)
+  else
+    boincProg = dble(nTurn)/dble(numl)
+  end if
+
 #ifdef API
   if(cpuTime-boinc_lastProgress >= boinc_progInterval) then
-    ! Tell BOINC how we're doing
+    ! Tell BOINC how we're doing, but don't hammer the API if many turns
     ! We need to re-add BOINC graphics as well here at some point
-    call boinc_fraction_done(boinc_trackTotal*dble(nTurn)/dble(numl))
+    call boinc_fraction_done(boincProg)
     boinc_lastProgress = cpuTime
+    write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100*boincProg," %"
+    call boinc_writeLog
   end if
 #endif
 
@@ -105,7 +107,7 @@ subroutine boinc_turn(nTurn)
   call boinc_writeLog
 
 #ifdef API
-  call boinc_get_fraction_done(boincProg)
+  call boinc_fraction_done(boincProg)
   write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100*boincProg," %"
   call boinc_writeLog
   if(boinc_isStandalone) then
@@ -125,7 +127,7 @@ subroutine boinc_turn(nTurn)
     end if
   end if
 #else
-  write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100*dble(nTurn)/dble(numl)," %"
+  write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100*boincProg," %"
   call boinc_writeLog
   write(boinc_logBuffer,"(a)") "Dummy Mode: Checkpointing permitted"
   call boinc_writeLog
@@ -144,7 +146,8 @@ subroutine boinc_post
 
   use checkpoint_restart
 
-  write(boinc_logBuffer,"(a)") "Final checkpoint after tracking"
+  write(boinc_logBuffer,"(a)") "Tracking completed. Final checkpoint."
+  write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",99.0," %"
   call boinc_writeLog
 
 #ifdef API
@@ -158,52 +161,36 @@ subroutine boinc_post
 end subroutine boinc_post
 
 ! ================================================================================================ !
-!  PostProcessing Progress
+!  Bump progress to 100%, and close the log file
 ! ================================================================================================ !
-subroutine boinc_postpr(nPair)
-
-  use mod_common, only : napxo
-
-  integer, intent(in) :: nPair
-
-  real(kind=fPrec) boincProg
-
-#ifdef API
-  call boinc_fraction_done(boinc_trackTotal + dble(nPair)/dble(napxo)/100)
-  call boinc_get_fraction_done(boincProg)
-  write(boinc_logBuffer,"(a,f8.3,a)") "PostPR Progress: ",100*boincProg," %"
-#else
-  write(boinc_logBuffer,"(a,f8.3,a)") "PostPR Progress: ",100*boinc_trackTotal + dble(nPair)/dble(napxo)," %"
-#endif
-  call boinc_writeLog
-
-end subroutine boinc_postpr
-
-! ================================================================================================ !
-!  Report exit status, close the log file, and tell BOINC to finish
-! ================================================================================================ !
-subroutine boinc_finalise(exitCode)
+subroutine boinc_done
 
   use mod_units
 
-  integer, intent(in) :: exitCode
-
-  call f_requestUnit(boinc_logFile, boinc_logUnit)
-  call f_open(unit=boinc_logUnit,file=boinc_logFile,formatted=.true.,mode="w+")
-
-  write(boinc_logBuffer,"(a,i0)") "Exiting with status: ",exitCode
+#ifdef API
+  call boinc_fraction_done(1.0)
+#endif
+  write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100.0," %"
   call boinc_writeLog
-
   call f_close(boinc_logUnit)
+
+end subroutine boinc_done
+
+! ================================================================================================ !
+!  Report exit status and tell BOINC to finish
+! ================================================================================================ !
+subroutine boinc_finalise(exitCode)
+
+  integer, intent(in) :: exitCode
 
 #ifdef API
   ! The API does not return
-  call boinc_fraction_done(1.0)
   call boinc_finish(exitCode)
 #else
   if(exitCode == 0) then
     stop
   else
+    ! This must be stop 1 and not stop exitCode to work on ifort
     stop 1
   end if
 #endif

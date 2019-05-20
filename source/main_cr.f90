@@ -1444,9 +1444,6 @@ program maincr
       call postpr(ia2)
 #endif
 #endif
-#ifdef BOINC
-      call boinc_postpr(ia)
-#endif
     end do
     if(iposc >= 1) call sumpos
     call f_close(unit10)
@@ -1480,9 +1477,6 @@ program maincr
       call postpr(91-ia)
 #endif
 #endif
-#ifdef BOINC
-      call boinc_postpr(ia)
-#endif
     end do
     if(ndafi >= 1) call sumpos
     call f_close(unit10)
@@ -1507,7 +1501,7 @@ program maincr
   endif
 #endif
 
-call ffield_mod_end()
+  call ffield_mod_end()
 
   time3=0.
   call time_timerCheck(time3)
@@ -1521,6 +1515,11 @@ call ffield_mod_end()
   ! HASH library. Must be before ZIPF
   call hash_fileSums
   call time_timeStamp(time_afterHASH)
+#endif
+
+#ifdef BOINC
+  ! Do the final things in BOINC before ZIPF, but after HASH
+  call boinc_done
 #endif
 
   if(zipf_numfiles > 0) then
