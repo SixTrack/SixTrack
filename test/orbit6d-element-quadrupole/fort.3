@@ -35,7 +35,7 @@ INITIAL COORDINATES
 2000.0
 NEXT
 LINEAR OPTICS CALCULATION
-ELEMENT 0 1
+ELEMENT  0 2 1 2.5 2.5
 NEXT
 SYNC
 100  0.00000     2.0 0.0    120.000000  938.272081  1
@@ -44,7 +44,13 @@ NEXT
 BEAM
 0.0000e+00   1.24731e+06   1.24731e+06  0.0000e+00  0.0000e+00  1  0
 NEXT
+POSTPROCESSING----------------------------------------------------------
+LHC Dynamic Aperture at Injection Version 5 (1998)
+20 0 0 1 .08 .08 1 0 0 1. 1.
+64. 59. 1 1 10 .005 1 .050
+0 1 0 1 1 1 1 1 30
+NEXT
 DUMP
-qfstart 1 660 2 IP1_DUMP.dat
+qfstart 1 1030 7 START_DUMP 1 -1
 NEXT
 ENDE

@@ -31,11 +31,13 @@ Returns the total number of particles that will be created for the distribution.
 */
 int getnumberdist_(){
 	double length = 1;
-	for(int j =0; j<dim; j++){
+	if(dist->disttype==0){
+		for(int j =0; j<dim; j++){
 		length = length*dist->coord[j]->length;
-	}
+		}
 	dist->totallength = length;
-	return length;
+	}
+	return dist->totallength;
 }
 
 void getcoordvectors_(double *x, double *xp, double *y, double *yp, double *sigma, double *delta){
@@ -83,3 +85,47 @@ void getcoord_(double coordinate[6], int initial ){
 		coordinate[i] = dist->distout[initial][i];
 	}
 }
+
+void print2file(){
+   double coord[6];
+   FILE *fptr;
+   double x, y, xp, yp, momentum, deltas, unit;
+   unit = 10e-3;
+
+   fptr = fopen("coordinates.out", "w");
+   if(fptr == NULL)
+   {
+      printf("Error!");
+      exit(1);
+   }
+   for(int i=0;i < getnumberdist_(); i++)
+   {
+   		getcoord_(coord, i);
+   		x = coord[0]*unit;
+   		y = coord[2]*unit;
+   		xp = coord[1]*unit;
+   		yp = coord[3]*unit;
+   		momentum = dist->momentum+(coord[5]*dist->momentum);
+   		deltas = coord[4]*unit;
+        fprintf(fptr,"%d  %d  %d  %f  %f  %d  %f  %f  %d  %d %d  %f  %f  %f \n", 
+                      i,   i,  i,  x,  y,  i, xp, yp,  i, dist->massnum, dist->atomnum, dist->mass, momentum, deltas   );
+   }
+   fclose(fptr);
+}
+
+/*
+1	particle id (not actually used)
+2	parent particle id (not actually used)
+3	statistical weight (not actually used)
+4	x[m]
+5	y [m]
+6	(unused)
+7	x[]
+8	y′[]
+9	(unused)
+10	mass number
+11	atomic number
+12	mass [GeV/c]
+13	linear momentum [GeV/c]
+14	time lag [s]
+*/

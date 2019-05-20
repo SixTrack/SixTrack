@@ -7,7 +7,6 @@
 #include "distgeneration.h"
 #include "outputdist.h"
 
-
 /*
 This allocates the the memory for the distributions
 */
@@ -38,8 +37,8 @@ void initializedistribution_(int *numberOfDist){
         (dist + i)->mass      = 0;
         (dist + i)->momentum  = 0;
         (dist + i)->charge    = 1;
+        (dist + i)->massnum   = 1;
         (dist + i)->atomnum   = 1;
-        (dist + i)->atommas   = 1;
         (dist + i)->emitt->e1 = 0; 
         (dist + i)->emitt->e2 = 0; 
         (dist + i)->emitt->e3 = 0;
@@ -94,13 +93,11 @@ void addclosedorbit_(double *clo){
 	}
 }
 
-
 void setdeltap_(double *dp){
 	dist->emitt->dp = *dp;
 	dist->longitunalemittance=2;
 	//dist->emitt->e3 = 1000*pow(*dp/dist->tas[5][5],2);
 }
-
 
 void settasmatrix_(double tas[6][6]){
 	for(int i =0; i< dim; i++){
@@ -108,6 +105,12 @@ void settasmatrix_(double tas[6][6]){
 			dist->tas[i][j] = tas[i][j];
 		}
 	}
+	printmatrix(6,6, dist->tas);
+}
+
+void settasmatrix_element(double element, int i, int j){
+	dist->tas[i][j] = element;
+
 	printmatrix(6,6, dist->tas);
 }
 
@@ -148,8 +151,11 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 
 	if(*type > 0){ //Allocate space for the array
 		if(dist->disttype==1){
-			if(dist->totallength>0)
-				length=&dist->totallength;
+			if(dist->totallength>0){
+				int tmp;
+				tmp=dist->totallength;
+				length=&tmp;
+				}
 			else
 				printf("You need to set a totallength for disttype 1!");
 		}
@@ -241,7 +247,7 @@ void setphysicalcut(int variable, double min, double max){
 }
 
 void setnormalizedcut(int variable, double min, double max){
-	dist->cuts2apply->isset_p=1;
+	dist->cuts2apply->isset_n=1;
 	dist->cuts2apply->normalized[variable-1]->min=min;
 	dist->cuts2apply->normalized[variable-1]->max=max;
 	dist->cuts2apply->normalized[variable-1]->isset=1;

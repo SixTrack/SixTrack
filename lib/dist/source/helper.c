@@ -99,23 +99,6 @@ double momentum2energy(double momentum, double mass){
     return sqrt(pow(momentum,2)+pow(mass,2));
 }
 
-void print2file(double **coord, int length){
-    FILE *fptr;
-
-   fptr = fopen("coordinates.out", "w");
-   if(fptr == NULL)
-   {
-      printf("Error!");
-      exit(1);
-   }
-   for(int i=0;i < length; i++)
-   {
-        fprintf(fptr,"%f  %f  %f  %f %f  %f  \n", coord[i][1], coord[i][2],coord[i][3], coord[i][4], coord[i][5], coord[i][6]);
-   }
-   fclose(fptr);
-
-}
-
 
 /* 
     if mtrx_a is (m x n) and mtrx_b is (n x p), 

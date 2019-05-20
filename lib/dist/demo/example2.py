@@ -122,7 +122,7 @@ print(physical[5])
 #plt.hist(x,bins=50)
 plt.plot(xd,pxd, '.')
 plt.plot(x,xp, '*')
-
+dist.print2file()
 #plt.show()
 #plt.hist(y,bins=50)
 plt.show()

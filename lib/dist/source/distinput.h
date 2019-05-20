@@ -4,8 +4,8 @@ struct distparam
 	struct emittances* emitt;
 	double mass;
 	int charge;
+    int massnum;
     int atomnum;
-    int atommas;
     int totallength;
     int disttype;	
 	double momentum;
@@ -64,6 +64,7 @@ void setdeltap_(double *dp);
 void addclosedorbit_(double *clo);
 void settasmatrix_(double tas[6][6]);
 void settasmatrixpython(double **tas);
+void settasmatrix_element(double element, int i, int j);
 
 void setparameter_(int *index,  double *start, double *stop, int *length, int *type);
 

@@ -28,7 +28,7 @@ program demodist
       dim = 6
       e1 = 1.0d0
       e2 = 2.0d0
-      e3 = 0.03d0 
+      e3 = 0.03d0
       dp = 0.0001d0
       pia2 = 2.00d0*3.1415
       zero = 0.0d0
