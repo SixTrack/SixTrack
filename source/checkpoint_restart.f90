@@ -33,7 +33,6 @@ module checkpoint_restart
   logical,           public,  save :: cr_restart  = .false.
 
   character(len=21), public,  save :: cr_startMsg = " "
-  real,              public,  save :: cr_time     = 0.0
   integer,           public,  save :: cr_numl     = 1
   integer,           public,  save :: binrec      = 0       ! The maximum number of records writen for all tracking data files
   integer,           public,  save :: sixrecs     = 0
@@ -375,7 +374,7 @@ subroutine crcheck
 
     write(crlog,"(a)") "CR_CHECK>  * Tracking variables"
     flush(crlog)
-    read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,cr_time,crnapxo, &
+    read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,crnapxo, &
       crnapx,cre0,crbetrel,crbrho,crnucmda
     if(ioStat /= 0) cycle
 

@@ -1505,10 +1505,12 @@ program maincr
   endif
 #endif
 
+  call time_timeStamp(time_afterAllPostPR)
 #ifdef BOINC
   call boinc_postProgress(3)
 #endif
-  call ffield_mod_end()
+
+  call ffield_mod_end
 
   ! Make sure all files are flushed before we do stuff with them
   call f_flush
@@ -1531,7 +1533,7 @@ program maincr
   endif
 
   ! Get grand total including post-processing
-  call time_retReport(pretime,trtime,posttime,tottime)
+  call time_getSummary(pretime, trtime, posttime, tottime)
   write(lout,"(a)")         ""
   write(lout,"(a)")         str_divLine
   write(lout,"(a)")         ""

@@ -26,9 +26,10 @@ module mod_time
   integer, parameter :: time_afterPostTrack      = 9
   integer, parameter :: time_afterPostProcessing = 10
   integer, parameter :: time_afterFMA            = 11
-  integer, parameter :: time_afterHASH           = 12
-  integer, parameter :: time_afterZIPF           = 13
-  integer, parameter :: time_beforeExit          = 14
+  integer, parameter :: time_afterAllPostPR      = 12
+  integer, parameter :: time_afterHASH           = 13
+  integer, parameter :: time_afterZIPF           = 14
+  integer, parameter :: time_beforeExit          = 15
 
   real(kind=fPrec), public,  save :: time_lastTick = 0.0
   real(kind=fPrec), private, save :: time_timeZero = 0.0
@@ -144,19 +145,21 @@ subroutine time_finalise
 
 end subroutine time_finalise
 
-subroutine time_getReport(preTime, trackTime, postTime, totalTime)
+subroutine time_getSummary(preTime, trackTime, postTime, totalTime)
 
   real(kind=fPrec), intent(out) :: preTime
   real(kind=fPrec), intent(out) :: trackTime
   real(kind=fPrec), intent(out) :: postTime
   real(kind=fPrec), intent(out) :: totalTime
 
-  preTime   = time_timeRecord(time_afterPreTrack)
-  trackTime = time_timeRecord(time_afterTracking) - preTime
-  postTime  = time_timeRecord(time_afterFMA)      - trackTime
-  totalTime = zero
+  call time_ticToc
 
-end subroutine time_getReport
+  preTime   = time_timeRecord(time_afterPreTrack)
+  trackTime = time_timeRecord(time_afterTracking)  - time_timeRecord(time_afterPreTrack)
+  postTime  = time_timeRecord(time_afterAllPostPR) - time_timeRecord(time_afterTracking)
+  totalTime = time_lastTick
+
+end subroutine time_getSummary
 
 ! ================================================================================================ !
 !  Update the last clock time. Can be used in log files, etc.
@@ -219,6 +222,8 @@ subroutine time_timeStamp(timeStamp)
     call time_writeReal("Stamp_AfterPostProcessing", timeValue, "s")
   case(time_afterFMA)
     call time_writeReal("Stamp_AfterFMA",            timeValue, "s")
+  case(time_afterAllPostPR)
+    call time_writeReal("Stamp_AfterAllPostPR",      timeValue, "s")
   case(time_afterHASH)
     call time_writeReal("Stamp_AfterHASH",           timeValue, "s")
   case(time_afterZIPF)
