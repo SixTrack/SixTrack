@@ -81,12 +81,8 @@ subroutine boinc_turn(nTurn)
   boinc_nTurn = nTurn
   call cpu_time(cpuTime)
 
-  ! If we have postprocessing, reserve the last 1% of progress for that, otherwise use all in tracking
-  if(ipos == 1) then
-    boincProg = 0.99*dble(nTurn)/dble(numl)
-  else
-    boincProg = dble(nTurn)/dble(numl)
-  end if
+  ! End of tracking should at 99% complete. Last 1% is for postprocessing.
+  boincProg = 0.99*dble(nTurn)/dble(numl)
 
   if(cpuTime-boinc_lastProgress >= boinc_progInterval) then
     ! Tell BOINC how we're doing, but don't hammer the API if many turns
@@ -156,6 +152,28 @@ subroutine boinc_post
 end subroutine boinc_post
 
 ! ================================================================================================ !
+!  Sets the postprocessing progress.
+!  These steps are hardcoded, and should only be changed if a time consuming post processing routine
+!  is added in main_cr. If so, bump the mSteps parameter and recheck all calls to this routine.
+!  Currently there are 5 steps:
+!   - Step 0,1,2,3 are called from main_cr
+!   - Step 4,5 are called from boinc_done
+! ================================================================================================ !
+subroutine boinc_postProgress(nStep)
+  integer, intent(in) :: nStep
+  double precision :: progFrac
+  integer, parameter :: mSteps = 5
+  if(nStep <= mSteps) then
+    progFrac = dble(nStep)/mSteps
+  else
+    progFrac = 1.0
+  end if
+  call boinc_fraction_done(progFrac)
+  write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100.0*progFrac," %"
+  call boinc_writeLog
+end subroutine boinc_postProgress
+
+! ================================================================================================ !
 !  Bump progress to 100%, and close the log file
 ! ================================================================================================ !
 subroutine boinc_done
@@ -167,6 +185,8 @@ subroutine boinc_done
 
   character(len=32) :: md5Digest
 
+  call boinc_postProgress(4)
+
   call part_writeState("boinc_particles.dat",.true.,.true.)
   write(crlog,"(a)") "BOINCAPI> Writing particle final state to file 'boinc_particles.dat'"
   flush(crlog)
@@ -175,9 +195,7 @@ subroutine boinc_done
   write(crlog,"(a)") "BOINCAPI> MD5SUM of 'boinc_particles.dat' is "//md5Digest
   flush(crlog)
 
-  call boinc_fraction_done(1.0)
-  write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100.0," %"
-  call boinc_writeLog
+  call boinc_postProgress(5)
   call f_close(boinc_logUnit)
 
 end subroutine boinc_done
@@ -186,12 +204,9 @@ end subroutine boinc_done
 !  Report exit status and tell BOINC to finish
 ! ================================================================================================ !
 subroutine boinc_finalise(exitCode)
-
   integer, intent(in) :: exitCode
-
-  ! The API does not return
-  call boinc_finish(exitCode)
-
+  call boinc_fraction_done(1.0)
+  call boinc_finish(exitCode) ! The API does not return
 end subroutine boinc_finalise
 
 ! ================================================================================================ !

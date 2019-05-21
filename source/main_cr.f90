@@ -1322,6 +1322,9 @@ program maincr
   write(lout,"(a)") str_divLine
   write(lout,"(a)") ""
   call time_timeStamp(time_afterTracking)
+#ifdef BOINC
+  call boinc_postProgress(0)
+#endif
 
   if(st_writefort12) then
     call writeFort12
@@ -1415,6 +1418,10 @@ program maincr
     call part_writeState("final_state.dat",.true.,st_fStateIons)
   end if
 
+#ifdef BOINC
+  call boinc_postProgress(1)
+#endif
+
 #ifdef FLUKA
 
   ! A.Mereghetti, for the FLUKA Team
@@ -1499,6 +1506,9 @@ program maincr
 
 520 continue
   call time_timeStamp(time_afterPostProcessing)
+#ifdef BOINC
+  call boinc_postProgress(2)
+#endif
   if(fma_flag) then
     write(lout,"(a)") "MAINCR> Calling FMA_POSTPR"
     call fma_postpr
@@ -1511,6 +1521,9 @@ program maincr
   endif
 #endif
 
+#ifdef BOINC
+  call boinc_postProgress(3)
+#endif
   call ffield_mod_end()
 
   time3=0.
