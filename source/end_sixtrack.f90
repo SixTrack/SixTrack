@@ -43,14 +43,8 @@ subroutine abend(endMsg)
   use, intrinsic :: iso_fortran_env, only : error_unit, output_unit
 
   use crcoall
-  use parpro
-  use mod_common
   use checkpoint_restart
-  use numerical_constants
-  use string_tools
   use mod_units
-  use mod_version
-  use mod_time
 #ifdef BOINC
   use mod_boinc
 #endif
@@ -59,58 +53,16 @@ subroutine abend(endMsg)
 
   character(len=*), intent(in) :: endMsg
 
-  logical fErr
-  real(kind=fPrec) sumda(60)
-  character(len=mInputLn) inLine
-
   write(crlog,"(a)") "ABEND_CR> Called"
   write(crlog,"(a)") "ABEND_CR> Closing files"
   flush(crlog)
 
-  ! Calling close to be very safe
   call closeUnits
-
-#ifdef BOINC
-  ! If fort.10 is non-existent (physics error or some other problem)
-  ! we try and write a 0d0 file with a turn number and CPU time
-  write(crlog,"(a)") "ABEND_CR> Checking fort.10"
-  flush(crlog)
-
-  ! The safest way to check if a file exists is to try to open it and catch the fail
-  call f_requestUnit(fort10,unit10) ! Make sure this is actually set
-  call f_open(unit=unit10,file=fort10,formatted=.true.,mode="r",err=fErr,status="old",recl=8195)
-  if(fErr) goto 11
-
-  ! Now we try and read fort.10 i.e. is it empty?
-  read(unit10,"(a1024)",end=11,err=11,iostat=ierro) inLine
-  ! Seems to be OK
-  goto 12
-
-11 continue
-  ! Now we try and write a fort.10
-  write(crlog,"(a)") "ABEND_CR> Writing dummy fort.10"
-  flush(crlog)
-
-  ! Make sure it is closed properly before we re-open for dummy write
-  call f_close(unit10)
-  call f_open(unit=unit10,file=fort10,formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
-
-  sumda(:)  = zero
-  sumda(52) = real(numvers,fPrec) ! SixTrack version
-  write(unit10,"(60(1x,es25.18e2))",iostat=ierro) sumda
-
-  if(ierro /= 0) then
-    write(lerr,"(a,i0)") "ABEND> ERROR Problems writing to fort.10. iostat: ",ierro
-  end if
-#endif
-
-12 continue
   call cr_copyOut
 
-15 continue
-  write(output_unit,"(a)",iostat=ierro) "SIXTRACR> Stop: "//trim(endMsg)
+  write(output_unit,"(a)") "SIXTRACR> Stop: "//trim(endMsg)
   rewind(cr_outUnit)
-  endfile(cr_outUnit,iostat=ierro)
+  endfile(cr_outUnit)
 
   call copyToStdErr(cr_errUnit,cr_errFile,20)
   call f_close(cr_outUnit)

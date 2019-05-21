@@ -182,12 +182,44 @@ subroutine boinc_done
   use mod_hash
   use mod_time
   use mod_units
+  use mod_common
+  use mod_version
   use mod_particles
 
-  character(len=32) :: md5Particles
-  character(len=32) :: md5Fort10
-  real(kind=fPrec)  :: preTime, trackTime, postTime, totalTime
-  integer           :: fUnit
+  character(len=32) :: md5Particles, md5Fort10, inLine
+  real(kind=fPrec)  :: sumDA(60), preTime, trackTime, postTime, totalTime
+  integer           :: fUnit, iErr
+  logical           :: fErr
+
+  iErr = 0
+
+  ! Checking if fort.10 exists.
+  ! The safest way to check if a file exists is to try to open it and catch the fail
+  call f_requestUnit(fort10, unit10)
+  call f_open(unit=unit10,file=fort10,formatted=.true.,mode="r",err=fErr,status="old")
+  if(fErr .eqv. .false.) then
+    ! Now we try and read fort.10 i.e. is it empty?
+    read(unit10,"(a)",iostat=iErr) inLine
+    fErr = iErr /= 0
+  end if
+
+  if(fErr) then
+    ! File is either missing or empty
+    write(crlog,"(a)") "ABEND_CR> Writing dummy fort.10"
+    flush(crlog)
+
+    ! Make sure it is closed properly before we re-open for dummy write
+    call f_close(unit10)
+    call f_open(unit=unit10,file=fort10,formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
+
+    sumDA(:)  = 0.0
+    sumDA(52) = real(numvers,fPrec) ! SixTrack version
+    write(unit10,"(60(1x,es25.18e2))",iostat=iErr) sumda
+
+    if(iErr /= 0) then
+      write(lerr,"(a,i0)") "ABEND> ERROR Problems writing to fort.10. iostat: ",ierro
+    end if
+  end if
 
   call part_writeState("boinc_particles.dat",.true.,.true.)
   write(crlog,"(a)") "BOINCAPI> Writing particle final state to file 'boinc_particles.dat'"
@@ -205,8 +237,7 @@ subroutine boinc_done
   call time_getSummary(preTime, trackTime, postTime, totalTime)
   call f_requestUnit("boinc_summary.dat",fUnit)
   call f_open(unit=fUnit,file="boinc_summary.dat",formatted=.true.,mode="w",status="replace")
-  write(fUnit,"(a,2i0.16,a)") md5Particles//char(10)//md5Fort10//char(10),&
-    int(trackTime*1e3),int(totalTime*1e3),char(10)
+  write(fUnit,"(a32,1x,a32,2(1x,i0.9))") md5Particles,md5Fort10,int(trackTime*1e3),int(totalTime*1e3)
   call f_close(fUnit)
 
   call boinc_postProgress(5)
