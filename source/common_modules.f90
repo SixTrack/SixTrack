@@ -363,17 +363,6 @@ module mod_common
   real(kind=fPrec), save :: ej(mpa)    = zero ! Particle energy
   real(kind=fPrec), save :: ejf(mpa)   = zero ! Particle momentum
 
-  ! Timing Variables
-  real,             save :: tlim       = 1.0e7
-  real,             save :: time0      = 0.0
-  real,             save :: time1      = 0.0
-  real,             save :: time2      = 0.0
-  real,             save :: time3      = 0.0
-  real,             save :: trtime     = 0.0
-  real,             save :: pretime    = 0.0
-  real,             save :: posttime   = 0.0
-  real,             save :: tottime    = 0.0
-
   ! Other Variables
   integer,          save :: ichromc    = 0
   integer,          save :: ilinc      = 0

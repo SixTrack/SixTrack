@@ -573,11 +573,6 @@ subroutine crpoint
   ! Copy lout to output_unit
   call cr_copyOut
 
-  ! Hope this is correct
-  ! Maybe not!!!! this should be accumulative over multiple C/Rs
-  call time_timerCheck(time3)
-  time3 = (time3-time1)+cr_time
-
   crnumlcr = numx+1
 
   if(dynk_enabled) then ! Store current settings of elements affected by DYNK
@@ -609,7 +604,7 @@ subroutine crpoint
       write(crlog,"(a)") "CR_POINT>  * Tracking variables"
       flush(crlog)
     end if
-    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,time3,napxo,napx,e0,betrel,brho,nucmda
+    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,napxo,napx,e0,betrel,brho,nucmda
 
     if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * Particle arrays"
@@ -740,7 +735,6 @@ subroutine crstart
   ! for more turns from the last checkpoint
   binrec   = crbinrec
 
-  ! the cr_time is required (crtime0/1 removed)
   napxo  = crnapxo
   napx   = crnapx
   e0     = cre0

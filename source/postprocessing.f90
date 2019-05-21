@@ -35,7 +35,7 @@ subroutine postpr(arg1,arg2)
       use mod_common, only : dpscor,sigcor,icode,idam,its6d,dphix,dphiz,qx0,qz0,&
         dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,iwg,ivox,    &
         ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi,   &
-        chromc,tlim,trtime,fort10,fort110,unit10,unit110
+        chromc,fort10,fort110,unit10,unit110
 #ifdef ROOT
       use root_output
 #endif
@@ -55,7 +55,7 @@ subroutine postpr(arg1,arg2)
 #ifdef STF
       integer posi,posi1, ia_stf,ifipa_stf,ilapa_stf
 #endif
-      real tim1,tim2,fxs,fzs
+      real fxs,fzs
       real(kind=fPrec) const,dle,slope,tle,varlea,wgh
       real(kind=fPrec) alf0,alf04,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,   &
      &alf0z3,ampx0,ampz0,angi,angii,angiii,ared,ares,armin,armin0,b,b0, &
@@ -123,12 +123,7 @@ subroutine postpr(arg1,arg2)
 #endif
 
 !----------------------------------------------------------------------
-!--TIME START
       pieni2=c1m8
-      tlim=c1e7
-      call time_timerStart
-      tim1=zero
-      call time_timerCheck(tim1)
 
       do i=1,npos
         do j=1,3
@@ -214,25 +209,8 @@ subroutine postpr(arg1,arg2)
         sumda(i)=zero
       end do
 
-      itot=0
-      ttot=0
-
-      do i=1,8
-        if (version(i:i).ne.' ') then
-          if (version(i:i).ne.'.') then
-            itot=itot*10+ichar(version(i:i))-ichar('0')
-          else
-            ttot=ttot*10**2+itot
-            itot=0
-          endif
-        endif
-      enddo
-
-      ttot=ttot*10**2+itot
-      sumda(52)=real(ttot,fPrec)                                               !hr06
-! and put CPU time for Massimo
-! so even if we go to 550 we now get the stats
-      sumda(60)=real(trtime,fPrec)
+      sumda(52)=real(numvers,fPrec) ! SixTrack version
+      sumda(60)=-one                ! Dummy CPU time. No longer in use.
       b0=zero
       nlost=0
       ntwin=1
@@ -2620,10 +2598,6 @@ subroutine postpr(arg1,arg2)
         rewind 14
         rewind 15
       end if
-!--TIME COUNT
-      tim2=0.
-      call time_timerCheck(tim2)
-      if(nprint.eq.1) write(lout,10280) tim2-tim1
 !----------------------------------------------------------------------
       return
 
@@ -2795,8 +2769,6 @@ subroutine postpr(arg1,arg2)
      &'[PI*MM*MRAD]',15x,'[%]',15x,'[%]',15x, '[%]'/10x,86('-')/ 10x,   &
      &'HORIZONTAL',6x,f16.10,3(6x,f12.6)/ 10x,'VERTICAL',8x,f16.10,3    &
      &(6x,f12.6)/ 10x,'SUM',13x,f16.10,3(6x,f12.6)/10x,86('-')//)
-10280 format(/10x,'Postprocessing took ',f12.3,' second(s)',            &
-     &' of Execution Time'//131('-')//)
 10290 format(//10x,'** ERROR ** ----- TRANSFORMATION MATRIX SINGULAR ' ,&
      &'(FILE : ',i2,') -----'//)
 10300 format(//10x,'** ERROR ** ----- FILE :',i2,' WITH TRACKING ' ,    &

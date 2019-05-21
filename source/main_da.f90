@@ -102,8 +102,6 @@ program mainda
   call time_timeStamp(time_afterFileUnits)
 
   ! Print Header Info
-  call time_timerStart
-  call time_timerCheck(time0)
 
   ! TimeStamp
   call date_and_time(tsDate,tsTime)

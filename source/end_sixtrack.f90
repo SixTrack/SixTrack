@@ -97,11 +97,7 @@ subroutine abend(endMsg)
   call f_close(unit10)
   call f_open(unit=unit10,file=fort10,formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
 
-  sumda(:) = zero
-  call time_timerCheck(time1)
-  trtime = time1 - time0
-  trtime = trtime + cr_time
-  sumda(60) = real(trtime,fPrec)  ! Track time
+  sumda(:)  = zero
   sumda(52) = real(numvers,fPrec) ! SixTrack version
   outLine = " "
   k = 1

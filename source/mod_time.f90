@@ -130,6 +130,20 @@ subroutine time_finalise
 
 end subroutine time_finalise
 
+subroutine time_getReport(preTime, trackTime, postTime, totalTime)
+
+  real(kind=fPrec), intent(out) :: preTime
+  real(kind=fPrec), intent(out) :: trackTime
+  real(kind=fPrec), intent(out) :: postTime
+  real(kind=fPrec), intent(out) :: totalTime
+
+  preTime   = time_timeRecord(time_afterPreTrack)
+  trackTime = time_timeRecord(time_afterTracking) - preTime
+  postTime  = time_timeRecord(time_afterFMA)      - trackTime
+  totalTime = zero
+
+end subroutine time_getReport
+
 subroutine time_timeStamp(timeStamp)
 
   integer, intent(in) :: timeStamp
@@ -214,23 +228,5 @@ subroutine time_writeReal(timeLabel, timeValue, timeUnit, dataCount)
   flush(time_fileUnit)
 
 end subroutine time_writeReal
-
-! ================================================================================================ !
-!  Old timing routines from sixtrack.f90, moved and leaned up.
-!  Last modified: 2018-11-15
-! ================================================================================================ !
-subroutine time_timerStart
-  if(time_timerStarted) return
-  time_timerStarted = .true.
-  call cpu_time(time_timerRef)
-end subroutine time_timerStart
-
-subroutine time_timerCheck(timeValue)
-  real, intent(inout) :: timeValue
-  real currTime
-  call time_timerStart
-  call cpu_time(currTime)
-  timeValue = currTime - time_timerRef
-end subroutine time_timerCheck
 
 end module mod_time

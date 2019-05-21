@@ -80,7 +80,8 @@ program maincr
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
     bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,     &
     gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
-    tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13,damp,eps(2),epsa(2)
+    tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13,damp,      &
+    eps(2),epsa(2),pretime,trtime,posttime,tottime
   integer idummy(6)
   character(len=4) cpto
   character(len=1024) arecord
@@ -240,8 +241,6 @@ program maincr
   flush(crlog)
 #endif
 
-  call time_timerStart
-  call time_timerCheck(time0)
   progrm = "SIXTRACK"
 
 #ifdef ROOT
@@ -1240,30 +1239,15 @@ program maincr
     call part_writeState("initial_state.dat",.true.,st_iStateIons)
   end if
 
-  time1=0.
-  call time_timerCheck(time1)
-
-  ! time1 is now pre-processing CPU
-  ! note that this will be reset every restart as we redo pre-processing
-  pretime=time1-time0
   part_isTracking = .true.
   if(ithick == 0) call trauthin(nthinerr)
   if(ithick == 1) call trauthck(nthinerr)
-
-  time2=0.
-  call time_timerCheck(time2)
 
   if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
     ! Only if thin 6D and collimation enabled
     call collimate_exit
   endif
 
-  ! trtime is now the tracking time, BUT we must add other time for C/R
-  trtime=time2-time1
-#ifdef CR
-  ! because now crpoint will write tracking time using time3 as a temp and crcheck/crstart will reset cr_time
-  trtime=trtime+cr_time
-#endif
   if(nthinerr == 3000) goto 520
   if(nthinerr == 3001) goto 460
 
@@ -1526,11 +1510,6 @@ program maincr
 #endif
   call ffield_mod_end()
 
-  time3=0.
-  call time_timerCheck(time3)
-  ! Note that crpoint no longer destroys time2
-  posttime=time3-time2
-
   ! Make sure all files are flushed before we do stuff with them
   call f_flush
 
@@ -1552,7 +1531,7 @@ program maincr
   endif
 
   ! Get grand total including post-processing
-  tottime = (pretime+trtime)+posttime
+  call time_retReport(pretime,trtime,posttime,tottime)
   write(lout,"(a)")         ""
   write(lout,"(a)")         str_divLine
   write(lout,"(a)")         ""
