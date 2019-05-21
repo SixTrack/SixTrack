@@ -36,8 +36,8 @@ mass = c_double(938.0)
 eps = 2.0
 dim = c_int(6)
 zero = c_double(0)
-e1 = c_double(eps)
-e2 = c_double(1.0)
+e1 = c_double(1.0)
+e2 = c_double(0.0)
 e3 = c_double(0.0)
 dist.setemittance12_(byref(e1),byref(e2))
 dist.setemittance3_(byref(e3))
@@ -46,7 +46,7 @@ dist.setdisttype(c_int(1))
 
 
 dist.settotallength(c_int(2000))
-setParameters(dist,1,0,4,200,6)
+setParameters(dist,1,0,1,200,6)
 setParameters(dist,2,0,pia2,200,4)
 setParameters(dist,3,0,0,1,0)
 setParameters(dist,4,0,0,1,0)
@@ -60,16 +60,54 @@ xd = []
 pxd = []
 yd = []
 yxd = []
-print("inpython")
-print("aaa", dist.getnumberdist_())
+
+
 for i in range(0,dist.getnumberdist_()):
 	dist.getcoord_(physical,c_int(i))
 	xd.append(physical[0])
 	pxd.append(physical[1])
 	yd.append(physical[2])
 	yxd.append(physical[3])
-	print(physical[0])
+	
+e1 = c_double(1.0)
+
+dist.setdistribution_(byref(c_int(1)))
+dist.setemittance12_(byref(e1),byref(e2))
+dist.setemittance3_(byref(e3))
+dist.setmassmom_(byref(mass), byref(momentum))
+dist.setdisttype(c_int(0))
+settasmatrix(dist, tas)
 
 
+dist.setdisttype(c_int(0))
+
+
+setParameters(dist,1,1,1,1,1)
+setParameters(dist,2,0,pia2,200,1)
+setParameters(dist,3,1,4,1,0)
+setParameters(dist,4,0,0,1,0)
+setParameters(dist,5,0.000,0,1,0)
+setParameters(dist,6,0,0,1,0)
+
+xd_c = []
+pxd_c = []
+yd_c = []
+yxd_c = []
+
+print("aaa", dist.getnumberdist_())
+for i in range(0,dist.getnumberdist_()):
+	dist.getcoord_(physical,c_int(i))
+	xd_c.append(physical[0])
+	pxd_c.append(physical[1])
+	yd_c.append(physical[2])
+	yxd_c.append(physical[3])
+	
+
+
+print(tas)
+print(len(xd_c))
+print("aaab", np.std(xd_c))
+dist.printdistsettings_()
 plt.plot(xd, pxd, '*')
+plt.plot(xd_c, pxd_c, '*')
 plt.show()
