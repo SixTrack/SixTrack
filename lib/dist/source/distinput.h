@@ -14,6 +14,7 @@ struct distparam
 	double *closedorbit;
 	int coordtype; // This tells which type of coordinates the input is given.  // 1-Normalized
 	double **distout;
+	double **distout_normalized;
 	int isDistrcalculated;
 	int longitunalemittance; // 0 - no longitudnal, 1 - e3, 2 - dp, 3 - deltas
 	struct appliedcut* cuts2apply;
@@ -77,3 +78,4 @@ void createTasWithNoCoupling(double betax, double alfax, double betay, double al
 double optideltas(double cancord[6], double acoord[6], double acangl[6], double x); //check these...
 double toactioncord_(double cancord[6], double acoord[6], double acangl[6]);
 void setphysicalcut(int variable, double min, double max);
+void setnormalizedcut(int variable, double min, double max);

@@ -147,6 +147,7 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 	if(*type ==0){ //Constant value 
 		dist->coord[*index-1]->values = (double*)malloc(sizeof(double));
 		dist->coord[*index-1]->values = start;
+		dist->coord[*index-1]->length = 1; //if it is a constant the length should always be 1.
 	}
 
 	if(*type > 0){ //Allocate space for the array
@@ -247,9 +248,11 @@ void setphysicalcut(int variable, double min, double max){
 }
 
 void setnormalizedcut(int variable, double min, double max){
+	printf("uuuuuuuu %d, %f, %f \n", variable, min, max);
 	dist->cuts2apply->isset_n=1;
 	dist->cuts2apply->normalized[variable-1]->min=min;
 	dist->cuts2apply->normalized[variable-1]->max=max;
 	dist->cuts2apply->normalized[variable-1]->isset=1;
+	printf("uuuuuuuu %d, %f, %f \n", variable, dist->cuts2apply->normalized[variable-1]->min, dist->cuts2apply->normalized[variable-1]->max);
 
 }

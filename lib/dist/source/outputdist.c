@@ -85,7 +85,30 @@ void getcoord_(double coordinate[6], int initial ){
 		coordinate[i] = dist->distout[initial][i];
 	}
 }
+void getcoord_normalized(double coordinate_normalized[6], int initial ){
+	if(dist->isDistrcalculated==0){
+		if(dist->disttype==0)
+			dist2sixcoord_();
+		else if(dist->disttype==1)
+			createrandomdist_();
+		else
+			printf("Not a valid distribution type");
+	}
 
+	if(initial >= dist->totallength){
+		printf("Not generated, total inital coordinates generated is %d :",getnumberdist_() );
+	for(int i=0; i<dim; i++){
+		coordinate_normalized[i] = NAN;
+	}
+		return;
+	}
+
+	for(int i=0; i<dim; i++){
+
+		coordinate_normalized[i] = dist->distout_normalized[initial][i];
+	}
+
+}
 void print2file(){
    double coord[6];
    FILE *fptr;
