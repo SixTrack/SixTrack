@@ -39,18 +39,14 @@ subroutine boinc_initialise
   ! The logfile is for debugging the checkpoining decisions, and should not be used for other logging
   call f_requestUnit(boinc_logFile, boinc_logUnit)
   call f_open(unit=boinc_logUnit,file=boinc_logFile,formatted=.true.,mode="w+")
-  write(crlog,"(a,l1)") "BOINCAPI> Initialising BOINC"
   write(boinc_logBuffer,"(a)") "Initialising BOINC"
   call boinc_writeLog
-  flush(crlog)
 
   call boinc_init
   call boinc_is_standalone(tmpInt)
   boinc_isStandalone = (tmpInt /= 0)
-  write(crlog,"(a,l1)") "BOINCAPI> Standalone: ",boinc_isStandalone
   write(boinc_logBuffer,"(a,l1)") "Standalone: ",boinc_isStandalone
   call boinc_writeLog
-  flush(crlog)
 
   if(boinc_isStandalone) then
     boinc_cpInterval   = 10.0
@@ -81,7 +77,7 @@ subroutine boinc_turn(nTurn)
   boinc_nTurn = nTurn
   call cpu_time(cpuTime)
 
-  ! End of tracking should at 99% complete. Last 1% is for postprocessing.
+  ! End of tracking should be at 99% complete. Last 1% is for postprocessing.
   boincProg = 0.99*dble(nTurn)/dble(numl)
 
   if(cpuTime-boinc_lastProgress >= boinc_progInterval) then
@@ -205,9 +201,6 @@ subroutine boinc_done
   write(crlog,"(a)") "BOINCAPI> MD5SUM of 'fort.10' is "//md5Fort10
   flush(crlog)
 
-  call boinc_postProgress(5)
-  call f_close(boinc_logUnit)
-
   ! Write the BOINC summary file for validation
   call time_getSummary(preTime, trackTime, postTime, totalTime)
   call f_requestUnit("boinc_summary.dat",fUnit)
@@ -216,6 +209,9 @@ subroutine boinc_done
     int(trackTime*1e3),int(totalTime*1e3),char(10)
   call f_close(fUnit)
 
+  call boinc_postProgress(5)
+  call f_close(boinc_logUnit)
+
 end subroutine boinc_done
 
 ! ================================================================================================ !
@@ -223,8 +219,8 @@ end subroutine boinc_done
 ! ================================================================================================ !
 subroutine boinc_finalise(exitCode)
   integer, intent(in) :: exitCode
-  call boinc_fraction_done(1.0)
-  call boinc_finish(exitCode) ! The API does not return
+  call boinc_fraction_done(1.0) ! Skip to 100%
+  call boinc_finish(exitCode)   ! The API does not return
 end subroutine boinc_finalise
 
 ! ================================================================================================ !

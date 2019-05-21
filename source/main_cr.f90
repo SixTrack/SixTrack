@@ -118,10 +118,10 @@ program maincr
   lout  = output_unit
 #endif
 
+  call f_initUnits
 #ifdef BOINC
   call boinc_initialise
 #endif
-  call f_initUnits
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call alloc_init      ! Initialise mod_alloc
