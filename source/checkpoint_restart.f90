@@ -305,6 +305,7 @@ subroutine crcheck
   use scatter,  only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
   use elens,    only : melens, elens_crcheck
   use mod_meta, only : meta_crcheck
+  use mod_time, only : time_crcheck
 
   integer j,k,l,m
   integer nPoint, ioStat
@@ -409,6 +410,11 @@ subroutine crcheck
     write(crlog,"(a)") "CR_CHECK>  * META variables"
     flush(crlog)
     call meta_crcheck(cr_pntUnit(nPoint),rErr)
+    if(rErr) cycle
+
+    write(crlog,"(a)") "CR_CHECK>  * TIME variables"
+    flush(crlog)
+    call time_crcheck(cr_pntUnit(nPoint),rErr)
     if(rErr) cycle
 
     write(crlog,"(a)") "CR_CHECK>  * DUMP variables"
@@ -570,6 +576,8 @@ subroutine crpoint
     return
   end if
 
+  call time_startClock(time_clockCR)
+
   ! Copy lout to output_unit
   call cr_copyOut
 
@@ -644,6 +652,13 @@ subroutine crpoint
     if(wErr) goto 100
 
     if(st_debug) then
+      write(crlog,"(a)") "CR_POINT>  * TIME variables"
+      flush(crlog)
+    end if
+    call time_crpoint(cr_pntUnit(nPoint),wErr)
+    if(wErr) goto 100
+
+    if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * DUMP variables"
       flush(crlog)
     end if
@@ -691,6 +706,8 @@ subroutine crpoint
 
   end do ! Loop over nPoint
 
+  call time_stopClock(time_clockCR)
+
   return
 
 100 continue
@@ -723,6 +740,7 @@ subroutine crstart
   use scatter,  only : scatter_active, scatter_crstart
   use elens,    only : melens, elens_crstart
   use mod_meta, only : meta_crstart
+  use mod_time, only : time_crstart
 
   logical fErr
   integer j, k, l, m, nPoint, ioStat
@@ -796,6 +814,7 @@ subroutine crstart
 
   ! Module data
   call meta_crstart
+  call time_crstart
   if(dynk_enabled) then
     call dynk_crstart
   end if
