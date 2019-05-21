@@ -1334,6 +1334,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   iElDw=itElDw
 ! markers accross extremes of lattice structure?
   lAccrossLatticeExtremes=iElUp.gt.iElDw
+#ifdef DEBUG
+  write(lout,*) "check 00: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", & 
+       il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
+  call dumpMe
+#endif
 
 ! upstream marker
   iuold=iu
@@ -1350,13 +1355,18 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       write(lout,"(a)")    "APER> ...no need to insert an upstream marker - no shift of downstream entries required."
     end if
   end if
+#ifdef DEBUG
+  write(lout,*) "check 01: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", & 
+       il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
+  call dumpMe
+#endif
 
 ! downstream marker
   iuold=iu
   call contour_aperture_marker( iElDw, .false. )
 ! the addition of the downstream aperture marker may have shifted by one the downstream entries
   if( iu-iuold.ne.0 ) then
-! NB: if lAccrossLatticeExtremes, the downstream marker is almost at the beginngin of
+! NB: if lAccrossLatticeExtremes, the downstream marker is almost at the beginning of
 !     the lattice structure! Hence, if a new entry has been inserted,
 !     the upstream marker (towards the end of the lattice structure) is
 !     shifted by 1
@@ -1367,6 +1377,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   else
     write(lout,"(a)")    "APER> ...no need to insert a downstream marker - no shift of downstream entries required."
   end if
+#ifdef DEBUG
+  write(lout,*) "check 02: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", &
+       il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
+  call dumpMe
+#endif
 
   if( lAccrossLatticeExtremes ) then
 ! check that the aperture markers at the extremities of accelerator
@@ -1996,9 +2011,9 @@ subroutine dumpMe
   do i=1,iu
     ix=ic(i)-nblo
     if( ix.gt.0 ) then
-      write(lout,"(a,i8,1x,a,1x,f15.6,1x,i8)") "APER> ",i,bez(ix),dcum(i),kape(ix)
+      write(lout,"(a,2(i8,1x),a,1x,f15.6,1x,i8)") "APER> ",i,ix,bez(ix),dcum(i),kape(ix)
     else
-      write(lout,"(a,i8,1x,a,1x,f15.6)") "APER> ",i,bezb(ic(i)),dcum(i)
+      write(lout,"(a,2(i8,1x),a,1x,f15.6)") "APER> ",i,ic(i),bezb(ic(i)),dcum(i)
     end if
   end do
   write(lout,"(a)") "APER> dumpMe -----------------------------------------------------------------------------"
