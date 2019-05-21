@@ -30,12 +30,14 @@ void printdistsettings_(int *ndist){
 Returns the total number of particles that will be created for the distribution.  
 */
 int getnumberdist_(){
-	double length = 1;
-	if(dist->disttype==0){
-		for(int j =0; j<dim; j++){
-		length = length*dist->coord[j]->length;
+	if(dist->totallength == -1){
+		double length = 1;
+		if(dist->disttype==0){
+			for(int j =0; j<dim; j++){
+			length = length*dist->coord[j]->length;
+			}
+		dist->totallength = length;
 		}
-	dist->totallength = length;
 	}
 	return dist->totallength;
 }

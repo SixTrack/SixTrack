@@ -38,7 +38,6 @@ void dist2sixcoord_(){
                                 for(int p=0; p<dim; p++){
                                     dist->distout[counter][p] = tmp[p]+dist->closedorbit[p];
                                     dist->distout_normalized[counter][p] = tmp_n[p];
-                                    printf("ffff %f %d \n", dist->distout_normalized[counter][p], p );
                                 }
                                 counter++;
                             }
