@@ -566,7 +566,7 @@ subroutine crpoint
   if(numx >= numl) then
     write(crlog,"(a)") "CR_POINT> Called after last turn"
   else
-    write(crlog,"(3(a,i0))") "CR_POINT> Called on turn ",(numx+1)," / ",numl," : frequency is ",numlcp
+    write(crlog,"(2(a,i0))") "CR_POINT> Called on turn ",(numx+1)," / ",numl
   end if
   flush(crlog)
 
@@ -746,12 +746,12 @@ subroutine crstart
 
   write(crlog,"(a,i0)") "CR_START> Starting from checkpoint data from turn ",crnumlcr
   flush(crlog)
+
+  ! We do NOT reset numl so that a run can be extended
+  ! for more turns from the last checkpoint
   cr_numl = crnumlcr
 
-  ! We do NOT reset numl so that a run can be extended for
-  ! for more turns from the last checkpoint
-  binrec   = crbinrec
-
+  binrec = crbinrec
   napxo  = crnapxo
   napx   = crnapx
   e0     = cre0
