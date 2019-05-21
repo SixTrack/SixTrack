@@ -156,15 +156,19 @@ end subroutine boinc_post
 !  These steps are hardcoded, and should only be changed if a time consuming post processing routine
 !  is added in main_cr. If so, bump the mSteps parameter and recheck all calls to this routine.
 !  Currently there are 5 steps:
-!   - Step 0,1,2,3 are called from main_cr
-!   - Step 4,5 are called from boinc_done
+!   - Step 0 : Called after tracking, called from main_cr
+!   - Step 1 : Called after reports, fort.12 and final state file, called from main_cr
+!   - Step 2 : Called after postpr, called from main_cr
+!   - Step 3 : Called after FMA, called from main_cr
+!   - Step 4 : Called after cleaning, closing and hashing, called from main_cr
+!   - Step 5 : Called after generating verification files, called from boinc_done
 ! ================================================================================================ !
 subroutine boinc_postProgress(nStep)
   integer, intent(in) :: nStep
   double precision :: progFrac
   integer, parameter :: mSteps = 5
   if(nStep <= mSteps) then
-    progFrac = dble(nStep)/mSteps
+    progFrac = 0.99 + dble(nStep)/dble(mSteps)/100.0
   else
     progFrac = 1.0
   end if
@@ -184,8 +188,6 @@ subroutine boinc_done
   use mod_particles
 
   character(len=32) :: md5Digest
-
-  call boinc_postProgress(4)
 
   call part_writeState("boinc_particles.dat",.true.,.true.)
   write(crlog,"(a)") "BOINCAPI> Writing particle final state to file 'boinc_particles.dat'"

@@ -1542,6 +1542,7 @@ program maincr
 
 #ifdef BOINC
   ! Do the final things in BOINC before ZIPF, but after HASH
+  call boinc_postProgress(4)
   call boinc_done
 #endif
 
