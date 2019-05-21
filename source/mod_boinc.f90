@@ -30,6 +30,7 @@ contains
 ! ================================================================================================ !
 subroutine boinc_initialise
 
+  use crcoall
   use mod_units
   use mod_common
 
@@ -38,14 +39,18 @@ subroutine boinc_initialise
   ! The logfile is for debugging the checkpoining decisions, and should not be used for other logging
   call f_requestUnit(boinc_logFile, boinc_logUnit)
   call f_open(unit=boinc_logUnit,file=boinc_logFile,formatted=.true.,mode="w+")
+  write(crlog,"(a,l1)") "BOINCAPI> Initialising BOINC"
   write(boinc_logBuffer,"(a)") "Initialising BOINC"
   call boinc_writeLog
+  flush(crlog)
 
   call boinc_init
   call boinc_is_standalone(tmpInt)
   boinc_isStandalone = (tmpInt /= 0)
+  write(crlog,"(a,l1)") "BOINCAPI> Standalone: ",boinc_isStandalone
   write(boinc_logBuffer,"(a,l1)") "Standalone: ",boinc_isStandalone
   call boinc_writeLog
+  flush(crlog)
 
   if(boinc_isStandalone) then
     boinc_cpInterval   = 10.0
@@ -64,6 +69,7 @@ end subroutine boinc_initialise
 ! ================================================================================================ !
 subroutine boinc_turn(nTurn)
 
+  use crcoall
   use mod_common
   use checkpoint_restart
 
@@ -102,19 +108,25 @@ subroutine boinc_turn(nTurn)
   write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100*boincProg," %"
   call boinc_writeLog
   if(boinc_isStandalone) then
+    write(crlog,"(a)") "BOINCAPI> Standalone Mode: Checkpointing permitted"
     write(boinc_logBuffer,"(a)") "Standalone Mode: Checkpointing permitted"
     call boinc_writeLog
+    flush(crlog)
     call crpoint
   else
     call boinc_time_to_checkpoint(doCheckpoint) ! 0 = not allowed, non-0 = allowed
     if(doCheckpoint /= 0) then
+      write(crlog,"(a)") "BOINCAPI> Client Mode: Checkpointing permitted"
       write(boinc_logBuffer,"(a)") "Client Mode: Checkpointing permitted"
       call boinc_writeLog
+      flush(crlog)
       call crpoint
       call boinc_checkpoint_completed
     else
+      write(crlog,"(a)") "BOINCAPI> Client Mode: Checkpointing not permitted"
       write(boinc_logBuffer,"(a)") "Client Mode: Checkpointing not permitted"
       call boinc_writeLog
+      flush(crlog)
     end if
   end if
 
@@ -128,11 +140,14 @@ end subroutine boinc_turn
 ! ================================================================================================ !
 subroutine boinc_post
 
+  use crcoall
   use checkpoint_restart
 
+  write(crlog,"(a)") "BOINCAPI> Tracking completed. Final checkpoint."
   write(boinc_logBuffer,"(a)") "Tracking completed. Final checkpoint."
   write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",99.0," %"
   call boinc_writeLog
+  flush(crlog)
 
   call boinc_begin_critical_section
   call crpoint
@@ -145,7 +160,20 @@ end subroutine boinc_post
 ! ================================================================================================ !
 subroutine boinc_done
 
+  use crcoall
+  use mod_hash
   use mod_units
+  use mod_particles
+
+  character(len=32) :: md5Digest
+
+  call part_writeState("boinc_particles.dat",.true.,.true.)
+  write(crlog,"(a)") "BOINCAPI> Writing particle final state to file 'boinc_particles.dat'"
+  flush(crlog)
+
+  call hash_digestFile("boinc_particles.dat", md5Digest, .true.)
+  write(crlog,"(a)") "BOINCAPI> MD5SUM of 'boinc_particles.dat' is "//md5Digest
+  flush(crlog)
 
   call boinc_fraction_done(1.0)
   write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100.0," %"
