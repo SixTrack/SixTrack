@@ -59,11 +59,9 @@ subroutine abend(endMsg)
 
   character(len=*), intent(in) :: endMsg
 
+  logical fErr
   real(kind=fPrec) sumda(60)
-  integer i, j, k
-  logical fOpen, rErr, fErr, fExists
-  character(len=25) chBuf
-  character(len=mInputLn) inLine, outLine
+  character(len=mInputLn) inLine
 
   write(crlog,"(a)") "ABEND_CR> Called"
   write(crlog,"(a)") "ABEND_CR> Closing files"
@@ -99,24 +97,10 @@ subroutine abend(endMsg)
 
   sumda(:)  = zero
   sumda(52) = real(numvers,fPrec) ! SixTrack version
-  outLine = " "
-  k = 1
-  do i=1,60
-    call chr_fromReal(sumda(i),chBuf,19,2,rErr)
-    outLine(k:k+25)=" "//chBuf(1:25)
-    k = k+26
-  end do
+  write(unit10,"(60(1x,es25.18e2))",iostat=ierro) sumda
 
-  ! Note it COULD happen that napxo is 0 for a very very early error and even napx!!!
-  if(napxo == 0 .and. napx == 0) napxo = 1
-  if(napxo == 0) napxo = napx
-  write(crlog,"(2(a,i0))") "ABEND_CR> Writing fort.10, lines ",napxo,"/",napx
-  flush(crlog)
-  do j=1,napxo,2 ! Must the dummy file really be napxo times the same dummy line?
-    write(unit10,"(a)",iostat=ierro) outLine(1:60*26)
-  end do
   if(ierro /= 0) then
-    write(lerr,"(a,i0)") "ABEND> ERROR Problems writing to fort.10. ierro = ",ierro
+    write(lerr,"(a,i0)") "ABEND> ERROR Problems writing to fort.10. iostat: ",ierro
   end if
 #endif
 

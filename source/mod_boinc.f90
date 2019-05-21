@@ -184,21 +184,37 @@ subroutine boinc_done
 
   use crcoall
   use mod_hash
+  use mod_time
   use mod_units
   use mod_particles
 
-  character(len=32) :: md5Digest
+  character(len=32) :: md5Particles
+  character(len=32) :: md5Fort10
+  real(kind=fPrec)  :: preTime, trackTime, postTime, totalTime
+  integer           :: fUnit
 
   call part_writeState("boinc_particles.dat",.true.,.true.)
   write(crlog,"(a)") "BOINCAPI> Writing particle final state to file 'boinc_particles.dat'"
   flush(crlog)
 
-  call hash_digestFile("boinc_particles.dat", md5Digest, .true.)
-  write(crlog,"(a)") "BOINCAPI> MD5SUM of 'boinc_particles.dat' is "//md5Digest
+  call hash_digestFile("boinc_particles.dat", md5Particles, .true.)
+  write(crlog,"(a)") "BOINCAPI> MD5SUM of 'boinc_particles.dat' is "//md5Particles
+  flush(crlog)
+
+  call hash_digestFile("fort.10", md5Fort10, .true.)
+  write(crlog,"(a)") "BOINCAPI> MD5SUM of 'fort.10' is "//md5Fort10
   flush(crlog)
 
   call boinc_postProgress(5)
   call f_close(boinc_logUnit)
+
+  ! Write the BOINC summary file for validation
+  call time_getSummary(preTime, trackTime, postTime, totalTime)
+  call f_requestUnit("boinc_summary.dat",fUnit)
+  call f_open(unit=fUnit,file="boinc_summary.dat",formatted=.true.,mode="w",status="replace")
+  write(fUnit,"(a,2i0.16,a)") md5Particles//char(10)//md5Fort10//char(10),&
+    int(trackTime*1e3),int(totalTime*1e3),char(10)
+  call f_close(fUnit)
 
 end subroutine boinc_done
 

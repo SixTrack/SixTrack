@@ -145,6 +145,9 @@ subroutine time_finalise
 
 end subroutine time_finalise
 
+! ================================================================================================ !
+!  Return the time used in the three main sections of SixTrack for printing in main_cr
+! ================================================================================================ !
 subroutine time_getSummary(preTime, trackTime, postTime, totalTime)
 
   real(kind=fPrec), intent(out) :: preTime
