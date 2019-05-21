@@ -149,7 +149,7 @@ subroutine f_getUnit(file,unit)
   unit = -1
   do i=units_minUnit,units_maxUnit
     if(allocated(units_uList(i)%file)) then
-      if(units_uList(i)%file == file) then
+      if(units_uList(i)%file == trim(file)) then
         unit = i
         exit
       end if

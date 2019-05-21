@@ -175,8 +175,12 @@ end subroutine part_updatePartEnergy
 !  Created:  2018-11-28
 !  Modified: 2019-01-31
 !  Dumps the state of the particle arrays to a binary or text file.
+!  Note: This subroutine assumes the default integer size is 32 bit for the binary files. This is
+!        currently the case for the compilers supported by SixTrack. If this changes, or is
+!        explicitly otherwise requested in the buold files, tests based in binary particle state
+!        files will fail.
 ! ================================================================================================ !
-subroutine part_writeState(theState)
+subroutine part_writeState(fileName, isText, withIons)
 
   use mod_units
   use parpro
@@ -187,40 +191,52 @@ subroutine part_writeState(theState)
 
   implicit none
 
-  integer, intent(in) :: theState
+  character(len=*), intent(in) :: fileName
+  logical,          intent(in) :: isText
+  logical,          intent(in) :: withIons
 
   character(len=225) :: roundBuf
-  character(len=17)  :: fileName
-  integer            :: fileUnit, j, k, iDummy, iPrim, iLost
-  logical            :: rErr, isPrim, isBin, noIons
+  integer            :: fileUnit, j, iDummy, iPrim, iLost
+  logical            :: rErr, isPrim
 
   iDummy = 0
+  call f_requestUnit(fileName, fileUnit)
 
-  if(theState == 0) then
-    if(st_initialState == 0) return ! No dump was requested in fort.3
-    isBin    = st_initialState == 1 .or. st_initialState == 3
-    noIons   = st_initialState == 1 .or. st_initialState == 2
-    fileName = "initial_state"
-  elseif(theState == 1) then
-    if(st_finalState == 0) return ! No dump was requested in fort.3
-    isBin    = st_finalState == 1 .or. st_finalState == 3
-    noIons   = st_finalState == 1 .or. st_finalState == 2
-    fileName = "final_state"
+  if(isText) then
+    call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="w",status="replace")
+    write(fileUnit,"(a,i0)") "# napx  = ",napx
+    write(fileUnit,"(a,i0)") "# napxo = ",napxo
+    write(fileUnit,"(a,i0)") "# npart = ",npart
+    if(withIons) then
+      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),9(1x,a24),2(1x,a4))") &
+        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e","mass","A","Z"
+    else
+      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),8(1x,a24))") &
+        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e"
+    end if
+    do j=1,npart
+      roundBuf = " "
+      isPrim = partID(j) <= napxo
+      call chr_fromReal(xv1(j),  roundBuf(  2:25 ),17,3,rErr)
+      call chr_fromReal(xv2(j),  roundBuf( 27:50 ),17,3,rErr)
+      call chr_fromReal(yv1(j),  roundBuf( 52:75 ),17,3,rErr)
+      call chr_fromReal(yv2(j),  roundBuf( 77:100),17,3,rErr)
+      call chr_fromReal(sigmv(j),roundBuf(102:125),17,3,rErr)
+      call chr_fromReal(dpsv(j), roundBuf(127:150),17,3,rErr)
+      call chr_fromReal(ejfv(j), roundBuf(152:175),17,3,rErr)
+      call chr_fromReal(ejv(j),  roundBuf(177:200),17,3,rErr)
+      if(withIons) then
+        call chr_fromReal(nucm(j), roundBuf(202:225),17,3,rErr)
+        write(fileUnit, "(i8,1x,i8,2(1x,l4),a225,2(1x,i4))") &
+        partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:225),naa(j),nzz(j)
+      else
+        write(fileUnit, "(i8,1x,i8,2(1x,l4),a200)") &
+          partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:200)
+      end if
+    end do
   else
-    ! Nothing to do
-    return
-  end if
-
-  if(isBin) then
-
-    fileName = trim(fileName)//".bin"
-    call f_requestUnit(fileName, fileUnit)
     call f_open(unit=fileUnit,file=fileName,formatted=.false.,mode="w",status="replace",access="stream")
-
-    iDummy = 0
-
     write(fileUnit) napx,napxo,npart,iDummy ! 4x32bit
-
     do j=1,npart
       ! These have to be set explicitly as ifort converts logical to integer differently than gfortran and nagfor
       if(partID(j) <= napxo) then
@@ -236,53 +252,13 @@ subroutine part_writeState(theState)
       write(fileUnit) partID(j),parentID(j),iLost,iPrim  ! 4x32 bit
       write(fileUnit) xv1(j),xv2(j),yv1(j),yv2(j)        ! 4x64 bit
       write(fileUnit) sigmv(j),dpsv(j),ejfv(j),ejv(j)    ! 4x64 bit
-      if(noIons) cycle ! Skip the ion columns
-      write(fileUnit) nucm(j),naa(j),nzz(j),iDummy       ! 64 + 2x16 + 32 bit
-    end do
-
-    call f_freeUnit(fileUnit)
-
-  else
-
-    fileName = trim(fileName)//".dat"
-    call f_requestUnit(fileName, fileUnit)
-    call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="w",status="replace")
-
-    write(fileUnit,"(a,i0)") "# napx  = ",napx
-    write(fileUnit,"(a,i0)") "# napxo = ",napxo
-    write(fileUnit,"(a,i0)") "# npart = ",npart
-    if(noIons) then
-      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),8(1x,a24))") &
-        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e"
-    else
-      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),9(1x,a24),2(1x,a4))") &
-        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e","mass","A","Z"
-    end if
-
-    do j=1,npart
-      roundBuf = " "
-      isPrim = partID(j) <= napxo
-      call chr_fromReal(xv1(j),  roundBuf(  2:25 ),17,3,rErr)
-      call chr_fromReal(xv2(j),  roundBuf( 27:50 ),17,3,rErr)
-      call chr_fromReal(yv1(j),  roundBuf( 52:75 ),17,3,rErr)
-      call chr_fromReal(yv2(j),  roundBuf( 77:100),17,3,rErr)
-      call chr_fromReal(sigmv(j),roundBuf(102:125),17,3,rErr)
-      call chr_fromReal(dpsv(j), roundBuf(127:150),17,3,rErr)
-      call chr_fromReal(ejfv(j), roundBuf(152:175),17,3,rErr)
-      call chr_fromReal(ejv(j),  roundBuf(177:200),17,3,rErr)
-      if(noIons) then
-        write(fileUnit, "(i8,1x,i8,2(1x,l4),a200)") &
-          partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:200)
-      else
-        call chr_fromReal(nucm(j), roundBuf(202:225),17,3,rErr)
-        write(fileUnit, "(i8,1x,i8,2(1x,l4),a225,2(1x,i4))") &
-          partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:225),naa(j),nzz(j)
+      if(withIons) then
+        write(fileUnit) nucm(j),naa(j),nzz(j),iDummy     ! 64 + 2x16 + 32 bit
       end if
     end do
-
-    call f_freeUnit(fileUnit)
-
   end if
+
+  call f_freeUnit(fileUnit)
 
 end subroutine part_writeState
 

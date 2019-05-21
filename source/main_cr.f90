@@ -1233,7 +1233,12 @@ program maincr
 ! ---------------------------------------------------------------------------- !
   write(lout,10200)
   call part_setParticleID
-  call part_writeState(0)
+  if(st_iStateBin) then
+    call part_writeState("initial_state.bin",.false.,st_iStateIons)
+  end if
+  if(st_iStateText) then
+    call part_writeState("initial_state.dat",.true.,st_iStateIons)
+  end if
 
   time1=0.
   call time_timerCheck(time1)
@@ -1403,7 +1408,12 @@ program maincr
 470 continue
 
   ! Dump the final state of the particle arrays
-  call part_writeState(1)
+  if(st_fStateBin) then
+    call part_writeState("final_state.bin",.false.,st_fStateIons)
+  end if
+  if(st_FStateText) then
+    call part_writeState("final_state.dat",.true.,st_fStateIons)
+  end if
 
 #ifdef FLUKA
 
