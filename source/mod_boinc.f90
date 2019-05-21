@@ -215,8 +215,10 @@ end subroutine boinc_finalise
 !  Wrapper for writing the logfile. Just adds a turn number.
 ! ================================================================================================ !
 subroutine boinc_writeLog
+  use mod_time, only : time_lastTick, time_ticToc
+  call time_ticToc
   if(boinc_logBuffer /= " ") then
-    write(boinc_logUnit,"(a,i8,a)") "[",boinc_nTurn,"] "//trim(boinc_logBuffer)
+    write(boinc_logUnit,"(a,f10.3,a,i8,a)") "[",time_lastTick,"] [",boinc_nTurn,"] "//trim(boinc_logBuffer)
     flush(boinc_logUnit)
     boinc_logBuffer = " "
   end if
