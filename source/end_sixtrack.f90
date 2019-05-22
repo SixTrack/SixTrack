@@ -57,6 +57,13 @@ subroutine abend(endMsg)
   write(crlog,"(a)") "ABEND_CR> Closing files"
   flush(crlog)
 
+#ifdef BOINC
+  if(endMsg == "ERROR") then
+    ! Write the BOINC summary file with exit code 1
+    call boinc_summary(1)
+  end if
+#endif
+
   call closeUnits
   call cr_copyOut
 

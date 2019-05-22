@@ -15,6 +15,7 @@ module mod_boinc
   integer,            private, save :: boinc_logUnit      = -1             ! BOIND C/R debug log unit
   character(len=12),  private, save :: boinc_logFile      = "cr_boinc.log" ! BOIND C/R debug log file
   character(len=256), private, save :: boinc_logBuffer    = " "            ! Log buffer
+  character(len=999), private, save :: boinc_sumBuffer    = " "            ! The buffer for the summary file
   logical,            private, save :: boinc_isStandalone = .false.        ! True when the BOINC API is not talking to the manager
   real(kind=fPrec),   private, save :: boinc_cpInterval   = 0.0            ! Number of seconds between checkpoints
   real(kind=fPrec),   private, save :: boinc_progInterval = 0.0            ! Number of seconds between progress updates
@@ -56,6 +57,9 @@ subroutine boinc_initialise
     boinc_progInterval =  1.0
   end if
 
+  call boinc_fraction_done(0.0)
+  call boinc_summary(0) ! Make sure we have a summary file as early as possible in case of a crash
+
 end subroutine boinc_initialise
 
 ! ================================================================================================ !
@@ -81,8 +85,8 @@ subroutine boinc_turn(nTurn)
   boinc_nTurn = nTurn
   call cpu_time(cpuTime)
 
-  ! End of tracking should be at 99% complete. Last 1% is for postprocessing.
-  boincProg = 0.99*dble(nTurn)/dble(numl)
+  ! Tracking runs from 1% to 99%. First 1% is for pre tracking, last 1% for post tracking
+  boincProg = 0.01 + 0.98*dble(nTurn)/dble(numl)
 
   if(cpuTime-boinc_lastProgress >= boinc_progInterval) then
     ! Tell BOINC how we're doing, but don't hammer the API if many turns
@@ -101,6 +105,7 @@ subroutine boinc_turn(nTurn)
   call boinc_writeLog
 
   call boinc_fraction_done(boincProg)
+  call boinc_summary(0) ! Make sure the summary file is up to date
   write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100*boincProg," %"
   call boinc_writeLog
   if(boinc_isStandalone) then
@@ -156,7 +161,40 @@ subroutine boinc_post
 end subroutine boinc_post
 
 ! ================================================================================================ !
-!  Sets the postprocessing progress.
+!  Sets the pre tracking progress.
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-05-21
+!  Updated: 2019-05-21
+!  These steps are hardcoded, and should only be changed if a time consuming pre tracking routine
+!  is added in main_cr. If so, bump the mSteps parameter and recheck all calls to this routine.
+!  Currently there are 5 steps:
+!   - Step 0 : Implicit, boinc_initialisation
+!   - Step 1 : Called after checpoint/restart init, called from main_cr
+!   - Step 2 : Called before daten, called from main_cr
+!   - Step 3 : Called after daten, called from main_cr
+!   - Step 4 : Called before first closed orbit call, called from main_cr
+!   - Step 5 : Called after linopt, called from main_cr
+!   - Step 6 : Called after closed orbit, called from main_cr
+!   - Step 7 : Called after beam distribution, called from main_cr
+!   - Step 8 : Called after pre-tracking, called from main_cr
+! ================================================================================================ !
+subroutine boinc_preProgress(nStep)
+  integer, intent(in) :: nStep
+  double precision :: progFrac
+  integer, parameter :: mSteps = 8
+  if(nStep <= mSteps) then
+    progFrac = dble(nStep)/dble(mSteps)/100.0
+  else
+    progFrac = 0.01
+  end if
+  call boinc_fraction_done(progFrac)
+  call boinc_summary(0)
+  write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100.0*progFrac," %"
+  call boinc_writeLog
+end subroutine boinc_preProgress
+
+! ================================================================================================ !
+!  Sets the post tracking progress.
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-05-21
 !  Updated: 2019-05-21
@@ -180,9 +218,47 @@ subroutine boinc_postProgress(nStep)
     progFrac = 1.0
   end if
   call boinc_fraction_done(progFrac)
+  call boinc_summary(0)
   write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100.0*progFrac," %"
   call boinc_writeLog
 end subroutine boinc_postProgress
+
+! ================================================================================================ !
+!  Writes the validation file header, and creates the file. Hash values must be set before this.
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-05-22
+!  Updated: 2019-05-22
+! ================================================================================================ !
+subroutine boinc_summary(exitStatus)
+
+  use mod_time
+  use mod_units
+  use mod_version
+
+  integer, intent(in) :: exitStatus
+
+  integer          :: fUnit, lenVer
+  double precision :: progFrac
+
+  call boinc_get_fraction_done(progFrac)
+  call time_ticToc
+
+  lenVer = len_trim(boinc_sumBuffer) - 24
+  if(lenVer < 1) lenVer = 7
+
+  write(boinc_sumBuffer( 1:9 ),"(i9.9)") int(time_lastTick*1.0e3)
+  write(boinc_sumBuffer(11:16),"(i6.6)") int(progFrac*1.0e5)
+  write(boinc_sumBuffer(18:18),"(i1.1)") exitStatus
+  write(boinc_sumBuffer(20:24),"(i5.5)") lenVer
+  write(boinc_sumBuffer(26:31),"(i6.6)") numvers
+
+  ! Write the BOINC summary file as a binary stream to avoid line endings
+  call f_requestUnit("boinc_summary.dat",fUnit)
+  call f_open(unit=fUnit,file="boinc_summary.dat",formatted=.false.,access="stream",mode="w",status="replace")
+  write(fUnit) trim(boinc_sumBuffer)
+  call f_close(fUnit)
+
+end subroutine boinc_summary
 
 ! ================================================================================================ !
 !  Write the validation file, then bump progress to 100%, and close the log file
@@ -194,21 +270,17 @@ subroutine boinc_done
 
   use crcoall
   use mod_hash
-  use mod_time
   use mod_units
-  use mod_version
   use mod_particles
   use fma,        only : fma_flag, fma_fileName
   use mod_common, only : ipos, unit10, fort10
 
   character(len=19), parameter :: boincSum = "boinc_particles.dat"
-  character(len=1024) :: sumBuf
-  character(len=32)   :: md5Digest
-  real(kind=fPrec)    :: preTime, trackTime, postTime, totalTime
-  integer             :: fUnit, cPos
+  character(len=32) :: md5Digest
+  integer           :: cPos
 
-  sumBuf = " " ! The output buffer, written as a binary stream to avoid line endings
-  cPos   = 24  ! Buffer location of the next hash value (increment by 32 + 1 each time)
+  boinc_sumBuffer = " "
+  cPos = 33
 
   ! Write our own final state file that does not interfere with the user's sttings in fort.3
   call part_writeState(boincSum,.true.,.true.)
@@ -219,7 +291,7 @@ subroutine boinc_done
   call hash_digestFile(boincSum, md5Digest, .true.)
   write(crlog,"(a)") "BOINCAPI> MD5SUM '"//boincSum//"': "//md5Digest
   flush(crlog)
-  sumBuf(cPos:cPos+32) = md5Digest
+  boinc_sumBuffer(cPos:cPos+32) = md5Digest
   cPos = cPos + 33
 
   ! If postprocessing, try to hash the fort.10
@@ -229,7 +301,7 @@ subroutine boinc_done
     call hash_digestFile(fort10, md5Digest, .true.)
     write(crlog,"(a)") "BOINCAPI> MD5SUM '"//trim(fort10)//"': "//md5Digest
     flush(crlog)
-    sumBuf(cPos:cPos+32) = md5Digest
+    boinc_sumBuffer(cPos:cPos+32) = md5Digest
     cPos = cPos + 33
   end if
 
@@ -238,25 +310,16 @@ subroutine boinc_done
     call hash_digestFile(fma_fileName, md5Digest, .true.)
     write(crlog,"(a)") "BOINCAPI> MD5SUM '"//fma_fileName//"': "//md5Digest
     flush(crlog)
-    sumBuf(cPos:cPos+32) = md5Digest
+    boinc_sumBuffer(cPos:cPos+32) = md5Digest
     cPos = cPos + 33
   end if
-
-  ! Write the BOINC summary file header
-  call time_getSummary(preTime, trackTime, postTime, totalTime)
-  write(sumBuf( 1:9 ),"(i0.9)") int(totalTime*1.0e3)
-  write(sumBuf(11:15),"(i0.5)") cPos-17
-  write(sumBuf(17:22),"(i0.6)") numvers
-
-  ! Write the BOINC summary file as a binary stream to avoid line endings
-  call f_requestUnit("boinc_summary.dat",fUnit)
-  call f_open(unit=fUnit,file="boinc_summary.dat",formatted=.false.,access="stream",mode="w",status="replace")
-  write(fUnit) trim(sumBuf)
-  call f_close(fUnit)
 
   ! Clean up service module bits, and tell BOINC we're done
   call boinc_postProgress(5)
   call f_close(boinc_logUnit)
+
+  ! Write the BOINC summary file
+  call boinc_summary(0)
 
 end subroutine boinc_done
 

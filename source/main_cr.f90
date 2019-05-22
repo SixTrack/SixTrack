@@ -183,8 +183,11 @@ program maincr
   ! Initialise Checkpoint/Restart
   call cr_fileInit
 #endif
+#ifdef BOINC
+  call boinc_preProgress(1)
+#endif
 
-  ! Open Regular File Units
+! Open Regular File Units
   call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA file
   call f_open(unit=19,file="fort.19",formatted=.true., mode="rw",err=fErr) ! DA file
   call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr) ! DA file
@@ -253,8 +256,14 @@ program maincr
 
   call ffield_mod_init
 
+#ifdef BOINC
+  call boinc_preProgress(2)
+#endif
   call daten
   call time_timeStamp(time_afterDaten)
+#ifdef BOINC
+  call boinc_preProgress(3)
+#endif
 
 #ifdef HDF5
   if(h5_isActive) then
@@ -397,11 +406,14 @@ program maincr
 #endif
   end if
   ! dump x-sections at specific locations
-  if (mxsec.gt.0) call dump_aperture_xsecs
+  if(mxsec > 0) call dump_aperture_xsecs
   ! map errors, now that the sequence is no longer going to change
   call ord
   if(allocated(zfz)) call fluc_randomReport
 
+#ifdef BOINC
+  call boinc_preProgress(4)
+#endif
   call clorb(ded)
 
 #ifdef ROOT
@@ -452,11 +464,19 @@ program maincr
   end do
   call corrorb
 
-  if(irmod2.eq.1) call rmod(dp1)
-  if(iqmod.ne.0) call qmod0
-  if(ichrom.eq.1.or.ichrom.eq.3) call chroma
-  if(iskew.ne.0) call decoup
-  if(ilin.eq.1.or.ilin.eq.3) then
+  if(irmod2 == 1) then
+    call rmod(dp1)
+  end if
+  if(iqmod /= 0) then
+    call qmod0
+  end if
+  if(ichrom == 1 .or. ichrom == 3) then
+    call chroma
+  end if
+  if(iskew /= 0) then
+    call decoup
+  end if
+  if(ilin == 1 .or. ilin == 3) then
     call linopt(dp1)
   end if
 
@@ -562,6 +582,10 @@ program maincr
   endif
   dp1  = dp00
   dp0  = dp00
+
+#ifdef BOINC
+  call boinc_preProgress(5)
+#endif
 
   ! ========================================================================== !
   !  Closed Orbit
@@ -941,6 +965,10 @@ program maincr
     call meta_write("6D_ClosedOrbitCorr_dp",    clop6(3))
   end if
 
+#ifdef BOINC
+  call boinc_preProgress(6)
+#endif
+
 ! ---------------------------------------------------------------------------- !
 !  GENERATE THE INITIAL DISTRIBUTION
 ! ---------------------------------------------------------------------------- !
@@ -1152,6 +1180,9 @@ program maincr
   ! binrec:  The maximum number of reccords writen for all tracking data files. Thus crbinrecs(:) <= binrec
 #endif
 
+#ifdef BOINC
+  call boinc_preProgress(7)
+#endif
   call time_timeStamp(time_afterBeamDist)
 
 ! ---------------------------------------------------------------------------- !
@@ -1225,6 +1256,9 @@ program maincr
     call collimate_init
   end if
 
+#ifdef BOINC
+  call boinc_preProgress(8)
+#endif
   call time_timeStamp(time_afterInitialisation)
 
 ! ---------------------------------------------------------------------------- !
