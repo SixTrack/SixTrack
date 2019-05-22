@@ -1414,7 +1414,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 #ifdef FLUKA
 ! import mod_fluka
 ! inserted in main code by the 'fluka' compilation flag
-  use mod_fluka
+  use mod_fluka, only : fluka_type, FLUKA_ELEMENT, FLUKA_ENTRY
 #endif
   use mod_geometry, only : geom_insertStruElem, geom_insertSingElem, geom_checkSingElemUnique
 
