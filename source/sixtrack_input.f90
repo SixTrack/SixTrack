@@ -539,6 +539,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   use mod_common
   use mod_commons
   use mod_common_track
+  use physical_constants
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -908,6 +909,7 @@ subroutine sixin_parseInputDoneSIMU(iErr)
   use crcoall
   use mod_common
   use mod_settings
+  use physical_constants
 
   logical, intent(inout) :: iErr
 
@@ -1905,6 +1907,7 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
   use mod_common
   use mod_common_da,   only : nvar
   use mathlib_bouncer, only : cos_mb
+  use physical_constants
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine

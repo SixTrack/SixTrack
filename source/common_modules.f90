@@ -118,7 +118,6 @@ module mod_common
 
   use parpro
   use floatPrecision
-  use physical_constants
   use numerical_constants
   use physical_constants, only : pmap
   use, intrinsic :: iso_fortran_env, only : int16
