@@ -316,7 +316,7 @@ if(BEAMGAS)
 endif(BEAMGAS)
 
 if(FLUKA)
-  list(APPEND FORT90_LIB mod_fluka fluka)
+  list(APPEND FORT90_LIB mod_fluka)
 endif(FLUKA)
 
 if(ROOT)

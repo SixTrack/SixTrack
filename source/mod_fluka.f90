@@ -41,6 +41,10 @@ module mod_fluka
   public :: root_FLUKA_DumpInsertions
 #endif
 
+  public :: kernel_fluka_element
+  public :: kernel_fluka_entrance
+  public :: kernel_fluka_exit
+  
   ! HION variables that are only used for FLUKA
   ! ien0,ien1: ion energy entering/leaving the collimator
   real(kind=fPrec),    public :: ien0, ien1
@@ -102,6 +106,12 @@ module mod_fluka
   integer(kind=int32), public, allocatable :: fluka_type(:)        ! type of insertion (one per SINGLE ELEMENT)
   integer(kind=int32), public, allocatable :: fluka_geo_index(:)   ! index of insertion (one per SINGLE ELEMENT)
   real(kind=fPrec), public, allocatable :: fluka_synch_length(:)   ! length of insertion [m] (one per SINGLE ELEMENT)
+  ! current fluka insertion:
+  integer :: fluka_i=-1              ! lattice entry (FLUKA_ELEMENT/FLUKA_EXIT)
+  integer :: fluka_ix=-1             ! single element entry (FLUKA_ELEMENT/FLUKA_EXIT)
+  integer :: fluka_nturn=-1          ! turn
+  integer :: fluka_last_sent_mess=-1 ! last sent message
+  integer :: fluka_last_rcvd_mess=-1 ! last received message
   ! recognised insertion types
   integer(kind=int32), parameter, public :: FLUKA_NONE    = 0, & ! no insertion
                                             FLUKA_ELEMENT = 1, & ! insertion covers only the present SINGLE ELEMENT
@@ -242,18 +252,18 @@ contains
     call f_open(net_nfo_unit, file=net_nfo_file, formatted=.true., mode="rw", status='old')
     read(unit=net_nfo_unit, fmt=*, iostat=ios) host
     if(ios .ne. 0) then
-      write(lout,*)
-      write(lout,*) 'FLUKA> Could not read the host name from network.nfo'
-      write(lout,*)
+      write(lout,'(A)')
+      write(lout,'(A)') 'FLUKA> Could not read the host name from network.nfo'
+      write(lout,'(A)')
       call prror
     end if
 
     read(unit=net_nfo_unit, fmt=*, iostat=ios) port
     if(ios .ne. 0) then
-      write(lout,*)
-      write(lout,*) 'FLUKA> Could not read the port number from network.nfo'
-      write(lout,*) 'FLUKA> Is the FLUKA server running and has it had time to write the port number?'
-      write(lout,*)
+      write(lout,'(A)')
+      write(lout,'(A)') 'FLUKA> Could not read the port number from network.nfo'
+      write(lout,'(A)') 'FLUKA> Is the FLUKA server running and has it had time to write the port number?'
+      write(lout,'(A)')
       call prror
     end if
 
@@ -382,6 +392,7 @@ contains
     flush(fluka_log_unit)
 
     fluka_send = 0
+    fluka_last_rcvd_mess = -1
 
     n = ntsendipt(fluka_cid, turn, ipt)
     if(n.eq.-1) then
@@ -390,6 +401,7 @@ contains
       fluka_send = -1
       return
     end if
+    fluka_last_sent_mess=FLUKA_IPT
 
     fluka_nsent = 0
     fluka_nrecv = 0
@@ -460,6 +472,7 @@ contains
       end if
 
       fluka_nsent = fluka_nsent + 1
+      fluka_last_sent_mess=FLUKA_PART
 
     end do
 
@@ -472,6 +485,7 @@ contains
       fluka_send = -1
       return
     end if
+    fluka_last_sent_mess=FLUKA_EOB
 
   end function fluka_send
 
@@ -512,6 +526,7 @@ contains
     integer(kind=int32) :: n, j
 
     fluka_receive = 0
+    fluka_last_sent_mess = -1
 
     fluka_nrecv = 0
     mtype = 0
@@ -553,6 +568,7 @@ contains
       if(mtype.eq.FLUKA_PART) then
 
          fluka_nrecv = fluka_nrecv + 1
+         fluka_last_rcvd_mess = FLUKA_PART
 
          if(fluka_nrecv .gt. npart) then
 
@@ -603,6 +619,7 @@ contains
     end do
 
     napx = fluka_nrecv
+    fluka_last_rcvd_mess = FLUKA_EOB
 
     write(fluka_log_unit,*) "# FlukaIO: turn = ", turn, &
       " ipt = ", ipt, &
@@ -746,36 +763,42 @@ contains
 !     inserted in main code by the 'fluka' compilation flag
 subroutine fluka_close
 
-  use crcoall
-
-  implicit none
-
-  integer fluka_con
-
-  fluka_con = fluka_is_running()
-  if(fluka_con.eq.0) then
-    if( .not. fluka_connected ) then
-!         temporarily connect to fluka, to properly terminate the run
-      fluka_con = fluka_connect()
-      if(fluka_con.eq.-1) then
-!           no hope to properly close the run
-        write(lout,*) '[Fluka] unable to connect to fluka while'
-        write(lout,*) '        closing the simulation: please,'
-        write(lout,*) '        manually kill all its instances'
-        write(fluka_log_unit,*) '# unable to connect to fluka while'
-        write(fluka_log_unit,*) '#  closing the simulation: please,'
-        write(fluka_log_unit,*) '#  manually kill all its instances'
-        goto 1982
-      endif
-      write(lout,*) '[Fluka] Successfully connected to Fluka server'
-      write(lout,*) '[Fluka]     (only temporarily)'
-      write(fluka_log_unit,*) '# Successfully connected to Fluka server'
-      write(fluka_log_unit,*) '#     (only temporarily)'
-    end if
-    call fluka_end
-  end if
+     use crcoall
+     
+     implicit none
+     
+     integer fluka_con
+     
+     if (fluka_enable) then
+       if (fluka_last_sent_mess==FLUKA_EOB .and. fluka_last_rcvd_mess.eq.-1) then
+         ! FLUKA is still crunching stuff
+         write(lout,'(A)') 'FLUKA> fluka_close called while particles are still on the Fluka side'
+         write(lout,'(A)') 'FLUKA>    dummy wait to have a clean closure'
+         write(fluka_log_unit,'(A)') '# fluka_close called while particles are still on the Fluka side'
+         write(fluka_log_unit,'(A)') '#   dummy wait to have a clean closure'
+         call kernel_fluka_exit
+       end if
+       fluka_con = fluka_is_running()
+       if(fluka_con.eq.0) then
+         if( .not. fluka_connected ) then
+!              temporarily connect to fluka, to properly terminate the run
+           fluka_con = fluka_connect()
+           if(fluka_con.eq.-1) then
+!                no hope to properly close the run
+             write(lout,'(A)') 'FLUKA> unable to connect to fluka while closing the simulation:'
+             write(lout,'(A)') 'FLUKA>  please, manually kill all its instances'
+             write(fluka_log_unit,'(A)') '# unable to connect to fluka while closing the simulation:'
+             write(fluka_log_unit,'(A)') '#   please, manually kill all its instances'
+             goto 1982
+           endif
+           write(lout,'(A)') 'FLUKA> Successfully connected to Fluka server (only temporarily)'
+           write(fluka_log_unit,'(A)') '# Successfully connected to Fluka server (only temporarily)'
+         end if
+         call fluka_end
+       end if
+     end if 
 1982 call fluka_mod_end
-  flush(lout)
+     flush(lout)
 !      flush(fluka_log_unit)
 end subroutine fluka_close
 
@@ -971,6 +994,383 @@ subroutine root_FLUKA_DumpInsertions
 
 end subroutine root_FLUKA_DumpInsertions
 #endif
+
+subroutine kernel_fluka_element( nturn, i, ix )
+!
+!-----------------------------------------------------------------------
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 07-02-2014
+!     'transport' subroutine, for a Fluka insertion corresponding to a
+!       single SINGLE ELEMENT, of non-zero length
+!     inserted in main code by the 'fluka' compilation flag
+!-----------------------------------------------------------------------
+!
+      use floatPrecision
+      use numerical_constants, only : zero, one, c1e3, c1m3
+      use crcoall
+      use parpro
+      use mod_common
+      use mod_common_track
+      use mod_common_main
+
+#ifdef ROOT
+      use root_output
+#endif
+
+      implicit none
+
+!     interface variables:
+      integer nturn, i, ix
+
+!     temporary variables
+      integer ret, j, k
+      integer pid_q               ! ph: hisix
+      save
+
+      fluka_i = i
+      fluka_ix = ix
+      fluka_nturn = nturn
+      
+      if (fluka_debug) then
+!        where are we?
+         write(fluka_log_unit,*)'# In fluka element of type ', fluka_type(fluka_ix)
+         write(fluka_log_unit,*)'#   i=', fluka_i
+         write(fluka_log_unit,*)'#   ix=', fluka_ix
+         write(fluka_log_unit,*)'#   fluka_geo_index=',fluka_geo_index(fluka_ix)
+         write(fluka_log_unit,*)'#   eltot=',fluka_synch_length( fluka_ix )
+      end if
+
+!     PH hisix compute the number of nucleons sent to FLUKA
+!     PH hisix compute the total ion energy sent to FLUKA
+      nnuc0 = 0
+      ien0  = zero
+      do j=1,napx
+        nnuc0   = nnuc0 + naa(j)
+        ien0    = ien0 + ejv(j)
+        ! array of particle ids sent to FLUKA
+        pids(j) = fluka_uid(j)
+      end do
+
+
+      ret = fluka_send_receive( fluka_nturn, fluka_geo_index(fluka_ix), fluka_synch_length( fluka_ix ), &
+           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm )
+
+      if (ret.eq.-1) then
+         write(lout,'(A)')'FLUKA> Error in Fluka communication in kernel_fluka_element...'
+         write(fluka_log_unit,'(A)')'# Error in Fluka communication in kernel_fluka_element...'
+         call prror
+      end if
+
+      nnuc1 = 0                 ! hisix: number of nucleons leaving the collimato
+      ien1  = zero              ! hisix: total energy leaving the collimator
+!     particles to be tracked
+      do j=1,napx
+!        Update values related to losses
+         partID(j) = j
+         pstop (j) = .false.
+!        Update variables depending on total energy
+!         ejfv  (j) = sqrt((ejv(j)-pma)*(ejv(j)+pma))
+!         rvv   (j) = (ejv(j)*e0f)/(e0*ejfv(j))
+!         dpsv  (j) = (ejfv(j)-e0f)/e0f
+!         oidpsv(j) = one/(one+dpsv(j))
+         ejfv  (j) = sqrt((ejv(j)-nucm(j))*(ejv(j)+nucm(j)))   ! hisix: ion mass
+         rvv   (j) = (ejv(j)*e0f)/(e0*ejfv(j))                 ! hisix: remains unchanged
+         dpsv  (j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hisix: new delta
+         oidpsv(j) = one/(one+dpsv(j))
+         dpsv1 (j) = (dpsv(j)*c1e3)*oidpsv(j)
+         mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))            ! hisix: mass to charge
+         moidpsv (j) = mtc(j)*oidpsv(j)                        ! hisix
+         omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))           ! hisix
+         nnuc1       = nnuc1 + naa(j)                          ! outcoming nucleons
+         ien1        = ien1  + ejv(j)                          ! outcoming energy
+      end do
+
+!     hisix: compute the nucleon and energy difference
+!              reduce by factor 1e-3 to get the energy in GeV
+      if((ien0-ien1).gt.one) then
+        write(unit208,*) fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
+#ifdef ROOT
+        if(root_flag .and. root_FLUKA .eq. 1) then
+          call root_FLUKA_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
+        end if
+#endif
+      ! hisix debugging:
+      ! write out the particle distribution after the primary
+        if(fluka_geo_index(fluka_ix).eq.11) then
+          do j=1,napx
+            write(unit210,*) naa(j), nzz(j), nucm(j),ejfv(j),mtc(j),dpsv(j)
+          end do
+        end if
+      end if
+
+!     hisix: check which particle ids have not been sent back
+!            write their ids to fort.209
+      do j=1,npart                                             ! loop over all pids possible
+        pid_q = zero
+
+        do k=1,napx                                            ! loop over pids received
+          if(pids(j).eq.fluka_uid(k)) then
+            pid_q = one
+          end if
+        end do
+
+        if(pid_q.eq.zero.and.pids(j).ne.zero) then
+          write(unit209,*) fluka_geo_index(fluka_ix), pids(j)
+        end if
+      end do
+
+!     empty places
+      do j=napx+1,npart
+!        Update values related to losses
+         partID(j) = j
+         pstop (j) = .true.
+!        Update values related to momentum
+         ejv   (j) = zero
+         rvv   (j) = one
+         ejfv  (j) = zero
+         dpsv  (j) = zero
+         oidpsv(j) = one
+         dpsv1 (j) = zero
+         mtc   (j) = one            ! hiSix
+         naa   (j) = aa0            ! hiSix
+         nzz   (j) = zz0            ! hiSix
+         nucm  (j) = nucm0          ! hiSix
+         moidpsv (j) = one          ! hiSix
+         omoidpsv(j) = zero         ! hiSix
+      end do
+
+!     au revoir:
+      fluka_i = -1
+      fluka_ix = -1
+      fluka_nturn = -1
+      flush(unit208)
+      flush(unit209)
+      return
+end subroutine kernel_fluka_element
+
+subroutine kernel_fluka_entrance( nturn, i, ix )
+!
+!-----------------------------------------------------------------------
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 07-02-2014
+!     'transport' subroutine, for the marker starting a Fluka insertion
+!     inserted in main code by the 'fluka' compilation flag
+!-----------------------------------------------------------------------
+!
+      use floatPrecision
+      use numerical_constants, only : zero
+      use crcoall
+      use parpro
+      use mod_common
+      use mod_common_track
+      use mod_common_main
+
+      implicit none
+
+
+!     interface variables:
+      integer nturn, i, ix, ixt
+
+!     temporary variables
+      integer ret, j
+      integer k                   ! ph: hisix
+      integer pid_q               ! ph: hisix
+
+      save
+
+!     keep track of exit element
+!     NB: check_coupling_integrity and check_coupling_start_point have
+!         already verify the conditions for which this search is always successful
+      do j=i+1,iu
+        if(ktrack(j).ne.1.and.ic(j).gt.nblo) then
+          ixt=ic(j)-nblo
+          if(fluka_geo_index(ix).eq.fluka_geo_index(ixt))then
+             fluka_i = j
+             fluka_ix = ixt
+             fluka_nturn = nturn
+             exit
+          end if
+        end if
+      end do
+      
+      if (fluka_debug) then
+!        where are we?
+         write(fluka_log_unit,*)'# In fluka element of type ', fluka_type(ix)
+         write(fluka_log_unit,*)'#   i=', i
+         write(fluka_log_unit,*)'#   ix=', ix
+         write(fluka_log_unit,*)'#   fluka_geo_index=',fluka_geo_index(ix)
+         write(fluka_log_unit,*)'#   eltot=',zero
+      end if
+
+      ! P. HERMES for hisix
+      ! send also A,Z,m to FLUKA
+
+!     PH hisix compute the number of nucleons sent to FLUKA
+!     PH hisix compute ion energy sent to FLUKA
+!     PH initialize array of particle ids
+      nnuc0 = 0
+      ien0  = zero
+      do j=1,npart
+        pids(j) = 0
+      end do
+
+      do j=1,napx
+        nnuc0   = nnuc0 + naa(j)
+        ien0    = ien0  + ejv(j)
+        pids(j) = fluka_uid(j)   ! array of particle ids sent to FLUKA
+!    write(*,*),'PH:',pids(j)
+      end do
+
+      ret = fluka_send( fluka_nturn, fluka_geo_index(fluka_ix), zero, &
+           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm )
+
+      if (ret.eq.-1) then
+         write(lout,'(A)')'FLUKA> Error in Fluka communication in kernel_fluka_entrance...'
+         write(fluka_log_unit,'(A)')'# Error in Fluka communication in kernel_fluka_entrance...'
+         call prror
+      end if
+
+!     au revoir:
+      return
+end subroutine kernel_fluka_entrance
+
+subroutine kernel_fluka_exit
+!
+!-----------------------------------------------------------------------
+!     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
+!     last modified: 07-02-2014
+!     'transport' subroutine, for the marker closing a Fluka insertion
+!     inserted in main code by the 'fluka' compilation flag
+!-----------------------------------------------------------------------
+!
+      use floatPrecision
+      use numerical_constants, only : zero, one, c1e3, c1m3
+      use crcoall
+      use parpro
+      use mod_common
+      use mod_common_track
+      use mod_common_main
+
+#ifdef ROOT
+      use root_output
+#endif
+
+      implicit none
+
+!     interface variables:
+      integer nturn, i, ix
+
+!     temporary variables
+      integer ret, j, k
+      integer pid_q               ! ph: hisix
+
+      save
+
+      if (fluka_debug) then
+!        where are we?
+         write(fluka_log_unit,*)'# In fluka element of type ', fluka_type(fluka_ix)
+         write(fluka_log_unit,*)'#   i=', fluka_i
+         write(fluka_log_unit,*)'#   ix=', fluka_ix
+         write(fluka_log_unit,*)'#   fluka_geo_index=',fluka_geo_index(fluka_ix)
+         write(fluka_log_unit,*)'#   eltot=',fluka_synch_length( fluka_ix )
+      end if
+
+      ret = fluka_receive( fluka_nturn, fluka_geo_index(fluka_ix), fluka_synch_length( fluka_ix ), &
+           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm )
+
+      if (ret.eq.-1) then
+         write(lout,'(A)')'FLUKA> Error in Fluka communication in kernel_fluka_exit...'
+         write(fluka_log_unit,'(A)')'# Error in Fluka communication in kernel_fluka_exit...'
+         call prror
+      end if
+
+      nnuc1 = 0                 ! hisix: number of nucleons leaving the collimator
+      ien1  = zero              ! hisix: total energy leaving the collimator
+!     particles to be tracked
+      do j=1,napx
+!        Update values related to losses
+         partID(j) = j
+         pstop (j) = .false.
+!        Update variables depending on total energy
+!         ejfv  (j) = sqrt((ejv(j)-pma)*(ejv(j)+pma))
+!         rvv   (j) = (ejv(j)*e0f)/(e0*ejfv(j))
+!         dpsv  (j) = (ejfv(j)-e0f)/e0f
+!         oidpsv(j) = one/(one+dpsv(j))
+!         dpsv1 (j) = (dpsv(j)*c1e3)*oidpsv(j)
+         ejfv  (j) = sqrt((ejv(j)-nucm(j))*(ejv(j)+nucm(j)))   ! hisix: ion mass
+         rvv   (j) = (ejv(j)*e0f)/(e0*ejfv(j))                 ! hisix: remains unchanged
+         dpsv  (j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hisix: new delta
+         oidpsv(j) = one/(one+dpsv(j))
+         dpsv1 (j) = (dpsv(j)*c1e3)*oidpsv(j)
+         mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))            ! hisix: mass to charge
+         moidpsv (j) = mtc(j)*oidpsv(j)                        ! hisix
+         omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))           ! hisix
+         nnuc1       = nnuc1 + naa(j)                          ! outcoming nucleons
+         ien1        = ien1  + ejv(j)                          ! outcoming energy
+      end do
+
+!       hisix: compute the nucleon and energy difference
+!              reduce by factor 1e-3 to get the energy in GeV
+        if((ien0-ien1).gt.one) then
+          write(unit208,*) fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
+#ifdef ROOT
+          if(root_flag .and. root_FLUKA .eq. 1) then
+            call root_FLUKA_EnergyDeposition(fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
+          end if
+#endif
+
+          ! hisix debugging:
+          ! write out the particle distribution after the primary
+          if (fluka_geo_index(ix).eq.11) then
+            do j=1,napx
+              write(unit210,*) naa(j), nzz(j), nucm(j),ejfv(j),mtc(j),dpsv(j)
+            end do
+          end if
+        end if
+!
+!     hisix: check which particle ids have not been sent back
+!            write their ids to fort.209
+      do j=1,npart                                       ! loop over all pids possible
+        pid_q = zero
+        do k=1,napx                                    ! loop over pids received
+          if(pids(j).eq.fluka_uid(k)) then
+            pid_q = one
+          end if
+        end do
+        if(pid_q.eq.zero.and.pids(j).ne.zero) then
+          write(unit209,*) fluka_geo_index(ix), pids(j)
+        end if
+      end do
+
+!     empty places
+      do j=napx+1,npart
+!        Update values related to losses
+         partID(j) = j
+         pstop (j) = .true.
+!        Update values related to momentum
+         ejv   (j) = zero
+         rvv   (j) = one
+         ejfv  (j) = zero
+         dpsv  (j) = zero
+         oidpsv(j) = one
+         dpsv1 (j) = zero
+         mtc   (j) = one            ! hiSix
+         naa   (j) = aa0            ! hiSix
+         nzz   (j) = zz0            ! hiSix
+         nucm  (j) = nucm0          ! hiSix
+         moidpsv (j) = one          ! hiSix
+         omoidpsv(j) = zero         ! hiSix
+      end do
+
+!     au revoir:
+      fluka_i = -1
+      fluka_ix = -1
+      fluka_nturn = -1
+      flush(unit208)
+      flush(unit209)
+
+      return
+end subroutine kernel_fluka_exit
 
 end module mod_fluka
 
