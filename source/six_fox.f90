@@ -650,8 +650,6 @@ subroutine umlauda
         endif
 
         if(parbe(ix,2).eq.0.0) then !4D
-          !Note: One should always use the CRLIBM version when converting,
-          ! in order to guarantee the exact same results from the converted input file.
           call chr_fromReal(bbcu(ibb,1),tmpStr(1),19,2,rErr)
           call chr_fromReal(bbcu(ibb,2),tmpStr(2),19,2,rErr)
           call chr_fromReal(parbe(ix,5),tmpStr(3),19,2,rErr)
