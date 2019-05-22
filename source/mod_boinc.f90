@@ -146,7 +146,6 @@ subroutine boinc_post
 
   write(crlog,"(a)") "BOINCAPI> Tracking completed. Final checkpoint."
   write(boinc_logBuffer,"(a)") "Tracking completed. Final checkpoint."
-  write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",99.0," %"
   call boinc_writeLog
   flush(crlog)
 
