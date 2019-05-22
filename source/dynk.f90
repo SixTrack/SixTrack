@@ -838,7 +838,7 @@ subroutine dynk_parseFUN(inLine, iErr)
     end if
 
     do ii=0, dynk_funcs(dynk_nFuncs,4)
-      ! Reading the FIR/IIR file without CRLIBM
+      ! Reading the FIR/IIR file
       read(tmpUnit,"(a)",iostat=ioStat) fLine
       if(ioStat /= 0) then ! EOF
         write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Unexpected EOF when reading file '"//trim(dynk_cData(dynk_ncData))//"'"

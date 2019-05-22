@@ -1279,12 +1279,9 @@ subroutine postpr(arg1,arg2)
       angi=zero
       angii=zero
       angiii=zero
-      if(abs(txyz(1)).gt.pieni.or.abs(txyz(2)).gt.pieni)                &
-     &angi=atan2_mb(txyz(2),txyz(1))
-      if(abs(txyz(3)).gt.pieni.or.abs(txyz(4)).gt.pieni)                &
-     &angii=atan2_mb(txyz(4),txyz(3))
-      if(abs(txyz(5)).gt.pieni.or.abs(txyz(6)).gt.pieni)                &
-     &angiii=atan2_mb(txyz(6)*cma1,txyz(5)*cma2)
+      if(abs(txyz(1)).gt.pieni.or.abs(txyz(2)).gt.pieni) angi=atan2_mb(txyz(2),txyz(1))
+      if(abs(txyz(3)).gt.pieni.or.abs(txyz(4)).gt.pieni) angii=atan2_mb(txyz(4),txyz(3))
+      if(abs(txyz(5)).gt.pieni.or.abs(txyz(6)).gt.pieni) angiii=atan2_mb(txyz(6)*cma1,txyz(5)*cma2)
       evt=evx+evz
       evxma=evx
       evzma=evz
@@ -1433,8 +1430,7 @@ subroutine postpr(arg1,arg2)
       if(nstop.gt.nstart.and.(ia-nstop).gt.0) goto 270
       i1=i1+1
       i11=i1+1
-      if(i2.ge.nlya.and.i11.gt.nfft.and.iapx.gt.npos.and.iapz.gt.npos)  &
-     &goto 270
+      if(i2.ge.nlya.and.i11.gt.nfft.and.iapx.gt.npos.and.iapz.gt.npos) goto 270
       if(i11.le.nfft) then
         xxr(i11)=c
         xxi(i11)=zero
@@ -1558,16 +1554,13 @@ subroutine postpr(arg1,arg2)
 !--ADDING OF THE PHASE ADVANCES
       sx=c*d0-c0*d
       cx=c0*c+d*d0
-      if(iapx.le.npos)                                                  &
-     &call cphase(1,dphx,sx,cx,qx0,ivox,iwarx,iapx)
+      if(iapx.le.npos) call cphase(1,dphx,sx,cx,qx0,ivox,iwarx,iapx)
       sz=e*f0-e0*f
       cz=e0*e+f*f0
-      if(iapz.le.npos)                                                  &
-     &call cphase(2,dphz,sz,cz,qz0,ivoz,iwarz,iapz)
+      if(iapz.le.npos) call cphase(2,dphz,sz,cz,qz0,ivoz,iwarz,iapz)
       s6=g*h0-g0*h
       c6=h0*h+g*g0
-      if(iap6.le.npos)                                                  &
-     &call cphase(3,dph6,s6,c6,qs0,ivo6,iwar6,iap6)
+      if(iap6.le.npos) call cphase(3,dph6,s6,c6,qs0,ivo6,iwar6,iap6)
 
 !--AVERAGING AFTER IAV TURNS
       if(mod(i1,iav).eq.0) then
@@ -2144,10 +2137,6 @@ subroutine postpr(arg1,arg2)
       if(ierro /= 0) then
         write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort110)//". iostat = ",ierro
       end if
-#ifndef CRLIBM
-      write(ch,*,iostat=ierro) (sumda(i),i=1,60)
-      write(unit10,"(a)",iostat=ierro) trim(ch)
-#else
       l1=1
       do i=1,60
         call chr_fromReal(sumda(i),ch1,19,2,rErr)
@@ -2155,7 +2144,6 @@ subroutine postpr(arg1,arg2)
         l1=l1+26
       end do
       write(unit10,"(a)",iostat=ierro) ch(1:l1-1)
-#endif
       if(ierro /= 0) then
         write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort10)//". iostat = ",ierro
       end if
@@ -2577,10 +2565,6 @@ subroutine postpr(arg1,arg2)
       if(ierro /= 0) then
         write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to file 110. Error code ",ierro
       endif
-#ifndef CRLIBM
-      write(ch,*,iostat=ierro) (sumda(i),i=1,60)
-      write(unit10,"(a)",iostat=ierro) trim(ch)
-#else
       l1=1
       do i=1,60
         call chr_fromReal(sumda(i),ch1,19,2,rErr)
@@ -2588,7 +2572,6 @@ subroutine postpr(arg1,arg2)
         l1=l1+26
       enddo
       write(unit10,"(a)",iostat=ierro) ch(1:l1-1)
-#endif
       if(ierro /= 0) then
         write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort10)//". iostat = ",ierro
       end if
