@@ -1,9 +1,9 @@
 ! ================================================================================================ !
-!  BOINC HELPER MODULE
-! ~~~~~~~~~~~~~~~~~~~~~
+!  BOINC SERVICE MODULE
+! ~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-05-15
-!  Updated: 2019-05-15
+!  Updated: 2019-05-22
 ! ================================================================================================ !
 module mod_boinc
 
@@ -59,6 +59,10 @@ subroutine boinc_initialise
 end subroutine boinc_initialise
 
 ! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-05-15
+!  Updated: 2019-05-21
+!
 !  Called on every turn in tracking
 !  Report progress to BOINC maximum every boinc_progInterval second
 !  Checkpoint every boinc_cpInterval seconds, but only if the API allows it
@@ -128,7 +132,12 @@ subroutine boinc_turn(nTurn)
 end subroutine boinc_turn
 
 ! ================================================================================================ !
-!  Add a final checkpoint after tracking is complete
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-05-15
+!  Updated: 2019-05-21
+!
+!  Called post tracking.
+!  Adds a final checkpoint after tracking is complete.
 ! ================================================================================================ !
 subroutine boinc_post
 
@@ -149,6 +158,9 @@ end subroutine boinc_post
 
 ! ================================================================================================ !
 !  Sets the postprocessing progress.
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-05-21
+!  Updated: 2019-05-21
 !  These steps are hardcoded, and should only be changed if a time consuming post processing routine
 !  is added in main_cr. If so, bump the mSteps parameter and recheck all calls to this routine.
 !  Currently there are 5 steps:
@@ -174,7 +186,10 @@ subroutine boinc_postProgress(nStep)
 end subroutine boinc_postProgress
 
 ! ================================================================================================ !
-!  Bump progress to 100%, and close the log file
+!  Write the validation file, then bump progress to 100%, and close the log file
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-05-20
+!  Updated: 2019-05-22
 ! ================================================================================================ !
 subroutine boinc_done
 
@@ -182,64 +197,65 @@ subroutine boinc_done
   use mod_hash
   use mod_time
   use mod_units
-  use mod_common
   use mod_version
   use mod_particles
+  use fma,        only : fma_flag, fma_fileName
+  use mod_common, only : ipos, unit10, fort10
 
-  character(len=32) :: md5Particles, md5Fort10, inLine
-  real(kind=fPrec)  :: sumDA(60), preTime, trackTime, postTime, totalTime
-  integer           :: fUnit, iErr
-  logical           :: fErr
+  character(len=19), parameter :: boincSum = "boinc_particles.dat"
+  character(len=1024) :: sumBuf
+  character(len=32)   :: md5Digest
+  real(kind=fPrec)    :: preTime, trackTime, postTime, totalTime
+  integer             :: fUnit, cPos
 
-  iErr = 0
+  sumBuf = " " ! The output buffer, written as a binary stream to avoid line endings
+  cPos   = 24  ! Buffer location of the next hash value (increment by 32 + 1 each time)
 
-  ! Checking if fort.10 exists.
-  ! The safest way to check if a file exists is to try to open it and catch the fail
-  call f_requestUnit(fort10, unit10)
-  call f_open(unit=unit10,file=fort10,formatted=.true.,mode="r",err=fErr,status="old")
-  if(fErr .eqv. .false.) then
-    ! Now we try and read fort.10 i.e. is it empty?
-    read(unit10,"(a)",iostat=iErr) inLine
-    fErr = iErr /= 0
-  end if
+  ! Write our own final state file that does not interfere with the user's sttings in fort.3
+  call part_writeState(boincSum,.true.,.true.)
+  write(crlog,"(a)") "BOINCAPI> Wrote particle final state to file '"//boincSum//"'"
+  flush(crlog)
 
-  if(fErr) then
-    ! File is either missing or empty
-    write(crlog,"(a)") "ABEND_CR> Writing dummy fort.10"
+  ! This file is always hashed and added to the summary
+  call hash_digestFile(boincSum, md5Digest, .true.)
+  write(crlog,"(a)") "BOINCAPI> MD5SUM '"//boincSum//"': "//md5Digest
+  flush(crlog)
+  sumBuf(cPos:cPos+32) = md5Digest
+  cPos = cPos + 33
+
+  ! If postprocessing, try to hash the fort.10
+  ! The hash module will handle the case of a missing file
+  if(ipos == 1) then
+    call f_close(unit10) ! Make sure it is closed before we hash it. This also flushes it.
+    call hash_digestFile(fort10, md5Digest, .true.)
+    write(crlog,"(a)") "BOINCAPI> MD5SUM '"//trim(fort10)//"': "//md5Digest
     flush(crlog)
-
-    ! Make sure it is closed properly before we re-open for dummy write
-    call f_close(unit10)
-    call f_open(unit=unit10,file=fort10,formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
-
-    sumDA(:)  = 0.0
-    sumDA(52) = real(numvers,fPrec) ! SixTrack version
-    write(unit10,"(60(1x,es25.18e2))",iostat=iErr) sumda
-
-    if(iErr /= 0) then
-      write(lerr,"(a,i0)") "ABEND> ERROR Problems writing to fort.10. iostat: ",ierro
-    end if
+    sumBuf(cPos:cPos+32) = md5Digest
+    cPos = cPos + 33
   end if
 
-  call part_writeState("boinc_particles.dat",.true.,.true.)
-  write(crlog,"(a)") "BOINCAPI> Writing particle final state to file 'boinc_particles.dat'"
-  flush(crlog)
+  ! If we ran FMA, hash that file too
+  if(fma_flag) then
+    call hash_digestFile(fma_fileName, md5Digest, .true.)
+    write(crlog,"(a)") "BOINCAPI> MD5SUM '"//fma_fileName//"': "//md5Digest
+    flush(crlog)
+    sumBuf(cPos:cPos+32) = md5Digest
+    cPos = cPos + 33
+  end if
 
-  call hash_digestFile("boinc_particles.dat", md5Particles, .true.)
-  write(crlog,"(a)") "BOINCAPI> MD5SUM of 'boinc_particles.dat' is "//md5Particles
-  flush(crlog)
-
-  call hash_digestFile("fort.10", md5Fort10, .true.)
-  write(crlog,"(a)") "BOINCAPI> MD5SUM of 'fort.10' is "//md5Fort10
-  flush(crlog)
-
-  ! Write the BOINC summary file for validation
+  ! Write the BOINC summary file header
   call time_getSummary(preTime, trackTime, postTime, totalTime)
+  write(sumBuf( 1:9 ),"(i0.9)") int(totalTime*1.0e3)
+  write(sumBuf(11:15),"(i0.5)") cPos-17
+  write(sumBuf(17:22),"(i0.6)") numvers
+
+  ! Write the BOINC summary file as a binary stream to avoid line endings
   call f_requestUnit("boinc_summary.dat",fUnit)
-  call f_open(unit=fUnit,file="boinc_summary.dat",formatted=.true.,mode="w",status="replace")
-  write(fUnit,"(a32,1x,a32,2(1x,i0.9))") md5Particles,md5Fort10,int(trackTime*1e3),int(totalTime*1e3)
+  call f_open(unit=fUnit,file="boinc_summary.dat",formatted=.false.,access="stream",mode="w",status="replace")
+  write(fUnit) trim(sumBuf)
   call f_close(fUnit)
 
+  ! Clean up service module bits, and tell BOINC we're done
   call boinc_postProgress(5)
   call f_close(boinc_logUnit)
 
