@@ -138,6 +138,49 @@ void print2file(){
    fclose(fptr);
 }
 
+void print2fort13(){
+
+   double coord[6];
+   double outputv[15];
+   FILE *fptr;
+   double x1, y1, xp1, yp1, energy1, deltas1, unit;
+   double x2, y2, xp2, yp2, energy2, deltas2, energyref;
+   unit = 1;
+
+   fptr = fopen("fort.13", "w");
+   if(fptr == NULL)
+   {
+      printf("Error!");
+      exit(1);
+   }
+   for(int i=0;i < getnumberdist_()-1; i=i+2)
+   {
+   		getcoord_(coord, i);
+   		outputv[0] = coord[0]*unit;
+   		outputv[1] = coord[1]*unit;
+   		outputv[2] = coord[2]*unit;
+   		outputv[3] = coord[3]*unit;
+   		outputv[4] = coord[4]*unit;	
+   		outputv[5] = coord[5]*unit;
+   	   	outputv[12] = momentum2energy(dist->momentum, dist->mass);
+   	   	outputv[13] = momentum2energy((dist->momentum+(coord[5]*dist->momentum)), dist->mass);
+   		getcoord_(coord, i+1);
+   	   	outputv[0+6] = coord[0]*unit;
+   		outputv[1+6] = coord[1]*unit;
+   		outputv[2+6] = coord[2]*unit;
+   		outputv[3+6] = coord[3]*unit;
+   		outputv[4+6] = coord[4]*unit;
+   		outputv[5+6] = coord[5]*unit;
+   		outputv[14] = momentum2energy(dist->momentum+(coord[5]*dist->momentum), dist->mass);
+   		
+   		for(int j=0; j< 15; j++){
+   			fprintf(fptr, "%f \n", outputv[j]);
+   		}
+   	}
+
+   	fclose(fptr);
+}
+
 /*
 1	particle id (not actually used)
 2	parent particle id (not actually used)

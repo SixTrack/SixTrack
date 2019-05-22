@@ -329,5 +329,5 @@ double rand_uni(double low, double high)
 double randray(double mu, double sigma){
   double low = 0;
   double high =1;
-  return (mu+sigma*sqrt((-2*log(rand_uni(low, high)))));
+  return pow((mu+sigma*sqrt((-2*log(rand_uni(low, high))))),2);
 }
