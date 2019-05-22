@@ -147,7 +147,6 @@ subroutine boinc_post
   use checkpoint_restart
 
   write(boinc_logBuffer,"(a)") "Tracking completed. Final checkpoint."
-  write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",99.0," %"
   call boinc_writeLog
 
 #ifdef API
