@@ -126,12 +126,12 @@ void action2canonical_(double acangl[6], double cancord[6], double acoord[6]){
     
     double dp_setting;
 
-    acoord[0]= sqrt((dist->emitt->e1)*acangl[0])*cos(acangl[1]);
-    acoord[1]=-sqrt((dist->emitt->e1)*acangl[0])*sin(acangl[1]);
-    acoord[2]= sqrt((dist->emitt->e2)*acangl[2])*cos(acangl[3]);
-    acoord[3]=-sqrt((dist->emitt->e2)*acangl[2])*sin(acangl[3]);
-    acoord[4]= sqrt((dist->emitt->e3)*acangl[4])*cos(acangl[5]);
-    acoord[5]=-sqrt((dist->emitt->e3)*acangl[4])/1000*sin(acangl[5]);
+    acoord[0]= sqrt((dist->emitt->e1)*acangl[0]/2)*cos(acangl[1]);
+    acoord[1]=-sqrt((dist->emitt->e1)*acangl[0]/2)*sin(acangl[1]);
+    acoord[2]= sqrt((dist->emitt->e2)*acangl[2]/2)*cos(acangl[3]);
+    acoord[3]=-sqrt((dist->emitt->e2)*acangl[2]/2)*sin(acangl[3]);
+    acoord[4]= sqrt((dist->emitt->e3)*acangl[4]/2)*cos(acangl[5]);
+    acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/2)/1000*sin(acangl[5]);
 
 
 
@@ -237,12 +237,12 @@ double optideltas(double cancord[6], double acoord[6], double acangl[6], double 
 double toactioncord_(double cancord[6], double acoord[6], double acangl[6])
 {
 
-        acoord[0]= sqrt((dist->emitt->e1)*acangl[0])*cos(acangl[1]);
-        acoord[1]=-sqrt((dist->emitt->e1)*acangl[0])*sin(acangl[1]);
-        acoord[2]= sqrt((dist->emitt->e2)*acangl[2])*cos(acangl[3]);
-        acoord[3]=-sqrt((dist->emitt->e2)*acangl[2])*sin(acangl[3]);
-        acoord[4]= sqrt((dist->emitt->e3)*acangl[4])*cos(acangl[5]);
-        acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/1000)*sin(acangl[5]);
+        acoord[0]= sqrt((dist->emitt->e1)*acangl[0]/2)*cos(acangl[1]);
+        acoord[1]=-sqrt((dist->emitt->e1)*acangl[0]/2)*sin(acangl[1]);
+        acoord[2]= sqrt((dist->emitt->e2)*acangl[2]/2)*cos(acangl[3]);
+        acoord[3]=-sqrt((dist->emitt->e2)*acangl[2]/2)*sin(acangl[3]);
+        acoord[4]= sqrt((dist->emitt->e3)*acangl[4]/2)*cos(acangl[5]);
+        acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/1000/2)*sin(acangl[5]);
         mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
 
 }
