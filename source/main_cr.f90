@@ -1501,7 +1501,7 @@ program maincr
   endif
 #endif
 
-call ffield_mod_end()
+  call ffield_mod_end()
 
   time3=0.
   call time_timerCheck(time3)
@@ -1515,6 +1515,11 @@ call ffield_mod_end()
   ! HASH library. Must be before ZIPF
   call hash_fileSums
   call time_timeStamp(time_afterHASH)
+#endif
+
+#ifdef BOINC
+  ! Do the final things in BOINC before ZIPF, but after HASH
+  call boinc_done
 #endif
 
   if(zipf_numfiles > 0) then
