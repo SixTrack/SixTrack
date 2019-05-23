@@ -252,18 +252,14 @@ contains
     call f_open(net_nfo_unit, file=net_nfo_file, formatted=.true., mode="rw", status='old')
     read(unit=net_nfo_unit, fmt=*, iostat=ios) host
     if(ios .ne. 0) then
-      write(lout,'(A)')
-      write(lout,'(A)') 'FLUKA> Could not read the host name from network.nfo'
-      write(lout,'(A)')
+      write(lerr,'(A)') 'FLUKA> ERROR Could not read the host name from network.nfo'
       call prror
     end if
 
     read(unit=net_nfo_unit, fmt=*, iostat=ios) port
     if(ios .ne. 0) then
-      write(lout,'(A)')
-      write(lout,'(A)') 'FLUKA> Could not read the port number from network.nfo'
-      write(lout,'(A)') 'FLUKA> Is the FLUKA server running and has it had time to write the port number?'
-      write(lout,'(A)')
+      write(lerr,'(A)') 'FLUKA> ERROR Could not read the port number from network.nfo'
+      write(lerr,'(A)') 'FLUKA>       Is the FLUKA server running and has it had time to write the port number?'
       call prror
     end if
 
@@ -300,6 +296,7 @@ contains
     integer(kind=int16)         :: flaa, flzz
     integer(kind=int8)          :: mtype
 
+    write(lout,'(A)') 'FLUKA> call to fluka_end'
     write(fluka_log_unit,*) "# FlukaIO: sending End of Computation signal"
 
     ! Send end of computation
@@ -769,6 +766,7 @@ subroutine fluka_close
      
      integer fluka_con
      
+     write(lout,'(A)') 'FLUKA> call to fluka_close'
      if (fluka_enable) then
        if (fluka_last_sent_mess==FLUKA_EOB .and. fluka_last_rcvd_mess.eq.-1) then
          ! FLUKA is still crunching stuff
@@ -785,8 +783,8 @@ subroutine fluka_close
            fluka_con = fluka_connect()
            if(fluka_con.eq.-1) then
 !                no hope to properly close the run
-             write(lout,'(A)') 'FLUKA> unable to connect to fluka while closing the simulation:'
-             write(lout,'(A)') 'FLUKA>  please, manually kill all its instances'
+             write(lerr,'(A)') 'FLUKA> ERROR Unable to connect to fluka while closing the simulation:'
+             write(lerr,'(A)') 'FLUKA>       please, manually kill all its instances'
              write(fluka_log_unit,'(A)') '# unable to connect to fluka while closing the simulation:'
              write(fluka_log_unit,'(A)') '#   please, manually kill all its instances'
              goto 1982
@@ -1056,8 +1054,8 @@ subroutine kernel_fluka_element( nturn, i, ix )
            napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm )
 
       if (ret.eq.-1) then
-         write(lout,'(A)')'FLUKA> Error in Fluka communication in kernel_fluka_element...'
-         write(fluka_log_unit,'(A)')'# Error in Fluka communication in kernel_fluka_element...'
+         write(lerr,'(A)')'FLUKA> ERROR -1 in Fluka communication returned by fluka_send_receive...'
+         write(fluka_log_unit,'(A)')'# Error -1 in Fluka communication returned by fluka_send_receive...'
          call prror
       end if
 
@@ -1225,8 +1223,8 @@ subroutine kernel_fluka_entrance( nturn, i, ix )
            napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm )
 
       if (ret.eq.-1) then
-         write(lout,'(A)')'FLUKA> Error in Fluka communication in kernel_fluka_entrance...'
-         write(fluka_log_unit,'(A)')'# Error in Fluka communication in kernel_fluka_entrance...'
+         write(lerr,'(A)')'FLUKA> ERROR -1 in Fluka communication returned by fluka_send...'
+         write(fluka_log_unit,'(A)')'# Error -1 in Fluka communication returned by fluka_send...'
          call prror
       end if
 
@@ -1279,8 +1277,8 @@ subroutine kernel_fluka_exit
            napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm )
 
       if (ret.eq.-1) then
-         write(lout,'(A)')'FLUKA> Error in Fluka communication in kernel_fluka_exit...'
-         write(fluka_log_unit,'(A)')'# Error in Fluka communication in kernel_fluka_exit...'
+         write(lerr,'(A)')'FLUKA> ERROR -1 in Fluka communication returned by fluka_receive...'
+         write(fluka_log_unit,'(A)')'# Error -1 in Fluka communication returned by fluka_receive...'
          call prror
       end if
 
