@@ -1402,20 +1402,20 @@ subroutine check_coupling_integrity
 
       lerror = .false.
 
-      write(lout,*) ''
-      write(lout,10010)
-      write(lout,*) ' CALL TO CHECK_COUPLING_INTEGRITY '
-      write(lout,*) ' NB: only entrance/exit markers are listed;'
-      write(lout,*) '     a single entry is by definition righteous'
-      write(lout,10010)
-      write(lout,*) ''
-      write(lout,*) ''
-      write(lout,*) '        keys to FLUKA types:'
-      write(lout,*) FLUKA_ELEMENT,' --> simple element'
-      write(lout,*) FLUKA_ENTRY,' --> entrance point'
-      write(lout,*) FLUKA_EXIT,' --> exit point'
-      write(lout,*) ''
-      write(lout,*) ''
+      write(lout,'(a)') 'FLUKA> '
+      write(lout,10040)
+      write(lout,'(a)') 'FLUKA> CALL TO CHECK_COUPLING_INTEGRITY '
+      write(lout,'(a)') 'FLUKA> NB: only entrance/exit markers are listed;'
+      write(lout,'(a)') 'FLUKA>     a single entry is by definition righteous'
+      write(lout,10040)
+      write(lout,'(a)') 'FLUKA> '
+      write(lout,'(a)') 'FLUKA>         keys to FLUKA types:'
+      write(lout,'(a,i0,a)') 'FLUKA> ',FLUKA_ELEMENT,' --> simple element'
+      write(lout,'(a,i0,a)') 'FLUKA> ',FLUKA_ENTRY,' --> entrance point'
+      write(lout,'(a,i0,a)') 'FLUKA> ',FLUKA_EXIT,' --> exit point'
+      write(lout,'(a)') 'FLUKA> '
+      write(lout,10040)
+      write(lout,10020) 'entry type', 'name', 'ID SING EL', 'ID struct', 'ID geom'
 
       i1=1
       do while ( i1.le.iu )
@@ -1423,9 +1423,7 @@ subroutine check_coupling_integrity
 !         SINGLE ELEMENT
           ix1=ic(i1)-nblo
           if ( fluka_type(ix1).eq.FLUKA_ENTRY ) then
-            write(lout,*) ''
-            write(lout,*) ''
-            write(lout,10020) 'entry type', 'name', 'ID SING EL', 'ID struct', 'ID geom'
+            write(lout,10040)
             write(lout,10030) fluka_type(ix1), bez(ix1), ix1, i1, fluka_geo_index(ix1)
             istart = i1+1
             istop  = iu
@@ -1439,7 +1437,7 @@ subroutine check_coupling_integrity
                 if ( fluka_type(ix2).eq.FLUKA_EXIT ) then
                   if(fluka_geo_index(ix1).eq.fluka_geo_index(ix2))then
                     write(lout,10030) fluka_type(ix2), bez(ix2), ix2, i2, fluka_geo_index(ix2)
-                    i1 = i2 + 1
+                    i1 = i2
                     lfound = .true.
                     if ( lcurturn ) then
                       exit
@@ -1480,19 +1478,20 @@ subroutine check_coupling_integrity
 !       go to next accelerator entry
         i1 = i1+1
       enddo
+      write(lout,10040)
 
  1983 continue
       if ( lerror ) then
-        write(lout,*) ' at least one inconsistency in flagging elements'
-        write(lout,*) '    for coupling: please check carefully...'
+        write(lout,'(a)') ' at least one inconsistency in flagging elements'
+        write(lout,'(a)') '    for coupling: please check carefully...'
         call prror
       endif
 
 !     au revoir:
       return
-10010 format(132('-'))
-10020 format(1X,A10,1X,A4,12X,3(1X,A10))
-10030 format(1X,I10,1X,A16,3(1X,I10))
+10020 format('FLUKA> ',1X,A10,1X,A4,12X,3(1X,A10))
+10030 format('FLUKA> ',1X,I10,1X,A16,3(1X,I10))
+10040 format('FLUKA> ',62('-'))
 end subroutine check_coupling_integrity
 
 subroutine check_coupling_start_point()
