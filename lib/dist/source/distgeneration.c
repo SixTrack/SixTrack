@@ -173,12 +173,7 @@ void action2canonical_(double acangl[6], double cancord[6], double acoord[6]){
         printf("uuua %f %f  \n",acoord[4], acoord[5] );
 
         mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
-        //printf("dist22b %f \n", cancord[5]);
-        
-        //if(fabs(cancord[5]-acoord[5])> 1e-10){
-        //change_e3_to_dp_easy(cancord,acoord, acangl);
 
-        //}
     }
 
     //This is the multiplication with the tas matrix 
@@ -186,70 +181,7 @@ void action2canonical_(double acangl[6], double cancord[6], double acoord[6]){
      
 }
 
-void change_e3_to_dp_easy(double cancord[6], double acoord[6], double acangl[6]){
- 
-    
-    int itr = 0, maxmitr;
-    double x, a, b, allerr, x1;
-    double angle, emitt;
-    a = -1.6;
-    b=1.6;
-    itr = 0;
-    maxmitr = 100;
-    allerr = 1e-12;
-    bisection (&x, a, b, &itr);
-    do
-    {
-        if (optideltas(cancord,acoord, acangl, a)*optideltas(cancord,acoord, acangl, x) < 0)
-            b=x;
-        else
-            a=x;
-        bisection (&x1, a, b, &itr);
-        if (fabs(x1-x) < allerr)
-        {
-            printf("After %d iterations, root = %6.4f\n", itr, x1);
-            break;
-        }
-        x=x1;
-    }
-    while (itr < maxmitr);
 
-
-    toactioncord_(cancord,acoord,acangl);
-        //printf("oooutt %E, %E, %E \n", cancord[4], cancord[5], acangl[5] );
-
-    emitt =dist->emitt->e3;
-    a = 0;
-    b= 10000;
-    itr = 0;
-    
-
-        bisection (&x, a, b, &itr);
-    do
-    {
-        if (opemitt(cancord,acoord, acangl, a)*opemitt(cancord,acoord, acangl, x) < 0)
-            b=x;
-        else
-            a=x;
-        bisection (&x1, a, b, &itr);
-        if (fabs(x1-x) < allerr)
-        {
-            printf("After %d iterations, root = %6.4f\n", itr, x1);
-            break;
-        }
-        x=x1;
-    }
-    while (itr < maxmitr);
-
-    toactioncord_(cancord,acoord,acangl);
-}
-
-double opemitt(double cancord[6], double acoord[6], double acangl[6], double x)
-{
-        dist->emitt->e3 = x;
-        toactioncord_(cancord,acoord,acangl);
-        return cancord[5]-dist->emitt->dp*acangl[4];
-}
 
 double createrandom(double insigma[6], double cancord[6], double normalized[6]){
     double acangl[6];
@@ -259,13 +191,6 @@ double createrandom(double insigma[6], double cancord[6], double normalized[6]){
     action2canonical_(acangl, cancord, normalized);
 }
 
-
-double optideltas(double cancord[6], double acoord[6], double acangl[6], double x)
-{
-        acangl[5] = x;
-        toactioncord_(cancord,acoord,acangl);
-        return cancord[4];
-}
 
 double toactioncord_(double cancord[6], double acoord[6], double acangl[6])
 {

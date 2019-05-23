@@ -69,13 +69,11 @@ void settasmatrix_element(double element, int i, int j);
 
 void setparameter_(int *index,  double *start, double *stop, int *length, int *type);
 
-//void convertdp2emittance(double dp);
+
 
 void createtas0coupling_(double betax, double alfax, double betay, double alfay, double dx, double dpx, double dy, double dpy);
 
-//void change_e3_to_dp(double cancord[6],double acoord[6], double acangl[6]);
 
-double optideltas(double cancord[6], double acoord[6], double acangl[6], double x); //check these...
 double toactioncord_(double cancord[6], double acoord[6], double acangl[6]);
 void setphysicalcut(int variable, double min, double max);
 void setnormalizedcut(int variable, double min, double max);
