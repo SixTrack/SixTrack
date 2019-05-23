@@ -528,10 +528,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
 
   use physical_constants
 
-#ifdef FLUKA
-  use mod_fluka
-#endif
-
 #ifdef ROOT
   use iso_c_binding
   use root_output
@@ -764,7 +760,7 @@ subroutine aperture_reportLoss(turn, i, ix)
   use physical_constants
 
 #ifdef FLUKA
-  use mod_fluka
+  use mod_fluka, only : fluka_uid, fluka_gen, fluka_weight, fluka_enable
 #endif
 #ifdef HDF5
   use hdf5_output
@@ -1305,6 +1301,53 @@ subroutine roffpos_inv( x, y, xnew, ynew, tlt, xoff, yoff )
   return
 end subroutine roffpos_inv
 
+#ifdef FLUKA
+subroutine contour_FLUKA_markers()
+!-----------------------------------------------------------------------
+! by A.Mereghetti
+! last modified: 22-05-2019
+! check that aperture is well defined accross a Fluka insertion
+  !-----------------------------------------------------------------------
+  
+  use mod_fluka, only : FLUKA_ENTRY, FLUKA_EXIT, fluka_type, fluka_geo_index
+  use parpro, only : nblo
+  use mod_common, only : iu, ic
+  use mod_common_track, only : ktrack
+  use crcoall, only : lout
+  
+  implicit none
+  
+  ! temporary variables
+  integer i1 , i2
+  integer ix1, ix2
+
+  i1=1
+  do while ( i1.le.iu )
+     write(lout, *) '> i1=',i1
+     if(ktrack(i1).ne.1.and.ic(i1).gt.nblo) then
+        ix1=ic(i1)-nblo
+        if ( fluka_type(ix1).eq.FLUKA_ENTRY ) then
+           do i2=i1+1,iu
+              write(lout, *) '> i2=',i2
+              if(ktrack(i2).ne.1.and.ic(i2).gt.nblo) then
+                 ix2=ic(i2)-nblo
+                 if ( fluka_type(ix2).eq.FLUKA_EXIT ) then
+                    if(fluka_geo_index(ix1).eq.fluka_geo_index(ix2))then
+                       call contour_aperture_markers( i1, i2, .true.  )
+                       i1 = i2
+                       exit
+                    endif
+                 endif
+              endif
+           enddo
+        endif
+     endif
+     i1 = i1+1
+  enddo
+     
+end subroutine contour_FLUKA_markers
+#endif
+
 subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
 ! by A.Mereghetti
@@ -1616,7 +1659,7 @@ subroutine find_closest_aperture( iStart, lUp, iEl, ixEl, lfound )
 #ifdef FLUKA
 ! import mod_fluka
 ! inserted in main code by the 'fluka' compilation flag
-  use mod_fluka
+  use mod_fluka, only : fluka_type, FLUKA_NONE
 #endif
 
   implicit none

@@ -66,7 +66,7 @@ program maincr
 
   use mod_dist
   use matrix_inv
-  use aperture
+  
   use wire
   use mod_version
 #ifdef HASHLIB
@@ -381,6 +381,7 @@ program maincr
 #ifdef FLUKA
   if (fluka_enable) then
     call check_coupling_integrity
+    call contour_FLUKA_markers
     call check_coupling_start_point
   end if
 #endif
