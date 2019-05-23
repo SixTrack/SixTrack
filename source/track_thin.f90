@@ -643,7 +643,7 @@ subroutine thin4d(nthinerr)
               goto 625
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
-              call kernel_fluka_exit( n, i, ix )
+              call kernel_fluka_exit
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
@@ -1285,7 +1285,7 @@ subroutine thin6d(nthinerr)
               goto 645
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
-              call kernel_fluka_exit( n, i, ix )
+              call kernel_fluka_exit
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
@@ -2215,4 +2215,3 @@ subroutine write6(n)
 10000 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10010 format(10x,f47.33)
 end subroutine write6
-

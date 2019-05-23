@@ -634,7 +634,7 @@ subroutine thck4d(nthinerr)
               goto 475
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
-              call kernel_fluka_exit( n, i, ix )
+              call kernel_fluka_exit
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
@@ -1295,7 +1295,7 @@ subroutine thck6d(nthinerr)
               goto 495
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
-              call kernel_fluka_exit( n, i, ix )
+              call kernel_fluka_exit
               ! Re-compute transport matrices of linear elements, according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
