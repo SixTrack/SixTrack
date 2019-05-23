@@ -561,7 +561,7 @@ subroutine crpoint
   if(numx >= numl) then
     write(crlog,"(a)") "CR_POINT> Called after last turn"
   else
-    write(crlog,"(3(a,i0))") "CR_POINT> Called on turn ",(numx+1)," / ",numl," : frequency is ",numlcp
+    write(crlog,"(3(a,i0))") "CR_POINT> Called on turn ",(numx+1)," / ",numl," : interval is ",numlcp
   end if
   flush(crlog)
 
