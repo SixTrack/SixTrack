@@ -152,8 +152,8 @@ void action2canonical_(double acangl[6], double cancord[6], double acoord[6]){
         //acoord[5] = acangl[5];
         double lindp = 0;
         double lindeltas=0;
-        double deltap =0.4;
-        double deltas = 0;
+        double deltap =acangl[4];
+        double deltas = acangl[5];
         double *xap;
         double det = (dist->tas[4][4]*dist->tas[5][5] - dist->tas[4][5]*dist->tas[5][4]);
         for(int i=0; i<4;i++){

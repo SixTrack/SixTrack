@@ -86,6 +86,9 @@ void setemittance3_(double *e3){
 	dist->longitunalemittance=0;  	
 }
 
+void usedeltap_(){
+	dist->longitunalemittance=2;
+}
 
 void addclosedorbit_(double *clo){
 	for(int i=0; i<dim;i++){
@@ -93,11 +96,6 @@ void addclosedorbit_(double *clo){
 	}
 }
 
-void setdeltap_(double *dp){
-	dist->emitt->dp = *dp;
-	dist->longitunalemittance=2;
-	//dist->emitt->e3 = 1000*pow(*dp/dist->tas[5][5],2);
-}
 
 void settasmatrix_(double tas[6][6]){
 	for(int i =0; i< dim; i++){
@@ -248,11 +246,9 @@ void setphysicalcut(int variable, double min, double max){
 }
 
 void setnormalizedcut(int variable, double min, double max){
-	printf("uuuuuuuu %d, %f, %f \n", variable, min, max);
 	dist->cuts2apply->isset_n=1;
 	dist->cuts2apply->normalized[variable-1]->min=min;
 	dist->cuts2apply->normalized[variable-1]->max=max;
 	dist->cuts2apply->normalized[variable-1]->isset=1;
-	printf("uuuuuuuu %d, %f, %f \n", variable, dist->cuts2apply->normalized[variable-1]->min, dist->cuts2apply->normalized[variable-1]->max);
 
 }

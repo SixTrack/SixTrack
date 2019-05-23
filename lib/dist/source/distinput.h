@@ -59,7 +59,7 @@ void setdistribution_(int *ndist);
 void setmassmom_(double *mass, double *momentum);
 void setemittance12_(double *e1, double *e2);
 void setemittance3_(double *e3);
-void setdeltap_(double *dp);
+void usedeltap_();
 
 
 void addclosedorbit_(double *clo);
@@ -71,7 +71,7 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 
 //void convertdp2emittance(double dp);
 
-void createTasWithNoCoupling(double betax, double alfax, double betay, double alfay, double tas[6][6]);
+void createtas0coupling_(double betax, double alfax, double betay, double alfay, double dx, double dpx, double dy, double dpy);
 
 //void change_e3_to_dp(double cancord[6],double acoord[6], double acangl[6]);
 
