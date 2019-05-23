@@ -380,9 +380,18 @@ program maincr
 
 #ifdef FLUKA
   if (fluka_enable) then
+    write(lout,"(A)")
+    write(lout,"(A)") "MAINCR> calling check_coupling_integrity BEFORE checking"// &
+          " aperture around Fluka insertion"
+    write(lout,"(A)")
     call check_coupling_integrity
-    call contour_FLUKA_markers
     call check_coupling_start_point
+    call contour_FLUKA_markers
+    write(lout,"(A)")
+    write(lout,"(A)") "MAINCR> calling check_coupling_integrity AFTER checking"// &
+          " aperture around Fluka insertion"
+    write(lout,"(A)")
+    call check_coupling_integrity
   end if
 #endif
 
