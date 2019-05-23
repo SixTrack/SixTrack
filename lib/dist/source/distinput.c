@@ -145,8 +145,8 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 	dist->coord[*index-1]->type = *type;
 
 	if(*type ==0){ //Constant value 
-		dist->coord[*index-1]->values = (double*)malloc(sizeof(double));
-		dist->coord[*index-1]->values = start;
+		dist->coord[*index-1]->values = (double*)malloc((*length)*sizeof(double));
+		dist->coord[*index-1]->values[0] = *start;
 		dist->coord[*index-1]->length = 1; //if it is a constant the length should always be 1.
 	}
 

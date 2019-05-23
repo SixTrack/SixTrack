@@ -121,6 +121,18 @@ void canonical2emittance_(double cancord[6], double emittance[3]){
 
 }
 
+void solve2by2eq(double a1, double b1, double c1, double a2, double b2, double c2, double *x){
+    double det = a1*b2-b1*a2;
+    double dx = c1*b2-b1*c2;
+    double dy = a1*c2-c1*a2;
+    x[0] = (dx/det);
+    x[1] = (dy/det);
+
+//    printf("this is the solution, x ,y %f %f", x[0], x[1] );
+
+}
+
+
 /*If emittance is defined it converts to canonical coordinates */
 void action2canonical_(double acangl[6], double cancord[6], double acoord[6]){
     
@@ -136,16 +148,37 @@ void action2canonical_(double acangl[6], double cancord[6], double acoord[6]){
 
 
     if(dist->longitunalemittance==2) {
-        printf("dist22a %f \n", acangl[5]);
-        acoord[5] = acangl[5];
+        //printf("dist22a %f \n", acangl[5]);
+        //acoord[5] = acangl[5];
+        double lindp = 0;
+        double lindeltas=0;
+        double deltap =0.4;
+        double deltas = 0;
+        double *xap;
+        double det = (dist->tas[4][4]*dist->tas[5][5] - dist->tas[4][5]*dist->tas[5][4]);
+        for(int i=0; i<4;i++){
+            lindeltas = lindeltas+dist->tas[4][i]*acoord[i];
+            lindp=lindp+dist->tas[5][i]*acoord[i];
+        } 
+
+        printf("suuumm %f %f", lindeltas, lindp);
+        lindp = deltap - lindp;
+        lindeltas = deltas - lindeltas;
+
+        xap = (double*)malloc(2*sizeof(double));
+        solve2by2eq(dist->tas[4][4], dist->tas[4][5], lindeltas, dist->tas[5][4], dist->tas[5][5], lindp, xap );
+        acoord[4] = xap[0];
+        acoord[5] = xap[1];
+
+        printf("uuua %f %f  \n",acoord[4], acoord[5] );
 
         mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
-        printf("dist22b %f \n", cancord[5]);
-        if(fabs(cancord[5]-acoord[5])> 1e-10){
+        //printf("dist22b %f \n", cancord[5]);
+        
+        //if(fabs(cancord[5]-acoord[5])> 1e-10){
         //change_e3_to_dp_easy(cancord,acoord, acangl);
-        //change_e3_to_dp_easy(cancord,acoord, acangl);
-        //change_e3_to_dp_easy(cancord,acoord, acangl);
-        }
+
+        //}
     }
 
     //This is the multiplication with the tas matrix 
