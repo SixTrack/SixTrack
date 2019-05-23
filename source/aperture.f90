@@ -1313,7 +1313,6 @@ subroutine contour_FLUKA_markers()
   use parpro, only : nblo
   use mod_common, only : iu, ic
   use mod_common_track, only : ktrack
-  use crcoall, only : lout
   
   implicit none
   
@@ -1323,26 +1322,24 @@ subroutine contour_FLUKA_markers()
 
   i1=1
   do while ( i1.le.iu )
-     write(lout, *) '> i1=',i1
-     if(ktrack(i1).ne.1.and.ic(i1).gt.nblo) then
-        ix1=ic(i1)-nblo
-        if ( fluka_type(ix1).eq.FLUKA_ENTRY ) then
-           do i2=i1+1,iu
-              write(lout, *) '> i2=',i2
-              if(ktrack(i2).ne.1.and.ic(i2).gt.nblo) then
-                 ix2=ic(i2)-nblo
-                 if ( fluka_type(ix2).eq.FLUKA_EXIT ) then
-                    if(fluka_geo_index(ix1).eq.fluka_geo_index(ix2))then
-                       call contour_aperture_markers( i1, i2, .true.  )
-                       i1 = i2
-                       exit
-                    endif
-                 endif
+    if(ktrack(i1).ne.1.and.ic(i1).gt.nblo) then
+      ix1=ic(i1)-nblo
+      if ( fluka_type(ix1).eq.FLUKA_ENTRY ) then
+        do i2=i1+1,iu
+          if(ktrack(i2).ne.1.and.ic(i2).gt.nblo) then
+            ix2=ic(i2)-nblo
+            if ( fluka_type(ix2).eq.FLUKA_EXIT ) then
+              if(fluka_geo_index(ix1).eq.fluka_geo_index(ix2))then
+                call contour_aperture_markers( i1, i2, .true.  )
+                i1 = i2
+                exit
               endif
-           enddo
-        endif
-     endif
-     i1 = i1+1
+            endif
+          endif
+        enddo
+      endif
+    endif
+    i1 = i1+1
   enddo
      
 end subroutine contour_FLUKA_markers
