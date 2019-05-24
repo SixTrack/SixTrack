@@ -108,21 +108,8 @@ void settasmatrix_(double tas[6][6]){
 
 void settasmatrix_element(double element, int i, int j){
 	dist->tas[i][j] = element;
-
-	printmatrix(6,6, dist->tas);
 }
 
-void settasmatrixpython(double **tas){
-		for(int i =0; i< dim; i++){
-		for(int j =0; j< dim; j++){
-			dist->tas[i][j] = tas[i][j];
-		}
-	}
-	printmatrix(6,6, dist->tas);
-}
-void cutnormalized(int variable, double min, double max){
-
-}
 
 void setmassmom_(double *mass, double *momentum){
 	(dist)-> mass = *mass;
@@ -228,11 +215,10 @@ void createtas0coupling_(double betax, double alfax, double betay, double alfay,
 
 	dist->tas[2][5] = dy;
     dist->tas[3][5] = dpy;
-    //This is not really physical so it should be changed.. 
+
+    //This is not really physical .. 
     dist->tas[5][5] =1;
     dist->tas[4][4] =1;
-
-    printmatrix(dim,dim, dist->tas);
 
 }
 

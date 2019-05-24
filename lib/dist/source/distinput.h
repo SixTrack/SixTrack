@@ -74,6 +74,5 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 void createtas0coupling_(double betax, double alfax, double betay, double alfay, double dx, double dpx, double dy, double dpy);
 
 
-double toactioncord_(double cancord[6], double acoord[6], double acangl[6]);
 void setphysicalcut(int variable, double min, double max);
 void setnormalizedcut(int variable, double min, double max);

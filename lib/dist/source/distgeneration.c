@@ -29,8 +29,6 @@ void dist2sixcoord_(){
                             tc[3]=dist->coord[3]->values[l];
                             tc[4]=dist->coord[4]->values[m];
                             tc[5]=dist->coord[5]->values[n];
-                           //  printf("aaaa %f \n", tc[0]);
-                           // printvector("tcaa", 6, tc);
                          
                             action2sixinternal_(tc, tmp, tmp_n);
                             
@@ -48,10 +46,10 @@ void dist2sixcoord_(){
             }
         }   
     }
-      printf("end \n");
     dist->totallength=counter;
     dist->isDistrcalculated=1;
 }
+
 /*This is to create a random distribution*/
 
 void createrandomdist_(){
@@ -121,23 +119,10 @@ void canonical2emittance_(double cancord[6], double emittance[3]){
 
 }
 
-void solve2by2eq(double a1, double b1, double c1, double a2, double b2, double c2, double *x){
-    double det = a1*b2-b1*a2;
-    double dx = c1*b2-b1*c2;
-    double dy = a1*c2-c1*a2;
-    x[0] = (dx/det);
-    x[1] = (dy/det);
-
-//    printf("this is the solution, x ,y %f %f", x[0], x[1] );
-
-}
-
 
 /*If emittance is defined it converts to canonical coordinates */
 void action2canonical_(double acangl[6], double cancord[6], double acoord[6]){
     
-    double dp_setting;
-
     acoord[0]= sqrt((dist->emitt->e1)*acangl[0]/2)*cos(acangl[1]);
     acoord[1]=-sqrt((dist->emitt->e1)*acangl[0]/2)*sin(acangl[1]);
     acoord[2]= sqrt((dist->emitt->e2)*acangl[2]/2)*cos(acangl[3]);
@@ -145,11 +130,7 @@ void action2canonical_(double acangl[6], double cancord[6], double acoord[6]){
     acoord[4]= sqrt((dist->emitt->e3)*acangl[4]/2)*cos(acangl[5]);
     acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/2)/1000*sin(acangl[5]);
 
-
-
     if(dist->longitunalemittance==2) {
-        //printf("dist22a %f \n", acangl[5]);
-        //acoord[5] = acangl[5];
         double lindp = 0;
         double lindeltas=0;
         double deltap =acangl[4];
@@ -161,7 +142,6 @@ void action2canonical_(double acangl[6], double cancord[6], double acoord[6]){
             lindp=lindp+dist->tas[5][i]*acoord[i];
         } 
 
-        printf("suuumm %f %f", lindeltas, lindp);
         lindp = deltap - lindp;
         lindeltas = deltas - lindeltas;
 
@@ -170,39 +150,10 @@ void action2canonical_(double acangl[6], double cancord[6], double acoord[6]){
         acoord[4] = xap[0];
         acoord[5] = xap[1];
 
-        printf("uuua %f %f  \n",acoord[4], acoord[5] );
-
-        mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
-
     }
 
-    //This is the multiplication with the tas matrix 
     mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
      
-}
-
-
-
-double createrandom(double insigma[6], double cancord[6], double normalized[6]){
-    double acangl[6];
-    for(int i=0; i<6; i++){
-        acangl[i] = randn(0, insigma[i]);
-    }
-    action2canonical_(acangl, cancord, normalized);
-}
-
-
-double toactioncord_(double cancord[6], double acoord[6], double acangl[6])
-{
-
-        acoord[0]= sqrt((dist->emitt->e1)*acangl[0]/2)*cos(acangl[1]);
-        acoord[1]=-sqrt((dist->emitt->e1)*acangl[0]/2)*sin(acangl[1]);
-        acoord[2]= sqrt((dist->emitt->e2)*acangl[2]/2)*cos(acangl[3]);
-        acoord[3]=-sqrt((dist->emitt->e2)*acangl[2]/2)*sin(acangl[3]);
-        acoord[4]= sqrt((dist->emitt->e3)*acangl[4]/2)*cos(acangl[5]);
-        acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/1000/2)*sin(acangl[5]);
-        mtrx_vector_mult_pointer(dim,dim, dist->tas, acoord,cancord);
-
 }
 
 int particle_within_limits_physical(double *physical){

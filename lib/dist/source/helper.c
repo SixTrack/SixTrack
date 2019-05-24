@@ -54,36 +54,6 @@ canonical2six_(double *canonical, double *ref_momentum, double *mass, double *co
     *(coord+4) = *(canonical+4)*rv;
     *(coord+5) = *(canonical+5);     
 }
-double rationalApproximation(double t)
-{
-    // Abramowitz and Stegun formula 26.2.23.
-    // The absolute value of the error should be less than 4.5 e-4.
-    double c[] = {2.515517, 0.802853, 0.010328};
-    double d[] = {1.432788, 0.189269, 0.001308};
-    return t - ((c[2]*t + c[1])*t + c[0]) / 
-               (((d[2]*t + d[1])*t + d[0])*t + 1.0);
-}
-
-double normalcdfinv_(double p)
-{
-    printf("printing %f", p);
-    if (p <= 0.0 || p >= 1.0)
-    {
-        return 0;
-    }
-
-    // See article above for explanation of this section.
-    if (p < 0.5)
-    {
-        // F^-1(p) = - G^-1(p)
-        return -rationalApproximation( sqrt(-2.0*log(p)) );
-    }
-    else
-    {
-        // F^-1(p) = G^-1(1-p)
-        return rationalApproximation( sqrt(-2.0*log(1-p)) );
-    }
-}
 
 void createLinearSpaced(int length, double start, double stop, double *eqspaced ){
     
@@ -91,7 +61,6 @@ void createLinearSpaced(int length, double start, double stop, double *eqspaced 
     for(int i=0; i<length; i++){
         eqspaced[i] = start+distance*i;
     }
-
     
 }
 
@@ -149,6 +118,17 @@ void mtrx_vector_mult_pointer(int mp, int np,  double **mtrx_a, double mtrx_b[6]
                  
             }
     }
+
+}
+
+void solve2by2eq(double a1, double b1, double c1, double a2, double b2, double c2, double *x){
+    double det = a1*b2-b1*a2;
+    double dx = c1*b2-b1*c2;
+    double dy = a1*c2-c1*a2;
+    x[0] = (dx/det);
+    x[1] = (dy/det);
+
+//    printf("this is the solution, x ,y %f %f", x[0], x[1] );
 
 }
 
@@ -278,16 +258,6 @@ void printvector(const char* name, int dim, double* vector){
             printf("%d %E \n",i, vector[i]);
 
     }
-}
-void bisection (double *x, double a, double b, int *itr)
-/* this function performs and prints the result of one iteration */
-{
-    *x=(a+b)/2;
-    ++(*itr);
-    printf("Iteration no. %3d X = %7.5f\n", *itr, *x);
-}
-void hello(){
-  printf("heeeelloooo \n");
 }
 
 
