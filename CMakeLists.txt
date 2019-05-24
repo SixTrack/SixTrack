@@ -275,7 +275,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 ###################################################################################################
 
 list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC API BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
-list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB)
+list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB MINIZIP)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
 ###################################################################################################
@@ -1120,15 +1120,20 @@ endif(PYTHIA)
 
 if(MINIZIP)
   set(MINIZIP_DIR ${CMAKE_SOURCE_DIR}/source/minizip)
-  set(MINIZIP_SOURCES ${MINIZIP_DIR}/zip.c ${MINIZIP_DIR}/ioapi.c ${MINIZIP_DIR}/minizip.c)
-  set(MINIUNZIP_SOURCES ${MINIZIP_DIR}/unzip.c ${MINIZIP_DIR}/ioapi.c ${MINIZIP_DIR}/miniunz.c)
+  # set(MINIZIP_EXE_SOURCES ${MINIZIP_DIR}/zip.c ${MINIZIP_DIR}/ioapi.c ${MINIZIP_DIR}/minizip.c)
+  # set(MINIUNZIP_EXE_SOURCES ${MINIZIP_DIR}/unzip.c ${MINIZIP_DIR}/ioapi.c ${MINIZIP_DIR}/miniunz.c)
+  set(MINIZIP_SOURCES ${MINIZIP_DIR}/zip.c ${MINIZIP_DIR}/unzip.c ${MINIZIP_DIR}/ioapi.c ${MINIZIP_DIR}/libminizip.c)
   # add_subdirectory(${MINIZIP_DIR})
   include_directories(${MINIZIP_DIR})
-  add_executable(minizip ${MINIZIP_SOURCES})
-  add_executable(miniunzip ${MINIUNZIP_SOURCES})
+  # add_executable(minizip_exe ${MINIZIP_EXE_SOURCES})
+  # add_executable(miniunzip_exe ${MINIUNZIP_EXE_SOURCES})
+  add_library(minizip STATIC ${MINIZIP_SOURCES})
   target_link_libraries(minizip z)
-  target_link_libraries(miniunzip z)
-  add_dependencies(SixTrackCore minizip miniunzip)
+  # target_link_libraries(minizip z)
+  # target_link_libraries(miniunzip z)
+  add_dependencies(SixTrackCore minizip)
+  target_link_libraries(SixTrackCore minizip)
+  # add_dependencies(SixTrackCore minizip minizip_exe miniunzip_exe)
 endif(MINIZIP)
 
 add_custom_target(copy_input_files)

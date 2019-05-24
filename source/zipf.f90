@@ -16,6 +16,18 @@ module zipf
   character(len=:), allocatable, save :: zipf_fileNames(:)  ! Name of files to pack into the zip file.
   character(len=mFileName),      save :: zipf_outFile = " " ! Name of output file (Default: Sixout.zip)
 
+  interface
+    subroutine minizip_dozip(zipFile, inFiles, overWrite, compLevel, lenOne, lenTwo) bind(C, name="minizip_dozip")
+      use, intrinsic :: iso_c_binding
+      character(kind=C_CHAR,len=1), intent(in) :: zipFile
+      character(kind=C_CHAR,len=1), intent(in) :: inFiles
+      integer(kind=C_INT), value,   intent(in) :: overWrite
+      integer(kind=C_INT), value,   intent(in) :: compLevel
+      integer(kind=C_INT), value,   intent(in) :: lenOne
+      integer(kind=C_INT), value,   intent(in) :: lenTwo
+    end subroutine minizip_dozip
+  end interface
+
 contains
 
 subroutine zipf_parseInputLine(inLine,iErr)
@@ -82,6 +94,7 @@ subroutine zipf_dozip
   use crcoall
   use mod_alloc
   use string_tools
+  use, intrinsic :: iso_c_binding
 
   implicit none
 
@@ -93,27 +106,13 @@ subroutine zipf_dozip
   call alloc(zipf_fileNames_boinc, 256, zipf_numFiles, " ", "zipf_fileNames_boinc")
 #endif
 
-!+if libarchive
-! Having an actual explicit interface would be nice - this is 90% there,
-! however some logic should probably be changed (here, in libArchive_Fwrapper.c,
-! and in the test program). For now, if it passes CTEST, we think it works...
-!    interface
-!       subroutine f_write_archive(outname,filenames,numfiles,outname_len,filenames_len) &
-!            bind(C,name="f_write_archive_")
-!         use, intrinsic :: iso_c_binding, only : c_int
-!         implicit none
-!         character(len=1), intent(in) :: outname
-!         character(len=1), intent(in) :: filenames(*)
-!         integer(kind=c_int), intent(in) :: numfiles
-!         integer(kind=c_int), intent(in), VALUE :: outname_len
-!         integer(kind=c_int), intent(in), VALUE :: filenames_len
-!       end subroutine f_write_archive
-!    end interface
-!+ei
-
   write(lout,"(a)") "ZIPF> Compressing file '"//trim(zipf_outFile)//"' ..."
 
-#ifdef LIBARCHIVE
+#ifdef MINIZIP
+
+  call minizip_dozip(trim(zipf_outFile)//char(0),"fort.2"//char(0),1,9,len_trim(zipf_outFile)+1,7)
+
+#elif LIBARCHIVE
 #ifdef BOINC
   ! For BOINC, we may need to translate the filenames.
   call boincrf(trim(zipf_outFile), zipf_outFile_boinc)
