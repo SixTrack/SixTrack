@@ -178,7 +178,8 @@ void minizip_zip(char* zipName, char* zipFiles, int nFiles, int compLevel, int* 
   buf = (void*)malloc(size_buf);
   if(buf == NULL) {
     printf("MINIZIP> ERROR Could not allocate buffer memory\n");
-    return ZIP_INTERNALERROR;
+    *ret_err = ZIP_INTERNALERROR;
+    return;
   }
 
   zipFile zf;
