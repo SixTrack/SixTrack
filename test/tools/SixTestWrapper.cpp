@@ -703,7 +703,9 @@ int main(int argc, char* argv[])
         CheckPrint("CR Number of Restarts",!crRestartFail);
         if(!crRestartFail) passCount++;
     }
-    CheckPrint("Checks Passed > 0", passCount > 0);
+    std::stringstream numPassed;
+    numPassed << "Checks Passed: " << passCount << " > 0";
+    CheckPrint(numPassed.str(), passCount > 0);
     std::cout << std::endl;
 
     PrettyDivider("EXIT");
