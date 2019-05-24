@@ -137,79 +137,25 @@ uLong filetime(f, tmzip, dt)
 #endif
 #endif
 
-int check_exist_file(filename)
-  const char* filename;
-{
-  FILE* ftestexist;
-  int ret = 1;
-  ftestexist = FOPEN_FUNC(filename,"rb");
-  if (ftestexist==NULL)
-    ret = 0;
-  else
-    fclose(ftestexist);
-  return ret;
-}
-
-/* calculate the CRC32 of a file,
-   because to encrypt a file, we need known the CRC32 of the file before */
-int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,unsigned long* result_crc)
-{
-  unsigned long calculate_crc=0;
-  int err=ZIP_OK;
-  FILE * fin = FOPEN_FUNC(filenameinzip,"rb");
-
-  unsigned long size_read = 0;
-  unsigned long total_read = 0;
-  if (fin==NULL)
-  {
-    err = ZIP_ERRNO;
-  }
-
-  if (err == ZIP_OK)
-    do
-    {
-      err = ZIP_OK;
-      size_read = (int)fread(buf,1,size_buf,fin);
-      if (size_read < size_buf)
-        if (feof(fin)==0)
-        {
-          printf("error in reading %s\n",filenameinzip);
-          err = ZIP_ERRNO;
-        }
-
-        if (size_read>0)
-          calculate_crc = crc32(calculate_crc,buf,size_read);
-        total_read += size_read;
-
-    } while ((err == ZIP_OK) && (size_read>0));
-
-    if (fin)
-      fclose(fin);
-
-  *result_crc=calculate_crc;
-  printf("file %s crc %lx\n", filenameinzip, calculate_crc);
-  return err;
-}
-
-int isLargeFile(const char* filename)
-{
-  int largeFile = 0;
+int isLargeFile(const char* filename) {
+  int i, largeFile = 0;
   ZPOS64_T pos = 0;
   FILE* pFile = FOPEN_FUNC(filename, "rb");
-
   if(pFile != NULL)
   {
     int n = FSEEKO_FUNC(pFile, 0, SEEK_END);
     pos = FTELLO_FUNC(pFile);
-
-    printf("File : %s is %lld bytes\n", filename, pos);
-
-    if(pos >= 0xffffffff)
-      largeFile = 1;
-
+    printf("MINIZIP> File: %s ", filename);
+    for(size_t i=strlen(filename); i<31; i++) printf(".");
+    if(pos >= 1073741824)
+      printf("  %7.2f Gb\n", filename, pos/1073741824.0);
+    else if(pos >= 1048576)
+      printf("  %7.2f Mb\n", filename, pos/1048576.0);
+    else
+      printf("  %7.2f kb\n", filename, pos/1024.0);
+    if(pos >= 0xffffffff) largeFile = 1;
     fclose(pFile);
   }
-
   return largeFile;
 }
 
@@ -217,40 +163,22 @@ int isLargeFile(const char* filename)
   Short version of minizip.c main()
 */
 
-int minizip_dozip(
-  char* zipfile,
-  char* filetozip,
-  int opt_overwrite,
-  int opt_compress_level,
-  int len_zipfile,
-  int len_filetozip
-) {
-  int i;
-  char filename_try[MAXFILENAME+16];
-  int zipok;
+void minizip_zip(char* zipName, char* zipFiles, int nFiles, int compLevel, int* ret_err, int lenOne, int lenTwo) {
+
+  int i, j;
   int err = 0;
-  int opt_exclude_path = 0;
-  int size_buf = 0;
+  int size_buf = WRITEBUFFERSIZE;
   void* buf = NULL;
 
-  size_buf = WRITEBUFFERSIZE;
+  char* archiveFile;
+  archiveFile = (char*)malloc(lenOne+1);
+  strncpy(archiveFile, zipName, lenOne);
+  archiveFile[lenOne] = 0;
+
   buf = (void*)malloc(size_buf);
   if(buf == NULL) {
     printf("MINIZIP> ERROR Could not allocate buffer memory\n");
     return ZIP_INTERNALERROR;
-  }
-
-  zipok = 1 ;
-  strncpy(filename_try, zipfile, MAXFILENAME-1);
-  /* strncpy doesnt append the trailing NULL if the string is too long. */
-  filename_try[ MAXFILENAME ] = '\0';
-
-  if(opt_overwrite==2) {
-    /* if the file don't exist, we not append file */
-    if (check_exist_file(filename_try)==0)
-      opt_overwrite=1;
-  } else if (opt_overwrite==0) {
-    if (check_exist_file(filename_try)!=0) opt_overwrite = 2;
   }
 
   zipFile zf;
@@ -258,74 +186,67 @@ int minizip_dozip(
 #ifdef USEWIN32IOAPI
   zlib_filefunc64_def ffunc;
   fill_win32_filefunc64A(&ffunc);
-  zf = zipOpen2_64(filename_try,(opt_overwrite==2) ? 2 : 0,NULL,&ffunc);
+  zf = zipOpen2_64(archiveFile,0,NULL,&ffunc);
 #else
-  zf = zipOpen64(filename_try,(opt_overwrite==2) ? 2 : 0);
+  zf = zipOpen64(archiveFile,0);
 #endif
 
   if(zf == NULL) {
-    printf("error opening %s\n",filename_try);
+    printf("MINIZIP> ERROR Could not open '%s'\n",archiveFile);
     err = ZIP_ERRNO;
   } else {
-    printf("creating %s\n",filename_try);
+    printf("MINIZIP> Creating zip file '%s'\n",archiveFile);
   }
 
-  // for(i=zipfilenamearg+1;(i<argc) && (err==ZIP_OK);i++) {
+  for(int i=0; i<nFiles; i++) {
+    char* fileNameInZip = malloc((lenTwo+1)*sizeof(char));
+    strncpy(fileNameInZip,&zipFiles[lenTwo*i],lenTwo);
+    fileNameInZip[lenTwo] = 0;
+
+    // Trim trailing whitespace
+    for(int j=lenTwo-1; j>=0; j--) {
+      if(fileNameInZip[j] == ' ') {
+        fileNameInZip[j] = 0;
+      } else {
+        break;
+      }
+    }
 
     FILE* fin;
     int size_read;
-    const char* filenameinzip = filetozip;
-    const char* savefilenameinzip;
+    char* saveFileNameInZip;
     zip_fileinfo zi;
     int zip64 = 0;
 
-    zi.tmz_date.tm_sec = zi.tmz_date.tm_min = zi.tmz_date.tm_hour =
+    zi.tmz_date.tm_sec  = zi.tmz_date.tm_min = zi.tmz_date.tm_hour =
     zi.tmz_date.tm_mday = zi.tmz_date.tm_mon = zi.tmz_date.tm_year = 0;
     zi.dosDate = 0;
     zi.internal_fa = 0;
     zi.external_fa = 0;
-    filetime(filenameinzip,&zi.tmz_date,&zi.dosDate);
+    filetime(fileNameInZip,&zi.tmz_date,&zi.dosDate);
 
-    zip64 = isLargeFile(filenameinzip);
+    zip64 = isLargeFile(fileNameInZip);
 
-    //  /* The path name saved, should not include a leading slash. */
-    //  /*if it did, windows/xp and dynazip couldn't read the zip file. */
-    //    savefilenameinzip = filenameinzip;
-    //    while( savefilenameinzip[0] == '\\' || savefilenameinzip[0] == '/' )
-    //    {
-    //        savefilenameinzip++;
-    //    }
-
-    /*should the zip file contain any path at all?*/
-    // if(opt_exclude_path) {
-    //   const char* tmpptr;
-    //   const char* lastslash = 0;
-    //   for(tmpptr = savefilenameinzip; *tmpptr; tmpptr++) {
-    //     if(*tmpptr == '\\' || *tmpptr == '/') {
-    //       lastslash = tmpptr;
-    //     }
-    //   }
-    //   if(lastslash != NULL) {
-    //     savefilenameinzip = lastslash+1; // base filename follows last slash.
-    //   }
-    // }
+    /* The path name saved, should not include a leading slash. */
+    /* If it does, windows/xp and dynazip can't read the zip file. */
+    saveFileNameInZip = fileNameInZip;
+    while(saveFileNameInZip[0] == '\\' || saveFileNameInZip[0] == '/') {
+      saveFileNameInZip++;
+    }
 
     err = zipOpenNewFileInZip3_64(
-      zf,filenameinzip,&zi,
-      NULL,0,NULL,0,NULL,
-      (opt_compress_level != 0) ? Z_DEFLATED : 0,
-      opt_compress_level,0,
-      -MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
-      NULL, 0, zip64
+      zf, saveFileNameInZip, &zi, NULL, 0, NULL, 0, NULL,
+      (compLevel != 0) ? Z_DEFLATED : 0, compLevel,
+      0, -MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY, NULL, 0, zip64
     );
 
     if(err != ZIP_OK) {
-      printf("error in opening %s in zipfile\n",filenameinzip);
+      printf("MINIZIP> ERROR Could not open '%s' in zip file\n",fileNameInZip);
     } else {
-      fin = FOPEN_FUNC(filenameinzip,"rb");
-      if(fin==NULL) {
-        err=ZIP_ERRNO;
-        printf("error in opening %s for reading\n",filenameinzip);
+      fin = FOPEN_FUNC(fileNameInZip,"rb");
+      if(fin == NULL) {
+        err = ZIP_ERRNO;
+        printf("MINIZIP> ERROR Could not open '%s' for reading\n",fileNameInZip);
       }
     }
 
@@ -334,36 +255,43 @@ int minizip_dozip(
         err = ZIP_OK;
         size_read = (int)fread(buf,1,size_buf,fin);
         if(size_read < size_buf)
-          if(feof(fin)==0) {
-            printf("error in reading %s\n",filenameinzip);
+          if(feof(fin) == 0) {
+            printf("MINIZIP> ERROR Could not read '%s'\n",fileNameInZip);
             err = ZIP_ERRNO;
           }
 
-          if(size_read>0) {
-            err = zipWriteInFileInZip (zf,buf,size_read);
+          if(size_read > 0) {
+            err = zipWriteInFileInZip(zf,buf,size_read);
             if(err<0) {
-              printf("error in writing %s in the zipfile\n",filenameinzip);
+              printf("MINIZIP> ERROR Could not write '%s' to zip file\n",fileNameInZip);
             }
           }
       } while ((err == ZIP_OK) && (size_read>0));
     }
 
-    if(fin) fclose(fin);
+    if(fin) {
+      fclose(fin);
+    }
 
-    if(err<0) {
+    if(err < 0) {
       err = ZIP_ERRNO;
     } else {
       err = zipCloseFileInZip(zf);
-      if(err!=ZIP_OK) {
-        printf("error in closing %s in the zipfile\n",filenameinzip);
+      if(err != ZIP_OK) {
+        printf("MINIZIP> ERROR Could not close '%s' in zip file\n",fileNameInZip);
       }
     }
-  // }
+
+    free(fileNameInZip);
+  }
 
   errclose = zipClose(zf,NULL);
-  if (errclose != ZIP_OK) printf("error in closing %s\n",filename_try);
+  if (errclose != ZIP_OK) printf("MINIZIP> ERROR Could not close '%s'\n",archiveFile);
 
   free(buf);
-  return 0;
+  free(archiveFile);
 
+  *ret_err = err;
+
+  return;
 }

@@ -17,15 +17,16 @@ module zipf
   character(len=mFileName),      save :: zipf_outFile = " " ! Name of output file (Default: Sixout.zip)
 
   interface
-    subroutine minizip_dozip(zipFile, inFiles, overWrite, compLevel, lenOne, lenTwo) bind(C, name="minizip_dozip")
+    subroutine minizip_zip(zipFile, inFiles, nFiles, compLevel, iErr, lenOne, lenTwo) bind(C, name="minizip_zip")
       use, intrinsic :: iso_c_binding
-      character(kind=C_CHAR,len=1), intent(in) :: zipFile
-      character(kind=C_CHAR,len=1), intent(in) :: inFiles
-      integer(kind=C_INT), value,   intent(in) :: overWrite
-      integer(kind=C_INT), value,   intent(in) :: compLevel
-      integer(kind=C_INT), value,   intent(in) :: lenOne
-      integer(kind=C_INT), value,   intent(in) :: lenTwo
-    end subroutine minizip_dozip
+      character(kind=C_CHAR,len=1), intent(in)  :: zipFile
+      character(kind=C_CHAR,len=1), intent(in)  :: inFiles
+      integer(kind=C_INT), value,   intent(in)  :: nFiles
+      integer(kind=C_INT), value,   intent(in)  :: compLevel
+      integer(kind=C_INT),          intent(out) :: iErr
+      integer(kind=C_INT), value,   intent(in)  :: lenOne
+      integer(kind=C_INT), value,   intent(in)  :: lenTwo
+    end subroutine minizip_zip
   end interface
 
 contains
@@ -65,27 +66,28 @@ subroutine zipf_parseInputLine(inLine,iErr)
 
 end subroutine zipf_parseInputLine
 
-subroutine zipf_parseInputDone
+subroutine zipf_parseInputDone(iErr)
 
   use crcoall
   use string_tools
 
-  implicit none
+  logical, intent(inout) :: iErr
 
   integer ii
 
   zipf_outFile = "Sixout.zip" ! Output name fixed for now
-  write(lout,"(a)")     "ZIPF> Output file name = '"//trim(zipf_outFile)//"'"
-  write(lout,"(a,i0)")  "ZIPF> Number of files to pack = ",zipf_numFiles
-  write(lout,"(a)")     "ZIPF> Files:"
+  write(lout,"(a)")    "ZIPF> Output file name = '"//trim(zipf_outFile)//"'"
+  write(lout,"(a,i0)") "ZIPF> Number of files to pack = ",zipf_numFiles
+  write(lout,"(a)")    "ZIPF> Files:"
   do ii=1,zipf_numFiles
     write(lout,"(a,i5,a)") "ZIPF>  * ",ii,": '"//trim(zipf_fileNames(ii))//"'"
   end do
 
   if(.not.(zipf_numFiles > 0)) then
-    write(lerr,"(a)") "ZIPF> ERROR Block was empty; no files specified!"
-    call prror
-  endif
+    write(lerr,"(a)") "ZIPF> ERROR No files specified in input block"
+    iErr = .true.
+    return
+  end if
 
 end subroutine zipf_parseInputDone
 
@@ -94,44 +96,50 @@ subroutine zipf_dozip
   use crcoall
   use mod_alloc
   use string_tools
-  use, intrinsic :: iso_c_binding
 
-  implicit none
-
+  integer iErr
 #ifdef BOINC
-  character(len=256)               zipf_outFile_boinc
-  character(len=:), allocatable :: zipf_fileNames_boinc(:)
-  integer ii
+  integer i
+  character(len=256)               boincZipFile
+  character(len=:), allocatable :: boincNames(:)
 
-  call alloc(zipf_fileNames_boinc, 256, zipf_numFiles, " ", "zipf_fileNames_boinc")
+  call alloc(boincNames, 256, zipf_numFiles, " ", "boincNames")
 #endif
 
-  write(lout,"(a)") "ZIPF> Compressing file '"//trim(zipf_outFile)//"' ..."
+  write(lout,"(a)") ""
+  write(lout,"(a)") str_divLine
+  write(lout,"(a)") ""
 
-#ifdef MINIZIP
-
-  call minizip_dozip(trim(zipf_outFile)//char(0),"fort.2"//char(0),1,9,len_trim(zipf_outFile)+1,7)
-
-#elif LIBARCHIVE
 #ifdef BOINC
   ! For BOINC, we may need to translate the filenames.
-  call boincrf(trim(zipf_outFile), zipf_outFile_boinc)
-
-  do ii=1,zipf_numFiles
-    call boincrf(trim(zipf_fileNames(ii)), zipf_fileNames_boinc(ii))
-    zipf_fileNames_boinc(ii) = trim(zipf_fileNames_boinc(ii))
+  call boincrf(trim(zipf_outFile), boincZipFile)
+  do i=1,zipf_numFiles
+    call boincrf(trim(zipf_fileNames(i)), boincNames(i))
+    boincNames(i) = trim(boincNames(i))
   end do
+#endif
 
+#ifdef MINIZIP
+#ifdef BOINC
+  call minizip_zip(trim(boincZipFile),boincNames(1),zipf_numFiles,9,iErr,len_trim(boincZipFile),256)
+#else
+  call minizip_zip(trim(zipf_outFile),zipf_fileNames(1),zipf_numFiles,9,iErr,len_trim(zipf_outFile),mFileName)
+#endif
+  if(iErr /= 0) then
+    write(lerr,"(a,i0)") "ZIPF> ERROR MiniZip returned error code ",iErr
+    call prror
+  end if
+#elif LIBARCHIVE
+  write(lout,"(a)") "LIBARCHIVE> Compressing file '"//trim(zipf_outFile)//"' ..."
   ! The f_write_archive function will handle the conversion from Fortran to C-style strings
   ! NOTE: Last two arguments of the C function are implicitly passed from FORTRAN, there is no need to do it explicitly.
-  call f_write_archive(trim(zipf_outFile_boinc),zipf_fileNames_boinc,zipf_numFiles)
+#ifdef BOINC
+  call f_write_archive(trim(boincZipFile),boincNames,zipf_numFiles)
 #else
   call f_write_archive(trim(zipf_outFile),zipf_fileNames,zipf_numFiles)
 #endif
 #else
-  ! If not libarchive, the zipf subroutine shall just be a stub.
-  ! And anyway daten should not accept the block, so this is somewhat redundant.
-  write(lout,"(a)") "ZIPF> *** No libArchive in this SixTrack *** "
+  write(lout,"(a)") "ZIPF> *** No Archive Libraries in this SixTrack *** "
 #endif
 
   write(lout,"(a)") "ZIPF> Done!"

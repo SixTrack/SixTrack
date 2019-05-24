@@ -754,7 +754,8 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      call zipf_parseInputDone
+      call zipf_parseInputDone(inErr)
+      if(inErr) goto 9999
     else
       call zipf_parseInputline(inLine,inErr)
       if(inErr) goto 9999

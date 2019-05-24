@@ -358,7 +358,7 @@ endif(LIBARCHIVE)
 if(LIBARCHIVE OR HDF5 OR MINIZIP)
   add_library(z STATIC IMPORTED)
   set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/zlib/install/lib/libz.a)
-endif(LIBARCHIVE OR HDF5)
+endif(LIBARCHIVE OR HDF5 OR MINIZIP)
 
 ###################################################################################################
 # Checking if some requested packages exist
