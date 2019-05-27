@@ -75,7 +75,7 @@ void getcoord_(double coordinate[6], int initial ){
 	}
 
 	if(initial >= dist->totallength){
-		printf("Not generated, total inital coordinates generated is %d :",getnumberdist_() );
+		printf("Not generated, total inital coordinates generated is %d %d :",dist->totallength, initial );
 	for(int i=0; i<dim; i++){
 		coordinate[i] = NAN;
 	}
@@ -87,6 +87,31 @@ void getcoord_(double coordinate[6], int initial ){
 		coordinate[i] = dist->distout[initial][i];
 	}
 }
+void getcoord2_(double coordinate[6], int *initial ){
+
+	if(dist->isDistrcalculated==0){
+		if(dist->disttype==0)
+			dist2sixcoord_();
+		else if(dist->disttype==1)
+			createrandomdist_();
+		else
+			printf("Not a valid distribution type");
+	}
+
+	if(*initial >= dist->totallength){
+		printf("Not generated, total inital coordinates generated is %d %d :",dist->totallength, *initial );
+	for(int i=0; i<dim; i++){
+		coordinate[i] = NAN;
+	}
+		return;
+	}
+
+	for(int i=0; i<dim; i++){
+
+		coordinate[i] = dist->distout[*initial][i];
+	}
+}
+
 void getcoord_normalized(double coordinate_normalized[6], int initial ){
 	if(dist->isDistrcalculated==0){
 		if(dist->disttype==0)
@@ -98,7 +123,7 @@ void getcoord_normalized(double coordinate_normalized[6], int initial ){
 	}
 
 	if(initial >= dist->totallength){
-		printf("Not generated, total inital coordinates generated is %d :",getnumberdist_() );
+		printf("Not generated, total inital coordinates generated is %d :",initial >= dist->totallength );
 	for(int i=0; i<dim; i++){
 		coordinate_normalized[i] = NAN;
 	}

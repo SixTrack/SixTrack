@@ -62,12 +62,12 @@ void initializedistribution_(int *numberOfDist){
     diststart=dist;
 }
 
-void settotallength(int totallength){
-	dist->totallength=totallength;
+void settotallength(int *totallength){
+	dist->totallength=*totallength;
 }
 
-void setdisttype(int disttype){
-	dist->disttype=disttype;
+void setdisttype(int *disttype){
+	dist->disttype=*disttype;
 }
 
 
