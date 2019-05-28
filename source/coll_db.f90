@@ -205,7 +205,7 @@ subroutine cdb_readDB_newFormat
   call f_requestUnit(cdb_fileName, dbUnit)
   call f_open(unit=dbUnit,file=cdb_fileName,formatted=.true.,mode="r",status="old",err=fErr)
   if(fErr) then
-    write(lout,"(a)") "COLLDB> ERROR Cannot read from '"//trim(cdb_fileName)//"'"
+    write(lerr,"(a)") "COLLDB> ERROR Cannot read from '"//trim(cdb_fileName)//"'"
     call prror
   end if
 
@@ -214,14 +214,14 @@ subroutine cdb_readDB_newFormat
 
   read(dbUnit,"(a)",end=20,iostat=ioStat) inLine
   if(ioStat /= 0) then
-    write(lout,"(a)") "COLLDB> ERROR Cannot read from '"//trim(cdb_fileName)//"'"
+    write(lerr,"(a)") "COLLDB> ERROR Cannot read from '"//trim(cdb_fileName)//"'"
     call prror
   end if
   if(inLine(1:1) == "#") goto 10
 
   call chr_split(inLine, lnSplit, nSplit, cErr)
   if(cErr) then
-    write(lout,"(a,i0)") "COLLDB> ERROR Failed to parse database line ",iLine
+    write(lerr,"(a,i0)") "COLLDB> ERROR Failed to parse database line ",iLine
     call prror
   end if
 
@@ -239,7 +239,7 @@ subroutine cdb_readDB_newFormat
 
   ! If not a family definition, it should be a collimator
   if(nSplit < 6) then
-    write(lout,"(a,i0,a)") "COLLDB> ERROR Collimator description on line ",iLine," has less than 6 values."
+    write(lerr,"(a,i0,a)") "COLLDB> ERROR Collimator description on line ",iLine," has less than 6 values."
     call prror
   end if
 
@@ -270,7 +270,7 @@ subroutine cdb_readDB_newFormat
     ! Otherwise, we look up the name and require that it exists. We also save the family ID.
     famID = cdb_getFamilyID(lnSplit(2))
     if(famID == -1) then
-      write(lout,"(a,i0,a)") "COLLDB> ERROR Collimator opening '"//trim(adjustl(lnSplit(2)))//"' on line ",iLine,&
+      write(lerr,"(a,i0,a)") "COLLDB> ERROR Collimator opening '"//trim(adjustl(lnSplit(2)))//"' on line ",iLine,&
         " is not in family database"
       call prror
     else
