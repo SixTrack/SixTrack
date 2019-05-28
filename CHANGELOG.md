@@ -4,8 +4,9 @@
 
 **Bug Fixes**
 
-* Fixed a bug in the routine that inserts structure elements into the lattice. The routine uses a circular shift to cycle a fresh element into the new position, but was cycling the wrong way. The result was that if the shift was over more than 2 elements, the order of the lattice would be wrong. PR #879 (A. Mereghetti)
+* Fixed a bug in the routine that inserts structure elements into the lattice. The routine uses a circular shift to cycle a fresh element (added at the end of the lattice structure by memory allocation) into the new position, but was cycling the wrong way. The result was that if the shift was over more than 2 elements, the order of the lattice would be wrong. Bug experienced when inserting the aperture markers downstream of Fluka insertions or of the lattice edges. PR #879 (A. Mereghetti)
 * Fixed an error message in `DUMP` that would segfault due to using the wrong index variable in an array lookup. PR #879 (A. Mereghetti)
+* Fixed a bug in the Fluka-SixTrack coupling when SixTrack errors while the beam is on the Fluka side. Solved with a temporary call to `kernel_fluka_exit` at `prror`. This required to change the interface of the `kernel_fluka_exit` subroutine. PR #879 (A. Mereghetti)
 * Fixed checkpointing of statistical scaling arrays in the Scatter Module. These were previously not checkpointed at all. PR #880 (V.K. Berglyd Olsen)
 * Fixed a bug in the SixTestWrapper where not passing any checks at all would default the SixTestWrapper to pass the test as a whole. It now properly requires at least one check to be considered passed. Previously, one of the tests would always pass without verifying a single output file. PR #881 (V.K. Berglyd Olsen)
 
@@ -20,7 +21,7 @@
 
 **Code Improvements and Changes**
 
-* Cleanup in the FLUKA integration modules, merging them to a single module. PR #879 (A. Mereghetti)
+* Cleanup in the FLUKA integration modules, merging them to a single module. At the same time, refactored code for checking integrity of user info concerning coupling. Also added state variables concerning the current fluka insertion and the last messages sent/received, in view of a thorough revision of the error handling. PR #879 (A. Mereghetti)
 
 ### Version 5.2.7 [17.05.2019] - Release
 
