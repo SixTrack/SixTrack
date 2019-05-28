@@ -1,5 +1,27 @@
 # SixTrack Changelog
 
+### Version 5.2.8 [28.05.2019] - Release
+
+**Bug Fixes**
+
+* Fixed a bug in the routine that inserts structure elements into the lattice. The routine uses a circular shift to cycle a fresh element into the new position, but was cycling the wrong way. The result was that if the shift was over more than 2 elements, the order of the lattice would be wrong. PR #879 (A. Mereghetti)
+* Fixed an error message in `DUMP` that would segfault due to using the wrong index variable in an array lookup. PR #879 (A. Mereghetti)
+* Fixed checkpointing of statistical scaling arrays in the Scatter Module. These were previously not checkpointed at all. PR #880 (V.K. Berglyd Olsen)
+* Fixed a bug in the SixTestWrapper where not passing any checks at all would default the SixTestWrapper to pass the test as a whole. It now properly requires at least one check to be considered passed. Previously, one of the tests would always pass without verifying a single output file. PR #881 (V.K. Berglyd Olsen)
+
+**BOINC Integration**
+
+* The dummy API has been replaced by a BOINC service module. PR #875 (V.K. Berglyd Olsen, A. Mereghetti)
+  * When running on BOINC, SixTrack no longer checkpoints at the turn interval specified in `fort.3`, but instead tries to checkpoint once a minute. The volunteer's setting on minimum checkpoint interval in their BOINC Manager is still obeyed.
+  * When BOINC is run in standalone mode, that is in the test suite rather than by a volunteer, the checkpoint interval is 10 seconds. The settings for the `CRKILLSWITCH` are still obeyed.
+  * For the time being, at least, the checkpointing decisions taken by the service module are logged to the file `cr_boinc.log`. This log file may be removed when the new scheme is properly tested.
+* The BOINC library is now built from a point on the upstream master branch after some modifications to the Fortran API were merged. This means that we are running off-tag on the BOINC API, which now reports version 7.15. PR #877 (V.K. Berglyd Olsen)
+* Tracking progress reported to BOINC now stops at 99%, and the remaining 1% is reserved for post-processing. PR #877 (V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* Cleanup in the FLUKA integration modules, merging them to a single module. PR #879 (A. Mereghetti)
+
 ### Version 5.2.7 [17.05.2019] - Release
 
 **Bug Fixes**
