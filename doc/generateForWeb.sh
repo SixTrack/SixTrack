@@ -17,8 +17,8 @@ OPHYS=$CURR/html/physics_full
 OBUILD=$CURR/html/build_full
 
 # LaTeXML Options
-#MATHJAX='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML'
-MATHJAX=$(locate LaTeXML-maybeMathjax.js)
+MATHJAX='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML'
+#MATHJAX=$(locate LaTeXML-maybeMathjax.js)
 FORMAT=html5
 
 mkdir -pv $OUSERF

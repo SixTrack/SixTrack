@@ -23,7 +23,6 @@ subroutine allocate_arrays
   use bdex,               only : bdex_allocate_arrays
   use dynk,               only : dynk_allocate_arrays
   use wire,               only : wire_expand_arrays
-  use mod_hions,          only : hions_allocate_arrays
 #ifdef CR
   use checkpoint_restart, only : cr_expand_arrays
 #endif
@@ -54,7 +53,6 @@ subroutine allocate_arrays
   call cheby_allocate_arrays
   call bdex_allocate_arrays
   call dynk_allocate_arrays
-  call hions_allocate_arrays
 #ifdef CR
   call cr_expand_arrays(npart)
 #endif
@@ -85,7 +83,6 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   use bdex,               only : bdex_expand_arrays
   use dynk,               only : dynk_expand_arrays
   use wire,               only : wire_expand_arrays
-  use mod_hions,          only : hions_expand_arrays
 #ifdef CR
   use checkpoint_restart, only : cr_expand_arrays
 #endif
@@ -123,7 +120,6 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   call bdex_expand_arrays(nele_new)
   call dynk_expand_arrays(nele_new)
 
-  call hions_expand_arrays(npart_new)
 #ifdef CR
   call cr_expand_arrays(npart_new)
 #endif
@@ -145,11 +141,11 @@ end subroutine expand_arrays
 ! Kicks off the allocation of the thick tracking arrays
 subroutine allocate_thickarrays
   use parpro
-  use mod_common_main, only : mod_commonmn_allocate_thickarrays
-  use mod_commons,  only : mod_commons_allocate_thickarrays
+  use mod_common_main, only : mod_commonmn_expand_thickarrays
+  use mod_commons,     only : mod_commons_expand_thickarrays
   implicit none
-  call mod_commonmn_allocate_thickarrays
-  call mod_commons_allocate_thickarrays
+  call mod_commonmn_expand_thickarrays(nele, npart, nblo)
+  call mod_commons_expand_thickarrays(nele, npart)
 end subroutine allocate_thickarrays
 
 ! Kicks off the allocation of the thick tracking arrays
@@ -189,7 +185,6 @@ end subroutine expand_thickarrays
 subroutine shuffleLostParticles
 
   use floatPrecision
-  use mod_hions
   use mod_common
   use mod_common_track
   use mod_common_main
@@ -232,6 +227,7 @@ subroutine shuffleLostParticles
     ! Ion Arrays
     nzz(j:tnapx)       = cshift(nzz(j:tnapx),       1)
     naa(j:tnapx)       = cshift(naa(j:tnapx),       1)
+    nqq(j:tnapx)       = cshift(nqq(j:tnapx),       1)
     nucm(j:tnapx)      = cshift(nucm(j:tnapx),      1)
     mtc(j:tnapx)       = cshift(mtc(j:tnapx),       1)
     dpsv1(j:tnapx)     = cshift(dpsv1(j:tnapx),     1)
@@ -260,18 +256,6 @@ subroutine shuffleLostParticles
     tnapx = napx
     do j=napx,1,-1
       if(llostp(j) .eqv. .false.) cycle
-
-      ! xgrd(j:tnapx)                 = cshift(xgrd(j:tnapx),                 1)
-      ! ygrd(j:tnapx)                 = cshift(ygrd(j:tnapx),                 1)
-      ! xpgrd(j:tnapx)                = cshift(xpgrd(j:tnapx),                1)
-      ! ypgrd(j:tnapx)                = cshift(ypgrd(j:tnapx),                1)
-      ! pgrd(j:tnapx)                 = cshift(pgrd(j:tnapx),                 1)
-      ! ejfvgrd(j:tnapx)              = cshift(ejfvgrd(j:tnapx),              1)
-      ! sigmvgrd(j:tnapx)             = cshift(sigmvgrd(j:tnapx),             1)
-      ! rvvgrd(j:tnapx)               = cshift(rvvgrd(j:tnapx),               1)
-      ! dpsvgrd(j:tnapx)              = cshift(dpsvgrd(j:tnapx),              1)
-      ! oidpsvgrd(j:tnapx)            = cshift(oidpsvgrd(j:tnapx),            1)
-      ! dpsv1grd(j:tnapx)             = cshift(dpsv1grd(j:tnapx),             1)
 
       part_hit_pos(j:tnapx)         = cshift(part_hit_pos(j:tnapx),         1)
       part_hit_turn(j:tnapx)        = cshift(part_hit_turn(j:tnapx),        1)

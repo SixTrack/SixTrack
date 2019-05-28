@@ -260,8 +260,8 @@ subroutine trauthin(nthinerr)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           if ( dynk_isused(i) ) then
-            write(lout,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
-              "') is off in fort.2, but on in DYNK. Not implemented."
+            write(lerr,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
+              "') is off in "//trim(fort2)//", but on in DYNK. Not implemented."
             call prror
           end if
           ktrack(i) = 31
@@ -429,8 +429,6 @@ subroutine trauthin(nthinerr)
   do j=1,napx
     dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))
   end do
-  nwri=nwr(3)
-  if(nwri.eq.0) nwri=(numl+numlr)+1
 
   if (dynk_enabled) call dynk_pretrack
   call time_timeStamp(time_afterPreTrack)
@@ -447,29 +445,20 @@ subroutine trauthin(nthinerr)
 
     hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
     do jj=1,nele
-      if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*real(itionc(jj),fPrec)
+      if(abs(kz(jj)) == 12) then
+        hsyc(jj) = (c1m3*hsyc(jj)) * real(sign(1,kz(jj)),kind=fPrec)
+      end if
     end do
     if(abs(phas).ge.pieni) then
-      write(lout,"(a)") "TRACKING> ERROR thin6dua no longer supported. Please use DYNK instead."
-      call prror(-1)
+      write(lerr,"(a)") "TRACKING> ERROR thin6dua no longer supported. Please use DYNK instead."
+      call prror
     else
       write(lout,"(a)") ""
       write(lout,"(a)") "TRACKING> Calling thin6d subroutine"
       write(lout,"(a)") ""
-      if (do_coll) then
-        call collimate_init()
-        call collimate_start_sample(1) ! Changed to only do 1 sample
-      endif
       call thin6d(nthinerr)
-      if (do_coll) then
-        call collimate_end_sample(1) ! Changed to only do 1 sample
-      endif
     endif !end if(abs(phas).ge.pieni) then
   endif !end if((idp.eq.0.or.ition.eq.0) .and. .not.do_coll) then ... else
-
-  if (do_coll) then
-    call collimate_exit()
-  endif
 
   call dealloc(crkveb, "crkveb")
   call dealloc(cikveb, "cikveb")
@@ -522,7 +511,6 @@ subroutine thin4d(nthinerr)
 #endif
 
   use mod_meta
-  use mod_hions
   use mod_settings
   use postprocessing, only : writebin
   use crcoall
@@ -541,14 +529,17 @@ subroutine thin4d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
 
   implicit none
 
-  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,kxxa
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,kxxa,nfirst
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,acphase,  &
     acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi, &
     rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,pyf,r_temp,z_temp,sigf,   &
-    q_temp,pttemp
+    q_temp,pttemp,xlv,zlv
   logical llost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
@@ -576,50 +567,36 @@ subroutine thin4d(nthinerr)
   end if
 
 #ifdef CR
-  if (restart) then
+  if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thin 4D restart numlcr = ",numlcr,", numl = ",numl
+    write(crlog,"(2(a,i0))") "TRACKING> Thin 4D restarting on turn ",cr_numl," / ",numl
   end if
-! and now reset numl to do only numlmax turns
-  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
-! and reset [n]numxv unless particle is lost
-! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-  do 640, n=numlcr,nnuml
+  nnuml  = numl
+  nfirst = cr_numl
 #else
-  do 640 n=1,numl !loop over turns
+  nfirst = 1
 #endif
-  if(st_quiet < 3) then
-    if(mod(n,turnrep) == 0) then
-      write(lout,"(a,i8,a,i8)") "TRACKING> Thin 4D turn ",n," of ",numl
-      flush(lout)
+  do 640 n=nfirst,numl
+    if(st_quiet < 3) then
+      if(mod(n,turnrep) == 0) then
+        call trackReport(n)
+      end if
     end if
-  end if
-  meta_nPartTurn = meta_nPartTurn + napx
-#ifdef BOINC
-    ! call boinc_sixtrack_progress(n,numl)
-    call boinc_fraction_done(dble(n)/dble(numl))
-    continue
-    ! call graphic_progress(n,numl)
-#endif
+    meta_nPartTurn = meta_nPartTurn + napx
     numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR
-    ! does not call CRPOINT if restart=.true.
-    ! (and note that writebin does nothing if restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call crpoint
+#endif
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -666,7 +643,7 @@ subroutine thin4d(nthinerr)
               goto 625
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
-              call kernel_fluka_exit( n, i, ix )
+              call kernel_fluka_exit
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
@@ -686,19 +663,14 @@ subroutine thin4d(nthinerr)
 #endif
 
           if (bdex_enable) then
-              write(lout,"(a)") "BDEX> ERROR BDEX only available for thin6d"
+              write(lerr,"(a)") "BDEX> ERROR BDEX only available for thin6d"
               call prror
           endif
 
       select case (ktrack(i))
       case (1)
         stracki=strack(i)
-        if(iexact.eq.0) then ! exact drift?
-          do j=1,napx
-            xv1(j)=xv1(j)+stracki*yv1(j)
-            xv2(j)=xv2(j)+stracki*yv2(j)
-          end do
-        else
+        if(iexact) then ! exact drift?
           do j=1,napx
             xv1(j)=xv1(j)*c1m3
             xv2(j)=xv2(j)*c1m3
@@ -712,6 +684,11 @@ subroutine thin4d(nthinerr)
             yv1(j)=yv1(j)*c1e3
             yv2(j)=yv2(j)*c1e3
           enddo
+        else
+          do j=1,napx
+            xv1(j)=xv1(j)+stracki*yv1(j)
+            xv2(j)=xv2(j)+stracki*yv2(j)
+          end do
         end if
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
         ! last modified: 07-03-2018
@@ -1135,7 +1112,6 @@ subroutine thin6d(nthinerr)
   use dump,       only : dump_linesFirst, dump_lines, ldumpfront
   use mod_ffield, only : ffindex,ffield_genAntiQuad,ffield_enterQuad,ffield_exitQuad,ffield_enabled
   use aperture
-  use mod_hions
   use mod_settings
   use mod_meta
   use mod_time
@@ -1164,15 +1140,18 @@ subroutine thin6d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
 
   implicit none
 
   integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,elemEnd,&
-    kxxa
+    kxxa,nfirst
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
-    sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp
+    sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv
   logical llost, doFField
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
@@ -1202,39 +1181,22 @@ subroutine thin6d(nthinerr)
 
   ! This is the loop over turns: label 660
 #ifdef CR
-  if (restart) then
+  if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thin 6D restart numlcr = ",numlcr,", numl = ",numl
+    write(crlog,"(2(a,i0))") "TRACKING> Thin 6D restarting on turn ",cr_numl," / ",numl
   end if
-  ! and now reset numl to do only numlmax turns
-  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
-  ! and reset [n]numxv unless particle is lost
-  ! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-
-  do 660 n=numlcr,nnuml ! Loop over turns, CR version
+  nnuml  = numl
+  nfirst = cr_numl
 #else
-  do 660 n=1,numl       ! Loop over turns
+  nfirst = 1
 #endif
+  do 660 n=nfirst,numl
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
-        write(lout,"(a,i8,a,i8)") "TRACKING> Thin 6D turn ",n," of ",numl
-        flush(lout)
+        call trackReport(n)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-#ifdef BOINC
-    ! call boinc_sixtrack_progress(n,numl)
-    call boinc_fraction_done(dble(n)/dble(numl))
-    continue
-    ! call graphic_progress(n,numl)
-#endif
 
     if (do_coll) then
       ! This subroutine sets variables iturn and totals
@@ -1244,15 +1206,17 @@ subroutine thin6d(nthinerr)
     numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR
-    ! does not call CRPOINT if restart=.true.
-    ! (and note that writebin does nothing if restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call crpoint
+#endif
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -1279,7 +1243,7 @@ subroutine thin6d(nthinerr)
       ix=ic(i)-nblo
 
       ! Fringe Fields
-      if(ffield_enabled) then
+      if(ffield_enabled .and. ix > 0) then
         doFField = FFindex(ix) > 0
       else
         doFField = .false.
@@ -1321,7 +1285,7 @@ subroutine thin6d(nthinerr)
               goto 645
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
-              call kernel_fluka_exit( n, i, ix )
+              call kernel_fluka_exit
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
@@ -1361,7 +1325,6 @@ subroutine thin6d(nthinerr)
           !Ralph drift length is stracki
           !bez(ix) is name of drift
           totals=totals+stracki
-          !          write(*,*) 'ralph> Drift, total length: ', stracki,totals
 
           !________________________________________________________________________
           !++  If we have a collimator then...
@@ -1443,17 +1406,7 @@ subroutine thin6d(nthinerr)
           !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
 
         else ! Normal SixTrack drifts
-          if(iexact.eq.0) then
-            do j=1,napx
-              xv1(j)  = xv1(j) + stracki*yv1(j)
-              xv2(j)  = xv2(j) + stracki*yv2(j)
-#ifdef FAST
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)**2+yv2(j)**2)*c5m4))
-#else
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt((c1e6+yv1(j)**2)+yv2(j)**2))
-#endif
-            end do
-          else
+          if(iexact) then
             ! EXACT DRIFT
             do j=1,napx
               xv1(j)=xv1(j)*c1m3
@@ -1471,6 +1424,16 @@ subroutine thin6d(nthinerr)
               yv2(j)=yv2(j)*c1e3
               sigmv(j)=sigmv(j)*c1e3
             enddo
+          else
+            do j=1,napx
+              xv1(j)  = xv1(j) + stracki*yv1(j)
+              xv2(j)  = xv2(j) + stracki*yv2(j)
+#ifdef FAST
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)**2+yv2(j)**2)*c5m4))
+#else
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt((c1e6+yv1(j)**2)+yv2(j)**2))
+#endif
+            end do
           end if
         end if
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -1489,7 +1452,7 @@ subroutine thin6d(nthinerr)
           if(abs(dppoff).gt.pieni) then
             sigmv(j)=sigmv(j)-sigmoff(i)
           endif
-          if(kz(ix).eq.12) then
+          if(abs(kz(ix)) == 12) then
             ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
           else
             ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
@@ -1937,7 +1900,6 @@ subroutine thin6d(nthinerr)
           ejv(j)=ejv(j) - ((((half*(crabamp2))*(crkve**2-cikve**2))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (58) ! JBG RF CC Multipoles
         xory=1
@@ -1951,7 +1913,6 @@ subroutine thin6d(nthinerr)
           ejv(j)=ejv(j) - ((((crabamp2)*(cikve*crkve))*(((crabfreq*two)*pi)/clight))*c1m3)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (59) ! JBG RF CC Multipoles
         xory=1
@@ -1966,7 +1927,6 @@ subroutine thin6d(nthinerr)
                 *(((crabfreq*two)*pi)/clight)*c1m6)*sin_mb(kcrab))*e0f
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (60) ! JBG RF CC Multipoles
         xory=1
@@ -1981,7 +1941,6 @@ subroutine thin6d(nthinerr)
                 ((three*crkve**2)*cikve)))*(((crabfreq*two)*pi)/clight))*c1m6)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (61) ! JBG RF CC Multipoles
         xory=1
@@ -1996,7 +1955,6 @@ subroutine thin6d(nthinerr)
                 *(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (62) ! JBG RF CC Multipoles
         xory=1
@@ -2010,7 +1968,6 @@ subroutine thin6d(nthinerr)
           ejv(j)=ejv(j) - ((((crabamp4)*((crkve**3*cikve)-(cikve**3*crkve)))*(((crabfreq*two)*pi)/clight))*c1m9)*(sin_mb(kcrab)*e0f)
         end do
         call part_updatePartEnergy(1,.true.)
-        if(ithick == 1) call envarsv(dpsv,moidpsv,rvv,ekv)
         goto 640
       case (63) ! Elens
         do j=1,napx
@@ -2113,80 +2070,48 @@ subroutine thin6d(nthinerr)
 
 end subroutine thin6d
 
-!-----------------------------------------------------------------------
-!
-!  F. SCHMIDT
-!-----------------------------------------------------------------------
-!  3 February 1999
-!-----------------------------------------------------------------------
-subroutine callcrp
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Write a turn report.
+!  The isFirst if statement is only computed the first time the routine is called.
+! ================================================================================================ !
+subroutine trackReport(n)
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
   use crcoall
-  use parpro
-  use mod_common
-  use mod_common_main
-  use mod_commons
-  use mod_common_track
-  use mod_common_da
-#ifdef CR
-  use checkpoint_restart
-#endif
+  use parpro,     only : npart
+  use mod_common, only : ithick, iclo6, numl, napx, napxo
+
   implicit none
-#ifdef CR
-  integer ncalls
-#endif
-#ifdef BOINC
-  integer timech
-#endif
-#ifdef CR
-  data ncalls /0/
-#endif
-  save
-!-----------------------------------------------------------------------
-#ifdef CR
-  ncalls=ncalls+1
-  write(91,*,iostat=ierro,err=11) numx,numl
-  rewind 91
-  if (restart) then
-    write(93,"(4(a,i0))") "SIXTRACR> CALLCRP/CRPOINT bailing out. numl = ",numl,", nnuml = ",nnuml,","//&
-      " numx = ",numx,", numlcr = ",numlcr
-    flush(93)
-    return
-  else
-#ifndef DEBUG
-    if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-    write(93,"(6(a,i0))") "SIXTRACR> CALLCRP numl = ",numl,", nnuml = ",nnuml,", numlcr = ",numlcr,", "//&
-     "numx = ",numx,", nwri = ",nwri,", numlcp = ",numlcp
-    flush(93)
-#ifndef DEBUG
-    endif
-#endif
-  endif
-#ifdef BOINC
-  if (checkp) then
-    ! Now ALWAYS checkpoint
-    ! NO, re-instated at user request
-    ! What was the user request?
-    call boinc_time_to_checkpoint(timech)
-    if (timech /= 0) then
-      call crpoint
-      call boinc_checkpoint_completed()
-    endif
-  endif
-#else
-  if (checkp) call crpoint
-#endif
-  return
-11 write(lout,"(a,i0)") "CALLCRP> ERROR Problems writing to file #91, ierro= ",ierro
-  ! write(lout,"(a)")'SIXTRACR WRITEBIN IO ERROR on Unit 91'
-  call prror(-1)
-#endif
-  return
-end subroutine callcrp
+
+  integer, intent(in) :: n
+
+  character(len=8)  :: trackMode = " "
+  character(len=32) :: trackFmt  = " "
+  integer           :: oPart     = 0
+  integer           :: oTurn     = 0
+  logical           :: isFirst   = .true.
+
+  if(isFirst) then
+    if(ithick == 1) then
+      trackMode = "Thick"
+    else
+      trackMode = "Thin"
+    end if
+    if(iclo6 > 0) then
+      trackMode = trim(trackMode)//" 6D"
+    else
+      trackMode = trim(trackMode)//" 4D"
+    end if
+    oPart   = int(log10(real(npart)))+1
+    oTurn   = int(log10(real(numl)))+1
+    isFirst = .false.
+    write(trackFmt,"(2(a,i0),a)") "(2(a,i",oTurn,"),2(a,i",oPart,"))"
+  end if
+
+  write(lout,trackFmt) "TRACKING> "//trim(trackMode)//": Turn ",n," / ",numl,", Particles: ",napx," / ",napxo
+  flush(lout)
+
+end subroutine trackReport
 
 !-----------------------------------------------------------------------
 !
@@ -2279,7 +2204,7 @@ subroutine write6(n)
 #endif
     !-- PARTICLES STABLE (Only if QUIET < 2)
     if(.not.pstop(ia).and..not.pstop(ig)) then
-      if(st_quiet < 2) write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),n
+      if(st_quiet < 2) write(lout,10000) ia,izu0,dpsv(ia),n
       if(st_quiet < 1) write(lout,10010)                    &
         xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
         xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig), &
@@ -2290,4 +2215,3 @@ subroutine write6(n)
 10000 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10010 format(10x,f47.33)
 end subroutine write6
-

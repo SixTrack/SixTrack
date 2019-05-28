@@ -2,6 +2,22 @@
 \chapter{General Input} \label{GenInp}
 
 % ================================================================================================================================ %
+\section{Main Input Files} \label{InFiles}
+
+SixTrack requires a main input file, which by default must be named \texttt{fort.3}.
+Alternatively, if a different file name is needed, it can be given to the SixTrack executable as the first command line argument.
+If a geometry file is requested in the main input file (see Section~\ref{ProVer}), it can be given as the second command line argument.
+If none is provided, SixTrack will look for a file named \texttt{fort.2}.
+These files will be referred to as \texttt{fort.3} and \texttt{fort.2} in the rest of this document.
+
+\bigskip
+Note that you can always add the global \texttt{DEBUG} flag to the \texttt{SETTINGS} block to enable echoing back most of the input parameters set in the \texttt{fort.3} file.
+The flag is described in Section~\ref{STSett}.
+This can not only verify that SixTrack understood and received the values correctly, but it also often echoes back other parameters computed from the input values.
+The echoed back lines will start with ``\texttt{INPUT> DEBUG}'', so it is sometimes easier to grep for these lines in the output.
+They contain the nme of the block where they were parsed, and the line number within the block if available.
+
+% ================================================================================================================================ %
 \section{Program Version} \label{ProVer}
 
 The \textit{Program Version} input block determines if all of the input will be in the input file \texttt{fort.3}, or if the geometry part of the machine (see~\ref{MaGe}) will be in a separate file: \texttt{fort.2}.\index{input block}\index{fort.2}\index{fort.3}

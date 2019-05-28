@@ -1,0 +1,14 @@
+Test Name                        Pass
+========================================
+00. Valid TRAC                   False
+01. Empty Line                   True
+02. Line 1 Too Short             True
+03. Line 2 Too Short             True
+04. Line 3 Too Short             True
+05. IMC != 1                     True
+06. IDZ(1) = 8                   True
+07. IDZ(2) = 8                   True
+08. IDFOR = 8                    True
+09. IREW = 8                     True
+10. ICLO6 = 8                    True
+11. Extra Line                   True

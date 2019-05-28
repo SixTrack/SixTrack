@@ -11,9 +11,12 @@
 ! ============================================================================ !
 program maincr
 
+  use, intrinsic :: iso_fortran_env, only : output_unit, error_unit
+
   use floatPrecision
   use mod_units
   use string_tools
+  use sixtrack_input
   use mathlib_bouncer
   use physical_constants
   use numerical_constants
@@ -24,7 +27,6 @@ program maincr
   use zipf,    only : zipf_numfiles, zipf_dozip
   use scatter, only : scatter_init
 
-  use, intrinsic :: iso_fortran_env, only : output_unit
   use mod_meta
   use mod_time
   use aperture
@@ -35,11 +37,12 @@ program maincr
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
   use read_write,     only : writeFort12, readFort13, readFort33
+  use collimation,    only : do_coll, collimate_init, collimate_exit
+  use mod_ffield,     only : ffield_mod_init,ffield_mod_end
 
 #ifdef FLUKA
   use mod_fluka
 #endif
-  use mod_ffield,     only :ffield_mod_init,ffield_mod_end
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -48,6 +51,9 @@ program maincr
 #endif
 #ifdef CR
   use checkpoint_restart
+#endif
+#ifdef BOINC
+  use mod_boinc
 #endif
 
   use crcoall
@@ -58,10 +64,9 @@ program maincr
   use mod_commons
   use mod_common_track
 
-  use mod_hions
   use mod_dist
   use matrix_inv
-  use aperture
+  
   use wire
   use mod_version
 #ifdef HASHLIB
@@ -70,40 +75,19 @@ program maincr
 
   implicit none
 
-interface
-
-  subroutine envarsv(dpsv,oidpsv,rvv,ekv)
-
-    use floatPrecision
-    use parpro
-    use mod_common_da
-
-    implicit none
-
-    real(kind=fPrec) :: dpsv(npart)
-    real(kind=fPrec) :: oidpsv(npart)
-    real(kind=fPrec) :: rvv(npart)
-    real(kind=fPrec), allocatable, intent(inout) :: ekv(:,:)
-
-  end subroutine envarsv
-
-end interface
-
   integer i,itiono,i2,i3,ia,ia2,iation,ib1,id,ie,ii,im,iposc,ix,izu,j,jj,k,kpz,kzz,l,ncorruo,ncrr,  &
     nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
     bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,     &
     gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
-    tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13,damp
+    tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13,damp,eps(2),epsa(2)
   integer idummy(6)
   character(len=4) cpto
+  character(len=1024) arecord
 
   ! Keep in sync with writebin_header and more. If the len changes, CRCHECK will break.
   character(len=8) cDate,cTime,progrm
 
-#ifdef BOINC
-  character(len=256) filename
-#endif
 #ifdef FLUKA
   integer fluka_con
 #endif
@@ -119,17 +103,22 @@ end interface
 
   logical fErr ! For file units
 
-  ! ---------------------------------------------------------------------------------------------- !
-  errout = 0 ! Set to nonzero before calling abend in case of error.
+! ================================================================================================ !
+
+  ! Parse command line arguments
+  call sixin_commandLine("SixTrack")
+
 #ifdef CR
-  lout = 92
+  lerr  = cr_errUnit
+  lout  = cr_outUnit
+  crlog = cr_logUnit
 #else
-  lout = output_unit
+  lerr  = error_unit
+  lout  = output_unit
 #endif
 
 #ifdef BOINC
-  call boinc_init
-! call boinc_init_graphics
+  call boinc_initialise
 #endif
   call f_initUnits
   call meta_initialise ! The meta data file.
@@ -140,7 +129,6 @@ end interface
   call hash_initialise
 #endif
 
-  !----------------------------------------------------------------------------------------------- !
   ! Features
   featList = ""
 #ifdef TILT
@@ -161,7 +149,6 @@ end interface
 #endif
 #ifdef CR
   featList = featList//" CR"
-  stxt = ""
 #endif
 #ifdef ROOT
   featList = featList//" ROOT"
@@ -192,103 +179,16 @@ end interface
 #endif
 
 #ifdef CR
-  ! Main start for Checkpoint/Restart
-  sythckcr = .false.
-  numlcr   = 1
-  rerun    = .false.
-  start    = .true.
-  restart  = .false.
-  checkp   = .false.
-  fort95   = .false.
-  fort96   = .false.
-  sixrecs  = 0
-  binrec   = 0
-  bnlrec   = 0
-  bllrec   = 0
-  crtime3  = 0.0
-  ! do i=1,(npart+1)/2
-  !   binrecs(i) = 0
-  ! end do
-
-#ifdef BOINC
-611 continue
-  ! Goes here after unzip for BOINC
-#endif
-  ! Very first get rid of any previous partial output
-  call f_close(lout)
-  call f_open(unit=lout,file="fort.92",formatted=.true.,mode="rw",err=fErr,status="replace")
-
-  ! Now position the checkpoint/restart logfile=93
-  call f_open(unit=93,file="fort.93",formatted=.true.,mode="rw",err=fErr)
-606 continue
-  read(93,"(a1024)",end=607) arecord
-  goto 606
-607 continue
-  backspace(93,iostat=ierro)
-#ifdef BOINC
-  ! and if BOINC issue an informatory message
-  if(start) then
-    write(93,"(a)") "SIXTRACR> starts for the very first time"
-  else
-    write(93,"(a)") "SIXTRACR> retry after unzip of Sixin.zip"
-  end if
-#endif
-  ! Now we see if we have a fort.6 which implies that we can perhaps just restart using all exisiting files
-  ! including the last checkpoints. If not, we just do a start (with an unzip for BOINC)
-  ! call f_open(unit=6,file="fort.6",formatted=.true.,mode="w",err=fErr,status="old")
-  ! if(fErr) goto 602
-  ! stxt = "SIXTRACR reruns on: "
-  call f_open(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr,status="old")
-  if(fErr) then
-#ifdef BOINC
-    ! No fort.6 so we do an unzip of Sixin.zip
-    ! BUT ONLY IF WE HAVE NOT DONE IT ALREADY
-    ! and CLOSE 92 and 93
-    if(start) then
-      start=.false.
-      call f_close(92)
-      call f_close(93)
-      ! Now, if BOINC, after no fort.6, call UNZIP Sixin.zip
-      ! Name hard-wired in our boinc_unzip_.
-      ! Either it is only the fort.* input data or it is a restart.
-      call boincrf("Sixin.zip",filename)
-      ! This function expects a normal, trimmed fortran string; it will do the zero-padding internally.
-      call f_read_archive(trim(filename),".")
-      goto 611
-    end if
-    call f_open(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr)
-#else
-    call f_open(unit=output_unit,file="fort.6",formatted=.true.,mode="rw",err=fErr,status="new")
-#endif
-    ! Set up start message depending on fort.6 or not
-    stxt = "SIXTRACR> starts on: "
-  else
-    ! Set up start message depending on fort.6 or not
-    stxt = "SIXTRACR> reruns on: "
-    rerun=.true.
-  end if
-  call f_open(unit=95,file="fort.95",formatted=.false.,mode="rw",err=fErr,status="old")
-  if(fErr) then
-    call f_open(unit=95,file="fort.95",formatted=.false.,mode="rw",err=fErr,status="new")
-  else
-    fort95 = .true.
-  end if
-  call f_open(unit=96,file="fort.96",formatted=.false.,mode="rw",err=fErr,status="old")
-  if(fErr) then
-    call f_open(unit=96,file="fort.96",formatted=.false.,mode="rw",err=fErr,status="new")
-  else
-    fort96 = .true.
-  end if
-  call f_open(unit=91,file="fort.91",formatted=.true.,mode="rw",err=fErr)
-#else
-  lout = output_unit
+  ! Initialise Checkpoint/Restart
+  call cr_fileInit
 #endif
 
   ! Open Regular File Units
   call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA file
-  call f_open(unit=19,file="fort.19",formatted=.true., mode="r", err=fErr) ! DA file
+  call f_open(unit=19,file="fort.19",formatted=.true., mode="rw",err=fErr) ! DA file
   call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr) ! DA file
   call f_open(unit=21,file="fort.21",formatted=.true., mode="w", err=fErr) ! DA file
+  call f_open(unit=26,file="fort.26",formatted=.false.,mode="rw",err=fErr) ! DA file
   call f_open(unit=31,file="fort.31",formatted=.true., mode="w", err=fErr)
 
 #ifdef STF
@@ -300,13 +200,6 @@ end interface
     write(tmpFile,"(a5,i0)") "fort.",i
     call f_open(unit=i,file=tmpFile,formatted=.false.,mode="rw",err=fErr)
   end do
-#endif
-
-  call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr) ! DA file, binary
-
-#ifdef DEBUG
-  ! call f_open(unit=99 ,file="dump",  formatted=.false.,mode="rw",err=fErr)
-  ! call f_open(unit=100,file="arrays",formatted=.false.,mode="rw",err=fErr)
 #endif
 
   call time_timeStamp(time_afterFileUnits)
@@ -330,6 +223,7 @@ end interface
   write(lout,"(a)") "    Start Time:   "//timeStamp
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
+  units_beQuiet = .false. ! Allow mod_units to write to lout now
 
   call meta_write("SixTrackVersion", trim(version))
   call meta_write("ReleaseDate",     trim(moddate))
@@ -340,10 +234,10 @@ end interface
 
 #ifdef CR
   ! Log start messages
-  write(93,"(a)") ""
-  write(93,"(a)") "SIXTRACR> MAINCR Starting"
-  write(93,"(a)") stxt//timeStamp
-  flush(93)
+  write(crlog,"(a)") "SIXTRACR> "//repeat("=",80)
+  write(crlog,"(a)") "SIXTRACR> MAINCR Starting"
+  write(crlog,"(a)") cr_startMsg//timeStamp
+  flush(crlog)
 #endif
 
   call time_timerStart
@@ -370,22 +264,27 @@ end interface
   end if
 #endif
 
-  if (ithick == 1) call allocate_thickarrays
+  if(ithick == 1) then
+    write(lout,"(a)") "MAINCR> Structure input file has thick linear elements"
+    call allocate_thickarrays
+  elseif(ithick == 0) then
+    write(lout,"(a)") "MAINCR> Structure input file has thin linear elements"
+  else
+    write(lout,"(a)") "MAINCR> ERROR Unkown structure format. This is a bug."
+    call prror
+  end if
 
 #ifdef CR
-  checkp=.true.
   call crcheck
   call time_timeStamp(time_afterCRCheck)
 #endif
-  if(ithick == 1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
-  if(ithick == 0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
 
   call scatter_init
   call aperture_init
 
 #ifndef FLUKA
   ! SETTING UP THE PLOTTING
-  if(ipos.eq.1.and.(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0)) then
+  if(ipos == 1 .and. (idis /= 0 .or. icow /= 0 .or. istw /= 0 .or. iffw /= 0)) then
     call hlimit(nplo)
     call hplint(kwtype)
     call igmeta(-20,-111)
@@ -404,18 +303,18 @@ end interface
   end if
 
   ! Postprocessing is on, but there are no particles
-  if(ipos.eq.1.and.napx.eq.0) then
-    ! Now we open fort.10 unless already opened for BOINC
-    call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
-    call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
-
+  if(ipos == 1 .and. napx == 0) then
+    call f_requestUnit(fort10, unit10)
+    call f_requestUnit(fort110,unit110)
+    call f_open(unit=unit10, file=fort10, formatted=.true., mode="rw",err=fErr,status="replace",recl=8195)
+    call f_open(unit=unit110,file=fort110,formatted=.false.,mode="rw",err=fErr,status="replace")
 #ifndef STF
     do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
 #ifndef CR
       call postpr(91-i)
 #else
-      write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      flush(93)
+      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-i),", turns: ",nnuml
+      flush(crlog)
       call postpr(91-i,nnuml)
 #endif
     end do
@@ -428,19 +327,19 @@ end interface
 #ifndef CR
       call postpr(i)
 #else
-      write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      flush(93)
+      write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",i,",",(i+1),", turns: ",nnuml
+      flush(crlog)
       call postpr(i,nnuml)
 #endif
     end do
 #endif
-! END ifndef STF
 
     call sumpos
+    call f_close(unit10)
+    call f_close(unit110)
     goto 520 ! Jump to after particle&optics initialization, and also after tracking.
-  end if !if(ipos.eq.1.and.napx.eq.0)
+  end if
 #endif
-! END ifndef FLUKA
 
   do i=1,20
     fake(1,i)=zero
@@ -481,8 +380,18 @@ end interface
 
 #ifdef FLUKA
   if (fluka_enable) then
+    write(lout,"(A)")
+    write(lout,"(A)") "MAINCR> calling check_coupling_integrity BEFORE checking"// &
+          " aperture around Fluka insertion"
+    write(lout,"(A)")
     call check_coupling_integrity
     call check_coupling_start_point
+    call contour_FLUKA_markers
+    write(lout,"(A)")
+    write(lout,"(A)") "MAINCR> calling check_coupling_integrity AFTER checking"// &
+          " aperture around Fluka insertion"
+    write(lout,"(A)")
+    call check_coupling_integrity
   end if
 #endif
 
@@ -570,8 +479,8 @@ end interface
       if(kz(i).eq.20) then
         nlin=nlin+1
         if(nlin.gt.nele) then
-          write(lout,"(a)") "MAINCR> ERROR Too many elements for linear optics write-out"
-          call prror(-1)
+          write(lerr,"(a)") "MAINCR> ERROR Too many elements for linear optics write-out"
+          call prror
         end if
         bezl(nlin)=bez(i)
       end if
@@ -674,16 +583,26 @@ end interface
     iclo6 = 0
   end if
   if(iclo6 == 1 .or. iclo6 == 2) then ! 6D
-    if(iclo6r == 0) then
+    if(sixin_simuInitClorb) then
+      if(sixin_simuFort33) then
+        call readFort33
+      else
+        clo6(1:3)  = sixin_simuSetClorb([1,3,5])
+        clop6(1:3) = sixin_simuSetClorb([2,4,6])
+      end if
+      call meta_write("6D_ClosedOrbitInit_x",     clo6(1))
+      call meta_write("6D_ClosedOrbitInit_xp",    clop6(1))
+      call meta_write("6D_ClosedOrbitInit_y",     clo6(2))
+      call meta_write("6D_ClosedOrbitInit_yp",    clop6(2))
+      call meta_write("6D_ClosedOrbitInit_sigma", clo6(3))
+      call meta_write("6D_ClosedOrbitInit_dp",    clop6(3))
+    else
       clo6(1)  = clo(1)
       clop6(1) = clop(1)
       clo6(2)  = clo(2)
       clop6(2) = clop(2)
       clo6(3)  = zero
       clop6(3) = zero
-    else
-      write(lout,"(a)") "MAINCR> Reading closed orbit guess from fort.33"
-      call readFort33
     end if
     call clorb(zero)
     call betalf(zero,qw)
@@ -954,15 +873,9 @@ end interface
       ampv(ib1) = amp0
     end if
 
-    dp0v(ib1)    = dp10
     dpsv(ib1)    = dp10
     oidpsv(ib1)  = one/(one+dp1)
     moidpsv(ib1) = mtc(ib1)/(one+dp1)
-    nms(ib1)     = 1
-
-    if(ithick == 1) then
-      ekv(ib1,1:nele) = ek(1:nele)
-    end if
   end do
 
 ! ================================================================================================ !
@@ -975,17 +888,17 @@ end interface
   if(fluka_enable) then
     fluka_con = fluka_is_running()
     if(fluka_con == -1) then
-      write(lout,"(a)") "FLUKA> ERROR Fluka is expected to run but it is NOT actually the case"
+      write(lerr,"(a)") "FLUKA> ERROR Fluka is expected to run but it is NOT actually the case"
       write(fluka_log_unit,*) "# Fluka is expected to run but it is NOT actually the case"
-      call prror(-1)
+      call prror
     end if
     write(lout,"(a)") "FLUKA> Initializing FlukaIO interface ..."
     write(fluka_log_unit,*) "# Initializing FlukaIO interface ..."
     fluka_con = fluka_connect()
     if(fluka_con == -1) then
-      write(lout,"(a)") "FLUKA> ERROR Cannot connect to Fluka server"
+      write(lerr,"(a)") "FLUKA> ERROR Cannot connect to Fluka server"
       write(fluka_log_unit,*) "# Error connecting to Fluka server"
-      call prror(-1)
+      call prror
     endif
     write(lout,"(a)") "FLUKA> Successfully connected to Fluka server"
     write(fluka_log_unit,*) "# Successfully connected to Fluka server"
@@ -994,8 +907,8 @@ end interface
 #endif
 
 #ifdef CR
-  write(93,"(a,i0)") "MAINCR> Setting napxo = ",napx
-  flush(93)
+  write(crlog,"(a,i0)") "SIXTRACR> Setting napxo = ",napx
+  flush(crlog)
 #endif
   napxo = napx
 
@@ -1007,9 +920,9 @@ end interface
       call meta_write("TrackingMethod", "Thin 4D")
     end if
     if(iclo6 /= 0) then
-      write(lout,"(a,i0)") "MAINCR> ERROR Doing 4D tracking but iclo6 = ",iclo6
-      write(lout,"(a)")    "MAINCR>       Expected iclo6 = 0 for 4D tracking."
-      call prror(-1)
+      write(lerr,"(a,i0)") "MAINCR> ERROR Doing 4D tracking but iclo6 = ",iclo6
+      write(lerr,"(a)")    "MAINCR>       Expected iclo6 = 0 for 4D tracking."
+      call prror
     end if
   else
     ! 6D tracking
@@ -1018,11 +931,11 @@ end interface
     else
       call meta_write("TrackingMethod", "Thin 6D")
     end if
-    if(iclo6 == 0) then
-      write(lout,"(a,i0)") "MAINCR> ERROR Doing 6D tracking but iclo6 = ",iclo6
-      write(lout,"(a)")    "MAINCR>       Expected iclo6 <> 0 for 6D tracking."
-      call prror(-1)
-    end if
+    ! if(iclo6 == 0) then
+    !   write(lerr,"(a,i0)") "MAINCR> ERROR Doing 6D tracking but iclo6 = ",iclo6
+    !   write(lerr,"(a)")    "MAINCR>       Expected iclo6 <> 0 for 6D tracking."
+    !   call prror
+    ! end if
   end if
 
   call time_timeStamp(time_afterClosedOrbit)
@@ -1050,16 +963,19 @@ end interface
   end do
   rat0 = rat
 
-  ! DIST Block
   if(dist_enable) then
-    e0f=sqrt(e0**2-nucm0**2)
+    ! DIST Block
     call dist_readDist
     call dist_finaliseDist
     call part_applyClosedOrbit
-    if(dist_echo) call dist_echoDist
-  end if
-
-  if(idfor /= 2 .and. .not. dist_enable) then
+    if(dist_echo) then
+      call dist_echoDist
+    end if
+  elseif(rdfort13) then
+    ! Restart from fort.13
+    call readFort13
+    call part_updatePartEnergy(1)
+  else
     ! Generated from INIT Distribution Block
     do ia=1,napx,2
       if(st_quiet == 0) write(lout,10050)
@@ -1123,20 +1039,14 @@ end interface
       nucm(ia+1) = nucm0
 
       if(st_quiet == 0) then
-        write(lout,10260) ia,nms(ia)*izu0,dpsv(ia)
+        write(lout,10260) ia,izu0,dpsv(ia)
         write(lout,10060) xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
           xv1(ia+1),yv1(ia+1),xv2(ia+1),yv2(ia+1),sigmv(ia+1),dpsv(ia+1)
         write(lout,10020) ampv(ia),amp(2),epsa
       end if
     end do
     call part_applyClosedOrbit
-
-  else if(idfor == 2) then
-    ! Read from fort.13
-    call readFort13
-    call part_updatePartEnergy(1)
-    ! Note that this effectively overrides the particle delta set in fort.13
-  endif
+  end if
 
   do ia=1,napx,2
     if(.not.dist_enable .and. st_quiet == 0) then
@@ -1198,7 +1108,7 @@ end interface
       ! Write header of track output file(s) used by postprocessing for case ntwin /= 2
 #ifndef STF
 #ifdef CR
-      if(.not.restart) then
+      if(.not.cr_restart) then
 #endif
         call writebin_header(ia,ia,91-ia2,ierro,cDate,cTime,progrm)
 #ifdef CR
@@ -1208,7 +1118,7 @@ end interface
 #endif
 #else
 #ifdef CR
-      if(.not.restart) then
+      if(.not.cr_restart) then
 #endif
         call writebin_header(ia,ia,90,ierro,cDate,cTime,progrm)
 #ifdef CR
@@ -1221,7 +1131,7 @@ end interface
       ! Write header of track output file(s) used by postprocessing for case ntwin == 2
 #ifndef STF
 #ifdef CR
-      if(.not.restart) then
+      if(.not.cr_restart) then
 #endif
         call writebin_header(ia,ia+1,91-ia2,ierro,cDate,cTime,progrm)
 #ifdef CR
@@ -1231,7 +1141,7 @@ end interface
 #endif
 #else
 #ifdef CR
-      if(.not.restart) then
+      if(.not.cr_restart) then
 #endif
         call writebin_header(ia,ia+1,90,ierro,cDate,cTime,progrm)
 #ifdef CR
@@ -1242,8 +1152,8 @@ end interface
 #endif
     endif !ENDIF (ntwin.ne.2)
     if(ierro /= 0) then
-      write(lout,"(a,i0)") "MAINCR> ERROR Problems writing to file #",91-ia2
-      write(lout,"(a,i0)") "MAINCR> ERROR Code: ",ierro
+      write(lerr,"(a,i0)") "MAINCR> ERROR Problems writing to file #",91-ia2
+      write(lerr,"(a,i0)") "MAINCR> ERROR Code: ",ierro
       goto 520
     endif
   end do ! napx
@@ -1265,7 +1175,7 @@ end interface
 
   if(ithick == 1) then
     ! Compute matrices for linear tracking
-    call envarsv(dpsv,moidpsv,rvv,ekv)
+    call envarsv
     if(idp == 0 .or. ition == 0) then ! Only in case of thck4d
       call blocksv
     end if
@@ -1281,9 +1191,9 @@ end interface
     fluka_con = fluka_init_max_uid( napx )
 
     if(fluka_con < 0) then
-      write(lout,"(a,i0,a)") "FLUKA> ERROR Failed to send napx ",napx," to fluka "
+      write(lerr,"(a,i0,a)") "FLUKA> ERROR Failed to send napx ",napx," to fluka "
       write(fluka_log_unit, *) "# failed to send napx to fluka ",napx
-      call prror(-1)
+      call prror
     end if
 
     write(lout,"(a)") "FLUKA> Sending napx successful"
@@ -1306,9 +1216,9 @@ end interface
     fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0)
 
     if(fluka_con < 0) then
-      write(lout,"(a)") "FLUKA> ERROR Failed to update the reference particle"
+      write(lerr,"(a)") "FLUKA> ERROR Failed to update the reference particle"
       write(fluka_log_unit,*) "# failed to update ref particle"
-      call prror(-1)
+      call prror
     end if
 
     write(lout,"(a)") "FLUKA> Updating the reference particle successful"
@@ -1321,6 +1231,10 @@ end interface
 
   ! Initialise Modules
   call dump_initialise
+  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
+    ! Only if thin 6D and collimation enabled
+    call collimate_init
+  end if
 
   call time_timeStamp(time_afterInitialisation)
 
@@ -1344,11 +1258,16 @@ end interface
   time2=0.
   call time_timerCheck(time2)
 
+  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
+    ! Only if thin 6D and collimation enabled
+    call collimate_exit
+  endif
+
   ! trtime is now the tracking time, BUT we must add other time for C/R
   trtime=time2-time1
 #ifdef CR
-  ! because now crpoint will write tracking time using time3 as a temp and crcheck/crstart will reset crtime3
-  trtime=trtime+crtime3
+  ! because now crpoint will write tracking time using time3 as a temp and crcheck/crstart will reset cr_time
+  trtime=trtime+cr_time
 #endif
   if(nthinerr == 3000) goto 520
   if(nthinerr == 3001) goto 460
@@ -1364,33 +1283,28 @@ end interface
   napxto = 0
 
 #ifdef CR
-  if(.not.restart) then
-    ! If restart is true , we haven't done any tracking and must be running from very last checkpoint
-    write(93,"(a)")          "MAINCR> Very last call to WRITEBIN?"
-    write(93,"(a,3(1x,i0))") "MAINCR> numlmax, nnuml, numl = ",numlmax,nnuml,numl
-    flush(93)
+  if(.not.cr_restart) then
+    ! If cr_restart is true , we haven't done any tracking and must be running from very last checkpoint
+    write(crlog,"(a,i0)") "SIXTRACR> Very last call to WRITEBIN on turn ",numl
+    flush(crlog)
     if(nnuml == numl) then
       ! We REALLY have finished (or all particles lost)
       ! When all lost, nthinerr=3001, we set nnuml=numl
       ! and make sure we do the last WRITEBIN
-      write(93,"(a)") "MAINCR> Very last call to WRITEBIN"
-      flush(93)
       call writebin(nthinerr)
       if(nthinerr == 3000) goto 520
     else
-      ! I assume we are stopping because we have done nnuml turns which should be numlmax and do a writebin only if time
-      write(93,"(a)")          "MAINCR> Very last call to WRITEBIN?"
-      write(93,"(a,3(1x,i0))") "MAINCR> numlmax, nnuml, numl = ",numlmax,nnuml,numl
-      flush(93)
       if(mod(nnuml,nwri) == 0) then
-        write(93,"(a)") "MAINCR> Very last call to WRITEBIN"
-        flush(93)
         call writebin(nthinerr)
         if(nthinerr == 3000) goto 520
       end if
     end if
     ! do the very last checkpoint
-    call callcrp()
+#ifdef BOINC
+    call boinc_post
+#else
+    call crpoint
+#endif
   end if
 #else
   call writebin(nthinerr)
@@ -1420,7 +1334,7 @@ end interface
 
   if(st_partsum .eqv. .false.) then
     write(lout,"(a)") "MAINCR> NOTE Particle summary report is disabled; either manually, or because npart > 64."
-    write(lout,"(a)") "MAINCR>      This is controlled by the PARTICLESUMMARY flag in the SETTINGS block in fort.3."
+    write(lout,"(a)") "MAINCR>      This is controlled by the PARTICLESUMMARY flag in the SETTINGS block in "//trim(fort3)//"."
     write(lout,"(a)") ""
     goto 470
   end if
@@ -1433,33 +1347,33 @@ end interface
     napxto = napxto+numxv(ia)+numxv(ie)
 
     if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
-      write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
-      write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
+      write(lout,10000) ia,izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
+      write(lout,10000) ie,izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
     end if
 
     if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
       if(st_quiet == 0) then
-        write(lout,10240) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
+        write(lout,10240) ia,izu0,dpsv(ia),numxv(ia)
       else if(st_quiet == 1) then
-        write(lout,10241) ia,nms(ia)*izu0,dp0v(ia),numxv(ia)
+        write(lout,10241) ia,izu0,dpsv(ia),numxv(ia)
       end if
-      write(lout,10000) ie,nms(ia)*izu0,dp0v(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
+      write(lout,10000) ie,izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
     end if
 
     if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
-      write(lout,10000) ia,nms(ia)*izu0,dp0v(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
+      write(lout,10000) ia,izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
       if(st_quiet == 0) then
-        write(lout,10240) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
+        write(lout,10240) ie,izu0,dpsv(ia),numxv(ie)
       else if(st_quiet == 1) then
-        write(lout,10241) ie,nms(ia)*izu0,dp0v(ia),numxv(ie)
+        write(lout,10241) ie,izu0,dpsv(ia),numxv(ie)
       end if
     end if
 
     if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
       if(st_quiet == 0) then
-        write(lout,10270) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
+        write(lout,10270) ia,ie,izu0,dpsv(ia),numxv(ia)
       else if(st_quiet == 1) then
-        write(lout,10271) ia,ie,nms(ia)*izu0,dp0v(ia),numxv(ia)
+        write(lout,10271) ia,ie,izu0,dpsv(ia),numxv(ia)
       end if
     end if
 
@@ -1497,81 +1411,87 @@ end interface
 ! ---------------------------------------------------------------------------- !
 
 470 continue
-  ! and we need to open fort.10 unless already opened for BOINC
-  call f_open(unit=10, file="fort.10", formatted=.true., mode="rw",err=fErr,recl=8195)
-  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
 
-  ! Also dump the final state of the particle arrays
+  ! Dump the final state of the particle arrays
   call part_writeState(1)
 
-#ifndef FLUKA
-#ifndef STF
+#ifdef FLUKA
+
+  ! A.Mereghetti, for the FLUKA Team
+  ! last modified: 28-05-2014
+  ! collect a couple of goto statements, sending code flow
+  !   to different plotting points, which are not actually
+  !   inserted
+  490 continue
+  520 continue
+    call fluka_close
+
+#else
+
   iposc = 0
   if(ipos == 1) then ! Variable IPOS=1 -> postprocessing block present in fort.3
+    call f_requestUnit(fort10, unit10)
+    call f_requestUnit(fort110,unit110)
+    call f_open(unit=unit10, file=fort10, formatted=.true., mode="rw",err=fErr,status="replace",recl=8195)
+    call f_open(unit=unit110,file=fort110,formatted=.false.,mode="rw",err=fErr,status="replace")
     do ia=1,napxo,2
-      ia2=(ia+1)/2
-      iposc=iposc+1
-#ifndef CR
-      call postpr(91-ia2) ! Postprocess file "fort.(91-ia2)"
+      iposc = iposc+1
+#ifdef STF
+#ifdef CR
+      write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
+      flush(crlog)
+      call postpr(ia,nnuml)
 #else
-      write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      flush(93)
-      call postpr(91-ia2,nnuml)
+      call postpr(ia)
+#endif
+#else
+      ia2 = 91-(ia+1)/2 ! Track file unit number if not STF
+#ifdef CR
+      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",ia2,", turns: ",nnuml
+      flush(crlog)
+      call postpr(ia2,nnuml)
+#else
+      call postpr(ia2)
+#endif
 #endif
     end do
     if(iposc >= 1) call sumpos
-  end if ! END if(ipos.eq.1)
+    call f_close(unit10)
+    call f_close(unit110)
+  end if
   goto 520 ! Done postprocessing
 
-490 continue ! GOTO here if(napx <= 0) (skipping tracking)
+  490 continue ! GOTO here if(napx <= 0) (skipping tracking)
   if(ipos == 1) then
-    ndafi2=ndafi
+    call f_requestUnit(fort10, unit10)
+    call f_requestUnit(fort110,unit110)
+    call f_open(unit=unit10, file=fort10, formatted=.true., mode="rw",err=fErr,status="replace",recl=8195)
+    call f_open(unit=unit110,file=fort110,formatted=.false.,mode="rw",err=fErr,status="replace")
+    ndafi2 = ndafi
     do ia=1,ndafi2
       if(ia > ndafi) exit
-#ifndef CR
-      call postpr(91-ia)
-#else
-      write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      flush(93)
-      call postpr(91-ia,nnuml)
-#endif
-    end do
-    if(ndafi >= 1) call sumpos
-  end if
-#else
-  ! IFDEF STF
-  iposc=0
-  if(ipos == 1) then ! Variable IPOS=1 -> postprocessing block present in fort.3
-    do ia=1,napxo,2
-      iposc=iposc+1
-#ifndef CR
-      call postpr(ia) ! Postprocess particle ia (and ia+1 if ntwin=2)
-#else
-      write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      flush(93)
+#ifdef STF
+#ifdef CR
+      write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
+      flush(crlog)
       call postpr(ia,nnuml)
-#endif
-    end do
-    if(iposc >= 1) call sumpos
-  end if
-  goto 520 ! Done postprocessing
-
-490 continue ! GOTO here if(napx <= 0) (skipping tracking)
-  if(ipos == 1) then
-    ndafi2=ndafi
-    do ia=1,(2*ndafi2),2
-      if(ia > ndafi) exit
-#ifndef CR
+#else
       call postpr(ia)
+#endif
 #else
-      write(93,"(a,i0)") "MAINCR> Calling POSTPR nnuml = ",nnuml
-      flush(93)
-      call postpr(ia,nnuml)
+#ifdef CR
+      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-i),", turns: ",nnuml
+      flush(crlog)
+      call postpr(91-ia,nnuml)
+#else
+      call postpr(91-ia)
+#endif
 #endif
     end do
     if(ndafi >= 1) call sumpos
+    call f_close(unit10)
+    call f_close(unit110)
   end if
-#endif
 
 ! ---------------------------------------------------------------------------- !
 !  DONE POSTPROCESSING (POSTPR)
@@ -1591,16 +1511,6 @@ end interface
   endif
 #endif
 
-#ifdef FLUKA
-  ! A.Mereghetti, for the FLUKA Team
-  ! last modified: 28-05-2014
-  ! collect a couple of goto statements, sending code flow
-  !   to different plotting points, which are not actually
-  !   inserted
-490 continue
-520 continue
-  call fluka_close
-#endif
   call ffield_mod_end()
 
   time3=0.
@@ -1615,6 +1525,11 @@ end interface
   ! HASH library. Must be before ZIPF
   call hash_fileSums
   call time_timeStamp(time_afterHASH)
+#endif
+
+#ifdef BOINC
+  ! Do the final things in BOINC before ZIPF, but after HASH
+  call boinc_done
 #endif
 
   if(zipf_numfiles > 0) then
@@ -1661,7 +1576,7 @@ end interface
 ! ---------------------------------------------------------------------------- !
 
 #ifdef CR
-  call abend('                                                  ')
+  call abend("Done")
 #else
   call closeUnits
   stop

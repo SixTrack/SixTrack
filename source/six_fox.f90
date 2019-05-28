@@ -14,13 +14,11 @@ subroutine umlauda
   use parpro
   use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
-  use mod_common_main, only : e0f
   use mod_commons
   use mod_common_track, only : xxtr,yytr,issss,tasm,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_commond2
   use wire
-  use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
 
   implicit none
@@ -38,9 +36,6 @@ subroutine umlauda
     au(6,6),aui(2)
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   character(len=mNameLen) typ
-#ifdef BOINC
-  character(len=256) filename
-#endif
   integer expertUnit
 
 ! For treatment and/or conversion of BEAM parameters in/to the new format
@@ -53,10 +48,6 @@ subroutine umlauda
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
   call comt_daStart
-#ifdef DEBUG
-!     umcalls=umcalls+1
-!     call wda('umcalls',0d0,1,umcalls,0,0)
-#endif
   nd2=ndimf*2
   call etall(damap,6)
   call etall(damapi,6)
@@ -70,15 +61,9 @@ subroutine umlauda
   call etall(xy,6)
   call etall(h,1)
   call etall(df,6)
-#ifdef DEBUG
-!     call wda('uml2',0d0,2,0,0,0)
-#endif
   if(iqmodc.eq.1) call danot(2)
   if(iqmodc.eq.3) call danot(1)
   if(ichromc.eq.1) call danot(3)
-#ifdef DEBUG
-!     call wda('uml3',0d0,3,0,0,0)
-#endif
   icoonly=0
   if(iqmodc.eq.2.or.iqmodc.eq.4.or.ichromc.eq.2) icoonly=1
   do j=1,2
@@ -140,9 +125,6 @@ subroutine umlauda
     ed1=ed(issss(1))
     ed2=ed(issss(2))
   endif
-#ifdef DEBUG
-!     call wda('uml4',0d0,4,0,0,0)
-#endif
   call davar(x(1),ox,1)
   oxp1=oxp*(one+dps1)
   call davar(yp(1),oxp1,2)
@@ -188,20 +170,13 @@ subroutine umlauda
     ivar=ivar+2
   endif
 !--Normal Form Analysis for calculation of linear lattice functions
-#ifdef DEBUG
-!     call wda('uml5',0d0,5,ilinc,0,0)
-#endif
   if(ilinc.eq.1.or.ilinc.eq.2) then
     mfile=18
 !Eric
     rewind mfile
-    rewind 111
+    rewind 26
 !ERIC HERE
     call daread(damap,nvar,mfile,one)
-#ifdef DEBUG
-!     call warr('emitz',emitz,0,0,0,0)
-!     call wda('uml6',0d0,6,0,0,0)
-#endif
     call mapnorm(damap,f,aa2,a1,xy,h,nord1)
     do j=1,nvar
       call dacop(damap(j),damap1(j))
@@ -213,15 +188,7 @@ subroutine umlauda
       call averaged(angno,damap1,.true.,angno, rv)
       jj(5)=1
       jj(6)=1
-#ifdef DEBUG
-!     call warr('emitz',emitz,0,0,0,0)
-!     call wda('uml7',0d0,7,0,0,0)
-#endif
       call dapek(angno,jj,emitz)
-#ifdef DEBUG
-!     call warr('emitz',emitz,1,0,0,0)
-!     call wda('uml8',0d0,8,0,0,0)
-#endif
       jj(5)=0
       jj(6)=0
       if(abs(emitz).le.pieni) then
@@ -230,15 +197,6 @@ subroutine umlauda
         emitz=((sigz**2/emitz)*half)*c1e6                            !hr05
       endif
     endif
-#ifdef DEBUG
-!     call warr('emitz',emitz,2,0,0,0)
-!     call wda('uml9',0d0,9,0,0,0)
-#endif
-#ifdef DEBUG
-!     call dumpbin('emitz',1,1)
-!     call dumpda('emitz',1,0)
-!     call abend('          emitz                                   ')
-#endif
     jj(5)=1
     do j=1,nd2
       call dapek(a1(j),jj,dicu(j))
@@ -274,13 +232,6 @@ subroutine umlauda
   phi(3)=zero
   ibb=0
   wire_num_aux=0
-#ifdef DEBUG
-!     call wda('biu',0d0,2,0,0,0)
-!     if (umcalls.eq.8) then
-!       call dumpda('biu',0,0)
-!     call abend('biu                                               ')
-!     endif
-#endif
 !     start loop over single elements
   do 430 i=1,iu
     if(iqmodc.eq.2.or.iqmodc.eq.4) then
@@ -294,13 +245,6 @@ subroutine umlauda
         clon(6)=dare(dpda)
       endif
     endif
-#ifdef DEBUG
-!     call wda('aclon',0d0,2,0,0,0)
-!     if (umcalls.eq.8) then
-!       call dumpda('aclon',0,0)
-!     call abend('aclon                                             ')
-!     endif
-#endif
     if(ilinc.eq.1.and.i.eq.1) then
       write(lout,10000) nd2
       if(iprint.eq.1) write(lout,10130)
@@ -310,14 +254,6 @@ subroutine umlauda
       tl=zero
 #include "include/umlalid.f90"
     endif
-#ifdef DEBUG
-!     call wda('biflag',0d0,2,0,0,0)
-!     if (umcalls.eq.8) then
-!       call wda('biflag',0d0,iflag,0,0,0)
-!       call dumpda('biflag',0,0)
-!     call abend('biflag                                            ')
-!     endif
-#endif
     if(iflag.eq.1) then
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
 !FOX  EJ1=SQRT(EJF1*EJF1+NUCMDA*NUCMDA) ;
@@ -357,22 +293,8 @@ subroutine umlauda
             dpdav=dare(smida(2))
 !FOX  CORRAU1(8)=SMIDA(2)-DPDAV ;
           endif
-#ifdef DEBUG
-!     call wda('dacct',0d0,1,0,0,0)
-!     if (umcalls.eq.8) then
-!       call dumpda('bdacct',0,0)
-!     call abend('bdaccct                                           ')
-!     endif
-#endif
           call dacct(corrau2,nvar,corrau1,nvar,corrnew,nvar)
         endif
-#ifdef DEBUG
-!     call wda('adacct?',0d0,2,0,0,0)
-!     if (umcalls.eq.8) then
-!       call dumpda('adacct?',0,0)
-!     call abend('adacct?                                           ')
-!     endif
-#endif
         dpdav=dare(x(1))
 !FOX  X(1)=CORROLD(1)+DPDAV ;
         dpdav=dare(yp(1))
@@ -404,17 +326,10 @@ subroutine umlauda
     ix=ic(i)
     if(ix.gt.nblo) goto 50
     if(ix <= 0) then
-      write(lout,"(a)") "UMLAUDA> ERROR Inverted linear blocks not allowed."
-      call prror(-1)
+      write(lerr,"(a)") "UMLAUDA> ERROR Inverted linear blocks not allowed."
+      call prror
     endif
 #include "include/dalin1.f90"
-#ifdef DEBUG
-!     call wda('adlin1',0d0,2,0,0,0)
-!     if (umcalls.eq.8) then
-!       call dumpda('adlin1',0,0)
-!     call abend('adlin1                                            ')
-!     endif
-#endif
           ipch=0
           if(iqmodc.eq.1.and.kz(jx).eq.2) then
             if(jx.eq.iq(1).or.iratioe(jx).eq.iq(1)) then
@@ -425,13 +340,6 @@ subroutine umlauda
           endif
           if(ipch.ne.0) then
             call envquad(jx,ipch)
-#ifdef DEBUG
-!     call wda('aenvquad',0d0,2,0,0,0)
-!     if (umcalls.eq.8) then
-!       call dumpda('aenvquad',0,0)
-!     call abend('aenvquad                                          ')
-!     endif
-#endif
 !FOX  PUX=X(1) ;
 !FOX  PUZ=Y(1) ;
 !FOX  X(1)=ALDAQ(1,1)*PUX+ALDAQ(1,2)*PUZ+ALDAQ(1,5)*IDZ(1) ;
@@ -482,7 +390,7 @@ subroutine umlauda
 #include "include/dalin5.f90"
           endif
         else
-          if(iexact.eq.1) then
+          if(iexact) then
 !-----------------------------------------------------------------------
 !  EXACT DRIFT
 !-----------------------------------------------------------------------
@@ -516,26 +424,12 @@ subroutine umlauda
         endif
       enddo
     endif
-#ifdef DEBUG
-!     if (umcalls.eq.8) then
-!     call wda('bgoto430',0d0,2,0,0,0)
-!       call dumpda('bgoto430',0,0)
-!     call abend('bgoto430                                          ')
-!     endif
-#endif
     goto 430
 50   ix=ix-nblo
-#ifdef DEBUG
-!     if (umcalls.eq.8) then
-!     call wda('a50',0d0,ix,nblo,ix-nblo,0)
-!       call dumpda('a50',0,0)
-!     call abend('a50                                               ')
-!     endif
-#endif
     if(abs(dare(x(1))) > aint(aper(1)) .or. abs(dare(x(2))) > aint(aper(2))) then
       write(lout,10120)j,i,dare(x(1)),aper(1),dare(x(2)),aper(2),ix,kz(ix),bez(ix)
-      write(lout,"(a)") "UMLAUDA> ERROR Unstable closed orbit in DA calculation."
-      call prror(-1)
+      write(lerr,"(a)") "UMLAUDA> ERROR Unstable closed orbit in DA calculation."
+      call prror
     end if
     kpz=abs(kp(ix))
     if(kpz.ge.0 .and. kpz.lt.6) goto 80
@@ -570,8 +464,8 @@ subroutine umlauda
 ! the same as in umlalid1
       wire_num_aux = wire_num_aux+1
       if(wire_num_aux.gt.wire_max) then
-        write(lout,"(2(a,i0))") "UMLAUDA> ERROR Maximum number of wires exceeded. Max is ",wire_max,", got ",wire_num_aux
-        call prror(-1)
+        write(lerr,"(2(a,i0))") "UMLAUDA> ERROR Maximum number of wires exceeded. Max is ",wire_max,", got ",wire_num_aux
+        call prror
       endif
       wire_num(i) = wire_num_aux
 !FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
@@ -632,8 +526,8 @@ subroutine umlauda
       if(nbeam.ge.1) then
         ibb=ibb+1
         if(ibb > nbb) then
-          write(lout,"(a,i0)") "UMLAUDA> ERROR Maximum element number for beam-beam with coupling exceeded: nbb = ",nbb
-          call prror(-1)
+          write(lerr,"(a,i0)") "UMLAUDA> ERROR Maximum element number for beam-beam with coupling exceeded: nbb = ",nbb
+          call prror
         end if
         imbb(i)=ibb
 !FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
@@ -743,18 +637,13 @@ subroutine umlauda
              bbcu(ibb,3)=parbe(ix,13)
           endif
         else
-           write(lout,"(a,i0,a)") "UMLAUDA> ERROR beam_expflag was ",beam_expflag,", expected 0 or 1. This is a BUG!"
-           call prror(-1)
+           write(lerr,"(a,i0,a)") "UMLAUDA> ERROR beam_expflag was ",beam_expflag,", expected 0 or 1. This is a BUG!"
+           call prror
         end if
 
         if (.not.beam_expfile_open) then
           call f_requestUnit("beam_expert.txt",expertUnit)
-#ifdef BOINC
-          call boincrf("beam_expert.txt",filename)
-          open(expertUnit,file=filename,status="replace",action="write")
-#else
-          open(expertUnit,file="beam_expert.txt",status="replace",action="write")
-#endif
+          call f_open(unit=expertUnit,file="beam_expert.txt",formatted=.true.,mode="w",status="replace")
           beam_expfile_open = .true.
           !This line will be a comment if copy-pasted into fort.3
           write(expertUnit,"(a,g13.6,a,g13.6,a,g13.6,a)") "/ ******* USING emitx=",emitx,", emity=",emity,", emitz=",emitz," ******"
@@ -803,8 +692,8 @@ subroutine umlauda
           if(sfac2.lt.zero) sfac2s=-one                            !hr08
           sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          !hr03
           if(sfac3 > sfac1) then
-            write(lout,"(a)") "UMLAUDA> ERROR 6D beam-beam with tilt not possible."
-            call prror(-1)
+            write(lerr,"(a)") "UMLAUDA> ERROR 6D beam-beam with tilt not possible."
+            call prror
           end if
           sfac4=(sfac2s*sfac2)/sfac3                                   !hr03
           sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3                !hr03
@@ -1093,7 +982,6 @@ subroutine umlauda
     if(kzz.eq.26) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i) ! JBG change of variables for misal calculations
@@ -1101,7 +989,6 @@ subroutine umlauda
 #include "include/alignf.f90"
 !FOX  CRABAMP2=ED(IX)*ZZ0 ;
 
-!       write(*,*) crabamp, EJF1, EJF0,clight, "HELLO"
     crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
     crabpht2=crabph2(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1130,7 +1017,6 @@ subroutine umlauda
       if(kzz.eq.-26) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i) ! JBG change of variables for misal calculations
@@ -1164,7 +1050,6 @@ subroutine umlauda
       if(kzz.eq.27) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1199,7 +1084,6 @@ subroutine umlauda
       if(kzz.eq.-27) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1233,7 +1117,6 @@ subroutine umlauda
       if(kzz.eq.28) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1272,7 +1155,6 @@ subroutine umlauda
       if(kzz.eq.-28) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1493,13 +1375,6 @@ subroutine umlauda
     end select
 
 440  continue
-#ifdef DEBUG
-!     if (umcalls.eq.8) then
-!     call wda('a440   ',0d0,2,0,0,0)
-!       call dumpda('a440   ',0,0)
-!     call abend('a440                                              ')
-!     endif
-#endif
   if(ilinc.eq.1) then
     typ=bez(ix)
 #include "include/umlalid.f90"
@@ -1510,13 +1385,6 @@ subroutine umlauda
 !FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 !FOX  DELTAS=SIGMDA/RV ;
-#ifdef DEBUG
-!     call wda('afox   ',0d0,2,0,0,0)
-!     if (umcalls.eq.8) then
-!       call dumpda('afox   ',0,0)
-!     call abend('afox                                              ')
-!     endif
-#endif
   if(icav.eq.0.or.ithick.ne.1) then
     if(icoonly.eq.1) then
       xxtr(1,1) = dare(x(1))
@@ -1533,13 +1401,6 @@ subroutine umlauda
 !FOX  CORRAU1(4)=YP(2) ;
 !FOX  CORRAU1(5)=DELTAS ;
 !FOX  CORRAU1(6)=DPDA1 ;
-#ifdef DEBUG
-!     call wda('b435   ',0d0,2,0,0,0)
-!     if (umcalls.eq.8) then
-!       call dumpda('b435   ',0,0)
-!     call abend('b435                                              ')
-!     endif
-#endif
     do 435 kkk=1,6
       dpdav2(kkk)=dare(corrau1(kkk))
 !FOX  CORRAU1(KKK)=CORRAU1(KKK)-DPDAV2(KKK) ;
@@ -1553,13 +1414,6 @@ subroutine umlauda
 !FOX  CORRNEW(8)=SMIDA(2)-DPDAV ;
     endif
     call dacct(corrau1,nvar,corrnew,nvar,corrau2,nvar)
-#ifdef DEBUG
-!     call wda('b436   ',0d0,2,0,0,0)
-!     if (umcalls.eq.8) then
-!       call dumpda('b436   ',0,0)
-!     call abend('b436                                              ')
-!     endif
-#endif
     do 436 kkk=1,6
 !FOX  CORRAU2(KKK)=CORRAU2(KKK)+DPDAV2(KKK) ;
 436   continue
@@ -1604,13 +1458,6 @@ subroutine umlauda
       aml6(i,i)=aml6(i,i)-one
     enddo
   endif
-#ifdef DEBUG
-!     call wda('adacct?',0d0,2,0,0,0)
-!     if (umcalls.eq.8) then
-!       call dumpda('adacct?',0,0)
-!     call abend('adacct?                                           ')
-!     endif
-#endif
   call dacop(yp(1),damap(2))
   call dacop(yp(2),damap(4))
   if(ndimf.eq.3) then
@@ -1622,16 +1469,9 @@ subroutine umlauda
   if(iqmodc.eq.2.or.iqmodc.eq.4.or.ilin.ge.2) then
     rewind 18
 !Eric
-    rewind 111
+    rewind 26
     call daprid(damap,1,nvar,18)
   endif
-#ifdef DEBUG
-!     call wda('boutput',0d0,2,0,0,0)
-!     if (umcalls.eq.8) then
-!       call dumpda('boutput',0,0)
-!     call abend('boutput                                           ')
-!     endif
-#endif
 !--now do the output
   if(iqmodc.eq.1) call danot(3)
   if(iqmodc.eq.3) call danot(2)
@@ -1671,8 +1511,8 @@ subroutine umlauda
     jj(nd2+2)=0
     det1=coefh1*coefv2-coefv1*coefh2
     if(abs(det1) <= pieni) then
-      write(lout,"(a)") "UMLAUDA> ERROR Quadrupoles are not suited to adjust the tunes."
-      call prror(-1)
+      write(lerr,"(a)") "UMLAUDA> ERROR Quadrupoles are not suited to adjust the tunes."
+      call prror
     end if
     corr(2,1)=coefv2/det1
     corr(2,2)=(-one*coefh2)/det1                                     !hr05
@@ -1695,8 +1535,8 @@ subroutine umlauda
     jj(nd2+1)=0
     det1=coefh1*coefv2-coefv1*coefh2
     if(abs(det1) <= pieni) then
-      write(lout,"(a)") "UMLAUDA> ERROR Sextupoles are not suited to adjust the chromaticity."
-      call prror(-1)
+      write(lerr,"(a)") "UMLAUDA> ERROR Sextupoles are not suited to adjust the chromaticity."
+      call prror
     end if
     corr(2,1)=coefv2/det1
     corr(2,2)=(-one*coefh2)/det1                                     !hr05
@@ -1704,13 +1544,6 @@ subroutine umlauda
     corr(3,2)=coefh1/det1
   endif
 470  continue
-#ifdef DEBUG
-!     call wda('a470   ',0d0,2,0,0,0)
-!     if (umcalls.eq.8) then
-!       call dumpda('a470   ',0,0)
-!     call abend('a470                                              ')
-!     endif
-#endif
 
   call dadal(damap,6)
   call dadal(damapi,6)
@@ -1729,8 +1562,8 @@ subroutine umlauda
   return
 
 9088 continue
-  write(lout,"(a)") "UMLAUDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
-  call prror(-1)
+  write(lerr,"(a)") "UMLAUDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
+  call prror
   return
 !-----------------------------------------------------------------------
 10000 format(/t5 ,'---- ENTRY ',i1,'D LINOPT ----')
@@ -2267,14 +2100,12 @@ subroutine synoda
   use numerical_constants
   use parpro
   use mod_common
-  use mod_common_main, only : e0f
   use mod_commons
   use mod_common_track
   use mod_common_da
-  use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   implicit none
-  integer ix,idaa
+  integer ix,idaa,ikz
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   save
 !-----------------------------------------------------------------------
@@ -2284,16 +2115,17 @@ subroutine synoda
 !FOX  D V RE INT HSY 3 ; D V RE INT PHAS ;
 !FOX  D V RE EXT ED NELE ; D V RE EXT HSYC NELE ;
 !FOX  D V RE EXT PHASC NELE ;  D V RE INT NUCMDA ;
-!FOX  D V RE INT C1E3 ; D V RE INT ONE ;
-!FOX  D V IN EXT ITIONC NELE ; D V IN INT ITION ; D V IN INT IX ;
+!FOX  D V RE INT C1E3 ; D V RE INT ONE ; D V IN INT IKZ ;
+!FOX  D V IN EXT NELE ; D V IN INT ITION ; D V IN INT IX ;
 !FOX  E D ; D V RE INT NUCM0 ; D V RE INT MTCDA ; D V RE INT ZZ0 ;
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
   ix=ixcav
 
-  if(kz(ix).eq.12) then
+  if(abs(kz(ix)) == 12) then
+    ikz = sign(1,kz(ix))
 !FOX  EJ1=EJ1+ED(IX)*ZZ0*SIN(HSYC(IX)*SIGMDA/C1E3*
-!FOX  ITIONC(IX)+PHASC(IX)) ;
+!FOX  IKZ+PHASC(IX)) ;
   else
 !FOX  EJ1=EJ1+HSY(1)*ZZ0*SIN(HSY(3)*SIGMDA/C1E3*ITION+PHAS) ;
   endif
@@ -2467,7 +2299,6 @@ subroutine wireda(ix,i)
   use mod_common_track, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
   use mod_common_da
   use wire
-  use mod_hions
   use mod_lie_dab, only : idao,rscrri,iscrda
   implicit none
   integer ix,idaa,i
@@ -2519,7 +2350,7 @@ call comt_daStart
   &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',  &
   &'be either 1 or -1!','bez(',ix,') = ',bez(ix),                    &
   &'wire_flagco(',ix,') = ',wire_flagco(ix)
-    call prror(-1)
+    call prror
   endif
 
 !FOX  YY(1)=YY(1)*C1M3;
@@ -2719,29 +2550,14 @@ subroutine clorda(nn,idummy,am)
     enddo
     sigm(1)=cloc(5)
     dps(1)=cloc(6)
-#ifdef DEBUG
-!       write(*,*) 'Calling UMLAUDA from clorda'
-!       call warr('cloc5',cloc(5),0,0,0,0)
-!       call warr('cloc6',cloc(6),0,0,0,0)
-#endif
     call umlauda
     do i4=1,nd2
       do j4=1,nd2
         am(i4,j4)=aml6(i4,j4)
-#ifdef DEBUG
-!       call warr('ambef',am(i4,j4),i4,j4,0,0)
-#endif
       enddo
     enddo
     call dinv(nd2,am,nd2,idummy,nerror)
     if(nerror.ne.0) write(lout,*) ' ATTENTION, MATRIX SINGULAR '
-#ifdef DEBUG
-!       do i4=1,nd2
-!         do j4=1,nd2
-!     call warr('amaft',am(i4,j4),i4,j4,0,0)
-!         enddo
-!       enddo
-#endif
     if(ndimf.eq.3) then
       do l=1,2
         ll=2*l
@@ -2766,10 +2582,6 @@ subroutine clorda(nn,idummy,am)
       dd(l)=cloc(l)-xx(l)
       dc(l)=abs(dd(l))
       if(l.eq.5) dc(5)=dc(5)*c1m2
-#ifdef DEBUG
-!       call warr('ddl',dd(l),l,1,0,0)
-!       call warr('dcl',dc(l),l,1,0,0)
-#endif
     enddo
     icheck=0
     do l=1,ndimf
@@ -2790,26 +2602,10 @@ subroutine clorda(nn,idummy,am)
     do l=1,ndimf
       ll=2*l
       write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-#ifdef DEBUG
-!     call warr('corl ll',cor,l,ll,1,0)
-!     call warr('dcll*2',dc(ll-1)**2,l,ll,1,0)
-#endif
       cor=cor+dc(ll-1)**2                                            !hr06
-#ifdef DEBUG
-!         call warr('acor',cor,l,ll,1,0)
-#endif
     enddo
     cor=sqrt(cor)
-#ifdef DEBUG
-!       call warr('vital',0d0,ii,0,0,0)
-!       call warr('corlll',cor,l,ll,1,0)
-!       call warr('coro',coro,l,ll,1,0)
-#endif
     if(ii.eq.1.or.cor.lt.coro) then
-#ifdef DEBUG
-!       call warr('cor',cor,2,0,0,0)
-!       call warr('coro',coro,2,0,0,0)
-#endif
       coro=cor
       do l=1,nd2
         cloc(l)=cloc(l)+dlo(l)
@@ -2843,20 +2639,9 @@ subroutine clorda(nn,idummy,am)
     do l=1,ndimf
       ll=2*l
       write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-#ifdef DEBUG
-!     call warr('corl ll',cor,l,ll,2,0)
-!     call warr('dcll*2',dc(ll-1)**2,l,ll,2,0)
-#endif
       cor=cor+dc(ll-1)**2                                            !hr06
-#ifdef DEBUG
-!         call warr('acor',cor,l,ll,2,0)
-#endif
     enddo
     cor=sqrt(cor)
-#ifdef DEBUG
-!       call warr('cor',cor,3,0,0,0)
-!       call warr('coro',coro,3,0,0,0)
-#endif
     if(cor.lt.coro) then
       coro=cor
       do l=1,nd2
@@ -2937,24 +2722,6 @@ subroutine clorda(nn,idummy,am)
       clop(l)=cloc(ll)
     enddo
   endif
-#ifdef DEBUG
-!     call warr('end clorda',cloc(1),1,0,0,0)
-!     call warr('end cloc(2)',cloc(2),2,0,0,0)
-!     call warr('end cloc(3)',cloc(3),3,0,0,0)
-!     call warr('end cloc(4)',cloc(4),4,0,0,0)
-!     call warr('end cloc(5)',cloc(5),5,0,0,0)
-!     call warr('end cloc(6)',cloc(6),6,0,0,0)
-!     call warr('clo(1)',clo(1),1,0,0,0)
-!     call warr('clo(2)',clo(2),2,0,0,0)
-!     call warr('clop(1)',clop(1),1,0,0,0)
-!     call warr('clop(2)',clop(2),2,0,0,0)
-!     call warr('clo6(1)',clo6(1),1,0,0,0)
-!     call warr('clo6(2)',clo6(2),2,0,0,0)
-!     call warr('clo6(3)',clo6(3),3,0,0,0)
-!     call warr('clop6(1)',clop6(1),1,0,0,0)
-!     call warr('clop6(2)',clop6(2),2,0,0,0)
-!     call warr('clop6(3)',clop6(3),3,0,0,0)
-#endif
 !-----------------------------------------------------------------------
   return
 10000 format(t10,'DA CLOSED ORBIT CALCULATION'/ t10,                    &
@@ -3024,7 +2791,7 @@ subroutine invert_tas(fma_tas_inv,fma_tas)
   if (ierro.ne.0) then
       write(lout,*) "Error in INVERT_TAS - Matrix inversion failed!"
       write(lout,*) "Subroutine DINV returned ierro=",ierro
-      call prror(-1)
+      call prror
   endif
 
 !     - transpose fma_tas_inv

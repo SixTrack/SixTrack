@@ -22,9 +22,10 @@
         3       64 ip5_scatter          sc_thin              Elastic        19        0  0.296875      8.906250  1.000000E+00
         4       54 ip5_scatter          sc_thin              Elastic        19        0  0.351852     10.555556  1.000000E+00
         5       42 ip5_scatter          sc_thin              Elastic        15        0  0.357143     10.714286  1.000000E+00
-        6       31 ip5_scatter          sc_thin              Elastic         9        0  0.290323      8.709677  1.000000E+00
-        7       23 ip5_scatter          sc_thin              Elastic        10        0  0.434783     13.043478  1.000000E+00
-        8       16 ip5_scatter          sc_thin              Elastic         4        0  0.250000      7.500000  1.000000E+00
-        9       13 ip5_scatter          sc_thin              Elastic         2        0  0.153846      4.615385  1.000000E+00
-       10       11 ip5_scatter          sc_thin              Elastic         3        0  0.272727      8.181818  1.000000E+00
-       11        9 ip5_scatter          sc_thin              Elastic         4        0  0.444444     13.333333  1.000000E+00
+        6       32 ip5_scatter          sc_thin              Elastic        10        0  0.312500      9.375000  1.000000E+00
+        7       23 ip5_scatter          sc_thin              Elastic        11        0  0.478261     14.347826  1.000000E+00
+        8       14 ip5_scatter          sc_thin              Elastic         4        0  0.285714      8.571429  1.000000E+00
+        9       11 ip5_scatter          sc_thin              Elastic         2        0  0.181818      5.454545  1.000000E+00
+       10        9 ip5_scatter          sc_thin              Elastic         2        0  0.222222      6.666667  1.000000E+00
+       11        8 ip5_scatter          sc_thin              Elastic         5        0  0.625000     18.750000  1.000000E+00
+       12        5 ip5_scatter          sc_thin              Elastic         2        0  0.400000     12.000000  1.000000E+00

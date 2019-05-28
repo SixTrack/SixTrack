@@ -25,8 +25,10 @@ module coll_dist
   ! Distribution Settings
   real(kind=fPrec),         public,  save :: cdist_ampX     = zero
   real(kind=fPrec),         public,  save :: cdist_ampY     = zero
+  real(kind=fPrec),         public,  save :: cdist_ampR     = zero
   real(kind=fPrec),         public,  save :: cdist_smearX   = zero
   real(kind=fPrec),         public,  save :: cdist_smearY   = zero
+  real(kind=fPrec),         public,  save :: cdist_smearR   = zero
   real(kind=fPrec),         public,  save :: cdist_spreadE  = zero
   real(kind=fPrec),         public,  save :: cdist_bunchLen = zero
 
@@ -34,6 +36,12 @@ module coll_dist
 
 contains
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-26
+!  Updated: 2019-04-16
+!  Generate the distribution in the correct order, based on the distFormat flag
+! ================================================================================================ !
 subroutine cdist_makeDist(distFormat)
 
   use crcoall
@@ -61,10 +69,40 @@ subroutine cdist_makeDist(distFormat)
     call cdist_makeDist_fmt4
     call cdist_makeDist_fmt6
   case default
-    write(lout,"(a)") "COLLDIST> ERROR Unknown distribution format. Valid is 0 to 6, got ",distFormat
+    write(lerr,"(a)") "COLLDIST> ERROR Unknown distribution format. Valid is 0 to 6, got ",distFormat
+    call prror
   end select
 
 end subroutine cdist_makeDist
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-04-16
+!  Updated: 2019-04-16
+!  The radial format is just format 1 with a different set of parameters
+! ================================================================================================ !
+subroutine cdist_makeRadial
+
+  real(kind=fPrec) tmpVal(4)
+
+  tmpVal(1)    = cdist_ampX
+  tmpVal(2)    = cdist_ampY
+  tmpVal(3)    = cdist_smearX
+  tmpVal(4)    = cdist_smearY
+
+  cdist_ampX   = cdist_ampR/sqrt(two)
+  cdist_ampY   = cdist_ampR/sqrt(two)
+  cdist_smearX = cdist_smearR/sqrt(two)
+  cdist_smearY = cdist_smearR/sqrt(two)
+
+  call cdist_makeDist_fmt1
+
+  cdist_ampX   = tmpVal(1)
+  cdist_ampY   = tmpVal(2)
+  cdist_smearX = tmpVal(3)
+  cdist_smearY = tmpVal(4)
+
+end subroutine cdist_makeRadial
 
 ! ================================================================================================ !
 !  Generation of Distribution Format 1
@@ -78,8 +116,6 @@ subroutine cdist_makeDist_fmt1
   use mathlib_bouncer
   use mod_common, only : napx
   use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
-
-  implicit none
 
   real(kind=fPrec) :: emitX, emitY, sigmaX, sigmaY
   integer          :: j
@@ -135,14 +171,12 @@ subroutine cdist_makeDist_fmt2
   use mod_common, only : napx
   use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
 
-  implicit none
-
   real(kind=fPrec) :: iiX, iiY, phiX, phiY
   integer          :: j
 
   if(cdist_ampX > zero .and. cdist_ampY > zero) then
-    write(lout,"(a)") "COLLDIST> ERROR Distribution parameters for format 2 are incorrectly set."
-    write(lout,"(a)") "COLLDIST>       Both X and Y amplitude is larger than zero. Use format 1 instead."
+    write(lerr,"(a)") "COLLDIST> ERROR Distribution parameters for format 2 are incorrectly set."
+    write(lerr,"(a)") "COLLDIST>       Both X and Y amplitude is larger than zero. Use format 1 instead."
     call prror
   end if
 
@@ -179,8 +213,6 @@ subroutine cdist_makeDist_fmt3
   use mod_ranlux
   use mod_common, only : napx
   use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
-
-  implicit none
 
   real(kind=fPrec) :: long_cut, a_st, b_st
   integer          :: j
@@ -220,8 +252,6 @@ subroutine cdist_makeDist_fmt4
   use mod_common, only : napx
   use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
 
-  implicit none
-
   integer :: j, inUnit
 
   character(len=mInputLn) inLine
@@ -229,14 +259,14 @@ subroutine cdist_makeDist_fmt4
   integer nSplit
   logical spErr, fErr
 
-  write(lout,"(a)") "COLLDIST> Reading input bunch from file '"//trim(cdist_fileName)//"'"
+  write(lout,"(a)") "COLLDIST> Reading input distributions from file '"//trim(cdist_fileName)//"'"
 
   fErr  = .false.
   spErr = .false.
   call f_requestUnit(cdist_fileName, inUnit)
   call f_open(unit=inUnit,file=cdist_fileName,formatted=.true.,mode="r",err=fErr,status="old")
-  if(fErr)then
-    write(lout,"(a)") "COLLDIST> ERROR Could not read file '"//trim(cdist_fileName)//"'"
+  if(fErr) then
+    write(lerr,"(a)") "COLLDIST> ERROR Could not read file '"//trim(cdist_fileName)//"'"
     call prror
   end if
 
@@ -244,11 +274,11 @@ subroutine cdist_makeDist_fmt4
     read(inUnit,"(a)",end=10,err=20) inLine
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
-      write(lout,"(a)") "COLLDIST> ERROR Failed to parse input line from particle distribution file."
+      write(lerr,"(a)") "COLLDIST> ERROR Failed to parse input line from particle distribution file."
       call prror
     end if
     if(nSplit /= 6) then
-      write(lout,"(a)") "COLLDIST> ERROR Expected 6 values per line in particle distribution file."
+      write(lerr,"(a)") "COLLDIST> ERROR Expected 6 values per line in particle distribution file."
       call prror
     end if
     call chr_cast(lnSplit(1),xv1(j),  spErr)
@@ -258,22 +288,22 @@ subroutine cdist_makeDist_fmt4
     call chr_cast(lnSplit(5),sigmv(j),spErr)
     call chr_cast(lnSplit(6),ejv(j),  spErr)
     if(spErr) then
-      write(lout,"(a)") "COLLDIST> ERROR Failed to parse value from particle distribution file."
+      write(lerr,"(a)") "COLLDIST> ERROR Failed to parse value from particle distribution file."
       call prror
     end if
   end do
   call f_close(inUnit)
-  write(lout,"(a,i0)") "COLLDIST> Number of particles read from the file is ",napx
+  write(lerr,"(a,i0)") "COLLDIST> Number of particles read from the file is ",napx
 
   return
 
 10 continue
-  write(lout,"(a,i0,a)") "COLLDIST> ERROR Dsitribution file contained less than ",napx," particles"
+  write(lerr,"(a,i0,a)") "COLLDIST> ERROR Dsitribution file contained less than ",napx," particles"
   call prror
   return
 
 20 continue
-  write(lout,"(a)") "COLLDIST> ERROR Could not read file '"//trim(cdist_fileName)//"'"
+  write(lerr,"(a)") "COLLDIST> ERROR Could not read file '"//trim(cdist_fileName)//"'"
   call prror
 
 end subroutine cdist_makeDist_fmt4
@@ -291,8 +321,6 @@ subroutine cdist_makeDist_fmt5
   use mod_ranlux
   use mod_common, only : napx
   use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
-
-  implicit none
 
   real(kind=fPrec) :: emitX, emitY, sigmaX, sigmaY
   integer          :: j
@@ -336,14 +364,12 @@ subroutine cdist_makeDist_fmt6
   use mod_common, only : napx, iclo6
   use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv, tas, clop6v
 
-  implicit none
-
   real(kind=fPrec) :: tmpX, tmpY, tmpXP, tmpYP, tmpS, tmpE
   real(kind=fPrec) :: emitX, emitY, emitZ
   integer          :: j
 
   if(iclo6 == 0) then
-    write(lout,"(a)") "COLLDIST> ERROR The 6D closed orbit (iclo6 > 0) is required for format 6."
+    write(lerr,"(a)") "COLLDIST> ERROR The 6D closed orbit (iclo6 > 0) is required for format 6."
     call prror
   endif
 

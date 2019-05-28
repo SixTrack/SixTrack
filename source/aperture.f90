@@ -18,7 +18,6 @@ module aperture
   use mod_common_track
   use mod_common_da
 
-  use mod_hions
   use mod_alloc
 #ifdef HDF5
   use hdf5_output
@@ -201,7 +200,7 @@ subroutine aperture_init
       ! Expect the file to be opened already, in crcheck
       inquire( unit=losses_unit, opened=isOpen )
       if (.not.isOpen) then
-        write(lout,"(2(a,i0),a)") "LIMI> ERROR The unit ",losses_unit," has apefilepos = ", apefilepos, " >= 0, "//&
+        write(lerr,"(2(a,i0),a)") "LIMI> ERROR The unit ",losses_unit," has apefilepos = ", apefilepos, " >= 0, "//&
           "but the file is NOT open. This is probably a bug."
         call prror
       end if
@@ -211,7 +210,7 @@ subroutine aperture_init
       call f_requestUnit(losses_filename,losses_unit)
       inquire(unit=losses_unit, opened=isOpen) ! Was 999
       if(isOpen) then
-        write(lout,"(a,i0,a)") "APER> ERROR Unit ",losses_unit," is already open."
+        write(lerr,"(a,i0,a)") "APER> ERROR Unit ",losses_unit," is already open."
         call prror
       end if
 
@@ -501,14 +500,14 @@ subroutine aperture_backTrackingInit
   i=1
   ix=ic(i)-nblo
   if( ix.lt.0 ) then
-    write(lout,"(a)") "APER> ERROR Impossible to properly initialise backtracking:"
-    write(lout,"(a)") "APER>       first element of lattice structure is not a single element"
-    call prror(-1)
+    write(lerr,"(a)") "APER> ERROR Impossible to properly initialise backtracking:"
+    write(lerr,"(a)") "APER>       first element of lattice structure is not a single element"
+    call prror
   end if
   if( kape(ix).eq.0 ) then
-    write(lout,"(a)") "APER> ERROR Impossible to properly initialise backtracking:"
-    write(lout,"(a)") "APER>       first element of lattice structure is not assigned an aperture profile"
-    call prror(-1)
+    write(lerr,"(a)") "APER> ERROR Impossible to properly initialise backtracking:"
+    write(lerr,"(a)") "APER>       first element of lattice structure is not assigned an aperture profile"
+    call prror
   end if
 
   call aperture_saveLastCoordinates( i, ix, -1 )
@@ -528,10 +527,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
 !-----------------------------------------------------------------------
 
   use physical_constants
-
-#ifdef FLUKA
-  use mod_fluka
-#endif
 
 #ifdef ROOT
   use iso_c_binding
@@ -765,7 +760,7 @@ subroutine aperture_reportLoss(turn, i, ix)
   use physical_constants
 
 #ifdef FLUKA
-  use mod_fluka
+  use mod_fluka, only : fluka_uid, fluka_gen, fluka_weight, fluka_enable
 #endif
 #ifdef HDF5
   use hdf5_output
@@ -1306,6 +1301,50 @@ subroutine roffpos_inv( x, y, xnew, ynew, tlt, xoff, yoff )
   return
 end subroutine roffpos_inv
 
+#ifdef FLUKA
+subroutine contour_FLUKA_markers()
+!-----------------------------------------------------------------------
+! by A.Mereghetti
+! last modified: 22-05-2019
+! check that aperture is well defined accross a Fluka insertion
+  !-----------------------------------------------------------------------
+  
+  use mod_fluka, only : FLUKA_ENTRY, FLUKA_EXIT, fluka_type, fluka_geo_index
+  use parpro, only : nblo
+  use mod_common, only : iu, ic
+  use mod_common_track, only : ktrack
+  
+  implicit none
+  
+  ! temporary variables
+  integer i1 , i2
+  integer ix1, ix2
+
+  i1=1
+  do while ( i1.le.iu )
+    if(ktrack(i1).ne.1.and.ic(i1).gt.nblo) then
+      ix1=ic(i1)-nblo
+      if ( fluka_type(ix1).eq.FLUKA_ENTRY ) then
+        do i2=i1+1,iu
+          if(ktrack(i2).ne.1.and.ic(i2).gt.nblo) then
+            ix2=ic(i2)-nblo
+            if ( fluka_type(ix2).eq.FLUKA_EXIT ) then
+              if(fluka_geo_index(ix1).eq.fluka_geo_index(ix2))then
+                call contour_aperture_markers( i1, i2, .true.  )
+                i1 = i2
+                exit
+              endif
+            endif
+          endif
+        enddo
+      endif
+    endif
+    i1 = i1+1
+  enddo
+     
+end subroutine contour_FLUKA_markers
+#endif
+
 subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
 ! by A.Mereghetti
@@ -1335,6 +1374,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   iElDw=itElDw
 ! markers accross extremes of lattice structure?
   lAccrossLatticeExtremes=iElUp.gt.iElDw
+#ifdef DEBUG
+  write(lout,*) "check 00: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", & 
+       il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
+  call dumpMe
+#endif
 
 ! upstream marker
   iuold=iu
@@ -1351,13 +1395,18 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       write(lout,"(a)")    "APER> ...no need to insert an upstream marker - no shift of downstream entries required."
     end if
   end if
+#ifdef DEBUG
+  write(lout,*) "check 01: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", & 
+       il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
+  call dumpMe
+#endif
 
 ! downstream marker
   iuold=iu
   call contour_aperture_marker( iElDw, .false. )
 ! the addition of the downstream aperture marker may have shifted by one the downstream entries
   if( iu-iuold.ne.0 ) then
-! NB: if lAccrossLatticeExtremes, the downstream marker is almost at the beginngin of
+! NB: if lAccrossLatticeExtremes, the downstream marker is almost at the beginning of
 !     the lattice structure! Hence, if a new entry has been inserted,
 !     the upstream marker (towards the end of the lattice structure) is
 !     shifted by 1
@@ -1368,6 +1417,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   else
     write(lout,"(a)")    "APER> ...no need to insert a downstream marker - no shift of downstream entries required."
   end if
+#ifdef DEBUG
+  write(lout,*) "check 02: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", &
+       il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
+  call dumpMe
+#endif
 
   if( lAccrossLatticeExtremes ) then
 ! check that the aperture markers at the extremities of accelerator
@@ -1376,11 +1430,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
     ixApeDw=ic(iElDw)-nblo
     lsame = sameAperture(ixApeUp,ixApeDw)
     if( .not.lsame ) then
-      write(lout,"(a)") "APER> ERROR Different aperture markers at extremeties of accelerator lattice strucure"
+      write(lerr,"(a)") "APER> ERROR Different aperture markers at extremeties of accelerator lattice strucure"
       call dump_aperture_header( lout )
       call dump_aperture_marker( lout, ixApeUp, iElUp )
       call dump_aperture_marker( lout, ixApeDw, iElDw )
-      call prror(-1)
+      call prror
     end if
   end if
 
@@ -1400,7 +1454,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 #ifdef FLUKA
 ! import mod_fluka
 ! inserted in main code by the 'fluka' compilation flag
-  use mod_fluka
+  use mod_fluka, only : fluka_type, FLUKA_ELEMENT, FLUKA_ENTRY
 #endif
   use mod_geometry, only : geom_insertStruElem, geom_insertSingElem, geom_checkSingElemUnique
 
@@ -1457,8 +1511,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 #endif
     end if
   else if( ixEl.le.0 ) then
-    write(lout,"(a,i0,a)") "APER> ERROR Lattice element at: i=",iEl," is NOT a SINGLE ELEMENT."
-    call prror(-1)
+    write(lerr,"(a,i0,a)") "APER> ERROR Lattice element at: i=",iEl," is NOT a SINGLE ELEMENT."
+    call prror
   end if
 
 ! echo
@@ -1492,8 +1546,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 ! call of this function is meant to verify this assumption)
   call find_closest_aperture(iSrcUp,.true.,iApeUp,ixApeUp,lApeUp)
   if( iApeUp.eq.-1 .and. ixApeUp.eq.-1 ) then
-    write(lout,"(a)") "APER> ERROR Could not find upstream marker"
-    call prror(-1)
+    write(lerr,"(a)") "APER> ERROR Could not find upstream marker"
+    call prror
   end if
 ! - get closest downstream aperture marker
 ! NB: no risk of overflow, as first/last element in lattice
@@ -1501,8 +1555,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 ! call of this function is meant to verify this assumption)
   call find_closest_aperture(iSrcDw,.false.,iApeDw,ixApeDw,lApeDw)
   if( iApeDw.eq.-1 .and. ixApeDw.eq.-1 ) then
-    write(lout,"(a)") "APER> ERROR Could not find downstream marker"
-    call prror(-1)
+    write(lerr,"(a)") "APER> ERROR Could not find downstream marker"
+    call prror
   end if
 ! - echo found apertures
   call dump_aperture_header( lout )
@@ -1577,8 +1631,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       ic(iNew)=ixApeNewFrom+nblo
     else
 !     this should never happen
-      write(lout,"(a)") "APER> ERROR in aperture auto assignment."
-      call prror(-1)
+      write(lerr,"(a)") "APER> ERROR in aperture auto assignment."
+      call prror
     end if
   end if
 
@@ -1602,7 +1656,7 @@ subroutine find_closest_aperture( iStart, lUp, iEl, ixEl, lfound )
 #ifdef FLUKA
 ! import mod_fluka
 ! inserted in main code by the 'fluka' compilation flag
-  use mod_fluka
+  use mod_fluka, only : fluka_type, FLUKA_NONE
 #endif
 
   implicit none
@@ -1707,7 +1761,7 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
   integer jj
 
   oApe(:)=zero
- 
+
   if( sameAperture(ixUp,ixDw ) ) then
     ! constant aperture - no need to interpolate
     oKApe=kape(ixUp)
@@ -1717,7 +1771,7 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
     ! type: we may interpolate the same aperture type
     oKApe=-1 ! transition
     if( kape(ixUp).eq.kape(ixDw) ) oKApe=kape(ixUp)
-     
+
     ! actual interpolation
     ddcum = spos-dcum(iUp)
     if( ddcum.lt.zero ) ddcum=dcum(iu)+ddcum
@@ -1730,7 +1784,7 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
         oApe(jj)=((ape(jj,ixDw)-ape(jj,ixUp))/mdcum)*ddcum+ape(jj,ixUp)
       end if
     end do
-    
+
   end if
   return
 end subroutine interp_aperture
@@ -1798,8 +1852,8 @@ subroutine dump_aperture_model
   i=1
   ix=ic(i)-nblo
   if( kape(ix).eq.0 ) then
-    write(lout,"(a)") "APER> ERROR First element of lattice structure is not assigned any aperture type"
-    call prror(-1)
+    write(lerr,"(a)") "APER> ERROR First element of lattice structure is not assigned any aperture type"
+    call prror
   end if
   call dump_aperture_marker( aperunit, ix, i )
   iOld=i
@@ -1885,8 +1939,8 @@ subroutine dump_aperture_model_hdf5
   i  = 1
   ix = ic(i)-nblo
   if(kape(ix) == 0) then
-    write(lout,"(a)") "APER> ERROR First element of lattice structure is not assigned any aperture type"
-    call prror(-1)
+    write(lerr,"(a)") "APER> ERROR First element of lattice structure is not assigned any aperture type"
+    call prror
   end if
   call dump_aperture_hdf5(bez(ix), kape(ix), dcum(i), ape(1:9,ix), modelSet, .false.)
   iOld  = i
@@ -1997,9 +2051,9 @@ subroutine dumpMe
   do i=1,iu
     ix=ic(i)-nblo
     if( ix.gt.0 ) then
-      write(lout,"(a,i8,1x,a,1x,f15.6,1x,i8)") "APER> ",i,bez(ix),dcum(i),kape(ix)
+      write(lout,"(a,2(i8,1x),a,1x,f15.6,1x,i8)") "APER> ",i,ix,bez(ix),dcum(i),kape(ix)
     else
-      write(lout,"(a,i8,1x,a,1x,f15.6)") "APER> ",i,bezb(ic(i)),dcum(i)
+      write(lout,"(a,2(i8,1x),a,1x,f15.6)") "APER> ",i,ic(i),bezb(ic(i)),dcum(i)
     end if
   end do
   write(lout,"(a)") "APER> dumpMe -----------------------------------------------------------------------------"
@@ -2116,33 +2170,33 @@ subroutine dump_aperture_xsecs
      ! from print_lastlines_to_stderr
      inquire(unit=xsecunit(ixsec),opened=lopen)
      if(lopen) then
-        write(lout,"(a,i0)")"APER> ERROR Dump_aperture_xsecs. Could not open file unit '"//trim(xsec_filename(ixsec))//&
+        write(lerr,"(a,i0)")"APER> ERROR Dump_aperture_xsecs. Could not open file unit '"//trim(xsec_filename(ixsec))//&
           "' with unit ",xsecunit(ixsec)
-        call prror(-1)
+        call prror
      end if
      call f_open(unit=xsecunit(ixsec),file=xsec_filename(ixsec),formatted=.true.,mode='w',err=err)
      if(ierro .ne. 0) then
-        write(lout,"(2(a,i0))") "APER> ERROR Opening file '"//trim(xsec_filename(ixsec))//&
+        write(lerr,"(2(a,i0))") "APER> ERROR Opening file '"//trim(xsec_filename(ixsec))//&
           "' on unit # ",xsecunit(ixsec),", iostat = ",ierro
-        call prror(-1)
+        call prror
      end if
 
      ! loop over s-locations
      sLoc=sLocMin(ixsec)
      do while(sLoc.le.sLocMax(ixsec))
         call geom_findElemAtLoc( sLoc, .true., iEl, ixEl, lfound )
-        if(.not.lfound) call prror(-1)
+        if(.not.lfound) call prror
         ! get upstream aperture marker
         call find_closest_aperture(iEl,.true.,iApeUp,ixApeUp,lApeUp)
         if( iApeUp.eq.-1 .and. ixApeUp.eq.-1 ) then
-           write(lout,"(a)") "APER> ERROR Could not find upstream aperture marker"
-           call prror(-1)
+           write(lerr,"(a)") "APER> ERROR Could not find upstream aperture marker"
+           call prror
         end if
         ! get downstream aperture marker
         call find_closest_aperture(iEl,.false.,iApeDw,ixApeDw,lApeDw)
         if( iApeDw.eq.-1 .and. ixApeDw.eq.-1 ) then
-           write(lout,"(a)") "APER> ERROR Could not find downstream aperture marker"
-           call prror(-1)
+           write(lerr,"(a)") "APER> ERROR Could not find downstream aperture marker"
+           call prror
         end if
         ! interpolate and get aperture at desired location
         call interp_aperture( iApeUp, ixApeUp, iApeDw, ixApeDw, itmpape, tmpape, sLoc )
@@ -2624,7 +2678,7 @@ subroutine aper_parseLoadFile(load_file, iLine, iErr)
   call f_requestUnit(trim(load_file),loadunit)
   inquire(file=load_file, exist=lExist)
   if(.not.lexist) then
-    write(lout,"(a)") "LIMI> ERROR LOAD file '"//trim(load_file)//"' not found in the running folder."
+    write(lerr,"(a)") "LIMI> ERROR LOAD file '"//trim(load_file)//"' not found in the running folder."
     iErr = .true.
     return
   end if
@@ -2634,8 +2688,8 @@ subroutine aper_parseLoadFile(load_file, iLine, iErr)
 10 continue
   read(loadunit,"(a)",end=90,iostat=iErro) unitLine
   if(iErro > 0) then
-    write(lout,"(a,i0)") "LIMI> ERROR Could not read from unit ",loadunit
-    call prror(-1)
+    write(lerr,"(a,i0)") "LIMI> ERROR Could not read from unit ",loadunit
+    call prror
   end if
   lineNo = lineNo + 1
 
@@ -2647,15 +2701,15 @@ subroutine aper_parseLoadFile(load_file, iLine, iErr)
 
   call aper_parseInputLine(unitLine, iLine, iErr)
   if(iErr) then
-    write(lout,"(a)")      "LIMI> ERROR in external LIMI file."
-    write(lout,"(a,i0,a)") "LIMI> Line ",lineNo,": '"//trim(unitLine)//"'"
+    write(lerr,"(a)")      "LIMI> ERROR in external LIMI file."
+    write(lerr,"(a,i0,a)") "LIMI> Line ",lineNo,": '"//trim(unitLine)//"'"
     return
   end if
   goto 10
 
 90 continue
   write(lout,"(a,i0,a)") "LIMI> Read ",lineNo," lines from external file."
-  call f_close(loadunit)
+  call f_freeUnit(loadunit)
   return
 
 end subroutine aper_parseLoadFile
@@ -2680,7 +2734,7 @@ recursive subroutine aper_parseInputLine(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "LIMI> ERROR Failed to parse input line."
+    write(lerr,"(a)") "LIMI> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -2692,7 +2746,7 @@ recursive subroutine aper_parseInputLine(inLine, iLine, iErr)
     ! P.G.Ortega and A.Mereghetti, 02-03-2018
     ! Reading apertures from external file
     if(nSplit .ne. 2 ) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword LOAD. Expected 2, got ",nSplit
+      write(lerr,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword LOAD. Expected 2, got ",nSplit
       iErr = .true.
       return
     end if
@@ -2706,7 +2760,7 @@ recursive subroutine aper_parseInputLine(inLine, iLine, iErr)
     ! P.G.Ortega and A.Mereghetti, 02-03-2018
     ! flag for dumping the aperture model
     if(nSplit < 2 .and. nSplit > 3 ) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword PRIN. Expected 2 or 3, got ",nSplit
+      write(lerr,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword PRIN. Expected 2 or 3, got ",nSplit
       iErr = .true.
       return
     end if
@@ -2719,7 +2773,7 @@ recursive subroutine aper_parseInputLine(inLine, iLine, iErr)
       if(lnSPlit(3) == "MEM") then
         ldmpaperMem=.true.
       else
-        write(lout,"(a,a)") "LIMI> ERROR Unknown third argument to PRIN keyword: ",lnSPlit(3)
+        write(lerr,"(a,a)") "LIMI> ERROR Unknown third argument to PRIN keyword: ",lnSPlit(3)
         iErr = .true.
         return
       end if
@@ -2750,7 +2804,7 @@ recursive subroutine aper_parseInputLine(inLine, iLine, iErr)
     ! A.Mereghetti and P.Garcia Ortega, 02-03-2018
     ! set precision for back-tracking
     if(nSplit < 2) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword PREC. Expected 2, got ",nSplit
+      write(lerr,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword PREC. Expected 2, got ",nSplit
       iErr = .true.
       return
     end if
@@ -2766,7 +2820,7 @@ recursive subroutine aper_parseInputLine(inLine, iLine, iErr)
     write(lout,"(a)") "LIMI> Backtracking is on."
 
   case("XSEC")
-    write(lout,"(a)") "LIMI> ERROR Dump of aperture cross sections at specific locations are not available yet"
+    write(lerr,"(a)") "LIMI> ERROR Dump of aperture cross sections at specific locations are not available yet"
     iErr = .true.
     return
 
@@ -2774,14 +2828,14 @@ recursive subroutine aper_parseInputLine(inLine, iLine, iErr)
     ! ask for xsec at specific locations
     ! example input line:        XSEC myCrossSec.dat 12355.78 12356.78 0.1 180
     if(nSplit < 3) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword XSEC. Expected at least 3, got ",nSplit
+      write(lerr,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for keyword XSEC. Expected at least 3, got ",nSplit
       iErr = .true.
       return
     end if
 
     mxsec = mxsec + 1
     if(mxsec > nxsec) then
-      write(lout,"(2(a,i0))") "LIMI> ERROR Too many xsecs! Asked for ",mxsec,", but max is ",nxsec
+      write(lerr,"(2(a,i0))") "LIMI> ERROR Too many xsecs! Asked for ",mxsec,", but max is ",nxsec
       iErr = .true.
       return
     end if
@@ -2791,7 +2845,7 @@ recursive subroutine aper_parseInputLine(inLine, iLine, iErr)
     call f_requestUnit(xsec_filename(mxsec),xsecunit(mxsec))
 
     if(sLocMin(mxsec) < zero) then
-      write(lout,"(a)") "LIMI> ERROR Negative min s-value for xsecs!"
+      write(lerr,"(a)") "LIMI> ERROR Negative min s-value for xsecs!"
       iErr = .true.
       return
     end if
@@ -2799,7 +2853,7 @@ recursive subroutine aper_parseInputLine(inLine, iLine, iErr)
     if(nSplit > 3) then
       call chr_cast(lnSplit(4),sLocMax(mxsec),iErr)
       if (sLocMax(mxsec).lt.zero) then
-        write(lout,"(a)") "LIMI> ERROR Negative max s-value for xsecs!"
+        write(lerr,"(a)") "LIMI> ERROR Negative max s-value for xsecs!"
         iErr = .true.
         return
       end if
@@ -2877,13 +2931,13 @@ subroutine aper_parseElement(inLine, iElem, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "LIMI> ERROR Failed to parse element."
+    write(lerr,"(a)") "LIMI> ERROR Failed to parse element."
     iErr = .true.
     return
   end if
 
   if(nSplit < 2) then
-    write(lout,"(a)") "LIMI> ERROR Invalid entry."
+    write(lerr,"(a)") "LIMI> ERROR Invalid entry."
     iErr = .true.
     return
   end if
@@ -2894,7 +2948,7 @@ subroutine aper_parseElement(inLine, iElem, iErr)
 
   case(apeName(1)) ! Circle
     if(nSplit < 3) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(1)//&
+      write(lerr,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(1)//&
         "' aperture marker. Expected 3, got ",nSplit
       iErr = .true.
       return
@@ -2904,7 +2958,7 @@ subroutine aper_parseElement(inLine, iElem, iErr)
 
   case(apeName(2)) ! Rectangle
     if(nSplit < 4) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(2)//&
+      write(lerr,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(2)//&
         "' aperture marker. Expected 4, got ",nSplit
       iErr = .true.
       return
@@ -2915,7 +2969,7 @@ subroutine aper_parseElement(inLine, iElem, iErr)
 
   case(apeName(3)) ! Ellipse
     if(nSplit < 4) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(3)//&
+      write(lerr,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(3)//&
         "' aperture marker. Expected 4, got ",nSplit
       iErr = .true.
       return
@@ -2926,7 +2980,7 @@ subroutine aper_parseElement(inLine, iElem, iErr)
 
   case(apeName(4)) ! Rectellipse
     if(nSplit < 6) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(4)//&
+      write(lerr,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(4)//&
         "' aperture marker. Expected 6, got ",nSplit
       iErr = .true.
       return
@@ -2939,7 +2993,7 @@ subroutine aper_parseElement(inLine, iElem, iErr)
 
   case(apeName(5)) ! Octagon
     if(nSplit < 6) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(5)//&
+      write(lerr,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(5)//&
         "' aperture marker. Expected 6, got ",nSplit
       iErr = .true.
       return
@@ -2952,7 +3006,7 @@ subroutine aper_parseElement(inLine, iElem, iErr)
 
   case(apeName(6)) ! Racetrack
     if(nSplit < 5) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(6)//&
+      write(lerr,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(6)//&
         "' aperture marker. Expected 5, got ",nSplit
       iErr = .true.
       return
@@ -2970,7 +3024,7 @@ subroutine aper_parseElement(inLine, iElem, iErr)
 
   case(apeName(-1)) ! Transition
     if(nSplit < 10) then
-      write(lout,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(-1)//&
+      write(lerr,"(a,i0)") "LIMI> ERROR Wrong number of input parameters for the '"//apeName(-1)//&
         "' aperture marker. Expected 10, got ",nSplit
       iErr = .true.
       return
@@ -2986,7 +3040,7 @@ subroutine aper_parseElement(inLine, iElem, iErr)
     call aperture_initTR(iElem,tmpflts(1),tmpflts(2),tmpflts(3),tmpflts(4),tmpflts(5),tmpflts(6),tmpflts(7),tmpflts(8))
 
   case default
-    write(lout,"(a)") "LIMI> ERROR Aperture profile not identified for element '"//lnSplit(1)//"' value '"//lnSplit(2)//"'"
+    write(lerr,"(a)") "LIMI> ERROR Aperture profile not identified for element '"//lnSplit(1)//"' value '"//lnSplit(2)//"'"
     iErr = .true.
     return
 
@@ -3060,6 +3114,9 @@ subroutine aper_crcheck_readdata(fileunit, readerr)
 
 100 continue
   readerr = .true.
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in APERTURE"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in APERTURE"
+  flush(crlog)
 
 end subroutine aper_crcheck_readdata
 
@@ -3078,8 +3135,8 @@ subroutine aper_crcheck_positionFiles
   character(len=1024) arecord
 
   call f_requestUnit(losses_filename,losses_unit)
-  write(93,"(a,i0)") "SIXTRACR> CRCHECK REPOSITIONING file of APERTURE LOSSES to apefilepos_cr = ",apefilepos_cr
-  flush(93)
+  write(crlog,"(a,i0)") "CR_CHECK> Repositioning file of APERTURE LOSSES to position: ",apefilepos_cr
+  flush(crlog)
 
   inquire(unit=losses_unit, opened=lopen)
   if (.not. lopen) call f_open(unit=losses_unit,file=losses_filename,status='old',formatted=.true.,mode='rw',err=err)
@@ -3101,31 +3158,31 @@ subroutine aper_crcheck_positionFiles
   return
 
 111 continue
-  write(93,*) 'SIXTRACR> APER_CRCHECK_POSITIONFILE *** ERROR *** reading file of APERTURE LOSSES, iostat=',ierro
-  write(93,*) 'apefilepos=',apefilepos,' apefilepos_cr=',apefilepos_cr,' losses_unit=',losses_unit
-  flush(93)
-  write(lout,"(a)") "SIXTRACR> ERROR APER_CRCHECK_POSITIONFILES failure positioning file of APERTURE LOSSES"
-  call prror(-1)
+  write(crlog,"(1(a,i0))") "CR_CHECK> ERROR Failed positioning APERTURE LOSSES file, iostat: ",ierro
+  write(crlog,"(2(a,i0))") "CR_CHECK>       File position: ",apefilepos,", C/R position: ",apefilepos_cr
+  flush(crlog)
+  write(lerr,"(a)") "CR_CHECK> ERROR Failure positioning file of APERTURE LOSSES"
+  call prror
 
 end subroutine aper_crcheck_positionFiles
 
 ! ================================================================================================================================ !
-subroutine aper_crpoint(fileunit,lerror,ierro)
+subroutine aper_crpoint(fileunit,lerror)
 
   implicit none
 
-  integer, intent(in)    :: fileunit
-  logical, intent(inout) :: lerror
-  integer, intent(inout) :: ierro
+  integer, intent(in)  :: fileunit
+  logical, intent(out) :: lerror
 
-  write(fileUnit,err=100,iostat=ierro) apefilepos
-  endfile (fileunit,iostat=ierro)
-  backspace (fileunit,iostat=ierro)
+  write(fileUnit,err=100) apefilepos
+  flush(fileunit)
   return
 
 100 continue
   lerror = .true.
-  return
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in APERTURE"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in APERTURE"
+  flush(crlog)
 
 end subroutine aper_crpoint
 ! ================================================================================================================================ !

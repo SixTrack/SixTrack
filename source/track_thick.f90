@@ -23,7 +23,6 @@ subroutine trauthck(nthinerr)
   use collimation
   use mod_time
   use mod_units
-  use mod_hions
 
   use crcoall
   use parpro
@@ -42,7 +41,7 @@ subroutine trauthck(nthinerr)
   save
 
   if (do_coll) then
-    write(lout,"(a)") "TRACKING> ERROR Collimation is not supported for thick tracking"
+    write(lerr,"(a)") "TRACKING> ERROR Collimation is not supported for thick tracking"
     call prror
   endif
 
@@ -77,9 +76,8 @@ subroutine trauthck(nthinerr)
     if(kzz.eq.0) then
       ktrack(i)=31
       goto 290
-    else if(kzz.eq.12) then
+    else if(abs(kzz) == 12) then
       ! Disabled cavity; enabled cavities have kp=6 and are handled above
-      ! Note: kz=-12 is transformed into +12 in daten after reading ENDE.
       ktrack(i)=31
       goto 290
     end if
@@ -263,8 +261,8 @@ subroutine trauthck(nthinerr)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           if ( dynk_isused(i) ) then
-            write(lout,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
-              "') is off in fort.2, but on in DYNK. Not implemented."
+            write(lerr,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
+              "') is off in "//trim(fort2)//", but on in DYNK. Not implemented."
             call prror
           end if
           ktrack(i)=31
@@ -429,39 +427,35 @@ subroutine trauthck(nthinerr)
   do j=1,napx
     dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))                            !hr01
   end do
-  nwri=nwr(3)
-  if(nwri.eq.0) nwri=numl+numlr+1
-    ! A.Mereghetti, for the FLUKA Team
-    ! last modified: 17-07-2013
-    ! save original kicks
-    ! always in main code
-    if (dynk_enabled) call dynk_pretrack
-    call time_timeStamp(time_afterPreTrack)
 
-    if(idp.eq.0.or.ition.eq.0) then
-      write(lout,"(a)") ""
-      write(lout,"(a)") "TRACKING> Calling thck4d subroutine"
-      write(lout,"(a)") ""
-      call thck4d(nthinerr)
-    else
-      hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)                                 !hr01
+  if (dynk_enabled) call dynk_pretrack
+  call time_timeStamp(time_afterPreTrack)
 
-      do jj=1,nele
-        if(kz(jj).eq.12) hsyc(jj)=(c1m3*hsyc(jj))*real(itionc(jj),fPrec)     !hr01
-      end do
+  if(idp == 0 .or. ition == 0) then
+    write(lout,"(a)") ""
+    write(lout,"(a)") "TRACKING> Calling thck4d subroutine"
+    write(lout,"(a)") ""
+    call thck4d(nthinerr)
+  else
+    hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)                                 !hr01
 
-      if(abs(phas).ge.pieni) then
-        write(lout,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
-        call prror(-1)
-      else
-        write(lout,"(a)") ""
-        write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
-        write(lout,"(a)") ""
-        call thck6d(nthinerr)
+    do jj=1,nele
+      if(abs(kz(jj)) == 12) then
+        hsyc(jj) = (c1m3*hsyc(jj)) * real(sign(1,kz(jj)),kind=fPrec)
       end if
-    end if
+    end do
 
-  return
+    if(abs(phas) >= pieni) then
+      write(lerr,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
+      call prror
+    else
+      write(lout,"(a)") ""
+      write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
+      write(lout,"(a)") ""
+      call thck6d(nthinerr)
+    end if
+  end if
+
 end subroutine trauthck
 
 !-----------------------------------------------------------------------
@@ -494,7 +488,6 @@ subroutine thck4d(nthinerr)
 
   use mod_settings
   use mod_meta
-  use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -510,14 +503,18 @@ subroutine thck4d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
+
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
-    turnrep,kxxa
+    turnrep,kxxa,nfirst
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve,puxve1,puxve2,puzve1,puzve2,puzve,r0,xlvj,yv1j,   &
     yv2j,zlvj,acdipamp,qd,acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,  &
     dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,         &
-    sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp
+    sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp,xlv,zlv
 
   logical llost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
@@ -555,50 +552,36 @@ subroutine thck4d(nthinerr)
   end if
 
 #ifdef CR
-  if(restart) then
+  if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thick 4D restart numlcr = ",numlcr,", numl = ",numl
-    ! and now reset numl to do only numlmax turns
+    write(crlog,"(2(a,i0))") "TRACKING> Thick 4D restarting on turn ",cr_numl," / ",numl
   end if
-  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
-  ! and reset [n]numxv unless particle is lost
-  ! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-  do 490 n=numlcr,nnuml
+  nnuml  = numl
+  nfirst = cr_numl
 #else
-  do 490 n=1,numl
+  nfirst = 1
 #endif
+  do 490 n=nfirst,numl
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
-        write(lout,"(a,i8,a,i8)") "TRACKING> Thick 4D turn ",n," of ",numl
-        flush(lout)
+        call trackReport(n)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-#ifdef BOINC
-!   call boinc_sixtrack_progress(n,numl)
-    call boinc_fraction_done(dble(n)/dble(numl))
-    continue
-!   call graphic_progress(n,numl)
-#endif
-  numx=n-1
+    numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR
-    !  does not call CRPOINT if restart=.true.
-    !  (and note that writebin does nothing if restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call crpoint
+#endif
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -621,7 +604,7 @@ subroutine thck4d(nthinerr)
         if(ldumpfront) then
           write(lout,"(a)") "TRACKING> DUMP/FRONT not yet supported on thick elements "//&
             "due to lack of test cases. Please contact developers!"
-          call prror(-1)
+          call prror
         end if
 
       end if
@@ -651,7 +634,7 @@ subroutine thck4d(nthinerr)
               goto 475
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
-              call kernel_fluka_exit( n, i, ix )
+              call kernel_fluka_exit
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
@@ -676,7 +659,7 @@ subroutine thck4d(nthinerr)
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
                write(lout,"(a)") "BDEX> BDEX only available for thin6d"
-               call prror(-1)
+               call prror
             endif
 
 !----------count=43
@@ -1085,7 +1068,7 @@ subroutine thck4d(nthinerr)
       ! inserted in main code by the 'fluka' compilation flag
       if ( recompute_linear_matrices ) then
         ! after a FLUKA element: additional particles may have been generated
-        call envarsv(dpsv,moidpsv,rvv,ekv)
+        call envarsv
         recompute_linear_matrices = .false.
       else if ( llost ) then
         ! after any other element: no additional particles, thus update only momentum-dependent matrix elements
@@ -1160,7 +1143,6 @@ subroutine thck6d(nthinerr)
 
   use mod_meta
   use mod_settings
-  use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -1177,15 +1159,18 @@ subroutine thck6d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
 
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
-    turnrep,kxxa
+    turnrep,kxxa,nfirst
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve1,puxve2,puzve1,puzve2,r0,xlvj,yv1j,yv2j,zlvj,     &
     acdipamp,qd,acphase,acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,    &
     embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,   &
-    pyf,r_temp,z_temp,sigf,q_temp,pttemp
+    pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv
   logical llost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
@@ -1231,52 +1216,36 @@ subroutine thck6d(nthinerr)
 
 ! Now the outer loop over turns
 #ifdef CR
-  if (restart) then
+  if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thick 6D restart numlcr = ",numlcr,", numl = ",numl
-! and now reset numl to do only numlmax turns
+    write(crlog,"(2(a,i0))") "TRACKING> Thick 6D restarting on turn ",cr_numl," / ",numl
   end if
-  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
-! and reset [n]numxv unless particle is lost
-! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-  do 510 n=numlcr,nnuml
+  nnuml  = numl
+  nfirst = cr_numl
+#else
+  nfirst = 1
 #endif
-#ifndef CR
-  do 510 n=1,numl
-#endif
+  do 510 n=nfirst,numl
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
-        write(lout,"(a,i8,a,i8)") "TRACKING> Thick 6D turn ",n," of ",numl
-        flush(lout)
+        call trackReport(n)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-! To do a dump and abend
-#ifdef BOINC
-!   call boinc_sixtrack_progress(n,numl)
-    call boinc_fraction_done(dble(n)/dble(numl))
-    continue
-!   call graphic_progress(n,numl)
-#endif
     numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR
-!  does not call CRPOINT if restart=.true.
-!  (and note that writebin does nothing if restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call crpoint
+#endif
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -1297,7 +1266,7 @@ subroutine thck6d(nthinerr)
       end if
 
       if (ldumpfront) then
-        write(lout,"(a)") "DUMP> ERROR FRONT not yet supported on thick elements due to lack of test cases. "//&
+        write(lerr,"(a)") "DUMP> ERROR FRONT not yet supported on thick elements due to lack of test cases. "//&
           "Please contact developers!"
         call prror
       end if
@@ -1326,7 +1295,7 @@ subroutine thck6d(nthinerr)
               goto 495
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
-              call kernel_fluka_exit( n, i, ix )
+              call kernel_fluka_exit
               ! Re-compute transport matrices of linear elements, according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -1345,13 +1314,6 @@ subroutine thck6d(nthinerr)
           goto 500
         end if
       end if
-#endif
-
-#ifdef DEBUG
-!     if (i.ge.673) then
-!     call warr('xv12,i,ktrack ',xv1(2),i,ktrack(i),0,0)
-!     endif
-!     if (i.eq.676) stop
 #endif
 
             if (bdex_enable) then
@@ -1376,7 +1338,7 @@ subroutine thck6d(nthinerr)
         do j=1,napx
           ejf0v(j)=ejfv(j)
           if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
-          if(kz(ix).eq.12) then
+          if(abs(kz(ix)) == 12) then
             ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
           else
             ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
@@ -1811,7 +1773,7 @@ subroutine thck6d(nthinerr)
       ! inserted in main code by the 'fluka' compilation flag
       if ( recompute_linear_matrices ) then
         ! after a FLUKA element: additional particles may have been generated
-        call envarsv(dpsv,moidpsv,rvv,ekv)
+        call envarsv
         recompute_linear_matrices = .false.
       else if ( llost ) then
         ! after any other element: no additional particles, thus update only momentum-dependent matrix elements
@@ -1887,35 +1849,32 @@ subroutine synuthck
   use mod_common_da
   implicit none
   integer ih1,ih2,j,kz1,l
-  real(kind=fPrec) fokm
+  real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23,as3,as4,as6,g,gl,rhoc,siq,aek,hi,  &
+    fi,hi1,hp,hm,hc,hs,wf,afok,wfa,wfhi,rhoi,fokq
+
   save
-!---------------------------------------  SUBROUTINE 'ENVARS' IN-LINE
-#ifdef CR
-  sythckcr=.true.
-#endif
-  do 10 j=1,napx
-    dpd(j)=one+dpsv(j)
-    dpsq(j)=sqrt(dpd(j))
-10 continue
+
+  do j=1,napx
+    dpd(j)  = one+dpsv(j)
+    dpsq(j) = sqrt(dpd(j))
+  end do
+
   do 160 l=1,il
     if(abs(el(l)).le.pieni) goto 160
     kz1=kz(l)+1
-!       goto(20,40,80,60,40,60,100,100,140),kz1
-!       goto 160
-!Eric
 !-----------------------------------------------------------------------
 !  DRIFTLENGTH
 !-----------------------------------------------------------------------
-    if (kz1.eq.1) then
+    if(kz1 == 1) then
       goto 20
 !-----------------------------------------------------------------------
 !  RECTANGULAR MAGNET
 !  HORIZONTAL
 !-----------------------------------------------------------------------
-    elseif (kz1.eq.2.or.kz1.eq.5) then
-40     fokm=el(l)*ed(l)
-      if(abs(fokm).le.pieni) goto 20
-      if(kz1.eq.2) then
+    elseif(kz1 == 2 .or. kz1 == 5) then
+40    fokm=el(l)*ed(l)
+      if(abs(fokm) <= pieni) goto 20
+      if(kz1 == 2) then
         ih1=1
         ih2=2
       else
@@ -1923,281 +1882,284 @@ subroutine synuthck
         ih1=2
         ih2=1
       endif
-      do 50 j=1,napx
-        fok(j)=fokm/dpsq(j)
-        rho(j)=(one/ed(l))*dpsq(j)
-        fok1(j)=(tan_mb(fok(j)*half))/rho(j)
-        si(j)=sin_mb(fok(j))
-        co(j)=cos_mb(fok(j))
-        al(2,ih1,j,l)=rho(j)*si(j)
-        al(5,ih1,j,l)=((-one*dpsv(j))*((rho(j)*(one-co(j)))/dpsq(j)))*c1e3
-        al(6,ih1,j,l)=((-one*dpsv(j))*((two*tan_mb(fok(j)*half))/dpsq(j)))*c1e3         !hr01
-        sm1(j)=cos_mb(fok(j))
-        sm2(j)=sin_mb(fok(j))*rho(j)
-        sm3(j)=-sin_mb(fok(j))/rho(j)
-        sm12(j)=el(l)-sm1(j)*sm2(j)
-        sm23(j)=sm2(j)*sm3(j)
-        as3(j)=(-one*rvv(j))*(((dpsv(j)*rho(j))/(two*dpsq(j)))*sm23(j)-(rho(j)*dpsq(j))*(one-sm1(j)))
-        as4(j)=((-one*rvv(j))*sm23(j))/c2e3                          !hr01
-        as6(j)=((-one*rvv(j))*(el(l)+sm1(j)*sm2(j)))/c4e3            !hr01
-        as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-sm2(j))))*c1e3
-        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/((two*rho(j))*dpsq(j)))* sm12(j)-(sm2(j)*dpsq(j))/rho(j))+fok1(j)*as3(j)
-        as(3,ih1,j,l)=as3(j)
-        as(4,ih1,j,l)=as4(j)+(two*as6(j))*fok1(j)                    !hr01
-        as(5,ih1,j,l)=((-one*rvv(j))*sm12(j))/(c4e3*rho(j)**2)+as6(j)*fok1(j)**2+fok1(j)*as4(j)
-        as(6,ih1,j,l)=as6(j)
+      do j=1,napx
+        fok  = fokm/dpsq(j)
+        rho  = (one/ed(l))*dpsq(j)
+        fok1 = (tan_mb(fok*half))/rho
+        si   = sin_mb(fok)
+        co   = cos_mb(fok)
+        al(2,ih1,j,l) = rho*si
+        al(5,ih1,j,l) = ((-one*dpsv(j))*((rho*(one-co))/dpsq(j)))*c1e3
+        al(6,ih1,j,l) = ((-one*dpsv(j))*((two*tan_mb(fok*half))/dpsq(j)))*c1e3
+
+        sm1  = cos_mb(fok)
+        sm2  = sin_mb(fok)*rho
+        sm3  = -sin_mb(fok)/rho
+        sm12 = el(l)-sm1*sm2
+        sm23 = sm2*sm3
+        as3  = (-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23-(rho*dpsq(j))*(one-sm1))
+        as4  = ((-one*rvv(j))*sm23)/c2e3
+        as6  = ((-one*rvv(j))*(el(l)+sm1*sm2))/c4e3
+        as(1,ih1,j,l) = (el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12+dpsv(j)*(el(l)-sm2)))*c1e3
+        as(2,ih1,j,l) = (-one*rvv(j))*((dpsv(j)/((two*rho)*dpsq(j)))* sm12-(sm2*dpsq(j))/rho)+fok1*as3
+        as(3,ih1,j,l) = as3
+        as(4,ih1,j,l) = as4+(two*as6)*fok1
+        as(5,ih1,j,l) = ((-one*rvv(j))*sm12)/(c4e3*rho**2)+as6*fok1**2+fok1*as4
+        as(6,ih1,j,l) = as6
 !--VERTIKAL
-        g(j)=tan_mb(fok(j)*half)/rho(j)
-        gl(j)=el(l)*g(j)
-        al(1,ih2,j,l)=one-gl(j)
-        al(3,ih2,j,l)=(-one*g(j))*(two-gl(j))                        !hr01
-        al(4,ih2,j,l)=al(1,ih2,j,l)
-        as6(j)=((-one*rvv(j))*al(2,ih2,j,l))/c2e3                    !hr01
-        as(4,ih2,j,l)=((-one*two)*as6(j))*fok1(j)                    !hr01
-        as(5,ih2,j,l)=(as6(j)*fok1(j))*fok1(j)                       !hr01
-        as(6,ih2,j,l)=as6(j)
-50     continue
+        g  = tan_mb(fok*half)/rho
+        gl = el(l)*g
+        al(1,ih2,j,l) = one-gl
+        al(3,ih2,j,l) = (-one*g)*(two-gl)
+        al(4,ih2,j,l) = al(1,ih2,j,l)
+        as6 = ((-one*rvv(j))*al(2,ih2,j,l))/c2e3
+        as(4,ih2,j,l) = ((-one*two)*as6)*fok1
+        as(5,ih2,j,l) = (as6*fok1)*fok1
+        as(6,ih2,j,l) = as6
+      end do
       goto 160
-    elseif (kz1.eq.4.or.kz1.eq.6) then
+    elseif(kz1 == 4 .or. kz1 == 6) then
 !-----------------------------------------------------------------------
 !  SEKTORMAGNET
 !  HORIZONTAL
 !-----------------------------------------------------------------------
-60     fokm=el(l)*ed(l)
-      if(abs(fokm).le.pieni) goto 20
-      if(kz1.eq.4) then
-        ih1=1
-        ih2=2
+60    fokm=el(l)*ed(l)
+      if(abs(fokm) <= pieni) goto 20
+      if(kz1 == 4) then
+        ih1 = 1
+        ih2 = 2
       else
 !  SECTOR MAGNET VERTICAL
-        ih1=2
-        ih2=1
-      endif
-      do 70 j=1,napx
-        fok(j)=fokm/dpsq(j)
-        rho(j)=(one/ed(l))*dpsq(j)
-        si(j)=sin_mb(fok(j))
-        co(j)=cos_mb(fok(j))
-        rhoc(j)=(rho(j)*(one-co(j)))/dpsq(j)                         !hr01
-        siq(j)=si(j)/dpsq(j)
-        al(1,ih1,j,l)=co(j)
-        al(2,ih1,j,l)=rho(j)*si(j)
-        al(3,ih1,j,l)=(-one*si(j))/rho(j)                            !hr01
-        al(4,ih1,j,l)=co(j)
-        al(5,ih1,j,l)=((-one*dpsv(j))*rhoc(j))*c1e3                  !hr01
-        al(6,ih1,j,l)=((-one*dpsv(j))*siq(j))*c1e3                   !hr01
-        sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
-        sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
-        as(1,ih1,j,l)=(el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l))))*c1e3
-        as(2,ih1,j,l)=(-one*rvv(j))*((dpsv(j)/(two*rho(j)*dpsq(j)))*sm12(j)-dpd(j)*siq(j))
-        as(3,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*rho(j))/(two*dpsq(j)))*sm23(j)-dpd(j)*rhoc(j))
-        as(4,ih1,j,l)=((-one*rvv(j))*sm23(j))/c2e3                   !hr01
-        as(5,ih1,j,l)=((-one*rvv(j))*sm12(j))/((c4e3*rho(j))*rho(j)) !hr01
-        as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
+        ih1 = 2
+        ih2 = 1
+      end if
+      do j=1,napx
+        fok  = fokm/dpsq(j)
+        rho  = (one/ed(l))*dpsq(j)
+        si   = sin_mb(fok)
+        co   = cos_mb(fok)
+        rhoc = (rho*(one-co))/dpsq(j)
+        siq  = si/dpsq(j)
+        al(1,ih1,j,l) = co
+        al(2,ih1,j,l) = rho*si
+        al(3,ih1,j,l) = (-one*si)/rho
+        al(4,ih1,j,l) = co
+        al(5,ih1,j,l) = ((-one*dpsv(j))*rhoc)*c1e3
+        al(6,ih1,j,l) = ((-one*dpsv(j))*siq)*c1e3
+
+        sm12 = el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
+        sm23 = al(2,ih1,j,l)*al(3,ih1,j,l)
+        as(1,ih1,j,l) = (el(l)*(one-rvv(j))-rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12+dpsv(j)*(el(l)-al(2,ih1,j,l))))*c1e3
+        as(2,ih1,j,l) = (-one*rvv(j))*((dpsv(j)/(two*rho*dpsq(j)))*sm12-dpd(j)*siq)
+        as(3,ih1,j,l) = (-one*rvv(j))*(((dpsv(j)*rho)/(two*dpsq(j)))*sm23-dpd(j)*rhoc)
+        as(4,ih1,j,l) = ((-one*rvv(j))*sm23)/c2e3
+        as(5,ih1,j,l) = ((-one*rvv(j))*sm12)/((c4e3*rho)*rho)
+        as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
 !--VERTIKAL
-        as(6,ih2,j,l)=((-one*rvv(j))*al(2,ih2,j,l))/c2e3             !hr01
-70     continue
+        as(6,ih2,j,l) = ((-one*rvv(j))*al(2,ih2,j,l))/c2e3
+      end do
       goto 160
-    elseif (kz1.eq.3) then
+    elseif(kz1 == 3) then
 !-----------------------------------------------------------------------
 !  QUADRUPOLE
 !  FOCUSSING
 !-----------------------------------------------------------------------
-80   do 90 j=1,napx
-        fok(j)=ekv(j,l)*oidpsv(j)
-        aek(j)=abs(fok(j))
-        hi(j)=sqrt(aek(j))
-        fi(j)=el(l)*hi(j)
-        if(fok(j).le.zero) then
-          al(1,1,j,l)=cos_mb(fi(j))
-          hi1(j)=sin_mb(fi(j))
-          if(abs(hi(j)).le.pieni) then
-            al(2,1,j,l)=el(l)
+80   do j=1,napx
+        fok = ek(l)*oidpsv(j)
+        aek = abs(fok)
+        hi  = sqrt(aek)
+        fi  = el(l)*hi
+        if(fok <= zero) then
+          al(1,1,j,l) = cos_mb(fi)
+          hi1 = sin_mb(fi)
+          if(abs(hi) <= pieni) then
+            al(2,1,j,l) = el(l)
           else
-            al(2,1,j,l)=hi1(j)/hi(j)
+            al(2,1,j,l) = hi1/hi
           endif
-          al(3,1,j,l)=-hi1(j)*hi(j)
-          al(4,1,j,l)=al(1,1,j,l)
-          as(1,1,j,l)=el(l)*(one-rvv(j))*c1e3
-          as(4,1,j,l)=(((-one*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3
-          as(5,1,j,l)=(((-one*rvv(j))*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*aek(j))/c4e3
-          as(6,1,j,l)=((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3
+          al(3,1,j,l) = -hi1*hi
+          al(4,1,j,l) = al(1,1,j,l)
+          as(1,1,j,l) = el(l)*(one-rvv(j))*c1e3
+          as(4,1,j,l) = (((-one*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3
+          as(5,1,j,l) = (((-one*rvv(j))*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*aek)/c4e3
+          as(6,1,j,l) = ((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3
 !--DEFOCUSSING
-          hp(j)=exp_mb(fi(j))
-          hm(j)=one/hp(j)
-          hc(j)=(hp(j)+hm(j))*half
-          hs(j)=(hp(j)-hm(j))*half
-          al(1,2,j,l)=hc(j)
-          if(abs(hi(j)).le.pieni) then
-            al(2,2,j,l)=el(l)
+          hp = exp_mb(fi)
+          hm = one/hp
+          hc = (hp+hm)*half
+          hs = (hp-hm)*half
+          al(1,2,j,l) = hc
+          if(abs(hi) <= pieni) then
+            al(2,2,j,l) = el(l)
           else
-            al(2,2,j,l)=hs(j)/hi(j)
+            al(2,2,j,l) = hs/hi
           endif
-          al(3,2,j,l)=hs(j)*hi(j)
-          al(4,2,j,l)=hc(j)
-          as(4,2,j,l)=(((-one*rvv(j))*al(2,2,j,l))*al(3,2,j,l))/c2e3
-          as(5,2,j,l)=((rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek(j))/c4e3
-          as(6,2,j,l)=((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3
+          al(3,2,j,l) = hs*hi
+          al(4,2,j,l) = hc
+          as(4,2,j,l) = (((-one*rvv(j))*al(2,2,j,l))*al(3,2,j,l))/c2e3
+          as(5,2,j,l) = ((rvv(j)*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek)/c4e3
+          as(6,2,j,l) = ((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3
         else
-          al(1,2,j,l)=cos_mb(fi(j))
-          hi1(j)=sin_mb(fi(j))
-          if(abs(hi(j)).le.pieni) then
-            al(2,2,j,l)=el(l)
+          al(1,2,j,l) = cos_mb(fi)
+          hi1 = sin_mb(fi)
+          if(abs(hi) <= pieni) then
+            al(2,2,j,l) = el(l)
           else
-            al(2,2,j,l)=hi1(j)/hi(j)
+            al(2,2,j,l) = hi1/hi
           endif
-          al(3,2,j,l)=(-one*hi1(j))*hi(j)                            !hr01
-          al(4,2,j,l)=al(1,2,j,l)
-          as(1,2,j,l)=(el(l)*(one-rvv(j)))*c1e3                      !hr01
-          as(4,2,j,l)=(((-one*rvv(j))*al(2,2,j,l))*al(3,2,j,l))/c2e3 !hr01
-          as(5,2,j,l)=(((-one*rvv(j))*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek(j))/c4e3
-          as(6,2,j,l)=((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3 !hr01
+          al(3,2,j,l) = (-one*hi1)*hi
+          al(4,2,j,l) = al(1,2,j,l)
+          as(1,2,j,l) = (el(l)*(one-rvv(j)))*c1e3
+          as(4,2,j,l) = (((-one*rvv(j))*al(2,2,j,l))*al(3,2,j,l))/c2e3
+          as(5,2,j,l) = (((-one*rvv(j))*(el(l)-al(1,2,j,l)*al(2,2,j,l)))*aek)/c4e3
+          as(6,2,j,l) = ((-one*rvv(j))*(el(l)+al(1,2,j,l)*al(2,2,j,l)))/c4e3
 !--DEFOCUSSING
-          hp(j)=exp_mb(fi(j))
-          hm(j)=one/hp(j)
-          hc(j)=(hp(j)+hm(j))*half
-          hs(j)=(hp(j)-hm(j))*half
-          al(1,1,j,l)=hc(j)
-          if(abs(hi(j)).le.pieni) then
-            al(2,1,j,l)=el(l)
+          hp = exp_mb(fi)
+          hm = one/hp
+          hc = (hp+hm)*half
+          hs = (hp-hm)*half
+          al(1,1,j,l) = hc
+          if(abs(hi) <= pieni) then
+            al(2,1,j,l) = el(l)
           else
-            al(2,1,j,l)=hs(j)/hi(j)
+            al(2,1,j,l) = hs/hi
           endif
-          al(3,1,j,l)=hs(j)*hi(j)
-          al(4,1,j,l)=hc(j)
-          as(4,1,j,l)=(((-one*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3 !hr01
-          as(5,1,j,l)=((rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*aek(j))/c4e3
-          as(6,1,j,l)=((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3 !hr01
+          al(3,1,j,l) = hs*hi
+          al(4,1,j,l) = hc
+          as(4,1,j,l) = (((-one*rvv(j))*al(2,1,j,l))*al(3,1,j,l))/c2e3
+          as(5,1,j,l) = ((rvv(j)*(el(l)-al(1,1,j,l)*al(2,1,j,l)))*aek)/c4e3
+          as(6,1,j,l) = ((-one*rvv(j))*(el(l)+al(1,1,j,l)*al(2,1,j,l)))/c4e3
         endif
-90     continue
+      end do
       goto 160
-    elseif (kz1.eq.7.or.kz1.eq.8) then
+    elseif(kz1 == 7 .or. kz1 == 8) then
 !-----------------------------------------------------------------------
 !  COMBINED FUNCTION MAGNET HORIZONTAL
 !  FOCUSSING
 !-----------------------------------------------------------------------
-100     if(kz1.eq.7) then
-        do 110 j=1,napx
-          fokqv(j)=ekv(j,l)
-110       continue
-        ih1=1
-        ih2=2
+100   if(kz1 == 7) then
+        fokq = ek(l)
+        ih1  = 1
+        ih2  = 2
       else
 !  COMBINED FUNCTION MAGNET VERTICAL
-        do 120 j=1,napx
-          fokqv(j)=-ekv(j,l)
-120       continue
-        ih1=2
-        ih2=1
-      endif
-      do 130 j=1,napx
-        wf(j)=ed(l)/dpsq(j)
-        fok(j)=fokqv(j)/dpd(j)-wf(j)**2                              !hr01
-        afok(j)=abs(fok(j))
-        hi(j)=sqrt(afok(j))
-        fi(j)=hi(j)*el(l)
-        if(afok(j).le.pieni) then
-          as(6,1,j,l)=((-one*rvv(j))*el(l))/c2e3                     !hr01
-          as(6,2,j,l)=as(6,1,j,l)
-          as(1,1,j,l)=(el(l)*(one-rvv(j)))*c1e3                      !hr01
-        endif
-        if(fok(j).lt.(-one*pieni)) then                              !hr06
-          si(j)=sin_mb(fi(j))
-          co(j)=cos_mb(fi(j))
-          wfa(j)=((wf(j)/afok(j))*(one-co(j)))/dpsq(j)               !hr01
-          wfhi(j)=((wf(j)/hi(j))*si(j))/dpsq(j)                      !hr01
-          al(1,ih1,j,l)=co(j)
-          al(2,ih1,j,l)=si(j)/hi(j)
-          al(3,ih1,j,l)=(-one*si(j))*hi(j)                           !hr01
-          al(4,ih1,j,l)=co(j)
-          al(5,ih1,j,l)=((-one*wfa(j))*dpsv(j))*c1e3                 !hr01
-          al(6,ih1,j,l)=((-one*wfhi(j))*dpsv(j))*c1e3                !hr01
-          sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
-          sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
-          as(1,ih1,j,l)=(el(l)*(one-rvv(j))-((rvv(j)*((dpsv(j)**2/(four*dpd(j)))&
-            *sm12(j)+dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf(j)**2)*c1e3
-          as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf(j))/(two*dpsq(j)))*sm12(j)-dpd(j)*wfhi(j))
-          as(3,ih1,j,l)=(-one*rvv(j))*(((((dpsv(j)*half)/afok(j))/dpd(j))*ed(l))*sm23(j)-dpd(j)*wfa(j))
-          as(4,ih1,j,l)=((-one*rvv(j))*sm23(j))/c2e3
-          as(5,ih1,j,l)=(((-one*rvv(j))*sm12(j))*afok(j))/c4e3
-          as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
-          aek(j)=abs(ekv(j,l)/dpd(j))
-          hi(j)=sqrt(aek(j))
-          fi(j)=hi(j)*el(l)
-          hp(j)=exp_mb(fi(j))
-          hm(j)=one/hp(j)
-          hc(j)=(hp(j)+hm(j))*half
-          hs(j)=(hp(j)-hm(j))*half
-          al(1,ih2,j,l)=hc(j)
-          if(abs(hi(j)).gt.pieni) al(2,ih2,j,l)=hs(j)/hi(j)
-          al(3,ih2,j,l)=hs(j)*hi(j)
-          al(4,ih2,j,l)=hc(j)
-          as(4,ih2,j,l)=(((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3
-          as(5,ih2,j,l)=((rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*aek(j))/c4e3
-          as(6,ih2,j,l)=((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
-        endif
+        fokq = -ek(l)
+        ih1  = 2
+        ih2  = 1
+      end if
+      do j=1,napx
+        wf   = ed(l)/dpsq(j)
+        fok  = fokq/dpd(j)-wf**2
+        afok = abs(fok)
+        hi   = sqrt(afok)
+        fi   = hi*el(l)
+        if(afok <= pieni) then
+          as(6,1,j,l) = ((-one*rvv(j))*el(l))/c2e3
+          as(6,2,j,l) = as(6,1,j,l)
+          as(1,1,j,l) = (el(l)*(one-rvv(j)))*c1e3
+        end if
+        if(fok < (-one*pieni)) then
+          si   = sin_mb(fi)
+          co   = cos_mb(fi)
+          wfa  = ((wf/afok)*(one-co))/dpsq(j)
+          wfhi = ((wf/hi)*si)/dpsq(j)
+          al(1,ih1,j,l) = co
+          al(2,ih1,j,l) = si/hi
+          al(3,ih1,j,l) = (-one*si)*hi
+          al(4,ih1,j,l) = co
+          al(5,ih1,j,l) = ((-one*wfa)*dpsv(j))*c1e3
+          al(6,ih1,j,l) = ((-one*wfhi)*dpsv(j))*c1e3
+
+          sm12 = el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
+          sm23 = al(2,ih1,j,l)*al(3,ih1,j,l)
+          as(1,ih1,j,l) = (el(l)*(one-rvv(j))-((rvv(j)*((dpsv(j)**2/(four*dpd(j)))&
+            *sm12+dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok)*wf**2)*c1e3
+          as(2,ih1,j,l) = (-one*rvv(j))*(((dpsv(j)*wf)/(two*dpsq(j)))*sm12-dpd(j)*wfhi)
+          as(3,ih1,j,l) = (-one*rvv(j))*(((((dpsv(j)*half)/afok)/dpd(j))*ed(l))*sm23-dpd(j)*wfa)
+          as(4,ih1,j,l) = ((-one*rvv(j))*sm23)/c2e3
+          as(5,ih1,j,l) = (((-one*rvv(j))*sm12)*afok)/c4e3
+          as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
+
+          aek = abs(ek(l)/dpd(j))
+          hi  = sqrt(aek)
+          fi  = hi*el(l)
+          hp  = exp_mb(fi)
+          hm  = one/hp
+          hc  = (hp+hm)*half
+          hs  = (hp-hm)*half
+          al(1,ih2,j,l) = hc
+          if(abs(hi) > pieni) al(2,ih2,j,l) = hs/hi
+          al(3,ih2,j,l) = hs*hi
+          al(4,ih2,j,l) = hc
+          as(4,ih2,j,l) = (((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3
+          as(5,ih2,j,l) = ((rvv(j)*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*aek)/c4e3
+          as(6,ih2,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
+        end if
 !--DEFOCUSSING
-        if(fok(j).gt.pieni) then
-          hp(j)=exp_mb(fi(j))
-          hm(j)=one/hp(j)
-          hc(j)=(hp(j)+hm(j))*half
-          hs(j)=(hp(j)-hm(j))*half
-          al(1,ih1,j,l)=hc(j)
-          al(2,ih1,j,l)=hs(j)/hi(j)
-          al(3,ih1,j,l)=hs(j)*hi(j)
-          al(4,ih1,j,l)=hc(j)
-          wfa(j)=((wf(j)/afok(j))*(one-hc(j)))/dpsq(j)               !hr01
-          wfhi(j)=((wf(j)/hi(j))*hs(j))/dpsq(j)                      !hr01
-          al(5,ih1,j,l)= (wfa(j)*dpsv(j))*c1e3                       !hr01
-          al(6,ih1,j,l)=((-one*wfhi(j))*dpsv(j))*c1e3                !hr01
-          sm12(j)=el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
-          sm23(j)=al(2,ih1,j,l)*al(3,ih1,j,l)
-          as(1,ih1,j,l)=(((rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12(j)&
-            +dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok(j))*wf(j)**2+el(l)*(one-rvv(j)))*c1e3
-          as(2,ih1,j,l)=(-one*rvv(j))*(((dpsv(j)*wf(j))/(two*dpsq(j)))*sm12(j)-dpd(j)*wfhi(j))
-          as(3,ih1,j,l)=rvv(j)*(((((dpsv(j)*half)/afok(j))/dpd(j))* ed(l))*sm23(j)-dpd(j)*wfa(j))
-          as(4,ih1,j,l)=((-one*rvv(j))*sm23(j))/c2e3                 !hr01
-          as(5,ih1,j,l)=((rvv(j)*sm12(j))*afok(j))/c4e3              !hr01
-          as(6,ih1,j,l)=((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
-          aek(j)=abs(ekv(j,l)/dpd(j))
-          hi(j)=sqrt(aek(j))
-          fi(j)=hi(j)*el(l)
-          si(j)=sin_mb(fi(j))
-          co(j)=cos_mb(fi(j))
-          al(1,ih2,j,l)=co(j)
-          al(2,ih2,j,l)=si(j)/hi(j)
-          al(3,ih2,j,l)=(-one*si(j))*hi(j)                           !hr01
-          al(4,ih2,j,l)=co(j)
-          as(4,ih2,j,l)=(((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3 !hr01
-          as(5,ih2,j,l)=(((-one*rvv(j))*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*aek(j))/c4e3
-          as(6,ih2,j,l)=((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
-        endif
-130     continue
+        if(fok > pieni) then
+          hp = exp_mb(fi)
+          hm = one/hp
+          hc = (hp+hm)*half
+          hs = (hp-hm)*half
+          al(1,ih1,j,l) = hc
+          al(2,ih1,j,l) = hs/hi
+          al(3,ih1,j,l) = hs*hi
+          al(4,ih1,j,l) = hc
+
+          wfa  = ((wf/afok)*(one-hc))/dpsq(j)
+          wfhi = ((wf/hi)*hs)/dpsq(j)
+          al(5,ih1,j,l) = (wfa*dpsv(j))*c1e3
+          al(6,ih1,j,l) = ((-one*wfhi)*dpsv(j))*c1e3
+
+          sm12 = el(l)-al(1,ih1,j,l)*al(2,ih1,j,l)
+          sm23 = al(2,ih1,j,l)*al(3,ih1,j,l)
+          as(1,ih1,j,l) = (((rvv(j)*((dpsv(j)**2/(four*dpd(j)))*sm12&
+            +dpsv(j)*(el(l)-al(2,ih1,j,l))))/afok)*wf**2+el(l)*(one-rvv(j)))*c1e3
+          as(2,ih1,j,l) = (-one*rvv(j))*(((dpsv(j)*wf)/(two*dpsq(j)))*sm12-dpd(j)*wfhi)
+          as(3,ih1,j,l) = rvv(j)*(((((dpsv(j)*half)/afok)/dpd(j))* ed(l))*sm23-dpd(j)*wfa)
+          as(4,ih1,j,l) = ((-one*rvv(j))*sm23)/c2e3
+          as(5,ih1,j,l) = ((rvv(j)*sm12)*afok)/c4e3
+          as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
+
+          aek = abs(ek(l)/dpd(j))
+          hi  = sqrt(aek)
+          fi  = hi*el(l)
+          si  = sin_mb(fi)
+          co  = cos_mb(fi)
+          al(1,ih2,j,l) = co
+          al(2,ih2,j,l) = si/hi
+          al(3,ih2,j,l) = (-one*si)*hi
+          al(4,ih2,j,l) = co
+          as(4,ih2,j,l) = (((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3 !hr01
+          as(5,ih2,j,l) = (((-one*rvv(j))*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*aek)/c4e3
+          as(6,ih2,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
+        end if
+      end do
       goto 160
-    elseif (kz1.eq.9) then
+    elseif(kz1 == 9) then
 !-----------------------------------------------------------------------
 !  EDGE FOCUSSING
 !-----------------------------------------------------------------------
-140     do 150 j=1,napx
-        rhoi(j)=ed(l)/dpsq(j)
-        fok(j)=rhoi(j)*tan_mb((el(l)*rhoi(j))*half)                  !hr01
-        al(3,1,j,l)=fok(j)
-        al(3,2,j,l)=-fok(j)
-150     continue
+140   do j=1,napx
+        rhoi = ed(l)/dpsq(j)
+        fok  = rhoi*tan_mb((el(l)*rhoi)*half)                  !hr01
+        al(3,1,j,l) = fok
+        al(3,2,j,l) = -fok
+      end do
       goto 160
     else
 !Eric
 ! Is really an error but old code went to 160
       goto 160
-    endif
+    end if
 !-----------------------------------------------------------------------
 !  DRIFTLENGTH
 !-----------------------------------------------------------------------
-20   do 30 j=1,napx
-      as(6,1,j,l)=((-one*rvv(j))*el(l))/c2e3                         !hr01
-      as(6,2,j,l)=as(6,1,j,l)
-      as(1,1,j,l)=(el(l)*(one-rvv(j)))*c1e3                          !hr01
-30   continue
+20  do j=1,napx
+      as(6,1,j,l) = ((-one*rvv(j))*el(l))/c2e3                         !hr01
+      as(6,2,j,l) = as(6,1,j,l)
+      as(1,1,j,l) = (el(l)*(one-rvv(j)))*c1e3                          !hr01
+    end do
 160 continue
 !---------------------------------------  END OF 'ENVARS' (2)
   return

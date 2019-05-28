@@ -67,7 +67,6 @@ end subroutine part_applyClosedOrbit
 ! ================================================================================================ !
 subroutine part_updateRefEnergy(refEnergy)
 
-  use mod_hions
   use mod_common
   use mod_common_main
   use numerical_constants, only : one, c1m6
@@ -91,12 +90,12 @@ subroutine part_updateRefEnergy(refEnergy)
   gammar = nucm0/e0
   betrel = sqrt((one+gammar)*(one-gammar))
   brho   = (e0f/(clight*c1m6))/zz0
-  
+
   ! Also update sigmv with the new beta0 = e0f/e0
   sigmv(1:napx) = ((e0f*e0o)/(e0fo*e0))*sigmv(1:napx)
 
   if(e0 <= pieni) then
-    write(lout,"(a)") "PART> ERROR Reference energy ~= 0"
+    write(lerr,"(a)") "PART> ERROR Reference energy ~= 0"
     call prror
   end if
 
@@ -111,7 +110,6 @@ end subroutine part_updateRefEnergy
 ! ================================================================================================ !
 subroutine part_updatePartEnergy(refArray,updateAngle)
 
-  use mod_hions
   use mod_common
   use mod_common_track
   use mod_common_main
@@ -125,7 +123,7 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
   logical :: doUpdateAngle = .false.
 
   !if(part_isTracking .and. refArray /= 1) then
-  !  write(lout,"(a)") "PART> ERROR During tracking, only energy updates are allowed in part_updatePartEnergy."
+  !  write(lerr,"(a)") "PART> ERROR During tracking, only energy updates are allowed in part_updatePartEnergy."
   !  call prror
   !end if
 
@@ -149,16 +147,17 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
     ejfv(1:napx) = ((nucm(1:napx)/nucm0)*(dpsv(1:napx)+one))*e0f ! Momentum [MeV/c]
     ejv(1:napx)  = sqrt(ejfv(1:napx)**2 + nucm(1:napx)**2)       ! Energy [MeV]
   case default
-    write(lout,"(a)") "PART> ERROR Internal error in part_updatePartEnergy"
+    write(lerr,"(a)") "PART> ERROR Internal error in part_updatePartEnergy"
     call prror
   end select
 
   ! Modify the Energy Dependent Arrays
+  ! Keep in sync with checpoint/restart crstart
   dpsv1(1:napx)    = (dpsv(1:napx)*c1e3)/(one + dpsv(1:napx))
   dpd(1:napx)      = one + dpsv(1:napx)                      ! For thick tracking
   dpsq(1:napx)     = sqrt(dpd(1:napx))                       ! For thick tracking
   oidpsv(1:napx)   = one/(one + dpsv(1:napx))
-  moidpsv(1:napx)  = mtc(1:napx)/(one + dpsv(1:napx))        ! Relative rigidity offset (mod_hions) [MV/c^2]
+  moidpsv(1:napx)  = mtc(1:napx)/(one + dpsv(1:napx))        ! Relative rigidity offset [MV/c^2]
   omoidpsv(1:napx) = ((one-mtc(1:napx))*oidpsv(1:napx))*c1e3
   rvv(1:napx)      = (ejv(1:napx)*e0f)/(e0*ejfv(1:napx))     ! Beta_0 / beta(j)
 
@@ -179,11 +178,8 @@ end subroutine part_updatePartEnergy
 ! ================================================================================================ !
 subroutine part_writeState(theState)
 
-  use, intrinsic :: iso_fortran_env, only : int16, int32, real64
-
   use mod_units
   use parpro
-  use mod_hions
   use mod_common
   use mod_common_main
   use mod_settings
@@ -195,8 +191,10 @@ subroutine part_writeState(theState)
 
   character(len=225) :: roundBuf
   character(len=17)  :: fileName
-  integer            :: fileUnit, j, k, iDummy
+  integer            :: fileUnit, j, k, iDummy, iPrim, iLost
   logical            :: rErr, isPrim, isBin, noIons
+
+  iDummy = 0
 
   if(theState == 0) then
     if(st_initialState == 0) return ! No dump was requested in fort.3
@@ -219,36 +217,30 @@ subroutine part_writeState(theState)
     call f_requestUnit(fileName, fileUnit)
     call f_open(unit=fileUnit,file=fileName,formatted=.false.,mode="w",status="replace",access="stream")
 
-    write(fileUnit) int(napx,  kind=int32)
-    write(fileUnit) int(napxo, kind=int32)
-    write(fileUnit) int(npart, kind=int32)
-    write(fileUnit) int(iDummy,kind=int32) ! Pad to n x 64 bit
-
     iDummy = 0
 
+    write(fileUnit) napx,napxo,npart,iDummy ! 4x32bit
+
     do j=1,npart
-      isPrim = partID(j) <= napxo
-      write(fileUnit)     int(  partID(j), kind=int32)
-      write(fileUnit)     int(parentID(j), kind=int32)
-      write(fileUnit) logical(  llostp(j), kind=int32)
-      write(fileUnit) logical(  isPrim,    kind=int32)
-      write(fileUnit)    real(     xv1(j), kind=real64)
-      write(fileUnit)    real(     xv2(j), kind=real64)
-      write(fileUnit)    real(     yv1(j), kind=real64)
-      write(fileUnit)    real(     yv2(j), kind=real64)
-      write(fileUnit)    real(   sigmv(j), kind=real64)
-      write(fileUnit)    real(    dpsv(j), kind=real64)
-      write(fileUnit)    real(    ejfv(j), kind=real64)
-      write(fileUnit)    real(     ejv(j), kind=real64)
+      ! These have to be set explicitly as ifort converts logical to integer differently than gfortran and nagfor
+      if(partID(j) <= napxo) then
+        iPrim = 1
+      else
+        iPrim = 0
+      end if
+      if(llostp(j)) then
+        iLost = 1
+      else
+        iLost = 0
+      end if
+      write(fileUnit) partID(j),parentID(j),iLost,iPrim  ! 4x32 bit
+      write(fileUnit) xv1(j),xv2(j),yv1(j),yv2(j)        ! 4x64 bit
+      write(fileUnit) sigmv(j),dpsv(j),ejfv(j),ejv(j)    ! 4x64 bit
       if(noIons) cycle ! Skip the ion columns
-      write(fileUnit)    real(    nucm(j), kind=real64)
-      write(fileUnit)     int(     naa(j), kind=int16)
-      write(fileUnit)     int(     nzz(j), kind=int16)
-    ! write(fileUnit)     int(     nqq(j), kind=int16) ! Not implemented yet
-      write(fileUnit)     int(     iDummy, kind=int32) ! Pad to n x 64 bit
+      write(fileUnit) nucm(j),naa(j),nzz(j),iDummy       ! 64 + 2x16 + 32 bit
     end do
 
-    call f_close(fileUnit)
+    call f_freeUnit(fileUnit)
 
   else
 
@@ -288,7 +280,7 @@ subroutine part_writeState(theState)
       end if
     end do
 
-    call f_close(fileUnit)
+    call f_freeUnit(fileUnit)
 
   end if
 

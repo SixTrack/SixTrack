@@ -139,7 +139,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
   ! Split the input line
   call chr_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
-    write(lout,"(a)") "PYTHIA> ERROR Failed to parse input line."
+    write(lerr,"(a)") "PYTHIA> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -149,7 +149,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("FILE")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword FILE expected 1 argument, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword FILE expected 1 argument, got ",(nSplit-1)
       iErr = .true.
       return
     end if
@@ -159,7 +159,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("PROCESS")
     if(nSplit /= 2 .and. nSplit /= 3) then
-      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword PROCESS expected 1 or 2 arguments, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword PROCESS expected 1 or 2 arguments, got ",(nSplit-1)
       iErr = .true.
       return
     end if
@@ -200,14 +200,14 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
         write(lout,"(a,f13.8,a)") "PYTHIA> Non-diffractive cross section set to ",pythia_csNDiffractive," mb"
       end if
     case default
-      write(lout,"(a)") "PYTHIA> ERROR Unknown or unsupported scattering process'"//trim(lnSplit(2))//"'"
+      write(lerr,"(a)") "PYTHIA> ERROR Unknown or unsupported scattering process'"//trim(lnSplit(2))//"'"
       iErr = .true.
       return
     end select
 
   case("COULOMB")
     if(nSplit /= 2 .and. nSplit /= 3) then
-      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword COULOMB expected 1 or 2 arguments, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword COULOMB expected 1 or 2 arguments, got ",(nSplit-1)
       iErr = .true.
       return
     end if
@@ -216,7 +216,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
     if(nSplit == 3) then
       call chr_cast(lnSplit(3),pythia_elasticTMin,iErr)
       if(pythia_elasticTMin < 1.0e-10 .or. pythia_elasticTMin > 1.0e-3) then
-        write(lout,"(a)") "PYTHIA> ERROR Range for COULOMB TMIN is 1e-10 to 1e-3."
+        write(lerr,"(a)") "PYTHIA> ERROR Range for COULOMB TMIN is 1e-10 to 1e-3."
         iErr = .true.
         return
       end if
@@ -224,7 +224,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("SPECIES")
     if(nSplit /= 3) then
-      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword SPECIES expected 2 arguments, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SPECIES expected 2 arguments, got ",(nSplit-1)
       iErr = .true.
       return
     end if
@@ -257,7 +257,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
       case("MU+","MUON+")
         pythia_beamSpecies(iBeam) = pythia_partMuonPos
       case default
-        write(lout,"(a)") "PYTHIA> ERROR Unknown or unsupported beam species '"//trim(lnSplit(1+iBeam))//"'"
+        write(lerr,"(a)") "PYTHIA> ERROR Unknown or unsupported beam species '"//trim(lnSplit(1+iBeam))//"'"
         iErr = .true.
         return
       end select
@@ -270,7 +270,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("ENERGY")
     if(nSplit /= 3) then
-      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword ENERGY expected 2 arguments, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword ENERGY expected 2 arguments, got ",(nSplit-1)
       iErr = .true.
       return
     end if
@@ -287,7 +287,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("SEED")
     if(nSplit /= 2) then
-      write(lout,"(a,i0)") "PYTHIA> ERROR Keyword SEED expected 1 argument, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SEED expected 1 argument, got ",(nSplit-1)
       iErr = .true.
       return
     end if
@@ -299,7 +299,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
     end if
 
   case default
-    write(lout,"(a)") "PYTHIA> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
+    write(lerr,"(a)") "PYTHIA> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
     iErr = .true.
     return
 
@@ -350,21 +350,21 @@ subroutine pythia_postInput
 
   pythStat = pythia_defaults()
   if(pythStat .eqv. .false.) then
-    write(lout,"(a)") "PYTHIA> ERROR Failed to set default values in libpythia8"
-    call prror(-1)
+    write(lerr,"(a)") "PYTHIA> ERROR Failed to set default values in libpythia8"
+    call prror
   end if
 
   if(.not. pythia_useElastic .and. pythia_useCoulomb) then
-    write(lout,"(a)") "PYTHIA> ERROR Coulumb corrections to elastic scattering requires elastic scattering to be enabled."
-    call prror(-1)
+    write(lerr,"(a)") "PYTHIA> ERROR Coulumb corrections to elastic scattering requires elastic scattering to be enabled."
+    call prror
   end if
   if(.not. pythia_allowLosses .and. pythia_useDDiffractive) then
-    write(lout,"(a)") "PYTHIA> ERROR Double diffractive scattering requires allowing losses to be enabled."
-    call prror(-1)
+    write(lerr,"(a)") "PYTHIA> ERROR Double diffractive scattering requires allowing losses to be enabled."
+    call prror
   end if
   if(.not. pythia_allowLosses .and. pythia_useNDiffractive) then
-    write(lout,"(a)") "PYTHIA> ERROR Non-diffractive scattering requires allowing losses to be enabled."
-    call prror(-1)
+    write(lerr,"(a)") "PYTHIA> ERROR Non-diffractive scattering requires allowing losses to be enabled."
+    call prror
   end if
 
   if(pythia_useSettingsFile) then
@@ -378,8 +378,8 @@ subroutine pythia_postInput
 
   pythStat = pythia_init()
   if(pythStat .eqv. .false.) then
-    write(lout,"(a)") "PYTHIA> ERROR Failed to initialise libpythia8"
-    call prror(-1)
+    write(lerr,"(a)") "PYTHIA> ERROR Failed to initialise libpythia8"
+    call prror
   end if
 
   call pythia_getCrossSection(sigmaTot, sigmaEl)

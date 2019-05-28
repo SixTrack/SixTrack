@@ -48,7 +48,7 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
               ndt=nd2
               if(ndpt.ne.nd2-1) then
                 write(lout,*) ' LETHAL ERROR IN LIEINIT'
-                call prror(-1)
+                call prror
               endif
             endif
        endif
@@ -1456,7 +1456,6 @@ subroutine flofacg(xy,h,epsone)
       call dacmud(h,-one,t)
       call expflod(t,xy,x,eps,nrmax)
       call dalind(x,one,v,-one,t)
-! write(20,*) "$$$$$$$$$$$$$$",k,"$$$$$$$$$$$$$$$$$$$$"
 ! call daprid(t,1,1,20)
        if(xn.lt.epsone) then
             if(idpr.ge.0) write(lout,*) "xn quadratic",xn
@@ -1666,7 +1665,6 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
       call initpert(st,angle,radn)
       call simil(a2i,xy,a2,xy)
       call dacopd(xy,a2i)
-!        write(6,*) 'Entering orderflo'
       call orderflo(h,ft,xy,angle,radn)
       do ij=1,nd-ndc
         p(ij)=angle(ij)
@@ -1835,7 +1833,6 @@ subroutine orderflo(h,ft,x,ang,ra)
       call facflod(h,x,v,2,k-1,-one,-1)
 ! EXTRACTING K TH DEGREE OF V ----> W
       call taked(v,k,w)
-!  write(16,*) "$$$$$$$$  K  $$$$$$$$$$", k
 ! W = EXP(B5) + ...
        call dacopd(w,b5)
 !      CALL INTD(W,B5,-1.D0)
@@ -2687,10 +2684,10 @@ subroutine mapflol(sa,sai,cr,cm,st)
       call mulnd2(xj,w)
       call mulnd2(cr,w)
       if(idpr.ge.0.or.idpr.eq.-102) then
-        write(lout,*) 'Check of the symplectic condition on the linear part'
+        write(lout,"(a)") "LIELIB> Check of the symplectic condition on the linear part:"
         xsu=zero
         do i=1,nd2
-          write(lout,'(6(2x,g23.16))') ( w(i,j), j = 1, nd2 )
+          write(lout,"(3x,6(1x,1pe17.10))") (w(i,j), j=1, nd2)
           do j=1,nd2
             xsu=xsu+abs(w(i,j))
           enddo
@@ -2904,11 +2901,6 @@ subroutine movearou(rt)
       ic=0
       xrold=1000000000.0_fPrec
       call movemul(rt,s,rto,xr)
-! write(6,*) xr,xrold
-!  do i=1,6
-!       write(6,'(6(1x,1pe12.5))') (RTO(i,j),j=1,6)
-!  enddo
-!  PAUSE
       if(xr.lt.xrold) then
         xrold=xr
       endif
@@ -3034,7 +3026,7 @@ subroutine initpert(st,ang,ra)
       if(nres.ge.nreso) then
        write(lout,*) ' NRESO IN LIELIB TOO SMALL '
        write(lout,'(a)') "ERROR 999 in initpert"
-       call prror(-1)
+       call prror
       endif
       elseif(iref.eq.0) then
       nres=0
@@ -4042,7 +4034,6 @@ subroutine sympl3(m)
             qp = qp + m(lq,jq)*m(kp,jp) - m(lq,jp)*m(kp,jq)
             pp = pp + m(lp,jq)*m(kp,jp) - m(lp,jp)*m(kp,jq)
   300     continue
-!         write(6,*) qq,pq,qp,pp
           do 400 i=1,2*n
             m(kq,i) = m(kq,i) - qq*m(lp,i) + pq*m(lq,i)
             m(kp,i) = m(kp,i) - qp*m(lp,i) + pp*m(lq,i)
@@ -4053,7 +4044,6 @@ subroutine sympl3(m)
           jq = jp-1
           qp = qp + m(kq,jq)*m(kp,jp) - m(kq,jp)*m(kp,jq)
   500   continue
-!       write(6,*) qp
         do 600 i=1,2*n
           m(kp,i) = m(kp,i)/qp
   600   continue

@@ -65,7 +65,6 @@ end subroutine writeFort12
 subroutine readFort13
 
   use parpro
-  use mod_hions
   use mod_common
   use mod_common_main
   use string_tools
@@ -84,8 +83,8 @@ subroutine readFort13
 
   call f_open(unit=13,file="fort.13",formatted=.true.,mode="r",err=fErr)
   if(fErr) then
-    write(lout,"(a)") "FORT13> ERROR Could not open fort.13."
-    call prror(-1)
+    write(lerr,"(a)") "FORT13> ERROR Could not open fort.13."
+    call prror
   end if
 
   do j=1,napx,2
@@ -159,12 +158,12 @@ subroutine readFort13
 
     ! Report Errors
     if(rErr) then
-      write(lout,"(a,i0,a)") "FORT13> ERROR While reading particle pair ",nPair," from file."
-      call prror(-1)
+      write(lerr,"(a,i0,a)") "FORT13> ERROR While reading particle pair ",nPair," from file."
+      call prror
     end if
     if(cErr) then
-      write(lout,"(a,i0,a)") "FORT13> ERROR While converting particle pair ",nPair," to float."
-      call prror(-1)
+      write(lerr,"(a,i0,a)") "FORT13> ERROR While converting particle pair ",nPair," to float."
+      call prror
     end if
 
     mtc(j)        = one
@@ -199,18 +198,20 @@ subroutine readFort33
   integer nSplit, ioStat
   logical spErr, fErr
 
+  write(lout,"(a)") "READ33> Reading closed orbit guess from fort.33"
+
   call f_open(unit=33,file="fort.33",formatted=.true.,mode="r",err=fErr)
 
   read(33,"(a)",iostat=ioStat) inLine
   if(ioStat /= 0) then
-    write(lout,"(a,i0)") "READ33> ERROR Failed to read line from 'fort.33'. iostat = ",ioStat
-    call prror(-1)
+    write(lerr,"(a,i0)") "READ33> ERROR Failed to read line from 'fort.33'. iostat = ",ioStat
+    call prror
   end if
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "READ33> ERROR Failed to parse line from 'fort.33'"
-    call prror(-1)
+    write(lerr,"(a)") "READ33> ERROR Failed to parse line from 'fort.33'"
+    call prror
   end if
 
   if(nSplit > 0) call chr_cast(lnSplit(1),clo6(1), spErr)

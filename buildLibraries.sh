@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
-# Script for building SixTrack dependencies that do not eed to be re-built every time SixTrack is built.
-
-set -e # Exit on error
+# Script for building SixTrack dependencies that do not need to be re-built every time SixTrack is built.
 
 echo ""
 echo " Building SixTrack Library Dependecies"
-echo "========================================"
+echo "======================================="
 echo ""
 
 ALL=true
@@ -34,6 +32,8 @@ for ARG in "$@"; do
         PYTHIA=true
     elif [[ $ARG == "naff" ]]; then
         NAFF=true
+    elif [[ $ARG == "zlib" ]]; then
+        ZLIB=true
     else
         echo "Unknown library $ARG requested."
         exit 1

@@ -102,7 +102,7 @@ subroutine str_split(toSplit, sArray, nArray, hasErr, fixLen, nIndent)
     if(mskSplit(i:i) == "X") then
       iSt = iSt + 1
       if(iSt > mLen) then
-        write(lout,"(2(a,i0))") "SPLIT> ERROR Split element ",iVal," is longer than the buffer of ",mLen,"."
+        write(lerr,"(2(a,i0))") "SPLIT> ERROR Split element ",iVal," is longer than the buffer of ",mLen,"."
         hasErr = .true.
         exit
       end if
@@ -156,7 +156,7 @@ subroutine chr_split(toSplit, sArray, nArray, hasErr, fixLen, nIndent)
     if(mskSplit(i:i) == "X") then
       iSt = iSt + 1
       if(iSt > mLen) then
-        write(lout,"(2(a,i0))") "SPLIT> ERROR Split element ",iVal," is longer than the buffer of ",mLen,"."
+        write(lerr,"(2(a,i0))") "SPLIT> ERROR Split element ",iVal," is longer than the buffer of ",mLen,"."
         hasErr = .true.
         exit
       end if
@@ -223,7 +223,7 @@ subroutine chr_scanString(theString, theMask, maxLen, nValues, nIndent, hasErr)
     if(vSt == 1) theMask(i:i) = "X"       ! Mark character as a value
     if(vSt == 2) exit                     ! We've reached a comment character, exit
     if(ichar(ch) < 32) then               ! This is a control character, we don't want those
-      write(lout,"(2(a,i0))") "SPLIT> ERROR Control character char(",ichar(ch),") encountered at position ",i
+      write(lerr,"(2(a,i0))") "SPLIT> ERROR Control character char(",ichar(ch),") encountered at position ",i
       hasErr = .true.
       return
     end if
@@ -232,7 +232,7 @@ subroutine chr_scanString(theString, theMask, maxLen, nValues, nIndent, hasErr)
 
   ! Report un-closed quotes
   if(qSt > 0) then
-    write(lout,"(a,i0,a)") "SPLIT> ERROR Reached end of line with quotes still open."
+    write(lerr,"(a,i0,a)") "SPLIT> ERROR Reached end of line with quotes still open."
     hasErr = .true.
     return
   end if
@@ -652,7 +652,7 @@ subroutine str_toReal32(theString, theValue, rErr)
   tmpValue  = round_near(cErr,cLen,cString)
 
   if(cErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> CRLIBM Failed to cast '"//tmpString//"' to real32 width error ",cErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR CRLIBM Failed to cast '"//tmpString//"' to real32 width error ",cErr
     rErr = .true.
   end if
 #endif
@@ -663,7 +663,7 @@ subroutine str_toReal32(theString, theValue, rErr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   call disable_xp()
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real32 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR FIO Failed to cast '"//tmpString//"' to real32 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -672,7 +672,7 @@ subroutine str_toReal32(theString, theValue, rErr)
   tmpString = trim(theString%chr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real32 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR FIO Failed to cast '"//tmpString//"' to real32 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -681,7 +681,7 @@ subroutine str_toReal32(theString, theValue, rErr)
   tmpString = trim(theString%chr)
   read(tmpString,*,iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to real32 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR Failed to cast '"//tmpString//"' to real32 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -716,7 +716,7 @@ subroutine chr_toReal32(theString, theValue, rErr)
   tmpValue  = round_near(cErr,cLen,cString)
 
   if(cErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> CRLIBM Failed to cast '"//tmpString//"' to real32 width error ",cErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR CRLIBM Failed to cast '"//tmpString//"' to real32 width error ",cErr
     rErr = .true.
   end if
 #endif
@@ -727,7 +727,7 @@ subroutine chr_toReal32(theString, theValue, rErr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   call disable_xp()
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real32 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR FIO Failed to cast '"//tmpString//"' to real32 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -736,7 +736,7 @@ subroutine chr_toReal32(theString, theValue, rErr)
   tmpString = trim(theString)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real32 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR FIO Failed to cast '"//tmpString//"' to real32 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -745,7 +745,7 @@ subroutine chr_toReal32(theString, theValue, rErr)
   tmpString = trim(theString)
   read(tmpString,*,iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to real32 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR Failed to cast '"//tmpString//"' to real32 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -780,7 +780,7 @@ subroutine str_toReal64(theString, theValue, rErr)
   tmpValue  = round_near(cErr,cLen,cString)
 
   if(cErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> CRLIBM Failed to cast '"//tmpString//"' to real64 width error ",cErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR CRLIBM Failed to cast '"//tmpString//"' to real64 width error ",cErr
     rErr = .true.
   end if
 #endif
@@ -791,7 +791,7 @@ subroutine str_toReal64(theString, theValue, rErr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   call disable_xp()
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real64 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR FIO Failed to cast '"//tmpString//"' to real64 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -800,7 +800,7 @@ subroutine str_toReal64(theString, theValue, rErr)
   tmpString = trim(theString%chr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real64 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR FIO Failed to cast '"//tmpString//"' to real64 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -809,7 +809,7 @@ subroutine str_toReal64(theString, theValue, rErr)
   tmpString = trim(theString%chr)
   read(tmpString,*,iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to real64 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR Failed to cast '"//tmpString//"' to real64 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -844,7 +844,7 @@ subroutine chr_toReal64(theString, theValue, rErr)
   tmpValue  = round_near(cErr,cLen,cString)
 
   if(cErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> CRLIBM Failed to cast '"//tmpString//"' to real64 width error ",cErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR CRLIBM Failed to cast '"//tmpString//"' to real64 width error ",cErr
     rErr = .true.
   end if
 #endif
@@ -855,7 +855,7 @@ subroutine chr_toReal64(theString, theValue, rErr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   call disable_xp()
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real64 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR FIO Failed to cast '"//tmpString//"' to real64 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -864,7 +864,7 @@ subroutine chr_toReal64(theString, theValue, rErr)
   tmpString = trim(theString)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real64 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR FIO Failed to cast '"//tmpString//"' to real64 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -873,7 +873,7 @@ subroutine chr_toReal64(theString, theValue, rErr)
   tmpString = trim(theString)
   read(tmpString,*,iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to real64 width error = ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR Failed to cast '"//tmpString//"' to real64 width error = ",readErr
     rErr = .true.
   end if
 #endif
@@ -908,7 +908,7 @@ subroutine str_toReal128(theString, theValue, rErr)
   tmpValue  = round_near(cErr,cLen,cString)
 
   if(cErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> CRLIBM Failed to cast '"//tmpString//"' to real128 width error ",cErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR CRLIBM Failed to cast '"//tmpString//"' to real128 width error ",cErr
     rErr = .true.
   end if
 #endif
@@ -919,7 +919,7 @@ subroutine str_toReal128(theString, theValue, rErr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   call disable_xp()
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real128 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR FIO Failed to cast '"//tmpString//"' to real128 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -928,7 +928,7 @@ subroutine str_toReal128(theString, theValue, rErr)
   tmpString = trim(theString%chr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real128 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR FIO Failed to cast '"//tmpString//"' to real128 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -937,7 +937,7 @@ subroutine str_toReal128(theString, theValue, rErr)
   tmpString = trim(theString%chr)
   read(tmpString,*,iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to real128 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR Failed to cast '"//tmpString//"' to real128 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -972,7 +972,7 @@ subroutine chr_toReal128(theString, theValue, rErr)
   tmpValue  = round_near(cErr,cLen,cString)
 
   if(cErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> CRLIBM Failed to cast '"//tmpString//"' to real128 width error ",cErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR CRLIBM Failed to cast '"//tmpString//"' to real128 width error ",cErr
     rErr = .true.
   end if
 #endif
@@ -983,7 +983,7 @@ subroutine chr_toReal128(theString, theValue, rErr)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   call disable_xp()
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real128 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR FIO Failed to cast '"//tmpString//"' to real128 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -992,7 +992,7 @@ subroutine chr_toReal128(theString, theValue, rErr)
   tmpString = trim(theString)
   read(tmpString,*,round="nearest",iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> FIO Failed to cast '"//tmpString//"' to real128 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR FIO Failed to cast '"//tmpString//"' to real128 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -1001,7 +1001,7 @@ subroutine chr_toReal128(theString, theValue, rErr)
   tmpString = trim(theString)
   read(tmpString,*,iostat=readErr) tmpValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to real128 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR Failed to cast '"//tmpString//"' to real128 width error ",readErr
     rErr = .true.
   end if
 #endif
@@ -1030,7 +1030,7 @@ subroutine str_toInt16(theString, theValue, rErr)
   tmpString = trim(theString%chr)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to int16 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR Failed to cast '"//tmpString//"' to int16 width error ",readErr
     rErr = .true.
   end if
 
@@ -1050,7 +1050,7 @@ subroutine chr_toInt16(theString, theValue, rErr)
   tmpString = trim(theString)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to int16 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR Failed to cast '"//tmpString//"' to int16 width error ",readErr
     rErr = .true.
   end if
 
@@ -1070,7 +1070,7 @@ subroutine str_toInt32(theString, theValue, rErr)
   tmpString = trim(theString%chr)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to int32 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR Failed to cast '"//tmpString//"' to int32 width error ",readErr
     rErr = .true.
   end if
 
@@ -1090,7 +1090,7 @@ subroutine chr_toInt32(theString, theValue, rErr)
   tmpString = trim(theString)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to int32 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR Failed to cast '"//tmpString//"' to int32 width error ",readErr
     rErr = .true.
   end if
 
@@ -1110,7 +1110,7 @@ subroutine str_toInt64(theString, theValue, rErr)
   tmpString = trim(theString%chr)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to int64 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR Failed to cast '"//tmpString//"' to int64 width error ",readErr
     rErr = .true.
   end if
 
@@ -1130,7 +1130,7 @@ subroutine chr_toInt64(theString, theValue, rErr)
   tmpString = trim(theString)
   read(tmpString,*,iostat=readErr) theValue
   if(readErr /= 0) then
-    write (lout,"(a,i0)") "TYPECAST> Failed to cast '"//tmpString//"' to int64 width error ",readErr
+    write(lerr,"(a,i0)") "TYPECAST> ERROR Failed to cast '"//tmpString//"' to int64 width error ",readErr
     rErr = .true.
   end if
 
@@ -1160,7 +1160,7 @@ subroutine str_toLog(theString, theValue, rErr)
   case("false",".false.","off","0")
     theValue = .false.
   case default
-    write (lout,"(a)") "TYPECAST> Failed to cast '"//trim(theString)//"' to logical"
+    write(lerr,"(a)") "TYPECAST> ERROR Failed to cast '"//trim(theString)//"' to logical"
     rErr = .true.
   end select
 
@@ -1184,7 +1184,7 @@ subroutine chr_toLog(theString, theValue, rErr)
   case("false",".false.","off","0")
     theValue = .false.
   case default
-    write (lout,"(a)") "TYPECAST> Failed to cast '"//trim(theString)//"' to logical"
+    write(lerr,"(a)") "TYPECAST> ERROR Failed to cast '"//trim(theString)//"' to logical"
     rErr = .true.
   end select
 
@@ -1240,7 +1240,7 @@ subroutine chr_fromReal(theValue, theString, nPrec, ePrec, rErr)
     case(3)
       write(theString(nPrec+5:nPrec+7),"(i3.3)") abs(dPoint-1)
     case default
-      write(lout,"(a)") "DTOAF> ERROR Exponent must be either 2 or 3. This is a bug."
+      write(lerr,"(a)") "DTOAF> ERROR Exponent must be either 2 or 3. This is a bug."
       rErr = .true.
       return
     end select
