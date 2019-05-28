@@ -36,7 +36,6 @@ subroutine daten
   use elens,     only : elens_parseInputLine,elens_parseInputDone,elens_postInput
   use cheby,     only : cheby_parseInputLine,cheby_parseInputDone,cheby_postInput
   use aperture
-  use mod_hions
 #ifdef HASHLIB
   use mod_hash
 #endif
@@ -324,6 +323,17 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("SIMU") ! Simulation Block
+    if(openBlock) then
+      sixin_hasSIMU = .true.
+    elseif(closeBlock) then
+      call sixin_parseInputDoneSIMU(inErr)
+      if(inErr) goto 9999
+    else
+      call sixin_parseInputLineSIMU(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DISP") ! Displacement of Elements Block
     if(openBlock) then
       continue
@@ -336,7 +346,7 @@ subroutine daten
 
   case("INIT") ! Initial Coordinates
     if(openBlock) then
-      continue
+      sixin_hasINIT = .true.
     elseif(closeBlock) then
       dp1 = exz(1,6)
     else
@@ -346,7 +356,7 @@ subroutine daten
 
   case("TRAC") ! Tracking Parameters
     if(openBlock) then
-      continue
+      sixin_hasTRAC = .true.
     elseif(closeBlock) then
       continue
     else
@@ -734,9 +744,9 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      has_hion = .true.
+      sixin_hasHION = .true.
     else
-      call hions_parseInputLine(inLine,blockLine,inErr)
+      call sixin_parseInputLineHION(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -861,10 +871,28 @@ subroutine daten
       call prror
     end if
 
-    call hions_postInput
+    if(sixin_hionSet .eqv. .false.) then
+      ! If we don't have the HION block, we need to set some variables - default to the proton values
+      zz0   = 1
+      aa0   = 1
+      nucm0 = pma
+      write(lout,"(a)")        "ENDE> No HION block found. Defaulting to the proton values: "
+      write(lout,"(a,i0)")     "ENDE>  * Z = ",zz0
+      write(lout,"(a,i0)")     "ENDE>  * A = ",aa0
+      write(lout,"(a,e22.15)") "ENDE>  * M = ",nucm0
+    end if
+  
+    ! Init arrays
+    mtc(:)      = one
+    naa(:)      = aa0
+    nzz(:)      = zz0
+    nucm(:)     = nucm0
+    moidpsv(:)  = one
+    omoidpsv(:) = zero
+
     gammar = nucm0/e0
     betrel = sqrt((one+gammar)*(one-gammar))
-    e0f = sqrt(e0**2-nucm0**2)
+    e0f    = sqrt(e0**2-nucm0**2)
     brho   = (e0f/(clight*c1m6))/zz0
 
     if(nbeam >= 1) then
@@ -876,27 +904,53 @@ subroutine daten
 
     if(do_coll) then
       call collimate_postInput(gammar)
-    endif
-
-    !Check for incompatible flags
-    if (ipos == 1) then
+    end if
+  
+    ! Check for incompatible flags
+    if(ipos == 1) then
       if (do_coll) then
-        write(lerr,'(a)') "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
+        write(lerr,"(a)") "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
         call prror
       endif
 
-      if (scatter_active) then
-        write(lerr,'(a)') "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
+      if(scatter_active) then
+        write(lerr,"(a)") "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
         call prror
       endif
 #ifdef FLUKA
       if (fluka_enable) then
-        write(lerr,'(a)') "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
+        write(lerr,"(a)") "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
         call prror
       endif
 #endif
     endif
 
+  end if
+
+  if(sixin_hasSIMU) then
+    call sixin_postInputSIMU(inErr)
+    if(inErr) call prror
+  end if
+
+  ! This check used to be in DIFF block parsing, but is safer to have here
+  if(iclo6 == 1 .or. iclo6 == 2) nsix = 0
+
+  ! If no write frequency set on track files, default to the number of turns + 1
+  if(nwri == 0) then
+    nwri = numl + numlr + 1
+  end if
+
+  if(sixin_hasSIMU .and. sixin_hasTRAC) then
+    write(lerr,"(a)") "ENDE> ERROR Cannot have both a TRAC block and a SIMU block at the same time"
+    call prror
+  end if
+  if(sixin_hasSIMU .and. sixin_hasINIT) then
+    write(lerr,"(a)") "ENDE> ERROR Cannot have both a INIT block and a SIMU block at the same time"
+    call prror
+  end if
+  if(sixin_hasSIMU .and. sixin_hasHION) then
+    write(lerr,"(a)") "ENDE> ERROR Cannot have both a HION block and a SIMU block at the same time"
+    call prror
   end if
 
   call elens_postInput
@@ -924,13 +978,13 @@ subroutine daten
         write(lerr,"(3(a,i5))") "ENDE> ERROR Requested ",int(parbe(j,2))," slices for 6D beam-beam element"//&
           " #",j," named '"//trim(bez(j))//"', maximum is mbea = ",mbea
         parbe(j,2) = real(mbea,fPrec)
-        call prror ! Treat this warning as an error
+        call prror
       end if
     end do
   end if
 
   call ffield_mod_link(inErr)
-  if(inErr) goto 9999
+  if(inErr) call prror
 
   ! Done with checks. Write the report
   call sixin_blockReport
@@ -1679,7 +1733,6 @@ subroutine initialize_element(ix,lfirst)
 
   use parpro
   use parbeam
-  use mod_hions
   use mod_common
   use mod_common_main
   use mod_common_track
@@ -2564,7 +2617,7 @@ subroutine distance(x,clo,di0,t,dam)
           phi(i)=zero
         endif
    80 continue
-      dam=sqrt((phi(1)**2+phi(2)**2+phi(3)**2)/real(idam,fPrec))/pi            !hr06
+      dam=sqrt((phi(1)**2+phi(2)**2+phi(3)**2)/real(idam,fPrec))/pi
 !-----------------------------------------------------------------------
       return
 end subroutine distance

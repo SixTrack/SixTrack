@@ -1888,7 +1888,6 @@ subroutine collimate_start_sample(nsample)
   use coll_db
   use mod_units
   use mod_ranlux
-  use mod_hions
   use mathlib_bouncer
 #ifdef HDF5
   use hdf5_output
@@ -2448,13 +2447,13 @@ subroutine collimate_start_collimator(stracki)
 
 !-- DRIFT PART
         if(stracki.eq.0.) then
-          if(iexact.eq.0) then
-            xj  = xj + half*c_length*xpj
-            yj  = yj + half*c_length*ypj
-          else
+          if(iexact) then
             zpj = sqrt(one-xpj**2-ypj**2)
             xj  = xj + half*c_length*(xpj/zpj)
             yj  = yj + half*c_length*(ypj/zpj)
+          else
+            xj  = xj + half*c_length*xpj
+            yj  = yj + half*c_length*ypj
           end if
         end if
 
@@ -2868,13 +2867,13 @@ subroutine collimate_do_collimator(stracki)
 !++  For zero length element track back half collimator length
 !  DRIFT PART
     if (stracki.eq.0.) then
-      if(iexact.eq.0) then
-        rcx(j)  = rcx(j) - half*c_length*rcxp(j)
-        rcy(j)  = rcy(j) - half*c_length*rcyp(j)
-      else
+      if(iexact) then
         zpj=sqrt(one-rcxp(j)**2-rcyp(j)**2)
         rcx(j) = rcx(j) - half*c_length*(rcxp(j)/zpj)
         rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
+      else
+        rcx(j)  = rcx(j) - half*c_length*rcxp(j)
+        rcy(j)  = rcy(j) - half*c_length*rcyp(j)
       end if
     else
       write(lerr,"(a,f13.6)") "COLL> ERROR Non-zero length collimator: '"//trim(cdb_cNameUC(icoll))//"' length = ",stracki
@@ -3250,7 +3249,6 @@ subroutine collimate_end_collimator()
   use mod_common_da
   use numerical_constants, only : c5m4
   use coll_db
-  use mod_hions
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
@@ -3294,13 +3292,13 @@ subroutine collimate_end_collimator()
 !++  For zero length element track back half collimator length
 ! DRIFT PART
       ! if (stracki.eq.0.) then ! stracki makes no sense here
-        if(iexact.eq.0) then
-          rcx(j)  = rcx(j) - half*c_length*rcxp(j)
-          rcy(j)  = rcy(j) - half*c_length*rcyp(j)
-        else
+        if(iexact) then
           zpj=sqrt(one-rcxp(j)**2-rcyp(j)**2)
           rcx(j) = rcx(j) - half*c_length*(rcxp(j)/zpj)
           rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
+        else
+          rcx(j)  = rcx(j) - half*c_length*rcxp(j)
+          rcy(j)  = rcy(j) - half*c_length*rcyp(j)
         end if
       ! end if ! stracki makes no sense here
 
@@ -5152,14 +5150,14 @@ implicit none
 ! DRIFT PART
     drift_length = length - zlm
     if(drift_length.gt.zero) then                                 !hr09
-      if(iexact.eq.0) then
-        x  = x + xp* drift_length
-        z  = z + zp * drift_length
-        sp = sp + drift_length
-      else
+      if(iexact) then
         zpj = sqrt(one-xp**2-zp**2)
         x = x + drift_length*(xp/zpj)
         z = z + drift_length*(zp/zpj)
+        sp = sp + drift_length
+      else
+        x  = x + xp* drift_length
+        z  = z + zp * drift_length
         sp = sp + drift_length
       end if
     end if
@@ -5342,14 +5340,14 @@ implicit none
     if(nabs.ne.1 .and. zlm.gt.zero) then
       drift_length = (length-(s+sp))
       if(drift_length.gt.c1m15) then
-        if(iexact.eq.0) then
+        if(iexact) then
+          zpj = sqrt(one-xp**2-zp**2)
+          x   = x + drift_length*(xp/zpj)
+          z   = z + drift_length*(zp/zpj)
+          sp  = sp + drift_length
+        else
           x  = x + xp * drift_length
           z  = z + zp * drift_length
-          sp = sp + drift_length
-        else
-          zpj = sqrt(one-xp**2-zp**2)
-          x = x + drift_length*(xp/zpj)
-          z = z + drift_length*(zp/zpj)
           sp = sp + drift_length
         end if
       end if

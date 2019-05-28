@@ -14,13 +14,11 @@ subroutine umlauda
   use parpro
   use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
-  use mod_common_main, only : e0f
   use mod_commons
   use mod_common_track, only : xxtr,yytr,issss,tasm,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_commond2
   use wire
-  use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
 
   implicit none
@@ -38,9 +36,6 @@ subroutine umlauda
     au(6,6),aui(2)
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   character(len=mNameLen) typ
-#ifdef BOINC
-  character(len=256) filename
-#endif
   integer expertUnit
 
 ! For treatment and/or conversion of BEAM parameters in/to the new format
@@ -395,7 +390,7 @@ subroutine umlauda
 #include "include/dalin5.f90"
           endif
         else
-          if(iexact.eq.1) then
+          if(iexact) then
 !-----------------------------------------------------------------------
 !  EXACT DRIFT
 !-----------------------------------------------------------------------
@@ -2105,11 +2100,9 @@ subroutine synoda
   use numerical_constants
   use parpro
   use mod_common
-  use mod_common_main, only : e0f
   use mod_commons
   use mod_common_track
   use mod_common_da
-  use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   implicit none
   integer ix,idaa,ikz
@@ -2306,7 +2299,6 @@ subroutine wireda(ix,i)
   use mod_common_track, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
   use mod_common_da
   use wire
-  use mod_hions
   use mod_lie_dab, only : idao,rscrri,iscrda
   implicit none
   integer ix,idaa,i

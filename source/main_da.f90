@@ -14,6 +14,8 @@
 ! ================================================================================================ !
 program mainda
 
+  use, intrinsic :: iso_fortran_env, only : output_unit
+
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
@@ -26,20 +28,20 @@ program mainda
   use mod_units
   use mod_meta
   use mod_time
-  use mod_alloc,      only : alloc_init
-  use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
-  use read_write,     only : readFort33
-  use mod_geometry,   only : geom_reshuffleLattice
-  use sixtrack_input, only : sixin_commandLine
+  use mod_alloc,    only : alloc_init
+  use mod_fluc,     only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
+  use read_write,   only : readFort33
+  use mod_geometry, only : geom_reshuffleLattice
+  use sixtrack_input
   use mod_version
 
   implicit none
 
   integer i,iation,itiono,idate,im,itime,ix,izu,j,k,kpz,kzz,l,ll,ncorruo,ndim,nlino,nlinoo,nmz
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
-    bet0x2,bet0x3,bet0z2,bet0z3,clo0,clop0,dp0,dp10,e0f,eps,epsa,gam0s1,gam0s2,gam0s3,gam0x1,gam0x2,&
-    gam0x3,gam0z1,gam0z2,gam0z3,phag,qw,qwc,r0,r0a,rv,&
-    tas,tas16,tas26,tas36,tas46,tas56,tas61,tas62,tas63,tas64,tas65
+    bet0x2,bet0x3,bet0z2,bet0z3,clo0,clop0,dp0,dp10,eps,epsa,gam0s1,gam0s2,gam0s3,gam0x1,gam0x2,    &
+    gam0x3,gam0z1,gam0z2,gam0z3,phag,qw,qwc,r0,r0a,rv,tas,tas16,tas26,tas36,tas46,tas56,tas61,tas62,&
+    tas63,tas64,tas65
 
   character(len=8)  cdate,ctime ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
   dimension qw(2),qwc(3),clo0(2),clop0(2)
@@ -263,16 +265,20 @@ program mainda
   dp1=dp10
   if(idp /= 1 .or. iation /= 1) iclo6 = 0
   if(iclo6 == 1 .or. iclo6 == 2) then
-    if(iclo6r == 0) then
+    if(sixin_simuFort33) then
+      if(sixin_simuInitClorb) then
+        clo6(1:3)  = sixin_simuSetClorb([1,3,5])
+        clop6(1:3) = sixin_simuSetClorb([2,4,6])
+      else
+        call readFort33
+      end if
+    else
       clo6(1)  = clo(1)
       clop6(1) = clop(1)
       clo6(2)  = clo(2)
       clop6(2) = clop(2)
       clo6(3)  = zero
       clop6(3) = zero
-    else
-      write(lout,"(a)") "MAINDA> Reading closed orbit guess from fort.33"
-      call readFort33
     end if
     call clorb(zero)
     call betalf(zero,qw)

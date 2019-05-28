@@ -8,6 +8,7 @@
 module checkpoint_restart
 
   use floatPrecision
+  use, intrinsic :: iso_fortran_env, only : int16
 
   implicit none
 
@@ -30,7 +31,6 @@ module checkpoint_restart
   logical,           public,  save :: cr_rerun    = .false.
   logical,           public,  save :: cr_start    = .true.
   logical,           public,  save :: cr_restart  = .false.
-  logical,           public,  save :: cr_checkp   = .false.
 
   character(len=21), public,  save :: cr_startMsg = " "
   real,              public,  save :: cr_time     = 0.0
@@ -46,6 +46,7 @@ module checkpoint_restart
   real(kind=fPrec),  private, save :: cre0
   real(kind=fPrec),  private, save :: crbetrel
   real(kind=fPrec),  private, save :: crbrho
+  real(kind=fPrec),  private, save :: crnucmda
 
   integer,           private, save :: crnpart_old = -1
   integer,           private, save :: crsixrecs
@@ -66,6 +67,12 @@ module checkpoint_restart
   real(kind=fPrec), allocatable, private, save :: crejv(:)      ! (npart)
   real(kind=fPrec), allocatable, private, save :: crejfv(:)     ! (npart)
   real(kind=fPrec), allocatable, private, save :: craperv(:,:)  ! (npart,2)
+  real(kind=fPrec), allocatable, private, save :: crnucm(:)     ! (npart)
+  real(kind=fPrec), allocatable, private, save :: crmtc(:)      ! (npart)
+
+  integer(kind=int16), allocatable, private, save :: crnaa(:)   ! (npart)
+  integer(kind=int16), allocatable, private, save :: crnzz(:)   ! (npart)
+  integer(kind=int16), allocatable, private, save :: crnqq(:)   ! (npart)
 
   integer,          allocatable, public,  save :: binrecs(:)    ! ((npart+1)/2)
   integer,          allocatable, public,  save :: crbinrecs(:)  ! (npart+1)/2)
@@ -105,7 +112,7 @@ subroutine cr_fileInit
   call f_open(unit=cr_errUnit,file=cr_errFile,formatted=.true.,mode="rw", err=fErr,status="replace")
   call f_open(unit=cr_outUnit,file=cr_outFile,formatted=.true.,mode="rw", err=fErr,status="replace")
   call f_open(unit=cr_logUnit,file=cr_logFile,formatted=.true.,mode="rw+",err=fErr,status="unknown")
-  
+
   ! Now we see if we have a fort.6, which implies that we can perhaps just restart using all exisiting files
   ! including the last checkpoints. If not, we just do a start (with an unzip for BOINC)
   call f_open(unit=output_unit,file=fort6,formatted=.true.,mode="rw",err=fErr,status="old")
@@ -157,7 +164,8 @@ end subroutine cr_fileInit
 subroutine cr_expand_arrays(npart_new)
 
   use mod_alloc
-  use numerical_constants, only : zero
+  use numerical_constants, only : zero, one
+  use mod_common, only : nucm0, aa0, zz0, qq0
 
   integer, intent(in) :: npart_new
 
@@ -173,6 +181,11 @@ subroutine cr_expand_arrays(npart_new)
   call alloc(crdpsv1,    npart_new,    zero,    "crdpsv1")
   call alloc(crejv,      npart_new,    zero,    "crejv")
   call alloc(crejfv,     npart_new,    zero,    "crejfv")
+  call alloc(crnucm,     npart_new,    nucm0,   "crnucm")
+  call alloc(crmtc,      npart_new,    one,     "crmtc")
+  call alloc(crnaa,      npart_new,    aa0,     "crnaa")
+  call alloc(crnzz,      npart_new,    zz0,     "crnzz")
+  call alloc(crnqq,      npart_new,    qq0,     "crnqq")
   call alloc(craperv,    npart_new, 2, zero,    "craperv")
   call alloc(binrecs,    npair_new,    0,       "binrecs")
   call alloc(crbinrecs,  npair_new,    0,       "crbinrecs")
@@ -286,13 +299,12 @@ subroutine crcheck
   use mod_common_main
   use mod_version
 
-  use dynk,      only : dynk_enabled, dynk_noDynkSets,dynk_crcheck_readdata,dynk_crcheck_positionFiles
-  use dump,      only : dump_crcheck_readdata,dump_crcheck_positionFiles
-  use aperture,  only : limifound, aper_crcheck_readdata, aper_crcheck_positionFiles
-  use scatter,   only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
-  use mod_hions, only : hions_crcheck_readdata
-  use elens,     only : melens, elens_crcheck
-  use mod_meta,  only : meta_crcheck
+  use dynk,     only : dynk_enabled, dynk_noDynkSets,dynk_crcheck_readdata,dynk_crcheck_positionFiles
+  use dump,     only : dump_crcheck_readdata,dump_crcheck_positionFiles
+  use aperture, only : limifound, aper_crcheck_readdata, aper_crcheck_positionFiles
+  use scatter,  only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
+  use elens,    only : melens, elens_crcheck
+  use mod_meta, only : meta_crcheck
 
   integer j,k,l,m
   integer nPoint, ioStat
@@ -307,11 +319,9 @@ subroutine crcheck
   cr_pntRead(:) = .false.
 
   ! Some log entries to fort.93
-  write(crlog,"(3(a,l1))") "CR_CHECK> Called with restart = ",cr_restart,", rerun = ",cr_rerun,", and checkpoint = ",cr_checkp
+  write(crlog,"(2(a,l1))") "CR_CHECK> Called with restart = ",cr_restart,", rerun = ",cr_rerun
   flush(crlog)
 
-  ! We are not checkpoint/restart or we have no restart files
-  if(cr_checkp .eqv. .false.) goto 200
   noRestart = .false.
   do nPoint=1,cr_nPoint
     noRestart = noRestart .and. .not. cr_pntExist(nPoint)
@@ -364,7 +374,8 @@ subroutine crcheck
 
     write(crlog,"(a)") "CR_CHECK>  * Tracking variables"
     flush(crlog)
-    read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,cr_time,crnapxo,crnapx,cre0,crbetrel,crbrho
+    read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,cr_time,crnapxo, &
+      crnapx,cre0,crbetrel,crbrho,crnucmda
     if(ioStat /= 0) cycle
 
     write(crlog,"(a)") "CR_CHECK>  * Particle arrays"
@@ -385,11 +396,16 @@ subroutine crcheck
       (crdpsv1(j),   j=1,crnapxo),       &
       (crejv(j),     j=1,crnapxo),       &
       (crejfv(j),    j=1,crnapxo),       &
+      (crnucm(j),    j=1,crnapxo),       &
+      (crmtc(j),     j=1,crnapxo),       &
+      (crnaa(j),     j=1,crnapxo),       &
+      (crnzz(j),     j=1,crnapxo),       &
+      (crnqq(j),     j=1,crnapxo),       &
       (craperv(j,1), j=1,crnapxo),       &
       (craperv(j,2), j=1,crnapxo),       &
       (crllostp(j),  j=1,crnapxo)
     if(ioStat /= 0) cycle
-  
+
     write(crlog,"(a)") "CR_CHECK>  * META variables"
     flush(crlog)
     call meta_crcheck(cr_pntUnit(nPoint),rErr)
@@ -398,11 +414,6 @@ subroutine crcheck
     write(crlog,"(a)") "CR_CHECK>  * DUMP variables"
     flush(crlog)
     call dump_crcheck_readdata(cr_pntUnit(nPoint),rErr)
-    if(rErr) cycle
-
-    write(crlog,"(a)") "CR_CHECK>  * HION variables"
-    flush(crlog)
-    call hions_crcheck_readdata(cr_pntUnit(nPoint),rErr)
     if(rErr) cycle
 
     if(dynk_enabled) then
@@ -506,11 +517,8 @@ subroutine crcheck
   ! We are not checkpointing or we have no checkpoints, or we have no readable checkpoint
   ! If not checkpointing we can just give up on lout and use fort.6. We don't need to count records at all
 200 continue
-  write(crlog,"(a,l1)") "SIXTRACR> No restart possible. Checkpoint = ",cr_checkp
+  write(crlog,"(a)") "SIXTRACR> No restart possible"
   flush(crlog)
-  if(.not.cr_checkp) then
-    call cr_copyOut
-  end if
 
   return
 
@@ -540,13 +548,12 @@ subroutine crpoint
   use mod_settings
   use numerical_constants
 
-  use dynk,      only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_crpoint
-  use dump,      only : dump_crpoint
-  use aperture,  only : aper_crpoint,limifound
-  use scatter,   only : scatter_active, scatter_crpoint
-  use elens,     only : melens, elens_crpoint
-  use mod_meta,  only : meta_crpoint
-  use mod_hions, only : hions_crpoint
+  use dynk,     only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_crpoint
+  use dump,     only : dump_crpoint
+  use aperture, only : aper_crpoint,limifound
+  use scatter,  only : scatter_active, scatter_crpoint
+  use elens,    only : melens, elens_crpoint
+  use mod_meta, only : meta_crpoint
 
   integer j, k, l, m, nPoint
   logical wErr, fErr
@@ -554,7 +561,7 @@ subroutine crpoint
   if(numx >= numl) then
     write(crlog,"(a)") "CR_POINT> Called after last turn"
   else
-    write(crlog,"(3(a,i0))") "CR_POINT> Called on turn ",(numx+1)," / ",numl," : frequency is ",numlcp
+    write(crlog,"(3(a,i0))") "CR_POINT> Called on turn ",(numx+1)," / ",numl," : interval is ",numlcp
   end if
   flush(crlog)
 
@@ -602,7 +609,7 @@ subroutine crpoint
       write(crlog,"(a)") "CR_POINT>  * Tracking variables"
       flush(crlog)
     end if
-    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,time3,napxo,napx,e0,betrel,brho
+    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,time3,napxo,napx,e0,betrel,brho,nucmda
 
     if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * Particle arrays"
@@ -624,6 +631,11 @@ subroutine crpoint
       (dpsv1(j),   j=1,napxo),       &
       (ejv(j),     j=1,napxo),       &
       (ejfv(j),    j=1,napxo),       &
+      (nucm(j),    j=1,napxo),       &
+      (mtc(j),     j=1,napxo),       &
+      (naa(j),     j=1,napxo),       &
+      (nzz(j),     j=1,napxo),       &
+      (nqq(j),     j=1,napxo),       &
       (aperv(j,1), j=1,napxo),       &
       (aperv(j,2), j=1,napxo),       &
       (llostp(j),  j=1,napxo)
@@ -641,13 +653,6 @@ subroutine crpoint
       flush(crlog)
     end if
     call dump_crpoint(cr_pntUnit(nPoint),wErr)
-    if(wErr) goto 100
-
-    if(st_debug) then
-      write(crlog,"(a)") "CR_POINT>  * HION variables"
-      flush(crlog)
-    end if
-    call hions_crpoint(cr_pntUnit(nPoint),wErr)
     if(wErr) goto 100
 
     if(dynk_enabled) then
@@ -719,7 +724,6 @@ subroutine crstart
   use mod_common_track
   use numerical_constants
 
-  use mod_hions
   use dynk,     only : dynk_enabled, dynk_crstart
   use scatter,  only : scatter_active, scatter_crstart
   use elens,    only : melens, elens_crstart
@@ -743,6 +747,7 @@ subroutine crstart
   e0f    = sqrt(e0**2-nucm0**2)
   betrel = crbetrel
   brho   = crbrho
+  nucmda = crnucmda
 
   write(crlog,"(a)") "CR_START> Loading BinRecords"
   do j=1,(napxo+1)/2
@@ -752,24 +757,30 @@ subroutine crstart
   write(crlog,"(a)") "CR_START> Loading tracking data"
   flush(crlog)
 
-  partID(1:napxo)    = crpartID(1:napxo)
-  parentID(1:napxo)  = crparentID(1:napxo)
-  pstop(1:napxo)     = crpstop(1:napxo)
-  llostp(1:napxo)    = crllostp(1:napxo)
+  partID(1:napxo)   = crpartID(1:napxo)
+  parentID(1:napxo) = crparentID(1:napxo)
+  pstop(1:napxo)    = crpstop(1:napxo)
+  llostp(1:napxo)   = crllostp(1:napxo)
 
-  xv1(1:napxo)       = crxv1(1:napxo)
-  yv1(1:napxo)       = cryv1(1:napxo)
-  xv2(1:napxo)       = crxv2(1:napxo)
-  yv2(1:napxo)       = cryv2(1:napxo)
-  sigmv(1:napxo)     = crsigmv(1:napxo)
+  xv1(1:napxo)      = crxv1(1:napxo)
+  yv1(1:napxo)      = cryv1(1:napxo)
+  xv2(1:napxo)      = crxv2(1:napxo)
+  yv2(1:napxo)      = cryv2(1:napxo)
+  sigmv(1:napxo)    = crsigmv(1:napxo)
 
-  dpsv(1:napxo)      = crdpsv(1:napxo)
-  dpsv1(1:napxo)     = crdpsv1(1:napxo)
-  ejv(1:napxo)       = crejv(1:napxo)
-  ejfv(1:napxo)      = crejfv(1:napxo)
+  dpsv(1:napxo)     = crdpsv(1:napxo)
+  dpsv1(1:napxo)    = crdpsv1(1:napxo)
+  ejv(1:napxo)      = crejv(1:napxo)
+  ejfv(1:napxo)     = crejfv(1:napxo)
 
-  numxv(1:napxo)     = crnumxv(1:napxo)
-  nnumxv(1:napxo)    = crnnumxv(1:napxo)
+  nucm(1:napxo)     = crnucm(1:napxo)
+  mtc(1:napxo)      = crmtc(1:napxo)
+  naa(1:napxo)      = crnaa(1:napxo)
+  nzz(1:napxo)      = crnzz(1:napxo)
+  nqq(1:napxo)      = crnqq(1:napxo)
+
+  numxv(1:napxo)    = crnumxv(1:napxo)
+  nnumxv(1:napxo)   = crnnumxv(1:napxo)
   do j=1,napxo
     if(pstop(j) .eqv. .false.) then
       numxv(j)  = numl
@@ -777,9 +788,11 @@ subroutine crstart
     end if
   end do
 
-  ! Recompute from loaded arrays
-  oidpsv(1:napxo) = one/(one + dpsv(1:napxo))
-  rvv(1:napxo)    = (ejv(1:napxo)*e0f)/(e0*ejfv(1:napxo))
+  ! Recompute from loaded arrays (keep in sync with mod_particles)
+  oidpsv(1:napxo)   = one/(one + dpsv(1:napxo))
+  moidpsv(1:napxo)  = mtc(1:napxo)/(one + dpsv(1:napxo))
+  omoidpsv(1:napxo) = ((one-mtc(1:napxo))*oidpsv(1:napxo))*c1e3
+  rvv(1:napxo)      = (ejv(1:napxo)*e0f)/(e0*ejfv(1:napxo))
 
   ! Recompute the thick arrays
   if(ithick == 1) call synuthck
@@ -788,7 +801,6 @@ subroutine crstart
   aperv(1:napxo,1:2) = craperv(1:napxo,1:2)
 
   ! Module data
-  call hions_crstart
   call meta_crstart
   if(dynk_enabled) then
     call dynk_crstart

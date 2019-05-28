@@ -929,7 +929,6 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   use mod_common
   use mod_common_track
   use mod_common_main
-  use mod_hions
   use mod_time
 
   implicit none
@@ -1749,7 +1748,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
   ! Unrecognized format fmt
   ! ------------------------------------------------------------------ !
   else
-    write(lerr,"(a,i0,a)") "DUMP> ERROR Format ",fmt," not understood for file '"//trim(dump_fname(i))//"'"
+    write(lerr,"(a,i0,a)") "DUMP> ERROR Format ",fmt," not understood for file '"//trim(dump_fname(ix))//"'"
     call prror
   end if
 

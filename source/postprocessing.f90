@@ -3361,7 +3361,7 @@ end subroutine join
       enddo
 
       mmac_tmp   = 1.0_real64
-      nms_tmp    = real(nms(ia_p1), real64)
+      nms_tmp    = 1.0_real64
       izu0_tmp   = real(izu0,       real64)
       numlr_tmp  = real(numlr,      real64)
       sigcor_tmp = real(sigcor,     real64)
@@ -3427,9 +3427,6 @@ subroutine writebin(nthinerr)
       implicit none
 
       integer ia,ia2,ie,nthinerr
-#ifdef BOINC
-      integer timech
-#endif
 
       real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
 

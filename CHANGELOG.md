@@ -1,5 +1,47 @@
 # SixTrack Changelog
 
+### Version 5.2.8 [28.05.2019] - Release
+
+**Bug Fixes**
+
+* Fixed a bug in the routine that inserts structure elements into the lattice. The routine uses a circular shift to cycle a fresh element (added at the end of the lattice structure by memory allocation) into the new position, but was cycling the wrong way. The result was that if the shift was over more than 2 elements, the order of the lattice would be wrong. Bug experienced when inserting the aperture markers downstream of Fluka insertions or of the lattice edges. PR #879 (A. Mereghetti)
+* Fixed an error message in `DUMP` that would segfault due to using the wrong index variable in an array lookup. PR #879 (A. Mereghetti)
+* Fixed a bug in the Fluka-SixTrack coupling when SixTrack errors while the beam is on the Fluka side. Solved with a temporary call to `kernel_fluka_exit` at `prror`. This required to change the interface of the `kernel_fluka_exit` subroutine. PR #879 (A. Mereghetti)
+* Fixed checkpointing of statistical scaling arrays in the Scatter Module. These were previously not checkpointed at all. PR #880 (V.K. Berglyd Olsen)
+* Fixed a bug in the SixTestWrapper where not passing any checks at all would default the SixTestWrapper to pass the test as a whole. It now properly requires at least one check to be considered passed. Previously, one of the tests would always pass without verifying a single output file. PR #881 (V.K. Berglyd Olsen)
+
+**BOINC Integration**
+
+* The dummy API has been replaced by a BOINC service module. PR #875 (V.K. Berglyd Olsen, A. Mereghetti)
+  * When running on BOINC, SixTrack no longer checkpoints at the turn interval specified in `fort.3`, but instead tries to checkpoint once a minute. The volunteer's setting on minimum checkpoint interval in their BOINC Manager is still obeyed.
+  * When BOINC is run in standalone mode, that is in the test suite rather than by a volunteer, the checkpoint interval is 10 seconds. The settings for the `CRKILLSWITCH` are still obeyed.
+  * For the time being, at least, the checkpointing decisions taken by the service module are logged to the file `cr_boinc.log`. This log file may be removed when the new scheme is properly tested.
+* The BOINC library is now built from a point on the upstream master branch after some modifications to the Fortran API were merged. This means that we are running off-tag on the BOINC API, which now reports version 7.15. PR #877 (V.K. Berglyd Olsen)
+* Tracking progress reported to BOINC now stops at 99%, and the remaining 1% is reserved for post-processing. PR #877 (V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* Cleanup in the FLUKA integration modules, merging them to a single module. At the same time, refactored code for checking integrity of user info concerning coupling. Also added state variables concerning the current fluka insertion and the last messages sent/received, in view of a thorough revision of the error handling. PR #879 (A. Mereghetti)
+
+### Version 5.2.7 [17.05.2019] - Release
+
+**Bug Fixes**
+
+* Fixed an infinite loop corner case from previous release. It was only triggered if one tried to rum the Differential Algebra (DA) version of SixTrack with checkpoint/restarting, which isn't something that makes sense doing anyway. The loop was only triggered with ifort builds, and used all available memory when triggered, so it was a bit nasty. In addition, the DA executable is no longer built when building with checkpoint/restart. PR #871 (V.K. Berglyd Olsen)
+
+**User Side Changes**
+
+* A new block has been added to `fort.3`. It's named `SIMU`, and holds the main tracking variables for setting up a simulations. When used, it replaces the `TRAC`, `INIT`, and `HION` block. It is intended to work with the `DIST` block, and therefore does not support any of the settings for generating distributions. If those are needed, please use the old blocks. For further details, see the user manual. The block is considered experimental until it's thoroughly tested. PR #872 (V.K. Berglyd Olsen, R. De Maria, A. Mereghetti)
+
+**Documentation**
+
+* Fixed the RF-multipole definitions. PR #869 (R. De Maria)
+
+**Code Improvements and Changes**
+
+* Removed the thick arrays: `ekv`, `fokqv` and removed the checkpointing of all remaining thick arrays. These are recomputed by the subroutine `synuthck` anyway. PR #870 (V.K. Berglyd Olsen, K. Sjobak)
+* Some cleanup in the main common module for particle arrays. Mostly added comments on what variables do, and removed a few unused or redundant arrays. The deleted arrays are: `xsv`, `zsv`, `dp0v`, `sigmv6`, `dpsv6`, `xlv`, `zlv`, `nms`, and `ekkv`. PR #874 (V.K. Berglyd Olsen)
+
 ### Version 5.2.6 [07.05.2019] - Release
 
 **Bug Fixes**
