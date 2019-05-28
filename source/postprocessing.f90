@@ -10,21 +10,12 @@ module postprocessing
 
 contains
 
-#ifdef STF
-#ifdef CR
-subroutine postpr(posi,nnuml)
-#else
-subroutine postpr(posi)
-#endif
-#else
-#ifdef CR
-subroutine postpr(nfile,nnuml)
-#else
-subroutine postpr(nfile)
-#endif
-#endif
+subroutine postpr(arg1,arg2)
 !-----------------------------------------------------------------------
 !  POST PROCESSING
+!
+!  The variabe arg1 sets posi for STF builds and nfile otherwise.
+!  The variable arg2 sets nnuml for CR builds, and is 0 otherwise
 !
 !  NFILE   :  FILE UNIT (non-STF) -- always fixed to 90 for STF version.
 !  POSI    :  PARTICLE NUMBER
@@ -39,11 +30,12 @@ subroutine postpr(nfile)
       use string_tools
       use mod_version
       use mod_time
+      use mod_units
       use mod_common_main, only : nnumxv
       use mod_common, only : dpscor,sigcor,icode,idam,its6d,dphix,dphiz,qx0,qz0,&
         dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,iwg,ivox,    &
         ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi,   &
-        chromc,tlim,trtime
+        chromc,tlim,trtime,fort10,fort110,unit10,unit110
 #ifdef ROOT
       use root_output
 #endif
@@ -51,6 +43,9 @@ subroutine postpr(nfile)
       use checkpoint_restart
 #endif
       implicit none
+
+      integer,           intent(in) :: arg1
+      integer, optional, intent(in) :: arg2
 
       integer i,i1,i11,i2,i3,ia,ia0,iaa,iab,iap6,iapx,iapz,ich,idnt,    &
      &ierro,idummy,if1,if2,ife,ife2,ifipa,ifp,ii,ilapa,ilyap,im1,im1s,  &
@@ -99,7 +94,7 @@ subroutine postpr(nfile)
       character(len=11) hvs
       character(len=8192) ch
       character(len=25) ch1
-      integer errno,l1,l2
+      integer errno,l1,l2,nnuml
       logical rErr
       dimension tle(nlya),dle(nlya)
       dimension wgh(nlya),biav(nlya),slope(nlya),varlea(nlya)
@@ -113,11 +108,20 @@ subroutine postpr(nfile)
       dimension x(2,6),cloau(6),di0au(4)
       dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
       dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
-#ifdef CR
-      integer nnuml
-#endif
       integer itot,ttot
       save
+
+      if(present(arg2)) then
+        nnuml = arg2
+      else
+        nnuml = 0
+      end if
+#ifdef STF
+      posi = arg1
+#else
+      nfile = arg1
+#endif
+
 !----------------------------------------------------------------------
 !--TIME START
       pieni2=c1m8
@@ -946,7 +950,7 @@ subroutine postpr(nfile)
         endif
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
       endif ! END if(program.eq.'MAD')
 
@@ -1106,7 +1110,7 @@ subroutine postpr(nfile)
         endif
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
       endif
 
@@ -1427,7 +1431,7 @@ subroutine postpr(nfile)
         endif
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
       endif
 !--LYAPUNOV
@@ -1640,18 +1644,22 @@ subroutine postpr(nfile)
       if (binrec.ne.0) then
 #ifndef STF
         if (binrecs(91-nfile).ne.crbinrecs(91-nfile)) then
-          write(lout,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(lout,*) 'Unit No ',nfile,' binrec/binrecs/crbinrecs ', binrec,binrecs(91-nfile),crbinrecs(91-nfile)
-          write(93,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(93,*) 'Unit No ',nfile,' binrec/binrecs/crbinrecs ', binrec,binrecs(91-nfile),crbinrecs(91-nfile)
+          write(lout,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(lout,"(a,i0,a,3(1x,i0))") "SIXTRACR> Unit ",nfile,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(91-nfile),crbinrecs(91-nfile)
+          write(crlog,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(crlog,"(a,i0,a,3(1x,i0))") "SIXTRACR> Unit ",nfile,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(91-nfile),crbinrecs(91-nfile)
 #else
         if (binrecs(posi1).ne.crbinrecs(posi1)) then
-          write(lout,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(lout,*) 'Particle No ',posi1,' binrec/binrecs/crbinrecs ', binrec,binrecs(posi1),crbinrecs(posi1)
-          write(93,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(93,*) 'Particle No ',posi,' binrec/binrecs/crbinrecs ', binrec,binrecs(posi1),crbinrecs(posi1)
+          write(lout,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(lout,"(a,i0,a,3(1x,i0))") "SIXTRACR> Particle ",posi1,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(posi1),crbinrecs(posi1)
+          write(crlog,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(crlog,"(a,i0,a,3(1x,i0))") "SIXTRACR> Particle ",posi1,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(posi1),crbinrecs(posi1)
 #endif
-          flush(93)
+          flush(crlog)
           goto 551
         endif
       endif
@@ -1771,7 +1779,7 @@ subroutine postpr(nfile)
            p=p*c1e3
 #else
            write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-           call prror(-1)
+           call prror
 #endif
         endif !END if(program.eq.'MAD')
 
@@ -2154,34 +2162,25 @@ subroutine postpr(nfile)
 
 !--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
 ! We should really write fort.10 in BINARY!
-      write(110,iostat=ierro) (sumda(i),i=1,60)
-      if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE 110'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
-      endif
+      write(unit110,iostat=ierro) (sumda(i),i=1,60)
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort110)//". iostat = ",ierro
+      end if
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
-      do ich=8192,1,-1
-        if(ch(ich:ich).ne.' ') goto 700
-      enddo
- 700  write(10,'(a)',iostat=ierro) ch(:ich)
+      write(unit10,"(a)",iostat=ierro) trim(ch)
 #else
       l1=1
       do i=1,60
         call chr_fromReal(sumda(i),ch1,19,2,rErr)
-        ch(l1:l1+25)=' '//ch1(1:25)
+        ch(l1:l1+25) = " "//ch1(1:25)
         l1=l1+26
-      enddo
-      write(10,'(a)',iostat=ierro) ch(1:l1-1)
+      end do
+      write(unit10,"(a)",iostat=ierro) ch(1:l1-1)
 #endif
-      if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
-      endif
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort10)//". iostat = ",ierro
+      end if
 !--CALCULATION THE INVARIANCES OF THE 4D TRANSVERSAL MOTION
       do 420 i=1,ninv
         if(invx(i).gt.0) then
@@ -2402,7 +2401,7 @@ subroutine postpr(nfile)
               end if
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
 
             end if
@@ -2580,51 +2579,41 @@ subroutine postpr(nfile)
       write(lout,10300) nfile,'WRONG RANGE OF DATA FOR PROCESSING'
       goto 550
 #ifdef CR
-  551 write(93,*)'SIXTRACR POSTPR  *** ERROR *** (see fort.6)'
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+  551 write(crlog,"(a)") "SIXTRACR> ERROR POSTPR"
+      flush(crlog)
 ! Now we let abend handle the fort.10......
 ! It will write 0d0 plus CPU time and turn number
 ! But we empty it as before (if we crash in abend???)
-      rewind 10
-      endfile (10,iostat=ierro)
-      close(10)
-      write(lout,*) 'SIXTRACR POSTPR  *** ERROR ***'
-      call prror(-1)
+      rewind(unit10)
+      endfile(unit10,iostat=ierro)
+      call f_close(unit10)
+      write(lerr,"(a)") "SIXTRACR> ERROR POSTPR"
+      call prror
 #endif
 
  550  continue
 !--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
 !-- Will almost all be zeros but we now have napxto and ttime
 ! We should really write fort.10 in BINARY!
-      write(110,iostat=ierro) (sumda(i),i=1,60)
-      if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE 110'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
+      write(unit110,iostat=ierro) (sumda(i),i=1,60)
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to file 110. Error code ",ierro
       endif
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
-      do ich=8192,1,-1
-        if(ch(ich:ich).ne.' ') goto 707
-      enddo
- 707  write(10,'(a)',iostat=ierro) ch(:ich)
+      write(unit10,"(a)",iostat=ierro) trim(ch)
 #else
       l1=1
       do i=1,60
         call chr_fromReal(sumda(i),ch1,19,2,rErr)
-        ch(l1:l1+25)=' '//ch1(1:25)
+        ch(l1:l1+25) = " "//ch1(1:25)
         l1=l1+26
       enddo
-      write(10,'(a)',iostat=ierro) ch(1:l1-1)
+      write(unit10,"(a)",iostat=ierro) ch(1:l1-1)
 #endif
-      if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE 10'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
-      endif
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort10)//". iostat = ",ierro
+      end if
 !--REWIND USED FILES
   560 rewind nfile
       if(nprint == 1) then
@@ -2982,6 +2971,7 @@ end subroutine sinpro
 
 
 subroutine join
+      use, intrinsic :: iso_fortran_env, only : real64
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -3371,7 +3361,7 @@ end subroutine join
       enddo
 
       mmac_tmp   = 1.0_real64
-      nms_tmp    = real(nms(ia_p1), real64)
+      nms_tmp    = 1.0_real64
       izu0_tmp   = real(izu0,       real64)
       numlr_tmp  = real(numlr,      real64)
       sigcor_tmp = real(sigcor,     real64)
@@ -3412,15 +3402,15 @@ end subroutine join
 
       end subroutine writebin_header
 
-      subroutine writebin(nthinerr)
+subroutine writebin(nthinerr)
 !-------------------------------------------------------------------------
 !     Subroutine for writing the the binary files (fort.90 etc.)
 !     Always converting to real64 before writing to disk
 !-------------------------------------------------------------------------
 !     F. SCHMIDT, 3 February 1999
 !     K. SJOBAK,    October  2017
+!     V.K. Berglyd Olsen, April 2019
 !-------------------------------------------------------------------------
-      use mathlib_bouncer
       use numerical_constants
       use, intrinsic :: iso_fortran_env, only : real64
       use crcoall
@@ -3430,55 +3420,24 @@ end subroutine join
       use mod_commons
       use mod_common_track
       use mod_common_da
+      use mod_settings
 #ifdef CR
       use checkpoint_restart
 #endif
       implicit none
 
       integer ia,ia2,ie,nthinerr
-#ifdef CR
-      integer ncalls
-#endif
-#ifdef BOINC
-      integer timech
-#endif
-#ifdef CR
-      data ncalls /0/
-#endif
 
-      real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),               &
-     &sigmv_tmp(2),dpsv_tmp(2),e0_tmp
+      real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
 
       save
 !-----------------------------------------------------------------------
 #ifdef CR
-      ncalls=ncalls+1
-      if (restart) then
-         write(93,*) 'WRITEBIN bailing out on restart'
-         write(93,*) 'numl, nnuml, numx, numlcr '
-         write(93,*)  numl,nnuml,numx,numlcr
-         flush(93)
-         return
-      else
-#ifndef DEBUG
-         if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-            write(93,*)                                                 &
-     &'WRITEBIN numl, nnuml, numlcr, numx, nwri, numlcp '
-            write(93,*) ' ',numl,nnuml,numlcr,numx,nwri,numlcp
-            flush(93)
-#ifndef DEBUG
-         endif
-#endif
-      endif
-#ifndef DEBUG
-      if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-      write(93,*) 'WRITEBIN writing binrec ',binrec+1
-      flush(93)
-#ifndef DEBUG
-      endif
-#endif
+      if(cr_restart) then
+        write(crlog,"(a)") "WRITEBIN> Restarting, so not writing records"
+        flush(crlog)
+        return
+      end if
 #endif
          do ia=1,napx-1
 !GRD
@@ -3572,12 +3531,7 @@ end subroutine join
 #endif
                endif
                if(ierro.ne.0) then
-                  write(lout,*)
-                  write(lout,*)                                         &
-     &                 '*** ERROR ***,PROBLEM WRITING TO FILE# : ',     &
-     &                 91-ia2
-                  write(lout,*) 'ERROR CODE : ',ierro
-                  write(lout,*)
+                  write(lout,"(2(a,i0))") "WRITEBIN> ERROR Problem writing to file #: ",91-ia2,", error code: ",ierro
 #ifdef CR
                   flush(lout)
 #else
@@ -3591,25 +3545,12 @@ end subroutine join
 #ifdef CR
       if (lhc.ne.9) then
          binrec=binrec+1
-#ifndef DEBUG
-         if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-            write(93,*) 'WRITEBIN written binrec ',binrec
-            flush(93)
-#ifndef DEBUG
-         endif
-#endif
       endif
-      return
-   11 write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : 91',ierro
-      write(lout,*) 'SIXTRACR WRITEBIN IO ERROR on Unit 91'
-      call prror(-1)
 #endif
-      return
-      end subroutine writebin
 
-! These routines have been moved from sixtrack.s90 because they are only
-! use here. VKBO 2018-05-25
+end subroutine writebin
+
+! These routines have been moved from sixtrack.s90 because they are only used here. VKBO 2018-05-25
 subroutine lfitwd(x,y,w,l,key,a,b,e)
 !-----------------------------------------------------------------------
 !
@@ -3623,7 +3564,6 @@ subroutine lfitwd(x,y,w,l,key,a,b,e)
 !
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
-  use mathlib_bouncer
   implicit none
   integer icnt,j,key,l
   real(kind=fPrec) a,b,e,x,y,w
@@ -3683,7 +3623,6 @@ subroutine lfitd(x,y,l,key,a,b,e)
 !
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
-  use mathlib_bouncer
   implicit none
   integer j,key,l
   real(kind=fPrec) a,b,count,e,scartx,scarty
@@ -3739,7 +3678,6 @@ end subroutine lfitd
 end module postprocessing
 
 subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
-  use floatPrecision
   implicit none
   integer i1,i2,i3
   real r1,r2,r3,r4,r5
@@ -3806,7 +3744,6 @@ subroutine hplot(i1,c1,c2,i2)
 end subroutine hplot
 
 subroutine hplset(c1,r1)
-  use floatPrecision
   implicit none
   real r1
   character c1
@@ -3815,7 +3752,6 @@ subroutine hplset(c1,r1)
 end subroutine hplset
 
 subroutine hplsiz(r1,r2,c1)
-  use floatPrecision
   implicit none
   real r1,r2
   character c1
@@ -3824,7 +3760,6 @@ subroutine hplsiz(r1,r2,c1)
 end subroutine hplsiz
 
 subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
-  use floatPrecision
   implicit none
   integer i1
   real r1,r2,r3,r4,r5
@@ -3834,7 +3769,6 @@ subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
 end subroutine hplsof
 
 subroutine htitle(c1)
-  use floatPrecision
   implicit none
   character c1
   save
@@ -3842,7 +3776,6 @@ subroutine htitle(c1)
 end subroutine htitle
 
 subroutine ipl(i1,r1,r2)
-  use floatPrecision
   implicit none
   integer i1
   real r1(*),r2(*)
@@ -3851,7 +3784,6 @@ subroutine ipl(i1,r1,r2)
 end subroutine ipl
 
 subroutine ipm(i1,r1,r2)
-  use floatPrecision
   implicit none
   integer i1
   real r1,r2

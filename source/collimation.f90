@@ -24,6 +24,7 @@ module collimation
   integer, parameter :: numeffdpop = 29
   integer, parameter :: nc         = 32
 
+  ! Variables for collimator material numbers
   integer, parameter :: nmat       = 14
   integer, parameter :: nrmat      = 12
 
@@ -60,7 +61,7 @@ module collimation
   real(kind=fPrec), private, save :: smax_slices  = zero
   real(kind=fPrec), private, save :: recenter1    = zero
   real(kind=fPrec), private, save :: recenter2    = zero
-  real(kind=fPrec), private, save :: jaw_fit(6,6) = zero
+  real(kind=fPrec), private, save :: jaw_fit(2,6) = zero
   real(kind=fPrec), private, save :: jaw_ssf(2)   = zero
 
   ! Beta-beating
@@ -680,7 +681,7 @@ subroutine collimate_init()
     write(lerr,"(a)") "COLL> ERROR All emittances should be normalized. "//&
       "first put emittance for distribtion generation, then for collimator position etc. units in [mm*mrad]."
     write(lerr,"(a)") "COLL> ERROR EXAMPLE: 2.5 2.5 3.5 3.5"
-    call prror(-1)
+    call prror
   end if
 
   write(lout,"(a,i0)")    'COLL> Info: NLOOP               = ', nloop
@@ -998,12 +999,14 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 1) call chr_cast(lnSplit(2), cdist_ampX,     iErr)
-    if(nSplit > 2) call chr_cast(lnSplit(3), cdist_smearX,   iErr)
-    if(nSplit > 3) call chr_cast(lnSplit(4), cdist_ampY,     iErr)
-    if(nSplit > 4) call chr_cast(lnSplit(5), cdist_smearY,   iErr)
-    if(nSplit > 5) call chr_cast(lnSplit(6), cdist_spreadE,  iErr)
-    if(nSplit > 6) call chr_cast(lnSplit(7), cdist_bunchLen, iErr)
+    call chr_cast(lnSplit(2), cdist_ampX,   iErr)
+    call chr_cast(lnSplit(3), cdist_smearX, iErr)
+    call chr_cast(lnSplit(4), cdist_ampY,   iErr)
+    call chr_cast(lnSplit(5), cdist_smearY, iErr)
+    if(nSplit == 7) then
+      call chr_cast(lnSplit(6), cdist_spreadE,  iErr)
+      call chr_cast(lnSplit(7), cdist_bunchLen, iErr)
+    end if
 
   case("DIST_FILE")
     if(nSplit /= 2) then
@@ -1238,7 +1241,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   case("DO_RADIAL")
     if(nSplit /= 4) then
       write(lerr,"(a,i0)") "COLL> ERROR DO_RADIAL expects 3 values, got ",nSplit-1
-      write(lerr,"(a)")    "COLL>       DO_RADIAL true|false size smear"
+      write(lerr,"(a)")    "COLL>       DO_RADIAL true|false amp smear"
       iErr = .true.
       return
     end if
@@ -1352,7 +1355,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0) call chr_cast(lnSplit(1),do_coll,iErr)
+    call chr_cast(lnSplit(1),do_coll,iErr)
 
   case(2)
     if(nSplit /= 2) then
@@ -1360,8 +1363,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0) call chr_cast(lnSplit(1),nloop,iErr)
-    if(nSplit > 1) call chr_cast(lnSplit(2),myenom,iErr)
+    call chr_cast(lnSplit(1),nloop,iErr)
+    call chr_cast(lnSplit(2),myenom,iErr)
 
     if(nloop /= 1) then
       write(lerr,"(a,i0)") "COLL> ERROR Multiple samples is no longer supported. nloop must be 1, got ",nloop
@@ -1375,14 +1378,14 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), do_thisdis,     iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), cdist_ampX,     iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), cdist_smearX,   iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), cdist_ampY,     iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), cdist_smearY,   iErr)
-    if(nSplit > 5)  cdist_fileName = lnSplit(6)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), cdist_spreadE,  iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), cdist_bunchLen, iErr)
+    call chr_cast(lnSplit(1), do_thisdis,     iErr)
+    call chr_cast(lnSplit(2), cdist_ampX,     iErr)
+    call chr_cast(lnSplit(3), cdist_smearX,   iErr)
+    call chr_cast(lnSplit(4), cdist_ampY,     iErr)
+    call chr_cast(lnSplit(5), cdist_smearY,   iErr)
+    cdist_fileName = lnSplit(6)
+    call chr_cast(lnSplit(7), cdist_spreadE,  iErr)
+    call chr_cast(lnSplit(8), cdist_bunchLen, iErr)
 
   case(4)
     if(nSplit /= 14) then
@@ -1390,20 +1393,20 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), cdb_doNSig,iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), nSigIn(1), iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), nSigIn(2), iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), nSigIn(3), iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), nSigIn(4), iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), nSigIn(5), iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), nSigIn(6), iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), nSigIn(7), iErr)
-    if(nSplit > 8)  call chr_cast(lnSplit(9), nSigIn(8), iErr)
-    if(nSplit > 9)  call chr_cast(lnSplit(10),nSigIn(9), iErr)
-    if(nSplit > 10) call chr_cast(lnSplit(11),nSigIn(10),iErr)
-    if(nSplit > 11) call chr_cast(lnSplit(12),nSigIn(11),iErr)
-    if(nSplit > 12) call chr_cast(lnSplit(13),nSigIn(12),iErr)
-    if(nSplit > 13) call chr_cast(lnSplit(14),nSigIn(13),iErr)
+    call chr_cast(lnSplit(1), cdb_doNSig,iErr)
+    call chr_cast(lnSplit(2), nSigIn(1), iErr)
+    call chr_cast(lnSplit(3), nSigIn(2), iErr)
+    call chr_cast(lnSplit(4), nSigIn(3), iErr)
+    call chr_cast(lnSplit(5), nSigIn(4), iErr)
+    call chr_cast(lnSplit(6), nSigIn(5), iErr)
+    call chr_cast(lnSplit(7), nSigIn(6), iErr)
+    call chr_cast(lnSplit(8), nSigIn(7), iErr)
+    call chr_cast(lnSplit(9), nSigIn(8), iErr)
+    call chr_cast(lnSplit(10),nSigIn(9), iErr)
+    call chr_cast(lnSplit(11),nSigIn(10),iErr)
+    call chr_cast(lnSplit(12),nSigIn(11),iErr)
+    call chr_cast(lnSplit(13),nSigIn(12),iErr)
+    call chr_cast(lnSplit(14),nSigIn(13),iErr)
     call cdb_addFamily("tcp3",   nSigIn(1), famID,fErr)
     call cdb_addFamily("tcsg3",  nSigIn(2), famID,fErr)
     call cdb_addFamily("tcsm3",  nSigIn(3), famID,fErr)
@@ -1419,21 +1422,25 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call cdb_addFamily("tdi",    nSigIn(13),famID,fErr)
 
   case(5)
-    if(nSplit /= 10) then
-      write(lerr,"(a,i0)") "COLL> ERROR Expected 10 values on line 5, got ",nSplit
+    if(nSplit < 8 .or. nSplit > 10) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 8-10 values on line 5, got ",nSplit
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), nSigIn(14),iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), nSigIn(15),iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), nSigIn(16),iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), nSigIn(17),iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), nSigIn(18),iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), nSigIn(19),iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), nSigIn(20),iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), nSigIn(21),iErr)
-    if(nSplit > 8)  call chr_cast(lnSplit(9), nSigIn(22),iErr)
-    if(nSplit > 9)  call chr_cast(lnSplit(10),nSigIn(23),iErr)
+    call chr_cast(lnSplit(1), nSigIn(14),iErr)
+    call chr_cast(lnSplit(2), nSigIn(15),iErr)
+    call chr_cast(lnSplit(3), nSigIn(16),iErr)
+    call chr_cast(lnSplit(4), nSigIn(17),iErr)
+    call chr_cast(lnSplit(5), nSigIn(18),iErr)
+    call chr_cast(lnSplit(6), nSigIn(19),iErr)
+    call chr_cast(lnSplit(7), nSigIn(20),iErr)
+    call chr_cast(lnSplit(8), nSigIn(21),iErr)
+    if(nSplit > 8) then
+      call chr_cast(lnSplit(9), nSigIn(22),iErr)
+    end if
+    if(nSplit > 9) then
+      call chr_cast(lnSplit(10),nSigIn(23),iErr)
+    end if
     call cdb_addFamily("tcth1",nSigIn(14),famID,fErr)
     call cdb_addFamily("tcth2",nSigIn(15),famID,fErr)
     call cdb_addFamily("tcth5",nSigIn(16),famID,fErr)
@@ -1451,11 +1458,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), n_slices,   iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), smin_slices,iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), smax_slices,iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), recenter1,  iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), recenter2,  iErr)
+    call chr_cast(lnSplit(1), n_slices,   iErr)
+    call chr_cast(lnSplit(2), smin_slices,iErr)
+    call chr_cast(lnSplit(3), smax_slices,iErr)
+    call chr_cast(lnSplit(4), recenter1,  iErr)
+    call chr_cast(lnSplit(5), recenter2,  iErr)
 
   case(7)
     if(nSplit /= 7) then
@@ -1463,13 +1470,13 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), jaw_fit(1,1),iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), jaw_fit(1,2),iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), jaw_fit(1,3),iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), jaw_fit(1,4),iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), jaw_fit(1,5),iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), jaw_fit(1,6),iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), jaw_ssf(1),  iErr)
+    call chr_cast(lnSplit(1), jaw_fit(1,1),iErr)
+    call chr_cast(lnSplit(2), jaw_fit(1,2),iErr)
+    call chr_cast(lnSplit(3), jaw_fit(1,3),iErr)
+    call chr_cast(lnSplit(4), jaw_fit(1,4),iErr)
+    call chr_cast(lnSplit(5), jaw_fit(1,5),iErr)
+    call chr_cast(lnSplit(6), jaw_fit(1,6),iErr)
+    call chr_cast(lnSplit(7), jaw_ssf(1),  iErr)
 
   case(8)
     if(nSplit /= 7) then
@@ -1477,13 +1484,13 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), jaw_fit(2,1),iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), jaw_fit(2,2),iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), jaw_fit(2,3),iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), jaw_fit(2,4),iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), jaw_fit(2,5),iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), jaw_fit(2,6),iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), jaw_ssf(2),  iErr)
+    call chr_cast(lnSplit(1), jaw_fit(2,1),iErr)
+    call chr_cast(lnSplit(2), jaw_fit(2,2),iErr)
+    call chr_cast(lnSplit(3), jaw_fit(2,3),iErr)
+    call chr_cast(lnSplit(4), jaw_fit(2,4),iErr)
+    call chr_cast(lnSplit(5), jaw_fit(2,5),iErr)
+    call chr_cast(lnSplit(6), jaw_fit(2,6),iErr)
+    call chr_cast(lnSplit(7), jaw_ssf(2),  iErr)
 
   case(9)
     if(nSplit /= 4) then
@@ -1491,10 +1498,10 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), emitnx0_dist,   iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), emitny0_dist,   iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), emitnx0_collgap,iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), emitny0_collgap,iErr)
+    call chr_cast(lnSplit(1), emitnx0_dist,   iErr)
+    call chr_cast(lnSplit(2), emitny0_dist,   iErr)
+    call chr_cast(lnSplit(3), emitnx0_collgap,iErr)
+    call chr_cast(lnSplit(4), emitny0_collgap,iErr)
 
   case(10)
     if(nSplit /= 9) then
@@ -1502,15 +1509,15 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), do_select,        iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), do_nominal,       iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), rnd_seed,         iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), dowrite_dist,     iErr)
-    if(nSplit > 4)  name_sel = lnSplit(5)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), do_oneside,       iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), dowrite_impact,   iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), dowrite_secondary,iErr)
-    if(nSplit > 8)  call chr_cast(lnSplit(9), dowrite_amplitude,iErr)
+    call chr_cast(lnSplit(1), do_select,        iErr)
+    call chr_cast(lnSplit(2), do_nominal,       iErr)
+    call chr_cast(lnSplit(3), rnd_seed,         iErr)
+    call chr_cast(lnSplit(4), dowrite_dist,     iErr)
+    name_sel = lnSplit(5)
+    call chr_cast(lnSplit(6), do_oneside,       iErr)
+    call chr_cast(lnSplit(7), dowrite_impact,   iErr)
+    call chr_cast(lnSplit(8), dowrite_secondary,iErr)
+    call chr_cast(lnSplit(9), dowrite_amplitude,iErr)
 
   case(11)
     if(nSplit /= 4) then
@@ -1518,10 +1525,10 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), xbeat,     iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), xbeatphase,iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), ybeat,     iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), ybeatphase,iErr)
+    call chr_cast(lnSplit(1), xbeat,     iErr)
+    call chr_cast(lnSplit(2), xbeatphase,iErr)
+    call chr_cast(lnSplit(3), ybeat,     iErr)
+    call chr_cast(lnSplit(4), ybeatphase,iErr)
 
   case(12)
     if(nSplit /= 11) then
@@ -1529,17 +1536,17 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), c_rmstilt_prim,   iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), c_rmstilt_sec,    iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), c_systilt_prim,   iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), c_systilt_sec,    iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), c_rmsoffset_prim, iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), c_rmsoffset_sec,  iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), c_sysoffset_prim, iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), c_sysoffset_sec,  iErr)
-    if(nSplit > 8)  call chr_cast(lnSplit(9), c_offsettilt_seed,iErr)
-    if(nSplit > 9)  call chr_cast(lnSplit(10),c_rmserror_gap,   iErr)
-    if(nSplit > 10) call chr_cast(lnSplit(11),do_mingap,        iErr)
+    call chr_cast(lnSplit(1), c_rmstilt_prim,   iErr)
+    call chr_cast(lnSplit(2), c_rmstilt_sec,    iErr)
+    call chr_cast(lnSplit(3), c_systilt_prim,   iErr)
+    call chr_cast(lnSplit(4), c_systilt_sec,    iErr)
+    call chr_cast(lnSplit(5), c_rmsoffset_prim, iErr)
+    call chr_cast(lnSplit(6), c_rmsoffset_sec,  iErr)
+    call chr_cast(lnSplit(7), c_sysoffset_prim, iErr)
+    call chr_cast(lnSplit(8), c_sysoffset_sec,  iErr)
+    call chr_cast(lnSplit(9), c_offsettilt_seed,iErr)
+    call chr_cast(lnSplit(10),c_rmserror_gap,   iErr)
+    call chr_cast(lnSplit(11),do_mingap,        iErr)
 
   case(13)
     if(nSplit /= 3) then
@@ -1547,14 +1554,9 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), radial,       iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), cdist_ampR,   iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), cdist_smearR, iErr)
-    if(radial) then
-      write(lout,"(a)") "COLL> ERROR Radial flag no longer supported. Use dist format 1."
-      iErr = .true.
-      return
-    endif
+    call chr_cast(lnSplit(1), radial,       iErr)
+    call chr_cast(lnSplit(2), cdist_ampR,   iErr)
+    call chr_cast(lnSplit(3), cdist_smearR, iErr)
 
   case(14)
     if(nSplit /= 4) then
@@ -1562,10 +1564,10 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), driftsx,         iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), driftsy,         iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), cut_input,       iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), systilt_antisymm,iErr)
+    call chr_cast(lnSplit(1), driftsx,         iErr)
+    call chr_cast(lnSplit(2), driftsy,         iErr)
+    call chr_cast(lnSplit(3), cut_input,       iErr)
+    call chr_cast(lnSplit(4), systilt_antisymm,iErr)
 
   case(15)
     if(nSplit /= 5) then
@@ -1573,11 +1575,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), ipencil,      iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), pencil_offset,iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), pencil_rmsx,  iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), pencil_rmsy,  iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), pencil_distr, iErr)
+    call chr_cast(lnSplit(1), ipencil,      iErr)
+    call chr_cast(lnSplit(2), pencil_offset,iErr)
+    call chr_cast(lnSplit(3), pencil_rmsx,  iErr)
+    call chr_cast(lnSplit(4), pencil_rmsy,  iErr)
+    call chr_cast(lnSplit(5), pencil_distr, iErr)
 #ifdef G4COLLIMAT
     if(ipencil > 0) then
       write(lerr,"(a)") "COLL> ERROR Pencil distribution not supported with geant4"
@@ -1592,8 +1594,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  cdb_fileName = lnSPlit(1)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), ibeam, iErr)
+    cdb_fileName = lnSPlit(1)
+    call chr_cast(lnSPlit(2), ibeam, iErr)
 
   case(17)
     if(nSplit /= 6) then
@@ -1601,12 +1603,12 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if(nSplit > 0)  call chr_cast(lnSplit(1), dowritetracks,iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), cern,         iErr)
-    if(nSplit > 2)  castordir = lnSplit(3)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), jobnumber,    iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), sigsecut2,    iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), sigsecut3,    iErr)
+    call chr_cast(lnSplit(1), dowritetracks,iErr)
+    call chr_cast(lnSplit(2), cern,         iErr)
+    castordir = lnSplit(3)
+    call chr_cast(lnSplit(4), jobnumber,    iErr)
+    call chr_cast(lnSplit(5), sigsecut2,    iErr)
+    call chr_cast(lnSplit(6), sigsecut3,    iErr)
 
   case default
     write(lerr,"(a,i0,a)") "COLL> ERROR Unexpected line ",iLine," encountered."
@@ -1619,6 +1621,7 @@ end subroutine collimate_parseInputLine
 subroutine collimate_postInput(gammar)
 
   use crcoall
+  use coll_db
 
   real(kind=fPrec), intent(in) :: gammar
 
@@ -1631,6 +1634,11 @@ subroutine collimate_postInput(gammar)
 
   if(myenom == zero) then
     write(lerr,"(a)") "COLL> ERROR Beam energy cannot be zero"
+    call prror
+  end if
+
+  if(cdb_fileName == " ") then
+    write(lerr,"(a)") "COLL> ERROR No collimator database file specified"
     call prror
   end if
 
@@ -1654,7 +1662,6 @@ subroutine collimate_start
   use coll_db
   use mod_units
   use mod_ranlux
-  use mod_hions
   use mathlib_bouncer
 #ifdef HDF5
   use hdf5_output
@@ -2204,13 +2211,13 @@ subroutine collimate_start_collimator(stracki)
 
 !-- DRIFT PART
         if(stracki.eq.0.) then
-          if(iexact.eq.0) then
-            xj  = xj + half*c_length*xpj
-            yj  = yj + half*c_length*ypj
-          else
+          if(iexact) then
             zpj = sqrt(one-xpj**2-ypj**2)
             xj  = xj + half*c_length*(xpj/zpj)
             yj  = yj + half*c_length*(ypj/zpj)
+          else
+            xj  = xj + half*c_length*xpj
+            yj  = yj + half*c_length*ypj
           end if
         end if
 
@@ -2518,7 +2525,7 @@ subroutine collimate_do_collimator(stracki)
       beamsize1 = sqrt(betay1 * myemity0_collgap)
       beamsize2 = sqrt(betay2 * myemity0_collgap)
     else
-      write(lout,"(a)") "COLL> ERROR Attempting to use a halo not purely in the horizontal "//&
+      write(lerr,"(a)") "COLL> ERROR Attempting to use a halo not purely in the horizontal "//&
         "or vertical plane with pencil_dist=3 - abort."
       call prror
     end if
@@ -2620,13 +2627,13 @@ subroutine collimate_do_collimator(stracki)
 !++  For zero length element track back half collimator length
 !  DRIFT PART
     if (stracki.eq.0.) then
-      if(iexact.eq.0) then
-        rcx(j)  = rcx(j) - half*c_length*rcxp(j)
-        rcy(j)  = rcy(j) - half*c_length*rcyp(j)
-      else
+      if(iexact) then
         zpj=sqrt(one-rcxp(j)**2-rcyp(j)**2)
         rcx(j) = rcx(j) - half*c_length*(rcxp(j)/zpj)
         rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
+      else
+        rcx(j)  = rcx(j) - half*c_length*rcxp(j)
+        rcy(j)  = rcy(j) - half*c_length*rcyp(j)
       end if
     else
       write(lerr,"(a,f13.6)") "COLL> ERROR Non-zero length collimator: '"//trim(cdb_cNameUC(icoll))//"' length = ",stracki
@@ -3002,7 +3009,6 @@ subroutine collimate_end_collimator()
   use mod_common_da
   use numerical_constants, only : c5m4
   use coll_db
-  use mod_hions
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
@@ -3046,13 +3052,13 @@ subroutine collimate_end_collimator()
 !++  For zero length element track back half collimator length
 ! DRIFT PART
       ! if (stracki.eq.0.) then ! stracki makes no sense here
-        if(iexact.eq.0) then
-          rcx(j)  = rcx(j) - half*c_length*rcxp(j)
-          rcy(j)  = rcy(j) - half*c_length*rcyp(j)
-        else
+        if(iexact) then
           zpj=sqrt(one-rcxp(j)**2-rcyp(j)**2)
           rcx(j) = rcx(j) - half*c_length*(rcxp(j)/zpj)
           rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
+        else
+          rcx(j)  = rcx(j) - half*c_length*rcxp(j)
+          rcy(j)  = rcy(j) - half*c_length*rcyp(j)
         end if
       ! end if ! stracki makes no sense here
 
@@ -3168,7 +3174,7 @@ subroutine collimate_end_collimator()
         write(lout,*) "Error in collimate_end_collimator"
         write(lout,*) "Particle cannot be both absorbed and not absorbed."
         write(lout,*) part_abs_pos (j),  part_abs_turn(j)
-        call prror(-1)
+        call prror
       end if
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!!
@@ -3180,11 +3186,10 @@ subroutine collimate_end_collimator()
               scatterhit(j).eq.8         ) .and. &
              (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec).and.&
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
-             ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)) .or. &
-             (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)) .or. &
+             ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2) .or. &
+             (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut2) .or. &
              (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
-             ((xv2(j)*c1m3)**2   / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
-             then
+             ((xv2(j)*c1m3)**2   / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) then
 
             xj  = (xv1(j)-torbx(ie))  /c1e3
             xpj = (yv1(j)-torbxp(ie)) /c1e3
@@ -3331,7 +3336,7 @@ subroutine collimate_end_collimator()
         if(part_impact(j).lt.-half) then
           write(lout,*) 'ERR>  Found invalid impact parameter!', part_impact(j)
           write(outlun,*) 'ERR>  Invalid impact parameter!', part_impact(j)
-          call prror(-1)
+          call prror
         end if
 
         n_impact = n_impact + 1
@@ -3995,11 +4000,10 @@ subroutine collimate_end_element
              other(j)     .eq. 4 .or. &
              scatterhit(j).eq. 8       ) .and. &
              (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
-             ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
-             (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
+             ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2).or. &
+             (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut2).or. &
              (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
-             ((xv2(j)*c1m3)**2  /  (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
-             then
+             ((xv2(j)*c1m3)**2  /  (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) then
 
           xj  = (xv1(j)-torbx(ie)) /c1e3
           xpj = (yv1(j)-torbxp(ie))/c1e3
@@ -4372,8 +4376,8 @@ subroutine collimate_end_turn
             other(j)     .eq. 4 .or. &
             scatterhit(j).eq. 8        ) .and. &
             (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
-            ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
-            (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
+            ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2).or. &
+            (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut2).or. &
             (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
             ((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) then
 
@@ -4582,7 +4586,7 @@ implicit none
     write(lout,*) 'ERR>  In subroutine collimate2:'
     write(lout,*) 'ERR>  Material "', c_material, '" not found.'
     write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
-    call prror(-1)
+    call prror
   end if
 
   length  = c_length
@@ -4837,7 +4841,7 @@ implicit none
       s = (-one*x) / xp
       if(s.le.0) then
         write(lout,*) 'S.LE.0 -> This should not happen'
-        call prror(-1)
+        call prror
       end if
 
       if(s .lt. length) then
@@ -4853,14 +4857,14 @@ implicit none
 ! DRIFT PART
     drift_length = length - zlm
     if(drift_length.gt.zero) then                                 !hr09
-      if(iexact.eq.0) then
-        x  = x + xp* drift_length
-        z  = z + zp * drift_length
-        sp = sp + drift_length
-      else
+      if(iexact) then
         zpj = sqrt(one-xp**2-zp**2)
         x = x + drift_length*(xp/zpj)
         z = z + drift_length*(zp/zpj)
+        sp = sp + drift_length
+      else
+        x  = x + xp* drift_length
+        z  = z + zp * drift_length
         sp = sp + drift_length
       end if
     end if
@@ -5043,14 +5047,14 @@ implicit none
     if(nabs.ne.1 .and. zlm.gt.zero) then
       drift_length = (length-(s+sp))
       if(drift_length.gt.c1m15) then
-        if(iexact.eq.0) then
+        if(iexact) then
+          zpj = sqrt(one-xp**2-zp**2)
+          x   = x + drift_length*(xp/zpj)
+          z   = z + drift_length*(zp/zpj)
+          sp  = sp + drift_length
+        else
           x  = x + xp * drift_length
           z  = z + zp * drift_length
-          sp = sp + drift_length
-        else
-          zpj = sqrt(one-xp**2-zp**2)
-          x = x + drift_length*(xp/zpj)
-          z = z + drift_length*(zp/zpj)
           sp = sp + drift_length
         end if
       end if
@@ -5219,7 +5223,7 @@ subroutine collimaterhic(c_material, c_length, c_rotation,        &
   save
 !=======================================================================
   write(lerr,"(a)") "COLL> ERROR collimateRHIC is no longer supported!"
-  call prror(-1)
+  call prror
 end subroutine collimaterhic
 !
 !-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----

@@ -34,7 +34,7 @@ subroutine daliesix
   if(nvarf/2.lt.ndim) ndim=nvarf/2
   if(ndim == 0) then
     write(lerr,"(a)") "DALIESIX> ERROR Number of normal form variables have to be: 2, 4, 5, 6 + parameters."
-    call prror(-1)
+    call prror
   end if
   nv=nvarf
   nd2=2*ndim
@@ -68,7 +68,7 @@ subroutine daliesix
   call etallnom(hs,1,'HS        ')
   call etallnom(df,nd2,'DF        ')
   rewind mfile
-  rewind 111
+  rewind 26
   rewind mf1
   rewind mf2
   rewind mf3
@@ -182,7 +182,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 
   if(nndim < 2 .or. nndim > 3) then
     write(lerr,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
-    call prror(-1)
+    call prror
   end if
 
   nordo=nord
@@ -213,7 +213,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   ! tune variation
   if(ncase.eq.2) call umlauda
   rewind 18
-  rewind 111
+  rewind 26
 
   ! main map calculation
   if(ncase.eq.3) call runda
@@ -248,11 +248,9 @@ subroutine runcav
   use parpro
   use mod_time
   use mod_common
-  use mod_common_main, only : e0f
   use mod_commons
   use mod_common_track, only : comt_daStart,comt_daEnd
   use mod_common_da
-  use mod_hions
   use mod_lie_dab, only : idao,rscrri,iscrda
 
   implicit none
@@ -282,9 +280,9 @@ subroutine runcav
   call darea(dpda1,18)
   rewind 18
 !Eric
-    rewind 111
+  rewind 26
   if(ition.ne.0) then
-  e0f=sqrt(e0**2-nucm0**2)                                             !hr08
+    e0f=sqrt(e0**2-nucm0**2)
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
@@ -437,12 +435,10 @@ subroutine runda
   use crcoall
   use parpro
   use mod_common
-  use mod_common_main, only : e0f,numx
   use mod_commons
   use mod_common_track, only : xxtr,yytr,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_commond2
-  use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   use mod_units
   use mod_time
@@ -734,7 +730,7 @@ subroutine runda
       endif
       if(ix <= 0) then
         write(lerr,"(a)") "RUNDA> ERROR Inverted linear blocks not allowed."
-        call prror(-1)
+        call prror
       endif
 #include "include/dalin1.f90"
 #include "include/dalin2.f90"
@@ -1238,7 +1234,6 @@ subroutine runda
       if(kzz.eq.-26) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i) ! JBG change of variables for misal calculations
@@ -1269,7 +1264,6 @@ subroutine runda
       if(kzz.eq.27) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1301,7 +1295,6 @@ subroutine runda
       if(kzz.eq.-27) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1332,7 +1325,6 @@ subroutine runda
       if(kzz.eq.28) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1686,7 +1678,7 @@ call comt_daEnd
 
 9088 continue
   write(lerr,"(a)") "RUNDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
-  call prror(-1)
+  call prror
   return
 
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &

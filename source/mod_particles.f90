@@ -67,7 +67,6 @@ end subroutine part_applyClosedOrbit
 ! ================================================================================================ !
 subroutine part_updateRefEnergy(refEnergy)
 
-  use mod_hions
   use mod_common
   use mod_common_main
   use numerical_constants, only : one, c1m6
@@ -111,7 +110,6 @@ end subroutine part_updateRefEnergy
 ! ================================================================================================ !
 subroutine part_updatePartEnergy(refArray,updateAngle)
 
-  use mod_hions
   use mod_common
   use mod_common_track
   use mod_common_main
@@ -154,11 +152,12 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
   end select
 
   ! Modify the Energy Dependent Arrays
+  ! Keep in sync with checpoint/restart crstart
   dpsv1(1:napx)    = (dpsv(1:napx)*c1e3)/(one + dpsv(1:napx))
   dpd(1:napx)      = one + dpsv(1:napx)                      ! For thick tracking
   dpsq(1:napx)     = sqrt(dpd(1:napx))                       ! For thick tracking
   oidpsv(1:napx)   = one/(one + dpsv(1:napx))
-  moidpsv(1:napx)  = mtc(1:napx)/(one + dpsv(1:napx))        ! Relative rigidity offset (mod_hions) [MV/c^2]
+  moidpsv(1:napx)  = mtc(1:napx)/(one + dpsv(1:napx))        ! Relative rigidity offset [MV/c^2]
   omoidpsv(1:napx) = ((one-mtc(1:napx))*oidpsv(1:napx))*c1e3
   rvv(1:napx)      = (ejv(1:napx)*e0f)/(e0*ejfv(1:napx))     ! Beta_0 / beta(j)
 
@@ -179,11 +178,8 @@ end subroutine part_updatePartEnergy
 ! ================================================================================================ !
 subroutine part_writeState(theState)
 
-  use, intrinsic :: iso_fortran_env, only : int16, int32, real64
-
   use mod_units
   use parpro
-  use mod_hions
   use mod_common
   use mod_common_main
   use mod_settings
@@ -223,10 +219,7 @@ subroutine part_writeState(theState)
 
     iDummy = 0
 
-    write(fileUnit) int(napx,  kind=int32)
-    write(fileUnit) int(napxo, kind=int32)
-    write(fileUnit) int(npart, kind=int32)
-    write(fileUnit) int(iDummy,kind=int32) ! Pad to n x 64 bit
+    write(fileUnit) napx,napxo,npart,iDummy ! 4x32bit
 
     do j=1,npart
       ! These have to be set explicitly as ifort converts logical to integer differently than gfortran and nagfor
@@ -240,27 +233,14 @@ subroutine part_writeState(theState)
       else
         iLost = 0
       end if
-      write(fileUnit)  int(  partID(j), kind=int32)
-      write(fileUnit)  int(parentID(j), kind=int32)
-      write(fileUnit)  int(      iLost, kind=int32)
-      write(fileUnit)  int(      iPrim, kind=int32)
-      write(fileUnit) real(     xv1(j), kind=real64)
-      write(fileUnit) real(     xv2(j), kind=real64)
-      write(fileUnit) real(     yv1(j), kind=real64)
-      write(fileUnit) real(     yv2(j), kind=real64)
-      write(fileUnit) real(   sigmv(j), kind=real64)
-      write(fileUnit) real(    dpsv(j), kind=real64)
-      write(fileUnit) real(    ejfv(j), kind=real64)
-      write(fileUnit) real(     ejv(j), kind=real64)
+      write(fileUnit) partID(j),parentID(j),iLost,iPrim  ! 4x32 bit
+      write(fileUnit) xv1(j),xv2(j),yv1(j),yv2(j)        ! 4x64 bit
+      write(fileUnit) sigmv(j),dpsv(j),ejfv(j),ejv(j)    ! 4x64 bit
       if(noIons) cycle ! Skip the ion columns
-      write(fileUnit) real(    nucm(j), kind=real64)
-      write(fileUnit)  int(     naa(j), kind=int16)
-      write(fileUnit)  int(     nzz(j), kind=int16)
-    ! write(fileUnit)  int(     nqq(j), kind=int16) ! Not implemented yet
-      write(fileUnit)  int(     iDummy, kind=int32) ! Pad to n x 64 bit
+      write(fileUnit) nucm(j),naa(j),nzz(j),iDummy       ! 64 + 2x16 + 32 bit
     end do
 
-    call f_close(fileUnit)
+    call f_freeUnit(fileUnit)
 
   else
 
@@ -300,7 +280,7 @@ subroutine part_writeState(theState)
       end if
     end do
 
-    call f_close(fileUnit)
+    call f_freeUnit(fileUnit)
 
   end if
 

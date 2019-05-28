@@ -271,8 +271,8 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
-  if(elens_r1(ielens(iElem)) <= zero) then
-    write(lerr,"(a)") "ELENS> ERROR R1<=0!"
+  if(elens_r1(ielens(iElem)) < zero) then
+    write(lerr,"(a)") "ELENS> ERROR R1<0!"
     iErr = .true.
     return
   end if
@@ -323,7 +323,7 @@ end subroutine elens_parseInputLine
 
 subroutine elens_parseInputDone(iErr)
 
-  use mod_common, only : bez, kz
+  use mod_common, only : bez, kz, fort3
 
   implicit none
 
@@ -343,7 +343,7 @@ subroutine elens_parseInputDone(iErr)
         end if
       end do
       ! report error
-      write(lerr,"(a)") "ELENS> ERROR Type of elens not declared in fort.3 for element '"//trim(bez(kk))//"'"
+      write(lerr,"(a)") "ELENS> ERROR Type of elens not declared in "//trim(fort3)//" for element '"//trim(bez(kk))//"'"
       iErr = .true.
       return
     end if
@@ -355,7 +355,7 @@ subroutine elens_postInput
 
   use mathlib_bouncer
   use utils
-  use mod_common, only : bez,kz
+  use mod_common, only : bez,kz,fort3
 
   integer j, jj, nlens
   logical exist
@@ -366,7 +366,7 @@ subroutine elens_postInput
     if(kz(jj)==29) then
       if (ielens(jj).eq.0) then
         write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lerr,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in fort.3"
+        write(lerr,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in "//trim(fort3)
         call prror
       elseif ( elens_type(ielens(jj))==0 ) then
         write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
@@ -378,7 +378,7 @@ subroutine elens_postInput
     end if
   end do
   if ( nlens.ne.melens ) then
-    write(lerr,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in fort.3 ",melens
+    write(lerr,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in "//trim(fort3)//" ",melens
     write(lerr,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
     call prror
   end if
@@ -452,8 +452,7 @@ subroutine eLensTheta(j)
   use mathlib_bouncer
   use numerical_constants, only : zero, one, two, pi, c1e3, c1m3, c1m6
   use physical_constants, only: clight, pmae, eps0
-  use mod_hions, only : zz0
-  use mod_common, only : e0, betrel, brho, bez, kz
+  use mod_common, only : e0, betrel, brho, bez, kz, zz0
   use mod_settings, only : st_quiet
 
   implicit none
@@ -576,7 +575,7 @@ subroutine parseRadialProfile(ifile)
 
 20 continue
 
-  call f_close(fUnit)
+  call f_freeUnit(fUnit)
   write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile),"points."
 
   if(st_quiet < 2) then
@@ -593,7 +592,7 @@ subroutine parseRadialProfile(ifile)
 
 30 continue
   write(lerr,"(a,i0,a)") "ELENS> ERROR ",iErr," while parsing file "//trim(elens_radial_filename(ifile))
-  call prror(-1)
+  call prror
 
 end subroutine parseRadialProfile
 
@@ -662,7 +661,7 @@ end subroutine normaliseRadialProfile
 
 #ifdef CR
 subroutine elens_crcheck(fileUnit,readErr)
-  implicit none
+
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: readErr
 
@@ -675,37 +674,36 @@ subroutine elens_crcheck(fileUnit,readErr)
 
 10 continue
 
-  write(lout,"(a,i0)") "READERR in elens_crcheck; fileUnit = ",fileUnit
-  write(93,  "(a,i0)") "READERR in elens_crcheck; fileUnit = ",fileUnit
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in ELENS"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in ELENS"
+  flush(crlog)
   readErr = .true.
 
 end subroutine elens_crcheck
 
-subroutine elens_crpoint(fileUnit, writeErr,iErro)
-  implicit none
+subroutine elens_crpoint(fileUnit, writeErr)
 
-  integer, intent(in)    :: fileUnit
-  logical, intent(inout) :: writeErr
-  integer, intent(inout) :: iErro
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: writeErr
 
   integer j
 
-  write(fileunit,err=10,iostat=iErro) (elens_lAllowUpdate(j), j=1, nelens)
-  endfile(fileunit,iostat=iErro)
-  backspace(fileunit,iostat=iErro)
+  write(fileunit,err=10) (elens_lAllowUpdate(j), j=1, nelens)
+  flush(fileunit)
 
   writeErr = .false.
   return
 
 10 continue
 
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in ELENS"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in ELENS"
+  flush(crlog)
   writeErr = .true.
-  return
 
 end subroutine elens_crpoint
 
 subroutine elens_crstart
-  implicit none
   elens_lAllowUpdate(1:nelens) = elens_lAllowUpdate_CR(1:nelens)
 end subroutine elens_crstart
 

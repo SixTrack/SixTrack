@@ -20,7 +20,7 @@
 
 #ifndef WIN32
 //open()
-#include<fcntl.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 //waitpid()
 #include <sys/types.h>
@@ -136,6 +136,7 @@ int main(int argc, char* argv[])
     //How long to wait in seconds before killing the CR run
     std::vector<int> KillTimes;
     int KillTime = 0;
+    int passCount = 0;
 
     bool fort6 = false;
     bool fort10 = false;
@@ -690,12 +691,21 @@ int main(int argc, char* argv[])
     if(fort90)      CheckPrint("fort.90",!fort90fail);
     if(STF)         CheckPrint("singletrackfile.dat",!STFfail);
     if(extrachecks) CheckPrint("Extra Checks",!ExtraChecksfail);
+    if(fort10      && !fort10fail)      passCount++;
+    if(fort90      && !fort90fail)      passCount++;
+    if(STF         && !STFfail)         passCount++;
+    if(extrachecks && !ExtraChecksfail) passCount++;
 #ifdef LIBARCHIVE
     if(sixoutzip)   CheckPrint(sixoutzip_fname,!sixoutzipfail);
+    if(sixoutzip && !sixoutzipfail)     passCount++;
 #endif
     if(CRon && atoi(argv[12]) > 0) {
         CheckPrint("CR Number of Restarts",!crRestartFail);
+        if(!crRestartFail) passCount++;
     }
+    std::stringstream numPassed;
+    numPassed << "Checks Passed: " << passCount << " > 0";
+    CheckPrint(numPassed.str(), passCount > 0);
     std::cout << std::endl;
 
     PrettyDivider("EXIT");
@@ -704,7 +714,7 @@ int main(int argc, char* argv[])
     //or together any fail bits.
     //If all tests pass this will return 0 (good)
     //if not we get something else out (bad)
-    return (fort10fail || fort90fail || STFfail || ExtraChecksfail || sixoutzipfail || crRestartFail);
+    return (fort10fail || fort90fail || STFfail || ExtraChecksfail || sixoutzipfail || crRestartFail || (passCount == 0));
 }
 
 /**
@@ -1446,10 +1456,10 @@ void UnlinkCRFiles() {
     unlinkFiles.push_back("fort.6");
     unlinkFiles.push_back("fort.10");
     unlinkFiles.push_back("fort.90");
-    unlinkFiles.push_back("fort.93");
-    unlinkFiles.push_back("fort.95");
-    unlinkFiles.push_back("fort.96");
-
+    unlinkFiles.push_back("cr_boinc.log");
+    unlinkFiles.push_back("cr_status.log");
+    unlinkFiles.push_back("crpoint_pri.bin");
+    unlinkFiles.push_back("crpoint_sec.bin");
     unlinkFiles.push_back("crrestartme.tmp");
     unlinkFiles.push_back("crkillswitch.tmp");
 

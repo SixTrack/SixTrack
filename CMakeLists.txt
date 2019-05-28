@@ -101,7 +101,8 @@ option(STATIC "Create a statically linked binary" ON)
 option(NATIVE "Enable optimisations for the current machine" OFF)
 option(AVX "Enable use of the Advanced Vector Extensions (AVX) instruction set - Sandy Bridge and later" OFF)
 option(AVX2 "Enable use of the Advanced Vector Extensions 2 (AVX2) instruction set - Haswell and later" OFF)
-option(AVX-512 "Enable use of the Advanced Vector Extensions 512 (AVX-512) instruction set - (Currently targeting Skylake-X)" OFF)
+option(AVX512 "Enable use of the Advanced Vector Extensions 512 (AVX512) instruction set" OFF)
+option(AVX512_SKYLAKE "Enable use of the Advanced Vector Extensions 512 (AVX512) instruction set targeting Skylake" OFF)
 option(LTO "Enable link time optimisations" OFF)
 
 # Float Precision (Default: 64BITM)
@@ -225,10 +226,10 @@ if(AVX2)
   set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_avx2")
   set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_avx2")
 endif(AVX2)
-if(AVX-512)
+if(AVX512 OR AVX512_SKYLAKE)
   set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_avx512")
   set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_avx512")
-endif(AVX-512)
+endif(AVX512 OR AVX512_SKYLAKE)
 if(NATIVE)
   set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_native")
   set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_native")
@@ -272,7 +273,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
+list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC API BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
 list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
@@ -285,8 +286,8 @@ list(APPEND FORT90_LIB
   common_modules close strings string_tools mainarrays mod_meta
   mod_time mod_alloc zipf matrix_inv lielib beam6d mod_geometry
   bouncy_castle plato_seq bdex fma dabnew end_sixtrack
-  ranecu wire hions elens mod_dist scatter dump dynk
-  aperture mod_fluc beam6d_fox six_fox postprocessing cheby utils
+  ranecu wire elens mod_dist scatter dump dynk cheby utils
+  aperture mod_fluc beam6d_fox six_fox postprocessing
   read_write ranlux collimation coll_db coll_dist mod_particles
   mod_ffield mod_ffield_aux
 )
@@ -311,21 +312,20 @@ if(HASHLIB)
 endif(HASHLIB)
 
 if(BEAMGAS)
-  LIST(APPEND FORT90_CR beamgas)
+  list(APPEND FORT90_CR beamgas)
 endif(BEAMGAS)
 
 if(FLUKA)
-  list(APPEND FORT90_LIB mod_fluka fluka)
+  list(APPEND FORT90_LIB mod_fluka)
 endif(FLUKA)
 
 if(ROOT)
-  LIST(APPEND FORT90_LIB root_output)
+  list(APPEND FORT90_LIB root_output)
 endif(ROOT)
 
-if(BOINC AND NOT API)
-  # We have a BOINC build but no API, load the fake API substitute for debugging.
-  list(APPEND FORT90_LIB boinc_dummy)
-endif(BOINC AND NOT API)
+if(BOINC)
+  list(APPEND FORT90_LIB mod_boinc)
+endif(BOINC)
 
 if(PYTHIA)
   add_library(pythia_wrapper STATIC pythia_wrapper.h pythia_wrapper.cpp)
@@ -426,6 +426,12 @@ if(HDF5)
     message(FATAL_ERROR "Cannot build HDF5 with CR enabled")
   endif()
 endif()
+if(SIXDA)
+  if(CR)
+    message(STATUS "Will not build SixDA when checkpoint/restart is enabled.")
+    set(SIXDA OFF)
+  endif()
+endif()
 if(BOINC)
   if(NOT CRLIBM)
     message(FATAL_ERROR "Building with BOINC requires CRLIBM enabled")
@@ -435,10 +441,6 @@ if(BOINC)
   endif()
   if(NOT LIBARCHIVE)
     message(FATAL_ERROR "Building with BOINC requires LIBARCHIVE enabled")
-  endif()
-  if(SIXDA)
-    message(STATUS "Will not build SixDA when BOINC is enabled.")
-    set(SIXDA OFF)
   endif()
 endif(BOINC)
 if(API)
@@ -518,22 +520,36 @@ endif(128BITM)
 
 if(NOT SIXDA)
   message(STATUS "Not building SixDA version.")
-endif()
+endif(NOT SIXDA)
+
+# Since each AVX option includes the others, just turn the lower ones off
+if(AVX512_SKYLAKE)
+  set(AVX OFF)
+  set(AVX2 OFF)
+  set(AVX512 OFF)
+endif(AVX512_SKYLAKE)
+if(AVX512)
+  set(AVX OFF)
+  set(AVX2 OFF)
+endif(AVX512)
+if(AVX2)
+  set(AVX OFF)
+endif(AVX2)
 
 ###################################################################################################
 # Settings for compiler build flags
 ###################################################################################################
 
 if(STATIC)
-  #This just sets the default build setting for shared libraries.
-  SET(BUILD_SHARED_LIBS OFF)
+  # This just sets the default build setting for shared libraries.
+  set(BUILD_SHARED_LIBS OFF)
 endif()
 
 #FLAGS depend on the compiler
 get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
 #lots of games to play here.... start with fortran flags
-if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
+if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
   ##############
   #  gfortran  #
   ##############
@@ -567,7 +583,7 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
   endif()
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
-    SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mfpmath=sse -msse2")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mfpmath=sse -msse2")
 
     if(32BIT)
       set(CMAKE_Fortran_FLAGS "-m32 ${CMAKE_Fortran_FLAGS}")
@@ -585,9 +601,13 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
       set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
     endif(AVX2)
 
-    if(AVX-512)
-      set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512vl -mavx512bw -mavx512dq -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
-    endif(AVX-512)
+    if(AVX512)
+      set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -mavx512f -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+    endif(AVX512)
+
+    if(AVX512_SKYLAKE)
+      set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+    endif(AVX512_SKYLAKE)
 
     if(NATIVE)
       set(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
@@ -596,9 +616,9 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
   if(STATIC)
     if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-      SET(CMAKE_Fortran_LINKER_FLAGS "-Bstatic -static-libgcc -static-libgfortran ${CMAKE_Fortran_LINKER_FLAGS}")
+      set(CMAKE_Fortran_LINKER_FLAGS "-Bstatic -static-libgcc -static-libgfortran ${CMAKE_Fortran_LINKER_FLAGS}")
     else()
-      SET(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
+      set(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
     endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   endif(STATIC)
 
@@ -612,14 +632,14 @@ if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
     set(CMAKE_Fortran_LINKER_FLAGS "-pg ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(GPROF)
 
-elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
+elseif(Fortran_COMPILER_NAME MATCHES "ifort.*")
   ###########
   #  ifort  #
   ###########
 
   set(IFORT ON)
   set(CMAKE_Fortran_FLAGS_RELEASE "-fp-model source -fp-model strict -fp-model no-except -O3 -no-fma -std15 -assume realloc-lhs")
-  set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -no-fma -std15 -assume realloc-lhs")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "-fp-model source -fp-model strict -fp-model no-except -O0 -g -traceback -no-fma -std15 -assume realloc-lhs")
   set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
   set(PREPRO_FLAGS -I${CMAKE_SOURCE_DIR}/source/include -fpp -E -P)
 
@@ -628,7 +648,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
   endif()
 
   if(WARN)
-    set(CMAKE_Fortran_FLAGS "-warn unused ${CMAKE_Fortran_FLAGS}")
+    set(CMAKE_Fortran_FLAGS "-warn unused -check bounds ${CMAKE_Fortran_FLAGS}")
   endif(WARN)
 
   if(32BIT)
@@ -651,9 +671,13 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
     set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -no-fma ${CMAKE_Fortran_FLAGS}")
   endif(AVX2)
 
-  if(AVX-512)
+  if(AVX512)
     set(CMAKE_Fortran_FLAGS "-axcommon-avx512 -no-fma ${CMAKE_Fortran_FLAGS}")
-  endif(AVX-512)
+  endif(AVX512)
+
+  if(AVX512_SKYLAKE)
+    set(CMAKE_Fortran_FLAGS "-axskylake-avx512 -no-fma ${CMAKE_Fortran_FLAGS}")
+  endif(AVX512_SKYLAKE)
 
   if(NATIVE)
     set(CMAKE_Fortran_FLAGS_RELEASE "-xHost ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -663,7 +687,7 @@ elseif (Fortran_COMPILER_NAME MATCHES "ifort.*")
     set(CMAKE_Fortran_LINKER_FLAGS "-static ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(STATIC)
 
-elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
+elseif(Fortran_COMPILER_NAME MATCHES "nagfor.*")
   ############
   #  nagfor  #
   ############
@@ -673,8 +697,6 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
   set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -dusty -ieee=full -dcfuns -gline")
   set(PREPRO_EXEC  ${CMAKE_CXX_COMPILER})
   set(PREPRO_FLAGS -cpp -E -P)
-  # set(PREPRO_EXEC  ${CMAKE_Fotran_COMPILER})
-  # set(PREPRO_FLAGS -F)
 
   if(WARN)
     set(CMAKE_Fortran_FLAGS "-w=ulv -w=uparam ${CMAKE_Fortran_FLAGS}")
@@ -698,11 +720,11 @@ elseif (Fortran_COMPILER_NAME MATCHES "nagfor.*")
   endif(NATIVE)
 
   if(STATIC)
-    SET(CMAKE_Fortran_LINKER_FLAGS "-Bstatic ${CMAKE_Fortran_LINKER_FLAGS}")
+    set(CMAKE_Fortran_LINKER_FLAGS "-Bstatic ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(STATIC)
 
   if(NOT STATIC)
-    SET(CMAKE_Fortran_LINKER_FLAGS "-Bdynamic ${CMAKE_Fortran_LINKER_FLAGS}")
+    set(CMAKE_Fortran_LINKER_FLAGS "-Bdynamic ${CMAKE_Fortran_LINKER_FLAGS}")
   endif(NOT STATIC)
 
 else()
@@ -714,10 +736,9 @@ else()
   set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g ${CMAKE_Fortran_FLAGS_DEBUG}")
   set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
   set(PREPRO_FLAGS -cpp -E -P)
-endif ()
+endif()
 
-#Now for C flags (crlibm for now)
-#${CMAKE_C_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
+# C Flags
 if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
@@ -743,9 +764,13 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
       set(CMAKE_C_FLAGS "-mavx -mavx2 -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
     endif(AVX2)
 
-    if(AVX-512)
-      set(CMAKE_C_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512vl -mavx512bw -mavx512dq -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
-    endif(AVX-512)
+    if(AVX512)
+      set(CMAKE_C_FLAGS "-mavx -mavx2 -mavx512f -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+    endif(AVX512)
+
+    if(AVX512_SKYLAKE)
+      set(CMAKE_C_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+    endif(AVX512_SKYLAKE)
 
     if(NATIVE)
       set(CMAKE_C_FLAGS "-march=native ${CMAKE_C_FLAGS}")
@@ -753,7 +778,7 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
   endif()
 
   if(STATIC)
-    SET(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
+    set(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
   endif(STATIC)
 
   if(COVERAGE)
@@ -786,9 +811,13 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
     set(CMAKE_C_FLAGS "-mavx -mavx2 -no-fma ${CMAKE_C_FLAGS}")
   endif(AVX2)
 
-  if(AVX-512)
+  if(AVX512)
     set(CMAKE_C_FLAGS "-axcommon-avx512 -no-fma ${CMAKE_C_FLAGS}")
-  endif(AVX-512)
+  endif(AVX512)
+
+  if(AVX512_SKYLAKE)
+    set(CMAKE_C_FLAGS "-axskylake-avx512 -no-fma ${CMAKE_C_FLAGS}")
+  endif(AVX512_SKYLAKE)
 
   if(NATIVE)
     set(CMAKE_C_FLAGS "-xHost ${CMAKE_C_FLAGS}")
@@ -803,8 +832,7 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
 
 endif()
 
-#Now for CXX flags (merlinScatter for now)
-#${CMAKE_CXX_COMPILER_ID} : From the docs: "one of "Clang", "GNU", "Intel", or "MSVC". This works even if a compiler wrapper like ccache is used."
+# CXX Flags
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
@@ -830,9 +858,13 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
       set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
     endif(AVX2)
 
-    if(AVX-512)
-      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512vl -mavx512bw -mavx512dq -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
-    endif(AVX-512)
+    if(AVX512)
+      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mavx512f -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+    endif(AVX512)
+
+    if(AVX512_SKYLAKE)
+      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+    endif(AVX512_SKYLAKE)
 
     if(NATIVE)
       set(CMAKE_CXX_FLAGS "-march=native ${CMAKE_CXX_FLAGS}")
@@ -874,9 +906,13 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
     set(CMAKE_CXX_FLAGS "-mavx -mavx2 -no-fma ${CMAKE_CXX_FLAGS}")
   endif(AVX2)
 
-  if(AVX-512)
+  if(AVX512)
     set(CMAKE_CXX_FLAGS "-axcommon-avx512 -no-fma ${CMAKE_CXX_FLAGS}")
-  endif(AVX-512)
+  endif()
+
+  if(AVX512_SKYLAKE)
+    set(CMAKE_CXX_FLAGS "-axskylake-avx512 -no-fma ${CMAKE_CXX_FLAGS}")
+  endif()
 
   if(NATIVE)
     set(CMAKE_CXX_FLAGS "-march=xHost ${CMAKE_CXX_FLAGS}")
@@ -885,10 +921,10 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
   set(CMAKE_CXX_FLAGS_RELEASE "-O3")
   set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
 
-  #When using icc remember to link to libstdc++
+  # When using icc remember to link to libstdc++
   if(STATIC)
     find_library(stdc++ STATIC stdc++)
-    SET(CMAKE_CXX_LINKER_FLAGS "-static ${CMAKE_CXX_LINKER_FLAGS}")
+    set(CMAKE_CXX_LINKER_FLAGS "-static ${CMAKE_CXX_LINKER_FLAGS}")
   else()
     find_library(stdc++ stdc++)
   endif(STATIC)
@@ -925,15 +961,15 @@ foreach(loop IN LISTS PREPRO_FLAGS_TOOLS PREPRO_FLAGS_LIB PREPRO_FLAGS_COMPILE)
 endforeach()
 if(32BITM)
   message(STATUS "Adding preprocessor macro -DSIXTRACK_REAL=real32 to target SixTrack")
-  list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real32 -DSINGLE_MATH)
+  list(APPEND PREPRO_FLAGS -DSINGLE_MATH)
 endif()
 if(64BITM)
   message(STATUS "Adding preprocessor macro -DSIXTRACK_REAL=real64 to target SixTrack")
-  list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real64 -DDOUBLE_MATH)
+  list(APPEND PREPRO_FLAGS -DDOUBLE_MATH)
 endif()
 if(128BITM)
   message(STATUS "Adding preprocessor macro -DSIXTRACK_REAL=real128 to target SixTrack")
-  list(APPEND PREPRO_FLAGS -DSIXTRACK_REAL=real128 -DQUAD_MATH)
+  list(APPEND PREPRO_FLAGS -DQUAD_MATH)
 endif()
 
   list(APPEND PREPRO_FLAGS -DSIXTRACK_GIT_REVISION="'${GIT_REVISION}'")
@@ -942,9 +978,8 @@ endif()
 add_executable(dafor ${CMAKE_SOURCE_DIR}/source/tools/dafor/dafor.f90)
 #we do not need any fancy flags for dafor but nagfor does not like the following
 if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
-  set_target_properties(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
-  set_target_properties(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
-  #target_compile_definitions(dafor PUBLIC "-mno-avx -mno-avx2 -mno-avx512f -mno-avx512cd -mno-avx512vl -mno-avx512bw -mno-avx512dq")
+  set_target_properties(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2")
+  set_target_properties(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2")
 endif(Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
 if(CRLIBM)
@@ -992,10 +1027,10 @@ if(MERLINSCATTER)
   set_property(TARGET merlinscatter PROPERTY CXX_STANDARD 11)
 
   if(32BIT)
-    SET_TARGET_PROPERTIES(merlinscatter PROPERTIES LINK_FLAGS "-m32")
+    set_target_properties(merlinscatter PROPERTIES LINK_FLAGS "-m32")
   endif(32BIT)
   if(64BIT)
-    SET_TARGET_PROPERTIES(merlinscatter PROPERTIES LINK_FLAGS "-m64")
+    set_target_properties(merlinscatter PROPERTIES LINK_FLAGS "-m64")
   endif(64BIT)
 endif()
 
@@ -1020,10 +1055,10 @@ if(NAFF)
   set_property(TARGET naff PROPERTY C_STANDARD 99)
 
   if(32BIT)
-    SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m32")
+    set_target_properties(naff PROPERTIES LINK_FLAGS "-m32")
   endif(32BIT)
   if(64BIT)
-    SET_TARGET_PROPERTIES(naff PROPERTIES LINK_FLAGS "-m64")
+    set_target_properties(naff PROPERTIES LINK_FLAGS "-m64")
   endif(64BIT)
 endif(NAFF)
 
