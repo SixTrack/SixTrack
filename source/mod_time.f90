@@ -1,9 +1,19 @@
 ! ================================================================================================ !
-!  SixTrack Time Data Module
+!  SixTrack Timing Module
+! ~~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2018-11-15
-!  Updated: 2019-05-21
-!  Records simulation times
+!  Updated: 2019-05-29
+!
+!      This module keeps track of how much time SixTrack spends in the various parts of the code
+!  during a simulation run.
+!      This is in part done via an array of time stamps which are set when calling time_timeStamp
+!  from the relevant places in the code. The total taime spent at any given moment is also kept in
+!  the variable time_lastTick. This variable is updated when calls are made to this module, but can
+!  also be updated by calling time_ticToc. The variable is useful for logging output etc.
+!      Since cpu_time is not guaranteed to start at 0 when the executable starts, it will check that
+!  the first time stamp is close to zero. If it is not, the offset will be subtracted from all time
+!  stamps to ensure they are as accurate as possible.
 ! ================================================================================================ !
 module mod_time
 
@@ -15,6 +25,10 @@ module mod_time
   integer,           private, save :: time_fileUnit
 
   ! Constants for determining timer checkpoints
+  ! These are used when calling time_timeStamp() from main_cr and other relevant parts of the code.
+  ! To add a new time stamp, add a parameter in the list below in the same order as simulation progress in main_cr,
+  ! and if necessary, bump the following parameters so they are also in numerical order.
+  ! Then add the corresponding log string to the select case in subroutine time_timeStamp.
   integer, parameter :: time_afterFileUnits      = 1
   integer, parameter :: time_afterDaten          = 2
   integer, parameter :: time_afterCRCheck        = 3
@@ -31,25 +45,28 @@ module mod_time
   integer, parameter :: time_afterZIPF           = 14
   integer, parameter :: time_beforeExit          = 15
 
-  real(kind=fPrec), public,  save :: time_lastTick = 0.0
-  real(kind=fPrec), private, save :: time_timeZero = 0.0
-  real(kind=fPrec), private, save :: time_timeRecord(time_beforeExit)
+  real(kind=fPrec), public,  save :: time_lastTick = 0.0              ! Latest known cpu-time value. Updated by calling time_ticToc.
+  real(kind=fPrec), private, save :: time_timeZero = 0.0              ! Reference time for start of simulation. Usually 0.
+  real(kind=fPrec), private, save :: time_timeRecord(time_beforeExit) ! Array of time stamps
 
   ! Constants for accumulated time
-  integer, parameter :: time_nClocks   = 5
+  ! To add a new stop watch, just add a new parameter with an integer value and bump the time_nClocks so the arrays are allocated.
+  ! Then it is just a matter of calling time_startClock and time_stopClock around the code to be timed.
+  ! The report of the time used must also be added to time_finalise
+  integer, parameter :: time_nClocks   = 5  ! Number of stop watches
   integer, parameter :: time_clockCR   = 1
   integer, parameter :: time_clockDUMP = 2
   integer, parameter :: time_clockCOLL = 3
   integer, parameter :: time_clockSCAT = 4
   integer, parameter :: time_clockHDF5 = 5
 
-  real(kind=fPrec), private, save :: time_clockStart(time_nClocks)
-  real(kind=fPrec), private, save :: time_clockTotal(time_nClocks)
-  integer,          private, save :: time_clockCount(time_nClocks)
-  integer,          private, save :: time_clockStops(time_nClocks)
+  real(kind=fPrec), private, save :: time_clockStart(time_nClocks) ! Time at start of stop watch
+  real(kind=fPrec), private, save :: time_clockTotal(time_nClocks) ! Total time of stop watch intervals
+  integer,          private, save :: time_clockCount(time_nClocks) ! Number of calls to start watch
+  integer,          private, save :: time_clockStops(time_nClocks) ! Number of calls to stop watch
 
-  real,             private, save :: time_timerRef     = 0.0
-  logical,          private, save :: time_timerStarted = .false.
+  real,             private, save :: time_timerRef     = 0.0       ! Used for the old timing routines
+  logical,          private, save :: time_timerStarted = .false.   ! Used for the old timing routines
 
 #ifdef CR
   ! Additional variables for checkpoint/restart
@@ -299,8 +316,8 @@ subroutine time_crcheck(fileUnit, readErr)
 
 10 continue
   readErr = .true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in TIME"
-  write(crlog,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in TIME"
+  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in TIME"
+  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in TIME"
   flush(crlog)
 
 end subroutine time_crcheck
@@ -326,8 +343,8 @@ subroutine time_crpoint(fileUnit, writeErr)
 
 10 continue
   writeErr = .true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in TIME"
-  write(crlog,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in TIME"
+  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in TIME"
+  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in TIME"
   flush(crlog)
 
 end subroutine time_crpoint
