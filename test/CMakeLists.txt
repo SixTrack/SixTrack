@@ -175,8 +175,9 @@ endif()
 
 if(NOT CR)
   list(APPEND SIXTRACK_TESTS
-    collimation_db_old
     collimation_k2
+    collimation_old-db_new-block
+    collimation_old-db_old-block
     scatter_collimation
   )
 endif()
@@ -226,8 +227,9 @@ set(TESTS_NOFORT10
   beam-HO_6D-simple-oldstyle
   beambeam4dDYNK
   beambeamDYNK
-  collimation_db_old
   collimation_k2
+  collimation_old-db_new-block
+  collimation_old-db_old-block
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
@@ -278,8 +280,9 @@ set(TESTS_NO_STF_FORT90
   chebythin6d_DYNK
   chebythin6d_ions
   chebythin6d_ramp_DYNK
-  collimation_db_old
   collimation_k2
+  collimation_old-db_new-block
+  collimation_old-db_old-block
   crabs
   dipedge
   dump_all_highprec
@@ -540,7 +543,9 @@ set(FAST_TESTS
   chebythin6d
   chebythin6d_DYNK
   chebythin6d_ions
-  collimation_db_old
+  chebythin6d_ramp_DYNK
+  collimation_old-db_new-block
+  collimation_old-db_old-block
   crabs
   dump_2_all_ele_highprec
   dump_all_highprec
