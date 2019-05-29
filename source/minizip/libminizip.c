@@ -197,6 +197,7 @@ void minizip_zip(char* zipName, char* zipFiles, int nFiles, int compLevel, int* 
     err = ZIP_ERRNO;
   } else {
     printf("MINIZIP> Creating zip file '%s'\n",archiveFile);
+    printf("MINIZIP> Compression level is %d\n",compLevel);
   }
 
   for(int i=0; i<nFiles; i++) {
