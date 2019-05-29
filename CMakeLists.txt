@@ -92,7 +92,7 @@ option(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 option(FLUKA "Couple to FLUKA for beam collimation" OFF)
 option(PYTHIA "Link with Pythia8 for SCATTER module" OFF)
 option(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPF block" OFF)
-option(MINIZIP "Link with libMinizip, needed for BOINC API and ZIPF block" OFF)
+option(ZLIB "Build and link zlib. Needed for BOINC API and ZIPF block" OFF)
 option(ROOT "Link to the root libraries" OFF)
 
 # Build Options
@@ -275,7 +275,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 ###################################################################################################
 
 list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC API BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
-list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB MINIZIP)
+list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB ZLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
 ###################################################################################################
@@ -355,10 +355,11 @@ if(LIBARCHIVE)
   target_compile_options(libArchive_wrapper PRIVATE -std=c99)
 endif(LIBARCHIVE)
 
-if(LIBARCHIVE OR HDF5 OR MINIZIP)
+if(ZLIB)
+  set(ZLIB_DIR ${CMAKE_SOURCE_DIR}/lib/zlib)
   add_library(z STATIC IMPORTED)
   set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/zlib/install/lib/libz.a)
-endif(LIBARCHIVE OR HDF5 OR MINIZIP)
+endif(ZLIB)
 
 ###################################################################################################
 # Checking if some requested packages exist
@@ -1118,15 +1119,17 @@ if(PYTHIA)
 
 endif(PYTHIA)
 
-if(MINIZIP)
-  set(MINIZIP_DIR ${CMAKE_SOURCE_DIR}/source/minizip)
-  set(MINIZIP_SOURCES ${MINIZIP_DIR}/zip.c ${MINIZIP_DIR}/unzip.c ${MINIZIP_DIR}/ioapi.c ${MINIZIP_DIR}/libminizip.c)
+if(ZLIB AND NOT LIBARCHIVE)
+  # Build minizip as a lightweight alternative to libArchive
+  set(MINIZIP_DIR  ${ZLIB_DIR}/contrib/minizip)
+  set(MINIZIP_WRAP ${CMAKE_SOURCE_DIR}/source/minizip)
+  set(MINIZIP_SOURCES ${MINIZIP_DIR}/zip.c ${MINIZIP_DIR}/unzip.c ${MINIZIP_DIR}/ioapi.c ${MINIZIP_WRAP}/libminizip.c)
   include_directories(${MINIZIP_DIR})
   add_library(minizip STATIC ${MINIZIP_SOURCES})
   target_link_libraries(minizip z)
   add_dependencies(SixTrackCore minizip)
   target_link_libraries(SixTrackCore minizip)
-endif(MINIZIP)
+endif(ZLIB AND NOT LIBARCHIVE)
 
 add_custom_target(copy_input_files)
 if(LIBARCHIVE)
