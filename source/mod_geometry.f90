@@ -510,6 +510,9 @@ end function geom_insertSingElem
 integer function geom_insertStruElem(iEl)
 
   use parpro
+#ifdef DEBUG
+  use crcoall
+#endif
   use mod_common
 
   integer, intent(in) :: iEl
@@ -522,20 +525,22 @@ integer function geom_insertStruElem(iEl)
   end if
 
   iu = iu + 1
-  if(iEl == 0) then
-    iIns = iu
-  elseif(iEl < 0) then
+  if(iEl <= 0) then
     iIns = iu+iEl
   else
     iIns = iEl
   end if
 
-  ic(iIns:iu)      = cshift(ic(iIns:iu),      1)
-  elpos(iIns:iu)   = cshift(elpos(iIns:iu),   1)
-! bezs(iIns:iu)    = cshift(bezs(iIns:iu),    1)
-  icext(iIns:iu)   = cshift(icext(iIns:iu),   1)
-  icextal(iIns:iu) = cshift(icextal(iIns:iu), 1)
-  dcum(iIns:iu)    = cshift(dcum(iIns:iu),    1)
+#ifdef DEBUG
+  write(lout,*) "geom_insertStruElem: iEl,iu,iIns:",iEl,iu,iIns
+#endif
+
+  ic(iIns:iu)      = cshift(ic(iIns:iu),      -1)
+  elpos(iIns:iu)   = cshift(elpos(iIns:iu),   -1)
+! bezs(iIns:iu)    = cshift(bezs(iIns:iu),    -1)
+  icext(iIns:iu)   = cshift(icext(iIns:iu),   -1)
+  icextal(iIns:iu) = cshift(icextal(iIns:iu), -1)
+  dcum(iIns:iu)    = cshift(dcum(iIns:iu),    -1)
 
   ! Do string arrays with a loop due to a gfrotran bug in at least 8.3
   tmpC = bezs(iu)
