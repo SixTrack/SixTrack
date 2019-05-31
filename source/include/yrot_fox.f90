@@ -20,11 +20,11 @@ print *, dare(tempi(1)), dare(tempi(2)),dare(tempi(3)), "vvvvvv"
 
 !FOX  PTTDA = ONE - (TAN_T*TEMPI(4))/ZTDA ;
 
-!FOX  X(1) = X(1) + 
-!FOX  C1E3*(TAN_T*TEMPI(3)*TEMPI(2)/(ZTDA*PTTDA)) ;
-!FOX  X(2) = C1E3*TEMPI(3)/(COS_T*PTTDA) ;
-!FOX  Y(2) = C1E3*(COS_T*TEMPI(4) + SIN_T*ZTDA)/(ONE+DPDA)/MTCDA ;
-!FOX  SIGMDA = SIGMDA - C1E3*((TAN_T*TEMPI(3)*
+!FOX  X(2) = X(2) + 
+!FOX  C1E3*(TAN_T*TEMPI(1)*TEMPI(4)/(ZTDA*PTTDA)) ;
+!FOX  X(1) = C1E3*TEMPI(1)/(COS_T*PTTDA) ;
+!FOX  Y(1) = C1E3*(COS_T*TEMPI(2) + SIN_T*ZTDA)/((ONE+DPDA)/MTCDA) ;
+!FOX  SIGMDA = SIGMDA - C1E3*((TAN_T*TEMPI(1)*
 !FOX  (ONE/(E0F/E0)+TEMPI(6))/(ZTDA*PTTDA))*(E0F/E0)) ;
 
 print *, "gooiinggg hereee"
