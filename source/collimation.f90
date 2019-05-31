@@ -1965,12 +1965,12 @@ subroutine collimate_start
         c_systilt = c_systilt_sec
       end if
 
-      db_tilt(icoll,1) = c_systilt+c_rmstilt*myran_gauss(three)
+      db_tilt(icoll,1) = c_systilt+c_rmstilt*ran_gauss2(three)
 
       if(systilt_antisymm) then
-        db_tilt(icoll,2) = -one*c_systilt+c_rmstilt*myran_gauss(three)
+        db_tilt(icoll,2) = -one*c_systilt+c_rmstilt*ran_gauss2(three)
       else
-        db_tilt(icoll,2) =      c_systilt+c_rmstilt*myran_gauss(three)
+        db_tilt(icoll,2) =      c_systilt+c_rmstilt*ran_gauss2(three)
       end if
 
       write(outlun,*) 'INFO>  Collimator ', cdb_cNameUC(icoll), ' jaw 1 has tilt [rad]: ', db_tilt(icoll,1)
@@ -1987,9 +1987,9 @@ subroutine collimate_start
    do icoll = 1, cdb_nColl
 
      if(cdb_cNameUC(icoll)(1:3).eq.'TCP') then
-       cdb_cOffset(icoll) = c_sysoffset_prim + c_rmsoffset_prim*myran_gauss(three)
+       cdb_cOffset(icoll) = c_sysoffset_prim + c_rmsoffset_prim*ran_gauss2(three)
      else
-       cdb_cOffset(icoll) = c_sysoffset_sec +  c_rmsoffset_sec*myran_gauss(three)
+       cdb_cOffset(icoll) = c_sysoffset_sec +  c_rmsoffset_sec*ran_gauss2(three)
      end if
 
      write(outlun,*) 'INFO>  offset: ', cdb_cNameUC(icoll), cdb_cOffset(icoll)
@@ -2004,7 +2004,7 @@ subroutine collimate_start
 !         if (c_rmserror_gap.gt.0.) then
 !            write(outlun,*) 'INFO> c_rmserror_gap = ',c_rmserror_gap
   do icoll = 1, cdb_nColl
-    gap_rms_error(icoll) = c_rmserror_gap * myran_gauss(three)
+    gap_rms_error(icoll) = c_rmserror_gap * ran_gauss2(three)
     write(outlun,*) 'INFO>  gap_rms_error: ', cdb_cNameUC(icoll),gap_rms_error(icoll)
   end do
 
@@ -6188,55 +6188,6 @@ subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay, mynex, myney)
   end do
 
 end subroutine makedis_coll
-
-!ccccccccccccccccccccccccccccccccccccccc
-real(kind=fPrec) function myran_gauss(cut)
-!*********************************************************************
-!
-! myran_gauss - will generate a normal distribution from a uniform
-!     distribution between [0,1].
-!     See "Communications of the ACM", V. 15 (1972), p. 873.
-!
-!     cut - real(kind=fPrec) - cut for distribution in units of sigma
-!     the cut must be greater than 0.5
-!
-!     changed rndm4 to rndm5(irnd) and defined flag as true
-!
-!*********************************************************************
-
-  use numerical_constants, only : twopi
-  use mathlib_bouncer
-  use mod_ranlux
-
-  implicit none
-
-  logical flag
-  real(kind=fPrec) x, u1, u2, r,cut
-  save
-
-  flag = .true. !Does this initialize only once, or is it executed every pass?
-                !See ran_gauss(cut)
-
-1 if (flag) then
-    r = real(rndm5(0),fPrec)
-    r = max(r, half**32)
-    r = min(r, one-half**32)
-    u1 = sqrt(-two*log_mb( r ))
-    u2 = real(rndm5(0),fPrec)
-    x = u1 * cos_mb(twopi*u2)
-  else
-     x = u1 * sin_mb(twopi*u2)
-  endif
-
-  flag = .not. flag
-
-!     cut the distribution if cut > 0.5
-  if (cut .gt. half .and. abs(x) .gt. cut) goto 1
-
-  myran_gauss = x
-  return
-end function myran_gauss
-
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine funlxp (func,xfcum,x2low,x2high)
