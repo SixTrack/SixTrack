@@ -29,7 +29,7 @@ subroutine umlauda
     coefh1,cik,coefh2,coefv1,coefv2,crk,crxb,crzb,cx,dare,det1,dpdav,dps1,dps11,dummy,ed1,ed2,ox,   &
     oxp,oxp1,oz,ozp,ozp1,r0,r2b,r2bf,rb,rbf,rho2b,rkb,rkbf,scikveb,scrkveb,sfac1,sfac2,sfac2s,sfac3,&
     sfac4,sfac5,sigm1,sigmdac,startco,sx,tas,tkb,tl,x2pi,xbb,xrb,xs,zbb,zrb,zs,crabfreq,crabpht,    &
-    crabpht2,crabpht3,crabpht4
+    crabpht2,crabpht3,crabpht4,temp_angle,tan_t,sin_t,cos_t
   integer damap(6),damapi(6),damap1(6),aa2(6),aa2r(6),a1(6),a1r(6),xy(6),df(6),jj(100),i4(10,2)
   real(kind=fPrec) zfeld1(100),zfeld2(100),dpdav2(6),rrad(3),rdd(6,6),dicu(20),angnoe(3),angp(2,6), &
     phi(3),dphi(3),b1(3),b2(3),b3(3),al1(3),al2(3),al3(3),g1(3),g2(3),g3(3),d(3),dp(3),c(3),cp(3),  &
@@ -916,6 +916,11 @@ subroutine umlauda
     if(kzz.eq.41) then
 #include "include/alignf.f90"
 #include "include/rfmulti_fox.f90"
+      goto 440
+    endif
+    if(kzz.eq.43) then
+      temp_angle = ed(ix)
+#include "include/xrot_fox.f90"
       goto 440
     endif
 

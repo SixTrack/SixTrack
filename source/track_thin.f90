@@ -541,8 +541,8 @@ subroutine thin4d(nthinerr)
   integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,kxxa,nfirst
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,acphase,  &
     acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi, &
-    rrelens,frrelens,xelens,yelens,onedp,fppsig,tan_temp,costh_temp,sinth_temp,pxf,pyf,r_temp,z_temp,sigf,   &
-    q_temp,pttemp,xlv,zlv
+    rrelens,frrelens,xelens,yelens,onedp,fppsig,tan_t,sin_t,cos_t,costh_temp,sinth_temp,pxf,pyf,    &
+    r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv,temp_angle
   logical llost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
@@ -1026,6 +1026,7 @@ subroutine thin4d(nthinerr)
         call cheby_kick(i,ix,n)
         goto 620
       case (68) ! xrot
+        temp_angle = ed(ix)
 #include "include/xrot.f90"
         goto 620
 
@@ -1158,7 +1159,7 @@ subroutine thin6d(nthinerr)
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
-    sinth_temp,tan_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv
+    sinth_temp,tan_t,sin_t,cos_t,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv,temp_angle
   logical llost, doFField
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
@@ -1997,6 +1998,7 @@ subroutine thin6d(nthinerr)
         call cheby_kick(i,ix,n)
         goto 640
       case (68) ! xrot
+        temp_angle = ed(ix)
 #include "include/xrot.f90"
         goto 640
       case default
