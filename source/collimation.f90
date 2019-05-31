@@ -1675,6 +1675,7 @@ subroutine collimate_start
   integer fmtHdf
 #endif
   integer i,j,k,jb
+  real(kind=fPrec) dummy
 
 ! HERE WE OPEN ALL THE NEEDED OUTPUT FILES
 
@@ -1905,12 +1906,6 @@ subroutine collimate_start
     flukaname(j)      = 0
   end do
 
-!++  This we only do once, for the first call to this routine. Numbers
-!++  are saved in memory to use exactly the same info for each sample.
-!++  COMMON block to decide for first usage and to save coll info.
-  if(firstrun) then
-  !Reading of collimation database moved to subroutine collimate_init
-
 #ifdef BEAMGAS
 !YIL call beam gas initiation routine
   call beamGasInit(myenom)
@@ -1948,7 +1943,6 @@ subroutine collimate_start
   rnd_k1  = 0
   rnd_k2  = 0
   call rluxgo(rnd_lux, c_offsettilt_seed, rnd_k1, rnd_k2)
-!      write(outlun,*) 'INFO>  c_offsettilt seed: ', c_offsettilt_seed
 
 !++  Generate random tilts (Gaussian distribution plus systematic)
 !++  Do this only for the first call of this routine (first sample)
@@ -2119,12 +2113,20 @@ subroutine collimate_start
 
 !****** re-intialize random generator with rnd_seed
 !       reinit with initial value used in first call
+
+  ! This sets the random geenrator back to the default seed rather than the one used for coll gaps.
+  ! However, this doesn't actually restore the random generator to the state it would have been in without the
+  ! coll gaps errors being generated as rndm5() will extract 30000 new random numbers from ranlux and discard
+  ! the ones it already holds and would have used.
+  ! Alternatively, we can use ranecu instead, which is capable of continuing a chain of random numbers from
+  ! a given set of seeds.
+  ! It is probably unnecessary to use different random seeds here in the first place.
   rnd_lux = 3
   rnd_k1  = 0
   rnd_k2  = 0
   call rluxgo(rnd_lux, rnd_seed, rnd_k2, rnd_k2)
-!  call recuin(rnd_seed, 0)
-! TW - 01/2007
+! call recuin(rnd_seed, 0)
+  dummy = rndm5(1) ! Reset rndm5 too
 
 !GRD INITIALIZE LOCAL ADDITIVE PARAMETERS, I.E. THE ONE WE DON'T WANT
 !GRD TO KEEP OVER EACH LOOP
@@ -2158,10 +2160,6 @@ subroutine collimate_start
     csqsum(j) = zero
   end do
 
-!++ End of first call stuff (end of first run)
-  end if
-
-!GRD NOW WE CAN BEGIN THE LOOPS
 end subroutine collimate_start
 
 !>
