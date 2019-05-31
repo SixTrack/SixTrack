@@ -13,7 +13,6 @@ print *, "gooiinggg hereee first", temp_angle,  sin_t, cos_t, cos_mb(temp_angle)
 !FOX  TEMPI(5) = SIGMDA*C1M3 ;
 !FOX  TEMPI(6) = ((EJ1-E0)/E0F) ;
 
-print *, dare(tempi(1)), dare(tempi(2)),dare(tempi(3)), "vvvvvv"
 
 !FOX  ZTDA = SQRT((ONE + DPDA)*(ONE + DPDA) 
 !FOX  - TEMPI(2)*TEMPI(2) - TEMPI(4)*TEMPI(4)) ;

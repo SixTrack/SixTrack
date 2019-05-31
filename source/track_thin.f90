@@ -348,8 +348,9 @@ subroutine trauthin(nthinerr)
     case (41) ! RF Multipole
       ktrack(i) = 66
     case (43) ! xrot
-    print *, "aaaaaaaaaaaaaaaaa"
       ktrack(i) = 68
+    case (44) ! yrot
+      ktrack(i) = 69
 
     !----------------
     !--Negative KZZ--
@@ -1029,7 +1030,10 @@ subroutine thin4d(nthinerr)
         temp_angle = ed(ix)
 #include "include/xrot.f90"
         goto 620
-
+      case (69) ! yrot
+        temp_angle = ed(ix)
+#include "include/yrot.f90"
+        goto 620
 
       end select
       goto 630
@@ -2000,6 +2004,10 @@ subroutine thin6d(nthinerr)
       case (68) ! xrot
         temp_angle = ed(ix)
 #include "include/xrot.f90"
+        goto 640
+      case (69) ! yrot
+        temp_angle = ed(ix)
+#include "include/yrot.f90"
         goto 640
       case default
         write(lout,"(3(a,i0),a)") "TRACKING> WARNING Non-handled element in thin6d()!",  &

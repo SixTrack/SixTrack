@@ -922,6 +922,10 @@ subroutine umlauda
       temp_angle = ed(ix)
 #include "include/xrot_fox.f90"
       goto 440
+    if(kzz.eq.43) then
+      temp_angle = ed(ix)
+#include "include/yrot_fox.f90"
+      goto 440
     endif
 
 
