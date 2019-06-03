@@ -1,5 +1,5 @@
 cos_t = cos(temp_angle)
-sin_t = sin(temp_angle)
+sin_t = -sin(temp_angle)
 do j=1,napx
 temptr(1)=xv1(j)
 temptr(2)=yv1(j)

@@ -18,7 +18,7 @@ print *, temptr, "uuuu"
 !t  = TRACK(5,i)
 !pt = TRACK(6,i)
 
-z_temp = sqrt(one + two*temptr(6)/(e0f/e0) + temptr(6)**2 - temptr(2)**2 - temptr(4)**2)
+z_temp = sqrt((one + dpsv(j))**2 - temptr(2)**2 - temptr(4)**2)
 pttemp = 1 - tan_t*temptr(4)/z_temp
 
 print *, z_temp, pttemp, "vvvv"
