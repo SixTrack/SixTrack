@@ -145,14 +145,15 @@ int isLargeFile(const char* filename) {
   {
     int n = FSEEKO_FUNC(pFile, 0, SEEK_END);
     pos = FTELLO_FUNC(pFile);
+    double dpos = (double)pos;
     printf("MINIZIP> File: %s ", filename);
     for(size_t i=strlen(filename); i<31; i++) printf(".");
     if(pos >= 1073741824)
-      printf("  %7.2f Gb\n", filename, pos/1073741824.0);
+      printf("  %7.2f Gb\n", dpos/1073741824.0);
     else if(pos >= 1048576)
-      printf("  %7.2f Mb\n", filename, pos/1048576.0);
+      printf("  %7.2f Mb\n", dpos/1048576.0);
     else
-      printf("  %7.2f kb\n", filename, pos/1024.0);
+      printf("  %7.2f kb\n", dpos/1024.0);
     if(pos >= 0xffffffff) largeFile = 1;
     fclose(pFile);
   }
