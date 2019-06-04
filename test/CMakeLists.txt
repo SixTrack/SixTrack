@@ -130,6 +130,7 @@ list(APPEND SIXTRACK_TESTS
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
+  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -253,6 +254,7 @@ set(TESTS_NOFORT10
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
+  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -583,6 +585,7 @@ set(FAST_TESTS
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
+  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
