@@ -50,7 +50,7 @@ module collimation
 
   ! Distribution
   integer,          private, save :: do_thisdis   = 0
-  real(kind=fPrec), private, save :: myenom       = zero
+  real(kind=fPrec), public,  save :: myenom       = zero
   real(kind=fPrec), private, save :: mynex        = zero
   real(kind=fPrec), private, save :: mdex         = zero
   real(kind=fPrec), private, save :: myney        = zero
