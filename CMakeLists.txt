@@ -368,6 +368,7 @@ endif(LIBARCHIVE)
 if(ZLIB)
   set(ZLIB_DIR ${CMAKE_SOURCE_DIR}/lib/zlib)
   add_subdirectory(${ZLIB_DIR} ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+  include_directories(${ZLIB_DIR} ${CMAKE_CURRENT_BINARY_DIR}/zlib)
 endif(ZLIB)
 
 ###################################################################################################
