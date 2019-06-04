@@ -1137,7 +1137,7 @@ if(ZLIB AND NOT LIBARCHIVE)
   # Build minizip as a lightweight alternative to libArchive
   set(MINIZIP_DIR  ${ZLIB_DIR}/contrib/minizip)
   set(MINIZIP_WRAP ${CMAKE_SOURCE_DIR}/source/minizip)
-  set(MINIZIP_SOURCES ${MINIZIP_DIR}/zip.c ${MINIZIP_DIR}/unzip.c ${MINIZIP_DIR}/ioapi.c ${MINIZIP_WRAP}/libminizip.c)
+  set(MINIZIP_SOURCES ${MINIZIP_DIR}/zip.c ${MINIZIP_DIR}/unzip.c ${MINIZIP_DIR}/ioapi.c ${MINIZIP_WRAP}/utils.c ${MINIZIP_WRAP}/libminizip.c)
   if(WIN32)
     set(MINIZIP_SOURCES ${MINIZIP_SOURCES} ${MINIZIP_DIR}/iowin32.c)
   endif(WIN32)

@@ -27,6 +27,15 @@ module zipf
       integer(kind=C_INT), value,   intent(in)  :: lenOne
       integer(kind=C_INT), value,   intent(in)  :: lenTwo
     end subroutine minizip_zip
+
+    subroutine minizip_unzip(zipFile, toDir, iErr, lenOne, lenTwo) bind(C, name="minizip_unzip")
+      use, intrinsic :: iso_c_binding
+      character(kind=C_CHAR,len=1), intent(in)  :: zipFile
+      character(kind=C_CHAR,len=1), intent(in)  :: toDir
+      integer(kind=C_INT),          intent(out) :: iErr
+      integer(kind=C_INT), value,   intent(in)  :: lenOne
+      integer(kind=C_INT), value,   intent(in)  :: lenTwo
+    end subroutine minizip_unzip
   end interface
 
 contains
@@ -119,7 +128,7 @@ subroutine zipf_dozip
   end do
 #endif
 
-#ifdef LIBARCHIVE
+#if defined(LIBARCHIVE)
   write(lout,"(a)") "LIBARCHIVE> Compressing file '"//trim(zipf_outFile)//"' ..."
   ! The f_write_archive function will handle the conversion from Fortran to C-style strings
   ! NOTE: Last two arguments of the C function are implicitly passed from FORTRAN, there is no need to do it explicitly.
@@ -128,7 +137,7 @@ subroutine zipf_dozip
 #else
   call f_write_archive(trim(zipf_outFile),zipf_fileNames,zipf_numFiles)
 #endif
-#elif ZLIB
+#elif defined(ZLIB)
 #ifdef BOINC
   call minizip_zip(trim(boincZipFile),boincNames(1),zipf_numFiles,9,iErr,len_trim(boincZipFile),256)
 #else
