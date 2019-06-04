@@ -13,8 +13,9 @@ module zipf
 
   integer, save :: zipf_numFiles = 0
 
-  character(len=:), allocatable, save :: zipf_fileNames(:)  ! Name of files to pack into the zip file.
-  character(len=mFileName),      save :: zipf_outFile = " " ! Name of output file (Default: Sixout.zip)
+  character(len=:), allocatable, private, save :: zipf_fileNames(:)           ! Name of files to pack into the zip file.
+  character(len=mFileName),      private, save :: zipf_outFile = "Sixout.zip" ! Name of output file (Default: Sixout.zip)
+  integer,                       private, save :: zipf_zipLevel = 3           ! Compression level, 0-9
 
   interface
     subroutine minizip_zip(zipFile, inFiles, nFiles, compLevel, iErr, lenOne, lenTwo) bind(C, name="minizip_zip")
@@ -52,7 +53,7 @@ subroutine zipf_parseInputLine(inLine,iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable :: lnSplit(:)
-  integer nSplit
+  integer nSplit, i
   logical spErr
 
   call chr_split(inLine,lnSplit,nSplit,spErr)
@@ -63,42 +64,42 @@ subroutine zipf_parseInputLine(inLine,iErr)
   end if
   if(nSplit == 0) return
 
-  if(nSplit /= 1) then
-    write(lerr,"(a,i3,3a)") "ZIPF> ERROR Expected 1 filename per line, got ",nSplit
-    iErr = .true.
-    return
-  end if
+  select case(lnSplit(1))
 
-  zipf_numFiles = zipf_numFiles + 1
-  call alloc(zipf_fileNames, mFileName, zipf_numFiles, " ", "zipf_fileNames")
-  zipf_fileNames(zipf_numFiles) = trim(lnSplit(1))
+  case("OUTFILE")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "ZIPF> ERROR OUTFILE takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "ZIPF>       OUTFILE zipFileName"
+      iErr = .true.
+      return
+    end if
+    zipf_outFile = lnSplit(2)
+
+  case("ZIPLEVEL")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "ZIPF> ERROR ZIPLEVEL level takes 1 input parameter, got ",nSplit-1
+      write(lerr,"(a)")    "ZIPF>       ZIPLEVEL 0-9"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), zipf_zipLevel, iErr)
+    if(zipf_zipLevel < 0 .or. zipf_zipLevel > 9) then
+      write(lerr,"(a,i0)") "ZIPF> ERROR ZIPLEVEL level must be between 0 and 9, got ",zipf_zipLevel
+      iErr = .true.
+      return
+    end if
+
+  case default
+
+    call alloc(zipf_fileNames, mFileName, zipf_numFiles + nSplit, " ", "zipf_fileNames")
+    do i=1,nSplit
+      zipf_fileNames(zipf_numFiles + i) = trim(lnSplit(i))
+    end do
+    zipf_numFiles = zipf_numFiles + nSplit
+
+  end select
 
 end subroutine zipf_parseInputLine
-
-subroutine zipf_parseInputDone(iErr)
-
-  use crcoall
-  use string_tools
-
-  logical, intent(inout) :: iErr
-
-  integer ii
-
-  zipf_outFile = "Sixout.zip" ! Output name fixed for now
-  write(lout,"(a)")    "ZIPF> Output file name = '"//trim(zipf_outFile)//"'"
-  write(lout,"(a,i0)") "ZIPF> Number of files to pack = ",zipf_numFiles
-  write(lout,"(a)")    "ZIPF> Files:"
-  do ii=1,zipf_numFiles
-    write(lout,"(a,i5,a)") "ZIPF>  * ",ii,": '"//trim(zipf_fileNames(ii))//"'"
-  end do
-
-  if(.not.(zipf_numFiles > 0)) then
-    write(lerr,"(a)") "ZIPF> ERROR No files specified in input block"
-    iErr = .true.
-    return
-  end if
-
-end subroutine zipf_parseInputDone
 
 subroutine zipf_dozip
 
@@ -111,7 +112,9 @@ subroutine zipf_dozip
   integer i
   character(len=256)               boincZipFile
   character(len=:), allocatable :: boincNames(:)
+#endif
 
+#ifdef BOINC
   call alloc(boincNames, 256, zipf_numFiles, " ", "boincNames")
 #endif
 
@@ -139,9 +142,9 @@ subroutine zipf_dozip
 #endif
 #elif defined(ZLIB)
 #ifdef BOINC
-  call minizip_zip(trim(boincZipFile),boincNames(1),zipf_numFiles,9,iErr,len_trim(boincZipFile),256)
+  call minizip_zip(trim(boincZipFile),boincNames(1),zipf_numFiles,zipf_zipLevel,iErr,len_trim(boincZipFile),256)
 #else
-  call minizip_zip(trim(zipf_outFile),zipf_fileNames(1),zipf_numFiles,9,iErr,len_trim(zipf_outFile),mFileName)
+  call minizip_zip(trim(zipf_outFile),zipf_fileNames(1),zipf_numFiles,zipf_zipLevel,iErr,len_trim(zipf_outFile),mFileName)
 #endif
   if(iErr /= 0) then
     write(lerr,"(a,i0)") "ZIPF> ERROR MiniZip returned error code ",iErr
