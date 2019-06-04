@@ -15,11 +15,14 @@ if [[ $(uname) == FreeBSD* ]]; then
     MAKE=/usr/local/bin/gmake ./_autosetup -f
 elif [[ $(uname) == OpenBSD* ]]; then
     # These numbers will need updating in the future.
-    AUTOCONF_VERSION=2.69 AUTOMAKE_VERSION=1.15 MAKE=/usr/local/bin/gmake ./_autosetup -f
+    AUTOCONF_VERSION=2.69 AUTOMAKE_VERSION=1.16 MAKE=/usr/local/bin/gmake ./_autosetup -f
 elif [[ $(uname) == NetBSD* ]]; then
     MAKE=/usr/pkg/bin/gmake ./_autosetup -f
 elif [[ $(uname) == Darwin* ]]; then
     LIBTOOLIZE=/usr/local/bin/glibtoolize ./_autosetup -f
+elif [[ $(uname) == SunOS* ]]; then
+    MAKE=/usr/bin/gmake ./_autosetup -f
+else
 else
     ./_autosetup -f
 fi
@@ -35,7 +38,7 @@ if [[ $(pwd) == /afs/* ]]; then
     make
 else
     # Machines with low memory doesn't like an automatic -j
-    make -j4
+    make -j 4
 fi
 
 # Need to build the boinc/api/boinc_api_fortran.o separately
