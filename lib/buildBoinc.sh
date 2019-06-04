@@ -23,7 +23,6 @@ elif [[ $(uname) == Darwin* ]]; then
 elif [[ $(uname) == SunOS* ]]; then
     MAKE=/usr/bin/gmake ./_autosetup -f
 else
-else
     ./_autosetup -f
 fi
 
@@ -38,6 +37,7 @@ if [[ $(pwd) == /afs/* ]]; then
     make
 else
     # Machines with low memory doesn't like an automatic -j
+    # dmake on solaris needs a space between j and the number.
     make -j 4
 fi
 
