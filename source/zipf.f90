@@ -147,8 +147,7 @@ subroutine zipf_dozip
   call minizip_zip(trim(zipf_outFile),zipf_fileNames(1),zipf_numFiles,zipf_zipLevel,iErr,len_trim(zipf_outFile),mFileName)
 #endif
   if(iErr /= 0) then
-    write(lerr,"(a,i0)") "ZIPF> ERROR MiniZip returned error code ",iErr
-    call prror
+    write(lerr,"(a,i0)") "ZIPF> WARNING MiniZip returned error code ",iErr
   end if
 #else
   write(lout,"(a)") "ZIPF> *** No Archive Libraries in this SixTrack *** "
