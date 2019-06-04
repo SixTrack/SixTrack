@@ -1091,8 +1091,7 @@ if(BOINC AND API)
   set_target_properties(boinc_api   PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
   set_target_properties(boinc_api_f PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
 
-  target_link_libraries(SixTrackCR boinc_api_f boinc_api boinc stdc++)
-  # target_link_libraries(SixTrackCR Threads::Threads)
+  target_link_libraries(SixTrackCR boinc_api_f boinc_api boinc stdc++ Threads::Threads)
 
   # if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   #   find_library(nsl STATIC nsl)
