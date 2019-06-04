@@ -1840,6 +1840,11 @@ subroutine initialize_element(ix,lfirst)
   ! BEAM-BEAM
   elseif(kz(ix) == 20) then
 
+    if(nbeam == 0 .and. .not. lfirst) then
+      write(lerr,"(a)") "BEAMBEAM> ERROR Beam-beam element encountered, but no BEAM block in '"//trim(fort3)//"'"
+      call prror
+    end if
+
     if(lfirst) then
       ptnfac(ix)  = el(ix)
       el(ix)      = zero
