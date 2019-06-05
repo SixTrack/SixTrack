@@ -91,6 +91,7 @@ option(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 option(FLUKA "Couple to FLUKA for beam collimation" OFF)
 option(PYTHIA "Link with Pythia8 for SCATTER module" OFF)
 option(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC and ZIPF block" OFF)
+option(ZLIB "Build and link zlib. Needed for BOINC and ZIPF block" OFF)
 option(ROOT "Link to the root libraries" OFF)
 
 # Build Options
@@ -171,7 +172,7 @@ if(CERNLIB)
   set(SIXTRACK_FEAT_CR "cernlib_${SIXTRACK_FEAT_CR}")
 endif()
 if(BOINC)
-  SET(SIXTRACK_FEAT_CR "boinc_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "boinc_${SIXTRACK_FEAT_CR}")
 endif()
 if(CR)
   set(SIXTRACK_FEAT_CR "cr_${SIXTRACK_FEAT_CR}")
@@ -204,6 +205,9 @@ if(PYTHIA)
 endif()
 if(LIBARCHIVE)
   set(SIXTRACK_FEAT_CR "libarchive_${SIXTRACK_FEAT_CR}")
+endif()
+if(ZLIB)
+  set(SIXTRACK_FEAT_CR "zlib_${SIXTRACK_FEAT_CR}")
 endif()
 
 if(ROOT)
@@ -270,7 +274,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 ###################################################################################################
 
 list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
-list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB)
+list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB ZLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
 ###################################################################################################
@@ -346,14 +350,22 @@ foreach(loop IN LISTS DAFOR_F90)
 endforeach()
 
 if(LIBARCHIVE)
+  if(NOT ZLIB)
+    # Temporary compatibility hack for libArchive
+    # If we're not building ZLIB, we must include the one built with libArchive instead
+    add_library(zlibstatic STATIC IMPORTED)
+    set_target_properties(zlibstatic PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/zlib/install/lib/libz.a)
+  endif(NOT ZLIB)
   add_library(libArchive_wrapper STATIC libArchive_Fwrapper.c libArchive_wrapper.c libArchive_wrapper.h)
   target_compile_options(libArchive_wrapper PRIVATE -std=c99)
+  add_dependencies(libArchive_wrapper zlibstatic)
 endif(LIBARCHIVE)
 
-if(LIBARCHIVE OR HDF5)
-  add_library(z STATIC IMPORTED)
-  set_target_properties(z PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/zlib/install/lib/libz.a)
-endif(LIBARCHIVE OR HDF5)
+if(ZLIB)
+  set(ZLIB_DIR ${CMAKE_SOURCE_DIR}/lib/zlib)
+  include_directories(${ZLIB_DIR} ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+  add_subdirectory(${ZLIB_DIR} ${CMAKE_CURRENT_BINARY_DIR}/zlib)
+endif(ZLIB)
 
 ###################################################################################################
 # Checking if some requested packages exist
@@ -403,23 +415,26 @@ endif(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMAT OR CERNLIB)
 # Checking if requested options are compatible
 ###################################################################################################
 
-#Check we do not have both 32 and 64 bit options enabled
+# Check we do not have both 32 and 64 bit options enabled
 if(32BIT)
   if(64BIT)
     message(FATAL_ERROR "Cannot build with both 64 and 32 bit options enabled. Please pick one only.")
   endif()
 endif()
 
-#Check we have at least one 32 or 64 bit option enabled
+# Check we have at least one 32 or 64 bit option enabled
 if(NOT 32BIT)
   if(NOT 64BIT)
-    message(FATAL_ERROR "Must pick either a 64 or 32 bit build. Currently neither are selected")
+    message(FATAL_ERROR "Must pick either a 64 or 32 bit build. Currently neither are selected.")
   endif()
 endif()
 
 if(HDF5)
   if(CR)
-    message(FATAL_ERROR "Cannot build HDF5 with CR enabled")
+    message(FATAL_ERROR "Cannot build HDF5 with CR enabled.")
+  endif()
+  if(NOT ZLIB)
+    message(FATAL_ERROR "Building with HDF5 requires ZLIB enabled.")
   endif()
 endif()
 if(SIXDA)
@@ -430,13 +445,13 @@ if(SIXDA)
 endif()
 if(BOINC)
   if(NOT CRLIBM)
-    message(FATAL_ERROR "Building with BOINC requires CRLIBM enabled")
+    message(FATAL_ERROR "Building with BOINC requires CRLIBM enabled.")
   endif(NOT CRLIBM)
   if(NOT CR)
-    message(FATAL_ERROR "Building with BOINC requires CR enabled")
+    message(FATAL_ERROR "Building with BOINC requires CR enabled.")
   endif()
-  if(NOT LIBARCHIVE)
-    message(FATAL_ERROR "Building with BOINC requires LIBARCHIVE enabled")
+  if(NOT LIBARCHIVE AND NOT ZLIB)
+    message(FATAL_ERROR "Building with BOINC requires LIBARCHIVE or ZLIB enabled.")
   endif()
 endif(BOINC)
 if(FLUKA)
@@ -536,10 +551,9 @@ if(STATIC)
   set(BUILD_SHARED_LIBS OFF)
 endif()
 
-#FLAGS depend on the compiler
+# FLAGS depend on the compiler
 get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
-#lots of games to play here.... start with fortran flags
 if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
   ##############
   #  gfortran  #
@@ -942,6 +956,9 @@ if(SIXDA)
   target_link_libraries(SixTrackDA SixTrackCore)
   set_target_properties(SixTrackDA PROPERTIES OUTPUT_NAME "${SIXTRACK_BINARY_NAME_DA}" LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}" LINKER_LANGUAGE Fortran)
 endif()
+if(ZLIB)
+  target_link_libraries(SixTrackCore zlibstatic)
+endif()
 
 # Pre-processor flags
 foreach(loop IN LISTS PREPRO_FLAGS_TOOLS PREPRO_FLAGS_LIB PREPRO_FLAGS_COMPILE)
@@ -988,7 +1005,7 @@ if(HDF5)
   set_target_properties(hdf5_local_f PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/hdf5/build/bin/libhdf5_fortran-static.a)
   set_target_properties(hdf5_local_s PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/hdf5/build/bin/libhdf5_f90cstub-static.a)
   set_target_properties(hdf5_local_c PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/hdf5/build/bin/libhdf5-static.a)
-  target_link_libraries(SixTrackCore hdf5_local_f hdf5_local_s hdf5_local_c z dl)
+  target_link_libraries(SixTrackCore hdf5_local_f hdf5_local_s hdf5_local_c dl)
   target_include_directories(SixTrackCore PRIVATE ${CMAKE_SOURCE_DIR}/lib/hdf5/build/bin/static)
   target_include_directories(SixTrackCore PRIVATE ${CMAKE_SOURCE_DIR}/lib/hdf5/build/fortran)
 endif(HDF5)
@@ -998,16 +1015,16 @@ if(HASHLIB)
     ${CMAKE_SOURCE_DIR}/source/md5/md5.c
     ${CMAKE_SOURCE_DIR}/source/md5/md5interface.c
   )
-  add_library(md5_lib STATIC  ${MD5_SOURCES})
-  target_include_directories(md5_lib PRIVATE ${CMAKE_SOURCE_DIR}/source/md5/)
-  set_property(TARGET md5_lib PROPERTY C_STANDARD 99)
+  add_library(md5 STATIC  ${MD5_SOURCES})
+  target_include_directories(md5 PRIVATE ${CMAKE_SOURCE_DIR}/source/md5/)
+  set_property(TARGET md5 PROPERTY C_STANDARD 99)
   if(32BIT)
-    set_target_properties(md5_lib PROPERTIES LINK_FLAGS "-m32")
+    set_target_properties(md5 PROPERTIES LINK_FLAGS "-m32")
   endif(32BIT)
   if(64BIT)
-    set_target_properties(md5_lib PROPERTIES LINK_FLAGS "-m64")
+    set_target_properties(md5 PROPERTIES LINK_FLAGS "-m64")
   endif(64BIT)
-  target_link_libraries(SixTrackCore md5_lib)
+  target_link_libraries(SixTrackCore md5)
 endif(HASHLIB)
 
 if(MERLINSCATTER)
@@ -1065,8 +1082,7 @@ if(BOINC)
   set_target_properties(boinc_api   PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/libboinc_api.a)
   set_target_properties(boinc_api_f PROPERTIES IMPORTED_LOCATION ${BOINC_DIR}/api/boinc_api_fortran.o)
 
-  target_link_libraries(SixTrackCR boinc_api_f boinc_api boinc stdc++)
-  # target_link_libraries(SixTrackCR Threads::Threads)
+  target_link_libraries(SixTrackCR boinc_api_f boinc_api boinc stdc++ Threads::Threads)
 
   # if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   #   find_library(nsl STATIC nsl)
@@ -1108,6 +1124,21 @@ if(PYTHIA)
 
 endif(PYTHIA)
 
+if(ZLIB AND NOT LIBARCHIVE)
+  # Build minizip as a lightweight alternative to libArchive
+  set(MINIZIP_DIR  ${ZLIB_DIR}/contrib/minizip)
+  set(MINIZIP_WRAP ${CMAKE_SOURCE_DIR}/source/minizip)
+  set(MINIZIP_SOURCES ${MINIZIP_DIR}/zip.c ${MINIZIP_DIR}/unzip.c ${MINIZIP_DIR}/ioapi.c ${MINIZIP_WRAP}/utils.c ${MINIZIP_WRAP}/libminizip.c)
+  if(WIN32)
+    set(MINIZIP_SOURCES ${MINIZIP_SOURCES} ${MINIZIP_DIR}/iowin32.c)
+  endif(WIN32)
+  include_directories(${MINIZIP_DIR})
+  add_library(minizip STATIC ${MINIZIP_SOURCES})
+  target_link_libraries(minizip zlibstatic)
+  add_dependencies(SixTrackCore minizip)
+  target_link_libraries(SixTrackCore minizip)
+endif(ZLIB AND NOT LIBARCHIVE)
+
 add_custom_target(copy_input_files)
 if(LIBARCHIVE)
   add_custom_command(
@@ -1143,8 +1174,8 @@ if(LIBARCHIVE)
     set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
   endif()
 
-  target_link_libraries(SixTrackCore libarchive z Threads::Threads)
-  target_link_libraries(libArchiveTester libarchive z Threads::Threads)
+  target_link_libraries(SixTrackCore libarchive zlibstatic Threads::Threads)
+  target_link_libraries(libArchiveTester libarchive zlibstatic Threads::Threads)
 
   add_definitions( -DLIBARCHIVE )
 endif()
@@ -1262,7 +1293,7 @@ if(HDF5)
 endif(HDF5)
 
 if(HASHLIB)
-  target_link_libraries(SixTrackCore md5_lib)
+  target_link_libraries(SixTrackCore md5)
 endif(HASHLIB)
 
 if(G4COLLIMAT)
@@ -1314,7 +1345,7 @@ if(BUILD_TESTING)
   # The Test Wrapper
   add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/test/tools/SixTestWrapper.cpp)
   if(LIBARCHIVE)
-    target_link_libraries(SixTestWrapper libArchive_wrapper libarchive z Threads::Threads)
+    target_link_libraries(SixTestWrapper libArchive_wrapper libarchive zlibstatic Threads::Threads)
   endif()
   set_target_properties(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
 
