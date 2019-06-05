@@ -81,7 +81,6 @@ option(HASHLIB "Build the md5 hash library" ON)
 
 # Default OFF
 option(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
-option(API "Link to external BOINC API (if BOINC but not API, just use internal dummy library)" OFF)
 option(BOINC "BOINC distributed computing support" OFF)
 option(CR "Checkpoint/restarting" OFF)
 option(BEAMGAS "Beam-gas scattering" OFF)
@@ -91,8 +90,8 @@ option(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 option(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 option(FLUKA "Couple to FLUKA for beam collimation" OFF)
 option(PYTHIA "Link with Pythia8 for SCATTER module" OFF)
-option(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC API and ZIPF block" OFF)
-option(ZLIB "Build and link zlib. Needed for BOINC API and ZIPF block" OFF)
+option(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC and ZIPF block" OFF)
+option(ZLIB "Build and link zlib. Needed for BOINC and ZIPF block" OFF)
 option(ROOT "Link to the root libraries" OFF)
 
 # Build Options
@@ -171,9 +170,6 @@ if(CRLIBM AND ROUND_ZERO)
 endif(CRLIBM AND ROUND_ZERO)
 if(CERNLIB)
   set(SIXTRACK_FEAT_CR "cernlib_${SIXTRACK_FEAT_CR}")
-endif()
-if(API)
-  set(SIXTRACK_FEAT_CR "api_${SIXTRACK_FEAT_CR}")
 endif()
 if(BOINC)
   set(SIXTRACK_FEAT_CR "boinc_${SIXTRACK_FEAT_CR}")
@@ -277,7 +273,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC API BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
+list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
 list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB ZLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
@@ -458,11 +454,6 @@ if(BOINC)
     message(FATAL_ERROR "Building with BOINC requires LIBARCHIVE or ZLIB enabled.")
   endif()
 endif(BOINC)
-if(API)
-  if(NOT BOINC)
-    message(FATAL_ERROR "Building with API requires BOINC enabled.")
-  endif(NOT BOINC)
-endif(API)
 if(FLUKA)
   if(SIXDA)
     message(STATUS "Will not build SixDA when FLUKA is enabled.")
@@ -1079,7 +1070,7 @@ if(NAFF)
   endif(64BIT)
 endif(NAFF)
 
-if(BOINC AND API)
+if(BOINC)
   find_library(stdc++ STATIC stdc++)
   include_directories(${BOINC_DIR}/api ${BOINC_DIR}/lib ${BOINC_DIR})
 
