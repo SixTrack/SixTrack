@@ -3,7 +3,7 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-05-15
-!  Updated: 2019-05-22
+!  Updated: 2019-06-05
 ! ================================================================================================ !
 module mod_boinc
 
@@ -46,6 +46,7 @@ subroutine boinc_initialise
   call boinc_init
   call boinc_is_standalone(tmpInt)
   boinc_isStandalone = (tmpInt /= 0)
+
   write(boinc_logBuffer,"(a,l1)") "Standalone: ",boinc_isStandalone
   call boinc_writeLog
 

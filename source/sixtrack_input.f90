@@ -3489,10 +3489,26 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
       return
     end if
 
-    if(ibeco /= 0 .and. ibeco /= 1) ibeco = 1
-    if(ibtyp /= 0 .and. ibtyp /= 1) ibtyp = 0
-    if(ibbc  /= 0 .and. ibbc  /= 1) ibbc  = 0
-    if(lhc    < 0 .or.  lhc    > 2) lhc   = 1
+    if(ibeco /= 0 .and. ibeco /= 1) then
+      write(lerr,"(a,i0)") "BEAM> ERROR BEAM block parameter 6, ibeco, must be 0 or 1, got ", ibeco
+      iErr = .true.
+      return
+    end if
+    if(ibtyp /= 0 .and. ibtyp /= 1) then
+      write(lerr,"(a,i0)") "BEAM> ERROR BEAM block parameter 7, ibtyp, must be 0 or 1, got ", ibtyp
+      iErr = .true.
+      return
+    end if
+    if(lhc < 0 .or. lhc > 2) then
+      write(lerr,"(a,i0)") "BEAM> ERROR BEAM block parameter 8, lhc, must be 0, 1 or 2, got ", lhc
+      iErr = .true.
+      return
+    end if
+    if(ibbc /= 0 .and. ibbc  /= 1) then
+      write(lerr,"(a,i0)") "BEAM> ERROR BEAM block parameter 9, ibbc, must be 0 or 1, got ", ibbc
+      iErr = .true.
+      return
+    end if
 
     nbeam = 1
 

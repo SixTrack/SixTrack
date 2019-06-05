@@ -8,7 +8,7 @@
 !      This module keeps track of how much time SixTrack spends in the various parts of the code
 !  during a simulation run.
 !      This is in part done via an array of time stamps which are set when calling time_timeStamp
-!  from the relevant places in the code. The total taime spent at any given moment is also kept in
+!  from the relevant places in the code. The total time spent at any given moment is also kept in
 !  the variable time_lastTick. This variable is updated when calls are made to this module, but can
 !  also be updated by calling time_ticToc. The variable is useful for logging output etc.
 !      Since cpu_time is not guaranteed to start at 0 when the executable starts, it will check that

@@ -365,7 +365,7 @@ module mod_common
 
   ! Other Variables
   integer,          save :: ichromc    = 0
-  integer,          save :: ilinc      = 0
+  integer,          save :: ilinc      = 0    ! 2 = Beam-beam closed orbit calc
   integer,          save :: iqmodc     = 0
   real(kind=fPrec), save :: corr(3,3)  = zero
   real(kind=fPrec), save :: chromc(2)  = 9.999999e23_fPrec

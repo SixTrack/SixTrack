@@ -29,7 +29,7 @@ subroutine daten
   use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
-  use zipf,      only : zipf_parseInputLine,zipf_parseInputDone
+  use zipf,      only : zipf_parseInputLine
   use bdex,      only : bdex_parseInputLine,bdex_parseInputDone
   use mod_fluc,  only : fluc_parseInputLine,fluc_readInputs
   use wire,      only : wire_parseInputLine,wire_parseInputDone
@@ -754,7 +754,7 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      call zipf_parseInputDone
+      continue
     else
       call zipf_parseInputline(inLine,inErr)
       if(inErr) goto 9999
@@ -1839,6 +1839,11 @@ subroutine initialize_element(ix,lfirst)
 
   ! BEAM-BEAM
   elseif(kz(ix) == 20) then
+
+    if(nbeam == 0 .and. .not. lfirst) then
+      write(lerr,"(a)") "BEAMBEAM> ERROR Beam-beam element encountered, but no BEAM block in '"//trim(fort3)//"'"
+      call prror
+    end if
 
     if(lfirst) then
       ptnfac(ix)  = el(ix)

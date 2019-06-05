@@ -97,8 +97,11 @@ subroutine cr_fileInit
 
   use mod_units
   use mod_common, only : fort6
+#ifdef ZLIB
+  use zipf
+#endif
 
-  integer i
+  integer i, zErr
   logical fErr
   character(len=256) fileName
 
@@ -128,7 +131,18 @@ subroutine cr_fileInit
       ! Name hardcoded in our boinc_unzip_.
       ! Either it is only the fort.* input data or it is a restart.
       call boincrf("Sixin.zip",fileName)
+#if defined(LIBARCHIVE)
       call f_read_archive(trim(fileName),".")
+#elif defined(ZLIB)
+      call minizip_unzip(trim(fileName),".",zErr,len_trim(fileName),1)
+      if(zErr /= 0) then
+        write(cr_errUnit,"(a)") "SIXTRACR> ERROR Could not extract 'Sixin.zip'"
+        call prror
+      end if
+#else
+      write(cr_errUnit,"(a)") "SIXTRACR> ERROR No library available to extract zipfile 'Sixin.zip'"
+      call prror
+#endif
       goto 10 ! Go to top and check everything again after unzip
     end if
     call f_open(unit=output_unit,file=fort6,formatted=.true.,mode="rw",err=fErr)
