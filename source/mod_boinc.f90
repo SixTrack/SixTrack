@@ -3,7 +3,7 @@
 ! ~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-05-15
-!  Updated: 2019-05-15
+!  Updated: 2019-06-05
 ! ================================================================================================ !
 module mod_boinc
 
@@ -41,15 +41,10 @@ subroutine boinc_initialise
   write(boinc_logBuffer,"(a)") "Initialising BOINC"
   call boinc_writeLog
 
-#ifdef API
   call boinc_init
   call boinc_is_standalone(tmpInt)
   boinc_isStandalone = (tmpInt /= 0)
-#else
-  boinc_isStandalone = .true.
-  write(boinc_logBuffer,"(a)") "BOINC API not available"
-  call boinc_writeLog
-#endif
+
   write(boinc_logBuffer,"(a,l1)") "Standalone: ",boinc_isStandalone
   call boinc_writeLog
 
@@ -88,7 +83,6 @@ subroutine boinc_turn(nTurn)
     boincProg = dble(nTurn)/dble(numl)
   end if
 
-#ifdef API
   if(cpuTime-boinc_lastProgress >= boinc_progInterval) then
     ! Tell BOINC how we're doing, but don't hammer the API if many turns
     ! We need to re-add BOINC graphics as well here at some point
@@ -97,7 +91,6 @@ subroutine boinc_turn(nTurn)
     write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100*boincProg," %"
     call boinc_writeLog
   end if
-#endif
 
   if(cpuTime-boinc_lastCPReq < boinc_cpInterval .and. nTurn > 1) then
     return ! Not checkpointing yet, just return
@@ -106,7 +99,6 @@ subroutine boinc_turn(nTurn)
   write(boinc_logBuffer,"(a,f0.2,a)") "Last checkpoint ",cpuTime-boinc_lastCPReq," seconds ago"
   call boinc_writeLog
 
-#ifdef API
   call boinc_fraction_done(boincProg)
   write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100*boincProg," %"
   call boinc_writeLog
@@ -126,13 +118,6 @@ subroutine boinc_turn(nTurn)
       call boinc_writeLog
     end if
   end if
-#else
-  write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100*boincProg," %"
-  call boinc_writeLog
-  write(boinc_logBuffer,"(a)") "Dummy Mode: Checkpointing permitted"
-  call boinc_writeLog
-  call crpoint
-#endif
 
   ! Set the timer for last checkpoint
   boinc_lastCPReq = cpuTime
@@ -149,13 +134,9 @@ subroutine boinc_post
   write(boinc_logBuffer,"(a)") "Tracking completed. Final checkpoint."
   call boinc_writeLog
 
-#ifdef API
   call boinc_begin_critical_section
   call crpoint
   call boinc_end_critical_section
-#else
-  call crpoint
-#endif
 
 end subroutine boinc_post
 
@@ -166,9 +147,7 @@ subroutine boinc_done
 
   use mod_units
 
-#ifdef API
   call boinc_fraction_done(1.0)
-#endif
   write(boinc_logBuffer,"(a,f8.3,a)") "Progress: ",100.0," %"
   call boinc_writeLog
   call f_close(boinc_logUnit)
@@ -182,17 +161,8 @@ subroutine boinc_finalise(exitCode)
 
   integer, intent(in) :: exitCode
 
-#ifdef API
   ! The API does not return
   call boinc_finish(exitCode)
-#else
-  if(exitCode == 0) then
-    stop
-  else
-    ! This must be stop 1 and not stop exitCode to work on ifort
-    stop 1
-  end if
-#endif
 
 end subroutine boinc_finalise
 

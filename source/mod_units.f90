@@ -504,18 +504,3 @@ subroutine f_writeLog(action,unit,status,file)
 end subroutine f_writeLog
 
 end module mod_units
-
-#if defined(BOINC) && !defined(API)
-! =================================================================================================
-!  BOINC DUMMY FILENAME SUBROUTINE
-!  If we don't have a BOINC API, this routine will handle the file name translation.
-!  Note: The routine is placed here, instead of in mod_boinc, to avoid circular dependencies
-!  with the checkpoint/restart module. (VKBO)
-! =================================================================================================
-subroutine boincrf(fileName, boincName)
-  implicit none
-  character(*),   intent(in)  :: fileName
-  character(256), intent(out) :: boincName
-  boincName = fileName
-end subroutine boincrf
-#endif
