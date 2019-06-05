@@ -24,7 +24,7 @@ buildtypes_CMAKE=('' '-DCMAKE_BUILD_TYPE=Release' '-DCMAKE_BUILD_TYPE=Debug')
 options_BUILDTYPE=defaultbuildtype #Which build type to make (should be in 'buildtypes')
 
 ## Make build folder if it doesn't exist
-mkdir -pv build
+mkdir -p build
 cd build
 
 ## Look for special options 'clean' and 'help'
