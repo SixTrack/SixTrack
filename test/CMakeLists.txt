@@ -29,6 +29,13 @@ set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error i
 add_test(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
 
+if(ZLIB)
+  add_test(NAME SelfTest_zlib COMMAND ${CMAKE_BINARY_DIR}/zlib/example)
+  if(64BIT)
+    add_test(NAME SelfTest_zlib_64 COMMAND ${CMAKE_BINARY_DIR}/zlib/example64)
+  endif()
+endif()
+
 ##
 ## Checks
 ##
@@ -175,8 +182,9 @@ endif()
 
 if(NOT CR)
   list(APPEND SIXTRACK_TESTS
-    collimation_db_old
     collimation_k2
+    collimation_old-db_new-block
+    collimation_old-db_old-block
     scatter_collimation
   )
 endif()
@@ -226,8 +234,9 @@ set(TESTS_NOFORT10
   beam-HO_6D-simple-oldstyle
   beambeam4dDYNK
   beambeamDYNK
-  collimation_db_old
   collimation_k2
+  collimation_old-db_new-block
+  collimation_old-db_old-block
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
@@ -278,8 +287,9 @@ set(TESTS_NO_STF_FORT90
   chebythin6d_DYNK
   chebythin6d_ions
   chebythin6d_ramp_DYNK
-  collimation_db_old
   collimation_k2
+  collimation_old-db_new-block
+  collimation_old-db_old-block
   crabs
   dipedge
   dump_all_highprec
@@ -540,7 +550,9 @@ set(FAST_TESTS
   chebythin6d
   chebythin6d_DYNK
   chebythin6d_ions
-  collimation_db_old
+  chebythin6d_ramp_DYNK
+  collimation_old-db_new-block
+  collimation_old-db_old-block
   crabs
   dump_2_all_ele_highprec
   dump_all_highprec
@@ -677,6 +689,12 @@ set(SELFTEST_TOOLS
 foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
   set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
 endforeach()
+
+# Zlib tests
+if(ZLIB)
+  set_property(TEST SelfTest_zlib PROPERTY LABELS tool fast)
+  set_property(TEST SelfTest_zlib_64 PROPERTY LABELS tool fast)
+endif()
 
 # Inputs
 set(SELFTEST_INPUT

@@ -17,9 +17,6 @@ NAFF=false
 for ARG in "$@"; do
     if [[ $ARG == "boinc" ]]; then
         BOINC=true
-        LIBARCH=true
-        ZLIB=true
-        echo "Boinc depends on libarchive and zlib, libarchive and zlib enabled as well."
     elif [[ $ARG == "libarchive" ]]; then
         LIBARCH=true
         ZLIB=true
