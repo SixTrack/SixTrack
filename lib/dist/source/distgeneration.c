@@ -128,7 +128,7 @@ void action2canonical_(double acangl[6], double cancord[6], double acoord[6]){
     acoord[2]= sqrt((dist->emitt->e2)*acangl[2]/2)*cos(acangl[3]);
     acoord[3]=-sqrt((dist->emitt->e2)*acangl[2]/2)*sin(acangl[3]);
     acoord[4]= sqrt((dist->emitt->e3)*acangl[4]/2)*cos(acangl[5]);
-    acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/2)/1000*sin(acangl[5]);
+    acoord[5]=-sqrt((dist->emitt->e3)*acangl[4]/2/1000)*sin(acangl[5]);
 
     if(dist->longitunalemittance==2) {
         double lindp = 0;

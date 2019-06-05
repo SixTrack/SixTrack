@@ -26,7 +26,8 @@ struct parameters
   double stop;   
   int length;
   int type; //This gives the type of distribution, constant, linear, gaussian, 
-  double * values; 
+  double * values;
+  int coordtype; 
 };
 
 struct emittances{

@@ -7,6 +7,7 @@
 #include "distgeneration.h"
 #include "outputdist.h"
 
+// Mainly used to get the setting of the distribution
 void printdistsettings_(int *ndist){
 	printf("Printing info about distribution: \n");
 	printf("Coordianate type (input), 1=normalized coordinates %d \n", dist->coordtype );

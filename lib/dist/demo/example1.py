@@ -1,13 +1,17 @@
 from ctypes import *
 import numpy
 import matplotlib.pyplot as plt
+from distpyinterface import *
 
 
-def setParameters(dist, index, start, stop, numb, type):
-	dist.setparameter_(byref(c_int(index)), byref(c_double(start)),byref(c_double(stop)),byref(c_int(numb)),byref(c_int(type)))
+
+
+
+
 
 
 double6 = c_double * 6
+
 DOUBLE = c_double
 PDOUBLE = POINTER(DOUBLE)
 
@@ -31,6 +35,19 @@ mass = c_double(938.0)
 dim = c_int(6)
 coord_c = double6(1,1,1,1,1,0)
 dist = cdll.LoadLibrary("./buildDemo/libhello.so")
+acoord = double6(1,1,1,1,0,0)
+physical = double6(0,0,0,0,0,0)
+thdeg = numpy.linspace(0,2*numpy.pi, 100)
+teta =[]
+xa = []
+xpa = []
+beta= betx
+alfa =alfx
+
+for i in range(0, len(thdeg)):
+	teta.append(thdeg[i])
+	xa.append(numpy.sqrt(eps*beta)*numpy.cos(teta[i]))
+	xpa.append(-numpy.sqrt(eps/beta)*( alfa*numpy.cos(teta[i]) + numpy.sin(teta[i]) ))
 '''
 SIMULATION
 #/                   mass, charge,   A,    Z, momentum (7Z TeV/c)
@@ -68,69 +85,28 @@ POSTPR 1000 / produce fort.90 every 1000 turns
 NEXT
 '''
 
-
-acoord = double6(1,1,1,1,0,0)
-physical = double6(0,0,0,0,0,0)
-
 dist.initializedistribution_(byref(c_int(2)))
+setEmittance12(dist,e1,e2)
+setEmittance3(dist, e3)
+setmassmom(dist, mass, momentum)
+setdisttype(dist,0)
+createtas0coupling(dist, betx,alfx,bety,alfy, zero, zero, zero, zero)
 
-dist.createtas0coupling_(c_double(betx),c_double(alfx),c_double(bety),c_double(alfy), c_double(zero), c_double(zero), c_double(zero), c_double(zero))
-dist.setemittance12_(byref(e1),byref(e2))
-dist.setemittance3_(byref(e3))
-dist.setmassmom_(byref(mass), byref(momentum))
-dist.setdisttype(c_int(0))
-
-
-setParameters(dist,1,1,4,4,1)
+setParameters(dist,1,1,3,4,1)
 setParameters(dist,2,0,pia2,200,1)
 setParameters(dist,3,1,4,1,1)
 setParameters(dist,4,0,0,1,0)
 setParameters(dist,5,0.001,0,1,0)
 setParameters(dist,6,0,0,1,0)
 
-dist.printdistsettings_()
 
-thdeg = numpy.linspace(0,2*numpy.pi, 100)
-teta =[]
-x = []
-xp = []
-beta= betx
-alfa =alfx
+[x,px,y,py,deltas,dp] = getphysicalocordinates(dist)
 
-for i in range(0, len(thdeg)):
-	teta.append(thdeg[i])
-	x.append(numpy.sqrt(eps*beta)*numpy.cos(teta[i]))
-	xp.append(-numpy.sqrt(eps/beta)*( alfa*numpy.cos(teta[i]) + numpy.sin(teta[i]) ))
-
-
-
-
-xd = []
-pxd = []
-yd = []
-yxd = []
-print("inpython")
 print(dist.getnumberdist_())
-for i in range(0,dist.getnumberdist_()):
-	dist.getcoord_(physical,c_int(i))
-	xd.append(physical[0])
-	pxd.append(physical[1])
-	yd.append(physical[2])
-	yxd.append(physical[3])
-	
 
-#plt.hist(x,bins=50)
-plt.plot(xd,pxd, '.')
-plt.plot(x,xp, '*')
+plt.plot(x,px, '*')
+plt.plot(xa,xpa, '*')
 
-#plt.show()
-#plt.hist(y,bins=50)
+dist.printdistsettings_()
 plt.show()
 
-
-#dim_c = c_int(6)
-#dist.addclosedorbit_(coord_c)
-#mychar = c_char_p(b"wrrritiing")
-#dist.printvector(mychar, dim_c, coord_c)
-#for d in coord_c:
-#	print(d)

@@ -76,12 +76,12 @@ dist.initializedistribution_(byref(c_int(2)))
 
 dist.createtas0coupling_(c_double(betx),c_double(alfx),c_double(bety),c_double(alfy), c_double(4.5), c_double(4.5), c_double(zero), c_double(zero))
 dist.setemittance12_(byref(e1),byref(e2))
-dist.setdeltap_(byref(dp))
+dist.usedeltap_()
 dist.setmassmom_(byref(mass), byref(momentum))
-dist.setdisttype(c_int(0))
+dist.setdisttype(byref(c_int(0)))
 
 
-setParameters(dist,1,1,4,4,1)
+setParameters(dist,1,1,4,3,1)
 setParameters(dist,2,0,pia2,200,1)
 setParameters(dist,3,1,4,1,1)
 setParameters(dist,4,0,0,1,0)

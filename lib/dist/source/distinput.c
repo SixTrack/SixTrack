@@ -10,7 +10,6 @@
 /*
 This allocates the the memory for the distributions
 */
-
 void initializedistribution_(int *numberOfDist){
     dist = (struct distparam*)malloc((*numberOfDist)*sizeof(struct distparam));
     dim  = 6;
@@ -128,6 +127,8 @@ void setparameter_(int *index,  double *start, double *stop, int *length, int *t
 	dist->coord[*index-1]->stop = *stop;
 	dist->coord[*index-1]->length = *length;
 	dist->coord[*index-1]->type = *type;
+//	dist->coord[*index-1]->coordtype = *coordtype;
+	
 
 	if(*type ==0){ //Constant value 
 		dist->coord[*index-1]->values = (double*)malloc((*length)*sizeof(double));
@@ -216,7 +217,7 @@ void createtas0coupling_(double betax, double alfax, double betay, double alfay,
 	dist->tas[2][5] = dy;
     dist->tas[3][5] = dpy;
 
-    //This is not really physical .. 
+ 
     dist->tas[5][5] =1;
     dist->tas[4][4] =1;
 
