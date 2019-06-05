@@ -41,7 +41,7 @@ setmassmom(dist, mass, momentum)
 setdisttype(dist,0)
 createtas0coupling(dist, betx,alfx,bety,alfy, zero, zero, zero, zero)
 
-setParameters(dist,1,1,3,4,1)
+setParameters(dist,1,2,0,0,0	)
 setParameters(dist,2,0,pia2,200,1)
 setParameters(dist,3,1,4,1,1)
 setParameters(dist,4,0,0,1,0)
