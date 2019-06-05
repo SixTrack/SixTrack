@@ -12,10 +12,8 @@ temptr(4)=(c1m3*yv2(j))/moidpsv(j)
 temptr(5)=(c1m3*sigmv(j))/(e0f/e0)
 temptr(6)=c1m3*((mtc(j)*ejv(j)-e0)/e0f)
 
-
 z_temp = sqrt((one + dpsv(j))**2 - temptr(2)**2 - temptr(4)**2)
 pttemp = 1 - (tan_t*temptr(4))/z_temp
-
 
 xv1(j) = xv1(j) + c1e3*(tan_t*(temptr(3)*temptr(2))/(z_temp*pttemp))
 xv2(j) = (c1e3*temptr(3))/(cos_t*pttemp)
