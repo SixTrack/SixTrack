@@ -1,6 +1,8 @@
 import numpy as np
 from ctypes import *
 import matplotlib.pyplot as plt
+from distpyinterface import *
+
 def readtasfromdump(filename):
 	file = open(filename, "r")
 	splitlines = (file.readlines())
@@ -10,17 +12,12 @@ def readtasfromdump(filename):
 	tasm = tas.reshape(6,6)
 	return tasm
 
-def settasmatrix(dist, tas):
-	for i in range(0,6):
-		for j in range(0,6):
-			dist.settasmatrix_element(c_double(tas[i][j]), c_int(i), c_int(j))
-
 def setParameters(dist, index, start, stop, numb, type):
 	dist.setparameter_(byref(c_int(index)), byref(c_double(start)),byref(c_double(stop)),byref(c_int(numb)),byref(c_int(type)))
 
 
 dist = cdll.LoadLibrary("./buildDemo/libhello.so")
-dist.initializedistribution_(byref(c_int(2)))
+
 
 myfile = "/home/tobias/codes/SixTrackTobias/test/orbit6d-element-quadrupole/START_DUMP"
 tas = readtasfromdump(myfile)
@@ -39,14 +36,15 @@ zero = c_double(0)
 e1 = c_double(1.0)
 e2 = c_double(1.0)
 e3 = c_double(0.0)
+dist.initializedistribution_(byref(c_int(2)))
 dist.setemittance12_(byref(e1),byref(e2))
 dist.setemittance3_(byref(e3))
 dist.setmassmom_(byref(mass), byref(momentum))
 dist.setdisttype(byref(c_int(1)))	
 
-print("aaa")
+
 dist.settotallength(byref(c_int(2000)))
-print("bbb")
+
 setParameters(dist,1,0,1,200,6)
 setParameters(dist,2,0,pia2,200,4)
 setParameters(dist,3,0,1,200,6)
@@ -106,7 +104,6 @@ for i in range(0,dist.getnumberdist_()):
 
 print(tas)
 print(len(xd_c))
-print("aaab", np.std(xd_c))
 dist.printdistsettings_()
 dist.print2fort13()
 

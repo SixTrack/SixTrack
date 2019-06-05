@@ -31,6 +31,18 @@ void printdistsettings_(int *ndist){
 Returns the total number of particles that will be created for the distribution.  
 */
 int getnumberdist_(){
+	if(dist->isDistrcalculated==0){
+		if(dist->disttype==0)
+			dist2sixcoord_();
+		else if(dist->disttype==1)
+			createrandomdist_();
+		else
+			printf("Not a valid distribution type");
+	}
+	return dist->totallength;
+}
+
+int getupperbound(){
 	if(dist->totallength == -1){
 		double length = 1;
 		if(dist->disttype==0){
@@ -42,6 +54,8 @@ int getnumberdist_(){
 	}
 	return dist->totallength;
 }
+
+
 
 void getcoordvectors_(double *x, double *xp, double *y, double *yp, double *sigma, double *delta){
 	int distlen = getnumberdist_();

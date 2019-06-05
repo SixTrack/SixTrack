@@ -13,8 +13,8 @@ void dist2sixcoord_(){
     double tc[6];
     double tmp[6];
     double tmp_n[6];
-    dist->distout = (double**)malloc(getnumberdist_()*sizeof(double*));
-    dist->distout_normalized = (double**)malloc(getnumberdist_()*sizeof(double*));
+    dist->distout = (double**)malloc(getupperbound()*sizeof(double*));
+    dist->distout_normalized = (double**)malloc(getupperbound()*sizeof(double*));
     for(int i =0; i< dist->coord[0]->length; i++){
         for(int j =0; j< dist->coord[1]->length; j++){
             for(int k =0; k< dist->coord[2]->length; k++){
@@ -31,7 +31,6 @@ void dist2sixcoord_(){
                             tc[5]=dist->coord[5]->values[n];
                          
                             action2sixinternal_(tc, tmp, tmp_n);
-                            
                             if(particle_within_limits_physical(tmp)==1 && particle_within_limits_normalized(tmp_n)==1){
                                 for(int p=0; p<dim; p++){
                                     dist->distout[counter][p] = tmp[p]+dist->closedorbit[p];
@@ -133,7 +132,7 @@ void action2canonical_(double acangl[6], double cancord[6], double acoord[6]){
     if(dist->longitunalemittance==2) {
         double lindp = 0;
         double lindeltas=0;
-        double deltap =acangl[4];
+        double deltap = acangl[4];
         double deltas = acangl[5];
         double *xap;
         double det = (dist->tas[4][4]*dist->tas[5][5] - dist->tas[4][5]*dist->tas[5][4]);
