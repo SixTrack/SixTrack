@@ -489,8 +489,45 @@ This element dumps the coordinates of the 1st particle to the file with name ``B
 The file contains 7 columns: $x$,$x'$, $y$,$y'$, $ct$,$\delta p/p$ and $E$.
 Usual SixTrack units are used.
 Any number of \texttt{BPM} elements can be used but the names must differ.
+% ================================================================================================================================ %
+\subsection{X-Rotation} \label{x-rotation}
 
+\paragraph{Format} \texttt{name type angle}
 
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{name}  & May contain up to 47 characters. \\
+    \texttt{type}  & 43 \\
+    \texttt{angle} & The rotation angle in radians.  
+\end{tabular}
+\paragraph{Remarks}
+A possetive angle rotates the reference system in the clockwise direction.
+% ================================================================================================================================ %
+\subsection{Y-Rotation} \label{y-rotation}
+
+\paragraph{Format} \texttt{name type angle}
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{name}  & May contain up to 47 characters. \\
+    \texttt{type}  & 44 \\
+    \texttt{angle} & The rotation angle in radians.  
+\end{tabular}
+\paragraph{Remarks}
+A possetive angle rotates the reference system in the clockwise direction.
+% ================================================================================================================================ %
+\subsection{S-Rotation} \label{s-rotation}
+
+\paragraph{Format} \texttt{name type angle}
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{name}  & May contain up to 47 characters. \\
+    \texttt{type}  & 45 \\
+    \texttt{angle} & The rotation angle in radians.  
+\end{tabular}
+\paragraph{Remarks}
+A possetive angle rotates the reference system in the clockwise direction.
 % ================================================================================================================================ %
 \section{Block Definitions} \label{BloDef}
 
