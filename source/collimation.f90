@@ -53,7 +53,7 @@ module collimation
 
   ! Distribution
   integer,          private, save :: do_thisdis   = 0
-  real(kind=fPrec), private, save :: myenom       = zero
+  real(kind=fPrec), public,  save :: myenom       = zero
 
   ! Jaw Slicing
   integer,          private, save :: n_slices     = 0

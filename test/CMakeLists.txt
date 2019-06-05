@@ -29,6 +29,13 @@ set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error i
 add_test(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
 
+if(ZLIB)
+  add_test(NAME SelfTest_zlib COMMAND ${CMAKE_BINARY_DIR}/zlib/example)
+  if(64BIT)
+    add_test(NAME SelfTest_zlib_64 COMMAND ${CMAKE_BINARY_DIR}/zlib/example64)
+  endif()
+endif()
+
 ##
 ## Checks
 ##
@@ -723,6 +730,12 @@ set(SELFTEST_TOOLS
 foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
   set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
 endforeach()
+
+# Zlib tests
+if(ZLIB)
+  set_property(TEST SelfTest_zlib PROPERTY LABELS tool fast)
+  set_property(TEST SelfTest_zlib_64 PROPERTY LABELS tool fast)
+endif()
 
 # Inputs
 set(SELFTEST_INPUT

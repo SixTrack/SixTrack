@@ -1,5 +1,25 @@
 # SixTrack Changelog
 
+### Version 5.2.9 [05.06.2019] - Release
+
+**Bug Fixes**
+
+* Added a check that the `BEAM` block is present when beam--beam elements exist in the lattice. This would previously run, but produce NaN particle coordinates due to division by zero. Thanks to Sofia Kostoglou for the example job. PR #887 (V.K. Berglyd Olsen, R. De Maria)
+* Fixed a minor issue with the MD5 interface when running on Windows where the return from `fwrite` was treated as an error value. This resulted in an error message being printed for each line of the hashed file for no reason at all. PR #886 (V.K. Berglyd Olsen)
+
+**User Side Changes**
+
+* The Collimation Module now allows for name/value format to be used in the `COLL` block in `fort.3`. The full description of the formatting of the block is available in the user manual. The old format is still supported, but they cannot be mixed. PR #796 (V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* The timing module `mod_time` is now fully checkpointed, meaning the timing data in the log file `sim_time.dat` contains the correct timing information for the full simulation across multiple checkpoints and restarts. PR #884 (V.K. Berglyd Olsen)
+
+**Build System**
+
+* Solaris build support in the BOINC build script hs been added. PR #888 (J. Molson)
+
+
 ### Version 5.2.8 [28.05.2019] - Release
 
 **Bug Fixes**
