@@ -293,6 +293,7 @@ set(TESTS_NO_STF_FORT90
   collimation_old-db_new-block
   collimation_old-db_old-block
   crabs
+  orbit6d-element-rotations
   dipedge
   dump_all_highprec
   dump4
