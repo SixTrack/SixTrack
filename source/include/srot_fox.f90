@@ -1,7 +1,3 @@
-cos_t = cos_mb(temp_angle)
-sin_t = -sin_mb(temp_angle)
-
-
 !FOX  TEMPI(1) = X(1) ;
 !FOX  TEMPI(2) = Y(1) ;
 !FOX  TEMPI(3) = X(2) ;

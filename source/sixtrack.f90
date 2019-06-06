@@ -2081,8 +2081,11 @@ subroutine initialize_element(ix,lfirst)
     ed(ix) = zero
     ek(ix) = zero
     el(ix) = zero
+  else if(kz(ix) == 43 .or. kz(ix) == 44 .or. kz(ix) == 45) then
+    rot_cos(ix) = cos_mb(ed(ix))
+    rot_sin(ix) = sin_mb(ed(ix))
+    rot_tan(ix) = tan_mb(ed(ix))
   end if
-
   return
 
   ! Error handlers

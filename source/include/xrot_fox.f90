@@ -1,8 +1,3 @@
-cos_t = cos_mb(temp_angle)
-sin_t = sin_mb(temp_angle)
-tan_t = tan_mb(temp_angle)
-
-
 !FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 

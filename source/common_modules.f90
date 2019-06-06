@@ -473,6 +473,10 @@ module mod_common
   real(kind=fPrec), allocatable, save :: crabph3(:)     ! Crab Cavities: Order 3
   real(kind=fPrec), allocatable, save :: crabph4(:)     ! Crab Cavities: Order 4
 
+  real(kind=fPrec), allocatable, save :: rot_cos(:)     ! Rotation cos value
+  real(kind=fPrec), allocatable, save :: rot_sin(:)     ! Rotation sin value
+  real(kind=fPrec), allocatable, save :: rot_tan(:)     ! Rotation tan value
+
   real(kind=fPrec), allocatable, save :: ratioe(:)      ! Combination of Elements: Ratio of the magnetic strength
   integer,          allocatable, save :: iratioe(:)     ! Combination of Elements: Index
 
@@ -638,8 +642,10 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
     call alloc(crabph2,              nele_new,       zero,   "crabph2")
     call alloc(crabph3,              nele_new,       zero,   "crabph3")
     call alloc(crabph4,              nele_new,       zero,   "crabph4")
+    call alloc(rot_cos,              nele_new,       zero,   "rot_cos")
+    call alloc(rot_sin,              nele_new,       zero,   "rot_sin")
+    call alloc(rot_tan,              nele_new,       zero,   "rot_tan")
   end if
-
   if(nblo_new /= nblo_prev) then
     call alloc(bezb,    mNameLen,    nblo_new,       " ",    "bezb")
     call alloc(elbe,                 nblo_new,       zero,   "elbe")

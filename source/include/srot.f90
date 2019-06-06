@@ -1,5 +1,3 @@
-cos_t = cos_mb(temp_angle)
-sin_t = -sin_mb(temp_angle)
 do j=1,napx
 temptr(1)=xv1(j)
 temptr(2)=yv1(j)
@@ -11,3 +9,6 @@ yv1(j) = temptr(2)*cos_t - temptr(4)*sin_t
 xv2(j) = temptr(1)*sin_t + temptr(3)*cos_t
 yv2(j) = temptr(2)*sin_t + temptr(4)*cos_t
 enddo
+    rot_cos(ix) = cos_mb(ed(ix))
+    rot_sin(ix) = sin_mb(ed(ix))
+    rot_tan(ix) = tan_mb(ed(ix))
