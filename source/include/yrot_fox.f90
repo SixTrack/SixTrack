@@ -1,3 +1,4 @@
+! start include/ytot.f90
 cos_t = cos_mb(temp_angle)
 sin_t = sin_mb(temp_angle)
 tan_t = tan_mb(temp_angle)
@@ -25,4 +26,4 @@ tan_t = tan_mb(temp_angle)
 !FOX  Y(1) = C1E3*(COS_T*TEMPI(2) + SIN_T*ZTDA)/(ONE+DPDA)/MTCDA ;
 !FOX  SIGMDA = SIGMDA - C1E3*((TAN_T*TEMPI(1)*
 !FOX  (ONE/(E0F/E0)+TEMPI(6))/(ZTDA*PTTDA))*(E0F/E0)) ;
-
+! end include/yrot_fox.f90

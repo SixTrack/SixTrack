@@ -1,3 +1,4 @@
+! start include/xrot_fox.f90
 cos_t = cos_mb(temp_angle)
 sin_t = sin_mb(temp_angle)
 tan_t = tan_mb(temp_angle)
@@ -25,3 +26,4 @@ tan_t = tan_mb(temp_angle)
 !FOX  Y(2) = C1E3*(COS_T*TEMPI(4) + SIN_T*ZTDA)/(ONE+DPDA)/MTCDA ;
 !FOX  SIGMDA = SIGMDA - C1E3*((TAN_T*TEMPI(3)*
 !FOX  (ONE/(E0F/E0)+TEMPI(6))/(ZTDA*PTTDA))*(E0F/E0)) ;
+! end include/xrot_fox.f90
