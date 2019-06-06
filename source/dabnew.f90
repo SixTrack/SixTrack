@@ -197,9 +197,6 @@ subroutine daini(no,nv,iunit)
 
       character(len=10) aa
       dimension n(lnv+1),k(0:lnv),j(lnv),jj(lnv)
-#ifdef BOINC
-      character(len=256) filename
-#endif
 
       if(eps.le.zero) eps=1.e-38_fPrec ! Why is this not pieni?
 !      if(EPS.le.0.d0) eps=1.d-90

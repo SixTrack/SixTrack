@@ -18,7 +18,6 @@ module aperture
   use mod_common_track
   use mod_common_da
 
-  use mod_hions
   use mod_alloc
 #ifdef HDF5
   use hdf5_output
@@ -529,10 +528,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
 
   use physical_constants
 
-#ifdef FLUKA
-  use mod_fluka
-#endif
-
 #ifdef ROOT
   use iso_c_binding
   use root_output
@@ -765,7 +760,7 @@ subroutine aperture_reportLoss(turn, i, ix)
   use physical_constants
 
 #ifdef FLUKA
-  use mod_fluka
+  use mod_fluka, only : fluka_uid, fluka_gen, fluka_weight, fluka_enable
 #endif
 #ifdef HDF5
   use hdf5_output
@@ -1306,6 +1301,50 @@ subroutine roffpos_inv( x, y, xnew, ynew, tlt, xoff, yoff )
   return
 end subroutine roffpos_inv
 
+#ifdef FLUKA
+subroutine contour_FLUKA_markers()
+!-----------------------------------------------------------------------
+! by A.Mereghetti
+! last modified: 22-05-2019
+! check that aperture is well defined accross a Fluka insertion
+  !-----------------------------------------------------------------------
+  
+  use mod_fluka, only : FLUKA_ENTRY, FLUKA_EXIT, fluka_type, fluka_geo_index
+  use parpro, only : nblo
+  use mod_common, only : iu, ic
+  use mod_common_track, only : ktrack
+  
+  implicit none
+  
+  ! temporary variables
+  integer i1 , i2
+  integer ix1, ix2
+
+  i1=1
+  do while ( i1.le.iu )
+    if(ktrack(i1).ne.1.and.ic(i1).gt.nblo) then
+      ix1=ic(i1)-nblo
+      if ( fluka_type(ix1).eq.FLUKA_ENTRY ) then
+        do i2=i1+1,iu
+          if(ktrack(i2).ne.1.and.ic(i2).gt.nblo) then
+            ix2=ic(i2)-nblo
+            if ( fluka_type(ix2).eq.FLUKA_EXIT ) then
+              if(fluka_geo_index(ix1).eq.fluka_geo_index(ix2))then
+                call contour_aperture_markers( i1, i2, .true.  )
+                i1 = i2
+                exit
+              endif
+            endif
+          endif
+        enddo
+      endif
+    endif
+    i1 = i1+1
+  enddo
+     
+end subroutine contour_FLUKA_markers
+#endif
+
 subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
 ! by A.Mereghetti
@@ -1335,6 +1374,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   iElDw=itElDw
 ! markers accross extremes of lattice structure?
   lAccrossLatticeExtremes=iElUp.gt.iElDw
+#ifdef DEBUG
+  write(lout,*) "check 00: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", & 
+       il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
+  call dumpMe
+#endif
 
 ! upstream marker
   iuold=iu
@@ -1351,13 +1395,18 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       write(lout,"(a)")    "APER> ...no need to insert an upstream marker - no shift of downstream entries required."
     end if
   end if
+#ifdef DEBUG
+  write(lout,*) "check 01: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", & 
+       il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
+  call dumpMe
+#endif
 
 ! downstream marker
   iuold=iu
   call contour_aperture_marker( iElDw, .false. )
 ! the addition of the downstream aperture marker may have shifted by one the downstream entries
   if( iu-iuold.ne.0 ) then
-! NB: if lAccrossLatticeExtremes, the downstream marker is almost at the beginngin of
+! NB: if lAccrossLatticeExtremes, the downstream marker is almost at the beginning of
 !     the lattice structure! Hence, if a new entry has been inserted,
 !     the upstream marker (towards the end of the lattice structure) is
 !     shifted by 1
@@ -1368,6 +1417,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   else
     write(lout,"(a)")    "APER> ...no need to insert a downstream marker - no shift of downstream entries required."
   end if
+#ifdef DEBUG
+  write(lout,*) "check 02: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", &
+       il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
+  call dumpMe
+#endif
 
   if( lAccrossLatticeExtremes ) then
 ! check that the aperture markers at the extremities of accelerator
@@ -1400,7 +1454,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 #ifdef FLUKA
 ! import mod_fluka
 ! inserted in main code by the 'fluka' compilation flag
-  use mod_fluka
+  use mod_fluka, only : fluka_type, FLUKA_ELEMENT, FLUKA_ENTRY
 #endif
   use mod_geometry, only : geom_insertStruElem, geom_insertSingElem, geom_checkSingElemUnique
 
@@ -1602,7 +1656,7 @@ subroutine find_closest_aperture( iStart, lUp, iEl, ixEl, lfound )
 #ifdef FLUKA
 ! import mod_fluka
 ! inserted in main code by the 'fluka' compilation flag
-  use mod_fluka
+  use mod_fluka, only : fluka_type, FLUKA_NONE
 #endif
 
   implicit none
@@ -1997,9 +2051,9 @@ subroutine dumpMe
   do i=1,iu
     ix=ic(i)-nblo
     if( ix.gt.0 ) then
-      write(lout,"(a,i8,1x,a,1x,f15.6,1x,i8)") "APER> ",i,bez(ix),dcum(i),kape(ix)
+      write(lout,"(a,2(i8,1x),a,1x,f15.6,1x,i8)") "APER> ",i,ix,bez(ix),dcum(i),kape(ix)
     else
-      write(lout,"(a,i8,1x,a,1x,f15.6)") "APER> ",i,bezb(ic(i)),dcum(i)
+      write(lout,"(a,2(i8,1x),a,1x,f15.6)") "APER> ",i,ic(i),bezb(ic(i)),dcum(i)
     end if
   end do
   write(lout,"(a)") "APER> dumpMe -----------------------------------------------------------------------------"

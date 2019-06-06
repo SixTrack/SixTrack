@@ -23,7 +23,6 @@ subroutine allocate_arrays
   use bdex,               only : bdex_allocate_arrays
   use dynk,               only : dynk_allocate_arrays
   use wire,               only : wire_expand_arrays
-  use mod_hions,          only : hions_expand_arrays
 #ifdef CR
   use checkpoint_restart, only : cr_expand_arrays
 #endif
@@ -49,7 +48,6 @@ subroutine allocate_arrays
   call wire_expand_arrays(nele,nblz)
   call scatter_expand_arrays(nele,npart)
   call aperture_expand_arrays(nele,npart)
-  call hions_expand_arrays(npart)
 
   call elens_allocate_arrays
   call cheby_allocate_arrays
@@ -85,7 +83,6 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   use bdex,               only : bdex_expand_arrays
   use dynk,               only : dynk_expand_arrays
   use wire,               only : wire_expand_arrays
-  use mod_hions,          only : hions_expand_arrays
 #ifdef CR
   use checkpoint_restart, only : cr_expand_arrays
 #endif
@@ -123,7 +120,6 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   call bdex_expand_arrays(nele_new)
   call dynk_expand_arrays(nele_new)
 
-  call hions_expand_arrays(npart_new)
 #ifdef CR
   call cr_expand_arrays(npart_new)
 #endif
@@ -189,7 +185,6 @@ end subroutine expand_thickarrays
 subroutine shuffleLostParticles
 
   use floatPrecision
-  use mod_hions
   use mod_common
   use mod_common_track
   use mod_common_main
@@ -232,6 +227,7 @@ subroutine shuffleLostParticles
     ! Ion Arrays
     nzz(j:tnapx)       = cshift(nzz(j:tnapx),       1)
     naa(j:tnapx)       = cshift(naa(j:tnapx),       1)
+    nqq(j:tnapx)       = cshift(nqq(j:tnapx),       1)
     nucm(j:tnapx)      = cshift(nucm(j:tnapx),      1)
     mtc(j:tnapx)       = cshift(mtc(j:tnapx),       1)
     dpsv1(j:tnapx)     = cshift(dpsv1(j:tnapx),     1)

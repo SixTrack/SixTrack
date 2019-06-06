@@ -1,110 +1,120 @@
-!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!-----                                                                   -----
-!-----    NEW BLOCKS PROVIDED FOR THE COLLIMATION STUDIES VIA SIXTRACK   -----
-!-----                                                                   -----
-!-----        G. ROBERT-DEMOLAIZE, October 27th, 2004                    -----
-!-----                                                                   -----
-!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-
-! Useful names for future reference in the code:
-!GRD Guillaume Robert-Demolaize
-!RA  Ralph Assmann
-!TW  Thomas Weiler
-!CB  Chiara Bracco
-!SR  Stefano Redaelli
-!RB  Roderik Bruce
-!DM  Daniele Mirarchi
-!YIL Yngve Inntjore Levinsen
-!CT  Claudia Tambasco
+! ================================================================================================ !
+!
+!  SixTrack Collimation Module
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!
+!  G. Robert-Demolaize, R. Assmann, T. Weiler, C. Bracco, S. Redaelli, R. Bruce, D. Mirarchi,
+!  Y.I. Levinsen, C. Tambasco, J. Molson, K.N. Sjobak, V.K. Berglyd Olsen
+!
+!  Created: 2004-10-27
+!  Updated: 2019-03-25
+!
+! ================================================================================================ !
 
 module collimation
 
+  use parpro
   use floatPrecision
-  use mathlib_bouncer
   use numerical_constants
-  use mod_hions
-  use mod_alloc
-  use mod_units
-!  use mod_ranecu
-  use mod_ranlux
-  use coll_db
-
-#ifdef HDF5
-  use hdf5_output
-  use hdf5_tracks2
-#endif
 
   implicit none
 
-!  private
-
-!+cd collpara
   integer, parameter :: max_ncoll  = 100
-  !integer, parameter :: maxn       = 20000
   integer, parameter :: numeff     = 32
   integer, parameter :: numeffdpop = 29
   integer, parameter :: nc         = 32
 
-!+cd collMatNum
-! EQ 2016 added variables for collimator material numbers
-  integer, parameter :: nmat  = 14
-  integer, parameter :: nrmat = 12
+  ! Variables for collimator material numbers
+  integer, parameter :: nmat       = 14
+  integer, parameter :: nrmat      = 12
 
-!+cd database
-!GRD THIS BLOC IS COMMON TO MAINCR, DATEN, TRAUTHIN AND THIN6D
-  logical, save :: do_coll = .false.
-  logical, save :: do_select
-  logical, save :: do_nominal
-  logical, save :: dowrite_dist
-  logical, save :: do_oneside
-  logical, save :: dowrite_impact
-  logical, save :: dowrite_secondary
-  logical, save :: dowrite_amplitude
-  logical, save :: radial
-  logical, save :: systilt_antisymm
-  logical, save :: dowritetracks
-  logical, save :: cern
-  logical, save :: do_mingap
+  ! Logical Flags
+  logical, public,  save :: do_coll           = .false.
+  logical, public,  save :: coll_oldBlock     = .false.
+  logical, private, save :: do_select         = .false.
+  logical, private, save :: do_nominal        = .false.
+  logical, private, save :: dowrite_dist      = .false.
+  logical, private, save :: do_oneside        = .false.
+  logical, private, save :: dowrite_impact    = .false.
+  logical, private, save :: dowrite_secondary = .false.
+  logical, private, save :: dowrite_amplitude = .false.
+  logical, private, save :: systilt_antisymm  = .false.
+  logical, private, save :: dowritetracks     = .false.
+  logical, private, save :: cern              = .false.
+  logical, private, save :: do_mingap         = .false.
 
-!SEPT2005 for slicing process
-  integer, save :: nloop
-  integer, save :: rnd_seed
-  integer, save :: c_offsettilt_seed
-  integer, save :: ibeam
-  integer, save :: jobnumber
-  integer, save :: do_thisdis
-  integer, save :: n_slices
-  integer, save :: pencil_distr
+  integer, private, save :: nloop      = 1
+  integer, private, save :: rnd_seed   = 0
+  integer, private, save :: ibeam      = 1
+  integer, private, save :: jobnumber  = 0
 
-  real(kind=fPrec), save :: myenom,mynex,mdex,myney,mdey,                    &
-!SEPT2005 add these lines for the slicing procedure
-  &smin_slices,smax_slices,recenter1,recenter2,                      &
-  &fit1_1,fit1_2,fit1_3,fit1_4,fit1_5,fit1_6,ssf1,                   &
-  &fit2_1,fit2_2,fit2_3,fit2_4,fit2_5,fit2_6,ssf2,                   &
-!SEPT2005,OCT2006 added offset
-  &xbeat,xbeatphase,ybeat,ybeatphase,                                &
-  &c_rmstilt_prim,c_rmstilt_sec,c_systilt_prim,c_systilt_sec,        &
-  &c_rmsoffset_prim,c_rmsoffset_sec,c_sysoffset_prim,                &
-  &c_sysoffset_sec,c_rmserror_gap,ndr,                            &
-  &driftsx,driftsy,pencil_offset,pencil_rmsx,pencil_rmsy,            &
-  &sigsecut3,sigsecut2,enerror,bunchlength
+  ! Distribution
+  integer,          private, save :: do_thisdis   = 0
+  real(kind=fPrec), public,  save :: myenom       = zero
+  real(kind=fPrec), private, save :: mynex        = zero
+  real(kind=fPrec), private, save :: mdex         = zero
+  real(kind=fPrec), private, save :: myney        = zero
+  real(kind=fPrec), private, save :: mdey         = zero
+  real(kind=fPrec), private, save :: enerror      = zero
+  real(kind=fPrec), private, save :: bunchlength  = zero
+
+  ! Jaw Slicing
+  integer,          private, save :: n_slices     = 0
+  real(kind=fPrec), private, save :: smin_slices  = zero
+  real(kind=fPrec), private, save :: smax_slices  = zero
+  real(kind=fPrec), private, save :: recenter1    = zero
+  real(kind=fPrec), private, save :: recenter2    = zero
+  real(kind=fPrec), private, save :: jaw_fit(2,6) = zero
+  real(kind=fPrec), private, save :: jaw_ssf(2)   = zero
+
+  ! Beta-beating
+  real(kind=fPrec), private, save :: xbeat        = zero
+  real(kind=fPrec), private, save :: xbeatphase   = zero
+  real(kind=fPrec), private, save :: ybeat        = zero
+  real(kind=fPrec), private, save :: ybeatphase   = zero
+
+  real(kind=fPrec), private, save :: c_rmstilt_prim    = zero
+  real(kind=fPrec), private, save :: c_rmstilt_sec     = zero
+  real(kind=fPrec), private, save :: c_systilt_prim    = zero
+  real(kind=fPrec), private, save :: c_systilt_sec     = zero
+  real(kind=fPrec), private, save :: c_rmsoffset_prim  = zero
+  real(kind=fPrec), private, save :: c_rmsoffset_sec   = zero
+  real(kind=fPrec), private, save :: c_sysoffset_prim  = zero
+  real(kind=fPrec), private, save :: c_sysoffset_sec   = zero
+  real(kind=fPrec), private, save :: c_rmserror_gap    = zero
+  integer,          private, save :: c_offsettilt_seed = 0
+
+  ! Radial Dist
+  logical,          private, save :: radial  = .false.
+  real(kind=fPrec), private, save :: nr      = zero
+  real(kind=fPrec), private, save :: ndr     = zero
+
+  ! Emittance Drift
+  real(kind=fPrec), private, save :: driftsx = zero
+  real(kind=fPrec), private, save :: driftsy = zero
+
+  ! Pencil Beam
+  integer,          private, save :: ipencil       = 0
+  real(kind=fPrec), private, save :: pencil_offset = zero
+  real(kind=fPrec), private, save :: pencil_rmsx   = zero
+  real(kind=fPrec), private, save :: pencil_rmsy   = zero
+  integer,          private, save :: pencil_distr  = 0
+
+  real(kind=fPrec), private, save :: sigsecut3 = one
+  real(kind=fPrec), private, save :: sigsecut2 = one
 
   real(kind=fPrec), private, save :: emitnx0_dist = zero
   real(kind=fPrec), private, save :: emitny0_dist = zero
   real(kind=fPrec), private, save :: emitnx0_collgap = zero
   real(kind=fPrec), private, save :: emitny0_collgap = zero
 
-  real(kind=fPrec), private, save :: nr
 
-  character(len=mNameLen), save :: name_sel
-  character(len=16), save :: castordir
-  character(len=80), save :: filename_dis
+  character(len=mNameLen),  private, save :: name_sel     = " "
+  character(len=16),        private, save :: castordir    = " "
+  character(len=80),        private, save :: filename_dis = " "
 
   integer, save :: ie, iturn, nabs_total
 
- !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!+cd dbcommon
-! THIS BLOCK IS COMMON TO BOTH THIN6D, BEAMGAS, AND TRAUTHIN SUBROUTINES
 
   integer ieff,ieffdpop
 
@@ -113,8 +123,6 @@ module collimation
   real(kind=fPrec), public,  save :: myemitx0_collgap = zero
   real(kind=fPrec), public,  save :: myemity0_collgap = zero
   real(kind=fPrec), save :: myalphay, mybetay, myalphax, mybetax, rselect, myemitx
-! myemitx was not saved?
-!  common /ralph/ myemitx0_dist,myemity0_dist,myemitx0_collgap,myemity0_collgap,myalphax,myalphay,mybetax,mybetay,rselect
 
 ! M. Fiascaris for the collimation team
 ! variables for global inefficiencies studies
@@ -123,23 +131,19 @@ module collimation
 
   real(kind=fPrec), allocatable, save :: neff(:) !(numeff)
   real(kind=fPrec), allocatable, save :: rsig(:) !(numeff)
-!  common  /eff/ neff,rsig
 
   integer, allocatable, save :: counteddpop(:,:) !(npart,numeffdpop)
   integer, allocatable, save :: npartdpop(:) !(numeffdpop)
   integer, allocatable, save :: counted2d(:,:,:) !(npart,numeff,numeffdpop)
   real(kind=fPrec), allocatable, save :: neffdpop(:) !(numeffdpop)
   real(kind=fPrec), allocatable, save :: dpopbins(:) !(numeffdpop)
-!  common  /effdpop/ neffdpop,dpopbins,npartdpop,counteddpop
 
   real(kind=fPrec) dpopmin,dpopmax,mydpop
   real(kind=fPrec), allocatable, save :: neff2d(:,:) !(numeff,numeffdpop)
-!  common /eff2d/ neff2d
 
   integer, allocatable, save :: nimpact(:) !(50)
   real(kind=fPrec), allocatable, save :: sumimpact(:) !(50)
   real(kind=fPrec), allocatable, save :: sqsumimpact(:) !(50)
-!  common  /rimpact/ sumimpact,sqsumimpact,nimpact
 
   character(len=:), allocatable, save :: ename(:) !(mNameLen)(nblz)
   integer, allocatable, save :: nampl(:) !(nblz)
@@ -148,11 +152,9 @@ module collimation
   real(kind=fPrec), allocatable, save :: sum_ay(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sqsum_ay(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sampl(:) !(nblz)
-!  common  /ampl_rev/ sum_ax,sqsum_ax,sum_ay,sqsum_ay,sampl,ename,nampl
 
   real(kind=fPrec), allocatable, save :: neffx(:) !(numeff)
   real(kind=fPrec), allocatable, save :: neffy(:) !(numeff)
-!  common /efficiency/ neffx,neffy
 
   integer, allocatable, save :: secondary(:) !(npart)
   integer, allocatable, save :: tertiary(:) !(npart)
@@ -174,19 +176,10 @@ module collimation
   integer, save :: n_absorbed
 
   real(kind=fPrec), allocatable, save :: part_impact(:) !(npart)
-!  common /stats/ part_impact, part_hit_pos,part_hit_turn, part_hit_before_pos, part_hit_before_turn, &
-!  & part_abs_pos,part_abs_turn, nabs_type,part_indiv, part_linteract,secondary,tertiary,other,scatterhit
-
-!  common /n_tot_absorbed/ n_tot_absorbed,n_absorbed
-!  common /part_select/ part_select
 
 !  logical firstrun
-!  common /firstrun/ firstrun
 
   integer, save :: nsurvive, nsurvive_end, num_selhit, n_impact
-!  common /outcoll/ nsurvive,num_selhit,n_impact,nsurvive_end
-
-  integer, save :: napx00
 
   real(kind=fPrec), allocatable, save :: db_tilt(:,:) !(max_ncoll,2)
 
@@ -194,7 +187,6 @@ module collimation
   integer, allocatable, save :: cn_absorbed(:) !(max_ncoll)
   real(kind=fPrec), allocatable, save :: caverage(:) !(max_ncoll)
   real(kind=fPrec), allocatable, save :: csigma(:) !(max_ncoll)
-!  common /collsummary/ caverage,csigma,cn_impact,cn_absorbed
 
 ! Change the following block to npart
 ! This is the array that the generated distribution is placed into
@@ -204,21 +196,13 @@ module collimation
   real(kind=fPrec), allocatable, save :: myyp(:) !(npart)
   real(kind=fPrec), allocatable, save :: myp(:) !(npart)
   real(kind=fPrec), allocatable, save :: mys(:) !(npart)
-!  common /coord/ myx,myxp,myy,myyp,myp,mys
-
   integer, allocatable, save :: counted_r(:,:) !(npart,numeff)
   integer, allocatable, save :: counted_x(:,:) !(npart,numeff)
   integer, allocatable, save :: counted_y(:,:) !(npart,numeff)
-!  common /counting/ counted_r,counted_x,counted_y
 
   character(len=4), save :: smpl
   character(len=80), save :: pfile
-!  common /samplenumber/ pfile,smpl,samplenumber
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-!+cd dblinopt
-!
+
 ! THIS BLOCK IS COMMON TO WRITELIN,LINOPT,TRAUTHIN,THIN6D AND MAINCR
 !
   real(kind=fPrec), allocatable, save :: tbetax(:)  !(nblz)
@@ -232,8 +216,6 @@ module collimation
   real(kind=fPrec), allocatable, save :: tdispx(:)  !(nblz)
   real(kind=fPrec), allocatable, save :: tdispy(:)  !(nblz)
 
-!  common /rtwiss/ tbetax,tbetay,talphax,talphay,torbx,torbxp,torby,torbyp,tdispx,tdispy
-!
 !-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 !
 ! Variables for finding the collimator with the smallest gap
@@ -245,26 +227,12 @@ module collimation
   real(kind=fPrec) :: mingap, gap_h1, gap_h2, gap_h3, gap_h4
   integer :: coll_mingap_id
 
-! common /gap_err/ gap_rms_error
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-!+cd dbdaten
-
 ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
 ! logical cut_input
-! common /cut/ cut_input
 
 ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
   real(kind=fPrec), save :: remitx_dist,remity_dist,remitx_collgap,remity_collgap
-! common  /remit/ remitx_dist, remity_dist,remitx_collgap,remity_collgap
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-!+cd dbcolcom
   logical, save :: firstcoll,found,onesided
   integer rnd_lux,rnd_k1,rnd_k2
 
@@ -276,7 +244,6 @@ module collimation
 
   ! IN "+CD DBTRTHIN", "+CD DBDATEN" and "+CD DBTHIN6D"
 !  logical cut_input
-!  common /cut/ cut_input
 
   real(kind=fPrec), allocatable, save :: xbob(:) !(nblz)
   real(kind=fPrec), allocatable, save :: ybob(:) !(nblz)
@@ -288,75 +255,22 @@ module collimation
   real(kind=fPrec), allocatable, save :: xpineff(:) !(npart)
   real(kind=fPrec), allocatable, save :: ypineff(:) !(npart)
 
-!  common /xcheck/ xbob,ybob,xpbob,ypbob,xineff,yineff,xpineff,ypineff
-
   real(kind=fPrec), allocatable, save :: mux(:) !(nblz)
   real(kind=fPrec), allocatable, save :: muy(:) !(nblz)
-!  common /mu/ mux,muy
-
-!  common /collocal/ myix,myktrack,totals,firstcoll,found,onesided
-
-! common /icoll/  icoll
-!
-!
-!  common /materia/mat
-!  common /phase/x,xp,z,zp,dpop
-!  common /nommom/p0
-!  common /cjaw1/zlm
-! END BLOCK DBCOLLIM
 
 
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!+cd dbpencil
-!
-! THIS BLOCK IS COMMON TO THIN6D, TRAUTHIN, COLLIMATE32 AND MAINCR
-!
-  integer, save :: ipencil
   real(kind=fPrec), save :: xp_pencil0,yp_pencil0
   real(kind=fPrec), allocatable, save :: x_pencil(:) !(max_ncoll)
   real(kind=fPrec), allocatable, save :: y_pencil(:) !(max_ncoll)
   real(kind=fPrec), allocatable, save :: pencil_dx(:) !(max_ncoll)
-!  common  /pencil/  xp_pencil0,yp_pencil0,pencil_dx,ipencil
-!  common  /pencil2/ x_pencil, y_pencil
 !
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-!+cd dbmkdist
-!++ Vectors of coordinates
-
-!  integer :: i,j,mynp,nloop
-!  real(kind=fPrec) :: myx(maxn) !(maxn)
-!  real(kind=fPrec) :: myxp(maxn) !(maxn)
-!  real(kind=fPrec) :: myy(maxn) !(maxn)
-!  real(kind=fPrec) :: myyp(maxn) !(maxn)
-!  real(kind=fPrec) :: myp(maxn) !(maxn)
-!  real(kind=fPrec) :: mys(maxn) !(maxn)
-!
-!  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,mdex, &
-!  &mygammax,myalphay,mybetay,myemity0,myemity,myney,mdey,mygammay,   &
-!  &xsigmax,ysigmay,myenom,nr,ndr
-!
-!
-
-! IN "+CD DBTRTHIN", "+CD DBDATEN", "+CD DBTHIN6D", and "+CD DBMKDIST"
 ! USED IN MULTIPLE COMMON BLOCKS
   logical, save :: cut_input
-!  common /cut/ cut_input
 
-!from +cd interac
-!October 2013
 !Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
-!  data (exenergy(i),i=1,5)/ 63.7e-9,166e-9, 322e-9, 727e-9, 823e-9 /
-!  data (exenergy(i),i=6,7)/ 78e-9, 78.0e-9 /
-!  data (exenergy(i),i=8,nrmat)/ 87.1e-9, 152.9e-9, 424e-9, 320.8e-9, 682.2e-9/
-  real(kind=fPrec), parameter :: exenergy(nmat) = &
- & [ 63.7e-9_fPrec, 166e-9_fPrec, 322e-9_fPrec, 727e-9_fPrec, 823e-9_fPrec, 78e-9_fPrec, 78.0e-9_fPrec, 87.1e-9_fPrec, &
- & 152.9e-9_fPrec, 424e-9_fPrec, 320.8e-9_fPrec, 682.2e-9_fPrec, zero, c1e10 ]
-! common/meanexen/exenergy(nmat)
-
-!+cd dbtrthin
-
-! Note: no saves needed
+  real(kind=fPrec), parameter :: exenergy(nmat) = [ &
+    63.7e-9_fPrec, 166.0e-9_fPrec, 322.0e-9_fPrec, 727.0e-9_fPrec, 823.0e-9_fPrec, 78.0e-9_fPrec, 78.0e-9_fPrec, &
+    87.1e-9_fPrec, 152.9e-9_fPrec, 424.0e-9_fPrec, 320.8e-9_fPrec, 682.2e-9_fPrec, zero, c1e10 ]
 
 !++ Vectors of coordinates
 
@@ -365,29 +279,16 @@ module collimation
 
   ! IN "+CD DBTRTHIN" and "+CD DBDATEN"
 !  real(kind=fPrec) remitx_dist,remity_dist,
-! &     remitx_collgap,remity_collgap
-!  common  /remit/ remitx_dist, remity_dist,
-! &     remitx_collgap,remity_collgap
 
   integer, private :: k
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
 
   logical, public, save :: firstrun
   integer, save :: icoll
 
-!+cd flukavars
 ! RB DM 2014 added variables for FLUKA output
   real(kind=fPrec), private, save :: xInt,xpInt,yInt,ypInt,sInt
-! common/flukaVars/xInt,xpInt,yInt,ypInt,sInt
 
-!+cd funint
   real(kind=fPrec), private, save :: tftot
-!  common/funint/tftot
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!+cd dbthin6d
 
   integer, save :: num_surhit
   integer, save :: numbin
@@ -480,52 +381,10 @@ module collimation
   real(kind=fPrec), save :: beamsize1, beamsize2,betax1,betax2,betay1,betay2, alphax1, alphax2,alphay1,alphay2,minAmpl
 !SEPT2005
 
-
-!  common /dbthinc/ cx,cxp,cy,cyp,                                   &
-!  &cp,cs,rcx,rcxp,rcy,rcyp,                                          &
-!  &rcp,rcs,rcx0,rcxp0,rcy0,                                          &
-!  &rcyp0,rcp0,enom_gev,betax,betay,xmax,ymax,                        &
-!  &nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1, &
-!  &xj,xpj,yj,ypj,pj,arcdx,arcbetax,xdisp,rxjco,ryjco,                &
-!  &rxpjco,rypjco,c_rmstilt,                                          &
-!  &c_systilt,scale_bx,scale_by,scale_bx0,scale_by0,xkick,            &
-!  &ykick,bx_dist,by_dist,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,  &
-!  &nom_aperture,pencil_aperture,xp_pencil,                           &
-!  &yp_pencil,x_pencil0,y_pencil0,sum,sqsum,                          &
-!  &csum,csqsum,average,sigma,sigsecut,nspxd,                         &
-!  &xndisp,xgrd,xpgrd,ygrd,ypgrd,zpj,                                 &
-!  &pgrd,ejfvgrd,sigmvgrd,rvvgrd,                                     &
-!  &dpsvgrd,oidpsvgrd,dpsv1grd,                                       &
-!  &dnormx,dnormy,driftx,drifty,                                      &
-!  &xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,                          &
-!  &grdpiover2,grdpiover4,grd3piover4,                                &
-!  &x_sl,x1_sl,x2_sl,                                                 &
-!  &y1_sl, y2_sl,                                                &
-!  &angle1, angle2,                                              &
-!  &max_tmp,                                                     &
-!  &a_tmp1, a_tmp2, ldrift, mynex2, myney2,                      &
-!  &Nap1pos,Nap2pos,Nap1neg,Nap2neg,                             &
-!  &tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,         &
-!  &beamsize1, beamsize2,betax1,betax2,betay1,betay2,            &
-!  &alphax1, alphax2,alphay1,alphay2,minAmpl,                    &
-!  &ios,num_surhit,numbin,ibin,                                       &
-!  &num_selabs,iturn_last_hit,iturn_absorbed,iturn_survive,imov,      &
-!  &ipart,totalelem,selelem,unitnumber,distnumber,turnnumber,         &
-!  &jb,flukaname,                                                     &
-!  &jjj,ijk,zbv,c_length,c_rotation,                                  &
-!  &c_aperture,c_offset,c_tilt,c_material
-
-! myran_gauss,rndm5,
-
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-!+cd dbcollim
   integer, private, save :: nev
 !  real(kind=fPrec), private, save :: c_xmin,c_xmax,c_xpmin,c_xpmax,c_zmin,c_zmax,c_zpmin,c_zpmax,length
-!!  common /cmom/xmin,xmax,xpmin,xpmax,zmin,zmax,zpmin,zpmax,length,nev
 !
 !  real(kind=fPrec), private, save :: c_mybetax,c_mybetaz,mymux,mymuz,atdi
-!!  common /other/mybetax,mybetaz,mymux,mymuz,atdi
 
   real(kind=fPrec), private, save :: length
 
@@ -534,10 +393,7 @@ module collimation
   real(kind=fPrec), private, save :: x,xp,z,zp,dpop
   real(kind=fPrec), private, save :: p0
   real(kind=fPrec), private, save :: zlm
-!
-!-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-!
-!+cd interac
+
   integer, save :: mcurr
   real(kind=fPrec), save :: xintl(nmat)
   real(kind=fPrec), save :: radl(nmat)
@@ -579,26 +435,6 @@ module collimation
 ! parameter(fnavo=6.02214129e23_fPrec)
   real(kind=fPrec), save :: cgen(200,nmat)
   character(4), save :: mname(nmat)
-
-!  common/mater/anuc(nmat),zatom(nmat),rho(nmat),emr(nmat)
-!  common/coul/tlcut,hcut(nmat),cgen(200,nmat),mcurr
-!  common/scat/cs(0:5,nmat),csref(0:5,nmat),bnref(nmat),freep(nmat)
-!  common/scatu/cprob(0:5,nmat),bn(nmat),bpp,xln15s,ecmsq
-!  common/scatu2/xintl(nmat),radl(nmat),mname
-!  common/scatpp/pptot,ppel,ppsd
-!  common/sppref/pptref,pperef,pref,pptco,ppeco,sdcoe,freeco
-!! real(kind=fPrec) exenergy
-!! common/meanexen/exenergy(nmat)
-!  common/cmcs1/zlm1
-!  common/sindif/xpsd,zpsd,psd
-!  common/cdpodx/dpodx
-!  common/cions/edens(nmat),pleng(nmat)
-
-
-!  common/materia/mat
-!  common/phase/x,xp,z,zp,dpop
-!  common/nommom/p0
-!  common/cjaw1/zlm
 
 !>
 !! block data scdata
@@ -725,6 +561,8 @@ contains
 
 subroutine collimation_allocate_arrays
 
+  use mod_alloc
+
   implicit none
 
   ! Initial allocation handled by expand arrays routine
@@ -773,6 +611,8 @@ subroutine collimation_allocate_arrays
 end subroutine collimation_allocate_arrays
 
 subroutine collimation_expand_arrays(npart_new, nblz_new)
+
+  use mod_alloc
 
   implicit none
 
@@ -898,6 +738,12 @@ subroutine collimate_init()
   use mod_common_da
   use mod_settings
   use string_tools
+  use coll_db
+  use mod_units
+  use mod_ranlux
+#ifdef HDF5
+  use hdf5_output
+#endif
 
   implicit none
 
@@ -1058,21 +904,21 @@ subroutine collimate_init()
   write(lout,"(a,e15.8)") 'COLL> Info: RECENTER1           = ',recenter1
   write(lout,"(a,e15.8)") 'COLL> Info: RECENTER2           = ',recenter2
   write(lout,"(a)")
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_1              = ',fit1_1
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_2              = ',fit1_2
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_3              = ',fit1_3
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_4              = ',fit1_4
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_5              = ',fit1_5
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT1_6              = ',fit1_6
-  write(lout,"(a,e15.8)") 'COLL> Info: SCALING1            = ',ssf1
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,1)        = ',jaw_fit(1,1)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,2)        = ',jaw_fit(1,2)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,3)        = ',jaw_fit(1,3)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,4)        = ',jaw_fit(1,4)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,5)        = ',jaw_fit(1,5)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(1,6)        = ',jaw_fit(1,6)
+  write(lout,"(a,e15.8)") 'COLL> Info: SCALING1            = ',jaw_ssf(1)
   write(lout,"(a)")
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_1              = ',fit2_1
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_2              = ',fit2_2
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_3              = ',fit2_3
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_4              = ',fit2_4
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_5              = ',fit2_5
-  write(lout,"(a,e15.8)") 'COLL> Info: FIT2_6              = ',fit2_6
-  write(lout,"(a,e15.8)") 'COLL> Info: SCALING2            = ',ssf2
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,1)        = ',jaw_fit(2,1)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,2)        = ',jaw_fit(2,2)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,3)        = ',jaw_fit(2,3)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,4)        = ',jaw_fit(2,4)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,5)        = ',jaw_fit(2,5)
+  write(lout,"(a,e15.8)") 'COLL> Info: jaw_fit(2,6)        = ',jaw_fit(2,6)
+  write(lout,"(a,e15.8)") 'COLL> Info: SCALING2            = ',jaw_ssf(2)
   write(lout,"(a)")
 
 !SEPT2005
@@ -1140,8 +986,6 @@ subroutine collimate_init()
   write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT2           = ', sigsecut2
   write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT3           = ', sigsecut3
   write(lout,"(a)")
-
-  napx00 = napx
 
   write(lout,"(a,i0)")    'COLL> Info: NAPX                = ', napx
   write(lout,"(a,e15.8)") 'COLL> Info: Sigma_x0            = ', sqrt(mybetax*myemitx0_dist)
@@ -1307,6 +1151,8 @@ end subroutine collimate_init
 ! ================================================================================================ !
 subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
+  use crcoall
+  use coll_db
   use string_tools
   use mod_common, only : napx
 
@@ -1317,7 +1163,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  real(kind=fPrec) nSigIn(23)
+  real(kind=fPrec) nSigIn(23), rTmp
   integer nSplit, famID
   logical spErr, fErr
 
@@ -1331,60 +1177,462 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   end if
   if(nSplit == 0) return
 
+  if(nSplit == 1 .and. iLine == 1) then
+    ! This is the old block format
+    coll_oldBlock = .true.
+  end if
+  if(coll_oldBlock) goto 10
+
+  !  Parse new style COLL block
+  ! ============================
+  select case(lnSplit(1))
+
+  case("DO_COLL")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR DO_COLL expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DO_COLL true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), do_coll, iErr)
+
+  case("ENERGY")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR ENERGY expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       ENERGY energy[MeV]"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), myenom, iErr)
+
+  case("DIST_TYPE")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR DIST_TYPE expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DIST_TYPE 0-6"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), do_thisdis, iErr)
+    if(do_thisdis < 0 .or. do_thisdis > 6) then
+      write(lerr,"(a,i0)") "COLL> ERROR DIST_TYPE must be between 0 and 6, got ",do_thisdis
+      iErr = .true.
+      return
+    end if
+
+  case("DIST_PARAM")
+    if(nSplit /= 5 .and. nSplit /= 7) then
+      write(lerr,"(a,i0)") "COLL> ERROR DIST_PARAM expects 4 or 6 values, got ",nSplit-1
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), mynex, iErr)
+    call chr_cast(lnSplit(3), mdex,  iErr)
+    call chr_cast(lnSplit(4), myney, iErr)
+    call chr_cast(lnSplit(5), mdey,  iErr)
+    if(nSplit == 7) then
+      call chr_cast(lnSplit(6), enerror,     iErr)
+      call chr_cast(lnSplit(7), bunchlength, iErr)
+    end if
+
+  case("DIST_FILE")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR DIST_FILE expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DIST_FILE filename"
+      iErr = .true.
+      return
+    end if
+    filename_dis = trim(lnSplit(2))
+
+  case("NSIG_FAM")
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "COLL> ERROR NSIG_FAM expects 2 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       NSIG_FAM name nsig"
+      iErr = .true.
+      return
+    end if
+    if(len_trim(lnSplit(2)) > cdb_fNameLen) then
+      write(lerr,"(2(a,i0))") "COLL> ERROR NSIG_FAM family name can be maximum ",cdb_fNameLen,&
+        " characters, got ",len_trim(lnSplit(2))
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(3),rTmp,iErr)
+    call cdb_addFamily(lnSplit(2),rTmp,famID,fErr)
+    if(fErr) then
+      write(lerr,"(a,i0)") "COLL> ERROR NSIG_FAM family '"//trim(lnSplit(2))//"' defined more than once"
+      iErr = .true.
+      return
+    end if
+
+  case("DO_NSIG")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR DO_NSIG expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DO_NSIG true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), cdb_doNSig, iErr)
+
+  case("JAW_SLICE")
+    if(nSplit /= 6) then
+      write(lerr,"(a,i0)") "COLL> ERROR JAW_SLICE expects 5 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       JAW_SLICE n_slices smin smax recenter1 recenter2"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), n_slices,   iErr)
+    call chr_cast(lnSplit(3), smin_slices,iErr)
+    call chr_cast(lnSplit(4), smax_slices,iErr)
+    call chr_cast(lnSplit(5), recenter1,  iErr)
+    call chr_cast(lnSplit(6), recenter2,  iErr)
+
+  case("JAW_FIT1")
+    if(nSplit /= 8) then
+      write(lerr,"(a,i0)") "COLL> ERROR JAW_FIT1 expects 7 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       JAW_FIT1 fit1.1 fit1.2 fit1.3 fit1.4 fit1.5 fit1.6 scale"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), jaw_fit(1,1),iErr)
+    call chr_cast(lnSplit(3), jaw_fit(1,2),iErr)
+    call chr_cast(lnSplit(4), jaw_fit(1,3),iErr)
+    call chr_cast(lnSplit(5), jaw_fit(1,4),iErr)
+    call chr_cast(lnSplit(6), jaw_fit(1,5),iErr)
+    call chr_cast(lnSplit(7), jaw_fit(1,6),iErr)
+    call chr_cast(lnSplit(8), jaw_ssf(1),  iErr)
+
+  case("JAW_FIT2")
+    if(nSplit /= 8) then
+      write(lerr,"(a,i0)") "COLL> ERROR JAW_FIT2 expects 7 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       JAW_FIT2 fit2.1 fit2.2 fit2.3 fit2.4 fit2.5 fit2.6 scale"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), jaw_fit(2,1),iErr)
+    call chr_cast(lnSplit(3), jaw_fit(2,2),iErr)
+    call chr_cast(lnSplit(4), jaw_fit(2,3),iErr)
+    call chr_cast(lnSplit(5), jaw_fit(2,4),iErr)
+    call chr_cast(lnSplit(6), jaw_fit(2,5),iErr)
+    call chr_cast(lnSplit(7), jaw_fit(2,6),iErr)
+    call chr_cast(lnSplit(8), jaw_ssf(2),  iErr)
+
+  case("EMIT","EMITTANCE")
+    if(nSplit /= 5) then
+      write(lerr,"(a,i0)") "COLL> ERROR EMIT expects 4 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       EMIT ex_dist ey_dist ex_colgap ey_colgap"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), emitnx0_dist,   iErr)
+    call chr_cast(lnSplit(3), emitny0_dist,   iErr)
+    call chr_cast(lnSplit(4), emitnx0_collgap,iErr)
+    call chr_cast(lnSplit(5), emitny0_collgap,iErr)
+
+  case("DO_SELECT")
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "COLL> ERROR DO_SELECT expects 2 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DO_SELECT true|false name"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), do_select, iErr)
+    name_sel = trim(lnSplit(3))
+
+  case("DO_NOMINAL")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR DO_NOMINAL expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DO_NOMINAL true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), do_nominal, iErr)
+
+  case("SEED")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR SEED expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       SEED rnd_seed"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), rnd_seed, iErr)
+
+  case("DO_ONESIDE")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR DO_ONESIDE expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DO_ONESIDE true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), do_oneside, iErr)
+
+  case("WRITE_DIST")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR WRITE_DIST expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       WRITE_DIST true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dowrite_dist, iErr)
+
+  case("WRITE_IMPACT")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR WRITE_IMPACT expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       WRITE_IMPACT true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dowrite_impact, iErr)
+
+  case("WRITE_SECOND","WRITE_SECONDARY")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR WRITE_SECOND expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       WRITE_SECOND true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dowrite_secondary, iErr)
+
+  case("WRITE_AMPL","WRITE_AMPLITUDE")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR WRITE_AMPL expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       WRITE_AMPL true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dowrite_amplitude, iErr)
+
+  case("BETA_BEAT")
+    if(nSplit /= 5) then
+      write(lerr,"(a,i0)") "COLL> ERROR BETA_BEAT expects 4 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       BETA_BEAT xbeat xbeat_phase ybeat ybeat_phase"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), xbeat,     iErr)
+    call chr_cast(lnSplit(3), xbeatphase,iErr)
+    call chr_cast(lnSplit(4), ybeat,     iErr)
+    call chr_cast(lnSplit(5), ybeatphase,iErr)
+
+  case("ALIGNERR_PRIM")
+    if(nSplit /= 5) then
+      write(lerr,"(a,i0)") "COLL> ERROR ALIGNERR_PRIM expects 4 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       ALIGNERR_PRIM rms_tilt sys_tilt rms_offset sys_offset"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), c_rmstilt_prim,   iErr)
+    call chr_cast(lnSplit(3), c_systilt_prim,   iErr)
+    call chr_cast(lnSplit(4), c_rmsoffset_prim, iErr)
+    call chr_cast(lnSplit(5), c_sysoffset_prim, iErr)
+
+  case("ALIGNERR_SEC")
+    if(nSplit /= 5) then
+      write(lerr,"(a,i0)") "COLL> ERROR ALIGNERR_SEC expects 4 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       ALIGNERR_SEC rms_tilt sys_tilt rms_offset sys_offset"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), c_rmstilt_sec,   iErr)
+    call chr_cast(lnSplit(3), c_systilt_sec,   iErr)
+    call chr_cast(lnSplit(4), c_rmsoffset_sec, iErr)
+    call chr_cast(lnSplit(5), c_sysoffset_sec, iErr)
+
+  case("ALIGNERR_GAP")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR ALIGNERR_GAP expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       ALIGNERR_GAP rmserror_gap"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),c_rmserror_gap, iErr)
+
+  case("ALIGNERR_SEED")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR ALIGNERR_SEED expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       ALIGNERR_SEED seed"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),c_offsettilt_seed, iErr)
+
+  case("DO_MINGAP")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR DO_MINGAP expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DO_MINGAP true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), do_mingap, iErr)
+
+  case("DO_RADIAL")
+    if(nSplit /= 4) then
+      write(lerr,"(a,i0)") "COLL> ERROR DO_RADIAL expects 3 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       DO_RADIAL true|false amp smear"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), radial, iErr)
+    call chr_cast(lnSplit(3), nr,     iErr)
+    call chr_cast(lnSplit(4), ndr,    iErr)
+
+  case("EMIT_DRIFT")
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "COLL> ERROR EMIT_DRIFT expects 2 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       EMIT_DRIFT driftx drifty"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), driftsx, iErr)
+    call chr_cast(lnSplit(3), driftsy, iErr)
+
+  case("SYSTILT_ANTI")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR SYSTILT_ANTI expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       SYSTILT_ANTI true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), systilt_antisymm, iErr)
+
+  case("PENCIL")
+    if(nSplit /= 6) then
+      write(lerr,"(a,i0)") "COLL> ERROR PENCIL expects 5 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       PENCIL ipencil offset rmsx rmsy distr"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), ipencil,      iErr)
+    call chr_cast(lnSplit(3), pencil_offset,iErr)
+    call chr_cast(lnSplit(4), pencil_rmsx,  iErr)
+    call chr_cast(lnSplit(5), pencil_rmsy,  iErr)
+    call chr_cast(lnSplit(6), pencil_distr, iErr)
+
+  case("COLLDB")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR COLLDB expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       COLLDB filename"
+      iErr = .true.
+      return
+    end if
+    cdb_fileName = trim(lnSplit(2))
+
+  case("BEAM_NUM")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR BEAM_NUM expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       BEAM_NUM 1|2"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), ibeam, iErr)
+    if(ibeam /= 1 .and. ibeam /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR BEAM_NUM must be 1 or 2, got ",ibeam
+      iErr = .true.
+      return
+    end if
+
+  case("WRITE_TRACKS")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR WRITE_TRACKS expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       WRITE_TRACKS true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dowritetracks, iErr)
+
+  case("CERN")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR CERN expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       CERN true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), cern, iErr)
+
+  case("SIGSECUT")
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "COLL> ERROR SIGSECUT expects 2 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       SIGSECUT sigma_xy sigma_r"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), sigsecut2, iErr)
+    call chr_cast(lnSplit(3), sigsecut3, iErr)
+
+  case default
+    write(lerr,"(a)") "COLL> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
+    write(lerr,"(a)") "COLL>       The parser is assuming you want keyword/value block parsing as the first line had one value."
+    write(lerr,"(a)") "COLL>       The two formats cannot be mixed."
+    iErr = .true.
+    return
+
+  end select
+
+  return
+
+  !  Parse old style COLL block
+  ! ============================
+10 continue
+
   select case(iLine)
 
   case(1)
-
     if(nSplit /= 1) then
       write(lerr,"(a,i0)") "COLL> ERROR Expected 1 value on line 1, got ",nSplit
       iErr = .true.
       return
     end if
-
-    if(nSplit > 0) call chr_cast(lnSPlit(1),do_coll,iErr)
+    call chr_cast(lnSplit(1),do_coll,iErr)
 
   case(2)
-
-    if(nSplit > 0) call chr_cast(lnSPlit(1),nloop,iErr)
-    if(nSplit > 1) call chr_cast(lnSPlit(2),myenom,iErr)
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 2 values on line 2, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(1),nloop,iErr)
+    call chr_cast(lnSplit(2),myenom,iErr)
 
     if(nloop /= 1) then
-      write(lerr,"(a,i0)") "COLL> ERROR Support for multiple samples is deprecated. nloop must be 1, got ",nloop
+      write(lerr,"(a,i0)") "COLL> ERROR Multiple samples is no longer supported. nloop must be 1, got ",nloop
       iErr = .true.
       return
     end if
 
-    if(napx*2 > npart) then
-      write(lerr,"(2(a,i0))") "COLL> ERROR Maximum number of particles is ", npart, ", got ",(napx*2)
+  case(3)
+    if(nSplit /= 8) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 8 values on line 3, got ",nSplit
       iErr = .true.
       return
-   endif
-
-  case(3)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), do_thisdis,  iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), mynex,       iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), mdex,        iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), myney,       iErr)
-    if(nSplit > 4)  call chr_cast(lnSPlit(5), mdey,        iErr)
-    if(nSplit > 5)  filename_dis = lnSPlit(6)
-    if(nSplit > 6)  call chr_cast(lnSPlit(7), enerror,     iErr)
-    if(nSplit > 7)  call chr_cast(lnSPlit(8), bunchlength, iErr)
+    end if
+    call chr_cast(lnSplit(1), do_thisdis,  iErr)
+    call chr_cast(lnSplit(2), mynex,       iErr)
+    call chr_cast(lnSplit(3), mdex,        iErr)
+    call chr_cast(lnSplit(4), myney,       iErr)
+    call chr_cast(lnSplit(5), mdey,        iErr)
+    filename_dis = lnSplit(6)
+    call chr_cast(lnSplit(7), enerror,     iErr)
+    call chr_cast(lnSplit(8), bunchlength, iErr)
 
   case(4)
-    if(nSplit > 0)  call chr_cast(lnSplit(1), cdb_doNSig,iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), nSigIn(1), iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), nSigIn(2), iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), nSigIn(3), iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), nSigIn(4), iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), nSigIn(5), iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), nSigIn(6), iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), nSigIn(7), iErr)
-    if(nSplit > 8)  call chr_cast(lnSplit(9), nSigIn(8), iErr)
-    if(nSplit > 9)  call chr_cast(lnSplit(10),nSigIn(9), iErr)
-    if(nSplit > 10) call chr_cast(lnSplit(11),nSigIn(10),iErr)
-    if(nSplit > 11) call chr_cast(lnSplit(12),nSigIn(11),iErr)
-    if(nSplit > 12) call chr_cast(lnSplit(13),nSigIn(12),iErr)
-    if(nSplit > 13) call chr_cast(lnSplit(14),nSigIn(13),iErr)
+    if(nSplit /= 14) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 14 values on line 4, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(1), cdb_doNSig,iErr)
+    call chr_cast(lnSplit(2), nSigIn(1), iErr)
+    call chr_cast(lnSplit(3), nSigIn(2), iErr)
+    call chr_cast(lnSplit(4), nSigIn(3), iErr)
+    call chr_cast(lnSplit(5), nSigIn(4), iErr)
+    call chr_cast(lnSplit(6), nSigIn(5), iErr)
+    call chr_cast(lnSplit(7), nSigIn(6), iErr)
+    call chr_cast(lnSplit(8), nSigIn(7), iErr)
+    call chr_cast(lnSplit(9), nSigIn(8), iErr)
+    call chr_cast(lnSplit(10),nSigIn(9), iErr)
+    call chr_cast(lnSplit(11),nSigIn(10),iErr)
+    call chr_cast(lnSplit(12),nSigIn(11),iErr)
+    call chr_cast(lnSplit(13),nSigIn(12),iErr)
+    call chr_cast(lnSplit(14),nSigIn(13),iErr)
     call cdb_addFamily("tcp3",   nSigIn(1), famID,fErr)
     call cdb_addFamily("tcsg3",  nSigIn(2), famID,fErr)
     call cdb_addFamily("tcsm3",  nSigIn(3), famID,fErr)
@@ -1400,16 +1648,25 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call cdb_addFamily("tdi",    nSigIn(13),famID,fErr)
 
   case(5)
-    if(nSplit > 0)  call chr_cast(lnSplit(1), nSigIn(14),iErr)
-    if(nSplit > 1)  call chr_cast(lnSplit(2), nSigIn(15),iErr)
-    if(nSplit > 2)  call chr_cast(lnSplit(3), nSigIn(16),iErr)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), nSigIn(17),iErr)
-    if(nSplit > 4)  call chr_cast(lnSplit(5), nSigIn(18),iErr)
-    if(nSplit > 5)  call chr_cast(lnSplit(6), nSigIn(19),iErr)
-    if(nSplit > 6)  call chr_cast(lnSplit(7), nSigIn(20),iErr)
-    if(nSplit > 7)  call chr_cast(lnSplit(8), nSigIn(21),iErr)
-    if(nSplit > 8)  call chr_cast(lnSplit(9), nSigIn(22),iErr)
-    if(nSplit > 9)  call chr_cast(lnSplit(10),nSigIn(23),iErr)
+    if(nSplit < 8 .or. nSplit > 10) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 8-10 values on line 5, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(1), nSigIn(14),iErr)
+    call chr_cast(lnSplit(2), nSigIn(15),iErr)
+    call chr_cast(lnSplit(3), nSigIn(16),iErr)
+    call chr_cast(lnSplit(4), nSigIn(17),iErr)
+    call chr_cast(lnSplit(5), nSigIn(18),iErr)
+    call chr_cast(lnSplit(6), nSigIn(19),iErr)
+    call chr_cast(lnSplit(7), nSigIn(20),iErr)
+    call chr_cast(lnSplit(8), nSigIn(21),iErr)
+    if(nSplit > 8) then
+      call chr_cast(lnSplit(9), nSigIn(22),iErr)
+    end if
+    if(nSplit > 9) then
+      call chr_cast(lnSplit(10),nSigIn(23),iErr)
+    end if
     call cdb_addFamily("tcth1",nSigIn(14),famID,fErr)
     call cdb_addFamily("tcth2",nSigIn(15),famID,fErr)
     call cdb_addFamily("tcth5",nSigIn(16),famID,fErr)
@@ -1422,83 +1679,133 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call cdb_addFamily("tcryo",nSigIn(23),famID,fErr)
 
   case(6)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), n_slices,   iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), smin_slices,iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), smax_slices,iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), recenter1,  iErr)
-    if(nSplit > 4)  call chr_cast(lnSPlit(5), recenter2,  iErr)
+    if(nSplit /= 5) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 5 values on line 6, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(1), n_slices,   iErr)
+    call chr_cast(lnSplit(2), smin_slices,iErr)
+    call chr_cast(lnSplit(3), smax_slices,iErr)
+    call chr_cast(lnSplit(4), recenter1,  iErr)
+    call chr_cast(lnSplit(5), recenter2,  iErr)
 
   case(7)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), fit1_1,iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), fit1_2,iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), fit1_3,iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), fit1_4,iErr)
-    if(nSplit > 4)  call chr_cast(lnSPlit(5), fit1_5,iErr)
-    if(nSplit > 5)  call chr_cast(lnSPlit(6), fit1_6,iErr)
-    if(nSplit > 6)  call chr_cast(lnSPlit(7), ssf1,  iErr)
+    if(nSplit /= 7) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 7 values on line 7, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(1), jaw_fit(1,1),iErr)
+    call chr_cast(lnSplit(2), jaw_fit(1,2),iErr)
+    call chr_cast(lnSplit(3), jaw_fit(1,3),iErr)
+    call chr_cast(lnSplit(4), jaw_fit(1,4),iErr)
+    call chr_cast(lnSplit(5), jaw_fit(1,5),iErr)
+    call chr_cast(lnSplit(6), jaw_fit(1,6),iErr)
+    call chr_cast(lnSplit(7), jaw_ssf(1),  iErr)
 
   case(8)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), fit2_1,iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), fit2_2,iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), fit2_3,iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), fit2_4,iErr)
-    if(nSplit > 4)  call chr_cast(lnSPlit(5), fit2_5,iErr)
-    if(nSplit > 5)  call chr_cast(lnSPlit(6), fit2_6,iErr)
-    if(nSplit > 6)  call chr_cast(lnSPlit(7), ssf2,  iErr)
+    if(nSplit /= 7) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 7 values on line 8, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(1), jaw_fit(2,1),iErr)
+    call chr_cast(lnSplit(2), jaw_fit(2,2),iErr)
+    call chr_cast(lnSplit(3), jaw_fit(2,3),iErr)
+    call chr_cast(lnSplit(4), jaw_fit(2,4),iErr)
+    call chr_cast(lnSplit(5), jaw_fit(2,5),iErr)
+    call chr_cast(lnSplit(6), jaw_fit(2,6),iErr)
+    call chr_cast(lnSplit(7), jaw_ssf(2),  iErr)
 
   case(9)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), emitnx0_dist,   iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), emitny0_dist,   iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), emitnx0_collgap,iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), emitny0_collgap,iErr)
+    if(nSplit /= 4) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 4 values on line 9, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(1), emitnx0_dist,   iErr)
+    call chr_cast(lnSplit(2), emitny0_dist,   iErr)
+    call chr_cast(lnSplit(3), emitnx0_collgap,iErr)
+    call chr_cast(lnSplit(4), emitny0_collgap,iErr)
 
   case(10)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), do_select,        iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), do_nominal,       iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), rnd_seed,         iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), dowrite_dist,     iErr)
-    if(nSplit > 4)  name_sel = lnSPlit(5)
-    if(nSplit > 5)  call chr_cast(lnSPlit(6), do_oneside,       iErr)
-    if(nSplit > 6)  call chr_cast(lnSPlit(7), dowrite_impact,   iErr)
-    if(nSplit > 7)  call chr_cast(lnSPlit(8), dowrite_secondary,iErr)
-    if(nSplit > 8)  call chr_cast(lnSPlit(9), dowrite_amplitude,iErr)
+    if(nSplit /= 9) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 9 values on line 10, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(1), do_select,        iErr)
+    call chr_cast(lnSplit(2), do_nominal,       iErr)
+    call chr_cast(lnSplit(3), rnd_seed,         iErr)
+    call chr_cast(lnSplit(4), dowrite_dist,     iErr)
+    name_sel = lnSplit(5)
+    call chr_cast(lnSplit(6), do_oneside,       iErr)
+    call chr_cast(lnSplit(7), dowrite_impact,   iErr)
+    call chr_cast(lnSplit(8), dowrite_secondary,iErr)
+    call chr_cast(lnSplit(9), dowrite_amplitude,iErr)
 
   case(11)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), xbeat,     iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), xbeatphase,iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), ybeat,     iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), ybeatphase,iErr)
+    if(nSplit /= 4) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 4 values on line 11, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(1), xbeat,     iErr)
+    call chr_cast(lnSplit(2), xbeatphase,iErr)
+    call chr_cast(lnSplit(3), ybeat,     iErr)
+    call chr_cast(lnSplit(4), ybeatphase,iErr)
 
   case(12)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), c_rmstilt_prim,   iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), c_rmstilt_sec,    iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), c_systilt_prim,   iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), c_systilt_sec,    iErr)
-    if(nSplit > 4)  call chr_cast(lnSPlit(5), c_rmsoffset_prim, iErr)
-    if(nSplit > 5)  call chr_cast(lnSPlit(6), c_rmsoffset_sec,  iErr)
-    if(nSplit > 6)  call chr_cast(lnSPlit(7), c_sysoffset_prim, iErr)
-    if(nSplit > 7)  call chr_cast(lnSPlit(8), c_sysoffset_sec,  iErr)
-    if(nSplit > 8)  call chr_cast(lnSPlit(9), c_offsettilt_seed,iErr)
-    if(nSplit > 9)  call chr_cast(lnSPlit(10),c_rmserror_gap,   iErr)
-    if(nSplit > 10) call chr_cast(lnSPlit(11),do_mingap,        iErr)
+    if(nSplit /= 11) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 11 values on line 12, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(1), c_rmstilt_prim,   iErr)
+    call chr_cast(lnSplit(2), c_rmstilt_sec,    iErr)
+    call chr_cast(lnSplit(3), c_systilt_prim,   iErr)
+    call chr_cast(lnSplit(4), c_systilt_sec,    iErr)
+    call chr_cast(lnSplit(5), c_rmsoffset_prim, iErr)
+    call chr_cast(lnSplit(6), c_rmsoffset_sec,  iErr)
+    call chr_cast(lnSplit(7), c_sysoffset_prim, iErr)
+    call chr_cast(lnSplit(8), c_sysoffset_sec,  iErr)
+    call chr_cast(lnSplit(9), c_offsettilt_seed,iErr)
+    call chr_cast(lnSplit(10),c_rmserror_gap,   iErr)
+    call chr_cast(lnSplit(11),do_mingap,        iErr)
 
   case(13)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), radial,iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), nr,    iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), ndr,   iErr)
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 3 values on line 13, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(1), radial,iErr)
+    call chr_cast(lnSplit(2), nr,    iErr)
+    call chr_cast(lnSplit(3), ndr,   iErr)
 
   case(14)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), driftsx,         iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), driftsy,         iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), cut_input,       iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), systilt_antisymm,iErr)
+    if(nSplit /= 4) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 4 values on line 14, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(1), driftsx,         iErr)
+    call chr_cast(lnSplit(2), driftsy,         iErr)
+    call chr_cast(lnSplit(3), cut_input,       iErr)
+    call chr_cast(lnSplit(4), systilt_antisymm,iErr)
 
   case(15)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), ipencil,      iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), pencil_offset,iErr)
-    if(nSplit > 2)  call chr_cast(lnSPlit(3), pencil_rmsx,  iErr)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), pencil_rmsy,  iErr)
-    if(nSplit > 4)  call chr_cast(lnSPlit(5), pencil_distr, iErr)
+    if(nSplit /= 5) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 5 values on line 15, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(1), ipencil,      iErr)
+    call chr_cast(lnSplit(2), pencil_offset,iErr)
+    call chr_cast(lnSplit(3), pencil_rmsx,  iErr)
+    call chr_cast(lnSplit(4), pencil_rmsy,  iErr)
+    call chr_cast(lnSplit(5), pencil_distr, iErr)
 #ifdef G4COLLIMAT
     if(ipencil > 0) then
       write(lerr,"(a)") "COLL> ERROR Pencil distribution not supported with geant4"
@@ -1508,16 +1815,26 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 #endif
 
   case(16)
-    if(nSplit > 0)  cdb_fileName = lnSPlit(1)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), ibeam, iErr)
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 2 values on line 16, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    cdb_fileName = lnSPlit(1)
+    call chr_cast(lnSPlit(2), ibeam, iErr)
 
   case(17)
-    if(nSplit > 0)  call chr_cast(lnSPlit(1), dowritetracks,iErr)
-    if(nSplit > 1)  call chr_cast(lnSPlit(2), cern,         iErr)
-    if(nSplit > 2)  castordir = lnSPlit(3)
-    if(nSplit > 3)  call chr_cast(lnSPlit(4), jobnumber,    iErr)
-    if(nSplit > 4)  call chr_cast(lnSPlit(5), sigsecut2,    iErr)
-    if(nSplit > 5)  call chr_cast(lnSPlit(6), sigsecut3,    iErr)
+    if(nSplit /= 6) then
+      write(lerr,"(a,i0)") "COLL> ERROR Expected 6 values on line 17, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(1), dowritetracks,iErr)
+    call chr_cast(lnSplit(2), cern,         iErr)
+    castordir = lnSplit(3)
+    call chr_cast(lnSplit(4), jobnumber,    iErr)
+    call chr_cast(lnSplit(5), sigsecut2,    iErr)
+    call chr_cast(lnSplit(6), sigsecut3,    iErr)
 
   case default
     write(lerr,"(a,i0,a)") "COLL> ERROR Unexpected line ",iLine," encountered."
@@ -1529,6 +1846,9 @@ end subroutine collimate_parseInputLine
 
 subroutine collimate_postInput(gammar)
 
+  use crcoall
+  use coll_db
+
   real(kind=fPrec), intent(in) :: gammar
 
   call collimation_expand_arrays(npart,nblz)
@@ -1537,6 +1857,16 @@ subroutine collimate_postInput(gammar)
   remity_dist    = emitny0_dist*gammar
   remitx_collgap = emitnx0_collgap*gammar
   remity_collgap = emitny0_collgap*gammar
+
+  if(myenom == zero) then
+    write(lerr,"(a)") "COLL> ERROR Beam energy cannot be zero"
+    call prror
+  end if
+
+  if(cdb_fileName == " ") then
+    write(lerr,"(a)") "COLL> ERROR No collimator database file specified"
+    call prror
+  end if
 
 end subroutine collimate_postInput
 
@@ -1555,6 +1885,14 @@ subroutine collimate_start_sample(nsample)
   use mod_common_track
   use mod_common_da
   use mod_particles
+  use coll_db
+  use mod_units
+  use mod_ranlux
+  use mathlib_bouncer
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
+#endif
 
   implicit none
 
@@ -1739,17 +2077,17 @@ subroutine collimate_start_sample(nsample)
 
   ! Copy new particles to tracking arrays. Also add the orbit offset at start of ring!
   if(do_thisdis /= 0 .or. radial) then
-    xv1(1:napx00)   = c1e3 *  myx(1:napx00) + torbx(1)
-    yv1(1:napx00)   = c1e3 * myxp(1:napx00) + torbxp(1)
-    xv2(1:napx00)   = c1e3 *  myy(1:napx00) + torby(1)
-    yv2(1:napx00)   = c1e3 * myyp(1:napx00) + torbyp(1)
-    sigmv(1:napx00) = mys(1:napx00)
-    ejv(1:napx00)   = myp(1:napx00)
+    xv1(1:napx)   = c1e3 *  myx(1:napx) + torbx(1)
+    yv1(1:napx)   = c1e3 * myxp(1:napx) + torbxp(1)
+    xv2(1:napx)   = c1e3 *  myy(1:napx) + torby(1)
+    yv2(1:napx)   = c1e3 * myyp(1:napx) + torbyp(1)
+    sigmv(1:napx) = mys(1:napx)
+    ejv(1:napx)   = myp(1:napx)
   end if
 
   call part_updatePartEnergy(1)
 
-  do i=1,napx00
+  do i=1,napx
     do ieff=1,numeff
       counted_r(i,ieff) = 0
       counted_x(i,ieff) = 0
@@ -1780,7 +2118,6 @@ subroutine collimate_start_sample(nsample)
   firstcoll = .true.
 
 !GRD HERE WE NEED TO INITIALIZE SOME COLLIMATION PARAMETERS
-  napx = napx00
 
   do j = 1, napx
     part_hit_pos(j)   = 0
@@ -2077,6 +2414,7 @@ subroutine collimate_start_collimator(stracki)
   use mod_common_track
   use mod_common_da
   use numerical_constants, only : c5m4
+  use coll_db
 
   implicit none
 
@@ -2109,13 +2447,13 @@ subroutine collimate_start_collimator(stracki)
 
 !-- DRIFT PART
         if(stracki.eq.0.) then
-          if(iexact.eq.0) then
-            xj  = xj + half*c_length*xpj
-            yj  = yj + half*c_length*ypj
-          else
+          if(iexact) then
             zpj = sqrt(one-xpj**2-ypj**2)
             xj  = xj + half*c_length*(xpj/zpj)
             yj  = yj + half*c_length*(ypj/zpj)
+          else
+            xj  = xj + half*c_length*xpj
+            yj  = yj + half*c_length*ypj
           end if
         end if
 
@@ -2168,6 +2506,9 @@ subroutine collimate_do_collimator(stracki)
   use mod_common_track
   use mod_common_da
   use numerical_constants, only : c5m4
+  use coll_db
+  use mod_units
+  use mathlib_bouncer
 
   implicit none
 
@@ -2526,13 +2867,13 @@ subroutine collimate_do_collimator(stracki)
 !++  For zero length element track back half collimator length
 !  DRIFT PART
     if (stracki.eq.0.) then
-      if(iexact.eq.0) then
-        rcx(j)  = rcx(j) - half*c_length*rcxp(j)
-        rcy(j)  = rcy(j) - half*c_length*rcyp(j)
-      else
+      if(iexact) then
         zpj=sqrt(one-rcxp(j)**2-rcyp(j)**2)
         rcx(j) = rcx(j) - half*c_length*(rcxp(j)/zpj)
         rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
+      else
+        rcx(j)  = rcx(j) - half*c_length*rcxp(j)
+        rcy(j)  = rcy(j) - half*c_length*rcyp(j)
       end if
     else
       write(lerr,"(a,f13.6)") "COLL> ERROR Non-zero length collimator: '"//trim(cdb_cNameUC(icoll))//"' length = ",stracki
@@ -2600,7 +2941,7 @@ subroutine collimate_do_collimator(stracki)
 !                  endif
 !CB
 
-      if(n_slices.gt.one .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and. &
+      if(n_slices.gt.1 .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and. &
  &      (cdb_cNameUC(icoll)(1:4).eq.'TCSG' .or. cdb_cNameUC(icoll)(1:3).eq.'TCP' .or. cdb_cNameUC(icoll)(1:4).eq.'TCLA'.or. &
  &       cdb_cNameUC(icoll)(1:3).eq.'TCT' .or. cdb_cNameUC(icoll)(1:4).eq.'TCLI'.or. cdb_cNameUC(icoll)(1:4).eq.'TCL.'.or.  &
 !     RB: added slicing of TCRYO as well
@@ -2629,18 +2970,18 @@ subroutine collimate_do_collimator(stracki)
         do jjj=1,n_slices+1
           x_sl(jjj) = (jjj-1) * c_length / real(n_slices,fPrec)
 
-          y1_sl(jjj) = fit1_1 + fit1_2*x_sl(jjj) + fit1_3/c_length*(x_sl(jjj)**2) +           &
- &                           fit1_4*(x_sl(jjj)**3) + fit1_5*(x_sl(jjj)**4) + fit1_6*(x_sl(jjj)**5)
+          y1_sl(jjj) = jaw_fit(1,1) + jaw_fit(1,2)*x_sl(jjj) + jaw_fit(1,3)/c_length*(x_sl(jjj)**2) +           &
+ &                           jaw_fit(1,4)*(x_sl(jjj)**3) + jaw_fit(1,5)*(x_sl(jjj)**4) + jaw_fit(1,6)*(x_sl(jjj)**5)
 
-          y2_sl(jjj) = -one * (fit2_1 + fit2_2*x_sl(jjj) + fit2_3/c_length*(x_sl(jjj)**2) +   &
- &                           fit2_4*(x_sl(jjj)**3) + fit2_5*(x_sl(jjj)**4) + fit2_6*(x_sl(jjj)**5))
+          y2_sl(jjj) = -one * (jaw_fit(2,1) + jaw_fit(2,2)*x_sl(jjj) + jaw_fit(2,3)/c_length*(x_sl(jjj)**2) +   &
+ &                           jaw_fit(2,4)*(x_sl(jjj)**3) + jaw_fit(2,5)*(x_sl(jjj)**4) + jaw_fit(2,6)*(x_sl(jjj)**5))
         end do
 
 !       Apply the slicing scaling factors (ssf's):
 !       CB:10-2007 coordinates rotated of the tilt
         do jjj=1,n_slices+1
-          y1_sl(jjj) = ssf1 * y1_sl(jjj)
-          y2_sl(jjj) = ssf2 * y2_sl(jjj)
+          y1_sl(jjj) = jaw_ssf(1) * y1_sl(jjj)
+          y2_sl(jjj) = jaw_ssf(2) * y2_sl(jjj)
 ! CB code
           x1_sl(jjj) = x_sl(jjj) *cos_mb(db_tilt(icoll,1))-y1_sl(jjj)*sin_mb(db_tilt(icoll,1))
           x2_sl(jjj) = x_sl(jjj) *cos_mb(db_tilt(icoll,2))-y2_sl(jjj)*sin_mb(db_tilt(icoll,2))
@@ -2907,6 +3248,11 @@ subroutine collimate_end_collimator()
   use mod_common_track
   use mod_common_da
   use numerical_constants, only : c5m4
+  use coll_db
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
+#endif
 
   implicit none
 
@@ -2946,13 +3292,13 @@ subroutine collimate_end_collimator()
 !++  For zero length element track back half collimator length
 ! DRIFT PART
       ! if (stracki.eq.0.) then ! stracki makes no sense here
-        if(iexact.eq.0) then
-          rcx(j)  = rcx(j) - half*c_length*rcxp(j)
-          rcy(j)  = rcy(j) - half*c_length*rcyp(j)
-        else
+        if(iexact) then
           zpj=sqrt(one-rcxp(j)**2-rcyp(j)**2)
           rcx(j) = rcx(j) - half*c_length*(rcxp(j)/zpj)
           rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
+        else
+          rcx(j)  = rcx(j) - half*c_length*rcxp(j)
+          rcy(j)  = rcy(j) - half*c_length*rcyp(j)
         end if
       ! end if ! stracki makes no sense here
 
@@ -3080,11 +3426,10 @@ subroutine collimate_end_collimator()
               scatterhit(j).eq.8         ) .and. &
              (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec).and.&
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
-             ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)) .or. &
-             (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)) .or. &
+             ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2) .or. &
+             (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut2) .or. &
              (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
-             ((xv2(j)*c1m3)**2   / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
-             then
+             ((xv2(j)*c1m3)**2   / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) then
 
             xj  = (xv1(j)-torbx(ie))  /c1e3
             xpj = (yv1(j)-torbxp(ie)) /c1e3
@@ -3282,8 +3627,14 @@ subroutine collimate_end_sample(j)
   use mod_common_track
   use mod_common_da
   use crcoall
+  use coll_db
+  use mod_units
 #ifdef ROOT
   use root_output
+#endif
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
 #endif
 
   implicit none
@@ -3539,6 +3890,11 @@ subroutine collimate_exit()
   use mod_commons
   use mod_common_track
   use mod_common_da
+  use mod_units
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
+#endif
 
   implicit none
 
@@ -3791,6 +4147,10 @@ subroutine collimate_end_element
   use mod_commons
   use mod_common_track
   use mod_common_da
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
+#endif
 
   implicit none
 
@@ -3879,11 +4239,10 @@ subroutine collimate_end_element
              other(j)     .eq. 4 .or. &
              scatterhit(j).eq. 8       ) .and. &
              (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
-             ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
-             (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
+             ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2).or. &
+             (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut2).or. &
              (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
-             ((xv2(j)*c1m3)**2  /  (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
-             then
+             ((xv2(j)*c1m3)**2  /  (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) then
 
           xj  = (xv1(j)-torbx(ie)) /c1e3
           xpj = (yv1(j)-torbxp(ie))/c1e3
@@ -3928,9 +4287,15 @@ subroutine collimate_end_turn
   use mod_common_track
   use mod_common_da
   use crcoall
+  use mod_units
+  use mathlib_bouncer
 
 #ifdef ROOT
   use root_output
+#endif
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
 #endif
 
   implicit none
@@ -4305,11 +4670,10 @@ subroutine collimate_end_turn
             other(j)     .eq. 4 .or. &
             scatterhit(j).eq. 8        ) .and. &
             (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
-            ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
-            (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. real(sigsecut2,fPrec)).or. &
+            ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2).or. &
+            (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut2).or. &
             (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
-            ((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) &
-            then
+            ((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) then
 
           xj     = (xv1(j)-torbx(ie))/c1e3
           xpj    = (yv1(j)-torbxp(ie))/c1e3
@@ -4410,7 +4774,12 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   use crcoall
   use parpro
   use mod_common, only : iexact
-  implicit none
+  use mathlib_bouncer
+#ifdef HDF5
+  use hdf5_output
+#endif
+
+implicit none
 
 ! BLOCK DBCOLLIM
 ! This block is common to collimaterhic and collimate2
@@ -4781,14 +5150,14 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 ! DRIFT PART
     drift_length = length - zlm
     if(drift_length.gt.zero) then                                 !hr09
-      if(iexact.eq.0) then
-        x  = x + xp* drift_length
-        z  = z + zp * drift_length
-        sp = sp + drift_length
-      else
+      if(iexact) then
         zpj = sqrt(one-xp**2-zp**2)
         x = x + drift_length*(xp/zpj)
         z = z + drift_length*(zp/zpj)
+        sp = sp + drift_length
+      else
+        x  = x + xp* drift_length
+        z  = z + zp * drift_length
         sp = sp + drift_length
       end if
     end if
@@ -4971,14 +5340,14 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
     if(nabs.ne.1 .and. zlm.gt.zero) then
       drift_length = (length-(s+sp))
       if(drift_length.gt.c1m15) then
-        if(iexact.eq.0) then
+        if(iexact) then
+          zpj = sqrt(one-xp**2-zp**2)
+          x   = x + drift_length*(xp/zpj)
+          z   = z + drift_length*(zp/zpj)
+          sp  = sp + drift_length
+        else
           x  = x + xp * drift_length
           z  = z + zp * drift_length
-          sp = sp + drift_length
-        else
-          zpj = sqrt(one-xp**2-zp**2)
-          x = x + drift_length*(xp/zpj)
-          z = z + drift_length*(zp/zpj)
           sp = sp + drift_length
         end if
       end if
@@ -5178,6 +5547,8 @@ end function ichoix
 !<
 real(kind=fPrec) function gettran(inter,xmat,p)
 
+  use mathlib_bouncer
+
   implicit none
 
   integer, intent(in) :: inter,xmat
@@ -5273,6 +5644,8 @@ end subroutine tetat
 !<
 function ruth(t)
 
+  use mathlib_bouncer
+
   implicit none
 
   real(kind=fPrec) ruth,t
@@ -5290,6 +5663,11 @@ end function ruth
 !<
 subroutine scatin(plab)
   use physical_constants
+  use mathlib_bouncer
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
+#endif
 
   implicit none
 
@@ -5393,6 +5771,11 @@ end subroutine scatin
 !!
 !<
 subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
+
+  use mathlib_bouncer
+#ifdef HDF5
+  use hdf5_output
+#endif
 
   implicit none
 
@@ -5641,6 +6024,8 @@ end subroutine jaw
 #ifdef HDF5
 subroutine coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
 
+  use hdf5_output
+
   integer,          intent(in) :: icoll,iturn,ipart,nabs
   real(kind=fPrec), intent(in) :: dp,dx,dy
 
@@ -5715,6 +6100,8 @@ end subroutine mcs
 !! ???
 !<
 subroutine scamcs(xx,xxp,s,radl_mat)
+
+  use mathlib_bouncer
 
   implicit none
 
@@ -5818,6 +6205,7 @@ end subroutine iterat
 !<
 function get_dpodx(p, mat_i)          !Claudia
   use physical_constants
+  use mathlib_bouncer
 
   implicit none
 
@@ -5918,6 +6306,7 @@ subroutine calc_ion_loss(IS, PC, DZ, EnLo)
 ! EnLo energy loss in GeV/meter
 
   use physical_constants
+  use mathlib_bouncer
 
   implicit none
 
@@ -6000,6 +6389,7 @@ subroutine makedis(myalphax, myalphay, mybetax, mybetay,    &
 !  Generate distribution
 
   use crcoall
+  use mathlib_bouncer
   use mod_common, only : napx
   implicit none
 
@@ -6109,6 +6499,7 @@ subroutine makedis_st(myalphax, myalphay, mybetax, mybetay, &
 !     centred in the aperture centre are generated. (SR, 08-05-2005)
 
   use crcoall
+  use mathlib_bouncer
   use mod_common, only : napx
   implicit none
 
@@ -6200,6 +6591,7 @@ subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay,  myemitx0, myemity
  &                        myenom, mynex, mdex, myney, mdey, myx, myxp, myy, myyp, myp, mys)
 
   use crcoall
+  use mathlib_bouncer
   use mod_common, only : napx
   implicit none
 
@@ -6306,6 +6698,7 @@ subroutine makedis_de( myalphax, myalphay, mybetax, mybetay, &
 !     centred in the aperture centre are generated. (SR, 08-05-2005)
 
   use crcoall
+  use mathlib_bouncer
   use mod_common, only : napx
   implicit none
 
@@ -6446,6 +6839,8 @@ subroutine readdis(filename_dis,myx,myxp,myy,myyp,myp,mys)
   use parpro
   use string_tools
   use mod_common, only : napx
+  use mod_units
+
   implicit none
 
   integer :: j
@@ -6530,6 +6925,8 @@ subroutine readdis_norm(filename_dis,  myalphax, myalphay, mybetax, mybetay, &
   use mod_common
   use mod_common_main
   use string_tools
+  use mod_units
+
   implicit none
 
   integer :: j
@@ -6702,6 +7099,7 @@ subroutine makedis_radial( myalphax, myalphay, mybetax,      &
 
   use mod_common, only : napx
   use crcoall
+  use mathlib_bouncer
   implicit none
 
   integer :: j
@@ -6963,6 +7361,8 @@ end subroutine makedis_ga
 
 function rndm4()
 
+  use mod_ranlux
+
   implicit none
 
   integer len, in
@@ -6996,6 +7396,9 @@ end function rndm4
 !cccccccccccccccccccccccccccccccccc
 !
 function rndm5(irnd)
+
+  use mod_ranlux
+  use mathlib_bouncer
 
   implicit none
 
@@ -7039,16 +7442,18 @@ real(kind=fPrec) function myran_gauss(cut)
 !
 !*********************************************************************
 
+  use numerical_constants, only : twopi
+  use mathlib_bouncer
+
   implicit none
 
   logical flag
-  real(kind=fPrec) x, u1, u2, twopi, r,cut
+  real(kind=fPrec) x, u1, u2, r,cut
   save
 
   flag = .true. !Does this initialize only once, or is it executed every pass?
                 !See ran_gauss(cut)
 
-  twopi=eight*atan_mb(one)
 1 if (flag) then
     r = real(rndm5(0),fPrec)
     r = max(r, half**32)
@@ -7241,7 +7646,8 @@ subroutine funlux(array,xran,len)
 !         Generation of LEN random numbers in any given distribution,
 !         by 4-point interpolation in the inverse cumulative distr.
 !         which was previously generated by FUNLXP
-      implicit none
+  use mod_ranlux
+  implicit none
       integer len,ibuf,j,j1
       real(kind=fPrec) array,xran,gap,gapinv,tleft,bright,gaps,gapins,x,p,a,b
       dimension array(200)
@@ -7558,6 +7964,7 @@ real(kind=fPrec) function ran_gauss(cut)
 
   use crcoall
   use parpro
+  use mathlib_bouncer
   implicit none
 
   logical flag

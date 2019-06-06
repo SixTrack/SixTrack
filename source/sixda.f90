@@ -251,7 +251,6 @@ subroutine runcav
   use mod_commons
   use mod_common_track, only : comt_daStart,comt_daEnd
   use mod_common_da
-  use mod_hions
   use mod_lie_dab, only : idao,rscrri,iscrda
 
   implicit none
@@ -283,7 +282,7 @@ subroutine runcav
 !Eric
   rewind 26
   if(ition.ne.0) then
-  e0f=sqrt(e0**2-nucm0**2)                                             !hr08
+    e0f=sqrt(e0**2-nucm0**2)
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
@@ -440,7 +439,6 @@ subroutine runda
   use mod_common_track, only : xxtr,yytr,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_commond2
-  use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   use mod_units
   use mod_time
@@ -453,7 +451,7 @@ subroutine runda
   real(kind=fPrec) beamoff1,beamoff2, beamoff3, beamoff4,beamoff5,beamoff6,benkcc,betr0,cbxb,       &
     cbzb,cik,crk,crxb,crzb,dare,dpdav,dpdav2,dummy,fake,ox,oxp,oz,ozp,r0,r000,r0a,r2b,r2bf,rb,rbf,  &
     rho2b,rkb,rkbf,scikveb,scrkveb,sigmdac,startco,tkb,xbb,xrb,xs,zbb,zfeld1,zfeld2,zrb,zs,crabfreq,&
-    crabpht,crabpht2,crabpht3,crabpht4
+    crabpht,crabpht2,crabpht3,crabpht4,sin_t,cos_t,tan_t
   logical fErr
   character(len=300) ch
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv

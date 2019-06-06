@@ -2,14 +2,14 @@
 
 ## Dependencies
 
-SixTrack is built with CMake. SixTrack is written in Fortran 2008, and can be built using either gfortran, ifort or nagfor. A number of wrappers and dependencies are written in c and c++, and can be built with gcc. Currently icc is not supported.
+SixTrack is built with CMake. SixTrack is written in Fortran 2008, and can be built using either gfortran, ifort or nagfor. A number of wrappers and dependencies are written in c and c++, and can be built with gcc. Building with icc and clang generally works, but the test suite wrapper does not currently build with icpc.
 
 ### Versions
 
 The following versions are known minimum restrictions, or compiler versions that are known to work. Certain versions have known bugs, like gfortran 7.3, however these are not critical.
 
 * CMake: Requires at least 3.0.
-* GNU Compiler: Requires at least 6.3. Recommended 8.0 or higher.
+* GNU Compiler: Requires at least 5.x. Recommended 8.0 or higher.
 * Intel Compiler: Tested with 18.0 or higher.
 * Nag Compiler: Tested with 6.1.
 
@@ -40,9 +40,9 @@ Builds SixTrack release with gfortran, with checkpoint/restaring support and wit
 
 * **BUILD_TESTING**: Enable the test suite.
 * **BOINC**:         Builds BOINC version of SixTrack.
-* **API**:           Link to external BOINC API, otherwise uses internal dummy library.
 * **CR**             Enables checkpoint/restart support. Required for BOINC.
-* **LIBARCHIVE**:    Link with LIBARCHIVE, required for BOINC API and ZIPF block.
+* **LIBARCHIVE**:    Link with LIBARCHIVE, and is required for BOINC and ZIPF block if ZIPF is off.
+* **ZLIB**:          Link with zlib and minizip, and is required for BOINC and the ZIPF block if LIBARCHIVE is off.
 * **BEAMGAS**:       Beam-gas scattering.
 * **FIO**:           Use FortranIO from Fortran2003 to correctly round ASCII input/output. this option overrides CRLIBM when reading/writing.
 * **CERNLIB**:       Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions.

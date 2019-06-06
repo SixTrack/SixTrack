@@ -106,6 +106,8 @@ module scatter
 
   integer, private, save :: scatter_seed1_CR       = -1
   integer, private, save :: scatter_seed2_CR       = -1
+
+  real(kind=fPrec), allocatable, private, save :: scatter_statScale_CR(:)
 #endif
 
   public :: scatter_getScaling
@@ -821,7 +823,6 @@ subroutine scatter_thin(iElem, ix, turn)
   use string_tools
   use crcoall
   use mod_time
-  use mod_hions
   use mod_alloc
   use mod_common
   use mod_particles
@@ -1473,15 +1474,17 @@ end subroutine scatter_writeReport
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-10
-!  Called from CRCHECK; reads the _CR arrays for scatter from file-
-!  Sets readerr=.true. if something goes wrong while reading.
+!  Last modified: 2019-05-23
+!  Called from CRCHECK; reads the _CR arrays for scatter from file
+!  Sets readErr to true if something goes wrong while reading.
 ! =================================================================================================
 #ifdef CR
 subroutine scatter_crcheck_readdata(fileUnit, readErr)
 
+  use parpro
   use crcoall
   use mod_alloc
+  use numerical_constants
 
   implicit none
 
@@ -1490,8 +1493,11 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
 
   integer j
 
+  call alloc(scatter_statScale_CR, npart, zero, "scatter_statScale_CR")
+
   read(fileUnit, err=10, end=10) scatter_logFilePos_CR, scatter_sumFilePos_CR
   read(fileUnit, err=10, end=10) scatter_seed1_CR, scatter_seed2_CR
+  read(fileUnit, err=10, end=10) scatter_statScale_CR
 
   readErr = .false.
   return
@@ -1600,7 +1606,7 @@ end subroutine scatter_crcheck_positionFiles
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-10
+!  Last modified: 2019-05-23
 !  Called from CRPOINT; write checkpoint data to fort.95/96
 ! =================================================================================================
 subroutine scatter_crpoint(fileUnit, writeErr)
@@ -1614,6 +1620,7 @@ subroutine scatter_crpoint(fileUnit, writeErr)
 
   write(fileunit,err=10) scatter_logFilePos, scatter_sumFilePos
   write(fileunit,err=10) scatter_seed1, scatter_seed2
+  write(fileunit,err=10) scatter_statScale
   flush(fileUnit)
 
   return
@@ -1628,12 +1635,19 @@ end subroutine scatter_crpoint
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2019-01-28
+!  Last modified: 2019-05-23
 !  Called from CRSTART
 ! =================================================================================================
 subroutine scatter_crstart
+
+  use mod_alloc
+
   scatter_seed1 = scatter_seed1_CR
   scatter_seed2 = scatter_seed2_CR
+  scatter_statScale(:) = scatter_statScale_CR(:)
+
+  call dealloc(scatter_statScale_CR,"scatter_statScale_CR")
+
 end subroutine scatter_crstart
 #endif
 ! End of CR
