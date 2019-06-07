@@ -189,6 +189,7 @@ subroutine part_writeState(fileName, isText, withIons)
   use mod_common_track
   use mod_settings
   use string_tools
+  use numerical_constants
 
   use, intrinsic :: iso_fortran_env, only : int16
 
@@ -197,17 +198,32 @@ subroutine part_writeState(fileName, isText, withIons)
   logical,          intent(in) :: withIons
 
   character(len=225) :: roundBuf
-  integer            :: fileUnit, j, iPrim, iLost
+  real(kind=fPrec)   :: tmpTas(6,6)
+  integer            :: fileUnit, i, j, iPrim, iLost
   logical            :: rErr, isPrim
 
   call f_requestUnit(fileName, fileUnit)
 
+  ! Copy the tas matrix and reverse the scaling from umlauda
+  tmpTas(1:6,1:6) = tas(1:6,1:6)
+  tmpTas(1:5,6)   = tmpTas(1:5,6)*c1m3
+  tmpTas(6,1:5)   = tmpTas(6,1:5)*c1e3
+
   if(isText) then
     call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="w",status="replace")
-    write(fileUnit,"(a,i0)") "# napx  = ",napx
-    write(fileUnit,"(a,i0)") "# napxo = ",napxo
-    write(fileUnit,"(a,i0)") "# npart = ",npart
-    write(fileUnit,"(a,i0)") "# nturn = ",numl
+    write(fileUnit,"(a)")       "# Tracking"
+    write(fileUnit,"(a,i8)")    "# NPart Start     = ",napxo
+    write(fileUnit,"(a,i8)")    "# NPart End       = ",napx
+    write(fileUnit,"(a,i8)")    "# NPart Allocated = ",npart
+    write(fileUnit,"(a,i8)")    "# NTurns          = ",numl
+    write(fileUnit,"(a)")       "#"
+    write(fileUnit,"(a)")       "# Reference Particle"
+    write(fileUnit,"(a,f15.6)") "# Mass [MeV]      = ",nucm0
+    write(fileUnit,"(a,f15.6)") "# Energy [MeV]    = ",e0
+    write(fileUnit,"(a,f15.6)") "# Momentum [MeV]  = ",e0f
+    write(fileUnit,"(a,i8)")    "# Atmoic Mass     = ",aa0
+    write(fileUnit,"(a,i8)")    "# Atomic Number   = ",zz0
+    write(fileUnit,"(a,i8)")    "# Charge          = ",qq0
 
     write(fileUnit,"(a)") "#"
     write(fileUnit,"(a)") "# Closed Orbit [x, xp, y, yp, sigma, dp]"
@@ -217,7 +233,7 @@ subroutine part_writeState(fileName, isText, withIons)
     call chr_fromReal(clop(1), roundBuf( 27:50 ),17,3,rErr)
     call chr_fromReal(clo(2),  roundBuf( 52:75 ),17,3,rErr)
     call chr_fromReal(clop(2), roundBuf( 77:100),17,3,rErr)
-    write(fileUnit,"(a,a100)") "# 4D_CloOrb =",roundBuf(1:100)
+    write(fileUnit,"(a,a100)") "# 4D Closed Orbit =",roundBuf(1:100)
 
     roundBuf = " "
     call chr_fromReal(clo6(1),  roundBuf(  2:25 ),17,3,rErr)
@@ -226,7 +242,24 @@ subroutine part_writeState(fileName, isText, withIons)
     call chr_fromReal(clop6(2), roundBuf( 77:100),17,3,rErr)
     call chr_fromReal(clo6(3),  roundBuf(102:125),17,3,rErr)
     call chr_fromReal(clop6(3), roundBuf(127:150),17,3,rErr)
-    write(fileUnit,"(a,a150)") "# 6D_CloOrb =",roundBuf(1:150)
+    write(fileUnit,"(a,a150)") "# 6D Closed Orbit =",roundBuf(1:150)
+
+    write(fileUnit,"(a)") "#"
+    roundBuf = " "
+    call chr_fromReal(qwc(1), roundBuf(  2:25 ),17,3,rErr)
+    call chr_fromReal(qwc(2), roundBuf( 27:50 ),17,3,rErr)
+    call chr_fromReal(qwc(3), roundBuf( 52:75 ),17,3,rErr)
+    write(fileUnit,"(a,a75)") "# Tune            =",roundBuf(1:75)
+    do i=1,6
+      roundBuf = " "
+      call chr_fromReal(tmpTas(i,1), roundBuf(  2:25 ),17,3,rErr)
+      call chr_fromReal(tmpTas(i,2), roundBuf( 27:50 ),17,3,rErr)
+      call chr_fromReal(tmpTas(i,3), roundBuf( 52:75 ),17,3,rErr)
+      call chr_fromReal(tmpTas(i,4), roundBuf( 77:100),17,3,rErr)
+      call chr_fromReal(tmpTas(i,5), roundBuf(102:125),17,3,rErr)
+      call chr_fromReal(tmpTas(i,6), roundBuf(127:150),17,3,rErr)
+      write(fileUnit,"(a,i0,a,a150)") "# TAS(",i,",1:6)      =",roundBuf(1:150)
+    end do
 
     write(fileUnit,"(a)") "#"
     if(withIons) then
@@ -257,10 +290,22 @@ subroutine part_writeState(fileName, isText, withIons)
       end if
     end do
   else
+    ! Format
+    ! Header: 440 bytes
+    ! Record:  80 bytes
+    ! + Ions:  16 bytes
     call f_open(unit=fileUnit,file=fileName,formatted=.false.,mode="w",status="replace",access="stream")
-    write(fileUnit) napx,napxo,npart,numl                               ! 4x32bit
+    write(fileUnit) napxo,napx,npart,numl                               ! 4x32bit
+    write(fileUnit) nucm0,e0,e0f,aa0,zz0,qq0,1_int16                    ! 3x64bit + 4x16bit
     write(fileUnit) clo(1),clop(1),clo(2),clop(2)                       ! 4x64bit
     write(fileUnit) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),clop6(3)  ! 6x64bit
+    write(fileUnit) qwc(1),qwc(2),qwc(3)                                ! 3x64bit
+    write(fileUnit) tas(1,1:6)                                          ! 6x64bit
+    write(fileUnit) tas(2,1:6)                                          ! 6x64bit
+    write(fileUnit) tas(3,1:6)                                          ! 6x64bit
+    write(fileUnit) tas(4,1:6)                                          ! 6x64bit
+    write(fileUnit) tas(5,1:6)                                          ! 6x64bit
+    write(fileUnit) tas(6,1:6)                                          ! 6x64bit
     do j=1,npart
       ! These have to be set explicitly as ifort converts logical to integer differently than gfortran and nagfor
       if(partID(j) <= napxo) then

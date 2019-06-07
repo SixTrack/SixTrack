@@ -1492,8 +1492,7 @@ subroutine umlauda
   if(iqmodc.eq.1) call danot(3)
   if(iqmodc.eq.3) call danot(2)
   if(ichromc.eq.1) call danot(4)
-  if(ilinc.eq.1.or.ilinc.eq.2.or.iqmodc.eq.1.or.iqmodc.eq.3.or.     &
-  &ichromc.eq.1) then
+  if(ilinc.eq.1.or.ilinc.eq.2.or.iqmodc.eq.1.or.iqmodc.eq.3.or.ichromc.eq.1) then
     call mapnorm(damap,f,aa2,a1,xy,h,nord1)
   endif
   if(iqmodc.eq.1.or.iqmodc.eq.3) then
@@ -1531,8 +1530,8 @@ subroutine umlauda
       call prror
     end if
     corr(2,1)=coefv2/det1
-    corr(2,2)=(-one*coefh2)/det1                                     !hr05
-    corr(3,1)=(-one*coefv1)/det1                                     !hr05
+    corr(2,2)=(-one*coefh2)/det1
+    corr(3,1)=(-one*coefv1)/det1
     corr(3,2)=coefh1/det1
   endif
   if(ichromc.eq.1) then
@@ -1555,8 +1554,8 @@ subroutine umlauda
       call prror
     end if
     corr(2,1)=coefv2/det1
-    corr(2,2)=(-one*coefh2)/det1                                     !hr05
-    corr(3,1)=(-one*coefv1)/det1                                     !hr05
+    corr(2,2)=(-one*coefh2)/det1
+    corr(3,1)=(-one*coefv1)/det1
     corr(3,2)=coefh1/det1
   endif
 470  continue
@@ -1573,7 +1572,6 @@ subroutine umlauda
   call dadal(xy,6)
   call dadal(h,1)
   call dadal(df,6)
-!     DADAL AUTOMATIC INCLUSION
   call comt_daEnd
   return
 
