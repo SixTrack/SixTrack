@@ -186,20 +186,20 @@ subroutine part_writeState(fileName, isText, withIons)
   use parpro
   use mod_common
   use mod_common_main
+  use mod_common_track
   use mod_settings
   use string_tools
 
-  implicit none
+  use, intrinsic :: iso_fortran_env, only : int16
 
   character(len=*), intent(in) :: fileName
   logical,          intent(in) :: isText
   logical,          intent(in) :: withIons
 
   character(len=225) :: roundBuf
-  integer            :: fileUnit, j, iDummy, iPrim, iLost
+  integer            :: fileUnit, j, iPrim, iLost
   logical            :: rErr, isPrim
 
-  iDummy = 0
   call f_requestUnit(fileName, fileUnit)
 
   if(isText) then
@@ -207,9 +207,31 @@ subroutine part_writeState(fileName, isText, withIons)
     write(fileUnit,"(a,i0)") "# napx  = ",napx
     write(fileUnit,"(a,i0)") "# napxo = ",napxo
     write(fileUnit,"(a,i0)") "# npart = ",npart
+    write(fileUnit,"(a,i0)") "# nturn = ",numl
+
+    write(fileUnit,"(a)") "#"
+    write(fileUnit,"(a)") "# Closed Orbit [x, xp, y, yp, sigma, dp]"
+
+    roundBuf = " "
+    call chr_fromReal(clo(1),  roundBuf(  2:25 ),17,3,rErr)
+    call chr_fromReal(clop(1), roundBuf( 27:50 ),17,3,rErr)
+    call chr_fromReal(clo(2),  roundBuf( 52:75 ),17,3,rErr)
+    call chr_fromReal(clop(2), roundBuf( 77:100),17,3,rErr)
+    write(fileUnit,"(a,a100)") "# 4D_CloOrb =",roundBuf(1:100)
+
+    roundBuf = " "
+    call chr_fromReal(clo6(1),  roundBuf(  2:25 ),17,3,rErr)
+    call chr_fromReal(clop6(1), roundBuf( 27:50 ),17,3,rErr)
+    call chr_fromReal(clo6(2),  roundBuf( 52:75 ),17,3,rErr)
+    call chr_fromReal(clop6(2), roundBuf( 77:100),17,3,rErr)
+    call chr_fromReal(clo6(3),  roundBuf(102:125),17,3,rErr)
+    call chr_fromReal(clop6(3), roundBuf(127:150),17,3,rErr)
+    write(fileUnit,"(a,a150)") "# 6D_CloOrb =",roundBuf(1:150)
+
+    write(fileUnit,"(a)") "#"
     if(withIons) then
-      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),9(1x,a24),2(1x,a4))") &
-        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e","mass","A","Z"
+      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),9(1x,a24),3(1x,a4))") &
+        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e","mass","A","Z","Q"
     else
       write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),8(1x,a24))") &
         "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e"
@@ -227,8 +249,8 @@ subroutine part_writeState(fileName, isText, withIons)
       call chr_fromReal(ejv(j),  roundBuf(177:200),17,3,rErr)
       if(withIons) then
         call chr_fromReal(nucm(j), roundBuf(202:225),17,3,rErr)
-        write(fileUnit, "(i8,1x,i8,2(1x,l4),a225,2(1x,i4))") &
-        partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:225),naa(j),nzz(j)
+        write(fileUnit, "(i8,1x,i8,2(1x,l4),a225,3(1x,i4))") &
+        partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:225),naa(j),nzz(j),nqq(j)
       else
         write(fileUnit, "(i8,1x,i8,2(1x,l4),a200)") &
           partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:200)
@@ -236,7 +258,9 @@ subroutine part_writeState(fileName, isText, withIons)
     end do
   else
     call f_open(unit=fileUnit,file=fileName,formatted=.false.,mode="w",status="replace",access="stream")
-    write(fileUnit) napx,napxo,npart,iDummy ! 4x32bit
+    write(fileUnit) napx,napxo,npart,numl                               ! 4x32bit
+    write(fileUnit) clo(1),clop(1),clo(2),clop(2)                       ! 4x64bit
+    write(fileUnit) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),clop6(3)  ! 6x64bit
     do j=1,npart
       ! These have to be set explicitly as ifort converts logical to integer differently than gfortran and nagfor
       if(partID(j) <= napxo) then
@@ -249,11 +273,11 @@ subroutine part_writeState(fileName, isText, withIons)
       else
         iLost = 0
       end if
-      write(fileUnit) partID(j),parentID(j),iLost,iPrim  ! 4x32 bit
-      write(fileUnit) xv1(j),xv2(j),yv1(j),yv2(j)        ! 4x64 bit
-      write(fileUnit) sigmv(j),dpsv(j),ejfv(j),ejv(j)    ! 4x64 bit
+      write(fileUnit) partID(j),parentID(j),iLost,iPrim      ! 4x32 bit
+      write(fileUnit) xv1(j),xv2(j),yv1(j),yv2(j)            ! 4x64 bit
+      write(fileUnit) sigmv(j),dpsv(j),ejfv(j),ejv(j)        ! 4x64 bit
       if(withIons) then
-        write(fileUnit) nucm(j),naa(j),nzz(j),iDummy     ! 64 + 2x16 + 32 bit
+        write(fileUnit) nucm(j),naa(j),nzz(j),nqq(j),0_int16 ! 64 bit + 4x16 bit
       end if
     end do
   end if
