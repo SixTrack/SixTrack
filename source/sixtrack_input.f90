@@ -1585,7 +1585,8 @@ end subroutine sixin_parseInputLineDIFF
 ! ================================================================================================ !
 !  Parse Chromaticity Adjustment Line
 !  Rewritten from code from DATEN by VKBO
-!  Last modified: 2018-06-xx
+!  Rewritten: 2018-06
+!  Updated:   2019-06-07
 ! ================================================================================================ !
 subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
 
@@ -1600,7 +1601,7 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=mNameLen)      :: tmp_is(2)
+  character(len=mNameLen)         :: tmp_is(2)
   integer nSplit,i,ichrom0
   logical spErr
 
@@ -1643,14 +1644,14 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
     if(iErr) return
 
     do i=1,il
-      if(tmp_is(1) == bez(i)) is(1) = i
-      if(tmp_is(2) == bez(i)) is(2) = i
+      if(tmp_is(1) == bez(i)) crois(1) = i
+      if(tmp_is(2) == bez(i)) crois(2) = i
     end do
     if(ichrom0 >= 1 .and. ichrom0 <= 3) ichrom = ichrom0
 
     if(st_debug) then
-      call sixin_echoVal("is(1)", is(1), "CHRO",iLine)
-      call sixin_echoVal("is(2)", is(2), "CHRO",iLine)
+      call sixin_echoVal("crois(1)", crois(1), "CHRO",iLine)
+      call sixin_echoVal("crois(2)", crois(2), "CHRO",iLine)
       call sixin_echoVal("ichrom",ichrom,"CHRO",iLine)
     end if
 

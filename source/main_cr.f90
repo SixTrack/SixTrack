@@ -562,9 +562,9 @@ program maincr
     do ncrr=1,iu
       ix = ic(ncrr)
       if(ix > nblo) ix = ix-nblo
-      if(ix == is(1) .or. iratioe(ix) == is(1)) then
+      if(ix == crois(1) .or. iratioe(ix) == crois(1)) then
         smiv(ncrr) = smi(ncrr)
-      else if(ix == is(2) .or. iratioe(ix) == is(2)) then
+      else if(ix == crois(2) .or. iratioe(ix) == crois(2)) then
         smiv(ncrr) = smi(ncrr)
       end if
     end do

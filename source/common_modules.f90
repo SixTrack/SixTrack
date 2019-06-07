@@ -771,7 +771,7 @@ module mod_common_track
 
   ! Chromaticity
   real(kind=fPrec), save :: cro(2)   = zero
-  integer,          save :: is(2)    = 0
+  integer,          save :: crois(2) = 0
   integer,          save :: ichrom   = 0
 
   ! tas
@@ -789,7 +789,6 @@ module mod_common_track
   ! Substitute variables for x,y and is for DA version
   real(kind=fPrec), save :: xxtr(mpa,2)
   real(kind=fPrec), save :: yytr(mpa,2)
-  integer,          save :: issss(2)
 
 contains
 
@@ -818,14 +817,12 @@ end subroutine mod_commont_expand_arrays
 subroutine comt_daStart
   xxtr(1:mpa,1:2) = x(1:mpa,1:2)
   yytr(1:mpa,1:2) = y(1:mpa,1:2)
-  issss(1:2)      = is(1:2)
 end subroutine comt_daStart
 
 ! Copy from temp DA variables to actual variables
 subroutine comt_daEnd
   x(1:mpa,1:2) = xxtr(1:mpa,1:2)
   y(1:mpa,1:2) = yytr(1:mpa,1:2)
-  is(1:2)      = issss(1:2)
 end subroutine comt_daEnd
 
 end module mod_common_track
