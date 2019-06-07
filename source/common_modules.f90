@@ -770,9 +770,9 @@ module mod_common_track
   integer,          save :: nwri     = 0     ! Flag for frequency of calls to writebin. Set by nwr(3) in TRAC
 
   ! Chromaticity
-  real(kind=fPrec), save :: cro(2)   = zero
-  integer,          save :: crois(2) = 0
-  integer,          save :: ichrom   = 0
+  real(kind=fPrec), save :: cro(2)   = zero  ! Desired values of the chromaticity
+  integer,          save :: crois(2) = 0     ! Index of the elements in the single elements list
+  integer,          save :: ichrom   = 0     ! Flag for calculation, 1: "traditional", 2: including beam-beam, 3: both
 
   ! tas
   real(kind=fPrec), save :: tasm(6,6)
