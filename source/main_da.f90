@@ -168,7 +168,7 @@ program mainda
   call corrorb
   if(irmod2.eq.1) call rmod(dp1)
   if(iqmod.ne.0) call qmod0
-  if(ichrom.eq.1.or.ichrom.eq.3) call chroma
+  if(ichrom == 1 .or. ichrom == 3) call chroma
   if(iskew.ne.0) call decoup
   dp0=dp1
 
