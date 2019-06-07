@@ -481,6 +481,61 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
 end subroutine geom_parseInputLineSTRU_MULT
 
 ! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Returns the single element index of a given element name. Is -1 if not found.
+!  Created: 2019-06-05
+!  Updated: 2019-06-05
+! ================================================================================================ !
+integer function geom_getSingElemID(elemName)
+
+  use mod_common
+
+  character(len=*), intent(in) :: elemName
+  integer i
+
+  geom_getSingElemID = -1
+  do i=1,il
+    if(bez(i) == elemName) then
+      geom_getSingElemID = i
+      exit
+    end if
+  end do
+
+end function geom_getSingElemID
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Returns the structure element index of a given element name. Is -1 if not found.
+!  Requires a start and end index as these are not necessarily the same during parsing as after
+!  reshuffling of the lattice.
+!  Created: 2019-06-05
+!  Updated: 2019-06-05
+! ================================================================================================ !
+integer function geom_getStruElemID(elemName, iStart, iEnd)
+
+  use mod_common
+
+  character(len=*), intent(in) :: elemName
+  integer,          intent(in) :: iStart
+  integer,          intent(in) :: iEnd
+
+  integer i
+
+  geom_getStruElemID = -1
+
+  ! If we don't have a multicolumn struct block, the name is not unique
+  if(strumcol .eqv. .false.) return
+
+  do i=iStart,iEnd
+    if(bezs(i) == elemName) then
+      geom_getStruElemID = i
+      exit
+    end if
+  end do
+
+end function geom_getStruElemID
+
+! ================================================================================================ !
 !  A.Mereghetti, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Insert a New Empty Element (empty) in SINGLE ELEMENTS
 !  Updated: 2019-03-28
