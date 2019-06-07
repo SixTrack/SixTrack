@@ -449,9 +449,9 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     end if
     select case(lnSplit(2))
     case("binary")
-      st_initialstate = 1
+      st_iStateBin = .true.
     case("text")
-      st_initialstate = 2
+      st_iStateText = .true.
     case default
       write(lerr,"(a)") "INPUT> ERROR INITIALSTATE first value be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
       iErr = .true.
@@ -459,23 +459,13 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     end select
     if(nSplit == 3) then
       if(lnSplit(3) == "ions") then
-        st_initialstate = st_initialstate + 2
+        st_iStateIons = .true.
       else
         write(lerr,"(a)") "INPUT> ERROR INITIALSTATE second value must be 'ions', got '"//trim(lnSplit(3))//"'"
         iErr = .true.
         return
       end if
     end if
-    select case(st_initialstate)
-    case(1)
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a binary file"
-    case(2)
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a text file"
-    case(3)
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a binary file with ion data included"
-    case(4)
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a text file with ion data included"
-    end select
 
   case("FINALSTATE")
     if(nSplit /= 2 .and. nSplit /= 3) then
@@ -485,9 +475,9 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     end if
     select case(lnSplit(2))
     case("binary")
-      st_finalstate = 1
+      st_fStateBin = .true.
     case("text")
-      st_finalstate = 2
+      st_fStateText = .true.
     case default
       write(lerr,"(a)") "INPUT> ERROR FINALSTATE first value must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
       iErr = .true.
@@ -495,23 +485,13 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     end select
     if(nSplit == 3) then
       if(lnSplit(3) == "ions") then
-        st_finalstate = st_finalstate + 2
+        st_fStateIons = .true.
       else
         write(lerr,"(a)") "INPUT> ERROR FINALSTATE second value must be 'ions', got '"//trim(lnSplit(3))//"'"
         iErr = .true.
         return
       end if
     end if
-    select case(st_finalstate)
-    case(1)
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file"
-    case(2)
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file"
-    case(3)
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file with ion data included"
-    case(4)
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file with ion data included"
-    end select
 
   case("QUIET")
     if(nSplit > 1) then
