@@ -101,11 +101,11 @@ module mod_settings
   logical, save :: st_debug        = .false. ! Global DEBUG flag
   logical, save :: st_partsum      = .false. ! Flag to print final particle summary
   logical, save :: st_writefort12  = .false. ! Flag to write fort.12 after tracking
+  logical, save :: st_fStateWrite  = .false. ! Dump particle final state file
   logical, save :: st_fStateText   = .false. ! Dump particle final state file as text
-  logical, save :: st_fStateBin    = .false. ! Dump particle final state file as binary
   logical, save :: st_fStateIons   = .false. ! Dump particle final state file with ion columns
+  logical, save :: st_iStateWrite  = .false. ! Dump particle initial state file
   logical, save :: st_iStateText   = .false. ! Dump particle initial state file as text
-  logical, save :: st_iStateBin    = .false. ! Dump particle initial state file as binary
   logical, save :: st_iStateIons   = .false. ! Dump particle initial state file with ion columns
 
   ! Checpoint/Restart Kills Switch Settings

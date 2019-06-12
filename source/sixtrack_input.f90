@@ -447,9 +447,10 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
+    st_iStateWrite = .true.
     select case(lnSplit(2))
     case("binary")
-      st_iStateBin = .true.
+      st_iStateText = .false.
     case("text")
       st_iStateText = .true.
     case default
@@ -473,9 +474,10 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
+    st_fStateWrite = .true.
     select case(lnSplit(2))
     case("binary")
-      st_fStateBin = .true.
+      st_fStateText = .false.
     case("text")
       st_fStateText = .true.
     case default
