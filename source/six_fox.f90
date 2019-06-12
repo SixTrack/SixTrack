@@ -15,7 +15,7 @@ subroutine umlauda
   use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
   use mod_commons
-  use mod_common_track, only : xxtr,yytr,issss,tasm,comt_daStart,comt_daEnd
+  use mod_common_track, only : xxtr,yytr,crois,tasm,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_commond2
   use wire
@@ -122,8 +122,8 @@ subroutine umlauda
     endif
   endif
   if(ichromc.eq.1) then
-    ed1=ed(issss(1))
-    ed2=ed(issss(2))
+    ed1=ed(crois(1))
+    ed2=ed(crois(2))
   endif
   call davar(x(1),ox,1)
   oxp1=oxp*(one+dps1)
@@ -1218,9 +1218,9 @@ subroutine umlauda
       endif
     endif
     if(ichromc.eq.1) then
-      if(ix.eq.issss(1).or.iratioe(ix).eq.issss(1)) then
+      if(ix.eq.crois(1).or.iratioe(ix).eq.crois(1)) then
         ipch=1
-      else if(ix.eq.issss(2).or.iratioe(ix).eq.issss(2)) then
+      else if(ix.eq.crois(2).or.iratioe(ix).eq.crois(2)) then
         ipch=2
       endif
     endif
@@ -2173,7 +2173,7 @@ subroutine errff(xx,yy,wx,wy)
   use parpro
   use mod_common
   use mod_commons
-  use mod_common_track, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+  use mod_common_track, only : xxtr,yytr,crois,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   implicit none
@@ -2316,7 +2316,7 @@ subroutine wireda(ix,i)
   use parpro
   use mod_common
   use mod_commons
-  use mod_common_track, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+  use mod_common_track, only : xxtr,yytr,crois,comt_daStart,comt_daEnd
   use mod_common_da
   use wire
   use mod_lie_dab, only : idao,rscrri,iscrda
