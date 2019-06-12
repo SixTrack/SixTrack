@@ -227,7 +227,7 @@ subroutine part_writeState(fileName, isText, withIons)
     write(fileUnit,"(a,a24)") "# Mass [MeV]      = ",roundBuf( 2:25)
     write(fileUnit,"(a,a24)") "# Energy [MeV]    = ",roundBuf(27:50)
     write(fileUnit,"(a,a24)") "# Momentum [MeV]  = ",roundBuf(52:75)
-    write(fileUnit,"(a,i0)")  "# Atmoic Mass     = ",aa0
+    write(fileUnit,"(a,i0)")  "# Atomic Mass     = ",aa0
     write(fileUnit,"(a,i0)")  "# Atomic Number   = ",zz0
     write(fileUnit,"(a,i0)")  "# Charge          = ",qq0
 
