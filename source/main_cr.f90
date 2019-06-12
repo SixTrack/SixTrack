@@ -465,7 +465,7 @@ program maincr
 
   if(irmod2.eq.1) call rmod(dp1)
   if(iqmod.ne.0) call qmod0
-  if(ichrom.eq.1.or.ichrom.eq.3) call chroma
+  if(ichrom == 1 .or. ichrom == 3) call chroma
   if(iskew.ne.0) call decoup
   if(ilin.eq.1.or.ilin.eq.3) then
     call linopt(dp1)
@@ -562,9 +562,9 @@ program maincr
     do ncrr=1,iu
       ix = ic(ncrr)
       if(ix > nblo) ix = ix-nblo
-      if(ix == is(1) .or. iratioe(ix) == is(1)) then
+      if(ix == crois(1) .or. iratioe(ix) == crois(1)) then
         smiv(ncrr) = smi(ncrr)
-      else if(ix == is(2) .or. iratioe(ix) == is(2)) then
+      else if(ix == crois(2) .or. iratioe(ix) == crois(2)) then
         smiv(ncrr) = smi(ncrr)
       end if
     end do
