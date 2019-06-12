@@ -211,19 +211,25 @@ subroutine part_writeState(fileName, isText, withIons)
 
   if(isText) then
     call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="w",status="replace")
-    write(fileUnit,"(a)")       "# Tracking"
-    write(fileUnit,"(a,i8)")    "# NPart Start     = ",napxo
-    write(fileUnit,"(a,i8)")    "# NPart End       = ",napx
-    write(fileUnit,"(a,i8)")    "# NPart Allocated = ",npart
-    write(fileUnit,"(a,i8)")    "# NTurns          = ",numl
-    write(fileUnit,"(a)")       "#"
-    write(fileUnit,"(a)")       "# Reference Particle"
-    write(fileUnit,"(a,f15.6)") "# Mass [MeV]      = ",nucm0
-    write(fileUnit,"(a,f15.6)") "# Energy [MeV]    = ",e0
-    write(fileUnit,"(a,f15.6)") "# Momentum [MeV]  = ",e0f
-    write(fileUnit,"(a,i8)")    "# Atmoic Mass     = ",aa0
-    write(fileUnit,"(a,i8)")    "# Atomic Number   = ",zz0
-    write(fileUnit,"(a,i8)")    "# Charge          = ",qq0
+
+    write(fileUnit,"(a)")    "# Tracking"
+    write(fileUnit,"(a,i0)") "# NPart Start     = ",napxo
+    write(fileUnit,"(a,i0)") "# NPart End       = ",napx
+    write(fileUnit,"(a,i0)") "# NPart Allocated = ",npart
+    write(fileUnit,"(a,i0)") "# NTurns          = ",numl
+
+    call chr_fromReal(nucm0, roundBuf( 2:25),17,3,rErr)
+    call chr_fromReal(e0,    roundBuf(27:50),17,3,rErr)
+    call chr_fromReal(e0f,   roundBuf(52:75),17,3,rErr)
+
+    write(fileUnit,"(a)")     "#"
+    write(fileUnit,"(a)")     "# Reference Particle"
+    write(fileUnit,"(a,a24)") "# Mass [MeV]      = ",roundBuf( 2:25)
+    write(fileUnit,"(a,a24)") "# Energy [MeV]    = ",roundBuf(27:50)
+    write(fileUnit,"(a,a24)") "# Momentum [MeV]  = ",roundBuf(52:75)
+    write(fileUnit,"(a,i0)")  "# Atmoic Mass     = ",aa0
+    write(fileUnit,"(a,i0)")  "# Atomic Number   = ",zz0
+    write(fileUnit,"(a,i0)")  "# Charge          = ",qq0
 
     write(fileUnit,"(a)") "#"
     write(fileUnit,"(a)") "# Closed Orbit [x, xp, y, yp, sigma, dp]"
