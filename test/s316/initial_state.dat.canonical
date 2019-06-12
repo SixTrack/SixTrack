@@ -1,16 +1,16 @@
 # Tracking
-# NPart Start     =       60
-# NPart End       =       60
-# NPart Allocated =       60
-# NTurns          =   100000
+# NPart Start     = 60
+# NPart End       = 60
+# NPart Allocated = 60
+# NTurns          = 100000
 #
 # Reference Particle
-# Mass [MeV]      =      938.271998
-# Energy [MeV]    =   450000.000000
-# Momentum [MeV]  =   449999.021827
-# Atmoic Mass     =        1
-# Atomic Number   =        1
-# Charge          =        1
+# Mass [MeV]      =  9.3827199800000005E+002
+# Energy [MeV]    =  4.5000000000000000E+005
+# Momentum [MeV]  =  4.4999902182744548E+005
+# Atmoic Mass     = 1
+# Atomic Number   = 1
+# Charge          = 1
 #
 # Closed Orbit [x, xp, y, yp, sigma, dp]
 # 4D Closed Orbit =  2.5260090987411026E+000 -1.1230551311003243E-004 -2.1715436840447906E-003  1.6022584864669714E-001
