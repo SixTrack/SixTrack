@@ -1573,6 +1573,7 @@ subroutine umlauda
   call dadal(xy,6)
   call dadal(h,1)
   call dadal(df,6)
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   call comt_daEnd
   return
@@ -2004,7 +2005,8 @@ subroutine envada
         end do
       end do
     end do
-    ! DADAL AUTOMATIC INCLUSION
+! Do not remove or modify the comment below.
+!     DADAL AUTOMATIC INCLUSION
 
   return
 
@@ -2102,6 +2104,7 @@ subroutine envquad(i,ipch)
 !FOX  ASDAQ(IH,6)=-RV*(EL(I)+ALDAQ(IH,1)*ALDAQ(IH,2))/C4E3 ;
   if(ih.eq.1) goto 20
 100 continue
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   return
 end subroutine envquad
@@ -2268,6 +2271,7 @@ call comt_daStart
 !FOX      WY=-WY ;
     endif
   endif
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   call comt_daEnd
   return
@@ -2488,6 +2492,7 @@ call comt_daStart
 !FOX  YY(1)=YY(1)*C1E3;
 !FOX  YY(2)=YY(2)*C1E3;
 
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   call comt_daEnd
 end subroutine wireda
