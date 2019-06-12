@@ -581,9 +581,9 @@ program maincr
     do ncrr=1,iu
       ix = ic(ncrr)
       if(ix > nblo) ix = ix-nblo
-      if(ix == is(1) .or. iratioe(ix) == is(1)) then
+      if(ix == crois(1) .or. iratioe(ix) == crois(1)) then
         smiv(ncrr) = smi(ncrr)
-      else if(ix == is(2) .or. iratioe(ix) == is(2)) then
+      else if(ix == crois(2) .or. iratioe(ix) == crois(2)) then
         smiv(ncrr) = smi(ncrr)
       end if
     end do
@@ -1276,11 +1276,13 @@ program maincr
 ! ---------------------------------------------------------------------------- !
   write(lout,10200)
   call part_setParticleID
-  if(st_iStateBin) then
-    call part_writeState("initial_state.bin",.false.,st_iStateIons)
-  end if
-  if(st_iStateText) then
-    call part_writeState("initial_state.dat",.true.,st_iStateIons)
+
+  if(st_iStateWrite) then
+    if(st_iStateText) then
+      call part_writeState("initial_state.dat",.true.,st_iStateIons)
+    else
+      call part_writeState("initial_state.bin",.false.,st_iStateIons)
+    end if
   end if
 
   part_isTracking = .true.
@@ -1439,16 +1441,13 @@ program maincr
 470 continue
 
   ! Dump the final state of the particle arrays
-  if(st_fStateBin) then
-    call part_writeState("final_state.bin",.false.,st_fStateIons)
+  if(st_fStateWrite) then
+    if(st_fStateText) then
+      call part_writeState("final_state.dat",.true.,st_fStateIons)
+    else
+      call part_writeState("final_state.bin",.false.,st_fStateIons)
+    end if
   end if
-  if(st_FStateText) then
-    call part_writeState("final_state.dat",.true.,st_fStateIons)
-  end if
-
-#ifdef BOINC
-  call boinc_postProgress(1)
-#endif
 
 #ifdef FLUKA
 

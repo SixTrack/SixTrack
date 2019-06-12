@@ -447,9 +447,10 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
+    st_iStateWrite = .true.
     select case(lnSplit(2))
     case("binary")
-      st_iStateBin = .true.
+      st_iStateText = .false.
     case("text")
       st_iStateText = .true.
     case default
@@ -473,9 +474,10 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
+    st_fStateWrite = .true.
     select case(lnSplit(2))
     case("binary")
-      st_fStateBin = .true.
+      st_fStateText = .false.
     case("text")
       st_fStateText = .true.
     case default
@@ -1565,7 +1567,8 @@ end subroutine sixin_parseInputLineDIFF
 ! ================================================================================================ !
 !  Parse Chromaticity Adjustment Line
 !  Rewritten from code from DATEN by VKBO
-!  Last modified: 2018-06-xx
+!  Rewritten: 2018-06
+!  Updated:   2019-06-07
 ! ================================================================================================ !
 subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
 
@@ -1574,17 +1577,15 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
   use mod_settings
   use mod_common
   use mod_common_track
+  use mod_find
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=mNameLen)      :: tmp_is(2)
-  integer nSplit,i,ichrom0
+  integer nSplit,i
   logical spErr
-
-  save :: tmp_is,ichrom0
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -1592,47 +1593,53 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   select case(iLine)
 
   case(1)
 
-    ichrom0   = 0
-    tmp_is(:) = " "
+    if(nSplit > 1) call chr_cast(lnSplit(2),cro(1), iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),ichrom, iErr)
 
-    if(nSplit > 0) tmp_is(1) = lnSplit(1)
-    if(nSplit > 1) call chr_cast(lnSplit(2),cro(1),   iErr)
-    if(nSplit > 2) call chr_cast(lnSplit(3),ichrom0,  iErr)
+    crois(1) = find_singElemFromName(lnSplit(1))
+    if(crois(1) <= 0) then
+      write(lerr,"(a)") "CHRO> ERROR Element '"//trim(lnSplit(1))//"' not in single elements list"
+      iErr = .true.
+      return
+    end if
+
+    if(ichrom < 1 .or. ichrom > 3) then
+      write(lerr,"(a,i0)") "CHRO> ERROR Chromaticity calculation flag ichrom must be 1, 2 or 3, got ",ichrom
+      iErr = .true.
+      return
+    end if
 
     if(st_debug) then
-      call sixin_echoVal("bez_is(1)",tmp_is(1),"CHRO",iLine)
-      call sixin_echoVal("cro(1)",   cro(1),   "CHRO",iLine)
-      call sixin_echoVal("ichrom0",  ichrom0,  "CHRO",iLine)
+      call sixin_echoVal("bez_is(1)",lnSplit(1),"CHRO",iLine)
+      call sixin_echoVal("crois(1)", crois(1),  "CHRO",iLine)
+      call sixin_echoVal("cro(1)",   cro(1),    "CHRO",iLine)
+      call sixin_echoVal("ichrom",   ichrom,    "CHRO",iLine)
     end if
     if(iErr) return
 
   case(2)
 
-    if(nSplit > 0) tmp_is(2) = lnSplit(1)
-    if(nSplit > 1) call chr_cast(lnSplit(2),cro(2),   iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),cro(2), iErr)
+
+    crois(2) = find_singElemFromName(lnSplit(1))
+    if(crois(2) <= 0) then
+      write(lerr,"(a)") "CHRO> ERROR Element '"//trim(lnSplit(1))//"' not in single elements list"
+      iErr = .true.
+      return
+    end if
 
     if(st_debug) then
-      call sixin_echoVal("bez_is(2)",tmp_is(2),"CHRO",iLine)
-      call sixin_echoVal("cro(1)",   cro(2),   "CHRO",iLine)
+      call sixin_echoVal("bez_is(2)",lnSplit(1),"CHRO",iLine)
+      call sixin_echoVal("crois(2)", crois(2),  "CHRO",iLine)
+      call sixin_echoVal("cro(2)",   cro(2),    "CHRO",iLine)
     end if
     if(iErr) return
-
-    do i=1,il
-      if(tmp_is(1) == bez(i)) is(1) = i
-      if(tmp_is(2) == bez(i)) is(2) = i
-    end do
-    if(ichrom0 >= 1 .and. ichrom0 <= 3) ichrom = ichrom0
-
-    if(st_debug) then
-      call sixin_echoVal("is(1)", is(1), "CHRO",iLine)
-      call sixin_echoVal("is(2)", is(2), "CHRO",iLine)
-      call sixin_echoVal("ichrom",ichrom,"CHRO",iLine)
-    end if
 
   case default
     write(lerr,"(a,i0)") "CHRO> ERROR Unexpected line number ",iLine
