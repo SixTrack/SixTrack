@@ -1649,9 +1649,9 @@ subroutine runda
   write(lout,10010)
 
 520 continue
-  call comt_daEnd
 ! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
+  call comt_daEnd
   return
 
 9088 continue

@@ -187,7 +187,7 @@ program maincr
   call boinc_preProgress(1)
 #endif
 
-! Open Regular File Units
+  ! Open Regular File Units
   call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA file
   call f_open(unit=19,file="fort.19",formatted=.true., mode="rw",err=fErr) ! DA file
   call f_open(unit=20,file="fort.20",formatted=.true., mode="w", err=fErr) ! DA file
