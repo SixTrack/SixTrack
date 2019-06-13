@@ -697,7 +697,9 @@ endforeach()
 # Zlib tests
 if(ZLIB)
   set_property(TEST SelfTest_zlib PROPERTY LABELS tool fast)
-  set_property(TEST SelfTest_zlib_64 PROPERTY LABELS tool fast)
+  if(64BIT)
+    set_property(TEST SelfTest_zlib_64 PROPERTY LABELS tool fast)
+  endif()
 endif()
 
 # Inputs
