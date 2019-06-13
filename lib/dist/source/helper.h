@@ -16,3 +16,6 @@ double rand_uni(double low, double high);
 void calcualteinverse();
 double randray(double mu, double sigma);
 void solve2by2eq(double a1, double b1, double c1, double a2, double b2, double c2, double *x);
+int readfile();
+int splitline(char* line, char columns[100][100] );
+void add2table(double[100][100], char* line, int linenum );

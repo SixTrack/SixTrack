@@ -6,6 +6,97 @@
 #include "distinput.h"
 #include "outputdist.h"
 
+
+
+
+int splitline(char* line, char columns[100][100] ){
+
+  char* word;
+  int count = 0;
+  word = strtok(line, " ");
+  strcpy(columns[count], word);
+  count++;
+  /* the following loop gets the rest of the words until the
+   * end of the message */
+  while ((word = strtok(NULL, " ")) != NULL){
+    strcpy(columns[count], word);
+    count ++;
+  }
+  for(int i=0 ;i<count; i++){
+    printf("columns %s \n ", columns[i]);
+  }
+  return count;
+
+}
+void add2table(double table[100][100], char* line, int linenum){
+  char* word;
+  int count = 0;
+  word = strtok(line, " ");
+  table[linenum][0] = atof(word);
+  count++;
+
+  /* the following loop gets the rest of the words until the
+   * end of the message */
+  while ((word = strtok(NULL, " ")) != NULL){
+    table[linenum][count] = atof(word);
+    count ++;
+  }
+  for(int i=0 ;i<count; i++){
+    printf("nummmss %f %d \n ", table[linenum][i], i);
+  }
+}
+
+  int readfile(){
+   static const char filename[] = "file.txt";
+   FILE *file = fopen ( filename, "r" );
+
+    double table [100][100];
+    int linecount = 0;
+    char columns[100][100];
+    int numcolum ;
+// NEED to use strcp... 
+   if ( file != NULL ){
+      char line [ 328 ]; /* or other suitable maximum line size */
+      char tosplit [ 328 ];
+      while ( fgets ( line, sizeof line, file ) != NULL ){ /* read a line */
+        if(strncmp(line, "#", 1)!=0 && linecount==0){
+        strcpy(tosplit, line);
+        numcolum = splitline(tosplit, columns);
+        linecount++;
+        }
+        else if(linecount>0){
+            add2table(table, line, linecount-1);
+            linecount++;   
+        }
+        
+
+      }
+
+      printf("line count %d \n",linecount);
+      fclose ( file );  
+      return 0;
+ 
+   }
+  
+  else
+  {
+     perror ( filename ); /* why didn't the file open? */
+  }
+  int ab = 1;
+  initializedistribution_(&ab);
+  dist->incoord = (struct incoordinates*)malloc(linecount*sizeof(struct incoordinates));
+  for(int i=0; i< numcolum; i++){
+    if(stcmpy(columns[i], 'x')==0)
+      setphysical(1, i, table);
+  }
+   return 0;
+
+}
+
+
+
+
+
 void calcualteinverse(){
   double invtas[6][6];
   double result[dim][dim];
