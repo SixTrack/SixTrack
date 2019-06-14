@@ -598,9 +598,9 @@ if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
     set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -flto")
   endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
     set(CMAKE_Fortran_FLAGS "-mmacosx-version-min=${MIN_OSX_VERSION} ${CMAKE_Fortran_FLAGS}")
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mfpmath=sse -msse2")
@@ -904,16 +904,6 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "AppleClang")
     set(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
   endif(STATIC)
 
-  if(COVERAGE)
-    set(CMAKE_C_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_C_FLAGS}")
-    set(CMAKE_C_LINKER_FLAGS "-fprofile-arcs ${CMAKE_C_LINKER_FLAGS}")
-  endif(COVERAGE)
-
-#  if(GPROF)
-#    set(CMAKE_C_FLAGS "-pg ${CMAKE_C_FLAGS}")
-#    set(CMAKE_C_LINKER_FLAGS "-pg ${CMAKE_C_LINKER_FLAGS}")
-#  endif(GPROF)
-
 endif()
 
 # CXX Flags
@@ -1020,7 +1010,6 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 endif()
 
 #AppleClang
-#Copied from GNU for now
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "AppleClang")
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
@@ -1069,17 +1058,6 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "AppleClang")
       set(CMAKE_CXX_LINKER_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
     endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
   endif(STATIC)
-
-  # Disable COVERAGE for C++ source as it breaks SixTestWrapper on some systems
-  # if(COVERAGE)
-  #   set(CMAKE_CXX_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_CXX_FLAGS}")
-  #   set(CMAKE_CXX_LINKER_FLAGS "-fprofile-arcs ${CMAKE_CXX_LINKER_FLAGS}")
-  # endif(COVERAGE)
-
-#  if(GPROF)
-#    set(CMAKE_CXX_FLAGS "-pg ${CMAKE_CXX_FLAGS}")
-#    set(CMAKE_CXX_LINKER_FLAGS "-pg ${CMAKE_CXX_LINKER_FLAGS}")
-#  endif(GPROF)
 
 endif()
 
