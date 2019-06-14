@@ -1050,11 +1050,12 @@ endif()
 if(NAFF)
   if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/interface/naff_sixtrack_interface.c)
     if(GIT_FOUND)
-      message(STATUS "Submodule update")
+      message(STATUS "Checking out NAFFlib submodule")
       execute_process(
         COMMAND ${GIT_EXECUTABLE} submodule update --init lib/NAFFlib
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         RESULT_VARIABLE GIT_SUBMOD_RESULT
+        ERROR_QUIET
       )
       if(NOT GIT_SUBMOD_RESULT EQUAL "0")
         message(FATAL_ERROR "git submodule update --init lib/NAFFlib failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
