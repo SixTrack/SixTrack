@@ -332,7 +332,7 @@ subroutine cdb_writeDB_ROOT
   character(len=5)          :: this_material = C_NULL_CHAR
   integer j
 
-  if(root_flag .eqv. .false. .or. root_CollimationDB /= 1) return
+  if((root_flag .eqv. .false.) .or. root_CollimationDB /= 1) return
 
   do j=1,cdb_nColl
     this_name     = trim(adjustl(cdb_cNameUC(j)))//C_NULL_CHAR
