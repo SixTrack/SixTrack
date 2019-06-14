@@ -575,11 +575,11 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     if(numPart > npart) then
       call expand_arrays(nele, numPart, nblz, nblo)
     end if
-    if(napx > 32 .and. (sixin_forcePartSummary .eqv. .false.)) then
+    if(napx > 32 .and. .not. sixin_forcePartSummary) then
       write(lout,"(a)") "SIMU> NOTE More than 64 particles requested, switching off printing of particle summary."
       st_partsum = .false.
     end if
-    if(napx > 32 .and. (sixin_forceWriteFort12 .eqv. .false.)) then
+    if(napx > 32 .and. .not. sixin_forceWriteFort12) then
       write(lout,"(a)") "SIMU> NOTE More than 64 particles requested, switching off wriritng of fort.12."
       st_writefort12 = .false.
     end if
@@ -934,7 +934,7 @@ subroutine sixin_postInputSIMU(iErr)
     iErr = .true.
   end if
 
-  if((sixin_simu6D .eqv. .false.) .and. iclo6 > 0) then
+  if(iclo6 > 0 .and. .not. sixin_simu6D) then
     write(lout,"(a)") "SIMU> ERROR Can only calculated 6D closed orbit for 6D simulations."
     iErr = .true.
   end if
@@ -1326,12 +1326,12 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call expand_arrays(nele, napx*2, nblz, nblo)
     end if
 
-    if(napx > 32 .and. (sixin_forcePartSummary .eqv. .false.)) then
+    if(napx > 32 .and. .not. sixin_forcePartSummary) then
       write(lout,"(a)") "TRAC> NOTE More than 64 particles requested, switching off printing of particle summary."
       st_partsum = .false.
     end if
 
-    if(napx > 32 .and. (sixin_forceWriteFort12 .eqv. .false.)) then
+    if(napx > 32 .and. .not. sixin_forceWriteFort12) then
       write(lout,"(a)") "TRAC> NOTE More than 64 particles requested, switching off wriritng of fort.12."
       st_writefort12 = .false.
     end if
