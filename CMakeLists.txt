@@ -942,7 +942,7 @@ endif()
 
 # Check that the compiler has the features we need
 if(${CMAKE_VERSION} VERSION_GREATER "3.6.0")
-  include(${CMAKE_SOURCE_DIR}/CMakeFortranSupport.cmake)
+  include(${CMAKE_SOURCE_DIR}/cmake/fortran_support.cmake)
 endif()
 
 ###################################################################################################
