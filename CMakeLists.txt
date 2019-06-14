@@ -989,10 +989,13 @@ endif()
 #build dafor
 add_executable(dafor ${CMAKE_SOURCE_DIR}/source/tools/dafor/dafor.f90)
 #we do not need any fancy flags for dafor but nagfor does not like the following
-if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
-  set_target_properties(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2")
-  set_target_properties(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2")
-endif(Fortran_COMPILER_NAME MATCHES "gfortran.*")
+#only do this on x86 + friends
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
+  if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
+    set_target_properties(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2")
+    set_target_properties(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2")
+  endif(Fortran_COMPILER_NAME MATCHES "gfortran.*")
+endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
 
 if(CRLIBM)
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/crlibm)
