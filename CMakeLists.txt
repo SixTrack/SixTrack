@@ -906,10 +906,10 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "AppleClang")
     set(CMAKE_C_LINKER_FLAGS "-fprofile-arcs ${CMAKE_C_LINKER_FLAGS}")
   endif(COVERAGE)
 
-  if(GPROF)
-    set(CMAKE_C_FLAGS "-pg ${CMAKE_C_FLAGS}")
-    set(CMAKE_C_LINKER_FLAGS "-pg ${CMAKE_C_LINKER_FLAGS}")
-  endif(GPROF)
+#  if(GPROF)
+#    set(CMAKE_C_FLAGS "-pg ${CMAKE_C_FLAGS}")
+#    set(CMAKE_C_LINKER_FLAGS "-pg ${CMAKE_C_LINKER_FLAGS}")
+#  endif(GPROF)
 
 endif()
 
@@ -1073,10 +1073,10 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "AppleClang")
   #   set(CMAKE_CXX_LINKER_FLAGS "-fprofile-arcs ${CMAKE_CXX_LINKER_FLAGS}")
   # endif(COVERAGE)
 
-  if(GPROF)
-    set(CMAKE_CXX_FLAGS "-pg ${CMAKE_CXX_FLAGS}")
-    set(CMAKE_CXX_LINKER_FLAGS "-pg ${CMAKE_CXX_LINKER_FLAGS}")
-  endif(GPROF)
+#  if(GPROF)
+#    set(CMAKE_CXX_FLAGS "-pg ${CMAKE_CXX_FLAGS}")
+#    set(CMAKE_CXX_LINKER_FLAGS "-pg ${CMAKE_CXX_LINKER_FLAGS}")
+#  endif(GPROF)
 
 endif()
 
