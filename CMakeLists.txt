@@ -940,10 +940,10 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 
 endif()
 
-#check that the compiler has the features we need!
-# Disabling this test until its cmake version is in sync with the main build script as this breaks on Ubuntu 16.04
-# See https://github.com/SixTrack/SixTrack/issues/594
-#include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
+# Check that the compiler has the features we need
+if(${CMAKE_VERSION} VERSION_GREATER "3.6.0")
+  include(${CMAKE_SOURCE_DIR}/CMakeFortranSupport.cmake)
+endif()
 
 ###################################################################################################
 # Settings for what exactly to build
