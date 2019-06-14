@@ -78,6 +78,7 @@ option(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
 option(STF "Single Track File: Write all tracks for postprocessing to fort.90 instead of 32 separate files fort.59 to fort.90. Required for >64 particles" ON)
 option(NAFF "Link to external NAFFlib for FMA." ON)
 option(HASHLIB "Build the md5 hash library" ON)
+option(ZLIB "Build and link zlib. Needed for BOINC and ZIPF block" ON)
 
 # Default OFF
 option(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
@@ -91,7 +92,6 @@ option(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 option(FLUKA "Couple to FLUKA for beam collimation" OFF)
 option(PYTHIA "Link with Pythia8 for SCATTER module" OFF)
 option(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC and ZIPF block" OFF)
-option(ZLIB "Build and link zlib. Needed for BOINC and ZIPF block" OFF)
 option(ROOT "Link to the root libraries" OFF)
 
 # Build Options
@@ -943,10 +943,10 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 
 endif()
 
-#check that the compiler has the features we need!
-# Disabling this test until its cmake version is in sync with the main build script as this breaks on Ubuntu 16.04
-# See https://github.com/SixTrack/SixTrack/issues/594
-#include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
+# Check that the compiler has the features we need
+if(${CMAKE_VERSION} VERSION_GREATER "3.6.0")
+  include(${CMAKE_SOURCE_DIR}/cmake/fortran_support.cmake)
+endif()
 
 ###################################################################################################
 # Settings for what exactly to build
@@ -1052,8 +1052,20 @@ endif()
 # Build NAFFlib
 if(NAFF)
   if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/interface/naff_sixtrack_interface.c)
-    message(FATAL_ERROR "The git submodules NAFFlib is not available. Please run:
-    git submodule update --init lib/NAFFlib")
+    if(GIT_FOUND)
+      message(STATUS "Checking out NAFFlib submodule")
+      execute_process(
+        COMMAND ${GIT_EXECUTABLE} submodule update --init lib/NAFFlib
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        RESULT_VARIABLE GIT_SUBMOD_RESULT
+        ERROR_QUIET
+      )
+      if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+        message(FATAL_ERROR "git submodule update --init lib/NAFFlib failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+      endif()
+    else()
+      message(FATAL_ERROR "The git submodules NAFFlib is not available. Please download it into lib/NAFFlib")
+    endif()
   endif()
 
   file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/source/*.c ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/interface/naff_sixtrack_interface.c)
