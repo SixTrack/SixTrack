@@ -558,6 +558,10 @@ if(STATIC)
   set(BUILD_SHARED_LIBS OFF)
 endif()
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(MIN_OSX_VERSION 10.10.5)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
 # FLAGS depend on the compiler
 get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
@@ -593,6 +597,10 @@ if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
   if(LTO)
     set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -flto")
   endif()
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+    set(CMAKE_Fortran_FLAGS "-mmacosx-version-min=${MIN_OSX_VERSION} ${CMAKE_Fortran_FLAGS}")
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mfpmath=sse -msse2")
@@ -789,6 +797,10 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
     endif(NATIVE)
   endif()
 
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+    set(CMAKE_C_FLAGS "-mmacosx-version-min=${MIN_OSX_VERSION} ${CMAKE_C_FLAGS}")
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+
   if(STATIC)
     set(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
   endif(STATIC)
@@ -844,6 +856,56 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
 
 endif()
 
+#AppleClang
+#Copied from GNU for now
+if(${CMAKE_C_COMPILER_ID} MATCHES "AppleClang")
+
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
+    set (CMAKE_C_FLAGS "-ffp-contract=off ${CMAKE_C_FLAGS}")
+  endif()
+  set (CMAKE_C_FLAGS_RELEASE "-O3")
+  set (CMAKE_C_FLAGS_DEBUG   "-O0 -g3")
+
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
+    if(32BIT)
+      set(CMAKE_C_FLAGS "-m32 ${CMAKE_C_FLAGS}")
+    endif(32BIT)
+
+    if(64BIT)
+      set(CMAKE_C_FLAGS "-m64 ${CMAKE_C_FLAGS}")
+    endif(64BIT)
+
+    if(AVX)
+      set(CMAKE_C_FLAGS "-mavx ${CMAKE_C_FLAGS}")
+    endif(AVX)
+
+    if(AVX2)
+      set(CMAKE_C_FLAGS "-mavx -mavx2 -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+    endif(AVX2)
+
+    if(AVX512)
+      set(CMAKE_C_FLAGS "-mavx -mavx2 -mavx512f -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+    endif(AVX512)
+
+    if(AVX512_SKYLAKE)
+      set(CMAKE_C_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+    endif(AVX512_SKYLAKE)
+
+    if(NATIVE)
+      set(CMAKE_C_FLAGS "-march=native ${CMAKE_C_FLAGS}")
+    endif(NATIVE)
+  endif()
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+    set(CMAKE_C_FLAGS "-mmacosx-version-min=${MIN_OSX_VERSION} ${CMAKE_C_FLAGS}")
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+
+  if(STATIC)
+    set(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
+  endif(STATIC)
+
+endif()
+
 # CXX Flags
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
 
@@ -882,6 +944,10 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
       set(CMAKE_CXX_FLAGS "-march=native ${CMAKE_CXX_FLAGS}")
     endif(NATIVE)
   endif()
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+    set(CMAKE_CXX_FLAGS "-mmacosx-version-min=${MIN_OSX_VERSION} ${CMAKE_CXX_FLAGS}")
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
 
   if(STATIC)
     set(CMAKE_CXX_LINKER_FLAGS "-static -static-libstdc++ ${CMAKE_CXX_LINKER_FLAGS}")
@@ -943,6 +1009,58 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 
 endif()
 
+#AppleClang
+if(${CMAKE_CXX_COMPILER_ID} MATCHES "AppleClang")
+
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
+    set (CMAKE_CXX_FLAGS "-ffp-contract=off ${CMAKE_CXX_FLAGS}")
+  endif()
+  set (CMAKE_CXX_FLAGS_RELEASE "-O3")
+  set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
+
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
+    if(32BIT)
+      set(CMAKE_CXX_FLAGS "-m32 ${CMAKE_CXX_FLAGS}")
+    endif(32BIT)
+
+    if(64BIT)
+      set(CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}")
+    endif(64BIT)
+
+    if(AVX)
+      set(CMAKE_CXX_FLAGS "-mavx ${CMAKE_CXX_FLAGS}")
+    endif(AVX)
+
+    if(AVX2)
+      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+    endif(AVX2)
+
+    if(AVX512)
+      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mavx512f -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+    endif(AVX512)
+
+    if(AVX512_SKYLAKE)
+      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+    endif(AVX512_SKYLAKE)
+
+    if(NATIVE)
+      set(CMAKE_CXX_FLAGS "-march=native ${CMAKE_CXX_FLAGS}")
+    endif(NATIVE)
+  endif()
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+    set(CMAKE_CXX_FLAGS "-mmacosx-version-min=${MIN_OSX_VERSION} ${CMAKE_CXX_FLAGS}")
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+
+  if(STATIC)
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+      #do nothing here - just to be clear c++ does not get fully statically linked
+      set(CMAKE_CXX_LINKER_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
+    endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+  endif(STATIC)
+
+endif()
+
 # Check that the compiler has the features we need
 if(${CMAKE_VERSION} VERSION_GREATER "3.6.0")
   include(${CMAKE_SOURCE_DIR}/cmake/fortran_support.cmake)
@@ -992,10 +1110,13 @@ endif()
 #build dafor
 add_executable(dafor ${CMAKE_SOURCE_DIR}/source/tools/dafor/dafor.f90)
 #we do not need any fancy flags for dafor but nagfor does not like the following
-if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
-  set_target_properties(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2")
-  set_target_properties(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2")
-endif(Fortran_COMPILER_NAME MATCHES "gfortran.*")
+#only do this on x86 + friends
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
+  if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
+    set_target_properties(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2")
+    set_target_properties(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2")
+  endif(Fortran_COMPILER_NAME MATCHES "gfortran.*")
+endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
 
 if(CRLIBM)
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/crlibm)
