@@ -150,6 +150,9 @@ program maincr
 #ifdef CR
   featList = featList//" CR"
 #endif
+#ifdef ZLIB
+  featList = featList//" ZLIB"
+#endif
 #ifdef ROOT
   featList = featList//" ROOT"
 #endif
