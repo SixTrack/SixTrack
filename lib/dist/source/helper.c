@@ -60,30 +60,36 @@ void add2table(double table[100][100], char* line, int linenum){
       char tosplit [ 1000 ];
       while ( fgets ( line, sizeof line, file ) != NULL ){ /* read a line */
         if(strncmp(line, "%", 1)==0){
-          char value_s[20], parameter[20];
+          char value_s[20], parameter[20], shorty[20];
           double value;
-          sscanf( line, "%s  %s",  parameter, &value_s);
+          sscanf( line, "%s %s  %s", shorty, parameter, value_s);
           value = atof(value_s);
-          printf("para and value, %s,  %f \n", parameter, value);
+          printf("vvvvvva %f %s \n", value, value_s);
+
           if(strcmp(parameter, "energy0")==0){
             dist->ref->e0=value;
           }
-          if(strcmp(parameter, "pc0")==0){
+          else if(strcmp(parameter, "pc0")==0){
             dist->ref->pc0=value;
+           printf("pcccccuuuu %f \n", dist->ref->pc0);
           }
-          if(strcmp(parameter, "a0")==0){
-            dist->ref->a0=value;
+          else if(strcmp(parameter, "a0")==0){
+            dist->ref->a0=(int)value;
+            printf("neeevereeere hereeeer %f \n", dist->ref->pc0);
           }
-          if(strcmp(parameter, "z0")==0){
-            dist->ref->z0=value;
+          else if(strcmp(parameter, "z0")==0){
+            dist->ref->z0=(int)value;
           }
-          if(strcmp(parameter, "mass0")==0){
+          else if(strcmp(parameter, "mass0")==0){
             dist->ref->mass0=value;
-          }
-          if(strcmp(parameter, "charge0")==0){
-            dist->ref->charge0=value;
-          }
 
+          }
+          else if(strcmp(parameter, "charge0")==0){
+            dist->ref->charge0=(int)value;
+          }
+          else{
+            printf("Not recogniced parameter %s \n", parameter);
+          }
         }
         else if(strncmp(line, "#", 1)!=0 && linecount==-1){
           strcpy(tosplit, line);
@@ -108,12 +114,12 @@ void add2table(double table[100][100], char* line, int linenum){
      perror ( filename ); /* why didn't the file open? */
   }
   int ab = 1;
-  initializedistribution_(&ab);
-  printf("heeere \n");
+
+
   allocateincoord(linecount);
-    printf("heeereaa \n");
+
   for(int i=0; i< numcolum; i++){
-       printf("heeereaabbb %s %d \n" , columns[i], numcolum);
+
     if(strcmp(columns[i], "x")==0)
       setphysical(0, i, table);
     else if(strcmp(columns[i], "px")==0)
@@ -166,7 +172,6 @@ void add2table(double table[100][100], char* line, int linenum){
       setnormalized(4, i, table);
     else if(strcmp(columns[i], "pzn")==0)
       setnormalized(5, i, table);
-
     else if(strcmp(columns[i], "mass")==0){
       for(int j=0;j < dist->totincoord; j++){
         dist->mass = table[j][i];
@@ -186,8 +191,24 @@ void add2table(double table[100][100], char* line, int linenum){
   }
 
    return 0;
+}
+
+void print2filenew(){
+   FILE * fp;
+   /* open the file for writing*/
+   fp = fopen ("myoutfile.txt","w");
+   fprintf (fp, "mass0 %f \n",dist->ref->mass0);
+   fprintf (fp, "charge0 %d \n",dist->ref->charge0);
+   fprintf (fp, "z0 %d \n",dist->ref->z0);
+   fprintf (fp, "a0 %d \n",dist->ref->a0);
+   fprintf (fp, "pc0 %f \n",dist->ref->pc0);
+
+   /* close the file*/  
+   fclose (fp);
+
 
 }
+
 
 void allocateincoord(int linecount){
 
@@ -199,12 +220,6 @@ void allocateincoord(int linecount){
     dist->incoord[i]->normalized = (double*)malloc(dim*sizeof(double));
     dist->incoord[i]->action = (double*)malloc(dim*sizeof(double));
   }
-  dist->ref->e0=0;
-  dist->ref->pc0=0;
-  dist->ref->a0=1;
-  dist->ref->z0=1;
-  dist->ref->mass0=0;
-  dist->ref->charge0=1;
 }
 
 

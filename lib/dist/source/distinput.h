@@ -23,12 +23,12 @@ struct distparam
 	struct appliedcut* cuts2apply;
 };
 struct refparam{
-	double mass0;
 	int charge0;
 	int z0;
 	int a0;
 	double pc0;
 	double e0;
+	double mass0;
 };
 struct incoordinates
 {
