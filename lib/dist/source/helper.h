@@ -19,3 +19,7 @@ void solve2by2eq(double a1, double b1, double c1, double a2, double b2, double c
 int readfile();
 int splitline(char* line, char columns[100][100] );
 void add2table(double[100][100], char* line, int linenum );
+void allocateincoord(int linecount);
+void setphysical(int coordorder, int column, double table[100][100]);
+void setaction(int coordorder, int column, double table[100][100]);
+void setnormalized(int coordorder, int column, double table[100][100]);

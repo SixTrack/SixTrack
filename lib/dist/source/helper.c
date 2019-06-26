@@ -26,8 +26,8 @@ int splitline(char* line, char columns[100][100] ){
     printf("columns %s \n ", columns[i]);
   }
   return count;
-
 }
+
 void add2table(double table[100][100], char* line, int linenum){
   char* word;
   int count = 0;
@@ -51,30 +51,55 @@ void add2table(double table[100][100], char* line, int linenum){
    FILE *file = fopen ( filename, "r" );
 
     double table [100][100];
-    int linecount = 0;
+    int linecount = -1;
     char columns[100][100];
     int numcolum ;
 // NEED to use strcp... 
    if ( file != NULL ){
-      char line [ 328 ]; /* or other suitable maximum line size */
-      char tosplit [ 328 ];
+      char line [ 1000 ]; /* or other suitable maximum line size */
+      char tosplit [ 1000 ];
       while ( fgets ( line, sizeof line, file ) != NULL ){ /* read a line */
-        if(strncmp(line, "#", 1)!=0 && linecount==0){
-        strcpy(tosplit, line);
-        numcolum = splitline(tosplit, columns);
-        linecount++;
+        if(strncmp(line, "%", 1)==0){
+          char value_s[20], parameter[20];
+          double value;
+          sscanf( line, "%s  %s",  parameter, &value_s);
+          value = atof(value_s);
+          printf("para and value, %s,  %f \n", parameter, value);
+          if(strcmp(parameter, "energy0")==0){
+            dist->ref->e0=value;
+          }
+          if(strcmp(parameter, "pc0")==0){
+            dist->ref->pc0=value;
+          }
+          if(strcmp(parameter, "a0")==0){
+            dist->ref->a0=value;
+          }
+          if(strcmp(parameter, "z0")==0){
+            dist->ref->z0=value;
+          }
+          if(strcmp(parameter, "mass0")==0){
+            dist->ref->mass0=value;
+          }
+          if(strcmp(parameter, "charge0")==0){
+            dist->ref->charge0=value;
+          }
+
         }
-        else if(linecount>0){
-            add2table(table, line, linecount-1);
-            linecount++;   
+        else if(strncmp(line, "#", 1)!=0 && linecount==-1){
+          strcpy(tosplit, line);
+          numcolum = splitline(tosplit, columns);
+          linecount++; 
         }
-        
+        else if(linecount>=0){
+          add2table(table, line, linecount);
+          linecount++;   
+        }
 
       }
 
       printf("line count %d \n",linecount);
       fclose ( file );  
-      return 0;
+
  
    }
   
@@ -84,15 +109,123 @@ void add2table(double table[100][100], char* line, int linenum){
   }
   int ab = 1;
   initializedistribution_(&ab);
-  dist->incoord = (struct incoordinates*)malloc(linecount*sizeof(struct incoordinates));
+  printf("heeere \n");
+  allocateincoord(linecount);
+    printf("heeereaa \n");
   for(int i=0; i< numcolum; i++){
-    if(stcmpy(columns[i], 'x')==0)
+       printf("heeereaabbb %s %d \n" , columns[i], numcolum);
+    if(strcmp(columns[i], "x")==0)
+      setphysical(0, i, table);
+    else if(strcmp(columns[i], "px")==0)
       setphysical(1, i, table);
+    else if(strcmp(columns[i], "y")==0)
+      setphysical(2, i, table);
+    else if(strcmp(columns[i], "py")==0)
+      setphysical(3, i, table);
+    else if(strcmp(columns[i], "zeta")==0)
+      setphysical(4, i, table);
+    else if(strcmp(columns[i], "deltap")==0)
+      setphysical(5, i, table);
+    else if(strcmp(columns[i], "tau")==0)
+      setphysical(6, i, table);
+    else if(strcmp(columns[i], "ptau")==0)
+      setphysical(7, i, table);
+    else if(strcmp(columns[i], "sigma")==0)
+      setphysical(8, i, table);
+    else if(strcmp(columns[i], "xp")==0)
+      setphysical(9, i, table);
+    else if(strcmp(columns[i], "yp")==0)
+      setphysical(10, i, table);
+    else if(strcmp(columns[i], "energy")==0)
+      setphysical(11, i, table);
+    else if(strcmp(columns[i], "pc")==0)
+      setphysical(12, i, table);
+    else if(strcmp(columns[i], "kinetic")==0)
+      setphysical(13, i, table);
+    else if(strcmp(columns[i], "jx")==0)
+      setaction(0, i, table);
+    else if(strcmp(columns[i], "phix")==0)
+      setaction(1, i, table);
+    else if(strcmp(columns[i], "jy")==0)
+      setaction(2, i, table);
+    else if(strcmp(columns[i], "phiy")==0)
+      setaction(3, i, table);
+    else if(strcmp(columns[i], "jz")==0)
+      setaction(4, i, table);
+    else if(strcmp(columns[i], "phiz")==0)
+      setaction(5, i, table);
+    else if(strcmp(columns[i], "xn")==0)
+      setnormalized(0, i, table);
+    else if(strcmp(columns[i], "pxn")==0)
+      setnormalized(1, i, table);
+    else if(strcmp(columns[i], "yn")==0)
+      setnormalized(2, i, table);
+    else if(strcmp(columns[i], "pyn")==0)
+      setnormalized(3, i, table);
+    else if(strcmp(columns[i], "zn")==0)
+      setnormalized(4, i, table);
+    else if(strcmp(columns[i], "pzn")==0)
+      setnormalized(5, i, table);
+
+    else if(strcmp(columns[i], "mass")==0){
+      for(int j=0;j < dist->totincoord; j++){
+        dist->mass = table[j][i];
+      }
+    }
+    else if(strcmp(columns[i], "a")==0){
+      for(int j=0;j < dist->totincoord; j++){
+        dist->incoord[j]->a = table[j][i];
+      }
+    }
+    else if(strcmp(columns[i], "z")==0){
+      for(int j=0;j < dist->totincoord; j++){
+        dist->incoord[j]->z = table[j][i];
+      }
+    }
+
   }
+
    return 0;
 
 }
 
+void allocateincoord(int linecount){
+
+  dist->incoord = (struct incoordinates**)malloc(linecount*sizeof(struct incoordinates*));
+  dist->totincoord = linecount;
+  for(int i=0; i<linecount; i++){
+    dist->incoord[i] = (struct incoordinates*)malloc(sizeof(struct incoordinates));
+    dist->incoord[i]->physical = (double*)malloc(dim*sizeof(double));
+    dist->incoord[i]->normalized = (double*)malloc(dim*sizeof(double));
+    dist->incoord[i]->action = (double*)malloc(dim*sizeof(double));
+  }
+  dist->ref->e0=0;
+  dist->ref->pc0=0;
+  dist->ref->a0=1;
+  dist->ref->z0=1;
+  dist->ref->mass0=0;
+  dist->ref->charge0=1;
+}
+
+
+void setphysical(int coordorder, int column, double table[100][100]){
+
+  for(int i=0;i < dist->totincoord; i++){
+    dist->incoord[i]->physical[coordorder] = table[i][column];
+  }
+}
+void setnormalized(int coordorder, int column, double table[100][100]){
+
+  for(int i=0;i < dist->totincoord; i++){
+    dist->incoord[i]->normalized[coordorder] = table[i][column];
+  }
+}
+void setaction(int coordorder, int column, double table[100][100]){
+
+  for(int i=0;i < dist->totincoord; i++){
+    dist->incoord[i]->action[coordorder] = table[i][column];
+  }
+}
 
 
 
