@@ -29,12 +29,16 @@ struct refparam{
 	double pc0;
 	double e0;
 	double mass0;
+	double beta0;
+	int en_like;
 };
 struct incoordinates
 {
 	double *action;
 	double *normalized;
 	double *physical;
+	double *nonstandard;
+	double mass;
 	int charge;
 	int a;
 	int z;

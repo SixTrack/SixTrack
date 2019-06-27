@@ -34,6 +34,7 @@ void initializedistribution_(int *numberOfDist){
 		(dist + i)->ref->z0=1;
 		(dist + i)->ref->mass0=0;
 		(dist + i)->ref->charge0=1;
+		(dist + i)->ref->en_like=-1;
 
 
 

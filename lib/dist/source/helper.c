@@ -64,18 +64,15 @@ void add2table(double table[100][100], char* line, int linenum){
           double value;
           sscanf( line, "%s %s  %s", shorty, parameter, value_s);
           value = atof(value_s);
-          printf("vvvvvva %f %s \n", value, value_s);
 
           if(strcmp(parameter, "energy0")==0){
             dist->ref->e0=value;
           }
           else if(strcmp(parameter, "pc0")==0){
             dist->ref->pc0=value;
-           printf("pcccccuuuu %f \n", dist->ref->pc0);
           }
           else if(strcmp(parameter, "a0")==0){
             dist->ref->a0=(int)value;
-            printf("neeevereeere hereeeer %f \n", dist->ref->pc0);
           }
           else if(strcmp(parameter, "z0")==0){
             dist->ref->z0=(int)value;
@@ -119,8 +116,7 @@ void add2table(double table[100][100], char* line, int linenum){
   allocateincoord(linecount);
 
   for(int i=0; i< numcolum; i++){
-
-    if(strcmp(columns[i], "x")==0)
+     if(strcmp(columns[i], "x")==0)
       setphysical(0, i, table);
     else if(strcmp(columns[i], "px")==0)
       setphysical(1, i, table);
@@ -130,24 +126,34 @@ void add2table(double table[100][100], char* line, int linenum){
       setphysical(3, i, table);
     else if(strcmp(columns[i], "zeta")==0)
       setphysical(4, i, table);
-    else if(strcmp(columns[i], "deltap")==0)
+    else if(strcmp(columns[i], "deltap")==0){
+      checkifenergyset(5);
       setphysical(5, i, table);
+    }
+    else if(strcmp(columns[i], "energy")==0){
+      checkifenergyset(0);
+      setnonstandard(0, i, table);
+    }
+     else if(strcmp(columns[i], "pc")==0){
+      checkifenergyset(1);
+      setnonstandard(1, i, table);
+    }
+    else if(strcmp(columns[i], "psigma")==0){
+      checkifenergyset(2);
+      setnonstandard(2, i, table);
+    }
+    else if(strcmp(columns[i], "ptau")==0){
+      checkifenergyset(3);
+      setnonstandard(3, i, table);
+    }
     else if(strcmp(columns[i], "tau")==0)
-      setphysical(6, i, table);
-    else if(strcmp(columns[i], "ptau")==0)
-      setphysical(7, i, table);
+      setnonstandard(4, i, table);
     else if(strcmp(columns[i], "sigma")==0)
-      setphysical(8, i, table);
+      setnonstandard(5, i, table);
     else if(strcmp(columns[i], "xp")==0)
-      setphysical(9, i, table);
+      setnonstandard(6, i, table);
     else if(strcmp(columns[i], "yp")==0)
-      setphysical(10, i, table);
-    else if(strcmp(columns[i], "energy")==0)
-      setphysical(11, i, table);
-    else if(strcmp(columns[i], "pc")==0)
-      setphysical(12, i, table);
-    else if(strcmp(columns[i], "kinetic")==0)
-      setphysical(13, i, table);
+      setnonstandard(7, i, table);
     else if(strcmp(columns[i], "jx")==0)
       setaction(0, i, table);
     else if(strcmp(columns[i], "phix")==0)
@@ -189,11 +195,85 @@ void add2table(double table[100][100], char* line, int linenum){
     }
 
   }
+  calculaterefparam();
+  convert2standard();
 
    return 0;
 }
 
+void calculaterefparam(){
+  if(dist->ref->mass0 == 0){
+    printf("A mass is needed! \n");
+    exit(1);
+  }
+  if(dist->ref->pc0 == 0 && dist->ref->e0==0){
+    printf("A energy is needed! \n");
+    exit(1);    
+  }
+  if(dist->ref->pc0 > 0 && dist->ref->e0 > 0){
+    printf("Can't set both energy and momentum! \n");
+    exit(1);    
+  }
+  if(dist->ref->pc0 > 0){
+   dist->ref->e0 = momentum2energy(dist->ref->pc0,dist->ref->mass0);
+  }
+  if(dist->ref->e0 > 0){
+   dist->ref->pc0 = energy2momentum(dist->ref->e0,dist->ref->mass0);
+  }
+  dist->ref->beta0 = (dist->ref->pc0)/(dist->ref->e0);
+
+}
+
+void convert2standard(){
+
+
+  if(dist->ref->en_like==-1){
+    printf("No energy variable is set. Assume 0 deviation from reference energy \n");
+  }
+  else if(dist->ref->en_like==0){ //energy
+    for(int i=0; i< dist->totincoord; i++){
+      dist->incoord[i]->physical[5] = (momentum2energy(dist->incoord[i]->nonstandard[0], dist->incoord[i]->mass)-(dist->ref->pc0))/(dist->ref->pc0);
+    }  
+  }
+  else if(dist->ref->en_like==1){ //momentum
+    for(int i=0; i< dist->totincoord; i++){
+      dist->incoord[i]->physical[5] = ((dist->incoord[i]->nonstandard[1], dist->incoord[i]->mass)-(dist->ref->pc0))/(dist->ref->pc0);
+    }  
+  }
+  else if(dist->ref->en_like==2){ //psigma
+    for(int i=0; i< dist->totincoord; i++){
+      dist->incoord[i]->physical[5] = psigma2deltap(dist->incoord[i]->nonstandard[2], dist->ref->beta0);
+    }  
+  }
+  else if(dist->ref->en_like==3){ //pt
+    for(int i=0; i< dist->totincoord; i++){
+      dist->incoord[i]->physical[5] = pt2deltap(dist->incoord[i]->nonstandard[3], dist->ref->beta0);
+    }  
+  }
+}
+
+double psigma2deltap(double psigma, double beta0 ){
+  return (sqrt(pow(psigma*beta0,2) +2*psigma +1)-1);
+}
+
+double pt2deltap(double pt, double beta0 ){
+  return (sqrt(pow(pt,2) +2*pt*beta0 +1)-1);
+}
+
+
+void checkifenergyset(int entype){
+  if(dist->ref->en_like==-1)
+    dist->ref->en_like=entype;
+  else {
+    printf("Only allowed 1 type of energy variable! \n");
+    exit(1);
+  }
+}
+
 void print2filenew(){
+  if(dist->ref->en_like ==-1){
+
+  }
    FILE * fp;
    /* open the file for writing*/
    fp = fopen ("myoutfile.txt","w");
@@ -203,15 +283,15 @@ void print2filenew(){
    fprintf (fp, "a0 %d \n",dist->ref->a0);
    fprintf (fp, "pc0 %f \n",dist->ref->pc0);
 
+   fprintf(fp, "x px y py zeta deltap");
+
    /* close the file*/  
    fclose (fp);
 
 
 }
 
-
 void allocateincoord(int linecount){
-
   dist->incoord = (struct incoordinates**)malloc(linecount*sizeof(struct incoordinates*));
   dist->totincoord = linecount;
   for(int i=0; i<linecount; i++){
@@ -219,6 +299,7 @@ void allocateincoord(int linecount){
     dist->incoord[i]->physical = (double*)malloc(dim*sizeof(double));
     dist->incoord[i]->normalized = (double*)malloc(dim*sizeof(double));
     dist->incoord[i]->action = (double*)malloc(dim*sizeof(double));
+    dist->incoord[i]->nonstandard = (double*)malloc(9*sizeof(double));
   }
 }
 
@@ -239,6 +320,12 @@ void setaction(int coordorder, int column, double table[100][100]){
 
   for(int i=0;i < dist->totincoord; i++){
     dist->incoord[i]->action[coordorder] = table[i][column];
+  }
+}
+
+void setnonstandard(int coordorder, int column, double table[100][100]){
+  for(int i=0;i < dist->totincoord; i++){
+    dist->incoord[i]->nonstandard[coordorder] = table[i][column];
   }
 }
 
@@ -306,7 +393,9 @@ void createLinearSpaced(int length, double start, double stop, double *eqspaced 
 double momentum2energy(double momentum, double mass){
     return sqrt(pow(momentum,2)+pow(mass,2));
 }
-
+double energy2momentum(double energy, double mass){
+    return sqrt(pow(energy,2)-pow(mass,2));
+}
 
 /* 
     if mtrx_a is (m x n) and mtrx_b is (n x p), 
