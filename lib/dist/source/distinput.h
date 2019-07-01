@@ -32,6 +32,7 @@ struct refparam{
 	double mass0;
 	double beta0;
 	int en_like;
+
 };
 struct coordinates
 {
