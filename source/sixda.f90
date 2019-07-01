@@ -32,7 +32,10 @@ subroutine daliesix
   if(nord1.gt.no) nord1=no
   ndim=nvar2/2
   if(nvarf/2.lt.ndim) ndim=nvarf/2
-  if(ndim.eq.0) call prror(94)
+  if(ndim == 0) then
+    write(lout,"(a)") "DALIESIX> ERROR Number of normal form variables have to be: 2, 4, 5, 6 + parameters."
+    call prror(-1)
+  end if
   nv=nvarf
   nd2=2*ndim
   ndpt=idptr
@@ -177,7 +180,10 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   dimension am(6,6),idummy(6)
   save
 
-  if(nndim.lt.2.or.nndim.gt.3) call prror(95)
+  if(nndim < 2 .or. nndim > 3) then
+    write(lout,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
+    call prror(-1)
+  end if
 
   nordo=nord
   nvaro=nvar
@@ -726,8 +732,9 @@ subroutine runda
           endif
         enddo
       endif
-      if(ix.le.0) then
-        call prror(93)
+      if(ix <= 0) then
+        write(lout,"(a)") "RUNDA> ERROR Inverted linear blocks not allowed."
+        call prror(-1)
       endif
 #include "include/dalin1.f90"
 #include "include/dalin2.f90"
@@ -883,7 +890,7 @@ subroutine runda
               endif
               rho2b=crk**2+cik**2
               if(rho2b.gt.pieni) then
-                if(abs(sigman(1,imbb(i))).lt.pieni) call prror(88)
+                if(abs(sigman(1,imbb(i))).lt.pieni) goto 9088
                 tkb=rho2b/((two*sigman(1,imbb(i)))*sigman(1,imbb(i)))
                 beamoff4=(((crad*ptnfac(ix))*crk)/rho2b)*(one-exp_mb(-one*tkb))
                 beamoff5=(((crad*ptnfac(ix))*cik)/rho2b)*(one-exp_mb(-one*tkb))
@@ -892,7 +899,7 @@ subroutine runda
 #include "include/beamcof.f90"
 !FOX  RHO2BF=CRKVEBF*CRKVEBF+CIKVEBF*CIKVEBF ;
             if(abs(dare(rho2bf)).gt.pieni) then
-              if(abs(sigman(1,imbb(i))).lt.pieni) call prror(88)
+              if(abs(sigman(1,imbb(i))).lt.pieni) goto 9088
 !FOX  TKBF=RHO2BF/(TWO*SIGMAN(1,IMBB(I))*SIGMAN(1,IMBB(I))) ;
               if(ibbc.eq.0) then
 !FOX   Y(1)=Y(1)+(CRAD*CRKVEBF/RHO2BF*
@@ -914,7 +921,7 @@ subroutine runda
             endif
           else if(sigman(1,imbb(i)).gt.sigman(2,imbb(i))) then
             if(ibeco.eq.1) then
-              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
               r2b=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
               rb=sqrt(r2b)
               rkb=((crad*ptnfac(ix))*pisqrt)/rb
@@ -928,7 +935,7 @@ subroutine runda
               xrb=abs(crk)/rb
               zrb=abs(cik)/rb
               call errf(xrb,zrb,crxb,crzb)
-              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
               tkb=(crk**2/sigman(1,imbb(i))**2+cik**2/sigman(2,imbb(i))**2)*half
               xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb
               zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb
@@ -936,7 +943,7 @@ subroutine runda
               beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
               beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
             endif
-            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
             r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
             rbf=sqrt(r2bf)
             rkbf=((crad*ptnfac(ix))*pisqrt)/rbf
@@ -950,7 +957,7 @@ subroutine runda
 !FOX  ZRBF=-ZRBF ;
             endif
             call errff(xrbf,zrbf,crxbf,crzbf)
-            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
 !FOX  TKBF=(CRKVEBF*CRKVEBF/(SIGMAN(1,IMBB(I))*SIGMAN(1,IMBB(I)))+
 !FOX  CIKVEBF*CIKVEBF/(SIGMAN(2,IMBB(I))*SIGMAN(2,IMBB(I))))*HALF ;
 !FOX  XBBF=SIGMAN(2,IMBB(I))/SIGMAN(1,IMBB(I))*XRBF ;
@@ -977,7 +984,7 @@ subroutine runda
             endif
           else if(sigman(1,imbb(i)).lt.sigman(2,imbb(i))) then
             if(ibeco.eq.1) then
-              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
               r2b=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2)
               rb=sqrt(r2b)
               rkb=((crad*ptnfac(ix))*pisqrt)/rb
@@ -991,7 +998,7 @@ subroutine runda
               xrb=abs(crk)/rb
               zrb=abs(cik)/rb
               call errf(zrb,xrb,crzb,crxb)
-              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+              if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
               tkb=(crk**2/sigman(1,imbb(i))**2+cik**2/sigman(2,imbb(i))**2)*half
               xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb
               zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb
@@ -999,7 +1006,7 @@ subroutine runda
               beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
               beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
             endif
-            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
             r2bf=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2)
             rbf=sqrt(r2bf)
             rkbf=((crad*ptnfac(ix))*pisqrt)/rbf
@@ -1013,7 +1020,7 @@ subroutine runda
 !FOX  ZRBF=-ZRBF ;
             endif
             call errff(zrbf,xrbf,crzbf,crxbf)
-            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) call prror(88)
+            if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
 !FOX  TKBF=(CRKVEBF*CRKVEBF/(SIGMAN(1,IMBB(I))*SIGMAN(1,IMBB(I)))+
 !FOX  CIKVEBF*CIKVEBF/(SIGMAN(2,IMBB(I))*SIGMAN(2,IMBB(I))))*HALF ;
 !FOX  XBBF=SIGMAN(2,IMBB(I))/SIGMAN(1,IMBB(I))*XRBF ;
@@ -1676,6 +1683,12 @@ subroutine runda
 !-----------------------------------------------------------------------
 call comt_daEnd
   return
+
+9088 continue
+  write(lout,"(a)") "RUNDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
+  call prror(-1)
+  return
+
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
   &i7,' LOST IN REVOLUTION ',i8,' AT ELEMENT ',i4/ t10,              &
   &'HORIZ:  AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,       &

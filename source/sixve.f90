@@ -730,7 +730,10 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   dimension am(6,6),idummy(6)
   save
 !-----------------------------------------------------------------------
-  if(nndim.lt.2.or.nndim.gt.3) call prror(95)
+  if(nndim < 2 .or. nndim > 3) then
+    write(lout,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
+    call prror(-1)
+  end if
 !--------------------
   nordo=nord
   nvaro=nvar

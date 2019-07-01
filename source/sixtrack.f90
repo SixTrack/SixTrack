@@ -238,7 +238,10 @@ subroutine daten
 
 90 continue
   read(3,"(a4,8x,a60)",end=9998,iostat=ierro) cCheck,iHead
-  if(ierro > 0) call prror(58)
+  if(ierro > 0) then
+    write(lout,"(a)") "INPUT> ERROR Could not read from fort.3"
+    call prror(-1)
+  end if
   lineNo3 = lineNo3+1
   if(cCheck(1:1) == "/") goto 90
   if(cCheck(1:1) == "!") goto 90
@@ -904,10 +907,13 @@ subroutine daten
       call prror(-1)
     end if
 
+    call hions_postInput
+    gammar = nucm0/e0
+    betrel = sqrt((one+gammar)*(one-gammar))
+    
     if(nbeam >= 1) then
       parbe14 = (((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6
     end if
-    gammar = pma/e0
     crad   = (((two*crad)*partnum)*gammar)*c1e6
     emitx  = sixin_emitNX*gammar
     emity  = sixin_emitNY*gammar
@@ -937,7 +943,6 @@ subroutine daten
 
   end if
 
-  call hions_postInput
   call elens_postInput
 
   if(idp == 0 .or. ition == 0 .or. nbeam < 1) then
@@ -1973,7 +1978,10 @@ subroutine initialize_element(ix,lfirst)
                   sfac2s=one
                   if(sfac2.lt.zero) sfac2s=-one
                   sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))
-                  if(sfac3.gt.sfac1) call prror(103)
+                  if(sfac3 > sfac1) then
+                    write(lout,"(a)") "BEAMBEAM> ERROR 6D beam-beam with tilt not possible."
+                    call prror(-1)
+                  end if
                   sfac4=(sfac2s*sfac2)/sfac3
                   sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3
                   sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)
@@ -1991,7 +1999,9 @@ subroutine initialize_element(ix,lfirst)
                 nbeaux(imbb(i))=0
                 if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
                   if(nbeaux(imbb(i)).eq.2.or.nbeaux(imbb(i)).eq.3) then
-                    call prror(89)
+                    write(lout,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
+                    "round or elliptical for all particles"
+                    call prror(-1)
                   else
                     nbeaux(imbb(i))=1
                     sigman2(1,imbb(i))=sigman(1,imbb(i))**2
@@ -2000,7 +2010,9 @@ subroutine initialize_element(ix,lfirst)
   !--elliptic beam x>z
                 if(sigman(1,imbb(i)).gt.sigman(2,imbb(i))) then
                   if(nbeaux(imbb(i)).eq.1.or.nbeaux(imbb(i)).eq.3) then
-                    call prror(89)
+                    write(lout,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
+                    "round or elliptical for all particles"
+                    call prror(-1)
                   else
                     nbeaux(imbb(i))=2
                     ktrack(i)=42
@@ -2013,7 +2025,9 @@ subroutine initialize_element(ix,lfirst)
   !--elliptic beam z>x
                 if(sigman(1,imbb(i)).lt.sigman(2,imbb(i))) then
                   if(nbeaux(imbb(i)).eq.1.or.nbeaux(imbb(i)).eq.2) then
-                    call prror(89)
+                    write(lout,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
+                    "round or elliptical for all particles"
+                    call prror(-1)
                   else
                     nbeaux(imbb(i))=3
                     ktrack(i)=43
@@ -2881,7 +2895,6 @@ subroutine comnul
       emitx=zero
       emity=zero
       emitz=zero
-      gammar=one
       sigz=zero
       sige=zero
       damp=zero
@@ -3979,16 +3992,25 @@ subroutine chroma
           suzy=zero
           do 30 l=1,2
             isl=is(l)
-            if(kz(isl).ne.3) call prror(11)
+            if(kz(isl).ne.3) then
+              write(lout,"(a)") "CHROMA> ERROR Element specified for chromaticity correction is not a sextupole."
+              call prror(-1)
+            end if
             ed(isl)=ed(isl)+dsm(l,ii)
             if(kp(isl).eq.5) call combel(isl)
    30     continue
           do 40 n=1,5
             dpp=de2*real(3-n,fPrec)                                            !hr06
             call clorb(dpp)
-            if(ierro.gt.0) call prror(12)
+            if(ierro.gt.0) then
+              write(lout,"(a)") "CHROMA> ERROR Unstable closed orbit during chromaticity correction."
+              call prror(-1)
+            end if
             call phasad(dpp,qwc)
-            if(ierro.gt.0) call prror(13)
+            if(ierro.gt.0) then
+              write(lout,"(a)") "CHROMA> ERROR No optical solution during chromaticity correction."
+              call prror(-1)
+            end if
             ox=qwc(1)
             oz=qwc(2)
             su2=su2+dpp**2                                               !hr06
@@ -4283,6 +4305,7 @@ subroutine clorb2(dpp)
       use numerical_constants
       use mathlib_bouncer
       use parpro
+      use crcoall
       use mod_common
       use mod_commons
       use mod_commont
@@ -4305,7 +4328,10 @@ subroutine clorb2(dpp)
       call envar(dpp)
       call umlauf(dpp,1,ierr)
       ierro=ierr
-      if(ierro.ne.0) call prror(36)
+      if(ierro /= 0) then
+        write(lout,"(a)") "CLORB> ERROR No convergence in rmod."
+        call prror(-1)
+      end if
 
       do 40 ii=1,itco
         dcx=abs(dx(1))
@@ -4324,7 +4350,10 @@ subroutine clorb2(dpp)
 
         call matrix(dpp,am)
 
-        if(ierro.ne.0) call prror(36)
+        if(ierro /= 0) then
+          write(lout,"(a)") "CLORB> ERROR No convergence in rmod."
+          call prror(-1)
+        end if
 
         do 30 l=1,2
           ll=2*l
@@ -4349,6 +4378,7 @@ subroutine combel(iql)
 !  COMBINATION OF ELEMENTS
 !-----------------------------------------------------------------------
       use floatPrecision
+      use crcoall
       use numerical_constants
       use mathlib_bouncer
       use parpro
@@ -4365,7 +4395,10 @@ subroutine combel(iql)
         do 10 m=1,20
           ico=icomb(j,m)
           if(ico.eq.0) goto 10
-          if(kz(ico0).ne.kz(ico)) call prror(14)
+          if(kz(ico0).ne.kz(ico)) then
+            write(lout,"(a)") "COMBEL> ERROR Elements of different types are combined in data block combination of elements."
+            call prror(-1)
+          end if
           if(abs(el(ico0)).gt.pieni) then
             if(abs(el(ico)).gt.pieni) then
               ek(ico)=ek(ico0)*ratio(j,m)
@@ -4988,7 +5021,10 @@ subroutine linopt(dpp)
       call betalf(dpp,qw)
       call phasad(dpp,qwc)
 
-      if(ierro.ne.0) call prror(22+ierro)
+      if(ierro /= 0) then
+        write(lout,"(a)") "LINOPT> ERROR No optical solution."
+        call prror(-1)
+      end if
       if(ncorru.eq.0) write(lout,10040) dpp,qwc(1),qwc(2)
 
       call envar(dpp)
@@ -6180,7 +6216,11 @@ subroutine corrorb
       end do
 
       call clorb(ded)
-      if(ierro.gt.0) call prror(4)
+      if(ierro.gt.0) then
+        write(lout,"(a)") "CLORB> ERROR Unstable closed orbit during initial dispersion calculation."
+        write(lout,"(a)") "CLORB>       Instability occurred for small relative energy deviation."
+        call prror(-1)
+      end if
 
       do l=1,2
         clo0(l)=clo(l)
@@ -6188,7 +6228,10 @@ subroutine corrorb
       end do
 
       call clorb(zero)
-      if(ierro.gt.0) call prror(5)
+      if(ierro.gt.0) then
+        write(lout,"(a)") "CLORB> ERROR Unstable closed orbit for zero energy deviation."
+        call prror(-1)
+      end if
 
       do l=1,2
         di0(l)=(clo0(l)-clo(l))/ded
@@ -6210,8 +6253,9 @@ subroutine corrorb
       write(lout,*)
       write(lout,10000)
 
-      if(ncorru.eq.0) then
-        call prror(84)
+      if(ncorru == 0) then
+        write(lout,"(a)") "CLORB> ERROR Number of orbit correctors is zero."
+        call prror(-1)
       else
         if(ncorrep.le.0) then
           write(lout,10010) ncorru,sigma0(1),sigma0(2)
@@ -7057,7 +7101,10 @@ subroutine ord
         mzu(i)=izu
         izu=izu+3
         if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
-        if(izu > nran) call prror(30)
+        if(izu > nran) then
+          write(lout,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
+          call prror(-1)
+        end if
         if(izu > nzfz) then
           call fluc_moreRandomness
         endif
@@ -7067,12 +7114,18 @@ subroutine ord
         do j=1,il
           if(bez(j).eq.bezr(1,i)) then
             jra(i,1)=j
-            if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22) call prror(31)
+            if(kz(j) == 0 .or. kz(j) == 20 .or. kz(j) == 22) then
+              write(lout,"(a)") "ORD> ERROR Elements that need random numbers have a kz not equal to 0, 20 or 22."
+              call prror(-1)
+            end if
             jra(i,2)=kz(j)
           endif
           if(bez(j).eq.bezr(2,i)) then
             jra(i,3)=j
-            if(kz(j).eq.0.or.kz(j).eq.20.or.kz(j).eq.22) call prror(31)
+            if(kz(j) == 0 .or. kz(j) == 20 .or. kz(j) == 22) then
+              write(lout,"(a)") "ORD> ERROR Elements that need random numbers have a kz not equal to 0, 20 or 22."
+              call prror(-1)
+            end if
             jra(i,4)=kz(j)
           endif
         end do
@@ -7082,9 +7135,15 @@ subroutine ord
           jra(i,5)=nra1
           nra1=nra1+mran*3
           if(kzz1.eq.11.and.abs(ek(jra(i,1))).gt.pieni) nra1=nra1+mran*2*mmul
-          if(nra1.gt.nzfz) call prror(32)
+          if(nra1 > nzfz) then
+            call fluc_moreRandomness
+          end if
         endif
-        if(kzz1.eq.11.and.(kzz2.ne.11.and.kzz2.ne.0)) call prror(33)
+        if(kzz1 == 11 .and. (kzz2 /= 11 .and. kzz2 /= 0)) then
+          write(lout,"(a)") "ORD> ERROR To use the same random numbers for 2 elements, the inserted element "//&
+            "must not need more of such numbers than the reference element."
+          call prror(-1)
+        end if
       end do
       do i=1,iu
         ix=ic(i)
@@ -7106,7 +7165,10 @@ subroutine ord
           iran(ix)=mzu(i)
         else
           inz(j)=inz(j)+1
-          if(inz(j).gt.mran) call prror(34)
+          if(inz(j) > mran) then
+            write(lout,"(a,i0,a)") "ORD> ERROR Not more than ",mran," of each type of inserted elements can be used."
+            call prror(-1)
+          end if
           ! map position of errors for present element in lattice structure
           mzu(i)=jra(j,5)
           iran(ix)=mzu(i)
@@ -7119,7 +7181,10 @@ subroutine ord
         iran(ix)=izu
         izu=izu+3
         if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
-        if(izu.gt.nran) call prror(30)
+        if(izu > nran) then
+          write(lout,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
+          call prror(-1)
+        end if
       end do
     endif
   else !iorg < 0 (in case of no ORGA block in fort.3)
@@ -7135,7 +7200,10 @@ subroutine ord
       izu=izu+3
       if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
       ! why just checking? shouldn't we map on mzu(i)?
-      if(izu > nran) call prror(30)
+      if(izu > nran) then
+        write(lout,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
+        call prror(-1)
+      end if
       if(izu > nzfz) then
         call fluc_moreRandomness
       end if
@@ -7329,7 +7397,10 @@ subroutine phasad(dpp,qwc)
       dpr(1)=dpp*c1e3
       call clorb(dpp)
       call betalf(dpp,qw)
-      if(ierro.ne.0) call prror(22+ierro)
+      if(ierro /= 0) then
+        write(lout,"(a)") "PHASAD> ERROR No optical solution."
+        call prror(-1)
+      end if
       call envar(dpp)
 #ifdef DEBUG
 !     call warr('qw',qw(1),1,0,0,0)
@@ -7835,7 +7906,10 @@ subroutine qmod0
       dpp=zero
       iq1=iq(1)
       iq2=iq(2)
-      if(kz(iq1).ne.2.or.kz(iq2).ne.2) call prror(8)
+      if(kz(iq1).ne.2.or.kz(iq2).ne.2) then
+        write(lout,"(a)") "QMOD> ERROR Element is not a quadrupole."
+        call prror(-1)
+      end if
 
       if (abs(el(iq1)).le.pieni.or.abs(el(iq2)).le.pieni) then
         sm0(1)=ed(iq1)
@@ -7852,7 +7926,10 @@ subroutine qmod0
 
       if(abs(qw0(3)).gt.pieni) then
         iq3=iq(3)
-        if(kz(iq3).ne.2) call prror(8)
+        if(kz(iq3).ne.2) then
+          write(lout,"(a)") "QMOD> ERROR Element is not a quadrupole."
+          call prror(-1)
+        end if
         if (abs(el(iq3)).le.pieni) then
           sm0(3)=ed(iq3)
         else
@@ -7865,7 +7942,10 @@ subroutine qmod0
       endif
 
       call clorb(dpp)
-      if(ierro.gt.0) call prror(9)
+      if(ierro.gt.0) then
+        write(lout,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
+        call prror(-1)
+      end if
       call phasad(dpp,qwc)
       sens(1,5)=qwc(1)
       sens(2,5)=qwc(2)
@@ -7888,7 +7968,10 @@ subroutine qmod0
           endif
           if(kp(iql).eq.5) call combel(iql)
           call clorb(dpp)
-          if(ierro.gt.0) call prror(9)
+          if(ierro.gt.0) then
+            write(lout,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
+            call prror(-1)
+          end if
           call phasad(dpp,qwc)
           sens(1,n+1)=qwc(1)
           sens(2,n+1)=qwc(2)
@@ -7939,7 +8022,10 @@ subroutine qmod0
         else
           call loesd(aa1,bb,nite,nite,ierr)
         endif
-        if(ierr.eq.1) call prror(35)
+        if(ierr == 1) then
+          write(lout,"(a)") "QMOD> ERROR Problems during matrix-inversion."
+          call prror(-1)
+        end if
         do 50 l=1,nite
           iql=iq(l)
           if (abs(el(iql)).le.pieni) then
@@ -7950,7 +8036,10 @@ subroutine qmod0
           if(kp(iql).eq.5) call combel(iql)
    50   continue
         call clorb(dpp)
-        if(ierro.gt.0) call prror(9)
+        if(ierro.gt.0) then
+          write(lout,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
+          call prror(-1)
+        end if
         call phasad(dpp,qwc)
         sens(1,5)=qwc(1)
         sens(2,5)=qwc(2)
@@ -8339,6 +8428,7 @@ subroutine umlauf(dpp,ium,ierr)
   use mathlib_bouncer
   use numerical_constants
   use parpro
+  use crcoall
   use mod_common
   use mod_commons
   use mod_commont
@@ -8407,7 +8497,8 @@ subroutine umlauf(dpp,ium,ierr)
     kzz=kz(ix)
     if(abs(x(1,1)).lt.aper(1).and.abs(x(1,2)).lt.aper(2)) goto 70
     ierr=1
-    call prror(101)
+    write(lout,"(a)") "UMLAUF> Error amplitudes exceed the maximum values."
+    call prror(-1)
     return
 
 70  continue
@@ -8760,7 +8851,7 @@ subroutine resex(dpp)
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
-
+  use crcoall
   use parpro
   use mod_common
   use mod_commons
@@ -8856,7 +8947,10 @@ subroutine resex(dpp)
       call clorb(dpp)
       call betalf(dpp,qw)
 
-      if(ierro.ne.0) call prror(22+ierro)
+      if(ierro /= 0) then
+        write(lout,"(a)") "RESEX> ERROR No optical solution."
+        call prror(-1)
+      end if
       call envar(dpp)
 
 !--STARTVALUES OF THE TRAJECTORIES
@@ -9707,7 +9801,10 @@ subroutine rmod(dppr)
           if(kp(irr(i)).eq.5) call combel(irr(i))
   160   continue
         call loesd(aa,bb,j2,10,ierr)
-        if(ierr.eq.1) call prror(38)
+        if(ierr == 1) then
+          write(lout,"(a)") "RMOD> ERROR Problems during matrix-inversion."
+          call prror(-1)
+        end if
         do 170 i=1,j2
           if(i.eq.jj1.or.i.eq.jj2) then
             if (abs(el(irr(i))).le.pieni) then
@@ -10090,7 +10187,10 @@ subroutine subre(dpp)
         write(lout,10120) (di0(l),dip0(l),l=1,2)
         call betalf(dpp,qw)
         call phasad(dpp,qwc)
-        if(ierro.ne.0) call prror(22+ierro)
+        if(ierro /= 0) then
+          write(lout,"(a)") "SUBRE> ERROR No optical solution."
+          call prror(-1)
+        end if
         write(lout,10070) dpp,qwc(1),qwc(2)
         call envar(dpp)
 
@@ -10978,6 +11078,7 @@ subroutine subsea(dpp)
   use numerical_constants
   use mathlib_bouncer
   use parpro
+  use crcoall
   use mod_common
   use mod_commons
   use mod_commont
@@ -11066,7 +11167,10 @@ subroutine subsea(dpp)
       dpr(1)=dpp*c1e3
       call clorb2(dpp)
       call betalf(dpp,qw)
-      if(ierro.ne.0) call prror(22+ierro)
+      if(ierro /= 0) then
+        write(lout,"(a)") "SUBSEA> ERROR No optical solution."
+        call prror(-1)
+      end if
       call envar(dpp)
 
 !--STARTVALUES OF THE TRAJECTORIES
@@ -11818,7 +11922,10 @@ subroutine decoup
         else if(iskew.eq.2) then
           call loesd(aa,bb,4,4,ierr)
         endif
-        if(ierr.eq.1) call prror(64)
+        if(ierr == 1) then
+          write(lout,"(a)") "DECOUP> ERROR Problems during matrix-inversion."
+          call prror(-1)
+        end if
         do 50 i=1,6
           if(iskew.eq.2.and.i.gt.4) goto 50
           if(i.le.4) then
