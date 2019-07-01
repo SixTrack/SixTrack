@@ -323,6 +323,7 @@ subroutine runcav
 
   write(lout,10010)
 !-----------------------------------------------------------------------
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   time2=0.
   call time_timerCheck(time2)
@@ -770,6 +771,7 @@ subroutine runda
           write(lout,*) ' WARNING: in the 5*6 mode no extra parameters allowed'
         endif
         rewind 19
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
         return
       endif
@@ -1666,6 +1668,7 @@ subroutine runda
   write(lout,10010)
 
 520 continue
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   time2=0.
   call time_timerCheck(time2)

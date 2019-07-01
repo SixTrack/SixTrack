@@ -1,9 +1,9 @@
-print *, "befffoooorrreee"
+! start include/xrot_fox.f90
 cos_t = cos_mb(temp_angle)
 sin_t = sin_mb(temp_angle)
 tan_t = tan_mb(temp_angle)
 
-print *, "gooiinggg hereee first", temp_angle,  sin_t, cos_t, cos_mb(temp_angle)
+
 !FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
 !FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
 
@@ -14,14 +14,11 @@ print *, "gooiinggg hereee first", temp_angle,  sin_t, cos_t, cos_mb(temp_angle)
 !FOX  TEMPI(5) = SIGMDA*C1M3 ;
 !FOX  TEMPI(6) = ((EJ1-E0)/E0F) ;
 
-print *, dare(tempi(1)), dare(tempi(2)),dare(tempi(3)), "vvvvvv"
 
 !FOX  ZTDA = SQRT((ONE + DPDA)*(ONE + DPDA) 
 !FOX  - TEMPI(2)*TEMPI(2) - TEMPI(4)*TEMPI(4)) ;
-print *, dare(ztda), dare(pttda),dare(tempi(4)),tan_t,  "ttttttttt1"
-!FOX  PTTDA = ONE - (TAN_T*TEMPI(4))/ZTDA ;
 
-print *, dare(ztda), dare(pttda), "ttttttttt"
+!FOX  PTTDA = ONE - (TAN_T*TEMPI(4))/ZTDA ;
 
 !FOX  X(1) = X(1) + 
 !FOX  C1E3*(TAN_T*TEMPI(3)*TEMPI(2)/(ZTDA*PTTDA)) ;
@@ -29,5 +26,4 @@ print *, dare(ztda), dare(pttda), "ttttttttt"
 !FOX  Y(2) = C1E3*(COS_T*TEMPI(4) + SIN_T*ZTDA)/(ONE+DPDA)/MTCDA ;
 !FOX  SIGMDA = SIGMDA - C1E3*((TAN_T*TEMPI(3)*
 !FOX  (ONE/(E0F/E0)+TEMPI(6))/(ZTDA*PTTDA))*(E0F/E0)) ;
-
-print *, "gooiinggg hereee"
+! end include/xrot_fox.f90

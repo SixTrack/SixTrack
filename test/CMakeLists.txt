@@ -137,6 +137,7 @@ list(APPEND SIXTRACK_TESTS
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
+  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -262,6 +263,7 @@ set(TESTS_NOFORT10
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
+  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -291,6 +293,7 @@ set(TESTS_NO_STF_FORT90
   collimation_old-db_new-block
   collimation_old-db_old-block
   crabs
+  orbit6d-element-rotations
   dipedge
   dump_all_highprec
   dump4
@@ -595,6 +598,7 @@ set(FAST_TESTS
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
+  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -693,7 +697,9 @@ endforeach()
 # Zlib tests
 if(ZLIB)
   set_property(TEST SelfTest_zlib PROPERTY LABELS tool fast)
-  set_property(TEST SelfTest_zlib_64 PROPERTY LABELS tool fast)
+  if(64BIT)
+    set_property(TEST SelfTest_zlib_64 PROPERTY LABELS tool fast)
+  endif()
 endif()
 
 # Inputs
