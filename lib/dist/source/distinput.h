@@ -16,7 +16,8 @@ struct distparam
 	int coordtype; // This tells which type of coordinates the input is given.  // 1-Normalized
 	double **distout;
 	double **distout_normalized;
-	struct incoordinates** incoord;
+	struct coordinates** incoord;
+	struct coordinates** outcoord;
 	int totincoord;
 	int isDistrcalculated;
 	int longitunalemittance; // 0 - no longitudnal, 1 - e3, 2 - dp, 3 - deltas
@@ -32,7 +33,7 @@ struct refparam{
 	double beta0;
 	int en_like;
 };
-struct incoordinates
+struct coordinates
 {
 	double *action;
 	double *normalized;

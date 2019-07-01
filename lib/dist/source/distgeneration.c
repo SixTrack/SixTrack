@@ -23,6 +23,7 @@ void dist2sixcoord_(){
                         for(int n =0; n< dist->coord[5]->length; n++){
                             dist->distout[counter] = (double*)malloc(dim*sizeof(double));
                             dist->distout_normalized[counter] = (double*)malloc(dim*sizeof(double));
+
                             tc[0]=dist->coord[0]->values[i];
                             tc[1]=dist->coord[1]->values[j];
                             tc[2]=dist->coord[2]->values[k];
@@ -48,6 +49,45 @@ void dist2sixcoord_(){
     dist->totallength=counter;
     dist->isDistrcalculated=1;
 }
+
+void gen2sixcoord(){
+    int counter = 0;
+    double tc[6];
+    double tmp[6];
+    double tmp_n[6];
+    dist->distout = (double**)malloc(dist->totincoord*sizeof(double*));
+    dist->distout_normalized = (double**)malloc(dist->totincoord*sizeof(double*));
+    for(int i =0; i< dist->totincoord; i++){
+
+        dist->distout[counter] = (double*)malloc(dim*sizeof(double));
+        dist->distout_normalized[counter] = (double*)malloc(dim*sizeof(double));
+        
+        tc[0]=dist->incoord[i]->physical[0];
+        tc[1]=dist->incoord[i]->physical[1];
+        tc[2]=dist->incoord[i]->physical[2];
+        tc[3]=dist->incoord[i]->physical[3];
+        tc[4]=dist->incoord[i]->physical[4];
+        tc[5]=dist->incoord[i]->physical[5];
+     
+        //action2sixinternal_(tc, tmp, tmp_n);
+
+        canonical2six(tc, dist->ref->beta0, dist->ref->pc0, dist->ref->mass0, dist->incoord[i]->mass, tmp);
+        if(particle_within_limits_physical(tmp)==1){
+            for(int p=0; p<dim; p++){
+                dist->distout[counter][p] = tmp[p]+dist->closedorbit[p];
+                //dist->distout_normalized[counter][p] = tmp_n[p];
+            }
+            counter++;
+        }
+                                                                   
+         
+    }
+    dist->totallength=counter;
+    dist->isDistrcalculated=1;
+}
+
+
+
 
 /*This is to create a random distribution*/
 

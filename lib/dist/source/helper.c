@@ -9,22 +9,33 @@
 
 
 
-int splitline(char* line, char columns[100][100] ){
+int splitline(char* line, char columns[100][100], char units[100][100]  ){
 
   char* word;
   int count = 0;
   word = strtok(line, " ");
   strcpy(columns[count], word);
   count++;
+  char *unit = NULL;
+  char *columnname = NULL;
   /* the following loop gets the rest of the words until the
    * end of the message */
   while ((word = strtok(NULL, " ")) != NULL){
-    strcpy(columns[count], word);
+    unit = strstr(word, "[");
+    if(unit != NULL){
+      
+      strcpy(units[count], unit);
+      columnname=strtok(word,"[");
+      strcpy(columns[count], columnname);
+    }
+    else{
+      strcpy(units[count],  "nounit");
+      strcpy(columns[count], word);
+    }
+   
     count ++;
   }
-  for(int i=0 ;i<count; i++){
-    printf("columns %s \n ", columns[i]);
-  }
+
   return count;
 }
 
@@ -53,35 +64,59 @@ void add2table(double table[100][100], char* line, int linenum){
     double table [100][100];
     int linecount = -1;
     char columns[100][100];
+    char units[100][100];
     int numcolum ;
 // NEED to use strcp... 
    if ( file != NULL ){
       char line [ 1000 ]; /* or other suitable maximum line size */
       char tosplit [ 1000 ];
       while ( fgets ( line, sizeof line, file ) != NULL ){ /* read a line */
-        if(strncmp(line, "%", 1)==0){
-          char value_s[20], parameter[20], shorty[20];
+        if(strncmp(line, "$", 1)==0){
+          char value_s[20],  shorty[20];
+          char * parameter =  (char*)malloc(20*sizeof(char)); 
+          char * parameter_tmp =  (char*)malloc(20*sizeof(char)); 
+          char * unit =(char*)malloc(20*sizeof(char));
+          char * unit_tmp =(char*)malloc(20*sizeof(char));
+
           double value;
-          sscanf( line, "%s %s  %s", shorty, parameter, value_s);
+          double multifactor = 1;
+          sscanf( line, "%s  %s",  parameter_tmp, value_s);
+
+          
+          unit_tmp =strstr(parameter_tmp, "[");         
+
+          if(unit_tmp != NULL){
+            strcpy(unit,unit_tmp);
+            strcpy(parameter,strtok(parameter_tmp,"["));
+  
+          }
+          else{
+
+            strcpy(unit, "nounit");
+            strcpy(parameter, parameter_tmp);
+          }       
+          
           value = atof(value_s);
 
-          if(strcmp(parameter, "energy0")==0){
-            dist->ref->e0=value;
+          if(strcmp(parameter, "$energy0")==0){
+            multifactor = getEnergyUnit(unit);
+            dist->ref->e0=value*multifactor;
           }
-          else if(strcmp(parameter, "pc0")==0){
-            dist->ref->pc0=value;
+          else if(strcmp(parameter, "$pc0")==0){
+            multifactor = getEnergyUnit(unit);
+            dist->ref->pc0=value*multifactor;
           }
-          else if(strcmp(parameter, "a0")==0){
+          else if(strcmp(parameter, "$a0")==0){
             dist->ref->a0=(int)value;
           }
-          else if(strcmp(parameter, "z0")==0){
+          else if(strcmp(parameter, "$z0")==0){
             dist->ref->z0=(int)value;
           }
-          else if(strcmp(parameter, "mass0")==0){
-            dist->ref->mass0=value;
-
+          else if(strcmp(parameter, "$mass0")==0){
+            multifactor = getEnergyUnit(unit);
+            dist->ref->mass0=value*multifactor;
           }
-          else if(strcmp(parameter, "charge0")==0){
+          else if(strcmp(parameter, "$charge0")==0){
             dist->ref->charge0=(int)value;
           }
           else{
@@ -90,7 +125,7 @@ void add2table(double table[100][100], char* line, int linenum){
         }
         else if(strncmp(line, "#", 1)!=0 && linecount==-1){
           strcpy(tosplit, line);
-          numcolum = splitline(tosplit, columns);
+          numcolum = splitline(tosplit, columns, units);
           linecount++; 
         }
         else if(linecount>=0){
@@ -110,31 +145,37 @@ void add2table(double table[100][100], char* line, int linenum){
   {
      perror ( filename ); /* why didn't the file open? */
   }
-  int ab = 1;
-
 
   allocateincoord(linecount);
-
+  double multifactor;
   for(int i=0; i< numcolum; i++){
-     if(strcmp(columns[i], "x")==0)
+     if(strcmp(columns[i], "x")==0){
+      multifactor = getMetricUnit(units[i]);
       setphysical(0, i, table);
+    }
     else if(strcmp(columns[i], "px")==0)
       setphysical(1, i, table);
-    else if(strcmp(columns[i], "y")==0)
+    else if(strcmp(columns[i], "y")==0){
+      multifactor = getMetricUnit(units[i]);
       setphysical(2, i, table);
+    }
     else if(strcmp(columns[i], "py")==0)
       setphysical(3, i, table);
-    else if(strcmp(columns[i], "zeta")==0)
+    else if(strcmp(columns[i], "zeta")==0){
+      multifactor = getMetricUnit(units[i]);
       setphysical(4, i, table);
+    }
     else if(strcmp(columns[i], "deltap")==0){
       checkifenergyset(5);
       setphysical(5, i, table);
     }
     else if(strcmp(columns[i], "energy")==0){
+      multifactor = getEnergyUnit(units[i]);
       checkifenergyset(0);
       setnonstandard(0, i, table);
     }
      else if(strcmp(columns[i], "pc")==0){
+      multifactor = getEnergyUnit(units[i]);
       checkifenergyset(1);
       setnonstandard(1, i, table);
     }
@@ -146,10 +187,14 @@ void add2table(double table[100][100], char* line, int linenum){
       checkifenergyset(3);
       setnonstandard(3, i, table);
     }
-    else if(strcmp(columns[i], "tau")==0)
+    else if(strcmp(columns[i], "tau")==0){
+      multifactor = getMetricUnit(units[i]);
       setnonstandard(4, i, table);
-    else if(strcmp(columns[i], "sigma")==0)
+    }
+    else if(strcmp(columns[i], "sigma")==0){
+      multifactor = getMetricUnit(units[i]);
       setnonstandard(5, i, table);
+    }
     else if(strcmp(columns[i], "xp")==0)
       setnonstandard(6, i, table);
     else if(strcmp(columns[i], "yp")==0)
@@ -179,8 +224,9 @@ void add2table(double table[100][100], char* line, int linenum){
     else if(strcmp(columns[i], "pzn")==0)
       setnormalized(5, i, table);
     else if(strcmp(columns[i], "mass")==0){
+      multifactor = getEnergyUnit(units[i]);
       for(int j=0;j < dist->totincoord; j++){
-        dist->mass = table[j][i];
+        dist->mass = multifactor*table[j][i];
       }
     }
     else if(strcmp(columns[i], "a")==0){
@@ -195,24 +241,72 @@ void add2table(double table[100][100], char* line, int linenum){
     }
 
   }
+
   calculaterefparam();
   convert2standard();
 
    return 0;
 }
+void
+issue_error(const char* t1){
+  printf("+=+=+= fatal: %s\n",t1);
+  exit(1);
+}
+
+void issue_warning(const char* t1){
+  printf( "+=+=+= warning:  %s\n",t1);
+}
+
+void issue_info(const char* t1){
+  printf( "Info: %s\n",t1);
+}
+
+double getEnergyUnit(char *unit){
+  
+  double multif;
+  if(strcmp(unit, "[ev]")){
+    multif = 1e9;
+  }
+  else if(strcmp(unit, "[kev]")){
+    multif = 1e6;
+  } 
+  else if(strcmp(unit, "[mev]")){
+    multif = 1e3;
+  }
+  else if(strcmp(unit, "[gev]") || strcmp(unit, "nounit") ){
+    multif = 1;
+  }
+  else if(strcmp(unit, "[tev]")){
+    multif = 1e-3;
+  }
+  else{
+    printf("Unknow unit. Must be of the form [Mev]");
+  } 
+}
+
+
+double getMetricUnit(char *unit){
+  double multif;
+  if(strcmp(unit, "[mm]")){
+    multif = 1e3;
+  }
+  else if(strcmp(unit, "[m]") || strcmp(unit, "nounit") ){
+    multif = 1;
+  }
+  else{
+    issue_warning("Unknow unit. Must be of the form [Mev]");
+  } 
+}
 
 void calculaterefparam(){
   if(dist->ref->mass0 == 0){
-    printf("A mass is needed! \n");
-    exit(1);
+    issue_error("A mass is needed! \n");
   }
   if(dist->ref->pc0 == 0 && dist->ref->e0==0){
-    printf("A energy is needed! \n");
-    exit(1);    
+    issue_error("A energy is needed! \n");    
   }
   if(dist->ref->pc0 > 0 && dist->ref->e0 > 0){
-    printf("Can't set both energy and momentum! \n");
-    exit(1);    
+    issue_error("Can't set both energy and momentum! \n");   
   }
   if(dist->ref->pc0 > 0){
    dist->ref->e0 = momentum2energy(dist->ref->pc0,dist->ref->mass0);
@@ -220,15 +314,20 @@ void calculaterefparam(){
   if(dist->ref->e0 > 0){
    dist->ref->pc0 = energy2momentum(dist->ref->e0,dist->ref->mass0);
   }
-  dist->ref->beta0 = (dist->ref->pc0)/(dist->ref->e0);
 
+  dist->ref->beta0 = (dist->ref->pc0)/(dist->ref->e0);
+  
+  if(dist->incoord[0]->mass < 1e-16){ //enough to check the first 
+    for(int i=0; i< dist->totincoord; i++){
+      dist->incoord[0]->mass = dist->ref->mass0; //Gives all the same mass. 
+    }
+  }
 }
 
 void convert2standard(){
 
-
   if(dist->ref->en_like==-1){
-    printf("No energy variable is set. Assume 0 deviation from reference energy \n");
+    issue_info("No energy variable is set. Assume 0 deviation from reference energy \n");
   }
   else if(dist->ref->en_like==0){ //energy
     for(int i=0; i< dist->totincoord; i++){
@@ -248,7 +347,10 @@ void convert2standard(){
   else if(dist->ref->en_like==3){ //pt
     for(int i=0; i< dist->totincoord; i++){
       dist->incoord[i]->physical[5] = pt2deltap(dist->incoord[i]->nonstandard[3], dist->ref->beta0);
-    }  
+    }
+  }
+  else{
+    issue_error("Something went wrong with setting the energy! ");
   }
 }
 
@@ -265,8 +367,8 @@ void checkifenergyset(int entype){
   if(dist->ref->en_like==-1)
     dist->ref->en_like=entype;
   else {
-    printf("Only allowed 1 type of energy variable! \n");
-    exit(1);
+    issue_error("Only allowed 1 type of energy variable!");
+    
   }
 }
 
@@ -292,10 +394,10 @@ void print2filenew(){
 }
 
 void allocateincoord(int linecount){
-  dist->incoord = (struct incoordinates**)malloc(linecount*sizeof(struct incoordinates*));
+  dist->incoord = (struct coordinates**)malloc(linecount*sizeof(struct coordinates*));
   dist->totincoord = linecount;
   for(int i=0; i<linecount; i++){
-    dist->incoord[i] = (struct incoordinates*)malloc(sizeof(struct incoordinates));
+    dist->incoord[i] = (struct coordinates*)malloc(sizeof(struct coordinates));
     dist->incoord[i]->physical = (double*)malloc(dim*sizeof(double));
     dist->incoord[i]->normalized = (double*)malloc(dim*sizeof(double));
     dist->incoord[i]->action = (double*)malloc(dim*sizeof(double));
@@ -309,6 +411,7 @@ void setphysical(int coordorder, int column, double table[100][100]){
   for(int i=0;i < dist->totincoord; i++){
     dist->incoord[i]->physical[coordorder] = table[i][column];
   }
+
 }
 void setnormalized(int coordorder, int column, double table[100][100]){
 
@@ -380,6 +483,20 @@ canonical2six_(double *canonical, double *ref_momentum, double *mass, double *co
     *(coord+4) = *(canonical+4)*rv;
     *(coord+5) = *(canonical+5);     
 }
+void 
+canonical2six(double *canonical, double beta0, double pc0, double mass0, double mass, double *coord){
+
+    double deltap = *(canonical+5);
+    double beta = (pc0+deltap)/momentum2energy((pc0)+deltap, mass);
+    double rv = beta0/beta;
+    *(coord+0) = *(canonical+0);
+    *(coord+1) = *(canonical+1)/(1+deltap);
+    *(coord+2) = *(canonical+2);
+    *(coord+3) = *(canonical+3)/(1+deltap);
+    *(coord+4) = *(canonical+4)*rv;
+    *(coord+5) = *(canonical+5);  
+}
+
 
 void createLinearSpaced(int length, double start, double stop, double *eqspaced ){
     
@@ -440,8 +557,6 @@ void mtrx_vector_mult_pointer(int mp, int np,  double **mtrx_a, double mtrx_b[6]
     {
             for (k = 0; k < np; k++)
             {
-                
-                
                 result [i] += mtrx_a [i][k] * mtrx_b [k];
                  
             }
@@ -456,7 +571,7 @@ void solve2by2eq(double a1, double b1, double c1, double a2, double b2, double c
     x[0] = (dx/det);
     x[1] = (dy/det);
 
-//    printf("this is the solution, x ,y %f %f", x[0], x[1] );
+
 
 }
 
