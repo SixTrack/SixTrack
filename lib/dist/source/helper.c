@@ -238,7 +238,7 @@ void add2table(double table[100][100], char* line, int linenum){
     else if(strcmp(columns[i], "mass")==0){
       multifactor = getEnergyUnit(units[i]);
       for(int j=0;j < dist->totincoord; j++){
-        dist->mass = multifactor*table[j][i];
+        dist->incoord[j]->mass = multifactor*table[j][i];
       }
     }
     else if(strcmp(columns[i], "a")==0){

@@ -19,7 +19,7 @@ void initializedistribution_(int *numberOfDist){
         struct parameters para_tmp;
         (dist + i)->ref = (struct refparam*)malloc(sizeof(struct refparam));
         (dist + i)->coord = (struct parameters**)malloc(dim*sizeof(struct parameters*));
-        (dist + i)->emitt = (struct emittances*)malloc(sizeof(struct emittances));
+        
         (dist + i)->cuts2apply = (struct appliedcut*)malloc(sizeof(struct appliedcut));
         (dist + i)->cuts2apply->physical = (struct cut**)malloc(dim*sizeof(struct cut*));
         (dist + i)->cuts2apply->normalized = (struct cut**)malloc(dim*sizeof(struct cut*));
@@ -27,7 +27,6 @@ void initializedistribution_(int *numberOfDist){
         (dist + i)->invtas   = (double**)malloc(dim*sizeof(double*));
         (dist + i)->closedorbit   = (double*)malloc(dim*sizeof(double));
         (dist + i)->isDistrcalculated = 0;
-        (dist + i)->longitunalemittance = 0;
 		(dist + i)->ref->e0=0;
 		(dist + i)->ref->pc0=0;
 		(dist + i)->ref->a0=1;
@@ -43,16 +42,7 @@ void initializedistribution_(int *numberOfDist){
             (dist + i)->invtas[k] =(double*)malloc(dim*sizeof(double));
         }
         
-        (dist + i)->mass      = 0;
-        (dist + i)->momentum  = 0;
-        (dist + i)->charge    = 1;
-        (dist + i)->massnum   = 1;
-        (dist + i)->atomnum   = 1;
-        (dist + i)->emitt->e1 = 0; 
-        (dist + i)->emitt->e2 = 0; 
-        (dist + i)->emitt->e3 = 0;
-        (dist + i)->emitt->dp = 0;
-        (dist + i)->emitt->deltas = 0;
+
         (dist + i)->coordtype   =-1;
         (dist + i)->totallength = -1;
         (dist + i)->disttype = 0;

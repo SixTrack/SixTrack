@@ -1,21 +1,13 @@
 struct distparam
 {
 	struct parameters** coord;
-	struct emittances* emitt;
-	double mass;
-	int charge;
-    int massnum;
-    int atomnum;
-    int totallength;
-    int disttype;	
-	double momentum;
+	int totallength;
+    int disttype;
 	struct refparam* ref;
 	double **tas;
 	double **invtas;
 	double *closedorbit;
 	int coordtype; // This tells which type of coordinates the input is given.  // 1-Normalized
-	double **distout;
-	double **distout_normalized;
 	struct coordinates** incoord;
 	struct coordinates** outcoord;
 	int totincoord;
@@ -32,6 +24,7 @@ struct refparam{
 	double mass0;
 	double beta0;
 	int en_like;
+	struct emittances* emitt;
 
 };
 struct coordinates

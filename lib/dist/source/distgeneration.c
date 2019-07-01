@@ -14,12 +14,12 @@ void gen2sixcoord(){
     double tc[6];
     double tmp[6];
     double tmp_n[6];
-    dist->distout = (double**)malloc(dist->totincoord*sizeof(double*));
-    dist->distout_normalized = (double**)malloc(dist->totincoord*sizeof(double*));
+   // dist->distout = (double**)malloc(dist->totincoord*sizeof(double*));
+   // dist->distout_normalized = (double**)malloc(dist->totincoord*sizeof(double*));
     for(int i =0; i< dist->totincoord; i++){
 
-        dist->distout[counter] = (double*)malloc(dim*sizeof(double));
-        dist->distout_normalized[counter] = (double*)malloc(dim*sizeof(double));
+        //dist->distout[counter] = (double*)malloc(dim*sizeof(double));
+        //dist->distout_normalized[counter] = (double*)malloc(dim*sizeof(double));
         
         tc[0]=dist->incoord[i]->physical[0];
         tc[1]=dist->incoord[i]->physical[1];
@@ -33,7 +33,7 @@ void gen2sixcoord(){
         canonical2six(tc, dist->ref->beta0, dist->ref->pc0, dist->ref->mass0, dist->incoord[i]->mass, tmp);
         if(particle_within_limits_physical(tmp)==1){
             for(int p=0; p<dim; p++){
-                dist->distout[counter][p] = tmp[p]+dist->closedorbit[p];
+               // dist->distout[counter][p] = tmp[p]+dist->closedorbit[p];
                 //dist->distout_normalized[counter][p] = tmp_n[p];
             }
             counter++;
