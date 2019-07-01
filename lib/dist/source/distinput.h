@@ -85,23 +85,8 @@ int distn;
 
 void initializedistribution_(int *numberOfDist);
 void setdistribution_(int *ndist);
-void setmassmom_(double *mass, double *momentum);
-void setemittance12_(double *e1, double *e2);
-void setemittance3_(double *e3);
-void usedeltap_();
-
-
-void addclosedorbit_(double *clo);
-void settasmatrix_(double tas[6][6]);
-void settasmatrixpython(double **tas);
-void settasmatrix_element(double element, int i, int j);
-
-void setparameter_(int *index,  double *start, double *stop, int *length, int *type);
-
-
-
-void createtas0coupling_(double betax, double alfax, double betay, double alfay, double dx, double dpx, double dy, double dpy);
-
-
 void setphysicalcut(int variable, double min, double max);
 void setnormalizedcut(int variable, double min, double max);
+
+
+

@@ -44,38 +44,6 @@ program demodist
 
       call initializedistribution(3)
       ! Set the tas matrix 
-      call settasmatrix(tas)  
-      ! Set the emittance
-      call setemittance12(e1,e2)
-
-      call setemittance3(e3)
-      ! Set mass and momentum 
-      call setmassmom(mass, momentum)
-
-      ! Set the parameters to generate the distribution
-      !1. (1=x, 2=x', 3=y 4=y', 5=ds 6=dp)
-      !2. Start value of scan
-      !3. End value of scan
-      !4. Number of points
-      !5. type of spacing 0 - constant, 3 - linear spacing  
-      call setparameter(1,zero,six,100,3);
-      call setparameter(2,zero,zero,1,1);
-      call setparameter(3,zero,six,100,3);
-      call setparameter(4,zero,zero,1,1);
-      call setparameter(5,zero,zero,1,1);
-      call setparameter(6,zero,zero,1,1);
-
-      !Print the settings mainly for debugging
-      call printdistsettings()
-      !Get the filled vectors 
-      !call getcoordvectors(x,xp,y, yp, sigma, delta)
-      i=1
-
-     do i = 0, 92!00 
-      call getcoord2(coordinates,i)
-        
-        print *, i,coordinates
-     enddo
     
 
     !Distribution 2: a matched distribution
