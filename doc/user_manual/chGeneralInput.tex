@@ -2,6 +2,22 @@
 \chapter{General Input} \label{GenInp}
 
 % ================================================================================================================================ %
+\section{Main Input Files} \label{InFiles}
+
+SixTrack requires a main input file, which by default must be named \texttt{fort.3}.
+Alternatively, if a different file name is needed, it can be given to the SixTrack executable as the first command line argument.
+If a geometry file is requested in the main input file (see Section~\ref{ProVer}), it can be given as the second command line argument.
+If none is provided, SixTrack will look for a file named \texttt{fort.2}.
+These files will be referred to as \texttt{fort.3} and \texttt{fort.2} in the rest of this document.
+
+\bigskip
+Note that you can always add the global \texttt{DEBUG} flag to the \texttt{SETTINGS} block to enable echoing back most of the input parameters set in the \texttt{fort.3} file.
+The flag is described in Section~\ref{STSett}.
+This can not only verify that SixTrack understood and received the values correctly, but it also often echoes back other parameters computed from the input values.
+The echoed back lines will start with ``\texttt{INPUT> DEBUG}'', so it is sometimes easier to grep for these lines in the output.
+They contain the nme of the block where they were parsed, and the line number within the block if available.
+
+% ================================================================================================================================ %
 \section{Program Version} \label{ProVer}
 
 The \textit{Program Version} input block determines if all of the input will be in the input file \texttt{fort.3}, or if the geometry part of the machine (see~\ref{MaGe}) will be in a separate file: \texttt{fort.2}.\index{input block}\index{fort.2}\index{fort.3}
@@ -51,8 +67,11 @@ However, for backwards compatibility, the \texttt{PRIN} flag is still accepted.
     \texttt{PRINT} & This causes the printing of the input data to the output file \texttt{fort.6}. \\
     \texttt{DEBUG} & A global debug flag that causes the majority of the blocks to echo back the value read from the input file after parsing. It may also print out secondary values set based on input values read, or modification made to input values based on other dependencies and criteria.\index{DEBUG}\\
     \texttt{QUIET} & Followed by an integer specifying how ``quiet'' the output should be. A higher value causes less information to be printed back out. If the keyword is not present, the default value is 0, which means it is disabled. If it is present, but the integer value is omitted, it is set to be 1. This flag does not interfere with the \texttt{PRINT} flag.\index{QUIET}\\
-    \texttt{PRINT\_DCUM} & This will cause the calculated s-coordinate of each structure element to be printed to \texttt{fort.6}. \\
-    \texttt{PARTSUMMARY} & Enable or disable the printing of a particle summary after tracking. The flag takes an optional parameter to explicitly state whether it is ON or OFF. If omitted, it is assumed the user requests it to be ON. If the flag is omitted entirely, the default behaviour is determined by the particle count. If SixTrack is running with 64 particles or less, it is ON by default, otherwise OFF.\\
+    \texttt{PRINT\_DCUM} & This will cause the calculated s-coordinate of each structure element to be printed to the file \texttt{machine\_length.dat}. \\
+    \texttt{PARTSUMMARY} & Enable or disable the printing of a particle summary after tracking. The flag takes an optional parameter to explicitly state whether it is ON or OFF. If omitted, it is assumed the user requests it to be ON. If the flag is omitted entirely, the default behaviour is determined by the particle count. If SixTrack is running with 64 particles or less, it is ON by default, otherwise OFF.\index{particle summary}\\
+    \texttt{WRITEFORT12} & Enable or disable the writing of \texttt{fort.12} after tracking. The flag takes an optional parameter to explicitly state whether it is ON or OFF. If omitted, it is assumed the user requests it to be ON. If the flag is omitted entirely, the default behaviour is determined by the particle count. If SixTrack is running with 64 particles or less, it is ON by default, otherwise OFF.\index{fort.12}\\
+    \texttt{INITIALSTATE} & Followed by either ``binary'' or ``text''. This will write a file before tracking containing the initial state of all particles to either a binary or a text file.\index{initial state} Adding ``ions'' as a second keyword will also dump the additional ion columns (see Section~\ref{hions}). The file header also contains the settings of the reference particle, the 4D and 6D closed orbit, the tunes, and the TA matrix. (Note that the $\mbox{d}p/p_0$ values are not scaled by a factor 1000 in this file.)\index{TA Matrix} \\
+    \texttt{FINALSTATE} & Followed by either ``binary'' or ``text''. This will write a file after tracking containing the final state of all particles, including those lost during tracking, to either a binary or a text file.\index{final state} Adding ``ions'' as a second keyword will also dump the additional ion columns (see Section~\ref{hions}). The file header also contains the settings of the reference particle, the 4D and 6D closed orbit, and the TA matrix. (Note that the $\mbox{d}p/p_0$ values are not scaled by a factor 1000 in this file.)\index{TA Matrix} \\
 \end{tabular}
 
 
@@ -142,6 +161,9 @@ If the input block is left out, default values will be used.
 A converter has been developed~\cite{CONVERTOR}, which is directly linked to MAD-X\@.\index{MAD-X}
 It produces the geometry file \texttt{fort.2}; an appendix to the parameter file \texttt{fort.3}, which defines which of the multipole errors are switched on; the error file \texttt{fort.16}, and the file \texttt{fort.8} which holds the transverse misalignments and the tilt of the non-linear kick elements.\index{fort.8}\index{fort.16}\index{multipole errors}
 It also produce a file \texttt{fort.34} with linear lattice functions, phase advances and multipole strengths needed for resonance calculations for the program \textit{SODD}~\cite{SODD}.\index{fort.34}\index{resonance calculations}
+
+In addition, the flag \texttt{aperture} will produce an aperture limitations file.
+The flag \texttt{multicol} will produce an alternative \texttt{fort.2} file with more information on the machine structure (see Section~\ref{stru:multicol}).
 
 % A description of %how to use the converter can be found in Appendix\ref{MADSIXC}.
 % Pasted here for reference:

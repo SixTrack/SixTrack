@@ -1,10 +1,4 @@
 ! start include/thcklin.f90
-#ifdef DEBUG
-!     if (i.ge.673.and.j.le.2) then
-!       call warr('bl30 i j',xv1(2),i,j,0,0)
-!       call warr('xv12,i,ktrack ',xv1(2),i,ktrack(i),0,0)
-!     endif
-#endif
   puxve1=xv1(j)
   puzve1=yv1(j)
   puxve2=xv2(j)
@@ -23,12 +17,6 @@
   real(idz1,fPrec)*al(6,1,j,jx)                                   !hr03
     yv2(j)=(al(3,2,j,jx)*puxve2+ al(4,2,j,jx)*puzve2)+          &
   real(idz2,fPrec)*al(6,2,j,jx)                                   !hr03
-#ifdef DEBUG
-!     if (i.ge.673.and.j.le.2) then
-!       call warr('al30 i j',xv1(2),i,j,0,0)
-!       call warr('xv12,i,ktrack ',xv1(2),i,ktrack(i),0,0)
-!     endif
-#endif
   ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
   ! last modified: 07-03-2018
   ! store old particle coordinates

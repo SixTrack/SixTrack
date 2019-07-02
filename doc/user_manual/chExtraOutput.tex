@@ -27,10 +27,9 @@ Please note that each single element can only be selected once; however it is po
 \begin{longtabu}{@{}llp{0.65\linewidth}}
     \texttt{element\_name} & char    & One of the \textit{single elements}, or \texttt{ALL} to dump at the exit of all single elements, or \texttt{StartDUMP} to dump at the injection point. Note that if \texttt{ALL} or \texttt{StartDUMP} is in use, these cannot be used as single element names. \\
     \texttt{frequency}     & integer & How often the beam population should be dumped in number of turns. \\
-    \texttt{unit}          & integer & Value $-1$: An available unit number will be assigned automatically.\\
-                           &         & Value $>0$: Fortran unit number to use. This unit number should not be used in other parts of SixTrack. The unit number and filename may be shared between different \texttt{DUMP} outputs, as long as they have the same format and \texttt{element\_name} is not \texttt{ALL}. \\
-    \texttt{format}        & integer & A switch specifying the output format. See table (\ref{tab:dumpformat}). \\
-    \texttt{filename}      & char    & The name of the file to write to. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so, then \texttt{filename} must also be present), and if so the output file is named fort.\texttt{unit}. \\
+    \texttt{unit}          & integer & This value is ignored. Unit numbers are now assigned automatically. \\
+    \texttt{format}        & integer & A switch specifying the output format. See table~(\ref{tab:dumpformat}). \\
+    \texttt{filename}      & char    & The name of the file to write to. The filename may be shared between different \texttt{DUMP} outputs, as long as they have the same format and \texttt{element\_name} is not \texttt{ALL}. This argument may be omitted (unless \texttt{first} and \texttt{last} are present, if so, then \texttt{filename} must also be present), and if so the output file is named dump\_\texttt{element\_name}. \\
     \texttt{first}         & integer & The first turn where this dump should be active. This argument may be omitted if \texttt{last} is also omitted, and if so it defaults to turn 1. \\
     \texttt{last}          & integer & The last turn where this dump should be active, --1 meaning ``untill the end of the simulation''. This argument may be omitted if \texttt{first} is also omitted, and if so it defaults to -1. \\
     \texttt{HIGH}          & keyword & If present anywhere in the \texttt{DUMP} block, this triggers high-precission output, meaning more digits in the output files. \\
@@ -181,7 +180,7 @@ NEXT
         \hline
         Header \#2 & Closed orbit  $x$,$x_p$,$y$,$y_p$,$\sigma$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
         \hline
-        Header \#3 & Matrix of eigenvectors (\texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism and described in the SixTrack physics manual, Chapter ``Optics Calculation''. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$\zeta$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$. \\
+        Header \#3 & Matrix of eigenvectors (TA Matrix or \texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism and described in the SixTrack physics manual, Chapter ``Optics Calculation''. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$\zeta$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$.\index{TA Matrix} \\
         \hline
         Header \#4 & Inverse of ta-matrix \texttt{inv(tamatrix)} used for normalization where
         \begin{equation}
@@ -396,25 +395,78 @@ For \texttt{IP3\_DUMP\_2} and \texttt{IP3\_DUMP\_4} the turns from 512 to 1024 a
 Note that all element names have to be different due to a limitation in DUMP module. This means practically, that one needs to insert additional markers (here \texttt{IP3..1} etc.) in the SixDesk \cite{sixdesk1,sixdesk2} mask file prior to the SixTrack run. It is important to install the additional markers after cycling the machine if the machine is cycled at the location of the additional (e.g. \texttt{IP3}), as they are installed in front of the element given in the from statement in the cycle command.
 
 % ================================================================================================================================ %
+\section{File Hash} \label{sec:HASH}
+
+The hash module can optionally compute the MD5 digest of a selected set of output files listed in a \texttt{HASH} block\index{HASH}\index{md5}.
+The hash values are written to the output file \texttt{hash.md5}.
+The hash values are computed just before the \texttt{ZIPF} file compression routine is called, so the hash file can be included in the final archive.
+
+During initialisation, the module will perform a self test to ensure it generates valid md5 hashes according to the RFC1321 standard.
+If this is not achieved, the module is disabled, and the \texttt{hash.md5} file contains an error message instead.
+
+The primary purpose of this module is for validation of results for BOINC and the test suite.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{HASH} \\
+    \textbf{Data lines} & Variable, one for each file to be hashed. \\
+\end{tabular}
+
+\paragraph{Usage}~\\
+
+The module accepts a single keyword, \texttt{MD5SUM}, followed by a file name, followed by either ``text'' or ``binary''.
+This can be repeated multiple times.
+The ``text'' flag is used on Windows to strip carriage returns from the file before hashing.
+If the md5sum tool is installed on the user's computer, the results can be validated with the command:
+\begin{cverbatim}
+md5sum -c hash.md5
+\end{cverbatim}
+    
+\paragraph{Example}~
+\begin{cverbatim}
+HASH
+  MD5SUM final_state.dat text
+  MD5SUM fort.10         text
+NEXT
+\end{cverbatim}
+
+% ================================================================================================================================ %
 \section{ZIPFile Combined and Compressed Output} \label{sec:ZIPF}
 
-In order to retrieve extra simulation output such as \texttt{DUMP} or \texttt{FMA} from BOINC, it is necessary to pack the output files into a single file with a special name that will be retrieved.\index{zip}\index{ZIPF}
-This can be achieved with the \texttt{ZIPF} block, which packs the listed files into the compressed archive \texttt{Sixout.zip} at the end of the simulation.
+In order to retrieve extra simulation output such as \texttt{DUMP} or \texttt{FMA} from BOINC, it is necessary to pack the output files into a single file with a special name that will be retrieved.\index{zip}\index{ZIPF}\index{ZLIB}
+This can be achieved with the \texttt{ZIPF} block, which packs the listed files into a compressed archive at the end of the simulation.
+The \texttt{ZIPF} block can always be present in \texttt{fort.3}, but if SixTrack was not built with either the \texttt{LIBARCHIVE} or \texttt{ZLIB} option, no archive file will be produced.
+
+The \texttt{ZIPF} block can take two optional arguments, otherwise everything else is interpreted as a file name to be packed into the archive file.
+Multiple file names can be specified on a single line, and are separated by a space character.
+If the file name contains a space, it must be wrapped in single or double quotes.
 
 Note that if one of the files do not exist at the end of the simulation, it will be silently skipped and not included in the archive.
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
     \textbf{Keyword}    & \texttt{ZIPF} \\
-    \textbf{Data lines} & Variable, one for each file that is to be packed. \\
+    \textbf{Data lines} & Variable, see below. \\
 \end{tabular}
+
+\paragraph{Archive Name} \texttt{OUTFILE}\\
+
+This keyword can be used to set the file name of the archive file.
+If this keyword is omitted, the archive file will be named ``Sixout.zip''.
+
+\paragraph{Compression Level} \texttt{ZIPLEVEL}\\
+
+This keyword can be used to set the compression level.
+A value of 0 will just pack the files, and not compress them.
+A value of 9 is the highest level of compression, and also the slowest,
+The default value is 3.
 
 \paragraph{Example}~
 \begin{cverbatim}
 ZIPF
-fma_sixtrack
-IP3_DUMP_1
-fort.90
+    OUTFILE Sixout.zip
+    ZIPLEVEL 3
+    fma_sixtrack IP3_DUMP_1 fort.90
 NEXT
 \end{cverbatim}
 
@@ -538,3 +590,20 @@ HDF5
     WRITE OPTICS
 NEXT
 \end{cverbatim}
+
+% ================================================================================================================================ %
+\section{Simulation Meta Data and Timing Output} \label{sec:METATIME}
+
+SixTrack produces two text files containing meta data and timing data for the last run simulation.
+Both these files are in a fixed column width format, making them straightforward to parse with other tools.
+
+\paragraph{META:}~
+\index{Meta Data}
+The file \texttt{sim\_meta.dat} contains information about the SixTrack executable such as version information, build details and execution time.
+The file also contains initial values and values calculated during tracking that may be useful for further post-processing.
+
+\paragraph{TIME:}~
+\index{Timing Data}
+The file \texttt{sim\_time.dat} contains information about the execution time of the last SixTrack run.
+There are a number of time stamp at key points during execution written to the file.
+In addition, the total tracking time is extracted, and various averages computed based on number of particles, turns or the size of the lattice.

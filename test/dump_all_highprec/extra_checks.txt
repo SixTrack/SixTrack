@@ -9,3 +9,4 @@ dump7.dat
 dump8.dat
 dump9.dat
 dynksets.dat
+final_state.dat

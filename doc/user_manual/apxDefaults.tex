@@ -3,9 +3,9 @@
 % ================================================================================================================================ %
 \section{Default Tracking Parameters} \label{DTP}
 
-Some of the parameters for tracking are set to non-zero values.
+Some of the parameters for tracking are set to non-zero values\index{default parameters}.
 This is done for instance to avoid as much as possible program errors such as division by zero due to an erroneous input.
-The default values for the \textit{Iteration Errors} (\ref{IteErr}) see table~\ref{T-IteErr}.
+The default values for the \textit{Iteration Errors} are described in Section~\ref{IteErr}, Table~\ref{T-IteErr}.
 
 \newcounter{dtp} \setcounter{dtp}{0}
 
@@ -60,10 +60,9 @@ The default values for the \textit{Iteration Errors} (\ref{IteErr}) see table~\r
 % ================================================================================================================================ %
 \section{Default Size Parameters} \label{DSP}
 
-For large machines the arrays holding the machine parameters might have to be increased.
-The size of each of the dimensions of the arrays is therefore defined as a parameter.
-This can be done by compiling with the \texttt{BIGNPART}, \texttt{HUGENPART}, \texttt{BIGNBLZ}, or \texttt{HUGENBLZ} flags.
-The default values are adjusted to allow the treatment of a full LHC lattice: the tracking version uses 50 Mb and the DA version 400 Mb.
+SixTrack 5 automatically scales the arrays related to the machine description and number of tracked particles, while earlier versions used fixed size arrays\index{default parameters}\index{memory allocation}.
+However, many other parameters are still fixed and are defined as parameters in the module \texttt{parpro} in the source code.
+They are generally large enough for their intended purpose, but if these are found to be too small, they can be adjusted in the source at the top of the file \texttt{source/common\_modules.f90}.
 
 \newcounter{dsp} \setcounter{dsp}{0}
 
@@ -81,26 +80,26 @@ The default values are adjusted to allow the treatment of a full LHC lattice: th
         \hline \stepcounter{dsp}
         \thedsp & Maximum Number of Coordinates used in the Correction Routines & 6 & \texttt{MPA} & & \\
         \hline \stepcounter{dsp}
-        \thedsp & Number of Single Elements & 750 & \texttt{NELE} & \ref{SinEle} & \pageref{SinEle} \\
+        \thedsp & Number of Single Elements & auto & \texttt{NELE} & \ref{SinEle} & \pageref{SinEle} \\
         \hline \stepcounter{dsp}
-        \thedsp & Number of Blocks of Linear Elements & 160 & \texttt{NBLO} & \ref{BloDef} & \pageref{BloDef} \\
+        \thedsp & Number of Blocks of Linear Elements & auto & \texttt{NBLO} & \ref{BloDef} & \pageref{BloDef} \\
         \cline{1-4} \stepcounter{dsp}
-        \thedsp & Number of Linear Elements per Block & 100 & \texttt{NELB} & & \\
+        \thedsp & Number of Linear Elements per Block & 280 & \texttt{NELB} & & \\
         \hline \stepcounter{dsp}
-        \thedsp & Total Number of Elements in the Structure & 15000 & \texttt{NBLZ} & \ref{StrInp} & \pageref{StrInp} \\
+        \thedsp & Total Number of Elements in the Structure & auto & \texttt{NBLZ} & \ref{StrInp} & \pageref{StrInp} \\
         \cline{1-4} \stepcounter{dsp}
         \thedsp & Number of Accelerator Super-periods & 16 & \texttt{NPER} & & \\
         \hline \stepcounter{dsp}
-        \thedsp & Total Number of Random Values & 300000 & \texttt{NZFZ} & \ref{FluNum} & \pageref{FluNum} \\
+        \thedsp & Total Number of Random Values & auto & \texttt{NZFZ} & \ref{FluNum} & \pageref{FluNum} \\
         \cline{1-4} \stepcounter{dsp}
-        \thedsp & Number of Random Values for the basic Set of Nonlinear Elements & 280000 & \texttt{NRAN} & & \\
+        \thedsp & Number of Random Values for the basic Set of Nonlinear Elements & 2000000 & \texttt{NRAN} & & \\
         \hline \stepcounter{dsp}
         \thedsp & Number of Random Values for inserted Nonlinear Elements & 20000 & & \ref{OrgRan} & \pageref{OrgRan} \\
         \cline{1-4} \stepcounter{dsp}
         \thedsp & Number of Random Values for each Inserted Nonlinear Element & 500 & \texttt{MRAN} & & \\
                 & Number of Nonlinear Elements that can be inserted & 20 & & & \\
         \hline \stepcounter{dsp}
-        \thedsp & Limit Number of Particles for Vectorisation & 64 & \texttt{NPART} & & \\
+        \thedsp & Limit Number of Particles for Vectorisation & auto & \texttt{NPART} & & \\
         \hline \stepcounter{dsp}
         \thedsp & Maximum Number of Elements for Combined Tasks & 100 & \texttt{NCOM} & \ref{ComEle} & \pageref{ComEle} \\
         \hline \stepcounter{dsp}
@@ -114,7 +113,7 @@ The default values are adjusted to allow the treatment of a full LHC lattice: th
         \cline{1-4} \stepcounter{dsp}
         \thedsp & Number of Data for Plotting & 20000 & \texttt{NPLO} & & \\
         \hline \stepcounter{dsp}
-        \thedsp & Maximum Pole Order of Multipole Block & 11 & \texttt{MMUL} & \ref{MulCoe} & \pageref{MulCoe} \\
+        \thedsp & Maximum Pole Order of Multipole Block & 20 & \texttt{MMUL} & \ref{MulCoe} & \pageref{MulCoe} \\
         \hline \stepcounter{dsp}
         \thedsp & Maximum Number of extra Parameters of the DA Map & 10 & \texttt{MCOR} & \ref{DifAlg} & \pageref{DifAlg} \\
         \hline \stepcounter{dsp}
@@ -124,11 +123,11 @@ The default values are adjusted to allow the treatment of a full LHC lattice: th
         \hline \stepcounter{dsp}
         \thedsp & Maximum Number of Correctors for Micado Closed Orbit Correction & 600 & \texttt{NCOR1} & \ref{OrbCorr} & \pageref{OrbCorr} \\
         \hline \stepcounter{dsp}
-        \thedsp & Maximum Number of Beam--Beam Elements & 350 & \texttt{NBB} & \ref{BeamBeam} & \pageref{BeamBeam} \\
+        \thedsp & Maximum Number of Beam--Beam Elements & 500 & \texttt{NBB} & \ref{BeamBeam} & \pageref{BeamBeam} \\
         \hline \stepcounter{dsp}
         \thedsp & Maximum Number of Slices for 6D Beam--Beam Kick & 99 & \texttt{MBEA} & \ref{BeamBeam} & \pageref{BeamBeam} \\
         \hline \stepcounter{dsp}
-        \thedsp & Maximum Number of ``Phase Trombone'' Elements & 20 & \texttt{NTR} & ref{PT} & \pageref{PT} \\
+        \thedsp & Maximum Number of ``Phase Trombone'' Elements & auto & \texttt{NTR} & \ref{PT} & \pageref{PT} \\
         \hline
     \end{tabular}
     \normalsize

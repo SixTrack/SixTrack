@@ -106,7 +106,7 @@ module platoFMA
 !C.............................................................
       IF (MAXN.GT.MAXITER) THEN
          WRITE(lout,'(a)') '***ERROR(TUNENEWT1): TOO MANY ITERATIONS'
-         call prror(-1)
+         call prror
       ENDIF
 !C.............................................................
 !C    ESTIMATION OF TUNE WITH FFT
@@ -172,7 +172,7 @@ module platoFMA
 !C............................................................
       IF (MAX.LE.0) THEN
          WRITE(lout,'(a)') '***ERROR(TUNEFIT): THIRD PARAMETER OUT OF BOUNDS'
-        call prror(-1)
+        call prror
       ENDIF
 !C............................................................
       DUEPI=eight*ATAN_MB(one)
@@ -231,7 +231,7 @@ module platoFMA
 !C............................................................
       IF (N.LE.0) THEN
         WRITE(lout,'(a)') '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
-        call prror(-1)
+        call prror
       ENDIF
 !C.............................................................
       X2M=zero
@@ -314,7 +314,7 @@ module platoFMA
       CF3=ABS(ZSING(NFTMAX+1))
       IF (CF3.GT.CF1) THEN
         ASSK=REAL(NFTMAX,fPrec)+(NPOINT/PI)*ATAN2_MB(CF3*SIN_MB(PI/NPOINT),CF2+CF3*COS_MB(PI/NPOINT))
-      ELSEIF (CF3.LE.CF1) THEN
+      ELSE
         ASSK=REAL(NFTMAX-1,fPrec)+(NPOINT/PI)*ATAN2_MB(CF2*SIN_MB(PI/NPOINT),CF1+CF2*COS_MB(PI/NPOINT))
       ENDIF
       TUNEABT=one-(ASSK-one)/REAL(NPOINT,fPrec) !1D+0 = 1D0, i.e. real(kind=fPrec) 1.0?
@@ -373,6 +373,14 @@ module platoFMA
           NFTMAX=NFT
         END IF
       ENDDO
+
+      ! VKBO Bugfix for Debug build type
+      ! Make sure nftmax is greater than 1, or we may get a segfault in the next lines
+      if(nftmax <= 1) then
+        tuneabt2 = one
+        return
+      end if
+
       CF1=ABS(ZSING(NFTMAX-1))
       CF2=ABS(ZSING(NFTMAX))
       CF3=ABS(ZSING(NFTMAX+1))
@@ -380,7 +388,7 @@ module platoFMA
         P1=CF2
         P2=CF3
         NN=NFTMAX
-      ELSEIF (CF3.LE.CF1) THEN
+      ELSE
         P1=CF1
         P2=CF2
         NN=NFTMAX-1
@@ -571,7 +579,7 @@ module platoFMA
 !C.............................................................
       IF (MAXN.GT.MAXITER) THEN
         WRITE(lout,'(a)') '***ERROR(TUNENEWT): TOO MANY ITERATIONS'
-        call prror(-1)
+        call prror
       ENDIF
 !C.............................................................
 !C    ESTIMATION OF TUNE WITH FFT
@@ -749,7 +757,7 @@ module platoFMA
 !C............................................................
       IF (N.LE.0) THEN
         WRITE(lout,'(a)') '***ERROR(TUNEAPA): THIRD PARAMETER OUT OF BOUNDS'
-        call prror(-1)
+        call prror
       ENDIF
 !C............................................................
       ADV=ZERO
@@ -806,6 +814,7 @@ module platoFMA
       REAL(KIND=fPrec) FUNCTION TUNEFFT(X,P,N)
 !C............................................................
       use crcoall
+      use numerical_constants, only : zero
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -813,15 +822,18 @@ module platoFMA
       REAL(KIND=fPrec) SUM,AMAX
       REAL(KIND=fPrec) X(*),P(*)
       COMPLEX(kind=fPrec)  Z(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
+
+      TUNEFFT = ZERO
+
 !C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
-        write(lout,'(a)') '***ERROR(TUNEFFT): TOO MANY ITERATES'
-        call prror(-1)
+        write(lerr,'(a)') '***ERROR(TUNEFFT): TOO MANY ITERATES'
+        call prror
       ENDIF
 !C............................................................
       IF (N.LE.0) THEN
-        write(lout,'(a)') '***ERROR(TUNEFFT): THIRD PARAMETER OUT OF BOUNDS'
-        call prror(-1)
+        write(lerr,'(a)') '***ERROR(TUNEFFT): THIRD PARAMETER OUT OF BOUNDS'
+        call prror
       ENDIF
 !C............................................COMPUTATION OF M
       DO M=1,50
@@ -839,7 +851,7 @@ module platoFMA
 !C...........................................FOURIER TRANSFORM
       CALL CFFT(Z,-M)
 !C.........COMPUTATION OF THE MAXIMUM OF THE FOURIER TRANSFORM
-      AMAX=0
+      AMAX=ZERO
       NPMIN=1
       IF (SUM.EQ.ZERO) THEN
         NPMAX=NPOINT/2     !..REAL FFT ONLY HALF COEFFICIENTS
@@ -887,15 +899,17 @@ module platoFMA
       REAL(KIND=fPrec) X(*),P(*)
       COMPLEX(kind=fPrec) Z(MAXITER)  ! Temp Z for CFFT, used to be SINGle precission
 
+      ITUNE = 0
+
 !C..................................................CHECK OF N
       IF(N.GT.MAXITER) THEN
-        write(lout,'(a)') '***ERROR(TUNEFFTI): TOO MANY ITERATES'
-        call prror(-1)
+        write(lerr,'(a)') '***ERROR(TUNEFFTI): TOO MANY ITERATES'
+        call prror
       ENDIF
 !C............................................................
       IF (N.LE.0) THEN
-        write(lout,'(a)') '***ERROR(TUNEFFTI): THIRD PARAMETER OUT OF BOUNDS'
-        call prror(-1)
+        write(lerr,'(a)') '***ERROR(TUNEFFTI): THIRD PARAMETER OUT OF BOUNDS'
+        call prror
       ENDIF
 !C............................................COMPUTATION OF M
       DO M=1,50
@@ -927,6 +941,13 @@ module platoFMA
           AMAX=ABS(Z(I))
         ENDIF
       ENDDO
+
+      ! VKBO Bugfix for Debug build type
+      ! Make sure itune is greater than 1, or we may get a segfault in the next lines
+      if(itune <= 1) then
+        tuneffti = one
+        return
+      end if
 !C..............................EVALUATION OF THE NEARBY PEAKS
       X1=ITUNE-1
       X2=ITUNE
@@ -974,6 +995,7 @@ module platoFMA
       REAL(KIND=fPrec) FUNCTION TUNELASK(X,PX,MAX)
 !C............................................................
       use crcoall
+      use numerical_constants, only : zero
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -984,15 +1006,17 @@ module platoFMA
       COMPLEX(kind=fPrec) Z(MAXITER),FOME,ZC,SD,SP
 
       DUEPI=EIGHT*ATAN_MB(ONE)
+      TUNELASK = zero
+      JOM = 0
 !C...............................CHECK OF THE ITERATION NUMBER
       IF(MAX.GT.MAXITER) THEN
-        write(lout,'(a)') '***ERROR(TUNELASK): TOO MANY ITERATIONS'
-        call prror(-1)
+        write(lerr,'(a)') '***ERROR(TUNELASK): TOO MANY ITERATIONS'
+        call prror
       ENDIF
 !C............................................................
       IF (MAX.LE.0) THEN
-        write(lout,'(a)') '***ERROR(TUNELASK): THIRD PARAMETER OUT OF BOUNDS'
-        call prror(-1)
+        write(lerr,'(a)') '***ERROR(TUNELASK): THIRD PARAMETER OUT OF BOUNDS'
+        call prror
       ENDIF
 !C.................................ESTIMATION OF TUNE WITH FFT
       SUM=ZERO
@@ -1081,4 +1105,4 @@ module platoFMA
 !C............................................................
       END FUNCTION
 
-end module platofma
+end module platoFMA

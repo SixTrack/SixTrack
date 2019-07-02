@@ -1,4 +1,3 @@
-dump_21459.txt
-dump_22172.txt
-dump_rf.txt
 dynksets.dat
+final_state.dat
+hash.md5

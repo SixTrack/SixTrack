@@ -55,13 +55,14 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "FLUC> ERROR Failed to parse input line."
+    write(lerr,"(a)") "FLUC> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   if(iLine > 1) then
-    write(lout,"(a)") "FLUC> ERROR This block only takes one line."
+    write(lerr,"(a)") "FLUC> ERROR This block only takes one line."
     iErr = .true.
     return
   end if
@@ -85,13 +86,13 @@ subroutine fluc_parseInputLine(inLine, iLine, iErr)
   fluc_iSeed2 = 0
 
   if(iDummy > 1) then
-    write(lout,"(a,i0)") "FLUC> ERROR Multiple seeds for vectorisation (mmac) is no longer supported. You requested ",iDummy
+    write(lerr,"(a,i0)") "FLUC> ERROR Multiple seeds for vectorisation (mmac) is no longer supported. You requested ",iDummy
     iErr = .true.
     return
   end if
 
   if(fluc_mRead < 0 .or. fluc_mRead > 15) then
-    write(lout,"(a,i0)") "FLUC> ERROR I/O options (mout) must be a number between 0 and 15, got ",fluc_mRead
+    write(lerr,"(a,i0)") "FLUC> ERROR I/O options (mout) must be a number between 0 and 15, got ",fluc_mRead
     iErr = .true.
     return
   end if
@@ -106,6 +107,7 @@ end subroutine fluc_parseInputLine
 
 subroutine fluc_readInputs
 
+  use mod_units
   use mod_common, only : mout2
 
   implicit none
@@ -115,7 +117,11 @@ subroutine fluc_readInputs
   fluc_nZFZ   = 0 ! For fort.30
 
   if(iand(fluc_mRead, 1) == 1) call fluc_readFort16
-  if(iand(fluc_mRead, 2) == 2) mout2 = 1
+  if(iand(fluc_mRead, 2) == 2) then
+    mout2 = 1
+    call f_open(unit=9, file="fort.9", formatted=.true., mode="w")
+    call f_open(unit=27,file="fort.27",formatted=.true., mode="w")
+  end if
   if(iand(fluc_mRead, 4) == 4) call fluc_readFort8
   if(iand(fluc_mRead, 8) == 8) call fluc_readFort30
 
@@ -193,7 +199,6 @@ subroutine fluc_readFort8
   use mod_alloc
   use mod_units
   use string_tools
-  use parpro,              only : mNameLen,str_nmSpace
   use numerical_constants, only : zero
   use mod_common,          only : il,bez,icextal,nblz,nblo,ic
 
@@ -203,7 +208,7 @@ subroutine fluc_readFort8
   character(len=:), allocatable :: lnSplit(:)
   real(kind=fPrec) alignx, alignz, tilt
   integer lineNo, ioStat, nSplit, mAlign, nAlign, iStru, iSing
-  logical iErr, isOpen, isFile, inSing
+  logical iErr, isFile, inSing
   integer i
 
   lineNo = 0
@@ -212,12 +217,9 @@ subroutine fluc_readFort8
   inquire(file="fort.8", exist=isFile)
   if(.not.isFile) return
 
-  inquire(unit=8, opened=isOpen)
-  if(isOpen) close(8)
-
-  call units_openUnit(unit=8,fileName="fort.8",formatted=.true.,mode="r",err=iErr)
+  call f_open(unit=8,file="fort.8",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
-    write(lout,"(a)") "FLUC> ERROR Failed to open fort.8"
+    write(lerr,"(a)") "FLUC> ERROR Failed to open fort.8"
     goto 30
   end if
   rewind(8)
@@ -228,7 +230,7 @@ subroutine fluc_readFort8
   read(8,"(a)",end=20,iostat=ioStat) inLine
   lineNo = lineNo + 1
   if(ioStat /= 0) then
-    write(lout,"(a,i0)") "FLUC> ERROR fort.8 iostat = ",ioStat
+    write(lerr,"(a,i0)") "FLUC> ERROR fort.8 iostat = ",ioStat
     goto 30
   end if
 
@@ -244,9 +246,9 @@ subroutine fluc_readFort8
 
   fluc_nAlign = fluc_nAlign + 1
   if(fluc_nAlign > mAlign) then
-    call alloc(fluc_errAlign,3,       mAlign+50,zero,       "fluc_errAlign")
-    call alloc(fluc_bezAlign,mNameLen,mAlign+50,str_nmSpace,"fluc_bezAlign")
-    call alloc(fluc_ixAlign,          mAlign+50,0,          "fluc_ixAlign")
+    call alloc(fluc_errAlign,3,       mAlign+50,zero, "fluc_errAlign")
+    call alloc(fluc_bezAlign,mNameLen,mAlign+50," ",  "fluc_bezAlign")
+    call alloc(fluc_ixAlign,          mAlign+50,0,    "fluc_ixAlign")
   end if
 
   if(nSplit > 0) fluc_bezAlign(fluc_nAlign) = trim(lnSplit(1))
@@ -257,7 +259,7 @@ subroutine fluc_readFort8
   goto 10
 
 20 continue
-  close(8)
+  call f_close(8)
   if(fluc_nAlign == 0) then
     write(lout,"(a)") "FLUC> Reading of fort.8 requested in FLUC block, but no elements read."
     return
@@ -279,11 +281,11 @@ subroutine fluc_readFort8
     end if
   end do
   if(nAlign /= fluc_nAlign+1) then
-    write(lout,"(a)")       "FLUC> ERROR Did not find all the elements in fort.8 in the structure."
-    write(lout,"(a)")       "FLUC>       You either have a non-existing element somewhere in the file,"
-    write(lout,"(a)")       "FLUC>       or too many references to the same element name."
-    write(lout,"(2(a,i0))") "FLUC>       Found ",(nAlign-1)," elements out of ",fluc_nAlign
-    call prror(-1)
+    write(lerr,"(a)")       "FLUC> ERROR Did not find all the elements in fort.8 in the structure."
+    write(lerr,"(a)")       "FLUC>       You either have a non-existing element somewhere in the file,"
+    write(lerr,"(a)")       "FLUC>       or too many references to the same element name."
+    write(lerr,"(2(a,i0))") "FLUC>       Found ",(nAlign-1)," elements out of ",fluc_nAlign
+    call prror
   end if
 
   write(lout,"(a,i0,a)") "FLUC> Read ",fluc_nAlign," values from fort.8"
@@ -291,8 +293,8 @@ subroutine fluc_readFort8
   return
 
 30 continue
-  write(lout,"(a,i0,a)") "FLUC> ERROR fort.8:",lineNo," '"//trim(inLine)//"'"
-  call prror(-1)
+  write(lerr,"(a,i0,a)") "FLUC> ERROR fort.8:",lineNo," '"//trim(inLine)//"'"
+  call prror
 
 end subroutine fluc_readFort8
 
@@ -305,7 +307,6 @@ subroutine fluc_readFort16
   use mod_alloc
   use mod_units
   use string_tools
-  use parpro,              only : mNameLen,str_nmSpace
   use numerical_constants, only : zero
   use mod_common,          only : il,bez,icext,nblz,nblo,ic
 
@@ -315,9 +316,10 @@ subroutine fluc_readFort16
   character(len=:), allocatable :: lnSplit(:)
   character(len=mNameLen) bezExt
   integer mType, lineNo, ioStat, nSplit, lMode, nVals, mVal, mExt, iStru, iSing, nExt
-  logical iErr, isOpen, isFile, inSing
+  logical iErr, isFile, inSing
   integer i
 
+  mVal   = 0
   mType  = 0
   lineNo = 0
   lMode  = 0
@@ -326,12 +328,9 @@ subroutine fluc_readFort16
   inquire(file="fort.16", exist=isFile)
   if(.not.isFile) return
 
-  inquire(unit=16, opened=isOpen)
-  if(isOpen) close(16)
-
-  call units_openUnit(unit=16,fileName="fort.16",formatted=.true.,mode="r",err=iErr)
+  call f_open(unit=16,file="fort.16",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
-    write(lout,"(a)") "FLUC> ERROR Failed to open fort.16"
+    write(lerr,"(a)") "FLUC> ERROR Failed to open fort.16"
     goto 30
   end if
   rewind(16)
@@ -342,7 +341,7 @@ subroutine fluc_readFort16
   read(16,"(a)",end=20,iostat=ioStat) inLine
   lineNo = lineNo + 1
   if(ioStat /= 0) then
-    write(lout,"(a,i0)") "FLUC> ERROR fort.16 iostat = ",ioStat
+    write(lerr,"(a,i0)") "FLUC> ERROR fort.16 iostat = ",ioStat
     goto 30
   end if
 
@@ -352,7 +351,7 @@ subroutine fluc_readFort16
   if(lMode == 0) then
     ! We're expecting an element name
     if(nSplit /= 1) then
-      write(lout,"(a)") "FLUC> ERROR Expected a single element name."
+      write(lerr,"(a)") "FLUC> ERROR Expected a single element name."
       goto 30
     end if
     bezExt = trim(lnSplit(1))
@@ -379,21 +378,21 @@ subroutine fluc_readFort16
 
       fluc_nExt = fluc_nExt + 1
       if(fluc_nExt > mExt) then
-        call alloc(fluc_errExt,40,      mExt+50,zero,       "fluc_errExt")
-        call alloc(fluc_bezExt,mNameLen,mExt+50,str_nmSpace,"fluc_bezExt")
-        call alloc(fluc_ixExt,          mExt+50,0,          "fluc_ixExt")
+        call alloc(fluc_errExt,40,      mExt+50,zero, "fluc_errExt")
+        call alloc(fluc_bezExt,mNameLen,mExt+50," ",  "fluc_bezExt")
+        call alloc(fluc_ixExt,          mExt+50,0,    "fluc_ixExt")
       end if
       fluc_bezExt(fluc_nExt) = bezExt
 
     else
-      write(lout,"(a)") "FLUC> ERROR Unknown element name '"//trim(bezExt)//"'."
+      write(lerr,"(a)") "FLUC> ERROR Unknown element name '"//trim(bezExt)//"'."
       goto 30
     end if
   else
     ! We're expecting 40 float values
     nVals = nVals + nSplit
     if(nVals > 40) then
-      write(lout,"(a,i0)") "FLUC> ERROR Each element takes exactly 40 values, got ",nVals
+      write(lerr,"(a,i0)") "FLUC> ERROR Each element takes exactly 40 values, got ",nVals
       goto 30
     end if
     do i=1,nSplit
@@ -409,7 +408,7 @@ subroutine fluc_readFort16
   goto 10
 
 20 continue
-  close(16)
+  call f_close(16)
   if(fluc_nExt == 0) then
     write(lout,"(a)") "FLUC> Reading of fort.16 requested in FLUC block, but no elements read."
     return
@@ -432,11 +431,11 @@ subroutine fluc_readFort16
   end do
 
   if(nExt /= fluc_nExt+1) then
-    write(lout,"(a)")       "FLUC> ERROR Did not find all the elements in fort.16 in the structure."
-    write(lout,"(a)")       "FLUC>       You either have a non-existing element somewhere in the file,"
-    write(lout,"(a)")       "FLUC>       or too many references to the same element name."
-    write(lout,"(2(a,i0))") "FLUC>       Found ",(nExt-1)," elements out of ",fluc_nExt
-    call prror(-1)
+    write(lerr,"(a)")       "FLUC> ERROR Did not find all the elements in fort.16 in the structure."
+    write(lerr,"(a)")       "FLUC>       You either have a non-existing element somewhere in the file,"
+    write(lerr,"(a)")       "FLUC>       or too many references to the same element name."
+    write(lerr,"(2(a,i0))") "FLUC>       Found ",(nExt-1)," elements out of ",fluc_nExt
+    call prror
   end if
 
   write(lout,"(a,i0,a)") "FLUC> Read ",fluc_nExt," values from fort.16"
@@ -444,8 +443,8 @@ subroutine fluc_readFort16
   return
 
 30 continue
-  write(lout,"(a,i0,a)") "FLUC> ERROR fort.16:",lineNo," '"//trim(inLine)//"'"
-  call prror(-1)
+  write(lerr,"(a,i0,a)") "FLUC> ERROR fort.16:",lineNo," '"//trim(inLine)//"'"
+  call prror
 
 end subroutine fluc_readFort16
 
@@ -462,7 +461,7 @@ subroutine fluc_readFort30
   use mod_alloc
   use mod_units
   use string_tools
-  use parpro,              only : mNameLen,str_nmSpace,mmul
+  use parpro,              only : mmul
   use numerical_constants, only : zero
   use mod_common,          only : il,bez,icextal,nblz,nblo,ic,kp,kz
 
@@ -472,7 +471,7 @@ subroutine fluc_readFort30
   character(len=:), allocatable :: lnSplit(:)
   real(kind=fPrec) alignx, alignz, tilt
   integer lineNo, ioStat, nSplit, mZFZ, nZFZ, iStru, iSing, iZ
-  logical iErr, isOpen, isFile, inSing
+  logical iErr, isFile, inSing
   integer i
 
   lineNo = 0
@@ -481,12 +480,9 @@ subroutine fluc_readFort30
   inquire(file="fort.30", exist=isFile)
   if(.not.isFile) return
 
-  inquire(unit=30, opened=isOpen)
-  if(isOpen) close(30)
-
-  call units_openUnit(unit=30,fileName="fort.30",formatted=.true.,mode="r",err=iErr)
+  call f_open(unit=30,file="fort.30",formatted=.true.,mode="r",err=iErr)
   if(iErr) then
-    write(lout,"(a)") "FLUC> ERROR Failed to open fort.30"
+    write(lerr,"(a)") "FLUC> ERROR Failed to open fort.30"
     goto 30
   end if
   rewind(30)
@@ -497,7 +493,7 @@ subroutine fluc_readFort30
   read(30,"(a)",end=20,iostat=ioStat) inLine
   lineNo = lineNo + 1
   if(ioStat /= 0) then
-    write(lout,"(a,i0)") "FLUC> ERROR fort.30 iostat = ",ioStat
+    write(lerr,"(a,i0)") "FLUC> ERROR fort.30 iostat = ",ioStat
     goto 30
   end if
 
@@ -513,9 +509,9 @@ subroutine fluc_readFort30
 
   fluc_nZFZ = fluc_nZFZ + 1
   if(fluc_nZFZ > mZFZ) then
-    call alloc(fluc_errZFZ,4,       mZFZ+50,zero,       "fluc_errZFZ")
-    call alloc(fluc_bezZFZ,mNameLen,mZFZ+50,str_nmSpace,"fluc_bezZFZ")
-    call alloc(fluc_ixZFZ,          mZFZ+50,0,          "fluc_ixZFZ")
+    call alloc(fluc_errZFZ,4,       mZFZ+50,zero, "fluc_errZFZ")
+    call alloc(fluc_bezZFZ,mNameLen,mZFZ+50," ",  "fluc_bezZFZ")
+    call alloc(fluc_ixZFZ,          mZFZ+50,0,    "fluc_ixZFZ")
   end if
 
   if(nSplit > 0) fluc_bezZFZ(fluc_nZFZ) = trim(lnSplit(1))
@@ -527,7 +523,7 @@ subroutine fluc_readFort30
   goto 10
 
 20 continue
-  close(30)
+  call f_close(30)
   if(fluc_nZFZ == 0) then
     write(lout,"(a)") "FLUC> Reading of fort.30 requested in FLUC block, but no elements read."
     return
@@ -558,11 +554,11 @@ subroutine fluc_readFort30
     end if
   end do
   if(nZFZ /= fluc_nZFZ+1) then
-    write(lout,"(a)")       "FLUC> ERROR Did not find all the elements in fort.30 in the structure."
-    write(lout,"(a)")       "FLUC>       You either have a non-existing element somewhere in the file,"
-    write(lout,"(a)")       "FLUC>       or too many references to the same element name."
-    write(lout,"(2(a,i0))") "FLUC>       Found ",(nZFZ-1)," elements out of ",fluc_nZFZ
-    call prror(-1)
+    write(lerr,"(a)")       "FLUC> ERROR Did not find all the elements in fort.30 in the structure."
+    write(lerr,"(a)")       "FLUC>       You either have a non-existing element somewhere in the file,"
+    write(lerr,"(a)")       "FLUC>       or too many references to the same element name."
+    write(lerr,"(2(a,i0))") "FLUC>       Found ",(nZFZ-1)," elements out of ",fluc_nZFZ
+    call prror
   end if
 
   write(lout,"(a,i0,a)") "FLUC> Read ",fluc_nZFZ," values from fort.30"
@@ -570,8 +566,8 @@ subroutine fluc_readFort30
   return
 
 30 continue
-  write(lout,"(a,i0,a)") "FLUC> ERROR fort.30:",lineNo," '"//trim(inLine)//"'"
-  call prror(-1)
+  write(lerr,"(a,i0,a)") "FLUC> ERROR fort.30:",lineNo," '"//trim(inLine)//"'"
+  call prror
 
 end subroutine fluc_readFort30
 
@@ -582,7 +578,7 @@ end subroutine fluc_readFort30
 subroutine fluc_writeFort4
 
   use floatPrecision
-  use mod_common,          only : ncororb,sm,ek
+  use mod_common,          only : ncororb,sm,ek,fort2
   use numerical_constants, only : zero,pieni
   use string_tools
   use mod_units
@@ -599,7 +595,8 @@ subroutine fluc_writeFort4
   ii      = 0
   lineNo2 = 0
 
-  call units_openUnit(unit=4,fileName="fort.4",formatted=.true.,mode="w",err=iErr)
+  call f_open(unit=2,file=fort2,   formatted=.true.,mode="r",err=iErr)
+  call f_open(unit=4,file="fort.4",formatted=.true.,mode="w",err=iErr)
 
   rewind(2)
 10 continue
@@ -661,7 +658,8 @@ subroutine fluc_writeFort4
   goto 30
 
 90 continue
-  close(4)
+  call f_close(2)
+  call f_close(4)
   return
 end subroutine fluc_writeFort4
 

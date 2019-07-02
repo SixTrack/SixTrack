@@ -1,207 +1,221 @@
-#Test that the testing tools run!
-ADD_TEST(NAME SelfTest_verify10 COMMAND verify10)
+
+##
+##  SixTrack Test Suite
+## =====================
+##
+
+##
+## SelfTests
+##
+
+add_test(NAME SelfTest_verify10 COMMAND verify10)
 set_tests_properties(SelfTest_verify10 PROPERTIES PASS_REGULAR_EXPRESSION "Error in verify10 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
-ADD_TEST(NAME SelfTest_checkf10 COMMAND checkf10)
+add_test(NAME SelfTest_checkf10 COMMAND checkf10)
 set_tests_properties(SelfTest_checkf10 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf10 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
-ADD_TEST(NAME SelfTest_compf10 COMMAND compf10)
+add_test(NAME SelfTest_compf10 COMMAND compf10)
 set_tests_properties(SelfTest_compf10 PROPERTIES PASS_REGULAR_EXPRESSION "Error in compf10 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
-ADD_TEST(NAME SelfTest_checkf110 COMMAND checkf110)
+add_test(NAME SelfTest_checkf110 COMMAND checkf110)
 set_tests_properties(SelfTest_checkf110 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf110 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
-ADD_TEST(NAME SelfTest_checkf1014 COMMAND checkf1014)
+add_test(NAME SelfTest_checkf1014 COMMAND checkf1014)
 set_tests_properties(SelfTest_checkf1014 PROPERTIES PASS_REGULAR_EXPRESSION "Error in checkf1014 - file 'fort.2[0|1]' was not found\n.*[1|2]")
 
-ADD_TEST(NAME SelfTest_read90 COMMAND read90)
+add_test(NAME SelfTest_read90 COMMAND read90)
 set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error in read90 - file 'fort.190' was not found; try --help?\n.*19")
 
-ADD_TEST(NAME SelfTest_readDump3 COMMAND readDump3)
+add_test(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
 
-ADD_TEST(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/ COMMAND ${CMAKE_SOURCE_DIR}/test/CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
+if(ZLIB)
+  add_test(NAME SelfTest_zlib COMMAND ${CMAKE_BINARY_DIR}/zlib/example)
+  if(64BIT)
+    add_test(NAME SelfTest_zlib_64 COMMAND ${CMAKE_BINARY_DIR}/zlib/example64)
+  endif()
+endif()
+
+##
+## Checks
+##
+
+add_test(NAME CheckTestInput_STF WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/ COMMAND ${CMAKE_SOURCE_DIR}/test/CheckTestInputForSTF.sh $<TARGET_FILE:read90>)
 set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
 add_test(NAME CheckBuildManual COMMAND ${CMAKE_SOURCE_DIR}/test/CheckBuildManual.sh "${CMAKE_SOURCE_DIR}")
 set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
 ##
+## ERROR Tests
+## Only run for non-CR version as CR version doesn't write directly to stderr
+##
+
+if(NOT CR)
+  list(APPEND SIXTRACK_ERROR
+    error_init
+    error_trac
+  )
+endif(NOT CR)
+
+##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
 ## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90 / STF.
 ##
 
-# List of tests that do not produce a valid fort.10
-set(TESTS_NOFORT10
-  orbit6d-element-trombone
-  orbit6d-element-trombone-kick
-  orbit6d-element-quadrupole
-  orbit6d-ions
-  orbit6d-element-solenoid
-  orbit6d-element-combinedFunction
-  orbit6d-ions-long
-  exact
-  thick6dblocks
-  elensidealthck6d
-  dynk_globalvars
-  dynk_filelin
-  dynk_operators
-  dynk_random
-  dynk_polynomial
-  thick6ddynk
-  dump_binary
-  dump4
-  dump5
-  dump6
-  fileunits_DYNK_DUMP
-  momentum_scan
-  multipoles_DYNK
-  beambeamDYNK
-  beambeam4dDYNK
-  rfMultipoles_2ndOrder
-  rfMultipoles_3rdOrder
-  rfMultipoles_4thOrder
-  rfMultipoles_2nd3rd4th_skew
-  beam-HO_6D-simple-oldstyle
-  beam-HO_6D-simple-newstyle
-  beam-HO_6D-simple-newstyle-coupling
-  scatter_bbelastic
-  scatter_collimation
-  scatter_aperture
-  geometry
-  collimation_k2_fcc_2017_h1_collision
-  dump_all_highprec
-  dump_2_all_ele_highprec
-  beam-HO_6D-simple-newstyle-orbit
-  dynk_IIR
-)
+##
+# List of Tests
+##
 
-# List of tests that do not produce singletrackfile.dat or a fort.90
-set(TESTS_NO_STF_FORT90
-  dynk_operators
-  dynk_random
-  dynk_polynomial
-  scatter_bbelastic
-)
-
-# List of tests that absolutely require STF to be on (> 64 particles)
-if(STF)
-  list(APPEND SIXTRACK_TESTS
-    beam-HO_6D-simple-newstyle-coupling
-    dynk_IIR
-    dynk_polynomial
-    dynk_random
-    dynk_operators
-    scatter_aperture
-  )
-endif(STF)
-
-if(LIBARCHIVE)
-  list(APPEND SIXTRACK_TESTS elensidealthin6d_DYNK_ZIPF)
-endif()
-if(NAFF)
-  list(APPEND SIXTRACK_TESTS fma_naff)
-endif()
-
-#General tests
 list(APPEND SIXTRACK_TESTS
+  bb
+  bb_ntwin1
   bbe51
   bbe52
   bbe571ib0
-  bb
-  bb_ntwin1
-  dipedge
-  distance
-  dynk_globalvars
-  dynk_filelin
-  elensidealthin4d
-  elensidealthin6d
-  elensidealthin6d_DYNK
-  elensidealthin6d_ions
-  eric
-  exact
-  fcc
-  frs60
-  frs
-  crabs
-  lostevery
-  lost
-  lostnumxv
-  lostnotilt
-  notilt
-  orbit6d-element-quadrupole
-  orbit6d-element-solenoid
-  orbit6d-element-trombone
-  orbit6d-element-trombone-kick
-  orbit6d-element-combinedFunction
-  orbit6d-ions
-  orbit6d-ions-long
-  thin4d_ions
-  thin6d_ions
-  prob1
-  prob3
-  s316
-  thick4
-  thick6dblocks
-  tilt
-  elensidealthck4d
-  elensidealthck6d
-  fma
-  fma_binary
-  dump7_fma
-  dump7_fma_thin4d
-  dump8_fma
-  dump9
-  thick6ddynk
-  wire_thck4d
-  wire_thck6d
-  wire_thin4d
-  wire_thin6d
-  wire_thin6d_ibeco0
-  dump_binary
-  dump4
-  dump5
-  dump6
-  fileunits_DYNK_DUMP
-  multipoles_DYNK
-  geometry
-  momentum_scan
-  beambeamDYNK
-  beambeam4dDYNK
   beam-HO_4D-newstyle
   beam-HO_4D-newstyle-loadParticles
   beam-HO_4D-oldstyle
   beam-HO_6D-newstyle
   beam-HO_6D-oldstyle
-  beam-HO_6D-simple-oldstyle
   beam-HO_6D-simple-newstyle
   beam-HO_6D-simple-newstyle-orbit
+  beam-HO_6D-simple-oldstyle
+  beam-HO_LR-ibbc-newstyle
+  beam-HO_LR-ibbc-oldstyle
   beam-HO_LR-newstyle
   beam-HO_LR-oldstyle
-  beam-HO_LR-ibbc-oldstyle
-  beam-HO_LR-ibbc-newstyle
+  beambeam4dDYNK
+  beambeamDYNK
+  chebythin6d
+  chebythin6d_DYNK
+  chebythin6d_ions
+  chebythin6d_ramp_DYNK
+  crabs
+  dipedge
+  distance
+  dump_2_all_ele_highprec
+  dump_all_highprec
+  dump_binary
+  dump4
+  dump5
+  dump6
+  dump7_fma
+  dump7_fma_thin4d
+  dump8_fma
+  dump9
+  dynk_filelin
+  dynk_globalvars
+  elensidealthck4d
+  elensidealthck6d
+  elensidealthin4d
+  elensidealthin6d
+  elensidealthin6d_DYNK
+  elensidealthin6d_ions
+  elensidealthin6d_ramp_DYNK
+  eric
+  exact
+  fcc
+  fma
+  fma_binary
+  fringe_field
+  frs
+  frs60
+  generalized-rf-multipoles
+  generalized-rf-multipoles-missalignments
+  geometry
+  geometry_multicol
+  last_amp
+  lost
+  lostevery
+  lostnotilt
+  lostnumxv
+  multipoles_DYNK
+  notilt
+  orbit6d-element-combinedFunction
+  orbit6d-element-quadrupole
+  orbit6d-element-solenoid
+  orbit6d-element-trombone
+  orbit6d-element-trombone-kick
+  orbit6d-element-rotations
+  orbit6d-ions
+  orbit6d-ions-long
+  part_state_binary_ions
+  part_state_text_ions
+  perf1
+  prob1
+  prob3
+  rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
-  rfMultipoles_2nd3rd4th_skew
-  last_amp
+  s316
   scatter_bbelastic
-  scatter_collimation
-  dump_all_highprec
-  dump_2_all_ele_highprec
-  perf1
+  thick4
+  thick6d_below_transit
+  thick6dblocks
+  thick6ddynk
+  thin4d_ions
+  thin6d_below_transit
+  thin6d_ions
+  tilt
+  wire_thck4d
+  wire_thck6d
+  wire_thin4d
+  wire_thin6d
+  wire_thin6d_ibeco0
 )
 
-# Tests that require SixDA executable
+##
+# Tests depending on flags
+##
+
+if(STF)
+  list(APPEND SIXTRACK_TESTS
+    beam-HO_6D-simple-newstyle-coupling
+    dynk_IIR
+    dynk_operators
+    dynk_polynomial
+    dynk_random
+    scatter_aperture
+  )
+endif()
+
+if(NOT CR)
+  list(APPEND SIXTRACK_TESTS
+    collimation_k2
+    collimation_old-db_new-block
+    collimation_old-db_old-block
+    scatter_collimation
+  )
+endif()
+
+if(LIBARCHIVE)
+  list(APPEND SIXTRACK_TESTS
+    elensidealthin6d_DYNK_ZIPF
+  )
+endif()
+
+if(NAFF)
+  list(APPEND SIXTRACK_TESTS
+    fma_naff
+  )
+endif()
+
+if(PYTHIA)
+  list(APPEND SIXTRACK_TESTS
+    scatter_pythia
+  )
+endif()
+
 if(SIXDA)
-  list(APPEND SIXTRACK_DA_TESTS frs_da thick4_da)
-endif(SIXDA)
+  list(APPEND SIXTRACK_DA_TESTS
+    frs_da
+    thick4_da
+  )
+endif()
 
 ## UNUSED TESTS
-
-# Standard (K2) collimation tests that needs backtrk
-# However the BACKTRK flag does no longer exist, and the test has not been kept up to date.
-# SET(SIXTRACK_TESTS collimation_k2_fcc_2017_h1_collision ${SIXTRACK_TESTS})
 
 # orbit6d-element-wire
 # thick6dsingles (only contains one canonical, fort.6, which shows that it crashes. Not sure what it is supposed to show?)
@@ -209,70 +223,195 @@ endif(SIXDA)
 
 ## END UNUSED TESTS
 
-#For CR builds, test the CR functions, so kill/resume the test
+##
+# Test Configurations
+##
+
+# List of tests that do not produce a valid fort.10
+set(TESTS_NOFORT10
+  beam-HO_6D-simple-newstyle
+  beam-HO_6D-simple-newstyle-coupling
+  beam-HO_6D-simple-newstyle-orbit
+  beam-HO_6D-simple-oldstyle
+  beambeam4dDYNK
+  beambeamDYNK
+  collimation_k2
+  collimation_old-db_new-block
+  collimation_old-db_old-block
+  dump_2_all_ele_highprec
+  dump_all_highprec
+  dump_binary
+  dump4
+  dump5
+  dump6
+  dynk_filelin
+  dynk_globalvars
+  dynk_IIR
+  dynk_operators
+  dynk_polynomial
+  dynk_random
+  elensidealthck6d
+  exact
+  fringe_field
+  generalized-rf-multipoles
+  generalized-rf-multipoles-missalignments
+  geometry
+  geometry_multicol
+  multipoles_DYNK
+  orbit6d-element-combinedFunction
+  orbit6d-element-quadrupole
+  orbit6d-element-solenoid
+  orbit6d-element-trombone
+  orbit6d-element-trombone-kick
+  orbit6d-element-rotations
+  orbit6d-ions
+  orbit6d-ions-long
+  part_state_binary_ions
+  part_state_text_ions
+  rfMultipoles_2nd3rd4th_skew
+  rfMultipoles_2ndOrder
+  rfMultipoles_3rdOrder
+  rfMultipoles_4thOrder
+  scatter_aperture
+  scatter_bbelastic
+  scatter_collimation
+  scatter_pythia
+  thick6d_below_transit
+  thick6dblocks
+  thick6ddynk
+  thin6d_below_transit
+)
+
+# List of tests that do not produce singletrackfile.dat or fort.90
+set(TESTS_NO_STF_FORT90
+  beam-HO_6D-simple-newstyle-coupling
+  chebythin6d
+  chebythin6d_DYNK
+  chebythin6d_ions
+  chebythin6d_ramp_DYNK
+  collimation_k2
+  collimation_old-db_new-block
+  collimation_old-db_old-block
+  crabs
+  orbit6d-element-rotations
+  dipedge
+  dump_all_highprec
+  dump4
+  dump5
+  dump6
+  dynk_IIR
+  dynk_operators
+  dynk_polynomial
+  dynk_random
+  elensidealthin6d_ions
+  fma
+  fma_binary
+  fma_naff
+  fringe_field
+  geometry
+  geometry_multicol
+  part_state_binary_ions
+  part_state_text_ions
+  rfMultipoles_2ndOrder
+  rfMultipoles_4thOrder
+  scatter_aperture
+  scatter_bbelastic
+  scatter_collimation
+  scatter_pythia
+  thick6d_below_transit
+  thick6ddynk
+  thin4d_ions
+  thin6d_below_transit
+  thin6d_ions
+)
+
+# For CR builds, test the CR functions, so kill/resume the test
 if(CR)
-  SET(CR_ENABLE 1)
-  #Should at least be able to reach the standard TIMEOUT.
-  SET(CR_KILL_TIME "2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,16384,16384,16384,16384,16384,16384,16384,16384,16384")
+  set(CR_ENABLE 1)
+  # Should at least be able to reach the standard TIMEOUT.
+  set(CR_KILL_TIME "2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,16384,16384,16384,16384,16384,16384,16384,16384,16384")
+  list(APPEND CR_MUST_RESTART
+    chebythin6d_ions
+    chebythin6d_ramp_DYNK
+    dipedge
+    dynk_filelin
+    dynk_globalvars
+    dynk_IIR
+    dynk_operators
+    dynk_polynomial
+    dynk_random
+    elensidealthck4d
+    elensidealthck6d
+    elensidealthin6d_ramp_DYNK
+    scatter_aperture
+    scatter_bbelastic
+  )
 else()
-  SET(CR_ENABLE 0)
-  SET(CR_KILL_TIME 0)
+  set(CR_ENABLE 0)
+  set(CR_KILL_TIME 0)
+  set(CR_MUST_RESTART "")
 endif(CR)
 
-#Test commands
+# Set flags for specific tests
 foreach(TST IN ITEMS ${SIXTRACK_TESTS})
 
-  #determine what we need to do:
-
-  #Check fort.10 by default
-  SET(FORT10 1)
-  LIST(FIND TESTS_NOFORT10 ${TST} NO_FORT10)
-  if(NOT ${NO_FORT10} MATCHES -1)
-    SET(FORT10 0)
+  # Check fort.10 by default
+  set(FORT10 1)
+  if(TST IN_LIST TESTS_NOFORT10)
+    set(FORT10 0)
   else()
-    SET(FORT10 1)
+    set(FORT10 1)
   endif()
 
-  #if STF, we need to use the STF flag on read90, and disable checking fort.90
+  # if STF, we need to use the STF flag on read90, and disable checking fort.90
   if(STF)
-    SET(STF_ENABLE 1)
-    SET(FORT90 0)
+    set(STF_ENABLE 1)
+    set(FORT90 0)
   else()
-    SET(STF_ENABLE 0)
-    SET(FORT90 1)
+    set(STF_ENABLE 0)
+    set(FORT90 1)
   endif(STF)
-  LIST(FIND TESTS_NO_STF_FORT90 ${TST} NO_STF_FORT90)
-  if(NOT ${NO_STF_FORT90} MATCHES -1)
-    SET(STF_ENABLE 0)
-    SET(FORT90 0)
+
+  if(TST IN_LIST TESTS_NO_STF_FORT90)
+    set(STF_ENABLE 0)
+    set(FORT90 0)
   endif()
 
   if(LIBARCHIVE)
-    if(TST MATCHES elensidealthin6d_DYNK_ZIPF)
-      SET(SIXOUT_NUMFILES 6)
+    if(TST STREQUAL elensidealthin6d_DYNK_ZIPF)
+      set(SIXOUT_NUMFILES 2)
     else()
-      SET(SIXOUT_NUMFILES 0)
+      set(SIXOUT_NUMFILES 0)
     endif()
   else()
-    SET(SIXOUT_NUMFILES 0)
+    set(SIXOUT_NUMFILES 0)
   endif(LIBARCHIVE)
 
-  SET( DUMP_BIN_FILE NONE )
-  if(TST MATCHES dump_binary)
-    SET( DUMP_BIN_FILE dump.dat,dumpStart.dat )
-  elseif(TST MATCHES fma_binary)
-    SET( DUMP_BIN_FILE START_DUMP_1,IP2_DUMP_1,IP2_DUMP_2,IP2_DUMP_3,IP3_DUMP_1,IP3_DUMP_2,IP3_DUMP_3 )
-  elseif(TST MATCHES dump7_fma)
-    SET( DUMP_BIN_FILE IP3_DUMP_1 )
-  elseif(TST MATCHES dump8_fma)
-    SET( DUMP_BIN_FILE START_DUMP_1,IP3_DUMP_1 )
-  elseif(TST MATCHES dump7_fma_thin4d)
-    SET( DUMP_BIN_FILE dump_ip3 )
+  set(DUMP_BIN_FILE NONE)
+  if(TST STREQUAL dump_binary)
+    set(DUMP_BIN_FILE dump.dat,dumpStart.dat)
+  elseif(TST STREQUAL fma_binary)
+    set(DUMP_BIN_FILE START_DUMP_1,IP2_DUMP_1,IP2_DUMP_2,IP2_DUMP_3,IP3_DUMP_1,IP3_DUMP_2,IP3_DUMP_3)
+  elseif(TST STREQUAL dump7_fma)
+    set(DUMP_BIN_FILE IP3_DUMP_1)
+  elseif(TST STREQUAL dump8_fma)
+    set(DUMP_BIN_FILE START_DUMP_1,IP3_DUMP_1)
+  elseif(TST STREQUAL dump7_fma_thin4d)
+    set(DUMP_BIN_FILE dump_ip3)
+  elseif(TST STREQUAL dump_all_highprec)
+    set(DUMP_BIN_FILE dump3.dat,dump8.dat)
   endif()
 
-  ADD_TEST(
+  set(CR_NUMRESTARTS 0)
+  if(TST IN_LIST CR_MUST_RESTART)
+    set(CR_NUMRESTARTS 1)
+  endif()
+
+  add_test(
     NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
-    COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE}
+    COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
+      ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME}
+      $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} ${CR_NUMRESTARTS}
   )
 
   #some tests take a very long time (set a 2 day timeout)
@@ -284,17 +423,19 @@ endforeach()
 if(SIXDA)
   foreach(TST IN ITEMS ${SIXTRACK_DA_TESTS})
 
-    SET(FORT10 0)
-    SET(FORT90 0)
-    SET(STF_ENABLE 0)
-    SET(SIXOUT_NUMFILES 0)
-    SET(CR_ENABLE 0)
-    SET(CR_KILL_TIME 0)
-    SET(DUMP_BIN_FILE NONE)
+    set(FORT10 0)
+    set(FORT90 0)
+    set(STF_ENABLE 0)
+    set(SIXOUT_NUMFILES 0)
+    set(CR_ENABLE 0)
+    set(CR_KILL_TIME 0)
+    set(DUMP_BIN_FILE NONE)
 
-    ADD_TEST(
+    add_test(
       NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
-      COMMAND SixTestWrapper $<TARGET_FILE:SixTrackDA> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90> ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME} $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE}
+      COMMAND SixTestWrapper $<TARGET_FILE:SixTrackDA> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
+        ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME}
+        $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} 0
     )
 
     #some tests take a very long time (set a 2 day timeout)
@@ -303,8 +444,8 @@ if(SIXDA)
   endforeach()
 endif()
 
-#test files
-foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
+# Set up tests
+foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS} ${SIXTRACK_ERROR})
   add_custom_target(test_copy_${TST})
   add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/test/${TST}/)
 
@@ -314,12 +455,10 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
   if(NOT BOINC)
     foreach(TSFILE IN ITEMS ${TEST_INPUTS})
       get_filename_component(TFILE ${TSFILE} NAME)
-
-      if(NOT WIN32)
-        # create_symlink old new
-        add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${TSFILE} ${CMAKE_BINARY_DIR}/test/${TST}/${TFILE})
-      else()
+      if(WIN32 OR NOSYMLINK)
         add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${TSFILE} ${CMAKE_BINARY_DIR}/test/${TST}/${TFILE})
+      else()
+        add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${TSFILE} ${CMAKE_BINARY_DIR}/test/${TST}/${TFILE})
       endif()
     endforeach()
   else()
@@ -348,10 +487,10 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
     file(GLOB TEST_INPUT_CANONICAL LIST_DIRECTORIES FALSE ${CMAKE_SOURCE_DIR}/test/${TST}/*canonical)
     foreach(CANONICAL_FILES IN ITEMS ${TEST_INPUT_CANONICAL})
       get_filename_component(CANONICAL_FILE ${CANONICAL_FILES} NAME)
-      if(NOT WIN32)
-        add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${CANONICAL_FILES} ${CMAKE_BINARY_DIR}/test/${TST}/${CANONICAL_FILE})
-      else()
+      if(WIN32 OR NOSYMLINK)
         add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CANONICAL_FILES} ${CMAKE_BINARY_DIR}/test/${TST}/${CANONICAL_FILE})
+      else()
+        add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${CANONICAL_FILES} ${CMAKE_BINARY_DIR}/test/${TST}/${CANONICAL_FILE})
       endif()
     endforeach()
 
@@ -359,57 +498,67 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
     file(GLOB TEST_INPUT_EXTRAS LIST_DIRECTORIES FALSE ${CMAKE_SOURCE_DIR}/test/${TST}/extra_checks.txt)
     foreach(EXTRA_FILES IN ITEMS ${TEST_INPUT_EXTRAS})
       get_filename_component(EXTRA_FILE ${EXTRA_FILES} NAME)
-      if(NOT WIN32)
-        add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${EXTRA_FILES} ${CMAKE_BINARY_DIR}/test/${TST}/${EXTRA_FILE})
-      else()
+      if(WIN32 OR NOSYMLINK)
         add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${EXTRA_FILES} ${CMAKE_BINARY_DIR}/test/${TST}/${EXTRA_FILE})
+      else()
+        add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${EXTRA_FILES} ${CMAKE_BINARY_DIR}/test/${TST}/${EXTRA_FILE})
       endif()
     endforeach()
 
   endif(NOT BOINC)
 
-  add_dependencies(SixTrackLib test_copy_${TST})
+  add_dependencies(SixTrackCore test_copy_${TST})
+endforeach()
+
+# Set up error tests
+foreach(TST IN ITEMS ${SIXTRACK_ERROR})
+  add_test(
+    NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
+    COMMAND "errorTests.py" $<TARGET_FILE:SixTrackCR>
+  )
+  set_tests_properties(${TST} PROPERTIES LABELS error)
+  if(WIN32 OR NOSYMLINK)
+    add_custom_command(
+      TARGET test_copy_${TST} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/test/tools/errorTestTools.py ${CMAKE_BINARY_DIR}/test/${TST}/errorTestTools.py
+    )
+  else()
+    add_custom_command(
+      TARGET test_copy_${TST} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/test/tools/errorTestTools.py ${CMAKE_BINARY_DIR}/test/${TST}/errorTestTools.py
+    )
+  endif()
 endforeach()
 
 #add labels to tests
 #Lets say fast tests take <60 seconds to run
 set(FAST_TESTS
-  orbit6d-element-quadrupole
-  orbit6d-element-solenoid
-  orbit6d-element-combinedFunction
-  thick4
-  thick6dblocks
-  thick6ddynk
-  exact
-  crabs
   bb
   bb_ntwin1
-  notilt
-  lost
-  lostnotilt
-  lostnumxv
-  s316
-  dipedge
-  dynk_globalvars
-  dynk_filelin
-  dynk_operators
-  dynk_random
-  dynk_polynomial
-  dynk_IIR
-  elensidealthin4d
-  elensidealthck4d
-  elensidealthck6d
-  elensidealthin6d
-  elensidealthin6d_DYNK
-  elensidealthin6d_DYNK_ZIPF
-  elensidealthin6d_ions
-  thin4d_ions
-  thin6d_ions
-  wire_thck4d
-  wire_thck6d
-  wire_thin4d
-  wire_thin6d
-  wire_thin6d_ibeco0
+  beam-HO_4D-newstyle
+  beam-HO_4D-newstyle-loadParticles
+  beam-HO_4D-oldstyle
+  beam-HO_6D-newstyle
+  beam-HO_6D-oldstyle
+  beam-HO_6D-simple-newstyle
+  beam-HO_6D-simple-newstyle-coupling
+  beam-HO_6D-simple-newstyle-orbit
+  beam-HO_6D-simple-oldstyle
+  beam-HO_LR-ibbc-newstyle
+  beam-HO_LR-ibbc-oldstyle
+  beam-HO_LR-newstyle
+  beam-HO_LR-oldstyle
+  beambeam4dDYNK
+  beambeamDYNK
+  chebythin6d
+  chebythin6d_DYNK
+  chebythin6d_ions
+  chebythin6d_ramp_DYNK
+  collimation_old-db_new-block
+  collimation_old-db_old-block
+  crabs
+  dump_2_all_ele_highprec
+  dump_all_highprec
   dump_binary
   dump4
   dump5
@@ -418,59 +567,85 @@ set(FAST_TESTS
   dump7_fma_thin4d
   dump8_fma
   dump9
-  fileunits_DYNK_DUMP
-  multipoles_DYNK
-  geometry
-  momentum_scan
+  dynk_filelin
+  dynk_globalvars
+  dynk_IIR
+  dynk_operators
+  dynk_polynomial
+  dynk_random
+  elensidealthck4d
+  elensidealthck6d
+  elensidealthin4d
+  elensidealthin6d
+  elensidealthin6d_DYNK
+  elensidealthin6d_DYNK_ZIPF
+  elensidealthin6d_ions
+  exact
   fcc
-  beambeamDYNK
-  beambeam4dDYNK
-  beam-HO_4D-newstyle
-  beam-HO_4D-newstyle-loadParticles
-  beam-HO_4D-oldstyle
-  beam-HO_6D-newstyle
-  beam-HO_6D-oldstyle
-  beam-HO_LR-newstyle
-  beam-HO_LR-oldstyle
-  beam-HO_6D-simple-newstyle
-  beam-HO_6D-simple-oldstyle
-  beam-HO_6D-simple-newstyle-coupling
-  beam-HO_LR-ibbc-oldstyle
-  beam-HO_LR-ibbc-newstyle
+  frs_da
+  generalized-rf-multipoles
+  generalized-rf-multipoles-missalignments
+  geometry
+  geometry_multicol
+  last_amp
+  lost
+  lostnotilt
+  lostnumxv
+  multipoles_DYNK
+  notilt
+  orbit6d-element-combinedFunction
+  orbit6d-element-quadrupole
+  orbit6d-element-solenoid
+  orbit6d-element-trombone
+  orbit6d-element-trombone-kick
+  orbit6d-element-rotations
+  orbit6d-ions
+  orbit6d-ions-long
+  part_state_binary_ions
+  part_state_text_ions
+  rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
-  rfMultipoles_2nd3rd4th_skew
-  last_amp
+  s316
+  scatter_aperture
   scatter_bbelastic
   scatter_collimation
-  scatter_aperture
-  dump_all_highprec
-  dump_2_all_ele_highprec
-  orbit6d-element-trombone
-  orbit6d-element-trombone-kick
-  orbit6d-ions
-  beam-HO_6D-simple-newstyle-orbit
+  scatter_pythia
+  thick4
   thick4_da
-  frs_da
+  thick6d_below_transit
+  thick6dblocks
+  thick6ddynk
+  thin4d_ions
+  thin6d_below_transit
+  thin6d_ions
+  wire_thck4d
+  wire_thck6d
+  wire_thin4d
+  wire_thin6d
+  wire_thin6d_ibeco0
 )
 
-#Medium tests take < 30 mins to run
+# Medium tests take < 30 mins to run
 set(MEDIUM_TESTS
+  bbe51
+  bbe52
   bbe571ib0
-  tilt
-  lostevery
+  chebythin6d_ramp_DYNK
+  collimation_k2
+  dipedge
+  distance
+  elensidealthin6d_ramp_DYNK
+  eric
   fma
   fma_binary
   fma_naff
+  fringe_field
   frs
   frs60
-  eric
-  distance
-  bbe51
-  bbe52
-  collimation_k2_fcc_2017_h1_collision
-  orbit6d-ions-long
+  lostevery
+  tilt
 )
 
 # Slow is everything longer
@@ -486,10 +661,10 @@ set(PERF_TESTS
 
 foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
 
-  list(FIND FAST_TESTS ${TST} LABEL_FAST)
+  list(FIND FAST_TESTS   ${TST} LABEL_FAST)
   list(FIND MEDIUM_TESTS ${TST} LABEL_MEDIUM)
-  list(FIND SLOW_TESTS ${TST} LABEL_SLOW)
-  list(FIND PERF_TESTS ${TST} LABEL_PERF)
+  list(FIND SLOW_TESTS   ${TST} LABEL_SLOW)
+  list(FIND PERF_TESTS   ${TST} LABEL_PERF)
 
   if(${LABEL_FAST} GREATER -1)
     set_property(TEST ${TST} PROPERTY LABELS fast)
@@ -506,7 +681,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS})
 endforeach()
 
 # Tools
-SET(SELFTEST_TOOLS
+set(SELFTEST_TOOLS
   SelfTest_verify10
   SelfTest_compf10
   SelfTest_checkf1014
@@ -519,8 +694,16 @@ foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
   set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
 endforeach()
 
+# Zlib tests
+if(ZLIB)
+  set_property(TEST SelfTest_zlib PROPERTY LABELS tool fast)
+  if(64BIT)
+    set_property(TEST SelfTest_zlib_64 PROPERTY LABELS tool fast)
+  endif()
+endif()
+
 # Inputs
-SET(SELFTEST_INPUT
+set(SELFTEST_INPUT
   CheckTestInput_STF
 )
 foreach(TOOL IN ITEMS ${SELFTEST_INPUT})
@@ -528,7 +711,7 @@ foreach(TOOL IN ITEMS ${SELFTEST_INPUT})
 endforeach()
 
 # Other
-SET(SELFTEST_OTHER
+set(SELFTEST_OTHER
   CheckBuildManual
 )
 foreach(TOOL IN ITEMS ${SELFTEST_OTHER})

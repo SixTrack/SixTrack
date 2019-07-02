@@ -2,8 +2,9 @@
 
 #
 # This script generates the files necessary for the /SixTrack/web/docs folder on the website.
-# Requires the latexml package to be installed.
-# Written by Veronica Berglyd Olsen, Feb 2018
+# Requires the latexml package to be installed as well as image magick for figure conversion.
+# Written by Veronica Berglyd Olsen, Feb 2018. Updated 2019-04-08
+# Note: Does not seem to work with latexml 8.3. Please use 8.2.
 #
 
 CURR=$(pwd)
@@ -17,6 +18,7 @@ OBUILD=$CURR/html/build_full
 
 # LaTeXML Options
 MATHJAX='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML'
+#MATHJAX=$(locate LaTeXML-maybeMathjax.js)
 FORMAT=html5
 
 mkdir -pv $OUSERF
@@ -33,29 +35,33 @@ echo "*****************************************"
 echo ""
 
 # Make temp directory
-rm -rfv $TUSER
-rsync -avPh $MUSER/ $TUSER
+rm -rf $TUSER
+rsync -aPh $MUSER/ $TUSER
 cd $TUSER
 
-# Remove unsupported stuff for LaTeX source
+# Build PDF
+make clean
+make | tee ../latexUserManual.log
+cp $TUSER/six.pdf $CURR/html/user_manual.pdf
+
+# Remove unsupported stuff for LaTeX source for HTML build
 for FILE in *.tex; do
-    echo "Cleaning up file $FILE"
-    sed -i 's/\\begin{cverbatim}/\\begin{verbatim}/g' $FILE
-    sed -i 's/\\end{cverbatim}/\\end{verbatim}/g' $FILE
-    sed -i 's/\\begin{ctverbatim}/\\begin{verbatim}/g' $FILE
-    sed -i 's/\\end{ctverbatim}/\\end{verbatim}/g' $FILE
-    sed -i 's/\\begin{longtabu}/\\begin{tabular}/g' $FILE
-    sed -i 's/\\end{longtabu}/\\end{tabular}/g' $FILE
-    sed -i 's/\\arraybackslash//g' $FILE
-    sed -i '/\\todo/d' $FILE
-    sed -i '/\\pdfbookmark/d' $FILE
+  echo "Cleaning up file $FILE"
+  sed -i 's/\\begin{cverbatim}/\\begin{verbatim}/g' $FILE
+  sed -i 's/\\end{cverbatim}/\\end{verbatim}/g' $FILE
+  sed -i 's/\\begin{ctverbatim}/\\begin{verbatim}/g' $FILE
+  sed -i 's/\\end{ctverbatim}/\\end{verbatim}/g' $FILE
+  sed -i 's/\\begin{longtabu}/\\begin{tabular}/g' $FILE
+  sed -i 's/\\end{longtabu}/\\end{tabular}/g' $FILE
+  sed -i 's/\\arraybackslash//g' $FILE
+  sed -i '/\\todo/d' $FILE
+  sed -i '/\\pdfbookmark/d' $FILE
+  sed -i '/\\tabulinesep/d' $FILE
 done
 
-# Build
-make clean &> /dev/null
-make TEXFLAGS=-interaction=nonstopmode | tee ../latexUserManual.log
-cp $TUSER/six.pdf $CURR/html/user_manual.pdf
-latexml six.tex | latexmlpost --dest=$OUSERF/manual.html --format=$FORMAT --javascript=$MATHJAX - | tee ../htmlUserManual.log
+# Build HTML
+latexml six.tex | latexmlpost --dest=$OUSERF/manual.html --format=$FORMAT --javascript=$MATHJAX -
+HTMEX=@?
 $CURR/cleanupHTML.py $OUSERF
 rm -v $OUSERF/*.html
 echo "<?php header('Location: manual.php'); ?>" > $OUSERF/index.php
@@ -85,6 +91,17 @@ echo ""
 echo "**********"
 echo "*  DONE  *"
 echo "**********"
+
+if [ $HTMEX != 0 ]; then
+  echo ""
+  echo "ERROR during HTML conversion. It may have failed."
+  echo "If the error is in converting figures to png, make sure the lines"
+  echo "  <policy domain=\"coder\" rights=\"read|write\" pattern=\"PS\" />"
+  echo "  <policy domain=\"coder\" rights=\"read|write\" pattern=\"PDF\" />"
+  echo "are set to read|write in /etc/ImageMagick/policy.xml"
+fi
+
 echo ""
 echo "The content of the folder 'html' can now be uploaded to /afs/cern.ch/project/sixtrack/web/docs/"
+echo "RUN: rsync -rvPh html/ /afs/cern.ch/project/sixtrack/docs/"
 echo ""

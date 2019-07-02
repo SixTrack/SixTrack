@@ -1,6 +1,12 @@
 GEOM
-PRINT
-/
+SETTINGS----------------------------------------------------------------
+  PRINT
+  PRINT_DCUM
+  FINALSTATE text
+NEXT
+HASH--------------------------------------------------------------------
+  MD5SUM machine_length.dat text
+NEXT
 TRACKING PARAMETERS-----------------------------------------------------
   1 0 32 0 6.89493 0 1
   1 1 2 1 2
@@ -28,7 +34,7 @@ ITERATION-ACCURACY------------------------------------------------------
   50 1D-12 1D-15
   10 1D-10 1D-10
   10 1D-6  1D-6
-    1D-6  1D-9  1D-9
+     1D-6  1D-9  1D-9
 NEXT
 FLUCTUATION
 100000 1 7 3
@@ -42,8 +48,5 @@ SYNC
 NEXT
 BEAM
   1.2000e+11       50.5556       50.5556  1.0000e+00  1.0000e-03  1  0
-NEXT
-DUMP
-  ip1 1 650 2 dump.txt 1 -1
 NEXT
 ENDE

@@ -48,7 +48,7 @@ contains
 subroutine dist_parseInputLine(inLine, iLine, iErr)
 
   use string_tools
-  use file_units
+  use mod_units
 
   implicit none
 
@@ -62,23 +62,22 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "DIST> ERROR Failed to parse input line."
+    write(lerr,"(a)") "DIST> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
-
   if(nSplit == 0) return
 
   select case(lnSplit(1))
 
   case("READ")
     if(nSplit < 2) then
-      write(lout,"(a)") "DIST> ERROR READ must be followed by one file name only."
+      write(lerr,"(a)") "DIST> ERROR READ must be followed by one file name only."
       iErr = .true.
       return
     end if
     dist_readFile = trim(lnSplit(2))
-    call funit_requestUnit(dist_readFile, dist_readUnit)
+    call f_requestUnit(dist_readFile, dist_readUnit)
     if(.not.dist_enable) dist_enable = .true.
 
   case("ECHO")
@@ -88,10 +87,10 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
       dist_echoFile = "echo_distribution.dat"
     end if
     dist_echo = .true.
-    call funit_requestUnit(dist_echoFile, dist_echoUnit)
+    call f_requestUnit(dist_echoFile, dist_echoUnit)
 
   case default
-    write(lout,"(a)") "DIST> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
+    write(lerr,"(a)") "DIST> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
     iErr = .true.
     return
 
@@ -107,13 +106,13 @@ end subroutine dist_parseInputLine
 subroutine dist_readDist
 
   use parpro
-  use mod_hions
   use mod_common
-  use mod_commonmn
+  use mod_common_main
   use string_tools
   use mod_particles
   use physical_constants
   use numerical_constants
+  use mod_units, only : f_open, f_close
 
   implicit none
 
@@ -125,16 +124,17 @@ subroutine dist_readDist
 
   write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_readFile)//"'"
 
-  xv1(:)  = zero
-  yv1(:)  = zero
-  xv2(:)  = zero
-  yv2(:)  = zero
+  xv1(:)   = zero
+  yv1(:)   = zero
+  xv2(:)   = zero
+  yv2(:)   = zero
   sigmv(:) = zero
   ejfv(:)  = zero
+  ejf0v(:) = zero
   naa(:)   = 0
   nzz(:)   = 0
   nqq(:)   = 0
-  pdgid(:)   = 0
+  pdgid(:) = 0
   nucm(:)  = zero
   dt(:)    = zero
 
@@ -142,7 +142,8 @@ subroutine dist_readDist
   ln   = 0
   cErr = .false.
 
-  open(unit=dist_readUnit, file=dist_readFile)
+  call f_open(unit=dist_readUnit,file=dist_readFile,mode='r',err=cErr,formatted=.true.,status="old")
+  if(cErr) goto 19
 
 10 continue
   read(dist_readUnit,"(a)",end=30,err=20) inLine
@@ -154,7 +155,7 @@ subroutine dist_readDist
   j = j+1
 
   if(j > napx) then
-    write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been read, as requested in fort.3"
+    write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been read, as requested in "//trim(fort3)
     j = napx
     goto 30
   end if
@@ -177,33 +178,41 @@ subroutine dist_readDist
   if(nSplit > 13) call chr_cast(lnSplit(14), dt(j),   cErr)
   if(cErr) goto 20
 
-  xv1(j)    = xv1(j)*c1e3
-  xv2(j)    = xv2(j)*c1e3
-  yv1(j)    = yv1(j)*c1e3
-  yv2(j)    = yv2(j)*c1e3
-  ejfv(j)   = ejfv(j)*c1e3
-  nucm(j)   = nucm(j)*c1e3
-  sigmv(j)  = -(e0f/e0)*((dt(j)*clight)*c1e3)
-  nqq(j)    = nzz(j)
-  mtc(j)    = (nqq(j)*nucm0)/(qq0*nucm(j))
-  nlostp(j) = j
-  pstop(j)  = .false.
+  xv1(j)      = xv1(j)*c1e3
+  xv2(j)      = xv2(j)*c1e3
+  yv1(j)      = yv1(j)*c1e3
+  yv2(j)      = yv2(j)*c1e3
+  ejfv(j)     = ejfv(j)*c1e3
+  nucm(j)     = nucm(j)*c1e3
+  sigmv(j)    = -(e0f/e0)*((dt(j)*clight)*c1e3)
+  nqq(j)      = nzz(j)
+  mtc(j)      = (nqq(j)*nucm0)/(qq0*nucm(j))
+  partID(j)   = j
+  parentID(j) = j
+  pstop(j)    = .false.
+  ejf0v(j)    = ejfv(j)
   call CalculatePDGid(pdgid(j), naa(j), nzz(j)) 
+
   goto 10
 
+19 continue
+  write(lerr,"(a)") "DIST> ERROR Opening file '"//trim(dist_readFile)//"'"
+  call prror
+  return
+
 20 continue
-  write(lout,"(a,i0)") "DIST> ERROR Reading particles from line ",ln
-  call prror(-1)
+  write(lerr,"(a,i0)") "DIST> ERROR Reading particles from line ",ln
+  call prror
   return
 
 30 continue
   if(j == 0) then
-    write(lout,"(a)") "DIST> ERROR Reading particles. No particles read from file."
-    call prror(-1)
+    write(lerr,"(a)") "DIST> ERROR Reading particles. No particles read from file."
+    call prror
     return
   end if
 
-  close(dist_readUnit)
+  call f_close(dist_readUnit)
   write(lout,"(a,i0,a)") "DIST> Read ",j," particles from file '"//trim(dist_readFile)//"'"
 
   ! Update longitudinal particle arrays from read momentum
@@ -224,10 +233,9 @@ end subroutine dist_readDist
 subroutine dist_finaliseDist
 
   use parpro
-  use mod_hions
   use mod_common
-  use mod_commont
-  use mod_commonmn
+  use mod_common_track
+  use mod_common_main
   use numerical_constants
 
   implicit none
@@ -259,8 +267,8 @@ subroutine dist_finaliseDist
           nzz(j) = zz0
           mtc(j) = one
         else
-          write(lout,"(a)") "DIST> ERROR Mass and/or charge mismatch with relation to sync particle"
-          call prror(-1)
+          write(lerr,"(a)") "DIST> ERROR Mass and/or charge mismatch with relation to sync particle"
+          call prror
         end if
       end if
 
@@ -272,7 +280,8 @@ subroutine dist_finaliseDist
   write(lout,"(a,1x,f15.7)")       "DIST> Reference energy [Z TeV]:", c1m6*e0/qq0
 
   do j=napx+1,npart
-    nlostp(j)   = j
+    partID(j)   = j
+    parentID(j) = j
     pstop(j)    = .true.
     ejv(j)      = zero
     dpsv(j)     = zero
@@ -296,11 +305,15 @@ end subroutine dist_finaliseDist
 subroutine dist_echoDist
 
   use mod_common
-  use mod_commonmn
+  use mod_common_main
+  use mod_units, only : f_open, f_close
 
   integer j
+  logical cErr
 
-  open(unit=dist_echoUnit, file=dist_echoFile)
+  call f_open(unit=dist_echoUnit,file=dist_echoFile,mode='w',err=cErr,formatted=.true.)
+  if(cErr) goto 19
+
   rewind(dist_echoUnit)
   write(dist_echoUnit,"(a,1pe25.18)") "# Total energy of synch part [MeV]: ",e0
   write(dist_echoUnit,"(a,1pe25.18)") "# Momentum of synch part [MeV/c]:   ",e0f
@@ -309,7 +322,14 @@ subroutine dist_echoDist
   do j=1, napx
     write(dist_echoUnit,"(6(1x,1pe25.18))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejfv(j)
   end do
-  close(dist_echoUnit)
+  call f_close(dist_echoUnit)
+
+  return
+
+19 continue
+  write(lerr,"(a)") "DIST> ERROR Opening file '"//trim(dist_echoFile)//"'"
+  call prror
+  return
 
 end subroutine dist_echoDist
 

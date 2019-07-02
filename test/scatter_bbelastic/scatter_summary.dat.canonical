@@ -1,0 +1,112 @@
+#
+#  SCATTER SUMMARY
+# =================
+#
+#  Read 1 element(s)
+#  Read 1 profile(s)
+#  Read 1 generator(s)
+# 
+#  Generators
+# =============
+#  Generator(1): 'sc_thin'
+#
+#  Cross Sections
+# ================
+#  Element(1): 'ip1_scatter' [Probability: Auto]
+#   + Generator(1):       30.000000 mb [BR: 1.000000]
+#   = Sigma Total:        30.000000 mb [BR: 1.000000]
+#
+#  Summary Log
+# =============
+#    turn     napx bez                  generator            process     nScat    nLost   scatRat  crossSec[mb]       scaling
+       11       64 ip1_scatter          sc_thin              Elastic        19        0  0.296875      8.906250  1.000000E+00
+      500       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      501       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      502       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      503       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      504       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      505       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      506       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      507       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      508       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      510       64 ip1_scatter          sc_thin              Elastic         4        0  0.062500      1.875000  1.000000E-01
+      511       64 ip1_scatter          sc_thin              Elastic         4        0  0.062500      1.875000  1.000000E-01
+      512       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      513       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      514       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      515       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      516       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      517       64 ip1_scatter          sc_thin              Elastic         5        0  0.078125      2.343750  1.000000E-01
+      518       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      519       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      520       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      521       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      522       64 ip1_scatter          sc_thin              Elastic         4        0  0.062500      1.875000  1.000000E-01
+      523       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      524       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      525       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      526       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      527       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      528       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      529       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      530       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      531       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      532       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      534       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      535       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      536       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      539       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      540       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      542       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      543       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      544       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      545       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      546       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      547       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      549       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      550       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      551       64 ip1_scatter          sc_thin              Elastic         4        0  0.062500      1.875000  1.000000E-01
+      553       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      554       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      555       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      556       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      557       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      559       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      560       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      561       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      562       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      563       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      564       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      565       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      566       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      567       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      568       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      569       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      570       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      571       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      573       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      574       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      575       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      576       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      577       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      578       64 ip1_scatter          sc_thin              Elastic         4        0  0.062500      1.875000  1.000000E-01
+      579       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      580       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      581       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      582       64 ip1_scatter          sc_thin              Elastic         4        0  0.062500      1.875000  1.000000E-01
+      583       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      584       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      585       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      586       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      587       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      588       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      589       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      590       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      591       64 ip1_scatter          sc_thin              Elastic         4        0  0.062500      1.875000  1.000000E-01
+      592       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      593       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      594       64 ip1_scatter          sc_thin              Elastic         3        0  0.046875      1.406250  1.000000E-01
+      596       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01
+      597       64 ip1_scatter          sc_thin              Elastic         1        0  0.015625      0.468750  1.000000E-01
+      599       64 ip1_scatter          sc_thin              Elastic         4        0  0.062500      1.875000  1.000000E-01
+      600       64 ip1_scatter          sc_thin              Elastic         2        0  0.031250      0.937500  1.000000E-01

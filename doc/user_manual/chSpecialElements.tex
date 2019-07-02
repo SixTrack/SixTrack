@@ -41,50 +41,312 @@ Moreover, using the multipole block reduces the number of elements in the single
     \item 22-poles are included ($n=11$). By enlarging the parameter \texttt{MMUL} (Appendix~\ref{DSP}) up to 40-poles (\texttt{MMUL=20})\index{MMUL} can be treated. To make the change of \texttt{MMUL} effective, it is of course necessary to recompile the program.
 \end{enumerate}
 
-% ================================================================================================================================ %
-\section{Aperture Limitations} \label{ApeLim}
-
-This input data block is used to introduce additional collimators or aperture limitations in the machine.\index{aperture limit}\index{LIMI}
-Each non-linear element can be used for this purpose.
-Rectangular or elliptical shapes of the aperture limitations are allowed.
-On top of that, there is a general (rectangular) aperture check at each non-zero length element.
-The general aperture values are chosen to be large enough (\ref{T-DTP}) to define the short term dynamic aperture.
+\section{Generalized RF-Multipoles} \label{generalrf}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{LIMI}\index{LIMI} \\
-    \textbf{Data lines} & Variable \\
-    \textbf{Format}     & \texttt{name type xaper yaper}
+    \textbf{Keyword}    & \texttt{RFMU}\index{RFMU} \\
+    \textbf{Data lines} & 2 to 21 \\
+    \textbf{Format}     & First line: \texttt{name frequency}  . \\
+                        & Lines 2 to 21: \texttt{$B_{n}$ $\phi_{Bn}$ $A_{n}$ $\phi_{An}$}.
 \end{tabular}
 
 \paragraph{Format Description}~
 
 \bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{name}    & Name of the block which must appear in the list of single elements\index{single elements} (\ref{rfmulbloc}). \\
+    \texttt{$B_{n}$} & Strength of the normal multipole of order n.  \\
+    \texttt{$\phi_{Bn}$} & Phase (in radians) of the normal multipole of order n.  \\
+    \texttt{$A_{n}$} & Strength of the skew multipole of order n.  \\
+    \texttt{$\phi_{An}$} & Phase (in radians) of the skew multipole of order n.  \\
+\end{tabular}
+
+% ================================================================================================================================ %
+\section{Aperture Limitations} \label{ApeLim}
+The aperture LIMItation block allows to define aperture limitations in the machine and hence describe the mechanical acceptance of the machine.\index{aperture limit}\index{LIMI}
+In this way, it is possible to check if particles being tracked still remain inside the machine mechanical aperture or will be lost against the beam pipe.
+
+In addition to the check against the detailed model of the machine, there is also a general (rectangular) aperture check at each non-zero length element.
+The general aperture check is always on, but in general values of the specifiers are set large enough (\ref{T-DTP}) to define the short term dynamic aperture and be outside of any factual machine mechanical aperture.
+
+\subsection{General Description} \label{ApeLim:GenDesc}
+Each non-linear (zero length) element defined in the \textit{Single Element} input block (\ref{NonEle}) except multipole blocks (\ref{MulBlo}) can be used to define aperture limitations, but it is highly recommended to use dedicated markers.
+Several aperture types are available to the user (see later).
+
+The aperture limitations are taken into account during tracking by the online aperture checking algorithm, which verifies that the tracked particles falls within the mechanical acceptance of the machine.
+When a particle does not fit into the mechanical acceptance, it is removed from tracking; its coordinates at the point of loss are reported in a text file.
+A back-tracking algorithm finds the actual loss location interpolating the aperture profile by means of a bi-section method; the user can set the precision with which the longitudinal position is found (default is 10~cm).
+While on by default, the algorithm can be switched off by the user; in this case, the particle coordinates reported in the loss file are those at the aperture marker where the particle is found out of the mechanical aperture of the machine.
+Particles outside of the mechanical acceptance will be mercilessly killed, unless explicitly requested by the user (see Sec.~\ref{ApeLim:inpOptions}).
+
+The present implementation extends the functionalities developed in the context of the Fluka-SixTrack coupling~\cite{coupling:1,coupling:2}.
+Please note that, if aperture markers are defined in the \texttt{LIMI} block, the aperture check is triggered only by the markers.
+On the other hand, the general aperture check is performed at every element and it is always on.
+Finally, no matter if the \texttt{LIMI} block is present or not, or if the back-tracking algorithm is on or off, SixTrack dumps all particles at their loss point in the \texttt{aperture\_losses.dat} file (see Sec.~\ref{ApeLim:ApeLossesFileFormat}).
+
+\newpage
+\paragraph{Format Description}~
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{LIMI}\index{LIMI} \\
+    \textbf{Data lines} & Variable \\
+    \textbf{Format}     & Each aperture marker is fully specified by means of its type and
+                          numerical parameters (see Sec.~\ref{ApeLim:ApeSpecs}).
+                          Other input options are available to the user,
+                          headed by specific keywords, to control the respective parameters.
+\end{tabular}
+
+\bigskip
+\subsection{Specifying Aperture Marker}\label{ApeLim:ApeSpecs}
+An aperture profile can be assigned to a SINGLE ELEMENT specifying its type and numerical specifiers:
+
+\paragraph{Format:}
+\texttt{name type aper\_1 aper\_2 aper\_3 aper\_4 x\_off y\_off angle}
+
 \begin{longtabu}{@{}lp{0.8\linewidth}}
-    \texttt{name}   & The name of any non-linear (zero length) element in the \textit{Single Element} input block (\ref{NonEle}) except multipole blocks (\ref{MulBlo}). \\
-    \texttt{type}   & Two types of aperture limitations are allowed: \\
-                    & \texttt{RE} for a rectangular aperture shape, i.e.
-                      \begin{equation*}
-                          x_{i} < \mathrm{xaper},\; y_{i} < \mathrm{yaper}
-                      \end{equation*}\\
-                    & \texttt{EL} for an elliptical aperture shape, i.e.
-                      \begin{equation*}
-                          \frac{x_{i}^{2}}{\mathrm{xaper}^{2}} + \frac{y_{i}^{2}} {\mathrm{yaper}^{2}} < 1
-                      \end{equation*}\\
-    \texttt{xaper}  & Aperture in the horizontal plane in mm. \\
-    \texttt{yaper}  & Aperture in the vertical plane in mm.
+    \texttt{name}   & The name of any non-linear (zero length) element in the \textit{Single Element} input block~(\ref{NonEle}) except multipole blocks~(\ref{MulBlo}). \\
+    \texttt{type}   & Type of aperture limitation (string). See Tab.~\ref{tab:apeSpecs} for the types
+                      presently available. \\
+    \texttt{aper\_1} to \texttt{aper\_4}  & Aperture specifiers (floats).
+                      Their actual meaning depend on the aperture type. The aperture specifiers are
+                      aligned to those of MAD-X~\cite{MAD}, with the exception of the Racetrack,
+                      that can have an ellyptical corner. See Tab.~\ref{tab:apeSpecs} for their
+                      meanings. Only the Transition type needs 8 specifiers (hence from \texttt{aper\_1} to \texttt{aper\_8}). \\
+    \texttt{x\_off} and \texttt{y\_off}  & Hor.~and ver.~offsets in mm. \\
+    \texttt{angle}  & Tilt angle in rad. The tilt is around the offset point.\\
 \end{longtabu}
+
+The last three numerical specifiers are optional, whereas the others are mandatory, depending on the type.
+Tab.~\ref{tab:apeSpecs} summarises the aperture types presently available and the meaning of the respective numerical specifiers; see also Fig.~\ref{fig:APE_sketch} for further geometrical clarifications.
+The list of aperture markers and specifiers can be given directly in the \texttt{fort.3} file, in the \texttt{LIMI} block, or via a text file, the name of which must be specified in the \texttt{LIMI} block with the \texttt{LOAD} keyword (see Sec.~\ref{ApeLim:inpOptions}).
+For the convention on signs for the last three (optional) aperture specifiers, please see Fig.~\ref{fig:oct_sketch}.
+
+\begin{center}
+\begin{longtable}{|c|c|c|c|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
+    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+    \caption{Aperture types and specifiers. Only the mandatory specifiers are reported.}
+    \label{tab:apeSpecs} \\*
+    \hline
+    \rowcolor{blue!30}
+    & & \multicolumn{2}{|c|}{Aperture specifier} \\*
+    \rowcolor{blue!30}
+    Name & \texttt{Type} & name & meaning \\*
+    \hline
+    \endfirsthead
+
+    Circle  & \texttt{CR} & \texttt{aper\_1} & radius [mm] \\*
+    \hline
+
+    Rectangle & \texttt{RE} & \texttt{aper\_1} & hor.~half-size [mm] \\*
+    & & \texttt{aper\_2} & ver.~half-size [mm] \\*
+    \hline
+    
+    Ellipse & \texttt{EL} & \texttt{aper\_1} & hor.~semi-axis [mm] \\*
+    & & \texttt{aper\_2} & ver.~semi-axis [mm] \\*
+    \hline
+    
+    RectEllipse & \texttt{RL} & \texttt{aper\_1} & hor.~half-size [mm] \\*
+    & & \texttt{aper\_2} & ver.~half-size [mm] \\*
+    & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
+    & & \texttt{aper\_4} & ver.~semi-axis [mm] \\*
+    \hline
+    
+    Octagon & \texttt{OC} & \texttt{aper\_1} & hor.~position of ver.~side [mm] \\*
+    & & \texttt{aper\_2} & ver.~position of hor.~side [mm] \\*
+    & & \texttt{aper\_3} & angle of first cut corner [rad] \\*
+    & & \texttt{aper\_4} & angle of second cut corner [rad] \\*
+    \hline
+    
+    Ractetrack & \texttt{RT} & \texttt{aper\_1} & hor.~displ.~of ellypse centre [mm] \\*
+    & & \texttt{aper\_2} & ver.~displ.~of ellypse centre [mm] \\*
+    & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
+    & & \texttt{aper\_4} & ver.~semi-axis [mm] \\*
+    \hline
+    
+    Transition & \texttt{TR} & \texttt{aper\_1} & hor.~half-size [mm] \\*
+    & & \texttt{aper\_2} & ver.~half-size [mm] \\*
+    & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
+    & & \texttt{aper\_4} & ver.~semi-axis [mm] \\*
+    & & \texttt{aper\_5} & hor.~displ.~of ellypse centre (a-la RACETRACK) [mm] \\*
+    & & \texttt{aper\_6} & hor.~displ.~of ellypse centre (a-la RACETRACK) [mm] \\*
+    & & \texttt{aper\_7} & angle of first cut corner [rad] \\*
+    & & \texttt{aper\_8} & angle of second cut corner [rad] \\*
+    \hline
+
+%     \rowcolor{blue!15}
+%     \multicolumn{4}{|l|}{Type specific parameters} \\*
+%     \texttt{GAUSSIAN} & \texttt{$\sigma$} & mm & Sigma of the e--beam.\\*
+\end{longtable}
+\end{center}
+
+\begin{figure}
+\centering
+\begin{minipage}{.555\textwidth}
+  \centering
+  \includegraphics[width=0.95\linewidth]{figures/apertureSketch.png}
+  \captionof{figure}{Sketch of the most general aperture profile currently treated by the aperture module. The purple line marks the actual aperture restriction as interpreted by the code with the given parameters.}
+  \label{fig:APE_sketch}
+\end{minipage}
+\hfill
+\begin{minipage}{.425\textwidth}
+  \centering
+  \includegraphics[width=0.95\linewidth]{figures/OctExSketch.png}
+  \captionof{figure}{Sketch of the octagon aperture shown in the example. While both offsets are negative,
+  the tilt angle is positive.}
+  \label{fig:oct_sketch}
+\end{minipage}
+\end{figure}
+
+\bigskip
+\subsection{Other input options}\label{ApeLim:inpOptions}
+The user can customize the behavior of the \texttt{LIMI} block concerning the back-tracking algorithm. The syntax is via keywords, followed by positional arguments.
+Tab.~\ref{tab:apeInpOptions} lists all available options, their syntax and meaning.
+
+\begin{center}
+\begin{longtable}{|c|c|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
+    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+    \caption{Other input options of the \texttt{LIMI} block. Options are listed in alphabetical order.}
+    \label{tab:apeInpOptions} \\*
+    \hline
+    \rowcolor{blue!30}
+    keyword & argument & description \\*
+    \hline
+    \endfirsthead
+
+    \texttt{BACKTRKOFF} & \multicolumn{2}{l|}{to disable back-tracking.} \\*
+                        & \multicolumn{2}{l|}{Consequently, particle losses will occur only at aperture markers.} \\*
+    \hline
+
+    \texttt{DEBUG} & \multicolumn{2}{l|}{to enable debugging output for the aperture code.} \\*
+                   & \multicolumn{2}{l|}{For the moment, this flag only increase the verbosity during parsing of \texttt{fort.3}.} \\*
+    \hline
+
+    \texttt{LOAD}  & \multicolumn{2}{l|}{to load specifications of apertures from a file.} \\*
+    \cline{2-3}
+                   & filename & ASCII file containing the specifications of apertures \\*
+    \hline
+
+    \texttt{PREC}  & \multicolumn{2}{l|}{to set custom accuracy in finding the actual loss location} \\*
+    \cline{2-3}
+                   & precision & precision of back-tracking [m] \\*
+    \hline
+
+    \texttt{PRIN}  & \multicolumn{2}{l|}{to echo the profile of the machine aperture with $s$ to a file.} \\*
+                   & \multicolumn{2}{l|}{The precision set for back-tracking is used also as precision of the echo.} \\*
+    \cline{2-3}
+                   & filename & ASCII file where to echo the machine aperture \\*
+                   & \texttt{MEM} & optional flag to dump aperture profile as in memory \\*
+    \hline
+
+    \texttt{SAVE}  & \multicolumn{2}{l|}{to avoid killing particles out of the mechanical aperture.} \\*
+                   & \multicolumn{2}{l|}{Use this option for direct comparisons against \texttt{BeamLossPattern} profiles.} \\*
+    \hline
+
+    \texttt{XSEC}  & \multicolumn{2}{l|}{to dump aperture cross sections at specific $s$-locations} \\*
+                   & \multicolumn{2}{l|}{(NOT OPERATIONAL YET!)} \\*
+    \cline{2-3}
+                   & filename & ASCII file where to echo the cross section \\*
+                   & $s_{\textrm{min}}$ & first $s$-location where to get the cross-section [m] \\*
+                   & $s_{\textrm{max}}$ & last $s$-location where to get the cross-section [m] (optional) \\*
+                   & $\Delta s$ & longitudinal steps where to calculate the cross-section [m] (optional) \\*
+                   & N & number of azimuthal angles (optional) \\*
+    \hline
+
+%     \rowcolor{blue!15}
+%     \multicolumn{4}{|l|}{Type specific parameters} \\*
+%     \texttt{GAUSSIAN} & \texttt{$\sigma$} & mm & Sigma of the e--beam.\\*
+\end{longtable}
+\end{center}
+
+\subsection{Format of \texttt{aperture\_losses.dat} File}\label{ApeLim:ApeLossesFileFormat}
+The \texttt{aperture\_losses.dat} file lists all lost particles, along with their coordinates at the loss point.
+The file is generated no matter if the \texttt{LIMI} block has been inserted in the \texttt{fort.3} or not, or if the back-tracking algorithm is on or off.
+Table~\ref{tab:apeLossesFileFormat} shows the format of the file.
+If the code is compiled with the \texttt{FLUKA} compilation flag, the particle ID is complemented by the parent particle ID and the statistical weight.
+
+\begin{center}
+\begin{longtable}{|l|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
+    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+  \caption{Columns of the \texttt{aperture\_losses.dat} file. The number between
+    parentheses refers to the case SixTrack is compiled for coupling to Fluka, i.e.~if
+    the \texttt{FLUKA} compilation flag is on. A '-' means that a given column is
+    not available when SixTrack is compiled the \texttt{FLUKA} compilation flag.}
+    \label{tab:apeLossesFileFormat} \\*
+    \hline
+    \rowcolor{blue!30}
+    \# & Description \\*
+    \hline
+    \endfirsthead
+
+    1  & turn number \\*
+    2  & index of entry in accelerator sequence \\*
+    3  & index of element in the SINGLE ELEMENT array \\*
+    4  & name of SINGLE ELEMENT \\*
+    5  & $s$-coordinate of loss point [m] \\*
+    6  & particle id \\*
+    -   (7) & parent particle id \\*
+    -   (8) & statistical weight \\*
+    7   (9) & $x$ at loss point [m] \\*
+    8  (10) & $x'$ at loss point [] \\*
+    9  (11) & $y$ at loss point [m] \\*
+    10 (12) & $y'$ at loss point [] \\*
+    11 (13) & linear momentum [GeV/c] \\*
+    12 (14) & energy deviation [eV] \\*
+    13 (15) & time lag [s] \\*
+    \hline
+
+%     \rowcolor{blue!15}
+%     \multicolumn{4}{|l|}{Type specific parameters} \\*
+%     \texttt{GAUSSIAN} & \texttt{$\sigma$} & mm & Sigma of the e--beam.\\*
+\end{longtable}
+\end{center}
+
+\subsection{Example}\label{ApeLim:Example}
+The following example shows a typical use of the \texttt{LIMI} block.
+Debug messages are requested by the user.
+The description of the aperture markers is provided by the \texttt{fort3.limi} file, and the aperture profile is echoed and saved in the \texttt{ape\_dump.dat} file.
+The back-tracking algorithm is kept on (\texttt{BACKTRKOFF} option being commented out).
+Precision of the back-tracking alghoritm is set at 1~mm.
+\begin{cverbatim}
+LIMITATION OF APERTURE--------------------------------------------------
+DEBUG
+/ SAVE
+PREC        0.001
+PRIN  ape_dump.dat
+LOAD  fort3.limi
+/ BACKTRKOFF
+NEXT
+\end{cverbatim}
+
+In the above example, the content of \texttt{fort3.limi} is the following:
+\begin{cverbatim}
+aper.1        EL     29.0      29.0            
+aper.2        OC     40.0      30.0       0.5236    1.0472       -10.0       -2.0        0.174533
+aper.3        RL     18.95     23.85      23.85      23.85  
+\end{cverbatim}
+\begin{itemize}
+\item \texttt{aper.1} specifies an ellyptical aperture with both axes of 29~mm. Effectively, it is a circular aperture;
+\item \texttt{aper.2} specifies an octagon aperture, 40~mm wide horizontally (half-width), and 30~mm height (half-height).
+  The cut corner angles are 30~and 60~degrees.
+  The aperture maker is offset by 10~mm and 2~mm on the horizontal and vertical planes, respectively.
+  The aperture is tilted by 10~degrees;
+\item \texttt{aper.3} specifies a rectellipse aperture.
+  It is actually equivalent to a circular aperture of 23.85~mm of radius, and vertical bars at x=$\pm$18.95~mm.
+\end{itemize}
+Fig.~\ref{fig:oct_sketch} shows a sketch of the ocatogon aperture described by the \texttt{aper.2} marker, to show the convention on signs.
 
 % ================================================================================================================================ %
 \section{Power Supply Ripple} \label{PowRip}
 
 \textcolor{notered}{\textbf{Note:}
-The \texttt{RIPP} block is been deprecated since release 4.5.20, and the functionality is now provided by the \texttt{DYNK} block (\ref{sec:DYNK}).\index{power supply ripple}\index{RIPP}
+The \texttt{RIPP} block is deprecated since release 4.5.20, and the functionality is now provided by the \texttt{DYNK} block~(\ref{sec:DYNK}).\index{power supply ripple}\index{RIPP}
 A \texttt{fort.3} file containing a \texttt{RIPP} block is therefore no longer valid, and will result in an error message.
 The description below is therefore only provided as a reference for those who need to convert old input files.}
 
 \bigskip
-\noindent If power supply ripple is to be considered this input data block can be used. A non-linear quadrupole is expected as a ripple element (\texttt{type=2} and zero length in the single element list (\ref{NonEle})), but in principle other non-linear elements are also allowed.
+\noindent If power supply ripple is to be considered this input data block can be used. A non-linear quadrupole is expected as a ripple element (\texttt{type=2} and zero length in the single element list~(\ref{NonEle})), but in principle other non-linear elements are also allowed.
 Ripple depth, ripple frequency and starting phase of the ripple frequency are the input parameters.
 
 \bigskip
@@ -98,7 +360,7 @@ Ripple depth, ripple frequency and starting phase of the ripple frequency are th
 
 \bigskip
 \begin{longtabu}{@{}lp{0.75\linewidth}}
-    \texttt{name}        & Name of the non-linear element in the \textit{single element} block (\ref{NonEle}). \\
+    \texttt{name}        & Name of the non-linear element in the \textit{single element} block~(\ref{NonEle}). \\
     \texttt{depth}       & Maximum kick strength of the ripple element. A quadrupole kick is usually expected. \\
     \texttt{frequency}   & Given in number of turns (a real value is allowed) of one ripple period. \\
     \texttt{start-phase} & Initial phase of the ripple element. \\
@@ -404,49 +666,33 @@ SET GLOBAL-VARS E0 eramp 1 -1 0
 \end{cverbatim}
 Because of this, SixTrack does not accept a real single element in \texttt{fort.2} named \texttt{GLOBAL-VARS} if \texttt{DYNK} is active.
 
-\begin{table}[ht]
-\begin{center}
+\begin{longtable}{|l | l | l | p{6cm}|}
+
 %\begin{longtable}{|p{2.25cm} | p{4cm} p{9.5cm}|}
 %\begin{longtable}{|l | l l l|}
   %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
-\caption{Element types and attributes available in \texttt{DYNK}.}
-\label{tab:DYNK_SET} %\\*
-\begin{tabular}{|l | l | l | p{6cm}|}
 
   \hline
   \rowcolor{blue!30}
   Element type (idx) & Attribute & Units & Description \\
   \hline
-  % \endfirsthead
 
-  % \hline
-  % \rowcolor{blue!30}
-  % Element type (idx) & Attribute & Units & Description \\*
-  % %\hline
-  % \endhead
-
-  % \rowcolor{gray!15}
-  % \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
-  % \hline
-  % \endfoot
-
-  % \hline
-  % \endlastfoot
-
-  %\hline
   \parbox{4cm}{~\\[-1mm] Standard thin elements\index{thin element}\\ ($\pm$1 -- $\pm$10),\\ Section~\ref{NonEle}\\[-3mm]}
     & \texttt{average\_ms} & radians * m\textsuperscript{-n} & See Table~\ref{T-NonEle} \\
+  \hline
+    \multirow{3}{*}{\parbox{4cm}{Multipoles \index{Multipoles}\\ (11),\\ Section~\ref{MulCoe}}}
+    & \texttt{scaleall}  & -       & Multiplies all order by this factor \\
+    & \texttt{a\{ORDER\}rms, e.g a1rms}& radians * m\textsuperscript{-n}  & Corresponds to the 4th column in the multipole block. \\
+    & \texttt{b\{ORDER\}rms, e.g b2rms}& radians * m\textsuperscript{-n}  & Corresponds to the 2nd column in the multipole block. \\
+    & \texttt{a\{ORDER\}str, e.g a3str}& radians * m\textsuperscript{-n}  & Corresponds to the 1th column in the multipole block. \\
+    & \texttt{b\{ORDER\}str, e.g b4str}& radians * m\textsuperscript{-n}  & Corresponds to the 3rd column in the multipole block. \\
   \hline
   \multirow{3}{*}{\parbox{4cm}{RF cavities \index{RF cavities}($\pm$12),\\ Section~\ref{Cavities}}}
     & \texttt{voltage}     & MV      & One-turn accelerating voltage \\
     & \texttt{harmonic}    & --      & Harmonic number of the cavity \\
     & \texttt{lag\_angle}  & degrees & Lag angle of the cavity \\
   \hline
-  \multirow{3}{*}{\parbox{4cm}{RF multipoles\index{RF multipoles}\\ ($\pm$23, $\pm$26 -- $\pm$28),\\ Section~\ref{CrabCav}}}
-    & \texttt{voltage}     & MV      & Kick voltage \\
-    & \texttt{frequency}   & MHz     & Frequency \\
-    & \texttt{phase}       & radians & Offset between zero-crossing and ideal bunch center \\
-  \hline
+    
    \multirow{3}{*}{\parbox{4cm}{Beam-Beam 6d (expert) \index{Beam-Beam}\\ (20),\\ Section~\ref{BeamBeam}}}
     & \texttt{h-sep}     & mm      & Horizontal offset \\
     & \texttt{v-sep}     & mm      & Vertical offset \\
@@ -470,22 +716,26 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     & \texttt{4dSyy}     & -       & $\Sigma_{y,y}$ \\
     & \texttt{4dSxy}     & -       & $\Sigma_{x,y}$ \\
   \hline
-    \multirow{3}{*}{\parbox{4cm}{Multipoles \index{Multipoles}\\ (11),\\ Section~\ref{MulCoe}}}
-    & \texttt{scaleall}  & -       & Multiplies all order by this factor \\
-    & \texttt{a\{ORDER\}rms, e.g a1rms}& radians * m\textsuperscript{-n}  & Corresponds to the 4th column in the multipole block. \\
-    & \texttt{b\{ORDER\}rms, e.g b2rms}& radians * m\textsuperscript{-n}  & Corresponds to the 2th column in the multipole block. \\
-    & \texttt{a\{ORDER\}str, e.g a3str}& radians * m\textsuperscript{-n}  & Corresponds to the 1th column in the multipole block. \\
-    & \texttt{b\{ORDER\}str, e.g b4str}& radians * m\textsuperscript{-n}  & Corresponds to the 3th column in the multipole block. \\
+  \multirow{3}{*}{\parbox{4cm}{RF multipoles\index{RF multipoles}\\ ($\pm$23, $\pm$26 -- $\pm$28),\\ Section~\ref{CrabCav}}}
+    & \texttt{voltage}     & MV      & Kick voltage \\
+    & \texttt{frequency}   & MHz     & Frequency \\
+    & \texttt{phase}       & radians & Offset between zero-crossing and ideal bunch center \\
   \hline
     \multirow{3}{*}{\parbox{4cm}{Electron lens \\ (29),\\ Section~\ref{sec:elen}}}
-    & \texttt{thetamax}     & mrad      & Maximum angular kick \\
-    &      &       &  \\
-    &      &       &  \\
+    & \texttt{theta\_R2}     & mrad      & Angular kick at R2 \\
+    & \texttt{elens\_I}      & A         & Electron current   \\
+    & \texttt{elens\_Ek}     & keV       & Electron kinetic energy \\
   \hline
     \multirow{3}{*}{\parbox{4cm}{Scattering\index{elastic scattering} \\ (40),\\ Section~\ref{sec:scatter}} }
     & \texttt{scaling}     & --      & Scaling of probability, see Section~\ref{sec:scatter}, paragraph about ELEM command.\\
     % &      &       &  \\
     % &      &       &  \\
+    \hline
+    \multirow{3}{*}{\parbox{4cm}{Generalized RF-multipoles \\ (41),\\ Section~\ref{generalrf}}}
+    & \texttt{a\{ORDER\}amp, e.g a1amp}& m\textsuperscript{-n}  & Corresponds to the 3rd column in the generalized RF-multipole blocks. \\
+    & \texttt{b\{ORDER\}amp, e.g b2amp}& m\textsuperscript{-n}  & Corresponds to the 1st column in the multipole block. \\
+    & \texttt{a\{ORDER\}pha, e.g a3pha}& radians & Corresponds to the 4th column in the multipole block. \\
+    & \texttt{b\{ORDER\}pha, e.g b4pha}& radians & Corresponds to the 2nd column in the multipole block. \\
   \hline
     \multirow{3}{*}{\parbox{4cm}{\texttt{GLOBAL-VARS} \\ Not a real element,\\ changes global variable}}
     & \texttt{E0}     & MeV      & Reference energy of synchronous particle \\
@@ -493,10 +743,10 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     % &      &       &  \\
   \hline
 
-%\end{longtable}
-\end{tabular}
-\end{center}
-\end{table}
+\caption{Element types and attributes available in \texttt{DYNK} .}
+\label{tab:DYNK_SET} 
+
+\end{longtable}
 
 \subsection{Additional Flags}
 
@@ -1045,8 +1295,15 @@ The FLUKA version implements this, we should make sure that we are compatible wi
 \section{Electron lens} \label{sec:elen}
 
 The electron lens module serves for reading in the input parameters of electron lenses.\index{electron lens}\index{ELENS}
-Each e--lens also needs to be added as single element in the list of single elements.
-Currently, the ideal electron lens is implemented, i.e.~with no errors in the e--beam distribution.
+Each e-lens also needs to be added as single element in the list of single elements.
+Currently, the ideal electron lens is implemented, i.e.
+\begin{itemize}
+\item no errors in the e--beam distribution;
+\item the kick is only due to the transverse components of the electric and
+  magnetic fields generated by the electron beam;
+\item electrons travel all parallel to the e-lens axis;
+\item no longitudinal component of the kick is considered.
+\end{itemize}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
@@ -1054,16 +1311,17 @@ Currently, the ideal electron lens is implemented, i.e.~with no errors in the e-
     \textbf{Data lines} & Variable \\
     \textbf{Format}     & \texttt{name type theta\_r2 r2 r1 offset\_x offset\_y (L I E\_k) } \\
     & The last three parameters are optional, but if specified, all of them must be present; they allow to re-compute the angle at \texttt{r2} \texttt{theta\_r2}, taking into account also the beam energy.  \\
-    & Additional paramters specific to the electron distributions (see later) must be specified before the optional ones. \\
+    & Additional parameters specific to the electron distributions (see later) must be specified before the optional ones. \\
 \end{tabular}
 
 \bigskip
-\noindent Currently, two types of electron beam profiles on the transverse plane (i.e.~in the $xy$-plane) are supported:
+\noindent Currently, three types of electron beam profiles on the transverse plane (i.e.~in the $xy$-plane) are supported:
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
     \texttt{UNIFORM}  & e--beam with constant density of electrons. \\
     \texttt{GAUSSIAN} & e--beam with a radial Gaussian profile. \\
+    \texttt{RADIAL}   & e--beam follows a radial distribution as described in a plain ASCII file. \\
 \end{tabular}
 
 \begin{center}
@@ -1095,25 +1353,25 @@ Currently, the ideal electron lens is implemented, i.e.~with no errors in the e-
     \rowcolor{blue!15}
     \multicolumn{4}{|l|}{Valid for all types} \\*
 
-    & \texttt{name} & -- & Name of e--lens. Must be the same as that in the list of single elements\index{single elements}.\\*
+    & \texttt{name} & -- & Name of e-lens. Must be the same as that in the list of single elements\index{single elements}.\\*
     \hline
 
-    & \texttt{type} & -- & Type of e--lens - either \texttt{UNIFORM} or  \texttt{GAUSSIAN}. \\* 
+    & \texttt{type} & -- & Type of e-lens - either \texttt{UNIFORM} or  \texttt{GAUSSIAN}. \\* 
     \hline
 
-    & \texttt{theta\_r2} & mrad & Kick\footnote{Total, \emph{not} per charge.} received at $r=r_2$ where $r_2$ is the outer radius of the e--lens.\\*
+    & \texttt{theta\_r2} & mrad & Kick\footnote{Total, \emph{not} per charge.} received at $r=r_2$ where $r_2$ is the outer radius of the e-lens.\\*
     \hline
 
-    & \texttt{r2} & mm & Outer radius of the e--lens.\\*
+    & \texttt{r2} & mm & Outer radius of the e-lens.\\*
     \hline
 
-    & \texttt{r1} & mm & Inner radius of the e--lens. \\* % Can be 0 but not negative.\\*
+    & \texttt{r1} & mm & Inner radius of the e-lens. \\* % Can be 0 but not negative.\\*
     \hline
 
-    & \texttt{offset\_x} & mm & Horizontal offset of the e--lens.\\*
+    & \texttt{offset\_x} & mm & Horizontal offset of the e-lens.\\*
     \hline
 
-    & \texttt{offset\_y} & mm & Vertical offset of the e--lens.\\*
+    & \texttt{offset\_y} & mm & Vertical offset of the e-lens.\\*
     \hline
     
     \hline
@@ -1123,17 +1381,23 @@ Currently, the ideal electron lens is implemented, i.e.~with no errors in the e-
     & \texttt{sig\_el} & mm & $\sigma$ of the electron beam.\\*
     \hline
 
+    \rowcolor{blue!15}
+    \multicolumn{4}{|l|}{Specific to \texttt{RADIAL} type} \\*
+    
+    & \texttt{filename} & & filename of the radial profile. Please see Sec.~\ref{sec:elen_rad_prof} for proper formatting of the file. The profile is read from the file, radially integrated and normalised to the total current. Hence, the kick at \texttt{r2} is given by the value of \texttt{theta\_r2} (or by the optional parameters) and not by integration of the radial profile. The domain of the profile must be larger than the domain identified by $R_1$ and $R_2$. \\*
+    \hline
+
     \hline
     \rowcolor{blue!15}
     \multicolumn{4}{|l|}{Optional arguments (all types)} \\*
 
-    & \texttt{L} & m & Length of the e--lens. Must be positive. \\*
+    & \texttt{L} & m & Length of the e-lens. Must be positive. \\*
     \hline
     
-    & \texttt{I} & A & Electron current of the e--lens. Must be non--zero. If negative, the electron beam is considered travelling in the direction opposite to that of the main beam. \\*
+    & \texttt{I} & A & Electron current of the e-lens. Must be non--zero. If negative, the electron beam is considered travelling in the direction opposite to that of the main beam. \\*
     \hline
     
-    & \texttt{E\_k} & keV & kinetic energy of electrons in the e--lens. Must be positive.\\*
+    & \texttt{E\_k} & keV & kinetic energy of electrons in the e-lens. Must be positive.\\*
     \hline
 
 %     \rowcolor{blue!15}
@@ -1159,16 +1423,23 @@ For the time being, \texttt{r\_1} cannot be \texttt{0}; hence, the electron lens
 \paragraph{Remarks}~\\
 
 \begin{enumerate}
-\item The user has to check that the e--lens defined in the \texttt{ELEN} block is also defined in the list of single elements and vice versa.
+\item The user has to check that the e-lens defined in the \texttt{ELEN} block is also defined in the list of single elements and vice versa.
   All parameters in the single element definition except the type (type \texttt{29}) are ignored.
-\item The current implementation (ideal e--lenses) has no explicit energy--dependency, except for the user defined parameter \texttt{theta\_r2} (see \cite{sixphys}), in case the user specifies \texttt{L}, \texttt{E\_k} and \texttt{I}. In fact, in this case, \texttt{theta\_r2} is re-calculated after input parsing, taking into account the beam energy.
-\item The implementation is compatible with ion tracking and tracking of species different from the synchronous one.
-\item In case of energy ramping, the kick is kept constant, as done for any other magnetic element in the machine.
+\item The current implementation (ideal e-lenses) has no explicit energy--dependency, except for the user defined parameter \texttt{theta\_r2} (see \cite{sixphys}), in case the user specifies \texttt{L}, \texttt{E\_k} and \texttt{I}.
+  In fact, in this case, \texttt{theta\_r2} is re-calculated after input parsing, taking into account the beam energy.
+  This parameter is re-computed also during energy ramping by the \texttt{DYNK} module.
+\item The implementation is fully chromatic and hence compatible with ion tracking and tracking of species different from the synchronous one only if the three main optional parameters (i.e.\ length, kinetic energy of electrons and current) are specified by the user.
+  In fact, only in this case, the code knows the value of the normalised relativistic speed $\beta_e$;
+\item In case of energy ramping, if not \texttt{DYNK}-ed, the kick stays constant, as if the e-lens was ramped in beam current in synch with the rest of the machine.
+  On the contrary, if the user specifies the three main optional parameters (i.e.~length, kinetic energy of electrons and current), if not \texttt{DYNK}-ed, the kick is recomputed at any update of the reference energy, as if the e-lens was not ramped.
+  Hence, it is responsibility of the user to define the way the e-lens is ramped with beam energy.
+\item Note that if the user specifies \texttt{theta\_r2} with DYNK, then, starting with the first turn where it is set via \texttt{DYNK}, \texttt{theta\_R2} is no longer ramped with the energy, as if the elens was specified using only this parameter in \texttt{fort.3}.
+  However note that the chromatic behaviour, which requires \texttt{E\_k}, is still handled in a physically correct way.
 \end{enumerate}
 
 \paragraph{Examples}~\\
 
-In the following we give an example of e--lens definition.
+In the following we give an example of e-lens definition.
 The example defines two electron lenses \texttt{hel1} and \texttt{hel2} for cleaning purposes; the former has a uniform electron density whereas the latter has an electron beam with a Gaussian profile with $\sigma$=1.1547~mm.
 While the former has an explicit definition of the kick at \texttt{r2}, the latter triggers the re-computation of the kick, given the length of the electron lens of 4~m, the electron current of 2~A (opposite wrt the main beam) and the electron kinetic energy of 1~keV.
 The input block in \texttt{fort.3} is then given by:
@@ -1195,10 +1466,29 @@ BLOC56            hel1              hel2
 \bigskip
 \noindent \textbf{Note:} All parameters except for the type are set to \texttt{0} in the single element definition.
 
+\subsection{Format of Radial Profile} \label{sec:elen_rad_prof}
+The file format of the radial profile is
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Data lines} & Variable \\
+    \textbf{Comment character} & \texttt{\#} (only as first char of the line) \\
+    \textbf{Format}     & \texttt{R} (mm) \texttt{J} (A cm$^{-2}$) \\
+\end{tabular}
+
+Formatting rules:
+\begin{itemize}
+\item every non-commented line with a non-negative value of current density is taken as a point in the profile;
+\item values of the radius must be in \emph{increasing} order. Otherwise, the program stops.
+\end{itemize}
+
+An example of radial profile is contained in each test of e-lenses.
+
 % ================================================================================================================================ %
 \section{Scattering} \label{sec:scatter}
 
-\textcolor{notered}{\textbf{Note:} This module is experimental! Use at your own risk; both the input format and physics implementation may change.}\index{scatter}\index{elastic scattering}\index{SCAT}
+\textcolor{notered}{\textbf{Note:} This module is experimental! Use at your own risk.
+Both the input format and physics implementation may change.}\index{scatter}\index{elastic scattering}\index{SCAT}
 
 \bigskip
 The \texttt{SCATTER} module is a framework for scattering particles through Monte Carlo processes at various points in the machine.
@@ -1212,19 +1502,31 @@ The \texttt{SCATTER} module is a framework for scattering particles through Mont
 
 \bigskip
 
-\paragraph{DEBUG} \texttt{DEBUG}\\
+\paragraph{Module Debugging}~ \texttt{DEBUG}\\
 
 This statement switches on extra ``debugging'' output from \texttt{SCATTER}.
 This can be useful if debugging the code or if debugging the input.
 
-\paragraph{ELEMent} \texttt{ELEM elemname profile scaling gen1 (gen2, (gen3))}\\
+\paragraph{Particle Losses}~ \texttt{LOSSES}\\
 
-This statements associates a \texttt{PRO}file and between one and 3\footnote{Controlled by the parameter \texttt{scatter\_maxGenELEM}.} \texttt{GEN}erators with a SINGLE ELEMENT which must be of type 40, as described in Section~\ref{SCAT}.
-The \texttt{scaling} argument, which is a floating point number, is used to scale the probability of an interaction.
-This can be controlled through DYNK, for example in order to scale only at one specified turn.
+This statement switches on particle losses in the scatter module.
+This flag is propagated to the \texttt{PYTHIA} module (see Section~\ref{ExtPythia}), allowing for selecting double diffractive and non-diffractive processes.
+In addition, this will allow losses with single diffractive when the tracked prticle is destroyed and the target particle survives.
+If losses are disabled, the event generator will only accept events where the tracked particle survives.
+
+Particle losses are off by default.
+
+\paragraph{Scatter Elements}~ \texttt{ELEM elemname profile ratio scaling gen1 ... genN}\\
+
+This statements associates a \texttt{PRO}file and one or more \texttt{GEN}erators with a SINGLE ELEMENT.
+The element must be of type 40, as described in Section~\ref{SCAT}.
+The \texttt{ratio} argument (string/float) can be used to set a fixed scattering probability at the element.
+Alternatively, the field can be set to ``auto'', in which case the scattering probability is calculated from the cross section and density profile.
+The \texttt{scaling} argument (float) is used to scale the probability of an interaction when using cross section to claculate the scattering probability.
+This field can be controlled through DYNK, for example in order to scale only at one specified turn, or to switch off and on scattering at the element by scaling it by 0 and 1 respectively.
 The \texttt{PRO}file, \texttt{GEN}erator(s), and single elements are referenced through their names, and for the \texttt{GEN}erators and \texttt{PRO}file they must be defined above the \texttt{ELEM}ent in the \texttt{SCATTER} block.
 
-\paragraph{PROfile} \texttt{PRO name type (arguments)} \\
+\paragraph{Density Profiles}~ \texttt{PRO name type (arguments)} \\
 
 This statement defines a profile, that is a density profile and general properties of the targets which with the tracked particles are colliding.
 Several different types are available:
@@ -1235,20 +1537,20 @@ Several different types are available:
 \bigskip
 \noindent\texttt{PRO name GAUSS1 beamtot[particles] sigmaX[mm] sigmaY[mm] offsetX[mm] offsetY[mm]} \\
 
-The \texttt{GAUSS1} profile type us given by
+The \texttt{GAUSS1} profile type is given by
 \begin{align}
     \rho(x,y) = \frac{N_{\mathrm{tot}}}{2\pi\sigma_x\sigma_y}
                 \exp\left(-\frac{(x-\mu_x)^2}{2\sigma_x^2}\right)
                 \exp\left(-\frac{(y-\mu_y)^2}{2\sigma_y^2}\right).
 \end{align}
 
-\paragraph{GENerator} \texttt{GEN name type (arguments)} \\
+\paragraph{Event Generator}~ \texttt{GEN name type [arguments]} \\
 
 The generator block takes a name and a generator type input, followed by the parameters for the
 generator type.
 
 \bigskip
-\noindent\texttt{GEN name PPBEAMELASTIC a b1 b2 phi tmin (crossSection)} \\
+\noindent\texttt{GEN name PPBEAMELASTIC a b1 b2 phi tmin crossSection} \\
 
 Takes five or six input arguments, and generates the probability distribution given by
 \begin{align}
@@ -1256,26 +1558,26 @@ Takes five or six input arguments, and generates the probability distribution gi
 \end{align}
 where the first expression is a soft scatter data fit, the third expression a hard scatter fit, and the second expression is the interference. $a = a_2/a_1$ is the amplitudes of the expressions.\index{elastic scattering}
 These are combined into the first four input arguments $a$, $b_1$, $b_2$, and $\phi$, as well as $t_{min}$ which provides a cut-off limit.
-The optional sixth argument defines a fixed cross section for the scattering probability.
+The sixth argument defines a fixed cross section for the scattering probability in units of millibarn.
+If all elements have \texttt{ratio} set to a fixed value, the cross section set here is ignored.
 
 Input example with values for a fit to 13 TeV LHC.
 \begin{cverbatim}
-GEN  sc_thin     PPBEAMELASTIC 0.046 18.52 4.601 2.647 0.0 30e-27
+GEN  sc_thin     PPBEAMELASTIC 0.046 18.52 4.601 2.647 0.0 30.0
 \end{cverbatim}
 
-\paragraph{SEED} \texttt{SEED seed1 seed2}\\
+\paragraph{SEED}~ \texttt{SEED seed}\\
 
-This sets the seed of the internal RNG used by the \texttt{SCATTER} block \cite{RANECU}.
-Two integer seeds are required, for this block.
+This sets the seed of the internal random nuber generator used by the \texttt{SCATTER} block~\cite{RANECU}.
 The \texttt{SEED} block is mandatory for the \texttt{SCATTER} block to work.
-Note that when running several simulations, the seed settings must be varied between each run in order to get uncorrelated results.
+Note that when running several simulations, the seed setting must be varied between each run in order to get uncorrelated results.
 
 % ================================================================================================================================ %
-\section{Tracking Code for Collimation Studies} \label{sec:collimat}
+\section{Collimation} \label{sec:collimat}
 
 Collimation\index{collimation} and beam cleaning studies are carried out with the well established SixTrack code, extended for tracking large numbers of halo particles, and to take into account halo interaction with arbitrarily placed collimators.
 Particles are transported through the lattice element by element and their phase space coordinates are transformed according to the type of element. When a particle hits a collimator jaw, it is randomly scattered through matter.
-The effect of collimator scattering is modeled using COLLTRACK/K2 \cite{collimat:trenkler,collimat:robert_demolaize} routines.
+The effect of collimator scattering is modeled using COLLTRACK/K2~\cite{collimat:trenkler,collimat:robert_demolaize} routines.
 
 \bigskip
 \noindent The main characteristics of the SixTrack used for collimations studies are:
@@ -1350,23 +1652,329 @@ C                       <-- collimator material (C = graphite, CU = copper, W=tu
 The introduction of the optic parameter $\beta$ allows studies of error scenarios (orbit distortion, beta-beating\index{beta-beating}) and/or to see the effect of misaligned collimators.
 This structure is then repeated within the file for each of the collimators to be included in the study.
 
+% ================================================================================================================================ %
+
 \subsection{Collimation Input Block} \label{sec:coll:input}
 
-The collimation module is controlled by the \texttt{COLL} block in \texttt{firt.3}.
+The collimation module is controlled by the \texttt{COLL} block in \texttt{fort.3}\index{collimation}.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
     \textbf{Keyword}    & \texttt{COLL}\index{COLL} \\
-    \textbf{Data lines} & 17\\
+    \textbf{Data lines} & Either 17 lines (old format), or free (new format)\\
     \textbf{Format}     & See below.
 \end{tabular}
 
 \paragraph{Format Description:}~\\
 
+From SixTrack version 5.2.5 and on, the main format of the \texttt(COLL) block is a set of keyword/value lines.
+This format is described in Section~\ref(sec:coll:newfmt).
+
+For backwards compatibility, the old format is still supported, and it is described in Section~\ref{sec:coll:oldfmt}.
+When encountering the \texttt{COLL} block, the parser will check if the first line of the block is a single value, and if it is, it will conclude that the block is in the old format.
+The old block format consists of 17 lines of varying number of values, and the full description is laid out in Table~\ref{tab:COLL_INP}.
+
+Note that the old and new format cannot be inter-mixed.
+The old format is parsed based on the line number, and must follow exactly the format described in Table~\ref{tab:COLL_INP}.
+
+\subsubsection{New Format}\label{sec:coll:newfmt}
+
+The keyword/value formated block is described below.
+The keywords mostly correspond to the keywords listed in Table~\ref{tab:COLL_INP}.
+
+\paragraph{Do Collimation (Required)} \texttt{DO\_COLL true|false}\\
+
+The collimation module can be switched on and off in its entirety with this flag, without having to comment in and out the entire block.
+When the flag is off, the collimation routines are skipped in tracking, and the additional memory needed for collimation is not allocated.
+This entry is required for collimation to be enabled, but if ommitted, defaults to \texttt{false}.
+
+\paragraph{Collimator Database (Required)} \texttt{COLLDB filename}\\
+
+The filename of the database of collimators.
+This entry is required.
+
+\paragraph{Beam Energy (Required)} \texttt{ENERGY energy[MeV]}\\
+
+The energy of the beam to be tracked.
+This is independent of the energy specified in other blocks, and is a required value.
+
+\paragraph{Beam Number} \texttt{BEAM\_NUM 1|2}\\
+
+Number of the beam tracked.
+The default value is 1.
+
+\paragraph{Emittance (Required)} \texttt{EMIT eX\_d eY\_d eX\_g eY\_g}\\
+
+Specifies the normalised emittance for the distribution \texttt[eX\_d, eY\_d], and for the collimator gaps \texttt[eX\_g, eY\_g].
+These are required.
+
+\paragraph{Random Seed} \texttt{SEED seed}\\
+
+Set the seed for the random number generator.
+If set to 0 (default) a new seed will be selected for each run.
+
+\paragraph{Distribution Generator Type} \texttt{DIST\_TYPE 0-6}\\
+
+The type of the distribution generator to use\index{beam distribution}.
+Setting this to larger than 0 will overwrite the distribution generated by the initialisation routines in SixTrack, including the distribution read from the \texttt{DIST} block (see Section~\ref{distBlock}).
+This feature will be deprecated in the future, and the functionality taken over by an extended \texttt{DIST} module.
+The different options are listed below.
+The default value is 0.
+
+\begin{enumerate}
+    \setcounter{enumi}{-1}
+    \item The internal collimation distribution generator is disabled and the general SixTrack distribution is used instead (default).
+    \item Distribution in the plane for which the parameters are specified ONLY: flat distribution in the selected plane between $A_x \pm \delta A_x$ (horizontal) or $A_y \pm \delta A_y$ (vertical). The amplitude in the other plane is zero\index{beam distribution}. The parameters must be provided with the \texttt{DIST\_PARAM} keyword. Values 1 to 4 are used.
+    \item Distribution in the plane for which the parameters are specified + a Gaussian distribution cut at $3\sigma$ in the other plane. The parameters must be provided with the \texttt{DIST\_PARAM} keyword. Values 1 to 4 are used.
+    \item Distribution in the plane for which the parameters are specified + a Gaussian distribution cut at $3\sigma$ in the other plane. The parameters must be provided with the \texttt{DIST\_PARAM} keyword. Values 1 to 4 are used. In addition an energy spread is given as value 5, and a longitudinal component given by value 6.
+    \item Reads an external file that contains the beam distribution to be tracked. The file is specified by \texttt{DIST\_FILE}.
+    \item Radial transverse distribution of radius $A_r$. This corresponds to a flat distribution both in the horizontal and vertical planes between $A_x \pm \delta A_x$ and $A_y \pm \delta A_y$, with $A_x = A_y = A_r/\ddot{O}2$.
+    \item Reads a normalised distribution from an external file. The file is specified by \texttt{DIST\_FILE}.
+\end{enumerate}
+
+\paragraph{Distribution Generator Parameters} \texttt{DIST\_PARAM $A_x$ $\delta A_x$ $A_y$ $\delta A_y$ [enerror bunchlen]}\\
+
+The parameters for the distribution generator \texttt{DIST\_TYPE}.
+The required values are determined by the type selected.
+All values default to 0.
+
+Recomended values are $3.06 \times 10^{-4}$ at 450 GeV and $1.129 \times 10^{-4}$ at 7 TeV for energy error (\texttt{enerror}), and 11.24 cm at 450 GeV and 7.55 cm at 7TeV for bunch length (\texttt{bunchlen}).
+
+\paragraph{Distribution Generator Input File} \texttt{DIST\_FILE filename}\\
+
+Name of the distribution file to be read in for distribution type 4 or 6.
+
+\paragraph{Special Radial Distribution} \texttt{DO\_RADIAL true|false amp smear}\\
+
+Alternative radial beam distribution where \texttt{amp} is the amplitude of the beam in numbers of radial sigmas, and \texttt{smear} is the smear of the beam in radial sigma.
+Setting this to true will override \texttt{DIST\_TYPE}.
+
+This distribution is equivalent to \texttt{DIST\_TYPE = 1} with the \texttt{DIST\_PARAM} values:
+\begin{align*}
+   A_x = A_y &= \mbox{\texttt{amp}}/\sqrt{2}\\
+   \delta A_x = \delta A_y &= \mbox{\texttt{smear}}/\sqrt{2}
+\end{align*}.
+
+\paragraph{Special Radial Distribution} \texttt{DO\_MINGAP true|false}\\
+
+If \texttt{true}, the particle distribution is generated at the collimator with the smallest gap (to be used with sheet/pencil beam).
+Default value is \texttt{false}.
+
+\paragraph{Do Change Collimator Gaps} \texttt{DO\_NSIG true|false}\\
+
+If \texttt{true}, the collimator gaps specified in the imput block by keyword \texttt{NSIG\_FAM} are used instead of those in the collimator database file.
+Default value is \texttt{false}.
+
+\paragraph{Set Collimator Gaps} \texttt{NSIG\_FAM name collgap}\\
+
+Family name and collimator gap in units of sigma for each collimator family specified below.
+This is only applied to the collimators themselves if the \texttt{DO\_NSIG} is true.
+
+The collimator family name is extracted from the collimator name in the collimator database.
+The default collimator families are listed below.
+A new collimation database format will be added in the near future where the families can be specified independently in the database, and not locked to the naming convention for the LHC.
+
+The default value is the sigma gap specified in the collimator database.
+
+\bigskip
+\begin{longtabu}{@{}ll}
+    \texttt{tcp3}    & The primary collimator\index{primary collimator} in IR3. \\
+    \texttt{tcsg3}   & The secondary graphite collimator in IR3\index{secondary collimator}. \\
+    \texttt{tcsm3}   & The secondary metallic collimator in IR3\index{secondary collimator}. \\
+    \texttt{tcla3}   & The active absorbers in IR3\index{absorbers}. \\
+    \texttt{tcp7}    & The primary collimators\index{primary collimator} in IR7. \\
+    \texttt{tcsg7}   & The secondary graphite collimator in IR7\index{secondary collimator}. \\
+    \texttt{tcsm7}   & The secondary metallic collimator in IR7\index{secondary collimator}. \\
+    \texttt{tcla7}   & The active absorbers collimator\index{absorbers} in IR7. \\
+    \texttt{tclp}    & The physics debris collimator. \\
+    \texttt{tcli}    & The absorbers for injection protection\index{absorbers}. \\
+    \texttt{tcdq}    & The beam dump protection collimator\footnote{One-sided collimators (only positive x)}. \\
+    \texttt{tcstcdq} & The secondary collimator dedicated to beam dump\index{secondary collimator}. \\
+    \texttt{tdi}     & The injection protection collimator. \\
+    \texttt{tcth1}   & The horizontal tertiary collimator in IR1\index{tertiary collimator}. \\
+    \texttt{tcth2}   & The horizontal tertiary collimator in IR2\index{tertiary collimator}. \\
+    \texttt{tcth5}   & The horizontal tertiary collimator in IR5\index{tertiary collimator}. \\
+    \texttt{tcth8}   & The horizontal tertiary collimator in IR8\index{tertiary collimator}. \\
+    \texttt{tctv1}   & The vertical tertiary collimator in IR1\index{tertiary collimator}. \\
+    \texttt{tctv2}   & The vertical tertiary collimator in IR2\index{tertiary collimator}. \\
+    \texttt{tctv5}   & The vertical tertiary collimator in IR5\index{tertiary collimator}. \\
+    \texttt{tctv8}   & The vertical tertiary collimator in IR8\index{tertiary collimator}. \\
+    \texttt{tcxrp}   & The Roman Pots\footnote{One-sided collimators (only positive x)}. \\
+    \texttt{tcryo}   & The collimators in the DS regions.
+\end{longtabu}
+
+\paragraph{Set Jaw Slicing} \texttt{JAW\_SLICE nslice smin smax recenter1 recenter2}\\
+
+The surface model of the jaw.
+Specify the slicing of the jaw.
+All values default to 0.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{nslice}    & integer & Number of slices in which each jaw should be cut. \\
+    \texttt{smin}      & float   & S-position for the start of the slicing. \\
+    \texttt{smax}      & float   & S-position for the end of the slicing. \\
+    \texttt{recenter1} & float   & Moving the 1st jaw to the new smallest opening. \\
+    \texttt{recenter2} & float   & Moving the 2nd jaw to the new smallest opening.
+\end{tabular}
+
+\paragraph{Set Jaw Fits} \texttt{JAW\_FIT[1|2] 0th 1st 2nd 3rd 4th 5th scale}\\
+
+Specifies the polynomial fit of the first or second jaw for the 0th to the 5th order, as well as the scaling of the polynomial.
+All values default to 0.
+
+\paragraph{One-Sided Collimators} \texttt{DO\_ONESIDE true|false}\\
+
+Switches on or off the collimator being one-sided.
+That is, only positive jaw.
+If the negative jaw is to be used, it is necessary to turn collimator by 180 degrees in the collimator database file.
+Default value is \texttt{false}.
+
+\paragraph{Beta-Beating} \texttt{BETA\_BEAT xbeat xbeat\_phase ybeat ybeat\_phase}\\
+
+In case of beta-beating\index{beta-beating}:
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{xbeat}        & float & Offset in $x$ for the computation of collimator. \\
+    \texttt{xbeat\_phase} & float & Phase offset in $x$ for the computation of collimator. \\
+    \texttt{ybeat}        & float & Offset in $y$ for the computation of collimator. \\
+    \texttt{ybeat\_phase} & float & Phase offset in $y$ for the computation of collimator.
+\end{tabular}
+
+These values default to 0.
+
+\paragraph{Pencil Beam} \texttt{PENCIL ipencil offset rmsx rmsy distr}\\
+
+Resets original distribution to pencil beam distribution on the collimator database ID specified by \texttt{ipencil}\index{pencil beam}.
+The formats are described below.
+Setting \texttt{ipencil} to 0, disables this feature.
+These values default to 0.
+
+\bigskip
+\begin{tabular}{@{}l|p{0.6\linewidth}}
+    \texttt{distr = 0}         & \texttt{offset = 0} \\
+    Pencil Beam Distribution   & \texttt{rmsx   = 0} \\
+                               & \texttt{rmsy   = 0} \\
+    \hline
+    \texttt{distr = 0}         & \texttt{offset = }center of rectangle \\
+    Rectangular Distribution   & \texttt{rmsx   = }spread of impact parameter (uniform) \\
+                               & \texttt{rmsy   = }spread parallel to jaw surface \\
+    \hline
+    \texttt{distr = 1}         & \texttt{offset = }mean of Gaussian distribution \\
+    Gaussian Distribution      & \texttt{rmsx   = }spread of impact parameter (Gaussian) \\
+                               & \texttt{rmsy   = }spread parallel to jaw surface (Gaussian) \\
+    \hline
+    \texttt{distr = 2}         & \texttt{offset = }mean of Gaussian distribution \\
+    Half Gaussian Distribution & \texttt{rmsx   = }spread of impact parameter (uniform) \\
+                               & \texttt{rmsy   = }spread parallel to jaw surface (Gaussian) \\
+\end{tabular}
+
+\bigskip
+\noindent\textbf{Note:} The distribution with \texttt{distr = 2} is used when wanting to simulate the loss of a magnet.
+
+\paragraph{Dedicated Collimator Study} \texttt{DO\_SELECT true|false name}\\
+
+Do a dedicated study of selected collimator.
+This value defaults to \texttt{false}.
+
+\paragraph{Nominal Beta} \texttt{DO\_NOMINAL true|false}\\
+
+Switches on or off the use of design $\beta$ values of collimators.
+This value defaults to \texttt{false}.
+
+\paragraph{Emittance Drift} \texttt{EMIT\_DRIFT driftx drifty}\\
+
+Apply an emittance drift in the $x$ and $y$ direction, respectively.
+These values default to 0.
+
+\paragraph{Alignment Errors} \texttt{ALIGNERR\_[PRIM|SEC] rms\_tilt sys\_tilt rms\_offset sys\_offset}\\
+
+Apply errors to primary or secondary collimator tilt and offset.
+These values default to 0.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{rms\_tilt}   & float & RMS value of tilt to apply. \\
+    \texttt{sys\_tilt}   & float & Systematic value of tilt to apply. \\
+    \texttt{rms\_offset} & float & RMS value of offset to apply. \\
+    \texttt{sys\_offset} & float & Systematic value of offset to apply.
+\end{tabular}
+
+\paragraph{Alignment Errors to Gaps} \texttt{ALIGNERR\_GAP rmserror\_gap}\\
+
+The RMS error of collimator gap.
+These values default to 0.
+
+\paragraph{Alignment Errors Random Seed} \texttt{ALIGNERR\_SEED seed}\\
+
+The random number seed to use for alignemnt errors.
+This value defaults to 0.
+
+\paragraph{Systilt} \texttt{SYSTILT\_ANTI true|false}\\
+
+Deduce \texttt{SYSTILT} to \texttt{RMSTILT} instead of adding.
+This value defaults to \texttt{false}.
+
+% \paragraph{Cut Halo File (CERN Flag)} \texttt{CERN true|false}\\
+
+% Switches on or off whether to cut halo files in separate pieces, one per 64 particles.
+% This value defaults to \texttt{false}.
+
+\paragraph{Cut Sigmas} \texttt{SIGSECUT sigma\_xy sigma\_r}\\
+
+Sigma cuts for \texttt{tracks2.dat} controlled by the \texttt{WRITE\_TRACKS} flag.
+Cut in square sigmas $x$/$y$ for saving particles (e.g. 64 for a cut at 8 $\sigma_x$/$\sigma_y$).
+Cut in square sigmas radial for saving particles (e.g. 90.25 for a cut at 9.5 $\sigma_r$).
+These values default to 1.
+
+\paragraph{File Write Flags} \texttt{WRITE\_* true|false}\\
+
+Switches on or off the writing of various output files, listed below.
+All flags default to \texttt{false}.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{WRITE\_DIST}   & Writes the beam distribution to file before and after tracking. \\
+    \texttt{WRITE\_IMPACT} & Writes the impact parameters for each collimator. \\
+    \texttt{WRITE\_SECOND} & Writes a secondary halo file based on normalised amplitude. \\
+    \texttt{WRITE\_AMPL}   & Writes checking files for amplitude, closed orbit. \\
+    \texttt{WRITE\_TRACKS} & Writes secondary/tertiary halo files.
+\end{tabular}
+
+% ================================================================================================================================ %
+
+\subsubsection{Old Format}\label{sec:coll:oldfmt}
+
+The old input block format is illustrated in the following example, and the associated variable which each value is described in Table~\ref{tab:COLL_INP}.
+
+\bigskip
+\begin{cverbatim}
+COLLIMATION----------------------------------------------------------------
+    .true.
+    50   7000000
+    3  5 .958  .0015  0.  0.  "nothing"  1. 129e-4  75.5
+    .true.  15.  18.  18.  20.  6.  7.  7.  10.0 1 0.0  999.0  8.0   7.5   999.0
+    8.3  8.3  8.3  8.3  8.3  8.3  8.3  8.3  5. 15.
+    0 19789.0  20150.0  1  1
+   -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
+   -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
+    0.503E-09  0.503E-09
+   .false. .false. 0 .true. TCP.C6L7.B1 .false. .true. .true. .true.
+   0.  0.  0.  0.
+   0   0   0   0   0   0   0   0   0   0   .false.
+   .false.  6.003  0.0015
+   0.  0.  .false. .false.
+   0   0.0025  0.0   0.0   0
+   "CollDB_V6.500_lowb_st.b1.data"  1
+   .true. .false. WAbsVertLowbcoll  101  1  1.
+NEXT-----------------------------------------------------------------------------
+\end{cverbatim}
+
 \bigskip
 \begin{center}
 \begin{longtable}{| p{0.5cm} | p{2.4cm} | p{1.2cm} | >{\raggedright\arraybackslash}p{11.4cm}|}
-    \caption{Collimation input format.}
+    \caption{Old Collimation Input Format}
     \label{tab:COLL_INP} \\*
     \hline
     \rowcolor{blue!30}
@@ -1474,39 +2082,43 @@ The collimation module is controlled by the \texttt{COLL} block in \texttt{firt.
         & \texttt{RECENTER2}     & float   & Surface model of the jaw: moving the 2nd jaw to the new smallest opening. \\
     \hline
 
-    7   & \texttt{FIT1\_1}       & float   & Surface model of the jaw: order 0 of the polynomial fit for the 1st jaw. \\
+    7   & \texttt{FIT1\_1}       & float   & Surface model of the jaw: Polynomial fit 0th order for the 1st jaw. \\
         \cline{2-4}
-        & \texttt{FIT1\_2}       & float   & Surface model of the jaw: order 1 of the polynomial fit for the 1st jaw. \\
+        & \texttt{FIT1\_2}       & float   & Surface model of the jaw: Polynomial fit 1st order for the 1st jaw. \\
         \cline{2-4}
-        & \texttt{FIT1\_3}       & float   & Surface model of the jaw: order 2 of the polynomial fit for the 1st jaw. \\
+        & \texttt{FIT1\_3}       & float   & Surface model of the jaw: Polynomial fit 2nd order for the 1st jaw. \\
         \cline{2-4}
-        & \texttt{FIT1\_4}       & float   & Surface model of the jaw: order 3 of the polynomial fit for the 1st jaw. \\
+        & \texttt{FIT1\_4}       & float   & Surface model of the jaw: Polynomial fit 3rd order for the 1st jaw. \\
         \cline{2-4}
-        & \texttt{FIT1\_5}       & float   & Surface model of the jaw: order 4 of the polynomial fit for the 1st jaw. \\
+        & \texttt{FIT1\_5}       & float   & Surface model of the jaw: Polynomial fit 4th order for the 1st jaw. \\
         \cline{2-4}
-        & \texttt{FIT1\_6}       & float   & Surface model of the jaw: order 5 of the polynomial fit for the 1st jaw. \\
+        & \texttt{FIT1\_6}       & float   & Surface model of the jaw: Polynomial fit 5th order for the 1st jaw. \\
         \cline{2-4}
-        & \texttt{SSF1}          & float   & Surface model of the jaw: scaling factor of the polynomial fit for the 1st jaw. \\
+        & \texttt{SSF1}          & float   & Surface model of the jaw: Polynomial fit scaling for the 1st jaw. \\
     \hline
 
-    8   & \texttt{FIT2\_1}       & float   & Surface model of the jaw: order 0 of the polynomial fit for the 2nd jaw. \\
+    8   & \texttt{FIT2\_1}       & float   & Surface model of the jaw: Polynomial fit 0th order for the 2nd jaw. \\
         \cline{2-4}
-        & \texttt{FIT2\_2}       & float   & Surface model of the jaw: order 1 of the polynomial fit for the 2nd jaw. \\
+        & \texttt{FIT2\_2}       & float   & Surface model of the jaw: Polynomial fit 1st order for the 2nd jaw. \\
         \cline{2-4}
-        & \texttt{FIT2\_3}       & float   & Surface model of the jaw: order 2 of the polynomial fit for the 2nd jaw. \\
+        & \texttt{FIT2\_3}       & float   & Surface model of the jaw: Polynomial fit 2nd order for the 2nd jaw. \\
         \cline{2-4}
-        & \texttt{FIT2\_4}       & float   & Surface model of the jaw: order 3 of the polynomial fit for the 2nd jaw. \\
+        & \texttt{FIT2\_4}       & float   & Surface model of the jaw: Polynomial fit 3rd order for the 2nd jaw. \\
         \cline{2-4}
-        & \texttt{FIT2\_5}       & float   & Surface model of the jaw: order 4 of the polynomial fit for the 2nd jaw. \\
+        & \texttt{FIT2\_5}       & float   & Surface model of the jaw: Polynomial fit 4th order for the 2nd jaw. \\
         \cline{2-4}
-        & \texttt{FIT2\_6}       & float   & Surface model of the jaw: order 5 of the polynomial fit for the 2nd jaw. \\
+        & \texttt{FIT2\_6}       & float   & Surface model of the jaw: Polynomial fit 5th order for the 2nd jaw. \\
         \cline{2-4}
-        & \texttt{SSF2}          & float   & Surface model of the jaw: scaling factor of the polynomial fit for the 2nd jaw. \\
+        & \texttt{SSF2}          & float   & Surface model of the jaw: Polynomial fit scaling for the 2nd jaw. \\
     \hline
 
-    9   & \texttt{EMITX0}        & float   & Geometric emittance in the horizontal plane. \\
+    9   & \texttt{DISTEMITX0}    & float   & Normalised emittance in the horizontal plane for distribution. \\
         \cline{2-4}
-        & \texttt{EMITY0}        & float   & Geometric emittance in the vertical plane. \\
+        & \texttt{DISTEMITY0}    & float   & Normalised emittance in the vertical plane for distribution. \\
+        \cline{2-4}
+        & \texttt{COLGAPEMITX0}  & float   & Normalised emittance in the horizontal plane for collimator gaps. \\
+        \cline{2-4}
+        & \texttt{COLGAPEMITY0}  & float   & Normalised emittance in the vertical plane for collimator gaps. \\
     \hline
 
     10  & \texttt{DO\_SELECT}    & logical & Does dedicated study of selected collimator, see \texttt{NAME\_SEL}. \\
@@ -1607,62 +2219,87 @@ The collimation module is controlled by the \texttt{COLL} block in \texttt{firt.
 \end{longtable}
 \end{center}
 
-\paragraph{Pencil Beam Description:}~\\
-\index{pencil beam}
-\begin{tabular}{@{}l|p{0.6\linewidth}}
-    \texttt{PENCIL\_DISTR = 0} & \texttt{PENC\_OFFSET  = 0} \\
-    Pencil Beam Distribution   & \texttt{PENC\_RMSX    = 0} \\
-                               & \texttt{PENC\_RMSY    = 0} \\
-    \hline
-    \texttt{PENCIL\_DISTR = 0} & \texttt{PENC\_OFFSET  = }center of rectangle \\
-    Rectangular Distribution   & \texttt{PENC\_RMSX    = }spread of impact parameter (uniform) \\
-                               & \texttt{PENC\_RMSY    = }spread parallel to jaw surface \\
-    \hline
-    \texttt{PENCIL\_DISTR = 1} & \texttt{PENC\_OFFSET  = }mean of Gaussian distribution \\
-    Gaussian Distribution      & \texttt{PENC\_RMSX    = }spread of impact parameter (Gaussian) \\
-                               & \texttt{PENC\_RMSY    = }spread parallel to jaw surface (Gaussian) \\
-    \hline
-    \texttt{PENCIL\_DISTR = 2} & \texttt{PENC\_OFFSET  = }mean of Gaussian distribution \\
-    Half Gaussian Distribution & \texttt{PENC\_RMSX    = }spread of impact parameter (uniform) \\
-                               & \texttt{PENC\_RMSY    = }spread parallel to jaw surface (Gaussian) \\
+% ================================================================================================================================ %
+
+\section{Fringe Fields} \label{sec:ffield}
+
+\textcolor{notered}{\textbf{Note:} This module is experimental, and not yet ready for production.}
+
+This method allows for the usage of a longitudinal description of the quadrupole magnetic field, adapted for each magnet specifically selected for the study, without changing the reference optics of SixTrack~\cite{ffield:1,ffield:2,ffield:3}.
+This Fringe Field\index{Fringe Field} module is controlled by the \texttt{FFIE} block.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{FFIE}\index{FFIE} \\
+    \textbf{Data lines} & Variable, see below. \\
+    \textbf{Format}     & This module uses a keyword, value format. See below.
 \end{tabular}
 
 \bigskip
-\noindent\textbf{Note:} The distribution with \texttt{PENCIL\_DISTR = 2} is used when wanting to simulate the loss of a magnet.
 
+\paragraph{Select Quadrupole} \texttt{FFQN quadname in ex}\\
 
-\paragraph{The \texttt{DO\_THISDIS} Flag Description:}
-\begin{enumerate}
-\item Distribution in the plane for which the parameters are specified ONLY: flat distribution in the selected plane between $A_x \pm \delta A_x$ (horizontal) or $A_y \pm \delta A_y$ (vertical). The amplitude in the other plane is zero\index{beam distribution}.
-\item Distribution in the plane for which the parameters are specified + a Gaussian distribution cut at 3 s in the other plane.
-\item Distribution in the plane for which the parameters are specified + a Gaussian distribution cut at 3 s in the other plane + energy spread given by \texttt{ENERROR} (nominally 3.06E-04 at 450GeV and 1.129E-04 at 7TeV) and a longitudinal component given by BUNCHLENGTH (nominally 11.24cm at 450GeV and 7.55cm at 7TeV).
-\item Reads an external file that contains the beam distribution to be tracked.
-\item Radial transverse distribution of radius Ar. This corresponds to a flat distribution both in the horizontal and vertical planes between $A_x \pm \delta A_x$ and $A_y \pm \delta A_y$, with $A_x = A_y = A_r/\ddot{O}2$.
-\item Reads a normalised distribution from an external file.
-\end{enumerate}
+The \texttt{FFQN} flag selects which quadrupole (name) has a longitudinal description in additional files that will be loaded in the study and link it to the type of Fringe Field that will be used (additional file).
 
-\paragraph{Examples}~\\
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{quadname} & char    & Name of quadrupole. Must be the same as in the list of single elements. \\
+    \texttt{in}       & integer & Index of the fringe field to use at the beginning of the quadrupole. \\
+    \texttt{ex}       & integer & Index of the fringe field to use at the end of the quadrupole.
+\end{tabular}
 
-The following is an example collimation input block
+\paragraph{Select Skipped Multipole} \texttt{FFMS multname}\\
 
-\begin{cverbatim}
-COLLIMATION----------------------------------------------------------------
-    .TRUE.
-    50   7000000
-    3  5 .958  .0015  0.  0.  "nothing"  1. 129E-4  75.5
-    .TRUE.  15.  18.  18.  20.  6.  7.  7.  10.0 1 0.0  999.0  8.0   7.5   999.0
-    8.3  8.3  8.3  8.3  8.3  8.3  8.3  8.3  5. 15.
-    0 19789.0  20150.0  1  1
-   -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
-   -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
-    0.503E-09  0.503E-09
-   .FALSE. .FALSE. 0 .TRUE. TCP.C6L7.B1 .FALSE. .TRUE. .TRUE. .TRUE.
-   0.  0.  0.  0.
-   0   0   0   0   0   0   0   0   0   0   .FALSE.
-   .FALSE.  6.003  0.0015
-   0.  0.  .FALSE. .FALSE.
-   0   0.0025  0.0   0.0   0
-   "CollDB_V6.500_lowb_st.b1.data"  1
-   .TRUE. .FALSE. WAbsVertLowbcoll  101  1  1.
-NEXT-----------------------------------------------------------------------------
-\end{cverbatim}
+The \texttt{FFMS} flag specify the name of the multipole to skip in the tracking, in order to not increase the integrated non-linearities if multipole kicks are already added for the quadrupole in the lattice.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{multname} & char & Name of multipole that will be skipped in the main lattice. Must be the same as in the list of single elements.
+\end{tabular}
+
+\paragraph{Profile Files} \texttt{FFFI file length\_quad length\_tot [aperture]}\\
+
+The \texttt{FFFI} flag is followed by the files where the different Fringe Field vector potential values are saved.
+The fringe field vector potential profile is saved using the format shown in Table~\ref{tab:ffield_file}.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{file}         & char  & Name of the fringe field profile file. See next table for proper formatting. \\
+    \texttt{length\_quad} & float & Length inside the quadrupole, i.e. integrated length of the equivalent quadrupole for this file. \\
+    \texttt{length\_tot}  & float & Total length of integration inside the file. \\
+    \texttt{aperture}     & float & The physical aperture of the quadrupole, or the maximum apeture at which you trust the representation of the Vector Potential. This parameter is optional. By defualt it is fixed as 0.080m.
+\end{tabular}
+
+\begin{center}
+\begin{longtable}{|c|c|p{11cm}|}
+    \caption{Input parameter in the Fringe Field profile files.}
+    \label{tab:ffield_file} \\*
+    \hline
+    \rowcolor{blue!30}
+    Arg. & Unit & Description \\*
+    \hline
+    \endfirsthead
+
+    \texttt{z} & $m$ & Longitudinal position of the kick. \\*
+    \hline
+
+    \texttt{i} & -- & Exponent of x in the Horner polynomial representation of the vector potential.  \\*
+    \hline
+
+    \texttt{j} & -- & Exponent of y in the Horner polynomial representation of the vector potential. \\*
+    \hline
+
+    \texttt{k} & -- & Exponent of z in the Horner polynomial representation of the vector potential. Always 0 in case of magnetic quadrupole. \\*
+    \hline
+
+    \texttt{Ax} & $m^{-(1+i+j)}$ & Coefficient of the Horner polynomial of the vector potential for the axis x. \\*
+    \hline
+
+    \texttt{Ay} & $m^{-(1+i+j)}$ & Coefficient of the Horner polynomial of the vector potential for the axis y. \\*
+    \hline
+
+    \texttt{Az} & $m^{-(1+i+j)}$ & Coefficient of the Horner polynomial of the vector potential for the axis z. \\*
+    \hline
+
+\end{longtable}
+\end{center}

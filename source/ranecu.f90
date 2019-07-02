@@ -38,6 +38,7 @@ contains
 !  If mcut == -1, generate uniformly distributed random numbers
 subroutine ranecu(rvec,len,mcut)
 
+  use crcoall
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -51,6 +52,11 @@ subroutine ranecu(rvec,len,mcut)
   real(kind=fPrec), dimension(2) :: r
 
   i=1
+  rvec0 = zero
+  if(mcut < -1) then
+    write(lerr,"(a,i0)") "RANECU> ERROR mcut must be greater or equal to -1, got ", mcut
+    call prror
+  end if
 
 10 continue
   do j = 1,2
@@ -90,16 +96,16 @@ subroutine recuinit(is1,is2)
   integer, optional, intent(in) :: is2
 
   if(is1 < 1 .or. is1 > 2147483562) then
-    write(lout,"(a,i0)") "RANECU> ERROR Seed 1 must be an integer in the range 1 to 2147483562, got ", is1
-    call prror(-1)
+    write(lerr,"(a,i0)") "RANECU> ERROR Seed 1 must be an integer in the range 1 to 2147483562, got ", is1
+    call prror
   else
     iseed1 = is1
   end if
 
   if(present(is2)) then
     if(is2 < 1 .or. is2 > 2147483398) then
-      write(lout,"(a,i0)") "RANECU> ERROR Seed 2 must be an integer in the range 1 to 2147483398, got ", is2
-      call prror(-1)
+      write(lerr,"(a,i0)") "RANECU> ERROR Seed 2 must be an integer in the range 1 to 2147483398, got ", is2
+      call prror
     else
       iseed2 = is2
     end if

@@ -125,9 +125,7 @@ subroutine ranlux(rvec,lenv)
          in24 = 0
          kount = 0
          mkount = 0
-!         WRITE(6,'(A,I2,A,I4)')  ' RANLUX DEFAULT LUXURY LEVEL =  ',
-!     &        LUXLEV,'      p =',LP
-            twom24 = 1.
+         twom24 = 1.
          do 25 i= 1, 24
             twom24 = twom24 * 0.5
          k = jseed/53668
@@ -359,8 +357,8 @@ subroutine rluxgo(lux,ins,k1,k2)
       endif
 !       Now IN24 had better be between zero and 23 inclusive
       if (in24 .gt. 23) then
-         write(lout,"(a)")           "RANLUX> ERROR RESTARTING with RLUXGO:"
-         write(lout,"(a,3i11,a,i5)") "RANLUX>       The values",ins,k1,k2," cannot occur at luxury level ",luxlev
+         write(lerr,"(a)")           "RANLUX> ERROR RESTARTING with RLUXGO:"
+         write(lerr,"(a,3i11,a,i5)") "RANLUX>       The values",ins,k1,k2," cannot occur at luxury level ",luxlev
          in24 = 0
       endif
     endif

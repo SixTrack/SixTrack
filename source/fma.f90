@@ -18,11 +18,11 @@ contains
 subroutine fma_allocate
   use mod_alloc
   use parpro
-  call alloc(fma_fname,  mStrLen, fma_max, str_dSpace, "fma_fname")
-  call alloc(fma_method, mStrLen, fma_max, str_dSpace, "fma_method")
-  call alloc(fma_first,           fma_max, 0,          "fma_first")
-  call alloc(fma_last,            fma_max, 0,          "fma_last")
-  call alloc(fma_norm_flag,       fma_max, 1,          "fma_norm_flag")
+  call alloc(fma_fname,  mFileName, fma_max, " ", "fma_fname")
+  call alloc(fma_method, mStrLen,   fma_max, " ", "fma_method")
+  call alloc(fma_first,             fma_max, 0,   "fma_first")
+  call alloc(fma_last,              fma_max, 0,   "fma_last")
+  call alloc(fma_norm_flag,         fma_max, 1,   "fma_norm_flag")
 end subroutine fma_allocate
 
 subroutine fma_parseInputline(inLine,iErr)
@@ -41,10 +41,11 @@ subroutine fma_parseInputline(inLine,iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "FMA> ERROR Failed to parse input line."
+    write(lerr,"(a)") "FMA> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   if(lnSplit(1) == "NoNormDUMP") then
     fma_writeNormDUMP = .false.
@@ -52,7 +53,7 @@ subroutine fma_parseInputline(inLine,iErr)
   endif
 
   if(fma_numfiles >= fma_max) then
-    write(lout,"(a,i0,a)") "FMA> ERROR You can only do ",fma_max," number of FMAs"
+    write(lerr,"(a,i0,a)") "FMA> ERROR You can only do ",fma_max," number of FMAs"
     iErr = .true.
     return
   end if
@@ -60,7 +61,7 @@ subroutine fma_parseInputline(inLine,iErr)
   fma_numfiles=fma_numfiles+1
 
   if(nSplit == 1 .or. nSplit == 4 .or. nSplit >= 6) then
-    write(lout,"(a,i0)") "FMA> ERROR Wrong number of input parameters. Expected 2, 3 or 5, got ",nSplit
+    write(lerr,"(a,i0)") "FMA> ERROR Wrong number of input parameters. Expected 2, 3 or 5, got ",nSplit
     iErr = .true.
     return
   end if
@@ -69,7 +70,7 @@ subroutine fma_parseInputline(inLine,iErr)
   fma_method(fma_numfiles) = trim(lnSplit(2))
 #ifndef NAFF
   if(fma_method(fma_numfiles) == "NAFF") then
-    write(lout,"(a)") "FMA> ERROR NAFF requested, but SixTrack was not built with the NAFF flag."
+    write(lerr,"(a)") "FMA> ERROR NAFF requested, but SixTrack was not built with the NAFF flag."
     iErr = .true.
     return
   end if
@@ -97,8 +98,8 @@ subroutine fma_parseInputline(inLine,iErr)
      .or. fma_method(fma_numfiles) == "TUNENEWT1" &
      .or. fma_method(fma_numfiles) == "NAFF"      &
     )) then
-    write(lout,"(a,i0)") "FMA> ERROR The method '"//trim(fma_method(fma_numfiles))//"' is unknown. FMA index = ",fma_numfiles
-    write(lout,"(a)")    "FMA>       Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "// &
+    write(lerr,"(a,i0)") "FMA> ERROR The method '"//trim(fma_method(fma_numfiles))//"' is unknown. FMA index = ",fma_numfiles
+    write(lerr,"(a)")    "FMA>       Please use one of TUNELASK, TUNEFFTI, TUNEFFT, "// &
       "TUNEAPA, TUNEFIT, TUNENEWT, TUNEABT, TUNEABT2, TUNENEWT1, NAFF."
     write(lout,"(a)")    "FMA>       Note that it is case-sensitive, so use uppercase only."
     iErr = .true.
@@ -106,7 +107,7 @@ subroutine fma_parseInputline(inLine,iErr)
   end if
 
   if(.not.(fma_norm_flag(fma_numfiles).eq.0 .or. fma_norm_flag(fma_numfiles).eq.1)) then
-    write(lout,"(2(a,i0))") "FMA> ERROR Expected fma_norm_flag = 1 or 0, Got: ",fma_norm_flag(fma_numfiles),&
+    write(lerr,"(2(a,i0))") "FMA> ERROR Expected fma_norm_flag = 1 or 0, Got: ",fma_norm_flag(fma_numfiles),&
       ", FMA index =",fma_numfiles
     iErr = .true.
     return
@@ -141,10 +142,9 @@ subroutine fma_postpr
   use crcoall
   use parpro
   use mod_common
-  use mod_commont
+  use mod_common_track
   use mod_alloc
   use mod_units
-  use file_units
 
   implicit none
 
@@ -171,15 +171,15 @@ subroutine fma_postpr
   real(kind=fPrec), allocatable :: epsnxyzv(:,:,:)
 
 #ifdef NAFF
-interface
-  real(c_double) function tunenaff(x,xp,maxn,plane_idx,norm_flag, fft_naff) bind(c)
-    use, intrinsic :: iso_c_binding
-    implicit none
-    real(c_double), intent(in), dimension(1) :: x,xp
-    integer(c_int), intent(in), value :: maxn, plane_idx, norm_flag
-    real(c_double), intent(in), value :: fft_naff
-  end function tunenaff
-end interface
+  interface
+    real(c_double) function tunenaff(x,xp,maxn,plane_idx,norm_flag, fft_naff) bind(c)
+      use, intrinsic :: iso_c_binding
+      implicit none
+      real(c_double), intent(in), dimension(1) :: x,xp
+      integer(c_int), intent(in), value :: maxn, plane_idx, norm_flag
+      real(c_double), intent(in), value :: fft_naff
+    end function tunenaff
+  end interface
 #endif
 
   ! need to pass a single dimension array to naff,
@@ -197,10 +197,6 @@ end interface
   real(kind=fPrec), dimension(3) :: eps123_0,eps123_min,eps123_max,eps123_avg !initial,minimum,maximum,average emittance
   real(kind=fPrec), dimension(3) :: phi123_0  !initial phase
 
-#ifdef BOINC
-  character(len=256) filename
-#endif
-
   call alloc(turn,         napx,fma_nturn_max,   0,      "turn")
   call alloc(nturns,       napx,                 0,      "nturns")
   call alloc(hasNormDumped,nele,                 .false.,"hasNormDumped",-1)
@@ -212,11 +208,11 @@ end interface
   call alloc(naff_xyzv2,   fma_nturn_max,        zero,   "naff_xyzv2")
 
   ! fma_six = data file for storing the results of the FMA analysis
-  call funit_requestUnit("fma_sixtrack",fmaUnit)
-  call units_openUnit(unit=fmaUnit,fileName="fma_sixtrack",formatted=.true.,mode="w",err=fErr,status="replace")
+  call f_requestUnit("fma_sixtrack",fmaUnit)
+  call f_open(unit=fmaUnit,file="fma_sixtrack",formatted=.true.,mode="w",err=fErr,status="replace")
   if(fErr) then
-    write(lout, "(a)") "FMA> ERROR Cannot open file 'fma_sixtrack' for writing."
-    call prror(-1)
+    write(lerr, "(a)") "FMA> ERROR Cannot open file 'fma_sixtrack' for writing."
+    call prror
   end if
 
   if(idp == 0 .or. ition == 0) then
@@ -242,34 +238,34 @@ end interface
         ! Check the format, if dumpfmt != 2,3 (physical) or 7,8 (normalised) then abort
         if(.not.(dumpfmt(j) == 2 .or. dumpfmt(j) == 3 .or. &
                  dumpfmt(j) == 7 .or. dumpfmt(j) == 8)) then
-          write(lout,"(a)") "FMA> ERROR Input file has wrong format. Choose format 2, 3, 7 or 8 in DUMP block."
-          call prror(-1)
+          write(lerr,"(a)") "FMA> ERROR Input file has wrong format. Choose format 2, 3, 7 or 8 in DUMP block."
+          call prror
         end if
 
         ! Open dump file for reading, resume to original position before exiting the subroutine
         inquire(unit=dumpunit(j),opened=isOpen)
         if(isOpen) then
-          close(dumpunit(j))
+          call f_close(dumpunit(j))
         else ! File has to be open if nothing went wrong
-          write(lout,"(a)") "FMA> ERROR Expected file '"//trim(dump_fname(j))//"' to be open."
-          call prror(-1)
+          write(lerr,"(a)") "FMA> ERROR Expected file '"//trim(dump_fname(j))//"' to be open."
+          call prror
         end if
 
         if(dumpfmt(j) == 2 .or. dumpfmt(j) == 7) then
-          call units_openUnit(unit=dumpunit(j),fileName=dump_fname(j),formatted=.true.,mode="r",err=fErr,status="old")
+          call f_open(unit=dumpunit(j),file=dump_fname(j),formatted=.true.,mode="r",err=fErr,status="old")
           if(fErr) then
-            write(lout,"(a,i0,a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"' (dumpfmt=",dumpfmt(j),")"
-            call prror(-1)
+            write(lerr,"(a,i0,a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"' (dumpfmt=",dumpfmt(j),")"
+            call prror
           end if
         else if(dumpfmt(j) == 3 .or. dumpfmt(j) == 8) then
-          call units_openUnit(unit=dumpunit(j),fileName=dump_fname(j),formatted=.false.,mode="r",err=fErr,status="old")
+          call f_open(unit=dumpunit(j),file=dump_fname(j),formatted=.false.,mode="r",err=fErr,status="old")
           if(fErr) then
-            write(lout,"(a,i0,a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"' (dumpfmt=",dumpfmt(j),")"
-            call prror(-1)
+            write(lerr,"(a,i0,a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"' (dumpfmt=",dumpfmt(j),")"
+            call prror
           end if
         else
-          write(lout,"(a,i0,a)") "FMA> ERROR Got dumpfmt = ",dumpfmt(j),", but expected 2,3,7 or 8."
-          call prror(-1)
+          write(lerr,"(a,i0,a)") "FMA> ERROR Got dumpfmt = ",dumpfmt(j),", but expected 2,3,7 or 8."
+          call prror
         end if
 
         ! Define first/last turn for FMA
@@ -290,29 +286,29 @@ end interface
 
         ! Now check that first turn are compatible with turns saved in dump file
         if(fma_first(i) < dumpfirst(j)) then
-          write(lout,"(2(a,i0))") "FMA> ERROR First turn in FMA block is smaller than first turn in DUMP block: "//&
+          write(lerr,"(2(a,i0))") "FMA> ERROR First turn in FMA block is smaller than first turn in DUMP block: "//&
             "fma_first = ",fma_first(i)," < dumpfirst = ",dumpfirst(j)
-          call prror(-1)
+          call prror
         end if
 
         ! Now check last turn
         ! - If fma_last = -1, we already have fma_last = numl check if fma_last < 0 and !=-1
         if(fma_last(i) <= 0) then
-          write(lout,"(a,i0)") "FMA> ERROR Last turn in FMA block must be -1 or a positive integer, "//&
+          write(lerr,"(a,i0)") "FMA> ERROR Last turn in FMA block must be -1 or a positive integer, "//&
             "but fma_last = ",fma_last(i)
-          call prror(-1)
+          call prror
         end if
 
         ! If fma_last >0 check that fma_last < dump_last
         if(dumplast(j) == -1) then
           if(fma_last(i) > numl) then
-            write(lout,"(2(a,i0))") "FMA> ERROR Last turn in FMA block is larger than number of turns tracked. "//&
+            write(lerr,"(2(a,i0))") "FMA> ERROR Last turn in FMA block is larger than number of turns tracked. "//&
               " fma_last = ",fma_last(i)," > turns tracked = ",numl
-            call prror(-1)
+            call prror
           end if
         else
           if(fma_last(i) > dumplast(j)) then
-            write(lout,"(2(a,i0))") "FMA> ERROR Last turn in FMA block is larger than number of turns tracked in DUMP block. "//&
+            write(lerr,"(2(a,i0))") "FMA> ERROR Last turn in FMA block is larger than number of turns tracked in DUMP block. "//&
               "fma_last = ",fma_last(i)," > dumplast = ",dumplast(j)
           end if
         end if
@@ -323,9 +319,9 @@ end interface
           nturns(m) = fma_nturn(i)
         end do
         if(fma_nturn(i) > fma_nturn_max) then
-          write(lout,"(a,i0,a,i0,a)") "FMA> ERROR Only ",fma_nturn_max," turns allowed for fma, but ",fma_nturn(i)," used."
-          write(lout,"(a,i0)")        "FMA>       -> reset fma_nturn_max > ",fma_nturn_max
-          call prror(-1)
+          write(lerr,"(a,i0,a,i0,a)") "FMA> ERROR Only ",fma_nturn_max," turns allowed for fma, but ",fma_nturn(i)," used."
+          write(lerr,"(a,i0)")        "FMA>       -> reset fma_nturn_max > ",fma_nturn_max
+          call prror
         end if
 
         ! Now we can start reading in the file
@@ -334,15 +330,15 @@ end interface
           do
             read(dumpunit(j),"(a)",iostat=ierro) ch
             if(ierro /= 0) then
-              write(lout,"(a)") "FMA> ERROR Reading file '"//trim(dump_fname(j))//"'"
-              call prror(-1)
+              write(lerr,"(a)") "FMA> ERROR Reading file '"//trim(dump_fname(j))//"'"
+              call prror
             end if
             ch1=adjustl(trim(ch))
             if(ch1(1:1) /= "#") exit
             if(counter > 500) then
-              write(lout,"(a)") "FMA> ERROR Something is wrong with your dumpfile '"//trim(dump_fname(j))//&
+              write(lerr,"(a)") "FMA> ERROR Something is wrong with your dumpfile '"//trim(dump_fname(j))//&
                 "'> Found more than 500 header lines."
-              call prror(-1)
+              call prror
             end if
             counter = counter+1
           end do
@@ -353,26 +349,22 @@ end interface
         if(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) then
           if(fma_norm_flag(i) /= 1 ) then
             ! For format 7 and 8, the particles are already normalised by the DUMP block
-            write(lout,"(a,i0)") "FMA> ERROR For FMA #",i
-            write(lout,"(a)")    "FMA>       Cannot do FMA on physical coordinates if normalised DUMP is used (format 7 or 8)"
-            call prror(-1)
+            write(lerr,"(a,i0)") "FMA> ERROR For FMA #",i
+            write(lerr,"(a)")    "FMA>       Cannot do FMA on physical coordinates if normalised DUMP is used (format 7 or 8)"
+            call prror
           end if
         else ! Reading physical coordinates
           if(fma_norm_flag(i) == 1 ) then
             ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
             if(dumptas(j,1,1) == zero .and. dumptas(j,1,2) == zero .and. &
                 dumptas(j,1,3) == zero .and. dumptas(j,1,4) == zero) then
-              write(lout,"(a)") "FMA> ERROR The normalisation matrix appears to not be set? Did you forget to put a 6D LINE block?"
-              call prror(-1)
+              write(lerr,"(a)") "FMA> ERROR The normalisation matrix appears to not be set? Did you forget to put a 6D LINE block?"
+              call prror
             end if
             if(idp == 0 .or. ition == 0) then ! We're in the 4D case
-              if(imc /= 1) then ! Energy scan
-                write(lout,"(a)") "FMA> ERROR normalised coordinates: Energy scan (imc != 1) not supported."
-                call prror(-1)
-              end if
               if(j /= -1) then ! Not at StartDUMP
-                write(lout,"(a)") "FMA> ERROR normalised coordinates: 4D only supported for StartDUMP."
-                call prror(-1)
+                write(lerr,"(a)") "FMA> ERROR normalised coordinates: 4D only supported for StartDUMP."
+                call prror
               end if
             end if
           end if
@@ -382,11 +374,11 @@ end interface
         !Normalized copy of the dump
         if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j)) then
           ! Get a file unit, if needed
-          call funit_requestUnit("NORM_"//dump_fname(j),tmpUnit)
-          call units_openUnit(unit=tmpUnit,fileName="NORM_"//dump_fname(j),formatted=.true.,mode="w",err=fErr,status="replace")
+          call f_requestUnit("NORM_"//dump_fname(j),tmpUnit)
+          call f_open(unit=tmpUnit,file="NORM_"//dump_fname(j),formatted=.true.,mode="w",err=fErr,status="replace")
           if(fErr) then
-            write(lout,"(a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"'"
-            call prror(-1)
+            write(lerr,"(a)") "FMA> ERROR Opening file 'NORM_"//trim(dump_fname(j))//"'"
+            call prror
           end if
 
           ! Write the file headers
@@ -435,7 +427,7 @@ end interface
 
         ! Read in particle amplitudes a(part,turn), x,xp,y,yp,sigma,dE/E [mm,mrad,mm,mrad,mm,1]
         ! TODO: This logic breaks apart if there are particle losses;
-        !  it is checked for, but it only triggers a "call prror(-1)".
+        !  it is checked for, but it only triggers a "call prror".
 
         ! If normalization within FMA, we now have to always write the full NORM_* file
         ! Otherwise  one would overwrite the NORM_* file constantly if different FMAs are done
@@ -455,9 +447,9 @@ end interface
               read(dumpunit(j),"(a)",iostat=ierro) rLine
               call chr_split(rLine, lnSplit, nSplit, spErr)
               if(spErr) then
-                write(lout,"(a,i0,a)") "FMA> ERROR Failed to parse line from file '"//trim(dump_fname(j))//&
+                write(lerr,"(a,i0,a)") "FMA> ERROR Failed to parse line from file '"//trim(dump_fname(j))//&
                   "' (dumpfmt = ",dumpfmt(j),")"
-                call prror(-1)
+                call prror
               end if
               if(nSplit > 0) call chr_cast(lnSplit(1), id,          cErr)
               if(nSplit > 1) call chr_cast(lnSplit(2), thisturn,    cErr)
@@ -473,9 +465,9 @@ end interface
               read(dumpunit(j),iostat=ierro) &
                 id,thisturn,pos,xyzvdummy(1),xyzvdummy(2),xyzvdummy(3),xyzvdummy(4),xyzvdummy(5),xyzvdummy(6),kt
               if(ierro /= 0) then
-                write(lout,"(a,i0,a)") "FMA> ERROR Failed to parse line from file '"//trim(dump_fname(j))//&
+                write(lerr,"(a,i0,a)") "FMA> ERROR Failed to parse line from file '"//trim(dump_fname(j))//&
                   "' (dumpfmt = ",dumpfmt(j),")"
-                call prror(-1)
+                call prror
               end if
             end if
 
@@ -486,12 +478,12 @@ end interface
               end if
 
               !TODO: Actually handle those losses.
-              write(lout,"(2(a,i0))") "FMA> ERROR Reading DUMP file #",j, " for FMA #",i
-              write(lout,"(2(a,i0))") "FMA>       Expected turn ",k," and particle ID ",l
-              write(lout,"(2(a,i0))") "FMA>       Got turn ",thisturn," and particle ID ",id
-              write(lout,"(a)")       "FMA>       Reading probably got unsynchronized because of particle losses,"//&
+              write(lerr,"(2(a,i0))") "FMA> ERROR Reading DUMP file #",j, " for FMA #",i
+              write(lerr,"(2(a,i0))") "FMA>       Expected turn ",k," and particle ID ",l
+              write(lerr,"(2(a,i0))") "FMA>       Got turn ",thisturn," and particle ID ",id
+              write(lerr,"(a)")       "FMA>       Reading probably got unsynchronized because of particle losses,"//&
                 " which is currently not handled in FMA."
-              call prror(-1)
+              call prror
             end if
 
             ! Normalization
@@ -636,20 +628,7 @@ end interface
 
 #ifdef NAFF
             case("NAFF")
-              ! write(lout,*) "DBG", fma_nturn(i),l
-              ! write(lout,*) "DBG", nxyzv(l,1,2*(m-1)+1), nxyzv(l,1,2*m)
-              !
-              ! write(lout,*) size(xyzv(l,fma_first(i):fma_last(i),2*(m-1)+1))
-              ! write(lout,*) size(xyzv(l,fma_first(i):fma_last(i),2*m))
-
-              flush(lout)  ! F2003 does specify a FLUSH statement.
-              ! However NAFF should NOT be chatty...
-
-              ! do n=1,fma_nturn(i)
-              !    write(*,*) n, nxyzv(l,n,2*(m-1)+1), nxyzv(l,n,2*m)
-              ! enddo
-              ! write(*,*) ""
-
+              flush(lout)
               ! Copy the relevant contents of the arrays
               ! into a new temporary array with stride=1
               ! for passing to C++.
@@ -672,9 +651,9 @@ end interface
 #endif
 
             case default
-              write(lout,"(a)") "FMA> ERROR Method '"//trim(fma_method(i))//&
+              write(lerr,"(a)") "FMA> ERROR Method '"//trim(fma_method(i))//&
                 "' not known. Note that the method name must be in capital letters."
-              call prror(-1)
+              call prror
             end select
 
             ! mode 3 rotates anticlockwise, mode 1 and 2 rotate clockwise -> synchroton tune is negative,
@@ -713,23 +692,24 @@ end interface
 
         if(fma_writeNormDUMP .and. .not.(dumpfmt(j) == 7 .or. dumpfmt(j) == 8) .and. .not.hasNormDumped(j)) then
           ! filename NORM_* (normalised particle amplitudes)
-          close(tmpUnit)
+          call f_close(tmpUnit)
+          call f_freeUnit(tmpUnit)
           hasNormDumped(j) = .true.
         end if
 
         ! resume initial position of dumpfile = end of file
-        close(dumpunit(j))
+        call f_close(dumpunit(j))
         if(dumpfmt(j) == 2 .or. dumpfmt(j) == 7) then ! ASCII
-          call units_openUnit(unit=dumpunit(j),fileName=dump_fname(j),formatted=.true.,mode="rw+",err=fErr)
+          call f_open(unit=dumpunit(j),file=dump_fname(j),formatted=.true.,mode="rw+",err=fErr)
           if(fErr) then
-            write(lout,"(a,i0,a)") "FMA> ERROR Resuming file '"//trim(dump_fname(j))//"' (dumpfmt = ",dumpfmt(j),")"
-            call prror(-1)
+            write(lerr,"(a,i0,a)") "FMA> ERROR Resuming file '"//trim(dump_fname(j))//"' (dumpfmt = ",dumpfmt(j),")"
+            call prror
           end if
         elseif (dumpfmt(j).eq.3 .or. dumpfmt(j).eq.8) then !BINARY
-          call units_openUnit(unit=dumpunit(j),fileName=dump_fname(j),formatted=.false.,mode="rw+",err=fErr)
+          call f_open(unit=dumpunit(j),file=dump_fname(j),formatted=.false.,mode="rw+",err=fErr)
           if(fErr) then
-            write(lout,"(a,i0,a)") "FMA> ERROR Resuming file '"//trim(dump_fname(j))//"' (dumpfmt = ",dumpfmt(j),")"
-            call prror(-1)
+            write(lerr,"(a,i0,a)") "FMA> ERROR Resuming file '"//trim(dump_fname(j))//"' (dumpfmt = ",dumpfmt(j),")"
+            call prror
           end if
         end if
       end if ! END: if fma_fname(i) matches dump_fname(j)
@@ -739,14 +719,14 @@ end interface
     end do !END: loop over dump files
 
     if(.not. fExist) then ! if no dumpfile has been found, raise error and abort
-      write(lout,"(a)") "FMA> ERROR DUMP file '"//trim(fma_fname(i))//&
+      write(lerr,"(a)") "FMA> ERROR DUMP file '"//trim(fma_fname(i))//&
         "' does not exist. Please check that filenames in FMA block agree with the ones in the DUMP block."
-      call prror(-1)
+      call prror
     end if
 
   end do ! END: loop over fma files
 
-  close(fmaUnit) !filename: fma_sixtrack
+  call f_close(fmaUnit) !filename: fma_sixtrack
 
   call dealloc(turn,         "turn")
   call dealloc(nturns,       "nturns")

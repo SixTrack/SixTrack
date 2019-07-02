@@ -5,11 +5,12 @@ Tests:
 - thin6d_DYNK is like thin6d but the four elenses are assigned time-varying kicks - switch off, pulsing, random on/off, random kick amplitude;
 - thin6d_DYNK_ZIPF is identical to thin6d_DYNK, but checks also the ZIPF functionality on the HEL_DUMP_* files (see later);
 - thin6d_ions is like thin6d but the machine is set for Xe-129 and 7*4 ion species are tracked (see initial.dat); moreover, the simulation starts at IP4.
+- thin6d_ramp_DYNK is like thin6d but the energy is ramped (0.5MeV/turn, 100k turns) and two elenses are assigned time-varying kicks (pulsing) whereas the other two are kept on
 
 Python script:
 The python script elens_plot_kick.py plots the kick received from the elens. In total 4 elenses are inserted to check 4 different cases:
 1) hel1: no offset, UNIFORM e-beam
-2) hel2: offset x, offset y, UNIFORM e-beam, theta_R2 re-calculated
+2) hel2: offset x, offset y, radial e-beam profile as from .txt file
 3) hel3: offset x, no offset y, GAUSSIAN e-beam, theta_R2 re-calculated
 4) hel4: no offset x, offset y, GAUSSIAN e-beam
 The particle coordinates are dumped before and after the 4 elenses in the files HEL_DUMP_*. The kick given by the elens is then just the difference between the particle coordinates after and before the elens. Various R1 and R2 are set. For further infos, please see fort.3

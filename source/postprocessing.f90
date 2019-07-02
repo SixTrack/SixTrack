@@ -10,21 +10,12 @@ module postprocessing
 
 contains
 
-#ifdef STF
-#ifdef CR
-subroutine postpr(posi,nnuml)
-#else
-subroutine postpr(posi)
-#endif
-#else
-#ifdef CR
-subroutine postpr(nfile,nnuml)
-#else
-subroutine postpr(nfile)
-#endif
-#endif
+subroutine postpr(arg1,arg2)
 !-----------------------------------------------------------------------
 !  POST PROCESSING
+!
+!  The variabe arg1 sets posi for STF builds and nfile otherwise.
+!  The variable arg2 sets nnuml for CR builds, and is 0 otherwise
 !
 !  NFILE   :  FILE UNIT (non-STF) -- always fixed to 90 for STF version.
 !  POSI    :  PARTICLE NUMBER
@@ -39,11 +30,12 @@ subroutine postpr(nfile)
       use string_tools
       use mod_version
       use mod_time
-      use mod_common, only : dpscor,sigcor,icode,idam,its6d, &
-           dphix,dphiz,qx0,qz0,dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad, &
-           ipos,iav,iwg,ivox,ivoz,ires,ifh,toptit, &
-           kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi, &
-           hmal,nnumxv,chromc,tlim,trtime
+      use mod_units
+      use mod_common_main, only : nnumxv
+      use mod_common, only : dpscor,sigcor,icode,idam,its6d,dphix,dphiz,qx0,qz0,&
+        dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,iwg,ivox,    &
+        ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi,   &
+        chromc,tlim,trtime,fort10,fort110,unit10,unit110
 #ifdef ROOT
       use root_output
 #endif
@@ -51,6 +43,9 @@ subroutine postpr(nfile)
       use checkpoint_restart
 #endif
       implicit none
+
+      integer,           intent(in) :: arg1
+      integer, optional, intent(in) :: arg2
 
       integer i,i1,i11,i2,i3,ia,ia0,iaa,iab,iap6,iapx,iapz,ich,idnt,    &
      &ierro,idummy,if1,if2,ife,ife2,ifipa,ifp,ii,ilapa,ilyap,im1,im1s,  &
@@ -99,7 +94,7 @@ subroutine postpr(nfile)
       character(len=11) hvs
       character(len=8192) ch
       character(len=25) ch1
-      integer errno,l1,l2
+      integer errno,l1,l2,nnuml
       logical rErr
       dimension tle(nlya),dle(nlya)
       dimension wgh(nlya),biav(nlya),slope(nlya),varlea(nlya)
@@ -113,11 +108,20 @@ subroutine postpr(nfile)
       dimension x(2,6),cloau(6),di0au(4)
       dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
       dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
-#ifdef CR
-      integer nnuml
-#endif
       integer itot,ttot
       save
+
+      if(present(arg2)) then
+        nnuml = arg2
+      else
+        nnuml = 0
+      end if
+#ifdef STF
+      posi = arg1
+#else
+      nfile = arg1
+#endif
+
 !----------------------------------------------------------------------
 !--TIME START
       pieni2=c1m8
@@ -946,7 +950,7 @@ subroutine postpr(nfile)
         endif
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
       endif ! END if(program.eq.'MAD')
 
@@ -1106,7 +1110,7 @@ subroutine postpr(nfile)
         endif
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
       endif
 
@@ -1427,7 +1431,7 @@ subroutine postpr(nfile)
         endif
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
       endif
 !--LYAPUNOV
@@ -1596,25 +1600,11 @@ subroutine postpr(nfile)
           tle1=log_mb(real(ia,fPrec))                                          !hr06
           if(i2.gt.1) then
             biav(i2-1)=bold/real(iav,fPrec)                                    !hr06
-#ifdef DEBUG
-!           call warr('biav',biav(i2-1),i2,0,0,0)
-#endif
             if(i2.eq.2) biav(1)=biav(1)*half
-#ifdef DEBUG
-!           call warr('biavhalf',biav(1),1,0,0,1)
-#endif
             bold=zero
             tle(i2)=(tle1+tlo)*half
-#ifdef DEBUG
-!           call warr('tle1)',tle1,0,0,0,0)
-!           call warr('tlo',tlo,0,0,0,0)
-!           call warr('tle(i2)',tle(i2),i2,0,0,0)
-#endif
             if(abs(tle1-tlo).gt.pieni) then
               wgh(i2)=one/(tle1-tlo)
-#ifdef DEBUG
-!           call warr('wgh(i2)',wgh(i2),i2,0,0,0)
-#endif
             else
               write(lout,10310) nfile
               wgh(i2)=zero
@@ -1622,25 +1612,13 @@ subroutine postpr(nfile)
           else
             tle(i2)=tle1*half
             wgh(i2)=one/(tle1)
-#ifdef DEBUG
-!           call warr('tle(i2)',tle(i2),i2,0,0,1)
-!           call warr('wgh(i2)',wgh(i2),i2,0,0,1)
-#endif
           endif
         else
           tle(i2)=zero
           wgh(i2)=zero
-#ifdef DEBUG
-!           call warr('tle(i2)',tle(i2),i2,0,0,2)
-!           call warr('wgh(i2)',wgh(i2),i2,0,0,2)
-#endif
         endif
         tlo=tle1
         dle1=zero
-#ifdef DEBUG
-!           call warr('tlo',tlo,0,0,0,0)
-!           call warr('dle1',dle1,0,0,0,0)
-#endif
       endif
 !--COORDINATE-ANGLE CONVERSION
       call caconv(dpx,d,c)
@@ -1666,19 +1644,22 @@ subroutine postpr(nfile)
       if (binrec.ne.0) then
 #ifndef STF
         if (binrecs(91-nfile).ne.crbinrecs(91-nfile)) then
-          write(lout,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(lout,*) 'Unit No ',nfile,' binrec/binrecs/crbinrecs ', binrec,binrecs(91-nfile),crbinrecs(91-nfile)
-          write(93,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(93,*) 'Unit No ',nfile,' binrec/binrecs/crbinrecs ', binrec,binrecs(91-nfile),crbinrecs(91-nfile)
+          write(lout,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(lout,"(a,i0,a,3(1x,i0))") "SIXTRACR> Unit ",nfile,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(91-nfile),crbinrecs(91-nfile)
+          write(crlog,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(crlog,"(a,i0,a,3(1x,i0))") "SIXTRACR> Unit ",nfile,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(91-nfile),crbinrecs(91-nfile)
 #else
         if (binrecs(posi1).ne.crbinrecs(posi1)) then
-          write(lout,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(lout,*) 'Particle No ',posi1,' binrec/binrecs/crbinrecs ', binrec,binrecs(posi1),crbinrecs(posi1)
-          write(93,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(93,*) 'Particle No ',posi,' binrec/binrecs/crbinrecs ', binrec,binrecs(posi1),crbinrecs(posi1)
+          write(lout,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(lout,"(a,i0,a,3(1x,i0))") "SIXTRACR> Particle ",posi1,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(posi1),crbinrecs(posi1)
+          write(crlog,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(crlog,"(a,i0,a,3(1x,i0))") "SIXTRACR> Particle ",posi1,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(posi1),crbinrecs(posi1)
 #endif
-          endfile (93,iostat=ierro)
-          backspace (93,iostat=ierro)
+          flush(crlog)
           goto 551
         endif
       endif
@@ -1688,31 +1669,9 @@ subroutine postpr(nfile)
 !--ANALYSING DATA
 !----------------------------------------------------------------------
 !--FIT OF DISTANCE IN PHASESPACE + MEAN PHASEADVANCE
-#ifdef DEBUG
-!     call warr('lfitw1',tle,0,0,0,1)
-!     call warr('lfitw2',dle,0,0,0,2)
-!     call warr('lfitw3',wgh,0,0,0,3)
-#endif
       do 280 i=2,i2
         if(iwg.eq.1) call lfitwd(tle,dle,wgh,i,1,slope(i-1),const,varlea(i-1))
         if(iwg.eq.0) call lfitd(tle,dle,i,1,slope(i-1),const,varlea(i-1))
-#ifdef DEBUG
-!     if(iwg.eq.1) then
-!     call warr('lfitwtle',tle(i),i,0,0,1)
-!     call warr('lfitwdle',dle(i),i,0,0,2)
-!     call warr('lfitwwgh',wgh(i),i,0,0,3)
-!     call warr('lfitwslo',slope(i-1),i,0,0,4)
-!     call warr('lfitwcon',const,i,0,0,5)
-!     call warr('lfitwvar',varlea(i-1),i,0,0,6)
-!     endif
-!     if (iwg.eq.0) then
-!     call warr('lfit',tle(i),i,0,0,1)
-!     call warr('lfit',dle(i),i,0,0,2)
-!     call warr('lfit',slope(i-1),i,0,0,4)
-!     call warr('lfit',const,i,0,0,5)
-!     call warr('lfit',varlea(i-1),i,0,0,6)
-!     endif
-#endif
   280 continue
       if(iapx.eq.0) then
         write(lout,*) 'WARNING: IAPX IS ZERO'
@@ -1820,7 +1779,7 @@ subroutine postpr(nfile)
            p=p*c1e3
 #else
            write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-           call prror(-1)
+           call prror
 #endif
         endif !END if(program.eq.'MAD')
 
@@ -2202,45 +2161,26 @@ subroutine postpr(nfile)
       sumda(51)=chromc(2)*c1e3
 
 !--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
-#ifdef DEBUG
-!     do i=1,60
-!       call warr('sumda(i)',sumda(i),i,0,0,0)
-!     enddo
-#endif
 ! We should really write fort.10 in BINARY!
-      write(110,iostat=ierro) (sumda(i),i=1,60)
-      if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE 110'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
-      endif
-#ifdef DEBUG
-#ifndef NAGFOR
-      write(210,'(60Z21)') (sumda(i),i=1,60)
-#endif
-#endif
+      write(unit110,iostat=ierro) (sumda(i),i=1,60)
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort110)//". iostat = ",ierro
+      end if
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
-      do ich=8192,1,-1
-        if(ch(ich:ich).ne.' ') goto 700
-      enddo
- 700  write(10,'(a)',iostat=ierro) ch(:ich)
+      write(unit10,"(a)",iostat=ierro) trim(ch)
 #else
       l1=1
       do i=1,60
         call chr_fromReal(sumda(i),ch1,19,2,rErr)
-        ch(l1:l1+25)=' '//ch1(1:25)
+        ch(l1:l1+25) = " "//ch1(1:25)
         l1=l1+26
-      enddo
-      write(10,'(a)',iostat=ierro) ch(1:l1-1)
+      end do
+      write(unit10,"(a)",iostat=ierro) ch(1:l1-1)
 #endif
-      if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
-      endif
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort10)//". iostat = ",ierro
+      end if
 !--CALCULATION THE INVARIANCES OF THE 4D TRANSVERSAL MOTION
       do 420 i=1,ninv
         if(invx(i).gt.0) then
@@ -2461,7 +2401,7 @@ subroutine postpr(nfile)
               end if
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
 
             end if
@@ -2639,65 +2579,47 @@ subroutine postpr(nfile)
       write(lout,10300) nfile,'WRONG RANGE OF DATA FOR PROCESSING'
       goto 550
 #ifdef CR
-  551 write(93,*)'SIXTRACR POSTPR  *** ERROR *** (see fort.6)'
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+  551 write(crlog,"(a)") "SIXTRACR> ERROR POSTPR"
+      flush(crlog)
 ! Now we let abend handle the fort.10......
 ! It will write 0d0 plus CPU time and turn number
 ! But we empty it as before (if we crash in abend???)
-      rewind 10
-      endfile (10,iostat=ierro)
-      close(10)
-      write(lout,*) 'SIXTRACR POSTPR  *** ERROR ***'
-      call prror(-1)
+      rewind(unit10)
+      endfile(unit10,iostat=ierro)
+      call f_close(unit10)
+      write(lerr,"(a)") "SIXTRACR> ERROR POSTPR"
+      call prror
 #endif
 
  550  continue
 !--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
 !-- Will almost all be zeros but we now have napxto and ttime
-#ifdef DEBUG
-!     do i=1,60
-!       call warr('sumda(i)',sumda(i),i,0,0,0)
-!     enddo
-#endif
 ! We should really write fort.10 in BINARY!
-      write(110,iostat=ierro) (sumda(i),i=1,60)
-      if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE 110'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
+      write(unit110,iostat=ierro) (sumda(i),i=1,60)
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to file 110. Error code ",ierro
       endif
-#ifdef DEBUG
-#ifndef NAGFOR
-      write(210,'(60Z21)') (sumda(i),i=1,60)
-#endif
-#endif
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
-      do ich=8192,1,-1
-        if(ch(ich:ich).ne.' ') goto 707
-      enddo
- 707  write(10,'(a)',iostat=ierro) ch(:ich)
+      write(unit10,"(a)",iostat=ierro) trim(ch)
 #else
       l1=1
       do i=1,60
         call chr_fromReal(sumda(i),ch1,19,2,rErr)
-        ch(l1:l1+25)=' '//ch1(1:25)
+        ch(l1:l1+25) = " "//ch1(1:25)
         l1=l1+26
       enddo
-      write(10,'(a)',iostat=ierro) ch(1:l1-1)
+      write(unit10,"(a)",iostat=ierro) ch(1:l1-1)
 #endif
-      if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE 10'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
-      endif
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort10)//". iostat = ",ierro
+      end if
 !--REWIND USED FILES
   560 rewind nfile
-      rewind 14
-      rewind 15
+      if(nprint == 1) then
+        rewind 14
+        rewind 15
+      end if
 !--TIME COUNT
       tim2=0.
       call time_timerCheck(tim2)
@@ -3049,6 +2971,7 @@ end subroutine sinpro
 
 
 subroutine join
+      use, intrinsic :: iso_fortran_env, only : real64
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -3397,7 +3320,7 @@ end subroutine join
       use, intrinsic :: iso_fortran_env, only : real64
       use parpro
       use mod_common
-      use mod_commonmn
+      use mod_common_main
       implicit none
 
       integer, intent(in) :: ia_p1, ia_p2, fileunit_in
@@ -3421,24 +3344,24 @@ end subroutine join
       !Convert from whatever precission is used internally to real64,
       ! which is what should go in the output file
       do i=1,3
-         qwcs_tmp  (i) = real(qwcs  (ia_p1,i), real64)
-         clo6v_tmp (i) = real(clo6v (i,ia_p1), real64)
-         clop6v_tmp(i) = real(clop6v(i,ia_p1), real64)
+         qwcs_tmp  (i) = real(qwcs  (i), real64)
+         clo6v_tmp (i) = real(clo6v (i), real64)
+         clop6v_tmp(i) = real(clop6v(i), real64)
       enddo
 
-      di0xs_tmp  = real(di0xs (ia_p1), real64)
-      dip0xs_tmp = real(dip0xs(ia_p1), real64)
-      di0zs_tmp  = real(di0zs (ia_p1), real64)
-      dip0zs_tmp = real(dip0zs(ia_p1), real64)
+      di0xs_tmp  = real(di0xs, real64)
+      dip0xs_tmp = real(dip0xs, real64)
+      di0zs_tmp  = real(di0zs, real64)
+      dip0zs_tmp = real(dip0zs, real64)
 
       do i=1,6
          do j=1,6
-            tas_tmp(j,i) = real(tas(ia_p1,j,i), real64)
+            tas_tmp(j,i) = real(tas(j,i), real64)
          enddo
       enddo
 
       mmac_tmp   = 1.0_real64
-      nms_tmp    = real(nms(ia_p1), real64)
+      nms_tmp    = 1.0_real64
       izu0_tmp   = real(izu0,       real64)
       numlr_tmp  = real(numlr,      real64)
       sigcor_tmp = real(sigcor,     real64)
@@ -3479,89 +3402,56 @@ end subroutine join
 
       end subroutine writebin_header
 
-      subroutine writebin(nthinerr)
+subroutine writebin(nthinerr)
 !-------------------------------------------------------------------------
 !     Subroutine for writing the the binary files (fort.90 etc.)
 !     Always converting to real64 before writing to disk
 !-------------------------------------------------------------------------
 !     F. SCHMIDT, 3 February 1999
 !     K. SJOBAK,    October  2017
+!     V.K. Berglyd Olsen, April 2019
 !-------------------------------------------------------------------------
-      use mathlib_bouncer
       use numerical_constants
       use, intrinsic :: iso_fortran_env, only : real64
       use crcoall
       use parpro
       use mod_common
-      use mod_commonmn
+      use mod_common_main
       use mod_commons
-      use mod_commont
-      use mod_commond
+      use mod_common_track
+      use mod_common_da
+      use mod_settings
 #ifdef CR
       use checkpoint_restart
 #endif
       implicit none
 
       integer ia,ia2,ie,nthinerr
-#ifdef CR
-      integer ncalls
-#endif
-#ifdef BOINC
-      integer timech
-#endif
-#ifdef CR
-      data ncalls /0/
-#endif
 
-      real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),               &
-     &sigmv_tmp(2),dpsv_tmp(2),e0_tmp
+      real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
 
       save
 !-----------------------------------------------------------------------
 #ifdef CR
-      ncalls=ncalls+1
-      write(91,*,iostat=ierro,err=11) numx,numl
-      rewind 91
-      if (restart) then
-         write(93,*) 'WRITEBIN bailing out on restart'
-         write(93,*) 'numl, nnuml, numx, numlcr '
-         write(93,*)  numl,nnuml,numx,numlcr
-         flush(93)
-         return
-      else
-#ifndef DEBUG
-         if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-            write(93,*)                                                 &
-     &'WRITEBIN numl, nnuml, numlcr, numx, nwri, numlcp '
-            write(93,*) ' ',numl,nnuml,numlcr,numx,nwri,numlcp
-            flush(93)
-#ifndef DEBUG
-         endif
-#endif
-      endif
-#ifndef DEBUG
-      if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-      write(93,*) 'WRITEBIN writing binrec ',binrec+1
-      flush(93)
-#ifndef DEBUG
-      endif
-#endif
+      if(cr_restart) then
+        write(crlog,"(a)") "WRITEBIN> Restarting, so not writing records"
+        flush(crlog)
+        return
+      end if
 #endif
          do ia=1,napx-1
 !GRD
 !     PSTOP=true -> particle lost,
-!     nlostp(ia)=particle ID that is not changing
+!     partID(ia)=particle ID that is not changing
 !     (the particle arrays are compressed to remove lost particles)
-!     In the case of no lost particles, all nlostp(i)=i for 1..npart
-            if(.not.pstop(nlostp(ia)).and..not.pstop(nlostp(ia)+1).and. &
-     &           (mod(nlostp(ia),2).ne.0)) then !Skip odd particle IDs
+!     In the case of no lost particles, all partID(i)=i for 1..npart
+            if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and. &
+     &           (mod(partID(ia),2).ne.0)) then !Skip odd particle IDs
 
-               ia2=(nlostp(ia)+1)/2 !File ID for non-STF & binrecs
+               ia2=(partID(ia)+1)/2 !File ID for non-STF & binrecs
                ie=ia+1              !ia = Particle ID 1, ie = Particle ID 2
 
-               if(ntwin.ne.2) then !Write particle nlostp(ia) only
+               if(ntwin.ne.2) then !Write particle partID(ia) only
                   dam_tmp      = real(dam(ia),   real64)
                   xv_tmp(1,1)  = real(xv1(ia),  real64)
                   yv_tmp(1,1)  = real(yv1(ia),  real64)
@@ -3580,7 +3470,7 @@ end subroutine join
 #else
                   write(90,iostat=ierro)                                &
 #endif
-     &               numx,nlostp(ia),dam_tmp,                           &
+     &               numx,partID(ia),dam_tmp,                           &
      &               xv_tmp(1,1),yv_tmp(1,1),                           &
      &               xv_tmp(2,1),yv_tmp(2,1),                           &
      &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp
@@ -3593,7 +3483,7 @@ end subroutine join
                   binrecs(ia2)=binrecs(ia2)+1
 #endif
 
-               else !Write both particles nlostp(ia) and nlostp(ia)+1
+               else !Write both particles partID(ia) and partID(ia)+1
                     ! Note that dam(ia) (distance in angular phase space)
                     ! is written twice.
                   dam_tmp      = real(dam(ia),   real64)
@@ -3622,11 +3512,11 @@ end subroutine join
 #else
                   write(90,iostat=ierro)                                &
 #endif
-     &               numx,nlostp(ia),dam_tmp,                           &
+     &               numx,partID(ia),dam_tmp,                           &
      &               xv_tmp(1,1),yv_tmp(1,1),                           &
      &               xv_tmp(2,1),yv_tmp(2,1),                           &
      &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp,                   &
-     &               nlostp(ia)+1,dam_tmp,                              &
+     &               partID(ia)+1,dam_tmp,                              &
      &               xv_tmp(1,2),yv_tmp(1,2),                           &
      &               xv_tmp(2,2),yv_tmp(2,2),                           &
      &               sigmv_tmp(2),dpsv_tmp(2),e0_tmp
@@ -3641,12 +3531,7 @@ end subroutine join
 #endif
                endif
                if(ierro.ne.0) then
-                  write(lout,*)
-                  write(lout,*)                                         &
-     &                 '*** ERROR ***,PROBLEM WRITING TO FILE# : ',     &
-     &                 91-ia2
-                  write(lout,*) 'ERROR CODE : ',ierro
-                  write(lout,*)
+                  write(lout,"(2(a,i0))") "WRITEBIN> ERROR Problem writing to file #: ",91-ia2,", error code: ",ierro
 #ifdef CR
                   flush(lout)
 #else
@@ -3660,25 +3545,12 @@ end subroutine join
 #ifdef CR
       if (lhc.ne.9) then
          binrec=binrec+1
-#ifndef DEBUG
-         if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-            write(93,*) 'WRITEBIN written binrec ',binrec
-            flush(93)
-#ifndef DEBUG
-         endif
-#endif
       endif
-      return
-   11 write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : 91',ierro
-      write(lout,*) 'SIXTRACR WRITEBIN IO ERROR on Unit 91'
-      call prror(-1)
 #endif
-      return
-      end subroutine writebin
 
-! These routines have been moved from sixtrack.s90 because they are only
-! use here. VKBO 2018-05-25
+end subroutine writebin
+
+! These routines have been moved from sixtrack.s90 because they are only used here. VKBO 2018-05-25
 subroutine lfitwd(x,y,w,l,key,a,b,e)
 !-----------------------------------------------------------------------
 !
@@ -3692,7 +3564,6 @@ subroutine lfitwd(x,y,w,l,key,a,b,e)
 !
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
-  use mathlib_bouncer
   implicit none
   integer icnt,j,key,l
   real(kind=fPrec) a,b,e,x,y,w
@@ -3752,7 +3623,6 @@ subroutine lfitd(x,y,l,key,a,b,e)
 !
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
-  use mathlib_bouncer
   implicit none
   integer j,key,l
   real(kind=fPrec) a,b,count,e,scartx,scarty
@@ -3808,7 +3678,6 @@ end subroutine lfitd
 end module postprocessing
 
 subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
-  use floatPrecision
   implicit none
   integer i1,i2,i3
   real r1,r2,r3,r4,r5
@@ -3875,7 +3744,6 @@ subroutine hplot(i1,c1,c2,i2)
 end subroutine hplot
 
 subroutine hplset(c1,r1)
-  use floatPrecision
   implicit none
   real r1
   character c1
@@ -3884,7 +3752,6 @@ subroutine hplset(c1,r1)
 end subroutine hplset
 
 subroutine hplsiz(r1,r2,c1)
-  use floatPrecision
   implicit none
   real r1,r2
   character c1
@@ -3893,7 +3760,6 @@ subroutine hplsiz(r1,r2,c1)
 end subroutine hplsiz
 
 subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
-  use floatPrecision
   implicit none
   integer i1
   real r1,r2,r3,r4,r5
@@ -3903,7 +3769,6 @@ subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
 end subroutine hplsof
 
 subroutine htitle(c1)
-  use floatPrecision
   implicit none
   character c1
   save
@@ -3911,7 +3776,6 @@ subroutine htitle(c1)
 end subroutine htitle
 
 subroutine ipl(i1,r1,r2)
-  use floatPrecision
   implicit none
   integer i1
   real r1(*),r2(*)
@@ -3920,7 +3784,6 @@ subroutine ipl(i1,r1,r2)
 end subroutine ipl
 
 subroutine ipm(i1,r1,r2)
-  use floatPrecision
   implicit none
   integer i1
   real r1,r2

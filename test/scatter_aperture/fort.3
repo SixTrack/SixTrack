@@ -1,33 +1,38 @@
 GEOM
 
-SETTINGS
+SETTINGS----------------------------------------------------------------
     DEBUG
     QUIET 2
+    INITIALSTATE text
+    FINALSTATE text
+    CRKILLSWITCH 11 19 43
 NEXT
 
-TRACKING PARAMETERS-----------------------------------------------------
-    20 0 1000 0 6.89493 0 1
-    1 1 2 1 2
-    0 0 1 1 1 50000 2
+HASH--------------------------------------------------------------------
+    MD5SUM aperture_losses.dat text
+    MD5SUM initial_state.dat   text
+    MD5SUM final_state.dat     text
+    MD5SUM scatter_log.dat     text
+    MD5SUM ip5                 text
 NEXT
 
-INITIAL COORDINATES-----------------------------------------------------
-    2 0.0 0.0 0.333332 0
-    0.0
-    0.0
-    0.0
-    0.0
-    0.0
-    0.0
-    0.000001
-    0.0
-    0.0
-    0.0
-    0.0
-    0.0
-    7000000.0
-    7000000.0
-    7000000.0
+ZIPF--------------------------------------------------------------------
+    OUTFILE zipFile.zip
+    ZIPLEVEL 7
+    ip5 fort.2 fort.3
+NEXT
+
+SIMULATION--------------------------------------------------------------
+    PARTICLES    2000
+    TURNS        50
+    CRPOINT      10
+    LATTICE      Thin 6D
+    6D_CLORB     on
+    READ_FORT13  on
+    WRITE_TRACKS 100 on
+    REF_PARTICLE proton
+    REF_ENERGY   7.0e6
+    PDG_YEAR     2018
 NEXT
 
 ITERATION-ACCURACY------------------------------------------------------
@@ -59,11 +64,11 @@ DYNK--------------------------------------------------------------------
 NEXT
 
 SCATTER-----------------------------------------------------------------
-    SEED 42 43
-    GEN  sc_thin     PPBEAMELASTIC 0.046  18.52  4.601  2.647  0.2  30e-27
-    PRO  ipFLAT      FLAT  3e25  938.0  6500000
+    SEED 42
+    GEN  sc_thin     PPBEAMELASTIC 0.046  18.52  4.601  2.647  0.2  30
+    PRO  ipFLAT      FLAT   3e25  938.0  7000000
     PRO  ipGAUSS     GAUSS1 2.2e11 8.66e-3 8.66e-3 0.75e-3 -0.75e-3
-    ELEM ip5_scatter ipFLAT 1.0 sc_thin
+    ELEM ip5_scatter ipFLAT auto 1.0 sc_thin
 NEXT
 
 DUMP--------------------------------------------------------------------

@@ -1,4 +1,4 @@
-\documentclass[twoside,a4paper,11pt]{report}
+\documentclass[twoside,a4paper,11pt]{book}
 \usepackage[twoside,a4paper,top=25mm,bottom=25mm,left=20mm,right=20mm]{geometry}
 
 \usepackage{float}
@@ -8,6 +8,7 @@
 \usepackage{verbatim}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{siunitx}
 
 %\usepackage{html}
 
@@ -18,7 +19,7 @@
 \usepackage{multirow}
 \usepackage{tabularx}
 % \usepackage{makecell}
-%\tabulinesep=^1mm_1mm
+\tabulinesep=^1mm_1mm
 \renewcommand{\arraystretch}{1.1}
 
 \usepackage{caption}
@@ -64,14 +65,6 @@
   \endflushleft\normalsize
 }
 
-\newenvironment{description_alligned}[1]
-{\begin{list}{}%
-    {\renewcommand\makelabel[1]{##1:\hfill}%
-      \settowidth\labelwidth{\makelabel{#1}}%
-      \setlength\leftmargin{\labelwidth}
-      \addtolength\leftmargin{\labelsep}}}
-  {\end{list}}
-
 \setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{3}
 \pagestyle{headings}
@@ -116,37 +109,48 @@
 % Main Document
 \begin{document}
 
+\frontmatter
 \pagenumbering{roman}
 
+\pdfbookmark{Title Page}{TitlePage}
 \input{incTitlePage}
 \cleardoublepage
+
 \pdfbookmark{Acknowledgements}{Acknowledgements}
 \input{incAcknowledgement}
 \cleardoublepage
 
+\pdfbookmark{Contents}{Contents}
 \tableofcontents
 \cleardoublepage
 \pagenumbering{arabic}
 
 % Chapters
+\mainmatter
 \input{chIntroduction}
 \cleardoublepage
 \input{chGeneralInput}
+\cleardoublepage
+\input{chInitialConditions}
 \cleardoublepage
 \input{chMachineGeometry}
 \cleardoublepage
 \input{chSpecialElements}
 \cleardoublepage
+\input{chExternal}
+\cleardoublepage
 \input{chOrganisingTasks}
 \cleardoublepage
 \input{chProcessing}
-\cleardoublepage
-\input{chInitialConditions}
 \cleardoublepage
 \input{chExtraOutput}
 \cleardoublepage
 
 \appendix
+\pdfbookmark{Appendix}{Appendix}
+\phantomsection
+\part*{Appendix}
+
 \renewcommand{\chaptername}{Appendix}
 % \input{apxKeywords}
 % \cleardoublepage
@@ -159,11 +163,14 @@
 % \input{apxExamples}
 % \cleardoublepage
 
+\backmatter
 \input{theBibliography}
 \cleardoublepage
-\pdfbookmark{Index}{Index}
+
+\pdfbookmark{Keyword Index}{Index}
 \printindex
 \cleardoublepage
+
 \pdfbookmark{List of Tables}{List of Tables}
 \listoftables
 \cleardoublepage

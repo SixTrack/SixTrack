@@ -7,6 +7,275 @@ SixTrack is optimised to reach the largest possible number of turns.
 In order to derive the Lyapunov exponent\index{Lyapunov exponent}, and thereby to distinguish between regular and chaotic motion, the particle has a close by companion particle.
 Moreover, experience has shown that varying only the amplitude while keeping the phases constant is sufficient to understand the non-linear dynamics, as a subsequent detailed post-processing allows to find the dependence of the parameter of interest on these phases.
 
+A number of features have over time been deprecated or replaced by other modules in SixTrack.
+Therefore there are a number of parameters that are no longer in use, but nevertheless have to be set to dummy values.
+The Simulation (\texttt{SIMU}) and Distribution (\texttt{DIST}) blocks are intended to replace all of the blocks in this chapter.
+These blocks take keyword/value sets instead of blocks of numbers, and are therefore easier to maintain.
+The \texttt{SIMU} block (Section~\ref{Input:SIMU}) can currently be used to replace the \texttt{TRAC}, \texttt{INIT}, and \texttt{HION} blocks (Section~\ref{TraPar}), but note that the implementation may still have bugs, and is therefore considered experimental\index{SIMU}.
+
+% ================================================================================================================================ %
+\section{Simulation Parameters} \label{Input:SIMU}
+
+\textcolor{notered}{\textbf{Note:} This input block is experimental. It provides an alternative interface to the most used parameters of the \texttt{TRAC}, \texttt{INIT}, and \texttt{HION} blocks, and is intended to be used in combination with the \texttt{DIST} block.}
+
+\bigskip
+The Simulation block (\texttt{SIMU}) is intended to take the main simulation parameters, and replaces the \texttt{TRAC}, \texttt{INTI}, and \texttt{HION} blocks\index{SIMU}\index{Simualtion Block}.
+If the \texttt{SIMU} block is present in \texttt{fort.3}, these blocks cannot be present.
+
+If the reference particle mass is set in the \texttt{SIMU} block, the value provided in the \texttt{SYNC} block is ignored.
+
+\bigskip
+\begin{tabular}{@{}lp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{SIMU}\index{SIMU} \\
+    \textbf{Data lines} & Variable \\
+    \textbf{Format}     & Keyword/value format. See Table~\ref{Table:SIMU}.
+\end{tabular}
+
+\bigskip
+Some settings provided by the \texttt{TRAC} and \texttt{INIT} blocks are not supported by the \texttt{SIMU} block.
+These are listed below.
+The option to add closed orbit to generated particles is only supported for the amplitude scan, which is not supported by the \texttt{SIMU} block.
+If you need this feature, please use the old input format.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{TRAC} & \texttt{ntwin} & Fixed to a value of 2.\\
+    \texttt{TRAC} & \texttt{idy(1), idy(2)} & Fixed to a value of 1.\\
+    \texttt{TRAC} & \texttt{idfor} & Fixed to a value of 1.\\
+    \texttt{TRAC} & \texttt{amp(1), amp0} & Fixed to a value of 0.\\
+\end{tabular}
+
+\begin{center}
+\setlength\LTleft{0pt}
+\setlength\LTright{0pt}
+\begin{longtable}{@{\extracolsep{\fill}}|l|p{10cm}|l|}
+    \caption{Available arguents in the SIMU block.}
+    \label{Table:SIMU} \\*
+    \hline
+    \rowcolor{blue!30}
+    \textbf{Keyword} & \textbf{Argument(s)} & \textbf{Default} \\*
+    \hline
+    \endfirsthead
+
+    \hline
+    \rowcolor{blue!30}
+    \textbf{Keyword} & \textbf{Argument(s)} & \textbf{Default} \\*
+    \endhead
+
+    \rowcolor{gray!15}
+    \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
+    \hline
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Particles and Turns}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{PARTICLES} & \texttt{n\_particles(int)} & \texttt{0}\\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        The number of particles to be tracked.
+        The value must be an even number.
+        This is due to several parts of SixTrack dealing with particles as pairs.
+        \index{particles}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{TURNS} & \texttt{forward(int) [backward(int)]} & \texttt{0 0} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        The number of turns in the forward, and optionally, backward direction.
+        \index{turns}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{CRPOINT} & \texttt{interval(int)} & \texttt{1000} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        How often to write checkpoint files.
+        This parameter is ignored if SixTrack was not built with checkpoint/restart functionality.
+        Checkpoint files are always written on turn 1, then with the interval specified here, and then a last time at the end of tracking.
+        \index{checkpoint/restart}\index{CR}
+    } \\*
+
+    \hline
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Reference Particle}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{REF\_ENERGY} & \texttt{energy(float,MeV)} & \texttt{0.0}\\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        The reference particle energy in MeV.
+        \index{reference particle}\index{reference energy}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{REF\_PARTICLE} & \texttt{mass(float,MeV) [charge A Z]} & \texttt{938.271998 1 1 1}\\*
+    \hline
+    \rowcolor{gray!15}
+    \texttt{REF\_PARTICLE} & \texttt{name [charge A Z]} & \texttt{proton 1 1 1}\\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        The reference mass can either be provided as a value in MeV, or as a named particle.
+        Currently this can only be set to ``proton''.
+        This value defaults to the proton mass set in the SixTrack physical constants module in \texttt{source/constants.f90}.
+        Optionally, the reference particle charge and atomic mass (A), and atomic number (Z) can be set.
+        If A is set, Z must also be set.
+        If only charge is set, Z is set to the same value.
+        The default values are all 1 (proton).
+        \index{reference particle}\index{reference mass}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{PDG\_YEAR} & \texttt{year(int)} & \texttt{2002}\\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        This can be used to set the PDG year to use for the mass if a name is provided in \texttt{REF\_PARTICLE}.
+        The default value is the 2002 proton mass, the other value currently supported is 2018.
+        More will be added in the future.
+        Note that this value affects how the proton radius is calculated as it uses the PDG year to select the relevant constant for calculating this.
+        Even when setting a reference particle mass in MeV, the PDG year is used for this.
+        \index{reference particle}\index{PDG}\index{proton radius}
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Lattice and Optics}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{LATTICE} & \texttt{thin|thick 4D|6D} & \texttt{thin 4D} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        The first argument must be either \texttt{thick} or \texttt{thin}, and this must match the content of the geometry file.
+        The second argument must be either \texttt{4D} or \texttt{6D}.
+        These arguments are not case sensitive.
+        When 6D tracking is requested, closed orbit and optical functions at the starting point are calculated using the differential algebra package.
+        \index{thick tracking}\index{thin tracking}\index{4D}\index{6D}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{OPTICS} & \texttt{first(int) last(int)} & \texttt{1 nblz} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Start and stop structure element index for optics calculation.
+        If set to 0 or omitted, the optics calculation defaults to the full machine.
+        \index{optics calculation}
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Closed Orbit}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{6D\_CLORB} & \texttt{on|off} & \texttt{off} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Compute the 6D closed orbit.
+        If the simulation is running 4D, this option is ignored.
+        \index{closed orbit}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{INIT\_CLORB} & \texttt{on|off} & \texttt{off} \\*
+    \hline
+    \rowcolor{gray!15}
+    \texttt{INIT\_CLORB} & \texttt{x xp y yp [sigma dpsv] (float)} & \texttt{6 * 0.0} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Initialise closed orbit.
+        This keyword can be called either with a flag, in which case it turns on or off the reading of a closed orbit suggestion from file \texttt{fort.33}, or it can provide 4 or 6 values for the closed orbit suggestion.
+        If omitted, the values are initialised to zero, and the 4D closed orbit is used to seed the first four values of the 6D closed orbit.
+        These settings are ignored when running in 4D.
+        \index{closed orbit}\index{6D}
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Particle and Track Files}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{READ\_FORT13} & \texttt{on|off} & \texttt{off} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Read the particle distribution from file \texttt{fort.13}.
+        This file is not intended for reading an initial distribution, but for continuing tracking from a previous simulation from a \texttt{fort.12} file.
+
+        Note that if the file is used as an input file for the initial distribution, the closed orbit is not added, even if requested with the \texttt{ADD\_CLORB} flag.
+        \index{fort.13}\index{fort.12}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{WRITE\_FORT12} & \texttt{interval(int)} & \texttt{10000} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        How often, in terms of turns, to write the particle distribution to file \texttt{fort.12}.
+        This file can be renamed to \texttt{fort.13} and used as an input file for continued tracking.
+        \index{fort.13}\index{fort.12}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{WRITE\_TRACKS} & \texttt{interval(int) [rewind(flag)]} & \texttt{nturn+1 on} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        How often, in terms of turns, to write to the tracking files on unit 90 and lower (see Appendix~\ref{Files}).
+        The optional \texttt{rewind} flag specifies whether or not to rewind the tracking files on each write.
+        \index{singletrackfile}\index{trackfiles}
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Various Flags and Options}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{EXACT} & \texttt{on|off} & \texttt{off} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Switch to enable exact solution of the equation of motion into tracking and 6D (no 4D) optics calculations.
+        \begin{equation*}
+            \mbox{\texttt{off:}}
+            \quad x^\prime \simeq \frac{P_x}{P_0(1+\delta)},
+            \quad y^\prime \simeq \frac{P_y}{P_0(1+\delta)};
+        \end{equation*}
+        \begin{equation*}
+            \mbox{\texttt{on:}}
+            \quad x^\prime \simeq \frac{P_x}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}},
+            \quad y^\prime \simeq \frac{P_y}{P_0\sqrt{(1+\delta)^2-P_x^2-P_y^2}}.
+        \end{equation*}
+        \index{equation of motion}
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{CURVEFF} & \texttt{on|off} & \texttt{off} \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Enable or disable the effect of the curvature in a combined function magnet (bending + quadrupole).
+        Note that the weak focusing effect is always included.
+        \index{curve effect}\index{combined function magnet}
+    } \\*
+    \hline
+
+\end{longtable}
+\end{center}
+
 % ================================================================================================================================ %
 \section{Tracking Parameters} \label{TraPar}
 
@@ -33,14 +302,13 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
     \texttt{numlr}         & integer  & Number of turns in the backward direction\index{reverse turn}. \\
     \texttt{napx}          & integer  & Number of amplitude variations (i.e.\ particle pairs)\index{particle pairs}. \\
     \texttt{amp(1),amp0}   & floats   & Start and end amplitude (any sign) in the horizontal phase space plane for the amplitude variations. The vertical amplitude is calculated using the ratio between the horizontal and vertical emittance set in the \textit{Initial Coordinates} block (\ref{IniCoo}), where the initial phase in phase space are also set. Additional information can be found in the \textit{Remarks}. \\
-    \texttt{ird}           & integer  & Ignored. \\
-    \texttt{imc}           & integer  & Number of variations of the relative momentum deviation\index{momentum deviations} $\Delta p/p_0$. The maximum value of the relative momentum deviation $\Delta p/p_0$ is taken from that of the first particle in the \textit{Initial Coordinates} block (\ref{IniCoo}). The variation will be between \mbox{$\pm \left[\Delta p/p_0\right](\mathrm{max})$} in steps of \mbox{$\left[\Delta p/p_0\right](\mathrm{max})$ / (\texttt{imc-1}).} \\
-    \texttt{niu(1),niu(2)} &          & Unknown; default values are 0. \\
+    \texttt{imc}           & integer  & Number of variations of the relative momentum deviation\index{momentum deviations} has been removed. This value must be 1.\\
+    \texttt{niu(1),niu(2)} & integer  & Start and stop structure element index for optics calculation. If 0, defaults to the full machine. \\
     \texttt{numlcp}        & integer  & Checkpoint/restart\index{checkpoint/restart} version: How often to write checkpointing files. \\
-    \texttt{numlmax}       & integer  & Checkpoint/restart version: Maximum amount of turns; default is $10^6$. \\
-    \texttt{idy(1),idy(2)} & integers & A tracking where one of the transversal motion planes shall be ignored is only possible when all coupling terms are switched off.  The part of the coupling that is due to closed orbit and other effects can be turned off with these switches. \\
-                           &          & \texttt{idy(1), idy(2) = 1}: coupling on. \\
-                           &          & \texttt{idy(1), idy(2) = 0}: coupling to the horizontal and vertical motion plane respectively switched off. \\
+    \texttt{numlmax}       & integer  & No longer in use. \\
+    \texttt{idz(1),idz(2)} & integers & A tracking where one of the transversal motion planes shall be ignored is only possible when all coupling terms are switched off. The part of the coupling that is due to closed orbit and other effects can be turned off with these switches. \\
+                           &          & \texttt{idz(1), idz(2) = 1}: coupling on. \\
+                           &          & \texttt{idz(1), idz(2) = 0}: coupling to the horizontal and vertical motion plane respectively switched off. \\
     \texttt{idfor}         & integer  & Usually the closed orbit is added to the initial coordinates. This can be turned off using \texttt{idfor}, for instance when a run is to be prolonged. \\
                            &          & \texttt{idfor = 0}: closed orbit added. \\
                            &          & \texttt{idfor = 1}: initial coordinates\index{initial coordinates} unchanged. \\
@@ -90,7 +358,7 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
             \item take the end coordinates of the previous run as the initial coordinates (including all digits) for the new run.
         \end{itemize}
     \end{enumerate}
-    \item A feature is installed for a prolongation of a run by using \texttt{idfor = 2} and reading the initial data from file \texttt{fort.13}. The end coordinates are now written to \texttt{fort.12} after each run. Intermediate coordinates are also written to \texttt{fort.12} in case the turn number \texttt{nwr(4)} is exceeded in the run. The user takes responsibility to transfer the required data from \texttt{fort.12} to \texttt{fort.13} if a prolongation is requested.
+    \item A feature is installed for a prolongation of a run by using \texttt{idfor = 2} and reading the initial data from file \texttt{fort.13}. The end coordinates are now written to \texttt{fort.12} after each run. Intermediate coordinates are also written to \texttt{fort.12} in case the turn number \texttt{nwr(4)} is exceeded in the run. The user takes responsibility to transfer the required data from \texttt{fort.12} to \texttt{fort.13} if a prolongation is requested. This feature can be used to effectively read in a custom-made beam distribution. The format of the file is one line per pair of particles; the meaning of the columns is exactly that of the \textit{Initial Coordinates}\index{INIT} input block (see Sec.~\ref{IniCoo} and Tab.~\ref{T-IniCoo}).
     \item As of version 5.0.3 the particle energy read from \texttt{fort.13} is re-calculated from the particle momentum offset to ensure these are consistent. The particle energy in \texttt{fort.13} is therefore ignored.
     \item Some illogical combinations of parameters have been suppressed.
     \item The initial coordinates are calculated using a proper linear 6D transformation: \texttt{amp(1)} is still the maximum horizontal starting amplitude (excluding the dispersion contribution) from which the emittance of mode 1 $e_I$ is derived, \texttt{rat} (see~\ref{IniCoo}) is the ratio of $e_{II}/e_I$ of the emittances of the two modes. The momentum deviation $\frac{\Delta p}{p_{0,1}}$ is used to define a longitudinal amplitude. The 6 normalized coordinates read:
@@ -226,6 +494,7 @@ The parameters needed for treating the synchrotron oscillation in a symplectic m
 
 \textbf{Note:} The value of \texttt{tlen} is also calculated internally by SixTrack (in \texttt{dcum}\index{dcum}), and a warning is issued if the given value is different from the calculated value.
 
+% ================================================================================================================================ %
 \section{Tracking with Ions} \label{hions}
 The default tracking in SixTrack is for protons. In case tracking of ions is wanted the following input block should be used.
 
@@ -245,3 +514,103 @@ The default tracking in SixTrack is for protons. In case tracking of ions is wan
     \texttt{$m_a$}   & float   & Mass of the ion [GeV/$c^2$]. 
     \texttt{Q}   & integer & Electrical charge. \\
 \end{longtabu}
+
+% ================================================================================================================================ %
+\section{Initial Distibution from an ASCII file} \label{distBlock}
+In addition to \texttt{fort.13} (see \emph{Tracking Parameters} input block, Sec.~\ref{TraPar}), it is possible to read a beam distribution from a plain ASCII file via the \texttt{DIST} block.
+With respect to using \texttt{fort.13}, which basically specifies just the six particle coordinates for each pair of particles, the \texttt{DIST} block allows the user to specify further properties of the particles, like charge or mass, necessary in case of species different than the synchronous one.
+There is also the possibility to echo the parsed information into a plain ASCII file.
+The echo of the distribution takes place after all the arrays for longitudinal motion have been updated and after the closed orbit is applied, if requested by the user.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{DIST}\index{DIST} \\
+    \textbf{Data lines} & Variable \\
+    \textbf{Format}     & pairs of \texttt{keyword : value}
+\end{tabular}
+
+\paragraph{Format Description}~
+
+Table~\ref{tab:distKeys} reports the available keywords and meaning of necessary values. The user has to specify the file from which the code should read the distribution; in case the user wants the echo of the read distribution, they need to specify a name as well.
+
+Table~\ref{tab:distReadFileColumns} shows the format of the ASCII file from where the beam distribution is read, along with meaning of columns and units when necessary.
+All particles must be listed, one per line.
+No header is required.
+Similarly, Tab.~\ref{tab:distEchoFileColumns} shows the format of the ASCII file where the read beam distribution is echoed, along with meaning of columns and units when necessary.
+As for the file for reading the distribution, one particle per line is dumped.
+A header is dumped as well.
+
+
+\bigskip
+\begin{center}
+\begin{longtable}{|c|c|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
+    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+    \caption{Keywords and values available in the \texttt{DIST} block. Keywords are listed in alphabetical order.}
+    \label{tab:distKeys} \\*
+    \hline
+    \rowcolor{blue!30}
+    keyword & argument & description \\*
+    \hline
+    \endfirsthead
+    \texttt{ECHO} & \multicolumn{2}{l|}{to echo the read distribution.} \\*
+                  & filename & ASCII file where the echo of the distribution should be saved \\*
+    \hline
+
+    \texttt{LOAD} & \multicolumn{2}{l|}{to read the desired distribution.} \\*
+                  & filename & ASCII file from where the code will read the desired distribution \\*
+    \hline
+\end{longtable}
+\end{center}
+
+\begin{minipage}[t]{0.45\textwidth}
+  \begin{center}
+    \begin{longtable}{|l|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
+      %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+      \caption{Format of the ASCII file containing the distribution to be read by the \texttt{DIST} block.}
+      \label{tab:distReadFileColumns} \\*
+      \hline
+      \rowcolor{blue!30}
+      \# & Description \\*
+      \hline
+      \endfirsthead
+      1  & particle id (not actually used) \\*
+      2  & parent particle id (not actually used) \\*
+      3  & statistical weight (not actually used) \\*
+      4  & $x$ [m] \\*
+      5  & $y$ [m] \\*
+      6  & (unused) \\*
+      7  & $x'$ [] \\*
+      8  & $y'$ [] \\*
+      9  & (unused) \\*
+      10 & mass number \\*
+      11 & atomic number \\*
+      12 & mass [GeV/c$^2$] \\*
+      13 & linear momentum [GeV/c] \\*
+      14 & time lag [s] \\*
+      \hline
+    \end{longtable}
+  \end{center}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+  \begin{center}
+    \begin{longtable}{|l|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
+      %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+      \caption{Format of the ASCII file where the distribution read by the \texttt{DIST} block is echoed.}
+      \label{tab:distEchoFileColumns} \\*
+      \hline
+      \rowcolor{blue!30}
+      \# & Description \\*
+      \hline
+      \endfirsthead
+      1  & \texttt{xv1} [mm]   \\*
+      2  & \texttt{xv1} [mrad] \\*
+      3  & \texttt{xv1} [mm]   \\*
+      4  & \texttt{xv1} [mrad] \\*
+      5  & \texttt{sigmv} [mm] \\*
+      6  & \texttt{ejfv} [MeV/c] \\*
+      \hline
+    \end{longtable}
+  \end{center}
+\end{minipage}
+

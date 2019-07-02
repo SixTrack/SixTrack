@@ -58,7 +58,7 @@ K.&nbsp;Sjobak.
 
 ## License
 
-Copyright 2018 CERN. This software is distributed under the terms of the GNU Lesser General Public License version 2.1, copied verbatim in the file "[COPYING](source/COPYING)".
+Copyright 2019 CERN. This software is distributed under the terms of the GNU Lesser General Public License version 2.1, copied verbatim in the file [LICENSE.md](LICENSE.md).
 
 In applying this licence, CERN does not waive the privileges and immunities granted to it by virtue of its status as an Intergovernmental Organization or submit itself to any jurisdiction.
 
@@ -79,7 +79,7 @@ To build the standard release version of SixTrack with default options, run the 
 ## Building SixTrack
 
   * [General Requirements and Build Options](doc/build_sixtrack.md)
-  * Further details covered in the [build manual](http://sixtrack.web.cern.ch/SixTrack/docs/build_full/manual.php)
+  * Further details covered in the [build manual](http://sixtrack.web.cern.ch/SixTrack/docs/building_sixtrack.pdf)
 
 ## Developer Tools
 

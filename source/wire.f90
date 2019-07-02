@@ -1,8 +1,9 @@
 module wire
 
+  use mod_alloc
   use floatPrecision
   use parpro, only : nele, nblz
-  use mod_alloc
+  use numerical_constants, only : zero
 
   implicit none
 
@@ -37,7 +38,7 @@ module wire
   ! wire parameters for closed orbit calculation (FOX part)
   ! for FOX length of variable names must be smaller 8
   integer, parameter :: wire_max = 350 ! max. number of wires (same as BB interactions)
-  real(kind=fPrec), save :: wire_clo(6,wire_max) ! closed orbit at wire
+  real(kind=fPrec), save :: wire_clo(6,wire_max) = zero ! closed orbit at wire
 
   ! wire number for each structure element (default = 0 if no wire)
   integer, allocatable, save :: wire_num(:) ! (nblz)
@@ -77,7 +78,9 @@ end subroutine wire_expand_arrays
 subroutine wire_parseInputLine(inLine, iLine, iErr)
 
   use mod_settings
+  use string_tools
   use sixtrack_input
+  use mod_common
 
   implicit none
 
@@ -91,13 +94,14 @@ subroutine wire_parseInputLine(inLine, iLine, iErr)
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
-    write(lout,"(a)") "WIRE> ERROR Failed to parse input line."
+    write(lerr,"(a)") "WIRE> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   if(nSplit /= 9) then
-    write(lout,"(a,i0)") "WIRE> ERROR Expected 9 input va;ues, got ",nSplit
+    write(lerr,"(a,i0)") "WIRE> ERROR Expected 9 input va;ues, got ",nSplit
     iErr = .true.
     return
   end if
@@ -111,28 +115,28 @@ subroutine wire_parseInputLine(inLine, iLine, iErr)
     end if
   end do
   if(iElem == -1) then
-    write(lout,"(a)") "WIRE> ERROR Element '"//trim(lnSplit(1))//"' not found in single element list."
+    write(lerr,"(a)") "WIRE> ERROR Element '"//trim(lnSplit(1))//"' not found in single element list."
     iErr = .true.
     return
   end if
 
   if(kz(iElem) /= 15) then
-    write(lout,"(2(a,i0),a)") "WIRE> ERROR Element type kz(",iElem,") = ",kz(iElem)," != +15"
+    write(lerr,"(2(a,i0),a)") "WIRE> ERROR Element type kz(",iElem,") = ",kz(iElem)," != +15"
     iErr = .true.
     return
   end if
   if(el(iElem) /= 0 .or. ek(iElem) /= 0 .or. ed(iElem) /= 0) then
     ! Check the element type (kz(iElem)_wire=+/-15)
-    write(lout,"(a)")       "WIRE> ERROR Length el(iElem) (wire is treated as thin element), "//&
+    write(lerr,"(a)")       "WIRE> ERROR Length el(iElem) (wire is treated as thin element), "//&
       "and first and second field have to be zero:"
-    write(lout,"(2(a,i0))") "WIRE>       el(",iElem,") = ",el(iElem)," != 0"
-    write(lout,"(2(a,i0))") "WIRE>       ed(",iElem,") = ",ed(iElem)," != 0"
-    write(lout,"(2(a,i0))") "WIRE>       ek(",iElem,") = ",ek(iElem)," != 0"
+    write(lerr,"(2(a,i0))") "WIRE>       el(",iElem,") = ",el(iElem)," != 0"
+    write(lerr,"(2(a,i0))") "WIRE>       ed(",iElem,") = ",ed(iElem)," != 0"
+    write(lerr,"(2(a,i0))") "WIRE>       ek(",iElem,") = ",ek(iElem)," != 0"
     iErr = .true.
     return
   end if
   if(wire_flagco(iElem) /= 0) then
-    write(lout,"(a)") "WIRE> ERROR The element '"//trim(bez(iElem))//"' was defined twice."
+    write(lerr,"(a)") "WIRE> ERROR The element '"//trim(bez(iElem))//"' was defined twice."
     iErr = .true.
     return
   end if
@@ -149,20 +153,20 @@ subroutine wire_parseInputLine(inLine, iLine, iErr)
 
   ! Make checks for the wire parameters
   if(wire_flagco(iElem) /= 1 .and. wire_flagco(iElem) /= -1) then
-    write(lout,"(a)")    "WIRE> ERROR Flag for defining the wire separation must be -1 (disp* = distance closed orbit and beam)"
-    write(lout,"(a,i0)") "WIRE>       or 1 (disp* = distance from x=y=0 <-> beam), but wire_flagco = ",wire_flagco(iElem)
+    write(lerr,"(a)")    "WIRE> ERROR Flag for defining the wire separation must be -1 (disp* = distance closed orbit and beam)"
+    write(lerr,"(a,i0)") "WIRE>       or 1 (disp* = distance from x=y=0 <-> beam), but wire_flagco = ",wire_flagco(iElem)
     iErr = .true.
     return
   end if
   if((wire_lint(iElem) < 0) .or. (wire_lphys(iElem) < 0)) then
-    write(lout,"(a)")          "WIRE> ERROR Integrated and physical length must larger than 0."
-    write(lout,"(2(a,e15.8))") "WIRE>       wire_lint = ",wire_lint(iElem),", wire_lphys = ",wire_lphys(iElem)
+    write(lerr,"(a)")          "WIRE> ERROR Integrated and physical length must larger than 0."
+    write(lerr,"(2(a,e15.8))") "WIRE>       wire_lint = ",wire_lint(iElem),", wire_lphys = ",wire_lphys(iElem)
     iErr = .true.
     return
   end if
   if((abs(wire_tiltx(iElem)) >= 90) .or. (abs(wire_tilty(iElem)) >= 90)) then
-    write(lout,"(a)")          "WIRE> ERROR Tilt angle must be within [-90,90] degrees."
-    write(lout,"(2(a,e15.8))") "WIRE>       wire_tiltx = ",wire_tiltx(iElem),", wire_tilty = ",wire_tilty(iElem)
+    write(lerr,"(a)")          "WIRE> ERROR Tilt angle must be within [-90,90] degrees."
+    write(lerr,"(2(a,e15.8))") "WIRE>       wire_tiltx = ",wire_tiltx(iElem),", wire_tilty = ",wire_tilty(iElem)
     iErr = .true.
     return
   end if
@@ -189,7 +193,7 @@ end subroutine wire_parseInputLine
 
 subroutine wire_parseInputDone(iErr)
 
-  use mod_common, only : kz,bez
+  use mod_common, only : kz,bez,fort3
 
   implicit none
 
@@ -201,8 +205,8 @@ subroutine wire_parseInputDone(iErr)
   do j=1,nele
     if(kz(j) == 15) then
       if(wire_flagco(j) == 0) then
-        write(lout,"(a)") "WIRE> ERROR Wire element '"//trim(bez(j))//"'not defined in fort.3."
-        write(lout,"(a)") "WIRE>       You must define every wire in the WIRE block."
+        write(lerr,"(a)") "WIRE> ERROR Wire element '"//trim(bez(j))//"'not defined in "//trim(fort3)//"."
+        write(lerr,"(a)") "WIRE>       You must define every wire in the WIRE block."
         iErr = .true.
         return
       end if

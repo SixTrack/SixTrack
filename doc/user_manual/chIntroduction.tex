@@ -56,8 +56,6 @@ The following subroutines are taken from various packages:
         \rowcolor{blue!30}
         \textbf{Package} & \textbf{Routine} & \textbf{Purpose} \\
         \hline
-        \texttt{NAGLIB} & \texttt{E04UCF, E04UDM, E04UEF, X04ABF} & Using internally Normal Forms \\
-        \hline
         \texttt{HBOOK}  & \texttt{HBOOK2, HDELET, HLIMIT, HTITLE} & Graphic basics \\
         \hline
         \texttt{HPLOT}  & \texttt{HPLAX,  HPLCAP, HPLEND, HPLINT} & Graphic options \\
@@ -162,3 +160,26 @@ When this flag is set, most values read from the file will be printed back with 
 
 In the following chapters, the input structure of SixTrack is discussed in detail.
 To facilitate the use of the program, a list of default values in Appendix~\ref{Default}, the input and output files are described in Appendix~\ref{Files}, and a description of the data structure of the binary data files in Appendix~\ref{Header}.
+
+% ================================================================================================================================ %
+\subsection{Input Values} \label{sec:invals}
+
+\paragraph{Integers} must be entered as plain integers.
+\paragraph{Floats} can be entered as integers (converted during parsing) and standard Fortran floats.\\
+Examples \texttt{1, 1.0, 1.0e3, 1e3, 1.0d3, 1d3, 1.0q3, 1q3}.
+\paragraph{Strings} can be entered with both single and double quotes, and without quotes if the string contains no spaces or comment characters.
+\paragraph{Flags} accept the following entries: \texttt{.true./.false.}, \texttt{true/false}, \texttt{yes/no}, \texttt{on/off}, and \texttt{1/0}. These are not case sensitive.
+
+% ================================================================================================================================ %
+\subsection{Command Line Arguments} \label{sec:cmdarg}
+
+SixTrack does not require any command line arguments, but can optionally take the file name for the main input file as well as the geometry file as the first and second argument, respectively.
+See also Sections~\ref{InFiles} and~\ref{ProVer}.
+
+\bigskip
+\noindent In addition, SixTrack can echo the version number and exit with the following flags:
+\begin{itemize}
+    \item[\texttt{-v}] Echo program name and version as a single line, and exit.
+    \item[\texttt{-V}] Echo program name, version, release date, and git hash on four lines, and exit.
+    \item[\texttt{-nv}] Echo the numerical version as an integer, and exit,
+\end{itemize}

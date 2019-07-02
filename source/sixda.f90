@@ -5,7 +5,7 @@ subroutine daliesix
   use mathlib_bouncer
   use crcoall
   use parpro
-  use mod_commond
+  use mod_common_da
   use mod_time
   use mod_lie_dab, only : mld_allocArrays
 
@@ -13,10 +13,10 @@ subroutine daliesix
 
   integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
   real tlim,time0,time1,time
-  real(kind=fPrec) angle,coe,rad,x2pi
+  real(kind=fPrec) angle,coe,radn,x2pi
   dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
   dimension rot(6),xy(6),df(6)
-  dimension angle(3),rad(3)
+  dimension angle(3),radn(3)
 
   save
 
@@ -33,8 +33,8 @@ subroutine daliesix
   ndim=nvar2/2
   if(nvarf/2.lt.ndim) ndim=nvarf/2
   if(ndim == 0) then
-    write(lout,"(a)") "DALIESIX> ERROR Number of normal form variables have to be: 2, 4, 5, 6 + parameters."
-    call prror(-1)
+    write(lerr,"(a)") "DALIESIX> ERROR Number of normal form variables have to be: 2, 4, 5, 6 + parameters."
+    call prror
   end if
   nv=nvarf
   nd2=2*ndim
@@ -68,7 +68,7 @@ subroutine daliesix
   call etallnom(hs,1,'HS        ')
   call etallnom(df,nd2,'DF        ')
   rewind mfile
-  rewind 111
+  rewind 26
   rewind mf1
   rewind mf2
   rewind mf3
@@ -81,7 +81,7 @@ subroutine daliesix
   call dainv(a1,nv,a1i,nv)
   call dainv(a2,nv,a2i,nv)
   call ctor(f,fc,fs)
-  call gettura(angle,rad)
+  call gettura(angle,radn)
   call taked(xy,1,rot)
   call take(h,2,haux)
   call dasub(h,haux,h4)
@@ -169,7 +169,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   use mathlib_bouncer
   use crcoall
   use parpro
-  use mod_commond
+  use mod_common_da
   use mod_common,  only : iqmodc,ichromc,ilinc
   use mod_lie_dab, only : iscrda,mld_allocArrays
 
@@ -181,8 +181,8 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   save
 
   if(nndim < 2 .or. nndim > 3) then
-    write(lout,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
-    call prror(-1)
+    write(lerr,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
+    call prror
   end if
 
   nordo=nord
@@ -213,7 +213,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   ! tune variation
   if(ncase.eq.2) call umlauda
   rewind 18
-  rewind 111
+  rewind 26
 
   ! main map calculation
   if(ncase.eq.3) call runda
@@ -248,11 +248,9 @@ subroutine runcav
   use parpro
   use mod_time
   use mod_common
-  use mod_commonmn, only : e0f
   use mod_commons
-  use mod_commont, only : comt_daStart,comt_daEnd
-  use mod_commond
-  use mod_hions
+  use mod_common_track, only : comt_daStart,comt_daEnd
+  use mod_common_da
   use mod_lie_dab, only : idao,rscrri,iscrda
 
   implicit none
@@ -282,9 +280,9 @@ subroutine runcav
   call darea(dpda1,18)
   rewind 18
 !Eric
-    rewind 111
+  rewind 26
   if(ition.ne.0) then
-  e0f=sqrt(e0**2-nucm0**2)                                             !hr08
+    e0f=sqrt(e0**2-nucm0**2)
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
@@ -325,6 +323,7 @@ subroutine runcav
 
   write(lout,10010)
 !-----------------------------------------------------------------------
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   time2=0.
   call time_timerCheck(time2)
@@ -393,7 +392,7 @@ subroutine umschr(iu1,iu2)
       read(iu1,'(6X,2X,G21.14,I5)') c,ii
       write(iu2,'(6X,2X,G21.14,I5)') c,ii+1
       read(iu1,'(6X,2X,G21.14,I5)') c,ii
-      if(ii.ne.0) write(lout,*) ' ERROR IN UMSCHR'
+      if(ii.ne.0) write(lerr,*) ' ERROR IN UMSCHR'
     else
 20     read(iu1,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,c,io,(jj(i),i=1,5)
       if(ii.eq.0) then
@@ -437,12 +436,10 @@ subroutine runda
   use crcoall
   use parpro
   use mod_common
-  use mod_commonmn, only : e0f,numx
   use mod_commons
-  use mod_commont, only : xxtr,yytr,comt_daStart,comt_daEnd
-  use mod_commond
+  use mod_common_track, only : xxtr,yytr,comt_daStart,comt_daEnd
+  use mod_common_da
   use mod_commond2
-  use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   use mod_units
   use mod_time
@@ -455,7 +452,7 @@ subroutine runda
   real(kind=fPrec) beamoff1,beamoff2, beamoff3, beamoff4,beamoff5,beamoff6,benkcc,betr0,cbxb,       &
     cbzb,cik,crk,crxb,crzb,dare,dpdav,dpdav2,dummy,fake,ox,oxp,oz,ozp,r0,r000,r0a,r2b,r2bf,rb,rbf,  &
     rho2b,rkb,rkbf,scikveb,scrkveb,sigmdac,startco,tkb,xbb,xrb,xs,zbb,zfeld1,zfeld2,zrb,zs,crabfreq,&
-    crabpht,crabpht2,crabpht3,crabpht4
+    crabpht,crabpht2,crabpht3,crabpht4,sin_t,cos_t,tan_t
   logical fErr
   character(len=300) ch
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
@@ -469,7 +466,7 @@ subroutine runda
 !-----------------------------------------------------------------------
   call comt_daStart
   if(mout2.eq.1) then
-    call units_openUnit(unit=99,fileName="fort.99",formatted=.true.,mode="w",err=fErr,recl=303)
+    call f_open(unit=99,file="fort.99",formatted=.true.,mode="w",err=fErr,recl=303)
   end if
   do i=1,100
     jj(i)=0
@@ -733,8 +730,8 @@ subroutine runda
         enddo
       endif
       if(ix <= 0) then
-        write(lout,"(a)") "RUNDA> ERROR Inverted linear blocks not allowed."
-        call prror(-1)
+        write(lerr,"(a)") "RUNDA> ERROR Inverted linear blocks not allowed."
+        call prror
       endif
 #include "include/dalin1.f90"
 #include "include/dalin2.f90"
@@ -774,6 +771,7 @@ subroutine runda
           write(lout,*) ' WARNING: in the 5*6 mode no extra parameters allowed'
         endif
         rewind 19
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
         return
       endif
@@ -788,7 +786,7 @@ subroutine runda
           write(7,*) '5'
           if(kz(ix).eq.12) then
             write(7,*) bez(ix)
-            write(ch,*) ed(ix),hsyc(ix),itionc(ix),phasc(ix)
+            write(ch,*) ed(ix),hsyc(ix),sign(1,kz(ix)),phasc(ix)
             do ich=300,1,-1
               if(ch(ich:ich).ne.' ') goto 703
             enddo
@@ -1238,7 +1236,6 @@ subroutine runda
       if(kzz.eq.-26) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i) ! JBG change of variables for misal calculations
@@ -1269,7 +1266,6 @@ subroutine runda
       if(kzz.eq.27) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1301,7 +1297,6 @@ subroutine runda
       if(kzz.eq.-27) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1332,7 +1327,6 @@ subroutine runda
       if(kzz.eq.28) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
@@ -1674,6 +1668,7 @@ subroutine runda
   write(lout,10010)
 
 520 continue
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   time2=0.
   call time_timerCheck(time2)
@@ -1685,8 +1680,8 @@ call comt_daEnd
   return
 
 9088 continue
-  write(lout,"(a)") "RUNDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
-  call prror(-1)
+  write(lerr,"(a)") "RUNDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
+  call prror
   return
 
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
@@ -1714,7 +1709,7 @@ subroutine anfb(tas)
   use parpro
   use mod_common
   use mod_commons
-  use mod_commont
+  use mod_common_track
   implicit none
   integer i,ii,jj,l,ll
   real(kind=fPrec) bet0s1,bet0x2,bet0z2,chi,co,dchi,dpsic,dsign,si,tas,tas56,x1,x11,x13,x2

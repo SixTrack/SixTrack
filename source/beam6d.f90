@@ -42,10 +42,8 @@ subroutine beamint(np,track,param,sigzs,bcu,ibb,ne,ibtyp,ibbc,mtc)
     f=param(ne,4)/real(nsli,fPrec)
     phi2=phi               !Note - phi2 is not a free parameter anymore
   else
-    write(lout,'(a)') "ERROR in subroutine beamint"
-    write(lout,'(a)') "beam_expflag was", beam_expflag
-    write(lout,'(a)') " expected 0 or 1. This is a BUG!"
-    call prror(-1)
+    write(lerr,"(a,i0,a)") "ERROR beamint: beam_expflag was ",beam_expflag," expected 0 or 1. This is a BUG!"
+    call prror
   end if
 
   sphi=sin_mb(phi)
@@ -128,28 +126,24 @@ subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc,mtc)
   use mathlib_bouncer
   use numerical_constants
   use parpro
-  use mod_alloc
 
   implicit none
 
   integer i,ibb,ibbc,ibbc1,ibtyp,jsli,np,nsli
   real(kind=fPrec) bbf0,bbfx,bbfy,bbgx,bbgy,costh,costhp,cphi,f,s,sepx,sepx0,sepy,sepy0,sfac,sinth,sinthp,sp,sx,sy,cphi2
 
-  real(kind=fPrec) :: track(6,npart) !(6,npart)
-  real(kind=fPrec) :: bcu(nbb,12) !(nbb,12)
-  real(kind=fPrec) :: star(3,mbea) !(3,mbea)
-  real(kind=fPrec) :: mtc(npart) 
-  real(kind=fPrec), allocatable :: dum(:) !(13)
+  real(kind=fPrec) :: track(6,npart)
+  real(kind=fPrec) :: bcu(nbb,12)
+  real(kind=fPrec) :: star(3,mbea)
+  real(kind=fPrec) :: mtc(npart)
+  real(kind=fPrec) :: dum(13)
 
   save
 !-----------------------------------------------------------------------
 
-  call alloc(dum,13,zero,"dum")
-
   do jsli=1,nsli
     do i=1,np
       s=(track(5,i)-star(3,jsli))*half
-      !write(*,*)'JBG - cphi2',cphi2
       sp=s/cphi2
       dum(1)=(bcu(ibb,1)+(two*bcu(ibb,4))*sp)+bcu(ibb,6)*sp**2
       dum(2)=(bcu(ibb,2)+(two*bcu(ibb,9))*sp)+bcu(ibb,10)*sp**2
@@ -254,8 +248,6 @@ subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc,mtc)
       track(4,i)=track(4,i)-bbfy
     end do
   end do
-
-  call dealloc(dum, "dum")
 
   return
 
@@ -488,7 +480,7 @@ end subroutine stsld
 !  DP/DX=EXP(-X**2/2)/SQRT(2*PI) IS LESS THAN 0.640E-3 EVERYWHERE
 !  IN THE RANGE  2**(-31) < P0 < 1-2**31.  (MINIMAX APPROXIMATION)
 ! ================================================================================================ !
-function gauinv(p0)
+real(kind=fPrec) function gauinv(p0)
 
   use floatPrecision
   use mathlib_bouncer
@@ -496,7 +488,7 @@ function gauinv(p0)
   use crcoall
   implicit none
   real(kind=fPrec) a0,a1,a2,a3,b0,b1,b2,b3,b4,c0,c1,c2,c3,c4,d0,d1,d2,d3,d4,e0,e1,e2,e3,e4,f0,f1,f2,&
-    gauinv,p,p0,p1,p2,pp1,q,qq2,qq3,qq4,qq5,t
+    p,p0,p1,p2,pp1,q,qq2,qq3,qq4,qq5,t
 !-----------------------------------------------------------------------
   data pp1/0.334624883253_fPrec/, qq2/0.090230446775_fPrec/,            &
        qq3/0.049905685242_fPrec/, qq4/0.027852994157_fPrec/,            &
@@ -521,6 +513,7 @@ function gauinv(p0)
 !-----------------------------------------------------------------------
   p=p0-half
   p1=abs(p)
+  gauinv=zero ! -Wmaybe-uninitialized
   if(p1.ge.pp1) goto 120
   p2=p**2
   gauinv=(((a3*p2+a2)*p2+a1)*p2+a0)*p
@@ -552,5 +545,5 @@ function gauinv(p0)
 
 900  write(lout,910) p0
 910  format(' (FUNC.GAUINV) INVALID INPUT ARGUMENT ',1pd20.13)
-  call prror(-1)
+  call prror
 end function gauinv

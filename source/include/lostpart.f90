@@ -1,3 +1,4 @@
+! start include/lostpart.f90
   !-----------------------------------------------------------------------
   ! initialise
   llost=.false.
@@ -32,7 +33,7 @@
   if(llost) then
     ! report losses to user
     call aperture_reportLoss(n,i,ix)
-    call compactArrays
+    if(.not.apflag) call shuffleLostParticles
     ! store old particle coordinates
     ! necessary since aperture markers are downstream of lenses...
     if ( lbacktracking ) call aperture_saveLastCoordinates(i,ix,-1)
@@ -57,7 +58,7 @@
     nthinerr = 3000
 #else
     nthinerr = 3001
-    nnuml=numl
+    nnuml = numl
 #endif
     return
   end if
@@ -70,3 +71,4 @@
      ! store infos of last aperture marker
      if ( kape(ix).ne.0 ) call aperture_saveLastMarker(i,ix)
   end if
+! end include/lostpart.f90

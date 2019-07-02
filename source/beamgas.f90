@@ -77,11 +77,10 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   use crcoall
   use parpro
   use parbeam
-  use mod_hions
   use mod_common
-  use mod_commont
-  use mod_commonmn
-  use collimation, only : numeff, numeffdpop, max_ncoll, maxn, iturn, mynp, part_abs_pos, part_abs_turn, secondary, mys
+  use mod_common_track
+  use mod_common_main
+  use collimation, only : numeff, numeffdpop, max_ncoll, iturn, part_abs_pos, part_abs_turn, secondary, mys
 
   implicit none
 
@@ -114,8 +113,8 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   end do
 
   if(pressID.eq.0) then
-    write(lout,"(a,e15.7)") "BEAMGAS> ERROR Couldn't find pressure marker at ",totals
-    call prror(-1)
+    write(lerr,"(a,e15.7)") "BEAMGAS> ERROR Couldn't find pressure marker at ",totals
+    call prror
   end if
 
   doLorentz=0
@@ -196,21 +195,17 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 !    rotating the vector into the orbit reference system:
      z = matmul(rotm,z)
       if (z(3).eq.0) then
-       write(lout,"(a)")       "BEAMGAS> ERROR There is something wrong with your dpmjet event "
-       write(lout,"(a,e15.7)") "BEAMGAS>  * bgiddb(choice) = ",bgiddb(choice)
-       write(lout,"(a,e15.7)") "BEAMGAS>  * totMomentum    = ",totMomentum
-       write(lout,"(a,e15.7)") "BEAMGAS>  * new4MomCoord   = ",new4MomCoord
-        call prror(-1)
+       write(lerr,"(a)")       "BEAMGAS> ERROR There is something wrong with your dpmjet event "
+       write(lerr,"(a,e15.7)") "BEAMGAS>  * bgiddb(choice) = ",bgiddb(choice)
+       write(lerr,"(a,e15.7)") "BEAMGAS>  * totMomentum    = ",totMomentum
+       write(lerr,"(a,e15.7)") "BEAMGAS>  * new4MomCoord   = ",new4MomCoord
+        call prror
       else
 !      boosted xp event
        bgxpdb(choice) = z(1)
 !      boosted yp event
        bgypdb(choice) = z(2)
        bgEdb(choice) = new4MomCoord(1) ! boosted energy
-! DEBUG:
-!         write(684,*) bgxpdb(choice),bgypdb(choice),bgEdb(choice),      &
-!     &     new4MomCoord
-! END DEBUG
       endif
      endif ! doLorentz
      call rotateMatrix(yv1(j),yv2(j),rotm)
@@ -293,9 +288,8 @@ subroutine beamGasInit(myenom)
   use numerical_constants
   use beamgascommon
   use crcoall
-  use file_units
-
-  use collimation, only : mynp
+  use mod_units
+  use parpro, only : npart
 
   implicit none
 
@@ -309,11 +303,11 @@ subroutine beamGasInit(myenom)
   write(lout,"(a)") "BEAMGAS> Initialising"
 
   ! Get file units
-  call funit_requestUnit("dpmjet.eve",          bg_dpmJetUnit)
-  call funit_requestUnit("scatterLOC.txt",      bg_scatterLocUnit)
-  call funit_requestUnit("beamgas_config.txt",  bg_configUnit)
-  call funit_requestUnit("pressure_profile.txt",bg_pressProUnit)
-  call funit_requestUnit("localLOSSES.txt",     bg_locLossesUnit)
+  call f_requestUnit("dpmjet.eve",          bg_dpmJetUnit)
+  call f_requestUnit("scatterLOC.txt",      bg_scatterLocUnit)
+  call f_requestUnit("beamgas_config.txt",  bg_configUnit)
+  call f_requestUnit("pressure_profile.txt",bg_pressProUnit)
+  call f_requestUnit("localLOSSES.txt",     bg_locLossesUnit)
 
   open(bg_dpmJetUnit,file='dpmjet.eve')
   open(bg_scatterLocUnit,file='scatterLOC.txt')
@@ -351,8 +345,8 @@ subroutine beamGasInit(myenom)
       pressARRAY(2,j)=pVAL
       j=j+1
       if (j>bgmaxx) then
-        write(lout,"(a)") "BEAMGAS> ERROR Too many pressure markers!"
-        call prror(-1)
+        write(lerr,"(a)") "BEAMGAS> ERROR Too many pressure markers!"
+        call prror
       endif
     else if (filereaderror.lt.0) then
       ! means that end of file is reached
@@ -393,25 +387,25 @@ subroutine beamGasInit(myenom)
 !    what we are supposed to simulate, we stop here...
      if (previousEvent.gt.dpmjetevents) exit
      if (numberOfEvents.gt.(bgmaxx-1)) then
-     write(lout,"(a)") "BEAMGAS> ERROR Too many dpmjet events!"
-     call prror(-1)
+     write(lerr,"(a)") "BEAMGAS> ERROR Too many dpmjet events!"
+     call prror
   endif
   enddo
 ! number of lines in dpmjet - 1
   bgmax=j
-  close(bg_dpmJetUnit)
+  call f_close(bg_dpmJetUnit)
   write(lout,"(a,i0)") "BREAMGAS> Trackable events in dpmjet.eve: ",bgmax-1
 
-  if (numberOfEvents.gt.mynp) then
-     write(lout,"(2(a,i0))") "BEAMGAS> ERROR There were too many trackable events. Maximum for this run is ",mynp,&
+  if (numberOfEvents.gt.npart) then
+     write(lerr,"(2(a,i0))") "BEAMGAS> ERROR There were too many trackable events. Maximum for this run is ",npart,&
       " you generated ",numberOfEvents
-     call prror(-1)
+     call prror
   endif
 
   write(lout,"(a,i0)") "BEAMGAS> This is job number: ", njobthis
   write(lout,"(a,i0)") "BEAMGAS> Total number of jobs: ", njobs
   write(lout,"(a,i0)") "BEAMGAS> Total number of particles in simulation: ", njobs*dpmjetevents
-  close(bg_configUnit)
+  call f_close(bg_configUnit)
 
   open(bg_locLossesUnit,file='localLOSSES.txt')
   write(bg_locLossesUnit,*) '# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=z 9=DE/E 10=CollisionID'
@@ -523,12 +517,6 @@ subroutine lorentzBoost(px,py,ptot,mass)
       new4MomCoord(i)=new4MomCoord(i)+lorentzmatrix(i,j)*oldcoord(j)
     end do
   end do
-!        write(*,*)
-!        write(*,*) "DEBUG, n4M: ", new4MomCoord
-!        write(*,*)
-!        do i=1,4
-!         write(*,*) "DEBUG, lM: ", lorentzmatrix(i,1:4)
-!        enddo
 end subroutine lorentzBoost
 
 !>
@@ -587,7 +575,6 @@ subroutine createLorentzMatrix(E,xp,yp,mass)
   endif
 
   g=one/sqrt(one-b2) ! relativistic gamma for the boost
-  !         write(*,*) "DEBUG, g: ",g, v0, xp,yp,E,mass
 
   lorentzmatrix(1,1)=g /g
 
@@ -608,8 +595,5 @@ subroutine createLorentzMatrix(E,xp,yp,mass)
   lorentzmatrix(3,4) = ((g-1)* b(2)*b(3)*b2inv) /g
   lorentzmatrix(4,3) = (lorentzmatrix(3,4)) /g
 
-!        do i=1,4
-!         write(*,*) "DEBUG,lMAT: ", lorentzmatrix(i,1:4)
-!        enddo
 end subroutine createLorentzMatrix
 
