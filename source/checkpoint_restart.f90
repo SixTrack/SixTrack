@@ -180,7 +180,7 @@ subroutine cr_expand_arrays(npart_new)
 
   use mod_alloc
   use numerical_constants, only : zero, one
-  use mod_common, only : nucm0, aa0, zz0, qq0
+  use mod_common, only : nucm0, aa0, zz0, qq0, pdgid0
 
   integer, intent(in) :: npart_new
 

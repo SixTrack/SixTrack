@@ -906,6 +906,8 @@ subroutine daten
     mtc(:)      = one
     naa(:)      = aa0
     nzz(:)      = zz0
+    nqq(:)      = qq0
+    pdgid(:)    = pdgid0
     nucm(:)     = nucm0
     moidpsv(:)  = one
     omoidpsv(:) = zero

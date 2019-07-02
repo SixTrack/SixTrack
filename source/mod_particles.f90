@@ -269,8 +269,8 @@ subroutine part_writeState(fileName, isText, withIons)
 
     write(fileUnit,"(a)") "#"
     if(withIons) then
-      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),9(1x,a24),3(1x,a4))") &
-        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e","mass","A","Z","Q"
+      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),9(1x,a24),3(1x,a4),1x,a11)") &
+        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e","mass","A","Z","Q","PDGid"
     else
       write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),8(1x,a24))") &
         "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e"
@@ -288,8 +288,8 @@ subroutine part_writeState(fileName, isText, withIons)
       call chr_fromReal(ejv(j),  roundBuf(177:200),17,3,rErr)
       if(withIons) then
         call chr_fromReal(nucm(j), roundBuf(202:225),17,3,rErr)
-        write(fileUnit, "(i8,1x,i8,2(1x,l4),a225,3(1x,i4))") &
-        partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:225),naa(j),nzz(j),nqq(j)
+        write(fileUnit, "(i8,1x,i8,2(1x,l4),a225,3(1x,i4),1x,i11)") &
+        partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:225),naa(j),nzz(j),nqq(j),pdgid(j)
       else
         write(fileUnit, "(i8,1x,i8,2(1x,l4),a200)") &
           partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:200)

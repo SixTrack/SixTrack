@@ -1202,6 +1202,7 @@ subroutine sixin_parseInputLineHION(inLine, iLine, iErr)
   use crcoall
   use string_tools
   use mod_common
+  use mod_pdgid
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -1223,8 +1224,8 @@ subroutine sixin_parseInputLineHION(inLine, iLine, iErr)
     write(lout,"(a)") "HIONS> WARNING Only expected one input line."
   end if
 
-  if(nSplit /= 3) then
-    write(lerr,"(a,i0)") "HIONS> ERROR Line must have 3 values, got ",nSplit
+  if(nSplit < 3 .or. nSplit > 4) then
+    write(lerr,"(a,i0)") "HIONS> ERROR Line must have 3 values (4 with Q), got ",nSplit
     iErr = .true.
     return
   end if
@@ -1232,6 +1233,14 @@ subroutine sixin_parseInputLineHION(inLine, iLine, iErr)
   call chr_cast(lnSplit(1),aa0,  iErr)
   call chr_cast(lnSplit(2),zz0,  iErr)
   call chr_cast(lnSplit(3),nucm0,iErr)
+
+  if(nSplit == 4) then
+    call chr_cast(lnSplit(4),qq0,iErr)
+  else
+    qq0 = zz0
+  end if
+
+  call CalculatePDGid(pdgid0, aa0, zz0)
 
   nucm0 = nucm0*c1e3 ! [GeV/c^2] -> [MeV/c^2]
   sixin_hionSet = .true.
