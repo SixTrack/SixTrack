@@ -1,7 +1,6 @@
 struct distparam
 {
 	struct parameters** coord;
-	int totallength;
     int disttype;
 	struct refparam* ref;
 	double **tas;
@@ -11,8 +10,8 @@ struct distparam
 	struct coordinates** incoord;
 	struct coordinates** outcoord;
 	int totincoord;
+	int totoutcoord;
 	int isDistrcalculated;
-	int longitunalemittance; // 0 - no longitudnal, 1 - e3, 2 - dp, 3 - deltas
 	struct appliedcut* cuts2apply;
 };
 struct refparam{
@@ -73,8 +72,6 @@ struct distparam* dist;
 struct distparam* diststart;
 int dim;
 int distn;
-
-
 
 void initializedistribution_(int *numberOfDist);
 void setdistribution_(int *ndist);

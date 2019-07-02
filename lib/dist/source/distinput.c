@@ -16,7 +16,7 @@ void initializedistribution_(int *numberOfDist){
     
         for(int i = 0; i <*numberOfDist; i++)
         {
-        struct parameters para_tmp;
+        
         (dist + i)->ref = (struct refparam*)malloc(sizeof(struct refparam));
         (dist + i)->coord = (struct parameters**)malloc(dim*sizeof(struct parameters*));
         
@@ -35,8 +35,6 @@ void initializedistribution_(int *numberOfDist){
 		(dist + i)->ref->charge0=1;
 		(dist + i)->ref->en_like=-1;
 
-
-
         for(int k=0; k<dim;k++){
             (dist + i)->tas[k] =(double*)malloc(dim*sizeof(double));
             (dist + i)->invtas[k] =(double*)malloc(dim*sizeof(double));
@@ -44,7 +42,6 @@ void initializedistribution_(int *numberOfDist){
         
 
         (dist + i)->coordtype   =-1;
-        (dist + i)->totallength = -1;
         (dist + i)->disttype = 0;
         for(int j=0; j<dim; j++)
         {

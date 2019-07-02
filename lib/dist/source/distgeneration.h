@@ -4,5 +4,6 @@
 //void action2sixinternal_(double tc[6], double *results, double *normalized);
 //int checkdist();
 //void createrandomdist_();
+void gen2sixcoord();
 int particle_within_limits_physical(double *physical);
 int particle_within_limits_normalized(double *normalized);

@@ -6,4 +6,5 @@
 //void getcoord_(double coordinate[6], int initial );
 //void getcoord_normalized(double coordinate_normalized[6], int initial );
 //void getcoord2_(double coordinate[6], int *initial );
-void print2fort13();
+//void print2fort13();
+void print6track2file(const char* nameoffile);
