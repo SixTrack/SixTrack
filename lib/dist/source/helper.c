@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <ctype.h>
 #include "helper.h"
 #include "distinput.h"
 #include "outputdist.h"
@@ -11,7 +12,6 @@ canonical2six(double *canonical, double beta0, double pc0, double mass0, double 
 
     double deltap = *(canonical+5);
     double beta = (pc0+deltap)/momentum2energy((pc0+deltap), mass);
-    printf("masssaaaa %f \n",mass );
     double rv = beta0/beta;
     *(coord+0) = *(canonical+0);
     *(coord+1) = *(canonical+1)/(1+deltap);
@@ -23,13 +23,10 @@ canonical2six(double *canonical, double beta0, double pc0, double mass0, double 
 
 
 int splitline(char* line, char columns[MAX_COLUMNS][MAX_LENGTH], char units[MAX_COLUMNS][MAX_LENGTH]  ){
-  printf("leeeeeeee %d %d \n", MAX_COLUMNS, MAX_LENGTH );
   char* word;
   int count = 0;
 
   strcpy(columns[count], word);
-
-
   /* the following loop gets the rest of the words until the
    * end of the message */
   word = strtok(line, " ");
@@ -47,23 +44,20 @@ int splitline(char* line, char columns[MAX_COLUMNS][MAX_LENGTH], char units[MAX_
 void add2internaltab(char* word, char columns[MAX_COLUMNS][MAX_LENGTH], char units[MAX_COLUMNS][MAX_LENGTH] , int count){
   
 
-  char * unit =(char*)malloc(20*sizeof(char));
-  char * word_tmp =(char*)malloc(100*sizeof(char));
+  char * unit =(char*)malloc(MAX_LENGTH*sizeof(char));
+  char * word_tmp =(char*)malloc(MAX_LENGTH*sizeof(char));
   char * columnname =(char*)malloc(MAX_LENGTH*sizeof(char));
   char *e;
   int index;
   strcpy(word_tmp, word);
   unit =strstr(word_tmp, "[");
-  printf("thisss iss woooooooorrddd %s and unit %s \n", word, unit);
       if(unit != NULL){
       
       strcpy(units[count], unit);
       e = strchr(word_tmp, '[');
       index = (int)(e - word_tmp);
-      printf("thisss iss woooooooorrddd_tmp %s and unit %s %d \n", word, unit, index);
       strncpy(columns[count], word_tmp, index);
       columns[count][index]='\0';
-      printf("column %s unit %s \n", columns[count], units[count]);
     }
     else{
       strcpy(units[count],  "nounit");
@@ -84,15 +78,11 @@ void add2table(double ** table, char* line, int linenum){
     table[linenum][count] = atof(word);
     count ++;
   }
-  for(int i=0 ;i<count; i++){
-    printf("nummmss %f %d \n ", table[linenum][i], i);
-  }
 }
 
   int readfile(){
    static const char filename[] = "file.txt";
    FILE *file = fopen ( filename, "r" );
-
    
     double** table = malloc(MAX_ROWS * sizeof(double*));    // allocate the rows
 
@@ -106,18 +96,23 @@ void add2table(double ** table, char* line, int linenum){
     char units[MAX_COLUMNS][MAX_LENGTH];
 
     int numcolum ;
-// NEED to use strcp... 
+
    if ( file != NULL ){
-      char line [ 1000 ]; /* or other suitable maximum line size */
-      char tosplit [ 1000 ];
+      char line [ MAX_LENGTH*10 ]; /* or other suitable maximum line size */
+      char tosplit [ MAX_LENGTH*10  ];
       while ( fgets ( line, sizeof line, file ) != NULL ){ /* read a line */
-        if(strncmp(line, "@", 1)==0){
-          char value_s[20],  shorty[20];
-          char * parameter =  (char*)malloc(20*sizeof(char)); 
-          char * parameter_tmp =  (char*)malloc(20*sizeof(char)); 
-          char * unit =(char*)malloc(20*sizeof(char));
-          char * unit_tmp =(char*)malloc(20*sizeof(char));
-          char * at =(char*)malloc(20*sizeof(char));
+          int k =0;
+          if(strncmp(line, "@", 1)==0){
+            while( line[k] ) {
+            putchar(tolower(line[k]));
+            k++;
+          }
+          char value_s[MAX_LENGTH],  shorty[MAX_LENGTH];
+          char * parameter =  (char*)malloc(MAX_LENGTH*sizeof(char)); 
+          char * parameter_tmp =  (char*)malloc(MAX_LENGTH*sizeof(char)); 
+          char * unit =(char*)malloc(MAX_LENGTH*sizeof(char));
+          char * unit_tmp =(char*)malloc(MAX_LENGTH*sizeof(char));
+          char * at =(char*)malloc(MAX_LENGTH*sizeof(char));
           double value;
           double multifactor = 1;
           sscanf( line, "%s %s %s",  at, parameter_tmp, value_s);
@@ -215,7 +210,6 @@ void add2table(double ** table, char* line, int linenum){
       setphysical(4, i, table, multifactor);
     }
     else if(strcmpnl(columns[i], "deltap")==0){
-      printf("these are the columnsss %s \n", columns[i]);
       checkifenergyset(5);
       setphysical(5, i, table, 1);
     }
@@ -302,7 +296,7 @@ void add2table(double ** table, char* line, int linenum){
  * returns 0, a non-match returns 1.
  */
 int
-strcmpnl (const char *s1, const char *s2)
+strcmpnl(const char *s1, const char *s2)
 {
   char s1c;
   char s2c;
@@ -366,7 +360,6 @@ double getMetricUnit(char *unit){
   double multif;
   printf("innn meetric %s \n", unit);
   if(strcmp(unit, "[mm]")==0){
-      printf("heraaac %s \n", unit);
     multif = 1e-3;
   }
   else if(strcmp(unit, "[m]")==0 || strcmp(unit, "nounit")==0 ){
@@ -402,9 +395,6 @@ void calculaterefparam(){
       dist->incoord[i]->mass = dist->ref->mass0; //Gives all the same mass. 
     }
   }
-
-
-
 }
 
 void convert2standard(){
@@ -477,7 +467,6 @@ void setphysical(int coordorder, int column, double ** table, double multifactor
   for(int i=0;i < dist->totincoord; i++){
     dist->incoord[i]->physical[coordorder] = multifactor*table[i][column];
   }
-
 }
 void setnormalized(int coordorder, int column, double ** table){
 
