@@ -3,7 +3,7 @@
 #define MAX_ROWS 100000
 void canonical2six(double *canonical, double beta0, double pc0, double mass0, double mass, double *coord);
 double momentum2energy(double momentum, double mass);
-int readfile();
+  int readfile(const char*  filenamet);
 int splitline(char* line, char columns[MAX_COLUMNS][MAX_LENGTH],char units[MAX_COLUMNS][MAX_LENGTH] );
 void add2table(double ** table, char* line, int linenum );
 void allocateincoord(int linecount);

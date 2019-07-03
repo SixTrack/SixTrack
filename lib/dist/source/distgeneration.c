@@ -23,7 +23,8 @@ void gen2sixcoord(){
         tc[3]=dist->incoord[i]->physical[3];
         tc[4]=dist->incoord[i]->physical[4];
         tc[5]=dist->incoord[i]->physical[5];
-
+        printf("uuuuuuuuuuuu %f \n",dist->incoord[i]->mass );
+         printf("uuuuuuuuuuuu00 %f \n",dist->ref->mass0 );
         canonical2six(tc, dist->ref->beta0, dist->ref->pc0, dist->ref->mass0, dist->incoord[i]->mass, tmp);
         if(particle_within_limits_physical(tmp)==1){
             for(int p=0; p<dim; p++){

@@ -5,16 +5,17 @@ subroutine readMatrixFromFile(matrix)
     real(kind=real64), dimension(6, 6) :: matrix
     open (2, file = '../data/tasm.txt', status = 'old')
 
-    
-      read(2,*) reada
-      matrix=RESHAPE(reada, shape(matrix)  )
+    read(2,*) reada
+    matrix=RESHAPE(reada, shape(matrix)  )
    close(2)
    
 end subroutine readMatrixFromFile
 
 program demodist
       use, intrinsic :: iso_fortran_env
+      use mod_dist 
       implicit none
+
 
       integer i ;
       real(kind=real64), dimension(6) :: coordinates 
@@ -23,6 +24,7 @@ program demodist
       real(kind=real64) momentum, mass, one, e1,e2, e3, dp, betx1, zero, pia2, six
       real(kind=real64), dimension(6, 6) :: identity, results, testm, tas
       real(kind=real64) dim
+      character(len=256) filename
       
       call readMatrixFromFile(tas)
       dim = 6
@@ -44,7 +46,8 @@ program demodist
 
       call initializedistribution(3)
       ! Set the tas matrix 
-    
+      filename = "mynameeeee.out"
+      call dist_readfile(filename)
 
     !Distribution 2: a matched distribution
 

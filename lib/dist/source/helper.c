@@ -13,6 +13,7 @@ canonical2six(double *canonical, double beta0, double pc0, double mass0, double 
     double deltap = *(canonical+5);
     double beta = (pc0+deltap)/momentum2energy((pc0+deltap), mass);
     double rv = beta0/beta;
+    printf("connversionnnnn %f %f %f \n", rv, mass,*(canonical+4)  );
     *(coord+0) = *(canonical+0);
     *(coord+1) = *(canonical+1)/(1+deltap);
     *(coord+2) = *(canonical+2);
@@ -80,7 +81,8 @@ void add2table(double ** table, char* line, int linenum){
   }
 }
 
-  int readfile(){
+  int readfile(const char*  filenamet){
+    printf("this is filename %s \n", filenamet);
    static const char filename[] = "file.txt";
    FILE *file = fopen ( filename, "r" );
    
@@ -101,12 +103,14 @@ void add2table(double ** table, char* line, int linenum){
       char line [ MAX_LENGTH*10 ]; /* or other suitable maximum line size */
       char tosplit [ MAX_LENGTH*10  ];
       while ( fgets ( line, sizeof line, file ) != NULL ){ /* read a line */
+          
           int k =0;
           if(strncmp(line, "@", 1)==0){
             while( line[k] ) {
-            putchar(tolower(line[k]));
+            line[k] = (tolower(line[k]));
             k++;
           }
+          printf("laaaaa %s \n", line);
           char value_s[MAX_LENGTH],  shorty[MAX_LENGTH];
           char * parameter =  (char*)malloc(MAX_LENGTH*sizeof(char)); 
           char * parameter_tmp =  (char*)malloc(MAX_LENGTH*sizeof(char)); 
@@ -116,8 +120,6 @@ void add2table(double ** table, char* line, int linenum){
           double value;
           double multifactor = 1;
           sscanf( line, "%s %s %s",  at, parameter_tmp, value_s);
-
-
           if(strncmp(value_s, "%", 1)!=0){
             unit_tmp =strstr(parameter_tmp, "[");         
 
@@ -132,7 +134,7 @@ void add2table(double ** table, char* line, int linenum){
               strcpy(parameter, parameter_tmp);
             }       
             
-            value = atof(value_s);
+            value = strtod(value_s,NULL);
 
             if(strcmp(parameter, "energy0")==0){
               multifactor = getEnergyUnit(unit);
@@ -143,17 +145,17 @@ void add2table(double ** table, char* line, int linenum){
               dist->ref->pc0=value*multifactor;
             }
             else if(strcmp(parameter, "a0")==0){
-              dist->ref->a0=(int)value;
+              dist->ref->a0=round(value);
             }
             else if(strcmp(parameter, "z0")==0){
-              dist->ref->z0=(int)value;
+              dist->ref->z0=round(value);
             }
             else if(strcmp(parameter, "mass0")==0){
               multifactor = getEnergyUnit(unit);
               dist->ref->mass0=value*multifactor;
             }
             else if(strcmp(parameter, "charge0")==0){
-              dist->ref->charge0=(int)value;
+              dist->ref->charge0=round(value);
             }
             else{
 
@@ -335,6 +337,7 @@ void issue_info(const char* t1){
 
 double getEnergyUnit(char *unit){
   double multif;
+  printf("unniiit %s \n", unit);
   if(strcmp(unit, "[ev]")==0){
     multif = 1e-9;
   }
@@ -393,6 +396,7 @@ void calculaterefparam(){
   if(dist->incoord[0]->mass < 1e-16){ //enough to check the first 
     for(int i=0; i< dist->totincoord; i++){
       dist->incoord[i]->mass = dist->ref->mass0; //Gives all the same mass. 
+      printf("settss the mass !!! %f \n", dist->incoord[i]->mass );
     }
   }
 }
@@ -452,13 +456,20 @@ void allocateincoord(int linecount){
     dist->incoord[i]->normalized = (double*)malloc(dim*sizeof(double));
     dist->incoord[i]->action = (double*)malloc(dim*sizeof(double));
     dist->incoord[i]->nonstandard = (double*)malloc(9*sizeof(double));
+    dist->incoord[i]->mass=0;
 
     dist->outcoord[i] = (struct coordinates*)malloc(sizeof(struct coordinates));
     dist->outcoord[i]->physical = (double*)malloc(dim*sizeof(double));
     dist->outcoord[i]->normalized = (double*)malloc(dim*sizeof(double));
     dist->outcoord[i]->action = (double*)malloc(dim*sizeof(double));
     dist->outcoord[i]->nonstandard = (double*)malloc(9*sizeof(double));
+   
+   // for(int =k<6;k++){
+   //   dist->incoord[i]->physical[k]  = 0;
+   //   dist->incoord[i]->normalized[] = 0;
+   // }
   }
+
 }
 
 

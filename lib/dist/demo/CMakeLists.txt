@@ -14,7 +14,7 @@ set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${dialect}")
 #
 # Compile.
 #
-file(GLOB_RECURSE sources  ../source/*.c ../source/*.h ../demo/*.f90)
+file(GLOB_RECURSE sources  ../source/*.c ../source/*.h ../source/*.f90 ../demo/*.f90)
 add_library(${PROJECT_NAME} SHARED ${sources})
 
 # Install library
