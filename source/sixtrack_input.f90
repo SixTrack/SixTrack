@@ -447,11 +447,12 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
+    st_iStateWrite = .true.
     select case(lnSplit(2))
     case("binary")
-      st_initialstate = 1
+      st_iStateText = .false.
     case("text")
-      st_initialstate = 2
+      st_iStateText = .true.
     case default
       write(lerr,"(a)") "INPUT> ERROR INITIALSTATE first value be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
       iErr = .true.
@@ -459,23 +460,13 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     end select
     if(nSplit == 3) then
       if(lnSplit(3) == "ions") then
-        st_initialstate = st_initialstate + 2
+        st_iStateIons = .true.
       else
         write(lerr,"(a)") "INPUT> ERROR INITIALSTATE second value must be 'ions', got '"//trim(lnSplit(3))//"'"
         iErr = .true.
         return
       end if
     end if
-    select case(st_initialstate)
-    case(1)
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a binary file"
-    case(2)
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a text file"
-    case(3)
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a binary file with ion data included"
-    case(4)
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a text file with ion data included"
-    end select
 
   case("FINALSTATE")
     if(nSplit /= 2 .and. nSplit /= 3) then
@@ -483,11 +474,12 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
+    st_fStateWrite = .true.
     select case(lnSplit(2))
     case("binary")
-      st_finalstate = 1
+      st_fStateText = .false.
     case("text")
-      st_finalstate = 2
+      st_fStateText = .true.
     case default
       write(lerr,"(a)") "INPUT> ERROR FINALSTATE first value must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
       iErr = .true.
@@ -495,23 +487,13 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     end select
     if(nSplit == 3) then
       if(lnSplit(3) == "ions") then
-        st_finalstate = st_finalstate + 2
+        st_fStateIons = .true.
       else
         write(lerr,"(a)") "INPUT> ERROR FINALSTATE second value must be 'ions', got '"//trim(lnSplit(3))//"'"
         iErr = .true.
         return
       end if
     end if
-    select case(st_finalstate)
-    case(1)
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file"
-    case(2)
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file"
-    case(3)
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file with ion data included"
-    case(4)
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file with ion data included"
-    end select
 
   case("QUIET")
     if(nSplit > 1) then
@@ -593,11 +575,11 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     if(numPart > npart) then
       call expand_arrays(nele, numPart, nblz, nblo)
     end if
-    if(napx > 32 .and. sixin_forcePartSummary .eqv. .false.) then
+    if(napx > 32 .and. .not. sixin_forcePartSummary) then
       write(lout,"(a)") "SIMU> NOTE More than 64 particles requested, switching off printing of particle summary."
       st_partsum = .false.
     end if
-    if(napx > 32 .and. sixin_forceWriteFort12 .eqv. .false.) then
+    if(napx > 32 .and. .not. sixin_forceWriteFort12) then
       write(lout,"(a)") "SIMU> NOTE More than 64 particles requested, switching off wriritng of fort.12."
       st_writefort12 = .false.
     end if
@@ -952,7 +934,7 @@ subroutine sixin_postInputSIMU(iErr)
     iErr = .true.
   end if
 
-  if((sixin_simu6D .eqv. .false.) .and. iclo6 > 0) then
+  if(iclo6 > 0 .and. .not. sixin_simu6D) then
     write(lout,"(a)") "SIMU> ERROR Can only calculated 6D closed orbit for 6D simulations."
     iErr = .true.
   end if
@@ -1344,12 +1326,12 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call expand_arrays(nele, napx*2, nblz, nblo)
     end if
 
-    if(napx > 32 .and. sixin_forcePartSummary .eqv. .false.) then
+    if(napx > 32 .and. .not. sixin_forcePartSummary) then
       write(lout,"(a)") "TRAC> NOTE More than 64 particles requested, switching off printing of particle summary."
       st_partsum = .false.
     end if
 
-    if(napx > 32 .and. sixin_forceWriteFort12 .eqv. .false.) then
+    if(napx > 32 .and. .not. sixin_forceWriteFort12) then
       write(lout,"(a)") "TRAC> NOTE More than 64 particles requested, switching off wriritng of fort.12."
       st_writefort12 = .false.
     end if
@@ -1585,7 +1567,8 @@ end subroutine sixin_parseInputLineDIFF
 ! ================================================================================================ !
 !  Parse Chromaticity Adjustment Line
 !  Rewritten from code from DATEN by VKBO
-!  Last modified: 2018-06-xx
+!  Rewritten: 2018-06
+!  Updated:   2019-06-07
 ! ================================================================================================ !
 subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
 
@@ -1594,17 +1577,15 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
   use mod_settings
   use mod_common
   use mod_common_track
+  use mod_find
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=mNameLen)      :: tmp_is(2)
-  integer nSplit,i,ichrom0
+  integer nSplit,i
   logical spErr
-
-  save :: tmp_is,ichrom0
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -1612,47 +1593,53 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   select case(iLine)
 
   case(1)
 
-    ichrom0   = 0
-    tmp_is(:) = " "
+    if(nSplit > 1) call chr_cast(lnSplit(2),cro(1), iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),ichrom, iErr)
 
-    if(nSplit > 0) tmp_is(1) = lnSplit(1)
-    if(nSplit > 1) call chr_cast(lnSplit(2),cro(1),   iErr)
-    if(nSplit > 2) call chr_cast(lnSplit(3),ichrom0,  iErr)
+    crois(1) = find_singElemFromName(lnSplit(1))
+    if(crois(1) <= 0) then
+      write(lerr,"(a)") "CHRO> ERROR Element '"//trim(lnSplit(1))//"' not in single elements list"
+      iErr = .true.
+      return
+    end if
+
+    if(ichrom < 1 .or. ichrom > 3) then
+      write(lerr,"(a,i0)") "CHRO> ERROR Chromaticity calculation flag ichrom must be 1, 2 or 3, got ",ichrom
+      iErr = .true.
+      return
+    end if
 
     if(st_debug) then
-      call sixin_echoVal("bez_is(1)",tmp_is(1),"CHRO",iLine)
-      call sixin_echoVal("cro(1)",   cro(1),   "CHRO",iLine)
-      call sixin_echoVal("ichrom0",  ichrom0,  "CHRO",iLine)
+      call sixin_echoVal("bez_is(1)",lnSplit(1),"CHRO",iLine)
+      call sixin_echoVal("crois(1)", crois(1),  "CHRO",iLine)
+      call sixin_echoVal("cro(1)",   cro(1),    "CHRO",iLine)
+      call sixin_echoVal("ichrom",   ichrom,    "CHRO",iLine)
     end if
     if(iErr) return
 
   case(2)
 
-    if(nSplit > 0) tmp_is(2) = lnSplit(1)
-    if(nSplit > 1) call chr_cast(lnSplit(2),cro(2),   iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),cro(2), iErr)
+
+    crois(2) = find_singElemFromName(lnSplit(1))
+    if(crois(2) <= 0) then
+      write(lerr,"(a)") "CHRO> ERROR Element '"//trim(lnSplit(1))//"' not in single elements list"
+      iErr = .true.
+      return
+    end if
 
     if(st_debug) then
-      call sixin_echoVal("bez_is(2)",tmp_is(2),"CHRO",iLine)
-      call sixin_echoVal("cro(1)",   cro(2),   "CHRO",iLine)
+      call sixin_echoVal("bez_is(2)",lnSplit(1),"CHRO",iLine)
+      call sixin_echoVal("crois(2)", crois(2),  "CHRO",iLine)
+      call sixin_echoVal("cro(2)",   cro(2),    "CHRO",iLine)
     end if
     if(iErr) return
-
-    do i=1,il
-      if(tmp_is(1) == bez(i)) is(1) = i
-      if(tmp_is(2) == bez(i)) is(2) = i
-    end do
-    if(ichrom0 >= 1 .and. ichrom0 <= 3) ichrom = ichrom0
-
-    if(st_debug) then
-      call sixin_echoVal("is(1)", is(1), "CHRO",iLine)
-      call sixin_echoVal("is(2)", is(2), "CHRO",iLine)
-      call sixin_echoVal("ichrom",ichrom,"CHRO",iLine)
-    end if
 
   case default
     write(lerr,"(a,i0)") "CHRO> ERROR Unexpected line number ",iLine

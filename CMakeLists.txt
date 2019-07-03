@@ -78,6 +78,7 @@ option(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
 option(STF "Single Track File: Write all tracks for postprocessing to fort.90 instead of 32 separate files fort.59 to fort.90. Required for >64 particles" ON)
 option(NAFF "Link to external NAFFlib for FMA." ON)
 option(HASHLIB "Build the md5 hash library" ON)
+option(ZLIB "Build and link zlib. Needed for BOINC and ZIPF block" ON)
 
 # Default OFF
 option(CERNLIB "Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions from deck plotdumy" OFF)
@@ -91,7 +92,6 @@ option(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
 option(FLUKA "Couple to FLUKA for beam collimation" OFF)
 option(PYTHIA "Link with Pythia8 for SCATTER module" OFF)
 option(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC and ZIPF block" OFF)
-option(ZLIB "Build and link zlib. Needed for BOINC and ZIPF block" OFF)
 option(ROOT "Link to the root libraries" OFF)
 
 # Build Options
@@ -136,6 +136,9 @@ set(PYTHIA_DIR ${CMAKE_SOURCE_DIR}/lib/pythia CACHE PATH "Path to the Pythia bui
 
 # FFLAGS depend on the compiler
 get_filename_component(Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
+
+# Remove .exe from compiler name on Windows
+string(REPLACE ".exe" "" Fortran_COMPILER_NAME ${Fortran_COMPILER_NAME})
 
 set(SIXTRACK_FEAT_CR "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
 set(SIXTRACK_FEAT_DA "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
@@ -226,10 +229,14 @@ if(AVX2)
   set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_avx2")
   set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_avx2")
 endif(AVX2)
-if(AVX512 OR AVX512_SKYLAKE)
+if(AVX512)
   set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_avx512")
   set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_avx512")
-endif(AVX512 OR AVX512_SKYLAKE)
+endif(AVX512)
+if(AVX512_SKYLAKE)
+  set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_avx512skylake")
+  set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_avx512skylake")
+endif(AVX512_SKYLAKE)
 if(NATIVE)
   set(SIXTRACK_FEAT_CR "${SIXTRACK_FEAT_CR}_native")
   set(SIXTRACK_FEAT_DA "${SIXTRACK_FEAT_DA}_native")
@@ -288,8 +295,8 @@ list(APPEND FORT90_LIB
   bouncy_castle plato_seq bdex fma dabnew end_sixtrack
   ranecu wire elens mod_dist scatter dump dynk cheby utils
   aperture mod_fluc beam6d_fox six_fox postprocessing
-  read_write ranlux collimation coll_db coll_dist mod_particles
-  mod_ffield mod_ffield_aux
+  read_write ranlux collimation coll_db mod_particles cheby utils
+  mod_ffield mod_ffield_aux mod_find coll_dist
 )
 
 # Files unique to DA or CR version
@@ -551,6 +558,10 @@ if(STATIC)
   set(BUILD_SHARED_LIBS OFF)
 endif()
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(MIN_OSX_VERSION 10.10.5)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
 # FLAGS depend on the compiler
 get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
 
@@ -586,6 +597,10 @@ if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
   if(LTO)
     set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -flto")
   endif()
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+    set(CMAKE_Fortran_FLAGS "-mmacosx-version-min=${MIN_OSX_VERSION} ${CMAKE_Fortran_FLAGS}")
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mfpmath=sse -msse2")
@@ -782,6 +797,10 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
     endif(NATIVE)
   endif()
 
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+    set(CMAKE_C_FLAGS "-mmacosx-version-min=${MIN_OSX_VERSION} ${CMAKE_C_FLAGS}")
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+
   if(STATIC)
     set(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
   endif(STATIC)
@@ -837,6 +856,56 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
 
 endif()
 
+#AppleClang
+#Copied from GNU for now
+if(${CMAKE_C_COMPILER_ID} MATCHES "AppleClang")
+
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
+    set (CMAKE_C_FLAGS "-ffp-contract=off ${CMAKE_C_FLAGS}")
+  endif()
+  set (CMAKE_C_FLAGS_RELEASE "-O3")
+  set (CMAKE_C_FLAGS_DEBUG   "-O0 -g3")
+
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
+    if(32BIT)
+      set(CMAKE_C_FLAGS "-m32 ${CMAKE_C_FLAGS}")
+    endif(32BIT)
+
+    if(64BIT)
+      set(CMAKE_C_FLAGS "-m64 ${CMAKE_C_FLAGS}")
+    endif(64BIT)
+
+    if(AVX)
+      set(CMAKE_C_FLAGS "-mavx ${CMAKE_C_FLAGS}")
+    endif(AVX)
+
+    if(AVX2)
+      set(CMAKE_C_FLAGS "-mavx -mavx2 -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+    endif(AVX2)
+
+    if(AVX512)
+      set(CMAKE_C_FLAGS "-mavx -mavx2 -mavx512f -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+    endif(AVX512)
+
+    if(AVX512_SKYLAKE)
+      set(CMAKE_C_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+    endif(AVX512_SKYLAKE)
+
+    if(NATIVE)
+      set(CMAKE_C_FLAGS "-march=native ${CMAKE_C_FLAGS}")
+    endif(NATIVE)
+  endif()
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+    set(CMAKE_C_FLAGS "-mmacosx-version-min=${MIN_OSX_VERSION} ${CMAKE_C_FLAGS}")
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+
+  if(STATIC)
+    set(CMAKE_C_LINKER_FLAGS "-static ${CMAKE_C_LINKER_FLAGS}")
+  endif(STATIC)
+
+endif()
+
 # CXX Flags
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
 
@@ -875,6 +944,10 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
       set(CMAKE_CXX_FLAGS "-march=native ${CMAKE_CXX_FLAGS}")
     endif(NATIVE)
   endif()
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+    set(CMAKE_CXX_FLAGS "-mmacosx-version-min=${MIN_OSX_VERSION} ${CMAKE_CXX_FLAGS}")
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
 
   if(STATIC)
     set(CMAKE_CXX_LINKER_FLAGS "-static -static-libstdc++ ${CMAKE_CXX_LINKER_FLAGS}")
@@ -936,10 +1009,62 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
 
 endif()
 
-#check that the compiler has the features we need!
-# Disabling this test until its cmake version is in sync with the main build script as this breaks on Ubuntu 16.04
-# See https://github.com/SixTrack/SixTrack/issues/594
-#include(${CMAKE_SOURCE_DIR}/fortran_support.cmake)
+#AppleClang
+if(${CMAKE_CXX_COMPILER_ID} MATCHES "AppleClang")
+
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
+    set (CMAKE_CXX_FLAGS "-ffp-contract=off ${CMAKE_CXX_FLAGS}")
+  endif()
+  set (CMAKE_CXX_FLAGS_RELEASE "-O3")
+  set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
+
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
+    if(32BIT)
+      set(CMAKE_CXX_FLAGS "-m32 ${CMAKE_CXX_FLAGS}")
+    endif(32BIT)
+
+    if(64BIT)
+      set(CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}")
+    endif(64BIT)
+
+    if(AVX)
+      set(CMAKE_CXX_FLAGS "-mavx ${CMAKE_CXX_FLAGS}")
+    endif(AVX)
+
+    if(AVX2)
+      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+    endif(AVX2)
+
+    if(AVX512)
+      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mavx512f -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+    endif(AVX512)
+
+    if(AVX512_SKYLAKE)
+      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+    endif(AVX512_SKYLAKE)
+
+    if(NATIVE)
+      set(CMAKE_CXX_FLAGS "-march=native ${CMAKE_CXX_FLAGS}")
+    endif(NATIVE)
+  endif()
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+    set(CMAKE_CXX_FLAGS "-mmacosx-version-min=${MIN_OSX_VERSION} ${CMAKE_CXX_FLAGS}")
+  endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+
+  if(STATIC)
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+      #do nothing here - just to be clear c++ does not get fully statically linked
+      set(CMAKE_CXX_LINKER_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
+    endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
+  endif(STATIC)
+
+endif()
+
+# Check that the compiler has the features we need
+if(${CMAKE_VERSION} VERSION_GREATER "3.6.0")
+  include(${CMAKE_SOURCE_DIR}/cmake/fortran_support.cmake)
+endif()
 
 ###################################################################################################
 # Settings for what exactly to build
@@ -985,10 +1110,13 @@ endif()
 #build dafor
 add_executable(dafor ${CMAKE_SOURCE_DIR}/source/tools/dafor/dafor.f90)
 #we do not need any fancy flags for dafor but nagfor does not like the following
-if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
-  set_target_properties(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2")
-  set_target_properties(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2")
-endif(Fortran_COMPILER_NAME MATCHES "gfortran.*")
+#only do this on x86 + friends
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
+  if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
+    set_target_properties(dafor PROPERTIES COMPILE_FLAGS "-mno-avx -mno-avx2")
+    set_target_properties(dafor PROPERTIES LINK_FLAGS "-mno-avx -mno-avx2")
+  endif(Fortran_COMPILER_NAME MATCHES "gfortran.*")
+endif(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
 
 if(CRLIBM)
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/crlibm)
@@ -1045,8 +1173,20 @@ endif()
 # Build NAFFlib
 if(NAFF)
   if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/interface/naff_sixtrack_interface.c)
-    message(FATAL_ERROR "The git submodules NAFFlib is not available. Please run:
-    git submodule update --init lib/NAFFlib")
+    if(GIT_FOUND)
+      message(STATUS "Checking out NAFFlib submodule")
+      execute_process(
+        COMMAND ${GIT_EXECUTABLE} submodule update --init lib/NAFFlib
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        RESULT_VARIABLE GIT_SUBMOD_RESULT
+        ERROR_QUIET
+      )
+      if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+        message(FATAL_ERROR "git submodule update --init lib/NAFFlib failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+      endif()
+    else()
+      message(FATAL_ERROR "The git submodules NAFFlib is not available. Please download it into lib/NAFFlib")
+    endif()
   endif()
 
   file(GLOB NAFF_SOURCES ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/source/*.c ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/interface/naff_sixtrack_interface.c)

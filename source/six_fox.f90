@@ -15,7 +15,7 @@ subroutine umlauda
   use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
   use mod_commons
-  use mod_common_track, only : xxtr,yytr,issss,tasm,comt_daStart,comt_daEnd
+  use mod_common_track, only : xxtr,yytr,crois,tasm,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_commond2
   use wire
@@ -29,7 +29,7 @@ subroutine umlauda
     coefh1,cik,coefh2,coefv1,coefv2,crk,crxb,crzb,cx,dare,det1,dpdav,dps1,dps11,dummy,ed1,ed2,ox,   &
     oxp,oxp1,oz,ozp,ozp1,r0,r2b,r2bf,rb,rbf,rho2b,rkb,rkbf,scikveb,scrkveb,sfac1,sfac2,sfac2s,sfac3,&
     sfac4,sfac5,sigm1,sigmdac,startco,sx,tas,tkb,tl,x2pi,xbb,xrb,xs,zbb,zrb,zs,crabfreq,crabpht,    &
-    crabpht2,crabpht3,crabpht4
+    crabpht2,crabpht3,crabpht4,temp_angle,tan_t,sin_t,cos_t
   integer damap(6),damapi(6),damap1(6),aa2(6),aa2r(6),a1(6),a1r(6),xy(6),df(6),jj(100),i4(10,2)
   real(kind=fPrec) zfeld1(100),zfeld2(100),dpdav2(6),rrad(3),rdd(6,6),dicu(20),angnoe(3),angp(2,6), &
     phi(3),dphi(3),b1(3),b2(3),b3(3),al1(3),al2(3),al3(3),g1(3),g2(3),g3(3),d(3),dp(3),c(3),cp(3),  &
@@ -122,8 +122,8 @@ subroutine umlauda
     endif
   endif
   if(ichromc.eq.1) then
-    ed1=ed(issss(1))
-    ed2=ed(issss(2))
+    ed1=ed(crois(1))
+    ed2=ed(crois(2))
   endif
   call davar(x(1),ox,1)
   oxp1=oxp*(one+dps1)
@@ -918,6 +918,22 @@ subroutine umlauda
 #include "include/rfmulti_fox.f90"
       goto 440
     endif
+    if(kzz.eq.43) then
+      temp_angle = ed(ix)
+#include "include/xrot_fox.f90"
+      goto 440
+    endif
+    if(kzz.eq.44) then
+      temp_angle = ed(ix)
+#include "include/yrot_fox.f90"
+      goto 440
+    endif
+    if(kzz.eq.45) then
+      temp_angle = ed(ix)
+#include "include/srot_fox.f90"
+      goto 440
+    endif
+
 
 
 
@@ -1202,9 +1218,9 @@ subroutine umlauda
       endif
     endif
     if(ichromc.eq.1) then
-      if(ix.eq.issss(1).or.iratioe(ix).eq.issss(1)) then
+      if(ix.eq.crois(1).or.iratioe(ix).eq.crois(1)) then
         ipch=1
-      else if(ix.eq.issss(2).or.iratioe(ix).eq.issss(2)) then
+      else if(ix.eq.crois(2).or.iratioe(ix).eq.crois(2)) then
         ipch=2
       endif
     endif
@@ -1557,6 +1573,7 @@ subroutine umlauda
   call dadal(xy,6)
   call dadal(h,1)
   call dadal(df,6)
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   call comt_daEnd
   return
@@ -1988,7 +2005,8 @@ subroutine envada
         end do
       end do
     end do
-    ! DADAL AUTOMATIC INCLUSION
+! Do not remove or modify the comment below.
+!     DADAL AUTOMATIC INCLUSION
 
   return
 
@@ -2086,6 +2104,7 @@ subroutine envquad(i,ipch)
 !FOX  ASDAQ(IH,6)=-RV*(EL(I)+ALDAQ(IH,1)*ALDAQ(IH,2))/C4E3 ;
   if(ih.eq.1) goto 20
 100 continue
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   return
 end subroutine envquad
@@ -2154,7 +2173,7 @@ subroutine errff(xx,yy,wx,wy)
   use parpro
   use mod_common
   use mod_commons
-  use mod_common_track, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+  use mod_common_track, only : xxtr,yytr,crois,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   implicit none
@@ -2252,6 +2271,7 @@ call comt_daStart
 !FOX      WY=-WY ;
     endif
   endif
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   call comt_daEnd
   return
@@ -2296,7 +2316,7 @@ subroutine wireda(ix,i)
   use parpro
   use mod_common
   use mod_commons
-  use mod_common_track, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+  use mod_common_track, only : xxtr,yytr,crois,comt_daStart,comt_daEnd
   use mod_common_da
   use wire
   use mod_lie_dab, only : idao,rscrri,iscrda
@@ -2472,6 +2492,7 @@ call comt_daStart
 !FOX  YY(1)=YY(1)*C1E3;
 !FOX  YY(2)=YY(2)*C1E3;
 
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   call comt_daEnd
 end subroutine wireda
