@@ -690,7 +690,7 @@ subroutine collimate_init()
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_DEX            = ', cdist_smearX
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_NEY            = ', cdist_ampY
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_DEY            = ', cdist_smearY
-  write(lout,"(a,a)")     'COLL> Info: DIST_FILES          = ', trim(cdist_fileName)
+  write(lout,"(a,a)")     'COLL> Info: DIST_FILE           = ', trim(cdist_fileName)
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_EN_ERROR       = ', cdist_spreadE
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_BUNCHLENGTH    = ', cdist_bunchLen
   write(lout,"(a,i0)")    'COLL> Info: RSELECT             = ', int(rselect)
@@ -1846,7 +1846,7 @@ subroutine collimate_start
     if(firstrun) write(RHIClosses_unit,'(a)') '# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=dp/p 9=type'
   end if
 
-  ! Copy new particles to tracking arrays. Also add the orbit offset at start of ring!
+  ! Adding the orbit offset at start of ring
   if(do_thisdis /= 0 .or. radial) then
     xv1(1:napx) = c1e3 * xv1(1:napx) + torbx(1)
     yv1(1:napx) = c1e3 * yv1(1:napx) + torbxp(1)
