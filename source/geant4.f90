@@ -1,58 +1,29 @@
 module geant4
 
   use floatPrecision
-  use crcoall
-  use iso_c_binding, only: C_NULL_CHAR
-  use numerical_constants
+  use numerical_constants, only: zero
 
   implicit none
 
-  real(kind=fPrec) :: g4_recut
-  real(kind=fPrec) :: g4_aecut
-  real(kind=fPrec) :: g4_rcut
-  real(kind=fPrec) :: g4_rangecut
-  integer :: g4_physics
+  real(kind=fPrec) :: g4_recut    = zero
+  real(kind=fPrec) :: g4_aecut    = zero
+  real(kind=fPrec) :: g4_rcut     = zero
+  real(kind=fPrec) :: g4_rangecut = zero
+  integer :: g4_physics           = 0
   integer :: g4_keep
 
   character(len=64) :: phys_str
 
-  logical :: g4_enabled
-  logical :: g4_debug
-  logical :: g4_keep_stable
+  logical :: g4_enabled           = .false.
+  logical :: g4_debug             = .false.
+  logical :: g4_keep_stable       = .false.
 
 contains
-
-subroutine geant4_fortran_init()
-
-  implicit none
-
-!Set default values
-
-!Default physics = FTFP_BERT
-  g4_physics = 0
-
-!Default ecut = none
-  g4_recut = zero
-
-!Default rcut = none
-  g4_rcut = zero
-
-!Default absecut = none
-  g4_aecut = zero
-
-  g4_rangecut = zero
-
-  g4_enabled = .false.
-
-  g4_debug = .false.
-
-  g4_keep_stable = .false.
-
-end subroutine
 
 subroutine geant4_daten(inLine,iErr)
 
   use string_tools
+  use crcoall
 
   implicit none
 
@@ -67,6 +38,10 @@ subroutine geant4_daten(inLine,iErr)
   if(spErr) then
     write(lout,"(a)") "GEANT4> ERROR Failed to parse input line."
     iErr = .true.
+    return
+  end if
+
+  if(nSplit == 0) then
     return
   end if
 
@@ -123,9 +98,12 @@ subroutine geant4_daten(inLine,iErr)
     else if(phys_str .eq. 'QGSP_BERT') then
       g4_physics = 1
     else
-      write(lout,'(a)') 'GEANT4> WARNING: Unknown physics model requested: ',phys_str, ' defaulting to FTFP_BERT'
+      write(lout,'(3a)') 'GEANT4> WARNING: Unknown physics model requested: "',phys_str, '" defaulting to FTFP_BERT'
       g4_physics = 0
     end if
+  else
+    write(lerr,"(2a)") "GEANT4> ERROR unknown keyword", lnSplit(1)
+    iErr = .true.
   end if
 
 !Check configuration

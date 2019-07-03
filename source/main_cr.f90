@@ -258,9 +258,9 @@ program maincr
   call fluka_mod_init(npart_initial, nele_initial, clight)
 #endif
 
-#ifdef G4COLLIMATION
-  call geant4_fortran_init()
-#endif
+!#ifdef G4COLLIMATION
+!  call geant4_fortran_init()
+!#endif
   call ffield_mod_init
 
   call daten

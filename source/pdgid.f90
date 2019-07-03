@@ -208,8 +208,8 @@ else if(pdgid .gt. 1000000000) then
   end if
 !something else
 else
-  write(lout,'(a,i12,a)') 'Unknown particle ID in PDG id to FLUKA conversion: ', pdgid, '  - exiting!'
-  call prror(-1)
+  write(lerr,'(a,i0,a)') 'Unknown particle ID in PDG id to FLUKA conversion: ', pdgid, '  - exiting!'
+  call prror()
 end if
 
 return
