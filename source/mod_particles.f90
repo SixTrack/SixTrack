@@ -191,16 +191,17 @@ subroutine part_writeState(fileName, isText, withIons)
   use string_tools
   use numerical_constants
 
-  use, intrinsic :: iso_fortran_env, only : int16
+  use, intrinsic :: iso_fortran_env, only : int16, int32
 
   character(len=*), intent(in) :: fileName
   logical,          intent(in) :: isText
   logical,          intent(in) :: withIons
 
-  character(len=225) :: roundBuf
-  real(kind=fPrec)   :: tmpTas(6,6)
-  integer            :: fileUnit, i, j, iPrim, iLost
-  logical            :: rErr, isPrim
+  character(len=225)  :: roundBuf
+  real(kind=fPrec)    :: tmpTas(6,6)
+  integer(kind=int16) :: iIons
+  integer             :: fileUnit, i, j, iPrim, iLost
+  logical             :: rErr, isPrim
 
   call f_requestUnit(fileName, fileUnit)
 
@@ -299,10 +300,15 @@ subroutine part_writeState(fileName, isText, withIons)
     ! Format
     ! Header: 440 bytes
     ! Record:  80 bytes
-    ! + Ions:  16 bytes
+    ! + Ions:  24 bytes
     call f_open(unit=fileUnit,file=fileName,formatted=.false.,mode="w",status="replace",access="stream")
+    if(withIons) then
+      iIons = 1
+    else
+      iIons = 0
+    end if
     write(fileUnit) napxo,napx,npart,numl                               ! 4x32bit
-    write(fileUnit) nucm0,e0,e0f,aa0,zz0,qq0,1_int16                    ! 3x64bit + 4x16bit
+    write(fileUnit) nucm0,e0,e0f,aa0,zz0,qq0,iIons                      ! 3x64bit + 4x16bit
     write(fileUnit) clo(1),clop(1),clo(2),clop(2)                       ! 4x64bit
     write(fileUnit) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),clop6(3)  ! 6x64bit
     write(fileUnit) qwc(1),qwc(2),qwc(3)                                ! 3x64bit
@@ -324,11 +330,12 @@ subroutine part_writeState(fileName, isText, withIons)
       else
         iLost = 0
       end if
-      write(fileUnit) partID(j),parentID(j),iLost,iPrim      ! 4x32 bit
-      write(fileUnit) xv1(j),xv2(j),yv1(j),yv2(j)            ! 4x64 bit
-      write(fileUnit) sigmv(j),dpsv(j),ejfv(j),ejv(j)        ! 4x64 bit
+      write(fileUnit) partID(j),parentID(j),iLost,iPrim       ! 4x32 bit
+      write(fileUnit) xv1(j),xv2(j),yv1(j),yv2(j)             ! 4x64 bit
+      write(fileUnit) sigmv(j),dpsv(j),ejfv(j),ejv(j)         ! 4x64 bit
       if(withIons) then
-        write(fileUnit) nucm(j),naa(j),nzz(j),nqq(j),0_int16 ! 64 bit + 4x16 bit
+        write(fileUnit) nucm(j),naa(j),nzz(j),nqq(j),pdgid(j) ! 64 bit + 3x16 + 32 bit
+        write(fileUnit) 0_int16, 0_int32                      ! Pad to nearest 64 bit
       end if
     end do
   end if
