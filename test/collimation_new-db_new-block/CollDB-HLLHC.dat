@@ -1,3 +1,4 @@
+# Automatically converted collimator DB from old format file 'CollDB-HLLHC.dat'
 # Families
 NSIG_FAM tcp3                 12.000000
 NSIG_FAM tcsg3                15.600000
@@ -71,7 +72,7 @@ tcla.b6r7.b1                                                tcla7 Iner      1.00
 tcla.c6r7.b1                                                tcla7 Iner      1.000000     90.000000      0.000000     68.617233    151.887014
 tcla.d6r7.b1                                                tcla7 Iner      1.000000      0.000000      0.000000     65.049356    157.915734
 tcla.a7r7.b1                                                tcla7 Iner      1.000000      0.000000      0.000000     66.295252    142.265142
-tcld.8r7.b1                                             10.000000 Iner      0.600000      0.000000      0.000000     30.978830    117.702936
+tcld.8r7.b1                                                 tcryo Iner      0.600000      0.000000      0.000000     30.978830    117.702936
 tctph.4l8.b1                                                tcth8 Iner      1.000000      0.000000      0.000000    233.522756    284.915455
 tctpv.4l8.b1                                                tctv8 Iner      1.000000     90.000000      0.000000    244.084623    286.489824
 tcth.6l1.b1                                                 tcth1 CuCD      1.000000      0.000000      0.000000   1262.953775    303.824115

@@ -2,7 +2,8 @@ GEOMETRY----------------------------------------------------------------
 SETTINGS
   DEBUG
   QUIET 2
-  FINALSTATE text
+  INITIALSTATE text
+  FINALSTATE   text
 NEXT
 HASH
   MD5SUM dump_ip1.dat text
@@ -87,7 +88,7 @@ COLLIMATION-------------------------------------------------------------
   JAW_FIT1  -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
   JAW_FIT2  -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
 
-  BETA_BEAT     0 0 0 0
+  BETA_BEAT 0 0 0 0
   ALIGNERR_PRIM 0 0 0 0
   ALIGNERR_SEC  0 0 0 0
   ALIGNERR_GAP  0
@@ -106,6 +107,7 @@ COLLIMATION-------------------------------------------------------------
   WRITE_AMPL   on
   WRITE_TRACKS off
 
+  ! DO_RADIAL    off  6.003  0.0015
   DO_SELECT    off  TCP.C6L7.B1
 
   EMIT_DRIFT   0 0
@@ -113,7 +115,28 @@ COLLIMATION-------------------------------------------------------------
   CERN         off
 
   DO_NSIG  on
-  NSIG_FAM tcp3  5.5
-  NSIG_FAM tcsg3 8.0
+  NSIG_FAM tcp3     12.0
+  NSIG_FAM tcsg3    15.6
+  NSIG_FAM tcsm3   999.0
+  NSIG_FAM tcla3    17.6
+  NSIG_FAM tcp7      6.0
+  NSIG_FAM tcsg7     7.0
+  NSIG_FAM tcsm7   999.0
+  NSIG_FAM tcla7    10.0
+  NSIG_FAM tclp     10.0
+  NSIG_FAM tcli    999.0
+  NSIG_FAM tcdq      8.0
+  NSIG_FAM tcstcdq   7.5
+  NSIG_FAM tdi     999.0
+  NSIG_FAM tcth1     8.3
+  NSIG_FAM tcth2    30.0
+  NSIG_FAM tcth5     8.3
+  NSIG_FAM tcth8    30.0
+  NSIG_FAM tctv1     8.3
+  NSIG_FAM tctv2    30.0
+  NSIG_FAM tctv5     8.3
+  NSIG_FAM tctv8    30.0
+  NSIG_FAM tcxrp   999.0
+  NSIG_FAM tcryo    10.0
 NEXT
 ENDE
