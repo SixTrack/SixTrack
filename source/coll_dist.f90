@@ -160,7 +160,7 @@ end subroutine cdist_makeDist_fmt1
 
 ! ================================================================================================ !
 !  Generation of Distribution Format 2
-!  Uses format 1, and generates the a Gaussian in the other plane.
+!  Uses format 1 for the cleaning plane, and generates a Gaussian distribution in the other plane.
 !  Written by:   S. Redaelli, 2005-05-08
 !  Rewritten by: V.K. Berglyd Olsen, 2019-03-26
 ! ================================================================================================ !
