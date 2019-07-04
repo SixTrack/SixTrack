@@ -290,14 +290,55 @@ list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 ###################################################################################################
 
 list(APPEND FORT90_LIB
-  sixtrack version core_tools constants sixtrack_input mod_units
-  common_modules close strings string_tools mainarrays mod_meta
-  mod_time mod_alloc zipf matrix_inv lielib beam6d mod_geometry
-  bouncy_castle plato_seq bdex fma dabnew end_sixtrack
-  ranecu wire elens mod_dist scatter dump dynk
-  aperture mod_fluc beam6d_fox six_fox postprocessing
-  read_write ranlux collimation coll_db mod_particles cheby utils
-  mod_ffield mod_ffield_aux mod_find pdgid
+  aperture
+  bdex
+  beam6d
+  beam6d_fox
+  bouncy_castle
+  cheby
+  close
+  coll_db
+  coll_dist
+  collimation
+  common_modules
+  constants
+  core_tools
+  dabnew
+  dump
+  dynk
+  elens
+  end_sixtrack
+  fma
+  lielib
+  mainarrays
+  matrix_inv
+  mod_alloc
+  mod_dist
+  mod_ffield
+  mod_ffield_aux
+  mod_find
+  mod_fluc
+  mod_geometry
+  mod_meta
+  mod_particles
+  mod_time
+  mod_units
+  pdgid
+  plato_seq
+  postprocessing
+  ranecu
+  ranlux
+  read_write
+  scatter
+  six_fox
+  sixtrack
+  sixtrack_input
+  string_tools
+  strings
+  utils
+  version
+  wire
+  zipf
 )
 
 # Files unique to DA or CR version
